@@ -291,11 +291,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Zonder bank blijft er één weg over: een wedstrijd. Wie wint, krijgt de enige vrije standplaats van Grunn, een plek voor een frietwagen.",
+     "text": "Zonder bank blijft er één weg over: een wedstrijd. Wie wint, krijgt de enige vrije standplaats van Grunn, een plek voor een wagen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -320,7 +319,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Waarom nou een frietwagen?",
+     "text": "Is dat het plan? Een frietwagen?",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -328,7 +327,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Omdat mensen bij een luik blijven staan en gaan praten. Een thuis met wielen, Tammo. Dat wil ik.",
+     "text": "Het is een tekening, Tammo. Ik weet nog niet wat ik wil. Dit heb ik tot nu toe.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -337,7 +336,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "En ik rijd.",
+     "text": "Dan rijd ik hem. Tot je het weet.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -345,7 +344,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Jij rijdt.",
+     "text": "Tot ik het weet.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -387,6 +386,15 @@
      "channel": "stem",
      "textOnly": true,
      "humor": "H08",
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Iedereen gaat na zijn studie ergens anders heen. Wij niet.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
      "voice": "Anita"
     },
     {

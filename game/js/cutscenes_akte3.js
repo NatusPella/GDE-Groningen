@@ -116,7 +116,7 @@ S['M14.intro'] = {
     { on: 'Daar heb ik niks aan', actor: 'tammo', anim: 'shrug' },
   ],
   shots: [],
-  wide: { from: [-5, 4.6, 3.2], to: [-2.8, 3.2, 2.4], look: 'mid:jelle,tessa@1', fov: 50, until: 1 },
+  wide: { from: [-5, 4.6, 3.2], to: [-2.8, 3.2, 2.4], look: 'tammo@1.3', fov: 50, until: 1 },
 };
 
 S['M14.outro'] = {
@@ -140,7 +140,7 @@ S['M14.outro'] = {
     { on: 'Durk, Douwe', actor: 'jelle', anim: 'point' },
   ],
   shots: [],
-  wide: { from: [-4.4, 4.4, 3.1], to: [-2.5, 3.0, 2.3], look: 'mid:lammert,tessa@1', fov: 48, until: 1 },
+  wide: { from: [-4.4, 4.4, 3.1], to: [-2.5, 3.0, 2.3], look: 'mid:lammert,jelle@1', fov: 48, until: 1 },
 };
 
 // --- M15 Laag over het graan: Roelfien at her strip; the jury at the kermis ---
