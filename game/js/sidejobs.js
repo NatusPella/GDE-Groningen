@@ -509,7 +509,8 @@ function completeRound(c, res = {}) {
   if (aantal > 1 && !c.world.groepsbonusUitleg) { c.world.groepsbonusUitleg = true; bits.push(GROEPSBONUS_UITLEG); }
   c.world.addMessage(`${res.text ? res.text + ' ' : ''}${bits.join(' · ')}`, 3.6);
   // AAA bijbanen: een klant met een eigen praatje en een mijlpaal in de reeks; lokaal beeld bij de speler van deze dienst
-  try { const pr = klantPraatje(c.job.id, c.round - 1, c.beatSeed == null ? (c.beatSeed = Math.random()) : c.beatSeed); if (pr) c.world.addMessage(pr, 4.2, { kind: 'bijbaan' }); const rm = reeksMelding(c.streak); if (rm) c.world.addMessage(rm, 4, { kind: 'bijbaan' }); } catch (e) { /* een praatje mag de dienst nooit raken */ }
+  // alleen bij de eigen dienst van dit apparaat: voor de baan van een gast hoort het praatje niet op het scherm van wie het spel opende (review 21-11)
+  if (host) try { const pr = klantPraatje(c.job.id, c.round - 1, c.beatSeed == null ? (c.beatSeed = Math.random()) : c.beatSeed); if (pr) c.world.addMessage(pr, 4.2, { kind: 'bijbaan' }); const rm = reeksMelding(c.streak); if (rm) c.world.addMessage(rm, 4, { kind: 'bijbaan' }); } catch (e) { /* een praatje mag de dienst nooit raken */ }
   if (host) { try { stingen.push(world, 'stap'); } catch (e) { /* een sting mag de dienst nooit raken */ } } // AAA bijbanen: een betaalde ronde klinkt
   if (host) {
     if (c.levelUp) sayJobLine(c.job, 'level');
