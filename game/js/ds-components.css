@@ -445,3 +445,13 @@ html.reduce-motion .ds-uitleg .ds-uitleg__stap[data-anim] *, html.rustig-drukwer
 }
 .bd-hud[data-ctx] { --ds-kaart-rand: var(--ds-ctx-band); }
 :is(html.rustig-drukwerk, .ds-rustig) .ds-z-kaart[data-ctx] > .ds-z-kaart__kop::after, :is(html.rustig-drukwerk, .ds-rustig) #hud .mg-board[data-ctx] small::after { transform: none; }
+
+/* Toets in de knop (DS3, 21-11; dsbutton.js): een knop met een toets of controllerknop toont die als glyph BINNEN de knop, achter het label
+   (of aan de rechterrand van een rij), nooit als losse hint ernaast. Alleen em-maten: de maat van het plaatje komt uit ds-keycap.css (een knop
+   is een hintrij: 1,5 em). De glyph erft de kleur van de knop, dus het contrast volgt de knop (ook in Rustig drukwerk en de kleurenblindmodi). */
+.ds-z-knop--toets { gap: var(--ds-s-2); }
+.ds-z-knop__label { min-width: 0; }
+.ds-z-knop__toets { --ds-kc-cap: 1.5; display: inline-flex; align-items: center; flex: none; color: inherit; line-height: 1; white-space: nowrap; }
+.ds-z-knop__toets--rechts { margin-inline-start: auto; }
+.ds-z-knop__toets .pad-g, .ds-z-knop__toets .hud-key { color: inherit; }
+.ds-z-knop__toets:has(.pad-none) { display: none; }

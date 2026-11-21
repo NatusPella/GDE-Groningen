@@ -6,8 +6,11 @@
 
 import { CHARACTERS } from './storyarc.js';
 import { isOverlayHeld } from './overlayhold.js';
+import { runNoticeTimer } from './melding.js'; // het gedeelde aflopende balkje
+import { DURATION_CLASSES } from './noticetiming.js';
 
-const SHOW_S = 3.4;
+const SHOW_S = DURATION_CLASSES.kort; // een naam en één regel: de korte klas (4 s), met het aflopende balkje
+let meld = null;
 const WAIT_MAX = 12;
 let waitT = 0;
 let el = null;
@@ -40,7 +43,7 @@ function ensure() {
   document.head.appendChild(st);
   el = document.createElement('div');
   el.id = 'name-card';
-  el.className = 'ds-mi-in';
+  el.className = 'ds-mi-in ds-melding';
   el.innerHTML = '<div class="nc-name"></div><div class="nc-line"></div>';
   document.body.appendChild(el);
   return el;
@@ -63,7 +66,8 @@ export function showNameCard(key, { quiet = false, force = false } = {}) {
     el.style.transition = '';
     el.classList.add('on');
     clearTimeout(hideT);
-    hideT = setTimeout(() => { el.classList.remove('on'); el.classList.add('out'); }, SHOW_S * 1000);
+    if (meld) meld.stop();
+    meld = runNoticeTimer(el, { duur: SHOW_S, film: false, onKlaar: () => { el.classList.remove('on'); el.classList.add('out'); } });
   };
   const tryShow = (left) => {
     if (left > 0 && isOverlayHeld('naamkaart')) { waitT = setTimeout(() => tryShow(left - 1), 300); return; }

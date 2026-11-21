@@ -73,7 +73,7 @@ t('tabeltest: de taxi staat er altijd en weigert met een reden in gewone taal (#
   // de kaartkeuze toont de reden
   const keuzes = reisKeuzes(opts, 1600);
   assert.match(keuzes.find((r) => r.id === 'taxi').disabled, /achtervolging/);
-  assert.equal(keuzes.find((r) => r.id === 'zelf').disabled, null);
+  assert.ok(!keuzes.some((r) => r.id === 'zelf'), 'Zelf gaan is geen reisoptie meer: dat is Zet waypoint (21-11)');
 });
 
 console.log(`taxi_en_waypoint_test: ${n}/${n} ok`);

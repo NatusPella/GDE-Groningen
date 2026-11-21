@@ -689,6 +689,13 @@ function initPoliceContract(world) {
 
 function anyUnitSees(world) {
   const p = hoofdspeler(world);
+  // Inside a building (interiors.js, epic Interieurs #1150): the walls block the view, only someone right next to you sees you.
+  // So a pand is a hiding place: the sight lines are the walls, the police has to come in.
+  if (world.insideBuilding) {
+    for (const v of world.vehicles) if (v.isPolice && !v.hijacked && !v.wrecked && !v.disabled && v.driver !== 'player' && Math.hypot(v.x - p.x, v.y - p.y) < 9) return true;
+    for (const c of world.pedestrians) if (c.isCop && c.state !== 'dead' && Math.hypot(c.x - p.x, c.y - p.y) < 9) return true;
+    return false;
+  }
   for (const v of world.vehicles) {
     if (!v.isPolice || v.hijacked || v.wrecked || v.disabled || v.driver === 'player' || v.isBoat) continue;
     if (v._sees && Math.hypot(v.x - p.x, v.y - p.y) < SEE_RANGE_CAR) return true;

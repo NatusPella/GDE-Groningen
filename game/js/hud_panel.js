@@ -3123,10 +3123,9 @@ function drawMinimap(dt, world) {
     const actief = d.rol === 'actief';
     kompas.push({ a: edgeAngle(d.x, d.y), kleur: navColor(d, palet), icoon: GLYPH[d.glyph] || GLYPH.punt, actief, tekst: actief ? compactDistance(distanceFor(d, actieveRoute)) : '' });
   }
-  // obstakels op of bij de rand waar de markers omheen schuiven: de N-badge, het windschijfje en de hitte-chip (zolang hij er is)
+  // obstakels op of bij de rand waar de markers omheen schuiven: de N-badge en het windschijfje (de hitte-chip is er niet meer, #1141)
   const obstakels = [{ a: mapRotation - Math.PI / 2, nodig: 28 }];
   if (wind) obstakels.push({ a: Math.atan2(MINIMAP_SIZE - WIND_Y - cy, WIND_X - cx), nodig: 30 });
-  if (els.mmHeat && !els.mmHeat.hidden) obstakels.push({ a: -3 * Math.PI / 4, nodig: 40 }, { a: -2.05, nodig: 56 });
   drawKompasRand(ctx, MINIMAP_SIZE, kompas, { t, beweging: !reducedMotion(), obstakels });
 }
 

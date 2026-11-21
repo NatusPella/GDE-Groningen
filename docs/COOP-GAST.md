@@ -396,6 +396,10 @@ Valt de gastheer weg, dan neemt de **langst verbonden speler** over (`rangschik`
 
 **Wat er bewust níet is gebouwd (#450).** De route van de openbare lijst naar een koploze host (WebRTC in Node of een relay/ontmoetingspunt) en de Electron-variant van de host blijven eigenaarsbeslissingen: de eerste raakt constitutie 4/10 en een native dependency per platform, de tweede de releasebouw. De CLI, de wereldstaat, het wachtwoord, de aankondiging en het beheer blijven binnen deze repo en zijn gedocumenteerd in dit hoofdstuk.
 
+## De kaartpopups: Zet waypoint en Reis erheen (21-11)
+
+Wie het spel opende (de wereld) kan Reis erheen gebruiken: trein, bus, taxi of boot, met prijs, duur en aanbevolen. Een gast ziet dezelfde vier rijen uitgeschakeld met de reden "Alleen in je eigen spel", geen Reis nu en de uitleg dat een rit alleen je eigen figuur verplaatst (#388). Zelf gaan is geen reisoptie meer: dat is Zet waypoint, en dat doet iedereen lokaal in zijn eigen spel (de kaart en het waypoint zijn per speler). Geen nieuw bericht en geen snapshotveld. Een hulp-knop (?) en de toetsen in de knoppen zijn per speler lokaal. Test: kaartpopups_test (gast), kaartreispopup_test. Zie docs/KAART-POPUPS-21-11.md.
+
 ## Uitleg met iconen: de regelwidget (#987)
 
 Code: `regelwidget.js` en `regelwidget.css`; naslag en lijst van plekken in [UITLEG-MET-ICONEN.md](UITLEG-MET-ICONEN.md).
@@ -488,6 +492,10 @@ Wie gaat farmen (in een machine van de boerderij, een boerderijklus als bijbaan)
 
 **Samen spelen: de eenvoudigste regel.** De wissel is per speler en leeft op het eigen wereldobject van elk apparaat; niemand anders merkt iets (geen snapshot, geen EXTRA-bericht, PROTO blijft 2). In een sessie met vaste personages (#95) blijft het lichaam zoals het is (de host Tammo, de gast Tessa): er is geen model-wissel, maar tijdens de activiteit gelden wel de Tessa-regels (de kleine bonus uit `karakterbonus.js`, tabel `KARAKTER_BONUS`, in beeld in de boerderijstrook en de uitleg). Doen twee spelers tegelijk dezelfde activiteit, dan spelen beiden met de Tessa-regels en houdt ieder zijn eigen model. De beloning en de voortgang zijn per speler (#429). Valt iemand weg of sluit hij later aan: niets te herstellen, de staat is lokaal. Persona-regels (Tessa's achtergrond, Tammo over haar, een voorbijganger) komen af en toe (kans 40%, cooldown 240 s per soort, per apparaat). Test: `scripts/karakterbonus_test.mjs`.
 
+**Interieurs (#1150).** Alle panden met een deur zijn voor iedereen gelijk; het interieur wordt per client lokaal gebouwd uit het pandzaad (zelfde kamer overal) en er gaat niets over het netwerk. Spelers in hetzelfde pand zien elkaar (posities synchroniseren al) en botsen op dezelfde hal. De mensen erin zijn lokaal decor op vaste plekken. Kopen, bestellen, geld, gezondheid en voortgang zijn van de speler zelf (#429); een gast draait dit zonder host en niemand krijgt een recht bij. Een speler die binnen is bij een hostwissel merkt niets (het interieur hangt aan zijn eigen spel), een gast die later aansluit bouwt het interieur zodra hij in de buurt komt, en de mensen worden niet door de host gesimuleerd. Zie docs/INTERIEURS-21-11.md (Samen spelen, regels). Tests: `scripts/interior_core_test.mjs`, `scripts/interior_collision_test.mjs`, `scripts/interior_coop_test.mjs`.
+## Kleding (21-11, epic Kleding)
+
+De kast en wat je aanhebt zijn **per speler** (#429) en lokaal: niemand anders merkt iets van je kast of aankopen. De winkel is voor iedereen hetzelfde (aanbod deterministisch uit winkel en dag, geen netwerk). Medespelers zien jouw outfit via het optionele veld `avatar.outfit` (korte code, `clothing.js` `encodeOutfit`) in de hello en de spelerslijst; een oude client negeert het veld, PROTO blijft. Een gast doet zijn eigen kleding aan, de host ook; niemand beslist over andermans kast. Wegvallen: niets te herstellen. Later aansluiten: de code staat in de spelerslijst. Een wissel midden in een sessie gaat als `{ k: 'outfit', o: code }` van de gast naar de host, die de lijst opnieuw uitgeeft; een oude host of client negeert het (ronde 2, #1153). NPC-outfits zijn deterministisch uit zaad en rol. Test: `scripts/clothing_test.mjs`, `scripts/coopspeler_test.mjs`.
 ## Voetbalcarrière (#1106, 21-11): wie rekent, wie doet mee, wie krijgt wat
 
 De carrière is van de speler zelf (`gde-voetbalcarriere-v1`, nooit gedeeld, nooit in een savegame). Wat de zes vragen opleveren, met de test die het dekt (`voetbalsamen.js`, `scripts/voetbal_samen_test.mjs`):
@@ -499,3 +507,23 @@ De carrière is van de speler zelf (`gde-voetbalcarriere-v1`, nooit gedeeld, noo
 - **Wegvallen of later aansluiten:** de computer neemt over, het team wordt nooit leeg; geen instap halverwege.
 - **Rivalen (derby):** de indeling is gepland (`planTeams`); mensen in team 1 vraagt nog een wijziging in `voetbalmatch.js` en is niet gebouwd. De koppeling van de regels aan `coopnet.js` is ook nog niet gemaakt (docs/VOETBAL-CARRIERE-VERIFICATIE-21-11.md).
 - **Clubbezit en sponsorpanden:** een aandeel is van de speler (Bezit-register); een stadionpand heeft een eigenaar, de laagste tijd en daarna het laagste speler-id wint.
+
+## Overige systemen: Samen-regels (21-11, dekking)
+
+Bij de dekkingsaudit ([COOP-DEKKING-21-11.md](COOP-DEKKING-21-11.md), `scripts/coop_coverage_audit.mjs`) kreeg elk systeem de zes vragen van AGENTS.md. Voor de systemen die hierboven geen eigen regel hadden staat die hier, kort.
+
+**Recap (Waar waren we?).** De kaart na Doorgaan bestaat alleen in een sessie van één (`savegame.js` `coopSessieLoopt`); een gast of een lopende sessie slaat hem over (`recapcard.js` zegt "meespeler"). De staat (`gde-recap-v1`) is per apparaat en zit nooit in een savegame. Geen beloning, niets te herstellen bij wegvallen of een hostwissel. Test: `scripts/recapcard_test.mjs`.
+
+**Pings en waypoints (21-11).** De drie roepjes (7 Kom hier, 8 Help!, 9 Kijk daar, `coopping.js`) geven bij iedereen een baken in de wereld, een punt op de minimap en de kaart en een korte regel; ze vervallen vanzelf. Een navigatiedoel (waypoint) en de kaart zijn per speler: wat jij kiest ziet niemand anders, ook niet de bijrijder in jouw auto. Open: een ping op een gekozen kaartpunt en een waypoint delen bestaan niet (zie de matrix). Test: `scripts/coopspelers_test.mjs`.
+
+**Berovingen.** Een beroving (`muggings.js`) draait in de simulatie van wie het spel opende en kost een deel van diens eigen geld; een gast wordt nu niet beroofd. Dat is een bekend gat tegen de gelijkwaardigheid (zie de matrix); er is nooit geweld in beeld (constitutie 6). Test: `scripts/muggings_test.mjs`.
+
+**Telefoon en Te doen.** De telefoon en het Te doen-scherm zijn lokaal per speler; het filter van Te doen is per apparaat (`gde-todo-filter`). Een gast start een opdracht niet aan de telefoon of in Te doen maar bij het startpunt (`missieMagVanuitMenu`, #452). Het delen van een eigen voertuig staat in de telefoon (`coopbezit.js`). Tests: `scripts/telefoon_berichten_test.mjs`, `scripts/todo_ui_test.mjs`.
+
+**Dieren, duif en vrijetijd.** Dieren die je houdt (`gde-dieren-v1`) en het visboek zijn per speler. De duifmodus is van wie hem start; een gast bestuurt de duif mee (as, spatie, shift, #525) en kijken, stoppen en de camera blijven bij de eigenaar (`pigeonmode.js`). De fotomodus (`fotomodus.js`) en de radio zijn lokaal: een foto is een bestand op de eigen schijf en er gaat niets over het net. Evenementen zijn van de wereld (zie "Evenementen bij een gast"). Tests: `scripts/pigeon_sync_test.mjs`, `scripts/dierenregister_test.mjs`.
+
+**Stemmen, geluid en muziek.** Opgenomen stemmen, geluid en muziek speelt elk apparaat zelf af uit zijn eigen bestanden; dempen is van de speler zelf (`coopgeluid.js`). Geluid van andere spelers (schoten, motoren) komt als gebeurtenis binnen en wordt lokaal gespeeld. Er is geen spraakchat (#451, later en opt-in). Tests: `scripts/coopgeluid_test.mjs`, `scripts/voicebank_retry_test.mjs`.
+
+**Instellingen.** Instellingen (`gde-settings`) zijn per apparaat; niemand, ook niet wie het spel opende, past de instellingen van een ander aan. Cheats zijn de uitzondering die hierboven staat (uit zodra er een tweede speler is). Samen spelen aan of uit zetten staat bij Instellingen > Samen spelen. Tests: `scripts/settings_online_test.mjs`, `scripts/instellingen_test.mjs`.
+
+**Balans en groepsbonus.** Prijzen, loon en beloningen rekenen per speler en zijn voor iedereen gelijk (geen voordeel voor wie het spel opende); de groepsbonus van ADR 0020 komt per deelnemer erbovenop en is begrensd (`groepsbonus.js`). Zie [BALANS-21-11.md](BALANS-21-11.md).

@@ -57,7 +57,7 @@ letter maakt hem stil. Nieuwe opnames komen er in rondes bij op Flash-Lite (ADR 
 ## Personages
 
 Vaste cast, stem uit `scripts/tts_cast.mjs` en `scripts/tts_lines_list.mjs`
-(bijrollen: `docs/personages.md`):
+(bijrollen: `docs/personages.md`; per personage een volledige castingkaart in `game/js/characterdossiers*.js`, zie `docs/PERSONAGES-DOSSIERS-21-11.md`):
 
 | Wie | Rol | Stem en taal |
 |---|---|---|
@@ -129,6 +129,7 @@ Femke, Harm, Hilly, Hilje en Boer Roelf (`docs/verhaal/nieuw/00-OVERZICHT.md:67`
 
 ## Tests
 
+`scripts/characterdossiers_test.mjs` bewaakt de personagedossiers (velden, wederzijdse relaties, leeftijden, stemmen, scenes);
 `scripts/storydata_test.mjs` bewaakt formaat, sprekers, de verse build en dat elke
 scène op een stap staat; `scripts/story_similarity_test.mjs` de verboden zinsbouw;
 `scripts/text_audit.mjs` de verboden woorden, merken en "de Grunn";

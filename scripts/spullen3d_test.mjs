@@ -106,7 +106,7 @@ t('spullen.js: de viewer gebruikt createSharedPreview (geen eigen WebGLRenderer)
   const s = src('../game/js/spullen.js');
   assert.ok(/createSharedPreview\(c, \{/.test(s));
   assert.ok(!/new THREE\.WebGLRenderer|WebGLRenderer\(/.test(s));
-  assert.match(s, /export function disposeSpullenViewer\(\) \{ stopViewer\(\); \}/);
+  assert.match(s, /export function disposeSpullenViewer\(\) \{ stopViewer\(\); stopThumbs\(true\); \}/);
   assert.match(s, /viewer\.dispose\(\)/);
   assert.match(s, /IntersectionObserver/); // pauzeren buiten beeld
   assert.match(s, /speed: reducedMotion\(\) \? 0 : /); // beperkte beweging: geen automatische draai

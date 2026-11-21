@@ -309,7 +309,7 @@ DURK: Douwe, wij botsen. [NIEUW]
 DOUWE: …botsen. [NIEUW]
 TESSA: Je had vandaag drie keer ongelijk. Maar je bleef wel naast me. [NIEUW]
 TAMMO: Dat deel kan ik. [NIEUW]
-(regie: ze trekt hem aan zijn jas naar zich toe. De kus is kort en ruw, midden in het gebots. Een auto ramt de hunne. Hun hoofden stoten tegen elkaar.)
+(regie: ze trekt hem aan zijn kleren naar zich toe. De kus is kort en ruw, midden in het gebots. Een auto ramt de hunne. Hun hoofden stoten tegen elkaar.)
 KERMISEXPLOITANT: Eruit! Hier wordt gebotst, niet gekust! Wie wil er een lolly? [NIEUW]
 TAMMO: Au. [NIEUW]
 TESSA: Au. [NIEUW]

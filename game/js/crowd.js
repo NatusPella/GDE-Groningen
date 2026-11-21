@@ -51,7 +51,7 @@ export function buildCrowd(world, spec, { key = null, scene: target = null, grou
   const zAt = (x, y) => (map && map.groundHeightAt ? (map.groundHeightAt(x, y, 50) || 0) : 0);
   const members = plan.members.map((m) => {
     const lk = LOOKS[m.look % LOOKS.length];
-    const mesh = buildPersonMesh(lk.shirt, lk.skin, { seed: lk.seed, variant: lk.variant });
+    const mesh = buildPersonMesh(lk.shirt, lk.skin, { seed: lk.seed, variant: lk.variant, role: 'feestganger' });
     mesh.position.set(m.x, zAt(m.x, m.y), m.y);
     mesh.rotation.y = -m.a;
     mesh.scale.y = m.h;

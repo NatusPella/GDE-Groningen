@@ -1,0 +1,32 @@
+/* Meldingen: het aflopende balkje (DESIGN_SYSTEM.md, "Meldingen: duur en aflopend balkje"; wens van de eigenaar 21-11).
+   Elke tijdelijke melding heeft onderaan een balkje dat in zijn leestijd leegloopt, zodat de speler weet wanneer hij weggaat.
+   Regels (scripts/ds3_dekking_test.mjs):
+     - het balkje beweegt alleen met transform (scaleX), nooit met width; de duur komt van de melding (--ds-melding-duur, een
+       van de klassen uit ds-tokens.css: 4, 6, 9 of 10 s) en loopt lineair;
+     - kleur uit tokens: bordgroen standaard, rood bij een waarschuwing, licht groen op een donkere kaart; nooit geel;
+     - de timer stopt bij pauze, menu, film en hover (.ds-melding--pauze; melding.js, hudcards.js);
+     - Beweging beperken, Rustig drukwerk en prefers-reduced-motion: het balkje blijft staan en loopt in tien stappen (informatie, geen
+       decoratie); de leestijd zelf verandert niet;
+     - een kritieke melding (.ds-melding--kritiek) heeft geen balkje: ze sluit met een knop of toets. */
+.ds-melding { overflow: hidden; }
+.ds-melding > .ds-melding__tijd {
+  position: absolute; left: 0; right: 0; bottom: 0; display: block;
+  height: var(--ds-melding-balk-h); background: var(--ds-melding-balk);
+  transform-origin: left center; transform: scaleX(1); pointer-events: none;
+}
+.ds-melding--waarschuwing > .ds-melding__tijd { background: var(--ds-melding-balk-waarschuwing); }
+.ds-melding--donker > .ds-melding__tijd { background: var(--ds-melding-balk-donker); }
+.ds-melding--loopt > .ds-melding__tijd, .ds-melding.on > .ds-melding__tijd {
+  animation: ds-melding-tijd var(--ds-melding-duur, var(--ds-melding-normaal)) linear forwards;
+}
+/* een melding die nog niet in beeld is (.ds-mi-in zonder .on) loopt nog niet */
+.ds-melding.ds-mi-in:not(.on):not(.ds-melding--loopt) > .ds-melding__tijd { animation: none; }
+.ds-melding--pauze > .ds-melding__tijd, .ds-melding--pauze.on > .ds-melding__tijd { animation-play-state: paused; }
+.ds-melding--kritiek > .ds-melding__tijd, .ds-melding.sticky > .ds-melding__tijd { display: none; }
+.ds-melding--hover, #hud .ds-melding.ds-melding--hover { pointer-events: auto; }
+@keyframes ds-melding-tijd { to { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .ds-melding--loopt > .ds-melding__tijd, .ds-melding.on > .ds-melding__tijd { animation-timing-function: steps(var(--ds-melding-stappen, 10), end); }
+}
+html.reduce-motion .ds-melding--loopt > .ds-melding__tijd, html.reduce-motion .ds-melding.on > .ds-melding__tijd,
+html.rustig-drukwerk .ds-melding--loopt > .ds-melding__tijd, html.rustig-drukwerk .ds-melding.on > .ds-melding__tijd { animation-timing-function: steps(var(--ds-melding-stappen, 10), end); }

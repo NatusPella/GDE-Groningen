@@ -9,7 +9,7 @@ const ok = (c, m) => { n++; if (!c) { fails++; console.log('FAIL', m); } };
 const src = (f) => fs.readFileSync(new URL('../' + f, import.meta.url), 'utf8');
 
 const html = uitlegHtml({ gast: false });
-ok(/data-act="uitleg-sluit"/.test(html) && /class="ds-z-knop mv-help-ok"/.test(html) && /Begrepen/.test(html), 'één knop Begrepen met data-act uitleg-sluit');
+ok(/data-act="uitleg-sluit"/.test(html) && /class="ds-z-knop mv-help-ok ds-z-knop--toets"/.test(html) && /Begrepen/.test(html), 'één knop Begrepen met data-act uitleg-sluit');
 ok(/role="dialog"/.test(html) && /aria-modal="true"/.test(html), 'de uitleg is een dialoog');
 ok(uitlegHtml({ gast: true }).length > html.length, 'een gast leest er een regel bij');
 
@@ -29,7 +29,7 @@ ok(mv.includes("(e.key === 'Enter' || e.key === ' ') && kaartUitlegSluiten()"), 
 
 const pm = src('game/js/pausemenu.js');
 ok(/kaartUitlegSluiten/.test(pm.split('\n').find((l) => l.startsWith('import') && l.includes('mapview.js')) || ''), 'pausemenu.js importeert kaartUitlegSluiten');
-ok(/function goBack\(\) \{[\s\S]{0,300}?if \(tab === 'map' && \(kaartUitlegSluiten\(\) \|\| kaartReisPopupSluiten\(\)\)\) return;/.test(pm), 'Escape (en B) sluit eerst de uitleg, dan pas de kaart');
+ok(/function goBack\(\) \{[\s\S]{0,300}?if \(tab === 'map' && \(kaartUitlegSluiten\(\) \|\| kaartReisPopupSluiten\(\) \|\| kaartPlekkaartSluiten\(\)\)\) return;/.test(pm), 'Escape (en B) sluit eerst de uitleg, dan de popup, dan de plekkaart, dan pas de kaart');
 
 // ---- herontwerp 21-11 (eigenaar: "dat is nu een zootje"): compact, leesbaar, rustig, wijst naar de echte kaart ----
 import { UITLEG_DATA, MAX_WOORDEN } from '../game/js/uitlegdata.js';
@@ -45,15 +45,15 @@ ok(kd.stappen.every((s) => s.icoon && !s.toets), 'elke rij heeft één icoon; de
 ok(kd.stappen.every((s) => woordenTelling(s.tekst) <= MAX_WOORDEN), 'elke rij heeft hooguit acht woorden');
 const bekend = new RegExp(BRACE_KEY_RE.source);
 ok(kd.stappen.every((s) => [...s.tekst.matchAll(/\{[A-Z0-9]+\}/g)].every((m) => bekend.test(m[0]))), 'elk {TOKEN} in de rijen is een bekende toets');
-ok(kd.stappen.some((s) => /\{LMB\}/.test(s.tekst)) && kd.stappen.some((s) => /\{Q\}/.test(s.tekst) && /\{E\}/.test(s.tekst) && /\{M\}/.test(s.tekst) && /\{ESC\}/.test(s.tekst)), 'de rijen noemen muisklik, Q en E, M en Esc als toets');
+ok(kd.stappen.some((s) => /\{LMB\}/.test(s.tekst)) && kd.stappen.some((s) => /\{M\}/.test(s.tekst) && /\{ESC\}/.test(s.tekst)) && !kd.stappen.some((s) => /\{Q\}|\{E\}/.test(s.tekst)), 'de rijen noemen muisklik, M en Esc als toets; Q en E wisselen het menu onder de kaart en horen niet in de kaartuitleg');
 ok(kd.stappen.filter((s) => s.wijs).map((s) => s.wijs).join() === 'zoek,lagen', 'rij 1 en 2 wijzen naar het zoekveld en de knop Lagen');
 ok((ruw.match(/class="ds-uitleg__nr"/g) || []).length === 4 && /ds-uitleg--rij/.test(ruw), 'de rijen zijn genummerd 1 tot 4 (ds-uitleg--rij)');
 ok(/data-wijs="zoek"/.test(ruw) && /data-wijs="lagen"/.test(ruw), 'de rijen dragen data-wijs voor de wijzers');
-// onderaan: één primaire knop, de Enter-toets ernaast, Meer uitleg als uitklapper, de hulplink
-ok(/<details class="ds-uitleg__meer mv-help-meer"><summary>Meer uitleg<\/summary>/.test(ruw), 'Meer uitleg is een uitklapper');
-ok(/mv-help-hulp">Terug te vinden onder Instellingen › Besturing › Hulp\.<\/p>/.test(ruw), 'de hulplink staat netjes onderaan');
+// onderaan: één primaire knop met de Enter-toets IN de knop; geen uitklapper (een controller kwam er niet bij) en geen verwijzing naar Instellingen (21-11)
+ok(!/<details|Meer uitleg/.test(ruw), 'geen Meer uitleg-uitklapper meer: de rijen zijn de uitleg');
+ok(!/Instellingen|mv-help-hulp/.test(ruw), 'geen verwijzing naar Instellingen onderaan (de Hulp-knop op de kaart opent de uitleg opnieuw)');
 ok((ruw.match(/<button/g) || []).length === 1, 'één knop: Begrepen');
-ok(ruw.indexOf('mv-help-toets') > ruw.indexOf('Begrepen') && ruw.indexOf('mv-help-hulp') > ruw.indexOf('mv-help-toets'), 'volgorde: Begrepen, dan de Enter-toets, dan de hulplink');
+ok(/<button[^>]*data-key="ENTER"[^>]*>[\s\S]*Begrepen[\s\S]*ds-z-knop__toets[\s\S]*<\/button>/.test(ruw) && !/mv-help-toets/.test(ruw), 'de Enter-toets staat IN de knop Begrepen, niet ernaast');
 ok(/id="mv-help-t"/.test(ruw) && /aria-labelledby="mv-help-t"/.test(ruw), 'de dialoog heeft een naam voor de schermlezer');
 // de maten: kaart 420 tot 480 px, tekst 15 px of meer, geen vaste px-maat voor een toets, rustig bij verminderde beweging
 const mvCss = src('game/js/kaartactieui.js');

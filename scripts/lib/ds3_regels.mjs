@@ -305,3 +305,19 @@ export function telBestand(f, src) {
   });
   return { n, regels };
 }
+
+// ===== Toets in de knop (DS3, 21-11; DESIGN_SYSTEM.md "Toets in de knop", game/js/dsbutton.js) =====
+// Een knop met een toets of controllerknop (data-key) toont die als keycap-glyph BINNEN de knop (.ds-z-knop__toets met data-gk, via glyphHtml), nooit
+// als losse hint (.hint, .ds-toetsregel, .mv-help-toets) direct naast de knop. Pure controle op een stuk markup; geen browser nodig.
+export function controleerToetsInKnop(html) {
+  const f = [];
+  const tekst = String(html);
+  for (const m of tekst.matchAll(/<button\b([^>]*)>([\s\S]*?)<\/button>/g)) {
+    if (!/\bdata-key=/.test(m[1]) && !/\bdata-gamepad=/.test(m[1])) continue;
+    const naam = (m[1].match(/data-(?:card|act)="([^"]+)"/) || [null, m[1].trim().slice(0, 30)])[1];
+    if (!/class="[^"]*\bds-z-knop__toets\b[^"]*"/.test(m[2]) || !/\bdata-gk=/.test(m[2])) f.push({ regel: naam, bericht: 'een knop met data-key heeft zijn glyph (.ds-z-knop__toets met data-gk) niet in de knop' });
+  }
+  const los = [...tekst.matchAll(/<\/button>\s*<(?:span|p|small|kbd)\b[^>]*class="[^"]*\b(?:hint|ds-toetsregel|mv-help-toets)\b[^"]*"/g)].length;
+  if (los) f.push({ regel: 'toetshint', bericht: `${los}x een losse toetshint direct naast een knop: zet de toets in de knop (dsButtonKey)` });
+  return f;
+}

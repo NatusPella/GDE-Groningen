@@ -281,7 +281,7 @@ export function tryPostgameInteract(w) {
 }
 
 // Samen spelen (#443): de wedstrijdlaag start deze uitdaging voor iedereen, met sc = de baanwedstrijd van de host.
-export function startWedstrijd(id, sc) {
+function startWedstrijd(id, sc) {
   if (run || !open) return false;
   const s = (spots || []).find((q) => q.def.id === id);
   if (!s || !s.def.wedstrijd) return false;

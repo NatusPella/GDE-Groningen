@@ -14,9 +14,9 @@
 export const FAST_MS = 120;        // --ds-m-snel: de maat van de staffeling
 export const STEP_MS = 250;        // --ds-m-max: de langste duur van één onderdeel
 export const MAX_TOTAAL_MS = 1600; // de hele intro, vlak tot en met de glans
-export const TELLER_MS = 600;      // de teller loopt hierover
+const TELLER_MS = 600;      // de teller loopt hierover
 export const MAX_TIKKEN = 8;       // oplopende tikjes van de teller, nooit een ratel
-export const MIN_TIK_MS = 60;      // twee tikjes liggen minstens zo ver uit elkaar
+const MIN_TIK_MS = 60;      // twee tikjes liggen minstens zo ver uit elkaar
 
 const eenheden = (ms) => Math.round((ms / FAST_MS) * 100) / 100;
 

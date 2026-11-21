@@ -9,7 +9,7 @@ export const MAX_AWAY_PER_SEASON = 4;                                    // hoog
 export const NEAR_TRIP_M = 15000;                                        // ritten tot 15 km kosten één speldag, ver weg twee
 
 // De acht sjablonen (A.4 van het ontwerp); `%` is de plaats. Het eerste sjabloon gebruikt een dorpsbijnaam.
-export const NICKNAMES = ['Meeuwen', 'Kieviten', 'Ganzen', 'Veenmollen', 'Dijkgravers', 'Paardenbloemen', 'Slootspringers', 'Brugwachters', 'Fietsenstallers', 'Boterhammen', 'Ooievaars', 'Zwanen'];
+const NICKNAMES = ['Meeuwen', 'Kieviten', 'Ganzen', 'Veenmollen', 'Dijkgravers', 'Paardenbloemen', 'Slootspringers', 'Brugwachters', 'Fietsenstallers', 'Boterhammen', 'Ooievaars', 'Zwanen'];
 export const TEMPLATES = [
   (p, h) => `${adjective(p)} ${NICKNAMES[h % NICKNAMES.length]}`,
   (p) => `Wees Rap ${p}`,

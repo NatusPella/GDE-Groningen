@@ -2,6 +2,8 @@
 
 > **Let op:** de H-nummers hieronder zijn historie. De canon gebruikt M01-M30 en T1-T5; de mapping staat in [verhaal/nieuw/00-OVERZICHT.md](verhaal/nieuw/00-OVERZICHT.md) §6.
 
+> **Dossiers:** per personage staat een volledige castingkaart (wonen per akte, achtergrond, relaties, stem, kostuum, rol per stap, canon of voorstel) in `game/js/characterdossiers*.js`; zie [PERSONAGES-DOSSIERS-21-11.md](PERSONAGES-DOSSIERS-21-11.md). Deze bijbel blijft de toon- en stijlgids.
+
 Deze personagebijbel houdt de personages consistent: in dialogen, telefoontjes, gesprekjes in de auto, TTS-tags en cutscenes. Per personage staat hier hoe hij of zij praat, wat ze leuk vinden, wat ze haten, hun running gags, en wat ze nooit zouden zeggen.
 
 Regels die voor iedereen gelden:

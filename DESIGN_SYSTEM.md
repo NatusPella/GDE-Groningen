@@ -271,7 +271,7 @@ One icon language on the big map, the minimap and in the world. Every place is a
 The full map is the pause menu's one full-screen section (M opens and closes it). Chrome is the radial dark green with a 2 px green border and Bebas headings, drawn from the `INK` table, not from hexes in the file.
 
 - **Click on a place or an icon** opens a bar with exactly three actions, each with an icon and one line: **Zet waypoint** (a line and the distance), **Reis erheen** (cost and time), **Info**. A waypoint that is already there turns the first one into **Haal weg**;
-  a story place says **Volg het verhaal**. Travel is its own step: **Snel reizen** (costs time and money, the recommended mode is marked) or **Zelf gaan** (sets a waypoint and you drive or walk), never both at once. The bar is on the menu set (#602): 56 px rows, 26 px Bebas labels, 18 px explanation, all colours from the tokens. A first-time explanation is shown in the map column under the search field, so it never covers the title, the search field or the zoom buttons, and it stays findable in Besturing > Hulp.
+  a story place says **Volg het verhaal**. **Reis erheen** is only about HOW you travel (21 November): its popup lists train, bus, taxi and boat (and later flight, your own vehicle and a bike) with price, time, "aanbevolen" and, where a mode cannot be used, the reason in the row. There is no "Zelf gaan" option: **Zet waypoint is the one way to go yourself.** All map popups follow "Key in the button" and "Navigation with controller and keyboard" below (docs/KAART-POPUPS-21-11.md). The bar is on the menu set (#602): 56 px rows, 26 px Bebas labels, 18 px explanation, all colours from the tokens. A first-time explanation is shown in the map column under the search field, so it never covers the title, the search field or the zoom buttons, and it stays findable in Besturing > Hulp.
 - **One waypoint at a time**: a line on the map, the distance, a beacon in the world (`worldmarker3d.js`). Clear it by clicking it again, right click, `Del`, or X on a controller. A click within 30 m of it counts as a click on it.
 - **Travel mode** selector in the header, opening on how you travel now; roads you may not use dim.
 - **Legend and layers**: a short list of icon and name in collapsible groups that are also switches; the explanation sits in the tooltip, not in the legend. In the pause menu the map stays calm (the #132 choice): no permanent legend and no route bar, and the **Lagen** button top right opens the legend, the first time automatically; Esc closes it again. The footer hints at 13 px under the map.
@@ -314,7 +314,7 @@ Constitution 1 and 2 in [AGENTS.md](AGENTS.md) apply to every pixel of UI. In pr
 
 ## Sound in the UI
 
-Menu sounds are rules (`sfx/menunav.js`), not calls: a tick for moving, a select, a back, a toggle and a rising tone for a slider, all on the UI bus, one sound per gesture, none for hover or typing; any `.gm` menu gets them for free.
+Menu sounds are rules (`sfx/listnav.js`), not calls: a tick for moving, a select, a back, a toggle and a rising tone for a slider, all on the UI bus, one sound per gesture, none for hover or typing; any `.gm` menu gets them for free.
 Nothing important is sound only (captions, subtitles); every spoken line is voiced and subtitled; `U` mutes. Details in [docs/DESIGN-COMPONENTEN.md](docs/DESIGN-COMPONENTEN.md).
 
 ## Accessibility at a glance
@@ -591,7 +591,7 @@ No HUD element takes a click; a HUD value is a `.ds-z-waarde` plate and a HUD ca
 
 - **Scale:** `--ds-m-snel` 120 ms (a hover or press), `--ds-m` 200 ms (a fade-in, a streep), `--ds-m-max` 250 ms (the longest anything may take). Easing is `--ds-ease`, an ease-out (`cubic-bezier(0.2, 0.7, 0.2, 1)`). Only opacity, a 1 to 8 px move and fills animate; nothing bounces, flashes or loops.
 - **Reduced motion:** `prefers-reduced-motion: reduce` and `html.reduce-motion` (the game's "Beweging beperken") set the three durations to 0, so every component stops moving with no rule of its own. Meaning never depends on motion. No flash above three a second (`reduce-flash` stays).
-- **Sound hooks:** components make no sound themselves; the rules in `sfx/menunav.js` do (a tick, select, back, toggle, slider). A `.ds-knop` is a real button, so it is already an `ITEMS` entry; `.ds-papier, .ds-glas` are in `ROOTS`. No new sound.
+- **Sound hooks:** components make no sound themselves; the rules in `sfx/listnav.js` do (a tick, select, back, toggle, slider). A `.ds-knop` is a real button, so it is already an `ITEMS` entry; `.ds-papier, .ds-glas` are in `ROOTS`. No new sound.
 
 ### Microinteractions
 
@@ -645,7 +645,7 @@ The hard limit of 250 ms stays for every micro animation (`--ds-m-*`; the releas
 5. **No loops**, except the live dot and the bell (`.ds-m-stip--live`, one slow opacity breath, never above 0,5 per second). Everything else runs once and stays put.
 6. **Reduced motion has a counterpart for every class.** Each `.ds-m-*` and `.ds-moment-*` class that animates or transitions is listed in all three branches at the bottom of `ds-micro.css` (`html.reduce-motion`, `html.rustig-drukwerk`, `@media (prefers-reduced-motion: reduce)`) with `animation: none` and zero duration and delay: no motion, no stagger, no shock, the same words on the same place. "Rustig drukwerk" gets only a fade or an instant end state, never a shake or a stagger. Meaning never lives in the motion alone.
 7. **Performance budget.** At most 12 elements with their own animation at once (`MAX_GELIJK` in `dsmicro.js`: more rows simply stand there), at most 8 delayed rows, no JS per frame (timers at moment steps only), no continuous loop besides the live dot.
-8. **Sound.** A moment may sound; a micro animation does not (menu sounds stay in `sfx/menunav.js`). Sound goes through the existing SFX bus (`playTone`, `playNoiseBurst` on the sting bus, so it follows the Effects volume and mute): a UI tick (`tik`), a whoosh, a stamp slam (`slag`, `inslag`, `stempel`), a coin (`munt`). Never twice for one event: the achievement waits until the end card is gone (`isOverlayHeld`), so the slam of the end card and of the achievement never overlap, and the achievement sting (`achievementgeluid.js`) is the chime while `slag` is the slam under it.
+8. **Sound.** A moment may sound; a micro animation does not (menu sounds stay in `sfx/listnav.js`). Sound goes through the existing SFX bus (`playTone`, `playNoiseBurst` on the sting bus, so it follows the Effects volume and mute): a UI tick (`tik`), a whoosh, a stamp slam (`slag`, `inslag`, `stempel`), a coin (`munt`). Never twice for one event: the achievement waits until the end card is gone (`isOverlayHeld`), so the slam of the end card and of the achievement never overlap, and the achievement sting (`achievementgeluid.js`) is the chime while `slag` is the slam under it.
 9. **Samen spelen.** Animations are local: each player plays their own HUD, menus and sounds; nothing here is synced or sent over the net. An achievement is per player (#429), so a guest sees and hears only their own.
 
 **Catalogue.** Each row is the fixed pattern; use the class, not a new CSS rule.
@@ -675,6 +675,35 @@ The hard limit of 250 ms stays for every micro animation (`--ds-m-*`; the releas
 **The achievement as a moment** (`achievements.js`, `achievementunlock.js`, `achievementsui.js`). The card slams in with a screen-print shadow in the accent ink (`.ds-moment-stempel`, a hard 6 px shadow, no soft glow), the icon pops (`.ds-moment-ploft`), kicker, title and description come staggered (120 ms apart), a bar "x/y prestaties" fills while the number ticks, and a flat sheen sweeps over the card at the end; the whole moment is about 1 s. The accent ink is the rarity: gold is yellow (a medal or "alle goud", with the word *Goud* in a chip), a secret one is pink (the word *Geheim*), and an ordinary one takes the ink of its category. Several at once: the first of a series is a full card, the next two are short (title only, no bar, 60% of the dwell, a chip *nog N*), and what is left after three becomes one summary card (*Nog N prestaties*); the achievements themselves are in the menu. Sound: the existing sting (full card only), a short slam, a tick per counter step, a coin on the last and a soft sheen note. In the menu (Pauze, Prestaties): rows stagger in when the section or a tab opens (never on a fold or a selection), a just-unlocked row sweeps its sheen once per session, the category counter ticks up, a bar fills from what it was (never again on a fold) and a bar that is just full sweeps once. Under "Beweging beperken" and Rustig drukwerk: the card stands there with one slam, the bar and the number are final, no stagger.
 
 **Where it is applied (first set).** Pause-menu tabs (sliding underline, pop of the new dot on tabs and rail), HUD cards (`.ds-m-overshoot`), the money counter in the HUD (`.ds-m-tik` on money coming in), the objective card (the swap now runs on the tokens: 250 ms, the stamp easing, off under reduced motion), the achievement toast, the achievement menu (rows, chips, bars, counters, the button *Bekijk in de lijst*). Still to move over: the other `.ds-z-balk__vul` bars (their width transition predates this rule), the phone card and the other menus' rows.
+
+### Meldingen: duur en aflopend balkje
+
+The owner's wish (21 November): *some HUD items have a bar that runs down, so you know when a notice goes away; almost all notices may have that and stay in view about equally long, so you have time to read and you know when it goes.* One building block does it for every temporary notice: `game/js/noticetiming.js` (pure: duration, timer, queue, the register `NOTICE_TYPES`), `game/js/melding.js` (the DOM side: `noticeBar`, `runNoticeTimer`, `adjustRemaining`) and `game/js/ds-melding.css`. The inventory of every notice type is in [docs/MELDINGEN-21-11.md](docs/MELDINGEN-21-11.md).
+
+**Duration classes** (tokens `--ds-melding-*` in `ds-tokens.css`, kept equal to `DURATION_CLASSES` by `scripts/meldingtijd_test.mjs`):
+
+| Class | Time | For |
+|---|---|---|
+| `kort` | 4 s | a name, a few words, a menu notice, a queue with two or more waiting |
+| `normaal` | 6 s | one short sentence or a tip |
+| `lang` | 9 s | an explanation, or a sentence that teaches a key |
+| max | 10 s | the ceiling; a longer text lives in the text log (Pause > Help) |
+
+The time for a text is `2 s + characters / 15`, limited to 4 to 10 s and then rounded **up** to a class, so all notices have one of four durations. A notice that names a class keeps it as a floor; the text may lengthen it, never shorten it (a sentence is never cut before it can be read). Reading times are not animations: they do not go to 0 under "Beweging beperken".
+
+**The bar** (`.ds-melding__tijd`, inside an element with `.ds-melding`): 4 px (`--ds-melding-balk-h`) at the bottom edge, full at first and empty at the end, linear, moved **only with `transform: scaleX`** (never `width`); the duration is `--ds-melding-duur` on the notice, one of the four classes. Colour from tokens: **board green** (`--ds-melding-balk`) by default, **red** (`--ds-melding-balk-waarschuwing`, `.ds-melding--waarschuwing`) for danger and police, a light green (`--ds-melding-balk-donker`, `.ds-melding--donker`) on a dark card; **never yellow** (reserved). A critical notice (`.ds-melding--kritiek`, or a card that waits for a click) has no bar and closes with a button or a key; today that is the frame error and a card under "Leestijd: geen timer".
+
+**Pause and hover.** The timer stops while the game is paused, the pause menu is open, a cutscene hides the HUD (`cine-hide-hud`), a story call or subtitle holds the card back, or the player hovers over the notice (`.ds-melding--hover`, only for a notice that may take the pointer, today the achievement toast; HUD cards stay click-through to the world on purpose, #801). While it stands still the bar stands still (`.ds-melding--pauze`, `animation-play-state: paused`). A notice that belongs to a film (the name card) keeps running during that film (`film: false`).
+
+**Queue.** At most `max` visible (HUD cards: one), the rest wait in order of priority (`precedence`: critical, then higher priority, then the oldest); with two or more waiting, a notice that comes out of the queue is `kort` (`queueDuration`), and the one that is up is shortened only after it was readable for 3 s (`shortening`, the bar follows through `adjustRemaining`). A notice stays inside its zone (`hudstack.js`, `hudrules.js`): no overlap with other zones.
+
+**Reduced motion (decided).** The bar is information, not decoration: under "Beweging beperken", Rustig drukwerk and `prefers-reduced-motion` it stays visible and runs **in ten steps** (`steps(var(--ds-melding-stappen), end)`) instead of smoothly. The reading time does not change. Rejected: hiding the bar (the player no longer knows when it goes) and a static bar (it says nothing about what is left).
+
+**Screen reader.** The bar is `aria-hidden`; the text stays in the existing `aria-live` regions (the card stack, the toast, the menu notice). No new live region: one voice per notice.
+
+**Exceptions (with a reason, in `NOTICE_TYPES`).** The frame error (critical), the end card and big moments (their own direction and skip), banners, the district card and landmark shot (a cinematic moment), subtitles (their own reading time: the length of the spoken line), the saved tick (a 2 s status symbol), the loading screen, and the stunt brief (the activity decides; a follow-up). `scripts/ds3_dekking_test.mjs` fails a new file that removes an element with `.add('out')` on a timer and is not in the register.
+
+**Samen spelen.** Notices are local per player: nothing is synced or sent over the net; a guest sees only their own cards, toasts and bars.
 
 ### Rules for components (additions to the checklist)
 
@@ -776,6 +805,28 @@ Every key, mouse or controller reference in a player-visible text is an icon, ne
 8. **Mouse.** The mouse is the Kenney mouse set in the same font and look as the keys (`mouseGlyph` in inputglyphs.js): `{LMB}` left button, `{RMB}` right button, `{MMB}` middle button, `{WHEEL}` scroll wheel, `{MOUSE}` movement (aim, look), `{DRAG}` drag side to side. 'Klik' on a menu button or in the map footer is the `{LMB}` icon (`keyLabelHtml('Klik')`); with a controller the icon becomes the matching stick or button (`padSlotFor`). The words 'muisknop', 'linkermuis', 'rechtermuis', 'muiswiel', 'scrollwiel', 'LMB', 'RMB' in a game text are findings like any key name.
 9. **Findings.** A new hint without a token (a key name as a word in a game text, or a text keycap in HTML without an icon) is an important finding of the release gate. Only spoken lines and subtitles (the text must follow the clip), files that render tokens themselves, and a line marked `keywords-ok` (search words) are exempt, each with a reason in `scripts/key_literals_test.mjs`.
 
+
+## Key in the button
+
+A button that has a key or a controller button shows it as a keycap glyph **inside the button itself**, never as a loose hint next to it (assignment of 21 November, map popups). One component builds it: `dsButtonKey` and `knopToets` in `game/js/dsbutton.js`, which wrap `glyphHtml` (keycap.js). Rules:
+
+1. **Inside, after the label** (`.ds-z-knop__label` then `.ds-z-knop__toets`); a list row puts the key on the right edge (`.ds-z-knop__toets--rechts`). `voor` puts it before the label where a button reads left to right with a leading key.
+2. **The token system, nothing else.** The glyph carries `data-gk`, so `glyphs.js` follows rebinding and switches live to the device in use (keyboard, Xbox, PlayStation, Steam Deck, Switch); on touch, or where the controller has no such button (a digit), the glyph and its wrapper disappear and the button keeps its label.
+3. **One size and colour.** The size is the hint-row size of ds-keycap.css (1.5 em, never a px size in a component); the glyph inherits the button's text colour, so its contrast follows the button, also in Rustig drukwerk and the colour-blind modes.
+4. **The pattern keys.** Confirm is `ENTER` (A), back is `ESC` (B); a row choice is its digit 1 to 9. A disabled button shows no key.
+5. **Accessible.** The wrapper is `aria-hidden`; the button carries `data-key` and `aria-keyshortcuts` (Enter, Escape, the digit).
+6. **Enforced.** `controleerToetsInKnop` (scripts/lib/ds3_regels.mjs, run by ds3_dekking_test): a button with `data-key` has its glyph in the button, and no `.hint`, `.ds-toetsregel` or `.mv-help-toets` stands directly after a `</button>`.
+
+## Navigation with controller and keyboard (menu pattern)
+
+One pattern for every popup and menu list, so it works the same everywhere. The pad sends the same keys as the keyboard (`PAD_MAPS.menu` in controls.js), so there is one code path.
+
+- **Confirm** Enter or A. **Back** Esc or B, one layer per press (a popup, then the card, then the screen). **Secondary action** X or Delete where it exists (clear the waypoint). **Choose a row** the digits 1 to 9, shown in the row. **Tabs and pages** Q and E or LB and RB (the pause menu's pages); they do nothing inside a modal popup.
+- **Walk** ArrowUp and ArrowDown or the D-pad and stick through the buttons in reading order, ArrowLeft and ArrowRight between the footer buttons, Home and End to the ends (`navIndex`, game/js/listnav.js). A list stops at its edge; a modal popup also takes Tab and Shift+Tab round (a focus trap).
+- **First focus** on the primary action (Reis nu, Begrepen, the first action of a card), so Enter or A does the main thing at once. **After closing** the focus returns to the control that opened it.
+- **Visible focus** is the DS3 ring (`--ds-focus`, 2 px, offset 2), always for keyboard and pad, never after a mouse click (`:focus-visible`); `html.pad-active` keeps it for the pad.
+- **Modal or not.** A popup that covers the screen is modal (focus trap, the pad stays inside, the map under it stays still); a card on the map is not (no trap; Esc gives the map back).
+- **Mouse and touch keep working**: hover and click do what Enter does; a click outside a modal popup is Back.
 
 ## Context identity (#1004, trial set golf and farming)
 

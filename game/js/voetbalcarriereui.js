@@ -2,6 +2,7 @@
 // `.ds-z-*` en de microanimaties `.ds-m-*`, geen eigen componenten of kleuren). De HTML komt uit pure functies (testbaar in node: scripts/voetbal_ui_test.mjs); renderVoetbalPanel zet hem in de DOM en
 // luistert op `data-vb`. Hoofdknop per scherm: een primaire (geel), de rest stil; toetsenbord, controller en aanraken doen hetzelfde (gewone knoppen); Esc of B gaat terug (pausemenu).
 // Niet door een mens in beeld bekeken (zie docs/VOETBAL-CARRIERE-VERIFICATIE-21-11.md).
+import { hoofdspeler } from './players.js';
 import * as C from './voetbalcarriere.js';
 import * as O from './voetbalontwikkeling.js';
 import * as A from './voetbalagenda.js';
@@ -38,7 +39,7 @@ const tabsFor = (c) => [...TABS, ...(c && c.roles && c.roles.trainer ? [['traine
 const tabsHtml = (tab, c) => `<nav class="ds-z-tabs ds-m-tabs vb-tabs" role="tablist" aria-label="Voetbal">${tabsFor(c).map(([id, naam]) => `<button type="button" role="tab" class="ds-z-tab" data-vb="tab:${id}" aria-selected="${id === tab}">${esc(naam)}</button>`).join('')}</nav>`;
 
 // ---- schermen ----
-export function viewVandaag(c, env) {
+function viewVandaag(c, env) {
   const m = env.match, ov = env.ov;
   const voorstel = proposal(c, m);
   let card;
@@ -61,7 +62,7 @@ export function viewVandaag(c, env) {
   return `${bod}${card}${stat}<p class="vb-acties">${knop('play', 'Speel de wedstrijd', { primair: true, uit: speel ? '' : reden })} ${knop('sim', 'Laat uitrekenen', { uit: m && (m.status === 'open' || m.status === 'missed') ? '' : reden || 'Nog niet aan de beurt' })} ${knop('tab:training', 'Naar training', { ghost: true })}</p>${reg}${spons}`;
 }
 const bal = (naam, v, cap) => `<li class="ds-z-rij ds-m-rij"><span class="ds-z-rij__naam">${esc(naam)}</span><span class="ds-z-rij__waarde">${bar(`${v} van ${cap}`, v / 100)}</span></li>`;
-export function viewSelectie(c, env) {
+function viewSelectie(c, env) {
   const p = c.me, mate = c.mate;
   const attrList = ATTRS.map((k, i) => bal(ATTR_NAMES[k], p.attrs[k], attrCap(p, k))).join('');
   const talenten = p.talents.length ? p.talents.map((t) => chip(TALENTS[t].naam)).join(' ') : chip('Nog geen talent');
@@ -71,7 +72,7 @@ export function viewSelectie(c, env) {
     `<p class="ds-z-kaart__voet">${esc(mate.name)} speelt mee als teamgenoot en groeit mee, wat langzamer.</p></article>` +
     `<h3 class="ds-z-kaart__titel">Selectie van 18</h3><ul class="ds-z-lijst vb-selectie">${sq}</ul>`;
 }
-export function viewTable(c, env) {
+function viewTable(c, env) {
   const st = C.leagueTable(c);
   const n = st.rows.length;
   const rows = st.rows.map((r, i) => {
@@ -84,7 +85,7 @@ export function viewTable(c, env) {
   const eu = c.europe ? `<p>${chip(`Waddenbeker: ${c.europe.winner === c.club ? 'gewonnen' : c.europe.alive.includes(c.club) ? 'nog in de race' : 'uitgeschakeld'}`)}</p>` : '';
   return `<h3 class="ds-z-kaart__titel">${esc(DIV[st.division])} · ronde ${st.round} van ${ROUNDS}</h3><ol class="ds-z-lijst vb-stand">${rows}</ol>${extra}${eu}`;
 }
-export function viewKalender(c, env) {
+function viewKalender(c, env) {
   const div = C.divisionOfMyClub(c) || 'talent';
   const lg = c.leagues[div];
   const mijn = [];
@@ -101,7 +102,7 @@ export function viewKalender(c, env) {
   const res = c.result ? `<article class="ds-z-kaart ds-z-kaart--bord ds-m-binnen on"><p class="ds-z-kaart__tekst">Vorig seizoen (${c.result.nr}): ${esc(DIV[c.result.division])} plek ${c.result.rank}, ${esc(c.result.outcome.replace('-', ' en '))}.</p></article>` : '';
   return `<h3 class="ds-z-kaart__titel">Seizoen ${c.seasonNr}</h3><ol class="ds-z-lijst vb-kalender">${items}</ol>${res}<p class="ds-z-kaart__voet">Een ronde elke 3 speldagen. Pauze tussen de seizoenen: ${A.BREAK_DAYS} speldagen.</p>`;
 }
-export function viewTraining(c) {
+function viewTraining(c) {
   const done = !O.canTrain(c, c.day - c.seasonStart);
   const focusCards = ATTRS.map((k, i) => {
     const v = c.me.attrs[k], cap = attrCap(c.me, k), sel = c.focus === k;
@@ -112,7 +113,7 @@ export function viewTraining(c) {
     `<p class="ds-z-kaart__voet">Een wedstrijd telt als de training van die dag. Hoe dichter bij je plafond, hoe langzamer het gaat.</p>`;
 }
 // De uitnodiging of de dichte staat: voor wie de carrière nog niet begon.
-export function viewTrainer(c, env) {
+function viewTrainer(c, env) {
   const rollen = formationList('groot', c.tactic.formation).map((x) => x.rol);
   const lu = C.lineupOf(c, env.getClub, rollen);
   const vm = C.TACTICS.formations.map((f) => `<button type="button" class="ds-z-tab" data-vb="tactic:formation:${f}" aria-pressed="${c.tactic.formation === f}">${f}</button>`).join('');
@@ -121,7 +122,7 @@ export function viewTrainer(c, env) {
   return `<p>${chip('Je mag blijven spelen')} ${chip('Opstelling en tactiek zijn van jou')}</p><h3 class="ds-z-kaart__titel">Vorming</h3><p class="vb-acties">${vm}</p><h3 class="ds-z-kaart__titel">Speelstijl</h3><p class="vb-acties">${st}</p>` +
     `<h3 class="ds-z-kaart__titel">Basis (${lu.basis.length})</h3><ul class="ds-z-lijst vb-selectie">${li(lu.basis, 0)}</ul><h3 class="ds-z-kaart__titel">Bank (${lu.bank.length})</h3><ul class="ds-z-lijst vb-selectie">${li(lu.bank, 8)}</ul>`;
 }
-export function viewManager(c, env) {
+function viewManager(c, env) {
   const cash = C.clubCash(c, env.getClub), venster = T.inBreak(c);
   const marketRows = (c.market.pool || []).map((q, i) => `<li class="ds-z-rij ds-m-rij" ${rij(i)}><span class="ds-z-rij__naam">${esc(q.name)}</span><span class="ds-z-rij__sub">${esc(ROLE_NAMES[q.role])} · rating ${playerRating(q)}</span><span class="ds-z-rij__waarde">${euro(T.priceOf(q))} ${knop(`buy:${q.id}`, 'Koop', { uit: venster ? (T.priceOf(q) > cash ? 'De clubkas is te klein' : '') : 'Alleen in de pauze tussen de seizoenen' })}</span></li>`).join('');
   const eigen = C.squadOf(c, c.club, env.getClub).filter((q) => !q.protagonist).slice(0, 18).map((q, i) => `<li class="ds-z-rij ds-m-rij" ${rij(i)}><span class="ds-z-rij__naam">${esc(q.name)}</span><span class="ds-z-rij__sub">${esc(ROLE_NAMES[q.role])} · rating ${playerRating(q)}</span><span class="ds-z-rij__waarde">${euro(T.sellPrice(q))} ${knop(`sell:${q.id}`, 'Verkoop', { uit: venster ? '' : 'Alleen in de pauze tussen de seizoenen' })}</span></li>`).join('');
@@ -129,7 +130,7 @@ export function viewManager(c, env) {
     `<h3 class="ds-z-kaart__titel">Transfervrije spelers</h3>${marketRows ? `<ul class="ds-z-lijst vb-selectie">${marketRows}</ul>` : '<div class="ds-z-leeg"><p class="ds-z-leeg__kop">Niemand op de markt</p><p class="ds-z-leeg__tekst">Na elk seizoen komen er nieuwe spelers vrij.</p></div>'}` +
     `<h3 class="ds-z-kaart__titel">Jouw selectie</h3><ul class="ds-z-lijst vb-selectie">${eigen}</ul><p class="ds-z-kaart__voet">Verkopen levert hooguit 80% min 10% belasting op: een koop en verkoop kost altijd geld.</p>`;
 }
-export function viewUitnodiging(c, env) {
+function viewUitnodiging(c, env) {
   if (!env.unlocked) return `<div class="ds-z-leeg"><p class="ds-z-leeg__kop">De voetbalcarrière komt later</p><p class="ds-z-leeg__tekst">${esc(env.hint || 'Dit komt later in het verhaal.')} De Euroborg en de penaltyserie kun je nu al spelen.</p></div>`;
   const b = inviteBeat(c, { unlocked: true, busy: false, day: -1 }, env.char || 'anita');
   const t = b ? `<strong>${esc(b.wie)}</strong>: ${esc(b.tekst)}` : 'De club hier in de buurt zoekt spelers.';
@@ -154,7 +155,7 @@ const CSS = `.vb-pane { display: grid; gap: var(--ds-s-2, 10px); padding: var(--
 .vb-vaardig .ds-z-rij__waarde { min-width: 180px; }`;
 let cssLoaded = false;
 const zetCss = () => { if (cssLoaded || typeof document === 'undefined') return; cssLoaded = true; const el = document.createElement('style'); el.textContent = CSS; document.head.appendChild(el); };
-export const envFor = (w, progress = {}) => ({ getClub: V.getClub, unlocked: voetbalOpen(progress), hint: voetbalHint(progress), char: (w && w.player && w.player.character === 'tammo') ? 'tammo' : 'anita' });
+export const envFor = (w, progress = {}) => ({ getClub: V.getClub, unlocked: voetbalOpen(progress), hint: voetbalHint(progress), char: ((w && hoofdspeler(w)) || {}).character === 'tammo' ? 'tammo' : 'anita' });
 let progressFn = () => ({});
 export function useProgress(fn) { progressFn = typeof fn === 'function' ? fn : () => ({}); }
 let launcher = null;

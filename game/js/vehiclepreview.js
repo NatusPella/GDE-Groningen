@@ -354,6 +354,7 @@ export function createSharedPreview(canvas, { interactive = false, active = () =
 // --- snapshots ----------------------------------------------------------------------
 
 const shots = new Map();
+const shotGroups = new Map(); // group -> keys asked for with that group (releaseSnapshots)
 // a still that came out empty (no WebGL at that moment) is not kept: the next ask draws it again
 function forgetBlankShots() { for (const [k, v] of shots) if (!v) shots.delete(k); }
 const queue = [];
@@ -437,6 +438,7 @@ function pump(deadline) {
 export function renderSnapshot(spec, w, h, cb = null, { angle = 0.6, keep = false, group = '', zoom = 1, prio = false } = {}) {
   if (!spec) return null;
   const key = `${w}x${h}@${angle}${zoom === 1 ? '' : 'z' + zoom}|${JSON.stringify(spec)}`;
+  if (group) { let g = shotGroups.get(group); if (!g) shotGroups.set(group, g = new Set()); g.add(key); }
   if (!shots.has(key) && keep && keptShots().shots[key]) shots.set(key, keptShots().shots[key]);
   if (shots.has(key)) { if (cb) cb(shots.get(key)); return shots.get(key); }
   const job = queue.find((j) => j.key === key);
@@ -454,6 +456,17 @@ export function renderSnapshot(spec, w, h, cb = null, { angle = 0.6, keep = fals
 
 // Drops the snapshots of `group` that are still waiting (the garage closed
 // before its cards were all drawn); finished ones stay cached.
+// Gives the finished stills of `group` back (the Spullen gallery closed): their keys leave the cache, so a closed menu holds no
+// pictures. A key another group also asked for is drawn again on its next ask: one shot, never a GL context.
+export function releaseSnapshots(group) {
+  const g = shotGroups.get(group);
+  if (!g) return 0;
+  let n = 0;
+  for (const key of g) if (shots.delete(key)) n++;
+  shotGroups.delete(group);
+  return n;
+}
+
 export function cancelSnapshots(group) {
   for (let i = queue.length - 1; i >= 0; i--) if (queue[i].group === group) queue.splice(i, 1);
 }

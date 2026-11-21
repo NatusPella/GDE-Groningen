@@ -35,6 +35,7 @@ import { hengelVrijPrompt } from './hengelen.js';
 import { postgamePrompt, postgameSecondary } from './postgame.js';
 import { ommelandPrompt, ommelandSecondary } from './ommelandfun.js';
 import { beppePrompt } from './beppe_garden.js';
+import { interiorPrompt } from './interiors.js'; // de plekken binnen in een pand (#1150)
 import { renderAimReticle } from './aimassist.js';
 import { WEAPONS, isMeleeWeapon, isRangedWeapon } from './combat.js';
 import { gameBusy } from './busy.js';
@@ -383,6 +384,8 @@ function findPrimary(world) {
   // het eerbetoonbankje (#832): de twee bankjes aan de westgrens
   const beppe = beppePrompt(world);
   if (beppe) return beppe;
+  const binnen = interiorPrompt(world);
+  if (binnen) return binnen;
   const knip = kaartjesPrompt(world);
   if (knip) return knip;
   const halte = bushaltePrompt(world);
