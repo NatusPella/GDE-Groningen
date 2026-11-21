@@ -4,12 +4,12 @@
 // bestanden in een map buiten de repo; uploadt niets (docs/youtube/pakket.md).
 //
 //   node scripts/record_trailer.mjs                        toont wat er zou draaien (droog)
-//   node scripts/record_trailer.mjs --run                  teaser en hoofd, 1080p en 4K
+//   node scripts/record_trailer.mjs --run                  ontdek, teaser en hoofd, 1080p en 4K
 //   node scripts/record_trailer.mjs --run --cut=gameplay,verhaal --res=1080p
 //   node scripts/record_trailer.mjs --out=D:/opnames --run
 //   node scripts/record_trailer.mjs --run --slot           wacht op een Electron-slot (gde-locks)
 //
-// Cuts: teaser, hoofd (trailerplan.js), gameplay, verhaal (Steam-cuts, CUT_ORDER
+// Cuts: teaser, hoofd, ontdek (trailerplan.js; ontdek = de filmcut van 75 s, docs/verhaal/TRAILER-FILMSCRIPT-21-11.md), gameplay, verhaal (Steam-cuts, CUT_ORDER
 // in trailer.js), kort, vol. Eén Electron-instantie tegelijk (AGENTS.md): de
 // opnames lopen na elkaar. Eerst `cd desktop && npm run stage`, of wijs naar een
 // recente staged build met --game-dir=<map> (of GDE_GAME_DIR) en een Electron met
@@ -26,9 +26,9 @@ const opt = (k, d) => { const a = args.find((x) => x.startsWith(`--${k}=`)); ret
 const run = args.includes('--run');
 const useSlot = args.includes('--slot');
 
-const CUTS = ['teaser', 'hoofd', 'gameplay', 'verhaal', 'kort', 'vol'];
+const CUTS = ['teaser', 'hoofd', 'ontdek', 'gameplay', 'verhaal', 'kort', 'vol'];
 const RES = { '1080p': '1920x1080', '4k': '3840x2160' };
-const cuts = opt('cut', 'teaser,hoofd').split(',').map((c) => c.trim()).filter(Boolean);
+const cuts = opt('cut', 'ontdek,teaser,hoofd').split(',').map((c) => c.trim()).filter(Boolean);
 const ress = opt('res', '1080p,4k').split(',').map((r) => r.trim().toLowerCase()).filter(Boolean);
 for (const c of cuts) if (!CUTS.includes(c)) { console.error(`onbekende cut: ${c} (${CUTS.join(', ')})`); process.exit(1); }
 for (const r of ress) if (!RES[r]) { console.error(`onbekende resolutie: ${r} (1080p of 4k)`); process.exit(1); }

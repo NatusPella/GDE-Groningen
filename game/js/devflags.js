@@ -108,7 +108,7 @@ export const FLAG_DOCS = Object.freeze({
   preview: 'Trailer-voorbeeld in echte tijd met geluid (cut=teaser of hoofd); houd Spatie ingedrukt om over te slaan',
   benchmark: 'Benchmarkrun; de waarde is het aantal rondes',
   shot: 'Trailer: neem alleen die shot',
-  cut: 'Trailer: montagevariant (vol, kort, verhaal, gameplay, teaser, hoofd)',
+  cut: 'Trailer: montagevariant (vol, kort, verhaal, gameplay, teaser, hoofd, ontdek)',
   frames: 'Trailer: sla beeld voor beeld op',
   video: 'Trailer: neem video op (alleen desktop)',
   vlakbruggen: 'Provinciebruggen en viaducten vlak op straatniveau, zonder de hoogteprofielen uit de tegels (om te vergelijken)',

@@ -59,7 +59,7 @@ import { holdBackground } from './tilestream.js';
 //              trailer (~85 s) with voiced lines from the game
 //   gameplay   ?trailer&cut=gameplay: the Steam gameplay trailer (~60 s),
 //              the logo first, the systems with the real HUD (hud: true)
-//   teaser     ?trailer&cut=teaser: the 40 s teaser, hoofd: the 90 s main trailer
+//   teaser     ?trailer&cut=teaser: the 40 s teaser, hoofd: the 90 s main trailer, ontdek: the 75 s film cut (new story, no snack van)
 //              (trailerplan.js, docs/verhaal/nieuw/TRAILER-SCRIPT.md); ?preview&cut=teaser
 //              plays them in real time with sound, hold Space to skip
 //   attract    ?attract: the short cut ('kort', ~38 s, with the Tessa and
