@@ -27,7 +27,7 @@ export const DODGE = {
   restartBonus: 15,   // seconden erbij bij een herstart: een val kost een stuk lopen, geen mislukking
 };
 
-function rng(seed) { // mulberry32
+export function rng(seed) { // mulberry32
   let a = (seed >>> 0) || 1;
   return () => {
     a = (a + 0x6D2B79F5) | 0;

@@ -4,7 +4,7 @@
 import { SIMICOON as I } from './simicoon.js';
 
 // Icoonpaden voor de chips (24x24, lijn): bel, botsauto (auto met paal), afstappen (deur).
-const ICOON = {
+export const ICOON = {
   bel: 'bel',
   auto: 'auto',
   uit: 'uitgang',

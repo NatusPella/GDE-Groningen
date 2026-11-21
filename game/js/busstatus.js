@@ -4,7 +4,7 @@
 import { SIMICOON as I } from './simicoon.js';
 
 // Icoonpaden voor de chips (24x24, lijn): bus (voorkant), halte (paal met bord), vertrek (pijl).
-const ICOON = {
+export const ICOON = {
   bus: 'bus',
   halte: 'bord',
   vertrek: 'pijl_rechts',

@@ -10,7 +10,7 @@ import { assistFactors } from './assist.js';
 // 'uitdagend' (0,85) houdt de zone iets smaller dan de basis, maar nooit smaller dan vroeger.
 const BASE_GRACE = 1.3;
 const MAX_GRACE = 2.1;
-const MIN_ZONE = 0.14;   // breedte op de balk (0..1): hieronder is mikken niet meer te doen
+export const MIN_ZONE = 0.14;   // breedte op de balk (0..1): hieronder is mikken niet meer te doen
 const MAX_ZONE = 0.82;
 
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);

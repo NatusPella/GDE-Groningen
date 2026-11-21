@@ -1,6 +1,7 @@
 // De live-laag van de voetbalcarrière (#1110, ADR 0042): houdt het profiel van deze speler bij in de eigen opslag (gde-voetbalcarriere-v1, los van elke savegame), telt nachten op het signaal
 // van calendarday.js (de klok die meer dan vier uur terugspringt) en betaalt geld uit via loopbaanVerdien (nooit world.money +=). Geen DOM en geen THREE: scripts/voetbal_carrierelive_test.mjs.
 // Samen spelen: de carrière is van de speler zelf (nooit gedeeld); een gast betaalt zijn eigen uitslag uit zijn eigen profiel (zie voetbalsamen.js). Zonder profiel (nog niet gestart) doet dit bestand niets.
+import { hoofdspeler } from './players.js';
 import { KEYS } from './storagekeys.js';
 import * as C from './voetbalcarriere.js';
 import { nightPassed } from './voetbalagenda.js';
@@ -158,7 +159,7 @@ export function updateBeats(dt, w) {
   beatCheck = 2;
   const c = getCareer();
   const ctx = { unlocked: isUnlockedNow(w), busy: sidePathBusy(w), day: currentDay() };
-  const char = w.player && w.player.character === 'tammo' ? 'tammo' : 'anita';
+  const char = hoofdspeler(w) && hoofdspeler(w).character === 'tammo' ? 'tammo' : 'anita';
   if (!C.hasCareer(c)) {
     // de uitnodiging: hooguit een keer per speldag en drie keer in totaal (het paneel toont hem altijd); een gemiste uitnodiging vervalt niet maar zeurt niet
     const nu = Math.floor((w.time || 0) / 1440);

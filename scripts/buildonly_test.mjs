@@ -10,6 +10,8 @@ import { BUILD_ONLY } from './lib/buildonly.mjs';
 
 // bouw-only volgens de grafiek maar bewust niet uitgesloten
 const KEEP = {
+  'voetbalclub_bezit.js': 'voetbalcarrière (#1131): de koppeling met Bezit (clubeigendom) volgt in de epic Bezit',
+  'voetbalsamen.js': 'voetbalcarrière (#1131): de koppeling met Samen spelen (beloning per speler) volgt',
   'cooproles.js': 'coop (#95) wordt nog aangesloten',
   'coopstate.js': 'coop (#95) wordt nog aangesloten',
   'treincoop.js': 'coop (#444): de rollen in de trein, wordt nog aangesloten op de coöp-laag',

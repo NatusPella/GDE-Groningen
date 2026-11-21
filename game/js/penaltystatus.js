@@ -4,7 +4,7 @@
 import { SIMICOON as I } from './simicoon.js';
 import { SCHOTEN, KRACHT_DOEL, UITKOMSTEN } from './penaltyrules.js';
 
-const ICOON = {
+export const ICOON = {
   richten: 'doel',
   schieten: 'worp',
   uitkomst: 'punt',
@@ -25,7 +25,7 @@ export const UITLEG = [
   { icoon: ICOON.score, tekst: 'Vijf schoten: hoe meer doelpunten, hoe beter de medaille' },
 ];
 
-const stapVan = (fase, laden) => (fase === 'schot' || fase === 'uitkomst' ? 'uitkomst' : laden ? 'schieten' : 'richten');
+export const stapVan = (fase, laden) => (fase === 'schot' || fase === 'uitkomst' ? 'uitkomst' : laden ? 'schieten' : 'richten');
 const procent = (v) => `${Math.round(Math.max(0, Math.min(1, v)) * 100)}%`;
 
 // g: { fase ('intro'|'richten'|'schot'|'uitkomst'|'klaar'), laden (bool), lading (0..1), schot (1..5), goals, gemist, laatste (uitkomstsleutel of null), tekst, uitleg }

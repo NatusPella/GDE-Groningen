@@ -5,7 +5,7 @@
 // Icoonpaden voor de chips (24x24, lijn): richten (kruis), disc (ovaal), mand (ketting en schaal), vlag.
 import { SIMICOON as I } from './simicoon.js';
 
-const ICOON = {
+export const ICOON = {
   richten: 'doel',
   disc: 'worp',
   mand: 'mand',

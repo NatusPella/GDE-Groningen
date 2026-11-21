@@ -22,7 +22,7 @@
 export const RING_KEEP_MAX = 24;      // zoveel wachtende gebouwen houden hun verre kopie (uniform vec2[24] in farlod.js)
 export const RING_HOLD_MS = 300;      // zo lang na de laatste krimp groeit de ring niet
 const RING_GROW_MPS = 80;      // en dan met hoogstens zoveel m/s
-const FADE_S = 0.25;           // het in- of uitdoven van gevelversiering
+export const FADE_S = 0.25;           // het in- of uitdoven van gevelversiering
 export const DISPOSE_DELAY_MS = 4000; // zo lang blijft iets dat uit beeld raakt gebouwd
 export const DISPOSE_PER_FRAME = 2;   // en zoveel stuks worden per frame echt vrijgegeven
 

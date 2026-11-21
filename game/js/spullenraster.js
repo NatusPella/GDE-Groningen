@@ -2,7 +2,7 @@
 // spullen.js tekent de tegels, spullenthumbs.js vult ze met plaatjes; hier staan alleen de rekenregels, zodat ze testbaar zijn
 // (scripts/spullenraster_test.mjs). Samen spelen: Spullen zijn per speler (#429); dit is lokale weergave en stuurt niets.
 
-const GAP = 12; // ruimte tussen tegels (px, voor de ui-schaal)
+export const GAP = 12; // ruimte tussen tegels (px, voor de ui-schaal)
 export const DETAIL_MAX = 0.3; // het detail neemt hooguit 30% van de breedte
 export const DETAIL_MIN = 260;
 const DETAIL_CAP = 480;

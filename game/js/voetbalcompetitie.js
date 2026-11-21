@@ -6,7 +6,7 @@ import { makeRng } from './minigamekit.js';
 
 export const MIJN_CLUB = 'stadjers';
 export const COMP_CLUBS = TEAMS.map((t) => t.id);          // zes
-const POINTS = { winst: 3, gelijk: 1 };
+export const POINTS = { winst: 3, gelijk: 1 };
 // De sterkte van de computerclubs (jouw club speelt zelf): hoger is beter. Alleen voor de duels waar jij niet bij bent.
 const STERKTE = { stadjers: 1.0, hunebedders: 1.15, wadlopers: 1.0, ommelanders: 0.9, veenpiraten: 1.1, kleibijters: 0.85 };
 export const clubName = (id) => (TEAMS.find((t) => t.id === id) || { naam: id }).naam;

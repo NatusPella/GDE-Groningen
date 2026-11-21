@@ -5,7 +5,7 @@ import { KART, LAPS } from './kartrace.js';
 import { SIMICOON as I } from './simicoon.js';
 
 // Icoonpaden voor de chips (24x24, lijn): startlicht, kart, finishvlag, drift (bocht met pijl).
-const ICOON = {
+export const ICOON = {
   licht: 'doel',
   kart: 'kart',
   vlag: 'vlag',

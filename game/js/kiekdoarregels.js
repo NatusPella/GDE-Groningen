@@ -7,12 +7,12 @@
 // Nieuwe soorten (ontsnappen, snelheid, overval, race) hebben geen opname: `voiced: false`
 // en `audioKey: null`. De bestaande soorten houden hun bestaande opname en dus hun gedrag.
 
-const COOLDOWN = 90;            // s tussen twee Kiekdoar-meldingen
-const SAME_KIND_COOLDOWN = 300; // s voordat dezelfde soort weer mag (5 min)
-const CHANCE = 0.5;             // niet elke gebeurtenis haalt de krant
-const SPEED_MIN_KMH = 120;      // alleen een echt record is nieuws
+export const COOLDOWN = 90;            // s tussen twee Kiekdoar-meldingen
+export const SAME_KIND_COOLDOWN = 300; // s voordat dezelfde soort weer mag (5 min)
+export const CHANCE = 0.5;             // niet elke gebeurtenis haalt de krant
+export const SPEED_MIN_KMH = 120;      // alleen een echt record is nieuws
 
-const KIEKDOAR = {
+export const KIEKDOAR = {
   wanted: {
     headlines: [
       'KIEKDOAR MELDT: onrust in Grunn, politie massaal op pad',
@@ -73,7 +73,7 @@ const KIEKDOAR = {
   },
 };
 
-const ORDER = ['wanted', 'escape', 'speed', 'heist', 'race', 'wrecked', 'copkill', 'pedkill', 'kill', 'mission'];
+export const ORDER = ['wanted', 'escape', 'speed', 'heist', 'race', 'wrecked', 'copkill', 'pedkill', 'kill', 'mission'];
 
 // De momentopname in sikkomfeed.js heeft deze velden; alleen deze vergelijkingen tellen.
 const CHANGED = {

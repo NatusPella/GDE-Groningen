@@ -4,7 +4,7 @@
 // playerapi.js (the page side) and scripts/bot/ (the Node driver) share it.
 
 export const STATUS_VERSION = 1;
-const REPLAY_VERSION = 1;
+export const REPLAY_VERSION = 1;
 
 // --- seeded random (a fixed seed for the run, mulberry32) ---------------------
 export function seededRandom(seed = 1) {
@@ -20,9 +20,9 @@ export function seededRandom(seed = 1) {
 
 // --- geometry ---------------------------------------------------------------
 // World angles: atan2(dy, dx) with y to the south; +90 degrees is the right-hand side.
-const normAngle = (a) => { while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return a; };
-const headingTo = (from, to) => Math.atan2(to.y - from.y, to.x - from.x);
-const distance = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
+export const normAngle = (a) => { while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return a; };
+export const headingTo = (from, to) => Math.atan2(to.y - from.y, to.x - from.x);
+export const distance = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
 // The stick (input.padAxis: x right, y down) that walks `heading` when the
@@ -41,7 +41,7 @@ export function routeStartsFar(pos, pts, max = 35) {
 // A cyclist, a walker or a parked car in the lane ahead (#354, the M26 chase through narrow streets): how far to turn the aim away from
 // them (radians, positive = to the right, like the steer) and the speed the car can still stop from. obstacles: [{ x, y, r }] in world
 // coordinates; the corridor is the car's width plus the obstacle's radius plus a margin, `look` metres ahead. Several obstacles add up.
-function avoidance(car, obstacles, { look = 24, half = 1.2, brake = 7, margin = 0.5 } = {}) {
+export function avoidance(car, obstacles, { look = 24, half = 1.2, brake = 7, margin = 0.5 } = {}) {
   const c = Math.cos(car.angle), s = Math.sin(car.angle);
   let bias = 0, cap = Infinity, nearest = null;
   for (const o of obstacles || []) {
@@ -167,13 +167,13 @@ export class PathFollower {
 // segmentFree samples a straight stretch every `step` metres; repairPath replaces every blocked stretch
 // of a route by a way round it: A* on a grid of `cell` metres over the stretch's box (8 directions, a
 // diagonal only between free corners), then pulled tight again with straight lines of sight.
-function segmentFree(a, b, free, step = 0.4) {
+export function segmentFree(a, b, free, step = 0.4) {
   const d = distance(a, b), n = Math.max(1, Math.ceil(d / step));
   for (let i = 1; i <= n; i++) if (!free(a.x + (b.x - a.x) * i / n, a.y + (b.y - a.y) * i / n)) return false;
   return true;
 }
 
-function detourAround(a, b, free, { cell = 0.8, margin = 14, maxCells = 90 } = {}) {
+export function detourAround(a, b, free, { cell = 0.8, margin = 14, maxCells = 90 } = {}) {
   const x0 = Math.min(a.x, b.x) - margin, y0 = Math.min(a.y, b.y) - margin;
   const w = Math.min(maxCells, Math.ceil((Math.abs(a.x - b.x) + 2 * margin) / cell)), h = Math.min(maxCells, Math.ceil((Math.abs(a.y - b.y) + 2 * margin) / cell));
   const at = (i, j) => ({ x: x0 + (i + 0.5) * cell, y: y0 + (j + 0.5) * cell });
@@ -297,12 +297,12 @@ export class TaskWatch {
 // "had een cheat nodig". Returns the rung for the nth rescue of one step.
 // 'skip' is the last rung: a win that did not stick (stage machinery re-entered) is followed by the story skip, which
 // finishes the step whatever path the mission took (M09, M10 needed nine wins in the first run).
-const RESCUES = ['nudge', 'teleport', 'objective', 'win', 'skip'];
+export const RESCUES = ['nudge', 'teleport', 'objective', 'win', 'skip'];
 export const rescueFor = (count) => RESCUES[Math.min(count, RESCUES.length - 1)];
-const isCheat = (rung) => rung !== 'nudge';
+export const isCheat = (rung) => rung !== 'nudge';
 
 // A stunt (jump, drift, scratch-free run) wants speed and no braking for the target: the label or a message names it.
-function isStunt(s) {
+export function isStunt(s) {
   const m = s.mission || {};
   if (m.stage === 'stunt') return true;
   // the stunt evening runs (M01): its score is on the mission, whatever the message line says by now
@@ -338,7 +338,7 @@ export function footSprint(s) {
 // #186/M09: de eierenmissie heeft een eigen breekregel (missions.js updateEggs): op de wierdepaden
 // breekt er een ei boven def.eggs.rough.speed (M09: 8,5 m/s), en hard remmen (>13 m/s²) ook. De bot
 // mikt met marge onder die snelheid; carControls krijgt daarnaast `gentle` (bot.page.js).
-const EGG_MARGIN = 1.5;
+export const EGG_MARGIN = 1.5;
 export function stageTop(def, top) {
   if (!def || !def.eggs) return top;
   const rough = def.eggs.rough && Number.isFinite(def.eggs.rough.speed) ? def.eggs.rough.speed : 8.5;
@@ -349,14 +349,14 @@ export function stageTop(def, top) {
 // bundels via window.__heist.state() (heist.js) en kiest met deze pure regel een tussenpunt buiten
 // de bundels. De zichtlijn zelf kent de bot niet; daarom telt elke kruising als exposure en blijft
 // hij er met een marge omheen.
-function inCone(p, w) {
+export function inCone(p, w) {
   if (!p || !w || w.on === false || w.chase || w.asleep) return false;
   const d = Math.hypot(p.x - w.x, p.y - w.y);
   if (!(d <= w.r)) return false;
   return Math.abs(normAngle(Math.atan2(p.y - w.y, p.x - w.x) - w.a)) <= w.h;
 }
 // Hoeveel meter van het stuk a->b door een bundel loopt (gesampeld, 0 = vrij).
-function coneExposure(a, b, watchers, step = 3) {
+export function coneExposure(a, b, watchers, step = 3) {
   const n = Math.max(1, Math.ceil(distance(a, b) / step));
   let seen = 0;
   for (let i = 0; i <= n; i++) {
@@ -527,7 +527,7 @@ export function gateAim(gates, target, { slack = 5 } = {}) {
 // localizer (a heading that closes the distance to the centre line) with a 6.5 % glide slope to the ground 80 m past the
 // middle, and brakes after touching down. Measured in scripts/bot_vlieg_test.mjs: M15's five gates, the circuit and a
 // soft touchdown on the strip in under four minutes of game time.
-const PLANE_LAND = {
+export const PLANE_LAND = {
   approach: 700,   // the approach fix lies this far before the middle of the strip
   glide: 0.065,    // metres down per metre along (a 6.5 % slope: 50 m at the fix, the ground 80 m past the middle)
   glideFrom: 80,   // the slope reaches the ground this far past the middle of the strip
@@ -765,7 +765,7 @@ export function discgolfWorp(lie, basket, opts = {}) {
 // 8 m * kwaliteit^1,25 bonus voorbij de overkant, een plons onder 0,3 / 0,3 / 0,25. De naald legt tot pi * hz
 // per seconde af, dus een druk moet tegen de naald van het volgende beeld worden beoordeeld, niet tegen die van
 // dit beeld: verder dan een halve beeldstap van het midden is er altijd een beeld dichterbij.
-const FIERLJEP = {
+export const FIERLJEP = {
   hz: [0.55, 0.85],   // pg_fierljep.js NEEDLE_HZ (aanloop, greep)
   beeld: 1 / 60,      // de tijd tussen twee beelden waarin de naald gelezen wordt
   klimS: 2.2,         // pg_fierljep.js CLIMB_S
@@ -819,7 +819,7 @@ export function fierljepSpring(q, breedte) {
 // speler geeft (meer in de flank, een reeks voor snelle botsen na elkaar), prijzengeld 0/5/12/25 bij
 // 0/60/110/160 punten en dubbel op een kermisavond. Het reuzenrad (reuzenrad.js) kost EUR 2 en is een rit van
 // twee rondes zonder prijs. De tent is 20 bij 12 m (roadaccess.js KERMIS_TENT hu/hv).
-const KERMIS = {
+export const KERMIS = {
   prijs: 3, wielPrijs: 2, ritS: 75, autoR: 0.92, hu: 10, hv: 6,
   prijzen: [0, 5, 12, 25], medailles: [0, 60, 110, 160], flank: 0.55,
 };
@@ -862,7 +862,7 @@ export function kermisStap(s, mem = {}) {
 // LAPS rondes; instappen en uitstappen kan alleen binnen BOARD_WINDOW van het laagste punt. De uitgang zet een
 // verzoek (E) en stapt uit zodra de eigen gondel onderaan hangt, dus de bot drukt pas als de rit om is: hij
 // wacht met een hold (de wachtteller van de pagina mag niet aflopen op een rit van 105 s).
-const WHEEL = { N: 12, omega: 0.12, rondes: 2, raam: 0.26, prijs: 2 };
+export const WHEEL = { N: 12, omega: 0.12, rondes: 2, raam: 0.26, prijs: 2 };
 const TAU = Math.PI * 2;
 // De gondel van het reuzenrad: `plan` is de rit van het spel (reuzenradrules.ridePlan); de pagina kent alleen
 // het deel van de rit (state().fraction), dus die geeft `klaar`/`index`/`links` in plaats van de plan-standen.
@@ -958,7 +958,7 @@ export function validateStatus(s) {
 // One JSON line per event: { t, type, ... }. t = seconds of game time. Input events
 // ('key' down/up, 'axis') are enough to play a run back; the others are the timeline
 // ('mission', 'stuck', 'cheat', 'step', 'shot', 'console', 'status').
-class RunLog {
+export class RunLog {
   constructor(meta = {}) { this.meta = { replay: REPLAY_VERSION, ...meta }; this.events = []; }
   add(t, type, data = {}) { const e = { t: Math.round(t * 1000) / 1000, type, ...data }; this.events.push(e); return e; }
   toJsonl() { return [JSON.stringify({ type: 'meta', ...this.meta }), ...this.events.map((e) => JSON.stringify(e))].join('\n') + '\n'; }
@@ -990,7 +990,7 @@ export function replayInputs(events) {
 }
 
 // Keys that are down without their keyup (the AGENTS.md rule: never).
-function unbalancedKeys(events) {
+export function unbalancedKeys(events) {
   const down = new Set();
   for (const e of events) if (e.type === 'key') { if (e.down) down.add(e.key); else down.delete(e.key); }
   return [...down];

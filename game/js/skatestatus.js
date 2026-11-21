@@ -4,7 +4,7 @@
 import { SIMICOON as I } from './simicoon.js';
 
 // Icoonpaden voor de chips (24x24, lijn): board met wielen (duwen), pijl omhoog met bocht (truc), rail met streepjes (grind), balans.
-const ICOON = {
+export const ICOON = {
   duw: 'skate',
   truc: 'pijl_omhoog',
   grind: 'skate',

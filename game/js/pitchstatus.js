@@ -5,7 +5,7 @@
 // Icoonpaden voor de chips (24x24, lijn): richten (kruis), golfbal met slag (bal), vlag bij de hole, vlag.
 import { SIMICOON as I } from './simicoon.js';
 
-const ICOON = {
+export const ICOON = {
   richten: 'doel',
   bal: 'golf',
   vlag: 'vlag',

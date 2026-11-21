@@ -2,6 +2,7 @@
 // `.ds-z-*` en de microanimaties `.ds-m-*`, geen eigen componenten of kleuren). De HTML komt uit pure functies (testbaar in node: scripts/voetbal_ui_test.mjs); renderVoetbalPanel zet hem in de DOM en
 // luistert op `data-vb`. Hoofdknop per scherm: een primaire (geel), de rest stil; toetsenbord, controller en aanraken doen hetzelfde (gewone knoppen); Esc of B gaat terug (pausemenu).
 // Niet door een mens in beeld bekeken (zie docs/VOETBAL-CARRIERE-VERIFICATIE-21-11.md).
+import { hoofdspeler } from './players.js';
 import * as C from './voetbalcarriere.js';
 import * as O from './voetbalontwikkeling.js';
 import * as A from './voetbalagenda.js';
@@ -22,7 +23,7 @@ const rij = (i) => `style="--ds-m-i:${Math.min(8, i)}"`;
 const chip = (tekst, soort = '') => `<span class="ds-z-chip${soort ? ` ds-z-chip--${soort}` : ''}">${esc(tekst)}</span>`;
 const bar = (label, deel) => `<span class="ds-z-balk" style="--ds-z-w:${Math.round(Math.max(0, Math.min(1, deel)) * 100)}%"><span class="ds-z-balk__baan"><span class="ds-z-balk__vul"></span></span><span class="ds-z-balk__label">${esc(label)}</span></span>`;
 const knop = (act, tekst, { primair = false, ghost = false, uit = '' } = {}) => `<button type="button" class="ds-z-knop ds-m-knop${primair ? '' : ghost ? ' ds-z-knop--ghost' : ' ds-z-knop--secundair'}" data-vb="${act}"${uit ? ` aria-disabled="true" title="${esc(uit)}"` : ''}>${esc(tekst)}</button>`;
-const DIV = DIVISION_NAMES;
+export const DIV = DIVISION_NAMES;
 
 const DAGEN_NL = (d) => A.dayText(d);
 const KIND = { league: 'Competitie', cup: 'Dijkbeker', europe: 'Waddenbeker' };
@@ -154,7 +155,7 @@ const CSS = `.vb-pane { display: grid; gap: var(--ds-s-2, 10px); padding: var(--
 .vb-vaardig .ds-z-rij__waarde { min-width: 180px; }`;
 let cssLoaded = false;
 const zetCss = () => { if (cssLoaded || typeof document === 'undefined') return; cssLoaded = true; const el = document.createElement('style'); el.textContent = CSS; document.head.appendChild(el); };
-const envFor = (w, progress = {}) => ({ getClub: V.getClub, unlocked: voetbalOpen(progress), hint: voetbalHint(progress), char: (w && w.player && w.player.character === 'tammo') ? 'tammo' : 'anita' });
+const envFor = (w, progress = {}) => ({ getClub: V.getClub, unlocked: voetbalOpen(progress), hint: voetbalHint(progress), char: (hoofdspeler(w) && hoofdspeler(w).character === 'tammo') ? 'tammo' : 'anita' });
 let progressFn = () => ({});
 export function useProgress(fn) { progressFn = typeof fn === 'function' ? fn : () => ({}); }
 let launcher = null;

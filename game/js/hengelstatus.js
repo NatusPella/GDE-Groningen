@@ -5,7 +5,7 @@
 import { IC } from './simicons.js';
 
 // Icoonpaden voor de chips (24x24, lijn): lijn met haak, dobber, uitroep, vis.
-const ICOON = {
+export const ICOON = {
   hengel: '<path d="M4 20L15 5"/><path d="M15 5c4 0 5 4 5 8"/><circle cx="20" cy="15" r="1.4"/>',
   uit: '<path d="M4 20L15 5"/><path d="M15 5c3 1 5 4 5 7"/>',
   wacht: '<circle cx="12" cy="13" r="5"/><path d="M12 3v5"/><path d="M7 13h10"/>',
@@ -33,7 +33,7 @@ const kgTekst = (v) => v.toFixed(v < 1 ? 2 : 1).replace('.', ',') + ' kg';
 const euro = (v) => '€' + Math.round(v).toLocaleString('nl-NL');
 
 // De zin onderin: wat moet je nu doen? De beet is de enige waarbij haast is.
-function watNu(fase, haal, flashSlecht) {
+export function watNu(fase, haal, flashSlecht) {
   if (haal) return 'Je haalt de vis binnen';
   if (fase === 'bite') return 'Nu {SPATIE}: haal binnen!';
   if (fase === 'wait') return 'Wacht. Nog niet trekken';

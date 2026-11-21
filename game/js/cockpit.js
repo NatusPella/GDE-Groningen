@@ -2,7 +2,7 @@
 // maatlijn/patroon uit de bestaande sfeertabellen. Alleen tokens en chroom, geen eigen font of keycap;
 // de kanalen zetten deze klasse op hun eigen paneel. Eén keer in de kop van het document.
 export const COCKPIT_CLASS = 'cockpit-frame';
-const COCKPIT_CSS = `
+export const COCKPIT_CSS = `
 /* #849: hier bewust geen position. De panelen die deze klasse dragen (het
    vliegtuigpaneel, het buskaartje) zetten zelf position: absolute; een
    position: relative in deze regel had dezelfde specificiteit en kwam later in

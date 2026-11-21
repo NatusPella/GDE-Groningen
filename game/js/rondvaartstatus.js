@@ -5,7 +5,7 @@
 import { IC } from './simicons.js';
 
 // Icoonpaden voor de chips (24x24, lijn): steiger (paal met plank), boot, anker, vinkje.
-const ICOON = {
+export const ICOON = {
   steiger: '<path d="M3 17h18"/><path d="M6 17v3M12 17v3M18 17v3"/><path d="M8 17V8h8v9"/>',
   boot: '<path d="M3 14h18l-3 5H6z"/><path d="M12 14V4l5 6h-5"/>',
   anker: '<circle cx="12" cy="5" r="2"/><path d="M12 7v13"/><path d="M5 14c0 3 3 6 7 6s7-3 7-6"/><path d="M8 10h8"/>',

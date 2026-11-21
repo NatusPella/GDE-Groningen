@@ -3,7 +3,7 @@
 // een race, in een wedstrijd, in de lucht (heli/vliegtuig), in duifmodus of op snelheid
 // (#732). puur en zonder DOM, zodat dit los te testen is; cinematics.js leest de
 // bestuurder via spelersregister.js en geeft alleen het voertuig mee.
-const MOMENT_MAX_SPEED = 12; // m/s; sneller dan dit wacht een moment
+export const MOMENT_MAX_SPEED = 12; // m/s; sneller dan dit wacht een moment
 
 // Waarom mag dit moment nu niet? Leeg = het mag.
 // w: de world (pigeonMode, race, wedstrijd), opts.vehicle: het voertuig van de speler of null.

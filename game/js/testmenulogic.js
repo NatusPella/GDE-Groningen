@@ -9,7 +9,7 @@
 const MENU_SKIP = new Set(['testmenu', 'dev', 'storytest', 'autoplay', 'spotsonly', 'trailer', 'shot', 'cut', 'frames', 'video', 'benchmark', 'perf']);
 
 // Switches that take a value, with a few useful values to offer.
-const VALUE_FLAGS = {
+export const VALUE_FLAGS = {
   marker: ['vorm'],
   gpu: ['Intel UHD'],
   touch: ['1', '0'],

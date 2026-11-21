@@ -5,7 +5,7 @@
 import { IC } from './simicons.js';
 
 // Icoonpaden voor de chips (24x24, lijn): zaak (dak), fiets met doos, vinkje, vlam (warm).
-const ICOON = {
+export const ICOON = {
   zaak: '<path d="M4 10l2-5h12l2 5"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/>',
   fiets: '<circle cx="6" cy="16" r="3.2"/><circle cx="18" cy="16" r="3.2"/><path d="M6 16l4-7h5l3 7"/><rect x="9" y="4" width="5" height="4" rx="1"/>',
   klaar: '<path d="M5 12l4 4 10-10"/>',

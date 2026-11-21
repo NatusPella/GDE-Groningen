@@ -9,6 +9,7 @@
 //   upYaw    de hoek die op de minimap naar boven staat als de kaart meedraait (zie mapUpRotation)
 //   kind     'voet' | 'zwemmen' | 'duif' | 'heli' | 'vliegtuig' | 'boot' | 'fiets' | 'paard' | 'auto' | 'trein'
 //   camera   true als een scene of fotocamera het beeld heeft (world.cameraOverride): de camerahoek zegt dan niets over jou
+import { hoofdspeler } from './players.js';
 
 const TAU = Math.PI * 2;
 const fin = (n) => typeof n === 'number' && Number.isFinite(n);
@@ -30,7 +31,7 @@ export function vehicleKind(v) {
 const HEADING_UP = new Set(['duif', 'heli', 'vliegtuig', 'trein']);
 
 export function getViewAnchor(world, opts = {}) {
-  const body = opts.body || (world && (world.lokaalLichaam || world.player));
+  const body = opts.body || (world && (world.lokaalLichaam || hoofdspeler(world)));
   if (!body) return null;
   const camera = !!world.cameraOverride;
   const camYaw = fin(world.camYaw) ? world.camYaw : null;

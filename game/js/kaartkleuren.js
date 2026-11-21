@@ -38,7 +38,7 @@ export function hexA(hex, alpha) {
 }
 
 // Relatieve luminantie en contrast (WCAG), voor de leesbaarheidstest.
-function luminantie(hex) {
+export function luminantie(hex) {
   const h = String(hex).replace('#', '');
   const f = (i) => { const c = parseInt(h.slice(i, i + 2), 16) / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
   return 0.2126 * f(0) + 0.7152 * f(2) + 0.0722 * f(4);

@@ -53,7 +53,7 @@ export function makeParkIndex(raw) {
   const byId = new Map(clubs.map((c) => [c.id, c]));
   return { plaatsen: places, clubs, byPlace, byId, parkCount: places.reduce((s, p) => s + p.p.length, 0) };
 }
-const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+export const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 // De dichtstbijzijnde clubs bij een punt (afstand tot het thuispark, dan het plaats-id): stabiel en deterministisch.
 export function nearestClubs(index, pt, n = LOCAL_DIVISION_SIZE, exclude = null) {
   return index.clubs.filter((c) => !exclude || !exclude.has(c.id)).map((c) => ({ c, d: distance(c.park, pt) })).sort((a, b) => a.d - b.d || a.c.placeId - b.c.placeId).slice(0, n).map((x) => x.c);
