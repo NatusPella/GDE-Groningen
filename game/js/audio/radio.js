@@ -151,6 +151,10 @@ const GMUSIC_ARTISTS = {
   'Zomerse droom in de Stad': 'DJ Dageraad feat. MC Zernike',
   'Trots op mien grond': 'Wierde Wind',
   'Koplampen in de Mist': 'Lil Polder',
+  'Zunne op de Ring': 'Zomerzoet Soezen',
+  'Kapsalon Kees en de Vismarkt': 'MC Zoutkorrel',
+  'Klompendans bij de Sloot': 'Jelle en de Natte Voeten',
+  'Rood Licht Is Een Mening': 'De Ringweg Drillers',
 };
 // file names can't carry every character of a title
 const GMUSIC_TITLES = {
