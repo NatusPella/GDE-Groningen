@@ -7,11 +7,11 @@
 //  2. de afstand tussen de pijlkleuren onderling (CIE76 ΔE in Lab) voor normaal zicht en voor deuteranopie, protanopie en tritanopie
 //     (Machado 2009, ernst 1,0, in lineair RGB): twee dingen die iets anders betekenen moeten ook zonder kleur te scheiden zijn (vorm), maar
 //     liefst ook met kleur (ΔE >= 20);
-//  3. de vorm als tweede kanaal: elke betekenis heeft een eigen glyph (navdoel.js GLYPH).
+//  3. de vorm als tweede kanaal: elke betekenis heeft een eigen glyph (navtarget.js GLYPH).
 import { fileURLToPath } from 'node:url';
 import { kaartLand, dsKleur, contrast, meng } from '../game/js/kaartkleuren.js';
 import { PALETTES } from '../game/js/a11y.js';
-import { GLYPH, NAV_TYPES, NAV_ROL } from '../game/js/navdoel.js';
+import { GLYPH, NAV_TYPES, NAV_ROL } from '../game/js/navtarget.js';
 
 // ---------------------------------------------------------------- kleurrekenen
 const lin = (c) => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };

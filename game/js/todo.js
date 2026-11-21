@@ -55,7 +55,7 @@ import { getStreekuitdagingSpotsForRender } from './streekuitdaginglive.js'; // 
 import { beppeTodoItem } from './beppe_garden.js'; // #832
 import * as L from './loopbaan.js'; // #846: de loopbanen als één overkoepelende rij in Te doen
 import { getProfiel } from './loopbaanlive.js';
-import { districtAt } from './wijkat.js';
+import { districtAt } from './districtat.js';
 export { beginHierItems, beginHierCount };
 
 export const GROUPS = [

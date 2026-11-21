@@ -45,7 +45,7 @@ const BASE_DEFAULTS = {
   // zet het uit onder Instellingen, Spel. Alleen publieke buslocaties ophalen, niets van de speler
   // versturen; zonder bron of met de optie uit rijden de bussen hun eigen dienst.
   liveBussen: true,
-  // live treinen (livetreinen.js + treinlive.js, #1085): een eigen schakelaar naast de bussen (de feed is ca. 1 MB per
+  // live treinen (livetrains.js + trainlive.js, #1085): een eigen schakelaar naast de bussen (de feed is ca. 1 MB per
   // minuut op de lijn); standaard aan. Alleen publieke vertragingen ophalen, niets van de speler versturen; uit of zonder
   // bron toont het bord het rooster zonder vertraging.
   liveTreinen: true,
@@ -148,7 +148,7 @@ const BASE_DEFAULTS = {
   // play with others, false = a private session for one. Null must never read as
   // "yes": it means the game still has to ask, and asks before any contact.
   onlineMeedoen: null,
-  // Alleen of Samen bij de start (startchoice.js): alleen de voorselectie van de keuzekaart, nooit een reden om de kaart over te slaan.
+  // Alleen of Samen bij de start (launchchoice.js): alleen de voorselectie van de keuzekaart, nooit een reden om de kaart over te slaan.
   startKeuze: null,
   // Samen spelen (#526): dit apparaat koos "Niet meer vragen" op het
   // toestemmingsscherm. Alleen de keuze van het scherm; zonder dit vinkje komt

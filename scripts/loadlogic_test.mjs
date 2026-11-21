@@ -73,7 +73,7 @@ const bl = buildLines('travel', ['Onderweg', 'Een lijn'], p);
 ok(bl.length === 4 && bl[0][0] === 'Onderweg' && bl[1][0] === 'Wist je dat', 'lead then tips');
 ok(buildLines('travel', ['Onderweg', ''], p).length === 3, 'empty lead skipped');
 import { PICTURES, APPROVED, MISSION_PICTURE, missionPicture, pictureHtml, pictureOk } from '../game/js/loadscene.js';
-import { BOOT_STEPS, BOOT_DONE_LABEL, bootPlan, bootProgress, bootPhaseAt, bootCreepCap, bootStepText, stepDurations, loadStepNr } from '../game/js/loadlogic.js';
+import { BOOT_STEPS, BOOT_DONE_LABEL, bootPlan, bootProgress, bootPhaseAt, bootCreepCap, stepDurations, loadStepNr } from '../game/js/loadlogic.js';
 import fs from 'node:fs';
 ok(APPROVED.length === 7 && APPROVED.every((p) => fs.existsSync(new URL('../game/img/laad/' + p + '.jpg', import.meta.url))), 'every approved picture exists');
 ok(Object.values(MISSION_PICTURE).every(pictureOk) && missionPicture('nope') === 'vismarkt', 'every mission kind has an approved picture');
@@ -133,7 +133,7 @@ ok(!plans.test.steps.some((st) => ['buurt', 'shaders', 'geluid', 'beeld'].includ
 ok(bootProgress(plans.nieuw, 'bestaatniet', 1) === 0 && bootProgress(plans.nieuw, 'kaart', NaN) === 0 && bootProgress(plans.nieuw, 'kaart', 5) === plans.nieuw.steps[0].to, 'unknown step and out-of-range fractions are safe');
 ok(bootPhaseAt(0).id === 'kaart' && bootPhaseAt(0.999).final && !bootPhaseAt(0.999).klaar && bootPhaseAt(1).klaar, 'the last boot step is final; klaar only at 1');
 ok(bootPhaseAt(-1).id === 'kaart' && bootPhaseAt(5).final, 'out-of-range progress is clamped');
-ok(bootStepText(plans.nieuw.steps[4], plans.nieuw.total) === 'Stap 5 van 7', 'the step counter says which step of how many');
+ok(plans.nieuw.steps[4].nr === 5 && plans.nieuw.total === 7, 'the plan still numbers its steps (for the measurement), the screen shows none');
 // a long step with nothing to report: the creep moves the bar but never into the last tenth of the step
 {
   const sh = plans.nieuw.steps.find((st) => st.id === 'shaders');
@@ -153,10 +153,10 @@ ok(LOAD_STEPS.reduce((t, st, i) => t + ((LOAD_STEPS[i + 1] ? LOAD_STEPS[i + 1].f
 {
   const ss = fs.readFileSync(new URL('../game/js/startscreen.js', import.meta.url), 'utf8');
   const hh = fs.readFileSync(new URL('../game/index.html', import.meta.url), 'utf8');
-  ok(/class="ld-step"/.test(hh) && /#loading \.ld-step \{[^}]*var\(--ds-c-ink-inkt\)/.test(hh), 'the boot screen has a step counter in ink');
+  ok(!/ld-step/.test(hh) && !/ld-step|Stap \$\{/.test(ss), 'the boot screen shows no "Stap n van m" (one continuous bar, 21-11)');
   ok(!/ld-tick/.test(hh) && !/ld-tick|buildTicks/.test(ss), 'the boot bar is one continuous bar: no ticks or segments');
   ok(/#loading \.ld-fill \{[^}]*var\(--ds-c-ink-bord\)/.test(hh), 'the boot bar fills in sign green');
-  ok(/export function setBootStep\(/.test(ss) && /aria-valuetext', stap \+ ': ' \+ phase\.label/.test(ss) && /easeBar\(shown, progress/.test(ss), 'the bar eases and tells the step to a screen reader');
+  ok(/export function setBootStep\(/.test(ss) && /aria-valuetext', phase\.label/.test(ss) && /easeBar\(shown, progress/.test(ss), 'the bar eases and tells the step to a screen reader');
   ok(!/setInterval\([^)]*requestAnimationFrame/.test(ss) && /bootCreepCap\(plan, progress\)/.test(ss), 'the creep is a slow approach inside the step, no loop animation');
 }
 ok(!/firstSentence\(recapText/.test(src), 'the load screen keeps the whole recap instead of its first sentence');

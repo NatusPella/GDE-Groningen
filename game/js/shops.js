@@ -11,7 +11,7 @@ import { clearOfBuildings, withTiles, nearestOnRoads } from './tileplace.js';
 import { countryFacilities, countryDoor, poiLayerPlaces } from './facilities.js';
 import { edgeDistance } from './countryfield.js';
 import { getScene, refreshCharacterMeshes } from './scene3d.js';
-import { voegAnkersToe } from './vehicle/bootplekken.js';
+import { voegAnkersToe } from './vehicle/boatspots.js';
 import { spawnVehicleOnRoad, spawnBoatOnWater, HERO_CAR_MODEL, playerTopSpeed } from './vehicle.js';
 import { SHOP_TYPES, VEHICLE_STOCK } from './shopdata.js';
 import * as TUIG from './hengeltuig.js';
@@ -418,7 +418,7 @@ export function initShops(world) {
     const p = placeJetty(map, street, horeca, placed);
     if (p && !placed.some((q) => q.type === 'boot' && dist(q.x, q.y, p.x, p.y) < 150)) placed.push({ ...p, type: 'boot', wijk: street });
   }
-  // de verhuursteigers zijn kades voor bootplekken.js (een boot hoort daar)
+  // de verhuursteigers zijn kades voor boatspots.js (een boot hoort daar)
   voegAnkersToe(placed.filter((q) => q.type === 'boot' && q.water).map((q) => ({ x: q.water.x, y: q.water.y, soort: 'verhuursteiger' })));
   // #524: het EIKEA-pand vraag je op rond het landmark uit de meta (de kaart
   // heeft dat punt en het gebouw bevat het), niet door de hele gebouwenlijst.
@@ -1582,7 +1582,7 @@ function newVehicleId(nameIdx) {
   return 720000 + idSeq * 6 + nameIdx;
 }
 
-// De verhuursteigers zoals initShops ze plaatst, voor de bootaudit en de ankers van bootplekken.js: [{ street, water, kiosk }].
+// De verhuursteigers zoals initShops ze plaatst, voor de bootaudit en de ankers van boatspots.js: [{ street, water, kiosk }].
 export function bootSteigers(map, horeca = []) {
   const out = [];
   for (const street of BOAT_JETTIES) {

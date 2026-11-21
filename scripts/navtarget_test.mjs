@@ -1,7 +1,7 @@
-// navdoel.js en navpijl.js (#1078): welk doel de pijl volgt, wat wacht, wat dezelfde plek is, wat klaar is; de kleur per type en de pijl zelf.
+// navtarget.js en navpijl.js (#1078): welk doel de pijl volgt, wat wacht, wat dezelfde plek is, wat klaar is; de kleur per type en de pijl zelf.
 // Puur: geen DOM, geen spel. Samen spelen: de doelen zijn per speler lokaal; de groep komt als eigen lijst binnen (net als in coopmissie.js).
 import fs from 'node:fs';
-import { snapshotFromWorld, distanceFor, resolveNavTargets, navColor, navTekst, pathRole, eigenGlyph, lineStyleFor, NAV_ROL, NAV_TYPES, GLYPH, MAX_SECUNDAIR, AANKOMST_M, PATH_KIND } from '../game/js/navdoel.js';
+import { snapshotFromWorld, distanceFor, resolveNavTargets, navColor, navTekst, pathRole, eigenGlyph, lineStyleFor, NAV_ROL, NAV_TYPES, GLYPH, MAX_SECUNDAIR, AANKOMST_M, PATH_KIND } from '../game/js/navtarget.js';
 import { drawMapTargets, track, place, spreid, drawKompasRand, TRACK_INSET, MIN_ACTIEF, MIN_DOT } from '../game/js/navpijl.js';
 import { iconBekend } from '../game/js/icons.js';
 import { PALETTES } from '../game/js/a11y.js';
@@ -178,7 +178,7 @@ const types = (r) => r.alle.map((d) => d.type + ':' + d.rol);
 // 17. de bedrading: de minikaart leest nav, de oude losse pijlen zijn weg; de tokens staan er
 {
   const hud = fs.readFileSync(new URL('../game/js/hud_panel.js', import.meta.url), 'utf8');
-  ok(/resolveNavTargets\(/.test(hud) && !/missionEdge|jobEdge|wpEdge|heliEdge|lekEdge/.test(hud), 'hud_panel.js: de minikaart krijgt zijn markeringen uit navdoel.js, geen losse missionEdge/jobEdge/wpEdge meer');
+  ok(/resolveNavTargets\(/.test(hud) && !/missionEdge|jobEdge|wpEdge|heliEdge|lekEdge/.test(hud), 'hud_panel.js: de minikaart krijgt zijn markeringen uit navtarget.js, geen losse missionEdge/jobEdge/wpEdge meer');
   ok(/NAV_ROL\.eigen/.test(hud), 'hud_panel.js: ROUTE_COLORS volgt NAV_ROL');
   ok(/drawKompasRand\(/.test(hud) && !/drawNavPijl|drawEdgeArrow/.test(hud), 'hud_panel.js tekent de kompasboog, niet de oude pijl');
   ok(/reducedMotion\(\)/.test(hud) && /--nav-doel/.test(hud), 'hud_panel.js: Beweging beperken en de kleur van de GPS-kaart');
@@ -220,8 +220,8 @@ const types = (r) => r.alle.map((d) => d.type + ':' + d.rol);
   const mm = fs.readFileSync(new URL('../game/js/missionmarker3d.js', import.meta.url), 'utf8');
   ok(/MARKER_COLOR_ACTIVE = 0xf9c80e/.test(mm), 'de ringen van de actieve missie zijn geel, niet cyaan');
   const mv = fs.readFileSync(new URL('../game/js/mapview.js', import.meta.url), 'utf8');
-  ok(/resolveNavTargets\(snapshotFromWorld/.test(mv) && /drawMapTargets\(/.test(mv), 'de grote kaart leest navdoel.js');
+  ok(/resolveNavTargets\(snapshotFromWorld/.test(mv) && /drawMapTargets\(/.test(mv), 'de grote kaart leest navtarget.js');
 }
 
-console.log(`navdoel_test: ${n} controles, ${fails} fouten`);
+console.log(`navtarget_test: ${n} controles, ${fails} fouten`);
 process.exit(fails ? 1 : 0);

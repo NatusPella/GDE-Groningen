@@ -4,7 +4,7 @@
    (een toets zonder glyph). De maatregels zijn !important: contextregels als `#hud .hc-text span` raken ook de plaatjes. Geen vaste px-maten buiten de vloeren; geen losse maten in de context-CSS (scripts/keycap_maat_test.mjs). */
 
 /* hintrijen (aparte regel met toets en tekst, geen lopende tekst): een groter plaatje; de HUD-hintrijen houden de 26 px van #985 */
-.ds-kc-rij, .pm-bind, .m-foot, .m-hint, .m-acts, .gar-hint, .foto-key, .mg-stopask, .pm-ckeys, .pm-hintprev-row, .wp-glyph, .ctx-glyphs, .hud-obj-key { --ds-kc-cap: 1.5; }
+.ds-kc-rij, .pm-bind, .m-foot, .m-hint, .m-acts, .gar-hint, .foto-key, .mg-stopask, .pm-ckeys, .pm-hintprev-row, .wp-glyph, .ctx-glyphs, .hud-obj-key, #cine .cine-skip { --ds-kc-cap: 1.5; }
 #hud .ctx-glyphs, #hud .wp-glyph, #hud .hud-obj-key { --ds-kc-floor: 26px; }
 /* grote tekst (titel, uitleg): dezelfde factor, de vloer volgt de tekst */
 .ds-kc-groot { --ds-kc-cap: 1.25; }

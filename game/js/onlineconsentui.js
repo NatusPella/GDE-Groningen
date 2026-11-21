@@ -1,5 +1,5 @@
-// Samen spelen (#530, ADR 0022): the one screen at the first start (a name and the question
-// whether to play with others) and the switch in the players panel. The rules and the Dutch
+// Samen spelen (#530, ADR 0022): the one screen at the first start (only a name, 21-11: the
+// online agreement comes with Samen spelen, launchchoiceui.js) and the switch in the players panel. The rules and the Dutch
 // texts are in onlineconsent.js; this file is DOM only, in the style of the other screens.
 // Neither the screen nor the switch connects to anything: they only record the answer in
 // gde-settings, and the lobby (lobbyui.js) is still the one place that asks before connecting.
@@ -9,18 +9,17 @@ import { EERSTE_START, SCHAKELAAR, moetVragen, moetNaamVragen, kiesNaam } from '
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-// De eerste-startkaart is één verplichte stap: een naam en één knop "Doorgaan".
-// Geen tweede antwoord, geen "Later" en geen weg terug: altijd online.
-export function onlineStartHtml({ naam = '', fout = '', consent = false } = {}) {
+// De eerste-startkaart is één verplichte stap: een naam en één knop "Doorgaan". Geen netwerktoestemming
+// (die komt bij Samen spelen), geen tweede antwoord, geen "Later" en geen weg terug.
+export function onlineStartHtml({ naam = '', fout = '' } = {}) {
   return `<section class="os-kaart" role="dialog" aria-modal="true" aria-labelledby="os-titel">
-    <p class="os-eb">Samen spelen</p>
+    <p class="os-eb">Zomer vol misdaad</p>
     <h2 id="os-titel">${esc(EERSTE_START.titel)}</h2>
     <p class="os-uitleg">${esc(EERSTE_START.uitleg)}</p>
     <label class="os-label"><span>${esc(EERSTE_START.naamLabel)}</span>
       <input type="text" class="os-naam" maxlength="${ONLINE_NAAM_MAX}" spellcheck="false" autocomplete="off" placeholder="Je naam" required value="${esc(naam)}">
     </label>
     <p class="os-hint">${esc(EERSTE_START.naamHint)}</p>
-    <label class="os-consent"><input type="checkbox" class="os-consent-vink"${consent ? ' checked' : ''}> <span>${esc(EERSTE_START.consent)}</span></label>
     ${fout ? `<p class="os-fout" role="alert">${esc(fout)}</p>` : '<p class="os-fout" role="alert" hidden></p>'}
     <div class="os-knoppen">
       <button type="button" class="os-knop os-doorgaan" data-doorgaan>${esc(EERSTE_START.doorgaan)}</button>
@@ -46,10 +45,9 @@ export function consentOnthoudenHtml({ label = 'Niet meer vragen', checked = fal
 export function mountOnlineStart(root, { naam = '', onKies = () => {} } = {}) {
   let fout = '';
   let getypt = naam;
-  let aangevinkt = false; // what the field holds now, so a refused name is not wiped from under the player
   const veld = () => (root.querySelector ? root.querySelector('.os-naam') : null);
   const teken = () => {
-    root.innerHTML = onlineStartHtml({ naam: getypt, fout, consent: aangevinkt });
+    root.innerHTML = onlineStartHtml({ naam: getypt, fout });
     const v = veld();
     if (v && typeof v.focus === 'function') v.focus();
   };
@@ -58,14 +56,8 @@ export function mountOnlineStart(root, { naam = '', onKies = () => {} } = {}) {
   const kies = () => {
     const v = veld();
     if (v && 'value' in v) getypt = v.value;
-    const vink = root.querySelector ? root.querySelector('.os-consent-vink') : null;
-    if (vink && 'checked' in vink) aangevinkt = !!vink.checked;
-    const r = kiesNaam(getypt, { consent: vink && 'checked' in vink ? aangevinkt : true });
-    if (!r.ok) {
-      fout = r.error; teken();
-      if (/toestemming/.test(fout)) { const c = root.querySelector && root.querySelector('.os-consent-vink'); if (c && c.focus) c.focus(); }
-      return r;
-    }
+    const r = kiesNaam(getypt);
+    if (!r.ok) { fout = r.error; teken(); return r; }
     root.innerHTML = '';
     onKies({ ...r, keuze: 'doorgaan' });
     return r;
@@ -84,7 +76,7 @@ export function mountOnlineStart(root, { naam = '', onKies = () => {} } = {}) {
       return;
     }
     if (!e || e.key !== 'Tab' || !root.querySelectorAll) return;
-    const velden = [...root.querySelectorAll('.os-naam, .os-consent-vink, [data-doorgaan]')];
+    const velden = [...root.querySelectorAll('.os-naam, [data-doorgaan]')];
     if (!velden.length) return;
     const nu = velden.indexOf(e.target);
     const volgende = velden[(nu + (e.shiftKey ? -1 : 1) + velden.length) % velden.length];
@@ -118,7 +110,7 @@ export function openOnlineStart({ naam = getSettings().onlineNaam } = {}) {
 
 
 // What the boot calls: only a player who was never asked gets the screen, once (a saved valid name is the proof).
-// Consent that was withdrawn later is asked when Samen spelen is chosen (startchoiceui.js), not on every start.
+// Consent that was withdrawn later is asked when Samen spelen is chosen (launchchoiceui.js), not on every start.
 export function maybeOpenOnlineStart(opts = {}) {
   const s = opts.settings || getSettings();
   return moetNaamVragen(s) ? openOnlineStart(opts) : Promise.resolve(null);

@@ -1,10 +1,10 @@
 // #985: waar je was op het moment van opslaan, voor de savekaart ("Ebbingekwartier", "Warffum").
 // Puur: de aanroeper levert de plaatslookups (ommelandArea en areaNameAt uit het spel) en de
 // meta van de kaart, zodat dit zonder wereld te testen is.
-import { districtAt } from './wijkat.js';
+import { districtAt } from './districtat.js';
 
 // De naam van de plek bij (x, y): in het Ommeland het dorp (of "Ommeland bij Warffum" in het open
-// veld), in de stad de wijk waar je staat (buiten de stad geen stadswijk, wijkat.js). '' als er niets te zeggen valt.
+// veld), in de stad de wijk waar je staat (buiten de stad geen stadswijk, districtat.js). '' als er niets te zeggen valt.
 export function plekNaam(x, y, { meta, ommelandArea, areaNameAt } = {}) {
   if (!Number.isFinite(x) || !Number.isFinite(y)) return '';
   const area = ommelandArea ? ommelandArea(x, y) : null;

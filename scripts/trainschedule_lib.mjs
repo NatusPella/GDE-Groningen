@@ -1,6 +1,6 @@
 // Treinrooster bouwen (#1085, docs/TREINEN-LIVE-21-11.md): de pure regels van de bouwstap.
-// Geen bestanden, geen netwerk: scripts/treinrooster_bouw.mjs leest de statische GTFS (alleen bij het BOUWEN,
-// nooit door het spel) en roept deze functies aan. Tests: scripts/treinrooster_test.mjs.
+// Geen bestanden, geen netwerk: scripts/trainschedule_build.mjs leest de statische GTFS (alleen bij het BOUWEN,
+// nooit door het spel) en roept deze functies aan. Tests: scripts/trainschedule_test.mjs.
 //
 // Wat hieruit komt is een compact rooster met echte vertrektijden van de stations in en rond Groningen, met de
 // VERZONNEN lijnnamen van het spel. De vervoerder staat niet in het rooster (constitutie 2: geen echte merken in

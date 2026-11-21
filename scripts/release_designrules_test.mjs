@@ -361,10 +361,10 @@ try {
 
   // goedgekeurde openbare leesopvraag: alleen de goedgekeurde host in het goedgekeurde bestand
   const url = (file, text) => auditLines([L(file, text)], []).findings.filter((f) => f.categorie === 'privacy');
-  is(url('game/js/livetreinen.js', "  url: 'https://gtfs.ovapi.nl/nl/trainUpdates.pb',").length, 0, 'netwerk: de goedgekeurde treinfeed is geen bevinding');
-  is(url('game/js/livetreinen.js', '// Bron: de feed (https://gtfs.ovapi.nl/nl/trainUpdates.pb)').length, 0, 'netwerk: dezelfde host in commentaar ook niet');
-  ok(url('game/js/livetreinen.js', "  url: 'https://voorbeeld.example/x.pb',").some((f) => f.ernst === 'blokkerend'), 'netwerk: een andere host in hetzelfde bestand blijft blokkerend');
-  ok(url('game/js/livetreinen.js', '  const r = await fetch(url);').some((f) => f.ernst === 'blokkerend'), 'netwerk: een fetch-aanroep blijft blokkerend, ook in het goedgekeurde bestand');
+  is(url('game/js/livetrains.js', "  url: 'https://gtfs.ovapi.nl/nl/trainUpdates.pb',").length, 0, 'netwerk: de goedgekeurde treinfeed is geen bevinding');
+  is(url('game/js/livetrains.js', '// Bron: de feed (https://gtfs.ovapi.nl/nl/trainUpdates.pb)').length, 0, 'netwerk: dezelfde host in commentaar ook niet');
+  ok(url('game/js/livetrains.js', "  url: 'https://voorbeeld.example/x.pb',").some((f) => f.ernst === 'blokkerend'), 'netwerk: een andere host in hetzelfde bestand blijft blokkerend');
+  ok(url('game/js/livetrains.js', '  const r = await fetch(url);').some((f) => f.ernst === 'blokkerend'), 'netwerk: een fetch-aanroep blijft blokkerend, ook in het goedgekeurde bestand');
   ok(url('game/js/ander.js', "  url: 'https://gtfs.ovapi.nl/nl/trainUpdates.pb',").some((f) => f.ernst === 'blokkerend'), 'netwerk: dezelfde host in een ander bestand blijft blokkerend');
   is(url('game/js/ander.js', "import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';").length, 0, 'netwerk: de three-import (het bouwen zet hem om) is geen bevinding');
 

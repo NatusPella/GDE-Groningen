@@ -80,7 +80,7 @@ export function reisKeuzes(opts, afstandM, { gast = false } = {}) {
   }
   rijen.push({
     id: 'zelf', soort: 'zelf', label: 'Zelf gaan',
-    uitleg: 'Je zet een waypoint en rijdt of loopt zelf. Dat kan ook in Samen spelen.',
+    uitleg: 'Je zet een waypoint en gaat zelf op pad. Dat kan ook als je met anderen speelt.',
     kosten: 'gratis', duur: `± ${mins(zelfSeconden(afstandM, opts))} min`,
     aanbevolen: !rit, disabled: null,
   });

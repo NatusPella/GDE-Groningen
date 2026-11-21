@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as P from '../game/js/achievementunlock.js';
 import * as D from '../game/js/dsmicro.js';
-import { FAST_MS, STEP_MS, MAX_TOTAAL_MS } from '../game/js/eindkaartimpact.js';
+import { FAST_MS, STEP_MS, MAX_TOTAAL_MS } from '../game/js/endcardimpact.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const lees = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
@@ -128,8 +128,8 @@ const body = audio.slice(audio.indexOf('export function playPrestatieMoment'), a
 ok(/bus: stingBus/.test(body) || /\.\.\.sting/.test(body), 'het moment-geluid loopt via de sting-bus (Effecten-volume en dempen)');
 ok(!/coopnet|sendCoop|broadcast/.test(achSrc.slice(achSrc.indexOf('function showNextToast'))), 'het moment stuurt niets over het net (lokaal per speler)');
 ok(/isOverlayHeld\('prestatie'\)/.test(achSrc), 'de prestatie wacht op de eindkaart: de slagen overlappen nooit');
-const eind = lees('game/js/eindkaartimpact.js');
-ok(/export function counterSteps/.test(eind) && /from '\.\/eindkaartimpact\.js'/.test(lees('game/js/achievementunlock.js')), 'de staffel-helper van de eindkaart wordt hergebruikt');
+const eind = lees('game/js/endcardimpact.js');
+ok(/export function counterSteps/.test(eind) && /from '\.\/endcardimpact\.js'/.test(lees('game/js/achievementunlock.js')), 'de staffel-helper van de eindkaart wordt hergebruikt');
 ok(!/^import/m.test(lees('game/js/dsmicro.js')), 'dsmicro.js heeft geen imports (pure helpers, geen cyclus)');
 
 console.log(`${n - fails}/${n} prestatiemoment-controles groen`);

@@ -65,7 +65,7 @@ function queryParts() {
     // #581: only the QA scripts that drive the old title screen themselves (GDE_MENU_TEST) still get
     // it; every other test run starts like the player: boot, then the world
     process.env.GDE_MENU_TEST && 'menutest',
-    // Alleen of Samen (startchoice.js): een testrun slaat de startkaart over en speelt alleen; GDE_STARTKEUZE=vraag laat hem juist zien (beeldruns)
+    // Alleen of Samen (launchchoice.js): een testrun slaat de startkaart over en speelt alleen; GDE_STARTKEUZE=vraag laat hem juist zien (beeldruns)
     process.env.GDE_STARTKEUZE === 'vraag' ? 'startkeuze=vraag' : isTestRun && !hasFlag('--coop') && 'startkeuze=alleen',
     TRAILER && 'trailer', TRAILER && trailerShot && `shot=${encodeURIComponent(trailerShot)}`, (TRAILER || hasFlag('--trailer-preview')) && trailerCut && `cut=${encodeURIComponent(trailerCut)}`,
     TRAILER && (trailerFrames || video) && 'frames', video && 'video', video && 'stil', hasFlag('--attract') && 'attract', hasFlag('--trailer-preview') && 'preview',

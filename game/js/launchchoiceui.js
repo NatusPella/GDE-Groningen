@@ -1,10 +1,10 @@
-// De startkeuze op het scherm (startchoice.js is de regel en de tekst): de kaart "Hoe wil je spelen?" met twee grote
+// De startkeuze op het scherm (launchchoice.js is de regel en de tekst): de kaart "Hoe wil je spelen?" met twee grote
 // knoppen, en de toestemmingskaart voor Samen spelen. Dezelfde overlay (#online-start, .os-overlay) als de naamkaart,
 // dus de bootwachter en de laadschermlaag kennen hem al. Geen netwerk: de kaarten leggen alleen een antwoord vast.
 // Toetsen: pijlen en WASD, 1 en 2, Enter of spatie, Escape of Backspace (Alleen). Een controller geeft dezelfde toetsen (input.js).
 import { icoon } from './icons.js';
 import { keyLabelHtml, keyTextHtml } from './keycap.js';
-import { KEUZES, LAUNCH_TEXT, TOESTEMMING_TEKST, toetsActie } from './startchoice.js';
+import { KEUZES, LAUNCH_TEXT, TOESTEMMING_TEKST, toetsActie } from './launchchoice.js';
 import { geefToestemming } from './onlineconsent.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -82,7 +82,7 @@ export function openLaunchChoice({ index = 0 } = {}) {
     const b = e.target && e.target.closest ? e.target.closest('.sk-keuze') : null;
     if (b) sluit(b.dataset.keuze);
   });
-  knoppen.forEach((b, i) => b.addEventListener('mouseenter', () => { nu = i; }));
+  knoppen.forEach((b, i) => b.addEventListener('mouseenter', () => zet(i))); // de muis volgt de focus: de knop onder de muis is de gekozen knop
   open = { promise, el };
   zet(nu);
   return promise;

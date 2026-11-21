@@ -1,7 +1,7 @@
 // Live treinen (#1085): de ene leesopvraag naar de open vertragingen van de treinen, gedaan door het main-proces (een renderer op
 // gde:// mag zonder CORS-koppen niet lezen). Alleen de vaste url hieronder, alleen GET, zonder cookies, account of gegevens van de
 // speler; een time-out en een maximum aan bytes (uitgepakt). De renderer kan geen andere url meegeven.
-// De url en de grenzen staan ook in game/js/livetreinen.js (scripts/livetreinen_test.mjs controleert dat ze gelijk zijn).
+// De url en de grenzen staan ook in game/js/livetrains.js (scripts/livetrains_test.mjs controleert dat ze gelijk zijn).
 // fetch (Node) vraagt en pakt gzip zelf uit: ca. 1 MB op de lijn, ca. 3 MB uitgepakt.
 const LIVE_URL = 'https://gtfs.ovapi.nl/nl/trainUpdates.pb';
 const TIMEOUT = 8000;

@@ -1,5 +1,5 @@
 // De wijk (buurt) van een plek, één keuze voor de hele game: de locatiekaart linksonder, de kaart "Nieuwe buurt", de
-// praatjes van Tammo en Rikus en de prestaties. Puur, zonder DOM en zonder THREE: scripts/wijkat_test.mjs.
+// praatjes van Tammo en Rikus en de prestaties. Puur, zonder DOM en zonder THREE: scripts/districtat_test.mjs.
 //
 // Waarom (gebiedsnaam-21-11): al die plekken namen het dichtstbijzijnde wijkpunt van de stad (stad.json
 // neighbourhoodPoints, 66 punten, allemaal in de stad Groningen) ZONDER te kijken of de speler nog in de stad was. Wie in

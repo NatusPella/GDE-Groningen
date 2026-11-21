@@ -1,6 +1,6 @@
-// De startkeuze (eigenaarsbesluit 21-11): bij elke start Alleen of Samen spelen. Pure regel (startchoice.js), de stroom met nepschermen,
+// De startkeuze (eigenaarsbesluit 21-11): bij elke start Alleen of Samen spelen. Pure regel (launchchoice.js), de stroom met nepschermen,
 // de kaarten met een nep-DOM, en de bedrading voor testruns (main.js, devtools.js, devflags.js). Geen Electron, geen netwerk.
-//   node scripts/startchoice_test.mjs
+//   node scripts/launchchoice_test.mjs
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -25,9 +25,9 @@ globalThis.removeEventListener = (ev, f) => { const i = luisteraars.indexOf(f); 
 globalThis.document = { addEventListener() {}, removeEventListener() {}, hidden: false, body: null, head: null, activeElement: null };
 
 const S = await import('../game/js/settings.js');
-const K = await import('../game/js/startchoice.js');
+const K = await import('../game/js/launchchoice.js');
 const C = await import('../game/js/onlineconsent.js');
-const UI = await import('../game/js/startchoiceui.js');
+const UI = await import('../game/js/launchchoiceui.js');
 
 let n = 0;
 const t = async (naam, f) => { try { await f(); n++; } catch (e) { e.message = `${naam}: ${e.message}`; throw e; } };
@@ -215,6 +215,24 @@ await t('pad: startKeuze=vraag in een testrun toont de kaart en de naamkaart (ni
   await K.askLaunchChoice(s.deps);
   assert.deepEqual(s.gevraagd, ['naam', 'keuze:0']);
 });
+await t('eerste start: de naam komt zonder toestemming; Alleen laat onlineMeedoen leeg, Samen vraagt het akkoord pas daarna', async () => {
+  nieuwProfiel();
+  let s = stroom(K.launchPlan(S.getSettings()), { keuzes: ['alleen'] });
+  await K.askLaunchChoice(s.deps);
+  assert.deepEqual(s.gevraagd, ['naam', 'keuze:0']);
+  assert.equal(S.getSettings().onlineNaam, 'Bouwer');
+  assert.notEqual(S.getSettings().onlineMeedoen, true, 'Alleen: geen netwerktoestemming');
+  nieuwProfiel();
+  s = stroom(K.launchPlan(S.getSettings()), { keuzes: ['samen', 'alleen'], toestemming: [false], sessie: [] });
+  assert.equal(await K.askLaunchChoice(s.deps), 'alleen', 'het akkoord weigeren brengt je terug op de keuze, Alleen blijft kunnen');
+  assert.deepEqual(s.gevraagd, ['naam', 'keuze:0', 'toestemming', 'keuze:0']);
+  assert.notEqual(S.getSettings().onlineMeedoen, true);
+  nieuwProfiel();
+  s = stroom(K.launchPlan(S.getSettings()), { keuzes: ['samen'], toestemming: [true], sessie: ['host'] });
+  assert.equal(await K.askLaunchChoice(s.deps), 'samen');
+  assert.deepEqual(s.gevraagd, ['naam', 'keuze:0', 'toestemming', 'sessie']);
+  assert.equal(S.getSettings().onlineMeedoen, true, 'het akkoord is bewaard na de toestemmingskaart');
+});
 await t('de naamkaart blijft verplicht en eenmalig: nooit een weg zonder geldige naam, nooit opnieuw na een geldige', () => {
   nieuwProfiel();
   assert.equal(C.kiesNaam('').ok, false);
@@ -337,7 +355,7 @@ await t('devtools.js: elke testrun krijgt startkeuze=alleen (behalve --coop), GD
   assert.match(d, /const isTestRun = !!\(TRAILER \|\| CLIP \|\| hasFlag\('--autoplay'\) \|\| BENCH \|\| hasFlag\('--stil'\) \|\| hasFlag\('--smoke-test'\) \|\| hasFlag\('--story-test'\)/);
 });
 await t('de keuzebestanden gebruiken geen netwerk (constitution 4 en 10)', () => {
-  for (const f of ['game/js/startchoice.js', 'game/js/startchoiceui.js']) {
+  for (const f of ['game/js/launchchoice.js', 'game/js/launchchoiceui.js']) {
     const bron = lees(f).replace(/\/\/.*$/gm, '');
     assert.ok(!/WebSocket|RTCPeerConnection|\bfetch\(|XMLHttpRequest|sendBeacon|EventSource/.test(bron), `${f} raakt het netwerk niet aan`);
     assert.ok(!/localStorage|sessionStorage/.test(bron), `${f} schrijft alleen via setSetting`);
@@ -347,7 +365,10 @@ await t('css: tekst op de keuzekaart nooit onder 13 px, focusring aanwezig, bewe
   const css = lees('game/js/onlineconsent.css');
   const stuk = css.slice(css.indexOf('/* Startkeuze'));
   for (const m of stuk.matchAll(/font-size:\s*(\d+)px/g)) assert.ok(Number(m[1]) >= 13, `font-size ${m[1]}px`);
-  assert.match(stuk, /\.sk-keuze:focus-visible \{ outline: var\(--ds-focus-dikte\)/);
+  assert.match(stuk, /\.sk-keuze:focus, \.sk-keuze:focus-visible \{ background: var\(--ds-zeef-primair\)[^}]*outline: var\(--ds-focus-dikte\)/, 'de knop met focus is de gele hoofdknop met de DS-focusring');
+  assert.doesNotMatch(stuk, /\.sk-keuze\[data-keuze="samen"\] \{ background/, 'Samen is niet altijd de gele hoofdknop');
+  assert.match(css, /\.os-overlay \{ place-items: end center;/, 'de kaart staat onderaan: het logo blijft zichtbaar');
+  assert.match(css, /body:has\(#online-start\) #loading \.bt-load \{ visibility: hidden; \}/, 'de laadstatus lekt niet onder de kaart door');
   assert.match(stuk, /prefers-reduced-motion: reduce/);
   assert.match(stuk, /html\.reduce-motion \.sk-keuze \{ transition: none; \}/);
 });
@@ -356,5 +377,5 @@ await t('devflags: startkeuze staat in FLAGS en FLAG_DOCS', async () => {
   assert.ok('startkeuze' in f.FLAGS && typeof f.FLAG_DOCS.startkeuze === 'string');
 });
 
-console.log(`startchoice_test: ${n}/${n} ok`);
+console.log(`launchchoice_test: ${n}/${n} ok`);
 process.exit(0);

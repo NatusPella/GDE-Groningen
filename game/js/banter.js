@@ -20,7 +20,7 @@ import { playBanterVoice, stopBanterVoice, pauseBanterVoice, voiceBusy } from '.
 import { hold as holdChannel, release as releaseChannel } from './speech.js';
 import { hoofdspeler } from './spelersregister.js'; // wie er praat is de speler achter dit scherm (#446)
 import { KEYS } from './storagekeys.js';
-import { districtAt, createDistrictTracker } from './wijkat.js';
+import { districtAt, createDistrictTracker } from './districtat.js';
 import { banterExchanges, banterLineVoice, storyDataReady } from './storytext.js';
 import { openBank } from './voicebank.js';
 
@@ -220,7 +220,7 @@ function watchWijk(dt) {
   const pts = world.map && world.map.meta && world.map.meta.neighbourhoodPoints;
   if (!pts) return;
   const { x, y } = hoofdspeler(world);
-  // alleen een wijk waar je echt in staat, met een korte verblijfstijd en zonder melding na een sprong (wijkat.js)
+  // alleen een wijk waar je echt in staat, met een korte verblijfstijd en zonder melding na een sprong (districtat.js)
   const best = districtAt(pts, x, y);
   const gemeld = st.wijkVolger.tik(dt, best ? best.name : null, x, y);
   if (gemeld && WIJK_NAMES.has(gemeld)) st.wijkEntered = { name: gemeld, at: world.time };

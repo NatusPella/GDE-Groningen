@@ -19,7 +19,7 @@ import { walkPathHook } from './latehooks.js';
 import { poiLayerPlace, poiLayerPlaces } from './facilities.js';
 import { mayBuildGraph } from './graphgate.js';
 import { createTtlCache } from './ttlcache.js';
-import { graphBuildSteps, runSteps } from './routegraphbuild.js';
+import { graphBuildSteps, runSteps } from './pathgraphbuild.js';
 
 const STRAY_M = 25;
 // the further from the route you may stray before it is redone, per way of travel
@@ -73,7 +73,7 @@ function graphStale(map) {
   if (!graph || graph.map !== map) return true;
   return graph.roadVer !== (map._roadVer || 0) || graph.buildingVer !== (map._buildingVer || 0);
 }
-// budgetMs: updateRouting bouwt een bestaande graaf per beeld in porties (routegraphbuild.js); wie nu een graaf nodig heeft
+// budgetMs: updateRouting bouwt een bestaande graaf per beeld in porties (pathgraphbuild.js); wie nu een graaf nodig heeft
 // (een routevraag) maakt een lopende bouw achter elkaar af.
 function ensureGraph(map, budgetMs = Infinity) {
   if (!graphStale(map)) return;
@@ -248,7 +248,7 @@ const GRAPH_HOOKS = {
   throughOf: null, // per bouw: kent de kaart
   consts: { THROUGH_BUILDING_COST, SERVICE_COST, OFFROAD_COST, STEPS_COST, MOTORWAY_AVOID, BIKE_COST, MOTORWAY_TYPES },
 };
-// De bouw is hervatbaar (routegraphbuild.js): een lopende bouw staat hier tot hij klaar is of de lagen veranderden.
+// De bouw is hervatbaar (pathgraphbuild.js): een lopende bouw staat hier tot hij klaar is of de lagen veranderden.
 let pendingBuild = null;
 function startGraphBuild(map) {
   const t0 = performance.now();

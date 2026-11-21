@@ -3,9 +3,9 @@
 // Een rustige stippellijn loopt langs de rand van de kaart. Het doel dat je volgt is één dikke boog op die lijn, op de plek van de richting, met een
 // rond Phosphor-icoon in het midden en de afstand in een papieren plaatje ernaast. Wachtende doelen (hooguit twee) en medespelers of eigen voertuigen
 // zijn kleine ronde icoon-punten op dezelfde lijn: geen pijl. Markers die te dichtbij komen schuiven uit elkaar; de afstand tot de kaartrand is vast.
-// Kleur zegt de rol (navdoel.js NAV_ROL), het icoon zegt het type: nooit alleen kleur.
+// Kleur zegt de rol (navtarget.js NAV_ROL), het icoon zegt het type: nooit alleen kleur.
 //
-// Twee delen: de meetkunde (puur, getest in scripts/navdoel_test.mjs) en het tekenen (canvas; zonder Path2D, zoals in node, vallen de iconen weg).
+// Twee delen: de meetkunde (puur, getest in scripts/navtarget_test.mjs) en het tekenen (canvas; zonder Path2D, zoals in node, vallen de iconen weg).
 import { iconInner } from './icons.js';
 import { dsKleur } from './kaartkleuren.js';
 
@@ -13,7 +13,7 @@ export const TRACK_INSET = 23; // afstand van het hart van een marker tot de kaa
 export const TRACK_RADIUS = 24; // de hoeken van de baan
 export const MIN_ACTIEF = 48; // afstand langs de baan tussen de boog en een punt
 export const MIN_DOT = 28; // afstand langs de baan tussen twee punten
-export const MAX_WACHTEND = 2; // hooguit zoveel wachtende doelen (navdoel.js MAX_SECUNDAIR); medespelers en voertuigen tellen daar niet bij
+export const MAX_WACHTEND = 2; // hooguit zoveel wachtende doelen (navtarget.js MAX_SECUNDAIR); medespelers en voertuigen tellen daar niet bij
 export const MAX_ANDEREN = 3; // en hooguit zoveel medespelers en eigen voertuigen als punt
 
 // ------------------------------------------------------------------ meetkunde

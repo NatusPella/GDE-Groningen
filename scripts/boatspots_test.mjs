@@ -1,8 +1,8 @@
-// isBoatSpotValid (game/js/vehicle/bootplekken.js): waar een boot logisch ligt of vaart. Synthetische kaart, geen wereld nodig.
-//   node scripts/bootplekken_test.mjs
+// isBoatSpotValid (game/js/vehicle/boatspots.js): waar een boot logisch ligt of vaart. Synthetische kaart, geen wereld nodig.
+//   node scripts/boatspots_test.mjs
 import './node3d.mjs';
 
-const B = await import('../game/js/vehicle/bootplekken.js');
+const B = await import('../game/js/vehicle/boatspots.js');
 const { createVaarNet } = await import('../game/js/vaarnet.js');
 const { WATER_KINDS } = await import('../game/js/waterlevels.js');
 
@@ -118,5 +118,5 @@ B.configureBoatSource({});
 ok(B.isBoatSpotValid(map, 3200, 1.5, 'kano'), 'zonder net: breed genoeg is genoeg');
 ok(!B.isBoatSpotValid(map, 1200, 2, 'sloep'), 'zonder net: een sloot blijft een sloot');
 
-console.log(`bootplekken: ${n - fails}/${n} checks passed`);
+console.log(`boatspots: ${n - fails}/${n} checks passed`);
 process.exit(fails ? 1 : 0);

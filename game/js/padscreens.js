@@ -73,7 +73,7 @@ export const PAD_SCREEN_EDGES = [
   { from: 'pauze', to: 'toetsenbord', ctx: 'menu', key: 'enter' },
   { from: 'toetsenbord', to: 'pauze', ctx: 'menu', key: 'escape' },
   // Samen spelen: vanaf de titel en in het pauzemenu, met de wachtkamer ertussen
-  // de startkeuze (startchoice.js): bij elke start Alleen of Samen; Escape kiest Alleen, in Samen brengt Terug je hier terug
+  // de startkeuze (launchchoice.js): bij elke start Alleen of Samen; Escape kiest Alleen, in Samen brengt Terug je hier terug
   { from: 'titel', to: 'startkeuze', ctx: 'menu', key: 'enter', note: 'het laadscherm: de startkaart' },
   { from: 'startkeuze', to: 'voet', ctx: 'menu', key: 'enter', note: 'Alleen spelen (of Escape): het enkelspelerpad' },
   { from: 'startkeuze', to: 'voet', ctx: 'menu', key: 'escape' },

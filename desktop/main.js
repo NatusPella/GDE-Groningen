@@ -4,7 +4,7 @@
 const { app, BrowserWindow, Menu, protocol, shell, ipcMain, dialog } = require('electron');
 const { createCoopCore } = require('./coopcore.cjs');
 const { haalLiveBussen } = require('./livebussen.cjs');
-const { haalLiveTreinen } = require('./livetreinen.cjs');
+const { haalLiveTreinen } = require('./livetrains.cjs');
 const path = require('path');
 const fs = require('fs/promises');
 const fsSync = require('fs');

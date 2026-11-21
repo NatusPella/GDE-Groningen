@@ -1,7 +1,7 @@
 # Boten alleen waar dat logisch is (21-11, #1083)
 
 Aanleiding (eigenaar): "Spawn alleen boten waar dat logisch is, dus niet op een random sloot of watertje."
-Eén regel voor alle bootspawns: `game/js/vehicle/bootplekken.js`. Meten doet `scripts/world/boot_spawn_audit.mjs`.
+Eén regel voor alle bootspawns: `game/js/vehicle/boatspots.js`. Meten doet `scripts/world/boot_spawn_audit.mjs`.
 
 ## Wat is "logisch"
 
@@ -65,7 +65,7 @@ Noot: de verhuursteigers (Hoge der A, Noorderhaven) lagen 108 en 149 m van een b
 
 ## Tests
 
-- `node scripts/bootplekken_test.mjs`: 43 eenheidschecks (breedte, vaarnet, kade, haven, sloot, vijver, afmeren, verplaatsen, cache en prestaties).
+- `node scripts/boatspots_test.mjs`: 43 eenheidschecks (breedte, vaarnet, kade, haven, sloot, vijver, afmeren, verplaatsen, cache en prestaties).
 - `node scripts/boot_spawn_test.mjs`: de audit als regressie op de echte wereld (0 afwijkers, 20 seeds AI, determinisme, < 1 ms per keuze). SKIP zonder `game/world`.
 
 ## Niet gemeten of niet gedaan

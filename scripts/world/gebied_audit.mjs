@@ -12,7 +12,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const imp = (p) => import(pathToFileURL(path.join(root, p)).href);
 const { ontvouw, grensVan, puntInGebied, puntInRing } = await imp('game/js/grenzen.js');
-const { districtAt, CITY_LOCALITY } = await imp('game/js/wijkat.js');
+const { districtAt, CITY_LOCALITY } = await imp('game/js/districtat.js');
 
 const arg = (n, d) => { const a = process.argv.find((s) => s.startsWith(`--${n}=`)); return a ? a.slice(n.length + 3) : d; };
 const stap = Number(arg('stap', 250));
