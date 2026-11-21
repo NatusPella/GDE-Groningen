@@ -99,3 +99,72 @@ export async function whenReady(store, keys, { budgetMs = JUMP_BUDGET_MS, now = 
     await wait();
   }
 }
+
+// Is er nog tegelwerk in een van de twee wachtrijen van de kaart (de stroom en de achtergrondvensters, #1052)? Poorten die een
+// cache pas bouwen als de tegels klaar zijn (straatmeubilair, verkeerslichten, voetgangersroutes, plekken) keken alleen naar de
+// eerste wachtrij en bouwden bij elke achtergrondtegel opnieuw.
+export function mapBusy(map) {
+  if (!map) return false;
+  return !!((map.tileQueue && map.tileQueue.items && map.tileQueue.items.length) || (map.bgQueue && map.bgQueue.items && map.bgQueue.items.length));
+}
+// Een rustpoort: true als de kaart niets meer te doen heeft, en anders hoogstens eens per maxWaitMs (zo wacht een poort nooit voor
+// altijd op een stroom die niet ophoudt, en bouwt hij ook niet bij elke tegel).
+export function createCalmGate(maxWaitMs = 2000) {
+  let last = -Infinity;
+  return (map, now = (typeof performance !== 'undefined' ? performance.now() : Date.now())) => {
+    if (!mapBusy(map)) return true;
+    if (now - last >= maxWaitMs) { last = now; return true; }
+    return false;
+  };
+}
+
+// Eén gedeelde pomp voor alle plaatsingsvensters (#1052, code-review): elk venster draaide zijn eigen drainSliced-lus, dus het
+// budget gold per venster en niet per frame (vijf vensters = 15 ms per frame). Nu staan de vensters in één lijst en werkt de
+// pomp per frame EEN keer de gedeelde wachtrij af: het budget is het grootste van de actieve vensters (een urgent venster
+// 6 ms, een achtergrondvenster 3 ms), niet de som. Een venster is klaar als zijn eigen tegels erin zijn (until) of de wachtrij
+// leeg is; een vastgehouden venster (hold) telt niet mee voor het budget en kost niets; na maxMs nemen de stukken 3x zo
+// groot (nooit alles in een keer).
+export function createDrainPump({ queue, nextFrame, now = () => Date.now(), grant = null, onSpend = null }) {
+  const wins = new Set();
+  let running = false;
+  const stats = { frames: 0, maxBudget: 0, windowsMax: 0 };
+  async function loop() {
+    running = true;
+    while (wins.size) {
+      const t = now();
+      let budget = 0, active = 0;
+      for (const w of wins) {
+        const done = !queue.items.length || !!(w.until && w.until());
+        if (done) { wins.delete(w); w.resolve(w.frames); continue; }
+        const elapsed = t - w.last; w.last = t;
+        const held = w.hold && w.held < BG_HOLD_MAX_MS && w.hold();
+        if (held) { w.held += elapsed; continue; }
+        w.spent += elapsed;
+        active++;
+        budget = Math.max(budget, w.spent > w.maxMs ? w.sliceMs * 3 : w.sliceMs);
+        w.frames++;
+      }
+      if (budget > 0) {
+        const g = grant ? grant(budget, wins) : budget;
+        const t1 = now();
+        queue.run(g, now);
+        if (onSpend) onSpend(now() - t1, budget);
+        stats.maxBudget = Math.max(stats.maxBudget, g);
+      }
+      stats.frames++; stats.windowsMax = Math.max(stats.windowsMax, active);
+      if (wins.size) await nextFrame();
+    }
+    running = false;
+  }
+  return {
+    // geeft een belofte die het aantal frames oplevert waarin dit venster werd bediend
+    add({ sliceMs = BG_SLICE_MS, until = null, hold = null, maxMs = BG_DRAIN_MAX_MS } = {}) {
+      return new Promise((resolve) => {
+        wins.add({ sliceMs, until, hold, maxMs, resolve, frames: 0, spent: 0, held: 0, last: now() });
+        if (!running) loop();
+      });
+    },
+    get size() { return wins.size; },
+    stats,
+  };
+}

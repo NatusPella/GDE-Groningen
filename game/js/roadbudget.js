@@ -28,18 +28,28 @@ export function heavyRoadAllowed(built, streamPending, waitedFrames) {
 // (een hitch met rust ertussen, in plaats van een reeks), en blijft #883 (de wegen komen er wel) gelden: er wacht niets voor altijd.
 export const HEAVY_ROAD_GAP_MS = 250;
 export const HEAVY_ROAD_COOL = 4;
+// Code-review 21-11: de rust tussen twee heavy bouwbeurten (COOL x kosten) is begrensd, en een heavy weg die in totaal zo lang
+// heeft gewacht zonder dat er een heavy weg werd gebouwd, mag door de rust heen (#883: wegen mogen bij de speler niet ontbreken).
+export const HEAVY_ROAD_GAP_MAX_MS = 2500;
+export const HEAVY_ROAD_MAX_WAIT_MS = 6000;
 
 export function createHeavyRoadGate() {
-  let waited = 0, lastEnd = -Infinity, lastCost = 0;
+  let waited = 0, lastEnd = -Infinity, lastCost = 0, lastNow = 0, deferredSince = null;
   return {
     // mag er nu een heavy weg gebouwd worden? (built: wegen die dit frame al klaar zijn; now: performance.now())
     allowed(built, streamPending, now) {
-      if (now - lastEnd < Math.max(HEAVY_ROAD_GAP_MS, HEAVY_ROAD_COOL * lastCost)) return false;
+      lastNow = now;
+      const gap = Math.min(HEAVY_ROAD_GAP_MAX_MS, Math.max(HEAVY_ROAD_GAP_MS, HEAVY_ROAD_COOL * lastCost));
+      const starved = deferredSince !== null && now - deferredSince >= HEAVY_ROAD_MAX_WAIT_MS;
+      if (!starved && now - lastEnd < gap) return false;
       return heavyRoadAllowed(built, streamPending, waited);
     },
-    built(now, cost) { lastEnd = now; lastCost = cost; },
+    built(now, cost) { lastEnd = now; lastCost = cost; deferredSince = null; },
     // aan het eind van de wegsync: wachtte een heavy weg dit frame (vooruitgeschoven) of niet
-    endFrame(deferred) { waited = deferred ? waited + 1 : 0; },
+    endFrame(deferred) {
+      waited = deferred ? waited + 1 : 0;
+      if (!deferred) deferredSince = null; else if (deferredSince === null) deferredSince = lastNow;
+    },
     get waited() { return waited; },
   };
 }

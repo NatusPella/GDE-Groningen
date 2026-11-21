@@ -5,7 +5,10 @@
 // fixed ahead of the player (a shop door, a village's uitje) asks for its tiles
 // first (withTiles) and then runs on what is resident.
 import { pointInPolygon, closestPointOnSegment, nearestOnRoadList } from './util.js';
-import { BACKGROUND_PRIORITY, BG_DRAIN_MAX_MS, backgroundHeld, drainSliced, joinQueues, sliceFor } from './tilestream.js';
+import { BG_DRAIN_MAX_MS, backgroundHeld, createDrainPump, joinQueues } from './tilestream.js';
+import { streamPlanner } from './streamplanner.js';
+import { URGENT_SLICE_MS } from './placementurgency.js';
+import { windowModeFor } from './placementurgency.js';
 
 // A polygon's distance to a point, 0 inside it.
 function polyDist(x, y, pts) {
@@ -174,8 +177,28 @@ export function streetAt(map, x, y) {
 export function tilesIn(map, points, radius = 160) {
   const st = map.store;
   if (!st) return true;
-  for (const [x, y] of points) if (st.missing(st.keysAround(x, y, radius)).length) return false;
+  for (const [x, y] of points) {
+    const keys = st.keysAround(x, y, radius);
+    if (st.missing(keys).length) return false;
+    // sinds #1052 staan de rijen van een binnengekomen tegel nog in een wachtrij: pas klaar als ze in de rasters zitten (code-review)
+    if (map.tilesPending && map.tilesPending(keys)) return false;
+  }
   return true;
+}
+
+// Eén pomp per kaart voor alle vensters: het tegelwerk van de vensters telt per frame één keer, niet per venster (code-review #1052).
+// Het budget komt van de gedeelde planner: een urgent venster uit de eigen klasse, de rest uit de tegelklasse (minstens 1 ms,
+// zodat een achtergrondvenster altijd vooruitgaat).
+function windowPump(map) {
+  if (map._drainPump) return map._drainPump;
+  const plan = streamPlanner();
+  return (map._drainPump = createDrainPump({
+    queue: joinQueues(map.tileQueue, map.bgQueue || null, () => performance.now()),
+    now: () => performance.now(),
+    nextFrame: () => new Promise((r) => { const t = setTimeout(r, 50); requestAnimationFrame(() => { clearTimeout(t); r(); }); }),
+    grant: (budget) => (budget >= URGENT_SLICE_MS ? plan.grant('urgent', budget) : Math.max(1, Math.min(budget, plan.grant('tile', budget)))),
+    onSpend: (ms, budget) => plan.spend(budget >= URGENT_SLICE_MS ? 'urgent' : 'tile', ms),
+  }));
 }
 
 // Runs fn with the tiles round the points resident: they are asked for, held
@@ -194,12 +217,15 @@ export async function withTiles(map, points, fn, { radius = 160, token = 'place'
   for (const k of keys) st.pin(k);
   try {
     const t0 = performance.now();
-    await Promise.all([...keys].map((k) => st.request(k, { priority: urgent ? -500 : BACKGROUND_PRIORITY }))); // geen token: dit venster wacht zijn beurt af en trekt niets in (#588)
+    // placementurgency.js: een teleport (urgent) is synchroon; een venster bij de speler, bij een lopende activiteit of een herstel is
+    // 'urgent' (afstandsprioriteit, 6 ms per frame, niet vastgehouden door een film of cutscene); de rest is achtergrond
+    const wm = windowModeFor(points, map.focusAt || null, { urgent, slice });
+    await Promise.all([...keys].map((k) => st.request(k, { priority: wm.priority }))); // geen token: dit venster wacht zijn beurt af en trekt niets in (#588)
     const t1 = performance.now();
-    const sliceMs = sliceFor({ urgent, slice });
+    const sliceMs = wm.sliceMs;
     if (sliceMs > 0 && typeof requestAnimationFrame === 'function') {
       // (a frame, or 50 ms when the window is hidden and frames stop)
-      await drainSliced(joinQueues(map.tileQueue, map.bgQueue || null, () => performance.now()), { sliceMs, maxMs: BG_DRAIN_MAX_MS, now: () => performance.now(), until: map.tilesPending ? () => !map.tilesPending(keys) : null, hold: urgent ? null : backgroundHeld, nextFrame: () => new Promise((r) => { const t = setTimeout(r, 50); requestAnimationFrame(() => { clearTimeout(t); r(); }); }) });
+      await windowPump(map).add({ sliceMs, maxMs: BG_DRAIN_MAX_MS, until: map.tilesPending ? () => !map.tilesPending(keys) : null, hold: wm.held ? backgroundHeld : null });
     } else { map.tileQueue.run(1e9); if (map.bgQueue) map.bgQueue.run(1e9); }
     const t2 = performance.now();
     const out = fn();

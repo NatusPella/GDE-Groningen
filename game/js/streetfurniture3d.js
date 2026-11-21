@@ -19,6 +19,8 @@ import { makeProp, addProp, removeProp, isPropBroken, addStaticCollider, addProp
 import { TILE_M, GRID_X0, GRID_Y0, tileIndexOf } from './gdt.js';
 import { markInstancesDirty } from './util.js';
 import { gridItems } from './spatialgrid.js';
+import { createCalmGate } from './tilestream.js';
+const tilesCalmGate = createCalmGate(); // wacht ook op de achtergrondwachtrij van de tegelwereld, hoogstens twee seconden achter elkaar (#1052)
 
 // the game draws its own lamps and path bollards (see above)
 export const GAME_OPTS = { lamps: false, bollards: false, livingBumps: false };
@@ -286,7 +288,7 @@ function tileItems(i, j) {
   // wacht de opruiming tot de tegelwachtrij leeg is: de bestaande meubels blijven dan
   // even staan en er valt geen halve seconde per tegel in het spel (#4).
   if (map && map.geoVer !== tilesGeoVer) {
-    const tilesCalm = !map.tileQueue || !map.tileQueue.items || map.tileQueue.items.length === 0;
+    const tilesCalm = tilesCalmGate(map);
     if (tilesCalm) { tiles.clear(); tilesGeoVer = map.geoVer; }
   }
   const key = `${i},${j}`;

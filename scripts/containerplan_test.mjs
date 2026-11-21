@@ -6,7 +6,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { wgsToWorld } from '../game/js/rdnew.js';
-import { M13_QUAY, M13_CRANE, M13_CONTAINER, M13_LAMMERT, M13_ANCHOR_WGS, M13_MAX_ANCHOR_DIST, CONTAINER_STACKS, CABLE_REELS, m13Problems, m13Footprints, shiftM13Plan, applyM13Shift } from '../game/js/containerplan.js';
+import { M13_QUAY, M13_CRANE, M13_CONTAINER, M13_LAMMERT, M13_ANCHOR_WGS, M13_MAX_ANCHOR_DIST, CONTAINER_STACKS, CABLE_REELS, m13Problems, m13Footprints, shiftM13Plan, applyM13Shift, m13DecisionReady, M13_DECIDE_RADIUS_M } from '../game/js/containerplan.js';
 import { spotProblems, spotClear, nearestClearSpot } from '../game/js/missionplace.js';
 
 let n = 0;
@@ -41,7 +41,7 @@ t('er staat een blauwe en een rode container om 4471 te herkennen', () => {
 
 t('de missie gebruikt dezelfde plekken als de rekwisieten', () => {
   const missie = lees('missions_nieuw.js');
-  assert.match(missie, /import \{ M13_QUAY, M13_CRANE, M13_CONTAINER, M13_LAMMERT, shiftM13Plan, applyM13Shift \} from '\.\/containerplan\.js'/);
+  assert.match(missie, /import \{ M13_QUAY, M13_CRANE, M13_CONTAINER, M13_LAMMERT, shiftM13Plan, applyM13Shift, m13DecisionReady \} from '\.\/containerplan\.js'/);
   assert.match(missie, /start: \{ \.\.\.M13_QUAY \}/);
   assert.match(missie, /target: \{ \.\.\.M13_CRANE, label: 'De kraan aan de kade' \}/);
   assert.match(missie, /target: \{ \.\.\.M13_CONTAINER, label: 'Container 4471' \}/);
@@ -116,6 +116,28 @@ t('een plan op een weg wordt als groep verschoven en past daarna, met dezelfde u
 t('de voetafdrukken dekken kraan, rollen, stapel, pad en kadevloer', () => {
   const namen = new Set(m13Footprints().map(([n]) => n));
   for (const n of ['kade', 'Lammert', 'kraan', 'kabelrol', 'container', 'pad', 'kadevloer']) assert.ok(namen.has(n), n);
+});
+
+t('de beslissing over de verschuiving wacht op voltooide rijen over de hele zoekstraal (host en gast gelijk)', () => {
+  const tileIndexOf = (x, y) => [Math.floor(x / 1000), Math.floor(y / 1000)];
+  const c = { x: 5500, y: 5500 };
+  const R = M13_DECIDE_RADIUS_M;
+  assert.ok(R >= 120, 'minstens de zoekstraal van shiftM13Plan (maxD 120)');
+  // alle negen tegels rond het plan klaar
+  const alle = new Set();
+  for (const dx of [-R, 0, R]) for (const dy of [-R, 0, R]) alle.add(tileIndexOf(c.x + dx, c.y + dy).join(','));
+  const klaar = { tileRowsDone: (i, j) => alle.has(`${i},${j}`) };
+  assert.equal(m13DecisionReady(klaar, c, tileIndexOf), true);
+  // een tegel die al resident is maar waarvan de rijen nog in de wachtrij staan, telt niet (de oude test keek naar resident)
+  const half = { resident: alle, tileRowsDone: (i, j) => alle.has(`${i},${j}`) && !(i === 5 && j === 5) };
+  assert.equal(m13DecisionReady(half, c, tileIndexOf), false, 'een half gevulde tegel: nog niet beslissen');
+  // zonder tileRowsDone (een kaart zonder wachtrij): resident
+  assert.equal(m13DecisionReady({ resident: alle }, c, tileIndexOf), true);
+  assert.equal(m13DecisionReady({ resident: new Set() }, c, tileIndexOf), false);
+  // dezelfde (volledige) gegevens geven host en gast dezelfde verschuiving
+  const a = shiftM13Plan(nepMap()), b = shiftM13Plan(nepMap());
+  assert.deepEqual(a, b);
+  assert.equal(m13DecisionReady(null, c, tileIndexOf), false);
 });
 
 console.log(`containerplan_test: ${n}/${n} ok`);

@@ -3,6 +3,7 @@ import { buildingLodStyle } from './models3d_buildings.js';
 import { perfOff } from './devflags.js';
 import { buildingLift, roadBaseAt } from './terrainlift.js';
 import { drawHub } from './multidraw3d.js';
+import { farBuildDist, createCooler, RING_KEEP_MAX } from './lodstable.js';
 
 // Far LOD layer: plain extruded buildings and flat ground (green, paths,
 // roads) merged per TILE x TILE metre tile, one draw call per tile and layer.
@@ -68,6 +69,10 @@ const shared = {
   uLodPlayer: { value: new THREE.Vector2() },
   uLodDetailR: { value: 140 },
   uLodInnerR: { value: 130 },
+  // gebouwen binnen de detailring die nog geen eigen mesh hebben houden hun verre kopie (lodstable.js selectRing, #1016): de ring
+  // hoeft dan niet naar het eerste wachtende gebouw te krimpen
+  uLodKeep: { value: Array.from({ length: RING_KEEP_MAX }, () => new THREE.Vector2(1e9, 1e9)) },
+  uLodKeepN: { value: 0 },
   // a streamed tile's flat water is only drawn beyond this radius (see waterStreamMaterial)
   uLodWaterR: { value: 3800 },
   uNightGlow: { value: 0 },
@@ -85,6 +90,8 @@ attribute vec2 lodCenter;
 attribute vec2 lodWall;
 uniform vec2 uLodPlayer;
 uniform float uLodDetailR;
+uniform vec2 uLodKeep[${RING_KEEP_MAX}];
+uniform int uLodKeepN;
 varying vec3 vFarW;
 varying float vFarSeed;
 varying vec2 vFarWall;`)
@@ -92,7 +99,11 @@ varying vec2 vFarWall;`)
 vFarW = (modelMatrix * vec4(transformed, 1.0)).xyz;
 vFarWall = lodWall;
 vFarSeed = fract(sin(dot(lodCenter, vec2(12.9898, 78.233))) * 43758.5453);
-if (distance(lodCenter, uLodPlayer) <= uLodDetailR) gl_Position = vec4(0.0, 0.0, -2.0, 1.0);`);
+if (distance(lodCenter, uLodPlayer) <= uLodDetailR) {
+  bool keepFar = false;
+  for (int i = 0; i < ${RING_KEEP_MAX}; i++) { if (i >= uLodKeepN) break; if (distance(lodCenter, uLodKeep[i]) < 0.6) { keepFar = true; break; } }
+  if (!keepFar) gl_Position = vec4(0.0, 0.0, -2.0, 1.0);
+}`);
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>
 uniform float uNightGlow, uLitFrac;
@@ -361,6 +372,7 @@ export function createFarLOD(scene, map, opts) {
   const tintCache = new Map();
 
   const tiles = new Map();
+  const tileCooler = createCooler();
   // (#921) de rijen die een gestroomde tegel zelf tekent: de basisindex slaat ze over,
   // anders staat elk gestroomd gebouw, elke weg en elk vlak groen er twee keer in (dubbel
   // werk, en bij een verandering een oude kopie die blijft staan).
@@ -619,7 +631,7 @@ export function createFarLOD(scene, map, opts) {
   // A pass that left nothing queued is repeated after the focus moved a metre, a setting changed, a tile came or
   // went, or FAR_IDLE_FRAMES frames: the pass walks every tile of the world with a hypot each and sorts the queue.
   const FAR_IDLE_FRAMES = 30;
-  function update(px, py, viewDist, visibleDist, detailR) {
+  function update(px, py, viewDist, visibleDist, detailR, extra = null) {
     // #314 C2: komt er een tegel bij of gaat die weg, dan zijn de LOD-tegels oud.
     // #755: sinds de sparse tegelwereld is de stad zelf ook gestroomd, dus de
     // basisindex moet daarna opnieuw uit de rasters komen; anders blijft de verre
@@ -632,6 +644,9 @@ export function createFarLOD(scene, map, opts) {
     shared.uLodPlayer.value.set(px, py);
     shared.uLodDetailR.value = detailR;
     shared.uLodInnerR.value = detailR - 8;
+    const keep = extra && extra.keep ? extra.keep : null, keepN = keep ? Math.min(RING_KEEP_MAX, keep.length) : 0;
+    for (let i = 0; i < keepN; i++) shared.uLodKeep.value[i].set(keep[i][0], keep[i][1]);
+    shared.uLodKeepN.value = keepN;
     const on = viewDist > detailR + 20;
     if (on !== enabled) { enabled = on; root.visible = on; }
     passFrame++;
@@ -646,7 +661,10 @@ export function createFarLOD(scene, map, opts) {
       return;
     }
     const t0 = performance.now();
-    const deadline = t0 + BUDGET_MS;
+    // het budget komt van de gedeelde planner (streamplanner.js); een klein minimum houdt de laag altijd vooruit
+    const deadline = t0 + (extra && extra.budgetMs > 0 ? extra.budgetMs : extra ? 0.25 : BUDGET_MS);
+    const lead = extra && extra.lead ? extra.lead : null;
+    tileCooler.beginFrame();
     // (#755) De basisindex opnieuw opbouwen, in stukken van BUDGET_MS. Zolang
     // hij niet af is bouwen we geen tegels (een tegel zou rijen missen die er
     // later nog bij komen); de volgende frame gaat verder waar deze stopte.
@@ -665,13 +683,17 @@ export function createFarLOD(scene, map, opts) {
       // switched with ?perfoff=pool (A/B runs): the tile is built again in the other mode
       if (t.meshes && t.pooled === perfOff('pool')) disposeTile(t);
       const d = rectDist(t, px, py);
-      t.dist = d;
-      if (d < start) {
+      // in de rijrichting begint een tegel eerder te bouwen: het aandachtspunt (focus + lead) telt mee (lodstable.js farBuildDist)
+      const dA = lead ? farBuildDist(d, rectDist(t, lead.x, lead.y)) : d;
+      t.dist = dA;
+      if (dA < start) {
+        tileCooler.wanted(t);
         if (!t.meshes && !t.job) startJob(t);
-      } else if (d > drop && (t.meshes || t.job || t.oldMeshes)) {
+      } else if (dA > drop && (t.meshes || t.job || t.oldMeshes)) {
         // pas hier, ruim achter de zichtafstand: een tegel die net buiten beeld
-        // valt of waar de speler omheen draait blijft staan
-        disposeTile(t);
+        // valt of waar de speler omheen draait blijft staan; een afgebouwde tegel nog een paar seconden
+        // (heen en weer lopen bouwt hem dan niet opnieuw) en hoogstens twee per frame echt vrijgegeven
+        if (!t.meshes || t.job || t.oldMeshes || tileCooler.unwanted(t, t0)) { tileCooler.forget(t); disposeTile(t); }
       }
       if (t.meshes) {
         const vis = d < visibleDist;

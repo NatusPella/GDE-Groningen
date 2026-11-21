@@ -87,6 +87,18 @@ export function shiftM13Plan(map, { maxD = 120, step = 6 } = {}) {
   return null;
 }
 
+// Mag het plan nu over een verschuiving beslissen? Pas als de rijen van ALLE tegels rond het plan in de rasters zitten (niet alleen
+// "in het geheugen": resident staat al aan zodra de eerste rijen binnengaan) en over de hele zoekstraal van shiftM13Plan (maxD 120 +
+// de grootste voetafdruk) in plaats van een kleine +-40 m. Zo beslist een host of een gast die later laadt op dezelfde gegevens,
+// en nooit op een half gevulde kaart (code-review 21-11). `tileIndexOf(x, y)` geeft [i, j]; map.tileRowsDone(i, j) of resident.
+export const M13_DECIDE_RADIUS_M = 150;
+export function m13DecisionReady(map, center, tileIndexOf, radius = M13_DECIDE_RADIUS_M) {
+  if (!map || !center) return false;
+  const done = (x, y) => { const [i, j] = tileIndexOf(x, y); return map.tileRowsDone ? map.tileRowsDone(i, j) : !!(map.resident && map.resident.has(`${i},${j}`)); };
+  for (const dx of [-radius, 0, radius]) for (const dy of [-radius, 0, radius]) if (!done(center.x + dx, center.y + dy)) return false;
+  return true;
+}
+
 // Past de verschuiving toe op de plekken zelf; de rekwisieten en de missiestappen lezen dezelfde objecten.
 export function applyM13Shift({ dx, dy }) {
   const all = [M13_QUAY, M13_CRANE, M13_CONTAINER, M13_LAMMERT, ...CONTAINER_STACKS, ...CABLE_REELS];

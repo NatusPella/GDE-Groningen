@@ -8,7 +8,7 @@ import { buildAkte5Defs, applyAkte5 } from './missions_akte5.js';
 import { wgsToWorld } from './rdnew.js';
 import { ROOSTER } from './heliplan.js';
 import { makeStrip } from './planecontrol.js';
-import { M13_QUAY, M13_CRANE, M13_CONTAINER, M13_LAMMERT, shiftM13Plan, applyM13Shift } from './containerplan.js';
+import { M13_QUAY, M13_CRANE, M13_CONTAINER, M13_LAMMERT, shiftM13Plan, applyM13Shift, m13DecisionReady } from './containerplan.js';
 import { tileIndexOf } from './gdt.js';
 import { applyPlekFix } from './missionplace.js';
 import { applyAkte3 } from './missions_akte3.js'; // AAA akte 3: kaarten, wachtfiguren, aankleding
@@ -24,9 +24,9 @@ const spotAt = (lat, lon, dx = 0, dy = 0) => { const [x, y] = wgsToWorld(lat, lo
 // Zonder tegels in het geheugen oordelen we niet, zodat een gast die later laadt niet anders kiest dan de host.
 function snapM13Spots(map, def) {
   if (!map || !map.resident || !def) return;
-  const known = (p) => { const [i, j] = tileIndexOf(p.x, p.y); return map.resident.has(`${i},${j}`); };
   const before = [M13_QUAY, M13_CRANE, M13_CONTAINER, M13_LAMMERT].map((p) => ({ x: p.x, y: p.y }));
-  if (!before.every((p) => known(p)) || ![-40, 40].every((d) => known({ x: M13_CONTAINER.x + d, y: M13_CONTAINER.y + d }))) return;
+  // alleen op voltooide rijen en over de hele zoekstraal (containerplan.js m13DecisionReady): host en gast beslissen op dezelfde gegevens
+  if (!before.every((p) => m13DecisionReady(map, p, tileIndexOf))) return;
   const shift = shiftM13Plan(map);
   if (!shift) return;
   applyM13Shift(shift);

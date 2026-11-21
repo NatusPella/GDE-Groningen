@@ -60,6 +60,8 @@ function bouwTaxi(world, optie, dest) {
     prewarm: plan.kort ? [pad.at(0), pad.at(pad.len)] : [pad.at(0), pad.at(pad.len - plan.dcM), pad.at(pad.len)],
     begin(w) {
       const q = baan(0);
+      // de tegels langs de hele rit vooraf aanvragen (tileworld.js warmRoute): de taxi komt er op snelheid langs
+      try { const rp = []; for (let s = 0; s <= pad.len; s += 250) { const a = pad.at(s); rp.push([a.x, a.y]); } if (w.map && w.map.warmRoute) w.map.warmRoute(rp); } catch (e) { /* vooruitladen is een hulpmiddel */ }
       v = new Vehicle(q.x, q.y, q.a, carModel('taxi'));
       applyFleetFlags(v, 'taxi');
       Object.assign(v, { road: null, plan: [], driver: 'cine', cineTemp: true, missionCar: true, z: zHoogte(w.map, q.x, q.y) });
@@ -138,7 +140,11 @@ function bouwTrein(world, optie) {
   return {
     plan,
     prewarm: plan.kort ? [punt(0), punt(plan.lengthM)] : [punt(0), punt(plan.lengthM - plan.dcM), punt(plan.lengthM)],
-    begin(w) { const k = plek({ s: 0 }); zet(w, k.stuk, k.c); },
+    begin(w) {
+      const k = plek({ s: 0 }); zet(w, k.stuk, k.c);
+      // de tegels langs het spoor vooraf aanvragen (tileworld.js warmRoute)
+      try { const rp = []; for (let s = 0; s <= plan.lengthM; s += 300) { const q = punt(s); rp.push([q.x, q.y]); } if (w.map && w.map.warmRoute) w.map.warmRoute(rp); } catch (e) { /* vooruitladen is een hulpmiddel */ }
+    },
     // het perron van de aankomst: waar de trein stopt, de plek langs het spoor (#926); null: dan de gewone landing
     landing(w) {
       const k = plek({ s: plan.lengthM }), [x, y] = routePunt(k.stuk.route, k.c);

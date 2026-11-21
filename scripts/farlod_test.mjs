@@ -172,7 +172,22 @@ if (mat && mat.onBeforeCompile) {
   settle(edge, 600);
   ok(edge.stats.tiles === 1, 'een tegel ruim buiten beeld maar binnen de hysterese blijft staan', JSON.stringify(edge.stats));
   settle(edge, FR.lodRanges(400).drop + 60);
-  ok(edge.stats.tiles === 0, 'pas ver achter de zichtafstand valt de tegel weg', JSON.stringify(edge.stats));
+  // #1016: opruimen met vertraging (lodstable.js createCooler): de tegel blijft nog even staan (heen en weer lopen bouwt hem niet opnieuw)
+  ok(edge.stats.tiles === 1, 'achter de zichtafstand blijft de tegel eerst nog even staan (vertraagd opruimen)', JSON.stringify(edge.stats));
+  { // na de vertraging valt hij weg
+    const echt = performance.now.bind(performance);
+    performance.now = () => echt() + 5000;
+    try { settle(edge, FR.lodRanges(400).drop + 62); } finally { performance.now = echt; }
+  }
+  ok(edge.stats.tiles === 0, 'pas ver achter de zichtafstand en na de vertraging valt de tegel weg', JSON.stringify(edge.stats));
+  { // de speler draait om voor de vertraging om is: de tegel is er nog (geen herbouw)
+    const e2 = makeLod();
+    settle(e2, 460);
+    for (let k = 0; k < 10 && !(e2.stats.tiles + e2.stats.queued + e2.stats.visible); k++) e2.update(320 + 460 + 1.1 * (k + 1), 160, 400, 400, 60);
+    settle(e2, FR.lodRanges(400).drop + 60);
+    settle(e2, 200);
+    ok(e2.stats.tiles === 1, 'omdraaien binnen de vertraging: dezelfde tegel staat er nog', JSON.stringify(e2.stats));
+  }
 
   // binnen de zichtafstand wordt nooit iets weggegooid, ook niet als de speler
   // eromheen loopt of de zichtafstand verspringt

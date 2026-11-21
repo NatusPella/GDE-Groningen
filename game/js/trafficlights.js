@@ -3,6 +3,8 @@ import { makeProp, addProp, removeProp } from './breakables.js';
 import { allSignals } from './junctions.js';
 import { MODS } from './cheatmods.js';
 import { roadIndexOf } from './roadindex.js';
+import { createCalmGate } from './tilestream.js';
+const tilesCalmGate = createCalmGate(); // wacht ook op de achtergrondwachtrij van de tegelwereld, hoogstens twee seconden achter elkaar (#1052)
 
 // Conflict-free fixed-time controllers. Every car approach belongs to an
 // axis (streams that are parallel or opposite); each axis gets its own green
@@ -558,7 +560,7 @@ export function updateTrafficLights(dt, world) {
   // even staan, maar er valt geen halve seconde per tegel in het spel (#4).
   if (m && m.signalVer !== undefined && m.signalVer !== signalVer) {
     const intro = typeof document !== 'undefined' && document.body && document.body.classList.contains('intro-montage');
-    const tilesCalm = !m.tileQueue || !m.tileQueue.items || m.tileQueue.items.length === 0;
+    const tilesCalm = tilesCalmGate(m);
     if (tilesCalm && !intro) {
       signalVer = m.signalVer;
       buildTrafficNetwork(world);

@@ -168,7 +168,7 @@ const FLAT_ROOF_TONES = [0x747478, 0x5e5f63, 0x7e7a73, 0x6c6e6a];
 const flatRoofMaterials = FLAT_ROOF_TONES.map((c) => habboMaterial(c, { map: flatRoofTexture }));
 // kozijnen, dorpels, deuren en daklijsten liggen een paar mm tot cm voor de gevel; de polygonOffset (in diepte-eenheden, dus
 // meeschalend met de afstand) houdt ze ook op 100 m en verder voor het vlak erachter (#382)
-const detailMaterial = vcMaterial({ side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 });
+export const detailMaterial = vcMaterial({ side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 });
 
 export function setNightFactor(glow, litFrac, shopFrac = litFrac, officeFrac = litFrac) {
   setGlassNight(glow, litFrac, shopFrac, officeFrac);
