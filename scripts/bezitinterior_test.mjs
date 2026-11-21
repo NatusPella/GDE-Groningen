@@ -74,12 +74,45 @@ t('broncontrole: het contract van interiors.js en de hookregel in main.js', () =
   const src = fs.readFileSync(new URL('../game/js/bezitinterior.js', import.meta.url), 'utf8');
   assert.ok(!/fetch\(|document\.|THREE|three/.test(src.replace(/\/\/.*$/gm, '')));
   const probe = {}; H.installBezitInterior((h) => Object.assign(probe, h));
-  assert.deepEqual(Object.keys(probe).sort(), ['customers', 'homeStyle', 'manage', 'owned']);
+  assert.deepEqual(Object.keys(probe).sort(), ['customers', 'epoch', 'homeStyle', 'manage', 'owned']);
 });
 t('homeStyle: een eigen pand krijgt een vast kleurenstel, een vreemd pand niets', () => {
   assert.equal(hooks.homeStyle({ pts: sq(500, 500) }), null);
   const a = hooks.homeStyle({ pts: sq(10, 10) });
   assert.ok(a && Number.isFinite(a.wall) && Number.isFinite(a.floor) && Number.isFinite(a.fabric));
   assert.deepEqual(a, H.ownStyleOf(111));
+});
+t('epoch: verandert na koop en verkoop van een pand (de kleuren van een net gekocht pand volgen zonder herladen)', () => {
+  const e1 = hooks.epoch();                                                   // pand 111 is hierboven gekocht
+  assert.ok(hooks.homeStyle({ pts: sq(10, 10) }));
+  assert.ok(L.verkoopPand(w, 111).ok);
+  const e0 = hooks.epoch();
+  assert.notEqual(e0, e1);
+  assert.equal(hooks.homeStyle({ pts: sq(10, 10) }), null);
+  assert.ok(L.koopPand(w, 111).ok);
+  assert.notEqual(hooks.epoch(), e0);
+  assert.ok(hooks.homeStyle({ pts: sq(10, 10) }));
+});
+t('interiors.js: een rustig pand met een verouderd plan krijgt een nieuw plan, een levend of vastgepind blijft', () => {
+  const ints = fs.readFileSync(new URL('../game/js/interiors.js', import.meta.url), 'utf8');
+  assert.ok(/rec.epoch === epoch || S.live.has(b) || S.pinned.has(b)/.test(ints) && /rec.epoch = hookEpoch()/.test(ints));
+});
+t('signSpecFor: een winkelpui houdt zijn bord, een sponsorpand zonder pui krijgt er een boven de deur, een gewoon pand niets', async () => {
+  const SP = await import('../game/js/sponsorpanden.js');
+  const entrance = { ax: 0, ay: 0, tx: 1, ty: 0, nx: 0, ny: 1, len: 10, c: 5, w: 1, h: 2.1, floorH: 3 };
+  const hoeve = { pts: sq(10, 10), entrance };
+  assert.equal(H.signSpecFor(hoeve), null);                                   // geen sponsor: geen bord
+  SP.syncSponsorDeals({ slots: [{ accepted: true, osm: 111, naam: 'Weidevreugd Zuivel' }] });
+  const sp = H.signSpecFor(hoeve);
+  assert.equal(sp.name, 'Weidevreugd Zuivel'); assert.equal(sp.hex, H.SPONSOR_SIGN_HEX);
+  assert.ok(sp.front.s1 - sp.front.s0 >= 0.9 && sp.front.s0 >= 0.15 && sp.front.s1 <= 9.85);
+  assert.ok(sp.front.top >= entrance.h && sp.front.top + 0.5 <= entrance.floorH + 0.1, 'boven de deur, onder de verdieping');
+  assert.equal(H.signSpecFor({ pts: sq(10, 10) }), null);                     // geen voordeur bekend
+  assert.equal(H.signSpecFor({ pts: sq(500, 500), entrance }), null);         // geen pand uit de index
+  const front = { ax: 1, ay: 1, tx: 1, ty: 0, nx: 0, ny: 1, s0: 0.15, s1: 6, top: 3, name: 'Bakker Beets', sign: 0x336699 };
+  const wk = H.signSpecFor({ pts: sq(10, 10), shopFront: front, entrance });
+  assert.equal(wk.name, 'Weidevreugd Zuivel'); assert.equal(wk.front, front); assert.equal(wk.hex, 0x336699);   // sponsornaam wint van de winkelnaam, de pui blijft
+  assert.equal(H.signSpecFor({ pts: sq(500, 500), shopFront: front }).name, 'Bakker Beets');
+  SP.syncSponsorDeals(null);
 });
 console.log(`bezitinterior_test: ${n} tests groen`);

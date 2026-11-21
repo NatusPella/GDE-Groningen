@@ -162,7 +162,7 @@ import { updateGastLokaal } from './coopgastlokaal.js';
 import { initDayNight, updateDayNight, refreshDayNight, DAY_LENGTH_S } from './daynight.js';
 import { initCalendar, updateCalendar, today as calendarToday } from './calendarday.js';
 import { homeMatchToday as voetbalThuisVandaag, formOfCareer as voetbalVorm } from './voetbalcarriere.js';
-import { getCareer as getVoetbalCarriere, subscribe as volgVoetbalCarriere, getClub as getVoetbalClub, loadParkData as loadVoetbalParken, updateDay as updateVoetbalDag, updateBeats as updateVoetbalBeats, zetBezigProbe as zetVoetbalBezig } from './voetbalcarrierelive.js';
+import { getCareer as getVoetbalCarriere, subscribe as volgVoetbalCarriere, replaceCareer as vervangVoetbalCarriere, clubPlace as voetbalClubPlek, getClub as getVoetbalClub, loadParkData as loadVoetbalParken, updateDay as updateVoetbalDag, updateBeats as updateVoetbalBeats, zetBezigProbe as zetVoetbalBezig } from './voetbalcarrierelive.js';
 import { cardsBusy as voetbalCardsBusy } from './hudcards.js';
 import { updateFx3D } from './fx3d.js';
 import { updateGore3D } from './gore3d.js';
@@ -960,7 +960,7 @@ window.__debug = { player, map, input, world, frameStats };
   initOmverrijden(world);
   initBezit();
   installBezitInterior(assignInteriorHooks, { openMenu: () => openPauseMenu('boerderij', { sub: 'bedrijven' }) }); // E bij de toonbank van je eigen pand: het volledige Bezit-menu (Land en bedrijf > Bedrijven)
-  try { registerSponsorPanden(); linkCareer({ getCareer: getVoetbalCarriere, subscribe: volgVoetbalCarriere, homeMatchToday: voetbalThuisVandaag, formOf: voetbalVorm, getClub: getVoetbalClub }); } catch (e) { /* zonder voetbal */ }
+  try { registerSponsorPanden(); linkCareer({ getCareer: getVoetbalCarriere, subscribe: volgVoetbalCarriere, homeMatchToday: voetbalThuisVandaag, formOf: voetbalVorm, getClub: getVoetbalClub, replaceCareer: vervangVoetbalCarriere, clubPlace: voetbalClubPlek }); } catch (e) { /* zonder voetbal */ }
   // de gedeelde ontgrendelpoort (unlockgate.js): zolang de save geen `gate` heeft (world.gate) staat alles open (migratieregel van de verhaal-epic)
   setGateProgress(() => storyGateProgress());
   // de snackwagen opent in fasen met de stille verhaalvlaggen wagen:* (snackstory.js); een oude save (geen gate) laat alles open

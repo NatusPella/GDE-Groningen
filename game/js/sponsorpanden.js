@@ -5,7 +5,7 @@
 // De eigenaar van het pand krijgt op thuiswedstrijddagen hooguit +10% op de omzet van dat pand (ownerBonus in voetbalsponsors.js) via bezitlive.setEventHook, nooit een tweede uitbetaling.
 // Koppeling zonder importcyclus: registerSponsorPanden() zet de interface in voetbalsponsors.setPandIndex en de omzethaak in bezitlive; de carrière roept syncSponsorDeals(sponsors) aan na accept of laden.
 import * as L from './bezitlive.js';
-import { OWNER_BONUS_MAX, ownerBonus, setPandIndex } from './voetbalsponsors.js';
+import { OWNER_BONUS_MAX, ownerBonus, setPandIndex, resolveMissingPanden } from './voetbalsponsors.js';
 
 export { OWNER_BONUS_MAX };
 export const SEARCH_RADII = [400, 1200, 4000, 12000];
@@ -50,6 +50,7 @@ export function syncSponsorDeals(sponsors) {
 }
 export const sponsorNameOf = (osm) => names.get(osm) || null;
 export const isSponsorPand = (osm) => names.has(osm);
+export const hasSponsorPanden = () => names.size > 0;
 
 export function findSponsorBuilding(type, xy, ctx = {}) {
   const ix = ctx.index || (L.getIndexNow() || null);
@@ -77,16 +78,31 @@ export function eventModsFor(osm, mods, day) {
   return { ...mods, revMult: (mods.revMult || 1) * f };
 }
 
-// De carrière aan de pandkant: de sponsorstand (naam per pand) volgt elke wijziging van de carrière en wordt nu meteen gelezen (na laden); de thuisbonus telt alleen voor vandaag.
+// De carrière aan de pandkant: de sponsorstand (naam per pand) volgt elke wijziging van de carrière en wordt nu meteen gelezen (na laden); de thuisbonus telt voor vandaag en voor eerder onthouden thuiswedstrijddagen.
 // c = { getCareer, subscribe, homeMatchToday(career, getClub), formOf(career), getClub, today() } uit voetbalcarrierelive.js en voetbalcarriere.js; geeft de afmelder terug.
-export function linkCareer({ getCareer, subscribe, homeMatchToday, formOf, getClub, today = () => L.calToday() } = {}) {
+// Optioneel: replaceCareer(c) en clubPlace(clubId) -> [x, y]; dan krijgt een sponsor die voor het laden van de pandindex is aangenomen (osm null) zijn pand alsnog zodra de index er is.
+export function linkCareer({ getCareer, subscribe, homeMatchToday, formOf, getClub, today = () => L.calToday(), replaceCareer = null, clubPlace = null } = {}) {
+  // een thuiswedstrijddag wordt onthouden zodra hij open staat (daarna is hij gespeeld): ook een rekendag na slapen of reizen krijgt de bonus (hoogstens 30 dagen, alleen in dit spel)
+  const homeDays = new Set();
+  const noteHome = (c) => { const d = today(); if (homeMatchToday(c, getClub)) { homeDays.add(d); if (homeDays.size > 30) homeDays.delete(homeDays.values().next().value); } };
   setCareerHooks({
-    homeDayOf: (day) => day === today() && !!homeMatchToday(getCareer(), getClub),
+    homeDayOf: (day) => homeDays.has(day) || (day === today() && !!homeMatchToday(getCareer(), getClub)),
     formOf: () => formOf(getCareer()),
   });
-  const sync = (c) => syncSponsorDeals(c && c.sponsors);
+  const sync = (c) => { noteHome(c); return syncSponsorDeals(c && c.sponsors); };
   sync(getCareer());
-  return subscribe(sync);
+  const off = subscribe(sync);
+  const offIndex = replaceCareer && clubPlace ? L.onIndexReady(() => resolvePendingSponsors({ getCareer, replaceCareer, clubPlace })) : () => {};
+  return () => { off(); offIndex(); };
+}
+// Zoek het pand voor aangenomen overeenkomsten zonder pand; geeft het aantal gevonden panden (de carrière wordt dan vervangen, wat de sponsorstand ververst).
+export function resolvePendingSponsors({ getCareer, replaceCareer, clubPlace }) {
+  const c = getCareer();
+  if (!c || !c.sponsors || !c.club) return 0;
+  const r = resolveMissingPanden(c.sponsors, { find: (type, xy) => findSponsorBuilding(type, xy) }, clubPlace(c.club));
+  if (!r.changed) return 0;
+  replaceCareer({ ...c, sponsors: r.sponsors });
+  return r.changed;
 }
 
 export function registerSponsorPanden() {
