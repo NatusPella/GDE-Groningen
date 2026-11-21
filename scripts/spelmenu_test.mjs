@@ -139,7 +139,7 @@ const lb = read('game/js/loopbaanui.js');
 ok(/VAK_LINK = \{[\s\S]*?hengelen: \{ id: 'visboek'[\s\S]*?landbouw: \{ id: 'boerderij'/.test(lb) && lb.includes('bezighedenHtml(id, v, banen)') && !lb.includes('lb-tegel') && !lb.includes('lb-bez-rij'), 'Vissen en Boerderij zijn bezigheden van hun loopbaan, geen aparte tegels (#430)');
 ok(lb.includes('data-todo-goal="job:') && lb.includes('Volgende klus') && !lb.includes('volgendeKlusHtml') && !lb.includes('Naar de volgende klus:') && !lb.includes('data-lbview'), 'elke bezigheid staat er één keer: Volgende klus is een label, geen tweede knop; Veroverd is geen weergave van Loopbaan');
 // één overzicht: elke loopbaan toont zijn bezigheden en voortgang, en geen bezigheid valt onder twee loopbanen
-ok(lb.includes('bezighedenAantal(k.id)') && /const bezighedenAantal = \(id\) => L\.banenVan\(id\)\.length/.test(lb), 'elke loopbaan in de lijst zegt hoeveel bezigheden erbij horen, met de voortgangsbalk ernaast');
+ok(lb.includes('lb-k-bar') && lb.includes('bezighedenHtml(id, v, banen)'), 'elke loopbaan in de lijst heeft zijn voortgangsbalk en het detail zijn bezigheden');
 {
   const baanVak = lbSrc.slice(lbSrc.indexOf('const BAAN_VAK = {'), lbSrc.indexOf('export const BAAN_IDS'));
   const paren = [...baanVak.matchAll(/([a-z]+):\s*'([a-z]+)'/g)].map((x) => [x[1], x[2]]);

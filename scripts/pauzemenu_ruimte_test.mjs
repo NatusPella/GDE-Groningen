@@ -32,7 +32,7 @@ ok(/\.lb-list > \.lb-groep \{ grid-column: 1 \/ -1/.test(lb), 'een groepskop bes
 ok(/container: lbp \/ inline-size/.test(lb) && /@container lbp \(min-width: 600px\)/.test(lb), 'het detail gaat op twee kolommen als er ruimte is');
 ok(!/lb-pane > \.lb-vast \{ position: sticky/.test(lb), 'de hoofdknop plakt niet meer onderaan het detail');
 ok(/lb-d-kop[\s\S]{0,900}actieHtml\(profiel, id\)[\s\S]{0,40}<\/div>/.test(lb), 'de hoofdknop staat in de kop van het detail, bij de selectie');
-ok(/function fitChips/.test(lb) && /Goed: \$\{esc\(FIT\[f\.fit\]\)\}/.test(lb) && /Geprobeerd/.test(lb), 'de kaart toont wie goed is en de status van de carrière-tour');
+ok(/Wie is hier goed: \$\{esc\(FIT\[fit\.fit\]\)\}/.test(lb) && /function tourHtml/.test(lb), 'het detail toont wie goed is en de tour staat als tijdlijn (loopbaantour.js)');
 ok(/class="m-li lb-li lb-kaart ds-m-knop/.test(lb) && /class="m-bp lb-hoofd ds-m-knop"/.test(lb), 'kaart en hoofdknop hebben de microbeweging');
 ok(/data-vak-start/.test(lb) && /data-todo-goal="job:/.test(lb), 'de acties van het detail blijven (starten en als doel zetten)');
 ok(/\.lb-kaart \{ min-height: 60px; \}/.test(lb), 'op een laag scherm worden de kaarten compact');

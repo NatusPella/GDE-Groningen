@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Loopbanen: het scherm is rustiger. Bovenaan staat één kop (je titel en hoeveel eerste klussen je deed) met een wissel tussen **Tour** en **Vakken** (toets **T**, ook met de controller). De Tour is een tijdlijn van de carrière van Tammo en Tessa: gedaan, nu en volgende, in de volgorde van het verhaal. Een stop die het verhaal nog niet opent staat als slot en verklapt niets. De kaarten bij Vakken tonen alleen icoon, naam, niveau en voortgang; de uitleg staat in het detail. Dit is jouw eigen voortgang: bij Samen spelen ziet een gast zijn eigen loopbaan en niets van een ander.
 - Tekstdieet: de keuzekaart 'Hoe wil je spelen?' houdt zijn uiterlijk maar heeft geen inleiding meer en een korte ondertitel per knop. De naamkaart 'Je naam voor Samen spelen' heeft nog een titel, het naamveld, een vinkje met één zin en Doorgaan; de uitleg over je IP-adres staat achter 'Meer info' (een uitklapper). Het akkoord vóór het netwerk blijft verplicht. De toestemmingskaart en de moeilijkheidskaart zijn op dezelfde manier ingekort.
 - Laadscherm: nog maar één statusregel onder de balk (geen tipregel en geen verhaalterugblik meer, geen 'Stap n van m').
 - Opgeslagen spellen: ruimere rijen in twee brede kolommen met naam, speeltijd, plek en datum, een kleine niveau-tag en een Laden-knop die altijd zichtbaar is; geen verhaaldeel, balkje of tip meer per rij.
