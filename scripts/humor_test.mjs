@@ -6,7 +6,8 @@
 import fs from 'node:fs';
 
 const read = (f) => fs.readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
-const humor = JSON.parse(read('game/storydata/humor.json'));
+const humor = { beats: [] };
+for (const f of fs.readdirSync(new URL('../game/storydata/', import.meta.url)).filter((x) => /^humor(\.[a-z0-9]+)?\.json$/.test(x)).sort()) humor.beats.push(...JSON.parse(read('game/storydata/' + f)).beats);
 const script = JSON.parse(read('game/storydata/script.json'));
 const EIS = process.argv.includes('--eis-paneel');
 let n = 0, fails = 0;
@@ -24,12 +25,12 @@ export function panelWinner(votes, tiebreak) {
   return tiebreak === undefined ? null : tiebreak;
 }
 
-ok(Array.isArray(humor.beats) && humor.beats.length > 0, 'humor.json heeft beats');
+ok(humor.beats.length > 0, 'de humorbestanden hebben beats');
 ok(new Set(humor.beats.map((b) => b.id)).size === humor.beats.length, 'de id\'s zijn uniek');
 const doc = fs.existsSync(new URL('../docs/verhaal/HUMOR-KEUZELIJST.md', import.meta.url)) ? read('docs/verhaal/HUMOR-KEUZELIJST.md') : '';
 let beoordeeld = 0;
 for (const b of humor.beats) {
-  ok(/^H\d+$/.test(b.id) && b.label === 'humor-review', `${b.id}: id en label humor-review`);
+  ok(/^H[0-9A-Z-]+$/.test(b.id) && b.label === 'humor-review', `${b.id}: id en label humor-review`);
   ok(b.variants.length === 3 && new Set([...b.variants, b.neutral]).size === 4 && [...b.variants, b.neutral].every((t) => t && words(t) <= 30), `${b.id}: drie verschillende varianten en een neutrale terugval`);
   ok([0, 1, 2, 'neutral'].includes(b.chosen), `${b.id}: chosen is 0, 1, 2 of neutral`);
   ok(b.context && b.context.length > 30 && b.shot && b.speaker, `${b.id}: context, shotpatroon en spreker`);

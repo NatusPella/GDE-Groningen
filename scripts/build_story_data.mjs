@@ -18,7 +18,7 @@ import { withEllipsisAliases } from '../game/js/voicebank.js';
 const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = path.join(REPO, 'docs', 'verhaal', 'nieuw');
 const OUT = path.join(REPO, 'game', 'storydata', 'script.json');
-const HUMOR = path.join(REPO, 'game', 'storydata', 'humor.json');
+const HUMOR_DIR = path.join(REPO, 'game', 'storydata');
 const VL = path.join(REPO, 'game', 'audio', 'voicelines');
 
 // script speaker -> { key: speaker key of the game (storyarc SPEAKERS / missionstory NPC), name: shown, voice: name in the voice manifests }
@@ -114,11 +114,16 @@ function kindOf(id, title) {
 // De humorkeuze (#1134 en docs/verhaal/HUMOR-WERKWIJZE.md): een nieuwe of herschreven komische beat heeft drie varianten en een
 // veilige neutrale terugval in game/storydata/humor.json; `chosen` (0, 1, 2 of 'neutral') is de variant die het spel gebruikt.
 // De bron (de 09-scripts) draagt een van de teksten; de build zet de gekozen tekst in de regel en geeft hem het label 'humor'.
-export function readHumor(file = HUMOR) {
-  if (!fs.existsSync(file)) return { beats: [] };
-  const j = JSON.parse(fs.readFileSync(file, 'utf8'));
-  if (!j || !Array.isArray(j.beats)) throw new Error(file + ': "beats" ontbreekt');
-  return j;
+export function readHumor(dir = HUMOR_DIR) {
+  // humor.json en per akte een eigen bestand humor.<naam>.json (zodat parallel werk elkaar niet in de weg zit)
+  const beats = [];
+  if (!fs.existsSync(dir)) return { beats };
+  for (const f of fs.readdirSync(dir).filter((x) => /^humor(\.[a-z0-9]+)?\.json$/.test(x)).sort()) {
+    const j = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
+    if (!j || !Array.isArray(j.beats)) throw new Error(f + ': "beats" ontbreekt');
+    for (const b of j.beats) beats.push({ ...b, file: f });
+  }
+  return { beats };
 }
 export const humorText = (b) => (b.chosen === 'neutral' ? b.neutral : b.variants[b.chosen]);
 function applyHumor(scenes) {
