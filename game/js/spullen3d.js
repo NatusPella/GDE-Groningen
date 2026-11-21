@@ -3,7 +3,7 @@
 //   { kind: 'weapon', weapon }   een wapen uit models3d_people.js (GUN_SPECS)
 //   { kind: 'product', product } een winkelproduct uit shopmodels3d.js (eten, meubels, onderdelen, kaarten)
 //   { kind: 'person', look }     een personage in de kleding (kleding)
-//   { kind: 'spul', spul }       een nieuw model uit models3d_spullen.js (geld, vuist, vis, aanwijzing, onderdelen)
+//   { kind: 'spul', spul }       een nieuw model uit models3d_spullen.js (geld, vis, aanwijzing, onderdelen)
 // De parameters en kleuren van een model staan hier, als data: één generator, veel varianten. Samen spelen: Spullen zijn per speler
 // (#429); de viewer is lokaal en stuurt niets. Test: scripts/spullen3d_test.mjs, dekking: scripts/ui/spullen3d_dekking.mjs.
 
@@ -14,8 +14,8 @@ const product = (key) => ({ kind: 'product', product: key });
 export const moneyTier = (bedrag) => { const b = Number(bedrag) || 0; return b < 50 ? 0 : b < 500 ? 1 : b < 5000 ? 2 : 3; };
 export const moneySpec = (bedrag) => spul('geld', { niveau: moneyTier(bedrag) });
 
-// Wapens: alle sleutels van WEAPONS hebben een model in models3d_people.js, behalve de vuisten (die hebben er hier een).
-export const wapenSpec = (key) => (key === 'fists' ? spul('vuist') : key ? { kind: 'weapon', weapon: key } : null);
+// Wapens: alle sleutels van WEAPONS hebben een model in models3d_people.js. Vuisten zijn geen spul (je hebt ze niet): daar is geen model voor.
+export const wapenSpec = (key) => (key && key !== 'fists' ? { kind: 'weapon', weapon: key } : null);
 
 // Kleding: het personage in de kleur van de set; `look` is het uiterlijk van de speler met de kleuren van de set erover.
 export const kledingSpec = (look) => (look && typeof look === 'object' ? { kind: 'person', look: { ...look } } : null);

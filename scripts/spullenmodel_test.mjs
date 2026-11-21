@@ -13,7 +13,7 @@ const frikandel = { id: E.TOONBANK[5][0] }; // kroket
 const items = [
   { key: 'geld', cat: 'geld', title: '€120', sub: 'Contant' },
   { key: 'w:buks', cat: 'wapens', title: 'Buks', aantal: 12, eenheid: 'patronen' },
-  { key: 'w:fists', cat: 'wapens', title: 'Vuisten', aantal: 0 },
+  { key: 'w:waterpistool', cat: 'wapens', title: 'Waterpistool', aantal: 0 },
   { key: 'w:gooi', cat: 'werp', title: 'Bierfles', aantal: 150 },
   { key: 'o:stad', cat: 'kleding', title: 'Stadjer' },
   { key: 'e:a', cat: 'eten', title: 'Kroket', aantal: 3, weg: { id: frikandel ? frikandel.id : 'x', aantal: 3 } },
@@ -34,7 +34,7 @@ t('sorteren: geld blijft vooraan; naam is A tot Z; aantal zet de grootste stapel
   assert.deepEqual(M.sorteer(items).map((i) => i.key), items.map((i) => i.key), 'standaard houdt de volgorde');
   const naam = M.sorteer(items, 'naam').map((i) => i.title);
   assert.equal(naam[0], '€120');
-  assert.deepEqual(naam.slice(1), ['Bank', 'Bierfles', 'Buks', 'Kroket', 'Spaarkaart', 'Stadjer', 'Turbo', 'Vuisten']);
+  assert.deepEqual(naam.slice(1), ['Bank', 'Bierfles', 'Buks', 'Kroket', 'Spaarkaart', 'Stadjer', 'Turbo', 'Waterpistool']);
   const aantal = M.sorteer(items, 'aantal').map((i) => i.title);
   assert.deepEqual(aantal.slice(0, 4), ['€120', 'Bierfles', 'Buks', 'Kroket']);
   assert.equal(M.cycleSort('soort'), 'naam');

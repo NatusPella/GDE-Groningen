@@ -24,7 +24,7 @@ export function alleItems() {
   const items = [];
   const put = (key, cat, viewer) => items.push({ key, cat, viewer });
   put('geld', 'geld', SP.moneySpec(120));
-  for (const k of Object.keys(W.WEAPONS)) put('w:' + k, ['throw', 'rocket'].includes(W.WEAPONS[k].kind) ? 'werp' : 'wapens', SP.wapenSpec(k));
+  for (const k of Object.keys(W.WEAPONS).filter((x) => x !== 'fists')) put('w:' + k, ['throw', 'rocket'].includes(W.WEAPONS[k].kind) ? 'werp' : 'wapens', SP.wapenSpec(k));
   for (const ch of ['tammo', 'anita']) {
     const app = ch === 'anita' ? P.ANITA_APPEARANCE : P.TAMMO_APPEARANCE;
     for (const o of S.OUTFITS[ch]) put(`o:${ch}:${o.id}`, 'kleding', SP.kledingSpec({ ...app, shirt: o.shirt, pants: o.pants, shoes: o.shoes, ...(o.cap != null ? { cap: o.cap } : {}) }));

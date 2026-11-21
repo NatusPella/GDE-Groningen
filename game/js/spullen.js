@@ -230,15 +230,11 @@ function collect(w) {
       side: held ? 'In de hand' : '', desc: s.desc || (melee ? 'Een slagwapen voor dichtbij.' : ''),
       how: s.gun ? `Pang & Zo, ${euro(s.gun)}` : '',
       rows: [['Toets', String(WEAPONS[k].slot)], ...(WEAPONS[k].damage ? [['Schade', String(WEAPONS[k].damage)]] : [])],
-      act: held ? null : { label: 'In de hand nemen', run: () => { w.weapon = k; return `${s.label || k} in de hand`; } },
+      act: held ? { label: 'Wegleggen', run: () => { w.weapon = 'fists'; return `${s.label || k} weggelegd`; } } : { label: 'In de hand nemen', run: () => { w.weapon = k; return `${s.label || k} in de hand`; } },
     };
   };
   const ownGuns = guns.filter((k) => hasWeapon(w, k));
   counts.wapens = `${ownGuns.length} van ${guns.length}`;
-  out.push({ key: 'w:fists', cat: 'wapens', viewer: wapenSpec('fists'), icon: 'melee', title: 'Vuisten', sub: 'Altijd bij je', side: w.weapon === 'fists' ? 'In de hand' : '',
-    desc: 'Je eigen vuisten: geen munitie nodig en nooit kapot.',
-    rows: [['Toets', '1'], ['Schade', String(WEAPONS.fists.damage)]],
-    act: w.weapon === 'fists' ? null : { label: 'In de hand nemen', run: () => { w.weapon = 'fists'; return 'Vuisten'; } } });
   for (const k of ownGuns) out.push(weaponItem(k, 'wapens'));
   const ownThrows = throws.filter((k) => hasWeapon(w, k));
   counts.werp = `${ownThrows.length} van ${throws.length}`;
