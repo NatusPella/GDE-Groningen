@@ -21,7 +21,7 @@ const PER_FILE_MAX = 400;
 
 // Vaste volgorde van de systemen in het pakket en van de aspecten in review-required.json.
 const SYSTEMS = ['game/js', 'game/css', 'game/html', 'scripts', 'desktop', 'web', 'android', 'docs', 'data', 'onbekend'];
-const ASPECT_ORDER = ['correctness', 'rules', 'design', 'perf', 'gameplay', 'ux', 'multiplayer', 'privacy', 'vision'];
+const ASPECT_ORDER = ['correctness', 'rules', 'design', 'perf', 'gameplay', 'ux', 'multiplayer', 'privacy', 'vision', 'cutscenes'];
 
 const STATUS_LABELS = { A: 'nieuw', M: 'gewijzigd', D: 'verwijderd', R: 'hernoemd', C: 'gekopieerd' };
 
@@ -219,6 +219,9 @@ const isPerfFile = (p) => HOT_PATH.test(p);
 const isGameplayFile = (p) => GAMEPLAY.test(p);
 const isMultiplayerFile = (p) => MULTIPLAYER.test(p);
 const isStorageFile = (p) => STORAGE.test(p);
+// Cutscene-regie, -code en -tekst: het zevende reviewaspect (docs/CUTSCENE-REGIE-21-11.md, scripts/cutscene_review_pack.mjs)
+const CUTSCENE = /(^|\/)game\/(js\/(cutscene|cinematics|cineshots|cutscript|cuegestures|poseclips|cameraplan|camerapath|wijkintocht)|storydata\/script\.json)/i;
+const isCutsceneFile = (p) => CUTSCENE.test(p);
 
 // Privacy: netwerk- of opslagwijzigingen. In de diff zoeken we naar de bekende opslag- en netwerkaanroepen.
 function privacyFromDiff(entries) {
@@ -240,6 +243,7 @@ export function determineAspects(files, entries = [], extra = []) {
     if (isUxFile(file)) aspects.add('ux');
     if (isPerfFile(file)) aspects.add('perf');
     if (isGameplayFile(file)) aspects.add('gameplay');
+    if (isCutsceneFile(file)) aspects.add('cutscenes');
     if (isMultiplayerFile(file)) aspects.add('multiplayer');
     if (isMultiplayerFile(file) || isStorageFile(file)) aspects.add('privacy');
   }
@@ -261,6 +265,7 @@ export function filesForAspect(aspect, files) {
   if (aspect === 'gameplay') return all.filter(isGameplayFile);
   if (aspect === 'multiplayer') return all.filter(isMultiplayerFile);
   if (aspect === 'privacy') return all.filter((file) => isMultiplayerFile(file) || isStorageFile(file));
+  if (aspect === 'cutscenes') return all.filter(isCutsceneFile);
   if (aspect === 'vision') return [];
   return all;
 }
@@ -275,6 +280,7 @@ const PROMPTS_FOR_ASPECT = {
   multiplayer: 'code-review.md',
   privacy: 'code-review.md',
   vision: 'vision.md',
+  cutscenes: 'cutscene-review.md',
 };
 
 const CHECKLISTS = {
@@ -352,6 +358,13 @@ const CHECKLISTS = {
     'Volg de kleur-, typografie- en menuregels uit `.specs-fire/standards/ui-taal.md` en `DESIGN_SYSTEM.md`.',
     'Let op overlap, afgesneden tekst, focus, contrast, zwevende of verzonken props, gaten en z-fighting.',
     'Alleen "geen bevindingen" als elk beeld in je dekking echt is bekeken.',
+  ],
+  cutscenes: [
+    'Draai `node scripts/cutscene_review_pack.mjs --changed=<vorige tag> --panel=3`: per gewijzigde cutscene een pakket (script, shotlijst, lintvondsten, contactbladen) in `docs/beeld-21-11/cutscenes/review/`.',
+    'Beoordeel tekst, camera en visuele logica volgens `docs/CUTSCENE-REGIE-21-11.md`; volgbaar voor iemand met nul context; geen grap beoordelen als goed of slecht (alleen structuur).',
+    'Een panel van drie onafhankelijke reviewers oordeelt; verzamel met `--collect=<map>`; de bevindingen (`bevindingen.json`, aspect `cutscenes`) gaan als reviewrapport naar de triage.',
+    'Humor is smaak en gaat naar het panel; de eigenaar krijgt alleen de vetolijst per akte (`humor-veto-akte<N>.md`).',
+    'Zeg eerlijk wat niet is bekeken: zonder gerenderde beelden (laag 3) is camera alleen op de shotlijst beoordeeld.',
   ],
 };
 
