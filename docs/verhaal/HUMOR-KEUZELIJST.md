@@ -2,7 +2,7 @@
 
 Je hoeft niets te doen. Voor elke nieuwe of herschreven komische beat heeft de schrijver drie varianten en een veilige neutrale terugval gemaakt; drie onafhankelijke beoordelaars (zonder elkaars oordeel, met de varianten in een andere volgorde) kozen de beste. De winnaar staat in het spel; de andere twee en de terugval staan hieronder als alternatief. Wil je iets anders: zet `chosen` van die beat in het bijbehorende bestand `game/storydata/humor*.json` op 0, 1, 2 of `"neutral"` en draai `node scripts/build_story_data.mjs`. Werkwijze: [SCHRIJFREGELS-21-11.md](SCHRIJFREGELS-21-11.md). Na een wijziging: draai ook de cutscene-tests (`cutscenes_akte*_test`), want de cues van een scène (`on:`) volgen de gekozen tekst. Samen spelen: een beat is gewone scènetekst; een gast ziet de gekozen variant mee in de scène van de host. Gegenereerd door `node scripts/humor_doc.mjs`; kies hier niet met de hand.
 
-Eerlijk over de proef: 70 beats. De beoordelaars lazen de stijlgids en de beats; minstens twee van de drie lazen de ijkregels uit akte 1 ([BEHOUDEN]-grappen) niet. Wees dus kritisch bij beats met lage zekerheid.
+Eerlijk over de proef: 79 beats. De beoordelaars lazen de stijlgids en de beats; minstens twee van de drie lazen de ijkregels uit akte 1 ([BEHOUDEN]-grappen) niet. Wees dus kritisch bij beats met lage zekerheid.
 
 ## Bovenaan: gevoelig of gespleten met lage zekerheid
 
@@ -99,6 +99,15 @@ Eerlijk over de proef: 70 beats. De beoordelaars lazen de stijlgids en de beats;
 | HI-16 | M25.6 | OMA TRIJNTJE | Dan gaan ze er later in. | variant 1, variant 3, variant 2 | laag | Sluit exact aan op de herhaling in HI-17. |
 | HI-17 | M25.6 | LIEKE | Jullie zijn al samen. Jullie weten het alleen niet. | variant 1, variant 1, variant 1 | hoog | Kind zegt het ongezouten, Tammo en Tessa weten het niet. |
 | HI-18 | M25.6 | OMA TRIJNTJE | En wanneer trouwen jullie? | variant 1, variant 1, variant 1 | hoog | Oma rechttoe rechtaan, lokt Tammo's zwijgen uit. |
+| HJ-01 | J1 | TAMMO | Wij hebben nog geen bezwaar. | niet beoordeeld |  |  |
+| HJ-02 | J2 | LAMMERT | Een vraag. Zonder envelop. Dat heeft Jelle nog nooit geprobeerd. | niet beoordeeld |  |  |
+| HJ-03 | J3 | ANNEKE | Een bank voor drie. Jullie gebruiken anderhalf. | niet beoordeeld |  |  |
+| HJ-04 | J3 | ANNEKE | Dat dacht ik al. | niet beoordeeld |  |  |
+| HJ-05 | J4 | FEMKE | Dat zegt hij ook. | niet beoordeeld |  |  |
+| HJ-06 | J5 | TESSA | Brief vier. Ik heb ze allemaal gelezen. | niet beoordeeld |  |  |
+| HJ-07 | J5 | TESSA | Het is een eierbal. | niet beoordeeld |  |  |
+| HJ-08 | J6 | TESSA | Overig. | niet beoordeeld |  |  |
+| HJ-09 | J6 | TAMMO | Het is goede soep. | niet beoordeeld |  |  |
 | H01 | O1 | TAMMO | …Het was er al. | variant 2, variant 3, variant 3 | midden | Onhandige ontkenning met stilte. |
 | H02 | O2 | TAMMO | Ik weet het. | neutraal, neutraal, neutraal | midden | Ik weet het is warm en kort voor Rikus' slaap lekker. |
 | H03 | O6 | TESSA | Dat weet hij ook. Daarom belt hij mij. | variant 1, variant 2, variant 1 | midden | Daarom belt hij mij: droog en scherp. |
@@ -466,6 +475,60 @@ Eerlijk over de proef: 70 beats. De beoordelaars lazen de stijlgids en de beats;
 - variant 2: En de bruiloft? Ik ben tweeënnegentig.
 - variant 3: Wanneer is de bruiloft? Ik heb niet veel tijd.
 - neutraal: Eet nog een eierbal.
+
+**HJ-01** (J1): De flat in Paddepoel. Tessa leest een brief voor: Jelle heeft bezwaar ingediend tegen hun parkeervergunning. Tammo reageert droog; Tessa: 'Dat is het probleem. Hij was eerder.'
+- variant 1 (gekozen): Wij hebben nog geen bezwaar.
+- variant 2: Wij hebben nog niks ingediend.
+- variant 3: Ik wist niet dat ik bezwaar had.
+- neutraal: Dat kan niet, wij hebben niets ingediend.
+
+**HJ-02** (J2): Appingedam, op de brug. Lammert krijgt een envelop met gratis frikandellen van Jelle om de kade niet aan Tammo en Tessa te geven. Tammo vraagt wat hij dan wel aanneemt.
+- variant 1 (gekozen): Een vraag. Zonder envelop. Dat heeft Jelle nog nooit geprobeerd.
+- variant 2: Een vraag, zonder envelop. Die had ik nog niet in het register.
+- variant 3: Een gewone vraag. Dat woord kent Jelle niet.
+- neutraal: Gewoon een eerlijke vraag.
+
+**HJ-03** (J3): Het erf bij Siddeburen, de dag na de kus in de botsauto. Tessa en Tammo zitten een halve meter uit elkaar op een bank. Tessa's moeder merkt het meteen op.
+- variant 1 (gekozen): Een bank voor drie. Jullie gebruiken anderhalf.
+- variant 2: Een bank voor drie. Jullie zijn met zijn tweeën en gebruiken er anderhalf.
+- variant 3: Er past een hond tussen. Wij hebben geen hond.
+- neutraal: Jullie zitten wel erg ver uit elkaar.
+
+**HJ-04** (J3): Koffie op het erf. Tammo begint 'Tessa, eigenlijk' (de onvoltooide zin), Tessa's moeder legt haar breiwerk neer en luistert. Tammo maakt de zin af over de koffie.
+- variant 1 (gekozen): Dat dacht ik al.
+- variant 2: Dat is een mooi begin van een zin.
+- variant 3: Zo begint het bij ons in de familie altijd.
+- neutraal: Fijn dat je het lekker vindt.
+
+**HJ-05** (J4): Dubbele date op een terras in Veendam. Tammo en Tessa zeggen allebei dat het geen date is; Tessa schrijft de rekening in haar kasboekje. Femke legt het vast.
+- variant 1 (gekozen): Dat zegt hij ook.
+- variant 2: Dat zei hij net ook. Woord voor woord.
+- variant 3: Jullie zeggen het in koor.
+- neutraal: Dat zei hij ook al.
+
+**HJ-06** (J5): Stadskanaal. Jelle laat een wielklem op de Escapade zetten met een verzonnen artikel; Tessa heeft in J1 al zijn brieven gelezen en slaat terug met artikel 9.
+- variant 1 (gekozen): Brief vier. Ik heb ze allemaal gelezen.
+- variant 2: Brief vier. Ik las hem twee keer. Ook de bijlagen.
+- variant 3: Brief vier zit in mijn tas. Ik lees graag.
+- neutraal: Wij hebben bezwaar ingediend.
+
+**HJ-07** (J5): Jelle klapt de broodtrommel open die Douwe hem geeft: een warme eierbal met een briefje. Tessa (die zijn oma Mem kent maar het niet zegt) kijkt te lang. Tammo merkt het op.
+- variant 1 (gekozen): Het is een eierbal.
+- variant 2: Het is een eierbal. Ik heb honger.
+- variant 3: Er zit mosterd op.
+- neutraal: Hij ruikt lekker.
+
+**HJ-08** (J6): De flat. Beppe vraagt in het Fries wanneer ze trouwen. Tessa begint 'wij zijn...', Tammo zegt 'Huisgenoten' en Tessa maakt het af met het vakje dat ze eerder op het formulier aankruiste.
+- variant 1 (gekozen): Overig.
+- variant 2: Overig. Dat is een categorie.
+- variant 3: Wij staan onder overig.
+- neutraal: Allebei, eigenlijk.
+
+**HJ-09** (J6): Na zijn dagdroom (de bruiloft bij de snackwagen, de duif met de ringen) schrikt Tammo wakker. Tessa zegt dat hij naar de soep lacht.
+- variant 1 (gekozen): Het is goede soep.
+- variant 2: Het is een mooie pan.
+- variant 3: De soep zei iets liefs.
+- neutraal: Ik dacht even ergens aan.
 
 **H01** (O1): Flat, avond. Tessa merkt dat het kaartje van de eerste studieweek nog aan de koelkast hangt; Tammo doet alsof dat toeval is.
 - variant 1: Het hing al aan de koelkast.

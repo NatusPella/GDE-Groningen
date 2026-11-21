@@ -375,6 +375,12 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 - **M12.5** BUITEN – WADDENKUST, EEMSHAVEN, HELIDEK – DAG · Het staat niet in het rooster: herhaling · replay
   - praat: Dokter Dijkstra
 
+**Sequentie J1: Post van de gemeente** (activiteit; speler-protagonist Tammo)
+
+- **J1** BINNEN – STAD, PADDEPOEL, DE FLAT – MIDDAG · Post van de gemeente · cutscene of gespeeld in de missie
+  - vrijdagmiddag, de flat in Paddepoel. Op de mat ligt een stapel brieven van de gemeente, bijna een bouwpakket. Tessa sorteert, Tammo zet thee.
+  - praat: Tessa, Tammo
+
 **Sequentie M13: Het containerlabyrint** (missie containers; speler-protagonist Tammo)
 
 - **M13.1** BUITEN – WADDENKUST, EEMSHAVEN, DE KADE – NACHT · Het containerlabyrint: intro · cutscene of gespeeld in de missie
@@ -409,6 +415,12 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
   - praat: Rikus
 - **R3.4** BUITEN – STAD – DAG · Nachtstreek, vrijdagnacht: een plaat · radio
   - praat: Rikus
+
+**Sequentie J2: Een envelop in Appingedam** (activiteit; speler-protagonist Tammo)
+
+- **J2** BINNEN – EEMSDELTA, APPINGEDAM, DE BRUG OVER HET DAMSTERDIEP – MIDDAG · Een envelop in Appingedam · cutscene of gespeeld in de missie
+  - zaterdagmiddag. Op de brug over het Damsterdiep, onder de hangende balkons. Lammert staat bij zijn auto met een dikke envelop. Durk staat stijf naast hem, Douwe iets verder, met een tas. Op Tammo's schouder zit een duif.
+  - praat: Lammert, Tessa, Durk, Douwe, Tammo
 
 **Sequentie T3: De trein naar Winschoten** (activiteit; speler-protagonist Tammo)
 
@@ -473,14 +485,20 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 - **O7** BUITEN – OLDAMBT, DE WEG NAAR STAD – NACHT · Over zaterdag · overgangsscène (BRIDGES)
   - nacht, terug van de kermis. Tammo stuurt, Tessa kijkt naar buiten. Een tijd lang zegt niemand iets.
   - praat: Tammo, Tessa
+
+**Sequentie A2: De kermisrit** (activiteit; speler-protagonist Tammo)
+
+
+**Sequentie J3: Koffie bij Tessa's ouders** (activiteit; speler-protagonist Tammo)
+
+- **J3** BUITEN – MIDDEN-GRONINGEN, HET ERF BIJ SIDDEBUREN – MIDDAG · Koffie bij Tessa's ouders · cutscene of gespeeld in de missie
+  - zondagmiddag. Een erf bij Siddeburen met kippen, een moestuin en een tafel onder de appelboom. Naamkaart ANNEKE. Tessa's vader staat bij het hek met een mand eieren en zegt niets. Tessa en Tammo zitten op één bank, een h
+  - praat: Anneke, Tessa, Tammo
 - **R4.0** BINNEN – STAD – OCHTEND · Nachtstreek, maandagochtend · radio
   - maandag 24 augustus, ochtend. Rikus in de studio; Jelle belt in met zijn offerte.
   - praat: Rikus, Jelle Terpstra
 - **R4.0b** BUITEN – STAD – DAG · Nachtstreek, maandagavond · radio
   - praat: Rikus
-
-**Sequentie A2: De kermisrit** (activiteit; speler-protagonist Tammo)
-
 
 ### Akte 4: Zuidwaarts
 
@@ -500,6 +518,12 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
   - praat: Stien, Tessa, Tammo
 - **M17.4** BUITEN – VEENKOLONIËN, VEENDAM – DAG · Open, dicht: herhaling · replay
   - praat: Wubbo
+
+**Sequentie J4: Een dubbele date in Veendam** (activiteit; speler-protagonist Tammo)
+
+- **J4** BUITEN – VEENKOLONIËN, VEENDAM, EEN TERRAS AAN HET OOSTERDIEP – AVOND · Een dubbele date in Veendam · cutscene of gespeeld in de missie
+  - maandagavond. Een terras aan het Oosterdiep met een kaars in een glas. Femke zit al, haar keeperstas onder de stoel. Naamkaart FEMKE. Rikus komt aanlopen met zijn koptelefoon om zijn nek.
+  - praat: Tessa, Femke, Tammo, Rikus
 
 **Sequentie M18: Wie draaide de camera's uit?** (missie wiebelwerk; speler-protagonist Tammo)
 
@@ -526,6 +550,12 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
   - avond. Het logboek van Wiebelwerk ligt geprint op de motorkap. Tammo's telefoon gaat: Rikus.
   - praat: Rikus, Tammo, Tessa
 
+**Sequentie J5: Een wielklem in Stadskanaal** (activiteit; speler-protagonist Tammo)
+
+- **J5** BUITEN – VEENKOLONIËN, STADSKANAAL, EEN PARKEERPLAATS ACHTER DE MARKT – MIDDAG · Een wielklem in Stadskanaal · cutscene of gespeeld in de missie
+  - dinsdagmiddag. Om het linkerwiel van de Escapade zit een gele klem. Jelle staat ernaast met een deurwaarder en een map; Durk en Douwe staan bij de limo. Tammo hurkt bij het wiel en praat zacht tegen de auto.
+  - praat: Jelle Terpstra, Tessa, Tammo, Deurwaarder, Douwe
+
 **Sequentie M19: Stoom** (missie stoom; speler-protagonist Tammo)
 
 - **M19.1** BINNEN – VEENKOLONIËN, VEENDAM, HET PERRON – MIDDAG · Stoom: intro · cutscene of gespeeld in de missie
@@ -537,6 +567,12 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
   - praat: Jurylid, Mevrouw Hoving, Tessa, Tammo, Berend Bos
 - **M19.4** BINNEN – VEENKOLONIËN, VEENDAM – DAG · Stoom: herhaling · replay
   - praat: Durk
+
+**Sequentie J6: Beppe aan de deur** (activiteit; speler-protagonist Tammo)
+
+- **J6** BINNEN – STAD, PADDEPOEL, DE FLAT – AVOND · Beppe aan de deur · cutscene of gespeeld in de missie
+  - dinsdagavond, de flat. Er wordt aangebeld. Beppe staat in de deur met een pan soep in een handdoek, haar jas aan, in augustus.
+  - praat: Beppe, Tessa, Tammo, Oma Trijntje
 
 **Sequentie T4: De bus naar Bourtange** (activiteit; speler-protagonist Tammo)
 
@@ -843,14 +879,14 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 
 | Personage | Akte 1 | Akte 2 | Akte 3 | Akte 4 | Akte 5 | Deel 4 |
 |---|---|---|---|---|---|---|
-| Tessa | 39 | 34 | 28 | 29 | 34 | 15 |
-| Tammo | 39 | 32 | 28 | 27 | 28 | 16 |
-| Jelle Terpstra | 4 | 10 | 11 | 7 | 11 | 3 |
-| Rikus | 9 | 4 | 4 | 5 | 11 | 3 |
+| Tessa | 39 | 34 | 31 | 32 | 34 | 15 |
+| Tammo | 39 | 32 | 31 | 30 | 28 | 16 |
+| Jelle Terpstra | 4 | 10 | 11 | 8 | 11 | 3 |
+| Rikus | 9 | 4 | 4 | 6 | 11 | 3 |
 | Berend Bos | 4 |  |  | 14 | 10 | 8 |
-| Oma Trijntje |  | 5 | 1 | 4 | 7 | 1 |
-| Douwe | 1 | 2 | 4 | 4 | 3 | 2 |
-| Durk | 1 | 1 | 4 | 4 | 3 | 2 |
+| Oma Trijntje |  | 5 | 1 | 5 | 7 | 1 |
+| Douwe | 1 | 2 | 5 | 5 | 3 | 2 |
+| Durk | 1 | 1 | 5 | 4 | 3 | 2 |
 | Mem Terpstra |  | 2 |  | 6 | 7 |  |
 | Kapitein Klaas |  | 8 |  | 1 | 1 | 2 |
 | Willemien |  |  |  |  |  | 12 |
@@ -859,7 +895,7 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 | Wubbo |  |  |  | 4 | 4 | 2 |
 | Tinus |  |  |  | 2 | 6 | 2 |
 | Duivenmelker Bert | 3 |  |  |  | 5 | 1 |
-| Lammert |  |  | 5 |  | 1 | 2 |
+| Lammert |  |  | 6 |  | 1 | 2 |
 | Henk | 1 |  |  | 3 | 3 |  |
 | Roelfien |  |  | 4 |  | 1 | 2 |
 | Dokter Dijkstra |  | 1 | 5 |  |  |  |
@@ -868,24 +904,25 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 | Loketbediende | 5 |  |  |  |  |  |
 | Streamer | 4 |  |  |  |  |  |
 | Torenwachter | 1 |  |  |  | 3 |  |
+| Beppe | 2 |  |  | 1 |  |  |
 | Meneer Veldkamp | 2 |  |  |  |  | 1 |
 | Sjoerd | 3 |  |  |  |  |  |
 | Snackbarhouder |  | 3 |  |  |  |  |
-| Beppe | 2 |  |  |  |  |  |
 | Mevrouw Hoving | 1 |  |  | 1 |  |  |
 | Boer |  | 1 |  |  |  | 1 |
 | Buschauffeur |  | 2 |  |  |  |  |
+| Deurwaarder |  |  | 1 | 1 |  |  |
 | Geert |  |  | 2 |  |  |  |
+| Anneke |  |  | 1 |  | 1 |  |
 | Jelmer |  |  |  | 2 |  |  |
 | Terrasgast | 1 |  |  |  |  |  |
 | Kustwachter |  | 1 |  |  |  |  |
 | Rotor Roelf |  |  | 1 |  |  |  |
-| Deurwaarder |  |  | 1 |  |  |  |
 | Daan |  |  | 1 |  |  |  |
 | Student |  |  | 1 |  |  |  |
 | Kermisexploitant |  |  | 1 |  |  |  |
 | Stien |  |  |  | 1 |  |  |
-| Anneke |  |  |  |  | 1 |  |
+| Femke |  |  |  | 1 |  |  |
 | Lieke |  |  |  |  | 1 |  |
 | Kind in het publiek |  |  |  |  | 1 |  |
 | Buurvrouw |  |  |  |  |  | 1 |

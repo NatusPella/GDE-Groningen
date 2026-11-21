@@ -1,0 +1,149 @@
+{
+ "note": "Humorvoorstellen (#1121), ronde 5: Jelle en de romance, J1-J6. Nog niet door het paneel beoordeeld (geen 'panel'); chosen 0 is het voorstel van de schrijver.",
+ "beats": [
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "id": "HJ-01",
+   "scene": "J1",
+   "speaker": "TAMMO",
+   "context": "De flat in Paddepoel. Tessa leest een brief voor: Jelle heeft bezwaar ingediend tegen hun parkeervergunning. Tammo reageert droog; Tessa: 'Dat is het probleem. Hij was eerder.'",
+   "shot": "twee-shot boven de stapel brieven, Tammo met zijn thee",
+   "variants": [
+    "Wij hebben nog geen bezwaar.",
+    "Wij hebben nog niks ingediend.",
+    "Ik wist niet dat ik bezwaar had."
+   ],
+   "neutral": "Dat kan niet, wij hebben niets ingediend."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "id": "HJ-02",
+   "scene": "J2",
+   "speaker": "LAMMERT",
+   "context": "Appingedam, op de brug. Lammert krijgt een envelop met gratis frikandellen van Jelle om de kade niet aan Tammo en Tessa te geven. Tammo vraagt wat hij dan wel aanneemt.",
+   "shot": "halve close-up Lammert met de envelop, Durk en Douwe stijf op de achtergrond",
+   "variants": [
+    "Een vraag. Zonder envelop. Dat heeft Jelle nog nooit geprobeerd.",
+    "Een vraag, zonder envelop. Die had ik nog niet in het register.",
+    "Een gewone vraag. Dat woord kent Jelle niet."
+   ],
+   "neutral": "Gewoon een eerlijke vraag."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "id": "HJ-03",
+   "scene": "J3",
+   "speaker": "ANNEKE",
+   "context": "Het erf bij Siddeburen, de dag na de kus in de botsauto. Tessa en Tammo zitten een halve meter uit elkaar op een bank. Tessa's moeder merkt het meteen op.",
+   "shot": "totaalshot van de bank, dan halve close-up Anneke",
+   "variants": [
+    "Een bank voor drie. Jullie gebruiken anderhalf.",
+    "Een bank voor drie. Jullie zijn met zijn tweeën en gebruiken er anderhalf.",
+    "Er past een hond tussen. Wij hebben geen hond."
+   ],
+   "neutral": "Jullie zitten wel erg ver uit elkaar."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "id": "HJ-04",
+   "scene": "J3",
+   "speaker": "ANNEKE",
+   "context": "Koffie op het erf. Tammo begint 'Tessa, eigenlijk' (de onvoltooide zin), Tessa's moeder legt haar breiwerk neer en luistert. Tammo maakt de zin af over de koffie.",
+   "shot": "halve close-up Anneke met het breiwerk op schoot; Tessa kijkt naar haar kopje",
+   "variants": [
+    "Dat dacht ik al.",
+    "Dat is een mooi begin van een zin.",
+    "Zo begint het bij ons in de familie altijd."
+   ],
+   "neutral": "Fijn dat je het lekker vindt."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "id": "HJ-05",
+   "scene": "J4",
+   "speaker": "FEMKE",
+   "context": "Dubbele date op een terras in Veendam. Tammo en Tessa zeggen allebei dat het geen date is; Tessa schrijft de rekening in haar kasboekje. Femke legt het vast.",
+   "shot": "halve close-up Femke, daarna een twee-shot van Tammo en Tessa die allebei naar de kaars kijken",
+   "variants": [
+    "Dat zegt hij ook.",
+    "Dat zei hij net ook. Woord voor woord.",
+    "Jullie zeggen het in koor."
+   ],
+   "neutral": "Dat zei hij ook al."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "id": "HJ-06",
+   "scene": "J5",
+   "speaker": "TESSA",
+   "context": "Stadskanaal. Jelle laat een wielklem op de Escapade zetten met een verzonnen artikel; Tessa heeft in J1 al zijn brieven gelezen en slaat terug met artikel 9.",
+   "shot": "halve close-up Tessa met de brieven in haar hand, Jelle schuin op de achtergrond",
+   "variants": [
+    "Brief vier. Ik heb ze allemaal gelezen.",
+    "Brief vier. Ik las hem twee keer. Ook de bijlagen.",
+    "Brief vier zit in mijn tas. Ik lees graag."
+   ],
+   "neutral": "Wij hebben bezwaar ingediend."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "id": "HJ-07",
+   "scene": "J5",
+   "speaker": "TESSA",
+   "context": "Jelle klapt de broodtrommel open die Douwe hem geeft: een warme eierbal met een briefje. Tessa (die zijn oma Mem kent maar het niet zegt) kijkt te lang. Tammo merkt het op.",
+   "shot": "halve close-up Tessa, dan Jelle die de broodtrommel te snel dichtklapt",
+   "variants": [
+    "Het is een eierbal.",
+    "Het is een eierbal. Ik heb honger.",
+    "Er zit mosterd op."
+   ],
+   "neutral": "Hij ruikt lekker."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "id": "HJ-08",
+   "scene": "J6",
+   "speaker": "TESSA",
+   "context": "De flat. Beppe vraagt in het Fries wanneer ze trouwen. Tessa begint 'wij zijn...', Tammo zegt 'Huisgenoten' en Tessa maakt het af met het vakje dat ze eerder op het formulier aankruiste.",
+   "shot": "twee-shot, Tessa met haar kopje, Tammo kijkt naar de pan",
+   "variants": [
+    "Overig.",
+    "Overig. Dat is een categorie.",
+    "Wij staan onder overig."
+   ],
+   "neutral": "Allebei, eigenlijk."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "id": "HJ-09",
+   "scene": "J6",
+   "speaker": "TAMMO",
+   "context": "Na zijn dagdroom (de bruiloft bij de snackwagen, de duif met de ringen) schrikt Tammo wakker. Tessa zegt dat hij naar de soep lacht.",
+   "shot": "halve close-up Tammo, ogen op de pan; Tessa zwaait nog met haar hand",
+   "variants": [
+    "Het is goede soep.",
+    "Het is een mooie pan.",
+    "De soep zei iets liefs."
+   ],
+   "neutral": "Ik dacht even ergens aan."
+  }
+ ]
+}

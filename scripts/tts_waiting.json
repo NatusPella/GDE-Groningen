@@ -649,6 +649,36 @@
  },
  {
   "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Dat is veel aandacht.",
+  "scene": "J1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Wij hebben nog geen bezwaar.",
+  "scene": "J1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Wat ben jij? Partner, huisgenoot of overig.",
+  "scene": "J1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Huisgenoot is het kortst.",
+  "scene": "J1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Je gaat tegen hem vechten met zijn eigen papier.",
+  "scene": "J1"
+ },
+ {
+  "reason": "spreektekst",
   "speaker": "Lammert",
   "text": "Moi. Lammert, havenmeester. Ik vertel altijd wat er niet is: een leeg schip, een volle kabel.",
   "scene": "M13.1"
@@ -712,6 +742,36 @@
   "speaker": "Rikus",
   "text": "Voor twee Stadjers die elk een kant van het refrein zingen. Ik zeg niks.",
   "scene": "R3.4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Lammert",
+  "text": "Van Terpstra. Gratis frikandellen, levenslang. Als de kade van hem wordt, en niet van jullie.",
+  "scene": "J2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Lammert",
+  "text": "Ik ben havenmeester. Voor een kade neem ik geen frikandellen aan.",
+  "scene": "J2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Wat neem je wel aan?",
+  "scene": "J2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Lammert",
+  "text": "Een vraag. Zonder envelop. Dat heeft Jelle nog nooit geprobeerd.",
+  "scene": "J2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Lammert",
+  "text": "Dat is geen vraag. Dat is een buurman. Ja.",
+  "scene": "J2"
  },
  {
   "reason": "spreektekst",
@@ -882,6 +942,60 @@
   "scene": "O7"
  },
  {
+  "reason": "stemkeuze",
+  "speaker": "Anneke",
+  "text": "Dus jij bent Tammo. Ze belt nooit, maar als ze belt gaat het over jou.",
+  "scene": "J3"
+ },
+ {
+  "reason": "stemkeuze",
+  "speaker": "Anneke",
+  "text": "Jullie zitten ver uit elkaar.",
+  "scene": "J3"
+ },
+ {
+  "reason": "stemkeuze",
+  "speaker": "Anneke",
+  "text": "Een bank voor drie. Jullie gebruiken anderhalf.",
+  "scene": "J3"
+ },
+ {
+  "reason": "stemkeuze",
+  "speaker": "Anneke",
+  "text": "Dit kwam gisteren, voor jullie allebei. Hij belde ook. Hij vroeg naar een vergunning voor de kippen.",
+  "scene": "J3"
+ },
+ {
+  "reason": "stemkeuze",
+  "speaker": "Anneke",
+  "text": "Wij hebben kippen sinds 1987. Hij moet eerst de kippen vragen.",
+  "scene": "J3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Tessa, eigenlijk—",
+  "scene": "J3"
+ },
+ {
+  "reason": "stemkeuze",
+  "speaker": "Anneke",
+  "text": "Ja?",
+  "scene": "J3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "...Eigenlijk is de koffie heel goed, mevrouw.",
+  "scene": "J3"
+ },
+ {
+  "reason": "stemkeuze",
+  "speaker": "Anneke",
+  "text": "Dat dacht ik al.",
+  "scene": "J3"
+ },
+ {
   "reason": "spreektekst",
   "speaker": "Rikus",
   "text": "Maandag 24 augustus. In de chat zeggen ze dat twee Stadjers het museum leegroofden. Ik zeg niks.",
@@ -961,6 +1075,60 @@
  },
  {
   "reason": "spreektekst",
+  "speaker": "Femke",
+  "text": "Wat leuk, een dubbele date.",
+  "scene": "J4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Het is geen date.",
+  "scene": "J4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Femke",
+  "text": "Een kaars, een terras, twee stellen.",
+  "scene": "J4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Femke",
+  "text": "Hij zegt het wel heel mooi.",
+  "scene": "J4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Hij betaalde onze tafel. En de kaars.",
+  "scene": "J4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Femke",
+  "text": "Neem je een kasboekje mee naar een date?",
+  "scene": "J4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Femke",
+  "text": "Dat zegt hij ook.",
+  "scene": "J4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Dat is van mij.",
+  "scene": "J4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "Dan leen ik hem.",
+  "scene": "J4"
+ },
+ {
+  "reason": "spreektekst",
   "speaker": "Tammo",
   "text": "We waren er wel.",
   "scene": "M18.1"
@@ -1015,6 +1183,18 @@
  },
  {
   "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Wij hebben er drie.",
+  "scene": "J5"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Deurwaarder",
+  "text": "Mevrouw heeft gelijk. Ik haal hem eraf.",
+  "scene": "J5"
+ },
+ {
+  "reason": "spreektekst",
   "speaker": "Mevrouw Hoving",
   "text": "Ik stap niet uit. Ik blijf in de trein tot na het Ontzet, dat stond op de uitnodiging.",
   "scene": "M19.3"
@@ -1060,6 +1240,24 @@
   "speaker": "Berend Bos",
   "text": "Ik heb een bus nodig. Kom naar Ter Apel.",
   "scene": "M19.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Huisgenoten.",
+  "scene": "J6"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Oma Trijntje",
+  "text": "Wil jij, Tessa?",
+  "scene": "J6"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Het is goede soep.",
+  "scene": "J6"
  },
  {
   "reason": "spreektekst",
