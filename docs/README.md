@@ -177,6 +177,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [SAMEN-SPELEN-HANDLEIDING.md](<SAMEN-SPELEN-HANDLEIDING.md>) | Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). Dit docu… |
 | [SFX-GAPS.md](<SFX-GAPS.md>) | Inventaris van spelgebeurtenissen zonder eigen geluid of met een te algemeen geluid (UI, beloning, wereld-foley, omgeving per streek), met wat is gebouwd en wat nog open staat. |
 | [SFX-DEKKING-21-11.md](<SFX-DEKKING-21-11.md>) | SFX ronde 5: audit van de geluidsdekking per gebied, de centrale geluidstabel `sfxmap.js`, de 221 nieuwe opnames, wat is gekoppeld en de sleutels voor de leads van de epics. Luisterpaneel: [SFX-LUISTER.html](<SFX-LUISTER.html>). |
+| [SFX-KOPPELING-21-11.md](<SFX-KOPPELING-21-11.md>) | SFX ronde 6: van 39 naar 76 van de 100 gebeurtenissen gekoppeld aan echte spelacties, per koppelpunt met Samen-spelen-beleid, en de 24 die nog niet kunnen met de reden. |
 | [SFX-LUISTERLIJST.md](<SFX-LUISTERLIJST.md>) | Wat een mens moet beluisteren van de nieuwe geluiden: waar je ze in het spel hoort, wat er niet goed mag klinken en hoe je het meldt. |
 | [AUDIO-LICENTIES.md](<AUDIO-LICENTIES.md>) | Alle geluidsopnames met bron-URL, Freesound-id, titel, auteurshandle, licentie (CC0 of CC BY), bewerking, sha256 en datum; gegenereerd uit het manifest (ADR 0039). |
 | [AUDIO-GLITCHES-21-11.md](<AUDIO-GLITCHES-21-11.md>) | Melding van Nikky over glitches en ruis: hypotheses, wat bewezen is, de limiter en de diagnose, en een checklist voor het apparaat. |

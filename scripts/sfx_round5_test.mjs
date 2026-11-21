@@ -173,7 +173,38 @@ ok(eagerKb < 3500, 'the new eager clips decode to less than 3.5 MB of PCM', `${M
     if (inCode) hooked++;
     ok(inCode || leads.includes('`' + k + '`'), `${k}: hooked in the code or listed for a lead`);
   }
-  ok(hooked >= 35, 'at least 35 events are hooked in this round', String(hooked));
+  ok(hooked >= 75, 'at least 75 of the events are hooked in the code (round 5: 39, round 6: 75)', String(hooked));
+
+  // -- round 6 (21-11): the coupling is real and does not double --------------------------------------------------------------
+  // (a) no dead keys: a hooked key lives in the map (a key of a call that the map does not know would stay silent for ever)
+  const callRe = /\b(sfxEvent|haakUi|haakFx|uiFx|playFx)\(\s*(?:[A-Za-z_.]+\s*,\s*)?'([a-z][a-z0-9_]*)'/g;
+  const known = new Set([...keys, ...Object.keys(FX_INFO), ...Object.keys(SAMPLE_INFO)]);
+  const dead = [];
+  let m;
+  while ((m = callRe.exec(code))) if (/^(shop|bar|coffee|fryer|snack|door_(interior|bell)|stairs|elevator|key|light|step_(tile|parquet|carpet)|clothes|zipper|curtain|scissors|hair|wrench|spray|impact|neon|hood|car_(horn|blinker)|handbrake|seatbelt|tractor|harvest|dig|grain|milking|chicken|cow|sheep|fence|gate|bucket|deed|football|crowd|referee|ball|sport|bird|rain_drips|wind_gust|frog|church|owl|dog|cat|npc|train_air|tram|bus_stop|station|cutscene|phone)_/.test(m[2]) && !known.has(m[2])) dead.push(m[2]);
+  ok(dead.length === 0, 'every key in a call exists in the map or the effect list (no dead or unknown keys)', dead.join(', '));
+  // (b) the hooks that go through sfxEvent / haakUi name a key of the map
+  const viaMap = new Set();
+  const mapRe = /\bsfxEvent\(\s*(?:[A-Za-z_.]+\s*,\s*)?'([a-z][a-z0-9_]*)'/g;
+  while ((m = mapRe.exec(code))) viaMap.add(m[1]);
+  for (const k of viaMap) ok(SFX_MAP[k], `${k}: sfxEvent or haakUi names a key of the map`);
+  // (c) no double call for one action: the same key twice in one file within three lines (a copy by mistake) is refused
+  let dubbel = 0;
+  for (const f of files) {
+    const lines = fs.readFileSync(path.join(JS, f), 'utf8').split('\n');
+    const seenAt = new Map();   // key -> line of the last call
+    for (let i = 0; i < lines.length; i++) {
+      const r = /\b(?:sfxEvent|haakUi)\(\s*(?:[A-Za-z_.]+\s*,\s*)?'([a-z][a-z0-9_]*)'/g;
+      let a;
+      while ((a = r.exec(lines[i]))) {
+        if (seenAt.has(a[1]) && i - seenAt.get(a[1]) <= 3) dubbel++;
+        seenAt.set(a[1], i);
+      }
+    }
+  }
+  ok(dubbel === 0, 'no key is called twice within three lines of one file', String(dubbel));
+  // (d) coverage counter (reported): hooked of all
+  console.log(`sfx coverage: ${hooked} of ${keys.length} events hooked in the code (round 5: 39)`);
 }
 
 // -- no real brands or names in what the player can see (labels) --------------------------------------
