@@ -1,10 +1,10 @@
-// De startkeuze op het scherm (startkeuze.js is de regel en de tekst): de kaart "Hoe wil je spelen?" met twee grote
+// De startkeuze op het scherm (startchoice.js is de regel en de tekst): de kaart "Hoe wil je spelen?" met twee grote
 // knoppen, en de toestemmingskaart voor Samen spelen. Dezelfde overlay (#online-start, .os-overlay) als de naamkaart,
 // dus de bootwachter en de laadschermlaag kennen hem al. Geen netwerk: de kaarten leggen alleen een antwoord vast.
 // Toetsen: pijlen en WASD, 1 en 2, Enter of spatie, Escape of Backspace (Alleen). Een controller geeft dezelfde toetsen (input.js).
 import { icoon } from './icons.js';
 import { keyLabelHtml, keyTextHtml } from './keycap.js';
-import { KEUZES, START_TEKST, TOESTEMMING_TEKST, toetsActie } from './startkeuze.js';
+import { KEUZES, START_TEKST, TOESTEMMING_TEKST, toetsActie } from './startchoice.js';
 import { geefToestemming } from './onlineconsent.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));

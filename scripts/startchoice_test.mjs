@@ -1,6 +1,6 @@
-// De startkeuze (eigenaarsbesluit 21-11): bij elke start Alleen of Samen spelen. Pure regel (startkeuze.js), de stroom met nepschermen,
+// De startkeuze (eigenaarsbesluit 21-11): bij elke start Alleen of Samen spelen. Pure regel (startchoice.js), de stroom met nepschermen,
 // de kaarten met een nep-DOM, en de bedrading voor testruns (main.js, devtools.js, devflags.js). Geen Electron, geen netwerk.
-//   node scripts/startkeuze_test.mjs
+//   node scripts/startchoice_test.mjs
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -25,9 +25,9 @@ globalThis.removeEventListener = (ev, f) => { const i = luisteraars.indexOf(f); 
 globalThis.document = { addEventListener() {}, removeEventListener() {}, hidden: false, body: null, head: null, activeElement: null };
 
 const S = await import('../game/js/settings.js');
-const K = await import('../game/js/startkeuze.js');
+const K = await import('../game/js/startchoice.js');
 const C = await import('../game/js/onlineconsent.js');
-const UI = await import('../game/js/startkeuzeui.js');
+const UI = await import('../game/js/startchoiceui.js');
 
 let n = 0;
 const t = async (naam, f) => { try { await f(); n++; } catch (e) { e.message = `${naam}: ${e.message}`; throw e; } };
@@ -337,7 +337,7 @@ await t('devtools.js: elke testrun krijgt startkeuze=alleen (behalve --coop), GD
   assert.match(d, /const isTestRun = !!\(TRAILER \|\| CLIP \|\| hasFlag\('--autoplay'\) \|\| BENCH \|\| hasFlag\('--stil'\) \|\| hasFlag\('--smoke-test'\) \|\| hasFlag\('--story-test'\)/);
 });
 await t('de keuzebestanden gebruiken geen netwerk (constitution 4 en 10)', () => {
-  for (const f of ['game/js/startkeuze.js', 'game/js/startkeuzeui.js']) {
+  for (const f of ['game/js/startchoice.js', 'game/js/startchoiceui.js']) {
     const bron = lees(f).replace(/\/\/.*$/gm, '');
     assert.ok(!/WebSocket|RTCPeerConnection|\bfetch\(|XMLHttpRequest|sendBeacon|EventSource/.test(bron), `${f} raakt het netwerk niet aan`);
     assert.ok(!/localStorage|sessionStorage/.test(bron), `${f} schrijft alleen via setSetting`);
@@ -356,5 +356,5 @@ await t('devflags: startkeuze staat in FLAGS en FLAG_DOCS', async () => {
   assert.ok('startkeuze' in f.FLAGS && typeof f.FLAG_DOCS.startkeuze === 'string');
 });
 
-console.log(`startkeuze_test: ${n}/${n} ok`);
+console.log(`startchoice_test: ${n}/${n} ok`);
 process.exit(0);

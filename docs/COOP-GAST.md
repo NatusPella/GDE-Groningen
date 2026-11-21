@@ -294,11 +294,11 @@ Code: `game/js/cooppvp.js` (pure regels), `multiplayerpvpwereld.js` (treffers en
 
 ## De startkeuze: Alleen of Samen spelen (21-11)
 
-Eigenaarsbesluit 21-11: bij elke start vraagt het spel eerst "Hoe wil je spelen?" (`startkeuze.js`, scherm in `startkeuzeui.js`, over het laadscherm zoals de naamkaart). Hij komt daarmee terug op "direct spelen" en op "altijd online" (13-11): alleen **Samen spelen** gebruikt het netwerk.
+Eigenaarsbesluit 21-11: bij elke start vraagt het spel eerst "Hoe wil je spelen?" (`startchoice.js`, scherm in `startchoiceui.js`, over het laadscherm zoals de naamkaart). Hij komt daarmee terug op "direct spelen" en op "altijd online" (13-11): alleen **Samen spelen** gebruikt het netwerk.
 
 **Samen-regel (wie doet wat):** de keuze is **lokaal**, van elke speler zelf; niemand kiest voor een ander en de host heeft er geen extra recht in. Wie het spel opende (Een spel openen) en wie meedoet (Meedoen, Openbare sessies) kiest eerst Samen op zijn eigen kaart. Een gast die via een uitnodiging of koppelcode start, komt na Samen direct bij Meedoen (de sessiekeuze), zonder eigen stappen ertussen. Voortgang en beloningen veranderen niet (per speler, #429); wie wegvalt of later aansluit ziet niets van deze kaart.
 
-**Volgorde (vastgelegd en getest in `scripts/startkeuze_test.mjs`):**
+**Volgorde (vastgelegd en getest in `scripts/startchoice_test.mjs`):**
 
 1. **Eerste start** (geen geldige naam bewaard): eerst de naamkaart "Je naam voor Samen spelen", **eenmalig en verplicht** (zoals voorheen: geen Escape, geen time-out; de kaart bevat ook het akkoord met STUN en brokers). Daarna de keuzekaart. Er is dus geen weg langs de naam: ook wie Alleen kiest heeft een naam (de sessie van één en het spelerspaneel gebruiken hem), zodat de regel "naam verplicht" overal hetzelfde blijft.
 2. **Elke volgende start:** alleen de keuzekaart. Wie een geldige naam heeft krijgt de naamkaart nooit opnieuw vanzelf (de naam past hij aan in het pauzemenu, Spelers). Dat geldt ook voor wie het akkoord later introk of een oud profiel met "nee" heeft: de oude regel "vraag opnieuw tot er een ja is" is vervallen.

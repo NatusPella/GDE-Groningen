@@ -149,8 +149,8 @@ import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from '.
 import { aandeel, tegelFoci, nietBijFoci } from './coopfoci.js';
 import { wantsOpenSamen, takeOpenSamen, samenGate } from './samenpanel.js';
 import { maybeOpenOnlineStart } from './onlineconsentui.js';
-import { startPlan, startVragen, zetStartModus, startModus, bewaarKeuze } from './startkeuze.js'; // Alleen of Samen bij elke start (eigenaarsbesluit 21-11)
-import { openStartKeuze, openToestemming } from './startkeuzeui.js';
+import { startPlan, startVragen, zetStartModus, startModus, bewaarKeuze } from './startchoice.js'; // Alleen of Samen bij elke start (eigenaarsbesluit 21-11)
+import { openStartKeuze, openToestemming } from './startchoiceui.js';
 import { openSamenKeuze } from './samenkeuze.js';
 import { requestOpenSamen } from './samenpanel.js';
 import { gateOn, setGate } from './coopgate.js';
@@ -601,7 +601,7 @@ const loadMarks = window.__loadMarks = {};
 const markLoad = (k) => { loadMarks[k] = Math.round(performance.now()); };
 let tileWorldStats = null;
 
-// De startvragen (startkeuze.js): de naamkaart EENMALIG op de eerste start (verplicht, geen time-out en geen Escape), daarna bij
+// De startvragen (startchoice.js): de naamkaart EENMALIG op de eerste start (verplicht, geen time-out en geen Escape), daarna bij
 // elke start de keuzekaart Alleen of Samen. Alleen kiest het enkelspelerpad zonder netwerk; Samen vraagt zo nodig eerst de
 // toestemming en daarna Een spel openen of Meedoen. Een testrun (vlaggen hieronder) en ?startkeuze=alleen slaan de kaart over.
 let onlineVraag = null;
@@ -1052,7 +1052,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     // Wie online meedoet, wacht eerst op de startzoektocht (#528); die host of sluit aan, of
     // geeft na een paar pogingen op. Duurt het te lang of kan hij niet beginnen, dan valt de
     // sessie van één na 12 s in (de zoektocht stopt dan zelf zodra hij een sessie ziet).
-    const onlineNu = magOnline() && startModus() !== 'alleen'; // Alleen spelen houdt het netwerk dicht (startkeuze.js)
+    const onlineNu = magOnline() && startModus() !== 'alleen'; // Alleen spelen houdt het netwerk dicht (startchoice.js)
     soloWachtS = onlineNu ? soloWachtS + dt : 0;
     const soloKlaar = !onlineNu || sessionBootDone(world) || (soloWachtS > 12 && !sessionBootBezig(world));
     if (!world.coopNet && !world.coopWissel && !wantsOpenSamen() && !isPauseMenuOpen() && !document.getElementById('load-screen') && document.body.classList.contains('game-started')
