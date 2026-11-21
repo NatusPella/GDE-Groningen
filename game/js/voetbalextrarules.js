@@ -1,7 +1,7 @@
 // De aanvullende spelregels van de voetbalwedstrijd (epic voetbal-uitzending, 21-11): kaarten, blessures, wissels, strafschoppen en optioneel buitenspel. Puur, geen DOM en geen THREE
 // (scripts/voetbal_uitzending_test.mjs). Het bestand kent de wedstrijd (voetbalmatch.js) alleen als gewoon object `m` en importeert hem dus niet (geen kringverwijzing).
 // Alles blijft zonder getoond geweld (constitutie 6): een kaart is een kaartje, een blessure is een speler die kreupel loopt en gewisseld wordt, zonder beeld van leed.
-// Alle regels zijn uit te zetten (`regels`, de voorkeur in `gde-voetbal-v1`); met alles uit is de sim gelijk aan die van voor deze uitbreiding.
+// Alle regels zijn uit te zetten (`regels`, de voorkeur staat onder de bestaande voetbalsleutel van storagekeys.js); met alles uit is de sim gelijk aan die van voor deze uitbreiding.
 import { PITCH, richtingVan, ownGoalY, inStrafschop } from './voetbalrules.js';
 
 export const DEFAULT_RULES = Object.freeze({ kaarten: true, blessures: true, strafschoppen: true, buitenspel: false, wissels: true });
