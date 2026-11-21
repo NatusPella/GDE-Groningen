@@ -42,10 +42,12 @@ export function basePrice(p, region) {
 export const difficultyFactor = (kind) => Math.min(1.25, Math.max(0.75, rawDifficulty(kind)));
 export const parcelPrice = (p, region, owned = 0) => { const b = basePrice(p, region); return b ? Math.round((b * scaleFactor(owned) * difficultyFactor('price')) / 50) * 50 : 0; };
 // Verkopen levert een deel van wat je betaalde (VERKOOP_FACTOR): kopen en direct verkopen kost 25%.
-export const sellValue = (paid) => Math.round((Math.max(0, paid) * VERKOOP_FACTOR) / 5) * 5;
+// Een betaald bedrag dat geen eindig positief getal is (NaN, Infinity, tekst, leeg) telt als 0: een kapotte opslag levert geen geld op (bezit_exploits_test).
+const paidOk = (x) => { const v = Number(x); return Number.isFinite(v) && v > 0 ? v : 0; };
+export const sellValue = (paid) => Math.round((paidOk(paid) * VERKOOP_FACTOR) / 5) * 5;
 // Pacht per speldag: 0,9% van de koopprijs; lager dan wat een huurder vraagt (1,2%), zodat huren en verpachten nooit een lus is.
 export const LEASE_OUT_RATE = 0.009;
-export const leaseOutPerDay = (paid) => Math.round((Math.max(0, paid) * LEASE_OUT_RATE) / 5) * 5;
+export const leaseOutPerDay = (paid) => Math.round((paidOk(paid) * LEASE_OUT_RATE) / 5) * 5;
 
 // ---- namen (ontwerp 4.5) ----
 const WORDS = {
@@ -77,4 +79,4 @@ export const soilYieldFactor = (q) => bodemFactor(q);
 // speldag oplevert (1.100 per uur x 0,4 uur x 3): bij weinig bezit nauwelijks merkbaar, bij duizend percelen nooit meer dan een factor 3 van de actieve speler.
 export const ACTIVE_PER_DAY = 440;
 export const PASSIVE_CAP_DAY = ACTIVE_PER_DAY * 3;
-export const compressPassive = (perDay) => (perDay > 0 ? Math.round(PASSIVE_CAP_DAY * (1 - Math.exp(-perDay / PASSIVE_CAP_DAY))) : perDay);
+export const compressPassive = (perDay) => (perDay > 0 ? Math.round(PASSIVE_CAP_DAY * (1 - Math.exp(-perDay / PASSIVE_CAP_DAY))) : Number.isNaN(Number(perDay)) ? 0 : perDay);

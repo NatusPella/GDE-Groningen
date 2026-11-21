@@ -85,5 +85,6 @@ export const commentaryLine = (sp) => { const n = boardNames(sp)[0]; return n ? 
 // De klantenbonus voor wie het sponsorpand bezit: hooguit +10% op de omzet van dat pand, alleen op thuiswedstrijddagen; nooit een tweede uitbetaling van de sponsor.
 export function ownerBonus({ isHomeDay = false, ownsPand = false, form = 1 } = {}) {
   if (!isHomeDay || !ownsPand) return { factor: 1, extraPayout: 0 };
-  return { factor: 1 + Math.min(OWNER_BONUS_MAX, 0.04 + Math.max(0, form - 1) * 0.5), extraPayout: 0 };
+  const fo = Number.isFinite(form) ? form : 1;       // een kapotte vorm (NaN) geeft geen NaN-omzet
+  return { factor: 1 + Math.min(OWNER_BONUS_MAX, 0.04 + Math.max(0, fo - 1) * 0.5), extraPayout: 0 };
 }
