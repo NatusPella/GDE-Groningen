@@ -144,3 +144,28 @@ eerste perceel na 2,4 uur (MIN_PRICE nu 2.400), schaalcurve van 10, 100, 1.000 e
 direct verkopen (verlies 25%), pacht 0,9% tegen huur 1,2%, schaalprijs max x3, afnemende beheeropbrengst. Nieuw: een zachte rem op passief inkomen (`compressPassive`, plafond 3 x 440 per speldag)
 in de dagtik. Eerste meting: zonder die rem gaf 1.000 percelen ongeveer 30.000 per uur (27 keer het actieve werk).
 Nog te doen: prestaties (eerste perceel, tien percelen, eerste winkel, eerste keten, tien streken) in `achievements.js`, een perf-run met 1.000 percelen en 5.000 panden in Electron, en een spelbot-run die het tempo van twee uur bevestigt.
+
+## #1103 Ketens, streekprijzen, gebeurtenissen, frietwagen en woningen (koppeling aan het spel)
+
+Gebouwd: `game/js/bezithooks.js` (twee haken zodat de boerderij niets van Bezit importeert: streekprijs en opbrengstverlies; zonder haak doet de boerderij wat ze deed),
+`game/js/bezitchain.js` (de ketens aan je percelen, vee en panden gekoppeld: bron uit percelen op Personeel en kuddes, koppelen van een eigen pand of de frietwagen aan een schakel,
+afstand en wagens, de dag met de streekprijs; de bonus is alleen het EXTRA boven wat de grondstof al opbracht; opslag in `bezit.x.chains`), `game/js/bezitnews.js` (nieuws van het land: verlies per perceel,
+ziek vee, machine, inspectie, koeling, buren; `bezit.x.news`), `game/js/housing.js` (woningen in de buurt), `bezitlive.js` (dagtik: ketens, nieuws, frietwagen; streekmarkt `bezit.x.market`;
+API voor de ketens, het markt-bord, het nieuws, de frietwagen en de woningen), `bezitui.js` (Overzicht: Nieuws van het land, Ketens, Prijzen vandaag per streek; Bedrijven: Frietwagen en Woningen in de buurt),
+`boerderij.js` en `farmstaff.js` (prijs via de haak; verlies bij personeel en pacht), `boerderijlive.js` (handwerk-oogst met verlies en melding), `scripts/world/bezit_index.mjs` en `parcelindex.js` (woningen per plaats).
+Tests: `bezitchain_test` (11), `bezitnews_test` (7), `housing_test` (5), `bezitlive_keten_test` (16), `bezitui_test` (17, was 12); bestaande tests blijven groen (op `spelmenu_test` na: die loopt al achter op het
+tabblad Samen spelen, niet door dit werk).
+
+In beeld te controleren:
+- Overzicht: onder de aandachtspunten staat Nieuws van het land (leeg: "het land is rustig"); onderaan de zes ketens en het prijsbord. Kies een product en zie de acht streken met de beste bovenaan.
+- Een keten: koppel een eigen industriepand als verwerker en een winkel als verkooppunt (kiezer "Van jou"); de marge springt naar 15% en 35%; een pand verder dan 500 m vraagt een wagen. De balken lopen na een paar speldagen vol. Controleer of de balkkleur bij vol (oranje) en de tekst leesbaar zijn op 1080p en klein.
+- Bedrijven: Frietwagen kopen (7.500), standplaats kiezen, de dagomzet in je geld; woningen in de buurt kopen, de huur per dag en leegstand. Bevestiging bij kopen en verkopen.
+- Een droogte of stortbui: de oogst van je personeel valt lager uit; bij handwerk een melding "Oogst x% lager". De buurman verschijnt als scène met drie knoppen in het nieuws.
+Bekende gaten:
+- Het gedrag van de trekkertrek is alleen een aanbod; er is geen minigame (de gegevensdefinitie staat in `bezitevents.js`).
+- De bron van een keten is een schatting per speldag (verwachte opbrengst gedeeld door de teeltduur) van percelen op Personeel en van kuddes; handwerk-oogst valt erbuiten en wordt gewoon afgeleverd. Melk en eieren van het vee worden nog tegen de vaste dierprijs verkocht, niet tegen de streekprijs.
+- Het bestrijden van mieren en wespen (`treated`) en de stormverzekering zijn nog niet in het menu; het verlies telt altijd onverzekerd en onbehandeld. Een machine die stilvalt krijgt slijtage 100 (een onderhoudsbeurt maakt hem weer heel); een stilstand in dagen telt niet.
+- De ketens gebruiken geen zichtbare vrachtwagens en geen hulp van `trafficfleet.js` (de rit is een doorlooptijd); de speler kan er niet zelf in stappen.
+- De woningen zijn gesynthetiseerd (geen echt pand): een ID per plaats en nummer met een vast grondvlak, een plek in de buurt van de plaats en de woningprijs; ze staan niet als gebouw op de kaart. Verhuur is automatisch (geen knop voor zelf bewonen).
+- Samen spelen: ketens, markt en nieuws zijn per speler (`bezit.x`); de streekprijs gebruikt de gedeelde kalenderdag, maar de verzadiging door wat een medespeler levert komt pas aan als de bouwer de levering via een EXTRA-bericht naar `AM.recordRemoteDelivery` stuurt.
+

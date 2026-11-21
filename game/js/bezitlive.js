@@ -21,7 +21,15 @@ import * as H from './holdingsmodel.js';
 import * as BZ from './business.js';
 import * as FX from './businessexclusion.js';
 import * as EV from './bezitevents.js';
-import { hireWorker, fireWorker } from './farmstaff.js';
+import { hireWorker, fireWorker, staffOf } from './farmstaff.js';
+import * as AM from './areamarket.js';
+import * as CH from './bezitchain.js';
+import * as SC from './supplychain.js';
+import * as NW from './bezitnews.js';
+import * as HS from './housing.js';
+import { herdsOf, infect, SPECIES } from './livestock.js';
+import { MACHINE_CATALOGUS } from './percelen.js';
+import { setAreaPrice, setYieldInfo } from './bezithooks.js';
 
 const SCHRIJF_VERTRAGING_MS = 2000;
 let bezit = null, opslagOverride = null, timer = 0, vuil = false, index = null, laden = null;
@@ -55,7 +63,7 @@ export function schrijfNu() {
   if (!vuil) return;
   const st = opslag();
   if (!st || !bezit) return;
-  try { st.setItem(KEYS.bezit, JSON.stringify(Z.serializeBezit(bezit))); vuil = false; } catch (e) { /* opslag vol of geblokkeerd: het bezit blijft in dit spel */ }
+  try { CH.packForSave(bezit); st.setItem(KEYS.bezit, JSON.stringify(Z.serializeBezit(bezit))); vuil = false; } catch (e) { /* opslag vol of geblokkeerd: het bezit blijft in dit spel */ }
 }
 export function markeer() {
   vuil = true;
@@ -67,6 +75,7 @@ export function initBezit({ opslag: st } = {}) {
   if (st !== undefined) opslagOverride = st;
   bezit = null; vuil = false; index = null; laden = null;
   setVoorLaadHaak(() => { PF.registerOwnedParcels(getBezit(), ctxOf()); });
+  setAreaPrice(areaPriceHook); setYieldInfo(yieldHook);                    // de streekmarkt en het opbrengstverlies voor de boerderij (bezithooks.js)
   getBezit();
   if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('pagehide', () => { if (timer) clearTimeout(timer); schrijfNu(); });
   return bezit;
@@ -186,13 +195,19 @@ export function forSaleView(rect, scale, base = 'world/') {
 // ---- panden en bedrijven (Bedrijven-tak, #1102) ----
 let exclusionContext = () => ({});
 export const setExclusionContext = (fn) => { exclusionContext = typeof fn === 'function' ? fn : () => ({}); };
-const TOWN_HOUSES = 1500;                                                // het aantal woningen per plaats is nog een schatting (de pandindex bevat geen gewone woningen)
-const townOf = (x, y) => ({ id: placeOfPoint(x, y) || 'overig', name: placeOfPoint(x, y) || 'de plaats', houses: TOWN_HOUSES });
+const TOWN_HOUSES = 1500;                                                // terugval als de index geen woningtelling heeft (oude bouw): een schatting
+// Het aantal woningen komt uit de index (bezit_index.mjs telt ze per woonplaats; de stad Groningen is een schatting, zie docs/BEZIT-21-11.md hoofdstuk 14).
+const housesAtPoint = (x, y) => { const h = index && index.parcels.housesAt ? index.parcels.housesAt(x, y) : null; return Number.isFinite(h) && h > 0 ? h : TOWN_HOUSES; };
+const townOf = (x, y) => ({ id: placeOfPoint(x, y) || 'overig', name: placeOfPoint(x, y) || 'de plaats', houses: housesAtPoint(x, y) });
+// De woningen om te kopen (housing.js): uit de plaatsenlijst van de index, per index één keer gebouwd.
+const homeMarket = () => { if (!index) return null; if (!index.homes) index.homes = HS.createHomeMarket(index.parcels.places); return index.homes; };
+// De rij van een pand: uit de pandindex, of een gesynthetiseerde woning (housing.js).
+const rowOf = (osm) => { if (!index) return null; const r = index.buildings.byId(osm); if (r) return r; const m = HS.isHomeId(osm) ? homeMarket() : null; return m ? m.rowOf(osm) : null; };
 
 // Het aanbod van een pand voor het menu: soort, prijs en of het te koop is (de uitsluitlijst geeft de reden).
 export function buildingOffer(osm) {
   if (!index) return null;
-  const row = index.buildings.byId(osm);
+  const row = rowOf(osm);
   if (!row) return null;
   const kind = BZ.classifyBuilding(row, null);
   const town = townOf(row.x, row.y);
@@ -222,6 +237,7 @@ export function koopPand(w, osm) {
 export function verkoopPand(w, osm) {
   const r = Z.sellBuilding(getBezit(), osm);
   if (!r.ok) return { ...r, text: 'Dit pand is niet van jou.' };
+  CH.pruneBindings(getBezit(), refInfo);
   noteMoney('Verkoop'); w.money += r.refund; markeer();
   return { ok: true, refund: r.refund, text: `Verkocht voor ${euro(r.refund)}.` };
 }
@@ -229,7 +245,7 @@ export function verkoopPand(w, osm) {
 export function myBusinesses() {
   const b = getBezit();
   return [...b.buildings].map((osm) => {
-    const row = index ? index.buildings.byId(osm) : null;
+    const row = rowOf(osm);
     const kind = row ? BZ.classifyBuilding(row, (b.bstate[osm] || {}).kind) : { cls: 'rent', type: (b.bstate[osm] || {}).kind || 'woning' };
     const biz = BZ.bizOf(b, row || { osm, m2: 100, type: kind.type }, kind);
     return { osm, row, kind, biz, place: row ? townOf(row.x, row.y).name : 'onbekend' };
@@ -261,15 +277,177 @@ export function huurArbeider(w, skill) {
 }
 export function ontslaArbeider(id) { const r = fireWorker(getBezit(), id); if (r && r.ok !== false) markeer(); return !!(r && r.ok !== false); }
 
-// ---- de dagtik: personeel, pacht, vee, bedrijven en belasting per speldag ----
+// ---- de klok: de kalenderdag van de wereld naast de dag van de boerderij ----
+// De streekprijs en de gebeurtenissen rekenen met de gedeelde kalender (calendar.js, world.calendar.day) zodat medespelers dezelfde dag zien; de
+// boerderij en het bezit tellen in hun eigen speldagen (uren / 24). dagTik legt de twee naast elkaar: de dag van de boerderij d is kalenderdag cal + (d - farm).
+let clock = { cal: 0, farm: 0 };
+const calDayOf = (w) => { const d = w && w.calendar && w.calendar.day; return Number.isFinite(d) && d >= 1 ? Math.floor(d) : 0; };
+const calOf = (farmDay) => (clock.cal > 0 ? Math.max(1, clock.cal + (farmDay - clock.farm)) : Math.max(1, farmDay + 1));
+export const calToday = () => calOf(Math.floor(getBoerderij().uren / 24));
+const weekendDay = (cd) => { const wd = (cd + 4) % 7; return wd === 6 || wd === 0; };          // dag 1 is vrijdag 14 augustus
+
+// De streekmarkt (areamarket.js) in bezit.x.market: één keer genormaliseerd, daarna in het geheugen.
+const marketDone = new WeakSet();
+function marketOf() { const b = getBezit(); if (!b.x.market || !marketDone.has(b.x.market)) { b.x.market = AM.normalizeMarket(b.x.market); marketDone.add(b.x.market); } return b.x.market; }
+const setMarket = (m) => { getBezit().x.market = m; marketDone.add(m); };
+// De haak voor elke levering van een oogst (boerderij.js leverVracht, farmstaff.js sellLoad): de prijs van de streek van het perceel op de kalenderdag,
+// met de verzadiging door wat je levert en de veilingdag. Een gewas zonder streekprijs houdt de gewone dagprijs.
+function areaPriceHook(gewas, kg, farmDay, veld, base) {
+  if (!(AM.BASE_PRICE[gewas] > 0)) return base;
+  const cd = calOf(farmDay), region = AM.regionOf(veld ? ctxOf().region(veld) : 'overig');
+  const r = AM.deliver(marketOf(), region, gewas, kg, cd, EV.marketEventMult(gewas, cd));
+  setMarket(r.market); markeer();
+  return r.avgPrice;
+}
+// De haak voor het opbrengstverlies van een perceel op een speldag van de boerderij (bezitnews.js).
+function lossMult(id, cd) {
+  const rec = getBezit().parcels[id];
+  return rec ? NW.lossOfParcel({ id, kind: rec.k, region: ctxOf().region(id) }, cd) : { mult: 1, text: '' };
+}
+const yieldHook = (veld, farmDay) => { const r = lossMult(veld, calOf(farmDay)); return { mult: r.mult, text: r.text }; };
+
+// Het nieuws (bezit.x.news): één keer genormaliseerd; het zaad (voor de persoonlijke gebeurtenissen) komt uit je eerste perceel.
+const newsDone = new WeakSet();
+function newsOf() {
+  const b = getBezit();
+  if (!b.x.news || !newsDone.has(b.x.news)) { b.x.news = NW.normalizeNews(b.x.news); newsDone.add(b.x.news); }
+  if (!b.x.news.seed) b.x.news.seed = (Object.keys(b.parcels).find((id) => !b.parcels[id].lg) || 'start').slice(0, 13).replace(/[^a-z0-9-]/g, '');
+  return b.x.news;
+}
+
+// ---- de ketens: wat koppelbaar is en de omgeving voor bezitchain.js ----
+// Wat een koppelbaar pand of de wagen is: { cls, type, x, y } of null als het niet (meer) van jou is.
+function refInfo(ref) {
+  const b = getBezit();
+  if (typeof ref === 'string') { const id = ref.slice(2), s = b.mobile && b.mobile[id]; return s ? { cls: 'mobile', type: (BZ.MOBILE_TYPES[id] || { type: id }).type, x: 0, y: 0, mobile: true } : null; }
+  if (!b.buildings.has(ref)) return null;
+  const s = b.bstate[ref] || {}, row = rowOf(ref), k = row ? BZ.classifyBuilding(row, s.kind) : { cls: 'rent', type: s.kind || 'woning' };
+  return { cls: BZ.SHOP_TYPES[s.kind] ? 'shop' : k.cls, type: s.kind || k.type, x: row ? row.x : 0, y: row ? row.y : 0, mobile: false };
+}
+const parcelPoint = (id) => { const r = getBezit().parcels[id]; const c = r && (r.c || r.a); return c ? { x: c[0], y: c[1] } : null; };
+function chainEnv(rows) {
+  const b = getBezit();
+  return { rows, herds: herdsOf(b), loc: (ref) => { const i = refInfo(ref); return i && !i.mobile ? { x: i.x, y: i.y } : null; }, valid: (ref) => !!refInfo(ref), parcelLoc: parcelPoint,
+    regionOf: regionOfPoint, spotOf: (ref) => ((getBezit().mobile[String(ref).slice(2)] || {}).cfg || {}).spot };
+}
+const ownedRows = (farm, b) => H.holdingRows(b, farm, { regionOf: (id) => ctxOf().region(id) });
+
+// De ketens van de dag(en) from+1 tot en met last: bron uit je percelen en vee, de eigen schakels, de streekprijs. Geeft { bonus, closed }.
+function tickChains(w, farm, from, last, rows) {
+  const b = getBezit(), chains = CH.chainsOf(b);
+  let market = marketOf(), bonus = 0, closed = false;
+  const base = chainEnv(rows);
+  for (let d = from + 1; d <= last; d++) {
+    const cd = calOf(d);
+    market = AM.advanceMarket(market, cd);
+    for (const id of SC.CHAIN_IDS) {
+      const e = chains[id];
+      const src = CH.sourceKgPerDay(e.chain.raw, rows, base.herds, e.bind.p, () => 0);
+      if (!(src.kg > 0) && !e.chain.links.some((l) => l.stock > 0)) continue;
+      const r = CH.stepEntry(e, { ...base, market, calDay: cd, lossOf: (pid) => 1 - lossMult(pid, cd).mult, eventMult: (p) => EV.marketEventMult(p, cd) });
+      chains[id] = r.entry; market = r.market; bonus += r.bonus;
+      if (r.closed) closed = true;
+    }
+  }
+  setMarket(market);
+  if (closed) { try { unlockAchievement(w, 'bz_keten'); } catch (e) { /* prestaties niet klaar */ } }
+  return { bonus: Math.round(bonus), closed };
+}
+
+// De gebeurtenissen van de dag(en): opbrengstverlies zit al in de haken; hier de pech, het vee, de inspectie, de koeling en de buren. Geeft { money, lines }.
+function tickNews(w, farm, from, last, rows) {
+  const b = getBezit(), news = newsOf(), herds = herdsOf(b), chains = CH.chainsOf(b);
+  const regions = [...new Set([...Object.keys(b.parcels).map((id) => ctxOf().region(id)), ...myBusinesses().map((m) => (m.row ? regionOfPoint(m.row.x, m.row.y) : 'overig'))])];
+  const machines = ((farm.bedrijf.machinepark || {}).machines || []).filter((m) => m.slijtage > 70 && MACHINE_CATALOGUS[m.type]).map((m) => ({ id: m.uid, name: MACHINE_CATALOGUS[m.type].naam, wear: m.slijtage, price: MACHINE_CATALOGUS[m.type].koop }));
+  const herdList = Object.keys(herds).map((id) => { const h = herds[id], rec = b.parcels[id], sp = SPECIES[h.sp]; return { id, kind: h.sp, count: h.n, perHa: rec && rec.ha > 0 ? h.n / rec.ha : 0, refPerHa: sp && sp.perHa > 0 ? sp.perHa : Infinity }; });
+  const cooled = Object.values(chains).filter((e) => Object.keys(e.bind.l).some((k) => refInfo(e.bind.l[k])));          // een keten met minstens één eigen schakel heeft een koeling
+  const audit = NW.auditState({ businesses: myBusinesses().map((m) => m.biz), rows, hasStaff: staffOf0().workers.length > 0 });
+  const out = { money: 0, lines: [] };
+  for (let d = from + 1; d <= last; d++) {
+    const cd = calOf(d);
+    const r = NW.processDay(news, cd, { regions, seed: news.seed, machines, herds: herdList, audit,
+      buildings: cooled.map((e) => ({ id: e.chain.name, stock: Object.fromEntries(e.chain.links.filter((l) => l.in).map((l) => [l.in, l.stock])) })) });
+    out.money += r.money; out.lines.push(...r.lines);
+    for (const id of r.infect) if (herds[id]) infect(herds[id]);
+    for (const uid of r.breakdown) { const m = farm.bedrijf.machinepark.machines.find((x) => x.uid === uid); if (m) m.slijtage = 100; }
+    for (const c of r.cooling) { const e = cooled.find((x) => x.chain.name === c.asset); if (e) for (const l of e.chain.links) if (l.in && c.lost[l.in]) l.stock = Math.max(0, l.stock - c.lost[l.in]); }
+  }
+  return out;
+}
+const staffOf0 = () => staffOf(getBezit());
+
+// ---- het mobiele bedrijf: de frietwagen ----
+const mobileBiz = (id) => { const s = getBezit().mobile[id], d = BZ.MOBILE_TYPES[id]; return s && d ? { id, type: d.type, cls: 'mobile', m2: 0, p: s.p, base: 0, q: s.q, cfg: BZ.normalizeCfg({ ...s.cfg }) } : null; };
+export function myMobile() {
+  const b = getBezit();
+  return BZ.MOBILE_IDS.filter((id) => b.mobile && b.mobile[id]).map((id) => { const biz = mobileBiz(id), d = BZ.MOBILE_TYPES[id], spot = (biz.cfg.spot && BZ.MOBILE_SPOTS[biz.cfg.spot]) || BZ.MOBILE_SPOTS.park; return { id, def: d, biz, spot: biz.cfg.spot || 'park', spotLabel: spot.label, value: BZ.marketValue(biz), forecast: BZ.forecast(biz, { day: Math.floor(getBoerderij().uren / 24), owned: 1 }) }; });
+}
+export function mobileOffers() { const b = getBezit(); return BZ.MOBILE_IDS.filter((id) => !(b.mobile && b.mobile[id])).map((id) => ({ id, ...BZ.MOBILE_TYPES[id] })); }
+export function koopMobiel(w, id) {
+  if (!branchOpen('business')) return { ok: false, why: 'dicht', text: branchClosedText('business') };
+  const r = BZ.buyMobile(getBezit(), id, Math.floor(getBoerderij().uren / 24), Number.isFinite(w && w.money) ? w.money : 0);
+  if (!r.ok) return { ...r, text: r.why === 'te-weinig-geld' ? `Je mist nog ${euro(r.tekort)}.` : r.why === 'al-van-jou' ? 'Deze wagen is al van jou.' : 'Kopen lukt nu niet.' };
+  noteMoney('Winkels'); w.money -= r.cost; markeer();
+  return { ok: true, cost: r.cost, text: `De ${BZ.MOBILE_TYPES[id].label.toLowerCase()} is van jou voor ${euro(r.cost)}.` };
+}
+// De wagen als cadeau (de verhaal-epic: Tessa en Tammo beginnen met een frietwagen): zonder kosten en zonder prijs te raken. Slaagt niet als je hem al hebt.
+export function schenkMobiel(id = 'frietwagen') {
+  const b = getBezit(), d = BZ.MOBILE_TYPES[id];
+  if (!d || (b.mobile && b.mobile[id])) return false;
+  if (!b.mobile) b.mobile = {};
+  b.mobile[id] = { p: d.price, t: Math.floor(getBoerderij().uren / 24), q: 100, cfg: { pr: 1, hr: 10, spot: 'park' } };
+  markeer();
+  return true;
+}
+export function verkoopMobiel(w, id) {
+  const r = BZ.sellMobile(getBezit(), id);
+  if (!r.ok) return { ...r, text: 'Deze wagen is niet van jou.' };
+  CH.pruneBindings(getBezit(), refInfo);
+  noteMoney('Verkoop'); w.money += r.refund; markeer();
+  return { ok: true, refund: r.refund, text: `Verkocht voor ${euro(r.refund)}.` };
+}
+export function zetStandplaats(id, spot) {
+  const b = getBezit();
+  if (!b.mobile[id] || !BZ.MOBILE_SPOTS[spot]) return { ok: false, text: 'Die standplaats bestaat niet.' };
+  b.mobile[id].cfg = { ...b.mobile[id].cfg, spot }; markeer();
+  return { ok: true, text: `Je staat nu op ${BZ.MOBILE_SPOTS[spot].label}${BZ.MOBILE_SPOTS[spot].needsEvent ? ': alleen op een kermisdag drukker' : ''}.` };
+}
+export function renoveerMobiel(w, id) {
+  const biz = mobileBiz(id);
+  if (!biz) return { ok: false, text: 'Deze wagen is niet van jou.' };
+  const r = BZ.renovate(biz, w.money || 0);
+  if (!r.ok) return { ok: false, text: r.why === 'al-in-orde' ? 'Deze wagen is al in orde.' : `Je mist nog ${euro(r.tekort || 0)}.` };
+  noteMoney('Overige uitgaven'); w.money -= r.cost; BZ.storeBiz(getBezit(), r.biz); markeer();
+  return { ok: true, text: `Gerenoveerd voor ${euro(r.cost)}.` };
+}
+
+// ---- woningen in de buurt (housing.js) ----
+// De koopbare woningen rond een punt, met aanbod zoals buildingsNear.
+export function homesNear(x, y, max = 4) {
+  const m = homeMarket();
+  if (!m) return [];
+  return m.near(x, y, getBezit().buildings, max).map((row) => ({ ...buildingOffer(row.osm), dist: Math.round(Math.hypot(row.x - x, row.y - y)) })).filter((o) => o.osm);
+}
+// Het verhuurbeeld van een woning: verhuurd of leeg (tot welke speldag) en de huur per speldag bij het onderhoud van nu.
+export function rentView(biz, day) {
+  if (!biz || biz.cls !== 'rent') return null;
+  const vu = Number(biz.cfg && biz.cfg.vu) || 0;
+  const rate = BZ.RENT_RATES[biz.type] || BZ.RENT_RATES.woning;
+  const per = Math.round((biz.base > 0 ? biz.base : biz.p) * rate * BZ.maintenanceFactor(biz.q));
+  return { empty: vu > day, until: vu, rentDay: per, text: vu > day ? `Leeg: een nieuwe huurder wordt gezocht (tot dag ${vu}).` : `Verhuurd: ${euro(per)} per speldag.` };
+}
+
+// ---- de dagtik: personeel, pacht, vee, bedrijven, ketens, gebeurtenissen en belasting per speldag ----
 // Elk beeld aangeroepen (goedkoop: werkt alleen als de speldag veranderd is). Het geld gaat via world.money met noteMoney.
 let lastReport = null;
 export const takeDayReport = () => { const r = lastReport; lastReport = null; return r; };
 export function dagTik(w) {
   const b = getBezit(), farm = getBoerderij();
   const day = Math.floor(farm.uren / 24);
+  clock = { cal: calDayOf(w), farm: day };
   if (!(Object.keys(b.parcels).length > 1 || b.buildings.size || Object.keys(b.mobile || {}).length)) { b.x.lastDay = day; return null; }
-  const from = Number.isFinite(b.x.lastDay) ? b.x.lastDay : day;
+  if (!Number.isFinite(b.x.lastDay)) { b.x.lastDay = day; return null; }                       // een bezit zonder vastgelegde dag begint vandaag te tellen
+  const from = b.x.lastDay;
   if (day <= from) return null;
   const money = Number.isFinite(w && w.money) ? w.money : 0;
   const rep = H.advanceDays(b, farm, day, { money, deliver: 'sell' });
@@ -277,15 +455,102 @@ export function dagTik(w) {
   const last = Math.min(day, from + 60);
   for (const m of myBusinesses()) {
     const x = m.row ? m.row.x : 0, y = m.row ? m.row.y : 0, region = regionOfPoint(x, y);
-    const res = BZ.settleDays(m.biz, from, last, (d) => ({ day: d, town: townOf(x, y), owned: Z.ownedCount(b), sameType: 0, event: EV.businessMods(m.biz, region, d) }));
+    const res = BZ.settleDays(m.biz, from, last, (d) => ({ day: d, town: townOf(x, y), owned: Z.ownedCount(b), sameType: 0, event: EV.businessMods(m.biz, region, calOf(d)) }));
     BZ.storeBiz(b, res.biz); bizNet += res.sum.net; tax += res.sum.tax;
   }
+  let mobNet = 0;
+  for (const id of Object.keys(b.mobile || {})) {            // de frietwagen: omzet naar standplaats, weekend en kermis (business.js)
+    const biz = mobileBiz(id);
+    if (!biz) continue;
+    const spotRegion = CH.SPOT_REGION[biz.cfg.spot] || 'overig';
+    const res = BZ.settleDays(biz, from, last, (d) => { const cd = calOf(d), fest = EV.festivalOn(spotRegion, cd); return { day: d, owned: Z.ownedCount(b) + 1, kermis: !!(fest && fest.kermis), weekend: weekendDay(cd), event: EV.businessMods(biz, spotRegion, cd) }; });
+    BZ.storeBiz(b, res.biz); mobNet += res.sum.net; tax += res.sum.tax;
+  }
+  bizNet += mobNet;
   net += bizNet;
+  const rows = ownedRows(farm, b);
+  const ch = tickChains(w, farm, from, last, rows);
+  net += ch.bonus;
+  const ev = tickNews(w, farm, from, last, rows);
   if (net > 0) { const dd = Math.max(1, last - from); net = P.compressPassive(net / dd) * dd; }   // de rem op passief inkomen (bezitprijs.js)
+  net += ev.money;                                                                                // een boete of de dierenarts is geen passief inkomen: geen rem
   if (net !== 0) { noteMoney(net > 0 ? 'Winkels' : 'Overige uitgaven'); w.money = Math.max(0, (w.money || 0) + net); }
+  if (w && typeof w.addMessage === 'function') for (const t of ev.lines.slice(-3)) w.addMessage(t, 5, { kind: 'tip', key: 'bz-nieuws' });
   markeer();
-  lastReport = { from: from + 1, to: day, days: rep.days, parcels: Math.round(rep.net), business: Math.round(bizNet), net: Math.round(net), tax: Math.round(tax), events: rep.events };
+  lastReport = { from: from + 1, to: day, days: rep.days, parcels: Math.round(rep.net), business: Math.round(bizNet), mobile: Math.round(mobNet), chains: ch.bonus, eventMoney: Math.round(ev.money), news: ev.lines.length, net: Math.round(net), tax: Math.round(tax), events: rep.events };
   return lastReport;
+}
+
+// ---- het nieuws en de keuze van de buurman ----
+export function newsView(w) {
+  const news = newsOf(), b = getBezit();
+  const regions = [...new Set(Object.keys(b.parcels).map((id) => ctxOf().region(id)))];
+  return { lines: news.lines.slice(0, NW.MAX_LINES), scene: NW.sceneView(news), goodwill: news.goodwill, pull: NW.pullOffers(regions, calToday()), day: calToday() };
+}
+export function kiesBuur(w, choiceId) {
+  const news = newsOf(), r = NW.chooseNeighbor(news, choiceId, Number.isFinite(w && w.money) ? w.money : 0);
+  if (!r.ok) return { ...r, text: r.why === 'te-weinig-geld' ? `Je mist nog ${euro(r.tekort)}.` : 'Daar is niets meer over te zeggen.' };
+  if (r.cost > 0) { noteMoney('Overige uitgaven'); w.money -= r.cost; }
+  markeer();
+  return r;
+}
+
+// ---- de streekmarkt: het bord Prijzen vandaag per streek ----
+export const marketProducts = () => AM.PRODUCTS.slice();
+export function priceBoard(product) {
+  const cd = calToday();
+  return { day: cd, ...AM.marketBoard(marketOf(), product, cd, EV.marketEventMult(product, cd)), auction: EV.auctionDay(cd) };
+}
+
+// ---- het ketenscherm ----
+export function chainViews() {
+  const b = getBezit(), farm = getBoerderij(), rows = ownedRows(farm, b), env = chainEnv(rows), cd = calToday();
+  const entries = CH.chainsOf(b);
+  return SC.CHAIN_IDS.map((id) => {
+    const v = CH.viewOf(entries[id], { ...env, lossOf: (pid) => 1 - lossMult(pid, cd).mult });
+    return { ...v, raw: entries[id].chain.raw, output: entries[id].chain.output, region: CH.outletRegion(entries[id], env), sources: chainSources(id, rows).slice(0, 12), links: v.links.map((l) => ({ ...l, options: l.ownable ? chainOptions(id, l.id) : [] })) };
+  });
+}
+// De eigen panden en wagens die bij een schakel passen: [{ ref, label }].
+export function chainOptions(chainId, linkId) {
+  const b = getBezit(), link = CH.chainsOf(b)[chainId].chain.links.find((l) => l.id === linkId);
+  if (!link) return [];
+  const out = [];
+  for (const m of myBusinesses()) { const i = refInfo(m.osm); if (i && CH.fits(chainId, link, i)) out.push({ ref: m.osm, label: `${m.kind.type} bij ${m.place}` }); }
+  for (const m of myMobile()) { const i = refInfo(`m:${m.id}`); if (i && CH.fits(chainId, link, i)) out.push({ ref: `m:${m.id}`, label: `${m.def.label} (${m.spotLabel})` }); }
+  return out;
+}
+// De percelen en kuddes die als grondstof voor een keten in aanmerking komen: [{ id, name, kg, picked }].
+export function chainSources(chainId, rows0 = null) {
+  const b = getBezit(), farm = getBoerderij(), e = CH.chainsOf(b)[chainId], rows = rows0 || ownedRows(farm, b), herds = herdsOf(b);
+  const all = CH.sourceKgPerDay(e.chain.raw, rows, herds, [], () => 0);
+  return all.ids.map((id) => { const one = CH.sourceKgPerDay(e.chain.raw, rows, herds, [id], () => 0); const row = rows.find((r) => r.id === id); return { id, name: row ? row.name : id, kg: one.kg, picked: e.bind.p.includes(id) }; });
+}
+export function koppelSchakel(chainId, linkId, ref) {
+  const r = CH.bindLink(getBezit(), chainId, linkId, typeof ref === 'string' && /^\d+$/.test(ref) ? Number(ref) : ref, refInfo);
+  if (r.ok) markeer();
+  return { ...r, text: r.ok ? 'Gekoppeld: deze schakel is nu van jou en telt voor de marge.' : r.why === 'past-niet' ? 'Dit pand past niet bij deze schakel.' : r.why === 'niet-van-jou' ? 'Dit pand is niet van jou.' : 'Koppelen lukt niet.' };
+}
+export function ontkoppelSchakel(chainId, linkId) { const ok = CH.unbindLink(getBezit(), chainId, linkId); if (ok) markeer(); return { ok, text: ok ? 'Losgekoppeld.' : 'Er was niets gekoppeld.' }; }
+export function kiesBron(chainId, id) { const ok = CH.toggleSourceParcel(getBezit(), chainId, id); if (ok) markeer(); return { ok, text: ok ? 'Bron bijgewerkt.' : 'Dat lukt niet.' }; }
+// Een wagen met chauffeur erbij (+1) of weg (-1) tussen deze schakel en de volgende; de chauffeur kost per speldag loon (supplychain.js).
+export function wagenKnop(chainId, linkId, delta) {
+  const e = CH.chainsOf(getBezit())[chainId];
+  if (!e) return { ok: false, text: 'Die keten bestaat niet.' };
+  const r = delta > 0 ? SC.addTruck(e.chain, linkId) : SC.removeTruck(e.chain, linkId);
+  if (!r.ok) return { ok: false, text: delta > 0 ? 'Er kunnen niet meer wagens bij.' : 'Er staat geen wagen.' };
+  e.chain = r.chain; markeer();
+  return { ok: true, text: delta > 0 ? `Een wagen met chauffeur erbij: ${euro(SC.DRIVER_WAGE)} per speldag.` : 'Een wagen minder.' };
+}
+export const UPGRADE_STEP = 0.25, UPGRADE_COST = 800;       // doorvoer en buffer van een eigen schakel +25% van de basis, tot viermaal
+export function schakelUitbreiden(w, chainId, linkId) {
+  const e = CH.chainsOf(getBezit())[chainId], def = SC.CHAIN_DEFS[chainId], l = e && e.chain.links.find((x) => x.id === linkId), d0 = def && def.links.find((x) => x.id === linkId);
+  if (!l || !d0 || !l.ownable || !e.bind.l[linkId] || !refInfo(e.bind.l[linkId])) return { ok: false, text: 'Alleen een eigen schakel kun je uitbreiden.' };
+  if (l.perDay >= d0.perDay * 4 - 1e-9) return { ok: false, text: 'Dit is al de grootste maat.' };
+  if (!((w.money || 0) >= UPGRADE_COST)) return { ok: false, text: `Je mist nog ${euro(UPGRADE_COST - (w.money || 0))}.` };
+  noteMoney('Overige uitgaven'); w.money -= UPGRADE_COST;
+  l.perDay = Math.min(d0.perDay * 4, Math.round(l.perDay + d0.perDay * UPGRADE_STEP)); l.cap = Math.min(d0.cap * 4, Math.round(l.cap + d0.cap * UPGRADE_STEP)); markeer();
+  return { ok: true, text: `Uitgebreid voor ${euro(UPGRADE_COST)}: doorvoer ${l.perDay} kg per speldag.` };
 }
 
 // Samen spelen: onze claim verloor een conflict (een medespeler was eerder). Het perceel gaat terug en het geld komt volledig terug (nooit verlies).

@@ -9,6 +9,7 @@
 import * as B from './boerderij.js';
 import * as PC from './percelen.js';
 import { dagprijs } from './gewasmarkt.js';
+import { areaPrice, yieldInfo } from './bezithooks.js';
 import { leaseOutPerDay } from './bezitprijs.js';
 import { DIESEL_ERF } from './machines.js';
 import { workField, fieldPhase, unitScale, workUnits, rowLayout, rowPose } from './parcelfarm.js';
@@ -96,7 +97,7 @@ export function leaseDayTick(bezit, farm, day) {
   for (const id in bezit.parcels) {
     const rec = bezit.parcels[id];
     if (rec.m !== 'leased') continue;
-    const pay = Math.round(leaseOutPerDay(paidFor(rec, id)) * mf);
+    const pay = Math.round(leaseOutPerDay(paidFor(rec, id)) * mf * yieldInfo(id, day).mult);   // een droogte of stortbui drukt ook de pacht (bezitevents.js)
     parcels++;
     if (pay > 0) { income += pay; if (farm) { B.boek(farm, { omzet: pay, veld: PC.isPerceelId(id) ? id : null }); farm.totaal.omzet += pay; } }
   }
@@ -106,7 +107,7 @@ export function leaseDayTick(bezit, farm, day) {
 // Een oogst verkopen tegen de dagprijs van de speldag (de lading van een perceel): boekt de omzet en geeft het bedrag. Ook voor de loonwerker (holdingsmodel.js).
 export function sellLoad(farm, id, gewas, kg, day) {
   if (!(kg > 0) || !B.GEWASSEN[gewas]) return 0;
-  const price = dagprijs(gewas, day) || B.GEWASSEN[gewas].prijsKg;
+  const price = areaPrice(gewas, kg, day, id, dagprijs(gewas, day) || B.GEWASSEN[gewas].prijsKg);   // streekmarkt van Bezit (bezithooks.js)
   const money = Math.round(kg * price);
   B.boek(farm, { omzet: money, veld: id, kg });
   farm.totaal.leveringen++; farm.totaal.omzet += money;
@@ -177,7 +178,7 @@ export function staffDayTick(bezit, farm, day, ctx = {}) {
       const units = workUnits(j.ha);
       const entry = { id: j.id, worker: j.worker, workerName: j.workerName, ha: j.ha, phase: j.phase, tasks: tasksOf(j), t0: j.t0, t1: j.t1, kg: 0 };
       if (j.phase === 'rijp') {
-        const r = workField(farm, j.id, 'oogsten', { fractie: 1, opbrengst: unitScale(j.ha) * mf * ratio });
+        const r = workField(farm, j.id, 'oogsten', { fractie: 1, opbrengst: unitScale(j.ha) * mf * ratio * yieldInfo(j.id, day).mult });
         const load = r && r.load;
         const kg = load ? load.kg : 0;
         const liters = DIESEL_L_HA.oogsten * j.ha, dc = Math.round(liters * dieselPrice);

@@ -124,5 +124,52 @@ t('de HTML ontsnapt namen', () => {
   const h = U.forSaleHtml({ money: 1e6, offers: [{ id: 'p1', name: '<img src=x onerror=1>', kindName: 'weide', ha: 1, soilWord: 'goed', dist: 1, price: 1200 }] });
   assert.ok(!h.includes('<img') && h.includes('&lt;img'));
 });
+// ---- #1103: ketens, prijzen, nieuws, frietwagen en woningen ----
+const VIEW = { id: 'kaas', name: 'Melk naar kaas', margin: 0.15, sourceKg: 440, sourceCount: 2, picked: 0, closedDays: 3, last: { net: 12 }, weakest: { kind: 'transport', text: 'Melkvee: te weinig wagens naar de volgende schakel. Stel een chauffeur aan.' },
+  sources: [{ id: 'pa', name: 'Weide <b>x</b>', kg: 220, picked: true }],
+  links: [{ id: 'melk', label: 'Melkvee', role: 'source', owned: false, ownable: false, fill: 0.5, stock: 10000, cap: 20000, perDay: 6000, trucks: 1, wage: 95, distance: 1200, ref: null, options: [] },
+    { id: 'kaasmakerij', label: 'Kaasmakerij', role: 'processor', owned: true, ownable: true, fill: 0.95, stock: 9500, cap: 10000, perDay: 5000, trucks: 0, wage: 0, distance: 0, ref: 1001, options: [{ ref: 1001, label: 'industrie bij Winsum' }] },
+    { id: 'verkoop', label: 'Boerderijwinkel of markt', role: 'outlet', owned: false, ownable: true, fill: 0, stock: 0, cap: 1500, perDay: 400, trucks: 0, wage: 0, distance: 0, ref: null, options: [] }] };
+t('ketens: schakels met balk, eigen en niet eigen, zwakste schakel, koppelkiezer, wagens en bronnen; alles ontsnapt', () => {
+  const h = U.chainsHtml([VIEW], 5000);
+  assert.match(h, /data-chain="kaas"/); assert.match(h, /data-bz-bind="kaas\|kaasmakerij"/); assert.match(h, /selected/);
+  assert.match(h, /data-own="1"/); assert.match(h, /data-own="0"/); assert.match(h, /data-vol="1"/); assert.match(h, /Zwakste schakel: Melkvee/);
+  assert.match(h, /extra marge 15%/); assert.match(h, /gesloten keten: 3 dagen/); assert.match(h, /data-bz="wagen-plus"/); assert.match(h, /data-bz="wagen-min"/); assert.match(h, /data-bz="keten-uit"/);
+  assert.ok(!h.includes('<b>x</b>') && h.includes('&lt;b&gt;x'));
+  assert.match(h, /10\.000 van 20\.000 kg/); assert.match(h, /1\.200 m naar de volgende/);
+  assert.equal(U.chainsHtml([], 0), ''); assert.equal(U.chainsHtml(null), '');
+});
+t('prijzen: een tabel per streek met de beste bovenaan en een productkiezer', () => {
+  const board = { product: 'graan', best: { region: 'hogeland' }, auction: { text: 'Veilingdag: graan brengt vandaag 25% meer op.' }, rows: [{ region: 'hogeland', factor: 1.2, price: 0.18, trend: 'op' }, { region: 'oldambt', factor: 0.9, price: 0.13, trend: 'neer' }] };
+  const h = U.marketHtml(board, ['graan', 'melk']);
+  assert.match(h, /Prijzen vandaag per streek/); assert.match(h, /data-best="1"/); assert.match(h, /Hogeland/); assert.match(h, /<option value="graan" selected>/); assert.match(h, /Veilingdag/); assert.match(h, /3% per 1\.000 kg/);
+  assert.equal(U.marketHtml(null), '');
+});
+t('nieuws: hoogstens vijf regels, de buurman met knoppen en de trekkertrek; leeg is rustig', () => {
+  const lines = Array.from({ length: 9 }, (_, i) => ({ t: `Regel ${i}`, k: 'weer' }));
+  const h = U.newsHtml({ lines, scene: { id: 'heg', text: 'Buurman Hindrik vindt je heg te hoog.', choices: [{ id: 'praat', label: 'Een praatje maken', cost: 0 }, { id: 'knip', label: 'De heg bijknippen', cost: 25 }] }, pull: [{ region: 'hogeland', name: 'Zomerkermis', label: 'Trekkertrek', classes: [{ id: 'licht', label: 'Licht tot 90 pk', fee: 50, top: 250 }] }] });
+  assert.equal((h.match(/<li /g) || []).length, 5); assert.match(h, /data-bz="buur"/); assert.match(h, /data-choice="knip"/); assert.match(h, /€\s?25/); assert.match(h, /Trekkertrek bij Zomerkermis in Hogeland/);
+  assert.match(U.newsHtml({ lines: [], scene: null, pull: [] }), /het land is rustig/); assert.equal(U.newsHtml(null), '');
+});
+t('frietwagen: aanbod met het verhaal, bezit met standplaatsen, verkopen vraagt bevestiging', () => {
+  const def = { label: 'Frietwagen', story: 'Tessa en Tammo, 24, net afgestudeerd, draaien hem zelf.', price: 7500 };
+  const offer = U.mobileHtml([], [{ id: 'frietwagen', ...def }], 10000, 0);
+  assert.match(offer, /Frietwagen te koop/); assert.match(offer, /Tessa en Tammo/); assert.match(offer, /data-bz="koop-mobiel"/);
+  assert.match(U.mobileHtml([], [{ id: 'frietwagen', ...def }], 100, 0), /disabled/);
+  const own = U.mobileHtml([{ id: 'frietwagen', def, spot: 'markt', spotLabel: 'Grote Markt', biz: { q: 90, p: 7500 }, value: 7000, forecast: { revenue: 120 } }], [], 0, 0);
+  assert.match(own, /Grote Markt/); assert.match(own, /data-spot="kermis"/); assert.match(own, /data-bz="verkoop-mobiel"/); assert.match(own, /120/);
+  U.ui.confirm = 'verkoop-mobiel:frietwagen';
+  assert.match(U.mobileHtml([{ id: 'frietwagen', def, spot: 'park', spotLabel: 'Noorderplantsoen', biz: { q: 90, p: 7500 }, value: 1 }], [], 0, 0), /Zeker\?/);
+  U.ui.confirm = null;
+});
+t('woningen: te koop met prijs en plaats, een gekochte woning toont de verhuur', () => {
+  const h = U.homesHtml([{ osm: 8589934600, town: { name: 'Winsum' }, row: { m2: 90 }, dist: 120, forSale: true, price: 40000, reason: '' }], 100000);
+  assert.match(h, /Woning bij Winsum/); assert.match(h, /data-bz="koop-pand"/); assert.match(h, /verhuurd|Verhuurd|verhuurd/i); assert.equal(U.homesHtml([], 1), '');
+  const mine = U.businessesHtml({ mine: [{ osm: 9, kind: { type: 'woning' }, place: 'Winsum', biz: { cls: 'rent', type: 'woning', q: 100, p: 40000, base: 40000, cfg: { vu: 0 } } }], near: [], day: 5 });
+  assert.match(mine, /Verhuurd: /);
+  const empty = U.businessesHtml({ mine: [{ osm: 9, kind: { type: 'woning' }, place: 'Winsum', biz: { cls: 'rent', type: 'woning', q: 100, p: 40000, base: 40000, cfg: { vu: 9 } } }], near: [], day: 5 });
+  assert.match(empty, /Leeg: een nieuwe huurder wordt gezocht/);
+});
+
 console.log(`bezitui_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

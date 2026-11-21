@@ -14,6 +14,7 @@ import { nieuwBedrijf, normaliseerBedrijf, actiefPerceel, perceelDef, bodemFacto
 import { PRIJS_KG, dagprijs, dagVan, markt } from './gewasmarkt.js';
 import * as CT from './boerderijcontracten.js';
 import { euro } from './geldtekst.js';
+import { areaPrice } from './bezithooks.js';
 
 export const VERSIE = 1;
 export const MAX_UREN = 1e7;
@@ -406,7 +407,8 @@ export function leverVracht(b, vracht, kwaliteit) {
   const q = clamp(Number.isFinite(kwaliteit) ? kwaliteit : 0, 0, 1) * clamp(Number.isFinite(vracht.kwaliteit) ? vracht.kwaliteit : 1, 0, 1);
   const dag = dagVan(b.uren);
   const basis = GEWASSEN[vracht.gewas].prijsKg;
-  const prijs = dagprijs(vracht.gewas, dag) || (basis > 0 ? basis : 0);
+  const prijs0 = dagprijs(vracht.gewas, dag) || (basis > 0 ? basis : 0);
+  const prijs = prijs0 > 0 ? areaPrice(vracht.gewas, vracht.kg, dag, vracht.veld, prijs0) : 0;   // de streekmarkt van Bezit (bezithooks.js), zonder haak de dagprijs
   if (!(prijs > 0)) return { bedrag: 0, kg: 0, gewas: null };
   const bedrag = Math.round(vracht.kg * prijs * q);
   const r = { bedrag, kg: vracht.kg, gewas: vracht.gewas, kwaliteit: q, prijs, dag };
