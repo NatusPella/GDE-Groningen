@@ -266,7 +266,7 @@ await t('keuzekaart: twee grote knoppen met icoon, toets, uitleg, aria en geen l
   assert.equal((html.match(/<button\b/g) || []).length, 2);
   assert.match(html, /Alleen spelen/);
   assert.match(html, /Samen spelen/);
-  assert.match(html, /Speel met vrienden in een eigen, besloten sessie\./);
+  assert.match(html, /Met vrienden, in een besloten sessie./);
   assert.match(html, /role="dialog"[^>]*aria-modal="true"[^>]*aria-labelledby="sk-titel"/);
   assert.match(html, /role="group" aria-label="Kies hoe je speelt/);
   assert.equal((html.match(/aria-describedby="sk-u-/g) || []).length, 2, 'elke knop wijst naar zijn uitleg');

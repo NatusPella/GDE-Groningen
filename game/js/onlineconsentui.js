@@ -12,16 +12,17 @@ const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<
 
 // De kaart "Je naam voor Samen spelen": een verplichte naam en het akkoord (vinkje met de IP-melding), één knop "Doorgaan".
 // Hij komt alleen als de speler iets met Samen spelen doet (launchchoice.js); `terug` voegt Terug toe (naar de keuze).
+// De uitleg achter het vinkje: een uitklapper (details), standaard dicht; met Tab en Enter of de muis te openen.
+export const meerInfoHtml = (label, tekst) => `<details class="os-info"><summary>${esc(label)}</summary><p class="os-info-tekst">${esc(tekst)}</p></details>`;
+
 export function onlineStartHtml({ naam = '', fout = '', consent = false, terug = false } = {}) {
   return `<section class="os-kaart" role="dialog" aria-modal="true" aria-labelledby="os-titel">
-    <p class="os-eb">Samen spelen</p>
     <h2 id="os-titel">${esc(EERSTE_START.titel)}</h2>
-    <p class="os-uitleg">${esc(EERSTE_START.uitleg)}</p>
     <label class="os-label"><span>${esc(EERSTE_START.naamLabel)}</span>
       <input type="text" class="os-naam" maxlength="${ONLINE_NAAM_MAX}" spellcheck="false" autocomplete="off" placeholder="Je naam" required value="${esc(naam)}">
     </label>
-    <p class="os-hint">${esc(EERSTE_START.naamHint)}</p>
     <label class="os-consent"><input type="checkbox" class="os-consent-vink"${consent ? ' checked' : ''}> <span>${esc(EERSTE_START.consent)}</span></label>
+    ${meerInfoHtml(EERSTE_START.meerInfo, EERSTE_START.info)}
     ${fout ? `<p class="os-fout" role="alert">${esc(fout)}</p>` : '<p class="os-fout" role="alert" hidden></p>'}
     <div class="os-knoppen">
       <button type="button" class="os-knop os-doorgaan" data-doorgaan>${esc(EERSTE_START.doorgaan)}</button>
@@ -89,7 +90,7 @@ export function mountOnlineStart(root, { naam = '', onKies = () => {}, onTerug =
       return;
     }
     if (!e || e.key !== 'Tab' || !root.querySelectorAll) return;
-    const velden = [...root.querySelectorAll('.os-naam, .os-consent-vink, [data-doorgaan], [data-terug]')];
+    const velden = [...root.querySelectorAll('.os-naam, .os-consent-vink, .os-info summary, [data-doorgaan], [data-terug]')];
     if (!velden.length) return;
     const nu = velden.indexOf(e.target);
     const volgende = velden[(nu + (e.shiftKey ? -1 : 1) + velden.length) % velden.length];

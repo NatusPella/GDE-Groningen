@@ -81,7 +81,7 @@ ok(O('Escape', 3).terug === true && O('Backspace', N).terug === true, 'Escape ga
   ok(/data-niveau="standaard"[^>]*data-voorkeur/.test(html) || /data-voorkeur[^>]*data-niveau="standaard"/.test(html) || /data-niveau="standaard" data-i="1" data-voorkeur/.test(html), 'Standaard is de voorselectie');
   ok(/Aanbevolen/.test(html) && /Hoe pittig moet het zijn\?/.test(html) && /data-aanpassen/.test(html), 'de kaart noemt de aanbeveling, de titel en Aanpassen');
   ok(/role="dialog"[^>]*aria-modal="true"[^>]*aria-labelledby="dk-titel"/.test(html) && /aria-describedby="dk-intro"/.test(html), 'een toegankelijke dialoog');
-  ok(/Instellingen, Moeilijkheid/.test(html) && /Samen spelen/.test(html), 'de kaart zegt dat het later kan en wat Samen spelen doet');
+  ok(/Instellingen, Moeilijkheid/.test(html), 'de kaart zegt dat het later kan');
   const opt = UI.optionsViewHtml({ level: 'standaard', custom: { income: 1.25 } });
   ok(D.OPTION_DEFS.every((d) => opt.includes(`data-optie="${d.key}"`)), 'de opties-weergave toont elke optie');
   ok(/data-optie="income"[^>]*data-custom/.test(opt) && /Standaard · aangepast/.test(opt), 'een afwijkende optie en de samenvatting staan erin');

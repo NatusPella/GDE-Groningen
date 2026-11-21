@@ -42,10 +42,11 @@ export function geefToestemming({ zet = setSetting } = {}) {
 // player does anything with Samen spelen; Alleen spelen never sees it. Both are remembered (onlineNaam, onlineMeedoen).
 export const EERSTE_START = {
   titel: 'Je naam voor Samen spelen',
-  uitleg: `${CONSENT_TEXT} Je kunt je naam en je akkoord later aanpassen of intrekken bij Instellingen, Samen spelen.`,
   naamLabel: 'Je naam',
-  naamHint: 'Verplicht. Andere spelers zien je onder deze naam.',
-  consent: 'Ik ga ermee akkoord dat het spel online verbindt met een STUN-server en openbare brokers; mijn IP-adres gaat daarvoor naar die diensten.',
+  // Tekstdieet 21-11: op de kaart staat één korte zin bij het vinkje; de uitleg zit achter "Meer info" (een uitklapper, niet standaard in beeld).
+  consent: 'Ik ga akkoord met online verbinden (mijn IP-adres wordt gedeeld).',
+  meerInfo: 'Meer info',
+  info: `${CONSENT_TEXT} Het spel verbindt online met een STUN-server en openbare brokers. Andere spelers zien je onder je naam. Je kunt je naam en je akkoord later aanpassen of intrekken bij Instellingen, Samen spelen.`,
   doorgaan: 'Doorgaan',
   terug: 'Terug',
 };

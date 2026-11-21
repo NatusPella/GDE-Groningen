@@ -16,23 +16,23 @@ import { CONSENT_TEXT } from './lobby.js';
 import { getSettings, setSetting } from './settings.js';
 
 export const KEUZES = Object.freeze([
-  { id: 'alleen', label: 'Alleen spelen', uitleg: 'Jouw verhaal, in je eigen tempo. Er gaat niets naar buiten.', icoon: 'solo', toets: '1' },
-  { id: 'samen', label: 'Samen spelen', uitleg: 'Speel met vrienden in een eigen, besloten sessie.', icoon: 'samen', toets: '2' },
+  { id: 'alleen', label: 'Alleen spelen', uitleg: 'Jouw verhaal, jouw tempo.', icoon: 'solo', toets: '1' },
+  { id: 'samen', label: 'Samen spelen', uitleg: 'Met vrienden, in een besloten sessie.', icoon: 'samen', toets: '2' },
 ]);
 
 export const LAUNCH_TEXT = Object.freeze({
   eyebrow: 'Zomer vol misdaad',
   titel: 'Hoe wil je spelen?',
-  uitleg: 'Je kiest bij elke start opnieuw. De wereld is voor beide hetzelfde.',
-  hulp: ['{ARROWS} kiezen', '{ENTER} starten', '{ESC} alleen spelen'],
+  hulp: ['{ARROWS} kiezen', '{ENTER} starten'],
   aria: 'Kies hoe je speelt: alleen of samen',
 });
 
 export const TOESTEMMING_TEKST = Object.freeze({
   eyebrow: 'Samen spelen',
   titel: 'Mag het spel online verbinden?',
-  uitleg: `${CONSENT_TEXT} Zonder jouw akkoord maakt het spel geen verbinding.`,
-  consent: 'Ik ga ermee akkoord dat het spel online verbindt met een STUN-server en openbare brokers; mijn IP-adres gaat daarvoor naar die diensten.',
+  consent: 'Ik ga akkoord met online verbinden (mijn IP-adres wordt gedeeld).',
+  meerInfo: 'Meer info',
+  info: `${CONSENT_TEXT} Het spel verbindt online met een STUN-server en openbare brokers. Zonder jouw akkoord maakt het spel geen verbinding.`,
   geef: 'Akkoord en doorgaan',
   terug: 'Terug',
 });

@@ -121,3 +121,9 @@ html.reduce-motion .sk-keuze { transition: none; }
 @media (max-width: 760px) { .dk-knoppen { grid-template-columns: 1fr; } .dk-keuze { min-height: 0; } .dk-rij { flex-direction: column; align-items: flex-start; } }
 @media (prefers-reduced-motion: reduce) { .dk-rij { transition: none; } }
 html.reduce-motion .dk-rij { transition: none; }
+
+/* Tekstdieet 21-11: de uitleg achter het vinkje is een uitklapper, standaard dicht (Tab + Enter of muis). */
+.os-info { margin: 8px 0 0 30px; font-size: 16px; }
+.os-info summary { display: inline-block; cursor: pointer; padding: 2px 4px; color: var(--ds-tx-zacht); text-decoration: underline; text-underline-offset: 3px; }
+.os-info summary:focus-visible { outline: var(--ds-lijn-zeef, 3px) solid var(--ds-c-ink-bord); outline-offset: 2px; }
+.os-info-tekst { margin: 6px 0 0; line-height: 1.4; color: var(--ds-zeef-tx); }
