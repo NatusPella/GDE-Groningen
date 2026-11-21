@@ -27,6 +27,10 @@ Eén actief thuis per speler: `{ v: 1, active, unlocked: [...], pinned }`. Elk t
 
 Het model is klaar en getest; de consumenten lezen `activeHome()` en bouwen hun gedrag daarop. Wat nog moet (alle kleine aanpassingen, per consument één import): slapen en opslaan (waar je kunt slapen), "naar huis" (taxi en snelreizen: waarheen), respawn na het ziekenhuis, het flat-interieur (variant per thuis), de garage (waar de Escapade staat), de kast (kleding-epic: de kast reist mee of staat per thuis), kaartmarkering "Thuis", de startkaart en Spullen. Samen spelen: elke speler heeft zijn eigen thuis (lokaal, zoals zijn voortgang); een gast ziet in andermans wereld zijn eigen thuis, de host dat van de host; er is geen netwerkbericht voor nodig.
 
+**Eén bron:** `homebase.js` is de bron voor de verhaalplekken; de `homeByAct` van Tammo en Tessa in de personagedossiers volgt dat bestand (besluit 21-11).
+
+**Waarom het nog niet in de wereld hangt:** `home.js` bouwt de fysieke flat in Paddepoel (geometrie, garage, spots) en kent maar één gebouw; een thuis per verhaalplek vraagt de interieur-, kleding- en tuning-werkstromen (epic-interieurs `homeStyle`/`pinInterior`, epic-kleding `wardrobeMenu`), die op deze branch nog niet zitten. De koppeling is klein zodra die gemerged zijn: lees `activeHome()` in `home.js` (spawn, garage), de slaapplek en de reis "naar huis".
+
 ## Verhuisscènes en continuïteit
 
 Elke verhuizing krijgt een kort moment, geen losse missie: een overgangsscène of een regel in de eerste scène op de nieuwe plek (de nieuwe buren via het introductieprotocol: Oma's buurvrouw, Lammert, Tinus en Henk). Spullen, outfits en props verhuizen mee: de Escapade en de kast gaan mee, de matras ook (de grap uit de opening). Cutscene-continuïteit: een scène die in een thuis speelt, gebruikt het interieur van het actieve thuis (regie-regel in de scène, geen nieuwe assets).

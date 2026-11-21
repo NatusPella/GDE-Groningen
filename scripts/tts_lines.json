@@ -169,6 +169,19 @@
   "file": "anita/ja_natuurlijk_efc4f2c2.mp3"
  },
  {
+  "key": "Anita|Voor zijn oma. Hij doet alles voor zijn oma.",
+  "speaker": "Anita",
+  "text": "Voor zijn oma. Hij doet alles voor zijn oma.",
+  "area": "M03.2",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "lacherig, ad rem",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+  "file": "anita/voor_zijn_oma_hij_doet_alles_voo_077aacbd.mp3"
+ },
+ {
   "key": "Anita|Hij vroeg Sjabbe waar het museum alarmen heeft. Hij wil de bal, want wie de bal heeft, zit de jury voor, en dat wil Jelle.",
   "speaker": "Anita",
   "text": "Hij vroeg Sjabbe waar het museum alarmen heeft. Hij wil de bal, want wie de bal heeft, zit de jury voor, en dat wil Jelle.",
@@ -663,9 +676,9 @@
   "file": "anita/natuurlijk_blijf_je_je_hebt_een__630c4b10.mp3"
  },
  {
-  "key": "Anita|Mem, vandaag was er een man met een trekker-limo. Hij zei dat zijn mem niks wil.",
+  "key": "Anita|Mem, vandaag was er een man met een trekker-limo. Hij zei dat zijn oma niks wil.",
   "speaker": "Anita",
-  "text": "Mem, vandaag was er een man met een trekker-limo. Hij zei dat zijn mem niks wil.",
+  "text": "Mem, vandaag was er een man met een trekker-limo. Hij zei dat zijn oma niks wil.",
   "area": "O5",
   "out": "lines",
   "lang": "own",
@@ -673,7 +686,7 @@
   "who": "Nederlandse vrouw, lacherig en ad rem",
   "tag": "warm, grinnikend",
   "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
-  "file": "anita/mem_vandaag_was_er_een_man_met_e_72abaee6.mp3"
+  "file": "anita/mem_vandaag_was_er_een_man_met_e_9070b4f8.mp3"
  },
  {
   "key": "Mem Terpstra|...Dat zegt hij al jaren.",
@@ -832,9 +845,9 @@
   "file": "anita/er_zit_een_briefje_bij_eet_wat_i_b2ca1a53.mp3"
  },
  {
-  "key": "Anita|…Dat doen moeders.",
+  "key": "Anita|…Dat doen oma's.",
   "speaker": "Anita",
-  "text": "…Dat doen moeders.",
+  "text": "…Dat doen oma's.",
   "area": "M11.3",
   "out": "lines",
   "lang": "own",
@@ -842,7 +855,7 @@
   "who": "Nederlandse vrouw, lacherig en ad rem",
   "tag": "aarzelend, zacht",
   "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: aarzelend, zacht.",
-  "file": "anita/dat_doen_moeders_b01453cf.mp3"
+  "file": "anita/dat_doen_oma_s_32581a97.mp3"
  },
  {
   "key": "Tammo|Je kijkt raar.",
@@ -1950,6 +1963,19 @@
   "file": "anita/berend_wie_zit_de_jury_voor_als__d30fd68e.mp3"
  },
  {
+  "key": "Mem Terpstra|Er is geen overeenkomst, jonge. Er is een oma.",
+  "speaker": "Mem Terpstra",
+  "text": "Er is geen overeenkomst, jonge. Er is een oma.",
+  "area": "M20.3",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Gacrux",
+  "who": "warme, stellige oude Friese moeder, spreekt Nederlands met Friese woorden",
+  "tag": "zacht, samenzweerderig",
+  "style": "spoken in Dutch with a warm Frisian accent, the Frisian words said in Frisian (Frysk); warme, stellige oude Friese moeder, spreekt Nederlands met Friese woorden. Tone: zacht, samenzweerderig.",
+  "file": "mem_terpstra/er_is_geen_overeenkomst_jonge_er_52b695e3.mp3"
+ },
+ {
   "key": "Anita|Van de jas, Tammo. En \"Tige tank! – J.\" is van hem: hij bedankt overal voor.",
   "speaker": "Anita",
   "text": "Van de jas, Tammo. En \"Tige tank! – J.\" is van hem: hij bedankt overal voor.",
@@ -1961,6 +1987,19 @@
   "tag": "warm, grinnikend",
   "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
   "file": "anita/van_de_jas_tammo_en_tige_tank_j__8afbf9b5.mp3"
+ },
+ {
+  "key": "Mem Terpstra|Omdat mijn kleinzoon gekke dingen doet om iets voor mij te winnen wat ik niet meer hoef. En omdat ik in 1953 tweede werd, tegen Trijntje. Dat heeft hij nooit losgelaten. Ik wel.",
+  "speaker": "Mem Terpstra",
+  "text": "Omdat mijn kleinzoon gekke dingen doet om iets voor mij te winnen wat ik niet meer hoef. En omdat ik in 1953 tweede werd, tegen Trijntje. Dat heeft hij nooit losgelaten. Ik wel.",
+  "area": "M20.3",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Gacrux",
+  "who": "warme, stellige oude Friese moeder, spreekt Nederlands met Friese woorden",
+  "tag": "zacht, samenzweerderig",
+  "style": "spoken in Dutch with a warm Frisian accent, the Frisian words said in Frisian (Frysk); warme, stellige oude Friese moeder, spreekt Nederlands met Friese woorden. Tone: zacht, samenzweerderig.",
+  "file": "mem_terpstra/omdat_mijn_kleinzoon_gekke_dinge_00bf2429.mp3"
  },
  {
   "key": "Mem Terpstra|Famke. De trein met de rode auto stopt om middernacht bij de overweg in Zuidhorn. Daarna gaat hij naar Ljouwert.",
@@ -2132,6 +2171,19 @@
   "file": "anita/het_is_een_voordeur_een_voordeur_46e80c72.mp3"
  },
  {
+  "key": "Anita|Ik moet je iets vertellen. Ik woonde op een boerderij tot ik acht was. Daarna ben ik steeds verhuisd.",
+  "speaker": "Anita",
+  "text": "Ik moet je iets vertellen. Ik woonde op een boerderij tot ik acht was. Daarna ben ik steeds verhuisd.",
+  "area": "M22.4",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "ongeduldig, bazig",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
+  "file": "anita/ik_moet_je_iets_vertellen_ik_woo_126a1af3.mp3"
+ },
+ {
   "key": "Anita|Mem zegt elke zomer jas. Het enige wat hetzelfde bleef.",
   "speaker": "Anita",
   "text": "Mem zegt elke zomer jas. Het enige wat hetzelfde bleef.",
@@ -2143,6 +2195,19 @@
   "tag": "ongeduldig, bazig",
   "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
   "file": "anita/mem_zegt_elke_zomer_jas_het_enig_4224b857.mp3"
+ },
+ {
+  "key": "Anita|\"Foar mem.\" Voor zijn oma.",
+  "speaker": "Anita",
+  "text": "\"Foar mem.\" Voor zijn oma.",
+  "area": "M24.1",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "ongeduldig, bazig",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
+  "file": "anita/foar_mem_voor_zijn_oma_b00b6df2.mp3"
  },
  {
   "key": "Anita|En waarom luistert die duif naar jou?",
@@ -2221,6 +2286,19 @@
   "tag": "plagend, zelfverzekerd",
   "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
   "file": "anita/hij_stuurt_altijd_alles_in_driev_731de779.mp3"
+ },
+ {
+  "key": "Anita|Je biedt geld voor iets wat geen geld is. En je oma wil iets anders.",
+  "speaker": "Anita",
+  "text": "Je biedt geld voor iets wat geen geld is. En je oma wil iets anders.",
+  "area": "M25.3",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "warm, grinnikend",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+  "file": "anita/je_biedt_geld_voor_iets_wat_geen_7a19a11a.mp3"
  },
  {
   "key": "Anita|Mam. Het is half twaalf.",
@@ -2327,6 +2405,19 @@
   "file": "anita/en_de_onze_df92f2e6.mp3"
  },
  {
+  "key": "Mem Terpstra|Dat is mijn kleinzoon.",
+  "speaker": "Mem Terpstra",
+  "text": "Dat is mijn kleinzoon.",
+  "area": "M26.13",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Gacrux",
+  "who": "warme, stellige oude Friese moeder, spreekt Nederlands met Friese woorden",
+  "tag": "zacht, samenzweerderig",
+  "style": "spoken in Dutch with a warm Frisian accent, the Frisian words said in Frisian (Frysk); warme, stellige oude Friese moeder, spreekt Nederlands met Friese woorden. Tone: zacht, samenzweerderig.",
+  "file": "mem_terpstra/dat_is_mijn_kleinzoon_1a39d933.mp3"
+ },
+ {
   "key": "Anita|Mien jong. Dat duurde vijf jaar.",
   "speaker": "Anita",
   "text": "Mien jong. Dat duurde vijf jaar.",
@@ -2405,17 +2496,17 @@
   "file": "anita/hij_koopt_door_0a590412.mp3"
  },
  {
-  "key": "Jelle Terpstra|Mevrouw Tessa. Eén eierbal, met mosterd. Voor mijn moeder.",
+  "key": "Jelle Terpstra|Mevrouw Tessa. Eén eierbal, met mosterd. Voor mijn oma.",
   "speaker": "Jelle Terpstra",
-  "text": "Mevrouw Tessa. Eén eierbal, met mosterd. Voor mijn moeder.",
+  "text": "Mevrouw Tessa. Eén eierbal, met mosterd. Voor mijn oma.",
   "area": "O11",
   "out": "lines",
   "lang": "own",
   "voice": "Fenrir",
   "who": "ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden",
-  "tag": "plechtig, overdreven trots",
-  "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: plechtig, overdreven trots.",
-  "file": "jelle_terpstra/mevrouw_tessa_ee_n_eierbal_met_m_c5da7405.mp3"
+  "tag": "zelfvoldaan, grinnikend",
+  "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: zelfvoldaan, grinnikend.",
+  "file": "jelle_terpstra/mevrouw_tessa_ee_n_eierbal_met_m_c927fd99.mp3"
  },
  {
   "key": "Anita|De Fjord Frituur staat op de Vismarkt, vanaf twaalf uur.",
@@ -2470,17 +2561,17 @@
   "file": "jelle_terpstra/mijn_juristen_kijken_naar_die_kl_99e5df1b.mp3"
  },
  {
-  "key": "Anita|Een eierbal. Voor zijn moeder.",
+  "key": "Anita|Een eierbal. Voor zijn oma.",
   "speaker": "Anita",
-  "text": "Een eierbal. Voor zijn moeder.",
+  "text": "Een eierbal. Voor zijn oma.",
   "area": "O11",
   "out": "lines",
   "lang": "own",
   "voice": "Callirrhoe",
   "who": "Nederlandse vrouw, lacherig en ad rem",
-  "tag": "warm, grinnikend",
-  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
-  "file": "anita/een_eierbal_voor_zijn_moeder_a08a3283.mp3"
+  "tag": "lacherig, ad rem",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+  "file": "anita/een_eierbal_voor_zijn_oma_d6b4453e.mp3"
  },
  {
   "key": "Anita|En de eierballen? Die staan er mooi.",
@@ -2572,6 +2663,48 @@
   "tag": "enthousiast, snel",
   "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
   "file": "anita/samen_fe4daed9.mp3"
+ },
+ {
+  "key": "Tammo|Hij hangt een vlag aan onze toren voor zijn oma.",
+  "speaker": "Tammo",
+  "text": "Hij hangt een vlag aan onze toren voor zijn oma.",
+  "area": "Missie-cutscenes",
+  "out": "lines",
+  "lang": "gro",
+  "say": "Hij hangt een vlag aan onze toren voor zijn oma.",
+  "file": "tammo/hij_hangt_een_vlag_aan_onze_tore_180bffcc.mp3",
+  "voice": "Orus",
+  "who": "dry, deadpan man in his thirties",
+  "tag": "droog, met een stille grijns",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, met een stille grijns."
+ },
+ {
+  "key": "Anita|Een oefenbal. Hij oefent hoe hij hem aan zijn oma geeft.",
+  "speaker": "Anita",
+  "text": "Een oefenbal. Hij oefent hoe hij hem aan zijn oma geeft.",
+  "area": "Missie-cutscenes",
+  "out": "lines",
+  "lang": "own",
+  "say": "Een oefenbal. Hij oefent hoe hij hem aan zijn oma geeft.",
+  "file": "anita/een_oefenbal_hij_oefent_hoe_hij__b4840ae1.mp3",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "enthousiast, snel",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel."
+ },
+ {
+  "key": "Tammo|\"Iemand uit Friesland.\" Dat was zijn oma.",
+  "speaker": "Tammo",
+  "text": "\"Iemand uit Friesland.\" Dat was zijn oma.",
+  "area": "Missie-cutscenes",
+  "out": "lines",
+  "lang": "gro",
+  "say": "\"Iemand uit Friesland.\" Dat was zijn oma.",
+  "file": "tammo/iemand_uit_friesland_dat_was_zij_8e0a74d6.mp3",
+  "voice": "Orus",
+  "who": "dry, deadpan man in his thirties",
+  "tag": "deadpan, licht verbaasd",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: deadpan, licht verbaasd."
  },
  {
   "key": "Tammo|Ver weg hè? Open de kaart, daar bel je een taxi.",

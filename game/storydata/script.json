@@ -14701,11 +14701,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Ik moet je iets vertellen. Ik heb op zeven plekken gewoond voor ik tien was.",
+     "text": "Ik moet je iets vertellen. Ik woonde op een boerderij tot ik acht was. Daarna ben ik steeds verhuisd.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {

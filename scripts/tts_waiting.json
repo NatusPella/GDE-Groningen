@@ -212,6 +212,12 @@
  {
   "reason": "spreektekst",
   "speaker": "Oma Trijntje",
+  "text": "Haar kleinzoon, zeker. Ik heb het nooit gezegd. Zeventig jaar trots. Dat is lang voor iets wat in één zin past.",
+  "scene": "M08.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Oma Trijntje",
   "text": "Het recept van 1953 had vijf dingen van vijf vrienden: vet, eieren, zout, meel en mosterd.",
   "scene": "M08.3"
  },
@@ -237,6 +243,12 @@
   "reason": "spreektekst",
   "speaker": "Tammo",
   "text": "Vijf jaar. En dat zeg je nu pas?",
+  "scene": "M09.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Geesje",
+  "text": "Zijn oma, Gerda, belt Trijntje elk jaar op haar verjaardag. Ze zeggen dan allebei niks.",
   "scene": "M09.1"
  },
  {
@@ -314,7 +326,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Zijn moeder pakt nog zijn brood in.",
+  "text": "Zijn oma pakt nog zijn brood in.",
   "scene": "M11.3"
  },
  {
@@ -919,6 +931,18 @@
  },
  {
   "reason": "spreektekst",
+  "speaker": "Kapitein Klaas",
+  "text": "Ik heb mijn rubberboot terug. De oma van Jelle belde de deurwaarder. De boot ligt op een aanhanger en ik praat tegen hem.",
+  "scene": "M23.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Hij hangt een vlag aan onze toren voor zijn oma.",
+  "scene": "M24.1"
+ },
+ {
+  "reason": "spreektekst",
   "speaker": "Tammo",
   "text": "Geen idee.",
   "scene": "M24.1"
@@ -1129,8 +1153,38 @@
  },
  {
   "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "De loketbediende van Loket B stond vooraan. Ze zei dat Tessa haar bij haar naam had gegroet. Dat doet niemand.",
+  "scene": "E3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "Een oude vrouw met een rollator kreeg de eerste eierbal. Tammo had op het perron op haar gewacht.",
+  "scene": "E3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "Het jongetje van het bankje stond er ook. Hij deelde zijn snack met een duif.",
+  "scene": "E3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "Durk en Douwe werken nu voor Jelles oma. Ze sturen een kaartje.",
+  "scene": "E3"
+ },
+ {
+  "reason": "spreektekst",
   "speaker": "Willemien",
   "text": "Ik ken jullie van het luik. Woensdag, de derde in de rij. Eén eierbal, extra mosterd.",
+  "scene": "M27.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Willemien",
+  "text": "De aannemer zet het huis op nieuwe poten. De ploeg is aardig. Het duurt alleen langer dan een kopje koffie.",
   "scene": "M27.1"
  },
  {

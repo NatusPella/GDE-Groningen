@@ -29,12 +29,23 @@ Niet gedraaid of niet te draaien in deze fase: `storyflow_nieuw_test` en de were
 
 **Systemen:** de overgangsscène-speler (rustig moment, `Backspace` of `Escape` slaat over, de keuze met toetsen 1 en 2 na O1, O4, O7 en O12), de recapkaart ("Waar waren we?") bij Doorgaan met de nieuwe `WHY`, de `wagen:*` en `romantiek:*` vlaggen in een save na een devJump, `unlockgate.js` in een nieuw spel (gesloten werelden als zachte hint: de koppeling aan de kaart en het Loopbaan-menu is nog niet gebouwd), de dialoogvorm in de ondertitelpraat, de nieuwsregels van de schudgebeurtenis.
 
+## Ronde 2 (21-11): wat erbij kwam
+
+- **Samengevoegd:** origin/main en personagebijbel-21-11 (dossiers; `characterdossiers_test` groen met de nieuwe cast Daan, Veldkamp, Lieke, Stien, Anneke).
+- **Mem is Jelles oma** in de speltekst (17 regels), de ondertitels (FY), de bio's, de eindkaart en personages.md/STIJLGIDS; "Mem" blijft haar naam, "Foar mem" blijft. De oude opnames van 12 van die regels vervallen (tekst veranderde); ze staan op de wachtlijst.
+- **Tessa's jeugd** is overal "een boerderij tot haar achtste, daarna steeds verhuisd" (M22, clue, personages.md, relatie-bijbel); **Roelfien** is Oma's oudste klant; de H-codes in `characters.js` wijzen nu naar M-stappen (de chips "Samen in" vinden hun stap).
+- **Poort aangesloten:** `story.js` bewaart `gate` in de story-save (nieuw spel: dicht bij de opening; oude save zonder gate: alles open), `storyGateProgress/storyWorldOpen/storyGateHint` via `storyquery.js`; `startLoopbaan` weigert een gesloten loopbaan met de hint van het personage (een begonnen vak of oude save nooit); het Loopbaan-menu toont de hint en de carrière-tour (wie is goed, samen of niet). Bezit leest dezelfde poort via zijn `setGateProgress` (epic-bezit-21-11, `bezitgate.js`): geef daar `storyGateProgress` mee. Werken buiten het menu (een bijbaan doen) tellen nog steeds als begonnen: de poort blokkeert het menu en de startplek, geen werk dat je al deed.
+- **Loopbaanmomenten (A6 en A19):** `careermoments.js`: de vraag van de dag bij het begin van een loopbaan en een koppelmoment bij het eerste niveau omhoog, 19 vakken, korte ondertitelpraat, zonder eis (`careermoments_test`).
+- **NPC's keren terug:** E3 (Rikus) laat de loketbediende, de oude vrouw met de rollator en het jongetje van het bankje terugkomen (bewijsmomenten 3 tot 5 uit de relatie-bijbel); de eindkaart is bijgewerkt.
+- **Muzieklijst** met een eigen refrein voor het autoduet ("Elfde Verdieping" van De Fietstunnels): docs/verhaal/MUZIEKLIJST-21-11.md.
+- **Dossiers en homebase:** één bron voor de verhaalplekken is `game/js/homebase.js`; de `homeByAct` van Tammo en Tessa in de dossiers volgt die nu.
+- **Zware tests:** `verhaalopdrachten_test` 8/8; `storyflow_nieuw_test` start in de achtergrond (resultaat: zie de eindrapportage).
+
 ## Wat nog niet is gebouwd (open, met reden)
 
-- **Mem als oma van Jelle** in de speltekst (besluit coördinator, dossiers leidend): raakt tientallen opgenomen regels; voorstel: één ronde samen met de TTS-ronde.
-- **Dirk of Durk** (code heet Durk, stem-sleutels gebonden aan de opnames) en "Usmem Snacks" (de uitspraak is gelijk): niet hernoemd.
+- **Dirk of Durk:** niet hernoemd. De code, de stem-sleutels (`Durk|tekst`) en honderden opgenomen strings in missies en autogesprekken hangen eraan; een halve hernoeming (alleen het scherm) geeft een onderlinge tegenstrijdigheid. Voorstel: één ronde samen met de TTS-ronde, met `rename`-script en dry-run.
 - **Naamdubbelingen** (Geesje x4, Lammert x2, Roelf x3, Femke x2, Hindrik) en de oude H-codes in `characters.js` (de chips "Samen in"): niet opgelost; ze staan als voorstel in docs/PERSONAGES-DOSSIERS-21-11.md §6.
 - **Koppelingen van de modellen** in de spelwereld: `unlockgate.js` (kaart, Loopbaan-menu, loopbaanstart), `homebase.js` (slapen, "naar huis", respawn, het flat-interieur met varianten, de kast), `careertour.js` (het overzicht in het Loopbaan-menu en de prestaties), `reputation.js` (schrijven door klanten bedienen en helpen, lezen door NPC-regels), SFX-sleutels van de sfx-werkstroom (`sfxEvent`); het datamodel en de tests staan, de bedrading is klein maar vraagt beeld.
-- **Plan-only uit de inspiratielijst:** A5 de ruildag-missie, A19 het koppelmoment aan het eind van elke loopbaan, A6 de vraag van de dag als loopbaanhaak, C15 de nacht in de wagen, E26 de dubbele date, F29 het zingen van het autoduet.
+- **Nog niet gebouwd uit de inspiratielijst:** de ruildag-missie (A5), de nacht in de wagen (C15), de dubbele date (E26, Rikus heeft geen model en er is geen café), het zingen van het autoduet (alleen de tekstrichting staat in de muzieklijst). Gebouwd in ronde 2: A6 en A19 (loopbaanmomenten).
 - **Het slagen op vriendelijkheid** in de climax (NPC's die ze hielpen komen terug) en de **moeilijkheidsinstelling** (`difficulty.js`): niet gebouwd; nieuwe missies hebben geen harde timers.
 - **De 3D-prop van het prikbord of de koelkastlijst** in de flat.

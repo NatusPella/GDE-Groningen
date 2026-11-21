@@ -49,7 +49,7 @@ export const RELATION_LIST = [
   e('dijkstra', 'trijntje', 'friends', "vriend via Oma", "oude vriendin", "jarenlang", "droog", "dat Oma belt", "dat Dijkstra vliegt", "de heli", { canon: true, from: 'M11' }),
   e('dijkstra', 'anita', 'work', "piloot", "passagier", "M11", "zakelijk", "dat Tessa het koopboek leest", "dat Dijkstra niks uitleent maar meevliegt", "de heli met het koopboek", { canon: true, from: 'M11' }),
   e('lammert', 'trijntje', 'acquaintance', "zoon van haar danspartner", "de vrouw met wie zijn vader danste", "1953", "ironisch", "dat Oma danste", "dat Lammert havenmeester is", "de dans van 1953", { canon: true, from: 'M13' }),
-  e('roelfien', 'trijntje', 'family', "nicht (of oudste klant)", "tante (of de bakster)", "jarenlang", "vrolijk", "dat Oma het recept heeft", "dat Roelfien laag vliegt", "de graanzolder", { from: 'M15' }),
+  e('roelfien', 'trijntje', 'family', "oudste klant", "tante (of de bakster)", "jarenlang", "vrolijk", "dat Oma het recept heeft", "dat Roelfien laag vliegt", "de graanzolder", { from: 'M15' }),
   e('wubbo', 'trijntje', 'friends', "vriend van Oma", "oude vriendin", "jarenlang", "rustig", "dat Oma het recept heeft", "dat de bruggen ritme hebben", "de fanfare", { from: 'M17' }),
   e('willemien', 'trijntje', 'family', "familie", "familie", "jarenlang", "nuchter", "dat Oma van het huis houdt", "dat Willemien niet heldhaftig is", "het huis in Loppersum", { canon: true, from: 'M27' }),
   e('geert', 'durk', 'acquaintance', "kroegbaas", "klant die zingt", "M16", "joviaal", "dat Durk geheimen verklapt", "dat Geert alles weet", "de zingende Friese reuzen", c),
