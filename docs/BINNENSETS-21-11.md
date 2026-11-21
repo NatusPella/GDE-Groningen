@@ -35,6 +35,8 @@ Gekozen is optie (b) uit de opdracht: de set blijft op de plek, maar wordt **exc
 
 ## Samen spelen
 
+(Echte panden betreden is een ander mechanisme: zie docs/INTERIEURS-21-11.md. Daar is het interieur deterministisch uit de gebouwsleutel en lokaal bij iedere speler.)
+
 Eerder besluit (COOP-GAST, Binnensets): de kamer van een stap is decor van wie het spel opende; een gast ziet de keuze- en wachtpanelen en de scènes (die bij hem in dezelfde kamer worden nagespeeld) maar de stap-kamer zelf niet. Dat blijft zo: de clearzone, de kamercamera en de binnenplek zijn **lokaal bij wie de stap draait** (per speler, niet voor de hele sessie); een gast die later aansluit krijgt ze niet en wordt dus nooit "naar binnen" gezet. Een gast die zelf Meedoen? kiest op een missie speelt zijn eigen weergave; de spelcamera van de gast verandert niet. Alle spelers blijven gelijkwaardig: niemand krijgt hier een recht bij.
 
 ## Wat niet is gedaan of bewezen

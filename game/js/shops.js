@@ -682,6 +682,26 @@ export function tryShopInteract(world) {
   return true;
 }
 
+// The counter of a shop's interior (interiors.js, epic Interieurs #1150): the shop of the game that stands in this
+// building (its marker lies inside the footprint) and the same menu as at the marker outside.
+export function shopInBuilding(b) {
+  if (!b || !b.pts || !b.bounds) return null;
+  for (const s of shops) {
+    if (s.country || s.x < b.bounds[0] || s.x > b.bounds[2] || s.y < b.bounds[1] || s.y > b.bounds[3]) continue;
+    if (pointInPolygon(s.x, s.y, b.pts)) return s;
+  }
+  return null;
+}
+export function openShopFromInterior(world, s) {
+  if (!world || !s || isShopOpen() || isCinematicActive()) return false;
+  if (world.coopRole === 'client' && !winkelMagVoorGast(s.type)) { world.addMessage(MELDING_WINKEL(s.name), 3.5); return true; }
+  if (policeWatching(world)) { world.addMessage(`${s.name} gooit de deur op slot. Eerst de politie kwijt!`, 3); return true; }
+  shopVisits[s.type] = (shopVisits[s.type] || 0) + 1;
+  prepareStoryShop();
+  openShopMenu(world, shopMenu(world, s));
+  return true;
+}
+
 // --- menus ---------------------------------------------------------------------
 
 function pay(world, price) {

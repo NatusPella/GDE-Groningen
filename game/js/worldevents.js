@@ -63,7 +63,7 @@ export function initWorldEvents(w) {
 export function updateWorldEvents(dt, w) {
   if (!dt || w.paused || !hoofdspeler(w) || !w.map) return;
   world = w;
-  stepContext.indoors = inHomeFlat();   // the feet hear a floor indoors (sfx/foley.js)
+  stepContext.indoors = inHomeFlat() || !!w.insideBuilding; // ... or in a pand (interiors.js, #1150): the street sounds muffled, the room tone comes up   // the feet hear a floor indoors (sfx/foley.js)
   updateQuake(dt, w);
   updateAlgae(dt, w);
   updateFireworks(dt, w);

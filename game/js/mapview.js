@@ -6,7 +6,7 @@ import { onPaletteChange } from './a11y.js';
 import { pinchStep } from './touchlogic.js';
 import { MODES, roadAllowed, travelModeOf } from './roadaccess.js';
 import { forEachCashTarget } from './cashvan.js';
-import { facilitiesOf } from './facilities.js';
+import { facilitiesOf, FAC } from './facilities.js';
 import { mapIconScale, mapKindVisible, placeIcons, iconGapPx, mapIconAlpha, mapPriority } from './mapicons.js';
 import { drawMapIcon, drawMapIconHalo, drawRoute, drawRoadRoute, forEachPoliceUnit, declutter, ROUTE_COLORS, routeLabel, drawSearchArea, getPoliceSearch, missionMapKind } from './hud_panel.js';
 import { getGaragesForRender } from './garages.js';
@@ -18,6 +18,7 @@ import { gebiedenVan } from './gebieden.js';
 import { getOverzicht, opVeranderen as onGebiedenChange, bezoekPlek } from './gebiedenlive.js';
 import { pinBlijftInMist, unseenDistricts, discoveryRatio, revealAlpha, maskSize, DISCOVERY_RES_M } from './kaartontdekking.js';
 import { getHorecaForRender } from './horeca.js';
+import { enterablePlaces, drawDoorBadge } from './interiormap.js'; // de kaartlaag Betreedbaar (#1150)
 import { getShopsForRender, getShopsDecluttered, storyTargetShop, drawStoryShopRing } from './shops.js';
 import { SHOP_TYPES } from './shopdata.js';
 import { getOwnedVehiclesForMap } from './ownedvehicles.js';
@@ -1403,6 +1404,17 @@ function drawStaticOverlay(ctx) {
       drawMapIcon(ctx, 'horeca', sx, sy, sc, { t: 0 });
       bezet.push(pinDoos(sx, sy, sc));
       hover.push({ sx, sy, name: h.name || 'Horeca', sub: 'Horeca' });
+    }
+  }
+  // Betreedbaar (#1150): de plekken waar je door de deur naar binnen kunt lopen, vanaf het stadsniveau
+  if (layerOn('betreedbaar') && z >= NEAR_ZOOM) {
+    const cellPx = 24 * sc / 1.9;
+    for (const e of declutter(enterablePlaces(FAC.all), cellPx / state.scale)) {
+      const [sx, sy] = toScreen(e.x, e.y);
+      if (!onScreen(sx, sy)) continue;
+      drawDoorBadge(ctx, sx, sy, sc * 0.9);
+      bezet.push(pinDoos(sx, sy, sc));
+      hover.push({ sx, sy, name: e.name || e.label, sub: 'Betreedbaar: ' + e.label });
     }
   }
   if (layerOn('flitspaal') && mapKindVisible('flitspaal', z)) {
@@ -2874,6 +2886,7 @@ const LEGEND = [
     { kind: 'politiebureau', label: 'Politiebureau', layers: ['politiebureau'] },
     { kind: 'police', label: 'Politie-eenheid', note: 'de dichtstbijzijnde eenheden in beeld; de sterren staan rechtsboven, en de rand van de kaart pulseert rood en blauw tijdens een achtervolging' },
     { kind: 'horeca', label: 'Horeca', layers: ['horeca'] },
+    { kind: 'betreedbaar', label: 'Betreedbaar', note: 'winkels, cafés, kantoren en andere panden waar je door de deur naar binnen kunt lopen (zoom in)', layers: ['betreedbaar'] },
     { kind: 'shop-kleding', label: 'Winkels', note: 'kleding, kapper, loten, krant, super, snacks', layers: ['shops'] },
     { kind: 'shop-fietsen', label: 'Voertuigwinkels', note: 'fietsen, auto\'s, tuning, boten, heli\'s', layers: ['shopsVoertuigen'] },
     { kind: 'shop-wapens', label: 'Wapens & pandjeshuis', layers: ['shopsWapens'] },
@@ -2912,6 +2925,8 @@ function drawLegendIcon(ctx, kind) {
     ctx.fillText(kind === 'text-wijk' ? 'WIJK' : 'Abc', 12, 13);
   } else if (kind === 'veroverd') {
     tekenLegendeVlag(ctx);
+  } else if (kind === 'betreedbaar') {
+    drawDoorBadge(ctx, 12, 12, 1.5);
   } else if (kind === 'buildings') {
     ctx.fillStyle = MAP_STYLE.building;
     ctx.fillRect(5, 6, 8, 7);
