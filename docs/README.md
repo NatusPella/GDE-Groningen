@@ -216,6 +216,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [groningen-memes.md](<groningen-memes.md>) | Gebaseerd op een onderzoek (via Copilot, september 2026), samengevat en gefilterd |
 | [markt-gebouwen.md](<markt-gebouwen.md>) | Research notes behind `game/js/marktgebouwen.js` and the Stadhuis and |
 | [personages.md](<personages.md>) | Deze personagebijbel houdt de personages consistent: in dialogen, telefoontjes, gesprekjes in de auto, TTS-… |
+| [PERSONAGES-DOSSIERS-21-11.md](<PERSONAGES-DOSSIERS-21-11.md>) | Personagedossiers: 82 castingkaarten (wonen per akte, achtergrond, relaties, canon of voorstel), de kaart "Wie is dit?" in Verhaal › Personages, werkwijze voor nieuwe personages en de gevonden inconsistenties. |
 
 ## Een document toevoegen
 

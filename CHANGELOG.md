@@ -14,6 +14,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Kaart: alle kaartpopups werken hetzelfde met toetsenbord en controller: Enter of A bevestigt, Esc of B gaat één laag terug (venster, plekkaart, kaart), pijlen en D-pad lopen door de knoppen, de eerste focus staat op de hoofdactie en de focus blijft binnen een open venster.
 - Kaart: de uitleg 'Zo werkt de kaart' houdt de vier genummerde rijen, zonder 'Meer uitleg' en zonder de regel over Instellingen; een nieuwe Hulp-knop (?) bij de zoomknoppen opent hem opnieuw. Q en E staan er niet meer in: ze wisselen alleen de pagina van het menu.
 - Ontwerp: nieuwe DS3-regels 'Toets in de knop' en 'Navigatie met controller en toetsenbord' (menu-patroon), met bewaking in de DS3-dekkingstest. Zie docs/KAART-POPUPS-21-11.md.
+- Verhaal › Personages: onder elke personagekaart staat nu "Wie is dit?" met leeftijd, woonplaats, werk, herkomst en wat iemand voor Tammo en Tessa is. Je ziet alleen wat je al weet: een veld komt erbij als je iemand ontmoet of als een verhaalstap klaar is. Achter de kaarten staan nu 82 personagedossiers (ook wonen per akte en relaties), zie docs/PERSONAGES-DOSSIERS-21-11.md.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
