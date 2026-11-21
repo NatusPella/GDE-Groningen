@@ -30,8 +30,7 @@ Eenmalig (eigenaar): Pages staat aan met bron "GitHub Actions" (`build_type: wor
 `github-pages` een verplichte beoordelaar.
 
 ```
-gh workflow run pages-deploy.yml -f ref=v0.64.0            # code en wereld van dezelfde release
-gh workflow run pages-deploy.yml -f ref=main -f tag=v0.64.0   # nieuwe code, wereld uit een oudere release
+gh workflow run pages-deploy.yml -f ref=main -f tag=v0.64.0   # nieuwe code, wereld uit de release (ref moet de Pages-bouw bevatten)
 gh workflow run pages-deploy.yml -f opus_only=false          # ook de mp3/wav-terugval (ca. 600 MB)
 gh workflow run pages-deploy.yml -f speel=false              # alleen de marketingpagina
 gh run watch                                                   # en daarna de beoordelaar akkoord laten geven
@@ -89,3 +88,15 @@ spel zelf (Over) en in `NOTICE.md`; de webbuild neemt dezelfde audio, fonts en t
   vervangt hem. Een YAML-syntaxfout toont GitHub bij de eerste run.
 - `node scripts/pages_site_check.mjs <map> [--opus-only]`: grootte, absolute paden, plaatshouders, wereld, audio-index.
 - Lokaal gemeten (21-11, Opus-only): zie de stand-comment op #1090 en de tabel hieronder.
+
+## Stand na de proefrun (21-11, run 44919864940)
+
+- Run met `ref=v0.64.0` faalde in `build` na de audiobouw (ca. 1 uur) op `Cannot find module scripts/pages_site_check.mjs`:
+  de tag v0.64.0 is ouder dan de Pages-scripts (`pages_site_check.mjs` bestaat pas op main). Wereld-asset, node (lts), ffmpeg/Opus,
+  `web/build.mjs` (1937 bestanden, 594,7 MB, cache `gde-0.64.0-...`) en de repo-guard werkten; de deploy-job is daarom overgeslagen.
+- Fix: een stap `Ref bevat de Pages-bouw` vlak na de checkout stopt meteen met een duidelijke melding als een van de vier scripts ontbreekt;
+  de voorbeeldopdracht gebruikt nu `ref=main -f tag=v0.64.0`.
+- Gemeld in de bouwuitvoer: `itch.io ... DOES NOT FIT` is alleen informatie van de webbuild (itch-limiet), niet van Pages.
+- Lokaal gecontroleerd: `node scripts/pages_deploy_test.mjs` (ok). De volledige bouw is niet lokaal herhaald (uren audio); de controlestap zelf draait pas op de runner.
+- Nog te doen: de coordinator pusht de branch, merget en start `gh workflow run pages-deploy.yml -f ref=main -f tag=v0.64.0`.
+  Daarna kan `pages_site_check` nog een eigen bevinding geven (bijv. site > 950 MB: 594,7 MB past) en moet de beoordelaar van `github-pages` akkoord geven.

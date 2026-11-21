@@ -7,7 +7,7 @@
 # alleen als /play/ bewust weg moet).
 #
 # Alleen met de hand te starten (workflow_dispatch) en alleen door de repository-eigenaar (constitutie 8):
-#   gh workflow run pages-deploy.yml -f ref=main            (tag leeg = de nieuwste release)
+#   gh workflow run pages-deploy.yml -f ref=main -f tag=v0.64.0   (tag leeg = de nieuwste release; ref moet nieuwer zijn dan de Pages-bouw)
 # De deploy-job wacht bovendien op het environment github-pages (verplichte beoordelaar: de eigenaar).
 #
 # De wereld (game/world) staat niet in git en wordt niet op de runner gebouwd (zware provinciebouw,
@@ -63,6 +63,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
+
+      # Een oude tag (bijv. v0.64.0) heeft de Pages-bouwstappen nog niet: de run faalde pas na de lange
+      # audiobouw op 'Cannot find module scripts/pages_site_check.mjs'. Daarom hier meteen, met een duidelijke melding.
+      - name: Ref bevat de Pages-bouw
+        if: ${{ inputs.speel }}
+        run: |
+          for f in scripts/pages_site_check.mjs scripts/web_shell_test.mjs web/build.mjs website/build.mjs; do
+            test -f "$f" || { echo "$f ontbreekt in ref '${{ inputs.ref }}': die code is ouder dan de Pages-workflow. Gebruik ref=main (of een nieuwere tag) en geef de wereld-release op met -f tag=<release>."; exit 1; }
+          done
 
       - uses: actions/setup-node@v4
         with:
