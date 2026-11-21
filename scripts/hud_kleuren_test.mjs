@@ -146,7 +146,7 @@ const disc = read('discgolf.js');
 ok(/powerForBasket/.test(disc) && (disc.match(/mark: doelKracht\(g, dist\)/g) || []).length === 2, 'discgolf: de laadbaar heeft een streefstreep uit powerForBasket (#598)');
 const sk = read('skatepark.js');
 ok(/extra = `<span class="sk-bal">/.test(sk) && !/flash = g\.b\.grind\.bal >/.test(sk), 'skatepark: de balanstip staat op een eigen regel (#619)');
-ok(/class="mg-stand"/.test(klim) && !/stand \? `<span>/.test(klim), 'klimtoren: de online stand is een tabel (#620)');
+ok(/standTabel(/.test(klim) && !/stand \? `<span>/.test(klim), 'klimtoren: de online stand is een tabel (#620)');
 ok(/\[data-sfeer="vaardienst"\] \{ border-bottom: var\(--ds-lijn-zeef\) solid var\(--ds-c-ink-inkt/.test(mg), 'rondvaart: de kadeband staat op het bord (#621)');
 ok((mg.match(/clip-path: polygon/g) || []).length >= 8, 'de bordvormen hebben eigen silhouetten (#596)');
 ok(/function boardBox\(vw, ui = 1\)/.test(mg), 'de bordmaat is als pure functie na te rekenen (#596)');
