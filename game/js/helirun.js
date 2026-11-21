@@ -303,7 +303,7 @@ body.heli-run #hud .hud-speedo, body.heli-run #hud .hud-route, body.heli-run #hu
 #heli-hud .hh-say { position: absolute; left: 50%; bottom: 27%; transform: translateX(-50%); width: max-content; max-width: min(640px, 90vw); padding: 6px 14px; background: rgba(12,12,12,0.66); border-radius: 6px; font: 18px/1.3 'Arial Narrow', Arial, sans-serif; text-align: center; opacity: 0; transition: opacity .2s; }
 #heli-hud .hh-say.on { opacity: 1; }
 #heli-hud .hh-help { position: absolute; left: 50%; bottom: 7%; transform: translateX(-50%); max-width: 92vw; font: 15px 'Arial Narrow', Arial, sans-serif; letter-spacing: .5px; padding: 6px 14px; background: rgba(20,16,6,0.6); border-radius: 6px; transition: opacity .6s; text-align: center; }
-#heli-hud .hh-help kbd, #heli-hud .hh-help .hud-key { display: inline-block; min-width: 12px; margin: 0 2px; padding: 1px 6px; border: 1px solid rgba(240,237,228,0.6); border-bottom-width: 3px; border-radius: 5px; background: rgba(255,255,255,0.08); color: #f3efe4; font: bold 12px/1.2 'Arial Narrow', Arial, sans-serif; text-align: center; }
+#heli-hud .hh-help kbd, #heli-hud .hh-help .hud-key { border-bottom-width: 3px; border-radius: 5px; font-family: 'Arial Narrow', Arial, sans-serif; font-weight: bold; }
 #heli-hud .hh-fade { position: absolute; inset: 0; background: #000; opacity: 0; transition: opacity .6s; }
 #heli-hud .hh-fade.on { opacity: 1; }
 #heli-hud .hh-fade span { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 30px; letter-spacing: 3px; color: var(--mk-mission, #e8c93a); white-space: nowrap; }

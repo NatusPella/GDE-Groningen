@@ -1,0 +1,36 @@
+/* Toetsplaatjes en knopglyphs als inline zetwerk (ADR 0041; docs/KEYCAP-MAAT-21-11.md). Eén regel: het plaatje is een factor van de
+   omliggende tekst (tokens --ds-kc-* in ds-tokens.css), staat op de halve letterhoogte van de regel en maakt de regel niet hoger.
+   Geldt voor toetsen, muis en controller (Kenney Input Prompts: elke glyph staat op de basislijn en is 0.48 em hoog) en voor tekstplaatjes
+   (een toets zonder glyph). De maatregels zijn !important: contextregels als `#hud .hc-text span` raken ook de plaatjes. Geen vaste px-maten buiten de vloeren; geen losse maten in de context-CSS (scripts/keycap_maat_test.mjs). */
+
+/* hintrijen (aparte regel met toets en tekst, geen lopende tekst): een groter plaatje; de HUD-hintrijen houden de 26 px van #985 */
+.ds-kc-rij, .pm-bind, .m-foot, .m-hint, .m-acts, .gar-hint, .foto-key, .mg-stopask, .pm-ckeys, .pm-hintprev-row, .wp-glyph, .ctx-glyphs, .hud-obj-key { --ds-kc-cap: 1.5; }
+#hud .ctx-glyphs, #hud .wp-glyph, #hud .hud-obj-key { --ds-kc-floor: 26px; }
+/* grote tekst (titel, uitleg): dezelfde factor, de vloer volgt de tekst */
+.ds-kc-groot { --ds-kc-cap: 1.25; }
+
+/* de glyph: één teken uit het glyphfont. Inline, regelhoogte 0 zodat de regel niet hoger wordt; de inkt hangt aan de basislijn en daalt met --ds-kc-drop. */
+.pad-g.pad-kn {
+  display: inline !important; box-sizing: content-box; min-width: 0; width: auto; height: auto; padding: 0; border: 0;
+  font-size: max(calc(var(--ds-kc-cap) / var(--ds-kc-ink) * var(--ds-kc-opt) * 1em), calc(var(--ds-kc-floor) / var(--ds-kc-ink) * var(--ds-kc-opt))) !important;
+  line-height: 0 !important; letter-spacing: 0 !important; word-spacing: 0; text-indent: 0; text-transform: none; font-style: normal; font-weight: normal;
+  vertical-align: calc(var(--ds-kc-drop) * 1em) !important; margin: 0 calc(var(--ds-kc-gap) * 1em) !important; white-space: nowrap; overflow: visible;
+}
+.pad-g.pad-kn.pad-mouse { --ds-kc-opt: 1.09; } /* de muis is 901 hoog, de toets 983: even groot voor het oog */
+
+/* het wikkelplaatje van een toets met glyph (.hud-key.is-kbg), een controllerknop (.is-pad) en de muis: inline, zodat de glyph in de regel staat */
+.hud-key.is-kbg, .m-kc.is-kbg, .hud-key.is-pad, .hud-mouse-g, .hud-wasd { display: inline !important; white-space: nowrap; margin-top: 0 !important; margin-bottom: 0 !important; }
+.ds-kc-eenheid { white-space: nowrap; } /* een toetsgroep ('A / D', 'W A S D', 'Shift + klik') of laatste woord + plaatje breekt nooit halverwege */
+
+/* de getekende muis (terugval) en de houdring volgen de tekst */
+.hud-mouse { display: inline-block; height: calc(var(--ds-kc-cap) * 1em); width: calc(var(--ds-kc-cap) * 0.7em); vertical-align: calc(var(--ds-kc-cap) * -0.5em + 0.3em); flex: none; }
+
+/* het tekstplaatje: een toets zonder glyph ('[', ']', een woord). Letter 0.8 em met vloer 13 px, hoogte 1.25 em met vloer 18 px. Geen schaduw in lopende tekst. */
+.hud-key:not(.is-kbg):not(.is-pad) {
+  display: inline-block; box-sizing: border-box; text-align: center; white-space: nowrap; letter-spacing: 0; text-transform: none;
+  font-size: max(calc(var(--ds-kc-letter) * 1em), var(--ds-kc-letter-min)) !important;
+  line-height: calc(var(--ds-kc-cap) / var(--ds-kc-letter) * 1em) !important; height: auto !important; min-height: var(--ds-kc-floor) !important;
+  min-width: max(calc(var(--ds-kc-cap) / var(--ds-kc-letter) * 1em), var(--ds-kc-floor)) !important; padding: 0 0.4em !important; margin: 0 0.1em !important;
+  vertical-align: calc(var(--ds-kc-lift) * 1em) !important; border-radius: 0.3em;
+}
+.hud-wasd > .hud-key:not(.is-kbg) { margin: 0 0.05em !important; }

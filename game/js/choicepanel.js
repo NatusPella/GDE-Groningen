@@ -26,7 +26,6 @@ const CSS = `
 #hud .cw-panel .cw-flash { font-size: 20px; letter-spacing: 1px; color: var(--mk-ok, #3fc97a); min-height: 1em; margin-top: 3px; }
 #hud .cw-panel .cw-flash.bad { color: var(--mk-job, #ff9a3c); }
 #hud .cw-panel .cw-help { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; margin-top: 4px; font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.78); }
-#hud .cw-panel .hud-key { margin: 0 2px; vertical-align: middle; }
 /* #985: onder 1100 px past het paneel niet tussen de berichtkolom en zone C: het hangt rechts onder zone C */
 @media (max-width: 1100px) and (min-width: 481px) { #hud .cw-panel { left: auto; right: var(--hud-edge, 46px); transform: none; top: calc(var(--hud-tr-bottom, 150px) + 8px); min-width: 0; width: min(460px, calc(100vw / var(--ui, 1) - 2 * var(--hud-edge, 46px))); } }
 @media (max-width: 480px) { #hud .cw-panel { top: 64px; } }

@@ -89,16 +89,30 @@ const keyInner = (phys) => keyGlyphInner(phys) || esc(keyName(phys));
 const WORD_KEYS = 'Spatie|Enter|Tab|Shift|Ctrl|Backspace|Esc';
 const KEYS = 'A|D|W|S|E|F|R|T|O|K|Q|Z|M|G|H|L|N|P|X|C|U|I|' + WORD_KEYS;
 export const TEXT_KEY_RE = new RegExp(String.raw`\{([A-Z0-9]+)\}|\[(${KEYS}|[1-4])\]|\((${KEYS})\)|(\b(?:[Dd]ruk|[Hh]oud|[Dd]an) (?:op )?)(${KEYS})\b(?!-)`, 'g');
+// A group of keys that reads as one unit ('A / D', 'Shift + {LMB}', '{W}{A}{S}{D}') or a word with its key ('om te praten {E}') never breaks
+// across a line: it is wrapped in .ds-kc-eenheid (white-space: nowrap, ds-keycap.css). Markers keep the replace passes apart.
+const RUN_SEP = String.raw`(?:\s?[/+]\s?|\s(?:en|of)\s)?`;
+const runRe = (item) => new RegExp(String.raw`(?:([^\s<>]{1,14}) )?((?:${item})(?:${RUN_SEP}(?:${item}))*)`, 'g');
+const KEY_ITEM = String.raw`\{[A-Z0-9]+\}|\[(?:${KEYS}|[1-4])\]|\((?:${KEYS})\)`;
+const RUN_RE = runRe(KEY_ITEM);
+const RUN_OPEN = '\u0001';
+const RUN_CLOSE = '\u0002';
+// a lone key without a word before it needs no wrapper: a glyph is nowrap by itself
+export const groupKeyRuns = (text, re = RUN_RE) => String(text).replace(re, (m, word, run) => (!word && (run.match(/[{[(]/g) || []).length === 1 ? m : RUN_OPEN + m + RUN_CLOSE));
+export const endKeyRuns = (html) => html.split(RUN_OPEN).join('<span class="ds-kc-eenheid">').split(RUN_CLOSE).join('</span>');
 export function keyTextHtml(html) {
-  return String(html).replace(TEXT_KEY_RE, (m, tok, a, b, pre, c) => {
+  const grouped = groupKeyRuns(html);
+  return endKeyRuns(grouped.replace(TEXT_KEY_RE, (m, tok, a, b, pre, c) => {
     const k = tok || a || b || c;
-    return (pre || '') + glyphHtml(k === 'Spatie' ? 'SPACE' : k === 'Ctrl' ? 'CTRL' : k === 'Esc' ? 'ESC' : k.toUpperCase());
-  });
+    const g = glyphHtml(k === 'Spatie' ? 'SPACE' : k === 'Ctrl' ? 'CTRL' : k === 'Esc' ? 'ESC' : k.toUpperCase());
+    return pre ? RUN_OPEN + pre + g + RUN_CLOSE : g;
+  }));
 }
 export const hasKeyText = (text) => { TEXT_KEY_RE.lastIndex = 0; return TEXT_KEY_RE.test(String(text)); };
 
 // Brace tokens of known keys only ({E}, {SPACE}, {ESC}, {WASD}, ...): a placeholder like {NAME} is never a key.
 export const BRACE_KEY_RE = /\{(SPATIE|SPACE|ESC|ENTER|SHIFT|CTRL|ALT|TAB|BACKSPACE|DELETE|WASD|ARROWS|ARROWUP|ARROWDOWN|ARROWLEFT|ARROWRIGHT|LMB|RMB|MMB|MOUSE|WHEEL|DRAG|F(?:[1-9]|1[0-2])|[A-Z0-9])\}/g;
+export const BRACE_RUN_RE = runRe(BRACE_KEY_RE.source);
 
 // The same text for a place that cannot show a glyph (aria-label, title, document.title, a canvas, a log): the key name, never braces.
 const PLAIN_NAMES = { WASD: 'WASD', ARROWS: 'pijltjes', MMB: 'middelste muisknop', DRAG: 'muis slepen', ARROWUP: 'pijl omhoog', ARROWDOWN: 'pijl omlaag', ARROWLEFT: 'pijl links', ARROWRIGHT: 'pijl rechts', ALT: 'Alt', LMB: 'linkermuisknop', RMB: 'rechtermuisknop', MOUSE: 'muis', WHEEL: 'muiswiel', DELETE: 'Delete' };

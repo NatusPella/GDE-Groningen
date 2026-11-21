@@ -607,14 +607,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .pm-binds[hidden] { display: none; }
 #pause-menu .pm-binds:not([hidden]) { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgba(240, 237, 228, 0.18) transparent; }
 /* the canonical keycap (DESIGN_SYSTEM.md) also in the menu */
-#pause-menu .pm-ckeys .hud-key { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; padding: 0 7px; margin: 0; box-sizing: border-box; background: #fbfaf5; border: 0; border-radius: 5px; color: #0c140e; font: bold 14px/1 'Arial Narrow', Arial, sans-serif; text-shadow: none; box-shadow: 0 2px 0 #a9a69b, 0 0 0 1px rgba(0, 0, 0, 0.18); }
-#pause-menu .pm-ckeys .hud-wasd { display: inline-grid; grid-template-columns: repeat(3, auto); gap: 2px; }
-#pause-menu .pm-ckeys .hud-wasd .hud-key { min-width: 22px; height: 22px; font-size: 12px; }
-#pause-menu .pm-ckeys .hud-wasd .hud-key:first-child { grid-column: 2; }
-#pause-menu .pm-ckeys .hud-wasd .hud-key:nth-child(2) { grid-column: 1; grid-row: 2; }
-#pause-menu .pm-ckeys .hud-wasd .hud-key:nth-child(3) { grid-column: 2; grid-row: 2; }
-#pause-menu .pm-ckeys .hud-wasd .hud-key:nth-child(4) { grid-column: 3; grid-row: 2; }
-#pause-menu .pm-ckeys .hud-mouse-g svg { height: 30px; width: auto; }
+#pause-menu .pm-ckeys .hud-key { background: #fbfaf5; border: 0; border-radius: 5px; color: #0c140e; font-family: 'Arial Narrow', Arial, sans-serif; font-weight: bold; text-shadow: none; box-shadow: 0 2px 0 #a9a69b, 0 0 0 1px rgba(0, 0, 0, 0.18); }
 
 /* Kaart (mapview.js, embedded): the map is the screen; title and search top left,
    layers top right, your route bottom left, zoom bottom right. */
@@ -1253,8 +1246,6 @@ html.pad-active #pause-menu.gm :is(.ra, .m-li, .m-tab, .m-bp, .m-bg, .m-bt, .m-c
 
 /* Zeefdruk-menu: groepskoppen en toetsplaatjes leesbaar op papier (contrastmeting scripts/ui/menucontrast_scenes.js) */
 #pause-menu.gm .m-gh, #pause-menu.gm .m-gh span, #pause-menu.gm .sp-gh { color: var(--ds-tx-zacht); }
-#pause-menu.gm .pm-ckeys .hud-wasd .hud-key { font-size: max(13px, var(--menu-min)); }
-#pause-menu.gm :not(.pm-ckeys):not(.pm-bindbtn) > .hud-key, #pause-menu.gm .ds-z-knop kbd { font-size: max(13px, var(--menu-min)); }
 #pause-menu.gm .pm-a11y-mk[data-mk="danger"] { color: var(--ds-c-ink-papier, #fff); background: color-mix(in srgb, var(--mk-danger, #d93f3f) 88%, var(--ds-c-ink-inkt, #000)); }
 
 /* Kaart: alle chroom (kop, zoekveld, statistiekchip, Lagen, legenda, zoom, kompas, voetregel, kaartje) ligt in een eigen laag BOVEN de vignette en wordt nooit gedimd */
@@ -1264,7 +1255,6 @@ html.pad-active #pause-menu.gm :is(.ra, .m-li, .m-tab, .m-bp, .m-bg, .m-bt, .m-c
 /* Eén linkermarge in alle panelen en vaste kolommen in Besturing (oogtest 20-11): kop, zoekveld, lijsttekst en het kaartje van
    Boerderij beginnen op dezelfde x; de toets- of knopkolom staat rechts, even breed, rechts uitgelijnd; elke regel even hoog. */
 #pause-menu .pm-csearch { margin-left: 40px; }
-html #pause-menu .pm-bind .pad-g.pad-kn { font-size: 48px !important; line-height: 1; }
 #pause-menu .pm-cempty { padding-left: 0; }
 #pause-menu .pm-bind { min-height: 64px; }
 #pause-menu .pm-bind > .nm { align-self: center; }
@@ -1333,7 +1323,7 @@ html #pause-menu .pm-bind .pad-g.pad-kn { font-size: 48px !important; line-heigh
 #pause-menu.gm .mapview-overlay .mv-help { background: transparent; }
 #pause-menu.gm .mapview-overlay .mv-help-box { box-shadow: var(--ds-schaduw-hard), 0 0 0 9999px color-mix(in srgb, var(--ds-c-ink-inkt) 0%, transparent); }
 @media (max-height: 900px) { #pause-menu.gm.gm.gm.gm.gm :is(p, .nm span, label span, .pm-progress-parts span) { font-size: max(18px, var(--menu-min)); } }
-#pause-menu.gm.gm .pm-ckeys .hud-key, #pause-menu.gm.gm .pm-ckeys .m-kc { font-size: max(16px, var(--menu-min)); }
+#pause-menu.gm.gm .pm-ckeys .m-kc { font-size: max(16px, var(--menu-min)); }
 @media (max-height: 820px) { #pause-menu .pm-spulbar .pm-csearch { margin-left: 16px; } }
 @media (min-height: 821px) { #pause-menu .pm-spulbar .pm-csearch { margin-left: 24px; } }
 #pause-menu .bd-uitleg-kaart > summary { cursor: pointer; list-style-position: inside; padding: 8px 12px; }

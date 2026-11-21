@@ -128,7 +128,6 @@ const CSS = `
 #hud .tc-cab .tc-alert { grid-column: 1 / -1; padding: 5px 10px; background: color-mix(in srgb, var(--mk-danger, #d93f3f) 90%, transparent); color: var(--ink, #fff); font-size: 20px; letter-spacing: 2px; text-align: center; animation: tcblink 0.5s steps(2) infinite; }
 #hud .tc-cab .tc-alert[hidden] { display: none; }
 @keyframes tcblink { 50% { background: color-mix(in srgb, var(--mk-danger, #d93f3f) 55%, #0c140e); } }
-#hud .tc-cab .hud-key { margin: 0 2px; vertical-align: middle; }
 #hud .tc-intro { position: absolute; bottom: calc(var(--hud-bottom, 22px) + 190px); left: 50%; transform: translateX(-50%); width: min(560px, calc(100vw - 32px)); padding: 10px 16px; color: #f0ede4; font-size: 15px; line-height: 1.6; background: rgba(12,20,14,0.88); border-left: 3px solid var(--mk-mission, #e8c93a); pointer-events: none; z-index: 4; text-shadow: var(--hud-shadow); }
 #hud .tc-intro[hidden] { display: none; }
 #hud .tc-intro b { font-weight: normal; color: var(--mk-mission, #e8c93a); letter-spacing: 2px; font-size: 13px; display: block; }

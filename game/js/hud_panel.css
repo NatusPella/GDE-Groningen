@@ -201,7 +201,6 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 #hud .hud-obj-keys { display: flex; flex-wrap: wrap; align-items: center; gap: 1px 9px; margin-top: 4px; max-width: 100%; font-family: 'Arial Narrow', Arial, sans-serif; font-size: var(--hud-min, 13px); letter-spacing: 0.02em; color: rgba(240, 237, 228, 0.72); }
 #hud .hud-obj-keys[hidden], #hud .hud-mission:not(.obj-fresh) .hud-obj-keys { display: none; } /* #985: de hulpregel alleen de eerste seconden van een nieuw doel (hud_panel.js obj-fresh) */
 #hud .hud-obj-key { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
-#hud .hud-obj-key .hud-key { height: 17px; min-width: 17px; padding: 0 4px; font-size: var(--hud-min, 13px); line-height: 17px; }
 @media (max-width: 900px) { #hud .hud-obj-keys { gap: 1px 6px; } }
 #hud .hud-mission.obj-quiet .hud-mission-progress { display: none; }
 #hud .hud-obj-dist { font-size: 18px; color: rgba(240, 237, 228, 0.6); white-space: nowrap; }
@@ -456,10 +455,11 @@ body.cine-tint-bust:not(.gpu-screenfx) #game3d { filter: grayscale(1) brightness
   right: 3vw;
   bottom: calc(var(--bar) * 0.5);
   transform: translateY(50%);
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  font-size: 14px;
+  display: block; /* lopende tekst, geen flex: de toets staat in de regel (#1075) */
+  text-align: center;
+  white-space: nowrap;
+  line-height: 1.3;
+  font-size: calc(14px * var(--ui, 1));
   letter-spacing: 1px;
   opacity: 0;
   transition: opacity 0.15s;
@@ -471,9 +471,9 @@ body.cine-tint-bust:not(.gpu-screenfx) #game3d { filter: grayscale(1) brightness
 body:not(.cine-hide-hud) #cine .cine-skip { right: 50%; bottom: calc(14px * var(--ui, 1)); transform: translateX(50%); }
 #cine.has-sub .cine-skip { bottom: calc(var(--bar) * 0.5 + 64px * var(--ui, 1)); } /* niet over de ondertitel (#463) */
 body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui, 1) + 64px * var(--ui, 1)); }
-#cine .cine-skip { gap: 6px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; letter-spacing: 0.3px; }
+#cine .cine-skip { font-family: 'Arial Narrow', Arial, sans-serif; font-size: calc(14px * var(--ui, 1)); letter-spacing: 0.3px; }
 #cine .cine-skip .hud-key { margin-right: 0; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; }
-#cine .cine-skip-ring { width: 20px; height: 20px; transform: rotate(-90deg); }
+#cine .cine-skip-ring { display: inline-block; width: 1.4em; height: 1.4em; margin-right: 0.4em; vertical-align: middle; transform: rotate(-90deg); }
 #cine .cine-skip-ring circle { fill: none; stroke: rgba(240, 237, 228, 0.25); stroke-width: 3; }
 #cine .cine-skip-ring .fill { stroke: var(--gron-green-light, #3fc97a); stroke-linecap: round; stroke-dasharray: 62.8; stroke-dashoffset: calc(62.8 * (1 - var(--hold, 0))); }
 #cine .cine-skip.holding { color: #f0ede4; }
@@ -549,7 +549,7 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 #cine .cb-stats b { flex: 1 1 0; min-width: 0; text-align: right; overflow-wrap: anywhere; line-height: 1.15; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 26px; font-weight: normal; letter-spacing: 0.04em; }
 @media (prefers-reduced-motion: reduce) { #cine .cine-banner.in, #cine .cine-banner.out { animation: none; opacity: 1; } #cine .cine-banner.out { opacity: 0; } #cine .cine-banner.in .cb-bar, #cine .cine-banner.in .cb-title, #cine .cine-banner.in .cb-reason, #cine .cine-banner.in .cb-fact, #cine .cine-banner.in .cb-reward, #cine .cine-banner.in .cb-stats div { animation: none; opacity: 1; transform: none; } }
 /* #cine sits outside #hud, so its small text follows the HUD scale here */
-#cine .cine-kicker, #cine .cine-chip, #cine .cine-skip .hud-key, #cine .cine-skip-ring { zoom: var(--ui, 1); }
+#cine .cine-kicker, #cine .cine-chip { zoom: var(--ui, 1); }
 #cine .cine-skip { font-size: calc(14px * var(--ui, 1)); }
 #cine .cine-sub { font-size: clamp(calc(16px * var(--ui, 1)), 1.6vw, calc(21px * var(--ui, 1))); width: min(86vw, calc(820px * var(--ui, 1))); }
 
@@ -637,18 +637,10 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 
 /* the canonical keycap (DESIGN_SYSTEM.md) */
 #hud .hud-key, #cine .hud-key {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 5px;
-  margin-right: 3px;
   background: #fbfaf5;
   border: 0;
   border-radius: 5px;
   color: #0c140e;
-  font-size: var(--hud-min);
   font-weight: bold;
   text-shadow: none;
   box-shadow: 0 2px 0 #a9a69b, 0 0 0 1px rgba(0, 0, 0, 0.18);
@@ -913,14 +905,15 @@ body #hud .ach-toast .ach-pct { color: var(--ds-c-inkt-zacht); }
 /* Verhaal overslaan (story.js): de ene "kan nu"-knop van dat moment is geel */
 #story-skip { position: fixed; left: 60%; bottom: 17%; transform: translateX(-50%); z-index: 40; pointer-events: auto; }
 #story-skip button {
-  zoom: var(--ui, 1); display: flex; gap: 10px; align-items: center; min-height: 44px; padding: 6px 16px 6px 10px; cursor: pointer;
+  zoom: var(--ui, 1); display: block; min-height: 44px; padding: 6px 16px 6px 10px; cursor: pointer;
   font: 800 18px/1.1 var(--ds-font-zeef-kop); letter-spacing: 0.04em; color: var(--ds-c-ink-inkt);
   background: var(--ds-c-ink-geel); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard);
 }
 #story-skip button:hover { background: var(--ds-c-geel-hover); }
 #story-skip button:active { background: var(--ds-c-geel-druk); transform: translate(var(--ds-hard-x), var(--ds-hard-y)); box-shadow: none; }
 #story-skip button:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-c-ink-inkt); outline-offset: var(--ds-focus-afstand); }
-#story-skip .hud-key { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 6px; box-sizing: border-box; font: 800 14px/1 var(--ds-font-zeef-kop); background: var(--ds-c-ink-inkt); color: var(--ds-c-ink-papier); border-radius: 4px; }
+#story-skip .ss-label { margin-left: 0.55em; }
+#story-skip .hud-key { font-family: var(--ds-font-zeef-kop); font-weight: 800; background: var(--ds-c-ink-inkt); color: var(--ds-c-ink-papier); border-radius: 4px; }
 body.cine-hide-hud #story-skip { display: none; }
 /* Filmlaag (#cine): de balken zijn inkt, de titelkaart, de naam en het kleine chipje zijn papier met inktrand. De grote filmtitel
    (.cine-big) blijft een titel in beeld, zonder vlak. */
@@ -954,10 +947,7 @@ body.cine-hide-hud #story-skip { display: none; }
 /* de naamchip staat boven de titelkaart, nooit over de titel */
 #cine.has-card .cine-name { bottom: auto; top: calc(var(--bar) + 4vh); }
 
-/* #985 (eigenaar 20-11): toetsplaatjes in de HUD-hints zijn minstens 26 px hoog en breed, met leesbare tekst (Esc, Enter, Spatie) */
-#hud .hud-key, #cine .hud-key { min-width: 26px; height: 26px; padding: 0 7px; font-size: 15px; line-height: 26px; }
-#hud .hud-obj-key .hud-key { height: 26px; min-width: 26px; padding: 0 7px; font-size: 15px; line-height: 26px; }
-#hud .hc-text kbd.hud-key, #hud .hc-text .hud-key { height: 26px; min-width: 26px; padding: 0 7px; font-size: 15px; line-height: 26px; vertical-align: middle; }
+/* #985 (eigenaar 20-11): toetsplaatjes in de HUD-hintrijen zijn minstens 26 px (--ds-kc-floor in ds-keycap.css); in lopende tekst volgt het plaatje de tekst: 1.25 em, vloer 18 px */
 /* #985: op een laag venster (1024x600) laat het keuzepaneel of het minigamebord geen ruimte voor de toetshintstapel rechtsonder: de hints staan al in het paneel */
 @media (max-width: 1100px) and (max-height: 700px) { #hud:has(.cw-panel:not([hidden])) .hud-ctx, #hud:has(.mg-board:not([hidden])) .hud-ctx { opacity: 0; } }
 

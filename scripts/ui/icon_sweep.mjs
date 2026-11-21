@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { jsStrings } from '../text_audit.mjs';
 import { TEXT_KEY_RE, spokenKeyTokens } from '../../game/js/keycap.js';
 import { KEY_WORD_RE, KEY_SKIP_FILES, KEY_SPOKEN_FILES } from '../release/design_rules.mjs';
+import { scanKeycapPx, scanSkipHints } from './keycap_maat.mjs';
 
 const JS = fileURLToPath(new URL('../../game/js/', import.meta.url));
 let failed = 0;
@@ -94,6 +95,15 @@ ok(sp.includes('{SPACE} omhoog') && sp.includes('{W} vooruit') && sp.includes('{
 ok(sp.includes('Plan B') && sp.includes('loket C') && sp.includes('U kunt'), 'spokenKeyTokens laat Plan B, loket C en U staan: ' + sp);
 ok(spokenKeyTokens('Zijdeur 00:03, gast: D en D, tilwerk').includes('D en D'), 'spokenKeyTokens: D en D (een naam) blijft tekst');
 ok(/spokenKeyTokens/.test(readFileSync(JS + 'subtitles.js', 'utf8')), 'subtitles.js zet ingesproken toetsen om (dualHtml, setDualText)');
+
+// de maat van een toetsplaatje: geen vaste px-maat in de context-CSS (#1075, ds-keycap.css is de enige bron); de details staan in scripts/keycap_maat_test.mjs
+const pxHits = scanKeycapPx();
+for (const x of pxHits.slice(0, 20)) console.log(`  ${x.f}: ${x.sel} { ${x.prop}: ${x.value} }`);
+ok(pxHits.length === 0, `${pxHits.length} toetsplaatje(s) met een vaste px-maat: laat ds-keycap.css de maat bepalen (een factor van de tekst, --ds-kc-*)`);
+
+const skipHits = scanSkipHints();
+for (const x of skipHits.slice(0, 20)) console.log(`  ${x.f}: ${x.sel} { ${x.prop}: ${x.value} }`);
+ok(skipHits.length === 0, `${skipHits.length} overslaan-hint(s) met flex of een eigen uitlijning: de toets staat in de regel (ds-keycap.css)`);
 
 console.log(failed ? `icon_sweep: ${failed} mislukt` : 'icon_sweep: ok');
 process.exit(failed ? 1 : 0);

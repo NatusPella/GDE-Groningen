@@ -511,7 +511,6 @@ body.pigeon-mode #hud .hud-damage { display: none !important; }
 #pigeon-hud .ph-hints span { display: inline-flex; align-items: center; white-space: nowrap; color: rgba(240,237,228,0.88); }
 #pigeon-hud .ph-hints .hot { color: var(--mk-mission, #f2c744); }
 #pigeon-hud .ph-hints .ph-gast, #pigeon-hud .ph-hints .ph-touch { color: rgba(240,237,228,0.62); }
-#pigeon-hud .hud-key { margin-right: 5px; }
 #pigeon-hud .ph-pops { position: absolute; top: 18%; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px; }
 #pigeon-hud .ph-pop { font-size: 30px; letter-spacing: 2px; color: #f0ede4; text-shadow: 0 2px 8px rgba(0,0,0,0.8); animation: ph-pop 1.4s ease-out forwards; }
 #pigeon-hud .ph-pop em { font-style: normal; color: var(--ph-acc); }

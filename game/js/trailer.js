@@ -174,11 +174,11 @@ const CSS = `
 #trailer .tr-sub { left: 50%; bottom: calc(var(--bar) + 3vh); transform: translateX(-50%); width: min(86vw, 1500px); text-align: center; font: 700 clamp(18px, 2.3vw, 60px) 'Atkinson Hyperlegible', Arial, sans-serif; letter-spacing: 0.3px; opacity: 0; text-shadow: 2px 2px 0 #1d1b17, 0 0 2px rgba(0, 0, 0, 0.9); }
 #trailer .tr-sub.on { opacity: 1; }
 #trailer .tr-sub b { color: #e8505b; margin-right: 6px; }
-#trailer .tr-skip { right: 3vw; bottom: calc(var(--bar) * 0.5); transform: translateY(50%); display: flex; align-items: center; gap: 6px; font: 16px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240, 237, 228, 0.92); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8); opacity: 0; transition: opacity 0.25s; }
+#trailer .tr-skip { right: 3vw; bottom: calc(var(--bar) * 0.5); transform: translateY(50%); display: block; text-align: center; white-space: nowrap; font: 16px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240, 237, 228, 0.92); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8); opacity: 0; transition: opacity 0.25s; }
 #trailer.skippable .tr-skip { opacity: 1; }
 body.trailer-rec #trailer .tr-skip, body.trailer-rec #trailer .tr-fps { display: none; }
-#trailer .tr-skip .key { display: inline-flex; align-items: center; justify-content: center; height: 20px; padding: 0 5px; background: #fbfaf5; border: 0; border-radius: 5px; color: #0c140e; font-weight: bold; text-shadow: none; box-shadow: 0 2px 0 #a9a69b, 0 0 0 1px rgba(0, 0, 0, 0.18); font: 11px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1px; }
-#trailer .tr-skip svg { width: 20px; height: 20px; transform: rotate(-90deg); }
+#trailer .tr-skip .key { display: inline; } /* de toets is een glyph in de regel (ds-keycap.css, #1075) */
+#trailer .tr-skip svg { display: inline-block; width: 1.25em; height: 1.25em; margin-right: 0.4em; vertical-align: middle; transform: rotate(-90deg); }
 #trailer .tr-skip circle { fill: none; stroke: rgba(240, 237, 228, 0.25); stroke-width: 3; }
 #trailer .tr-skip .fill { stroke: #3fc97a; stroke-linecap: round; stroke-dasharray: 62.8; stroke-dashoffset: calc(62.8 * (1 - var(--hold, 0))); }
 #trailer .tr-skip.holding { color: #f0ede4; }
@@ -247,7 +247,7 @@ function ensureUi() {
   root.innerHTML = '<div class="tr-vig"></div><div class="tr-flash"></div><div class="tr-black"></div>' +
     '<div class="tr-freeze"></div><div class="tr-card"></div><div class="tr-name"></div><div class="tr-sub"></div><div class="tr-bar top"></div><div class="tr-bar bottom"></div>' +
     '<div class="tr-skip"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle class="fill" cx="12" cy="12" r="10"/></svg>' +
-    '<span>Houd</span><span class="key is-kbg">' + glyphHtml('SPACE') + '</span><span>ingedrukt om over te slaan</span></div>' +
+    '<span>Houd</span> <span class="key is-kbg">' + glyphHtml('SPACE') + '</span> <span>ingedrukt om over te slaan</span></div>' +
     '<div class="tr-cancel"><span class="key is-kbg">' + glyphHtml('ESC') + '</span><span>Benchmark stoppen</span></div>' +
     '<div class="tr-fps"></div>';
   document.body.appendChild(root);

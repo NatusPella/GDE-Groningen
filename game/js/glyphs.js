@@ -12,7 +12,7 @@ import { onPadChange, padState, activePadIndex } from './gamepad.js';
 import { touchLabelForToken } from './touchlogic.js';
 import { getDevice, onDeviceChange } from './inputdevice.js';
 import { padSlotGlyph } from './inputglyphs.js';
-import { glyphHtml, BRACE_KEY_RE, plainKeyText, keyLabelIcon, labelToken } from './keycap.js';
+import { glyphHtml, BRACE_KEY_RE, BRACE_RUN_RE, groupKeyRuns, endKeyRuns, plainKeyText, keyLabelIcon, labelToken } from './keycap.js';
 
 const SEL = '[data-gk], kbd, .hud-key, .m-kc';
 const orig = new WeakMap();
@@ -173,7 +173,8 @@ function sweepText(t) {
   if (!BRACE_KEY_RE.test(v)) return 0;
   BRACE_KEY_RE.lastIndex = 0;
   const span = document.createElement('span');
-  span.innerHTML = v.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])).replace(BRACE_KEY_RE, (m, k) => glyphHtml(k));
+  const esc = v.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  span.innerHTML = endKeyRuns(groupKeyRuns(esc, BRACE_RUN_RE).replace(BRACE_KEY_RE, (m, k) => glyphHtml(k)));
   t.replaceWith(...span.childNodes);
   return 1;
 }

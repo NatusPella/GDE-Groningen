@@ -1319,7 +1319,6 @@ const CSS = `
 #hud .padel-board .pb-teams b { font-weight: normal; font-size: calc(24px * var(--ui, 1)); text-align: right; }
 #hud .padel-board .pb-teams i { font-style: normal; font-size: calc(24px * var(--ui, 1)); color: var(--mk-mission, #e8c93a); text-align: right; min-width: 30px; }
 #hud .padel-board .pb-side { display: flex; flex-direction: column; align-items: flex-end; font: max(13px, calc(13px / var(--ui, 1))) 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.75); letter-spacing: .3px; }
-#hud .padel-board .hud-key { margin: 0 2px; vertical-align: middle; }
 #hud .padel-board .pb-help { display: flex; align-items: center; gap: 3px; margin-top: 3px; }
 #hud .padel-board .pb-flash { font-size: calc(22px * var(--ui, 1)); letter-spacing: 1.5px; color: var(--mk-ok, #3fc97a); min-height: 1em; }
 #hud .padel-board .pb-flash.them { color: var(--mk-job, #ff9a3c); }

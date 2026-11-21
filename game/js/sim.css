@@ -43,7 +43,6 @@
 .sh-cijfers > li[data-staat="actie"] { color: var(--ds-probleem-tx); }
 .sh-waarde { font-weight: 600; color: var(--ds-tx); }
 .sh-cijfer__naam { white-space: nowrap; }
-.sh-hud .hud-key { vertical-align: baseline; }
 .sh-hulp { margin: 0; }
 /* de eerste-keer-uitleg groeit de kaart tijdelijk; hij verdwijnt bij de eerste handeling */
 .sh-uitleg .ds-z-chip { min-height: var(--ds-s-5); padding: 0 var(--ds-s-1); }
