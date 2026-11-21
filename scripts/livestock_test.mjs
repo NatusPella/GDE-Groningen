@@ -16,7 +16,7 @@ t('aantallen: melkvee 2,5 per ha, schapen 10 per ha, kippen een hok van 200', ()
   assert.equal(L.capacityOf('kippen', 0.3), 200); assert.equal(L.capacityOf('kippen', 50), 200, 'een hok, ook op een grote akker'); assert.equal(L.capacityOf('kippen', 0.1), 0);
   assert.equal(L.capacityOf('draak', 5), 0); assert.equal(L.capacityOf('melkvee', NaN), 0);
   assert.ok(L.canKeep('melkvee', 'w', 2) && !L.canKeep('melkvee', 'a', 2) && !L.canKeep('melkvee', 'b', 2));
-  assert.ok(L.canKeep('kippen', 'a', 1) && !L.canKeep('kippen', 'b', 1));
+  assert.ok(L.canKeep('kippen', 'w', 1) && !L.canKeep('kippen', 'a', 1) && !L.canKeep('kippen', 'b', 1));   // weide is voor vee, akker voor gewassen (eigenaar 21-11)
 });
 
 t('zichtbare kudde: hoogstens twaalf', () => {
@@ -30,8 +30,8 @@ t('neerzetten: soort bij de grond, een kudde per perceel, hooguit de capaciteit'
   assert.deepEqual(L.stockHerd(b, pid(0), 'melkvee'), { ok: true, n: 10 });
   assert.equal(L.stockHerd(b, pid(0), 'schapen').why, 'al-vee');
   assert.equal(L.stockHerd(b, pid(1), 'melkvee').why, 'past-niet');
-  assert.equal(L.stockHerd(b, pid(2), 'kippen').why, 'past-niet');
-  assert.equal(L.stockHerd(b, pid(1), 'kippen', 500).n, 200, 'niet meer dan het hok');
+  assert.equal(L.stockHerd(b, pid(1), 'kippen').why, 'past-niet');   // een akker is voor gewassen
+  assert.equal(L.stockHerd(bezitMet(['w', 1]), pid(0), 'kippen', 500).n, 200, 'niet meer dan het hok');
   assert.equal(L.stockHerd(b, 'p000000000000', 'kippen').why, 'niet-van-jou');
   assert.equal(L.stockHerd(b, pid(0), 'draak').why, 'onbekende-soort');
   assert.ok(L.removeHerd(b, pid(0)) && !L.removeHerd(b, pid(0)));
@@ -64,9 +64,9 @@ t('voer: eerst de wei, dan hooi uit de opslag, dan bijkopen; zonder bijkopen daa
 t('schapen geven wol en kippen eieren, met graan als voer', () => {
   const s = L.herdDayTick({ sp: 'schapen', n: 20, sick: 0 }, { kind: 'w', ha: 2 });
   assert.equal(s.products.wol, 2.4); assert.equal(s.feedCost, 0);
-  const k = L.herdDayTick({ sp: 'kippen', n: 200, sick: 0 }, { kind: 'a', ha: 1, hay: { graan: 24 } });
+  const k = L.herdDayTick({ sp: 'kippen', n: 200, sick: 0 }, { kind: 'w', ha: 1, hay: { graan: 24 } });
   assert.equal(k.products.eieren, 160); assert.equal(k.hayUsed.graan, 24); assert.equal(k.feedCost, 0);
-  const k2 = L.herdDayTick({ sp: 'kippen', n: 200, sick: 0 }, { kind: 'a', ha: 1 });
+  const k2 = L.herdDayTick({ sp: 'kippen', n: 200, sick: 0 }, { kind: 'w', ha: 1 });
   assert.ok(Math.abs(k2.feedCost - 24 * L.FEED_PRICE.graan) < 0.01, 'graan bijkopen');
   assert.equal(L.herdDayTick({ sp: 'kippen', n: 200, sick: 0 }, { kind: 'w', ha: 9 }).hayUsed.graan, undefined, 'kippen grazen niet van de wei');
 });
@@ -88,7 +88,7 @@ t('ziekte: de aanroeper voert het in, een kwart opbrengst, loopt af, de dierenar
 });
 
 t('dagtik van het bezit: producten, voer uit de opslag verdeeld, een verkocht perceel neemt de kudde mee, deterministisch', () => {
-  const b = bezitMet(['w', 4], ['w', 1.6], ['a', 2]);
+  const b = bezitMet(['w', 4], ['w', 1.6], ['w', 2]);
   L.stockHerd(b, pid(0), 'melkvee'); L.stockHerd(b, pid(1), 'schapen'); L.stockHerd(b, pid(2), 'kippen');
   const r = L.livestockDayTick(b, { robot: true, hay: { graan: 30 } });
   assert.equal(r.herds, 3); assert.equal(r.products.melk, 220); assert.equal(r.products.wol, 1.92); assert.equal(r.products.eieren, 160);

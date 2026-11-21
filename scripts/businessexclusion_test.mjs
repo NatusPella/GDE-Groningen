@@ -47,12 +47,12 @@ t('safehuis, eigen huis en verhaalplekken zijn niet te koop', () => {
   assert.equal(X.excluded(row({ osm: 77 }), { nameOf: (id) => (id === 77 ? 'De Zonnehoek' : '') }).code, 'verhaal');
   assert.equal(X.excluded(row({ osm: 78 }), { nameOf: () => 'Bakkerij Haverkamp' }), null);
 });
-t('monumenten en landmarks zijn te koop als Beheer, tenzij de regel zachter of strenger wordt gezet', () => {
-  const kerk = row({ type: 'church', landmark: true });
-  assert.equal(X.excluded(kerk), null); assert.equal(X.isManagementOnly(kerk), true); assert.equal(X.isManagementOnly(row()), false);
-  assert.match(X.BEHEER_TEXT, /geen sloop/i);
-  assert.equal(X.excluded(kerk, { manage: false }).code, 'monument');
-  assert.equal(Bz.classifyBuilding(kerk).type, 'beheer');
+t('monumenten en bijzondere gebouwen zijn nooit koopbaar (eigenaar 21-11)', () => {
+  for (const x of [row({ type: 'church', landmark: true }), row({ type: 'museum' }), row({ type: 'civic' }), row({ type: 'yes', landmark: true })]) {
+    const e = X.excluded(x);
+    assert.equal(e.code, 'monument'); assert.match(e.reason, /Niet te koop/);
+  }
+  assert.equal(X.isMonument(row()), false);
 });
 t('ID-lijst en kapotte rijen: nooit een fout, nooit stil toegestaan', () => {
   assert.equal(X.excluded(null).code, 'id'); assert.equal(X.excluded({ osm: NaN }).code, 'id'); assert.equal(X.excluded({ osm: 5 }), null);

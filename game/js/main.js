@@ -205,6 +205,7 @@ import { tryQuickWaypoint } from './snelwaypoint.js'; // #836: T zet of wist je 
 import { initAchievementTracker, updateAchievementTracker } from './achievementtracker.js';
 import { initOmverrijden } from './omverrijden.js';
 import { initBoerderij, boerderijTijd, boerderijKlokNul } from './boerderijlive.js';
+import { initBezit } from './bezitlive.js';
 import { BOERDERIJ_WERELD_KIND } from './boerderijwereld.js';
 import { probe } from './hitchprobe.js';
 import { initSafety, updateSafety } from './safety.js';
@@ -932,6 +933,7 @@ const frameStats = { workMs: 0, frameMs: 16, at: 0 };
 window.__debug = { player, map, input, world, frameStats };
   initAchievementTracker(world);
   initOmverrijden(world);
+  initBezit();
   initBoerderij();
   initSafety(world);
   initCheats(world);

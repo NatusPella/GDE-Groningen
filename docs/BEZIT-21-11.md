@@ -584,3 +584,12 @@ Er is geen spel gestart, geen Electron en niets in beeld gezien. De audit is gem
 (`game/world`, tegels van 20-11) en geeft geen speelervaring. Alle getallen van prijs, rendement en tempo zijn rekenmodel (de
 economiesim, geen speeltest); de spelbot of een speler moet bevestigen dat het eerste perceel na ongeveer twee uur komt. Het schatten
 van de opslag van pand-ID's (2,7 byte) is een berekening, geen meting.
+
+## 14. Besluiten van de eigenaar (21-11, na het ontwerp)
+
+Deze besluiten vervangen of verduidelijken de open vragen van hoofdstuk 11 en wat hierboven anders staat:
+
+1. **Weide en akker zijn aparte typen** met eigen prijzen (`GROUND_PER_HA` per soort) en eigen regels: een weide is voor vee en gras (melkvee, schapen, kippen; geen akkergewassen), een akker voor gewassen (geen vee). Het vee van 5.4 staat dus alleen op weide; `gewasVoor` houdt gewassen en soort bij elkaar.
+2. **Monumenten en bijzondere gebouwen zijn niet koopbaar** (monumenten, landmarks, kerken, musea, gemeentehuizen en wat al op de uitsluitlijst staat: ziekenhuis, politie, verhaalgebouwen). De zachte "Beheer"-grens van 6.1 vervalt; `businessexclusion.js` (`isMonument`) sluit ze altijd uit, met reden op de kaart.
+3. **Handwerk levert 25% meer dan personeel**: de beste arbeider haalt 80% van handwerk (`SKILL_RATIO` 70, 75 en 80%), handwerk blijft per handeling het meest.
+4. **Hypotheek en lening komen later.** Het prijs- en kasboekmodel houdt ruimte vrij: `bezit.debt` bestaat al in de opslag, het kasboek van de boerderij kent de post `rente`, en niets in de kooplogica gaat uit van een schuldvrij bezit. Geen lening in de eerste slices.

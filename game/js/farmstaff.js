@@ -1,6 +1,6 @@
 // Personeel, verpachten en de zichtbare weergave voor Bezit (epic #1095, #1101; ontwerp docs/BEZIT-21-11.md 5.2 en 5.3): een landarbeider
 // (verzonnen naam, loon per speldag, vaardigheid 1 tot 3, capaciteit 20 ha per speldag; een voorman bundelt er drie) werkt de percelen op
-// 'staff' af met het teeltplan, tegen 80 tot 90% van de opbrengst van handwerk en de kosten van loon, diesel en zaaigoed. Verpachten
+// 'staff' af met het teeltplan, tegen 70 tot 80% van de opbrengst van handwerk en de kosten van loon, diesel en zaaigoed. Verpachten
 // levert 0,9% van de koopprijs per speldag. Beide krijgen de afnemende beheeropbrengst x 1 / (1 + n / 40).
 // Puur: geen DOM, geen THREE, geen klok, geen Math.random, geen opslag (scripts/farmstaff_test.mjs). Het personeel gebruikt exact de
 // regels van het handwerk (parcelfarm.workField -> boerderij.rondTaakAf); de zichtbare werker is een weergave van het dagschema, nooit een
@@ -17,7 +17,7 @@ const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
 
 export const CAPACITY_HA_DAY = 20;                       // wat een landarbeider per speldag regelt
 export const FOREMAN_BUNDLE = 3;                         // een voorman (vaardigheid 3) bundelt drie arbeiders: zijn capaciteit is drie keer zoveel
-export const SKILL_RATIO = { 1: 0.8, 2: 0.85, 3: 0.9 }; // aandeel van de opbrengst van handwerk (handwerk is 100%)
+export const SKILL_RATIO = { 1: 0.7, 2: 0.75, 3: 0.8 }; // aandeel van de opbrengst van handwerk (handwerk is 100%); de beste arbeider haalt 80%: handwerk levert dus minstens 25% meer (eigenaar 21-11)
 export const WAGE_DAY = { 1: 70, 2: 95, 3: 200 };        // loon per speldag; de voorman kost minder dan drie arbeiders van niveau 2 en werkt netter
 export const SKILL_NAME = { 1: 'beginner', 2: 'ervaren', 3: 'voorman' };
 export const MAX_WORKERS = 60;

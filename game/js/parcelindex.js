@@ -23,6 +23,7 @@ export function createParcelIndex(file) {
     if (!c) grid.set(k, (c = []));
     c.push(p);
   }
+  const places = Array.isArray(file && file.places) ? file.places.filter((q) => Array.isArray(q) && typeof q[0] === 'string' && Number.isFinite(q[1]) && Number.isFinite(q[2])) : [];
   const inRect = (x0, y0, x1, y1, max = Infinity) => {
     const out = [];
     for (let cx = Math.floor(x0 / GRID_M); cx <= Math.floor(x1 / GRID_M); cx++) for (let cy = Math.floor(y0 / GRID_M); cy <= Math.floor(y1 / GRID_M); cy++) {
@@ -34,6 +35,13 @@ export function createParcelIndex(file) {
   };
   return {
     size: list.length,
+    places,
+    // de dichtstbijzijnde woonplaats (naam) van een punt, of null zonder plaatsen
+    placeAt(x, y) {
+      let best = null, bd = Infinity;
+      for (const q of places) { const d = (q[1] - x) * (q[1] - x) + (q[2] - y) * (q[2] - y); if (d < bd) { bd = d; best = q[0]; } }
+      return best;
+    },
     byId: (id) => byId.get(id) || null,
     has: (id) => byId.has(id),
     all: () => list,

@@ -38,6 +38,7 @@ export const BEZIT_UITSLUITING = {
 
 // De woorden van de redenen (voor de test: Nederlands, zonder merken).
 export const REASONS = {
+  monument: 'Niet te koop: een monument of bijzonder gebouw blijft van de wereld.',
   zorg: 'Niet te koop: de hulp en de plek waar je weer op de been komt hangen aan dit pand.',
   hulpdienst: 'Niet te koop: dit is een hulpdienst die het spel nodig heeft.',
   reizen: 'Niet te koop: reisritten van het verhaal lopen via dit pand.',
@@ -87,7 +88,6 @@ export function missionSpotsFrom(defs, actOf = () => 0) {
 //   storySpots     [{ x, y, name, r? }]   verhaalplekken met een eigen eigenaar
 //   nameOf(osm)    de naam van het pand (voor de verhaalnamen)
 //   home           [{ x, y }]   je safehuis en eigen huis
-//   manage         true: monumenten en landmarks zijn te koop als 'Beheer' (standaard); false: dan ook niet te koop
 export function excluded(b, ctx = {}) {
   if (!b || !Number.isFinite(b.osm)) return { code: 'id', reason: REASONS.id };
   for (const e of BEZIT_UITSLUITING.ids) if (e.osm === b.osm) return { code: 'id', reason: e.reason || REASONS.id };
@@ -112,14 +112,14 @@ export function excluded(b, ctx = {}) {
     const nm = String(ctx.nameOf(b.osm) || '');
     if (nm && BEZIT_UITSLUITING.storyNames.some((s) => nm.includes(s))) return { code: 'verhaal', reason: REASONS.verhaal };
   }
-  if (ctx.manage === false && (b.landmark || /^(church|chapel|cathedral|monastery|civic|government)$/.test(t))) return { code: 'monument', reason: 'Niet te koop: een monument.' };
+  // eigenaar 21-11: monumenten en bijzondere gebouwen blijven van de wereld (nooit koopbaar)
+  if (isMonument(b)) return { code: 'monument', reason: REASONS.monument || 'Niet te koop: een monument of bijzonder gebouw blijft van de wereld.' };
   return null;
 }
 export const isBuyable = (b, ctx) => !excluded(b, ctx);
 
-// Monumenten en landmarks zijn wel te koop, maar alleen als "Beheer": geen sloop, geen aanbouw, altijd toegankelijk (ontwerp 6.1).
-export const isManagementOnly = (b) => !!b && (!!b.landmark || /^(church|chapel|cathedral|monastery|civic|government|museum|theatre)$/.test(String(b.type || '')));
-export const BEHEER_TEXT = 'Beheer: je beheert dit monument. Geen sloop, geen aanbouw en het blijft voor iedereen toegankelijk.';
+// Monumenten en bijzondere gebouwen (landmarks, kerken, gemeentehuizen, musea, theaters, kastelen): niet koopbaar (eigenaar 21-11).
+export const isMonument = (b) => !!b && (!!b.landmark || /^(church|chapel|cathedral|monastery|civic|government|museum|theatre|castle|monument|memorial|city_hall|townhall|library|windmill)$/.test(String(b.type || '')));
 
 // De kaartregel voor een pand dat niet te koop is, met de reden.
 export const excludedLabel = (b, ctx) => { const e = excluded(b, ctx); return e ? e.reason : ''; };

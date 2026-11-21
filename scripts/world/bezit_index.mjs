@@ -220,9 +220,12 @@ export function buildBezitIndex(worldDir) {
   for (const p of m.parcels) p.access = accessOf(p, w.roadCar, w.roadPad);
   m.parcels.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   const types = [...new Set(w.buildings.map((b) => b.type))].sort();
+  // de woonplaatsen voor de namen en de klantenpot (alleen dorpen, steden en gehuchten, met de plek): [naam, x, y]
+  const idx = JSON.parse(fs.readFileSync(path.join(worldDir, 'index-provincie.json'), 'utf8'));
+  const places = ((idx.global && idx.global.places) || []).filter((p) => ['hamlet', 'village', 'town', 'city'].includes(p.kind) && p.name).map((p) => [p.name, Math.round(p.x), Math.round(p.y)]);
   const bs = w.buildings.sort((a, b) => a.osm - b.osm);
   return {
-    percelen: { v: BEZIT_INDEX_VERSION, kinds: KINDS, access: ACCESS, rows: parcelRows(m.parcels), stats: { pieces: w.pieces.length, joins: built.joins, duplicates: built.duplicates, merged: m.merged, tiles: w.tiles } },
+    percelen: { v: BEZIT_INDEX_VERSION, kinds: KINDS, access: ACCESS, places, rows: parcelRows(m.parcels), stats: { pieces: w.pieces.length, joins: built.joins, duplicates: built.duplicates, merged: m.merged, tiles: w.tiles } },
     panden: { v: BEZIT_INDEX_VERSION, types, rows: bs.map((b) => [b.osm, b.x, b.y, b.m2, types.indexOf(b.type), b.h, b.landmark]) },
   };
 }

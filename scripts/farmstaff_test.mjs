@@ -57,7 +57,7 @@ t('capaciteit en loon: 20 ha per arbeider, de voorman bundelt er drie', () => {
   assert.equal(S.staffCapacity(S.staffOf(bz)), 40 + 20 * S.FOREMAN_BUNDLE);
   assert.equal(S.staffWages(S.staffOf(bz)), S.WAGE_DAY[1] + S.WAGE_DAY[2] + S.WAGE_DAY[3]);
   assert.ok(S.WAGE_DAY[3] < 3 * S.WAGE_DAY[2] && S.SKILL_RATIO[3] > S.SKILL_RATIO[2], 'een voorman is goedkoper dan drie en werkt netter');
-  assert.ok(S.SKILL_RATIO[1] >= 0.8 && S.SKILL_RATIO[3] <= 0.9, '80 tot 90% van handwerk');
+  assert.ok(S.SKILL_RATIO[3] <= 0.8 && S.SKILL_RATIO[1] >= 0.6, 'hooguit 80% van handwerk: handwerk levert minstens 25% meer (eigenaar 21-11)');
 });
 
 t('opslag: het personeel overleeft normaliseren en kapotte opslag geeft een leeg team', () => {

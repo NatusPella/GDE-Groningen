@@ -12,7 +12,7 @@ export const VISIBLE_MAX = 12;
 export const SPECIES = {
   melkvee: { naam: 'Melkvee', perHa: 2.5, hok: 0, kind: ['w'], voer: 18, grazen: true, product: 'melk', perDag: 22, eenheid: 'liter' },
   schapen: { naam: 'Schapen', perHa: 10, hok: 0, kind: ['w'], voer: 2.5, grazen: true, product: 'wol', perDag: 0.12, eenheid: 'kg' },
-  kippen: { naam: 'Kippen', perHa: 0, hok: 200, kind: ['w', 'a'], voer: 0.12, grazen: false, product: 'eieren', perDag: 0.8, eenheid: 'stuks' },
+  kippen: { naam: 'Kippen', perHa: 0, hok: 200, kind: ['w'], voer: 0.12, grazen: false, product: 'eieren', perDag: 0.8, eenheid: 'stuks' },
 };
 export const SPECIES_IDS = Object.keys(SPECIES);
 export const PRODUCT_PRICE = { melk: 0.45, wol: 2.4, eieren: 0.2 };   // euro per liter, kg of stuk

@@ -39,8 +39,13 @@ const opslag = () => {
 // Het boerderijzaad van een verse boerderij: uit de klok, één keer, en daarna bewaard. De regels zelf blijven puur.
 const nieuwZaad = () => (typeof Date !== 'undefined' ? Math.floor(Date.now() / 1000) % 0x7fffffff : CT.ZAAD);
 
+// Bezit (bezitlive.js) meldt zich hier aan: voor het laden de gekochte percelen in het register zetten, anders kent normaliseer hun id's niet.
+let voorLaad = null;
+export const setVoorLaadHaak = (fn) => { voorLaad = typeof fn === 'function' ? fn : null; };
+
 export function getBoerderij() {
   if (!boer) {
+    if (voorLaad) { try { voorLaad(); } catch (e) { /* bezit niet klaar: de vaste percelen werken gewoon */ } }
     const st = opslag();
     let raw = null;
     try { raw = st ? st.getItem(KEYS.boerderij) : null; } catch (e) { raw = null; }
