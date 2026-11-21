@@ -29,7 +29,7 @@ ok(/Geen .* hierheen|Niet beschikbaar|Te dichtbij/.test(kaal.acties[1].sub) && !
 const staat = K.actieModel({ spot, speler, waypoint: { x: 3010, y: 405 }, opts });
 ok(staat.acties[0].id === 'haalweg' && staat.acties[0].label === 'Haal weg', 'tweede klik op het waypoint: Haal weg');
 const ander = K.actieModel({ spot, speler, waypoint: { x: 100, y: 100 }, opts });
-ok(ander.acties[0].id === 'waypoint' && /Vervangt/.test(ander.acties[0].sub), 'een ander waypoint wordt vervangen (één tegelijk)');
+ok(ander.acties[0].id === 'waypoint' && /vervangt/.test(ander.acties[0].sub), 'een ander waypoint wordt vervangen (één tegelijk)');
 ok(K.opWaypoint({ x: 0, y: 0 }, { x: 10, y: 10 }) && !K.opWaypoint({ x: 0, y: 0 }, { x: 100, y: 0 }) && !K.opWaypoint(null, { x: 0, y: 0 }), 'opWaypoint: dichtbij telt');
 ok(K.actieModel({ spot, speler, waypoint: null, opts, verhaal: true }).acties[0].id === 'story', 'het verhaaldoel: Volg het verhaal');
 
