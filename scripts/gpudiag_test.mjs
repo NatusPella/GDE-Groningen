@@ -2,7 +2,7 @@
 // de vorm van de GPU-gegevens uit het hoofdproces (desktop/gpuinfo.cjs) en de classificatie van nieuwe kaarten.
 import { createRequire } from 'node:module';
 import fs from 'node:fs';
-import { gpuKind, angleBackend, gpuWarning, formatReport, frameSummary } from '../game/js/gpudiag.js';
+import { gpuKind, angleBackend, gpuWarning, formatReport, frameSummary, focusVolgende } from '../game/js/gpudiag.js';
 import { classifyGpu } from '../game/js/gfxprofile.js';
 
 let fail = 0;
@@ -77,6 +77,20 @@ ok('gpuinfo zit in het pakket', fs.readFileSync(new URL('../desktop/package.json
 const tr = fs.readFileSync(new URL('../game/js/trailer.js', import.meta.url), 'utf8');
 ok('cursor: none geldt niet op de resultaatkaart', /body\.trailer-on:not\(\.tr-result-open\)/.test(tr) && !/^body\.trailer-on, body\.trailer-on \* \{ cursor: none/m.test(tr));
 ok('de kaart zet en haalt tr-result-open weg', /classList\.add\('tr-result-open'\)/.test(tr) && /classList\.remove\('tr-result-open'\)/.test(tr));
+
+// review 21-11: focusval en focusherstel van de Technische-info-dialoog, en geen stil klembordschrijven
+{
+  const k = ['kopieer', 'sluit'];
+  ok('Tab gaat naar de volgende knop', focusVolgende(k, 'kopieer', false) === 'sluit');
+  ok('Tab op de laatste knop gaat rond naar de eerste (focusval)', focusVolgende(k, 'sluit', false) === 'kopieer');
+  ok('Shift+Tab op de eerste gaat rond naar de laatste', focusVolgende(k, 'kopieer', true) === 'sluit');
+  ok('focus buiten de dialoog: terug naar binnen', focusVolgende(k, 'ergens-anders', false) === 'kopieer' && focusVolgende(k, null, true) === 'sluit');
+  ok('geen knoppen: niets', focusVolgende([], null, false) === null);
+  const gd = fs.readFileSync(new URL('../game/js/gpudiag.js', import.meta.url), 'utf8');
+  ok('sluiten geeft de focus terug', /vorigeFocus/.test(gd) && /function sluitTechInfo/.test(gd));
+  const open = gd.slice(gd.indexOf('export async function showTechInfo'));
+  ok('openen schrijft niet zelf naar het klembord', !open.includes('await writeClipboard(pre.textContent)'));
+}
 
 console.log(fail ? `${fail} FAILED` : 'all ok');
 process.exit(fail ? 1 : 0);

@@ -75,7 +75,7 @@ async function rit(soort, naam) {
   p.x = van.x; p.y = van.y; p.vx = p.vy = 0; p.z = 0; p.vz = 0;
   await sleep(6000); // de wereld rond de start laten streamen
   if (soort === 'taxi' && CFG.padAudit) {
-    // #882: het ritpad vóór (de gewone spline door de route) en na (ritroute.js) tegen de gebouwen van de echte wereld, voor een aantal doelen
+    // #882: het ritpad vóór (de gewone spline door de route) en na (ridepath.js) tegen de gebouwen van de echte wereld, voor een aantal doelen
     try {
       const RT = await imp('routing'), CD = await imp('cinedrive'), RR = await imp('ritroute');
       const binnen = (x, y) => RT.insideBuilding(map, x, y);

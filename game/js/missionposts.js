@@ -5,7 +5,7 @@
 // er iemand staat, krijgt elke speler een eigen post en gaat de stap verder zodra de post van die stap klaar is. De rest van het
 // verhaal (scènes, stemmen, beloning per speler) blijft van de gewone stappen. Wie wegvalt laat de groep aan staan met de
 // overblijvers; wie later aansluit kijkt mee tot de volgende opdracht (coopmeedoen.js).
-// Tests: scripts/samenposten_test.mjs (regels) en scripts/coopmissie_posten_test.mjs (de echte missions.js).
+// Tests: scripts/samenposten_test.mjs (regels) en scripts/multiplayer_missionposts_test.mjs (de echte missions.js).
 import { opdrachtSpelers, acteur } from './spelersregister.js';
 import { maakPosten, activeer, tik, nogOpen, rolTekst, aantalKlaar } from './samenposten.js';
 

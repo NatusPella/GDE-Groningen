@@ -7,7 +7,7 @@
 // Instellingen, Besturing.
 import { keyLabelGlyph, keyLabelHtml } from './keycap.js';
 import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './settings.js';
-import { retryBeschikbaar, herstartMissie } from './missions.js';   // #985 punt 16
+import { retryBeschikbaar, herstartMissie, herstartBlokkade } from './missions.js';   // #985 punt 16
 import { DIFFICULTY, DIFFICULTY_MODES } from './difficulty.js';
 import { logoHtml } from './logo.js';
 import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './pausestate.js';
@@ -63,7 +63,7 @@ import { renderOverview, renderTodo, renderTodoStory, todoClick, todoFocus, todo
 import { isPlayAheadOpen } from './todo.js';
 import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer, selectVerhaalCharacter } from './verhaalui.js';
 import { anyFresh } from './characters.js';
-import { maakRegel, zoekRegels, SOORTEN } from './menuzoek.js';
+import { maakRegel, zoekRegels, SOORTEN } from './pausesearch.js';
 import { renderSpullen, spullenClick, spullenFocus, spullenEnter, spullenAnnuleer, zetSpullenZoek, DELEN } from './spullen.js';
 import { phoneClick, phoneUnread, characterForSender } from './phone.js';
 import { takeNoticeThread } from './phonefeed.js';
@@ -438,7 +438,7 @@ const BASIS_UITLEG = ['basis-lopen', 'basis-pakken', 'basis-rijden', 'basis-vech
 function basisUitlegHtml() {
   zetUitlegGlyph((t) => glyphHtml(t));
   startUitleg();
-  const blokken = BASIS_UITLEG.map((id) => uitlegBlok(id, { nietMeer: true })).filter(Boolean);
+  const blokken = BASIS_UITLEG.map((id) => uitlegBlok(id, {})) /* Hulp is naslag: geen Niet meer tonen (anders is het blok weg tot de reset) */.filter(Boolean);
   return blokken.length ? `<section class="pm-cgroup pm-help" data-help="uitleg"><h3>Zo werkt het</h3>${blokken.join('')}</section>` : '';
 }
 
@@ -766,7 +766,7 @@ function settingsHtml() {
       ${toggle('speedFeel', 'Snelheidsgevoel', 'Beeld wordt wijder bij hoge snelheid en een zware klap vertraagt even; uit is rustiger')}
       ${toggle('driftAssist', 'Driften met hulp', 'Helpt tegensturen en houdt een slip beheersbaar; uit is realistischer')}
       ${toggle('bikeAssist', 'Motor met hulp', 'Houdt een motor of brommer rechtop in bochten; uit is realistischer')}
-      ${toggle('liveBussen', 'Live bussen', 'Bussen rijden waar ze in het echt rijden. Het spel haalt alleen publieke buslocaties op; er worden geen gegevens van jou verstuurd. Uit, of als de bron niet bereikbaar is: de bussen rijden het rooster van het spel, op de kaart gemarkeerd als Rooster')}
+      ${toggle('liveBussen', 'Live bussen', 'Bussen rijden waar ze in het echt rijden. Het spel haalt alleen publieke buslocaties op; er gaat geen account, naam of speelgegeven mee; de bron ziet alleen dat er een verzoek komt, zoals bij elke website. Uit, of als de bron niet bereikbaar is: de bussen rijden het rooster van het spel, op de kaart gemarkeerd als Rooster')}
       <div class="m-gh"><span>Kaart</span></div>
       ${toggle('mapShiftTeleport','{SHIFT}+{LMB} op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}`,
       `${pane('Spelregels', 'Zo speelt het', '<p>Hoe moeilijk het is, hoe het verkeer en het geweld zich gedragen en hoe het rijden aanvoelt. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan op de andere tabbladen. Camera-afstand, beeldhoek en eerste persoon staan onder Instellingen &gt; Camera; toetshints en uitleg onder Instellingen &gt; Hints &amp; uitleg.</p>')}`)}
@@ -2143,6 +2143,7 @@ function runAction(a) {
   } else if (a === 'mission-retry') {
     // #985 punt 16: dezelfde weg als Enter na een mislukking; geen bevestiging nodig.
     if (herstartMissie(world)) setOpen(false);
+    else status(herstartBlokkade(world) || 'Even wachten, dan kan het opnieuw.');
   } else if (a === 'mission-stop-go') {
     if (world.safetyActions && world.safetyActions.cancelMission()) setOpen(false);
   } else if (a === 'unstuck') {

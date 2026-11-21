@@ -1,8 +1,8 @@
-// AAA bijbanen, tweede ronde: het ritueel, de klantpraatjes en de reeks (game/js/bijbaanbeats.js), en de koppeling in sidejobs.js.
-//   node scripts/bijbaanbeats_test.mjs
+// AAA bijbanen, tweede ronde: het ritueel, de klantpraatjes en de reeks (game/js/sidejobbeats.js), en de koppeling in sidejobs.js.
+//   node scripts/sidejobbeats_test.mjs
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { BIJBAAN_BEATS, BEAT_LIJNEN, openingVan, klantPraatje, reeksMelding, reeksTekst, reeksBonusPct, eindregel, alleBeatRegels } from '../game/js/bijbaanbeats.js';
+import { BIJBAAN_BEATS, BEAT_LIJNEN, openingVan, klantPraatje, reeksMelding, reeksTekst, reeksBonusPct, eindregel, alleBeatRegels } from '../game/js/sidejobbeats.js';
 
 let n = 0, fails = 0;
 const t = (naam, f) => { n++; try { f(); console.log('ok  ', naam); } catch (e) { fails++; process.exitCode = 1; console.log('FAIL', naam, '\n    ' + (e.message || e)); } };
@@ -68,6 +68,11 @@ t('tekstregels: geen echte merken, geen winter, geen losse toetsletter, alles he
 t('sidejobs.js roept het ritueel aan bij start, na een klus en bij het einde', () => {
   const bron = fs.readFileSync(new URL('../game/js/sidejobs.js', import.meta.url), 'utf8');
   for (const naam of ['openingVan(', 'klantPraatje(', 'reeksMelding(', 'reeksTekst(', 'eindregel(']) assert.ok(bron.includes(naam), naam);
+});
+t('het klantpraatje en de reeksmelding komen alleen op het scherm van de eigen dienst (niet bij de baan van een gast)', () => {
+  const bron = fs.readFileSync(new URL('../game/js/sidejobs.js', import.meta.url), 'utf8');
+  const regel = bron.split('\n').find((l) => l.includes('const pr = klantPraatje('));
+  assert.ok(regel && /^\s*if \(host\) try \{/.test(regel), 'bewaakt met host (owner === 0), zoals de opening');
 });
 
 console.log(`\n${n - fails}/${n} geslaagd`);

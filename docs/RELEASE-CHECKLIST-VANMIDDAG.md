@@ -10,7 +10,7 @@
 
 ## Volgorde
 
-Werk in de schone merge-werkmap (`C:\Users\abuis\GIT\GDE-merge`, main, schone werkboom). Geen andere Electron-instantie tegelijk, geen nieuwe agents tijdens de bouw.
+Werk in de schone merge-werkmap (`<MERGE-WERKMAP>`, main, schone werkboom). Geen andere Electron-instantie tegelijk, geen nieuwe agents tijdens de bouw.
 
 1. **Voorbereiding**
    - `git status` schoon, `git pull`, `git log v0.63.0..HEAD --oneline | wc -l` om te zien wat erin zit.

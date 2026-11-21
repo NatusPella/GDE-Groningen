@@ -1,10 +1,10 @@
 // Waakhond van de route-ribbon: de 3D-routelijn mag niet "ineens" weg zijn terwijl de minimap de route
 import './node3d.mjs';
-// nog toont. Pure regels uit game/js/routeribbonwatch.js en routeribbon.js.
-//   node scripts/routeribbonwatch_test.mjs
+// nog toont. Pure regels uit game/js/pathribbonwatch.js en routeribbon.js.
+//   node scripts/pathribbonwatch_test.mjs
 import assert from 'node:assert/strict';
 
-const W = await import('../game/js/routeribbonwatch.js');
+const W = await import('../game/js/pathribbonwatch.js');
 const R = await import('../game/js/routeribbon.js');
 let n = 0;
 const ok = (c, m) => { n++; assert.ok(c, m); };
@@ -45,4 +45,4 @@ W.noteRibbonRepair('leeg', 7);
 const s = W.getRouteRibbonStats();
 ok(s.repairs === 3 && s.byFault.verborgen === 2 && s.byFault.leeg === 1 && s.last === 'leeg' && s.lastAt === 7, 'teller per reden');
 
-console.log(`routeribbonwatch_test: ${n} controles ok`);
+console.log(`pathribbonwatch_test: ${n} controles ok`);

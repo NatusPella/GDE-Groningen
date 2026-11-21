@@ -1,8 +1,8 @@
-// Zoeken in het pauzemenu (21-11, docs/ESCAPEMENU-UX-21-11.md): de regels in menuzoek.js zijn puur;
+// Zoeken in het pauzemenu (21-11, docs/ESCAPEMENU-UX-21-11.md): de regels in pausesearch.js zijn puur;
 // de bedrading in pausemenu.js (knop, toets "/", modale laag, Esc) wordt in de bron nagelopen.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { maakRegel, zoekRegels, SOORTEN } from '../game/js/menuzoek.js';
+import { maakRegel, zoekRegels, SOORTEN } from '../game/js/pausesearch.js';
 
 const lees = (f) => fs.readFileSync(new URL(`../game/js/${f}`, import.meta.url), 'utf8');
 let n = 0;
@@ -60,4 +60,4 @@ t('de bedrading: knop bovenaan de rail, toets "/", modale laag, Esc sluit eerst 
   assert.match(pm, /\[data-exit-confirm\], \[data-quit-confirm\], \[data-find\]/, 'sluiten van het menu sluit ook het zoekvenster');
 });
 
-console.log(`menuzoek_test: ${n}/${n} ok`);
+console.log(`pausesearch_test: ${n}/${n} ok`);

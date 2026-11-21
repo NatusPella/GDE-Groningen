@@ -12,7 +12,8 @@
 //
 // Samen spelen: de baan is gedeeld, de tellers staan per speler (`key`: 'host' of de slot van een gast) zodat elke speler zijn eigen
 // 'Ontweken' en 'Geraakt' ziet. Wie als eerste te voet bij Oma Trijntje is laat de missie slagen (missions.js, ongewijzigd). Alleen het
-// lichaam van dit apparaat wordt bij een herstart teruggezet; een gast ziet de melding en zet zichzelf terug (hij bestuurt zijn eigen lichaam).
+// lichaam van dit apparaat wordt bij een herstart teruggezet; een gast bestuurt zijn eigen lichaam en kan niet door de host worden verplaatst: hij krijgt via
+// world.coopMeld zijn eigen meldingen (Geraakt, Ontweken) en bij een herstart alleen een nieuwe teller en de vraag zelf terug te lopen.
 export const DODGE = {
   hitLimit: 2,        // twee keer geraakt: herstart van het stuk
   touchR: 1.15,       // zelfde raakstraal als missionlanes.js

@@ -387,7 +387,7 @@ export function spullenFocus(panel, el) {
   sel = c.dataset.spul;
   note = ''; // een andere tegel: de melding van de vorige actie hoort er niet meer bij
   weggooiVraag = weggooiStap(weggooiVraag, 'ander', sel).state; // en een openstaande vraag Weggooien? ook niet
-  for (const b of panel.querySelectorAll('[data-spul]')) b.toggleAttribute('aria-current', b.dataset.spul === sel);
+  for (const b of panel.querySelectorAll('[data-spul]')) { if (b.dataset.spul === sel) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); } // niet toggleAttribute: dat zet aria-current="" en dat is geen waarde
   panel.querySelector('.td-detail').innerHTML = detailHtml();
 }
 

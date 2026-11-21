@@ -2,6 +2,7 @@
 //   node scripts/spullenmodel_test.mjs
 import './node3d.mjs';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 const M = await import('../game/js/spullenmodel.js');
 const E = await import('../game/js/eten.js');
 
@@ -92,6 +93,12 @@ t('na het weggooien van de laatste tegel gaat de focus naar de volgende, anders 
   assert.equal(M.naWeggooien(['a', 'b', 'c'], 'c'), 'b');
   assert.equal(M.naWeggooien(['a'], 'a'), null);
   assert.equal(M.naWeggooien(['a', 'b'], 'z'), 'a');
+});
+
+t('spullen.js: aria-current wordt "true" of weg, nooit leeg (toggleAttribute)', () => {
+  const src = fs.readFileSync(new URL('../game/js/spullen.js', import.meta.url), 'utf8');
+  assert.ok(!/toggleAttribute\(\s*['"]aria-current/.test(src), 'geen toggleAttribute voor aria-current');
+  assert.match(src, /setAttribute\('aria-current', 'true'\)/);
 });
 
 console.log(`spullenmodel_test: ${n - fails}/${n}`);

@@ -4,7 +4,7 @@
 // hoeken afsnijdt en uitzwaait. Hier wordt dat veilig: het begin- en eindstuk van de speler en het doel vallen weg (de taxi
 // start en stopt aan de straatkant), de spline wordt per pad gecontroleerd tegen de gebouwvoetafdrukken (en op de rechterbaan
 // waar de taxi echt rijdt) en zakt zo nodig terug naar een lichtere spline of de wegpunten zelf. Zonder THREE en zonder wereld:
-// `binnen(x, y)` is de vraag "ligt hier een gebouw?" (routing.js insideBuilding), zodat scripts/ritroute_test.mjs het narekent.
+// `binnen(x, y)` is de vraag "ligt hier een gebouw?" (routing.js insideBuilding), zodat scripts/ridepath_test.mjs het narekent.
 
 const lerp = (a, b, t) => a + (b - a) * t;
 const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);

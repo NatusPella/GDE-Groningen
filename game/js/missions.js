@@ -81,6 +81,7 @@ import { playerOf, slotLines } from './fatbikedodge.js';
 import { slotRij } from './missionbeats.js'; // nasleep-rij op de uitslagkaart (AAA akte 1 en 2)
 import { beatStart, beatTik, beatStop, toonNasleep } from './akte34_beats.js'; // AAA akte 3 en 4: openingsbeeld, tussenbeats, nasleep
 import { aaaStart, aaaTik, aaaCheckpoint, aaaStuntKlaar, aaaOpruimen, aaaMeld } from './akte1_aaa.js'; // AAA akte 1 (M01 stuntarena, M05 racedecor, def.kaart)
+import { verschoveDoel } from './binnenset.js';
 import { buildStageSet, updateStageSet, disposeStageSet, stageSetCamera, stageSetBinnen } from './stagesets.js';
 import { forceClearSweep } from './clearzonesweep.js';
 import { buildRaceDecor, disposeRaceDecor } from './racedecor.js';
@@ -91,7 +92,7 @@ import { afstandMeespeler, meespelerInVoertuig } from './spelersregister.js';
 // de speler van dit apparaat (#500): de missieketen is van de lokale speler, niet van de gastheer of een meespeler
 import { hoofdspeler } from './players.js';
 import { teamActor, doelStand, groepKlaar, groepsActeurs, WACHT_OP_ANDEREN } from './stagegroep.js';
-import { postenBegin, postenTik, postenWaypoints } from './missieposten.js'; // Samen spelen (#983): posten tegelijk bezetten (M30)
+import { postenBegin, postenTik, postenWaypoints } from './missionposts.js'; // Samen spelen (#983): posten tegelijk bezetten (M30)
 import { registreerWedstrijd, wedNodigUit, wedHostBaan, wedBaanStand } from './multiplayerwedstrijd.js';
 import { lichaamVan, bestuurInstappenIn, bestuurLos } from './coopbestuur.js';
 import { neemBakeDruk, neemVaultDruk, vergeetBakeDruk } from './coopgast.js'; // de toets van een gast bij de bakronde en de polsstok (#525)
@@ -100,7 +101,7 @@ const MISSION_RADIO_VALID = { ttl: 600 };
 import { registerBusyProbe } from './busy.js';
 import {
   isCheckpointStage, makeCheckpoint, applyCheckpointProgress, recordCheckpoint, createGrace, stepGrace,
-  createRetryOffer, retryOfferLive, RETRY_KEYS,
+  createRetryOffer, retryOfferLive, retryOverzichtLive, RETRY_KEYS,
 } from './missioncheckpoint.js';
 import { placeParty } from './storytravel.js';
 import { respawnFade } from './respawn.js';
@@ -1778,12 +1779,22 @@ const RETRY_FADE_S = 0.45;
 // Overzicht-knop gebruikt hem. Puur op de ketenstand, zodat de test hem kan naspelen.
 export function retryBeschikbaar() {
   const st = chainState();
-  return !!(st && st.retry && retryOfferLive(st.retry, worldRef ? worldRef.time : Infinity));
+  return !!(st && st.retry && retryOverzichtLive(st.retry, st.index));
+}
+// Dezelfde bewakers als Enter: tijdens een cutscene, respawn, bijbaan of activiteit begint de missie niet opnieuw (anders gaan groep en
+// voertuig midden in die activiteit naar de start). Geeft de reden voor de speler, of '' als het kan.
+export function herstartBlokkade(world) {
+  if (!world) return 'Even wachten.';
+  if (isCinematicActive() || world.pendingRespawn) return 'Even wachten: er loopt een filmpje of je komt net terug.';
+  if (world.sideJob && world.sideJob.active) return 'Rond eerst je bijbaan af.';
+  if (playerBusy(world, ['challenge', 'padel', 'activityGame']).busy) return 'Rond eerst je activiteit af.';
+  return '';
 }
 export function herstartMissie(world) {
   const st = chainState();
   if (!st || !st.retry || !world) return false;
   if (st.phase !== 'idle') return false;
+  if (st.retry.missionIndex !== st.index || herstartBlokkade(world)) return false;
   st.retry.fade = RETRY_FADE_S;
   respawnFade(1, 350);
   return true;
@@ -1804,8 +1815,10 @@ function updateRetry(dt, world, def) {
     respawnFade(0, 500);
     return;
   }
-  if (r.missionIndex !== chainState().index || !retryOfferLive(r, world.time)) { chainState().retry = null; return; }
+  if (r.missionIndex !== chainState().index) { chainState().retry = null; return; }
   if (chainState().phase !== 'idle') return;
+  // na de 40 s verloopt alleen de hint met Enter; de rij Opnieuw beginnen in Overzicht blijft (retryBeschikbaar)
+  if (!retryOfferLive(r, world.time)) return;
   // #591: this used to drop the offer when the player was near the start. Together with `armed = false`
   // after a failure that made a dead zone right around the marker: no offer and no re-trigger until he
   // walked a few metres away. The offer is fine close by (Enter still restarts at the start).
@@ -3326,7 +3339,7 @@ function updateStages(dt, world, def) {
       if (st.fireworks) updateFireworks(dt, world, def, st, S);
       if (chainState().phase !== 'active') break;
       if (st.mud) sinkInMud(world, dt, 4);
-      const g = doelStand(world, S.target, st.radius || HOLD_RADIUS, st.mode, modeOk, st.iedereen); // een meespeler bij het doel houdt de klok gaande (met st.iedereen: allemaal)
+      const g = doelStand(world, S.set ? verschoveDoel(S.target, S.set.shift) : S.target, st.radius || HOLD_RADIUS, st.mode, modeOk, st.iedereen); // een meespeler bij het doel houdt de klok gaande (met st.iedereen: allemaal)
       if (g.status === 'modus') { hint(world, MODE_HINT[st.mode] || ''); break; }
       if (g.status === 'wacht') hint(world, WACHT_OP_ANDEREN);
       if (g.status !== 'binnen') { S.hold = Math.max(0, S.hold - dt * 0.5); if (S.wait) updateWaitDressing(S.wait, st.time ? S.hold / st.time : 0); break; }
@@ -3652,7 +3665,7 @@ function updatePigeonStage(dt, world, def, st, S) {
     return;
   }
   if (!f) {
-    if (S.spotted.size < S.targets.length) fail(world, def, 'je werd weer mens voordat alles op de foto stond');
+    if (S.spotted.size < S.targets.filter(Boolean).length) fail(world, def, 'je werd weer mens voordat alles op de foto stond');
     return;
   }
   if (f.intro) return;
@@ -3660,6 +3673,8 @@ function updatePigeonStage(dt, world, def, st, S) {
     S.gullT = st.gulls[0] + Math.random() * (st.gulls[1] - st.gulls[0]);
     summonDiveGull(st.gullText);
   }
+  // geen enkel doel gevonden (een landmark ontbreekt): de stap slaagt niet zonder foto's maar valt netjes om (review 21-11)
+  if (!S.targets.some(Boolean)) { stopPigeonMode(world); fail(world, def, 'de duivenspots konden niet worden gevonden'); return; }
   S.targets.forEach((t, k) => {
     if (!t || S.spotted.has(k)) return;
     const high = Number.isFinite(t.z) ? Math.abs(f.z - t.z) < 8 : f.z - f.ground < 80;
@@ -3669,7 +3684,7 @@ function updatePigeonStage(dt, world, def, st, S) {
       S.spotted.add(k);
       if (st.flag) cutFlagRope(k);
       const text = st.verb ? st.verb.replace('%s', t.label) : `Klik! ${t.label} staat op de foto`;
-      world.addMessage(`${text} (${S.spotted.size}/${S.targets.length})`, 2.6);
+      world.addMessage(`${text} (${S.spotted.size}/${S.targets.filter(Boolean).length})`, 2.6);
       meldRegelkaart('foto' + S.spotted.size); // de regelkaart van M04 telt mee (AAA akte 1)
     }
   });

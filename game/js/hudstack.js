@@ -68,7 +68,7 @@ export function duivenKaarten({ introActief, holdActief, hoogteActief, intro = {
 
 // --- vaste zones (#1053, #1058) ------------------------------------------------------------------------------------------------
 // Elk HUD-onderdeel van de duivenmodus en de minigame-lagen (heli, duif) heeft één vaste zone in HUD-px (het venster gedeeld door --ui);
-// deze rechthoeken mogen elkaar nooit raken (hudstapel_test.mjs, bij 1280x720 en 1920x1080). De CSS gebruikt dezelfde getallen
+// deze rechthoeken mogen elkaar nooit raken (hudstack_test.mjs, bij 1280x720 en 1920x1080). De CSS gebruikt dezelfde getallen
 // (pigeonmode.js, pigeonguide.js, hudcards.css, helirun.js); de test leest die bestanden na. Onderdelen die om dezelfde plek strijden
 // (missiekaart, prestatiekaart, nieuwsregel) delen één zone met een prioriteit: het hoogste wint, de rest wacht.
 export const LINKS_RAND = 46;       // px: de linkerrand van de HUD (--hud-edge)
@@ -84,6 +84,17 @@ export const HINTS_BODEM = 22;
 export const STAPEL_BREED = 480;
 export const RECHTS_KAART_BREED = 280;
 
+// De breedtes die meekrimpen als de HUD smal wordt (Grootte interface 1,2 tot 1,5: het HUD-vlak is dan minder dan ~1140 px breed, review 21-11).
+// links: de missie- en prestatiekaart (de CSS neemt 30 % van de breedte, hooguit LINKS_KAART_BREED); stapel: de opdrachtkaarten tussen
+// de linkerkolom en het midden; boven: de doel- en routekaart van de gewone HUD tussen het paneel (rechts op 276) en de meldingen.
+export function duivenMaten(vw) {
+  const b = eindig(vw) ? vw : 1280;
+  const links = Math.min(LINKS_KAART_BREED, Math.round(b * 0.3));
+  const stapelB = Math.max(240, Math.min(STAPEL_BREED, Math.round(b - 2 * (LINKS_RAND + links + 14))));
+  const boven = Math.max(240, Math.min(600, Math.round(2 * (b / 2 - 306))));
+  return { links, stapel: stapelB, boven };
+}
+
 const rect = (id, x, y, w, h) => ({ id, x, y, w: Math.max(0, w), h: Math.max(0, h) });
 
 // Alle zones van de duivenmodus voor een venster van vw x vh HUD-px, met de stapel zoals stapel() hem berekent (onder = de onderkant).
@@ -91,20 +102,21 @@ const rect = (id, x, y, w, h) => ({ id, x, y, w: Math.max(0, w), h: Math.max(0, 
 // Geeft { zones: [rect], pijl: rect }; pijl is de vrije band voor de richtingspijl.
 export function duivenZones(vw, vh, onder = STAPEL_TOP + 110, top = STAPEL_TOP) {
   const mmTop = vh - MM_BODEM - MM;
+  const maten = duivenMaten(vw);
   const hintsW = Math.min(760, vw - HINTS_LINKS - LINKS_RAND);
   const hintsY = vh - HINTS_BODEM - HINTS_H;
   const zones = [
     rect('paneel', 14, 12, 262, 140),
-    rect('bovenbalk', vw / 2 - 300, 34, 600, top - 8 - 34),   // doel- en routekaart van de gewone HUD
-    rect('stapel', vw / 2 - STAPEL_BREED / 2, top, STAPEL_BREED, onder - top),
-    rect('linkskaart', LINKS_RAND, LINKS_KAART_TOP, LINKS_KAART_BREED, mmTop - 12 - LINKS_KAART_TOP),
+    rect('bovenbalk', vw / 2 - maten.boven / 2, 34, maten.boven, top - 8 - 34),   // doel- en routekaart van de gewone HUD
+    rect('stapel', vw / 2 - maten.stapel / 2, top, maten.stapel, onder - top),
+    rect('linkskaart', LINKS_RAND, LINKS_KAART_TOP, maten.links, mmTop - 12 - LINKS_KAART_TOP),
     rect('meldingen', vw - 14 - RECHTS_KAART_BREED, 96, RECHTS_KAART_BREED, 84),
     rect('minikaart', LINKS_RAND, mmTop, MM, MM),
     rect('plaats', LINKS_RAND + MM + 16, vh - MM_BODEM - 4 - PLAATS_H, PLAATS_BREED, PLAATS_H),
     rect('hints', HINTS_LINKS, hintsY, hintsW, HINTS_H),
     rect('ondertitel', HINTS_LINKS, hintsY - 12 - 64, hintsW, 64),
   ];
-  const pijlX = LINKS_RAND + LINKS_KAART_BREED + 14;
+  const pijlX = LINKS_RAND + maten.links + 14;
   const pijlY = onder + 12;
   const pijl = rect('pijl', pijlX, pijlY, vw - pijlX - 14 - RECHTS_KAART_BREED - 14, hintsY - 12 - 64 - 12 - pijlY);
   return { zones, pijl };

@@ -577,6 +577,24 @@ const BANEN = [{ par: 2 }, { par: 3 }, { par: 2 }, { par: 3 }, { par: 2 }, { par
   check('stoppen: de host hoort het en het scherm is vrij', W.wedGastVerlaat(world) && verzonden.at(-1).a === 'weg' && !G.score && world.coopWedstrijd === false);
 }
 
+// ---- review 21-11: een gast kan geen prijs forceren met een overdreven puntenaantal
+{
+  const sc = P.maakPunt('penalty', MENSEN, { beurten: 1, max: 5 });
+  check('penalty: 5 doelpunten is geldig', P.meldPunt(sc, 0, 0, 5) && P.totaalVan(sc, 0) === 5);
+  check('penalty: 999999 wordt op 5 geklemd, de gast pakt geen eerste prijs', P.meldPunt(sc, 1, 0, 999999) && P.totaalVan(sc, 1) === 5, String(P.totaalVan(sc, 1)));
+  check('de klem wordt onthouden (voor de host-log)', sc.geklemd === 1);
+  const vrij = P.maakPunt('x', MENSEN, { beurten: 1 });
+  check('zonder max blijft MAX_PUNT de grens (skatepark en hengelen)', P.meldPunt(vrij, 0, 0, 123456) && P.totaalVan(vrij, 0) === 123456);
+  const pk = P.maakPunt('pannenkoek', MENSEN, { beurten: 1, max: 6000, perS: 50 });
+  pk.t = 15;
+  check('pannenkoek: na 15 s kan hooguit 50 x (15 + speling) punten, niet 5000', P.meldPunt(pk, 1, 0, 5000) && P.totaalVan(pk, 1) === 50 * (15 + P.PUNT_SLACK_S), String(P.totaalVan(pk, 1)));
+  pk.t = 125;
+  check('pannenkoek: na een volle ronde telt een echte score gewoon (1000)', P.meldPunt(pk, 0, 0, 1000) && P.totaalVan(pk, 0) === 1000);
+  check('de grens zelf is begrensd op MAX_PUNT', P.maakPunt('y', MENSEN, { max: 1e12 }).max === P.MAX_PUNT);
+  const penaltySrc = fs.readFileSync(new URL('../game/js/penalty.js', import.meta.url), 'utf8');
+  check('penalty.js geeft SCHOTEN als max mee', penaltySrc.includes('max: SCHOTEN'));
+}
+
 // ---- punten met beurten (skatepark, hengelen): pure regels
 const kgFormat = (g) => `${(g / 1000).toFixed(1).replace('.', ',')} kg`;
 {

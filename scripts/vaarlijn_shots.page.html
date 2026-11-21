@@ -13,14 +13,14 @@
 <canvas id="c" width="1280" height="720"></canvas>
 <script type="module">
 // Zie scripts/vaarlijn_shots.mjs. Een gracht en een brede rivier met kades, een boot en een vaarroute, met de echte
-// code uit game/js: "na" tekent de vaarlijn (scene3d/vaarlijn3d.js), "voor" (de game-map van main) de route-boeien
+// code uit game/js: "na" tekent de vaarlijn (scene3d/sailline3d.js), "voor" (de game-map van main) de route-boeien
 // (waymarkers3d.js). Het water is hier een vlak, niet het waterschaduwmateriaal van het spel.
 const q = new URLSearchParams(location.search);
 window.__shots = []; window.__info = {}; window.__done = false;
 try {
   const THREE = await import('three');
   let lijn = null;
-  try { lijn = await import('/game/js/scene3d/vaarlijn3d.js'); } catch (e) { lijn = null; }
+  try { lijn = await import('/game/js/scene3d/sailline3d.js'); } catch (e) { lijn = null; }
   const WM = await import('/game/js/waymarkers3d.js');
   window.__info = { na: !!lijn };
   const canvas = document.getElementById('c');

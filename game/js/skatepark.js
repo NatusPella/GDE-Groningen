@@ -13,7 +13,7 @@ import { activityBlock, iconDisc } from './activitykit.js';
 import { simHudTik, simHudPop, uitlegGezien, zetUitlegGezien } from './simhud.js';
 import { skateHudModel, trucPop, ketenPop, UITLEG_ID } from './skatestatus.js';
 import { maakSimKolom, zetSimKolom } from './simkolom3d.js';
-import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame, clamp } from './minigamekit.js';
+import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame, clamp, esc } from './minigamekit.js';
 import { SKATE_LINES } from './minigamelines.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { medailleBedrag, volgendeTredeTekst } from './medalrules.js';
@@ -522,7 +522,7 @@ function updateHud(w) {
   const left = g.phase === 'run' ? Math.ceil(g.left) : g.phase === 'intro' ? g.runS : 0;
   const cur = Math.round(c.cur);
   const online = g.online ? wedScoreRijen(w) : [];
-  const stand = online.length ? `<span>${online.map((r) => `${r.weg ? '<s>' : ''}${r.naam} ${(r.slagen || 0).toLocaleString('nl-NL')}${r.weg ? '</s>' : ''}`).join(' · ')}</span>` : '';
+  const stand = online.length ? `<span>${online.map((r) => `${r.weg ? '<s>' : ''}${esc(r.naam)} ${(r.slagen || 0).toLocaleString('nl-NL')}${r.weg ? '</s>' : ''}`).join(' · ')}</span>` : '';
   const run = g.beurten ? `<span>Beurt <b>${Math.min(g.beurten.beurten, beurtNu(g.beurten) + 1)}/${g.beurten.beurten}</b></span>` : '';
   const scoreTxt = g.beurten ? `${(somVan(g.beurten) + c.total).toLocaleString('nl-NL')}` : c.total.toLocaleString('nl-NL'); // de som van de runs tot nu toe
   const row = `${stand}${run}<span>Tijd <b>${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}</b></span><span>${g.beurten ? 'Totaal' : 'Score'} <b>${scoreTxt}</b></span><span>Keten <b>${cur.toLocaleString('nl-NL')}</b> x${c.chain ? c.mult : 1}</span><span>Beste <b>${c.best.toLocaleString('nl-NL')}</b></span>`;

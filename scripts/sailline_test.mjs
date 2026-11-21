@@ -1,10 +1,10 @@
-// De vaarroutelijn (game/js/vaarlijn.js): ligt op het water, volgt de route, is bijgesneden,
+// De vaarroutelijn (game/js/sailline.js): ligt op het water, volgt de route, is bijgesneden,
 // herbouwt bij een nieuwe berekening of een bocht, verdwijnt bij aankomst, en de bewaker:
 // bij een actieve vaarroute bestaat de lijn. Pure regels, zonder three.
-//   node scripts/vaarlijn_test.mjs
+//   node scripts/sailline_test.mjs
 import assert from 'node:assert/strict';
 
-const V = await import('../game/js/vaarlijn.js');
+const V = await import('../game/js/sailline.js');
 const { waterSurfaceAt, BOEZEM_Y } = await import('../game/js/waterlevels.js');
 let n = 0;
 const ok = (c, m) => { n++; assert.ok(c, m); };
@@ -109,9 +109,9 @@ const gd = V.vulLijn(buf, dpts, yAt, { afgekapt: true, dash: true });
 ok(gd.nIdx > 0 && gd.nIdx < (gd.n - 1) * 6 * 0.6, 'de terugval is gestippeld: stukken ontbreken');
 
 // --- bewaker: bij een actieve vaarroute bestaat de lijn --------------------------------------
-// (de scene-kant, vaarlijn3d.js, bouwt de lijn precies uit deze regels; hier de contractregel)
+// (de scene-kant, sailline3d.js, bouwt de lijn precies uit deze regels; hier de contractregel)
 const bewaker = (r) => { const w = V.vaarlijnGewenst(r); if (!w) return true; const pts = V.herbemonster(ahead(r, V.VAARLIJN.AHEAD_M)); return V.vulLijn(buf, pts, yAt, { afgekapt: true }).nIdx > 0; };
 ok(bewaker(r1) && bewaker(r2) && bewaker(route({ idx: 3, px: 600, py: 300, remaining: 100 })), 'bij elke actieve vaarroute levert de bouw een lijn');
 ok(V.herbemonster([[0, 0]]).length === 1 && V.vulLijn(buf, [[0, 0]], yAt).nIdx === 0, 'een enkel punt: geen lijn, geen fout');
 
-console.log(`vaarlijn_test: ${n} checks ok`);
+console.log(`sailline_test: ${n} checks ok`);

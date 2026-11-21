@@ -333,6 +333,24 @@ const CSS = `
 `;
 
 let dlg = null;
+let vorigeFocus = null;
+
+// Tab in de dialoog: de volgende (of met Shift de vorige) knop, rond; buiten de dialoog terug naar de eerste. Puur, voor de test.
+export function focusVolgende(knoppen, actief, terug) {
+  if (!knoppen || !knoppen.length) return null;
+  const i = knoppen.indexOf(actief);
+  if (i < 0) return terug ? knoppen[knoppen.length - 1] : knoppen[0];
+  return knoppen[(i + (terug ? knoppen.length - 1 : 1)) % knoppen.length];
+}
+
+// Sluiten geeft de focus terug aan wat hem had (de dialoog was een onderbreking, geen nieuwe plek).
+function sluitTechInfo() {
+  if (!dlg) return;
+  dlg.hidden = true;
+  const v = vorigeFocus; vorigeFocus = null;
+  try { if (v && v.isConnected !== false && typeof v.focus === 'function') v.focus({ preventScroll: true }); } catch (e) { /* de plek is weg: geen ramp */ }
+}
+
 export async function showTechInfo() {
   if (typeof document === 'undefined') return;
   if (!dlg) {
@@ -348,15 +366,21 @@ export async function showTechInfo() {
     dlg.addEventListener('click', (e) => {
       const b = e.target.closest('button[data-gd]');
       if (!b) return;
-      if (b.dataset.gd === 'close') dlg.hidden = true;
+      if (b.dataset.gd === 'close') sluitTechInfo();
       else writeClipboard(dlg.querySelector('[data-gd-text]').textContent).then((ok) => { b.textContent = ok ? 'Gekopieerd' : 'Kopiëren lukte niet'; });
     });
     window.addEventListener('keydown', (e) => {
       if (!dlg || dlg.hidden) return;
-      if (e.key === 'Escape') { dlg.hidden = true; e.preventDefault(); e.stopPropagation(); }
+      if (e.key === 'Escape') { sluitTechInfo(); e.preventDefault(); e.stopPropagation(); }
+      else if (e.key === 'Tab') { // focusval (aria-modal): Tab blijft binnen de dialoog
+        const knoppen = [...dlg.querySelectorAll('button')];
+        const volgende = focusVolgende(knoppen, document.activeElement, e.shiftKey);
+        if (volgende) { volgende.focus({ preventScroll: true }); e.preventDefault(); }
+      }
     }, true);
     document.body.appendChild(dlg);
   }
+  vorigeFocus = document.activeElement && document.activeElement !== document.body ? document.activeElement : null;
   dlg.hidden = false;
   const pre = dlg.querySelector('[data-gd-text]');
   pre.textContent = 'Meten, een paar seconden…';
@@ -364,8 +388,7 @@ export async function showTechInfo() {
   dlg.querySelector('[data-gd="copy"]').focus({ preventScroll: true });
   try {
     pre.textContent = await techInfoText();
-    // one click is enough: the block is on the clipboard as soon as it is ready
-    if (await writeClipboard(pre.textContent)) dlg.querySelector('[data-gd="copy"]').textContent = 'Gekopieerd';
+    // geen automatische schrijfactie naar het klembord (review 21-11): wat de speler daar had, blijft staan tot hij op Kopiëren klikt
   } catch (e) { pre.textContent = `Meten mislukte: ${e && e.message}`; }
 }
 

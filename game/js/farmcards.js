@@ -51,8 +51,8 @@ export function veldKaartHtml(k) {
     `<p class="ds-z-kaart__tekst">${gewas} · ${esc(String(k.ha).replace('.', ','))} ha · ${k.soort === 'weiland' ? 'weiland' : 'akker'}${k.actief ? ' · werkt hier' : ''}</p>` +
     voortgang +
     `<ul class="bd-veld__feiten"><li><span class="ds-t-hulp">Volgende stap</span><b>${esc(k.volgende)}</b></li>${verwacht}</ul>` +
-    `<footer class="ds-z-kaart__voet"><button type="button" class="ds-z-knop ds-z-knop--secundair" data-bd-naar="${esc(k.id)}" data-bd-sluit="1">Naar veld</button>` +
-    `<button type="button" class="ds-z-knop ds-z-knop--secundair" data-bd-naar="${esc(k.id)}" data-goto="map">Markeer op kaart</button></footer></article>`;
+    `<footer class="ds-z-kaart__voet"><button type="button" class="ds-z-knop ds-z-knop--secundair" data-bd-naar="${esc(k.id)}" data-bd-sluit="1" aria-label="Naar veld ${esc(k.naam)}">Naar veld</button>` +
+    `<button type="button" class="ds-z-knop ds-z-knop--secundair" data-bd-naar="${esc(k.id)}" data-goto="map" aria-label="Markeer ${esc(k.naam)} op kaart">Markeer op kaart</button></footer></article>`;
 }
 
 // De machines als compacte lijst met status; leeg is een eerlijke zin met de weg naar de winkel van het scherm (Machines).
@@ -100,7 +100,7 @@ export function kaartenBlok(b) {
     `<p class="ds-z-kaart__tekst">${esc(eerste.naam)}${eerste.gewasNaam ? ` · ${esc(eerste.gewasNaam)}` : ''}${schuurKg ? ` · in de schuur: ${nl(schuurKg)} kg` : ''}${o.verwachtKg ? ` · verwacht op het land: ${nl(o.verwachtKg)} kg` : ''}</p>` +
     lusHtml({ ...s, ...{ statusId: eerste.statusId, klaar: eerste.klaar } }, schuurKg) + (eerste.groeit ? groeiHtml({ naam: eerste.naam, stadium: 0, groei: eerste.groei }) : '') +
     `<footer class="ds-z-kaart__voet"><button type="button" class="ds-z-knop" data-bd-naar="${esc(eerste.id)}" data-bd-sluit="1">${esc(o.hoofd.label)}</button></footer></article>`;
-  const velden = `<div class="bd-velden" role="list" aria-label="Je velden">${o.velden.map((k) => veldKaartHtml(k)).join('')}</div>`;
+  const velden = `<div class="bd-velden" role="group" aria-label="Je velden">${o.velden.map((k) => veldKaartHtml(k)).join('')}</div>`;
   const dieren = `<p class="ds-t-hulp bd-dieren">Dieren: er lopen nog geen dieren op je boerderij; je werkt met akkers en weiland.</p>`;
   return hoofd + velden + machinesKaartHtml(o.machines) + toegangKaartHtml(o.toegang) + dieren + uitlegKaartHtml(true);
 }

@@ -79,6 +79,7 @@ export function buildStageSet(world, kind, player, targetScene = null, opts = {}
   try {
     if (world && world.map && world.map.groundHeightAt) base = world.map.groundHeightAt(layout.x, layout.y, 50) || 0;
   } catch (e) { base = 0; }
+  let shift = null; // hoe ver de kamer is verschoven t.o.v. de speler (de hold-stap meet het doel mee, binnenset.js verschoveDoel)
   if (isRoomKind(kind)) {
     // de nieuwe kamers: passen ze niet (grond onbekend, water of een gebouw in de voetafdruk),
     // dan geen kamer en speelt de stap in de open lucht, zoals voor de sets bestonden
@@ -95,6 +96,7 @@ export function buildStageSet(world, kind, player, targetScene = null, opts = {}
       if (!spot) return null;
       layout = stageSetLayout(kind, { x: spot.x, y: spot.y, angle: player.angle });
       fit = fitAt(layout);
+      shift = { x: spot.x - player.x, y: spot.y - player.y };
     }
     base = fit.z;
   }
@@ -135,7 +137,7 @@ export function buildStageSet(world, kind, player, targetScene = null, opts = {}
   // echt binnen: de wereld blijft buiten de kamer (voetgangers, verkeer en losse props wijken; de sweep ruimt ze op)
   const zone = setClearZone(kind, layout);
   if (zone) addClearZone(zone.id, zone.pts, zone.r, zone.closed);
-  return { kind, layout, base, variant: opts.variant || null, group, kit, people, t: 0, hold: layout.hold, zone: !!zone };
+  return { kind, layout, base, variant: opts.variant || null, group, kit, people, t: 0, hold: layout.hold, shift, zone: !!zone };
 }
 
 // Every frame: the server room's leds and the people in the room live.

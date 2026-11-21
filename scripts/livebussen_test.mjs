@@ -246,4 +246,11 @@ const bus = (id, x, y, bearing, speed = 8) => { const [lat, lon] = ll(x, y); ret
   }
 }
 
+// review 21-11: de instellingstekst belooft niets wat niet klopt (het IP-adres gaat onvermijdelijk naar de bron)
+{
+  const menu = fs.readFileSync(new URL('../game/js/pausemenu.js', import.meta.url), 'utf8');
+  assert.ok(!/geen gegevens van jou/.test(menu), 'geen te sterke privacybelofte bij Live bussen');
+  assert.ok(/de bron ziet alleen dat er een verzoek komt/.test(menu), 'de tekst zegt eerlijk wat de bron ziet');
+}
+
 console.log('livebussen_test: ok');

@@ -1,5 +1,6 @@
 // Pure side of the context hints and the help overview (game/js/hintkit.js, helpoverview.js, #201):
 //   node scripts/hintkit_test.mjs
+import fs from 'node:fs';
 import * as K from '../game/js/hintkit.js';
 import { HELP_TOPICS, helpHtml, helpPlain } from '../game/js/helpoverview.js';
 import { KEYS } from '../game/js/storagekeys.js';
@@ -100,5 +101,9 @@ ok(HELP_TOPICS.every((t) => t.lines.every((l) => !/\b(the|and|press)\b/i.test(l)
   const src = fs.readFileSync(new URL('../game/js/contexthints.js', import.meta.url), 'utf8') + fs.readFileSync(new URL('../game/js/coophud.js', import.meta.url), 'utf8');
   ok(/updateSamenHints[(]world[)]/.test(src) && /pickSamenHint/.test(src), 'coophud roept de samen-kaarten aan, voor host én gast');
 }
+// review 21-11: de penaltyhint noemt Spatie als toetsplaatje, niet als woord; Hulp toont zijn basisuitleg zonder Niet meer tonen
+ok(K.HINTS.find((x) => x.id === 'm-penalty').body.includes('{SPACE}') && !/houd Spatie/.test(K.HINTS.find((x) => x.id === 'm-penalty').body), 'penaltyhint: {SPACE}');
+ok(!fs.readFileSync(new URL('../game/js/pausemenu.js', import.meta.url), 'utf8').includes('uitlegBlok(id, { nietMeer: true })'), 'Hulp: naslag zonder Niet meer tonen');
+
 console.log(fails ? `${fails} of ${n} failed` : `hintkit_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);

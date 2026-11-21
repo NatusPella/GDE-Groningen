@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import {
   CHECKPOINT_KINDS, isCheckpointStage, makeCheckpoint, applyCheckpointProgress, recordCheckpoint,
-  GRACE_S, createGrace, stepGrace, createRetryOffer, retryOfferLive, RETRY_OFFER_S, RETRY_KEYS,
+  GRACE_S, createGrace, stepGrace, createRetryOffer, retryOfferLive, retryOverzichtLive, RETRY_OFFER_S, RETRY_KEYS,
 } from '../game/js/missioncheckpoint.js';
 import { placeParty, applyTravel } from '../game/js/storytravel.js';
 let n = 0, fails = 0;
@@ -68,6 +68,7 @@ ok(stepGrace(g3, 24, 'away').state === 'grace', 'na terugkeer begint de klok opn
 
 // --- Opnieuw-aanbod
 const o = createRetryOffer(7, 100);
+const o0 = createRetryOffer(7, 100);
 ok(retryOfferLive(o, 100) && retryOfferLive(o, 100 + RETRY_OFFER_S - 1) && !retryOfferLive(o, 100 + RETRY_OFFER_S), 'aanbod verloopt');
 o.done = true;
 ok(!retryOfferLive(o, 101) && !retryOfferLive(null, 0), 'klaar of leeg');
@@ -101,7 +102,15 @@ ok(/wrecked \|\| v\.disabled\) return vf\.wrecked/.test(m), 'kapot blijft direct
 ok(/placeParty\(world, def\.start\)/.test(m), 'Opnieuw zet de groep op de startplek');
 // #985 punt 16: de hint verdween na 40 s en dan was de startmarker de enige weg terug. Overzicht
 // heeft nu dezelfde actie als Enter, via een pure check en één functie die de fade start.
-ok(/export function retryBeschikbaar\(\)/.test(m) && /st\.retry && retryOfferLive\(st\.retry/.test(m), 'het aanbod is als pure check beschikbaar');
+ok(/export function retryBeschikbaar\(\)/.test(m) && /st\.retry && retryOverzichtLive\(st\.retry, st\.index\)/.test(m), 'het aanbod is als pure check beschikbaar');
+// review 21-11: Overzicht verliep na dezelfde 40 s als de Enter-hint, terwijl de changelog het tegendeel belooft; en de herstart sloeg de bewakers van Enter over
+ok(retryOverzichtLive(o0, 7) && !retryOverzichtLive(o0, 8) && !retryOverzichtLive(null, 7), 'Overzicht: het aanbod hoort bij de laatste missie');
+ok(retryOverzichtLive(o0, 7) && !retryOfferLive(o0, 100 + RETRY_OFFER_S + 500), 'na de 40 s van de hint blijft de rij in Overzicht bestaan');
+ok(!retryOverzichtLive({ ...o0, done: true }, 7), 'een afgehandeld aanbod is weg');
+ok(/\n  if \(!retryOfferLive\(r, world\.time\)\) return;/.test(m) && !/r\.missionIndex !== chainState\(\)\.index \|\| !retryOfferLive/.test(m), 'updateRetry wist het aanbod niet meer na 40 s, alleen de hint verdwijnt');
+ok(/export function herstartBlokkade\(world\)/.test(m) && /herstartBlokkade\(world\)\) return false;/.test(m), 'herstartMissie gebruikt dezelfde bewakers als Enter');
+for (const b of ['isCinematicActive()', 'world.pendingRespawn', 'world.sideJob && world.sideJob.active', "playerBusy(world, ['challenge', 'padel', 'activityGame'])"]) ok(m.slice(m.indexOf('export function herstartBlokkade')).split('\n').slice(0, 10).join('\n').includes(b), 'herstartBlokkade bewaakt ' + b);
+ok(/else status\(herstartBlokkade\(world\)/.test(read('pausemenu.js')), 'de knop zegt waarom het nu niet kan');
 ok(/export function herstartMissie\(world\)/.test(m) && /st\.retry\.fade = RETRY_FADE_S/.test(m) && /respawnFade\(1, 350\)/.test(m), 'herstart doet hetzelfde als Enter');
 const pmSrc = fs.readFileSync(new URL('../game/js/pausemenu.js', import.meta.url), 'utf8');
 ok(/retryBeschikbaar\(\)\) return \{ title: .*herstart: true \}/.test(pmSrc), 'Overzicht toont de herstart na een mislukking');

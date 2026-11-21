@@ -451,7 +451,7 @@ function gastTik(w, dt) {
 }
 registreerWedstrijd('penalty', {
   naam: 'Penaltyserie Euroborg', soort: 'punt', vak: 'buiten',
-  opties: () => ({ beurten: 1, naEerste: 120, format: (p) => goalsTekst(Math.round(p)) }),
+  opties: () => ({ beurten: 1, naEerste: 120, format: (p) => goalsTekst(Math.round(p)), max: SCHOTEN }), // een serie heeft SCHOTEN schoten: meer melden kan niet
   start: (w) => start(w, { online: 'host', force: true }),
   plek: () => ({ ...GATE }),
   gastPlek: (w, x, y) => !game && !hoofdspeler(w).inVehicle && Math.hypot(x - GATE.x, y - GATE.y) < 4.5, // een gast vraagt het bij de spelerspoort

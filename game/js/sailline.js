@@ -1,6 +1,6 @@
 // De vaarroutelijn: een doorlopende lijn op het wateroppervlak die de berekende vaarroute
 // (vaarnet.js, via routing.js) volgt, zoals het routelint op land. Pure regels, zonder three:
-// scene3d/vaarlijn3d.js maakt er de mesh van. Boeien blijven echte navigatiemarkeringen
+// scene3d/sailline3d.js maakt er de mesh van. Boeien blijven echte navigatiemarkeringen
 // (vaargeul, ondiepte); de route zelf is een lijn, geen rij boeien meer.
 //
 // Samen spelen: lokaal per speler (de route is die van de speler zelf, net als het routelint).

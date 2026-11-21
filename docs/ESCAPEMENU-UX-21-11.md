@@ -46,7 +46,7 @@ Dit is een audit per taak, met toetsenbord en controller als maatstaf, plus wat 
 ## Wat er nu staat
 
 - Rail: `Doorgaan` (geel, met pictogram) en een zoekknop bovenaan, in-game. In het hoofdmenu blijft de knop Terug.
-- Zoekvenster (`menuzoek.js`, puur, `scripts/menuzoek_test.mjs`): een modale laag zoals de afsluitvraag (rest inert, Tab en pijlen blijven erbinnen, Esc sluit eerst het venster). Pijl omlaag gaat van het veld naar de lijst, Enter kiest de beste treffer.
+- Zoekvenster (`pausesearch.js`, puur, `scripts/pausesearch_test.mjs`): een modale laag zoals de afsluitvraag (rest inert, Tab en pijlen blijven erbinnen, Esc sluit eerst het venster). Pijl omlaag gaat van het veld naar de lijst, Enter kiest de beste treffer.
 - Controller: de zoekknop zit in de rail en is met de D-pad te bereiken; het venster opent dan op de beginlijst met focus op de eerste regel. Het zoekveld zelf wordt door `visibleFocusables` overgeslagen, zoals de andere zoekvelden.
 - Afsluiten: ongewijzigd, wel gecontroleerd.
 

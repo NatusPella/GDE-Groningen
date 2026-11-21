@@ -10,7 +10,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { markerColors } from '../a11y.js';
 import { reducedMotion } from '../motion.js';
 import { airLine, airLineFault, airGuide, AIR_LINE_AHEAD_M, AIR_ALT_BAND } from '../airguide.js';
-import { noteRibbonRepair } from '../routeribbonwatch.js';
+import { noteRibbonRepair } from '../pathribbonwatch.js';
 
 const HALF_W = 3.2;
 const NOSE_M = 14;
@@ -198,7 +198,7 @@ export function updateAirLine3D(scene, dt, flying, route, me) {
     if (errorsSeen++ < 3) console.warn('[route] fout in de luchtlijn', e);
     return false;
   }
-  // waakhond: bestaat de luchtlijn nog zoals hij hoort? Anders herstel en tel (zie routeribbonwatch.js)
+  // waakhond: bestaat de luchtlijn nog zoals hij hoort? Anders herstel en tel (zie pathribbonwatch.js)
   watchT += dt;
   if (watchT >= WATCH_S) {
     watchT = 0;

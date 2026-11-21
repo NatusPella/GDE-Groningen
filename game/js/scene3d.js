@@ -170,7 +170,7 @@ import { lookBackActive, chaseFollowLerp } from './controls.js';
 import { cameraAspect, cameraVerticalFov, followCameraPose, cameraSnapNeeded, camPushRaysNeeded, pitchForMouse, DEFAULT_PITCH } from './cameraplan.js';
 import { gameBusy } from './busy.js';
 import { compileTarget } from './compiletarget.js';
-import { withParkedMaterials } from './startcompile.js';
+import { withParkedMaterials } from './launchcompile.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
 // draws - same x/y meters, same b.h building heights, same vehicle/pedestrian
@@ -1942,7 +1942,7 @@ export function precompilePrograms(opts = {}) {
   const t0 = performance.now();
   try {
     if (renderer && scene && cam) {
-      // materiaal zonder geometry laat renderer.compile() crashen (#804): startcompile.js parkeert het even
+      // materiaal zonder geometry laat renderer.compile() crashen (#804): launchcompile.js parkeert het even
       const n = withParkedMaterials(scene, () => {
         precompile(scene);
         if (opts.filmLicht && !perfOff('filmlicht')) withLightRig(!isLightRigOn(), () => precompile(scene));
@@ -1952,7 +1952,7 @@ export function precompilePrograms(opts = {}) {
   } catch (e) { console.warn('shaders voorcompileren', e); }
   return performance.now() - t0;
 }
-// #1046: de onderdelen voor startcompile.js planPrecompile (porties met tijdbudget i.p.v. één blokkerende aanroep)
+// #1046: de onderdelen voor launchcompile.js planPrecompile (porties met tijdbudget i.p.v. één blokkerende aanroep)
 export const precompileKit = () => ({ scene, compile: precompile, withLightRig, lightRigOn: isLightRigOn, filmOff: perfOff('filmlicht') });
 
 const BUILDING_PREFETCH = 30;

@@ -75,5 +75,19 @@ ok(C.parseNearFlag(null) === null && C.parseNearFlag('') === null && C.parseNear
 ok(C.parseNearFlag('0') === null && C.parseNearFlag('-1') === null && C.parseNearFlag('50') === null, '?near buiten 0,1 tot 10 doet niets');
 ok(C.parseFarFlag('400') === 400 && C.parseFarFlag('20') === null && C.parseFarFlag('1e9') === null, '?far leest alleen 100 tot 20000 m');
 
+// review 21-11: de dieptemarge in eerste persoon (near 0,08 m) tegenover de gewone camera (0,5 m), met de far-plane van het spel
+for (const far of [1500, 6000, 20000]) {
+  for (const d of [50, 200, 500]) {
+    const exact = C.depthStepExact(d, C.NEAR_FIRST_PERSON, far);
+    ok(Math.abs(exact / C.depthStep(d, C.NEAR_FIRST_PERSON) - 1) < 0.001, 'far ' + far + ' verandert de dieptestap niet (far >> near), d=' + d);
+  }
+}
+const stap = (d, n) => C.depthStep(d, n) * 1000; // mm
+ok(near(stap(50, C.NEAR_FIRST_PERSON), 1.86, 0.02) && near(stap(200, C.NEAR_FIRST_PERSON), 29.8, 0.1) && near(stap(500, C.NEAR_FIRST_PERSON), 186.3, 0.3), 'eerste persoon: 1,9 mm op 50 m, 30 mm op 200 m, 186 mm op 500 m');
+ok(near(stap(200, C.NEAR_MIN), 4.77, 0.02) && near(stap(500, C.NEAR_MIN), 29.8, 0.1), 'gewone camera: 4,8 mm op 200 m, 30 mm op 500 m');
+ok(near(stap(200, C.NEAR_FIRST_PERSON) / stap(200, C.NEAR_MIN), C.NEAR_MIN / C.NEAR_FIRST_PERSON, 1e-9), 'de stap is 6,25 keer groter, evenredig met 0,5 / 0,08');
+ok(Math.round(C.maxSafeDistance(0.004, C.NEAR_FIRST_PERSON)) === 73 && Math.round(C.maxSafeDistance(0.004, C.NEAR_MIN)) === 183, 'een gebouwnudge van 4 mm blijft tot 73 m (eerste persoon) en 183 m (gewoon) betrouwbaar');
+ok(Math.round(C.maxSafeDistance(0.004, 0.15)) === 100, 'de terugvaloptie near 0,15 m: 100 m');
+
 if (fails) { console.log(fails + ' failed'); process.exit(1); }
 console.log('cameranear: all passed');

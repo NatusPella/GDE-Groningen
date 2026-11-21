@@ -3,9 +3,10 @@
 Voor wie de nieuwe versie speelt. Eerlijk wat niet getest of niet af is. Niets hieronder is een reden om niet te spelen; het is wat je kunt tegenkomen. De feiten komen uit de agent-rapporten in de issues #1008 tot #1041 en uit `docs/*-21-11.md`; alles wat een agent niet in beeld heeft gezien staat als "nog niet bekeken".
 
 ## Samen spelen
+- **Valt wie het spel opende hard weg (spel gesloten, laptop in slaap, verbinding weg zonder afscheid), dan komen de anderen niet bij een nieuwe speler die het overneemt.** De oplossing (`samen-overname-21-11`: begrensde pogingen met uitstel, verhuisverwijzing, herstel van een gesplitste groep, #1059) is nog niet gemerged. Na ongeveer 30 seconden wordt elke gast zelf de eigenaar van een eigen lege sessie, zonder de wereld van de groep; de voortgang per speler (#429) blijft wel van de speler zelf. Een geplande overdracht met de knop werkt wel (suite `overdracht`). Start in dat geval opnieuw samen.
 - **Update 21-11 (samen-vensters-21-11):** een sessie met vier echte Electron-vensters is nu wel gedraaid (basis, vier, net, bijbaan door een gast, hostwissel via de kamerroute); zie docs/COOP-GAST.md "Vier echte vensters". Nog niet in vensters: Fatbikes ontwijken, penaltyserie, duivenspot, hostwissel tijdens een filmpje en over internet.
 - **Eerder: een echte sessie met vier Electron-vensters was niet gedraaid.** Bezorgen met verdeelde adressen, de pannenkoekenwedstrijd en het proefbeleg bij Bourtange (M30) zijn bewezen met pure tests en met twee en vier spelers over echte TCP-verbindingen (`samenwedstrijd_tcp_test`, `samenmissies_tcp_test`), niet met echte vensters of over internet.
-- Opnieuw verbinden na een hostwissel is alleen met de pure coöptests geprobeerd (`hostwissel_test`, `coop_scenarios_test`).
+- Opnieuw verbinden na een geplande overdracht is bewezen in de vensters (suite `overdracht`); na een harde uitval niet (zie hierboven).
 - Iedereen moet op dezelfde versie zitten; verbind één voor één.
 
 ## Nog niet in beeld bekeken

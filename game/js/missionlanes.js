@@ -129,6 +129,19 @@ function fatbikersAnswerHonk(world, p) {
   (world.extraSpeakers || (world.extraSpeakers = [])).push({ x: b.v.x, y: b.v.y, h: 2.2, follow: b.v, speechText: text, speechUntil: world.time + 2.8 });
 }
 
+// Een melding voor een meespeler: wie het spel opende op het eigen scherm, een gast via zijn eigen kanaal (world.coopMeld, hooguit eens per 1,5 s per gast).
+// Zonder dit zag de host de meldingen van een geraakte gast alsof hij zelf geraakt was (review 21-11, Samen spelen).
+function meldAanActeur(world, a, tekst, secs, opts, gastWacht = 1.5) {
+  if (!a || !a.gast) { world.addMessage(tekst, secs, opts); return true; }
+  if (!world.coopMeld || !Number.isFinite(a.slot)) return false;
+  const st = state();
+  const at = st.gastMeldAt || (st.gastMeldAt = {});
+  if (world.time < (at[a.slot] || 0)) return false;
+  at[a.slot] = world.time + gastWacht;
+  world.coopMeld(a.slot, tekst);
+  return true;
+}
+
 // Sleutel van een meespeler voor de tellers: de host (dit apparaat) of de slot van een gast.
 const dodgeKey = (a) => (a && a.gast ? 'g' + a.slot : 'host');
 
@@ -163,7 +176,7 @@ function updateDodge(dt, world, def, g) {
       const rec = b.rec[k] || (b.rec[k] = {});
       if (passTick(rec, dist(b.v.x, b.v.y, a.x, a.y)) === 'ontweken') {
         const n = noteDodge(d, k);
-        if (!a.gast) world.addMessage(`Ontweken: ${n}`, 1.1, { key: 'fat-ontweken' });
+        meldAanActeur(world, a, `Ontweken: ${n}`, 1.1, { key: 'fat-ontweken' });
       }
     }
   }
@@ -234,8 +247,8 @@ function checkLaneHits(world) {
       if (dodge) { const rec = b.rec[dodgeKey(p)] || (b.rec[dodgeKey(p)] = {}); rec.klaar = true; }
       state().hitGraceUntil = world.time + BIKE_HIT_GRACE;
       let dmg = dodge ? 0 : Math.round(b.fat ? 5 + b.speed * 0.6 : 2 + b.speed * 0.3); // M08: omvallen zonder letsel
-      if (world.armor > 0) { const a = Math.min(world.armor, dmg); world.armor -= a; dmg -= a; }
       const isHost = p === host;
+      if (isHost && world.armor > 0) { const a = Math.min(world.armor, dmg); world.armor -= a; dmg -= a; } // het pantser is van wie het spel opende, niet van een geraakte gast
       if (isHost) world.health = Math.max(0, world.health - dmg);
       else {
         p.health = Math.max(0, (Number.isFinite(p.health) ? p.health : 100) - dmg);
@@ -247,11 +260,14 @@ function checkLaneHits(world) {
       if (b.fat || dead) knockDown(p, world, { kind: 'hit', dead, vx: vx * 0.8, vy: vy * 0.8, vz: 1.2 + b.speed * 0.15, lieFor: 1.1 });
       else { p.shoveX = (p.shoveX || 0) + vx * 0.7; p.shoveY = (p.shoveY || 0) + vy * 0.7; }
       b.speed *= 0.4;
-      world.addMessage(b.fat ? `Au! Geschept door een fatbike (${state().fatbikeHits}x)` : `Een fietser tikt je aan: "Kiek uut, joh!" (${state().fatbikeHits}x)`, 2);
+      meldAanActeur(world, p, b.fat ? `Au! Geschept door een fatbike (${state().fatbikeHits}x)` : `Een fietser tikt je aan: "Kiek uut, joh!" (${state().fatbikeHits}x)`, 2);
       if (dead && isHost) requestRespawn(world);
       if (dodge) {
         const res = noteHit(dodge, dodgeKey(p));
-        world.addMessage(res.restart ? 'Twee keer geraakt: je valt om en staat weer op. Het stuk begint opnieuw.' : `Geraakt ${res.hits}/2. Nog een keer en je begint het stuk opnieuw.`, 3, { key: 'fat-raak' });
+        const raakTekst = res.restart
+          ? (p.gast ? 'Twee keer geraakt: de teller begint opnieuw. Loop zelf terug naar het begin van het stuk.' : 'Twee keer geraakt: je valt om en staat weer op. Het stuk begint opnieuw.')
+          : `Geraakt ${res.hits}/2. Nog een keer en je begint het stuk opnieuw.`;
+        meldAanActeur(world, p, raakTekst, 3, { key: 'fat-raak' }, 0.2);
         if (res.restart && !p.gast) {
           const g = laneGeom(state().dodgeDef);
           const q = laneAt(g, segmentStart(dodge, laneProject(g, p.x, p.y).s));
@@ -400,5 +416,5 @@ function releaseCrowd() {
   }
 
   const dodgeStatus = (key = 'host') => (state().dodge ? hudLine(state().dodge, key) : null);
-  return { dodgeStatus, laneTarget, startLane, updateLaneBikes, checkLaneHits, releaseLaneBikes, spawnCrowds, updateCrowd, releaseCrowd, laneGeom, laneAt, laneProject };
+  return { dodgeStatus, laneTarget, startLane, updateLaneBikes, checkLaneHits, releaseLaneBikes, spawnCrowds, updateCrowd, releaseCrowd, laneGeom, laneAt, laneProject, meldAanActeur };
 }

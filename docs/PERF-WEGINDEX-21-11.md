@@ -54,7 +54,7 @@ maar ongeveer 20% goedkoper (244 tegen 315 ms): de rest is de opbouw van de arra
 Tests die groen bleven: `firstperson_test` (328), `import_cycles_test`, `lineendings_test`, `docs_index_test`,
 `graphgate_test`, `routeribbon_test`, `nearestroad_test`, `trafficlights_tiles_test`, `trafficpath_test`,
 `grass_want_test`, `grass_road_depth_test`, `roadpreload_test`, `vehicleindex_test`, `cemetery_route_test`, `startroute_test`,
-`ritroute_test`. `road_route_test`, `mode_route_test` en `surface_blend_test` haalden de tijdslimiet (120 s) op de bezette machine
+`ridepath_test`. `road_route_test`, `mode_route_test` en `surface_blend_test` haalden de tijdslimiet (120 s) op de bezette machine
 en zijn dus **niet** beoordeeld.
 
 ## Wat niet gemeten of niet gedaan is

@@ -1,6 +1,6 @@
-// #1011: de samenvatting van de startmeting (coopstartmeting.js) en het zetten van stappen. Puur, zonder browser.
+// #1011: de samenvatting van de startmeting (multiplayerlaunchtiming.js) en het zetten van stappen. Puur, zonder browser.
 import assert from 'node:assert/strict';
-import { samenvatStartMeting, markeerStartStap, startStartMeting } from '../game/js/coopstartmeting.js';
+import { samenvatStartMeting, markeerStartStap, startStartMeting } from '../game/js/multiplayerlaunchtiming.js';
 
 const s = samenvatStartMeting([
   { at: 10, dur: 500, stap: 'hek-open', bron: 'longtask' },
@@ -33,4 +33,4 @@ assert.ok(m && !m.klaar);
 assert.equal(startStartMeting(w2), m, 'eenmalig per start');
 m.stop();
 assert.ok(m.klaar && m.samenvatting.aantal === 0);
-console.log('coopstartmeting_test: ok');
+console.log('multiplayerlaunchtiming_test: ok');
