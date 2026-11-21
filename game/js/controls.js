@@ -45,7 +45,7 @@ export const KEY_ACTIONS = [
   ['5', 'Waypoint naar je eigen doel (nog eens: weg)', 'menu'],
   ['m', 'Kaart', 'menu'],
   ['o', 'Verhaalstap overslaan', 'menu'],
-  ['n', 'Radio aan of uit (ook te voet)', 'menu'],
+  ['n', 'Radio aan of uit (ook te voet); met Shift ingedrukt: de volgende zender', 'menu'],
   ['u', 'Geluid aan of uit', 'menu'],
   ['backspace', 'Minigame stoppen', 'menu'],
 ];

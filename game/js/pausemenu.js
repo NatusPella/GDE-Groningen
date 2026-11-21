@@ -46,7 +46,8 @@ import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer, garageNaar
 import { deliverOwnedVehicle, locateOwnedVehicle, getGarageList, verkoopVoertuig, actieBevestiging } from './ownedvehicles.js';
 import { isShopOpen, closeShopMenu } from './shopui.js';
 import { benchmarkViaReload } from './trailerstate.js';
-import { radioIsOn, setRadio } from './radio.js';
+import { radioIsOn, setRadio, channelList, selectChannel, stepChannel } from './radio.js';
+import { channelPickerHtml } from './radiokeuze.js';
 import { isMuted, toggleMute } from './audio.js';
 import { glyphHtml, resetHintUses } from './prompts.js';
 import { KEY_ACTIONS, KEY_GROUPS, PAD_REMAPPABLE, PAD_SLOT_NAMES, bindKey, bindButton, physicalKey, defaultKey, physicalButton, isBindableKey, keyName, slotUses } from './controls.js';
@@ -746,7 +747,8 @@ function settingsHtml() {
       ${slider('sfxVolume', 'Effecten')}
       ${slider('voiceVolume', 'Stemmen')}
       <label class="m-li pm-row pm-mute">${rowName('Geluid in één keer uit', 'Zet alle geluid uit; de luidspreker linksboven zet het weer aan')}<input type="checkbox" class="m-sw" data-mute-switch><span class="pm-mutehint">${icon('mute')}<span class="m-kc">U</span></span></label>
-      <label class="m-li pm-row">${rowName('Radio G-Music', 'Ook met {N}, te voet en in elk voertuig')}<input type="checkbox" class="m-sw" data-radio-switch></label>
+      <label class="m-li pm-row">${rowName('Radio', 'Aan of uit met {N}, te voet en in elk voertuig. Shift+{N} is de volgende zender')}<input type="checkbox" class="m-sw" data-radio-switch></label>
+      <div class="pm-channels-wrap" data-channels-wrap></div>
       ${disclosure('subs', 'Ondertitels', 'Filmpjes, gesprekken, telefoon, radio en naamkaarten', `
         ${toggle('showSubtitles', 'Ondertitels aan', 'Uit verbergt wat er gezegd wordt; geluiden beschrijven hieronder blijft dan gewoon werken')}
         ${picker('subtitleSize', 'Grootte', [['klein', 'Klein'], ['normaal', 'Normaal'], ['groot', 'Groot'], ['extragroot', 'Extra groot']])}
@@ -1127,6 +1129,10 @@ export function initPauseMenu(w) {
       renderGaragePanel(garageEl(), world, r.text);
       return;
     }
+    // de zenderkeuze (radiokeuze.js): een rij kiest die zender, de knop onderin gaat naar de volgende
+    const chRow = e.target.closest('[data-channel]');
+    if (chRow) { selectChannel(chRow.dataset.channel, { announce: false }); syncChannels(chRow.dataset.channel); return; }
+    if (e.target.closest('[data-channel-next]')) { stepChannel(1); syncChannels(); return; }
     const gf = e.target.closest('[data-garage-find]');
     if (gf) return garageFind(gf.dataset.garageFind);
     const gs = e.target.closest('[data-garage-select]');
@@ -1405,6 +1411,8 @@ function onKey(e) {
     consume(e);
     if (t && t.type === 'range' && (dir === 'left' || dir === 'right')) stepRange(t, dir === 'right' ? 1 : -1);
     else if (t && t.closest && t.closest('.m-pk') && (dir === 'left' || dir === 'right')) stepPicker(t.closest('.m-pk'), dir === 'right' ? 1 : -1);
+    // de zenderlijst: links en rechts (D-pad) wisselen van zender, zoals bij een keuzerij; omhoog en omlaag lopen door de rijen
+    else if (t && t.closest && t.closest('[data-channels]') && (dir === 'left' || dir === 'right')) { stepChannel(dir === 'right' ? 1 : -1); syncChannels(); }
     else moveFocus(dir);
   } else if (k === 'Enter' || k === ' ') {
     if (!t || !root.contains(t)) return;
@@ -2365,10 +2373,21 @@ function syncDesktopControls() {
   if (fs && DESKTOP) fs.checked = !!DESKTOP.isFullscreen();
 }
 
+// De zenderlijst opnieuw tekenen (een zender gekozen, een geheime erbij) en de focus op de actieve rij of de gekozen rij laten staan.
+function syncChannels(focusId = null) {
+  const wrap = root && root.querySelector('[data-channels-wrap]');
+  if (!wrap) return;
+  const had = !!(document.activeElement && wrap.contains(document.activeElement));
+  wrap.innerHTML = channelPickerHtml(channelList());
+  const row = wrap.querySelector(focusId ? `[data-channel="${focusId}"]` : '[aria-selected="true"]');
+  if (had && row) row.focus({ preventScroll: true });
+}
+
 function syncControls() {
   const st = getSettings();
   const radio = root.querySelector('[data-radio-switch]');
   if (radio) radio.checked = radioIsOn();
+  syncChannels();
   const demp = root.querySelector('[data-mute-switch]');
   if (demp) demp.checked = isMuted();
   const shadowsAllowed = QUALITY_PRESETS[st.quality].shadows;
