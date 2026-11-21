@@ -1,0 +1,541 @@
+{
+ "desktop/vendor-fonts.css": {
+  "kleur": 0,
+  "glas": 0,
+  "oud": 0,
+  "font": 11,
+  "klein": 0
+ },
+ "game/index.html": {
+  "kleur": 6,
+  "glas": 10,
+  "oud": 0,
+  "font": 3,
+  "klein": 1
+ },
+ "game/js/a11y.css": {
+  "kleur": 12,
+  "glas": 5,
+  "oud": 2,
+  "font": 2,
+  "klein": 3
+ },
+ "game/js/achievements.js": {
+  "kleur": 4,
+  "glas": 6,
+  "oud": 0,
+  "font": 0,
+  "klein": 0
+ },
+ "game/js/activities.js": {
+  "kleur": 0,
+  "glas": 0,
+  "oud": 0,
+  "font": 1,
+  "klein": 0
+ },
+ "game/js/aimassist.js": {
+  "kleur": 0,
+  "glas": 1,
+  "oud": 0,
+  "font": 0,
+  "klein": 0
+ },
+ "game/js/bakeround.js": {
+  "kleur": 0,
+  "glas": 0,
+  "oud": 2,
+  "font": 0,
+  "klein": 0
+ },
+ "game/js/banter.js": {
+  "kleur": 0,
+  "glas": 0,
+  "oud": 0,
+  "font": 1,
+  "klein": 0
+ },
+ "game/js/bigmoment.css": {
+  "kleur": 0,
+  "glas": 0,
+  "oud": 0,
+  "font": 5,
+  "klein": 0
+ },
+ "game/js/busbestuurhud.js": {
+  "kleur": 1,
+  "glas": 0,
+  "oud": 0,
+  "font": 0,
+  "klein": 0
+ },
+ "game/js/busboard3d.js": {
+  "kleur": 0,
+  "glas": 1,
+  "oud": 0,
+  "font": 0,
+  "klein": 0
+ },
+ "game/js/carrieresfeer.js": {
+  "kleur": 1,
+  "glas": 1,
+  "oud": 0,
+  "font": 2,
+  "klein": 0
+ },
+ "game/js/choicepanel.js": {
+  "kleur": 1,
+  "glas": 1,
+  "oud": 0,
+  "font": 1,
+  "klein": 0
+ },
+ "game/js/cinematics.js": {
+  "kleur": 1,
+  "glas": 1,
+  "oud": 0,
+  "font": 4,
+  "klein": 0
+ },
+ "game/js/cockpit.js": {
+  "kleur": 0,
+  "glas": 1,
+  "oud": 0,
+  "font": 0,
+  "klein": 0
+ },
+ "game/js/coopoverlay.js": {
+  "kleur": 0,
+  "glas": 1,
+  "oud": 0,
+  "font": 0,
+  "klein": 0
+ },
+ "game/js/coopscene.js": {
+  "kleur": 6,
+  "glas": 3,
+  "oud": 0,
+  "font": 1,
+  "klein": 0
+ },
+ "game/js/coopwedstrijd3d.js": {
+  "kleur": 0,
+  "glas": 0,
+  "oud": 0,
+  "font": 1,
+  "klein": 0
+ },
+ "game/js/drunk.js": {
+  "kleur": 0,
+  "glas": 1,
+  "oud": 0,
+  "font": 0,
+  "klein": 0
+ },
+ "game/js/ds-components.css": {
+  "kleur": 0,
+  "glas": 0,
+  "oud": 53,
+  "font": 0,
+  "klein": 0
+ },
+ "game/js/ds-menu-zeef.css": {
+  "kleur": 0,
+  "glas": 2,
+  "oud": 0,
+  "font": 0,
+  "klein": 0
+ },
+ "game/js/farmcards.js": {
+  "kleur": 0,
+  "glas": 0,
+  "oud": 1,
+  "font": 0,
+  "klein": 0
+ },
+ "game/js/farmhud.js": {
+  "kleur": 0,
+  "glas": 0,
+  "oud": 5,
+  "font": 0,
+  "klein": 0
+ },
+ "game/js/furniture.js": {
+  "kleur": 0,
+  "glas": 0,
+  "oud": 0,
+  "font": 3,
+  "klein": 0
+ },
+ "game/js/gebiedenui.js": {
+  "kleur": 0,
+  "glas": 0,
+  "oud": 0,
+  "font": 2,
+  "klein": 0
+ },
+ "game/js/gfxprofile.js": {
+  "kleur": 2,
+  "glas": 0,
+  "oud": 0,
+  "font": 3,
+  "klein": 0
+ },
+ "game/js/golfhud.js": {
+  "kleur": 1,
+  "glas": 0,
+  "oud": 0,
+  "font": 0,
+  "klein": 0
+ },
+ "game/js/gpudiag.js": {
+  "kleur": 4,
+  "glas": 0,
+  "oud": 0,
+  "font": 4,
+  "klein": 0
+ },
+ "game/js/heist.css": {
+  "kleur": 22,
+  "glas": 10,
+  "oud": 0,
+  "font": 17,
+  "klein": 0
+ },
+ "game/js/heliflight.js": {
+  "kleur": 0,
+  "glas": 1,
+  "oud": 0,
+  "font": 1,
+  "klein": 1
+ },
+ "game/js/helirun.js": {
+  "kleur": 12,
+  "glas": 2,
+  "oud": 0,
+  "font": 7,
+  "klein": 0
+ },
+ "game/js/hud_panel.css": {
+  "kleur": 22,
+  "glas": 34,
+  "oud": 0,
+  "font": 22,
+  "klein": 1
+ },
+ "game/js/hudcards.css": {
+  "kleur": 0,
+  "glas": 3,
+  "oud": 0,
+  "font": 0,
+  "klein": 0
+ },
+ "game/js/hudcards.js": {
+  "kleur": 0,
+  "glas": 0,
+  "oud": 0,
+  "font": 0,
+  "klein": 1
+ },
+ "game/js/instrumenten.js": {
+  "kleur": 0,
+  "glas": 1,
+  "oud": 0,
+  "font": 0,
+  "klein": 4
+ },
+ "game/js/intromontage.js": {
+  "kleur": 2,
+  "glas": 3,
+  "oud": 0,
+  "font": 3,
+  "klein": 0
+ },
+ "game/js/kaartactieui.js": {
+  "kleur": 0,
+  "glas": 1,
+  "oud": 0,
+  "font": 9,
+  "klein": 0
+ },
+ "game/js/loadscreen.css": {
+  "kleur": 0,
+  "glas": 1,
+  "oud": 0,
+  "font": 0,
+  "klein": 0
+ },
+ "game/js/lowhealth.js": {
+  "kleur": 0,
+  "glas": 2,
+  "oud": 0,
+  "font": 0,
+  "klein": 0
+ },
+ "game/js/main.js": {
+  "kleur": 4,
+  "glas": 0,
+  "oud": 0,
+  "font": 0,
+  "klein": 0
+ },
+ "game/js/menu.css": {
+  "kleur": 24,
+  "glas": 40,
+  "oud": 0,
+  "font": 22,
+  "klein": 0
+ },
+ "game/js/multiplayerpvpwereld.js": {
+  "kleur": 0,
+  "glas": 0,
+  "oud": 0,
+  "font": 1,
+  "klein": 0
+ },
+ "game/js/onlineconsent.css": {
+  "kleur": 3,
+  "glas": 3,
+  "oud": 0,
+  "font": 4,
+  "klein": 0
+ },
+ "game/js/padel.js": {
+  "kleur": 0,
+  "glas": 1,
+  "oud": 0,
+  "font": 0,
+  "klein": 0
+ },
+ "game/js/padtest.js": {
+  "kleur": 11,
+  "glas": 0,
+  "oud": 0,
+  "font": 1,
+  "klein": 0
+ },
+ "game/js/pausemenu.css": {
+  "kleur": 24,
+  "glas": 23,
+  "oud": 0,
+  "font": 46,
+  "klein": 0
+ },
+ "game/js/pausemenu.js": {
+  "kleur": 0,
+  "glas": 1,
+  "oud": 0,
+  "font": 0,
+  "klein": 0
+ },
+ "game/js/pigeonguide.js": {
+  "kleur": 0,
+  "glas": 0,
+  "oud": 0,
+  "font": 0,
+  "klein": 1
+ },
+ "game/js/pigeonmode.js": {
+  "kleur": 7,
+  "glas": 5,
+  "oud": 0,
+  "font": 10,
+  "klein": 4
+ },
+ "game/js/postgame.js": {
+  "kleur": 16,
+  "glas": 2,
+  "oud": 0,
+  "font": 6,
+  "klein": 0
+ },
+ "game/js/prompts.css": {
+  "kleur": 2,
+  "glas": 14,
+  "oud": 0,
+  "font": 3,
+  "klein": 0
+ },
+ "game/js/radiosub.js": {
+  "kleur": 0,
+  "glas": 0,
+  "oud": 0,
+  "font": 1,
+  "klein": 0
+ },
+ "game/js/regelwidget.css": {
+  "kleur": 0,
+  "glas": 5,
+  "oud": 0,
+  "font": 2,
+  "klein": 0
+ },
+ "game/js/reisrit.js": {
+  "kleur": 0,
+  "glas": 0,
+  "oud": 0,
+  "font": 1,
+  "klein": 1
+ },
+ "game/js/rondvaartchase.js": {
+  "kleur": 0,
+  "glas": 0,
+  "oud": 0,
+  "font": 1,
+  "klein": 0
+ },
+ "game/js/saveslots.css": {
+  "kleur": 8,
+  "glas": 4,
+  "oud": 0,
+  "font": 5,
+  "klein": 0
+ },
+ "game/js/scene3d.js": {
+  "kleur": 3,
+  "glas": 0,
+  "oud": 0,
+  "font": 0,
+  "klein": 0
+ },
+ "game/js/sfx/menunav.js": {
+  "kleur": 0,
+  "glas": 2,
+  "oud": 0,
+  "font": 0,
+  "klein": 0
+ },
+ "game/js/sfx/sfxtest.js": {
+  "kleur": 8,
+  "glas": 0,
+  "oud": 0,
+  "font": 1,
+  "klein": 1
+ },
+ "game/js/shopui.js": {
+  "kleur": 0,
+  "glas": 1,
+  "oud": 0,
+  "font": 0,
+  "klein": 0
+ },
+ "game/js/simhud.js": {
+  "kleur": 0,
+  "glas": 0,
+  "oud": 1,
+  "font": 0,
+  "klein": 0
+ },
+ "game/js/startscreen.css": {
+  "kleur": 1,
+  "glas": 3,
+  "oud": 0,
+  "font": 10,
+  "klein": 0
+ },
+ "game/js/startscreen.js": {
+  "kleur": 2,
+  "glas": 0,
+  "oud": 0,
+  "font": 0,
+  "klein": 0
+ },
+ "game/js/story.js": {
+  "kleur": 0,
+  "glas": 1,
+  "oud": 0,
+  "font": 0,
+  "klein": 0
+ },
+ "game/js/storycontact.js": {
+  "kleur": 18,
+  "glas": 2,
+  "oud": 0,
+  "font": 5,
+  "klein": 7
+ },
+ "game/js/storydev.js": {
+  "kleur": 11,
+  "glas": 0,
+  "oud": 0,
+  "font": 1,
+  "klein": 2
+ },
+ "game/js/storytalk.js": {
+  "kleur": 0,
+  "glas": 0,
+  "oud": 0,
+  "font": 1,
+  "klein": 0
+ },
+ "game/js/storytest.js": {
+  "kleur": 4,
+  "glas": 0,
+  "oud": 0,
+  "font": 1,
+  "klein": 1
+ },
+ "game/js/stunthud.js": {
+  "kleur": 6,
+  "glas": 10,
+  "oud": 0,
+  "font": 7,
+  "klein": 0
+ },
+ "game/js/testmenu.js": {
+  "kleur": 15,
+  "glas": 0,
+  "oud": 0,
+  "font": 2,
+  "klein": 1
+ },
+ "game/js/textfield.js": {
+  "kleur": 1,
+  "glas": 0,
+  "oud": 0,
+  "font": 1,
+  "klein": 0
+ },
+ "game/js/touch.js": {
+  "kleur": 3,
+  "glas": 0,
+  "oud": 0,
+  "font": 2,
+  "klein": 0
+ },
+ "game/js/trailer.js": {
+  "kleur": 3,
+  "glas": 2,
+  "oud": 0,
+  "font": 4,
+  "klein": 0
+ },
+ "game/js/treincabine.js": {
+  "kleur": 0,
+  "glas": 1,
+  "oud": 0,
+  "font": 2,
+  "klein": 0
+ },
+ "game/js/uitjepaneel.js": {
+  "kleur": 0,
+  "glas": 1,
+  "oud": 0,
+  "font": 4,
+  "klein": 2
+ },
+ "game/js/visboekui.js": {
+  "kleur": 2,
+  "glas": 0,
+  "oud": 0,
+  "font": 0,
+  "klein": 0
+ },
+ "game/js/wrakduikenlive.js": {
+  "kleur": 3,
+  "glas": 1,
+  "oud": 0,
+  "font": 0,
+  "klein": 0
+ }
+}

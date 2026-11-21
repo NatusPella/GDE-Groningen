@@ -74,7 +74,7 @@ body.tr-result-open :is(#banter-sub, #radio-sub, #sound-captions, #cine) { displ
 /* de muis is terug op het resultaat (anders leek de kaart onklikbaar) */
 body.tr-result-open #trailer-result, body.tr-result-open #trailer-result * { cursor: default; }
 body.tr-result-open #trailer-result button { cursor: pointer; }
-@media (max-height: 640px), (max-width: 700px) {
+@media (max-height: 780px), (max-width: 700px) {
   #trailer-result .tr-res { gap: var(--ds-s-2); }
   #trailer-result .ds-z-feit { min-width: calc(var(--ds-s-8) * 1.25); }
   #trailer-result .ds-z-feit__n { font-size: var(--ds-t-kop); }

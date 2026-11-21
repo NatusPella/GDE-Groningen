@@ -17,6 +17,8 @@
 // (`color: red`), hsl(), en de `font:`-shorthand. Commentaar over meerdere regels wordt niet
 // als toestand gevolgd; regels die met `*`, `//` of `/*` beginnen worden wel overgeslagen.
 
+import { telBestand, bewustReden } from '../lib/ds3_regels.mjs';
+
 export const ALLOWED_COLORS = new Set([
   // Tokens uit ui-taal.md en DESIGN_SYSTEM.md
   '#1e9e56', '#3fc97a', '#0f5c30', '#17301f', '#0c140e', '#f0ede4', '#f2f2f2',
@@ -191,6 +193,43 @@ export function checkDsLine({ file, line, text } = {}) {
     }
     if (/^--ds-s-\d+$/.test(name) && value.trim().endsWith('px') && Number.parseFloat(value) % 4 !== 0) add('belangrijk', 'Ruimte-token buiten de 4-px-basis', `${name}: ${value.trim()}.`, 'Gebruik een veelvoud van 4 px.');
     if (/^--ds-m(?:-|$)/.test(name) && durationsMs(value).some((ms) => ms > DS_MAX_MOTION_MS)) add('blokkerend', 'Beweging-token langer dan 250 ms', `${name}: ${value.trim()}.`, 'Houd beweging op 250 ms of korter.');
+  }
+  return out;
+}
+
+const DS3_UI = /^(?:game|desktop|web)\/.*\.(?:css|html|m?js)$/;
+const DS3_GEEN = /^game\/(?:world|audio|models|img|storydata|fonts)\//;
+/**
+ * Alle UI via het designsysteem (opdracht eigenaar 21-11): een nieuwe regel in spelerzichtbare UI mag geen harde kleur
+ * (hex of rgb()), geen glas-op-donker (--gron-green, .gm, backdrop-filter, verloop), geen oude componentklasse
+ * (.ds-kaart, .ds-knop, .ds-chip, .ds-papier, .ds-glas) en geen tekst onder 13 px bevatten, en geen los lettertype;
+ * gebruik var(--ds-c-...) en de .ds-z-componenten. Dezelfde telling als scripts/ds3_dekking_test.mjs (de ratel),
+ * per diffregel. Een regel met 'ds3-uitzondering' (met reden) en een bestand in BEWUST (scripts/lib/ds3_regels.mjs) zijn vrij.
+ */
+export function checkDs3Line({ file, line, text } = {}) {
+  const filePath = String(file ?? '').replaceAll('\\', '/');
+  const raw = String(text ?? '');
+  if (!DS3_UI.test(filePath) || DS3_GEEN.test(filePath) || !raw.trim() || FULL_LINE_COMMENT.test(raw)) return [];
+  if (bewustReden(filePath) || /ds3-uitzondering/.test(raw)) return [];
+  const { n } = telBestand(filePath, raw);
+  const reden = [];
+  if (n.kleur) reden.push(`harde kleur (${n.kleur}x): gebruik var(--ds-c-...)`);
+  if (n.glas) reden.push('glas-op-donker, verloop of backdrop-filter: het designsysteem is vlak papier met inktrand');
+  if (n.oud) reden.push('oude componentklasse: gebruik .ds-z-kaart, .ds-z-knop, .ds-z-chip');
+  if (n.klein) reden.push('tekst onder 13 px');
+  const out = [];
+  if (reden.length) {
+    out.push(finding({
+      file: filePath, line, text: raw, ernst: 'blokkerend', categorie: 'design-system', titel: 'Niet via het designsysteem',
+      beschrijving: `${reden.join('; ')}. Zie docs/DESIGN-AUDIT-UI-21-11.md.`,
+      fix: 'Gebruik de .ds-z-componenten en var(--ds-...) tokens, of zet bij een bewuste uitzondering een commentaar ds3-uitzondering met de reden op de regel.',
+    }));
+  }
+  if (n.font) {
+    out.push(finding({
+      file: filePath, line, text: raw, ernst: 'belangrijk', categorie: 'typografie', titel: 'Eigen lettertype buiten de tokens',
+      beschrijving: 'Een los font-family; gebruik var(--ds-font-zeef-kop) of var(--ds-font-zeef-tekst).', fix: 'Gebruik de lettertokens.',
+    }));
   }
   return out;
 }
