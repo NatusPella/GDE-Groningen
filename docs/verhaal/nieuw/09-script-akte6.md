@@ -60,7 +60,7 @@ TESSA (telefoon): De Fjord Frituur staat op de Vismarkt, vanaf twaalf uur. [NIEU
 JELLE (telefoon): Mijn assistent haalt hem. Ik betaal contant. [NIEUW]
 TESSA (telefoon): Uit een klomp? [NIEUW]
 JELLE (telefoon): Dat is een ander gesprek. [NIEUW]
-TAMMO: Wat wil hij? [NIEUW]
+TAMMO: Wat wilde hij nou? [NIEUW]
 TESSA: Een eierbal. Voor zijn moeder. [NIEUW]
 
 ## [M29.1] Terug: intro – Eemsdelta, Loppersum, het erf – bestelbus

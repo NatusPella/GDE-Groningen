@@ -191,7 +191,7 @@ SJABBE: Weer een automaat? Dit wordt een gewoonte. Een goede. [BEHOUDEN]
 
 ## [M02.5] Slot: naar het Loket – Stad, Pand & Poen – Escapade
 (regie: ze zitten in de Escapade voor de winkel, de motor tikt af.)
-TAMMO: Fijn, die nieuwe band. Henk van Garage Knalpot vroeg niks. [NIEUW]
+TAMMO: Fijn, die nieuwe band. Henk vroeg niks. [NIEUW]
 TESSA: Alleen of we een koekje wilden. [NIEUW]
 TAMMO: Waarom vraagt een snackbaron naar alarmen? [NIEUW]
 TESSA: Dat weten we na het Loket. Hij heeft het vast over meer dan een museum. [NIEUW]
