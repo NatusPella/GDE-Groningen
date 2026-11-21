@@ -3,6 +3,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { buildWeaponMesh } from './models3d_people.js';
 import { hasWeapon } from './combat.js';
 import { RAGE, pickupPlan, dropLabel } from './roadragerules.js';
+import { sfxEvent } from './sfx/haken.js';
 
 // Wapens oppakken (issue #52): wat een neergeslagen ruziemaker laat vallen
 // (roadrage.js) ligt op straat, draait zachtjes boven een gele ring, en gaat
@@ -51,6 +52,7 @@ function usePickup(world) {
   if (world.weapon === 'fists' || !hasWeapon(world, world.weapon)) world.weapon = d.key;
   world.weaponDrops.splice(world.weaponDrops.indexOf(d), 1);
   world.addMessage(plan.msg, 4);
+  sfxEvent(world, 'ui_item_pickup');   // SFX ronde 6: het voorwerp gaat mee (UI-bus, alleen jij hoort het)
   return true;
 }
 

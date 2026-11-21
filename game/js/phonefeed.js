@@ -8,6 +8,7 @@ import { getClockText } from './clocktext.js';
 import { readingSeconds } from './world.js';
 import { lineVoiceFor } from './linevoice.js';
 import { playCallVoice, playPhoneRing, playSmsVoice, playPhonePing } from './audio.js';
+import { haakUi } from './sfx/haken.js';
 import { smsVoiceFor, smsKind } from './smsvoice.js';
 import { mayVoiceText, noteVoiceText } from './attention.js';
 import { hold as holdChannel, release as releaseChannel } from './speech.js';
@@ -181,7 +182,7 @@ function showNote(w, n) {
     const kind = v && (n.story ? 'story' : smsKind(v.speaker));
     if (v && mayVoiceText(kind)) { c.voice = v; noteVoiceText(kind); }
   }
-  if (!n.voiced) playPhonePing();
+  if (!n.voiced && !haakUi('phone_message')) playPhonePing();   // SFX ronde 6: de sms-tik is een opname, de synth blijft de terugval
   cards.push(c);
 }
 

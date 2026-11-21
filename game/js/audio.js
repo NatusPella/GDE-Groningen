@@ -2471,6 +2471,9 @@ function updateSampleTriggers(world) {
     if (slip < 0.4) v._slipHi = false; else if (burst) v._slipHi = true;
     const fast = Math.abs(v.speed) > HANDREM_MIN_V;
     if (edge && fast && distToListener(v.x, v.y, 0.4) < SQUEAL_RANGE) playSample('handrem_bocht', v.x, v.y);
+    // SFX ronde 6: de handrem aantrekken terwijl je stilstaat of langzaam rolt is het ratelende klikje (bij hoge snelheid klinkt de slip hierboven, niet beide)
+    else if (hb && !v._hbClick && !fast && v.driver && distToListener(v.x, v.y, 0.4) < 25) playFx('handbrake_ratchet', v.x, v.y);
+    v._hbClick = hb;
     if (grindNodig(v) && (v._grindAt === undefined || world.time - v._grindAt > 2) && distToListener(v.x, v.y, 0.4) < SQUEAL_RANGE) {
       v._grindAt = world.time;
       playSample('remmen_grind', v.x, v.y);
@@ -2610,7 +2613,7 @@ function playAudioEvents(world) {
       case 'train_horn': playTrainHorn(x, y, !!e.steam); break;
       case 'train_clack': playTrainClack(x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'horn': playHorn(x, y, e.strength ? 0.15 + clamp(e.strength, 0, 1) * 0.65 : 0.4, e.low || 1); break;
-      case 'shout': playShout(x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
+      case 'shout': if (!((e.strength ?? 0.5) < 0.5 && Math.random() < 0.5 && playFx('npc_gasp', x, y))) playShout(x, y, clamp(e.strength ?? 0.5, 0, 1)); break;   // SFX ronde 6: een kijker die filmt hapt soms naar adem in plaats van te roepen
       case 'hiccup': playHiccup(x, y, !!e.female); break;
       case 'weapon': playWeaponSfx(e, x, y); break;
       case 'giggle': if (!(Math.random() < 0.5 && playFx(Math.random() < 0.5 ? 'npc_laugh' : 'npc_chuckle', x, y))) playGiggle(x, y, !!e.female); break;   // SFX ronde 5: soms een echte lach

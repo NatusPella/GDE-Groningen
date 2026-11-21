@@ -12,6 +12,7 @@ import { needsBeat } from './reistijd.js';
 import { arrival, travelOptions, RIDES } from './reiskeuze.js';
 import { reisPlace } from './storyreis.js';
 import { klokSprongMag, meerSpelers } from './coopgroep.js';
+import { sfxEvent } from './sfx/haken.js';
 
 // where the trip ends: the travel step's own place; the guide can point somewhere else for a moment ("first to your garage", #311)
 export const destOf = (step, g) => (step && step.goal && step.goal.type === 'reis' && step.goal.at ? reisPlace(step) : g);
@@ -41,7 +42,7 @@ export function applyTravel(w, beat, choice, dest) {
   if (!a) return null;
   // driving yourself runs on the game clock; the others add the real time
   if (choice !== 'zelf' && typeof w.clock === 'number' && klokSprongMag(w)) w.clock = (w.clock + a.clockMinutes / 60) % 24; // met meer spelers springt de klok niet (#452)
-  if (choice !== 'zelf' && dest) placeParty(w, dest);
+  if (choice !== 'zelf' && dest) { placeParty(w, dest); sfxEvent(w, 'ui_travel_whoosh'); }   // SFX ronde 6: het scherm wisselt (UI-bus, lokaal: elke speler reist in zijn eigen spel)
   return a;
 }
 

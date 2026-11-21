@@ -253,7 +253,7 @@ export function updateUiSfx(dt, world) {
     const z = s ? s.zoom : null;
     if (st.zoom !== null && z !== null && Math.abs(z - st.zoom) / st.zoom > 0.04 && now - st.zoomAt > 0.06) {
       st.zoomAt = now;
-      if (!muted) tick(z > st.zoom ? 2200 : 1500, 0.025);
+      if (!muted && !uiFx('ui_map_zoom')) tick(z > st.zoom ? 2200 : 1500, 0.025);   // SFX ronde 6: opname (afkoeltijd 0,25 s), de synthtik blijft de terugval
       st.zoom = z;
     } else if (st.zoom === null) st.zoom = z;
   } else st.zoom = null;
@@ -261,12 +261,12 @@ export function updateUiSfx(dt, world) {
   // getUserWaypoint() builds a fresh object per call, so compare by value
   const wp = wpKey(getUserWaypoint());
   if (wp !== st.waypoint) {
-    if (!muted && now - st.pingAt > 2) { st.pingAt = now; (wp ? ping() : back()); }
+    if (!muted && now - st.pingAt > 2) { st.pingAt = now; (wp ? (uiFx('ui_map_pin') || ping()) : back()); }   // SFX ronde 6: de speld is een opname, ping blijft de terugval
     st.waypoint = wp;
   }
 
   const n = world.phoneHistory && world.phoneHistory[0];
-  if (n && n !== st.notif && !muted && !n.quiet && now - st.buzzAt > 1) { st.buzzAt = now; buzz(); }
+  if (n && n !== st.notif && !muted && !n.quiet && now - st.buzzAt > 1) { st.buzzAt = now; if (!uiFx('phone_vibrate')) buzz(); }   // SFX ronde 6: het trillen is een opname, de synth blijft de terugval
   st.notif = n;
 
   if (!savedEl) savedEl = document.querySelector('.hud-saved');

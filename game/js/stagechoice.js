@@ -14,6 +14,7 @@
 //                                                          fail: ends the mission with that reason (the wrong way out)
 // Keys 1-3 pick. Nothing here imports game code but the panel; the stage state lives in S (missions.js).
 import { menuSound } from './menusound.js';
+import { haakUi } from './sfx/haken.js';
 import { createChoicePanel, keycap } from './choicepanel.js';
 import { neemPaneelDruk } from './coopgast.js'; // de toets van een gast bij de gastheer (#525)
 
@@ -148,7 +149,7 @@ export function updateChoice(dt, world, st, S) {
       }
     }
   }
-  if (key) menuSound('select'); // the answer, heard like every menu's choice (#413)
+  if (key && !haakUi('ui_confirm')) menuSound('select'); // the answer, heard like every menu's choice (#413); SFX ronde 6: a recording of the map, the menu click is the fall-back
   const r = stepChoice(st, S, key, stepDt);
   if (r) { closeChoice(); if (typeof world.coopKeuzeStop === 'function') world.coopKeuzeStop(); return r; }
   paint(st, S, st.rounds[Math.min(S.ci, st.rounds.length - 1)]);
