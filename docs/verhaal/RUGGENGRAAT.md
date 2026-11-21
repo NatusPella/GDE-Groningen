@@ -115,6 +115,21 @@ Bestaande saves houden alles wat al open was; alleen een nieuw spel begint dicht
 | Romantiek | Het hoogtepunt: de vijf woorden, voor iedereen. |
 | Einde | De rij loopt tot de Korenbeurs. Wat nu? |
 
+## Het slot en de overgang naar het eindspel (verhaal-eind, 21-11)
+
+Zes extra stappen (activiteiten zonder beloning, `added: true`, ID's F1 tot en met F6; scènes in `09-script-akte5.md` en `09-script-akte6.md`, `storymigratie_test` bewaakt de oude saves). Ze vullen wat de ruggengraat belooft en wat de bestaande scènes nog niet dragen: Tessa ontdekt de wagen, ze bouwen hem samen, Grunn en Fryslân worden verzoend, Jelle haalt zijn eierbal achteraan de rij en ze worden een stel. De wagen blijft tot dan toe een tekening: ook de F-stappen staan pas in akte 5.
+
+| Stap | Waar en wanneer | Wat | Lijn | Samen spelen |
+|---|---|---|---|---|
+| F1 Een wagen langs de weg | zandweg bij Zuidhorn, wo 26 aug, vóór M22 | Tessa vindt een aanhanger met een luik en haalt het bierviltje van twaalf dagen terug tevoorschijn; Tammo kijkt naar de trekhaak. Ze beslist dat ze hem zelf willen maken. Opent de wereld `snackwagen` in `unlockgate.js` (akte 5). | A, D | de wereld is van wie het spel opende; een gast speelt de stap lokaal mee (J of N bij Meedoen); voortgang per speler |
+| F2 De eerste bak | loods in Hoogkerk, do 27 aug, na M22 | Tammo sleutelt, Tessa bakt; de eerste eierbal drijft. Ze zien wat ze alleen niet kunnen: ze blijven bij elkaar. | A, B | idem |
+| F3 Soep en eierbal | Oma's keuken, Noorderhaven, za 29 aug, na M26 | Beppe (Fries), Oma Trijntje (Gronings), Mem, Durk en Douwe in één keuken; Tammo is het compromis; soep met een eierbal wordt het menu. Groningers en Friezen verzoend. | C | idem |
+| F4 Foar mem, achteraan de rij | Vismarkt, zo 30 aug, ochtend | Jelle staat zonder limo achteraan de rij; zijn vergunning om voor te dringen is ingetrokken; Tammo krijgt zijn klap niet (en wil hem niet meer); Mems mosterd van 1953 op het luik. Redemption via zijn oma, nooit met geweld. | C | idem |
+| F5 Een avond voor twee | kade aan de Noorderhaven, zo 30 aug, avond | Zoet en komisch: het lijstje in Tammo's zak, waar zet ik mijn hand, "Berend telde elf seconden. Dat is officieel." Ze zijn een stel. | B | idem |
+| F6 De kaart op het luik | Vismarkt, za 19 sept, na M30 en O12 | Eenenveertig rode stippen tegen één blauwe; Jelle belt: wedstrijd. De overgang naar het eindspel: het snackimperium van Jelle overnemen en de sandbox van de Bezit-epic; niets stopt. | D | idem |
+
+De aftitelkaart (`story.js` `TERUGBLIK`) toont voor de namen zeven korte terugblikgrappen (bierviltje, stoep met overeenkomst, Krolbrug, opa's horloge, één koekje, elf seconden, de duiven in de rij). De humorbeats van de F-stappen staan als voorstel (niet door het paneel beoordeeld) in `game/storydata/humor.eind.json` en `HUMOR-KEUZELIJST.md` (HE-01 tot en met HE-08). Een oude save voorbij het invoegpunt speelt F1 tot en met F5 niet; alleen F6 volgt voor wie M30 al haalde (de overgang naar het eindspel, zonder beloning).
+
 ## Deel 4: Nazomer (14 tot 19 september) en daarna
 
 Doel: de wagen laten groeien en de gemeenschap iets teruggeven. Willemien is vaste klant, Jelle bestelt een eierbal. M30 is de uitnodiging naar de open wereld: boerderij, panden, voetbal en de frietwagenketen zijn allemaal open. Flag `wagen:keten`.

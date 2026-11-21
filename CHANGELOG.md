@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Verhaal: het slot krijgt zes extra scènes. Tessa ontdekt de snackwagen langs een zandweg, Tammo en Tessa bouwen hem samen, Beppe en Oma Trijntje delen een keuken (Grunn en Fryslân verzoend), Jelle sluit achteraan de rij aan voor een eierbal van zijn oma en ze worden een stel op de kade. Na het proefbeleg legt Tessa de kaart op het luik: wedstrijd met Jelle, de wereld blijft open. De aftiteling begint met korte terugblikgrappen. Oude spelstanden spelen de nieuwe stappen niet opnieuw.
+
 - Kaart: Reis erheen gaat nu alleen over hoe je reist: met de trein, de bus, de taxi of per boot, elk met prijs, duur en aanbevolen, en als iets niet kan staat de reden in de rij (te dichtbij, geen verbinding, te weinig geld). De optie 'Zelf gaan' en de zin 'Dat kan ook in Samen spelen' zijn weg: Zet waypoint is de manier om zelf te gaan.
 - Kaart: de toets staat voortaan IN de knop (Enter in Reis nu en Begrepen, Esc in Terug en Sluiten, een cijfer in elke vervoersrij en op de drie acties van de plekkaart), niet meer ernaast. Op een controller wordt dat de A- of B-knop van jouw controller en een cijfer verdwijnt.
 - Kaart: alle kaartpopups werken hetzelfde met toetsenbord en controller: Enter of A bevestigt, Esc of B gaat één laag terug (venster, plekkaart, kaart), pijlen en D-pad lopen door de knoppen, de eerste focus staat op de hoofdactie en de focus blijft binnen een open venster.

@@ -35,7 +35,7 @@ L.push('## Alle beats');
 L.push('');
 L.push('| Beat | Scène | Spreker | Gekozen | Stemmen | Zekerheid | Reden |');
 L.push('|---|---|---|---|---|---|---|');
-for (const b of beats) L.push(`| ${b.id} | ${b.scene} | ${esc(b.speaker)} | ${esc(text(b, b.chosen))} | ${b.panel ? b.panel.votes.map(naam).join(', ') : 'niet beoordeeld'} | ${b.panel ? b.panel.certainty : ''} | ${esc(b.panel ? b.panel.reason : '')} |`);
+for (const b of beats) L.push(`| ${b.id} | ${b.scene} | ${esc(b.speaker)} | ${esc(text(b, b.chosen))} | ${b.panel ? b.panel.votes.map(naam).join(', ') : 'voorstel (niet beoordeeld)'} | ${b.panel ? b.panel.certainty : ''} | ${esc(b.panel ? b.panel.reason : '')} |`);
 L.push('');
 L.push('## De alternatieven per beat');
 L.push('');
