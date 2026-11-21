@@ -54,6 +54,7 @@ import { provinceMapOn } from './provincemap.js';
 import { edgeDistance } from './countryfield.js';
 import { streetAt as roadStreetAt } from './tileplace.js';
 import { ommelandArea } from './ommelandplace.js';
+import { wijkAt } from './wijkat.js';
 import { ommelandMapSpots, drawOmmelandMapIcon } from './ommelandmap.js';
 import { beppeMapSpot } from './beppe_garden.js';
 import { perceelMapSpots, drawPerceelMapIcon } from './perceelmap.js';
@@ -866,23 +867,17 @@ function currentDistrict(world) {
   // out in the real Ommelanden: the village you are in, else just Ommeland
   const area = ommelandArea(x, y);
   if (area) return areaNameAt(x, y).name;
-  // Only 2 of the real admin boundaries actually reach into this play area,
-  // and they're coarse (e.g. plain "Groningen") - the ~66 named
-  // neighbourhood/quarter points give a far more specific, genre-style
-  // district name ("Binnenstad", "Ebbingekwartier", ...), so prefer those
-  // and only fall back to a boundary polygon if literally nothing is near.
-  let best = null, bestD2 = Infinity;
-  for (const p of meta.neighbourhoodPoints || []) {
-    const d2 = (p.x - x) ** 2 + (p.y - y) ** 2;
-    if (d2 < bestD2) { bestD2 = d2; best = p.name; }
-  }
-  if (best) return best;
+  // The ~66 named neighbourhood/quarter points give a genre-style district name ("Binnenstad", "Ebbingekwartier", ...), but
+  // only where the player really is in the city (wijkat.js): outside it the nearest point of the city is no wijk (before,
+  // a spot in Winsum or on the A7 was "Paddepoel-Noord"). Out of the city and the wijken it is the place or Ommeland.
+  const wijk = wijkAt(meta.neighbourhoodPoints || [], x, y);
+  if (wijk) return wijk.name;
   for (const d of meta.districts || []) {
     for (const ring of d.rings) {
-      if (pointInPoly(x, y, ring)) return d.name;
+      if (pointInPoly(x, y, ring) && !(meta.neighbourhoodPoints || []).length) return d.name;
     }
   }
-  return null;
+  return areaNameAt(x, y).name;
 }
 
 // The place at any point (the load screen): the village, a landmark within
@@ -898,12 +893,10 @@ export function placeLabel(world, x, y) {
   for (const l of world.map.meta.landmarks || []) {
     if (Math.hypot(l.x - x, l.y - y) <= 90) return { name: l.name, country: false, district: '', line: LANDMARK_LINES[l.name] || '' };
   }
-  let best = null, bestD2 = Infinity;
-  for (const q of world.map.meta.neighbourhoodPoints || []) {
-    const d2 = (q.x - x) ** 2 + (q.y - y) ** 2;
-    if (d2 < bestD2) { bestD2 = d2; best = q.name; }
-  }
-  return { name: best || 'Grunn', country: false, district: best || '', line: best ? wijkBlurb(best) : '' };
+  const wijk = wijkAt(world.map.meta.neighbourhoodPoints || [], x, y);
+  const best = wijk ? wijk.name : '';
+  if (!best) { const a = areaNameAt(x, y); return { name: a.name || 'Grunn', country: false, district: a.name || '', line: townTeaser(a.name) }; }
+  return { name: best, country: false, district: best, line: wijkBlurb(best) };
 }
 
 // the line of a town of the province (stadsprofielen.js), where a village has none

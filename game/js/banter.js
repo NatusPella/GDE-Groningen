@@ -20,6 +20,7 @@ import { playBanterVoice, stopBanterVoice, pauseBanterVoice, voiceBusy } from '.
 import { hold as holdChannel, release as releaseChannel } from './speech.js';
 import { hoofdspeler } from './spelersregister.js'; // wie er praat is de speler achter dit scherm (#446)
 import { KEYS } from './storagekeys.js';
+import { wijkAt, maakWijkVolger } from './wijkat.js';
 import { banterExchanges, banterLineVoice, storyDataReady } from './storytext.js';
 import { openBank } from './voicebank.js';
 
@@ -75,7 +76,7 @@ registerNarrative('sub-banter', { active: () => !!st.talk && !st.paused });
 function fresh() {
   return {
     ride: 0, lastEnd: 0, checkT: 0, progressT: PROGRESS_EVERY, talk: null, paused: false,
-    pending: [], rest: null, placeCd: new Map(), sitCd: new Map(), situations: [], wijk: null, wijkEntered: null,
+    pending: [], rest: null, placeCd: new Map(), sitCd: new Map(), situations: [], wijk: null, wijkEntered: null, wijkVolger: maakWijkVolger(),
     mission: null, job: null, lastImpact: undefined, wanted: 0, flash: -Infinity, weather: '', hour: null, fastT: 0,
     done: new Set(), step: null, places: null,
   };
@@ -215,20 +216,15 @@ function placeList() {
   return st.places;
 }
 
-function watchWijk() {
+function watchWijk(dt) {
   const pts = world.map && world.map.meta && world.map.meta.neighbourhoodPoints;
   if (!pts) return;
   const { x, y } = hoofdspeler(world);
-  let best = null, bestD2 = Infinity;
-  for (const p of pts) {
-    const d2 = (p.x - x) ** 2 + (p.y - y) ** 2;
-    if (d2 < bestD2) { bestD2 = d2; best = p; }
-  }
-  const name = best ? best.name : null;
-  if (name !== st.wijk) {
-    if (st.wijk !== null && WIJK_NAMES.has(name)) st.wijkEntered = { name, at: world.time };
-    st.wijk = name;
-  }
+  // alleen een wijk waar je echt in staat, met een korte verblijfstijd en zonder melding na een sprong (wijkat.js)
+  const best = wijkAt(pts, x, y);
+  const gemeld = st.wijkVolger.tik(dt, best ? best.name : null, x, y);
+  if (gemeld && WIJK_NAMES.has(gemeld)) st.wijkEntered = { name: gemeld, at: world.time };
+  st.wijk = st.wijkVolger.stand();
 }
 
 // --- when they may talk -------------------------------------------------------------
@@ -415,7 +411,7 @@ export function updateBanter(dt, w) {
   if ((st.progressT += dt) >= PROGRESS_EVERY) {
     st.progressT = 0;
     refreshProgress();
-    watchWijk();
+    watchWijk(PROGRESS_EVERY);
   }
   if ((st.checkT += dt) < CHECK_EVERY) return;
   st.checkT = 0;
