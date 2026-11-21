@@ -57,6 +57,7 @@
       }
     ],
     "asar": true,
+    "electronLanguages": ["nl", "en-US"],
     "mac": {
       "target": [
         {
