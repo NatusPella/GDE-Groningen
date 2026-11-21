@@ -89,7 +89,9 @@ Eigenaar-ingeving: Tessa komt van het platteland en kan daarom goed boeren en go
 - **Wat ze kan:** koeien melken voor schooltijd, rechte rijen trekken, in het dorpsteam spelen sinds haar zesde (een lege mestemmer als doel). Daarom boert en voetbalt ze iets beter dan Tammo (zie `game/js/karakterbonus.js`); Tammo kan het ook, alleen minder vlot.
 - **Toon:** droog, geen heimwee-verhaal. Ze zegt het feitelijk ("Dit gaat mij sneller af, ik ben hier opgegroeid") en grapt erover, niet ten koste van Tammo.
 - **Waar het in beeld komt:** de boerderij-HUD en de uitleg, de eerste oogst als Tessa (een boer in de Ommelanden herkent haar: "Jij komt niet uit de stad, hè?", en een bericht van Mam), de voetbal-sim (uitleg, viering, sneren) en de prestatie Boerendochter.
-- **Samen spelen:** het personage is per speler; de bonus is van wie als Tessa speelt, niet van de wereld.
+- **Doseren:** haar achtergrond komt af en toe terloops terug (niet elke klus): in haar regels bij het werk, in Tammo's reacties ("Tessa weet dat soort dingen"), een enkele voorbijganger, telefoonberichten van Mam en de prestatie Boerendochter.
+- **Farmen en voetballen doe je als Tessa:** het spel wisselt bij de start naar haar en na afloop terug. Het is haar terrein.
+- **Samen spelen:** de wissel en de bonus zijn per speler; niet van de wereld.
 
 ## Overgang naar M07
 

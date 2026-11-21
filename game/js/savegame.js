@@ -39,6 +39,7 @@ import { saveFailText, newSlotName, takenNames, readSlot, writeSlotRaw, writeThu
 import { logError } from './errorlog.js';
 import { maakCheckpoint } from './coopcheckpoint.js';
 import { registerSaveGame, registerSaveTimers, registerGastVerhaal, registerGastBoek } from './savehook.js';
+import { karakterVoorSave, wisActiviteit } from './karakterbonus.js';
 import { STEPS, PARTS, stepDone, stepAvailable, nextStoryStep, ARC_ID } from './storyarc.js';
 
 // Several saves (saveslots.js): slot 1 is the old single save under its old key, the version inside
@@ -266,7 +267,7 @@ function serialize(w) {
     // eten (#502): gekochte snacks en zelf gevangen vis, net als ammo een gewoon veld
     eten: etenSave(w),
     stats: { ...w.stats },
-    character: p.character,
+    character: karakterVoorSave(w),   // het eigen personage, ook midden in een activiteit als Tessa (karakterbonus.js)
     pos,
     plek,
     // 'busy' (a mission, bijbaan or challenge running): loading keeps pos;
@@ -607,6 +608,7 @@ export function applySave(w, d) {
     w.weapon = WEAPONS[d.weapon] && (WEAPONS[d.weapon].ammo === Infinity || Number.isFinite(ammo[d.weapon])) ? d.weapon : 'fists';
     for (const k of Object.keys(w.stats)) delete w.stats[k];
     Object.assign(w.stats, statsFromSave(d.stats));
+    wisActiviteit(w);
     if (d.character === 'tammo' || d.character === 'anita') {
       w.player.character = d.character;
       if (w.companion) w.companion.character = d.character === 'tammo' ? 'anita' : 'tammo';

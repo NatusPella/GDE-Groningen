@@ -40,6 +40,7 @@ import { purchaseCount, storyBuyLabel } from './storyshop.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { getSideJobList } from './sidejobs.js';
 import { sideJobPlek } from './bijbaananker.js';
+import { zetWisselHaak } from './karakterbonus.js';
 import { getGaragesForRender } from './garages.js';
 import { inHomeFlat, getHomeForRender, flatStage, homeSpawnPoint } from './home.js';
 import { isShopOpen } from './shopui.js';
@@ -933,6 +934,7 @@ function updateCharacter(w) {
   const want = step && !step.end ? step.player : rt.lastPlayer;
   if (step && !step.end && step.player) rt.lastPlayer = step.player;
   if (w.coop && w.coop.fixedChars) return; // coöp (#95): de host is Tammo, de gast Tessa
+  if (w.activiteitKar) return;             // boeren of voetballen doe je als Tessa (karakterbonus.js): terugwisselen doet de activiteit zelf
   const calm = calmForSwap();
   if (!want || hoofdspeler(w).character === want) { rt.swapWaitAt = 0; return; }
   if (isCinematicActive() || w.pigeonMode || isMissionActive() || hoofdspeler(w).ragdoll || w.pendingRespawn) return;
@@ -1141,6 +1143,7 @@ export function initStory(w) {
   const busyNow = () => isMissionActive() || isCinematicActive() || narrativeBusy() || !!w.pigeonMode || !!w.pendingRespawn;
   Object.assign(GOALS, FUN_GOALS, EIKEA_GOALS, makeReisGoals({ getWorld: () => world, busy: busyNow, playLines: (id, from) => playTalk(talkLines(id, { from }), { id: 'reis:' + id, delay: 1.5 }) }));
   setMeetHook(meet);
+  zetWisselHaak({ mag: (x) => !(isCinematicActive() || isMissionActive() || x.pigeonMode || x.pendingRespawn || hoofdspeler(x).ragdoll), toon: (x, tekst) => { flash(); x.addMessage(tekst, 3); } });
   // #986: is de opening de eerstvolgende film, dan slaat de spelstart zijn vlucht-in over (cinematics.js)
   setOpeningDueProbe(() => {
     if (!world) return false;
