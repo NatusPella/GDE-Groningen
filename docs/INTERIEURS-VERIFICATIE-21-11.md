@@ -52,3 +52,12 @@ Niets hiervan is in Electron of in het echte spel gezien; de agent had alleen no
 34. Inrichting: de hangende lampen, schilderijen, klokken, prikborden, posters en menukaarten zien er goed uit; het licht is warm in een café en koud wit in een kantoor; de deurmat ligt goed.
 35. Ramen: loop op een winkel of café af: vanaf ongeveer 24 m verschijnt het echte interieur door de ruiten (indeling, kleur, mensen) in plaats van de nepkamer; is de overgang (een flits of een sprong in beeld) acceptabel, zijn de randen van de snede in het glas netjes, en zie je geen gaten naast de ruiten in een pand dat smaller is dan zijn gevel?
 36. Kopen aan de balie: bij een winkel of café met een interieur is de marker op straat weg en werkt E alleen aan de balie; bij een pand zonder interieur (kiosk, te klein) werkt de marker nog; de kaartmarker en de missiedoelen wijzen nog naar de deur.
+
+## Ronde 5: kamertoon, nieuwe panden, dekking
+
+37. Museum, bioscoop, school, ziekenhuis en kapel: loop er naar binnen (een kerk met bouwtype chapel, een school, een ziekenhuis, een museum of bioscoop uit de provincie). Staan vitrines, schilderijen, schermen en stoelen goed, zijn de kamers (klaslokaal, afdeling, zaal) bereikbaar door de deuropening, en zien de mensen eruit en doen ze wat bij de plek hoort (leraar bij het bord, arts op de afdeling, bezoekers voor de vitrines)?
+38. Bioscoop: is het scherm in de zaal lichtgevend zonder dat het hapert, en klopt de kleur van de rode stoelen met de donkere muur? (Het scherm is een bord met `glow`; nooit in beeld bekeken.)
+39. Aan de balie: museumkaartje en filmkaartje met popcorn kosten geld en geven (bij de film) een beetje gezondheid; de regel van het loket past bij de plek.
+40. Muziek binnen: zet de radio of G-Music aan en loop een kerk, een woning en een café in: klinkt de muziek in een kerk dofst, in een woning het helderst, en komt hij bij het naar buiten lopen weer open? Is de overgang (laagdoorlaat in 0,4 s) prettig, niet hoorbaar als een klik?
+41. Kamertoon: klinkt een garage of magazijn met een zachte brom, een school en sportschool met gemurmel, een museum en kapel stil? (De niveaus staan als data in `sfx/binnenklank.js`; nooit gehoord.)
+42. Woningen met de deur aan de rand: staan er nog huizen waar de keuken of slaapkamer niet te bereiken is? (Gevonden met de dekkingsaudit; de test dekt het, het beeld niet.)

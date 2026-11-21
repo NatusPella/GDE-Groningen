@@ -67,7 +67,7 @@ export function planInterior(b, opts = {}) {
     }
   }
   if (!layout) layout = generateLayout({ kind: ks.kind, sub: ks.sub, seed, hall, door, height: ceiling, look });
-  if (!layout) return { ok: false, why: 'layout', kind: ks.kind };
+  if (!layout) return { ok: false, why: 'layout', kind: ks.kind, sub: ks.sub, hall, door, height: ceiling };
   layout.upper = upper;
   return {
     ok: true, kind: ks.kind, sub: ks.sub, seed, frame, hall, door, height: ceiling, layout, label: labelOf(ks.kind, ks.sub), shop: en.shop,

@@ -327,7 +327,11 @@ function homeRecipe(p, sub) {
   if (back) {
     // a partition between the living room and the back, a doorway at about 30% of the width
     const pv = p.stairs ? Math.min(living.v1, p.stairs.vBot - 1.4) : living.v1;
-    p.partition('u', pv, H.u0, H.u1, H.u0 + Math.max(1.2, W * (0.25 + p.rnd() * 0.3)), 0.95);
+    // the doorway keeps 1.6 m from the wall of the bedroom wing (#1165: a wall that started in the doorway shut the kitchen and the bedroom off)
+    let doorU = H.u0 + Math.max(1.2, W * (0.25 + p.rnd() * 0.3));
+    const wingU = W >= 6.2 ? H.u0 + W * 0.58 : null;
+    if (wingU !== null && Math.abs(doorU - wingU) < 1.6) doorU = wingU - 1.6 >= H.u0 + 0.9 ? wingU - 1.6 : wingU + 1.6;
+    p.partition('u', pv, H.u0, H.u1, doorU, 0.95);
     living.v1 = pv - PART_T / 2;
     p.rooms.push({ id: 'woonkamer', role: 'wonen', u0: H.u0, u1: H.u1, v0: H.v0, v1: living.v1 });
   }
@@ -371,9 +375,10 @@ function homeRecipe(p, sub) {
   p.palette = { wall: look.wall ?? 0xe8dcc4, floor: look.floor ?? 0x9a7448, floorPattern: 0, accent: look.accent ?? 0x8a3a3a, ceil: 0xf4f0e8 };
 }
 
-function churchRecipe(p) {
+function churchRecipe(p, sub) {
   const H = p.hall, W = p.W, D = p.D;
   const mid = H.u0 + W / 2, aisle = 1.4;
+  if (sub === 'kapel') return chapelRecipe(p);
   // altar and pulpit at the far end
   p.add('altar', mid, H.v1 - 1.0, 1.8, 0.9, FACE.DOOR, { h: 1.1 });
   p.add('pulpit', H.u0 + 1.0, H.v1 - 3.0, 0.9, 0.9, FACE.E, { h: 1.0 });
@@ -463,6 +468,10 @@ function garageRecipe(p, sub) {
 
 function publicRecipe(p, sub) {
   if (sub === 'sportschool') return gymRecipe(p, sub);
+  if (sub === 'school') return classroomRecipe(p, sub);
+  if (sub === 'ziekenhuis') return hospitalRecipe(p, sub);
+  if (sub === 'museum') return museumRecipe(p, sub);
+  if (sub === 'bioscoop') return cinemaRecipe(p, sub);
   const H = p.hall, W = p.W, D = p.D;
   const n = Math.max(1, Math.min(3, Math.floor((W - 1) / 2.6)));
   for (let i = 0; i < n; i++) {
@@ -482,6 +491,138 @@ function publicRecipe(p, sub) {
   p.add('plant', H.u0 + 0.5, H.v0 + 0.8, 0.6, 0.6, FACE.DOOR, { h: 1.2 });
   scatterPeople(p, 'bezoeker', Math.min(2, Math.floor(W * D / 40)), 'sit');
   p.palette = { wall: sub === 'politie' ? 0xdfe6ee : 0xe8e4da, floor: 0x8a8e92, floorPattern: 1, accent: sub === 'politie' ? 0x2a3f6a : 0x6a5a48, ceil: 0xf4f4f2 };
+}
+
+// A cross-wall with a doorway when the hall is deep and wide enough and no stair stands in the way; the back zone is returned (or null).
+function backRoom(p, depth, id, role, doorAtFrac = 0.5, doorW = 1.1) {
+  const H = p.hall, W = p.W, D = p.D;
+  if (p.stairs || D < depth + 5.2 || W < 5) return null;
+  const mv = H.v1 - depth;
+  p.partition('u', mv, H.u0, H.u1, H.u0 + W * doorAtFrac, doorW, p.height);
+  const room = { id, role, u0: H.u0, u1: H.u1, v0: mv + PART_T / 2, v1: H.v1 };
+  p.rooms.push(room);
+  return room;
+}
+
+// A school (round 5): an entrance hall with a desk and lockers, a classroom at the back with rows of desks facing the board, a teacher and pupils.
+function classroomRecipe(p, sub) {
+  const H = p.hall, W = p.W, D = p.D;
+  const mid = H.u0 + W / 2;
+  const dv = H.v0 + 2.2, cu = H.u0 + Math.min(2.2, W / 3);
+  const desk = p.add('counter', cu, dv, Math.min(2.2, W - 2), 0.7, FACE.DOOR, { h: 1.1, color: 0x6a5a48 }, H);
+  if (desk) { p.npcAt('baliemedewerker', cu, dv + 0.35 + 0.45, FACE.DOOR, 'stand'); p.useAt('balie', cu, dv - 0.35 - 0.8, 1.4, { face: FACE.BACK, target: sub }); }
+  const room = backRoom(p, Math.min(5.8, Math.max(4.2, D * 0.5)), 'klaslokaal', 'leren', 0.3);
+  const cls = room ? { u0: room.u0, u1: room.u1, v0: room.v0, v1: room.v1 } : { ...H, v0: H.v0 + 3.6 };
+  p.run(H, 'left', 'locker', 0.5, 0.5, H.v0 + 3.0, (room ? room.v0 : H.v0 + 5.0) - 0.4, { h: 1.9 }, 0.02);
+  p.add('board', mid, H.v1 - 0.05, Math.min(4.2, W - 1.2), 0.1, FACE.DOOR, { h: 1.1, y0: 1.0, solid: false, color: 0x2c4a3c }, cls);
+  const seats = [];
+  for (let v = cls.v0 + 1.5; v < cls.v1 - 1.6; v += 2.0) {
+    for (let u = H.u0 + 1.4; u <= H.u1 - 1.2; u += 1.9) {
+      const d = p.add('desk', u, v, 1.2, 0.6, FACE.BACK, { h: 0.74 }, cls);
+      if (!d) continue;
+      const c = p.add('chair', u, v - 0.65, 0.45, 0.45, FACE.BACK, { h: 0.85 }, cls);
+      if (c) seats.push(c);
+    }
+  }
+  p.add('cabinet', H.u1 - 0.3, cls.v1 - 0.6, 0.5, 1.0, FACE.W, { h: 1.8 }, cls);
+  p.npcAt('leraar', mid, cls.v1 - 1.0, FACE.DOOR, 'stand');
+  seats.filter((_, i) => i % 2 === 0).slice(0, 5).forEach((c, i) => p.npcAt('leerling', c.u, c.v, c.face, 'sit', { seat: i }));
+  p.add('plant', H.u1 - 0.5, H.v0 + 0.8, 0.6, 0.6, FACE.W, { h: 1.1 });
+  p.palette = { wall: 0xece6d6, floor: 0x8a9a88, floorPattern: 1, accent: 0x3a7a4a, ceil: 0xf4f4ee };
+}
+
+// A hospital (round 5): a reception desk and a waiting room with benches and a coffee machine, a ward at the back with beds, a doctor and a sink.
+function hospitalRecipe(p, sub) {
+  const H = p.hall, W = p.W, D = p.D;
+  const mid = H.u0 + W / 2;
+  const dv = H.v0 + 2.4, cw = Math.min(2.6, W - 2);
+  const desk = p.add('counter', mid, dv, cw, 0.7, FACE.DOOR, { h: 1.1, color: 0x2e9a8a }, H);
+  if (desk) { p.npcAt('baliemedewerker', mid, dv + 0.35 + 0.45, FACE.DOOR, 'stand'); p.useAt('balie', mid, dv - 0.35 - 0.8, 1.4, { face: FACE.BACK, target: sub }); }
+  const ward = backRoom(p, Math.min(4.6, Math.max(3.8, D * 0.42)), 'afdeling', 'verplegen', 0.75);
+  const front = { ...H, v1: ward ? ward.v0 - PART_T / 2 : H.v1 };
+  const bw = Math.min(2.0, W * 0.3);
+  for (let v = H.v0 + 4.6; v < front.v1 - 1.2; v += 1.8) {
+    p.add('bench', H.u0 + W * 0.22, v, bw, 0.5, FACE.BACK, { h: 0.45, color: 0x2e9a8a }, front);
+    p.add('bench', H.u1 - W * 0.22, v, bw, 0.5, FACE.BACK, { h: 0.45, color: 0x2e9a8a }, front);
+  }
+  p.add('coffee', H.u0 + 0.4, H.v0 + 1.0, 0.6, 0.5, FACE.E, { h: 1.3 });
+  p.add('sink', H.u1 - 0.4, H.v0 + 1.0, 0.5, 0.5, FACE.W, { h: 0.9, tag: 'handen wassen' });
+  if (ward) {
+    for (let u = H.u0 + 1.0, i = 0; u <= H.u1 - 1.0 && i < 4; u += 1.8, i++) {
+      p.add('bed', u, ward.v1 - 1.1, 0.95, 2.0, FACE.DOOR, { h: 0.6, color: 0xe8eef2 }, ward);
+      if (i % 2 === 0) p.add('cabinet', u + 0.9, ward.v1 - 0.3, 0.5, 0.4, FACE.DOOR, { h: 0.7 }, ward);
+    }
+    p.npcAt('arts', mid, ward.v0 + 1.0, FACE.BACK, 'stand');
+  } else p.npcAt('arts', H.u1 - 1.2, H.v0 + 2.6, FACE.W, 'stand');
+  scatterPeople(p, 'bezoeker', Math.min(3, Math.floor(W * D / 35)), 'sit');
+  p.add('plant', H.u0 + 0.5, H.v0 + 2.2, 0.6, 0.6, FACE.E, { h: 1.2 });
+  p.palette = { wall: 0xe8f0f2, floor: 0xb8c8cc, floorPattern: 1, accent: 0x2e9a8a, ceil: 0xf6f8f8 };
+}
+
+// A museum (round 5): a ticket desk by the door, glass cases in rows down the middle, paintings along the walls, benches and a red runner; a guard and visitors who look at things.
+function museumRecipe(p, sub) {
+  const H = p.hall, W = p.W, D = p.D;
+  const mid = H.u0 + W / 2;
+  let right = true, cu = H.u1 - 1.2;
+  let desk = p.add('counter', cu, H.v0 + 2.0, 1.8, 0.6, FACE.W, { h: 1.05, color: 0x6a4a30 }, H);
+  if (!desk) { right = false; cu = H.u0 + 1.2; desk = p.add('counter', cu, H.v0 + 2.0, 1.8, 0.6, FACE.E, { h: 1.05, color: 0x6a4a30 }, H); }
+  if (desk) { p.npcAt('baliemedewerker', right ? H.u1 - 0.45 : H.u0 + 0.45, H.v0 + 2.0, right ? FACE.W : FACE.E, 'stand'); p.useAt('balie', right ? cu - 0.3 - 0.8 : cu + 0.3 + 0.8, H.v0 + 2.0, 1.4, { face: right ? FACE.E : FACE.W, target: sub }); }
+  p.add('rug', mid, H.v0 + D * 0.55, 1.6, Math.max(2, D - 5), FACE.DOOR, { h: 0.02, solid: false, color: 0x8a2a2a, tag: 'loper' });
+  for (let v = H.v0 + 3.8; v < H.v1 - 1.6; v += 2.6) {
+    for (const f of [0.28, 0.72]) p.add('showcase', H.u0 + W * f, v, Math.min(1.4, W * 0.18), 0.7, FACE.DOOR, { h: 1.1, glass: true, color: 0x5a4a3a });
+  }
+  const art = (side, from, to, step) => { for (let a = from; a < to; a += step) p.onWall(H, side, 'painting', a, 0.9 + p.rnd() * 0.6, 0.04, { h: 0.7 + p.rnd() * 0.4, y0: 1.2, solid: false, color: POSTER_COLORS[Math.floor(p.rnd() * POSTER_COLORS.length)] }); };
+  art('back', H.u0 + 1.4, H.u1 - 0.8, 2.4);
+  art('left', H.v0 + 3.6, H.v1 - 0.8, 2.4);
+  art('right', H.v0 + 3.6, H.v1 - 0.8, 2.4);
+  p.add('bench', mid, H.v1 - 1.2, Math.min(1.8, W * 0.3), 0.5, FACE.DOOR, { h: 0.45 });
+  if (W >= 10) { p.add('pillar', H.u0 + W * 0.25, H.v0 + D * 0.5, 0.6, 0.6, FACE.DOOR, { h: p.height }); p.add('pillar', H.u0 + W * 0.75, H.v0 + D * 0.5, 0.6, 0.6, FACE.DOOR, { h: p.height }); }
+  scatterPeople(p, 'suppoost', 1, 'stand');
+  scatterPeople(p, 'museumbezoeker', Math.min(4, Math.max(1, Math.floor(W * D / 28))), 'stand');
+  p.palette = { wall: 0xefece4, floor: 0xb0a898, floorPattern: 1, accent: 0x6a4a30, ceil: 0xf6f3ec, lamp: { color: 0xfff4dc, pendant: false } };
+}
+
+// A cinema (round 5): a foyer with a ticket desk and a snack counter; behind a wall with a doorway the screen room with a lit screen and rows of
+// red seats with a middle aisle. Visitors sit and watch, or wait in the foyer.
+function cinemaRecipe(p, sub) {
+  const H = p.hall, W = p.W, D = p.D;
+  const mid = H.u0 + W / 2;
+  const hall = backRoom(p, Math.min(8.5, D - 4.6), 'zaal', 'kijken', 0.5, 1.4);
+  const fv1 = hall ? hall.v0 - PART_T / 2 : H.v0 + Math.min(4.4, D * 0.4);
+  const front = { ...H, v1: fv1 };
+  const tu = H.u0 + Math.min(2.0, W * 0.3);
+  const t = p.add('counter', tu, H.v0 + 2.0, Math.min(2.0, W * 0.4), 0.7, FACE.DOOR, { h: 1.1, color: 0x7a1e2a }, front);
+  if (t) { p.npcAt('baliemedewerker', tu, H.v0 + 2.0 + 0.35 + 0.45, FACE.DOOR, 'stand'); p.useAt('balie', tu, H.v0 + 2.0 - 0.35 - 0.8, 1.4, { face: FACE.BACK, target: sub }); }
+  p.add('coffee', H.u1 - 0.5, H.v0 + 2.0, 0.6, 0.5, FACE.W, { h: 1.3 }, front);
+  p.add('fridge', H.u1 - 0.5, H.v0 + 3.0, 0.7, 0.7, FACE.W, { h: 1.2, color: 0xe8e0d0, tag: 'popcorn' }, front);
+  const foyerBench = p.add('bench', H.u1 - 1.8, fv1 - 0.6, 1.4, 0.5, FACE.DOOR, { h: 0.45, color: 0x7a1e2a }, front);
+  if (foyerBench) p.npcAt('filmbezoeker', foyerBench.u, foyerBench.v, FACE.DOOR, 'sit');
+  const screenRoom = hall ? { u0: hall.u0, u1: hall.u1, v0: hall.v0, v1: hall.v1 } : { ...H, v0: H.v0 + 4.8 };
+  p.add('board', mid, H.v1 - 0.05, W - 1.2, 0.1, FACE.DOOR, { h: 2.2, y0: 0.9, solid: false, glow: true, color: 0xdfe6f2 }, screenRoom);
+  const aisle = 1.2, blockW = Math.min(3.2, (W - aisle) / 2 - 0.1);
+  const rows = [];
+  for (let v = screenRoom.v0 + 1.4; v < screenRoom.v1 - 2.6; v += 1.0) {
+    for (const side of [-1, 1]) { const it = p.add('pew', mid + side * (aisle / 2 + blockW / 2), v, blockW, 0.6, FACE.BACK, { h: 1.0, color: 0x8a2a2a }, screenRoom); if (it) rows.push(it); }
+  }
+  rows.filter((_, i) => i % 3 === 1).slice(0, 4).forEach((r, i) => p.npcAt('filmbezoeker', r.u, r.v, FACE.BACK, 'sit', { seat: i }));
+  p.palette = { wall: 0x4a2a30, floor: 0x3a2428, floorPattern: 1, accent: 0x7a1e2a, ceil: 0x2a1c20, lamp: { color: 0xffd9a0, pendant: false } };
+}
+
+// A chapel (round 5): a small altar room, one block of pews with a middle aisle, candles on both sides, one person praying.
+function chapelRecipe(p) {
+  const H = p.hall, W = p.W;
+  const mid = H.u0 + W / 2, aisle = 1.2;
+  p.add('altar', mid, H.v1 - 0.9, 1.4, 0.8, FACE.DOOR, { h: 1.05 });
+  const blockW = Math.min(2.6, (W - aisle - 1.0) / 2);
+  const pews = [];
+  for (let v = H.v0 + 2.8; v < H.v1 - 2.6; v += 1.1) {
+    for (const side of [-1, 1]) { const it = p.add('pew', mid + side * (aisle / 2 + blockW / 2), v, blockW, 0.65, FACE.BACK, { h: 0.9 }); if (it) pews.push(it); }
+  }
+  for (let i = 0; i < 4; i++) p.add('candle', i % 2 ? H.u1 - 0.4 : H.u0 + 0.4, H.v0 + 3 + Math.floor(i / 2) * 2.4, 0.3, 0.3, i % 2 ? FACE.W : FACE.E, { h: 1.3, glow: true });
+  p.npcAt('koster', mid + aisle / 2 + 0.4, H.v1 - 1.9, FACE.DOOR, 'stand');
+  if (pews.length) p.npcAt('bezoeker', pews[Math.floor(p.rnd() * pews.length)].u, pews[0].v, FACE.BACK, 'sit');
+  p.useAt('kaars', H.u0 + 1.0, H.v0 + 3, 1.2, { face: FACE.W });
+  p.palette = { wall: 0xe6dcc8, floor: 0x8e8a82, floorPattern: 2, accent: 0xc9a04a, ceil: 0xdcd2be };
 }
 
 // A student house or room (round 4): a bed in the corner, a desk with a chair, a kitchenette, a table with chairs, books and posters. The student is

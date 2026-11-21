@@ -11,6 +11,7 @@ import { plan as mixPlan, speechDuckFactor, categoryLevel } from './sfx/mixplan.
 import { createLinkups } from './sfx/linkups.js';
 import { createSamples, SAMPLE_INFO, vervangSleutel, variatie, autoDeurPlan, slipLoopNiveau, slipLoopRate, grindNodig, DRIFT_SLIP, driftLoopNiveau, driftLoopRate, HANDREM_MIN_V, SLIPSTOOT_SLIP } from './sfx/samples.js';
 import { initAmbience, updateAmbience, ambienceStats, getPlace } from './sfx/ambience.js';
+import { roomMusicHz } from './sfx/binnenklank.js';
 import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
 import { speel as speelMissieSting, stingVanEvent, medailleSting } from './sfx/stingen.js';
 import { isSfxEvent, eventCoolOk } from './sfx/sfxmap.js';
@@ -3249,6 +3250,7 @@ function musicLowpassHz(world) {
   let hz = Number.isFinite(lvl) ? 20000 * Math.pow(0.045, clamp(lvl, 0, 1)) : 20000;
   // G-Music keeps playing, softly, behind the unfolded phone
   if (world.menuMuffle) hz = Math.min(hz, MENU_MUSIC_HZ);
+  if (world.insideKind) hz = Math.min(hz, roomMusicHz(world.insideKind, world.insideSub)); // in a pand: the music through the walls, per kind (#1164)
   return radioProg.music === 'nachtstreek' ? Math.min(hz, 3400) : hz;
 }
 

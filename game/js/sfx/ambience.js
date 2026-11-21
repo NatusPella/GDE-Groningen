@@ -11,6 +11,7 @@ import { streekNiveaus } from './streekklank.js';import { stepContext } from './
 import { SFX_MAP, sfxClips } from './sfxmap.js';
 import { havenNiveau, HAVEN_PEAK, HAVEN_LP, spoorNiveau, treinHoornPauze, verkeerDagNiveau, scheepshoornPauze, occlusie, bedWobble, bedStartRate } from './lagenplan.js';
 import { RAIN_KEYS, rainTargets, summerTargets, thunderPick } from './weermap.js';
+import { roomTone } from './binnenklank.js';
 
 // Place-aware ambience: looping beds crossfaded by where/when the listener
 // is, scheduled ambient events (birds, gulls, clinks, thunder), the
@@ -391,11 +392,13 @@ function setTargets(world) {
   beds.stadNacht.target = (0.06 + place.traffic * 0.1 + place.density * 0.05) * night * (1 - 0.9 * place.rural) * cabin * paused;
   beds.city.target *= 1 - 0.5 * night * (K.samples && K.samples.has('stad_nacht_nl') ? 1 : 0);
   beds.binnen.target = indoors ? 0.25 * paused : 0;
-  // in a pand (interiors.js, #1150): a bar and a station hall have people in them, a library and a church do not
+  // in a pand (interiors.js, #1150, #1164): the room tone per kind (sfx/binnenklank.js): a bar and a station hall have people in them, a library and a church do not, a garage hums
+  let roomMachine = 0;
   if (indoors && world.insideKind) {
-    const room = { horeca: 0.22, station: 0.14, winkel: 0.05, publiek: 0.06 }[world.insideKind] || 0;
-    if (room) beds.crowd.target = Math.max(beds.crowd.target, room * paused);
-    if (world.insideKind === 'kerk' || world.insideKind === 'bibliotheek') beds.binnen.target = 0.12 * paused;
+    const rt = roomTone(world.insideKind, world.insideSub);
+    if (rt.crowd) beds.crowd.target = Math.max(beds.crowd.target, rt.crowd * paused);
+    beds.binnen.target = rt.room * paused;
+    roomMachine = rt.machine;
   }
   // de kermis op de Grote Markt: drukte en attracties op afstand zolang hij open is (opname kermis_lawaai), zachter bij regen en in een voertuig
   const kermisMid = sfxLinks.kermisPunt(world);
@@ -414,7 +417,7 @@ function setTargets(world) {
   beds.kust.target = sk.kust * droog * paused;
   beds.polder.target = sk.polder * (1 - rain * 0.7) * paused;
   beds.riet.target = sk.riet * (1 - rain * 0.6) * paused;
-  beds.industrie.target = sk.industrie * paused;
+  beds.industrie.target = Math.max(sk.industrie, roomMachine) * paused;
 
   // de haven (verre scheepsbrom) en verkeer overdag (dezelfde opname als 's nachts, zachter): nieuwe lagen van de audit van 21-11
   const havenF = { industrial: place.industrial, waterD: place.waterD, streek: place.streek, sea: place.sea, closed };

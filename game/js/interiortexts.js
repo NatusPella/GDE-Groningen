@@ -25,7 +25,14 @@ const CLERK = {
   bibliotheek: ['Sst. Maar goed dat u er bent.', 'Boeken mag u twee weken houden. Drie als u lief kijkt.'],
   station: ['Het kaartje kost wat het kost.', 'De trein is er zo. Waarschijnlijk.'],
 };
-export const clerkLine = (kind, seed, n = 0) => { const l = CLERK[kind] || CLERK.winkel; return l[Math.floor(((seed >>> 0) + n * 7) % l.length)]; };
+// by variant of a public building (a museum desk talks about the museum)
+const CLERK_SUB = {
+  museum: ['Een kaartje? De Geit met Gitaar hangt op de eerste verdieping. Of beneden. Hij beweegt.', 'Niet aanraken, ook niet als het mooi is. Zeker niet als het mooi is.', 'Elke dag open en elke dag gratis stil.'],
+  bioscoop: ['De film begint zo. Of nu. Of eigenlijk al een kwartier.', 'Popcorn zout of zoet? Zout. Altijd zout.', 'Zaal één is helemaal vol, zaal twee ook. Er is maar één zaal.'],
+  school: ['De les is bezig. Zachtjes lopen, graag.', 'Ouders melden zich hier. Leerlingen liever niet.', 'Het schoolplein is van iedereen. De fietsenstalling alleen van de leraren.'],
+  ziekenhuis: ['Neemt u plaats. Het duurt even, maar het wordt vast niet erg.', 'Heeft u een afspraak? Dan wacht u hier. Zonder afspraak ook.', 'De koffieautomaat is stuk. Dit is geen grap.'],
+};
+export const clerkLine = (kind, seed, n = 0, sub = null) => { const l = CLERK_SUB[sub] || CLERK[kind] || CLERK.winkel; return l[Math.floor(((seed >>> 0) + n * 7) % l.length)]; };
 
 // walking around in a home: one line per look, by the seed
 export const HOME_LOOK = ['Een gezellige kamer met te veel kussens.', 'Er staat een plant die het goed doet. Of nep is.', 'Op de kast staat een foto van een geit met een bos bloemen.', 'Het ruikt hier naar koffie en kruidkoek.', 'De bank heeft een kuil met een vorm: die van iemand die hier vaak zit.'];

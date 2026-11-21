@@ -148,7 +148,7 @@
    "status": "gat",
    "prio": "middel",
    "lead": "Verhaal",
-   "gat": "Lead Verhaal meldt (epic-verhaal-21-11): storybridge_test.mjs bewijst dat een client of sessie geen overgangsscene speelt en dat storybridgerun.js niets over het net stuurt; unlockgate_test.mjs bewijst dat de poort alleen de meegegeven eigen voortgang leest (host en gast verschillen); COOP-GAST.md heeft een alinea voor overgangsscenes, poort, vlaggen en thuis. Wat overblijft is alleen de merge: daarna de status op OK zetten. Cutscene-deelname in een echt venster staat al in de suite alles (stap filmpje) en hoeft de lead niet te doen."
+   "gat": "Bewijs met een pure test dat storybridgerun.js niets doet bij coopRole client en dat een gast niet in de overgangsscene van de host vastloopt."
   },
   {
    "id": "recap",
@@ -416,7 +416,6 @@
    "groep": "Bezit en geld",
    "modules": [
     "voetbalcarriere*",
-    "voetbalcoach",
     "voetbalagenda",
     "voetbalbeats",
     "voetbalclub*",
@@ -431,19 +430,18 @@
     "voetbalworld",
     "voetbalkarakter",
     "voetbalcompetitie",
+    "voetbalcoach",
     "voetbaltraining*",
     "sponsorpanden",
     "voetbalbezit",
     "voetbalcommentarycareer"
    ],
    "eigenaar": "speler",
-   "gast": "Een gast speelt zijn eigen figuur in jouw team of, bij Derby, in team 1; zijn ratings reizen als hexblok mee met J (wedgast), de teams in de start-v.",
+   "gast": "Een gast speelt zijn eigen figuur in jouw team; ratings reizen mee in het EXTRA-bericht.",
    "beloning": "Per speler uit de eigen uitslagsregel (geld en ervaring); nooit competitiepunten van een ander.",
    "wegval": "De computer neemt over; het team wordt nooit leeg; geen instap halverwege.",
    "test": [
     "scripts/voetbal_samen_test.mjs",
-    "scripts/coopwedstrijd_voetbal_test.mjs",
-    "scripts/voetbal_coach_test.mjs",
     "scripts/voetbal_carriere_test.mjs"
    ],
    "regel": {
@@ -453,7 +451,7 @@
    "status": "gat",
    "prio": "middel",
    "issue": "#1157",
-   "gat": "Open: sponsorpanden wachten op Bezit; uitwedstrijd als reis is niet in beeld bekeken; de camera is voor team 1 niet gespiegeld. Derby (mensen in team 1), de ratings bij Meedoen en de uitslag per team zijn gebouwd en getest (coopwedstrijd_voetbal_test)."
+   "gat": "voetbalsamen.js (regels, ratingblok, beloning) is niet gekoppeld aan coopnet.js en registreerWedstrijd; derby met mensen in team 1 (voetbalmatch.js) is niet gebouwd; sponsorpanden wachten op Bezit; uitwedstrijd als reis is niet gebouwd."
   },
   {
    "id": "voetbalwedstrijd",
@@ -595,6 +593,7 @@
    "naam": "Tuning, onderdelen, lak en gepimpte auto's",
    "groep": "Uiterlijk",
    "modules": [
+    "tuningplan",
     "garage*",
     "ownedvehicles",
     "coopbezit",
@@ -653,7 +652,10 @@
    "test": [
     "scripts/interieurs_test.mjs",
     "scripts/binnenset_test.mjs",
-    "scripts/interior_coop_test.mjs"
+    "scripts/interior_coop_test.mjs",
+    "scripts/interior_crowd_test.mjs",
+    "scripts/interior_pandtypes_test.mjs",
+    "scripts/binnenklank_test.mjs"
    ],
    "regel": {
     "doc": "docs/BINNENSETS-21-11.md",
