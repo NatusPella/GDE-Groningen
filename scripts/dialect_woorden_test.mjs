@@ -26,7 +26,7 @@ ok(!spokenAll.some((s) => /\bde Grunn\b(?!e|\w)/i.test(s)), "gesproken tekst bev
 // Fries: kenmerkende letters of woorden in de getoonde tekst moeten geregistreerd zijn
 const MARKERS = ['moai', 'tige', 'sjoch', 'neat', 'hjir', 'gjin', 'dyn', 'myn', 'wiene', 'jimme', 'skûtsje', 'nedich', 'fakmanskip', 'publyk', 'wykein', 'oant', 'sjen', 'fertelle', 'allinnich', 'hjoed', 'efkes', 'betiid', 'werom', 'bytsje', 'mjitte', 'wrachtich', 'hekweach', 'trapfyts', 'grinzers', 'grinzer', 'ferhip', 'teminsten', 'jild', 'folle', 'sizze', 'hearen'];
 const FRIES_LETTERS = /[âêûôúŷ]/;
-const NL_OK = new Set(['café', 'cafés', 'coupé', 'ménage', 'enquête', 'crêpe', 'crêpes', 'drôle', 'liège', 'théâtre', 'château']);
+const NL_OK = new Set(['café', 'cafés', 'coupé', 'ménage', 'enquête', 'crêpe', 'crêpes', 'drôle', 'liège', 'théâtre', 'château', 'pompeblêd-rode']);
 const seen = new Set();
 for (const it of collectTexts()) {
   if (it.file.includes('gronings_spoken')) continue;
