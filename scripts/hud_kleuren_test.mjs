@@ -219,6 +219,7 @@ BUITEN.add('gpuherstel.js'); // de donkere sluier bij een verloren beeldcontext:
 BUITEN.add('recapcardrun.js'); // de recapkaart Waar waren we? bouwt op de ds-kaartstijl; eigen kleuren komen uit tokens
 BUITEN.add('departuretimelineui.js'); // de tijdlijn in het vertrekbord: een element van het bord, geen HUD-chroom
 BUITEN.add('voetbalcarriereui.js'); // een paneel in het pauzemenu (Loopbanen), geen HUD-chroom
+BUITEN.add('voetbaltvlayer.js'); // de tv-laag van de voetbalwedstrijd (beeld in de wedstrijd, geen HUD-chroom)
 for (const [naam, s] of Object.entries(SURFACES)) {
   for (const f of s.files || []) ok(HUD_AUDIT.has(f) || BUITEN.has(f), `surface ${naam}: ${f} is niet geauditeerd en niet als beeld gemarkeerd`);
 }
