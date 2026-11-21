@@ -12,7 +12,7 @@
 //  - NPC's gebruiken dezelfde stukken en dezelfde compositie (npcOutfit, outfitToLook): deterministisch uit zaad en rol.
 import {
   SLOT_IDS, REQUIRED_SLOTS, ITEMS, ITEM_BY_ID, ITEM_INDEX, SETS, SET_BY_ID, LOOKS, LOOK_BY_ID, KIND_LOOK, PALETTE_IDS, PALETTE_INDEX,
-  DEFAULT_WORN, ROLE_POOLS, SHOP_ITEMS, SHOP_STOCK, SHOP_RARE_CHANCE, SALE_DISCOUNT, PRESET_COUNT, PRESET_NAME_MAX, PROFILES,
+  DEFAULT_WORN, ROLE_POOLS, NPC_MOODS, ROLE_MOODS, MOOD_WEIGHT, MOOD_ACCENT, SHOP_ITEMS, SHOP_STOCK, SHOP_RARE_CHANCE, SALE_DISCOUNT, PRESET_COUNT, PRESET_NAME_MAX, PROFILES,
   parsePiece, pieceLabel, colorHex, colorName, setsFor, setKeyFor,
 } from './clothingdata.js';
 import { HAIR_STYLE_IDS, HAIR_COLORS, HAIR_COLOR_BY_ID, HAIR_STYLES, DEFAULT_HAIR, NPC_HAIR, NPC_HAIR_COLORS, parseHair, BODY_IDS, BODY_TYPES, NPC_BODY } from './clothinghair.js';
@@ -369,9 +369,26 @@ export function pickWeighted(list, r) {
   for (const e of list) { x -= e[1]; if (x < 0) return e[0]; }
   return list[list.length - 1][0];
 }
+// De kleur van een stuk: kleuren uit de stemming van de NPC wegen zwaar, de rest weegt 1 (het accent). Altijd een kleur van het stuk.
+function pickColor(item, mood, r) {
+  const cols = item.colors;
+  if (!mood || !mood.length || cols.length < 3 || r() < MOOD_ACCENT) return cols[Math.floor(r() * cols.length)];
+  let total = 0;
+  const w = cols.map((c) => { const x = mood.includes(c) ? MOOD_WEIGHT : 1; total += x; return x; });
+  let x = r() * total;
+  for (let i = 0; i < cols.length; i++) { x -= w[i]; if (x < 0) return cols[i]; }
+  return cols[cols.length - 1];
+}
+// Lichaamsvorm per rol: een kleine gewichtsverschuiving bovenop NPC_BODY, zodat sporters vaker smal of lang zijn en bouwvakkers breed.
+const ROLE_BODY = { sporter: { smal: 2, lang: 1.6, breed: 0.5 }, bouwvakker: { breed: 2, kort: 1.4, smal: 0.6 }, boer: { breed: 1.6 }, zakenman: { lang: 1.4 }, student: { smal: 1.4 } };
+function npcBody(seed, role) {
+  const adj = ROLE_BODY[role] || {};
+  return pickWeighted(NPC_BODY.map(([id, w]) => [id, w * (adj[id] || 1)]), rng(`${seed}|lijf|${role}`));
+}
 export function npcOutfit(seed, role = 'voetganger', ctx = {}) {
   const pool = ROLE_POOLS[role] || ROLE_POOLS.voetganger;
   const r = rng(`${seed}|${role}|${ctx.area || ''}`);
+  const mood = NPC_MOODS[pickWeighted(Object.entries(ROLE_MOODS[role] || ROLE_MOODS.standaard), rng(`${seed}|stemming|${role}`))];
   const worn = {};
   for (const slot of SLOT_IDS) {
     const list = pool[slot];
@@ -385,7 +402,7 @@ export function npcOutfit(seed, role = 'voetganger', ctx = {}) {
     if (!id) continue;
     const item = ITEM_BY_ID[id];
     if (!item) continue;
-    const color = item.colors[Math.floor(r() * item.colors.length)];
+    const color = pickColor(item, mood, r);
     worn[slot] = `${id}.${color}`;
   }
   // een jurk dekt shirt en broek: geen losse jurk onder een korte broek
@@ -400,18 +417,18 @@ export function npcOutfit(seed, role = 'voetganger', ctx = {}) {
     const color = ctx.old ? ['grijs', 'platina', 'lichtgrijs'].filter((id) => HAIR_COLOR_BY_ID[id])[Math.floor(hr() * 2)] : pickWeighted(NPC_HAIR_COLORS, hr);
     worn.hair = `${style}.${color}`;
   }
-  if (ctx.body) worn.body = pickWeighted(NPC_BODY, rng(`${seed}|lijf|${role}`));
+  if (ctx.body) worn.body = npcBody(seed, role);
   return worn;
 }
 // Welke rol een voetganger heeft: gewogen per buurtprofiel (trafficfleet.js WIJK_PROFILE) en uur van de dag, deterministisch uit zijn zaad.
 // Een gewone voetganger blijft de meerderheid; studenten rond de campus, zakenlieden in het centrum, feestgangers in de avond.
 const AREA_ROLES = {
-  standaard: { voetganger: 70, student: 6, toerist: 3, sporter: 4, zakenman: 4, bouwvakker: 3, boer: 0, winkelier: 3, feestganger: 3 },
-  student: { voetganger: 38, student: 44, toerist: 2, sporter: 6, zakenman: 1, bouwvakker: 1, winkelier: 2, feestganger: 6 },
-  chic: { voetganger: 58, student: 3, toerist: 5, sporter: 8, zakenman: 14, bouwvakker: 1, winkelier: 6, feestganger: 5 },
-  bakfiets: { voetganger: 74, student: 6, toerist: 2, sporter: 8, zakenman: 3, bouwvakker: 2, winkelier: 3, feestganger: 2 },
-  industrie: { voetganger: 40, student: 1, toerist: 0, sporter: 2, zakenman: 8, bouwvakker: 42, winkelier: 1, feestganger: 0, boer: 6 },
-  centrum: { voetganger: 52, student: 8, toerist: 14, sporter: 2, zakenman: 8, bouwvakker: 1, winkelier: 7, feestganger: 8 },
+  standaard: { voetganger: 64, student: 6, toerist: 3, sporter: 4, zakenman: 3, bouwvakker: 3, boer: 3, winkelier: 3, feestganger: 3, ambtenaar: 3, wandelaar: 5 },
+  student: { voetganger: 34, student: 44, toerist: 2, sporter: 6, zakenman: 1, bouwvakker: 1, winkelier: 2, feestganger: 6, ambtenaar: 2, wandelaar: 2 },
+  chic: { voetganger: 52, student: 3, toerist: 5, sporter: 8, zakenman: 12, bouwvakker: 1, winkelier: 6, feestganger: 5, ambtenaar: 5, wandelaar: 3 },
+  bakfiets: { voetganger: 68, student: 6, toerist: 2, sporter: 8, zakenman: 3, bouwvakker: 2, winkelier: 3, feestganger: 2, ambtenaar: 3, wandelaar: 3 },
+  industrie: { voetganger: 38, student: 1, toerist: 0, sporter: 2, zakenman: 8, bouwvakker: 42, winkelier: 1, feestganger: 0, boer: 6, ambtenaar: 2 },
+  centrum: { voetganger: 42, student: 8, toerist: 14, sporter: 2, zakenman: 8, bouwvakker: 1, winkelier: 7, feestganger: 8, ambtenaar: 12, wandelaar: 3 },
 };
 export function pedRole(seed, ctx = {}) {
   const base = AREA_ROLES[ctx.area] || AREA_ROLES.standaard;
@@ -421,9 +438,11 @@ export function pedRole(seed, ctx = {}) {
   const list = [];
   for (const [role, w0] of Object.entries(base)) {
     let w = w0;
-    if (role === 'zakenman' || role === 'winkelier') w *= day ? 1.4 : 0.15;
+    if (role === 'zakenman' || role === 'winkelier' || role === 'ambtenaar') w *= day ? 1.4 : 0.15;
     if (role === 'bouwvakker') w *= h >= 6 && h < 17 ? 1.4 : 0.1;
     if (role === 'feestganger') w *= evening ? 4 : 0.3;
+    if (role === 'boer') w *= h >= 6 && h < 19 ? 1.3 : 0.2;
+    if (role === 'wandelaar') w *= (day ? 1.2 : 0.3) * (ctx.rain ? 0.5 : 1);
     if (role === 'toerist' || role === 'sporter') w *= h >= 22 || h < 6 ? 0.2 : 1;
     if (role === 'student' && ctx.rain) w *= 0.9;
     list.push([role, w]);

@@ -268,7 +268,7 @@ t('voetgangers: rol per buurt en uur, deterministisch, verdeling klopt', () => {
   assert.ok(stad.toerist > campus.toerist * 2, 'meer toeristen in het centrum');
   assert.ok((nacht.feestganger || 0) > (stad.feestganger || 0) * 2, 'feestgangers in de nacht');
   assert.ok((bouw.bouwvakker || 0) > (stad.bouwvakker || 0) * 5, 'bouwvakkers op het industrieterrein');
-  assert.ok(stad.voetganger > 600, 'de gewone voetganger blijft de grootste groep');
+  assert.ok(stad.voetganger > 500 && Object.entries(stad).every(([k, v]) => k === 'voetganger' || v < stad.voetganger), 'de gewone voetganger blijft de grootste groep');
   for (const r of Object.keys(campus)) assert.ok(r in D.ROLE_POOLS, 'rol zonder pool: ' + r);
 });
 
@@ -284,6 +284,36 @@ t('voetgangers: drawcalls en driehoeken van een menigte rolfiguren blijven binne
   assert.equal(meshes, n, 'een NPC is één drawcall; ');
   assert.ok(meshes / n < 1.2, 'gemiddeld aantal meshes per figuur: ' + (meshes / n).toFixed(2));
   assert.ok(maxTris < 6500, 'driehoeken: ' + maxTris);
+});
+
+t('NPC-diversiteit (ronde 4): ambtenaar en wandelaar, kleurstemmingen met accenten, lichaamsvormen gemengd per rol', () => {
+  for (const r of ['ambtenaar', 'wandelaar']) assert.ok(r in D.ROLE_POOLS, r);
+  // elke stemming bestaat uit paletkleuren
+  for (const [id, cols] of Object.entries(D.NPC_MOODS)) for (const c of cols) assert.ok(c in D.PALETTE, `${id}: ${c}`);
+  // een stemming kleurt zichtbaar: studenten dragen vaker fel dan zakenmannen, zakenmannen vaker donker dan studenten
+  const deel = (role, mood) => {
+    let hit = 0, tot = 0;
+    for (let i = 0; i < 500; i++) { const w = C.npcOutfit(i, role); for (const p of [w.top, w.bottom]) { const x = D.parsePiece(p); if (x.item.colors.length < 3) continue; tot++; if (D.NPC_MOODS[mood].includes(x.color)) hit++; } }
+    return hit / tot;
+  };
+  assert.ok(deel('student', 'fel') > deel('zakenman', 'fel'), 'studenten dragen vaker fel');
+  assert.ok(deel('zakenman', 'donker') > deel('student', 'donker'), 'zakenmannen dragen vaker donker');
+  // variatie: geen stemming bepaalt alles
+  const kleuren = new Set();
+  for (let i = 0; i < 400; i++) kleuren.add(D.parsePiece(C.npcOutfit(i, 'voetganger').top).color);
+  assert.ok(kleuren.size >= 12, 'kleurvariatie in de menigte: ' + kleuren.size);
+  // lichaamsvormen: in elke rol meerdere vormen, en de rolbias is merkbaar
+  const vorm = (role) => { const o = {}; for (let i = 0; i < 600; i++) { const b = C.npcOutfit(i, role, { body: true }).body; o[b] = (o[b] || 0) + 1; } return o; };
+  for (const role of ['voetganger', 'student', 'bouwvakker', 'sporter']) assert.ok(Object.keys(vorm(role)).length >= 4, role);
+  assert.ok((vorm('bouwvakker').breed || 0) > (vorm('sporter').breed || 0) * 2, 'bouwvakkers vaker breed');
+  // geen extra mesh-kosten: nog steeds één rompmesh per NPC, ook voor de nieuwe rollen
+  for (const role of ['ambtenaar', 'wandelaar']) {
+    for (let i = 0; i < 40; i++) {
+      const m = P.buildPersonMesh(0x3a3f47, 0xd9aa82, { seed: i * 3.3, role, outfitCtx: { rain: i % 4 === 0 } });
+      let c = 0; m.traverse((x) => { if (x.isMesh) c++; });
+      assert.equal(c, 1, `${role} ${i}`);
+    }
+  }
 });
 
 t('verhaalpersonages en politie houden hun vaste look: een look of cop gaat voor een rol', () => {
