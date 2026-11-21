@@ -162,7 +162,7 @@ if (heeftWereld()) {
   const pinned = (load) => [...Object.keys(idx.tiles)].filter((k) => { const e = load.store.entries.get(k); return e && e.pinned; });
   ok(pinned(sparseLoad).length === 0, 'de sparse wereld laadt zonder city-pin', String(pinned(sparseLoad).length));
   ok(pinned(denseLoad).length > 0, 'de oude dichte wereld blijft gepind (achterwaartse compatibiliteit)');
-  // #1052: in het spel blijft de stad de opwarmfase (CITY_HOLD_MS) vastgepind en gaat daarna alsnog los
+  // #1060: in het spel blijft de stad de opwarmfase (CITY_HOLD_MS) vastgepind en gaat daarna alsnog los
   const holdLoad = await loadTileWorld('world/', { source: new T.MemorySource(sparseFiles), pool: false, cityHoldMs: 150 });
   ok(pinned(holdLoad).length > 0, 'de sparse stad blijft in de opwarmfase vastgepind (cityHoldMs)', String(pinned(holdLoad).length));
   await new Promise((r) => setTimeout(r, 400));
