@@ -44,15 +44,19 @@ export function forecastOwn() {
 }
 
 // Alles voor het menu, de kaartlaag en de wagens in beeld.
-export function snackView(w) {
+export function spotRows() {
   const S = L.snackState(), day = L.calToday(), held = SP.heldIds(S.permits, day);
-  const owner = L.snackChainOwner();
-  const spots = SP.SPOTS.map((s) => {
+  return SP.SPOTS.map((s) => {
     const st = spotStatus(S, s.id, day), xy = SP.spotXY(s.id), mine = st === 'jij';
     return { id: s.id, name: s.name, short: s.short, place: s.place, x: xy.x, y: xy.y, foot: s.foot, status: st, price: SP.permitPrice(s.id, held.length), ask: st === 'usmem' ? RV.askPrice(s.id, S.rep) : 0,
       daysLeft: mine ? SP.permitDaysLeft(S.permits, s.id, day) : 0, renew: mine ? SP.renewalCost(s.id, held.length) : 0, claim: st === 'medespeler' ? L.claimOfKey(SP.claimKey(s.id)) : null,
       wagon: S.own.spot === s.id ? 'own' : (S.fleet.find((f) => f.spot === s.id) || {}).id || null };
   });
+}
+export function snackView(w) {
+  const S = L.snackState(), day = L.calToday(), held = SP.heldIds(S.permits, day);
+  const owner = L.snackChainOwner();
+  const spots = spotRows();
   const own = { ...S.own, forecast: forecastOwn(), hasWagon: L.myMobile().some((m) => m.id === 'frietwagen'), tierDef: SN.TIERS[S.own.tier], numbers: SN.menuNumbers(S.own.menu, S.up, owner) };
   const sc = SN.empireScore(S, day, { chains: L.chainViews().filter((c) => c.closedDays > 0 || c.margin >= 0.3).length });
   return { open: snackOpen(), hint: snackOpen() ? '' : snackHint(), day, money: money(w), active: SN.isActive(S), rep: S.rep, effRep: SN.effRep(S, day), up: S.up, spots, own, fleet: S.fleet.map((f) => ({ ...f, tierDef: SN.TIERS[f.tier], wage: SN.staffWage(f.staff.skill, f.wageUp), spotName: f.spot ? SP.spotDef(f.spot).short : null })),
