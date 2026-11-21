@@ -11,6 +11,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Nieuw
 
+- **Eindkaart van een missie met impact (#1081):** het gele vlak van "Missie geslaagd" (en "Missie mislukt") slaat in beeld met een kleine overshoot en een lichte schok; titel, regel, beloning en tijd komen gestaffeld binnen, de beloning telt hoorbaar op, sterren slaan één voor één in en een glans sluit af, in hooguit 1,6 s. Geluid: whoosh, zware inslag, oplopende tikjes, een munt en een korte fanfare-stoot (bij mislukt dof en laag). Een toets of klik slaat over en toont direct de eindstand. Bij Beweging beperken en Rustig drukwerk blijft het bij de snelle fade. Samen spelen: de eindkaart is lokaal per speler. Nog niet in beeld gezien.
 - **Boerderij, bakronde en strook van de light sims in zeefdruk (#1006, #999):** de kaarten, knoppen en chips van de HUD-strook, de bakronde en het Boerderij-scherm zijn omgezet naar de zeefdrukset; de oude papieren set staat alleen nog in de definitie, de galerij en de rolvariabelen. Nog niet in beeld gezien.
 - **Kaart en minikaart volgen de wereldkleuren (#1006):** het land en de gebouwen op de kaart gaan door dezelfde kleurrollen als de 3D-wereld, met behoud van helderheid (dus hetzelfde contrast). De wereldmenging staat nu standaard op 0,4 (was 0,3): iets zichtbaarder, nog steeds rustig. Met `?dswereld=0` zie je het oude palet. Nog niet in beeld gezien.
 - **Kleine tekst in minigames en Samen spelen is nu minstens 13 px (#1000, #1001):** golfbord, treincabine, wedstrijdkaart, keuzepaneel en de heistschermen.

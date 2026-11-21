@@ -1545,6 +1545,42 @@ function stingDuckMul(dt) {
   return 1 - 0.45 * stingDuck.level;
 }
 
+// De eindkaart met impact (bigmoment.js, eindkaartimpact.js): een whoosh bij het binnenkomen, een zware inslag, oplopende
+// tikjes bij de optellende beloning, een munt aan het eind, een klein sterrengeluid en een korte fanfare-stoot bij de glans.
+// Procedureel op de sting- en ui-bus (dus onder Effecten en de mute-knop), geen bestanden. Alleen voor jezelf: de kaart is
+// lokaal per speler. Bewust zonder melodie: de gewone missiesting speelt al op "geklaard!".
+export function playEindkaartGeluid(naam, i = 0) {
+  if (!ctx || muted || !stingBus) return;
+  const sting = { bus: stingBus, prio: 2 };
+  switch (naam) {
+    case 'whoosh':
+      playNoiseBurst({ duration: 0.24, freq: 500, freqEnd: 2600, q: 0.8, gain: 0.07, type: 'bandpass', ...sting });
+      break;
+    case 'inslag':
+      playTone({ freq: 110, freqEnd: 38, type: 'sine', duration: 0.38, gain: 0.3, ...sting });
+      playNoiseBurst({ duration: 0.12, freq: 900, freqEnd: 150, q: 0.6, gain: 0.12, type: 'lowpass', ...sting });
+      break;
+    case 'dof':
+      playTone({ freq: 90, freqEnd: 45, type: 'sine', duration: 0.3, gain: 0.2, ...sting });
+      break;
+    case 'tik':
+      playTone({ freq: 700 + Math.min(7, i) * 95, type: 'triangle', duration: 0.05, gain: 0.035, bus: uiBus || stingBus, prio: 2 });
+      break;
+    case 'munt':
+      [1318.5, 1760].forEach((f, k) => playTone({ freq: f, type: 'sine', duration: 0.16, gain: 0.06, delay: k * 0.06, ...sting }));
+      break;
+    case 'ster':
+      playTone({ freq: 520 + Math.min(4, i) * 110, type: 'triangle', duration: 0.12, gain: 0.05, ...sting });
+      playTone({ freq: 140, freqEnd: 70, type: 'sine', duration: 0.1, gain: 0.12, ...sting });
+      break;
+    case 'stempel':
+      [523.25, 783.99, 1046.5].forEach((f) => playTone({ freq: f, type: 'square', duration: 0.3, gain: 0.025, filterFreq: 2600, ...sting }));
+      playTone({ freq: 98, freqEnd: 55, type: 'sine', duration: 0.25, gain: 0.18, ...sting });
+      break;
+    default: break;
+  }
+}
+
 // De klok van een missie of klus staat op 30 s (twee tonen) of 10 s (drie, hoger): een piep, geen stem (#985).
 export function playTimeWarning(urgent = false) {
   if (!ctx || muted || !uiBus) return;
