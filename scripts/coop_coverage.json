@@ -1555,6 +1555,10 @@
   {
    "glob": "holdlatch",
    "reden": "Zuivere vasthoudtoets voor een knop (toegankelijkheid): lokaal bij de speler, geen spelstaat."
+  },
+  {
+   "glob": "loadrollback",
+   "reden": "Herstel van het laden op dit apparaat (terugval naar de vorige veilige stand); lokaal, geen spelstaat."
   }
  ],
  "opslag": {
