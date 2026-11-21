@@ -16,6 +16,7 @@ naslag: de bron, de scripts, de opnames en de verslagen. Bij verschil wint de sp
 | 4b. Achterstand: spreekregels zonder stem buiten `script.json` (stand 21-11, batches en kosten) | [TTS-ACHTERSTAND-21-11.md](TTS-ACHTERSTAND-21-11.md) (gegenereerd door `node scripts/voice_backlog.mjs --write`) | naslag; cijfers uit de generator |
 | 5. In het spel: scènes en acteurs | [nieuw/08-IMPLEMENTATIE.md](nieuw/08-IMPLEMENTATIE.md) (momentopname 17-10-2026; paden kunnen verouderd zijn), [STIJLGIDS.md](STIJLGIDS.md) | naslag; de code is de waarheid |
 | 5b. De ruggengraat per akte (21-11, #1123) | [RUGGENGRAAT.md](RUGGENGRAAT.md) | naslag; de toets is `scripts/story_spine_test.mjs` |
+| 5c. Schrijfregels voor de verhaalherschrijving (21-11, #1121): canon, introductie, dialoog, humor, werkwijze | [SCHRIJFREGELS-21-11.md](SCHRIJFREGELS-21-11.md) | naslag |
 | 6. Presentatie: trailer | [E-trailer.md](E-trailer.md) (leidend), [nieuw/TRAILER-SCRIPT.md](nieuw/TRAILER-SCRIPT.md) (concept voor #63) | concept, niet leidend |
 
 ## Personages en stem
