@@ -193,6 +193,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Samen spelen: wat je in het pashokje kiest (stukken, kapsel, postuur) zien medespelers meteen; kast, geld en codes van andere outfits blijven van jezelf. Valt een speler weg, dan verdwijnt de figuur met de code; wie later aansluit, krijgt de codes uit de spelerslijst.
 - **Samen spelen:** een gast speelt de overgangsscènes niet zelf en loopt er niet in vast; iedere speler ziet zichzelf als de hoofdpersoon die de stap nodig heeft en de ander als partner. De nieuwe verhaalregels hebben nog geen stem en staan als ondertitel tot de volgende opnameronde.
 - Samen spelen: de krantenwijk, de rondvaart, de rondvaarttour en het keuzepaneel van bijbanen rekenen nu met het lichaam van de speler die de baan speelt, niet met dat van wie het spel opende. Een gast die een bijbaan doet krijgt dus de juiste afstand, tijd en stem. De kaartkijkanker en de voetbalcarrière lezen ook de eigen speler.
+- Samen spelen: bij 14 tot 16 spelers met lange namen en volle kleding past de spelerslijst niet meer in één bericht; de kleding komt nu in een eigen bericht, zodat iedereen kan aansluiten en iedereen elkaars kleding blijft zien. Wie steeds van kleding wisselt, ziet de rest die wissels hoogstens een keer per seconde.
+- Samen spelen: bij twee kopers van hetzelfde perceel wint wie het eerst zijn claim doorgeeft; een zelfverzonnen tijd telt niet meer. Een gast kan niet meer duizenden percelen of standplaatsen claimen (hoogstens 500 percelen en 16 plekken per speler) en niet meer dan een paar berichten per seconde sturen.
+- Samen spelen: na het verlaten van een sessie staan er geen palen van medespelers meer en is alles weer te koop. Wat je al bezat voor de sessie, melden je medespelers vanaf het begin als van jou; je raakt het in je eigen spel nooit kwijt.
 
 ### Webversie en intern
 

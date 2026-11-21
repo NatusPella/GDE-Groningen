@@ -2,6 +2,7 @@
 // B3 (quotum en snelheidsgrens), B4 (opruimen bij het einde van de sessie), B5 (eigen percelen als claim), N1 tot en met N4.
 //   node scripts/multiplayerreview_22_11_test.mjs
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import * as P from '../game/js/coopplayers.js';
 import * as K from '../game/js/net/codec.js';
 const MAX_JSON = K.MAX_JSON;
@@ -145,6 +146,149 @@ t('N3: readLook weigert onleesbare tekens in de tuning-code', () => {
   buf[at + 2] = 0x07; buf[at + 3] = 0x80;
   const d = K.decodeSnapshot(buf, new Map());
   assert.ok(d && d.looks[0].tune === undefined, 'geen onleesbare tuning');
+});
+
+
+// ---- Bezit (B2 tot en met B5): drie instanties over een nep-netwerk
+import * as N from '../game/js/bezitnet.js';
+import * as L from '../game/js/bezitlive.js';
+import * as BL from '../game/js/boerderijlive.js';
+import * as BC from '../game/js/bezitcoop.js';
+const ID = (i) => 'p' + i.toString(16).padStart(12, '0');
+function netwerk() {
+  const queue = [], worlds = new Map(), tr = new Map(); let klok = 1000;
+  const add = (slot, role) => {
+    const w = { coopRoster: [{ slot: 0, naam: 'Host' }, { slot: 1, naam: 'Lotte' }, { slot: 2, naam: 'Zoe' }], money: 0, msgs: [], addMessage(x) { this.msgs.push(x); } };
+    worlds.set(slot, w);
+    tr.set(slot, role === 'host'
+      ? { role: 'host', now: () => klok, toGuest: (s, body) => queue.push({ to: s, from: 0, body }), guests: () => [...worlds.keys()].filter((k) => k !== 0) }
+      : { role: 'client', toHost: (body) => queue.push({ to: 0, from: slot, body }), guests: () => [] });
+    return w;
+  };
+  const flush = () => { let g = 0; while (queue.length && g++ < 5000) for (const m of queue.splice(0, queue.length)) N.handleBezit(worlds.get(m.to), m.body, m.from, tr.get(m.to)); };
+  return { worlds, tr, add, flush, ensure: (s) => N.ensureBezitNet(worlds.get(s), tr.get(s)), queue, tijd: (ms) => { klok += ms; } };
+}
+const claimsOf = (w) => w.bezitNet.net.claims;
+const opslag = () => ({ m: new Map(), getItem(k) { return this.m.has(k) ? this.m.get(k) : null; }, setItem(k, v) { this.m.set(k, String(v)); }, removeItem(k) { this.m.delete(k); } });
+const INDEX = { v: 1, kinds: ['w', 'a', 'b'], access: ['weg', 'pad', 'wegNabij', 'padNabij', 'geen'], places: [['Winsum', 0, 0, 800]], rows: [['paaaaaaaaaaa1', 100, 100, 300, 0, 0, 90, 90]] };
+
+t('B2: een gast kan met een t ver in het verleden geen claim van de host afpakken', () => {
+  const net = netwerk(); net.add(0, 'host'); net.add(1, 'client');
+  const o0 = net.ensure(0); net.ensure(1); net.flush();
+  o0.net.announce({ id: ID(0x123456789ab), action: 'claim' }, 1000);
+  net.flush();
+  net.queue.push({ to: 0, from: 1, body: { k: 'bezit', a: 'claim', id: ID(0x123456789ab), t: -1e12 } });
+  net.flush();
+  assert.equal(claimsOf(net.worlds.get(0)).lookup(ID(0x123456789ab)), null, 'het perceel blijft van de host (geen claim van een ander)');
+  assert.ok(claimsOf(net.worlds.get(1)).lookup(ID(0x123456789ab)), 'de gast ziet het als van de host');
+});
+t('B2: wie het eerst bij de host aankomt wint; de tijd van de gast telt niet', () => {
+  const net = netwerk(); net.add(0, 'host'); net.add(1, 'client'); net.add(2, 'client');
+  net.ensure(0); net.ensure(1); net.ensure(2); net.flush();
+  net.queue.push({ to: 0, from: 2, body: { k: 'bezit', a: 'claim', id: ID(77), t: 999999 } });
+  net.queue.push({ to: 0, from: 1, body: { k: 'bezit', a: 'claim', id: ID(77), t: -5 } });
+  net.flush();
+  assert.equal(claimsOf(net.worlds.get(0)).lookup(ID(77)).name, 'Zoe');
+});
+t('B2: de hello neemt de t van de gast ook niet over', () => {
+  const net = netwerk(); net.add(0, 'host'); net.add(1, 'client');
+  const o0 = net.ensure(0); net.ensure(1); net.flush();
+  o0.net.announce({ id: ID(31), action: 'claim' }, 1000);
+  net.queue.push({ to: 0, from: 1, body: { k: 'bezit', a: 'hello', ids: BC.encodeIds([ID(31)]), t: -1e12 } });
+  net.flush();
+  assert.equal(claimsOf(net.worlds.get(0)).lookup(ID(31)), null, 'de claim van de host blijft');
+});
+
+t('B3: een gast die hello blijft sturen vult de claimlaag niet (een hello per verbinding en een quotum per speler)', () => {
+  const net = netwerk(); net.add(0, 'host'); net.add(1, 'client'); net.add(2, 'client');
+  net.ensure(0); net.ensure(1); net.ensure(2); net.flush();
+  for (let i = 0; i < 30; i++) net.queue.push({ to: 0, from: 1, body: { k: 'bezit', a: 'hello', ids: BC.encodeIds(Array.from({ length: 190 }, (_, k) => ID(i * 190 + k + 1))) } });
+  net.flush();
+  const host = claimsOf(net.worlds.get(0));
+  assert.ok(host.size() <= BC.PER_PLAYER_PARCELS, 'hoogstens het quotum, was ' + host.size());
+  net.queue.push({ to: 0, from: 2, body: { k: 'bezit', a: 'claim', id: ID(0xfffff) } }); net.flush();
+  assert.ok(host.lookup(ID(0xfffff)), 'een eerlijke claim van een ander komt er nog in');
+});
+t('B3: het quotum per speler geldt ook voor claim-berichten, en voor standplaatsen (16)', () => {
+  const c = BC.createClaims('s0');
+  for (let i = 0; i < BC.PER_PLAYER_PARCELS + 20; i++) c.apply({ id: ID(i + 1), action: 'claim', from: 's1', name: 'A', t: i });
+  assert.equal(c.list().length, BC.PER_PLAYER_PARCELS);
+  assert.equal(c.apply({ id: ID(999999), action: 'claim', from: 's2', name: 'B', t: 1 }).ok, true, 'een andere speler heeft een eigen quotum');
+  const spots = ['aa', 'ab', 'ac', 'ad', 'ae', 'af', 'ag', 'ah', 'ai', 'aj', 'ak', 'al', 'am', 'an', 'ao', 'ap', 'aq', 'ar'];
+  const r = spots.map((s) => c.apply({ id: 'sp:' + s, action: 'claim', from: 's3', name: 'C', t: 1 }).ok);
+  assert.equal(r.filter(Boolean).length, BC.PER_PLAYER_SPOTS);
+  c.apply({ id: ID(1), action: 'release', from: 's1' });
+  assert.equal(c.apply({ id: ID(555555), action: 'claim', from: 's1', name: 'A', t: 5 }).ok, true, 'na een loslating is er weer ruimte');
+});
+t('B3: een gast mag niet vaker dan de snelheidsgrens bezit-berichten sturen', () => {
+  const net = netwerk(); net.add(0, 'host'); net.add(1, 'client'); net.ensure(0); net.ensure(1); net.flush();
+  for (let i = 0; i < 200; i++) net.queue.push({ to: 0, from: 1, body: { k: 'bezit', a: 'claim', id: ID(i + 1) } });
+  net.flush();
+  const n1 = claimsOf(net.worlds.get(0)).size();
+  assert.ok(n1 > 0 && n1 <= N.RATE_BURST, 'de burst is begrensd: ' + n1);
+  net.tijd(30000);
+  for (let i = 0; i < 5; i++) net.queue.push({ to: 0, from: 1, body: { k: 'bezit', a: 'claim', id: ID(1000 + i) } });
+  net.flush();
+  assert.equal(claimsOf(net.worlds.get(0)).size(), n1 + 5, 'na een pauze mag het weer');
+});
+t('B3: na een vertrek mag dezelfde plek (een nieuwe gast) weer een hello sturen', () => {
+  const net = netwerk(); net.add(0, 'host'); net.add(1, 'client'); net.ensure(0); net.ensure(1); net.flush();
+  net.queue.push({ to: 0, from: 1, body: { k: 'bezit', a: 'hello', ids: BC.encodeIds([ID(41)]) } }); net.flush();
+  assert.equal(claimsOf(net.worlds.get(0)).lookup(ID(41)), null, 'de tweede hello van dezelfde verbinding telt niet');
+  N.dropSlot(net.worlds.get(0), 1, net.tr.get(0));
+  assert.equal(claimsOf(net.worlds.get(0)).lookup(ID(41)), null);
+  net.queue.push({ to: 0, from: 1, body: { k: 'bezit', a: 'hello', ids: BC.encodeIds([ID(42)]) } }); net.flush();
+  assert.ok(claimsOf(net.worlds.get(0)).lookup(ID(42)));
+});
+
+t('B4: stopBezitNet ruimt claims, opzoeking en kaartlaag op', () => {
+  const net = netwerk(); net.add(0, 'host'); net.add(1, 'client');
+  net.ensure(0); const o1 = net.ensure(1); net.flush();
+  o1.net.announce({ id: ID(51), action: 'claim' }, 1); net.flush();
+  const w0 = net.worlds.get(0);
+  assert.ok(L.claimOfKey(ID(51)) !== undefined);
+  N.stopBezitNet(w0);
+  assert.equal(w0.bezitNet, null);
+  assert.equal(L.claimOfKey(ID(51)), null, 'na de sessie is er geen claim meer');
+  assert.equal(w0.bezitClaims, null);
+});
+t('B4: een nieuwe sessie (ander transport) begint met een schone map', () => {
+  const net = netwerk(); net.add(0, 'host'); net.add(1, 'client');
+  net.ensure(0); const o1 = net.ensure(1); net.flush();
+  o1.net.announce({ id: ID(52), action: 'claim' }, 1); net.flush();
+  const w0 = net.worlds.get(0);
+  assert.ok(claimsOf(w0).has(ID(52)));
+  const nieuw = { ...net.tr.get(0) };
+  const o = N.ensureBezitNet(w0, nieuw);
+  assert.equal(o.net.claims.has(ID(52)), false, 'de oude claims zijn weg');
+});
+t('B4: stopCoopNet en de start van een sessie roepen stopBezitNet aan (broncontrole)', () => {
+  const src = fs.readFileSync(new URL('../game/js/coopnet.js', import.meta.url), 'utf8');
+  const i = src.indexOf('export function stopCoopNet');
+  assert.ok(i > 0 && /stopBezitNet\(world\)/.test(src.slice(i, i + 4000)));
+});
+
+t('B5: eigen percelen uit de save staan in de claim-map en in het hello van de gast', () => {
+  const st = opslag(); L.initBezit({ opslag: st }); BL.initBoerderij({ opslag: st }); L.setIndexForTest(INDEX);
+  const net = netwerk(); net.add(1, 'client'); net.add(0, 'host');
+  net.ensure(0);                                                           // de host heeft zelf nog niets (de opslag is gedeeld in deze proef)
+  const w = { money: 1e6, addMessage() {}, calendar: { day: 5 } };
+  assert.ok(L.koopPerceel(w, 'paaaaaaaaaaa1').ok, 'perceel gekocht buiten een sessie');
+  const o1 = net.ensure(1);
+  assert.equal(BC.decodeIds(o1.net.snapshot()).join(','), 'paaaaaaaaaaa1', 'het eigen perceel staat in de snapshot');
+  assert.ok(net.queue.some((m) => m.body.a === 'hello' && BC.decodeIds(m.body.ids).includes('paaaaaaaaaaa1')), 'het hello bevat het eigen perceel');
+  net.flush();
+  assert.equal(claimsOf(net.worlds.get(0)).lookup('paaaaaaaaaaa1').name, 'Lotte', 'de host ziet het als van de gast');
+});
+t('B5: een eigen perceel dat een medespeler ook al had, wordt niet terugbetaald of afgenomen', () => {
+  const st = opslag(); L.initBezit({ opslag: st }); BL.initBoerderij({ opslag: st }); L.setIndexForTest(INDEX);
+  const w = { money: 1e6, addMessage() {}, calendar: { day: 5 } };
+  L.koopPerceel(w, 'paaaaaaaaaaa1');
+  const net = netwerk(); net.add(0, 'host'); const gast = net.add(1, 'client');
+  gast.money = 0; net.ensure(1);
+  N.handleBezit(gast, { k: 'bezit', a: 'claim', id: 'paaaaaaaaaaa1', from: 's0', name: 'Host', t: -1 }, 0, net.tr.get(1));
+  assert.ok(L.getBezit().parcels['paaaaaaaaaaa1'], 'het perceel van de gast blijft van de gast');
+  assert.equal(gast.money, 0, 'geen terugbetaling');
 });
 
 console.log(`multiplayerreview_22_11_test: ${n - fails}/${n} gelukt`);

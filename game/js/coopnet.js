@@ -67,7 +67,7 @@ import { zetBestuurHaken, bestuurGebruik, bestuurTick, bestuurLos, bestuurAllesL
 import { treinGebruik, treinUit, treinTick, treinStop, treinVan, gastTreinWeg, treinLoopPlek, treinLoopWeg, TREIN_TEKST } from './cooptrein.js'; // een gast als conducteur of passagier in de trein van de gastheer (#492)
 import { may as treinMay } from './treincoop.js'; // de conducteur bedient de deuren en de waakzaamheid (#492)
 import { nieuweDeelStaat, bezorgVraag, bezorgHost, bezorgWeg, bezorgAllesWeg } from './coopbezit.js'; // eigen voertuigen meenemen en delen (#449)
-import { bezitEvent, bezitLeave } from './bezitnet.js'; // de claims van Bezit (epic #1095, #1104): een gebeurtenis met k 'bezit'; een oude client negeert hem
+import { bezitEvent, bezitLeave, openBezitNet, stopBezitNet } from './bezitnet.js'; // de claims van Bezit (epic #1095, #1104): een gebeurtenis met k 'bezit'; een oude client negeert hem
 import { lichaamVan, startPlek, isKoploos } from './net/koploos.js'; // een gastheer zonder lokale speler (#450)
 import { heistRolGebruik, heistGastTik } from './heistrollen.js'; // de rolstap van de inbraak in Samen spelen (#438)
 import { activeStage, getMissionDefs } from './missionquery.js'; // de lopende stap van de opdracht (#438)
@@ -429,6 +429,7 @@ export function startHost(world, info, opts = {}) {
   world.coopGepakt = (slot, level) => gastGepakt(world, slot, level);
   world.coopNet = { role: 'host', hub, fade, route, removing: {}, info, koploos, solo, sessieId: maakSessieId(), tKlok: 0, tHash: 0, tWeer: 0, tSpelers: 1, hashN: 0, scene, tScene: 0, filmpjeT: 0, sceneNu: null, meedoen: maakMeedoen(), foci: maakRegister(), groepen: maakGroepen(), groepId: null };
   koppelOutfit(world); // wie later andere kleding aandoet, meldt het aan de rest
+  try { openBezitNet(world); } catch (e) { /* geen bezit */ } // de claimlaag staat er vanaf het begin, met de eigen percelen (review 22-11, B5)
   world.coopGroepen = world.coopNet.groepen; // de opdrachtstand per groep (#452), ook voor de tests en de kaart
   // Een groep kan ook buiten de missie bestaan: iedereen mag een activiteit starten en is dan de leider van die groep.
   // De host blijft de wereld simuleren; dit is alleen de groepsboekhouding en de per-slot doelen (#492).
@@ -1155,7 +1156,7 @@ export function tickCoopNet(world, dt) {
     }
     if (n.fixed && (s.status === 'ok' || s.status === 'lag')) {
       const sample = s.world();
-      if (sample && !n.joined) { n.joined = true; zetEigenVoertuigenOpzij(world, n); if (n.fade) n.fade('in'); }
+      if (sample && !n.joined) { n.joined = true; try { openBezitNet(world); } catch (e) { /* geen bezit */ } zetEigenVoertuigenOpzij(world, n); if (n.fade) n.fade('in'); }
       applyHostState(world, s.slot, sample, world.coopRoster, dt);
       const ik = sample && sample.players.find((q) => q.slot === s.slot);
       world.coopInVoertuig = !!(ik && ik.inVeh);
@@ -1959,6 +1960,7 @@ export function stopCoopNet(world) {
   if (n.role === 'host') bezorgAllesWeg(world, (s) => bestuurLos(world, s)); // de eigen voertuigen van de gasten gaan mee terug (#449)
   if (n.role === 'host') { try { n.hub.announce({ k: 'weg', reden: 'spel gestopt' }); n.hub.closeAll(); } catch (e) { /* al weg */ } } else { try { if (n.session.status !== 'geweigerd' && n.session.status !== 'verbroken') n.session.leave(); } catch (e) { /* al weg */ } }
   world.coopNet = null;
+  try { stopBezitNet(world); } catch (e) { /* geen bezit */ } // buiten een sessie is er geen claim: de palen van medespelers verdwijnen en alles is weer te koop (review 22-11, B4)
   if (outfitKoppeling) { outfitKoppeling(); outfitKoppeling = null; }
   zetEigenVoertuigenTerug(world, n); // de eigen voertuigen van de gast komen terug (ook na een overdracht: de volgende startHost of startClient ziet de eigen lijst)
   if (n.role === 'client') { wedGastReset(world); bijbaanGastReset(world); heistGastTik(world, 0, null); world.coopHeistRol = null; world.coopHeistGast = null; } // een race tegen elkaar op zijn scherm houdt op (#443); de rolstap van de inbraak ook (#438)

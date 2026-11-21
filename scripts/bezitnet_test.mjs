@@ -42,13 +42,18 @@ for (const order of ['fifo', 'omgekeerd', 'husselen']) {
     const host = net.add(0, 'host'), g1 = net.add(1, 'client'), g2 = net.add(2, 'client');
     const o0 = net.ensure(0), o1 = net.ensure(1), o2 = net.ensure(2);
     net.flush();
+    o2.net.announce({ id: ID(1), action: 'claim' }, 10);                 // Zoe komt eerder bij de host aan (de host stempelt de tijd zelf, review 22-11 B2)
     o1.net.announce({ id: ID(1), action: 'claim' }, 20);
-    o2.net.announce({ id: ID(1), action: 'claim' }, 10);                 // Zoe was eerder
     net.flush();
-    assert.equal(claimsOf(host).lookup(ID(1)).name, 'Zoe');
-    assert.equal(claimsOf(g1).lookup(ID(1)).name, 'Zoe');
-    assert.equal(claimsOf(g2).lookup(ID(1)), null, 'Zoe ziet haar eigen claim als van haarzelf');
-    assert.ok(claimsOf(g2).has(ID(1)));
+    // de host beslist op volgorde van aankomst; wie dat ook wint, alle drie komen tot dezelfde winnaar
+    const win = claimsOf(host).listAll().find((c) => c.id === ID(1)).from;
+    assert.ok(win === 's1' || win === 's2');
+    if (order === 'fifo') assert.equal(win, 's2', 'Zoe kwam eerst bij de host aan');
+    const naam = win === 's1' ? 'Lotte' : 'Zoe';
+    assert.equal(claimsOf(host).lookup(ID(1)).name, naam);
+    assert.equal(win === 's1' ? claimsOf(g1).lookup(ID(1)) : claimsOf(g1).lookup(ID(1)).name, win === 's1' ? null : naam);
+    assert.equal(win === 's2' ? claimsOf(g2).lookup(ID(1)) : claimsOf(g2).lookup(ID(1)).name, win === 's2' ? null : naam);
+    assert.ok(claimsOf(g1).has(ID(1)) && claimsOf(g2).has(ID(1)));
   });
 }
 t('host en gast kopen verschillend en zien elkaars omtrek', () => {
@@ -81,8 +86,7 @@ t('aansluiten: een late gast meldt zijn bezit en krijgt dat van de anderen', () 
   const g2 = net.add(2, 'client');
   // de late gast heeft al eigen bezit in zijn eigen spel
   const o2 = net.ensure(2);
-  o2.net.claims.apply({ id: ID(12), action: 'claim', from: 'me', t: 3 });
-  net.queue.push({ to: 0, from: 2, body: { k: 'bezit', a: 'hello', ids: encodeIds([ID(12)]) } });
+  o2.net.announce({ id: ID(12), action: 'claim' }, 3);                    // (de hello zelf is er al: een hello per verbinding, review 22-11 B3)
   net.flush();
   assert.deepEqual(claimsOf(g2).list().map((c) => c.id).sort(), [ID(10), ID(11)]);
   assert.equal(claimsOf(net.worlds.get(0)).lookup(ID(12)).name, 'Zoe');
