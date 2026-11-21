@@ -33,7 +33,7 @@ ok(huidige('M14').id === 'J2', 'een oude save na M14 krijgt de envelop in Apping
 ok(huidige('T3').id === 'M15', 'voorbij T3 geen herhaling van J2', huidige('T3').id);
 ok(huidige('A2').id === 'J3', 'een oude save na de kermisrit (A2) krijgt de koffie bij Tessa\'s ouders (J3)', huidige('A2').id);
 ok(huidige('M17').id === 'J4', 'na M17 volgt de dubbele date (J4)', huidige('M17').id);
-ok(huidige('M18').id === 'J5', 'na M18 volgt de wielklem (J5)', huidige('M18').id);
+ok(huidige('M18').id === 'N9' && stepDone(idx('N9'), (x) => saveTot('N9').done.has(x), saveTot('N9').mp) && huidige('N9').id === 'J5', 'na M18 volgt eerst de nacht op een dijk (N9), daarna de wielklem (J5)', huidige('M18').id);
 ok(huidige('M19').id === 'J6', 'na M19 volgt Beppe aan de deur (J6)', huidige('M19').id);
 ok(huidige('T4').id === 'M20', 'voorbij T4 geen herhaling van J6', huidige('T4').id);
 const s21 = saveTot('M21');
