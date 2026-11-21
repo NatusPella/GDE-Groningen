@@ -43,12 +43,11 @@ ok(data.scenes.filter((s) => s.id === 'O7')[0].lines[0].text === 'Over zaterdag.
 // --- welke scène is aan de beurt ---------------------------------------------------------------------------------------
 const mk = (doneIds, flagIds = [], currentId = null) => ({ done: new Set(doneIds), flags: new Set(flagIds), currentId });
 ok(bridgeDue(mk(['M00', 'M01'], [], 'M02')) === null, 'niets aan de beurt zolang de stap niet af is');
-ok(bridgeDue(mk(['M01', 'M02'], [], 'M03')).id === 'O1', 'na M02 is O1 aan de beurt');
+ok(bridgeDue(mk(['M01', 'M02'], [], 'N1')).id === 'O1' && bridgeDue(mk(['M01', 'M02'], [], 'M03')).id === 'O1', 'na M02 is O1 aan de beurt (ook tijdens de nieuwe N-stappen)');
 ok(bridgeDue(mk(['M01', 'M02'], [bridgeFlag('O1')], 'M03')) === null, 'een geziene scène komt niet terug');
 ok(bridgeDue(mk(['M01', 'M02', 'M03'], [], 'M04')).id === 'O1', 'de eerste die nog aan de beurt is, wint (volgorde van het verhaal)');
-const late = stepIdx('M02') + 1 + BRIDGE_MAX_STEPS_LATE;
-ok(bridgeDue(mk(['M02'], [], STEPS[late + 1].id)) === null, 'een scène over iets van lang geleden speelt niet meer', STEPS[late + 1].id);
-ok(bridgeDue(mk(['M02'], [], STEPS[late].id)).id === 'O1', 'tot en met twee stappen later nog wel', STEPS[late].id);
+ok(bridgeDue(mk(['M02'], [], 'M05')).id === 'O1', 'tot en met twee missies later nog wel');
+ok(bridgeDue(mk(['M02'], [], 'M06')) === null, 'een scène over iets van lang geleden speelt niet meer');
 ok(bridgeDue(mk(['M30'], [], null)).id === 'O12', 'na het einde (geen huidige stap) komt O12 nog');
 ok(bridgeDue(mk(['M10'], [], 'T2')).id === 'O5', 'een reisstap tussen twee missies telt mee');
 

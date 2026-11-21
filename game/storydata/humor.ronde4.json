@@ -1,0 +1,106 @@
+{
+ "note": "Humorkeuze (#1134), ronde 4: nieuwe stappen N1-N8.",
+ "beats": [
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 1,
+   "panel": {
+    "votes": [
+     1,
+     2,
+     1
+    ],
+    "reason": "Natuurlijk, warm en droog; Tammo's 'Het is een punaise' landt er direct op, terwijl A/C te zwaar aanzetten.",
+    "certainty": "midden"
+   },
+   "id": "HN-01",
+   "scene": "N8",
+   "speaker": "OMA TRIJNTJE",
+   "context": "Oma's logeerkamer, avond. Tessa en Tammo pakken tegelijk dezelfde punaise; een lange stilte. Beneden klinkt Oma's pollepel op een pan en ze roept dat ze niet slapen. Tessa: \"We slapen, Oma.\"",
+   "shot": "twee-shot op hun handen, dan de vloer (het geluid komt van beneden)",
+   "variants": [
+    "Dat is geen slaapgeluid, jong.",
+    "Dat klinkt niet als slapen, jong.",
+    "Ik ken slapen. Dit is het niet."
+   ],
+   "neutral": "Ga nou maar slapen, jong."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 1,
+   "panel": {
+    "votes": [
+     1,
+     1,
+     0
+    ],
+    "reason": "Kort en droog understatement dat Tammo's stilte als vangst erkent, zonder uitleg.",
+    "certainty": "midden"
+   },
+   "id": "HN-02",
+   "scene": "N6",
+   "speaker": "KAPITEIN KLAAS",
+   "context": "Noordpolderzijl, rubberboot. Klaas zegt: praat tegen het water, dan vangt hij. Tammo zegt niets (alleen puntjes).",
+   "shot": "halve close-up Tammo stil aan de rand; Klaas knikt tevreden",
+   "variants": [
+    "Dat is ook praten.",
+    "Dat telt.",
+    "Dat is ook een gesprek."
+   ],
+   "neutral": "Goed zo."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 2,
+   "panel": {
+    "votes": [
+     2,
+     1,
+     2
+    ],
+    "reason": "De kicker 'Behalve de leuke' geeft Tessa een droge, eigen pointe op de bureaucratische stoepkoop.",
+    "certainty": "laag"
+   },
+   "id": "HN-03",
+   "scene": "N4",
+   "speaker": "TESSA",
+   "context": "Station Grunn. Jelle belt dat haar auto op een stoep staat die hij gisteren kocht; Tammo vraagt wie een stoep koopt.",
+   "shot": "Tessa met de telefoon, Tammo naast haar; geen reactieshot",
+   "variants": [
+    "Iemand die de regels leest.",
+    "Iemand die het kleine lettertje leest.",
+    "Iemand die alle regels kent. Behalve de leuke."
+   ],
+   "neutral": "Iemand die graag wint."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     "neutral",
+     2
+    ],
+    "reason": "Past bij Sjabbes vaagheid-met-een-wenk en laat de prijs aan Tessa, zodat haar twintig euro erna als tegenzet werkt.",
+    "certainty": "laag",
+    "tiebreak": 0
+   },
+   "id": "HN-04",
+   "scene": "N1",
+   "speaker": "SJABBE",
+   "context": "Voor Pand & Poen. Tammo vraagt hoe zwaar de kopieermachine is; Sjabbe (die altijd zegt dat hij niks vraagt) antwoordt vaag.",
+   "shot": "halve close-up Sjabbe met de steekkar; Tammo kijkt naar de machine",
+   "variants": [
+    "Zwaarder dan jij denkt. Lichter dan ik vertel.",
+    "Net zwaar genoeg voor dertig euro.",
+    "Zwaar. Ik zeg niks over hoe zwaar."
+   ],
+   "neutral": "Zwaar genoeg. Dertig euro."
+  }
+ ]
+}

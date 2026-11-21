@@ -116,6 +116,47 @@ TESSA: Mem. Ik logeerde elke zomer naast haar, in Ljouwert. [NIEUW]
 TAMMO: Een jas in augustus? [NIEUW]
 TESSA: Jij weet niet hoe lang ze dat al zegt. [NIEUW]
 
+## [N8] Een avond bij Oma – Stad, Noorderhaven – logeerkamer
+(regie: avond in de logeerkamer. Op het prikbord hangen de namen van de vijf vrienden aan punaises. Tessa hangt de laatste op; Tammo wil de punaise aangeven en hun handen raken elkaar.)
+TESSA: Die. [NIEUW]
+TAMMO: Deze? [NIEUW]
+(regie: allebei pakken de punaise. Een lange stilte. Beneden klinkt een pollepel op een pan.)
+OMA TRIJNTJE: Jullie slapen niet! Ik hoor het! [NIEUW]
+TESSA: We slapen, Oma. [NIEUW]
+OMA TRIJNTJE: Dat is geen slaapgeluid, jong. [NIEUW]
+TAMMO: Het is een punaise. [NIEUW]
+TESSA: Het is een punaise. [NIEUW]
+
+## [N5] De boerderij in Warffum – Hogeland, Warffum – te voet
+(regie: woensdagochtend. Een boerenerf met kippen, een hek en een koe die niet weg wil. Tessa loopt het erf op alsof ze er nooit is weggegaan. Tammo blijft bij het hek.)
+TESSA: Dit is het erf van mijn oom. Hier leerde ik melken. [NIEUW]
+TAMMO: Dat wist ik niet. [NIEUW]
+TESSA: Je vroeg niet naar de koeien. [NIEUW]
+TAMMO: De koe kijkt. Naar mij. [NIEUW]
+TESSA: Geef me je hand. Niet wegtrekken. [NIEUW]
+(regie: ze leidt zijn hand langs de neus van de koe. De koe snuift. Tammo houdt zijn adem in. Een duif landt op het hek.)
+TAMMO: Hij is zacht. [NIEUW]
+TESSA: Ik zei het toch. [NIEUW]
+
+## [N6] Een dag op het water – Hogeland, Noordpolderzijl – rubberboot
+(regie: donderdagmiddag. Kapitein Klaas heeft twee hengels en een emmer. Tammo zit stil aan de rand; Tessa houdt zich vast aan de reling.)
+KAPITEIN KLAAS: Praat tegen het water. Dan vangt hij. [NIEUW]
+TAMMO: ... [NIEUW]
+KAPITEIN KLAAS: Dat is ook praten. [NIEUW]
+TESSA: Mag ik weer aan land? [NIEUW]
+TAMMO: Ik heb er één. [NIEUW]
+KAPITEIN KLAAS: Jij zit stil en je vangt. Zij praat en zij is groen. [NIEUW]
+TESSA: Ik heb het water niet gekozen. [NIEUW]
+
+## [N7] De streekbus naar Winsum – Hogeland, Winsum – streekbus
+(regie: vrijdagochtend. Ze rijden mee in de streekbus. Tammo wacht tot een oude vrouw met een tas is uitgestapt voor hij zelf van de trede stapt. Tessa ziet het door het raam.)
+BUSCHAUFFEUR: Dankjewel, jongen. Dat doet bijna niemand meer. [NIEUW]
+TAMMO: Graag gedaan. [NIEUW]
+TESSA: Je bedankt altijd de chauffeur. [NIEUW]
+TAMMO: Hij reed goed. [NIEUW]
+TESSA: Het was een bus. [NIEUW]
+TAMMO: Een goede bus. [NIEUW]
+
 ## [T1] De trein naar Warffum – Stad, Station Grunn naar Warffum – trein (meerijden)
 (regie: bewijsmoment, relatie-bijbel 4: op het perron wacht Tammo tot een oude vrouw met een rollator de trein uit is voor hij zelf instapt. Tessa ziet het in het raam.)
 (regie: de keuze: trein, zelf rijden of skippen. Bij de trein: een korte scène.)

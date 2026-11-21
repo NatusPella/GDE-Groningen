@@ -273,6 +273,10 @@ export const STEPS = [
   M('M02', 'kop', 'Even pinnen', 'pinautomaat', { built: true, reward: 400, loopbanen: ['klus'],
     story: { intro: ['M02.1'], outro: ['M02.3', 'M02.5'], replay: ['M02.4'] }, scenes: ['M02.1', 'M02.2', 'M02.3', 'M02.4', 'M02.5'],
     lead: ['A', 'De Herestraat, half acht. Mijn pas zit in een automaat.'] }),
+  A('N1', 'kop', 'Een klus voor Sjabbe', { type: 'reis', to: 'de Herestraat', at: [53.2150, 6.5620], r: 250, scene: 'N1' }, { built: true, scenes: ['N1'], lead: ['A', 'Sjabbe heeft een klus: een kopieermachine de trap op. Dertig euro, en ik vraag niks. De Herestraat, deze middag.'] }),
+  A('N2', 'kop', 'Een duif op de gang', { type: 'home' }, { built: true, scenes: ['N2'], lead: ['T', 'Er zit een duif op de deurmat en een oude man op de gang. Terug naar de flat, even kijken.'], homeScene: { id: 'N2', big: 'Een duif op de gang', clock: 18.5 } }),
+  A('N3', 'kop', 'Soep bij Beppe', { type: 'reis', to: "Beppe's huis", at: [53.2340, 6.4900], r: 350, scene: 'N3' }, { built: true, scenes: ['N3'], lead: ['T', 'Beppe belde: of Tessa meekomt voor soep. Naar haar huis aan de westrand van de stad. Eerst eten, dan praten.'] }),
+  A('N4', 'kop', 'Een eerste ronde', { type: 'reis', to: 'Station Grunn', at: [53.2108, 6.5658], r: 250, scene: 'N4' }, { built: true, scenes: ['N4'], lead: ['A', 'Wat kunnen wij eigenlijk? Een taxi, een formulier, een klus: we proberen het bij het station. Maandagochtend.'] }),
   M('M03', 'kop', 'Het Loket', 'loket', { built: true, reward: 0, cost: 150, loopbanen: ['kantoor'],
     story: { intro: ['M03.1'], outro: ['M03.4'], replay: ['M03.5'] }, scenes: ['M03.1', 'M03.2', 'M03.3', 'M03.4', 'M03.5'],
     lead: ['A', 'Het Loket bij de Grote Markt. Open tot twaalf uur, contant.'] }),
@@ -296,11 +300,13 @@ export const STEPS = [
     story: { intro: ['M08.1'], outro: ['M08.3'], replay: ['M08.5'] }, scenes: ['M08.1', 'M08.2', 'M08.3', 'M08.4', 'M08.5'],
     lead: ['T', 'Oma Trijntje belde: wie eerlijk wil winnen, heeft haar recept van 1953 nodig. Loop te voet heelhuids door de fatbikes in de Oude Ebbingestraat naar de Noorderhaven.'] }),
   // travel steps: the goal is the place (storyreis.js); the lines of the trip itself are the travel beat's (reisbeats.js)
+  A('N8', 'romp', 'Een avond bij Oma', { type: 'reis', to: 'de Noorderhaven', at: [53.2250, 6.5610], r: 250, scene: 'N8' }, { built: true, scenes: ['N8'], lead: ['T', 'Oma Trijntje heeft een logeerkamer voor ons en een prikbord vol namen. Terug naar de Noorderhaven.'] }),
   A('T1', 'romp', 'De trein naar Warffum', { type: 'reis', to: 'Warffum', at: [53.3903, 6.5667], r: 400, scene: 'T1', from: 4 }, { built: true, loopbanen: ['trein'], scenes: ['T1'],
     lead: ['A', 'Met de trein naar Warffum. Daar begint het Hogeland, en Geesje woont in de pastorie.'] }),
   M('M09', 'romp', 'Heel aankomen is ook een kunst', 'eieren', { built: true, reward: 700, loopbanen: ['horeca'],
     story: { intro: ['M09.1'], outro: ['M09.4'], replay: ['M09.5'] }, scenes: ['M09.1', 'M09.2', 'M09.3', 'M09.4', 'M09.5'],
     lead: ['A', 'Geesje woont in de pastorie in Warffum en heeft de laatste eieren van het Hogeland. Eieren ken ik van thuis: jij rijdt, ik zeg hoe.'] }),
+  A('N5', 'romp', 'De boerderij in Warffum', { type: 'reis', to: 'het erf in Warffum', at: [53.3925, 6.5600], r: 500, scene: 'N5' }, { built: true, scenes: ['N5'], lead: ['A', 'Ik wil je iets laten zien: het erf waar ik melken leerde, bij Warffum. Neem je hand mee, en geen angst.'] }),
   M('M10', 'romp', 'Een trekker-limo op de wierde', 'wierde', { built: true, reward: 900, unlocks: 'jelle', loopbanen: ['landbouw'],
     // the sloot scene (M10.3) is a stage of the mission itself; the talk in the car after it (M10.4) is a banter exchange
     story: { intro: ['M10.1'], outro: null }, scenes: ['M10.1', 'M10.2', 'M10.3', 'M10.4', 'M10.5'],
@@ -309,6 +315,8 @@ export const STEPS = [
   // the story goes on; silent, so no TTS, and the existing skip offers to pass it.
   A('A1', 'romp', 'De bietenoogst bij Hoogkerk', { type: 'sideJob', job: 'bietenoogst' }, { built: true, loopbanen: ['landbouw'],
     lead: ['A', 'De bieten moeten van het land. Akkerbouw Zonnehoek zoekt bij Hoogkerk een rooier: vier rijen, één trekker. Dit werk ken ik van thuis.'] }),
+  A('N6', 'romp', 'Een dag op het water', { type: 'reis', to: 'Noordpolderzijl', at: [53.4130, 6.5810], r: 400, scene: 'N6' }, { built: true, scenes: ['N6'], lead: ['T', 'Klaas heeft twee hengels en een emmer. Noordpolderzijl. Praat tegen het water, zegt hij.'] }),
+  A('N7', 'romp', 'De streekbus naar Winsum', { type: 'reis', to: 'Winsum', at: [53.3330, 6.5160], r: 400, scene: 'N7' }, { built: true, scenes: ['N7'], lead: ['A', 'Een ritje met de streekbus naar Winsum, om te zien wat dat is: chauffeur zijn. Jij mag de halte kiezen.'] }),
   A('T2', 'romp', 'De streekbus naar Zoutkamp', { type: 'reis', to: 'Zoutkamp', at: [53.3377, 6.2986], r: 400 }, { built: true, loopbanen: ['bus', 'hengelen'], scenes: ['T2'],
     lead: ['A', 'Oma stuurt ons naar Kapitein Klaas in Zoutkamp: met de streekbus, overstappen in Winsum. Daarna is er alleen nog water.'] }),
   M('M11', 'romp', 'Geleend van de Friezen', 'skutsje', { built: true, reward: 1300, loopbanen: ['water'],

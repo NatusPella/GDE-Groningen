@@ -99,6 +99,30 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
   - avond, de flat in Paddepoel. Op de koelkast hangt een kaartje van de eerste Kiezelweek, vijf jaar geleden. Tessa tekent op een bonnetje de luiken van de wagen. Tammo staat met twee koppen thee in de deur en kijkt even na
   - praat: Tessa, Tammo, Beppe
 
+**Sequentie N1: Een klus voor Sjabbe** (activiteit; speler-protagonist Tammo)
+
+- **N1** BUITEN – STAD, DE HERESTRAAT – MIDDAG · Een klus voor Sjabbe · cutscene of gespeeld in de missie
+  - zaterdagmiddag. Sjabbe staat voor Pand & Poen met een kopieermachine op een steekkar. Tessa kijkt naar het prijskaartje, Tammo naar de steekkar.
+  - praat: Sjabbe, Tammo, Tessa
+
+**Sequentie N2: Een duif op de gang** (activiteit; speler-protagonist Tammo)
+
+- **N2** BINNEN – STAD, PADDEPOEL, ELFDE VERDIEPING – AVOND · Een duif op de gang · cutscene of gespeeld in de missie
+  - vrijdagavond, laat licht. Op de gang van de elfde verdieping staat een oude man in een vest met zes duiven om zich heen. Een duif zit op de deurmat van de flat.
+  - praat: Tammo, Tessa, Meneer Veldkamp
+
+**Sequentie N3: Soep bij Beppe** (activiteit; speler-protagonist Tammo)
+
+- **N3** BINNEN – STAD, BEPPE'S HUIS AAN DE WESTRAND – MIDDAG · Soep bij Beppe · cutscene of gespeeld in de missie
+  - zondagmiddag. Een klein huis met een tuin en een rij laarzen bij de deur. Beppe staat al in de deuropening, met een pollepel.
+  - praat: Beppe, Tammo, Tessa
+
+**Sequentie N4: Een eerste ronde** (activiteit; speler-protagonist Tammo)
+
+- **N4** BUITEN – STAD, STATION GRUNN – OCHTEND · Een eerste ronde · cutscene of gespeeld in de missie
+  - maandagochtend. Op het stationsplein staan een taxi, een stapel formulieren en een klusbord. Ze proberen drie dingen na elkaar.
+  - praat: Tessa, Tammo, Jelle Terpstra
+
 **Sequentie M03: Het Loket** (missie loket; speler-protagonist Tammo)
 
 - **M03.1** BINNEN – STAD, HET LOKET BIJ DE GROTE MARKT – DAG · Het Loket: intro · cutscene of gespeeld in de missie
@@ -224,6 +248,12 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
   - de Escapade, onderweg naar het Hogeland. Op Tessa's telefoon verschijnt een naam: Mem. Ze neemt op en zet hem zachter.
   - praat: Mem Terpstra, Tessa, Tammo
 
+**Sequentie N8: Een avond bij Oma** (activiteit; speler-protagonist Tammo)
+
+- **N8** BUITEN – STAD, NOORDERHAVEN – AVOND · Een avond bij Oma · cutscene of gespeeld in de missie
+  - avond in de logeerkamer. Op het prikbord hangen de namen van de vijf vrienden aan punaises. Tessa hangt de laatste op; Tammo wil de punaise aangeven en hun handen raken elkaar.
+  - praat: Tessa, Tammo, Oma Trijntje
+
 **Sequentie T1: De trein naar Warffum** (activiteit; speler-protagonist Tammo)
 
 - **T1** BINNEN – STAD, STATION GRUNN NAAR WARFFUM – DAG · De trein naar Warffum · travel
@@ -245,6 +275,12 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 - **M09.5** BUITEN – HOGELAND, USQUERT – DAG · Heel aankomen is ook een kunst: herhaling · replay
   - praat: Geesje
 
+**Sequentie N5: De boerderij in Warffum** (activiteit; speler-protagonist Tammo)
+
+- **N5** BUITEN – HOGELAND, WARFFUM – OCHTEND · De boerderij in Warffum · cutscene of gespeeld in de missie
+  - woensdagochtend. Een boerenerf met kippen, een hek en een koe die niet weg wil. Tessa loopt het erf op alsof ze er nooit is weggegaan. Tammo blijft bij het hek.
+  - praat: Tessa, Tammo
+
 **Sequentie M10: Een trekker-limo op de wierde** (missie wierde; speler-protagonist Tammo)
 
 - **M10.1** BUITEN – HOGELAND, USQUERT, DE KERK – MIDDAG · Een trekker-limo op de wierde: intro · cutscene of gespeeld in de missie
@@ -265,6 +301,18 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 
 **Sequentie A1: De bietenoogst bij Hoogkerk** (activiteit; speler-protagonist Tammo)
 
+
+**Sequentie N6: Een dag op het water** (activiteit; speler-protagonist Tammo)
+
+- **N6** BUITEN – HOGELAND, NOORDPOLDERZIJL – MIDDAG · Een dag op het water · cutscene of gespeeld in de missie
+  - donderdagmiddag. Kapitein Klaas heeft twee hengels en een emmer. Tammo zit stil aan de rand; Tessa houdt zich vast aan de reling.
+  - praat: Kapitein Klaas, Tammo, Tessa
+
+**Sequentie N7: De streekbus naar Winsum** (activiteit; speler-protagonist Tammo)
+
+- **N7** BINNEN – HOGELAND, WINSUM – OCHTEND · De streekbus naar Winsum · cutscene of gespeeld in de missie
+  - vrijdagochtend. Ze rijden mee in de streekbus. Tammo wacht tot een oude vrouw met een tas is uitgestapt voor hij zelf van de trede stapt. Tessa ziet het door het raam.
+  - praat: Buschauffeur, Tammo, Tessa
 
 **Sequentie T2: De streekbus naar Zoutkamp** (activiteit; speler-protagonist Tammo)
 
@@ -795,18 +843,18 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 
 | Personage | Akte 1 | Akte 2 | Akte 3 | Akte 4 | Akte 5 | Deel 4 |
 |---|---|---|---|---|---|---|
-| Tessa | 35 | 30 | 28 | 29 | 34 | 15 |
-| Tammo | 35 | 28 | 28 | 27 | 28 | 16 |
-| Jelle Terpstra | 3 | 10 | 11 | 7 | 11 | 3 |
+| Tessa | 39 | 34 | 28 | 29 | 34 | 15 |
+| Tammo | 39 | 32 | 28 | 27 | 28 | 16 |
+| Jelle Terpstra | 4 | 10 | 11 | 7 | 11 | 3 |
 | Rikus | 9 | 4 | 4 | 5 | 11 | 3 |
 | Berend Bos | 4 |  |  | 14 | 10 | 8 |
-| Oma Trijntje |  | 4 | 1 | 4 | 7 | 1 |
+| Oma Trijntje |  | 5 | 1 | 4 | 7 | 1 |
 | Douwe | 1 | 2 | 4 | 4 | 3 | 2 |
 | Durk | 1 | 1 | 4 | 4 | 3 | 2 |
 | Mem Terpstra |  | 2 |  | 6 | 7 |  |
+| Kapitein Klaas |  | 8 |  | 1 | 1 | 2 |
 | Willemien |  |  |  |  |  | 12 |
-| Kapitein Klaas |  | 7 |  | 1 | 1 | 2 |
-| Sjabbe | 6 |  |  | 1 | 2 | 1 |
+| Sjabbe | 7 |  |  | 1 | 2 | 1 |
 | Geesje |  | 3 |  | 1 | 3 | 3 |
 | Wubbo |  |  |  | 4 | 4 | 2 |
 | Tinus |  |  |  | 2 | 6 | 2 |
@@ -820,16 +868,16 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 | Loketbediende | 5 |  |  |  |  |  |
 | Streamer | 4 |  |  |  |  |  |
 | Torenwachter | 1 |  |  |  | 3 |  |
+| Meneer Veldkamp | 2 |  |  |  |  | 1 |
 | Sjoerd | 3 |  |  |  |  |  |
 | Snackbarhouder |  | 3 |  |  |  |  |
+| Beppe | 2 |  |  |  |  |  |
 | Mevrouw Hoving | 1 |  |  | 1 |  |  |
-| Meneer Veldkamp | 1 |  |  |  |  | 1 |
 | Boer |  | 1 |  |  |  | 1 |
+| Buschauffeur |  | 2 |  |  |  |  |
 | Geert |  |  | 2 |  |  |  |
 | Jelmer |  |  |  | 2 |  |  |
 | Terrasgast | 1 |  |  |  |  |  |
-| Beppe | 1 |  |  |  |  |  |
-| Buschauffeur |  | 1 |  |  |  |  |
 | Kustwachter |  | 1 |  |  |  |  |
 | Rotor Roelf |  |  | 1 |  |  |  |
 | Deurwaarder |  |  | 1 |  |  |  |

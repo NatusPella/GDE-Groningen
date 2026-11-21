@@ -98,6 +98,7 @@ function stepOf(id) {
   let m;
   if ((m = /^M(\d\d)\./.exec(id))) return 'M' + m[1];
   if ((m = /^T(\d)/.exec(id))) return 'T' + m[1];
+  if ((m = /^N(\d+)(?:\.|$)/.exec(id))) return 'N' + m[1];
   if (/^C00\./.test(id)) return 'M00';
   if (/^E\d$/.test(id)) return 'E';
   return null;
