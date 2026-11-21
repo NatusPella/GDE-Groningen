@@ -237,7 +237,7 @@ bij de gastheer en boot) staat in `coopbestuurflow_test`. Electron
 3. Gastenkant arena, chat/voice (#451) en dedicated servers (#450) staan open.
 4. Niets met echte spelers op meerdere computers over internet bekeken.
 
-## Communicatie: snelle zinnen en een doel delen (#1159, ADR 0046)
+## Communicatie: snelle zinnen en een doel delen (#1159, ADR 0047)
 
 - Alleen een vaste lijst Nederlandse zinnen en emotes (`multiplayerphrases.js`), geen vrije tekst; over het net gaat het id (`{ k: 'zin', z }`), de ontvanger zet de tekst erbij. Opt-in (`samenZinnen`, standaard uit).
 - Dempen (zinnen en emotes) en blokkeren (ook pings en gedeelde doelen) per speler, in het geheugen en op naam, zonder opslag; ze blijven na een hostwissel gelden. Rate limit door host en ontvanger.

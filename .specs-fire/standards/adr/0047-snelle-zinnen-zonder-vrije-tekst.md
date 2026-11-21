@@ -1,4 +1,4 @@
-# 0046 - Snelle zinnen en emotes: vaste lijst, opt-in, geen vrije tekst
+# 0047 - Snelle zinnen en emotes: vaste lijst, opt-in, geen vrije tekst
 
 - **Status:** voorgesteld (21-11-2026; issue #1159, verwant #451). Wacht op de eigenaar omdat het raakt aan constitutie 10 (tekstchat komt later, opt-in).
 - **Datum:** 21-11-2026
