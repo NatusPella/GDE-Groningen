@@ -36,6 +36,7 @@ import * as HS from './housing.js';
 import { herdsOf, infect, SPECIES } from './livestock.js';
 import { MACHINE_CATALOGUS } from './percelen.js';
 import { setAreaPrice, setYieldInfo } from './bezithooks.js';
+import { recordService } from './reputationlive.js';
 import * as CT from './chaintrucks.js'; // fillLinkPositions: een schakel zonder plek krijgt een terugvalplek
 
 const SCHRIJF_VERTRAGING_MS = 2000;
@@ -541,6 +542,7 @@ function tickSnack(w, S, from, last, money) {
     if (kg > 0 && link && link.owned && link.stock > 0) link.stock = Math.max(0, link.stock - kg);
   }
   const inc = SN.incomeOf(res.sum);
+  try { recordService({ days: res.sum.days, served: res.sum.ownNet > 0 || res.sum.fleetNet > 0, sat: S.gw.sat }); } catch (e) { /* reputatie niet klaar */ }
   const held = SPT.heldIds(S.permits, calToday()).length;
   try {
     if (S.own.spot && ownBiz) unlockAchievement(w, 'bz_snack_eerste');

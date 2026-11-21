@@ -7,6 +7,8 @@ import {
   validScope, REPUTATION_KEY, RANGES, PRICE_SWING,
 } from '../game/js/reputation.js';
 import { KEYS } from '../game/js/storagekeys.js';
+import { noteService, noteHelp, jelleMirror, reputationView, CROWD_LINES, JELLE_MIRROR } from '../game/js/reputation.js';
+import { setReputationStorage, recordService, recordHelp, currentReputation, reputationNow } from '../game/js/reputationlive.js';
 
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info !== '' ? ` (${info})` : ''}`); } };
@@ -56,6 +58,34 @@ ok(KEYS.reputatie === REPUTATION_KEY && REPUTATION_KEY === 'gde-reputatie-v1', '
 const src = fs.readFileSync(new URL('../game/js/reputation.js', import.meta.url), 'utf8').split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
 ok(!/gde-save|savegame\.|coopNet|fetch\(|WebSocket|markDone|mission/.test(src), 'geen savegame, geen net, geen voortgang');
 ok(!/world\.player/.test(src), 'geen enkelspeler-aanname (geen world.player)');
+
+// schrijven: klanten bedienen en de buurt helpen (de haken van het spel)
+let d = noteService(emptyReputation(), { days: 1, served: false });
+ok(d.fame === 0 && d.kind === 0, 'een dag zonder verkoop geeft niets');
+d = noteService(emptyReputation(), { days: 9, served: true, sat: 80 });
+ok(d.fame === 3 && d.kind === 1, 'bedienen: bekendheid hoogstens 3 per afrekening, tevreden klanten geven kind erbij', JSON.stringify(d));
+ok(noteService(emptyReputation(), { days: 1, served: true, sat: 20 }).kind === -1, 'een ontevreden wagen laat kind iets zakken, nooit ver');
+let h = noteHelp(emptyReputation(), 'markt', 3);
+ok(h.kind === 6 && h.fame === 3 && reputationOf(h, 'buurt:markt') === 9, 'hulp: kind, fame en de buurt', JSON.stringify(h));
+ok(JSON.stringify(noteHelp(emptyReputation(), 'rare/plek!', 1).buurt) === '{}', 'een ongeldige plek maakt geen buurt aan');
+for (let i = 0; i < 40; i++) h = noteHelp(h, 'markt', 3);
+ok(h.kind === 50 && h.fame === 100 && reputationOf(h, 'buurt:markt') === 20, 'veel hulp blijft binnen elk bereik');
+
+// lezen: een andere zin, Jelle spiegelt, de rij; nooit een slot
+const laag = { fame: 0, kind: -40 }, hoog = { fame: 90, kind: 40 };
+ok(reputationView(laag).line === CROWD_LINES[0] && reputationView(hoog).line === CROWD_LINES[2] && reputationView(emptyReputation()).line === CROWD_LINES[1], 'een bijpersoon zegt een andere zin bij een andere stand');
+ok(jelleMirror(emptyReputation()) === '' && jelleMirror({ fame: 45, kind: 0 }) === JELLE_MIRROR[0] && jelleMirror(hoog) === JELLE_MIRROR[1], 'Jelle spiegelt pas bij een bekende wagen');
+ok(reputationView(hoog).queue > reputationView(laag).queue && reputationView(hoog, 'markt').price < 1 && reputationView(laag).price > 1, 'een langere rij en een prijs die hoogstens 5% afwijkt');
+ok(Math.abs(reputationView(hoog, 'markt').price - 1) <= PRICE_SWING && Math.abs(reputationView(laag).price - 1) <= PRICE_SWING, 'de prijs wijkt nooit meer dan 5% af');
+
+// de haken schrijven per speler op de eigen opslag en overleven geen opslag
+const live = mem(); setReputationStorage(live);
+ok(recordHelp('markt', 2) === true && recordService({ days: 3, served: true, sat: 80 }) === true, 'de haken schrijven');
+ok(currentReputation().kind === 5 && currentReputation().fame === 3 && reputationNow('markt').buurt === 6 && live.m.has(REPUTATION_KEY), 'en lezen terug via de eigen sleutel');
+ok(live.m.size === 1, 'alleen de eigen sleutel, geen savegame');
+setReputationStorage({ getItem() { throw new Error('x'); }, setItem() { throw new Error('x'); } });
+ok(recordHelp('markt') === false && currentReputation().fame === 0, 'een kapotte opslag is geen fout');
+setReputationStorage(null);
 
 console.log(`reputation_test: ${n - fails}/${n} ok`);
 if (fails) process.exit(1);
