@@ -15,7 +15,11 @@
 // Lines in the script marked [NIEUW] are not voiced: nothing is recorded or
 // generated for them.
 
-export const PLAN_CUTS = ['teaser', 'hoofd'];
+export const PLAN_CUTS = ['teaser', 'hoofd', 'ontdek'];
+// 21-11 (docs/verhaal/TRAILER-FILMSCRIPT-21-11.md): the new story sells 'Ontdek jezelf in Grunn.' (two friends, no plan yet, the world, Jelle,
+// the pigeons, summer); the snack van is NOT promised in marketing. 'ontdek' is the film cut of 75 s; teaser and hoofd keep their rhythm
+// but carry the new slogan and no van.
+export const SLOGAN = 'Ontdek jezelf in Grunn.';
 export const SFX_KINDS = ['knal', 'tik', 'stoot', 'riser'];
 
 const BANTER = 'audio/voicelines/banter/';
@@ -39,7 +43,7 @@ export function sliceTimes(dur) {
 }
 const plakjes = (at, dur) => ({ kind: 'plakjes', at, dur, title: 'Acht plakjes.', kicker: 'Eén man.', strike: sliceTimes(dur) });
 const plakjesTicks = (at, dur) => sliceTimes(dur).map((t) => [+(at + t).toFixed(3), 'tik']);
-const eind = (at, dur, small = 'Gratis · voor pc en Mac') => ({ kind: 'eind', at, dur, title: 'GDE Groningen – Zomer vol misdaad', tagline: 'Heel Groningen. Voor één eierbal.', small });
+const eind = (at, dur, small = 'Gratis · voor pc en Mac') => ({ kind: 'eind', at, dur, title: 'GDE Groningen – Zomer vol misdaad', tagline: SLOGAN, small });
 
 export const PLAN = {
   teaser: {
@@ -48,7 +52,7 @@ export const PLAN = {
     beats: [
       { shot: 'sunrise', dur: 4.0, caps: [tekst(1.0, 2.8, 'Grunn.', 'd’Olle Grieze')], sfx: [[0.0, 'stoot']] },
       { shot: 'escapade', dur: 5.0, plain: true, voice: [[0.7, V.rijden, 2.03]], lines: [[0.7, 2.1, 'Anita', 'Rijden, niet praten.']] },
-      { shot: 'anita', dur: 5.0, plain: true, caps: [tekst(0.6, 4.0, 'Een frietwagen. Eén standplaats.')], sfx: [[3.6, 'riser']] },
+      { shot: 'anita', dur: 5.0, plain: true, caps: [tekst(0.6, 4.0, 'Twee vrienden. Nog geen plan.')], sfx: [[3.6, 'riser']] },
       { shot: 'jelle', dur: 3.6, caps: [], sfx: [[0.0, 'stoot']] },
       { shot: 'twins', dur: 3.4, plain: true, caps: [plakjes(0.2, 3.1)], sfx: plakjesTicks(0.2, 3.1) },
       { shot: 'ommeland', dur: 2.2, sfx: [[0.0, 'tik']] },
@@ -66,13 +70,13 @@ export const PLAN = {
       { shot: 'radio', dur: 4.0, caps: [{ kind: 'radio', at: 0.25, dur: 3.6, kicker: 'Radio Nachtstreek', title: '06:12' }], voice: [[0.05, V.rikus, 4.85]], lines: [[0.9, 3.1, 'Rikus', 'Augustus. In Grunn heet dat zomer.']] },
       { shot: 'sunrise', dur: 4.0, caps: [tekst(0.8, 3.0, 'Grunn.', 'd’Olle Grieze')] },
       { shot: 'vismarkt', dur: 4.0, plain: true },
-      { shot: 'anita', dur: 4.0, plain: true, caps: [tekst(0.5, 3.2, 'Een frietwagen. Eén standplaats.')] },
+      { shot: 'anita', dur: 4.0, plain: true, caps: [tekst(0.5, 3.2, 'Twee vrienden. Nog geen plan.')] },
       { shot: 'escapade', dur: 3.6, plain: true, voice: [[0.6, V.rijden, 2.03]], lines: [[0.6, 2.1, 'Anita', 'Rijden, niet praten.']] },
       { shot: 'aerial', dur: 6.2, lines: [[0.4, 5.6, 'Oma Trijntje', 'Die bal is gien geld, jong. Die bal is Grunn. En jij: één zin, hè. Niet zeventig jaar.']], voice: [[0.4, V.oma, 5.99]] },
       { shot: 'jelle', dur: 4.0, sfx: [[0.0, 'stoot']] },
       { shot: 'twins', dur: 3.4, plain: true, caps: [plakjes(0.2, 3.1)], sfx: plakjesTicks(0.2, 3.1) },
       { shot: 'night', dur: 3.4 },
-      { shot: 'ommeland', dur: 3.5, caps: [tekst(0.3, 3.0, 'Heel Groningen.', 'Voor één eierbal.')], sfx: [[0.0, 'riser']] },
+      { shot: 'ommeland', dur: 3.5, caps: [tekst(0.3, 3.0, 'Ontdek jezelf.', 'In heel Groningen.')], sfx: [[0.0, 'riser']] },
       { shot: 'boat', dur: 3.0 },
       { shot: 'storm', dur: 2.2 },
       { shot: 'kermis', dur: 2.6 },
@@ -89,12 +93,42 @@ export const PLAN = {
       { shot: 'logo', dur: 5.0, caps: [eind(0.3, 4.2)], sfx: [[0.3, 'stoot']] },
     ],
   },
+  // The film cut (75 s): cold open on the radio, the pair, the pigeons, the opponent, the tempo build-up of the world, a breath, the card.
+  ontdek: {
+    target: 75,
+    beats: [
+      { shot: 'radio', dur: 4.0, caps: [{ kind: 'radio', at: 0.25, dur: 3.6, kicker: 'Radio Nachtstreek', title: '06:12' }], voice: [[0.05, V.rikus, 4.85]], lines: [[0.9, 3.1, 'Rikus', 'Augustus. In Grunn heet dat zomer.']] },
+      { shot: 'sunrise', dur: 4.0, caps: [tekst(0.8, 3.0, 'Grunn.', 'd’Olle Grieze')], sfx: [[0.0, 'stoot']] },
+      { shot: 'vismarkt', dur: 3.2, plain: true },
+      { shot: 'tammo', dur: 4.0, plain: true, caps: [tekst(0.5, 3.0, 'Twee vrienden. Net afgestudeerd.')], voice: [[2.4, V.bedoelde, 0.9]], lines: [[2.4, 1.0, 'Tammo', 'Dat bedoelde ik ook.']] },
+      { shot: 'anita', dur: 4.0, plain: true, caps: [tekst(0.5, 3.2, 'Nog geen plan.')] },
+      { shot: 'pigeon', dur: 3.0, caps: [tekst(0.4, 2.4, 'Eén heeft duiven.')] },
+      { shot: 'escapade', dur: 3.6, plain: true, voice: [[0.7, V.rijden, 2.03]], lines: [[0.7, 2.1, 'Anita', 'Rijden, niet praten.']], sfx: [[2.8, 'riser']] },
+      { shot: 'jelle', dur: 3.4, caps: [tekst(0.5, 2.6, 'En een Fries in een blauw colbert.')], sfx: [[0.0, 'stoot']] },
+      { shot: 'ommeland', dur: 3.4, caps: [tekst(0.3, 3.0, 'Heel Groningen.', 'Eén zomer.')] },
+      { shot: 'boat', dur: 2.6, sfx: [[0.0, 'tik'], [1.3, 'tik']] },
+      { shot: 'kermis', dur: 2.4, sfx: [[0.0, 'tik'], [1.2, 'tik']] },
+      { shot: 'spoor', dur: 2.4, sfx: [[0.0, 'tik'], [1.2, 'tik']] },
+      { shot: 'chase', dur: 2.4, sfx: [[0.0, 'tik'], [0.6, 'tik'], [1.2, 'tik'], [1.8, 'tik']] },
+      { shot: 'race', dur: 2.2, sfx: [[0.0, 'tik'], [0.55, 'tik'], [1.1, 'tik'], [1.65, 'tik']] },
+      { shot: 'aerial', dur: 2.4, sfx: [[0.0, 'tik'], [1.2, 'tik']] },
+      { shot: 'tanker', dur: 2.6, sfx: [[0.0, 'tik']] },
+      { shot: 'night', dur: 2.4, sfx: [[0.0, 'tik']] },
+      { shot: 'storm', dur: 2.0, sfx: [[0.0, 'tik'], [1.0, 'tik']] },
+      { shot: 'trauma', dur: 2.4 },
+      { shot: 'timelapse', dur: 3.0 },
+      { shot: 'bijna', dur: 1.3, sfx: [[0.0, 'tik'], [0.65, 'tik']] },
+      { shot: 'berend', dur: 3.6, plain: true, voice: [[1.05, 'audio/voicelines/trailer/berend_kon_minder.mp3', 0.64]], lines: [[1.05, 1.75, 'Bommen Berend', '…Kon minder.']] },
+      { shot: 'plantsoen', dur: 5.7, plain: true, caps: [tekst(1.2, 3.8, 'Zoek je plek.', 'Samen.')] },
+      { shot: 'logo', dur: 5.0, caps: [eind(0.3, 4.2)], sfx: [[0.3, 'stoot']] },
+    ],
+  },
 };
 
 export const planDuration = (cut) => PLAN[cut].beats.reduce((a, b) => a + b.dur, 0);
 
 // Words that must not be on screen or in sound (script: spoilers) and brands.
-export const FORBIDDEN = ['vitrine', 'Tige tank', 'briefje', 'kus', 'Bourtange', 'Ik wil bij jou blijven', 'finale', 'wint', 'uitslag', 'Fjord Frituur'];
+export const FORBIDDEN = ['vitrine', 'Tige tank', 'briefje', 'kus', 'Bourtange', 'Ik wil bij jou blijven', 'finale', 'wint', 'uitslag', 'Fjord Frituur', 'frietwagen', 'snackwagen', 'standplaats', 'TAM & TES'];
 export const BRANDS = ['Albert Heijn', 'McDonald', 'Coca', 'Google', 'Facebook', 'Instagram', 'Netflix', 'Shell', 'Spotify', 'YouTube'];
 const BAD_SHOTS = ['vitrine'];
 
@@ -134,5 +168,6 @@ export function validatePlan(cut, opts = {}) {
   if (Math.abs(total - plan.target) > 0.6) out.push(`${cut}: ${total.toFixed(1)} s, doel ${plan.target} s`);
   const last = plan.beats[plan.beats.length - 1];
   if (!(last.caps || []).some((c) => c.kind === 'eind')) out.push(`${cut}: sluit niet met de titelkaart`);
+  else if (!last.caps.some((c) => c.kind === 'eind' && c.tagline === SLOGAN)) out.push(`${cut}: de titelkaart draagt niet de slogan ${SLOGAN}`);
   return out;
 }

@@ -124,7 +124,7 @@ function drawingTex() {
     g.fillStyle = '#f2c230'; g.beginPath(); g.moveTo(230, 82); g.lineTo(250, 30); g.lineTo(270, 82); g.fill();
     g.fillStyle = '#c96a2a'; g.fillRect(232, 46, 4, 30); g.fillRect(244, 40, 4, 36); g.fillRect(256, 44, 4, 32);
     g.fillStyle = '#f5f1e6'; g.font = 'bold 40px Arial Black, Arial, sans-serif'; g.textAlign = 'center';
-    g.fillText('FJORD FRITUUR', 258, 245);
+    g.fillText('TAM & TES', 258, 245);
     g.fillStyle = '#1a3d66'; g.font = 'italic 22px Arial, sans-serif'; g.fillText('luik!', 236, 172);
     g.strokeStyle = '#555'; g.lineWidth = 2;
     g.beginPath(); g.moveTo(470, 60); g.lineTo(500, 30); g.stroke();
