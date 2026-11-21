@@ -376,7 +376,8 @@
    "wegval": "Het veld blijft staan zoals het is; de claim leeft in de eigen progress en overleeft een hostwissel.",
    "test": [
     "scripts/bezitcoop_test.mjs",
-    "scripts/business_test.mjs"
+    "scripts/business_test.mjs",
+    "scripts/bezitnet_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
@@ -386,7 +387,7 @@
    "status": "gat",
    "prio": "hoog",
    "lead": "Bezit",
-   "gat": "Voeg de sectie Bezit toe aan COOP-GAST.md (claim, conflict, meewerken, aansluiten); een testbankstap in de suite alles (stap bezitclaim); bewijs dat de dagtik per speldag niet dubbel telt bij een hostwissel; sponsorpanden van het voetbal koppelen aan de Bezit-pandindex."
+   "gat": "Lead Bezit meldt (epic-bezit-21-11): de sectie Bezit staat in COOP-GAST.md; scripts/bezitnet_test.mjs (12) bewijst met drie instanties over een nep-netwerk dat claims convergeren, aansluiten en wegvallen werken en dat de dagtik niet dubbel telt bij een terugspringende klok (hostwissel) en niet bij een gast draait; transport bezitnet.js over het JSON-kanaal k bezit. Open: de testbankstap bezit in de suite alles (bezitnet.handleBezit of ensureBezitNet gebruiken), sponsorpanden van het voetbal naar de Bezit-pandindex (parcelindex.createBuildingIndex), en na de merge de opslagsleutel gde-bezit-v1 (scope speler) in dit manifest indelen en de status op OK zetten."
   },
   {
    "id": "voetbalcarriere",
