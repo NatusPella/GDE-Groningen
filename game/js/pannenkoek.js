@@ -186,7 +186,7 @@ function gastTik(w, dt) {
 }
 registreerWedstrijd('pannenkoek', {
   naam: 'Pannenkoekenschip De Gouden Pan', soort: 'punt', vak: 'horeca',
-  opties: () => ({ beurten: 1, naEerste: 60, format: (p) => `${Math.round(p).toLocaleString('nl-NL')} punten` }), // 60 s: wie nog bakt mag afmaken
+  opties: () => ({ beurten: 1, naEerste: 60, format: (p) => `${Math.round(p).toLocaleString('nl-NL')} punten`, max: PAN.duration * 50, perS: 50 }), // 60 s: wie nog bakt mag afmaken; hooguit ~1 pannenkoek per 2 s (60 + 25 + 15 punten)
   start: (w) => start(w, { online: 'host' }),
   plek: () => ({ ...place() }),
   gastPlek: (w, x, y) => !game && !hoofdspeler(w).inVehicle && Math.hypot(x - place().x, y - place().y) < 4.5, // een gast vraagt het bij de loopplank

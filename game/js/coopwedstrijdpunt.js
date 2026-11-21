@@ -11,15 +11,19 @@ export const MAX_BEURTEN_PUNT = 9;
 export const MAX_PUNT = 999999;        // per beurt; de hele som blijft daar ruim onder
 export const NA_EERSTE_PUNT_S = 90;    // zoveel tijd krijgen de anderen nadat de eerste zijn beurten af heeft
 export const PUNT_CAP_S = 420;         // de hele wedstrijd duurt hooguit 7 minuten
+export const PUNT_SLACK_S = 10;       // speling voor de aanloop en het netwerk bij de controle punten per seconde
 export const PRIJZEN_PUNT = [0, 90, 55, 30, 15]; // geld per plek, in de eigen portemonnee van wie alle beurten afmaakte
 
 // deeln: [{ slot, naam, char }]; beurten: hoeveel beurten iedere speler speelt; format: punten als tekst (bv. kg), alleen voor de host
-export function maakPunt(id, deeln, { beurten = 1, naEerste = NA_EERSTE_PUNT_S, cap = PUNT_CAP_S, format = null } = {}) {
+// max: de hoogste score van één beurt in dit spel (penalty: 5 doelpunten), perS: het plausibele aantal punten per seconde (met PUNT_SLACK_S speling),
+// zodat de host een gast die 999999 meldt niet gelooft: de melding wordt geklemd op het redelijke maximum (review 21-11).
+export function maakPunt(id, deeln, { beurten = 1, naEerste = NA_EERSTE_PUNT_S, cap = PUNT_CAP_S, format = null, max = MAX_PUNT, perS = 0 } = {}) {
   const lijst = deeln.slice(0, MAX_SPELERS_PUNT);
   return {
     punt: true, id, deeln: lijst, beurten: clamp(beurten | 0, 1, MAX_BEURTEN_PUNT),
     kaart: Object.fromEntries(lijst.map((d) => [d.slot, []])), weg: {}, t: 0, eersteKlaar: null, fase: 'bezig', n: 0,
     naEerste, cap, format: typeof format === 'function' ? format : null,
+    max: Number.isFinite(max) ? clamp(Math.floor(max), 0, MAX_PUNT) : MAX_PUNT, perS: Number.isFinite(perS) && perS > 0 ? perS : 0, laatste: {},
   };
 }
 const speler = (sc, slot) => sc.deeln.find((d) => d.slot === slot) || null;
@@ -32,6 +36,11 @@ export function meldPunt(sc, slot, beurt, punten) {
   const k = sc.kaart[slot];
   if (!Number.isInteger(beurt) || beurt !== k.length || beurt >= sc.beurten) return false;
   if (!Number.isInteger(punten) || punten < 0 || punten > MAX_PUNT) return false;
+  // klem op wat in dit spel kan: de grens per beurt en, als bekend, wat in de verstreken tijd te halen is (een gast kan geen prijs forceren)
+  const sinds = sc.t - (sc.laatste[slot] || 0);
+  const kan = Math.min(sc.max, sc.perS ? Math.ceil(sc.perS * (sinds + PUNT_SLACK_S)) : Infinity);
+  if (punten > kan) { punten = kan; sc.geklemd = (sc.geklemd || 0) + 1; }
+  sc.laatste[slot] = sc.t;
   k.push(punten);
   sc.n++;
   if (klaarMet(sc, slot) && sc.eersteKlaar == null) sc.eersteKlaar = sc.t;
