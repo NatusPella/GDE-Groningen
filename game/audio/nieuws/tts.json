@@ -1,6 +1,6 @@
 {
 "Kiekdoar-redactie (2)|KIEKDOAR MELDT: onrust in Grunn, politie massaal op pad": {
-"src": "wanted_up_1_v1.wav",
+"src": "wanted_up_1_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Umbriel",
@@ -10,7 +10,7 @@
 "date": "2026-10-05"
 },
 "Kiekdoar-redactie (2)|KIEKDOAR: agent gewond geraakt tijdens dienst, korps in rep en roer": {
-"src": "copkill_up_v1.wav",
+"src": "copkill_up_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Umbriel",
@@ -20,7 +20,7 @@
 "date": "2026-10-05"
 },
 "Kiekdoar-redactie (2)|KIEKDOAR: auto total loss in het centrum, buurtbewoners verbijsterd": {
-"src": "wrecked_up_1_v1.wav",
+"src": "wrecked_up_1_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Umbriel",
@@ -30,7 +30,7 @@
 "date": "2026-10-05"
 },
 "Kiekdoar-redactie (2)|KIEKDOAR: code rood, storm raast over Grunn": {
-"src": "weather_storm_start_v1.wav",
+"src": "weather_storm_start_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Umbriel",
@@ -40,7 +40,7 @@
 "date": "2026-10-05"
 },
 "Kiekdoar-redactie (2)|KIEKDOAR: gierende sirenes in het centrum, politie zit iemand op de hielen": {
-"src": "wanted_up_2_v1.wav",
+"src": "wanted_up_2_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Umbriel",
@@ -50,7 +50,7 @@
 "date": "2026-10-05"
 },
 "Kiekdoar-redactie (2)|KIEKDOAR: mysterieuze klusjesman weer aan het werk in Groningen": {
-"src": "mission_up_v1.wav",
+"src": "mission_up_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Umbriel",
@@ -60,7 +60,7 @@
 "date": "2026-10-05"
 },
 "Kiekdoar-redactie (2)|KIEKDOAR: opnieuw onrust in de straten, politie tast in het duister": {
-"src": "kill_up_v1.wav",
+"src": "kill_up_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Umbriel",
@@ -70,7 +70,7 @@
 "date": "2026-10-05"
 },
 "Kiekdoar-redactie (2)|KIEKDOAR: storm trekt weg, Groningen droogt weer op": {
-"src": "weather_storm_end_v1.wav",
+"src": "weather_storm_end_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Umbriel",
@@ -80,7 +80,7 @@
 "date": "2026-10-05"
 },
 "Kiekdoar-redactie (2)|KIEKDOAR: voetganger gewond, buurtapp ontploft van de reacties": {
-"src": "pedkill_up_v1.wav",
+"src": "pedkill_up_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Umbriel",
@@ -90,7 +90,7 @@
 "date": "2026-10-05"
 },
 "Kiekdoar-redactie (2)|KIEKDOAR: wéér total loss in Groningen, garages wrijven in hun handen": {
-"src": "wrecked_up_2_v1.wav",
+"src": "wrecked_up_2_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Umbriel",
@@ -100,7 +100,7 @@
 "date": "2026-10-05"
 },
 "Kiekdoar-redactie|KIEKDOAR MELDT: onrust in Grunn, politie massaal op pad": {
-"src": "wanted_up_1_v0.wav",
+"src": "wanted_up_1_v0.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Achernar",
@@ -110,7 +110,7 @@
 "date": "2026-10-05"
 },
 "Kiekdoar-redactie|KIEKDOAR: agent gewond geraakt tijdens dienst, korps in rep en roer": {
-"src": "copkill_up_v0.wav",
+"src": "copkill_up_v0.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Achernar",
@@ -120,7 +120,7 @@
 "date": "2026-10-05"
 },
 "Kiekdoar-redactie|KIEKDOAR: auto total loss in het centrum, buurtbewoners verbijsterd": {
-"src": "wrecked_up_1_v0.wav",
+"src": "wrecked_up_1_v0.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Achernar",
@@ -130,7 +130,7 @@
 "date": "2026-10-05"
 },
 "Kiekdoar-redactie|KIEKDOAR: code rood, storm raast over Grunn": {
-"src": "weather_storm_start_v0.wav",
+"src": "weather_storm_start_v0.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Achernar",
@@ -140,7 +140,7 @@
 "date": "2026-10-05"
 },
 "Kiekdoar-redactie|KIEKDOAR: gierende sirenes in het centrum, politie zit iemand op de hielen": {
-"src": "wanted_up_2_v0.wav",
+"src": "wanted_up_2_v0.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Achernar",
@@ -150,7 +150,7 @@
 "date": "2026-10-05"
 },
 "Kiekdoar-redactie|KIEKDOAR: mysterieuze klusjesman weer aan het werk in Groningen": {
-"src": "mission_up_v0.wav",
+"src": "mission_up_v0.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Achernar",
@@ -160,7 +160,7 @@
 "date": "2026-10-05"
 },
 "Kiekdoar-redactie|KIEKDOAR: opnieuw onrust in de straten, politie tast in het duister": {
-"src": "kill_up_v0.wav",
+"src": "kill_up_v0.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Achernar",
@@ -170,7 +170,7 @@
 "date": "2026-10-05"
 },
 "Kiekdoar-redactie|KIEKDOAR: storm trekt weg, Groningen droogt weer op": {
-"src": "weather_storm_end_v0.wav",
+"src": "weather_storm_end_v0.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Achernar",
@@ -180,7 +180,7 @@
 "date": "2026-10-05"
 },
 "Kiekdoar-redactie|KIEKDOAR: voetganger gewond, buurtapp ontploft van de reacties": {
-"src": "pedkill_up_v0.wav",
+"src": "pedkill_up_v0.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Achernar",
@@ -190,7 +190,7 @@
 "date": "2026-10-05"
 },
 "Kiekdoar-redactie|KIEKDOAR: wéér total loss in Groningen, garages wrijven in hun handen": {
-"src": "wrecked_up_2_v0.wav",
+"src": "wrecked_up_2_v0.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Achernar",

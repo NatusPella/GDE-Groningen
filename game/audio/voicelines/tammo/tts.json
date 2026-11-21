@@ -1,6 +1,6 @@
 {
 "Tammo|Ach, dat komt altijd van pas.": {
-"src": "geld_opgepakt_v1.wav",
+"src": "geld_opgepakt_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
@@ -10,7 +10,7 @@
 "date": "2026-10-05"
 },
 "Tammo|Ach, goed. Opnieuw dan.": {
-"src": "missie_mislukt.wav",
+"src": "missie_mislukt.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
@@ -20,7 +20,7 @@
 "date": "2026-10-05"
 },
 "Tammo|Alweer een klusje.": {
-"src": "missie_gestart_v2.wav",
+"src": "missie_gestart_v2.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
@@ -30,7 +30,7 @@
 "date": "2026-10-05"
 },
 "Tammo|Daar hebben we hem weer.": {
-"src": "opgepakt_v1.wav",
+"src": "opgepakt_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
@@ -40,7 +40,7 @@
 "date": "2026-10-05"
 },
 "Tammo|Dat is niks geworden.": {
-"src": "missie_mislukt_v2.wav",
+"src": "missie_mislukt_v2.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
@@ -50,7 +50,7 @@
 "date": "2026-10-05"
 },
 "Tammo|Hij staat los. Kom op.": {
-"src": "auto_gejat.wav",
+"src": "auto_gejat.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
@@ -60,7 +60,7 @@
 "date": "2026-10-05"
 },
 "Tammo|Hup, aan de slag dan.": {
-"src": "missie_gestart_v1.wav",
+"src": "missie_gestart_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
@@ -70,7 +70,7 @@
 "date": "2026-10-05"
 },
 "Tammo|Ik zwem echt niet graag, hè!": {
-"src": "water_panic_v2.wav",
+"src": "water_panic_v2.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
@@ -80,7 +80,7 @@
 "date": "2026-10-05"
 },
 "Tammo|Instappen dan maar.": {
-"src": "auto_gejat_v2.wav",
+"src": "auto_gejat_v2.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
@@ -90,7 +90,7 @@
 "date": "2026-10-05"
 },
 "Tammo|Kassa. Mooi zo.": {
-"src": "geld_opgepakt.wav",
+"src": "geld_opgepakt.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
@@ -100,7 +100,7 @@
 "date": "2026-10-05"
 },
 "Tammo|Klaar is Kees.": {
-"src": "missie_gelukt.wav",
+"src": "missie_gelukt.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
@@ -110,7 +110,7 @@
 "date": "2026-10-05"
 },
 "Tammo|Kon beter, denk ik.": {
-"src": "opgepakt_v2.wav",
+"src": "opgepakt_v2.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
@@ -120,7 +120,7 @@
 "date": "2026-10-05"
 },
 "Tammo|Kon minder.": {
-"src": "missie_gelukt_v2.wav",
+"src": "missie_gelukt_v2.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
@@ -130,7 +130,7 @@
 "date": "2026-10-05"
 },
 "Tammo|Mooi, die kan ik gebruiken.": {
-"src": "wapen_opgepakt_v1.wav",
+"src": "wapen_opgepakt_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
@@ -140,7 +140,7 @@
 "date": "2026-10-05"
 },
 "Tammo|Nat. Weer nat.": {
-"src": "water_panic_v1.wav",
+"src": "water_panic_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
@@ -150,7 +150,7 @@
 "date": "2026-10-05"
 },
 "Tammo|Nee toch. Niet weer de bak in.": {
-"src": "opgepakt.wav",
+"src": "opgepakt.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
@@ -160,7 +160,7 @@
 "date": "2026-10-05"
 },
 "Tammo|Nou, daar gaan we weer.": {
-"src": "missie_gestart.wav",
+"src": "missie_gestart.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
@@ -170,7 +170,7 @@
 "date": "2026-10-05"
 },
 "Tammo|Nou, dat ging even niet.": {
-"src": "missie_mislukt_v1.wav",
+"src": "missie_mislukt_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
@@ -180,7 +180,7 @@
 "date": "2026-10-05"
 },
 "Tammo|Nou, dat is dat dan.": {
-"src": "missie_gelukt_v1.wav",
+"src": "missie_gelukt_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
@@ -190,7 +190,7 @@
 "date": "2026-10-05"
 },
 "Tammo|Nou, die lenen we effe.": {
-"src": "auto_gejat_v1.wav",
+"src": "auto_gejat_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
@@ -200,7 +200,7 @@
 "date": "2026-10-05"
 },
 "Tammo|Oh, dat werkt wel.": {
-"src": "wapen_opgepakt.wav",
+"src": "wapen_opgepakt.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
@@ -210,7 +210,7 @@
 "date": "2026-10-05"
 },
 "Tammo|Precies wat ik zocht.": {
-"src": "wapen_opgepakt_v2.wav",
+"src": "wapen_opgepakt_v2.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
@@ -220,7 +220,7 @@
 "date": "2026-10-05"
 },
 "Tammo|Water! Water!": {
-"src": "water_panic.wav",
+"src": "water_panic.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
@@ -230,7 +230,7 @@
 "date": "2026-10-05"
 },
 "Tammo|Weer een paar euro rijker.": {
-"src": "geld_opgepakt_v2.wav",
+"src": "geld_opgepakt_v2.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",

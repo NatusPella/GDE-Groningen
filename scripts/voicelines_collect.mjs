@@ -71,7 +71,7 @@ const manifests = {};
 export function manifest(name) {
   if (name === 'npc') {
     const dir = path.join(REPO, 'game', 'audio', 'npc');
-    return Object.fromEntries(fs.readdirSync(dir).filter((f) => f.endsWith('_v0.wav')).map((f) => [f.slice(0, -7), true]));
+    return Object.fromEntries(fs.readdirSync(dir).filter((f) => f.endsWith('_v0.ogg')).map((f) => [f.slice(0, -7), true]));
   }
   if (!manifests[name]) {
     const p = path.join(VL, name, 'manifest.json');
@@ -222,7 +222,7 @@ export function collect() {
   const both = [BUBBLE.m, BUBBLE.f];
   const bubble = (area, list, cast, speakers = both) => { for (const t of new Set(list)) add(area, 'lines', speakers, t, cast, 'any'); };
   const pe = src('pedestrians.js');
-  // the ambient Gronings phrases play game/audio/npc/phrase_<i>_v*.wav (audio.js)
+  // the ambient Gronings phrases play game/audio/npc/phrase_<i>_v*.ogg (audio.js)
   lit(pe, 'const GRONINGS_PHRASES = ').forEach((t, i) => add('Voetgangers (praatjes)', 'npc', [`phrase_${i}`], t));
   bubble('Voetgangers', lit(pe, 'const SCREAMS = '), { tag: ['in paniek, gillend', 'doodsbang, schreeuwend'] });
   bubble('Voetgangers', lit(pe, 'const HURT_LINES = '), { tag: ['die pijn heeft en boos is', 'kermend, woedend'] });

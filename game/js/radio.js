@@ -177,7 +177,7 @@ function host(text) {
 }
 
 function clip([key, text]) {
-  const src = `./audio/nieuws/${key}_v${Math.random() < 0.5 ? 0 : 1}.wav`;
+  const src = `./audio/nieuws/${key}_v${Math.random() < 0.5 ? 0 : 1}.ogg`;
   return { speaker: 'Kiekdoar-redactie', text, voice: () => ({ src, dur: 4 }) };
 }
 

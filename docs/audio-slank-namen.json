@@ -1,0 +1,668 @@
+[
+ {
+  "van": "audio/gmusic/jingles/hoge_wanted.wav",
+  "naar": "audio/gmusic/jingles/hoge_wanted.ogg",
+  "bytesVoor": 112566,
+  "bytesNa": 18425
+ },
+ {
+  "van": "audio/gmusic/jingles/nummerovergang.wav",
+  "naar": "audio/gmusic/jingles/nummerovergang.ogg",
+  "bytesVoor": 115656,
+  "bytesNa": 18695
+ },
+ {
+  "van": "audio/gmusic/jingles/rij_knipoog.wav",
+  "naar": "audio/gmusic/jingles/rij_knipoog.ogg",
+  "bytesVoor": 161886,
+  "bytesNa": 25947
+ },
+ {
+  "van": "audio/gmusic/jingles/station_id.wav",
+  "naar": "audio/gmusic/jingles/station_id.ogg",
+  "bytesVoor": 171174,
+  "bytesNa": 26721
+ },
+ {
+  "van": "audio/nieuws/copkill_up_v0.wav",
+  "naar": "audio/nieuws/copkill_up_v0.ogg",
+  "bytesVoor": 196472,
+  "bytesNa": 31439
+ },
+ {
+  "van": "audio/nieuws/copkill_up_v1.wav",
+  "naar": "audio/nieuws/copkill_up_v1.ogg",
+  "bytesVoor": 190104,
+  "bytesNa": 31247
+ },
+ {
+  "van": "audio/nieuws/kill_up_v0.wav",
+  "naar": "audio/nieuws/kill_up_v0.ogg",
+  "bytesVoor": 197868,
+  "bytesNa": 31523
+ },
+ {
+  "van": "audio/nieuws/kill_up_v1.wav",
+  "naar": "audio/nieuws/kill_up_v1.ogg",
+  "bytesVoor": 182332,
+  "bytesNa": 27769
+ },
+ {
+  "van": "audio/nieuws/mission_up_v0.wav",
+  "naar": "audio/nieuws/mission_up_v0.ogg",
+  "bytesVoor": 134398,
+  "bytesNa": 23672
+ },
+ {
+  "van": "audio/nieuws/mission_up_v1.wav",
+  "naar": "audio/nieuws/mission_up_v1.ogg",
+  "bytesVoor": 116292,
+  "bytesNa": 20829
+ },
+ {
+  "van": "audio/nieuws/pedkill_up_v0.wav",
+  "naar": "audio/nieuws/pedkill_up_v0.ogg",
+  "bytesVoor": 179004,
+  "bytesNa": 29199
+ },
+ {
+  "van": "audio/nieuws/pedkill_up_v1.wav",
+  "naar": "audio/nieuws/pedkill_up_v1.ogg",
+  "bytesVoor": 175618,
+  "bytesNa": 29047
+ },
+ {
+  "van": "audio/nieuws/wanted_up_1_v0.wav",
+  "naar": "audio/nieuws/wanted_up_1_v0.ogg",
+  "bytesVoor": 156844,
+  "bytesNa": 24223
+ },
+ {
+  "van": "audio/nieuws/wanted_up_1_v1.wav",
+  "naar": "audio/nieuws/wanted_up_1_v1.ogg",
+  "bytesVoor": 149954,
+  "bytesNa": 23280
+ },
+ {
+  "van": "audio/nieuws/wanted_up_2_v0.wav",
+  "naar": "audio/nieuws/wanted_up_2_v0.ogg",
+  "bytesVoor": 179364,
+  "bytesNa": 28675
+ },
+ {
+  "van": "audio/nieuws/wanted_up_2_v1.wav",
+  "naar": "audio/nieuws/wanted_up_2_v1.ogg",
+  "bytesVoor": 173844,
+  "bytesNa": 28489
+ },
+ {
+  "van": "audio/nieuws/weather_storm_end_v0.wav",
+  "naar": "audio/nieuws/weather_storm_end_v0.ogg",
+  "bytesVoor": 132128,
+  "bytesNa": 21732
+ },
+ {
+  "van": "audio/nieuws/weather_storm_end_v1.wav",
+  "naar": "audio/nieuws/weather_storm_end_v1.ogg",
+  "bytesVoor": 150466,
+  "bytesNa": 25587
+ },
+ {
+  "van": "audio/nieuws/weather_storm_start_v0.wav",
+  "naar": "audio/nieuws/weather_storm_start_v0.ogg",
+  "bytesVoor": 140128,
+  "bytesNa": 21874
+ },
+ {
+  "van": "audio/nieuws/weather_storm_start_v1.wav",
+  "naar": "audio/nieuws/weather_storm_start_v1.ogg",
+  "bytesVoor": 130330,
+  "bytesNa": 23170
+ },
+ {
+  "van": "audio/nieuws/wrecked_up_1_v0.wav",
+  "naar": "audio/nieuws/wrecked_up_1_v0.ogg",
+  "bytesVoor": 197390,
+  "bytesNa": 31077
+ },
+ {
+  "van": "audio/nieuws/wrecked_up_1_v1.wav",
+  "naar": "audio/nieuws/wrecked_up_1_v1.ogg",
+  "bytesVoor": 188946,
+  "bytesNa": 32014
+ },
+ {
+  "van": "audio/nieuws/wrecked_up_2_v0.wav",
+  "naar": "audio/nieuws/wrecked_up_2_v0.ogg",
+  "bytesVoor": 185122,
+  "bytesNa": 29129
+ },
+ {
+  "van": "audio/nieuws/wrecked_up_2_v1.wav",
+  "naar": "audio/nieuws/wrecked_up_2_v1.ogg",
+  "bytesVoor": 179406,
+  "bytesNa": 30113
+ },
+ {
+  "van": "audio/npc/phrase_0_v0.wav",
+  "naar": "audio/npc/phrase_0_v0.ogg",
+  "bytesVoor": 26524,
+  "bytesNa": 6266
+ },
+ {
+  "van": "audio/npc/phrase_0_v1.wav",
+  "naar": "audio/npc/phrase_0_v1.ogg",
+  "bytesVoor": 32166,
+  "bytesNa": 6946
+ },
+ {
+  "van": "audio/npc/phrase_0_v2.wav",
+  "naar": "audio/npc/phrase_0_v2.ogg",
+  "bytesVoor": 28364,
+  "bytesNa": 6361
+ },
+ {
+  "van": "audio/npc/phrase_1_v0.wav",
+  "naar": "audio/npc/phrase_1_v0.ogg",
+  "bytesVoor": 71608,
+  "bytesNa": 12553
+ },
+ {
+  "van": "audio/npc/phrase_1_v1.wav",
+  "naar": "audio/npc/phrase_1_v1.ogg",
+  "bytesVoor": 90538,
+  "bytesNa": 14845
+ },
+ {
+  "van": "audio/npc/phrase_1_v2.wav",
+  "naar": "audio/npc/phrase_1_v2.ogg",
+  "bytesVoor": 65408,
+  "bytesNa": 11354
+ },
+ {
+  "van": "audio/npc/phrase_2_v0.wav",
+  "naar": "audio/npc/phrase_2_v0.ogg",
+  "bytesVoor": 80632,
+  "bytesNa": 15806
+ },
+ {
+  "van": "audio/npc/phrase_2_v1.wav",
+  "naar": "audio/npc/phrase_2_v1.ogg",
+  "bytesVoor": 71692,
+  "bytesNa": 12391
+ },
+ {
+  "van": "audio/npc/phrase_2_v2.wav",
+  "naar": "audio/npc/phrase_2_v2.ogg",
+  "bytesVoor": 66992,
+  "bytesNa": 11860
+ },
+ {
+  "van": "audio/npc/phrase_3_v0.wav",
+  "naar": "audio/npc/phrase_3_v0.ogg",
+  "bytesVoor": 72428,
+  "bytesNa": 11929
+ },
+ {
+  "van": "audio/npc/phrase_3_v1.wav",
+  "naar": "audio/npc/phrase_3_v1.ogg",
+  "bytesVoor": 64516,
+  "bytesNa": 11472
+ },
+ {
+  "van": "audio/npc/phrase_3_v2.wav",
+  "naar": "audio/npc/phrase_3_v2.ogg",
+  "bytesVoor": 63310,
+  "bytesNa": 11539
+ },
+ {
+  "van": "audio/npc/phrase_4_v0.wav",
+  "naar": "audio/npc/phrase_4_v0.ogg",
+  "bytesVoor": 42606,
+  "bytesNa": 8399
+ },
+ {
+  "van": "audio/npc/phrase_4_v1.wav",
+  "naar": "audio/npc/phrase_4_v1.ogg",
+  "bytesVoor": 51280,
+  "bytesNa": 9953
+ },
+ {
+  "van": "audio/npc/phrase_4_v2.wav",
+  "naar": "audio/npc/phrase_4_v2.ogg",
+  "bytesVoor": 58218,
+  "bytesNa": 10925
+ },
+ {
+  "van": "audio/npc/phrase_5_v0.wav",
+  "naar": "audio/npc/phrase_5_v0.ogg",
+  "bytesVoor": 45684,
+  "bytesNa": 9036
+ },
+ {
+  "van": "audio/npc/phrase_5_v1.wav",
+  "naar": "audio/npc/phrase_5_v1.ogg",
+  "bytesVoor": 49854,
+  "bytesNa": 9342
+ },
+ {
+  "van": "audio/npc/phrase_5_v2.wav",
+  "naar": "audio/npc/phrase_5_v2.ogg",
+  "bytesVoor": 40910,
+  "bytesNa": 8776
+ },
+ {
+  "van": "audio/npc/phrase_6_v0.wav",
+  "naar": "audio/npc/phrase_6_v0.ogg",
+  "bytesVoor": 42354,
+  "bytesNa": 9176
+ },
+ {
+  "van": "audio/npc/phrase_6_v1.wav",
+  "naar": "audio/npc/phrase_6_v1.ogg",
+  "bytesVoor": 47706,
+  "bytesNa": 9407
+ },
+ {
+  "van": "audio/npc/phrase_6_v2.wav",
+  "naar": "audio/npc/phrase_6_v2.ogg",
+  "bytesVoor": 48536,
+  "bytesNa": 9748
+ },
+ {
+  "van": "audio/npc/phrase_7_v0.wav",
+  "naar": "audio/npc/phrase_7_v0.ogg",
+  "bytesVoor": 88046,
+  "bytesNa": 14752
+ },
+ {
+  "van": "audio/npc/phrase_7_v1.wav",
+  "naar": "audio/npc/phrase_7_v1.ogg",
+  "bytesVoor": 122114,
+  "bytesNa": 18877
+ },
+ {
+  "van": "audio/npc/phrase_7_v2.wav",
+  "naar": "audio/npc/phrase_7_v2.ogg",
+  "bytesVoor": 109910,
+  "bytesNa": 19146
+ },
+ {
+  "van": "audio/npc/phrase_8_v0.wav",
+  "naar": "audio/npc/phrase_8_v0.ogg",
+  "bytesVoor": 79112,
+  "bytesNa": 13813
+ },
+ {
+  "van": "audio/npc/phrase_8_v1.wav",
+  "naar": "audio/npc/phrase_8_v1.ogg",
+  "bytesVoor": 87866,
+  "bytesNa": 16468
+ },
+ {
+  "van": "audio/npc/phrase_8_v2.wav",
+  "naar": "audio/npc/phrase_8_v2.ogg",
+  "bytesVoor": 117054,
+  "bytesNa": 19847
+ },
+ {
+  "van": "audio/npc/phrase_9_v0.wav",
+  "naar": "audio/npc/phrase_9_v0.ogg",
+  "bytesVoor": 87432,
+  "bytesNa": 14511
+ },
+ {
+  "van": "audio/npc/phrase_9_v1.wav",
+  "naar": "audio/npc/phrase_9_v1.ogg",
+  "bytesVoor": 74174,
+  "bytesNa": 13214
+ },
+ {
+  "van": "audio/npc/phrase_9_v2.wav",
+  "naar": "audio/npc/phrase_9_v2.ogg",
+  "bytesVoor": 72786,
+  "bytesNa": 13015
+ },
+ {
+  "van": "audio/police/aangehouden_v0.wav",
+  "naar": "audio/police/aangehouden_v0.ogg",
+  "bytesVoor": 54920,
+  "bytesNa": 11229
+ },
+ {
+  "van": "audio/police/aangehouden_v1.wav",
+  "naar": "audio/police/aangehouden_v1.ogg",
+  "bytesVoor": 54340,
+  "bytesNa": 10136
+ },
+ {
+  "van": "audio/police/achtervolging_v0.wav",
+  "naar": "audio/police/achtervolging_v0.ogg",
+  "bytesVoor": 92706,
+  "bytesNa": 16409
+ },
+ {
+  "van": "audio/police/achtervolging_v1.wav",
+  "naar": "audio/police/achtervolging_v1.ogg",
+  "bytesVoor": 92106,
+  "bytesNa": 16384
+ },
+ {
+  "van": "audio/police/handen_omhoog_v0.wav",
+  "naar": "audio/police/handen_omhoog_v0.ogg",
+  "bytesVoor": 93036,
+  "bytesNa": 15089
+ },
+ {
+  "van": "audio/police/handen_omhoog_v1.wav",
+  "naar": "audio/police/handen_omhoog_v1.ogg",
+  "bytesVoor": 87486,
+  "bytesNa": 14316
+ },
+ {
+  "van": "audio/police/stop_politie_v0.wav",
+  "naar": "audio/police/stop_politie_v0.ogg",
+  "bytesVoor": 76024,
+  "bytesNa": 12890
+ },
+ {
+  "van": "audio/police/stop_politie_v1.wav",
+  "naar": "audio/police/stop_politie_v1.ogg",
+  "bytesVoor": 77720,
+  "bytesNa": 13645
+ },
+ {
+  "van": "audio/police/verdachte_voertuig_v0.wav",
+  "naar": "audio/police/verdachte_voertuig_v0.ogg",
+  "bytesVoor": 90212,
+  "bytesNa": 16269
+ },
+ {
+  "van": "audio/police/verdachte_voertuig_v1.wav",
+  "naar": "audio/police/verdachte_voertuig_v1.ogg",
+  "bytesVoor": 120414,
+  "bytesNa": 19783
+ },
+ {
+  "van": "audio/police/zet_kant_v0.wav",
+  "naar": "audio/police/zet_kant_v0.ogg",
+  "bytesVoor": 87840,
+  "bytesNa": 15640
+ },
+ {
+  "van": "audio/police/zet_kant_v1.wav",
+  "naar": "audio/police/zet_kant_v1.ogg",
+  "bytesVoor": 92688,
+  "bytesNa": 16684
+ },
+ {
+  "van": "audio/voicelines/anita/geld_opgepakt.wav",
+  "naar": "audio/voicelines/anita/geld_opgepakt.ogg",
+  "bytesVoor": 74982,
+  "bytesNa": 13236
+ },
+ {
+  "van": "audio/voicelines/anita/geld_opgepakt_v1.wav",
+  "naar": "audio/voicelines/anita/geld_opgepakt_v1.ogg",
+  "bytesVoor": 81824,
+  "bytesNa": 13942
+ },
+ {
+  "van": "audio/voicelines/anita/geld_opgepakt_v2.wav",
+  "naar": "audio/voicelines/anita/geld_opgepakt_v2.ogg",
+  "bytesVoor": 93716,
+  "bytesNa": 15420
+ },
+ {
+  "van": "audio/voicelines/anita/kus.wav",
+  "naar": "audio/voicelines/anita/kus.ogg",
+  "bytesVoor": 79664,
+  "bytesNa": 14250
+ },
+ {
+  "van": "audio/voicelines/anita/kus_v1.wav",
+  "naar": "audio/voicelines/anita/kus_v1.ogg",
+  "bytesVoor": 116318,
+  "bytesNa": 18958
+ },
+ {
+  "van": "audio/voicelines/anita/kus_v2.wav",
+  "naar": "audio/voicelines/anita/kus_v2.ogg",
+  "bytesVoor": 101940,
+  "bytesNa": 17205
+ },
+ {
+  "van": "audio/voicelines/anita/missie_gelukt.wav",
+  "naar": "audio/voicelines/anita/missie_gelukt.ogg",
+  "bytesVoor": 72000,
+  "bytesNa": 12262
+ },
+ {
+  "van": "audio/voicelines/anita/missie_gelukt_v1.wav",
+  "naar": "audio/voicelines/anita/missie_gelukt_v1.ogg",
+  "bytesVoor": 70158,
+  "bytesNa": 12768
+ },
+ {
+  "van": "audio/voicelines/anita/missie_gelukt_v2.wav",
+  "naar": "audio/voicelines/anita/missie_gelukt_v2.ogg",
+  "bytesVoor": 53838,
+  "bytesNa": 9669
+ },
+ {
+  "van": "audio/voicelines/anita/missie_gestart.wav",
+  "naar": "audio/voicelines/anita/missie_gestart.ogg",
+  "bytesVoor": 69844,
+  "bytesNa": 12275
+ },
+ {
+  "van": "audio/voicelines/anita/missie_gestart_v1.wav",
+  "naar": "audio/voicelines/anita/missie_gestart_v1.ogg",
+  "bytesVoor": 83072,
+  "bytesNa": 14461
+ },
+ {
+  "van": "audio/voicelines/anita/missie_gestart_v2.wav",
+  "naar": "audio/voicelines/anita/missie_gestart_v2.ogg",
+  "bytesVoor": 56728,
+  "bytesNa": 10268
+ },
+ {
+  "van": "audio/voicelines/anita/missie_mislukt.wav",
+  "naar": "audio/voicelines/anita/missie_mislukt.ogg",
+  "bytesVoor": 62466,
+  "bytesNa": 11876
+ },
+ {
+  "van": "audio/voicelines/anita/missie_mislukt_v1.wav",
+  "naar": "audio/voicelines/anita/missie_mislukt_v1.ogg",
+  "bytesVoor": 87296,
+  "bytesNa": 15153
+ },
+ {
+  "van": "audio/voicelines/anita/missie_mislukt_v2.wav",
+  "naar": "audio/voicelines/anita/missie_mislukt_v2.ogg",
+  "bytesVoor": 71312,
+  "bytesNa": 13292
+ },
+ {
+  "van": "audio/voicelines/anita/opgepakt.wav",
+  "naar": "audio/voicelines/anita/opgepakt.ogg",
+  "bytesVoor": 72138,
+  "bytesNa": 12387
+ },
+ {
+  "van": "audio/voicelines/anita/opgepakt_v1.wav",
+  "naar": "audio/voicelines/anita/opgepakt_v1.ogg",
+  "bytesVoor": 82456,
+  "bytesNa": 13965
+ },
+ {
+  "van": "audio/voicelines/anita/opgepakt_v2.wav",
+  "naar": "audio/voicelines/anita/opgepakt_v2.ogg",
+  "bytesVoor": 75490,
+  "bytesNa": 13346
+ },
+ {
+  "van": "audio/voicelines/anita/wapen_opgepakt.wav",
+  "naar": "audio/voicelines/anita/wapen_opgepakt.ogg",
+  "bytesVoor": 77490,
+  "bytesNa": 13125
+ },
+ {
+  "van": "audio/voicelines/anita/wapen_opgepakt_v1.wav",
+  "naar": "audio/voicelines/anita/wapen_opgepakt_v1.ogg",
+  "bytesVoor": 104764,
+  "bytesNa": 18395
+ },
+ {
+  "van": "audio/voicelines/anita/wapen_opgepakt_v2.wav",
+  "naar": "audio/voicelines/anita/wapen_opgepakt_v2.ogg",
+  "bytesVoor": 141676,
+  "bytesNa": 22225
+ },
+ {
+  "van": "audio/voicelines/tammo/auto_gejat.wav",
+  "naar": "audio/voicelines/tammo/auto_gejat.ogg",
+  "bytesVoor": 105272,
+  "bytesNa": 17521
+ },
+ {
+  "van": "audio/voicelines/tammo/auto_gejat_v1.wav",
+  "naar": "audio/voicelines/tammo/auto_gejat_v1.ogg",
+  "bytesVoor": 61818,
+  "bytesNa": 12045
+ },
+ {
+  "van": "audio/voicelines/tammo/auto_gejat_v2.wav",
+  "naar": "audio/voicelines/tammo/auto_gejat_v2.ogg",
+  "bytesVoor": 44320,
+  "bytesNa": 10149
+ },
+ {
+  "van": "audio/voicelines/tammo/geld_opgepakt.wav",
+  "naar": "audio/voicelines/tammo/geld_opgepakt.ogg",
+  "bytesVoor": 99728,
+  "bytesNa": 17102
+ },
+ {
+  "van": "audio/voicelines/tammo/geld_opgepakt_v1.wav",
+  "naar": "audio/voicelines/tammo/geld_opgepakt_v1.ogg",
+  "bytesVoor": 119088,
+  "bytesNa": 20456
+ },
+ {
+  "van": "audio/voicelines/tammo/geld_opgepakt_v2.wav",
+  "naar": "audio/voicelines/tammo/geld_opgepakt_v2.ogg",
+  "bytesVoor": 63392,
+  "bytesNa": 13037
+ },
+ {
+  "van": "audio/voicelines/tammo/missie_gelukt.wav",
+  "naar": "audio/voicelines/tammo/missie_gelukt.ogg",
+  "bytesVoor": 48442,
+  "bytesNa": 10167
+ },
+ {
+  "van": "audio/voicelines/tammo/missie_gelukt_v1.wav",
+  "naar": "audio/voicelines/tammo/missie_gelukt_v1.ogg",
+  "bytesVoor": 91266,
+  "bytesNa": 15455
+ },
+ {
+  "van": "audio/voicelines/tammo/missie_gelukt_v2.wav",
+  "naar": "audio/voicelines/tammo/missie_gelukt_v2.ogg",
+  "bytesVoor": 38994,
+  "bytesNa": 8651
+ },
+ {
+  "van": "audio/voicelines/tammo/missie_gestart.wav",
+  "naar": "audio/voicelines/tammo/missie_gestart.ogg",
+  "bytesVoor": 75484,
+  "bytesNa": 12915
+ },
+ {
+  "van": "audio/voicelines/tammo/missie_gestart_v1.wav",
+  "naar": "audio/voicelines/tammo/missie_gestart_v1.ogg",
+  "bytesVoor": 68284,
+  "bytesNa": 12100
+ },
+ {
+  "van": "audio/voicelines/tammo/missie_gestart_v2.wav",
+  "naar": "audio/voicelines/tammo/missie_gestart_v2.ogg",
+  "bytesVoor": 64940,
+  "bytesNa": 11437
+ },
+ {
+  "van": "audio/voicelines/tammo/missie_mislukt.wav",
+  "naar": "audio/voicelines/tammo/missie_mislukt.ogg",
+  "bytesVoor": 101376,
+  "bytesNa": 16508
+ },
+ {
+  "van": "audio/voicelines/tammo/missie_mislukt_v1.wav",
+  "naar": "audio/voicelines/tammo/missie_mislukt_v1.ogg",
+  "bytesVoor": 116276,
+  "bytesNa": 20014
+ },
+ {
+  "van": "audio/voicelines/tammo/missie_mislukt_v2.wav",
+  "naar": "audio/voicelines/tammo/missie_mislukt_v2.ogg",
+  "bytesVoor": 58262,
+  "bytesNa": 10824
+ },
+ {
+  "van": "audio/voicelines/tammo/opgepakt.wav",
+  "naar": "audio/voicelines/tammo/opgepakt.ogg",
+  "bytesVoor": 116434,
+  "bytesNa": 19335
+ },
+ {
+  "van": "audio/voicelines/tammo/opgepakt_v1.wav",
+  "naar": "audio/voicelines/tammo/opgepakt_v1.ogg",
+  "bytesVoor": 79462,
+  "bytesNa": 13637
+ },
+ {
+  "van": "audio/voicelines/tammo/opgepakt_v2.wav",
+  "naar": "audio/voicelines/tammo/opgepakt_v2.ogg",
+  "bytesVoor": 89272,
+  "bytesNa": 15564
+ },
+ {
+  "van": "audio/voicelines/tammo/wapen_opgepakt.wav",
+  "naar": "audio/voicelines/tammo/wapen_opgepakt.ogg",
+  "bytesVoor": 68964,
+  "bytesNa": 12891
+ },
+ {
+  "van": "audio/voicelines/tammo/wapen_opgepakt_v1.wav",
+  "naar": "audio/voicelines/tammo/wapen_opgepakt_v1.ogg",
+  "bytesVoor": 84612,
+  "bytesNa": 14230
+ },
+ {
+  "van": "audio/voicelines/tammo/wapen_opgepakt_v2.wav",
+  "naar": "audio/voicelines/tammo/wapen_opgepakt_v2.ogg",
+  "bytesVoor": 58004,
+  "bytesNa": 11490
+ },
+ {
+  "van": "audio/voicelines/tammo/water_panic.wav",
+  "naar": "audio/voicelines/tammo/water_panic.ogg",
+  "bytesVoor": 65820,
+  "bytesNa": 11792
+ },
+ {
+  "van": "audio/voicelines/tammo/water_panic_v1.wav",
+  "naar": "audio/voicelines/tammo/water_panic_v1.ogg",
+  "bytesVoor": 86572,
+  "bytesNa": 14853
+ },
+ {
+  "van": "audio/voicelines/tammo/water_panic_v2.wav",
+  "naar": "audio/voicelines/tammo/water_panic_v2.ogg",
+  "bytesVoor": 78668,
+  "bytesNa": 13893
+ }
+]

@@ -69,7 +69,7 @@ const SIREN_HOLD_MAX = 0.7;
 // _v2 are the newer additions, per feedback that a single fixed line per
 // trigger got repetitive fast.
 function variants(dir, key) {
-  return [`./audio/voicelines/${dir}/${key}.wav`, `./audio/voicelines/${dir}/${key}_v1.wav`, `./audio/voicelines/${dir}/${key}_v2.wav`];
+  return [`./audio/voicelines/${dir}/${key}.ogg`, `./audio/voicelines/${dir}/${key}_v1.ogg`, `./audio/voicelines/${dir}/${key}_v2.ogg`];
 }
 const TAMMO_LINES = {
   wapen_opgepakt: variants('tammo', 'wapen_opgepakt'),
@@ -95,16 +95,16 @@ const ANITA_LINES = {
 // a few voice variants recorded for it; playX() below always picks one at
 // random so the same trigger doesn't sound identical every time.
 const NPC_PHRASE_AUDIO = Array.from({ length: 10 }, (_, i) =>
-  [0, 1, 2].map((v) => `./audio/npc/phrase_${i}_v${v}.wav`));
+  [0, 1, 2].map((v) => `./audio/npc/phrase_${i}_v${v}.ogg`));
 
 const POLICE_BARK_KEYS = ['stop_politie', 'zet_kant', 'verdachte_voertuig', 'handen_omhoog', 'achtervolging', 'aangehouden'];
 const POLICE_BARK_AUDIO = {};
-for (const k of POLICE_BARK_KEYS) POLICE_BARK_AUDIO[k] = [0, 1].map((v) => `./audio/police/${k}_v${v}.wav`);
+for (const k of POLICE_BARK_KEYS) POLICE_BARK_AUDIO[k] = [0, 1].map((v) => `./audio/police/${k}_v${v}.ogg`);
 const POLICE_CHASE_START_KEYS = ['stop_politie', 'zet_kant', 'verdachte_voertuig', 'handen_omhoog', 'achtervolging'];
 
 const SIKKOM_AUDIO_KEYS = ['wanted_up_1', 'wanted_up_2', 'wrecked_up_1', 'wrecked_up_2', 'copkill_up', 'pedkill_up', 'kill_up', 'mission_up', 'weather_storm_start', 'weather_storm_end'];
 const SIKKOM_AUDIO = {};
-for (const k of SIKKOM_AUDIO_KEYS) SIKKOM_AUDIO[k] = [0, 1].map((v) => `./audio/nieuws/${k}_v${v}.wav`);
+for (const k of SIKKOM_AUDIO_KEYS) SIKKOM_AUDIO[k] = [0, 1].map((v) => `./audio/nieuws/${k}_v${v}.ogg`);
 
 let ctx = null;
 let master = null;

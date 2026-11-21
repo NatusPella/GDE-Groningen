@@ -1,6 +1,6 @@
 {
 "Stadjer (man)|Doe mor gewoon.": {
-"src": "phrase_5_v0.wav",
+"src": "phrase_5_v0.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Sadaltager",
@@ -10,7 +10,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (man)|Hoi, alles goud?": {
-"src": "phrase_1_v0.wav",
+"src": "phrase_1_v0.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Sadaltager",
@@ -20,7 +20,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (man)|Kom, we goan derhen.": {
-"src": "phrase_3_v0.wav",
+"src": "phrase_3_v0.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Sadaltager",
@@ -30,7 +30,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (man)|Lekker bakkie doen?": {
-"src": "phrase_6_v0.wav",
+"src": "phrase_6_v0.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Sadaltager",
@@ -40,7 +40,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (man)|Ligt aan die kolde wind, geleuf ik.": {
-"src": "phrase_8_v0.wav",
+"src": "phrase_8_v0.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Sadaltager",
@@ -50,7 +50,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (man)|Moi!": {
-"src": "phrase_0_v0.wav",
+"src": "phrase_0_v0.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Sadaltager",
@@ -60,7 +60,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (man)|Nou, mag nait klagen, hoor.": {
-"src": "phrase_7_v0.wav",
+"src": "phrase_7_v0.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Sadaltager",
@@ -70,7 +70,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (man)|Tot straks, moi!": {
-"src": "phrase_9_v0.wav",
+"src": "phrase_9_v0.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Sadaltager",
@@ -80,7 +80,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (man)|Wat bin je aan het doun?": {
-"src": "phrase_4_v0.wav",
+"src": "phrase_4_v0.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Sadaltager",
@@ -90,7 +90,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (man)|t Is mooi weer vandoag, net?": {
-"src": "phrase_2_v0.wav",
+"src": "phrase_2_v0.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Sadaltager",
@@ -100,7 +100,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (oud)|Doe mor gewoon.": {
-"src": "phrase_5_v2.wav",
+"src": "phrase_5_v2.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Enceladus",
@@ -110,7 +110,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (oud)|Hoi, alles goud?": {
-"src": "phrase_1_v2.wav",
+"src": "phrase_1_v2.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Enceladus",
@@ -120,7 +120,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (oud)|Kom, we goan derhen.": {
-"src": "phrase_3_v2.wav",
+"src": "phrase_3_v2.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Enceladus",
@@ -130,7 +130,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (oud)|Lekker bakkie doen?": {
-"src": "phrase_6_v2.wav",
+"src": "phrase_6_v2.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Enceladus",
@@ -140,7 +140,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (oud)|Ligt aan die kolde wind, geleuf ik.": {
-"src": "phrase_8_v2.wav",
+"src": "phrase_8_v2.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Enceladus",
@@ -150,7 +150,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (oud)|Moi!": {
-"src": "phrase_0_v2.wav",
+"src": "phrase_0_v2.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Enceladus",
@@ -160,7 +160,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (oud)|Nou, mag nait klagen, hoor.": {
-"src": "phrase_7_v2.wav",
+"src": "phrase_7_v2.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Enceladus",
@@ -170,7 +170,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (oud)|Tot straks, moi!": {
-"src": "phrase_9_v2.wav",
+"src": "phrase_9_v2.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Enceladus",
@@ -180,7 +180,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (oud)|Wat bin je aan het doun?": {
-"src": "phrase_4_v2.wav",
+"src": "phrase_4_v2.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Enceladus",
@@ -190,7 +190,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (oud)|t Is mooi weer vandoag, net?": {
-"src": "phrase_2_v2.wav",
+"src": "phrase_2_v2.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Enceladus",
@@ -200,7 +200,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (vrouw)|Doe mor gewoon.": {
-"src": "phrase_5_v1.wav",
+"src": "phrase_5_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Despina",
@@ -210,7 +210,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (vrouw)|Hoi, alles goud?": {
-"src": "phrase_1_v1.wav",
+"src": "phrase_1_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Despina",
@@ -220,7 +220,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (vrouw)|Kom, we goan derhen.": {
-"src": "phrase_3_v1.wav",
+"src": "phrase_3_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Despina",
@@ -230,7 +230,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (vrouw)|Lekker bakkie doen?": {
-"src": "phrase_6_v1.wav",
+"src": "phrase_6_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Despina",
@@ -240,7 +240,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (vrouw)|Ligt aan die kolde wind, geleuf ik.": {
-"src": "phrase_8_v1.wav",
+"src": "phrase_8_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Despina",
@@ -250,7 +250,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (vrouw)|Moi!": {
-"src": "phrase_0_v1.wav",
+"src": "phrase_0_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Despina",
@@ -260,7 +260,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (vrouw)|Nou, mag nait klagen, hoor.": {
-"src": "phrase_7_v1.wav",
+"src": "phrase_7_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Despina",
@@ -270,7 +270,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (vrouw)|Tot straks, moi!": {
-"src": "phrase_9_v1.wav",
+"src": "phrase_9_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Despina",
@@ -280,7 +280,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (vrouw)|Wat bin je aan het doun?": {
-"src": "phrase_4_v1.wav",
+"src": "phrase_4_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Despina",
@@ -290,7 +290,7 @@
 "date": "2026-10-05"
 },
 "Stadjer (vrouw)|t Is mooi weer vandoag, net?": {
-"src": "phrase_2_v1.wav",
+"src": "phrase_2_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Despina",

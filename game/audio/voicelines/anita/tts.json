@@ -1,6 +1,6 @@
 {
 "Anita|Alweer iets te doen.": {
-"src": "missie_gestart_v2.wav",
+"src": "missie_gestart_v2.ogg",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "own",
@@ -11,7 +11,7 @@
 "date": "2026-11-15"
 },
 "Anita|Alweer, Tammo!": {
-"src": "opgepakt_v1.wav",
+"src": "opgepakt_v1.ogg",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "own",
@@ -22,7 +22,7 @@
 "date": "2026-11-15"
 },
 "Anita|Dat liep niet zoals gepland.": {
-"src": "missie_mislukt_v1.wav",
+"src": "missie_mislukt_v1.ogg",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "own",
@@ -33,7 +33,7 @@
 "date": "2026-11-15"
 },
 "Anita|Die is weer af!": {
-"src": "missie_gelukt_v2.wav",
+"src": "missie_gelukt_v2.ogg",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "own",
@@ -44,7 +44,7 @@
 "date": "2026-11-15"
 },
 "Anita|Die ziet er gevaarlijk uit. Mooi!": {
-"src": "wapen_opgepakt_v2.wav",
+"src": "wapen_opgepakt_v2.ogg",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "own",
@@ -55,7 +55,7 @@
 "date": "2026-11-15"
 },
 "Anita|Dit wordt een gewoonte!": {
-"src": "opgepakt_v2.wav",
+"src": "opgepakt_v2.ogg",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "own",
@@ -66,7 +66,7 @@
 "date": "2026-11-15"
 },
 "Anita|Doe rustig aan, mien jong!": {
-"src": "kus_v2.wav",
+"src": "kus_v2.ogg",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "own",
@@ -77,7 +77,7 @@
 "date": "2026-11-15"
 },
 "Anita|Doe voorzichtig, ja!": {
-"src": "kus.wav",
+"src": "kus.ogg",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "own",
@@ -88,7 +88,7 @@
 "date": "2026-11-15"
 },
 "Anita|En daar gaan we dan weer.": {
-"src": "missie_gestart_v1.wav",
+"src": "missie_gestart_v1.ogg",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "own",
@@ -99,7 +99,7 @@
 "date": "2026-11-15"
 },
 "Anita|Had beter gekund.": {
-"src": "missie_mislukt.wav",
+"src": "missie_mislukt.ogg",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "own",
@@ -110,7 +110,7 @@
 "date": "2026-11-15"
 },
 "Anita|Handig, dat kan ik gebruiken.": {
-"src": "wapen_opgepakt_v1.wav",
+"src": "wapen_opgepakt_v1.ogg",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "own",
@@ -121,7 +121,7 @@
 "date": "2026-11-15"
 },
 "Anita|Here we go again.": {
-"src": "missie_gestart.wav",
+"src": "missie_gestart.ogg",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "own",
@@ -132,7 +132,7 @@
 "date": "2026-11-15"
 },
 "Anita|Kassa, zullen we maar zeggen.": {
-"src": "geld_opgepakt_v2.wav",
+"src": "geld_opgepakt_v2.ogg",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "own",
@@ -143,7 +143,7 @@
 "date": "2026-11-15"
 },
 "Anita|Let een beetje op jezelf.": {
-"src": "kus_v1.wav",
+"src": "kus_v1.ogg",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "own",
@@ -154,7 +154,7 @@
 "date": "2026-11-15"
 },
 "Anita|Mooi! Komt goed van pas!": {
-"src": "geld_opgepakt.wav",
+"src": "geld_opgepakt.ogg",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "own",
@@ -165,7 +165,7 @@
 "date": "2026-11-15"
 },
 "Anita|Mooi! Weer wat extra!": {
-"src": "geld_opgepakt_v1.wav",
+"src": "geld_opgepakt_v1.ogg",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "own",
@@ -176,7 +176,7 @@
 "date": "2026-11-15"
 },
 "Anita|Nou, dat is geregeld!": {
-"src": "missie_gelukt_v1.wav",
+"src": "missie_gelukt_v1.ogg",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "own",
@@ -187,7 +187,7 @@
 "date": "2026-11-15"
 },
 "Anita|Nou, dat werd niks.": {
-"src": "missie_mislukt_v2.wav",
+"src": "missie_mislukt_v2.ogg",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "own",
@@ -198,7 +198,7 @@
 "date": "2026-11-15"
 },
 "Anita|Precies wat ik nodig had.": {
-"src": "wapen_opgepakt.wav",
+"src": "wapen_opgepakt.ogg",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "own",
@@ -209,7 +209,7 @@
 "date": "2026-11-15"
 },
 "Anita|Serieus, Tammo.": {
-"src": "opgepakt.wav",
+"src": "opgepakt.ogg",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "own",
@@ -220,7 +220,7 @@
 "date": "2026-11-15"
 },
 "Anita|Zo moet het!": {
-"src": "missie_gelukt.wav",
+"src": "missie_gelukt.ogg",
 "model": "google/gemini-3.8-flash-lite-tts",
 "via": "litellm",
 "lang": "own",

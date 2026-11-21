@@ -1,6 +1,6 @@
 {
 "G-Music|Dit is G-Music, de soundtrack van Grunn.": {
-"src": "station_id.wav",
+"src": "station_id.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Zephyr",
@@ -10,7 +10,7 @@
 "date": "2026-10-05"
 },
 "G-Music|Het is weer druk in Grunn vanavond, hoor ik.": {
-"src": "hoge_wanted.wav",
+"src": "hoge_wanted.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Zephyr",
@@ -20,7 +20,7 @@
 "date": "2026-10-05"
 },
 "G-Music|Nog meer bangers zo. Blijf luisteren.": {
-"src": "nummerovergang.wav",
+"src": "nummerovergang.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Zephyr",
@@ -30,7 +30,7 @@
 "date": "2026-10-05"
 },
 "G-Music|Rustig aan met die snelheid. Grapje, gas erop!": {
-"src": "rij_knipoog.wav",
+"src": "rij_knipoog.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Zephyr",
