@@ -37,10 +37,18 @@ ok(doc === bouwDoc(man), 'docs/AUDIO-LICENTIES.md is gelijk aan de uitvoer van h
 ok(mod === bouwModule(man), 'audiocredits.js is gelijk aan de uitvoer van het manifest');
 ok(AUDIO_CREDITS.length === bronnen(man).length, 'elke bron staat precies één keer in de credits');
 // geen merken of modellen in speltekst (constitutie 2): de credits tonen een eigen omschrijving, niet de bronnaam
-ok(!/Chrysler|Nissan|Volvo|Maxima|Rover|Aston|Martin/i.test(mod), 'audiocredits.js bevat geen merknamen');
+ok(!/Chrysler|Nissan|Volvo|Maxima|Rover|Aston|Martin|Hyundai|Kona/i.test(mod), 'audiocredits.js bevat geen merknamen');
 // de credits van het spel noemen elke CC-BY-auteur met titel en licentie
 const html = geluidenHtml();
 for (const c of AUDIO_CREDITS) ok(html.includes(c.auteur) && html.includes(c.licentie) && html.includes(String(c.id)) && c.beschrijving, `credits noemen ${c.auteur} (${c.id})`);
+// CC BY vraagt titel (zoals gegeven), auteur, bronlink en licentielink (review 22-11); een titel met een merknaam blijft weg (constitutie 2)
+for (const c of AUDIO_CREDITS.filter((x) => x.by)) {
+  ok(/^https:[/][/]creativecommons.org[/]licenses[/]by[/][0-9][.][0-9][/]$/.test(c.licentieUrl || ''), `CC BY ${c.id}: licentielink in de gegevens`);
+  ok(/^https:[/][/]freesound.org[/]people[/]/.test(c.bron || ''), `CC BY ${c.id}: bronlink in de gegevens`);
+  ok(html.includes(c.licentieUrl) && html.includes(c.bron), `CC BY ${c.id}: licentie en bron staan als link in het spel`);
+  if (c.titel) ok(html.includes(c.titel.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')), `CC BY ${c.id}: de titel staat in het spel`);
+  else ok(/hyundai|kona/i.test((bronnen(man).find((b) => b.id === c.id) || {}).titel || ''), `CC BY ${c.id}: een titel weglaten mag alleen om een merknaam`);
+}
 ok(CREDITS_HTML.includes('<h4>Geluiden</h4>'), 'de creditspagina heeft een sectie Geluiden');
 ok(html.includes('Freesound'), 'Freesound staat als bron genoemd');
 

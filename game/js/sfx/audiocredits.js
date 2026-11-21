@@ -76,7 +76,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Kleine melding verschijnt",
     "auteur": "AleXZavesa",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "Water Drop Tap 3",
+    "bron": "https://freesound.org/people/AleXZavesa/sounds/853899/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 384871,
@@ -90,7 +93,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Voorbijganger hoest",
     "auteur": "AlienXXX",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "Others_001_Cough.wav",
+    "bron": "https://freesound.org/people/AlienXXX/sounds/183679/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 376796,
@@ -146,14 +152,20 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Trein die remt",
     "auteur": "Anton",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "train_breaking_outside.WAV",
+    "bron": "https://freesound.org/people/Anton/sounds/23641/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 34073,
     "beschrijving": "Weer",
     "auteur": "Arctura",
     "licentie": "CC BY 3.0",
-    "by": true
+    "by": true,
+    "titel": "AMBIENT - Rain on Forest Canopy - Light (LOOP).mp3",
+    "bron": "https://freesound.org/people/Arctura/sounds/34073/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/3.0/"
   },
   {
     "id": 844241,
@@ -195,7 +207,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Hamer op een paal",
     "auteur": "Benboncan",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "Large Anvil & Steel Hammer 4.wav",
+    "bron": "https://freesound.org/people/Benboncan/sounds/103632/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 488053,
@@ -363,7 +378,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Hek valt in het slot",
     "auteur": "ChrisReierson",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "creaking door 2",
+    "bron": "https://freesound.org/people/ChrisReierson/sounds/383083/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 861369,
@@ -440,7 +458,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Voetstap op zand en strand",
     "auteur": "Coral_Island_Studios",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "01 Footsteps Sand.mp3",
+    "bron": "https://freesound.org/people/Coral_Island_Studios/sounds/459449/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 437851,
@@ -524,7 +545,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Onweer",
     "auteur": "digifishmusic",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "Binaural Thunder A - Short.wav",
+    "bron": "https://freesound.org/people/digifishmusic/sounds/34777/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 682871,
@@ -538,7 +562,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Kat miauwt",
     "auteur": "ebcrosby",
     "licentie": "CC BY 3.0",
-    "by": true
+    "by": true,
+    "titel": "Cat single meow",
+    "bron": "https://freesound.org/people/ebcrosby/sounds/334433/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/3.0/"
   },
   {
     "id": 536748,
@@ -559,7 +586,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Kaartje of papier dat verschijnt",
     "auteur": "egomassive",
     "licentie": "CC BY 3.0",
-    "by": true
+    "by": true,
+    "titel": "Deal.ogg",
+    "bron": "https://freesound.org/people/egomassive/sounds/536784/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/3.0/"
   },
   {
     "id": 546118,
@@ -601,7 +631,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Voorwerp uitrusten of omdoen",
     "auteur": "EminYILDIRIM",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "Magic Earth Spell Impact & Punch",
+    "bron": "https://freesound.org/people/EminYILDIRIM/sounds/541477/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 170807,
@@ -685,7 +718,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Telefoon trilt",
     "auteur": "Framing_Noise",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "Cellphone,Buzz,Vibrate,Double,Fast,Table.wav",
+    "bron": "https://freesound.org/people/Framing_Noise/sounds/223182/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 242605,
@@ -755,7 +791,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Voetstap op zand en strand",
     "auteur": "HerbertBoland",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "Footsteps.wav",
+    "bron": "https://freesound.org/people/HerbertBoland/sounds/28238/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 271659,
@@ -797,7 +836,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Meeuw die roept",
     "auteur": "iamaviolin",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "Seagull Calls",
+    "bron": "https://freesound.org/people/iamaviolin/sounds/463034/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 698697,
@@ -818,14 +860,20 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Emmer water",
     "auteur": "InspectorJ",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "Water, Pouring, A.wav",
+    "bron": "https://freesound.org/people/InspectorJ/sounds/421184/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 456440,
     "beschrijving": "Vogeltje fluit",
     "auteur": "InspectorJ",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "Bird Whistling, Robin, Single, 13.wav",
+    "bron": "https://freesound.org/people/InspectorJ/sounds/456440/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 118070,
@@ -951,21 +999,30 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Gordel klikt",
     "auteur": "joedeshon",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "seatbelt_click.wav",
+    "bron": "https://freesound.org/people/joedeshon/sounds/117087/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 118232,
     "beschrijving": "Sleutel in het slot",
     "auteur": "joedeshon",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "hotel_room_door_locking.wav",
+    "bron": "https://freesound.org/people/joedeshon/sounds/118232/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 368737,
     "beschrijving": "Liftdeuren gaan open",
     "auteur": "joedeshon",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "indsustrial_elevator_door_open.wav",
+    "bron": "https://freesound.org/people/joedeshon/sounds/368737/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 173941,
@@ -1063,28 +1120,40 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Kermis",
     "auteur": "klankbeeld",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "FunFair NL 001 160827_00.wav",
+    "bron": "https://freesound.org/people/klankbeeld/sounds/353221/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 618493,
     "beschrijving": "Zomer",
     "auteur": "klankbeeld",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "calm forest April NL Kampina 09 DeNoise 200401_0141.wav",
+    "bron": "https://freesound.org/people/klankbeeld/sounds/618493/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 712294,
     "beschrijving": "Zomer",
     "auteur": "klankbeeld",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "city birds March NL EU 8.26 AM 220326_0571",
+    "bron": "https://freesound.org/people/klankbeeld/sounds/712294/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 815527,
     "beschrijving": "Nederlandse stad in de nacht",
     "auteur": "klankbeeld",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "city night s-Hertogenbosch Netherlands 0339 AM 230821_0616",
+    "bron": "https://freesound.org/people/klankbeeld/sounds/815527/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 323526,
@@ -1098,21 +1167,29 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Kikkers aan het water in de zomernacht",
     "auteur": "KrystianPawlowski",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "frogs lake night spot 3.wav",
+    "bron": "https://freesound.org/people/KrystianPawlowski/sounds/586934/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 845619,
     "beschrijving": "Gordel klikt",
     "auteur": "KVV_Audio",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "bron": "https://freesound.org/people/KVV_Audio/sounds/845619/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 250633,
     "beschrijving": "Deuren van een bus die opengaan",
     "auteur": "kwahmah_02",
     "licentie": "CC BY 3.0",
-    "by": true
+    "by": true,
+    "titel": "bus doors opening.wav",
+    "bron": "https://freesound.org/people/kwahmah_02/sounds/250633/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/3.0/"
   },
   {
     "id": 277058,
@@ -1182,7 +1259,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Knop ingedrukt in het menu",
     "auteur": "LittleRobotSoundFactory",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "Click_Soft_01.wav",
+    "bron": "https://freesound.org/people/LittleRobotSoundFactory/sounds/288911/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 186405,
@@ -1238,7 +1318,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Emmer water",
     "auteur": "MattRuthSound",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "Liquid, pour, splash, water, short burst into bucket_96Khz_Mono_ZoomH4n_NT5-002.wav",
+    "bron": "https://freesound.org/people/MattRuthSound/sounds/561901/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 667180,
@@ -1287,21 +1370,30 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Weer",
     "auteur": "mirkosukovic",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "Rain From Car Interior Loop 1.wav",
+    "bron": "https://freesound.org/people/mirkosukovic/sounds/435665/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 522711,
     "beschrijving": "Verkopen",
     "auteur": "mitchanary",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "Money Collect 1.wav",
+    "bron": "https://freesound.org/people/mitchanary/sounds/522711/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 81175,
     "beschrijving": "Kappersschaar knipt",
     "auteur": "mkoenig",
     "licentie": "CC BY 3.0",
-    "by": true
+    "by": true,
+    "titel": "Metal Click Sound.wav",
+    "bron": "https://freesound.org/people/mkoenig/sounds/81175/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/3.0/"
   },
   {
     "id": 384485,
@@ -1350,14 +1442,20 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Stap op een tapijt",
     "auteur": "morganpurkis",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "Carpet Footstep 3.wav",
+    "bron": "https://freesound.org/people/morganpurkis/sounds/384636/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 76185,
     "beschrijving": "Stappen op een trap",
     "auteur": "movingplaid",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "wood_step_3.wav",
+    "bron": "https://freesound.org/people/movingplaid/sounds/76185/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 683031,
@@ -1385,7 +1483,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Weer",
     "auteur": "n_audioman",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "Ranch_Ambiance_Wind_Field_Grass 01.wav",
+    "bron": "https://freesound.org/people/n_audioman/sounds/321962/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 676456,
@@ -1406,7 +1507,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Richtingaanwijzer tikt",
     "auteur": "nezuai",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "ui sound 9.wav",
+    "bron": "https://freesound.org/people/nezuai/sounds/582608/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 100032,
@@ -1483,7 +1587,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Voetstap op binnen",
     "auteur": "nothayama",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "footsteps_approach.aiff",
+    "bron": "https://freesound.org/people/nothayama/sounds/172492/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 486082,
@@ -1539,7 +1646,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Voorbijganger grinnikt",
     "auteur": "owly-bee",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "Laugh.wav",
+    "bron": "https://freesound.org/people/owly-bee/sounds/431610/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 531566,
@@ -1574,7 +1684,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Speld op de kaart zetten",
     "auteur": "Phorgador",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "Pop.mp3",
+    "bron": "https://freesound.org/people/Phorgador/sounds/703253/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 2689,
@@ -1588,7 +1701,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Publiek zingt en klapt",
     "auteur": "pipjmalt",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "Crowd Chanting HEY",
+    "bron": "https://freesound.org/people/pipjmalt/sounds/416507/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 419491,
@@ -1602,7 +1718,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Telefoon rinkelt",
     "auteur": "pogmothoin",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "marimba do re mi fa so.WAV",
+    "bron": "https://freesound.org/people/pogmothoin/sounds/401722/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 649661,
@@ -1868,14 +1987,20 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Voorwerp oppakken",
     "auteur": "Scrampunk",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "Itemize",
+    "bron": "https://freesound.org/people/Scrampunk/sounds/345297/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 345299,
     "beschrijving": "Voorwerp oppakken",
     "auteur": "Scrampunk",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "OKAY!",
+    "bron": "https://freesound.org/people/Scrampunk/sounds/345299/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 800274,
@@ -1931,7 +2056,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Slagmoersleutel",
     "auteur": "Sophia_C",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "Wood Impact 5 {Hit by wrench}",
+    "bron": "https://freesound.org/people/Sophia_C/sounds/525171/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 329962,
@@ -1973,7 +2101,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Voetstap op gras en aarde",
     "auteur": "spycrah",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "Grass Step Left",
+    "bron": "https://freesound.org/people/spycrah/sounds/535220/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 424985,
@@ -2015,7 +2146,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Stap op een tapijt",
     "auteur": "swuing",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "footstep-carpet.wav",
+    "bron": "https://freesound.org/people/swuing/sounds/38872/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 563284,
@@ -2029,7 +2163,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Kikker kwaakt",
     "auteur": "The_Sample_Workshop",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "2805 1-FROG-CHIRP-SW-TMc 12 C-1.aif",
+    "bron": "https://freesound.org/people/The_Sample_Workshop/sounds/631410/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 178943,
@@ -2057,7 +2194,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Weer",
     "auteur": "TiesWijnen",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "Rain.wav",
+    "bron": "https://freesound.org/people/TiesWijnen/sounds/341802/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 159759,
@@ -2155,7 +2295,10 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Ratelsleutel",
     "auteur": "willc2_45220",
     "licentie": "CC BY 3.0",
-    "by": true
+    "by": true,
+    "titel": "ratchet_clicks_short.aif",
+    "bron": "https://freesound.org/people/willc2_45220/sounds/73265/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/3.0/"
   },
   {
     "id": 471923,
@@ -2197,14 +2340,20 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Winkeldeur met belletje",
     "auteur": "zebragrrl",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "Convenience Store Door Chime (32bit, 48kHz, Stereo)",
+    "bron": "https://freesound.org/people/zebragrrl/sounds/632225/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 632226,
     "beschrijving": "Winkeldeur met belletje",
     "auteur": "zebragrrl",
     "licentie": "CC BY 4.0",
-    "by": true
+    "by": true,
+    "titel": "Convenience Store Door Chime (16bit, 44.1kHz, Stereo)",
+    "bron": "https://freesound.org/people/zebragrrl/sounds/632226/",
+    "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   {
     "id": 428339,
