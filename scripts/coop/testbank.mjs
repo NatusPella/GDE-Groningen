@@ -18,6 +18,7 @@ import path from 'node:path';
 import net from 'node:net';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { keurBezitStap } from './bezitstap_check.mjs';
 
 process.env.GDE_COOP_TEST = '1'; // coopcore meldt dan welke verbindingen er komen (alleen 127.0.0.1)
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -99,11 +100,11 @@ const P = {
   alles: Object.fromEntries(SPELERS_ELECTRON.map((me) => [me, [ // rooktest 21-11 (docs/COOP-SWEEP-21-11.md): host en twee gasten (3 echte vensters) spelen een kort scenario met zoveel mogelijk systemen
     [0, 'wacht', { s: 6 }],
     [8, 'allesstap', { stap: 'ping', wie: 'gast', s: 6 }], [18, 'allesstap', { stap: 'waypoint', wie: 'gast', s: 4 }],
-    [28, 'allesstap', { stap: 'outfit', s: 3 }], [34, 'allesstap', { stap: 'tuning', s: 3 }], [40, 'allesstap', { stap: 'bezit', s: 3 }],
-    [48, 'gastwinkel', { s: 50 }],
-    [104, 'gastbijbaan', { s: 50, wie: 'gast', id: 'krantenwijk', beloon: 150 }],
-    [160, 'filmpje', { s: 8 }], [176, 'allesstap', { stap: 'geld', s: 2 }], [182, 'opslagcheck', {}], [184, 'wacht', { s: 4 }],
-    ...(me === 'host' ? [[190, 'stopHost', {}]] : []),
+    [28, 'allesstap', { stap: 'outfit', s: 3 }], [34, 'allesstap', { stap: 'tuning', s: 3 }], [40, 'allesstap', { stap: 'bezit', s: 14 }],
+    [58, 'gastwinkel', { s: 50 }],
+    [114, 'gastbijbaan', { s: 50, wie: 'gast', id: 'krantenwijk', beloon: 150 }],
+    [170, 'filmpje', { s: 8 }], [186, 'allesstap', { stap: 'geld', s: 2 }], [192, 'opslagcheck', {}], [194, 'wacht', { s: 4 }],
+    ...(me === 'host' ? [[200, 'stopHost', {}]] : []),
   ]])),
   touch: { host: [[0, 'kijk', { s: 16 }]], gast: [[0, 'touch', { s: 12 }]], gast2: [[0, 'wacht', { s: 16 }]] },
 }[SUITE];
@@ -768,6 +769,7 @@ if (SUITE === 'alles') {
   for (const [n, e] of ping) if (n !== 'gast') check(!!e && e.marks >= 1, `alles ping: ${n} zag geen baken van de gast (${JSON.stringify(e)})`);
   for (const n of NAMES) { const e = e1(n, 'alles-waypoint'); check(!!e && (n === 'gast' ? e.heeftDoel : !e.heeftDoel), `alles waypoint: ${n} ${e && e.heeftDoel ? 'heeft' : 'mist'} het doel van de gast terwijl een waypoint per speler is`); }
   for (const stap of ['outfit', 'tuning', 'bezit']) for (const n of NAMES) { const e = e1(n, 'alles-' + stap); if (!e) check(false, `alles ${stap}: ${n} logde niets`); else if (e.fout) check(false, `alles ${stap}: ${n} fout ${e.fout}`); else if (e.skip) note(`alles ${stap}: ${n} wacht (${e.reden})`); }
+  { const E3 = {}; for (const n of NAMES) E3[n] = e1(n, 'alles-bezit') || null; for (const m of keurBezitStap(E3)) check(false, 'alles ' + m); }
   for (const n of NAMES) { const o = e1(n, 'opslagcheck'); check(!!o && !o.gde2 && !o.ip, `alles privacy: ${n} bewaart een directe code of IP-adres`); }
   const eind = e1('gast', 'gastbijbaan-eind'); check(!!eind && eind.deelde, 'alles bijbaan: de gast startte de baan niet');
   const bel = of(H, 'gastbijbaan-beloning')[0]; check(!!bel && bel.ok, 'alles bijbaan: de host kon de beloning niet verdelen');

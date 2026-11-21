@@ -77,7 +77,7 @@ import { updateTrafficLaw } from './trafficlaw.js';
 import { updateOffences } from './offences.js';
 import { updateMotorPolice } from './motorpolice.js';
 import { initMissions, updateMissions } from './missions.js';
-import { initStory, updateStory, currentStep, storyBridgeView } from './story.js';
+import { initStory, updateStory, currentStep, storyBridgeView, storyGateProgress } from './story.js';
 import { updateStoryBridge } from './storybridgerun.js';
 import { updateTerugkeer } from './terugkeerrun.js';
 import { updateRecap, isRecapOpen } from './recapcardrun.js';
@@ -199,7 +199,9 @@ import { initPostgame, updatePostgame, tryPostgameInteract } from './postgame.js
 import { initStationTravel, tryStationInteract } from './stationtravel.js';
 import { initOmmelandFun, updateOmmelandFun, tryOmmelandInteract } from './ommelandfun.js';
 import { BEPPE_KIND } from './beppe_garden.js';
-import { INTERIOR_KIND } from './interiors.js'; // echt binnen lopen door de voordeur van panden (#1150)
+import { INTERIOR_KIND, assignInteriorHooks } from './interiors.js'; // echt binnen lopen door de voordeur van panden (#1150)
+import { registerSponsorPanden } from './sponsorpanden.js'; // sponsorpanden van het voetbal in de Bezit-pandindex
+import { installBezitInterior } from './bezitinterior.js'; // het beheer van je eigen pand aan de toonbank (#1102)
 import { tryAaien, updateAaien } from './aaien.js';
 import { tryControle, updateControle } from './kaartjescontrole.js';
 import { registerActivityKind, initActivityKinds, interactActivityKinds, tickActivityKinds } from './activityhub.js';
@@ -217,9 +219,12 @@ setBezitDifficultyProvider((kind) => (kind === 'income' ? incomeFactor() : 1));
 import { onDayReport as bezitOnDayReport, deliverLine as bezitDeliverLine } from './bezitworldhooks.js';
 import { updateFarmWorkers } from './farmworkers3d.js';
 import { updateSnackVans } from './snackvans3d.js';
+import { updateChainTrucks } from './chaintrucks3d.js';
+import { setSnackFlagProvider } from './snackstory.js';
+import { setSnackWorkSend, receiveWork as snackReceiveWork } from './snacklive.js';
+import { sendSnackWork, setSnackWorkHandler } from './bezitnet.js';
 import { updateHerds } from './herdview3d.js';
 import { setGateProgress } from './bezitgate.js';
-import { progressFrom } from './unlockgate.js';
 import { updateBezitMarkers } from './bezitmarker3d.js';
 import { BOERDERIJ_WERELD_KIND } from './boerderijwereld.js';
 import { probe } from './hitchprobe.js';
@@ -953,8 +958,15 @@ window.__debug = { player, map, input, world, frameStats };
   initAchievementTracker(world);
   initOmverrijden(world);
   initBezit();
+  installBezitInterior(assignInteriorHooks);
+  try { registerSponsorPanden(); } catch (e) { /* zonder voetbal */ }
   // de gedeelde ontgrendelpoort (unlockgate.js): zolang de save geen `gate` heeft (world.gate) staat alles open (migratieregel van de verhaal-epic)
-  setGateProgress(() => { const st = currentStep(); return progressFrom({ stepId: st ? st.id : null, gate: world.gate }); });
+  setGateProgress(() => storyGateProgress());
+  // de snackwagen opent in fasen met de stille verhaalvlaggen wagen:* (snackstory.js); een oude save (geen gate) laat alles open
+  setSnackFlagProvider(() => { const p = storyGateProgress(); return { flags: storyBridgeView().flags, gate: p.gate, ended: p.ended, dev: p.dev }; });
+  // meewerken in de snackwagen van een medespeler (bezitnet.js: gast -> host -> eigenaar)
+  setSnackWorkSend((m) => sendSnackWork(world, m));
+  setSnackWorkHandler((m) => snackReceiveWork(m));
   initBoerderij();
   initSafety(world);
   initCheats(world);
@@ -1495,7 +1507,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     updateClearZones(dt, world);
     updateDayNight(dt, world);
     boerderijTijd(world); // de gewassen groeien in speltijd (#415)
-    try { const dr = bezitDagTik(world); if (dr) bezitDeliverLine(world, bezitOnDayReport(getBezit(), dr)); updateBezitMarkers(world, dt); updateFarmWorkers(world, dt); updateSnackVans(world, dt); updateHerds(world, dt); } catch (e) { /* zonder bezit */ } // personeel, pacht, vee en bedrijven per speldag; de palen in de wereld (epic Bezit)
+    try { const dr = bezitDagTik(world); if (dr) bezitDeliverLine(world, bezitOnDayReport(getBezit(), dr)); updateBezitMarkers(world, dt); updateFarmWorkers(world, dt); updateSnackVans(world, dt); updateChainTrucks(world, dt); updateHerds(world, dt); } catch (e) { /* zonder bezit */ } // personeel, pacht, vee en bedrijven per speldag; de palen in de wereld (epic Bezit)
     updateCalendar(dt, world);
     updateVoetbalDag(dt, world); // de nachten van de voetbalcarrière (#1110): zelfde signaal als de kalender, eigen teller
     updateVoetbalBeats(dt, world);

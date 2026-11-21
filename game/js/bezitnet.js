@@ -5,7 +5,7 @@
 // Bezit is per speler (#429): de claims zijn een zachte laag, er verandert niets in andermans opslag. Geen THREE, geen DOM (scripts/bezitnet_test.mjs).
 
 import { attachCoop, setCoopEnsure } from './bezitlive.js';
-import { encodeIds, decodeIds, ID_RE } from './bezitcoop.js';
+import { encodeIds, decodeIds, ID_RE, SPOT_RE } from './bezitcoop.js';
 
 export const SYNC_CHUNK = 150;                       // ID's per bericht: 150 x 8 tekens blijft ruim onder MAX_JSON (2048)
 const slotId = (slot) => `s${slot}`;
@@ -33,6 +33,43 @@ export function ensureBezitNet(world, transport) {
   return o;
 }
 
+// ---- meewerken in een snackwagen (Snackimperium, #1102): { k: 'bezit', a: 'snack-work', spot, hours, to } ----
+// De eigenaar van de wagen is de speler van wie de standplaats-claim 'sp:<plek>' is (alle spelers zijn gelijk; de host is alleen de relay). Een gast stuurt het naar de host
+// met 'to' = het slot van de eigenaar (0 = de host zelf); de host past het toe of geeft het door met 'from' = het slot van de meewerker. Het loon betaalt de meewerker zichzelf
+// (snacklive.workAlong); de eigenaar krijgt de verkoopbonus via de ontvanger. Een oude client kent 'snack-work' niet en negeert het (handleBezit geeft true, doet niets).
+let workHandler = () => {};
+export const setSnackWorkHandler = (fn) => { workHandler = typeof fn === 'function' ? fn : () => {}; };
+const slotOfId = (id) => { const m = /^s(\d{1,2})$/.exec(String(id)); return m ? Number(m[1]) : null; };
+const cleanWork = (spot, hours) => (typeof spot === 'string' && SPOT_RE.test('sp:' + spot) && Number.isFinite(Number(hours)) ? { type: 'snack-work', spot, hours: Math.max(1, Math.min(14, Math.round(Number(hours)))) } : null);
+// De zender (setSnackWorkSend): msg = { type: 'snack-work', spot, hours }. Geeft true als er iets verstuurd of toegepast is.
+export function sendSnackWork(world, msg, transport = (world && world.bezitNet && world.bezitNet.transport) || sessionTransport(world)) {
+  const m = msg && cleanWork(msg.spot, msg.hours);
+  if (!m || !transport) return false;
+  const o = ensureBezitNet(world, transport);
+  const owner = o.net.claims.lookup('sp:' + m.spot);            // een claim van een ander; null = niet van een medespeler
+  if (!owner) return false;
+  const to = slotOfId(owner.playerId);
+  if (to === null) return false;
+  if (o.isHost) { if (to === 0) return false; transport.toGuest(to, { k: 'bezit', a: 'snack-work', spot: m.spot, hours: m.hours, from: 0 }); return true; }
+  transport.toHost({ k: 'bezit', a: 'snack-work', spot: m.spot, hours: m.hours, to });
+  return true;
+}
+function handleSnackWork(world, body, van, o, transport) {
+  const m = cleanWork(body.spot, body.hours);
+  if (!m) return;
+  if (o.isHost) {
+    const to = Number.isInteger(body.to) ? body.to : null;
+    if (to === null || !(van >= 1)) return;
+    const owner = o.net.claims.lookup('sp:' + m.spot), mine = o.net.claims.has('sp:' + m.spot) && !owner;
+    if (to === 0) { if (mine) workHandler({ ...m, from: van }, world); return; }                   // de host is de eigenaar
+    if (!owner || owner.playerId !== slotId(to) || !transport.guests().includes(to)) return;        // alleen naar de echte eigenaar
+    transport.toGuest(to, { k: 'bezit', a: 'snack-work', spot: m.spot, hours: m.hours, from: van });
+    return;
+  }
+  if (!o.net.claims.has('sp:' + m.spot) || o.net.claims.lookup('sp:' + m.spot)) return;           // niet onze plek: negeren
+  workHandler({ ...m, from: Number.isInteger(body.from) ? body.from : 0 }, world);
+}
+
 const chunks = (ids) => { const out = []; for (let i = 0; i < ids.length; i += SYNC_CHUNK) out.push(ids.slice(i, i + SYNC_CHUNK)); return out; };
 
 // Een 'bezit'-bericht uit handleEvent. van: het slot van de afzender (0 = de host zelf). Geeft true als het bericht van ons is (ook als het niets deed).
@@ -55,6 +92,7 @@ export function handleBezit(world, body, van, transport) {
       void known;
       return true;
     }
+    if (body.a === 'snack-work') { handleSnackWork(world, body, van, o, transport); return true; }
     if (body.a !== 'claim' && body.a !== 'release') return true;
     if (typeof body.id !== 'string' || !ID_RE.test(body.id)) return true;
     const msg = { id: body.id, action: body.a, from, name, color, t: Number.isFinite(body.t) ? body.t : 0 };
@@ -67,6 +105,7 @@ export function handleBezit(world, body, van, transport) {
   // client: een bericht van de host
   if (body.a === 'sync') { if (typeof body.from === 'string') net.claims.adopt(body.from, String(body.name || 'Medespeler'), body.color || null, body.ids, 0); return true; }
   if (body.a === 'drop') { if (typeof body.from === 'string') net.claims.drop(body.from); return true; }
+  if (body.a === 'snack-work') { handleSnackWork(world, body, 0, o, transport); return true; }
   if (body.a !== 'claim' && body.a !== 'release') return true;
   if (typeof body.id !== 'string' || !ID_RE.test(body.id) || typeof body.from !== 'string') return true;
   net.receive(world, { id: body.id, action: body.a, from: body.from, name: body.name, color: body.color, t: Number.isFinite(body.t) ? body.t : 0 });

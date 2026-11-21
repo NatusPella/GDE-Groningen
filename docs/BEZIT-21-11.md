@@ -659,6 +659,10 @@ Ter vergelijking: pacht 0,9%, huur 1,2%, winkel ongeveer 0,55% per speldag. Met 
 * **Wat medewerkers verdienen** gaat vóór de bestaande rem `compressPassive` (plafond 3x actief, gedeeld met al het andere passieve inkomen): passief blijft binnen 3x.
 * **Totaal** van een groot imperium (eigen wagen + zes wagens) is ongeveer 4x actief (getest tot 4,25x). Dat is bewust hoger dan de 3x passief omdat de eigen wagen actief werk is; stel bij door
   `OWN_CAP_DAY`, `STAFF_UNATTENDED` of `FLEET_PRICE` in `snackvan.js`.
+* **Besluit van de eigenaar (21-11): de eigen snackwagen levert ongeveer 2x actief werk, een groot imperium ongeveer 4x.** Vastgelegd als band in `snackbalans_test` en `bezitdifficulty_test` (standaard): eigen wagen
+  1,8 tot 2,2x (nu 1,98x), groot imperium 3,8 tot 4,2x (nu 4,05x; ontspannen 2,18x en 4,40x, uitdagend 1,76x en 3,65x). De constanten `OWN_CAP_DAY` (1.800), `STAFF_UNATTENDED` (0,85) en `FLEET_PRICE`
+  (12.000) in `snackvan.js` hoefden daarvoor niet te veranderen; wie ze verschuift, moet de band in beide tests bewust meeverschuiven. **De 3x-grens geldt voor het passieve inkomen buiten de snackwagen**
+  (pacht, huur, winkels, personeel; `compressPassive`, `PASSIVE_CAP_DAY`), niet voor de eigen wagen en niet voor het totaal.
 * **Geen exploit:** wagen kopen en verkopen kost 40%, elke upgrade is eenmalig, vergunningen worden duurder per stuk (max x3), er komt geen geld uit het niets (alle kosten lopen via de aanroeper).
 
 ### 15.3 Samen spelen
@@ -667,7 +671,7 @@ Regel (ook in `COOP-GAST.md`): **elke speler heeft zijn eigen imperium, zijn eig
 standplaatsen zijn gedeeld: `bezitcoop.createClaims` kent naast `p<12 hex>` ook `sp:<plek>` (`SPOT_RE`); wat een medespeler in deze sessie heeft is voor jou niet te koop of over te nemen, en
 je ziet het op de kaartlaag Standplaatsen als "van <naam>" in zijn kleur. Conflict: de laagste (tijd, speler-id) wint, zoals bij percelen. Wegvallen: zijn claims verdwijnen (`drop`), zijn eigen
 bezit blijft van hem. Aansluiten: `snapshotSpots` en `adoptSpots` (kommalijst). Meewerken: een gast achter het luik krijgt via `bezitcoop.snackShare` uurloon (14 per uur) of een kwart van de
-dagwinst (aandeel) naar rato van zijn uren; de eigenaar houdt zijn winst en voortgang. Een vervallen vergunning geeft de claim vrij. Gast-meewerken in de UI is nog niet aangesloten (15.4).
+dagwinst (aandeel) naar rato van zijn uren; de eigenaar houdt zijn winst en voortgang. Een vervallen vergunning geeft de claim vrij. Het netwerkbericht voor meewerken is aangesloten (15.8).
 
 ### 15.4 Open gaten
 
@@ -675,7 +679,7 @@ dagwinst (aandeel) naar rato van zijn uren; de eigenaar houdt zijn winst en voor
   stoep vallen; in beeld controleren (zie `BEZIT-VERIFICATIE-21-11.md`).
 * Opgelost in de tweede ronde: het menuverbruik van friet en kaas gaat van de voorraad van je eigen verwerker af (alleen als die van jou is en voorraad heeft; zonder voorraad geen korting);
   de prijzenoorlog drukt ook de streekprijs van friet en kaas bij de ketenleveringen (`snackvan.warPriceMult` als factor op `areamarket` eventMult); meewerken heeft een knop (`snackui`:
-  Meewerken bij een medespeler) en `snacklive.workAlong` / `receiveWork` met de haak `setSnackWorkSend` (het netwerkbericht `{ type: 'snack-work', spot, hours }` koppelt de bouwer).
+  Meewerken bij een medespeler) en `snacklive.workAlong` / `receiveWork` met de haak `setSnackWorkSend` (het netwerkbericht is aangesloten in ronde 3, zie 15.8).
 * Melk en vlees: melk telt via de bron van de kaasketen (geen stock om af te trekken), vlees heeft geen eigen keten (geen vleesvee): altijd 0.
 * De winkeldichtheid (`densityFactor`) staat in de logica maar is niet aangesloten op `shopspots.js`; de ruis per dag en het uurvenster doen het werk.
 * De balans is een sim, geen speeltest.
@@ -709,3 +713,43 @@ naar de verzonnen **Gemeentelijke Vergunningsdienst Noord** (nooit een echte ins
 bouwer koppelt later `difficulty.js` met `setBezitDifficultyProvider(kind => factor)` of `setBezitDifficultyMode('ontspannen' | 'standaard' | 'uitdagend')`; de lokale tabel is ontspannen 1,15 / 0,9,
 uitdagend 0,85 / 1,1. Uitkomsten van `scripts/bezitdifficulty_test.mjs` (met `bezit_sim`): eerste perceel na 2,0 (ontspannen), 2,4 (standaard), 2,8 uur (uitdagend); schaal 1.000 percelen 3.300 per uur (3x
 actief) in alle standen; beste eigen snackwagen 2,18x / 1,98x / 1,72x actief; groot imperium 4,40x / 4,05x / 3,58x. Kopen en verkopen blijft verlies bij elke stand.
+
+### 15.7 De snackwagen volgt het verhaal (stille vlaggen `wagen:*`)
+
+De verhaal-epic zet bij het afronden van een stap stille vlaggen (`storymilestones.js`, alleen toevoegen, nooit hernoemen): `wagen:idee` (M00), `wagen:menu` (M08), `wagen:stek` (M13), `wagen:team` (M20),
+`wagen:naam` (M22), `wagen:standplaats` (M26) en `wagen:keten` (M30). Bezit leest ze via de dunne adapter `snackstory.js` (puur; `flagsFrom(progress)`, `stageOpen`, `stageHint`) en opent de snackwagen in
+fasen. `main.js` levert de echte stand met `setSnackFlagProvider(() => ({ flags: storyBridgeView().flags, gate, ended, dev }))` (de vlaggen staan in `state.flags` van de story-save; `gate` uit
+`storyGateProgress()`). **Migratieregel:** zonder provider, zonder stand, bij een save zonder (nieuwe) `gate`, bij dev en na het einde van het verhaal staat alles open; een oude save krijgt de vlaggen van wat
+hij al deed (`milestoneFlagsForDone`). Alleen het kopen en instellen van wat nieuw is wordt geweigerd; wat een speler al heeft blijft werken.
+
+| fase | vlag | wat opengaat | de hint (personage) |
+|---|---|---|---|
+| menu | `wagen:menu` | het menu samenstellen (tot dan het standaardmenu) | Oma Trijntje |
+| stek | `wagen:stek` | vergunningen op standplaatsen kopen | Lammert |
+| team | `wagen:team` | medewerkers-wagens (de eerste) | Berend, Tinus en Wubbo |
+| naam | `wagen:naam` | de belettering 'TAM & TES' op de wagens in beeld (daarvoor 'SNACKWAGEN') | (geen hint nodig) |
+| standplaats | `wagen:standplaats` | je eigen wagen op een standplaats zetten | Tessa (de Vismarkt) |
+| keten | `wagen:keten` | een tweede medewerkers-wagen en plekken van Usmem overnemen | einde zomer |
+
+De poort van het tabblad zelf blijft `registerGateWorld({ id: 'snackwagen', part: 'ontzet' })` (akte 5): de fasen komen daarbinnen, de laatste (`keten`) pas in de nazomer. Een dichte stap geeft een hint
+(`v.stages` in `snackView`, `data-stage` in `snackui.js`) en de knop staat uit; de tab is dus nooit leeg. **Uitleg van de brief:** "standplaatsen kopen na stek" en "de eerste vergunning/standplaats na
+standplaats" zijn zo gelezen dat de vergunning bij `stek` hoort en de wagen zelf neerzetten bij `standplaats`; wil de verhaal-lead dat anders, dan is dat één regel in `snacklive.js`. Tests: `snackstory_test` (12).
+
+### 15.8 Meewerken over het netwerk (`snack-work`)
+
+Het bericht is `{ k: 'bezit', a: 'snack-work', spot, hours, to }` over het bestaande JSON-kanaal (`bezitnet.js`). De eigenaar is de speler van wie de standplaats-claim `sp:<plek>` is; alle spelers zijn gelijk
+en de host is alleen de relay. Een gast stuurt naar de host met `to` = het slot van de eigenaar (0 = de host zelf); de host past het toe (`to` 0) of geeft het door aan `to` met `from` = het slot van de
+meewerker, en alleen als de claim echt van dat slot is (een vervalst `to` wordt genegeerd). De host stuurt als meewerker rechtstreeks naar de eigenaar. De ontvanger roept via `setSnackWorkHandler` (main.js:
+`snacklive.receiveWork`, ook `ontvangWerk`) aan: 8% meer verkoop die dag, een kleine naamsbonus; de zender is `snacklive.workAlong` (ook `meewerken`) via `setSnackWorkSend` (main.js: `sendSnackWork`).
+Loon of aandeel: de meewerker betaalt zichzelf uit nieuw geld (`bezitcoop.snackShare`), de eigenaar verliest niets. Uren zijn begrensd op 1 tot 14; een oude client kent de sleutel niet en negeert het.
+Tests: `bezitnet_test` (20, drie instanties, fifo/omgekeerd/gehusseld) en de testbankstap `bezit` (`scripts/coop/bezitstap_test.mjs`, nepmodules; **de Electron-run is niet gedaan**).
+
+### 15.9 Zichtbare ketenwagens
+
+`chaintrucks.js` (puur) maakt uit de ketens (`bezitlive.chainTruckInput`: per schakel het aantal wagens, de afstand, wat er vandaag verplaatst is en waar de schakel ligt) ritten van schakel naar volgende
+schakel en berekent uit de speltijd waar elke wagen nu is: laden, heen met lading, lossen, leeg terug, met de reistijd van `supplychain.tripSeconds`. Alleen in diensttijd (7 tot 17 uur), hoogstens vier
+tegelijk binnen 230 m (weg bij 330 m), hoogstens drie per schakel, een vaste verzonnen chauffeursnaam per rit. Route: een rechte lijn met wegpunten op het dichtstbijzijnde wegpunt
+(`map.nearestRoadPoint`, zonder wegen een rechte lijn). Een rit bestaat alleen als beide schakels een bekende plek hebben (een bron: het eerste gekozen perceel; een schakel: het gekoppelde pand of de
+standplaats van de gekoppelde wagen); een schakel zonder bekende plek geeft geen wagen. `chaintrucks3d.js` tekent ze (het bestaande vrachtwagenmodel, de persoonsfiguur als chauffeur, `disposeObject`, `reducedMotion`
+springt, niets voor een gast) met de haak `updateChainTrucks` naast `updateSnackVans` in `main.js`. Het is een weergave van wat de dagtik al deed, geen tweede simulatie. Tests: `chaintrucks_test` (11),
+`chaintrucks3d_test` (6). **Niet in beeld bekeken**: de wagens rijden rechte lijnen met een knik bij het wegpunt, geen echte wegvolging, en kunnen door een gevel snijden.

@@ -47,6 +47,40 @@ const netNow = () => ({ ws: NET.ws.length, rtc: NET.rtc, fetch: NET.fetch.length
 try { if (window.gdeDesktop && window.gdeDesktop.coop) window.gdeDesktop.coop.onEvent((k, pl) => { if (k !== 'msg') log('ipc', { k, id: pl && pl.id, state: pl && pl.state }); }); } catch (e) { /* geen brug */ }
 const holdSkip = async (ms = 1400) => { const B = window.__bot; if (B) { B.down(' '); await sleep(ms); B.up(' '); } else { key(' ', 'Space'); await sleep(ms); } };
 const W = () => window.__debug && window.__debug.world;
+// BEZIT-STAP-BEGIN (scripts/coop/bezitstap_test.mjs draait deze functie met nepmodules; de keuring staat in scripts/coop/bezitstap_check.mjs)
+// Suite 'alles', stap 'bezit' (epic Bezit): de host koopt een snackwagen en zet hem op 'park', de gast koopt de plek 'dorp', gast2 werkt een dag mee in de wagen van de host.
+// Het testprofiel is een wegwerpprofiel: de poort en de verhaalfasen gaan open en het geld wordt aangevuld. Wat elk venster zag gaat terug als data voor keurBezitStap.
+async function bezitAlles({ me, imp, sleep, W, wait = 5000 }) {
+  const w = W();
+  const [SL, L, N, GT, SS] = await Promise.all([imp('snacklive'), imp('bezitlive'), imp('bezitnet'), imp('bezitgate'), imp('snackstory')]);
+  GT.setGateProgress(() => ({ dev: true })); SS.setSnackFlagProvider(null);
+  w.money = Math.max(Number(w.money) || 0, 60000);
+  const t = N.sessionTransport(w);
+  if (!t) return { skip: true, reden: 'geen sessie' };
+  N.ensureBezitNet(w, t);                                               // iedereen meldt zich bij het bezitkanaal, ook wie niets koopt
+  await sleep(1500);
+  const uit = { me, acties: [] };
+  if (me === 'host') {
+    uit.acties.push(SL.buyVan(w).ok, SL.koopVergunning(w, 'park').ok, SL.placeVan('park').ok);
+  } else if (me === 'gast') {
+    uit.acties.push(SL.koopVergunning(w, 'dorp').ok);
+  }
+  await sleep(wait);                                                    // de claims reizen via de host naar iedereen
+  if (me === 'gast2') {
+    const geld = w.money;
+    uit.werk = SL.workAlong(w, 'park', 6);
+    uit.loon = Math.round(w.money - geld);
+  }
+  await sleep(wait);                                                    // het werkbericht reist via de host naar de eigenaar
+  const c = w.bezitNet && w.bezitNet.net.claims;
+  uit.claims = c ? { eigen: c.mineSpots(), anderen: c.listSpots().map((x) => x.spot + ':' + x.name) } : null;
+  if (me === 'host') {
+    const S = L.snackState(), day = L.calToday();
+    uit.bonus = { werkDag: S.gw.work.park === undefined ? -1 : S.gw.work.park, dag: day, mod: S.ev.mods.some((m) => m.k === 'omzet' && m.mult > 1) };
+  }
+  return uit;
+}
+// BEZIT-STAP-END
 const key = (k, code) => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: k, code, bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: k, code, bubbles: true })); } };
 const panel = () => document.querySelector('.pm-samen');
 const title = () => { const p = panel(); const h = p && p.querySelector('.coop-title'); return h ? h.textContent.trim() : ''; };
@@ -1269,11 +1303,10 @@ const PHASES = {
         const T = await imp('tuningplan');
         await sleep(s * 1000);
         uit({ onderdelen: Array.isArray(T.PARTS) ? T.PARTS.length : 0, bezorgVeld: !!(await imp('coopbezit')).TUNING_VELD, skip: !(await imp('coopbezit')).TUNING_VELD, reden: 'wacht op #1158' });
-      } else if (stap === 'bezit') { // bezit: een claim van een gast (epic Bezit)
-        let B = null; try { B = await imp('bezitcoop'); } catch (e) { /* nog niet gemerged */ }
-        if (!B) return uit({ skip: true, reden: 'bezitcoop.js ontbreekt' });
-        await sleep(s * 1000);
-        uit({ export: Object.keys(B).slice(0, 12) });
+      } else if (stap === 'bezit') { // bezit: host en gast kopen verschillend, zien elkaars plekken, gast2 werkt mee in de wagen van de host (epic Bezit)
+        let B = null; try { B = await imp('bezitnet'); } catch (e) { /* nog niet gemerged */ }
+        if (!B) return uit({ skip: true, reden: 'bezitnet.js ontbreekt' });
+        uit(await bezitAlles({ me: CFG.name, imp, sleep, W, wait: Math.max(2000, s * 1000 / 2) }));
       } else if (stap === 'geld') { // geld per speler: elk venster houdt zijn eigen saldo
         const g0 = w.money | 0; await sleep(s * 1000);
         uit({ voor: g0, na: W().money | 0 });

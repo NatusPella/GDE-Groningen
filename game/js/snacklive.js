@@ -13,6 +13,7 @@ import * as RV from './rival.js';
 import * as GW from './goodwill.js';
 import { snackShare } from './bezitcoop.js';
 import { branchOpen, branchHint } from './bezitgate.js';
+import * as SS from './snackstory.js';
 
 export const snackOpen = () => branchOpen('snack');
 export const snackHint = () => branchHint('snack');
@@ -27,6 +28,8 @@ const WHY = {
 };
 const fail = (r) => ({ ok: false, why: r.why, text: (WHY[r.why] || (() => 'Dat lukt nu niet.'))(r) });
 const closed = () => (snackOpen() ? null : { ok: false, why: 'dicht', text: snackHint() });
+// Een fase van het verhaal (snackstory.js, wagen:*-vlaggen) die nog dicht is: de hint van het personage, nooit een leeg scherm.
+const stage = (s) => { const h = SS.stageHint(s); return h ? { ok: false, why: 'verhaal', text: h } : null; };
 const claim = (spot, action) => L.sendClaim && L.sendClaim({ id: SP.claimKey(spot), action });
 
 // Wie heeft de plek: van jou, van Usmem, van een medespeler of vrij.
@@ -73,7 +76,7 @@ export function snackView(w) {
   return { open: snackOpen(), hint: snackOpen() ? '' : snackHint(), day, money: money(w), active: SN.isActive(S), rep: S.rep, effRep: SN.effRep(S, day), up: S.up, spots, own, fleet: S.fleet.map((f) => ({ ...f, tierDef: SN.TIERS[f.tier], wage: SN.staffWage(f.staff.skill, f.wageUp), spotName: f.spot ? SP.spotDef(f.spot).short : null })),
     rival: { name: RV.RIVAL_NAME, owner: RV.RIVAL_OWNER, spots: S.rival.spots.length, pand: S.rival.pand, chain: S.rival.chain, mood: S.rival.mood, rep: S.rival.rep }, gw: neighbourhood(S, day), score: sc, goals: SN.goalStatus(S, { day }), pending: SN.pendingEvent(S), war: S.ev.war && S.ev.war.until >= day ? S.ev.war : null,
     menu: SN.ITEM_IDS.map((id) => ({ id, ...SN.ITEMS[id], on: S.own.menu.includes(id), unlocked: SN.offeringUnlocked(S, id), chainOwn: SN.ITEMS[id].chain ? owner(SN.ITEMS[id].chain) : 0 })),
-    wagonPrice: SN.wagonPrice(S.fleet.length), stats: S.stats };
+    wagonPrice: SN.wagonPrice(S.fleet.length), stats: S.stats, stages: SS.stageView() };
 }
 
 // De wagens die in de wereld staan (voor snackvans3d.js; goedkoop, geen voorspelling): de jouwe, die van je medewerkers en die van Usmem Snacks op zijn plekken.
@@ -84,27 +87,28 @@ export function wagonSites() {
   const add = (spot, kind, staff) => { const p = SP.spotXY(spot); if (p) out.push({ spot, x: p.x, y: p.y, kind, staff }); };
   if (S.own.spot && SP.permitHeld(S.permits, S.own.spot, day) && L.myMobile().some((m) => m.id === 'frietwagen')) add(S.own.spot, 'own');
   for (const f of S.fleet) if (f.spot && SP.permitHeld(S.permits, f.spot, day)) add(f.spot, 'fleet', f.staff.name);
+  if (!SS.stageOpen('naam')) for (const o of out) if (o.kind !== 'rival') o.sign = SS.PLAIN_SIGN;     // de eigen naam komt pas met wagen:naam
   for (const id of S.rival.spots) if (!SP.permitHeld(S.permits, id, day)) add(id, 'rival');
   return out;
 }
 
 export function buyVan(w) { const c = closed(); if (c) return c; return L.koopMobiel(w, 'frietwagen'); }
 export function koopVergunning(w, spot) {
-  const c = closed(); if (c) return c;
+  const c = closed() || stage('stek'); if (c) return c;
   const S = L.snackState(), r = SN.buyPermit(S, spot, L.calToday(), money(w), { taken: (id) => !!L.claimOfKey(SP.claimKey(id)) });
   if (!r.ok) return fail(r);
   spend(w, r.cost); claim(spot, 'claim'); L.markeer();
   return { ok: true, cost: r.cost, text: `Vergunning voor ${SP.spotDef(spot).short} is van jou voor ${euro(r.cost)}: ${SP.PERMIT_DAYS} speldagen geldig.` };
 }
 export function acquireRivalSpot(w, spot) {
-  const c = closed(); if (c) return c;
+  const c = closed() || stage('keten'); if (c) return c;
   const S = L.snackState(), r = SN.bidForSpot(S, spot, L.calToday(), money(w), { taken: (id) => !!L.claimOfKey(SP.claimKey(id)) });
   if (!r.ok) return fail(r);
   spend(w, r.cost); claim(spot, 'claim'); L.markeer();
   return { ok: true, cost: r.cost, text: `Je hebt ${SP.spotDef(spot).short} overgenomen van Usmem Snacks voor ${euro(r.cost)}.` };
 }
 export function placeVan(spot) {
-  const c = closed(); if (c) return c;
+  const c = closed() || (spot !== null ? stage('standplaats') : null); if (c) return c;
   const S = L.snackState();
   if (spot !== null && !SP.permitHeld(S.permits, spot, L.calToday())) return fail({ why: 'geen-vergunning' });
   const r = SN.setOwn(S, { spot });
@@ -117,7 +121,7 @@ export function refillStock(w) { const c = closed(); if (c) return c; const r = 
 export function koopUpgrade(w, id) { const c = closed(); if (c) return c; const r = SN.buyUpgrade(L.snackState(), id, money(w)); if (!r.ok) return fail(r); spend(w, r.cost); L.markeer(); return { ok: true, cost: r.cost, text: `${SN.UPGRADES[id].label} is aangeschaft voor ${euro(r.cost)}.` }; }
 export function upgradeVan(w, wagon) { const c = closed(); if (c) return c; const r = SN.upgradeTier(L.snackState(), wagon, money(w)); if (!r.ok) return fail(r); spend(w, r.cost); L.markeer(); return { ok: true, cost: r.cost, text: `Een ${SN.TIERS[r.tier].label.toLowerCase()} voor ${euro(r.cost)}.` }; }
 export function koopVloot(w, spot, mode = 'loon') {
-  const c = closed(); if (c) return c;
+  const c = closed() || stage('team') || (L.snackState().fleet.length >= 1 ? stage('keten') : null); if (c) return c;
   const r = SN.buyFleetWagon(L.snackState(), spot, L.calToday(), money(w), mode);
   if (!r.ok) return fail(r);
   spend(w, r.cost); L.markeer();
@@ -126,7 +130,7 @@ export function koopVloot(w, spot, mode = 'loon') {
 export function verkoopVloot(w, id) { const r = SN.sellFleetWagon(L.snackState(), id); if (!r.ok) return fail(r); earn(w, r.refund); L.markeer(); return { ok: true, refund: r.refund, text: `Wagen verkocht voor ${euro(r.refund)}.` }; }
 export function moveFleet(w, id, spot) { const r = SN.moveFleetWagon(L.snackState(), id, spot, L.calToday(), money(w)); if (!r.ok) return fail(r); spend(w, r.cost, 'Overige uitgaven'); L.markeer(); return { ok: true, cost: r.cost, text: `De wagen staat nu bij ${SP.spotDef(spot).short} (${euro(r.cost)} verhuiskosten).` }; }
 export function zetModus(id, mode) { const r = SN.setFleetMode(L.snackState(), id, mode); if (r.ok) L.markeer(); return r.ok ? { ok: true, text: mode === 'aandeel' ? 'Je verkoper krijgt 30% van de winst.' : 'Je verkoper krijgt een vast loon.' } : fail(r); }
-export function offeringButton(id) { const r = SN.toggleOffering(L.snackState(), id); if (r.ok) L.markeer(); return r.ok ? { ok: true, text: '' } : { ok: false, text: r.why === 'vol' ? 'Het menu zit vol: een grotere wagen heeft meer plekken.' : fail(r).text }; }
+export function offeringButton(id) { const g = closed() || stage('menu'); if (g) return g; const r = SN.toggleOffering(L.snackState(), id); if (r.ok) L.markeer(); return r.ok ? { ok: true, text: '' } : { ok: false, text: r.why === 'vol' ? 'Het menu zit vol: een grotere wagen heeft meer plekken.' : fail(r).text }; }
 export function answerEvent(w, choice) {
   const S = L.snackState(), p = SN.pendingEvent(S), spot = p ? p.spot : null;
   const r = SN.answerEvent(S, choice, L.calToday(), money(w));
@@ -168,3 +172,7 @@ export function receiveWork(msg) {
   if (r.ok) L.markeer();
   return r;
 }
+
+// Namen uit het ontwerp van het bericht (docs/BEZIT-21-11.md 15.6): meewerken en ontvangWerk zijn workAlong en receiveWork.
+export const meewerken = workAlong;
+export const ontvangWerk = receiveWork;

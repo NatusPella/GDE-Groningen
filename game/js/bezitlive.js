@@ -93,6 +93,9 @@ export function ensureIndex(base = 'world/') {
   return laden;
 }
 export const getIndexNow = () => index;
+// Een haak voor extra omzetfactoren per pand en kalenderdag (sponsorpanden.js: thuiswedstrijddag); geeft de (eventueel aangepaste) event-mods terug.
+let eventHook = (osm, mods) => mods;
+export const setEventHook = (fn) => { eventHook = typeof fn === 'function' ? fn : (osm, mods) => mods; };
 export function setIndexForTest(parcelFile, buildingFile = null) {
   index = { parcels: createParcelIndex(parcelFile), buildings: createBuildingIndex(buildingFile) };
   afterIndex();
@@ -470,7 +473,7 @@ export function dayTick(w) {
   const last = Math.min(day, from + 60);
   for (const m of myBusinesses()) {
     const x = m.row ? m.row.x : 0, y = m.row ? m.row.y : 0, district = districtOfPoint(x, y);
-    const res = BZ.settleDays(m.biz, from, last, (d) => ({ day: d, town: townOf(x, y), owned: Z.ownedCount(b), sameType: 0, event: EV.businessMods(m.biz, district, calOf(d)) }));
+    const res = BZ.settleDays(m.biz, from, last, (d) => ({ day: d, town: townOf(x, y), owned: Z.ownedCount(b), sameType: 0, event: eventHook(m.osm, EV.businessMods(m.biz, district, calOf(d)), calOf(d)) }));
     BZ.storeBiz(b, res.biz); bizNet += res.sum.net; tax += res.sum.tax;
   }
   let mobNet = 0;
@@ -571,6 +574,24 @@ export function chainViews() {
     const v = CH.viewOf(entries[id], { ...env, lossOf: (pid) => 1 - lossMult(pid, cd).mult });
     return { ...v, raw: entries[id].chain.raw, output: entries[id].chain.output, region: CH.outletDistrict(entries[id], env), sources: chainSources(id, rows).slice(0, 12), links: v.links.map((l) => ({ ...l, options: l.ownable ? chainOptions(id, l.id) : [] })) };
   });
+}
+// Voor de zichtbare ketenwagens (chaintrucks.js): per keten de schakels met het aantal wagens, de afstand, wat er vandaag verplaatst is en waar de schakel ligt
+// (de bron: het eerste gekozen perceel of anders het eerste bronperceel; de schakel: het gekoppelde pand of de standplaats van de gekoppelde wagen). Goedkoop, geen opslag.
+export function chainTruckInput(views = null) {
+  const out = [], b = getBezit();
+  for (const c of views || chainViews()) {
+    if (!c.links.some((l) => l.trucks > 0)) continue;
+    out.push({ id: c.id, links: c.links.map((l, i) => {
+      let pos = null;
+      if (i === 0) { const src = c.sources.find((x) => x.picked) || c.sources[0]; pos = src ? parcelPoint(src.id) : null; }
+      else if (l.ref) {
+        if (typeof l.ref === 'string') { const sp = ((b.mobile[l.ref.slice(2)] || {}).cfg || {}).spot; pos = sp && SPT.isSpot(sp) ? SPT.spotXY(sp) : null; }
+        else { const i2 = refInfo(l.ref); pos = i2 && !i2.mobile ? { x: i2.x, y: i2.y } : null; }
+      }
+      return { id: l.id, trucks: l.trucks, moved: l.moved, distance: l.distance, pos };
+    }) });
+  }
+  return out;
 }
 // De eigen panden en wagens die bij een schakel passen: [{ ref, label }].
 export function chainOptions(chainId, linkId) {

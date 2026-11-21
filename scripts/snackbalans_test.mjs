@@ -28,6 +28,15 @@ t('de rem: wat de medewerkers verdienen blijft onder het plafond van drie maal a
   assert.ok(quiet.imperium.vsActive < 4.25, String(quiet.imperium.vsActive));
   assert.ok(quiet.imperium.fleetDay > quiet.imperium.passiveC);        // de rem knijpt echt
 });
+t('besluit eigenaar 21-11: de eigen snackwagen levert ongeveer 2x actief werk (1,8 tot 2,2), een groot imperium ongeveer 4x (3,8 tot 4,2), op standaard', () => {
+  assert.ok(quiet.best.ownVsActive >= 1.8 && quiet.best.ownVsActive <= 2.2, `eigen wagen ${quiet.best.ownVsActive}`);
+  assert.ok(quiet.imperium.vsActive >= 3.8 && quiet.imperium.vsActive <= 4.2, `imperium ${quiet.imperium.vsActive}`);
+  assert.ok(Sim.ACTIVE_PER_HOUR > 0);
+});
+t('de 3x-grens geldt voor het passieve inkomen buiten de snackwagen: wat medewerkers verdienen, na de rem, blijft binnen 3x actief', () => {
+  assert.ok(quiet.imperium.passiveC <= P.PASSIVE_CAP_DAY + 1);
+  assert.ok(Sim.passivePerHourAt(1000) <= 3 * Sim.ACTIVE_PER_HOUR + 1);
+});
 t('een medewerker-wagen levert minder dan jijzelf op dezelfde plek (zonder jou 85% en 15% aanvoerkosten, plus loon)', () => {
   const day = (own) => {
     const S = SN.newSnack(); S.rival.spots = []; S.rival.lastEvent = 1e7; S.rival.lastOffer = 1e7;
