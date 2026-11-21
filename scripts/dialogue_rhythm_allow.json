@@ -1,0 +1,99 @@
+{
+ "C00.2": [
+  "lang-scene"
+ ],
+ "M01.1": [
+  "lang"
+ ],
+ "S01": [
+  "lang-scene"
+ ],
+ "M03.2": [
+  "lang-scene"
+ ],
+ "M03.4": [
+  "beurten"
+ ],
+ "M06.3": [
+  "lang-scene"
+ ],
+ "M07.1": [
+  "lang"
+ ],
+ "M08.3": [
+  "lang",
+  "lang-scene"
+ ],
+ "M10.1": [
+  "lang"
+ ],
+ "M11.1": [
+  "lang"
+ ],
+ "M11.4": [
+  "lang"
+ ],
+ "B2": [
+  "lang-scene"
+ ],
+ "M13.1": [
+  "lang"
+ ],
+ "M13.3": [
+  "beurten"
+ ],
+ "M14.1": [
+  "lang"
+ ],
+ "T3": [
+  "lang"
+ ],
+ "M16.1": [
+  "lang"
+ ],
+ "B3": [
+  "lang-scene"
+ ],
+ "M19.3": [
+  "lang"
+ ],
+ "M20.3": [
+  "lang"
+ ],
+ "M20.5": [
+  "lang-scene"
+ ],
+ "M22.3": [
+  "lang"
+ ],
+ "M22.4": [
+  "lang-scene"
+ ],
+ "M25.1": [
+  "lang"
+ ],
+ "M26.2": [
+  "lang"
+ ],
+ "M26.4": [
+  "lang-scene"
+ ],
+ "M26.6": [
+  "lang"
+ ],
+ "M26.10": [
+  "beurten"
+ ],
+ "M26.11": [
+  "beurten"
+ ],
+ "M26.12": [
+  "beurten"
+ ],
+ "M26.13": [
+  "lang-scene"
+ ],
+ "E2": [
+  "lang-scene"
+ ]
+}

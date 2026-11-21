@@ -359,12 +359,12 @@ export const STEPS = [
 
 // what Tammo and Tessa are after, per part ("Wat weten we?")
 export const WHY = {
-  kop: 'Inschrijven voor de Noordelijke Snackprijs, en de Gouden Eierbal eerder pakken dan Jelle.',
-  romp: 'Jelles plakjes tegenhouden en uitzoeken waar de bal is.',
-  staart: 'De haven, het graan en de jury: Jelle koopt alles op.',
-  zuid: 'Bewijs dat Jelle de bal nam, en de bal terughalen.',
-  ontzet: 'De wedstrijd winnen en de bal terugbrengen. En de Fjord Frituur een thuis geven.',
-  nazomer: "Oma's familie helpen, en Berend één keer laten winnen.",
+  kop: 'Tessa wil een frietwagen en Tammo rijdt haar overal heen. Eerst geld en een plek in de Noordelijke Snackprijs, voordat Jelle alles opkoopt.',
+  romp: "Zonder recept geen eerlijke eierbal: Oma Trijntjes recept van 1953, met vijf ingrediënten van vijf vrienden. Jelle koopt ze op.",
+  staart: 'Jelle koopt de haven, het graan en de jury. De frietwagen moet ergens kunnen staan, en zijn koopboek laat zien wat hij nog wil.',
+  zuid: 'Bewijs dat Jelle de bal al had, en een team om de Fjord Frituur te laten rijden. Samen, ook als het schuurt.',
+  ontzet: 'Het Ontzet winnen met de beste eierbal en de Fjord Frituur een thuis geven. Jelle zit ons op de hielen.',
+  nazomer: "De Fjord Frituur groeit. Oma's familie heeft hulp nodig en Jelle bestelt stiekem eierballen.",
 };
 
 // Clues of "Wat weten we?": a clue shows once its step is done.
