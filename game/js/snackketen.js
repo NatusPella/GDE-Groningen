@@ -6,6 +6,7 @@ import { toonUitje } from './uitjepaneel.js';
 import { isShopOpen } from './shopui.js';
 import { isInWater, pointInPolygon } from './util.js';
 import { pushAudioEvent } from './pedgeom.js';
+import { sfxEvent } from './sfx/haken.js';
 import {
   STORE_KEY, CHAIN_NAME, SNACK, LEVEL_NAMES, newChain, restore, serialize, outletCount, outletCost, upgradeCost, buy, upgrade, collect, accrue,
   tillTotal, totalIncomePerMin, chainRank, counterSpot,
@@ -86,6 +87,7 @@ function interactAt(w, s) {
     w.money += euros;
     toonUitje(w, 'snackketen', { regel: `Kassa geleegd: ${euro(euros)}`, hint: '[E] verbouwen', secs: 3 });
     ding(w, s);
+    sfxEvent(w, 'shop_drawer', s.x, s.y);   // SFX ronde 6: de kassalade schuift open (naast de bel)
   } else if (o.level < SNACK.maxLevel) {
     const r = upgrade(chain, s.id, w.money);
     if (!r.ok) { w.addMessage(r.why + (r.cost ? ` (${euro(r.cost)})` : ''), 2.8); return; }

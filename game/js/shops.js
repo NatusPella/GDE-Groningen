@@ -1271,13 +1271,18 @@ function clothingCtx(world, shopKey = null) {
     previewOf: (worn) => ({ kind: 'person', look: { ...app(), ...outfitToLook(worn, baseLook ? baseLook[ch] : app()) } }),
     apply: (stars) => {
       if (!syncHeistOutfit()) applyLooks();
+      clothesRustle(world);
       return stars ? shakeWanted(world, stars) : false;
     },
     // the kraak's black is bought for both of them, and both wear it at once
     onSet: (set) => { if (set.key === 'incognito') for (const c of ['tammo', 'anita']) for (const q of setKeyFor(c, 'incognito').pieces) givePiece(c, q); },
-    onWear: (piece) => { recordUnique(world, 'kledingStukken', piece); noteClothingAchievements(world); },
+    onWear: (piece) => { recordUnique(world, 'kledingStukken', piece); noteClothingAchievements(world); const x = parsePiece(piece); if (x && x.item.slot === 'outer') sfxEvent(world, 'zipper_pull'); },   // SFX ronde 6: een jas gaat dicht
   };
 }
+
+// SFX ronde 6: ritselen van stof bij aan- of uitdoen (alleen jij hoort het: sfxmap.js clothes_rustle is lokaal). Eén keer per handeling:
+// de menu's, de lijst Spullen en de wisseltoets komen hier uit, de afkoeltijd van de tabel vangt een tweede aanroep op.
+function clothesRustle(world) { sfxEvent(world || worldRef, 'clothes_rustle'); }
 
 // Prestaties voor kleding (achievements.js): een nieuwe look (eerste stuk), een hele kast (elk soort stuk) en een complete set.
 function noteClothingAchievements(world) {
@@ -1303,6 +1308,7 @@ function cycleOutfit(world, dir = 1) {
   const r = cyclePreset(ch, dir);
   if (!r.ok) { world.addMessage(r.reason, 3.5); return false; }
   if (!syncHeistOutfit()) applyLooks();
+  clothesRustle(world);
   shakeWanted(world, 1);
   world.addMessage(`${r.name} aan${r.missing && r.missing.length ? ` (${r.missing.length} stuk${r.missing.length > 1 ? 'ken' : ''} ontbreken)` : ''}`, 2.5);
   return true;
@@ -1312,6 +1318,7 @@ export function wearClothing(world, ch, piece) {
   const r = wearPiece(ch, piece);
   if (!r.ok) return r.reason;
   if (!syncHeistOutfit()) applyLooks();
+  clothesRustle(world);
   shakeWanted(world, 1);
   return `${(parsePiece(piece) || { item: { label: 'Kleding' } }).item.label} aan`;
 }
@@ -1319,6 +1326,7 @@ export function takeOffClothing(ch, slot) {
   const r = takeOffSlot(ch, slot);
   if (!r.ok) return r.reason;
   if (!syncHeistOutfit()) applyLooks();
+  clothesRustle(null);
   return 'Uitgedaan';
 }
 

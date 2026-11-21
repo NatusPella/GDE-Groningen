@@ -31,6 +31,7 @@ import { PROMPT, LOCKED_HOME, clerkLine, HOME_LOOK, FITTING, HAIRCUT, CHURCH_CAN
 import { productFor, buyProduct } from './interiorbuy.js';
 import { shopInBuilding, openShopFromInterior } from './shops.js';
 import { noteMoney } from './finance.js';
+import { sfxEvent } from './sfx/haken.js';
 import { playerBusy } from './busy.js';
 import { isCinematicActive } from './cinematics.js';
 
@@ -210,10 +211,21 @@ function updateLive(w, ls, dt, p, onFoot) {
   if (!st.open && onFoot && dd < 2.4 && !inside && S.time - (S.closedAt.get(ls.b) || -99) > 20) {
     S.closedAt.set(ls.b, S.time);
     const text = plan.kind === 'woning' ? LOCKED_HOME[plan.seed % LOCKED_HOME.length] : '';
+    if (text) sfxEvent(w, 'key_lock_turn', fr.ox, fr.oy);   // SFX ronde 6: je voelt aan een dichte voordeur
     if (w.addMessage) w.addMessage(text, 3.2, { kind: 'tip' });
   }
+  // SFX ronde 6: op de trap (de helling tussen de twee vloeren) klinkt hij zolang je de hoogte verandert, hoogstens elke 0,7 s
+  if (inside && plan.stairs) {
+    const h = ls.walk.floorAt(p.x, p.y, (p.gz || 0) + (p.z || 0)), rel = h === null ? null : h - ls.ground;
+    const op = rel !== null && rel > 0.15 && rel < plan.floorH - 0.15;
+    if (op && ls.stairRel !== undefined && Math.abs(rel - ls.stairRel) > 0.004 && S.time - (ls.stairAt || -9) > 0.7) { ls.stairAt = S.time; sfxEvent(w, 'stairs_steps', p.x, p.y); }
+    ls.stairRel = op ? rel : undefined;
+  }
   // who is inside
-  if (inside && S.inside !== ls) { S.inside = ls; emit({ type: 'enter', plan, b: ls.b }); }
+  if (inside && S.inside !== ls) {
+    S.inside = ls; emit({ type: 'enter', plan, b: ls.b });
+    if (plan.kind === 'woning' && (hourOf(w) < 6 || hourOf(w) >= 19)) sfxEvent(w, 'light_switch', p.x, p.y);   // SFX ronde 6: 's avonds en 's nachts klikt het licht aan
+  }
   else if (!inside && S.inside === ls) { S.inside = null; emit({ type: 'leave', plan, b: ls.b }); }
   // the people: only when open (or you are in), and only close by
   const wantNpcs = (st.open || inside) && dd < NPC_R;
@@ -279,6 +291,16 @@ export function interiorPrompt(w) {
 
 function say(w, text) { if (w.addMessage) w.addMessage(text, 3.6, { kind: 'tip' }); }
 
+// SFX ronde 6: wat er bij de balie klinkt na een gelukte koop of bestelling, per soort pand (de UI-kassa en bij bestellen de hap van horeca_hap
+// blijven zoals ze waren; dit is het geluid van de handeling zelf). Eén geluid per handeling, op de plek van de balie.
+const COUNTER_SFX = {
+  kopen: { supermarkt: 'shop_scanner_beep', bakker: 'shop_bag_rustle', slager: 'shop_bag_rustle', bloemist: 'shop_bag_rustle', snackbar: 'fryer_sizzle', _: 'shop_drawer' },
+  bestellen: { cafe: 'coffee_brew', kroeg: ['bar_pour', 'bar_bottle_open'], restaurant: 'bar_glass_clink', _: 'bar_glass_clink' },
+};
+// een lijst is om de beurt (n: de seconde van het spel), zodat een rondje bestellen niet steeds hetzelfde klinkt
+export function counterSfx(spotId, sub, n = 0) { const t = COUNTER_SFX[spotId]; const k = t ? (t[sub] || t._) : null; return Array.isArray(k) ? k[n % k.length] : k; }
+function counterSound(w, hit, plan) { const k = counterSfx(hit.s.id, plan.sub, Math.floor(S.time)); if (k) sfxEvent(w, k, hit.x, hit.y); }
+
 // the counter of a pand the player owns is its management (the Bezit hook), not a shop
 function managedAt(hit) {
   if (!['kopen', 'bestellen', 'balie'].includes(hit.s.id)) return null;
@@ -302,18 +324,20 @@ function useSpot(w, hit) {
       const r = buyProduct(w, prod);
       if (r.ok && s.id === 'bestellen' && w.audioEvents && w.audioEvents.length < 64) w.audioEvents.push({ kind: 'fx', name: 'horeca_hap', x: hit.x, y: hit.y });
       if (!r.ok) say(w, TOO_POOR(prod.item, prod.price));
-      else { w.kassaKlik = true; say(w, BOUGHT(prod.item, prod.price) + (r.healed ? ` +${Math.round(r.healed)} gezondheid` : '')); }
+      else { w.kassaKlik = true; counterSound(w, hit, plan); say(w, BOUGHT(prod.item, prod.price) + (r.healed ? ` +${Math.round(r.healed)} gezondheid` : '')); }
       return true;
     }
     case 'passen': {
       const gameShop = shopInBuilding(ls.b);
       if (gameShop && openShopFromInterior(w, gameShop)) return true;
+      sfxEvent(w, 'curtain_pull', hit.x, hit.y);   // SFX ronde 6: het gordijn van het pashokje
       say(w, FITTING[n % FITTING.length]);
       return true;
     }
     case 'kappen': {
       const gameShop = shopInBuilding(ls.b);
       if (gameShop && openShopFromInterior(w, gameShop)) return true;
+      sfxEvent(w, ['scissors_snip', 'hair_clipper', 'hairdryer_blast'][n % 3], hit.x, hit.y);   // SFX ronde 6: de kapper knipt, trimt of föhnt, om de beurt
       say(w, HAIRCUT[n % HAIRCUT.length]);
       return true;
     }
