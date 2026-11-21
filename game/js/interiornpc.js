@@ -14,6 +14,7 @@ const STYLES_M = ['short', 'bald', 'short', 'buzz'];
 // per role: how it dresses; shirtFrom: 'accent' (the apron takes the shop colour), a fixed colour, or null (random)
 export const ROLES = {
   winkelier: { top: 'cardigan', shirtFrom: 'accent' },
+  serveerster: { top: 'blazer', shirt: 0x1f1f24 },
   klant: {},
   barman: { top: 'blazer', shirt: 0x1f1f24 },
   gast: {},
@@ -38,13 +39,13 @@ export function assignRoleOutfit(fn) { provider = typeof fn === 'function' ? fn 
 // The role pool of the outfit system (clothingdata.js ROLE_POOLS) that dresses each role of an interior; 'sub' (the shop type or
 // the café type) can refine it: a baker wears the baker's pool.
 const CLOTHING_ROLE = {
-  winkelier: 'winkelier', klant: 'voetganger', barman: 'winkelier', gast: 'voetganger', receptionist: 'zakenman', medewerker: 'zakenman',
+  serveerster: 'winkelier', winkelier: 'winkelier', klant: 'voetganger', barman: 'winkelier', gast: 'voetganger', receptionist: 'zakenman', medewerker: 'zakenman',
   bewoner: 'voetganger', koster: 'zakenman', bezoeker: 'voetganger', loketmedewerker: 'zakenman', reiziger: 'toerist', bibliothecaris: 'winkelier',
   lezer: 'student', monteur: 'bouwvakker', baliemedewerker: 'zakenman',
 };
 function clothingRole(role, sub = null) {
   if (role === 'winkelier' && sub === 'bakker') return 'bakker';
-  if ((role === 'winkelier' || role === 'barman') && (sub === 'snackbar' || sub === 'restaurant')) return 'kok';
+  if ((role === 'winkelier' || role === 'barman' || role === 'serveerster') && (sub === 'snackbar' || sub === 'restaurant')) return 'kok';
   if (role === 'gast' && sub === 'kroeg') return 'feestganger';
   return CLOTHING_ROLE[role] || 'voetganger';
 }

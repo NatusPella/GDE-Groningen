@@ -44,3 +44,11 @@ Niets hiervan is in Electron of in het echte spel gezien; de agent had alleen no
 29. Politie: schuil in een open pand; de sterren zakken sneller als niemand binnen 9 m is.
 30. Beppe-huis: de verhaalboog is ongewijzigd, het binnengeluid en de politiezichtlijnen tellen mee.
 31. Eerste scan: loop snel langs veel panden: geen hapering van het plan (2 tot 9 ms, hoogstens een per scan).
+
+## Ronde 3: mensen met werk, inrichting, ramen, balie
+
+32. Mensen: kijk in een winkel, café, kantoor, kerk, bibliotheek, station, garage en woning: doen ze iets herkenbaars (afrekenen, schappen aanvullen, een bestelling brengen, typen, knielen, lezen, sleutelen, koken)? Kloppen de houdingen (zitten op de stoel zonder erdoorheen, bukken bij een laag schap, de handen van de winkelier), draaien ze mooi bij en staan er niet twee op één stoel?
+33. Wachtrij: lopen klanten naar de kassa en blijven ze netjes achter elkaar staan?
+34. Inrichting: de hangende lampen, schilderijen, klokken, prikborden, posters en menukaarten zien er goed uit; het licht is warm in een café en koud wit in een kantoor; de deurmat ligt goed.
+35. Ramen: loop op een winkel of café af: vanaf ongeveer 24 m verschijnt het echte interieur door de ruiten (indeling, kleur, mensen) in plaats van de nepkamer; is de overgang (een flits of een sprong in beeld) acceptabel, zijn de randen van de snede in het glas netjes, en zie je geen gaten naast de ruiten in een pand dat smaller is dan zijn gevel?
+36. Kopen aan de balie: bij een winkel of café met een interieur is de marker op straat weg en werkt E alleen aan de balie; bij een pand zonder interieur (kiosk, te klein) werkt de marker nog; de kaartmarker en de missiedoelen wijzen nog naar de deur.

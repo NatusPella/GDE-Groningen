@@ -44,7 +44,7 @@ interiors.js  (activiteit, per frame)  ->  bouwt bij <20 m, gooit weg bij >32 m,
 
 ## Mensen en gebruik
 
-NPC's (winkelier achter de balie, klanten, barman, gasten, receptionist, medewerkers, koster, reizigers, monteur) komen uit `interiornpc.js` met een deterministische look per rol en plek; `assignRoleOutfit` is het haakje voor de kledingset van epic Kleding. Ze staan op hun plek (idle, zittend of staand), alleen als het pand open is en de speler binnen 16 m is, hooguit zes. Klanten en gasten lopen rond, zie hieronder.
+NPC's (winkelier achter de balie, klanten, barman, gasten, receptionist, medewerkers, koster, reizigers, monteur) komen uit `interiornpc.js` met een deterministische look per rol en plek; `assignRoleOutfit` is het haakje voor de kledingset van epic Kleding. Ze staan op hun plek (idle, zittend of staand), alleen als het pand open is en de speler binnen 16 m is, hooguit zes. De mensen doen dingen, zie hieronder.
 
 Interactie (E): kopen of bestellen (een winkel van het spel in het pand opent zijn eigen menu, anders een klein product uit `interiorbuy.js` met geld en gezondheid), passen (kledingwinkel: het menu van de winkel), balie (een regel van de medewerker), kaarsje, loket, boeken, rondkijken (woning). Alle tekst in `interiortexts.js`, alleen tekst, verzonnen namen.
 
@@ -100,9 +100,36 @@ Redenen dat een gemeten pand niet kan: hal te klein 13.581, te laag (minder dan 
 
 Woningen, kantoren, hotels, gemeentehuizen, scholen en winkels met een etage (kleding, tweedehands, elektronica, souvenir, supermarkt) krijgen een tweede verdieping als het pand twee lagen of meer heeft, de hal 4,2 x 8,2 m of groter is en de verdiepingshoogte minstens 2,6 m (`interiorupper.js`). Eén rechte trap langs een zijmuur (helling 36 graden, treden van 19 cm), een vlak bordes achter, een gat in de vloer boven de trap met een leuning. Boven: slaapkamer en toilet, open kantoor, hotelkamer of meer winkelvloer, met eigen mensen. De trap is een helling die je loopt: `interiors.js` zet `map.surfaceAt` en `groundHeightAt` zo dat de trap en de tweede verdieping de grondhoogte van de speler zijn zolang zo'n interieur leeft (de gewone `followGround` van `player.js` doet de rest), en de botsing kiest de benedenste of bovenste indeling uit de hoogte. Geen teleport. `planInterior(b, { upper: false })` zet de verdieping uit. Beperking: werkt alleen in een wereld met hoogtemodel (`map.elev.has`); anders staat de speler beneden op de grond terwijl de trap omhoog loopt.
 
-### Mensen en winkelacties
+### Mensen die dingen doen (ronde 3)
 
-Klanten, gasten, reizigers, bezoekers, lezers en bewoners lopen rond (`interiorwander.js`): ze kiezen een bereikbaar punt op 2 tot 9 m, lopen er over het looprooster naartoe (nooit in een meubel of muur), wachten een paar seconden en gaan door. Personeel achter de balie en wie zit blijft staan. Lopen is lokaal decor (niet gesynchroniseerd) en botst niet met de speler. Een winkel van het spel (`shopInBuilding`) opent zijn eigen menu bij de kassa (`openShopFromInterior`); een andere winkel verkoopt een klein product.
+Elke rol heeft een schema van 3 tot 6 activiteiten als data (`interioractivity.js`, `SCRIPTS`), een lichte toestandsmachine per persoon, deterministisch uit het pandzaad (dezelfde mensen doen op elke client dezelfde dingen in dezelfde volgorde; alleen de beeldklok verschilt). Een activiteit is een plek (een anker uit de indeling: voor een schap, een zitplek, de kassa of wachtrij, een machine, een kaars, een bord, een werkplek), een houding uit het bestaande personensysteem (`sit`, `crouch`, `vendor`, `phone`, `call` via `registerPoseSource`) en een duur. Ze lopen over het looprooster (nooit door meubels), staan op bij een zitplek en pakken een vrije plek (geen twee op één stoel).
+
+| Rol | Wat ze doen |
+| --- | --- |
+| winkelier, barman | afrekenen en inpakken (`vendor`), wachten, schappen aanvullen (`crouch`, alleen wat ze achter de balie kunnen bereiken), bellen |
+| klant | producten bekijken, iets pakken (`crouch`), rondkijken, naar de kassa en afrekenen (wachtrij), slenteren |
+| gast | eten, praten (zittend), naar de bar, slenteren |
+| serveerster | bestelling halen aan de bar, brengen naar een tafel, afruimen |
+| medewerker | typen, overleggen (zittend), koffie halen, kopiëren |
+| bezoeker (kerk) | zitten, knielen, een kaarsje, rondkijken; koster ruimt op |
+| lezer, bibliothecaris | lezen, zoeken, boeken terugzetten, uitlenen |
+| reiziger | wachten, vertrektijden bekijken, kaartje halen |
+| monteur | sleutelen, gereedschap, onder de auto |
+| bewoner | tv kijken, koken, lezen |
+
+Het budget is acht actieve mensen per interieur (`MAX_ACTORS`), een persoon op een kleine toestandsmachine, één drawcall elk (de rompgeometrie wordt gedeeld); alleen binnen 24 m van de deur. Kleding uit de rolpools van epic Kleding (`opts.role`), `assignRoleOutfit` blijft het haakje. In de stresstest kosten de mensen van twee interieurs hooguit 2,4 ms per beeld (met inloop). De mensen zijn lokaal decor.
+
+### Meer inrichting (ronde 3)
+
+Elk interieur krijgt na zijn recept `decorate`: wandhangers per soort (verzonnen posters, schilderijen, klokken, prikborden, menukaarten), planten in de achterhoeken, een deurmat, een nieuwe koffiemachine en krantenrek, en een lampstemming per soort (hangende lampen met warm licht in horeca, woning, kerk en bibliotheek; panelen met koud wit in kantoor en garage) met variatie uit het zaad. Wandhangers passen alleen waar niets hoogs tegen de muur staat. Vijf nieuwe itemtypes (klok, schilderij, prikbord, koffiemachine, krantenrek); het budget voor een interieur is nu 12.000 driehoeken (zwaarste 8.316).
+
+### Naar binnen kijken door de ramen (ronde 3)
+
+De ruiten van de gevel worden net als de deur uit de gevel gesneden (`portalcut3d`, tot zeven ruiten per interieur, de grootste eerst) zolang het interieur gebouwd is: vanaf buiten kijk je door het glas in het echte interieur, met zijn indeling, kleur en mensen (de muur van het interieur heeft op die plekken openingen). Het interieur wordt gebouwd binnen 24 m en weggegooid voorbij 34 m, de mensen zijn zichtbaar tot 24 m; verder weg blijft de nepkamer van `interiorglass.js` zichtbaar. Het glas zelf is dan open (geen weerspiegeling). Beperking: tegen de rand van het bouwen springt het beeld van nepkamer naar echte kamer; nog niet in beeld bekeken.
+
+### Kopen aan de balie, niet op straat (ronde 3)
+
+Een winkel of café van het spel waarvan het pand een interieur met een balie heeft (`markerHasInterior`: het dichtstbijzijnde betreedbare pand binnen 9 m van de marker) verliest zijn marker op straat: `nearestShop` (shops.js) en `nearestHorecaSpot` (horeca.js) slaan hem over via een haakje, en E bij de balie binnen opent het winkelscherm (`openShopFromInterior`) of bestelt bij de bar. Panden zonder interieur (te klein, geen balie, niet geladen) houden de buitenkoop. De kaartmarker en de missiedoelen blijven op de marker (die staat bij de deur); afleverpunten van missies zijn niet aangepast. De winkel van het spel wordt aan zijn pand gekoppeld op afstand, niet op "binnen de voetafdruk" (de marker staat op het trottoir).
 
 ### Bezit-beheer in het pand: het contract met epic Bezit
 
@@ -119,7 +146,7 @@ Beppes huis (`beppe_binnen.js`) is geen pand uit de tegels: het staat op een ple
 
 - **Het interieur** is deterministisch uit de gebouwsleutel (`interiorSeed`: het zaad van het pand, geen RNG-toestand, geen volgorde): host, gast, een gast die later aansluit en de nieuwe host na een hostwissel bouwen dezelfde kamer. Test: `scripts/interior_coop_test.mjs`.
 - **Spelers in dezelfde kamer** zien elkaar: posities synchroniseren al; ze botsen op dezelfde hal (`b.walk` is overal gelijk).
-- **De mensen** zijn lokaal decor, op dezelfde plekken, met dezelfde look uit zaad en rol; ze worden niet door de host gesimuleerd en niet gesynchroniseerd (de wereld buiten is van de host, de binnenkant van iedereen zelf). Een bijkomend gevolg: twee spelers zien een klant op verschillende plekken lopen.
+- **De mensen** zijn lokaal decor, op dezelfde plekken, met dezelfde look uit zaad en rol en met een deterministisch schema (de duur van een handeling komt uit dezelfde zaadgenerator; de plek in het schema kan door de beeldklok per speler een moment verschillen); ze worden niet door de host gesimuleerd en niet gesynchroniseerd (de wereld buiten is van de host, de binnenkant van iedereen zelf). Een bijkomend gevolg: twee spelers zien een klant op verschillende plekken lopen.
 - **Kopen en beheer** zijn per speler (#429): geld en gezondheid van wie koopt, nooit een host-recht, niets over het netwerk. Een winkelmenu van het spel volgt de bestaande gastregel (`winkelMagVoorGast`).
 - **Een speler binnen bij een hostwissel** merkt niets: het interieur hangt aan zijn eigen spel. **Een gast die later aansluit** terwijl een ander binnen is, bouwt het interieur zodra hij in de buurt komt.
 
@@ -133,7 +160,8 @@ Stress (`scripts/interior_stress_test.mjs`, node): een wandeling van 5 m/s door 
 
 - Geen Electron-beeld; zie de verificatielijst. De portal-snede door de gevel, de raam-shader (integer-hash), de camera binnen, de trap in het echte spel en alle geluid zijn nooit in het echte spel gezien.
 - Geen achterdeur, geen tweede trap, geen verdiepingen boven de tweede, geen liften.
-- Mensen lopen niet naar boven of weg uit hun kamer, en botsen niet met de speler.
+- De mensen lopen niet naar boven en botsen niet met de speler; geen echte voorwerpen in hun handen (alleen houdingen).
+- De SFX-sleutels van de geluidsronde (kassa, bar, deurbel, trap, enzovoort via `sfxEvent`) zijn nog niet gekoppeld: `sfxEvent` zit nog niet in deze branch; nu `w.audioEvents`.
 - Het beheer van eigen panden is een contract: de Bezit-kant is nog niet gewired.
 - Interieur en raam komen overeen in kleur, vloer en meubelsoort; de exacte plaats van het meubel in het raam en dat in de hal zijn niet gelijk.
 - De kaartlaag toont alle winkels en voorzieningen (ze zijn altijd open); een pand dat te klein blijkt wordt pas van de kaart gehaald als je er in de buurt komt.
