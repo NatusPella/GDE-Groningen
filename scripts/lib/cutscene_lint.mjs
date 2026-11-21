@@ -40,7 +40,13 @@ export const RULES = {
   'CS-C08': { categorie: 'camera', ernst: 'blokkerend', laag: 'lint', titel: 'Scène valideert niet', uitleg: 'validateScene en de preview-bemonstering geven geen fout (de vorm van de scène klopt).' },
   'CS-C09': { categorie: 'camera', ernst: 'belangrijk', laag: 'lint', titel: 'Camera te lang stil', uitleg: 'De camera staat hooguit 8 s stil.' },
   'CS-C10': { categorie: 'camera', ernst: 'belangrijk', laag: 'lint', titel: 'Geen shot-variatie', uitleg: 'Een gesprek heeft minstens een wide of medium en een close of reactie; niet één shottype de hele scène.' },
-  'CS-C11': { categorie: 'camera', ernst: 'belangrijk', laag: 'render', titel: 'Beeldmeting', uitleg: 'Zwart beeld, luminantiesprong, bevroren camera, ondertitel over de spreker (alleen gerenderd te meten, laag 3).' },
+  // --- gerenderde metingen (laag 3, scripts/lib/cutscene_measure.mjs; alleen met Electron of in de simulatie)
+  'CS-R01': { categorie: 'camera', ernst: 'blokkerend', laag: 'render', titel: 'Zwart of leeg beeld', uitleg: 'Een frame is zwart of een effen vlak (lens in een muur of lege hemel).' },
+  'CS-R02': { categorie: 'camera', ernst: 'blokkerend', laag: 'render', titel: 'Camera in geometrie', uitleg: 'De camera staat in een gebouw of onder de grond, of de lens is vol (kijkstralen raken iets binnen 1,3 m).' },
+  'CS-R03': { categorie: 'camera', ernst: 'blokkerend', laag: 'render', titel: 'Spreker niet op het scherm', uitleg: 'De geprojecteerde spreker staat niet op het scherm of achter de camera.' },
+  'CS-R04': { categorie: 'camera', ernst: 'belangrijk', laag: 'render', titel: 'Ondertitel bedekt iets belangrijks', uitleg: 'De ondertitel bedekt de spreker of een HUD-element.' },
+  'CS-R05': { categorie: 'camera', ernst: 'belangrijk', laag: 'render', titel: 'Luminantiesprong tussen shots', uitleg: 'Belichting, dagtijd of weer springt tussen twee shots van één scène.' },
+  'CS-R06': { categorie: 'camera', ernst: 'blokkerend', laag: 'render', titel: 'Bevroren of ongeldige camera', uitleg: 'De camera heeft een geen-getal of beweegt niet terwijl de scène doorloopt.' },
   // --- visuele logica
   'CS-V01': { categorie: 'visueel', ernst: 'blokkerend', laag: 'lint', titel: 'Spreker ontbreekt in de scène', uitleg: 'Wie praat staat in de scène (of praat via radio, telefoon of app) en is op dat moment niet verborgen.' },
   'CS-V02': { categorie: 'visueel', ernst: 'blokkerend', laag: 'lint', titel: 'Onbekend personage of prop', uitleg: 'Elk personage en elke prop in de regie bestaat (look in de tabel, soort in de catalogus).' },
