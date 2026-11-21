@@ -76,6 +76,24 @@ ok(last.mat <= warm.mat + 120, 'materialen blijven begrensd', `${warm.mat} naar 
   console.log('personen: geometrieen na 100/200/300/400 wedstrijden van 4:', rows2.join(' '), 'begin', base);
   ok(rows2[3] <= rows2[0] + 60, 'vier personen per wedstrijd: de geometrieteller blijft begrensd (persoonsgeometrie via de LRU, racket weg)', rows2.join());
 }
+
+// --- politiehelikopters (scene3d.js: policeHeliMesh) en andere wegwerp-actoren: bouwen en vrijgeven (#1065) ---
+{
+  const P = await import('../game/js/police.js');
+  let matDisp = 0;
+  const m0 = MP.dispose; MP.dispose = function () { matDisp++; return m0.call(this); };
+  const rows3 = [];
+  for (let i = 0; i < 300; i++) {
+    const h = P.buildPoliceHeliMesh3D();
+    h.traverse((o) => { if (o.geometry) geoAlive.add(o.geometry); });
+    disposeObject(h);
+    if (i % 100 === 99) rows3.push(geoAlive.size);
+  }
+  MP.dispose = m0;
+  console.log('politiehelikopters: geometrieen na 100/200/300:', rows3.join(' '), 'materialen vrijgegeven', matDisp);
+  ok(rows3[2] <= rows3[0], 'politiehelikopter: de geometrieteller groeit niet per helikopter', rows3.join());
+  ok(matDisp <= 300 * 3, 'alleen de eigen materialen van de helikopter (lens, straal) gaan weg, de gedeelde niet', String(matDisp));
+}
 if (process.argv.includes('--dump')) {
   const by = new Map();
   for (const g of geoAlive) { const k = `${Object.keys(g.userData || {}).join('+') || '-'} pos${g.attributes.position ? g.attributes.position.count : 0} idx${g.index ? 1 : 0}`; by.set(k, (by.get(k) || 0) + 1); }

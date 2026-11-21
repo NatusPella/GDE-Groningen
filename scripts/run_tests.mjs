@@ -48,6 +48,7 @@ export const SLOW = new Set([
   'mode_route_test.mjs', 'world_tiles_test.mjs', 'navgraph_test.mjs', 'minigames_test.mjs',
   'import_cycles_test.mjs', 'stad_test.mjs', 'overlap_test.mjs', 'road_route_test.mjs', 'water_look_test.mjs', 'route_quality_test.mjs',
   'grass_water_paved_test.mjs', // leest de echte tegels (±20 s: groen tegen water en verharding)
+  'leak_mock_soak_test.mjs', // 1000 voertuigen en 1600 personen bouwen en vrijgeven (ca. 8 s, #1065)
   'coop_licht_test.mjs', // start alle coop-tests als eigen Node-processen (samen ±1 min)
   // vragen de stadsbouw-cache (os.tmpdir()/gde-stad-cache, sleutel op bestandstijden): op een schone checkout of na een wijziging bouwt de eerste ca. 280 s, daarna 14 s
   'akte1_doelen_test.mjs', 'akte2_doelen_test.mjs', 'akte3_test.mjs', 'boat_waypoint_test.mjs',

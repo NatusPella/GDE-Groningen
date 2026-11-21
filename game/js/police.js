@@ -982,12 +982,14 @@ export function updatePolice(dt, world) {
 function heliMat(color) {
   return new THREE.MeshLambertMaterial({ color });
 }
+// #1065: de helikoptermaterialen zijn gedeeld tussen alle politiehelikopters; disposeObject (scene3d.js) laat ze staan
+const deelMat = (m) => { m.userData.shared = true; return m; };
 
-const HELI_BODY_MAT = heliMat(0x1c1c1c);
-const HELI_STRIPE_MAT = heliMat(0x2255dd);
-const HELI_ROTOR_MAT = new THREE.MeshBasicMaterial({ color: 0x1a1a1a });
-const HELI_BEACON_MAT = new THREE.MeshBasicMaterial({ color: 0xdd2222 });
-const HELI_GLASS_MAT = heliMat(0x2a3540);
+const HELI_BODY_MAT = deelMat(heliMat(0x1c1c1c));
+const HELI_STRIPE_MAT = deelMat(heliMat(0x2255dd));
+const HELI_ROTOR_MAT = deelMat(new THREE.MeshBasicMaterial({ color: 0x1a1a1a }));
+const HELI_BEACON_MAT = deelMat(new THREE.MeshBasicMaterial({ color: 0xdd2222 }));
+const HELI_GLASS_MAT = deelMat(heliMat(0x2a3540));
 
 export function buildPoliceHeliMesh3D() {
   const group = new THREE.Group();

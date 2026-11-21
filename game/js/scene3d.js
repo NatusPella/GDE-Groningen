@@ -2810,6 +2810,7 @@ export function update3D(dt, world) {
     updatePoliceHeliMesh3D(policeHeliMesh, world.time);
   } else if (policeHeliMesh) {
     scene.remove(policeHeliMesh);
+    disposeObject(policeHeliMesh); // #1065: elke politiehelikopter bouwde ca. 12 eigen geometrieen en een lensmateriaal die nooit terugkwamen
     policeHeliMesh = null;
   }
 
