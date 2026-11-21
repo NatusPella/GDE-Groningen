@@ -44,38 +44,44 @@ export function policeBadge(units, wanted, { searching = false, time = 0 } = {})
   return { eenheden: n, ring: heatRing(wanted, { searching, time }), dots: unitDots(n) };
 }
 
-// Wat een schermlezer en de legendaregel zeggen. Leeg zonder politie in beeld.
+// Wat een schermlezer en de legendaregel zeggen. Leeg zonder politie in beeld en zonder ster.
+// Bij 0 sterren staat er niets over sterren (geen "0 van 5"); zonder politie in beeld alleen het gezochtniveau.
 export function heatUitleg(wanted, units = 0, { searching = false } = {}) {
   const n = geheel(units);
-  if (n <= 0) return '';
   const warm = clamp(geheel(wanted), 0, HEAT_MAX);
+  if (n <= 0 && warm <= 0) return '';
   const eenheid = n === 1 ? 'politie-eenheid' : 'politie-eenheden';
-  const heat = warm === 0 ? 'je bent niet gezocht' : `gezocht: ${warm} van ${HEAT_MAX} sterren${searching ? ', ze zoeken je' : ''}`;
-  return `${n} ${eenheid} in beeld · ${heat}`;
+  const heat = warm === 0 ? '' : `gezocht: ${warm} van ${HEAT_MAX} sterren${searching ? ', ze zoeken je' : ''}`;
+  const beeld = n > 0 ? `${n} ${eenheid} in beeld` : '';
+  return [beeld, heat].filter(Boolean).join(' · ');
 }
 
 // De legenda bij de ring (tooltip en schermlezer van de minimap): wat de segmenten en stippen zijn.
 export const HEAT_LEGENDA = 'Ring om het politieschild: elk rood segment is een ster (hoe meer, hoe harder ze je zoeken); stippen zijn extra eenheden.';
 
-// De hele tekst voor de minimap: de stand van nu, plus de legenda zodra er politie in beeld is.
+// De hele tekst voor de minimap: de stand van nu, plus de legenda van de ring zodra er politie in beeld is.
 export function heatTooltip(wanted, units = 0, opts = {}) {
   const stand = heatUitleg(wanted, units, opts);
-  return stand ? `${stand}. ${HEAT_LEGENDA}` : '';
+  if (!stand) return '';
+  return geheel(units) > 0 ? `${stand}. ${HEAT_LEGENDA}` : stand;
 }
 
 // De chip op de minimap (#952): een icoon met een getal erbij, zodat het niet bij een kaal cijfer blijft.
-// Schild + aantal eenheden in beeld; ster + sterren van het gezochtniveau (x van 5). Leeg zonder politie in beeld.
+// Twee delen die los komen en gaan: het schild + aantal eenheden in beeld (alleen bij politie in beeld) en de ster + n/5
+// (alleen bij n >= 1). Gezocht maar niemand in beeld: alleen het ster-deel. 0 sterren en 0 eenheden: geen chip.
 // De tekst is groot genoeg om te lezen (CHIP_MIN_PX); de uitleg staat als title en aria-label op de chip.
 export const CHIP_MIN_PX = 13;
 export function heatChip(wanted, units = 0, opts = {}) {
   const n = geheel(units);
-  if (n <= 0) return null;
   const sterren = clamp(geheel(wanted), 0, HEAT_MAX);
+  if (n <= 0 && sterren <= 0) return null;
   return {
     eenheden: n,
     sterren,
-    eenhedenTekst: String(n),
-    sterTekst: `${sterren}/${HEAT_MAX}`,
+    toonEenheden: n > 0,
+    toonSter: sterren > 0,
+    eenhedenTekst: n > 0 ? String(n) : '',
+    sterTekst: sterren > 0 ? `${sterren}/${HEAT_MAX}` : '',
     uitleg: heatTooltip(wanted, n, opts),
     searching: !!opts.searching && sterren > 0,
   };

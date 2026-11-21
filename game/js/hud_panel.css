@@ -225,11 +225,16 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 #hud .hud-minimap-wrap.wanted { box-shadow: 0 0 0 2px #d93f3f, 0 0 18px rgba(217, 63, 63, 0.45), 0 14px 32px rgba(0, 0, 0, 0.5); }
 #hud .hud-minimap-wrap canvas { display: block; width: 100%; height: 100%; }
 #hud .hud-fcol {
-  position: absolute; left: calc(var(--hud-edge) + var(--mm-size) + 16px); bottom: calc(var(--mm-bottom) + 4px);
+  position: absolute; left: calc(var(--hud-edge) + var(--mm-size) + 16px); bottom: var(--mm-bottom);
   display: flex; flex-direction: column; gap: 10px; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7); color: var(--hud-fg);
 }
 #hud .hud-location { display: flex; flex-direction: column; gap: 1px; max-width: min(calc(30vw / var(--ui, 1)), 340px); }
 #hud .hud-location:has(.hud-street:empty) { display: none; }
+/* #1079: de locatiekaart zakt naar de onderkant van de kolom zolang het speler-blok eronder verborgen is; hudlinks.js bepaalt --hud-loc-y.
+   `translate` (niet transform): hud-rise animeert transform en mag de stand niet overschrijven. */
+#hud .hud-location { translate: 0 var(--hud-loc-y, 0px); transition: translate 0.2s ease-out; }
+html.rustig-drukwerk #hud .hud-location, html.reduce-motion #hud .hud-location { transition: none; }
+@media (prefers-reduced-motion: reduce) { #hud .hud-location { transition: none; } }
 #hud .hud-street { font-size: 28px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #hud .hud-district { font-size: max(17px, var(--hud-min)); color: var(--gron-green-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #hud .hud-street:empty { display: none; }
@@ -833,12 +838,17 @@ body.pigeon-mode #banter-sub, body.pigeon-mode #radio-sub { bottom: calc(198px *
 
 /* #952: icoon plus getal bij de politie: schild = eenheden in beeld, ster = gezocht (x van 5). Minstens 13 px, papier met inktrand */
 #hud .hud-mm-heat {
-  position: absolute; left: 10px; top: 10px; display: flex; gap: 6px; align-items: center; z-index: 2;
+  position: absolute; left: 10px; top: 10px; display: flex; gap: 0; align-items: center; z-index: 2;
   padding: 2px 7px; background: var(--hud-plaat); color: var(--hud-inkt); border: var(--hud-rand); border-radius: 10px;
   font: 800 max(13px, 1em) var(--ds-font-zeef-kop); line-height: 1.15; letter-spacing: 0.02em; white-space: nowrap;
 }
 #hud .hud-mm-heat[hidden] { display: none; }
-#hud .hud-mm-heat span { display: inline-flex; align-items: center; gap: 3px; }
+#hud .hud-mm-heat span { display: inline-flex; align-items: center; gap: 3px; max-width: 6em; overflow: hidden; transition: max-width 0.2s ease, opacity 0.2s ease, margin 0.2s ease; }
+#hud .hud-mm-heat .mmh-ster { margin-left: 6px; }
+/* een deel zonder inhoud (0 sterren, of niemand in beeld) schuift weg; de chip past zijn breedte zonder sprong aan (<= 250 ms) */
+#hud .hud-mm-heat span.weg { max-width: 0; opacity: 0; margin-left: 0; }
+html.rustig-drukwerk #hud .hud-mm-heat span, html.reduce-motion #hud .hud-mm-heat span { transition: none; }
+@media (prefers-reduced-motion: reduce) { #hud .hud-mm-heat span { transition: none; } }
 #hud .hud-mm-heat svg { width: 15px; height: 15px; flex: 0 0 15px; fill: var(--ds-c-ink-papier); stroke: var(--hud-inkt); stroke-width: 1.8; stroke-linejoin: round; }
 #hud .hud-mm-heat .mmh-eenh svg { fill: var(--ds-c-ink-inkt); stroke: var(--ds-c-ink-inkt); }
 #hud .hud-mm-heat.warm .mmh-ster svg { fill: var(--ds-c-ink-roze); }

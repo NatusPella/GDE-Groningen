@@ -142,5 +142,14 @@ const near = (a, b, m = 0.01) => Math.abs(a - b) <= m;
   ok(/watchFlightColumn\(root, fcol\)/.test(read('hud_panel.js')), '#881: de meting hangt aan de linkerkolom');
 }
 
+// --- #1079: de locatiekaart naast de minimap staat onderin en gaat alleen omhoog voor wat eronder komt -------------
+{
+  const hud = read('hud_panel.css');
+  const kol = (/#hud \.hud-fcol \{([^}]*)\}/.exec(hud) || [])[1] || '';
+  ok(/bottom:\s*var\(--mm-bottom\)/.test(kol) && !/--mm-bottom\) \+ 4px/.test(kol), '#1079: de locatiekolom staat gelijk met de onderkant van de minimap (geen extra 4 px)');
+  ok(/#hud \.hud-location \{ translate: 0 var\(--hud-loc-y, 0px\)/.test(hud), '#1079: de verschuiving van de locatiekaart is één variabele (--hud-loc-y), met translate zodat hud-rise niet botst');
+  ok(/watchLocatie\(root, fcol, location, topLeft\)/.test(read('hud_panel.js')) && /locatieLift/.test(read('hudlinks.js')), '#1079: hud_panel.js bedraadt hudlinks.js (scripts/hudlinks_test.mjs dekt de regels)');
+}
+
 console.log(fail ? `${fail} van ${n} HUD-layoutchecks mislukt` : `hud_layout_issues_test: ${n} checks ok`);
 process.exit(fail ? 1 : 0);

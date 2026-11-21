@@ -60,6 +60,7 @@ import { beppeMapSpot } from './beppe_garden.js';
 import { perceelMapSpots, drawPerceelMapIcon } from './perceelmap.js';
 import { singleEntryCache } from './hudcache.js';
 import { minimapMoved, minimapRedrawDue } from './minimapcadence.js';
+import { locatieLift, locatieHysterese, locatieVerschuiving, LOCATIE_GAP } from './hudlinks.js'; // #1079: de locatiekaart staat onderin en gaat alleen omhoog voor wat eronder komt
 import { policeBadge, heatTooltip, heatChip, HEAT_RING } from './minimapheat.js'; // #952: warmte bij de politie als ring, plus een chip met icoon en getal
 import { VILLAGES } from './ommelandlines.js';
 import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, formatDistance } from './routing.js';
@@ -302,6 +303,7 @@ export function initHud(world) {
   fcol.appendChild(topLeft);
   // #881: de hoogte van de linkerkolom voor de vliegstand op een telefoon
   watchFlightColumn(root, fcol);
+  watchLocatie(root, fcol, location, topLeft);
 
   els = {
     root,
@@ -383,6 +385,8 @@ export function initHud(world) {
     mmHeat,
     mmHeatN: mmHeat.querySelector('.mmh-n'),
     mmHeatW: mmHeat.querySelector('.mmh-w'),
+    mmHeatEenh: mmHeat.querySelector('.mmh-eenh'),
+    mmHeatSter: mmHeat.querySelector('.mmh-ster'),
     mmCanvas,
     mmCtx: mmCanvas.getContext('2d'),
     vis: {},
@@ -401,6 +405,54 @@ export function initHud(world) {
   onUiScaleChange(() => fitEdge(root));
   watchRightStack(root, topRight, race, root.querySelector('.hud-vehname'), root.querySelector('.hud-cards'));
   watchInput();
+}
+
+// #1079 (eigenaar, 21-11): de locatiekaart (straat + plaats) staat standaard onderaan de kolom naast de minimap. Het speler-blok
+// eronder (meters) houdt zijn ruimte ook als het verborgen is (hv-off is alleen doorzichtig), dus de kaart zweefde boven een
+// lege plek. De regels staan in hudlinks.js; hier alleen het meten (bij een verandering, niet per frame) en het zetten van
+// --hud-loc-y, de verschuiving die de CSS als `translate` op .hud-location toepast.
+const LOCATIE_HINDERNIS = ['#banter-sub', '#radio-sub', '#story-talk', '#rv-sub'];
+function watchLocatie(root, fcol, location, topLeft) {
+  let staat = null, timer = 0, stroomH = 0, sig = '';
+  const apply = (lift) => root.style.setProperty('--hud-loc-y', `${Math.round(locatieVerschuiving(stroomH, LOCATIE_GAP, lift))}px`);
+  const wil = () => {
+    const onder = [{ id: 'speler', h: stroomH, zichtbaar: !topLeft.classList.contains('hv-off') }];
+    // ondertitels die boven de kaart uit zouden komen: alleen meten als er een zichtbaar is (de handtekening hieronder)
+    const hindernissen = [];
+    let kaart = null;
+    for (const sel of LOCATIE_HINDERNIS) {
+      const el = document.querySelector(sel);
+      if (!el || el.style.opacity === '0' || el.style.display === 'none' || !el.style.opacity) continue;
+      const r = el.getBoundingClientRect();
+      if (r.height <= 0) continue;
+      if (!kaart) {
+        const k = location.getBoundingClientRect();
+        const s = (root.getBoundingClientRect().height / (root.offsetHeight || 1)) || 1; // zoom van #hud (--ui)
+        kaart = { x0: k.left, x1: k.right, bodem: fcol.getBoundingClientRect().bottom, s }; // bodem: de laagste plek van de kaart
+      }
+      hindernissen.push({ id: sel, x0: r.left, x1: r.right, top: r.top });
+    }
+    if (!kaart) return locatieLift({ onder }).lift;
+    // alles in schermpixels gemeten: de gap en de uitkomst gaan via de zoom van #hud
+    const l = locatieLift({ onder: onder.map((o) => ({ ...o, h: o.h * kaart.s })), hindernissen, kaart, gap: LOCATIE_GAP * kaart.s }).lift;
+    return l / kaart.s;
+  };
+  const stap = () => {
+    clearTimeout(timer);
+    const r = locatieHysterese(staat, wil(), performance.now());
+    staat = r.staat;
+    apply(r.lift);
+    if (r.wacht != null) timer = setTimeout(stap, Math.ceil(r.wacht) + 5);
+  };
+  const meet = () => { stroomH = topLeft.offsetHeight; stap(); };
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => requestAnimationFrame(meet)).observe(topLeft);
+  if (typeof MutationObserver !== 'undefined') new MutationObserver(stap).observe(topLeft, { attributes: true, attributeFilter: ['class'] });
+  // ondertitels komen en gaan zonder maatwijziging van de kolom: een lichte controle van hun stijl (geen layout), meten bij een wissel
+  setInterval(() => {
+    const s2 = LOCATIE_HINDERNIS.map((q) => { const el = document.querySelector(q); return el ? el.style.opacity + el.textContent.length : ''; }).join('|');
+    if (s2 !== sig) { sig = s2; stap(); }
+  }, 250);
+  meet();
 }
 
 // The HUD's margin to the screen edge: title-safe on a TV, tight on 720p (hudlook.js)
@@ -3079,8 +3131,11 @@ function drawMinimap(dt, world) {
     const chip = heatChip(heatSter, polities.length, { searching: !!(world.police && world.police.searching) });
     els.mmHeat.hidden = !chip;
     if (chip) {
-      els.mmHeatN.textContent = chip.eenhedenTekst;
-      els.mmHeatW.textContent = chip.sterTekst;
+      // elk deel schuift met een korte breedte-overgang in en uit (CSS .weg), de tekst blijft staan tijdens het uitschuiven
+      if (chip.toonEenheden) els.mmHeatN.textContent = chip.eenhedenTekst;
+      if (chip.toonSter) els.mmHeatW.textContent = chip.sterTekst;
+      els.mmHeatEenh.classList.toggle('weg', !chip.toonEenheden);
+      els.mmHeatSter.classList.toggle('weg', !chip.toonSter);
       els.mmHeat.classList.toggle('warm', chip.sterren > 0);
       els.mmHeat.title = chip.uitleg;
       els.mmHeat.setAttribute('aria-label', chip.uitleg);
