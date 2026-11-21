@@ -16,8 +16,10 @@ const AUDIO = path.join(GAME, 'audio');
 const VL = path.join(AUDIO, 'voicelines');
 const MANIFESTS = ['banter', 'lines', 'story', 'hints', 'sms', 'jobs', 'trailer'];
 
-const code = fs.readdirSync(path.join(GAME, 'js')).filter((f) => /\.(js|mjs)$/.test(f) && f !== 'subtitles.js')
-  .map((f) => fs.readFileSync(path.join(GAME, 'js', f), 'utf8')).join('\n') + fs.readFileSync(path.join(GAME, 'index.html'), 'utf8');
+// recursief: de audio-, sfx- en scene3d-submappen noemen ook bestanden en regels
+const jsFiles = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? jsFiles(path.join(d, e.name)) : [path.join(d, e.name)]));
+const code = jsFiles(path.join(GAME, 'js')).filter((f) => /\.(js|mjs)$/.test(f) && path.basename(f) !== 'subtitles.js')
+  .map((f) => fs.readFileSync(f, 'utf8')).join('\n') + fs.readFileSync(path.join(GAME, 'index.html'), 'utf8');
 // Source text with JS string escapes undone, so a line can be found by its spoken text.
 const codeText = code.replace(/\\(['"\\])/g, '$1');
 
@@ -46,7 +48,7 @@ const unusedEntries = [], keptByText = [];
 const keptSrc = new Set();
 for (const m of MANIFESTS) {
   for (const [k, v] of Object.entries(manifest(m))) {
-    const src = path.join(m, v.src);
+    const src = path.posix.join(m, v.src);
     if (keys.has(k)) { keptSrc.add(src); continue; }
     const text = k.slice(k.indexOf('|') + 1);
     if (textInCode(text)) { keptByText.push({ m, k }); keptSrc.add(src); continue; }
@@ -68,9 +70,9 @@ for (const t of JSON.parse(fs.readFileSync(path.join(AUDIO, 'gmusic', 'manifest.
 const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]));
 const unusedFiles = [];
 for (const f of walk(AUDIO).filter((f) => /\.(mp3|wav|ogg)$/.test(f))) {
-  const rel = path.relative(AUDIO, f);
+  const rel = path.relative(AUDIO, f).split(path.sep).join('/');
   if (fixed.has(rel)) continue;
-  if (rel.startsWith('voicelines/') && keptSrc.has(path.relative(VL, f))) continue;
+  if (rel.startsWith('voicelines/') && keptSrc.has(path.relative(VL, f).split(path.sep).join('/'))) continue;
   // any literal path or bare file name in the code (trailer.js, theme.js, audio.js)
   if (code.includes(rel) || code.includes(path.basename(f))) continue;
   unusedFiles.push(f);
