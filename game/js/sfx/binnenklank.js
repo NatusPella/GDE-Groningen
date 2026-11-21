@@ -40,8 +40,8 @@ export const ambienceOf = (kind) => (KINDS[kind] ? KINDS[kind].ambience : null);
 export function roomTone(kind, sub = null) {
   const base = ROOM_TONES[ambienceOf(kind)];
   if (!base) return NONE;
-  const over = sub ? SUB_TONES[sub] : null;
-  return over ? { ...base, ...over } : base;
+  const variant = sub ? SUB_TONES[sub] : null;
+  return variant ? { ...base, ...variant } : base;
 }
 
 // het laagdoorlaatfilter (Hz) van de muziek terwijl je in dit pand staat (buiten: open)

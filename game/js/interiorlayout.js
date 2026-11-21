@@ -468,7 +468,7 @@ function garageRecipe(p, sub) {
 
 function publicRecipe(p, sub) {
   if (sub === 'sportschool') return gymRecipe(p, sub);
-  if (sub === 'school') return schoolRecipe(p, sub);
+  if (sub === 'school') return classroomRecipe(p, sub);
   if (sub === 'ziekenhuis') return hospitalRecipe(p, sub);
   if (sub === 'museum') return museumRecipe(p, sub);
   if (sub === 'bioscoop') return cinemaRecipe(p, sub);
@@ -505,7 +505,7 @@ function backRoom(p, depth, id, role, doorAtFrac = 0.5, doorW = 1.1) {
 }
 
 // A school (round 5): an entrance hall with a desk and lockers, a classroom at the back with rows of desks facing the board, a teacher and pupils.
-function schoolRecipe(p, sub) {
+function classroomRecipe(p, sub) {
   const H = p.hall, W = p.W, D = p.D;
   const mid = H.u0 + W / 2;
   const dv = H.v0 + 2.2, cu = H.u0 + Math.min(2.2, W / 3);
@@ -597,12 +597,12 @@ function cinemaRecipe(p, sub) {
   p.add('fridge', H.u1 - 0.5, H.v0 + 3.0, 0.7, 0.7, FACE.W, { h: 1.2, color: 0xe8e0d0, tag: 'popcorn' }, front);
   const foyerBench = p.add('bench', H.u1 - 1.8, fv1 - 0.6, 1.4, 0.5, FACE.DOOR, { h: 0.45, color: 0x7a1e2a }, front);
   if (foyerBench) p.npcAt('filmbezoeker', foyerBench.u, foyerBench.v, FACE.DOOR, 'sit');
-  const zone = hall ? { u0: hall.u0, u1: hall.u1, v0: hall.v0, v1: hall.v1 } : { ...H, v0: H.v0 + 4.8 };
-  p.add('board', mid, H.v1 - 0.05, W - 1.2, 0.1, FACE.DOOR, { h: 2.2, y0: 0.9, solid: false, glow: true, color: 0xdfe6f2 }, zone);
+  const screenRoom = hall ? { u0: hall.u0, u1: hall.u1, v0: hall.v0, v1: hall.v1 } : { ...H, v0: H.v0 + 4.8 };
+  p.add('board', mid, H.v1 - 0.05, W - 1.2, 0.1, FACE.DOOR, { h: 2.2, y0: 0.9, solid: false, glow: true, color: 0xdfe6f2 }, screenRoom);
   const aisle = 1.2, blockW = Math.min(3.2, (W - aisle) / 2 - 0.1);
   const rows = [];
-  for (let v = zone.v0 + 1.4; v < zone.v1 - 2.6; v += 1.0) {
-    for (const side of [-1, 1]) { const it = p.add('pew', mid + side * (aisle / 2 + blockW / 2), v, blockW, 0.6, FACE.BACK, { h: 1.0, color: 0x8a2a2a }, zone); if (it) rows.push(it); }
+  for (let v = screenRoom.v0 + 1.4; v < screenRoom.v1 - 2.6; v += 1.0) {
+    for (const side of [-1, 1]) { const it = p.add('pew', mid + side * (aisle / 2 + blockW / 2), v, blockW, 0.6, FACE.BACK, { h: 1.0, color: 0x8a2a2a }, screenRoom); if (it) rows.push(it); }
   }
   rows.filter((_, i) => i % 3 === 1).slice(0, 4).forEach((r, i) => p.npcAt('filmbezoeker', r.u, r.v, FACE.BACK, 'sit', { seat: i }));
   p.palette = { wall: 0x4a2a30, floor: 0x3a2428, floorPattern: 1, accent: 0x7a1e2a, ceil: 0x2a1c20, lamp: { color: 0xffd9a0, pendant: false } };
