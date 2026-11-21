@@ -31,7 +31,7 @@ for (const kind of ['walk', 'bike']) {
   // (the bike starts in the pedestrian zone in front of the station, which the OSM city has joined to the cycle network: it rides
   // round the station building over the Stadsbalkon, about 70 m more than the old city's route, which began 31 m from the
   // station straight through the building. The Herebrug way round is 867 m on foot and 1005 m by bike, so 2.0 still tells them apart.)
-  const limit = kind === 'bike' ? 2.0 : 1.7;
+  const limit = kind === 'bike' ? 2.0 : 1.75; // te voet 1,75 (21-11): de route gaat 11 m om het stationsgebouw in plaats van er dwars doorheen, de Herebrug is 867 m (2,35)
   check(`${kind} station to the Kerk over the Museumeiland bridge`, via && l < crow * limit, `${l.toFixed(0)} m (crow ${crow.toFixed(0)}), via bridge ${!!via}`);
 }
 process.exit(bad ? 1 : 0);

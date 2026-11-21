@@ -21,7 +21,9 @@ hoek van 2 m langs een gevel. `--strict` staat daarom op hoogstens 2% van de rou
 Oorzaken:
 
 1. **Wegstukken door een gevel waren maar achtvoudig duur** (`THROUGH_BUILDING_COST`). Een doorsteek of binnenplaats van OSM kan dan
-   nog de kortste weg zijn. Nu 40 keer: alleen als er echt niets anders is.
+   nog de kortste weg zijn. Nu telt `throughBuildingHits` hoeveel steekproeven in het pand vallen: een schamp (1 van 3, het
+   Museumeiland onder het museum) blijft 8x, dwars door het pand (2 of meer, of een kort stuk dat er helemaal in ligt) is 40x
+   (`THROUGH_DEEP_FACTOR`): alleen als er echt niets anders is. Een algemene 40x brak de Museumeiland-brug (route_bridge_test).
 2. **De rechter rijbaan van de auto (`keepRight`, `game/js/pathlane.js`)** schoof elk punt tot 2,2 m opzij zonder te kijken wat daar
    staat. Een straat die tegen de huizen ligt, of een hoek, zette de lijn in de gevel. Nu halveert de verschuiving tot het punt
    buiten het gebouw valt en blijft de lijn anders op het hart van de weg.
@@ -42,8 +44,8 @@ voertuig), zodat een weg voor jouw voertuig bij een gelijke afstand wint. De reg
 
 | wijze | toegestaan zonder toeslag | toegestaan met toeslag | nooit / zeer duur |
 | --- | --- | --- | --- |
-| te voet | alle paden, straten, trappen | snelwegen (8x), buslanen | gebouwen (40x), water, spoor |
-| fiets, scooter | wegen, fietspaden (met de eigen voorkeur) | tegen de richting in (1,25x), voetpaden, buslanen (1,6x), snelwegen (8x) | trappen (60x), gebouwen |
+| te voet | alle paden, straten, trappen | snelwegen (8x), buslanen | gebouwen (8x tot 40x), water, spoor |
+| fiets, scooter | wegen, fietspaden (met de eigen voorkeur) | tegen de richting in (1,25x), voetpaden, buslanen (1,6x), snelwegen (8x) | trappen (60x), gebouwen (8x tot 40x) |
 | auto | wegen, parkeerterreinen (dienstwegen 2,5x) | tegen de richting in (1,25x), voetpaden, fietspaden, pleinen, buslanen (1,6x) | trappen (60x), gebouwen |
 | boot | het vaarnet (`vaarnet.js`) | | land, te lage bruggen |
 | helikopter, vliegtuig | rechte lijn boven gebouwen (`airguide.js`, no-flyzones) | | |

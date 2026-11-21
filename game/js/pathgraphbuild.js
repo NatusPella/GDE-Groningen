@@ -10,7 +10,7 @@ export const ROADS_PER_STEP = 250;
 const EDGES_PER_STEP = 40000;
 
 export function* graphBuildSteps(graphRoads, h) {
-  const { THROUGH_BUILDING_COST, SERVICE_COST, OFFROAD_COST, STEPS_COST, MOTORWAY_AVOID, BIKE_COST, MOTORWAY_TYPES } = h.consts;
+  const { THROUGH_DEEP_FACTOR = 1, THROUGH_BUILDING_COST, SERVICE_COST, OFFROAD_COST, STEPS_COST, MOTORWAY_AVOID, BIKE_COST, MOTORWAY_TYPES } = h.consts;
   // de snelste route (21-11): wat het voertuig officieel niet mag (tegen de richting in, een voetpad, fietspad, snelweg, buslaan) is met
   // een lichte toeslag toegestaan; alleen trappen blijven duur voor wie niet loopt. Zie docs/ROUTEREGELS.md.
   const SOFT = h.consts.SOFT_COST, SOFT_ROAD = h.consts.SOFT_ROAD_COST;
@@ -46,7 +46,9 @@ export function* graphBuildSteps(graphRoads, h) {
       const a = rn[i], b = rn[i + 1];
       if (a === b) continue;
       const geo = Math.hypot(xs[b] - xs[a], ys[b] - ys[a]);
-      const len = !road.bridge && h.throughOf(road, i, xs[a], ys[a], xs[b], ys[b]) ? geo * THROUGH_BUILDING_COST : geo;
+      // throughOf: het aantal steekproeven in een gebouw (of true/false); twee of meer is dwars door het pand
+      const th = road.bridge ? 0 : h.throughOf(road, i, xs[a], ys[a], xs[b], ys[b]);
+      const len = !th ? geo : geo * THROUGH_BUILDING_COST * (th >= 2 ? THROUGH_DEEP_FACTOR : 1);
       if (canWalk) {
         walk.push(a, b, len, b, a, len);
         walkRoad.push(ri, ri);

@@ -131,7 +131,7 @@ const BIKE_COST = { cycle: 0.8, minor: 1.15, normal: 1, major: 1.8, foot: 1.4 };
 // courtyards); still usable, but routes should strongly prefer streets.
 const SOFT_COST = 1.25;
 const SOFT_ROAD_COST = 1.6;
-const THROUGH_BUILDING_COST = 40;
+const THROUGH_BUILDING_COST = 8;
 // Straight connectors from the player/target to the road network are only
 // drawn when short; longer ones would cut through blocks.
 const CONNECTOR_MAX_M = 15;
@@ -144,11 +144,20 @@ export { insideBuilding };
 // museum, een poort) mag geen achtvoudige straf krijgen, want dan gaat de
 // router er onnodig omheen (#119, #320).
 export function throughBuilding(map, ax, ay, bx, by) {
-  const samples = Math.hypot(bx - ax, by - ay) > 6 ? [0.25, 0.5, 0.75] : [0.5];
+  return throughBuildingHits(map, ax, ay, bx, by) > 0;
+}
+
+// Hoeveel van de steekproeven valt in een gebouw? Een schampende weg (1 van 3: het Museumeiland onder het museum) blijft het
+// achtvoudige; een weg dwars door het pand (2 of meer, of een kort stuk dat er helemaal in ligt) telt voor de graaf veel zwaarder
+// (pathgraphbuild.js: THROUGH_DEEP_FACTOR). Zo loopt de route niet door een gevel zonder dat de schampende wegen verdwijnen (21-11).
+export function throughBuildingHits(map, ax, ay, bx, by) {
+  const short = Math.hypot(bx - ax, by - ay) <= 6;
+  const samples = short ? [0.5] : [0.25, 0.5, 0.75];
+  let hits = 0;
   for (const t of samples) {
-    if (insideBuilding(map, ax + (bx - ax) * t, ay + (by - ay) * t)) return true;
+    if (insideBuilding(map, ax + (bx - ax) * t, ay + (by - ay) * t)) hits++;
   }
-  return false;
+  return short && hits ? 2 : hits;
 }
 
 // Raakt de lijn van a naar b ergens een gevel? Voor de stukken die de kaart
@@ -215,17 +224,17 @@ function throughOf(map, road, i, ax, ay, bx, by) {
   let c = road._tb;
   if (!c || c.stamp !== map._tbStamp || c.map !== map || c.f.length !== road.pts.length - 1) c = road._tb = { map, stamp: map._tbStamp, f: new Int8Array(road.pts.length - 1) };
   const v = c.f[i];
-  if (v) { throughStats.hit++; return v === 1; }
+  if (v) { throughStats.hit++; return v - 1; } // onthouden als 1 + het aantal treffers
   throughStats.miss++;
-  const t = throughBuilding(map, ax, ay, bx, by);
-  c.f[i] = t ? 1 : 2;
+  const t = throughBuildingHits(map, ax, ay, bx, by);
+  c.f[i] = 1 + t;
   return t;
 }
 
 const GRAPH_HOOKS = {
   isDrivable, isWalkable, isBikeable, oneWayFor,
   throughOf: null, // per bouw: kent de kaart
-  consts: { SOFT_COST, SOFT_ROAD_COST, THROUGH_BUILDING_COST, SERVICE_COST, OFFROAD_COST, STEPS_COST, MOTORWAY_AVOID, BIKE_COST, MOTORWAY_TYPES },
+  consts: { THROUGH_DEEP_FACTOR: 5, SOFT_COST, SOFT_ROAD_COST, THROUGH_BUILDING_COST, SERVICE_COST, OFFROAD_COST, STEPS_COST, MOTORWAY_AVOID, BIKE_COST, MOTORWAY_TYPES },
 };
 // De bouw is hervatbaar (pathgraphbuild.js): een lopende bouw staat hier tot hij klaar is of de lagen veranderden.
 let pendingBuild = null;

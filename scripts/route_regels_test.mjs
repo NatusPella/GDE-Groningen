@@ -9,7 +9,7 @@ import { insideBuilding } from '../game/js/buildinghit.js';
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info !== '' ? ` (${info})` : ''}`); } };
 
-const consts = { SOFT_COST: 1.25, SOFT_ROAD_COST: 1.6, THROUGH_BUILDING_COST: 40, SERVICE_COST: 2.5, OFFROAD_COST: 15, STEPS_COST: 60, MOTORWAY_AVOID: 8, BIKE_COST: { cycle: 0.8, minor: 1.15, normal: 1, major: 1.8, foot: 1.4 }, MOTORWAY_TYPES: new Set(['motorway', 'trunk']) };
+const consts = { SOFT_COST: 1.25, SOFT_ROAD_COST: 1.6, THROUGH_BUILDING_COST: 8, THROUGH_DEEP_FACTOR: 5, SERVICE_COST: 2.5, OFFROAD_COST: 15, STEPS_COST: 60, MOTORWAY_AVOID: 8, BIKE_COST: { cycle: 0.8, minor: 1.15, normal: 1, major: 1.8, foot: 1.4 }, MOTORWAY_TYPES: new Set(['motorway', 'trunk']) };
 const hooks = {
   isDrivable: (r) => r.cat !== 'foot' && r.cat !== 'cycle' && !r.busOnly,
   isWalkable: (r) => !r.busOnly && r.type !== 'motorway',
@@ -43,6 +43,14 @@ ok(edge(G.bike, roads[1]) === null && edge(G.bikeSoft, roads[1]) === 160, 'snels
 ok(edge(G.bikeSoft, roads[0], true) === 125, 'snelste per fiets: tegen de richting in, met toeslag');
 ok(edge(G.bikeSoft, roads[3]) === 6000, 'snelste per fiets: trappen zeer duur');
 ok(edge(G.bikeSoft, roads[4]) === 100, 'snelste per fiets: een gewone weg kost niets extra');
+
+// wegen door een pand: een schamp blijft het achtvoudige, dwars door het pand het veertigvoudige
+{
+  const w = [road(0, 'residential', 'normal', { hits: 0 }), road(200, 'residential', 'normal', { hits: 1 }), road(400, 'residential', 'normal', { hits: 3 }), road(600, 'residential', 'normal', { hits: 2, bridge: true })];
+  const H = runSteps(graphBuildSteps(w, { ...hooks, throughOf: (r) => r.hits, consts: { ...consts, THROUGH_DEEP_FACTOR: 5 } })).value;
+  const len = (r) => { const rn = H.roadNodes.get(r); for (let e = H.walk.start[rn[0]]; e < H.walk.start[rn[0] + 1]; e++) if (H.walk.to[e] === rn[1]) return H.walk.len[e]; return null; };
+  ok(len(w[0]) === 100 && len(w[1]) === 800 && len(w[2]) === 4000 && len(w[3]) === 100, 'door een pand: schamp 8x, dwars 40x, een brug niets');
+}
 
 // de strook: nooit in een gevel
 const gebouw = { bounds: [-10, 3, 20, 12], pts: [[-10, 3], [20, 3], [20, 12], [-10, 12], [-10, 3]] };
