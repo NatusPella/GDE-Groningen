@@ -1024,6 +1024,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-15"
 },
+"Anita|Over het kerkenpad, door de kerktuin, langs de wierdepaden. De limo kan niet overal heen.": {
+"src": "anita/over_het_kerkenpad_door_de_kerkt_f21cf8d5.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Over het kerkenpad, door de kerktuin, langs de wierdepaden. De limo kan niet overal heen.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: droog, adviserend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-21"
+},
 "Anita|Overall aan, emmer mee. Die bewaker bij de glazen deur heeft het pasje. Sluip achter hem en blijf even staan.": {
 "src": "anita/overall_aan_emmer_mee_die_bewake_652d4014.mp3",
 "model": "google/gemini-3.8-flash-lite-tts",

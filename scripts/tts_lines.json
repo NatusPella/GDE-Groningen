@@ -1,19 +1,5 @@
 [
  {
-  "key": "Anita|Over het kerkenpad, door de kerktuin, langs de wierdepaden. De limo kan niet overal heen.",
-  "speaker": "Anita",
-  "text": "Over het kerkenpad, door de kerktuin, langs de wierdepaden. De limo kan niet overal heen.",
-  "area": "Hints (Tammo/Tessa)",
-  "out": "hints",
-  "lang": "own",
-  "say": "Over het kerkenpad, door de kerktuin, langs de wierdepaden. De limo kan niet overal heen.",
-  "file": "anita/over_het_kerkenpad_door_de_kerkt_f21cf8d5.mp3",
-  "voice": "Callirrhoe",
-  "who": "Nederlandse vrouw, lacherig en ad rem",
-  "tag": "droog, adviserend",
-  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: droog, adviserend."
- },
- {
   "key": "Tammo|Bijna bij de sloot. Jelle zit er nog achter, dus blijf rijden.",
   "speaker": "Tammo",
   "text": "Bijna bij de sloot. Jelle zit er nog achter, dus blijf rijden.",
@@ -574,32 +560,32 @@
   "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: droog, adviserend."
  },
  {
-  "key": "Tammo|Instappen met E bij de kop. W is gas, S is rem, H is de fluit. Rem op tijd bij het perron.",
+  "key": "Tammo|Instappen met {E} bij de kop. {W} is gas, {S} is rem, {H} is de fluit. Rem op tijd bij het perron.",
   "speaker": "Tammo",
-  "text": "Instappen met E bij de kop. W is gas, S is rem, H is de fluit. Rem op tijd bij het perron.",
+  "text": "Instappen met {E} bij de kop. {W} is gas, {S} is rem, {H} is de fluit. Rem op tijd bij het perron.",
   "area": "Hints (Tammo/Tessa)",
   "out": "hints",
   "lang": "gro",
-  "say": "Instappen met E bij de kop. W is gas, S is rem, H is de fluit. Rem op tijd bij het perron.",
-  "file": "tammo/instappen_met_e_bij_de_kop_w_is__88265648.mp3",
+  "say": "Instappen met {E} bij de kop. {W} is gas, {S} is rem, {H} is de fluit. Rem op tijd bij het perron.",
+  "file": "tammo/instappen_met_e_bij_de_kop_w_is__9bbe11a8.mp3",
   "voice": "Orus",
   "who": "dry, deadpan man in his thirties",
   "tag": "droog, adviserend",
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, adviserend."
  },
  {
-  "key": "Anita|Instappen met E bij de kop. W is gas, S is rem, H is de fluit. Rem op tijd bij het perron.",
+  "key": "Anita|Instappen met {E} bij de kop. {W} is gas, {S} is rem, {H} is de fluit. Rem op tijd bij het perron.",
   "speaker": "Anita",
-  "text": "Instappen met E bij de kop. W is gas, S is rem, H is de fluit. Rem op tijd bij het perron.",
+  "text": "Instappen met {E} bij de kop. {W} is gas, {S} is rem, {H} is de fluit. Rem op tijd bij het perron.",
   "area": "Hints (Tammo/Tessa)",
   "out": "hints",
   "lang": "own",
-  "say": "Instappen met E bij de kop. W is gas, S is rem, H is de fluit. Rem op tijd bij het perron.",
-  "file": "anita/instappen_met_e_bij_de_kop_w_is__097291eb.mp3",
+  "say": "Instappen met {E} bij de kop. {W} is gas, {S} is rem, {H} is de fluit. Rem op tijd bij het perron.",
+  "file": "anita/instappen_met_e_bij_de_kop_w_is__f07b9037.mp3",
   "voice": "Callirrhoe",
   "who": "Nederlandse vrouw, lacherig en ad rem",
-  "tag": "droog, adviserend",
-  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: droog, adviserend."
+  "tag": "aanwijzend, gehaast",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: aanwijzend, gehaast."
  },
  {
   "key": "Tammo|Vesting Bourtange, fakkels, een gracht en kartonnen kanonnen.",
