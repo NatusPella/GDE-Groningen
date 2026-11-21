@@ -763,7 +763,7 @@ function buildShots(w) {
   const plantsoen = {
     label: 'Noorderplantsoen', cuts: ['vol'], dur: 3.0, clock: 15.4, weather: 'helder', focus: pk,
     voice: [[0.3, 'audio/voicelines/banter/id-fjord-meeuw_0_a_300d42.mp3', ['verhaal'], 4.94]],
-    lines: [[0.3, 4.2, 'Anita', 'De Fjord Frituur. Blauw, met een meeuw erop.', ['verhaal']]],
+    lines: [[0.3, 4.2, 'Anita', 'De snackwagen. Blauw, met een meeuw erop.', ['verhaal']]],
     prep(r) { r.prop('picnic', () => buildPicnic(blankets, grills)); for (let i = 16; i < 28; i++) extra(r, i); },
     enter(r, s) {
       s.g = r.prop('picnic', () => buildPicnic(blankets, grills));
@@ -860,7 +860,7 @@ function buildShots(w) {
   const escapade = {
     label: 'De Escapade in de Herestraat', cuts: ['vol', 'kort'], dur: 4.0, kort: 3.0, clock: 10.5, weather: 'helder', focus: lane(here, 90, 0),
     voice: [[0.1, 'audio/voicelines/banter/st-end-kop-fjord_0_a_c5a140.mp3', ['verhaal'], 3.67]],
-    lines: [[0.1, 3.5, 'Anita', 'Zonder die Eierbal geen Fjord Frituur.', ['verhaal']]],
+    lines: [[0.1, 3.5, 'Anita', 'Zonder die Eierbal geen snackwagen.', ['verhaal']]],
     caps: [[0.4, 3.2, 'Eén droom op vier wielen.', null, ['vol', 'kort']]],
     enter(r, s) {
       clearRoad(r, here, 7);

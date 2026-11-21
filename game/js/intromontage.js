@@ -971,7 +971,7 @@ function buildShots(w, film = false) {
       ['A', 'Een frietwagen is een auto met een luik, Tammo. En ik heb geen auto.', 'zakelijk, ad rem, een beetje moedeloos'],
       ['T', 'Ik wel. De Escapade.', 'droog, terloops'],
       ['A', 'Die rijdt nauwelijks.', 'droog, ongelovig'],
-      ['T', 'Dan rijdt hij nauwelijks voor jou. De Fjord Frituur, op een Fjord. Dan klopt de naam ook.', 'warm, verlegen, droog, alsof het niks is'],
+      ['T', 'Dan rijdt hij nauwelijks voor jou. Een snackwagen die nauwelijks rijdt. Dat is een concept.', 'warm, verlegen, droog, alsof het niks is'],
     ],
     enter(r, s) {
       s.kit = useKitchen(r, KIT);

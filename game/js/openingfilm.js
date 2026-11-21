@@ -55,7 +55,7 @@ export const LINES = [
   L('L12', 'A', 'Een frietwagen is een auto met een luik, Tammo. En ik heb geen auto.', 'behouden', 'C00.2', { kind: 'line', emotion: 'neutral', tag: 'zakelijk, ad rem, een beetje moedeloos' }),
   L('L13', 'T', 'Ik wel. De Escapade.', 'behouden', 'C00.2', { kind: 'line', emotion: 'joy', tag: 'droog, terloops' }),
   L('L14', 'A', 'Die rijdt nauwelijks.', 'behouden', 'C00.2', { kind: 'line', emotion: 'neutral', tag: 'droog, ongelovig' }),
-  L('L15', 'T', 'Dan rijdt hij nauwelijks voor jou. Een snackwagen, op een Fjord. Dat klopt wel.', 'nieuw', 'C00.2', { kind: 'line', emotion: 'tender', tag: 'warm, verlegen, droog, alsof het niks is' }),
+  L('L15', 'T', 'Dan rijdt hij nauwelijks voor jou. Een snackwagen die nauwelijks rijdt. Dat is een concept.', 'nieuw', 'C00.2', { kind: 'line', emotion: 'tender', tag: 'warm, verlegen, droog, alsof het niks is' }),
   L('L16', 'A', 'Zonder bank blijft er één weg over: een wedstrijd. Wie wint, krijgt de enige vrije standplaats van Grunn, een plek voor een wagen.', 'nieuw', 'C00.2', { kind: 'line', emotion: 'neutral', tag: 'nuchter, helder, legt uit' }),
   L('L17', 'T', 'De prijs voor de beste eierbal.', 'nieuw', 'C00.2', { kind: 'line', emotion: 'neutral', tag: 'droog, hoopvol' }),
   L('L18', 'A', 'Wij winnen op 28 augustus, wij krijgen die standplaats, en dan zien we wel wat erop komt te staan.', 'nieuw', 'C00.2', { kind: 'line', emotion: 'joy', tag: 'zelfverzekerd, snel' }),

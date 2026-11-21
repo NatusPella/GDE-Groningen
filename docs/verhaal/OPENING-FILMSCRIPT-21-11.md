@@ -84,7 +84,7 @@ MUZIEK: thema onder het gesprek, een kamertoon-gitaar; ducket onder elke stem.
 TESSA: Een frietwagen is een auto met een luik, Tammo. En ik heb geen auto. [BEHOUDEN]
 TAMMO: Ik wel. De Escapade. [BEHOUDEN]
 TESSA: Die rijdt nauwelijks. [BEHOUDEN]
-TAMMO: Dan rijdt hij nauwelijks voor jou. Een snackwagen, op een Fjord. Dat klopt wel. [NIEUW]
+TAMMO: Dan rijdt hij nauwelijks voor jou. Een snackwagen die nauwelijks rijdt. Dat is een concept. [NIEUW]
 
 (regie: **c2-plan.** Shot/reverse per regel; op "Het is een tekening" eerst de tekening, dan een close-up op Tessa; op "Dan rijd ik hem" een close-up op Tammo.)
 TESSA: Zonder bank blijft er één weg over: een wedstrijd. Wie wint, krijgt de enige vrije standplaats van Grunn, een plek voor een wagen. [NIEUW]
