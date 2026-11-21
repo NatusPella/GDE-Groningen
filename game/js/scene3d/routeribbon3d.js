@@ -8,7 +8,7 @@
 // init3D binnen via setRouteRibbonScene(), dus er is geen modulecyclus.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { markerColors } from '../a11y.js';
-import { pathRole } from '../navdoel.js';
+import { pathRole } from '../navtarget.js';
 import { hoofdspeler } from '../players.js';
 import { gameBusy } from '../busy.js';
 import { SIDEWALK_EXTRA } from '../roadsurface.js';

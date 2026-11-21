@@ -1,5 +1,5 @@
 // Eén bron voor "welk doel volg ik" (#1078, 21-11): de lijst van de doelen die de minikaart, de grote kaart, de routelijn (2D en 3D) en de HUD
-// laten zien, met per doel een type, een kleurrol, een prioriteit en een vorm (glyph). Pure logica, geen DOM en geen THREE (scripts/navdoel_test.mjs).
+// laten zien, met per doel een type, een kleurrol, een prioriteit en een vorm (glyph). Pure logica, geen DOM en geen THREE (scripts/navtarget_test.mjs).
 //
 // De regels (besluit eigenaar 21-11, docs/MINIMAP-PIJLEN-21-11.md):
 //  - Er is precies één ACTIEF doel: het doel met de hoogste prioriteit. Dat is de boog met het icoon, de afstand erbij, die als enige pulseert.

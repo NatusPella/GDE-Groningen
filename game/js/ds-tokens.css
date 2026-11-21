@@ -294,7 +294,7 @@ html.reduce-motion { --ds-m-snel: 0ms; --ds-m: 0ms; --ds-m-max: 0ms; --ds-m-kort
   --ds-zeef-primair: var(--ds-c-ink-geel);
   --ds-zeef-accent: var(--ds-c-ink-roze);
   /* Doelkleuren van kaart en minikaart (#1078, besluit 21-11): geel = het doel van de autoroute, paars = wat je zelf koos, crème = holle pijl van een wachtend doel.
-   navdoel.js NAV_ROL kiest de paletrol; a11y.js zet --nav-actief, --nav-eigen, --nav-klus en --nav-zorg live op de kleurenblindpaletten. Dit zijn de terugvallen voor een statische pagina. */
+   navtarget.js NAV_ROL kiest de paletrol; a11y.js zet --nav-actief, --nav-eigen, --nav-klus en --nav-zorg live op de kleurenblindpaletten. Dit zijn de terugvallen voor een statische pagina. */
   --nav-actief: var(--ds-c-ink-geel);
   --nav-eigen: var(--mk-user, var(--ds-c-ink-roze));
   --nav-klus: var(--mk-job, var(--ds-c-ink-bord));
