@@ -235,7 +235,7 @@ export function initTouch(input, world, hooks = {}) {
     // cinematics.js counts the Space it sees (a real key event) for hold-to-skip; padHold alone never reaches it
     if (ctx === 'cutscene') sendKey(down ? 'keydown' : 'keyup', a, 'pad');
     else if (a === '@fire') input.mouse.down = down;
-    else if (a === '@aim') input.mouse.rightDown = down;
+    else if (a === '@aim') (input.setAim ? input.setAim(down) : (input.mouse.rightDown = down));
     else if (a.startsWith('@wheel')) { if (down) input.mouse.wheel += a === '@wheel+' ? 100 : -100; }
     else if (a === '@gas') hold('w', down);
     else if (a === '@brake') hold('s', down);

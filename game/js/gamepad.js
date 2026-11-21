@@ -189,7 +189,7 @@ function press(slot) {
   if (a == null) return;
   heldAction[slot] = a;
   if (a === '@fire') { input.mouse.down = true; return; }
-  if (a === '@aim') { input.mouse.rightDown = true; return; }
+  if (a === '@aim') { input.setAim ? input.setAim(true) : (input.mouse.rightDown = true); return; }
   if (a === '@wheel+' || a === '@wheel-') { input.mouse.wheel += a === '@wheel+' ? WHEEL_TICK : -WHEEL_TICK; return; }
   if (a === '@gas' || a === '@brake') return; // analog, in sticks()
   if (slot === 'ls' && a === 'shift' && map.stick === 'move') { sprintLatch = !sprintLatch; delete heldAction[slot]; return; }
@@ -206,7 +206,7 @@ function release(slot) {
   delete repeatAt[slot];
   if (a == null) return;
   if (a === '@fire') { input.mouse.down = false; return; }
-  if (a === '@aim') { input.mouse.rightDown = false; return; }
+  if (a === '@aim') { input.setAim ? input.setAim(false) : (input.mouse.rightDown = false); return; }
   if (a.startsWith('@')) return;
   sendKey('keyup', a, 'pad');
 }
