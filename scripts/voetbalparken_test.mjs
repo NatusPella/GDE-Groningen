@@ -73,6 +73,17 @@ t('het veld op het park: middelpunt en hoek van het grootste veld; kleine velden
   assert.ok(pitchPlacement({ x: 0, y: 0, r: 0, f: 1, a: 900 }).over);
   assert.equal(pitchPlacement({ x: 0, y: 0, f: 1, a: 9000 }).angle, 0);
 });
+t('het veld op elk van de parken: eindige plek en hoek, en het merendeel is groot genoeg voor een veld van 56 bij 90 (de rest krijgt het veld eroverheen)', () => {
+  let alle = 0, past = 0;
+  for (const pl of idx.plaatsen) for (const park of pl.p) {
+    const q = pitchPlacement(park); alle++;
+    assert.ok(Number.isFinite(q.x) && Number.isFinite(q.y) && Number.isFinite(q.angle) && Math.abs(q.angle) <= 2 * Math.PI + 1e-9, `${pl.n}: ${JSON.stringify(park)}`);
+    assert.notEqual(q.fits, q.over, 'een park past of krijgt het veld erover, nooit allebei');
+    if (q.fits) past++;
+  }
+  assert.ok(alle >= 270, `${alle} parken`);
+  assert.ok(past / alle > 0.25, `${past} van ${alle} parken passen`);
+});
 t('een club voor een plaats heeft palet, patroon, sterkte en trainingsvelden', () => {
   const c = clubForPlace(idx.plaatsen.find((p) => p.p.length > 1));
   assert.ok(c.sterkte >= 30 && c.sterkte <= 48 && c.trainingsvelden.length >= 1);

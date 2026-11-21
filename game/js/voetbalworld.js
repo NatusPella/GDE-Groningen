@@ -45,6 +45,22 @@ export function crowdSeats(count, seed, { B = 56, L = 90, rows = 14 } = {}) {
   }
   return out;
 }
+// Op een dorpspark staat geen tribune: supporters langs de lijn, twee rijen op een meter of twee van de zijlijn, 30 tot 140 figuren naar klasse en vorm (de tribunefasen hierboven zijn voor de Euroborg).
+export const PARK_CROWD = { min: 30, max: 140, rows: 2 };
+export const parkCrowdCount = (division, rank = 4, form = 1) => Math.round(Math.min(PARK_CROWD.max, Math.max(PARK_CROWD.min, PARK_CROWD.max * crowdFill(division, rank, form))));
+export function parkCrowdSeats(count, seed, { B = 56, L = 90 } = {}) {
+  const rng = makeRng(hashSeed('parkcrowd', seed));
+  const out = [];
+  for (let i = 0; i < count; i++) {
+    const zijde = i % 2 ? 1 : -1, rij = Math.floor(rng() * PARK_CROWD.rows);
+    out.push({ x: zijde * (B / 2 + 2.2 + rij * 0.9 + rng() * 0.3), y: (rng() - 0.5) * (L - 6), fase: rng(), hoogte: 0.9 + rng() * 0.2, kleur: Math.floor(rng() * 6) });
+  }
+  return out;
+}
+// De kleuren van de jassen en truien (6 stuks, geen clubkleur: kleur is nooit het enige verschil en er staat geen logo op).
+export const CROWD_COLORS = [0xc0392b, 0x2e86c1, 0xf1c40f, 0x27ae60, 0xecf0f1, 0x8e44ad];
+// De sprong van een supporter bij een doelpunt: hoogte in meters op tijd t (seconden) met zijn eigen fase; 0 als de tijd om is.
+export const crowdBounce = (t, fase, duur = 4) => (t >= 0 && t < duur ? Math.abs(Math.sin(t * 8 + fase * 6.283)) * 0.22 * (1 - t / duur) : 0);
 export const crowdVisible = ({ reduceMotion = false, quality = 'hoog' } = {}) => (quality === 'laagst' ? 'uit' : reduceMotion ? 'stil' : 'animatie');
 
 // ---- geluid: de keuze van een geluid bij een wedstrijdgebeurtenis, met bijschrift; zonder bestand valt het terug op gefilterde ruis ----
@@ -73,6 +89,14 @@ export function parkMarkers(index, bounds, { homeId = null, nextId = null } = {}
     if (type === 'thuis') for (const t of c.trainingsvelden) if (t.x >= bounds.x0 && t.x <= bounds.x1 && t.y >= bounds.y0 && t.y <= bounds.y1) out.push({ id: `${c.id}:t`, x: t.x, y: t.y, type: 'training', label: 'Trainingsveld', sub: c.naam });
   }
   return out.slice(0, 120);
+}
+
+// De spots die de activiteit op de kaart zet (activities.js `spots`): de club van de speler, zijn trainingsveld en, bij een uitwedstrijd, het park van de tegenstander als doel. Nooit alle 281 parken.
+const ALLES = { x0: -Infinity, y0: -Infinity, x1: Infinity, y1: Infinity };
+export function mapSpots(index, { homeId = null, nextId = null } = {}) {
+  if (!index || !homeId) return [];
+  return parkMarkers(index, ALLES, { homeId, nextId }).filter((m) => m.type !== 'park')
+    .map((m) => ({ id: `voetbal:${m.id}`, name: m.type === 'training' ? 'Trainingsveld' : m.type === 'volgende' ? `Uitwedstrijd: ${m.label}` : m.label, sub: m.sub, x: m.x, y: m.y }));
 }
 
 // ---- trainende teams op de velden binnen 150 m van de speler: 6 tot 10 poppetjes en een bal, geen sim, uit als de speler weg is ----

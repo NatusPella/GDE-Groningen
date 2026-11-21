@@ -13,12 +13,13 @@ import { keyTextHtml } from './keycap.js';
 import { createBoard, mgThema, bubble, clearBubbles, pick, stopPressed, easeCamera, clamp } from './minigamekit.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import * as CL from './voetbalcarrierelive.js';
-import { matchSetup, commentaryContext } from './voetbalcarriere.js';
+import { matchSetup, commentaryContext, nextMatch, divisionOfMyClub } from './voetbalcarriere.js';
 import { pitchPlacement } from './voetbalparken.js';
 import { registerLauncher, registerCoachLauncher } from './voetbalcarriereui.js';
 import { coachSetup, makeCoachMatch, coachTactic, coachResult } from './voetbalcoach.js';
 import { formationList } from './voetbalrules.js';
-import { awayKit } from './voetbalworld.js';
+import { awayKit, mapSpots, parkCrowdCount, crowdVisible, trainingSquads } from './voetbalworld.js';
+import { buildCrowd, makeTrainers } from './voetbalpubliek.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { sfxEvent } from './sfx/haken.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedLiveTik, wedHostLiveEind, wedGastVerlaat, wedGastReset } from './multiplayerwedstrijd.js';
@@ -219,6 +220,7 @@ function zetGround(w, x, y) {
 function ruimParkOp() {
   if (!parkBuilt) return;
   const sc = getScene();
+  if (parkBuilt.publiek) parkBuilt.publiek.dispose();
   for (const o of [parkBuilt.root, parkBuilt.bord, parkBuilt.bal, parkBuilt.schaduw]) sc.remove(o);
   parkBuilt = null;
 }
@@ -405,7 +407,13 @@ function launch(w, { force = false, online = null, sim = null, career = null } =
   zetGround(w, site.x, site.y);
   if (built && built.formaat !== sim.formaat) ruimBouwOp();
   if (!built) built = bouw(w, sim.formaat);
-  if (career && career.site) { ruimParkOp(); parkBuilt = bouw(w, sim.formaat, career.site); }
+  if (career && career.site) {
+    ruimParkOp(); parkBuilt = bouw(w, sim.formaat, career.site);
+    try { // supporters langs de lijn (voetbalpubliek.js): het aantal volgt de klasse; niet bij de laagste kwaliteit
+      const cc = CL.getCareer(), div = (cc && cc.world && divisionOfMyClub(cc)) || 'talent';
+      parkBuilt.publiek = buildCrowd(parkBuilt.root, { count: parkCrowdCount(div), seed: (sim.seed | 0) + 1, B: PITCH.B, L: PITCH.L, toLocal, uit: crowdVisible({ quality: getSettings().quality === 'laag' ? 'laagst' : 'hoog' }) === 'uit' });
+    } catch (e) { parkBuilt.publiek = null; }
+  }
   const bon = career ? null : characterEnter(w, 'voetbal'); // de speler voetbalt als Tessa (wissel per speler, terug bij het einde); zonder haak gebeurt er niets
   game = { online, sim, cctx: career ? career.cctx || null : null, t: 0, dt: 0, cam: null, actors: makeActors(sim), marks: makeMarkings(), mode, said: 0, lastFase: sim.fase, laadG: { schot: 0, lang: 0 }, bon, exitX: career && career.site ? toWorld((PITCH.B / 2) + 4, 0).x : GATE.x, exitY: career && career.site ? toWorld((PITCH.B / 2) + 4, 0).y : GATE.y, career, gemeld: false, comp: online || !opt ? null : opt.comp };
   tvInit(w, game);
@@ -551,6 +559,7 @@ function updateGame(w, dt) {
   teken(w, dt);
   updateHud(w);
   tvTik(w, dt);
+  if (parkBuilt && parkBuilt.publiek) { if (g.sim.fase === 'goal') g.goalT = 0; else if (g.goalT >= 0) { g.goalT += dt; if (g.goalT > 5) g.goalT = -1; } parkBuilt.publiek.tik(dt, g.goalT >= 0 ? g.goalT : -1, !reducedMotion()); }
 }
 
 // --- de tv-laag: commentaar, regie, herhaling, namen, pijlen en overlay (alleen lokaal; Samen spelen stuurt hier niets voor over het net) -----------------------------------------------
@@ -852,6 +861,35 @@ export function launchCoachMatch(w) {
 }
 registerCoachLauncher((w) => launchCoachMatch(w));
 
+// De kaartlaag Voetbal (#1115, #1117): met een carrière staan op de kaart de club van de speler (en zijn trainingsveld) en het park van de volgende tegenstander (de uitwedstrijd als doel);
+// de overige 281 parken zijn geen markers (te druk), die staan in de index voor de wedstrijden. Zonder carrière alleen de Euroborg. Het resultaat staat in een kleine cache per carrièrestand.
+// Trainende teams (#1115): met een carrière en een speler binnen 150 m van een veld van zijn club lopen er een paar figuren rondjes; elke halve seconde bijgewerkt, nooit tijdens een wedstrijd.
+let trainers = null, trainT = 0;
+function updateTrainers(w) {
+  try {
+    if (game || !CL.hasCareer() || reducedMotion()) { if (trainers) { trainers.dispose(); trainers = null; } return; }
+    const p = hoofdspeler(w);
+    const squads = trainingSquads(CL.getIndex(), { x: p.x, y: p.y }, 1);
+    if (!squads.length && !trainers) return;
+    if (!trainers) trainers = makeTrainers(getScene());
+    trainers.sync(squads, (x, y) => { try { const r = w.map.surfaceAt(x, y, { z: 0, ribbon: null }); return r && Number.isFinite(r.z) ? r.z : 0; } catch (e) { return 0; } });
+    if (!squads.length) { trainers.dispose(); trainers = null; }
+  } catch (e) { if (trainers) { try { trainers.dispose(); } catch (e2) { /* weg */ } trainers = null; } }
+}
+let kaartCache = { sleutel: '', spots: [] };
+function kaartlaagSpots() {
+  try {
+    if (!CL.hasCareer()) return [];
+    const c = CL.getCareer(), nm = nextMatchOf(c);
+    const sleutel = `${c.club}|${c.evDone}|${c.seasonNr}|${nm ? nm.opponent : ''}`;
+    if (kaartCache.sleutel === sleutel) return kaartCache.spots;
+    const spots = mapSpots(CL.getIndex(), { homeId: c.club, nextId: nm && !nm.isHome ? nm.opponent : null });
+    kaartCache = { sleutel, spots };
+    return spots;
+  } catch (e) { return []; }
+}
+const nextMatchOf = (c) => { try { return nextMatch(c, CL.getClub); } catch (e) { return null; } };
+
 function afrondenCarriere(w, g, quit) {
   if (quit) { w.addMessage('Wedstrijd gestopt: de ronde blijft staan', 3); return; }
   const sim = g.sim, mm = ownHuman(g);
@@ -959,7 +997,7 @@ export const VOETBAL = {
       quit: () => { if (!game) return false; end(w, { quit: true }); return true; },
     };
   },
-  spots: () => [{ id: 'voetbal', name: 'Voetbal Euroborg', x: GATE.x, y: GATE.y }],
+  spots: (voorCheck = false) => [{ id: 'voetbal', name: 'Voetbal Euroborg', x: GATE.x, y: GATE.y }, ...(voorCheck ? [] : kaartlaagSpots())],
   prompt,
   secondary,
   interact,
@@ -973,11 +1011,12 @@ export const VOETBAL = {
     updateGame(w, dt);
   },
   tick(dt, w) {
-    if ((lodT -= dt) <= 0) { lodT = 0.5; updateLod(w); }
+    if ((lodT -= dt) <= 0) { lodT = 0.5; updateLod(w); updateTrainers(w); }
+    if (trainers) { trainT += dt; trainers.tik(trainT); }
   },
   camera,
   icon: drawIcon,
-  mapSub: () => recText() || 'Voetbal: vijf of elf tegen elf in de Euroborg, ook als competitie',
+  mapSub: (s) => (s && s.sub) || recText() || 'Voetbal: vijf of elf tegen elf in de Euroborg, ook als competitie',
   ubbo(w) {
     const d = Math.hypot(GATE.x - hoofdspeler(w).x, GATE.y - hoofdspeler(w).y);
     const rec = getChallengeRecord(recSleutel());
