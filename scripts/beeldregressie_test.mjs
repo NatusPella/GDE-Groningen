@@ -81,6 +81,8 @@ for (const g of GROEPEN) {
 }
 // de eerste set heeft een eigen scenebestand met --only
 ok(/__shotsOnly/.test(fs.readFileSync(path.join(ROOT, 'scripts/ui/beeldregressie_scenes.js'), 'utf8')), 'de eerste set kiest scenes met --only');
+// de vier grote schermmomenten (#996) staan in de lijst, met de vijfde soort wanted
+ok(GROEPEN.find((g) => g.id === 'momenten').schermen.length === 5, 'de groep momenten heeft geslaagd, mislukt, opgepakt, gebied en wanted');
 // aansluiting: ui_shots kent --rustig, de releasegate draait de set en laat een afwijking falen
 ok(/--rustig/.test(fs.readFileSync(path.join(ROOT, 'scripts/ui_shots.mjs'), 'utf8')) && /rustigDrukwerk/.test(fs.readFileSync(path.join(ROOT, 'scripts/ui_shots.mjs'), 'utf8')), 'ui_shots zet Rustig drukwerk aan met --rustig');
 const sets = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/release/visual-sets.json'), 'utf8')).sets;

@@ -28,6 +28,7 @@ export const RUSTIG_ACHTERVOEGSEL = '--rustig';
 // De eerste set is klein (vijf schermen); de rest staat klaar zodat de lijst met een vlag kan groeien.
 export const GROEPEN = [
   { id: 'eerste-set', scenes: 'scripts/ui/beeldregressie_scenes.js', schermen: ['menu-garage', 'menu-todo', 'menu-verhaal', 'menu-telefoon', 'samen-hub'], eerste: true },
+  { id: 'momenten', scenes: 'scripts/ui/beeldregressie_momenten_scenes.js', schermen: ['moment-geslaagd', 'moment-mislukt', 'moment-opgepakt', 'moment-gebied', 'moment-wanted'] },
   { id: 'afronding', scenes: 'scripts/ui/ds_afronding_scenes.js', schermen: ['spullen', 'loopbaan', 'veroverd', 'controls', 'samenkeuze', 'samen-starten-consent', 'telefoon-bericht', 'telefoon-nieuws', 'bord-discgolf', 'bord-kartbaan', 'bord-skatepark', 'bord-stopvenster', 'winkel', 'laadscherm'] },
   { id: 'hud', scenes: 'scripts/ui/shots_scenes.js', schermen: ['hud-voet', 'hud-gezocht', 'hud-trein'] },
   { id: 'kaart', scenes: 'scripts/ui/menukaart_scenes.js', schermen: ['kaart-uitleg', 'kaart-na'] },
@@ -108,7 +109,8 @@ function main() {
     return 0;
   }
   if (vlag('run')) {
-    const groepen = GROEPEN.filter((g) => (arg('groep', '') ? g.id === arg('groep', '') : g.eerste));
+    const gevraagd = arg('groep', '').split(',').filter(Boolean); // --groep=a,b of --groep=alle
+    const groepen = GROEPEN.filter((g) => (gevraagd.length ? gevraagd.includes('alle') || gevraagd.includes(g.id) : g.eerste));
     fs.mkdirSync(uit, { recursive: true });
     for (const g of groepen) for (const modus of modi) {
       // Rustig drukwerk: eigen tijdelijke map, daarna met het achtervoegsel naast de volle beelden gezet
