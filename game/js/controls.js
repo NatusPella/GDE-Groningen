@@ -20,7 +20,7 @@ export const KEY_ACTIONS = [
   ['e', 'Instappen (ook vanuit het water in een boot), praten, gebruiken; duif: pikken; vliegtuig: roer rechts', 'actie'],
   ['f', 'Instappen (tweede toets); duif: poepen', 'actie'],
   ['k', 'Kusje', 'actie'],
-  ['6', 'Te voet: andere kleren, de volgende outfit uit je kast (Outfit 1 tot 5)', 'actie'],
+  ['6', 'Andere kleren, de volgende outfit uit je kast (Outfit 1 tot 5); te voet en in een voertuig, niet in een menu of minigame', 'actie'],
   ['i', 'Hengelen: aan de waterkant of in een boot die stilligt', 'actie'],
   ['y', 'Samen spelen: het stuur aan je bijrijder geven of terugnemen; als bijrijder om het stuur vragen of het teruggeven', 'actie'],
   ['7', 'Samen spelen: roepen "Kom hier" (een baken voor iedereen)', 'actie'],

@@ -73,6 +73,8 @@ export function bakePanel(b, title = '') {
 
 // --- het paneel (alleen in de browser) -----------------------------------------
 let panel = null;
+// Is het bakpaneel open? Dan zijn 1 tot 6 de ingrediënten (niet de snelwisseltoets voor outfits, shops.js).
+export const bakeBezig = () => !!panel;
 let rwStappen = null, rwToetsen = null;
 let goed = ''; // de melding bij een gelukte bal (de foutmelding staat in b.last)
 

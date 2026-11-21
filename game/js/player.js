@@ -164,8 +164,8 @@ export class Player {
     // kissing has its own key (K): E next to a car used to kiss instead of
     // getting in whenever the companion stood close
     if (input.wasPressed('k') && !this.inVehicle && !this.water) this.tryKiss(world);
-    // other clothes (6): the next outfit from the wardrobe, on foot (shops.js cycleOutfit via world.cycleOutfit; clothing.js presets)
-    if (input.wasPressed('6') && !this.inVehicle && !this.water && world.cycleOutfit) world.cycleOutfit(1);
+    // other clothes (6): the next outfit from the wardrobe, on foot or in a vehicle (shops.js cycleOutfit via world.cycleOutfit; clothing.js presets)
+    if (input.wasPressed('6') && !this.water && world.cycleOutfit) world.cycleOutfit(1); // ook in een voertuig: de auto is je pashokje
     if (this.crack) {
       const c = this.crack;
       c.t += dt;
