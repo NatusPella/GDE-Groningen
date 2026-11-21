@@ -34,7 +34,7 @@ export function leesVoorkeur(raw) {
   try { d = JSON.parse(raw || 'null'); } catch (e) { d = null; }
   if (!d || typeof d !== 'object') d = {};
   const formaat = cleanFormaat(d.formaat);
-  return { duur: DUREN[d.duur] ? d.duur : DEFAULT_DURATION, formaat, vorming: cleanFormation(formaat, d.vorming), stijl: cleanStijl(d.stijl), modus: d.modus === 'competitie' ? 'competitie' : 'vriendschappelijk', comp: d.comp && typeof d.comp === 'object' ? d.comp : null };
+  return { duur: DUREN[d.duur] ? d.duur : DEFAULT_DURATION, formaat, vorming: cleanFormation(formaat, d.vorming), stijl: cleanStijl(d.stijl), modus: d.modus === 'competitie' ? 'competitie' : 'vriendschappelijk', comp: d.comp && typeof d.comp === 'object' ? d.comp : null, derby: d.derby === true };
 }
 // De voorkeur kort of normaal komt uit een eigen sleutel (storagekeys.js KEYS.voetbal, alleen dit apparaat); leeg, corrupt of onzin geeft de standaard.
 export function leesDuurVoorkeur(raw) {

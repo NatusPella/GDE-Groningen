@@ -426,7 +426,7 @@
     "voetbalcompetitie"
    ],
    "eigenaar": "speler",
-   "gast": "Een gast speelt zijn eigen figuur in jouw team; ratings reizen mee in het EXTRA-bericht.",
+   "gast": "Een gast speelt zijn eigen figuur in jouw team of, bij Derby, in team 1; zijn ratings reizen als hexblok mee met J (wedgast), de teams in de start-v.",
    "beloning": "Per speler uit de eigen uitslagsregel (geld en ervaring); nooit competitiepunten van een ander.",
    "wegval": "De computer neemt over; het team wordt nooit leeg; geen instap halverwege.",
    "test": [
@@ -440,7 +440,7 @@
    "status": "gat",
    "prio": "middel",
    "issue": "#1157",
-   "gat": "voetbalsamen.js (regels, ratingblok, beloning) is niet gekoppeld aan coopnet.js en registreerWedstrijd; derby met mensen in team 1 (voetbalmatch.js) is niet gebouwd; sponsorpanden wachten op Bezit; uitwedstrijd als reis is niet gebouwd."
+   "gat": "Open: sponsorpanden wachten op Bezit; uitwedstrijd als reis is niet in beeld bekeken; de camera is voor team 1 niet gespiegeld. Derby (mensen in team 1), de ratings bij Meedoen en de uitslag per team zijn gebouwd en getest (coopwedstrijd_voetbal_test)."
   },
   {
    "id": "voetbalwedstrijd",

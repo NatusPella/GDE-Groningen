@@ -504,10 +504,10 @@ De carrière is van de speler zelf (`gde-voetbalcarriere-v1`, nooit gedeeld, noo
 
 - **Van wie:** wie het spel opende rekent de wedstrijd, de computer en de niet-gespeelde duels van zijn eigen carrière; elke speler houdt zijn eigen seizoen, agenda en geld.
 - **Gast (J of N bij Meedoen?):** een gast speelt zijn eigen figuur (Tammo of Tessa) in jouw team; is er maar een mens, dan is de andere figuur een computerteamgenoot.
-- **Wat ziet een gast:** de momentopname van de wedstrijd, zoals nu; de ratings reizen mee als een compact blok in het bestaande EXTRA-bericht (het protocol blijft ongewijzigd, test) en worden aan de hostkant geklemd op het niveau van de klasse.
+- **Wat ziet een gast:** de momentopname van de wedstrijd, zoals nu; de ratings van een gast reizen mee als een compact hexblok (`r`, hooguit 60 tekens) in zijn bestaande `wedgast`-antwoord J; de host leest het met een strikte lezer en klemt het op het niveau van de klasse (`decodeRatings`, een opgevoerde waarde telt niet). De teams van een derby reizen in de bestaande start-`v` (`t1_3` is: slots 1 en 3 spelen in team 1). Het netwerkprotocol (`net/protocol.js`) blijft ongewijzigd (test).
 - **Beloning en voortgang:** per speler uit zijn eigen uitslagsregel: geld en ervaring (60%), nooit competitiepunten of een contractbonus van een ander.
 - **Wegvallen of later aansluiten:** de computer neemt over, het team wordt nooit leeg; geen instap halverwege.
-- **Rivalen (derby):** de indeling is gepland (`planTeams`); mensen in team 1 vraagt nog een wijziging in `voetbalmatch.js` en is niet gebouwd. De koppeling van de regels aan `coopnet.js` is ook nog niet gemaakt (docs/VOETBAL-CARRIERE-VERIFICATIE-21-11.md).
+- **Rivalen (derby, #1114):** de host zet Derby aan in het keuzescherm (toets 8); de indeling wisselt per plek (host in team 0, de eerste gast in team 1, `deriveTeams`), hooguit vier per team. `makeMatch` kent `team` per mens; wie in team 1 speelt bestuurt een veldspeler van de eigen helft en krijgt zijn uitslag vanuit zijn eigen team. De camera is voor iedereen dezelfde (team 1 speelt van boven naar beneden); een gespiegelde camera voor team 1 is niet gebouwd en niet in beeld bekeken. Test: `scripts/coopwedstrijd_voetbal_test.mjs` (derby met vier bots, ratings, uitslag per team, spiegel) en `scripts/voetbal_samen_test.mjs`.
 - **Clubbezit en sponsorpanden:** een aandeel is van de speler (Bezit-register); een stadionpand heeft een eigenaar, de laagste tijd en daarna het laagste speler-id wint.
 
 ## Overige systemen: Samen-regels (21-11, dekking)

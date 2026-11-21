@@ -1,7 +1,7 @@
 // De voetbalwedstrijd in de Euroborg (#981, Voetbal Sim Light): puur, zonder DOM en zonder THREE (scripts/voetbal_test.mjs, scripts/voetbal_botsim.mjs).
 // Vijf tegen vijf op een klein veld, twee helften, aftrap, uitbal (inworp, hoekschop, doelschop: simpel, met een korte pauze), een doelpunt met een viering en een
 // slow-motionflits, en een simpele overtreding (omver lopen of een tackle van achteren geeft de ander een vrije bal; geen kaarten, geen buitenspel).
-// Samen spelen (#443): 1 tot 4 mensen spelen in team 0 tegen de computer. Host-autoritair: wie het spel opende rekent de bal en alle spelers uit met de invoer van elke speler
+// Samen spelen (#443): 1 tot 4 mensen spelen in team 0 tegen de computer; als derby (#1114) kiest elke mens een team (`team` 0 of 1 in deeln, hooguit vier per team) en spelen vrienden tegen elkaar. Host-autoritair: wie het spel opende rekent de bal en alle spelers uit met de invoer van elke speler
 // (stick en knoppen, dezelfde bytes als bij een voertuig); twaalf keer per seconde gaat een compacte momentopname naar de gasten (snapVoetbal), die hem vloeiend tekenen
 // (makeFootballMirror). Wie wegvalt wordt door de computer vervangen en krijgt niets; de rest speelt door. Geen nieuw netwerkprotocol: dit is de bestaande live-wedstrijd (soort 'live').
 import { makeRng } from './minigamekit.js';
@@ -52,8 +52,10 @@ export function makeMatch(deeln = [], { duur = 'normaal', stand: level = 'standa
   const namenV = formationNames(formaat);
   const vT = cleanFormation(formaat, vorming), vU = cleanFormation(formaat, vormingTegen || namenV[seed % namenV.length]);
   const tac = [{ vorming: vT, stijl: cleanStijl(stijl), lijst: formationList(formaat, vT) }, { vorming: vU, stijl: cleanStijl(stijlTegen), lijst: formationList(formaat, vU) }];
-  const order = controlOrder(tac[0].lijst);
-  const ai = [aiBeide ? aiLevel(level) : mateLevel(level), aiLevel(level)];
+  const order = [controlOrder(tac[0].lijst), controlOrder(tac[1].lijst)];
+  const mensTeam = (d) => (d && d.team === 1 ? 1 : 0);   // derby (#1114): een mens kan in team 1 spelen, tegen zijn vrienden
+  const heeftMens = [0, 1].map((t) => (deeln || []).slice(0, MAX_FOOTBALL_PLAYERS).some((d) => mensTeam(d) === t));
+  const ai = [aiBeide || (!heeftMens[0] && heeftMens[1]) ? aiLevel(level) : mateLevel(level), heeftMens[1] ? mateLevel(level) : aiLevel(level)];
   const teams = teamsOpt && teamsOpt[0] && teamsOpt[1] ? [teamsOpt[0], teamsOpt[1]] : [TEAMS[0], opponent(tg)];
   const players = [];
   for (let t = 0; t < 2; t++) for (let i = 0; i < perTeam; i++) {
@@ -62,9 +64,13 @@ export function makeMatch(deeln = [], { duur = 'normaal', stand: level = 'standa
     if (rt && rt.f) pl.fac = ratingFac(rt.f); // ratings per speler (carrière, #1107): zonder blijft alles neutraal en de sim gelijk
     players.push(pl);
   }
-  const humans = (deeln || []).slice(0, MAX_FOOTBALL_PLAYERS).map((d, k) => ({
-    slot: d.slot, naam: d.naam || 'Speler', char: d.char || null, ctl: order[k], weg: false, laad: { schot: 0, lang: 0 }, vorig: 0, vorigW: 0, wisselCd: 0, autoT: 0, doelpunten: 0, schoten: 0, assist: 0, inv: NEUTRAAL, bonus: { ...NEUTRAAL_FAC, ...NEUTRALE_BONUS, ...(d.bonus || null) },
-  }));
+  const nTeam = [0, 0];
+  const humans = (deeln || []).slice(0, MAX_FOOTBALL_PLAYERS).map((d) => {
+    const team = mensTeam(d), k = nTeam[team]++;
+    return { team, k };
+  }).map(({ team, k }, j) => { const d = deeln[j]; return {
+    slot: d.slot, naam: d.naam || 'Speler', char: d.char || null, team, ctl: team * perTeam + (order[team][k] != null ? order[team][k] : order[team][order[team].length - 1]), weg: false, laad: { schot: 0, lang: 0 }, vorig: 0, vorigW: 0, wisselCd: 0, autoT: 0, doelpunten: 0, schoten: 0, assist: 0, inv: NEUTRAAL, bonus: { ...NEUTRAAL_FAC, ...NEUTRALE_BONUS, ...(d.bonus || null) },
+  }; });
   for (const mm of humans) { players[mm.ctl].slot = mm.slot; players[mm.ctl].laatsteMens = mm.slot; }
   const duurHelft = duurVan(formaat, duur);
   const m = {
@@ -172,7 +178,7 @@ const NABIJ_KEEPER = 9;
 function beschikbaar(m, genomen, human) {
   const bal = m.bal, uit = [];
   for (const p of m.spelers) {
-    if (p.team !== 0 || genomen.has(p.id) || p.rood) continue;
+    if (p.team !== human.team || genomen.has(p.id) || p.rood) continue;
     if (p.rol === 'keeper' && Math.hypot(bal.x - p.x, bal.y - p.y) > NABIJ_KEEPER) continue;
     uit.push(p);
   }
@@ -207,11 +213,11 @@ function wijsBesturing(m, dt, invoer) {
       if (best) { goal = best; human.wisselCd = 0.25; }
     } else if (human.autoT <= 0) {
       human.autoT = 0.2;
-      const eigenBal = !!drager && drager.team === 0;
+      const eigenBal = !!drager && drager.team === human.team;
       if (eigenBal && drager.id !== human.ctl && !genomen.has(drager.id) && drager.balT < 0.4 && drager.rol !== 'keeper') {
         // de pass is aangekomen: de dichtstbijzijnde mens neemt de ontvanger over
         let dichtst = human, bd = naBal(m, cur);
-        for (const o of m.mensen) { if (o.weg || o === human) continue; const d = Math.hypot(m.spelers[o.ctl].x - drager.x, m.spelers[o.ctl].y - drager.y); if (d < bd - 1e-6) { bd = d; dichtst = o; } }
+        for (const o of m.mensen) { if (o.weg || o === human || o.team !== human.team) continue; const d = Math.hypot(m.spelers[o.ctl].x - drager.x, m.spelers[o.ctl].y - drager.y); if (d < bd - 1e-6) { bd = d; dichtst = o; } }
         if (dichtst === human && cur.id !== drager.id) goal = drager;
       } else if (!eigenBal && cur.id !== (drager ? drager.id : -1)) {
         // verdedigen of een losse bal: de speler die het dichtst bij de bal staat
@@ -611,13 +617,15 @@ export const meedoenVoetbal = (m, slot) => m.mensen.some((x) => x.slot === slot 
 
 // Eén regel per mens (de plek is 1 winst, 2 verlies, 3 gelijk); `tijd` is wat hij zelf scoorde, `tekst` bevat de stand ("gewonnen: 3-1").
 export function uitslagVoetbal(m) {
-  const gf = m.score[0], ga = m.score[1], uitk = uitkomstVan(gf, ga);
-  const spot = uitk === 'winst' ? 1 : uitk === 'verlies' ? 2 : 3;
-  const phrase = uitk === 'winst' ? 'gewonnen' : uitk === 'verlies' ? 'verloren' : 'gelijk';
-  return m.mensen.map((x) => ({
-    slot: x.slot, naam: x.naam, ai: false, weg: x.weg, fin: !x.weg, plek: spot, tijd: x.doelpunten, beste: null,
-    tekst: x.weg ? 'niet meer erbij' : `${phrase}: ${scoreTekst(gf, ga)}`,
-  })).sort((a, b) => (a.weg - b.weg) || (a.slot - b.slot));
+  return m.mensen.map((x) => {   // per mens vanuit zijn eigen team (derby, #1114: wie in team 1 speelt wint bij score[1] > score[0])
+    const gf = m.score[x.team || 0], ga = m.score[1 - (x.team || 0)], uitk = uitkomstVan(gf, ga);
+    const spot = uitk === 'winst' ? 1 : uitk === 'verlies' ? 2 : 3;
+    const phrase = uitk === 'winst' ? 'gewonnen' : uitk === 'verlies' ? 'verloren' : 'gelijk';
+    return {
+      slot: x.slot, naam: x.naam, ai: false, weg: x.weg, fin: !x.weg, plek: spot, tijd: x.doelpunten, beste: null,
+      tekst: x.weg ? 'niet meer erbij' : `${phrase}: ${scoreTekst(gf, ga)}`,
+    };
+  }).sort((a, b) => (a.weg - b.weg) || (a.slot - b.slot));
 }
 export const winnaarsVoetbal = (rijen) => rijen.filter((r) => r.plek === 1 && !r.weg).map((r) => r.slot);
 export function beloningVoetbal(rij) {
@@ -664,8 +672,8 @@ export function leesLiveVoetbal(b) {
 }
 
 // De spiegel van een gast: dezelfde velden als de host-wedstrijd voor wie hem tekent, vloeiend gevoed door de momentopnamen.
-export function makeFootballMirror(start, mijnSlot, { duur = 'normaal', stand: level = 'standaard', tegenstander: tg = 0, formaat = 'klein', vorming = null, stijl = 'evenwichtig' } = {}) {
-  const m = makeMatch(start.deeln.map((d) => ({ slot: d.slot, naam: d.naam, char: d.char })), { duur, stand: level, seed: 1, tegenstander: tg, formaat, vorming, stijl });
+export function makeFootballMirror(start, mijnSlot, { duur = 'normaal', stand: level = 'standaard', tegenstander: tg = 0, formaat = 'klein', vorming = null, stijl = 'evenwichtig', team1 = [] } = {}) {
+  const m = makeMatch(start.deeln.map((d) => ({ slot: d.slot, naam: d.naam, char: d.char, team: team1.includes(d.slot) ? 1 : 0 })), { duur, stand: level, seed: 1, tegenstander: tg, formaat, vorming, stijl });
   m.spiegel = true; m.mijnSlot = mijnSlot; m.n = -1; m.leeftijd = 0; m.nSnap = 0; m.flashTekst = ''; m.bt = null; m.mijnId = -1;
   for (const p of m.spelers) { p.tx = p.x; p.ty = p.y; p.slot = null; }
   m.bal.tx = 0; m.bal.ty = 0; m.bal.tz = 0; m.bal.bvx = 0; m.bal.bvy = 0; m.bal.bvz = 0;

@@ -2,7 +2,7 @@
 // Regels: de carrière is van de speler zelf (nooit gedeeld); wie het spel opende rekent de wedstrijd en de computer. Een gast doet mee (Meedoen? J of N) en speelt zijn eigen figuur (Tammo of Tessa) in jouw team;
 // met een mens is de andere figuur een computerteamgenoot. De ratings van een gast worden aan de hostkant geklemd op het niveau van de klasse (een opgevoerde rating telt niet). Beloning per speler:
 // een gast krijgt geld, loopbaanpunten en ervaring uit zijn eigen uitslagsregel, GEEN competitiepunten en geen contractbonus van een ander. Het netwerkprotocol (net/protocol.js) blijft ongewijzigd: de ratings reizen
-// mee als een compact blok in het bestaande EXTRA-bericht (`v`). Derby (vrienden als rivalen, mensen in team 1): de indeling is hier gepland; de sim ondersteunt mensen in team 1 nog niet (zie het doc).
+// mee als een compact blok in het bestaande EXTRA-bericht (`v`). Derby (vrienden als rivalen, mensen in team 1): de indeling (deriveTeams) reist mee in de start-`v`; de sim (makeMatch, `team` per mens) rekent hem.
 export const MAX_PER_TEAM = 4;
 export const LEVEL_CAP = { talent: 56, terp: 72, kroon: 90, europa: 95 };       // het hoogste rating dat een gast mee mag nemen per klasse
 const FIGURES = ['anita', 'tammo'];
@@ -55,6 +55,20 @@ export function planTeams(humans) {
   if (total >= 2 && t[0].length === 0) t[0].push(t[1].pop());
   return { team0: t[0], team1: t[1], derby: t[0].length > 0 && t[1].length > 0 };
 }
+// Derby (#1114): wie in team 1 speelt, als `{ slot, team }` per mens. De host kiest alleen of het een derby is; de indeling wisselt per plek (host in team 0, de eerste gast in team 1, enzovoort) en gaat via de
+// start-`v` naar de gasten als `t<slot>_<slot>`, zodat host en spiegel dezelfde teams bouwen. Zonder derby of met een enkele mens: iedereen in team 0, tegen de computer.
+export function deriveTeams(slots, derby) {
+  if (!derby) return { team1: [], derby: false };
+  const humans = (slots || []).slice(0, 2 * MAX_PER_TEAM).map((slot, k) => ({ slot, team: derby && k % 2 ? 1 : 0 }));
+  const plan = planTeams(humans);
+  return { team1: plan.derby ? plan.team1 : [], derby: plan.derby };
+}
+export const encodeTeams = (team1) => (team1 && team1.length ? `t${team1.slice(0, MAX_PER_TEAM).map((s) => s | 0).join('_')}` : '');
+export function decodeTeams(txt) {
+  const m = /^t(\d{1,3}(?:_\d{1,3}){0,3})$/.exec(String(txt || ''));
+  return m ? m[1].split('_').map(Number) : [];
+}
+export const teamOfSlot = (team1, slot) => (team1 && team1.includes(slot) ? 1 : 0);
 // Wegvallen: de computer neemt de plek over, het team wordt nooit leeg (een team zonder mensen is een computerteam).
 export const dropOut = (plan, slot) => ({ team0: plan.team0.filter((s) => s !== slot), team1: plan.team1.filter((s) => s !== slot), derby: plan.derby });
 

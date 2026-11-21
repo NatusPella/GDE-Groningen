@@ -1,7 +1,8 @@
 // Test van Samen spelen bij de voetbalcarrière (#1114): scripts/voetbal_samen_test.mjs. Puur; bewaakt ook dat het netwerkprotocol niets over voetbal zegt.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { clampGuestFactors, encodeRatings, decodeRatings, assignFigures, planTeams, dropOut, guestReward, capFactor, LEVEL_CAP, MAX_PER_TEAM, guestXpFactor } from '../game/js/voetbalsamen.js';
+import { clampGuestFactors, encodeRatings, decodeRatings, assignFigures, planTeams, dropOut, guestReward, capFactor, LEVEL_CAP, MAX_PER_TEAM, guestXpFactor, deriveTeams, encodeTeams, decodeTeams, teamOfSlot } from '../game/js/voetbalsamen.js';
+import * as V from '../game/js/voetbalmatch.js';
 import { makeProtagonist, simFactors } from '../game/js/voetbalplayers.js';
 
 let n = 0;
@@ -50,6 +51,29 @@ t('de derby-indeling: hooguit vier per team, nooit een leeg team, wegvallen laat
   assert.equal(een.team0.length + een.team1.length, 1);
   assert.ok(!een.derby);
   assert.deepEqual(dropOut(p, 1).team1, [2]);
+});
+t('derby (#1114): de indeling wisselt per plek, reist als korte tekst mee en komt er heel uit', () => {
+  assert.deepEqual(deriveTeams([0, 1], true), { team1: [1], derby: true });
+  assert.deepEqual(deriveTeams([0, 1, 2, 3], true).team1, [1, 3]);
+  assert.deepEqual(deriveTeams([0, 1, 2], true).team1, [1]);
+  assert.deepEqual(deriveTeams([0, 1, 2, 3], false), { team1: [], derby: false }, 'zonder derby spelen alle mensen samen');
+  assert.deepEqual(deriveTeams([0], true), { team1: [], derby: false }, 'een mens alleen is geen derby');
+  const x = deriveTeams([0, 1, 2, 3, 4, 5, 6, 7], true);
+  assert.ok(x.team1.length === 4);
+  assert.equal(encodeTeams([1, 3]), 't1_3'); assert.equal(encodeTeams([]), '');
+  assert.deepEqual(decodeTeams('t1_3'), [1, 3]); assert.deepEqual(decodeTeams('t2'), [2]);
+  assert.deepEqual(decodeTeams('x9'), []); assert.deepEqual(decodeTeams('t1_2_3_4_5'), []); assert.deepEqual(decodeTeams(undefined), []);
+  assert.ok(`n.s.2.g.4-3-3.a.${encodeTeams([1, 3])}`.length <= 40);
+  assert.equal(teamOfSlot([1], 1), 1); assert.equal(teamOfSlot([1], 0), 0);
+});
+t('derby in de sim: mensen in team 1 spelen hun eigen helft, de computer helpt beide teams', () => {
+  const m = V.makeMatch([{ slot: 0, naam: 'A', team: 0 }, { slot: 1, naam: 'B', team: 1 }, { slot: 2, naam: 'C', team: 0 }, { slot: 3, naam: 'D', team: 1 }], { duur: 'kort', seed: 1 });
+  assert.deepEqual(m.mensen.map((x) => x.team), [0, 1, 0, 1]);
+  assert.ok(m.mensen.every((x) => Math.floor(x.ctl / m.perTeam) === x.team));
+  assert.ok(m.spelers[m.mensen[1].ctl].team === 1 && m.spelers[m.mensen[1].ctl].slot === 1);
+  const zonder = V.makeMatch([{ slot: 0, naam: 'A' }, { slot: 1, naam: 'B' }], { duur: 'kort', seed: 1 });
+  assert.ok(zonder.mensen.every((x) => x.team === 0), 'zonder team blijft alles zoals het was');
+  assert.deepEqual(zonder.mensen.map((x) => x.ctl), V.makeMatch([{ slot: 0 }, { slot: 1 }], { duur: 'kort', seed: 1 }).mensen.map((x) => x.ctl));
 });
 t('de beloning van een gast: geld en ervaring, nooit competitiepunten of een contractbonus; wie wegviel krijgt niets', () => {
   const w = guestReward({ outcome: 'winst', goals: 2 }, 'terp');
