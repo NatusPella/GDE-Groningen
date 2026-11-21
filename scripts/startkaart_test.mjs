@@ -15,7 +15,7 @@ let n = 0, fails = 0;
 const t = (naam, f) => { n++; try { f(); } catch (e) { fails++; console.log('FAIL', naam, '\n  ', String(e.message || e).split('\n').slice(0, 3).join('\n   ')); } };
 const woorden = (s) => String(s).trim().split(/\s+/).filter(Boolean).length;
 
-// De 27 activiteiten uit activities.js, zonder de module te laden (die haalt THREE en de DOM).
+// De 28 activiteiten uit activities.js, zonder de module te laden (die haalt THREE en de DOM).
 const ACT = lees('game/js/activities.js');
 const imports = {};
 for (const m of ACT.matchAll(/import \{ ([^}]+) \} from '\.\/([^']+)\.js';/g)) for (const naam of m[1].split(',').map((x) => x.trim().split(' as ')[0])) imports[naam] = m[2];
@@ -24,8 +24,8 @@ const moduleBronnen = lijst.map((naam) => (imports[naam] ? lees(`game/js/${impor
 const ids = S && Object.keys(STARTKAART).filter((id) => moduleBronnen.some((bron) => new RegExp(`id: '${id}'`).test(bron)));
 
 t('elke activiteit heeft een kaart met titel, doel, beloning en kernbesturing', () => {
-  assert.equal(lijst.length, 27, 'activities.js heeft 27 activiteiten');
-  assert.equal(Object.keys(STARTKAART).length, 27, 'de startkaarttabel heeft 27 regels');
+  assert.equal(lijst.length, 28, 'activities.js heeft 28 activiteiten');
+  assert.equal(Object.keys(STARTKAART).length, 28, 'de startkaarttabel heeft 28 regels');
   assert.deepEqual([...ids].sort(), Object.keys(STARTKAART).sort(), 'elk id in de tabel is een echte activiteit');
   for (const id of ids) {
     const k = STARTKAART[id];

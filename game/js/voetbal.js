@@ -117,8 +117,8 @@ function poortBord() {
   const c = document.createElement('canvas');
   c.width = 256; c.height = 96;
   const g = c.getContext('2d');
-  g.fillStyle = '#1f3a2a'; g.fillRect(0, 0, 256, 96);
-  g.fillStyle = '#f4f1e8'; g.font = 'bold 30px sans-serif'; g.textAlign = 'center';
+  g.fillStyle = '#17301f'; g.fillRect(0, 0, 256, 96);
+  g.fillStyle = '#f0ede4'; g.font = 'bold 30px sans-serif'; g.textAlign = 'center';
   g.fillText('De Stadjers', 128, 40);
   g.font = '22px sans-serif'; g.fillText('Vijf tegen vijf', 128, 72);
   const t = new THREE.CanvasTexture(c);
@@ -222,8 +222,8 @@ function drawIcon(ctx, s) {
   iconDisc(ctx, s, ACCENT);
   ctx.save();
   ctx.scale(s, s);
-  ctx.fillStyle = '#f2ede0';
-  ctx.strokeStyle = '#f2ede0';
+  ctx.fillStyle = '#f0ede4';
+  ctx.strokeStyle = '#f0ede4';
   ctx.lineWidth = 0.8;
   ctx.beginPath(); ctx.arc(0, -0.2, 2.5, 0, Math.PI * 2); ctx.stroke();
   ctx.beginPath();
