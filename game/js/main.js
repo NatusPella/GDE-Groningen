@@ -937,6 +937,8 @@ async function boot() {
   // browser swallows that Esc keypress), which opens the pause menu instead
   const menuOpen = () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen() || !!world.devPanelOpen;
   input.canLock = () => document.body.classList.contains('game-started') && !menuOpen() && !world.uiPaused;
+  // tik in plaats van ingedrukt houden (holdlatch.js): een tikstand blijft alleen te voet en zonder menu of pauze staan
+  input.latchOk = () => !menuOpen() && !world.uiPaused && !world.paused && !(hoofdspeler(world) && hoofdspeler(world).inVehicle);
   initInputDevice();
   initPadKeyboard();
   initTextFields(); // alle toetsen, plakken en een rechtermuismenu in tekstvelden (#95)
@@ -1152,7 +1154,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     const nowS = performance.now() / 1000;
     const imp = world.lastImpact, mh = world.lastMeleeHit;
     if ((imp && imp !== dipSeen.imp) || (mh && mh !== dipSeen.mh)) {
-      triggerDip(feelDip, nowS, { strength: imp && imp !== dipSeen.imp ? imp.strength : 0, melee: !!(mh && mh !== dipSeen.mh) }, effectsFor({ reduceMotion: reducedMotion() || getSettings().speedFeel === false }));
+      triggerDip(feelDip, nowS, { strength: imp && imp !== dipSeen.imp ? imp.strength : 0, melee: !!(mh && mh !== dipSeen.mh) }, effectsFor({ reduceMotion: reducedMotion() || getSettings().speedFeel === false, shake: getSettings().screenShake }));
       dipSeen.imp = imp; dipSeen.mh = mh;
     }
     const gameDt = dt * Math.max(0, Math.min(1, world.timeScale ?? 1)) * MODS.slow * dipScale(feelDip, nowS);

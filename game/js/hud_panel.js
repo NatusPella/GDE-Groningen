@@ -77,6 +77,7 @@ import { initPrompts, updatePrompts, hintCount } from './prompts.js';
 import { hudPixelRatio, sizeSquareCanvas, getUiScale, onUiScaleChange } from './uiscale.js';
 import { initCards, updateCards } from './hudcards.js';
 import { markerColors, onPaletteChange } from './a11y.js';
+import { sterTeken } from './a11ylogic.js';
 import { drawMissionGlyph } from './missionicons.js';
 import { drawMapGlyph } from './mapglyphs.js';
 import { miniWind, windSterkte, windPijlHoek, windTekst } from './windmini.js';
@@ -1270,6 +1271,7 @@ function updateWanted(world) {
   const stars = [...els.wantedStars.children];
   els.wanted.hidden = ster === 0; // #1080: de statuskaart is er alleen als je gezocht wordt
   els.wantedStars.hidden = ster === 0; // #1175: de sterren op de minimap ook niet bij 0
+  els.wantedStars.dataset.n = sterTeken(ster, { vormen: true }); // 21-11: het cijfer bij de sterren, alleen zichtbaar met Vormen bij kleur (a11y.css .vormen-extra)
   els.wantedText.textContent = wantedStatus(ster, phase);
   stars.forEach((st, i) => st.classList.toggle('on', i < ster));
   // misdruk alleen bij verandering: de klasse gaat na 1,4 s weer weg (#993)

@@ -122,5 +122,35 @@ ok(/toggle\('showSubtitles', 'Ondertitels aan'/.test(pmSrc), 'de schakelaar staa
   ok(/\.mapview-search input:focus-visible \{ outline: 3px solid/.test(mapSrc), 'het kaartzoekveld heeft een zichtbare focusring');
 }
 
+// 21-11: schermschudden los van Beweging beperken, het ondertitelvak, vormen bij kleur en de flitsen die ook de klapflits raken
+{
+  ok(L.shakeFactor('aan') === 1 && L.shakeFactor('minder') > 0 && L.shakeFactor('minder') < 1 && L.shakeFactor('uit') === 0, 'schermschudden: aan, minder, uit');
+  ok(L.shakeFactor('kapot') === 1 && L.schoneShake(undefined) === 'aan', 'een onbekende schudstand is aan');
+  ok(L.effectsFor({ shake: 'uit' }).cameraShake === 0 && L.effectsFor({ shake: 'uit' }).cameraSway === 1, 'schermschudden uit laat het zwaaien en de flits ongemoeid');
+  ok(L.effectsFor({ reduceMotion: true, shake: 'aan' }).cameraShake === 0, 'Beweging beperken zet het schudden ook uit');
+  ok(L.shakeAmount(1, { shake: 'minder' }) === L.SHAKE_STANDEN.minder && L.shakeAmount(1) === 1, 'shakeAmount volgt de stand; zonder stand is het schudden zoals eerst');
+  ok(L.vlakAlpha('vol') === 1 && L.vlakAlpha('zacht') < 1 && L.vlakAlpha('licht') < L.vlakAlpha('zacht'), 'het ondertitelvak wordt stapsgewijs doorzichtiger');
+  ok(L.vlakAlpha('licht', 'hoog') === 1 && L.vlakAlpha('rommel') === 1, 'Hoog contrast houdt het vak vol, onbekend is vol');
+  // de tekst moet op het doorzichtigste vak nog leesbaar blijven: 4.5:1 op de slechtste achtergrond (wit en zwart), met de inkt op papier
+  for (const v of Object.keys(L.SUBTITLE_VLAKKEN)) {
+    const a = L.SUBTITLE_VLAKKEN[v], papier = [243, 234, 211], inkt = [29, 27, 23];
+    for (const back of [[0, 0, 0], [255, 255, 255]]) {
+      const mix = papier.map((c, i) => Math.round(c * a + back[i] * (1 - a)));
+      // op een zwarte achtergrond schemert het papier donkerder: de inkt-op-papier-regel geldt dan alleen voor het vak, hier de ondergrens 3:1 voor grote tekst
+      ok(L.contrastRatio(inkt, mix) >= (v === 'vol' ? 7 : 3), `vak ${v}: inkt op papier boven een ${back[0] ? 'witte' : 'zwarte'} achtergrond blijft leesbaar`, L.contrastRatio(inkt, mix));
+    }
+  }
+  ok(L.vormenAan({ markerVormen: true, colorBlind: 'uit' }) && L.vormenAan({ markerVormen: false, colorBlind: 'deuteranopie' }) && !L.vormenAan({ markerVormen: false, colorBlind: 'uit' }) && !L.vormenAan(null), 'vormen bij kleur: de schakelaar of elke kleurenblindmodus');
+  ok(L.sterTeken(3, { vormen: true }) === '3' && L.sterTeken(0, { vormen: true }) === '' && L.sterTeken(3) === '' && L.sterTeken(9, { vormen: true }) === '5' && L.sterTeken(NaN, { vormen: true }) === '', 'het sterrencijfer: 1 tot 5, leeg bij 0');
+  ok(/geenFlits = !!getSettings\(\)\.reduceFlash/.test(readFileSync(new URL('../game/js/lowhealth.js', import.meta.url), 'utf8')), 'Flitsen beperken raakt ook de rode klapflits en de kloppende rand');
+  ok(/html\.reduce-flash #heist-ui \.hx-flash \{ display: none/.test(a11yCss), 'en de rode flits van de inbraakbalk');
+  ok(/html\.vormen-extra #hud \.hud-mm-sterren::after \{ content: attr\(data-n\)/.test(a11yCss), 'vormen bij kleur: het cijfer bij de sterren staat in de css');
+  ok(/subtitleVlak/.test(pmSrc) && /screenShake/.test(pmSrc) && /markerVormen/.test(pmSrc) && /tikStand/.test(pmSrc), 'de vier opties staan in het pauzemenu');
+  const a11ySrc = readFileSync(new URL('../game/js/a11y.js', import.meta.url), 'utf8');
+  ok(/shake: getSettings\(\)\.screenShake/.test(a11ySrc), 'de scènes (cutscript) volgen de schudstand');
+  const sceneSrc = readFileSync(new URL('../game/js/scene3d.js', import.meta.url), 'utf8');
+  ok((sceneSrc.match(/shake: getSettings\(\)\.screenShake/g) || []).length === 2, 'klap en aardbeving in scene3d volgen de schudstand');
+}
+
 console.log(fails ? `${fails} of ${n} failed` : `a11y_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);

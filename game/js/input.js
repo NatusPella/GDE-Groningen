@@ -2,6 +2,7 @@ import { blurForGameKey } from './spacegate.js';
 import { keyTranslation } from './controls.js';
 import { onSettingsChange } from './settings.js';
 import { probe } from './hitchprobe.js';
+import { makeLatch, tapActions } from './holdlatch.js';
 
 // With Shift held e.key is '!' etc., so digits are also tracked via e.code.
 function digitFromCode(code) {
@@ -64,7 +65,16 @@ export class Input {
     this.captureKey = null;
     this.blocked = false; // samen spelen: de wereld loopt door achter een menu, de lokale invoer staat stil (main.js)
     this.stil = 0; // samen spelen: een gast speelt lokaal een activiteit (hengelen); zijn lichaam bij de host staat stil zolang dit > 0 (aftellend per beeld, coopgastlokaal.js)
-    onSettingsChange((st, key) => { if (!key || key === 'keyBinds') this._remap = keyTranslation(st.keyBinds); });
+    // tik in plaats van ingedrukt houden (holdlatch.js): rennen (Shift) en richten (rechtermuis) blijven na één tik aan; alleen te voet
+    this._tik = { rennen: false, richten: false };
+    this._lr = makeLatch();
+    this._la = makeLatch();
+    this.latchOk = null; // main.js: mag een tikstand blijven staan (te voet, geen menu of pauze)
+    this._voet = true;
+    onSettingsChange((st, key) => {
+      if (!key || key === 'keyBinds') this._remap = keyTranslation(st.keyBinds);
+      if (!key || key === 'tikStand') { this._tik = tapActions(st.tikStand); this._tikWis(); }
+    });
 
     // capture, and registered before every other key listener: a rebound key
     // is swallowed here and sent on as the key it stands in for
@@ -76,13 +86,13 @@ export class Input {
       // een tekstveld (kamercode, naam, zoekveld) krijgt alle toetsen, ook WASD, spatie en pijlen: geen speltoets, geen preventDefault
       if (isTextField(e.target) && e.__gde !== 'pad') return;
       if (e.__gde === 'pad') {
-        if (!this.padKeys.has(k) && !this.keys.has(k)) this._justPressed.add(k);
+        if (!this.padKeys.has(k) && !this.keys.has(k)) { this._justPressed.add(k); this._tikDruk(k); }
         this.padKeys.add(k);
         if (k === ' ' || k === 'tab' || k.startsWith('arrow')) e.preventDefault();
         return;
       }
       if (k !== 'escape') this.tryLock();
-      if (!this.keys.has(k) && !this.padKeys.has(k)) this._justPressed.add(k);
+      if (!this.keys.has(k) && !this.padKeys.has(k)) { this._justPressed.add(k); this._tikDruk(k); }
       this.keys.add(k);
       if (e.code) this._byCode.set(e.code, k);
       const digit = digitFromCode(e.code);
@@ -136,12 +146,12 @@ export class Input {
       if (!onUi && this.tryLock()) return;
       if (e.button === 0) this.mouse.down = true;
       if (e.button === 1) this.mouse.middleDown = true;
-      if (e.button === 2) this.mouse.rightDown = true;
+      if (e.button === 2) this.setAim(true);
     });
     window.addEventListener('mouseup', (e) => {
       if (e.button === 0) this.mouse.down = false;
       if (e.button === 1) this.mouse.middleDown = false;
-      if (e.button === 2) this.mouse.rightDown = false;
+      if (e.button === 2) this.setAim(false);
     });
     window.addEventListener('contextmenu', (e) => e.preventDefault());
     window.addEventListener('wheel', (e) => {
@@ -188,10 +198,22 @@ export class Input {
     (e.target || window).dispatchEvent(ev);
   }
 
+  // Tik in plaats van ingedrukt houden: een verse druk op Shift wisselt het rennen, een druk op de richtknop het richten; loslaten doet
+  // niets. Buiten de te-voet-stand (voertuig, menu) en bij 'uit' blijft alles gewoon ingedrukt houden.
+  _tikRennen() { return this._tik.rennen && this._voet; }
+  _tikRichten() { return this._tik.richten && this._voet; }
+  _tikDruk(k) { if (k === 'shift' && this._tikRennen()) this._lr.press(); }
+  _tikWis() { this._lr.clear(); if (this._la.on) { this._la.clear(); this.mouse.rightDown = false; } }
+  // de richtknop (muis, controller, aanraken): een tik is aan, een tweede tik uit
+  setAim(down) {
+    if (!this._tikRichten()) { if (this._la.on) this._la.clear(); this.mouse.rightDown = !!down; return; }
+    if (down) this.mouse.rightDown = this._la.press();
+  }
+
   // Controller (gamepad.js): hold or release a key without a DOM event.
   padHold(k, on) {
     if (on) {
-      if (!this.padKeys.has(k) && !this.keys.has(k)) this._justPressed.add(k);
+      if (!this.padKeys.has(k) && !this.keys.has(k)) { this._justPressed.add(k); this._tikDruk(k); }
       this.padKeys.add(k);
     } else this.padKeys.delete(k);
   }
@@ -246,7 +268,12 @@ export class Input {
 
   // zolang een tekstveld focus heeft, staat de spelbesturing stil (ook een controller of een toets die al ingedrukt was)
   get typing() { return typeof document !== 'undefined' && isTextField(document.activeElement); }
-  isDown(k) { if (this.stil > 0 && (k === ' ' || k === 'shift' || k === 'control')) return false; return !this.typing && !this.blocked && (this.keys.has(k) || this.padKeys.has(k)); }
+  isDown(k) {
+    if (this.stil > 0 && (k === ' ' || k === 'shift' || k === 'control')) return false;
+    if (this.typing || this.blocked) return false;
+    if (k === 'shift' && this._tikRennen()) return this._lr.on; // tikstand: het rennen blijft aan tot de volgende tik
+    return this.keys.has(k) || this.padKeys.has(k);
+  }
   wasPressed(k) { return !this.typing && !this.blocked && this._justPressed.has(k); }
   // swallow a key press so later handlers this frame don't act on it too
   consume(k) { this._justPressed.delete(k); }
@@ -267,6 +294,12 @@ export class Input {
 
   endFrame() {
     if (this.stil > 0) this.stil--;
+    if (this._lr.on || this._la.on || this._tik.rennen || this._tik.richten) {
+      this._voet = this.latchOk ? !!this.latchOk() : true;
+      const [ax, ay] = this.axis();
+      this._lr.step({ allowed: this._voet, moving: !!(ax || ay), idleReleases: true });
+      if (this._la.on && !this._voet) { this._la.clear(); this.mouse.rightDown = false; }
+    } else this._voet = true;
     this._justPressed.clear();
     this.mouse.wheel = 0;
     this.mouse.dx = 0;
