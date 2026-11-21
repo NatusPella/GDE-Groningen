@@ -1,8 +1,8 @@
 // Pure tests van de urgentie van plaatsingsvensters (#1052, #1016): een faciliteit nabij, een cutscene die loopt, een
 // activiteit of een herstel: het venster is urgent, wordt niet vastgehouden en is binnen het budget klaar.
-//   node scripts/windowmode_test.mjs
+//   node scripts/placementurgency_test.mjs
 import assert from 'node:assert/strict';
-import { windowMode, windowModeFor, nearestPointDist, setActivityProbe, URGENT_NEAR_M, URGENT_SLICE_MS } from '../game/js/windowmode.js';
+import { windowMode, windowModeFor, nearestPointDist, setActivityProbe, URGENT_NEAR_M, URGENT_SLICE_MS } from '../game/js/placementurgency.js';
 import { BACKGROUND_PRIORITY, BG_SLICE_MS, drainSliced, holdBackground, setHoldProbe, backgroundHeld } from '../game/js/tilestream.js';
 import { FrameQueue } from '../game/js/tilestore.js';
 import { createFramePlanner, PLAN } from '../game/js/streamplanner.js';
@@ -101,4 +101,4 @@ async function runWindow(mode, items, { cutscene, frames = 400 }) {
 }
 holdBackground(false);
 
-console.log(`windowmode_test: ${n} controles groen`);
+console.log(`placementurgency_test: ${n} controles groen`);

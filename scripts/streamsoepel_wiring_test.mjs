@@ -12,7 +12,7 @@ const read = (f) => fs.readFileSync(path.join(ROOT, f), 'utf8');
 let n = 0;
 const ok = (c, m) => { assert.ok(c, m); n++; };
 
-const files = ['scene3d.js', 'main.js', 'grass.js', 'farlod.js', 'tileplace.js', 'tilestream.js', 'tileworld.js', 'streamplanner.js', 'lodstable.js', 'windowmode.js',
+const files = ['scene3d.js', 'main.js', 'grass.js', 'farlod.js', 'tileplace.js', 'tilestream.js', 'tileworld.js', 'streamplanner.js', 'lodstable.js', 'placementurgency.js',
   'roadbudget.js', 'routing.js', 'containerplan.js', 'missions_nieuw.js', 'pedroutes.js', 'streetfurniture3d.js', 'trafficlights.js', 'streekplekken3d.js', 'waterplekken3d.js'].map((f) => 'game/js/' + f);
 const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'undef_check.mjs'), ...files.map((f) => path.join(ROOT, f))], { encoding: 'utf8' });
 ok(r.status === 0, `undef_check op de geraakte bestanden: ${(r.stdout + r.stderr).trim().slice(0, 600)}`);

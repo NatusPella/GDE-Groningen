@@ -23,6 +23,7 @@ import { trimTileGreenery, trimHedgeRow } from './tilegreenery.js';
 import * as propfilter from './propfilter.js';
 import { TileStore, FrameQueue, HttpRangeSource, inflateRaw, makeWorkerDecoder, decodeCompressed } from './tilestore.js';
 import { BACKGROUND_PRIORITY, addPriority, backgroundHeld, whenReady, JUMP_BUDGET_MS, JUMP_RING_M } from './tilestream.js';
+import { sampleRoute } from './lodstable.js';
 import { TerrainField } from './terrainraster.js';
 import { extendElevation, shrinkElevation } from './elevation.js';
 import { joinMeta } from './poisections.js';
@@ -608,7 +609,7 @@ export class TileWorld extends GameMap {
   // keep the tiles round (x, y) coming: prefetch by speed and heading, then
   // the grids are updated within the frame budget
   follow(x, y, opts, budgetMs = 2) {
-    this.focusAt = { x, y }; // where the player (or the camera) is: tileplace.js withTiles decides from it how urgent a window is (windowmode.js)
+    this.focusAt = { x, y }; // where the player (or the camera) is: tileplace.js withTiles decides from it how urgent a window is (placementurgency.js)
     if (this.store) this.store.prefetch(x, y, opts);
     const n = this.tileQueue.run(budgetMs);
     // what a background window asked for goes on at half the budget, unless a film or the benchmark holds it
@@ -650,6 +651,27 @@ export class TileWorld extends GameMap {
     }
     const frame = wait || (() => new Promise((r) => { const t = setTimeout(r, 50); if (typeof requestAnimationFrame === 'function') requestAnimationFrame(() => { clearTimeout(t); r(); }); }));
     return whenReady(st, keys, { budgetMs, wait: frame }).then((ok) => ok && !this.tileQueue.items.length);
+  }
+
+  // A route the player will travel (a taxi, a train, a flight, a ride cutscene): the tiles along the whole route are asked for
+  // up front, nearest the start first (priority = metres along the route), so the stream does not first meet them at speed. They are
+  // not pinned and their rows go through the normal frame budget; resolves with how many tiles were asked for. A new route
+  // replaces the previous one (its token). `points` is [[x, y], ...].
+  warmRoute(points, { radius = 400, step = 250, token = 'route', maxTiles = 600 } = {}) {
+    const st = this.store;
+    if (!st || !points || !points.length) return 0;
+    if (this._routeToken && st.cancel) st.cancel(this._routeToken);
+    this._routeToken = token + ':' + (this._routeN = (this._routeN || 0) + 1);
+    const asked = new Set();
+    for (const p of sampleRoute(points, step)) {
+      for (const k of st.keysAround(p.x, p.y, radius)) {
+        if (asked.has(k)) continue;
+        if (asked.size >= maxTiles) return asked.size;
+        asked.add(k);
+        st.request(k, { priority: p.s, token: this._routeToken }).catch(() => {});
+      }
+    }
+    return asked.size;
   }
 
   // the tile keys of a camera shot or a destination, for a pre-roll

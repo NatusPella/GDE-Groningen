@@ -51,7 +51,7 @@ const dt = 1000 / HZ;
 const nframes = Math.floor(KM * 1000 / SPEED * HZ);
 
 const isNew = VARIANT === 'na';
-const planner = PL.createFramePlanner();
+const planner = PL.createFramePlanner(arg('pressure', '') !== '' ? { pressureMs: Number(arg('pressure', '6')) } : {});
 const budgetState = SB.createStreamBudget();
 const ahead = SB.createStreamAhead();
 const smoother = LS.createRingSmoother();

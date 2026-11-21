@@ -1,5 +1,5 @@
 // Hoe urgent is een plaatsingsvenster (tileplace.js withTiles)? (#1052, #1016)
-// Puur: geen three.js, geen DOM, zodat scripts/windowmode_test.mjs elke regel zonder browser keurt.
+// Puur: geen three.js, geen DOM, zodat scripts/placementurgency_test.mjs elke regel zonder browser keurt.
 //
 // Sinds de tegelstroom-fix (PERF-TEGELSTREAM-21-11) is elk venster achtergrondwerk: laagste prioriteit, 3 ms per frame,
 // vastgehouden tijdens een film, een cutscene en de benchmark. Dat is goed voor een venster dat de provincie rond plaatst

@@ -107,7 +107,7 @@ export function createFramePlanner(opts = {}) {
   function grant(cls, want = Infinity) {
     if (!enabled) return want === Infinity ? p.capMs : want;
     if (clock() - lastBegin > p.autoFrameMs) beginFrame({ fresh: true });
-    // URGENT: werk dat nu nodig is (windowmode.js): een eigen budget naast de pool, niet vastgehouden door hold (film,
+    // URGENT: werk dat nu nodig is (placementurgency.js): een eigen budget naast de pool, niet vastgehouden door hold (film,
     // cutscene) en niet onderhevig aan schuld; wel begrensd per frame (urgentMs)
     if (cls === 'urgent') {
       const u = st.urgent;

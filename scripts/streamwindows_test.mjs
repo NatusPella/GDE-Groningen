@@ -113,4 +113,27 @@ function holdFree() { setHoldProbe(null); ok(backgroundHeld() === false, 'geen v
   ok(f2._buildingDelta.length <= BUILDING_DELTA_MAX, 'altijd begrensd');
 }
 
+// ---- routes vooraf: warmRoute vraagt de tegels langs de hele route, het begin eerst, begrensd, een nieuwe route vervangt de oude ----
+{
+  const asked = [], cancelled = [];
+  const store = {
+    keysAround: (x, y, r) => { const i = Math.floor(x / 500); return [`t${i}`, `t${i + 1}`].filter((k, ix, a) => a.indexOf(k) === ix); },
+    request: (k, o) => { asked.push([k, o.priority, o.token]); return Promise.resolve(); },
+    cancel: (tok) => cancelled.push(tok),
+  };
+  const fake = { store, warmRoute: TileWorld.prototype.warmRoute };
+  const count = fake.warmRoute([[0, 0], [3000, 0]]);
+  ok(count >= 6 && asked.length === count, `een rit van 3 km vraagt ${count} tegels, elk een keer`);
+  ok(asked.every(([, , tok]) => tok === asked[0][2]), 'allemaal onder een eigen token');
+  const prios = asked.map(([, p]) => p);
+  ok(prios[0] === 0 && prios[prios.length - 1] > prios[0], 'het begin van de route eerst (prioriteit = meters langs de route)');
+  const c1 = asked.length;
+  fake.warmRoute([[0, 0], [1000, 0]]);
+  ok(cancelled.length === 1 && cancelled[0] === asked[0][2], 'een nieuwe route trekt de oude in');
+  ok(asked.length > c1, 'en vraagt zijn eigen tegels');
+  asked.length = 0;
+  ok(fake.warmRoute([[0, 0], [1e6, 0]], { maxTiles: 10 }) === 10 && asked.length === 10, 'begrensd op maxTiles');
+  ok(fake.warmRoute([]) === 0 && fake.warmRoute(null) === 0 && TileWorld.prototype.warmRoute.call({}, [[0, 0]]) === 0, 'geen route of geen store: niets');
+}
+
 console.log(`streamwindows_test: ${n} controles groen`);
