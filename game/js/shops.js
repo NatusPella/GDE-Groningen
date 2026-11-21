@@ -45,6 +45,8 @@ import {
   completeSetIds, wornSet, wearPiece, takeOffSlot, setLocalCharProvider, emitLocalOutfitChange, cyclePreset, getHair, setHair, wornPieces,
 } from './clothing.js';
 import { HAIR_COLORS, HAIR_STYLES, hairPrice, parseHair, HAIR_REACTIONS } from './clothinghair.js';
+import { hairGroups, cutLine } from './kapperkeuze.js'; // de kapper aan de stoel: groepen en een regel bij het knippen (epic Autotuning ronde 4)
+import { playHair } from './tuningsfx.js';
 import { SETS, setKeyFor, parsePiece } from './clothingdata.js';
 import { shopSections, wardrobeSections } from './clothingpanel.js';
 import { wantedClearCooldownLeft, markWantedCleared } from './heatcooldown.js'; // #838: spuiterij-cooldown
@@ -1360,7 +1362,8 @@ function hairSections(world) {
     setHair(ch, style, color);
     applyLooks();
     recordUnique(world, 'kapsels', `${ch}:${style}.${color}`);
-    return `${text} ${reaction()}`;
+    playHair(world, style, color !== cur.color); // schaar, tondeuse of föhn
+    return `${cutLine(style, color !== cur.color, Math.floor(world.time || 0))} ${text} ${reaction()}`;
   };
   const colors = HAIR_COLORS.map((c) => ({
     id: 'h-' + c.id, label: c.label, desc: c.id === 'naturel' ? 'Terug naar je eigen kleur' : 'Verven, föhnen, klaar',
@@ -1369,14 +1372,16 @@ function hairSections(world) {
     disabled: cur.color === c.id ? 'Heb je al' : broke(world, c.price),
     buy: () => change(cur.style, c.id, c.price, `Haar ${c.label.toLowerCase()}.`),
   }));
-  const styles = HAIR_STYLES[ch].map(([id, label]) => ({
+  const styleItem = ([id, label]) => ({
     id: 'hs-' + id, label, desc: ch === 'tammo' ? 'Onder de pet, maar jij weet het' : 'Knippen en stylen',
     price: hairPrice(id), tag: cur.style === id ? 'Nu' : '',
     preview: mirror(id, cur.color),
     disabled: cur.style === id ? 'Heb je al' : broke(world, hairPrice(id)),
     buy: () => change(id, cur.color, hairPrice(id), `${label}: de kapper is tevreden.`),
-  }));
-  return [{ title: 'Haarkleur', items: colors }, { title: 'Model', items: styles }];
+  });
+  // de kapsels in groepen (kort, lang, krullen, opgestoken), zodat 17 stijlen geen muur worden
+  const groups = hairGroups(HAIR_STYLES[ch]).map((g) => ({ title: g.title, items: g.items.map(styleItem) }));
+  return [{ title: 'Haarkleur', items: colors }, ...groups];
 }
 
 const STOCK_GROUPS = {
