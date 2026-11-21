@@ -327,7 +327,11 @@ function homeRecipe(p, sub) {
   if (back) {
     // a partition between the living room and the back, a doorway at about 30% of the width
     const pv = p.stairs ? Math.min(living.v1, p.stairs.vBot - 1.4) : living.v1;
-    p.partition('u', pv, H.u0, H.u1, H.u0 + Math.max(1.2, W * (0.25 + p.rnd() * 0.3)), 0.95);
+    // the doorway keeps 1.6 m from the wall of the bedroom wing (#1165: a wall that started in the doorway shut the kitchen and the bedroom off)
+    let doorU = H.u0 + Math.max(1.2, W * (0.25 + p.rnd() * 0.3));
+    const wingU = W >= 6.2 ? H.u0 + W * 0.58 : null;
+    if (wingU !== null && Math.abs(doorU - wingU) < 1.6) doorU = wingU - 1.6 >= H.u0 + 0.9 ? wingU - 1.6 : wingU + 1.6;
+    p.partition('u', pv, H.u0, H.u1, doorU, 0.95);
     living.v1 = pv - PART_T / 2;
     p.rooms.push({ id: 'woonkamer', role: 'wonen', u0: H.u0, u1: H.u1, v0: H.v0, v1: living.v1 });
   }
@@ -591,16 +595,16 @@ function cinemaRecipe(p, sub) {
   if (t) { p.npcAt('baliemedewerker', tu, H.v0 + 2.0 + 0.35 + 0.45, FACE.DOOR, 'stand'); p.useAt('balie', tu, H.v0 + 2.0 - 0.35 - 0.8, 1.4, { face: FACE.BACK, target: sub }); }
   p.add('coffee', H.u1 - 0.5, H.v0 + 2.0, 0.6, 0.5, FACE.W, { h: 1.3 }, front);
   p.add('fridge', H.u1 - 0.5, H.v0 + 3.0, 0.7, 0.7, FACE.W, { h: 1.2, color: 0xe8e0d0, tag: 'popcorn' }, front);
-  p.add('bench', H.u1 - 1.8, fv1 - 0.6, 1.4, 0.5, FACE.DOOR, { h: 0.45, color: 0x7a1e2a }, front);
+  const foyerBench = p.add('bench', H.u1 - 1.8, fv1 - 0.6, 1.4, 0.5, FACE.DOOR, { h: 0.45, color: 0x7a1e2a }, front);
+  if (foyerBench) p.npcAt('filmbezoeker', foyerBench.u, foyerBench.v, FACE.DOOR, 'sit');
   const zone = hall ? { u0: hall.u0, u1: hall.u1, v0: hall.v0, v1: hall.v1 } : { ...H, v0: H.v0 + 4.8 };
   p.add('board', mid, H.v1 - 0.05, W - 1.2, 0.1, FACE.DOOR, { h: 2.2, y0: 0.9, solid: false, glow: true, color: 0xdfe6f2 }, zone);
-  const aisle = 1.2, blockW = Math.min(3.2, (W - aisle - 1.0) / 2);
+  const aisle = 1.2, blockW = Math.min(3.2, (W - aisle) / 2 - 0.1);
   const rows = [];
   for (let v = zone.v0 + 1.4; v < zone.v1 - 2.6; v += 1.0) {
     for (const side of [-1, 1]) { const it = p.add('pew', mid + side * (aisle / 2 + blockW / 2), v, blockW, 0.6, FACE.BACK, { h: 1.0, color: 0x8a2a2a }, zone); if (it) rows.push(it); }
   }
   rows.filter((_, i) => i % 3 === 1).slice(0, 4).forEach((r, i) => p.npcAt('filmbezoeker', r.u, r.v, FACE.BACK, 'sit', { seat: i }));
-  scatterPeople(p, 'filmbezoeker', 1, 'stand');
   p.palette = { wall: 0x4a2a30, floor: 0x3a2428, floorPattern: 1, accent: 0x7a1e2a, ceil: 0x2a1c20, lamp: { color: 0xffd9a0, pendant: false } };
 }
 

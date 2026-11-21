@@ -37,10 +37,10 @@ const BY_TYPE = {
   library: 'bibliotheek',
   garage: 'garage', garages: 'garage', service: 'garage', industrial: 'garage', warehouse: 'garage', factory: 'garage', workshop: 'garage',
   civic: 'publiek', public: 'publiek', government: 'publiek', hospital: 'publiek', school: 'publiek', hotel: 'publiek',
-  university: 'publiek', college: 'publiek', kindergarten: 'publiek', sports_centre: 'publiek', fitness_centre: 'publiek',
+  university: 'publiek', college: 'publiek', kindergarten: 'publiek', sports_centre: 'publiek', sports_hall: 'publiek', fitness_centre: 'publiek',
   museum: 'publiek', cinema: 'publiek',
 };
-const PUBLIEK_BY_TYPE = { civic: 'gemeente', public: 'gemeente', government: 'gemeente', hospital: 'ziekenhuis', school: 'school', university: 'school', college: 'school', kindergarten: 'school', hotel: 'hotel', sports_centre: 'sportschool', fitness_centre: 'sportschool', museum: 'museum', cinema: 'bioscoop' };
+const PUBLIEK_BY_TYPE = { civic: 'gemeente', public: 'gemeente', government: 'gemeente', hospital: 'ziekenhuis', school: 'school', university: 'school', college: 'school', kindergarten: 'school', hotel: 'hotel', sports_centre: 'sportschool', sports_hall: 'sportschool', fitness_centre: 'sportschool', museum: 'museum', cinema: 'bioscoop' };
 // types that never get an interior (the building is no room: sheds, roofs, ruins, farms' barns, towers)
 export const NOT_ENTERABLE = new Set(['shed', 'roof', 'carport', 'ruins', 'construction', 'greenhouse', 'barn', 'farm_auxiliary', 'cowshed', 'stable', 'silo', 'water_tower', 'guardhouse', 'static_caravan', 'houseboat', 'tent', 'toilets', 'hut', 'cabin', 'kiosk']);
 
