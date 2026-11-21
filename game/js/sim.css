@@ -11,8 +11,8 @@
 .sh-hud .ds-icoon { fill: none; }   /* de pictogrammen zijn lijnen; ds-icoon vult standaard */
 /* de kop (naam van de sim) blijft voor schermlezers; wie speelt weet wat hij speelt */
 .sh-kop { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-/* 2. de stappen: rechts naast de primaire waarde, elk met zijn korte woord */
-.sh-stappen { grid-column: 2; grid-row: 1; justify-self: end; display: flex; flex-wrap: nowrap; gap: var(--ds-s-1); list-style: none; margin: 0; padding: 0; }
+/* 2. de stappen: onder de primaire waarde (#1056: ernaast namen ze de ruimte van het getal in: "0 VAN" in plaats van "0 van 5"), elk met zijn korte woord */
+.sh-stappen { grid-column: 1 / -1; grid-row: 2; justify-self: start; display: flex; flex-wrap: wrap; gap: var(--ds-s-1); list-style: none; margin: 0; padding: 0; }
 .sh-stappen > li[data-stand="klaar"] .ds-z-chip { background: var(--ds-succes-vlak); color: var(--ds-succes-tx); }
 .sh-stappen > li[data-stand="nu"] .ds-z-chip { background: var(--ds-zeef-primair); color: var(--ds-zeef-tx); }
 .sh-stappen > li[data-stand="straks"] .ds-z-chip { background: transparent; color: var(--ds-tx-zacht); border-style: dashed; box-shadow: none; }
@@ -22,20 +22,20 @@
 .sh-primair { grid-column: 1; grid-row: 1; display: flex; align-items: center; gap: var(--ds-s-2); }
 .sh-primair__badge { flex: none; display: inline-flex; align-items: center; justify-content: center; width: var(--ds-s-6); height: var(--ds-s-6); border-radius: var(--ds-r); background: var(--ds-bg-2); color: var(--ds-tx); border: var(--ds-lijn) solid var(--ds-rand); }
 .sh-primair__icoon { width: var(--ds-s-4); height: var(--ds-s-4); }
-.sh-primair__tekst { display: flex; flex-direction: row; align-items: baseline; gap: var(--ds-s-2); min-width: 0; overflow: hidden; }
+.sh-primair__tekst { display: flex; flex-direction: row; align-items: baseline; gap: var(--ds-s-2); min-width: 0; }
 .sh-primair__naam { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sh-primair__naam { order: 2; line-height: var(--ds-lh-tekst); }
-.sh-groot { font-family: var(--ds-font-kop); font-size: var(--ds-t-subkop); font-weight: 700; line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); white-space: nowrap; }
+.sh-groot { flex: none; font-family: var(--ds-font-kop); font-size: var(--ds-t-subkop); font-weight: 700; line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); white-space: nowrap; }
 .sh-groot--lang { font-size: var(--ds-t-body); }
-.sh-meter { grid-row: 2; }
+.sh-meter { grid-row: 3; }
 .sh-meter--laag .ds-streep__vul { background: var(--ds-probleem); }
 .sh-meter--goed .ds-streep__vul { background: var(--ds-succes); }
 .sh-meter .ds-streep__label { font-size: var(--ds-t-hulp); }
 /* 4. wat nu: de enige zin die opvalt, één regel; bij een probleem op het probleemvlak (kleur plus woorden, nooit kleur alleen) */
-.sh-nu { grid-row: 3; margin: 0; font-size: var(--ds-t-label); line-height: var(--ds-lh-tekst); font-weight: 600; color: var(--ds-tx); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sh-nu { grid-row: 4; margin: 0; font-size: var(--ds-t-label); line-height: var(--ds-lh-tekst); font-weight: 600; color: var(--ds-tx); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sh-nu--slecht { padding: 0 var(--ds-s-2); border-radius: var(--ds-r); background: var(--ds-probleem-vlak); color: var(--ds-probleem-tx); }
 /* 5. de rest: één regel, klein en gedempt, elk met pictogram en woord */
-.sh-cijfers { grid-row: 4; display: flex; flex-wrap: nowrap; overflow: hidden; gap: var(--ds-s-3); list-style: none; margin: 0; padding: 0; color: var(--ds-tx-zacht); }
+.sh-cijfers { grid-row: 5; display: flex; flex-wrap: nowrap; overflow: hidden; gap: var(--ds-s-3); list-style: none; margin: 0; padding: 0; color: var(--ds-tx-zacht); }
 .sh-cijfers > li { display: inline-flex; align-items: center; gap: var(--ds-s-1); font-size: var(--ds-t-hulp); line-height: var(--ds-lh-tekst); white-space: nowrap; }
 .sh-cijfer__icoon { flex: none; }
 .sh-cijfers > li[data-staat="goed"] { color: var(--ds-succes-tx); }
