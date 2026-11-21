@@ -1203,7 +1203,7 @@ export function updateGrass(dt, world, cam, drawDist) {
   time = world.time || time + dt;
   const storm = world.weather ? Math.min(1, Math.max(0, world.weather.intensity)) : 0;
   tuftUniforms.uGTime.value = time;
-  tuftUniforms.uGWind.value = 0.22 + storm * (world.weather && world.weather.kind === 'storm' ? 1.1 : 0.7);
+  tuftUniforms.uGWind.value = 0.22 + storm * (world.weather && world.weather.kind === 'storm' ? 1.1 : 0.7) + 0.25 * ((world.weather && world.weather.windStrength) || 0); // bries op de kust (summerday.js)
   const wa = Math.sin(time * 0.013) * 0.6 + 0.7;
   tuftUniforms.uGWindDir.value.set(Math.cos(wa), Math.sin(wa));
   updatePushers(world);

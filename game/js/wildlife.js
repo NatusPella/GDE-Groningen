@@ -723,7 +723,7 @@ export function updateWildlife(dt, world) {
   if (!world.wildlife) world.wildlife = [];
   const list = world.wildlife;
   ontdekDieren(world, dt, world.countryAudible);
-  setPeopleWeather(world.weather ? world.weather.intensity : 0);
+  setPeopleWeather(world.weather ? world.weather.intensity : 0, world.weather && world.weather.summer ? world.weather.summer.sunglasses : 0);
   maintainTimer -= dt;
   if (maintainTimer <= 0) {
     maintainTimer = MAINTAIN_INTERVAL;

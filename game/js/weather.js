@@ -6,6 +6,8 @@ import { getSettings } from './settings.js';
 import { regenDruppels } from './weerlook.js';
 import { streekZonHoogte } from './weerdag.js';
 import { easeTo, rainFade, flashGain } from './weersmooth.js';
+import { updateSummerFlies } from './summerflies3d.js';
+import { summerLayer, combineSummer, rainbowStrength } from './summerday.js'; // zomervariatie per kalenderdag (21-11)
 import { createWeatherState, stepWeather, regionWeather, regionAt } from './weatherstate.js';
 import { qualityLook, regionHaze, sunGlow, createStormPlanner, stepStorm, flashAt, mistAtHeight, MIST_NEAR, MIST_FAR } from './weatherlook.js';
 
@@ -213,13 +215,17 @@ export function initWeather(world) {
 // Forced weather (trailer shots, the storm cheat) keeps the hand-set path below.
 const forcedWeather = (w) => w.timer >= 1e8 || (w.active && w.kind === 'storm');
 
+const _summerWeather = {};
 function followRegionWeather(dt, world, w) {
   if (!world.weatherState) world.weatherState = createWeatherState((Math.random() * 0x7fffffff) | 0);
   const p = hoofdspeler(world);
   const region = p ? regionAt(p.x, p.y) : 'stad';
   // samen spelen (#364): een gast volgt het weer van de gastheer (coopweer.js) en stapt zijn eigen machine niet
   if (world.coopRole !== 'client') stepWeather(world.weatherState, dt, typeof world.clock === 'number' ? world.clock : 12);
-  const r = regionWeather(world.weatherState, region);
+  // zomervariatie (21-11): een pure functie van kalenderdag en klok, bij elke speler gelijk en zonder netwerkverkeer
+  const calDay = world.calendar && Number.isFinite(world.calendar.day) ? world.calendar.day : 1;
+  w.summer = summerLayer(calDay, typeof world.clock === 'number' ? world.clock : 12, w.summer || {});
+  const r = combineSummer(regionWeather(world.weatherState, region), w.summer, region, _summerWeather);
   const was = w.kind;
   const step = dt / RAMP_TIME;
   w.intensity = r.rain > w.intensity ? Math.min(r.rain, w.intensity + step) : Math.max(r.rain, w.intensity - step);
@@ -230,6 +236,7 @@ function followRegionWeather(dt, world, w) {
   w.overcast = w.overcast === undefined ? r.overcast : easeTo(w.overcast, r.overcast, dt);
   w.mist = w.mist === undefined ? r.mist : easeTo(w.mist, r.mist, dt);
   w.windAngle = r.windAngle;
+  w.windStrength = r.windStrength;
   w.timer = 60;
   if (r.kind === 'onweer' && was !== 'onweer' && region === 'stad') world.addMessage('Onweer boven Grunn', 3);
 }
@@ -349,6 +356,7 @@ export function applyWeatherToScene3D(scene, renderer, world, dt, px, py, cam = 
     scene.add(rainMesh);
   }
   updateRain(dt, world, px, py, cam);
+  updateSummerFlies(scene, w.summer ? w.summer.flies : 0, cam, dt);
   const quality = getSettings().quality;
   const flash = updateLightning(dt, w.active ? t : 0, quality, scene);
   const region = hoofdspeler(world) ? regionAt(hoofdspeler(world).x, hoofdspeler(world).y) : 'stad';
@@ -394,6 +402,7 @@ export function applyWeatherToScene3D(scene, renderer, world, dt, px, py, cam = 
     if (u.uSunDir && u.uRainbow) {
       const regenboog = clamp(((w.wet || 0) - 0.35) / 0.3, 0, 1) * (1 - clamp(t * 4, 0, 1)) * (1 - clamp((w.overcast || 0) * 1.5, 0, 1));
       u.uRainbow.value = regenboog * 0.35;
+      if (w.summer) u.uRainbow.value = rainbowStrength(u.uRainbow.value, w.summer); // summerday.js: ook een regenboog na de bui van de dag
       u.uRainbowDir.value.copy(u.uSunDir.value).multiplyScalar(-1);
     }
     const glow = sunGlow(world.dayNight ? streekZonHoogte(region, world.dayNight.hour) : 30, cloud);

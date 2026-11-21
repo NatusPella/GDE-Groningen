@@ -61,8 +61,10 @@ const EYE_WHITE = 0xd4cbbd;
 const EYE_DARK = 0x19140f;
 
 let rainLevel = 0;
-export function setPeopleWeather(intensity) {
+let shadesShare = 0; // aandeel voorbijgangers met zonnebril op een hete of heldere dag (summerday.js)
+export function setPeopleWeather(intensity, zonbril = 0) {
   rainLevel = Number.isFinite(intensity) ? intensity : 0;
+  shadesShare = Number.isFinite(zonbril) ? zonbril : 0;
 }
 
 const leashHolders = new Set();
@@ -164,7 +166,8 @@ function resolveLook(shirt, skin, opts) {
     tights: r(12) < 0.55 ? 0x26262a : shade(skin, 0.94),
     bag: cop || character ? null : (r(11) < 0.15 ? 'backpack' : r(11) < 0.27 ? 'shoulder' : null),
     bagColor: pick(BAG_COLORS, r(13)),
-    glasses: !cop && !character && r(22) < (age === 'old' ? 0.45 : 0.14),
+    glasses: !cop && !character && (r(22) < (age === 'old' ? 0.45 : 0.14) || (!rainy && r(29) < shadesShare)),
+    shades: !cop && !character && !rainy && r(29) < shadesShare,
     scarf: !cop && !character && hairStyle !== 'hijab' && top !== 'tee' && r(23) < 0.18,
     scarfColor: pick(SCARF_COLORS, r(24)),
     raincoatColor: pick(RAINCOAT_COLORS, r(25)),

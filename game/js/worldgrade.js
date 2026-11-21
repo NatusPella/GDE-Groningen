@@ -49,6 +49,8 @@ export const GRADE_WEATHER = Object.freeze({
   overcast: { papier: 0.25, sat: 0.03 },
   mist: { mist: 0.25, papier: 0.10 },
   storm: { inkt: 0.04, korrel: 0.3 },
+  hitte: { papier: 0.08, sat: -0.02 }, // zomervariatie (zomerdag.js): een hete middag krijgt een warm papierlicht, iets levendiger
+  gloed: { papier: 0.12 }, // een warme avond
 });
 
 // Basisbeeld van de nabewerking (bij sterkte 1): rastersterkte (donkerder in de schaduw, 0,04 = 4%) en korrelamplitude (0,02 = 1% op en neer).
@@ -112,7 +114,7 @@ export const gradeNeutral = () => ({ ...NEUTRAL, lichtMul: [1, 1, 1], schaduwMul
 
 // De hoofdfunctie: de parameters voor dit beeld.
 //   ctx = { stand: 'uit'|'subtiel'|'drukwerk', niveau: 'laag'|'middel'|'hoog' (de kwaliteit van de nabewerking), elevation (graden),
-//           hour, overcast, mist, storm (0..1), rustig (Rustig drukwerk), kleurenblind (een modus anders dan uit) }
+//           hour, overcast, mist, storm, hitte, gloed (0..1), rustig (Rustig drukwerk), kleurenblind (een modus anders dan uit) }
 // Per niveau: Laag niets (alleen de materiaalkleuren), Midden licht en kleur, Hoog en Ultra ook raster en korrel.
 // Rustig drukwerk: geen raster en geen korrel, en niet sterker dan Subtiel. Kleurenblind: niet gedempt en geen raster.
 export function gradeParams(ctx, out = {}) {
@@ -129,9 +131,10 @@ export function gradeParams(ctx, out = {}) {
   const p = profileAt(ctx.elevation, _p);
   const oc = clamp(ctx.overcast || 0, 0, 1), mi = clamp(ctx.mist || 0, 0, 1), st = clamp(ctx.storm || 0, 0, 1);
   const W = GRADE_WEATHER;
-  const papier = p.papier + W.overcast.papier * oc + W.mist.papier * mi;
+  const ht = clamp(ctx.hitte || 0, 0, 1), gl = clamp(ctx.gloed || 0, 0, 1);
+  const papier = p.papier + W.overcast.papier * oc + W.mist.papier * mi + W.hitte.papier * ht + W.gloed.papier * gl;
   const inkt = p.inkt + W.storm.inkt * st;
-  const sat = p.sat + W.overcast.sat * oc;
+  const sat = p.sat + W.overcast.sat * oc + W.hitte.sat * ht;
   const mist = p.mist + W.mist.mist * mi;
   const korrel = p.korrel * (1 + W.storm.korrel * st);
 
