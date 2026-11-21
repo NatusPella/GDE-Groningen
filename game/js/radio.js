@@ -9,12 +9,13 @@
 // Rikus, all recordings the game already has. The talk goes through the
 // speech channel's 'radio' class, so any other voice (a "Bel Rikus" call,
 // banter, a card line) cuts it off. `window.__radio` debug.
-import { setRadioOn, setRadioProgramme, onRadioBreak, radioInBreak, playLineVoice, playRadioJingle, playTextMumble } from './audio.js';
+import { setRadioOn, setRadioProgramme, setRadioChannel, radioTrackList, onRadioBreak, radioInBreak, playLineVoice, playRadioJingle, playTextMumble } from './audio.js';
 import { lineVoiceFor, NARRATOR } from './linevoice.js';
 import { smsVoiceFor, SMS_SAY } from './smsvoice.js';
 import { NACHTSTREEK, KROLBRUG_FAULTS, COW_FEED, PLANTSOEN_NEWS, EVENT_DAYS } from './flavourlines.js';
 import { RADIO_HOST, RADIO_GRUNN, KERMIS_NEWS } from './funlines.js';
-import { STATION_NAME, programmeAt, normalizeRadio } from './musicpick.js';
+import { STATION_NAME, normalizeRadio } from './musicpick.js';
+import { channelById, channelStatus, listChannels, openChannels, nextChannel, validChannel, programmeFor, isUnlocked, DEFAULT_CHANNEL } from './radiochannels.js';
 import { talkActive } from './storytalk.js';
 import { playerBusy } from './busy.js';
 import { radioMayTalk } from './speech.js';
@@ -41,7 +42,11 @@ let on = true;
 // what audio.js plays: alleen wat de speler zelf aanzet. Een minigame of de
 // helirun zet de radio niet meer zelf aan (#502), dus dit volgt `on`.
 let playing = true;
-let prog = programmeAt(12);
+let channelId = DEFAULT_CHANNEL;
+let prog = programmeFor(channelById(channelId), 12);
+// the player's secrets (geheimen.js, in the save): main.js sets the source, so this module does not import the whole achievement layer
+let foundSource = () => new Set();
+let channelCheckAt = 0;
 const R = { queue: [], nextAt: 0, rot: {}, recent: [], played: 0, done: null, breakUntil: 0 };
 // the adverts (radioads.js, #409): when the last block ran, how many breaks ago, which ones were heard
 const ADS = createAdState();
@@ -67,6 +72,88 @@ export function radioIsOn() {
   return on;
 }
 
+export function setRadioFound(fn) {
+  foundSource = typeof fn === 'function' ? fn : () => new Set();
+}
+
+// --- the channels (radiochannels.js, ADR 0046) ---------------------------------------------------------------------
+const channelCtx = () => ({ found: foundSource() });
+const manifestTracks = () => radioTrackList().map((el) => el.gmusicTrack).filter(Boolean);
+// the list for the menu: open and 'soon' channels, never a secret one that has not been found
+export function channelList() {
+  return listChannels(manifestTracks(), channelCtx()).map((z) => ({ ...z, active: z.id === channelId }));
+}
+export const currentChannel = () => channelId;
+const openChannelIds = () => openChannels(manifestTracks(), channelCtx());
+
+// stored: { id, announced }: the chosen channel and the secret channels whose message has already been shown (this device)
+let announced = [];
+let wanted = DEFAULT_CHANNEL; // what was stored; the save is sometimes not loaded yet at start-up, so this is applied later after all
+function saveChannel() {
+  try { localStorage.setItem(KEYS.radioChannel, JSON.stringify({ id: channelId, announced })); } catch (e) { /* private mode */ }
+}
+function loadChannel() {
+  try {
+    const d = JSON.parse(localStorage.getItem(KEYS.radioChannel) || 'null');
+    if (d && typeof d.id === 'string') { announced = Array.isArray(d.announced) ? d.announced.filter((x) => typeof x === 'string') : []; return d.id; }
+  } catch (e) { /* broken value: G-Music */ }
+  return DEFAULT_CHANNEL;
+}
+
+// The channel's DJ introduces himself with a short text jingle: the subtitle and the soft mumble voice, no new recording.
+function announceChannel(z) {
+  if (!world || !z || !radioMayTalk()) return;
+  subOn = true;
+  showRadioSub(z.dj, z.ident);
+  subUntil = world.time + 4;
+  playTextMumble('R', z.ident, 3);
+}
+
+// Pick a channel (menu, Shift+N). Only an open channel; a hidden or 'soon' channel does nothing. Picking a channel turns the radio on:
+// whoever picks a channel wants to hear it.
+export function selectChannel(id, { announce: show = true } = {}) {
+  if (!openChannelIds().includes(id)) return false;
+  const z = channelById(id);
+  const was = channelId;
+  channelId = id;
+  wanted = id;
+  saveChannel();
+  if (!on) setRadio(true, { announce: false });
+  if (was !== id) {
+    R.done = null; R.queue = []; hideSub();
+    setRadioChannel(id);
+    if (world) { prog = programmeFor(z, world.clock); setRadioProgramme(prog); }
+    if (show) { if (world) announce(world); announceChannel(z); }
+  }
+  return true;
+}
+export function stepChannel(dir = 1) {
+  return selectChannel(nextChannel(channelId, openChannelIds(), dir));
+}
+export const channelStatuses = () => channelStatus(manifestTracks(), channelCtx());
+
+// A newly found secret channel: one message per device. The stored choice also comes back here once the save has its secrets
+// (at start-up they are sometimes not there yet); a channel that is no longer open (another game loaded) becomes G-Music.
+function checkNewChannels(w) {
+  if (w.time < channelCheckAt) return;
+  channelCheckAt = w.time + 1.5;
+  if (!radioTrackList().length) return;
+  const open = openChannelIds();
+  const added = open.filter((id) => channelById(id) && channelById(id).unlock && !announced.includes(id));
+  if (added.length) {
+    announced = [...announced, ...added];
+    saveChannel();
+    for (const id of added) w.addMessage(`Nieuwe zender gevonden: ${channelById(id).name}. Kies hem in Instellingen > Geluid, of houd Shift ingedrukt en druk op N.`, 6);
+  }
+  const target = channelId === DEFAULT_CHANNEL && wanted !== DEFAULT_CHANNEL && open.includes(wanted) ? wanted : validChannel(channelId, open);
+  if (target !== channelId) {
+    channelId = target;
+    setRadioChannel(channelId);
+    prog = programmeFor(channelById(channelId), w.clock);
+    setRadioProgramme(prog);
+  }
+}
+
 // The save (savegame.js): 'on' or 'off'; anything else is on.
 export function getRadioSave() {
   return on ? 'on' : 'off';
@@ -85,13 +172,22 @@ export function setRadio(value, { announce: show = true } = {}) {
 export function initRadio(w) {
   world = w;
   loadTalkState();
-  prog = programmeAt(w.clock);
+  // de bewaarde zender: een geheime zender die niet gevonden is, kan hier niet uit een oude of gedeelde opslag komen
+  wanted = loadChannel();
+  const stored = channelById(wanted);
+  channelId = stored && isUnlocked(stored, channelCtx()) ? stored.id : DEFAULT_CHANNEL;
+  setRadioChannel(channelId);
+  prog = programmeFor(channelById(channelId), w.clock);
   setRadioProgramme(prog);
   onRadioBreak((done) => startBreak(done));
   window.__radio = {
     on: () => on,
     toggle: () => setRadio(!on),
     programme: () => prog.id,
+    station: () => channelId,
+    stations: () => channelList().map((z) => z.id + ':' + z.status),
+    pick: (id) => selectChannel(id),
+    next: (dir) => stepChannel(dir),
     queue: () => R.queue.map((l) => l.speaker + ': ' + l.text),
     inBreak: () => radioInBreak(),
     played: () => R.played,
@@ -104,7 +200,7 @@ export function initRadio(w) {
 
 function announce(w) {
   w.nowPlaying = on
-    ? { title: prog.name, artist: prog.sub, station: STATION_NAME, programme: prog.name, at: w.time }
+    ? { title: prog.name, artist: prog.sub, station: prog.stationName || STATION_NAME, programme: prog.name, at: w.time }
     : { title: 'Even stilte', artist: '', station: 'Radio uit', at: w.time };
 }
 
@@ -126,13 +222,15 @@ export function updateRadio(dt, w) {
   if (subOn && w.paused) hideSub();
   // een opgenomen radiolijn is klaar: haal zijn ondertitel weg (de wereldklok staat stil in een menu)
   else if (subOn && subUntil && w.time >= subUntil) hideSub();
-  if (!radioKeyBlocked(w) && w.input.wasPressed('n')) setRadio(!on);
+  // N zet de radio aan of uit; Shift+N gaat naar de volgende zender (ook als de radio uit stond: dan gaat hij aan)
+  if (!radioKeyBlocked(w) && w.input.wasPressed('n')) { if (w.input.isDown('shift')) stepChannel(1); else setRadio(!on); }
+  checkNewChannels(w);
   // Alleen de speler zet de radio aan. Vroeger stond hier `on || playerBusy(...)`,
   // waardoor een minigame, de helirun en de duifmodus hem zelf weer aanzetten en
   // de keuze van de speler overschreven (#502).
   if (on !== playing) { playing = on; setRadioOn(on); }
-  const next = programmeAt(w.clock);
-  if (next !== prog) {
+  const next = programmeFor(channelById(channelId), w.clock);
+  if (next.id !== prog.id || next.channel !== prog.channel) {
     prog = next;
     setRadioProgramme(prog);
     if (on && !busy(w)) announce(w);
@@ -201,6 +299,7 @@ function segment(kind, w) {
   const storm = !!(w.weather && w.weather.active && w.weather.intensity > 0.7);
   const wet = !!(w.weather && w.weather.active && w.weather.intensity > 0.15);
   if (kind === 'ident') return [host(fresh(G.ident))];
+  if (kind === 'dj') { const z = channelById(channelId); return z && z.lines ? [{ speaker: z.dj, text: fresh(z.lines), textOnly: true, dur: 4 }] : [host(fresh(G.ident))]; }
   if (kind === 'news') return [host(fresh(G.news)), news()];
   if (kind === 'clip') return [clip(fresh(NEWS_CLIPS))];
   if (kind === 'ad') return [host(fresh(G.ads))];
@@ -218,7 +317,7 @@ function segment(kind, w) {
     return [host(fresh(G.cows)), { speaker: 'Koe ' + cow, text: t, voice: () => lineVoiceFor('Koe ' + cow, t) }];
   }
   // at night Rikus presents himself; by day Geesje passes him on
-  if (kind === 'rikus') return prog.id === 'nacht' ? [rikus()] : [host(fresh(G.rikus)), rikus()];
+  if (kind === 'rikus') return prog.id === 'nacht' || prog.channel === 'nachtstreek' ? [rikus()] : [host(fresh(G.rikus)), rikus()];
   return [host(fresh(G.ident))];
 }
 

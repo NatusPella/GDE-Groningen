@@ -194,7 +194,8 @@ import { updateCashVan } from './cashvan.js';
 import { initHeliRun, updateHeliRun, tryHeliSpotInteract, updateHeliSpot } from './helirun.js';
 import { initPadel, updatePadel, tryPadelInteract, updatePadelWorld, padelCamera } from './padel.js';
 import { initActivities, isActivityActive, updateActivityGame, tryActivityInteract, updateActivitiesWorld, tickActivitiesGast, activityCamera } from './activities.js';
-import { initRadio, updateRadio } from './radio.js';
+import { initRadio, updateRadio, setRadioFound } from './radio.js';
+import { getSaveSet } from './achievements.js';
 import { updatePoleVaults } from './fierljep.js';
 import { initPostgame, updatePostgame, tryPostgameInteract } from './postgame.js';
 import { initStationTravel, tryStationInteract } from './stationtravel.js';
@@ -907,6 +908,7 @@ async function boot() {
   initHeliRun(world);
   initPadel(world);
   initActivityKinds(world, 'main');
+  setRadioFound(() => getSaveSet('geheimen'));
   initRadio(world);
   initActivityKinds(world, 'late');
   setBootStep('systemen', 0.5);

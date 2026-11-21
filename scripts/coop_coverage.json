@@ -1145,13 +1145,14 @@
     "evenementen*"
    ],
    "eigenaar": "speler",
-   "gast": "De duif wordt in de duifmodus door de gast mee bestuurd; dieren, fotomodus en radio zijn lokaal; evenementen zijn van de wereld en worden bij de gast getoond.",
+   "gast": "De duif wordt in de duifmodus door de gast mee bestuurd; dieren, fotomodus en radio zijn lokaal (de radiozender ook, in een gedeeld voertuig kiest de bestuurder en volgt of stemt de passagier); evenementen zijn van de wereld en worden bij de gast getoond.",
    "beloning": "Eigen dierenbezit en visboek per speler.",
    "wegval": "Niets te herstellen.",
    "test": [
     "scripts/pigeon_sync_test.mjs",
     "scripts/dierenregister_test.mjs",
-    "scripts/evenementen_test.mjs"
+    "scripts/evenementen_test.mjs",
+    "scripts/radiochannels_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
@@ -1614,6 +1615,10 @@
   "radioHistory": {
    "scope": "apparaat",
    "reden": "Radiogeschiedenis."
+  },
+  "radioChannel": {
+   "scope": "apparaat",
+   "reden": "Gekozen radiozender."
   },
   "radioTalk": {
    "scope": "apparaat",

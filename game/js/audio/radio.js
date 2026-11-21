@@ -10,6 +10,7 @@ import { getSettings } from '../settings.js';
 import { isThemeActive } from '../theme.js';
 import { KEYS } from '../storagekeys.js';
 import { MIN_TRACK_S, normalizeTrack, pickTrack, pushHistory, pickJingle, STATION_NAME } from '../musicpick.js';
+import { channelById, channelTracks, recentIds, pushLog } from '../radiochannels.js';
 import { createMusicWatch } from '../musicwatch.js';
 import * as speech from '../speech.js';
 import { GMUSIC_VOLUME, musicBusGain } from '../sfx/volume.js';
@@ -64,6 +65,16 @@ export function setRadioOn(on) {
 }
 export function setRadioProgramme(p) {
   radioProg = p;
+}
+// The chosen channel (radiochannels.js) decides the pool of records. Another channel takes over with the next record (the old
+// channel's queue is dropped and a talk break stops), so you never hear one more record of the channel you left.
+let radioChannelId = 'gmusic';
+const gmusicLog = []; // { id, at (minutes) } for a channel's minutes rule; this session only
+export function setRadioChannel(id) {
+  if (!id || id === radioChannelId) return;
+  radioChannelId = id;
+  gmusicQueue = [];
+  if (gmusicStarted && radioOn && !gmusicHeld && gmusicTracks.length) { inBreak = false; breakId++; advanceGmusicQueue(); }
 }
 export function onRadioBreak(fn) {
   radioBreak = fn;
@@ -233,9 +244,18 @@ function randomAmbientJingleEl(chance = 1) {
 let freshPick = false; // radio just switched on: new records first (musicpick.js NIEUW)
 function nextTrackEl() {
   const good = gmusicTracks.filter((x) => !x.gmusicBad);
-  const t = pickTrack((good.length ? good : gmusicTracks).map((el) => el.gmusicTrack), gmusicHistory, { station: radioProg.music, hour: musicHour, fresh: freshPick });
+  const tracks = (good.length ? good : gmusicTracks).map((el) => el.gmusicTrack);
+  // a channel of its own plays from its own pool (no borrowing); if that pool is too small it falls back to the G-Music programme
+  const z = channelById(radioChannelId);
+  const own = z && !z.schedule ? channelTracks(z, tracks) : null;
+  const nowMin = nowSec() / 60;
+  const t = pickTrack(tracks, gmusicHistory, {
+    station: radioProg.music, hour: musicHour, fresh: freshPick,
+    pool: own && own.length >= z.minPool ? own : null, avoid: z ? recentIds(gmusicLog, nowMin, z.minMinutes) : null,
+  });
   freshPick = false;
   const el = gmusicTracks.find((x) => x.gmusicTrack === t) || gmusicTracks[0];
+  pushLog(gmusicLog, el.gmusicTrack.id, nowMin);
   pushHistory(gmusicHistory, el.gmusicTrack.id);
   try { localStorage.setItem(GMUSIC_HISTORY_KEY, JSON.stringify(gmusicHistory)); } catch (e) { /* private mode */ }
   return el;
@@ -391,8 +411,8 @@ export function updateGMusic(dt, world) {
   }
 
   if (pendingTrackAnnounce) {
-    const night = radioProg.music === 'nachtstreek';
-    world.nowPlaying = { title: pendingTrackAnnounce, artist: (night ? 'Rikus draait: ' : '') + trackArtist(pendingTrackAnnounce), station: STATION_NAME, programme: radioProg.name, at: world.time };
+    const night = radioProg.music === 'nachtstreek' && (!radioProg.channel || radioProg.channel === 'gmusic' || radioProg.channel === 'nachtstreek');
+    world.nowPlaying = { title: pendingTrackAnnounce, artist: (night ? 'Rikus draait: ' : '') + trackArtist(pendingTrackAnnounce), station: radioProg.stationName || STATION_NAME, programme: radioProg.name, at: world.time };
     pendingTrackAnnounce = null;
   }
 

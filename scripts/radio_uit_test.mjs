@@ -18,6 +18,7 @@ import { createScenarioDirector, activityMusicKey } from '../game/js/scenariomus
 import { registerBusyProbe, playerBusy } from '../game/js/busy.js';
 import { createAdState } from '../game/js/radioads.js';
 import { programmeAt, normalizeRadio, STATION_NAME } from '../game/js/musicpick.js';
+import { channelById, channelStatus, listChannels, openChannels, nextChannel, validChannel, programmeFor, isUnlocked, DEFAULT_CHANNEL } from '../game/js/radiochannels.js';
 
 const AUDIO = new URL('../game/js/audio/scenario.js', import.meta.url);
 const RADIO = new URL('../game/js/radio.js', import.meta.url);
@@ -205,7 +206,8 @@ function loadRadio({ document: doc } = {}) {
     showRadioSub: (who, text) => shown.push(who + ': ' + text),
     hideRadioSub: () => {},
     createAdState,
-    programmeAt,
+    programmeAt, channelById, channelStatus, listChannels, openChannels, nextChannel, validChannel, programmeFor, isUnlocked, DEFAULT_CHANNEL,
+    setRadioChannel: () => {}, radioTrackList: () => [],
     normalizeRadio,
     STATION_NAME,
   };
@@ -221,7 +223,7 @@ const makeWorld = (o = {}) => {
   let pressed = false;
   const w = {
     time: 0, clock: 12, paused: false, messages: [],
-    input: { wasPressed: (k) => k === 'n' && pressed },
+    input: { wasPressed: (k) => k === 'n' && pressed, isDown: () => false },
     press() { pressed = true; },
     release() { pressed = false; },
     ...o,
@@ -232,7 +234,7 @@ const toggle = (api, w) => { w.press(); api.updateRadio(0.1, w); w.release(); };
 
 // de oude gedwongen tak is weg
 ok(!/const want = on \|\| playerBusy/.test(radioSrc), 'de gedwongen want-tak staat niet meer in radio.js');
-ok(/if \(!radioKeyBlocked\(w\) && w\.input\.wasPressed\('n'\)\) setRadio\(!on\);/.test(radioSrc), 'N gaat langs radioKeyBlocked');
+ok(/if \(!radioKeyBlocked\(w\) && w\.input\.wasPressed\('n'\)\) \{ if \(w\.input\.isDown\('shift'\)\) stepChannel\(1\); else setRadio\(!on\); \}/.test(radioSrc), 'N gaat langs radioKeyBlocked (met Shift: de volgende zender)');
 
 // een filmpje (de cinematics-probe) houdt de toets tegen
 let film = false;
