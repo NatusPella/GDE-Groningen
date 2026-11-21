@@ -1,5 +1,6 @@
 import { gridItems } from './spatialgrid.js';
 import { keyTextHtml } from './keycap.js';
+import { districtAt } from './districtat.js';
 import { setMapOpenState } from './pausestate.js';
 import { sfxLinks } from './latehooks.js';
 import { onPaletteChange } from './a11y.js';
@@ -2362,13 +2363,10 @@ function streetAt(wx, wy, radiusM) {
   return best;
 }
 
+// #1077: alleen een wijk waar je echt in staat (districtat.js), nooit het dichtstbijzijnde stadspunt buiten de stad.
 function wijkAt(wx, wy) {
-  let best = null, bestD2 = Infinity;
-  for (const p of state.map.meta.neighbourhoodPoints || []) {
-    const d2 = (p.x - wx) ** 2 + (p.y - wy) ** 2;
-    if (d2 < bestD2) { bestD2 = d2; best = p.name; }
-  }
-  return best;
+  const d = districtAt(state.map.meta.neighbourhoodPoints || [], wx, wy);
+  return d ? d.name : null;
 }
 
 // Waar je staat (#445): de straat, anders de wijk. De kaart staat stil, dus één
