@@ -19,6 +19,9 @@ Kleding: de mensen op straat zijn meer gemengd: ambtenaren in het centrum en wan
 Kleding: het pashokje in een kledingwinkel werkt echt: gordijn dicht, je past wat de winkel vandaag heeft over je eigen outfit, trekt aan wat je al hebt, bewaart de look in een van de vijf outfits en kunt de code ervan delen (outfit-code 3: stukken, kapsel en postuur). Een kledingwinkel zonder eigen menu heeft nu ook een eigen aanbod bij de kassa.
 Kleding: een bewaarde outfit onthoudt ook je postuur; toets 6 wisselt dus ook van vorm. Elk kledingstuk heeft een pictogram per soort (pet, bril, shirt, jas, broek, schoenen, tas, sieraad, horloge, handschoen) en het winkelmenu springt met Home, End en de cijfertoetsen 1 tot 9 naar een rij.
 Kleding: kleding ritselt bij aan- en uittrekken, een jas gaat dicht met een rits en het pashokje heeft een gordijn (alleen jijzelf hoort het; de opnames volgen met de SFX-ronde).
+Kleding: ook het publiek bij races, de gasten op de kermis en de bestuurder, bijrijder en bemanning in voertuigen kleden zich uit de rolpools (politie houdt zijn vaste look); een winkelier in een winkel droeg al zijn beroepskleding.
+Kleding: toets 6 wisselt nu ook in een voertuig van outfit (de auto is je pashokje), maar niet meer in een menu of minigame: in de bakronde zijn 1 tot 6 de ingrediënten. Wissel je van Tammo naar Tessa, dan zien medespelers meteen haar kleding.
+Kleding: na het knippen reageert Tammo of Tessa nu op wat de kapper deed: een kaal hoofd, een hanenkam en een speelse haarkleur krijgen een eigen opmerking.
 Samen spelen: wat je in het pashokje kiest (stukken, kapsel, postuur) zien medespelers meteen; kast, geld en codes van andere outfits blijven van jezelf. Valt een speler weg, dan verdwijnt de figuur met de code; wie later aansluit, krijgt de codes uit de spelerslijst.
 
 (De coördinator voegt deze regels bij 0.65.0.)
