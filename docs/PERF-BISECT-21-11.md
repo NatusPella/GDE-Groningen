@@ -2,6 +2,7 @@
 
 > Opdracht: vind de commit(s) achter de regressie van `PERF-STIL-21-11.md` (0.44 naar 0.64: Hoog 48,5 naar 42,1 fps, vooral in de eerste minuut) en fix wat te fixen is.
 > Tak `perf-bisect-21-11` vanaf main (`610bfd170`). Niets gepusht of gemerged. **De code op de tak is gelijk aan main**: elke proeffix is teruggedraaid omdat hij niets opleverde (zie "Fixpogingen"). Wat wel is gebouwd: de meettooling (`scripts/perf/bisect/`).
+> **Vervolg (21-11):** de "uitbarstingen van 98 tegels" bleken de plaatsingsvensters van `withTiles`; zie [PERF-TEGELSTREAM-21-11.md](PERF-TEGELSTREAM-21-11.md).
 
 ## Uitkomst in vijf regels
 
