@@ -103,5 +103,15 @@ ok(() => assert.equal(districtAt([{ name: 'X', x: NaN, y: 0 }], 0, 0, { grenzen:
   ok(() => { g.tik(NaN, 'A', NaN, NaN); g.tik(NaN, 'B', 0, NaN); g.tik(1, 'B', 0, 0); }, 'NaN laat de volger niet crashen');
 }
 
+// 3. de kaart (mapview.js: "Waar je staat", hover) mag geen eigen dichtstbijzijnde-wijk-keuze meer hebben (#1077)
+{
+  const mv = fs.readFileSync(path.join(root, 'game/js/mapview.js'), 'utf8');
+  const i0 = mv.indexOf('function wijkAt(');
+  const m = i0 < 0 ? null : [mv.slice(i0, mv.indexOf('}', mv.indexOf('return', i0)) + 1)];
+  ok(() => assert.ok(m, 'wijkAt bestaat in mapview.js'), 'mapview heeft wijkAt');
+  ok(() => assert.ok(m && /districtAt\(/.test(m[0]), 'wijkAt gebruikt districtAt'), 'mapview wijkAt gebruikt districtAt');
+  ok(() => assert.ok(m && !/bestD2|Infinity/.test(m[0]), 'geen eigen nearest-lus'), 'mapview wijkAt heeft geen eigen nearest-lus');
+}
+
 console.log(`districtat_test: ${n - f}/${n} geslaagd (raster: ${buiten} punten buiten de stad, ${stadMet} in de stad met wijk)`);
 process.exit(f ? 1 : 0);

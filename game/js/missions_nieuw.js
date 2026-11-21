@@ -130,7 +130,7 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
       type: 'deliver',
       label: 'Nul krassen, vijftienhonderd punten',
       triggerRadius: 6,
-      intro: ['Je hebt uiterlijk morgen honderdvijftig euro nodig voor de inschrijving van de Noordelijke Snackprijs. Een streamer betaalt honderdvijftig voor stunts. Berend Bos betaalt vijftig voor zijn bakkie.', 'Doel: haal vijftienhonderd stuntpunten op de Grote Markt. Parasols en kliko\'s geven punten; mensen en krassen kosten je. Breng het bakkie daarna heel naar het Boterdiep.'],
+      intro: ['Je hebt uiterlijk morgen honderdvijftig euro nodig voor de inschrijving van de Noordelijke Snackprijs. Een streamer betaalt honderdvijftig voor stunts. Berend Bos betaalt vijftig voor zijn bakkie.', 'Doel: haal vijftienhonderd stuntpunten op de Grote Markt. Parasols en kliko\'s geven punten; krassen kosten je geld. Breng het bakkie daarna heel naar het Boterdiep.'],
       outro: 'Honderdvijftig op de pas, vijftig van Berend. Nieuw doel: morgenochtend pinnen en inschrijven bij Het Loket.',
       timeLimit: 240,
       timeUp: 'tijd op. Jelmers chat is al naar een kattenfilmpje en Berend wacht nog',
@@ -144,7 +144,7 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
       kaart: {
         doel: 'Haal 1500 stuntpunten op de Grote Markt, zonder krassen',
         druk: 'vier minuten voor stunt en bezorging samen',
-        afloop: 'mensen raken en krassen kosten je punten en geld',
+        afloop: 'krassen kosten je geld',
         regels: [
           { type: 'teller', inv: { rest: 240, totaal: 240, label: 'Tijd' }, na: 9, duur: 6 },
           { type: 'stappen', inv: { label: 'Twee delen', klaar: 0, stappen: [{ icoon: 'parasol', label: 'Stunt: 1500 punten' }, { icoon: 'auto', label: 'Bakkie heel naar het Boterdiep' }] }, na: 16, duur: 7 },
