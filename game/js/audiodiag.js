@@ -109,6 +109,11 @@ export function formatAudioBlok(s) {
   if (s.playout) add('Uitvoer (browser)', `${s.playout.events} gaten, samen ${f(s.playout.ms, 0)} ms (${f(s.playout.aandeel * 100, 2)}% van de speeltijd)`);
   add('Glitches (audioklok loopt achter, >50 ms)', `${s.glitchesPerMin} laatste minuut, ${s.glitchesTotaal} sinds het starten, langste ${f(s.glitchWorst, 0)} ms`);
   add('Limiter greep in (>1 dB) / uitvoer bij 0 dBFS', `${s.ingrepen}x / ${s.clips}x${s.piekNu !== undefined ? `, laatste piek ${f(20 * Math.log10((s.piekNu || 0) + 1e-9), 1)} dBFS` : ''}`);
+  if (s.ruis) {
+    const namen = Object.entries(s.ruis.perNaam || {}).map(([k, n]) => (n > 1 ? `${k} ${n}x` : k)).join(', ');
+    add('Ruisbronnen (lussen)', `${s.ruis.lussen} levend${namen ? ` (${namen})` : ''}, ${s.ruis.bewaakt} doorlopende ruisstemmen bewaakt`);
+    add('Ruis die bleef hangen', `${s.ruis.gecorrigeerd}x dichtgezet, ${s.ruis.stapeling}x te veel tegelijk${s.ruis.laatste ? ` (laatste: ${s.ruis.laatste})` : ''}`);
+  }
   add('NaN in de mix', `${s.nans}x; niet-eindige parameterwaarden gevangen: ${s.guard.gevangen}${s.guard.laatste ? ` (laatste: ${s.guard.laatste})` : ''}`);
   if (s.vorige) add('Vorige sessie', `${s.vorige.perMin} glitches per minuut op het laatst${s.vorige.perMin >= SLOW_RUNS_FOR_PLAYBACK ? ' (daarom nu de ruime geluidsbuffer)' : ''}`);
   for (const n of s.notes || []) out.push(`  +${f(n.t, 0)} s ${n.kind}: ${n.text}`);
@@ -185,7 +190,7 @@ export function createAudioDiag() {
         master: c.master ? c.master.gain.value : NaN, limiter: lim,
         renderCapacity: st.cap, playout, suspendedKeren: st.suspendedKeren, suspendedSinds: st.suspendedSinds,
         glitchesPerMin: det ? det.perMinute() : 0, glitchesTotaal: det ? det.total() : 0, glitchWorst: det ? det.worst() : 0,
-        clips: st.clips, ingrepen: st.ingrepen, nans: st.nans, piekNu: st.piekNu, guard: guardStand(), vorige: st.vorige, notes: st.notes.slice(),
+        ruis: c.ruis ? c.ruis() : null, clips: st.clips, ingrepen: st.ingrepen, nans: st.nans, piekNu: st.piekNu, guard: guardStand(), vorige: st.vorige, notes: st.notes.slice(),
       };
     },
   };
