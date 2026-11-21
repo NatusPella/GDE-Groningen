@@ -48,7 +48,11 @@ export const AI_ASSISTENTS = [
 // De opnames van Freesound (ADR 0039): per bron titel, auteurshandle en licentie, uit game/audio/sfx/manifest.json (via audiocredits.js).
 export function geluidenHtml(lijst = AUDIO_CREDITS) {
   const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const li = (c) => `<li>${esc(c.beschrijving)}: ${esc(c.auteur)}, ${c.licentie}, Freesound ${c.id}</li>`;
+  const link = (url, tekst) => `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${tekst}</a>`;
+  // CC BY: titel (zoals gegeven), auteur, bronlink en licentielink; CC0 houdt de korte regel
+  const li = (c) => (c.by && c.bron && c.licentieUrl
+    ? `<li>${esc(c.beschrijving)}: ${link(c.bron, c.titel ? `${esc(c.titel)}` : `Freesound ${c.id}`)} van ${esc(c.auteur)}, ${link(c.licentieUrl, c.licentie)}, Freesound ${c.id}</li>`
+    : `<li>${esc(c.beschrijving)}: ${esc(c.auteur)}, ${c.licentie}, Freesound ${c.id}</li>`);
   const by = lijst.filter((c) => c.by), cc0 = lijst.filter((c) => !c.by);
   return ['<h4>Geluiden</h4>',
     '<p>Voetstappen, weer, motoren, deuren en ander geluid zijn opnames van Freesound (freesound.org), bewerkt voor dit spel (ingekort, in niveau gelijkgetrokken, tot lussen gemaakt). Dank aan de makers.</p>',
@@ -101,7 +105,7 @@ export const LICENSES_HTML = `
 <h4>Licenties</h4>
 <p>De code is vrije software onder de GPL-3.0 (of later). Stemmen, muziek, verhaal en dialogen vallen onder CC BY-NC-SA 4.0. De naam ${SERIES} en het logo zijn niet vrij te gebruiken. Zie LICENSE, LICENSE-CONTENT.md en NOTICE.md bij de broncode.</p>
 <h4>Privacy</h4>
-<p>Het spel bewaart je voortgang en instellingen alleen op dit apparaat (localStorage): geen account, geen tracking, geen statistieken. Bij elke start kies je Alleen spelen of Samen spelen. Alleen spelen gebruikt het netwerk niet; bij Samen spelen speel je in een eigen besloten sessie en daarvoor gaat je IP-adres naar een openbare STUN-server en lopen de versleutelde signaleringsberichten via openbare brokers. Deel je de sessie niet, dan zie je geen andere spelers. Fouten schrijft het spel op in een eigen logboek op dit apparaat (Over › Problemen); dat verstuurt niets, je kunt het zelf kopiëren als je een fout wilt melden. Live busposities staan standaard aan en kun je uitzetten (pauzemenu › Instellingen › Spelregels); daarvoor vraagt het spel een openbare busdienst op, zonder gegevens van jou. Alleen de browserversie haalt bij het laden three.js en de lettertypes op bij jsDelivr en Google Fonts.</p>
+<p>Het spel bewaart je voortgang en instellingen alleen op dit apparaat (localStorage): geen account, geen tracking, geen statistieken. Bij elke start kies je Alleen spelen of Samen spelen. Alleen spelen gebruikt het netwerk niet voor Samen spelen; bij Samen spelen speel je in een eigen besloten sessie en daarvoor gaat je IP-adres naar een openbare STUN-server en lopen de versleutelde signaleringsberichten via openbare brokers. Deel je de sessie niet, dan zie je geen andere spelers. Fouten schrijft het spel op in een eigen logboek op dit apparaat (Over › Problemen); dat verstuurt niets, je kunt het zelf kopiëren als je een fout wilt melden. Live bussen en live treinen staan standaard aan, ook bij Alleen spelen, en elk heeft een eigen uitzetter (pauzemenu › Instellingen › Spelregels): daarvoor vraagt het spel openbare gegevens op (de busposities, en in de desktopapp eens per minuut de treinvertragingen, ongeveer 1 MB), zonder gegevens van jou. In Samen spelen vraagt het spel geen live treinen op. Alleen de browserversie haalt bij het laden three.js en de lettertypes op bij jsDelivr en Google Fonts.</p>
 <p>Samen spelen (als je een sessie deelt of met iemand meespeelt) deelt je IP-adres met je medespeler. Met een kamercode gebruikt het spel daarbij openbare servers om elkaar te vinden: een openbare STUN-server en openbare signaleringsservers, waar alleen versleutelde berichten langsgaan. Met een IP-adres verbindt de ander rechtstreeks met jou en opent je router een poort; die sluit weer als je stopt. Je krijgt altijd eerst een melding en je kiest zelf. Er is geen account, geen telemetrie en niets van je voortgang gaat mee.</p>
 `;
 

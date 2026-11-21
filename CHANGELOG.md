@@ -186,6 +186,12 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - De hint "Houd SPATIE ingedrukt om over te slaan" is groter en beter leesbaar; de regel onder het doel bij je eigen waypoint zegt "je verhaalmissie wacht: ..." en de kaart "Weg uit beeld" toont geen rij lege sterren meer; de uitleg bij Zelf gaan op de kaart is natuurlijker verwoord.
 - De uitleg bij de cheats toont {ENTER} als toetsplaatje in plaats van een tekstkeycap, en de startkaarten van de activiteiten tonen de spatie als toetsplaatje.
 - Sessiecodes en het nieuws op het startscherm gebruiken één vast lettertype voor codes.
+- Schermschudden Uit, Minder en Beweging beperken gelden nu ook voor de camerazwaai in verhaalscènes en de mislukscène; eerder bleef die staan.
+- De melding bij een outfit waar stukken van ontbreken klopt grammaticaal: "maar 1 stuk ontbreekt", "maar 2 stukken ontbreken".
+- Op de startkeuze, de toestemmingskaart voor Samen spelen en de moeilijkheidskaart blijft Tab binnen de kaart: voorbij de laatste knop ga je terug naar de eerste, niet naar het scherm eronder.
+- Over › Privacy zegt eerlijk dat live bussen en live treinen standaard aan staan, ook bij Alleen spelen, elk met een eigen uitzetter in Instellingen. Live treinen worden niet meer opgevraagd in Samen spelen en alleen als je binnen 400 meter van een station bent.
+- Over › Geluiden: bij elk geluid onder CC BY staan nu de titel van de maker als link naar de bron en de licentie als link.
+- Een ingestelde keuze zoals Schermschudden of tekstgrootte die met de hand in het instellingenbestand is verknoeid ("toString") valt terug op de standaard.
 
 ### Wereld, weer en verkeer
 
@@ -208,6 +214,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 - Webversie: er komt een handmatige workflow om het spel op GitHub Pages te zetten (onder /play/, naast de marketingpagina), met alleen Opus-geluid (ca. 300 MB kleiner; Safari vóór 18.4 speelt dan zonder geluid), de wereld uit de release en een klein wegklikbaar label "Webversie (preview)". Livebussen en live treinen worden in de webversie niet opgevraagd (geen CORS), het spel rijdt dan het eigen rooster. Geen telemetrie.
 - Intern: de dekkingsaudit voor Samen spelen (`scripts/coop_coverage_audit.mjs`, matrix in docs/COOP-DEKKING-21-11.md) en de rooktest `alles` van de testbank voor Samen spelen, met het draaiboek in docs/COOP-SWEEP-21-11.md.
+- Intern: de naamtaalpoort (`scripts/naamtaal_check.mjs`, ADR 0027) ziet nu ook coop als achtervoegsel, de Nederlandse stammen van de nieuwe modules en `scripts/`; de bestaande overtreders staan vast in een allowlist, een nieuwe overtreding faalt.
 - Regelaudit op de release-diff: telt netto per bestand (een herschreven regel is geen nieuwe overtreding), kent de goedgekeurde treinfeed, en keurt merken alleen in tekst; zie docs/DESIGN-AUDIT-UI-21-11.md.
 
 ### Overig (na het ordenen aan de hand van de laatste merges)

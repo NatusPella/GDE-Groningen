@@ -63,6 +63,11 @@
       "why": "verzonnen naam (woordspeling op de supermarkt), geen merk"
     },
     {
+      "rule": "url",
+      "file": "sfx/audiocredits.js",
+      "why": "CC BY vraagt een bronlink en een licentielink bij de naamsvermelding (review 22-11); het spel haalt niets op, de speler kan de link zelf openen. Gegenereerd uit het manifest door scripts/audio/licenties_bouw.mjs"
+    },
+    {
       "rule": "merk",
       "term": "Google",
       "file": "credits.js",

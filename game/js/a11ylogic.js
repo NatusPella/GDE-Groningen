@@ -147,3 +147,13 @@ export function effectsFor({ reduceMotion = false, reduceFlash = false, shake = 
 
 // Camera shake amplitude after the setting (cutscripts shake, crashes, sprint bobbing)
 export const shakeAmount = (amount, opts) => amount * effectsFor(opts).cameraShake;
+
+// De handheld-zwaai van de camera in verhaalscènes (missionstory.js): 'scene' voor de vaste scènes, 'live' voor de telefooncamera.
+// Volgt Schermschudden en Beweging beperken; bij 0 is er geen uitslag (review 22-11).
+export function handheldOffset(t, base, opts, kind = 'scene') {
+  const j = shakeAmount(base, opts);
+  if (!(j > 0)) return { x: 0, y: 0, z: 0 };
+  return kind === 'live'
+    ? { x: Math.sin(t * 2.3) * j, y: Math.cos(t * 1.9) * j, z: Math.sin(t * 3.1) * j * 0.8 }
+    : { x: Math.sin(t * 1.7) * j, y: Math.cos(t * 1.3) * j, z: Math.sin(t * 2.1 + 1) * j * 0.6 };
+}

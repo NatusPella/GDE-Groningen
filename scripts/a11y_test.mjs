@@ -152,5 +152,24 @@ ok(/toggle\('showSubtitles', 'Ondertitels aan'/.test(pmSrc), 'de schakelaar staa
   ok((sceneSrc.match(/shake: getSettings\(\)\.screenShake/g) || []).length === 2, 'klap en aardbeving in scene3d volgen de schudstand');
 }
 
+// Handheld zwaai in verhaalscènes (missionstory.js) volgt Schermschudden en Beweging beperken (review 22-11)
+{
+  const f = L.handheldOffset;
+  ok(typeof f === 'function', 'handheldOffset bestaat');
+  if (typeof f === 'function') {
+    const nul = (o) => o.x === 0 && o.y === 0 && o.z === 0;
+    ok(nul(f(3, 0.07, { shake: 'uit' })), 'Schermschudden Uit: de scènecamera staat stil');
+    ok(nul(f(3, 0.07, { reduceMotion: true, shake: 'aan' })), 'Beweging beperken: de scènecamera staat stil');
+    ok(nul(f(3, 0.07, { shake: 'uit' }, 'live')) && nul(f(3, 0.035, { reduceMotion: true }, 'live')), 'ook de telefooncamera (live) staat dan stil');
+    const aan = f(3, 0.07, { shake: 'aan' });
+    ok(Math.abs(aan.x - Math.sin(3 * 1.7) * 0.07) < 1e-12 && Math.abs(aan.y - Math.cos(3 * 1.3) * 0.07) < 1e-12 && Math.abs(aan.z - Math.sin(3 * 2.1 + 1) * 0.07 * 0.6) < 1e-12, 'Aan: de zwaai is zoals voorheen');
+    const minder = f(3, 0.07, { shake: 'minder' });
+    ok(Math.abs(minder.x - aan.x * 0.35) < 1e-12, 'Minder: een derde van de uitslag');
+    ok(f(3, 0.07, {}).x === aan.x, 'zonder opties geldt de standaard (aan)');
+    const ms = readFileSync(new URL('../game/js/missionstory.js', import.meta.url), 'utf8');
+    ok(ms.split('handheldOffset(').length === 3 && !ms.includes('Math.sin(t * 1.7) * j'), 'missionstory gebruikt handheldOffset voor beide zwaaien');
+  }
+}
+
 console.log(fails ? `${fails} of ${n} failed` : `a11y_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);

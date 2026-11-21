@@ -19,6 +19,14 @@ export function navIndex(n, i, key, { wrap = false, shift = false } = {}) {
   return wrap ? (naar + n) % n : Math.max(0, Math.min(n - 1, naar));
 }
 
+// De focusval van een modale kaart (aria-modal): het volgende veld bij Tab, het vorige bij Shift+Tab, rond aan de randen. Staat de focus
+// buiten de kaart, dan gaat hij naar het eerste (Tab) of laatste veld (Shift+Tab). Geeft null als de kaart geen velden heeft (review 22-11).
+export function trapTabInCard(fieldList, active, shift = false) {
+  const fields = fieldList ? [...fieldList] : [];
+  if (!fields.length) return null;
+  return fields[navIndex(fields.length, fields.indexOf(active), 'Tab', { wrap: true, shift })];
+}
+
 // De toetsen die een kaartvenster voor zichzelf houdt, zodat ze het menu onder de kaart niet wisselen: Q, E, [ ], M en Tab.
 export const PAGE_SWITCH_KEYS = /^(q|e|\[|\]|m)$/i;
 // De cijfertoets van een rij: '1' tot '9' (nooit '0': de lijst telt tot 9).

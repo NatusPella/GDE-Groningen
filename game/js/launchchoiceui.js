@@ -8,6 +8,7 @@ import { KEUZES, LAUNCH_TEXT, TOESTEMMING_TEKST, toetsActie } from './launchchoi
 import { geefToestemming, moetNaamVragen, moetToestemmingVragen } from './onlineconsent.js';
 import { openOnlineStart, meerInfoHtml } from './onlineconsentui.js';
 import { getSettings } from './settings.js';
+import { trapTabInCard } from './listnav.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -70,9 +71,14 @@ export function openLaunchChoice({ index = 0 } = {}) {
   };
   function onKey(e) {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === 'Tab') { // aria-modal: Tab blijft op de kaart
+      const v = trapTabInCard(knoppen, document.activeElement, e.shiftKey);
+      if (v) { e.preventDefault(); e.stopPropagation(); v.focus(); nu = knoppen.indexOf(v); }
+      return;
+    }
     const i = knoppen.indexOf(document.activeElement);
     const a = toetsActie(e.key, i < 0 ? nu : i);
-    if (!a) return; // Tab en de rest blijven gewoon werken
+    if (!a) return; // de rest blijft gewoon werken
     e.preventDefault();
     e.stopPropagation();
     if (e.repeat) return;
@@ -112,6 +118,11 @@ export function openToestemming({ zet = undefined } = {}) {
   };
   function onKey(e) {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === 'Tab') { // aria-modal: Tab blijft op de kaart
+      const v = trapTabInCard([...el.querySelectorAll('.os-consent-vink, .os-info summary, [data-geef], [data-terug]')], document.activeElement, e.shiftKey);
+      if (v) { e.preventDefault(); e.stopPropagation(); v.focus(); }
+      return;
+    }
     if (e.key === 'Escape' || e.key === 'Backspace') {
       if (e.target && e.target.closest && e.target.closest('input[type="text"]')) return;
       e.preventDefault(); e.stopPropagation(); sluit(false);

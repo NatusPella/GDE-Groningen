@@ -28,6 +28,9 @@ import './cutscenes_akte3.js';
 import './cutscenes_akte4.js';
 import './cutscenes_akte6.js';
 import { hoofdspeler } from './players.js';
+import { handheldOffset } from './a11ylogic.js';
+import { reducedMotion } from './motion.js';
+import { getSettings } from './settings.js';
 
 // Story cutscenes around the mission chain: who asks and why (start), the
 // payoff (success) and a short sting (fail). Tammo and Tessa's relationship
@@ -1189,14 +1192,16 @@ function runScene(r, tl, { id, kicker = '', title = '', cardFor = 3, camera, pos
       let p = camera(t, cur);
       // held: the shot frames the clue itself
       if (cur && cur.clue && p && !p.held) p = pushIn(p, smooth((t - cur.at) / Math.min(1.8, cur.dur)));
+      // de zwaai volgt Schermschudden en Beweging beperken (review 22-11)
+      const zwaaiOpts = { reduceMotion: reducedMotion(), shake: getSettings().screenShake };
       if (!live && p && r.shake) {
-        const j = r.shake;
-        p = { ...p, position: P(p.position.x + Math.sin(t * 1.7) * j, p.position.y + Math.cos(t * 1.3) * j, p.position.z + Math.sin(t * 2.1 + 1) * j * 0.6) };
+        const o = handheldOffset(t, r.shake, zwaaiOpts);
+        p = { ...p, position: P(p.position.x + o.x, p.position.y + o.y, p.position.z + o.z) };
       }
       if (live && p) {
         // handheld phone camera
-        const j = 0.035;
-        p = { ...p, position: P(p.position.x + Math.sin(t * 2.3) * j, p.position.y + Math.cos(t * 1.9) * j, p.position.z + Math.sin(t * 3.1) * j * 0.8), cut: true };
+        const o = handheldOffset(t, 0.035, zwaaiOpts, 'live');
+        p = { ...p, position: P(p.position.x + o.x, p.position.y + o.y, p.position.z + o.z), cut: true };
       }
       return p;
     },

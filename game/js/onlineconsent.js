@@ -21,7 +21,8 @@ export const onlineNaamOk = (naam) => onlineNaamFout(naam) === '';
 export const moetVragen = (settings = getSettings()) => settings.onlineMeedoen !== true || !onlineNaamOk(settings.onlineNaam);
 // Sinds de startkeuze (Alleen of Samen, launchchoice.js) zijn het twee vragen, en beide komen pas bij Samen spelen: de kaart
 // met naam en akkoord de eerste keer, daarna nooit meer vanzelf. Is alleen het akkoord ingetrokken, dan vraagt het spel alleen
-// dat (de naam blijft). Alleen spelen gebruikt het netwerk niet en vraagt niets.
+// dat (de naam blijft). Alleen spelen vraagt niets en gebruikt het netwerk niet voor Samen spelen; alleen de live bussen en treinen (elk met een
+// eigen uitzetter in Instellingen) halen ook dan openbare gegevens op.
 export const moetNaamVragen = (settings = getSettings()) => !onlineNaamOk(settings.onlineNaam);
 export const moetToestemmingVragen = (settings = getSettings()) => settings.onlineMeedoen !== true;
 // De naam wijzigen (Instellingen): dezelfde regels als de kaart (verboden woorden, geen echte persoonsnamen); bij een fout blijft de oude naam.

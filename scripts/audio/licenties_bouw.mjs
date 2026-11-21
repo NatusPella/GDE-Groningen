@@ -65,6 +65,7 @@ ${rijen.join('\n')}
 `;
 }
 
+const MERK_IN_TITEL = /hyundai|kona|nissan|volvo|chrysler|maxima|rover|aston|martin/i;
 export function omschrijving(gebruik) {
   const t = String(gebruik || 'geluid').split(/[:(]/)[0].trim();
   return t.charAt(0).toUpperCase() + t.slice(1);
@@ -73,7 +74,13 @@ export function omschrijving(gebruik) {
 export function bouwModule(man) {
   // De bronnaam van Freesound kan een merk of model bevatten (constitutie 2): het spel toont onze eigen Nederlandse omschrijving (het gebruik),
   // met auteurshandle, licentie en het Freesound-id; de originele titel blijft in het manifest en in docs/AUDIO-LICENTIES.md.
-  const lijst = bronnen(man).map((b) => ({ id: b.id, beschrijving: omschrijving(b.gebruik), auteur: b.auteur, licentie: LICENTIES[b.licentie].kort, by: LICENTIES[b.licentie].by }));
+  // Voor CC BY (naamsvermelding verplicht) komen titel, bronlink en licentielink erbij (review 22-11); een titel met een merknaam (constitutie 2) blijft weg.
+  const lijst = bronnen(man).map((b) => {
+    const L = LICENTIES[b.licentie];
+    const c = { id: b.id, beschrijving: omschrijving(b.gebruik), auteur: b.auteur, licentie: L.kort, by: L.by };
+    if (L.by) { if (!MERK_IN_TITEL.test(b.titel)) c.titel = b.titel; c.bron = b.url; c.licentieUrl = L.url; }
+    return c;
+  });
   return `// Gegenereerd door scripts/audio/licenties_bouw.mjs uit game/audio/sfx/manifest.json: niet met de hand aanpassen.
 // De bronnen van de geluidsopnames (Freesound) voor de sectie "Geluiden" in de credits (credits.js). ADR 0039.
 export const AUDIO_CREDITS = ${JSON.stringify(lijst, null, 2)};

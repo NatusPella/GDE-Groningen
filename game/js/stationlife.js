@@ -11,6 +11,7 @@ import { createTimeline } from './departuretimelineui.js';
 export const NEAR_R = 45;      // m: zo dichtbij moet je bij het perron zijn voor bord en omroep
 export const CROWD_R = 140;    // m: zo dichtbij worden reizigers getekend
 export const OMROEP_GAP = 75;  // s spelklok tussen twee berichten van dezelfde rit
+export const LIVE_R = 400;     // m: binnen deze afstand van een station zijn live vertragingen het opvragen waard (bord en treinen in zicht)
 
 // Stations uit de lijnen, op naam samengevoegd: { name, x, y, lijnen:[route...] }.
 // `point(route, s)` geeft [x, y] (railway.routePoint); haltes buiten de kaart blijven weg.
@@ -39,6 +40,13 @@ export function nearestStation(stations, x, y, r = NEAR_R) {
     if (d < bd) { bd = d; best = s; }
   }
   return best ? { station: best, d: bd } : null;
+}
+
+// Live treinen opvragen (OVapi) alleen als het resultaat gebruikt wordt: niet in Samen spelen (iedereen rekent daar zonder live vertraging)
+// en niet ver van elk station (review 22-11).
+export function shouldPollLiveTrains(world, stationList, x, y, r = LIVE_R) {
+  if (world && world.coopRole) return false;
+  return !!(stationList && stationList.length && nearestStation(stationList, x, y, r));
 }
 
 // Alles wat HUD, omroep en 3D van een station nodig hebben. clock: spelklok in uren, dag: dagnummer.
