@@ -183,6 +183,7 @@ function faseBeeld(ctx) {
   const d = path.join(ctx.out, 'visual');
   let images = (ctx.images || '').split(',').map((s) => s.trim()).filter(Boolean);
   const notities = [];
+  const afwijkingen = []; // sets met "streng": een afwijking van de goedgekeurde referenties (exit 1) laat de stage falen
   if (!images.length) {
     const hebben = { wereld: Boolean(wereldMap()), electron: Boolean(electronPad()) };
     for (const set of leesVisualSets()) {
@@ -192,11 +193,14 @@ function faseBeeld(ctx) {
       const uit = path.join(ctx.out, set.out || path.join('beelden', set.naam));
       fs.mkdirSync(uit, { recursive: true });
       const r = runStep(`beelden-${set.naam}`, process.execPath, [set.script, ...(set.args || []), `--out=${uit}`], { ms: (Number(set.timeoutS) || 2700) * 1000, logDir: path.join(d, set.naam) });
-      if (r.code !== 0) { notities.push(`${set.naam}: ${MELDING(r)}`); continue; }
+      if (r.code !== 0) { notities.push(`${set.naam}: ${MELDING(r)}`); if (set.streng && r.code === 1) afwijkingen.push(set.naam); continue; }
       images.push(uit);
     }
   }
   images = images.filter((p) => fs.existsSync(p));
+  if (afwijkingen.length) {
+    return { status: 'FAIL', code: 1, secs: 0, detail: `beeldregressie wijkt af van de referenties (${afwijkingen.join(', ')}); diffbeelden in <uitvoer>-diff; ${notities.join('; ')}`, log: d };
+  }
   if (!images.length) {
     return { status: 'SKIP', code: 3, secs: 0, detail: `geen beelden${notities.length ? ` (${notities.join('; ')})` : ''}`, log: d };
   }
