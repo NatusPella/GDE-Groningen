@@ -50,7 +50,8 @@
   "KEYS-AUDIT-20-11.md": "Audit van toetsen; lokaal.",
   "MUZIEK-GEBRUIK-20-11.md": "Muziekgebruik; lokaal per apparaat (zie Stemmen, geluid en muziek in COOP-GAST.md).",
   "OPSCHONEN-20-11.md": "Opruimlijst van code; geen spelregel.",
-  "PROEFSPELER-DOORLOOP-20-11.md": "Doorloop van de proefspeler (spelbot); geen spelregel."
+  "PROEFSPELER-DOORLOOP-20-11.md": "Doorloop van de proefspeler (spelbot); geen spelregel.",
+  "TTS-ACHTERSTAND-21-11.md": "Stand van de opnameronde (stemopnames); geen spelregel."
  },
  "features": [
   {
@@ -1487,6 +1488,14 @@
   {
    "glob": "goaltext",
    "reden": "Alleen de opmaak van de doeltekst in de HUD; lokaal beeld, de doelen zelf zijn van de speler."
+  },
+  {
+   "glob": "buildinghit",
+   "reden": "Zuivere geometrietoets (punt in gebouwvoetafdruk) voor routering; geen spelstaat."
+  },
+  {
+   "glob": "pathlane",
+   "reden": "Tekent de routelijn in de wereld van de eigen speler (beeld); de route is lokaal per speler."
   }
  ],
  "opslag": {
