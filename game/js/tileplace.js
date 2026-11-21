@@ -5,7 +5,8 @@
 // fixed ahead of the player (a shop door, a village's uitje) asks for its tiles
 // first (withTiles) and then runs on what is resident.
 import { pointInPolygon, closestPointOnSegment, nearestOnRoadList } from './util.js';
-import { BACKGROUND_PRIORITY, BG_DRAIN_MAX_MS, backgroundHeld, drainSliced, joinQueues, sliceFor } from './tilestream.js';
+import { BG_DRAIN_MAX_MS, backgroundHeld, drainSliced, joinQueues } from './tilestream.js';
+import { windowModeFor } from './windowmode.js';
 
 // A polygon's distance to a point, 0 inside it.
 function polyDist(x, y, pts) {
@@ -194,12 +195,15 @@ export async function withTiles(map, points, fn, { radius = 160, token = 'place'
   for (const k of keys) st.pin(k);
   try {
     const t0 = performance.now();
-    await Promise.all([...keys].map((k) => st.request(k, { priority: urgent ? -500 : BACKGROUND_PRIORITY }))); // geen token: dit venster wacht zijn beurt af en trekt niets in (#588)
+    // windowmode.js: een teleport (urgent) is synchroon; een venster bij de speler, bij een lopende activiteit of een herstel is
+    // 'urgent' (afstandsprioriteit, 6 ms per frame, niet vastgehouden door een film of cutscene); de rest is achtergrond
+    const wm = windowModeFor(points, map.focusAt || null, { urgent, slice });
+    await Promise.all([...keys].map((k) => st.request(k, { priority: wm.priority }))); // geen token: dit venster wacht zijn beurt af en trekt niets in (#588)
     const t1 = performance.now();
-    const sliceMs = sliceFor({ urgent, slice });
+    const sliceMs = wm.sliceMs;
     if (sliceMs > 0 && typeof requestAnimationFrame === 'function') {
       // (a frame, or 50 ms when the window is hidden and frames stop)
-      await drainSliced(joinQueues(map.tileQueue, map.bgQueue || null, () => performance.now()), { sliceMs, maxMs: BG_DRAIN_MAX_MS, now: () => performance.now(), until: map.tilesPending ? () => !map.tilesPending(keys) : null, hold: urgent ? null : backgroundHeld, nextFrame: () => new Promise((r) => { const t = setTimeout(r, 50); requestAnimationFrame(() => { clearTimeout(t); r(); }); }) });
+      await drainSliced(joinQueues(map.tileQueue, map.bgQueue || null, () => performance.now()), { sliceMs, maxMs: BG_DRAIN_MAX_MS, now: () => performance.now(), until: map.tilesPending ? () => !map.tilesPending(keys) : null, hold: wm.held ? backgroundHeld : null, nextFrame: () => new Promise((r) => { const t = setTimeout(r, 50); requestAnimationFrame(() => { clearTimeout(t); r(); }); }) });
     } else { map.tileQueue.run(1e9); if (map.bgQueue) map.bgQueue.run(1e9); }
     const t2 = performance.now();
     const out = fn();

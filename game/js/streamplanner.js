@@ -22,6 +22,8 @@
 
 export const PLAN = {
   capMs: 4,          // nooit meer streamingwerk dan dit per frame (gemiddeld), buiten een sprong en de laadsluier
+  pressureMs: 6,     // het plafond als er dichtbij werk te laat is (gebouwen die de speler al ziet, nog zonder detail) en de frames het toelaten
+  urgentMs: 6,       // werk dat een nabije speler, een activiteit of een herstel nu nodig heeft: eigen budget, nooit vastgehouden
   boostMs: 8,        // de eerste seconden na een sprong (teleport, trein, respawn), als de frames het toelaten
   loadingMs: 20,     // achter de laadsluier of een zwart scherm: er wordt niet getekend, dus alles mag
   floorMs: 0.5,      // een trage frame: toch even doorwerken
@@ -39,10 +41,10 @@ export const PLAN = {
 // De klassen met hun aandeel (som 1) en hun vaste volgorde in de frame. Een klasse die niets wil staat
 // niet in de reservering; haar aandeel valt dan aan de anderen toe.
 export const CLASSES = {
-  tile: 0.22,      // tegelrijen naar de rasters (tileworld follow, bgQueue)
-  building: 0.28,  // gebouwmeshes, het voorbouwen, de gevelbatches
+  tile: 0.20,      // tegelrijen naar de rasters (tileworld follow, bgQueue)
+  building: 0.34,  // gebouwmeshes, het voorbouwen, de gevelbatches
   road: 0.16,      // weg-, water- en kustmeshes
-  ground: 0.10,    // gras, struiken, bomen
+  ground: 0.06,    // gras, struiken, bomen
   far: 0.10,       // de verre laag (farlod.js)
   actors: 0.14,    // voertuigen, voetgangers, chauffeurs
 };
@@ -50,9 +52,10 @@ export const CLASSES = {
 // Het totale budget (ms) van een frame uit de frametijd: veel ruimte = capMs, trage frame = floorMs, ertussen
 // lineair. Een sprong (boost) tilt het plafond naar boostMs, maar alleen zolang de frames niet echt traag zijn;
 // de laadsluier (loading) laat alles toe.
-export function budgetFor(frameMs, { boost = false, loading = false, cine = false } = {}, p = PLAN) {
+export function budgetFor(frameMs, { boost = false, loading = false, cine = false, pressure = 0 } = {}, p = PLAN) {
   if (loading) return p.loadingMs;
-  const ceiling = boost ? p.boostMs : p.capMs;
+  const pr = Math.min(1, Math.max(0, Number.isFinite(pressure) ? pressure : 0));
+  const ceiling = boost ? p.boostMs : p.capMs + (p.pressureMs - p.capMs) * pr;
   const f = Number.isFinite(frameMs) ? frameMs : p.goodFrameMs;
   let t;
   if (f <= p.goodFrameMs) t = ceiling;
@@ -66,13 +69,13 @@ export function createFramePlanner(opts = {}) {
   const p = { ...PLAN, ...opts };
   const weights = { ...CLASSES, ...(opts.classes || {}) };
   const st = {};
-  for (const k of Object.keys(weights)) st[k] = { spent: 0, granted: 0, ran: false, hungry: 0, wanted: -1e9, total: 0, units: 0, over: 0 };
+  for (const k of [...Object.keys(weights), 'urgent']) st[k] = { spent: 0, granted: 0, ran: false, hungry: 0, wanted: -1e9, total: 0, units: 0, over: 0 };
   let frame = 0, pool = p.capMs, allowance = p.capMs, lastTotal = p.capMs, debt = 0, frameEma = 12, spentTotal = 0, heavyThisFrame = false;
   const queue = [];
   let seq = 0;
   const frames = { n: 0, sumMs: 0, maxMs: 0, over: 0, overMs: 0, last: 0 };
 
-  function beginFrame({ frameMs = frameEma, boost = false, loading = false, cine = false, hold = false } = {}) {
+  function beginFrame({ frameMs = frameEma, boost = false, loading = false, cine = false, hold = false, pressure = 0 } = {}) {
     // sluit de vorige frame af: wat boven de toelage is uitgegeven wordt schuld (begrensd); wat over is, vervalt
     if (frame > 0) {
       const left = allowance - spentTotal;
@@ -82,7 +85,7 @@ export function createFramePlanner(opts = {}) {
     }
     frame++;
     if (Number.isFinite(frameMs)) frameEma += (Math.min(200, frameMs) - frameEma) * p.emaK;
-    const total = hold ? 0 : budgetFor(frameEma, { boost, loading, cine }, p);
+    const total = hold ? 0 : budgetFor(frameEma, { boost, loading, cine, pressure }, p);
     lastTotal = Math.max(total, p.floorMs);
     // schuld telt niet achter de laadsluier (er wordt niet getekend)
     allowance = loading ? total : total + debt;
@@ -93,6 +96,15 @@ export function createFramePlanner(opts = {}) {
   }
 
   function grant(cls, want = Infinity) {
+    // URGENT: werk dat nu nodig is (windowmode.js): een eigen budget naast de pool, niet vastgehouden door hold (film,
+    // cutscene) en niet onderhevig aan schuld; wel begrensd per frame (urgentMs)
+    if (cls === 'urgent') {
+      const u = st.urgent;
+      u.wanted = frame;
+      const g = Math.max(0, Math.min(want, p.urgentMs - u.spent));
+      u.ran = true; u.granted = g;
+      return g;
+    }
     const c = st[cls];
     if (!c) return Math.min(want, p.floorMs);
     if (want > 0) c.wanted = frame;
@@ -100,7 +112,7 @@ export function createFramePlanner(opts = {}) {
     // wat de nog niet aan de beurt geweest klassen met recent werk nodig hebben, blijft vrij
     let reserve = 0;
     for (const k in st) {
-      if (k === cls) continue;
+      if (k === cls || k === 'urgent') continue;
       const o = st[k];
       if (!o.ran && frame - o.wanted <= p.activeFrames) reserve += Math.max(0, pool * weights[k] - o.spent);
     }
@@ -119,6 +131,7 @@ export function createFramePlanner(opts = {}) {
   function spend(cls, ms) {
     const c = st[cls];
     if (!(ms > 0)) return;
+    if (cls === 'urgent') { st.urgent.spent += ms; st.urgent.total += ms; st.urgent.units++; return; }
     spentTotal += ms;
     if (c) {
       c.spent += ms; c.total += ms; c.units++;

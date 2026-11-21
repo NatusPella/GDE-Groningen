@@ -586,6 +586,7 @@ export class TileWorld extends GameMap {
   // keep the tiles round (x, y) coming: prefetch by speed and heading, then
   // the grids are updated within the frame budget
   follow(x, y, opts, budgetMs = 2) {
+    this.focusAt = { x, y }; // where the player (or the camera) is: tileplace.js withTiles decides from it how urgent a window is (windowmode.js)
     if (this.store) this.store.prefetch(x, y, opts);
     const n = this.tileQueue.run(budgetMs);
     // what a background window asked for goes on at half the budget, unless a film or the benchmark holds it
