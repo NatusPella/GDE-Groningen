@@ -39,7 +39,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 | wijkkaart | cinematics.js | beslist zelf | P3 | B | ja: overlay (wijkkaart) |  |
 | keuze | choicepanel.js | 11 modules, 11 aanroepen | P1 | B | ja: overlay (keuze) | Samen met bord en activiteit: een activiteitenpaneel bovenaan (kop, regels, toetsen). Het keuzepaneel en het minigamebord zijn dezelfde familie. |
 | bord | minigamekit.js, golfhud.js | 20 modules, 23 aanroepen | P1 | B | ja: overlay (duelbalk) | Samen met keuze en activiteit (zie daar). |
-| ballon | scene3d.js | 14 modules, 25 aanroepen | P3 | - | ja: speech (ambient) | Samen met opmerking en autopraat (zie daar). Achtergrondballonnen van voorbijgangers blijven eigen, ze zijn sfeer. |
+| ballon | scene3d.js | 15 modules, 26 aanroepen | P3 | - | ja: speech (ambient) | Samen met opmerking en autopraat (zie daar). Achtergrondballonnen van voorbijgangers blijven eigen, ze zijn sfeer. |
 | spraak | speech.js | 15 modules, 20 aanroepen | n.v.t. | - | ja: speech | Blijft. Zie ook #110 (voicebank). |
 | status | hud_panel.js, hudgps.js, lowhealth.js | beslist zelf | P2 | - | nee: decideHud (hudrules.js) zet sterren, geld, kaart, voertuig, doel en balken neer | Blijft; dit is de vaste laag. decideHud blijft in hudrules (zonelayout), de tabellen zijn die van hudbus. |
 | opgeslagen | savegame.js | beslist zelf | P3 | F | nee: het kleine Opgeslagen-vinkje bij de plaatsnaam, links onder; een eigen DOM-element, geen kaart | Weg als eigen element: een pictogram in het plaatsblok, of een kaart van de soort tip. |
