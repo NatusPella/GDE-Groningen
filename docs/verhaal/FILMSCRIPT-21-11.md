@@ -10,7 +10,7 @@ Twee net afgestudeerde vrienden van 24 weten niet wat ze met hun leven moeten en
 
 ## Synopsis
 
-Vrijdag 14 augustus, Grunn. Tammo en Tessa verhuizen als huisgenoten naar Paddepoel. Geen baan, geen plan, wel de angst dat na de studie iedereen een eigen kant op gaat. Een wedstrijd (de Noordelijke Snackprijs) en een gouden eierbal zijn het eerste gedeelde project; Jelle Terpstra, een lange, rijke, bureaucratische Fries met een klomp vol contant geld, koopt intussen Grunn op, plakje voor plakje, "foar mem".
+Vrijdag 14 augustus, Grunn. Tammo en Tessa verhuizen als huisgenoten naar Paddepoel. Geen baan, geen plan, wel de angst dat na de studie iedereen een eigen kant op gaat. Een wedstrijd (de Noordelijke Snackprijs) en een gouden eierbal zijn het eerste gedeelde project; Jelle Terpstra, een lange, rijke, bureaucratische Fries met een klomp vol contant geld, wint intussen met regels, vergunningen en trucs, "foar mem".
 
 Door het Noorden proberen ze baantjes en loopbanen: Tammo rijdt, Tessa heeft de boerderij, de kermis en later het voetbal. In sommige dingen zijn ze elkaars redding, in andere kunnen ze niet samenwerken. Onderweg zien ze hoe lief de ander voor andere mensen is, en dat is waar het van gaat. Na een misverstand en een herstel (de knuffel) vallen de stukjes: een snackwagen, voor haar de snacks, voor hem het rijden en de plek naast haar.
 
@@ -97,7 +97,7 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
   - praat: Tammo, Tessa
 - **O1** BINNEN – STAD, PADDEPOEL – AVOND · Het kaartje · overgangsscène (BRIDGES)
   - avond, de flat in Paddepoel. Op de koelkast hangt een kaartje van de eerste Kiezelweek, vijf jaar geleden. Tessa tekent op een bonnetje de luiken van de wagen. Tammo staat met twee koppen thee in de deur en kijkt even na
-  - praat: Tessa, Tammo
+  - praat: Tessa, Tammo, Beppe
 
 **Sequentie M03: Het Loket** (missie loket; speler-protagonist Tammo)
 
@@ -828,6 +828,7 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 | Geert |  |  | 2 |  |  |  |
 | Jelmer |  |  |  | 2 |  |  |
 | Terrasgast | 1 |  |  |  |  |  |
+| Beppe | 1 |  |  |  |  |  |
 | Buschauffeur |  | 1 |  |  |  |  |
 | Kustwachter |  | 1 |  |  |  |  |
 | Rotor Roelf |  |  | 1 |  |  |  |

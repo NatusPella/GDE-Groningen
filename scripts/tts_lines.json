@@ -169,6 +169,45 @@
   "file": "anita/ja_natuurlijk_efc4f2c2.mp3"
  },
  {
+  "key": "Beppe|Jonge, hast al iten?",
+  "speaker": "Beppe",
+  "text": "Jonge, hast al iten?",
+  "area": "O1",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Aoede",
+  "who": "Tammo's Friese beppe (oma), warm, zacht en nuchter, spreekt Fries",
+  "tag": "vragend, nieuwsgierig",
+  "style": "spoken in Frisian (Frysk), a warm old Frisian grandmother, slowly and kindly; Tammo's Friese beppe (oma), warm, zacht en nuchter, spreekt Fries. Tone: vragend, nieuwsgierig.",
+  "file": "beppe/jonge_hast_al_iten_5410cd93.mp3"
+ },
+ {
+  "key": "Beppe|Is Tessa der ek? Dan meitsje ik sop.",
+  "speaker": "Beppe",
+  "text": "Is Tessa der ek? Dan meitsje ik sop.",
+  "area": "O1",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Aoede",
+  "who": "Tammo's Friese beppe (oma), warm, zacht en nuchter, spreekt Fries",
+  "tag": "warm, zacht",
+  "style": "spoken in Frisian (Frysk), a warm old Frisian grandmother, slowly and kindly; Tammo's Friese beppe (oma), warm, zacht en nuchter, spreekt Fries. Tone: warm, zacht.",
+  "file": "beppe/is_tessa_der_ek_dan_meitsje_ik_s_1315e504.mp3"
+ },
+ {
+  "key": "Anita|Regels, vergunningen, trucs. Hij wint op papier.",
+  "speaker": "Anita",
+  "text": "Regels, vergunningen, trucs. Hij wint op papier.",
+  "area": "M03.2",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "warm, grinnikend",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+  "file": "anita/regels_vergunningen_trucs_hij_wi_97996937.mp3"
+ },
+ {
   "key": "Anita|Voor zijn oma. Hij doet alles voor zijn oma.",
   "speaker": "Anita",
   "text": "Voor zijn oma. Hij doet alles voor zijn oma.",
@@ -1183,9 +1222,22 @@
   "file": "anita/hij_is_niet_te_koop_89fdbb3b.mp3"
  },
  {
-  "key": "Jelle Terpstra|Alles is te koop, mevrouw. Ik wacht. Foar mem.",
+  "key": "Jelle Terpstra|Alles is te koop, mevrouw. Mijn moeder wil omzet. Mijn oma wil een eierbal. Ik lever allebei.",
   "speaker": "Jelle Terpstra",
-  "text": "Alles is te koop, mevrouw. Ik wacht. Foar mem.",
+  "text": "Alles is te koop, mevrouw. Mijn moeder wil omzet. Mijn oma wil een eierbal. Ik lever allebei.",
+  "area": "O6",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Fenrir",
+  "who": "ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden",
+  "tag": "charmant, opschepperig",
+  "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: charmant, opschepperig.",
+  "file": "jelle_terpstra/alles_is_te_koop_mevrouw_mijn_mo_4d920782.mp3"
+ },
+ {
+  "key": "Jelle Terpstra|Ik wacht. Foar mem.",
+  "speaker": "Jelle Terpstra",
+  "text": "Ik wacht. Foar mem.",
   "area": "O6",
   "out": "lines",
   "lang": "own",
@@ -1193,7 +1245,7 @@
   "who": "ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden",
   "tag": "plechtig, overdreven trots",
   "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: plechtig, overdreven trots.",
-  "file": "jelle_terpstra/alles_is_te_koop_mevrouw_ik_wach_0bcdc644.mp3"
+  "file": "jelle_terpstra/ik_wacht_foar_mem_b8173b36.mp3"
  },
  {
   "key": "Anita|Dat weet hij ook. Daarom belt hij mij.",

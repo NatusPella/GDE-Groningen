@@ -13,7 +13,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 | **Tijd** | ca. 62 minuten (6 missies + opening) |
 | **Dagen** | vr 14 (1.1), za 15 (1.2, 1.3), zo 16 (1.4, 1.5), ma 17 (1.6, 's nachts) |
 | **Wat de speler leert** | rijden zonder krassen, stunten, achtervolgen, formulieren, de duif, de fiets, sluipen; wie Tammo en Tessa zijn |
-| **Plot** | Tessa wil een thuis met wielen: de snackwagen. De enige vrije standplaats gaat naar de winnaar van de Snackprijs op 28 augustus. Een Fries (Jelle) koopt plakje voor plakje de hele markt op, en dat plakje is bij de standplaatsen al definitief van hem. Wie de Gouden Eierbal bewaart, zit de jury voor (artikel 4; artikel 9: bij verhindering het oudste jurylid). Tessa en Tammo willen de bal eerst pakken, als bewaking. De vitrine is al leeg: "Tige tank! – J." Jelle zegt op de radio dat hij hem heeft, en dat is waar. |
+| **Plot** | Tessa wil een thuis met wielen: de snackwagen. De enige vrije standplaats gaat naar de winnaar van de Snackprijs op 28 augustus. Een Fries (Jelle) koopt met regels en vergunningen de hele markt op, en dat plakje is bij de standplaatsen al definitief van hem. Wie de Gouden Eierbal bewaart, zit de jury voor (artikel 4; artikel 9: bij verhindering het oudste jurylid). Tessa en Tammo willen de bal eerst pakken, als bewaking. De vitrine is al leeg: "Tige tank! – J." Jelle zegt op de radio dat hij hem heeft, en dat is waar. |
 | **Romantiek** | vriendschap, plagen, Tammo is al sinds de studie verliefd (vijf jaar), Tessa merkt niks. Stappen: oogcontact (1.5), de eerste handaanraking "voor de grip" (1.6) |
 | **Haak naar akte 2** | de politie zoekt twee Stadjers in het zwart, Jelle is de bewaarder (hij heeft de bal), en Tammo kan het kaartje niet loslaten: een dief die bedankt. |
 
@@ -148,7 +148,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 - **TESSA:** Jelle Terpstra. U staat in de rij. [NIEUW]
 - **JELLE:** Ik heb de rij gekocht. Vanaf nu is uw nummer 4140. Dat staat in de overeenkomst. [NIEUW]
 - **LOKETBEDIENDE:** Artikel 4 van het reglement: de bewaarder van de Gouden Eierbal zit de jury voor. Artikel 9: bij verhindering van de bewaarder zit het oudste jurylid voor. [NIEUW]
-- **TESSA:** Salamitactiek. Plakje voor plakje, tot hij alles heeft. [NIEUW]
+- **TESSA:** Regels, vergunningen, trucs. Hij wint op papier. [NIEUW]
 - **JELLE:** Dat noemen wij ondernemen. Oant sjen. [NIEUW]
 - **JELLE:** Foar mem. [NIEUW]
 - **TESSA:** "Voor mem." Voor zijn moeder. [NIEUW]

@@ -21,6 +21,10 @@
    "name": "Mem Terpstra",
    "voice": "Mem Terpstra"
   },
+  "beppe": {
+   "name": "Beppe",
+   "voice": "Beppe"
+  },
   "trijntje": {
    "name": "Oma Trijntje",
    "voice": "Oma Trijntje"
@@ -1737,7 +1741,7 @@
    "regie": [
     "avond, de flat in Paddepoel. Op de koelkast hangt een kaartje van de eerste Kiezelweek, vijf jaar geleden. Tessa tekent op een bonnetje de luiken van de wagen. Tammo staat met twee koppen thee in de deur en kijkt even naar het kaartje, en dan naar haar.",
     "op de koelkast hangt ook een nieuwe lijst met twee kolommen: TAMMO VINDT en TESSA VINDT. Links: eerst eten, dan plannen. Rechts: eerst plannen, dan eten.",
-    "ze tekent door. Hij blijft nog even staan met de thee."
+    "ze tekent door. Hij blijft nog even staan met de thee. Zijn telefoon gaat."
    ],
    "lines": [
     {
@@ -1818,6 +1822,46 @@
      "channel": "stem",
      "textOnly": true,
      "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dat is Beppe. Mijn Friese oma.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Beppe",
+     "key": "beppe",
+     "text": "Jonge, hast al iten?",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Ja, beppe.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Beppe",
+     "key": "beppe",
+     "text": "Is Tessa der ek? Dan meitsje ik sop.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "...Ja.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
     }
    ]
   },
@@ -2023,11 +2067,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Salamitactiek. Plakje voor plakje, tot hij alles heeft.",
+     "text": "Regels, vergunningen, trucs. Hij wint op papier.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -4385,11 +4428,10 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Salamitactiek. Plakje voor plakje.",
+     "text": "Regels, vergunningen, trucs.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Tessa",
@@ -8563,7 +8605,15 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Alles is te koop, mevrouw. Ik wacht. Foar mem.",
+     "text": "Alles is te koop, mevrouw. Mijn moeder wil omzet. Mijn oma wil een eierbal. Ik lever allebei.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Jelle Terpstra",
+     "key": "jelle",
+     "text": "Ik wacht. Foar mem.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true

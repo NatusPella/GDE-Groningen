@@ -206,7 +206,12 @@ TAMMO: En waar staat "thee"? [NIEUW]
 TESSA: Je hebt dat kaartje nog. Van die eerste week. [NIEUW]
 TAMMO: Het hing al aan de koelkast. [NIEUW]
 TESSA: Ja. Natuurlijk. [NIEUW]
-(regie: ze tekent door. Hij blijft nog even staan met de thee.)
+(regie: ze tekent door. Hij blijft nog even staan met de thee. Zijn telefoon gaat.)
+TAMMO: Dat is Beppe. Mijn Friese oma. [NIEUW]
+BEPPE (telefoon): Jonge, hast al iten? [NIEUW]
+TAMMO (telefoon): Ja, beppe. [NIEUW]
+BEPPE (telefoon): Is Tessa der ek? Dan meitsje ik sop. [NIEUW]
+TAMMO (telefoon): ...Ja. [NIEUW]
 
 ## [M03.1] Het Loket: intro – Stad, Het Loket bij de Grote Markt – te voet
 (regie: bewijsmoment, relatie-bijbel 3: Tessa leest het naamplaatje van de loketbediende en groet haar bij haar naam. Tammo kijkt even naar zijn schoenen en glimlacht.)
@@ -233,7 +238,7 @@ TAMMO: Hij kocht onze plek. [NIEUW]
 JELLE: Verder koop ik alle standplaatsen van Grunn die vrijkomen. Contant, uit een klomp, definitief. [NIEUW]
 TESSA: Alle? De standplaats van de winnaar is niet te koop. [NIEUW]
 JELLE: Nee. Die win ik. [NIEUW]
-TESSA: Salamitactiek. Plakje voor plakje, tot hij alles heeft. [NIEUW]
+TESSA: Regels, vergunningen, trucs. Hij wint op papier. [NIEUW]
 JELLE: Dat noemen wij ondernemen. Oant sjen. [NIEUW]
 (regie: in de deuropening mompelt hij iets.)
 JELLE: Foar mem. [NIEUW]

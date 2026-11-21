@@ -49,6 +49,24 @@
  },
  {
   "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Dat is Beppe. Mijn Friese oma.",
+  "scene": "O1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Ja, beppe.",
+  "scene": "O1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "...Ja.",
+  "scene": "O1"
+ },
+ {
+  "reason": "spreektekst",
   "speaker": "Mevrouw Hoving",
   "text": "Ik bewaar de Gouden Eierbal, de wisselprijs van de Snackprijs, al sinds 1998. Wie de bal heeft, zit de jury voor.",
   "scene": "M03.2"
@@ -202,6 +220,12 @@
   "speaker": "Tammo",
   "text": "Tessa, eigenlijk—",
   "scene": "O3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Regels, vergunningen, trucs.",
+  "scene": "M07.1"
  },
  {
   "reason": "spreektekst",

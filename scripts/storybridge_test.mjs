@@ -26,7 +26,7 @@ for (const b of BRIDGES) {
   if (!sc) continue;
   ok(sc.step === b.after && sc.anchor && sc.anchor.at === 'after' && sc.anchor.step === b.after, `${b.id}: de scène in script.json hangt na ${b.after}`, JSON.stringify(sc.anchor));
   const ls = sc.lines.filter((l) => l.channel !== 'app-stil');
-  ok(ls.length >= 4 && ls.length <= 9, `${b.id}: vier tot negen regels`, ls.length);
+  ok(ls.length >= 4 && ls.length <= 14, `${b.id}: vier tot veertien regels (O1 heeft Beppe erbij)`, ls.length);
   ok(ls.every((l) => words(l.text) <= 25), `${b.id}: elke regel hoogstens 25 woorden`);
   const talkers = new Set(ls.map((l) => l.speaker));
   ok(talkers.size >= 2 && talkers.size <= 3, `${b.id}: twee of drie sprekers`, [...talkers].join());

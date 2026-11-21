@@ -9,7 +9,7 @@
 // (the voice manifests are keyed by the name). storycontact.js and
 // scripts/voicelines_collect.mjs read this table.
 export const SPEAKERS = {
-  T: 'Tammo', A: 'Anita', rikus: 'Rikus', jelle: 'Jelle Terpstra', durk: 'Durk', douwe: 'Douwe', mem: 'Mem Terpstra',
+  T: 'Tammo', A: 'Anita', rikus: 'Rikus', jelle: 'Jelle Terpstra', durk: 'Durk', douwe: 'Douwe', mem: 'Mem Terpstra', beppe: 'Beppe',
   berend: 'Berend Bos', jelmer: 'Jelmer', bert: 'Duivenmelker Bert', sjoerd: 'Sjoerd', femke: 'Femke', harm: 'Harm',
   geert: 'Geert', trijntje: 'Oma Trijntje', klaas: 'Kapitein Klaas', dijkstra: 'Dokter Dijkstra', sjabbe: 'Sjabbe',
   torenwachter: 'Torenwachter', snackbar: 'Snackbarhouder', terras: 'Terrasgast', henk: 'Henk', rotor: 'Rotor Roelf',

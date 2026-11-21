@@ -232,7 +232,7 @@ Alles wat in het spel gebeurt, hoort bij één van drie lijnen. Een scène die b
 
 1. **De frietwagen (A-lijn, het doel).** Tessa ontdekt dat ze een frietwagen wil: ze houdt van vette snacks en van mensen die ergens samenkomen; Tammo rijdt, want hij houdt van autorijden. Twee werkloze afgestudeerden worden ondernemers in Grunn. Elke akte brengt de wagen één stap verder: een naam en een plan (1), een gezicht en een recept (2), een plek en een pand (3), een team en een regio (4), een wagen die rijdt en een uitslag (5), groei (Deel 4 en daarna).
 2. **De romance (B-lijn, de tweede hoofdlijn).** Tammo is vijf jaar stiekem verliefd; Tessa merkt iets maar durft het niet te lezen. Zoet en komisch, een boog met een kantelpunt en een hoogtepunt (hoofdstuk 12).
-3. **Jelle (C-lijn, de tegenstander).** Een rijke, bureaucratische, arrogante, lange man die plakje voor plakje alles koopt en "foar mem" doet. Mensen willen hem slaan en tegelijk is hij ergens lief. Hij zorgt dat elke akte een obstakel heeft en dat het obstakel een gezicht heeft.
+3. **Jelle (C-lijn, de tegenstander).** Een rijke, bureaucratische, arrogante, lange man die wint met regels, vergunningen en trucs en "foar mem" doet. Mensen willen hem slaan en tegelijk is hij ergens lief. Hij zorgt dat elke akte een obstakel heeft en dat het obstakel een gezicht heeft.
 
 ### 6.2 De bril: de eerste vijf minuten
 
@@ -772,3 +772,13 @@ Regel van de eigenaar: kies op effect op duidelijkheid en rode draad, niet op mo
 ### 22.4 Eindcijfers
 
 Zie docs/VERHAAL-VERIFICATIE-21-11.md (wat in beeld en gehoor te controleren is, tellers en testlijst) en docs/VERHAAL-TEMPO-21-11.md (lengte).
+
+### 22.5 Ronde 3: feedback van de eigenaar en wat ermee gebeurde
+
+| Feedback | Besluit en stand |
+|---|---|
+| "Dat plakje voor plakje slaat nergens op" | de zinsnede is overal weg (speltekst, clues, recap, dossiers, docs); de kern is nu: Jelle is van de bureaucratie (regels, vergunningen, trucs: zijn wapen), Tammo en Tessa investeren in mensen en relaties. Het koopboek met zijn acht "plakjes" is een apart voorwerp en blijft. Gebouwd (tekst en docs). |
+| Akte 1 te snel naar Snackprijs en wagen | de kern en WHY zijn omgezet; de opening draait om het plekje. De missievolgorde zelf (M03 het Loket, M05, M06 de kraak) is niet verschoven: dat raakt save-compatibiliteit. Plan: drie nieuwe kleine akte-1-missies die vóór het Loket komen (klussen bij Sjabbe als kennismaking met het vak, de buurt en Veldkamp met zijn duiven, een bezoek aan Beppe met soep) en het Loket pas na een eerste carrière-ronde. Nog niet gebouwd. |
+| Akte 2 mag langer | plan: de boerderij met Tessa als eigen reeks van twee missies (Warffum, Hoogkerk), een carrière-ronde (vissen en water bij Klaas, een bus-dag), twee extra relatiemomenten (zandplaat-uitje, Mem aan de telefoon) en het prikbord als terugkerende prop; geschat 55 naar ongeveer 85 minuten (zie VERHAAL-TEMPO-21-11.md). Nog niet gebouwd. |
+| Mem (oma) en moeder duidelijk uit elkaar | gebouwd: moeder Sytske Terpstra heeft een dossier en een regel in O6; erfenis/eierbal is van de oma, imperium/succes van de moeder (RUGGENGRAAT.md) |
+| Beppe met stem en Friese regels | gebouwd: stem `Beppe` (Fries) en O1; de huisbezoeken blijven tekst |

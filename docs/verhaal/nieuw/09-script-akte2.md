@@ -11,7 +11,7 @@ RIKUS (radio): Storingsbericht: de Krolbrug is in storing. [BEHOUDEN]
 ## [M07.1] Al het vet van Grunn: intro – Stad, Bornholmstraat – tankwagen
 (regie: dinsdag 18 augustus, ochtend, na een dag onderduiken. Tessa en Tammo schuilen achter een muur. Op het terrein staat de tankwagen "Us Mem Vet" tussen twee bewakingswagens. Op de snackbars in de buurt hangen gele stickers: US MEM SNACKS, EXCLUSIEF LEVERANCIER. De hele stad staat in de rij met lege pannen. Gameplay: banden van de bewakingswagens doorsteken, de tankwagen kapen en naar de Oosterpoort rijden. Tessa's telefoon gaat: Jelle weet dat ze er zijn, ze staan op zijn camera.)
 JELLE (telefoon): Mevrouw. Het vet van Grunn is van mij. Ik koop het voor één klomp. [NIEUW]
-TAMMO: Salamitactiek. Plakje voor plakje. [NIEUW]
+TAMMO: Regels, vergunningen, trucs. [NIEUW]
 TESSA: Zonder vet bakt niemand een eierbal. Ook Oma niet. [NIEUW]
 TAMMO: En de bal? [NIEUW]
 TESSA: Die zijn we kwijt. Het vet nog niet. [NIEUW]

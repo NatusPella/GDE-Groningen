@@ -131,7 +131,8 @@ JELLE (telefoon): Mevrouw Tessa. Jelle Terpstra. U hebt een container leeggehaal
 TESSA (telefoon): Dat was een misverstand. [NIEUW]
 JELLE (telefoon): Er zijn geen misverstanden. Er zijn overeenkomsten. Ik bied dertigduizend euro voor het recept van Oma Trijntje. Alles erbij. [NIEUW]
 TESSA (telefoon): Hij is niet te koop. [NIEUW]
-JELLE (telefoon): Alles is te koop, mevrouw. Ik wacht. Foar mem. [NIEUW]
+JELLE (telefoon): Alles is te koop, mevrouw. Mijn moeder wil omzet. Mijn oma wil een eierbal. Ik lever allebei. [NIEUW]
+JELLE (telefoon): Ik wacht. Foar mem. [NIEUW]
 TAMMO: Het is niet eens van ons. Het is van mijn oma. [NIEUW]
 TESSA: Dat weet hij ook. Daarom belt hij mij. [NIEUW]
 

@@ -30,6 +30,7 @@ export const SPEAKER_TABLE = {
   RIKUS: sp('rikus', 'Rikus'),
   JELLE: sp('jelle', 'Jelle Terpstra'),
   MEM: sp('mem', 'Mem Terpstra'),
+  BEPPE: sp('beppe', 'Beppe'),
   'OMA TRIJNTJE': sp('trijntje', 'Oma Trijntje'),
   DURK: sp('durk', 'Durk'),
   DOUWE: sp('douwe', 'Douwe'),

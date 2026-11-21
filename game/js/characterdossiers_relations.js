@@ -73,6 +73,7 @@ export const RELATION_LIST = [
   e('buurman', 'anita', 'neighbours', "buurman", "huisgenoot van de gang", "sinds 14 augustus", "vriendelijk", "dat Tessa een plan heeft", "dat Auke weinig zegt", "een kop soep", {}),
   e('lieke', 'anita', 'family', "nichtje", "nicht", "sinds haar geboorte", "dol op haar", "dat Tessa alles regelt", "dat Lieke alles doorheeft", "voetbal in de wei", {}),
   e('frituurmentor', 'anita', 'mentor', "mentor", "leerling", "voor de standplaats", "streng, warm", "dat Tessa het kan", "dat Sietske streng proeft", "de eerste goede friet", {}),
+  e('jelle_moeder', 'jelle', 'family', "moeder", "zoon", "sinds zijn geboorte", "zakelijk", "dat Jelle uitvoert", "dat zij omzet wil", "het imperium", {}),
   e('daan', 'tammo', 'acquaintance', "zanger", "kermisbezoeker", "sinds de kermis in Winschoten", "ijdel, vriendelijk", "dat Tammo naar Tessa kijkt", "dat Daan zingt", "de kermis", {}),
   e('marit', 'anita', 'friends', "teamgenote en vriendin", "teamgenote en vriendin", "sinds het dorpsteam", "droog", "dat Tessa de ster is", "dat Marit keeper is", "de lege mestemmer als doel", {}),
   e('marit', 'rikus', 'romantic', "aanstaande verkering", "aanstaande verkering", "akte 3 (voorstel)", "slap en snel", "n.v.t.", "n.v.t.", "de dubbele date die geen date is", {}),
