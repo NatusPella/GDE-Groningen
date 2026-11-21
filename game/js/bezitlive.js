@@ -569,6 +569,24 @@ export function chainViews() {
     return { ...v, raw: entries[id].chain.raw, output: entries[id].chain.output, region: CH.outletDistrict(entries[id], env), sources: chainSources(id, rows).slice(0, 12), links: v.links.map((l) => ({ ...l, options: l.ownable ? chainOptions(id, l.id) : [] })) };
   });
 }
+// Voor de zichtbare ketenwagens (chaintrucks.js): per keten de schakels met het aantal wagens, de afstand, wat er vandaag verplaatst is en waar de schakel ligt
+// (de bron: het eerste gekozen perceel of anders het eerste bronperceel; de schakel: het gekoppelde pand of de standplaats van de gekoppelde wagen). Goedkoop, geen opslag.
+export function chainTruckInput(views = null) {
+  const out = [], b = getBezit();
+  for (const c of views || chainViews()) {
+    if (!c.links.some((l) => l.trucks > 0)) continue;
+    out.push({ id: c.id, links: c.links.map((l, i) => {
+      let pos = null;
+      if (i === 0) { const src = c.sources.find((x) => x.picked) || c.sources[0]; pos = src ? parcelPoint(src.id) : null; }
+      else if (l.ref) {
+        if (typeof l.ref === 'string') { const sp = ((b.mobile[l.ref.slice(2)] || {}).cfg || {}).spot; pos = sp && SPT.isSpot(sp) ? SPT.spotXY(sp) : null; }
+        else { const i2 = refInfo(l.ref); pos = i2 && !i2.mobile ? { x: i2.x, y: i2.y } : null; }
+      }
+      return { id: l.id, trucks: l.trucks, moved: l.moved, distance: l.distance, pos };
+    }) });
+  }
+  return out;
+}
 // De eigen panden en wagens die bij een schakel passen: [{ ref, label }].
 export function chainOptions(chainId, linkId) {
   const b = getBezit(), link = CH.chainsOf(b)[chainId].chain.links.find((l) => l.id === linkId);

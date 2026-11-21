@@ -204,7 +204,7 @@ Bekende gaten:
 - Het gedrag van de trekkertrek is alleen een aanbod; er is geen minigame (de gegevensdefinitie staat in `bezitevents.js`).
 - De bron van een keten is een schatting per speldag (verwachte opbrengst gedeeld door de teeltduur) van percelen op Personeel en van kuddes; handwerk-oogst valt erbuiten en wordt gewoon afgeleverd. Melk en eieren van het vee worden nog tegen de vaste dierprijs verkocht, niet tegen de streekprijs.
 - Het bestrijden van mieren en wespen (`treated`) en de stormverzekering zijn nog niet in het menu; het verlies telt altijd onverzekerd en onbehandeld. Een machine die stilvalt krijgt slijtage 100 (een onderhoudsbeurt maakt hem weer heel); een stilstand in dagen telt niet.
-- De ketens gebruiken geen zichtbare vrachtwagens en geen hulp van `trafficfleet.js` (de rit is een doorlooptijd); de speler kan er niet zelf in stappen.
+- De ketens hebben zichtbare vrachtwagens (`chaintrucks3d.js`, ronde 3A, nog niet in beeld bekeken) maar geen hulp van `trafficfleet.js`; de speler kan er niet zelf in stappen.
 - De woningen zijn gesynthetiseerd (geen echt pand): een ID per plaats en nummer met een vast grondvlak, een plek in de buurt van de plaats en de woningprijs; ze staan niet als gebouw op de kaart. Verhuur is automatisch (geen knop voor zelf bewonen).
 - Samen spelen: ketens, markt en nieuws zijn per speler (`bezit.x`); de streekprijs gebruikt de gedeelde kalenderdag, maar de verzadiging door wat een medespeler levert komt pas aan als de bouwer de levering via een EXTRA-bericht naar `AM.recordRemoteDelivery` stuurt.
 
@@ -251,3 +251,19 @@ Nog te doen: de interieurs-lead roept deze interface aan bij het betreden van ee
 ## Naam van de snackwagen (eigenaar 21-11)
 
 De eigen snackwagen heet **TAM & TES**: de standaardbelettering op de wagen (`snackvanplan.SIGNS.own`, aanpasbaar met `setOwnSign`) en de naam op de kaartlaag Standplaatsen ("TAM & TES staat er"). De naam Fjord Frituur is uit alle Bezit-code, -tests en -docs gehaald (in het verhaal zelf doet de verhaal-epic dat).
+
+## Ronde 3A: verhaalvlaggen, balans, meewerken, ketenwagens (#1102, #1103)
+
+Gebouwd: `snackstory.js` (de adapter met de vlaggen `wagen:*`, fasen menu, stek, team, naam, standplaats, keten; hints in `snackui.js`), de balansband (eigen wagen 1,8 tot 2,2x, imperium 3,8 tot 4,2x; `snackbalans_test`,
+`bezitdifficulty_test`; de constanten hoefden niet te veranderen), het bericht `snack-work` (`bezitnet.js`, `main.js`), de testbankstap `bezit` (`scripts/coop/coop.page.js` bezitAlles, `bezitstap_check.mjs`),
+`chaintrucks.js` en `chaintrucks3d.js`. Tests: `snackstory_test` (12), `bezitnet_test` (20), `bezitstap_test` (6), `chaintrucks_test` (11), `chaintrucks3d_test` (6), `snackbalans_test` (14), `bezitdifficulty_test` (6).
+`scripts/coop_coverage.json`: Bezit staat op OK (de testbankstap is uitgeschreven; de Electron-run is nog niet gedaan).
+
+In beeld te controleren (nog niet bekeken, geen Electron gedraaid):
+- Nieuw spel: tot wagen:menu staat het menu vast met een hint van Oma Trijntje, tot wagen:stek zijn de vergunningsknoppen uit met Lammert, enzovoort; de bordtekst van de wagens is eerst SNACKWAGEN en na M22 TAM & TES.
+- Een oude save: alles open.
+- Samen spelen met drie vensters (`node scripts/coop/testbank.mjs --suite=alles`): de stap bezit; de plekken in de kleur van de eigenaar; meewerken door gast2 in de wagen van de host.
+- Wereld: een keten met een chauffeur en een koppeling (eigen verwerker of snackbar): tussen 7 en 17 uur rijdt hoogstens vier vrachtwagens binnen 230 m; let op de route (rechte lijn met een knik), op rijrichting
+  en op wielen; op een gast geen wagens.
+Open gaten: de uitleg van "stek" en "standplaats" (15.7) is een lezing; de Usmem-strijd (sabotage, geschillen) is niet gebonden aan wagen:keten, alleen het overnemen; het winkelpand van een keten zonder
+pandcoordinaat geeft geen wagen.

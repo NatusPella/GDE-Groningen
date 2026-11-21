@@ -9,6 +9,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Snackwagen: de wagen groeit mee met het verhaal. Het menu samenstellen opent na Oma Trijntjes recept, vergunningen kopen na Lammerts kade en de kermis, medewerkers-wagens na het team van Berend, Tinus en Wubbo, je eigen wagen op een standplaats zetten na de Vismarkt, en een tweede wagen en plekken van Usmem overnemen aan het eind van de zomer. Een dichte stap laat een hint zien; de belettering is eerst SNACKWAGEN en wordt TAM & TES zodra de wagen zijn naam heeft. Een opgeslagen spel van voor deze wijziging houdt alles open.
+- Samen spelen: een gast kan meewerken in de snackwagen van een medespeler (ook van de host); de eigenaar verkoopt die dag 8% meer en de gast verdient zijn uurloon uit nieuw geld.
+- Bezit: de eigen snackwagen levert ongeveer twee keer en een groot snackimperium ongeveer vier keer zoveel als actief werk; passief inkomen buiten de snackwagen blijft binnen drie keer.
+- Bezit: je ketens hebben zichtbare vrachtwagens: een chauffeur rijdt overdag grondstof van je percelen naar je verwerker en de producten naar je winkel (hoogstens vier tegelijk binnen 230 m).
 - Kaart: Reis erheen gaat nu alleen over hoe je reist: met de trein, de bus, de taxi of per boot, elk met prijs, duur en aanbevolen, en als iets niet kan staat de reden in de rij (te dichtbij, geen verbinding, te weinig geld). De optie 'Zelf gaan' en de zin 'Dat kan ook in Samen spelen' zijn weg: Zet waypoint is de manier om zelf te gaan.
 - Kaart: de toets staat voortaan IN de knop (Enter in Reis nu en Begrepen, Esc in Terug en Sluiten, een cijfer in elke vervoersrij en op de drie acties van de plekkaart), niet meer ernaast. Op een controller wordt dat de A- of B-knop van jouw controller en een cijfer verdwijnt.
 - Kaart: alle kaartpopups werken hetzelfde met toetsenbord en controller: Enter of A bevestigt, Esc of B gaat één laag terug (venster, plekkaart, kaart), pijlen en D-pad lopen door de knoppen, de eerste focus staat op de hoofdactie en de focus blijft binnen een open venster.
