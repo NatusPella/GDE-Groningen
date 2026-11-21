@@ -36,8 +36,8 @@ export function clearLookCache() { for (const g of cache.values()) { g.dispose()
 // 512x640: links boven een effen wit blokje, daaronder 2x4 cellen van 256x96 met de stickers en onderaan de zes
 // belettering-namen van de snackwagen (512x36 per naam).
 export const DECAL_CELLS = { frituur: 0, kwark: 1, wiebel: 2, grunn: 3, rally: 4, vlam: 5, ster: 6 };
-const CELL_W = 256, CELL_H = 96, CELL_Y0 = 32, ATLAS_W = 512, ATLAS_H = 640, NAME_Y0 = 416, NAME_H = 36;
-export const SNACK_NAMES = { zonnedijk: ['FRITUUR ZONNEDIJK', H(0xf9c80e), H(0xb3261e)], kwark: ['KWARKBAKKIE', H(0xf3ead3), H(0x2e5f9e)], eierbal: ['EIERBAL EXPRESS', H(0xd8641c), H(0xf3ead3)], vethap: ['DE VETTE HAP', H(0x1d1b17), H(0xf9c80e)], knabbel: ['KNABBEL EN BABBEL', H(0x0e6b3c), H(0xf3ead3)], tammo: ["TAMMO'S FRIET", H(0x4fb3ff), H(0x1d1b17)] };
+const CELL_W = 256, CELL_H = 96, CELL_Y0 = 32, ATLAS_W = 512, ATLAS_H = 704, NAME_Y0 = 416, NAME_H = 36;
+export const SNACK_NAMES = { tamtes: ['TAM & TES', H(0xf9c80e), H(0x1d1b17)], zonnedijk: ['FRITUUR ZONNEDIJK', H(0xf9c80e), H(0xb3261e)], kwark: ['KWARKBAKKIE', H(0xf3ead3), H(0x2e5f9e)], eierbal: ['EIERBAL EXPRESS', H(0xd8641c), H(0xf3ead3)], vethap: ['DE VETTE HAP', H(0x1d1b17), H(0xf9c80e)], knabbel: ['KNABBEL EN BABBEL', H(0x0e6b3c), H(0xf3ead3)], tammo: ["TAMMO'S FRIET", H(0x4fb3ff), H(0x1d1b17)] };
 let atlas = null;
 function drawDecal(g, id, x, y) {
   const w = CELL_W, h = CELL_H;
@@ -277,9 +277,10 @@ function snackParts(A, look, v, f, c2) {
     const cols = [0xd93f3f, 0xf3ead3, 0x4fb3ff, 0xf9c80e];
     for (let i = 0; i < 12; i++) A.rotBox(x0 + (cl * (i + 0.5)) / 12, 1.62 - Math.sin((i / 11) * Math.PI) * 0.05, hw + 0.95, 0.12, 0.18, 0.01, cols[i % 4], 0.05, 'x');
   }
-  if (look.snackName && SNACK_ORDER.includes(look.snackName)) {
+  const sname = look.snackName ?? 'tamtes'; // TAM & TES is de standaardbelettering van de snackwagen
+  if (SNACK_ORDER.includes(sname)) {
     const w = Math.min(3.4, L * 0.62);
-    A.decal(-0.2, f.belt * 0.62 + 0.15, -(hw + 0.016), w, w * NAME_H / ATLAS_W, -1, SNACK_ORDER.indexOf(look.snackName), true);
+    A.decal(-0.2, f.belt * 0.62 + 0.15, -(hw + 0.016), w, w * NAME_H / ATLAS_W, -1, SNACK_ORDER.indexOf(sname), true);
   }
 }
 const SNACK_ORDER = Object.keys(SNACK_NAMES);
@@ -460,9 +461,9 @@ function applyRims(group, look, kind) {
 // Zet de look op een gebouwd voertuigmodel; geeft het aantal extra drawcalls. Het model blijft heel bij een fout.
 export function applyVehicleLook(group, v, fit = null) {
   const kind = lookKind(v) || (v.isHeroCar ? 'auto' : null);
-  if (!kind || !v.look) return 0;
-  const look = sanitizeLook(v.look, kind);
-  if (!Object.keys(look).length) return 0;
+  if (!kind || (!v.look && kind !== 'snackwagen')) return 0;
+  const look = sanitizeLook(v.look || {}, kind);
+  if (!Object.keys(look).length && kind !== 'snackwagen') return 0;
   const ud = group.userData;
   let calls = 0;
   try {
@@ -553,4 +554,13 @@ export function tickVehicleLooks(meshes, fx, fz, night, t) {
   if (!_glowList.length) return;
   const show = glowBudget(_glowList, MAX_GLOW_VISIBLE);
   for (const e of _glowList) e.id.userData.lookGlow.visible = night > 0.3 && show.has(e.id);
+}
+
+// Een sticker getekend in een rechthoek van het canvas (voor de keuzetegels, tuningtiles.js): de cel uit de atlas, geschaald.
+export function drawDecalPreview(g, id, x, y, w, h) {
+  const tmp = typeof document !== 'undefined' ? document.createElement('canvas') : null;
+  if (!tmp) return;
+  tmp.width = CELL_W; tmp.height = CELL_H;
+  drawDecal(tmp.getContext('2d'), id, 0, 0);
+  g.drawImage(tmp, x, y, w, h);
 }

@@ -1,7 +1,9 @@
 import { icoon } from './icons.js';
 import { keyTextHtml } from './keycap.js';
 import { euro } from './geldtekst.js';
-import { createVehiclePreview } from './vehiclepreview.js';
+import { createShowroom } from './tuningshowroom.js';
+import { VIEW_IDS, VIEW_LABELS, TAB_ICON, iconOfField, EFFECT_OF_CATEGORY, categoryOfField } from './showroomplan.js';
+import { finishSphere, rimPicture, decalPicture, stripePicture } from './tuningtiles.js';
 import { hudPixelRatio } from './uiscale.js';
 import { isPadActive, onPadChange } from './gamepad.js';
 import { padGlyphInner } from './glyphs.js';
@@ -23,10 +25,11 @@ import { tuneId, tuneKind, partsKindOf, readState, readBuilds, installState, sav
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const ARM_TIME = 4000, ARM_FROM = 200;
-const KEY_CONFIRM = 'Enter'; // het toetsplaatje van installeren
+const KEY_CONFIRM = 'Enter';
+const KEY_VIEW = 'Tab'; // het toetsplaatje van installeren
 
 let root = null, world = null, veh = null, site = null;
-let open = false, installed = null, draft = null, tabId = 'lak', ctx = null, compare = false, armed = null, closeArmed = 0, preview = null;
+let open = false, installed = null, draft = null, tabId = 'lak', ctx = null, compare = false, armed = null, closeArmed = 0, showroom = null;
 let dayIndex = 0;
 
 export const isTuningOpen = () => open;
@@ -49,6 +52,8 @@ function build() {
   root.setAttribute('aria-modal', 'true');
   root.setAttribute('aria-labelledby', 'tune-title');
   root.innerHTML = `
+    <div class="tm-stage"><canvas class="tm-preview" aria-label="De showroom: je voertuig op de draaitafel"></canvas><span class="tm-badge" aria-hidden="true"></span><div class="tm-splitlab" aria-hidden="true" hidden><b>Voor</b><b>Na</b></div></div>
+    <nav class="tm-views" aria-label="Camerastand"></nav>
     <div class="gm-stage gm-zeef-stage">
     <section class="tm-panel m-panel" aria-labelledby="tune-title">
       <header class="m-head">
@@ -60,7 +65,6 @@ function build() {
       <div class="m-main tm-main">
         <div class="m-list tm-list" aria-label="Keuzes"></div>
         <aside class="m-pane tm-pane">
-          <div class="tm-stage on"><canvas class="tm-preview" aria-label="Voorbeeld van je voertuig"></canvas><span class="tm-badge" aria-hidden="true"></span></div>
           <div class="tm-card ds-zeef ds-z-kaart">
             <div class="ds-z-kaart__kop"><span class="ds-z-kaart__titel tm-ctitle"></span><span class="tm-chips"></span></div>
             <div class="tm-lines"></div>
@@ -113,7 +117,7 @@ export function openTuningWorkshop(w, v, s = {}) {
 export function closeTuningWorkshop() {
   if (!open) return;
   open = false;
-  if (preview) preview.clear();
+  if (showroom) showroom.clear();
   root.classList.remove('visible');
   document.body.classList.remove('shop-open');
   if (world) { world.uiPaused = false; if (world.input) world.input.reset(); }
@@ -132,15 +136,21 @@ function render(keepFocus = true) {
   const nav = root.querySelector('.tm-tabs');
   nav.innerHTML = tabs.map((t) => {
     const n = tabChanges(t, draft, installed, kind());
-    return `<button type="button" class="m-tab tm-tab" role="tab" data-tab="${t.id}" aria-selected="${t.id === tabId}" tabindex="-1">${esc(t.label)}${n ? `<small aria-label="${n} wijzigingen">${n}</small>` : ''}</button>`;
+    return `<button type="button" class="m-tab tm-tab" role="tab" data-tab="${t.id}" aria-selected="${t.id === tabId}" tabindex="-1">${icoon(TAB_ICON[t.id] || 'tune_onderdelen', { cls: 'tm-ti', maat: 's' })}${esc(t.label)}${n ? `<small aria-label="${n} wijzigingen">${n}</small>` : ''}</button>`;
   }).join('');
   renderDeals();
+  renderViews();
   const tab = tabs.find((t) => t.id === tabId) || tabs[0];
   const list = root.querySelector('.tm-list');
   list.innerHTML = tab.id === 'builds' ? buildsHtml() : groupsFor(tab, draft, installed, ctx, money()).map(rowHtml).join('');
   if (f) { const el = list.querySelector(`[data-field="${CSS.escape(f)}"]`); if (el) el.focus({ preventScroll: true }); }
   renderCard();
   syncFooter();
+}
+
+function renderViews() {
+  const cur = showroom ? showroom.view() : 'schuin';
+  root.querySelector('.tm-views').innerHTML = icoon('tune_camera', { cls: 'tm-vi', maat: 's' }) + VIEW_IDS.map((id) => `<button type="button" class="tm-vw" data-view="${id}" aria-pressed="${id === cur}" tabindex="-1">${VIEW_LABELS[id]}</button>`).join('') + `<span class="tm-vk">${keyChip(KEY_VIEW, 'ls')}</span>`;
 }
 
 function renderDeals() {
@@ -159,19 +169,37 @@ function priceTag(o) {
 function rowHtml(g) {
   const label = esc(g.label);
   if (g.type === 'text') {
-    return `<div class="tm-row" data-field="${g.field}" data-type="text" tabindex="0"><div class="tm-rh"><span class="tm-rl">${label}</span><span class="tm-rv">${g.value ? esc(g.value) : 'Geen'}</span><span class="tm-rp">${euro(g.price)}</span></div>
+    return `<div class="tm-row" data-field="${g.field}" data-type="text" tabindex="0"><div class="tm-rh">${icoon(iconOfField(g.field), { cls: 'tm-ri', maat: 'm' })}<span class="tm-rl">${label}</span><span class="tm-rv">${g.value ? esc(g.value) : 'Geen'}</span><span class="tm-rp">${euro(g.price)}</span></div>
       <div class="tm-opts"><input class="tm-plate" type="text" maxlength="${g.max}" value="${esc(g.value || '')}" placeholder="Eigen tekst, hoogstens ${g.max} tekens" aria-label="Tekst op het nummerbord" autocomplete="off" spellcheck="false"><span class="tm-hint">Verzonnen tekst, geen echt kenteken</span></div></div>`;
   }
   if (g.type === 'color') {
     const cur = g.palette.find((c) => c.state === 'on');
     const custom = g.value && !cur ? g.value : '';
-    return `<div class="tm-row" data-field="${g.field}" data-type="color" tabindex="0" role="radiogroup" aria-label="${label}"><div class="tm-rh"><span class="tm-rl">${label}</span><span class="tm-rv">${cur ? esc(cur.label) : g.value ? 'Eigen kleur' : g.noneLabel || 'Standaard'}</span><span class="tm-rp">${g.value !== g.installed ? euro(g.price) : 'Zit erop'}</span></div>
+    return `<div class="tm-row" data-field="${g.field}" data-type="color" tabindex="0" role="radiogroup" aria-label="${label}"><div class="tm-rh">${icoon(iconOfField(g.field), { cls: 'tm-ri', maat: 'm' })}<span class="tm-rl">${label}</span><span class="tm-rv">${cur ? esc(cur.label) : g.value ? 'Eigen kleur' : g.noneLabel || 'Standaard'}</span><span class="tm-rp">${g.value !== g.installed ? euro(g.price) : 'Zit erop'}</span></div>
       <div class="tm-opts tm-sws">${g.noneLabel ? `<button type="button" class="tm-sw none" data-val="" role="radio" aria-checked="${!g.value}" tabindex="-1" aria-label="${esc(g.noneLabel)}"><span>Geen</span></button>` : ''}${g.palette.map((c) => `<button type="button" class="tm-sw" data-val="${c.color}" role="radio" aria-checked="${c.state === 'on'}" tabindex="-1" aria-label="${esc(c.label)}" title="${esc(c.label)}" style="--sw:${c.color}"></button>`).join('')}
       <label class="tm-sw own${custom ? ' on' : ''}" title="Eigen kleur"><input type="color" class="tm-colorin" data-field="${g.field}" value="${esc(custom || (cur && cur.color) || DEFAULT_CUSTOM_COLOR)}" aria-label="Eigen kleur kiezen"><span>Eigen</span></label></div></div>`;
   }
   const cur = g.options.find((o) => o.state === 'on');
-  return `<div class="tm-row" data-field="${g.field}" data-type="${g.type}" tabindex="0" role="radiogroup" aria-label="${label}"><div class="tm-rh"><span class="tm-rl">${label}</span><span class="tm-rv">${esc(cur ? cur.label : '')}</span><span class="tm-rp">${cur && cur.price > 0 && !cur.installed ? euro(cur.price) : ''}</span></div>
-    <div class="tm-opts">${g.options.map((o) => `<button type="button" class="tm-o${o.state ? ' on' : ''}${o.locked ? ' locked' : ''}" data-val="${esc(o.id ?? '')}" role="radio" aria-checked="${!!o.state}" aria-disabled="${o.locked ? 'true' : 'false'}" tabindex="-1" title="${esc(o.locked || o.desc || '')}"><span class="tm-on" aria-hidden="true">${o.state ? '✓' : ''}</span><span class="nm">${esc(o.label)}</span>${priceTag(o)}</button>`).join('')}</div></div>`;
+  return `<div class="tm-row" data-field="${g.field}" data-type="${g.type}" tabindex="0" role="radiogroup" aria-label="${label}"><div class="tm-rh">${icoon(iconOfField(g.field), { cls: 'tm-ri', maat: 'm' })}<span class="tm-rl">${label}</span><span class="tm-rv">${esc(cur ? cur.label : '')}</span><span class="tm-rp">${cur && cur.price > 0 && !cur.installed ? euro(cur.price) : ''}</span></div>
+    <div class="tm-opts tm-tiles">${g.options.map((o) => tileHtml(g, o)).join('')}</div></div>`;
+}
+
+// Een keuzetegel: een voorbeeld (bol, velg, sticker, strepen of het icoon van het veld), de naam, de prijs of het slot, en een vinkje als hij gekozen is.
+function tilePicture(g, o) {
+  const body = draft.body || installed.body, L = draft.look;
+  const none = o.id === null || o.id === 'none' || o.id === 'stock' || o.id === 'off';
+  switch (g.field) {
+    case 'finish': return `<img src="${finishSphere(o.id, body)}" alt="">`;
+    case 'rimStyle': return `<img src="${rimPicture(o.id, L.rimColor, L.rimSize, L.tire)}" alt="">`;
+    case 'rimSize': return `<img src="${rimPicture(L.rimStyle || 'spoke', L.rimColor, o.id, L.tire)}" alt="">`;
+    case 'tire': return `<img src="${rimPicture(L.rimStyle || 'spoke', L.rimColor, L.rimSize, o.id)}" alt="">`;
+    case 'decal': return o.id === 'none' ? icoon('kruis', { cls: 'tm-tic', maat: 'xl' }) : `<img src="${decalPicture(o.id)}" alt="" class="wide">`;
+    case 'stripe': return o.id === 'none' ? icoon('kruis', { cls: 'tm-tic', maat: 'xl' }) : `<img src="${stripePicture(o.id, L.color2, body)}" alt="" class="wide">`;
+    default: return icoon(none ? 'kruis' : iconOfField(g.field), { cls: 'tm-tic', maat: 'xl' });
+  }
+}
+function tileHtml(g, o) {
+  return `<button type="button" class="tm-o tm-tile${o.state ? ' on' : ''}${o.locked ? ' locked' : ''}" data-val="${esc(o.id ?? '')}" role="radio" aria-checked="${!!o.state}" aria-disabled="${o.locked ? 'true' : 'false'}" tabindex="-1" title="${esc(o.locked || o.desc || '')}"><span class="tm-pic">${tilePicture(g, o)}<span class="tm-on" aria-hidden="true">${o.state ? '✓' : ''}</span></span><span class="nm">${esc(o.label)}</span>${priceTag(o)}</button>`;
 }
 
 function buildsHtml() {
@@ -229,34 +257,53 @@ function previewSpec(st) {
   const spec = vehiclePreviewOf(veh, st.body || undefined);
   return isStock(st.look) ? spec : { ...spec, tune: st.look };
 }
+function freeOffset() {
+  // het voertuig in het midden van de vrije ruimte tussen het paneel links en de kaart rechts
+  const a = root.querySelector('.tm-panel'), b = root.querySelector('.tm-pane');
+  if (!a || !b) return 0;
+  const left = a.getBoundingClientRect().right, right = b.getBoundingClientRect().left;
+  return Math.round((left + right) / 2 - window.innerWidth / 2);
+}
 function showPreview() {
   const canvas = root.querySelector('.tm-preview');
-  if (!preview) preview = createVehiclePreview(canvas, { interactive: true, active: () => open, pixelRatio: () => Math.min(1.5, hudPixelRatio()) });
-  const st = compare ? installed : draft;
-  preview.show(previewSpec(st));
+  if (!showroom) showroom = createShowroom(canvas, { active: () => open, reduced: reducedMotion });
+  showroom.setEnv(site && site.kind);
+  showroom.setOffset(freeOffset());
+  showroom.show(previewSpec(draft), compare ? previewSpec(installed) : null);
+  root.querySelector('.tm-splitlab').hidden = !compare;
   const badge = root.querySelector('.tm-badge');
-  badge.textContent = compare ? 'Voor' : sameState(draft, installed) ? '' : 'Na';
+  badge.textContent = compare ? '' : sameState(draft, installed) ? '' : 'Na';
   badge.hidden = !badge.textContent;
+  renderViews();
+}
+
+// Het effect bij een wissel (showroomplan.js): spuitbus bij lak, wieldraai bij velgen, neon bij licht, anders een flits.
+function playEffect(field) {
+  if (!field || !showroom || compare) return;
+  const kindOf = EFFECT_OF_CATEGORY[categoryOfField(field)] || 'flash';
+  const col = field === 'body' && draft.body ? parseInt(draft.body.slice(1), 16) : 0xffffff;
+  showroom.effect(kindOf, field, col);
 }
 
 // --- handelingen ----------------------------------------------------------------------------------------------------------
-function change(next, what) {
+function change(next, what, field = '') {
   if (next === draft) return;
   draft = next;
   armed = null; closeArmed = 0;
   if (compare) compare = false;
   render();
   showPreview();
+  playEffect(field);
   if (what) showStatus(what, '');
 }
 
 function pickValue(row, val) {
   const field = row.dataset.field, type = row.dataset.type;
-  if (type === 'part') { change(changePart(draft, field, val || null, ctx.partsKind)); return; }
-  if (type === 'color') { change(changeField(draft, field, val ? val : (field === 'body' ? draft.body : null), kind())); return; }
+  if (type === 'part') { change(changePart(draft, field, val || null, ctx.partsKind), '', field); return; }
+  if (type === 'color') { change(changeField(draft, field, val ? val : (field === 'body' ? draft.body : null), kind()), '', field); return; }
   const lockedBtn = row.querySelector(`.tm-o[data-val="${CSS.escape(val)}"]`);
   if (lockedBtn && lockedBtn.classList.contains('locked')) { showStatus(lockedBtn.title || 'Dat kan hier niet', 'no'); }
-  change(changeField(draft, field, val === '' ? null : val, kind()));
+  change(changeField(draft, field, val === '' ? null : val, kind()), '', field);
 }
 
 function install() {
@@ -355,6 +402,7 @@ function onClick(e) {
   const tab = t.closest('.tm-tab'); if (tab) { showTab(tab.dataset.tab); return; }
   const ba = t.closest('.tm-bact'); if (ba && !ba.disabled) { buildAction(ba.closest('.tm-row'), ba.dataset.act); return; }
   const opt = t.closest('.tm-o, .tm-sw[data-val]'); if (opt) { const row = opt.closest('.tm-row'); row.focus({ preventScroll: true }); pickValue(row, opt.dataset.val); return; }
+  const vw = t.closest('.tm-vw'); if (vw) { if (showroom) { showroom.setView(vw.dataset.view); renderViews(); } return; }
   if (t.closest('.tm-buy')) { install(); return; }
   if (t.closest('.tm-revert')) { revert(); return; }
   if (t.closest('.tm-compare')) { toggleCompare(); return; }
@@ -367,7 +415,7 @@ function onInput(e) {
     const c = cleanColor(t.value);
     if (!c) return;
     const f = t.dataset.field;
-    change(changeField(draft, f === 'body' ? 'body' : f, c, kind()));
+    change(changeField(draft, f === 'body' ? 'body' : f, c, kind()), '', f);
   } else if (t.classList.contains('tm-plate')) {
     const clean = cleanPlate(t.value);
     const next = changeField(draft, 'plate', clean || null, kind());
@@ -395,8 +443,8 @@ function onKey(e) {
     return;
   }
   e.stopImmediatePropagation();
-  if (k === 'Tab') return;
   e.preventDefault();
+  if (k === 'Tab') { if (!e.repeat && showroom) { showroom.nextView(e.shiftKey ? -1 : 1); renderViews(); } return; }
   if (e.repeat && !k.startsWith('Arrow')) return;
   if (k === 'Escape' || k === 'Backspace' || lower === 'q') tryClose();
   else if (k === 'ArrowUp' || lower === 'w') moveRow(-1);

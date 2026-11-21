@@ -15,7 +15,7 @@ if (!CHROME) { console.log('geen Chrome of Edge gevonden: geef het pad mee'); pr
 const PORT = 9337;
 const url = (f, v) => 'file:///' + path.join(MAP, f).replace(/\\/g, '/') + '#' + v;
 const ALLES = [['mock.html', 'dag', 'voertuigen-dag', 1400, 800], ['mock.html', 'nacht', 'voertuigen-nacht', 1400, 800], ['mock.html', 'snack', 'snackwagen-dag', 1400, 800], ['mock.html', 'nacht-snack', 'snackwagen-nacht', 1400, 800],
-  ['ui.html', 'lak', 'ui-lak', 1920, 1080], ['ui.html', 'carrosserie', 'ui-carrosserie', 1920, 1080], ['ui.html', 'velgen', 'ui-velgen', 1920, 1080], ['ui.html', 'licht', 'ui-licht', 1920, 1080], ['ui.html', 'onderdelen', 'ui-onderdelen', 1920, 1080], ['ui.html', 'builds', 'ui-builds', 1920, 1080], ['ui.html', 'snack', 'ui-snackwagen', 1920, 1080], ['ui.html', 'installeren', 'ui-installeren', 1920, 1080], ['ui.html', 'slot', 'ui-slot', 1920, 1080]];
+  ['ui.html', 'lak', 'ui-lak', 1920, 1080], ['ui.html', 'carrosserie', 'ui-carrosserie', 1920, 1080], ['ui.html', 'velgen', 'ui-velgen', 1920, 1080], ['ui.html', 'licht', 'ui-licht', 1920, 1080], ['ui.html', 'onderdelen', 'ui-onderdelen', 1920, 1080], ['ui.html', 'builds', 'ui-builds', 1920, 1080], ['ui.html', 'snack', 'ui-snackwagen', 1920, 1080], ['ui.html', 'installeren', 'ui-installeren', 1920, 1080], ['ui.html', 'slot', 'ui-slot', 1920, 1080], ['ui.html', 'voorna', 'ui-voorna', 1920, 1080], ['ui.html', 'wiel', 'ui-wiel', 1920, 1080]];
 const WEERGAVEN = process.argv[3] ? ALLES.filter((a) => a[2].includes(process.argv[3])) : ALLES;
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 

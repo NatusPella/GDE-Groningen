@@ -2840,7 +2840,7 @@ export function buildVehicleMesh(v) {
   if (v.damage) restoreDamage(group, v);
   else if (v.dentLog && v.dentLog.length && !v.wrecked) replayDents(group, v);
   if (v.dentLog && v.dentLog.length) syncLooseParts(group, v);
-  if (v.look && !v.wrecked) applyVehicleLook(group, v, carBodyFit(v));
+  if ((v.look || (v.model && (v.model.name === 'foodtruck' || v.model.name === 'snackwagen'))) && !v.wrecked) applyVehicleLook(group, v, carBodyFit(v)); // de snackwagen draagt altijd zijn belettering
   return group;
 }
 
