@@ -3,6 +3,7 @@
 // geen klok, geen netwerk (scripts/bezit_index_test.mjs). Het laden zelf (fetch) staat in loadBezitIndex en wordt alleen aangeroepen
 // als de speler iets met Bezit doet: lui, nooit bij het starten. De vorm van een perceel komt nooit uit dit bestand maar uit de tegel.
 //
+// places: [naam, x, y, woningen?] (woningen per woonplaats, #1103).
 // Een perceel: { id, x, y (binnenpunt, RD-wereldmeters), ax, ay (ankerpunt), ha, kind: 'w'|'a'|'b', access: 'weg'|'pad'|'wegNabij'|'padNabij'|'geen' }
 
 export const GRID_M = 1000;
@@ -24,6 +25,11 @@ export function createParcelIndex(file) {
     c.push(p);
   }
   const places = Array.isArray(file && file.places) ? file.places.filter((q) => Array.isArray(q) && typeof q[0] === 'string' && Number.isFinite(q[1]) && Number.isFinite(q[2])) : [];
+  const nearestPlace = (x, y) => {
+    let best = null, bd = Infinity;
+    for (const q of places) { const d = (q[1] - x) * (q[1] - x) + (q[2] - y) * (q[2] - y); if (d < bd) { bd = d; best = q; } }
+    return best;
+  };
   const inRect = (x0, y0, x1, y1, max = Infinity) => {
     const out = [];
     for (let cx = Math.floor(x0 / GRID_M); cx <= Math.floor(x1 / GRID_M); cx++) for (let cy = Math.floor(y0 / GRID_M); cy <= Math.floor(y1 / GRID_M); cy++) {
@@ -37,11 +43,11 @@ export function createParcelIndex(file) {
     size: list.length,
     places,
     // de dichtstbijzijnde woonplaats (naam) van een punt, of null zonder plaatsen
-    placeAt(x, y) {
-      let best = null, bd = Infinity;
-      for (const q of places) { const d = (q[1] - x) * (q[1] - x) + (q[2] - y) * (q[2] - y); if (d < bd) { bd = d; best = q[0]; } }
-      return best;
-    },
+    placeAt(x, y) { const q = nearestPlace(x, y); return q ? q[0] : null; },
+    // het aantal gewone woningen van de dichtstbijzijnde woonplaats (places[i][3], uit bezit_index.mjs), of null als het bestand het niet kent (oude bouw)
+    housesAt(x, y) { const q = nearestPlace(x, y); return q && Number.isFinite(q[3]) ? q[3] : null; },
+    // de dichtstbijzijnde plaats als [naam, x, y, woningen] binnen r meter (voor het kopen van een woning in de buurt), of null
+    placeNear(x, y, r = 6000) { const q = nearestPlace(x, y); return q && Math.hypot(q[1] - x, q[2] - y) <= r ? q : null; },
     byId: (id) => byId.get(id) || null,
     has: (id) => byId.has(id),
     all: () => list,

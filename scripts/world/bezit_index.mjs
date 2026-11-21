@@ -2,6 +2,7 @@
 // lui kan laden wat het nodig heeft zonder de tegels te lezen:
 //   bezit-percelen.json: de koopbare percelen (stabiel ID, binnenpunt, ankerpunt, oppervlakte, soort, toegangsklasse)
 //   bezit-panden.json:   de pand-index voor Bedrijven (OSM-id, plek, grondvlak, soort), alleen panden die geen gewone woning zijn
+// De gewone woningen staan niet als rij in de index (te groot) maar als telling per woonplaats: places = [naam, x, y, woningen] (zie countHomes, docs/BEZIT-21-11.md hoofdstuk 14).
 // De tegels knippen elk landgebruikvlak op de kilometerlijn: stukken van dezelfde soort die een deel van een tegelrand delen
 // worden aaneengeregen tot een perceel. Het ID hangt niet af van gid, bouwvolgorde of tegelindeling (zie docs/BEZIT-21-11.md 2.5).
 // Percelen onder 0,5 ha worden samengevoegd met de grootste buur van dezelfde soort.
@@ -161,12 +162,35 @@ export const accessClass = (wegD, padD) => (wegD <= 12 ? 'weg' : padD <= 12 ? 'p
 const RESIDENTIAL = new Set(['yes', 'house', 'detached', 'semidetached_house', 'terrace', 'residential', 'apartments', 'bungalow', 'dormitory', 'farm', 'hut', 'cabin', 'static_caravan', 'houseboat', 'garage', 'garages', 'shed', 'roof', 'carport', 'greenhouse', 'barn', 'stable', 'cowshed', 'farm_auxiliary', 'service', '?']);
 export const isBusinessType = (t) => !RESIDENTIAL.has(String(t || '?'));
 
+// Een gewone woning voor de telling: een woonpand van 40 tot 400 m2 grondvlak (geen schuur of garage), per woonplaats opgeteld.
+export const HOME_TYPES = new Set(['yes', 'house', 'detached', 'semidetached_house', 'terrace', 'apartments']);
+export const HOME_M2 = [40, 400];
+export const CITY_HOMES_ESTIMATE = 50000;                       // de stad Groningen staat niet in de tegels: een schatting
+export const HOME_RADIUS = 4000;                             // een woning verder dan 4 km van elke plaats telt nergens mee (verspreide bebouwing)
+export const isHome = (type, m2) => HOME_TYPES.has(String(type || '')) && m2 >= HOME_M2[0] && m2 <= HOME_M2[1];
+// Telt woningen [x, y] bij de dichtstbijzijnde plaats ([naam, x, y]) binnen HOME_RADIUS. Geeft een lijst getallen in de volgorde van de plaatsen.
+export function countHomes(homes, places, radius = HOME_RADIUS) {
+  const counts = places.map(() => 0);
+  const CELL_P = 2000, grid = new Map();
+  places.forEach((p, i) => { const k = Math.floor(p[1] / CELL_P) * 100003 + Math.floor(p[2] / CELL_P); (grid.get(k) || grid.set(k, []).get(k)).push(i); });
+  const reach = Math.ceil(radius / CELL_P);
+  for (const h of homes) {
+    const cx = Math.floor(h[0] / CELL_P), cy = Math.floor(h[1] / CELL_P);
+    let best = -1, bd = radius * radius;
+    for (let ax = cx - reach; ax <= cx + reach; ax++) for (let ay = cy - reach; ay <= cy + reach; ay++) {
+      for (const i of grid.get(ax * 100003 + ay) || []) { const d = (places[i][1] - h[0]) ** 2 + (places[i][2] - h[1]) ** 2; if (d <= bd) { bd = d; best = i; } }
+    }
+    if (best >= 0) counts[best]++;
+  }
+  return counts;
+}
+
 // ---- de wereld lezen ----
 export function readWorld(worldDir) {
   const index = JSON.parse(fs.readFileSync(path.join(worldDir, 'index-provincie.json'), 'utf8'));
   const fds = new Map();
   const roadCar = mkIndex(), roadPad = mkIndex();
-  const pieces = [], buildings = [];
+  const pieces = [], buildings = [], homes = [];
   let tiles = 0;
   for (const [key, t] of Object.entries(index.tiles)) {
     const f = index.packs[t.pack].file;
@@ -186,16 +210,17 @@ export function readWorld(worldDir) {
         }
       } else if (s.type === G.SECTION.BUILDINGS) {
         for (const r of s.rows) {
-          if (!r.pts || r.pts.length < 3 || !r.osm || !isBusinessType(r.type)) continue;
+          if (!r.pts || r.pts.length < 3 || !r.osm) continue;
           let mx = 0, my = 0;
           for (const p of r.pts) { mx += p[0]; my += p[1]; }
+          if (!isBusinessType(r.type)) { if (HOME_TYPES.has(String(r.type || '')) && isHome(r.type, polyArea(r.pts))) homes.push([mx / r.pts.length, my / r.pts.length]); continue; }
           buildings.push({ osm: r.osm, x: Math.round(mx / r.pts.length), y: Math.round(my / r.pts.length), m2: Math.round(polyArea(r.pts)), type: r.type || '?', h: r.h || 0, landmark: r.landmark ? 1 : 0 });
         }
       }
     }
   }
   for (const fd of fds.values()) fs.closeSync(fd);
-  return { pieces, roadCar, roadPad, buildings, tiles };
+  return { pieces, roadCar, roadPad, buildings, homes, tiles };
 }
 
 export function accessOf(p, roadCar, roadPad) {
@@ -222,10 +247,14 @@ export function buildBezitIndex(worldDir) {
   const types = [...new Set(w.buildings.map((b) => b.type))].sort();
   // de woonplaatsen voor de namen en de klantenpot (alleen dorpen, steden en gehuchten, met de plek): [naam, x, y]
   const idx = JSON.parse(fs.readFileSync(path.join(worldDir, 'index-provincie.json'), 'utf8'));
-  const places = ((idx.global && idx.global.places) || []).filter((p) => ['hamlet', 'village', 'town', 'city'].includes(p.kind) && p.name).map((p) => [p.name, Math.round(p.x), Math.round(p.y)]);
+  const placesRaw = ((idx.global && idx.global.places) || []).filter((p) => ['hamlet', 'village', 'town', 'city'].includes(p.kind) && p.name);
+  const places0 = placesRaw.map((p) => [p.name, Math.round(p.x), Math.round(p.y)]);
+  const houses = countHomes(w.homes, places0);
+  // De stad Groningen zit niet in de provincietegels (de stad is een eigen model): zonder gemeten woningen telt ze als een grote stad (schatting, geen meting).
+  const places = places0.map((p, i) => [...p, placesRaw[i].kind === 'city' && houses[i] < 100 ? CITY_HOMES_ESTIMATE : houses[i]]);
   const bs = w.buildings.sort((a, b) => a.osm - b.osm);
   return {
-    percelen: { v: BEZIT_INDEX_VERSION, kinds: KINDS, access: ACCESS, places, rows: parcelRows(m.parcels), stats: { pieces: w.pieces.length, joins: built.joins, duplicates: built.duplicates, merged: m.merged, tiles: w.tiles } },
+    percelen: { v: BEZIT_INDEX_VERSION, kinds: KINDS, access: ACCESS, places, rows: parcelRows(m.parcels), stats: { pieces: w.pieces.length, joins: built.joins, duplicates: built.duplicates, merged: m.merged, tiles: w.tiles, homes: w.homes.length } },
     panden: { v: BEZIT_INDEX_VERSION, types, rows: bs.map((b) => [b.osm, b.x, b.y, b.m2, types.indexOf(b.type), b.h, b.landmark]) },
   };
 }
