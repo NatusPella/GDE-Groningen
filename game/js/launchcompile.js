@@ -20,7 +20,10 @@ export function withAllVisible(root, fn) {
   root.traverse((o) => { if (o.visible === false) { hidden.push(o); o.visible = true; } });
   try { fn(); } finally { for (const o of hidden) o.visible = false; }
 }
-const compileGroup = (kit, g) => withAllVisible(g, () => withParkedMaterials(g, () => kit.compile(g)));
+// three r160 renderer.compile loopt met scene.traverse over ALLE materialen (ook van verborgen objecten); alleen de lichten gaan via
+// traverseVisible. withAllVisible was hier dus niet nodig en maakte verborgen lichten in de groep (de geleende setlichten, de nachtrig)
+// zichtbaar: het lichtaantal van de compile week dan af van dat van de draw. Het blijft bestaan voor wie echt zichtbare objecten wil.
+const compileGroup = (kit, g) => withParkedMaterials(g, () => kit.compile(g));
 
 // kit = { scene, compile(obj), withLightRig(on, fn), lightRigOn(), filmOff } uit scene3d.js precompileKit().
 // Prioriteit 0: de huidige lichtstand, eerst de groepen dichtbij het begin van de lijst; prioriteit 1: de andere lichtstand (film).
@@ -35,7 +38,7 @@ export function planPrecompile(kit, { filmLicht = false } = {}) {
   groups.forEach((g) => {
     known.add(g); groupLen.set(g, g.children.length);
     planner.add('nu:' + g.uuid, () => compileGroup(kit, g), 0);
-    if (film) planner.add('film:' + g.uuid, () => withAllVisible(g, () => withParkedMaterials(g, () => kit.withLightRig(!rigNu, () => kit.compile(g)))), 1);
+    if (film) planner.add('film:' + g.uuid, () => withParkedMaterials(g, () => kit.withLightRig(!rigNu, () => kit.compile(g))), 1);
   });
   return planner;
 }

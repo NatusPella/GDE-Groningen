@@ -132,7 +132,7 @@ import { spawnExplosionFx, setFxCamera } from './fx3d.js';
 import { litFraction, moonPhase, STAR_SHARE, foliageGlow } from './nightrules.js';
 import { qualityLook } from './weatherlook.js';
 import { buildCloudLayer, updateCloudLayer } from './cloud3d.js';
-import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn } from './nightlights3d.js';
+import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn, nightPoolSize } from './nightlights3d.js';
 import { createFarLOD } from './farlod.js';
 import { SECTION, TILE_M, tileOrigin } from './gdt.js';
 import { initRailway3D, updateRailway3D, prewarmRailAt } from './railway3d.js';
@@ -170,6 +170,8 @@ import { lookBackActive, chaseFollowLerp } from './controls.js';
 import { cameraAspect, cameraVerticalFov, followCameraPose, cameraSnapNeeded, camPushRaysNeeded, pitchForMouse, DEFAULT_PITCH } from './cameraplan.js';
 import { gameBusy } from './busy.js';
 import { compileTarget } from './compiletarget.js';
+import { programWatch } from './programwatch.js';
+import { withBorrowedSetLightsHidden } from './setlights.js';
 import { withParkedMaterials } from './launchcompile.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
@@ -821,7 +823,7 @@ function pinShaderPrograms(r) {
   const programs = r.info.programs;
   const push = programs.push;
   programs.push = function (...added) {
-    for (const p of added) { p.usedTimes++; probe.program(p); }
+    for (const p of added) { p.usedTimes++; probe.program(p); programWatch.note(p); }
     return push.apply(this, added);
   };
 }
@@ -3426,23 +3428,30 @@ function skipHiddenMatrixWalk() {
 function precompile(obj) {
   const prev = renderer.getRenderTarget();
   renderer.setRenderTarget(postfx.sceneTarget);
-  try { renderer.compile(obj, cam, perfOff('compileklein') ? scene : compileTarget(obj, scene, compileScene())); } finally { renderer.setRenderTarget(prev); }
+  programWatch.begin(); // #1008: programma's die hier ontstaan zijn bewust voorbereid; de rest ontstaat bij het tekenen
+  try {
+    // de lichten van een set die de nachtrig leent zijn bij het tekenen verborgen: ook bij het compileren, anders klopt het lichtaantal niet
+    withBorrowedSetLightsHidden(obj, nightPoolSize() > 0, () => renderer.compile(obj, cam, perfOff('compileklein') ? scene : compileTarget(obj, scene, compileScene(obj))));
+  } finally { programWatch.end(); renderer.setRenderTarget(prev); }
 }
 
 // renderer.compile walks the whole target scene (all ~9000 nodes) to find the lights, once per call: for every
 // building built that was 0.3 to 1 ms and ~6% of the main thread while flying. The programs only depend on the
 // lights, the fog and the environment, so it gets a scene that holds just those (the lights are looked up again
 // every 1.5 s; the light rig's on/off is the lights' own visible flag, which compile reads).
-let compileSceneObj = null, compileLightsAt = -1e9;
-function compileScene() {
+let compileSceneObj = null, compileLightsAt = -1e9, compileLightsAll = [];
+function isUnder(o, root) { for (let p = o; p; p = p.parent) if (p === root) return true; return false; }
+function compileScene(exclude = null) {
   const now = performance.now();
   if (!compileSceneObj) { compileSceneObj = new THREE.Scene(); compileSceneObj.matrixAutoUpdate = false; compileSceneObj.children = []; }
   if (now - compileLightsAt > 1500) {
     compileLightsAt = now;
     const lights = [];
     scene.traverse((o) => { if (o.isLight) lights.push(o); });
-    compileSceneObj.children = lights;
+    compileLightsAll = lights;
   }
+  // renderer.compile telt de lichten van het doel EN van het object: een licht in `exclude` hoort daarom niet ook in de lichtscene (dubbel geteld)
+  compileSceneObj.children = exclude ? compileLightsAll.filter((l) => !isUnder(l, exclude)) : compileLightsAll;
   compileSceneObj.fog = scene.fog;
   compileSceneObj.environment = scene.environment;
   return compileSceneObj;

@@ -15,6 +15,21 @@ export function adoptSetLight(light) {
 }
 export const adoptedSetLights = () => proxies;
 
+// renderer.compile telt de lichten die op dat moment zichtbaar zijn; een set die de nachtrig leent heeft ze bij het tekenen verborgen
+// (syncSetLights). Compileer het dus ook zonder: anders krijgt het materiaal van de set een programma voor N+k lichten dat
+// geen draw gebruikt, en linkt het echte programma (N lichten) bij het eerste beeld van de set. `borrowed`: heeft de rig lampen te leen
+// (niet op 'laag': daar blijven de lichten echt en tellen ze mee).
+export function withBorrowedSetLightsHidden(root, borrowed, fn, list = proxies) {
+  const shown = [];
+  if (borrowed && root) {
+    for (const p of list) {
+      if (!p.visible) continue;
+      for (let n = p; n; n = n.parent) if (n === root) { shown.push(p); p.visible = false; break; }
+    }
+  }
+  try { return fn(); } finally { for (const p of shown) p.visible = true; }
+}
+
 // 1: in the scene and not hidden by a parent, 0: hidden by a parent, -1: not in this scene
 function placeOf(o, scene) {
   let vis = true;

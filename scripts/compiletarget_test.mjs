@@ -16,6 +16,6 @@ ok(gather(scene, compileTarget(scene, scene, lights)) === 2, 'zon + hemi worden 
 ok(gather(scene, lights) === 4, 'oude route telde dubbel (model)');
 
 const src = fs.readFileSync(new URL('../game/js/scene3d.js', import.meta.url), 'utf8');
-ok(/renderer\.compile\(obj, cam, perfOff\('compileklein'\) \? scene : compileTarget\(obj, scene, compileScene\(\)\)\)/.test(src), 'precompile gebruikt compileTarget');
+ok(/renderer\.compile\(obj, cam, perfOff\('compileklein'\) \? scene : compileTarget\(obj, scene, compileScene\(obj\)\)\)/.test(src), 'precompile gebruikt compileTarget');
 console.log(fails ? `${fails} van ${n} mislukt` : `ok: ${n} controles`);
 process.exit(fails ? 1 : 0);

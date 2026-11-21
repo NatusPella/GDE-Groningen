@@ -191,6 +191,9 @@ function updateMuzzleLight(dt, night) {
   muzzleLevel *= Math.exp(-MUZZLE_DECAY * dt);
 }
 
+// How many point lamps the night rig has (0 on 'laag'): sets borrow these (setlights.js), so a set's own lights are hidden at draw time.
+export const nightPoolSize = () => pointLights.length;
+
 // Real light count is fixed per quality preset (changing it recompiles
 // every lit material), so lights are always present and only dimmed.
 export function setNightLightQuality(level) {

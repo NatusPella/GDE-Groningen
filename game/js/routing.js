@@ -19,6 +19,7 @@ import { walkPathHook } from './latehooks.js';
 import { poiLayerPlace, poiLayerPlaces } from './facilities.js';
 import { mayBuildGraph } from './graphgate.js';
 import { createTtlCache } from './ttlcache.js';
+import { graphBuildSteps, runSteps } from './routegraphbuild.js';
 
 const STRAY_M = 25;
 // the further from the route you may stray before it is redone, per way of travel
@@ -58,6 +59,8 @@ let graph = null;
 // kost ~300 ms op de echte stadswereld, dus die wacht tot de tegelwachtrij leeg is
 // en gebeurt daarna hooguit één keer per seconde.
 const GRAPH_REBUILD_MIN_S = 1;
+// een bestaande graaf wordt per beeld in porties van dit budget (ms) opnieuw gebouwd in plaats van ~250 ms achter elkaar (#1008)
+const GRAPH_STEP_MS = 4;
 // #804: tussen twee tegelwissels is de wachtrij even leeg; dan bouwde de graaf
 // toch, elke seconde opnieuw, terwijl de lagen zo weer veranderden. Wacht daarom
 // tot de wegen/gebouwenlagen een moment stil zijn (1 s) en bouw dan één keer;
@@ -70,7 +73,9 @@ function graphStale(map) {
   if (!graph || graph.map !== map) return true;
   return graph.roadVer !== (map._roadVer || 0) || graph.buildingVer !== (map._buildingVer || 0);
 }
-function ensureGraph(map) {
+// budgetMs: updateRouting bouwt een bestaande graaf per beeld in porties (routegraphbuild.js); wie nu een graaf nodig heeft
+// (een routevraag) maakt een lopende bouw achter elkaar af.
+function ensureGraph(map, budgetMs = Infinity) {
   if (!graphStale(map)) return;
   const now = performance.now();
   const key = (map._roadVer || 0) + ':' + (map._buildingVer || 0);
@@ -84,8 +89,7 @@ function ensureGraph(map) {
     if (tileWorkPending(map)) return; // nog midden in de stroom: de oude graaf is goed genoeg
     if (!mayBuildGraph({ now, builtAt: graphBuiltAt, staleAt })) return; // wacht tot de lagen stil zijn, met cadans en bovengrens
   }
-  buildGraph(map);
-  graphBuiltAt = performance.now();
+  if (stepGraphBuild(map, graph && graph.map === map ? budgetMs : Infinity)) graphBuiltAt = performance.now();
 }
 // Up to three routes at once, each its own colour (hud_panel ROUTE_COLORS):
 // the player's own goal (goal.js, purple), the objective (an active mission
@@ -239,139 +243,56 @@ function throughOf(map, road, i, ax, ay, bx, by) {
   return t;
 }
 
-function buildGraph(map) {
+const GRAPH_HOOKS = {
+  isDrivable, isWalkable, isBikeable, oneWayFor,
+  throughOf: null, // per bouw: kent de kaart
+  consts: { THROUGH_BUILDING_COST, SERVICE_COST, OFFROAD_COST, STEPS_COST, MOTORWAY_AVOID, BIKE_COST, MOTORWAY_TYPES },
+};
+// De bouw is hervatbaar (routegraphbuild.js): een lopende bouw staat hier tot hij klaar is of de lagen veranderden.
+let pendingBuild = null;
+function startGraphBuild(map) {
   const t0 = performance.now();
-  const ids = new Map();
-  const xs = [], ys = [];
-  const roadNodes = new Map();
-  const drive = [], driveRoad = [], walk = [], walkRoad = [], mixed = [], bike = [], bikeRoad = [], driveAvoid = [];
-  const nodeOf = (x, y) => {
-    const key = (Math.round(x * 2) + 32768) * 65536 + (Math.round(y * 2) + 32768);
-    let id = ids.get(key);
-    if (id === undefined) {
-      id = xs.length;
-      ids.set(key, id);
-      xs.push(x);
-      ys.push(y);
-    }
-    return id;
-  };
   // platte testkaarten zonder raster vallen terug op hun eigen wegenlijst
   const graphRoads = map.orderedRoads ? map.orderedRoads() : map['roads'] || [];
   syncThroughCache(map);
-  for (let ri = 0; ri < graphRoads.length; ri++) {
-    const road = graphRoads[ri];
-    const n = road.pts.length;
-    const rn = new Int32Array(n);
-    for (let i = 0; i < n; i++) rn[i] = nodeOf(road.pts[i][0], road.pts[i][1]);
-    roadNodes.set(road, rn);
-    const canDrive = isDrivable(road);
-    const canWalk = isWalkable(road);
-    const canBike = isBikeable(road);
-    const bikeOne = canBike && oneWayFor(road, 'fiets');
-    const mw = MOTORWAY_TYPES.has(road.type);
-    for (let i = 0; i < n - 1; i++) {
-      const a = rn[i], b = rn[i + 1];
-      if (a === b) continue;
-      const geo = Math.hypot(xs[b] - xs[a], ys[b] - ys[a]);
-      const len = !road.bridge && throughOf(map, road, i, xs[a], ys[a], xs[b], ys[b]) ? geo * THROUGH_BUILDING_COST : geo;
-      if (canWalk) {
-        walk.push(a, b, len, b, a, len);
-        walkRoad.push(ri, ri);
-      }
-      if (canBike) {
-        const bl = len * (BIKE_COST[road.cat] ?? 1);
-        bike.push(a, b, bl); bikeRoad.push(ri);
-        if (!bikeOne) { bike.push(b, a, bl); bikeRoad.push(ri); }
-      }
-      if (canDrive) {
-        const dl = road.type === 'service' || road.type === 'track' ? len * SERVICE_COST : len;
-        drive.push(a, b, dl); driveRoad.push(ri);
-        const al = mw ? dl * MOTORWAY_AVOID : dl;
-        driveAvoid.push(a, b, al);
-        mixed.push(a, b, dl);
-        if (!road.oneway) { drive.push(b, a, dl); driveRoad.push(ri); driveAvoid.push(b, a, al); mixed.push(b, a, dl); }
-      } else if (!road.busOnly) {
-        const ml = len * (road.type === 'steps' ? STEPS_COST : OFFROAD_COST);
-        mixed.push(a, b, ml, b, a, ml);
-      }
-    }
-  }
-  const N = xs.length;
-  const csr = (flat, extra = null) => {
-    const m = flat.length / 3;
-    const start = new Int32Array(N + 1);
-    for (let e = 0; e < m; e++) start[flat[e * 3] + 1]++;
-    for (let i = 0; i < N; i++) start[i + 1] += start[i];
-    const fill = start.slice(0, N);
-    const to = new Int32Array(m), len = new Float32Array(m);
-    const road = extra ? new Int32Array(m) : null;
-    for (let e = 0; e < m; e++) {
-      const k = fill[flat[e * 3]]++;
-      to[k] = flat[e * 3 + 1];
-      len[k] = flat[e * 3 + 2];
-      if (road) road[k] = extra[e];
-    }
-    return { start, to, len, road };
-  };
-  const components = (adj) => {
-    const comp = new Int32Array(N).fill(-1);
-    const stack = [];
-    let best = -1, bestSize = 0, id = 0;
-    for (let s0 = 0; s0 < N; s0++) {
-      if (comp[s0] >= 0 || adj.start[s0] === adj.start[s0 + 1]) continue;
-      comp[s0] = id;
-      stack.push(s0);
-      let size = 0;
-      while (stack.length) {
-        const u = stack.pop();
-        size++;
-        for (let e = adj.start[u]; e < adj.start[u + 1]; e++) {
-          const v = adj.to[e];
-          if (comp[v] < 0) { comp[v] = id; stack.push(v); }
-        }
-      }
-      if (size > bestSize) { bestSize = size; best = id; }
-      id++;
-    }
-    return { comp, main: best };
-  };
-  const walkAdj = csr(walk, walkRoad);
-  const bikeAdj = csr(bike, bikeRoad);
-  const bikeUndirected = [];
-  for (let i = 0; i < bike.length; i += 3) bikeUndirected.push(bike[i], bike[i + 1], bike[i + 2], bike[i + 1], bike[i], bike[i + 2]);
-  const driveUndirected = [];
-  for (let i = 0; i < drive.length; i += 3) driveUndirected.push(drive[i], drive[i + 1], drive[i + 2], drive[i + 1], drive[i], drive[i + 2]);
-  const driveFree = csr(driveUndirected);
+  const hooks = { ...GRAPH_HOOKS, throughOf: (road, i, ax, ay, bx, by) => throughOf(map, road, i, ax, ay, bx, by) };
+  // de versies van het begin: verandert er tijdens de bouw iets, dan is de nieuwe graaf meteen weer verouderd en volgt een nieuwe bouw
+  return { map, graphRoads, gen: graphBuildSteps(graphRoads, hooks), roadVer: map._roadVer || 0, buildingVer: map._buildingVer || 0, ms: performance.now() - t0, steps: 0 };
+}
+function installGraph(b, value) {
   graph = {
-    map,
+    map: b.map,
     // (#754) de laagversies waarop deze graaf gebouwd is, niet geoVer: zie ensureGraph
-    roadVer: map._roadVer || 0,
-    buildingVer: map._buildingVer || 0,
-    roadList: graphRoads, // #314: de wegen uit het raster, niet uit de (sparse) arraylaag
-    N,
-    walkComp: components(walkAdj),
-    driveComp: components(driveFree),
-    x: Float64Array.from(xs),
-    y: Float64Array.from(ys),
-    roadNodes,
-    drive: csr(drive, driveRoad),
-    driveAvoid: csr(driveAvoid, driveRoad),
-    bike: bikeAdj,
-    bikeComp: components(csr(bikeUndirected)),
-    free: driveFree,
-    mixed: csr(mixed),
-    walk: walkAdj,
-    g: new Float64Array(N),
-    prev: new Int32Array(N),
-    seen: new Uint32Array(N),
-    done: new Uint32Array(N),
+    roadVer: b.roadVer,
+    buildingVer: b.buildingVer,
+    roadList: b.graphRoads, // #314: de wegen uit het raster, niet uit de (sparse) arraylaag
+    ...value,
+    g: new Float64Array(value.N),
+    prev: new Int32Array(value.N),
+    seen: new Uint32Array(value.N),
+    done: new Uint32Array(value.N),
     stamp: 0,
   };
-  stats.buildMs = performance.now() - t0;
-  stats.nodes = N;
+  stats.buildMs = b.ms;
+  stats.nodes = value.N;
   stats.driveEdges = graph.drive.to.length;
   stats.walkEdges = graph.walk.to.length;
+  stats.steps = b.steps;
+}
+// Draait de bouw tot het budget (ms) op is (Infinity: tot hij klaar is). Geeft true als de graaf nu klaar is.
+function stepGraphBuild(map, budgetMs) {
+  if (pendingBuild && (pendingBuild.map !== map || pendingBuild.roadVer !== (map._roadVer || 0) || pendingBuild.buildingVer !== (map._buildingVer || 0))) {
+    // de lagen veranderden tijdens de bouw: wat al klaar is klopt niet meer, dus een nieuwe bouw
+    stats.restarts = (stats.restarts || 0) + 1;
+    pendingBuild = null;
+  }
+  const b = pendingBuild || (pendingBuild = startGraphBuild(map));
+  const r = runSteps(b.gen, budgetMs);
+  b.ms += r.ms; b.steps += r.steps;
+  if (!r.done) return false;
+  pendingBuild = null;
+  installGraph(b, r.value);
+  return true;
 }
 
 // Prefers the largest connected component so a stray, unconnected way near
@@ -1123,7 +1044,7 @@ function checkAirArrival(world, p) {
 }
 
 export function updateRouting(dt, world) {
-  ensureGraph(world.map);
+  ensureGraph(world.map, GRAPH_STEP_MS);
   const p = hoofdspeler(world);
   checkAirArrival(world, p);
 

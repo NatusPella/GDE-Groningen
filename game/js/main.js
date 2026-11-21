@@ -140,6 +140,7 @@ import { preloadRoadWorker } from './roadsurface.js';
 import { init3D, update3D, resize3D, getScene, getRenderer, toggleLightRig, disposeObject, setHoldMaterials, releaseHeldMaterials, setCinematicBatches, warmWaterIndex, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, prewarmPending, precompilePrograms, precompileKit, streamPending, queueWarmupObject, prewarmBusy, takeWarmupSamples, releaseWarmupSamples, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
 import { programsPending, programsTotal } from './programwarm.js';
 import { planPrecompile, runPlanner, stepIdleCompile } from './launchcompile.js';
+import { programWatch } from './programwatch.js';
 import { checkFrame } from './blackframe.js';
 import { setCameraOverride } from './cinematics.js';
 import { setHoldGrass } from './grass.js';
@@ -580,6 +581,7 @@ function waitForStart(world, ready) {
       if (window.__loadMarks) window.__loadMarks.geluid = Math.round(performance.now() - tGeluid);
     }
     // the last step: the first frames are drawn by the start screen, which then fills the bar
+    programWatch.markStart(); // #1008: vanaf hier telt elk nieuw shaderprogramma als 'na de start' (technische info)
     startGrace(30000); // #1046: de opening telt de eerste 30 s niet als trage GPU (geen renderschaalwissel midden in de film)
     setBootStep('beeld', 0);
     if (window.__loadMarks) {
