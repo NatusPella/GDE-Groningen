@@ -9,6 +9,12 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Kaart: Reis erheen gaat nu alleen over hoe je reist: met de trein, de bus, de taxi of per boot, elk met prijs, duur en aanbevolen, en als iets niet kan staat de reden in de rij (te dichtbij, geen verbinding, te weinig geld). De optie 'Zelf gaan' en de zin 'Dat kan ook in Samen spelen' zijn weg: Zet waypoint is de manier om zelf te gaan.
+- Kaart: de toets staat voortaan IN de knop (Enter in Reis nu en Begrepen, Esc in Terug en Sluiten, een cijfer in elke vervoersrij en op de drie acties van de plekkaart), niet meer ernaast. Op een controller wordt dat de A- of B-knop van jouw controller en een cijfer verdwijnt.
+- Kaart: alle kaartpopups werken hetzelfde met toetsenbord en controller: Enter of A bevestigt, Esc of B gaat één laag terug (venster, plekkaart, kaart), pijlen en D-pad lopen door de knoppen, de eerste focus staat op de hoofdactie en de focus blijft binnen een open venster.
+- Kaart: de uitleg 'Zo werkt de kaart' houdt de vier genummerde rijen, zonder 'Meer uitleg' en zonder de regel over Instellingen; een nieuwe Hulp-knop (?) bij de zoomknoppen opent hem opnieuw. Q en E staan er niet meer in: ze wisselen alleen de pagina van het menu.
+- Ontwerp: nieuwe DS3-regels 'Toets in de knop' en 'Navigatie met controller en toetsenbord' (menu-patroon), met bewaking in de DS3-dekkingstest. Zie docs/KAART-POPUPS-21-11.md.
+
 (De coördinator voegt deze regels bij 0.65.0.)
 
 - Het naamscherm heet nu "Hoe heet je?" en vraagt alleen een naam, ook voor wie Alleen speelt; het akkoord met de online diensten (STUN en brokers, je IP-adres) komt pas als je Samen spelen kiest, en weigeren brengt je terug naar de keuze zonder iets te verliezen.

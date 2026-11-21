@@ -396,6 +396,10 @@ Valt de gastheer weg, dan neemt de **langst verbonden speler** over (`rangschik`
 
 **Wat er bewust níet is gebouwd (#450).** De route van de openbare lijst naar een koploze host (WebRTC in Node of een relay/ontmoetingspunt) en de Electron-variant van de host blijven eigenaarsbeslissingen: de eerste raakt constitutie 4/10 en een native dependency per platform, de tweede de releasebouw. De CLI, de wereldstaat, het wachtwoord, de aankondiging en het beheer blijven binnen deze repo en zijn gedocumenteerd in dit hoofdstuk.
 
+## De kaartpopups: Zet waypoint en Reis erheen (21-11)
+
+Wie het spel opende (de wereld) kan Reis erheen gebruiken: trein, bus, taxi of boot, met prijs, duur en aanbevolen. Een gast ziet dezelfde vier rijen uitgeschakeld met de reden "Alleen in je eigen spel", geen Reis nu en de uitleg dat een rit alleen je eigen figuur verplaatst (#388). Zelf gaan is geen reisoptie meer: dat is Zet waypoint, en dat doet iedereen lokaal in zijn eigen spel (de kaart en het waypoint zijn per speler). Geen nieuw bericht en geen snapshotveld. Een hulp-knop (?) en de toetsen in de knoppen zijn per speler lokaal. Test: kaartpopups_test (gast), kaartreispopup_test. Zie docs/KAART-POPUPS-21-11.md.
+
 ## Uitleg met iconen: de regelwidget (#987)
 
 Code: `regelwidget.js` en `regelwidget.css`; naslag en lijst van plekken in [UITLEG-MET-ICONEN.md](UITLEG-MET-ICONEN.md).
