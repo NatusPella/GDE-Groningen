@@ -95,14 +95,15 @@ export function settleSeason(market, clubs, rosterFor) {
 
 // ---- de manager: jouw club (de kas is van de club, niet van de speler) ----
 export const inBreak = (c) => !!c && c.started && c.evDone >= c.cal.length;                 // de pauze tussen de seizoenen
-export function buyPlayer(market, club, player, roster) {
+export const cleanSeasons = (n) => Math.min(CONTRACT_MAX, Math.max(CONTRACT_MIN, Number.isFinite(n) ? Math.round(n) : 2));
+export function buyPlayer(market, club, player, roster, seasons = 2) {
   const price = priceOf(player), cash = cashOf(market, club);
   if (player.club) return { ok: false, reason: 'Die speler heeft al een club' };
   if (price > cash) return { ok: false, reason: 'De clubkas is te klein' };
   if (roster.length >= 22) return { ok: false, reason: 'De selectie zit vol' };
   const m = clone(market);
   m.cash[club.id] = cash - price; m.sinks += price;
-  (m.imports[club.id] = m.imports[club.id] || []).push({ ...player, club: club.id, boughtFor: price, boughtNr: m.nr });
+  (m.imports[club.id] = m.imports[club.id] || []).push({ ...player, club: club.id, boughtFor: price, boughtNr: m.nr, contract: cleanSeasons(seasons) });
   m.pool = m.pool.filter((x) => x.id !== player.id);
   return { ok: true, market: m, price };
 }
@@ -129,4 +130,39 @@ export function offerFor(c, clubsOf, getClub) {
   if (!target || rating < Math.max(40, target.sterkte - 18)) return null;
   const seasons = CONTRACT_MIN + (hashSeed('offer', c.seasonNr, target.id) % (CONTRACT_MAX - CONTRACT_MIN + 1));
   return { club: target.id, seasons, salaryBonus: Math.round(target.sterkte * 1.5) };
+}
+
+// ---- contracten (#1111): een speler die je koopt heeft een contract van 1 tot 3 seizoenen; na het laatste seizoen vertrekt hij zonder opbrengst, tenzij je verlengt ----
+// Na een seizoen: elk contract van jouw club telt een seizoen af; wie op 0 komt vertrekt (hij gaat naar de amateurs). Geeft de nieuwe markt en wie vertrok.
+export function tickContracts(market, clubId) {
+  const m = clone(market), left = [];
+  m.imports[clubId] = (m.imports[clubId] || []).filter((p) => {
+    if (p.contract == null) return true;                       // oudere saves: geen contract, dus geen vertrek
+    const rest = p.contract - 1;
+    if (rest <= 0) { left.push(p); return false; }
+    p.contract = rest;
+    return true;
+  });
+  return { market: m, left };
+}
+// Verlengen kan in de pauze; het kost het salaris van de nieuwe seizoenen uit de clubkas (niet uit je eigen geld) en het totale contract blijft op hooguit 3 seizoenen.
+export function renewPlayer(market, club, playerId, seasons = 1) {
+  const list = market.imports[club.id] || [], p = list.find((x) => x.id === playerId);
+  if (!p) return { ok: false, reason: 'Die speler is er niet' };
+  const nu = p.contract == null ? 1 : p.contract, extra = Math.min(cleanSeasons(seasons), CONTRACT_MAX - nu);
+  if (extra <= 0) return { ok: false, reason: 'Het contract is al zo lang als het mag' };
+  const cost = salaryOf(p) * extra, cash = cashOf(market, club);
+  if (cost > cash) return { ok: false, reason: 'De clubkas is te klein' };
+  const m = clone(market);
+  m.cash[club.id] = cash - cost; m.sinks += cost;
+  m.imports[club.id] = m.imports[club.id].map((x) => (x.id === playerId ? { ...x, contract: nu + extra } : x));
+  return { ok: true, market: m, cost, contract: nu + extra };
+}
+// Tammo als zaakwaarnemer: een voorstel voor de zwakste positie van de selectie uit de transfervrije spelers die de kas aankan (hooguit een kwart van de kas); null als er niets beters is.
+export function agentAdvice(market, club, roster) {
+  const role = weakestRole(roster), cash = cashOf(market, club);
+  const worst = roster.filter((p) => p.role === role).sort((a, b) => playerRating(a) - playerRating(b))[0];
+  const pick = (market.pool || []).filter((p) => p.role === role && !p.club && priceOf(p) <= cash * 0.25).sort((a, b) => playerRating(b) - playerRating(a) || (a.id < b.id ? -1 : 1))[0];
+  if (!pick || (worst && playerRating(worst) >= playerRating(pick))) return null;
+  return { role, player: pick, price: priceOf(pick), better: worst ? playerRating(pick) - playerRating(worst) : playerRating(pick) };
 }

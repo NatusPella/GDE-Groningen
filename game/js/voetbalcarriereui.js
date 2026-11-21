@@ -120,14 +120,18 @@ function viewTrainer(c, env) {
   const vm = C.TACTICS.formations.map((f) => `<button type="button" class="ds-z-tab" data-vb="tactic:formation:${f}" aria-pressed="${c.tactic.formation === f}">${f}</button>`).join('');
   const st = C.TACTICS.styles.map((f) => `<button type="button" class="ds-z-tab" data-vb="tactic:style:${f}" aria-pressed="${c.tactic.style === f}">${esc(f)}</button>`).join('');
   const li = (l, i) => l.map((q, k) => `<li class="ds-z-rij ds-m-rij" ${rij(k + i)}><span class="ds-z-rij__naam">${esc(q.name)}</span><span class="ds-z-rij__sub">${esc(ROLE_NAMES[q.role])}</span><span class="ds-z-rij__waarde">${playerRating(q)}</span></li>`).join('');
-  return `<p>${chip('Je mag blijven spelen')} ${chip('Opstelling en tactiek zijn van jou')}</p><h3 class="ds-z-kaart__titel">Vorming</h3><p class="vb-acties">${vm}</p><h3 class="ds-z-kaart__titel">Speelstijl</h3><p class="vb-acties">${st}</p>` +
+  const m = C.nextMatch(c, env.getClub), kan = m && m.status === 'open', reden = !m ? 'Er is geen wedstrijd' : m.status === 'soon' ? 'Nog niet aan de beurt' : '';
+  const coach = `<p class="vb-acties">${knop('coach', 'Coach de wedstrijd', { primair: true, uit: kan ? '' : reden })}</p><p class="ds-z-kaart__voet">Je kijkt toe en past de tactiek onderweg aan (toets 1 speelstijl, toets 2 vorming, om de 40 seconden); alleen computerspelers voetballen. Je speelt dan niet mee.</p>`;
+  return `<p>${chip('Je mag blijven spelen')} ${chip('Opstelling en tactiek zijn van jou')}</p>${coach}<h3 class="ds-z-kaart__titel">Vorming</h3><p class="vb-acties">${vm}</p><h3 class="ds-z-kaart__titel">Speelstijl</h3><p class="vb-acties">${st}</p>` +
     `<h3 class="ds-z-kaart__titel">Basis (${lu.basis.length})</h3><ul class="ds-z-lijst vb-selectie">${li(lu.basis, 0)}</ul><h3 class="ds-z-kaart__titel">Bank (${lu.bank.length})</h3><ul class="ds-z-lijst vb-selectie">${li(lu.bank, 8)}</ul>`;
 }
 function viewManager(c, env) {
   const cash = C.clubCash(c, env.getClub), venster = T.inBreak(c);
   const marketRows = (c.market.pool || []).map((q, i) => `<li class="ds-z-rij ds-m-rij" ${rij(i)}><span class="ds-z-rij__naam">${esc(q.name)}</span><span class="ds-z-rij__sub">${esc(ROLE_NAMES[q.role])} · rating ${playerRating(q)}</span><span class="ds-z-rij__waarde">${euro(T.priceOf(q))} ${knop(`buy:${q.id}`, 'Koop', { uit: venster ? (T.priceOf(q) > cash ? 'De clubkas is te klein' : '') : 'Alleen in de pauze tussen de seizoenen' })}</span></li>`).join('');
-  const eigen = C.squadOf(c, c.club, env.getClub).filter((q) => !q.protagonist).slice(0, 18).map((q, i) => `<li class="ds-z-rij ds-m-rij" ${rij(i)}><span class="ds-z-rij__naam">${esc(q.name)}</span><span class="ds-z-rij__sub">${esc(ROLE_NAMES[q.role])} · rating ${playerRating(q)}</span><span class="ds-z-rij__waarde">${euro(T.sellPrice(q))} ${knop(`sell:${q.id}`, 'Verkoop', { uit: venster ? '' : 'Alleen in de pauze tussen de seizoenen' })}</span></li>`).join('');
-  return `<p>${chip(`Clubkas ${euro(cash)}`)} ${chip(venster ? 'Transferperiode: nu' : 'Transferperiode: in de pauze')} ${chip('De kas is van de club, niet van jou')}</p>` +
+  const eigen = C.squadOf(c, c.club, env.getClub).filter((q) => !q.protagonist).slice(0, 18).map((q, i) => `<li class="ds-z-rij ds-m-rij" ${rij(i)}><span class="ds-z-rij__naam">${esc(q.name)}</span><span class="ds-z-rij__sub">${esc(ROLE_NAMES[q.role])} · rating ${playerRating(q)}${q.contract != null ? ` · contract nog ${q.contract} seizoen${q.contract === 1 ? '' : 'en'}` : ''}</span><span class="ds-z-rij__waarde">${euro(T.sellPrice(q))} ${q.contract != null && q.contract < T.CONTRACT_MAX ? knop(`renew:${q.id}`, `Verleng (${euro(T.salaryOf(q))})`, { ghost: true, uit: venster ? '' : 'Alleen in de pauze tussen de seizoenen' }) : ''} ${knop(`sell:${q.id}`, 'Verkoop', { uit: venster ? '' : 'Alleen in de pauze tussen de seizoenen' })}</span></li>`).join('');
+  const tip = C.managerAdvice(c, env.getClub);
+  const tammo = tip ? `<article class="ds-z-kaart ds-z-kaart--bord ds-m-binnen on"><h3 class="ds-z-kaart__titel">Tammo, je zaakwaarnemer</h3><p class="ds-z-kaart__tekst">${esc(`Jullie zijn zwak op de plek van ${ROLE_NAMES[tip.role].toLowerCase()}. ${tip.player.name} (rating ${playerRating(tip.player)}) is transfervrij voor ${euro(tip.price)} en maakt je team ${tip.better} punten sterker daar.`)}</p></article>` : '';
+  return `${tammo}<p>${chip(`Clubkas ${euro(cash)}`)} ${chip(venster ? 'Transferperiode: nu' : 'Transferperiode: in de pauze')} ${chip('De kas is van de club, niet van jou')}</p>` +
     `<h3 class="ds-z-kaart__titel">Transfervrije spelers</h3>${marketRows ? `<ul class="ds-z-lijst vb-selectie">${marketRows}</ul>` : '<div class="ds-z-leeg"><p class="ds-z-leeg__kop">Niemand op de markt</p><p class="ds-z-leeg__tekst">Na elk seizoen komen er nieuwe spelers vrij.</p></div>'}` +
     `<h3 class="ds-z-kaart__titel">Jouw selectie</h3><ul class="ds-z-lijst vb-selectie">${eigen}</ul><p class="ds-z-kaart__voet">Verkopen levert hooguit 80% min 10% belasting op: een koop en verkoop kost altijd geld.</p>` + viewShares(c, env);
 }
@@ -167,8 +171,9 @@ const zetCss = () => { if (cssLoaded || typeof document === 'undefined') return;
 const envFor = (w, progress = {}) => ({ money: w ? w.money || 0 : 0, getClub: V.getClub, unlocked: voetbalOpen(progress), hint: voetbalHint(progress), char: ((w && hoofdspeler(w)) || {}).character === 'tammo' ? 'tammo' : 'anita' });
 let progressFn = () => ({});
 export function useProgress(fn) { progressFn = typeof fn === 'function' ? fn : () => ({}); }
-let launcher = null;
+let launcher = null, coachLauncher = null;
 export function registerLauncher(fn) { launcher = fn; }
+export function registerCoachLauncher(fn) { coachLauncher = fn; }
 
 export function renderVoetbalPanel(el, w = null, close = null) {
   if (!el) return;
@@ -194,8 +199,10 @@ function act(a) {
   else if (a === 'offer:accept') { const r = C.acceptOffer(c); if (r.ok) V.replaceCareer(r.career); }
   else if (a === 'offer:decline') V.replaceCareer(C.declineOffer(c));
   else if (a.startsWith('buy:')) { const r = C.managerBuy(c, a.slice(4), V.getClub); if (r.ok) V.replaceCareer(r.career); }
+  else if (a.startsWith('renew:')) { const r = C.managerRenew(c, a.slice(6), V.getClub, 1); if (r.ok) V.replaceCareer(r.career); }
   else if (a.startsWith('sell:')) { const r = C.managerSell(c, a.slice(5), V.getClub); if (r.ok) V.replaceCareer(r.career); }
   else if (a === 'play') { if (launcher && launcher(wereld)) { if (sluit) sluit(); return; } }
+  else if (a === 'coach') { if (coachLauncher && coachLauncher(wereld)) { if (sluit) sluit(); return; } }
   renderVoetbalPanel(host);
 }
 export const voetbalBegonnen = () => C.hasCareer(V.getCareer());

@@ -15,7 +15,8 @@ import { loopbaanVerdien } from './loopbaanlive.js';
 import * as CL from './voetbalcarrierelive.js';
 import { matchSetup, commentaryContext } from './voetbalcarriere.js';
 import { pitchPlacement } from './voetbalparken.js';
-import { registerLauncher } from './voetbalcarriereui.js';
+import { registerLauncher, registerCoachLauncher } from './voetbalcarriereui.js';
+import { coachSetup, makeCoachMatch, coachTactic, coachResult } from './voetbalcoach.js';
 import { formationList } from './voetbalrules.js';
 import { awayKit } from './voetbalworld.js';
 import { pushAudioEvent } from './pedgeom.js';
@@ -526,8 +527,18 @@ function updateGame(w, dt) {
   if (g.replay) { tikHerhaling(w, dt); return; }
   if (w.input.wasPressed('3')) { w.input.consume('3'); const tv = leesTv(); tv.camera = nextMode(g.regie.modus); g.regie.modus = tv.camera; schrijfTv(tv); g.cam = null; w.addMessage(MODE_NAMES[tv.camera], 2.5); }
   if (!g.online && (g.sim.fase === 'intro' || g.sim.fase === 'rust' || g.sim.fase === 'eind') && (w.input.wasPressed('f') || w.input.wasPressed(' '))) { w.input.consume('f'); w.input.consume(' '); g.sim.faseT = Math.min(g.sim.faseT, 0.05); } // de opstelling, rustpauze of samenvatting overslaan
-  if (w.input.wasPressed('1')) { w.input.consume('1'); const freshStyle = stijlVan(g.sim.tac[0].stijl); zetTactiek(g.sim, 0, { stijl: freshStyle }); const vv = leesOpslag(); vv.stijl = freshStyle; schrijfOpslag(vv); w.addMessage(`Speelstijl: ${freshStyle}`, 2.5); }
-  if (w.input.wasPressed('2')) { w.input.consume('2'); const nv = nextFormation(g.sim.formaat, g.sim.tac[0].vorming); zetTactiek(g.sim, 0, { vorming: nv }); const vv = leesOpslag(); if (vv.formaat === g.sim.formaat) { vv.vorming = nv; schrijfOpslag(vv); } w.addMessage(`Vorming: ${nv}`, 2.5); }
+  if (g.career && g.career.coach) { // coachen: de tactiek onderweg met rusttijd (voetbalcoach.js); de voorkeur van het keuzescherm blijft ongemoeid
+    for (const k of ['1', '2']) {
+      if (!w.input.wasPressed(k)) continue;
+      w.input.consume(k);
+      const wissel = k === '1' ? { stijl: stijlVan(g.sim.tac[0].stijl) } : { vorming: nextFormation(g.sim.formaat, g.sim.tac[0].vorming) };
+      const r = coachTactic(g.sim, wissel);
+      w.addMessage(r.ok ? (k === '1' ? `Speelstijl: ${wissel.stijl}` : `Vorming: ${wissel.vorming}`) : r.reden, 2.5);
+    }
+  } else {
+    if (w.input.wasPressed('1')) { w.input.consume('1'); const freshStyle = stijlVan(g.sim.tac[0].stijl); zetTactiek(g.sim, 0, { stijl: freshStyle }); const vv = leesOpslag(); vv.stijl = freshStyle; schrijfOpslag(vv); w.addMessage(`Speelstijl: ${freshStyle}`, 2.5); }
+    if (w.input.wasPressed('2')) { w.input.consume('2'); const nv = nextFormation(g.sim.formaat, g.sim.tac[0].vorming); zetTactiek(g.sim, 0, { vorming: nv }); const vv = leesOpslag(); if (vv.formaat === g.sim.formaat) { vv.vorming = nv; schrijfOpslag(vv); } w.addMessage(`Vorming: ${nv}`, 2.5); }
+  }
   if (g.online === 'host') updateHost(w, dt); else updateSolo(w, dt);
   if (!game) return;
   if (g.sim.fase === 'klaar') { end(w); return; }
@@ -826,16 +837,32 @@ export function launchCareerMatch(w) {
 }
 registerLauncher((w) => launchCareerMatch(w));
 
+// Coachen (#1111): de Trainer kijkt en stuurt de tactiek bij (toets 1 stijl, toets 2 vorming) terwijl alleen computerspelers voetballen; geen mensen in de sim (`alleenAi`).
+export function launchCoachMatch(w) {
+  if (game || !CL.hasCareer()) return false;
+  const c = CL.getCareer();
+  const setup = coachSetup(c, CL.getClub);
+  if (!setup) return false;
+  const sim = makeCoachMatch(setup, { duur: 'normaal', stand: footballLevel(), seed: ((Date.now() / 1000) | 0) + runs * 7919, regels: leesTv().regels, timings: TV_TIMINGS });
+  if (!sim) return false;
+  const m = setup.match, venue = m.park ? m.park : null;
+  let site = null;
+  if (venue) { const pp = pitchPlacement(venue); site = { x: pp.x, y: pp.y, a: pp.angle - Math.PI / 2 }; }
+  return launch(w, { force: true, sim, career: { coach: true, teams: setup.teams, char: c.char, naam: c.me.name, site, match: m, cctx: commentaryContext(c, CL.getClub, m) } });
+}
+registerCoachLauncher((w) => launchCoachMatch(w));
+
 function afrondenCarriere(w, g, quit) {
   if (quit) { w.addMessage('Wedstrijd gestopt: de ronde blijft staan', 3); return; }
   const sim = g.sim, mm = ownHuman(g);
   const gf = sim.score[0], ga = sim.score[1];
+  const coach = !!(g.career && g.career.coach);   // de Trainer speelde niet mee
   const stats = { goals: mm ? mm.doelpunten | 0 : 0, assists: mm ? mm.assist | 0 : 0, shots: mm ? mm.schoten | 0 : 0, minutes: Math.round((sim.duurHelft * 2) / 60 * 10) / 10 || 8 };
   recordStat(w, 'footballMatches');
-  const r = CL.finishMatch(w, { gf, ga, stats });
+  const r = CL.finishMatch(w, coach ? coachResult(sim) : { gf, ga, stats });
   const s = r.summary;
   if (!s) return;
-  const rows = [['Stand', `${gf}-${ga}`], ['Jouw doelpunten', String(stats.goals)]];
+  const rows = coach ? [['Stand', `${gf}-${ga}`], ['Als trainer', 'Je speelde niet mee']] : [['Stand', `${gf}-${ga}`], ['Jouw doelpunten', String(stats.goals)]];
   if (s.gains && s.gains.length) rows.push(['Groei', `+${s.gains.length}`]);
   if (s.notes && s.notes.length) rows.push(['Beker', s.notes[0]]);
   showBanner({ kind: s.outcome === 'winst' ? 'pass' : 'fail', title: s.outcome === 'winst' ? 'GEWONNEN' : s.outcome === 'gelijk' ? 'GELIJKSPEL' : 'VERLOREN', reason: `${sim.teams[0].naam} ${gf}-${ga} ${sim.teams[1].naam}`, reward: 0, stats: rows });

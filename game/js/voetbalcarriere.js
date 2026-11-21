@@ -50,7 +50,7 @@ export function createCareer({ char = 'anita', index = null, home = null, day = 
     me: makeProtagonist(c, clubId, 10), mate: makeProtagonist(other, clubId, 11),
     seasonNr: 1, day: Math.max(0, day | 0), seasonStart: Math.max(0, day | 0), cal: [], evDone: 0, leagues: null, cup: null, europe: null, europeQ: false,
     prog: {}, phase: {}, mprog: {}, mphase: {}, fatigue: 0, injury: null, history: [], trainedDay: -1, matchDay: -1, focus: c === 'anita' ? 'shot' : 'pass',
-    stats: { matches: 0, wins: 0, draws: 0, losses: 0, goals: 0, assists: 0, simulated: 0, seasons: 0, titles: 0, promotions: 0, cups: 0, europe: 0, earned: 0 },
+    stats: { matches: 0, wins: 0, draws: 0, losses: 0, goals: 0, assists: 0, simulated: 0, seasons: 0, titles: 0, promotions: 0, cups: 0, europe: 0, earned: 0, coached: 0 },
     seasonStats: { goals: 0, assists: 0, played: 0 }, log: [], flags: {}, last: null, settings: { injuries: true }, result: null, market: T.emptyMarket(), tactic: { formation: '4-4-2', style: 'evenwichtig' }, offer: null, bezit: B.newClubBezit(),
   };
   return openSeason(s);
@@ -203,24 +203,26 @@ export function playEvent(c, getClub, result = null, { missed = false } = {}) {
   }
   s.evDone++;
   // ontwikkeling: ervaring, vorm, vermoeidheid
-  const stat = (played && result && result.stats) || {};
-  const perf = played ? O.performance({ goals: stat.goals, assists: stat.assists, tackles: stat.tackles }) : 0.3;
-  const xp = played ? O.matchXp({ minutes: 8, ...stat }) : O.simulatedXp(s.me.role, outcome);
+  const coach = played && !!(result && result.coach);        // coachwedstrijd (#1111): de Trainer speelde niet mee: uitslag en geld tellen, speler-ontwikkeling en blessurekans niet
+  const stat = (played && !coach && result && result.stats) || {};
+  const perf = played && !coach ? O.performance({ goals: stat.goals, assists: stat.assists, tackles: stat.tackles }) : 0.3;
+  const xp = played && !coach ? O.matchXp({ minutes: 8, ...stat }) : O.simulatedXp(s.me.role, outcome);
   const g = O.applyXp(s.me, xp, s.prog, s.phase);
   s.me = g.player; s.prog = g.prog; s.phase = g.phase;
   const mg = O.applyXp(s.mate, xp, s.mprog, s.mphase, O.MATE_RATE);
   s.mate = mg.player; s.mprog = mg.prog; s.mphase = mg.phase;
   s.history = O.pushHistory(s.history, { r: outcome === 'winst' ? 'W' : outcome === 'gelijk' ? 'D' : 'L', perf: missed ? Math.max(0, perf - 0.2) : perf });
-  s.fatigue = O.addFatigue(s.fatigue, played ? O.FATIGUE.match : O.FATIGUE.match * 0.5);
+  s.fatigue = O.addFatigue(s.fatigue, coach ? 0 : played ? O.FATIGUE.match : O.FATIGUE.match * 0.5);
   s.matchDay = rel(s);
-  const injury = played ? O.rollInjury({ seed, day: s.day, fatigue: s.fatigue, enabled: s.settings.injuries !== false }) : null;
+  const injury = played && !coach ? O.rollInjury({ seed, day: s.day, fatigue: s.fatigue, enabled: s.settings.injuries !== false }) : null;
   if (injury) s.injury = injury;
   s.stats.matches++;
   if (outcome === 'winst') s.stats.wins++; else if (outcome === 'gelijk') s.stats.draws++; else s.stats.losses++;
   if (!played) s.stats.simulated++;
+  if (coach) s.stats.coached = (s.stats.coached | 0) + 1;
   s.stats.goals += stat.goals | 0; s.stats.assists += stat.assists | 0;
-  s.seasonStats.goals += stat.goals | 0; s.seasonStats.assists += stat.assists | 0; if (played) s.seasonStats.played++;
-  const earn = payFor(division, m.kind, outcome, played);
+  s.seasonStats.goals += stat.goals | 0; s.seasonStats.assists += stat.assists | 0; if (played && !coach) s.seasonStats.played++;
+  const earn = payFor(division, m.kind, outcome, played && !coach);   // een coach krijgt geen speelbonus
   if (m.kind === 'league') earn.push(...clubDividends(s, getClub));
   const sp = Sp.settle(s.sponsors, { goals: s.seasonStats.goals, unbeaten: Sp.unbeatenRun(s.history), promoted: false });
   s.sponsors = sp.sponsors; earn.push(...sp.earn);
@@ -314,7 +316,9 @@ export function finishSeason(c, getClub) {
   const baseOf = (id) => makeSquad(id, (getClub(id) || { sterkte: 40 }).sterkte, WORLD_SEED);
   const settled = T.settleSeason(s.market, allClubs, (id) => T.rosterOf(s.market, id, baseOf(id)));
   const ai = T.aiRound(settled.market, allClubs.filter((k) => k.id !== s.club), baseOf, seed);
-  s.market = ai.market;
+  const tk = T.tickContracts(ai.market, s.club);
+  s.market = tk.market;
+  for (const p of tk.left) notes.push(`${p.name} vertrekt: het contract loopt af`);
   s.market.pool = T.freeAgents(seed, s.market.nr + 1, 8);
   s.europeQ = S.divisionOf(world, s.club) === 'kroon' && before === 'kroon' && report.champions.kroon === s.club;
   s.seasonNr++;
@@ -435,14 +439,21 @@ export function lineupOf(c, getClub, formationRoles) {
   const ids = new Set(lu.map((x) => x.player && x.player.id));
   return { basis: lu.map((x) => x.player).filter(Boolean), bank: squad.filter((p) => !ids.has(p.id)).sort((a, b) => playerRating(b) - playerRating(a)) };
 }
-export function managerBuy(c, playerId, getClub) {
+export function managerBuy(c, playerId, getClub, seasons = 2) {
   if (!c.roles.manager) return { career: c, ok: false, reason: 'Nog geen manager' };
   if (!T.inBreak(c)) return { career: c, ok: false, reason: 'Alleen in de pauze tussen de seizoenen' };
   const club = getClub(c.club), p = (c.market.pool || []).find((x) => x.id === playerId);
   if (!p) return { career: c, ok: false, reason: 'Die speler is er niet' };
-  const r = T.buyPlayer(c.market, club, p, squadOf(c, c.club, getClub));
+  const r = T.buyPlayer(c.market, club, p, squadOf(c, c.club, getClub), seasons);
   return r.ok ? { career: { ...c, market: r.market }, ok: true, price: r.price } : { career: c, ok: false, reason: r.reason };
 }
+export function managerRenew(c, playerId, getClub, seasons = 1) {
+  if (!c.roles.manager) return { career: c, ok: false, reason: 'Nog geen manager' };
+  if (!T.inBreak(c)) return { career: c, ok: false, reason: 'Alleen in de pauze tussen de seizoenen' };
+  const r = T.renewPlayer(c.market, getClub(c.club), playerId, seasons);
+  return r.ok ? { career: { ...c, market: r.market }, ok: true, cost: r.cost, contract: r.contract } : { career: c, ok: false, reason: r.reason };
+}
+export const managerAdvice = (c, getClub) => (c && c.roles && c.roles.manager && c.market ? T.agentAdvice(c.market, getClub(c.club) || { id: c.club, budget: 0 }, squadOf(c, c.club, getClub)) : null);
 export function managerSell(c, playerId, getClub) {
   if (!c.roles.manager) return { career: c, ok: false, reason: 'Nog geen manager' };
   if (!T.inBreak(c)) return { career: c, ok: false, reason: 'Alleen in de pauze tussen de seizoenen' };
@@ -463,7 +474,7 @@ function normMarket(m) {
   const e = T.emptyMarket();
   if (!m || typeof m !== 'object') return e;
   const cash = {}; for (const [k, v] of Object.entries(m.cash && typeof m.cash === 'object' ? m.cash : {}).slice(0, 60)) if (Number.isFinite(v)) cash[String(k).slice(0, 40)] = Math.max(0, Math.round(v));
-  const imports = {}; for (const [k, v] of Object.entries(m.imports && typeof m.imports === 'object' ? m.imports : {}).slice(0, 60)) imports[String(k).slice(0, 40)] = (Array.isArray(v) ? v : []).map((p) => { const r = readPlayer(p); return r ? { ...r, boughtFor: Number.isFinite(p.boughtFor) ? p.boughtFor : undefined } : null; }).filter(Boolean).slice(0, 12);
+  const imports = {}; for (const [k, v] of Object.entries(m.imports && typeof m.imports === 'object' ? m.imports : {}).slice(0, 60)) imports[String(k).slice(0, 40)] = (Array.isArray(v) ? v : []).map((p) => { const r = readPlayer(p); return r ? { ...r, boughtFor: Number.isFinite(p.boughtFor) ? p.boughtFor : undefined, contract: Number.isInteger(p.contract) ? Math.min(T.CONTRACT_MAX, Math.max(0, p.contract)) : undefined } : null; }).filter(Boolean).slice(0, 12);
   const gone = {}; for (const [k, v] of Object.entries(m.gone && typeof m.gone === 'object' ? m.gone : {}).slice(0, 60)) gone[String(k).slice(0, 40)] = (Array.isArray(v) ? v : []).filter((x) => typeof x === 'string').slice(0, 30);
   return { ...e, cash, imports, gone, pool: (Array.isArray(m.pool) ? m.pool : []).map(readPlayer).filter(Boolean).slice(0, 20), sinks: Number.isFinite(m.sinks) ? Math.round(m.sinks) : 0, nr: Math.max(0, Math.min(999, m.nr | 0)) };
 }
@@ -484,7 +495,7 @@ export function normalize(raw) {
     const num = (v, dflt = 0, max = 1e9) => (Number.isFinite(v) ? Math.max(0, Math.min(max, Math.round(v))) : dflt);
     const cal = Array.isArray(d.cal) ? d.cal.filter((e) => e && ['league', 'cup', 'europe'].includes(e.kind) && Number.isInteger(e.day) && e.day > 0 && e.day < 200).slice(0, 40) : [];
     const st = d.stats && typeof d.stats === 'object' ? d.stats : {};
-    const stats = {}; for (const k of ['matches', 'wins', 'draws', 'losses', 'goals', 'assists', 'simulated', 'seasons', 'titles', 'promotions', 'cups', 'europe', 'earned']) stats[k] = num(st[k]);
+    const stats = {}; for (const k of ['matches', 'wins', 'draws', 'losses', 'goals', 'assists', 'simulated', 'seasons', 'titles', 'promotions', 'cups', 'europe', 'earned', 'coached']) stats[k] = num(st[k]);
     const ko = (k) => (k && typeof k === 'object' && Array.isArray(k.alive) && Array.isArray(k.rounds) && typeof k.name === 'string' ? k : null);
     const out = {
       ...newCareer(), started: true, char: d.char, role: ROLES[d.role] ? d.role : 'speler', roles: { trainer: !!(d.roles && d.roles.trainer), manager: !!(d.roles && d.roles.manager) }, club: d.club, homeClub: typeof d.homeClub === 'string' ? d.homeClub : d.club,
