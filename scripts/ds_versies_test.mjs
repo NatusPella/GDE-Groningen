@@ -18,6 +18,7 @@ export const ALLOW = [
   '.specs-fire/runs/', '.specs-fire/intents/',           // oude runlogboeken
   'docs/archief/',                                       // archief
   'docs/beeld', 'docs/img/',                             // beelden en hun begeleidende json
+  'docs/ISSUES-',                                        // overzichten van issues: een issuetitel ("Designsysteem v3: ...") is een citaat, de titels op GitHub zijn de bron
   'docs/DESIGN-STAND-21-11.md',                          // beschrijft de opruiming (#1006) en noemt dus de oude namen
   SELF,
 ];

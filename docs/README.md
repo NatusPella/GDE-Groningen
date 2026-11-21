@@ -189,6 +189,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [AUDIO-LICENTIES.md](<AUDIO-LICENTIES.md>) | Alle geluidsopnames met bron-URL, Freesound-id, titel, auteurshandle, licentie (CC0 of CC BY), bewerking, sha256 en datum; gegenereerd uit het manifest (ADR 0039). |
 | [AUDIO-GLITCHES-21-11.md](<AUDIO-GLITCHES-21-11.md>) | Melding van Nikky over glitches en ruis: hypotheses, wat bewezen is, de limiter en de diagnose, en een checklist voor het apparaat. |
 | [ICONEN-LICENTIE.md](<ICONEN-LICENTIE.md>) | De Phosphor-iconenset (MIT): licentietekst, naamsvermelding en hoe je een icoon toevoegt (ADR 0041). |
+| [MERK-INVENTARIS-21-11.md](<MERK-INVENTARIS-21-11.md>) | Waar het logo, het icoon en het marketingbeeld staan in zeefdruk (website, Steam, socialkaart, app-iconen) en wat nog beeld vraagt. |
 | [ICONEN-INVENTARIS-20-11.md](<ICONEN-INVENTARIS-20-11.md>) | Waar het spel iconen tekent (inline SVG, emoji, unicode) en wat al naar de Phosphor-iconenmodule is overgezet. |
 | [AUDIO-STAPPEN-WEER.md](<AUDIO-STAPPEN-WEER.md>) | Voetstappen, regen, wind, onweer, zomerambiance en de auto-lussen (drift en motor) met opnames: de koppeling, de ondergronden, de afstandsregels, het meten en wat niet is gelukt. |
 | [AUDIO-VOERTUIGEN.md](<AUDIO-VOERTUIGEN.md>) | Helikopter, vliegtuig en motorboot met CC0-opnames: de bronnenlijst (Freesound-id, auteur, licentie), de koppeling van toeren, gas en snelheid aan toonhoogte en niveau en wat niet is beluisterd. |
