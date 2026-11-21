@@ -42,7 +42,7 @@ for (let f = 0; f < 50; f++) { beginVehicleFrame(world); for (let q = 0; q < 3; 
 ok(vehicleIndexStats.builds - before === 50, 'één indexopbouw per frame (3 queries)', vehicleIndexStats.builds - before);
 
 // de drie lezers gebruiken de index echt
-for (const [file, loop] of [['game/js/vehicle/traffic.js', /for \(const o of vehiclesNear\(world, v\.x, v\.y, PATH_LEN \+ 5/],
+for (const [file, loop] of [['game/js/vehicle/traffic.js', /vehiclesNear\(world, v\.x, v\.y, PATH_LEN \+ 5/],
   ['game/js/pedestrians.js', /for \(const v of vehiclesNear\(world, ped\.x, ped\.y, 16/],
   ['game/js/wildlife.js', /for \(const v of vehiclesNear\(world, a\.x, a\.y, 16/]]) {
   const src = fs.readFileSync(new URL('../' + file, import.meta.url), 'utf8');

@@ -95,7 +95,7 @@ t('epoch: verandert na koop en verkoop van een pand (de kleuren van een net geko
 });
 t('interiors.js: een rustig pand met een verouderd plan krijgt een nieuw plan, een levend of vastgepind blijft', () => {
   const ints = fs.readFileSync(new URL('../game/js/interiors.js', import.meta.url), 'utf8');
-  assert.ok(/rec.epoch === epoch || S.live.has(b) || S.pinned.has(b)/.test(ints) && /rec.epoch = hookEpoch()/.test(ints));
+  assert.ok(/rec.epoch === epoch \|\| S.live.has\(b\) \|\| S.pinned.has\(b\)/.test(ints) && /epoch: hookEpoch\(\)/.test(ints));
 });
 t('signSpecFor: een winkelpui houdt zijn bord, een sponsorpand zonder pui krijgt er een boven de deur, een gewoon pand niets', async () => {
   const SP = await import('../game/js/sponsorpanden.js');

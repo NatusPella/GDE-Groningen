@@ -87,7 +87,7 @@ assert.ok(berichten.some((b) => /Beloning/.test(b)) || w.money >= 0, 'het einde 
   const o = { duur: 'kort', stand: 'uitdagend', tg: 4, formaat: 'groot', vorming: '3-5-2', stijl: 'verdedigend' };
   const code = encodeKickoff(o);
   assert.ok(code.length <= 40, code);
-  assert.deepEqual(decodeKickoff(code), { duur: 'kort', stand: 'uitdagend', tegenstander: 4, formaat: 'groot', vorming: '3-5-2', stijl: 'verdedigend' });
+  assert.deepEqual(decodeKickoff(code), { duur: 'kort', stand: 'uitdagend', tegenstander: 4, formaat: 'groot', vorming: '3-5-2', stijl: 'verdedigend', team1: [] });
   assert.equal(decodeKickoff('rommel').formaat, 'klein'); assert.equal(decodeKickoff(null).stijl, 'evenwichtig');
   assert.equal(window.__voetbal.start === undefined, false);
   assert.ok(window.__voetbal.menu(), 'het keuzescherm opent');

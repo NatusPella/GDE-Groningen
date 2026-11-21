@@ -2,7 +2,7 @@
  "_era": "0.35, nieuwe verhaallijn (feature flag nieuwverhaal): save v9 met arc 'nieuw', midden in akte 1 (M00-M02 gedaan). Hoort bij het andere verhaal: wordt in het oude spel niet geladen, en andersom.",
  "_expect": {
   "arc": "nieuw",
-  "step": "M03",
+  "step": "N1",
   "money": 850,
   "radio": "on",
   "pos": [

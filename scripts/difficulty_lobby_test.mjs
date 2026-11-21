@@ -92,7 +92,7 @@ ok(L.codeer({ ...basis, niveau: 'zwaar' }) && !('d' in JSON.parse(L.codeer({ ...
 // het welkom en de hub
 {
   const hub = read('game/js/net/hub.js'), net = read('game/js/coopnet.js'), ui = read('game/js/lobbyui.js');
-  ok(/lijst: lijstEvent\(hub\.roster\)\.lijst, \.\.\.\(typeof hub\.cfg\.niveau === 'function' \? \{ niveau: schoonNiveau\(hub\.cfg\.niveau\(\)\) \} : null\)/.test(hub), 'het welkom van de hub draagt het niveau, alleen als de hub het kent');
+  ok(/lijst: lijstEvent\(hub\.roster, WELKOM_BUDGET\)\.lijst, \.\.\.\(typeof hub\.cfg\.niveau === 'function' \? \{ niveau: schoonNiveau\(hub\.cfg\.niveau\(\)\) \} : null\)/.test(hub), 'het welkom van de hub draagt het niveau, alleen als de hub het kent');
   ok(/niveau: \(\) => getDifficultyLevel\(\)/.test(net), 'coopnet.js geeft de hub het niveau van de wereld');
   ok(/niveau: \(\) => getDifficultyLevel\(\)/.test(ui) && /session\.welcome\.niveau/.test(ui), 'lobbyui.js geeft het niveau mee in de aankondiging en leest het welkom');
   ok(!/niveau/.test(read('game/js/net/protocol.js')) && /export const PROTO = 2;/.test(read('game/js/net/protocol.js')), 'PROTO blijft 2: een oude en nieuwe client blijven elkaar accepteren');
