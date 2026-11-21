@@ -220,6 +220,8 @@ export const FY = {
   '…Ja, mem.': '…Ja, moeder.',
   'Ja, mem.': 'Ja, moeder.',
   'Dank u, Mem.': 'Dank u, Mem. (Fries voor mama)',
+  // akte 4 (WP5): Tessa belt Mem en hoort het hardop (M18.4)
+  'Mem weer? Wat zei ze?': 'Mem (Fries voor mama) weer? Wat zei ze?',
 };
 
 export const GRO = {
