@@ -3525,7 +3525,7 @@ function queueWarmup(world) {
   const models = TRAFFIC_MODELS().map((model) => veh({ model, bus: model.name === 'bus', scooter: model.name === 'scooter', bike: model.name !== 'bus' && model.name !== 'scooter' && model.len < 2.5 }));
   const boat = (police) => () => {
     const poly = gridItems(map.waterGrid).find((w) => w.bounds && w.bounds[2] - w.bounds[0] > 40);
-    const v = poly && (police ? spawnPoliceBoatOnWater(map, poly) : spawnBoatOnWater(map, poly));
+    const v = poly && (police ? spawnPoliceBoatOnWater(map, poly, Math.random, { plek: false }) : spawnBoatOnWater(map, poly, Math.random, { plek: false }));
     if (!v) return null;
     v.id = warmupId--;
     return buildVehicleActor(v);

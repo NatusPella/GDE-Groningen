@@ -11,6 +11,7 @@ import { clearOfBuildings, withTiles, nearestOnRoads } from './tileplace.js';
 import { countryFacilities, countryDoor, poiLayerPlaces } from './facilities.js';
 import { edgeDistance } from './countryfield.js';
 import { getScene, refreshCharacterMeshes } from './scene3d.js';
+import { voegAnkersToe } from './vehicle/bootplekken.js';
 import { spawnVehicleOnRoad, spawnBoatOnWater, HERO_CAR_MODEL, playerTopSpeed } from './vehicle.js';
 import { SHOP_TYPES, VEHICLE_STOCK } from './shopdata.js';
 import * as TUIG from './hengeltuig.js';
@@ -417,6 +418,8 @@ export function initShops(world) {
     const p = placeJetty(map, street, horeca, placed);
     if (p && !placed.some((q) => q.type === 'boot' && dist(q.x, q.y, p.x, p.y) < 150)) placed.push({ ...p, type: 'boot', wijk: street });
   }
+  // de verhuursteigers zijn kades voor bootplekken.js (een boot hoort daar)
+  voegAnkersToe(placed.filter((q) => q.type === 'boot' && q.water).map((q) => ({ x: q.water.x, y: q.water.y, soort: 'verhuursteiger' })));
   // #524: het EIKEA-pand vraag je op rond het landmark uit de meta (de kaart
   // heeft dat punt en het gebouw bevat het), niet door de hele gebouwenlijst.
   const eikeaLm = ((map.meta && map.meta.landmarks) || []).find((l) => l.name === 'EIKEA');
@@ -1138,7 +1141,7 @@ function rentBoat(world, shop, r) {
   const map = world.map;
   const poly = waterPolyAt(map, shop.water.x, shop.water.y);
   if (!poly) return null;
-  const v = spawnBoatOnWater(map, poly);
+  const v = spawnBoatOnWater(map, poly, Math.random, { plek: false });   // (de plek is de steiger zelf, hieronder)
   if (!v) return null;
   if (state.rental) removeFromWorld(world, state.rental);
   v.model = { ...r.model };
@@ -1579,6 +1582,16 @@ function newVehicleId(nameIdx) {
   return 720000 + idSeq * 6 + nameIdx;
 }
 
+// De verhuursteigers zoals initShops ze plaatst, voor de bootaudit en de ankers van bootplekken.js: [{ street, water, kiosk }].
+export function bootSteigers(map, horeca = []) {
+  const out = [];
+  for (const street of BOAT_JETTIES) {
+    const p = placeJetty(map, street, horeca, out);
+    if (p && !out.some((q) => dist(q.x, q.y, p.x, p.y) < 150)) out.push({ ...p, street });
+  }
+  return out;
+}
+
 function removeFromWorld(world, v) {
   if (!v || v.driver === 'player') return;
   const i = world.vehicles.indexOf(v);
@@ -1604,7 +1617,7 @@ function spawnOwnedBoat(world, o, x, y, angle) {
   if (!at) return null;
   const poly = waterPolyAt(map, at.x, at.y);
   if (!poly) return null;
-  const v = spawnBoatOnWater(map, poly);
+  const v = spawnBoatOnWater(map, poly, Math.random, { plek: false });   // (de plek is de steiger zelf, hieronder)
   if (!v) return null;
   v.x = at.x; v.y = at.y; v.angle = at.angle ?? 0;
   v.model = { ...o.spec.model, color: o.color };
