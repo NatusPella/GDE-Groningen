@@ -6,8 +6,8 @@ import * as L from '../game/js/listnav.js';
 let bad = 0, n = 0;
 const check = (name, ok, info = '') => { n++; if (!ok) { bad++; console.log('FAIL', name, info); } };
 
-const f = L.tabInKaart;
-check('tabInKaart bestaat', typeof f === 'function');
+const f = L.trapTabInCard;
+check('trapTabInCard bestaat', typeof f === 'function');
 if (typeof f === 'function') {
   const [a, b, c] = ['a', 'b', 'c'];
   check('Tab gaat naar de volgende', f([a, b, c], a, false) === b);
@@ -21,7 +21,7 @@ if (typeof f === 'function') {
 
 for (const [bestand, minimaal] of [['launchchoiceui.js', 2], ['difficultyui.js', 1]]) {
   const s = readFileSync(new URL('../game/js/' + bestand, import.meta.url), 'utf8');
-  check(bestand + ': onKey houdt Tab in de kaart', s.split('tabInKaart(').length - 1 >= minimaal, String(s.split('tabInKaart(').length - 1));
+  check(bestand + ': onKey houdt Tab in de kaart', s.split('trapTabInCard(').length - 1 >= minimaal, String(s.split('trapTabInCard(').length - 1));
 }
 console.log(bad ? `${bad} van ${n} mislukt` : `kaart_tabval_test: ${n} controles ok`);
 process.exit(bad ? 1 : 0);

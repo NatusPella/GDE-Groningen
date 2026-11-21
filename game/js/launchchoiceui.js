@@ -8,7 +8,7 @@ import { KEUZES, LAUNCH_TEXT, TOESTEMMING_TEKST, toetsActie } from './launchchoi
 import { geefToestemming, moetNaamVragen, moetToestemmingVragen } from './onlineconsent.js';
 import { openOnlineStart, meerInfoHtml } from './onlineconsentui.js';
 import { getSettings } from './settings.js';
-import { tabInKaart } from './listnav.js';
+import { trapTabInCard } from './listnav.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -72,7 +72,7 @@ export function openLaunchChoice({ index = 0 } = {}) {
   function onKey(e) {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.key === 'Tab') { // aria-modal: Tab blijft op de kaart
-      const v = tabInKaart(knoppen, document.activeElement, e.shiftKey);
+      const v = trapTabInCard(knoppen, document.activeElement, e.shiftKey);
       if (v) { e.preventDefault(); e.stopPropagation(); v.focus(); nu = knoppen.indexOf(v); }
       return;
     }
@@ -119,7 +119,7 @@ export function openToestemming({ zet = undefined } = {}) {
   function onKey(e) {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.key === 'Tab') { // aria-modal: Tab blijft op de kaart
-      const v = tabInKaart([...el.querySelectorAll('.os-consent-vink, .os-info summary, [data-geef], [data-terug]')], document.activeElement, e.shiftKey);
+      const v = trapTabInCard([...el.querySelectorAll('.os-consent-vink, .os-info summary, [data-geef], [data-terug]')], document.activeElement, e.shiftKey);
       if (v) { e.preventDefault(); e.stopPropagation(); v.focus(); }
       return;
     }

@@ -188,7 +188,7 @@ const DEFAULTS = { ...BASE_DEFAULTS, ...deckDefaults(isSteamDeck()) };
 const KEEP_ON_RESET = new Set(['difficulty', 'attractSeen', 'keyBinds', 'padBinds', 'onlineMeedoen', 'samenZinnen', 'onlineNaam', 'onlineKleur', 'multiplayerConsentRemembered']);
 const SHIFT_CHOICES = ['auto', 'manual', 'clutch'];
 // eigen sleutels, geen in-operator: "toString" of "constructor" uit een met de hand bewerkt bestand is geen keuze (review 22-11)
-const heeftSleutel = (obj, k) => Object.prototype.hasOwnProperty.call(obj, k);
+const hasKey = (obj, k) => Object.prototype.hasOwnProperty.call(obj, k);
 export const SUBTITLE_SIZES = { klein: 0.85, normaal: 1, groot: 1.25, extragroot: 1.5 };
 export const COLOR_BLIND_MODES = ['uit', 'deuteranopie', 'protanopie', 'tritanopie'];
 const PAD_LAYOUT_CHOICES = ['auto', 'xbox', 'ps', 'switch', 'deck'];
@@ -217,17 +217,17 @@ function load() {
     // the four volumes always land in 0..1, a numeric string counts as its
     // number (#461: a saved 10% must not fall back to 100% or play above it)
     Object.assign(out, normalizeVolumes(raw, DEFAULTS));
-    if (!heeftSleutel(QUALITY_PRESETS, out.quality)) out.quality = DEFAULTS.quality;
-    if (!heeftSleutel(VIEW_DISTANCES, out.drawDistance)) out.drawDistance = DEFAULTS.drawDistance;
+    if (!hasKey(QUALITY_PRESETS, out.quality)) out.quality = DEFAULTS.quality;
+    if (!hasKey(VIEW_DISTANCES, out.drawDistance)) out.drawDistance = DEFAULTS.drawDistance;
     if (!(out.resolution >= 0.5 && out.resolution <= 1)) out.resolution = DEFAULTS.resolution;
     out.keyBinds = normalizeKeyBinds(out.keyBinds);
     out.padBinds = normalizePadBinds(out.padBinds);
     if (!SUBTITLE_CONTRASTS.includes(out.subtitleContrast)) out.subtitleContrast = DEFAULTS.subtitleContrast;
-    if (!heeftSleutel(TEXT_SIZES, out.textSize)) out.textSize = DEFAULTS.textSize;
-    if (!heeftSleutel(SHAKE_STANDEN, out.screenShake)) out.screenShake = DEFAULTS.screenShake;
-    if (!heeftSleutel(SUBTITLE_VLAKKEN, out.subtitleVlak)) out.subtitleVlak = DEFAULTS.subtitleVlak;
+    if (!hasKey(TEXT_SIZES, out.textSize)) out.textSize = DEFAULTS.textSize;
+    if (!hasKey(SHAKE_STANDEN, out.screenShake)) out.screenShake = DEFAULTS.screenShake;
+    if (!hasKey(SUBTITLE_VLAKKEN, out.subtitleVlak)) out.subtitleVlak = DEFAULTS.subtitleVlak;
     if (!TAP_MODES.includes(out.tikStand)) out.tikStand = DEFAULTS.tikStand;
-    if (!heeftSleutel(SUBTITLE_SIZES, out.subtitleSize)) out.subtitleSize = DEFAULTS.subtitleSize;
+    if (!hasKey(SUBTITLE_SIZES, out.subtitleSize)) out.subtitleSize = DEFAULTS.subtitleSize;
     if (typeof out.showSubtitles !== 'boolean') out.showSubtitles = DEFAULTS.showSubtitles;
     if (!['slim', 'alles', 'minimaal'].includes(out.hudMode)) out.hudMode = DEFAULTS.hudMode;
     if (!['nooit', 'lucht', 'altijd'].includes(out.minimapNorth)) out.minimapNorth = DEFAULTS.minimapNorth;
@@ -294,7 +294,7 @@ function urlOverrides(out) {
   if (!FLAGS.preset) return out;
   for (const pair of FLAGS.preset.split(',')) {
     const [k, v] = pair.split(':');
-    if (!heeftSleutel(DEFAULTS, k) || v === undefined) continue;
+    if (!hasKey(DEFAULTS, k) || v === undefined) continue;
     const t = typeof DEFAULTS[k];
     if (t === 'object') continue;
     out[k] = t === 'number' ? Number(v) : t === 'boolean' ? v === 'true' : v;
@@ -345,7 +345,7 @@ export function setSetting(key, value) {
   if (typeof DEFAULTS[key] === 'number' && typeof value === 'string') value = Number(value);
   // a volume always stays in 0..1, whatever a caller or a keyboard shortcut sends
   if (VOLUME_KEYS.includes(key)) value = volumeValue(value, DEFAULTS[key]);
-  if (!heeftSleutel(DEFAULTS, key) || settings[key] === value) return;
+  if (!hasKey(DEFAULTS, key) || settings[key] === value) return;
   settings[key] = value;
   // #781: de speler koos in deze build zelf deze stand; een bewaarde waarde van een toekomstige
   // typewijziging gaat er dan uit, anders zou die de keuze bij de volgende start weer overschrijven.
@@ -368,7 +368,7 @@ export function withTempSettings(values) {
   const prev = {};
   const put = (vals) => {
     for (const [k, v] of Object.entries(vals)) {
-      if (!heeftSleutel(DEFAULTS, k) || settings[k] === v) continue;
+      if (!hasKey(DEFAULTS, k) || settings[k] === v) continue;
       settings[k] = v;
       for (const cb of listeners) cb(settings, k);
     }

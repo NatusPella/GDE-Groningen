@@ -117,7 +117,7 @@ function wornAfterSet(ch, s) {
 
 // ------------------------------------------------------------------------------------------------ de kast
 // De melding na het aantrekken van een outfit: "ontbreekt" bij een stuk, "ontbreken" bij meer (review 22-11).
-export const outfitMelding = (naam, ontbreekt) => (ontbreekt ? `${naam} aan, maar ${ontbreekt} ${ontbreekt === 1 ? 'stuk ontbreekt' : 'stukken ontbreken'}` : `${naam} aan`);
+export const outfitMessage = (naam, ontbreekt) => (ontbreekt ? `${naam} aan, maar ${ontbreekt} ${ontbreekt === 1 ? 'stuk ontbreekt' : 'stukken ontbreken'}` : `${naam} aan`);
 
 export function wardrobeSections(ctx) {
   const ch = ctx.ch;
@@ -134,7 +134,7 @@ export function wardrobeSections(ctx) {
         tag: SLOT_IDS.every((s) => (p.worn[s] || null) === (worn[s] || null)) ? 'Aan' : '',
         preview: ctx.previewOf({ ...p.worn }),
         disabled: SLOT_IDS.every((s) => (p.worn[s] || null) === (worn[s] || null)) ? 'Heb je al aan' : '',
-        buy() { const r = wearPreset(ch, i); if (!r.ok) return null; ctx.apply(1); ctx.sound && ctx.sound('clothes_rustle'); return outfitMelding(p.name, r.missing.length); },
+        buy() { const r = wearPreset(ch, i); if (!r.ok) return null; ctx.apply(1); ctx.sound && ctx.sound('clothes_rustle'); return outfitMessage(p.name, r.missing.length); },
       } : null)).filter(Boolean),
     });
   }

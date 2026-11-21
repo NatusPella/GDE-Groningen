@@ -44,9 +44,9 @@ export function nearestStation(stations, x, y, r = NEAR_R) {
 
 // Live treinen opvragen (OVapi) alleen als het resultaat gebruikt wordt: niet in Samen spelen (iedereen rekent daar zonder live vertraging)
 // en niet ver van elk station (review 22-11).
-export function liveOpvraagNodig(world, stationLijst, x, y, r = LIVE_R) {
+export function shouldPollLiveTrains(world, stationList, x, y, r = LIVE_R) {
   if (world && world.coopRole) return false;
-  return !!(stationLijst && stationLijst.length && nearestStation(stationLijst, x, y, r));
+  return !!(stationList && stationList.length && nearestStation(stationList, x, y, r));
 }
 
 // Alles wat HUD, omroep en 3D van een station nodig hebben. clock: spelklok in uren, dag: dagnummer.

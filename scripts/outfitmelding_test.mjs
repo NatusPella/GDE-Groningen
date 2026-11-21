@@ -5,8 +5,8 @@ import * as P from '../game/js/clothingpanel.js';
 let bad = 0, n = 0;
 const check = (name, ok, info = '') => { n++; if (!ok) { bad++; console.log('FAIL', name, info); } };
 
-const f = P.outfitMelding;
-check('outfitMelding bestaat', typeof f === 'function');
+const f = P.outfitMessage;
+check('outfitMessage bestaat', typeof f === 'function');
 if (typeof f === 'function') {
   check('compleet: alleen aan', f('Outfit 2', 0) === 'Outfit 2 aan');
   check('een stuk: ontbreekt', f('Outfit 2', 1) === 'Outfit 2 aan, maar 1 stuk ontbreekt');

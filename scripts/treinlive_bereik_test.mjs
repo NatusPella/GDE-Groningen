@@ -6,7 +6,7 @@ let bad = 0, n = 0;
 const check = (name, ok, info = '') => { n++; if (!ok) { bad++; console.log('FAIL', name, info); } };
 
 const stations = [{ name: 'Alpha', x: 0, y: 0, lijnen: [] }, { name: 'Beta', x: 12000, y: 0, lijnen: [] }];
-const mag = S.liveOpvraagNodig;
+const mag = S.shouldPollLiveTrains;
 check('functie bestaat', typeof mag === 'function');
 if (typeof mag === 'function') {
   check('alleen spelen, bij een station: opvragen', mag({}, stations, 100, 0) === true);
