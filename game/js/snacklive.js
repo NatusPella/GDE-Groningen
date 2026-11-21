@@ -14,6 +14,7 @@ import * as GW from './goodwill.js';
 import { snackShare } from './bezitcoop.js';
 import { branchOpen, branchHint } from './bezitgate.js';
 import * as SS from './snackstory.js';
+import { recordHelp, reputationNow } from './reputationlive.js';
 
 export const snackOpen = () => branchOpen('snack');
 export const snackHint = () => branchHint('snack');
@@ -76,7 +77,7 @@ export function snackView(w) {
   return { open: snackOpen(), hint: snackOpen() ? '' : snackHint(), day, money: money(w), active: SN.isActive(S), rep: S.rep, effRep: SN.effRep(S, day), up: S.up, spots, own, fleet: S.fleet.map((f) => ({ ...f, tierDef: SN.TIERS[f.tier], wage: SN.staffWage(f.staff.skill, f.wageUp), spotName: f.spot ? SP.spotDef(f.spot).short : null })),
     rival: { name: RV.RIVAL_NAME, owner: RV.RIVAL_OWNER, spots: S.rival.spots.length, pand: S.rival.pand, chain: S.rival.chain, mood: S.rival.mood, rep: S.rival.rep }, gw: neighbourhood(S, day), score: sc, goals: SN.goalStatus(S, { day }), pending: SN.pendingEvent(S), war: S.ev.war && S.ev.war.until >= day ? S.ev.war : null,
     menu: SN.ITEM_IDS.map((id) => ({ id, ...SN.ITEMS[id], on: S.own.menu.includes(id), unlocked: SN.offeringUnlocked(S, id), chainOwn: SN.ITEMS[id].chain ? owner(SN.ITEMS[id].chain) : 0 })),
-    wagonPrice: SN.wagonPrice(S.fleet.length), stats: S.stats, stages: SS.stageView() };
+    wagonPrice: SN.wagonPrice(S.fleet.length), stats: S.stats, stages: SS.stageView(), reputatie: reputationNow(S.own.spot) };
 }
 
 // De wagens die in de wereld staan (voor snackvans3d.js; goedkoop, geen voorspelling): de jouwe, die van je medewerkers en die van Usmem Snacks op zijn plekken.
@@ -147,6 +148,7 @@ export function helpNeighbourhood(w, spot, kind) {
   const r = SN.helpNeighbourhood(L.snackState(), spot, kind, L.calToday(), money(w));
   if (!r.ok) return fail(r);
   spend(w, r.cost, 'Overige uitgaven'); L.markeer();
+  recordHelp(spot, kind === 'avond' ? 3 : kind === 'buurthuis' ? 2 : 1);
   return { ok: true, cost: r.cost, text: r.text };
 }
 

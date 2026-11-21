@@ -96,3 +96,43 @@ export function reputationLine(state, lines, scope = 'kind') {
 }
 // De rij voor de wagen: langer bij meer bekendheid (alleen een getal voor een rij NPC's, geen inkomen).
 export const queueLength = (state, base = 3) => Math.max(base, Math.round(base + readReputation(state).fame / 12));
+
+// ---- Schrijven en lezen vanuit het spel (#1135) ----
+// Wat een gebeurtenis oplevert: een stand en een scope in, een nieuwe stand uit. Alleen kleine getallen; nooit een slot.
+// Klanten bedienen: `served` dagen met verkoop geven bekendheid (hoogstens 3 per afrekening) en een tevreden of ontevreden wagen laat `kind` iets bewegen.
+export function noteService(state, { days = 1, served = false, sat = 60 } = {}) {
+  if (!served) return readReputation(state);
+  let s = noteReputation(state, 'fame', Math.min(3, Math.max(1, Math.ceil((Number(days) || 1) / 3))));
+  if (sat >= 75) s = noteReputation(s, 'kind', 1);
+  else if (sat < 40) s = noteReputation(s, 'kind', -1);
+  return s;
+}
+// Hulp aan de buurt: vriendelijk (`kind`), een beetje bekend (`fame`) en een bult in de eigen buurt (`buurt:<plek>`).
+export function noteHelp(state, spot, size = 1) {
+  const w = Math.max(1, Math.min(3, Math.round(Number(size) || 1)));
+  let s = noteReputation(state, 'kind', 2 * w);
+  s = noteReputation(s, 'fame', w);
+  return /^[a-z0-9 -]{1,30}$/i.test(String(spot || '')) ? noteReputation(s, `buurt:${spot}`, 3 * w) : s;
+}
+// Een bijpersoon bij de wagen zegt iets anders; de zinnen zijn verzonnen en kort. [laag, midden, hoog] naar vriendelijkheid, met de buurt erbij.
+export const BYSTANDER_LINES = [
+  'Die wagen? Ja, die staat er. Ik heb hem nog niet geprobeerd.',
+  'Ik hoor goede dingen over die frietwagen.',
+  'Ik ben speciaal voor uw friet gekomen. Iedereen praat erover.',
+];
+// Jelle spiegelt het: pas als de wagen bekend is, anders valt er voor hem niets te zeggen.
+export const JELLE_MIRROR = [
+  'Uw wagen heeft een goede naam. Dat is jammer voor mij.',
+  'Een hele buurt die u bedankt. Dat valt niet te declareren.',
+];
+export function jelleMirror(state) {
+  const s = readReputation(state);
+  if (s.fame < 40) return '';
+  return s.kind >= 15 ? JELLE_MIRROR[1] : JELLE_MIRROR[0];
+}
+// Alles wat de wagenpagina toont, in één keer: de zin, Jelles spiegel en de rij (een getal voor NPC's, geen inkomen).
+export function reputationView(state, spot = null) {
+  const scope = spot && isNeighbourhoodScope(`buurt:${spot}`) ? `buurt:${spot}` : null;
+  const line = reputationLine(state, BYSTANDER_LINES, 'kind');
+  return { fame: reputationOf(state, 'fame'), kind: reputationOf(state, 'kind'), buurt: scope ? reputationOf(state, scope) : 0, line, jelle: jelleMirror(state), queue: queueLength(state), price: priceFactor(state, scope) };
+}
