@@ -21,6 +21,7 @@ import { registerMemSource } from './memwatch.js';
 import { bouwSireneVoice, maakHoornWave } from './audiosirene.js';
 import { createParamMemo } from './audio/paramwrite.js';
 import { audioDiag, kiesLatencyHint, leesVorige } from './audiodiag.js';
+import { maakRuisRegister } from './audio/ruisbronnen.js';
 import { setSpatialHost, makePanner, setPannerPos, distToListener, inverseGain, spatialOut, updateListener, MAX_DISTANCE, SOURCE_HEIGHT, HRTF_NEAR } from './audio/spatial.js';
 import { MIN_TRACK_S } from './musicpick.js';
 import * as speech from './speech.js';
@@ -129,6 +130,8 @@ let worldReady = false;
 // One-shot voice budget by priority: 0 ambience/foley, 1 normal, 2 must-play.
 const VOICE_CAPS = [26, 54, 76];
 let activeVoices = 0;
+// de ruisbronnen (audio/ruisbronnen.js): telt de levende lussen en zet een doorlopende ruisstem die uit hoort te zijn maar open staat alsnog dicht
+const ruis = maakRuisRegister({ onFix: (naam, param) => { try { param.cancelScheduledValues(0); param.value = 0; paramMemo.forget(param); } catch (e) { /* al weg */ } fix('ruis-vast:' + naam); } });
 const stemTeller = createStemTeller();   // per categorie (sfx/stemlimiet.js)
 function voiceOk(prio = 1) { return activeVoices < VOICE_CAPS[prio]; }
 
@@ -411,6 +414,8 @@ function playTone({ freq, freqEnd, type = 'sine', duration = 0.15, gain = 0.3, d
 
 function playNoiseBurst({ duration = 0.12, freq = 1200, freqEnd, q = 1, gain = 0.5, type = 'bandpass', delay = 0, out = null, bus = null, prio = 1 }) {
   if (!voiceOk(prio)) return;
+  // een NaN in een van de waarden gooit hieronder (setValueAtTime) nadat de stem is geteld: de teller bleef dan hangen en de bron zonder einde
+  if (!Number.isFinite(duration + freq + q + gain + delay) || (freqEnd !== undefined && !Number.isFinite(freqEnd))) { audioDiag.note('nan', 'noise-burst met een niet-eindige waarde'); return; }
   activeVoices++;
   const t0 = ctx.currentTime + delay;
   const t1 = t0 + duration;
@@ -1829,8 +1834,13 @@ function buildGraph() {
   rumbleVoice = buildRumbleVoice();
   hornVoice = buildHornVoice();
   scrapeVoice = buildScrapeVoice();
+  // de doorlopende ruisbuffers van de vier synthstemmen: gain open terwijl de bron uit hoort te zijn = ruis die blijft hangen
+  ruis.bewaak('heli-synth', heliVoice.gain.gain, (w) => !!w.policeHeli);
+  ruis.bewaak('schuren', scrapeVoice.gain.gain, (w) => !w.paused && w.time < scrapeVoice.until + 1.5);
+  ruis.bewaak('bandenpiep-synth', squealVoice.gain.gain, () => !!squealVoice.target || squealVoice.level > 0.002);
+  ruis.bewaak('rommel', rumbleVoice.gain.gain, (w) => { const v = hoofdspeler(w).inVehicle; return !synth.player && !!v && !w.paused; });
   loadEngineWorklet();
-  audioDiag.attach({ ctx, master, limiter, meter, meterOut, latencyHint, voices: () => activeVoices, engineVoices: () => engineVoices.filter((v) => v && v.target).length, vorige: readPrevGlitches() });
+  audioDiag.attach({ ctx, master, limiter, meter, meterOut, latencyHint, voices: () => activeVoices, ruis: () => ruis.stand(), engineVoices: () => engineVoices.filter((v) => v && v.target).length, vorige: readPrevGlitches() });
   setInterval(() => { try { if (!FLAGS.dev && !FLAGS.stil) audioDiag.bewaar(localStorage); } catch (e) { /* no storage */ } }, 30000);
 
   kit = {
@@ -1841,6 +1851,7 @@ function buildGraph() {
     duckAmb: duckAmbience, setReverb, muted: () => muted, speech: () => speechLevel,
     engineSynth: () => !!synth.traffic,
     samples,   // de opnames (sfx/samples.js), voor sfx/aircraft.js
+    track: (naam, src, opts) => ruis.volg(naam, src, opts),   // een lus bijhouden in het ruisregister (technische info)
   };
   initUiSfx(kit);
 }
@@ -2023,6 +2034,7 @@ function updateEngineLayer(dt, on, rpm, spec, muffle, key = 'motor_auto_stationa
     gain.gain.value = 0;
     src.connect(gain).connect(sfxBus);
     src.start();
+    ruis.volg('motorlaag', src, { max: 2 });
     engineLayer = { src, gain, key };
   }
   if (!engineLayer) return;
@@ -2052,6 +2064,7 @@ function updateRitMotor(world) {
     gain.gain.value = 0;
     src.connect(lp).connect(gain).connect(sfxBus);
     src.start();
+    ruis.volg('ritmotor', src, { max: 2 });
     ritMotor = { src, gain };
   }
   if (!ritMotor) return;
@@ -2293,6 +2306,7 @@ function startSquealSample(voice, buffer) {
   gain.gain.value = 0;
   src.connect(gain).connect(voice.panner);
   src.start();
+  ruis.volg('bandpiep', src, { max: 2 });
   return { src, gain };
 }
 // A seamless loop of tyres sliding in a real drift (band_drift): under the squeal once the slide is wide, level and pitch follow the slip.
@@ -2304,6 +2318,7 @@ function startPlainLoop(voice, buffer) {
   gain.gain.value = 0;
   src.connect(gain).connect(voice.panner);
   src.start();
+  ruis.volg('banddrift', src, { max: 2 });
   return { src, gain };
 }
 function stopSquealSample(l, t) {
@@ -3113,22 +3128,24 @@ function updateWorldAudio(dt, world) {
 // frame: 30 Hz met de opgetelde dt klinkt gelijk en kost de helft. De
 // gebeurtenissen (schoten, stemmen, meldingen) blijven wel per frame lopen.
 function updateWorldMixers(dt, world) {
-  updateEngine(dt, world);
-  updateRitMotor(world);
-  updatePaddling(dt, world);
-  updateSailing(dt, world);
-  updateSqueal(dt, world);
-  updateSampleTriggers(world);
-  updateRumble(dt, world);
-  updateScrape(dt, world);
-  updatePlayerHorn(world);
-  updateSiren(dt, world);
-  updateTrafficAudio(dt, world);
+  // elke mixer apart: gooit er één (een NaN in een AudioParam), dan blijven de andere bijwerken. Eerder hield een fout in bv. updateSqueal
+  // alles daarna (rumble, schuren, ambience, voetstappen) op de laatste stand: een wind- of regenbed dat nooit meer uitging (ruis die blijft)
+  guarded('engine', () => updateEngine(dt, world));
+  guarded('ritmotor', () => updateRitMotor(world));
+  guarded('paddling', () => updatePaddling(dt, world));
+  guarded('sailing', () => updateSailing(dt, world));
+  guarded('squeal', () => updateSqueal(dt, world));
+  guarded('sampletriggers', () => updateSampleTriggers(world));
+  guarded('rumble', () => updateRumble(dt, world));
+  guarded('scrape', () => updateScrape(dt, world));
+  guarded('horn', () => updatePlayerHorn(world));
+  guarded('siren', () => updateSiren(dt, world));
+  guarded('traffic', () => updateTrafficAudio(dt, world));
   guarded('bikespeaker', () => updateBikeSpeakers(dt, world));
-  updateAmbience(dt, world);
-  updateFoley(dt, world);
-  updateSkySfx(dt, world, kit);
-  updateUiSfx(dt, world);
+  guarded('ambience', () => updateAmbience(dt, world));
+  guarded('foley', () => updateFoley(dt, world));
+  guarded('skysfx', () => updateSkySfx(dt, world, kit));
+  guarded('uisfx', () => updateUiSfx(dt, world));
 }
 
 const guardFails = {};
@@ -3198,6 +3215,7 @@ function watchdog(world, force = false) {
   // het G-Music-deel van de controle woont in audio/radio.js (#519): een
   // vastgelopen zender, een dode media-element of een stilgevallen teken
   watchRadio(now);
+  ruis.controleer(world);
   if (meter) {
     if (!meterBuf) meterBuf = new Float32Array(meter.fftSize);
     meter.getFloatTimeDomainData(meterBuf);
