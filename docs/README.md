@@ -203,6 +203,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [SPEELTEST.md](<SPEELTEST.md>) | Voor mensen die de game nog niet kennen. Speel ongeveer 45 tot 60 minuten; zonder save begint het verhaal m… |
 | [STEAM-CHECKLIST.md](<STEAM-CHECKLIST.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standar… |
 | [STEAM-KLAAR.md](<STEAM-KLAAR.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standar… |
+| [VERHAAL-WEGHALEN-21-11.md](<VERHAAL-WEGHALEN-21-11.md>) | Wat uit het verhaal verdwijnt (gaswinning en aardbevingen): per plek oud, nieuw en wat dat voor de stemmen betekent. |
 | [VERHAAL-RELATIE-21-11.md](<VERHAAL-RELATIE-21-11.md>) | Relatie-bijbel van Tammo en Tessa: waarom ze vrienden zijn, hun taal, de carrière-matrix, 14 bewijsmomenten, hoe dit de romantiek draagt en de personagekaarten. |
 | [VERHAAL-INSPIRATIEPLAN-21-11.md](<VERHAAL-INSPIRATIEPLAN-21-11.md>) | Doseringstabel van de goedgekeurde inspiratie-ideeën over akte 1 tot en met Deel 4: wat er nu in de scripts staat, wat alleen een plan is (en waarom), nieuwe personages, humorbeats en de regel voor Samen spelen. |
 | [VERHAAL-INSPIRATIE-21-11.md](<VERHAAL-INSPIRATIE-21-11.md>) | Inspiratie uit Moffel en Piertje, Dharma & Greg en Melissa & Joey (Kit & Mouse niet te verifiëren): archetypes, mechanieken en 30 onderdelen met vragenlijst voor de eigenaar. |

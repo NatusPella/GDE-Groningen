@@ -49,7 +49,7 @@ export function buildAkte6Defs() {
       // M27 Inpakken (Tessa and Tammo, Loppersum): books in small boxes, china in newspaper, the cat in its basket, a photo from 1953
       type: 'stages',
       label: 'Inpakken',
-      intro: ['Oma Trijntjes familie in Loppersum, Willemien, moet even uit haar huis: het wordt versterkt. Delfstof Noord zet het op nieuwe poten, en dat duurt langer dan een kopje koffie.', 'Help haar inpakken. Boeken in kleine dozen, breekbaar in de krant, de kat in de mand. Gewoon dozen.'],
+      intro: ['Oma Trijntjes familie in Loppersum, Willemien, moet even uit haar huis: het wordt verbouwd. De aannemer zet het op nieuwe poten, en dat duurt langer dan een kopje koffie.', 'Help haar inpakken. Boeken in kleine dozen, breekbaar in de krant, de kat in de mand. Gewoon dozen.'],
       outro: 'Twaalf dozen, een kat en een foto uit 1953. De dozen staan in de verhuisbus.',
       timeLimit: null,
       reward: 400,

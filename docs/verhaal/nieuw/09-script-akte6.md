@@ -1,15 +1,15 @@
 # 09 · Script Deel 4: "Nazomer" (Eemsdelta en Westerwolde, 14 - 19 september)
 
-> Formaat en regels: zie de kop van [09-script-akte1.md](09-script-akte1.md). Hoort bij [DEEL4.md](DEEL4.md). Missie-id's: M27-M30 en T5. Alleen tekst: geen opname bestaat, dus elke regel is `[NIEUW]` en wordt als ondertitel getoond. Geen echte merken of personen; het gasbedrijf heet Delfstof Noord en is nergens een schurk.
+> Formaat en regels: zie de kop van [09-script-akte1.md](09-script-akte1.md). Hoort bij [DEEL4.md](DEEL4.md). Missie-id's: M27-M30 en T5. Alleen tekst: geen opname bestaat, dus elke regel is `[NIEUW]` en wordt als ondertitel getoond. Geen echte merken of personen; de aannemer heeft geen naam en is nergens een schurk.
 
 ## [M27.1] Inpakken: intro – Eemsdelta, Loppersum, Willemiens huis – te voet
-(regie: maandag 14 september, ochtend. Een gewoon huis met steunbalken tegen de zijgevel en een bord: DELFSTOF NOORD · VERSTERKING. Een lange haarscheur langs de voordeur, die niet wordt uitgelicht en niet wordt vermeden. Lege dozen in de gang, een keuken waar koffie wordt gezet. Naamkaart: WILLEMIEN. Gameplay: breekbaar spul in de krant, boeken in kleine dozen, de kat in de mand.)
+(regie: maandag 14 september, ochtend. Een gewoon huis met steunbalken tegen de zijgevel en een bord: AANNEMER · VERBOUWING. Een stapel nieuwe kozijnen langs de voordeur. Lege dozen in de gang, een keuken waar koffie wordt gezet. Naamkaart: WILLEMIEN. Gameplay: breekbaar spul in de krant, boeken in kleine dozen, de kat in de mand.)
 WILLEMIEN: Jullie zijn van Trijntje. Kom binnen. Schoenen mogen aan. Het huis is toch even niet van mij. [NIEUW]
 TESSA: Hoe lang? [NIEUW]
 WILLEMIEN: Een paar weken, zeggen ze. Dat zeggen ze al twee jaar. Koffie? [NIEUW]
 TAMMO: Graag. [NIEUW]
 WILLEMIEN: Ik ken jullie van het luik. Woensdag, de derde in de rij. Eén eierbal, extra mosterd. [NIEUW]
-WILLEMIEN: Delfstof Noord zet het huis op nieuwe poten. De ploeg is aardig. Het duurt alleen langer dan een kopje koffie. [NIEUW]
+WILLEMIEN: De aannemer zet het huis op nieuwe poten. De ploeg is aardig. Het duurt alleen langer dan een kopje koffie. [NIEUW]
 TESSA: Oma zei: gewoon dozen. [NIEUW]
 WILLEMIEN: Dat zegt Trijntje van alles. Breekbaar in de krant. Boeken in kleine dozen, anders krijg je ze niet getild. En de kat is het moeilijkst. [NIEUW]
 

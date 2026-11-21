@@ -18221,7 +18221,7 @@
    "kind": "intro",
    "gameplay": "breekbaar spul in de krant, boeken in kleine dozen, de kat in de mand.",
    "regie": [
-    "maandag 14 september, ochtend. Een gewoon huis met steunbalken tegen de zijgevel en een bord: DELFSTOF NOORD · VERSTERKING. Een lange haarscheur langs de voordeur, die niet wordt uitgelicht en niet wordt vermeden. Lege dozen in de gang, een keuken waar koffie wordt gezet. Naamkaart: WILLEMIEN. Gameplay: breekbaar spul in de krant, boeken in kleine dozen, de kat in de mand."
+    "maandag 14 september, ochtend. Een gewoon huis met steunbalken tegen de zijgevel en een bord: AANNEMER · VERBOUWING. Een stapel nieuwe kozijnen langs de voordeur. Lege dozen in de gang, een keuken waar koffie wordt gezet. Naamkaart: WILLEMIEN. Gameplay: breekbaar spul in de krant, boeken in kleine dozen, de kat in de mand."
    ],
    "lines": [
     {
@@ -18273,11 +18273,10 @@
     {
      "speaker": "Willemien",
      "key": "willemien",
-     "text": "Delfstof Noord zet het huis op nieuwe poten. De ploeg is aardig. Het duurt alleen langer dan een kopje koffie.",
+     "text": "De aannemer zet het huis op nieuwe poten. De ploeg is aardig. Het duurt alleen langer dan een kopje koffie.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Tessa",

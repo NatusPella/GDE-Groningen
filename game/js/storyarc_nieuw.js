@@ -381,7 +381,7 @@ export const STEPS = [
   // --- Deel 4: Nazomer (Loppersum en Bourtange, ma 14 - za 19 september), after the finale card ------------------
   M('M27', 'nazomer', 'Inpakken', 'inpakken', { built: true, reward: 400,
     story: { intro: ['M27.1'], outro: ['M27.3'], replay: ['M27.4'] }, scenes: ['M27.1', 'M27.2', 'M27.3', 'M27.4'],
-    lead: ['A', 'Oma Trijntje belde: Willemien in Loppersum, elke woensdag vaste klant bij het luik, moet even uit haar huis. Het wordt versterkt. Wij helpen inpakken. Gewoon dozen.'] }),
+    lead: ['A', 'Oma Trijntje belde: Willemien in Loppersum, elke woensdag vaste klant bij het luik, moet even uit haar huis. Het wordt verbouwd. Wij helpen inpakken. Gewoon dozen.'] }),
   M('M28', 'nazomer', 'De wisselwoning', 'wisselwoning', { built: true, reward: 400,
     story: { intro: ['M28.1'], outro: ['M28.3'], replay: ['M28.4'] }, scenes: ['M28.1', 'M28.2', 'M28.3', 'M28.4'],
     lead: ['T', 'De dozen staan in de verhuisbus. Willemien zit voorin met de kat. Rustig rijden, naar de wisselwoning aan de rand van het dorp.'] }),

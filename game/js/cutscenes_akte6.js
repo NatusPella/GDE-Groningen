@@ -19,7 +19,7 @@ S['M27.intro'] = {
     { on: 'Graag', actor: 'tammo', anim: 'nod' },
     // WP7: Willemien is vaste klant van de Fjord Frituur
     { on: 'Ik ken jullie van het luik', actor: 'willemien', anim: 'point' },
-    { on: 'Delfstof Noord zet', actor: 'willemien', anim: 'point' },
+    { on: 'De aannemer zet', actor: 'willemien', anim: 'point' },
     { on: 'Oma zei: gewoon dozen', actor: 'tessa', anim: 'nod' },
     { on: 'Dat zegt Trijntje', actor: 'willemien', anim: 'hips' },
   ],

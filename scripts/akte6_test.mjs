@@ -144,7 +144,7 @@ const lines = script.scenes.filter((s) => s.act === 6).flatMap((s) => s.lines.ma
 ok(lines.length >= 100, 'Deel 4 has its script', String(lines.length));
 const text = lines.map((l) => l.text).join(' ') + ' ' + JSON.stringify(P) + JSON.stringify(CLUES.filter((c) => ids.includes(c.step))) + JSON.stringify(mine) + JSON.stringify(STORY_AKTE6);
 ok(!/\b(NAM|Gasunie|Shell|Exxon|BAM)\b/.test(text), 'no real company in the text');
-ok(/Delfstof Noord/.test(text) && lines.filter((l) => /Delfstof/.test(l.text)).length === 1, 'the made-up company is named once in the script (a sign and one sentence), never as a villain');
+ok(!/Delfstof|aardbeving|gaswinning|versterk/i.test(text), 'geen gaswinning, aardbevingen of versterking meer in Deel 4 (eigenaar-besluit 21-11): Willemien verbouwt haar huis');
 ok(!/\b(schuld|schurk|boef|wraak|aansprakelijk)\w*/i.test(lines.filter((l) => ['M27.1', 'M27.2', 'M27.3', 'M28.2', 'M28.3', 'M29.1', 'M29.2', 'M29.3'].includes(l.scene)).map((l) => l.text).join(' ')), 'the Loppersum scenes blame nobody and want no revenge');
 ok(!/\d{2,}[.,]?\d*\s*(huizen|woningen|miljard|miljoen|bevingen|beving)/i.test(text), 'no numbers about homes, damage or quakes (nothing we cannot check)');
 ok(!/\b(sneeuw|winter|ijs|vorst|herfst|oktober|november)\b/i.test(lines.map((l) => l.text).join(' ')), 'always summer: no winter or autumn words');
