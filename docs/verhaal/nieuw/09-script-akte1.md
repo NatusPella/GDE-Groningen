@@ -206,7 +206,60 @@ TAMMO: En waar staat "thee"? [NIEUW]
 TESSA: Je hebt dat kaartje nog. Van die eerste week. [NIEUW]
 TAMMO: Het hing al aan de koelkast. [NIEUW]
 TESSA: Ja. Natuurlijk. [NIEUW]
-(regie: ze tekent door. Hij blijft nog even staan met de thee.)
+(regie: ze tekent door. Hij blijft nog even staan met de thee. Zijn telefoon gaat.)
+TAMMO: Dat is Beppe. Mijn Friese oma. [NIEUW]
+BEPPE (telefoon): Jonge, hast al iten? [NIEUW]
+TAMMO (telefoon): Ja, beppe. [NIEUW]
+BEPPE (telefoon): Is Tessa der ek? Dan meitsje ik sop. [NIEUW]
+TAMMO (telefoon): ...Ja. [NIEUW]
+
+## [N1] Een klus voor Sjabbe – Stad, de Herestraat – te voet
+(regie: zaterdagmiddag. Sjabbe staat voor Pand & Poen met een kopieermachine op een steekkar. Tessa kijkt naar het prijskaartje, Tammo naar de steekkar.)
+SJABBE: Ik vraag niks. Ik zeg alleen: dit ding moet naar boven. [NIEUW]
+TAMMO: Hoe zwaar? [NIEUW]
+SJABBE: Zwaarder dan jij denkt. Lichter dan ik vertel. [NIEUW]
+TESSA: Wij doen het voor twintig euro. [NIEUW]
+SJABBE: Dertig. Maar dan draagt hij. [NIEUW]
+(regie: Tammo tilt, Tessa wijst de trap, en samen krijgen ze de kopieermachine boven zonder één kras. Sjabbe telt het geld uit in kleine briefjes.)
+SJABBE: Een man in een blauw colbert kocht gisteren al mijn kopieerpapier. Contant. Uit een klomp. [NIEUW]
+TESSA: Wat moet hij met kopieerpapier? [NIEUW]
+SJABBE: Papier is macht. Zegt hij. Ik zeg niks. [NIEUW]
+
+## [N2] Een duif op de gang – Stad, Paddepoel, elfde verdieping – flat
+(regie: vrijdagavond, laat licht. Op de gang van de elfde verdieping staat een oude man in een vest met zes duiven om zich heen. Een duif zit op de deurmat van de flat.)
+TAMMO: Dat is de buurman. Hij woont hier al sinds de verhuisdag, met zijn duiven. [NIEUW]
+TESSA: Je kent hem? [NIEUW]
+TAMMO: Nee. De duiven kennen mij. [NIEUW]
+VELDKAMP: Die zat hier al. Hij wacht op jou. [NIEUW]
+TAMMO: Duiven wachten op niemand. [NIEUW]
+VELDKAMP: Zes jaar zit ik hier. Dat is de eerste die niet wegvliegt. [NIEUW]
+TESSA: Zal ik soep maken? Voor drie? [NIEUW]
+VELDKAMP: Ik eet liever alleen. Maar kom maar. [NIEUW]
+
+## [N3] Soep bij Beppe – Stad, Beppe's huis aan de westrand – te voet
+(regie: zondagmiddag. Een klein huis met een tuin en een rij laarzen bij de deur. Beppe staat al in de deuropening, met een pollepel.)
+BEPPE: Dêr bisto, jonge. Kom yn, kom yn. De sop is klear. [NIEUW]
+TAMMO: Dit is Tessa, Beppe. [NIEUW]
+BEPPE: Ytst dan mar earst, dan prate wy. [NIEUW]
+TESSA: Wat zegt ze? [NIEUW]
+TAMMO: Eerst eten. Dan praten. [NIEUW]
+BEPPE: Hy seit neat, mar hy docht it goed. [NIEUW]
+TESSA: Dat heb ik ook al gezien. [NIEUW]
+(regie: Beppe schept nog een keer op. Tammo kijkt naar zijn bord.)
+
+## [N4] Een eerste ronde – Stad, Station Grunn – te voet
+(regie: maandagochtend. Op het stationsplein staan een taxi, een stapel formulieren en een klusbord. Ze proberen drie dingen na elkaar.)
+TESSA: Taxi. Jij rijdt. [NIEUW]
+TAMMO: Links of rechts? [NIEUW]
+TESSA: Ik zeg het wel als het fout gaat. [NIEUW]
+(regie: de eerste rit gaat soepel. Tammo bedankt de klant; Tessa ziet het in de spiegel.)
+TESSA: Formulieren. Dit doe ik liever alleen. [NIEUW]
+TAMMO: Ik wacht buiten. [NIEUW]
+JELLE (telefoon): Mevrouw Tessa. Uw auto staat op een plek die ik gisteren heb gekocht. Foar mem. [NIEUW]
+TESSA (telefoon): Het is een stoep. [NIEUW]
+JELLE (telefoon): Een stoep met een overeenkomst. [NIEUW]
+TAMMO: Wie koopt een stoep? [NIEUW]
+TESSA: Iemand die de regels leest. [NIEUW]
 
 ## [M03.1] Het Loket: intro – Stad, Het Loket bij de Grote Markt – te voet
 (regie: bewijsmoment, relatie-bijbel 3: Tessa leest het naamplaatje van de loketbediende en groet haar bij haar naam. Tammo kijkt even naar zijn schoenen en glimlacht.)
@@ -233,7 +286,7 @@ TAMMO: Hij kocht onze plek. [NIEUW]
 JELLE: Verder koop ik alle standplaatsen van Grunn die vrijkomen. Contant, uit een klomp, definitief. [NIEUW]
 TESSA: Alle? De standplaats van de winnaar is niet te koop. [NIEUW]
 JELLE: Nee. Die win ik. [NIEUW]
-TESSA: Salamitactiek. Plakje voor plakje, tot hij alles heeft. [NIEUW]
+TESSA: Regels, vergunningen, trucs. Hij wint op papier. [NIEUW]
 JELLE: Dat noemen wij ondernemen. Oant sjen. [NIEUW]
 (regie: in de deuropening mompelt hij iets.)
 JELLE: Foar mem. [NIEUW]

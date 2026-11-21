@@ -2,7 +2,7 @@
 
 Je hoeft niets te doen. Voor elke nieuwe of herschreven komische beat heeft de schrijver drie varianten en een veilige neutrale terugval gemaakt; drie onafhankelijke beoordelaars (zonder elkaars oordeel, met de varianten in een andere volgorde) kozen de beste. De winnaar staat in het spel; de andere twee en de terugval staan hieronder als alternatief. Wil je iets anders: zet `chosen` van die beat in het bijbehorende bestand `game/storydata/humor*.json` op 0, 1, 2 of `"neutral"` en draai `node scripts/build_story_data.mjs`. Werkwijze: [SCHRIJFREGELS-21-11.md](SCHRIJFREGELS-21-11.md). Na een wijziging: draai ook de cutscene-tests (`cutscenes_akte*_test`), want de cues van een scène (`on:`) volgen de gekozen tekst. Samen spelen: een beat is gewone scènetekst; een gast ziet de gekozen variant mee in de scène van de host. Gegenereerd door `node scripts/humor_doc.mjs`; kies hier niet met de hand.
 
-Eerlijk over de proef: 66 beats. De beoordelaars lazen de stijlgids en de beats; minstens twee van de drie lazen de ijkregels uit akte 1 ([BEHOUDEN]-grappen) niet. Wees dus kritisch bij beats met lage zekerheid.
+Eerlijk over de proef: 70 beats. De beoordelaars lazen de stijlgids en de beats; minstens twee van de drie lazen de ijkregels uit akte 1 ([BEHOUDEN]-grappen) niet. Wees dus kritisch bij beats met lage zekerheid.
 
 ## Bovenaan: gevoelig of gespleten met lage zekerheid
 
@@ -19,6 +19,7 @@ Eerlijk over de proef: 66 beats. De beoordelaars lazen de stijlgids en de beats;
 - **HI-09** (T2, TAMMO): gekozen "Ik droomde over verkeer."; paneelsplit 1-1-1, zekerheid laag. Droge onverwachte onderwerpskeuze, korte pointe.
 - **HI-16** (M25.6, OMA TRIJNTJE): gekozen "Dan gaan ze er later in."; paneelsplit 1-1-1, zekerheid laag. Sluit exact aan op de herhaling in HI-17.
 - **H06** (M02.5, TESSA): gekozen "Alleen of we een koekje wilden."; paneelsplit 1-1-1, zekerheid laag. Koekje wilden: Tessa's droge understatement.
+- **HN-04** (N1, SJABBE): gekozen "Zwaarder dan jij denkt. Lichter dan ik vertel."; paneelsplit 1-1-1, zekerheid laag. Past bij Sjabbes vaagheid-met-een-wenk en laat de prijs aan Tessa, zodat haar twintig euro erna als tegenzet werkt.
 
 ## Lage zekerheid (twee van de drie, of onderling onzeker)
 
@@ -33,6 +34,7 @@ Eerlijk over de proef: 66 beats. De beoordelaars lazen de stijlgids en de beats;
 - **HI-02** (O1): "Staat "thee" erbij?"
 - **HI-15** (B4.2): "Dan weet zij het eerder dan ik."
 - **H04** (O11): "Mijn juristen kijken naar die klomp."
+- **HN-03** (N4): "Iemand die alle regels kent. Behalve de leuke."
 
 ## Alle beats
 
@@ -104,6 +106,10 @@ Eerlijk over de proef: 66 beats. De beoordelaars lazen de stijlgids en de beats;
 | H06 | M02.5 | TESSA | Alleen of we een koekje wilden. | variant 1, variant 3, variant 2 | laag | Koekje wilden: Tessa's droge understatement. |
 | H07 | R1.1 | RIKUS | Dat is een helder plan. Ik zeg niks. Ik draai een plaat. | variant 2, neutraal, variant 2 | midden | Ik zeg niks als mening, dan de plaat: Rikus. |
 | H08 | C00.2 | TESSA | Vierentwintig, net afgestudeerd en samen nul banen. Na de studie gaat iedereen ergens anders heen. Wij niet. | variant 1, variant 1, variant 1 | hoog | Samen nul banen is de pointe, en de rest is kort. |
+| HN-01 | N8 | OMA TRIJNTJE | Dat klinkt niet als slapen, jong. | variant 2, variant 3, variant 2 | midden | Natuurlijk, warm en droog; Tammo's 'Het is een punaise' landt er direct op, terwijl A/C te zwaar aanzetten. |
+| HN-02 | N6 | KAPITEIN KLAAS | Dat telt. | variant 2, variant 2, variant 1 | midden | Kort en droog understatement dat Tammo's stilte als vangst erkent, zonder uitleg. |
+| HN-03 | N4 | TESSA | Iemand die alle regels kent. Behalve de leuke. | variant 3, variant 2, variant 3 | laag | De kicker 'Behalve de leuke' geeft Tessa een droge, eigen pointe op de bureaucratische stoepkoop. |
+| HN-04 | N1 | SJABBE | Zwaarder dan jij denkt. Lichter dan ik vertel. | variant 1, neutraal, variant 3 | laag | Past bij Sjabbes vaagheid-met-een-wenk en laat de prijs aan Tessa, zodat haar twintig euro erna als tegenzet werkt. |
 
 ## De alternatieven per beat
 
@@ -502,3 +508,27 @@ Eerlijk over de proef: 66 beats. De beoordelaars lazen de stijlgids en de beats;
 - variant 2: Vierentwintig, afgestudeerd en samen precies nul banen. Na de studie gaat iedereen ergens anders heen. Wij niet.
 - variant 3: Wij zijn vierentwintig, afgestudeerd en werkloos. Dat is een begin. Na de studie gaat iedereen ergens anders heen. Wij niet.
 - neutraal: Wij zijn vierentwintig, net afgestudeerd en werkloos. Na de studie gaat iedereen ergens anders heen. Wij niet.
+
+**HN-01** (N8): Oma's logeerkamer, avond. Tessa en Tammo pakken tegelijk dezelfde punaise; een lange stilte. Beneden klinkt Oma's pollepel op een pan en ze roept dat ze niet slapen. Tessa: "We slapen, Oma."
+- variant 1: Dat is geen slaapgeluid, jong.
+- variant 2 (gekozen): Dat klinkt niet als slapen, jong.
+- variant 3: Ik ken slapen. Dit is het niet.
+- neutraal: Ga nou maar slapen, jong.
+
+**HN-02** (N6): Noordpolderzijl, rubberboot. Klaas zegt: praat tegen het water, dan vangt hij. Tammo zegt niets (alleen puntjes).
+- variant 1: Dat is ook praten.
+- variant 2 (gekozen): Dat telt.
+- variant 3: Dat is ook een gesprek.
+- neutraal: Goed zo.
+
+**HN-03** (N4): Station Grunn. Jelle belt dat haar auto op een stoep staat die hij gisteren kocht; Tammo vraagt wie een stoep koopt.
+- variant 1: Iemand die de regels leest.
+- variant 2: Iemand die het kleine lettertje leest.
+- variant 3 (gekozen): Iemand die alle regels kent. Behalve de leuke.
+- neutraal: Iemand die graag wint.
+
+**HN-04** (N1): Voor Pand & Poen. Tammo vraagt hoe zwaar de kopieermachine is; Sjabbe (die altijd zegt dat hij niks vraagt) antwoordt vaag.
+- variant 1 (gekozen): Zwaarder dan jij denkt. Lichter dan ik vertel.
+- variant 2: Net zwaar genoeg voor dertig euro.
+- variant 3: Zwaar. Ik zeg niks over hoe zwaar.
+- neutraal: Zwaar genoeg. Dertig euro.

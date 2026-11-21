@@ -27,7 +27,7 @@ Antwoord op de vraag van de eigenaar (21-11): *"Kun je mij ook een synopsis geve
 
 1. **A, de frietwagen.** Tessa bakt en wil een thuis met wielen, Tammo rijdt. De wagen groeit per akte: naam, recept, stek, team, standplaats, keten.
 2. **B, de romance.** Zoet en komisch, een trap in zes stappen: handen (M06), lange blik (M11), voorzichtige flirt (M14), kus (M16), ruzie (M20), knuffel en openbaring (M22), vijf woorden en samen (M26). Ze worden een stel.
-3. **C, Jelle.** Hij koopt plakje voor plakje de markt op (de salamitactiek). Hij heeft de Gouden Eierbal echt gestolen; zijn moeder Mem neemt hem die in Bourtange af.
+3. **C, Jelle.** Hij wint met bureaucratie: regels, vergunningen en trucs. Hij heeft de Gouden Eierbal echt gestolen; zijn moeder Mem neemt hem die in Bourtange af.
 
 **De ene zin boven alles:** *Twee net afgestudeerde, werkloze vrienden van 24 willen een frietwagen laten rijden; Tessa wil dat meer dan ze zegt, Tammo wil bij haar blijven, en Jelle Terpstra koopt Grunn op voordat het kan.*
 
@@ -321,7 +321,7 @@ Met bijbanen, reizen en zijwerk komt een gemengde speler eerder uit op ongeveer 
 ## 7. Samenvatting in tien regels
 
 1. Tammo en Tessa (24, net afgestudeerd, werkloos, vijf jaar vrienden sinds de eerste studieweek) willen een frietwagen laten staan: Tessa bakt, Tammo rijdt en zwijgt vijf jaar lang over zijn verliefdheid.
-2. De enige vrije standplaats gaat naar de winnaar van de Noordelijke Snackprijs; Jelle Terpstra koopt Grunn plakje voor plakje op om dat te voorkomen en heeft de Gouden Eierbal gestolen.
+2. De enige vrije standplaats gaat naar de winnaar van de Noordelijke Snackprijs; Jelle Terpstra wint Grunn met regels en trucs om dat te voorkomen en heeft de Gouden Eierbal gestolen.
 3. Akte 1 (Stad) leert rijden en klussen en eindigt met de lege vitrine; akte 2 (Noorden) redt Oma's recept en opent de boerderij met Tessa.
 4. Akte 3 (Eems) opent Bezit en de wagen krijgt een stek; de kus valt in de botsauto's.
 5. Akte 4 (Zuid) opent voetbal en regio-reizen; het beleg van Bourtange en de ruzie zijn het dieptepunt.

@@ -36,6 +36,7 @@ const CAST = {
   Henk: { voice: 'Sadaltager', who: 'gemoedelijke Groningse garagehouder', pool: ['gemoedelijk, rustig'] },
   // Rikus: the narrator and the Radio Nachtstreek night DJ, one voice for both
   [NARRATOR]: { voice: 'Schedar', who: 'Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog', pool: ['droog, met een knipoog', 'warm, vertellend', 'plagend, laconiek'] },
+  Beppe: { voice: 'Aoede', who: 'Tammo\'s Friese beppe (oma), warm, zacht en nuchter, spreekt Fries', pool: ['warm, zacht', 'plagend, liefdevol'], accent: 'spoken in Frisian (Frysk), a warm old Frisian grandmother, slowly and kindly' },
   'Mem Terpstra': { voice: 'Gacrux', who: 'warme, stellige oude Friese moeder, spreekt Nederlands met Friese woorden', pool: ['warm, stellig', 'zacht, samenzweerderig'], accent: 'spoken in Dutch with a warm Frisian accent, the Frisian words said in Frisian (Frysk)' },
   'Jelle Terpstra': { voice: 'Fenrir', who: 'ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden', pool: ['charmant, opschepperig', 'zelfvoldaan, grinnikend', 'plechtig, overdreven trots'], accent: 'spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk)' },
   Durk: { voice: 'Algieba', who: 'grote, trage Friese handlanger, spreekt Nederlands met een zwaar Fries accent', pool: ['dronken, lallend, samenzweerderig', 'traag, verward'], accent: 'spoken in Dutch with a heavy Frisian accent, slow' },

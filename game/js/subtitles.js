@@ -14,6 +14,13 @@ import { spokenKeyTokens } from './keycap.js';
 export const FY = {
   // the definitive script (docs/verhaal/nieuw/09-script-akte*.md)
   'Ljouwert': 'Leeuwarden',
+  // Beppe (Tammo's Friese oma) belt in O1: Fries, met een Nederlandse ondertitel
+  'Jonge, hast al iten?': 'Jongen, heb je al gegeten?',
+  'Dêr bisto, jonge. Kom yn, kom yn. De sop is klear.': 'Daar ben je, jongen. Kom binnen, kom binnen. De soep is klaar.',
+  'Ytst dan mar earst, dan prate wy.': 'Eet dan maar eerst, dan praten we.',
+  'Hy seit neat, mar hy docht it goed.': 'Hij zegt niets, maar hij doet het goed.',
+  'Ja, beppe.': 'Ja, oma.',
+  'Is Tessa der ek? Dan meitsje ik sop.': 'Is Tessa er ook? Dan maak ik soep.',
   // overgangsscènes O4 en O5 (#1125): Tessa zegt Mem tegen de buurvrouw uit Ljouwert
   'Het is augustus, Mem.': 'Het is augustus, moedertje.',
   '...Ja, Mem.': '...Ja, moedertje.',
