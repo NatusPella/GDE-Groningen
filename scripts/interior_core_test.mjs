@@ -4,7 +4,7 @@
 // geen game/world: gebouwen zijn synthetische voetafdrukken.
 // Draai: node scripts/interior_core_test.mjs
 import { frameOf, toLocal, toWorld, findHall, WALL_T, INSET } from '../game/js/interiorframe.js';
-import { KINDS, KIND_IDS, kindOfBuilding, kindOfFacility, isOpen, opensAt, homeOpen, SHOP_HOURS, HORECA_HOURS, PUBLIEK_VARIANTS } from '../game/js/interiorkinds.js';
+import { KINDS, KIND_IDS, kindOfBuilding, kindOfFacility, isOpen, homeOpen, PUBLIEK_VARIANTS } from '../game/js/interiorkinds.js';
 import { generateLayout, validateLayout, ITEM_TYPES, rectOf, footprint, walkGrid, reachable, reachableAt, CELL } from '../game/js/interiorlayout.js';
 import { makeWalk } from '../game/js/interiorwalk.js';
 import { planInterior, interiorSeed, doorState, MIN_CEILING } from '../game/js/interiorrules.js';
@@ -82,12 +82,7 @@ function lBuilding(w, d, notchW, notchD, c) {
   ok(kindOfBuilding({ type: 'house', shopFront: { type: 'bakker' } })?.sub === 'bakker', 'het winkeltype van de gevel wint van het soort gebouw');
   ok(kindOfBuilding({ type: 'house', shopFront: { type: 'kermiskraam' } })?.kind === 'woning', 'een kermiskraam is geen winkelinterieur');
   ok(kindOfFacility({ wk: 'cafe' })?.kind === 'horeca' && kindOfFacility({ kind: 'police' })?.sub === 'politie' && kindOfFacility({ kind: 'bakery' }) === null, 'voorziening -> soort');
-  for (const s of SHOP_KINDS) if (s !== 'kermiskraam') ok(SHOP_HOURS[s], `openingstijden van ${s}`);
-  ok(isOpen('winkel', 'supermarkt', 12) && !isOpen('winkel', 'supermarkt', 23) && !isOpen('winkel', 'supermarkt', 3), 'een supermarkt is overdag open en \'s nachts dicht');
-  ok(isOpen('horeca', 'kroeg', 1) && isOpen('horeca', 'kroeg', 16) && !isOpen('horeca', 'kroeg', 9), 'een kroeg sluit na middernacht');
-  ok(isOpen('kantoor', null, 9) && !isOpen('kantoor', null, 20), 'een kantoor is kantoortijd open');
-  ok(isOpen('publiek', 'politie', 3), 'het politiebureau is altijd open');
-  ok(opensAt('winkel', 'bakker') === 6, 'opensAt');
+  ok([3, 12, 23].every((h) => isOpen('winkel', 'supermarkt', h) && isOpen('horeca', 'kroeg', h) && isOpen('kantoor', null, h) && isOpen('publiek', 'politie', h)), 'bedrijven zijn altijd open, ook in de nacht');
   ok(homeOpen(0.1) && !homeOpen(0.9) && homeOpen(0.9, true), 'een huis: een deel staat open, eigen woning altijd');
   ok(PUBLIEK_VARIANTS.includes('politie'), 'publiek heeft een politievariant');
 }
@@ -166,7 +161,7 @@ for (const s of SHOP_KINDS.filter((x) => x !== 'kermiskraam')) {
   const shop = rectBuilding(7, 10, 3.5, { type: 'retail', shopFront: { type: 'bakker' } });
   const ps = planInterior(shop);
   ok(ps.ok && ps.kind === 'winkel' && ps.sub === 'bakker' && ps.layout.palette.wall === WINKEL.bakker.wall, 'een winkelpand met bakkersgevel wordt een bakker');
-  ok(doorState(ps, 12).open && !doorState(ps, 22).open && doorState(ps, 22).opensAt === 6, 'de bakker is om 22 uur dicht en gaat om 6 uur open');
+  ok(doorState(ps, 12).open && doorState(ps, 3).open && doorState(ps, 23).open, 'een winkel is altijd open');
   const church = rectBuilding(11, 24, 5.5, { type: 'church', entrance: { ...rectBuilding(11, 24, 5.5).entrance, floorH: 10, depth: 10, archetype: 'church' } });
   const pc = planInterior(church);
   ok(pc.ok && pc.kind === 'kerk' && pc.height >= 6, 'een kerk heeft een hoog plafond', JSON.stringify({ ok: pc.ok, why: pc.why, h: pc.height }));

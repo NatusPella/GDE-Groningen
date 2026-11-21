@@ -13,10 +13,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 - Panden zijn echt te betreden: loop te voet door de voordeur naar binnen, zonder menu, laadscherm of teleport. De deur zwaait open, de gevel gaat bij de deur open en je staat in het pand zelf. Winkels (twaalf soorten), cafés, kroegen, restaurants, kantoren, woningen, kerken, stationshallen, bibliotheken, garages, magazijnen, politiebureaus, apotheken, scholen en hotels hebben elk een eigen inrichting, met winkelier, klanten en gasten
 - Bij de kassa of de bar druk je op E: een winkel van het spel opent zijn eigen menu, een andere winkel of een café verkoopt een klein product; in de kledingwinkel pas je in het pashokje, in een kerk steek je een kaarsje aan
-- Winkels sluiten 's nachts en de kroeg na middernacht (de deur blijft dicht met een regel); de meeste woningen zitten op slot, een op de vijf staat open
+- Winkels, cafés, kantoren en andere bedrijven zijn altijd open; de woningen van anderen zitten meestal op slot (niet te betreden), een op de vijf staat open
 - Het interieur komt overeen met het raam: dezelfde wandkleur, vloer en meubelsoort, en bij winkels de kleuren van het winkeltype
 - Woningen, kantoren, hotels en grotere winkels hebben soms een tweede verdieping met een trap die je gewoon oploopt; klanten en gasten lopen rond en de mensen dragen kleding bij hun beroep
-- Binnen klinkt de straat gedempt en elk soort pand heeft zijn eigen kamertoon (druk in een café, stil in een kerk), met deurgeluid, winkelbel, kassa en bar; bij de deur hangt een bordje dat groen of rood is naar de openingstijd
+- Binnen klinkt de straat gedempt en elk soort pand heeft zijn eigen kamertoon (druk in een café, stil in een kerk), met deurgeluid, winkelbel, kassa en bar
 - Op de volledige kaart staat een laag Betreedbaar met een deurbadge bij winkels, cafés en andere panden waar je naar binnen kunt
 - De kappersstoel en het pashokje openen het menu van de winkel
 - Binnen in een pand zien alleen agenten vlakbij je nog: een open winkel is een schuilplek voor de politie

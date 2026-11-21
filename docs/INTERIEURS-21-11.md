@@ -48,7 +48,7 @@ NPC's (winkelier achter de balie, klanten, barman, gasten, receptionist, medewer
 
 Interactie (E): kopen of bestellen (een winkel van het spel in het pand opent zijn eigen menu, anders een klein product uit `interiorbuy.js` met geld en gezondheid), passen (kledingwinkel: het menu van de winkel), balie (een regel van de medewerker), kaarsje, loket, boeken, rondkijken (woning). Alle tekst in `interiortexts.js`, alleen tekst, verzonnen namen.
 
-Openingstijden per type (winkels sluiten 's nachts, kroegen na middernacht, kantoor kantoortijd, politie en hotel altijd): een dichte deur blijft dicht met een regel ("Gesloten. Open vanaf 8:00."). Een woning staat voor 22% open (deterministisch, "open huis") of altijd als de speler hem bezit of huurt (`assignInteriorHooks({ owned })`); de rest zit op slot met een grap.
+Panden en bedrijven zijn **altijd open** (eigenaarsbesluit 21-11): winkels, cafés, kantoren, kerken, stations, bibliotheken, garages en publieke gebouwen hebben geen openingstijden en de deur opent op elk uur. Alleen de woningen van anderen zijn beperkt: ruim drie op de vier zitten op slot en zijn niet betreedbaar (een regel bij de deur, bijvoorbeeld "De deur zit op slot."), de rest staat open ("open huis", 22%, deterministisch uit het pandzaad), en een woning die de speler bezit of huurt staat altijd open (`assignInteriorHooks({ owned })`).
 
 ## Samen spelen
 
@@ -93,7 +93,7 @@ Redenen dat een gemeten pand niet kan: hal te klein 13.581, te laag (minder dan 
 | Politie | gebouwd: zichtlijnen, `world.insideBuilding` |
 | Missies en verhaalbeats in een interieur | `interiorscene.js`: ankerpunten (`sceneAnchors`), camera's binnen de hal (`sceneCamera`), `pinInterior(b)` houdt het interieur in leven zolang de scène speelt, `onInteriorChange` meldt binnenkomen en vertrekken |
 | Geluid | gebouwd: binnen dempt het buitengeluid (de bestaande binnen-occlusie), kamertoon per soort, deurgeluid, winkelbel, kassa, bar |
-| Kaartlaag "Betreedbaar" | gebouwd: laag `betreedbaar` in de volledige kaart (deurbadge, vanaf stadsniveau) en een bordje bij de deur (groen open, rood dicht) |
+| Kaartlaag "Betreedbaar" | gebouwd: laag `betreedbaar` in de volledige kaart (deurbadge, vanaf stadsniveau) (de badge is er alleen voor wat betreedbaar is; er zijn geen openingstijden en dus geen groen of rood bordje) |
 | Beppe-huis | bewust niet gemigreerd, zie hieronder |
 
 ### Tweede verdieping en trap
@@ -107,7 +107,7 @@ Klanten, gasten, reizigers, bezoekers, lezers en bewoners lopen rond (`interiorw
 ### Bezit-beheer in het pand: het contract met epic Bezit
 
 Bezit hangt twee haken aan `assignInteriorHooks` (in `bezitlive.js`, zoals `bezithooks.js` dat voor de boerderij doet):
-- `owned(b) -> boolean`: is dit pand van de speler (`ownsBuilding(bezit, b.osm)`); de deur opent dan altijd, ook buiten de openingstijden.
+- `owned(b) -> boolean`: is dit pand van de speler (`ownsBuilding(bezit, b.osm)`); de deur opent dan altijd, ook een woning die anders op slot zit.
 - `manage(b, plan) -> { label, sub, run(w) } | null`: het beheer van dit pand; bij de kassa, bar of balie staat dan "Beheer" in plaats van kopen en `run(w)` opent het beheerscherm van Bezit (omzet, personeel, klanten van dat pand). `plan.kind` en `plan.sub` zeggen wat voor zaak het is.
 De mensen in een eigen zaak kunnen later via `assignRoleOutfit` een eigen outfit krijgen. Bezit weet niets van de binnenkant; de binnenkant weet alleen of er een beheerscherm is.
 
@@ -136,4 +136,4 @@ Stress (`scripts/interior_stress_test.mjs`, node): een wandeling van 5 m/s door 
 - Mensen lopen niet naar boven of weg uit hun kamer, en botsen niet met de speler.
 - Het beheer van eigen panden is een contract: de Bezit-kant is nog niet gewired.
 - Interieur en raam komen overeen in kleur, vloer en meubelsoort; de exacte plaats van het meubel in het raam en dat in de hal zijn niet gelijk.
-- De kaartlaag toont alle winkels en voorzieningen; een pand dat te klein blijkt wordt pas van de kaart gehaald als je er in de buurt komt.
+- De kaartlaag toont alle winkels en voorzieningen (ze zijn altijd open); een pand dat te klein blijkt wordt pas van de kaart gehaald als je er in de buurt komt.

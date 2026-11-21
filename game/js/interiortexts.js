@@ -12,18 +12,6 @@ export const PROMPT = {
   rondkijken: { label: 'Rondkijken', sub: 'Gezellig ingericht' },
 };
 
-// "Gesloten" at the door: {open} is the hour the place opens
-export const CLOSED = {
-  winkel: (name, open) => `${name} is gesloten. Open vanaf ${hourText(open)}.`,
-  horeca: (name, open) => `${name} is dicht. Weer open om ${hourText(open)}.`,
-  kantoor: (name, open) => `Dit kantoor is dicht. Maandag tot vrijdag vanaf ${hourText(open)}.`,
-  kerk: (name, open) => `De kerk is dicht. Open vanaf ${hourText(open)}.`,
-  bibliotheek: (name, open) => `De bibliotheek is gesloten. Open vanaf ${hourText(open)}.`,
-  garage: (name, open) => `De garage is dicht. Open vanaf ${hourText(open)}.`,
-  publiek: (name, open) => `Gesloten. Open vanaf ${hourText(open)}.`,
-  station: (name, open) => `De stationshal is gesloten. Open vanaf ${hourText(open)}.`,
-  woning: () => 'Niemand doet open. De deur zit op slot.',
-};
 export const LOCKED_HOME = ['De deur zit op slot.', 'Niemand thuis. De deur blijft dicht.', 'Aanbellen helpt niet: er is niemand.', 'Op slot, en de gordijnen zijn dicht.'];
 export const hourText = (h) => { const hh = Math.floor(h % 24), mm = Math.round((h - Math.floor(h)) * 60); return `${hh}:${String(mm).padStart(2, '0')}`; };
 

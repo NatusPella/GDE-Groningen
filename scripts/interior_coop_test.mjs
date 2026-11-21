@@ -31,7 +31,7 @@ for (const [kind, sub] of cases) {
   // de mensen: dezelfde winkelier op dezelfde plek, bij elke speler
   const looks = (p) => JSON.stringify(p.layout.npc.map((np, i) => [np.role, np.u, np.v, npcLook(np.role, p.seed, i, p.layout.palette.accent, p.sub)]));
   ok(looks(ph) === looks(pg), `${kind}/${sub}: de mensen staan en zien er bij elke speler hetzelfde uit`);
-  // openingstijd en slot: afgeleid uit de speeldag, nooit uit een host-toestand
+  // open of op slot: afgeleid uit het zaad van het pand, nooit uit een host-toestand
   ok(JSON.stringify(doorState(ph, 12)) === JSON.stringify(doorState(pg, 12)) && JSON.stringify(doorState(ph, 3)) === JSON.stringify(doorState(pg, 3)), `${kind}/${sub}: de deur is bij iedereen even open of dicht`);
 }
 

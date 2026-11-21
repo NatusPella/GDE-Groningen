@@ -8,7 +8,7 @@ Niets hiervan is in Electron of in het echte spel gezien; de agent had alleen no
 2. Staat de vleugel op de plek van de getekende deur, met een passende kleur, en zwaait hij naar binnen zonder door de muur te gaan?
 3. Is de deurstap (de stenen drempel) weg binnen de deuropening en loop je er zonder haperen overheen?
 4. Zit er bij de deur geen straatmeubilair (fietsenrek, bankje, bak) in de weg? De clearzone van binnensets wordt hier niet gebruikt.
-5. Dichte deur 's nachts: de regel "Gesloten. Open vanaf ..." verschijnt een keer per nadering; een woning op slot geeft een grap.
+5. Alles is altijd open: een winkel, café of kantoor opent zijn deur ook 's nachts; een woning van een ander zit op slot (een regel bij de deur) of staat open ("open huis"); een eigen woning staat altijd open.
 6. De winkelbel klinkt (geluid `shop_bell`).
 
 ## Binnen
@@ -39,7 +39,7 @@ Niets hiervan is in Electron of in het echte spel gezien; de agent had alleen no
 24. Boven: de vloer, het plafond, de ruiten van de tweede verdieping in de gevel en de mensen boven staan op de goede hoogte.
 25. Rondlopers: lopen klanten zonder door meubels te gaan, draaien ze mooi bij, en lopen ze niet op een vervelende manier door jou heen?
 26. Geluid: binnen klinkt de straat gedempt, het kamergeluid past bij het soort (café druk, kerk en bibliotheek stil), de deur klinkt open en dicht, de winkelbel klinkt, de kassa en de bar klinken bij kopen en bestellen.
-27. Kaart: de laag "Betreedbaar" in de legenda en de volledige kaart (zoom in), de badge is leesbaar en het bordje bij de deur is groen of rood naar de openingstijd.
+27. Kaart: de laag "Betreedbaar" in de legenda en de volledige kaart (zoom in), de badge is leesbaar (er is geen bordje bij de deur en geen openingstijd).
 28. Kapper en pashokje: de kappersstoel en het pashokje openen het menu van de winkel in het pand.
 29. Politie: schuil in een open pand; de sterren zakken sneller als niemand binnen 9 m is.
 30. Beppe-huis: de verhaalboog is ongewijzigd, het binnengeluid en de politiezichtlijnen tellen mee.

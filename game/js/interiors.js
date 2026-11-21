@@ -27,7 +27,7 @@ import { toWorld, frameOf } from './interiorframe.js';
 import { npcLook, yawOfFace } from './interiornpc.js';
 import { buildPersonMesh, animatePersonWalk, seatPerson, seatedY } from './models3d_people.js';
 import { FAC } from './facilities.js';
-import { PROMPT, CLOSED, LOCKED_HOME, clerkLine, HOME_LOOK, FITTING, HAIRCUT, CHURCH_CANDLE, TICKET_LINES, LEZEN, BOUGHT, TOO_POOR, NOT_FOR_SALE } from './interiortexts.js';
+import { PROMPT, LOCKED_HOME, clerkLine, HOME_LOOK, FITTING, HAIRCUT, CHURCH_CANDLE, TICKET_LINES, LEZEN, BOUGHT, TOO_POOR, NOT_FOR_SALE } from './interiortexts.js';
 import { productFor, buyProduct } from './interiorbuy.js';
 import { shopInBuilding, openShopFromInterior } from './shops.js';
 import { noteMoney } from './finance.js';
@@ -37,10 +37,6 @@ import { isCinematicActive } from './cinematics.js';
 export const BUILD_R = 20, DROP_R = 32, MAX_LIVE = 2, NPC_R = 16, MAX_NPC = 6;
 const OPEN_TIME = 0.3, OPEN_ANGLE = 1.75, DOOR_REACH = 3.0;
 const BRON = 'interieur';
-// the little sign beside a door of a shop, cafe or office: green when it is open, red when it is closed (shared geometry and materials)
-const SIGN_GEO = new THREE.BoxGeometry(0.26, 0.16, 0.03); SIGN_GEO.userData.shared = true;
-const SIGN_OPEN = new THREE.MeshBasicMaterial({ color: 0x3fc97a }); SIGN_OPEN.userData.shared = true;
-const SIGN_SHUT = new THREE.MeshBasicMaterial({ color: 0xd93f3f }); SIGN_SHUT.userData.shared = true;
 
 const S = { live: new Map(), plans: new WeakMap(), scan: 0, spots: null, spotsN: -1, closedAt: new WeakMap(), inside: null, listeners: [], hooks: { owned: () => false, manage: () => null, homeStyle: () => null }, pinned: new Set(), time: 0 };
 
@@ -107,18 +103,10 @@ function build(w, rec) {
   leaf.userData.noBatch = true;
   pivot.add(leaf);
   group.add(pivot);
-  let sign = null;
-  if (plan.kind !== 'woning') {
-    sign = new THREE.Mesh(SIGN_GEO, SIGN_OPEN);
-    const [sx, sz] = toWorld(fr, plan.door.w / 2 + 0.28, -0.07);
-    sign.position.set(sx - fr.ox, ground + 1.45, sz - fr.oy);
-    sign.rotation.y = Math.atan2(fr.nx, fr.ny); // faces outward
-    group.add(sign);
-  }
   scene.add(group);
   // the facade is cut open where the door is (the leaf and the reveal fill the gap)
   const box = { cx: fr.ox, cy: fr.oy, ux: fr.nx, uy: fr.ny, hl: 0.6, hw: plan.door.w / 2, top: ground + plan.door.h + 0.02, bottom: ground - 0.3 };
-  const ls = { b, plan, group, mesh, pivot, leaf, sign, openNow: true, ground, box, boxes: [box], open: 0, target: 0, npcs: [], npcsOn: false, triangles, side: Math.sign(fr.tx * -fr.ny + fr.ty * fr.nx) || 1, bellAt: 0, walk: null };
+  const ls = { b, plan, group, mesh, pivot, leaf, ground, box, boxes: [box], open: 0, target: 0, npcs: [], npcsOn: false, triangles, side: Math.sign(fr.tx * -fr.ny + fr.ty * fr.nx) || 1, bellAt: 0, walk: null };
   registerPortalBoxes(ls, ls.boxes);
   ls.walk = makeWalk(plan, b.pts, () => ls.open > 0.55, ground);
   b.walk = ls.walk;
@@ -218,11 +206,10 @@ function updateLive(w, ls, dt, p, onFoot) {
   if (was < 0.05 && ls.open > 0.05 && !plan.shop && w.audioEvents && w.audioEvents.length < 64 && S.time - ls.bellAt > 3) { ls.bellAt = S.time; w.audioEvents.push({ kind: 'fx', name: 'door_wood_open', x: fr.ox, y: fr.oy }); }
   if (was > 0.95 && ls.open < 0.95 && w.audioEvents && w.audioEvents.length < 64 && S.time - (ls.closeAt || -9) > 3) { ls.closeAt = S.time; w.audioEvents.push({ kind: 'fx', name: 'door_wood_close', x: fr.ox, y: fr.oy }); }
   if (was < 0.05 && ls.open > 0.05 && plan.shop && w.audioEvents && w.audioEvents.length < 64 && S.time - ls.bellAt > 3) { ls.bellAt = S.time; w.audioEvents.push({ kind: 'fx', name: 'shop_bell', x: fr.ox, y: fr.oy }); }
-  if (ls.sign && ls.openNow !== st.open) { ls.openNow = st.open; ls.sign.material = st.open ? SIGN_OPEN : SIGN_SHUT; }
   // a closed door says so, once per approach
   if (!st.open && onFoot && dd < 2.4 && !inside && S.time - (S.closedAt.get(ls.b) || -99) > 20) {
     S.closedAt.set(ls.b, S.time);
-    const text = plan.kind === 'woning' ? LOCKED_HOME[plan.seed % LOCKED_HOME.length] : (CLOSED[plan.kind] || CLOSED.publiek)(ls.plan.label, st.opensAt);
+    const text = plan.kind === 'woning' ? LOCKED_HOME[plan.seed % LOCKED_HOME.length] : '';
     if (w.addMessage) w.addMessage(text, 3.2, { kind: 'tip' });
   }
   // who is inside

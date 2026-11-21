@@ -4,7 +4,7 @@
 // game (interiors.js, when the player comes near) and the coverage audit (scripts/interior_audit.mjs,
 // the whole province), so what the audit counts is what the game does.
 import { hash2 } from './rng.js';
-import { KINDS, kindOfBuilding, isOpen, opensAt, homeOpen, labelOf } from './interiorkinds.js';
+import { KINDS, kindOfBuilding, homeOpen, labelOf } from './interiorkinds.js';
 import { frameOf, findHall, synthEntrance, WALL_T } from './interiorframe.js';
 import { generateLayout } from './interiorlayout.js';
 import { mulberry32 } from './rng.js';
@@ -76,14 +76,13 @@ export function planInterior(b, opts = {}) {
   };
 }
 
-// Is the door open for the player? hour 0..24; private homes follow the "open house" share, owned ones always.
+// Is the door open for the player? Businesses always; homes of others only the "open house" share (the rest is not enterable), owned ones always.
 export function doorState(plan, hour, owned = false) {
   if (plan.kind === 'woning') {
     const open = homeOpen((plan.seed % 1000) / 1000, owned);
     return { open, why: open ? '' : 'slot' };
   }
-  const open = isOpen(plan.kind, plan.sub, hour);
-  return { open, why: open ? '' : 'gesloten', opensAt: open ? null : opensAt(plan.kind, plan.sub) };
+  return { open: true, why: '' }; // businesses are always open (owner decision 21-11)
 }
 
 export { WALL_T };
