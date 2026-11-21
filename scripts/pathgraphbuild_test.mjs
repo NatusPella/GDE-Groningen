@@ -1,5 +1,6 @@
 // De hervatbare graafopbouw (#1008):  node scripts/pathgraphbuild_test.mjs  [--bench]
 // Stap voor stap bouwen (met een piepklein budget) geeft exact dezelfde graaf als achter elkaar, en een stap blijft klein.
+import { createHash } from 'node:crypto';
 import { graphBuildSteps, runSteps, ROADS_PER_STEP } from '../game/js/pathgraphbuild.js';
 
 let n = 0, fails = 0;
@@ -75,6 +76,16 @@ ok(empty.N === 0 && empty.drive.to.length === 0, 'geen wegen: lege graaf');
 
 // de graaf is deterministisch: twee keer bouwen geeft hetzelfde
 ok(sameGraph(full, runSteps(graphBuildSteps(roads, hooks)).value), 'deterministisch');
+
+// #1040: de bouw laat elke platte kantenlijst los na zijn CSR; de uitkomst moet byte voor byte die van de bouw van daarvoor zijn
+// (de controlesom komt uit de versie zonder null-zetten, zelfde 3000 wegen en haken).
+{
+  const buf = (t) => Buffer.from(t.buffer, t.byteOffset, t.byteLength);
+  const h = createHash('sha256');
+  for (const k of KEYS) { const a = full[k]; h.update(buf(a.start)); h.update(buf(a.to)); h.update(buf(a.len)); if (a.road) h.update(buf(a.road)); }
+  for (const k of ['walkComp', 'driveComp', 'bikeComp']) h.update(buf(full[k].comp));
+  ok(h.digest('hex').slice(0, 16) === '90492c7dd253e0a7', 'uitkomst gelijk aan de bouw zonder vrijgeven (controlesom)');
+}
 
 if (process.argv.includes('--bench')) {
   const big = makeRoads(20000);
