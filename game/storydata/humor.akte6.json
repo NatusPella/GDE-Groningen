@@ -5,7 +5,16 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     2,
+     "neutral",
+     0
+    ],
+    "reason": "Concreet en vaste-klant-gevoel, derde in de rij.",
+    "certainty": "laag",
+    "tiebreak": 0
+   },
    "id": "H6-01",
    "scene": "M27.1",
    "speaker": "WILLEMIEN",
@@ -22,7 +31,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     1
+    ],
+    "reason": "Directe terugkaatsing van Oma's antwoord, zonder uitleg.",
+    "certainty": "laag"
+   },
    "id": "H6-02",
    "scene": "M29.2",
    "speaker": "TAMMO",
@@ -38,8 +55,16 @@
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
-   "panel": null,
+   "chosen": 1,
+   "panel": {
+    "votes": [
+     0,
+     1,
+     1
+    ],
+    "reason": "Jelle wacht bureaucratisch op de prijs.",
+    "certainty": "midden"
+   },
    "id": "H6-03",
    "scene": "M30.6",
    "speaker": "JELLE",

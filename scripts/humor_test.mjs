@@ -1,4 +1,4 @@
-// Humorkeuze (#1134, docs/verhaal/HUMOR-WERKWIJZE.md): elke nieuwe of herschreven komische beat in game/storydata/humor.json
+// Humorkeuze (#1134, docs/verhaal/SCHRIJFREGELS-21-11.md): elke nieuwe of herschreven komische beat in game/storydata/humor.json
 // heeft drie varianten en een veilige neutrale terugval; het spel gebruikt de gekozen variant (script.json draagt hem met
 // het label humor-review); een paneeloordeel (drie onafhankelijke beoordelaars) bepaalt de winnaar en staat in
 // docs/verhaal/HUMOR-KEUZELIJST.md voor een veto van de eigenaar. `--eis-paneel`: elke beat moet beoordeeld zijn.

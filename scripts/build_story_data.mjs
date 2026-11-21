@@ -111,7 +111,7 @@ function kindOf(id, title) {
   return 'key';
 }
 
-// De humorkeuze (#1134 en docs/verhaal/HUMOR-WERKWIJZE.md): een nieuwe of herschreven komische beat heeft drie varianten en een
+// De humorkeuze (#1134 en docs/verhaal/SCHRIJFREGELS-21-11.md): een nieuwe of herschreven komische beat heeft drie varianten en een
 // veilige neutrale terugval in game/storydata/humor.json; `chosen` (0, 1, 2 of 'neutral') is de variant die het spel gebruikt.
 // De bron (de 09-scripts) draagt een van de teksten; de build zet de gekozen tekst in de regel en geeft hem het label 'humor'.
 export function readHumor(dir = HUMOR_DIR) {

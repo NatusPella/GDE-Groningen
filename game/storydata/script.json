@@ -1766,7 +1766,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Het hing al aan de koelkast.",
+     "text": "…Het was er al.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -2356,7 +2356,7 @@
     {
      "speaker": "Rikus",
      "key": "rikus",
-     "text": "Dat is een duidelijk plan. Ik draai een plaat.",
+     "text": "Dat is een helder plan. Ik zeg niks. Ik draai een plaat.",
      "tag": "NIEUW",
      "channel": "radio",
      "textOnly": true,
@@ -2844,7 +2844,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Dat zeg je altijd.",
+     "text": "Ik weet het.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true,
@@ -4148,7 +4148,7 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Mevrouw. Het vet van Grunn is van mij. Ik koop het voor één klomp.",
+     "text": "Mevrouw. Al het vet van Grunn: één klomp. Mijn juristen vonden het veel.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true,
@@ -4672,7 +4672,7 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Mevrouw. Juridisch is een fatbike geen fiets, en voetgangers hebben hier geen voorrang. Dat staat in mijn overeenkomst.",
+     "text": "Mevrouw. Een fatbike is juridisch geen fiets, dus u heeft geen voorrang. Dat staat in mijn overeenkomst.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true,
@@ -5162,7 +5162,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Je vroeg niet naar de kippen.",
+     "text": "Je vroeg nooit naar de kippen.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -6262,7 +6262,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Een broodtrommel. We hebben een boot gekaapt voor een broodtrommel.",
+     "text": "Een broodtrommel. Geen bal.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -7100,7 +7100,7 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Was. Mijn juristen hebben het contract nagelezen.",
+     "text": "Sinds vanochtend wel. Mijn juristen hebben het geregeld.",
      "tag": "NIEUW",
      "channel": "radio",
      "textOnly": true,
@@ -7427,7 +7427,7 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Er zitten duiven op mijn mand. Mijn juristen hebben duiven niet voorzien.",
+     "text": "Mijn juristen hebben alles voorzien, behalve duiven.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -8859,7 +8859,7 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Een bedankbriefje. \"Tige tank! – J.\" Uw spandoek heeft mijn proeverij uitverkocht.",
+     "text": "Een bedankbriefje voor het spandoek. \"Tige tank! – J.\"",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -9008,7 +9008,7 @@
     {
      "speaker": "Geert",
      "key": "geert",
-     "text": "Hij kijkt al sinds de ingang naar je. Dat zie ik altijd.",
+     "text": "Hij kijkt al sinds de ingang naar je.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -9444,7 +9444,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Goed. Maandag dan.",
+     "text": "Heel goed. Maandag.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -10416,7 +10416,7 @@
     {
      "speaker": "Sjabbe",
      "key": "sjabbe",
-     "text": "Wiebelwerk? Zij beheren ook de camera's van het museum. Hun accountmanager belt me elke week. Mijn website is nog steeds in aanbouw.",
+     "text": "Wiebelwerk? Zij beheren ook de camera's van het museum. Hun accountmanager belt me elke week, over een website die nog niet bestaat.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true,
@@ -13126,7 +13126,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Zonder auto rijd jij nergens.",
+     "text": "Zonder auto sta jij nergens.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true,
@@ -14681,7 +14681,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "In drievoud. De derde kopie is voor de ontvanger. Dat zijn wij.",
+     "text": "Hij stuurt altijd alles in drievoud.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -15850,7 +15850,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Ze komen vanzelf.",
+     "text": "Ik heb ze niet gevraagd.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -16495,7 +16495,7 @@
     {
      "speaker": "Berend Bos",
      "key": "berend",
-     "text": "Elf seconden. Ik tel alleen.",
+     "text": "Dat duurde elf seconden.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -17386,7 +17386,7 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Dat is een ander gesprek.",
+     "text": "Mijn juristen kijken naar die klomp.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true,
@@ -18365,7 +18365,7 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Ik heb het gezien. Ik wacht tot het goedkoper wordt.",
+     "text": "Dat pand ken ik. Ik wacht tot de prijs zakt.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,

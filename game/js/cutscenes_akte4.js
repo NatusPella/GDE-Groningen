@@ -409,8 +409,8 @@ S['M26.outro'] = {
     { on: 'Kon veel minder', dt: 2.0, actor: 'tessa', anim: 'lean' },
     { on: 'Kon veel minder', dt: 2.0, actor: 'tammo', anim: 'lean' },
     { on: '…Ik heb geen woorden meer', actor: 'tammo', anim: 'shake' },
-    { on: 'Elf seconden', actor: 'berend', anim: 'point' },
-    { on: 'Elf seconden', dt: 0.3, actor: 'rikus', anim: 'cheer' },
+    { on: 'Dat duurde elf seconden', actor: 'berend', anim: 'point' },
+    { on: 'Dat duurde elf seconden', dt: 0.3, actor: 'rikus', anim: 'cheer' },
   ],
   // sleutelscène (de vijf woorden en de kus): close-ups, een reactieshot op Tessa na de zin die ertoe doet en een trage ronde om de kus
   shots: [
@@ -658,7 +658,7 @@ S['M26.5'] = {
     { on: 'Voor mijn vlag', actor: 'jelle', anim: 'shake' },
     { on: 'Op een evenement staat een kraam', actor: 'tessa', anim: 'hips' },
     { on: '…Jouw duiven hadden geen vergunning', actor: 'jelle', anim: 'point' },
-    { on: 'Ze komen vanzelf', actor: 'tammo', anim: 'shrug' },
+    { on: 'Ik heb ze niet gevraagd', actor: 'tammo', anim: 'shrug' },
     { on: 'Eierbal? Hij is warm', actor: 'tammo', anim: 'point' },
     { on: 'Eierbal? Hij is warm', dt: 1.4, actor: 'jelle', face: 'prop:bakje' },
     { on: 'Eierbal? Hij is warm', dt: 2.2, actor: 'mem', walk: [[2.4, -0.2]], speed: 1.5 },
@@ -672,7 +672,7 @@ S['M26.5'] = {
   shots: [
     { on: 'Je eigen vergunning', dt: 0.2, shot: 'close', target: 'tessa', dist: 1.25, side: 0.2, fov: 28 },
     { on: '…Jouw duiven hadden geen vergunning', dt: 0.2, shot: 'close', target: 'jelle', dist: 1.35, side: 0.25, fov: 28 },
-    { on: 'Ze komen vanzelf', dt: 0, shot: 'close', target: 'tammo', dist: 1.25, side: 0.2, fov: 28 },
+    { on: 'Ik heb ze niet gevraagd', dt: 0, shot: 'close', target: 'tammo', dist: 1.25, side: 0.2, fov: 28 },
     { on: 'Eierbal? Hij is warm', dt: 0.1, shot: 'close', target: 'tammo', dist: 1.25, side: 0.2, fov: 28 },
     { on: 'Eierbal? Hij is warm', dt: 1.6, shot: 'close', target: 'jelle', dist: 1.3, side: 0.2, fov: 26 },
   ],

@@ -5,7 +5,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     0
+    ],
+    "reason": "Twee klompen, Foar mem: verdubbeling zonder franje.",
+    "certainty": "hoog"
+   },
    "id": "H4-01",
    "scene": "R4.0",
    "speaker": "JELLE",
@@ -22,7 +30,16 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     2,
+     1
+    ],
+    "reason": "Hij kijkt altijd: onderkoeld en kort.",
+    "certainty": "laag",
+    "tiebreak": 0
+   },
    "id": "H4-02",
    "scene": "M17.2",
    "speaker": "TAMMO",
@@ -39,7 +56,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     0
+    ],
+    "reason": "Werkfilosofie met Vandaag dicht als pointe.",
+    "certainty": "hoog"
+   },
    "id": "H4-03",
    "scene": "M17.3",
    "speaker": "WUBBO",
@@ -56,7 +81,16 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     2,
+     "neutral"
+    ],
+    "reason": "Sluit exact aan op Tammo's herhaling in H4-12.",
+    "certainty": "laag",
+    "tiebreak": 0
+   },
    "id": "H4-04",
    "scene": "M18.1",
    "speaker": "TAMMO",
@@ -73,7 +107,16 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     2,
+     1
+    ],
+    "reason": "Dat zei ik ook: droog, Tessa's directheid.",
+    "certainty": "laag",
+    "tiebreak": 0
+   },
    "id": "H4-05",
    "scene": "M18.4",
    "speaker": "TESSA",
@@ -90,7 +133,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     0
+    ],
+    "reason": "Geschenk dat een voorschot heet: Jelle op zijn best.",
+    "certainty": "hoog"
+   },
    "id": "H4-06",
    "scene": "M19.2",
    "speaker": "JELLE",
@@ -107,7 +158,16 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     2,
+     1
+    ],
+    "reason": "Naar het Beleg met zijn mannen is helder en laat Jelle onbenoemd.",
+    "certainty": "laag",
+    "tiebreak": 0
+   },
    "id": "H4-07",
    "scene": "M19.3",
    "speaker": "BEREND",
@@ -124,7 +184,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     1
+    ],
+    "reason": "Moet aansluiten op Klaas in H4-10.",
+    "certainty": "midden"
+   },
    "id": "H4-08",
    "scene": "M21.4",
    "speaker": "KAPITEIN KLAAS",
@@ -141,7 +209,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     0
+    ],
+    "reason": "Mestemmer als doel is de pointe, laatste.",
+    "certainty": "hoog"
+   },
    "id": "H4-09",
    "scene": "B4",
    "speaker": "TESSA",
@@ -158,7 +234,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     1
+    ],
+    "reason": "Moet aansluiten op de herhaling van Tammo's vastlopende zin in H4-08.",
+    "certainty": "midden"
+   },
    "id": "H4-10",
    "scene": "M21.4",
    "speaker": "TAMMO",
@@ -174,8 +258,16 @@
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
-   "panel": null,
+   "chosen": 1,
+   "panel": {
+    "votes": [
+     1,
+     1,
+     1
+    ],
+    "reason": "Sta jij nergens: warm en droog, zonder uitleg.",
+    "certainty": "midden"
+   },
    "id": "H4-11",
    "scene": "O9",
    "speaker": "TESSA",
@@ -191,8 +283,16 @@
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
-   "panel": null,
+   "chosen": 2,
+   "panel": {
+    "votes": [
+     2,
+     "neutral",
+     2
+    ],
+    "reason": "Een website die nog niet bestaat is de sterkste kicker.",
+    "certainty": "laag"
+   },
    "id": "H4-12",
    "scene": "M18.1",
    "speaker": "SJABBE",

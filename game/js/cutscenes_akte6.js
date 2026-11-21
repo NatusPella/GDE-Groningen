@@ -291,7 +291,7 @@ S['M30.outro'] = {
     { on: 0, dt: 0.4, actor: 'tinus', walk: [[4.6, -1.8]], speed: 0.8 },
     { on: 'De bieten staan', actor: 'geesje', anim: 'point' },
     { on: 'In Veendam zoeken ze', actor: 'berend', anim: 'point' },
-    { on: 'Ik heb het gezien', actor: 'jelle', anim: 'shrug' },
+    { on: 'Dat pand ken ik', actor: 'jelle', anim: 'shrug' },
     { on: 'Elke zomer één ronde', actor: 'tessa', anim: 'talk' },
     { on: 'Thuis is waar de kar staat', actor: 'tammo', anim: 'hips' },
     { on: 'Zes.', actor: 'tessa', anim: 'laugh' },

@@ -17,6 +17,7 @@ naslag: de bron, de scripts, de opnames en de verslagen. Bij verschil wint de sp
 | 5. In het spel: scènes en acteurs | [nieuw/08-IMPLEMENTATIE.md](nieuw/08-IMPLEMENTATIE.md) (momentopname 17-10-2026; paden kunnen verouderd zijn), [STIJLGIDS.md](STIJLGIDS.md) | naslag; de code is de waarheid |
 | 5b. De ruggengraat per akte (21-11, #1123) | [RUGGENGRAAT.md](RUGGENGRAAT.md) | naslag; de toets is `scripts/story_spine_test.mjs` |
 | 5c. Schrijfregels voor de verhaalherschrijving (21-11, #1121): canon, introductie, dialoog, humor, werkwijze | [SCHRIJFREGELS-21-11.md](SCHRIJFREGELS-21-11.md) | naslag |
+| 5d. De humorkeuze (veto-lijst, 21-11): per komische beat de gekozen variant, het paneeloordeel en de alternatieven | [HUMOR-KEUZELIJST.md](HUMOR-KEUZELIJST.md) | gegenereerd door `node scripts/humor_doc.mjs` |
 | 6. Presentatie: trailer | [E-trailer.md](E-trailer.md) (leidend), [nieuw/TRAILER-SCRIPT.md](nieuw/TRAILER-SCRIPT.md) (concept voor #63) | concept, niet leidend |
 
 ## Personages en stem

@@ -1,11 +1,19 @@
 {
- "note": "Humorkeuze (#1134): per komische beat drie varianten en een veilige neutrale terugval; `chosen` (0, 1, 2 of \"neutral\") gebruikt het spel. De bron (09-scripts) draagt een van de teksten, de build zet de gekozen tekst in de regel (label humor-review). Werkwijze: docs/verhaal/HUMOR-WERKWIJZE.md.",
+ "note": "Humorkeuze (#1134): per komische beat drie varianten en een veilige neutrale terugval; `chosen` (0, 1, 2 of \"neutral\") gebruikt het spel. De bron (09-scripts) draagt een van de teksten, de build zet de gekozen tekst in de regel (label humor-review). Werkwijze: docs/verhaal/SCHRIJFREGELS-21-11.md.",
  "beats": [
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
-   "panel": null,
+   "chosen": 2,
+   "panel": {
+    "votes": [
+     1,
+     2,
+     2
+    ],
+    "reason": "Onhandige ontkenning met stilte.",
+    "certainty": "midden"
+   },
    "id": "H01",
    "scene": "O1",
    "speaker": "TAMMO",
@@ -21,8 +29,16 @@
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
-   "panel": null,
+   "chosen": "neutral",
+   "panel": {
+    "votes": [
+     "neutral",
+     "neutral",
+     "neutral"
+    ],
+    "reason": "Ik weet het is warm en kort voor Rikus' slaap lekker.",
+    "certainty": "midden"
+   },
    "id": "H02",
    "scene": "O2",
    "speaker": "TAMMO",
@@ -39,7 +55,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     1,
+     0
+    ],
+    "reason": "Daarom belt hij mij: droog en scherp.",
+    "certainty": "midden"
+   },
    "id": "H03",
    "scene": "O6",
    "speaker": "TESSA",
@@ -55,8 +79,16 @@
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
-   "panel": null,
+   "chosen": 1,
+   "panel": {
+    "votes": [
+     0,
+     1,
+     1
+    ],
+    "reason": "Juristen en klomp: Jelle-gag met kicker.",
+    "certainty": "laag"
+   },
    "id": "H04",
    "scene": "O11",
    "speaker": "JELLE",
@@ -73,7 +105,16 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     2,
+     1
+    ],
+    "reason": "Koekje wilden: Tessa's droge understatement.",
+    "certainty": "laag",
+    "tiebreak": 0
+   },
    "id": "H06",
    "scene": "M02.5",
    "speaker": "TESSA",
@@ -89,8 +130,16 @@
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
-   "panel": null,
+   "chosen": 1,
+   "panel": {
+    "votes": [
+     1,
+     "neutral",
+     1
+    ],
+    "reason": "Ik zeg niks als mening, dan de plaat: Rikus.",
+    "certainty": "midden"
+   },
    "id": "H07",
    "scene": "R1.1",
    "speaker": "RIKUS",
@@ -107,7 +156,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     0
+    ],
+    "reason": "Samen nul banen is de pointe, en de rest is kort.",
+    "certainty": "hoog"
+   },
    "id": "H08",
    "scene": "C00.2",
    "speaker": "TESSA",

@@ -4,8 +4,16 @@
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
-   "panel": null,
+   "chosen": 2,
+   "panel": {
+    "votes": [
+     2,
+     2,
+     2
+    ],
+    "reason": "Juristen die het veel vonden is een droge Jelle-kicker, en past voor Tammo's Salamitactiek.",
+    "certainty": "midden"
+   },
    "id": "H2-01",
    "scene": "M07.1",
    "speaker": "JELLE",
@@ -21,8 +29,16 @@
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
-   "panel": null,
+   "chosen": 1,
+   "panel": {
+    "votes": [
+     0,
+     1,
+     1
+    ],
+    "reason": "Compact, juridisch en met de vaste overeenkomstkicker.",
+    "certainty": "laag"
+   },
    "id": "H2-02",
    "scene": "M08.2",
    "speaker": "JELLE",
@@ -38,8 +54,16 @@
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
-   "panel": null,
+   "chosen": 1,
+   "panel": {
+    "votes": [
+     1,
+     2,
+     1
+    ],
+    "reason": "Je vroeg nooit naar de kippen: droog, kort, pointe laatste.",
+    "certainty": "midden"
+   },
    "id": "H2-03",
    "scene": "M09.1",
    "speaker": "TESSA",
@@ -56,7 +80,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     1
+    ],
+    "reason": "Kort en droog, laat Tammo's rouwjas-regel de pointe zijn.",
+    "certainty": "laag"
+   },
    "id": "H2-04",
    "scene": "M10.2",
    "speaker": "TESSA",
@@ -73,7 +105,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     1
+    ],
+    "reason": "Twee. Eén woord, perfecte droge correctie en echo.",
+    "certainty": "midden"
+   },
    "id": "H2-05",
    "scene": "M11.1",
    "speaker": "TAMMO",
@@ -89,8 +129,16 @@
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
-   "panel": null,
+   "chosen": "neutral",
+   "panel": {
+    "votes": [
+     "neutral",
+     "neutral",
+     0
+    ],
+    "reason": "Geen bal is een korte woordspeling met de pointe laatste.",
+    "certainty": "midden"
+   },
    "id": "H2-06",
    "scene": "M11.3",
    "speaker": "TAMMO",
@@ -107,7 +155,16 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     1,
+     2
+    ],
+    "reason": "Tessa die het afdoet met een nuchtere boot-uitleg verbergt het gevoel droog.",
+    "certainty": "laag",
+    "tiebreak": 0
+   },
    "id": "H2-07",
    "scene": "M11.3",
    "speaker": "TESSA",

@@ -5,7 +5,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     "neutral",
+     0
+    ],
+    "reason": "Zij ook niet verbindt Bert en de duiven droog.",
+    "certainty": "laag"
+   },
    "id": "H5-01",
    "scene": "M24.1",
    "speaker": "BERT",
@@ -21,8 +29,16 @@
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
-   "panel": null,
+   "chosen": 1,
+   "panel": {
+    "votes": [
+     1,
+     1,
+     1
+    ],
+    "reason": "Ik heb ze niet gevraagd: Tammo's letterlijkheid.",
+    "certainty": "hoog"
+   },
    "id": "H5-02",
    "scene": "M26.5",
    "speaker": "TAMMO",
@@ -39,7 +55,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     "neutral",
+     0
+    ],
+    "reason": "Sluit op H5-02 aan en is kort en droog.",
+    "certainty": "midden"
+   },
    "id": "H5-03",
    "scene": "M26.5",
    "speaker": "TESSA",
@@ -55,8 +79,16 @@
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
-   "panel": null,
+   "chosen": "neutral",
+   "panel": {
+    "votes": [
+     "neutral",
+     "neutral",
+     1
+    ],
+    "reason": "Understated: geen uitleg, de gewoonte is de grap.",
+    "certainty": "midden"
+   },
    "id": "H5-04",
    "scene": "O10",
    "speaker": "TESSA",
@@ -72,8 +104,16 @@
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
-   "panel": null,
+   "chosen": "neutral",
+   "panel": {
+    "votes": [
+     "neutral",
+     "neutral",
+     1
+    ],
+    "reason": "Droog tellen zonder uitleg, voedt de latere callback.",
+    "certainty": "laag"
+   },
    "id": "H5-05",
    "scene": "M26.17",
    "speaker": "BEREND",
@@ -90,7 +130,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     0
+    ],
+    "reason": "Moet aansluiten op H5-07 ervoor, en is kort.",
+    "certainty": "hoog"
+   },
    "id": "H5-06",
    "scene": "E1",
    "speaker": "TAMMO",
@@ -107,7 +155,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     2,
+     0
+    ],
+    "reason": "Ik heb niks gezegd: klassieke droge ontkenning.",
+    "certainty": "midden"
+   },
    "id": "H5-07",
    "scene": "E1",
    "speaker": "TAMMO",
@@ -124,7 +180,16 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     "neutral",
+     1
+    ],
+    "reason": "Dat zegt hij heel hard: droge correctie op Rikus.",
+    "certainty": "laag",
+    "tiebreak": 0
+   },
    "id": "H5-08",
    "scene": "E2",
    "speaker": "TAMMO",
@@ -141,7 +206,16 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     2,
+     0,
+     "neutral"
+    ],
+    "reason": "Zelfde maat als Tessa, kort.",
+    "certainty": "laag",
+    "tiebreak": 0
+   },
    "id": "H5-09",
    "scene": "E2",
    "speaker": "TAMMO",

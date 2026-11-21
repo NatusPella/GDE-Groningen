@@ -2,25 +2,13 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Waarom nou een frietwagen?",
+  "text": "Is dat het plan? Een frietwagen?",
   "scene": "C00.2"
  },
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "En ik rijd.",
-  "scene": "C00.2"
- },
- {
-  "reason": "spreektekst",
-  "speaker": "Rikus",
-  "text": "En nu een plaat voor Tammo, mijn vriend sinds groep drie. Hij heeft een grote dag en zegt niks.",
-  "scene": "C00.2"
- },
- {
-  "reason": "spreektekst",
-  "speaker": "Tammo",
-  "text": "Rikus draait mijn plaat.",
+  "text": "Dan rijd ik hem. Tot je het weet.",
   "scene": "C00.2"
  },
  {
@@ -44,7 +32,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Het hing al aan de koelkast.",
+  "text": "…Het was er al.",
   "scene": "O1"
  },
  {
@@ -80,7 +68,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Rikus",
-  "text": "Dat is een duidelijk plan. Ik draai een plaat.",
+  "text": "Dat is een helder plan. Ik zeg niks. Ik draai een plaat.",
   "scene": "R1.1"
  },
  {
@@ -122,7 +110,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Dat zeg je altijd.",
+  "text": "Ik weet het.",
   "scene": "O2"
  },
  {
@@ -224,7 +212,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Een broodtrommel. We hebben een boot gekaapt voor een broodtrommel.",
+  "text": "Een broodtrommel. Geen bal.",
   "scene": "M11.3"
  },
  {
@@ -344,7 +332,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "We hebben nog geen wagen.",
+  "text": "Het is niet eens van ons. Het is van mijn oma.",
   "scene": "O6"
  },
  {
@@ -416,7 +404,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Geert",
-  "text": "Hij kijkt al sinds de ingang naar je. Dat zie ik altijd.",
+  "text": "Hij kijkt al sinds de ingang naar je.",
   "scene": "M16.1"
  },
  {
@@ -488,7 +476,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Sjabbe",
-  "text": "Wiebelwerk? Zij beheren ook de camera's van het museum. Hun accountmanager belt me elke week. Mijn website is nog steeds in aanbouw.",
+  "text": "Wiebelwerk? Zij beheren ook de camera's van het museum. Hun accountmanager belt me elke week, over een website die nog niet bestaat.",
   "scene": "M18.1"
  },
  {
@@ -722,7 +710,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Ze komen vanzelf.",
+  "text": "Ik heb ze niet gevraagd.",
   "scene": "M26.5"
  },
  {
@@ -758,7 +746,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Berend Bos",
-  "text": "Elf seconden. Ik tel alleen.",
+  "text": "Dat duurde elf seconden.",
   "scene": "M26.17"
  },
  {
