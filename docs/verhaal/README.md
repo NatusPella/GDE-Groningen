@@ -18,6 +18,7 @@ naslag: de bron, de scripts, de opnames en de verslagen. Bij verschil wint de sp
 | 5b. De ruggengraat per akte (21-11, #1123) | [RUGGENGRAAT.md](RUGGENGRAAT.md) | naslag; de toets is `scripts/story_spine_test.mjs` |
 | 5c. Schrijfregels voor de verhaalherschrijving (21-11, #1121): canon, introductie, dialoog, humor, werkwijze | [SCHRIJFREGELS-21-11.md](SCHRIJFREGELS-21-11.md) | naslag |
 | 5d. De humorkeuze (veto-lijst, 21-11): per komische beat de gekozen variant, het paneeloordeel en de alternatieven | [HUMOR-KEUZELIJST.md](HUMOR-KEUZELIJST.md) | gegenereerd door `node scripts/humor_doc.mjs` |
+| 5f. Dialoogkwaliteit (21-11): 29 herschreven beats in 15 scènes, per beat twee varianten, het paneeloordeel en de veto-lijst | [DIALOOG-PANEEL-21-11.md](DIALOOG-PANEEL-21-11.md) | verslag |
 | 5e. Het filmscript (21-11): logline, beat sheet per akte, sluglines per scène, muziekmomenten en scènebord | [FILMSCRIPT-21-11.md](FILMSCRIPT-21-11.md) | gegenereerd door `node scripts/filmscript_export.mjs` |
 | 5f. De muzieklijst (verzonnen nummers, richting per akte en het autoduet) | [MUZIEKLIJST-21-11.md](MUZIEKLIJST-21-11.md) | voor een latere muziekronde |
 | 6. Presentatie: trailer | [E-trailer.md](E-trailer.md) (leidend), [nieuw/TRAILER-SCRIPT.md](nieuw/TRAILER-SCRIPT.md) (concept voor #63) | concept, niet leidend |
