@@ -458,7 +458,8 @@ export function dagTik(w) {
   if (day <= from) return null;
   const money = Number.isFinite(w && w.money) ? w.money : 0;
   const rep = H.advanceDays(b, farm, day, { money, deliver: 'sell' });
-  let net = rep.net, bizNet = 0, tax = 0;
+  const incF = P.difficultyFactor('income'), dI = (x) => (x > 0 ? x * incF : x);          // moeilijkheid (bezitdifficulty.js): alleen wat binnenkomt schaalt, kosten niet
+  let net = dI(rep.net), bizNet = 0, tax = 0;
   const last = Math.min(day, from + 60);
   for (const m of myBusinesses()) {
     const x = m.row ? m.row.x : 0, y = m.row ? m.row.y : 0, region = regionOfPoint(x, y);
@@ -476,12 +477,13 @@ export function dagTik(w) {
     BZ.storeBiz(b, res.biz); mobNet += res.sum.net; tax += res.sum.tax;
   }
   bizNet += mobNet;
-  net += bizNet;
+  net += dI(bizNet);
   const rows = ownedRows(farm, b);
   const ch = tickChains(w, farm, from, last, rows);
-  net += ch.bonus;
+  net += dI(ch.bonus);
   const sn = snackOn ? tickSnack(w, SS, from, last, money) : { own: 0, passive: 0, fixed: 0, lines: [] };
-  net += sn.passive;                                                                              // wat de medewerkers in de wagens verdienen is passief: onder dezelfde rem
+  sn.own = dI(sn.own); sn.passive = dI(sn.passive);
+  net += sn.passive;                                                                             // wat de medewerkers in de wagens verdienen is passief: onder dezelfde rem
   const ev = tickNews(w, farm, from, last, rows);
   if (net > 0) { const dd = Math.max(1, last - from); net = P.compressPassive(net / dd) * dd; }   // de rem op passief inkomen (bezitprijs.js)
   net += sn.own + sn.fixed;                                                                       // de wagen die je zelf runt heeft zijn eigen plafond (snackvan.js compressOwn); vergunningen zijn kosten

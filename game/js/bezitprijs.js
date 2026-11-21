@@ -3,6 +3,7 @@
 // persoonsnaam (constitution 2 en 4); echte plaatsen mogen als ligging.
 
 import { bodemFactor, VERKOOP_FACTOR } from './percelen.js';
+import { rawDifficulty } from './bezitdifficulty.js';
 
 export { bodemFactor, VERKOOP_FACTOR };
 
@@ -37,7 +38,9 @@ export function basePrice(p, region) {
   return Math.max(MIN_PRICE, Math.round(raw / 50) * 50);
 }
 // De prijs voor deze speler nu: de basisprijs maal de schaalprijs (wie veel heeft, betaalt voor het volgende tot driemaal zoveel).
-export const parcelPrice = (p, region, owned = 0) => { const b = basePrice(p, region); return b ? Math.round((b * scaleFactor(owned)) / 50) * 50 : 0; };
+// De moeilijkheid (bezitdifficulty.js): een factor per soort ('income', 'price', 'cost'), begrensd op plus of min 25%; 1 zonder moeilijkheidsmodule.
+export const difficultyFactor = (kind) => Math.min(1.25, Math.max(0.75, rawDifficulty(kind)));
+export const parcelPrice = (p, region, owned = 0) => { const b = basePrice(p, region); return b ? Math.round((b * scaleFactor(owned) * difficultyFactor('price')) / 50) * 50 : 0; };
 // Verkopen levert een deel van wat je betaalde (VERKOOP_FACTOR): kopen en direct verkopen kost 25%.
 export const sellValue = (paid) => Math.round((Math.max(0, paid) * VERKOOP_FACTOR) / 5) * 5;
 // Pacht per speldag: 0,9% van de koopprijs; lager dan wat een huurder vraagt (1,2%), zodat huren en verpachten nooit een lus is.

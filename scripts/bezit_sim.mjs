@@ -47,13 +47,13 @@ export function simulate({ days = 30, activeShare = 1, strategy = 'cheap', price
   for (let d = 1; d <= days; d++) {
     hours += HOURS_PER_DAY;
     money += ACTIVE_PER_HOUR * HOURS_PER_DAY * activeShare;
-    const inc = P.compressPassive(leasedPaid.reduce((s, p) => s + leaseDay(p, leasedPaid.length), 0));
+    const inc = P.compressPassive(leasedPaid.reduce((s, p) => s + leaseDay(p, leasedPaid.length), 0) * P.difficultyFactor('income'));
     passive += inc; money += inc;
     // kopen: zolang het goedkoopste beschikbare perceel (met schaalprijs) betaalbaar is
     let guard = 0;
     while (guard++ < 500) {
       const base = strategy === 'cheap' ? prices[Math.min(prices.length - 1, owned)] : prices[Math.min(prices.length - 1, Math.floor(owned * 1.6))];
-      const price = Math.round((base * P.scaleFactor(owned)) / 50) * 50;
+      const price = Math.round((base * P.scaleFactor(owned) * P.difficultyFactor('price')) / 50) * 50;
       if (money < price) break;
       money -= price; owned++; invested += price; leasedPaid.push(price);
       if (firstHour === null) firstHour = hours;
@@ -121,7 +121,7 @@ export function snackProfile({ days = 40, quiet = true } = {}) {
       const r = SN.settleDay(S, { day: d, weekend: wkd(d), money: 1e9, ownWagon: true, ownQ: 100, kermisAt: (s) => s === 'kermis' && d % 12 < 3, chainOwn: () => 0 });
       own += r.ownNet; fleet += r.fleetNet; fixed += r.fixed;
     }
-    const ownDay = own / days, fleetDay = fleet / days;
+    const fi = P.difficultyFactor('income'), ownDay = (own / days) * fi, fleetDay = (fleet / days) * fi;
     const ownC = SN.compressOwn(ownDay), passiveC = P.compressPassive(fleetDay);
     const perDay = ownC + passiveC;
     out[id] = { ownDay: Math.round(ownDay), ownC, fleetDay: Math.round(fleetDay), passiveC, perDay, invest: Math.round(invest), roiPerDay: Math.round((perDay / invest) * 10000) / 10000, vsActive: Math.round((perDay / P.ACTIVE_PER_DAY) * 100) / 100, ownVsActive: Math.round((ownC / P.ACTIVE_PER_DAY) * 100) / 100, rep: S.rep, wagons: (S.own.spot ? 1 : 0) + S.fleet.length };

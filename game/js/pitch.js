@@ -11,6 +11,7 @@
 
 import { wgsToWorld } from './rdnew.js';
 import { hashUnit, clamp, finite } from './bezithash.js';
+import { difficultyFactor } from './bezitprijs.js';
 
 export const SPOTS = [
   { id: 'markt', name: 'Hoek van de Grote Markt', place: 'Groningen', lat: 53.2194, lon: 6.5665, foot: 1.60, week: [0.93, 1.18], profile: 'dag', comp: 0.30, cluster: 'stad', region: 'overig', tier: 5, short: 'Grote Markt' },
@@ -136,7 +137,7 @@ export const permitScale = (held) => 1 + Math.min(clamp(Math.floor(finite(held, 
 export function permitPrice(id, held = 0) {
   const s = BY_ID.get(id);
   if (!s) return 0;
-  return Math.round((PERMIT_BASE * Math.pow(s.foot, 1.6) * permitScale(held)) / 50) * 50;
+  return Math.round((PERMIT_BASE * Math.pow(s.foot, 1.6) * permitScale(held) * difficultyFactor('price')) / 50) * 50;
 }
 export const renewalCost = (id, held = 0) => Math.round((permitPrice(id, Math.max(0, held - 1)) * PERMIT_RENEW) / 5) * 5;
 // Opslag: { [id]: { until, paid } } (until = laatste speldag dat hij geldig is).

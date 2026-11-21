@@ -15,6 +15,7 @@ import { FIRST_NAMES } from './businessstaff.js';
 import { maintenanceFactor } from './business.js';
 import * as SP from './pitch.js';
 import * as RV from './rival.js';
+import { difficultyFactor } from './bezitprijs.js';
 
 // ---- wagens, upgrades en menu ----
 export const TIERS = {
@@ -54,7 +55,7 @@ export const STAFF_AUTO = 0.85;                  // een wagen zonder jou erbij d
 export const LOGISTICS = 1.15;
 export const BEST_SPOT = 'markt';                // het beste plekje in de stad: het eerste doel
 
-export const wagonPrice = (fleetCount) => Math.round((FLEET_PRICE * (1 + FLEET_STEP * Math.max(0, fleetCount | 0))) / 50) * 50;
+export const wagonPrice = (fleetCount) => Math.round((FLEET_PRICE * (1 + FLEET_STEP * Math.max(0, fleetCount | 0)) * difficultyFactor('price')) / 50) * 50;
 export const staffWage = (skill, pct = 0) => Math.round(((90 + 0.6 * clamp(finite(skill, 50), 0, 100)) * (1 + clamp(finite(pct, 0), 0, 100) / 100)) / 5) * 5;
 
 // ---- toestand ----
