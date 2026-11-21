@@ -11,7 +11,7 @@ import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { keyTextHtml } from '../game/js/keycap.js';
 import { INPUT_GLYPHS } from '../game/js/inputglyphs_data.js';
-import { rulesOf, scanKeycapPx } from './ui/keycap_maat.mjs';
+import { rulesOf, scanKeycapPx, scanSkipHints } from './ui/keycap_maat.mjs';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const rd = (p) => readFileSync(ROOT + p, 'utf8');
@@ -325,10 +325,16 @@ const VOORB = [
   ok(hits.length === 4, 'px-bewaking vindt de nieuwe plekken met een vaste px-maat (min-width, height, margin, font-size) en laat .m-kc en .anders met rust', JSON.stringify(hits));
   writeFileSync(dir + '/x.css', '#hud .nieuw .hud-key { min-width: max(1.2em, var(--ds-kc-floor)); height: 1.25em; margin: 0 0.1em; }\n.pad-g.pad-kn { font-size: max(calc(1.25em / 0.48), 38px); }\n');
   ok(scanKeycapPx(dir + '/').length === 0, 'px-bewaking laat em-maten en px in een max()-vloer toe');
+  writeFileSync(dir + '/x.css', ['#cine .cine-skip { display: flex; align-items: flex-end; }', '#x .hx-skip .hud-key { vertical-align: middle; }', '#cine .cine-skip-ring { vertical-align: middle; }', '#y .ls-skip { display: block; text-align: center; }'].join(' '));
+  const sk = scanSkipHints(dir + '/');
+  ok(sk.length === 3 && sk.every((x) => !/ring|ls-skip/.test(x.sel)), 'skip-bewaking vindt flex, align-items en vertical-align op een overslaan-hint en laat de ring en een blokcontainer met rust', JSON.stringify(sk));
   rmSync(dir, { recursive: true, force: true });
 }
 const real = scanKeycapPx();
 for (const x of real.slice(0, 15)) console.log(`  ${x.f}: ${x.sel} { ${x.prop}: ${x.value} }`);
+const realSkip = scanSkipHints();
+for (const x of realSkip) console.log(`  ${x.f}: ${x.sel} { ${x.prop}: ${x.value} }`);
+ok(realSkip.length === 0, `overslaan-hints (cine, heist, verhaal, trailer) zijn lopende tekst: geen flex, align-items of vertical-align (${realSkip.length})`);
 ok(real.length === 0, `de game-CSS heeft geen vaste px-maat voor een toetsplaatje (${real.length})`);
 
 if (TOON) { console.log(VOORB.join('\n\n')); console.log('\n' + STRUT_NOTE.join('\n')); }

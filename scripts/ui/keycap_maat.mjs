@@ -58,9 +58,34 @@ export function scanKeycapPx(dir = JS) {
   return hits;
 }
 
+// Overslaan-hints ('Houd SPATIE ingedrukt om over te slaan'): de container is lopende tekst, geen flex of grid, en geen eigen
+// uitlijning (align-items, vertical-align, flex-end) voor de toets: die staat in de regel via ds-keycap.css (#1075, eigenaar 21-11).
+/** [{ f, sel, prop, value }] voor skip-hintcontainers met flex/grid of een eigen uitlijning (leeg is goed). */
+export function scanSkipHints(dir = JS) {
+  const hits = [];
+  for (const f of readdirSync(dir).filter((x) => /\.(css|js)$/.test(x))) {
+    const src = readFileSync(dir + f, 'utf8');
+    if (f.endsWith('.js') && !/skip/i.test(src)) continue;
+    for (const { sel, body } of rulesOf(src)) {
+      for (const one of sel.split(',').map((x) => x.trim())) {
+        const last = one.split(/[\s>+~]+/).filter(Boolean).pop() || '';
+        if (!/skip/i.test(one) || /ring/.test(last) || /:hover|:active|:focus/.test(one)) continue;
+        const isKey = KEY_SEL.test(last);
+        for (const [prop, value] of decls(body)) {
+          const bad = (!isKey && prop === 'display' && /flex|grid/.test(value))
+            || (!isKey && /^(?:align-items|align-content|align-self)$/.test(prop))
+            || (isKey && /^(?:vertical-align|align-self|position|top|bottom)$/.test(prop));
+          if (bad) hits.push({ f, sel: one, prop, value });
+        }
+      }
+    }
+  }
+  return hits;
+}
+
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
-  const h = scanKeycapPx();
+  const h = [...scanKeycapPx(), ...scanSkipHints()];
   for (const x of h) console.log(`  ${x.f}: ${x.sel} { ${x.prop}: ${x.value} }`);
-  console.log(h.length ? `keycap_maat: ${h.length} vaste px-maat/maten voor een toetsplaatje` : 'keycap_maat: ok');
+  console.log(h.length ? `keycap_maat: ${h.length} vaste px-maat/maten of eigen uitlijning voor een toetsplaatje` : 'keycap_maat: ok');
   process.exit(h.length ? 1 : 0);
 }

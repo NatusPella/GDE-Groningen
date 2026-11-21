@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { jsStrings } from '../text_audit.mjs';
 import { TEXT_KEY_RE, spokenKeyTokens } from '../../game/js/keycap.js';
 import { KEY_WORD_RE, KEY_SKIP_FILES, KEY_SPOKEN_FILES } from '../release/design_rules.mjs';
-import { scanKeycapPx } from './keycap_maat.mjs';
+import { scanKeycapPx, scanSkipHints } from './keycap_maat.mjs';
 
 const JS = fileURLToPath(new URL('../../game/js/', import.meta.url));
 let failed = 0;
@@ -100,6 +100,10 @@ ok(/spokenKeyTokens/.test(readFileSync(JS + 'subtitles.js', 'utf8')), 'subtitles
 const pxHits = scanKeycapPx();
 for (const x of pxHits.slice(0, 20)) console.log(`  ${x.f}: ${x.sel} { ${x.prop}: ${x.value} }`);
 ok(pxHits.length === 0, `${pxHits.length} toetsplaatje(s) met een vaste px-maat: laat ds-keycap.css de maat bepalen (een factor van de tekst, --ds-kc-*)`);
+
+const skipHits = scanSkipHints();
+for (const x of skipHits.slice(0, 20)) console.log(`  ${x.f}: ${x.sel} { ${x.prop}: ${x.value} }`);
+ok(skipHits.length === 0, `${skipHits.length} overslaan-hint(s) met flex of een eigen uitlijning: de toets staat in de regel (ds-keycap.css)`);
 
 console.log(failed ? `icon_sweep: ${failed} mislukt` : 'icon_sweep: ok');
 process.exit(failed ? 1 : 0);

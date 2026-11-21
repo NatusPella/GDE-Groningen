@@ -20,7 +20,7 @@
 #heist-ui .hx-sub { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 13px; opacity: 0.75; margin-top: 1px; letter-spacing: 0.3px; }
 #heist-ui .hx-keys { display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 10px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; letter-spacing: 0.3px; }
 #heist-ui .hx-keys .sep { opacity: 0.35; }
-#heist-ui .hx-skip { margin-top: 8px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 13px; opacity: 0.55; display: flex; align-items: center; justify-content: center; gap: 5px; }
+#heist-ui .hx-skip { margin-top: 8px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 13px; opacity: 0.55; display: block; text-align: center; } /* lopende tekst: de toets staat in de regel (#1075) */
 #heist-ui .hx-panel:not(.skip-on) .hx-skip { display: none; }
 
 /* fuse box: a needle over a bar */
@@ -117,13 +117,13 @@
 
 /* --- "hold O to skip" when a stage is giving trouble ------------------------------------ */
 #heist-ui .hx-skipchip {
-  position: absolute; left: 50%; top: 21%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; opacity: 0; transition: opacity 0.3s;
+  position: absolute; left: 50%; top: 21%; transform: translateX(-50%); display: block; text-align: center; white-space: nowrap; opacity: 0; transition: opacity 0.3s;
   padding: 5px 12px; border-radius: 16px; background: rgba(12, 20, 14, 0.82); border: 1px solid rgba(63, 201, 122, 0.35);
   font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; letter-spacing: 0.3px;
 }
 #heist-ui .hx-skipchip.on { opacity: 1; }
 @media (pointer: coarse) { #heist-ui .hx-skipchip { min-height: 44px; padding: 10px 14px; } }
-#heist-ui .hx-skipchip svg { width: 20px; height: 20px; transform: rotate(-90deg); }
+#heist-ui .hx-skipchip svg { display: inline-block; width: 1.4em; height: 1.4em; margin-right: 0.5em; vertical-align: middle; transform: rotate(-90deg); }
 #heist-ui .hx-skipchip circle { fill: none; stroke-width: 3; }
 #heist-ui .hx-skipchip .bg { stroke: rgba(240, 237, 228, 0.2); }
 #heist-ui .hx-skipchip .fg { stroke: var(--gron-green-light, #3fc97a); stroke-linecap: round; stroke-dasharray: 50.3; stroke-dashoffset: calc(50.3 * (1 - var(--hold, 0))); }
