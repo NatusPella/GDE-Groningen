@@ -31,12 +31,12 @@ const hooks = {
   isBikeable: (r) => !r.busOnly && r.type !== 'motorway' && r.type !== 'steps',
   oneWayFor: (r) => !!r.oneway,
   throughOf: (r, i) => (r.pts.length + i) % 7 === 0,
-  consts: { THROUGH_BUILDING_COST: 8, SERVICE_COST: 2.5, OFFROAD_COST: 15, STEPS_COST: 60, MOTORWAY_AVOID: 8, BIKE_COST: { cycle: 0.8, minor: 1.15, normal: 1, major: 1.8, foot: 1.4 }, MOTORWAY_TYPES: new Set(['motorway', 'motorway_link']) },
+  consts: { SOFT_COST: 1.25, SOFT_ROAD_COST: 1.6, THROUGH_BUILDING_COST: 8, SERVICE_COST: 2.5, OFFROAD_COST: 15, STEPS_COST: 60, MOTORWAY_AVOID: 8, BIKE_COST: { cycle: 0.8, minor: 1.15, normal: 1, major: 1.8, foot: 1.4 }, MOTORWAY_TYPES: new Set(['motorway', 'motorway_link']) },
 };
 
 const sameArr = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
 const sameAdj = (a, b) => sameArr(a.start, b.start) && sameArr(a.to, b.to) && sameArr(a.len, b.len) && (a.road === null ? b.road === null : sameArr(a.road, b.road));
-const KEYS = ['drive', 'driveAvoid', 'bike', 'free', 'mixed', 'walk'];
+const KEYS = ['drive', 'driveAvoid', 'bike', 'free', 'mixed', 'walk', 'walkSoft', 'bikeSoft', 'driveSoft', 'driveSoftAvoid'];
 function sameGraph(a, b) {
   if (a.N !== b.N || !sameArr(a.x, b.x) || !sameArr(a.y, b.y)) return false;
   for (const k of KEYS) if (!sameAdj(a[k], b[k])) return false;
