@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Weer: elke kalenderdag is net anders, maar het blijft altijd zomer. Er zijn hete dagen, bewolkte dagen, zomerbuien met soms onweer, ochtendmist boven de weilanden, een regenboog na een bui, bries aan de kust en warme avonden met vliegjes en gloed. Bij Samen spelen is het voor iedereen gelijk, ook voor wie later aansluit. Voetgangers dragen vaker een zonnebril als het heet is.
 - Tekstdieet: de keuzekaart 'Hoe wil je spelen?' houdt zijn uiterlijk maar heeft geen inleiding meer en een korte ondertitel per knop. De naamkaart 'Je naam voor Samen spelen' heeft nog een titel, het naamveld, een vinkje met één zin en Doorgaan; de uitleg over je IP-adres staat achter 'Meer info' (een uitklapper). Het akkoord vóór het netwerk blijft verplicht. De toestemmingskaart en de moeilijkheidskaart zijn op dezelfde manier ingekort.
 - Laadscherm: nog maar één statusregel onder de balk (geen tipregel en geen verhaalterugblik meer, geen 'Stap n van m').
 - Opgeslagen spellen: ruimere rijen in twee brede kolommen met naam, speeltijd, plek en datum, een kleine niveau-tag en een Laden-knop die altijd zichtbaar is; geen verhaaldeel, balkje of tip meer per rij.
