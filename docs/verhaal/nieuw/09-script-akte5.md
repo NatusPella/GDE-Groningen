@@ -255,6 +255,22 @@ RIKUS (radio): Vandaag staat er weer een Berend op de Grote Markt, in kostuum, e
 RIKUS (radio): De fietstunnel-update: 2031. Hij is bijna klaar. En ik sta straks vooraan. Eerste friet is voor mij. [BEHOUDEN]
 RIKUS (radio): De peiling staat al twee weken open: zeggen die twee Stadjers ooit wat ze voelen? Drie procent zegt ja. [NIEUW]
 
+## [M25.6] Het bod viel tegen: het familiediner – Stad, Noorderhaven, Oma's keuken – te voet
+(regie: donderdagnacht, laat. Er wordt gebeld. In Oma's keuken staan Tessa's moeder, haar vader met een mand eieren en een meisje van tien in een gele regenjas. Naamkaart: ANNEKE. Naamkaart: LIEKE. Tessa's vader zegt niets en kijkt naar de pan. Oma en Mem zitten aan tafel met een bord proefeierballen.)
+ANNEKE: We waren in de buurt. Met een mand eieren. [NIEUW]
+TESSA: Mam. Het is half twaalf. [NIEUW]
+ANNEKE: Jij belt nooit. Dan komen wij. [NIEUW]
+OMA TRIJNTJE: Ga zitten. Eet een eierbal. Er zit vet in. [NIEUW]
+ANNEKE: Bij ons gaan eieren niet in het vet. [NIEUW]
+OMA TRIJNTJE: Dan gaan ze er later in. [NIEUW]
+LIEKE: Zijn jullie al samen? [NIEUW]
+TESSA: Wij wonen samen. [NIEUW]
+LIEKE: Jullie zijn al samen. Jullie weten het alleen niet. [NIEUW]
+OMA TRIJNTJE: En wanneer trouwen jullie? [NIEUW]
+TAMMO: Ik zeg liever niks. [NIEUW]
+(regie: Tessa's vader pakt zwijgend een eierbal, kauwt en knikt langzaam. In zijn streek is dat het hoogste compliment.)
+ANNEKE: Dat zag ik al. Dat is een goed teken. [NIEUW]
+
 ## [M26.1] Ontzet, net als in 1672: de uitzending – Stad, Grote Markt – te voet
 (regie: vrijdag 28 augustus. Kramen, vlaggen, kartonnen kanonnen. Rikus achter een tafeltje naast de jury. Berend in bisschopsmantel op een houten paard. Op de markt staat de Fjord Frituur, blauw, met een luik; naast hem de kraam van Us Mem Snacks, waar Mem met een schort naast Jelle staat. Vijf juryleden achter een lange tafel. Gameplay: de Groningse eierbal bakken in drie rondes en de kraam heel houden, Jelles laatste plakje stoppen met de wagen, en de jury laten proeven en stemmen.)
 RIKUS (radio): Moi, Grunn. Nachtstreek, in het daglicht. Ik voel me een vleermuis. [BEHOUDEN]

@@ -2,7 +2,7 @@
 
 Je hoeft niets te doen. Voor elke nieuwe of herschreven komische beat heeft de schrijver drie varianten en een veilige neutrale terugval gemaakt; drie onafhankelijke beoordelaars (zonder elkaars oordeel, met de varianten in een andere volgorde) kozen de beste. De winnaar staat in het spel; de andere twee en de terugval staan hieronder als alternatief. Wil je iets anders: zet `chosen` van die beat in het bijbehorende bestand `game/storydata/humor*.json` op 0, 1, 2 of `"neutral"` en draai `node scripts/build_story_data.mjs`. Werkwijze: [SCHRIJFREGELS-21-11.md](SCHRIJFREGELS-21-11.md). Na een wijziging: draai ook de cutscene-tests (`cutscenes_akte*_test`), want de cues van een scène (`on:`) volgen de gekozen tekst. Samen spelen: een beat is gewone scènetekst; een gast ziet de gekozen variant mee in de scène van de host. Gegenereerd door `node scripts/humor_doc.mjs`; kies hier niet met de hand.
 
-Eerlijk over de proef: 47 beats. De beoordelaars lazen de stijlgids en de beats; minstens twee van de drie lazen de ijkregels uit akte 1 ([BEHOUDEN]-grappen) niet. Wees dus kritisch bij beats met lage zekerheid.
+Eerlijk over de proef: 65 beats. De beoordelaars lazen de stijlgids en de beats; minstens twee van de drie lazen de ijkregels uit akte 1 ([BEHOUDEN]-grappen) niet. Wees dus kritisch bij beats met lage zekerheid.
 
 ## Bovenaan: gevoelig of gespleten met lage zekerheid
 
@@ -73,6 +73,24 @@ Eerlijk over de proef: 47 beats. De beoordelaars lazen de stijlgids en de beats;
 | H6-01 | M27.1 | WILLEMIEN | Ik ken jullie van het luik. Woensdag, de derde in de rij. Eén eierbal, extra mosterd. | variant 3, neutraal, variant 1 | laag | Concreet en vaste-klant-gevoel, derde in de rij. |
 | H6-02 | M29.2 | TAMMO | Een eierbal. Dat is anders. | variant 1, variant 1, variant 2 | laag | Directe terugkaatsing van Oma's antwoord, zonder uitleg. |
 | H6-03 | M30.6 | JELLE | Dat pand ken ik. Ik wacht tot de prijs zakt. | variant 1, variant 2, variant 2 | midden | Jelle wacht bureaucratisch op de prijs. |
+| HI-01 | M06.0 | VELDKAMP | Mijn duiven doen dat bij niemand. Hij wil naar Tammo. | niet beoordeeld |  |  |
+| HI-02 | O1 | TAMMO | En waar staat "thee"? | niet beoordeeld |  |  |
+| HI-03 | B1.1 | TAMMO | Het is een hele goede koelkast. | niet beoordeeld |  |  |
+| HI-04 | B1.2 | TAMMO | Het was het enige. | niet beoordeeld |  |  |
+| HI-05 | B1.3 | TAMMO | Dat hangt van de jas af. | niet beoordeeld |  |  |
+| HI-06 | B2.1 | TAMMO | Koe. Op de weg. | niet beoordeeld |  |  |
+| HI-07 | B2.2 | TAMMO | Eén. En zeventig jaar. | niet beoordeeld |  |  |
+| HI-08 | M10.5 | TESSA | Natuurlijk blijf je. Je hebt een huurcontract. | niet beoordeeld |  |  |
+| HI-09 | T2 | TAMMO | Ik droomde over verkeer. | niet beoordeeld |  |  |
+| HI-10 | M15.6 | TAMMO | Ik heb niks gezegd. | niet beoordeeld |  |  |
+| HI-11 | B3.1 | TAMMO | Het is ook iets. Een park. | niet beoordeeld |  |  |
+| HI-12 | B3.2 | TAMMO | Net zo hoog als zijn frikandel. | niet beoordeeld |  |  |
+| HI-13 | B3.3 | TAMMO | Iemand moet de bodem leggen. | niet beoordeeld |  |  |
+| HI-14 | M17.5 | STIEN | Dat zei ik veertig jaar geleden ook. Eerst het vet warm, dan de mensen. | niet beoordeeld |  |  |
+| HI-15 | B4.2 | TAMMO | Dan heb ik een probleem. | niet beoordeeld |  |  |
+| HI-16 | M25.6 | OMA TRIJNTJE | Dan gaan ze er later in. | niet beoordeeld |  |  |
+| HI-17 | M25.6 | LIEKE | Jullie zijn al samen. Jullie weten het alleen niet. | niet beoordeeld |  |  |
+| HI-18 | M25.6 | OMA TRIJNTJE | En wanneer trouwen jullie? | niet beoordeeld |  |  |
 | H01 | O1 | TAMMO | …Het was er al. | variant 2, variant 3, variant 3 | midden | Onhandige ontkenning met stilte. |
 | H02 | O2 | TAMMO | Ik weet het. | neutraal, neutraal, neutraal | midden | Ik weet het is warm en kort voor Rikus' slaap lekker. |
 | H03 | O6 | TESSA | Dat weet hij ook. Daarom belt hij mij. | variant 1, variant 2, variant 1 | midden | Daarom belt hij mij: droog en scherp. |
@@ -322,6 +340,114 @@ Eerlijk over de proef: 47 beats. De beoordelaars lazen de stijlgids en de beats;
 - variant 2 (gekozen): Dat pand ken ik. Ik wacht tot de prijs zakt.
 - variant 3: Ik zag het al. Ik koop het als het regent.
 - neutraal: Dat pand ken ik al.
+
+**HI-01** (M06.0): Flat, bijna middernacht, akte 1. De oude buurman van elf negen klopt aan met een duif op zijn schouder; de duif wil naar Tammo en Veldkamp zegt dat droog en zonder uitleg.
+- variant 1 (gekozen): Mijn duiven doen dat bij niemand. Hij wil naar Tammo.
+- variant 2: Mijn duiven zijn nooit naar iemand gegaan. Deze wil naar Tammo.
+- variant 3: Hij wil naar Tammo. Dat doen mijn duiven bij niemand.
+- neutraal: Mijn duif wil naar Tammo.
+
+**HI-02** (O1): Flat, avond. Tessa heeft een lijst met twee kolommen op de koelkast gehangen (wat Tammo vindt, wat Tessa vindt); Tammo staat met twee koppen thee in de deur.
+- variant 1 (gekozen): En waar staat "thee"?
+- variant 2: Staat er ook bij dat ik de thee zet?
+- variant 3: Staat "thee" erbij?
+- neutraal: Wat staat er bij mij?
+
+**HI-03** (B1.1): In de auto, akte 1. Tessa vraagt waarom iedereen denkt dat ze al een stel zijn; Tammo geeft een droog en volstrekt praktisch antwoord.
+- variant 1 (gekozen): Het is een hele goede koelkast.
+- variant 2: Het is een koelkast met karakter.
+- variant 3: Dat is een hele goede koelkast, Tessa.
+- neutraal: Dat weet ik ook niet.
+
+**HI-04** (B1.2): In de auto, akte 1. Tammo verbetert ongevraagd een mus in een ringmus; Tessa zegt dat het het leukste is wat hij vandaag zei; Tammo antwoordt droog over zichzelf.
+- variant 1 (gekozen): Het was het enige.
+- variant 2: Het was ook het enige.
+- variant 3: Ik zei vandaag verder niks.
+- neutraal: Dank je.
+
+**HI-05** (B1.3): In de auto, akte 1, vraag van de dag over duiven. Tessa vraagt hoe lang een duif zonder poepen kan; Tammo (de duivenfluisteraar) antwoordt zonder uitleg.
+- variant 1 (gekozen): Dat hangt van de jas af.
+- variant 2: Dat hangt af van wiens jas.
+- variant 3: Dat hangt ervan af hoe schoon de jas is.
+- neutraal: Dat weet ik niet. Ik vraag het aan Bert.
+
+**HI-06** (B2.1): In de auto, akte 2, het bijna-moment: Tammo begint "eigenlijk—" en wordt onderbroken, nu door een koe op de weg.
+- variant 1 (gekozen): Koe. Op de weg.
+- variant 2: Koe.
+- variant 3: Een koe. Voor ons.
+- neutraal: Pas op, de weg.
+
+**HI-07** (B2.2): In de auto, akte 2, vraag van de dag over eieren (vracht, landbouw en horeca). Tessa vraagt hoeveel eieren er in een eierbal zitten; Tammo antwoordt twee keer kort.
+- variant 1 (gekozen): Eén. En zeventig jaar.
+- variant 2: Eén. En heel veel geduld.
+- variant 3: Eén ei. En een heel mensenleven.
+- neutraal: Eén ei, dacht ik.
+
+**HI-08** (M10.5): In de auto, akte 2, de misverstandsketen: Tammo zegt drie keer iets liefs maar onduidelijks ("ik wil dit niet kwijt", "alles", "ik blijf"); Tessa antwoordt steeds op de verkeerde vraag. Dit is de laatste schakel.
+- variant 1 (gekozen): Natuurlijk blijf je. Je hebt een huurcontract.
+- variant 2: Natuurlijk blijf je. Het contract loopt nog twee jaar.
+- variant 3: Je hebt getekend, Tammo. Je blijft.
+- neutraal: Natuurlijk blijf je.
+
+**HI-09** (T2): Streekbus naar Zoutkamp, akte 2. Tammo schrikt wakker uit zijn dagdroom (hij als stuntheld, Tessa als Koningin van de Friteuse); Tessa zegt dat hij in zijn slaap lacht.
+- variant 1 (gekozen): Ik droomde over verkeer.
+- variant 2: Ik droomde over een rotonde.
+- variant 3: Niks. Verkeer.
+- neutraal: Ik droomde iets leuks.
+
+**HI-10** (M15.6): Kermis in Winschoten, akte 3. Daan, een charmante zanger, wil een liedje voor Tessa zingen; Tammo (stil jaloers) zegt niets, zijn duif laat iets vallen op Daans glimmende jasje.
+- variant 1 (gekozen): Ik heb niks gezegd.
+- variant 2: Dat was niet mijn bedoeling.
+- variant 3: Dat deed hij zelf.
+- neutraal: Pech voor het jasje.
+
+**HI-11** (B3.1): In de auto, akte 3, het bewuste bijna-moment: Tammo begint "eigenlijk—" en kiest dan voor een onschuldig feit (windpark); Tessa zegt dat ze dacht dat het iets was.
+- variant 1 (gekozen): Het is ook iets. Een park.
+- variant 2: Het is ook iets. Een groot iets.
+- variant 3: Het is ook iets. Het heet een park.
+- neutraal: Het is een park.
+
+**HI-12** (B3.2): In de auto, akte 3, vraag van de dag over een meeuw (lucht en kermis). Tessa vraagt hoe hoog een meeuw vliegt; Tammo antwoordt in een eigen eenheid.
+- variant 1 (gekozen): Net zo hoog als zijn frikandel.
+- variant 2: Zo hoog als hij zijn frikandel kan houden.
+- variant 3: Dat hangt van de frikandel af.
+- neutraal: Hoger dan ik denk.
+
+**HI-13** (B3.3): In de auto, akte 3, het autoduet op een verzonnen nummer van Rikus (geen songtekst). Tessa zingt het refrein, Tammo de bas; Tessa merkt op dat hij altijd de bas zingt.
+- variant 1 (gekozen): Iemand moet de bodem leggen.
+- variant 2: Zonder bas valt het refrein om.
+- variant 3: Een refrein heeft een vloer nodig.
+- neutraal: Zo klinkt het goed.
+
+**HI-14** (M17.5): Onder brug elf in Veendam, akte 4. Stien (70, frituurhoudster) hoort dat Tessa een wagen "voor andere mensen" vindt en geeft haar eerste vakregel.
+- variant 1 (gekozen): Dat zei ik veertig jaar geleden ook. Eerst het vet warm, dan de mensen.
+- variant 2: Dat zei ik ook. Veertig jaar geleden. Eerst het vet warm, dan de mensen.
+- variant 3: Eerst het vet warm, dan de mensen. Veertig jaar, en ik heb het nog steeds niet fout.
+- neutraal: Eerst het vet warm, dan de mensen.
+
+**HI-15** (B4.2): In de auto, akte 4. Tessa kondigt aan dat haar moeder, haar vader en haar nichtje Lieke (tien, ziet alles) naar het Ontzet komen; Tammo reageert droog.
+- variant 1 (gekozen): Dan heb ik een probleem.
+- variant 2: Dan weet zij het eerder dan ik.
+- variant 3: Dan moet ik me gedragen.
+- neutraal: Ik ben benieuwd.
+
+**HI-16** (M25.6): Oma's keuken, donderdagnacht, akte 5. Tessa's moeder zegt dat bij hen de eieren niet in het vet gaan; Oma (92) antwoordt zonder haar stem te verheffen.
+- variant 1 (gekozen): Dan gaan ze er later in.
+- variant 2: Dan gaan ze er straks alsnog in.
+- variant 3: Alles gaat er uiteindelijk in.
+- neutraal: Probeer er één.
+
+**HI-17** (M25.6): Oma's keuken, donderdagnacht, akte 5. Lieke (10) vraagt of Tammo en Tessa al samen zijn; Tessa zegt dat ze samenwonen; Lieke zegt wat ze ziet.
+- variant 1 (gekozen): Jullie zijn al samen. Jullie weten het alleen niet.
+- variant 2: Jullie zijn al samen. Alleen jullie niet.
+- variant 3: Jullie zijn al een stel. Jullie zeggen het niet.
+- neutraal: Dat is niet hetzelfde.
+
+**HI-18** (M25.6): Oma's keuken, donderdagnacht, akte 5. Na Lieke's opmerking vraagt Oma Trijntje (92) wanneer ze trouwen; Tammo zegt niets terug.
+- variant 1 (gekozen): En wanneer trouwen jullie?
+- variant 2: En de bruiloft? Ik ben tweeënnegentig.
+- variant 3: Wanneer is de bruiloft? Ik heb niet veel tijd.
+- neutraal: Eet nog een eierbal.
 
 **H01** (O1): Flat, avond. Tessa merkt dat het kaartje van de eerste studieweek nog aan de koelkast hangt; Tammo doet alsof dat toeval is.
 - variant 1: Het hing al aan de koelkast.

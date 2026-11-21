@@ -21,6 +21,10 @@ JELLE (radio): Jelle Terpstra. Ik bied een klomp voor de mosterd van Grunn. Per 
 RIKUS (radio): Dat is een erfstuk, meneer Terpstra. [NIEUW]
 JELLE (radio): Dan bied ik twee klompen. Foar mem. [NIEUW]
 
+## [R4.0b] Nachtstreek, maandagavond – Stad – radio
+RIKUS (radio): Een beller van het platteland: Femke, keeper van een dorpsteam. Ze vraagt voor de derde avond een plaat aan. Ik zeg niks. [NIEUW]
+RIKUS (radio): "Elfde Verdieping", van De Fietstunnels, voor Femke. Ze zegt dat ze Tessa kent. Dat is de enige aanbeveling die ik nodig heb. [NIEUW]
+
 ## [M17.1] Open, dicht: intro – Veenkoloniën, Veendam, Oosterdiep – sloep
 (regie: maandag 24 augustus, ochtend. Een brug, een kanaal, een fanfare in de verte. Naamkaart: WUBBO. Gameplay: met een sloep door elf bruggen varen, voor Jelles mosterdschip, op het ritme van de bruggen.)
 WUBBO: Open of dicht. Nooit allebei. Dat is mijn hele werkfilosofie. Trijntje zocht iemand die kan wachten, en ik ben brugwachter. [NIEUW]
@@ -28,6 +32,7 @@ TESSA: Jelle haalt vandaag in Veendam de mosterd, zegt Durk. Zijn mosterdschip m
 WUBBO: Vaar jij voor zijn schip uit, dan sluit ik de bruggen achter je. Dan zit zijn schip vast. [NIEUW]
 TAMMO: Hoe weten we wanneer? [NIEUW]
 WUBBO: Elf bruggen. Toeter bij een gesloten brug, dan open ik op het ritme van de fanfare. Mis je de maat, dan wacht je. [NIEUW]
+WUBBO: Onder brug elf staat Stien met haar frituur. Haar friet is de beste van Veendam. Kom daarna even langs. [NIEUW]
 WUBBO: Mijn brug is op tijd. Laat je boot dat ook zijn. [NIEUW]
 (regie: Wubbo loopt naar zijn brug. Tammo kijkt naar Tessa, Tessa naar het water. Geen van beiden zegt iets.)
 
@@ -60,6 +65,16 @@ WUBBO: Er is een webbureau in Veendam dat alles om middernacht bijwerkt. Ook mij
 TAMMO: Om middernacht. Net als de museumcamera's. [NIEUW]
 TESSA: Dat is toeval, Tammo. [NIEUW]
 TAMMO: Dat moeten we weten. [NIEUW]
+
+## [M17.5] Open, dicht: de frituur onder brug elf – Veenkoloniën, Veendam, brug elf – te voet
+(regie: onder brug elf staat een kleine frituurwagen met een luik. Een vrouw van zeventig in een schort schept friet in een puntzak. Naamkaart: STIEN.)
+STIEN: Wubbo zei dat jullie kwamen. Eén friet, op mijn kosten. [NIEUW]
+TESSA: Ik kijk alleen. Zo'n wagen is voor andere mensen. [NIEUW]
+STIEN: Dat zei ik veertig jaar geleden ook. Eerst het vet warm, dan de mensen. [NIEUW]
+TAMMO: En de mensen dan? [NIEUW]
+STIEN: Die komen op de geur. Dat is het hele vak. [NIEUW]
+TESSA: Dat is het hele vak? [NIEUW]
+STIEN: Nee. Maar het is een begin. Kom terug als je hem hebt. [NIEUW]
 
 ## [M17.4] Open, dicht: herhaling – Veenkoloniën, Veendam – sloep
 WUBBO: Weer elf bruggen? Open. Dicht. Ik heb het al geleerd. [NIEUW]
@@ -396,11 +411,27 @@ TAMMO: Dat is ook een antwoord. [NIEUW]
 TESSA: Dat is een antwoord dat ik niet kan gebruiken. [NIEUW]
 TAMMO: Een goed antwoord. [NIEUW]
 
+## [B4.1] Autogesprekken akte 4: de onvoltooide zin, afgemaakt (pool; bijna-moment) – Veenkoloniën – Escapade
+TAMMO: Tessa, eigenlijk— [NIEUW]
+TESSA: Dat ik te veel praat. [NIEUW]
+TAMMO: Precies. Dat bedoelde ik. [NIEUW]
+
+## [B4.2] Autogesprekken akte 4: bezoek aan het Ontzet (pool; kondigt Tessa's ouders en nichtje aan) – Veenkoloniën – Escapade
+TESSA: Mijn moeder belde, Anneke. Ze komt naar het Ontzet, met mijn vader. [NIEUW]
+TAMMO: Nemen ze de koe mee? [NIEUW]
+TESSA: Alleen Lieke, mijn nichtje. Ze is tien en ziet alles. [NIEUW]
+TAMMO: Dan heb ik een probleem. [NIEUW]
+
 ## [A4.1] Appjes akte 4 (stil, geen stem) – alle regio's – telefoon
 APP MEM→TESSA (stil): Nog vier dagen. Jelle weet niet dat ik er ben. – M. [NIEUW]
 APP TESSA→MEM (stil): Ik kom. Hij weet het nog niet. [NIEUW]
 APP TAMMO→TESSA (stil): Ik vraag het niet. Maar ik wil het weten. [NIEUW]
 APP BEREND→TAMMO (stil): Kom mor. [BEHOUDEN]
+
+## [A4.2] Appjes akte 4: Femke (stil, geen stem) – alle regio's – telefoon
+APP FEMKE→TESSA (stil): Wie is die Rikus? Hij draait mijn plaat. [NIEUW]
+APP TESSA→FEMKE (stil): Tammo's jeugdvriend. Hij zegt nooit veel. [NIEUW]
+APP FEMKE→TESSA (stil): Hij zegt het wel heel mooi. [NIEUW]
 
 ## [O9] Ik heb de auto – Westerkwartier, op weg naar Zuidhorn – telefoon
 (regie: avond. Tessa rijdt de teruggehaalde Escapade, Tammo staat langs een weg met zijn telefoon. Ze hebben elkaar de hele dag niet gebeld. Nu belt zij.)

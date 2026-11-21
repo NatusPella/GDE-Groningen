@@ -198,12 +198,15 @@ BEREND: Nog een proefbeleg? Ik win nog steeds niet graag. Doe maar. [NIEUW]
 
 ## [O12] Wat nu – Stad, Paddepoel – flat
 (regie: avond, de flat. Op het prikbord hangen de vijf vrienden van Oma, het plakjesbord van Jelle en een briefje in Tessa's hand: Fjord Frituur, wat nu? Beneden staat de Escapade met het luik open.)
+(regie: op de koelkast hangt de lijst. In de kolom "wij vinden" staat één regel, in twee handschriften: de Fjord Frituur.)
 TESSA: Wat nu? [NIEUW]
 TAMMO: Rijden. [NIEUW]
 TESSA: Waarheen? [NIEUW]
 TAMMO: Waar jij wilt. [NIEUW]
 TESSA: Een pand, de bieten, Veendam. Een tweede wagen voor Willemien. Jelle koopt ze ook op. [NIEUW]
 TAMMO: Dan beginnen we overal. [NIEUW]
+(regie: op de galerij kijkt meneer Veldkamp om het hoekje, een duif op zijn arm.)
+VELDKAMP: De duiven vragen of jullie blijven. [NIEUW]
 TESSA: Samen. [NIEUW]
 TAMMO: Samen. [NIEUW]
 

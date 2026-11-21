@@ -225,6 +225,14 @@ APP OMA→TESSA (stil): Zoutkamp. Kapitein Klaas. Zeg dat ik je stuur. [NIEUW]
 APP MEM→TESSA (stil): Jij zat elke zomer bij mij aan tafel, famke. Help mij nu. – M. [NIEUW]
 APP MEM→TESSA (stil): Is mijn jongen droog? Zeg niks tegen Tammo. – M. [NIEUW]
 
+## [M10.5] Autogesprek: de verkeerde vraag – Hogeland, onderweg – Escapade
+TAMMO: Ik wil dit niet kwijt. [NIEUW]
+TESSA: De Escapade? Henk heeft een zender erin. Die raken we niet kwijt. [NIEUW]
+TAMMO: Nee. Dit. Alles. [NIEUW]
+TESSA: De recepten? Oma heeft kopieën. [NIEUW]
+TAMMO: Ik bedoel: ik blijf. [NIEUW]
+TESSA: Natuurlijk blijf je. Je hebt een huurcontract. [NIEUW]
+
 ## [O5] Straks – Hogeland, wierde – Escapade
 (regie: avond op de wierde. De Escapade staat stil, de zon zakt. Tessa zit op de motorkap met haar telefoon, Tammo leunt tegen het portier.)
 TESSA (telefoon): Mem, vandaag was er een man met een trekker-limo. Hij zei dat zijn mem niks wil. [NIEUW]
@@ -241,6 +249,14 @@ TESSA: Oma Trijntje stuurt ons naar Kapitein Klaas in Zoutkamp. Hij heeft een bo
 BUSCHAUFFEUR: Ik rijd tot Winsum. Daar stapt u over op de lijn naar Zoutkamp. Dat is de laatste halte, daarna is er alleen nog water. [NIEUW]
 TAMMO: Dat klinkt als thuis. [NIEUW]
 TESSA: Dat is een compliment, hè. [NIEUW]
+(regie: Tammo valt in slaap tegen het raam. Droomsequens in low-poly, zonnig, als een filmtrailer: Tammo in een stuntpak, de Escapade op twee wielen, Tessa op de achterbank in een gouden jas met een kroon van frituurmandjes.)
+TAMMO (in zijn droom): Kijk allemaal. Hij rijdt. [NIEUW]
+TESSA (in zijn droom): Ik ben de Koningin van de Friteuse. Rijd mij naar de zon. [NIEUW]
+TAMMO (in zijn droom): Welke kant is de zon? [NIEUW]
+TESSA (in zijn droom): Waar jij rijdt. [NIEUW]
+(regie: de bus remt. Tammo schrikt wakker. Tessa kijkt hem aan.)
+TESSA: Je lacht in je slaap. [NIEUW]
+TAMMO: Ik droomde over verkeer. [NIEUW]
 BUSCHAUFFEUR: Uitstappen bij de haven, allemaal. Dan zie je het water. [NIEUW]
 
 ## [M11.1] Geleend van de Friezen: intro – Lauwersmeer, Zoutkamp – rubberboot
@@ -357,6 +373,18 @@ TESSA: Knooppunt negenentachtig, dan negentig. Daar gaan we naar rechts. [NIEUW]
 TAMMO: Ik navigeer op gevoel. [NIEUW]
 TESSA: Daarom staan we hier. [NIEUW]
 
+## [B2.1] Autogesprekken akte 2: de onvoltooide zin (pool; bijna-moment) – Hogeland – Escapade
+TAMMO: Tessa, eigenlijk— [NIEUW]
+TESSA: Zeg het maar. [NIEUW]
+TAMMO: Koe. Op de weg. [NIEUW]
+TESSA: Remmen, Tammo! [NIEUW]
+
+## [B2.2] Autogesprekken akte 2: vraag van de dag (pool; vracht, landbouw en horeca) – Hogeland – Escapade
+TESSA: Vraag van de dag. Hoeveel eieren zitten er in een eierbal? [NIEUW]
+TAMMO: Eén. [NIEUW]
+TESSA: Ik bedoel in Oma's recept. [NIEUW]
+TAMMO: Eén. En zeventig jaar. [NIEUW]
+
 ## [A2.1] Appjes akte 2 (stil, geen stem) – alle regio's – telefoon
 APP MEM→TESSA (stil): Pas op dysels, famke. – M. [BEHOUDEN]
 APP MEM→TESSA (stil): Jij zat elke zomer bij mij aan tafel, famke. Help mij nu. – M. [NIEUW]
@@ -364,3 +392,14 @@ APP MEM→TESSA (stil): Is mijn jongen droog? Zeg niks tegen Tammo. – M. [NIEU
 APP MEM→TESSA (stil): Nog acht dagen. Hou Jelle bezig. – M. [NIEUW]
 APP TESSA→MEM (stil): Jelle is nat, de koffer droog. Tammo vraagt niks. Nog niet. [NIEUW]
 APP RIKUS→TAMMO (stil): Je moet naar Warffum. Oma heeft het gezegd. [NIEUW]
+
+## [A2.2] Appjes akte 2: de logeerkamer en Mem (stil, geen stem) – Stad, Paddepoel – telefoon
+APP TESSA→TAMMO (stil): Oma slaapt in mijn bed. Haar kamer wordt geschilderd. [NIEUW]
+APP TAMMO→TESSA (stil): Dan neem ik de bank. [NIEUW]
+APP TESSA→TAMMO (stil): Het is mijn bed, dus ik neem de bank. [NIEUW]
+APP TAMMO→TESSA (stil): Het is mijn oma, dus ik. [NIEUW]
+APP TESSA→TAMMO (stil): Dan allebei, met een deken ertussen. [NIEUW]
+APP TAMMO→TESSA (stil): Ik haal de dekens. Twee. [NIEUW]
+APP MEM→TESSA (stil): Famke. Is de jongen al je man? Ik vraag voor een vriendin. [NIEUW]
+APP TESSA→MEM (stil): Mem. Hij is mijn huisgenoot. [NIEUW]
+APP MEM→TESSA (stil): Dat zei ik tegen mijn vriendin ook. [NIEUW]

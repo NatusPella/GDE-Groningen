@@ -200,6 +200,9 @@ TESSA: Het luik moet aan de zijkant, dan staat niemand in de weg. [NIEUW]
 TAMMO: Welke mensen? [NIEUW]
 TESSA: De mensen die gaan komen, Tammo. [NIEUW]
 TAMMO: Dan zet ik hem zo neer dat het past. [NIEUW]
+(regie: op de koelkast hangt ook een nieuwe lijst met twee kolommen: TAMMO VINDT en TESSA VINDT. Links: eerst eten, dan plannen. Rechts: eerst plannen, dan eten.)
+TESSA: Ik heb ook een lijst gemaakt. Op de koelkast: wat jij vindt, wat ik vind. [NIEUW]
+TAMMO: En waar staat "thee"? [NIEUW]
 TESSA: Je hebt dat kaartje nog. Van die eerste week. [NIEUW]
 TAMMO: Het hing al aan de koelkast. [NIEUW]
 TESSA: Ja. Natuurlijk. [NIEUW]
@@ -392,6 +395,10 @@ TAMMO: Een begrafenis. [BEHOUDEN]
 HENK (telefoon): Om twaalf uur 's nachts. [BEHOUDEN]
 TESSA: Een hele late. [BEHOUDEN]
 HENK (telefoon): Neem er een koekje bij. Eén. Het is geen Ontzet. [BEHOUDEN]
+(regie: er wordt zachtjes geklopt. In de deuropening staat de buurman van elf negen, een oude man in een vest met een duif op zijn schouder. Naamkaart: MENEER VELDKAMP.)
+VELDKAMP: Jullie lamp brandt. Het is bijna twaalf. [NIEUW]
+TESSA: We wachten op iets. [NIEUW]
+VELDKAMP: Mijn duiven doen dat bij niemand. Hij wil naar Tammo. [NIEUW]
 
 ## [R1.2b] Nachtstreek, middernacht – Stad – radio
 RIKUS (radio): Geen beller vanavond. Twee vrienden van me zijn een museum gaan "bekijken". Ik zeg niks. Ik draai drie minuten stilte. [BEHOUDEN]
@@ -466,6 +473,24 @@ TESSA: Daar sta je alleen als je omrijdt. [NIEUW]
 TAMMO: Ik haat omleidingen. [NIEUW]
 TESSA: Je haat alles wat langer duurt dan een koekje. [NIEUW]
 
+## [B1.1] Autogesprekken akte 1: iedereen denkt het (pool; aanname dat ze al samen zijn) – Stad – Escapade
+TESSA: Waarom denkt iedereen dat wij een stel zijn? [NIEUW]
+TAMMO: Wij delen een koelkast. [NIEUW]
+TESSA: Dat is geen argument. [NIEUW]
+TAMMO: Het is een hele goede koelkast. [NIEUW]
+
+## [B1.2] Autogesprekken akte 1: eigenlijk (pool) – Stad – Escapade
+TESSA: Kijk, een mus. [NIEUW]
+TAMMO: Eigenlijk een ringmus. Hij heeft een vlekje op zijn wang. [NIEUW]
+TESSA: Dat is het leukste wat je vandaag zei. [NIEUW]
+TAMMO: Het was het enige. [NIEUW]
+
+## [B1.3] Autogesprekken akte 1: vraag van de dag (pool; taxi en klussen) – Stad – Escapade
+TESSA: Vraag van de dag. Hoe lang kan een duif zonder poepen? [NIEUW]
+TAMMO: Dat hangt van de jas af. [NIEUW]
+TESSA: Dat noem ik geen antwoord. [NIEUW]
+TAMMO: Het is een eerlijk antwoord. [NIEUW]
+
 ## [A1.1] Appjes akte 1 (stil, geen stem) – Stad – telefoon
 APP TESSA→TAMMO (stil): Ik pin de honderdvijftig. Wacht bij de auto. [NIEUW]
 APP TAMMO→TESSA (stil): Ik ben je nog niet kwijt. [NIEUW]
@@ -482,4 +507,9 @@ TAMMO: En daarna? [NIEUW]
 TESSA: Daarna winnen we gewoon eerlijk. Met een eierbal die beter is dan de zijne. [NIEUW]
 TAMMO: Oma Trijntje won in 1953. [NIEUW]
 TESSA: Dan weet zij hoe dat moet. [NIEUW]
+(regie: Tammo draait zich naar haar toe.)
+TAMMO: Tessa, eigenlijk— [NIEUW]
+(regie: een bakfiets toetert, lang.)
+TESSA: Wat zei je? [NIEUW]
+(regie: Tammo kijkt naar de weg. Hij zegt niets meer.)
 

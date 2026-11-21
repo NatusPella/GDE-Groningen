@@ -179,6 +179,10 @@ JELLE: Een rondje meer of minder. Dat neem ik jullie niet kwalijk. [NIEUW]
 RIKUS (radio): Wind uit het noordwesten. Op de Eemsdijk zijn zeventien schapen gered van een deurwaarder. Ik weet niet hoe. [NIEUW]
 RIKUS (radio): Kiekdoar meldt dat Oldenhuis Bakt in Delfzijl een bestaande snackbar verbouwt, naast de visboer. De visboer lacht niet. [NIEUW]
 
+## [R3.4] Nachtstreek, vrijdagnacht: een plaat – Stad – radio
+RIKUS (radio): Mijn verzoekplaat van de week: "Elfde Verdieping", van De Fietstunnels. Een nummer over een lift die werkt. [NIEUW]
+RIKUS (radio): Voor twee Stadjers die elk een kant van het refrein zingen. Ik zeg niks. [NIEUW]
+
 ## [T3] De trein naar Winschoten – Eemsdelta, Delfzijl naar Winschoten – trein (meerijden)
 TAMMO: Het koopboek. Plakje zes: bloem en jury. Proeverij, kermis Winschoten. [NIEUW]
 TESSA: Dan gaan wij daar ook heen. Roelfien wacht bij Midwolda. [NIEUW]
@@ -242,6 +246,17 @@ JELLE: Dat staat nergens in het contract. Mijn juristen hebben het gecontroleerd
 (regie: Jelle stapt in de limo. De gouden koffer laat hij geen seconde los.)
 TAMMO: Hij laat die koffer niet los. [NIEUW]
 TESSA: Nee. Waar hij heen gaat, gaat de bal heen. Durk en Douwe weten waar. Ze zitten bij Geert. [NIEUW]
+
+## [M15.6] Laag over het graan: de zanger – Oldambt, Winschoten, de kermis – te voet
+(regie: bij de proeverijtent zingt een jonge man in een glimmend jasje met een gitaar voor een groepje mensen. Naamkaart: DAAN. Een duif landt op Tammo's schouder.)
+DAAN: Jij bent van het spandoek. Dat ik dat mocht meemaken. [NIEUW]
+TESSA: Het was een ongeluk. [NIEUW]
+DAAN: Dan heb je veel ongelukken nodig. Vanavond sta ik achter de bar bij Geert. Mag ik dan een liedje zingen? [NIEUW]
+TAMMO: Ze moet nog eten. [NIEUW]
+DAAN: Eén couplet. Over een meisje met een spandoek. [NIEUW]
+(regie: de duif op Tammo's schouder vliegt op, draait een rondje en laat iets vallen op Daans glimmende jasje.)
+TAMMO: Ik heb niks gezegd. [NIEUW]
+TESSA: Kom. Geert wacht. [NIEUW]
 
 ## [M15.4] Laag over het graan: herhaling – Oldambt, Winschoten – klein vliegtuig
 ROELFIEN: Het spandoek is gewassen. Het graan heeft niks gezien. [NIEUW]
@@ -356,6 +371,35 @@ TESSA: Een inham. [NIEUW]
 TAMMO: Een bocht met ambitie. [NIEUW]
 TESSA: Je geeft nooit toe. [NIEUW]
 TAMMO: Jij ook niet. [NIEUW]
+
+## [B3.1] Autogesprekken akte 3: de onvoltooide zin (pool; bijna-moment) – Eemsdelta – Escapade
+TAMMO: Tessa, eigenlijk— [NIEUW]
+TESSA: Wat dan? [NIEUW]
+TAMMO: Eigenlijk heet een groep van die dingen een windpark. [NIEUW]
+TESSA: Ik dacht even dat het iets was. [NIEUW]
+TAMMO: Het is ook iets. Een park. [NIEUW]
+
+## [B3.2] Autogesprekken akte 3: vraag van de dag (pool; lucht en kermis) – Waddenkust – Escapade
+TESSA: Vraag van de dag. Hoe hoog vliegt een meeuw? [NIEUW]
+TAMMO: Net zo hoog als zijn frikandel. [NIEUW]
+TESSA: Dat is geen hoogte. [NIEUW]
+TAMMO: Het is een eenheid. [NIEUW]
+
+## [B3.3] Autogesprekken akte 3: het autoduet (pool; alleen een verzonnen nummer, geen tekst) – Oldambt – Escapade
+(regie: de radio draait "Elfde Verdieping" van De Fietstunnels. Tessa zingt het refrein, Tammo de bas. Geen songtekst op het scherm.)
+TESSA: Dit nummer ken ik. Zet harder. [NIEUW]
+TAMMO: Jij zingt het refrein, ik de bas. [NIEUW]
+TESSA: Jij zingt altijd de bas. [NIEUW]
+TAMMO: Iemand moet de bodem leggen. [NIEUW]
+
+## [A3.4] Appjes akte 3: het kasboekje en de lijst (stil, geen stem) – alle regio's – telefoon
+APP TESSA→TAMMO (stil): Kasboekje. Benzine 38,50. Wie betaalde? [NIEUW]
+APP TAMMO→TESSA (stil): Jij. [NIEUW]
+APP TESSA→TAMMO (stil): Dan staat het bij jou in het rood. [NIEUW]
+APP TAMMO→TESSA (stil): Dan staat het er nog een tijd. [NIEUW]
+APP TESSA→TAMMO (stil): Nieuwe kolom op de koelkast: "wij vinden". Nog leeg. [NIEUW]
+APP TAMMO→TESSA (stil): Wat zet je erin? [NIEUW]
+APP TESSA→TAMMO (stil): Ik wacht op jou. [NIEUW]
 
 ## [A3.1] Appjes akte 3 (stil, geen stem) – alle regio's – telefoon
 APP MEM→TESSA (stil): Nog zeven dagen. Hou Jelle bezig. – M. [NIEUW]
