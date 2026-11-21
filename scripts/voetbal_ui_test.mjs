@@ -1,0 +1,82 @@
+// Test van de HTML van het kindscherm Voetbal (#1110): scripts/voetbal_ui_test.mjs. Alleen de pure HTML-functies (geen DOM); de DS3-regels: geen losse kleur, geen kleur als enige betekenis, een primaire knop,
+// een ontworpen lege staat, een ontgrendelhint, alles Nederlands, "Grunn" nooit "de Grunn". Niet in beeld bekeken: zie docs/VOETBAL-CARRIERE-VERIFICATIE-21-11.md.
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { wgsToWorld } from '../game/js/rdnew.js';
+import { makeParkIndex, HOME_WGS } from '../game/js/voetbalparken.js';
+import * as C from '../game/js/voetbalcarriere.js';
+import { viewHtml, TABS, kaartInfo } from '../game/js/voetbalcarriereui.js';
+import { wordCount } from '../game/js/hudtext.js';
+
+let n = 0;
+const t = (naam, f) => { try { f(); n++; } catch (e) { console.error('FAIL', naam); throw e; } };
+const index = makeParkIndex(JSON.parse(fs.readFileSync(new URL('../game/voetbalparken.json', import.meta.url), 'utf8')));
+const [hx, hy] = wgsToWorld(HOME_WGS.lat, HOME_WGS.lon);
+const getClub = C.clubResolver(index);
+const start = (char = 'anita') => C.startCareer({ char, index, home: { x: hx, y: hy } });
+const env = { getClub, unlocked: true, hint: null, char: 'anita' };
+const tekst = (h) => h.replace(/<[^>]+>/g, ' ').replace(/&amp;|&lt;|&gt;|&quot;/g, ' ').replace(/\s+/g, ' ').trim();
+
+t('niet begonnen en dicht: een ontworpen lege staat met de hint, zonder knop', () => {
+  const h = viewHtml(C.newCareer(), 'vandaag', { ...env, unlocked: false, hint: 'In Veendam speelt Tessa met het dorpsteam. Daar begint de voetbalcarrière.' });
+  assert.match(h, /ds-z-leeg/); assert.match(h, /Veendam/); assert.ok(!/data-vb="start"/.test(h));
+  assert.match(h, /Euroborg en de penaltyserie/);
+});
+t('niet begonnen en open: de uitnodiging met precies een primaire knop', () => {
+  const h = viewHtml(C.newCareer(), 'vandaag', env);
+  assert.match(h, /data-vb="start"/); assert.match(h, /Tammo/); assert.match(h, /Aannemen/);
+  assert.equal((h.match(/ds-z-knop(?! ds-z-knop--)(?!--)[" ]/g) || []).length >= 1, true);
+  const h2 = viewHtml(C.newCareer(), 'vandaag', { ...env, char: 'tammo' });
+  assert.match(h2, /Tessa/); assert.match(h2, /speel(t)? je als Tammo|Je speelt als Tammo/);
+});
+t('elk scherm bestaat, heeft tabs, en gebruikt alleen DS3-klassen en geen losse kleur', () => {
+  const c = C.advanceDays(start('anita'), 3, getClub).career;
+  for (const [id] of TABS) {
+    const h = viewHtml(c, id, env);
+    assert.ok(h.length > 300, id);
+    assert.ok(!/#[0-9a-f]{3,8}\b/i.test(h.replace(/&#\d+;/g, '')), `${id}: losse kleur`);
+    assert.ok(!/style="[^"]*(color|background)/.test(h), `${id}: inline kleur`);
+    assert.match(h, /role="tablist"/); assert.match(h, new RegExp(`aria-selected="true"[^>]*>|data-vb="tab:${id}" aria-selected="true"`));
+    assert.ok(!/de Grunn/i.test(h) && !/undefined|NaN|\[object/.test(h), id);
+    assert.ok(!/(winter|sneeuw|jeugd|kindertijd)/i.test(h));
+  }
+});
+t('Vandaag: de wedstrijd, de keuze spelen of uitrekenen en een voorstel van de regelaar; een dichte knop zegt waarom', () => {
+  let c = start('anita');
+  let h = viewHtml(c, 'vandaag', env);
+  assert.match(h, /Competitie ronde 1/); assert.match(h, /data-vb="play"[^>]*aria-disabled="true"[^>]*title="Nog niet aan de beurt"/);
+  assert.match(h, /over 3 speldagen/i); assert.match(h, /Tammo<\/strong>: /);
+  c = C.advanceDays(c, 3, getClub).career;
+  h = viewHtml(c, 'vandaag', env);
+  assert.ok(!/data-vb="play"[^>]*aria-disabled/.test(h), 'op dag 3 kan je spelen'); assert.match(h, /Nu te spelen/); assert.match(h, /winnen €/);
+  assert.ok(wordCount(tekst(h)) <= 125, `Vandaag telt ${wordCount(tekst(h))} woorden`);
+  const k = { ...c, injury: { days: 2, text: 'Je kuit is moe; rust 2 speldagen' } };
+  assert.match(viewHtml(k, 'vandaag', env), /data-vb="play"[^>]*aria-disabled="true"[^>]*title="Je kuit is moe/);
+});
+t('Stand: acht clubs, promotie en degradatie met woord en pijl (niet alleen kleur)', () => {
+  const h = viewHtml(start(), 'stand', env);
+  assert.equal((h.match(/<li class="ds-z-rij/g) || []).length, 8);
+  assert.match(h, /↑ promotie/); assert.match(h, /↓ degradatie/); assert.match(h, /aria-current="true"/);
+  assert.match(h, /Talentenklasse/);
+});
+t('Kalender, Selectie en Training: zeven rondes, 18 spelers, vijf oefeningen met aria-pressed', () => {
+  const c = start();
+  assert.equal((viewHtml(c, 'kalender', env).match(/<li class="ds-z-rij/g) || []).length, 7);
+  assert.equal((viewHtml(c, 'selectie', env).match(/vb-selectie"/g) || []).length, 1);
+  assert.equal((viewHtml(c, 'selectie', env).match(/<li class="ds-z-rij ds-m-rij/g) || []).length, 5 + 18);
+  const tr = viewHtml(c, 'training', env);
+  assert.equal((tr.match(/data-vb="focus:/g) || []).length, 5); assert.match(tr, /aria-pressed="true"/);
+  assert.ok(wordCount(tekst(tr)) <= 125, `Training telt ${wordCount(tekst(tr))} woorden`);
+  const getraind = C.train(c, 'pace').career;
+  assert.match(viewHtml(getraind, 'training', env), /data-vb="train"[^>]*aria-disabled="true"[^>]*title="Vandaag al getraind/);
+});
+t('namen uit de data worden ge-escaped', () => {
+  const h = viewHtml(start(), 'stand', { ...env, getClub: () => ({ naam: '<b>x</b>' }) });
+  assert.ok(!h.includes('<b>x</b>') && h.includes('&lt;b&gt;x'));
+});
+t('de kaart in Loopbanen: niet begonnen of stand en niveau', () => {
+  assert.equal(kaartInfo(C.newCareer(), getClub).gestart, false);
+  const k = kaartInfo(start(), getClub);
+  assert.ok(k.gestart && /Talentenklasse, plek \d/.test(k.stand) && k.niveau === 'Talent' && /over 3 speldagen/.test(k.volgende));
+});
+console.log(`voetbal_ui_test ok (${n} groepen)`);

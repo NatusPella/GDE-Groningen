@@ -71,6 +71,7 @@ export function startSeason(c) {
 }
 
 // ---- clubs en sterkte ----
+export const nameOf = (getClub, id) => { const k = getClub && getClub(id); return k ? k.naam : clubNaam(id); };
 export const divisionOfMyClub = (c) => S.divisionOf(c.world, c.club);
 // De selectie van een club: vast uit (club, zaad); de eigen club krijgt de speler en de teamgenoot erin (op de plek van de beste van hun rol).
 export function squadOf(c, clubId, getClub) {
@@ -112,7 +113,7 @@ export function nextMatch(c, getClub) {
   const myClub = getClub(c.club), oppClub = getClub(opp), venue = isHome ? myClub : oppClub;
   const park = venue && venue.stadion ? { stadium: venue.stadion } : venue && venue.park ? { park: venue.park } : {};
   const travelDays = !isHome && venue && venue.park && myClub && myClub.park && Math.hypot(venue.park.x - myClub.park.x, venue.park.y - myClub.park.y) > NEAR_TRIP_M ? 2 : 1;
-  return { ev, opponent: opp, opponentName: clubNaam(opp) && oppClub ? oppClub.naam : clubNaam(opp), isHome, ...park, status: A.eventStatus(ev, rel(c), travelDays), travelDays, in: A.daysUntil(ev, rel(c)), canPlay: !c.injury, kind: ev.kind, n: ev.n };
+  return { ev, opponent: opp, opponentName: nameOf(getClub, opp), isHome, ...park, status: A.eventStatus(ev, rel(c), travelDays), travelDays, in: A.daysUntil(ev, rel(c)), canPlay: !c.injury, kind: ev.kind, n: ev.n };
 }
 
 // ---- de opzet van een wedstrijd voor de sim (makeMatch) ----
@@ -210,7 +211,7 @@ export function playEvent(c, getClub, result = null, { missed = false } = {}) {
     firstGoal: !!(stat.goals && !s.flags.firstGoal), debut: !s.flags.debut,
   };
   s.flags = { ...s.flags, debut: true, firstGoal: s.flags.firstGoal || !!(stat.goals | 0) };
-  s.last = { kind: m.kind, text: `${clubNaam(s.club)} ${own.gf}-${own.ga} ${m.opponentName}`, outcome };
+  s.last = { kind: m.kind, text: `${nameOf(getClub, s.club)} ${own.gf}-${own.ga} ${m.opponentName}`, outcome };
   return { career: s, summary };
 }
 export const simulateEvent = (c, getClub, opts) => playEvent(c, getClub, null, opts);
@@ -307,7 +308,7 @@ export function overview(c, getClub) {
   const st = standings(c);
   const mine = st.rows.find((r) => r.id === c.club);
   return {
-    club: clubNaam(c.club), clubId: c.club, division: st.division, divisionName: { kroon: 'Kroonklasse', terp: 'Terpklasse', talent: 'Talentenklasse' }[st.division], rank: mine ? mine.plek : 0, points: mine ? mine.p : 0, round: st.round,
+    club: nameOf(getClub, c.club), clubId: c.club, division: st.division, divisionName: { kroon: 'Kroonklasse', terp: 'Terpklasse', talent: 'Talentenklasse' }[st.division], rank: mine ? mine.plek : 0, points: mine ? mine.p : 0, round: st.round,
     season: c.seasonNr, day: rel(c), next: nextMatch(c, getClub), level: levelOf(c), rating: myRating(c), form: O.formFactor(c.history), formArrow: O.formArrow(O.formFactor(c.history)), fatigue: c.fatigue, injury: c.injury,
   };
 }
@@ -320,7 +321,7 @@ export function normalize(raw) {
   let d = raw;
   if (typeof raw === 'string') { try { d = JSON.parse(raw); } catch (e) { return newCareer(); } }
   if (!d || typeof d !== 'object' || d.v !== VERSION) return newCareer();
-  if (!d.started) return newCareer();
+  if (!d.started) return { ...newCareer(), invited: !!d.invited, inviteDay: Number.isInteger(d.inviteDay) ? d.inviteDay : null };   // alleen de uitnodiging blijft bewaard
   try {
     const me = readPlayer(d.me), mate = readPlayer(d.mate);
     const strList = (l) => Array.isArray(l) && l.every((x) => typeof x === 'string');
