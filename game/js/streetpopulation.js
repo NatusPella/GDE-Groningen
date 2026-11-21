@@ -4,6 +4,7 @@
 import { spawnPedestriansNear } from './pedestrians.js';
 import { scaledTarget, keepVehicle } from './simload.js';
 import { MODS } from './cheatmods.js';
+import { trafficFactor } from './difficulty.js'; // #1150
 import { dist } from './util.js';
 import { hoofdspeler } from './players.js';
 
@@ -16,7 +17,8 @@ export const PED_TARGET = 45;
 // cyclists out of sight go first (simload.js)
 export function thinTraffic(world) {
   const { player, vehicles } = world;
-  const want = { car: Math.round(scaledTarget(30) * MODS.cars), bike: Math.round(scaledTarget(16) * MODS.bikes), scooter: Math.round(scaledTarget(10) * MODS.scooters) };
+  const tf = trafficFactor(); // #1150: Verkeersdrukte per save (Standaard: 1)
+  const want = { car: Math.round(scaledTarget(30) * MODS.cars * tf), bike: Math.round(scaledTarget(16) * MODS.bikes * tf), scooter: Math.round(scaledTarget(10) * MODS.scooters * tf) };
   const kindOf = (v) => (v.isBike ? 'bike' : v.isScooter ? 'scooter' : v.isBus || v.isBoat || v.parked || v.wrecked ? null : 'car');
   const have = { car: [], bike: [], scooter: [] };
   for (const v of vehicles) {

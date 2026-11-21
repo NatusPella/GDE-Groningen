@@ -6,6 +6,7 @@ import { hoofdspeler } from './players.js';
 import { Vehicle, MODELS, maxCurvature, resolveVehicleBuildingCollision, makeTwoWheeler } from './vehicle.js';
 import { clamp, pointInPolygon, closestPointOnSegment } from './util.js';
 import { groepsActeurs } from './stagegroep.js';
+import { raceSkillFactor } from './difficulty.js'; // #1150: Tegenstanders in races per save
 
 const A_LAT = 11; // m/s² cornering the speed profile plans for (AI tyre grip is 16)
 const PROFILE_DECEL = 11;
@@ -270,7 +271,7 @@ export function createRace(world, route, cps, opts = {}) {
     world.vehicles.push(v);
     const pr = project(track, v.x, v.y, 0, track.n);
     race.rivals.push({
-      v, skill: def.skill, top: v.model.maxSpeed, bias: (k % 2 ? 1 : -1) * (bikes ? 0.3 : 0.6), i: pr.i, sLap: pr.s, prog: q.sl, lat: q.lat, curLat: q.lat,
+      v, skill: def.skill * raceSkillFactor(), top: v.model.maxSpeed, bias: (k % 2 ? 1 : -1) * (bikes ? 0.3 : 0.6), i: pr.i, sLap: pr.s, prog: q.sl, lat: q.lat, curLat: q.lat,
       passLat: 0, passUntil: -1, stuckT: 0, reverseT: 0, stuckCount: 0, finished: false, place: 0, doneAt: 0,
     });
   });

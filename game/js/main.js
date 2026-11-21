@@ -245,6 +245,7 @@ setSimCarAttach(attachToNearestRoad);
 import { scaledTarget, simLevel, nextSimFrame, farAIDist, skipFar, takeDt, keepVehicle } from './simload.js';
 import { getSettings, magOnline } from './settings.js';
 import { MODS } from './cheatmods.js';
+import { trafficFactor } from './difficulty.js'; // #1150: Verkeersdrukte per save
 import { makeDip, triggerDip, dipScale } from './gamefeel.js';
 import { effectsFor } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
@@ -1255,9 +1256,9 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   // samen spelen, spelers uit elkaar (#429): verkeer rond een losse groep spelers, met zijn deel van het totaalbudget (coopfoci.js)
   function verkeerRondFocus(world, f, fa) {
     const key = wijkProfileAt(world.map, f.x, f.y).key;
-    manageTrafficPopulation(world, { target: Math.round(scaledTarget(30) * MODS.cars * fa), focus: f });
-    manageBikePopulation(world, { target: Math.round(scaledTarget(16) * MODS.bikes * fa), focus: f });
-    manageScooterPopulation(world, { target: Math.round(scaledTarget(10) * MODS.scooters * fa), focus: f });
+    manageTrafficPopulation(world, { target: Math.round(scaledTarget(30) * MODS.cars * trafficFactor() * fa), focus: f });
+    manageBikePopulation(world, { target: Math.round(scaledTarget(16) * MODS.bikes * trafficFactor() * fa), focus: f });
+    manageScooterPopulation(world, { target: Math.round(scaledTarget(10) * MODS.scooters * trafficFactor() * fa), focus: f });
     manageMotorPopulation(world, { target: Math.round(scaledTarget(motorTarget(key, hourOf(world))) * MODS.motors * fa), focus: f });
   }
 
@@ -1287,7 +1288,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
       }
       const fociN = world.coopFoci && world.coopFoci.length > 1 ? world.coopFoci.length : 1, fa = aandeel(fociN); // spelers uit elkaar (#429): de foci delen het budget
       if (slot === 'cars') {
-        manageTrafficPopulation(world, { target: Math.round(scaledTarget(30) * MODS.cars * fa) });
+        manageTrafficPopulation(world, { target: Math.round(scaledTarget(30) * MODS.cars * trafficFactor() * fa) });
         probe.mark('pop-traffic');
       } else if (slot === 'bikes') {
         // the centre is full of bikes: eight more cyclists while you are in it
@@ -1301,7 +1302,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
         manageBusPopulation(world);
         probe.mark('pop-bus');
       } else if (slot === 'scooters') {
-        manageScooterPopulation(world, { target: Math.round(scaledTarget(10) * MODS.scooters * fa) });
+        manageScooterPopulation(world, { target: Math.round(scaledTarget(10) * MODS.scooters * trafficFactor() * fa) });
         probe.mark('pop-scooters');
       } else if (slot === 'motors') {
         manageMotorPopulation(world, { target: Math.round(scaledTarget(motorTarget(wijkProfileAt(world.map, hoofdspeler(world).x, hoofdspeler(world).y).key, hourOf(world))) * MODS.motors * fa) });

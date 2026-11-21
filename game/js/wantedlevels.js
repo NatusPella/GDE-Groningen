@@ -1,3 +1,4 @@
+import { policeEscapeFactor, scaleUnits } from './difficulty.js'; // #1150: moeilijkheid per save
 // Wanted per star level (#43), pure data and rules. police.js reads the
 // search area, the cooldown and the units from here, so the five levels feel
 // different without scattering numbers over the chase code.
@@ -18,6 +19,10 @@ const LEVELS = [
   { searchRadius: 130, shrink: 1.0, loseAfter: 7, cooldown: 20, roadblockEvery: 14, roadblockLife: 55, copPeds: 5, spikes: true },
 ];
 
+// #1150: de tijd uit het zicht en de afkoeltijd volgen Moeilijkheid > Politie kwijtraken (op Standaard factor 1).
+export const loseAfterOf = (lvl) => lvl.loseAfter * policeEscapeFactor();
+export const cooldownOf = (lvl) => lvl.cooldown * policeEscapeFactor();
+
 export function levelOf(stars) {
   const n = Math.max(1, Math.min(5, Math.floor(stars) || 1));
   return LEVELS[n - 1];
@@ -34,7 +39,7 @@ const starsOf = (s) => (Number.isFinite(s) ? Math.max(0, Math.min(5, Math.floor(
 // als 1 en hield zo altijd één politieauto in de buurt, ook in de weilanden.
 export function policeTarget(stars) {
   const n = starsOf(stars);
-  return n < 1 ? 0 : TARGET[n - 1];
+  return n < 1 ? 0 : scaleUnits(TARGET[n - 1]);
 }
 
 // #933: de politiedichtheid per niveau. In de stad komt er per ster meer volk; buiten
@@ -47,7 +52,7 @@ const COUNTRY_STAGGER = 6;     // s tussen twee eenheden in het Ommeland
 export function policeDensity(stars, { country = false } = {}) {
   const n = starsOf(stars);
   if (n === 0) return { target: 0, stagger: 0 };
-  const target = country ? COUNTRY_TARGET[n] : TARGET[n - 1];
+  const target = scaleUnits(country ? COUNTRY_TARGET[n] : TARGET[n - 1]); // #1150: Politiemacht
   const stagger = country ? COUNTRY_STAGGER : CITY_STAGGER + (n <= 1 ? 1 : 0);
   return { target, stagger };
 }
@@ -117,7 +122,7 @@ export function markSeen(pol, w, px, py) {
 export function stepUnseen(pol, w, dt, px, py, decay = 1) {
   pol.unseenFor += dt;
   const lvl = levelOf(w.wanted);
-  if (pol.unseenFor < lvl.loseAfter && !pol.searching) {
+  if (pol.unseenFor < loseAfterOf(lvl) && !pol.searching) {
     pol.seenRecently = true;
     return false;
   }
@@ -131,7 +136,7 @@ export function stepUnseen(pol, w, dt, px, py, decay = 1) {
   pol.searchRadius = Math.max(SEARCH_MIN_RADIUS, pol.searchRadius - lvl.shrink * dt);
   const outside = Math.hypot(px - pol.searchCenter.x, py - pol.searchCenter.y) > pol.searchRadius;
   w.wantedDecayTimer += dt * (outside ? 2 : 1) * decay;
-  if (w.wantedDecayTimer >= lvl.cooldown) {
+  if (w.wantedDecayTimer >= cooldownOf(lvl)) {
     w.wanted = Math.max(0, w.wanted - 1);
     w.wantedDecayTimer = 0;
     return w.wanted === 0;

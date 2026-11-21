@@ -1,5 +1,6 @@
 import { normalizeAngle, isInWater, WATER_Y, closestPointOnSegment } from './util.js';
 import { requestRespawn } from './world.js';
+import { damageTakenFactor } from './difficulty.js'; // #1150
 import { surfaceUnder } from './vehicle.js';
 import { wallOnPath } from './wallpath.js';
 import { wreckVehicle } from './vehiclewreck.js';
@@ -565,7 +566,7 @@ function blokOpgevangen(world, damage) {
 
 // soort: 'melee' (een slag of stoot, de standaard) of 'kogel'; een kogel gaat ongewijzigd door een blokstand heen (#492).
 export function damagePlayer(world, damage, soort = 'melee') {
-  damage = assistDamage(damage); // Hulp (#215): minder schade bij kogels, klappen en wegpiraten
+  damage = assistDamage(damage) * damageTakenFactor(); // Hulp (#215): minder schade bij kogels, klappen en wegpiraten; #1150: Schade aan jezelf
   if (soort !== 'kogel' && blokActief(world.blok, world.time || 0)) damage = blokOpgevangen(world, damage);
   if (world.armor > 0) {
     const absorbed = Math.min(world.armor, damage);

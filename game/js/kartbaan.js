@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { toonStartkaart } from './startkaart.js';
+import { raceSkillFactor } from './difficulty.js'; // #1150
 import { canvasTex, signBothSides } from './canvastex.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, seatPerson, seatedY, releasePersonGeometry, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
@@ -365,7 +366,7 @@ function start(w, { force = false, revealed = false } = {}) {
   if (!built) built = buildTrackScene();
   const p = hoofdspeler(w);
   if (p.inVehicle) p.exitVehicle(w.map, w);
-  const karts = [createKart(TRACK, 0, { player: true, name: 'jij' }), ...KART_RIVALS.map((r, i) => createKart(TRACK, i + 1, { skill: [0.93, 0.97, 1.01][i], name: r.name }))];
+  const karts = [createKart(TRACK, 0, { player: true, name: 'jij' }), ...KART_RIVALS.map((r, i) => createKart(TRACK, i + 1, { skill: [0.93, 0.97, 1.01][i] * raceSkillFactor(), name: r.name }))];
   // the riders, seated
   const me = p.character === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
   const looks = [me, ...KART_RIVALS.map((r) => ({ shirt: r.shirt, skin: 0xe2b48c, variant: r.variant, seed: 6500 + r.name.length, look: { age: r.age, hat: null, bag: null, umbrella: null } }))];
