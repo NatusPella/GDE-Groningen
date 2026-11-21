@@ -3,7 +3,7 @@ import { pubStaticKey } from './pubstatic.js';
 import { dijkPrijs } from './ringrace.js';
 import { assistTime } from './assistlive.js';
 import { getSettings } from './settings.js';
-import { cleanDifficulty, scaleTimeLimit } from './difficulty.js'; // #800: de stand schaalt missietijden en vensters
+import { cleanDifficulty, scaleTimeLimit, scaleIncome, storyModeOn } from './difficulty.js'; // #800: de stand schaalt missietijden en vensters
 import { missionStats, fmtTime, failureStats } from './missionstats.js';
 import { eggSpeedKmh, eggLimitKmh, eggSpeedLoss, eggSpeedWarning, eggFailText } from './eggspeed.js';
 import { createMissionLanes } from './missionlanes.js';
@@ -1184,7 +1184,7 @@ function succeed(world, def) {
   stopTalk();
   // a replay pays the klusloon; the first pass the full reward
   const replay = chainState().completed.has(i);
-  const volle = replay ? klusloon(def.reward, def) : def.reward;
+  const volle = scaleIncome(replay ? klusloon(def.reward, def) : def.reward); // #1169: Beloning van missies (Standaard: 1)
   // #591: a heist stage the player skipped with O (skipHeistStage) pays half, like a story skip
   const base = def.heist && chainState().heistSkip ? skipReward(volle) : volle;
   closeChoice();
@@ -1276,7 +1276,7 @@ export function payMedalBonus(world, i, medal) {
   if (!d) return 0;
   const from = chainState().medalPaid[i] || 0;
   if (medal <= from) return 0;
-  const bonus = medalBonus(d.reward, from, medal);
+  const bonus = scaleIncome(medalBonus(d.reward, from, medal)); // #1169
   chainState().medalPaid[i] = medal;
   if (bonus > 0) { noteMoney('Missies'); world.money += bonus; if (world.coopDeel) world.coopDeel(bonus); }
   return bonus;
@@ -1466,7 +1466,7 @@ function startMission(world, def) {
   waarschuwVoorStart(world, 'missie', def.id, missieStatus(def)); // samen spelen: een melding als dit nog niet (helemaal) samen werkt; de start gaat door
   chainState().afoot = false;
   chainState().phase = 'active';
-  chainState().timeLeft = scaleTimeLimit(assistTime(def.timeLimit), cleanDifficulty(getSettings().difficulty)) ?? Infinity; // #800
+  chainState().timeLeft = storyModeOn() ? Infinity : (scaleTimeLimit(assistTime(def.timeLimit), cleanDifficulty(getSettings().difficulty)) ?? Infinity); // #800; #1169: verhaalmodus kent geen tijdslimiet
   chainState().wpIndex = 0;
   chainState().stopIndex = 0;
   chainState().stopT = 0;

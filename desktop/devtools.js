@@ -67,6 +67,8 @@ function queryParts() {
     process.env.GDE_MENU_TEST && 'menutest',
     // Alleen of Samen (launchchoice.js): een testrun slaat de startkaart over en speelt alleen; GDE_STARTKEUZE=vraag laat hem juist zien (beeldruns)
     process.env.GDE_STARTKEUZE === 'vraag' ? 'startkeuze=vraag' : isTestRun && !hasFlag('--coop') && 'startkeuze=alleen',
+    // Moeilijkheid (difficultycard.js, #1169): een testrun slaat de kaart "Hoe pittig moet het zijn?" over en speelt op Standaard; GDE_MOEILIJKHEID=vraag toont hem (beeldruns)
+    process.env.GDE_MOEILIJKHEID === 'vraag' ? 'moeilijkheid=vraag' : isTestRun && 'moeilijkheid=standaard',
     TRAILER && 'trailer', TRAILER && trailerShot && `shot=${encodeURIComponent(trailerShot)}`, (TRAILER || hasFlag('--trailer-preview')) && trailerCut && `cut=${encodeURIComponent(trailerCut)}`,
     TRAILER && (trailerFrames || video) && 'frames', video && 'video', video && 'stil', hasFlag('--attract') && 'attract', hasFlag('--trailer-preview') && 'preview',
     !TRAILER && BENCH && `benchmark=${argValue('--benchmark') || 1}`,

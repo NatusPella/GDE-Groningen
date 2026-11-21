@@ -12,7 +12,7 @@ import { roadNetReady } from './roadgraph.js';
 import { isKnockedDown } from './ragdoll.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { decayFactor, profileOf, hintFor } from './signalement.js';
-import { levelOf, markSeen, stepUnseen, isInterceptorSlot, INTERCEPTOR, policeArmor, policeDensity } from './wantedlevels.js';
+import { levelOf, loseAfterOf, markSeen, stepUnseen, isInterceptorSlot, INTERCEPTOR, policeArmor, policeDensity } from './wantedlevels.js';
 import { createShards, dropSpikes } from './roadshards.js';
 import { makeBeamGeometry, makeBeamMaterial, requestSearchlight } from './nightlights3d.js';
 import { trySpawnMounts, tryDeployCrew, adoptThrownRider, holdUnit, updateCrews, ejectMountRider, maybeBolt, updateBolting } from './policemounts.js';
@@ -762,7 +762,7 @@ function updateSearch(dt, world, state, escalated) {
     pol.lastSeen = { x: tip.x, y: tip.y };
     pol.searching = true;
     pol.seenRecently = false;
-    pol.unseenFor = levelOf(world.wanted).loseAfter;
+    pol.unseenFor = loseAfterOf(levelOf(world.wanted));
     pol.searchCenter = { x: tip.x, y: tip.y };
     pol.searchRadius = levelOf(1).searchRadius;
     world.wantedDecayTimer = 0;

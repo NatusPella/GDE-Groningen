@@ -16,7 +16,7 @@ t('Instellingen heeft negen echte instellingstabbladen; Cheats en Foutrapport zi
   const m = pm.match(/settings: \[(\['video'[\s\S]*?)\],\n/);
   assert.ok(m, 'de settings-tabs staan in pausemenu.js');
   const tabs = [...m[1].matchAll(/\['(\w+)',/g)].map((x) => x[1]);
-  assert.deepEqual(tabs, ['video', 'sound', 'spel', 'besturing', 'camera', 'display', 'hints', 'a11y', 'online'], 'Beeld, Geluid, Spel, Besturing, Camera, Interface, Hints, Toegankelijkheid en Samen spelen (#897, #979)');
+  assert.deepEqual(tabs, ['video', 'sound', 'spel', 'moeilijkheid', 'besturing', 'camera', 'display', 'hints', 'a11y', 'online'], 'Beeld, Geluid, Spel, Moeilijkheid, Besturing, Camera, Interface, Hints en Toegankelijkheid (#897, #979, #1169)');
   assert.ok(!pm.includes("tab('cheats'"), 'Cheats is geen tabblad van Instellingen meer');
   assert.ok(!pm.includes('data-sub="fouten"'), 'Foutrapport is geen tabblad van Instellingen meer');
   assert.match(pm, /RAIL_GROUPS = \[[\s\S]*?\['settings', 'streken'\]\]/, 'Cheats staat als eigen onderdeel in de rail');

@@ -6,7 +6,7 @@ import { FLAGS } from './devflags.js';
 import { RAGE_CHOICES } from './roadragerules.js';
 import { SUBTITLE_CONTRASTS, TEXT_SIZES } from './a11ylogic.js';
 import { cleanHelpSetting } from './assist.js';
-import { cleanDifficulty } from './difficulty.js';
+import { cleanDifficulty, setActiveDifficulty, setActiveLevel, onDifficultyChange, toggleChoice } from './difficulty.js';
 import { READING_TIME_CHOICES } from './cardtime.js';
 import { deckDefaults, isSteamDeck } from './deck.js';
 import { VOLUME_KEYS, normalizeVolumes, volumeValue } from './sfx/volume.js';
@@ -167,7 +167,8 @@ const DEFAULTS = { ...BASE_DEFAULTS, ...deckDefaults(isSteamDeck()) };
 // bij elkaar. `onlineMeedoen` en `onlineNaam` stonden er al, maar `onlineKleur` en
 // `multiplayerConsentRemembered` niet: na een herstel vroeg het spel opnieuw om toestemming
 // terwijl het antwoord bewaard bleef, en je kleur sprong terug (#985 punt 6).
-const KEEP_ON_RESET = new Set(['attractSeen', 'keyBinds', 'padBinds', 'onlineMeedoen', 'onlineNaam', 'onlineKleur', 'multiplayerConsentRemembered']);
+// #1169: de moeilijkheid hoort bij de save, niet bij de voorkeuren van het apparaat: herstellen zet hem niet terug.
+const KEEP_ON_RESET = new Set(['difficulty', 'attractSeen', 'keyBinds', 'padBinds', 'onlineMeedoen', 'onlineNaam', 'onlineKleur', 'multiplayerConsentRemembered']);
 const SHIFT_CHOICES = ['auto', 'manual', 'clutch'];
 export const SUBTITLE_SIZES = { klein: 0.85, normaal: 1, groot: 1.25, extragroot: 1.5 };
 export const COLOR_BLIND_MODES = ['uit', 'deuteranopie', 'protanopie', 'tritanopie'];
@@ -280,6 +281,14 @@ function urlOverrides(out) {
 const settings = urlOverrides(load());
 const listeners = new Set();
 
+// #1169: de moeilijkheid hoort bij de SAVE (difficulty.js houdt de actieve stand, savegame.js zet hem bij laden en bij een
+// nieuw spel). `settings.difficulty` blijft bestaan als spiegel van het actieve niveau: alle lezers (activiteiten, missies,
+// medailles) lezen hem zoals eerst, en een oude save zonder veld erft hier het niveau dat dit apparaat had.
+setActiveDifficulty({ level: settings.difficulty, custom: {} });
+// het niveau dat dit apparaat vóór het per-save-systeem had: een save zonder veld `moeilijkheid` erft dat eenmalig (savegame.js)
+export const legacyDifficultyLevel = settings.difficulty;
+onDifficultyChange((d) => { if (settings.difficulty !== d.level) setSetting('difficulty', d.level); applyHudClasses(); });
+
 export function getSettings() {
   return settings;
 }
@@ -324,6 +333,7 @@ export function setSetting(key, value) {
   // Efficiëntie: een slider geeft tientallen input-events per seconde; de opslag volgt dan 200 ms na
   // de laatste beweging (en bij sluiten of verbergen van de pagina). Een schakelaar of keuze schrijft meteen.
   if (typeof value === 'number') scheduleSettingsWrite(); else writeSettingsNow();
+  if (key === 'difficulty') setActiveLevel(value); // #1169: een niveau kiezen wist de eigen aanpassingen van de save
   applyHudClasses();
   for (const cb of listeners) cb(settings, key);
 }
@@ -365,7 +375,7 @@ export function onSettingsChange(cb) {
 function applyHudClasses() {
   if (typeof document === 'undefined' || !document.body) return;
   document.body.classList.toggle('hide-minimap', !settings.showMinimap);
-  document.body.classList.toggle('hide-hints', !settings.showHints);
+  document.body.classList.toggle('hide-hints', !toggleChoice('hints', settings.showHints)); // #1169: het niveau van de save kan hints aan of uit zetten
 }
 
 if (typeof document !== 'undefined') {

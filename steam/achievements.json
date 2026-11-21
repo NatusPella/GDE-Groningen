@@ -218,6 +218,14 @@
       "steamApiNaam": ""
     },
     {
+      "id": "alle_uitdagend",
+      "titel": "Geen genade",
+      "omschrijving": "Speel alle acht missies uit op het niveau Uitdagend",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_ALLE_UITDAGEND",
+      "steamApiNaam": ""
+    },
+    {
       "id": "snel_100",
       "titel": "Honderd op de teller",
       "omschrijving": "Rij 100 km/u",

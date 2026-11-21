@@ -1,7 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { toonStartkaart } from './startkaart.js';
 import { getSettings } from './settings.js';
-import { difficultyRecordKey, cleanDifficulty } from './difficulty.js';
+import { difficultyRecordKey, cleanDifficulty, footballLevel, footballDuration } from './difficulty.js'; // #1169: tegenstander en duur per save
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
@@ -350,7 +350,7 @@ function panelTick(w) {
 }
 
 function freshOptions(v = leesOpslag()) {
-  const level = cleanDifficulty(getSettings().difficulty);
+  const level = footballLevel();
   let comp = null, tg = runs % OPPONENTS.length, formaat = v.formaat;
   if (v.modus === 'competitie') { // een seizoen: elf tegen elf tegen de club van deze ronde
     comp = leesCompetitie(v.comp);
@@ -359,7 +359,7 @@ function freshOptions(v = leesOpslag()) {
     if (k >= 0) tg = k;
     formaat = 'groot';
   }
-  return { duur: v.duur, stand: level, tg, formaat, vorming: cleanFormation(formaat, v.vorming), stijl: cleanStijl(v.stijl), comp, seed: ((Date.now() / 1000) | 0) + runs * 7919 };
+  return { duur: footballDuration(v.duur), stand: level, tg, formaat, vorming: cleanFormation(formaat, v.vorming), stijl: cleanStijl(v.stijl), comp, seed: ((Date.now() / 1000) | 0) + runs * 7919 };
 }
 
 // start: solo (sim = null), de host van een Samen-wedstrijd (online 'host', sim van het kader) of een gast (online 'gast', sim = de spiegel).
@@ -370,7 +370,7 @@ function launch(w, { force = false, online = null, sim = null, career = null } =
   if (p.inVehicle && p.exitVehicle) p.exitVehicle(w.map, w);
   runs++;
   let opt = online === 'gast' ? null : (uitnodiging && online ? uitnodiging : freshOptions());
-  if (career) { const v = leesOpslag(); opt = { duur: 'normaal', stand: cleanDifficulty(getSettings().difficulty), tg: 0, formaat: 'groot', vorming: cleanFormation('groot', v.vorming), stijl: cleanStijl(v.stijl), comp: null, seed: ((Date.now() / 1000) | 0) + runs * 7919 }; }
+  if (career) { const v = leesOpslag(); opt = { duur: 'normaal', stand: footballLevel(), tg: 0, formaat: 'groot', vorming: cleanFormation('groot', v.vorming), stijl: cleanStijl(v.stijl), comp: null, seed: ((Date.now() / 1000) | 0) + runs * 7919 }; }
   if (career) { site = career.site || { x: CX, y: CY, a: 0 }; }
   if (!sim && career) sim = makeMatch([{ slot: 0, naam: career.naam || 'Jij', char: career.char, bonus: career.bonus }], { duur: opt.duur, stand: opt.stand, seed: opt.seed, formaat: 'groot', vorming: opt.vorming, stijl: opt.stijl, teams: career.teams, ratings: career.ratings });
   if (!sim) sim = makeMatch([{ slot: 0, naam: 'Jij', char: p.character || null, bonus: voetbalBonusVan() }], { duur: opt.duur, stand: opt.stand, seed: opt.seed || 1, tegenstander: opt.tg, formaat: opt.formaat, vorming: opt.vorming, stijl: opt.stijl });
