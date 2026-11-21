@@ -1,6 +1,7 @@
 import { icoon } from './icons.js';
 import { saveGame } from './savehook.js';
 import { keyTextHtml } from './keycap.js';
+import { navIndex, rijCijfer } from './listnav.js';
 import { euro } from './geldtekst.js';
 import { createVehiclePreview } from './vehiclepreview.js';
 import { shopIconUrl } from './shopicon.js';
@@ -188,7 +189,7 @@ function render() {
   }
   list.innerHTML = sections.map((sec) => `
     <div class="m-gh"><span>${esc(sec.title)}</span></div>
-    ${sec.note ? `<p class="sm-note">${esc(sec.note)}</p>` : ''}
+    ${sec.note ? `<p class="sm-note">${sec.keys ? keyTextHtml(esc(sec.note)) : esc(sec.note)}</p>` : ''}
     ${sec.items.map((it) => rowHtml(it, sec.title)).join('')}`).join('');
   if (focusedId) {
     const el = list.querySelector(`[data-id="${CSS.escape(focusedId)}"]`);
@@ -566,6 +567,18 @@ function toonItem(id) {
   select(id);
 }
 
+// Home, End en de cijfertoetsen 1 tot 9 (listnav.js, het ene patroon voor toetsenbord en controller): spring naar een rij zonder te kopen.
+function jump(key) {
+  const items = [...root.querySelectorAll('.sm-item')];
+  if (!items.length) return;
+  const n = rijCijfer(key);
+  const i = n ? n - 1 : navIndex(items.length, items.indexOf(document.activeElement), key);
+  if (i < 0 || i >= items.length) return;
+  items[i].focus({ preventScroll: true });
+  items[i].scrollIntoView({ block: 'nearest' });
+  select(items[i].dataset.id);
+}
+
 function move(dir) {
   const items = [...root.querySelectorAll('.sm-item')];
   if (!items.length) return;
@@ -589,6 +602,7 @@ function onKey(e) {
   if (k === 'Escape' || k === 'Backspace' || lower === 'q') closeShopMenu();
   else if (k === 'ArrowLeft' || k === '[') stepTabs(-1);
   else if (k === 'ArrowRight' || k === ']') stepTabs(1);
+  else if (k === 'Home' || k === 'End' || rijCijfer(k)) jump(k);
   else if (k === 'ArrowUp' || lower === 'w') move(-1);
   else if (k === 'ArrowDown' || lower === 's') move(1);
   else if (k === 'Enter' || k === ' ' || lower === 'e' || lower === 'f') {

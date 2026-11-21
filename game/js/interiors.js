@@ -29,7 +29,7 @@ import { buildPersonMesh, animatePersonWalk, seatPerson, seatedY } from './model
 import { FAC } from './facilities.js';
 import { PROMPT, LOCKED_HOME, clerkLine, HOME_LOOK, FITTING, HAIRCUT, CHURCH_CANDLE, TICKET_LINES, LEZEN, BOUGHT, TOO_POOR, NOT_FOR_SALE } from './interiortexts.js';
 import { productFor, buyProduct } from './interiorbuy.js';
-import { shopInBuilding, openShopFromInterior } from './shops.js';
+import { shopInBuilding, openShopFromInterior, openFittingRoom, openClothingCounter } from './shops.js';
 import { noteMoney } from './finance.js';
 import { playerBusy } from './busy.js';
 import { isCinematicActive } from './cinematics.js';
@@ -296,6 +296,8 @@ function useSpot(w, hit) {
     case 'kopen': case 'bestellen': {
       const gameShop = shopInBuilding(ls.b);
       if (gameShop && openShopFromInterior(w, gameShop)) return true;
+      // a clothing interior without a shop of the game: the same stock and menu as a clothing shop (epic Kleding, round 4)
+      if (s.id === 'kopen' && plan.sub === 'kleding' && openClothingCounter(w, 'kleding|' + seed, 'Kledingwinkel')) return true;
       const prod = productFor(plan.kind, plan.sub);
       if (!prod) { say(w, NOT_FOR_SALE); return true; }
       noteMoney('Winkels');
@@ -306,8 +308,10 @@ function useSpot(w, hit) {
       return true;
     }
     case 'passen': {
+      // the fitting room (epic Kleding, round 4): try on the stock of this shop, your own wardrobe, save an outfit, the curtain sounds
       const gameShop = shopInBuilding(ls.b);
-      if (gameShop && openShopFromInterior(w, gameShop)) return true;
+      if (gameShop && gameShop.type !== 'kleding' && openShopFromInterior(w, gameShop)) return true;
+      if (openFittingRoom(w, gameShop && gameShop.type === 'kleding' ? gameShop : 'kleding|' + seed, hit.x, hit.y)) return true;
       say(w, FITTING[n % FITTING.length]);
       return true;
     }

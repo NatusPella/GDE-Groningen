@@ -676,6 +676,69 @@ t('menu\'s: kledingwinkel en kast leveren secties met items in de vorm van shopu
   assert.ok(C.presetsOf('tammo')[0]);
 });
 
+t('pashokje (ronde 4): passen, kast, outfit bewaren met postuur en kapsel, code delen, iconen, geluid', async () => {
+  const M = await import('../game/js/clothingpanel.js');
+  const S = await import('../game/js/clothingsfx.js');
+  const LS = await import('../game/js/shoplist.js');
+  const SI = await import('../game/js/shopicons.js');
+  const world = { audioEvents: [], players: [], inVehicle: null, x: 3, y: 4 };
+  const geluiden = [];
+  let geld = 400;
+  const ctx = {
+    ch: 'tammo', name: 'Tammo', shopKey: 'kleding|77', day: 3, hexCss: (x) => '#' + x.toString(16).padStart(6, '0'),
+    broke: (p) => (geld < p ? 'Te weinig geld' : ''), pay: (p) => { if (geld < p) return false; geld -= p; return true; },
+    previewOf: (w) => ({ kind: 'person', worn: w }), apply: () => false, sound: (k) => geluiden.push(k), copy: () => {},
+  };
+  // het pashokje: eerst outfits en bewaren, dan wat de winkel heeft, dan de kast; ids zijn uniek en elke regel past
+  C.setBody('tammo', 'breed');
+  M.wardrobeSections(ctx).find((s) => s.title === 'Bewaar').items[0].buy();
+  const secties = M.fittingSections(ctx);
+  const titels = secties.map((s) => s.title);
+  assert.ok(titels.indexOf('Outfits') < titels.findIndex((t2) => t2.startsWith('Passen:')) && titels.some((t2) => t2 === 'Boven') && titels.includes('Deel je look'), titels.join('|'));
+  const alle = secties.flatMap((s) => s.items);
+  assert.equal(new Set(alle.map((i) => i.id)).size, alle.length, 'ids botsen niet');
+  for (const it of alle) assert.ok(it.preview && typeof it.buy === 'function' && LS.itemIcon(it) in SI.SHOP_ICONS, it.id);
+  assert.ok(secties.find((s) => s.title === 'Outfits').keys, 'de toets 6 staat als toetsplaatje in de tekst');
+  // passen en kopen: het geluid volgt het slot (jas = rits), uitdoen ritselt
+  const jas = alle.find((i) => i.id.startsWith('p-c-jack.') && !i.disabled);
+  if (jas) { jas.buy(); assert.equal(geluiden.at(-1), 'zipper_pull'); }
+  const stuk = alle.find((i) => i.id.startsWith('p-c-tshirt.') && !i.disabled);
+  stuk.buy(); assert.equal(geluiden.at(-1), 'clothes_rustle');
+  // een outfit bewaart het postuur; het kapsel en het postuur komen mee terug
+  C.setBody('tammo', 'smal');
+  assert.equal(C.wearPreset('tammo', 0).ok, true);
+  assert.equal(C.getBody('tammo'), 'breed', 'de outfit zette het postuur terug');
+  const code = C.presetCode('tammo', 0);
+  assert.ok(/^k3/.test(code) && code.length <= 80 && C.decodeOutfit(code).body === 'breed', 'outfit-code versie 3: ' + code);
+  assert.equal(C.presetCode('tammo', 4), null);
+  const geimporteerd = C.importPresetCode('tammo', 4, code, 'Van een vriend');
+  assert.equal(geimporteerd.ok, true);
+  assert.equal(C.presetsOf('tammo')[4].name, 'Van een vriend');
+  assert.equal(C.importPresetCode('tammo', 4, 'onzin').ok, false);
+  assert.equal(C.importPresetCode('tammo', 9, code).ok, false);
+  // een outfit zonder postuur (oude save) laat het postuur met rust
+  C.applyClothingSave(C.getClothingSave());
+  assert.equal(C.presetsOf('tammo')[0].worn.body, 'breed', 'het postuur zit in de save');
+  // de code-sectie toont elke bewaarde outfit
+  assert.equal(M.codeSection(ctx).items.length, 2);
+  // de iconen: elk slot heeft een categorie-icoon dat bestaat
+  for (const slot of D.SLOT_IDS) assert.ok(M.SLOT_ICON[slot] in SI.SHOP_ICONS, slot);
+  // het geluid: alleen bekende sleutels, lokaal, begrensd
+  assert.equal(S.clothingSfx(world, 'curtain_pull', 1, 2), true);
+  assert.deepEqual(world.audioEvents.at(-1), { kind: 'fx', name: 'curtain_pull', x: 1, y: 2 });
+  assert.equal(S.clothingSfx(world, 'explosion', 1, 2), false);
+  assert.equal(S.clothingSfx(null, 'clothes_rustle'), false);
+  for (let i = 0; i < 100; i++) S.clothingSfx(world, 'clothes_rustle', 0, 0);
+  assert.ok(world.audioEvents.length <= 64, 'de rij blijft begrensd');
+  assert.equal(S.soundForSlot('outer'), 'zipper_pull');
+  // de bedrading: de interieur-activiteit past, de toets 6 ritselt, shopui kent Home, End en de cijfertoetsen
+  const inn = src('../game/js/interiors.js');
+  assert.ok(/case 'passen'[\s\S]{0,400}openFittingRoom/.test(inn) && /openClothingCounter/.test(inn), 'interiors.js opent het pashokje');
+  assert.ok(/clothingSfx\(world, 'clothes_rustle'\)/.test(src('../game/js/shops.js')), 'toets 6 ritselt');
+  assert.ok(/rijCijfer/.test(src('../game/js/shopui.js')), 'shopui gebruikt listnav');
+  assert.equal(SH.fittingRoomMenu({ player: { character: 'anita' } }, 'x').tagline.includes('Tessa') && SH.fittingRoomMenu({ player: { character: 'tammo' } }, 'x').name, 'Pashokje');
+});
+
 for (const [name, fn] of tests) {
   n++;
   try { C.resetClothing(); await fn(); } catch (e) { fails++; console.log('FAIL', name, '|', String(e.stack || e.message).split('\n').slice(0, 3).join(' / ')); }

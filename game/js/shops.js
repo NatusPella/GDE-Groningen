@@ -44,7 +44,8 @@ import {
 } from './clothing.js';
 import { HAIR_COLORS, HAIR_STYLES, hairPrice, parseHair, HAIR_REACTIONS } from './clothinghair.js';
 import { SETS, setKeyFor, parsePiece } from './clothingdata.js';
-import { shopSections, wardrobeSections } from './clothingpanel.js';
+import { shopSections, wardrobeSections, fittingSections } from './clothingpanel.js';
+import { clothingSfx } from './clothingsfx.js';
 import { wantedClearCooldownLeft, markWantedCleared } from './heatcooldown.js'; // #838: spuiterij-cooldown
 
 export const SHOP_USE_RADIUS = 2.6;
@@ -1238,6 +1239,8 @@ function clothingCtx(world, shopKey = null) {
     day: world && world.calendar && Number.isFinite(world.calendar.day) ? world.calendar.day : 1, // calendarday.js: world.calendar.day
     broke: (price) => broke(world, price),
     pay: (price) => pay(world, price),
+    sound: (key) => clothingSfx(world, key), // clothingsfx.js: ritselen, rits, gordijn (lokaal)
+    copy: (text) => { try { if (typeof navigator !== 'undefined' && navigator.clipboard) navigator.clipboard.writeText(text); } catch (e) { /* een kopie is een extraatje */ } },
     // a worn outfit on the player's own figure, for the shop preview and the fitting room (drag turns it)
     previewOf: (worn) => ({ kind: 'person', look: { ...app(), ...outfitToLook(worn, baseLook ? baseLook[ch] : app()) } }),
     apply: (stars) => {
@@ -1275,6 +1278,7 @@ function cycleOutfit(world, dir = 1) {
   if (!r.ok) { world.addMessage(r.reason, 3.5); return false; }
   if (!syncHeistOutfit()) applyLooks();
   shakeWanted(world, 1);
+  clothingSfx(world, 'clothes_rustle');
   world.addMessage(`${r.name} aan${r.missing && r.missing.length ? ` (${r.missing.length} stuk${r.missing.length > 1 ? 'ken' : ''} ontbreken)` : ''}`, 2.5);
   return true;
 }
@@ -1305,6 +1309,35 @@ export function wardrobeMenu(world) {
   const ch = currentChar(world);
   const name = ch === 'anita' ? 'Tessa' : 'Tammo';
   return { name: 'Kledingkast', type: 'kleding', tagline: `Kast van ${name}: alles wat je ooit gekocht hebt, netjes op een hangertje`, color: '#2f6fb0', sections: () => wardrobeSections(clothingCtx(world)) };
+}
+
+// The fitting room of a clothing shop (interiors.js, case 'passen'): the stock of this shop and day to try on, your own wardrobe, the five
+// outfits and their codes in one menu. `key` is the shop's own (name and place), so its stock is the same as at the counter.
+// The key of a shop of the game (the stock is the same as at its counter) or the plain key of a generic building.
+const shopKeyOf = (k) => (k && typeof k === 'object' ? `${k.name}|${Math.round(k.x)},${Math.round(k.y)}` : k);
+export function fittingRoomMenu(world, key) {
+  const ch = currentChar(world);
+  const name = ch === 'anita' ? 'Tessa' : 'Tammo';
+  return { name: 'Pashokje', type: 'kleding', tagline: `Gordijn dicht, spiegel aan: ${name} past, kiest en bewaart`, color: '#2f6fb0', sections: () => fittingSections(clothingCtx(world, key || 'kleding')) };
+}
+// Opens it from an interior: the curtain sounds, the menu comes up. The police at the door keep you out (like at the counter); a guest of a
+// Samen spelen game has his own wardrobe, so the room is open to him too (nothing here is the host's).
+export function openFittingRoom(world, key, x, y) {
+  if (!world || isShopOpen() || isCinematicActive()) return false;
+  if (policeWatching(world)) { world.addMessage('Het pashokje blijft dicht: de politie staat voor de deur', 3); return true; }
+  prepareStoryShop();
+  clothingSfx(world, 'curtain_pull', x, y);
+  openShopMenu(world, fittingRoomMenu(world, shopKeyOf(key)));
+  return true;
+}
+// The counter of a clothing interior that is no shop of the game (a generic shop in a building): the same stock and menu as a clothing
+// shop, kept per building by `key`.
+export function openClothingCounter(world, key, name = 'Kledingwinkel') {
+  if (!world || isShopOpen() || isCinematicActive()) return false;
+  if (policeWatching(world)) { world.addMessage(`${name} gooit de deur op slot. Eerst de politie kwijt!`, 3); return true; }
+  prepareStoryShop();
+  openShopMenu(world, { name, type: 'kleding', tagline: 'Losse stukken in elke kleur, passen kan in het pashokje', color: '#2f6fb0', sections: () => shopSections(clothingCtx(world, key)) });
+  return true;
 }
 
 function shakeWanted(world, stars) {

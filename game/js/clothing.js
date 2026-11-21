@@ -211,8 +211,21 @@ const cleanName = (n, i) => {
 export function savePreset(ch, i, name) {
   if (!(i >= 0 && i < PRESET_COUNT)) return false;
   const w = W(ch);
-  w.presets[i] = { name: cleanName(name, i), worn: { ...w.worn, hair: w.hair } };
+  w.presets[i] = { name: cleanName(name, i), worn: { ...w.worn, hair: w.hair, body: w.body } };
   return true;
+}
+// De outfit-code (versie 3) van een bewaarde outfit, om te delen, en een code die een ander deelde als nieuwe outfit bewaren. De stukken
+// die je zelf niet hebt blijven weg bij het aantrekken (zoals altijd: wearPreset meldt wat ontbreekt).
+export function presetCode(ch, i) {
+  const p = W(ch).presets[i];
+  return p ? encodeOutfit(p.worn) : null;
+}
+export function importPresetCode(ch, i, code, name = 'Gedeelde look') {
+  if (!(i >= 0 && i < PRESET_COUNT)) return { ok: false, reason: 'Die plek bestaat niet' };
+  const worn = cleanOutfitCode(code) && decodeOutfit(code);
+  if (!worn) return { ok: false, reason: 'Die code kan ik niet lezen' };
+  W(ch).presets[i] = { name: cleanName(name, i), worn: cleanWorn(worn) };
+  return { ok: true, missing: Object.values(W(ch).presets[i].worn).filter((x) => validPiece(x) && !ownsPiece(ch, x)) };
 }
 export function clearPreset(ch, i) { if (!(i >= 0 && i < PRESET_COUNT)) return false; W(ch).presets[i] = null; return true; }
 export function wearPreset(ch, i) {
@@ -234,6 +247,7 @@ export function wearPreset(ch, i) {
   w.worn = merged;
   const hh = p.worn.hair && parseHair(p.worn.hair);
   if (hh && HAIR_STYLES[isChar(ch) ? ch : 'tammo'].some(([id]) => id === hh.style)) w.hair = p.worn.hair;
+  if (BODY_TYPES[p.worn.body]) w.body = p.worn.body; // de outfit-code (v3) bewaart ook het postuur
   return { ok: true, missing };
 }
 
@@ -533,6 +547,7 @@ const cleanWorn = (w) => {
   const out = {};
   if (w && typeof w === 'object') for (const slot of SLOT_IDS) if (typeof w[slot] === 'string' && validPiece(w[slot]) && pieceSlot(w[slot]) === slot) out[slot] = w[slot];
   if (w && typeof w === 'object' && parseHair(w.hair)) out.hair = w.hair;
+  if (w && typeof w === 'object' && BODY_TYPES[w.body]) out.body = w.body;
   return out;
 };
 

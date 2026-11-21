@@ -28,6 +28,20 @@ export const SHOP_ICONS = {
   boot: P('M3 14h18l-3 6H6zM11 3v9H5z', 'M13 6l5 6h-5z', 'M3 14h18l-1 2H4z'),
   heli: P('M3 5h18v2H3zM11 7h2v3h-2zM5 11h11a4 4 0 0 1 4 4v1h-6l-2 2H5z', 'M5 11h11l-3 4H5z', 'M14 16h6v3h-6z'),
   geld: P('M3 7h18v10H3z', 'M5 9h14v6H5z', 'M9.5 12a2.5 2.5 0 1 0 5 0 2.5 2.5 0 0 0-5 0z'),
+  // kledingcategorieën (epic Kleding, ronde 4): één per slot van clothingdata.js, plus outfit en postuur
+  kl_hoed: P('M5 14a7 7 0 0 1 14 0v1H5zM3 15h18l-1 3H4z', 'M5 14a7 7 0 0 1 7-7v8H5z', 'M3 15h18l-.5 1.5H3.5z'),
+  kl_bril: P('M2 9h8v4a4 4 0 0 1-4 4 4 4 0 0 1-4-4zM14 9h8v4a4 4 0 0 1-4 4 4 4 0 0 1-4-4zM10 10h4v2h-4z', 'M2 9h8l-6 5-2-1zM14 9h8l-6 5-2-1z', 'M5 12h2v3H5zM17 12h2v3h-2z'),
+  kl_gezicht: P('M12 4a6 6 0 0 1 6 6v3a6 6 0 0 1-12 0v-3a6 6 0 0 1 6-6zM8 14c1 3 7 3 8 0l1 3H7z', 'M12 4a6 6 0 0 0-6 6l6 1z', 'M7 17h10l-5 3z'),
+  kl_hals: P('M5 6h14l1 4-3 1v8H7v-8l-3-1zM9 6l3 4 3-4', 'M5 6h14l-7 4z', 'M7 11h4v8H7z'),
+  kl_shirt: P('M8 4l4 2 4-2 5 4-3 3-2-1v10H8V10l-2 1-3-3z', 'M8 4l4 2 4-2-4 6z', 'M8 10v10h4V9z'),
+  kl_jas: P('M8 3l4 2 4-2 5 5-2 4-2-1v11H7V11l-2 1-2-4zM12 5v15', 'M8 3l4 2-1 5-4-1z', 'M12 5l5 4v11h-5z'),
+  kl_broek: P('M7 3h10l1 18h-5l-1-10-1 10H6z', 'M7 3h5l-1 8-1 10H6z', 'M12 3h5l1 18h-3z'),
+  kl_tas: P('M6 8h12l2 12H4zM9 8V6a3 3 0 0 1 6 0v2', 'M6 8h12l-4 6H5z', 'M4 20h16l-.5-3H4.5z'),
+  kl_sieraad: P('M12 4l4 4-4 12-4-12zM8 8h8', 'M12 4l4 4H8z', 'M12 8l4 0-4 12z'),
+  kl_horloge: P('M9 2h6l1 4v12l-1 4H9l-1-4V6zM10 8h4v8h-4z', 'M9 2h6l1 4H8z', 'M10 8h4v3h-4z'),
+  kl_hand: P('M7 11V6h2v4h1V4h2v6h1V5h2v6h1V8h2v8a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5z', 'M7 11V6h2v4h1V4h2v6z', 'M12 14h6v2a5 5 0 0 1-5 5h-1z'),
+  kl_outfit: P('M6 3h12l2 6-3 1v11H7V10L4 9zM10 3a2 2 0 0 0 4 0', 'M6 3h12l-6 7z', 'M7 10h5v11H7z'),
+  kl_postuur: P('M12 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM6 11h12l-2 4v6h-3v-5h-2v5H8v-6z', 'M6 11h12l-6 3z', 'M8 15h3v6H8z'),
   standaard: P('M12 3l8 4.5v9L12 21l-8-4.5v-9z', 'M12 3l8 4.5-8 4.5-8-4.5z', 'M12 12v9l-8-4.5v-9z'),
 };
 
