@@ -834,20 +834,7 @@ html.rustig-drukwerk #hud .pl-name { text-shadow: 4px 4px 0 var(--ds-c-ink-inkt)
 #hud .hud-mate-pic { border-radius: 6px; background: var(--ds-c-ink-papier); }
 #hud .hud-mate-pic:not(:has(img.on)) { display: none; }
 
-/* #993: de prestatietoast (achievements.js) als papier met inktrand en harde schaduw, zonder glas, gloed of blur */
-body #hud .ach-toast {
-  background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); text-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none;
-  border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-left: 10px solid var(--ds-c-ink-bord); border-radius: 8px;
-  box-shadow: var(--ds-schaduw-hard);
-}
-body #hud .ach-toast.gold { border-left-color: var(--ds-c-ink-geel); box-shadow: var(--ds-schaduw-hard); }
-body #hud .ach-toast::after, body #hud .ach-toast .ach-rays, body #hud .ach-toast .ach-spark { display: none; }
-body #hud .ach-toast .ach-ico, body #hud .ach-toast.gold .ach-ico { background: var(--ds-c-ink-bord); color: var(--ds-c-ink-papier); border: 2px solid var(--ds-c-ink-inkt); box-shadow: none; }
-body #hud .ach-toast.gold .ach-ico { background: var(--ds-c-ink-geel); color: var(--ds-c-ink-inkt); }
-body #hud .ach-toast .ach-kicker, body #hud .ach-toast.gold .ach-kicker { color: var(--ds-c-inkt-zacht); font-weight: 800; font-size: var(--ds-t-kaart-eyebrow); }
-body #hud .ach-toast .ach-title, body #hud .ach-toast.gold .ach-title { color: var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-kop); font-weight: 800; text-shadow: none; }
-body #hud .ach-toast .ach-desc { color: var(--ds-c-inkt-zacht); font: 400 var(--ds-t-kaart-body)/var(--ds-lh-kaart-tekst) var(--ds-font-zeef-tekst); letter-spacing: 0; }
-body #hud .ach-toast .ach-pct { color: var(--ds-c-inkt-zacht); }
+/* #1175: de prestatietoast staat nu geheel als DS3-kaart in achievements.js (één bron; geen tweede laag hier) */
 
 
 /* ===== Zeefdruk voor de overige HUD-lagen (ADR 0040, #985): ondertitels, overslaan, verhaal-overslaan ===== */

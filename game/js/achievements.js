@@ -751,79 +751,52 @@ export function getLifetimeStats() {
 // --- toast ------------------------------------------------------------------
 
 const CSS = `
-#hud .ach-toast { position: absolute; top: auto; bottom: calc(var(--mm-bottom, 46px) + var(--mm-size, 250px) + 14px); left: var(--hud-edge, 46px); z-index: 6; display: flex; align-items: center; gap: 14px;
-  min-width: 300px; max-width: calc(100vw / var(--ui, 1) - 32px); box-sizing: border-box; padding: 10px 22px 10px 12px;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--ds-c-glas) 94%, transparent) 0%, color-mix(in srgb, var(--ds-c-glas) 86%, transparent) 70%, color-mix(in srgb, var(--ds-c-glas) 60%, transparent) 100%);
-  border-left: 4px solid var(--mk-ok, #3fc97a); box-shadow: 0 8px 28px color-mix(in srgb, var(--ds-c-ink-inkt) 55%, transparent), 0 0 22px color-mix(in srgb, var(--ds-c-licht-groen) 18%, transparent);
+/* #1175 (eigenaar 21-11: "past visueel niet meer in het design system v3"): de prestatietoast als DS3-zeefdruk, net als de andere meldingen:
+   een papieren kaart met inktrand en harde schaduw, het icoon in een vak in de inkt van de zeldzaamheid of categorie (--ds-m-accent,
+   ds-micro.css: goud geel, geheim roze, anders bord of inkt), een eyebrow, een titel in Barlow, een regel in Atkinson, de voortgangsbalk
+   "x/y prestaties" en onderaan het aflopende balkje van de melding (ds-melding.css, bordgroen). Alleen tokens, geen glas, gloed, stralen of vonken. */
+#hud .ach-toast { position: absolute; top: auto; bottom: calc(var(--mm-bottom, 46px) + var(--mm-size, 250px) + 14px); left: var(--hud-edge, 46px); z-index: 6; display: flex; align-items: center; gap: var(--ds-s-3);
+  --ach-rand: var(--ds-m-accent, var(--ds-c-ink-bord)); --ach-vul: var(--ds-m-accent, var(--ds-c-ink-bord));
+  min-width: 340px; max-width: calc(100vw / var(--ui, 1) - 32px); box-sizing: border-box; padding: var(--ds-s-3) var(--ds-s-5) calc(var(--ds-s-3) + var(--ds-melding-balk-h, 4px)) var(--ds-s-3);
+  background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); text-shadow: none; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-left: 10px solid var(--ach-rand); border-radius: var(--ds-r);
+  box-shadow: var(--ds-schaduw-hard); overflow: hidden; transform-origin: left center;
   opacity: 0; --ds-mi-x: -8px; pointer-events: none; } /* ds-motion.css (.ds-mi-in): 8 px vanaf de linkerrand, 200 ms in en uit */
 #hud .ach-toast.on { opacity: 1; }
+#hud .ach-toast.ds-m-inkt--inkt { --ach-rand: var(--ds-c-ink-inkt); --ach-vul: var(--ds-c-ink-inkt); }
 /* Tijdens een minigame staat het bord met de toetshulp bovenaan rechts: de prestatiekaart zakt dan naar
    de onderkant in plaats van eroverheen te vallen (#504). */
 body.mg-on #hud .ach-toast { top: auto; bottom: max(calc(13vh / var(--ui, 1)), 104px); }
-#hud .ach-toast .ach-ico { flex: none; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center;
-  background: radial-gradient(circle at 35% 30%, var(--mk-ok, #6fe39d) 0%, var(--ds-c-licht-groen) 70%); color: var(--ds-c-glas); box-shadow: 0 0 16px color-mix(in srgb, var(--ds-c-licht-groen) 50%, transparent); }
-#hud .ach-toast .ach-pic { width: 26px; height: 26px; }
-#hud .ach-toast.gold { border-left-color: var(--mk-mission, #e8c93a); }
-#hud .ach-toast.gold .ach-ico { background: radial-gradient(circle at 35% 30%, var(--mk-mission, #fff0a8) 0%, var(--mk-mission, #d9a91e) 70%); box-shadow: 0 0 16px color-mix(in srgb, var(--ds-c-ink-geel) 55%, transparent); }
-#hud .ach-toast .ach-txt { display: flex; flex-direction: column; min-width: 0; }
-#hud .ach-toast .ach-kicker { font-size: var(--ds-t-kaart-eyebrow); letter-spacing: var(--ds-ls-kaart-eyebrow); color: var(--mk-ok, #3fc97a); }
-#hud .ach-toast.gold .ach-kicker { color: var(--mk-mission, #e8c93a); }
-#hud .ach-toast .ach-title { font-size: var(--ds-t-kaart-titel); letter-spacing: var(--ds-ls-label); line-height: var(--ds-lh-kaart-kop); color: var(--ds-c-creme); }
+/* het icoon in een vak: papier met inktrand, gevuld in de inkt van de zeldzaamheid */
+#hud .ach-toast .ach-badge { flex: none; width: 56px; height: 56px; display: grid; place-items: center; box-sizing: border-box; background: var(--ds-m-accent, var(--ds-c-ink-bord)); color: var(--ds-c-ink-inkt); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); }
+#hud .ach-toast.ds-m-inkt--bord .ach-badge { color: var(--ds-c-wit); }
+#hud .ach-toast .ach-ico { display: grid; place-items: center; width: 32px; height: 32px; }
+#hud .ach-toast .ach-pic, #hud .ach-toast .ach-ico svg { width: 32px; height: 32px; }
+#hud .ach-toast .ach-txt { display: flex; flex-direction: column; min-width: 0; gap: 2px; }
+#hud .ach-toast .ach-kicker { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ds-s-1) var(--ds-s-2); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-kaart-eyebrow); letter-spacing: var(--ds-ls-kaart-eyebrow); text-transform: uppercase; color: var(--ds-c-inkt-zacht); }
+#hud .ach-toast .ach-title { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-kaart-titel); line-height: var(--ds-lh-kaart-kop); letter-spacing: var(--ds-ls-label); color: var(--ds-c-ink-inkt); text-shadow: none; }
 #hud .ach-toast .ach-title .nl-sub { font-size: 0.55em; letter-spacing: 0.5px; text-transform: none; }
-#hud .ach-toast .ach-desc { font: var(--ds-t-kaart-body)/var(--ds-lh-kaart-tekst) var(--ds-font-tekst); letter-spacing: 0; color: color-mix(in srgb, var(--ds-c-creme) 75%, transparent); }
-#hud .ach-toast .ach-pct { font-size: var(--ds-t-kaart-hulp); color: color-mix(in srgb, var(--ds-c-creme) 50%, transparent); margin-left: 8px; letter-spacing: 1px; }
+#hud .ach-toast .ach-desc { font: 400 var(--ds-t-kaart-body)/var(--ds-lh-kaart-tekst) var(--ds-font-zeef-tekst); letter-spacing: 0; color: var(--ds-c-inkt-zacht); }
+#hud .ach-toast .ach-pct { font-family: var(--ds-font-zeef-tekst); font-weight: 400; font-size: var(--ds-t-kaart-hulp); letter-spacing: 0; text-transform: none; }
+#hud .ach-toast .ach-zeld { display: inline-block; padding: 0 var(--ds-s-2); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-pil, 999px); background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); font-size: var(--ds-t-kaart-hulp); letter-spacing: 0.06em; }
+#hud .ach-toast.gold .ach-zeld { background: var(--ds-c-ink-geel); }
+#hud .ach-toast .ach-prog { display: flex; align-items: center; gap: var(--ds-s-2); margin-top: var(--ds-s-1); }
+#hud .ach-toast .ach-prog-baan { flex: 1 1 auto; min-width: 96px; height: 10px; box-sizing: border-box; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-pil, 999px); overflow: hidden; }
+#hud .ach-toast .ach-prog-vul { display: block; width: 100%; height: 100%; background: var(--ach-vul); }
+#hud .ach-toast .ach-prog-tx { font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-kaart-hulp); letter-spacing: 0.02em; color: var(--ds-c-inkt-zacht); white-space: nowrap; }
+#hud .ach-toast.ach-kort .ach-desc { display: none; }
 @media (max-width: 480px) { #hud .ach-toast { left: 50%; min-width: 0; width: calc(100vw / var(--ui, 1) - 32px); } }
 `;
 
-// #840: de grotere presentatie: badge met stralen, vonken, een gloed en een oplopende titel. Alles
-// met de bestaande kleurtokens en binnen dezelfde zone/hetzelfde budget; bij "Beweging beperken"
-// (html.reduce-motion) of prefers-reduced-motion staat alle beweging stil.
+// De beweging van het DS3-moment (achievementunlock.js, ds-micro.css): de inslag, het icoon dat ploft, de gestaffelde tekst, de balk en de glans
+// gebruiken de moment-klassen met de tokens uit ds-tokens.css. Bij Beweging beperken (html.reduce-motion) of prefers-reduced-motion staat
+// alle beweging stil en blijft de eindstand staan.
 const CSS_EXTRA = `
-#hud .ach-toast { min-width: 340px; padding: 14px 26px 14px 14px; gap: 16px; border-radius: 12px; border-left-width: 5px;
-  background: var(--hud-card);
-  box-shadow: 0 10px 34px color-mix(in srgb, var(--ds-c-ink-inkt) 60%, transparent), 0 0 30px color-mix(in srgb, var(--ds-c-licht-groen) 22%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 8%, transparent); }
-#hud .ach-toast .ach-badge { position: relative; flex: none; width: 64px; height: 64px; display: grid; place-items: center; }
-#hud .ach-toast .ach-ico { position: relative; z-index: 2; width: 56px; height: 56px; }
-#hud .ach-toast .ach-ico .ach-pic { width: 32px; height: 32px; }
-#hud .ach-toast .ach-rays { position: absolute; inset: -10px; z-index: 0; border-radius: 50%; opacity: 0.34;
-  background: repeating-conic-gradient(var(--mk-ok, #3fc97a) 0deg 2deg, transparent 2deg 18deg);
-  -webkit-mask: radial-gradient(circle, transparent 52%, #000 54%); mask: radial-gradient(circle, transparent 52%, #000 54%);
-  animation: ach-rays var(--ds-moment-max) var(--ds-m-uit) 1 both; }
-@keyframes ach-rays { from { rotate: 0deg; } to { rotate: 90deg; } } /* één draai, geen lus (DS3: alleen de live-stip loopt door) */
-#hud .ach-toast .ach-spark { position: absolute; z-index: 3; width: 7px; height: 7px; border-radius: 50%; background: var(--mk-ok, #3fc97a); opacity: 0; animation: ach-spark 1.15s ease-out 0.05s forwards; } /* ds3-dwell: verblijf */
-#hud .ach-toast .ach-spark.s1 { left: 5px; top: 1px; --dx: -7px; }
-#hud .ach-toast .ach-spark.s2 { right: 3px; top: 11px; --dx: 7px; animation-delay: 0.16s; background: var(--mk-mission, #e8c93a); }
-#hud .ach-toast .ach-spark.s3 { left: 12px; bottom: 0; --dx: -4px; animation-delay: 0.26s; }
-#hud .ach-toast .ach-spark.s4 { right: 9px; bottom: 3px; --dx: 5px; animation-delay: 0.34s; background: var(--mk-mission, #e8c93a); }
-@keyframes ach-spark { 0% { opacity: 0; transform: translate(0, 0) scale(0.6); } 25% { opacity: 0.95; } 100% { opacity: 0; transform: translate(var(--dx, 0), -20px) scale(1.1); } }
-#hud .ach-toast .ach-title { text-shadow: 0 1px 0 color-mix(in srgb, var(--ds-c-ink-inkt) 40%, transparent); }
-/* DS3-moment (achievementunlock.js, ds-micro.css): de zeefdruk-schaduw in de inkt van de zeldzaamheid of categorie, de zeldzaamheidschip,
-   het balkje "x/y prestaties" en de glans (.ds-moment-glans). Een donkere HUD-ondergrond krijgt voor bord het lichte HUD-groen. */
-#hud .ach-toast { overflow: hidden; transform-origin: left center; border-left-color: var(--ds-m-accent, var(--mk-ok, #3fc97a));
-  box-shadow: 6px 6px 0 var(--ds-m-accent, var(--mk-ok, #3fc97a)), 0 10px 34px color-mix(in srgb, var(--ds-c-ink-inkt) 50%, transparent); }
-#hud .ach-toast.ds-m-inkt--bord { --ds-m-accent: var(--mk-ok, #3fc97a); }
-#hud .ach-toast .ach-kicker { color: var(--ds-m-accent, var(--mk-ok, #3fc97a)); }
-#hud .ach-toast .ach-zeld { display: inline-block; margin-left: 8px; padding: 0 6px; border: var(--ds-lijn, 1px) solid var(--ds-m-accent, currentColor); border-radius: var(--ds-r-pil, 999px); font-size: var(--ds-t-kaart-hulp); letter-spacing: 0.06em; }
-#hud .ach-toast .ach-prog { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
-#hud .ach-toast .ach-prog-baan { flex: 1 1 auto; min-width: 96px; height: 8px; border: var(--ds-lijn, 1px) solid var(--ds-m-accent, var(--mk-ok, #3fc97a)); border-radius: var(--ds-r-pil, 999px); box-sizing: border-box; }
-#hud .ach-toast .ach-prog-vul { display: block; width: 100%; height: 100%; background: var(--ds-m-accent, var(--mk-ok, #3fc97a)); }
-#hud .ach-toast .ach-prog-tx { font-size: var(--ds-t-kaart-hulp); letter-spacing: 0.04em; color: color-mix(in srgb, var(--ds-c-creme) 75%, transparent); white-space: nowrap; }
-#hud .ach-toast.ach-kort .ach-desc { display: none; }
-#hud .ach-toast.gold { box-shadow: 6px 6px 0 var(--ds-m-accent, var(--mk-mission, #e8c93a)), 0 10px 34px color-mix(in srgb, var(--ds-c-ink-inkt) 50%, transparent); }
-#hud .ach-toast.gold .ach-rays { background: repeating-conic-gradient(var(--mk-mission, #e8c93a) 0deg 2deg, transparent 2deg 18deg); opacity: 0.4; }
-#hud .ach-toast.gold .ach-title { color: var(--mk-mission, #e8c93a); }
-html.reduce-motion #hud .ach-toast, html.reduce-motion #hud .ach-toast .ach-title,
-html.reduce-motion #hud .ach-toast .ach-rays, html.reduce-motion #hud .ach-toast .ach-spark {
-  animation: none !important; transition: none !important; transform: none; }
+html.reduce-motion #hud .ach-toast, html.reduce-motion #hud .ach-toast .ach-title { animation: none !important; transition: none !important; transform: none; }
 html.reduce-motion #hud .ach-toast.on { opacity: 1; transform: none; }
-html.reduce-motion #hud .ach-toast .ach-spark { display: none; }
 @media (prefers-reduced-motion: reduce) {
-  #hud .ach-toast, #hud .ach-toast .ach-title, #hud .ach-toast .ach-rays, #hud .ach-toast .ach-spark {
-    animation: none !important; transition: none !important; transform: none; }
+  #hud .ach-toast, #hud .ach-toast .ach-title { animation: none !important; transition: none !important; transform: none; }
   #hud .ach-toast.on { opacity: 1; transform: none; }
-  #hud .ach-toast .ach-spark { display: none; }
 }
-@media (max-width: 480px) { #hud .ach-toast { min-width: 0; padding: 12px 18px 12px 10px; gap: 10px; } #hud .ach-toast .ach-badge { width: 54px; height: 54px; } #hud .ach-toast .ach-ico { width: 46px; height: 46px; } }
 `;
 
 export const TROPHY_SVG = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M7 3h10v2h3v3a4 4 0 0 1-4 4h-.3A5 5 0 0 1 13 14.9V18h3v3H8v-3h3v-3.1A5 5 0 0 1 8.3 12H8a4 4 0 0 1-4-4V5h3V3zm0 4H6v1a2 2 0 0 0 1 1.7V7zm10 0v2.7A2 2 0 0 0 18 8V7h-1z"/></svg>';
@@ -910,10 +883,8 @@ function showNextToast() {
     ? `<span class="ach-prog${m(plan.balk, 'ds-moment-binnen')}"><span class="ach-prog-baan ds-m-glans"><span class="ach-prog-vul ds-m-vul" style="--ds-m-p:${balkP}"></span></span>` +
       `<span class="ach-prog-tx ds-m-tik">${balkTekst(plan.impact ? plan.balk.van : plan.balk.naar, plan.balk.totaal)}</span></span>`
     : '';
-  // #840: een grotere badge met stralen en vonken; de decoratie is aria-hidden, de tekst blijft
-  // dezelfde Nederlandse kicker/titel/beschrijving voor de schermlezer.
-  el.innerHTML = `<span class="ach-badge" aria-hidden="true"><span class="ach-rays"></span><span class="ach-ico${m(plan.icoon, 'ds-moment-ploft')}">${samen || a.hidden ? TROPHY_SVG : iconSvg(a, 'ach-pic')}</span>` +
-    '<span class="ach-spark s1"></span><span class="ach-spark s2"></span><span class="ach-spark s3"></span><span class="ach-spark s4"></span></span>' +
+  // #1175: het icoon in een vak (aria-hidden); de tekst is de Nederlandse kicker/titel/beschrijving voor de schermlezer.
+  el.innerHTML = `<span class="ach-badge" aria-hidden="true"><span class="ach-ico${m(plan.icoon, 'ds-moment-ploft')}">${samen || a.hidden ? TROPHY_SVG : iconSvg(a, 'ach-pic')}</span></span>` +
     `<span class="ach-txt">` +
     `<span class="ach-kicker${m(plan.icoon, 'ds-moment-binnen')}">${samen ? 'PRESTATIES ONTGRENDELD' : 'PRESTATIE ONTGRENDELD'}${chip}${nog}${samen ? '' : `<span class="ach-pct">${pct >= 1 ? pct : '&lt;1'}% totaal</span>`}</span>` +
     `<span class="ach-title${m(plan.titel, 'ds-moment-binnen')}">${titel}</span><span class="ach-desc${m(plan.beschrijving, 'ds-moment-binnen')}">${escHtml(tekst)}</span>${balk}</span>` +
@@ -934,7 +905,6 @@ function showNextToast() {
   // pauze, menu, film en als de muis erboven staat. De duur is een gedeelde klas (4 / 6 / 9 / 10 s).
   toastMeld = runNoticeTimer(el, {
     duur: toClass(verblijfS(toastDuur(samen ? samen.titel : a.title, tekst), stap.variant)),
-    soort: 'donker',
     hover: true,
     staat: () => !!(world && (world.paused || world.uiPaused)),
     onKlaar: () => {

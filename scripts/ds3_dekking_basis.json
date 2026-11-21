@@ -45,7 +45,7 @@
  },
  "game/js/achievements.js": {
   "kleur": 0,
-  "glas": 3,
+  "glas": 0,
   "oud": 0,
   "font": 0,
   "klein": 0,
@@ -331,7 +331,7 @@
  },
  "game/js/hud_panel.css": {
   "kleur": 11,
-  "glas": 12,
+  "glas": 11,
   "oud": 0,
   "font": 0,
   "klein": 0,

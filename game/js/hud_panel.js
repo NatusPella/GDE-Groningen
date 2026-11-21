@@ -81,7 +81,7 @@ import { drawMissionGlyph } from './missionicons.js';
 import { drawMapGlyph } from './mapglyphs.js';
 import { miniWind, windSterkte, windPijlHoek, windTekst } from './windmini.js';
 import { decideHud, zones, hudNow, cardYields, vehnameBottom, P3, PLACE_SHOW, DEFER_MAX, GPS_NEAR, nowPlayingSeconds } from './hudrules.js';
-import { doelTitel, reisModus } from './doeltekst.js';
+import { goalTitle, travelMode } from './goaltext.js';
 import { vehicleKind, speedoLook, meterLevel, hudEdge, distanceOwner, vehicleLabelOwner } from './hudlook.js';
 import { nextTurn, turnText, etaText, dichtstbijDoel } from './hudgps.js';
 import { airGuide, airSub, airEtaText } from './airguide.js';
@@ -1546,20 +1546,20 @@ function zoekSub(world) {
 function currentObjective(world) {
   const m = world.mission;
   const hv = hoofdspeler(world).inVehicle || world.trainCam || null;
-  const modus = reisModus(hv, hv ? vehicleKind(hv, { train: hv === world.trainCam }) : null);
+  const modus = travelMode(hv, hv ? vehicleKind(hv, { train: hv === world.trainCam }) : null);
   const job = world.sideJob;
   if (job && job.active) {
     // een klus met een limiet van twee minuten leest als "1:42", niet als "102s"
     const timer = job.timeLeft != null ? clockText(job.timeLeft) : '';
     const g = job.goal;
-    return { kind: 'job', raw: g ? g.label : job.progress, title: doelTitel('job', g ? g.label : job.progress, modus), sub: g ? job.progress : '', hint: g ? g.desc : '', timer, secs: job.timeLeft };
+    return { kind: 'job', raw: g ? g.label : job.progress, title: goalTitle('job', g ? g.label : job.progress, modus), sub: g ? job.progress : '', hint: g ? g.desc : '', timer, secs: job.timeLeft };
   }
   if (m && m.phase === 'active') {
     const text = missionProgressText(m);
     const timer = m.timeLeft != null && !m.raceHud ? clockText(m.timeLeft) : '';
     const cut = text.search(/ · | \(\d+\/\d+\)$/);
     const sub = cut > 0 ? text.slice(cut).replace(/^ · /, '').replace(/^ \((\d+\/\d+)\)$/, 'stap $1') : '';
-    if (text || timer) return { kind: 'mission', raw: cut > 0 ? text.slice(0, cut) : text, title: doelTitel('mission', cut > 0 ? text.slice(0, cut) : text, modus), sub, timer, secs: m.timeLeft };
+    if (text || timer) return { kind: 'mission', raw: cut > 0 ? text.slice(0, cut) : text, title: goalTitle('mission', cut > 0 ? text.slice(0, cut) : text, modus), sub, timer, secs: m.timeLeft };
   }
   if (world.wanted > 0 && !(m && m.phase === 'active')) {
     const searching = !!(world.police && world.police.searching);
@@ -1579,7 +1579,7 @@ function currentObjective(world) {
     const first = r && r.kind === 'user' && r.target && /^Eerst: /.test(r.target.name) ? r.target.name : '';
     const sub = [first || goal.sub, formatDistance(d), wait ? `je verhaalmissie wacht: ${wait.label}` : ''].filter(Boolean).join(' · ');
     // the HUD takes no clicks: say where the goal can be dropped, the first few times
-    return { kind: 'goal', raw: goal.name, title: doelTitel('goal', goal.name, modus), sub, hint: goalHints <= GOAL_HINTS ? `${sub} · wissen via Activiteiten of de kaart` : '', timer: '' };
+    return { kind: 'goal', raw: goal.name, title: goalTitle('goal', goal.name, modus), sub, hint: goalHints <= GOAL_HINTS ? `${sub} · wissen via Activiteiten of de kaart` : '', timer: '' };
   }
   // between missions: the next story step, so it is always clear where to go
   const g = world.storyGuide;
@@ -1591,7 +1591,7 @@ function currentObjective(world) {
       : g.buy ? (near ? 'Voor het verhaal: loop naar binnen (E)' : 'Volg de gele route naar de winkel')
       : inside ? 'Stap even uit de marker en weer terug'
       : atMarker ? (near ? 'Loop of rij de gele marker in' : 'Volg de gele route naar de marker') : 'Volg de gele route';
-    return { kind: 'story', raw: g.name, title: doelTitel('story', g.name, modus), sub, timer: '' };
+    return { kind: 'story', raw: g.name, title: goalTitle('story', g.name, modus), sub, timer: '' };
   }
   return null;
 }

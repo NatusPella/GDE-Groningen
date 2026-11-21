@@ -48,13 +48,13 @@ check('nergens in Prestaties nog een voortgangsring', !/pa-ring/.test(ui) && !/f
 check('de cijfercellen hebben een eigen icoon per regel', /pa-fig-k/.test(ui) && /figIco\(ico\)/.test(ui) && /ICON_PATHS\[name\]/.test(ui));
 check('de medaille noemt zijn naam als tekst, niet alleen als kleur', /MEDALS\[m\] : 'Geen medaille'/.test(ui) && /m-medal m\$\{m\}" aria-hidden="true"/.test(ui));
 // #840: een grotere, visuelere prestatiekaart met eigen geluid, zonder de HUD-budgetten te breken
-check('de prestatiekaart heeft een badge, stralen en vonken', /ach-badge/.test(ach) && /ach-rays/.test(ach) && /ach-spark s1/.test(ach));
+check('de prestatiekaart heeft het icoon in een DS3-vak (papier, inktrand), zonder stralen of vonken (#1175)', /ach-badge/.test(ach) && /\.ach-badge \{[^}]*border: var\(--ds-lijn-zeef\) solid var\(--ds-c-ink-inkt\)/.test(ach) && !/ach-rays|ach-spark/.test(ach));
 check('de kaart schuift 8 px in via ds-mi-in (microinteractions) en de glans (ds-moment-veeg) loopt één keer', /ach-toast ds-mi-in/.test(ach) && /--ds-mi-x: -8px/.test(ach) && !/@keyframes ach-(rise|in)/.test(ach) && /ds-moment-glans ds-moment-veeg/.test(ach) && !/ach-shimmer/.test(ach));
 check('de decoratie is aria-hidden en de Nederlandse tekst blijft', /ach-badge" aria-hidden="true"/.test(ach) && ach.includes('PRESTATIE ONTGRENDELD') && ach.includes('dualHtml(a.title)'));
 check('de kaart respecteert beweging beperken en prefers-reduced-motion', /html\.reduce-motion #hud \.ach-toast/.test(ach) && /prefers-reduced-motion: reduce/.test(ach) && /animation: none !important/.test(ach));
 check('reduce-motion houdt de verborgen toast verborgen (geen ghost)', /html\.reduce-motion #hud \.ach-toast\.on \{ opacity: 1;/.test(ach) && !/html\.reduce-motion #hud \.ach-toast, html\.reduce-motion #hud \.ach-toast\.on[^}]*opacity: 1/.test(ach));
-check('de kaart blijft binnen het HUD-budget en de zone', /max-width: calc\(100vw/.test(ach) && /zones\.occupy\('E', 'ach', P3\)/.test(ach) && /ach-title \{ font-size: var\(--ds-t-kaart-titel\)/.test(ach)); // designsysteem: de titel leest de kaarttoken
-check('goud heeft een eigen gloed en de gouden variant', /\.ach-toast\.gold \.ach-rays/.test(ach) && /\.ach-toast\.gold \.ach-title/.test(ach));
+check('de kaart blijft binnen het HUD-budget en de zone', /max-width: calc\(100vw/.test(ach) && /zones\.occupy\('E', 'ach', P3\)/.test(ach) && /ach-title \{[^}]*font-size: var\(--ds-t-kaart-titel\)/.test(ach)); // designsysteem: de titel leest de kaarttoken
+check('goud is geel in de inkt (icoonvak, balk, chip), niet in een gloed (#1175)', /\.ach-toast\.gold \.ach-zeld \{ background: var\(--ds-c-ink-geel\)/.test(ach) && /--ach-vul: var\(--ds-m-accent/.test(ach) && !/\.gold[^{]*\{[^}]*(glow|blur|drop-shadow)/.test(ach));
 check('de kaartduur is een pure functie van titel en omschrijving', toastDuur('Kort', 'x') === 4.2 && toastDuur('Een veel langere titel voor de kaart', 'en een langere omschrijving erbij') > 4.2 && toastDuur() === 4.2);
 check('de ontgrendelmelding stuurt goud mee naar het geluid', /kind: 'prestatie'[\s\S]{0,80}goud: !!gold/.test(ach));
 check('audio.js speelt het eigen register op de sting-bus', /from '\.\/achievementgeluid\.js'/.test(read('audio.js')) && /playPrestatieSting/.test(read('audio.js')) && /bus: stingBus/.test(read('audio.js')));
