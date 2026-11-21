@@ -121,15 +121,15 @@ t('dagtik: dezelfde dag telt een keer, een stap terug (hostwissel) telt niet dub
   const w = { money: 1e6, addMessage() {}, calendar: { day: 5 } };
   assert.ok(L.koopPerceel(w, 'paaaaaaaaaaa1').ok);
   const farm = BL.getBoerderij();
-  farm.uren = 24 * 5; L.dagTik(w);                                      // legt de dag vast
+  farm.uren = 24 * 5; L.dayTick(w);                                      // legt de dag vast
   const days = () => L.getBezit().x.lastDay;
   assert.equal(days(), 5);
-  farm.uren = 24 * 6; const r1 = L.dagTik(w);
+  farm.uren = 24 * 6; const r1 = L.dayTick(w);
   assert.equal(r1.days, 1); assert.equal(days(), 6);
-  assert.equal(L.dagTik(w), null, 'dezelfde dag: niets');
-  farm.uren = 24 * 5; assert.equal(L.dagTik(w), null, 'een klok die terugspringt (hostwissel): niets en geen dubbel tellen');
+  assert.equal(L.dayTick(w), null, 'dezelfde dag: niets');
+  farm.uren = 24 * 5; assert.equal(L.dayTick(w), null, 'een klok die terugspringt (hostwissel): niets en geen dubbel tellen');
   assert.equal(days(), 6);
-  farm.uren = 24 * 9; const r2 = L.dagTik(w);
+  farm.uren = 24 * 9; const r2 = L.dayTick(w);
   assert.equal(r2.days, 3); assert.equal(days(), 9);
 });
 t('dagtik: een gast draait hem niet (main.js: het gastpad komt eerder terug; broncontrole)', () => {

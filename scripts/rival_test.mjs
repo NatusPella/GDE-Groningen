@@ -22,11 +22,11 @@ t('overname: prijs naar je naam, hij verliest de plek en wordt gemener, te weini
   const r = R.newRival();
   assert.ok(R.askPrice('markt', 0) > R.askPrice('markt', 100));
   assert.equal(R.askPrice('markt', 100), Math.round(permitPrice('markt', 0) * 1.6 / 50) * 50);
-  const no = R.takeOver(r, 'markt', 100, 50);
+  const no = R.acquireSpot(r, 'markt', 100, 50);
   assert.equal(no.ok, false); assert.equal(no.why, 'te-weinig-geld'); assert.equal(no.ask, R.askPrice('markt', 50));
-  const ok = R.takeOver(r, 'markt', 1e6, 50);
+  const ok = R.acquireSpot(r, 'markt', 1e6, 50);
   assert.ok(ok.ok && !R.holds(ok.r, 'markt') && ok.r.mood === r.mood + 25 && ok.r.bought === 1 && ok.price === R.askPrice('markt', 50));
-  assert.equal(R.takeOver(r, 'dorp', 1e6).why, 'niet-van-hem');
+  assert.equal(R.acquireSpot(r, 'dorp', 1e6).why, 'niet-van-hem');
   assert.equal(r.spots.length, 4);                       // het oude object blijft ongemoeid
 });
 t('uitbreiden: de beste vrije plek, nooit een plek van jou, tot zijn doelaandeel (6 van 16)', () => {
@@ -113,7 +113,7 @@ t('geen geweld en geen winterwoorden in de zinnen; Nederlands', () => {
 t('normalizeRival: rommel wordt gezuiverd, onbekende plekken vallen weg', () => {
   const r = R.normalizeRival({ spots: ['markt', 'zzz', 'markt', 'dorp'], pand: -5, chain: 99, mood: 'x', lastExpand: 7.4 });
   assert.deepEqual(r.spots, ['markt', 'dorp']); assert.equal(r.pand, 0); assert.equal(r.chain, 4); assert.equal(r.lastExpand, 7);
-  assert.deepEqual(R.normalizeRival(null).spots, R.START_SPOTS);
+  assert.deepEqual(R.normalizeRival(null).spots, R.OPENING_SPOTS);
 });
 t('bronregels: geen Math.random, geen fetch', () => {
   const src = fs.readFileSync(new URL('../game/js/rival.js', import.meta.url), 'utf8').split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');

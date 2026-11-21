@@ -15,6 +15,8 @@ import { hoofdspeler } from './players.js';
 // de host voert het uit in bezorgHost (coopnet.js, bericht 'bezorg'), en
 // magGebruiken bepaalt wie erin mag (coopbestuur.js).
 import { lichaamVan, magGebruiken } from './coopbestuur.js';
+import { parseLook, lookCode } from './vehiclelook.js';
+import { sanitizeTuning } from './tuningplan.js';
 
 // Rechten per voertuig of pand, ook voor je boot en de heli: 'vrienden' komt
 // erbij zodra er een vriendenlijst is (#449); tot die tijd is het een keuze
@@ -59,6 +61,17 @@ export function zetDeelRecht(staat, id, recht) {
   return recht;
 }
 
+// De tuning van een bezorgd voertuig (epic Autotuning, #1155): { look: compacte code, parts: { onderdeel: optie } }. Optioneel (PROTO
+// blijft 2): een ouder bericht heeft het niet en een ouder spel negeert het. De host controleert alles opnieuw.
+export const TUNING_VELD = 'tuning';
+export function leesTuning(t) {
+  if (!t || typeof t !== 'object') return null;
+  const look = typeof t.look === 'string' && t.look.length <= 96 ? parseLook(t.look) : null;
+  const parts = sanitizeTuning(t.parts);
+  const code = look ? lookCode(look) : '';
+  return code || Object.keys(parts).length ? { look: code, parts } : null;
+}
+
 export const wisselRecht = (recht) => (recht === 'ik' ? 'iedereen' : 'ik');
 
 // De rechten op een eigen voertuig van een medespeler staan in coopbestuur.js (#449), zodat er geen importkring is.
@@ -89,6 +102,7 @@ function leesVoertuig(body, soort = 'voertuig') {
     dents,
     health: Number.isFinite(body.health) ? Math.max(5, Math.min(100, Math.round(body.health))) : 100,
     flat: body.flat === true,
+    [TUNING_VELD]: leesTuning(body[TUNING_VELD]),
     recht: RECHTEN.includes(body.recht) ? body.recht : STANDAARD_RECHT,
   };
 }
@@ -113,7 +127,7 @@ export function bezorgEvent(g, recht) {
   if (g && g.soort === 'pand') return pandEvent(g, recht);
   return {
     k: 'bezorg', soort: soortVan(g), id: g.id, color: g.color || null, upgrades: g.upgrades || [],
-    dents: g.dents || [], health: g.health, flat: !!g.flat,
+    dents: g.dents || [], health: g.health, flat: !!g.flat, ...(g[TUNING_VELD] ? { [TUNING_VELD]: g[TUNING_VELD] } : {}), // een oud bericht blijft zoals het was
     recht: RECHTEN.includes(recht) ? recht : STANDAARD_RECHT,
   };
 }
@@ -214,7 +228,7 @@ export function bezorgHost(world, slot, body) {
   const plek = haken.plek ? haken.plek(world, l.x, l.y, spec.model, { outOfView: false, minDist: 3, maxDist: 45 }) : null;
   if (!plek) { meld(world, slot, PLEK_FAIL[v.soort] || 'Hier past hij niet. Ga op een open plek staan.'); return false; }
   const maak = haken.maak;
-  const voertuig = maak ? maak(world, { spec, color: v.color || spec.color, upgrades: v.upgrades, health: v.health, dents: v.dents.length ? v.dents : null, flat: v.flat }, plek.x, plek.y, plek.angle || 0) : null;
+  const voertuig = maak ? maak(world, { spec, color: v.color || spec.color, upgrades: v.upgrades, health: v.health, dents: v.dents.length ? v.dents : null, flat: v.flat, tuning: v[TUNING_VELD] }, plek.x, plek.y, plek.angle || 0) : null;
   if (!voertuig) { meld(world, slot, 'De bezorger kan hier niet komen.'); return false; }
   voertuig.coopBezit = { slot, id: v.id, recht: v.recht };
   (staat.bezorgd[slot] || (staat.bezorgd[slot] = [])).push(v.id);

@@ -49,7 +49,7 @@ t('codeer en decodeer: rondreis zonder verlies', () => {
   assert.equal(typeof tekst, 'string'); assert.ok(tekst.length < LIJST.maxBytes);
   const r = decodeer(tekst, T0);
   assert.equal(r.ok, true);
-  assert.deepEqual(r.a, { naam: 'Zomeravond', spelers: 2, max: 4, versie: '0.46.0', proto: PROTO, id: 'abcd1234ef', hostKey: HOST_KEY, t: T0 });
+  assert.deepEqual(r.a, { naam: 'Zomeravond', spelers: 2, max: 4, versie: '0.46.0', proto: PROTO, id: 'abcd1234ef', hostKey: HOST_KEY, t: T0, niveau: null });
 });
 t('de aankondiging bevat geen IP-adres, wachtwoord of persoonsgegeven: alleen de vaste velden', () => {
   const o = JSON.parse(codeer(info()));

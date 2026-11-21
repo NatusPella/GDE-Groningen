@@ -138,7 +138,7 @@ Legenda: **Plek** is waar het verhaal het onderdeel noemt of opent (akte, scène
 
 ### 3.2 Bijbanen en loopbanen
 
-De negentien loopbanen hebben allemaal een verhaalplek (`unlockgate.js`, `LOOPBAAN_BY`): een personage opent het vak op het moment dat het verhaal erlangs komt.
+De negentien loopbanen hebben allemaal een verhaalplek (`unlockgate.js`, `CAREER_BY`): een personage opent het vak op het moment dat het verhaal erlangs komt.
 
 | Loopbaan | Plek | Via |
 |---|---|---|

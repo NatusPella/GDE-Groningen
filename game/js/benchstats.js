@@ -19,9 +19,30 @@ export const BENCH_ROUTE = [
   ['anita', 3.0, 'cutscene'],
   ['vitrine', 4.0, 'cutscene'],
 ];
-export const BENCH_CATEGORIES = { stad: 'Stad', provincie: 'Provincie', water: 'Water', spoor: 'Spoor', drukte: 'Drukke scène', cutscene: 'Cutscene' };
+// 21-11: the film route ("Grunn in een dag", a mini film): the same fixed shots of trailer.js, in the order of a day (dawn, noon, evening, night, a storm),
+// with every load in it: streaming (the province, fast flights), crowds, shadows at low sun, water, rain and storm, the helicopter. Deterministic like
+// the classic route: a shot is a locked camera path with its own clock and weather. [shot id, seconds, category, short?]: 'short' is in the 30 s cut.
+// BENCH_ROUTE stays as it was (the 'classic' route), so earlier measurements stay comparable.
+export const FILM_ROUTE = [
+  ['sunrise', 4.0, 'nacht', true],
+  ['vismarkt', 4.0, 'stad'],
+  ['escapade', 3.6, 'stad', true],
+  ['plantsoen', 3.4, 'stad'],
+  ['ommeland', 4.0, 'provincie', true],
+  ['spoor', 3.6, 'spoor'],
+  ['aerial', 5.6, 'provincie', true],
+  ['boat', 4.0, 'water', true],
+  ['gH14', 3.6, 'water'],
+  ['kermis', 4.0, 'drukte', true],
+  ['chase', 4.2, 'drukte', true],
+  ['trauma', 3.6, 'lucht'],
+  ['night', 3.8, 'nacht', true],
+  ['storm', 4.0, 'weer'],
+  ['race', 4.0, 'drukte'],
+];
+export const BENCH_CATEGORIES = { stad: 'Stad', provincie: 'Provincie', water: 'Water', spoor: 'Spoor', drukte: 'Drukke scène', cutscene: 'Cutscene', nacht: 'Ochtend en nacht', weer: 'Regen en storm', lucht: 'Lucht' };
 export const benchRouteSeconds = () => BENCH_ROUTE.reduce((a, [, d]) => a + d, 0);
-export const benchCategoryOf = (id) => { const e = BENCH_ROUTE.find(([i]) => i === id); return e ? e[2] : null; };
+export const benchCategoryOf = (id) => { const e = BENCH_ROUTE.find(([i]) => i === id) || FILM_ROUTE.find(([i]) => i === id); return e ? e[2] : null; };
 
 // 0.64.1 (Nikky, RX 9070 XT, 24 fps): the first shot also carries the shader compiles and the last streaming of the
 // run, so its first seconds are not measured; every later shot skips only its cut (the camera jump).
@@ -227,10 +248,10 @@ export function compareText(d) {
 
 // --- storage (gde-benchmark-last-v1) ------------------------------------
 
-export function packRun({ stats, cats, preset, memory, at }) {
+export function packRun({ stats, cats, preset, memory, at, course }) {
   const r = (x, d = 1) => +x.toFixed(d);
   return {
-    v: 1, at: at || Date.now(), preset: preset || null,
+    v: 1, at: at || Date.now(), preset: preset || null, course: course || 'classic',
     avg: r(stats.avg), p95: r(stats.p95), low1: r(stats.low1), slow33: r(100 * (stats.slow33Share || 0), 2),
     cats: Object.fromEntries(Object.entries(cats || {}).map(([c, s]) => [c, r(s.avg)])),
     memory: memory > 0 ? Math.round(memory) : null,

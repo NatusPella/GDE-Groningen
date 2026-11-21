@@ -7,6 +7,10 @@ import { openShopMenu, isShopOpen } from './shopui.js';
 import { isCinematicActive } from './cinematics.js';
 import { tuningKind, optionsFor, PARTS, PART_LABELS, tuningEffects, installPrice, withOption, loadTuning, saveTuning, optionById } from './tuningplan.js';
 import { KEYS } from './storagekeys.js';
+import { pimpEntryItem } from './shops.js';
+import { areaFromProfile } from './tuningoffer.js';
+import { wijkProfileAt } from './trafficfleet.js';
+import './tuningworkshopui.js'; // meldt zijn opener aan bij shops.js (epic Autotuning, #1155)
 import { vehicleUpgradeItems, paintItems, getOwnedEntries, spawnOwnedEntry, replacementFee, getHeroLook, vehiclePreviewOf } from './shops.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { repairCost, platesCost, HERO_REPLACE_FEE, garageKorting } from './economy.js';
@@ -192,6 +196,7 @@ function placeSites(map, pois) {
     const site = {
       kind: poi.kind, name: siteName(poi, wijk, spot.road),
       x: spot.x, y: spot.y, angle: spot.angle, reach: spot.reach, wijk, door: 0, mesh: null, cooldownUntil: 0,
+      region: areaFromProfile(poi.country ? '' : wijkProfileAt(map, spot.x, spot.y).key, !!poi.country), // voor het aanbod van de pimp-werkplaats
     };
     clearTreesFor(map, site);
     const fx = Math.cos(site.angle), fy = Math.sin(site.angle), sx = -fy, sy = fx;
@@ -394,8 +399,10 @@ function garageMenu(w, site) {
       if (up.length) out.push({ title: twoWheel(v) ? 'Opvoeren' : 'Tuning', items: up.map((it) => ({ ...it, buy() { const r = it.buy(); if (r != null) { pushAudioEvent(w, { kind: 'impact', material: 'metal', strength: 0.45, x: v.x, y: v.y }); markDirty('upgrade'); } return r; } })) });
     }
     if (serviceable(v) && isOwn(v)) {
+      const pimp = pimpEntryItem(w, v, { id: site.name + '|' + Math.round(site.x) + '|' + Math.round(site.y), name: site.name, kind: site.kind === 'pomp' ? 'pomp' : site.home ? 'thuis' : 'garage', region: site.region });
+      if (pimp) out.push({ title: 'Pimp je rijdier', note: 'Lak, velgen, spoiler en meer, met een voorbeeld op je eigen voertuig', items: [pimp] });
       const parts = tuningItems(w, v);
-      if (parts.length) out.push({ title: 'Onderdelen', note: 'Banden, uitlaat, stoel, verlichting en geluid', items: parts });
+      if (parts.length) out.push({ title: 'Onderdelen', note: 'Banden, uitlaat, stoel, verlichting, geluid en ophanging', items: parts });
     }
     const wrecks = [];
     const look = getHeroLook();

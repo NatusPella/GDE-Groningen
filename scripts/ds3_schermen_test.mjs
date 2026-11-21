@@ -15,6 +15,8 @@ const tokensCss = lees('game/js/ds-tokens.css');
 const schermen = lees('game/js/ds-schermen.css');
 const componenten = lees('game/js/ds-components.css');
 const trailer = lees('game/js/trailer.js');
+const kaart = lees('game/js/benchmarkui.js'); // de rapportkaart (21-11): de markup staat in benchmarkui.js
+const kaartModel = lees('game/js/benchmarkmodel.js');
 const toast = lees('game/js/fouttoast.js');
 const tok = scopeTokens(tokensCss, 'papier');
 const rustig = { ...tok, ...(parseDsBlocks(tokensCss)['html.rustig-drukwerk, .ds-rustig'] || {}) };
@@ -63,19 +65,21 @@ for (const m of css.matchAll(/(?:transition|animation)[\w-]*\s*:\s*([^;}]+)/g)) 
 // ---- 3. de benchmark: de oude stijl is weg, het paneel gebruikt de componenten, één gele hoofdknop ----
 ok(!/#trailer-result/.test(trailer), 'trailer.js heeft geen eigen CSS meer voor het resultaat (die staat in ds-schermen.css)');
 ok(/#trailer-result/.test(schermen) && /\.tr-res/.test(schermen), 'ds-schermen.css stijlt het resultaat');
-ok(/class="tr-res ds-zeef ds-z-kaart/.test(trailer), 'het resultaat is een zeefdrukkaart');
-ok(/ds-z-feit/.test(trailer), 'de cijfers zijn feiten-tegels');
-ok(/tr-advice ds-z-kaart ds-z-kaart--bord/.test(trailer), 'het advies staat in een bordgroene kaart');
-ok(/class="ds-z-knop" data-act="apply"/.test(trailer), 'Toepassen is de gele hoofdknop');
-for (const act of ['again', 'settings', 'diag']) ok(new RegExp(`class="ds-z-knop ds-z-knop--secundair" data-act="${act}"`).test(trailer), `${act} is een secundaire .ds-z-knop`);
-ok(/data-act="back">Terug \{ESC\}/.test(trailer) && /ds-z-knop\$\{adv\.apply \? ' ds-z-knop--secundair' : ''\}" data-act="back"/.test(trailer), 'Terug is alleen de hoofdknop als Toepassen er niet is');
-ok(/\{ARROWS\} kiezen · \{ENTER\} ok · \{ESC\} terug/.test(trailer), 'de hints zijn toetsplaatjes ({TOKEN})');
-for (const t of ['Toepassen', 'Nog een keer', 'Instellingen', 'Technische info kopiëren', 'Terug']) ok(trailer.includes(t), `knoptekst "${t}" blijft`);
+ok(/class="tr-res ds-zeef ds-z-kaart/.test(kaart), 'het resultaat is een zeefdrukkaart');
+ok(/ds-z-feit/.test(kaart), 'de cijfers zijn feiten-tegels');
+ok(/tr-advice ds-z-kaart ds-z-kaart--bord/.test(kaart), 'het advies staat in een bordgroene kaart');
+ok(/class="ds-z-knop" data-act="apply"/.test(kaart), 'Toepassen is de gele hoofdknop');
+for (const act of ['again', 'settings', 'diag']) ok(new RegExp(`class="ds-z-knop ds-z-knop--secundair" data-act="${act}"`).test(kaart), `${act} is een secundaire .ds-z-knop`);
+ok(/data-act="back">Terug \{ESC\}/.test(kaart) && /ds-z-knop\$\{card\.advice\.apply && !card\.busy \? ' ds-z-knop--secundair' : ''\}" data-act="back"/.test(kaart), 'Terug is alleen de hoofdknop als Toepassen er niet is');
+ok(/\{ARROWS\} kiezen · \{ENTER\} ok · \{ESC\} terug/.test(kaart), 'de hints zijn toetsplaatjes ({TOKEN})');
+for (const t of ['Toepassen', 'Nog een keer', 'Instellingen', 'Technische info kopiëren', 'Terug']) ok(kaart.includes(t), `knoptekst "${t}" blijft`);
 ok(/body\.tr-result-open[^{]*#cine/.test(schermen) && /#banter-sub/.test(schermen), 'ondertitels zwijgen tijdens het resultaat');
 ok(/body\.trailer-on[^{]*#banter-sub/.test(schermen), 'ondertitels zwijgen tijdens de meting');
 ok(/#trailer-result \{[^}]*z-index: 95/.test(schermen), 'het resultaat ligt boven de ondertitel-lagen (z-index 95)');
 // de metingen zelf blijven ongewijzigd: de rekenfuncties worden nog aangeroepen op dezelfde plek
-for (const stuk of ['computeStats(r)', 'recommendStand(basis, cur)', 'setBenchResult(stats, res.preset', 'writeLastRun(packRun(']) ok(trailer.includes(stuk), `meting ongewijzigd: ${stuk}`);
+for (const stuk of ['computeStats(r)', 'setBenchResult(stats, res.preset', 'writeLastRun(packRun(', 'basis']) ok(trailer.includes(stuk), `meting ongewijzigd: ${stuk}`);
+
+ok(kaartModel.includes('recommendStand(basis, run.preset)'), 'meting ongewijzigd: het advies rekent op wat de speler speelt (basis)');
 
 // ---- 4. de foutmelding ----
 ok(/frame-error ds-zeef ds-z-kaart ds-z-kaart--probleem/.test(toast), 'de foutmelding is een zeefdrukkaart met rode inktrand');

@@ -7,6 +7,7 @@ import { VERSION } from './version.js';
 import { watchContext } from './blackframe.js';
 import { KEYS } from './storagekeys.js';
 import { previewVehicle } from './garagepics.js';
+import { tickVehicleLook } from './vehiclelook3d.js';
 
 const OBJECT_KINDS = new Set(['weapon', 'person', 'product', 'spul']);
 // a person seen from the front, the face turned a little into the screen
@@ -111,16 +112,19 @@ function buildObject(spec, sphereFit = false) {
     return { mesh, body, fit };
   }
   const mesh = buildVehicleMesh(previewVehicle(spec));
+  // spec.tune: de uiterlijk-tuning (vehiclelook.js); het voorbeeld laat de underglow altijd zien (alsof het nacht is)
+  if (spec.tune) tickVehicleLook(mesh, 0, 1);
+  const live = spec.tune ? mesh : null;
   mesh.updateMatrixWorld(true);
   const box = new THREE.Box3().setFromObject(mesh);
   if (!box.isEmpty()) mesh.add(groundShadow(box));
-  if (!sphereFit) return { mesh, body: null, fit: null };
+  if (!sphereFit) return { mesh, body: null, fit: null, live };
   const sphere = box.getBoundingSphere(new THREE.Sphere());
   // turn about the model's own middle (a bus with its trailer is built from its front axle)
   const pivot = new THREE.Group();
   mesh.position.set(-sphere.center.x, 0, -sphere.center.z);
   pivot.add(mesh);
-  return { mesh: pivot, body: null, fit: { c: new THREE.Vector3(0, sphere.center.y, 0), r: Math.max(0.3, sphere.radius * 0.78) } };
+  return { mesh: pivot, body: null, fit: { c: new THREE.Vector3(0, sphere.center.y, 0), r: Math.max(0.3, sphere.radius * 0.78) }, live };
 }
 
 function frameCamera(cam, spec, fit, zoom) {
@@ -173,6 +177,7 @@ export function createVehiclePreview(canvas, { interactive = false, active = () 
     p.last = now;
     if (!p.drag && now > p.idleAt) p.angle += dt * 0.75;
     p.mesh.rotation.y = p.angle;
+    if (p.live) tickVehicleLook(p.live, now / 1000, 1, true); // de lucht van een snackwagen drijft
     if (p.spec.kind === 'person') animatePersonWalk(p.body, 0, dt);
     frameCamera(p.cam, p.spec, p.fit, p.zoom);
     p.renderer.render(p.scene, p.cam);
@@ -208,6 +213,7 @@ export function createVehiclePreview(canvas, { interactive = false, active = () 
     p.mesh = o.mesh;
     p.body = o.body;
     p.fit = o.fit;
+    p.live = o.live || null;
     p.scene.add(p.mesh);
     p.last = 0;
     if (!p.raf) p.raf = requestAnimationFrame(tick);

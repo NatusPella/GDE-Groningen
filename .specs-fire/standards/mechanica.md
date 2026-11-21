@@ -175,6 +175,14 @@ kost niets. De banen komen uit `game/vliegplekken.json`.
 
 **Tests.** `voetbal_spelers_test`, `voetbalparken_test`, `voetbal_seizoen_test`, `voetbal_ontwikkeling_test`, `voetbal_carriere_test`, `voetbal_carrierelive_test`, `voetbal_ui_test`, `voetbal_transfers_test`, `voetbal_beats_test`, `voetbal_samen_test`, `voetbal_sponsors_test`, `voetbal_wereld_test` en de sim-testbank `scripts/voetbal_carriere_sim.mjs`.
 
+## Autotuning (epic #1155)
+
+**Doel.** Je kunt je eigen voertuig pimpen in elke garage, en soms zie je een gepimpte auto in de wereld, maar nooit veel.
+
+**Regels.** Eén uiterlijk-systeem voor alle voertuigtypen als overlay op het gebouwde model (hoogstens een drawcall voor de romp, een voor underglow en een voor het nummerbord; velgen kosten niets). Opslag per speler onder `gde-tuninglook-v1` met een korte code `L1...` en drie builds; onderdelen met prestatie-effect blijven in `gde-tuning-v1`, begrensd (`draai` 0,90 tot 1,08, `grip` hoogstens 1,25). Aandeel in de wereld hoogstens 3% (stad meer, platteland 0), autotreffens zeldzaam, hoogstens 8 rijdend en 6 zichtbare underglows tegelijk. Verzonnen namen, geen echte kentekens, geen politie-aandacht. Samen spelen: de look reist als optionele korte code, kopen alleen in je eigen spel.
+
+**Bestanden.** `vehiclelook.js`, `vehiclelookstore.js`, `vehiclelook3d.js`, `tuningdraft.js`, `tuningoffer.js`, `tuningworkshopui.js`, `tuningbind.js`, `tuningworld.js`, `tuningtraffic.js`, `tuningplan.js`. **Tests.** `scripts/vehiclelook_test.mjs`, `vehiclelook3d_test.mjs`, `tuningdraft_test.mjs`, `tuningworld_test.mjs`, `tuningplan_test.mjs`. Uitgebreid in [docs/TUNING-21-11.md](../../docs/TUNING-21-11.md).
+
 ## Gevecht
 
 **Doel.** Melee met gewicht: een reeks slagen die oploopt zolang je raakt.
@@ -202,10 +210,12 @@ komt niet terug (`:87`), in 60% van de overgangen zit een jingle (`:118`). Sting
 (`game/js/stings.js`): nooit twee tegelijk, 0,6 s afkoeling (`:10`), en de radio gaat er 45% zachter
 van (`game/js/audio/scenario.js:127`).
 
-**Bestanden.** `audio.js`, `sfx/samples.js`, `sfx/mixplan.js`, `musicpick.js`, `radio.js`,
+Nieuw geluid koppel je via de centrale tabel `game/js/sfx/sfxmap.js` (gebeurtenis-sleutel naar opnames, bus, niveau, afkoeltijd en Samen-spelen-beleid) en `sfxEvent(world, sleutel, x, y)` uit `sfx/haken.js`; nooit dezelfde variant twee keer achter elkaar, lokale geluiden (UI, eigen handen, eigen voortgang) alleen op de eigen machine, wereldgeluiden van een medespeler alleen dichtbij en spaarzaam. Zie [SFX-DEKKING-21-11.md](../../docs/SFX-DEKKING-21-11.md).
+
+**Bestanden.** `audio.js`, `sfx/samples.js`, `sfx/sfxmap.js`, `sfx/mixplan.js`, `musicpick.js`, `radio.js`,
 `stings.js`.
 
-**Tests.** `sfx_test.mjs`, `sfxsamples_test.mjs`, `stings_test.mjs`, `music_pick_test.mjs`,
+**Tests.** `sfx_test.mjs`, `sfxsamples_test.mjs`, `sfx_round5_test.mjs`, `stings_test.mjs`, `music_pick_test.mjs`,
 `minigamefoley_test.mjs`.
 
 ## Prestaties en kwaliteitsstanden
@@ -293,4 +303,6 @@ zijn de latere meting (#477).
 - Twee testrunners naast elkaar (#481, opgelost 25-10): `scripts/run_tests.mjs` (CI) en
   `scripts/test_all.mjs` (fasen en rapport) delen hun lijsten; zie ADR 0013 en `docs/TESTEN.md`.
 
+## Moeilijkheid per save (#1169)
 
+**Regels.** Elke save heeft een niveau (ontspannen, standaard, uitdagend) en opties die ervan afwijken: één profiel `{ level, custom }` in het savegame-veld `moeilijkheid`, één bron in `game/js/difficulty.js`. De gameplay leest `opt(sleutel)` of een koppelfunctie; nooit een eigen getal. Op Standaard is elke optie neutraal (exact het oude gedrag, regressietest). Elke optie heeft vaste stappen binnen een veilige band; prijzen zijn geen optie en de beloningsfactor blijft binnen 0,75 en 1,25. Niets blokkeert de verhaalvoortgang; Verhaalmodus haalt de tijdsdruk weg. Samen spelen: politie en verkeer volgen wie het spel opende, al het andere is per speler. Naslag: [docs/MOEILIJKHEID-21-11.md](../../docs/MOEILIJKHEID-21-11.md).

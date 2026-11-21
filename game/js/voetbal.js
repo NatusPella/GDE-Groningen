@@ -1,7 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { toonStartkaart } from './startkaart.js';
 import { getSettings } from './settings.js';
-import { difficultyRecordKey, cleanDifficulty } from './difficulty.js';
+import { difficultyRecordKey, cleanDifficulty, footballLevel, footballDuration } from './difficulty.js'; // #1169: tegenstander en duur per save
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
@@ -19,6 +19,7 @@ import { registerLauncher } from './voetbalcarriereui.js';
 import { formationList } from './voetbalrules.js';
 import { awayKit } from './voetbalworld.js';
 import { pushAudioEvent } from './pedgeom.js';
+import { sfxEvent } from './sfx/haken.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedLiveTik, wedHostLiveEind, wedGastVerlaat, wedGastReset } from './multiplayerwedstrijd.js';
 import { hoofdspeler } from './players.js';
 import { KEYS } from './storagekeys.js';
@@ -350,7 +351,7 @@ function panelTick(w) {
 }
 
 function freshOptions(v = leesOpslag()) {
-  const level = cleanDifficulty(getSettings().difficulty);
+  const level = footballLevel();
   let comp = null, tg = runs % OPPONENTS.length, formaat = v.formaat;
   if (v.modus === 'competitie') { // een seizoen: elf tegen elf tegen de club van deze ronde
     comp = leesCompetitie(v.comp);
@@ -359,7 +360,7 @@ function freshOptions(v = leesOpslag()) {
     if (k >= 0) tg = k;
     formaat = 'groot';
   }
-  return { duur: v.duur, stand: level, tg, formaat, vorming: cleanFormation(formaat, v.vorming), stijl: cleanStijl(v.stijl), comp, seed: ((Date.now() / 1000) | 0) + runs * 7919 };
+  return { duur: footballDuration(v.duur), stand: level, tg, formaat, vorming: cleanFormation(formaat, v.vorming), stijl: cleanStijl(v.stijl), comp, seed: ((Date.now() / 1000) | 0) + runs * 7919 };
 }
 
 // start: solo (sim = null), de host van een Samen-wedstrijd (online 'host', sim van het kader) of een gast (online 'gast', sim = de spiegel).
@@ -370,7 +371,7 @@ function launch(w, { force = false, online = null, sim = null, career = null } =
   if (p.inVehicle && p.exitVehicle) p.exitVehicle(w.map, w);
   runs++;
   let opt = online === 'gast' ? null : (uitnodiging && online ? uitnodiging : freshOptions());
-  if (career) { const v = leesOpslag(); opt = { duur: 'normaal', stand: cleanDifficulty(getSettings().difficulty), tg: 0, formaat: 'groot', vorming: cleanFormation('groot', v.vorming), stijl: cleanStijl(v.stijl), comp: null, seed: ((Date.now() / 1000) | 0) + runs * 7919 }; }
+  if (career) { const v = leesOpslag(); opt = { duur: 'normaal', stand: footballLevel(), tg: 0, formaat: 'groot', vorming: cleanFormation('groot', v.vorming), stijl: cleanStijl(v.stijl), comp: null, seed: ((Date.now() / 1000) | 0) + runs * 7919 }; }
   if (career) { site = career.site || { x: CX, y: CY, a: 0 }; }
   if (!sim && career) sim = makeMatch([{ slot: 0, naam: career.naam || 'Jij', char: career.char, bonus: career.bonus }], { duur: opt.duur, stand: opt.stand, seed: opt.seed, formaat: 'groot', vorming: opt.vorming, stijl: opt.stijl, teams: career.teams, ratings: career.ratings });
   if (!sim) sim = makeMatch([{ slot: 0, naam: 'Jij', char: p.character || null, bonus: voetbalBonusVan() }], { duur: opt.duur, stand: opt.stand, seed: opt.seed || 1, tegenstander: opt.tg, formaat: opt.formaat, vorming: opt.vorming, stijl: opt.stijl });
@@ -427,20 +428,26 @@ function updateHost(w, dt) {
   handleEvents(w, wedLiveTik(w, g.sim, dt, () => inv));
 }
 
+// SFX ronde 5: een geluid van de centrale tabel op de plek van de bal (elke machine speelt zijn eigen wedstrijdgebeurtenissen: lokaal)
+function ballSfx(w, key) { const b = game && game.sim && game.sim.bal ? toWorld(game.sim.bal.x, game.sim.bal.y) : null; sfxEvent(w, key, b && b.x, b && b.y); }
+
 function handleEvents(w, evs) {
   const g = game;
   for (const e of evs) {
-    if (e.type === 'schop') { const q = toWorld(e.x, e.y); pushAudioEvent(w, { kind: 'golf', sub: 'slag', strength: 0.25 + 0.5 * (e.sterkte || 0.5), x: q.x, y: q.y }); }
-    else if (e.type === 'paal' || e.type === 'lat') { const b = toWorld(g.sim.bal.x, g.sim.bal.y); pushAudioEvent(w, { kind: 'golf', sub: 'rand', strength: 0.7, x: b.x, y: b.y }); }
+    if (e.type === 'schop') { const q = toWorld(e.x, e.y); pushAudioEvent(w, { kind: 'golf', sub: 'slag', strength: 0.25 + 0.5 * (e.sterkte || 0.5), x: q.x, y: q.y }); sfxEvent(w, 'football_kick', q.x, q.y); }
+    else if (e.type === 'paal' || e.type === 'lat') { const b = toWorld(g.sim.bal.x, g.sim.bal.y); pushAudioEvent(w, { kind: 'golf', sub: 'rand', strength: 0.7, x: b.x, y: b.y }); sfxEvent(w, 'football_post', b.x, b.y); }
     else if (e.type === 'goal') {
       const b = toWorld(g.sim.bal.x, g.sim.bal.y); pushAudioEvent(w, { kind: 'golf', sub: 'hole', strength: 0.9, x: b.x, y: b.y });
+      sfxEvent(w, 'football_net', b.x, b.y); sfxEvent(w, 'crowd_goal_roar', b.x, b.y);   // SFX ronde 5: het net en het publiek
       flits();
       say(w, e.team === 0 ? 'goalThuis' : 'goalUit', true);
-    } else if (e.type === 'redding') say(w, 'redding');
+    } else if (e.type === 'redding') { say(w, 'redding'); ballSfx(w, 'crowd_groan'); }
     else if (e.type === 'uit') say(w, 'uit');
     else if (e.type === 'overtreding') say(w, 'overtreding');
-    else if (e.type === 'fluit' && e.helft === 1) say(w, 'rust', true);
-    else if (e.type === 'einde') say(w, e.winnaar === 0 ? 'winst' : e.winnaar < 0 ? 'gelijk' : 'verlies', true);
+    else if (e.type === 'fluit') { if (e.helft === 1) say(w, 'rust', true); ballSfx(w, 'referee_whistle'); }
+    else if (e.type === 'aftrap' || e.type === 'hervat') ballSfx(w, 'referee_whistle');
+    else if (e.type === 'stuit') ballSfx(w, 'ball_bounce');
+    else if (e.type === 'einde') { say(w, e.winnaar === 0 ? 'winst' : e.winnaar < 0 ? 'gelijk' : 'verlies', true); ballSfx(w, 'referee_whistle'); sfxEvent(w, 'sport_stinger'); }
     const pop = popVan(e, 0);
     if (pop && (e.type === 'goal' || e.type === 'einde' || e.type === 'overtreding')) simHudPop(pop.tekst, pop.geluid);
   }

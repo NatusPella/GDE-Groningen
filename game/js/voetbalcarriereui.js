@@ -155,7 +155,7 @@ const CSS = `.vb-pane { display: grid; gap: var(--ds-s-2, 10px); padding: var(--
 .vb-vaardig .ds-z-rij__waarde { min-width: 180px; }`;
 let cssLoaded = false;
 const zetCss = () => { if (cssLoaded || typeof document === 'undefined') return; cssLoaded = true; const el = document.createElement('style'); el.textContent = CSS; document.head.appendChild(el); };
-export const envFor = (w, progress = {}) => ({ getClub: V.getClub, unlocked: voetbalOpen(progress), hint: voetbalHint(progress), char: ((w && hoofdspeler(w)) || {}).character === 'tammo' ? 'tammo' : 'anita' });
+const envFor = (w, progress = {}) => ({ getClub: V.getClub, unlocked: voetbalOpen(progress), hint: voetbalHint(progress), char: ((w && hoofdspeler(w)) || {}).character === 'tammo' ? 'tammo' : 'anita' });
 let progressFn = () => ({});
 export function useProgress(fn) { progressFn = typeof fn === 'function' ? fn : () => ({}); }
 let launcher = null;

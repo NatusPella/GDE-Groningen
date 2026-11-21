@@ -62,9 +62,9 @@ t('THREE-kant: het bord is een gedeeld materiaal per tekst (niet per wagen), en 
   assert.match(code, /SIGN_MATS/); assert.match(code, /userData\.shared = true/);
   assert.ok(!/scene3d\.js'.*export/.test(code));
 });
-t('main.js roept updateSnackWagens aan naast de werkers', () => {
+t('main.js roept updateSnackVans aan naast de werkers', () => {
   const m = fs.readFileSync(new URL('../game/js/main.js', import.meta.url), 'utf8');
-  assert.match(m, /updateFarmWorkers\(world, dt\); updateSnackWagens\(world, dt\)/);
+  assert.match(m, /updateFarmWorkers\(world, dt\); updateSnackVans\(world, dt\)/);
 });
 console.log(`snackvans3d_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

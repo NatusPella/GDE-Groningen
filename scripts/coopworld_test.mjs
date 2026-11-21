@@ -343,4 +343,19 @@ t('inventaris: wat de gast lokaal invult noemt zijn bron, het stuk code en de te
   const tekst = W.LOKAAL_VERZONNEN.map((p) => p.wat).join(' | ');
   for (const kern of ['deining', 'valrichting', 'verkeerslicht', 'vogel', 'voertuig zonder uiterlijk', 'wagonindeling', 'achterkant van een gelede bus', 'draaisnelheid van de wielen', 'achterover vallen']) assert.ok(tekst.includes(kern), 'de inventaris noemt ' + kern);
 });
+// de uiterlijk-tuning (epic Autotuning #1155): een gepimpte auto van de host komt met zijn look bij de gast, een gewone zonder
+t('tuning: voertuigUiterlijk en uiterlijkSpec, ook door de codec', () => {
+  const v = { id: 4, model: { name: 'sport', len: 4.2, wid: 1.85, color: '#e8505b' }, look: { spoiler: 'wing', glow: '#6fd3e0', plate: 'ZOMER 21' } };
+  const rec = W.voertuigUiterlijk(v, 4);
+  assert.ok(typeof rec.tune === 'string' && rec.tune.startsWith('L1'));
+  const spec = W.uiterlijkSpec(rec);
+  assert.equal(spec.look.spoiler, 'wing'); assert.equal(spec.look.plate, 'ZOMER 21');
+  const via = decodeSnapshot(encodeSnapshot(1, 1, 0, { time: 0, hour: 0, players: [], entities: [], looks: [rec] }), new Map());
+  assert.equal(via.looks[0] && via.looks[0].tune, rec.tune);
+  assert.equal(W.voertuigUiterlijk({ id: 5, model: { name: 'hatch', len: 3.9, wid: 1.7, color: '#222222' } }, 5).tune, undefined, 'een gewone auto heeft geen veld');
+  assert.equal(W.uiterlijkSpec({ ...rec, tune: 'nep' }).look, undefined, 'een onzincode verandert niets');
+  assert.equal(W.uiterlijkSpec({ ...rec, tune: undefined }).look, undefined, 'een oude host stuurt geen code');
+  const boat = W.voertuigUiterlijk({ id: 6, isBoat: true, model: { name: 'boat', kind: 'sloep', len: 5, wid: 2, color: '#e8e6e0' }, look: { finish: 'metallic', spoiler: 'gt' } }, 6);
+  assert.ok(!W.uiterlijkSpec(boat).look || !W.uiterlijkSpec(boat).look.spoiler, 'een boot krijgt geen spoiler');
+});
 console.log(`coopworld_test: ${n}/${n} ok`);

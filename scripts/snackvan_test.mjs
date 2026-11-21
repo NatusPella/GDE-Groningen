@@ -15,7 +15,7 @@ const quiet = (S) => { S.rival.spots = []; S.rival.mood = 5; S.rival.lastEvent =
 t('een nieuwe toestand: leeg, niet actief, wagen zonder plek, menu van vier, naam 50, Usmem op zijn startplekken', () => {
   const S = SN.newSnack();
   assert.ok(!SN.isActive(S) && S.own.spot === null && S.own.menu.length === 4 && S.rep === 50);
-  assert.deepEqual(S.rival.spots, RV.START_SPOTS);
+  assert.deepEqual(S.rival.spots, RV.OPENING_SPOTS);
 });
 t('normalizeSnack: rommel, onbekende plekken en menu-items worden gezuiverd, de rest blijft', () => {
   const S = SN.newSnack(); give(S, ['dorp']); S.up = ['koeling']; S.own.spot = 'dorp'; S.own.menu = ['friet', 'burger', 'softy']; S.fleet.push({ id: 'w1', spot: 'dorp', tier: 'groot', mode: 'aandeel', staff: { id: 'a', name: 'Marit', skill: 55 }, paid: 12000, wageUp: 20 });
@@ -30,22 +30,22 @@ t('normalizeSnack: rommel, onbekende plekken en menu-items worden gezuiverd, de 
 });
 t('menu: slots per wagen, koeling opent burger, milkshake en softy; nooit een leeg menu', () => {
   const S = SN.newSnack();
-  assert.equal(SN.toggleMenuItem(S, 'burger').why, 'dicht');
-  assert.equal(SN.toggleMenuItem(S, 'souffle').why, 'vol');
+  assert.equal(SN.toggleOffering(S, 'burger').why, 'dicht');
+  assert.equal(SN.toggleOffering(S, 'souffle').why, 'vol');
   assert.equal(SN.buyUpgrade(S, 'koeling', 1e9).ok, true);
   assert.equal(SN.upgradeTier(S, 'own', 1e9).tier, 'groot');
-  assert.ok(SN.toggleMenuItem(S, 'burger').ok && SN.toggleMenuItem(S, 'milkshake').ok);
-  assert.equal(S.own.menu.length, 6); assert.equal(SN.toggleMenuItem(S, 'softy').why, 'vol');
-  for (const id of ['milkshake', 'burger', 'friet', 'frikandel', 'kroket']) SN.toggleMenuItem(S, id);
-  assert.equal(S.own.menu.length, 1); assert.equal(SN.toggleMenuItem(S, 'bamischijf').why, 'leeg'); assert.equal(SN.toggleMenuItem(S, 'souffle').ok, true);
-  assert.equal(SN.setMenu(S, []).ok, false); assert.equal(SN.setMenu(S, ['x']).why, 'leeg');
+  assert.ok(SN.toggleOffering(S, 'burger').ok && SN.toggleOffering(S, 'milkshake').ok);
+  assert.equal(S.own.menu.length, 6); assert.equal(SN.toggleOffering(S, 'softy').why, 'vol');
+  for (const id of ['milkshake', 'burger', 'friet', 'frikandel', 'kroket']) SN.toggleOffering(S, id);
+  assert.equal(S.own.menu.length, 1); assert.equal(SN.toggleOffering(S, 'bamischijf').why, 'leeg'); assert.equal(SN.toggleOffering(S, 'souffle').ok, true);
+  assert.equal(SN.setOfferings(S, []).ok, false); assert.equal(SN.setOfferings(S, ['x']).why, 'leeg');
 });
 t('menu-cijfers: een eigen keten maakt het inkopen goedkoper, sauzen en variatie brengen meer, koeling scheelt bederf', () => {
   const m = ['friet', 'frikandel', 'kroket', 'bamischijf'];
-  const a = SN.menuNumbers(m, [], () => 0), b = SN.menuNumbers(m, [], () => 1), c = SN.menuNumbers(m, ['sauzen', 'koeling'], () => 0);
+  const a = SN.offeringNumbers(m, [], () => 0), b = SN.offeringNumbers(m, [], () => 1), c = SN.offeringNumbers(m, ['sauzen', 'koeling'], () => 0);
   assert.ok(b.cogs < a.cogs * 0.9 && b.localAppeal > a.localAppeal);
   assert.ok(Math.abs(c.ticket - a.ticket - 0.6) < 1e-9 && c.cogs < a.cogs);
-  assert.ok(SN.menuNumbers([...m, 'burger', 'milkshake', 'softy', 'souffle'], ['koeling'], () => 0).variety === 1.08);
+  assert.ok(SN.offeringNumbers([...m, 'burger', 'milkshake', 'softy', 'souffle'], ['koeling'], () => 0).variety === 1.08);
   assert.ok(a.ticket / a.cogs > 3);
 });
 t('een dag: zonder plek of vergunning geen omzet, met een plek een winst; voorraad telt af', () => {
@@ -214,10 +214,10 @@ t('een valse recensie drukt tijdelijk je naam, een gratis friet-dag herstelt sne
 });
 t('overname van Usmem: kost zijn vraagprijs, geeft een vergunning van 40 dagen, telt als doel; een medespeler blokkeert', () => {
   const S = quiet(SN.newSnack()); S.rival = RV.newRival(); S.rep = 50;
-  assert.equal(SN.bidTakeover(S, 'markt', 5, 100).why, 'te-weinig-geld');
-  assert.equal(SN.bidTakeover(S, 'markt', 5, 1e9, { taken: () => true }).why, 'bezet');
-  assert.equal(SN.bidTakeover(S, 'dorp', 5, 1e9).why, 'niet-van-hem');
-  const r = SN.bidTakeover(S, 'markt', 5, 1e9);
+  assert.equal(SN.bidForSpot(S, 'markt', 5, 100).why, 'te-weinig-geld');
+  assert.equal(SN.bidForSpot(S, 'markt', 5, 1e9, { taken: () => true }).why, 'bezet');
+  assert.equal(SN.bidForSpot(S, 'dorp', 5, 1e9).why, 'niet-van-hem');
+  const r = SN.bidForSpot(S, 'markt', 5, 1e9);
   assert.ok(r.ok && r.cost === RV.askPrice('markt', 50) && SP.permitHeld(S.permits, 'markt', 44) && !SP.permitHeld(S.permits, 'markt', 45) && !RV.holds(S.rival, 'markt'));
   assert.equal(SN.goalStatus(S, { day: 5 }).find((g) => g.id === 'overname').done, true);
   assert.equal(SN.goalStatus(S, { day: 5 }).find((g) => g.id === 'beste').done, true);

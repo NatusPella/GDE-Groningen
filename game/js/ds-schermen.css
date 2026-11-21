@@ -124,3 +124,69 @@ html.reduce-motion #trailer-result { animation: none; }
 @media (prefers-reduced-motion: reduce) { #drift-chip .dc-pop { animation: none; } #drift-chip .ds-z-balk__vul { transition: none; } }
 html.reduce-motion #drift-chip .dc-pop, html.rustig-drukwerk #drift-chip .dc-pop { animation: none; }
 html.reduce-motion #drift-chip .ds-z-balk__vul, html.rustig-drukwerk #drift-chip .ds-z-balk__vul { transition: none; }
+
+/* ---- Benchmark, keuzescherm (benchmarkui.js, #bench-choice): twee routekaarten, twee lengtes, één schakelaar; toets in de knop, pad loopt de knoppen af ---- */
+#bench-choice {
+  position: fixed; inset: 0; z-index: 95; display: flex; align-items: center; justify-content: center; padding: var(--ds-s-4);
+  background: color-mix(in srgb, var(--ds-c-ink-inkt) 55%, transparent); animation: tr-res-in var(--ds-m) var(--ds-ease);
+}
+#bench-choice[hidden] { display: none; }
+#bench-choice .bm-paneel { width: min(calc(var(--ds-s-8) * 9), 100%); max-height: calc(100vh - var(--ds-s-6)); overflow: auto; gap: var(--ds-s-3); font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-body); }
+#bench-choice .bm-paneel .ds-z-kaart__kop { margin-top: calc(var(--ds-s-4) * -1); }
+#bench-choice .bm-lead, #bench-choice .bm-hulp { margin: 0; line-height: var(--ds-lh-tekst); }
+#bench-choice .bm-hulp, #trailer-result .bm-hulp { font-size: var(--ds-t-hulp); color: var(--ds-c-inkt-zacht); margin: 0; }
+#bench-choice .bm-hulp[hidden] { display: none; }
+#bench-choice .bm-groep { display: grid; grid-template-columns: repeat(auto-fit, minmax(calc(var(--ds-s-8) * 3), 1fr)); gap: var(--ds-s-3); }
+#bench-choice .bm-keuze { text-align: left; font: inherit; color: inherit; cursor: pointer; gap: var(--ds-s-1); transition: transform var(--ds-m-snel) var(--ds-ease), box-shadow var(--ds-m-snel) var(--ds-ease); }
+#bench-choice .bm-keuze .bm-sub { font-size: var(--ds-t-hulp); line-height: var(--ds-lh-tekst); }
+#bench-choice .bm-keuze .bm-meta { align-self: flex-start; }
+#bench-choice .bm-keuze.is-gekozen { background: var(--ds-c-sel-vlak); border-color: var(--ds-c-ink-bord); }
+#bench-choice .bm-keuze:disabled { opacity: 0.55; cursor: default; }
+#bench-choice .bm-keuze:not(:disabled):hover { transform: translate(calc(var(--ds-lijn-dik) * -1), calc(var(--ds-lijn-dik) * -1)); }
+#bench-choice .bm-keuze:not(:disabled):active { transform: translate(var(--ds-lijn-dik), var(--ds-lijn-dik)); box-shadow: none; }
+#bench-choice .bm-keuze:focus-visible, #bench-choice .bm-schakel:focus-visible { outline: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); outline-offset: var(--ds-s-1); }
+#bench-choice .bm-lengte .bm-keuze { padding: var(--ds-s-2) var(--ds-s-4); }
+#bench-choice .bm-schakel { width: 100%; grid-template-columns: minmax(0, 1fr) auto; text-align: left; font: inherit; border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); cursor: pointer; }
+#bench-choice .bm-schakel:disabled { opacity: 0.55; cursor: default; }
+#bench-choice .bm-voet { display: flex; flex-wrap: wrap; gap: var(--ds-s-3); align-items: center; justify-content: flex-end; margin-top: var(--ds-s-2); }
+#bench-choice .bm-duur { margin-right: auto; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); font-variant-numeric: tabular-nums; }
+#bench-choice .bm-voet .ds-z-knop { font-size: var(--ds-t-subkop); }
+#bench-choice .tr-keys { margin: 0; display: flex; align-items: center; gap: var(--ds-s-2); flex-wrap: wrap; font-size: var(--ds-t-hulp); color: var(--ds-c-inkt-zacht); }
+body.tr-result-open #bench-choice, body.tr-result-open #bench-choice * { cursor: default; }
+body.tr-result-open #bench-choice button:not(:disabled) { cursor: pointer; }
+
+/* ---- Benchmark, rapportkaart (benchmarkui.js, in #trailer-result): stempel met het cijfer, vakken als rijen, een grafiek van de fps ---- */
+#trailer-result .bm-samenvatting { margin: 0; font-size: var(--ds-t-hulp); color: var(--ds-c-inkt-zacht); }
+#trailer-result .bm-kop { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--ds-s-4); align-items: center; }
+#trailer-result .bm-cijferblok { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--ds-s-1); min-width: calc(var(--ds-s-8) * 2); padding: var(--ds-s-3) var(--ds-s-4); }
+#trailer-result .bm-groot { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-cijfer); line-height: var(--ds-lh-kop); font-variant-numeric: tabular-nums; }
+#trailer-result .bm-eindlabel { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
+#trailer-result .bm-eind--probleem { background: var(--ds-c-rood-vlak); border-color: var(--ds-c-rood); color: var(--ds-c-rood-tx); }
+#trailer-result .bm-eind--let-op { background: var(--ds-c-amber-vlak); color: var(--ds-c-amber-tx); }
+#trailer-result .bm-vakken, #trailer-result .bm-presets { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+#trailer-result .bm-vakken .ds-z-rij, #trailer-result .bm-presets .ds-z-rij { grid-template-columns: minmax(0, 1fr) auto; }
+#trailer-result .bm-vakwaarde { display: flex; align-items: center; gap: var(--ds-s-3); }
+#trailer-result .bm-cijfer { min-width: calc(var(--ds-s-8) * 0.75); justify-content: center; font-variant-numeric: tabular-nums; }
+#trailer-result .bm-vak--goed { border-left-color: var(--ds-c-groen-tx); }
+#trailer-result .bm-vak--let-op { border-left-color: var(--ds-c-amber-tx); }
+#trailer-result .bm-vak--probleem { background: var(--ds-c-rood-vlak); border-left-color: var(--ds-c-rood); color: var(--ds-c-rood-tx); }
+#trailer-result .bm-nu { border-left-color: var(--ds-c-ink-inkt); }
+#trailer-result .bm-grafiek { position: relative; display: flex; align-items: flex-end; gap: var(--ds-lijn-dik); height: calc(var(--ds-s-8) * 2); padding: var(--ds-s-2) var(--ds-s-2) 0; background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); }
+#trailer-result .bm-grafiek::before, #trailer-result .bm-grafiek::after { content: ''; position: absolute; left: 0; right: 0; border-top: var(--ds-lijn-dik) dashed var(--ds-c-groen-tx); pointer-events: none; }
+#trailer-result .bm-grafiek::before { bottom: var(--bm-g60); }
+#trailer-result .bm-grafiek::after { bottom: var(--bm-g30); border-top-color: var(--ds-c-amber-tx); }
+#trailer-result .bm-grafiek i { flex: 1; height: var(--bm-h); min-width: var(--ds-lijn-dik); background: var(--ds-c-ink-inkt); transform-origin: bottom; animation: bm-groei var(--ds-m) var(--ds-ease) both; }
+#trailer-result .bm-grafiek i.bm-dip { background: var(--ds-c-rood); }
+#trailer-result .bm-as { position: absolute; left: var(--ds-s-1); font-size: var(--ds-t-hulp); color: var(--ds-c-inkt-zacht); line-height: 1; }
+#trailer-result .bm-as--60 { bottom: var(--bm-g60); }
+#trailer-result .bm-as--30 { bottom: var(--bm-g30); }
+@keyframes bm-groei { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@media (max-width: 700px) { #trailer-result .bm-kop { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { #bench-choice { animation: none; } #bench-choice .bm-keuze { transition: none; } #trailer-result .bm-grafiek i { animation: none; } }
+html.reduce-motion #bench-choice, html.rustig-drukwerk #bench-choice, html.reduce-motion #trailer-result .bm-grafiek i, html.rustig-drukwerk #trailer-result .bm-grafiek i { animation: none; }
+html.reduce-motion #bench-choice .bm-keuze, html.rustig-drukwerk #bench-choice .bm-keuze { transition: none; }
+
+/* ---- Benchmark, tijdens de meting: een voortgangsstrook met scène en teller (trailer.js, .tr-prog) ---- */
+#trailer .tr-prog { left: 3vw; right: 3vw; top: calc(var(--bar) * 0.5); transform: translateY(-50%); display: none; align-items: center; gap: var(--ds-s-3); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); color: var(--ds-c-ink-papier); text-shadow: var(--ds-misdruk); }
+#trailer.bench .tr-prog { display: flex; }
+#trailer .tr-prog .ds-z-balk { flex: 1; }

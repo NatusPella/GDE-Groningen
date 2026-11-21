@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { sfxEvent } from './sfx/haken.js';
 // Turn signals and hazard lights. The player taps [ or ] (D-pad left/right) for
 // a turn signal and P (D-pad up) for the hazards; a signal switches itself off
 // after the turn. Other cars blink for a bend or a turn at a junction (read
@@ -75,6 +76,11 @@ export function updateIndicators(dt, world) {
     tickPlayerIndicator(pv, dt, live ? {
       left: input.wasPressed('['), right: input.wasPressed(']'), hazard: input.wasPressed('p'),
     } : {});
+    // SFX ronde 5: de tik van je eigen richtingaanwijzer (sfxmap.js car_blinker), zo'n 1,5 keer per seconde; lokaal, de HUD-lampen blijven voor anderen
+    if (pv.indicator && !world.paused) {
+      pv.indTickT = (pv.indTickT || 0) - dt;
+      if (pv.indTickT <= 0) { pv.indTickT = 0.66; sfxEvent(world, 'car_blinker', pv.x, pv.y); }
+    } else pv.indTickT = 0;
   }
   for (const v of world.vehicles) {
     if (v === pv || !canBlink(v)) continue;

@@ -59,5 +59,11 @@ t('bezit_sim: eerste perceel ongeveer twee uur, schaal hoogstens drie maal actie
   assert.ok(out.ontspannen.imperium >= out.standaard.imperium && out.standaard.imperium >= out.uitdagend.imperium);
   console.log('  bezit_sim per stand:', JSON.stringify(out));
 });
+// 21-11: main.js koppelt de adapter aan difficulty.js (alleen de omzet; prijs en kosten blijven 1, geen prijsoptie)
+{
+  const fs = await import('node:fs');
+  const main = fs.readFileSync(new URL('../game/js/main.js', import.meta.url), 'utf8');
+  n++; if (!/setBezitDifficultyProvider\(\(kind\) => \(kind === 'income' \? incomeFactor\(\) : 1\)\)/.test(main)) { fails++; console.log('FAIL main.js koppelt Bezit aan difficulty.js (alleen de omzet)'); }
+}
 console.log(`bezitdifficulty_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

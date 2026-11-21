@@ -13,12 +13,12 @@ export const REPUTATION_KEY = KEYS.reputatie;
 export const REPUTATION_VERSION = 1;
 export const RANGES = { fame: [0, 100], kind: [-50, 50], buurt: [-20, 20] };
 export const PRICE_SWING = 0.05;
-export const BUURT_MAX = 40;
+export const NEIGHBOUR_MAX = 40;
 
 const clamp = (x, [lo, hi]) => Math.max(lo, Math.min(hi, Math.round(x)));
 const scopeRange = (scope) => (scope === 'fame' ? RANGES.fame : scope === 'kind' ? RANGES.kind : RANGES.buurt);
-export const isBuurtScope = (scope) => typeof scope === 'string' && /^buurt:[a-z0-9 -]{1,30}$/i.test(scope);
-export const validScope = (scope) => scope === 'fame' || scope === 'kind' || isBuurtScope(scope);
+export const isNeighbourhoodScope = (scope) => typeof scope === 'string' && /^buurt:[a-z0-9 -]{1,30}$/i.test(scope);
+export const validScope = (scope) => scope === 'fame' || scope === 'kind' || isNeighbourhoodScope(scope);
 
 export function emptyReputation() { return { v: REPUTATION_VERSION, fame: 0, kind: 0, buurt: {} }; }
 
@@ -29,7 +29,7 @@ export function readReputation(raw) {
   if (Number.isFinite(s.fame)) out.fame = clamp(s.fame, RANGES.fame);
   if (Number.isFinite(s.kind)) out.kind = clamp(s.kind, RANGES.kind);
   if (s.buurt && typeof s.buurt === 'object') {
-    for (const [k, v] of Object.entries(s.buurt).slice(0, BUURT_MAX)) if (Number.isFinite(v) && /^[a-z0-9 -]{1,30}$/i.test(k)) out.buurt[k] = clamp(v, RANGES.buurt);
+    for (const [k, v] of Object.entries(s.buurt).slice(0, NEIGHBOUR_MAX)) if (Number.isFinite(v) && /^[a-z0-9 -]{1,30}$/i.test(k)) out.buurt[k] = clamp(v, RANGES.buurt);
   }
   return out;
 }
@@ -37,7 +37,7 @@ export function readReputation(raw) {
 export function reputationOf(state, scope) {
   const s = readReputation(state);
   if (scope === 'fame' || scope === 'kind') return s[scope];
-  if (isBuurtScope(scope)) return s.buurt[scope.slice(6)] || 0;
+  if (isNeighbourhoodScope(scope)) return s.buurt[scope.slice(6)] || 0;
   return 0;
 }
 
@@ -48,10 +48,10 @@ export function noteReputation(state, scope, delta) {
   if (!validScope(scope) || d === 0) return s;
   if (scope === 'fame' || scope === 'kind') return { ...s, [scope]: clamp(s[scope] + d, RANGES[scope]) };
   const name = scope.slice(6);
-  const buurt = { ...s.buurt, [name]: clamp((s.buurt[name] || 0) + d, RANGES.buurt) };
-  const keys = Object.keys(buurt);
-  if (keys.length > BUURT_MAX) delete buurt[keys[0]];
-  return { ...s, buurt };
+  const neighbourhood = { ...s.buurt, [name]: clamp((s.buurt[name] || 0) + d, RANGES.buurt) };
+  const keys = Object.keys(neighbourhood);
+  if (keys.length > NEIGHBOUR_MAX) delete neighbourhood[keys[0]];
+  return { ...s, buurt: neighbourhood };
 }
 
 // Opslag per speler (een apart sleutelveld: { v, perSpeler: { <id>: stand } }); een gast heeft zijn eigen.
@@ -68,8 +68,8 @@ export function saveReputation(storage, state, playerId = 'lokaal') {
     const raw = storage.getItem ? storage.getItem(REPUTATION_KEY) : null;
     let j = { v: REPUTATION_VERSION, perSpeler: {} };
     try { if (raw) j = JSON.parse(raw) || j; } catch (e) { /* een kapotte opslag wordt overschreven */ }
-    const perSpeler = { ...(j.perSpeler || {}), [playerId]: readReputation(state) };
-    storage.setItem(REPUTATION_KEY, JSON.stringify({ v: REPUTATION_VERSION, perSpeler }));
+    const perPlayer = { ...(j.perSpeler || {}), [playerId]: readReputation(state) };
+    storage.setItem(REPUTATION_KEY, JSON.stringify({ v: REPUTATION_VERSION, perSpeler: perPlayer }));
     return true;
   } catch (e) { return false; }
 }
@@ -78,7 +78,7 @@ export function saveReputation(storage, state, playerId = 'lokaal') {
 export function priceFactor(state, scope = null) {
   const s = readReputation(state);
   const base = (s.fame - 50) / 50 * 0.5 + s.kind / 50 * 0.5;
-  const local = scope && isBuurtScope(scope) ? (s.buurt[scope.slice(6)] || 0) / 20 : 0;
+  const local = scope && isNeighbourhoodScope(scope) ? (s.buurt[scope.slice(6)] || 0) / 20 : 0;
   const x = Math.max(-1, Math.min(1, base * 0.7 + local * 0.3));
   return Math.round((1 - x * PRICE_SWING) * 1000) / 1000;
 }

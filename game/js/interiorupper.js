@@ -12,8 +12,8 @@ export const STAIR_W = 1.1, LANDING = 0.8, SLOPE = 1.376, STEP_H = 0.19;
 export const MIN_FLOOR_H = 2.6;
 
 // kinds that can have an upper floor, and from what building (floors >= 2)
-export const UPPER_KINDS = new Set(['woning', 'kantoor']);
-export const UPPER_SUBS = { publiek: new Set(['hotel', 'gemeente', 'school']), winkel: new Set(['kleding', 'tweedehands', 'elektronica', 'souvenir', 'supermarkt']) };
+const UPPER_KINDS = new Set(['woning', 'kantoor']);
+const UPPER_SUBS = { publiek: new Set(['hotel', 'gemeente', 'school']), winkel: new Set(['kleding', 'tweedehands', 'elektronica', 'souvenir', 'supermarkt']) };
 export const hasUpper = (kind, sub) => UPPER_KINDS.has(kind) || !!(UPPER_SUBS[kind] && UPPER_SUBS[kind].has(sub));
 
 // the stair for a hall, or null when the hall is too small
@@ -39,7 +39,7 @@ export function floorOffset(st, u, v) {
 }
 
 // the rails upstairs: the inner edge of the hole and its front edge
-export function upperRails(st) {
+function upperRails(st) {
   return [
     { u0: st.inner - 0.03, u1: st.inner + 0.03, v0: st.vBot, v1: st.vRamp, h: 0.95 },
     { u0: st.u0, u1: st.u1, v0: st.vBot - 0.06, v1: st.vBot, h: 0.95 },

@@ -74,6 +74,8 @@ export const BASE_KEYS = {
   benchmarkLast: 'gde-benchmark-last-v1',
   // parts and tuning per vehicle (tuningplan.js), new in 0.38: no legacy name, not part of the save
   tuning: 'gde-tuning-v1',
+  // the cosmetic look per vehicle and its saved builds (vehiclelookstore.js, epic Autotuning #1155): new, no legacy name, per player, never part of a savegame (a separate key so the parts record of tuning stays as it was)
+  tuningLook: 'gde-tuninglook-v1',
   // the animals you keep and what you did for them (dierenbezit.js, #193): new, no legacy name, not part of the save
   dieren: 'gde-dieren-v1',
   // how often each HUD explanation has been shown (hudtext.js), new in 0.38: no legacy name

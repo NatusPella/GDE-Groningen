@@ -84,6 +84,7 @@ export const ACHIEVEMENTS = [
   { id: 'alle_missies', cat: 'missies', title: 'Grunn is van jou', desc: 'Klaar alle acht missies', count: 'missionsDone', goal: 8 },
   { id: 'alle_zilver', cat: 'missies', title: 'Zilveren Stadjer', desc: 'Minstens zilver op elke missie', count: 'silverPlus', goal: 8 },
   { id: 'alle_goud', cat: 'missies', title: 'Gouden Eierbal', desc: 'Goud op alle acht missies', count: 'goldCount', goal: 8 },
+  { id: 'alle_uitdagend', cat: 'missies', title: 'Geen genade', desc: 'Speel alle acht missies uit op het niveau Uitdagend', count: 'uitdagendKlaar', goal: 8 }, // #1169
 
   { id: 'snel_100', cat: 'rijden', title: 'Honderd op de teller', desc: 'Rij 100 km/u', stat: 'topSpeed', goal: 100, unit: 'km/u' },
   { id: 'snel_140', cat: 'rijden', title: 'Harder dan de flitspaal kan tellen', desc: 'Rij 140 km/u', stat: 'topSpeed', goal: 140, unit: 'km/u' },
@@ -242,6 +243,9 @@ export const ACHIEVEMENTS = [
   { id: 'rijk', cat: 'sociaal', title: 'Groninger koopman', desc: 'Heb €10.000 op zak', stat: 'maxMoney', goal: 10000, unit: '€' },
   { id: 'koop_1', cat: 'sociaal', title: 'Klant is koning', desc: 'Koop iets in een winkel', stat: 'purchases', goal: 1 },
   { id: 'koop_10', cat: 'sociaal', title: 'Winkelverslaafde', desc: 'Doe 10 aankopen', stat: 'purchases', goal: 10 },
+  { id: 'pimp_1', cat: 'sociaal', title: 'Pimp my Ride', desc: 'Laat je eerste wijziging installeren in een pimp-werkplaats', stat: 'tuneInstalls', goal: 1 },
+  { id: 'garagebaas', cat: 'sociaal', title: 'Garagebaas', desc: 'Laat 10 keer iets installeren in een pimp-werkplaats', stat: 'tuneInstalls', goal: 10 },
+  { id: 'hele_show', cat: 'sociaal', title: 'Hele show', desc: 'Pimp een voertuig met minstens 12 onderdelen tegelijk', stat: 'tuneFullBuild', goal: 1 },
   { id: 'ingericht', cat: 'sociaal', title: 'Helemaal ingericht', desc: 'Zet alle EIKEA-meubels in jullie flat' },
   { id: 'schroefje', cat: 'sociaal', title: 'Eén schroefje te weinig', desc: 'Zet de Buukenkaas zelf in elkaar', hidden: true },
   { id: 'spaarkaart', cat: 'sociaal', title: 'Stempeltje erbij', desc: 'Lever een volle spaarkaart in bij Rook & Geluk', stat: 'stampCards', goal: 1 },
@@ -510,6 +514,8 @@ function derived(key) {
   const recs = Object.values(bestPerMission());
   if (key === 'silverPlus') return recs.filter((m) => m >= 2).length;
   if (key === 'goldCount') return recs.filter((m) => m >= 3).length;
+  // #1169: een missie telt als uitgespeeld op Uitdagend zodra hij op dat niveau is afgerond (het record van die stand heeft een run)
+  if (key === 'uitdagendKlaar') return Object.values(life.missionModes.uitdagend || {}).filter((r) => r && (r.runs | 0) >= 1).length;
   return 0;
 }
 

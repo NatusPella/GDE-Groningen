@@ -17,7 +17,7 @@
 import { scaleFactor, difficultyFactor } from './bezitprijs.js';
 import { buyBuilding } from './bezit.js';
 import { hashUnit, clamp, finite } from './bezithash.js';
-import { staffFactor, staffWages, staffNeed, existingClerk, normalizeStaff, STANDARD_HOURS, visibleCustomers } from './businessstaff.js';
+import { staffFactor, staffWages, staffNeed, existingClerk, normalizeStaff, DEFAULT_HOURS, visibleCustomers } from './businessstaff.js';
 
 // ---- typen: prijsfactor, product (voor de reden) en het prijsoptimum per winkeltype ----
 // typeFactor: de prijs per m2 is 900 maal dit (ontwerp 6.2). priceOpt: het prijsniveau (ten opzichte van de markt) waar de omzet het hoogst is.
@@ -136,7 +136,7 @@ export function storeBiz(b, biz) {
 export const KNOBS = {
   pr: { label: 'Prijs', lo: 0.6, hi: 1.6, def: 1.0, step: 0.05 },      // ten opzichte van de marktprijs
   st: { label: 'Voorraad', lo: 0, hi: 1.5, def: 1.0, step: 0.05 },     // inkoop ten opzichte van de verwachte vraag
-  hr: { label: 'Openingstijd', lo: 0, hi: 16, def: STANDARD_HOURS, step: 1 },      // uren per dag, vanaf 08:00
+  hr: { label: 'Openingstijd', lo: 0, hi: 16, def: DEFAULT_HOURS, step: 1 },      // uren per dag, vanaf 08:00
 };
 export const defaultCfg = (osm = 0, withClerk = true) => ({ pr: KNOBS.pr.def, st: KNOBS.st.def, hr: KNOBS.hr.def, staff: withClerk && osm ? [existingClerk(osm)] : [], vu: 0 });
 export function normalizeCfg(raw) {

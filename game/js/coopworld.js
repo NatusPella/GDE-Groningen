@@ -12,6 +12,7 @@
 // (gokUiterlijk); een blok in VOERTUIG_MATEN is alleen de laatste terugval als ook die bouwer faalt.
 import { BOAT_KINDS } from './boattypes.js';
 import { VEH_KINDS, MAX_LOOKS, FL_SIREN, FL_HORN, FL_FLAT } from './net/codec.js';
+import { lookKind, lookCode, parseLook } from './vehiclelook.js'; // de uiterlijk-tuning in het uiterlijkrecord (epic Autotuning #1155)
 
 export const VOERTUIG_SOORTEN = ['auto', 'bakkie', 'bus', 'politie', 'motor', 'scooter', 'fiets', 'boot', 'heli', 'trein', 'vracht', 'overig'];
 export const SOORT_DOEL = 100;
@@ -189,7 +190,10 @@ export function voertuigUiterlijk(v, id) {
   const terug = v.isHeli ? 0xc23b2e : v.isBoat ? 0xe8e6e0 : 0x9aa3ad;
   const kleur2 = v.isBoat ? m.cabin : v.isBus ? m.stripe : (v.isBike || v.isScooter) ? m.rider : null;
   const dents = !v.isBoat && Array.isArray(v.dentLog) ? v.dentLog.slice(-8).map((d) => [+d[0] || 0, +d[1] || 0, +d[2] || 0]) : [];
-  return { id, model, fl, len: m.len || 4, wid: m.wid || 1.8, color: hexGetal(m.color, terug), color2: hexGetal(kleur2, 0x2f3a44), extra, dents };
+  const rec = { id, model, fl, len: m.len || 4, wid: m.wid || 1.8, color: hexGetal(m.color, terug), color2: hexGetal(kleur2, 0x2f3a44), extra, dents };
+  const kind = lookKind(v);
+  if (v.look && kind) { const tune = lookCode(v.look, kind); if (tune) rec.tune = tune; } // de uiterlijk-tuning als korte code (epic Autotuning #1155); een ouder spel negeert het veld
+  return rec;
 }
 
 // Welke uiterlijkrecords gaan nu mee? Nieuwe voertuigen eerst (twee keer, tegen verlies), anders roulerend een paar,
@@ -246,6 +250,7 @@ export function uiterlijkSpec(look) {
   if (f & UV.tank) model.tank = true;
   if (pv.isBus) { model.stripe = hexTekst(look.color2); if (naam === 'bus') model.trailer = 6.8; }
   if (pv.isBike || pv.isScooter) { model.rider = hexTekst(look.color2); if (look.extra > 0 && look.extra < MOTOR_VARIANTEN.length) model.motorbike = MOTOR_VARIANTEN[look.extra]; }
+  if (typeof look.tune === 'string' && look.tune.length <= 96) { const kind = lookKind(pv); const l = kind ? parseLook(look.tune, kind) : null; if (l && Object.keys(l).length) pv.look = l; }
   if (Array.isArray(look.dents) && look.dents.length) pv.dentLog = look.dents.map((d) => d.slice());
   pv.model = model;
   return pv;

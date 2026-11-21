@@ -37,6 +37,7 @@ export const FLAGS = Object.freeze({
   noattract: has('noattract'),
   warm: has('warm'),
   warmfilm: has('warmfilm'),
+  openingfilm: has('openingfilm'),
   laadstappen: has('laadstappen'),
   dswereld: val('dswereld'),
   menutest: has('menutest'),
@@ -80,6 +81,7 @@ export const FLAGS = Object.freeze({
   sfxtest: has('sfxtest'),
   perfoff: val('perfoff'),
   startkeuze: val('startkeuze'),
+  moeilijkheid: val('moeilijkheid'),
 });
 
 // Prestatiestappen die voor een A/B-meting uit kunnen: ?perfoff=schaduw+actoren (scripts/perf/ab.mjs). Alles staat standaard aan.
@@ -98,6 +100,7 @@ export const FLAG_DOCS = Object.freeze({
   warm: 'Laat het laadscherm het startgebied en de openingsfilm toch voorwarmen in een testrun (die slaat dat anders over), om de laadtijd te meten (--url-flags=warm)',
   laadstappen: 'Zet na het laden een tabel in de console met de duur per laadstap en tel de stappen (opdracht 21-11; alleen voor metingen)',
   dswereld: 'Menging van de wereldkleuren met het designsysteem, 0 tot 1 (worldpalette.js); standaard 0,4, 0 is het oude palet, 1 volledig; alleen voor vergelijken (de wereld leest de waarde zelf uit de URL)',
+  openingfilm: 'Speel de nieuwe, geënsceneerde opening (openingfilm.js, filmscript docs/verhaal/OPENING-FILMSCRIPT-21-11.md) in plaats van de montage en de twee scènes; bij een fout valt het spel terug op de oude opening (via --url-flags=openingfilm)',
   warmfilm: 'Rijd de openingsfilm tijdens het laadscherm voor (tour, palette, samples); standaard uit want dat kostte 20 tot 90 s laadtijd en ~400 extra shaderprogrammas (alleen voor A/B-metingen)',
   menutest: 'Houd het oude startscherm voor de QA-harnassen (devtools zet dit bij GDE_MENU_TEST); een gewone start en elke testrun beginnen in de wereld',
   attract: 'Speel het aantrekkingsfilmpje (trailer.js)',
@@ -108,7 +111,7 @@ export const FLAG_DOCS = Object.freeze({
   preview: 'Trailer-voorbeeld in echte tijd met geluid (cut=teaser of hoofd); houd Spatie ingedrukt om over te slaan',
   benchmark: 'Benchmarkrun; de waarde is het aantal rondes',
   shot: 'Trailer: neem alleen die shot',
-  cut: 'Trailer: montagevariant (vol, kort, verhaal, gameplay, teaser, hoofd)',
+  cut: 'Trailer: montagevariant (vol, kort, verhaal, gameplay, teaser, hoofd, ontdek)',
   frames: 'Trailer: sla beeld voor beeld op',
   video: 'Trailer: neem video op (alleen desktop)',
   vlakbruggen: 'Provinciebruggen en viaducten vlak op straatniveau, zonder de hoogteprofielen uit de tegels (om te vergelijken)',
@@ -136,6 +139,7 @@ export const FLAG_DOCS = Object.freeze({
   brugbotsing: 'Stuurt na een paar seconden een binnenvaartschip tegen de dichtstbijzijnde brug (#9)',
   reizen: 'Reisbeats in het nieuwe verhaal: keuze Meerijden, Zelf rijden of Overslaan bij een sprong (#97); staat standaard aan, uit met zonderreizen en in de testmodi',
   zonderreizen: 'Zet de reisbeats uit (zie reizen)',
+  moeilijkheid: "Kaart 'Hoe pittig moet het zijn?' bij een nieuw spel (difficultycard.js, #1169): moeilijkheid=vraag toont hem ook in een testrun; moeilijkheid=ontspannen|standaard|uitdagend zet dat niveau zonder kaart (devtools zet moeilijkheid=standaard in elke testrun)",
   startkeuze: "Startkaart Alleen of Samen spelen (launchchoice.js): startkeuze=alleen slaat de kaart over en speelt alleen, zonder netwerk (devtools zet dit in elke testrun behalve --coop); startkeuze=vraag toont de kaart ook in een testrun (beeld en tests)",
   perfoff: 'A/B-meting: zet prestatiestappen uit, namen gescheiden door +, bv. perfoff=schaduw+actoren (devflags.js, scripts/perf/ab.mjs)',
 });

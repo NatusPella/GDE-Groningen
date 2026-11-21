@@ -8,7 +8,7 @@
 import { keyLabelGlyph, keyLabelHtml } from './keycap.js';
 import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './settings.js';
 import { retryBeschikbaar, herstartMissie, herstartBlokkade } from './missions.js';   // #985 punt 16
-import { DIFFICULTY, DIFFICULTY_MODES } from './difficulty.js';
+import { difficultyTabHtml, difficultyPaneText, syncDifficultyTab, stepDifficultyPicker, handleDifficultyClick } from './difficultypanel.js'; // #1169: Instellingen > Moeilijkheid, per save
 import { logoHtml } from './logo.js';
 import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './pausestate.js';
 import { uitlegBlok, zetUitlegGlyph, startUitleg, resetUitlegNietMeer } from './uitleg.js';
@@ -38,8 +38,8 @@ import { trackTabLine } from './dsmicro.js'; // DS3: de glijdende onderstreping 
 import { renderLoopbaanPanel } from './loopbaanui.js';
 import { renderVisboekPanel } from './visboekui.js';
 import { renderBoerderijPanel, boerderijBegonnen } from './boerderijui.js';
-import { renderBezitPanels } from './bezitui.js';
 import { renderVoetbalPanel } from './voetbalcarriereui.js';
+import { renderBezitPanels } from './bezitui.js';
 import { getBoerderij } from './boerderijlive.js';
 import { unseenAchievementCount } from './achievements.js';
 import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer, garageNaarWinkel, turnGarageViewer } from './garageui.js';
@@ -413,7 +413,7 @@ const SUBTABS = {
   // #985 punt 7: dit tabblad heette ook "Spel", net als het rail-onderdeel waar je je save beheert.
   // Twee dingen met dezelfde naam in hetzelfde menu is een raadsel; "Spelregels" zegt wat erin staat
   // (moeilijkheid, verkeer, geweld, rijden) en botst nergens meer mee.
-  settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['spel', 'Spelregels'], ['besturing', 'Besturing'], ['camera', 'Camera'], ['display', 'Interface'], ['hints', 'Hints & uitleg'], ['a11y', 'Toegankelijkheid'], ['online', 'Samen spelen']],
+  settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['spel', 'Spelregels'], ['moeilijkheid', 'Moeilijkheid'], ['besturing', 'Besturing'], ['camera', 'Camera'], ['display', 'Interface'], ['hints', 'Hints & uitleg'], ['a11y', 'Toegankelijkheid'], ['online', 'Samen spelen']],
   // Bezit (epic #1095, #1099): Land en bedrijf is de oude Boerderij met drie onderdelen erbij; de id blijft 'boerderij' (zoekregel, hints, data-goto),
   // 'bezit' wijst ernaar door. Zonder voorkeur opent het op Boerderij: voor wie al boert verandert er niets.
   boerderij: [['overzicht', 'Overzicht'], ['boerderij', 'Boerderij'], ['bedrijven', 'Bedrijven'], ['tekoop', 'Te koop'], ['snack', 'Snackwagen']],
@@ -583,20 +583,6 @@ function disclosure(id, title, hint, inner, open = false) {
 // in een smalle kolom brak "ZO SPEEL HET" anders af tegen de rand (#911-QA, 1280x720).
 const pane = (eyebrow, title, inner = '') => `<aside class="m-pane"><div class="pm-pane-top"><span class="m-eb">${eyebrow}</span><h2 class="m-h2 td-h2">${title}</h2></div>${inner}</aside>`;
 
-// #891: de drie moeilijkheidsstanden in gewone taal, met de factoren uit difficulty.js erbij.
-// De keuze stond verstopt onder Toegankelijkheid > Hulp; nu staat hij bovenaan Instellingen > Spel,
-// met de gevolgen ernaast zodat je weet wat je kiest in plaats van een woord te raden.
-function difficultyRows() {
-  const D = DIFFICULTY;
-  const p = (f) => `${Math.round(Math.abs(f - 1) * 100)}%`;
-  const tijd = (f) => (f > 1 ? `${p(f)} meer tijd` : f < 1 ? `${p(f)} minder tijd` : 'geen extra tijd');
-  const doel = (f) => (f > 1 ? `${p(f)} ruimere medailles` : f < 1 ? `${p(f)} strengere medailles` : 'de gewone medailles');
-  const schade = (f) => (f > 1 ? `${p(f)} meer schade` : f < 1 ? `${p(f)} minder schade` : 'de gewone schade');
-  const rij = (id) => `<div class="pm-diff-row" data-diff="${id}" role="listitem"><b>${esc(D[id].label)}</b>` +
-    `<span>${tijd(D[id].time)}, ${doel(D[id].target)} en ${schade(D[id].damage)}</span></div>`;
-  return `<div class="pm-diff" role="list" data-diff-now aria-label="Wat de drie standen doen">${DIFFICULTY_MODES.map(rij).join('')}</div>`;
-}
-
 // #894: hoeveel toetsen en knoppen wijken af van de standaard, met één knop om alles terug te
 // zetten. Zo zie je meteen of je iets veranderd hebt zonder alle rijen langs te lopen.
 function bindChangeText() {
@@ -733,6 +719,7 @@ function settingsHtml() {
       ${picker('drawDistance', 'Zichtafstand', [['kort', 'Kort'], ['normaal', 'Normaal'], ['ver', 'Ver'], ['heelver', 'Heel ver']])}
       ${DESKTOP ? '<label class="m-li pm-row"><span class="nm">Volledig scherm<span class="mut">{F11} of {ALT}+{ENTER}</span></span><input type="checkbox" class="m-sw" data-desktop="fullscreen"></label>' : ''}
       ${slider('brightness', 'Helderheid', 0.6, 1.6, 0.05)}
+      ${picker('worldColor', 'Wereldkleur', [['uit', 'Uit'], ['subtiel', 'Subtiel'], ['drukwerk', 'Drukwerk']], 'De kleuren van de wereld sluiten aan op het drukwerk van het spel; gevels, gras en straat na een herstart, licht en korrel meteen')}
       <!-- De benchmark hoort bij de beeldinstellingen, niet verstopt onder "Meer opties": hij
            beantwoordt juist de vraag welke stand bij deze computer past (spelersfeedback 15-11). -->
       <div class="m-li pm-row">${rowName('Benchmark', 'Meet hoe soepel Grunn op deze computer draait en welke stand daarbij past (±1 min)')}<button type="button" class="m-bg" data-action="bench">Benchmark draaien</button></div>
@@ -768,8 +755,7 @@ function settingsHtml() {
         <div class="pm-subprev" data-sub-preview><span class="pm-subtxt"><b>Tammo:</b> Rustig an, rustig an.</span></div>
         <p class="mut">Muziek is de radio (G-Music, 's nachts Nachtstreek) en de titelsong, stemmen zijn Tammo, Tessa, de politie, de mensen op straat en de praatjes op de radio. Kleurenblind, interfacegrootte en beweging beperken vind je onder Toegankelijkheid.</p></aside>`)}
     ${tab('spel', `
-      ${picker('difficulty', 'Moeilijkheid', [['ontspannen', 'Ontspannen'], ['standaard', 'Standaard'], ['uitdagend', 'Uitdagend']], 'Bepaalt hoeveel tijd je krijgt, hoe streng de medailles zijn en hoeveel schade je voertuig houdt. Je keuze geldt meteen; records en medailles zijn per stand gescheiden')}
-      ${difficultyRows()}
+      <div class="m-li pm-row">${rowName('Moeilijkheid', 'Het niveau en de opties van dit spel: politie, verkeer, schade, hulp, geld en meer')}<button type="button" class="m-bg" data-goto-sub="settings:moeilijkheid">Aanpassen</button></div>
       <div class="m-gh"><span>Verkeer en geweld</span></div>
       ${picker('ruzie', 'Verkeersruzie', [['uit', 'Uit'], ['weinig', 'Weinig'], ['normaal', 'Normaal'], ['veel', 'Veel']], 'Hoe vaak een boze bestuurder uitstapt na een botsing of getoeter. Zonder bloed; sommigen hebben iets in de hand')}
       ${picker('drunkFx', 'Dronken effecten', [['aan', 'Aan'], ['mild', 'Mild'], ['uit', 'Uit']], 'Het wiebelende beeld en de dubbele tong als je gedronken hebt')}
@@ -784,6 +770,7 @@ function settingsHtml() {
       <div class="m-gh"><span>Kaart</span></div>
       ${toggle('mapShiftTeleport','{SHIFT}+{LMB} op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}`,
       `${pane('Spelregels', 'Zo speelt het', '<p>Hoe moeilijk het is, hoe het verkeer en het geweld zich gedragen en hoe het rijden aanvoelt. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan op de andere tabbladen. Camera-afstand, beeldhoek en eerste persoon staan onder Instellingen &gt; Camera; toetshints en uitleg onder Instellingen &gt; Hints &amp; uitleg.</p>')}`)}
+    ${tab('moeilijkheid', difficultyTabHtml(), pane('Moeilijkheid', 'Hoe pittig', `<p>${difficultyPaneText}</p>`))}
     ${tab('besturing', `
       <div class="m-gh"><span>Muis</span></div>
       ${slider('mouseSensitivity', 'Muisgevoeligheid', 0.3, 2.5, 0.05, 'Hoe snel de camera draait als je de muis beweegt', 'keer')}
@@ -1105,6 +1092,7 @@ export function initPauseMenu(w) {
     if (fold) { toggleFold(fold); return; }
     const pb = e.target.closest('[data-preset-btn]');
     if (pb) { applyPreset(pb.dataset.presetBtn); syncControls(); return; } // de voorinstellingen zijn knoppen (#435)
+    if (handleDifficultyClick(e.target)) { syncControls(); return; }
     const pick = e.target.closest('[data-pick]');
     if (pick) { stepPicker(pick.closest('.m-pk'), Number(pick.dataset.pick)); return; }
     if (e.target.closest('[data-pad-test]')) { openPadTest(); return; }
@@ -1917,6 +1905,7 @@ function pickerState(pk) {
 
 function stepPicker(pk, dir) {
   if (!pk || pk.getAttribute('aria-disabled') === 'true') return;
+  if (pk.dataset.diffopt) { stepDifficultyPicker(pk, dir); syncControls(); return; } // #1169: een optie van de moeilijkheid, uit de save
   const { options, i } = pickerState(pk);
   const next = Math.min(options.length - 1, Math.max(0, i + dir));
   if (next === i) return;
@@ -2407,9 +2396,7 @@ function syncControls() {
   const shadowBox = root.querySelector('[data-setting="shadows"]');
   shadowBox.disabled = !shadowsAllowed;
   shadowBox.closest('.pm-row').classList.toggle('pm-disabled', !shadowsAllowed);
-  // #891: de gekozen moeilijkheidsstand licht op in de uitleg ernaast
-  const diffBox = root.querySelector('[data-diff-now]');
-  if (diffBox) for (const row of diffBox.querySelectorAll('[data-diff]')) row.toggleAttribute('data-on', row.dataset.diff === st.difficulty);
+  syncDifficultyTab(root); // #891, #1169: het niveau licht op in de uitleg en de opties tonen hun waarde
   syncKeyChanged();
   syncNowFacts(st);
 }

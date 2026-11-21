@@ -43,7 +43,7 @@ export const ITEMS = {
   softy: { label: 'Softy', price: 3.2, cost: 0.7, chain: 'melk', kg: 0.12, needs: 'koeling' },
 };
 export const ITEM_IDS = Object.keys(ITEMS);
-export const DEFAULT_MENU = ['friet', 'frikandel', 'kroket', 'bamischijf'];
+export const DEFAULT_OFFERINGS = ['friet', 'frikandel', 'kroket', 'bamischijf'];
 export const ITEMS_PER_CUSTOMER = 1.5;
 export const SAUCE_TICKET = 0.6;
 
@@ -52,7 +52,7 @@ export const compressOwn = (perDay) => (perDay > 0 ? Math.round(OWN_CAP_DAY * (1
 export const STOCK_MAX = 5, RESTOCK_FEE = 40;    // voorraad voor hoogstens vijf dagen; een rit naar de groothandel kost 40 euro
 export const FLEET_PRICE = 12000, FLEET_STEP = 0.1, MAX_FLEET = 11, FLEET_REFUND = 0.6, MOVE_FEE = 150;
 export const SHARE_CUT = 0.3;                    // een medewerker op aandeel krijgt 30% van de winst
-export const STAFF_AUTO = 0.85;                  // een wagen zonder jou erbij draait op 85% (en de aanvoer kost 15% extra)
+export const STAFF_UNATTENDED = 0.85;                  // een wagen zonder jou erbij draait op 85% (en de aanvoer kost 15% extra)
 export const LOGISTICS = 1.15;
 export const BEST_SPOT = 'markt';                // het beste plekje in de stad: het eerste doel
 
@@ -62,7 +62,7 @@ export const staffWage = (skill, pct = 0) => Math.round(((90 + 0.6 * clamp(finit
 // ---- toestand ----
 export const newSnack = () => ({
   v: 1, permits: {}, up: [], rep: 50, lastDay: 0,
-  own: { spot: null, tier: 'klein', from: 11, hours: 10, pr: 1, menu: [...DEFAULT_MENU], stockDays: 0 },
+  own: { spot: null, tier: 'klein', from: 11, hours: 10, pr: 1, menu: [...DEFAULT_OFFERINGS], stockDays: 0 },
   fleet: [], rival: RV.newRival(),
   ev: { pending: null, mods: [], war: null, seq: 0 }, gw: GW.newGw(),
   stats: { days: 0, revenue: 0, net: 0, sold: 0, best: 0, takeovers: 0, refused: 0, answered: 0, had: {} },
@@ -79,7 +79,7 @@ export function normalizeSnack(raw) {
   S.lastDay = Math.round(clamp(finite(raw.lastDay, 0), 0, 1e7));
   const o = raw.own && typeof raw.own === 'object' ? raw.own : {};
   S.own = { spot: SP.isSpot(o.spot) ? o.spot : null, tier: TIERS[o.tier] ? o.tier : 'klein', from: Math.round(clamp(finite(o.from, 11), 0, 23)), hours: Math.round(clamp(finite(o.hours, 10), 4, 14)),
-    pr: Math.round(clamp(finite(o.pr, 1), 0.7, 1.4) * 20) / 20, menu: cleanMenu(o.menu, S, o.tier), stockDays: Math.round(clamp(finite(o.stockDays, 0), 0, STOCK_MAX)) };
+    pr: Math.round(clamp(finite(o.pr, 1), 0.7, 1.4) * 20) / 20, menu: cleanOfferings(o.menu, S, o.tier), stockDays: Math.round(clamp(finite(o.stockDays, 0), 0, STOCK_MAX)) };
   S.fleet = (Array.isArray(raw.fleet) ? raw.fleet : []).slice(0, MAX_FLEET).filter((w) => w && FLEET_ID.test(String(w.id))).map((w) => ({
     id: w.id, spot: SP.isSpot(w.spot) ? w.spot : null, tier: TIERS[w.tier] ? w.tier : 'klein', mode: w.mode === 'aandeel' ? 'aandeel' : 'loon',
     staff: { id: String((w.staff && w.staff.id) || w.id).slice(0, 24), name: String((w.staff && w.staff.name) || 'Medewerker').slice(0, 24), skill: Math.round(clamp(finite(w.staff && w.staff.skill, 50), 0, 100)) },
@@ -101,15 +101,15 @@ export function normalizeSnack(raw) {
 }
 
 // ---- menu ----
-export const menuUnlocked = (S, id) => !!ITEMS[id] && (!ITEMS[id].needs || S.up.includes(ITEMS[id].needs));
-export const menuSlots = (tier) => (TIERS[tier] || TIERS.klein).slots;
-function cleanMenu(list, S, tier) {
+export const offeringUnlocked = (S, id) => !!ITEMS[id] && (!ITEMS[id].needs || S.up.includes(ITEMS[id].needs));
+export const offeringSlots = (tier) => (TIERS[tier] || TIERS.klein).slots;
+function cleanOfferings(list, S, tier) {
   const out = [];
-  for (const id of Array.isArray(list) ? list : []) if (ITEMS[id] && !out.includes(id) && menuUnlocked(S, id) && out.length < menuSlots(tier)) out.push(id);
-  return out.length ? out : DEFAULT_MENU.slice(0, menuSlots(tier));
+  for (const id of Array.isArray(list) ? list : []) if (ITEMS[id] && !out.includes(id) && offeringUnlocked(S, id) && out.length < offeringSlots(tier)) out.push(id);
+  return out.length ? out : DEFAULT_OFFERINGS.slice(0, offeringSlots(tier));
 }
 // De prijs en inkoop per klant van een menu: gemiddeld product maal 1,5 per klant; eigen keten maakt het inkopen tot de helft goedkoper (chainOwn(product): 0 tot 1).
-export function menuNumbers(menu, up, chainOwn = () => 0) {
+export function offeringNumbers(menu, up, chainOwn = () => 0) {
   const ids = menu.filter((m) => ITEMS[m]);
   const k = Math.max(1, ids.length);
   let price = 0, cost = 0, own = 0;
@@ -150,7 +150,7 @@ function wagonDay(S, w, ctx, opt) {
   const rep = effRep(S, day);
   const kermis = !!(ctx.kermisAt && ctx.kermisAt(w.spot));
   const d0 = SP.demandAt(w.spot, { day, weekend: !!ctx.weekend, kermis, matchDay: SP.matchDay(day), from: w.from, hours: w.hours, shops: ctx.shopsAt ? ctx.shopsAt(w.spot) : undefined });
-  const mn = menuNumbers(w.menu, S.up, ctx.chainOwn || (() => 0));
+  const mn = offeringNumbers(w.menu, S.up, ctx.chainOwn || (() => 0));
   const loyal = finite(S.gw.loyal[w.spot], 0);
   const war = warEffect(S.ev.war, day, spot.cluster, w.pr, loyal);
   const comp = SP.competitionFactor(w.spot, { rep, rivalSpots: S.rival.spots });
@@ -260,7 +260,7 @@ function expirePending(S, day, money = 0) {
   return text ? { text, cost: 0 } : null;
 }
 // Een nieuwe gebeurtenis: het standaardgevolg treedt meteen in werking (storing, pech, recensie, oorlog); de speler kan het nog verbeteren met een antwoord.
-function startEvent(S, e, day) {
+function raiseEvent(S, e, day) {
   const id = ++S.ev.seq;
   S.ev.pending = { kind: e.kind, id, wagon: e.wagon, spot: e.spot, depth: e.depth, price: e.price || 0, bribed: !!e.bribed, text: e.text, choices: e.choices, day, deadline: e.deadline };
   if (e.kind === 'vergunning') S.ev.mods.push({ k: 'omzet', wagon: e.wagon, until: e.deadline, mult: 0.7, d: 0, ev: id });          // zolang het geschil loopt wacht de klant op de papieren
@@ -293,13 +293,13 @@ export function settleDay(S, ctx) {
     const offer = RV.offerOn(S.rival, day, mine.map((id) => ({ id, paid: S.permits[id].paid })));
     if (offer) {
       S.rival = RV.noteOffer(S.rival, day);
-      startEvent(S, { kind: 'bod', wagon: 'own', spot: offer.id, price: offer.price, text: offer.text, choices: RV.CHOICES.bod, deadline: day + 3 }, day);
+      raiseEvent(S, { kind: 'bod', wagon: 'own', spot: offer.id, price: offer.price, text: offer.text, choices: RV.CHOICES.bod, deadline: day + 3 }, day);
       rep.lines.push(offer.text);
     } else {
       const share = RV.shareOf(mine.length, S.rival);
       const protect = (S.up.includes('pan') ? 0.5 : 0) * 0.5 + (effRep(S, day) / 100) * 0.2;
       const e = RV.rollEvent(S.rival, day, { wagons: wagonsOnSpots(S), share, protect, hasFleet: S.fleet.some((w) => w.spot), pending: false });
-      if (e) { S.rival = RV.noteEvent(S.rival, day); startEvent(S, e, day); rep.lines.push(`${RV.EVENT_KINDS[e.kind].label}: ${e.text}`); }
+      if (e) { S.rival = RV.noteEvent(S.rival, day); raiseEvent(S, e, day); rep.lines.push(`${RV.EVENT_KINDS[e.kind].label}: ${e.text}`); }
     }
   }
   // 4. de wagens
@@ -312,8 +312,8 @@ export function settleDay(S, ctx) {
   }
   for (const f of S.fleet) {
     if (!f.spot || !SP.permitHeld(S.permits, f.spot, day)) continue;
-    const def = SP.spotDef(f.spot), win = SP.bestWindow(def.profile, 10);
-    const r = wagonDay(S, { id: f.id, spot: f.spot, tier: f.tier, from: win.from, hours: 10, pr: 1, menu: DEFAULT_MENU.concat(S.up.includes('koeling') ? ['burger', 'milkshake'] : []).slice(0, menuSlots(f.tier)) }, ctx, { own: false, staff: (0.7 + 0.3 * f.staff.skill / 100) * STAFF_AUTO });
+    const def = SP.spotDef(f.spot), win = SP.bestOpening(def.profile, 10);
+    const r = wagonDay(S, { id: f.id, spot: f.spot, tier: f.tier, from: win.from, hours: 10, pr: 1, menu: DEFAULT_OFFERINGS.concat(S.up.includes('koeling') ? ['burger', 'milkshake'] : []).slice(0, offeringSlots(f.tier)) }, ctx, { own: false, staff: (0.7 + 0.3 * f.staff.skill / 100) * STAFF_UNATTENDED });
     rep.fleet.push(r); rep.fleetNet += r.net;
     if (!r.closed) { served += r.sold; total += r.demand; }
     for (const k of Object.keys(r.usage || {})) rep.usage[k] = (rep.usage[k] || 0) + r.usage[k];
@@ -362,9 +362,9 @@ export function buyPermit(S, id, day, money, ctx = {}) {
   S.permits = r.permits; S.stats.had[id] = true;
   return { ok: true, cost: r.cost };
 }
-export function bidTakeover(S, id, day, money, ctx = {}) {
+export function bidForSpot(S, id, day, money, ctx = {}) {
   if (ctx.taken && ctx.taken(id)) return { ok: false, why: 'bezet' };
-  const r = RV.takeOver(S.rival, id, money, S.rep);
+  const r = RV.acquireSpot(S.rival, id, money, S.rep);
   if (!r.ok) return r;
   S.rival = r.r; S.permits = { ...S.permits, [id]: { until: Math.floor(day) + SP.PERMIT_DAYS - 1, paid: r.price } };
   S.stats.takeovers++; S.stats.had[id] = true;
@@ -383,18 +383,18 @@ export function setOwn(S, patch = {}) {
   if (d.pr !== undefined) o.pr = Math.round(clamp(finite(d.pr, 1), 0.7, 1.4) * 20) / 20;
   return { ok: true };
 }
-export function setMenu(S, ids) {
+export function setOfferings(S, ids) {
   const out = [];
-  for (const id of ids || []) if (ITEMS[id] && !out.includes(id) && menuUnlocked(S, id) && out.length < menuSlots(S.own.tier)) out.push(id);
+  for (const id of ids || []) if (ITEMS[id] && !out.includes(id) && offeringUnlocked(S, id) && out.length < offeringSlots(S.own.tier)) out.push(id);
   if (!out.length) return { ok: false, why: 'leeg' };
   S.own.menu = out;
   return { ok: true };
 }
-export function toggleMenuItem(S, id) {
+export function toggleOffering(S, id) {
   if (!ITEMS[id]) return { ok: false, why: 'onbekend' };
   if (S.own.menu.includes(id)) return S.own.menu.length > 1 ? (S.own.menu = S.own.menu.filter((x) => x !== id), { ok: true }) : { ok: false, why: 'leeg' };
-  if (!menuUnlocked(S, id)) return { ok: false, why: 'dicht', needs: ITEMS[id].needs };
-  if (S.own.menu.length >= menuSlots(S.own.tier)) return { ok: false, why: 'vol' };
+  if (!offeringUnlocked(S, id)) return { ok: false, why: 'dicht', needs: ITEMS[id].needs };
+  if (S.own.menu.length >= offeringSlots(S.own.tier)) return { ok: false, why: 'vol' };
   S.own.menu = [...S.own.menu, id];
   return { ok: true };
 }
@@ -460,7 +460,7 @@ export function setFleetMode(S, id, mode) {
 }
 
 // Hulp aan de buurt (goodwill.js): op een plek waar je een vergunning hebt. Geeft { ok, cost, text, ally } of { ok: false, why }.
-export function helpBuurt(S, spot, kind, day, money) {
+export function helpNeighbourhood(S, spot, kind, day, money) {
   const def = SP.spotDef(spot);
   if (!def) return { ok: false, why: 'onbekend' };
   if (!SP.permitHeld(S.permits, spot, day)) return { ok: false, why: 'geen-vergunning' };

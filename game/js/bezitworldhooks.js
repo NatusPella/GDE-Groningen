@@ -1,7 +1,7 @@
 // De haken van Bezit naar de wereld (epic #1095, #1101): de boerenregels van Tessa bij een gebeurtenis (tessarules.js) en de dagrapportage voor de zichtbare
 // werkers (farmworkers.js). Puur: geen THREE, geen DOM, geen klok, geen Math.random, geen opslag buiten bezit.x.tessa (scripts/herdview_test.mjs). bezitlive.js
 // importeert dit niet (de bouwer koppelt): koopPerceel roept onParcelBought aan, huurArbeider onWorkerHired, het neerzetten van vee onHerdStocked en main.js
-// onDayReport met wat dagTik teruggeeft. Elke functie geeft de regel (met "Tessa: ") of null; tonen doet de aanroeper met deliverLine (alleen tekst, geen TTS).
+// onDayReport met wat dayTick teruggeeft. Elke functie geeft de regel (met "Tessa: ") of null; tonen doet de aanroeper met deliverLine (alleen tekst, geen TTS).
 // Tessa praat hier als boerin: de regels horen bij de activiteit 'farm' (characterForActivity), ook als je het beheer als Tammo doet. De staat (wat al getoond is
 // en de cooldown) zit in het eigen bezit, per speler (#429), en wordt niet gedeeld.
 import { pickTessaLine, tessaOf, parcelEventFor } from './tessarules.js';
@@ -32,7 +32,7 @@ export const onHerdStocked = (bezit, day) => tessaLineFor(bezit, 'eerste-vee', '
 export const onLeasedOut = (bezit, day) => tessaLineFor(bezit, 'eerste-pacht', '', day);
 export const onFirstHarvest = (bezit, gewas, day) => tessaLineFor(bezit, 'eerste-oogst', String(gewas || ''), day);
 
-// Het rapport van een speldag (wat bezitlive.dagTik teruggeeft: { to, worked, ... }): zet de bewerkte percelen klaar voor de zichtbare werkers en zoekt de
+// Het rapport van een speldag (wat bezitlive.dayTick teruggeeft: { to, worked, ... }): zet de bewerkte percelen klaar voor de zichtbare werkers en zoekt de
 // eerste regel van Tessa die nu past (een oogst van het personeel, vee, personeel, pacht). Geeft de regel of null; hoogstens één per aanroep.
 export function onDayReport(bezit, rep) {
   if (!rep) return null;

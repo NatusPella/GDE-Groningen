@@ -2,7 +2,7 @@
 // product per shop or café type, with price and effect. Pure data and one function; interiors.js applies it to the
 // world (money, health). The shops of the game itself (Stoer & Stads, Nait Duur) open their own menu instead.
 // Invented products only, no real brands.
-export const PRODUCTS = {
+const PRODUCTS = {
   supermarkt: { item: 'Boodschappentas', price: 18, health: 12 },
   bakker: { item: 'Krentenbol', price: 3, health: 8 },
   slager: { item: 'Rookworst', price: 6, health: 10 },

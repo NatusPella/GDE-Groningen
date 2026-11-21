@@ -9,14 +9,14 @@ import { SPOTS, spotDef, permitPrice } from './pitch.js';
 
 export const RIVAL_NAME = 'Usmem Snacks';
 export const RIVAL_OWNER = 'Jelle Terpstra';
-export const START_SPOTS = ['markt', 'station', 'oosterpoort', 'stadion'];     // wat Usmem heeft als jij begint: de beste plekken van de stad
+export const OPENING_SPOTS = ['markt', 'station', 'oosterpoort', 'stadion'];     // wat Usmem heeft als jij begint: de beste plekken van de stad
 export const TARGET_SHARE = 0.4;                                              // hij breidt uit tot ongeveer 40% van de plekken (6 van 16) als jij hem niet voor bent
 export const EXPAND_MIN = 9, EXPAND_SPAN = 6;                                  // elke 9 tot 14 speldagen een nieuwe plek
 export const MAX_MOOD = 100;
 
 export const SERVICE = 'Gemeentelijke Vergunningsdienst Noord';             // verzonnen dienst (constitution 2): geen echte instantie, geen echte ambtenaar
 // rep: de naam van Usmem zelf (0 tot 100): een mislukte omkoping kost hem veel; zie resolveDispute.
-export const newRival = () => ({ v: 1, spots: [...START_SPOTS], pand: 3, chain: 1, mood: 20, lastExpand: 0, lastOffer: 0, lastEvent: 0, bought: 0, rep: 60 });
+export const newRival = () => ({ v: 1, spots: [...OPENING_SPOTS], pand: 3, chain: 1, mood: 20, lastExpand: 0, lastOffer: 0, lastEvent: 0, bought: 0, rep: 60 });
 
 // De ligging van een plek in de lijst van de concurrent.
 export const holds = (r, id) => !!r && r.spots.includes(id);
@@ -26,11 +26,11 @@ export const shareOf = (mine, r) => { const a = Math.max(0, mine | 0), b = r ? r
 
 // Zijn prijs om een plek over te nemen: de vergunningsprijs maal 2,4 bij een naam van nul, maal 1,6 bij een naam van honderd. Je betaalt hem, hij is dan klein af.
 // Een slechte naam van Usmem zelf (rivalRep onder 60, na een mislukte omkoping) maakt hem tot 20% goedkoper: wie zijn naam kapot maakt, verliest zijn onderhandelingspositie.
-export const RIVAL_REP_START = 60;
-export const askPrice = (id, rep = 50, rivalRep = RIVAL_REP_START) => Math.round((permitPrice(id, 0) * (2.4 - 0.8 * clamp(finite(rep, 50), 0, 100) / 100) * (1 - 0.2 * clamp((RIVAL_REP_START - finite(rivalRep, RIVAL_REP_START)) / RIVAL_REP_START, 0, 1))) / 50) * 50;
+export const RIVAL_REP_INITIAL = 60;
+export const askPrice = (id, rep = 50, rivalRep = RIVAL_REP_INITIAL) => Math.round((permitPrice(id, 0) * (2.4 - 0.8 * clamp(finite(rep, 50), 0, 100) / 100) * (1 - 0.2 * clamp((RIVAL_REP_INITIAL - finite(rivalRep, RIVAL_REP_INITIAL)) / RIVAL_REP_INITIAL, 0, 1))) / 50) * 50;
 
 // Jij neemt een plek van hem over. Geeft { ok, r, price } of { ok: false, why, ask }. Hij wordt er niet vrolijker van: zijn stemming (de kans op sabotage) loopt 25 punten op.
-export function takeOver(r, id, money, rep = 50) {
+export function acquireSpot(r, id, money, rep = 50) {
   if (!holds(r, id)) return { ok: false, why: 'niet-van-hem' };
   const price = askPrice(id, rep, r.rep);
   if (!(finite(money, 0) >= price)) return { ok: false, why: 'te-weinig-geld', ask: price, tekort: Math.round(price - finite(money, 0)) };
@@ -87,7 +87,7 @@ export const EVENT_COOLDOWN = 3;                       // speldagen tussen twee 
 // De kans per dag op een gebeurtenis: 5% plus zijn stemming (tot 12%) plus 4% als jij verder bent dan hij; hoogstens 22%. protect (0 tot 1): wat een upgrade of goede naam afvangt.
 // Een slechte naam van Usmem (rep onder 60) maakt hem voorzichtiger: de kans zakt tot 70%, en stijgt tot 120% bij een naam van honderd.
 export function eventChance(r, { share = 0.5, protect = 0 } = {}) {
-  const own = clamp(0.7 + 0.3 * finite(r.rep, RIVAL_REP_START) / RIVAL_REP_START, 0.7, 1.2);
+  const own = clamp(0.7 + 0.3 * finite(r.rep, RIVAL_REP_INITIAL) / RIVAL_REP_INITIAL, 0.7, 1.2);
   return Math.round(clamp((0.05 + 0.12 * clamp(r.mood, 0, MAX_MOOD) / MAX_MOOD + (share > 0.5 ? 0.04 : 0)) * (1 - clamp(protect, 0, 0.6)) * own, 0, 0.22) * 1000) / 1000;
 }
 // De zinnen van Jelle: vriendelijk en venijnig, nooit grof.
@@ -188,7 +188,7 @@ export function normalizeRival(raw) {
   if (Array.isArray(raw.spots)) r.spots = [...new Set(raw.spots.filter((s) => spotDef(s)))].slice(0, 16);
   r.pand = Math.round(clamp(finite(raw.pand, r.pand), 0, 99)); r.chain = Math.round(clamp(finite(raw.chain, 1), 1, 4));
   r.mood = Math.round(clamp(finite(raw.mood, r.mood), 0, MAX_MOOD));
-  r.rep = Math.round(clamp(finite(raw.rep, RIVAL_REP_START), 0, 100));
+  r.rep = Math.round(clamp(finite(raw.rep, RIVAL_REP_INITIAL), 0, 100));
   for (const k of ['lastExpand', 'lastOffer', 'lastEvent', 'bought']) r[k] = Math.round(clamp(finite(raw[k], 0), 0, 1e7));
   return r;
 }

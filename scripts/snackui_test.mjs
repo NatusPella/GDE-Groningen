@@ -30,7 +30,7 @@ t('open zonder wagen: aanbod van een snackwagen met bevestiging, de zestien plek
   assert.match(h, /Snackimperium/); assert.ok(!/Frietwagen/.test(h));
 });
 t('een koop vraagt een tweede druk; na Ja is de vergunning van jou en de plek toont verlengen en Zet mijn wagen hier', () => {
-  reset(); const w = wereld(); SL.koopWagen(w);
+  reset(); const w = wereld(); SL.buyVan(w);
   let h = U.snackHtml(SL.snackView(w));
   assert.match(h, /data-sn="vergunning" data-id="dorp"/);
   U.sui.confirm = 'vergunning:dorp';
@@ -41,7 +41,7 @@ t('een koop vraagt een tweede druk; na Ja is de vergunning van jou en de plek to
   assert.match(h, /data-spot="dorp" data-status="jij"/); assert.match(h, /data-sn="zet-wagen" data-id="dorp"/); assert.match(h, /data-sn="vloot" data-id="dorp"/);
 });
 t('de wagen op een plek: voorspelling, voorraad, knoppen voor uren en prijs, het menu met koeling dicht', () => {
-  reset(); const w = wereld(); SL.koopWagen(w); SL.koopVergunning(w, 'park'); SL.zetWagen('park'); L.snackState().own.stockDays = 3;
+  reset(); const w = wereld(); SL.buyVan(w); SL.koopVergunning(w, 'park'); SL.placeVan('park'); L.snackState().own.stockDays = 3;
   const h = U.snackHtml(SL.snackView(w));
   assert.match(h, /Noorderplantsoen/); assert.match(h, /voorraad voor 3 dagen/); assert.match(h, /vandaag ongeveer/);
   assert.match(h, /data-sn="open" data-patch="hours:9"/); assert.match(h, /data-sn="open" data-patch="pr:0\.95"/);
@@ -49,7 +49,7 @@ t('de wagen op een plek: voorspelling, voorraad, knoppen voor uren en prijs, het
   assert.match(h, /Koeling/); assert.match(h, /Grotere wagen/);
 });
 t('een wachtende gebeurtenis staat bovenaan met antwoorden en kosten', () => {
-  reset(); const w = wereld(); SL.koopWagen(w); SL.koopVergunning(w, 'park'); SL.zetWagen('park');
+  reset(); const w = wereld(); SL.buyVan(w); SL.koopVergunning(w, 'park'); SL.placeVan('park');
   L.snackState().ev.pending = { kind: 'storing', id: 1, wagon: 'own', spot: 'park', depth: 0, price: 0, text: 'Een frituurpan is net een vriendschap.', choices: [{ id: 'repareer', label: 'Direct laten repareren', cost: 350 }, { id: 'wacht', label: 'Wachten', cost: 0, def: true }], day: L.calToday(), deadline: L.calToday() + 3 };
   const h = U.snackHtml(SL.snackView(w));
   assert.match(h, /data-event="storing"/); assert.match(h, /Direct laten repareren \(€\s?350\)/); assert.match(h, /data-choice="wacht"/); assert.match(h, /Nog 4 dagen/);
@@ -63,7 +63,7 @@ t('de vloot, een prijzenoorlog en tekst-ontsnapping', () => {
   assert.match(h, /Prijzenoorlog tot dag 105/); assert.match(h, /jij prijst mee/);
 });
 t('de knoppen: renderSnackPanel bindt een klik en doet de actie (met een nepelement)', () => {
-  reset(); const w = wereld(); SL.koopWagen(w);
+  reset(); const w = wereld(); SL.buyVan(w);
   let handler = null; const el = { innerHTML: '', addEventListener(ev, fn) { if (ev === 'click') handler = fn; } };
   U.renderSnackPanel(el, w); assert.ok(handler); assert.match(el.innerHTML, /Snackwagen/);
   const click = (d) => handler({ target: { closest: () => ({ dataset: d }) } });
@@ -78,7 +78,7 @@ t('de knoppen: renderSnackPanel bindt een klik en doet de actie (met een nepelem
   U.renderSnackPanel(el, w); assert.match(el.innerHTML, /Snackwagen/);
 });
 t('Buurt en klanten: tevredenheid, goodwill, bondgenoten, vaste klanten met hulpknoppen met bevestiging, meewerken bij een medespeler, het geschil met zijn antwoorden', () => {
-  reset(); const w = wereld(); SL.koopWagen(w); SL.koopVergunning(w, 'park'); SL.zetWagen('park');
+  reset(); const w = wereld(); SL.buyVan(w); SL.koopVergunning(w, 'park'); SL.placeVan('park');
   L.setClaimLookup((id) => (id === 'sp:leek' ? { name: 'lotte', color: '#c0c', playerId: 'B' } : null));
   let h = U.snackHtml(SL.snackView(w));
   assert.match(h, /Buurt en klanten/); assert.match(h, /Tevreden klanten/); assert.match(h, /Naam van Usmem/); assert.match(h, /Nog geen bondgenoten/);

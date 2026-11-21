@@ -16,13 +16,13 @@ export const STATES = {
 };
 
 // rows: snacklive.spotRows(); rect = [x0, y0, x1, y1] in wereldmeters; scale = pixels per meter.
-export function standplaatsView(rows, rect, scale) {
+export function pitchMarkerView(rows, rect, scale) {
   if (!Array.isArray(rows) || !rows.length || !(scale >= MIN_SCALE)) return { mode: 'none', markers: [] };
   const [x0, y0, x1, y1] = rect;
-  const pad = 60 / Math.max(scale, 1e-6);
+  const margin = 60 / Math.max(scale, 1e-6);
   const markers = [];
   for (const r of rows) {
-    if (r.x < x0 - pad || r.x > x1 + pad || r.y < y0 - pad || r.y > y1 + pad) continue;
+    if (r.x < x0 - margin || r.x > x1 + margin || r.y < y0 - margin || r.y > y1 + margin) continue;
     const st = STATES[r.status] || STATES.vrij;
     const sub = r.status === 'jij' ? (r.wagon ? 'TAM & TES staat er' : `nog ${r.daysLeft} dagen`) : r.status === 'usmem' ? `overnemen ${fmt(r.ask)}` : r.status === 'vrij' ? `vergunning ${fmt(r.price)}` : (r.claim ? r.claim.name : 'medespeler');
     markers.push({ id: r.id, x: r.x, y: r.y, state: r.status, shape: st.shape, dash: st.dash, ink: st.ink, color: r.claim && r.claim.color ? r.claim.color : null, label: r.short, sub, wagon: r.wagon, showLabel: scale >= LABEL_SCALE });

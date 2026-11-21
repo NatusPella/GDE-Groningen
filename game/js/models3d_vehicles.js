@@ -1,6 +1,7 @@
 import { FLAT_SCALE, flatWheelIndex } from './flatlook.js';
 import { LRUCache } from './lrucache.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { applyVehicleLook } from './vehiclelook3d.js'; // epic Autotuning (#1155): v.look komt er na het bouwen op
 import { HABBO_PALETTE, habboMaterial, GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
 import { buildPersonMesh, PERSON_RIG, holdPhoneRiding } from './models3d_people.js';
 import { boatKind, boatHasCabin } from './boattypes.js';
@@ -658,7 +659,7 @@ export function carBodyFit(v) {
   const n = v.model.name;
   if (v.isBus || n === 'truck' || n === 'trekkerlimo' || n === 'tractor' || n === 'quad' || n === 'foodtruck' || n === 'maaidorser' || n === 'laadmachine') return null;
   const P = carProfile(carType(v), v.model.len / 2);
-  return { belt: P.belt, roof: P.roof, xA: P.xA, xB: P.xB, xC: P.xC, xD: P.xD };
+  return { belt: P.belt, roof: P.roof, xA: P.xA, xB: P.xB, xC: P.xC, xD: P.xD, hood: P.hood, deck: P.deck, nose: P.nose, tail: P.tail, fw: P.fw, rw: P.rw };
 }
 
 function carVariant(v) {
@@ -2839,6 +2840,7 @@ export function buildVehicleMesh(v) {
   if (v.damage) restoreDamage(group, v);
   else if (v.dentLog && v.dentLog.length && !v.wrecked) replayDents(group, v);
   if (v.dentLog && v.dentLog.length) syncLooseParts(group, v);
+  if (v.look && !v.wrecked) applyVehicleLook(group, v, carBodyFit(v));
   return group;
 }
 

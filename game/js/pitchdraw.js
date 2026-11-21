@@ -1,5 +1,5 @@
 // Het tekenen van de kaartlaag Standplaatsen (Snackimperium, epic #1095, #1102): canvas-kant van pitchmap.js. Alleen tekenen, geen rekenwerk en geen staat.
-// mapview.js roept drawStandplaatsen aan met wat standplaatsView teruggeeft. Kleurtaal en vormen: pitchmap.js STATES (DS3; geen geel).
+// mapview.js roept drawPitchMarkers aan met wat pitchMarkerView teruggeeft. Kleurtaal en vormen: pitchmap.js STATES (DS3; geen geel).
 
 import { STATES } from './pitchmap.js';
 import { INK, inkA } from './mapstyle.js';
@@ -14,7 +14,7 @@ function shape(ctx, kind, x, y, r) {
 }
 
 // view = { mode, markers }; toScreen(x, y) -> [sx, sy]; zoomScale: de kaartzoom (1 tot 2); hoverId en selectedId: het punt onder de muis en het open kaartje.
-export function drawStandplaatsen(ctx, view, toScreen, zoomScale = 1, hoverId = null, selectedId = null) {
+export function drawPitchMarkers(ctx, view, toScreen, zoomScale = 1, hoverId = null, selectedId = null) {
   if (!view || view.mode !== 'markers') return;
   const z = Math.min(2, Math.max(1, zoomScale || 1));
   for (const m of view.markers) {

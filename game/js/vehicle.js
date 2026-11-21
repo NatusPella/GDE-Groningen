@@ -46,9 +46,12 @@ import { newsVanWanted, distToCentre, hourOf } from './streetlifedata.js';
 import { vehicleHooks } from './vehiclehooks.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { MODS } from './cheatmods.js';
+import { vehicleDamageFactor } from './difficulty.js'; // #1169
 import { laneLayout } from './lanes.js';
 import { profileFor, createGearbox, stepGearbox } from './gearbox.js';
 import { loadTuning, tuningEffects } from './tuningplan.js';
+import { attachStoredLook } from './vehiclelookstore.js';
+import { tuneTrafficCar, tunedCount } from './tuningtraffic.js';
 import { KEYS } from './storagekeys.js';
 import { slipAngle } from './drift.js';
 import { pickMotor, motorRoadAllowed, motorTarget } from './motortraffic.js';
@@ -809,6 +812,7 @@ export function spawnHeroCarNear(map, x, y, rng = Math.random) {
     const all = loadTuning(typeof localStorage !== 'undefined' ? localStorage : null, KEYS.tuning);
     if (all.hero) v.tuning = tuningEffects(all.hero);
   } catch (e) { /* zonder opslag geen onderdelen */ }
+  attachStoredLook(v, 'hero', KEYS.tuningLook, undefined, 'auto'); // het uiterlijk uit de pimp-werkplaats (epic Autotuning #1155)
   // parked at the kerb, waiting for the player - not driving off as traffic
   const kerb = Math.max(0, (point.road.width || 6) / 2 - HERO_CAR_MODEL.wid / 2 - 0.3);
   v.x += -Math.sin(v.angle) * kerb;
@@ -908,6 +912,7 @@ export function manageTrafficPopulation(world, opts = {}) {
   const want = { ambulance: 1, taxi: 2, cashvan: 1, newsvan: newsVanWanted(hourOf(world), distToCentre(player.x, player.y)) ? 1 : 0 };
   let guard = 0;
   let spawned = 0;
+  const tunedBudget = tunedCount(vehicles);
   while (count < target && candidates.length && guard++ < target * 4 && spawned < spawnBudgetPerCall) {
     const road = candidates[Math.floor(Math.random() * candidates.length)];
     const mid = road.pts[Math.floor(road.pts.length / 2)];
@@ -920,6 +925,7 @@ export function manageTrafficPopulation(world, opts = {}) {
     const d = Math.hypot(v.x - player.x, v.y - player.y);
     if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
     applyFleetFlags(v, pick.kind);
+    tuneTrafficCar(world, v, pick.kind, mid[0], mid[1], tunedBudget); // soms een gepimpte auto, nooit veel (tuningworld.js, epic Autotuning #1155)
     if (pick.kind in have) have[pick.kind]++;
     vehicles.push(v);
     count++; spawned++;
@@ -1204,7 +1210,7 @@ function applyImpactDamage(v, dmg, playerInvolved, world) {
     if (dmg >= HORSE_KNOCK_DAMAGE) v.health = Math.min(v.health, HORSE_KNOCKED_HEALTH);
     return;
   }
-  if (v.driver === 'player') dmg = assistDamage(dmg);
+  if (v.driver === 'player') dmg = assistDamage(dmg) * vehicleDamageFactor(); // #1169: Schade aan je voertuig (Standaard: 1)
   if (valtOm(v, dmg)) valOm(v); // #1018: een fiets zonder rijder valt om en ligt tot hij rechtgezet wordt
   // een politicauto op vijf sterren heeft een pantser (#436): hij houdt meer
   // klappen voordat de speler hem stuk rijdt

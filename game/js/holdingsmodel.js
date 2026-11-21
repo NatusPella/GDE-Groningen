@@ -95,9 +95,9 @@ export function filterRows(rows, f = {}) {
 }
 // Wat er te kiezen valt in de filters, uit de rijen zelf.
 export function filterOptions(rows) {
-  const regions = new Set(), soorten = new Set();
-  for (const r of rows) { regions.add(r.region); soorten.add(r.soort); }
-  return { regions: [...regions].sort(), soorten: [...soorten].sort(), levels: LEVELS.slice() };
+  const districtIds = new Set(), soorten = new Set();
+  for (const r of rows) { districtIds.add(r.region); soorten.add(r.soort); }
+  return { regions: [...districtIds].sort(), soorten: [...soorten].sort(), levels: LEVELS.slice() };
 }
 
 // ---- selectie: een Set van id's ----
@@ -221,15 +221,15 @@ export function bulkWork(bezit, farm, ids, taak, ctx = {}) {
     const phase = fieldPhase(farm, id);
     if (taak === 'zaaien') {
       if (phase !== 'braak' && phase !== 'geploegd') { skip('niet-braak'); continue; }
-      const gewas = B.planVoor(farm, id);
+      const cropId = B.planVoor(farm, id);
       const units = workUnits(d.ha);
-      const cost = (phase === 'braak' ? loonwerkKosten('ploegen', d.ha) : 0) + loonwerkKosten('zaaien', d.ha) + Math.round(B.GEWASSEN[gewas].zaaigoed * units);
+      const cost = (phase === 'braak' ? loonwerkKosten('ploegen', d.ha) : 0) + loonwerkKosten('zaaien', d.ha) + Math.round(B.GEWASSEN[cropId].zaaigoed * units);
       if (cost > money) { skip('te-weinig-geld'); continue; }
       if (phase === 'braak') workField(farm, id, 'ploegen', { fractie: q });
-      workField(farm, id, 'zaaien', { fractie: q, gewas });
-      const extra = Math.round(B.GEWASSEN[gewas].zaaigoed * (units - 1));
+      workField(farm, id, 'zaaien', { fractie: q, gewas: cropId });
+      const extra = Math.round(B.GEWASSEN[cropId].zaaigoed * (units - 1));
       if (extra > 0) B.uitgaven(farm, extra, 'zaaigoed', id);
-      const hire = cost - Math.round(B.GEWASSEN[gewas].zaaigoed * units);
+      const hire = cost - Math.round(B.GEWASSEN[cropId].zaaigoed * units);
       B.uitgaven(farm, hire, 'loonwerk', id);
       money -= cost; res.cost += cost; res.done++; res.ids.push(id);
     } else {
@@ -272,7 +272,7 @@ export function advanceDays(bezit, farm, toDay, ctx = {}) {
     rep.lease += l.income;
     const store = farm.bedrijf.opslag[home] || {};
     const v = livestockDayTick(bezit, { hay: { gras: store.gras || 0, hooi: store.hooi || 0, graan: store.graan || 0 }, robot: ctx.robot, buy: ctx.buy });
-    for (const soort of Object.keys(v.hayUsed)) PC.haalUit(farm.bedrijf, home, soort, v.hayUsed[soort]);
+    for (const feed of Object.keys(v.hayUsed)) PC.haalUit(farm.bedrijf, home, feed, v.hayUsed[feed]);
     let veeInkomsten = 0;
     for (const p of Object.keys(v.products)) {
       let rest = v.products[p];

@@ -104,7 +104,8 @@ export function maxYawRate(v, speed = v.speed) {
   if (s < 1e-3) return 0;
   const player = v.driver === 'player';
   const radius = minTurnRadius(v.model, player) * (v.tightTurn && !player ? 0.45 : 1);
-  const grip = lateralGrip(v.model, player) * (player ? 0.45 + 0.55 * (v.gripK ?? 1) : 1) * (player && v.model.motorbike && v.bikeAssist === false ? 0.78 : 1);
+  const grip = lateralGrip(v.model, player) * (player ? 0.45 + 0.55 * (v.gripK ?? 1) : 1) * (player && v.tuning && v.tuning.draai ? v.tuning.draai : 1) * // ophanging (tuningplan.js, #1155)
+     (player && v.model.motorbike && v.bikeAssist === false ? 0.78 : 1);
   return Math.min(s / radius, v.model.turnRate, grip / s);
 }
 

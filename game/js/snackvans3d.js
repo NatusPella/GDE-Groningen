@@ -81,11 +81,11 @@ function plan(w) {
 }
 
 // Elk beeld aangeroepen (main.js): de planning elke halve seconde.
-export function updateSnackWagens(w, dt) {
+export function updateSnackVans(w, dt) {
   if (!w || !w.map || !(dt > 0)) return;
-  if (!snackOpen()) { if (S.actors.size) clearSnackWagens(); return; }
+  if (!snackOpen()) { if (S.actors.size) clearSnackVans(); return; }
   S.t += dt;
   if (S.t - S.planT >= PLAN_EVERY_S) { S.planT = S.t; plan(w); }
 }
-export function clearSnackWagens() { for (const a of S.actors.values()) dropActor(a); S.actors.clear(); S.planT = -9; }
-export const snackWagenCount = () => S.actors.size;
+export function clearSnackVans() { for (const a of S.actors.values()) dropActor(a); S.actors.clear(); S.planT = -9; }
+export const snackVanCount = () => S.actors.size;

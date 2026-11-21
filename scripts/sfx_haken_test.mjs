@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { haakFx, haakUi } from '../game/js/sfx/haken.js';
 import { sfxLinks } from '../game/js/latehooks.js';
 import { FX_OPNAME_ALLEEN, FX_VERVANG, vervangSleutel } from '../game/js/sfx/samples.js';
+import { isSfxEvent } from '../game/js/sfx/sfxmap.js';
 import { FX_INFO } from '../game/js/sfx/fxbank.js';
 
 const JS = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'game', 'js');
@@ -52,7 +53,8 @@ const ok = (c, m) => { n++; if (!c) { fails++; console.log('FAIL', m); } };
   for (const verwacht of ['regelkaart_papier', 'startsein_toeter', 'startsein_fluit', 'publiek_gejuich', 'publiek_applaus', 'klok_tik', 'bel_uitslag', 'ei_breuk', 'kratten_klets', 'worp_lucht', 'brievenbus_klep', 'oplegger_hydrauliek', 'weegbrug_klik', 'perron_ding', 'wacht_klaar', 'dobber_plons']) ok(gebruikt.has(verwacht), `de haak "${verwacht}" staat in de spelcode`);
   // elke opname-only naam wordt door een haak gebruikt (anders is hij dood gewicht)
   const alles = [...bestanden].map((f) => fs.readFileSync(path.join(JS, f), 'utf8')).join('\n');
-  for (const naam of Object.keys(FX_OPNAME_ALLEEN)) ok(alles.includes(`'${naam}'`), `${naam} (FX_OPNAME_ALLEEN) wordt ergens in de code gebruikt`);
+  // (round 5: an event of the central map sfxmap.js is hooked by its own test, scripts/sfx_round5_test.mjs: hooked or listed for a lead)
+  for (const naam of Object.keys(FX_OPNAME_ALLEEN)) ok(isSfxEvent(naam) || alles.includes(`'${naam}'`), `${naam} (FX_OPNAME_ALLEEN) wordt ergens in de code gebruikt`);
   ok(/steam: true/.test(fs.readFileSync(path.join(JS, 'stagerit.js'), 'utf8')) && /steam/.test(fs.readFileSync(path.join(JS, 'audio.js'), 'utf8')), 'de stoomfluit van M19 gaat via train_horn met steam: true');
   for (const naam of ['ui_weiger', 'ui_uitgave', 'hengel_vangst', 'horeca_hap']) ok(FX_VERVANG[naam], `${naam} heeft een opname naast de synth`);
 }

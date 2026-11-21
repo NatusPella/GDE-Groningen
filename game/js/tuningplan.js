@@ -9,13 +9,14 @@
 // De effecten zijn vermenigvuldigers rond 1 (grip, comfort, zicht, geluid, gewicht)
 // en een `opvallend`-getal: hoe graag de politie ernaar kijkt (alleen uitlaat en geluid).
 
-export const PARTS = ['banden', 'uitlaat', 'stoel', 'verlichting', 'geluid'];
-export const PART_LABELS = { banden: 'Banden', uitlaat: 'Uitlaat', stoel: 'Stoel', verlichting: 'Verlichting', geluid: 'Geluid' };
+export const PARTS = ['banden', 'uitlaat', 'stoel', 'verlichting', 'geluid', 'ophanging'];
+export const PART_LABELS = { banden: 'Banden', uitlaat: 'Uitlaat', stoel: 'Stoel', verlichting: 'Verlichting', geluid: 'Geluid', ophanging: 'Ophanging' };
 
 // kinds: voor welke voertuigsoorten het onderdeel past (tweewieler | auto)
 const O = (part, id, label, price, kinds, fx, desc) => ({ part, id, label, price, kinds, fx, desc });
 const TW = ['tweewieler'], CAR = ['auto'], BOTH = ['tweewieler', 'auto'];
 
+export const DRAAI_MIN = 0.9, DRAAI_MAX = 1.08, GRIP_MAX = 1.25;
 export const OPTIONS = [
   O('banden', 'b-stad', 'Stadsbanden Klinkerhaai', 18, BOTH, { grip: 1.05, gewicht: 1 }, 'Rollen soepel over klinkers'),
   O('banden', 'b-terrein', 'Veenpad-banden', 34, BOTH, { grip: 1.12, gewicht: 1.03 }, 'Grip op grind, gras en veen'),
@@ -31,6 +32,11 @@ export const OPTIONS = [
   O('verlichting', 'l-led', 'Heldere koplamp Delfzijl', 24, BOTH, { zicht: 1.2 }, 'Wit licht, ver vooruit'),
   O('verlichting', 'l-warm', 'Warme koplamp Winsum', 16, BOTH, { zicht: 1.08 }, 'Geel licht, zacht voor de ogen'),
   O('verlichting', 'l-fel', 'Zoeklicht Ten Boer', 42, BOTH, { zicht: 1.45, opvallend: 0.1 }, 'Schijnt tot de volgende wijk'),
+  // ophanging (epic Autotuning #1155): ruilt comfort tegen bochtensnelheid; 'draai' wint nooit meer dan 8% (zie tuningEffects)
+  O('ophanging', 'h-zacht', 'Zachte vering Ten Boer', 30, BOTH, { comfort: 1.15, draai: 0.97 }, 'Dobbert over alles, een beetje wijd in de bocht'),
+  O('ophanging', 'h-sport', 'Sportvering Zuidhorn', 55, BOTH, { comfort: 0.9, draai: 1.04 }, 'Strak door de bocht, je voelt elke klinker'),
+  O('ophanging', 'h-laag', 'Verlaagd onderstel Delfzijl', 80, CAR, { comfort: 0.8, draai: 1.07, gewicht: 0.99 }, 'Laag en scherp: elke drempel is een gebeurtenis'),
+  O('ophanging', 'h-veen', 'Veenpadvering Gieten', 45, CAR, { comfort: 0.97, draai: 1.02 }, 'Houdt het midden tussen stoer en gezellig'),
   O('geluid', 'g-bel', 'Dubbele bel Pieterburen', 9, TW, { claxon: 'bel2' }, 'Twee tonen: kring-kring'),
   O('geluid', 'g-toeter', 'Toeter De Marne', 12, BOTH, { claxon: 'toeter' }, 'Een vrolijke toeter'),
   O('geluid', 'g-melodie', 'Melodietoeter Vlagtwedde', 38, BOTH, { claxon: 'melodie', opvallend: 0.1 }, 'Speelt drie noten van een bekend deuntje (verzonnen)'),
@@ -56,7 +62,7 @@ export function sanitizeTuning(t, kind = null) {
 
 // De som van wat erop zit. Alles is een vermenigvuldiger (1 = niets veranderd) behalve claxon en opvallend.
 export function tuningEffects(t) {
-  const fx = { grip: 1, comfort: 1, zicht: 1, geluid: 1, gewicht: 1, opvallend: 0, claxon: null };
+  const fx = { grip: 1, comfort: 1, zicht: 1, geluid: 1, gewicht: 1, draai: 1, opvallend: 0, claxon: null };
   for (const id of Object.values(sanitizeTuning(t))) {
     const e = optionById(id).fx;
     for (const [k, val] of Object.entries(e)) {
@@ -66,6 +72,8 @@ export function tuningEffects(t) {
     }
   }
   fx.opvallend = Math.min(1, fx.opvallend);
+  fx.draai = Math.max(DRAAI_MIN, Math.min(DRAAI_MAX, fx.draai)); // geen exploit: hoogstens 8% scherper en 10% trager door de bocht
+  fx.grip = Math.min(GRIP_MAX, fx.grip);
   return fx;
 }
 

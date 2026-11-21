@@ -21,6 +21,8 @@ import { stopVillageMini } from './dorpsuitjes.js';
 import { quitRunningActivities } from './busy.js';
 import { getGoalSave, applyGoalSave } from './goal.js';
 import { getCalendarSave, applyCalendarSave } from './calendarday.js';
+import { getDifficultyProfile, setActiveDifficulty, profileFromSave } from './difficulty.js'; // #1169: moeilijkheid per save
+import { legacyDifficultyLevel } from './settings.js';
 import { migrateSave, SAVE_VERSION, savedArc, plausiblePos } from './savemigrate.js';
 import { getCheatSave, applyCheatSave } from './cheats.js';
 import { closeShopMenu } from './shopui.js';
@@ -294,6 +296,8 @@ function serialize(w) {
     streken: getCheatSave(),
     // the day of the summer and the special days already announced (calendarday.js)
     kalender: getCalendarSave(w),
+    // de moeilijkheid van dit spel (#1169): het niveau en de opties die ervan afwijken; een save zonder veld is Standaard
+    moeilijkheid: getDifficultyProfile(),
     ...(coopIds.length ? { coopGebeurtenissen: coopIds } : {}),
   };
 }
@@ -634,6 +638,8 @@ export function applySave(w, d) {
     applyRadioSave(d.radio);
     applyCheatSave(d.streken, d);
     applyCalendarSave(w, d.kalender);
+    // #1169: de moeilijkheid hoort bij de save; een oude save zonder veld krijgt het niveau dat dit apparaat al had (Standaard), zonder aanpassingen
+    setActiveDifficulty(profileFromSave(d.moeilijkheid, legacyDifficultyLevel));
     applyHomeOnLoad(w, d);
     // de beloningen die al in deze save staan (#429): wie later weer aansluit telt ze niet nog eens
     const coopIds = gebeurtenissenVan(d);

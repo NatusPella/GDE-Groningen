@@ -72,7 +72,8 @@ import { bindCullHost, cullOffscreenActors, restoreCulledActors, knownGroupSpher
 export { toggleLightRig } from './scene3d/prewarm3d.js';
 import { seaExtra } from './golven.js';
 import { sleepingParkedCars } from './parkedcars.js';
-import { syncParkedLayer } from './parked3d.js';
+import { syncParkedLayer, setParkedGlowNight } from './parked3d.js';
+import { tickVehicleLooks } from './vehiclelook3d.js';
 import { requestShore, updateShore } from './quaywalls.js';
 import { getWaterIndex, waterIndexAt } from './waterindex.js';
 import { setTreeMeshBuilder } from './treeprops.js';
@@ -128,6 +129,7 @@ import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpaci
 import { computeLighting, dayState } from './daynight.js';
 import { wijkProfileAt } from './trafficfleet.js';
 import { pedRole } from './clothing.js';
+import { applyWorldGrade } from './worldgrade3d.js'; // wereldkleur (21-11): saturatie, tinten en mist van de dag
 import { createPostFX } from './postfx3d.js';
 import { noteGfxEvent, watchContext, gpuRamp } from './blackframe.js';
 import { spawnExplosionFx, setFxCamera } from './fx3d.js';
@@ -3396,6 +3398,8 @@ export function update3D(dt, world) {
     endWheels();
   }
   updateNightLights(world, vehicleMeshes, focus.x, focus.y, lightState.night || 0, wetness, dt);
+  tickVehicleLooks(vehicleMeshes, focus.x, focus.y, lightState.night || 0, performance.now() / 1000); // underglow en lucht van gepimpte voertuigen (epic Autotuning #1155)
+  setParkedGlowNight(lightState.night || 0);
   probe.mark('3d:lights');
   stepWarmup(world);
   prewarmLightVariants();
@@ -3777,6 +3781,7 @@ const _envSun = new THREE.Color();
 function applyTimeOfDay(dt, world) {
   const L = computeLighting(typeof world.clock === 'number' ? world.clock : 12, lightState);
   lastLight = L;
+  applyWorldGrade(L, postfx ? postfx.level : 'laag', world.weather);
   // a cutscene's own grade on top of the clock's (intromontage.js: the dawn shot)
   if (world.lightMood) world.lightMood(L);
   const storm = world.weather ? Math.min(1, Math.max(0, world.weather.intensity)) : 0;

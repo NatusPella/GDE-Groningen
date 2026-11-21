@@ -2,7 +2,7 @@
 
 Gegenereerd door `node scripts/tts_opnamelijst.mjs` uit `game/storydata/script.json`, `scripts/tts_lines.json`, `scripts/gronings_spoken.json` en `scripts/tts_cast.mjs`. Niet met de hand aanpassen; draai `node scripts/tts_opnamelijst.mjs --check` om te zien of deze lijst achterloopt.
 
-**Stand van deze bronnen:** 469 clips staan klaar in de wachtrij (`scripts/tts_lines.json`), 207 verhaalregels wachten nog (16 op een stemkeuze, 191 op een Groningse spreektekst). Samen **676 regels/clips**. De 37 bewust stille appjes (`channel: app-stil`) staan er niet op.
+**Stand van deze bronnen:** 483 clips staan klaar in de wachtrij (`scripts/tts_lines.json`), 226 verhaalregels wachten nog (16 op een stemkeuze, 210 op een Groningse spreektekst). Samen **709 regels/clips**. De 37 bewust stille appjes (`channel: app-stil`) staan er niet op.
 
 > Het issue #735 noemt 670 regels/671 clips (stand 6-11-2026). De scripts zijn de bron: inmiddels zijn er regels bijgekomen of opgenomen, dus deze lijst telt wat de code nu zegt. Zie "Verschil met #735" onderaan.
 
@@ -171,330 +171,344 @@ Gegenereerd door `node scripts/tts_opnamelijst.mjs` uit `game/storydata/script.j
 | 152 | M20.3 | Mem Terpstra (Gacrux) | `lines/mem_terpstra/er_is_geen_overeenkomst_jonge_er_52b695e3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #152 |
 | 153 | M20.3 | Anita (Callirrhoe) | `lines/anita/van_de_jas_tammo_en_tige_tank_j__8afbf9b5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #153 |
 | 154 | M20.3 | Mem Terpstra (Gacrux) | `lines/mem_terpstra/omdat_mijn_kleinzoon_gekke_dinge_00bf2429.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #154 |
-| 155 | M21.2 | Mem Terpstra (Gacrux) | `lines/mem_terpstra/famke_de_trein_met_de_rode_auto__732f0c29.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #155 |
-| 156 | M21.2 | Anita (Callirrhoe) | `lines/anita/dank_u_mevrouw_terpstra_db3640ff.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #156 |
-| 157 | M21.2 | Mem Terpstra (Gacrux) | `lines/mem_terpstra/zeg_maar_weer_mem_c341dbeb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #157 |
-| 158 | B4 | Anita (Callirrhoe) | `lines/anita/ik_speelde_thuis_in_een_dorpstea_03583ba1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #158 |
-| 159 | B4.1 | Anita (Callirrhoe) | `lines/anita/dat_ik_te_veel_praat_fab06448.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #159 |
-| 160 | B4.2 | Anita (Callirrhoe) | `lines/anita/mijn_moeder_belde_anneke_ze_komt_0e422942.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #160 |
-| 161 | B4.2 | Anita (Callirrhoe) | `lines/anita/alleen_lieke_mijn_nichtje_ze_is__0d7db67a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #161 |
-| 162 | O9 | Anita (Callirrhoe) | `lines/anita/ik_heb_de_auto_31b5e933.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #162 |
-| 163 | O9 | Anita (Callirrhoe) | `lines/anita/hoe_is_het_met_de_vrienden_van_o_64126236.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #163 |
-| 164 | O9 | Anita (Callirrhoe) | `lines/anita/dat_doet_er_niet_toe_b58d6f56.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #164 |
-| 165 | O9 | Anita (Callirrhoe) | `lines/anita/zonder_auto_sta_jij_nergens_5854a97f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #165 |
-| 166 | O9 | Anita (Callirrhoe) | `lines/anita/ik_ook_9e34229c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #166 |
-| 167 | M22.2 | Anita (Callirrhoe) | `lines/anita/het_is_een_voordeur_een_voordeur_46e80c72.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #167 |
-| 168 | M22.4 | Anita (Callirrhoe) | `lines/anita/ik_moet_je_iets_vertellen_ik_woo_126a1af3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #168 |
-| 169 | M22.4 | Anita (Callirrhoe) | `lines/anita/mem_zegt_elke_zomer_jas_het_enig_4224b857.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #169 |
-| 170 | M24.1 | Anita (Callirrhoe) | `lines/anita/foar_mem_voor_zijn_oma_b00b6df2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #170 |
-| 171 | M24.1 | Anita (Callirrhoe) | `lines/anita/en_waarom_luistert_die_duif_naar_0316bafb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #171 |
-| 172 | O10 | Anita (Callirrhoe) | `lines/anita/rekening_voor_het_gebruik_van_de_4d913bd8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #172 |
-| 173 | O10 | Anita (Callirrhoe) | `lines/anita/genoeg_om_te_zien_dat_hij_bang_i_0df15930.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #173 |
-| 174 | O10 | Anita (Callirrhoe) | `lines/anita/hij_stuurt_een_rekening_hij_belt_8df99fac.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #174 |
-| 175 | O10 | Anita (Callirrhoe) | `lines/anita/zijn_vergunning_voor_morgen_even_c66a45e9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #175 |
-| 176 | O10 | Anita (Callirrhoe) | `lines/anita/hij_stuurt_altijd_alles_in_driev_731de779.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #176 |
-| 177 | M25.3 | Anita (Callirrhoe) | `lines/anita/je_biedt_geld_voor_iets_wat_geen_7a19a11a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #177 |
-| 178 | M25.6 | Anita (Callirrhoe) | `lines/anita/mam_het_is_half_twaalf_6c86280f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #178 |
-| 179 | M25.6 | Anita (Callirrhoe) | `lines/anita/wij_wonen_samen_5c1745e2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #179 |
-| 180 | M26.2 | Anita (Callirrhoe) | `lines/anita/en_de_gouden_eierbal_20aae43c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #180 |
-| 181 | M26.5 | Anita (Callirrhoe) | `lines/anita/je_eigen_vergunning_jelle_deze_s_cc6911f1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #181 |
-| 182 | M26.5 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/voor_mijn_vlag_225598b4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #182 |
-| 183 | M26.5 | Anita (Callirrhoe) | `lines/anita/op_een_evenement_staat_een_kraam_351df14c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #183 |
-| 184 | M26.5 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/jouw_duiven_hadden_geen_vergunni_71dc2491.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #184 |
-| 185 | M26.6 | Anita (Callirrhoe) | `lines/anita/en_de_onze_df92f2e6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #185 |
-| 186 | M26.13 | Mem Terpstra (Gacrux) | `lines/mem_terpstra/dat_is_mijn_kleinzoon_1a39d933.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #186 |
-| 187 | M26.7 | Anita (Callirrhoe) | `lines/anita/mien_jong_dat_duurde_vijf_jaar_d0a579f9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #187 |
-| 188 | E1 | Anita (Callirrhoe) | `lines/anita/willemien_staat_weer_vooraan_haa_b37272c2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #188 |
-| 189 | E1 | Anita (Callirrhoe) | `lines/anita/berend_heeft_de_foto_laten_inlij_624cdaff.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #189 |
-| 190 | E1 | Anita (Callirrhoe) | `lines/anita/de_duiven_staan_weer_in_de_rij_1c7c2c25.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #190 |
-| 191 | E2 | Anita (Callirrhoe) | `lines/anita/hij_zegt_niks_4a5de544.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #191 |
-| 192 | E2 | Anita (Callirrhoe) | `lines/anita/hij_koopt_door_0a590412.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #192 |
-| 193 | O11 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/mevrouw_tessa_ee_n_eierbal_met_m_c927fd99.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #193 |
-| 194 | O11 | Anita (Callirrhoe) | `lines/anita/de_fjord_frituur_staat_op_de_vis_49d69040.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #194 |
-| 195 | O11 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/mijn_assistent_haalt_hem_ik_beta_5432ae72.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #195 |
-| 196 | O11 | Anita (Callirrhoe) | `lines/anita/uit_een_klomp_f5444363.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #196 |
-| 197 | O11 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/mijn_juristen_kijken_naar_die_kl_99e5df1b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #197 |
-| 198 | O11 | Anita (Callirrhoe) | `lines/anita/een_eierbal_voor_zijn_oma_d6b4453e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #198 |
-| 199 | M29.2 | Anita (Callirrhoe) | `lines/anita/en_de_eierballen_die_staan_er_mo_44402c57.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #199 |
-| 200 | M29.2 | Tammo (Orus) | `lines/tammo/een_eierbal_dat_is_anders_e75b2145.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #200 |
-| 201 | M30.6 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/dat_pand_ken_ik_ik_wacht_tot_de__59f83380.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #201 |
-| 202 | O12 | Anita (Callirrhoe) | `lines/anita/wat_nu_64c9b123.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #202 |
-| 203 | O12 | Anita (Callirrhoe) | `lines/anita/waarheen_186b2466.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #203 |
-| 204 | O12 | Anita (Callirrhoe) | `lines/anita/een_pand_de_bieten_veendam_een_t_9b2335f1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #204 |
-| 205 | O12 | Anita (Callirrhoe) | `lines/anita/samen_fe4daed9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #205 |
-| 206 | Missie-cutscenes | Tammo (Orus) | `lines/tammo/hij_hangt_een_vlag_aan_onze_tore_180bffcc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #206 |
-| 207 | Missie-cutscenes | Anita (Callirrhoe) | `lines/anita/een_oefenbal_hij_oefent_hoe_hij__b4840ae1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #207 |
-| 208 | Missie-cutscenes | Tammo (Orus) | `lines/tammo/iemand_uit_friesland_dat_was_zij_8e0a74d6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #208 |
-| 209 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/ver_weg_he_open_de_kaart_daar_be_8bf3f56b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #209 |
-| 210 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/ver_weg_he_open_de_kaart_daar_be_ee6a704c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #210 |
-| 211 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/dat_is_een_heel_eind_via_de_kaar_5774d079.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #211 |
-| 212 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/dat_is_een_heel_eind_via_de_kaar_11802675.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #212 |
-| 213 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/ver_weg_he_er_rijdt_ook_een_bus__f3131ee5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #213 |
-| 214 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/ver_weg_he_er_rijdt_ook_een_bus__90efd1c6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #214 |
-| 215 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/wist_je_dat_het_ook_met_het_ov_k_b4f8fbae.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #215 |
-| 216 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/wist_je_dat_het_ook_met_het_ov_k_db6f7b65.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #216 |
-| 217 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/geen_zin_om_zo_ver_te_rijden_pak_52a181c4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #217 |
-| 218 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/geen_zin_om_zo_ver_te_rijden_pak_e095e9f5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #218 |
-| 219 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/instappen_met_e_bij_de_kop_w_is__9bbe11a8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #219 |
-| 220 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/blijf_op_de_noordwal_staan_tot_h_c4513247.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #220 |
-| 221 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/durk_en_douwe_houden_je_bezig_na_34ed86d4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #221 |
-| 222 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/durk_en_douwe_houden_je_bezig_na_1f297e34.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #222 |
-| 223 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/durk_en_douwe_springen_mee_aanlo_12c36149.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #223 |
-| 224 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/durk_en_douwe_springen_mee_aanlo_ea108637.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #224 |
-| 225 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/mem_en_oma_trijntje_zitten_in_de_f06b7018.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #225 |
-| 226 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/mem_en_oma_trijntje_zitten_in_de_b9e248a6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #226 |
-| 227 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/houd_de_deur_van_de_kruitkelder__c4aaa50f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #227 |
-| 228 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/houd_de_deur_van_de_kruitkelder__cc44a6c6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #228 |
-| 229 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_tweede_deur_geeft_mee_rennen_c1608fb9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #229 |
-| 230 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_tweede_deur_geeft_mee_rennen_8750afb8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #230 |
-| 231 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/houd_ook_de_tweede_deur_daarna_d_c0796402.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #231 |
-| 232 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/houd_ook_de_tweede_deur_daarna_d_a921c676.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #232 |
-| 233 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_derde_deur_de_bal_blijft_hier_5c29331b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #233 |
-| 234 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_derde_deur_de_bal_blijft_hier_256b1e2b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #234 |
-| 235 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_laatste_deur_daarna_naar_de_p_51cf9b30.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #235 |
-| 236 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_laatste_deur_daarna_naar_de_p_c7e152c7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #236 |
-| 237 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/links_is_vrij_naar_de_poort_bere_bf9402a5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #237 |
-| 238 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/links_is_vrij_naar_de_poort_bere_2916f3a9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #238 |
-| 239 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_naspeling_is_klaar_blijf_even_f1dc5452.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #239 |
-| 240 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_naspeling_is_klaar_blijf_even_c59705d5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #240 |
-| 241 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_kras_van_de_wagon_zit_op_de_e_947f02ce.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #241 |
-| 242 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_kras_van_de_wagon_zit_op_de_e_57099ad9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #242 |
-| 243 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/mems_appje_de_trein_met_de_rode__47a5cae7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #243 |
-| 244 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/mems_appje_de_trein_met_de_rode__03403f60.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #244 |
-| 245 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_trein_rijdt_druk_op_spatie_om_e87508db.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #245 |
-| 246 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_trein_rijdt_druk_op_spatie_om_2d4f0e71.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #246 |
-| 247 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/jelles_mannen_staan_op_de_wagon__7c76ec5e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #247 |
-| 248 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/jelles_mannen_staan_op_de_wagon__0f9ae746.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #248 |
-| 249 | Keuzegesprekken | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/u_kunt_de_auto_redden_of_de_bal__4c61688a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #249 |
-| 250 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/oma_heeft_alle_vrienden_met_hun__9e75fa96.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #250 |
-| 251 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/oma_heeft_alle_vrienden_met_hun__528b3c1d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #251 |
-| 252 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/blijf_bij_de_wagen_henk_bouwt_he_23021a92.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #252 |
-| 253 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/blijf_bij_de_wagen_henk_bouwt_he_ab31ccde.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #253 |
-| 254 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/henk_zaagt_een_gat_in_de_zijkant_6eeaa325.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #254 |
-| 255 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/henk_zaagt_een_gat_in_de_zijkant_573b88df.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #255 |
-| 256 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/instappen_tinus_wijst_naar_het_w_e086fa47.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #256 |
-| 257 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/instappen_tinus_wijst_naar_het_w_f2bed051.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #257 |
-| 258 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/gas_sturen_niet_vastlopen_henk_w_1ad93cad.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #258 |
-| 259 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/gas_sturen_niet_vastlopen_henk_w_2c595403.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #259 |
-| 260 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/houd_de_snelheid_erin_in_de_modd_37cff950.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #260 |
-| 261 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/houd_de_snelheid_erin_in_de_modd_7c1d2904.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #261 |
-| 262 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/rij_hem_de_modder_in_als_de_acht_feed3d3d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #262 |
-| 263 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/rij_hem_de_modder_in_als_de_acht_149308d5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #263 |
-| 264 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/vast_tinus_haakt_de_trekker_aan__1c10146f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #264 |
-| 265 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/vast_tinus_haakt_de_trekker_aan__7b1fee60.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #265 |
-| 266 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/rij_voorop_de_colonne_volgt_zola_91ac2b9b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #266 |
-| 267 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/rij_voorop_de_colonne_volgt_zola_5ebadc50.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #267 |
-| 268 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/ee_n_vriend_rijdt_vlak_naast_jul_7596b732.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #268 |
-| 269 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/ee_n_vriend_rijdt_vlak_naast_jul_d2c7de23.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #269 |
-| 270 | Keuzegesprekken | Anita (Callirrhoe) | `lines/anita/alle_vrienden_rijden_mee_maar_e__65994f51.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #270 |
-| 271 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/instappen_tessa_zei_wij_voorop_010388aa.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #271 |
-| 272 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/rij_voorop_naar_aduard_wie_te_ve_b6a4af07.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #272 |
-| 273 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/rij_voorop_naar_aduard_wie_te_ve_fde26a4b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #273 |
-| 274 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/wubbo_opent_de_brug_op_afstand_m_6ac8b600.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #274 |
-| 275 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/wubbo_opent_de_brug_op_afstand_m_fd276ec5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #275 |
-| 276 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/nog_vijf_kilometer_de_hele_colon_3f1e45dc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #276 |
-| 277 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/nog_vijf_kilometer_de_hele_colon_083b1d83.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #277 |
-| 278 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/bak_in_oma_s_keuken_ei_zout_grof_8245aa8b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #278 |
-| 279 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/bak_in_oma_s_keuken_ei_zout_grof_f29c248d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #279 |
-| 280 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/oma_s_volgorde_eerst_het_ei_dan__ec64947f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #280 |
-| 281 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/oma_s_volgorde_eerst_het_ei_dan__ac2e806f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #281 |
-| 282 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/kwart_voor_drie_de_limo_rijdt_na_964ada11.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #282 |
-| 283 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/kwart_voor_drie_de_limo_rijdt_na_a46268a8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #283 |
-| 284 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/oma_s_volgorde_ei_zout_grof_meel_f0d16170.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #284 |
-| 285 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/oma_s_volgorde_ei_zout_grof_meel_a14dbbd9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #285 |
-| 286 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/kwart_voor_drie_instappen_de_lim_49ac03e7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #286 |
-| 287 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/kwart_voor_drie_instappen_de_lim_e776dbd1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #287 |
-| 288 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/berend_proeft_voor_het_laatst_ze_62b01348.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #288 |
-| 289 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/berend_proeft_voor_het_laatst_ze_2c906a7a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #289 |
-| 290 | Keuzegesprekken | Berend Bos (Charon) | `lines/berend_bos/wat_maakt_deze_eierbal_gronings__e0a308e6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #290 |
-| 291 | Keuzegesprekken | Berend Bos (Charon) | `lines/berend_bos/en_waarom_moet_de_standplaats_na_cb573f08.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #291 |
-| 292 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/willemiens_huis_in_loppersum_boe_f98990b9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #292 |
-| 293 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/willemiens_huis_in_loppersum_boe_c2e58fec.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #293 |
-| 294 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/boeken_in_kleine_dozen_blijf_bij_fdc6386a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #294 |
-| 295 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/boeken_in_kleine_dozen_blijf_bij_63e22e0e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #295 |
-| 296 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/breekbaar_in_de_krant_blijf_in_d_7f7b7f24.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #296 |
-| 297 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/breekbaar_in_de_krant_blijf_in_d_efaa96a3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #297 |
-| 298 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_kat_wil_nergens_in_blijf_bij__68e4842a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #298 |
-| 299 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_kat_wil_nergens_in_blijf_bij__92e13d56.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #299 |
-| 300 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_dozen_staan_klaar_naar_de_ver_bac6a78e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #300 |
-| 301 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_dozen_staan_klaar_naar_de_ver_596f56a7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #301 |
-| 302 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_verhuisbus_staat_voor_het_hui_1a6213e6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #302 |
-| 303 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_verhuisbus_staat_voor_het_hui_c10d0560.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #303 |
-| 304 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/instappen_tammo_rijdt_rustig_7b1e92a9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #304 |
-| 305 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/rustig_rijden_niet_om_de_spullen_39698032.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #305 |
-| 306 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/rustig_rijden_niet_om_de_spullen_8234dbba.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #306 |
-| 307 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/een_buurtfeest_op_het_erf_in_lop_2616ebd4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #307 |
-| 308 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/een_buurtfeest_op_het_erf_in_lop_50020713.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #308 |
-| 309 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/tafels_op_het_erf_blijf_staan_to_c000632a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #309 |
-| 310 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/tafels_op_het_erf_blijf_staan_to_aa717e1c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #310 |
-| 311 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_foto_hangt_in_de_gang_waar_je_e13e3c7c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #311 |
-| 312 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_foto_hangt_in_de_gang_waar_je_8d7e09ba.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #312 |
-| 313 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/een_hooiberg_op_de_heide_ten_noo_1080b90b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #313 |
-| 314 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/een_hooiberg_op_de_heide_ten_noo_a6ef2d47.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #314 |
-| 315 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/aanvallen_eerst_de_gracht_lammer_21ccc193.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #315 |
-| 316 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/aanvallen_eerst_de_gracht_lammer_9d72285e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #316 |
-| 317 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/wubbo_staat_bij_de_lier_hij_open_70d8aa4a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #317 |
-| 318 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/wubbo_staat_bij_de_lier_hij_open_60e1ea73.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #318 |
-| 319 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/boven_jullie_komt_meel_hoofd_oml_05122999.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #319 |
-| 320 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/boven_jullie_komt_meel_hoofd_oml_dc71c330.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #320 |
-| 321 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/blijf_op_het_bolwerk_staan_tot_d_91f0e960.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #321 |
-| 322 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/blijf_op_het_bolwerk_staan_tot_d_0b423f46.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #322 |
-| 323 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/het_tweede_bolwerk_de_duiven_lui_4209ae51.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #323 |
-| 324 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/het_derde_bolwerk_tinus_trekt_de_6d7ab59c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #324 |
-| 325 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/het_derde_bolwerk_tinus_trekt_de_95651283.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #325 |
-| 326 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/blijf_op_het_bolwerk_staan_tot_d_23d6f271.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #326 |
-| 327 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/blijf_op_het_bolwerk_staan_tot_d_9a253293.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #327 |
-| 328 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/drie_vlaggen_naar_de_poort_beren_1a9344a6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #328 |
-| 329 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/drie_vlaggen_naar_de_poort_beren_a868d1cf.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #329 |
-| 330 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_fjord_frituur_staat_open_iede_92a6524e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #330 |
-| 331 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_fjord_frituur_staat_open_iede_522b54ea.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #331 |
-| 332 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_rij_staat_binnen_achter_de_gl_bb1d8947.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #332 |
-| 333 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_rij_staat_binnen_achter_de_gl_0743bdf5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #333 |
-| 334 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/blijf_in_de_rij_staan_tot_4117_w_679bfc91.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #334 |
-| 335 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/blijf_in_de_rij_staan_tot_4117_w_830e2386.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #335 |
-| 336 | Keuzegesprekken | Loketbediende (Autonoe) | `lines/loketbediende/welk_formulier_had_u_nodig_7c955923.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #336 |
-| 337 | Keuzegesprekken | Loketbediende (Autonoe) | `lines/loketbediende/en_waar_haalt_u_de_stempel_0834d0ca.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #337 |
-| 338 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/alles_bij_elkaar_nu_inschrijven__c1c11d35.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #338 |
-| 339 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/alles_bij_elkaar_nu_inschrijven__8d8ac02a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #339 |
-| 340 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/eerst_de_grote_markt_vijftienhon_424120cf.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #340 |
-| 341 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/eerst_de_grote_markt_vijftienhon_affd2864.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #341 |
-| 342 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/in_de_kooi_van_de_kraan_lammert__1683774a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #342 |
-| 343 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/in_de_kooi_van_de_kraan_lammert__2c8123c9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #343 |
-| 344 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/van_boven_zag_je_hem_de_blauwe_n_f4086149.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #344 |
-| 345 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/van_boven_zag_je_hem_de_blauwe_n_ff7df391.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #345 |
-| 346 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/papieren_eruit_papieren_erin_eve_b99da06f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #346 |
-| 347 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/papieren_eruit_papieren_erin_eve_b9751011.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #347 |
-| 348 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/klaar_terug_naar_de_kade_voor_he_0e3246ab.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #348 |
-| 349 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/klaar_terug_naar_de_kade_voor_he_52a29308.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #349 |
-| 350 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_auto_blijft_bij_de_sluis_lamm_2a083678.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #350 |
-| 351 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_auto_blijft_bij_de_sluis_lamm_447f169f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #351 |
-| 352 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/instappen_de_trekker_limo_van_je_d9cbd146.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #352 |
-| 353 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/instappen_de_trekker_limo_van_je_80c774db.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #353 |
-| 354 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/naar_de_sluis_van_delfzijl_over__24b97c12.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #354 |
-| 355 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/naar_de_sluis_van_delfzijl_over__f2ecbc57.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #355 |
-| 356 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/roelfiens_rode_gewasspuiter_staa_e9f47e39.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #356 |
-| 357 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/opstijgen_en_laag_over_het_graan_5ebb9c06.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #357 |
-| 358 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/opstijgen_en_laag_over_het_graan_4b4f21a9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #358 |
-| 359 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/spandoek_opgepikt_laag_blijven_n_028b69f4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #359 |
-| 360 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/spandoek_opgepikt_laag_blijven_n_d71247b8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #360 |
-| 361 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/ze_lezen_het_door_de_rij_kramen_3b76a234.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #361 |
-| 362 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/ze_lezen_het_door_de_rij_kramen_6143a3f3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #362 |
-| 363 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/voorbij_de_kermis_nu_terug_naar__959c5f21.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #363 |
-| 364 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/voorbij_de_kermis_nu_terug_naar__89cd0799.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #364 |
-| 365 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/terug_naar_de_strook_gas_terug_m_4167ca05.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #365 |
-| 366 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/terug_naar_de_strook_gas_terug_m_7053dbe9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #366 |
-| 367 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/podium_in_de_kiezelrace_dan_vert_48887f24.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #367 |
-| 368 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/podium_in_de_kiezelrace_dan_vert_1d8eb0c2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #368 |
-| 369 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/instappen_de_tankwagen_staat_bij_ce5b97f5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #369 |
-| 370 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/instappen_de_tankwagen_staat_bij_325c65a4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #370 |
-| 371 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/instappen_bij_dijkstra_spatie_om_64a6e3c8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #371 |
-| 372 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/instappen_bij_dijkstra_spatie_om_101e075b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #372 |
-| 373 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/loop_langs_drie_tenten_en_drink__8059ba59.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #373 |
-| 374 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/loop_langs_drie_tenten_en_drink__0f02c918.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #374 |
-| 375 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/die_pan_staat_hier_al_sinds_gist_0c3ca9ea.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #375 |
-| 376 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dat_is_een_pan_met_een_verhaal_b4ad0266.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #376 |
-| 377 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/het_verhaal_heet_wie_wast_hem_af_1e74667c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #377 |
-| 378 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_morgen_06f3414d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #378 |
-| 379 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/wie_neemt_de_badkamer_als_eerste_336b767f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #379 |
-| 380 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ik_ik_sta_er_al_drie_minuten_voo_e8f17e9b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #380 |
-| 381 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/je_zit_hier_aan_tafel_fea6e5c5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #381 |
-| 382 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/in_gedachten_cd1938da.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #382 |
-| 383 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/wie_heeft_mijn_yoghurt_opgegeten_bbae9fba.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #383 |
-| 384 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/er_stond_geen_naam_op_b7efcbb8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #384 |
-| 385 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/er_stond_tessa_op_b9de03ab.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #385 |
-| 386 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_las_dat_als_een_suggestie_94c081ce.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #386 |
-| 387 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/koffie_f36dc5b3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #387 |
-| 388 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ja_eh_nee_ja_c9337043.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #388 |
-| 389 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_zet_er_twee_neer_dan_kies_jij_841b8af1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #389 |
-| 390 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_is_eigenlijk_heel_redelijk_90a24600.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #390 |
-| 391 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ik_heb_een_schoonmaakrooster_gem_a2c5009f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #391 |
-| 392 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_zie_mijn_naam_zeven_keer_4c93519f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #392 |
-| 393 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ik_zie_jouw_pan_zeven_keer_f860a899.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #393 |
-| 394 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dat_is_een_eerlijke_ruil_538fc4bb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #394 |
-| 395 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/je_wekker_ging_om_zes_uur_af_b3a0faa4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #395 |
-| 396 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_weet_ik_ik_leg_hem_ver_weg_15c690f5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #396 |
-| 397 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dat_wist_de_hele_flat_nu_ook_036f0bde.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #397 |
-| 398 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dan_zijn_we_eerlijk_tegen_elkaar_27338a29.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #398 |
-| 399 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/roerei_of_spiegelei_fbb82d0d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #399 |
-| 400 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/wat_wordt_het_als_jij_er_verstan_c5e35f06.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #400 |
-| 401 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/roerei_dan_zie_je_niet_dat_het_m_6fa95b47.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #401 |
-| 402 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ik_eet_het_toch_op_5923d272.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #402 |
-| 403 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/proef_eens_f7f31f40.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #403 |
-| 404 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/het_is_goed_97201844.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #404 |
-| 405 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_zeg_je_altijd_1f2a3223.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #405 |
-| 406 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/omdat_het_altijd_goed_is_d92e590d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #406 |
-| 407 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/je_hebt_een_kruimel_op_je_kin_1e0cca39.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #407 |
-| 408 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/waar_c8edf50c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #408 |
-| 409 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/links_nee_jouw_links_6b2fbb5a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #409 |
-| 410 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/nu_zit_hij_op_je_mouw_b7a485bc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #410 |
-| 411 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/je_haar_zit_anders_644e671d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #411 |
-| 412 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/het_is_dinsdag_a7479158.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #412 |
-| 413 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/het_staat_je_goed_op_dinsdag_d90c71d7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #413 |
-| 414 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dank_je_eet_je_boterham_8ee2f095.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #414 |
-| 415 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_heb_een_eierbal_gebakken_voor_cc47fdbb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #415 |
-| 416 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/hij_is_vierkant_66cb3b09.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #416 |
-| 417 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/hij_is_creatief_edae7e63.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #417 |
-| 418 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ik_eet_hem_toch_op_voor_de_vrien_d412758c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #418 |
-| 419 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/als_we_winnen_wat_dan_13f04b08.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #419 |
-| 420 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dan_krijgt_de_frietwagen_een_nie_8a2c5b1e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #420 |
-| 421 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/een_lamp_50e0b284.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #421 |
-| 422 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/een_grote_zodat_jij_hem_ziet_d9bbeb81.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #422 |
-| 423 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/wat_kijken_we_db231066.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #423 |
-| 424 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/maakt_niet_uit_6bb74591.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #424 |
-| 425 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/omdat_jij_naast_me_zit_be3522fc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #425 |
-| 426 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_was_aardig_zet_maar_iets_aan_696edcd0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #426 |
-| 427 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dit_nummer_ken_ik_e32aa27a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #427 |
-| 428 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dans_je_mee_8a0a7d71.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #428 |
-| 429 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/in_de_keuken_5747ce43.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #429 |
-| 430 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/overal_waar_jij_staat_3baa671e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #430 |
-| 431 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/goedemorgen_9cc8e12a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #431 |
-| 432 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/koffie_staat_klaar_027f0493.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #432 |
-| 433 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/je_bent_de_beste_2f6f533c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #433 |
-| 434 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/wacht_ik_moet_even_gaan_zitten_c976ceff.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #434 |
-| 435 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/eerst_de_vismarkt_c7c3faaa.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #435 |
-| 436 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dan_de_kade_7aff1578.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #436 |
-| 437 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/en_daarna_95bcc718.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #437 |
-| 438 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/daarna_iets_met_jou_08fdcd3e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #438 |
-| 439 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_staat_al_op_de_lijst_b670c12b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #439 |
-| 440 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/met_melk_niet_te_veel_2d33f190.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #440 |
-| 441 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/je_weet_het_nog_43472179.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #441 |
-| 442 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ik_weet_alles_van_jou_cd14dfdc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #442 |
-| 443 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dat_is_veel_6de340a5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #443 |
-| 444 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/het_is_tweee_ntwintig_graden_631b8d35.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #444 |
-| 445 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_zeg_je_elke_dag_439b008d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #445 |
-| 446 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/omdat_ik_het_fijn_vind_fccf497e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #446 |
-| 447 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/het_is_stil_in_de_flat_ce68a564.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #447 |
-| 448 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/niemand_zoekt_ons_ac33b0eb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #448 |
-| 449 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_is_nieuw_e5b8edc6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #449 |
-| 450 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_wen_eraan_f6cb9f1f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #450 |
-| 451 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/roerei_zoals_jij_het_wilt_04f2dcd3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #451 |
-| 452 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/zonder_dat_het_mislukt_is_4321bb33.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #452 |
-| 453 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dat_was_de_oefening_43009ff6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #453 |
-| 454 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/en_dit_is_de_les_42c3b3a8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #454 |
-| 455 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/hoeveel_woorden_waren_het_ook_al_d34c455f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #455 |
-| 456 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/vijf_98324fee.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #456 |
-| 457 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/zeg_ze_nog_eens_26f4f9ff.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #457 |
-| 458 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/je_wast_af_2da188bd.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #458 |
-| 459 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_zei_toch_morgen_597766da.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #459 |
-| 460 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_was_twee_weken_geleden_38580660.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #460 |
-| 461 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_ben_een_man_van_mijn_woord_22c2d0db.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #461 |
-| 462 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/wat_doen_we_vandaag_a4252802.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #462 |
-| 463 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/niks_a0b352a1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #463 |
-| 464 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/niks_is_een_goed_plan_073a6a22.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #464 |
-| 465 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dan_is_het_al_gelukt_390e85a2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #465 |
-| 466 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/rikus_zegt_dat_het_zomer_blijft_f3e0692a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #466 |
-| 467 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/rikus_heeft_altijd_gelijk_0b3dddc3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #467 |
-| 468 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_zegt_hij_zelf_ook_5ac623dd.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #468 |
-| 469 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dan_zal_het_wel_kloppen_4bcf6172.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #469 |
+| 155 | M20.5 | Anita (Callirrhoe) | `lines/anita/henks_zender_piept_onze_auto_sta_779a7d18.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #155 |
+| 156 | M21.2 | Mem Terpstra (Gacrux) | `lines/mem_terpstra/famke_de_trein_met_de_rode_auto__732f0c29.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #156 |
+| 157 | M21.2 | Anita (Callirrhoe) | `lines/anita/dank_u_mevrouw_terpstra_db3640ff.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #157 |
+| 158 | M21.2 | Mem Terpstra (Gacrux) | `lines/mem_terpstra/zeg_maar_weer_mem_c341dbeb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #158 |
+| 159 | B4 | Anita (Callirrhoe) | `lines/anita/ik_speelde_thuis_in_een_dorpstea_03583ba1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #159 |
+| 160 | B4.1 | Anita (Callirrhoe) | `lines/anita/dat_ik_te_veel_praat_fab06448.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #160 |
+| 161 | B4.2 | Anita (Callirrhoe) | `lines/anita/mijn_moeder_belde_anneke_ze_komt_0e422942.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #161 |
+| 162 | B4.2 | Anita (Callirrhoe) | `lines/anita/alleen_lieke_mijn_nichtje_ze_is__0d7db67a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #162 |
+| 163 | O9 | Anita (Callirrhoe) | `lines/anita/ik_heb_de_auto_31b5e933.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #163 |
+| 164 | O9 | Anita (Callirrhoe) | `lines/anita/hoe_is_het_met_de_vrienden_van_o_64126236.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #164 |
+| 165 | O9 | Anita (Callirrhoe) | `lines/anita/dat_doet_er_niet_toe_b58d6f56.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #165 |
+| 166 | O9 | Anita (Callirrhoe) | `lines/anita/zonder_auto_sta_jij_nergens_5854a97f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #166 |
+| 167 | O9 | Anita (Callirrhoe) | `lines/anita/ik_ook_9e34229c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #167 |
+| 168 | M22.1 | Anita (Callirrhoe) | `lines/anita/wij_maken_van_de_escapade_de_sna_face5df1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #168 |
+| 169 | M22.2 | Anita (Callirrhoe) | `lines/anita/dat_is_een_snackwagen_148b4aee.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #169 |
+| 170 | M22.2 | Anita (Callirrhoe) | `lines/anita/het_is_een_voordeur_een_voordeur_46e80c72.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #170 |
+| 171 | M22.2 | Anita (Callirrhoe) | `lines/anita/het_is_een_naam_83e303b3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #171 |
+| 172 | M22.4 | Anita (Callirrhoe) | `lines/anita/ik_moet_je_iets_vertellen_ik_woo_126a1af3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #172 |
+| 173 | M22.4 | Anita (Callirrhoe) | `lines/anita/mem_zegt_elke_zomer_jas_het_enig_4224b857.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #173 |
+| 174 | M22.4 | Anita (Callirrhoe) | `lines/anita/de_snackwagen_is_een_thuis_op_wi_5845b0cb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #174 |
+| 175 | M24.1 | Anita (Callirrhoe) | `lines/anita/de_vlag_hangt_precies_boven_de_p_6d464267.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #175 |
+| 176 | M24.1 | Anita (Callirrhoe) | `lines/anita/foar_mem_voor_zijn_oma_b00b6df2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #176 |
+| 177 | M24.1 | Anita (Callirrhoe) | `lines/anita/en_waarom_luistert_die_duif_naar_0316bafb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #177 |
+| 178 | O10 | Anita (Callirrhoe) | `lines/anita/rekening_voor_het_gebruik_van_de_4d913bd8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #178 |
+| 179 | O10 | Anita (Callirrhoe) | `lines/anita/genoeg_om_te_zien_dat_hij_bang_i_0df15930.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #179 |
+| 180 | O10 | Anita (Callirrhoe) | `lines/anita/hij_stuurt_een_rekening_hij_belt_8df99fac.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #180 |
+| 181 | O10 | Anita (Callirrhoe) | `lines/anita/zijn_vergunning_voor_morgen_even_c66a45e9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #181 |
+| 182 | O10 | Anita (Callirrhoe) | `lines/anita/hij_stuurt_altijd_alles_in_driev_731de779.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #182 |
+| 183 | M25.3 | Anita (Callirrhoe) | `lines/anita/je_biedt_geld_voor_iets_wat_geen_7a19a11a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #183 |
+| 184 | M25.6 | Anita (Callirrhoe) | `lines/anita/mam_het_is_half_twaalf_6c86280f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #184 |
+| 185 | M25.6 | Anita (Callirrhoe) | `lines/anita/wij_wonen_samen_5c1745e2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #185 |
+| 186 | M26.2 | Anita (Callirrhoe) | `lines/anita/en_de_gouden_eierbal_20aae43c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #186 |
+| 187 | M26.4 | Anita (Callirrhoe) | `lines/anita/de_snackwagen_is_breder_dan_de_s_45a8c3b9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #187 |
+| 188 | M26.5 | Anita (Callirrhoe) | `lines/anita/je_eigen_vergunning_jelle_deze_s_cc6911f1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #188 |
+| 189 | M26.5 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/voor_mijn_vlag_225598b4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #189 |
+| 190 | M26.5 | Anita (Callirrhoe) | `lines/anita/op_een_evenement_staat_een_kraam_351df14c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #190 |
+| 191 | M26.5 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/jouw_duiven_hadden_geen_vergunni_71dc2491.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #191 |
+| 192 | M26.6 | Anita (Callirrhoe) | `lines/anita/en_de_onze_df92f2e6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #192 |
+| 193 | M26.13 | Mem Terpstra (Gacrux) | `lines/mem_terpstra/dat_is_mijn_kleinzoon_1a39d933.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #193 |
+| 194 | M26.7 | Anita (Callirrhoe) | `lines/anita/mien_jong_dat_duurde_vijf_jaar_d0a579f9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #194 |
+| 195 | E1 | Anita (Callirrhoe) | `lines/anita/willemien_staat_weer_vooraan_haa_b37272c2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #195 |
+| 196 | E1 | Anita (Callirrhoe) | `lines/anita/berend_heeft_de_foto_laten_inlij_624cdaff.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #196 |
+| 197 | E1 | Anita (Callirrhoe) | `lines/anita/de_duiven_staan_weer_in_de_rij_1c7c2c25.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #197 |
+| 198 | E2 | Anita (Callirrhoe) | `lines/anita/hij_zegt_niks_4a5de544.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #198 |
+| 199 | E2 | Anita (Callirrhoe) | `lines/anita/hij_koopt_door_0a590412.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #199 |
+| 200 | O11 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/mevrouw_tessa_ee_n_eierbal_met_m_c927fd99.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #200 |
+| 201 | O11 | Anita (Callirrhoe) | `lines/anita/de_snackwagen_staat_op_de_vismar_c9043c3a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #201 |
+| 202 | O11 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/mijn_assistent_haalt_hem_ik_beta_5432ae72.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #202 |
+| 203 | O11 | Anita (Callirrhoe) | `lines/anita/uit_een_klomp_f5444363.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #203 |
+| 204 | O11 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/mijn_juristen_kijken_naar_die_kl_99e5df1b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #204 |
+| 205 | O11 | Anita (Callirrhoe) | `lines/anita/een_eierbal_voor_zijn_oma_d6b4453e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #205 |
+| 206 | M29.2 | Anita (Callirrhoe) | `lines/anita/en_de_eierballen_die_staan_er_mo_44402c57.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #206 |
+| 207 | M29.2 | Tammo (Orus) | `lines/tammo/een_eierbal_dat_is_anders_e75b2145.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #207 |
+| 208 | M30.6 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/dat_pand_ken_ik_ik_wacht_tot_de__59f83380.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #208 |
+| 209 | O12 | Anita (Callirrhoe) | `lines/anita/wat_nu_64c9b123.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #209 |
+| 210 | O12 | Anita (Callirrhoe) | `lines/anita/waarheen_186b2466.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #210 |
+| 211 | O12 | Anita (Callirrhoe) | `lines/anita/een_pand_de_bieten_veendam_een_t_9b2335f1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #211 |
+| 212 | O12 | Anita (Callirrhoe) | `lines/anita/samen_fe4daed9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #212 |
+| 213 | Missie-cutscenes | Tammo (Orus) | `lines/tammo/hij_hangt_een_vlag_aan_onze_tore_180bffcc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #213 |
+| 214 | Missie-cutscenes | Anita (Callirrhoe) | `lines/anita/een_oefenbal_hij_oefent_hoe_hij__b4840ae1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #214 |
+| 215 | Missie-cutscenes | Tammo (Orus) | `lines/tammo/tige_tank_foar_de_auto_j_de_snac_bece8bc9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #215 |
+| 216 | Missie-cutscenes | Tammo (Orus) | `lines/tammo/iemand_uit_friesland_dat_was_zij_8e0a74d6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #216 |
+| 217 | Intro-montage | Tammo (Orus) | `lines/tammo/dan_rijdt_hij_nauwelijks_voor_jo_6d30f2bd.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #217 |
+| 218 | Missie-intro (terugval) | Tammo (Orus) | `lines/tammo/gronings_ontzet_de_noordelijke_s_c980a213.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #218 |
+| 219 | Missie-intro (terugval) | Anita (Callirrhoe) | `lines/anita/gronings_ontzet_de_noordelijke_s_60a120cf.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #219 |
+| 220 | Na het verhaal (intro) | Anita (Callirrhoe) | `lines/anita/onze_eigen_snackwagen_met_kentek_4ef39a32.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #220 |
+| 221 | Telefoon (gesprekken) | Anita (Callirrhoe) | `lines/anita/en_de_snackwagen_is_van_ons_hij__2e025aac.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #221 |
+| 222 | Berichten (app) | Ubbo (Laomedeia) | `sms/ubbo/alles_gedaan_grunn_is_van_jou_de_ef9cfbeb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #222 |
+| 223 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/ver_weg_he_open_de_kaart_daar_be_8bf3f56b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #223 |
+| 224 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/ver_weg_he_open_de_kaart_daar_be_ee6a704c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #224 |
+| 225 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/dat_is_een_heel_eind_via_de_kaar_5774d079.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #225 |
+| 226 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/dat_is_een_heel_eind_via_de_kaar_11802675.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #226 |
+| 227 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/ver_weg_he_er_rijdt_ook_een_bus__f3131ee5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #227 |
+| 228 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/ver_weg_he_er_rijdt_ook_een_bus__90efd1c6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #228 |
+| 229 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/wist_je_dat_het_ook_met_het_ov_k_b4f8fbae.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #229 |
+| 230 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/wist_je_dat_het_ook_met_het_ov_k_db6f7b65.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #230 |
+| 231 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/geen_zin_om_zo_ver_te_rijden_pak_52a181c4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #231 |
+| 232 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/geen_zin_om_zo_ver_te_rijden_pak_e095e9f5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #232 |
+| 233 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/instappen_met_e_bij_de_kop_w_is__9bbe11a8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #233 |
+| 234 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/blijf_op_de_noordwal_staan_tot_h_c4513247.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #234 |
+| 235 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/durk_en_douwe_houden_je_bezig_na_34ed86d4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #235 |
+| 236 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/durk_en_douwe_houden_je_bezig_na_1f297e34.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #236 |
+| 237 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/durk_en_douwe_springen_mee_aanlo_12c36149.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #237 |
+| 238 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/durk_en_douwe_springen_mee_aanlo_ea108637.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #238 |
+| 239 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/mem_en_oma_trijntje_zitten_in_de_f06b7018.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #239 |
+| 240 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/mem_en_oma_trijntje_zitten_in_de_b9e248a6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #240 |
+| 241 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/houd_de_deur_van_de_kruitkelder__c4aaa50f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #241 |
+| 242 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/houd_de_deur_van_de_kruitkelder__cc44a6c6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #242 |
+| 243 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_tweede_deur_geeft_mee_rennen_c1608fb9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #243 |
+| 244 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_tweede_deur_geeft_mee_rennen_8750afb8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #244 |
+| 245 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/houd_ook_de_tweede_deur_daarna_d_c0796402.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #245 |
+| 246 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/houd_ook_de_tweede_deur_daarna_d_a921c676.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #246 |
+| 247 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_derde_deur_de_bal_blijft_hier_5c29331b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #247 |
+| 248 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_derde_deur_de_bal_blijft_hier_256b1e2b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #248 |
+| 249 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_laatste_deur_daarna_naar_de_p_51cf9b30.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #249 |
+| 250 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_laatste_deur_daarna_naar_de_p_c7e152c7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #250 |
+| 251 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/links_is_vrij_naar_de_poort_bere_bf9402a5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #251 |
+| 252 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/links_is_vrij_naar_de_poort_bere_2916f3a9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #252 |
+| 253 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_naspeling_is_klaar_blijf_even_f1dc5452.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #253 |
+| 254 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_naspeling_is_klaar_blijf_even_c59705d5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #254 |
+| 255 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_kras_van_de_wagon_zit_op_de_e_947f02ce.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #255 |
+| 256 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_kras_van_de_wagon_zit_op_de_e_57099ad9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #256 |
+| 257 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/mems_appje_de_trein_met_de_rode__47a5cae7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #257 |
+| 258 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/mems_appje_de_trein_met_de_rode__03403f60.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #258 |
+| 259 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_trein_rijdt_druk_op_spatie_om_e87508db.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #259 |
+| 260 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_trein_rijdt_druk_op_spatie_om_2d4f0e71.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #260 |
+| 261 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/jelles_mannen_staan_op_de_wagon__7c76ec5e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #261 |
+| 262 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/jelles_mannen_staan_op_de_wagon__0f9ae746.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #262 |
+| 263 | Keuzegesprekken | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/u_kunt_de_auto_redden_of_de_bal__4c61688a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #263 |
+| 264 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/oma_heeft_alle_vrienden_met_hun__9e75fa96.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #264 |
+| 265 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/oma_heeft_alle_vrienden_met_hun__528b3c1d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #265 |
+| 266 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/blijf_bij_de_wagen_henk_bouwt_he_23021a92.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #266 |
+| 267 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/blijf_bij_de_wagen_henk_bouwt_he_ab31ccde.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #267 |
+| 268 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/henk_zaagt_een_gat_in_de_zijkant_6eeaa325.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #268 |
+| 269 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/henk_zaagt_een_gat_in_de_zijkant_573b88df.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #269 |
+| 270 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/instappen_tinus_wijst_naar_het_w_e086fa47.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #270 |
+| 271 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/instappen_tinus_wijst_naar_het_w_f2bed051.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #271 |
+| 272 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/gas_sturen_niet_vastlopen_henk_w_1ad93cad.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #272 |
+| 273 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/gas_sturen_niet_vastlopen_henk_w_2c595403.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #273 |
+| 274 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/houd_de_snelheid_erin_in_de_modd_37cff950.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #274 |
+| 275 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/houd_de_snelheid_erin_in_de_modd_7c1d2904.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #275 |
+| 276 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/rij_hem_de_modder_in_als_de_acht_feed3d3d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #276 |
+| 277 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/rij_hem_de_modder_in_als_de_acht_149308d5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #277 |
+| 278 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/vast_tinus_haakt_de_trekker_aan__1c10146f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #278 |
+| 279 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/vast_tinus_haakt_de_trekker_aan__7b1fee60.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #279 |
+| 280 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/rij_voorop_de_colonne_volgt_zola_91ac2b9b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #280 |
+| 281 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/rij_voorop_de_colonne_volgt_zola_5ebadc50.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #281 |
+| 282 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/ee_n_vriend_rijdt_vlak_naast_jul_7596b732.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #282 |
+| 283 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/ee_n_vriend_rijdt_vlak_naast_jul_d2c7de23.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #283 |
+| 284 | Keuzegesprekken | Anita (Callirrhoe) | `lines/anita/alle_vrienden_rijden_mee_maar_e__65994f51.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #284 |
+| 285 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/instappen_tessa_zei_wij_voorop_010388aa.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #285 |
+| 286 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/rij_voorop_naar_aduard_wie_te_ve_b6a4af07.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #286 |
+| 287 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/rij_voorop_naar_aduard_wie_te_ve_fde26a4b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #287 |
+| 288 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/wubbo_opent_de_brug_op_afstand_m_6ac8b600.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #288 |
+| 289 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/wubbo_opent_de_brug_op_afstand_m_fd276ec5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #289 |
+| 290 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/nog_vijf_kilometer_de_hele_colon_3f1e45dc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #290 |
+| 291 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/nog_vijf_kilometer_de_hele_colon_083b1d83.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #291 |
+| 292 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/bak_in_oma_s_keuken_ei_zout_grof_8245aa8b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #292 |
+| 293 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/bak_in_oma_s_keuken_ei_zout_grof_f29c248d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #293 |
+| 294 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/oma_s_volgorde_eerst_het_ei_dan__ec64947f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #294 |
+| 295 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/oma_s_volgorde_eerst_het_ei_dan__ac2e806f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #295 |
+| 296 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/kwart_voor_drie_de_limo_rijdt_na_964ada11.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #296 |
+| 297 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/kwart_voor_drie_de_limo_rijdt_na_a46268a8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #297 |
+| 298 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/oma_s_volgorde_ei_zout_grof_meel_f0d16170.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #298 |
+| 299 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/oma_s_volgorde_ei_zout_grof_meel_a14dbbd9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #299 |
+| 300 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/kwart_voor_drie_instappen_de_lim_49ac03e7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #300 |
+| 301 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/kwart_voor_drie_instappen_de_lim_e776dbd1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #301 |
+| 302 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/berend_proeft_voor_het_laatst_ze_62b01348.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #302 |
+| 303 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/berend_proeft_voor_het_laatst_ze_2c906a7a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #303 |
+| 304 | Keuzegesprekken | Berend Bos (Charon) | `lines/berend_bos/wat_maakt_deze_eierbal_gronings__e0a308e6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #304 |
+| 305 | Keuzegesprekken | Berend Bos (Charon) | `lines/berend_bos/en_waarom_moet_de_standplaats_na_cb573f08.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #305 |
+| 306 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/willemiens_huis_in_loppersum_boe_f98990b9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #306 |
+| 307 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/willemiens_huis_in_loppersum_boe_c2e58fec.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #307 |
+| 308 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/boeken_in_kleine_dozen_blijf_bij_fdc6386a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #308 |
+| 309 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/boeken_in_kleine_dozen_blijf_bij_63e22e0e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #309 |
+| 310 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/breekbaar_in_de_krant_blijf_in_d_7f7b7f24.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #310 |
+| 311 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/breekbaar_in_de_krant_blijf_in_d_efaa96a3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #311 |
+| 312 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_kat_wil_nergens_in_blijf_bij__68e4842a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #312 |
+| 313 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_kat_wil_nergens_in_blijf_bij__92e13d56.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #313 |
+| 314 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_dozen_staan_klaar_naar_de_ver_bac6a78e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #314 |
+| 315 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_dozen_staan_klaar_naar_de_ver_596f56a7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #315 |
+| 316 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_verhuisbus_staat_voor_het_hui_1a6213e6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #316 |
+| 317 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_verhuisbus_staat_voor_het_hui_c10d0560.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #317 |
+| 318 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/instappen_tammo_rijdt_rustig_7b1e92a9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #318 |
+| 319 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/rustig_rijden_niet_om_de_spullen_39698032.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #319 |
+| 320 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/rustig_rijden_niet_om_de_spullen_8234dbba.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #320 |
+| 321 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/een_buurtfeest_op_het_erf_in_lop_2616ebd4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #321 |
+| 322 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/een_buurtfeest_op_het_erf_in_lop_50020713.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #322 |
+| 323 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/tafels_op_het_erf_blijf_staan_to_c000632a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #323 |
+| 324 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/tafels_op_het_erf_blijf_staan_to_aa717e1c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #324 |
+| 325 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_foto_hangt_in_de_gang_waar_je_e13e3c7c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #325 |
+| 326 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_foto_hangt_in_de_gang_waar_je_8d7e09ba.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #326 |
+| 327 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/een_hooiberg_op_de_heide_ten_noo_1080b90b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #327 |
+| 328 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/een_hooiberg_op_de_heide_ten_noo_a6ef2d47.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #328 |
+| 329 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/aanvallen_eerst_de_gracht_lammer_21ccc193.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #329 |
+| 330 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/aanvallen_eerst_de_gracht_lammer_9d72285e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #330 |
+| 331 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/wubbo_staat_bij_de_lier_hij_open_70d8aa4a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #331 |
+| 332 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/wubbo_staat_bij_de_lier_hij_open_60e1ea73.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #332 |
+| 333 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/boven_jullie_komt_meel_hoofd_oml_05122999.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #333 |
+| 334 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/boven_jullie_komt_meel_hoofd_oml_dc71c330.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #334 |
+| 335 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/blijf_op_het_bolwerk_staan_tot_d_91f0e960.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #335 |
+| 336 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/blijf_op_het_bolwerk_staan_tot_d_0b423f46.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #336 |
+| 337 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/het_tweede_bolwerk_de_duiven_lui_4209ae51.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #337 |
+| 338 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/het_derde_bolwerk_tinus_trekt_de_6d7ab59c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #338 |
+| 339 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/het_derde_bolwerk_tinus_trekt_de_95651283.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #339 |
+| 340 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/blijf_op_het_bolwerk_staan_tot_d_23d6f271.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #340 |
+| 341 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/blijf_op_het_bolwerk_staan_tot_d_9a253293.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #341 |
+| 342 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/drie_vlaggen_naar_de_poort_beren_1a9344a6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #342 |
+| 343 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/drie_vlaggen_naar_de_poort_beren_a868d1cf.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #343 |
+| 344 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_snackwagen_staat_open_iederee_0a1ce2d5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #344 |
+| 345 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_snackwagen_staat_open_iederee_38820ad8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #345 |
+| 346 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_rij_staat_binnen_achter_de_gl_bb1d8947.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #346 |
+| 347 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_rij_staat_binnen_achter_de_gl_0743bdf5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #347 |
+| 348 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/blijf_in_de_rij_staan_tot_4117_w_679bfc91.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #348 |
+| 349 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/blijf_in_de_rij_staan_tot_4117_w_830e2386.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #349 |
+| 350 | Keuzegesprekken | Loketbediende (Autonoe) | `lines/loketbediende/welk_formulier_had_u_nodig_7c955923.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #350 |
+| 351 | Keuzegesprekken | Loketbediende (Autonoe) | `lines/loketbediende/en_waar_haalt_u_de_stempel_0834d0ca.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #351 |
+| 352 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/alles_bij_elkaar_nu_inschrijven__c1c11d35.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #352 |
+| 353 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/alles_bij_elkaar_nu_inschrijven__8d8ac02a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #353 |
+| 354 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/eerst_de_grote_markt_vijftienhon_424120cf.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #354 |
+| 355 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/eerst_de_grote_markt_vijftienhon_affd2864.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #355 |
+| 356 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/in_de_kooi_van_de_kraan_lammert__1683774a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #356 |
+| 357 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/in_de_kooi_van_de_kraan_lammert__2c8123c9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #357 |
+| 358 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/van_boven_zag_je_hem_de_blauwe_n_f4086149.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #358 |
+| 359 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/van_boven_zag_je_hem_de_blauwe_n_ff7df391.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #359 |
+| 360 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/papieren_eruit_papieren_erin_eve_b99da06f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #360 |
+| 361 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/papieren_eruit_papieren_erin_eve_b9751011.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #361 |
+| 362 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/klaar_terug_naar_de_kade_voor_he_0e3246ab.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #362 |
+| 363 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/klaar_terug_naar_de_kade_voor_he_52a29308.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #363 |
+| 364 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_auto_blijft_bij_de_sluis_lamm_2a083678.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #364 |
+| 365 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_auto_blijft_bij_de_sluis_lamm_447f169f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #365 |
+| 366 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/instappen_de_trekker_limo_van_je_d9cbd146.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #366 |
+| 367 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/instappen_de_trekker_limo_van_je_80c774db.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #367 |
+| 368 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/naar_de_sluis_van_delfzijl_over__24b97c12.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #368 |
+| 369 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/naar_de_sluis_van_delfzijl_over__f2ecbc57.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #369 |
+| 370 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/roelfiens_rode_gewasspuiter_staa_e9f47e39.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #370 |
+| 371 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/opstijgen_en_laag_over_het_graan_5ebb9c06.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #371 |
+| 372 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/opstijgen_en_laag_over_het_graan_4b4f21a9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #372 |
+| 373 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/spandoek_opgepikt_laag_blijven_n_028b69f4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #373 |
+| 374 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/spandoek_opgepikt_laag_blijven_n_d71247b8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #374 |
+| 375 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/ze_lezen_het_door_de_rij_kramen_3b76a234.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #375 |
+| 376 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/ze_lezen_het_door_de_rij_kramen_6143a3f3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #376 |
+| 377 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/voorbij_de_kermis_nu_terug_naar__959c5f21.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #377 |
+| 378 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/voorbij_de_kermis_nu_terug_naar__89cd0799.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #378 |
+| 379 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/terug_naar_de_strook_gas_terug_m_4167ca05.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #379 |
+| 380 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/terug_naar_de_strook_gas_terug_m_7053dbe9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #380 |
+| 381 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/podium_in_de_kiezelrace_dan_vert_48887f24.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #381 |
+| 382 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/podium_in_de_kiezelrace_dan_vert_1d8eb0c2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #382 |
+| 383 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/instappen_de_tankwagen_staat_bij_ce5b97f5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #383 |
+| 384 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/instappen_de_tankwagen_staat_bij_325c65a4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #384 |
+| 385 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/instappen_bij_dijkstra_spatie_om_64a6e3c8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #385 |
+| 386 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/instappen_bij_dijkstra_spatie_om_101e075b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #386 |
+| 387 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/loop_langs_drie_tenten_en_drink__8059ba59.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #387 |
+| 388 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/loop_langs_drie_tenten_en_drink__0f02c918.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #388 |
+| 389 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/die_pan_staat_hier_al_sinds_gist_0c3ca9ea.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #389 |
+| 390 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dat_is_een_pan_met_een_verhaal_b4ad0266.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #390 |
+| 391 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/het_verhaal_heet_wie_wast_hem_af_1e74667c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #391 |
+| 392 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_morgen_06f3414d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #392 |
+| 393 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/wie_neemt_de_badkamer_als_eerste_336b767f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #393 |
+| 394 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ik_ik_sta_er_al_drie_minuten_voo_e8f17e9b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #394 |
+| 395 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/je_zit_hier_aan_tafel_fea6e5c5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #395 |
+| 396 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/in_gedachten_cd1938da.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #396 |
+| 397 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/wie_heeft_mijn_yoghurt_opgegeten_bbae9fba.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #397 |
+| 398 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/er_stond_geen_naam_op_b7efcbb8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #398 |
+| 399 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/er_stond_tessa_op_b9de03ab.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #399 |
+| 400 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_las_dat_als_een_suggestie_94c081ce.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #400 |
+| 401 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/koffie_f36dc5b3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #401 |
+| 402 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ja_eh_nee_ja_c9337043.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #402 |
+| 403 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_zet_er_twee_neer_dan_kies_jij_841b8af1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #403 |
+| 404 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_is_eigenlijk_heel_redelijk_90a24600.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #404 |
+| 405 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ik_heb_een_schoonmaakrooster_gem_a2c5009f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #405 |
+| 406 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_zie_mijn_naam_zeven_keer_4c93519f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #406 |
+| 407 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ik_zie_jouw_pan_zeven_keer_f860a899.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #407 |
+| 408 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dat_is_een_eerlijke_ruil_538fc4bb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #408 |
+| 409 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/je_wekker_ging_om_zes_uur_af_b3a0faa4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #409 |
+| 410 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_weet_ik_ik_leg_hem_ver_weg_15c690f5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #410 |
+| 411 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dat_wist_de_hele_flat_nu_ook_036f0bde.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #411 |
+| 412 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dan_zijn_we_eerlijk_tegen_elkaar_27338a29.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #412 |
+| 413 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/roerei_of_spiegelei_fbb82d0d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #413 |
+| 414 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/wat_wordt_het_als_jij_er_verstan_c5e35f06.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #414 |
+| 415 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/roerei_dan_zie_je_niet_dat_het_m_6fa95b47.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #415 |
+| 416 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ik_eet_het_toch_op_5923d272.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #416 |
+| 417 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/proef_eens_f7f31f40.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #417 |
+| 418 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/het_is_goed_97201844.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #418 |
+| 419 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_zeg_je_altijd_1f2a3223.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #419 |
+| 420 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/omdat_het_altijd_goed_is_d92e590d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #420 |
+| 421 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/je_hebt_een_kruimel_op_je_kin_1e0cca39.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #421 |
+| 422 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/waar_c8edf50c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #422 |
+| 423 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/links_nee_jouw_links_6b2fbb5a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #423 |
+| 424 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/nu_zit_hij_op_je_mouw_b7a485bc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #424 |
+| 425 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/je_haar_zit_anders_644e671d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #425 |
+| 426 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/het_is_dinsdag_a7479158.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #426 |
+| 427 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/het_staat_je_goed_op_dinsdag_d90c71d7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #427 |
+| 428 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dank_je_eet_je_boterham_8ee2f095.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #428 |
+| 429 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_heb_een_eierbal_gebakken_voor_cc47fdbb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #429 |
+| 430 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/hij_is_vierkant_66cb3b09.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #430 |
+| 431 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/hij_is_creatief_edae7e63.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #431 |
+| 432 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ik_eet_hem_toch_op_voor_de_vrien_d412758c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #432 |
+| 433 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/als_we_winnen_wat_dan_13f04b08.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #433 |
+| 434 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dan_krijgt_de_frietwagen_een_nie_8a2c5b1e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #434 |
+| 435 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/een_lamp_50e0b284.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #435 |
+| 436 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/een_grote_zodat_jij_hem_ziet_d9bbeb81.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #436 |
+| 437 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/wat_kijken_we_db231066.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #437 |
+| 438 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/maakt_niet_uit_6bb74591.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #438 |
+| 439 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/omdat_jij_naast_me_zit_be3522fc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #439 |
+| 440 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_was_aardig_zet_maar_iets_aan_696edcd0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #440 |
+| 441 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dit_nummer_ken_ik_e32aa27a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #441 |
+| 442 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dans_je_mee_8a0a7d71.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #442 |
+| 443 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/in_de_keuken_5747ce43.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #443 |
+| 444 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/overal_waar_jij_staat_3baa671e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #444 |
+| 445 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/goedemorgen_9cc8e12a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #445 |
+| 446 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/koffie_staat_klaar_027f0493.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #446 |
+| 447 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/je_bent_de_beste_2f6f533c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #447 |
+| 448 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/wacht_ik_moet_even_gaan_zitten_c976ceff.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #448 |
+| 449 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/eerst_de_vismarkt_c7c3faaa.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #449 |
+| 450 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dan_de_kade_7aff1578.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #450 |
+| 451 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/en_daarna_95bcc718.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #451 |
+| 452 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/daarna_iets_met_jou_08fdcd3e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #452 |
+| 453 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_staat_al_op_de_lijst_b670c12b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #453 |
+| 454 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/met_melk_niet_te_veel_2d33f190.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #454 |
+| 455 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/je_weet_het_nog_43472179.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #455 |
+| 456 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ik_weet_alles_van_jou_cd14dfdc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #456 |
+| 457 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dat_is_veel_6de340a5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #457 |
+| 458 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/het_is_tweee_ntwintig_graden_631b8d35.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #458 |
+| 459 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_zeg_je_elke_dag_439b008d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #459 |
+| 460 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/omdat_ik_het_fijn_vind_fccf497e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #460 |
+| 461 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/het_is_stil_in_de_flat_ce68a564.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #461 |
+| 462 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/niemand_zoekt_ons_ac33b0eb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #462 |
+| 463 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_is_nieuw_e5b8edc6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #463 |
+| 464 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_wen_eraan_f6cb9f1f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #464 |
+| 465 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/roerei_zoals_jij_het_wilt_04f2dcd3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #465 |
+| 466 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/zonder_dat_het_mislukt_is_4321bb33.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #466 |
+| 467 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dat_was_de_oefening_43009ff6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #467 |
+| 468 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/en_dit_is_de_les_42c3b3a8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #468 |
+| 469 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/hoeveel_woorden_waren_het_ook_al_d34c455f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #469 |
+| 470 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/vijf_98324fee.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #470 |
+| 471 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/zeg_ze_nog_eens_26f4f9ff.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #471 |
+| 472 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/je_wast_af_2da188bd.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #472 |
+| 473 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_zei_toch_morgen_597766da.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #473 |
+| 474 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_was_twee_weken_geleden_38580660.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #474 |
+| 475 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_ben_een_man_van_mijn_woord_22c2d0db.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #475 |
+| 476 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/wat_doen_we_vandaag_a4252802.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #476 |
+| 477 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/niks_a0b352a1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #477 |
+| 478 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/niks_is_een_goed_plan_073a6a22.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #478 |
+| 479 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dan_is_het_al_gelukt_390e85a2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #479 |
+| 480 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/rikus_zegt_dat_het_zomer_blijft_f3e0692a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #480 |
+| 481 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/rikus_heeft_altijd_gelijk_0b3dddc3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #481 |
+| 482 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_zegt_hij_zelf_ook_5ac623dd.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #482 |
+| 483 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dan_zal_het_wel_kloppen_4bcf6172.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #483 |
 
-De wachtrij heeft 469 clips (2 manifest(en): lines, hints).
+De wachtrij heeft 483 clips (3 manifest(en): lines, sms, hints).
 
 ## 2. Wacht op een Groningse spreektekst of stemkeuze
 
 | Stap | Reden | Regels |
 |---|---|---|
 | E | Groningse spreektekst ontbreekt | 10 |
-| M00 | Groningse spreektekst ontbreekt | 2 |
+| M00 | Groningse spreektekst ontbreekt | 3 |
 | M02 | Groningse spreektekst ontbreekt | 5 |
 | M03 | Groningse spreektekst ontbreekt | 6 |
 | M04 | Groningse spreektekst ontbreekt | 8 |
@@ -511,12 +525,13 @@ De wachtrij heeft 469 clips (2 manifest(en): lines, hints).
 | M17 | Groningse spreektekst ontbreekt | 5 |
 | M18 | Groningse spreektekst ontbreekt | 9 |
 | M19 | Groningse spreektekst ontbreekt | 8 |
+| M20 | Groningse spreektekst ontbreekt | 1 |
 | M21 | Groningse spreektekst ontbreekt | 14 |
-| M22 | Groningse spreektekst ontbreekt | 1 |
+| M22 | Groningse spreektekst ontbreekt | 5 |
 | M23 | Groningse spreektekst ontbreekt | 1 |
 | M24 | Groningse spreektekst ontbreekt | 7 |
 | M25 | Groningse spreektekst ontbreekt | 4 |
-| M26 | Groningse spreektekst ontbreekt | 13 |
+| M26 | Groningse spreektekst ontbreekt | 26 |
 | M27 | Groningse spreektekst ontbreekt | 2 |
 | M28 | Groningse spreektekst ontbreekt | 1 |
 | M29 | Groningse spreektekst ontbreekt | 1 |
@@ -530,7 +545,7 @@ De wachtrij heeft 469 clips (2 manifest(en): lines, hints).
 | M25 | stemkeuze ontbreekt in CAST | 6 |
 | M30 | stemkeuze ontbreekt in CAST | 1 |
 
-Alle 207 regels staan met bron, spreker, stem en beoogde bestandsnaam in `TTS-OPNAMELIJST-735.jsonl` (status `stemkeuze` of `spreektekst`); die kunnen pas in de wachtrij als de stem of de spreektekst er is.
+Alle 226 regels staan met bron, spreker, stem en beoogde bestandsnaam in `TTS-OPNAMELIJST-735.jsonl` (status `stemkeuze` of `spreektekst`); die kunnen pas in de wachtrij als de stem of de spreektekst er is.
 
 ## 3. Technische laadhint (aparte beslissing)
 
@@ -545,4 +560,4 @@ De nieuwe laadhint `"De weg hier wordt nog geladen. Even wachten…"` staat bewu
 
 ## 5. Verschil met #735
 
-Het issue telt 670 regels/671 clips (67 klaar + 604 wachtend, plus de laadhint van 2 clips). De huidige bronnen geven 676 regels/clips: 469 klaar + 207 wachtend. Dat verschil komt doordat `script.json`, `gronings_spoken.json` en de opnames sinds 6-11 zijn bijgewerkt; deze lijst volgt de code, niet het issue.
+Het issue telt 670 regels/671 clips (67 klaar + 604 wachtend, plus de laadhint van 2 clips). De huidige bronnen geven 709 regels/clips: 483 klaar + 226 wachtend. Dat verschil komt doordat `script.json`, `gronings_spoken.json` en de opnames sinds 6-11 zijn bijgewerkt; deze lijst volgt de code, niet het issue.

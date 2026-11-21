@@ -1,7 +1,9 @@
 import { gridItems } from './spatialgrid.js';
 import { phosphorInBox, PH_SHOP } from './mapglyphs.js';
 import { KEYS } from './storagekeys.js';
-import { loadTuning, tuningEffects } from './tuningplan.js';
+import { loadTuning, tuningEffects, sanitizeTuning, tuningKind } from './tuningplan.js';
+import { attachStoredLook } from './vehiclelookstore.js';
+import { lookKind, parseLook } from './vehiclelook.js';
 import { DIEREN, dierById } from './dierenregister.js';
 import { loadBezit, saveBezit, koop, upgrade, koopBlokkade, upgradeBlokkade, stemming, PLEK_MAX } from './dierenbezit.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
@@ -20,7 +22,7 @@ export { SHOP_TYPES, VEHICLE_STOCK };
 import { BOAT_KINDS } from './boattypes.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { getHorecaForRender } from './horeca.js';
-import { initShopUi, openShopMenu, isShopOpen } from './shopui.js';
+import { initShopUi, openShopMenu, isShopOpen, closeShopMenu } from './shopui.js';
 import { voegEtenToe } from './eten.js';
 import { isCinematicActive } from './cinematics.js';
 import { recordStat, recordUnique, isUnlocked } from './achievements.js';
@@ -45,6 +47,7 @@ import {
 import { HAIR_COLORS, HAIR_STYLES, hairPrice, parseHair, HAIR_REACTIONS } from './clothinghair.js';
 import { SETS, setKeyFor, parsePiece } from './clothingdata.js';
 import { shopSections, wardrobeSections } from './clothingpanel.js';
+import { sfxEvent } from './sfx/haken.js';
 import { wantedClearCooldownLeft, markWantedCleared } from './heatcooldown.js'; // #838: spuiterij-cooldown
 
 export const SHOP_USE_RADIUS = 2.6;
@@ -544,7 +547,7 @@ export function spawnStockVehicle(world, key, x, y, angle) {
 // boot (die op het water van de host komt te liggen) en zijn heli. Hij staat niet
 // in de collectie van de host en komt dus niet in zijn save; de host ruimt hem op
 // als de gast weggaat (coopbezit.js).
-export function spawnSharedVehicle(world, { spec, color, upgrades, health, dents, flat }, x, y, angle) {
+export function spawnSharedVehicle(world, { spec, color, upgrades, health, dents, flat, tuning }, x, y, angle) {
   if (!spec) return null;
   const v = spawnOwned(world, { key: null, spec, color: color || spec.color, upgrades: upgrades || [], health, dents, flat }, x, y, angle ?? 0);
   // spawnOwnedBoat bouwt de boot kaal op: de onderdelen en schade van de gast
@@ -554,6 +557,13 @@ export function spawnSharedVehicle(world, { spec, color, upgrades, health, dents
     if (Number.isFinite(health)) v.health = Math.max(5, Math.min(100, health));
     if (Array.isArray(dents) && dents.length) v.dentLog = dents.slice(0, 12);
     if (flat === true) v.flat = true;
+  }
+  // de onderdelen en het uiterlijk van de gast (epic Autotuning #1155): alleen op de kopie, niet in de opslag van de host
+  if (v && tuning) {
+    const kind = lookKind(v);
+    if (tuning.parts) { const p = sanitizeTuning(tuning.parts, tuningKind(v)); if (Object.keys(p).length) v.tuning = tuningEffects(p); }
+    const l = kind && tuning.look ? parseLook(tuning.look, kind) : null;
+    if (l && Object.keys(l).length) v.look = l;
   }
   return v;
 }
@@ -709,6 +719,7 @@ function pay(world, price) {
   if (world.money < price) return false;
   noteMoney('Winkels');
   world.money -= price;
+  sfxEvent(world, 'shop_buy_coins');   // SFX ronde 5: munten op de toonbank, naast de kassa van de UI
   world.kassaKlik = true;   // sfx/ui.js: een aankoop klinkt als een kassa, geen muntjes (SFX-GAPS)
   recordStat(world, 'purchases');
   recordStat(world, 'spent', price);
@@ -772,6 +783,22 @@ export function vehicleStats(model, kind, after = null) {
 const vehicleKind = (v) => v.isBoat ? 'boat' : v.isBike ? 'bike' : v.isScooter ? 'scooter' : 'car';
 
 // Your own vehicle as the preview shows it (optionally in another colour).
+// De pimp-werkplaats (tuningworkshopui.js, epic Autotuning #1155) meldt hier zijn opener aan, zodat shops.js hem niet
+// hoeft te importeren. pimpEntryItem is de regel die elke werkplaats (garage, werf, fietsenmaker, tuningwinkel) laat zien.
+let tuningOpener = null;
+export function setTuningOpener(fn) { tuningOpener = fn; }
+export function pimpEntryItem(world, v, site) {
+  if (!tuningOpener || !v || !(v.isHeroCar || v.playerOwned) || !lookKind(v)) return null;
+  if (world.coopRole === 'client') return null; // samen spelen: voertuigen en tuning alleen in je eigen spel
+  const spec = { ...vehiclePreviewOf(v), ...(v.look ? { tune: v.look } : {}) };
+  return {
+    id: 'u-pimp', label: 'Pimp-werkplaats', price: 0, plain: true, preview: spec,
+    desc: 'Lak, strepen, velgen, spoiler, underglow en meer. Je ziet alles eerst op je voertuig; pas bij Installeren betaal je.',
+    tag: v.look && Object.keys(v.look).length ? 'Gepimpt' : '',
+    buy() { closeShopMenu({ save: false }); setTimeout(() => tuningOpener(world, v, site), 0); return ''; },
+  };
+}
+
 export function vehiclePreviewOf(v, color) {
   const model = color && v.isPolice ? { ...v.model, resprayed: true } : v.model;
   return { kind: vehicleKind(v), model, color: color || (v.model && v.model.color), nameIdx: v.id % 6, flags: v.isHeroCar ? { isHeroCar: true } : v.isPolice ? { isPolice: true } : v.isTaxi ? { isTaxi: true } : null };
@@ -1014,6 +1041,8 @@ function workshopSections(world, shop, twoWheel) {
       return `${u.label} erop. Je ${name} gaat als een speer!`;
     },
   }));
+  const pimp = pimpEntryItem(world, v, { id: shop.id ?? shop.name, name: shop.name, kind: boat ? 'werf' : twoWheel ? 'fietsenmaker' : 'tuning', region: shop.region });
+  if (pimp) items.unshift(pimp);
   const fixPrice = boat ? 25 : twoWheel ? 5 : 35;
   items.push({
     id: 'u-fix', label: boat ? 'Romp plamuren & lakken' : twoWheel ? 'Band plakken & rechtzetten' : 'Deuken eruit', desc: 'Weer helemaal heel', price: fixPrice,
@@ -1702,6 +1731,9 @@ function applyTuningTo(v, key) {
     const all = loadTuning(typeof localStorage !== 'undefined' ? localStorage : null, KEYS.tuning);
     if (key && all[key]) v.tuning = tuningEffects(all[key]);
   } catch (e) { /* zonder opslag geen onderdelen */ }
+  // en het uiterlijk uit de pimp-werkplaats (vehiclelook.js, epic Autotuning #1155)
+  const kind = lookKind(v);
+  if (kind && key) attachStoredLook(v, key, KEYS.tuningLook, undefined, kind);
 }
 
 function spawnOwned(world, o, x, y, angle = null, z = null) {

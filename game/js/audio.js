@@ -13,6 +13,7 @@ import { createSamples, SAMPLE_INFO, vervangSleutel, variatie, autoDeurPlan, sli
 import { initAmbience, updateAmbience, ambienceStats, getPlace } from './sfx/ambience.js';
 import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
 import { speel as speelMissieSting, stingVanEvent, medailleSting } from './sfx/stingen.js';
+import { isSfxEvent, eventCoolOk } from './sfx/sfxmap.js';
 import { initUiSfx, uiFx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } from './sfx/ui.js';
 import { updateSkySfx } from './sfx/sky.js';
 import { keysReady, PLANE_KEYS, BOAT_KEYS } from './sfx/aircraft.js';
@@ -573,6 +574,7 @@ function playExplosion(x, y) {
 // variant, the speed-of-sound delay and an air low pass from sfx/mixplan.js
 // (the panner does the distance gain). false while the sample still renders.
 const fxLastAt = new Map();
+const sfxEventLast = new Map();
 const FX_MIN_GAP = 0.12;
 // why an effect did not sound, for the QA run (scripts/qa/sfx_levels.mjs)
 const fxStats = { played: 0, notReady: 0, far: 0, noOut: 0, gap: 0 };
@@ -580,7 +582,11 @@ export function sfxStats() { return { ...fxStats, size: bank ? bank.size() : -1,
 function playFx(name, x, y, opts = {}) {
   // een opname in plaats van de synth (sfx/samples.js FX_VERVANG, SFX ronde 3): alleen als hij geladen is
   const rec = samples ? vervangSleutel(name, (k) => samples.has(k)) : null;
-  if (rec && ctx) return playSample(rec, x, y, { gain: opts.gain });
+  if (rec && ctx) {
+    // an event of the central sound map (sfx/sfxmap.js): a cool-down per event, not per clip
+    if (isSfxEvent(name) && !eventCoolOk(sfxEventLast, name, ctx.currentTime)) return true;
+    return playSample(rec, x, y, { gain: opts.gain });
+  }
   const info = FX_INFO[name] || FX_INFO[`${name}_0`];
   if (!ctx || !bank || !info) return false;
   // the same effect twice within a blink (two events for one thing) is one
@@ -1041,6 +1047,8 @@ function playSplash(x, y) {
 
 // Two slightly detuned horn discs; low < 1 for vans/buses, boats honk deep.
 function playHorn(x, y, duration = 0.4, low = 1) {
+  // SFX ronde 5: een korte toeter is vaak een echte opname (sfxmap.js car_horn_short); een lange of lage claxon blijft synth
+  if (duration <= 0.45 && low === 1 && Math.random() < 0.5 && playFx('car_horn_short', x, y)) return;
   const out = spatialOut(x, y, { ref: 6, rolloff: 1, range: 90 });
   if (!out) return;
   const d = 1 + (Math.random() - 0.5) * 0.04;
@@ -1568,6 +1576,7 @@ export function playEindkaartGeluid(naam, i = 0) {
   const sting = { bus: stingBus, prio: 2 };
   switch (naam) {
     case 'whoosh':
+      if (uiFx('ui_endcard_whoosh')) break;   // SFX ronde 5: een opname (sfxmap.js), de synth blijft de terugval
       playNoiseBurst({ duration: 0.24, freq: 500, freqEnd: 2600, q: 0.8, gain: 0.07, type: 'bandpass', ...sting });
       break;
     case 'inslag':
@@ -1603,6 +1612,7 @@ export function playPrestatieMoment(naam, i = 0, goud = false) {
   const sting = { bus: stingBus, prio: 2 };
   switch (naam) {
     case 'slag':
+      if (goud) uiFx('ui_achievement');   // SFX ronde 5: een kort fanfaretje bij goud (sfxmap.js)
       playTone({ freq: 150, freqEnd: 52, type: 'sine', duration: 0.22, gain: goud ? 0.2 : 0.15, ...sting });
       playNoiseBurst({ duration: 0.05, freq: 2400, freqEnd: 900, q: 0.8, gain: 0.05, type: 'highpass', ...sting });
       break;
@@ -2603,9 +2613,9 @@ function playAudioEvents(world) {
       case 'shout': playShout(x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'hiccup': playHiccup(x, y, !!e.female); break;
       case 'weapon': playWeaponSfx(e, x, y); break;
-      case 'giggle': playGiggle(x, y, !!e.female); break;
-      case 'door_open': if (!(e.auto && playAutoDeur(x, y)) && !(e.wood && playFx('door_wood_open', x, y))) playDoor(x, y, true); doorDelay = 0.3; break;
-      case 'door_close': if (!(e.auto && playAutoDeur(x, y)) && !(e.wood && playFx('door_wood_close', x, y))) playDoor(x, y, false); break;
+      case 'giggle': if (!(Math.random() < 0.5 && playFx(Math.random() < 0.5 ? 'npc_laugh' : 'npc_chuckle', x, y))) playGiggle(x, y, !!e.female); break;   // SFX ronde 5: soms een echte lach
+      case 'door_open': if (!(e.auto && playAutoDeur(x, y)) && !(e.wood && Math.random() < 0.5 && playFx('door_interior_open', x, y)) && !(e.wood && playFx('door_wood_open', x, y))) playDoor(x, y, true); doorDelay = 0.3; break;
+      case 'door_close': if (!(e.auto && playAutoDeur(x, y)) && !(e.wood && Math.random() < 0.5 && playFx('door_interior_close', x, y)) && !(e.wood && playFx('door_wood_close', x, y))) playDoor(x, y, false); break;
       case 'sample': playSample(e.key, x, y, e); break;   // een opname van sfx/samples.js (treindeuren)
       // a minigame foot on the run-up (pg_fierljep.js) and a boat hitting a bridge (rondvaartchase.js)
       case 'step': playBuf('prop_wood', { out: spatialOut(x, y, { ref: 4, range: 50 }) || undefined, gain: 0.12 + clamp(e.strength ?? 0.5, 0, 1) * 0.2, rate: 0.9 + Math.random() * 0.2 }); break;

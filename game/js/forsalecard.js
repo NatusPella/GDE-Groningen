@@ -61,4 +61,4 @@ export function offerCardHtml(offer, { stap = null, melding = '', money = 0 } = 
 }
 
 // De regel voor de tooltip en de hover: "Wierdeakker bij Winsum (K0482) · te koop €12.350".
-export const hoverSub = (offer) => (offer ? `${offer.kindName} · ${String(offer.ha.toFixed(1)).replace('.', ',')} ha · ${offer.mine ? 'van jou' : offer.claim ? `van ${offer.claim.name}` : offer.forSale ? `te koop ${euro(offer.price)}` : 'niet te koop'}` : '');
+export const pointerSub = (offer) => (offer ? `${offer.kindName} · ${String(offer.ha.toFixed(1)).replace('.', ',')} ha · ${offer.mine ? 'van jou' : offer.claim ? `van ${offer.claim.name}` : offer.forSale ? `te koop ${euro(offer.price)}` : 'niet te koop'}` : '');

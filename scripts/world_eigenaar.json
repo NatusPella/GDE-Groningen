@@ -1737,6 +1737,20 @@
       "max": 2,
       "reden": "ruimt voetgangers op die buiten de geladen straten raken (de straatbevolking beheert wie er staat)",
       "issue": "#1047"
+    },
+    {
+      "veld": "money",
+      "bestand": "game/js/bezitui.js",
+      "max": 1,
+      "reden": "het Bezit-scherm betaalt een aankoop of ontvangt een opbrengst van de speler van dit apparaat (hoofdspeler); de rekenregels staan in bezit*.js, economy.js blijft de eigenaar van het saldo",
+      "issue": "#1095"
+    },
+    {
+      "veld": "uiPaused",
+      "bestand": "game/js/tuningworkshopui.js",
+      "max": 2,
+      "reden": "de werkplaats van de tuning (#1150) zet de wereld stil zolang het venster open is en geeft hem weer vrij bij sluiten, net als andere vensters met world.uiPaused",
+      "issue": "#1150"
     }
   ]
 }

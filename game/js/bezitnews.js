@@ -8,9 +8,9 @@ import * as EV from './bezitevents.js';
 import { clamp, finite } from './bezithash.js';
 
 export const MAX_LINES = 5;
-export const SANDY_REGIONS = ['veenkolonien', 'westerwolde', 'westerkwartier'];     // zandgrond: de droogte slaat daar harder toe
-export const REGION_NAME = { eemsdelta: 'Eemsdelta', veenkolonien: 'Veenkoloniën', oldambt: 'Oldambt', westerkwartier: 'Westerkwartier', hogeland: 'Hogeland', westerwolde: 'Westerwolde', lauwerskust: 'Lauwerskust', hunsingo: 'Hunsingo', overig: 'de provincie' };
-export const regionName = (r) => REGION_NAME[r] || 'de streek';
+export const SANDY_DISTRICTS = ['veenkolonien', 'westerwolde', 'westerkwartier'];     // zandgrond: de droogte slaat daar harder toe
+export const DISTRICT_NAME = { eemsdelta: 'Eemsdelta', veenkolonien: 'Veenkoloniën', oldambt: 'Oldambt', westerkwartier: 'Westerkwartier', hogeland: 'Hogeland', westerwolde: 'Westerwolde', lauwerskust: 'Lauwerskust', hunsingo: 'Hunsingo', overig: 'de provincie' };
+export const districtName = (r) => DISTRICT_NAME[r] || 'de streek';
 
 export const newNews = () => ({ lines: [], scene: null, goodwill: 0, last: 0, seed: '' });
 export function normalizeNews(raw) {
@@ -50,7 +50,7 @@ export function lossOfParcel(parcel, calDay, opts = {}) {
   const key = `${parcel.region}|${parcel.kind}|${Math.floor(calDay)}|${opts.insured ? 1 : 0}|${opts.treated ? 1 : 0}`;
   let v = lossCache.get(key);
   if (!v) {
-    const p = { id: parcel.id, kind: parcel.kind, region: parcel.region, sandy: SANDY_REGIONS.includes(parcel.region), sown: true, treated: opts.treated };
+    const p = { id: parcel.id, kind: parcel.kind, region: parcel.region, sandy: SANDY_DISTRICTS.includes(parcel.region), sown: true, treated: opts.treated };
     const r = EV.parcelLoss(p, calDay, { insured: !!opts.insured });
     v = { mult: Math.round((1 - r.loss) * 1000) / 1000, text: r.causes.map((c) => c.text).join(' '), causes: r.causes };
     if (lossCache.size > 4000) lossCache.clear();
@@ -66,8 +66,8 @@ export function lossOfParcel(parcel, calDay, opts = {}) {
 export function processDay(news, cd, ctx = {}) {
   const out = { money: 0, infect: [], breakdown: [], cooling: [], lines: [] };
   const before = news.lines.length;
-  const regions = (ctx.regions || []).filter((r) => r && r !== 'overig');
-  const list = EV.eventsOn(cd, { ...ctx, regions });
+  const districts = (ctx.regions || []).filter((r) => r && r !== 'overig');
+  const list = EV.eventsOn(cd, { ...ctx, regions: districts });
   const add = (t, k) => { push(news, cd, t, k); out.lines.push(t); };
   for (const e of list) {
     if (!e.first) continue;
@@ -78,11 +78,11 @@ export function processDay(news, cd, ctx = {}) {
     else if (e.id === 'buren') { news.scene = { id: e.scene, start: cd }; add(e.text, 'buren'); }
     else if (e.id === 'veiling') add(e.text, 'kans');
     else if (e.id === 'veilingdag' || e.id === 'landbouwbeurs') add(e.text, 'kans');
-    else add(`${regionName(e.region)}: ${e.text}`, e.kind === 'weer' || e.kind === 'natuur' ? 'weer' : 'nieuws');
+    else add(`${districtName(e.region)}: ${e.text}`, e.kind === 'weer' || e.kind === 'natuur' ? 'weer' : 'nieuws');
   }
-  for (const r of new Set(regions)) {                                  // een dorpsfeest of kermis begint: een regel met de trekkertrek
+  for (const r of new Set(districts)) {                                  // een dorpsfeest of kermis begint: een regel met de trekkertrek
     const f = EV.festivalOn(r, cd);
-    if (f && !EV.festivalOn(r, cd - 1)) add(`${f.name} in ${regionName(r)}${f.kermis ? '' : ': de trekkertrek is begonnen'}. Je winkels draaien extra.`, 'feest');
+    if (f && !EV.festivalOn(r, cd - 1)) add(`${f.name} in ${districtName(r)}${f.kermis ? '' : ': de trekkertrek is begonnen'}. Je winkels draaien extra.`, 'feest');
   }
   // een scène die drie dagen blijft liggen, lost zichzelf op (de buurman gromt, niets kost iets)
   if (news.scene && cd > news.scene.start + 2) news.scene = null;

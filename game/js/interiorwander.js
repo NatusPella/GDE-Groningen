@@ -76,5 +76,5 @@ export function stepWanderer(w, dt, speed = WALK_SPEED) {
 }
 
 // who walks around: people on their feet with a role that browses (the staff behind a counter and the seated stay)
-export const WANDER_ROLES = new Set(['klant', 'gast', 'reiziger', 'bezoeker', 'lezer', 'bewoner']);
+const WANDER_ROLES = new Set(['klant', 'gast', 'reiziger', 'bezoeker', 'lezer', 'bewoner']);
 export const mayWander = (n) => n.pose !== 'sit' && WANDER_ROLES.has(n.role);

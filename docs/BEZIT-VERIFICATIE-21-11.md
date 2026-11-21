@@ -138,7 +138,7 @@ Gebouwd (onderdelen A tot en met D van de opdracht aan de subagent; nog niets in
 - **A. AI-werkers:** `farmworkers.js` (puur: planning met `visibleJobs`, hoogstens 4, de dichtstbijzijnde, nieuwe binnen 230 m en bestaande tot 330 m, de cel waar de
   werker is, glijden, het uiterlijk van een boer) en `farmworkers3d.js` (een trekker met een figuur uit `buildPersonMesh`, het werktuig van de taak erachter, de cellen
   van het veld kleuren mee via `paintWorkerCell` in `boerderijwereld.js`; geen werkers voor een gast; `disposeObject` bij weggaan; planning twee keer per seconde).
-  De dagtik geeft de bewerkte percelen door (`holdingsmodel` zet `rep.staff.worked`, `bezitlive.dagTik` zet `worked` in het rapport, `bezithooks.onDayReport` zet ze
+  De dagtik geeft de bewerkte percelen door (`holdingsmodel` zet `rep.staff.worked`, `bezitlive.dayTick` zet `worked` in het rapport, `bezithooks.onDayReport` zet ze
   klaar). De haak staat in `main.js` naast `updateBezitMarkers`. De outfit `boer` van epic-kleding is er alleen voor de speler (`shops.js`); de werker heeft dezelfde
   velden in `FARMER_OUTFIT`, een voorman draagt een rode pet.
 - **B. Vee:** `herdview.js` (puur: `herdSummary`, `planHerds`, `animalLayout`) en `herdview3d.js` (de bestaande koe-, schaap- en kipmodellen van `wildlife.js`; hoogstens

@@ -34,7 +34,7 @@ t('menu: doorverwijzing van de oude en de nieuwe naam, standaard op Boerderij', 
 });
 t('overzicht: leeg bezit geeft een uitleg, geen fout', () => {
   reset();
-  const h = U.overviewHtml(ctx(w()));
+  const h = U.summaryHtml(ctx(w()));
   assert.ok(h.includes('Overzicht') && h.includes('Nog niets dringends') === false);
   assert.ok(h.includes('Stel beginner aan'), 'personeel aanstellen');
 });
@@ -42,7 +42,7 @@ t('overzicht: na een koop staat het perceel in de lijst met stand en Doel', () =
   reset();
   const world = w();
   assert.ok(L.koopPerceel(world, 'paaaaaaaaaaa1').ok);
-  const h = U.overviewHtml(ctx(world));
+  const h = U.summaryHtml(ctx(world));
   assert.ok(h.includes('data-row="paaaaaaaaaaa1"') && h.includes('data-bz="doel"') && h.includes('3 ha') && h.includes('Zelf'));
   assert.ok(h.includes('Percelen') && h.includes('Hectare'));
 });
@@ -99,9 +99,9 @@ t('bulkacties: zonder selectie uit, met selectie aan; teksten in het Nederlands'
   const world = w();
   L.koopPerceel(world, 'paaaaaaaaaaa1');
   U.ui.sel.clear();
-  assert.match(U.overviewHtml(ctx(world)), /data-bz="bulk-zaai"[^>]*disabled/);
+  assert.match(U.summaryHtml(ctx(world)), /data-bz="bulk-zaai"[^>]*disabled/);
   U.ui.sel.add('paaaaaaaaaaa1');
-  assert.ok(!/data-bz="bulk-zaai"[^>]*disabled/.test(U.overviewHtml(ctx(world))));
+  assert.ok(!/data-bz="bulk-zaai"[^>]*disabled/.test(U.summaryHtml(ctx(world))));
   assert.equal(U.bulkText('bulk-zaai', { done: 2, skipped: { 'niet-zelf': 1 } }), '2 percelen gezaaid; overgeslagen: 1x niet zelf.');
   assert.equal(U.bulkText('bulk-oogst', { done: 1, skipped: {} }), '1 perceel geoogst.');
   U.ui.sel.clear();
@@ -110,14 +110,14 @@ t('personeel: aanstellen kost niets bij het aanstellen, het loon loopt per dag; 
   reset();
   const world = w();
   assert.ok(L.huurArbeider(world, 1).ok);
-  const h = U.overviewHtml(ctx(world));
+  const h = U.summaryHtml(ctx(world));
   assert.ok(h.includes('1 medewerker') && h.includes('hooguit 80%') && h.includes('data-bz="ontsla"'));
   assert.equal(L.huurArbeider(w(10), 3).ok, false);
 });
 t('filters en sortering: alleen bestaande opties; ongeldige invoer geeft geen fout', () => {
   reset();
   U.ui.sort = 'bestaatniet';
-  assert.doesNotThrow(() => U.overviewHtml(ctx(w())));
+  assert.doesNotThrow(() => U.summaryHtml(ctx(w())));
   U.ui.sort = 'ripe';
 });
 t('de HTML ontsnapt namen', () => {

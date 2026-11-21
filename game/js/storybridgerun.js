@@ -85,7 +85,7 @@ function bindKeys() {
   });
 }
 
-function start(w, view, b) {
+function launchBridgeRun(w, view, b) {
   const sc = scene(b.scene);
   const lines = sc ? talkLines(b.scene) : [];
   // een eerdere romantische keuze geeft hooguit een extra regel (kleur), nooit een ander verloop
@@ -116,7 +116,7 @@ export function updateStoryBridge(dt, w, view, menuOpen) {
   if (forced) {
     const b = BRIDGES.find((x) => x.id === forced);
     forced = null;
-    if (b) { start(w, view, b); return; }
+    if (b) { launchBridgeRun(w, view, b); return; }
   }
   if ((AUTOPLAY || STORY_TEST) && !window.__bridgesOn) return;
   const b = bridgeDue({ done: view.done, flags: view.flags, currentId: view.currentId });
@@ -128,7 +128,7 @@ export function updateStoryBridge(dt, w, view, menuOpen) {
   waitedS += dt;
   const decision = bridgeDecide({ via: b.via, blockers, calmS, waitedS, inVehicle: snap.inVehicle });
   if (decision !== 'speel' || !mayStart('say')) return;
-  start(w, view, b);
+  launchBridgeRun(w, view, b);
 }
 
 // De testbank en de verhaaltest: speel een scène zonder te wachten (alleen via window.__storybridge).

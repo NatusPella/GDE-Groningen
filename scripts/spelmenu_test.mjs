@@ -20,7 +20,9 @@ const b = pm.indexOf('export function initPauseMenu(');
 ok(a > 0 && m > a && b > m, 'settingsHtml, spelHtml en initPauseMenu staan in die volgorde');
 const settingsSrc = pm.slice(a, m), spelSrc = pm.slice(m, b);
 const keysOf = (src) => [...src.matchAll(/(?:slider|toggle|picker)\('(\w+)'/g)].map((x) => x[1]);
-const settingsKeys = keysOf(settingsSrc), spelKeys = keysOf(spelSrc);
+// #1169: de moeilijkheid (niveau per save) heeft een eigen tabblad in difficultypanel.js; het niveau is daar de gewone kiezer data-setting="difficulty"
+const moeilijkheidTab = settingsSrc.includes("tab('moeilijkheid', difficultyTabHtml()") && read('game/js/difficultypanel.js').includes('data-setting="difficulty"');
+const settingsKeys = [...keysOf(settingsSrc), ...(moeilijkheidTab ? ['difficulty'] : [])], spelKeys = keysOf(spelSrc);
 
 // de opties van Instellingen vóór deze wijziging (main, #416): alles staat er nog, op precies één plek
 const VOOR = ['preset', 'resolution', 'autoResolution', 'zuinig', 'shadows', 'drawDistance', 'brightness', 'quality', 'masterVolume', 'musicVolume', 'sfxVolume', 'voiceVolume',
@@ -34,7 +36,7 @@ ok(VOOR.length === 58, 'de lijst van vóór de wijziging heeft 58 opties (53 + #
 ok(VOOR.filter((k) => k !== 'preset').every((k) => NU.includes(k)), 'geen optie verloren', VOOR.filter((k) => k !== 'preset' && !NU.includes(k)).join(', '));
 // #985: nieuwe opties staan hier met hun issuenummer. VOOR blijft de bevroren lijst van main,
 // zodat een optie die zonder uitleg verdwijnt of verschijnt nog steeds opvalt.
-const NIEUW = ['showSubtitles', 'rustigDrukwerk', 'rumbleStrength', 'terugkeerScene', 'uitlegIconen', 'qteStand', 'liveTreinen'];   // #985 punt 4: ondertitels uit; #992: Rustig drukwerk
+const NIEUW = ['showSubtitles', 'rustigDrukwerk', 'rumbleStrength', 'terugkeerScene', 'uitlegIconen', 'qteStand', 'liveTreinen', 'worldColor'];   // #985 punt 4: ondertitels uit; #992: Rustig drukwerk; 21-11: Wereldkleur
 ok(NU.every((k) => VOOR.includes(k) || NIEUW.includes(k)), 'geen optie erbij die geen instelling is', NU.filter((k) => !VOOR.includes(k) && !NIEUW.includes(k)).join(', '));
 ok(new Set(NU).size === NU.length, 'elke optie staat op één plek', NU.filter((k, i) => NU.indexOf(k) !== i).join(', '));
 
@@ -51,11 +53,11 @@ const BLIJFT = ['resolution', 'shadows', 'masterVolume', 'mouseSensitivity', 'in
 ok(BLIJFT.every((k) => settingsKeys.includes(k) && !spelKeys.includes(k)), 'beeld, geluid, besturing, interface en toegankelijkheid blijven onder Instellingen');
 ok(settingsSrc.includes('data-preset-btn'), 'de voorinstellingen staan onder Instellingen > Beeld als knoppen, niet als picker (#435)');
 
-// #891: de moeilijkheid staat bovenaan Instellingen > Spel, met de uitleg van de drie standen ernaast
-const moeilijkheid = settingsSrc.slice(settingsSrc.indexOf("tab('spel'"), settingsSrc.indexOf("tab('besturing'"));
-ok(/picker\('difficulty', 'Moeilijkheid'/.test(moeilijkheid) && moeilijkheid.indexOf("picker('difficulty'") < moeilijkheid.indexOf("picker('ruzie'"), 'de moeilijkheid staat bovenaan het tabblad Spel (#891)');
-ok(/function difficultyRows\(\)/.test(pm) && /pm-diff-row/.test(pm) && /data-diff="\$\{id\}"/.test(pm), 'de drie standen worden met hun gevolgen uitgelegd (#891)');
-ok((settingsSrc.match(/picker\('difficulty'/g) || []).length === 1, 'de moeilijkheid staat op precies één plek');
+// #891, #1169: de moeilijkheid heeft een eigen tabblad Moeilijkheid (difficultypanel.js) met het niveau, de drie niveaus uitgelegd en de opties; het tabblad Spel verwijst ernaar
+const dm = read('game/js/difficultypanel.js');
+ok(moeilijkheidTab && /DIFFICULTY_MODES\.map\(\(m\) => \[m, DIFFICULTY\[m\]\.label\]\)/.test(dm), 'de moeilijkheid heeft een eigen tabblad met het niveau en de drie niveaus (#1169)');
+ok(/function levelRows\(\)/.test(dm) && /pm-diff-row/.test(dm) && /data-diff="\$\{m\}"/.test(dm), 'de drie niveaus worden uitgelegd (#891)');
+ok((dm.match(/data-setting="difficulty" data-options/g) || []).length === 1 && !/picker\('difficulty'/.test(settingsSrc), 'het niveau staat op precies één plek');
 
 // elke optie is een echte instelling (settings.js) en de opslagsleutels zijn dezelfde gebleven
 const settingsJs = read('game/js/settings.js');
@@ -72,7 +74,7 @@ ok(subIds.every((id) => ['overzicht', 'samen'].includes(id) || spelSrc.includes(
 // #979: de twee verhuisde tabbladen staan nu onder Instellingen, met hun eigen inhoud.
 const setSub = (pm.match(/settings: \[((?:\[[^\]]+\],? ?)+)\],/) || [])[1] || '';
 const setIds = [...setSub.matchAll(/\['(\w+)', '([^']+)'\]/g)].map((x) => x[1]);
-ok(setIds.join() === 'video,sound,spel,besturing,camera,display,hints,a11y,online', 'Instellingen heeft Camera en Hints & uitleg naast de bestaande tabbladen en Samen spelen (online) (#979)', setIds.join());
+ok(setIds.join() === 'video,sound,spel,moeilijkheid,besturing,camera,display,hints,a11y,online', 'Instellingen heeft Camera en Hints & uitleg naast de bestaande tabbladen en Samen spelen (online) (#979)', setIds.join());
 ok(setIds.filter((id) => ['camera', 'hints'].includes(id)).every((id) => settingsSrc.includes(`tab('${id}'`)), 'Camera en Hints hebben hun eigen inhoud onder Instellingen');
 ok(!/data-goto-sub="spel:camera"/.test(pm) && !/data-goto-sub="spel:hints"/.test(pm), 'geen enkele knop of verwijzing wijst nog naar Spel > Camera of Spel > Hints');
 ok(/\['spel', 'Spel', '/.test(pm), "'spel' staat in de sectielijst");
@@ -201,7 +203,7 @@ ok(!subIds.includes('spelers') && !pm.includes('data-of="spel" data-sub="spelers
 ok(pm.includes("name === 'samen' || name === 'samenspelen' || name === 'spelers'") && pm.includes("setN('spel', coopN") && pm.includes('world.coopSpelers.length'), 'de oude namen samen, samenspelen en spelers verwijzen naar Spel > Samen spelen; de rijknop Spel toont het aantal spelers');
 ok(read('game/js/main.js').includes("openPauseMenu('samen')"), 'de coöp-melding opent nog openPauseMenu(samen), dat nu naar Spel > Samen spelen gaat');
 ok(!read('scripts/coop/coop.page.js').includes('.ra[data-goto="samen"]') && !read('scripts/coop/coop.page.js').includes('.ra[data-goto="spelers"]'), 'de coöp-QA zoekt geen oude rijknoppen meer');
-ok(!settingsSrc.includes("tab('cheats'") && /\['video', 'Beeld'\], \['sound', 'Geluid & ondertitels'\], \['spel', 'Spelregels'\], \['besturing', 'Besturing'\], \['camera', 'Camera'\], \['display', 'Interface'\], \['hints', 'Hints & uitleg'\], \['a11y', 'Toegankelijkheid'\]/.test(pm), 'Instellingen heeft acht echte instellingstabbladen (met Spel sinds #897, Spelregels sinds #985 en Camera/Hints sinds #979); Cheats staat als eigen onderdeel in de rail (#604)');
+ok(!settingsSrc.includes("tab('cheats'") && /\['video', 'Beeld'\], \['sound', 'Geluid & ondertitels'\], \['spel', 'Spelregels'\], \['moeilijkheid', 'Moeilijkheid'\], \['besturing', 'Besturing'\], \['camera', 'Camera'\], \['display', 'Interface'\], \['hints', 'Hints & uitleg'\], \['a11y', 'Toegankelijkheid'\]/.test(pm), 'Instellingen heeft negen echte instellingstabbladen (met Spel sinds #897, Moeilijkheid sinds #1169, Spelregels sinds #985 en Camera/Hints sinds #979); Cheats staat als eigen onderdeel in de rail (#604)');
 ok(!/\['fouten', 'Foutrapport'\]/.test(pm) && pm.includes('<span>Problemen</span>') && pm.includes('data-errsum'), 'het foutrapport staat onder Over als Problemen met een Nederlandse samenvatting (#604)');
 ok(pm.includes('data-reset-confirm') && pm.includes('data-action="reset-go"') && pm.includes('data-action="reset-undo"') && pm.includes('data-action="reset-cancel"'), 'Standaard herstellen vraagt eerst en kan daarna ongedaan gemaakt worden (#604)');
 ok(pm.includes('const inGameOnly') && /prestart && inGameOnly/.test(pm), 'voor de start zijn Overzicht, Opslaan & stoppen en Samen spelen er niet');

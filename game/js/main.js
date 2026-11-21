@@ -210,10 +210,13 @@ import { tryQuickWaypoint } from './snelwaypoint.js'; // #836: T zet of wist je 
 import { initAchievementTracker, updateAchievementTracker } from './achievementtracker.js';
 import { initOmverrijden } from './omverrijden.js';
 import { initBoerderij, boerderijTijd, boerderijKlokNul } from './boerderijlive.js';
-import { initBezit, dagTik as bezitDagTik, getBezit } from './bezitlive.js';
+import { initBezit, dayTick as bezitDagTik, getBezit } from './bezitlive.js';
+import { setBezitDifficultyProvider } from './bezitdifficulty.js';
+// Bezit leest zijn moeilijkheid via difficulty.js: alleen de omzet (incomeFactor, per speler, 0,75 tot 1,25); aankoopprijs en kosten blijven op 1: er is geen prijsoptie (besluit moeilijkheid #1169).
+setBezitDifficultyProvider((kind) => (kind === 'income' ? incomeFactor() : 1));
 import { onDayReport as bezitOnDayReport, deliverLine as bezitDeliverLine } from './bezitworldhooks.js';
 import { updateFarmWorkers } from './farmworkers3d.js';
-import { updateSnackWagens } from './snackvans3d.js';
+import { updateSnackVans } from './snackvans3d.js';
 import { updateHerds } from './herdview3d.js';
 import { setGateProgress } from './bezitgate.js';
 import { updateBezitMarkers } from './bezitmarker3d.js';
@@ -254,6 +257,7 @@ setSimCarAttach(attachToNearestRoad);
 import { scaledTarget, simLevel, nextSimFrame, farAIDist, skipFar, takeDt, keepVehicle } from './simload.js';
 import { getSettings, magOnline } from './settings.js';
 import { MODS } from './cheatmods.js';
+import { trafficFactor, incomeFactor } from './difficulty.js'; // #1169: Verkeersdrukte per save; incomeFactor voor Bezit
 import { makeDip, triggerDip, dipScale } from './gamefeel.js';
 import { effectsFor } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
@@ -1270,9 +1274,9 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   // samen spelen, spelers uit elkaar (#429): verkeer rond een losse groep spelers, met zijn deel van het totaalbudget (coopfoci.js)
   function verkeerRondFocus(world, f, fa) {
     const key = wijkProfileAt(world.map, f.x, f.y).key;
-    manageTrafficPopulation(world, { target: Math.round(scaledTarget(30) * MODS.cars * fa), focus: f });
-    manageBikePopulation(world, { target: Math.round(scaledTarget(16) * MODS.bikes * fa), focus: f });
-    manageScooterPopulation(world, { target: Math.round(scaledTarget(10) * MODS.scooters * fa), focus: f });
+    manageTrafficPopulation(world, { target: Math.round(scaledTarget(30) * MODS.cars * trafficFactor() * fa), focus: f });
+    manageBikePopulation(world, { target: Math.round(scaledTarget(16) * MODS.bikes * trafficFactor() * fa), focus: f });
+    manageScooterPopulation(world, { target: Math.round(scaledTarget(10) * MODS.scooters * trafficFactor() * fa), focus: f });
     manageMotorPopulation(world, { target: Math.round(scaledTarget(motorTarget(key, hourOf(world))) * MODS.motors * fa), focus: f });
   }
 
@@ -1302,7 +1306,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
       }
       const fociN = world.coopFoci && world.coopFoci.length > 1 ? world.coopFoci.length : 1, fa = aandeel(fociN); // spelers uit elkaar (#429): de foci delen het budget
       if (slot === 'cars') {
-        manageTrafficPopulation(world, { target: Math.round(scaledTarget(30) * MODS.cars * fa) });
+        manageTrafficPopulation(world, { target: Math.round(scaledTarget(30) * MODS.cars * trafficFactor() * fa) });
         probe.mark('pop-traffic');
       } else if (slot === 'bikes') {
         // the centre is full of bikes: eight more cyclists while you are in it
@@ -1316,7 +1320,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
         manageBusPopulation(world);
         probe.mark('pop-bus');
       } else if (slot === 'scooters') {
-        manageScooterPopulation(world, { target: Math.round(scaledTarget(10) * MODS.scooters * fa) });
+        manageScooterPopulation(world, { target: Math.round(scaledTarget(10) * MODS.scooters * trafficFactor() * fa) });
         probe.mark('pop-scooters');
       } else if (slot === 'motors') {
         manageMotorPopulation(world, { target: Math.round(scaledTarget(motorTarget(wijkProfileAt(world.map, hoofdspeler(world).x, hoofdspeler(world).y).key, hourOf(world))) * MODS.motors * fa) });
@@ -1490,7 +1494,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     updateClearZones(dt, world);
     updateDayNight(dt, world);
     boerderijTijd(world); // de gewassen groeien in speltijd (#415)
-    try { const dr = bezitDagTik(world); if (dr) bezitDeliverLine(world, bezitOnDayReport(getBezit(), dr)); updateBezitMarkers(world, dt); updateFarmWorkers(world, dt); updateSnackWagens(world, dt); updateHerds(world, dt); } catch (e) { /* zonder bezit */ } // personeel, pacht, vee en bedrijven per speldag; de palen in de wereld (epic Bezit)
+    try { const dr = bezitDagTik(world); if (dr) bezitDeliverLine(world, bezitOnDayReport(getBezit(), dr)); updateBezitMarkers(world, dt); updateFarmWorkers(world, dt); updateSnackVans(world, dt); updateHerds(world, dt); } catch (e) { /* zonder bezit */ } // personeel, pacht, vee en bedrijven per speldag; de palen in de wereld (epic Bezit)
     updateCalendar(dt, world);
     updateVoetbalDag(dt, world); // de nachten van de voetbalcarrière (#1110): zelfde signaal als de kalender, eigen teller
     updateVoetbalBeats(dt, world);

@@ -37,12 +37,12 @@ export function assignRoleOutfit(fn) { provider = typeof fn === 'function' ? fn 
 // who stands in place `i` of building seed `seed`: { shirt, skin, opts } for buildPersonMesh(shirt, skin, opts)
 // The role pool of the outfit system (clothingdata.js ROLE_POOLS) that dresses each role of an interior; 'sub' (the shop type or
 // the café type) can refine it: a baker wears the baker's pool.
-export const CLOTHING_ROLE = {
+const CLOTHING_ROLE = {
   winkelier: 'winkelier', klant: 'voetganger', barman: 'winkelier', gast: 'voetganger', receptionist: 'zakenman', medewerker: 'zakenman',
   bewoner: 'voetganger', koster: 'zakenman', bezoeker: 'voetganger', loketmedewerker: 'zakenman', reiziger: 'toerist', bibliothecaris: 'winkelier',
   lezer: 'student', monteur: 'bouwvakker', baliemedewerker: 'zakenman',
 };
-export function clothingRole(role, sub = null) {
+function clothingRole(role, sub = null) {
   if (role === 'winkelier' && sub === 'bakker') return 'bakker';
   if ((role === 'winkelier' || role === 'barman') && (sub === 'snackbar' || sub === 'restaurant')) return 'kok';
   if (role === 'gast' && sub === 'kroeg') return 'feestganger';

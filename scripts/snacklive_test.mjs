@@ -18,7 +18,7 @@ const t = (name, fn) => { n++; try { fn(); } catch (e) { fails++; console.log('F
 const nepOpslag = () => { const m = new Map(); return { m, getItem: (k) => (m.has(k) ? m.get(k) : null), setItem(k, v) { m.set(k, String(v)); }, removeItem: (k) => m.delete(k) }; };
 const wereld = (money = 1e6, day = 100) => ({ money, calendar: { day }, msgs: [], addMessage(x) { this.msgs.push(x); } });
 const reset = (store = nepOpslag()) => { L.initBezit({ opslag: store }); BL.initBoerderij({ opslag: store }); L.setClaimLookup(null); L.setClaimSend(null); GT.resetUnlockGate(); return store; };
-const slaap = (w, dagen) => { const f = BL.getBoerderij(); f.uren += dagen * 24; w.calendar.day += dagen; return L.dagTik(w); };
+const slaap = (w, dagen) => { const f = BL.getBoerderij(); f.uren += dagen * 24; w.calendar.day += dagen; return L.dayTick(w); };
 
 t('de poort: zonder akte 5 is het tabblad dicht met uitleg van Tessa; met de poort open kan het', () => {
   reset();
@@ -47,11 +47,11 @@ t('wagen kopen, vergunning, plaatsen: geld eraf, toestand in de opslag, een twee
   const price = SP.permitPrice('dorp', 0);
   assert.equal(w.money, 100000 - price);
   assert.equal(SL.koopVergunning(w, 'dorp').why, 'al-van-jou');
-  assert.equal(SL.zetWagen('dorp').ok, true);
-  assert.equal(SL.koopWagen(w).ok, true); assert.equal(w.money, 100000 - price - 7500);
+  assert.equal(SL.placeVan('dorp').ok, true);
+  assert.equal(SL.buyVan(w).ok, true); assert.equal(w.money, 100000 - price - 7500);
   assert.equal(SL.koopVergunning(w, 'markt').why, 'bezet');                 // Usmem heeft hem
   assert.equal(SL.koopVergunning(wereld(10), 'park').why, 'te-weinig-geld');
-  assert.equal(SL.zetWagen('park').why, 'geen-vergunning');
+  assert.equal(SL.placeVan('park').why, 'geen-vergunning');
   L.markeer(); L.flushBezit && L.flushBezit();
   const raw = JSON.parse(st.getItem(KEYS.bezit) || 'null');
   if (raw) assert.ok(raw.x && raw.x.snack && raw.x.snack.permits.dorp);
@@ -75,15 +75,15 @@ t('claims voor Samen spelen: een medespeler houdt de plek vast, jouw koop wordt 
   assert.equal(SL.koopVergunning(w, 'dorp').ok, true);
   assert.deepEqual(sent, [{ id: 'sp:dorp', action: 'claim' }]);
   L.snackState().permits.dorp.until = 1; L.snackState().own.spot = null;            // laten vervallen
-  const w2 = { ...w, money: 0 }; L.dagTik(w2); slaap(w2, 2);
+  const w2 = { ...w, money: 0 }; L.dayTick(w2); slaap(w2, 2);
   assert.ok(sent.some((m) => m.id === 'sp:dorp' && m.action === 'release'));
   L.setClaimLookup(null); L.setClaimSend(null);
 });
 t('de dagtik: de eigen wagen levert geld (met plafond), vergunningen kosten, de wagen slijt, Usmem breidt uit', () => {
   reset(); const w = wereld(200000, 50);
-  SL.koopWagen(w); SL.koopVergunning(w, 'park'); SL.zetWagen('park');
+  SL.buyVan(w); SL.koopVergunning(w, 'park'); SL.placeVan('park');
   const S = L.snackState(); S.own.stockDays = 5; S.rival.lastEvent = 1e7; S.rival.lastOffer = 1e7;
-  L.dagTik(w);                                                   // zet de dag vast
+  L.dayTick(w);                                                   // zet de dag vast
   const m0 = w.money;
   const rep = slaap(w, 3);
   assert.ok(rep && rep.snack > 300, JSON.stringify(rep));
@@ -92,19 +92,19 @@ t('de dagtik: de eigen wagen levert geld (met plafond), vergunningen kosten, de 
   assert.ok(S.stats.days >= 3);
   assert.ok(S.stats.revenue > 0);
 });
-t('zonder voorraad geen omzet; vulAan kost de rit', () => {
+t('zonder voorraad geen omzet; refillStock kost de rit', () => {
   reset(); const w = wereld(200000, 50);
-  SL.koopWagen(w); SL.koopVergunning(w, 'park'); SL.zetWagen('park');
+  SL.buyVan(w); SL.koopVergunning(w, 'park'); SL.placeVan('park');
   const S = L.snackState(); S.rival.lastEvent = 1e7; S.rival.lastOffer = 1e7; S.own.stockDays = 0;
-  L.dagTik(w); const rep = slaap(w, 1);
+  L.dayTick(w); const rep = slaap(w, 1);
   assert.ok(rep.snack < 150);
-  const m = w.money; assert.equal(SL.vulAan(w).ok, true); assert.equal(w.money, m - SN.RESTOCK_FEE); assert.equal(SL.vulAan(w).ok, false);
+  const m = w.money; assert.equal(SL.refillStock(w).ok, true); assert.equal(w.money, m - SN.RESTOCK_FEE); assert.equal(SL.refillStock(w).ok, false);
 });
 t('de oude frietwagen draait ongewijzigd zolang je geen standplaatsen hebt (geen verandering voor bestaande spelers)', () => {
   reset(); const w = wereld(100000, 50);
   assert.equal(L.schenkMobiel(), true);
   assert.equal(SN.isActive(L.snackState()), false);
-  L.dagTik(w); const rep = slaap(w, 2);
+  L.dayTick(w); const rep = slaap(w, 2);
   assert.ok(rep.mobile > 0 && rep.snack === 0);
 });
 t('de vloot: een extra wagen met medewerker, loon of aandeel; het passieve geld gaat door de rem', () => {
@@ -113,7 +113,7 @@ t('de vloot: een extra wagen met medewerker, loon of aandeel; het passieve geld 
   const r = SL.koopVloot(w, 'park'); assert.ok(r.ok && /achter het luik/.test(r.text));
   SL.koopVloot(w, 'reitdiep', 'aandeel');
   const S = L.snackState(); S.rival.lastEvent = 1e7; S.rival.lastOffer = 1e7;
-  L.dagTik(w); const rep = slaap(w, 5);
+  L.dayTick(w); const rep = slaap(w, 5);
   assert.ok(rep.snack > 0);
   assert.ok(rep.snack / 5 < P.PASSIVE_CAP_DAY);
   assert.equal(SL.zetModus('w1', 'aandeel').ok, true); assert.equal(SL.zetModus('w9', 'x').ok, false);
@@ -122,25 +122,25 @@ t('de vloot: een extra wagen met medewerker, loon of aandeel; het passieve geld 
 t('upgrades, een grotere wagen, het menu en een antwoord op een gebeurtenis', () => {
   reset(); const w = wereld(500000, 50);
   assert.equal(SL.koopUpgrade(w, 'koeling').ok, true); assert.equal(SL.koopUpgrade(w, 'koeling').why, 'al-van-jou');
-  assert.equal(SL.grotereWagen(w, 'own').ok, true);
-  assert.equal(SL.menuKnop('burger').ok, true); assert.equal(SL.menuKnop('softy').ok, true); assert.equal(SL.menuKnop('milkshake').ok, false); assert.equal(SL.snackView(w).own.menu.length, 6);
+  assert.equal(SL.upgradeVan(w, 'own').ok, true);
+  assert.equal(SL.offeringButton('burger').ok, true); assert.equal(SL.offeringButton('softy').ok, true); assert.equal(SL.offeringButton('milkshake').ok, false); assert.equal(SL.snackView(w).own.menu.length, 6);
   const S = L.snackState();
   S.ev.pending = { kind: 'storing', id: 1, wagon: 'own', spot: 'park', depth: 0, price: 0, text: 'x', choices: [{ id: 'repareer', label: 'r', cost: 350 }, { id: 'wacht', label: 'w', cost: 0 }], day: 100, deadline: 103 };
-  const m = w.money; const a = SL.antwoord(w, 'repareer'); assert.ok(a.ok); assert.equal(w.money, m - 350);
-  assert.equal(SL.antwoord(w, 'repareer').why, 'niets-te-doen');
+  const m = w.money; const a = SL.answerEvent(w, 'repareer'); assert.ok(a.ok); assert.equal(w.money, m - 350);
+  assert.equal(SL.answerEvent(w, 'repareer').why, 'niets-te-doen');
 });
 t('overnemen van Usmem en een bod verkopen: geld en claim', () => {
   reset(); const w = wereld(500000, 50); const sent = []; L.setClaimSend((x) => sent.push(x));
-  const r = SL.neemOver(w, 'station'); assert.ok(r.ok && /overgenomen/.test(r.text));
+  const r = SL.acquireRivalSpot(w, 'station'); assert.ok(r.ok && /overgenomen/.test(r.text));
   assert.ok(SP.permitHeld(L.snackState().permits, 'station', L.calToday()));
-  assert.equal(SL.neemOver(w, 'dorp').why, 'niet-van-hem');
+  assert.equal(SL.acquireRivalSpot(w, 'dorp').why, 'niet-van-hem');
   const S = L.snackState(); S.ev.pending = { kind: 'bod', id: 2, wagon: 'own', spot: 'station', depth: 0, price: 20000, text: 'b', choices: [{ id: 'verkoop', label: 'v', cost: 0 }, { id: 'weiger', label: 'w', cost: 0 }], day: 52, deadline: 55 };
-  const m = w.money; assert.ok(SL.antwoord(w, 'verkoop').ok); assert.equal(w.money, m + 20000);
+  const m = w.money; assert.ok(SL.answerEvent(w, 'verkoop').ok); assert.equal(w.money, m + 20000);
   assert.ok(sent.some((x) => x.id === 'sp:station' && x.action === 'release'));
   L.setClaimSend(null);
 });
 t('Samen spelen: een verloren claim op een standplaats geeft de vergunning terug en de wagen staat weer thuis; wagonSites toont jouw wagen en die van Usmem', () => {
-  reset(); const w = wereld(100000); SL.koopWagen(w); SL.koopVergunning(w, 'dorp'); SL.zetWagen('dorp');
+  reset(); const w = wereld(100000); SL.buyVan(w); SL.koopVergunning(w, 'dorp'); SL.placeVan('dorp');
   const sites = SL.wagonSites();
   assert.ok(sites.some((s) => s.kind === 'own' && s.spot === 'dorp') && sites.some((s) => s.kind === 'rival' && s.spot === 'markt') && !sites.some((s) => s.kind === 'rival' && s.spot === 'dorp'));
   const m = w.money, paid = L.snackState().permits.dorp.paid;
@@ -154,29 +154,29 @@ t('Samen spelen: een verloren claim op een standplaats geeft de vergunning terug
 });
 t('hulp aan de buurt: kost geld, geeft goodwill en vaste klanten, rust per plek, een bondgenoot na drie keer in een gebied; de view toont het', () => {
   reset(); const w = wereld(100000); SL.koopVergunning(w, 'park'); SL.koopVergunning(w, 'reitdiep');
-  const m = w.money; const r = SL.helpBuurt(w, 'park', 'buurthuis');
+  const m = w.money; const r = SL.helpNeighbourhood(w, 'park', 'buurthuis');
   assert.ok(r.ok && w.money === m - 250);
-  assert.equal(SL.helpBuurt(w, 'park', 'buurthuis').why, 'te-snel'); assert.match(SL.helpBuurt(w, 'park', 'buurthuis').text, /over \d+ dagen/);
-  assert.equal(SL.helpBuurt(w, 'markt', 'buurthuis').why, 'geen-vergunning');
-  assert.ok(SL.helpBuurt(w, 'park', 'schoonmaak').ok); const a = SL.helpBuurt(w, 'reitdiep', 'avond'); assert.ok(a.ok && /Buurtvereniging Binnenstad/.test(a.text));
+  assert.equal(SL.helpNeighbourhood(w, 'park', 'buurthuis').why, 'te-snel'); assert.match(SL.helpNeighbourhood(w, 'park', 'buurthuis').text, /over \d+ dagen/);
+  assert.equal(SL.helpNeighbourhood(w, 'markt', 'buurthuis').why, 'geen-vergunning');
+  assert.ok(SL.helpNeighbourhood(w, 'park', 'schoonmaak').ok); const a = SL.helpNeighbourhood(w, 'reitdiep', 'avond'); assert.ok(a.ok && /Buurtvereniging Binnenstad/.test(a.text));
   const v = SL.snackView(w);
   assert.equal(v.gw.allies[0], 'Buurtvereniging Binnenstad'); assert.ok(v.gw.goodwill >= 19 && v.gw.spots.length === 2 && v.gw.spots[0].help.length === 3);
-  assert.equal(SL.helpBuurt(wereld(10), 'reitdiep', 'schoonmaak').why, 'te-weinig-geld');
+  assert.equal(SL.helpNeighbourhood(wereld(10), 'reitdiep', 'schoonmaak').why, 'te-weinig-geld');
 });
 t('meewerken bij een medespeler: alleen op zijn claim, uurloon uit nieuw geld, eenmaal per dag, het bericht gaat via de haak; de eigenaar verkoopt 8% meer', () => {
   reset(); const w = wereld(1000), sent = [];
   L.setClaimLookup((id) => (id === 'sp:leek' ? { name: 'lotte', color: '#c0c', playerId: 'B' } : null)); SL.setSnackWorkSend((m) => sent.push(m));
-  assert.equal(SL.meewerken(w, 'dorp', 6).why, 'geen-claim');
-  const r = SL.meewerken(w, 'leek', 6); assert.ok(r.ok && r.wage === 84 && w.money === 1084 && sent.length === 1 && sent[0].type === 'snack-work' && sent[0].spot === 'leek');
-  assert.equal(SL.meewerken(w, 'leek', 6).why, 'al-gedaan');
+  assert.equal(SL.workAlong(w, 'dorp', 6).why, 'geen-claim');
+  const r = SL.workAlong(w, 'leek', 6); assert.ok(r.ok && r.wage === 84 && w.money === 1084 && sent.length === 1 && sent[0].type === 'snack-work' && sent[0].spot === 'leek');
+  assert.equal(SL.workAlong(w, 'leek', 6).why, 'al-gedaan');
   assert.equal(SL.snackView(w).gw.helpers[0].done, true);
   SL.setSnackWorkSend(null); L.setClaimLookup(null);
-  reset(); const own = wereld(100000); SL.koopVergunning(own, 'dorp'); SL.zetWagen('dorp'); SL.koopWagen(own);
-  assert.equal(SL.ontvangWerk({ type: 'snack-work', spot: 'dorp', hours: 6 }).ok, true);
-  assert.equal(SL.ontvangWerk({ type: 'snack-work', spot: 'dorp', hours: 6 }).why, 'al-gedaan'); assert.equal(SL.ontvangWerk({ type: 'x' }).why, 'onbekend');
+  reset(); const own = wereld(100000); SL.koopVergunning(own, 'dorp'); SL.placeVan('dorp'); SL.buyVan(own);
+  assert.equal(SL.receiveWork({ type: 'snack-work', spot: 'dorp', hours: 6 }).ok, true);
+  assert.equal(SL.receiveWork({ type: 'snack-work', spot: 'dorp', hours: 6 }).why, 'al-gedaan'); assert.equal(SL.receiveWork({ type: 'x' }).why, 'onbekend');
 });
 t('de keten levert: korting alleen met voorraad in je eigen verwerker, en het menuverbruik gaat van die voorraad af', () => {
-  reset(); const w = wereld(500000, 50); SL.koopWagen(w); SL.koopVergunning(w, 'park'); SL.zetWagen('park');
+  reset(); const w = wereld(500000, 50); SL.buyVan(w); SL.koopVergunning(w, 'park'); SL.placeVan('park');
   const S = L.snackState(); S.own.stockDays = 5; S.rival.lastEvent = 1e7; S.rival.lastOffer = 1e7;
   const chains = L.chainViews(), friet = chains.find((c) => c.id === 'friet');
   const fakeViews = chains.map((c) => (c.id === 'friet' ? { ...c, sourceCount: 0, links: c.links.map((l) => (l.role === 'processor' ? { ...l, owned: true, stock: 0 } : l)) } : c));

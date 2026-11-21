@@ -13,12 +13,12 @@ const rows = SP.SPOTS.map((s) => ({ id: s.id, name: s.name, short: s.short, plac
 const WIDE = [-30000, -30000, 30000, 30000];
 
 t('uitgezoomd zijn alle zestien punten er, zonder naam; ingezoomd met naam en alleen wat in beeld is', () => {
-  const v = M.standplaatsView(rows, WIDE, 0.005);
+  const v = M.pitchMarkerView(rows, WIDE, 0.005);
   assert.equal(v.mode, 'markers'); assert.equal(v.markers.length, 16); assert.ok(v.markers.every((m) => !m.showLabel));
-  const z = M.standplaatsView(rows, [-200, -200, 400, 400], 0.1);
+  const z = M.pitchMarkerView(rows, [-200, -200, 400, 400], 0.1);
   assert.ok(z.markers.length >= 1 && z.markers.length < 8 && z.markers.every((m) => m.showLabel));
   assert.ok(z.markers.some((m) => m.id === 'markt'));
-  assert.equal(M.standplaatsView(rows, WIDE, 0.001).mode, 'none'); assert.equal(M.standplaatsView([], WIDE, 0.1).mode, 'none'); assert.equal(M.standplaatsView(null, WIDE, 0.1).mode, 'none');
+  assert.equal(M.pitchMarkerView(rows, WIDE, 0.001).mode, 'none'); assert.equal(M.pitchMarkerView([], WIDE, 0.1).mode, 'none'); assert.equal(M.pitchMarkerView(null, WIDE, 0.1).mode, 'none');
 });
 t('elke stand heeft een eigen vorm en lijnpatroon (nooit alleen kleur) en geen geel', () => {
   const shapes = Object.values(M.STATES).map((s) => s.shape);
@@ -27,14 +27,14 @@ t('elke stand heeft een eigen vorm en lijnpatroon (nooit alleen kleur) en geen g
   assert.equal(M.LEGEND.length, 4);
 });
 t('de markers: stand, subtekst met prijs of overname, wagen en de kleur van een medespeler', () => {
-  const v = M.standplaatsView(rows, WIDE, 0.05), by = Object.fromEntries(v.markers.map((m) => [m.id, m]));
+  const v = M.pitchMarkerView(rows, WIDE, 0.05), by = Object.fromEntries(v.markers.map((m) => [m.id, m]));
   assert.equal(by.markt.state, 'usmem'); assert.match(by.markt.sub, /overnemen €25\.000/);
   assert.equal(by.park.wagon, 'own'); assert.match(by.park.sub, /TAM & TES/);
   assert.equal(by.dorp.color, '#c0c'); assert.equal(by.dorp.sub, 'lotte');
   assert.match(by.leek.sub, /vergunning €/);
 });
 t('aanklikken: het dichtstbijzijnde punt binnen 16 pixels, anders niets', () => {
-  const v = M.standplaatsView(rows, WIDE, 0.05), m = rows.find((r) => r.id === 'markt');
+  const v = M.pitchMarkerView(rows, WIDE, 0.05), m = rows.find((r) => r.id === 'markt');
   assert.equal(M.pickMarker(v.markers, m.x + 100, m.y, 0.05).id, 'martini');     // het dichtstbijzijnde punt wint, ook als 100 m (5 px) naast een ander punt
   assert.equal(M.pickMarker(v.markers, m.x + 5, m.y, 0.05).id, 'markt');
   assert.equal(M.pickMarker(v.markers, m.x + 2000, m.y + 2000, 0.05), null);
@@ -55,16 +55,16 @@ t('het kaartje: vrij vraagt een tweede druk met het bedrag, Usmem heeft overneme
   assert.ok(!/data-card=/.test(C.spotCardHtml(r('dorp'), {}))); assert.match(C.spotCardHtml(r('dorp'), {}), /lotte/);
   assert.match(C.spotCardHtml(r('leek'), { melding: 'Klaar <b>' }), /Klaar &lt;b&gt;/);
   assert.equal(C.spotCardHtml(null), '');
-  assert.match(C.hoverSubSpot(r('leek')), /^Vrij · vergunning/);
+  assert.match(C.pitchTipLine(r('leek')), /^Vrij · vergunning/);
 });
 t('de tekenkant tekent alleen: geen rekenwerk, geen fetch, geen Math.random, en geen geel', () => {
   const src = fs.readFileSync(new URL('../game/js/pitchdraw.js', import.meta.url), 'utf8').split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
   assert.ok(!/Math\.random|fetch\(|localStorage/.test(src)); assert.ok(!/yellow|amber|ringNext/.test(src));
-  assert.match(src, /export function drawStandplaatsen/);
+  assert.match(src, /export function drawPitchMarkers/);
 });
 t('mapview.js: minimale koppeling (de laag, de klik, het kaartje, de acties, de legenda)', () => {
   const m = fs.readFileSync(new URL('../game/js/mapview.js', import.meta.url), 'utf8');
-  for (const s of ["layerOn('standplaats')", 'drawStandplaatsen(', 'pickMarker(state.standMarkers', 'spotCardHtml(', "act.startsWith('sp-')", 'function standActie', "layers: ['standplaats']"]) assert.ok(m.includes(s), s);
+  for (const s of ["layerOn('standplaats')", 'drawPitchMarkers(', 'pickMarker(state.standMarkers', 'spotCardHtml(', "act.startsWith('sp-')", 'function standActie', "layers: ['standplaats']"]) assert.ok(m.includes(s), s);
 });
 console.log(`pitchmap_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

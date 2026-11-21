@@ -218,6 +218,14 @@
       "steamApiNaam": ""
     },
     {
+      "id": "alle_uitdagend",
+      "titel": "Geen genade",
+      "omschrijving": "Speel alle acht missies uit op het niveau Uitdagend",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_ALLE_UITDAGEND",
+      "steamApiNaam": ""
+    },
+    {
       "id": "snel_100",
       "titel": "Honderd op de teller",
       "omschrijving": "Rij 100 km/u",
@@ -1370,6 +1378,30 @@
       "steamApiNaam": ""
     },
     {
+      "id": "pimp_1",
+      "titel": "Pimp my Ride",
+      "omschrijving": "Laat je eerste wijziging installeren in een pimp-werkplaats",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_PIMP_1",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "garagebaas",
+      "titel": "Garagebaas",
+      "omschrijving": "Laat 10 keer iets installeren in een pimp-werkplaats",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_GARAGEBAAS",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "hele_show",
+      "titel": "Hele show",
+      "omschrijving": "Pimp een voertuig met minstens 12 onderdelen tegelijk",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_HELE_SHOW",
+      "steamApiNaam": ""
+    },
+    {
       "id": "ingericht",
       "titel": "Helemaal ingericht",
       "omschrijving": "Zet alle EIKEA-meubels in jullie flat",
@@ -1559,6 +1591,70 @@
       "omschrijving": "Oogst als Tessa een veld op je eigen akker",
       "verborgen": false,
       "voorstelApiNaam": "ACH_BOERENDOCHTER",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "bz_perceel",
+      "titel": "Eerste akte",
+      "omschrijving": "Koop je eerste perceel in de provincie",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_BZ_PERCEEL",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "bz_tien",
+      "titel": "Grondbezitter",
+      "omschrijving": "Bezit tien percelen tegelijk",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_BZ_TIEN",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "bz_winkel",
+      "titel": "Eigen zaak",
+      "omschrijving": "Koop een pand en laat het draaien",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_BZ_WINKEL",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "bz_keten",
+      "titel": "Van akker tot toonbank",
+      "omschrijving": "Sluit een hele keten: eigen grondstof, verwerker en winkel",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_BZ_KETEN",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "bz_streken",
+      "titel": "Heel Grunn",
+      "omschrijving": "Bezit land in alle acht de streken van de provincie",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_BZ_STREKEN",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "bz_snack_eerste",
+      "titel": "Eerste standplaats",
+      "omschrijving": "Zet je snackwagen op een standplaats met een eigen vergunning",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_BZ_SNACK_EERSTE",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "bz_snack_tien",
+      "titel": "Tien standplaatsen",
+      "omschrijving": "Bezit tien standplaatsen tegelijk",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_BZ_SNACK_TIEN",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "bz_usmem",
+      "titel": "Usmem overtroefd",
+      "omschrijving": "Neem acht standplaatsen en driekwart van alle plekken: Usmem Snacks is klein",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_BZ_USMEM",
       "steamApiNaam": ""
     },
     {

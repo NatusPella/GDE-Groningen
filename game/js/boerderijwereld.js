@@ -28,6 +28,7 @@ import { getBoerderij, getBedrijf, neemTaak, rondAf, draaiMachine, tankMachine, 
 import { loopbaanDeel } from './loopbaanlive.js';
 import { reducedMotion } from './motion.js';
 import { sfxLinks } from './latehooks.js';
+import { sfxEvent } from './sfx/haken.js';
 import { registreerVelden, standVelden } from './coopextra.js';
 import { stadiumVan, statusIdVan, veldStatus, STATUS_IDS, GEWAS_INDEX, zetMachinePlekken, zetAfnemerPlekken } from './farmstatus.js';
 import { plantGeometrie, plantMateriaal, plantLayout, stoppelGeometrie, voorGeometrie } from './farmcrops3d.js';
@@ -751,6 +752,7 @@ function werkStapWereld(dt, w, v, rig, m, imp, gast = false) {
       S.werk = null;
       bericht(w, (WERK_TEKST[taak] || (() => 'Klaar.'))(f, uit), 6);
       boerderijHudKlaar(taak, f, uit);
+      sfxEvent(w, taak === 'oogsten' ? 'harvest_cut' : taak === 'afleveren' || taak === 'bemesten' ? 'grain_pour' : 'dig_soil');   // SFX ronde 5: de klus klinkt (afsnijden, graan, spitten)
       if (veld) veld.sleutel = null;
       return;
     }

@@ -6,22 +6,22 @@
 
 import * as B from './boerderij.js';
 import * as PC from './percelen.js';
-import { soilQuality, parcelName, regionId } from './bezitprijs.js';
+import { soilQuality, parcelName, districtId } from './bezitprijs.js';
 import { buyParcel } from './bezit.js';
 import { worldToWgs } from './rdnew.js';
 
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
-const SOORT = { w: 'weiland', a: 'akker', b: 'boomgaard' };
+const PARCEL_USE = { w: 'weiland', a: 'akker', b: 'boomgaard' };
 
 // ---- adapters: index- of bezitregel -> perceeldefinitie ----
 // kind: 'w' | 'a' | 'b' (anders akker). region: een streek-id of { id } van bezitprijs.js. place: de dichtstbijzijnde woonplaats.
 export function parcelDefOf(id, kind, ha, { region = 'overig', place = 'het Hogeland', name = null, at = null } = {}) {
   const k = kind === 'w' || kind === 'b' ? kind : 'a';
-  const r = regionId(region);
+  const r = districtId(region);
   // de ligging in graden voor de plekken die perceelDef lezen (veld zoeken, kaart): uit het binnenpunt in wereldmeters als dat bekend is
   const wgs = at && Number.isFinite(at[0]) && Number.isFinite(at[1]) ? worldToWgs(at[0], at[1]) : null;
   return {
-    id, naam: name || parcelName({ id, kind: k }, place), soort: SOORT[k], plaats: place, ha: Math.max(0.1, Number(ha) || 0.1),
+    id, naam: name || parcelName({ id, kind: k }, place), soort: PARCEL_USE[k], plaats: place, ha: Math.max(0.1, Number(ha) || 0.1),
     bodem: soilQuality(id, r), region: r, kind: k, koop: 0, huurDag: 0, eigenaar: 'Jijzelf', aanbod: 'eigen', extra: true, ...(wgs ? { lat: wgs[0], lon: wgs[1], x: at[0], y: at[1] } : {}),
   };
 }

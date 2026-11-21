@@ -21,8 +21,8 @@ const kitchen = opening.find((e) => e.id === 'story-opening-keuken');
 const trailer = opening.find((e) => e.id === 'story-opening-trailer');
 
 ok(opening.length === 4, 'vier openingdelen (drie acts en de eindkaart)', opening.length);
-ok(total <= 180, 'eerste speelbare moment binnen 3 minuten', `${total.toFixed(1)} s`);
-ok(total <= 175, 'met marge onder de 3 minuten (na #662; marge 160 naar 175 op 21-11: het motief van de opening, kern van het verhaal)', `${total.toFixed(1)} s`);
+ok(total <= 240, 'eerste speelbare moment binnen 4 minuten (eigenaar 21-11: langer mag; was 3 minuten)', `${total.toFixed(1)} s`);
+ok(total <= 235, 'met marge onder de 4 minuten (na #662; marge 160 naar 175 op 21-11: het motief van de opening, kern van het verhaal)', `${total.toFixed(1)} s`);
 ok(kitchen && kitchen.duration < 115, 'de keukenscene is ingekort (grens 100 naar 115 op 21-11, zelfde reden)', kitchen && kitchen.duration.toFixed(1));
 ok(trailer && trailer.duration < 40, 'de eerste scène is kort', trailer && trailer.duration.toFixed(1));
 console.log(`#662 meting: opening totaal ${total.toFixed(1)} s, keuken ${kitchen.duration.toFixed(1)} s (was 111,1 s), eerste scène ${trailer.duration.toFixed(1)} s; oud totaal 168,8 s`);

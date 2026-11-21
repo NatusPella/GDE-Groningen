@@ -105,6 +105,8 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [ZFIGHT-METING.md](<ZFIGHT-METING.md>) | Meting van z-fighting (#917, #919): dieptestap per afstand en near, positieve controle, wisselpixels per plek bij near 0,5, 1,5 en 2,5, en het besluit over het dynamische near. |
 | [PERF-PLEISTERS.md](<PERF-PLEISTERS.md>) | Inventaris van prestatie-pleisters sinds 0.54.0 (schadelijk, maskerend, legitiem) met oorzaken en een schrapvolgorde. |
 | [BENCHMARK-STERKE-PC-21-11.md](<BENCHMARK-STERKE-PC-21-11.md>) | Waarom de benchmark op een sterke pc (RX 9070 XT) laag uitkomt: hypotheses, wat bewezen is, wat niet, en een checklist voor de speler. |
+| [OPENING-TRAILER-BENCHMARK-21-11.md](<OPENING-TRAILER-BENCHMARK-21-11.md>) | Herbouw van de opening, de verhaaltrailer (cut ontdek) en de benchmark voor DS3 en het nieuwe verhaal: besluiten, wat er is, wat niet is bekeken. |
+| [OPENING-TRAILER-BENCHMARK-VERIFICATIE-21-11.md](<OPENING-TRAILER-BENCHMARK-VERIFICATIE-21-11.md>) | Draaiboek voor de Electron-sweep: wat in beeld en gehoor te controleren bij opening, trailer en benchmark. |
 | [PERF-METING-2026-10-19.md](<PERF-METING-2026-10-19.md>) | Dit is de actuele meetbron voor prestaties (zie `.specs-fire/standards/mechanica.md`, |
 | [PERF-BESLUITEN.md](<PERF-BESLUITEN.md>) | Bewuste prestatiebesluiten en de onderbouwing per punt. |
 | [PERF-STREAM-SOEPEL-21-11.md](<PERF-STREAM-SOEPEL-21-11.md>) | Soepeler streamen: één framebudget, bewegingsgericht vooruitladen en stabiele LOD-overgangen (#1016, #1052, #1008). |
@@ -166,12 +168,15 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [BEPPE-HUIS-21-11.md](<BEPPE-HUIS-21-11.md>) | Beppes huis en de Beppe-verhaalboog (#1063): open na M01, de eerste ontmoeting met Tessa, bezoeken terwijl ze leeft, het overlijden na M06 (terugval M08), de herinnering, canon-afweging, afgeleid uit de verhaalstand (geen migratie), echt binnen (vaste kamercamera), Samen spelen (lokaal per speler) en wat niet in beeld bekeken is. |
 | [INTERIEURS-21-11.md](<INTERIEURS-21-11.md>) | Interieurs (epic #1150): panden echt te betreden in het pand zelf, te voet door de voordeur (ADR 0044): architectuur, soorten, indeling, lopen, camera, openingstijden, Samen spelen, politie, bereikbaarheidsaudit (370.144 panden, ca. 39% betreedbaar) en dekkingsplan. |
 | [INTERIEURS-VERIFICATIE-21-11.md](<INTERIEURS-VERIFICATIE-21-11.md>) | Interieurs: de lijst van wat in beeld en in het spel nog gecontroleerd moet worden (deur, gevel, licht, camera, mensen, kosten). |
+| [PAGES-BUILD-21-11.md](<PAGES-BUILD-21-11.md>) | Proefbouw van de webversie voor GitHub Pages (lokaal, 21-11): bouwen, subpad, grootte (599 MB), wat getest is en wat niet, livebussen (CORS). |
+| [PAGES-WORKFLOW-21-11.md](<PAGES-WORKFLOW-21-11.md>) | De handmatige Pages-workflow voor spel en marketing (#1090, ADR 0045): wereld uit de release, alleen Opus, spel onder /play/, hoe de coördinator deployt, wat er in web niet werkt, privacy. |
 | [MISSIE-AAA-AKTE1-2.md](<MISSIE-AAA-AKTE1-2.md>) | AAA voor akte 1 en 2 (#955, #963): auditkaart per missie (nu, mist, AAA-versie, kosten, stand), de tussen-beats en nasleep, de aankleding bij start en doel, wachten met een tweede wachtende, wat niet is gedaan of bekeken. |
 | [MISSIE-AAA-AKTE3-4.md](<MISSIE-AAA-AKTE3-4.md>) | AAA-auditkaarten voor de missies van akte 3 en 4 (M12 tot M21): wat er was, wat er bij kwam (openingsbeeld, tussenbeats, nasleep, aankleding, wachtspullen), de zes grensgevallen van de missieprop-audit en wat nog niet in beeld is bekeken. |
 | [MISSIE-AAA-AKTE5-6-BIJBANEN.md](<MISSIE-AAA-AKTE5-6-BIJBANEN.md>) | AAA-auditkaarten voor akte 5 en 6, de bijbanen en Na het verhaal (#955, #956, #963). |
 | [QTE-AUDIT-21-11.md](<QTE-AUDIT-21-11.md>) | Audit van de quicktime-events (#962): wat bleef, wat vervalt en de instelling Makkelijk, Normaal of Overslaan. |
 | [SAMEN-SPELEN-HANDLEIDING.md](<SAMEN-SPELEN-HANDLEIDING.md>) | Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). Dit docu… |
 | [SFX-GAPS.md](<SFX-GAPS.md>) | Inventaris van spelgebeurtenissen zonder eigen geluid of met een te algemeen geluid (UI, beloning, wereld-foley, omgeving per streek), met wat is gebouwd en wat nog open staat. |
+| [SFX-DEKKING-21-11.md](<SFX-DEKKING-21-11.md>) | SFX ronde 5: audit van de geluidsdekking per gebied, de centrale geluidstabel `sfxmap.js`, de 221 nieuwe opnames, wat is gekoppeld en de sleutels voor de leads van de epics. Luisterpaneel: [SFX-LUISTER.html](<SFX-LUISTER.html>). |
 | [SFX-LUISTERLIJST.md](<SFX-LUISTERLIJST.md>) | Wat een mens moet beluisteren van de nieuwe geluiden: waar je ze in het spel hoort, wat er niet goed mag klinken en hoe je het meldt. |
 | [AUDIO-LICENTIES.md](<AUDIO-LICENTIES.md>) | Alle geluidsopnames met bron-URL, Freesound-id, titel, auteurshandle, licentie (CC0 of CC BY), bewerking, sha256 en datum; gegenereerd uit het manifest (ADR 0039). |
 | [AUDIO-GLITCHES-21-11.md](<AUDIO-GLITCHES-21-11.md>) | Melding van Nikky over glitches en ruis: hypotheses, wat bewezen is, de limiter en de diagnose, en een checklist voor het apparaat. |
@@ -195,6 +200,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [PERF-TEGELSTREAM-21-11.md](<PERF-TEGELSTREAM-21-11.md>) | Tegelstroom zonder uitbarstingen (#1052): de plaatsingsvensters waren de bron, achtergrondwerk en vasthouding, meting Hoog en Ultra. |
 | [QOL-STAND-21-11.md](<QOL-STAND-21-11.md>) | QoL-stand van epic #985: de 52 bevindingen van 17-11 en wat ervan af is. |
 | [BALANS-21-11.md](<BALANS-21-11.md>) | Naslag. Economiebalans met een sim van 10 uur: verdienste per uur, de Duizendpoot (#1050) en de voor/na-tabel. |
+| [MOEILIJKHEID-21-11.md](<MOEILIJKHEID-21-11.md>) | Naslag. Moeilijkheid per save (#1169): niveau en opties, de kaart bij een nieuw spel, de tabel van alle opties met bereik en standaard, de Samen-regel en de migratie. |
 | [VERKEER-AUDIT-21-11.md](<VERKEER-AUDIT-21-11.md>) | Verkeers- en wereldleven-audit (#1047 tot #1049): AI-verkeer, parkeren, voetgangers, fietsers. |
 | [WERELD-AUDIT-21-11.md](<WERELD-AUDIT-21-11.md>) | Wereldaudit: props en gebouwen op verkeerde plekken over de hele provincie (#1044, #1045). |
 | [SAMEN-MISSIES-20-11.md](<SAMEN-MISSIES-20-11.md>) | Audit en voorstel. Wat een gast nu doet in elke missie, bijbaan en wedstrijd, welke onderdelen van nature gezamenlijk zijn en per onderdeel een rol per speler, beloning per speler, wegvallen en later aansluiten en schaal van 1 tot 4 spelers; plus wat in ronde #983 is gebouwd (M30 bolwerken, pannenkoekenwedstrijd, bezorgen met verdeelde adressen) en wat niet is gezien. Regels: [`.specs-fire/standards/multiplayer.md`](../.specs-fire/standards/multiplayer.md). |
@@ -214,6 +220,8 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [VERHAALCANON-21-11.md](<VERHAALCANON-21-11.md>) | Canonblad en audit: Tammo en Tessa zijn net afgestudeerd (24), kennen elkaar uit de studie; wat er in docs en speltekst veranderde en welke 4 gesproken regels opnieuw moeten. |
 | [TESSA-CIJFERS.md](<TESSA-CIJFERS.md>) | Gecontroleerd op 17 oktober 2026 met publieke CBS-pagina's. Het feitenblok |
 | [TAAL-VAN-DOCUMENTATIE.md](<TAAL-VAN-DOCUMENTATIE.md>) | Besluit voor de eigenaar: Nederlands of Engels in de docs, met de meting en twee opties. |
+| [TUNING-21-11.md](<TUNING-21-11.md>) | Autotuning (Pimp my Ride, #1155): besluiten, bestanden, grenzen voor de wereld (hoogstens 5%), snackwagen, koppelingen. |
+| [TUNING-VERIFICATIE-21-11.md](<TUNING-VERIFICATIE-21-11.md>) | Autotuning: wat getest en gezien is (headless) en wat de sweep nog moet bekijken. |
 | [UITLEG-MET-ICONEN.md](<UITLEG-MET-ICONEN.md>) | De regelwidget: uitleg met iconen en animaties in plaats van tekst, naar het voorbeeld van de eierrit, en de lijst van plekken waar de speler nu iets moet raden. |
 | [TESTEN.md](<TESTEN.md>) | `node scripts/test_all.mjs` draait de tests in fasen en schrijft een rapport met een korte Nederlandse same… |
 | [TRAILER-CONTROLE.md](<TRAILER-CONTROLE.md>) | Drie trailers uit het echte spel (geen nagebouwde beelden): een gameplaytrailer (78,0 s), een verhaaltraile… |
@@ -240,4 +248,6 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [HERTEST-TRIAGE.md](<HERTEST-TRIAGE.md>) | Triage van de 485 issues met label hertest: per categorie wat in code bewezen is, wat beeldbewijs nodig heeft en een werklijst van 30. |
 | [ONDERZOEK-REFERENTIEGAMES.md](<ONDERZOEK-REFERENTIEGAMES.md>) | Onderzoek naar wat bekende open-wereldgames leuk maakt, en wat GDE daarvan heeft overgenomen (#811–#821). |
 | [VERKENNING-PROVINCIE.md](<VERKENNING-PROVINCIE.md>) | Klein plan voor de verkenlaag buiten de stad (A15-A20) op bestaande infrastructuur. |
-| [WERELDKLEUREN-21-11.md](<WERELDKLEUREN-21-11.md>) | Werkdocument bij de vraag van de eigenaar: inventaris van de kleurbronnen van de 3D-wereld, de subtiele stap naar het designsysteem (`worldpalette.js`, `WERELD_DS_MENG`, `?dswereld`), kleurplaat, voor-en-na en wat niet is gezien. |
+| [WERELDKLEUREN-21-11.md](<WERELDKLEUREN-21-11.md>) | Werkdocument bij de vraag van de eigenaar: inventaris van de kleurbronnen van de 3D-wereld, de subtiele stap naar het designsysteem (`worldpalette.js`, `WERELD_DS_MENG`, `?dswereld`), kleurplaat, voor-en-na en wat niet is gezien. 
+| [WERELDKLEUR-21-11.md](<WERELDKLEUR-21-11.md>) | Wereldkleur: een subtiele DS3-kleurtaal voor de 3D-wereld (`worldgrade.js`, stand Uit/Subtiel/Drukwerk): kleurkaart, grading per dagdeel en weer, metingen zonder Electron en besluiten.
+| [WERELDKLEUR-VERIFICATIE-21-11.md](<WERELDKLEUR-VERIFICATIE-21-11.md>) | Draaiboek voor de Electron-sweep van de wereldkleur: schermen, tijden en weer, schakelaar-vergelijking en perf A/B. ||

@@ -29,7 +29,7 @@ De bron is [scripts/coop_coverage.json](../scripts/coop_coverage.json); de tabel
 
 <!-- MATRIX:BEGIN (gegenereerd door scripts/coop_coverage_audit.mjs --write; niet met de hand aanpassen) -->
 
-**Samenvatting:** 40 systemen: 31 OK, 8 gat, 1 niet van toepassing. Directe verwijzingen naar world.player (de ratel in scripts/player_singleton_baseline.json): 80 in totaal; kolom e toont ze per systeem (een bestand kan bij twee systemen horen, een deel hoort bij geen systeem: intromontage, dorpsuitjes, main).
+**Samenvatting:** 41 systemen: 32 OK, 8 gat, 1 niet van toepassing. Directe verwijzingen naar world.player (de ratel in scripts/player_singleton_baseline.json): 80 in totaal; kolom e toont ze per systeem (een bestand kan bij twee systemen horen, een deel hoort bij geen systeem: intromontage, dorpsuitjes, main).
 
 | Systeem | a) Bezit | b) Gast | c) Beloning | d) Wegvallen, aansluiten, hostwissel | e) world.player | f) Dekking | Status |
 |---|---|---|---|---|---|---|---|
@@ -86,10 +86,12 @@ De bron is [scripts/coop_coverage.json](../scripts/coop_coverage.json); de tabel
 | Netwerk, wachtkamer en openbare lijst | gedeeld, gesynct | Een dunne client: snapshots en invoer; EXTRA-berichten voor wat de snapshot niet draagt; IP-adressen nooit zichtbaar of opgeslagen. | Geen. | Kort wegvallen en opnieuw verbinden (#982, #983); kicken en verbannen door de host. | ja: 9 (coopnet 9) | `coopnet_test`, `coopcore_test`, `coop_tcp_test`, `net_lifecycle_test`, `net_protocol_test` | OK |
 | **Technisch** | | | | | | | |
 | Beeld, performance, build en tooling zonder spelregel | lokaal per apparaat | Beeld en techniek zonder eigen spelregel: elke client bouwt zijn eigen beeld uit dezelfde data. | Geen. | Niets te herstellen. | ja: 8 (cityprops 1, streetpopulation 1, swimmers3d 1, wildlife 4, ...) | nvt | nvt |
+| **Instellingen** | | | | | | | |
+| Moeilijkheid (niveau per speler en voor de wereld) | gedeeld, gesynct | De wereld (politie en verkeer) volgt het niveau van wie het spel opende; een gast kiest zelf hoe pittig zijn eigen deel is (schade, rij-assist, quicktime-events, hints, tijd en medailles, beloning). | Per speler volgens het eigen niveau; niemand krijgt een lagere beloning door het niveau van een ander. | Valt iemand weg of sluit hij later aan: het wereldniveau blijft dat van wie het spel opende; het eigen niveau reist mee met de speler. | nee | `difficulty_test`, `difficulty_integration_test`, `difficulty_profile_test`, `difficultycard_test` | OK |
 
 ### Gaten
 
-- **Overgangsscenes, mijlpalen en ontgrendelpoort (epic Verhaal)** (middel, lead Verhaal, epic epic-verhaal-21-11): Bewijs met een pure test dat storybridgerun.js niets doet bij coopRole client en dat een gast niet in de overgangsscene van de host vastloopt.
+- **Overgangsscenes, mijlpalen en ontgrendelpoort (epic Verhaal)** (middel, lead Verhaal, epic epic-verhaal-21-11): Lead Verhaal meldt (epic-verhaal-21-11): storybridge_test.mjs bewijst dat een client of sessie geen overgangsscene speelt en dat storybridgerun.js niets over het net stuurt; unlockgate_test.mjs bewijst dat de poort alleen de meegegeven eigen voortgang leest (host en gast verschillen); COOP-GAST.md heeft een alinea voor overgangsscenes, poort, vlaggen en thuis. Wat overblijft is alleen de merge: daarna de status op OK zetten. Cutscene-deelname in een echt venster staat al in de suite alles (stap filmpje) en hoeft de lead niet te doen.
 - **Bezit: percelen, panden, productieketen (epic Bezit)** (hoog, lead Bezit, epic epic-bezit-21-11): Lead Bezit meldt (epic-bezit-21-11): de sectie Bezit staat in COOP-GAST.md; scripts/bezitnet_test.mjs (12) bewijst met drie instanties over een nep-netwerk dat claims convergeren, aansluiten en wegvallen werken en dat de dagtik niet dubbel telt bij een terugspringende klok (hostwissel) en niet bij een gast draait; transport bezitnet.js over het JSON-kanaal k bezit. Open: de testbankstap bezit in de suite alles (bezitnet.handleBezit of ensureBezitNet gebruiken), sponsorpanden van het voetbal naar de Bezit-pandindex (parcelindex.createBuildingIndex), en na de merge de opslagsleutel gde-bezit-v1 (scope speler) in dit manifest indelen en de status op OK zetten.
 - **Voetbalcarrière (team, tegenstanders, rollen)** (middel, #1157): voetbalsamen.js (regels, ratingblok, beloning) is niet gekoppeld aan coopnet.js en registreerWedstrijd; derby met mensen in team 1 (voetbalmatch.js) is niet gebouwd; sponsorpanden wachten op Bezit; uitwedstrijd als reis is niet gebouwd.
 - **Kleding, kapper en NPC-outfits (epic Kleding)** (middel, lead Kleding, epic epic-kleding-21-11): Lead Kleding meldt (epic-kleding-21-11, e71573e69): outfit-update midden in een sessie is klaar (bericht k outfit, test in clothing_test.mjs) en NPC-outfits zijn aangesloten op voetgangers, wachters en publiek (deterministisch). Open: de testbankstap outfit in coop.page.js moet na de merge echt controleren dat een medespeler avatar.outfit draagt (nu alleen gelogd); status naar OK na de merge.
@@ -166,6 +168,8 @@ De bron is [scripts/coop_coverage.json](../scripts/coop_coverage.json); de tabel
 | `recap` | apparaat | Recapkaart: nooit in een savegame. |
 | `gebieden` | speler | Gebieden per speler. |
 | `exploration` | speler | Verkenning per speler. |
+| `tuningLook` | speler | Het uiterlijk dat deze speler aan een eigen voertuig gaf; per speler (#429), nooit in een savegame, niet gedeeld. |
+| `bezit` | speler | Percelen en panden van deze speler (#1097); per speler (#429), nooit in een savegame. |
 
 <!-- MATRIX:END -->
 

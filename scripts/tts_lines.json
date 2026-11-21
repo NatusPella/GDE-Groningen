@@ -2812,14 +2812,14 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: deadpan, licht verbaasd."
  },
  {
-  "key": "Tammo|Dan rijdt hij nauwelijks voor jou. De Fjord Frituur, op een Fjord. Dan klopt de naam ook.",
+  "key": "Tammo|Dan rijdt hij nauwelijks voor jou. Een snackwagen die nauwelijks rijdt. Dat is een concept.",
   "speaker": "Tammo",
-  "text": "Dan rijdt hij nauwelijks voor jou. De Fjord Frituur, op een Fjord. Dan klopt de naam ook.",
+  "text": "Dan rijdt hij nauwelijks voor jou. Een snackwagen die nauwelijks rijdt. Dat is een concept.",
   "area": "Intro-montage",
   "out": "lines",
   "lang": "gro",
-  "say": "Dan rijdt hij nauwelijks voor jou. De Fjord Frituur, op een Fjord. Dan klopt de naam ook.",
-  "file": "tammo/dan_rijdt_hij_nauwelijks_voor_jo_f1f6d7cc.mp3",
+  "say": "Dan rijdt hij nauwelijks voor jou. Een snackwagen die nauwelijks rijdt. Dat is een concept.",
+  "file": "tammo/dan_rijdt_hij_nauwelijks_voor_jo_6d30f2bd.mp3",
   "voice": "Orus",
   "who": "dry, deadpan man in his thirties",
   "tag": "warm, verlegen, droog, alsof het niks is",

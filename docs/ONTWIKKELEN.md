@@ -251,6 +251,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?audiograf` | Met stil: de audiograaf draait wel, maar eindigt in een gedempte uitgang |
 | `?noattract` | Sla het aantrekkingsfilmpje en de eerste-start-meting over; een testrun start meteen in de wereld |
 | `?startkeuze` | Startkaart Alleen of Samen spelen (`launchchoice.js`): `startkeuze=alleen` slaat de kaart over en speelt alleen, zonder netwerk (devtools zet dit in elke testrun behalve `--coop`); `startkeuze=vraag` (`GDE_STARTKEUZE=vraag`) toont de kaart ook in een testrun, voor beeld en tests |
+| `?moeilijkheid` | Kaart "Hoe pittig moet het zijn?" bij een nieuw spel (`difficultycard.js`, #1169): `moeilijkheid=vraag` (`GDE_MOEILIJKHEID=vraag`) toont hem ook in een testrun; `moeilijkheid=ontspannen`, `standaard` of `uitdagend` zet dat niveau zonder kaart (devtools zet `moeilijkheid=standaard` in elke testrun) |
 | `?menutest` | Houd het oude startscherm voor de QA-harnassen (`GDE_MENU_TEST=1`, devtools zet deze vlag); elke gewone start en elke testrun begint meteen in de wereld |
 | `?attract` | Speel het aantrekkingsfilmpje (trailer.js) |
 | `?perf` | Prestatierun: start meteen in de wereld (geen titelscherm) |
@@ -279,6 +280,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?marker` | `?marker=vorm`: de vaste 3D-vormen van de wereldmarker in plaats van het zachte glyph |
 | `?touch` | Raakbediening aan (touch=1) of uit (touch=0), ook zonder touchscherm |
 | `?hitch` | Meet haperingen (hitchprobe) |
+| `?openingfilm` | Speel de nieuwe, geënsceneerde opening (`openingfilm.js`, filmscript in `docs/verhaal/OPENING-FILMSCRIPT-21-11.md`) in plaats van de montage en de twee scènes uit `cutscenes.js`; valt bij een fout terug op de oude opening; via `--url-flags=openingfilm` |
 | `?warmfilm` | Rijd de openingsfilm in het laadscherm voor (tour, palette, samples); standaard uit (kostte 20 tot 90 s laadtijd), alleen voor A/B-metingen |
 | `?dswereld` (0 tot 1) | Menging van de wereldkleuren met het designsysteem (`worldpalette.js`): standaard 0,3; `0` is het oude palet, `1` volledig; alleen voor vergelijken |
 | `?warm` | Laat een testrun (die `noattract` krijgt) het startgebied en de openingsfilm toch voorwarmen in het laadscherm, om de laadtijd te meten; via `--url-flags=warm` |

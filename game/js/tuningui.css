@@ -1,0 +1,105 @@
+/* De pimp-werkplaats (tuningworkshopui.js, epic Autotuning #1155) als zeefdruk (ADR 0040): één papieren paneel, links de keuzes
+   per tabblad als rijen met opties of kleurstaaltjes, rechts het 3D-voorbeeld en de kaart met je wijzigingen en de gele
+   installeerknop. Basis: menu.css met ds-menu-zeef.css; alleen var(--ds-...) uit ds-tokens.css, componenten uit
+   ds-components.css (.ds-z-*). Beweging: alleen opacity, translate en vullingen, op de tokenduur; "Beweging beperken" zet ze op 0. */
+#tune-menu { position: fixed; inset: 0; z-index: 41; display: none; }
+#tune-menu.visible { display: block; animation: m-fade var(--ds-m-lang) var(--ds-ease); }
+#tune-menu .tm-panel { left: 80px; right: 80px; top: var(--mt); bottom: var(--mb); }
+#tune-menu .tm-accent { display: block; width: var(--ds-s-8); height: var(--ds-s-2); background: var(--ds-c-ink-bord); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); margin-bottom: var(--ds-s-3); }
+#tune-menu .tm-money { color: var(--ds-zeef-tx); white-space: nowrap; }
+#tune-menu .tm-money.pay { animation: tm-pay var(--ds-m-max) var(--ds-ease); }
+@keyframes tm-pay { 0% { color: var(--ds-c-rood-tx); translate: 0 -2px; } 100% { color: var(--ds-zeef-tx); translate: 0 0; } }
+#tune-menu .tm-tabs { padding: var(--ds-s-4) 40px 0; flex-wrap: wrap; }
+#tune-menu .tm-tab small { margin-left: var(--ds-s-2); }
+#tune-menu .tm-deals { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ds-s-2) var(--ds-s-3); padding: var(--ds-s-3) 40px 0; font-size: var(--ds-t-hulp); }
+#tune-menu .tm-deals:empty { display: none; }
+#tune-menu .tm-deal-k { font-family: var(--ds-font-zeef-kop); font-weight: 800; letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--ds-zeef-tx); }
+#tune-menu .tm-deal b { font-weight: var(--ds-gewicht-vet); }
+#tune-menu .tm-deal s { color: var(--ds-c-inkt-zacht); }
+#tune-menu .tm-main { padding-top: var(--ds-s-4); }
+#tune-menu .tm-list { width: 700px; scrollbar-width: thin; scrollbar-color: var(--ds-scroll-duim) var(--ds-scroll-spoor); display: flex; flex-direction: column; gap: var(--ds-s-3); }
+#tune-menu .tm-note { padding: 0 var(--ds-s-2); color: var(--ds-zeef-tx); font-size: var(--ds-t-body); }
+/* een rij: kop met naam, gekozen waarde en prijs, daaronder de keuzes; de gefocuste rij krijgt de bordgroene rand en een vinkje-vlak */
+#tune-menu .tm-row { display: flex; flex-direction: column; gap: var(--ds-s-2); padding: var(--ds-s-3) var(--ds-s-4); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); background: var(--ds-zeef-bg); border-radius: var(--ds-r); transition: translate var(--ds-m-midden) var(--ds-m-uit), background-color var(--ds-m-midden) var(--ds-m-uit); }
+#tune-menu .tm-row:hover { translate: 0 -1px; }
+#tune-menu .tm-row:focus, #tune-menu .tm-row:focus-within { outline: none; background: var(--ds-c-sel-vlak); box-shadow: inset var(--ds-status-rand) 0 0 var(--ds-c-ink-bord); }
+#tune-menu .tm-rh { display: flex; align-items: baseline; gap: var(--ds-s-3); }
+#tune-menu .tm-rl { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
+#tune-menu .tm-rv { flex: 1; font-size: var(--ds-t-body); color: var(--ds-zeef-tx); overflow-wrap: anywhere; }
+#tune-menu .tm-rp { font-variant-numeric: tabular-nums; font-weight: var(--ds-gewicht-vet); }
+#tune-menu .tm-opts { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); align-items: center; }
+#tune-menu .tm-o { display: inline-flex; align-items: center; gap: var(--ds-s-2); min-height: var(--ds-doel-aanraken); padding: 0 var(--ds-s-3); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); background: var(--ds-c-toets-vlak); color: var(--ds-c-ink-inkt); border-radius: var(--ds-r); font: inherit; font-size: var(--ds-t-label); cursor: pointer; transition: translate var(--ds-m-kort) var(--ds-m-uit), background-color var(--ds-m-midden) var(--ds-m-uit); }
+#tune-menu .tm-o:hover { translate: 0 -1px; }
+#tune-menu .tm-o:active { translate: 0 var(--ds-m-druk-x); }
+#tune-menu .tm-o.on { background: var(--ds-c-ink-bord); color: var(--ds-c-wit); animation: tm-pop var(--ds-m-midden) var(--ds-m-stempel); }
+#tune-menu .tm-o.locked { border-style: dashed; color: var(--ds-c-inkt-zacht); cursor: default; }
+#tune-menu .tm-o.on, #tune-menu .tm-o.on.locked { color: var(--ds-c-wit); }
+#tune-menu .tm-on { width: var(--ds-s-4); text-align: center; font-weight: 800; }
+@keyframes tm-pop { 0% { scale: 0.96; } 100% { scale: 1; } }
+#tune-menu .tm-p { font-variant-numeric: tabular-nums; font-size: var(--ds-t-hulp); }
+#tune-menu .tm-p.mut { opacity: 0.75; }
+#tune-menu .tm-p.deal { font-weight: var(--ds-gewicht-vet); }
+#tune-menu .tm-p.lock { display: inline-flex; align-items: center; gap: var(--ds-s-1); }
+#tune-menu .tm-p s { opacity: 0.7; }
+/* kleurstaaltjes: een vierkantje met inktrand; het gekozen staaltje krijgt een dikke rand en een vinkje (nooit alleen kleur) */
+#tune-menu .tm-sws { gap: var(--ds-s-2); }
+#tune-menu .tm-sw { position: relative; width: var(--ds-doel-aanraken); height: var(--ds-doel-aanraken); padding: 0; border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); background: var(--sw, var(--ds-c-toets-vlak)); border-radius: var(--ds-r); cursor: pointer; display: inline-grid; place-items: center; font: inherit; font-size: var(--ds-t-hulp); color: var(--ds-c-ink-inkt); transition: translate var(--ds-m-kort) var(--ds-m-uit); }
+#tune-menu .tm-sw:hover { translate: 0 -1px; }
+#tune-menu .tm-sw[aria-checked="true"], #tune-menu .tm-sw.on { box-shadow: 0 0 0 var(--ds-lijn-dik) var(--ds-c-wit), 0 0 0 calc(var(--ds-lijn-dik) * 2) var(--ds-c-ink-inkt); animation: tm-pop var(--ds-m-midden) var(--ds-m-stempel); }
+#tune-menu .tm-sw[aria-checked="true"]:not(.none)::after { content: "✓"; position: absolute; right: -2px; bottom: -4px; width: var(--ds-s-4); height: var(--ds-s-4); display: grid; place-items: center; background: var(--ds-c-wit); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: 50%; font-size: var(--ds-t-toets); font-weight: 800; }
+#tune-menu .tm-sw.none { border-style: dashed; width: auto; padding: 0 var(--ds-s-3); background: var(--ds-c-toets-vlak); }
+#tune-menu .tm-sw.own { width: auto; padding: 0 var(--ds-s-3); background: var(--ds-c-toets-vlak); gap: var(--ds-s-2); grid-auto-flow: column; }
+#tune-menu .tm-sw.own input { width: var(--ds-s-5); height: var(--ds-s-5); padding: 0; border: var(--ds-lijn) solid var(--ds-c-ink-inkt); background: none; cursor: pointer; }
+#tune-menu .tm-plate { flex: 1 1 240px; min-height: var(--ds-doel-aanraken); padding: 0 var(--ds-s-3); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); background: var(--ds-c-toets-vlak); color: var(--ds-c-ink-inkt); border-radius: var(--ds-r); font: inherit; font-size: var(--ds-t-body); text-transform: uppercase; letter-spacing: var(--ds-ls-label); }
+#tune-menu .tm-hint { font-size: var(--ds-t-hulp); color: var(--ds-c-inkt-zacht); }
+#tune-menu .tm-bact { min-width: 120px; }
+/* rechts: het voorbeeld en de kaart */
+#tune-menu .tm-pane { display: flex; flex-direction: column; gap: var(--ds-s-3); min-width: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--ds-scroll-duim) var(--ds-scroll-spoor); }
+#tune-menu .tm-stage { position: relative; flex: none; height: clamp(130px, 21vh, 230px); background-image: var(--ds-raster); background-size: var(--ds-raster-maat); border: var(--ds-lijn-dik) dashed var(--ds-c-ink-inkt); }
+#tune-menu .tm-preview { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; opacity: 0; transition: opacity var(--ds-m-lang) var(--ds-ease); }
+#tune-menu .tm-preview.on { opacity: 1; }
+#tune-menu .tm-preview:active { cursor: grabbing; }
+#tune-menu .tm-badge { position: absolute; left: var(--ds-s-3); top: var(--ds-s-3); padding: 0 var(--ds-s-3); background: var(--ds-c-ink-geel); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-kop); font-weight: 800; letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
+#tune-menu .tm-badge[hidden] { display: none; }
+#tune-menu .tm-card { flex: none; gap: var(--ds-s-3); }
+#tune-menu .tm-chips { display: inline-flex; gap: var(--ds-s-2); }
+#tune-menu .tm-lines { display: flex; flex-direction: column; gap: var(--ds-s-1); max-height: 10vh; overflow: auto; scrollbar-width: thin; }
+#tune-menu .tm-line { display: flex; justify-content: space-between; gap: var(--ds-s-4); font-size: var(--ds-t-hulp); }
+#tune-menu .tm-line .v { font-variant-numeric: tabular-nums; font-weight: var(--ds-gewicht-vet); text-align: right; }
+#tune-menu .tm-line.locked .v { color: var(--ds-c-rood-tx); }
+#tune-menu .tm-dealmark { font-style: normal; padding: 0 var(--ds-s-1); background: var(--ds-c-groen-vlak); color: var(--ds-c-groen-tx); }
+#tune-menu .tm-empty { color: var(--ds-c-inkt-zacht); font-size: var(--ds-t-hulp); margin: 0; }
+#tune-menu .tm-fx { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ds-s-2) var(--ds-s-5); }
+#tune-menu .tm-fx:empty { display: none; }
+#tune-menu .tm-stat { display: grid; grid-template-columns: auto 1fr; gap: var(--ds-s-1) var(--ds-s-3); align-items: baseline; font-size: var(--ds-t-hulp); }
+#tune-menu .tm-stat > small { text-align: right; font-size: var(--ds-t-hulp); }
+#tune-menu .tm-bar { grid-column: 1 / -1; position: relative; display: block; height: var(--ds-s-3); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); background-color: var(--ds-zeef-bg); background-image: var(--ds-raster); background-size: var(--ds-raster-maat); }
+#tune-menu .tm-bar b { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ds-c-ink-bord); }
+#tune-menu .tm-bar em { position: absolute; top: 0; bottom: 0; background: var(--ds-c-ink-geel); border-left: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-right: var(--ds-lijn) solid var(--ds-c-ink-inkt); }
+#tune-menu .tm-bar em.down { background: var(--ds-c-rood-vlak); background-image: var(--ds-raster); background-size: var(--ds-raster-maat); }
+#tune-menu .tm-buyrow { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-s-5); }
+#tune-menu .tm-total { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-kop); line-height: var(--ds-lh-kop); font-variant-numeric: tabular-nums; }
+#tune-menu .tm-buy { flex: 1 1 auto; max-width: 360px; flex-direction: column; }
+#tune-menu .tm-buy[aria-disabled="true"] { opacity: 0.6; }
+#tune-menu .tm-buy.armed { background: var(--ds-c-rood-vlak); }
+#tune-menu .ds-z-knop__sub { display: inline-flex; align-items: center; gap: var(--ds-s-2); font-family: var(--ds-font-zeef-tekst); font-weight: 400; font-size: var(--ds-t-hulp); letter-spacing: 0; }
+#tune-menu .tm-sub { display: flex; gap: var(--ds-s-3); }
+#tune-menu .tm-sub .ds-z-knop { flex: 1; }
+#tune-menu .tm-compare[aria-pressed="true"] { background: var(--ds-c-ink-geel); }
+#tune-menu .tm-status { min-height: var(--ds-s-6); font-size: var(--ds-t-body); color: var(--ds-c-inkt-zacht); }
+#tune-menu .tm-status[data-tone="win"] { color: var(--ds-c-groen-tx); font-weight: var(--ds-gewicht-vet); }
+#tune-menu .tm-status[data-tone="no"] { color: var(--ds-c-rood-tx); }
+#tune-menu .tm-status.pop { animation: m-up var(--ds-m-max) ease both; }
+#tune-menu .m-foot .tm-close { display: inline-flex; }
+@media (max-height: 820px) {
+  #tune-menu .tm-total { font-size: var(--ds-t-subkop); }
+  #tune-menu .tm-list { width: 560px; }
+  #tune-menu .tm-rl { font-size: var(--ds-t-body); }
+}
+@media (max-width: 1100px), (pointer: coarse) {
+  #tune-menu .tm-list { width: 520px; }
+  #tune-menu .tm-tab { height: var(--ds-doel-aanraken); }
+}
+/* Beweging beperken en rustig drukwerk: de tokens staan op 0, dus alleen de losse animaties hoeven uit */
+html.reduce-motion #tune-menu :is(.tm-o.on, .tm-sw[aria-checked="true"], .tm-sw.on, .tm-money.pay, .tm-status.pop), html.rustig-drukwerk #tune-menu :is(.tm-o.on, .tm-sw[aria-checked="true"], .tm-sw.on, .tm-money.pay, .tm-status.pop) { animation: none; }
+@media (prefers-reduced-motion: reduce) { #tune-menu :is(.tm-o.on, .tm-sw[aria-checked="true"], .tm-sw.on, .tm-money.pay, .tm-status.pop) { animation: none; } }

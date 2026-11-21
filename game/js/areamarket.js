@@ -9,11 +9,11 @@ import { PRIJS_KG as PRICE_KG } from './gewasmarkt.js';
 import { STREKEN } from './regioleven.js';
 import { hashUnit, clamp, finite } from './bezithash.js';
 
-export const REGION_IDS = [...STREKEN.map((s) => s.id), 'overig'];
+export const DISTRICT_IDS = [...STREKEN.map((s) => s.id), 'overig'];
 export const PRICE_MIN = 0.7, PRICE_MAX = 1.4;       // grenzen van de marktfactor (de bestaande dagmarkt zit op 0,8 tot 1,2)
 export const SENSITIVITY = 0.2;                       // 0,2 x (vraag - aanbod) / referentie
 export const SATURATION_PER_TONNE = 0.03;             // elke 1.000 kg die je levert drukt de prijs 3%
-export const RECOVERY_PER_DAY = 0.25;                 // de verzadiging herstelt 25% per dag
+export const REBOUND_PER_DAY = 0.25;                 // de verzadiging herstelt 25% per dag
 export const MAX_DEPRESSION = 0.6;                    // de verzadiging drukt hoogstens zestig procent
 export const MAX_EVENT_MULT = 1.25;                   // de veilingdag (+25% op één product) is de grootste eventfactor; die komt bovenop de begrensde marktfactor
 
@@ -22,26 +22,26 @@ export const MAX_EVENT_MULT = 1.25;                   // de veilingdag (+25% op 
 export const BASE_PRICE = { ...PRICE_KG, melk: 0.45, kaas: 4.5, friet: 0.9, meel: 0.3, brood: 1.6, eieren: 1.6, hooi: 0.12 };
 export const REFERENCE = { aardappelen: 12000, bieten: 20000, graan: 10000, gras: 15000, uien: 6000, fruit: 3000, melk: 8000, kaas: 800, friet: 3000, meel: 2500, brood: 2500, eieren: 1200, hooi: 5000 };
 export const PRODUCTS = Object.keys(BASE_PRICE);
-export const regionOf = (r) => (REGION_IDS.includes(r) ? r : 'overig');
+export const districtOf = (r) => (DISTRICT_IDS.includes(r) ? r : 'overig');
 
 // De marktdag uit het dagnummer van de spelkalender (1 = vrijdag 14 augustus, ook ná het zomerseizoen doortellend): altijd een geheel getal van minstens 1.
 export const marketDay = (calendarDay) => Math.max(1, Math.floor(finite(calendarDay, 1)));
 
 // ---- vraag en aanbod ----
 // De vraag van die dag in kilo: 0,3 tot 2,2 maal de referentie, vast uit de hash.
-export const demandKg = (region, product, day) => Math.round((REFERENCE[product] || 5000) * (0.3 + 1.9 * hashUnit('vraag', regionOf(region), product, marketDay(day))));
+export const demandKg = (region, product, day) => Math.round((REFERENCE[product] || 5000) * (0.3 + 1.9 * hashUnit('vraag', districtOf(region), product, marketDay(day))));
 // Het achtergrondaanbod van de streek: precies de referentie.
 export const backgroundSupplyKg = (product) => REFERENCE[product] || 5000;
 
 export const newMarket = () => ({ day: 0, today: {}, depression: {} });
-const key = (region, product) => `${regionOf(region)}:${product}`;
+const key = (region, product) => `${districtOf(region)}:${product}`;
 
 // Naar een nieuwe dag: de verzadiging herstelt 25% per verstreken dag en het aanbod van gisteren is weg. Past de invoer niet aan.
 export function advanceMarket(m, day) {
   const d = marketDay(day);
   if (d <= m.day) return m;
   const dep = {};
-  const f = Math.pow(1 - RECOVERY_PER_DAY, d - m.day);
+  const f = Math.pow(1 - REBOUND_PER_DAY, d - m.day);
   for (const k of Object.keys(m.depression)) { const v = m.depression[k] * f; if (v > 0.0005) dep[k] = Math.round(v * 10000) / 10000; }
   return { day: d, today: {}, depression: dep };
 }
@@ -103,7 +103,7 @@ export function normalizeMarket(raw) {
   const m = newMarket();
   if (!raw || typeof raw !== 'object') return m;
   m.day = Math.max(0, Math.floor(finite(raw.day, 0)));
-  const ok = (k) => { const [r, p] = String(k).split(':'); return REGION_IDS.includes(r) && BASE_PRICE[p] > 0; };
+  const ok = (k) => { const [r, p] = String(k).split(':'); return DISTRICT_IDS.includes(r) && BASE_PRICE[p] > 0; };
   for (const k of Object.keys(raw.today || {}).filter(ok).slice(0, 200)) m.today[k] = clamp(finite(raw.today[k], 0), 0, 1e9);
   for (const k of Object.keys(raw.depression || {}).filter(ok).slice(0, 200)) m.depression[k] = clamp(finite(raw.depression[k], 0), 0, MAX_DEPRESSION);
   return m;
@@ -111,7 +111,7 @@ export function normalizeMarket(raw) {
 
 // Het tabblad Markt: per product de prijs in elke streek vandaag, met de beste streek (om naartoe te leveren). rows: [{ region, factor, price }].
 export function marketBoard(m, product, day, eventMult = 1) {
-  const rows = REGION_IDS.filter((r) => r !== 'overig').map((r) => ({ region: r, factor: priceFactor(m, r, product, day, eventMult), price: pricePerKg(m, r, product, day, eventMult), trend: trend(m, r, product, day) }));
+  const rows = DISTRICT_IDS.filter((r) => r !== 'overig').map((r) => ({ region: r, factor: priceFactor(m, r, product, day, eventMult), price: pricePerKg(m, r, product, day, eventMult), trend: trend(m, r, product, day) }));
   rows.sort((a, b) => b.factor - a.factor || a.region.localeCompare(b.region));
   return { product, best: rows[0] || null, rows };
 }

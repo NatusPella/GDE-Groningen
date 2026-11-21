@@ -601,6 +601,7 @@ function playOpening(b) {
     }).catch(() => { if (!playAct(0)) openingKlaar(); });
     return true; // de opening loopt; de montage of de terugval neemt het over
   };
+  const playOld = () => {
   const staged = acts.length === 3 && startTrailer();
   if (staged) return true;
   const ok = playCinematic({
@@ -614,6 +615,17 @@ function playOpening(b) {
     onEnd: () => { openingKlaar(); },
   });
   return ok;
+  };
+  // ?openingfilm (docs/verhaal/OPENING-FILMSCRIPT-21-11.md, openingfilm.js): the staged film replaces the three acts. Any failure (the film cannot be
+  // built, or a shot throws while it plays) hands over to the old opening above, so a new player always gets an opening.
+  if (FLAGS.openingfilm && acts.length === 3) {
+    import('./intromontage.js').then((m) => {
+      const ok = m.playOpeningFilm(world, { onDone: (skipped, failed) => { if (failed) { if (!playOld()) openingKlaar(); } else openingKlaar(); } });
+      if (!ok && !playOld()) openingKlaar();
+    }).catch((e) => { console.warn('opening-film', e); if (!playOld()) openingKlaar(); });
+    return true;
+  }
+  return playOld();
 }
 
 // Verhaal > Personages: de opening opnieuw bekijken (#986). De stap M00 blijft zoals hij was; de speler staat daarna

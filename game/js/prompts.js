@@ -1,4 +1,5 @@
 import { icoon } from './icons.js';
+import { toggleChoice } from './difficulty.js'; // #1169
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getCamera } from './scene3d.js';
 import { getGaragesForRender, garagePrompt } from './garages.js';
@@ -158,7 +159,7 @@ export function initPrompts(hudRoot) {
 }
 
 function hiddenNow(world) {
-  if (!getSettings().showHints) return true;
+  if (!toggleChoice('hints', getSettings().showHints)) return true; // #1169
   const b = document.body.classList;
   if (!b.contains('game-started') || b.contains('cine-hide-hud') || b.contains('pigeon-mode')) return true;
   if (world.pigeonMode) return true;

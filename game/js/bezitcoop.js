@@ -46,18 +46,18 @@ export function createClaims(selfId) {
       }
       if (msg.action !== 'claim') return { ok: false, ignored: 'onbekend' };
       const t = Number.isFinite(msg.t) ? msg.t : 0;
-      const nieuw = { from: msg.from, name: String(msg.name || 'Medespeler').slice(0, 24), color: typeof msg.color === 'string' ? msg.color.slice(0, 9) : null, t };
+      const incoming = { from: msg.from, name: String(msg.name || 'Medespeler').slice(0, 24), color: typeof msg.color === 'string' ? msg.color.slice(0, 9) : null, t };
       const oud = claims.get(msg.id);
       if (!oud) {
         if (claims.size >= CLAIM_MAX) return { ok: false, ignored: 'vol' };
-        claims.set(msg.id, nieuw); return { ok: true };
+        claims.set(msg.id, incoming); return { ok: true };
       }
-      if (oud.from === nieuw.from) { claims.set(msg.id, nieuw); return { ok: true }; }
-      if (wins(nieuw, oud)) {
-        claims.set(msg.id, nieuw);
+      if (oud.from === incoming.from) { claims.set(msg.id, incoming); return { ok: true }; }
+      if (wins(incoming, oud)) {
+        claims.set(msg.id, incoming);
         return { ok: true, lost: oud.from === selfId, replaced: oud.from };
       }
-      return { ok: false, ignored: 'verloren', took: nieuw.from !== selfId ? false : true, lost: nieuw.from === selfId };
+      return { ok: false, ignored: 'verloren', took: incoming.from !== selfId ? false : true, lost: incoming.from === selfId };
     },
     // Wegvallen: de claims van deze speler verdwijnen (zijn eigen bezit blijft van hem, in zijn eigen spel).
     drop(playerId) { let n = 0; for (const [id, c] of claims) if (c.from === playerId) { claims.delete(id); n++; } return n; },
