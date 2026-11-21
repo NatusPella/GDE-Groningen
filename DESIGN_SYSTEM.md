@@ -610,6 +610,68 @@ One small library, `game/js/ds-motion.css` (the `.ds-mi-*` classes, loaded after
 
 **Left alone, with the reason.** The ringing of an incoming call (`pf-ring`, `pf-buzz`) and the live dot are functional states, not decoration, and still loop; the rule "never a loop" applies to everything new and they are listed in the known deviations below for the phone pass. The old district card of `cinematics.js` (`#wijk-card`) is replaced by the big moment and stays as the fallback in the old style.
 
+### Microanimaties (DS3)
+
+The owner's wish (21 November): *achievements should feel more like an achievement, and many cards, HUD items, UI and menus may move a little more.* The microinteractions above are the floor (notifications, a counter, a press); this section is the catalogue on top of it: one fixed pattern per component type, in `game/js/ds-micro.css` (`.ds-m-*` for micro, `.ds-moment-*` for the few big moments), with tokens `--ds-m-*` and `--ds-moment-*` in `ds-tokens.css`, the pure logic in `game/js/dsmicro.js` and `game/js/prestatiemoment.js`, and the rules as code in `scripts/lib/ds3_regels.mjs`, kept by `scripts/ds3_dekking_test.mjs`. The older `.ds-mi-*` classes stay as they are; a card may carry both (`ds-mi-in ds-m-overshoot`).
+
+**Motion language (tokens).** Three micro durations, three easings, one stagger, and a separate family for moments:
+
+| Token | Value | For |
+|---|---|---|
+| `--ds-m-kort` | 80 ms | a tick: tooltip, tick mark, number heartbeat, press |
+| `--ds-m-midden` | 150 ms | button, chip, switch, tab underline, selection, dot |
+| `--ds-m-lang` | 250 ms (= `--ds-m-max`) | card, panel, bar, toast; the longest a micro animation may take |
+| `--ds-m-staffel` | 40 ms | gap between list rows, at most 8 rows delayed (320 ms) |
+| `--ds-m-uit` | `cubic-bezier(0.2, 0.7, 0.2, 1)` | ease-out: coming in, filling (same curve as `--ds-ease`) |
+| `--ds-m-inuit` | `cubic-bezier(0.45, 0, 0.2, 1)` | ease-in-out: a swap between two states |
+| `--ds-m-stempel` | `cubic-bezier(0.34, 1.56, 0.64, 1)` | a light overshoot, like a stamp that lands |
+| `--ds-m-druk-x` | 2 px | the screen-print press: the shadow offset jumps 2 px |
+| `--ds-moment-stap` | 120 ms (= `--ds-m-snel`) | stagger step of a moment |
+| `--ds-moment-duur` | 400 ms | one part of a moment |
+| `--ds-moment-max` | 1600 ms | the whole moment, flat through to the sheen |
+| `--ds-moment-leven` | 2000 ms | one slow breath of the live dot (the only thing that may keep running) |
+
+The hard limit of 250 ms stays for every micro animation (`--ds-m-*`; the release rules refuse a `--ds-m-*` token above 250 ms). Only a **moment** may go longer, up to 1,6 s, staggered: an achievement, the end card of a mission and a level-up. A moment has its own class family (`.ds-moment-*`), its own tokens (`--ds-moment-*`) and never fires from a hover, a list or a counter. Under "Beweging beperken", Rustig drukwerk and `prefers-reduced-motion` every token above is 0 ms (`--ds-m-druk-x`, the 2 px offset, stays: it is a state, not motion).
+
+**Rules** (a test checks each one):
+1. **One animation per event.** A card that comes in does not also pulse; an achievement is one moment, not a moment plus a toast plus a chip animation.
+2. **Only `transform`, `opacity` and the individual properties `translate`, `scale` and `rotate`.** No layout animation (`width`, `height`, `top`, `left`, `margin`, `padding`, `font-size`), no `filter`, no `all`. The one paint exception is `box-shadow` on `.ds-m-knop`, at most `--ds-m-midden`. A bar fills with `scale` (`--ds-m-p` from 0 to 1), a tab underline glides with `transform`.
+3. **Times only from tokens.** No literal `ms` in `ds-micro.css` (except `0ms` in the reduced-motion branches), and a `.ds-m-*` rule never uses a `--ds-moment-*` time.
+4. **Never blocks input.** Pointer events and focus stay on the element; a moment that holds attention (the end card) can be skipped with a key or a click and then shows its end state at once (`.ds-moment-klaar`). A toast that blocks nothing needs no skip.
+5. **No loops**, except the live dot and the bell (`.ds-m-stip--live`, one slow opacity breath, never above 0,5 per second). Everything else runs once and stays put.
+6. **Reduced motion has a counterpart for every class.** Each `.ds-m-*` and `.ds-moment-*` class that animates or transitions is listed in all three branches at the bottom of `ds-micro.css` (`html.reduce-motion`, `html.rustig-drukwerk`, `@media (prefers-reduced-motion: reduce)`) with `animation: none` and zero duration and delay: no motion, no stagger, no shock, the same words on the same place. "Rustig drukwerk" gets only a fade or an instant end state, never a shake or a stagger. Meaning never lives in the motion alone.
+7. **Performance budget.** At most 12 elements with their own animation at once (`MAX_GELIJK` in `dsmicro.js`: more rows simply stand there), at most 8 delayed rows, no JS per frame (timers at moment steps only), no continuous loop besides the live dot.
+8. **Sound.** A moment may sound; a micro animation does not (menu sounds stay in `sfx/menunav.js`). Sound goes through the existing SFX bus (`playTone`, `playNoiseBurst` on the sting bus, so it follows the Effects volume and mute): a UI tick (`tik`), a whoosh, a stamp slam (`slag`, `inslag`, `stempel`), a coin (`munt`). Never twice for one event: the achievement waits until the end card is gone (`isOverlayHeld`), so the slam of the end card and of the achievement never overlap, and the achievement sting (`achievementgeluid.js`) is the chime while `slag` is the slam under it.
+9. **Samen spelen.** Animations are local: each player plays their own HUD, menus and sounds; nothing here is synced or sent over the net. An achievement is per player (#429), so a guest sees and hears only their own.
+
+**Catalogue.** Each row is the fixed pattern; use the class, not a new CSS rule.
+
+| Component | Class | Pattern | Time |
+|---|---|---|---|
+| Card or panel in | `.ds-m-binnen` (+ `.on` / `.aan`; `--ds-m-x`, `--ds-m-y`) | opacity, rise 8 px (or from an edge), scale 0,98 to 1 with a light overshoot | `--ds-m-lang` |
+| Card out | `.ds-m-weg`, or `.out` / `.uit` on `.ds-m-binnen` | fade only, no move | `--ds-m-midden` |
+| Existing card with an overshoot | `.ds-m-overshoot` (next to `.ds-mi-in`) | the same slide with the stamp easing | `--ds-m-lang` |
+| Toast | `.ds-m-toast` (+ `.on`, `--ds-m-x`) | fade and slide from the edge where it belongs | `--ds-m-lang` |
+| Button | `.ds-m-knop` | hover or focus: 1 px up; press: 2 px into the shadow, the shadow offset jumps 2 px and the edge of the shadow does not move; on a `.ds-z-knop` only the transition and the lift are added | `--ds-m-midden`, press `--ds-m-kort` |
+| List row | `.ds-m-rij` (+ `.on`, `--ds-m-i`) | fade and 6 px rise, staggered 40 ms per row, at most 8 steps; after the stagger the classes come off so the row keeps its own hover | `--ds-m-lang` |
+| Number or counter | `.ds-m-tik` (+ `.ds-m-tikt` per step) | tabular figures; each step a heartbeat (scale 1 to 1,08 to 1); the figures themselves run in `tellerStappen` | `--ds-m-kort` |
+| Badge or chip | `.ds-m-pop` (+ `.on`) | scale 0,6 to 1 with the stamp easing | `--ds-m-midden` |
+| Progress bar | `.ds-m-vul` (`--ds-m-p`) on the fill, `.ds-m-glans` + `.ds-m-glanst` on the track | fills with `scale`; a flat sheen sweeps once when it is full (no gradient) | `--ds-m-lang` |
+| Tab or segment | `.ds-m-tabs` on the tab row, `.ds-m-tabs__lijn` inside it, `.ds-m-tabs--aan` set by JS once measured | a sliding underline (`--ds-m-tab-x`, `--ds-m-tab-w`); until it is measured the tab keeps its own underline; the content swap fades with `.ds-m-wissel` | `--ds-m-midden` |
+| Switch, checkbox, slider | `.ds-m-schakel` + `.ds-m-schakel__knop`, `.ds-m-vink`, `.ds-m-greep` | the knob slides with a light overshoot, the tick pops in, the handle grows 12% while held or focused | `--ds-m-midden`, handle `--ds-m-kort` |
+| Tooltip | `.ds-m-tip` (+ `.on`, or its parent hovered or focused) | fade and 4 px rise | `--ds-m-kort` |
+| Scrolling | `.ds-m-scrollfade` (`data-boven`, `data-onder` from `scrollRanden`) | the edge fades where more content is | `--ds-m-midden` |
+| Selection | `.ds-m-puls` (+ `.aan`, or `.ds-m-gepulst`) | one pulse, scale 1 to 1,04 to 1 | `--ds-m-midden` |
+| New-notification dot | `.ds-m-stip` (+ `.aan`), `.ds-m-nieuw` on a tab or rail button with `[data-new]`; `.ds-m-stip--live` for a live state | the dot pops in once and then stands still; only the live dot breathes | `--ds-m-midden` (live: `--ds-moment-leven`) |
+| Reward to the HUD | `.ds-moment-vlieg` (`--ds-moment-dx`, `--ds-moment-dy`) | the coin or amount flies to the HUD counter, which ticks (`.ds-m-tik`) on arrival; one at a time, only above a threshold the component sets | `--ds-moment-duur` |
+| Accent | `.ds-m-inkt--bord`, `.ds-m-inkt--roze`, `.ds-m-inkt--geel`, `.ds-m-inkt--inkt` | sets `--ds-m-accent` from the ink tokens; no raw colour | none |
+
+**Moments** (`.ds-moment-*`, each part at most `--ds-moment-duur`, stagger `--ds-moment-stap`, the whole at most `--ds-moment-max`; set `--ds-moment-n` on each part from the plan): `.ds-moment-stempel` (the card slams in: scale 1,35 to 0,97 to 1 with opacity), `.ds-moment-binnen` (a part slides in from 24 px left), `.ds-moment-ploft` (an icon pops with an overshoot and a small turn), `.ds-moment-glans` + `.ds-moment-veeg` (a flat sheen sweeps over the card once), `.ds-moment-vlieg` (reward to the HUD), and `.ds-moment-klaar` (skip: the end state at once). The end card of a mission (`eindkaartimpact.js`) and the achievement (`prestatiemoment.js`) plan their steps with the same stagger helper (`tellerStappen`, `SNEL_MS`, `STAP_MS`, `MAX_TOTAAL_MS`).
+
+**The achievement as a moment** (`achievements.js`, `prestatiemoment.js`, `achievementsui.js`). The card slams in with a screen-print shadow in the accent ink (`.ds-moment-stempel`, a hard 6 px shadow, no soft glow), the icon pops (`.ds-moment-ploft`), kicker, title and description come staggered (120 ms apart), a bar "x/y prestaties" fills while the number ticks, and a flat sheen sweeps over the card at the end; the whole moment is about 1 s. The accent ink is the rarity: gold is yellow (a medal or "alle goud", with the word *Goud* in a chip), a secret one is pink (the word *Geheim*), and an ordinary one takes the ink of its category. Several at once: the first of a series is a full card, the next two are short (title only, no bar, 60% of the dwell, a chip *nog N*), and what is left after three becomes one summary card (*Nog N prestaties*); the achievements themselves are in the menu. Sound: the existing sting (full card only), a short slam, a tick per counter step, a coin on the last and a soft sheen note. In the menu (Pauze, Prestaties): rows stagger in when the section or a tab opens (never on a fold or a selection), a just-unlocked row sweeps its sheen once per session, the category counter ticks up, a bar fills from what it was (never again on a fold) and a bar that is just full sweeps once. Under "Beweging beperken" and Rustig drukwerk: the card stands there with one slam, the bar and the number are final, no stagger.
+
+**Where it is applied (first set).** Pause-menu tabs (sliding underline, pop of the new dot on tabs and rail), HUD cards (`.ds-m-overshoot`), the money counter in the HUD (`.ds-m-tik` on money coming in), the objective card (the swap now runs on the tokens: 250 ms, the stamp easing, off under reduced motion), the achievement toast, the achievement menu (rows, chips, bars, counters, the button *Bekijk in de lijst*). Still to move over: the other `.ds-z-balk__vul` bars (their width transition predates this rule), the phone card and the other menus' rows.
+
 ### Rules for components (additions to the checklist)
 
 1. **No loose hex.** `ds-components.css` has no hex, `rgb()` or `hsl()`; only `var(--ds-...)`. `ds-tokens.css` has hex only as palette (`--ds-c-*`) and `rgba()` only in a shadow. New screens use the roles, not the palette.

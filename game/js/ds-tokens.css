@@ -143,6 +143,23 @@
   --ds-m: 200ms;
   --ds-m-max: 250ms;
   --ds-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  /* ---- Microanimaties (DS3, DESIGN_SYSTEM.md "Microanimaties"; ds-micro.css). Microtijden: 80 / 150 / 250 ms.
+     Alle --ds-m-*-tijden zijn hooguit 250 ms; de hoogtepunt-tijden (--ds-moment-*) zijn een eigen familie boven die grens
+     en alleen voor een prestatie, eindkaart of level-up. Onder "Beweging beperken", Rustig drukwerk en
+     prefers-reduced-motion staan ze allemaal op 0 ms. ---- */
+  --ds-m-kort: 80ms;                                /* een tik: tooltip, vink, hover-terugval */
+  --ds-m-midden: 150ms;                             /* knop, chip, schakelaar, selectie */
+  --ds-m-lang: 250ms;                               /* kaart, paneel, balk (gelijk aan --ds-m-max) */
+  --ds-m-staffel: 40ms;                             /* tussentijd van een lijstrij; hooguit 8 rijen vertraagd */
+  --ds-m-uit: cubic-bezier(0.2, 0.7, 0.2, 1);       /* ease-out: binnenkomen en vullen */
+  --ds-m-inuit: cubic-bezier(0.45, 0, 0.2, 1);      /* ease-in-out: een wissel tussen twee standen */
+  --ds-m-stempel: cubic-bezier(0.34, 1.56, 0.64, 1); /* lichte overshoot: een stempel die inslaat */
+  --ds-m-druk-x: 2px;                               /* de zeefdruk-indruk: de schaduw verspringt 2 px */
+  --ds-moment-stap: 120ms;                          /* staffel van een hoogtepunt (gelijk aan --ds-m-snel) */
+  --ds-moment-duur: 400ms;                          /* één onderdeel van een hoogtepunt */
+  --ds-moment-max: 1600ms;                          /* het hele hoogtepunt, vlak tot en met de glans */
+  --ds-moment-leven: 2000ms;                        /* één trage ademhaling van de live-stip (het enige dat mag blijven lopen) */
 }
 /* de rollen met een vloer opnieuw op #hud: daar bestaat --hud-min (13 px gedeeld door --ui), zodat de vloer na het zoomen 13 px blijft */
 #hud {
@@ -216,9 +233,9 @@
 
 /* Beweging beperken: de tokens zelf worden nul, zodat elke component meebeweegt zonder eigen regel. */
 @media (prefers-reduced-motion: reduce) {
-  :root { --ds-m-snel: 0ms; --ds-m: 0ms; --ds-m-max: 0ms; }
+  :root { --ds-m-snel: 0ms; --ds-m: 0ms; --ds-m-max: 0ms; --ds-m-kort: 0ms; --ds-m-midden: 0ms; --ds-m-lang: 0ms; --ds-m-staffel: 0ms; --ds-moment-stap: 0ms; --ds-moment-duur: 0ms; --ds-moment-max: 0ms; --ds-moment-leven: 0ms; }
 }
-html.reduce-motion { --ds-m-snel: 0ms; --ds-m: 0ms; --ds-m-max: 0ms; }
+html.reduce-motion { --ds-m-snel: 0ms; --ds-m: 0ms; --ds-m-max: 0ms; --ds-m-kort: 0ms; --ds-m-midden: 0ms; --ds-m-lang: 0ms; --ds-m-staffel: 0ms; --ds-moment-stap: 0ms; --ds-moment-duur: 0ms; --ds-moment-max: 0ms; --ds-moment-leven: 0ms; }
 
 /* ===== Zomerse zeefdruk (ADR 0040, issue 991). Additief: de oudere rollen blijven werken tot
    elk scherm is omgebouwd. De waarden zijn voorlopig tot de HUD-proef (issue 993) is gekeurd. ===== */
@@ -276,6 +293,15 @@ html.rustig-drukwerk, .ds-rustig {
   --ds-m-snel: 0ms;
   --ds-m: 0ms;
   --ds-m-max: 0ms;
+  --ds-m-kort: 0ms;
+  --ds-m-midden: 0ms;
+  --ds-m-lang: 0ms;
+  --ds-m-staffel: 0ms;
+ 
+  --ds-moment-stap: 0ms;
+  --ds-moment-duur: 0ms;
+  --ds-moment-max: 0ms;
+  --ds-moment-leven: 0ms;
   --ds-c-ink-roze: #9d1f2a;
   --ds-c-ink-bord: #0b5530;
 }
