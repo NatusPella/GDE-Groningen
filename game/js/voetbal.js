@@ -17,7 +17,7 @@ import { matchSetup } from './voetbalcarriere.js';
 import { pitchPlacement } from './voetbalparken.js';
 import { registerLauncher } from './voetbalcarriereui.js';
 import { formationList } from './voetbalrules.js';
-import { awayKit } from './voetbalwereld.js';
+import { awayKit } from './voetbalworld.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedLiveTik, wedHostLiveEind, wedGastVerlaat, wedGastReset } from './multiplayerwedstrijd.js';
 import { hoofdspeler } from './players.js';
@@ -217,7 +217,7 @@ const VROUW = new Set(['Wietske', 'Grietje', 'Fenna', 'Marrit']);
 function makeActors(sim) {
   const scene = getScene();
   const acts = sim.spelers.map((p) => {
-    const t = p.team === 1 && sim.teams[0].patroon ? awayKit(sim.teams[0], sim.teams[1]) : sim.teams[p.team]; // een carrièreduel waar beide teams op elkaar lijken: de uitploeg speelt in een uitshirt (voetbalwereld.js)
+    const t = p.team === 1 && sim.teams[0].patroon ? awayKit(sim.teams[0], sim.teams[1]) : sim.teams[p.team]; // een carrièreduel waar beide teams op elkaar lijken: de uitploeg speelt in een uitshirt (voetbalworld.js)
     const shirt = p.rol === 'keeper' ? t.keeperShirt : t.shirt;
     const human = sim.mensen.find((x) => x.ctl === p.id);
     const vrouw = VROUW.has(p.naam) || (human && human.char === 'anita');

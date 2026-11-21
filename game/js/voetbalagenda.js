@@ -1,7 +1,7 @@
 // De agenda van de voetbalcarrière in speldagen (#1108, ADR 0042): puur, geen DOM (scripts/voetbal_agenda_test.mjs). De carrière telt nachten (`voetbaldag`) op hetzelfde signaal als calendarday.js
 // (de klok die meer dan vier uur terugspringt: middernacht, slapen, een late trein), maar los van de verhaaldatum (die is vastgehouden aan de verhaalstap, constitution 3).
 // Ritme: een ronde elke 3 speldagen; beker en Waddenbeker liggen op de dagen ertussen. Een ronde heeft een venster van een speldag (twee bij een verre uitrit). Salaris volgt rondes, nooit nachten.
-import { ROUNDS } from './voetbalseizoen.js';
+import { ROUNDS } from './voetbalseason.js';
 
 export const DAYS_PER_ROUND = 3;
 export const BREAK_DAYS = 3;                // de pauze tussen de seizoenen (transfers, contracten)

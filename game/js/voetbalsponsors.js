@@ -4,7 +4,7 @@
 // Het pand: bij een sponsorovereenkomst kiest het spel een pand van het goede type bij de plaats van de club uit de Bezit-pandindex (interface `pandIndex.find(type, plaatsXY)` met een OSM-id; tot de Bezit-epic er is een stub)
 // en geeft het de verzonnen naam op de gevel. Wie het pand koopt krijgt op thuiswedstrijddagen hooguit +10% klantenstroom op de omzet van dat pand, nooit een tweede uitbetaling van de sponsor zelf.
 import { makeRng } from './minigamekit.js';
-import { hashSeed } from './voetbalspelers.js';
+import { hashSeed } from './voetbalplayers.js';
 
 export const MAX_SPONSOR_DEALS = 3;
 export const OWNER_BONUS_MAX = 0.1;

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import PARKDATA from '../game/js/voetbalparkendata.js';
 import { makeParkIndex } from '../game/js/voetbalparken.js';
 import { CLUBS, clubsOf } from '../game/js/voetbalclubs.js';
-import { makeSquad, playerRating } from '../game/js/voetbalspelers.js';
+import { makeSquad, playerRating } from '../game/js/voetbalplayers.js';
 import * as T from '../game/js/voetbaltransfers.js';
 import * as C from '../game/js/voetbalcarriere.js';
 import { runCareer } from './voetbal_carriere_sim.mjs';

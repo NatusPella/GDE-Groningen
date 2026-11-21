@@ -239,7 +239,7 @@ Zonder ratings (de vriendschappelijke competitie en de bestaande wedstrijd) is a
 ### Rollen en talenten
 
 - **Rollen:** keeper, verdediger, middenvelder, aanvaller (bestaand in `VORMINGEN`). Een speler heeft een hoofdrol en een bijrol; buiten de hoofdrol speelt hij op 90% van zijn factor.
-- **Talenten** (kleine eigenschappen, een per twee niveaus, hooguit drie): Dribbelaar (betere aanname onder druk), Vroege schutter, Rustige afwerker, Pitbull (dekken), Marathonloper, Spelverdeler, Laatste man, Keepersvanger. Elk talent is een klein getal in een tabel (`TALENTEN` in `voetbalspelers.js`) en wordt getoond met naam en icoon.
+- **Talenten** (kleine eigenschappen, een per twee niveaus, hooguit drie): Dribbelaar (betere aanname onder druk), Vroege schutter, Rustige afwerker, Pitbull (dekken), Marathonloper, Spelverdeler, Laatste man, Keepersvanger. Elk talent is een klein getal in een tabel (`TALENTEN` in `voetbalplayers.js`) en wordt getoond met naam en icoon.
 - **Potentieel** (verborgen, 60 tot 95): bepaalt de plafonds van de attributen en de groeisnelheid. Tessa begint met een gemiddeld potentieel; een goed seizoen zet het niet omhoog (geen verborgen mechaniek), alleen training en spelen bouwen op.
 
 ### Namen
@@ -451,8 +451,8 @@ Epic: [#1106](https://github.com/NatusPella/GDE-Groningen/issues/1106) (mileston
 
 | # | Issue | Pakket | Kosten | Mode | Raakt vooral | Hangt af van |
 |---|---|---|---|---|---|---|
-| 1 | [#1107](https://github.com/NatusPella/GDE-Groningen/issues/1107) | Spelers, ratings en clubs; koppeling aan de sim | M | confirm | `voetbalspelers.js`, `voetbalclubs.js`, `voetbalrules.js`, `voetbalmatch.js`, `voetbalai.js` | |
-| 2 | [#1108](https://github.com/NatusPella/GDE-Groningen/issues/1108) | Seizoenen, divisies, beker, Europa, agenda | L | validate | `voetbalseizoen.js`, `voetbalagenda.js`, `calendarday.js`-haak | 1 |
+| 1 | [#1107](https://github.com/NatusPella/GDE-Groningen/issues/1107) | Spelers, ratings en clubs; koppeling aan de sim | M | confirm | `voetbalplayers.js`, `voetbalclubs.js`, `voetbalrules.js`, `voetbalmatch.js`, `voetbalai.js` | |
+| 2 | [#1108](https://github.com/NatusPella/GDE-Groningen/issues/1108) | Seizoenen, divisies, beker, Europa, agenda | L | validate | `voetbalseason.js`, `voetbalagenda.js`, `calendarday.js`-haak | 1 |
 | 3 | [#1109](https://github.com/NatusPella/GDE-Groningen/issues/1109) | Ontwikkeling, training, vorm, blessures | M | confirm | `voetbalontwikkeling.js`, `voetbaltraining.js` | 1 |
 | 4 | [#1110](https://github.com/NatusPella/GDE-Groningen/issues/1110) | Carrière-opslag, menu en de start (eerste slice) | M | validate | `voetbalcarriere.js`, `voetbalcarriereui.js`, `pausemenu.js`, `storagekeys.js`, `todoui.js` | 1, 2 (licht) |
 | 5 | [#1111](https://github.com/NatusPella/GDE-Groningen/issues/1111) | Transfers, AI-clubs, managerlaag | L | validate | `voetbaltransfers.js`, `voetbalmanager.js` | 2, 3, 4 |
