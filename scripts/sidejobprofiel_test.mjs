@@ -96,8 +96,8 @@ t('#631/#667: geen losse baan-hex meer, één accent uit het profiel, en de fami
     const src = fsx.readFileSync(new URL('../game/js/' + f, import.meta.url), 'utf8');
     assert.match(src, /accentVan\('/, f + ' gebruikt het profielaccent');
   }
-  assert.match(P.accentVan('taxi'), /^rgba\(/, 'het accent is de bestaande sfeertint, geen hex');
-  assert.match(P.accentVan('cabaret'), /^rgba\(/);
+  assert.match(P.accentVan('taxi'), /^(?:rgba|color-mix)\(/, 'het accent is de bestaande sfeertint, geen hex');
+  assert.match(P.accentVan('cabaret'), /^(?:rgba|color-mix)\(/);
   const td = bron('todo.js');
   assert.match(td, /'diensten', 'Diensten'/, 'Te doen heeft een dienstengroep');
   assert.match(td, /'kantoorklussen', 'Kantoorklussen'/, 'en een kantoorklussengroep');
