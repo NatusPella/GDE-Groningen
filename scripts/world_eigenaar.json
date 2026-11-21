@@ -1758,6 +1758,13 @@
       "max": 1,
       "reden": "de kleding meldt zijn geluid (passen, aantrekken, kapper) als audio-event in de lijst die audio.js leegt; de lijst heeft geen eigen API (zoals de andere sfx-haken)",
       "issue": "#1155"
+    },
+    {
+      "veld": "extraSpeakers",
+      "bestand": "game/js/worldlife3d.js",
+      "max": 2,
+      "reden": "de levende wereld (dorpsbewoners, #1190) meldt zijn praatjes als spreker in de lijst die scene3d.js in ballonnen zet; de lijst heeft geen eigen API",
+      "issue": "#1190"
     }
   ]
 }
