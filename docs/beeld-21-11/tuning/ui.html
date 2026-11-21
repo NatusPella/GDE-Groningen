@@ -1,0 +1,46 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Autotuning: mock van de pimp-werkplaats (headless Chrome, geen Electron)</title>
+<style>html,body{margin:0;background:#2a3a2e;height:100%}</style>
+<script>
+  const root = location.href.replace(/docs\/beeld-21-11\/tuning\/ui\.html.*$/, '');
+  document.write('<script type="importmap">' + JSON.stringify({ imports: { 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js': root + 'desktop/vendor-cache/npm/three@0.160.0/build/three.module.js', three: root + 'desktop/vendor-cache/npm/three@0.160.0/build/three.module.js', 'three/addons/': root + 'desktop/vendor-cache/npm/three@0.160.0/examples/jsm/', 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/': root + 'desktop/vendor-cache/npm/three@0.160.0/examples/jsm/' } }) + '<\/script>');
+  const toon = (t) => { const d = document.createElement('pre'); d.style.cssText = 'position:fixed;top:0;left:0;color:#fff;background:#900;margin:0;padding:8px;font:14px monospace;white-space:pre-wrap;z-index:99'; d.textContent = t; document.body.appendChild(d); };
+  window.addEventListener('error', (e) => toon('FOUT: ' + e.message));
+  window.addEventListener('unhandledrejection', (e) => toon('FOUT: ' + (e.reason && e.reason.stack || e.reason)));
+</script>
+<body>
+<script type="module">
+  const base = location.href.replace(/docs\/beeld-21-11\/tuning\/ui\.html.*$/, '');
+  const view = (location.hash || '#lak').slice(1);
+  // opslag in het geheugen: de mock raakt geen echte opslag (AGENTS.md: tests schrijven nooit naar echte opslag)
+  const mem = new Map();
+  Object.defineProperty(window, 'localStorage', { value: { getItem: (k) => (mem.has(k) ? mem.get(k) : null), setItem: (k, v) => mem.set(k, String(v)), removeItem: (k) => mem.delete(k), clear: () => mem.clear() }, configurable: true });
+  const U = await import(base + 'game/js/tuningworkshopui.js');
+  const { HERO_CAR_MODEL } = await import(base + 'game/js/vehicle.js');
+  const snack = view.startsWith('snack');
+  const v = snack
+    ? { id: 7, isHeroCar: false, playerOwned: true, model: { name: 'foodtruck', len: 5.6, wid: 2.1, color: '#2f6fb0', maxSpeed: 20, accel: 4, brake: 8 }, health: 100, x: 0, y: 0, nameIdx: 1 }
+    : { id: 6, isHeroCar: true, model: { ...HERO_CAR_MODEL }, health: 100, x: 0, y: 0 };
+  const w = { money: 1250, input: { reset() {} }, calendar: { day: 12 }, vehicles: [v], player: { inVehicle: v }, coopRole: 'solo', paused: false };
+  if (snack) { // de snackwagen staat in het bezit zodat tuneId hem kent
+    const S = await import(base + 'game/js/shops.js');
+    S.getOwnedEntries().push({ key: 'snackwagen-mock', v, spec: { label: 'Snackwagen', kind: 'car', model: v.model }, color: v.model.color, upgrades: [] });
+  }
+  const site = { id: 'mock-garage', name: 'Garage Knalpot Hoogkerk', kind: view.includes('slot') ? 'garage' : 'thuis', region: view.includes('stad') ? 'stad' : 'dorp' };
+  const ok = U.openTuningWorkshop(w, v, site);
+  const klik = (sel) => { const el = document.querySelector(sel); if (el) el.click(); };
+  const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
+  await wacht(400);
+  if (view === 'slot') { klik('[data-tab="carrosserie"]'); await wacht(100); klik('[data-field="spoiler"] .tm-o[data-val="gt"]'); }
+  if (view === 'lak') { klik('[data-field="finish"] .tm-o[data-val="pearl"]'); klik('[data-field="body"] .tm-sw[data-val="#e8505b"]'); klik('[data-field="color2"] .tm-sw[data-val="#f9c80e"]'); }
+  if (view === 'carrosserie') { klik('[data-tab="carrosserie"]'); await wacht(100); klik('[data-field="spoiler"] .tm-o[data-val="wing"]'); klik('[data-field="kit"] .tm-o[data-val="sport"]'); klik('[data-field="diffuser"] .tm-o[data-val="on"]'); klik('[data-field="roof"] .tm-o[data-val="rack"]'); klik('[data-field="exhaust"] .tm-o[data-val="twin"]'); }
+  if (view === 'velgen') { klik('[data-tab="velgen"]'); await wacht(100); klik('[data-field="rimStyle"] .tm-o[data-val="star"]'); klik('[data-field="rimColor"] .tm-sw[data-val="#f9c80e"]'); klik('[data-field="rimSize"] .tm-o[data-val="l"]'); klik('[data-field="tire"] .tm-o[data-val="whitewall"]'); }
+  if (view === 'licht') { klik('[data-tab="licht"]'); await wacht(100); klik('[data-field="glow"] .tm-sw[data-val="#ff7ab8"]'); klik('[data-field="tint"] .tm-o[data-val="2"]'); klik('[data-field="lamps"] .tm-o[data-val="halo"]'); }
+  if (view === 'onderdelen') { klik('[data-tab="onderdelen"]'); await wacht(100); klik('[data-field="ophanging"] .tm-o[data-val="h-laag"]'); klik('[data-field="banden"] .tm-o[data-val="b-race"]'); klik('[data-field="uitlaat"] .tm-o[data-val="u-knal"]'); }
+  if (view === 'builds') { klik('[data-tab="strepen"]'); await wacht(100); klik('[data-field="stripe"] .tm-o[data-val="racing"]'); klik('[data-field="decal"] .tm-o[data-val="grunn"]'); klik('[data-tab="builds"]'); await wacht(100); klik('[data-slot="0"] [data-act="save"]'); }
+  if (view === 'snack') { klik('[data-tab="snack"]'); await wacht(100); klik('[data-field="awning"] .tm-o[data-val="zon"]'); klik('[data-field="display"] .tm-o[data-val="tafel"]'); klik('[data-field="beacon"] .tm-o[data-val="bak"]'); klik('[data-field="air"] .tm-o[data-val="geur"]'); klik('[data-field="snackName"] .tm-o[data-val="tammo"]'); }
+  if (view === 'installeren') { klik('[data-field="finish"] .tm-o[data-val="metallic"]'); klik('.tm-buy'); await wacht(200); klik('.tm-buy'); }
+  await wacht(1200);
+  document.title = 'klaar:' + ok + ':' + (document.querySelector('.tm-total') || {}).textContent;
+</script>

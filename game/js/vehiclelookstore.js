@@ -5,6 +5,7 @@
 // (vehiclelook.js lookCode); de id's zijn dezelfde als bij tuningplan: 'hero' of de sleutel van het bezit.
 // Pure functies op een gewoon object, plus load/save op een localStorage-achtig `store`.
 import { lookCode, parseLook, cleanBuildName, PRESETS_PER_VEHICLE } from './vehiclelook.js';
+import { KEYS } from './storagekeys.js';
 
 export const LOOK_STORE_VERSION = 1;
 const MAX_VEHICLES = 64;
@@ -43,12 +44,12 @@ export function loadLooks(store, key) {
 export function saveLooks(store, key, all) {
   try {
     if (!store) return false;
-    const voertuigen = {};
+    const vehicles = {};
     for (const [id, rec] of Object.entries(all || {}).slice(0, MAX_VEHICLES)) {
       const c = cleanRecord(rec);
-      if (c) voertuigen[cleanId(id)] = c;
+      if (c) vehicles[cleanId(id)] = c;
     }
-    store.setItem(key, JSON.stringify({ versie: LOOK_STORE_VERSION, voertuigen }));
+    store.setItem(key, JSON.stringify({ versie: LOOK_STORE_VERSION, voertuigen: vehicles }));
     return true;
   } catch { return false; }
 }
@@ -101,4 +102,16 @@ export function attachStoredLook(v, id, key, store = defaultStore(), kind = 'aut
     if (Object.keys(l).length) { v.look = l; return true; }
   } catch { /* zonder opslag geen look */ }
   return false;
+}
+
+// De look van één bezit voor weergave (garagekaarten, voorbeelden): leest de opslag met een geheugen op de ruwe tekst,
+// zodat een kaartenlijst die elk beeld getekend wordt niet elke keer opnieuw parset. Geeft undefined bij een kale auto.
+let memoRaw = null, memoAll = {};
+export function storedLookOf(id, kind = 'auto', store = defaultStore()) {
+  try {
+    const raw = store ? store.getItem(KEYS.tuningLook) : null;
+    if (raw !== memoRaw) { memoRaw = raw; memoAll = loadLooks(store, KEYS.tuningLook); }
+    const l = lookOf(memoAll, id, kind);
+    return Object.keys(l).length ? l : undefined;
+  } catch { return undefined; }
 }

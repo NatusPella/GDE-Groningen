@@ -1,5 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { fieldsFor, lookKind, sanitizeLook } from './vehiclelook.js';
+import { forgetWheelPool } from './wheelinstances3d.js';
+import { glowBudget, MAX_GLOW_VISIBLE } from './tuningworld.js';
 
 // Het beeld van de uiterlijk-tuning (epic Autotuning, #1155): vehiclelook.js zegt wat er op zit, dit bouwt
 // het op een gebouwd voertuigmodel (models3d_vehicles.js roept applyVehicleLook aan aan het eind van buildVehicleMesh).
@@ -23,11 +25,11 @@ function cached(key, build) {
   if (g) { cache.delete(key); cache.set(key, g); return g; }
   g = SHARED(build());
   cache.set(key, g);
-  if (cache.size > CACHE_MAX) { const [k, old] = cache.entries().next().value; cache.delete(k); old.dispose(); }
+  if (cache.size > CACHE_MAX) { const [k, old] = cache.entries().next().value; cache.delete(k); old.dispose(); forgetWheelPool(old); }
   return g;
 }
 export const lookCacheSize = () => cache.size;
-export function clearLookCache() { for (const g of cache.values()) g.dispose(); cache.clear(); }
+export function clearLookCache() { for (const g of cache.values()) { g.dispose(); forgetWheelPool(g); } cache.clear(); }
 
 // --- de atlas voor stickers -------------------------------------------------------------------------
 // 512x640: links boven een effen wit blokje, daaronder 2x4 cellen van 256x96 met de stickers en onderaan de zes
@@ -85,11 +87,11 @@ function getAtlas() {
   atlas.userData = { shared: true };
   return atlas;
 }
-let overlayMat = null;
-function overlayMaterial() {
-  if (overlayMat) return overlayMat;
-  overlayMat = SHARED(new THREE.MeshLambertMaterial({ vertexColors: true, map: getAtlas(), alphaTest: 0.35, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 }));
-  return overlayMat;
+let addonMat = null;
+function addonMaterial() {
+  if (addonMat) return addonMat;
+  addonMat = SHARED(new THREE.MeshLambertMaterial({ vertexColors: true, map: getAtlas(), alphaTest: 0.35, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 }));
+  return addonMat;
 }
 let glowMat = null, glowTex = null;
 function glowMaterial() {
@@ -167,7 +169,7 @@ function fitOf(v, fit, H) {
 }
 
 // De bouwstenen van één look; geeft een Acc met dozen en stickers (alles in lokale voertuigcoördinaten, +x vooruit).
-export function buildOverlay(look, kind, v, fit, H = 1.6) {
+export function buildAddons(look, kind, v, fit, H = 1.6) {
   const L = v.model.len || 4, W = v.model.wid || 1.8, hl = L / 2, hw = W / 2;
   const f = fitOf(v, fit, H);
   const body = hexNum(v.model.color) ?? 0x9aa3ad;
@@ -299,7 +301,7 @@ export function buildLamps(look, kind, v, H = 2.1) {
 
 // De wielen: een velg-geometrie per (stijl, maat, band, kleur) en wielgrootte, in dezelfde as als carWheelGeometry (z).
 const RIM_RATIO = { s: 0.56, m: 0.64, l: 0.74 };
-export function buildWheelGeometry(r, w, look) {
+export function buildRimGeometry(r, w, look) {
   const A = new Acc();
   const ratio = (RIM_RATIO[look.rimSize || 'm'] ?? 0.64) + (look.tire === 'lowprofile' ? 0.06 : 0);
   const rimCol = hexNum(look.rimColor) ?? 0x9ea2a6;
@@ -422,8 +424,8 @@ function applyFinish(group, look) {
   if (!mats) return;
   if (look.finish && FINISH[look.finish] && mats[0] && mats[0].isMeshStandardMaterial) {
     const base = mats[0];
-    const wheelMat = base.clone(); // de banden delen de lakmaterialen: die houden hun matte rubber
-    for (const w of group.userData.wheels || []) if (w.material === base) w.material = wheelMat;
+    const rubberMat = base.clone(); // de banden delen de lakmaterialen: die houden hun matte rubber
+    for (const w of group.userData.wheels || []) if (w.material === base) w.material = rubberMat;
     Object.assign(base, FINISH[look.finish]);
     if (look.finish === 'pearl') base.color.setRGB(0.96, 0.94, 1);
     base.needsUpdate = true;
@@ -436,19 +438,19 @@ function applyFinish(group, look) {
   }
 }
 
-function applyWheels(group, look, kind) {
-  const wheels = group.userData.wheels, r = group.userData.wheelRadius;
-  if (!wheels || !wheels.length || !r) return;
+function applyRims(group, look, kind) {
+  const rolls = group.userData.wheels, r = group.userData.wheelRadius;
+  if (!rolls || !rolls.length || !r) return;
   const can = new Set(fieldsFor(kind));
   const wl = {};
   for (const f of ['rimStyle', 'rimColor', 'rimSize', 'tire']) if (can.has(f) && look[f]) wl[f] = look[f];
   if (!Object.keys(wl).length) return;
   const sig = [r.toFixed(3), wl.rimStyle || '', wl.rimColor || '', wl.rimSize || '', wl.tire || ''].join('|');
-  for (const w of wheels) {
+  for (const w of rolls) {
     const old = w.geometry;
     if (!old.boundingBox) old.computeBoundingBox();
     const width = Math.max(0.1, old.boundingBox.max.z - old.boundingBox.min.z - 0.04);
-    w.geometry = cached('wheel|' + sig + '|' + width.toFixed(3), () => buildWheelGeometry(r, width, wl));
+    w.geometry = cached('wheel|' + sig + '|' + width.toFixed(3), () => buildRimGeometry(r, width, wl));
   }
   const caps = group.userData.loose && group.userData.loose.sierdoppen;
   if (caps && wl.rimStyle && wl.rimStyle !== 'stock') caps.visible = false;
@@ -467,11 +469,11 @@ export function applyVehicleLook(group, v, fit = null) {
     if (!body.geometry || !body.geometry.boundingBox) body.geometry && body.geometry.computeBoundingBox && body.geometry.computeBoundingBox();
     const H = body.geometry && body.geometry.boundingBox ? body.geometry.boundingBox.max.y : 1.6;
     applyFinish(group, look);
-    applyWheels(group, look, kind);
+    applyRims(group, look, kind);
     const key = ['ov', kind, v.model.name || '', v.model.len, v.model.wid, v.model.color, look.finish ? '' : '', lookSig(look)].join('|');
-    const geo = cached(key, () => buildOverlay(look, kind, v, fit, H).geometry());
+    const geo = cached(key, () => buildAddons(look, kind, v, fit, H).geometry());
     if (geo.attributes.position.count) {
-      const mesh = new THREE.Mesh(geo, overlayMaterial());
+      const mesh = new THREE.Mesh(geo, addonMaterial());
       mesh.name = 'lookOverlay';
       mesh.frustumCulled = true;
       body.add(mesh);
@@ -498,7 +500,7 @@ export function applyVehicleLook(group, v, fit = null) {
       const gm = new THREE.Mesh(ggeo, glowMaterial());
       gm.name = 'lookGlow';
       gm.renderOrder = 2;
-      gm.visible = false; // alleen 's nachts: setLookNight
+      gm.visible = false; // alleen 's nachts: updateLookNight
       group.add(gm);
       ud.lookGlow = gm;
       calls++;
@@ -528,9 +530,26 @@ export function tickVehicleLook(group, t, night, near = true) {
   if (ud.lookAir) { ud.lookAir.visible = near; if (near) placeAir(ud.lookAir, t); }
 }
 // 's nachts aan, overdag uit. Goedkoop genoeg voor elk frame (een vlag zetten).
-export function setLookNight(group, night) {
+export function updateLookNight(group, night) {
   const g = group && group.userData && group.userData.lookGlow;
   if (g) g.visible = night > 0.3;
 }
 // Het aantal driehoeken dat de look toevoegt (voor het budget en de test).
-export function overlayTriangles(look, kind, v, fit, H = 1.6) { return buildOverlay(sanitizeLook(look, kind), kind, v, fit, H).triangles; }
+export function addonTriangles(look, kind, v, fit, H = 1.6) { return buildAddons(sanitizeLook(look, kind), kind, v, fit, H).triangles; }
+
+// Elke frame voor alle getekende voertuigen (scene3d.js): de underglow volgt de nacht, hoogstens MAX_GLOW_VISIBLE tegelijk (de dichtstbij,
+// het budget van tuningworld.js) en de lucht van een snackwagen alleen dichtbij. meshes: de Map id -> mesh; (fx, fz): het zwaartepunt van de camera.
+const _glowList = [];
+export function tickVehicleLooks(meshes, fx, fz, night, t) {
+  _glowList.length = 0;
+  for (const m of meshes.values()) {
+    const ud = m.userData;
+    if (!ud || (!ud.lookGlow && !ud.lookAir)) continue;
+    const d = Math.hypot(m.position.x - fx, m.position.z - fz);
+    if (ud.lookGlow) _glowList.push({ id: m, dist: d, glow: true });
+    if (ud.lookAir) { const near = d < 45; ud.lookAir.visible = near; if (near) placeAir(ud.lookAir, t); }
+  }
+  if (!_glowList.length) return;
+  const show = glowBudget(_glowList, MAX_GLOW_VISIBLE);
+  for (const e of _glowList) e.id.userData.lookGlow.visible = night > 0.3 && show.has(e.id);
+}

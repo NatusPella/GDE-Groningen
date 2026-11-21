@@ -125,7 +125,7 @@ L3.clearLookCache();
 ok(L3.lookCacheSize() === 0, 'cache leeg te maken');
 
 // de overlay voor een volle look blijft klein
-const tri = L3.overlayTriangles(FULL, 'auto', car('sport', 4.2, 1.85, FULL), { belt: 0.82, roof: 1.25, xA: 0.6, xB: -0.1, xC: -0.8, xD: -1.7, hood: 0.7, deck: 0.86, fw: 1.2, rw: -1.2 });
+const tri = L3.addonTriangles(FULL, 'auto', car('sport', 4.2, 1.85, FULL), { belt: 0.82, roof: 1.25, xA: 0.6, xB: -0.1, xC: -0.8, xD: -1.7, hood: 0.7, deck: 0.86, fw: 1.2, rw: -1.2 });
 ok(tri > 50 && tri < 700, 'driehoeken van een volle look', String(tri));
 ok(Object.keys(OPTIONS).length >= 19, 'opties aanwezig');
 

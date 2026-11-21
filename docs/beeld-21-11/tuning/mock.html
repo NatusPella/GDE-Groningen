@@ -5,7 +5,7 @@
 <!-- De spelmodules importeren three van de CDN; de import map wijst die naar de lokale kopie (desktop/vendor-cache). -->
 <script>
   const root = location.href.replace(/docs\/beeld-21-11\/tuning\/mock\.html.*$/, '');
-  document.write('<script type="importmap">' + JSON.stringify({ imports: { 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js': root + 'desktop/vendor-cache/npm/three@0.160.0/build/three.module.js' } }) + '<\/script>');
+  document.write('<script type="importmap">' + JSON.stringify({ imports: { 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js': root + 'desktop/vendor-cache/npm/three@0.160.0/build/three.module.js', three: root + 'desktop/vendor-cache/npm/three@0.160.0/build/three.module.js', 'three/addons/': root + 'desktop/vendor-cache/npm/three@0.160.0/examples/jsm/', 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/': root + 'desktop/vendor-cache/npm/three@0.160.0/examples/jsm/' } }) + '<\/script>');
 </script>
 <body>
 <script>

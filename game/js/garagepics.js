@@ -45,6 +45,7 @@ export function garagePreviewSpec(e) {
     color: e.color,
     nameIdx: e.spec.nameIdx || 0,
     flags: e.hero ? { isHeroCar: true } : e.spec.flags || null,
+    ...(e.tune ? { tune: e.tune } : {}),
   };
 }
 
@@ -56,6 +57,7 @@ export function previewVehicle(spec) {
     model: { ...spec.model, color: spec.color },
     isBike: spec.kind === 'bike', isScooter: spec.kind === 'scooter', isBoat: spec.kind === 'boat', isHeli: spec.kind === 'heli',
     ...(spec.flags || {}),
+    ...(spec.tune ? { look: spec.tune } : {}), // de uiterlijk-tuning (vehiclelook.js)
     health: 100,
   };
 }
