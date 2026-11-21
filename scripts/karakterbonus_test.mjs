@@ -1,0 +1,109 @@
+// Karakterbonus (karakterbonus.js, #1005, #981): Tessa komt van het platteland. Alleen zij krijgt een bonus, geen NaN, de formules
+// zijn begrensd, de uitleg toont de bonus, de boerderij past hem per speler toe en saves blijven werken.
+//   node scripts/karakterbonus_test.mjs
+import assert from 'node:assert/strict';
+import './node3d.mjs';
+const K = await import('../game/js/karakterbonus.js');
+const B = await import('../game/js/boerderij.js');
+const WT = await import('../game/js/werktuigen.js');
+const WG = await import('../game/js/werkgang.js');
+const Live = await import('../game/js/boerderijlive.js');
+
+let n = 0, fails = 0;
+const t = (name, fn) => { n++; try { fn(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', String(e.message).split('\n')[0]); } };
+const nepOpslag = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; };
+
+t('alleen Tessa (anita) heeft een bonus; Tammo en onbekend zijn neutraal', () => {
+  assert.equal(K.heeftBonus('anita'), true);
+  for (const k of ['tammo', 'rikus', undefined, null, '']) {
+    assert.equal(K.heeftBonus(k), false);
+    assert.deepEqual(K.farmBonus(k), K.NEUTRAAL.farm);
+    assert.deepEqual(K.voetbalBonus(k), K.NEUTRAAL.voetbal);
+  }
+});
+t('de tabel heeft de afgesproken sleutels en gezonde getallen', () => {
+  for (const [kar, rij] of Object.entries(K.KARAKTER_BONUS)) {
+    for (const s of ['snelheid', 'opbrengst', 'foutloos']) assert.ok(Number.isFinite(rij.farm[s]), kar + ' farm ' + s);
+    for (const s of ['sprint', 'schotnauwkeurigheid', 'aanname']) assert.ok(Number.isFinite(rij.voetbal[s]), kar + ' voetbal ' + s);
+    for (const s of ['snelheid', 'opbrengst']) assert.ok(rij.farm[s] >= 1 && rij.farm[s] <= K.MAX_FACTOR, 'factor ' + s);
+    for (const s of ['sprint', 'schotnauwkeurigheid', 'aanname']) assert.ok(rij.voetbal[s] >= 1 && rij.voetbal[s] <= K.MAX_FACTOR, 'factor ' + s);
+  }
+  assert.equal(K.KARAKTER_BONUS.anita.farm.snelheid, 1.15);
+});
+t('balans: de bonus is klein (hooguit 15% op farm-tempo, 10% op voetbal)', () => {
+  assert.ok(K.farmSnelheid('anita') <= 1.15 && K.farmOpbrengst('anita') <= 1.05);
+  assert.ok(K.voetbalSprint('anita') <= 1.1 && K.voetbalSchot('anita') <= 1.1 && K.voetbalAanname('anita') <= 1.1);
+});
+t('farmFractie: alleen zaaien en oogsten, nooit boven 1, nooit onder het origineel, geen NaN', () => {
+  for (const taak of ['zaaien', 'oogsten']) {
+    assert.equal(K.farmFractie('tammo', taak, 0.5), 0.5);
+    assert.ok(K.farmFractie('anita', taak, 0.5) > 0.5 && K.farmFractie('anita', taak, 0.5) < 1);
+  }
+  assert.equal(K.farmFractie('anita', 'ploegen', 0.5), 0.5);
+  assert.equal(K.farmFractie('anita', 'oogsten', 1), 1);
+  assert.equal(K.farmFractie('anita', 'oogsten', 0), 0.4);
+  for (const f of [NaN, undefined, -3, 9, Infinity]) { const r = K.farmFractie('anita', 'oogsten', f); assert.ok(Number.isFinite(r) && r >= 0 && r <= 1, String(f)); }
+});
+t('voetbalfactoren en aannamekans: begrensd en zonder NaN', () => {
+  assert.ok(K.aannameKans('anita', 0.5) > K.aannameKans('tammo', 0.5));
+  assert.equal(K.aannameKans('anita', 0.95), 0.99);
+  assert.equal(K.aannameKans('anita', NaN), 0);
+  assert.equal(K.voetbalSprint('tammo'), 1);
+});
+t('de uitleg toont de bonus voor Tessa en de eerlijke regel voor Tammo', () => {
+  assert.match(K.uitlegRegel('anita', 'farm'), /boerendochter/);
+  assert.match(K.uitlegRegel('anita', 'farm'), /15%/);
+  assert.match(K.uitlegRegel('anita', 'voetbal'), /dorpsteam/);
+  assert.match(K.uitlegRegel('tammo', 'farm'), /Tammo kan het ook/);
+  assert.equal(K.kortRegel('tammo', 'farm'), '');
+  assert.match(K.kortRegel('anita', 'farm'), /boerendochter/);
+});
+t('de teksten: Nederlands, zonder echte merken of winter, en de prestatie hoort bij de definitie', () => {
+  const alle = JSON.stringify(K.TESSA_REGELS) + K.LORE;
+  assert.ok(!/sneeuw|winter|ijs\b/i.test(alle));
+  assert.ok(!/Groningen/.test(K.LORE), 'het platteland is niet Groningen');
+  assert.equal(K.TESSA_REGELS.prestatie.titel, 'Boerendochter');
+});
+t('werktuigen en werkgang: Tessa mag harder werken zonder slordig te zijn; Tammo niet', () => {
+  assert.equal(WT.nieuwWerk('zaaien', {}).vMax, WT.BANDEN.zaaien.vMax);
+  assert.ok(Math.abs(WT.nieuwWerk('zaaien', { snelheid: 1.15 }).vMax - WT.BANDEN.zaaien.vMax * 1.15) < 1e-9);
+  assert.equal(WT.nieuwWerk('zaaien', { snelheid: 9 }).vMax, WT.BANDEN.zaaien.vMax);
+  assert.ok(WG.init('ploegen', { snelheid: 1.15 }).vMax > WG.init('ploegen', {}).vMax);
+  assert.equal(WG.init('afleveren', { snelheid: 1.15 }).soort, 'rit');
+});
+t('boerderij.rondTaakAf: opbrengstfactor, 1 als hij ontbreekt of rommel is', () => {
+  const maak = (op) => {
+    const b = B.nieuweBoerderij();
+    b.veld = { ...B.nieuwVeld(), fase: 'gezaaid', gewas: 'aardappelen', bodem: 1, zaai: 1, gezaaidOp: 0 };
+    b.uren = 1e5; b.totaal = b.totaal || { uitgaven: 0, oogsten: 0 };
+    return B.rondTaakAf(b, 'oogsten', 1, { opbrengst: op });
+  };
+  const basis = maak(undefined).kg;
+  assert.ok(basis > 0);
+  assert.ok(maak(1.05).kg >= basis);
+  assert.equal(maak(NaN).kg, basis);
+  assert.equal(maak(-2).kg, basis);
+});
+t('boerderijlive.rondAf: Tessa krijgt meer dan Tammo uit dezelfde oogst; elke speler zijn eigen personage', () => {
+  const kg = (kar) => {
+    Live.zetBoerderijVoorTest(null, nepOpslag());
+    const b = Live.getBoerderij();
+    b.veld = { ...B.nieuwVeld(), fase: 'gezaaid', gewas: 'aardappelen', bodem: 1, zaai: 1, gezaaidOp: 0 };
+    b.uren = 1e5;
+    const w = { money: 0, player: { character: kar }, addMessage() {} };
+    return Live.rondAf(w, 'oogsten', 0.8, { vrij: true }).kg;
+  };
+  const tammo = kg('tammo'), tessa = kg('anita');
+  assert.ok(Number.isFinite(tammo) && Number.isFinite(tessa) && tammo > 0);
+  assert.ok(tessa > tammo, `Tessa ${tessa} > Tammo ${tammo}`);
+  assert.ok(tessa < tammo * 1.5, 'geen onoverwinbaar voordeel');
+});
+t('saves blijven werken: de boerderij heeft geen nieuw opslagveld voor de bonus', () => {
+  const b = B.nieuweBoerderij();
+  const j = JSON.parse(JSON.stringify(b));
+  assert.ok(!('karakter' in j) && !('bonus' in j));
+  assert.ok(B.normaliseer(j));
+});
+
+console.log(fails ? `${fails} van ${n} mislukt` : `karakterbonus ok (${n} controles)`);
+process.exit(fails ? 1 : 0);
