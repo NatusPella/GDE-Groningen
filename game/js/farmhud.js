@@ -54,7 +54,7 @@ export function hudModel(s) {
   }
   let nu;
   if (s.nodig && s.nodig.length) nu = `Nog nodig: ${s.nodig.join(' en ')}`;
-  else if (s.taak && !s.bezig) nu = `Rij het veld op en begin: ${naam.toLowerCase()}`;
+  else if (s.taak && !s.bezig) nu = `Rij het veld op en begin: ${naam.toLowerCase()}${s.bonus ? ' · ' + s.bonus : ''}`;
   else if (s.taak) nu = staat === 'te' ? 'Gas terug: te hard werkt slordig' : staat === 'lang' ? 'Iets sneller: te langzaam werkt niet' : 'Goed bezig: blijf in de rij';
   else nu = s.lading ? 'Rij rustig naar de afnemer' : 'Koppel een werktuig met {E}';
   return {

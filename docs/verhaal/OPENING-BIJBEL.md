@@ -80,6 +80,19 @@ Elke regel: **doel** (HUD) · **werkwoord** · **reden** (waarom nu, waarom hier
 - **Reden:** de bal bewaken en na het Ontzet terugbrengen, vóórdat Jelle hem pakt.
 - **Uitkomst:** de vitrine is leeg ("Tige tank! – J."); Jelle belt live naar de radio dat de bal bij hem is; de camera's hebben hen gefilmd; iemand heeft Jelle verteld dat ze kwamen (bewaker twee). De bal is weg; Jelle moet gestopt worden. Nieuw doel (voor M07): de eerste plakjes tegenhouden, te beginnen met het vet.
 
+## Tessa komt van het platteland (aanvulling 21-11, #1005, #981)
+
+Eigenaar-ingeving: Tessa komt van het platteland en kan daarom goed boeren en goed voetballen. Dit is een **aanvulling**, geen wijziging van de canon: geen ingesproken regel spreekt het tegen (nagekeken in `script.json` en de tts-bank) en alle nieuwe regels zijn alleen tekst (zie TTS-ACHTERSTAND-21-11-alleen-tekst.md).
+
+- **Waar:** "ergens op het platteland in Nederland", bewust vaag. Niet Groningen, geen echte plaats, geen echte persoon of echt bedrijf. Een dorp op de klei, een boerderij met een voetbalveldje achter de schuur.
+- **Wanneer:** tot haar achtste, voor het Oosterpark. De zomers blijven van Ljouwert en Mem (de oude canon blijft staan). De oude AANNAME "geboren in Zwolle" blijft mogelijk: het dorp kan in de buurt liggen, het spel noemt het niet.
+- **Wat ze kan:** koeien melken voor schooltijd, rechte rijen trekken, in het dorpsteam spelen sinds haar zesde (een lege mestemmer als doel). Daarom boert en voetbalt ze iets beter dan Tammo (zie `game/js/karakterbonus.js`); Tammo kan het ook, alleen minder vlot.
+- **Toon:** droog, geen heimwee-verhaal. Ze zegt het feitelijk ("Dit gaat mij sneller af, ik ben hier opgegroeid") en grapt erover, niet ten koste van Tammo.
+- **Waar het in beeld komt:** de boerderij-HUD en de uitleg, de eerste oogst als Tessa (een boer in de Ommelanden herkent haar: "Jij komt niet uit de stad, hè?", en een bericht van Mam), de voetbal-sim (uitleg, viering, sneren) en de prestatie Boerendochter.
+- **Doseren:** haar achtergrond komt af en toe terloops terug (niet elke klus): in haar regels bij het werk, in Tammo's reacties ("Tessa weet dat soort dingen"), een enkele voorbijganger, telefoonberichten van Mam en de prestatie Boerendochter.
+- **Farmen en voetballen doe je als Tessa:** het spel wisselt bij de start naar haar en na afloop terug. Het is haar terrein.
+- **Samen spelen:** de wissel en de bonus zijn per speler; niet van de wereld.
+
 ## Overgang naar M07
 
 M07.1 (akte 2, q2) opent met: "De bal is weg en wij staan op de camera. Eerlijk winnen kan nog: we bakken zelf, met Oma's recept. Dan moet Jelle eerst ergens gestopt worden." Dat sluit aan op M06 (bal weg, camera's) en op de radio-overgang R1.3. **Eén punt voor q2:** "Oma's recept" is op dit punt nergens genoemd (Oma Trijntje komt pas in M08). Aanbeveling: "met het recept van 1953" of een korte zin die Oma noemt. Niet door mij aangepast.

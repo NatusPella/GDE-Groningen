@@ -17,6 +17,7 @@ import { spawnJobVehicle, vehicleSpeed } from './sidejobkit.js';
 import { TRACTOR_MODEL } from './vehicle.js';
 import { ankerMetWeg } from './bijbaananker.js';
 import { euro } from './geldtekst.js';
+import { farmSnelheid, uitlegRegel, karakterVoorActiviteit, startActiviteit, eindActiviteit } from './karakterbonus.js';
 
 const fabriek = () => { const [x, y] = wgsToWorld(53.2336, 6.4977); return { x, y }; };
 const PLANT_STAP = 2;
@@ -150,7 +151,7 @@ function stelTaakIn(c, taak) {
   d.taak = taak;
   d.machineId = B.machineVoor(taak);
   const eigen = d.machineId && b.machines[d.machineId] === 'eigen';
-  d.ronde = init(taak, { eigen });
+  d.ronde = init(taak, { eigen, snelheid: farmSnelheid(karakterVoorActiviteit('farm')) });
   d.prev = null; d.melT = 0;
   d.uitleg = false;
   d.laad = taak === 'afleveren' ? 'laden' : null;
@@ -190,6 +191,7 @@ export default {
     const v = spawnJobVehicle(c.world, c.spot.x, c.spot.y, { kind: 'car', model: { ...TRACTOR_MODEL, color: '#3f7d3a' } });
     if (!v) return 'Geen trekker beschikbaar';
     c.vehicle = v;
+    startActiviteit(c.world, 'farm');   // boeren doe je als Tessa; stop() wisselt terug
     return true;
   },
 
@@ -222,6 +224,7 @@ export default {
     if (k.materiaal) bits.push(`${taak === 'zaaien' ? 'zaaigoed' : 'mest'} ${euro(k.materiaal)}`);
     c.msg(bits.join(' · '), 3.5);
     if (UITLEG[taak]) c.msg(`${B.TAKEN[taak].naam}: ${UITLEG[taak]}`, 6);
+    c.msg(uitlegRegel(karakterVoorActiviteit('farm'), 'farm'), 6);
   },
 
   timeout: () => 'de zon zakt',
@@ -314,6 +317,7 @@ export default {
 
   stop(c) {
     const d = c.data;
+    eindActiviteit(c.world, 'farm');
     if (d.machine) { c.removeMesh(d.machine); d.machine = null; }
     ruimVeld(d);
     // de volgende klus als doel op de kaart: je akker, met wat er nu moet gebeuren

@@ -14,6 +14,7 @@ import { PENALTY_LINES } from './minigamelines.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostPunt, wedGastPunt, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './multiplayerwedstrijd.js';
+import { startActiviteit, eindActiviteit } from './karakterbonus.js';
 import {
   SCHOTEN, DOEL_BREEDTE, DOEL_HOOGTE, PENALTY_AFSTAND, U_MAX, V_MAX, KRACHT_DOEL, LAAD_S, UITKOMSTEN,
   schiet, keeperPlek, nieuweSerie, noteer, doelpunten, genomen, klaar, penaltyMedaille, medailleBij, goalsTekst,
@@ -215,6 +216,7 @@ function start(w, { force = false, online = null } = {}) {
   if (!force && !online && activityBlock(w)) return false;
   if (!built) built = bouw(w);
   const p = hoofdspeler(w);
+  startActiviteit(w, 'voetbal');   // voetballen doe je als Tessa (karakterbonus.js); end() wisselt terug
   if (p.inVehicle && p.exitVehicle) p.exitVehicle(w.map, w);
   if (online) { ensureBoard(); board.show(); } // solo staat de strook (simhud.js) in beeld; het bord blijft voor de stand van de anderen
   runs++;
@@ -357,6 +359,7 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   const g = game;
   if (!g) return;
   game = null;
+  eindActiviteit(w, 'voetbal');
   w.companionHold = null;
   w.cameraOverride = null;
   const p = hoofdspeler(w);

@@ -109,11 +109,11 @@ export function pastBij(set, taak, gewas) {
 // --- het veldwerk, cel voor cel ------------------------------------------------------------------
 
 // Een klus op het veld: per rij CELLEN cellen: 0 nog niet, 1 slordig (te hard), 2 netjes. fractie = hoe netjes, klaar = bijna alles bewerkt.
-export function nieuwWerk(taak, { eigen = true } = {}) {
+export function nieuwWerk(taak, { eigen = true, snelheid = 1 } = {}) {
   const band = BANDEN[taak] || { vMin: 2, vMax: 6, tol: 2.4 };
   return {
     taak, cellen: Array.from({ length: RIJEN }, () => new Array(CELLEN).fill(0)), gedaan: 0, goed: 0, klaar: false, tehard: 0, scheefT: 0,
-    vMin: band.vMin, vMax: band.vMax, tol: band.tol + (eigen ? EIGEN_RUIMTE : 0), laatste: Array.from({ length: RIJEN }, () => null),
+    vMin: band.vMin, vMax: band.vMax * (snelheid > 1 && snelheid <= 1.25 ? snelheid : 1), tol: band.tol + (eigen ? EIGEN_RUIMTE : 0), laatste: Array.from({ length: RIJEN }, () => null),
   };
 }
 

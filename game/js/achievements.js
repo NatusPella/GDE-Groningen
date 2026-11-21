@@ -244,6 +244,7 @@ export const ACHIEVEMENTS = [
 
   { id: 'sj_eerste', cat: 'bijbaan', title: 'Eerste loonstrookje', desc: 'Rond een klus af bij een bijbaantje', stat: 'sjRounds', goal: 1 },
   { id: 'sj_50', cat: 'bijbaan', title: 'Harde werker', desc: 'Rond 50 klussen af bij bijbaantjes', stat: 'sjRounds', goal: 50 },
+  { id: 'boerendochter', cat: 'bijbaan', title: 'Boerendochter', desc: 'Oogst als Tessa een veld op je eigen akker' },
   { id: 'sj_alle', cat: 'bijbaan', title: 'Duizendpoot', desc: 'Rond bij alle zes bijbaantjes een klus af', set: 'sjJobs', goal: 6 },
   { id: 'sj_geld', cat: 'bijbaan', title: 'Eerlijk verdiend', desc: 'Verdien in totaal €5.000 met bijbaantjes', stat: 'sjEarned', goal: 5000, unit: '€' },
   { id: 'sj_bezorger', cat: 'bijbaan', title: 'Nog warm!', desc: 'Bezorg 8 bestellingen op rij in één dienst', stat: 'sj_bezorger_streak', goal: 8 },

@@ -23,6 +23,7 @@ import * as PC from './percelen.js';
 import * as M from './machines.js';
 import * as WT from './werktuigen.js';
 import * as W3 from './werktuigen3d.js';
+import { farmSnelheid, kortRegel, karakterVoorActiviteit, volgActiviteit, personaRegel } from './karakterbonus.js';
 import { getBoerderij, getBedrijf, neemTaak, rondAf, draaiMachine, tankMachine, zetVeldPositie, wisVeldPositie, zetActief, leverLading } from './boerderijlive.js';
 import { loopbaanDeel } from './loopbaanlive.js';
 import { reducedMotion } from './motion.js';
@@ -714,9 +715,12 @@ function werkStapWereld(dt, w, v, rig, m, imp, gast = false) {
     if (!werkt || speed < (WT.BANDEN[taak] || { vMin: 2 }).vMin) { zegUitleg(w, set, rig, speed); return; }
     const nm = neemTaak(w, taak, { vrij: true });
     if (!nm.ok) { zeg(w, 'neem', nm.reden, 6); return; }
-    S.werk = { taak, id, werk: WT.nieuwWerk(taak, { eigen: true }) };
+    const kar = karakterVoorActiviteit('farm');   // boeren doe je als Tessa (karakterbonus.js)
+    S.werk = { taak, id, werk: WT.nieuwWerk(taak, { eigen: true, snelheid: farmSnelheid(kar) }) };
     const k = nm.kosten;
     bericht(w, `${cap(NAAM[taak])} begonnen${k.materiaal ? ` (${taak === 'zaaien' ? 'zaaigoed' : taak === 'spuiten' ? 'spuitmiddel' : 'mest'} €${k.materiaal})` : ''}. Rij de rijen netjes recht, niet te hard.`, 5);
+    const persona = personaRegel(Math.random() < 0.3 ? 'land' : 'farm', { nu: S.t });   // af en toe een regel over haar achtergrond (kans en cooldown), alleen tekst
+    if (persona) bericht(w, persona, 5);
     const veld = S.velden.get(id);
     if (veld) veld.sleutel = null;            // bouwt opnieuw, met het werk erbij
     return;
@@ -778,6 +782,7 @@ export function updateBoerderijWereld(dt, w) {
     S.huidig = null;
   }
   for (const veld of S.velden.values()) if (veld.marker) tikVeldMarker(veld.marker, S.t, reducedMotion());
+  { const pl = hoofdspeler(w); if (pl && w.coopRole !== 'client') volgActiviteit(w, 'farm', !!(pl.inVehicle && pl.inVehicle.farm), dt); }   // boeren doe je als Tessa: wissel bij instappen, terug na uitstappen
   boerderijHudTik(dt, boerderijHudStand(w));
   if (S.t - (S.oogstT || 0) >= MELD_OOGST_S) { S.oogstT = S.t; meldOogstklaar(w, b); }   // #804: Object.keys en veldStand per perceel hoeven niet elk beeld; een oogstklaar veld mag een halve seconde later gemeld worden
   S.prompt = bepaalPrompt(w);
@@ -1030,7 +1035,7 @@ export function boerderijHudStand(w) {
     machine: PC.MACHINE_CATALOGUS[m.type] ? PC.MACHINE_CATALOGUS[m.type].naam : m.type,
     taak: set && set.taak ? set.taak : null, veldId, veld: PC.perceelDef(veldId) ? PC.perceelDef(veldId).naam : '',
     bezig: !!werk, voortgang: werk ? Math.min(1, werk.gedaan / (WT.KLAAR_AANDEEL * WT.totaalCellen())) : 0, netjes: werk ? WT.fractieWerk(werk) : 0,
-    snelheid: Math.abs(v.speed), band, diesel: M.brandstofPct(m), slijtage: m.slijtage || 0,
+    snelheid: Math.abs(v.speed), band: band ? { ...band, vMax: band.vMax * farmSnelheid(karakterVoorActiviteit('farm')) } : null, bonus: kortRegel(karakterVoorActiviteit('farm'), 'farm'), diesel: M.brandstofPct(m), slijtage: m.slijtage || 0,
     nodig: set ? WT.ontbreekt(set, rig, TOETS) : [], hef: rig.hef, pto: !!rig.pto, lading, laadMax: imp && WT.WERKTUIG[imp.type] && WT.WERKTUIG[imp.type].vervoer ? 8000 : 0,
   };
 }

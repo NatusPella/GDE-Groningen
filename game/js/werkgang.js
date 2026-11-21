@@ -24,12 +24,12 @@ export const BAND = {
   oogsten: { vMin: 2.0, vMax: 6.5, tol: 2.6 },
 };
 
-export function init(taak, { eigen = false, kwaliteit = 1 } = {}) {
+export function init(taak, { eigen = false, kwaliteit = 1, snelheid = 1 } = {}) {
   const rij = BAND[taak];
   if (rij) {
     return {
       taak, soort: 'rijen', klaar: false, rij: 0, rijen: RIJEN, len: RIJ_LEN, voortgang: 0, goed: 0, gemist: 0, tehard: 0,
-      vMin: rij.vMin, vMax: rij.vMax, tol: rij.tol + (eigen ? EIGEN_RUIMTE : 0), time: 0, limit: 300, scheefT: 0,
+      vMin: rij.vMin, vMax: rij.vMax * (snelheid > 1 && snelheid <= 1.25 ? snelheid : 1), tol: rij.tol + (eigen ? EIGEN_RUIMTE : 0), time: 0, limit: 300, scheefT: 0,
     };
   }
   return { taak, soort: 'rit', klaar: false, kwaliteit: clamp(kwaliteit, 0, 1), time: 0, limit: 240 };
