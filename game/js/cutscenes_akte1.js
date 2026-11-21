@@ -113,13 +113,13 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'En jij als', actor: 'tessa', face: 'actor:berend' },
       { on: 'En jij als', dt: 0.5, actor: 'tessa', anim: 'point' },
       { on: 'En jij als', dt: 1.2, actor: 'berend', anim: 'shrug' },
-      { on: 'Vijftig euro', actor: 'tessa', walk: [[3.2, 1.4]], speed: 1.8 },
-      { on: 'Vijftig euro', dt: 0.3, actor: 'tammo', walk: [[1.8, 1.6]], speed: 1.6 },
-      { on: 'Vijftig euro', dt: 1.0, actor: 'tessa', anim: 'cheer' },
+      { on: 'Vijftig euro van Berend', actor: 'tessa', walk: [[3.2, 1.4]], speed: 1.8 },
+      { on: 'Vijftig euro van Berend', dt: 0.3, actor: 'tammo', walk: [[1.8, 1.6]], speed: 1.6 },
+      { on: 'Vijftig euro van Berend', dt: 1.0, actor: 'tessa', anim: 'cheer' },
     ],
     shots: [],
     // direction templates (cineshots.js, #955)
-    cuts: [{ on: 2, dt: 0.8, tpl: 'trackIn', target: 'berend', angle: -75, hold: 5 }, { on: 4, tpl: 'shotReverse', a: 'tammo', b: 'berend', beats: [0] }, { on: 5, tpl: 'shotReverse', a: 'berend', b: 'tammo', beats: [0, 4.2] }, { on: 8, tpl: 'langzameZoom', target: 'berend', fov0: 34, fov1: 22, hold: 2 }],
+    cuts: [{ on: 2, dt: 0.8, tpl: 'trackIn', target: 'berend', angle: -75, hold: 5 }, { on: 3, tpl: 'shotReverse', a: 'tammo', b: 'berend', beats: [0] }, { on: 6, tpl: 'shotReverse', a: 'tammo', b: 'berend', beats: [0] }, { on: 7, tpl: 'shotReverse', a: 'berend', b: 'tammo', beats: [0, 4.2] }, { on: 8, tpl: 'shotReverse', a: 'tessa', b: 'berend', beats: [0] }, { on: 11, tpl: 'langzameZoom', target: 'berend', fov0: 34, fov1: 22, hold: 2 }],
     wide: { from: [-5.5, 4.5, 3.4], to: [-3.2, 3.3, 2.6], look: 'mid:berend,bakkie@1', fov: 48, until: 1 },
   };
 

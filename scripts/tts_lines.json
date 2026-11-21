@@ -78,6 +78,19 @@
   "file": "anita/dus_we_lenen_een_bakkie_rijden_n_7a0fd0fd.mp3"
  },
  {
+  "key": "Anita|Hij is de bisschop die Grunn in 1672 niet innam.",
+  "speaker": "Anita",
+  "text": "Hij is de bisschop die Grunn in 1672 niet innam.",
+  "area": "M01.1",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "ongeduldig, bazig",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
+  "file": "anita/hij_is_de_bisschop_die_grunn_in__734ed0de.mp3"
+ },
+ {
   "key": "Anita|Ik ken Sjabbe. Hij opent wat niemand kan. Wij brengen de automaat naar hem.",
   "speaker": "Anita",
   "text": "Ik ken Sjabbe. Hij opent wat niemand kan. Wij brengen de automaat naar hem.",
@@ -403,17 +416,30 @@
   "file": "anita/iemand_die_alle_regels_kent_beha_ca79c038.mp3"
  },
  {
-  "key": "Anita|Regels, vergunningen, trucs. Hij wint op papier.",
+  "key": "Anita|Hoe dan?",
   "speaker": "Anita",
-  "text": "Regels, vergunningen, trucs. Hij wint op papier.",
+  "text": "Hoe dan?",
   "area": "M03.2",
   "out": "lines",
   "lang": "own",
   "voice": "Callirrhoe",
   "who": "Nederlandse vrouw, lacherig en ad rem",
-  "tag": "warm, grinnikend",
-  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
-  "file": "anita/regels_vergunningen_trucs_hij_wi_97996937.mp3"
+  "tag": "ongelovig, vragend",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongelovig, vragend.",
+  "file": "anita/hoe_dan_a1b7ffec.mp3"
+ },
+ {
+  "key": "Jelle Terpstra|Met papier.",
+  "speaker": "Jelle Terpstra",
+  "text": "Met papier.",
+  "area": "M03.2",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Fenrir",
+  "who": "ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden",
+  "tag": "plechtig, overdreven trots",
+  "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: plechtig, overdreven trots.",
+  "file": "jelle_terpstra/met_papier_f2cf083a.mp3"
  },
  {
   "key": "Anita|Voor zijn oma. Hij doet alles voor zijn oma.",
@@ -429,9 +455,9 @@
   "file": "anita/voor_zijn_oma_hij_doet_alles_voo_077aacbd.mp3"
  },
  {
-  "key": "Anita|Hij vroeg Sjabbe waar het museum alarmen heeft. Hij wil de bal, want wie de bal heeft, zit de jury voor, en dat wil Jelle.",
+  "key": "Anita|Hij vroeg Sjabbe waar het museum alarmen heeft.",
   "speaker": "Anita",
-  "text": "Hij vroeg Sjabbe waar het museum alarmen heeft. Hij wil de bal, want wie de bal heeft, zit de jury voor, en dat wil Jelle.",
+  "text": "Hij vroeg Sjabbe waar het museum alarmen heeft.",
   "area": "M03.4",
   "out": "lines",
   "lang": "own",
@@ -439,7 +465,20 @@
   "who": "Nederlandse vrouw, lacherig en ad rem",
   "tag": "warm, grinnikend",
   "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
-  "file": "anita/hij_vroeg_sjabbe_waar_het_museum_065bdfa9.mp3"
+  "file": "anita/hij_vroeg_sjabbe_waar_het_museum_da7f826d.mp3"
+ },
+ {
+  "key": "Anita|Wie de bal heeft, zit de jury voor. Dat wil Jelle.",
+  "speaker": "Anita",
+  "text": "Wie de bal heeft, zit de jury voor. Dat wil Jelle.",
+  "area": "M03.4",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "enthousiast, snel",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+  "file": "anita/wie_de_bal_heeft_zit_de_jury_voo_1f3a486a.mp3"
  },
  {
   "key": "Anita|Eerst kijken hoe het museum bewaakt wordt. Naar het Stationsplein.",
@@ -715,17 +754,30 @@
   "file": "oma_trijntje/dan_eet_je_hem_al_vierentwintig__baa9b0d6.mp3"
  },
  {
-  "key": "Anita|Die vijf namen hangen vanavond aan ons prikbord. Dat wordt ons menu.",
+  "key": "Anita|Vijf vrienden, vijf ingrediënten. Dan doen we mee, ook als Jelle de rest opkoopt.",
   "speaker": "Anita",
-  "text": "Die vijf namen hangen vanavond aan ons prikbord. Dat wordt ons menu.",
+  "text": "Vijf vrienden, vijf ingrediënten. Dan doen we mee, ook als Jelle de rest opkoopt.",
   "area": "M08.3",
   "out": "lines",
   "lang": "own",
   "voice": "Callirrhoe",
   "who": "Nederlandse vrouw, lacherig en ad rem",
-  "tag": "enthousiast, snel",
-  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
-  "file": "anita/die_vijf_namen_hangen_vanavond_a_569ae08f.mp3"
+  "tag": "ongeduldig, bazig",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
+  "file": "anita/vijf_vrienden_vijf_ingredie_nten_c57d5d85.mp3"
+ },
+ {
+  "key": "Anita|Vijf namen aan ons prikbord. Dat wordt ons menu.",
+  "speaker": "Anita",
+  "text": "Vijf namen aan ons prikbord. Dat wordt ons menu.",
+  "area": "M08.3",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "warm, grinnikend",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+  "file": "anita/vijf_namen_aan_ons_prikbord_dat__54e57b3f.mp3"
  },
  {
   "key": "Mem Terpstra|Famke. Heb je een jas aan?",
@@ -1157,6 +1209,19 @@
   "file": "anita/jij_zei_dat_de_zee_achter_de_dij_4aae769f.mp3"
  },
  {
+  "key": "Anita|Alle?",
+  "speaker": "Anita",
+  "text": "Alle?",
+  "area": "M09.1",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "ongelovig, vragend",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongelovig, vragend.",
+  "file": "anita/alle_a0af206f.mp3"
+ },
+ {
   "key": "Anita|Mijn vader had kippen. Ik sorteerde eieren voor ik kon lezen.",
   "speaker": "Anita",
   "text": "Mijn vader had kippen. Ik sorteerde eieren voor ik kon lezen.",
@@ -1181,6 +1246,58 @@
   "tag": "lacherig, ad rem",
   "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
   "file": "anita/je_vroeg_nooit_naar_de_kippen_7946f7de.mp3"
+ },
+ {
+  "key": "Jelle Terpstra|U bent in het museum geweest. Mijn bewaker heeft beelden.",
+  "speaker": "Jelle Terpstra",
+  "text": "U bent in het museum geweest. Mijn bewaker heeft beelden.",
+  "area": "M10.1",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Fenrir",
+  "who": "ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden",
+  "tag": "charmant, opschepperig",
+  "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: charmant, opschepperig.",
+  "file": "jelle_terpstra/u_bent_in_het_museum_geweest_mij_9ee5940e.mp3"
+ },
+ {
+  "key": "Jelle Terpstra|Die verdwijnen als u Grunn en de Snackprijs verlaat. Dat is mijn voorstel.",
+  "speaker": "Jelle Terpstra",
+  "text": "Die verdwijnen als u Grunn en de Snackprijs verlaat. Dat is mijn voorstel.",
+  "area": "M10.1",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Fenrir",
+  "who": "ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden",
+  "tag": "zelfvoldaan, grinnikend",
+  "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: zelfvoldaan, grinnikend.",
+  "file": "jelle_terpstra/die_verdwijnen_als_u_grunn_en_de_9e2c3cd8.mp3"
+ },
+ {
+  "key": "Anita|Het kaartje in de vitrine. Dat wist jij.",
+  "speaker": "Anita",
+  "text": "Het kaartje in de vitrine. Dat wist jij.",
+  "area": "M10.1",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "plagend, zelfverzekerd",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+  "file": "anita/het_kaartje_in_de_vitrine_dat_wi_2f4fff23.mp3"
+ },
+ {
+  "key": "Jelle Terpstra|Bewaker twee belde mij vooraf. De alarmen telde ik voor de gezelligheid.",
+  "speaker": "Jelle Terpstra",
+  "text": "Bewaker twee belde mij vooraf. De alarmen telde ik voor de gezelligheid.",
+  "area": "M10.1",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Fenrir",
+  "who": "ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden",
+  "tag": "plechtig, overdreven trots",
+  "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: plechtig, overdreven trots.",
+  "file": "jelle_terpstra/bewaker_twee_belde_mij_vooraf_de_6decc8f3.mp3"
  },
  {
   "key": "Anita|Uithuizen heeft een sloot, en een limo heeft geen vleugels. Op de quad, Tammo. Nu.",
@@ -1402,6 +1519,32 @@
   "tag": "sarcastisch, zuchtend",
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: sarcastisch, zuchtend.",
   "file": "tammo/twee_75069400.mp3"
+ },
+ {
+  "key": "Anita|Dat is een val.",
+  "speaker": "Anita",
+  "text": "Dat is een val.",
+  "area": "M11.1",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "lacherig, ad rem",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+  "file": "anita/dat_is_een_val_4dfabf52.mp3"
+ },
+ {
+  "key": "Kapitein Klaas|Natuurlijk.",
+  "speaker": "Kapitein Klaas",
+  "text": "Natuurlijk.",
+  "area": "M11.1",
+  "out": "lines",
+  "lang": "gro",
+  "voice": "Enceladus",
+  "who": "oude Groningse schipper, schor",
+  "tag": "droog, knipogend",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse schipper, schor. Tone: droog, knipogend.",
+  "file": "kapitein_klaas/natuurlijk_33f906fb.mp3"
  },
  {
   "key": "Anita|Er zit een briefje bij. \"Eet wat. Ik wil niks.\" Getekend M.",
@@ -1805,6 +1948,19 @@
   "tag": "ongelovig, vragend",
   "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongelovig, vragend.",
   "file": "anita/en_alles_wat_we_gered_hebben_e2640fed.mp3"
+ },
+ {
+  "key": "Anita|Ik vroeg niks.",
+  "speaker": "Anita",
+  "text": "Ik vroeg niks.",
+  "area": "M13.3",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "warm, grinnikend",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+  "file": "anita/ik_vroeg_niks_542f0da0.mp3"
  },
  {
   "key": "Jelle Terpstra|Mevrouw Tessa. Jelle Terpstra. U hebt een container leeggehaald die mijn juristen vol wilden hebben.",
@@ -3146,9 +3302,22 @@
   "file": "anita/je_lacht_naar_de_soep_68627b23.mp3"
  },
  {
-  "key": "Mem Terpstra|Er is geen overeenkomst, jonge. Er is een oma.",
+  "key": "Jelle Terpstra|Mem. U houdt hem vast tot ik win. Dat was de afspraak.",
+  "speaker": "Jelle Terpstra",
+  "text": "Mem. U houdt hem vast tot ik win. Dat was de afspraak.",
+  "area": "M20.3",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Fenrir",
+  "who": "ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden",
+  "tag": "zelfvoldaan, grinnikend",
+  "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: zelfvoldaan, grinnikend.",
+  "file": "jelle_terpstra/mem_u_houdt_hem_vast_tot_ik_win__6743e798.mp3"
+ },
+ {
+  "key": "Mem Terpstra|Er is geen afspraak, jonge.",
   "speaker": "Mem Terpstra",
-  "text": "Er is geen overeenkomst, jonge. Er is een oma.",
+  "text": "Er is geen afspraak, jonge.",
   "area": "M20.3",
   "out": "lines",
   "lang": "own",
@@ -3156,33 +3325,72 @@
   "who": "warme, stellige oude Friese moeder, spreekt Nederlands met Friese woorden",
   "tag": "zacht, samenzweerderig",
   "style": "spoken in Dutch with a warm Frisian accent, the Frisian words said in Frisian (Frysk); warme, stellige oude Friese moeder, spreekt Nederlands met Friese woorden. Tone: zacht, samenzweerderig.",
-  "file": "mem_terpstra/er_is_geen_overeenkomst_jonge_er_52b695e3.mp3"
+  "file": "mem_terpstra/er_is_geen_afspraak_jonge_429a0515.mp3"
  },
  {
-  "key": "Anita|Van de jas, Tammo. En \"Tige tank! – J.\" is van hem: hij bedankt overal voor.",
+  "key": "Mem Terpstra|Er is een oma.",
+  "speaker": "Mem Terpstra",
+  "text": "Er is een oma.",
+  "area": "M20.3",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Gacrux",
+  "who": "warme, stellige oude Friese moeder, spreekt Nederlands met Friese woorden",
+  "tag": "warm, stellig",
+  "style": "spoken in Dutch with a warm Frisian accent, the Frisian words said in Frisian (Frysk); warme, stellige oude Friese moeder, spreekt Nederlands met Friese woorden. Tone: warm, stellig.",
+  "file": "mem_terpstra/er_is_een_oma_16bfdd8a.mp3"
+ },
+ {
+  "key": "Anita|Van de jas, Tammo. En van het briefje.",
   "speaker": "Anita",
-  "text": "Van de jas, Tammo. En \"Tige tank! – J.\" is van hem: hij bedankt overal voor.",
+  "text": "Van de jas, Tammo. En van het briefje.",
   "area": "M20.3",
   "out": "lines",
   "lang": "own",
   "voice": "Callirrhoe",
   "who": "Nederlandse vrouw, lacherig en ad rem",
-  "tag": "warm, grinnikend",
-  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
-  "file": "anita/van_de_jas_tammo_en_tige_tank_j__8afbf9b5.mp3"
+  "tag": "ongeduldig, bazig",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
+  "file": "anita/van_de_jas_tammo_en_van_het_brie_4599ac54.mp3"
  },
  {
-  "key": "Mem Terpstra|Omdat mijn kleinzoon gekke dingen doet om iets voor mij te winnen wat ik niet meer hoef. En omdat ik in 1953 tweede werd, tegen Trijntje. Dat heeft hij nooit losgelaten. Ik wel.",
+  "key": "Mem Terpstra|Altijd bedanken. Dat heb ik hem geleerd. Alles wat goed is in mijn jongen komt van mij. Dit ook.",
   "speaker": "Mem Terpstra",
-  "text": "Omdat mijn kleinzoon gekke dingen doet om iets voor mij te winnen wat ik niet meer hoef. En omdat ik in 1953 tweede werd, tegen Trijntje. Dat heeft hij nooit losgelaten. Ik wel.",
+  "text": "Altijd bedanken. Dat heb ik hem geleerd. Alles wat goed is in mijn jongen komt van mij. Dit ook.",
   "area": "M20.3",
   "out": "lines",
   "lang": "own",
   "voice": "Gacrux",
   "who": "warme, stellige oude Friese moeder, spreekt Nederlands met Friese woorden",
-  "tag": "zacht, samenzweerderig",
-  "style": "spoken in Dutch with a warm Frisian accent, the Frisian words said in Frisian (Frysk); warme, stellige oude Friese moeder, spreekt Nederlands met Friese woorden. Tone: zacht, samenzweerderig.",
-  "file": "mem_terpstra/omdat_mijn_kleinzoon_gekke_dinge_00bf2429.mp3"
+  "tag": "warm, stellig",
+  "style": "spoken in Dutch with a warm Frisian accent, the Frisian words said in Frisian (Frysk); warme, stellige oude Friese moeder, spreekt Nederlands met Friese woorden. Tone: warm, stellig.",
+  "file": "mem_terpstra/altijd_bedanken_dat_heb_ik_hem_g_ed946aea.mp3"
+ },
+ {
+  "key": "Mem Terpstra|Omdat mijn kleinzoon gekke dingen doet om iets voor mij te winnen wat ik niet meer hoef.",
+  "speaker": "Mem Terpstra",
+  "text": "Omdat mijn kleinzoon gekke dingen doet om iets voor mij te winnen wat ik niet meer hoef.",
+  "area": "M20.3",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Gacrux",
+  "who": "warme, stellige oude Friese moeder, spreekt Nederlands met Friese woorden",
+  "tag": "warm, stellig",
+  "style": "spoken in Dutch with a warm Frisian accent, the Frisian words said in Frisian (Frysk); warme, stellige oude Friese moeder, spreekt Nederlands met Friese woorden. Tone: warm, stellig.",
+  "file": "mem_terpstra/omdat_mijn_kleinzoon_gekke_dinge_dbaf8dde.mp3"
+ },
+ {
+  "key": "Mem Terpstra|In 1953 werd ik tweede, Trijntje. Hij heeft het nooit losgelaten. Ik wel.",
+  "speaker": "Mem Terpstra",
+  "text": "In 1953 werd ik tweede, Trijntje. Hij heeft het nooit losgelaten. Ik wel.",
+  "area": "M20.3",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Gacrux",
+  "who": "warme, stellige oude Friese moeder, spreekt Nederlands met Friese woorden",
+  "tag": "warm, stellig",
+  "style": "spoken in Dutch with a warm Frisian accent, the Frisian words said in Frisian (Frysk); warme, stellige oude Friese moeder, spreekt Nederlands met Friese woorden. Tone: warm, stellig.",
+  "file": "mem_terpstra/in_1953_werd_ik_tweede_trijntje__c5dae79c.mp3"
  },
  {
   "key": "Anita|Henks zender piept: onze auto staat al op een trein. Zonder auto geen snackwagen.",
@@ -3599,6 +3807,84 @@
   "tag": "ongelovig, vragend",
   "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongelovig, vragend.",
   "file": "anita/en_de_gouden_eierbal_20aae43c.mp3"
+ },
+ {
+  "key": "Anita|Berend, dit is het logboek van Wiebelwerk.",
+  "speaker": "Anita",
+  "text": "Berend, dit is het logboek van Wiebelwerk.",
+  "area": "M26.2",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "plagend, zelfverzekerd",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+  "file": "anita/berend_dit_is_het_logboek_van_wi_a98afefa.mp3"
+ },
+ {
+  "key": "Berend Bos|Wat staat erin?",
+  "speaker": "Berend Bos",
+  "text": "Wat staat erin?",
+  "area": "M26.2",
+  "out": "lines",
+  "lang": "gro",
+  "voice": "Charon",
+  "who": "Berend Bos, chagrijnige oude Stadjer uit de Schildersbuurt die al veertig jaar Bommen Berend speelt, nors en droog",
+  "tag": "vragend, nieuwsgierig",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Berend Bos, chagrijnige oude Stadjer uit de Schildersbuurt die al veertig jaar Bommen Berend speelt, nors en droog. Tone: vragend, nieuwsgierig.",
+  "file": "berend_bos/wat_staat_erin_c8558f62.mp3"
+ },
+ {
+  "key": "Anita|Twaalf augustus. Jelle nam de bal vijf dagen vóór ons.",
+  "speaker": "Anita",
+  "text": "Twaalf augustus. Jelle nam de bal vijf dagen vóór ons.",
+  "area": "M26.2",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "lacherig, ad rem",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+  "file": "anita/twaalf_augustus_jelle_nam_de_bal_a8322f69.mp3"
+ },
+ {
+  "key": "Anita|Dan zit u voor.",
+  "speaker": "Anita",
+  "text": "Dan zit u voor.",
+  "area": "M26.2",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "warm, grinnikend",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+  "file": "anita/dan_zit_u_voor_cd8984b4.mp3"
+ },
+ {
+  "key": "Jelle Terpstra|Een notaris gaat boven een bisschop.",
+  "speaker": "Jelle Terpstra",
+  "text": "Een notaris gaat boven een bisschop.",
+  "area": "M26.2",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Fenrir",
+  "who": "ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden",
+  "tag": "plechtig, overdreven trots",
+  "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: plechtig, overdreven trots.",
+  "file": "jelle_terpstra/een_notaris_gaat_boven_een_bissc_1bef3699.mp3"
+ },
+ {
+  "key": "Jelle Terpstra|Om drie uur schrijf ik mij in als de nieuwe bewaarder. Dan teken ik de uitslag zelf.",
+  "speaker": "Jelle Terpstra",
+  "text": "Om drie uur schrijf ik mij in als de nieuwe bewaarder. Dan teken ik de uitslag zelf.",
+  "area": "M26.2",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Fenrir",
+  "who": "ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden",
+  "tag": "plechtig, overdreven trots",
+  "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: plechtig, overdreven trots.",
+  "file": "jelle_terpstra/om_drie_uur_schrijf_ik_mij_in_al_3687e6d8.mp3"
  },
  {
   "key": "Anita|De snackwagen is breder dan de straat. Daar ga ik staan.",
@@ -4366,6 +4652,32 @@
   "tag": "droog, met een stille grijns",
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, met een stille grijns.",
   "file": "tammo/een_eierbal_dat_is_anders_e75b2145.mp3"
+ },
+ {
+  "key": "Anita|Zeven mensen die niet weglopen.",
+  "speaker": "Anita",
+  "text": "Zeven mensen die niet weglopen.",
+  "area": "M30.1",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "plagend, zelfverzekerd",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+  "file": "anita/zeven_mensen_die_niet_weglopen_ebef4e4a.mp3"
+ },
+ {
+  "key": "Anita|Ik weet niet wat ik moet zeggen.",
+  "speaker": "Anita",
+  "text": "Ik weet niet wat ik moet zeggen.",
+  "area": "M30.1",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "ongeduldig, bazig",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
+  "file": "anita/ik_weet_niet_wat_ik_moet_zeggen_c2047779.mp3"
  },
  {
   "key": "Jelle Terpstra|Dat pand ken ik. Ik wacht tot de prijs zakt.",
