@@ -8,9 +8,10 @@
 //   first visit     the first time you go in: Beppe, Tammo and Tessa (the scene
 //                   FIRST_VISIT); Tessa meets her. Marks 'eerste'.
 //   M03 / M06       a text nudge when you have not been (twice at most).
-//   death           derived: M06 is done AND you have been in at least twice
-//                   (so she never dies right after the first meeting), or M08
-//                   is done whatever happened (the story must go on). It is a
+//   death           derived: she is there for two or three visits. M06 is done AND you
+//                   have been in twice (the meeting plus one return), or M04 is done AND
+//                   you have been in three times, or M08 is done whatever happened (the
+//                   story must go on). She never dies right after the first meeting. It is a
 //                   function of the story state and the marks, never stored.
 //   news            once, when the death point is passed while you play, and
 //                   you are outside the house: a text from Tante Aaltje.
@@ -25,9 +26,10 @@ import {
   FIRST_VISIT, GREETING, GOODBYE, MEMORY, ECHOES, NUDGE,
 } from './beppe_boog_texts.js';
 
-export const STEP = { unlock: 'M01', nudge1: 'M03', death: 'M06', deathFallback: 'M08' };
+export const STEP = { unlock: 'M01', nudge1: 'M03', death: 'M06', deathEarly: 'M04', deathFallback: 'M08' };
 export const MARK = { set: 'beppe', first: 'eerste', news: 'nieuws', farewell: 'afscheid', echo: (id) => `echo:${id}`, nudge: (n) => `wenk:${n}`, visit: (n) => `bezoek${n}` };
 export const MAX_VISIT_MARKS = 4;
+export const MAX_ALIVE_VISITS = 3;
 
 // A story snapshot like in beppe_visit_rules.js: { done, completed }.
 function reached(snap, id) {
@@ -52,7 +54,11 @@ export const nextVisitMark = (marks) => (visitsDone(marks) < MAX_VISIT_MARKS ? M
 // 'dicht' | 'levend' | 'herinnering'
 export function arcPhase(snap, marks) {
   if (!visitUnlocked(snap)) return 'dicht';
-  const dead = reached(snap, STEP.deathFallback) || (reached(snap, STEP.death) && has(marks, MARK.first) && visitsDone(marks) >= 2);
+  // she is there for two or three visits (the meeting with Tessa, one or two short ones), then comes the farewell
+  const v = visitsDone(marks);
+  const dead = reached(snap, STEP.deathFallback)
+    || (reached(snap, STEP.death) && has(marks, MARK.first) && v >= 2)
+    || (reached(snap, STEP.deathEarly) && has(marks, MARK.first) && v >= MAX_ALIVE_VISITS);
   return dead ? 'herinnering' : 'levend';
 }
 

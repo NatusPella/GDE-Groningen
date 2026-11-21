@@ -7,7 +7,7 @@
 import { readFileSync } from 'node:fs';
 import { STEPS } from '../game/js/storyarc.js';
 import {
-  STEP, MARK, MAX_VISIT_MARKS, arcPhase, visitsDone, nextVisitMark, sceneOnEnter, nudgeDue, echoDue, createRunner,
+  STEP, MARK, MAX_VISIT_MARKS, MAX_ALIVE_VISITS, arcPhase, visitsDone, nextVisitMark, sceneOnEnter, nudgeDue, echoDue, createRunner,
   aliveVisit, pickMemory, memoryEligible, stepReached,
 } from '../game/js/beppe_boog_rules.js';
 import {
@@ -30,6 +30,7 @@ ok(STEPS[idx(STEP.death)].part === 'kop' && STEPS[idx(STEP.deathFallback)].part 
 ok(idx(STEP.death) - idx(STEP.unlock) >= 4, 'een paar missies tussen de uitnodiging en het overlijden', String(idx(STEP.death) - idx(STEP.unlock)));
 ok(ECHOES.every((e) => idx(e.step) > idx(STEP.deathFallback)), 'de echo\'s komen na het overlijden in het verhaal');
 
+ok(MAX_ALIVE_VISITS === 3, 'Beppe is er voor twee of drie bezoeken');
 // --- de fase ------------------------------------------------------------------------------------------------
 {
   const none = { done: [], completed: [] };
@@ -40,7 +41,10 @@ ok(ECHOES.every((e) => idx(e.step) > idx(STEP.deathFallback)), 'de echo\'s komen
   ok(arcPhase(snapTo('M06'), set()) === 'levend', 'M06 klaar maar nooit bij haar geweest: ze leeft nog (ze sterft niet voor je haar kent)');
   ok(arcPhase(snapTo('M06'), set(MARK.first, ...visits(1))) === 'levend', 'M06 klaar en één keer geweest: nog levend (niet meteen na de eerste ontmoeting)');
   ok(arcPhase(snapTo('M06'), set(MARK.first, ...visits(2))) === 'herinnering', 'M06 klaar, kennismaking en twee bezoeken: de herinnering');
-  ok(arcPhase(snapTo('M05'), set(MARK.first, ...visits(3))) === 'herinnering' ? false : true, 'voor M06 sterft ze nooit, hoe vaak je ook komt');
+  ok(arcPhase(snapTo('M03'), set(MARK.first, ...visits(3))) === 'levend', 'voor M04 sterft ze niet, hoe vaak je ook komt');
+  ok(arcPhase(snapTo('M04'), set(MARK.first, ...visits(2))) === 'levend', 'M04 met twee bezoeken: nog levend');
+  ok(arcPhase(snapTo('M04'), set(MARK.first, ...visits(3))) === 'herinnering', 'drie bezoeken (de ontmoeting en twee korte) en M04: het afscheid komt, ze blijft niet eindeloos');
+  ok(arcPhase(snapTo('M05'), set(MARK.first, ...visits(1))) === 'levend', 'na één bezoek nooit meteen het afscheid');
   ok(arcPhase(snapTo('M07'), set(MARK.first, ...visits(2))) === 'herinnering', 'M07: met twee bezoeken de herinnering');
   ok(arcPhase(snapTo('M08'), set()) === 'herinnering', 'M08 klaar zonder ooit te komen: het verhaal moet door, de herinnering');
   ok(arcPhase(snapTo('M20'), set()) === 'herinnering' && arcPhase(snapTo('E'), set()) === 'herinnering', 'een save ver in het verhaal: direct de herinnering');
