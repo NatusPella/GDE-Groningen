@@ -9,7 +9,7 @@ export const MAX_AWAY_PER_SEASON = 4;                                    // hoog
 export const NEAR_TRIP_M = 15000;                                        // ritten tot 15 km kosten één speldag, ver weg twee
 
 // De acht sjablonen (A.4 van het ontwerp); `%` is de plaats. Het eerste sjabloon gebruikt een dorpsbijnaam.
-export const NICKNAMES = ['Meeuwen', 'Kieviten', 'Ganzen', 'Veenmollen', 'Dijkgravers', 'Paardenbloemen', 'Slootspringers', 'Brugwachters', 'Fietsenstallers', 'Boterhammen', 'Ooievaars', 'Zwanen'];
+const NICKNAMES = ['Meeuwen', 'Kieviten', 'Ganzen', 'Veenmollen', 'Dijkgravers', 'Paardenbloemen', 'Slootspringers', 'Brugwachters', 'Fietsenstallers', 'Boterhammen', 'Ooievaars', 'Zwanen'];
 export const TEMPLATES = [
   (p, h) => `${adjective(p)} ${NICKNAMES[h % NICKNAMES.length]}`,
   (p) => `Wees Rap ${p}`,
@@ -53,7 +53,7 @@ export function makeParkIndex(raw) {
   const byId = new Map(clubs.map((c) => [c.id, c]));
   return { plaatsen: places, clubs, byPlace, byId, parkCount: places.reduce((s, p) => s + p.p.length, 0) };
 }
-export const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 // De dichtstbijzijnde clubs bij een punt (afstand tot het thuispark, dan het plaats-id): stabiel en deterministisch.
 export function nearestClubs(index, pt, n = LOCAL_DIVISION_SIZE, exclude = null) {
   return index.clubs.filter((c) => !exclude || !exclude.has(c.id)).map((c) => ({ c, d: distance(c.park, pt) })).sort((a, b) => a.d - b.d || a.c.placeId - b.c.placeId).slice(0, n).map((x) => x.c);

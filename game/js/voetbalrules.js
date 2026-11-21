@@ -11,7 +11,7 @@ export const FORMATEN = {
   klein: { n: 5, B: 26, L: 42, DOEL_B: 4.4, DOEL_H: 1.7, STRAF_B: 13, STRAF_D: 6.5, duren: { kort: 45, normaal: 90 }, naam: '5 tegen 5' },
   groot: { n: 11, B: 56, L: 90, DOEL_B: 7.32, DOEL_H: 2.44, STRAF_B: 30, STRAF_D: 13, duren: { kort: 75, normaal: 150 }, naam: '11 tegen 11' },
 };
-export const DEFAULT_FORMAT = 'klein';
+const DEFAULT_FORMAT = 'klein';
 export const cleanFormaat = (f) => (FORMATEN[f] ? f : DEFAULT_FORMAT);
 let huidig = 'klein';
 export function zetFormaat(f) {
@@ -26,7 +26,7 @@ export function zetFormaat(f) {
 export const huidigFormaat = () => huidig;
 export const DUREN = { kort: 45, normaal: 90 };     // de standaardduur (klein); groot heeft eigen duren in FORMATEN
 export const duurVan = (formaat, duur) => (FORMATEN[cleanFormaat(formaat)].duren[duur] || FORMATEN[cleanFormaat(formaat)].duren.normaal);
-export const DEFAULT_DURATION = 'normaal';
+const DEFAULT_DURATION = 'normaal';
 export const HELFTEN = 2;
 // De voorkeur van de speler (formaat, vorming, speelstijl, duur, vriendschappelijk of competitie, en de stand van het seizoen) staat in één eigen sleutel; alles wat niet klopt wordt de standaard.
 export function leesVoorkeur(raw) {
@@ -89,7 +89,7 @@ export const NAMEN_UIT = ['Keeper Bouwe', 'Roelof', 'Fenna', 'Jelmer', 'Marrit',
 // De vormingen (tactiek): per speler een rol en de basisplek, gemeten van het eigen doel: u in -1..1 over de breedte, d in 0..1 over de lengte. Index 0 is altijd de keeper.
 const K = { rol: 'keeper', u: 0, d: 0.04 };
 const rij = (rol, d, ...us) => us.map((u) => ({ rol, u, d }));
-export const FORMATIONS = {
+const FORMATIONS = {
   klein: {
     '2-2': [K, ...rij('verdediger', 0.26, -0.42, 0.42), { rol: 'aanvaller', u: -0.4, d: 0.55 }, { rol: 'aanvaller', u: 0.4, d: 0.62 }],
     '3-1': [K, ...rij('verdediger', 0.24, -0.55, 0, 0.55), { rol: 'aanvaller', u: 0, d: 0.6 }],

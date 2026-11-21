@@ -98,7 +98,7 @@ export function arcTick(w, now = (typeof performance !== 'undefined' ? performan
 
 // --- Beppe herself: a small old woman in a cardigan, at the stove or by the table ------
 
-export const BEPPE_LOOK = {
+const BEPPE_LOOK = {
   shirt: 0x7a8f6a, skin: 0xecc8a8, hair: 0xd8d4cc, variant: 'female', pants: 0x3a3a42, shoes: 0x4a3426, hairStyle: 'bun', seed: 1311,
   look: { top: 'cardigan', topColor: 0x7a8f6a, under: 0xf4f1ea, glasses: true, shades: false, scarf: false, bottom: 'skirt', shoeType: 'leather', age: 'old', build: 'avg', heightScale: 0.93, hat: null, bag: null, umbrella: null },
 };

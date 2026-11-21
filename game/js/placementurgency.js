@@ -23,7 +23,7 @@ export const URGENT_SLICE_MS = 6;
 let activityProbe = null;
 // main.js (of een minigame) zegt "er loopt een missie, minigame of activiteit die plaatsing nodig heeft"
 export function installActivityProbe(fn) { activityProbe = typeof fn === 'function' ? fn : null; }
-export function activityActive() { try { return !!(activityProbe && activityProbe()); } catch (e) { return false; } }
+function activityActive() { try { return !!(activityProbe && activityProbe()); } catch (e) { return false; } }
 
 // De kleinste afstand van de speler tot de punten van een venster (Infinity als de speler of de punten onbekend zijn).
 export function nearestPointDist(points, focus) {

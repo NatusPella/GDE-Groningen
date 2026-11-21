@@ -7,9 +7,9 @@
 // Samen spelen: lokale weergave van de eigen spullen (#429); niets over het netwerk.
 import { thumbPlan, thumbSleutel, kolommenUitTops, visibleIndices } from './spullenraster.js';
 
-export const THUMB_GROUP = 'spullen';
-export const THUMB_HOEK = 0.6; // schuin van voren, zoals de Garage
-export const THUMB_ZOOM = 1.12;
+const THUMB_GROUP = 'spullen';
+const THUMB_HOEK = 0.6; // schuin van voren, zoals de Garage
+const THUMB_ZOOM = 1.12;
 
 const defaultScheduler = (fn) => (typeof requestAnimationFrame === 'function' ? requestAnimationFrame(fn) : setTimeout(fn, 16));
 

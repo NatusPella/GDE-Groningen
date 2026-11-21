@@ -23,7 +23,7 @@ const voiceKey = (speaker, text) => speaker + '|' + text;
 // onder de stemnaam): de terugkeerscène en de keuzegesprekken zeggen 'Tessa', 'Berend' en 'Jelle', de bank heeft
 // 'Anita', 'Berend Bos' en 'Jelle Terpstra'. Een exacte sleutel wint altijd; er wordt niets hernoemd. De generator
 // (scripts/voicelines_collect.mjs) gebruikt dezelfde tabel, zodat een nieuwe opname onder de stemnaam komt.
-export const SPEAKER_ALIAS = { Tessa: 'Anita', Berend: 'Berend Bos', Jelle: 'Jelle Terpstra' };
+const SPEAKER_ALIAS = { Tessa: 'Anita', Berend: 'Berend Bos', Jelle: 'Jelle Terpstra' };
 export const voiceSpeaker = (speaker) => SPEAKER_ALIAS[speaker] || speaker;
 
 // A line recorded with a leading ellipsis ("…Er komt een politieauto aan.", the pause before it) is also found

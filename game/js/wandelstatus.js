@@ -4,7 +4,7 @@
 import { SIMICOON as I } from './simicoon.js';
 
 // Icoonpaden voor de chips (24x24, lijn): lopende voeten (lopen), stempel, vlag (klaar).
-export const ICOON = {
+const ICOON = {
   lopen: 'wandeling',
   stempel: 'stempel',
   klaar: 'vlag',
@@ -28,7 +28,7 @@ export const UITLEG = [
 export const STAMP_R = 22;   // m: zo dichtbij is een stempel (wandelrules.js)
 export const NABIJ = 80;     // m: vanaf hier wijst de strook op het stempelen
 
-export const WINDSTREKEN = ['oost', 'zuidoost', 'zuid', 'zuidwest', 'west', 'noordwest', 'noord', 'noordoost'];
+const WINDSTREKEN = ['oost', 'zuidoost', 'zuid', 'zuidwest', 'west', 'noordwest', 'noord', 'noordoost'];
 export const strek = (a) => WINDSTREKEN[((Math.round(a / (Math.PI / 4)) % 8) + 8) % 8];
 
 const tijdTekst = (s) => `${Math.floor(s / 60)}:${(Math.floor(s) % 60).toString().padStart(2, '0')}`;

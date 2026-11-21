@@ -14,8 +14,8 @@ export const LOCATIE_GAP = 10;          // px: de ruimte tussen kaart en wat ero
 export const LOCATIE_OMHOOG_MS = 300;   // een item dat korter dan dit zichtbaar is laat de kaart niet bewegen
 export const LOCATIE_DROP_MS = 600;   // terug omlaag wacht langer, zodat een knipperend item de kaart niet laat pompen
 export const LOCATIE_MOVE_MS = 200;     // de glijdende verschuiving zelf (CSS), hoogstens 250 ms
-export const LOCATIE_MAX = 400;
-export const LOCATIE_EPS = 2;           // een verschil van minder dan dit is meetruis en telt niet
+const LOCATIE_MAX = 400;
+const LOCATIE_EPS = 2;           // een verschil van minder dan dit is meetruis en telt niet
 
 const eindig = (v) => typeof v === 'number' && Number.isFinite(v);
 

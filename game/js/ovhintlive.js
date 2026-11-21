@@ -101,5 +101,5 @@ export function tickOvHint(w, dt) {
   bewaar();
 }
 
-export function resetOvHint() { sessie = verseSessie(); state = null; acc = 0; }
+function resetOvHint() { sessie = verseSessie(); state = null; acc = 0; }
 if (typeof window !== 'undefined') window.__ovHint = { stand: () => ({ ...laad() }), reset: resetOvHint };
