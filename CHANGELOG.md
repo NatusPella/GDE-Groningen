@@ -11,6 +11,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+- **Bezit (epic #1095), in opbouw:** bij het bouwen van de wereld komen er twee kleine indexbestanden met de koopbare percelen (13.664, met een stabiel ID, toegangsklasse en soort) en de bedrijfspanden; het spel laadt ze pas als je iets met Bezit doet.
 - De uitleg bij de cheats toont {ENTER} als toetsplaatje in plaats van een tekstkeycap, en de startkaarten van de activiteiten tonen de spatie als toetsplaatje.
 - Het schildje van de eenheden bij de politiechip op de minikaart is een Phosphor-icoon; sessiecodes en het nieuws op het startscherm gebruiken één vast lettertype voor codes.
 - Boten van het omgevingsverkeer: de kanaalscan kan op verzoek eerst af zijn voor er een plek gekozen wordt (alleen voor tests en audits; in het spel blijft het tijdbudget van 3 ms), zodat dezelfde seed altijd dezelfde plekken geeft. De test van de bootplekken is stabiel (20 van 20 keer groen).
