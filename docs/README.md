@@ -80,6 +80,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [INCLUSIEVE-TAAL.md](<INCLUSIEVE-TAAL.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/ui-taal.md`](../.specs-fire/standards/… |
 | [INVULBLAD-EIGENAAR.md](<INVULBLAD-EIGENAAR.md>) | Stand: 19 oktober 2026. Niets is verstuurd, geüpload of ingesteld. Dit blad |
 | [INTOCHT.md](<INTOCHT.md>) | De intocht na een verovering: wachtrij, acht scènes, terugkijken en de host-only-regel (#704). |
+| [ISSUES-OPSCHONING-21-11.md](<ISSUES-OPSCHONING-21-11.md>) | Werkdocument. Wat de issue-opschoning van 21-11 sloot, labelde en open liet, met sluitkandidaten, top-10 bugs en wensen en de eigenaar-lijst. |
 | [KAART-GEBIEDEN-20-11.md](<KAART-GEBIEDEN-20-11.md>) | Kaart en minikaart: kleuren uit de ds-tokens (`kaartkleuren.js`) en de vier gebiedstoestanden (onzichtbaar, zichtbaar, bezig, veroverd). Naslag; de kaartregels staan in de specs wereld en ui-taal. |
 | [KANALEN.md](<KANALEN.md>) | Input voor #92 (minder ruis, meer visuele communicatie), uit #104 (één planner). Dit bestand wordt gemaakt… |
 | [MELDINGEN-21-11.md](<MELDINGEN-21-11.md>) | Meldingen: inventaris van alle tijdelijke meldingen, de vier duurklassen (4, 6, 9, 10 s), het aflopende balkje, pauze en hover, en het besluit voor Beweging beperken. Naslag bij DESIGN_SYSTEM.md en ui-taal.md. |
