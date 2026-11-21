@@ -1,4 +1,4 @@
-// De commentaarmotor van de voetbalwedstrijd (epic voetbal-fifa, 21-11): puur, geen DOM en geen THREE (scripts/voetbal_fifa_test.mjs). Twee commentatoren (voetbalcommentaardata.js) praten mee met
+// De commentaarmotor van de voetbalwedstrijd (epic voetbal-uitzending, 21-11): puur, geen DOM en geen THREE (scripts/voetbal_uitzending_test.mjs). Twee commentatoren (voetbalcommentaardata.js) praten mee met
 // de gebeurtenissen van de sim (voetbalmatch.js ev): aftrap, kans, schot, redding, doelpunt, kaart, blessure, wissel, hoekschop, strafschop, rust, einde, comeback en derby, met vulling in rustige minuten.
 // Afwisselend en niet herhalend: elke soort en commentator heeft een zak die leeg moet voordat een entry terugkomt (en nooit twee keer dezelfde entry achter elkaar), plus een geheugen van de laatste
 // dertig regels over alle soorten heen. Drukte wordt gedempt: een entry van lage prioriteit valt weg als er net iets gezegd is, een doelpunt of kaart komt altijd. Commentaar is lokaal (Samen spelen: iedere

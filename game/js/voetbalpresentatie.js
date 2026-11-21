@@ -1,10 +1,10 @@
-// De tv-presentatie van de voetbalwedstrijd (epic voetbal-fifa, 21-11): puur, geen DOM en geen THREE (scripts/voetbal_fifa_test.mjs). Dit zijn de modellen en de HTML-teksten (alles ontsnapt) van het
+// De tv-presentatie van de voetbalwedstrijd (epic voetbal-uitzending, 21-11): puur, geen DOM en geen THREE (scripts/voetbal_uitzending_test.mjs). Dit zijn de modellen en de HTML-teksten (alles ontsnapt) van het
 // scorebord met verzonnen clublogo's en kaart- en blessure-icoontjes, de opstelling bij de aftrap, de rustpauze met statistieken, de eindsamenvatting met Man van de match, de veldradar en de ondertitel
 // van het commentaar. voetbaltvlayer.js zet ze op het scherm; de stijl staat in voetbaltv.css (alleen ds-tokens). Kleur is nooit het enige signaal: een kaart heeft een woord, een blessure een kruis.
 // Een gast (Samen spelen) heeft alleen de momentopname: hij krijgt de opstelling, de stand en de klok, en gebeurtenissen uit het verschil tussen twee momentopnamen (guestEvents); de
 // statistieken en Man van de match zijn van wie het spel opende (die rekent ze uit) en staan er bij een gast dus niet.
 import { clockText } from './voetbalrules.js';
-import { statistiekenVan, matchMvp, speelMinuut, cleanRules } from './voetbalfifarules.js';
+import { statistiekenVan, matchMvp, speelMinuut, cleanRules } from './voetbalextrarules.js';
 import { cleanModus } from './voetbalregie.js';
 
 // De voorkeur voor de uitzending (de camera-regie en de regels kaarten, blessures, strafschoppen, buitenspel, wissels) staat onder `tv` in de eigen sleutel van de voetbalvoorkeur (alleen dit apparaat);

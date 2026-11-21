@@ -1,4 +1,4 @@
-// Het commentaar van de voetbalwedstrijd (epic voetbal-fifa, 21-11): twee verzonnen commentatoren, als data. Pure tekst, geen DOM (scripts/voetbal_fifa_test.mjs controleert de aantallen,
+// Het commentaar van de voetbalwedstrijd (epic voetbal-uitzending, 21-11): twee verzonnen commentatoren, als data. Pure tekst, geen DOM (scripts/voetbal_uitzending_test.mjs controleert de aantallen,
 // de woordbudgetten en dat er niets echts in staat). Alleen Nederlands, met hier en daar een Gronings woord met zorg ("nait", "joh", "Grunn", nooit "de Grunn"); alle clubs, spelers en
 // bedrijven zijn verzonnen (constitutie 2). Geen getoond leed: een blessure is een speler die even bijkomt, een kaart is een kaartje.
 // Hilbrand = de verslaggever (warm, vol vuur, praat het spel). Roelie = de kleurcommentator (droog, speelde jaren in het dorpsteam, weet het altijd net iets beter).
@@ -77,7 +77,7 @@ export const COMMENTAAR = {
   },
   blessure: {
     h: ['Hij blijft even liggen. Het medisch team komt kijken.', 'Een blessure. We hopen dat het meevalt.', 'Daar loopt {speler} niet lekker meer. Even bijkomen.', 'De spelers houden even in. Een gekwetste speler wordt geholpen.', 'Hij haalt de wedstrijd niet. Er komt een wissel.'],
-    r: ['Rustig aan, die kreupelen even uit. Zo gaat dat.', 'De wedstrijd gaat daarna gewoon verder. Dat is het voetbal.', 'Een goede wissel is soms het beste medicijn.', 'Beterschap alvast.'],
+    r: ['Rustig aan, even uitlopen. Zo gaat dat.', 'De wedstrijd gaat daarna gewoon verder. Dat is het voetbal.', 'Een goede wissel is soms het beste medicijn.', 'Beterschap alvast.'],
   },
   wissel: {
     h: ['Een wissel: {speler} komt erin.', 'Er wordt gewisseld. Verse benen op het veld.', 'Nieuwe speler, nieuwe kansen.', 'De bank wordt benut. {speler} gaat spelen.', 'Een wissel, daar zit een idee achter.'],
@@ -88,7 +88,7 @@ export const COMMENTAAR = {
     r: ['Dit is het enige moment waarop het voetbal heel eenzaam is.', 'Je kijkt niet naar de keeper. Je kijkt naar de hoek.', 'Dat is alleen maar zenuwen. Het doel is groot genoeg.', 'Ik heb er eens een gemist op een dorpsfeest. Mijn oma weet het nog.'],
   },
   hoek: {
-    h: ['Hoekschop voor {team}.', 'Een hoekschop. Alle lange jongens gaan mee naar voren.', 'De bal gaat de hoek in. Kan dit gevaarlijk worden?', 'Een corner, en dat levert altijd drukte op.', 'Hoekschop! Het wordt druk voor het doel.'],
+    h: ['Hoekschop voor {team}.', 'Een hoekschop. Alle lange spelers gaan mee naar voren.', 'De bal gaat de hoek in. Kan dit gevaarlijk worden?', 'Een corner, en dat levert altijd drukte op.', 'Hoekschop! Het wordt druk voor het doel.'],
     r: ['Een hoekschop is een uitnodiging om te duwen.', 'Bij een corner telt alleen de eerste bal.', 'Dit kan een goede kans worden, als de voorzet goed is.'],
   },
   ingooi: {
@@ -149,7 +149,7 @@ export const COMMENTAAR = {
   },
   spanning: {
     h: ['Wat een spanning! Het kan nog alle kanten op.', 'Dit blijft tot het einde spannend.', 'Het is een heel gelijkopgaande wedstrijd.'],
-    r: ['Zo wil je voetbal zien: iedereen op het puntje van zijn stoel.', 'Met één doelpunt verschil is het nooit zeker.', 'Ik durf er niets over te zeggen. En dat zegt wat.'],
+    r: ['Zo wil je voetbal zien: iedereen zit op het puntje van de stoel.', 'Met één doelpunt verschil is het nooit zeker.', 'Ik durf er niets over te zeggen. En dat zegt wat.'],
   },
   manOfTheMatch: {
     h: ['Man van de match: {speler}. Verdiend!', 'De prijs voor de beste speler gaat naar {speler}.', 'Wie was de beste? {speler}, zonder twijfel.'],

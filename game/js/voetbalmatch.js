@@ -12,7 +12,7 @@ import {
 import { makeBall, stepBall, zetBal, ballSpeed } from './voetbalbal.js';
 import { aiIntentie, besteOntvanger, NIETS } from './voetbalai.js';
 import { NEUTRALE_BONUS } from './voetbalkarakter.js';
-import { setupFifaRules, judgeFoul, pasBeoordelingToe, blessureWissels, rustWissels, offsideAtKick, penaltySpot, noteer } from './voetbalfifarules.js';
+import { setupExtraRules, judgeFoul, pasBeoordelingToe, blessureWissels, rustWissels, offsideAtKick, penaltySpot, noteer } from './voetbalextrarules.js';
 
 export const FASEN = ['intro', 'aftrap', 'spel', 'hervat', 'goal', 'rust', 'eind', 'klaar'];
 export const HERVAT_KINDEN = ['aftrap', 'inworp', 'hoek', 'doelschop', 'vrij', 'strafschop'];   // nieuwe soorten komen achteraan: de index zit in de momentopname
@@ -73,7 +73,7 @@ export function makeMatch(deeln = [], { duur = 'normaal', stand: level = 'standa
     stat: { schoten: [0, 0], overtredingen: [0, 0], bezit: [0, 0], uit: 0, doelpuntenVan: {} }, winnaar: null, spiegel: false, alleenAi: humans.length === 0,
   };
   m.bal.owner = -1;
-  setupFifaRules(m, regels);
+  setupExtraRules(m, regels);
   zetOpstelling(m, 0, true);
   return m;
 }
@@ -402,7 +402,7 @@ function foul(m, dader, slachtoffer, hard = false) {
   m.foulCd = 1.5;
   m.stat.overtredingen[dader.team]++;
   m.ev.push({ type: 'overtreding', team: dader.team, speler: dader.id, x: slachtoffer.x, y: slachtoffer.y });
-  const b = judgeFoul(m, dader, slachtoffer, hard);         // kaart, blessure en strafschop (voetbalfifarules.js; alles uit te zetten)
+  const b = judgeFoul(m, dader, slachtoffer, hard);         // kaart, blessure en strafschop (voetbalextrarules.js; alles uit te zetten)
   for (const e of pasBeoordelingToe(m, dader, slachtoffer, b)) m.ev.push(e);
   if (b.strafschop) setupResume(m, 'strafschop', slachtoffer.team, slachtoffer.x, slachtoffer.y, slachtoffer.rol === 'keeper' || b.blessure ? null : slachtoffer.id);
   else setupResume(m, 'vrij', slachtoffer.team, slachtoffer.x, slachtoffer.y, slachtoffer.id);

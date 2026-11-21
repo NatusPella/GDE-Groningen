@@ -1,10 +1,10 @@
-// Pure test van de FIFA-uitbreiding van de voetbalwedstrijd (epic voetbal-fifa, 21-11): scripts/voetbal_fifa_test.mjs
+// Pure test van de uitzendingsuitbreiding van de voetbalwedstrijd (epic voetbal-uitzending, 21-11): scripts/voetbal_uitzending_test.mjs
 // De aanvullende spelregels (kaarten, blessures, wissels, strafschoppen, buitenspel), het commentaar (afwisselend, niet herhalend, 200+ regels), de TV-regie (camera en herhaling) en de
 // presentatie (rustpauze, eindsamenvatting, Man van de match, opstelling). Geen THREE, geen DOM, geen Electron.
 import assert from 'node:assert/strict';
 import { PITCH, zetFormaat, richtingVan } from '../game/js/voetbalrules.js';
 import { makeMatch, tikWedstrijd, setupResume, snapVoetbal, leesLiveVoetbal, makeFootballMirror, voerInVoetbal } from '../game/js/voetbalmatch.js';
-import { DEFAULT_RULES, NO_RULES, cleanRules, penaltySpot, judgeFoul, pasBeoordelingToe, substitute, rustWissels, blessureWissels, offsideAtKick, matchMvp, statistiekenVan, speelMinuut } from '../game/js/voetbalfifarules.js';
+import { DEFAULT_RULES, NO_RULES, cleanRules, penaltySpot, judgeFoul, pasBeoordelingToe, substitute, rustWissels, blessureWissels, offsideAtKick, matchMvp, statistiekenVan, speelMinuut } from '../game/js/voetbalextrarules.js';
 import { COMMENTATOREN, KINDS, COMMENTAAR, MIN_PER_KIND, MIN_TOTAAL, MAX_WORDS } from '../game/js/voetbalcommentaardata.js';
 import { makeCommentaar, commentaarVoor, tikCommentaar, allLines, countLines, vulSjabloon, stemSleutel, derbyVan } from '../game/js/voetbalcommentaar.js';
 import { hasForbiddenWord } from './voetbal_verboden.mjs';
@@ -345,4 +345,4 @@ t('de nieuwe regels veranderen de bestaande aanpak niet: met alles uit is de wed
   assert.deepEqual([a.stat.geel, a.stat.rood, a.wissels], [[0, 0], [0, 0], [0, 0]]);
 });
 
-console.log(`voetbal_fifa_test ok (${n} groepen)`);
+console.log(`voetbal_uitzending_test ok (${n} groepen)`);

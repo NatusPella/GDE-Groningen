@@ -8398,18 +8398,18 @@
   "style": "spoken in clear standard Dutch with a light, warm northern lilt; Hilbrand, verslaggever bij een voetbalwedstrijd in de Euroborg, warm, snel en vol vuur. Tone: enthousiast, warm."
  },
  {
-  "key": "Roelie|Rustig aan, die kreupelen even uit. Zo gaat dat.",
+  "key": "Roelie|Rustig aan, even uitlopen. Zo gaat dat.",
   "speaker": "Roelie",
-  "text": "Rustig aan, die kreupelen even uit. Zo gaat dat.",
+  "text": "Rustig aan, even uitlopen. Zo gaat dat.",
   "area": "Voetbalcommentaar",
   "out": "lines",
   "lang": "own",
-  "say": "Rustig aan, die kreupelen even uit. Zo gaat dat.",
-  "file": "roelie/rustig_aan_die_kreupelen_even_ui_fa6798c1.mp3",
+  "say": "Rustig aan, even uitlopen. Zo gaat dat.",
+  "file": "roelie/rustig_aan_even_uitlopen_zo_gaat_8b0187f1.mp3",
   "voice": "Achird",
   "who": "Roelie, droge kleurcommentator en oud-spits van het dorpsteam, rustig en laconiek",
-  "tag": "plagend, zuchtend",
-  "style": "spoken in clear standard Dutch with a light, warm northern lilt; Roelie, droge kleurcommentator en oud-spits van het dorpsteam, rustig en laconiek. Tone: plagend, zuchtend."
+  "tag": "droog, laconiek",
+  "style": "spoken in clear standard Dutch with a light, warm northern lilt; Roelie, droge kleurcommentator en oud-spits van het dorpsteam, rustig en laconiek. Tone: droog, laconiek."
  },
  {
   "key": "Roelie|De wedstrijd gaat daarna gewoon verder. Dat is het voetbal.",
@@ -8678,18 +8678,18 @@
   "style": "spoken in clear standard Dutch with a light, warm northern lilt; Roelie, droge kleurcommentator en oud-spits van het dorpsteam, rustig en laconiek. Tone: plagend, zuchtend."
  },
  {
-  "key": "Hilbrand|Een hoekschop. Alle lange jongens gaan mee naar voren.",
+  "key": "Hilbrand|Een hoekschop. Alle lange spelers gaan mee naar voren.",
   "speaker": "Hilbrand",
-  "text": "Een hoekschop. Alle lange jongens gaan mee naar voren.",
+  "text": "Een hoekschop. Alle lange spelers gaan mee naar voren.",
   "area": "Voetbalcommentaar",
   "out": "lines",
   "lang": "own",
-  "say": "Een hoekschop. Alle lange jongens gaan mee naar voren.",
-  "file": "hilbrand/een_hoekschop_alle_lange_jongens_26e91a62.mp3",
+  "say": "Een hoekschop. Alle lange spelers gaan mee naar voren.",
+  "file": "hilbrand/een_hoekschop_alle_lange_spelers_25ca58c1.mp3",
   "voice": "Sadachbia",
   "who": "Hilbrand, verslaggever bij een voetbalwedstrijd in de Euroborg, warm, snel en vol vuur",
-  "tag": "verbaasd, juichend",
-  "style": "spoken in clear standard Dutch with a light, warm northern lilt; Hilbrand, verslaggever bij een voetbalwedstrijd in de Euroborg, warm, snel en vol vuur. Tone: verbaasd, juichend."
+  "tag": "enthousiast, warm",
+  "style": "spoken in clear standard Dutch with a light, warm northern lilt; Hilbrand, verslaggever bij een voetbalwedstrijd in de Euroborg, warm, snel en vol vuur. Tone: enthousiast, warm."
  },
  {
   "key": "Hilbrand|De bal gaat de hoek in. Kan dit gevaarlijk worden?",
@@ -10344,18 +10344,18 @@
   "style": "spoken in clear standard Dutch with a light, warm northern lilt; Hilbrand, verslaggever bij een voetbalwedstrijd in de Euroborg, warm, snel en vol vuur. Tone: opgewonden, snel."
  },
  {
-  "key": "Roelie|Zo wil je voetbal zien: iedereen op het puntje van zijn stoel.",
+  "key": "Roelie|Zo wil je voetbal zien: iedereen zit op het puntje van de stoel.",
   "speaker": "Roelie",
-  "text": "Zo wil je voetbal zien: iedereen op het puntje van zijn stoel.",
+  "text": "Zo wil je voetbal zien: iedereen zit op het puntje van de stoel.",
   "area": "Voetbalcommentaar",
   "out": "lines",
   "lang": "own",
-  "say": "Zo wil je voetbal zien: iedereen op het puntje van zijn stoel.",
-  "file": "roelie/zo_wil_je_voetbal_zien_iedereen__45284970.mp3",
+  "say": "Zo wil je voetbal zien: iedereen zit op het puntje van de stoel.",
+  "file": "roelie/zo_wil_je_voetbal_zien_iedereen__d1a575f3.mp3",
   "voice": "Achird",
   "who": "Roelie, droge kleurcommentator en oud-spits van het dorpsteam, rustig en laconiek",
-  "tag": "droog, laconiek",
-  "style": "spoken in clear standard Dutch with a light, warm northern lilt; Roelie, droge kleurcommentator en oud-spits van het dorpsteam, rustig en laconiek. Tone: droog, laconiek."
+  "tag": "plagend, zuchtend",
+  "style": "spoken in clear standard Dutch with a light, warm northern lilt; Roelie, droge kleurcommentator en oud-spits van het dorpsteam, rustig en laconiek. Tone: plagend, zuchtend."
  },
  {
   "key": "Roelie|Met één doelpunt verschil is het nooit zeker.",

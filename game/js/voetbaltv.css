@@ -1,4 +1,4 @@
-/* De tv-overlay van de voetbalwedstrijd (voetbaloverlay.js, voetbalpresentatie.js; epic voetbal-fifa, 21-11). Alleen ds-tokens (var(--ds-...)), klassen met het voorvoegsel vbtv-.
+/* De tv-overlay van de voetbalwedstrijd (voetbaloverlay.js, voetbalpresentatie.js; epic voetbal-uitzending, 21-11). Alleen ds-tokens (var(--ds-...)), klassen met het voorvoegsel vbtv-.
    Het uiterlijk komt van ds-tokens.css en ds-components.css; dit bestand regelt alleen de plaats en de indeling. Niets neemt een klik. De kleur van een club komt als inline stijl van het embleem
    (identiteitskleur, nooit het enige signaal: de naam en het patroon staan er ook). */
 .vbtv { position: fixed; inset: 0; z-index: 6; pointer-events: none; font-family: var(--ds-font-tekst); }

@@ -439,7 +439,7 @@ export function collect() {
   // heeft haar opnames onder 'Anita' (SPEAKER_ALIAS)
   for (const v of VIGNETTEN) for (const [who, t] of v.regels) add('Terugkeer (vignetten)', 'lines', [who === 'tammo' ? 'Tammo' : 'Anita'], t);
 
-  // --- het voetbalcommentaar (epic voetbal-fifa, game/js/voetbalcommentaardata.js): Hilbrand (h) en Roelie (r); een regel met een accolade is een sjabloon en blijft ondertitel
+  // --- het voetbalcommentaar (epic voetbal-uitzending, game/js/voetbalcommentaardata.js): Hilbrand (h) en Roelie (r); een regel met een accolade is een sjabloon en blijft ondertitel
   const vc = src('voetbalcommentaardata.js');
   const COMMENT = lit(vc, 'export const COMMENTAAR = ');
   for (const pool of Object.values(COMMENT)) for (const [k, who] of [['h', 'Hilbrand'], ['r', 'Roelie']]) for (const t of pool[k] || []) if (!/\{/.test(t)) add('Voetbalcommentaar', 'lines', [who], t);

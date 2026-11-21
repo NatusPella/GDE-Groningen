@@ -33,7 +33,7 @@ import { voetbalHudModel, voetbalBoard, popVan, UITLEG_ID } from './voetbalstatu
 import { makeCommentaar, commentaarVoor, tikCommentaar, commentMvp, derbyVan } from './voetbalcommentaar.js';
 import { makeRegie, regieTik, cameraVoor, makeOpname, opnameTik, opnameClip, clipFrame, pasFrameToe, herstelStaat, planHerhaling, herhalingShot, nextMode, MODE_NAMES } from './voetbalregie.js';
 import { scoreboardRow, opstellingHtml, rustHtml, eindHtml, radarHtml, subtitleHtml, guestEvents, guestState, leesTvVoorkeur, hex } from './voetbalpresentatie.js';
-import { matchMvp, statistiekenVan } from './voetbalfifarules.js';
+import { matchMvp, statistiekenVan } from './voetbalextrarules.js';
 import { besteOntvanger } from './voetbalai.js';
 import { makeTvLayer } from './voetbaltvlayer.js';
 import { lineVoiceFor } from './linevoice.js';
@@ -617,7 +617,7 @@ function tikHerhaling(w, dt) {
   tvTik(w, dt);
 }
 
-// --- spelersnamen boven de spelers en de pas- en schotpijlen (FIFA-stijl) ----------------------------------------------------------------------------------
+// --- spelersnamen boven de spelers en de pas- en schotpijlen ----------------------------------------------------------------------------------
 
 function makeNamen(sim) {
   if (typeof document === 'undefined') return [];

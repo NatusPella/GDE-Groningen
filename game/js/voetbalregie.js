@@ -1,4 +1,4 @@
-// De tv-regie van de voetbalwedstrijd (epic voetbal-fifa, 21-11): puur, geen THREE en geen DOM (scripts/voetbal_fifa_test.mjs). Welke camera past bij dit moment (zijlijn-breed, hoog, doelcamera,
+// De tv-regie van de voetbalwedstrijd (epic voetbal-uitzending, 21-11): puur, geen THREE en geen DOM (scripts/voetbal_uitzending_test.mjs). Welke camera past bij dit moment (zijlijn-breed, hoog, doelcamera,
 // speler, viering, hoekschop), en de opname voor de herhaling na een doelpunt of een grote kans. De posities zijn veldcoördinaten (x dwars, y in de lengte, z hoogte); voetbal.js zet ze om naar de
 // wereld (toWorld). Vormtaal volgens docs/CUTSCENE-REGIE-21-11.md (een shot heeft een functie; geen camerawissel zonder reden), maar de wedstrijd blijft bestuurbaar: in de standaardstand
 // (`auto`) wisselt de camera alleen bij een dode bal (aftrap, doelpunt, strafschop, hoekschop, kaart, rust, einde); `speler` wisselt nooit; `tv` is de volledige uitzending met ook een schotcamera.

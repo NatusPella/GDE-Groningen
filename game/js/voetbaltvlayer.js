@@ -1,4 +1,4 @@
-// De tv-overlay van de voetbalwedstrijd (epic voetbal-fifa, 21-11): een klein DOM-laagje boven de wereld met de ondertitel van het commentaar, de veldradar, het HERHALING-label en de grote kaarten van de
+// De tv-overlay van de voetbalwedstrijd (epic voetbal-uitzending, 21-11): een klein DOM-laagje boven de wereld met de ondertitel van het commentaar, de veldradar, het HERHALING-label en de grote kaarten van de
 // uitzending (opstelling bij de aftrap, rustpauze met statistieken, eindsamenvatting met Man van de match). De inhoud komt van voetbalpresentatie.js (puur en getest); de stijl van voetbaltv.css (alleen
 // ds-tokens). Niets neemt een klik (pointer-events: none); de toetsen lopen via voetbal.js. Zonder document (node) doet dit bestand niets, zodat de rooktest en de pure tests gewoon laden.
 import { keyTextHtml } from './keycap.js';
