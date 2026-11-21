@@ -69,5 +69,21 @@ const srcGuide = readFileSync(path.join(root, 'pigeonguide.js'), 'utf8');
 ok(/reducedMotion/.test(srcGuide) && !/glyphHtml/.test(srcGuide), 'verminderde beweging gerespecteerd; één toetsuitleg (de balk onderaan), niet nog een in de gids');
 ok(!/\b(host|iedereen)\b/i.test(GUIDE_INTRO.goal + GUIDE_INTRO.title), 'geen host of iedereen in spelertekst');
 
+// review 21-11 (B3): geen layout-lezing per frame in de spotstage (getComputedStyle, querySelectorAll, getBoundingClientRect na DOM-schrijven)
+{
+  const a = srcGuide.indexOf('export function tickPigeonGuide');
+  const tick = srcGuide.slice(a, srcGuide.indexOf(String.fromCharCode(10) + '}' + String.fromCharCode(10), a));
+  ok(a > 0 && tick.length > 1000, 'de tick is gevonden');
+  ok(!/getComputedStyle|querySelectorAll|getBoundingClientRect|--ui/.test(tick), 'tickPigeonGuide leest zelf geen stijl of layout (alleen via de onthouden helpers)');
+  ok(!/\.style\.\w+ =|\.hidden = /.test(tick.replace(/dom\.root\.hidden = true;/g, '')), 'tickPigeonGuide schrijft stijl en hidden alleen bij verandering (setStyle, setHidden)');
+  ok(/throttledRead\(\(\) => kaartenOnderRead/.test(srcGuide) && /COLUMN_OPTS_MS/.test(srcGuide), 'de hoogte van de HUD-kaarten wordt hooguit 4 x per seconde gelezen (throttledRead)');
+  ok(/tokCache/.test(srcGuide) && /addEventListener\('resize'/.test(srcGuide), 'de tokens worden onthouden en bij een resize opnieuw gelezen');
+  const { throttledRead } = await import('../game/js/hudbus.js');
+  let reads = 0, t = 0;
+  const r = throttledRead(() => ++reads, 250, () => t);
+  for (let i = 0; i < 60; i++) { t = i * 16.7; r(); }
+  ok(reads <= 5, 'de gelezen waarde wordt per seconde hooguit ~4 keer ververst', String(reads));
+}
+
 console.log(bad ? `${bad} MISLUKT` : 'pigeonguide: alles ok');
 process.exit(bad ? 1 : 0);
