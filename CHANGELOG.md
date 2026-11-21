@@ -139,6 +139,8 @@ Samen spelen met vier echte vensters getest, een ronde zeefdruk-menu's (Spullen,
 
 ### Opgelost
 
+- De Koe van Ome Jan (Ommeland): de uitdaging liep vast bij het neerzetten van het bord bij de schuur van Durk en Douwe en startte daardoor niet. Het bord staat er nu en de uitdaging begint weer.
+- De terugkeerscène (een korte scène in de keuken na het laden) wacht nu ook tot een activiteit of minigame klaar is, in plaats van er midden in te beginnen.
 - **Samen spelen: wie meedoet aan de baan van een gast hoort het einde ook (#1011, gevonden in vier echte vensters):** het einde van een bijbaan van een gast ging alleen naar de gast die hem startte. De anderen die J zeiden bleven "meedoen" en konden daarna hun eigen baan niet meer starten. Nu hoort iedereen die meedeed het einde. Beloning per speler en de lege baanstrook van wie het spel opende zijn in echte vensters bevestigd (krantenwijk 150, bezorger 200 voor alle drie de gasten, wie het spel opende en geen J zei kreeg niets).
 - **Samen spelen: het wachtscherm Verbinding weg toont op aanraking niet meer "Kies" op de gele knop (#1011):** de regel die de Enter-toetshint op aanraking verbergt, raakte het wachtscherm niet (dat is een andere klasse dan de regel noemde). Nu verdwijnt de hint ook daar.
 - **Testbank: bijbaan, hostwissel en de eigenaar van het spel die hard wegvalt in vier echte vensters (#982, #983, #1011):** nieuwe suites `bijbaan`, `overdracht` (route kamer, nep-tracker) en `overname` (die is rood: de eigenaar van het spel die hard wegvalt splitst de groep, #1059), met controle op de beloning per speler, de rollen na de wissel, dubbele spelers, geld en een directe code in de opslag. Zie docs/COOP-GAST.md, sectie Vier echte vensters.
