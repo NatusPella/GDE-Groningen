@@ -248,6 +248,12 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
   - de Escapade, onderweg naar het Hogeland. Op Tessa's telefoon verschijnt een naam: Mem. Ze neemt op en zet hem zachter.
   - praat: Mem Terpstra, Tessa, Tammo
 
+**Sequentie N10: Een middag op het terras** (activiteit; speler-protagonist Tammo)
+
+- **N10** BUITEN – STAD, GROTE MARKT – MIDDAG · Een middag op het terras · cutscene of gespeeld in de missie
+  - dinsdagmiddag. Ze proberen horeca: een terras aan de Grote Markt zoekt hulp voor één middag. Tessa neemt de bestellingen op alsof ze het al jaren doet. Tammo draagt een dienblad met vier glazen en kijkt er zeer ernstig n
+  - praat: Tessa, Tammo, Terrasgast
+
 **Sequentie N8: Een avond bij Oma** (activiteit; speler-protagonist Tammo)
 
 - **N8** BUITEN – STAD, NOORDERHAVEN – AVOND · Een avond bij Oma · cutscene of gespeeld in de missie
@@ -301,6 +307,18 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 
 **Sequentie A1: De bietenoogst bij Hoogkerk** (activiteit; speler-protagonist Tammo)
 
+
+**Sequentie N11: Een bezorgrondje bij Bedum** (activiteit; speler-protagonist Tammo)
+
+- **N11** BINNEN – HOGELAND, BEDUM – MIDDAG · Een bezorgrondje bij Bedum · cutscene of gespeeld in de missie
+  - woensdagmiddag. Een bezorgdienst zoekt een rijder voor een rondje met twaalf pakketten en één kaart zonder straatnamen. Tammo rijdt de bestelbus; Tessa zit naast hem met de lijst op haar knie.
+  - praat: Tessa, Tammo
+
+**Sequentie N12: De lijst op de koelkast** (activiteit; speler-protagonist Tammo)
+
+- **N12** BINNEN – STAD, PADDEPOEL – AVOND · De lijst op de koelkast · cutscene of gespeeld in de missie
+  - woensdagavond. Ze halen schone sokken uit de flat. Op de koelkast hangt de lijst met twee kolommen. Tessa pakt een stift en schrijft er een derde bij: WIE KAN WAT.
+  - praat: Tessa, Tammo
 
 **Sequentie N6: Een dag op het water** (activiteit; speler-protagonist Tammo)
 
@@ -525,6 +543,12 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 - **O8** BUITEN – VEENKOLONIËN, VEENDAM – AVOND · Bewaar het · overgangsscène (BRIDGES)
   - avond. Het logboek van Wiebelwerk ligt geprint op de motorkap. Tammo's telefoon gaat: Rikus.
   - praat: Rikus, Tammo, Tessa
+
+**Sequentie N9: Nacht op een dijk** (activiteit; speler-protagonist Tammo)
+
+- **N9** BINNEN – OLDAMBT, DE DIJK BIJ DE DOLLARD – NACHT · Nacht op een dijk · cutscene of gespeeld in de missie
+  - nacht, de dag na de kraak in Veendam. De politie zoekt twee Stadjers in het zwart, dus Rikus leende hun zijn oude busje en wees een dijk aan waar niemand komt. De achterdeuren staan open naar het wad. Geen lichtje in de 
+  - praat: Rikus, Tessa, Tammo
 
 **Sequentie M19: Stoom** (missie stoom; speler-protagonist Tammo)
 
@@ -843,10 +867,10 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 
 | Personage | Akte 1 | Akte 2 | Akte 3 | Akte 4 | Akte 5 | Deel 4 |
 |---|---|---|---|---|---|---|
-| Tessa | 39 | 34 | 28 | 29 | 34 | 15 |
-| Tammo | 39 | 32 | 28 | 27 | 28 | 16 |
+| Tessa | 39 | 37 | 28 | 30 | 34 | 15 |
+| Tammo | 39 | 35 | 28 | 28 | 28 | 16 |
 | Jelle Terpstra | 4 | 10 | 11 | 7 | 11 | 3 |
-| Rikus | 9 | 4 | 4 | 5 | 11 | 3 |
+| Rikus | 9 | 4 | 4 | 6 | 11 | 3 |
 | Berend Bos | 4 |  |  | 14 | 10 | 8 |
 | Oma Trijntje |  | 5 | 1 | 4 | 7 | 1 |
 | Douwe | 1 | 2 | 4 | 4 | 3 | 2 |
@@ -871,13 +895,13 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 | Meneer Veldkamp | 2 |  |  |  |  | 1 |
 | Sjoerd | 3 |  |  |  |  |  |
 | Snackbarhouder |  | 3 |  |  |  |  |
+| Terrasgast | 1 | 1 |  |  |  |  |
 | Beppe | 2 |  |  |  |  |  |
 | Mevrouw Hoving | 1 |  |  | 1 |  |  |
 | Boer |  | 1 |  |  |  | 1 |
 | Buschauffeur |  | 2 |  |  |  |  |
 | Geert |  |  | 2 |  |  |  |
 | Jelmer |  |  |  | 2 |  |  |
-| Terrasgast | 1 |  |  |  |  |  |
 | Kustwachter |  | 1 |  |  |  |  |
 | Rotor Roelf |  |  | 1 |  |  |  |
 | Deurwaarder |  |  | 1 |  |  |  |
