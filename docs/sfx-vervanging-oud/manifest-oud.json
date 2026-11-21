@@ -1,0 +1,485 @@
+{
+ "chicken_cluck_0": {
+  "bestand": "chicken_cluck_0.ogg",
+  "gebruik": "Kip kakelt",
+  "loop": false,
+  "duur_s": 0.45,
+  "grootte_kb": 7.1,
+  "herkomst": {
+   "titel": "Squeaky Toy #1",
+   "auteur": "Breviceps",
+   "freesound_id": 468443,
+   "url": "https://freesound.org/people/Breviceps/sounds/468443/",
+   "licentie": "Creative Commons 0 (CC0 1.0)",
+   "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "datum": "2026-11-21",
+   "bron_sha256": "f6904d3172006aa5277983b7c1354ef0e19bbdc4260bdd0ae51ccc54b85da926"
+  },
+  "knip_s": null,
+  "niveau": {
+   "rms_db": -22,
+   "piek_db": -9.5
+  },
+  "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 300 Hz, laagdoorlaat 9 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
+ },
+ "chicken_cluck_1": {
+  "bestand": "chicken_cluck_1.ogg",
+  "gebruik": "Kip kakelt",
+  "loop": false,
+  "duur_s": 1.13,
+  "grootte_kb": 11.7,
+  "herkomst": {
+   "titel": "Chicken Single Alarm Call",
+   "auteur": "Rudmer_Rotteveel",
+   "freesound_id": 316920,
+   "url": "https://freesound.org/people/Rudmer_Rotteveel/sounds/316920/",
+   "licentie": "Creative Commons 0 (CC0 1.0)",
+   "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "datum": "2026-11-21",
+   "bron_sha256": "61b080f2c17b4b3b73a8892fb74f557a8b91a295cb58590377ca4e05d99b8815"
+  },
+  "knip_s": null,
+  "niveau": {
+   "rms_db": -22,
+   "piek_db": -5.9
+  },
+  "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 300 Hz, laagdoorlaat 9 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
+ },
+ "chicken_cluck_2": {
+  "bestand": "chicken_cluck_2.ogg",
+  "gebruik": "Kip kakelt",
+  "loop": false,
+  "duur_s": 0.29,
+  "grootte_kb": 6.4,
+  "herkomst": {
+   "titel": "Slime Death",
+   "auteur": "qubodup",
+   "freesound_id": 751340,
+   "url": "https://freesound.org/people/qubodup/sounds/751340/",
+   "licentie": "Creative Commons 0 (CC0 1.0)",
+   "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "datum": "2026-11-21",
+   "bron_sha256": "ca7cedcffba9d585866853baf7e98aa4a3a6a8564fbef041b9ddcca0613a1b99"
+  },
+  "knip_s": null,
+  "niveau": {
+   "rms_db": -22.8,
+   "piek_db": -1.5
+  },
+  "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 300 Hz, laagdoorlaat 9 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
+ },
+ "curtain_pull_0": {
+  "bestand": "curtain_pull_0.ogg",
+  "gebruik": "Gordijn van het pashokje",
+  "loop": false,
+  "duur_s": 0.62,
+  "grootte_kb": 7.9,
+  "herkomst": {
+   "titel": "Camera shutter analogue film SLR 1/4 01",
+   "auteur": "cabled_mess",
+   "freesound_id": 338220,
+   "url": "https://freesound.org/people/cabled_mess/sounds/338220/",
+   "licentie": "Creative Commons 0 (CC0 1.0)",
+   "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "datum": "2026-11-21",
+   "bron_sha256": "451d812aa1e1562d0387ddb870c9a7697c8fd85377927ed99ea1b829ce858124"
+  },
+  "knip_s": null,
+  "niveau": {
+   "rms_db": -27.8,
+   "piek_db": -1.5
+  },
+  "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 150 Hz, laagdoorlaat 11 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -25 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
+ },
+ "curtain_pull_1": {
+  "bestand": "curtain_pull_1.ogg",
+  "gebruik": "Gordijn van het pashokje",
+  "loop": false,
+  "duur_s": 1.09,
+  "grootte_kb": 13,
+  "herkomst": {
+   "titel": "window-blinds-raise-01.wav",
+   "auteur": "newagesoup",
+   "freesound_id": 347892,
+   "url": "https://freesound.org/people/newagesoup/sounds/347892/",
+   "licentie": "Creative Commons 0 (CC0 1.0)",
+   "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "datum": "2026-11-21",
+   "bron_sha256": "660e0a2f6df207e6e91ad1d838684b07185bd688fcaa77a12eebdb66dccce363"
+  },
+  "knip_s": null,
+  "niveau": {
+   "rms_db": -25,
+   "piek_db": -1.5
+  },
+  "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 150 Hz, laagdoorlaat 11 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -25 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
+ },
+ "scissors_snip_0": {
+  "bestand": "scissors_snip_0.ogg",
+  "gebruik": "Kappersschaar knipt",
+  "loop": false,
+  "duur_s": 0.36,
+  "grootte_kb": 5.9,
+  "herkomst": {
+   "titel": "Balloon Pop.wav",
+   "auteur": "Laumark",
+   "freesound_id": 415125,
+   "url": "https://freesound.org/people/Laumark/sounds/415125/",
+   "licentie": "Creative Commons 0 (CC0 1.0)",
+   "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "datum": "2026-11-21",
+   "bron_sha256": "2941dadb30890d35e0bf3e2475f94c1c68c886ab9680fcae137f537e0eb1884f"
+  },
+  "knip_s": null,
+  "niveau": {
+   "rms_db": -26.3,
+   "piek_db": -1.5
+  },
+  "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 500 Hz, laagdoorlaat 13 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -24 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
+ },
+ "scissors_snip_1": {
+  "bestand": "scissors_snip_1.ogg",
+  "gebruik": "Kappersschaar knipt",
+  "loop": false,
+  "duur_s": 0.9,
+  "grootte_kb": 11.6,
+  "herkomst": {
+   "titel": "Activation sound effect",
+   "auteur": "hotpin7",
+   "freesound_id": 842507,
+   "url": "https://freesound.org/people/hotpin7/sounds/842507/",
+   "licentie": "Creative Commons Attribution 4.0",
+   "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
+   "datum": "2026-11-21",
+   "bron_sha256": "2ec460c2f3e459be932607d1db6935c0d42dc977dd64312056874405d1a38ccc"
+  },
+  "knip_s": null,
+  "niveau": {
+   "rms_db": -24,
+   "piek_db": -4.4
+  },
+  "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 500 Hz, laagdoorlaat 13 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -24 dB, ogg (Vorbis q2)"
+ },
+ "sheep_bleat_0": {
+  "bestand": "sheep_bleat_0.ogg",
+  "gebruik": "Schaap blaat",
+  "loop": false,
+  "duur_s": 0.86,
+  "grootte_kb": 9.1,
+  "herkomst": {
+   "titel": "sqeeeek_sheep.wav",
+   "auteur": "sqeeeek",
+   "freesound_id": 237103,
+   "url": "https://freesound.org/people/sqeeeek/sounds/237103/",
+   "licentie": "Creative Commons 0 (CC0 1.0)",
+   "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "datum": "2026-11-21",
+   "bron_sha256": "eb362c440616d0829864a5ba32f53115e6d2a3b89f1c66dd944dde3846b609d7"
+  },
+  "knip_s": null,
+  "niveau": {
+   "rms_db": -22,
+   "piek_db": -4.1
+  },
+  "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 150 Hz, laagdoorlaat 9 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
+ },
+ "sheep_bleat_1": {
+  "bestand": "sheep_bleat_1.ogg",
+  "gebruik": "Schaap blaat",
+  "loop": false,
+  "duur_s": 0.82,
+  "grootte_kb": 9.4,
+  "herkomst": {
+   "titel": "bah bala oveja/baa bleat sheep.WAV",
+   "auteur": "SergioJbs",
+   "freesound_id": 669872,
+   "url": "https://freesound.org/people/SergioJbs/sounds/669872/",
+   "licentie": "Creative Commons 0 (CC0 1.0)",
+   "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "datum": "2026-11-21",
+   "bron_sha256": "00a185b65c21fe7038dad56d816f8c2a44fe27a8bca7204569059020a4d34846"
+  },
+  "knip_s": null,
+  "niveau": {
+   "rms_db": -22,
+   "piek_db": -5.8
+  },
+  "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 150 Hz, laagdoorlaat 9 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
+ },
+ "shop_bag_rustle_0": {
+  "bestand": "shop_bag_rustle_0.ogg",
+  "gebruik": "Plastic tasje ritselt",
+  "loop": false,
+  "duur_s": 0.73,
+  "grootte_kb": 11.5,
+  "herkomst": {
+   "titel": "Rustling of chips bag.wav",
+   "auteur": "AndersHolm",
+   "freesound_id": 411221,
+   "url": "https://freesound.org/people/AndersHolm/sounds/411221/",
+   "licentie": "Creative Commons 0 (CC0 1.0)",
+   "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "datum": "2026-11-21",
+   "bron_sha256": "7c5093d8af655377ad610dd197032b965ba0de741ff671d4c9f34208fad89615"
+  },
+  "knip_s": null,
+  "niveau": {
+   "rms_db": -26.1,
+   "piek_db": -1.5
+  },
+  "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 300 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -26 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
+ },
+ "shop_bag_rustle_1": {
+  "bestand": "shop_bag_rustle_1.ogg",
+  "gebruik": "Plastic tasje ritselt",
+  "loop": false,
+  "duur_s": 0.68,
+  "grootte_kb": 8.5,
+  "herkomst": {
+   "titel": "Fire Ball Release",
+   "auteur": "CTCollab",
+   "freesound_id": 223611,
+   "url": "https://freesound.org/people/CTCollab/sounds/223611/",
+   "licentie": "Creative Commons Attribution 3.0",
+   "licentie_url": "https://creativecommons.org/licenses/by/3.0/",
+   "datum": "2026-11-21",
+   "bron_sha256": "8f627e1e2b3f2b8bb4a735ef7bc8b729fefe5c39be7c15e500c1627263a4dd6f"
+  },
+  "knip_s": null,
+  "niveau": {
+   "rms_db": -26,
+   "piek_db": -4.6
+  },
+  "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 300 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -26 dB, ogg (Vorbis q2)"
+ },
+ "shop_buy_coins_0": {
+  "bestand": "shop_buy_coins_0.ogg",
+  "gebruik": "Betalen aan de kassa (munten)",
+  "loop": false,
+  "duur_s": 0.91,
+  "grootte_kb": 8.3,
+  "herkomst": {
+   "titel": "Purchase Ka-Ching",
+   "auteur": "Qvantor",
+   "freesound_id": 878619,
+   "url": "https://freesound.org/people/Qvantor/sounds/878619/",
+   "licentie": "Creative Commons 0 (CC0 1.0)",
+   "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "datum": "2026-11-21",
+   "bron_sha256": "a15c50f17a5d3fa5f6ed9c29bce26f115932e7231d858ce25b54e81452acf419"
+  },
+  "knip_s": null,
+  "niveau": {
+   "rms_db": -22,
+   "piek_db": -3.3
+  },
+  "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 250 Hz, laagdoorlaat 13 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
+ },
+ "shop_buy_coins_1": {
+  "bestand": "shop_buy_coins_1.ogg",
+  "gebruik": "Betalen aan de kassa (munten)",
+  "loop": false,
+  "duur_s": 1,
+  "grootte_kb": 8.9,
+  "herkomst": {
+   "titel": "Coin Pickup SFX [1]",
+   "auteur": "SoundDesignForYou",
+   "freesound_id": 646673,
+   "url": "https://freesound.org/people/SoundDesignForYou/sounds/646673/",
+   "licentie": "Creative Commons 0 (CC0 1.0)",
+   "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "datum": "2026-11-21",
+   "bron_sha256": "bef54af2cab28e2ee55bbd1c6c815ac86c4357fa7cadb6e0bb4445990eb16202"
+  },
+  "knip_s": null,
+  "niveau": {
+   "rms_db": -22,
+   "piek_db": -2.3
+  },
+  "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 250 Hz, laagdoorlaat 13 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
+ },
+ "shop_buy_coins_2": {
+  "bestand": "shop_buy_coins_2.ogg",
+  "gebruik": "Betalen aan de kassa (munten)",
+  "loop": false,
+  "duur_s": 0.6,
+  "grootte_kb": 9.1,
+  "herkomst": {
+   "titel": "coins - in cloth 08.wav",
+   "auteur": "Anthousai",
+   "freesound_id": 336576,
+   "url": "https://freesound.org/people/Anthousai/sounds/336576/",
+   "licentie": "Creative Commons 0 (CC0 1.0)",
+   "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "datum": "2026-11-21",
+   "bron_sha256": "6e8ae9dada90a55d06e6cd0dbdb632e65b2c53c442b3f2ae83c9a0b7f353c157"
+  },
+  "knip_s": null,
+  "niveau": {
+   "rms_db": -26,
+   "piek_db": -1.5
+  },
+  "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 250 Hz, laagdoorlaat 13 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
+ },
+ "shop_drawer_0": {
+  "bestand": "shop_drawer_0.ogg",
+  "gebruik": "Kassalade gaat open",
+  "loop": false,
+  "duur_s": 1.2,
+  "grootte_kb": 12.5,
+  "herkomst": {
+   "titel": "Metal Door Groaning",
+   "auteur": "Mafon2",
+   "freesound_id": 379803,
+   "url": "https://freesound.org/people/Mafon2/sounds/379803/",
+   "licentie": "Creative Commons Attribution 4.0",
+   "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
+   "datum": "2026-11-21",
+   "bron_sha256": "280f7ef6e38352a2fbced05780b603bdf04bb8c95dd42efa4f0f2dc6cbaceae0"
+  },
+  "knip_s": null,
+  "niveau": {
+   "rms_db": -22,
+   "piek_db": -8.7
+  },
+  "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 150 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, ingekort, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
+ },
+ "shop_drawer_1": {
+  "bestand": "shop_drawer_1.ogg",
+  "gebruik": "Kassalade gaat open",
+  "loop": false,
+  "duur_s": 1.2,
+  "grootte_kb": 12.5,
+  "herkomst": {
+   "titel": "Metal Door Groaning",
+   "auteur": "Mafon2",
+   "freesound_id": 379803,
+   "url": "https://freesound.org/people/Mafon2/sounds/379803/",
+   "licentie": "Creative Commons Attribution 4.0",
+   "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
+   "datum": "2026-11-21",
+   "bron_sha256": "280f7ef6e38352a2fbced05780b603bdf04bb8c95dd42efa4f0f2dc6cbaceae0"
+  },
+  "knip_s": null,
+  "niveau": {
+   "rms_db": -22,
+   "piek_db": -8.7
+  },
+  "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 150 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, ingekort, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
+ },
+ "shop_sell_bills_0": {
+  "bestand": "shop_sell_bills_0.ogg",
+  "gebruik": "Verkopen: biljetten geteld",
+  "loop": false,
+  "duur_s": 1.6,
+  "grootte_kb": 16.4,
+  "herkomst": {
+   "titel": "banknote-counter.wav",
+   "auteur": "madvedj",
+   "freesound_id": 178097,
+   "url": "https://freesound.org/people/madvedj/sounds/178097/",
+   "licentie": "Creative Commons 0 (CC0 1.0)",
+   "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "datum": "2026-11-21",
+   "bron_sha256": "861b509d50b003bd007d17fbec1416df17086b4a8672400b9c849fc6648348b8"
+  },
+  "knip_s": null,
+  "niveau": {
+   "rms_db": -24,
+   "piek_db": -1.6
+  },
+  "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 250 Hz, laagdoorlaat 13 kHz, mono 44,1 kHz, stilte aan begin en eind weg, ingekort, fade-in en cosinus-fade-uit, niveau RMS -24 dB, ogg (Vorbis q2)"
+ },
+ "ui_confirm_0": {
+  "bestand": "ui_confirm_0.ogg",
+  "gebruik": "Bevestigen of akkoord",
+  "loop": false,
+  "duur_s": 0.46,
+  "grootte_kb": 6.6,
+  "herkomst": {
+   "titel": "Triple_Ping_Notification_Sound_Mobile_Optimized",
+   "auteur": "PiesHelpfulOven",
+   "freesound_id": 842513,
+   "url": "https://freesound.org/people/PiesHelpfulOven/sounds/842513/",
+   "licentie": "Creative Commons 0 (CC0 1.0)",
+   "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "datum": "2026-11-21",
+   "bron_sha256": "45d8546c5946ad5855ba8c660b9b37d444df985e2e9c7bb0670e23c40e426c9a"
+  },
+  "knip_s": null,
+  "niveau": {
+   "rms_db": -24,
+   "piek_db": -12.3
+  },
+  "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 250 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -24 dB, ogg (Vorbis q2)"
+ },
+ "ui_confirm_1": {
+  "bestand": "ui_confirm_1.ogg",
+  "gebruik": "Bevestigen of akkoord",
+  "loop": false,
+  "duur_s": 0.49,
+  "grootte_kb": 5.9,
+  "herkomst": {
+   "titel": "Simple or Cute UI / UX / Interface Confirm sound",
+   "auteur": "Feraly_",
+   "freesound_id": 836450,
+   "url": "https://freesound.org/people/Feraly_/sounds/836450/",
+   "licentie": "Creative Commons 0 (CC0 1.0)",
+   "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "datum": "2026-11-21",
+   "bron_sha256": "e758f87ac38fe66944e70bb9d994cc56dfd99a508219e042d7a2abe0c75e7913"
+  },
+  "knip_s": null,
+  "niveau": {
+   "rms_db": -24,
+   "piek_db": -8.9
+  },
+  "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 250 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -24 dB, ogg (Vorbis q2)"
+ },
+ "ui_page_turn_0": {
+  "bestand": "ui_page_turn_0.ogg",
+  "gebruik": "Bladzijde omslaan (dagboek, boek, lijst)",
+  "loop": false,
+  "duur_s": 0.34,
+  "grootte_kb": 6.3,
+  "herkomst": {
+   "titel": "Book_Page_Turn_08",
+   "auteur": "Valenspire",
+   "freesound_id": 699337,
+   "url": "https://freesound.org/people/Valenspire/sounds/699337/",
+   "licentie": "Creative Commons 0 (CC0 1.0)",
+   "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "datum": "2026-11-21",
+   "bron_sha256": "13191e6cda514af0ab97d6b4cff13ff05be6413eb9a47cc5d827e5f766fc6743"
+  },
+  "knip_s": null,
+  "niveau": {
+   "rms_db": -26,
+   "piek_db": -7.3
+  },
+  "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 200 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -26 dB, ogg (Vorbis q2)"
+ },
+ "ui_page_turn_1": {
+  "bestand": "ui_page_turn_1.ogg",
+  "gebruik": "Bladzijde omslaan (dagboek, boek, lijst)",
+  "loop": false,
+  "duur_s": 0.32,
+  "grootte_kb": 5.7,
+  "herkomst": {
+   "titel": "Turned page",
+   "auteur": "MBPL",
+   "freesound_id": 667180,
+   "url": "https://freesound.org/people/MBPL/sounds/667180/",
+   "licentie": "Creative Commons 0 (CC0 1.0)",
+   "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "datum": "2026-11-21",
+   "bron_sha256": "888fbcbc1413b61cb5f8db89a6cbb0d83934fd60068d4a4c0de5804d21f47583"
+  },
+  "knip_s": null,
+  "niveau": {
+   "rms_db": -26,
+   "piek_db": -9.9
+  },
+  "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 200 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -26 dB, ogg (Vorbis q2)"
+ }
+}

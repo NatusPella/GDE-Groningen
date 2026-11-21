@@ -121,13 +121,6 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
-    "id": 336576,
-    "beschrijving": "Betalen aan de kassa",
-    "auteur": "Anthousai",
-    "licentie": "CC0 1.0",
-    "by": false
-  },
-  {
     "id": 336613,
     "beschrijving": "Een ei dat kraakt en breekt",
     "auteur": "Anthousai",
@@ -310,8 +303,8 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
-    "id": 338220,
-    "beschrijving": "Gordijn van het pashokje",
+    "id": 350869,
+    "beschrijving": "Betalen aan de kassa",
     "auteur": "cabled_mess",
     "licentie": "CC0 1.0",
     "by": false
@@ -471,13 +464,6 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
-    "id": 223611,
-    "beschrijving": "Plastic tasje ritselt",
-    "auteur": "CTCollab",
-    "licentie": "CC BY 3.0",
-    "by": true
-  },
-  {
     "id": 812418,
     "beschrijving": "Voorbijganger schrikt",
     "auteur": "CuboRodante",
@@ -616,6 +602,20 @@ export const AUDIO_CREDITS = [
     "auteur": "EminYILDIRIM",
     "licentie": "CC BY 4.0",
     "by": true
+  },
+  {
+    "id": 170807,
+    "beschrijving": "Kip kakelt",
+    "auteur": "esperar",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 171151,
+    "beschrijving": "Schaap blaat",
+    "auteur": "esperar",
+    "licentie": "CC0 1.0",
+    "by": false
   },
   {
     "id": 711441,
@@ -758,11 +758,11 @@ export const AUDIO_CREDITS = [
     "by": true
   },
   {
-    "id": 842507,
-    "beschrijving": "Kappersschaar knipt",
-    "auteur": "hotpin7",
-    "licentie": "CC BY 4.0",
-    "by": true
+    "id": 271659,
+    "beschrijving": "Kassalade gaat open",
+    "auteur": "HonorHunter",
+    "licentie": "CC0 1.0",
+    "by": false
   },
   {
     "id": 415153,
@@ -838,6 +838,13 @@ export const AUDIO_CREDITS = [
     "id": 790042,
     "beschrijving": "Windvlaag door de bomen",
     "auteur": "ishaanbidaye01",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 106132,
+    "beschrijving": "Gordijn van het pashokje",
+    "auteur": "j1987",
     "licentie": "CC0 1.0",
     "by": false
   },
@@ -1115,6 +1122,13 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 432913,
+    "beschrijving": "Betalen aan de kassa",
+    "auteur": "Kyanite_",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 453499,
     "beschrijving": "Neonverlichting gaat aan",
     "auteur": "kyles",
@@ -1146,13 +1160,6 @@ export const AUDIO_CREDITS = [
     "id": 277165,
     "beschrijving": "Hek valt in het slot",
     "auteur": "LampEight",
-    "licentie": "CC0 1.0",
-    "by": false
-  },
-  {
-    "id": 415125,
-    "beschrijving": "Kappersschaar knipt",
-    "auteur": "Laumark",
     "licentie": "CC0 1.0",
     "by": false
   },
@@ -1199,20 +1206,6 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
-    "id": 178097,
-    "beschrijving": "Verkopen",
-    "auteur": "madvedj",
-    "licentie": "CC0 1.0",
-    "by": false
-  },
-  {
-    "id": 379803,
-    "beschrijving": "Kassalade gaat open",
-    "auteur": "Mafon2",
-    "licentie": "CC BY 4.0",
-    "by": true
-  },
-  {
     "id": 540080,
     "beschrijving": "Frituur sist",
     "auteur": "magnuswaker",
@@ -1255,6 +1248,20 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 789038,
+    "beschrijving": "Plastic tasje ritselt",
+    "auteur": "Mediasaur",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 710296,
+    "beschrijving": "Schaap blaat",
+    "auteur": "michaelperfect",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 269718,
     "beschrijving": "Bal stuitert",
     "auteur": "michorvath",
@@ -1280,6 +1287,20 @@ export const AUDIO_CREDITS = [
     "beschrijving": "Weer",
     "auteur": "mirkosukovic",
     "licentie": "CC BY 4.0",
+    "by": true
+  },
+  {
+    "id": 522711,
+    "beschrijving": "Verkopen",
+    "auteur": "mitchanary",
+    "licentie": "CC BY 4.0",
+    "by": true
+  },
+  {
+    "id": 81175,
+    "beschrijving": "Kappersschaar knipt",
+    "auteur": "mkoenig",
+    "licentie": "CC BY 3.0",
     "by": true
   },
   {
@@ -1381,13 +1402,6 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
-    "id": 347892,
-    "beschrijving": "Gordijn van het pashokje",
-    "auteur": "newagesoup",
-    "licentie": "CC0 1.0",
-    "by": false
-  },
-  {
     "id": 582608,
     "beschrijving": "Richtingaanwijzer tikt",
     "auteur": "nezuai",
@@ -1470,6 +1484,13 @@ export const AUDIO_CREDITS = [
     "auteur": "nothayama",
     "licentie": "CC BY 4.0",
     "by": true
+  },
+  {
+    "id": 486082,
+    "beschrijving": "Kassalade gaat open",
+    "auteur": "Nox_Sound",
+    "licentie": "CC0 1.0",
+    "by": false
   },
   {
     "id": 530589,
@@ -1556,13 +1577,6 @@ export const AUDIO_CREDITS = [
     "by": true
   },
   {
-    "id": 842513,
-    "beschrijving": "Bevestigen of akkoord",
-    "auteur": "PiesHelpfulOven",
-    "licentie": "CC0 1.0",
-    "by": false
-  },
-  {
     "id": 2689,
     "beschrijving": "Onweer",
     "auteur": "Pingel",
@@ -1626,13 +1640,6 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
-    "id": 751340,
-    "beschrijving": "Kip kakelt",
-    "auteur": "qubodup",
-    "licentie": "CC0 1.0",
-    "by": false
-  },
-  {
     "id": 792924,
     "beschrijving": "Druppels van een dak of in een plas",
     "auteur": "qubodup",
@@ -1663,6 +1670,13 @@ export const AUDIO_CREDITS = [
   {
     "id": 878245,
     "beschrijving": "Venster of popup opent",
+    "auteur": "Qvantor",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 878254,
+    "beschrijving": "Bevestigen of akkoord",
     "auteur": "Qvantor",
     "licentie": "CC0 1.0",
     "by": false
@@ -1829,6 +1843,13 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 11562,
+    "beschrijving": "Gordijn van het pashokje",
+    "auteur": "samplecat",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 435692,
     "beschrijving": "Melkmachine",
     "auteur": "SamsterBirdies",
@@ -1867,13 +1888,6 @@ export const AUDIO_CREDITS = [
     "id": 813622,
     "beschrijving": "Voetstap op stenen of tegels",
     "auteur": "SecureSubset",
-    "licentie": "CC0 1.0",
-    "by": false
-  },
-  {
-    "id": 669872,
-    "beschrijving": "Schaap blaat",
-    "auteur": "SergioJbs",
     "licentie": "CC0 1.0",
     "by": false
   },
@@ -1920,13 +1934,6 @@ export const AUDIO_CREDITS = [
     "by": true
   },
   {
-    "id": 646673,
-    "beschrijving": "Betalen aan de kassa",
-    "auteur": "SoundDesignForYou",
-    "licentie": "CC0 1.0",
-    "by": false
-  },
-  {
     "id": 329962,
     "beschrijving": "Bal op de paal of lat",
     "auteur": "soundjoao",
@@ -1967,13 +1974,6 @@ export const AUDIO_CREDITS = [
     "auteur": "spycrah",
     "licentie": "CC BY 4.0",
     "by": true
-  },
-  {
-    "id": 237103,
-    "beschrijving": "Schaap blaat",
-    "auteur": "sqeeeek",
-    "licentie": "CC0 1.0",
-    "by": false
   },
   {
     "id": 424985,
@@ -2210,6 +2210,13 @@ export const AUDIO_CREDITS = [
     "id": 428339,
     "beschrijving": "Druppels van een dak of in een plas",
     "auteur": "zembacraftworks",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 540265,
+    "beschrijving": "Kappersschaar knipt",
+    "auteur": "zepurple",
     "licentie": "CC0 1.0",
     "by": false
   },
