@@ -391,12 +391,12 @@ export const STEPS = [
 
 // what Tammo and Tessa are after, per part ("Wat weten we?")
 export const WHY = {
-  kop: 'Tessa wil een frietwagen en Tammo rijdt haar overal heen. Eerst geld en een plek in de Noordelijke Snackprijs, voordat Jelle alles opkoopt.',
-  romp: "Zonder recept geen eerlijke eierbal: Oma Trijntjes recept van 1953, met vijf ingrediënten van vijf vrienden. Jelle koopt ze op.",
-  staart: 'Jelle koopt de haven, het graan en de jury. De frietwagen moet ergens kunnen staan, en zijn koopboek laat zien wat hij nog wil.',
-  zuid: 'Drie dagen, drie doelen: de mosterd redden, bewijzen dat Jelle de bal al had en de jury bij hem weghouden. Dan naar Bourtange. Samen, ook als het schuurt.',
-  ontzet: 'Het Ontzet winnen met de beste eierbal en de Fjord Frituur een thuis geven. Jelle zit ons op de hielen.',
-  nazomer: "De Fjord Frituur groeit. Oma's familie heeft hulp nodig en Jelle bestelt stiekem eierballen.",
+  kop: 'Tammo en Tessa weten niet wat ze met hun leven moeten en willen elkaar niet kwijtraken. Eerst geld en een plek in de Noordelijke Snackprijs, voordat Jelle alles opkoopt.',
+  romp: "Een recept van 1953 om eerlijk te winnen: Oma Trijntjes vijf ingrediënten van vijf vrienden. Jelle koopt ze op.",
+  staart: 'Jelle koopt de haven, het graan en de jury. Tammo en Tessa proberen van alles en merken dat ze samen sterker zijn.',
+  zuid: 'Bewijs dat Jelle de bal al had, en een team om samen iets te beginnen. Samen, ook als het schuurt.',
+  ontzet: 'Het Ontzet winnen met de beste eierbal en de snackwagen een standplaats geven. Jelle zit ons op de hielen.',
+  nazomer: "De wagen groeit. Oma's familie heeft hulp nodig en Jelle bestelt stiekem eierballen.",
 };
 
 // Clues of "Wat weten we?": a clue shows once its step is done.

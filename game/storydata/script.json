@@ -309,11 +309,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Wij winnen op 28 augustus, wij krijgen die standplaats, en de Fjord Frituur heeft een thuis.",
+     "text": "Wij winnen op 28 augustus, wij krijgen die standplaats, en dan zien we wel wat erop komt te staan.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -7992,7 +7991,7 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Er zijn geen misverstanden. Er zijn overeenkomsten. Ik bied dertigduizend euro voor de Fjord Frituur. De naam, het luik, alles.",
+     "text": "Er zijn geen misverstanden. Er zijn overeenkomsten. Ik bied dertigduizend euro voor het recept van Oma Trijntje. Alles erbij.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true
@@ -8017,7 +8016,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "We hebben nog geen wagen.",
+     "text": "Het is niet eens van ons. Het is van mijn oma.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -8025,7 +8024,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Dat weet hij ook. Daarom biedt hij zoveel.",
+     "text": "Dat weet hij ook. Daarom belt hij mij.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,

@@ -43,14 +43,14 @@
    "id": "H03",
    "scene": "O6",
    "speaker": "TESSA",
-   "context": "Kade, ochtend. Jelle biedt dertigduizend euro voor een wagen die nog niet bestaat; Tammo wijst erop.",
+   "context": "Kade, ochtend. Jelle biedt dertigduizend euro voor Oma Trijntjes recept; Tammo wijst erop dat het niet van hen is.",
    "shot": "twee-shot op de kade, Tessa met de telefoon op luidspreker",
    "variants": [
-    "Dat weet hij ook. Daarom biedt hij zoveel.",
+    "Dat weet hij ook. Daarom belt hij mij.",
     "Dat weet hij. Dat is precies het probleem.",
-    "Dat weet hij ook. Hij biedt nu vast het meeste."
+    "Dat weet hij ook. Hij belt altijd de makkelijkste."
    ],
-   "neutral": "Dat weet hij. Hij wil hem toch hebben."
+   "neutral": "Dat weet hij. Hij wil het toch hebben."
   },
   {
    "label": "humor-review",

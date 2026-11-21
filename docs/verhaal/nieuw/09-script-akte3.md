@@ -129,11 +129,11 @@ APP SJABBE→TESSA (stil): Eerst een bed, dan een pand. Ik vraag niks. [NIEUW]
 (regie: ochtend op de kade. Een onbekend nummer belt Tessa. Ze zet hem op de luidspreker, Tammo komt erbij staan.)
 JELLE (telefoon): Mevrouw Tessa. Jelle Terpstra. U hebt een container leeggehaald die mijn juristen vol wilden hebben. [NIEUW]
 TESSA (telefoon): Dat was een misverstand. [NIEUW]
-JELLE (telefoon): Er zijn geen misverstanden. Er zijn overeenkomsten. Ik bied dertigduizend euro voor de Fjord Frituur. De naam, het luik, alles. [NIEUW]
+JELLE (telefoon): Er zijn geen misverstanden. Er zijn overeenkomsten. Ik bied dertigduizend euro voor het recept van Oma Trijntje. Alles erbij. [NIEUW]
 TESSA (telefoon): Hij is niet te koop. [NIEUW]
 JELLE (telefoon): Alles is te koop, mevrouw. Ik wacht. Foar mem. [NIEUW]
-TAMMO: We hebben nog geen wagen. [NIEUW]
-TESSA: Dat weet hij ook. Daarom biedt hij zoveel. [NIEUW]
+TAMMO: Het is niet eens van ons. Het is van mijn oma. [NIEUW]
+TESSA: Dat weet hij ook. Daarom belt hij mij. [NIEUW]
 
 ## [M14.1] De dijk: intro – Eemsdelta, Bierum, de dijk – auto van Lammert
 (regie: zaterdag 22 augustus, vroege ochtend. Jelles trekker-limo staat naast de auto van Lammert, op de dijk bij Bierum. Jelle is droog en keurig, naast hem staat een deurwaarder met een map. Gameplay: een race over de dijk naar de sluis van Delfzijl, met zijwind en schapen.)
