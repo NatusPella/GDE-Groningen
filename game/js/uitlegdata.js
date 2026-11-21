@@ -72,7 +72,7 @@ export const UITLEG_DATA = Object.freeze({
       { icoon: 'boerderij', animatie: 'vul', tekst: 'Zaai en laat het groeien' },
       { icoon: 'vinkje', animatie: 'druk', tekst: 'Oogst bij een groene vlag' },
     ],
-    meer: 'Kies eerst je gewas bij Gewas. Het gewas groeit in speltijd, in de zomer. Daarna lever je de oogst af.',
+    meer: 'Kies eerst je gewas bij Gewas. Het gewas groeit in speltijd, in de zomer. Daarna lever je de oogst af. Tessa komt van het platteland: zij werkt 15% sneller, oogst 5% meer en maakt minder fouten bij zaaien en oogsten. Tammo kan het ook, alleen minder vlot.',
   },
   // ---- de kaart-uitleg ----
   'kaart-actie': {

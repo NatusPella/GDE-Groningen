@@ -23,6 +23,7 @@ import * as PC from './percelen.js';
 import * as M from './machines.js';
 import * as WT from './werktuigen.js';
 import * as W3 from './werktuigen3d.js';
+import { farmSnelheid, heeftBonus, kortRegel, TESSA_REGELS } from './karakterbonus.js';
 import { getBoerderij, getBedrijf, neemTaak, rondAf, draaiMachine, tankMachine, zetVeldPositie, wisVeldPositie, zetActief, leverLading } from './boerderijlive.js';
 import { loopbaanDeel } from './loopbaanlive.js';
 import { reducedMotion } from './motion.js';
@@ -714,9 +715,11 @@ function werkStapWereld(dt, w, v, rig, m, imp, gast = false) {
     if (!werkt || speed < (WT.BANDEN[taak] || { vMin: 2 }).vMin) { zegUitleg(w, set, rig, speed); return; }
     const nm = neemTaak(w, taak, { vrij: true });
     if (!nm.ok) { zeg(w, 'neem', nm.reden, 6); return; }
-    S.werk = { taak, id, werk: WT.nieuwWerk(taak, { eigen: true }) };
+    const kar = hoofdspeler(w) && hoofdspeler(w).character;   // de karakterbonus is van deze speler (karakterbonus.js)
+    S.werk = { taak, id, werk: WT.nieuwWerk(taak, { eigen: true, snelheid: farmSnelheid(kar) }) };
     const k = nm.kosten;
     bericht(w, `${cap(NAAM[taak])} begonnen${k.materiaal ? ` (${taak === 'zaaien' ? 'zaaigoed' : taak === 'spuiten' ? 'spuitmiddel' : 'mest'} €${k.materiaal})` : ''}. Rij de rijen netjes recht, niet te hard.`, 5);
+    if (heeftBonus(kar)) zeg(w, 'tessa-boer', TESSA_REGELS.farm.start[(taak.length + id.length) % TESSA_REGELS.farm.start.length], 120, 5);   // alleen tekst, niet ingesproken
     const veld = S.velden.get(id);
     if (veld) veld.sleutel = null;            // bouwt opnieuw, met het werk erbij
     return;
@@ -1030,7 +1033,7 @@ export function boerderijHudStand(w) {
     machine: PC.MACHINE_CATALOGUS[m.type] ? PC.MACHINE_CATALOGUS[m.type].naam : m.type,
     taak: set && set.taak ? set.taak : null, veldId, veld: PC.perceelDef(veldId) ? PC.perceelDef(veldId).naam : '',
     bezig: !!werk, voortgang: werk ? Math.min(1, werk.gedaan / (WT.KLAAR_AANDEEL * WT.totaalCellen())) : 0, netjes: werk ? WT.fractieWerk(werk) : 0,
-    snelheid: Math.abs(v.speed), band, diesel: M.brandstofPct(m), slijtage: m.slijtage || 0,
+    snelheid: Math.abs(v.speed), band: band ? { ...band, vMax: band.vMax * farmSnelheid(hoofdspeler(w).character) } : null, bonus: kortRegel(hoofdspeler(w).character, 'farm'), diesel: M.brandstofPct(m), slijtage: m.slijtage || 0,
     nodig: set ? WT.ontbreekt(set, rig, TOETS) : [], hef: rig.hef, pto: !!rig.pto, lading, laadMax: imp && WT.WERKTUIG[imp.type] && WT.WERKTUIG[imp.type].vervoer ? 8000 : 0,
   };
 }

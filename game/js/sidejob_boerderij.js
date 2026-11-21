@@ -17,6 +17,8 @@ import { spawnJobVehicle, vehicleSpeed } from './sidejobkit.js';
 import { TRACTOR_MODEL } from './vehicle.js';
 import { ankerMetWeg } from './bijbaananker.js';
 import { euro } from './geldtekst.js';
+import { hoofdspeler } from './players.js';
+import { farmSnelheid, heeftBonus, uitlegRegel } from './karakterbonus.js';
 
 const fabriek = () => { const [x, y] = wgsToWorld(53.2336, 6.4977); return { x, y }; };
 const PLANT_STAP = 2;
@@ -150,7 +152,7 @@ function stelTaakIn(c, taak) {
   d.taak = taak;
   d.machineId = B.machineVoor(taak);
   const eigen = d.machineId && b.machines[d.machineId] === 'eigen';
-  d.ronde = init(taak, { eigen });
+  d.ronde = init(taak, { eigen, snelheid: farmSnelheid(hoofdspeler(c.world) && hoofdspeler(c.world).character) });
   d.prev = null; d.melT = 0;
   d.uitleg = false;
   d.laad = taak === 'afleveren' ? 'laden' : null;
@@ -222,6 +224,8 @@ export default {
     if (k.materiaal) bits.push(`${taak === 'zaaien' ? 'zaaigoed' : 'mest'} ${euro(k.materiaal)}`);
     c.msg(bits.join(' · '), 3.5);
     if (UITLEG[taak]) c.msg(`${B.TAKEN[taak].naam}: ${UITLEG[taak]}`, 6);
+    const kar = hoofdspeler(c.world) && hoofdspeler(c.world).character;
+    if (heeftBonus(kar)) c.msg(uitlegRegel(kar, 'farm'), 6);
   },
 
   timeout: () => 'de zon zakt',

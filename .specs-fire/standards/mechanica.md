@@ -117,11 +117,13 @@ telt, de bonus gaat via `loopbaanVerdien('landbouw', …)` met `deel: false`, ve
 
 **Bestanden.** `boerderij.js`, `boerderijlive.js`, `boerderijui.js`, `boerderijwereld.js`,
 `boerderijgast.js`, `percelen.js`, `machines.js`, `werktuigen.js`, `werktuigen3d.js`,
-`sidejob_boerderij.js`, `gewasmarkt.js`, `boerderijcontracten.js`.
+`sidejob_boerderij.js`, `gewasmarkt.js`, `boerderijcontracten.js`, `karakterbonus.js`.
+
+**Karakterbonus (#1005, #981).** Tessa komt van het platteland: als zij speelt werkt de boerderij 15% sneller (bovengrens van de netjes-band), geeft de oogst 5% meer en vallen er minder fouten bij zaaien en oogsten; Tammo kan het ook, minder vlot. De tabel `KARAKTER_BONUS` in `karakterbonus.js` (ook voor het voetbal) is de enige bron, per speler (`hoofdspeler(w).character`), nooit voor de wereld; test `karakterbonus_test.mjs`.
 
 **Tests.** `boerderij_test.mjs`, `gewasmarkt_test.mjs`, `boerderijcontracten_test.mjs`,
 `percelen_test.mjs`, `machines_test.mjs`, `werktuigen_test.mjs`, `boerderijwereld_test.mjs`,
-`boerderijgast_test.mjs`, `boerderijui_machines_test.mjs`.
+`boerderijgast_test.mjs`, `boerderijui_machines_test.mjs`, `karakterbonus_test.mjs`.
 
 ## Vliegschool
 

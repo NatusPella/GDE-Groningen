@@ -18,6 +18,9 @@ import * as PC from './percelen.js';
 import * as M from './machines.js';
 import * as CT from './boerderijcontracten.js';
 import { dagVan } from './gewasmarkt.js';
+import { hoofdspeler } from './players.js';
+import { unlockAchievement } from './achievements.js';
+import { farmFractie, farmOpbrengst, heeftBonus, TESSA_REGELS } from './karakterbonus.js';
 
 const SCHRIJF_VERTRAGING_MS = 2000;
 export const VAK = 'landbouw';
@@ -155,8 +158,14 @@ export function neemTaak(w, taak, { vrij = false } = {}) {
 // Een taak is gedaan: het perceel verandert en het vak Landbouw telt punten. Geeft de uitkomst voor een melding.
 export function rondAf(w, taak, fractie, { vrij = false } = {}) {
   const b = getBoerderij();
-  const uit = B.rondTaakAf(b, taak, fractie, { vrij });
+  // De karakterbonus (karakterbonus.js) is van het personage van deze speler: Tessa is van het platteland. Per speler, dus nooit voor de wereld.
+  const p = hoofdspeler(w), kar = p && p.character;
+  const uit = B.rondTaakAf(b, taak, farmFractie(kar, taak, fractie), { vrij, opbrengst: farmOpbrengst(kar) });
   const f = uit.fractie || 0;
+  if (heeftBonus(kar) && taak === 'oogsten' && uit.kg > 0 && unlockAchievement(w, TESSA_REGELS.prestatie.id) && w && typeof w.addMessage === 'function') {
+    w.addMessage(TESSA_REGELS.farm.beat, 7, { kind: 'tip', key: 'tessa-beat-boer' });   // de eerste oogst als Tessa: een boer herkent haar
+    w.addMessage(TESSA_REGELS.farm.telefoon, 6, { kind: 'tip', key: 'tessa-beat-mam' });
+  }
   loopbaanTel(w, VAK, { xp: Math.round(4 + 8 * f), n: 0, uniek: taak === 'zaaien' && uit.gewas ? 'gewas-' + uit.gewas : null });
   markeer();
   return uit;

@@ -334,7 +334,7 @@ export function renteTik(b) {
 
 // De taak is gedaan: fractie 0..1 is hoe netjes het werk was. Verandert de boerderij; geeft wat er te melden valt.
 // Betalen doet de aanroeper (boerderijlive.js) met kosten().
-export function rondTaakAf(b, taak, fractie, { gewas = actiefGewas(b), vrij = false } = {}) {
+export function rondTaakAf(b, taak, fractie, { gewas = actiefGewas(b), vrij = false, opbrengst = 1 } = {}) {
   const f = clamp(Number.isFinite(fractie) ? fractie : 0, 0, 1);
   const v = b.veld;
   const k = kosten(b, taak, gewas, { vrij });
@@ -358,7 +358,7 @@ export function rondTaakAf(b, taak, fractie, { gewas = actiefGewas(b), vrij = fa
   if (taak === 'bemesten') { v.mest = f; herstel(0.03); return { taak, fractie: f }; }
   if (taak === 'spuiten') { v.spuit = f; return { taak, fractie: f }; }
   if (taak === 'oogsten') {
-    const kg = opbrengstKg(b) * f;
+    const kg = opbrengstKg(b) * f * (Number.isFinite(opbrengst) && opbrengst > 0 ? opbrengst : 1);   // opbrengst: de karakterbonus (karakterbonus.js), 1 voor wie die niet heeft
     b.schuur = { gewas: v.gewas, kg: Math.round(kg), kwaliteit: 1, veld: veldId };
     // de grond wordt moe van dezelfde teelt achter elkaar: wisselen van gewas put hem minder uit
     log.u = Math.min(UITPUTTING_MAX, Math.round((log.u + (log.g === v.gewas ? 0.08 : 0.04)) * 1000) / 1000);

@@ -444,3 +444,7 @@ Alle drie zijn per speler (#429): het menu toont de eigen boerderij, de eigen sp
 ## Niet gedaan
 
 Een voertuig kopen of laten bezorgen, een helikopter of vliegtuig besturen (als passagier meerijden kan wel, #492), gesprekken met voorbijgangers, minigames die je lichaam of een voertuig verplaatsen en het stuur met een controller (Y heeft geen knop op een pad). Dat blijven aparte wensen.
+
+## Karakterbonus: Tessa komt van het platteland (#1005, #981, 21-11)
+
+Het personage is per speler: elke speler speelt zijn eigen personage (Tammo of Tessa, `hoofdspeler(w).character`), dus de bonus uit `game/js/karakterbonus.js` is van het lichaam van wie het aanroept en niet van de wereld. Als Tessa werkt de boerderij 15% sneller (de bovengrens van de netjes-band), geeft de oogst 5% meer en vallen er minder fouten bij zaaien en oogsten; bij voetbal krijgt ze iets meer sprint, een scherper schot en een betere aanname (de voetbal-sim leest dezelfde tabel). Een gast die als Tessa speelt, krijgt de bonus op zijn eigen akker (zijn eigen klus, `boerderijgast.js` via `rondAf`) en een host die Tammo speelt niet. Er is geen snapshot, EXTRA-bericht of nieuw netwerkformaat nodig (PROTO blijft 2). Valt iemand weg of sluit hij later aan: er is niets om te herstellen, want de bonus volgt het personage van de speler. De beloning en de voortgang zijn per speler (#429); de prestatie Boerendochter telt voor wie als Tessa oogst. Test: `scripts/karakterbonus_test.mjs` (pure test, plus een gast die als Tessa een oogst afrondt).

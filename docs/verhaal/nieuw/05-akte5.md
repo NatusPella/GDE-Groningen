@@ -49,7 +49,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5
 | **Leuk-element / uitdaging** | rust; de zachtste missie na het dieptepunt |
 | **Reizen** | 3 km |
 | **Romantiek (9/10)** | **De knuffel en de openbaring.** Tammo: "Ik heb twaalf jaar niks gezegd. Ik was bang dat je dan wegging." "Ik was boos om iets wat ik zelf deed. Sorry dat ik je alleen liet gaan." Tessa: "Ik heb op zeven plekken gewoond voor ik tien was." Tessa: "Ik ging niet weg." Tammo: "Je bleef nergens." Tessa: "Ik ben gebleven." Hij belooft het te zeggen: "Op het Ontzet. Voor iedereen." |
-| **Plot** | Tessa's verleden: een Nederlandse (geboren in Zwolle, AANNAME), vanaf haar achtste in het Oosterpark, elke zomer in Ljouwert, in het huis naast Mem. Daarom kent ze Friezen. Haar regels zijn standaard Nederlands. |
+| **Plot** | Tessa's verleden: een Nederlandse (geboren in Zwolle, AANNAME), vanaf haar achtste in het Oosterpark, elke zomer in Ljouwert, in het huis naast Mem. Daarom kent ze Friezen. Haar regels zijn standaard Nederlands. Aanvulling 21-11: tot haar achtste woonde ze op een boerderij op het platteland (ergens in Nederland, bewust niet benoemd), voor ze naar het Oosterpark kwam; zie OPENING-BIJBEL.md, "Tessa komt van het platteland". |
 | **Gevolg / haak** | de Fjord Frituur is klaar; de vrienden komen naar Stad (Mem en Oma bellen ze terug). |
 | **Behouden / nieuw** | "Hij is van ons. Hij weet het alleen nog niet." en de vier verzoeningsregels BEHOUDEN; de rest NIEUW |
 
