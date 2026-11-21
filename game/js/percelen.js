@@ -41,7 +41,23 @@ export const PERCELEN = [
   P('leekster-veld', 'Leekster Veld', 'akker', 'Leek', 53.1632, 6.3792, 4.5, 0.65, 2300, 'Akkerbouwbedrijf Veldzicht'),
 ];
 export const PERCEEL_IDS = PERCELEN.map((p) => p.id);
-export const perceelDef = (id) => PERCELEN.find((p) => p.id === id) || null;
+
+// Extra percelen uit Bezit (epic #1095, #1101): een gekocht perceel uit de index werkt als veld zoals de vaste twaalf. parcelfarm.js
+// meldt zijn definitie hier aan (id 'p' + 12 hex), waarna perceelDef, normaliseerBedrijf en boerderij.js het id kennen. Een register
+// in het geheugen: niets hiervan komt in een savegame; wat het bedrijf bewaart blijft een gewone { status, sinds }-regel per id.
+const EXTRA_PERCELEN = new Map();
+export const EXTRA_ID = /^p[0-9a-f]{12}$/;
+export function registreerExtraPerceel(d) {
+  if (!d || typeof d.id !== 'string' || !EXTRA_ID.test(d.id) || PERCEEL_IDS.includes(d.id)) return false;
+  if (!(d.ha > 0) || !['akker', 'weiland', 'boomgaard'].includes(d.soort)) return false;
+  EXTRA_PERCELEN.set(d.id, { koop: 0, huurDag: 0, eigenaar: 'Jijzelf', aanbod: 'eigen', plaats: '', bodem: 0.6, ...d });
+  return true;
+}
+export const vergeetExtraPerceel = (id) => EXTRA_PERCELEN.delete(id);
+export const wisExtraPercelen = () => EXTRA_PERCELEN.clear();
+export const extraPerceelIds = () => [...EXTRA_PERCELEN.keys()];
+export const isPerceelId = (id) => PERCEEL_IDS.includes(id) || EXTRA_PERCELEN.has(id);
+export const perceelDef = (id) => PERCELEN.find((p) => p.id === id) || EXTRA_PERCELEN.get(id) || null;
 
 // #972: een vast, rechthoekig vlak per perceel voor de kaart, afgeleid van de hectares en
 // een vaste hoek per id (geen landgebruikskaart nodig). De omtrek is een leesbare schets op
@@ -148,7 +164,7 @@ function normaliseerBezit(x, nu) {
 export function normaliseerBedrijf(raw) {
   const b = nieuwBedrijf();
   if (!raw || typeof raw !== 'object' || raw.v !== VERSIE) return b;
-  if (raw.percelen && typeof raw.percelen === 'object') for (const id of PERCEEL_IDS) { if (id === START_PERCEEL) continue; const r = normaliseerBezit(raw.percelen[id]); if (r) b.percelen[id] = r; }
+  if (raw.percelen && typeof raw.percelen === 'object') for (const id of [...PERCEEL_IDS, ...EXTRA_PERCELEN.keys()]) { if (id === START_PERCEEL) continue; const r = normaliseerBezit(raw.percelen[id]); if (r) b.percelen[id] = r; }
   if (raw.erven && typeof raw.erven === 'object') for (const id of ERF_IDS) { if (id === START_ERF) continue; const r = normaliseerBezit(raw.erven[id]); if (r) b.erven[id] = r; }
   if (b.erven[raw.thuis]) b.thuis = raw.thuis;
   if (b.percelen[raw.actief]) b.actief = raw.actief;
@@ -182,8 +198,7 @@ export function normaliseerBedrijf(raw) {
 
 // --- kopen, leasen, opzeggen -----------------------------------------------------
 
-const lijst = (soort) => (soort === 'erf' ? ERVEN : PERCELEN);
-const def = (soort, id) => lijst(soort).find((x) => x.id === id) || null;
+const def = (soort, id) => (soort === 'erf' ? ERVEN.find((x) => x.id === id) || null : perceelDef(id));
 const bezit = (bd, soort) => (soort === 'erf' ? bd.erven : bd.percelen);
 const naam = (d) => d.naam;
 export const perceelOfErf = (soort, id) => def(soort, id) || { naam: id };
@@ -429,7 +444,7 @@ export function kaartSoort(s) {
 export const euro = (n) => `€${Math.round(n).toLocaleString('nl-NL')}`;
 export function kaartOnderschrift(s) {
   const d = s.def;
-  const basis = `${d.soort === 'akker' ? 'Akker' : 'Weiland'}, ${String(d.ha).replace('.', ',')} ha, bodem ${bodemNaam(d.bodem)}`;
+  const basis = `${d.soort === 'akker' ? 'Akker' : d.soort === 'boomgaard' ? 'Boomgaard' : 'Weiland'}, ${String(d.ha).replace('.', ',')} ha, bodem ${bodemNaam(d.bodem)}`;
   if (s.van === 'jou') return `${basis} · van jou${s.status === 'gehuurd' ? ' (gehuurd)' : ''}`;
   const aanbod = [s.kunKopen ? `te koop ${euro(d.koop)}` : null, s.kunHuren ? `te huur ${euro(d.huurDag)} per dag` : null].filter(Boolean).join(', ');
   return `${basis} · ${aanbod} · ${d.eigenaar}`;

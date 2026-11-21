@@ -10,7 +10,7 @@ import * as B from '../game/js/boerderij.js';
 let n = 0, fails = 0;
 const t = (name, fn) => { n++; try { fn(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', String(e.message).split('\n')[0]); } };
 
-const IDS = B.GEWAS_IDS;
+const IDS = B.ALLE_GEWAS_IDS;
 const basis = (id) => B.GEWASSEN[id].prijsKg;
 const opCenten = (x) => Math.round(x * 100) / 100;
 
