@@ -55,6 +55,10 @@ Blok `[Lekbewaking]` (`leakwatch.js`, een meting per 5 s, niets per beeld): geom
 | `dorpsuitjes.js` `placeSoon` heeft geen `catch`: een afgewezen `withTiles` herhaalt elk beeld | ligt in de plaatsing van de andere agent (tileplace) | na zijn werk |
 | `desktop/main.js` `gde:save-text` zonder try/catch rond `fs.writeFile` | laag | try/catch |
 
+## Restpunten opgelost in #1074 (21-11, zonder Electron)
+
+`provincemap.js` (LRU van 256 bladen), `businterieur3d.js` (reizigersgeometrie hooguit 64), `dorpsuitjes.js` (`placeSoon` vangt een afgewezen `withTiles` af, drie pogingen), `desktop/main.js` (`gde:save-text` met try/catch). Bronchecks in `stabiliteit_test.mjs`. Niet aangeraakt, wachten op de Electron-soak: `lampByKey`, de pollers, `multiplayerhostwisselui`, kartmotor, `placeshot` (de twee doelen worden bewust hergebruikt) en `vehiclepreview` (three.js herstelt zelf na `webglcontextlost`).
+
 ## Tests
 
 - `node scripts/leakwatch_test.mjs` (32 controles): alarm bij stijging, geen alarm bij zaagtand of opwarmstijging, begrensd venster, geen NaN, tellers op een nepomgeving, veilige updatelus.

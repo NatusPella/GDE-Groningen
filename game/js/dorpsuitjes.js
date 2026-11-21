@@ -180,10 +180,12 @@ function placePoints(map, v) {
 
 // Placed once its tiles are in: a village the player nears is placed in the
 // background (placeSoon), every one by prepareVillages.
+const PLACE_MAX_FAILS = 3;
 async function placeSoon(map, v) {
-  if (v.placed || v.placing) return;
+  if (v.placed || v.placing || (v.placeFails || 0) >= PLACE_MAX_FAILS) return;
   v.placing = true;
-  try { await withTiles(map, placePoints(map, v), () => { if (!v.placed) placeVillage(map, v); }, { radius: PLACE_WINDOW, token: 'village' }); } finally { v.placing = false; }
+  // #1074: een afgewezen withTiles was een onopgevangen belofte en werd elk beeld opnieuw geprobeerd; nu drie pogingen en dan rust
+  try { await withTiles(map, placePoints(map, v), () => { if (!v.placed) placeVillage(map, v); }, { radius: PLACE_WINDOW, token: 'village' }); } catch (e) { v.placeFails = (v.placeFails || 0) + 1; } finally { v.placing = false; }
 }
 
 export async function prepareVillages(w = world) {
