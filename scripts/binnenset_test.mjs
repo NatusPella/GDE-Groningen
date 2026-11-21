@@ -162,5 +162,21 @@ for (const kind of STAGE_SETS) {
   ok(dak.length === 0, 'in een kamer staat de camera nooit boven het plafond-0,3 m of buiten de wanden (geen dak in beeld)', dak.slice(0, 3).join(' | '));
 }
 
+// review 21-11: een tot 48 m verschoven kamer: de hold-stap meet tegen het meeverschoven doel (M27 radius 16)
+{
+  const spot = B.findSetSpot(0, 0, (x, y) => Math.hypot(x, y) >= 40);
+  ok(spot && spot.moved >= 32, 'de kamer verschuift ver (' + (spot && spot.moved) + ' m)');
+  const shift = { x: spot.x - 0, y: spot.y - 0 };
+  const doel = { x: 5, y: 5, r: 16 };
+  const nieuw = B.verschoveDoel(doel, shift);
+  ok(Math.hypot(nieuw.x - spot.x, nieuw.y - spot.y) <= 16 && Math.hypot(doel.x - spot.x, doel.y - spot.y) > 16, 'de speler op de hold staat binnen de straal van het verschoven doel en buiten die van het oude');
+  ok(nieuw.r === 16 && doel.x === 5, 'overige velden blijven, het origineel wordt niet aangepast');
+  ok(B.verschoveDoel(doel, null) === doel && B.verschoveDoel(null, shift) === null && B.verschoveDoel(doel, { x: NaN, y: 1 }) === doel, 'geen verschuiving of rommel: het doel blijft zoals het is');
+  const ms = readFileSync(new URL('../game/js/missions.js', import.meta.url), 'utf8');
+  const st = readFileSync(new URL('../game/js/stagesets.js', import.meta.url), 'utf8');
+  ok(ms.includes('verschoveDoel(S.target, S.set.shift)'), 'de hold-stap gebruikt het verschoven doel');
+  ok(/shift = { x: spot.x - player.x/.test(st) && /hold: layout.hold, shift,/.test(st), 'buildStageSet onthoudt de verschuiving');
+}
+
 console.log(fails ? `${fails} van ${n} mislukt` : `binnenset_test: ${n} controles ok`);
 process.exit(fails ? 1 : 0);

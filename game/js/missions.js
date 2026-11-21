@@ -81,6 +81,7 @@ import { playerOf, slotLines } from './fatbikedodge.js';
 import { slotRij } from './missionbeats.js'; // nasleep-rij op de uitslagkaart (AAA akte 1 en 2)
 import { beatStart, beatTik, beatStop, toonNasleep } from './akte34_beats.js'; // AAA akte 3 en 4: openingsbeeld, tussenbeats, nasleep
 import { aaaStart, aaaTik, aaaCheckpoint, aaaStuntKlaar, aaaOpruimen, aaaMeld } from './akte1_aaa.js'; // AAA akte 1 (M01 stuntarena, M05 racedecor, def.kaart)
+import { verschoveDoel } from './binnenset.js';
 import { buildStageSet, updateStageSet, disposeStageSet, stageSetCamera, stageSetBinnen } from './stagesets.js';
 import { forceClearSweep } from './clearzonesweep.js';
 import { buildRaceDecor, disposeRaceDecor } from './racedecor.js';
@@ -3338,7 +3339,7 @@ function updateStages(dt, world, def) {
       if (st.fireworks) updateFireworks(dt, world, def, st, S);
       if (chainState().phase !== 'active') break;
       if (st.mud) sinkInMud(world, dt, 4);
-      const g = doelStand(world, S.target, st.radius || HOLD_RADIUS, st.mode, modeOk, st.iedereen); // een meespeler bij het doel houdt de klok gaande (met st.iedereen: allemaal)
+      const g = doelStand(world, S.set ? verschoveDoel(S.target, S.set.shift) : S.target, st.radius || HOLD_RADIUS, st.mode, modeOk, st.iedereen); // een meespeler bij het doel houdt de klok gaande (met st.iedereen: allemaal)
       if (g.status === 'modus') { hint(world, MODE_HINT[st.mode] || ''); break; }
       if (g.status === 'wacht') hint(world, WACHT_OP_ANDEREN);
       if (g.status !== 'binnen') { S.hold = Math.max(0, S.hold - dt * 0.5); if (S.wait) updateWaitDressing(S.wait, st.time ? S.hold / st.time : 0); break; }

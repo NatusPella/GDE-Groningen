@@ -112,6 +112,13 @@ export function findSetSpot(x, y, fits) {
   return null;
 }
 
+// Is de kamer verschoven (findSetSpot), dan zet de hold de speler op de nieuwe plek: de hold-stap moet dan tegen het meeverschoven
+// doel meten, anders staat hij buiten de straal en loopt de klok nooit (review 21-11, M27 Inpakken). shift = { x, y } t.o.v. de speler.
+export function verschoveDoel(target, shift) {
+  if (!target || !shift || !num(shift.x) || !num(shift.y) || !num(target.x) || !num(target.y)) return target;
+  return { ...target, x: target.x + shift.x, y: target.y + shift.y };
+}
+
 // De plek 'binnen' voor missiestaat en save: de kamer en waar de speler stond (JSON-veilig, alleen getallen en tekst).
 export function binnenStaat(kind, variant, layout) {
   if (!isSetKind(kind) || !layout || !layout.hold || !num(layout.hold.x) || !num(layout.hold.y)) return null;
