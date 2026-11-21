@@ -8815,16 +8815,246 @@
    ]
   },
   {
+   "id": "K1",
+   "title": "Het land achter de pastorie",
+   "act": 2,
+   "region": "Hogeland, Warffum, de pastorie",
+   "vehicle": "te voet",
+   "step": "K1",
+   "kind": "key",
+   "regie": [
+    "woensdag, laat in de ochtend. Achter de pastorie een kippenren, een moestuin en een leeg stuk land met een hekje en een bordje: TE HUUR. Geesje zit op een omgekeerde emmer. Tessa sorteert eieren in een krat zonder te kijken.",
+    "Geesje wijst met haar kin naar het bordje.",
+    "Tessa trekt een werkhandschoen aan en loopt naar het hek. Ze blijft staan."
+   ],
+   "lines": [
+    {
+     "speaker": "Geesje",
+     "key": "geesje",
+     "text": "Ze sorteert zonder te kijken.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dat kon ze al voor ze kon lezen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Grote links, kleine rechts, gebarsten in de pan.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Geesje",
+     "key": "geesje",
+     "text": "Een boerendochter. Trijntje zei het al.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Geesje",
+     "key": "geesje",
+     "text": "Het kerkbestuur wil dat land kwijt. Geen geld nodig: eieren mag ook.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Ik ben hier voor Oma, niet voor het land.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Je kijkt al een kwartier naar dat bordje.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Ik lees.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Zo langzaam lees je niet.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Geesje",
+     "key": "geesje",
+     "text": "De sleutel van de schuur hangt aan de spijker.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dat zeg ik niet.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Geesje",
+     "key": "geesje",
+     "text": "Dat hoeft ook niet.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "humor": "HK-01"
+    }
+   ]
+  },
+  {
+   "id": "K2",
+   "title": "De kade in de ochtend",
+   "act": 2,
+   "region": "Hogeland, Zoutkamp, de haven",
+   "vehicle": "te voet",
+   "step": "K2",
+   "kind": "key",
+   "regie": [
+    "donderdag, bij zonsopgang. Mist boven het water van de haven van Zoutkamp. Tammo zit op een bolder met twee bekers koffie uit de bus, al sinds half zes. Tessa komt aanlopen in haar jas, haar haren nog nat.",
+    "ze gaat naast hem zitten. Hun schouders raken bijna. Ze neemt een beker."
+   ],
+   "lines": [
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Gisteren op de zandplaat zei je niks.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Ik zei: groter dan een vlek.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dat is niks.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Voor mij was het veel.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Ik zag je kijken. Ik keek ook.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Ik wist het al lang. Ik wist alleen niet hoe je dat zegt.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Wat wist je al lang?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dat je je koffie met melk drinkt.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "humor": "HK-02"
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dat is geen antwoord.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": false,
+     "rec": "banter",
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Het is een begin.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": false,
+     "rec": "banter"
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Hij is lauw.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "humor": "HK-03",
+     "voice": "Anita"
+    }
+   ]
+  },
+  {
    "id": "R3.0",
    "title": "Nachtstreek, vrijdagochtend",
    "act": 3,
    "region": "Stad",
    "vehicle": "radio",
-   "step": "M11",
+   "step": "K2",
    "kind": "radio",
    "anchor": {
     "at": "after",
-    "step": "M11"
+    "step": "K2"
    },
    "regie": [],
    "lines": [
@@ -12452,16 +12682,123 @@
    ]
   },
   {
+   "id": "K3",
+   "title": "Het havenkantoor in de nacht",
+   "act": 3,
+   "region": "Eemsdelta, Eemshaven, Lammerts havenkantoor",
+   "vehicle": "te voet",
+   "step": "K3",
+   "kind": "key",
+   "regie": [
+    "vrijdagnacht, na de container. Twee bedden in een kantoor, het licht van de kranen valt door de lamellen. Op het bureau zit Sjabbe met zijn koptelefoon om zijn nek en een map onder zijn arm.",
+    "hij legt een sleutel met een label HAVENKANTOOR op het bureau. Tessa pakt hem eerder dan Tammo."
+   ],
+   "lines": [
+    {
+     "speaker": "Sjabbe",
+     "key": "sjabbe",
+     "text": "Ik vraag niks. Ik was in de buurt.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Het is drie uur 's nachts.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Sjabbe",
+     "key": "sjabbe",
+     "text": "Pand & Poen slaapt nooit. Jelle koopt panden, ook dit kantoor.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "En wie een pand beheert?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Sjabbe",
+     "key": "sjabbe",
+     "text": "Die kiest wie erin slaapt. Lammert verhuurt aan jullie, voor een kasboekje.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Twee bedden voor een kasboekje.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Sjabbe",
+     "key": "sjabbe",
+     "text": "Twee bedden.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Ik vroeg niks.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Sjabbe",
+     "key": "sjabbe",
+     "text": "Dat is mijn zin.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "humor": "HK-04"
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dit is onze eerste sleutel.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Sjabbe",
+     "key": "sjabbe",
+     "text": "Jullie eerste pand. Jelle koopt, jullie beheren.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
    "id": "R4.0",
    "title": "Nachtstreek, maandagochtend",
    "act": 4,
    "region": "Stad",
    "vehicle": "radio",
-   "step": "J3",
+   "step": "K3",
    "kind": "radio",
    "anchor": {
     "at": "after",
-    "step": "J3"
+    "step": "K3"
    },
    "regie": [
     "maandag 24 augustus, ochtend. Rikus in de studio; Jelle belt in met zijn offerte."
@@ -12508,11 +12845,11 @@
    "act": 4,
    "region": "Stad",
    "vehicle": "radio",
-   "step": "J3",
+   "step": "K3",
    "kind": "radio",
    "anchor": {
     "at": "after",
-    "step": "J3"
+    "step": "K3"
    },
    "regie": [],
    "lines": [

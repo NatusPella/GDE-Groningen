@@ -496,3 +496,35 @@ APP TAMMO→TESSA (stil): Ik haal de dekens. Twee. [NIEUW]
 APP MEM→TESSA (stil): Famke. Is de jongen al je man? Ik vraag voor een vriendin. [NIEUW]
 APP TESSA→MEM (stil): Mem. Hij is mijn huisgenoot. [NIEUW]
 APP MEM→TESSA (stil): Dat zei ik tegen mijn vriendin ook. [NIEUW]
+
+## [K1] Het land achter de pastorie – Hogeland, Warffum, de pastorie – te voet
+(regie: woensdag, laat in de ochtend. Achter de pastorie een kippenren, een moestuin en een leeg stuk land met een hekje en een bordje: TE HUUR. Geesje zit op een omgekeerde emmer. Tessa sorteert eieren in een krat zonder te kijken.)
+GEESJE: Ze sorteert zonder te kijken. [NIEUW]
+TAMMO: Dat kon ze al voor ze kon lezen. [NIEUW]
+TESSA: Grote links, kleine rechts, gebarsten in de pan. [NIEUW]
+GEESJE: Een boerendochter. Trijntje zei het al. [NIEUW]
+(regie: Geesje wijst met haar kin naar het bordje.)
+GEESJE: Het kerkbestuur wil dat land kwijt. Geen geld nodig: eieren mag ook. [NIEUW]
+TESSA: Ik ben hier voor Oma, niet voor het land. [NIEUW]
+TAMMO: Je kijkt al een kwartier naar dat bordje. [NIEUW]
+TESSA: Ik lees. [NIEUW]
+TAMMO: Zo langzaam lees je niet. [NIEUW]
+(regie: Tessa trekt een werkhandschoen aan en loopt naar het hek. Ze blijft staan.)
+GEESJE: De sleutel van de schuur hangt aan de spijker. [NIEUW]
+TESSA: Dat zeg ik niet. [NIEUW]
+GEESJE: Dat hoeft ook niet. [NIEUW]
+
+## [K2] De kade in de ochtend – Hogeland, Zoutkamp, de haven – te voet
+(regie: donderdag, bij zonsopgang. Mist boven het water van de haven van Zoutkamp. Tammo zit op een bolder met twee bekers koffie uit de bus, al sinds half zes. Tessa komt aanlopen in haar jas, haar haren nog nat.)
+TESSA: Gisteren op de zandplaat zei je niks. [NIEUW]
+TAMMO: Ik zei: groter dan een vlek. [NIEUW]
+TESSA: Dat is niks. [NIEUW]
+TAMMO: Voor mij was het veel. [NIEUW]
+(regie: ze gaat naast hem zitten. Hun schouders raken bijna. Ze neemt een beker.)
+TESSA: Ik zag je kijken. Ik keek ook. [NIEUW]
+TAMMO: Ik wist het al lang. Ik wist alleen niet hoe je dat zegt. [NIEUW]
+TESSA: Wat wist je al lang? [NIEUW]
+TAMMO: Dat je je koffie met melk drinkt. [NIEUW]
+TESSA: Dat is geen antwoord. [NIEUW]
+TAMMO: Het is een begin. [NIEUW]
+TESSA: Hij is lauw. [NIEUW]

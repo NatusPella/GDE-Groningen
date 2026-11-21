@@ -470,3 +470,18 @@ TAMMO: Tessa, eigenlijk— [NIEUW]
 ANNEKE: Ja? [NIEUW]
 TAMMO: ...Eigenlijk is de koffie heel goed, mevrouw. [NIEUW]
 ANNEKE: Dat dacht ik al. [NIEUW]
+
+## [K3] Het havenkantoor in de nacht – Eemsdelta, Eemshaven, Lammerts havenkantoor – te voet
+(regie: vrijdagnacht, na de container. Twee bedden in een kantoor, het licht van de kranen valt door de lamellen. Op het bureau zit Sjabbe met zijn koptelefoon om zijn nek en een map onder zijn arm.)
+SJABBE: Ik vraag niks. Ik was in de buurt. [NIEUW]
+TAMMO: Het is drie uur 's nachts. [NIEUW]
+SJABBE: Pand & Poen slaapt nooit. Jelle koopt panden, ook dit kantoor. [NIEUW]
+TESSA: En wie een pand beheert? [NIEUW]
+SJABBE: Die kiest wie erin slaapt. Lammert verhuurt aan jullie, voor een kasboekje. [NIEUW]
+(regie: hij legt een sleutel met een label HAVENKANTOOR op het bureau. Tessa pakt hem eerder dan Tammo.)
+TAMMO: Twee bedden voor een kasboekje. [NIEUW]
+SJABBE: Twee bedden. [NIEUW]
+TESSA: Ik vroeg niks. [NIEUW]
+SJABBE: Dat is mijn zin. [NIEUW]
+TESSA: Dit is onze eerste sleutel. [NIEUW]
+SJABBE: Jullie eerste pand. Jelle koopt, jullie beheren. [NIEUW]
