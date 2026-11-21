@@ -80,7 +80,7 @@ t('de HUD zet de regel in de bestaande doellijn, zonder eigen vak of absolute po
   assert.doesNotMatch(blok[1], /position:\s*absolute/, 'de regel is geen eigen vak op het scherm');
   assert.match(blok[1], /flex-wrap:\s*wrap/, 'hij wrapt binnen de doellijn');
   assert.match(blok[1], /font-size:\s*var\(--hud-min, 13px\)/, 'hij houdt de leesbare 13 px-vloer');
-  assert.match(css, /#hud \.hud-obj-key \.hud-key \{/, 'de toetskappen zijn compacter binnen de regel');
+  assert.match(fs.readFileSync(new URL('../game/js/ds-keycap.css', import.meta.url), 'utf8'), /#hud \.hud-obj-key \{ --ds-kc-floor: 26px/, 'de toetskappen in de regel krijgen hun maat uit ds-keycap.css (hintrij, vloer 26 px, #985)');
   // "Toetshints uit" hoort deze regel net zo goed te verbergen als .hud-prompts
   assert.match(css, /body\.hide-hints #hud \.hud-obj-keys/, 'de instelling Toetshints verbergt de regel');
 });

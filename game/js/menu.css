@@ -264,7 +264,7 @@ html.reduce-motion .gm, html.reduce-motion .gm *, html.reduce-motion .gm *::befo
 #windwijzer .ww-trim { height: 6px; border-radius: 3px; background: rgba(255,255,255,.25); overflow: hidden; }
 #windwijzer .ww-trim i { display: block; height: 100%; background: #fff; }
 #windwijzer .ww-keys { grid-column: 1 / -1; font-size: .85em; opacity: .9; }
-#windwijzer .hud-key { border-radius: 5px; background: #fff; color: #1b2027; font-weight: 700; text-align: center; }
+#windwijzer .hud-key { border-radius: 5px; background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); font-weight: 700; text-align: center; }
 
 /* a phone held sideways (360-460 px tall, #227): the same layout, much tighter */
 @media (max-height: 460px) {

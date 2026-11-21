@@ -97,7 +97,8 @@ const KEY_ITEM = String.raw`\{[A-Z0-9]+\}|\[(?:${KEYS}|[1-4])\]|\((?:${KEYS})\)`
 const RUN_RE = runRe(KEY_ITEM);
 const RUN_OPEN = '\u0001';
 const RUN_CLOSE = '\u0002';
-export const groupKeyRuns = (text, re = RUN_RE) => String(text).replace(re, (m) => RUN_OPEN + m + RUN_CLOSE);
+// a lone key without a word before it needs no wrapper: a glyph is nowrap by itself
+export const groupKeyRuns = (text, re = RUN_RE) => String(text).replace(re, (m, word, run) => (!word && (run.match(/[{[(]/g) || []).length === 1 ? m : RUN_OPEN + m + RUN_CLOSE));
 export const endKeyRuns = (html) => html.split(RUN_OPEN).join('<span class="ds-kc-eenheid">').split(RUN_CLOSE).join('</span>');
 export function keyTextHtml(html) {
   const grouped = groupKeyRuns(html);
