@@ -443,7 +443,7 @@ function updateGame(w, dt) {
   g.t += dt; g.dt = dt;
   w.minigameUntil = w.time + 0.25; // Spatie en de looptoetsen horen bij de wedstrijd (geen sprong)
   if (stopPressed(w.input)) { end(w, { quit: true }); return; }
-  if (w.input.wasPressed('1')) { w.input.consume('1'); const ns = stijlVan(g.sim.tac[0].stijl); zetTactiek(g.sim, 0, { stijl: ns }); const vv = leesOpslag(); vv.stijl = ns; schrijfOpslag(vv); w.addMessage(`Speelstijl: ${ns}`, 2.5); }
+  if (w.input.wasPressed('1')) { w.input.consume('1'); const nieuweStijl = stijlVan(g.sim.tac[0].stijl); zetTactiek(g.sim, 0, { stijl: nieuweStijl }); const vv = leesOpslag(); vv.stijl = nieuweStijl; schrijfOpslag(vv); w.addMessage(`Speelstijl: ${nieuweStijl}`, 2.5); }
   if (w.input.wasPressed('2')) { w.input.consume('2'); const nv = vormingVolgende(g.sim.formaat, g.sim.tac[0].vorming); zetTactiek(g.sim, 0, { vorming: nv }); const vv = leesOpslag(); if (vv.formaat === g.sim.formaat) { vv.vorming = nv; schrijfOpslag(vv); } w.addMessage(`Vorming: ${nv}`, 2.5); }
   if (g.online === 'host') updateHost(w, dt); else updateSolo(w, dt);
   if (!game) return;
