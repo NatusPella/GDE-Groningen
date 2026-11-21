@@ -1,5 +1,6 @@
 // Test van de wereld-, beeld- en geluidsregels van de voetbalcarrière (#1115): scripts/voetbal_wereld_test.mjs. Puur; het tekenen zelf is niet in beeld bekeken.
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import PARKDATA from '../game/js/voetbalparkendata.js';
 import { makeParkIndex } from '../game/js/voetbalparken.js';
 import { CLUBS, EUROPE_CLUBS, PATTERNS } from '../game/js/voetbalclubs.js';
@@ -69,5 +70,40 @@ t('trainende teams: alleen binnen 150 m, 6 tot 10 spelers, hooguit zes velden te
   assert.ok(s.length >= 1 && s.length <= 6); assert.ok(s.every((q) => q.n >= 6 && q.n <= 10));
   assert.deepEqual(s, W.trainingSquads(index, speler, 1));
   assert.equal(W.trainingSquads(index, { x: 1e8, y: 1e8 }).length, 0);
+});
+t('kaartlaag: zonder club niets, met een club het thuispark, het trainingsveld en de uitwedstrijd als doel (nooit alle parken)', () => {
+  assert.deepEqual(W.mapSpots(index, {}), []); assert.deepEqual(W.mapSpots(null, { homeId: 'x' }), []);
+  const thuis = index.clubs[0].id, uit = index.clubs[3].id;
+  const spots = W.mapSpots(index, { homeId: thuis, nextId: uit });
+  assert.ok(spots.length >= 2 && spots.length <= 1 + index.clubs[0].trainingsvelden.length + 1);
+  assert.ok(spots.every((x) => Number.isFinite(x.x) && Number.isFinite(x.y) && x.id.startsWith('voetbal:') && x.name && x.sub));
+  assert.ok(spots.some((x) => x.name.startsWith('Uitwedstrijd: ')), 'de volgende tegenstander is het doel');
+  assert.ok(spots.some((x) => x.sub === 'Jouw club'));
+  assert.equal(W.mapSpots(index, { homeId: thuis, nextId: null }).some((x) => x.name.startsWith('Uitwedstrijd')), false, 'thuis spelen is geen reis');
+  assert.ok(W.mapSpots(index, { homeId: thuis, nextId: uit }).length < 20);
+  assert.ok(!spots.some((x) => /(VV|SV|FC|SC|RKSV)/.test(x.name)), 'geen clubvoorvoegsels');
+});
+t('geluid: elk geluid dat de wedstrijd afspeelt (sfxEvent) bestaat in de sfx-kaart met een Nederlands bijschrift', () => {
+  const src = fs.readFileSync(new URL('../game/js/voetbal.js', import.meta.url), 'utf8');
+  const map = fs.readFileSync(new URL('../game/js/sfx/sfxmap.js', import.meta.url), 'utf8');
+  const keys = new Set([...src.matchAll(/(?:sfxEvent\(w, |ballSfx\(w, )'([a-z_]+)'/g)].map((m) => m[1]));
+  assert.ok(keys.size >= 8, [...keys].join());
+  for (const k of keys) {
+    const start = map.indexOf(`def('${k}', `), regel = start >= 0 ? map.slice(start, map.indexOf(String.fromCharCode(10), start)) : '';
+    const tekst = (regel.split("', '")[2] || '').split("'")[0];
+    assert.ok(tekst.length > 5, `${k} ontbreekt in sfxmap.js of heeft geen bijschrift`);
+  }
+  for (const e of ['aftrap', 'eind', 'overtreding', 'doelpunt', 'gemist']) assert.ok(W.cueFor(e) && W.cueFor(e).tekst, e);
+});
+t('publiek langs de lijn van een park: 30 tot 140 figuren naar klasse, buiten het veld, deterministisch, een sprong die uitdooft', () => {
+  assert.ok(W.parkCrowdCount('talent') >= 30 && W.parkCrowdCount('talent') < W.parkCrowdCount('kroon'));
+  assert.ok(W.parkCrowdCount('europa', 1, 1.3) <= W.PARK_CROWD.max && W.parkCrowdCount('onzin', 9, 0) >= W.PARK_CROWD.min);
+  const a = W.parkCrowdSeats(100, 5), b = W.parkCrowdSeats(100, 5), c = W.parkCrowdSeats(100, 6);
+  assert.deepEqual(a, b); assert.notDeepEqual(a, c); assert.equal(a.length, 100);
+  assert.ok(a.every((s) => Math.abs(s.x) > 28 && Math.abs(s.x) < 28 + 2.2 + 0.9 + 0.3 + 1e-9 && Math.abs(s.y) <= 42 && s.hoogte >= 0.9 && s.hoogte <= 1.1 && s.kleur >= 0 && s.kleur < W.CROWD_COLORS.length), 'buiten de zijlijn, binnen de lengte');
+  assert.ok(a.some((s) => s.x < 0) && a.some((s) => s.x > 0), 'aan beide kanten');
+  assert.equal(W.crowdBounce(-1, 0.3), 0); assert.equal(W.crowdBounce(4, 0.3), 0); assert.equal(W.crowdBounce(9, 0.3), 0);
+  let max = 0; for (let t = 0; t < 4; t += 0.05) max = Math.max(max, W.crowdBounce(t, 0.3)); assert.ok(max > 0.05 && max <= 0.22);
+  assert.ok(W.crowdBounce(3.9, 0.1) < 0.05, 'de sprong dooft uit');
 });
 console.log(`voetbal_wereld_test ok (${n} groepen)`);

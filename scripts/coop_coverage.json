@@ -85,8 +85,7 @@
     "scripts/coopmissie_test.mjs",
     "scripts/coopverhaal_test.mjs",
     "scripts/coopmissie_motor_test.mjs",
-    "scripts/coopmissie_audit_test.mjs",
-    "scripts/multiplayerstorysteps_test.mjs"
+    "scripts/coopmissie_audit_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
@@ -145,8 +144,11 @@
     "doc": "docs/VERHAAL-ANALYSE-21-11.md",
     "zoek": "een gast mag een bijbaan of loopbaan alleen beginnen als hij hem zelf heeft ontgrendeld"
    },
-   "status": "OK",
-   "prio": "-"
+   "wachtOp": "epic-verhaal-21-11",
+   "status": "gat",
+   "prio": "middel",
+   "lead": "Verhaal",
+   "gat": "Lead Verhaal meldt (epic-verhaal-21-11): storybridge_test.mjs bewijst dat een client of sessie geen overgangsscene speelt en dat storybridgerun.js niets over het net stuurt; unlockgate_test.mjs bewijst dat de poort alleen de meegegeven eigen voortgang leest (host en gast verschillen); COOP-GAST.md heeft een alinea voor overgangsscenes, poort, vlaggen en thuis. Wat overblijft is alleen de merge: daarna de status op OK zetten. Cutscene-deelname in een echt venster staat al in de suite alles (stap filmpje) en hoeft de lead niet te doen."
   },
   {
    "id": "recap",
@@ -384,36 +386,29 @@
     "housing",
     "pitch*",
     "rival",
-    "jellebaas",
     "snack*",
+    "jellebaas",
     "chaintrucks*",
     "sponsorpanden"
    ],
    "eigenaar": "speler",
-   "gast": "Eigen bezit in de eigen progress; medespelers zien jouw percelen en standplaatsen als gekleurde omtrek met naam (ID-verzameling, claims sp:<plek>); een gast kan op andermans perceel of in andermans snackwagen meewerken voor loon (bericht snack-work: gast, host-relay, eigenaar). De ketenwagens en het personeel in de wereld zijn per speler en niet te zien voor een gast.",
-   "beloning": "Oogst, verkoopbonus en voortgang naar de eigenaar; loon (nieuw geld) en eigen Landbouw-punten naar de gast.",
+   "gast": "Eigen bezit in de eigen progress; medespelers zien jouw percelen als gekleurde omtrek met naam (ID-verzameling); een gast kan op andermans perceel meewerken voor loon.",
+   "beloning": "Oogst en voortgang naar de eigenaar; loon (nieuw geld) en eigen Landbouw-punten naar de gast.",
    "wegval": "Het veld blijft staan zoals het is; de claim leeft in de eigen progress en overleeft een hostwissel.",
    "test": [
     "scripts/bezitcoop_test.mjs",
     "scripts/business_test.mjs",
-    "scripts/bezitnet_test.mjs",
-    "scripts/snackstory_test.mjs",
-    "scripts/chaintrucks_test.mjs",
-    "scripts/chaintrucks3d_test.mjs",
-    "scripts/interiorcustomers_test.mjs",
-    "scripts/bezitinterior_test.mjs",
-    "scripts/sponsorpanden_test.mjs",
-    "scripts/voetbal_sponsors_test.mjs",
-    "scripts/coop/bezitstap_test.mjs",
-    "scripts/snacklive_test.mjs",
-    "scripts/jellebaas_test.mjs"
+    "scripts/bezitnet_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
     "zoek": "## Bezit (21-11, epic Bezit)"
    },
-   "status": "OK",
-   "prio": "-"
+   "wachtOp": "epic-bezit-21-11",
+   "status": "gat",
+   "prio": "hoog",
+   "lead": "Bezit",
+   "gat": "Lead Bezit meldt (epic-bezit-21-11): de sectie Bezit staat in COOP-GAST.md; scripts/bezitnet_test.mjs (12) bewijst met drie instanties over een nep-netwerk dat claims convergeren, aansluiten en wegvallen werken en dat de dagtik niet dubbel telt bij een terugspringende klok (hostwissel) en niet bij een gast draait; transport bezitnet.js over het JSON-kanaal k bezit. Open: de testbankstap bezit in de suite alles (bezitnet.handleBezit of ensureBezitNet gebruiken), sponsorpanden van het voetbal naar de Bezit-pandindex (parcelindex.createBuildingIndex), en na de merge de opslagsleutel gde-bezit-v1 (scope speler) in dit manifest indelen en de status op OK zetten."
   },
   {
    "id": "voetbalcarriere",
@@ -421,11 +416,11 @@
    "groep": "Bezit en geld",
    "modules": [
     "voetbalcarriere*",
+    "voetbalcoach",
     "voetbalagenda",
     "voetbalbeats",
     "voetbalclub*",
     "voetbalontwikkeling",
-    "voetbaltraining*",
     "voetbalparken*",
     "voetbalpoort",
     "voetbalsamen",
@@ -436,19 +431,20 @@
     "voetbalworld",
     "voetbalkarakter",
     "voetbalcompetitie",
+    "voetbaltraining*",
     "sponsorpanden",
     "voetbalbezit",
     "voetbalcommentarycareer"
    ],
    "eigenaar": "speler",
-   "gast": "Een gast speelt zijn eigen figuur in jouw team; ratings reizen mee in het EXTRA-bericht.",
+   "gast": "Een gast speelt zijn eigen figuur in jouw team of, bij Derby, in team 1; zijn ratings reizen als hexblok mee met J (wedgast), de teams in de start-v.",
    "beloning": "Per speler uit de eigen uitslagsregel (geld en ervaring); nooit competitiepunten van een ander.",
    "wegval": "De computer neemt over; het team wordt nooit leeg; geen instap halverwege.",
    "test": [
     "scripts/voetbal_samen_test.mjs",
-    "scripts/voetbal_carriere_test.mjs",
-    "scripts/voetbal_training_test.mjs",
-    "scripts/voetbal_training3d_test.mjs"
+    "scripts/coopwedstrijd_voetbal_test.mjs",
+    "scripts/voetbal_coach_test.mjs",
+    "scripts/voetbal_carriere_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
@@ -457,7 +453,7 @@
    "status": "gat",
    "prio": "middel",
    "issue": "#1157",
-   "gat": "voetbalsamen.js (regels, ratingblok, beloning) is niet gekoppeld aan coopnet.js en registreerWedstrijd; derby met mensen in team 1 (voetbalmatch.js) is niet gebouwd; sponsorpanden wachten op Bezit; uitwedstrijd als reis is niet gebouwd."
+   "gat": "Open: sponsorpanden wachten op Bezit; uitwedstrijd als reis is niet in beeld bekeken; de camera is voor team 1 niet gespiegeld. Derby (mensen in team 1), de ratings bij Meedoen en de uitslag per team zijn gebouwd en getest (coopwedstrijd_voetbal_test)."
   },
   {
    "id": "voetbalwedstrijd",
@@ -577,7 +573,7 @@
     "models3d_people"
    ],
    "eigenaar": "speler",
-   "gast": "Medespelers zien je outfit (stukken, kapsel en postuur, code k3) via het optionele veld avatar.outfit in de hello en de spelerslijst; een wissel midden in een sessie gaat als bericht outfit. Een wissel van hoofdpersoon meldt de nieuwe code ook. De snelwisseltoets 6 (ook in een voertuig), het pashokje, de kapper met zijn reactie, de kast en de vijf outfits zijn per speler en lokaal; de winkel is voor iedereen hetzelfde (deterministisch aanbod).",
+   "gast": "Medespelers zien je outfit via het optionele veld avatar.outfit (code k1) in de hello en de spelerslijst; de winkel is voor iedereen hetzelfde (deterministisch aanbod).",
    "beloning": "Geen; wel prestaties per speler.",
    "wegval": "Niets te herstellen; later aansluiten: de code staat in de spelerslijst.",
    "test": [
@@ -592,17 +588,13 @@
    "status": "gat",
    "prio": "middel",
    "lead": "Kleding",
-   "gat": "Lead Kleding meldt (epic-kleding-21-11, e71573e69): outfit-update midden in een sessie is klaar (bericht k outfit, test in clothing_test.mjs) en NPC-outfits zijn aangesloten op voetgangers, wachters en publiek (deterministisch). Ronde 4 (kleding-r4-21-11): de testbankstap outfit controleert nu echt dat host en tweede gast de code (postuur breed) van de gast in hun spelerslijst zien; die stap is nog niet in Electron gedraaid. Status naar OK na de merge en één groene sweep."
+   "gat": "Lead Kleding meldt (epic-kleding-21-11, e71573e69): outfit-update midden in een sessie is klaar (bericht k outfit, test in clothing_test.mjs) en NPC-outfits zijn aangesloten op voetgangers, wachters en publiek (deterministisch). Open: de testbankstap outfit in coop.page.js moet na de merge echt controleren dat een medespeler avatar.outfit draagt (nu alleen gelogd); status naar OK na de merge."
   },
   {
    "id": "tuning",
-   "naam": "Tuning, onderdelen, lak, gepimpte auto's, autotreffen en kapper",
+   "naam": "Tuning, onderdelen, lak en gepimpte auto's",
    "groep": "Uiterlijk",
    "modules": [
-    "tuning*",
-    "vehiclelook*",
-    "showroomplan",
-    "kapperkeuze",
     "garage*",
     "ownedvehicles",
     "coopbezit",
@@ -610,28 +602,30 @@
     "vehicleregister",
     "dienstvoertuig",
     "onderdelen*",
-    "carbid"
+    "carbid",
+    "tuning*",
+    "vehiclelook*",
+    "showroomplan",
+    "kapperkeuze"
    ],
    "eigenaar": "speler",
-   "gast": "Het uiterlijk van elk voertuig (ook een gepimpte verkeersauto en de auto van een medespeler) gaat als korte code in de snapshot; een bezorgde eigen auto draagt zijn onderdelen mee. Het autotreffen (Haren of het Reitdiep) hangt aan de gezamenlijke kalenderdag: elke speler ziet dezelfde auto's; melding en eigenaarszinnen zijn lokaal. Werkplaats en kapper kunnen alleen in je eigen spel.",
-   "beloning": "Geen; kosten uit je eigen geld; prestaties (Pimp my Ride) per speler.",
-   "wegval": "Een bezorgde kopie verdwijnt met zijn eigenaar; het origineel blijft in de eigen opslag. Wie later aansluit krijgt de tune-code in de eerstvolgende uiterlijkronde; de auto's van de wereld en het treffen volgen de dag en blijven.",
+   "gast": "Eigen voertuigen en panden komen mee in de wereld van een ander (bezorgen en delen, #449): kleur, upgrades, deuken en lekke band reizen mee.",
+   "beloning": "Geen; kosten uit je eigen geld.",
+   "wegval": "Een bezorgde kopie verdwijnt met zijn eigenaar; het origineel blijft in de eigen opslag.",
    "test": [
     "scripts/coopbezit_test.mjs",
-    "scripts/coopworld_test.mjs",
-    "scripts/tuningworld_test.mjs",
-    "scripts/tuningmeet_test.mjs",
-    "scripts/tuningsfx_test.mjs",
-    "scripts/kapperkeuze_test.mjs",
+    "scripts/tuningplan_test.mjs",
     "scripts/garage_zone_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
-    "zoek": "## Autotuning: gepimpte auto's, autotreffen, werkplaats en kapper"
+    "zoek": "## Eigen voertuigen meenemen en delen (#449)"
    },
-   "status": "OK",
-   "prio": "-",
-   "lead": "Tuning"
+   "status": "gat",
+   "prio": "middel",
+   "lead": "Tuning",
+   "issue": "#1158",
+   "gat": "De onderdelen van tuningplan.js (banden, uitlaat, stoel, verlichting, geluid; gde-tuning-v1) reizen niet mee in het bezorg-bericht (coopbezit.js kent alleen color, upgrades, health, dents, flat): een bezorgde auto verliest zijn tuning in andermans wereld. Voeg een gesaneerd tuning-veld toe (PROTO blijft) en een test."
   },
   {
    "id": "interieurs",
@@ -659,8 +653,7 @@
    "test": [
     "scripts/interieurs_test.mjs",
     "scripts/binnenset_test.mjs",
-    "scripts/interior_coop_test.mjs",
-    "scripts/interior_crowd_test.mjs"
+    "scripts/interior_coop_test.mjs"
    ],
    "regel": {
     "doc": "docs/BINNENSETS-21-11.md",
@@ -711,7 +704,7 @@
   },
   {
    "id": "pings",
-   "naam": "Kaartping, roepjes (7, 8, 9) en een doel delen",
+   "naam": "Kaartping en roepjes (7, 8, 9)",
    "groep": "Kaart en navigatie",
    "modules": [
     "coopping",
@@ -720,21 +713,21 @@
     "multiplayergoal"
    ],
    "eigenaar": "gesynct",
-   "gast": "Drie toetsen geven bij iedereen een baken in de wereld, een punt op de minimap en de kaart en een regel; een ping op je doel (wiel) doet hetzelfde. Een doel delen is een voorstel (J of N): de navigator deelt met de bestuurder, de bestuurder met wie meerijdt.",
+   "gast": "Drie toetsen geven bij iedereen een baken in de wereld, een punt op de minimap en de kaart en een regel.",
    "beloning": "Geen.",
-   "wegval": "Een ping of voorstel vervalt vanzelf; niets te herstellen.",
+   "wegval": "Een ping vervalt vanzelf; niets te herstellen.",
    "test": [
-    "scripts/multiplayerping_test.mjs",
-    "scripts/multiplayergoal_test.mjs",
     "scripts/coopspelers_test.mjs",
     "scripts/coophostwisselwereld_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
-    "zoek": "**Pings, snelle zinnen en een doel delen (21-11"
+    "zoek": "**Pings en waypoints (21-11)"
    },
-   "status": "OK",
-   "prio": "-"
+   "status": "gat",
+   "prio": "middel",
+   "issue": "#1159",
+   "gat": "Een ping kan alleen met 7, 8 of 9 vanaf je eigen plek; geen ping op een gekozen kaartpunt en geen waypoint delen (ook niet voor de bijrijder in een auto). Een eigen test voor coopping.js ontbreekt."
   },
   {
    "id": "zinnen",
@@ -1129,8 +1122,6 @@
    "groep": "Spelmenu",
    "modules": [
     "spullen*",
-    "models3d_spullen",
-    "models3d_weapons",
     "todo*",
     "pausemenu",
     "pausesearch",
@@ -1138,18 +1129,17 @@
     "spelersregister",
     "playerstatus",
     "samen*",
-    "lobby*"
+    "lobby*",
+    "models3d_spullen",
+    "models3d_weapons"
    ],
    "eigenaar": "speler",
-   "gast": "Je eigen spullen, kast en Te doen staan in je eigen opslag; het spelersmenu is een weergave van de spelerslijst. Het wapen in je hand zien de anderen als hetzelfde model (snapshot-veld weapon, zelfde bouwer).",
+   "gast": "Je eigen spullen, kast en Te doen staan in je eigen opslag; het spelersmenu is een weergave van de spelerslijst.",
    "beloning": "Geen.",
    "wegval": "Niets te herstellen; het menu leest de actuele lijst.",
    "test": [
     "scripts/spullen_test.mjs",
     "scripts/todo_ui_test.mjs",
-    "scripts/spullen3d_test.mjs",
-    "scripts/weapons3d_test.mjs",
-    "scripts/coopwapen_test.mjs",
     "scripts/spelmenu_test.mjs",
     "scripts/lobby_test.mjs"
    ],
@@ -1177,14 +1167,13 @@
     "evenementen*"
    ],
    "eigenaar": "speler",
-   "gast": "De duif wordt in de duifmodus door de gast mee bestuurd; dieren, fotomodus en radio zijn lokaal (de radiozender ook, in een gedeeld voertuig kiest de bestuurder en volgt of stemt de passagier); evenementen zijn van de wereld en worden bij de gast getoond.",
+   "gast": "De duif wordt in de duifmodus door de gast mee bestuurd; dieren, fotomodus en radio zijn lokaal; evenementen zijn van de wereld en worden bij de gast getoond.",
    "beloning": "Eigen dierenbezit en visboek per speler.",
    "wegval": "Niets te herstellen.",
    "test": [
     "scripts/pigeon_sync_test.mjs",
     "scripts/dierenregister_test.mjs",
-    "scripts/evenementen_test.mjs",
-    "scripts/radiochannels_test.mjs"
+    "scripts/evenementen_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",

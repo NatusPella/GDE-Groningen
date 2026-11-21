@@ -247,6 +247,7 @@ export function leesWed(b) {
 // Wat de host van een gast leest.
 export function leesGast(b) {
   if (!b || b.k !== 'wedgast' || !['ja', 'nee', 'weg', 'nogmaals', 'score', 'tijd', 'punt', 'start'].includes(b.a)) return null;
+  if (b.a === 'ja') return { a: 'ja', ...(typeof b.r === 'string' && /^[0-9a-f.~]{0,60}$/.test(b.r) && b.r ? { r: b.r } : null) };   // een gast kan zijn ratings meegeven (voetbal, #1114): een kort hexblok, de host klemt het
   if (b.a === 'start') return typeof b.id === 'string' && b.id.length >= 1 && b.id.length <= 20 ? { a: 'start', id: b.id } : null;
   if (b.a === 'tijd') return fin(b.t) && b.t >= 0 && b.t < 3600 && fin(b.h) && b.h >= 0 && b.h < 100 ? { a: 'tijd', tijd: b.t, hoogte: b.h, boven: !!b.o } : null;
   if (b.a === 'score') return Number.isInteger(b.b) && b.b >= 0 && b.b < 18 && Number.isInteger(b.s) && b.s >= 1 && b.s <= 12 ? { a: 'score', baan: b.b, slagen: b.s } : null;
@@ -500,7 +501,7 @@ function begin(world, n, W) {
   const hostMee = u.keuze[0] === undefined || u.keuze[0] === 'ja'; // een wedstrijd zonder de host (#452): de wereld draait er alleen
   const hostloos = !hostMee;
   const gasten = jaSlots(u).filter((s) => s > 0 && verbondenGasten(world).some((g) => g.slot === s)).slice(0, hostMee ? MAX_RIJDERS - 1 : MAX_RIJDERS);
-  const deeln = [...(hostMee ? [{ slot: 0, naam: spelerNaam(hostRij) || 'Speler', char: (hostRij && hostRij.char) || 'tammo' }] : []), ...gasten.map((s) => ({ slot: s, naam: naamVan(world, s), char: (rosterVan(world).find((x) => x.slot === s) || {}).char || null }))];
+  const deeln = [...(hostMee ? [{ slot: 0, naam: spelerNaam(hostRij) || 'Speler', char: (hostRij && hostRij.char) || 'tammo' }] : []), ...gasten.map((s) => ({ slot: s, naam: naamVan(world, s), char: (rosterVan(world).find((x) => x.slot === s) || {}).char || null, ...(u.ratings && u.ratings[s] ? { r: u.ratings[s] } : null) }))];
   const af = () => { for (const g of gasten) n.hub.announce({ k: 'wed', f: 'af' }, g); return false; };
   // wie ja zei maar geen plek had (de grid is vol): hij hoort waarom hij niet meedoet (#443)
   for (const s of Object.keys(u.keuze)) if (+s > 0 && !gasten.includes(+s)) { n.hub.announce({ k: 'wed', f: 'af' }, +s); if (u.keuze[s] === 'ja') meld(world, +s, WED_TEKST.vol); } // wie nee zei, niet antwoordde of geen plek had
@@ -760,7 +761,7 @@ export function wedHandleGast(world, body, van) {
   const n = world.coopNet, b = leesGast(body);
   if (!n || n.role !== 'host' || !b || !(van >= 1)) return false;
   const W = wedStaat(n);
-  if (b.a === 'ja' || b.a === 'nee') return !!W.u && antwoord(W.u, van, b.a === 'ja');
+  if (b.a === 'ja' || b.a === 'nee') { const ok = !!W.u && antwoord(W.u, van, b.a === 'ja'); if (ok && b.r) (W.u.ratings || (W.u.ratings = {}))[van] = b.r; return ok; }
   if (b.a === 'start') return wedVraagStart(world, van, b.id).ok; // een gast drukt E bij het startpunt (#452)
   if (b.a === 'score') return !!W.sc && !W.sc.tijd && !W.sc.punt && meldBaan(W.sc, van, b.baan, b.slagen);
   if (b.a === 'tijd') return !!W.sc && !!W.sc.tijd && meldTijd(W.sc, van, b);
@@ -862,9 +863,15 @@ export function wedHandleHost(world, body) {
 export function wedGastStuur(world, a) {
   const n = world.coopNet, G = gastStaat(world);
   if (!n || n.role !== 'client' || !n.session || !leesGast({ k: 'wedgast', a })) return false;
-  if (a === 'ja' || a === 'nee') { if (!G.uitn) return false; G.uitn = null; }
+  let r = '';
+  if (a === 'ja' || a === 'nee') {
+    if (!G.uitn) return false;
+    const haak = a === 'ja' ? gastHaken.get(G.uitn.id) : null;
+    try { r = haak && haak.ratings ? String(haak.ratings(world) || '') : ''; } catch (e) { r = ''; }
+    G.uitn = null;
+  }
   if (a === 'nogmaals') { if (!G.uitslag || G.nogmaals) return false; if ((WEDSTRIJDEN.get(G.id) || {}).geenHerhaling) return false; G.nogmaals = true; }
-  return n.session.sendEvent({ k: 'wedgast', a });
+  return n.session.sendEvent({ k: 'wedgast', a, ...(r ? { r } : null) });
 }
 // E bij een gast (coopgastlokaal.js): staat hij bij het startpunt van een wedstrijd (haak dichtbij van die wedstrijd), dan vraagt hij de host hem te starten (#452).
 // Geeft true als E hiervoor was. Een tweede druk binnen twee seconden doet niets (geen dubbel verzoek).

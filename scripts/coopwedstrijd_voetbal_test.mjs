@@ -6,6 +6,7 @@ import * as W from '../game/js/multiplayerwedstrijd.js';
 import { metGroepsbonus } from '../game/js/groepsbonus.js';
 import { makeRng } from '../game/js/minigamekit.js';
 import { KNOP, voetbalBeloning } from '../game/js/voetbalrules.js';
+import { encodeRatings } from '../game/js/voetbalsamen.js';
 
 let bad = 0, n = 0;
 const check = (naam, ok, info = '') => { n++; if (!ok) { bad++; console.log('FAIL', naam, info); } };
@@ -135,6 +136,49 @@ const regel = (op) => ({ naam: 'Voetbal Euroborg', soort: 'live', live: V.liveVo
   W.wedHandleHost(world, W.eindEvent([{ plek: 1, naam: 'Tessa', slot: 1, fin: true, tijd: 2, beste: null, weg: false, tekst: 'gewonnen: 3-0' }], { plek: 1, geld: 60, xp: 26, fin: 1 }));
   const l = G.uitslag;
   check('de uitslag sluit de wedstrijd en de gast kan zijn eigen medaille berekenen', ev.at(-1)[0] === 'eind' && l && l.rijen[0].tekst === 'gewonnen: 3-0' && V.medailleUitRij(l.rijen[0]).medaille === 2 && !G.spiegel);
+}
+
+{ // derby (#1114): vrienden in twee teams, ratings van een gast bij Meedoen, uitbetaling per team
+  const betaald = []; const op = {};
+  W.zetWedHaken({ betaalGast: (w, slot, geld, extra) => { betaald.push([slot, geld, extra]); return true; } });
+  const gezien = [];
+  W.registreerWedstrijd('voetbal', { ...regel(op), maak: (deeln) => { gezien.push(deeln.map((d) => ({ slot: d.slot, r: d.r }))); return V.makeMatch(deeln.map((d) => ({ ...d, team: d.slot % 2 })), { duur: 'kort', seed: 7, tegenstander: 1 }); } });
+  const { world, log, inv } = nepWereld(ROSTER());
+  W.wedNodigUit(world, 'voetbal');
+  const blok = encodeRatings([{ slot: 0, f: { sprint: 9, schot: 9, aanname: 9, verd: 9, uit: 9 } }]);
+  check('de lezer van een gast neemt een geldig ratingblok mee en weigert rommel', W.leesGast({ k: 'wedgast', a: 'ja', r: blok }).r === blok && W.leesGast({ k: 'wedgast', a: 'ja', r: '<script>' }).r === undefined && W.leesGast({ k: 'wedgast', a: 'ja' }).r === undefined);
+  W.wedHandleGast(world, { k: 'wedgast', a: 'ja', r: blok }, 1); W.wedHandleGast(world, { k: 'wedgast', a: 'ja' }, 2); W.wedHandleGast(world, { k: 'wedgast', a: 'ja' }, 3);
+  W.wedHostTik(world, 0.1);
+  const sim = op.sim;
+  check('de ratings van een gast komen bij de maak van de host aan, een gast zonder blok niet', gezien[0].find((d) => d.slot === 1).r === blok && gezien[0].find((d) => d.slot === 2).r === undefined);
+  check('twee mensen in elk team, een eigen veldspeler per mens, en de ctl wijst in de eigen helft van de lijst', sim.mensen.map((m) => m.team).join() === '0,1,0,1' && sim.mensen.every((m) => Math.floor(m.ctl / sim.perTeam) === m.team && sim.spelers[m.ctl].rol !== 'keeper') && new Set(sim.mensen.map((m) => m.ctl)).size === 4);
+  const rng = makeRng(4); const knop = [0, 0, 0, 0];
+  const bot = (slot) => { if (rng() < 0.05) knop[slot] = [0, KNOP.SCHOT, KNOP.PASS, KNOP.SPRINT, KNOP.TACKLE][Math.floor(rng() * 5)]; return { mx: Math.sin(sim.tijd + slot), my: -Math.cos(sim.tijd * 0.8 + slot), buttons: knop[slot] }; };
+  let tik = 0;
+  while (sim.fase !== 'klaar' && tik < 30 * 400) { for (const s of [1, 2, 3]) Object.assign(inv[s], bot(s)); W.wedLiveTik(world, sim, DT, () => bot(0)); tik++; }
+  check('de derby loopt uit', sim.fase === 'klaar', sim.fase);
+  const rijen = V.uitslagVoetbal(sim);
+  const plekVan = (g1, g2) => (g1 > g2 ? 1 : g1 < g2 ? 2 : 3);
+  check('elke mens krijgt zijn uitslag vanuit zijn eigen team (team 1 wint bij score[1] > score[0])', rijen.every((r) => r.plek === plekVan(sim.score[sim.mensen.find((m) => m.slot === r.slot).team], sim.score[1 - sim.mensen.find((m) => m.slot === r.slot).team])), JSON.stringify([sim.score, rijen.map((r) => [r.slot, r.plek, r.tekst])]));
+  check('de tekst begint met de eigen goals', rijen.every((r) => { const t = sim.mensen.find((m) => m.slot === r.slot).team; return r.tekst.includes(`${sim.score[t]}-${sim.score[1 - t]}`); }));
+  W.wedHostLiveEind(world, sim);
+  const eind = log.filter(([, b]) => b.f === 'eind' && !b.gestopt);
+  check('elke gast krijgt zijn eigen regel en zijn eigen geld', eind.length === 3 && betaald.length <= 3 && betaald.every(([s, geld]) => geld >= 0 && s >= 1));
+  // de momentopname en de spiegel kennen het team van elke mens
+  const m2 = V.makeMatch([{ slot: 0, naam: 'A', team: 0 }, { slot: 1, naam: 'B', team: 1 }], { duur: 'kort', seed: 1 });   // de spiegel bouwt met zaad 1
+  const sp = V.makeFootballMirror({ deeln: [{ slot: 0, naam: 'A' }, { slot: 1, naam: 'B' }] }, 1, { team1: [1] });
+  check('de spiegel zet de gast in team 1, net als de host', sp.mensen[1].team === 1 && sp.mensen[1].ctl === m2.mensen[1].ctl && sp.mensen[0].ctl === m2.mensen[0].ctl);
+  for (let i = 0; i < 200; i++) V.tikWedstrijd(m2, DT, () => ({ mx: 0.2, my: -1, buttons: 0 }));
+  check('een momentopname met een mens in team 1 komt in de spiegel aan', V.voerInVoetbal(sp, V.snapVoetbal(m2, 1)) && sp.mijnId === m2.mensen[1].ctl && sp.mijnId >= sp.perTeam);
+}
+{ // de gast stuurt zijn ratings mee bij J (alleen als zijn wedstrijd de haak heeft) en niets bij N
+  const verzonden = [];
+  const world = { coopNet: { role: 'client', session: { sendEvent: (b) => { verzonden.push(b); return true; } } }, coopWedGast: null };
+  W.zetWedGastHaken('voetbal', { ratings: () => 'ab.cd' });
+  const G = W.gastStaat(world); G.uitn = { id: 'voetbal', label: 'Voetbal', rest: 8, wie: 'Tammo' };
+  check('J stuurt de ratings mee', W.wedGastStuur(world, 'ja') && verzonden[0].a === 'ja' && verzonden[0].r === 'ab.cd', JSON.stringify(verzonden));
+  G.uitn = { id: 'voetbal', label: 'Voetbal', rest: 8, wie: 'Tammo' };
+  check('N stuurt niets mee', W.wedGastStuur(world, 'nee') && verzonden[1].r === undefined);
 }
 
 console.log(bad ? `${bad} van ${n} controles mislukt` : `ok: ${n} controles`);
