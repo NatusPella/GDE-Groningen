@@ -45,6 +45,7 @@ import { heliTrailerKit } from './helirun.js';
 import { trailerPhone } from './phone.js';
 import { KEYS, SESSION_KEYS } from './storagekeys.js';
 import { PLAN, PLAN_CUTS, SLICES } from './trailerplan.js';
+import { holdBackground } from './tilestream.js';
 
 // Trailer mode: "GDE Groningen - Een zomer in Grunn" (shot list in
 // docs/verhaal/E-trailer.md), one list of staged shots through Grunn, played
@@ -2069,6 +2070,11 @@ function frame(r, dt, realMs) {
   if (i !== r.idx) enterShot(r, i);
   // the next shot's place is built ahead of its cut
   const nx = shots[i + 1];
+  // #1052: the tiles round the next place are asked for a shot ahead (nearest first, in the normal frame budget), not after the cut
+  if (nx && nx.focus && r.tilesAsked !== i + 1 && r.T > r.starts[i + 1] - 5) {
+    r.tilesAsked = i + 1;
+    if (r.w.map && r.w.map.warmAhead) r.w.map.warmAhead(nx.focus.x, nx.focus.y, { token: 'trailer', budgetMs: 4000 });
+  }
   if (nx && nx.focus && r.prewarmed !== i + 1 && r.T > r.starts[i + 1] - 2) {
     r.prewarmed = i + 1;
     prewarmStreamAt(nx.focus.x, nx.focus.y, 3);
@@ -2263,6 +2269,8 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
     world.cinematicHideNav = true;
     running = r;
     setTrailerRunning(true);
+    // #1052: the benchmark measures the scenes; the placement windows (tiles all over the province) wait until it is over
+    if (mode === 'benchmark') { r.bgHeld = true; holdBackground(true); }
     const ren = window.__scene3d && window.__scene3d.renderer;
     let nativeRender = null;
     if (BENCH_RUNS && ren) {
@@ -2361,6 +2369,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       ui.black.style.transition = '';
       running = null;
       setTrailerRunning(false);
+      if (r.bgHeld) { r.bgHeld = false; holdBackground(false); }
       const stats = mode === 'benchmark' ? computeStats(r) : null;
       if (stats) console.log('[trailer] benchmark', JSON.stringify({ avg: +stats.avg.toFixed(1), low: +stats.low.toFixed(1), spikesPerMin: stats.spikes, heapMb: Math.round(stats.memory), shots: stats.shots.map((x) => `${x.label}: ${x.fps.toFixed(1)}`) }));
       if (window.__trailer) window.__trailer.lastStats = stats;
@@ -2416,6 +2425,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       if (shots[0].black) { res(); return; }
       const f = shots[0].focus;
       if (f) prewarmStreamAt(f.x, f.y, 4);
+      if (f && r.w.map && r.w.map.warmAhead) r.w.map.warmAhead(f.x, f.y, { token: 'trailer', budgetMs: 2500 });
       const t0 = performance.now();
       let n = 0;
       const step = () => {

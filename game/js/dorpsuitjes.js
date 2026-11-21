@@ -183,7 +183,7 @@ function placePoints(map, v) {
 async function placeSoon(map, v) {
   if (v.placed || v.placing) return;
   v.placing = true;
-  try { await withTiles(map, placePoints(map, v), () => { if (!v.placed) placeVillage(map, v); }, { radius: PLACE_WINDOW, token: 'village', slice: 6 }); } finally { v.placing = false; }
+  try { await withTiles(map, placePoints(map, v), () => { if (!v.placed) placeVillage(map, v); }, { radius: PLACE_WINDOW, token: 'village' }); } finally { v.placing = false; }
 }
 
 export async function prepareVillages(w = world) {

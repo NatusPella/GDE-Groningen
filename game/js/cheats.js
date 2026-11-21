@@ -270,7 +270,7 @@ function teleport(w, x, y, name, opts = null) {
   // far from here the tiles round the target are not in yet: they come first,
   // then the same jump (the road and the open spot are picked from them)
   if (!tilesIn(w.map, [[x, y]], 400)) {
-    withTiles(w.map, [[x, y]], () => teleportNow(w, x, y, name, false, boot), { radius: 400, token: 'teleport' }).catch(() => {});
+    withTiles(w.map, [[x, y]], () => teleportNow(w, x, y, name, false, boot), { radius: 400, token: 'teleport', urgent: true }).catch(() => {});
     return true;
   }
   return teleportNow(w, x, y, name, false, boot);
@@ -302,7 +302,7 @@ function teleportNow(w, x, y, name, stil = false, boot = null) {
 // Samen spelen (#439): de nieuwe host komt op de plek waar het spel stond (coophostwisselwereld.js), met de tegels erbij en zonder streken-melding.
 export function verplaatsStil(w, x, y) {
   if (!w || !w.map || !Number.isFinite(x) || !Number.isFinite(y)) return false;
-  if (!tilesIn(w.map, [[x, y]], 400)) { withTiles(w.map, [[x, y]], () => teleportNow(w, x, y, '', true), { radius: 400, token: 'overdracht' }).catch(() => {}); return true; }
+  if (!tilesIn(w.map, [[x, y]], 400)) { withTiles(w.map, [[x, y]], () => teleportNow(w, x, y, '', true), { radius: 400, token: 'overdracht', urgent: true }).catch(() => {}); return true; }
   return teleportNow(w, x, y, '', true);
 }
 

@@ -312,7 +312,7 @@ export async function prepareCountryStations(map) {
   for (const s of stations) {
     if (!s.country || s.settled) continue;
     s.settled = true;
-    await withTiles(map, [[s.x, s.y]], () => settleCountryStation(map, s), { radius: 60, token: 'station', slice: 6 });
+    await withTiles(map, [[s.x, s.y]], () => settleCountryStation(map, s), { radius: 60, token: 'station' });
   }
 }
 

@@ -22,6 +22,7 @@ import { SECTION, decodeBlob, tileKey, tileOrigin, TILE_M } from './gdt.js';
 import { trimTileGreenery, trimHedgeRow } from './tilegreenery.js';
 import * as propfilter from './propfilter.js';
 import { TileStore, FrameQueue, HttpRangeSource, inflateRaw, makeWorkerDecoder, decodeCompressed } from './tilestore.js';
+import { BACKGROUND_PRIORITY, addPriority, backgroundHeld, whenReady, JUMP_BUDGET_MS, JUMP_RING_M } from './tilestream.js';
 import { TerrainField } from './terrainraster.js';
 import { extendElevation, shrinkElevation } from './elevation.js';
 import { joinMeta } from './poisections.js';
@@ -273,6 +274,7 @@ export class TileWorld extends GameMap {
     map.terrain = terrainField;
     map.terrainProfiles = terrain;
     map.tileQueue = new FrameQueue();
+    map.bgQueue = new FrameQueue(); // the rows of the tiles a background placement window asked for (#1052)
     map.store = null;
     map.resident = new Set(tiles.map((t) => `${t.i},${t.j}`));
     map.info = info;
@@ -314,14 +316,31 @@ export class TileWorld extends GameMap {
     const job = { cancelled: false };
     (this._tileJobs || (this._tileJobs = new Map())).set(tk, job);
     const steps = this.addTileSteps(tile, key);
+    // #1052: dichtbij eerst. De rijen van een tegel gaan met de urgentie waarmee hij is aangevraagd
+    // (een afstand, of de achtergrondwaarde van een plaatsingsvenster) door de wachtrij, niet allemaal als eerste in de rij.
+    const sp = this.store && this.store.priorityOf ? this.store.priorityOf(key) : 0;
+    const prio = addPriority(sp);
+    // a tile only a background window asked for waits in a queue of its own: the frame budget of the
+    // stream (follow) and a held window (a film, the benchmark) do not have to work it
+    const queue = sp >= BACKGROUND_PRIORITY && this.bgQueue ? this.bgQueue : this.tileQueue;
     const step = () => {
       if (job.cancelled) { this._tileJobs.delete(tk); return; }
       const r = steps.next();
       if (r.done) { this._tileJobs.delete(tk); return; }
-      this.tileQueue.add(step, 1, `add:${tk}`); // volgende stuk, volgende frame
+      queue.add(step, prio, `add:${tk}`); // volgende stuk, volgende frame
     };
-    this.tileQueue.add(step, 1, `add:${tk}`);
+    queue.add(step, prio, `add:${tk}`);
     return tk;
+  }
+
+  // Is any of these store keys still being worked into the grids (its rows are queued)? (#1052)
+  tilesPending(keys) {
+    if (!this._tileJobs || !this.store) return false;
+    for (const k of keys) {
+      const m = this.store.index.tiles[k];
+      if (m && this._tileJobs.has(residentKey(m.i, m.j, k))) return true;
+    }
+    return false;
   }
 
   // synchronous variant (pinned/overlay tiles and the tests): the same steps in one go
@@ -568,7 +587,10 @@ export class TileWorld extends GameMap {
   // the grids are updated within the frame budget
   follow(x, y, opts, budgetMs = 2) {
     if (this.store) this.store.prefetch(x, y, opts);
-    return this.tileQueue.run(budgetMs);
+    const n = this.tileQueue.run(budgetMs);
+    // what a background window asked for goes on at half the budget, unless a film or the benchmark holds it
+    if (this.bgQueue && this.bgQueue.items.length && !backgroundHeld()) return n + this.bgQueue.run(budgetMs / 2);
+    return n;
   }
 
   // A cutscene registers its shots before it starts: { at: [x, y], look: [x, y] }
@@ -589,6 +611,22 @@ export class TileWorld extends GameMap {
     // De shots zijn klaar of de scène stopt: hun lopende reads hoeven niet meer (#588).
     if (this._shotToken && this.store.cancel) this.store.cancel(this._shotToken);
     this._shotKeys = null; this._shotToken = null;
+  }
+
+  // A jump (a cut to a far place, the benchmark's next scene): ask for the tiles round the target
+  // now, nearest first, and resolve when they are in or after budgetMs (true = all in). The rows
+  // go through the normal frame budget (follow), nothing is worked in one go, and a tile that
+  // never comes does not hold the caller (#1052). Best effort: a stopped store resolves false.
+  warmAhead(x, y, { radius = JUMP_RING_M, budgetMs = JUMP_BUDGET_MS, token = 'jump', wait = null } = {}) {
+    const st = this.store;
+    if (!st || !Number.isFinite(x) || !Number.isFinite(y)) return Promise.resolve(true);
+    const keys = st.keysAround(x, y, radius);
+    for (const k of keys) {
+      const m = st.index.tiles[k], [ox, oy] = tileOrigin(m.i, m.j);
+      st.request(k, { priority: Math.hypot(ox + TILE_M / 2 - x, oy + TILE_M / 2 - y), token }).catch(() => {});
+    }
+    const frame = wait || (() => new Promise((r) => { const t = setTimeout(r, 50); if (typeof requestAnimationFrame === 'function') requestAnimationFrame(() => { clearTimeout(t); r(); }); }));
+    return whenReady(st, keys, { budgetMs, wait: frame }).then((ok) => ok && !this.tileQueue.items.length);
   }
 
   // the tile keys of a camera shot or a destination, for a pre-roll

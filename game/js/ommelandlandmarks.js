@@ -107,7 +107,7 @@ export function updateOmmelandLandmarks(world, scene, focus, hideBuilding = null
       installeerUitkijkpunten(world.map, j.items); // #807 A15: de acht uitkijkpunten op de kaart
       // a church without an outline of its own is fitted to the tiles' church there
       const lone = j.items.filter((it) => ((it.k === 'church' || it.k === 'chapel') && !it.o) || (it.k === 'station' && !it.o)).map((it) => [it.x, it.y]);
-      S.list = await withTiles(world.map, lone, () => prepareLandmarks(j.items, world.map), { radius: 60, token: 'kits', slice: 6 });
+      S.list = await withTiles(world.map, lone, () => prepareLandmarks(j.items, world.map), { radius: 60, token: 'kits' });
       setKitList(S.list); // (the tiles' own church kits leave the churches of this list alone, #406)
       S.layer = createLandmarkLayer(scene, S.list);
     }).catch((e) => console.warn('landmark kits not loaded', e && e.message));

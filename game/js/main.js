@@ -39,6 +39,7 @@ import { loadMap } from './mapdata.js';
 import { loadTileWorld } from './tileworld.js';
 import { tileFocus } from './tilefocus.js';
 import { createStreamBudget, noteStreamWorldPart, streamFrameMs } from './streambudget.js';
+import { setHoldProbe } from './tilestream.js';
 import { setWorldPlaces } from './worldplaces.js';
 import { setRegionData } from './regions.js';
 import { tileIndexOf, tileKey, tileOrigin } from './gdt.js';
@@ -951,6 +952,8 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   setAudioCamera(getCamera);
   setRouteLinks({ getActiveRoute, getRouteAhead, getUserWaypoint });
   setCinematicLinks({ getFollowPose, prewarmStreamAt, getGrenzen });
+  // #1052: the placement windows (tiles all over the province) wait while a film or cutscene plays, like the stream's own low budget (frameBody)
+  setHoldProbe(() => document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud') || !!(world.cineQuiet && performance.now() < world.cineQuiet));
   setSfxLinks({ bridges: getMovableBridges, trains: getTrains, vehicles: () => world.vehicles, locks: getSluizen });
   // #749: het laden is klaar; vanaf hier wacht het spel op de speler (de eerste-startvraag
   // heeft zijn eigen time-out) en telt de boot-wachter niet meer.

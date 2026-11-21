@@ -118,7 +118,7 @@ export function zetVoertuigen(world, lijst) {
       world.vehicles.push(x);
     };
     if (tilesIn(map, [[v.x, v.y]], 160)) zet();
-    else withTiles(map, [[v.x, v.y]], zet, { radius: 160, token: 'overdracht-voertuig' }).catch(() => {});
+    else withTiles(map, [[v.x, v.y]], zet, { radius: 160, token: 'overdracht-voertuig', urgent: true }).catch(() => {});
   }
   return true;
 }

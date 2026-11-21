@@ -478,7 +478,7 @@ export async function prepareShopDoors(map) {
       const o = clearOfBuildings(map, s.x, s.y, (x, y) => !isInWater(map, x, y) && !map.buildingsNear(x, y, 1).some((b) => pointInPolygon(x, y, b.pts)));
       if (o) { s.x = o.x; s.y = o.y; }
     }
-  }, { radius: 60, token: 'shopdoors', slice: 6 });
+  }, { radius: 60, token: 'shopdoors' });
   declutterCache.clear();
 }
 

@@ -5,6 +5,7 @@
 // fixed ahead of the player (a shop door, a village's uitje) asks for its tiles
 // first (withTiles) and then runs on what is resident.
 import { pointInPolygon, closestPointOnSegment, nearestOnRoadList } from './util.js';
+import { BACKGROUND_PRIORITY, BG_DRAIN_MAX_MS, backgroundHeld, drainSliced, joinQueues, sliceFor } from './tilestream.js';
 
 // A polygon's distance to a point, 0 inside it.
 function polyDist(x, y, pts) {
@@ -180,9 +181,12 @@ export function tilesIn(map, points, radius = 160) {
 // Runs fn with the tiles round the points resident: they are asked for, held
 // while fn runs and let go after. fn is sync, so what it places is placed on
 // real data wherever the player is. A map without a tile store runs fn at once.
-// slice (ms): the tiles go into the map's grids that many ms at a time, a
-// frame apart (a title screen that keeps moving), instead of all at once.
-export async function withTiles(map, points, fn, { radius = 160, token = 'place', slice = 0 } = {}) {
+// A window is background work unless `urgent` (a teleport the player just chose): it asks with
+// BACKGROUND_PRIORITY, after what the prefetch wants round the player, and works the tiles into
+// the map's grids BG_SLICE_MS a frame (or the caller's own `slice`), a frame apart,
+// instead of running the shared queue to the end in one go (#1052: 2 to 6 s on the main thread in
+// the first minute). `urgent` keeps the old way: top priority, all at once.
+export async function withTiles(map, points, fn, { radius = 160, token = 'place', slice = 0, urgent = false } = {}) {
   const st = map.store;
   if (!st) return fn();
   const keys = new Set();
@@ -190,15 +194,13 @@ export async function withTiles(map, points, fn, { radius = 160, token = 'place'
   for (const k of keys) st.pin(k);
   try {
     const t0 = performance.now();
-    await Promise.all([...keys].map((k) => st.request(k, { priority: -500 }))); // geen token: dit venster wacht zijn beurt af en trekt niets in (#588)
+    await Promise.all([...keys].map((k) => st.request(k, { priority: urgent ? -500 : BACKGROUND_PRIORITY }))); // geen token: dit venster wacht zijn beurt af en trekt niets in (#588)
     const t1 = performance.now();
-    if (slice > 0 && typeof requestAnimationFrame === 'function') {
+    const sliceMs = sliceFor({ urgent, slice });
+    if (sliceMs > 0 && typeof requestAnimationFrame === 'function') {
       // (a frame, or 50 ms when the window is hidden and frames stop)
-      while (map.tileQueue.items.length) {
-        map.tileQueue.run(slice);
-        await new Promise((r) => { const t = setTimeout(r, 50); requestAnimationFrame(() => { clearTimeout(t); r(); }); });
-      }
-    } else map.tileQueue.run(1e9);
+      await drainSliced(joinQueues(map.tileQueue, map.bgQueue || null, () => performance.now()), { sliceMs, maxMs: BG_DRAIN_MAX_MS, now: () => performance.now(), until: map.tilesPending ? () => !map.tilesPending(keys) : null, hold: urgent ? null : backgroundHeld, nextFrame: () => new Promise((r) => { const t = setTimeout(r, 50); requestAnimationFrame(() => { clearTimeout(t); r(); }); }) });
+    } else { map.tileQueue.run(1e9); if (map.bgQueue) map.bgQueue.run(1e9); }
     const t2 = performance.now();
     const out = fn();
     // (window.__tileWindows: what each window cost, in ms, for the load-time budget)

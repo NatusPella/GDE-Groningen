@@ -152,7 +152,7 @@ export async function prepareKoeSites(map) {
   if (sites !== null) return sites || null;
   const tb = placeNamed('Ten Boer');
   if (!tb) return null;
-  await withTiles(map, [[tb.x, tb.y]], () => { if (sites === null) sites = findSites(map) || false; }, { radius: 2700, token: 'koe', slice: 6 });
+  await withTiles(map, [[tb.x, tb.y]], () => { if (sites === null) sites = findSites(map) || false; }, { radius: 2700, token: 'koe' });
   return sites || null;
 }
 

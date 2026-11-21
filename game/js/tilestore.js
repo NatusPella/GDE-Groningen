@@ -221,6 +221,8 @@ export class TileStore {
   on(ev, fn) { this.listeners[ev].push(fn); }
   has(key) { return !!this.index.tiles[key]; }
   ready(key) { const e = this.entries.get(key); return !!e && e.state === 'ready'; }
+  // The urgency a tile was asked for with (lower = sooner; the prefetch score is its distance in m, a placement window BACKGROUND_PRIORITY), 0 when unknown (#1052).
+  priorityOf(key) { const e = this.entries.get(key); return e && Number.isFinite(e.priority) ? e.priority : 0; }
   tile(key) { const e = this.entries.get(key); if (e && e.state === 'ready') { e.last = this.now(); return e.tile; } return null; }
   get residentKeys() { return [...this.entries].filter(([, e]) => e.state === 'ready').map(([k]) => k); }
   get loading() { return this.active + this.queue.length; }
