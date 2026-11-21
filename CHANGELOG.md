@@ -87,7 +87,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Snackwagen: vergunningen die tijdens een lange slaap of rit aflopen worden verlengd met het geld dat er op dat moment nog is; eerder werd per dag het hele saldo opnieuw gerekend en verdween het tekort
 - Snackwagen: een bod van Usmem aannemen nadat de vergunning is vervallen telt niet meer als weigeren; het aanbod blijft staan tot het verloopt
 - Frietwagen als verhaalcadeau levert bij verkoop niets op (een gekochte wagen nog steeds driekwart van de prijs)
-- Verhaal: een oude save die bij de reis T4 stond krijgt de voetbalstappen V1 tot en met V3 alle drie nog te spelen
+- Verhaal: een oud opgeslagen spel dat bij de reis T4 stond krijgt de voetbalstappen V1 tot en met V3 alle drie nog te spelen
 
 ### Autotuning en kapper
 
