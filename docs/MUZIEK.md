@@ -8,7 +8,7 @@ en welke nummers erbij kunnen. Elk voorstel heeft een stijlomschrijving die
 je als prompt in Google Gemini kunt plakken, een aantal en het programmablok
 of de situatie waar het hoort.
 
-Er is één zender, **G-Music**, met een programma per deel van de
+De hoofdzender is **G-Music** (er zijn sinds 21-11 meer zenders te kiezen, zie onder), met een programma per deel van de
 speldag (`PROGRAMMES` in `game/js/musicpick.js`). Er zijn twee pools: de
 dagpool (`"stations": ["gmusic"]`) voor de ochtend, de dag en de avond, en de
 nachtpool (`"nachtstreek"`) voor Nachtstreek.
@@ -53,6 +53,7 @@ tussen elk nummer een van drie jingles, dus die hoorde je elke paar minuten.
 - Elk programmablok draait uit zijn eigen pool (`stations` in
   `manifest.json`). Een pool met minder dan 6 eigen nummers leent de rest,
   maar draait die minder vaak.
+- Sinds 21-11 kan de speler een andere zender kiezen (Nachtstreek, Wierde Radio, de geheime Ruisradio): elke zender draait uit een eigen pool op stijl, zonder lenen, en een zender met minder dan 6 nummers is "Binnenkort". Zie [RADIOZENDERS-21-11.md](RADIOZENDERS-21-11.md) en ADR 0046.
 
 Het echte probleem is het aantal nummers. Het doel voor 1.0, per
 programmablok:
