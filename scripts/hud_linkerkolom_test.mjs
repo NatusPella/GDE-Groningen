@@ -72,5 +72,10 @@ t('hudcards.js vraagt de kolom voor elke E-kaart en duwt een E-kaart terug voor 
   assert.match(src, /noLog: true/, 'de teruggezette E-kaart komt niet twee keer in het tekstlog');
 });
 
+t('de locatiekaart onderin zit naast de minimap, niet in de kolom van de A- en E-kaarten (#1079)', () => {
+  assert.match(lees('game/js/hud_panel.css'), /left: calc\(var\(--hud-edge\) \+ var\(--mm-size\) \+ 16px\); bottom: var\(--mm-bottom\);/);
+  assert.match(lees('game/js/hudcards.css'), /\.hud-cards-e \{ position: absolute; bottom: calc\(var\(--mm-bottom, 46px\) \+ var\(--mm-size, 250px\) \+ 14px\)/, 'de E-kaart blijft boven de minimap');
+});
+
 console.log(`${n - fails}/${n} geslaagd`);
 if (fails) process.exit(1);

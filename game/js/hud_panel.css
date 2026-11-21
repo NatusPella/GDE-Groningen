@@ -225,11 +225,16 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 #hud .hud-minimap-wrap.wanted { box-shadow: 0 0 0 2px #d93f3f, 0 0 18px rgba(217, 63, 63, 0.45), 0 14px 32px rgba(0, 0, 0, 0.5); }
 #hud .hud-minimap-wrap canvas { display: block; width: 100%; height: 100%; }
 #hud .hud-fcol {
-  position: absolute; left: calc(var(--hud-edge) + var(--mm-size) + 16px); bottom: calc(var(--mm-bottom) + 4px);
+  position: absolute; left: calc(var(--hud-edge) + var(--mm-size) + 16px); bottom: var(--mm-bottom);
   display: flex; flex-direction: column; gap: 10px; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7); color: var(--hud-fg);
 }
 #hud .hud-location { display: flex; flex-direction: column; gap: 1px; max-width: min(calc(30vw / var(--ui, 1)), 340px); }
 #hud .hud-location:has(.hud-street:empty) { display: none; }
+/* #1079: de locatiekaart zakt naar de onderkant van de kolom zolang het speler-blok eronder verborgen is; hudlinks.js bepaalt --hud-loc-y.
+   `translate` (niet transform): hud-rise animeert transform en mag de stand niet overschrijven. */
+#hud .hud-location { translate: 0 var(--hud-loc-y, 0px); transition: translate 0.2s ease-out; }
+html.rustig-drukwerk #hud .hud-location, html.reduce-motion #hud .hud-location { transition: none; }
+@media (prefers-reduced-motion: reduce) { #hud .hud-location { transition: none; } }
 #hud .hud-street { font-size: 28px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #hud .hud-district { font-size: max(17px, var(--hud-min)); color: var(--gron-green-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #hud .hud-street:empty { display: none; }
