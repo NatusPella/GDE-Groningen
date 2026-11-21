@@ -118,7 +118,7 @@ const pitchPutt = async (repo) => {
   return m ? { waarden: [m.PP_HOLES.length] } : { skip: 'game/js/puttinglogic.js ontbreekt' };
 };
 
-// De leesnorm in ui-taal.md ("Leesnorm"): 13 px norm (READABLE_MIN van hudlook.js, `--hud-min`) en 12 px
+// De leesnorm in ui-taal.md ("Leesnorm"): 13 px norm (READABLE_MIN van hudlook.js, `--hud-min`) en 13 px (toets 12 px)
 // harde ondergrens (design_rules.mjs, bewaakt door release_designrules_test, hud_layout_test en steam_test).
 const leesnorm = async (repo) => {
   const hud = await moduleAt(repo, 'game/js/hudlook.js');

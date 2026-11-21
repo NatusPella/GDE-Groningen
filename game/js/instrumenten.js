@@ -63,23 +63,23 @@ export const UITLEG_INSTAPPEN = 'Gas: {W}. Stijgen: {SPACE}. Rollen: {A}/{D}. Kl
 export const BEDIENING_KORT = '{W}/{S} gas · {A}/{D} rollen · {Q}/{E} roer · {K} kleppen · {G} landingsgestel';
 
 // --- het paneel ------------------------------------------------------------------------------------------------------------
-const CSS = `#hud .hud-instr{position:absolute;right:var(--hud-edge,46px);bottom:var(--hud-edge,46px);display:none;width:372px;padding:8px 12px 8px 12px;color:#f0ede4;text-shadow:var(--hud-shadow);background:linear-gradient(90deg,rgba(12,20,14,.88),rgba(23,48,31,.62) 85%,rgba(23,48,31,.15));border-left:3px solid var(--mk-ok, #3fc97a)}
+const CSS = `#hud .hud-instr{position:absolute;right:var(--hud-edge,46px);bottom:var(--hud-edge,46px);display:none;width:372px;padding:8px 12px 8px 12px;color:var(--ds-c-creme);text-shadow:var(--hud-shadow);background:linear-gradient(90deg,color-mix(in srgb, var(--ds-c-glas) 88%, transparent),color-mix(in srgb, var(--ds-c-glas-2) 62%, transparent) 85%,color-mix(in srgb, var(--ds-c-glas-2) 15%, transparent));border-left:3px solid var(--mk-ok, #3fc97a)}
 body.plane-flying #hud .hud-instr{display:block}
 body.plane-flying #hud .hud-speedo{display:none}
-#hud .hud-instr small{display:block;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--mk-ok, #3fc97a)}
+#hud .hud-instr small{display:block;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--mk-ok, #3fc97a)}
 #hud .hud-instr .hi-top{display:flex;gap:10px;align-items:center;margin-top:4px}
 #hud .hud-instr canvas{width:96px;height:96px;flex:none}
 #hud .hud-instr .hi-num{flex:1;display:grid;grid-template-columns:auto auto;gap:2px 14px}
 #hud .hud-instr .hi-num b{display:block;font-weight:normal;font-size:24px;line-height:26px;letter-spacing:1px}
-#hud .hud-instr .hi-num span{display:block;font-size:12px;letter-spacing:1px;color:rgba(240,237,228,.7)}
+#hud .hud-instr .hi-num span{display:block;font-size:13px;letter-spacing:1px;color:color-mix(in srgb, var(--ds-c-creme) 70%, transparent)}
 #hud .hud-instr .hi-row{display:flex;gap:12px;align-items:center;margin-top:6px;font-size:13px}
-#hud .hud-instr .hi-bar{flex:1;height:8px;background:rgba(255,255,255,.18)}
+#hud .hud-instr .hi-bar{flex:1;height:8px;background:color-mix(in srgb, var(--ds-c-wit) 18%, transparent)}
 #hud .hud-instr .hi-bar i{display:block;height:100%;background:var(--mk-ok, #3fc97a)}
-#hud .hud-instr .hi-lamp{padding:1px 8px;border:1px solid rgba(240,237,228,.4);font-size:12px;letter-spacing:1px}
+#hud .hud-instr .hi-lamp{padding:1px 8px;border:1px solid color-mix(in srgb, var(--ds-c-creme) 40%, transparent);font-size:13px;letter-spacing:1px}
 #hud .hud-instr .hi-lamp.on{background:color-mix(in srgb, var(--mk-ok, #3fc97a) 30%, transparent);border-color:var(--mk-ok, #3fc97a)}
 #hud .hud-instr .hi-lamp.warn{background:color-mix(in srgb, var(--mk-job, #ff9a3c) 30%, transparent);border-color:var(--mk-job, #ff9a3c)}
 #hud .hud-instr .hi-st{margin-top:5px;font-size:14px;min-height:18px}
-#hud .hud-instr .hi-keys{margin-top:4px;font-size:12px;line-height:15px;color:rgba(240,237,228,.62)}
+#hud .hud-instr .hi-keys{margin-top:4px;font-size:13px;line-height:15px;color:color-mix(in srgb, var(--ds-c-creme) 62%, transparent)}
 /* Zomerse zeefdruk (ADR 0040): de instrumentenkaart als papier met inktrand en harde schaduw. */
 #hud .hud-instr{color:var(--ds-c-ink-inkt);text-shadow:none;background:var(--ds-c-ink-papier);border:var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt);border-left:8px solid var(--ds-c-ink-bord);border-radius:8px;box-shadow:var(--ds-schaduw-hard);font-family:var(--ds-font-zeef-kop);font-weight:600}
 #hud .hud-instr small{font-weight:800;font-size:13px;letter-spacing:.12em;color:var(--ds-c-ink-bord)}

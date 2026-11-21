@@ -4,6 +4,7 @@
 // elk met hun eigen stand. Elke bezigheid staat er één keer: de volgende klus is een label in de lijst, geen tweede knop (#430).
 // Een vak dat nog niet begonnen is, toont waar en met welke eerste klus je het begint (#431): vanaf de eigen startplek of met
 // de knop hier. De gegevens komen uit loopbaanlive.js (en loopbaan.js); dit bestand is alleen DOM. Niet in beeld bekeken.
+import { icoon } from './icons.js';
 import * as L from './loopbaan.js';
 import { getProfiel, startLoopbaan } from './loopbaanlive.js';
 import { SIDE_JOBS } from './sidejobs.js';
@@ -18,7 +19,7 @@ import { overzicht as modelOverzicht, hoofdActie, eisEnVerdiensten } from './car
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const nl = (n) => Math.round(n).toLocaleString('nl-NL');
-const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
+const CHECK = icoon('vinkje'); // F6: Phosphor via icons.js
 
 // De iconen van de vakken, in dezelfde lijnstijl als de rest van het menu.
 const ICONEN = {

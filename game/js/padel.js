@@ -1311,17 +1311,17 @@ zetWedGastHaken('padel', {
 const CSS = `
 #hud .padel-board[hidden] { display: none; }
 #hud .padel-board { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; padding: 8px 20px 9px 12px;
-  color: #f0ede4; text-shadow: var(--hud-shadow); pointer-events: none; z-index: 4;
-  background: linear-gradient(90deg, rgba(12,20,14,0.88), rgba(23,48,31,0.62) 80%, rgba(23,48,31,0.2)); border-left: 3px solid ${ACCENT}; }
-#hud .padel-board small { display: block; font-size: max(13px, calc(13px / var(--ui, 1))); letter-spacing: 3px; color: ${ACCENT}; }
-#hud .padel-board .mg-sfeer { display: block; margin-top: 2px; font: max(12px, calc(12px / var(--ui, 1))) 'Arial Narrow', Arial, sans-serif; letter-spacing: 2px; text-transform: uppercase; color: rgba(240,237,228,0.62); font-style: normal; }
+  color: var(--ds-c-ink-inkt); text-shadow: none; pointer-events: none; z-index: 4;
+  background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-left: 8px solid var(--ds-c-ink-bord); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); font-family: var(--ds-font-zeef-kop); font-weight: 600; }
+#hud .padel-board small { display: block; font-size: max(13px, calc(13px / var(--ui, 1))); letter-spacing: 3px; color: var(--ds-c-ink-bord); }
+#hud .padel-board .mg-sfeer { display: block; margin-top: 2px; font: max(13px, calc(13px / var(--ui, 1))) var(--ds-font-zeef-tekst); letter-spacing: 2px; text-transform: uppercase; color: var(--ds-c-inkt-zacht); font-style: normal; }
 #hud .padel-board .pb-teams { display: grid; grid-template-columns: auto auto auto; gap: 0 14px; align-items: baseline; font-size: calc(20px * var(--ui, 1)); letter-spacing: 1px; line-height: 1.15; }
 #hud .padel-board .pb-teams b { font-weight: normal; font-size: calc(24px * var(--ui, 1)); text-align: right; }
-#hud .padel-board .pb-teams i { font-style: normal; font-size: calc(24px * var(--ui, 1)); color: var(--mk-mission, #e8c93a); text-align: right; min-width: 30px; }
-#hud .padel-board .pb-side { display: flex; flex-direction: column; align-items: flex-end; font: max(13px, calc(13px / var(--ui, 1))) 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.75); letter-spacing: .3px; }
+#hud .padel-board .pb-teams i { font-style: normal; font-size: calc(24px * var(--ui, 1)); color: var(--ds-c-ink-bord); text-align: right; min-width: 30px; }
+#hud .padel-board .pb-side { display: flex; flex-direction: column; align-items: flex-end; font: max(13px, calc(13px / var(--ui, 1))) var(--ds-font-zeef-tekst); color: var(--ds-c-inkt-zacht); letter-spacing: .3px; }
 #hud .padel-board .pb-help { display: flex; align-items: center; gap: 3px; margin-top: 3px; }
-#hud .padel-board .pb-flash { font-size: calc(22px * var(--ui, 1)); letter-spacing: 1.5px; color: var(--mk-ok, #3fc97a); min-height: 1em; }
-#hud .padel-board .pb-flash.them { color: var(--mk-job, #ff9a3c); }
+#hud .padel-board .pb-flash { font-size: calc(22px * var(--ui, 1)); letter-spacing: 1.5px; color: var(--ds-c-ink-bord); min-height: 1em; }
+#hud .padel-board .pb-flash.them { color: var(--ds-c-rood-tx); }
 /* #599/#596: dezelfde vormdrager als de createBoard-borden */
 #hud .padel-board[data-sfeer] { padding-left: 78px; }
 #hud .padel-board .mg-vorm { position: absolute; left: 0; top: 0; bottom: 0; width: 64px; opacity: 0.5; pointer-events: none; clip-path: polygon(0 0, 100% 0, 78% 100%, 0 100%); }

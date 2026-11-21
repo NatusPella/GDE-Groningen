@@ -1,0 +1,126 @@
+/* Schermen op de zeefdruk (21-11, "Alle UI via het designsysteem"). Hier staan de schermen die niet bij een eigen CSS-bestand
+   horen en die hun uiterlijk volledig uit de componenten (ds-components.css) en tokens (ds-tokens.css) halen: de foutmelding,
+   het benchmarkscherm (lopend en resultaat) en de technische-info-overlay. Geen hex, rgb(), verloop of glas; alleen
+   var(--ds-...); tekst nooit onder 13 px. De scherm-HTML draagt `ds-zeef` en de .ds-z-componenten; deze regels leggen alleen
+   de plaats en de indeling vast. Contrast en maten: scripts/ds3_schermen_test.mjs. */
+
+/* ---- Foutmelding (streetpopulation.js showFrameError): een papieren kaart met rode inktrand; de technische tekst zit onder Details ---- */
+.frame-error {
+  position: fixed; left: 50%; bottom: var(--ds-s-4); transform: translateX(-50%); z-index: 90;
+  width: min(calc(var(--ds-s-8) * 8), calc(100vw - var(--ds-s-5)));
+  max-height: calc(100vh - var(--ds-s-5)); overflow: auto;
+  font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-body);
+}
+.frame-error .ds-z-kaart__kop { background: var(--ds-c-rood); color: var(--ds-c-wit); }
+.frame-error .ds-z-kaart__titel { display: inline-flex; align-items: center; gap: var(--ds-s-2); }
+.frame-error .ds-z-kaart__titel .ic { width: var(--ds-s-5); height: var(--ds-s-5); flex: none; }
+.frame-error__tekst { margin: 0; color: var(--ds-c-rood-tx); }
+.frame-error__details > summary { cursor: pointer; font-size: var(--ds-t-hulp); font-weight: var(--ds-gewicht-vet); color: var(--ds-c-rood-tx); padding: var(--ds-s-1) 0; }
+.frame-error__details > pre {
+  margin: var(--ds-s-1) 0 0; padding: var(--ds-s-2) var(--ds-s-3); max-height: calc(var(--ds-s-8) * 2); overflow: auto;
+  background: var(--ds-c-wit); color: var(--ds-c-ink-inkt); border: var(--ds-lijn-dik) solid var(--ds-c-rood); border-radius: var(--ds-r);
+  font: var(--ds-t-hulp) / var(--ds-lh-tekst) ui-monospace, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.frame-error .ds-z-knop { min-height: var(--ds-hoogte-chip); padding: var(--ds-s-1) var(--ds-s-4); font-size: var(--ds-t-label); }
+.frame-error .ds-z-knop--gevaar { background: var(--ds-zeef-bg); }
+
+/* ---- Benchmark, lopend: de stopknop en de fps als papieren plaatjes, boven de beelden en onder de balken ---- */
+#trailer .tr-cancel { align-items: center; } /* de overslaan-hint is lopende tekst: de toets staat in de regel (ds-keycap.css, #1075) */
+#trailer .tr-cancel, #trailer .tr-skip {
+  gap: var(--ds-s-2); padding: var(--ds-s-1) var(--ds-s-3);
+  background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r);
+  box-shadow: var(--ds-schaduw-hard-klein);
+  font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-hulp); letter-spacing: 0; text-shadow: none;
+}
+#trailer .tr-skip .fill { stroke: var(--ds-c-ink-bord); }
+#trailer .tr-skip circle { stroke: var(--ds-c-ink-inkt); }
+#trailer .tr-skip.holding { background: var(--ds-zeef-primair); }
+#trailer .tr-fps {
+  padding: var(--ds-s-1) var(--ds-s-3); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx);
+  border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein);
+  font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-hulp); letter-spacing: var(--ds-ls-label); font-variant-numeric: tabular-nums;
+}
+/* tijdens de meting en op het resultaat zwijgen de ondertitels en bijschriften: ze lagen over het scherm */
+body.trailer-on :is(#banter-sub, #radio-sub, #sound-captions),
+body.tr-result-open :is(#banter-sub, #radio-sub, #sound-captions, #cine) { display: none !important; }
+
+/* ---- Benchmark, resultaat: één zeefdrukpaneel boven alles (z-index boven de ondertitels), cijfers als feiten, advies in bordgroen ---- */
+#trailer-result {
+  position: fixed; inset: 0; z-index: 95; display: flex; align-items: center; justify-content: center; padding: var(--ds-s-4);
+  background: var(--ds-c-ink-inkt); background: color-mix(in srgb, var(--ds-c-ink-inkt) 55%, transparent);
+  animation: tr-res-in var(--ds-m) var(--ds-ease);
+}
+#trailer-result[hidden] { display: none; }
+@keyframes tr-res-in { from { opacity: 0; } to { opacity: 1; } }
+#trailer-result .tr-res {
+  width: min(calc(var(--ds-s-8) * 9), 100%); max-height: calc(100vh - var(--ds-s-6)); overflow: auto;
+  gap: var(--ds-s-3); font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-body);
+}
+#trailer-result .tr-res .ds-z-kaart__kop { margin-top: calc(var(--ds-s-4) * -1); }
+#trailer-result .tr-meta { margin: 0; font-size: var(--ds-t-hulp); color: var(--ds-c-inkt-zacht); }
+#trailer-result .tr-feiten { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--ds-s-3); }
+#trailer-result .tr-cmp { margin: 0; font-size: var(--ds-t-hulp); }
+#trailer-result .tr-cmp.sneller { color: var(--ds-c-groen-tx); font-weight: var(--ds-gewicht-vet); }
+#trailer-result .tr-cmp.trager { color: var(--ds-c-amber-tx); font-weight: var(--ds-gewicht-vet); }
+#trailer-result .tr-cats { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--ds-s-2); }
+#trailer-result .tr-cats b { font-variant-numeric: tabular-nums; }
+#trailer-result .tr-advice { gap: var(--ds-s-1); }
+#trailer-result .tr-advice__kop { margin: 0; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-label); }
+#trailer-result .tr-advice__kop b { font-weight: inherit; }
+#trailer-result .tr-advice small { display: block; font-size: var(--ds-t-hulp); line-height: var(--ds-lh-tekst); }
+#trailer-result .tr-actions { display: flex; flex-wrap: wrap; gap: var(--ds-s-3); margin-top: var(--ds-s-2); }
+#trailer-result .tr-actions .ds-z-knop { font-size: var(--ds-t-subkop); }
+#trailer-result .tr-actions .ds-z-knop[hidden] { display: none; }
+#trailer-result .tr-keys { margin: 0; display: flex; align-items: center; gap: var(--ds-s-2); flex-wrap: wrap; font-size: var(--ds-t-hulp); color: var(--ds-c-inkt-zacht); }
+/* de muis is terug op het resultaat (anders leek de kaart onklikbaar) */
+body.tr-result-open #trailer-result, body.tr-result-open #trailer-result * { cursor: default; }
+body.tr-result-open #trailer-result button { cursor: pointer; }
+@media (max-height: 780px), (max-width: 700px) {
+  #trailer-result .tr-res { gap: var(--ds-s-2); }
+  #trailer-result .ds-z-feit { min-width: calc(var(--ds-s-8) * 1.25); }
+  #trailer-result .ds-z-feit__n { font-size: var(--ds-t-kop); }
+  #trailer-result .tr-actions .ds-z-knop { min-height: var(--ds-hoogte-chip); padding: var(--ds-s-1) var(--ds-s-4); font-size: var(--ds-t-label); }
+}
+@media (prefers-reduced-motion: reduce) { #trailer-result { animation: none; } }
+html.reduce-motion #trailer-result { animation: none; }
+
+/* ---- Technische info (Ctrl+Shift+G, gpudiag.js): een papieren kaart met de tekst in een witte, geranderde strook ---- */
+#gpudiag {
+  position: fixed; inset: 0; z-index: 96; display: flex; align-items: center; justify-content: center; padding: var(--ds-s-4);
+  background: color-mix(in srgb, var(--ds-c-ink-inkt) 55%, transparent);
+}
+#gpudiag[hidden] { display: none; }
+#gpudiag, #gpudiag * { cursor: default; }
+#gpudiag button, #gpudiag button * { cursor: pointer; }
+#gpudiag .gd-box { width: min(calc(var(--ds-s-8) * 11), 100%); max-height: calc(100vh - var(--ds-s-6)); font-family: var(--ds-font-zeef-tekst); }
+#gpudiag pre {
+  margin: 0; flex: 1; min-height: 0; overflow: auto; padding: var(--ds-s-2) var(--ds-s-3); white-space: pre-wrap; overflow-wrap: anywhere; user-select: text;
+  background: var(--ds-c-wit); color: var(--ds-c-ink-inkt); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r);
+  font: var(--ds-t-hulp) / var(--ds-lh-tekst) ui-monospace, Consolas, monospace;
+}
+@media (max-height: 780px) { #gpudiag .ds-z-knop { min-height: var(--ds-hoogte-chip); padding: var(--ds-s-1) var(--ds-s-4); font-size: var(--ds-t-label); } }
+
+/* ---- Drift-kaart (driftzone.js): de multiplier als groot cijfer, de score met tabelcijfers, een balkje tot de volgende multiplier ----
+   Zone: onderband, midden, 214 px boven de onderrand (hudstack.js, DRIFT_ZONE; boven de ondertitel, naast de minikaart en de toetsbalk).
+   De rand wordt per niveau zwaarder en vuller (x1 inkt, x2 bordgroen, x3 en x4 met bordgroene schaduw, x5 met selectievlak). */
+#drift-chip {
+  position: fixed; left: 50%; bottom: 214px; transform: translateX(-50%); z-index: 20; width: 340px; box-sizing: border-box;
+  display: flex; flex-direction: column; gap: var(--ds-s-1); padding: var(--ds-s-2) var(--ds-s-4); pointer-events: none;
+}
+#drift-chip[hidden] { display: none; }
+#drift-chip .dc-rij { display: flex; align-items: center; gap: var(--ds-s-3); }
+#drift-chip .dc-k { font-size: var(--ds-t-label); }
+#drift-chip .dc-m { padding: 0 var(--ds-s-2); min-width: 3ch; text-align: center; background: var(--ds-c-ink-papier); }
+#drift-chip .dc-m .ds-z-feit__n { font-size: var(--ds-t-subkop); }
+#drift-chip .dc-p { flex: 1; text-align: right; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-cijfer); line-height: var(--ds-lh-kop); font-variant-numeric: tabular-nums; }
+#drift-chip .dc-t { min-width: 4ch; text-align: right; font-size: var(--ds-t-hulp); font-variant-numeric: tabular-nums; }
+#drift-chip .dc-actief { background: var(--ds-zeef-primair); }
+#drift-chip.dc-niv2, #drift-chip.dc-niv3, #drift-chip.dc-niv4, #drift-chip.dc-niv5 { border-color: var(--ds-c-ink-bord); }
+#drift-chip.dc-niv3, #drift-chip.dc-niv4, #drift-chip.dc-niv5 { box-shadow: var(--ds-schaduw-hard-bord); }
+#drift-chip.dc-niv4, #drift-chip.dc-niv5 { border-width: calc(var(--ds-lijn-zeef) + 1px); }
+#drift-chip.dc-niv5 { background: var(--ds-c-sel-vlak); }
+#drift-chip .dc-pop { animation: ds-z-puls var(--ds-m-max) var(--ds-ease) 1; }
+#drift-chip .ds-z-balk__vul { transition: width var(--ds-m-snel) linear; }
+@media (prefers-reduced-motion: reduce) { #drift-chip .dc-pop { animation: none; } #drift-chip .ds-z-balk__vul { transition: none; } }
+html.reduce-motion #drift-chip .dc-pop, html.rustig-drukwerk #drift-chip .dc-pop { animation: none; }
+html.reduce-motion #drift-chip .ds-z-balk__vul, html.rustig-drukwerk #drift-chip .ds-z-balk__vul { transition: none; }

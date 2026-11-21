@@ -178,7 +178,7 @@ function fadeIntoSet() {
     if (!fadeEl) {
       fadeEl = document.createElement('div');
       fadeEl.id = 'stage-set-fade';
-      fadeEl.style.cssText = 'position:fixed;inset:0;z-index:12;background:#0c140e;opacity:0;pointer-events:none';
+      fadeEl.style.cssText = 'position:fixed;inset:0;z-index:12;background:var(--ds-c-glas);opacity:0;pointer-events:none';
       document.body.appendChild(fadeEl);
     }
     fadeEl.style.transition = 'none';

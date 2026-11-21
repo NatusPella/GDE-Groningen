@@ -52,7 +52,7 @@ Tokens staan in `game/js/hud_panel.css` (`:root`), `game/js/menu.css` (`.gm`) en
 - Logo is HTML/CSS, nooit een beeld: `logoHtml()` (`logo.js`) en `.gde-logo`
   (`index.html:26`). GDE in Big Shoulders Display 900 van `#f0ede4` naar `#3fc97a`,
   de plaatsnaam op een plaat `#1e9e56`. Big Shoulders is alleen voor het logo.
-- **Leesnorm: 13 px voor menu's en HUD, harde ondergrens 12 px** voor elke zin; alleen de
+- **Leesnorm: 13 px voor menu's en HUD, harde ondergrens 13 px** voor elke zin; alleen de
   binnenkant van een toetsplaatje mag kleiner. Relatieve groottes (`em`, `%`) die krimpen
   krijgen een vloer: `max(13px, .8em)`, nooit kaal `.8em`. `spec_check.mjs` vergelijkt deze
   twee getallen met `READABLE_MIN` (`hudlook.js`) en `TEXT_FLOOR_PX`
@@ -213,7 +213,7 @@ Het doel voor alle UI; het werk is de ombouw-epic van ADR 0040 (#991 tot en met 
 - **Eén materiaal overal:** HUD, menu's, telefoon, kaart, laadschermen en grote momenten zijn zeefdruk op crème papier. Donker glas en de papieren bon verdwijnen als oppervlak; tokens, componenten en galerij blijven het mechanisme.
 - **Palet:** papier `#f3ead3`, inkt `#1d1b17`, bordgroen `#0e6b3c`, zomergeel `#f9c80e`, roze `#e8505b`, plus het ene gevaarrood (ADR 0010) en de kleurenblinde `--mk-*`. Niets anders. Eén geel: `#e8c93a` gaat op in zomergeel; wanted wordt roze sterren met inktrand, een lege ster is raster.
 - **Drukeffecten met een taak:** misdruk (roze, 2 tot 3 px) markeert verandering en identiteit, nooit een zin of toetsplaatje; harde schaduw is de hoogteschaal; raster betekent leeg, uit of op slot; kaarten hooguit 1,5 graden scheef, een kaart met focus staat recht.
-- **Letters:** Barlow Condensed voor titels, cijfers, HUD, knoppen en stempels; Atkinson Hyperlegible voor elke zin. Beide OFL en zelf gehost in `game/fonts/`; de Google Fonts-links verdwijnen (constitution-regel 4). Big Shoulders blijft alleen voor het logo. Leesnorm blijft 13 px, harde ondergrens 12 px.
+- **Letters:** Barlow Condensed voor titels, cijfers, HUD, knoppen en stempels; Atkinson Hyperlegible voor elke zin. Beide OFL en zelf gehost in `game/fonts/`; de Google Fonts-links verdwijnen (constitution-regel 4). Big Shoulders blijft alleen voor het logo. Leesnorm blijft 13 px, harde ondergrens 13 px (alleen de binnenkant van een toetsplaatje: 12 px).
 - **Rustig drukwerk** (instelling): geen misdruk, schuinte, raster of stempelbeweging, alle tekst minstens 7:1, verder dezelfde inkten en layout. Standaard aan op de Steam Deck.
 - **HUD verschijnt bij behoefte:** minimap en doelregel blijven staan; geld, gezondheid, wapen en wanted komen bij een verandering, in gevaar of op een vastgehouden knop en gaan na 4 s weg (instelling "Altijd tonen"). HUD-waarden staan op een papieren plaatje met inktrand. Minimap: afgerond vierkant, route als dikke zomergele lijn, zoom per vervoermiddel, buurtnaam eronder.
 - **Grote momenten:** missie geslaagd of mislukt (schermvullend, Groningse uitroep met Nederlands eronder, beloning en tijd), opgepakt of buiten westen (stempel op een bekeuring, zonder geweld), nieuw gebied of dorp (plaatsnaamstempel), wanted omhoog of omlaag (kort aan de rand, niet schermvullend).
@@ -256,7 +256,7 @@ Elke HUD-kaart (tip, muziekkaart, telefoon- en nieuwskaart, prestatietoast, acti
 
 1. Alleen de tokens hierboven; een rolkleur via `markerColors()` of `--mk-*`. Geen
    nieuwe hex, geen tweede rood, geen blauw accent, geen plat zwart.
-2. Nederlands, uit de woordenlijst, binnen het woordbudget, geen zin onder 12 px
+2. Nederlands, uit de woordenlijst, binnen het woordbudget, geen zin onder 13 px
    (menu's 13+), bekeken op 1280x720, 1280x800 en 4K.
 3. Een menu gebruikt `.gm` en `.m-*`; een HUD-element heeft een zone, een prioriteit,
    een regel in `SURFACES` en een antwoord van `mayShow()`, en neemt geen klik.

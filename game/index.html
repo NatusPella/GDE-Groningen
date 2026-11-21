@@ -9,8 +9,6 @@
 <link rel="apple-touch-icon" href="img/icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#f3ead3">
-<link rel="preload" href="fonts/input/input-keys.ttf" as="font" type="font/ttf" crossorigin>
-<link rel="preload" href="fonts/input/input-xbox.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="stylesheet" href="fonts/fonts.css">
 <!-- de knop- en toetsplaatjes zijn lettertekens: vooraf laden, anders staat er even een vakje met een vraagteken (menu Besturing) -->
 <link rel="preload" href="fonts/input/input-xbox.ttf" as="font" type="font/ttf" crossorigin>
@@ -24,8 +22,10 @@
 <link rel="stylesheet" href="js/ds-keycap.css">
 <link rel="stylesheet" href="js/ds-motion.css">
 <link rel="stylesheet" href="js/ds-micro.css">
+<link rel="stylesheet" href="js/ds-beweging.css">
 <link rel="stylesheet" href="js/farm.css">
 <link rel="stylesheet" href="js/ds-menu-zeef.css">
+<link rel="stylesheet" href="js/ds-schermen.css">
 <link rel="stylesheet" href="js/samenspelen.css">
 <link rel="stylesheet" href="js/sim.css">
 <link rel="stylesheet" href="js/startscreen.css">
@@ -34,17 +34,17 @@
 <style>
   html, body { margin: 0; padding: 0; background: var(--ds-c-ink-papier); overflow: hidden; height: 100%; }
   #game3d { background: var(--ds-c-ink-inkt, #1d211f); display: block; width: 100vw; height: 100vh; cursor: none; position: fixed; inset: 0; }
-  #hud { position: fixed; inset: 0; pointer-events: none; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; }
-  :root { --gron-green: #1e9e56; --gron-green-light: #3fc97a; --gron-green-dark: #0f5c30; --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  #hud { position: fixed; inset: 0; pointer-events: none; font-family: var(--ds-font-kop); }
+  :root { --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
   @keyframes grain { 0% { background-position: 0 0; } 25% { background-position: -40px 30px; } 50% { background-position: 30px -50px; } 75% { background-position: -60px -20px; } 100% { background-position: 0 0; } }
 
   /* the GDE wordmark (logo.js): GDE, the place on a place-name sign, the subtitle */
-  .gde-logo { display: inline-flex; flex-direction: column; align-items: stretch; text-align: center; font-family: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif; font-weight: 800; line-height: 1; color: #1d1b17;
-    padding: 0.07em 0.13em 0.1em; background: #f3ead3; border: 0.035em solid #1d1b17; border-radius: 0.07em; box-shadow: 0.045em 0.045em 0 #1d1b17; }
-  .gde-logo .gde-mark { line-height: 0.74; padding-top: 0.05em; letter-spacing: 0.01em; color: #0e6b3c; text-shadow: 0.03em 0.03em 0 #e8505b; }
-  .gde-logo .gde-sign { margin-top: 0.3em; padding: 0.2em 0.5em 0.12em; font-size: 0.25em; font-weight: 800; letter-spacing: 0.09em; text-indent: 0.09em; text-transform: uppercase; color: #1d1b17; background: #f9c80e; border: 0.14em solid #1d1b17; border-radius: 0.2em; }
-  .gde-logo .gde-sub { margin-top: 0.5em; font: 700 0.13em/1.1 'Atkinson Hyperlegible', Arial, sans-serif; letter-spacing: 0.02em; color: #0e6b3c; }
-  .gde-logo .gde-meaning { margin-top: 0.7em; font-size: 0.065em; font-weight: 700; letter-spacing: 0.42em; text-indent: 0.42em; text-transform: uppercase; color: #1d1b17; }
+  .gde-logo { display: inline-flex; flex-direction: column; align-items: stretch; text-align: center; font-family: var(--ds-font-zeef-kop); font-weight: 800; line-height: 1; color: var(--ds-c-ink-inkt);
+    padding: 0.07em 0.13em 0.1em; background: var(--ds-c-ink-papier); border: 0.035em solid var(--ds-c-ink-inkt); border-radius: 0.07em; box-shadow: 0.045em 0.045em 0 var(--ds-c-ink-inkt); }
+  .gde-logo .gde-mark { line-height: 0.74; padding-top: 0.05em; letter-spacing: 0.01em; color: var(--ds-c-ink-bord); text-shadow: 0.03em 0.03em 0 var(--ds-c-ink-roze); }
+  .gde-logo .gde-sign { margin-top: 0.3em; padding: 0.2em 0.5em 0.12em; font-size: 0.25em; font-weight: 800; letter-spacing: 0.09em; text-indent: 0.09em; text-transform: uppercase; color: var(--ds-c-ink-inkt); background: var(--ds-c-ink-geel); border: 0.14em solid var(--ds-c-ink-inkt); border-radius: 0.2em; }
+  .gde-logo .gde-sub { margin-top: 0.5em; font: 700 0.13em/1.1 var(--ds-font-zeef-tekst); letter-spacing: 0.02em; color: var(--ds-c-ink-bord); }
+  .gde-logo .gde-meaning { margin-top: 0.7em; font-size: 0.065em; font-weight: 700; letter-spacing: 0.42em; text-indent: 0.42em; text-transform: uppercase; color: var(--ds-c-ink-inkt); }
   #cine .cine-big .gde-logo { position: relative; isolation: isolate; font-size: clamp(100px, 16vw, 210px); letter-spacing: 0; text-shadow: none; }
 
   /* the boot screen (startscreen.js): the first thing the window shows. Summer screen print
@@ -54,7 +54,7 @@
     position: fixed; inset: 0; z-index: 30; overflow: hidden; color: var(--ds-c-ink-inkt);
     background-color: var(--ds-c-ink-papier);
     background-image: var(--ds-raster); background-size: 14px 14px; background-position: 0 0;
-    font-family: var(--ds-font-zeef-tekst); transition: opacity 0.7s ease;
+    font-family: var(--ds-font-zeef-tekst); transition: opacity 0.7s ease; /* ds3-film: scene */
   }
   #loading::before { content: ''; position: absolute; inset: 0; background: var(--ds-c-ink-papier); -webkit-mask-image: radial-gradient(ellipse at center, rgba(29,27,23,1) 38%, transparent 95%); mask-image: radial-gradient(ellipse at center, rgba(29,27,23,1) 38%, transparent 95%); pointer-events: none; }
   #loading.ls-over .bt-load { opacity: 0; transition: opacity 0.2s; }
@@ -62,9 +62,9 @@
   #loading .bt { position: absolute; left: 0; top: 0; width: calc(100vw / var(--ui, 1)); height: calc(100vh / var(--ui, 1)); zoom: var(--ui, 1); }
   #loading .bt-logo { position: absolute; left: 0; right: 0; top: 17%; display: flex; flex-direction: column; align-items: center; transform: rotate(var(--ds-schuin)); }
   #loading .gde-logo { font-size: 216px; font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-inkt); }
-  #loading .gde-mark { animation: bt-stamp 0.9s cubic-bezier(.2,.7,.2,1) both; position: relative; background: none; -webkit-background-clip: border-box; background-clip: border-box; color: var(--ds-c-ink-inkt); filter: none; text-shadow: var(--ds-misdruk); letter-spacing: 0.01em; }
-  #loading .gde-sign { animation: bt-stamp 0.7s 0.5s cubic-bezier(.2,.7,.2,1) both; font-size: max(13px, 0.28em); font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-papier); background: var(--ds-c-ink-bord); border-radius: 0; box-shadow: var(--ds-schaduw-hard); }
-  #loading .gde-sub { animation: bt-stamp 0.7s 0.9s both; font: 600 0.14em/1.1 var(--ds-font-zeef-kop); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ds-c-ink-inkt); text-shadow: none; margin-top: 0.6em; }
+  #loading .gde-mark { animation: bt-stamp 0.9s cubic-bezier(.2,.7,.2,1) both; position: relative; background: none; -webkit-background-clip: border-box; background-clip: border-box; color: var(--ds-c-ink-inkt); filter: none; text-shadow: var(--ds-misdruk); letter-spacing: 0.01em; } /* ds3-film: scene */
+  #loading .gde-sign { animation: bt-stamp 0.7s 0.5s cubic-bezier(.2,.7,.2,1) both; font-size: max(13px, 0.28em); font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-papier); background: var(--ds-c-ink-bord); border-radius: 0; box-shadow: var(--ds-schaduw-hard); } /* ds3-film: scene */
+  #loading .gde-sub { animation: bt-stamp 0.7s 0.9s both; font: 600 0.14em/1.1 var(--ds-font-zeef-kop); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ds-c-ink-inkt); text-shadow: none; margin-top: 0.6em; } /* ds3-film: scene */
   #loading .bt-load { position: absolute; left: 0; right: 0; top: 72%; display: flex; flex-direction: column; align-items: center; gap: 14px; }
   #loading .ld-bar { width: 467px; height: 20px; box-sizing: border-box; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); background-color: var(--ds-c-ink-papier); background-image: var(--ds-raster); background-size: var(--ds-raster-maat); box-shadow: var(--ds-schaduw-hard); overflow: hidden; position: relative; }
   #loading .ld-fill { height: 100%; background: var(--ds-c-ink-bord); border-right: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-sizing: border-box; transform-origin: left; transform: scaleX(0.04); transition: transform 0.1s linear; }
@@ -95,33 +95,28 @@
 
   #start-screen .key, #pause-menu .hud-key {
     display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 22px; padding: 0 7px;
-    background: linear-gradient(180deg, #4a4f47, #2a2e28); border: 1px solid rgba(255,255,255,0.35); border-bottom: 2px solid rgba(0,0,0,0.6);
-    border-radius: 4px; color: var(--gron-green-light); font-weight: bold; font-size: 12px; letter-spacing: 0.5px;
-    box-shadow: 0 1px 0 rgba(255,255,255,0.08) inset; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
+    background: linear-gradient(180deg, #4a4f47, var(--ds-c-glas-3)); border: 1px solid color-mix(in srgb, var(--ds-c-wit) 35%, transparent); border-bottom: 2px solid color-mix(in srgb, var(--ds-c-ink-inkt) 60%, transparent);
+    border-radius: 4px; color: var(--ds-c-licht-groen); font-weight: bold; font-size: var(--ds-t-toets); letter-spacing: 0.5px;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.08) inset; font-family: var(--ds-font-kop);
   }
-  .frame-error {
-    position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 30;
-    max-width: calc(100vw - 32px); box-sizing: border-box; padding: 10px 16px;
-    background: rgba(90, 16, 16, 0.92); border: 1px solid #d93f3f; border-radius: 4px;
-    color: #f2f2f2; font: 14px/1.4 sans-serif;
-  }
+  /* .frame-error (de foutmelding): zie js/ds-schermen.css */
 
   /* motion (motion.js): the one set of timings for UI changes */
   :root { --ease-out: cubic-bezier(.2,.8,.2,1); --ease-pop: cubic-bezier(.3,1.4,.5,1); --dur-fast: 120ms; --dur-base: 200ms; --dur-slow: 320ms; --dur-bar: 300ms; }
   html.reduce-motion { --dur-fast: 0ms; --dur-base: 0ms; --dur-slow: 0ms; --dur-bar: 0ms; }
   html.reduce-motion *, html.reduce-motion *::before, html.reduce-motion *::after { animation-duration: 0ms !important; animation-delay: 0ms !important; transition-duration: 0ms !important; transition-delay: 0ms !important; }
   @keyframes mo-pop { 0% { transform: scale(1); } 45% { transform: scale(1.06); } 100% { transform: scale(1); } }
-  @keyframes mo-ring { 0% { box-shadow: 0 0 0 0 rgba(63,201,122,0.55); } 100% { box-shadow: 0 0 0 14px rgba(63,201,122,0); } }
+  @keyframes mo-ring { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ds-c-licht-groen) 55%, transparent); } 100% { box-shadow: 0 0 0 14px color-mix(in srgb, var(--ds-c-licht-groen) 0%, transparent); } }
   @keyframes mo-shine { from { transform: translateX(-120%) skewX(-20deg); } to { transform: translateX(220%) skewX(-20deg); } }
   @keyframes mo-in { from { opacity: 0; transform: translateY(6px); } }
   .mo-pop { animation: mo-pop var(--dur-base) var(--ease-pop); }
   /* knop-tik (#985): een ingedrukte menuknop zakt in (alleen transform); geen eigen transition, zodat de bestaande hover niet wordt overschreven */
   .m-bg:active:not(:disabled), .m-li button:active:not(:disabled) { transform: scale(0.96); }
-  .mo-ring { animation: mo-ring 700ms var(--ease-out); }
-  .mo-shine::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.75), transparent); animation: mo-shine 520ms var(--ease-out) forwards; pointer-events: none; }
+  .mo-ring { animation: mo-ring var(--ds-m-max) var(--ease-out); }
+  .mo-shine::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--ds-c-wit) 75%, transparent), transparent); animation: mo-shine var(--ds-m-max) var(--ease-out) forwards; pointer-events: none; }
 
   /* "H9 nu al spelen?" (todo.js) and the help offer: a paper card in screen print (ADR 0040) */
-  #gde-ahead , #hulpaanbod { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: rgba(29,27,23,0.55); font-family: var(--ds-font-zeef-tekst); }
+  #gde-ahead , #hulpaanbod { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: color-mix(in srgb, var(--ds-c-ink-inkt) 55%, transparent); font-family: var(--ds-font-zeef-tekst); }
   #gde-ahead[hidden] , #hulpaanbod[hidden] { display: none; }
   #gde-ahead .ga-box , #hulpaanbod .ga-box { zoom: calc(var(--ui, 1.2) / 1.2); width: min(600px, calc(100vw / var(--ui, 1.2) * 1.2 - 32px)); box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; padding: 36px 40px; background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard); transform: rotate(var(--ds-schuin)); animation: mo-in var(--dur-slow) var(--ease-out); }
   #gde-ahead b , #hulpaanbod b { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 52px; line-height: 0.95; letter-spacing: 0.01em; color: var(--ds-c-ink-bord); text-shadow: var(--ds-misdruk); }
@@ -137,11 +132,11 @@
   html.rustig-drukwerk #gde-ahead .ga-box , html.rustig-drukwerk #hulpaanbod .ga-box { animation: none; }
 
   #pause-menu .hud-mouse { width: 19px; height: 27px; flex: none; overflow: visible; }
-  #pause-menu .hud-mouse .m-body { fill: rgba(42,46,40,0.9); stroke: rgba(255,255,255,0.55); stroke-width: 1.2; }
-  #pause-menu .hud-mouse .m-seam { stroke: rgba(255,255,255,0.35); stroke-width: 0.9; fill: none; }
+  #pause-menu .hud-mouse .m-body { fill: color-mix(in srgb, var(--ds-c-glas-3) 90%, transparent); stroke: color-mix(in srgb, var(--ds-c-wit) 55%, transparent); stroke-width: 1.2; }
+  #pause-menu .hud-mouse .m-seam { stroke: color-mix(in srgb, var(--ds-c-wit) 35%, transparent); stroke-width: 0.9; fill: none; }
   #pause-menu .hud-mouse .m-l, #pause-menu .hud-mouse .m-r, #pause-menu .hud-mouse .m-w { fill: transparent; }
-  #pause-menu .hud-mouse[data-btn="l"] .m-l, #pause-menu .hud-mouse[data-btn="r"] .m-r, #pause-menu .hud-mouse[data-btn="w"] .m-w { fill: var(--gron-green-light); }
-  #pause-menu .hud-mouse[data-btn="move"] .m-body { stroke: var(--gron-green-light); }
+  #pause-menu .hud-mouse[data-btn="l"] .m-l, #pause-menu .hud-mouse[data-btn="r"] .m-r, #pause-menu .hud-mouse[data-btn="w"] .m-w { fill: var(--ds-c-licht-groen); }
+  #pause-menu .hud-mouse[data-btn="move"] .m-body { stroke: var(--ds-c-licht-groen); }
   #pause-menu .hud-wasd { display: inline-grid; grid-template-columns: repeat(3, auto); gap: 2px; }
   #pause-menu .hud-wasd .hud-key { min-width: 17px; height: 16px; padding: 0 3px; font-size: 10.5px; border-bottom-width: 1px; border-radius: 3px; }
   #pause-menu .hud-wasd .hud-key:first-child { grid-column: 2; }
@@ -192,7 +187,7 @@
       <div class="ss-news-body" tabindex="0"></div>
     </section>
     <p class="ss-foot"><span class="m-hint"><span class="m-kc">↑</span><span class="m-kc">↓</span><span>kiezen</span></span><span class="m-hint"><span class="m-kc">Enter</span><span>ok</span></span></p>
-    <p class="ss-credit">Met liefde <span class="heart" role="img" aria-label="liefde">❤️</span> in Grunn gemaakt, met AI<span class="ss-ver"></span></p>
+    <p class="ss-credit">Met liefde <span class="heart" role="img" aria-label="liefde"></span> in Grunn gemaakt, met AI<span class="ss-ver"></span></p>
   </div>
 </div>
 <!-- GLTFLoader.js (used by landmarkmodels.js) imports the bare specifier

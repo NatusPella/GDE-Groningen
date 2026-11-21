@@ -29,14 +29,14 @@ function build(taxi = false, label = '', trein = false) {
   // meter. De rest van de scène blijft dezelfde dunne, overslaanbare laag.
   const taxiLayer = taxi
     ? '<div class="rr-taxi" style="--p:0;position:relative;height:120px;margin:20px auto 0;width:min(520px,80vw)">'
-      + '<div style="position:absolute;left:0;right:0;bottom:18px;height:3px;background:#0f5c30"></div>'
+      + '<div style="position:absolute;left:0;right:0;bottom:18px;height:3px;background:var(--ds-c-ink-bord)"></div>'
       + '<div class="rr-cab" style="position:absolute;bottom:20px;left:6%;width:88px;height:46px">'
-      + '<div style="position:absolute;left:6px;right:6px;top:14px;height:26px;background:#e8c93a;border-radius:5px 8px 3px 3px"></div>'
-      + '<div style="position:absolute;left:22px;right:16px;top:2px;height:16px;background:#e8c93a;border-radius:6px 8px 0 0"></div>'
-      + '<div style="position:absolute;left:28px;right:22px;top:5px;height:10px;background:#0f5c30"></div>'
-      + '<div style="position:absolute;left:20px;top:-4px;width:34px;height:8px;background:#f0ede4;border-radius:2px;color:#0f5c30;font:bold 7px Arial,sans-serif;text-align:center;line-height:8px">TAXI</div>'
-      + '<div style="position:absolute;left:14px;bottom:-5px;width:16px;height:16px;border-radius:50%;background:#0f5c30;border:2px solid #f0ede4"></div>'
-      + '<div style="position:absolute;right:14px;bottom:-5px;width:16px;height:16px;border-radius:50%;background:#0f5c30;border:2px solid #f0ede4"></div>'
+      + '<div style="position:absolute;left:6px;right:6px;top:14px;height:26px;background:var(--ds-c-ink-geel);border-radius:5px 8px 3px 3px"></div>'
+      + '<div style="position:absolute;left:22px;right:16px;top:2px;height:16px;background:var(--ds-c-ink-geel);border-radius:6px 8px 0 0"></div>'
+      + '<div style="position:absolute;left:28px;right:22px;top:5px;height:10px;background:var(--ds-c-ink-bord)"></div>'
+      + '<div style="position:absolute;left:20px;top:-4px;width:34px;height:8px;background:var(--ds-c-creme);border-radius:2px;color:var(--ds-c-ink-bord);font:bold 7px Arial,sans-serif;text-align:center;line-height:8px">TAXI</div>'
+      + '<div style="position:absolute;left:14px;bottom:-5px;width:16px;height:16px;border-radius:50%;background:var(--ds-c-ink-bord);border:2px solid var(--ds-c-creme)"></div>'
+      + '<div style="position:absolute;right:14px;bottom:-5px;width:16px;height:16px;border-radius:50%;background:var(--ds-c-ink-bord);border:2px solid var(--ds-c-creme)"></div>'
       + '</div></div>'
     : '';
   el.innerHTML = treinLayer + '<div></div><div class="rr-mid" style="display:grid;place-items:center;text-align:center;padding:0 8%;position:relative"><div class="rr-plaat" style="background:var(--ds-c-ink-papier);padding:14px 26px 18px;border:var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt);border-radius:8px;box-shadow:var(--ds-schaduw-hard)"><div class="rr-lijn" style="font:800 16px var(--ds-font-zeef-kop);letter-spacing:0.12em;color:var(--ds-c-ink-bord)"></div><div class="rr-tekst" style="font:800 34px var(--ds-font-zeef-kop);margin-top:10px"></div><div class="rr-balk" style="margin:22px auto 0;width:280px;height:14px;background:var(--ds-c-ink-papier);border:var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt);box-sizing:border-box;border-radius:4px;overflow:hidden"><div class="rr-vul" style="height:100%;width:0;background:var(--ds-c-ink-geel)"></div></div>' + taxiLayer + '</div></div>' +

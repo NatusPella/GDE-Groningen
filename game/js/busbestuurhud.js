@@ -23,12 +23,12 @@ function getRow() {
   if (!document.getElementById('busbed-style')) {
     const st = document.createElement('style');
     st.id = 'busbed-style';
-    st.textContent = `#hud .hud-busbed{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:2px 12px;max-width:100%;margin-top:6px;font-size:max(13px,var(--hud-min, 13px));color:rgba(240,237,228,.85)}
+    st.textContent = `#hud .hud-busbed{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:2px 12px;max-width:100%;margin-top:6px;font-size:max(13px,var(--hud-min, 13px));color:color-mix(in srgb, var(--ds-c-creme) 85%, transparent)}
 #hud .hud-busbed>span{white-space:nowrap}
-#hud .hud-busbed .bb-stop{padding:0 8px;border-radius:3px;background:rgba(80,24,18,.9);color:rgba(240,237,228,.45);letter-spacing:2px;font-weight:bold}
-#hud .hud-busbed .bb-stop.on{background:var(--mk-danger, #d93f3f);color:#fff}
+#hud .hud-busbed .bb-stop{padding:0 8px;border-radius:3px;background:rgba(80,24,18,.9);color:color-mix(in srgb, var(--ds-c-creme) 45%, transparent);letter-spacing:2px;font-weight:bold}
+#hud .hud-busbed .bb-stop.on{background:var(--mk-danger, #d93f3f);color:var(--ds-c-wit)}
 #hud .hud-busbed .on:not(.bb-stop){color:var(--mk-mission, #e8c93a)}
-#hud .hud-busbed .bb-tev{display:none;color:#f0ede4}`;
+#hud .hud-busbed .bb-tev{display:none;color:var(--ds-c-creme)}`;
     document.head.appendChild(st);
   }
   const el = document.createElement('div');

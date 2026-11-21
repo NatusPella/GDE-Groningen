@@ -270,47 +270,47 @@ body.heli-run #hud .hud-top-left, body.heli-run #hud .hud-wanted, body.heli-run 
 body.heli-run #hud .hud-money-delta, body.heli-run #hud .hud-weapon, body.heli-run #hud .hud-mission,
 body.heli-run #hud .hud-speedo, body.heli-run #hud .hud-route, body.heli-run #hud .hud-damage, body.heli-run .phonefeed-card { display: none !important; }
 #heli-hud[hidden] { display: none; }
-#heli-hud { position: fixed; inset: 0; pointer-events: none; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; color: #f0ede4; z-index: 5; }
-#heli-hud .hh-panel { position: absolute; top: 14px; left: 14px; min-width: 200px; padding: 10px 14px 12px; background: linear-gradient(160deg, rgba(20,16,6,0.8), rgba(20,16,6,0.5)); border-left: 4px solid var(--mk-mission, #e8c93a); border-radius: 0 6px 6px 0; box-shadow: 0 4px 18px rgba(0,0,0,0.35); }
-#heli-hud .hh-title { font-size: 24px; letter-spacing: 2px; color: var(--mk-mission, #e8c93a); line-height: 1; max-width: 260px; }
-#heli-hud .hh-row { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; margin-top: 4px; font-size: 16px; letter-spacing: 1px; color: rgba(240,237,228,0.75); }
+#heli-hud { position: fixed; inset: 0; pointer-events: none; font-family: var(--ds-font-zeef-kop); font-weight: 600; color: var(--ds-c-ink-inkt); z-index: 5; }
+#heli-hud .hh-panel { position: absolute; top: 14px; left: 14px; min-width: 200px; padding: 10px 14px 12px; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-left: 8px solid var(--ds-c-ink-bord); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); }
+#heli-hud .hh-title { font-size: 24px; font-weight: 800; letter-spacing: 2px; color: var(--ds-c-ink-bord); line-height: 1; max-width: 260px; }
+#heli-hud .hh-row { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; margin-top: 4px; font-size: 16px; letter-spacing: 1px; color: var(--ds-c-inkt-zacht); }
 #heli-hud .hh-row[hidden] { display: none; }
-#heli-hud .hh-row b { font-weight: normal; font-size: 24px; color: #f0ede4; }
-#heli-hud .hh-row b.low { color: var(--mk-danger, #d93f3f); }
-#heli-hud .hh-score b { color: var(--mk-mission, #e8c93a); font-size: 30px; }
-#heli-hud .hh-alt { position: absolute; right: 26px; top: 50%; transform: translateY(-50%); width: 46px; height: 260px; background: rgba(20,16,6,0.55); border-radius: 6px; border: 1px solid rgba(240,194,26,0.4); }
+#heli-hud .hh-row b { font-weight: 800; font-size: 24px; color: var(--ds-c-ink-inkt); }
+#heli-hud .hh-row b.low { color: var(--ds-c-rood-tx); }
+#heli-hud .hh-score b { color: var(--ds-c-ink-bord); font-size: 30px; }
+#heli-hud .hh-alt { position: absolute; right: 26px; top: 50%; transform: translateY(-50%); width: 46px; height: 260px; background: var(--ds-c-ink-papier); border-radius: var(--ds-r); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); }
 #heli-hud .hh-alt i { position: absolute; left: 4px; right: 4px; height: 4px; margin-top: -2px; border-radius: 2px; }
-#heli-hud .hh-alt .me { background: var(--mk-mission, #e8c93a); box-shadow: 0 0 8px var(--mk-mission, #e8c93a); }
-#heli-hud .hh-alt .bal { background: var(--mk-care, #ff5fb4); }
-#heli-hud .hh-alt .ring { background: rgba(93,255,122,0.85); height: 3px; }
+#heli-hud .hh-alt .me { background: var(--ds-c-ink-bord); }
+#heli-hud .hh-alt .bal { background: var(--ds-c-ink-roze); }
+#heli-hud .hh-alt .ring { background: var(--ds-c-ink-geel); height: 3px; }
 #heli-hud .hh-alt span { position: absolute; left: -2px; right: -2px; bottom: -22px; text-align: center; font-size: 15px; }
-#heli-hud .hh-guide { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); text-align: center; padding: 6px 16px 8px; background: rgba(20,16,6,0.6); border-radius: 8px; min-width: 220px; max-width: 90vw; }
+#heli-hud .hh-guide { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); text-align: center; padding: 6px 16px 8px; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); min-width: 220px; max-width: 90vw; }
 #heli-hud .hh-guide[hidden] { display: none; }
 #heli-hud .hh-arrow { display: block; width: 46px; height: 46px; margin: 0 auto; }
-#heli-hud .hh-arrow path { fill: var(--mk-ok, #3fc97a); stroke: #0c140e; stroke-width: 2; }
+#heli-hud .hh-arrow path { fill: var(--ds-c-ink-bord); stroke: var(--ds-c-ink-inkt); stroke-width: 2; }
 #heli-hud .hh-goal { font-size: 20px; letter-spacing: 1px; line-height: 1.1; }
-#heli-hud .hh-goal small { display: block; font: 14px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.85); letter-spacing: 0; }
-#heli-hud .hh-goal .up, #heli-hud .hh-goal .down { color: var(--mk-mission, #e8c93a); }
+#heli-hud .hh-goal small { display: block; font: 14px var(--ds-font-zeef-tekst); color: var(--ds-c-inkt-zacht); letter-spacing: 0; }
+#heli-hud .hh-goal .up, #heli-hud .hh-goal .down { color: var(--ds-c-ink-bord); }
 #heli-hud .hh-catch { position: absolute; left: 50%; bottom: 17%; transform: translateX(-50%); width: min(520px, 90vw); text-align: center; }
 #heli-hud .hh-catch[hidden] { display: none; }
-#heli-hud .hh-catch .lbl { font-size: 20px; letter-spacing: 1px; text-shadow: 0 2px 6px rgba(0,0,0,0.7); }
-#heli-hud .hh-catch .bar { height: 10px; margin-top: 6px; background: rgba(240,237,228,0.15); border-radius: 5px; overflow: hidden; }
-#heli-hud .hh-catch .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--mk-mission, #e8c93a), var(--mk-ok, #3fc97a)); }
-#heli-hud .hh-catch .tips { margin-top: 5px; font: 14px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.85); }
-#heli-hud .hh-catch .tips .ok { color: var(--mk-ok, #3fc97a); }
-#heli-hud .hh-msg { position: absolute; left: 50%; top: 24%; transform: translateX(-50%); font-size: 34px; letter-spacing: 2px; color: var(--mk-mission, #e8c93a); text-shadow: 0 2px 10px rgba(0,0,0,0.75); opacity: 0; transition: opacity .2s; white-space: nowrap; }
+#heli-hud .hh-catch .lbl { font-size: 20px; letter-spacing: 1px; color: var(--ds-c-ink-papier); text-shadow: 3px 3px 0 var(--ds-c-ink-inkt); }
+#heli-hud .hh-catch .bar { height: 14px; margin-top: 6px; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 7px; overflow: hidden; }
+#heli-hud .hh-catch .bar i { display: block; height: 100%; width: 0; background: var(--ds-c-ink-bord); }
+#heli-hud .hh-catch .tips { margin-top: 5px; font: 14px var(--ds-font-zeef-tekst); color: var(--ds-c-ink-papier); text-shadow: 2px 2px 0 var(--ds-c-ink-inkt); }
+#heli-hud .hh-catch .tips .ok { color: var(--ds-c-ink-papier); font-weight: 800; }
+#heli-hud .hh-msg { position: absolute; left: 50%; top: 24%; transform: translateX(-50%); font-size: 34px; font-weight: 800; letter-spacing: 2px; color: var(--ds-c-ink-papier); text-shadow: 3px 3px 0 var(--ds-c-ink-inkt); opacity: 0; transition: opacity .2s; white-space: nowrap; }
 #heli-hud .hh-msg.on { opacity: 1; }
-#heli-hud .hh-say { position: absolute; left: 50%; bottom: 27%; transform: translateX(-50%); width: max-content; max-width: min(640px, 90vw); padding: 6px 14px; background: rgba(12,12,12,0.66); border-radius: 6px; font: 18px/1.3 'Arial Narrow', Arial, sans-serif; text-align: center; opacity: 0; transition: opacity .2s; }
+#heli-hud .hh-say { position: absolute; left: 50%; bottom: 27%; transform: translateX(-50%); width: max-content; max-width: min(640px, 90vw); padding: 6px 14px; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); font: 18px/1.3 var(--ds-font-zeef-tekst); text-align: center; opacity: 0; transition: opacity .2s; }
 #heli-hud .hh-say.on { opacity: 1; }
-#heli-hud .hh-help { position: absolute; left: 50%; bottom: 7%; transform: translateX(-50%); max-width: 92vw; font: 15px 'Arial Narrow', Arial, sans-serif; letter-spacing: .5px; padding: 6px 14px; background: rgba(20,16,6,0.6); border-radius: 6px; transition: opacity .6s; text-align: center; }
-#heli-hud .hh-help kbd, #heli-hud .hh-help .hud-key { border-bottom-width: 3px; border-radius: 5px; font-family: 'Arial Narrow', Arial, sans-serif; font-weight: bold; }
-#heli-hud .hh-fade { position: absolute; inset: 0; background: #000; opacity: 0; transition: opacity .6s; }
+#heli-hud .hh-help { position: absolute; left: 50%; bottom: 7%; transform: translateX(-50%); max-width: 92vw; font: 15px var(--ds-font-zeef-tekst); letter-spacing: .5px; padding: 6px 14px; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); transition: opacity var(--ds-m-max); text-align: center; }
+#heli-hud .hh-help kbd, #heli-hud .hh-help .hud-key { border-bottom-width: 3px; border-radius: 5px; font-family: var(--ds-font-tekst); font-weight: bold; }
+#heli-hud .hh-fade { position: absolute; inset: 0; background: var(--ds-c-ink-inkt); opacity: 0; transition: opacity .6s; } /* ds3-film: scene */
 #heli-hud .hh-fade.on { opacity: 1; }
-#heli-hud .hh-fade span { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 30px; letter-spacing: 3px; color: var(--mk-mission, #e8c93a); white-space: nowrap; }
-#heli-hud .hh-card { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(.96); min-width: min(340px, 90vw); padding: 18px 26px; text-align: center; background: rgba(20,16,6,0.86); border-top: 4px solid var(--mk-mission, #e8c93a); border-radius: 8px; opacity: 0; transition: opacity .35s, transform .35s; }
+#heli-hud .hh-fade span { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 30px; letter-spacing: 3px; color: var(--ds-c-ink-papier); white-space: nowrap; }
+#heli-hud .hh-card { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(.96); min-width: min(340px, 90vw); padding: 18px 26px; text-align: center; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-top: 8px solid var(--ds-c-ink-bord); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); opacity: 0; transition: opacity var(--ds-m-max), transform var(--ds-m-max); }
 #heli-hud .hh-card.on { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-#heli-hud .hh-card h2 { margin: 0; font-size: 42px; font-weight: normal; letter-spacing: 3px; color: var(--mk-mission, #e8c93a); }
-#heli-hud .hh-card p { margin: 4px 0 0; font: 16px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.85); }
+#heli-hud .hh-card h2 { margin: 0; font-size: 42px; font-weight: 800; letter-spacing: 3px; color: var(--ds-c-ink-bord); }
+#heli-hud .hh-card p { margin: 4px 0 0; font: 16px var(--ds-font-zeef-tekst); color: var(--ds-c-inkt-zacht); }
 #heli-hud .hh-card .medal { font-size: 30px; letter-spacing: 2px; margin-top: 8px; }
 @media (prefers-reduced-motion: reduce) {
   #heli-hud .hh-msg, #heli-hud .hh-say, #heli-hud .hh-help, #heli-hud .hh-fade, #heli-hud .hh-card { transition: none; }

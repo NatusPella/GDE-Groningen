@@ -19,16 +19,16 @@ html.touch-play #touch-ui { display: block; }
 #touch-ui .t-zone { position: absolute; top: 0; bottom: 0; pointer-events: auto; touch-action: none; }
 #touch-ui .t-left { left: 0; width: 45%; }
 #touch-ui .t-right { right: 0; width: 55%; }
-#touch-ui .t-ring { position: absolute; width: 112px; height: 112px; margin: -56px 0 0 -56px; border-radius: 50%; border: 2px solid rgba(240, 237, 228, 0.45); background: rgba(10, 19, 13, 0.25); display: none; }
-#touch-ui .t-knob { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%; background: rgba(63, 201, 122, 0.7); }
-#touch-ui .t-btn { position: absolute; pointer-events: auto; touch-action: none; min-width: 64px; height: 64px; padding: 0 8px; box-sizing: border-box; border-radius: 32px; border: 2px solid rgba(240, 237, 228, 0.55);
-  background: rgba(10, 19, 13, 0.5); color: #f0ede4; font: 17px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; }
-#touch-ui .t-btn.on { background: rgba(63, 201, 122, 0.75); color: #0c140e; }
+#touch-ui .t-ring { position: absolute; width: 112px; height: 112px; margin: -56px 0 0 -56px; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--ds-c-creme) 45%, transparent); background: rgba(10, 19, 13, 0.25); display: none; }
+#touch-ui .t-knob { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%; background: color-mix(in srgb, var(--ds-c-licht-groen) 70%, transparent); }
+#touch-ui .t-btn { position: absolute; pointer-events: auto; touch-action: none; min-width: 64px; height: 64px; padding: 0 8px; box-sizing: border-box; border-radius: 32px; border: 2px solid color-mix(in srgb, var(--ds-c-creme) 55%, transparent);
+  background: rgba(10, 19, 13, 0.5); color: var(--ds-c-creme); font: 17px var(--ds-font-kop); letter-spacing: 1px; display: flex; align-items: center; justify-content: center; }
+#touch-ui .t-btn.on { background: color-mix(in srgb, var(--ds-c-licht-groen) 75%, transparent); color: var(--ds-c-glas); }
 #touch-ui .t-more { right: calc(max(10px, env(safe-area-inset-right)) + 68px); top: max(10px, env(safe-area-inset-top)); min-width: 64px; height: 64px; font-size: 15px; }
 #touch-ui .t-panel { position: absolute; right: calc(max(10px, env(safe-area-inset-right)) + 56px); top: max(10px, env(safe-area-inset-top)); display: none; flex-wrap: wrap; gap: 8px; max-width: 60%; justify-content: flex-end; pointer-events: auto; }
 #touch-ui .t-panel.open { display: flex; }
 #touch-ui .t-panel .t-btn { position: static; }
-#touch-ui .t-turn { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); padding: 8px 14px; border-radius: 18px; background: rgba(10, 19, 13, 0.8); color: #f0ede4; font: 15px Arial, sans-serif; display: none; pointer-events: none; text-align: center; max-width: 90%; }
+#touch-ui .t-turn { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); padding: 8px 14px; border-radius: 18px; background: rgba(10, 19, 13, 0.8); color: var(--ds-c-creme); font: 15px Arial, sans-serif; display: none; pointer-events: none; text-align: center; max-width: 90%; }
 html.touch-portrait #touch-ui .t-turn { display: block; }
 /* #463: de draaibanner is een wenk, geen melding. Op de beelden van #463 lag hij
    over "AANGEREDEN DOOR DE TREIN!" (een berichtkaart van zone A), over de
@@ -103,7 +103,7 @@ html.touch-device.touch-portrait #hud .pl-name { font-size: clamp(34px, 10vw, 56
 html.touch-device.touch-portrait #hud .pl-kick { gap: 10px; font-size: 16px; }
 html.touch-device.touch-portrait #hud .pl-kick i { width: 42px; }
 /* De pause-rail is op een korte telefoon scrollbaar; een dunne scrollbar maakt dat zichtbaar. */
-html.touch-device #pause-menu .pm-inner.pm-game { scrollbar-width: thin; scrollbar-color: rgba(240, 237, 228, 0.35) transparent; }
+html.touch-device #pause-menu .pm-inner.pm-game { scrollbar-width: thin; scrollbar-color: var(--ds-scroll-duim) var(--ds-scroll-spoor); }
 
 /* #826: HUD-blokken niet onder de aanraakknoppen; tekst in de nowplaying >= 12 px. */
 /* #850/#877/#985: het doel hangt bovenin (zone B), dus het vliegtuigpaneel onderin raakt het niet meer; staat het les-/minigamebord
@@ -135,7 +135,7 @@ html.touch-device:not(.touch-portrait) #hud .hud-place { left: 90px; right: 300p
 html.touch-device #hud :is(small, .hud-key, .ach-kicker, .ach-desc, .ach-pct, .pf-time, .pf-more, .nl-sub, .hud-mission-progress,
   .hud-district, .hud-instr small, .hud-instr .hi-keys, .hud-instr .hi-st, .hud-instr .hi-row, .hud-instr .hi-num span,
   .hud-instr .hi-lamp, .hud-instr .hi-keys .hud-key, .hud-busnext small, .hud-busnext span, .hud-busnext em,
-  .pf-from, .pf-body, .pf-state, .mg-sfeer, .mg-help) { font-size: max(12px, calc(12px / var(--ui, 1))); }
+  .pf-from, .pf-body, .pf-state, .mg-sfeer, .mg-help) { font-size: max(13px, calc(13px / var(--ui, 1))); }
 /* #868: de aanraakknoppen zelf staan buiten #hud en schalen met de knopzoom; hun
    labels zakten in portret naar 11 px. 16 px in knopeenheden houdt ze op 12 px. */
 @media (max-width: 700px) { #touch-ui .t-btn .t-lb { font-size: max(17px, calc(13px / var(--t-scale, 1))); } }

@@ -183,7 +183,7 @@ function paintAct(c) {
     flash: d.flashT > 0 ? d.flash : meter ? 'Nu komt de pauze...' : '',
     bad: d.flashT > 0 && /let|vroeg|wachtsje|Te /.test(d.flash),
     help: `${keycap('SPATIE')} terugroepen als de balk in het groen is · ${keycap('BACKSPACE')} zaal verlaten`,
-    options: [{ key: '☺', label: `${heckled} grapjes geland` }],
+    options: [{ key: 'bericht', icon: 'bericht', label: `${heckled} grapjes geland` }],
   });
 }
 

@@ -209,19 +209,19 @@ export function writeAdvice(v) {
 
 const CSS = `
 #gfx-advice { position: fixed; right: 28px; bottom: 64px; z-index: 31; width: min(400px, calc(100vw - 32px)); box-sizing: border-box;
-  background: rgba(10, 19, 13, 0.94); border: 1px solid rgba(63, 201, 122, 0.45); border-radius: 12px; box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
-  padding: 16px 20px 18px; color: #f0ede4; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; animation: gfx-adv-in 0.35s ease both; }
+  background: rgba(10, 19, 13, 0.94); border: 1px solid color-mix(in srgb, var(--ds-c-licht-groen) 45%, transparent); border-radius: 12px; box-shadow: 0 12px 36px color-mix(in srgb, var(--ds-c-ink-inkt) 50%, transparent);
+  padding: 16px 20px 18px; color: var(--ds-c-creme); font-family: var(--ds-font-kop); animation: gfx-adv-in 0.35s ease both; } /* ds3-film: scene */
 @keyframes gfx-adv-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-#gfx-advice h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; font-size: 26px; font-weight: normal; letter-spacing: 1.5px; color: #3fc97a; }
-#gfx-advice h3 svg { width: 20px; height: 20px; fill: none; stroke: #3fc97a; stroke-width: 1.8; stroke-linejoin: round; }
-#gfx-advice p { margin: 0 0 6px; font: 16px/1.38 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.2px; }
-#gfx-advice .gfx-what { font-size: 14px; color: rgba(240, 237, 228, 0.6); }
+#gfx-advice h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; font-size: 26px; font-weight: normal; letter-spacing: 1.5px; color: var(--ds-c-licht-groen); }
+#gfx-advice h3 svg { width: 20px; height: 20px; fill: none; stroke: var(--ds-c-licht-groen); stroke-width: 1.8; stroke-linejoin: round; }
+#gfx-advice p { margin: 0 0 6px; font: 16px/1.38 var(--ds-font-tekst); letter-spacing: 0.2px; }
+#gfx-advice .gfx-what { font-size: 14px; color: color-mix(in srgb, var(--ds-c-creme) 60%, transparent); }
 #gfx-advice .gfx-row { display: flex; gap: 8px; margin-top: 14px; }
-#gfx-advice button { font: 19px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1.5px; padding: 7px 16px; border-radius: 4px; cursor: pointer;
-  background: transparent; color: #f0ede4; border: 1px solid rgba(63, 201, 122, 0.6); }
-#gfx-advice button.primary { background: #1e9e56; color: #0c140e; border-color: #1e9e56; }
-#gfx-advice button:hover, #gfx-advice button:focus-visible { border-color: #3fc97a; color: #3fc97a; outline: none; }
-#gfx-advice button.primary:hover, #gfx-advice button.primary:focus-visible { background: #3fc97a; border-color: #3fc97a; color: #0c140e; box-shadow: 0 0 0 2px #f0ede4; }
+#gfx-advice button { font: 19px var(--ds-font-kop); letter-spacing: 1.5px; padding: 7px 16px; border-radius: 4px; cursor: pointer;
+  background: transparent; color: var(--ds-c-creme); border: 1px solid color-mix(in srgb, var(--ds-c-licht-groen) 60%, transparent); }
+#gfx-advice button.primary { background: var(--ds-c-licht-groen); color: var(--ds-c-glas); border-color: var(--ds-c-licht-groen); }
+#gfx-advice button:hover, #gfx-advice button:focus-visible { border-color: var(--ds-c-licht-groen); color: var(--ds-c-licht-groen); outline: none; }
+#gfx-advice button.primary:hover, #gfx-advice button.primary:focus-visible { background: var(--ds-c-licht-groen); border-color: var(--ds-c-licht-groen); color: var(--ds-c-glas); box-shadow: 0 0 0 2px var(--ds-c-creme); }
 `;
 
 let card = null;

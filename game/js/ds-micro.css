@@ -161,7 +161,7 @@
 .ds-m-stip { scale: 0; transition: scale var(--ds-m-midden) var(--ds-m-stempel); }
 .ds-m-stip.aan, .ds-m-stip.on { scale: 1; }
 /* De live-stip en de bel zijn de enige die mogen blijven lopen: één trage opacity-ademhaling, nooit een flits. */
-.ds-m-stip--live.aan { animation: ds-m-leven var(--ds-moment-leven) var(--ds-m-inuit) infinite; }
+.ds-m-stip--live.aan { animation: ds-m-leven var(--ds-moment-leven) var(--ds-m-inuit) infinite; } /* ds3-lus: de live-stip, bewust */
 @keyframes ds-m-leven { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
 
 /* ===== Hoogtepunten (.ds-moment-*): staffel van --ds-moment-stap, onderdeel --ds-moment-duur, geheel --ds-moment-max ===== */

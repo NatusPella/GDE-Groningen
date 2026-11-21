@@ -296,7 +296,7 @@ export function initHud(world) {
       '<div class="hud-id-main">' +
         '<div class="hud-name-row"><div class="hud-character"></div><span class="hud-mate"><span class="hud-mate-txt"></span></span><div class="hud-status">' +
           '<span class="hud-chip drunk" role="status" hidden>' + icoon('dorst') + 'Aangeschoten</span>' +
-          '<button type="button" class="hud-chip hud-mute" tabindex="-1" aria-label="Geluid staat uit" title="Geluid staat uit" hidden>🔇</button>' +
+          '<button type="button" class="hud-chip hud-mute" tabindex="-1" aria-label="Geluid staat uit" title="Geluid staat uit" hidden>' + icoon('geluid_uit', { maat: 'm' }) + '</button>' +
         '</div></div>' +
         '<div class="hud-meter hp" role="meter" aria-label="Gezondheid" aria-valuemin="0" aria-valuemax="100">' + icoon('hart_vol', { maat: 16, cls: 'hud-meter-ic' }) + '<div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill health"></div></div><b></b></div>' +
         '<div class="hud-meter ar" hidden role="meter" aria-label="Pantser" aria-valuemin="0" aria-valuemax="100">' + icoon('schild', { maat: 16, cls: 'hud-meter-ic' }) + '<div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill armor"></div></div><b></b></div>' +

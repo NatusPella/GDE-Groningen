@@ -7,17 +7,8 @@ import { MODS } from './cheatmods.js';
 import { dist } from './util.js';
 import { hoofdspeler } from './players.js';
 
-let errorShown = false;
-export function showFrameError(err) {
-  console.error(err && err.stack ? err.stack : err);
-  if (errorShown) return;
-  errorShown = true;
-  const el = document.createElement('div');
-  el.className = 'frame-error';
-  el.setAttribute('role', 'alert');
-  el.textContent = 'Er ging iets mis: ' + (err && err.message ? err.message : String(err));
-  document.body.appendChild(el);
-}
+// De foutmelding zelf staat in fouttoast.js (puur te testen, zonder de wereld).
+export { showFrameError } from './fouttoast.js';
 
 export const PED_TARGET = 45;
 

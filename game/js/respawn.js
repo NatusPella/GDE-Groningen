@@ -50,7 +50,7 @@ function setFade(k, ms = 0) {
   if (!fadeEl) {
     fadeEl = document.createElement('div');
     fadeEl.id = 'respawn-fade';
-    fadeEl.style.cssText = 'position:fixed;inset:0;z-index:14;background:#0c140e;opacity:0;pointer-events:none;';
+    fadeEl.style.cssText = 'position:fixed;inset:0;z-index:14;background:var(--ds-c-glas);opacity:0;pointer-events:none;';
     document.body.appendChild(fadeEl);
   }
   fadeEl.style.transition = ms ? `opacity ${ms}ms ease` : 'none';

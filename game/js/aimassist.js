@@ -217,7 +217,7 @@ function renderScope(world, hide) {
     scopeEl.className = 'aim-scope';
     scopeEl.setAttribute('aria-hidden', 'true');
     scopeEl.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:39;opacity:0;transition:opacity .12s;'
-      + 'background:radial-gradient(circle at 50% 50%, transparent 0, transparent min(38vw,38vh), rgba(0,0,0,.55) calc(min(38vw,38vh) + 2px), #000 calc(min(38vw,38vh) + 14px));';
+      + 'background:radial-gradient(circle at 50% 50%, transparent 0, transparent min(38vw,38vh), color-mix(in srgb, var(--ds-c-ink-inkt) 55%, transparent) calc(min(38vw,38vh) + 2px), var(--ds-c-ink-inkt) calc(min(38vw,38vh) + 14px));';
     scopeEl.innerHTML = '<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style="position:absolute;inset:0;width:100%;height:100%">'
       + '<g stroke="#000" stroke-width="0.4" fill="none" opacity=".85"><path d="M50 12v34M50 54v34M12 50h34M54 50h34"/>'
       + '<path d="M50 30v-0.01M50 70v0.01" stroke-width="1.2"/><circle cx="50" cy="50" r="0.6" fill="#c0261e" stroke="none"/></g></svg>';

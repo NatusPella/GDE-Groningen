@@ -6,12 +6,12 @@
 // spel; de vorm (vlak, ruit, vouw) draagt de verwijzing. Puur: geen DOM, geen THREE, geen
 // opslag, zodat scripts/carrieresfeer_test.mjs de sferen kan natrekken.
 
-const CREAM = 'rgba(240, 237, 228, 0.92)';
-const CREAM_SOFT = 'rgba(240, 237, 228, 0.38)';
-const GREEN = 'rgba(30, 158, 86, 0.92)';
-const GREEN_LIGHT = 'rgba(63, 201, 122, 0.88)';
-const GREEN_DARK = 'rgba(15, 92, 48, 0.94)';
-const DARK = 'rgba(12, 20, 14, 0.72)';
+const CREAM = 'color-mix(in srgb, var(--ds-c-creme) 92%, transparent)';
+const CREAM_SOFT = 'color-mix(in srgb, var(--ds-c-creme) 38%, transparent)';
+const GREEN = 'color-mix(in srgb, var(--ds-c-licht-groen) 75%, var(--ds-c-glas))';
+const GREEN_LIGHT = 'color-mix(in srgb, var(--ds-c-licht-groen) 88%, transparent)';
+const GREEN_DARK = 'color-mix(in srgb, var(--ds-c-licht-groen) 38%, var(--ds-c-glas))';
+const DARK = 'color-mix(in srgb, var(--ds-c-glas) 72%, transparent)';
 
 // beeld: de lagen van background-image; maat: background-size voor alle lagen. Grote
 // vlakken en een enkele duidelijke vorm in plaats van fijne lijntjes: kleur boven textuur.
@@ -150,10 +150,10 @@ const LEGE = { naam: '', vorm: '', motief: '' };
 // en een melkwitte waas. Zo krijgt elk vak niet alleen een ander vlak, maar ook een
 // andere toon; het blijft allemaal cream en groen uit DESIGN_SYSTEM.md.
 const TINT = {
-  nacht: 'rgba(12, 20, 14, 0.62)',
-  bos: 'rgba(15, 92, 48, 0.58)',
-  veld: 'rgba(30, 158, 86, 0.26)',
-  melk: 'rgba(240, 237, 228, 0.12)',
+  nacht: 'color-mix(in srgb, var(--ds-c-glas) 62%, transparent)',
+  bos: 'color-mix(in srgb, var(--ds-c-licht-groen) 38%, var(--ds-c-glas))',
+  veld: 'color-mix(in srgb, var(--ds-c-licht-groen) 26%, transparent)',
+  melk: 'color-mix(in srgb, var(--ds-c-creme) 12%, transparent)',
 };
 const TINT_VAN = {
   trein: 'nacht', bus: 'veld', taxi: 'melk', bezorg: 'nacht', vracht: 'bos',
@@ -213,14 +213,14 @@ export function sfeerBandHtml(id, { icoon = '', klein = '' } = {}) {
 // de enige cue: het patroon, het icoon en de naam staan ernaast. De kleine regel is 13 px,
 // de menuvloer; niets in de band is kleiner.
 export const SFEER_BAND_CSS = `
-.lb-sfeer { position: relative; min-height: 116px; border-radius: 10px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.10); flex: none; }
-.lb-sfeer::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(12, 20, 14, 0.80) 0 54%, rgba(12, 20, 14, 0.34) 72%, rgba(12, 20, 14, 0.10) 100%); }
-.lb-sfeer-ico { position: absolute; right: 18px; top: 50%; z-index: 2; display: block; width: 86px; height: 86px; margin: 0; padding: 15px; box-sizing: border-box; border-radius: 50%; background: rgba(12, 20, 14, 0.36); box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.20); color: rgba(240, 237, 228, 0.94); transform: translateY(-50%); }
-.lb-sfeer-groot { position: absolute; left: 14px; top: calc(50% + 6px); z-index: 2; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; max-width: calc(100% - 132px); overflow: hidden; transform: translateY(-50%); font: 40px "Bebas Neue", "Arial Narrow", Arial, sans-serif; line-height: 0.92; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(240, 237, 228, 0.96); text-shadow: 0 2px 6px rgba(0, 0, 0, 0.55); }
+.lb-sfeer { position: relative; min-height: 116px; border-radius: 10px; overflow: hidden; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 10%, transparent); flex: none; }
+.lb-sfeer::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, color-mix(in srgb, var(--ds-c-glas) 80%, transparent) 0 54%, color-mix(in srgb, var(--ds-c-glas) 34%, transparent) 72%, color-mix(in srgb, var(--ds-c-glas) 10%, transparent) 100%); }
+.lb-sfeer-ico { position: absolute; right: 18px; top: 50%; z-index: 2; display: block; width: 86px; height: 86px; margin: 0; padding: 15px; box-sizing: border-box; border-radius: 50%; background: color-mix(in srgb, var(--ds-c-glas) 36%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 20%, transparent); color: color-mix(in srgb, var(--ds-c-creme) 94%, transparent); transform: translateY(-50%); }
+.lb-sfeer-groot { position: absolute; left: 14px; top: calc(50% + 6px); z-index: 2; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; max-width: calc(100% - 132px); overflow: hidden; transform: translateY(-50%); font: 40px var(--ds-font-kop); line-height: 0.92; letter-spacing: 0.04em; text-transform: uppercase; color: color-mix(in srgb, var(--ds-c-creme) 96%, transparent); text-shadow: 0 2px 6px color-mix(in srgb, var(--ds-c-ink-inkt) 55%, transparent); }
 .lb-sfeer-ico svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.35; stroke-linecap: round; stroke-linejoin: round; }
-.lb-sfeer-klein { position: absolute; left: 14px; top: 9px; z-index: 2; max-width: calc(100% - 132px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: "Arial Narrow", Arial, sans-serif; font-size: max(13px, var(--menu-min, 13px)); letter-spacing: 0.14em; text-transform: uppercase; color: rgba(240, 237, 228, 0.72); }
-.lb-sfeer-vouw { position: absolute; right: 22px; bottom: -24px; z-index: 1; width: 64px; height: 64px; transform: rotate(45deg); border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.22), 0 2px 8px rgba(0, 0, 0, 0.22); pointer-events: none; }
-.lb-sfeer-chip { width: 20px; height: 20px; border-radius: 5px; flex: none; box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.18); }
+.lb-sfeer-klein { position: absolute; left: 14px; top: 9px; z-index: 2; max-width: calc(100% - 132px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--ds-font-tekst); font-size: max(13px, var(--menu-min, 13px)); letter-spacing: 0.14em; text-transform: uppercase; color: color-mix(in srgb, var(--ds-c-creme) 72%, transparent); }
+.lb-sfeer-vouw { position: absolute; right: 22px; bottom: -24px; z-index: 1; width: 64px; height: 64px; transform: rotate(45deg); border-radius: 3px; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 22%, transparent), 0 2px 8px color-mix(in srgb, var(--ds-c-ink-inkt) 22%, transparent); pointer-events: none; }
+.lb-sfeer-chip { width: 20px; height: 20px; border-radius: 5px; flex: none; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 18%, transparent); }
 @media (max-height: 820px) {
   .lb-sfeer { min-height: 86px; }
   .lb-sfeer-ico { width: 60px; height: 60px; padding: 10px; right: 12px; }

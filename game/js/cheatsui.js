@@ -1,6 +1,7 @@
 // Pauzemenu › Cheats: the cheats as rows in the menu's own style (switches,
 // quiet buttons, ??? for the locked ones, folded away). The one in focus is
 // explained beside the list. State and effects live in cheats.js.
+import { icoon } from './icons.js';
 import { CHEATS } from './cheatlist.js';
 import { ACHIEVEMENTS } from './achievements.js';
 import { STEPS, STEP_ALIAS } from './storyarc.js';
@@ -36,8 +37,8 @@ function zetCss() {
   document.head.appendChild(el);
 }
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5.5" y="11" width="13" height="9" rx="1.5"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/></svg>';
-const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg>';
+const LOCK = icoon('slot'); // F6: Phosphor via icons.js
+const CHEV = icoon('volgende'); // F6: Phosphor via icons.js
 
 let picker = false;
 let msg = '';

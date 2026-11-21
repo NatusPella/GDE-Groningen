@@ -50,13 +50,13 @@ function showMenu(el, x, y) {
   menu = document.createElement('div');
   menu.className = 'tfmenu-gde';
   menu.setAttribute('role', 'menu');
-  menu.style.cssText = `position:fixed;left:${Math.round(x)}px;top:${Math.round(y)}px;z-index:99999;min-width:160px;padding:4px;border-radius:8px;background:rgba(15,40,26,0.97);box-shadow:inset 0 0 0 1px rgba(240,237,228,0.24),0 8px 24px rgba(0,0,0,0.5);font:20px 'Bebas Neue','Arial Narrow',Arial,sans-serif;letter-spacing:0.05em;color:#f0ede4;`;
+  menu.style.cssText = `position:fixed;left:${Math.round(x)}px;top:${Math.round(y)}px;z-index:99999;min-width:160px;padding:4px;border-radius:8px;background:var(--ds-c-glas-2);box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 24%, transparent),0 8px 24px color-mix(in srgb, var(--ds-c-ink-inkt) 50%, transparent);font:20px var(--ds-font-kop);letter-spacing:0.05em;color:var(--ds-c-creme);`;
   const items = [['Knippen', () => copyFrom(el, true)], ['Kopiëren', () => copyFrom(el, false)], ['Plakken', () => pasteInto(el)], ['Alles selecteren', () => selectAll(el)]];
   for (const [label, fn] of items) {
     const b = document.createElement('button');
     b.type = 'button'; b.setAttribute('role', 'menuitem'); b.textContent = label;
     b.style.cssText = 'display:block;width:100%;text-align:left;padding:6px 12px;border:0;background:transparent;color:inherit;font:inherit;cursor:pointer;border-radius:6px;';
-    b.addEventListener('mouseenter', () => { b.style.background = 'rgba(240,237,228,0.12)'; });
+    b.addEventListener('mouseenter', () => { b.style.background = 'color-mix(in srgb, var(--ds-c-creme) 12%, transparent)'; });
     b.addEventListener('mouseleave', () => { b.style.background = 'transparent'; });
     b.addEventListener('mousedown', (e) => e.preventDefault()); // het veld houdt de focus en de selectie
     b.addEventListener('click', async () => { closeMenu(); el.focus(); await fn(); });

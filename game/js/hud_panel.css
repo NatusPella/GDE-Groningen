@@ -4,33 +4,30 @@
    Zones: A top left, B top centre, C top right, D centre (free), E left
    middle, F bottom left, G bottom centre, H bottom right. */
 #hud {
-  --hud-fg: #f0ede4;
-  --hud-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 1px rgba(0, 0, 0, 0.9);
-  --gron-green: #1e9e56;
-  --gron-green-light: #3fc97a;
-  --hud-red: #d93f3f;
-  --hud-redtx: #f08a8a;
+  --hud-fg: var(--ds-c-creme);
+  --hud-shadow: 0 1px 3px color-mix(in srgb, var(--ds-c-ink-inkt) 90%, transparent), 0 0 1px color-mix(in srgb, var(--ds-c-ink-inkt) 90%, transparent);  --hud-red: var(--ds-c-rood-glas);
+  --hud-redtx: var(--ds-c-rood-glas-tx);
   --hud-edge: max(46px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
   /* smallest text, 13 device px whatever the zoom (hudlook.js READABLE_MIN) */
   --hud-min: calc(13px / var(--ui, 1));
   --hud-top: max(34px, env(safe-area-inset-top, 0px));
   --mm-size: 250px;
   --mm-bottom: max(46px, env(safe-area-inset-bottom, 0px));
-  --hud-card: linear-gradient(180deg, rgba(23, 48, 31, 0.84), rgba(12, 20, 14, 0.84));
-  --hud-card-ring: 0 0 0 1px rgba(63, 201, 122, 0.28), 0 10px 26px rgba(0, 0, 0, 0.35);
+  --hud-card: linear-gradient(180deg, color-mix(in srgb, var(--ds-c-glas-2) 84%, transparent), color-mix(in srgb, var(--ds-c-glas) 84%, transparent));
+  --hud-card-ring: 0 0 0 1px color-mix(in srgb, var(--ds-c-licht-groen) 28%, transparent), 0 10px 26px color-mix(in srgb, var(--ds-c-ink-inkt) 35%, transparent);
   /* the right column under the top-right block (hud_panel.js measures it) */
   --hud-tr-bottom: 150px;
   --hud-stack-top: 160px;
   /* HUD scale from uiscale.js; vw/vh inside #hud must be divided by it */
   zoom: var(--ui, 1);
-  font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
+  font-family: var(--ds-font-kop);
   letter-spacing: 0.04em;
 }
 @media (max-height: 640px), (max-width: 760px) { #hud { --mm-size: 190px; --hud-edge: max(24px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)); --hud-top: max(18px, env(safe-area-inset-top, 0px)); --mm-bottom: max(46px, env(safe-area-inset-bottom, 0px)); } }
 body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 
 /* what the rules (hudrules.js) leave out: faded, not removed, so layout holds */
-#hud .hv-off, #hud.hv-e-off .hud-nowplaying, #hud.hv-e-off .hud-cards-e, #hud.hv-keys-off .hud-ctx, #hud.hv-keys-off .hud-obj-keys, body.hide-hints #hud .hud-obj-keys { opacity: 0 !important; visibility: hidden; transition: opacity 0.5s ease, visibility 0s 0.5s !important; }
+#hud .hv-off, #hud.hv-e-off .hud-nowplaying, #hud.hv-e-off .hud-cards-e, #hud.hv-keys-off .hud-ctx, #hud.hv-keys-off .hud-obj-keys, body.hide-hints #hud .hud-obj-keys { opacity: 0 !important; visibility: hidden; transition: opacity var(--ds-m-max) ease, visibility 0s var(--ds-m-max) !important; }
 #hud .hv-in { animation: hud-rise var(--dur-slow, 320ms) var(--ease-out, ease-out); }
 #hud.hud-dimmed > :not(.hud-damage) { opacity: 0.12; }
 
@@ -44,53 +41,53 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
   align-items: flex-end;
   gap: 5px;
   color: var(--hud-fg);
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 2px 10px color-mix(in srgb, var(--ds-c-ink-inkt) 60%, transparent);
 }
 #hud .hud-clock { display: flex; gap: 12px; align-items: center; }
 #hud .hud-clock[hidden] { display: none; }
-#hud .hud-date { font-size: 17px; color: rgba(240, 237, 228, 0.85); }
+#hud .hud-date { font-size: 17px; color: color-mix(in srgb, var(--ds-c-creme) 85%, transparent); }
 #hud .hud-time { font-weight: normal; font-size: 30px; line-height: 0.95; font-variant-numeric: tabular-nums; transition: font-size var(--dur-slow, 320ms) var(--ease-out, ease-out); }
 #hud .hud-clock.big .hud-time { font-size: 48px; }
 #hud .hud-clock.big .hud-date { font-size: 22px; }
 #hud .hud-special {
   display: flex; gap: 7px; align-items: center; padding: 4px 10px 3px 8px; border-radius: 6px;
-  background: rgba(232, 201, 58, 0.14); box-shadow: inset 0 0 0 1px rgba(232, 201, 58, 0.55);
+  background: color-mix(in srgb, var(--ds-c-ink-geel) 14%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-ink-geel) 55%, transparent);
   font-size: max(16px, var(--hud-min)); color: var(--mk-mission, #e8c93a); text-shadow: none;
 }
 #hud .hud-special[hidden] { display: none; }
-#hud .hud-special svg { width: 15px; height: 15px; fill: #e8c93a; flex: none; }
-#hud .hud-special.small { background: none; box-shadow: inset 0 0 0 1px rgba(232, 201, 58, 0.35); font-size: max(14px, var(--hud-min)); padding: 2px 8px; }
+#hud .hud-special svg { width: 15px; height: 15px; fill: var(--ds-c-ink-geel); flex: none; }
+#hud .hud-special.small { background: none; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-ink-geel) 35%, transparent); font-size: max(14px, var(--hud-min)); padding: 2px 8px; }
 
 #hud .hud-wanted { display: flex; justify-content: flex-end; gap: 5px; line-height: 0; }
-#hud .hud-wanted svg { width: 28px; height: 28px; fill: none; stroke: rgba(255, 255, 255, 0.3); stroke-width: 1.6; stroke-linejoin: round; }
-#hud .hud-wanted svg.on { fill: #e8c93a; stroke: #7a6610; stroke-width: 1; }
+#hud .hud-wanted svg { width: 28px; height: 28px; fill: none; stroke: color-mix(in srgb, var(--ds-c-wit) 30%, transparent); stroke-width: 1.6; stroke-linejoin: round; }
+#hud .hud-wanted svg.on { fill: var(--ds-c-ink-geel); stroke: #7a6610; stroke-width: 1; }
 #hud .hud-wanted.searching svg.on { stroke-dasharray: 3 2;
-   animation: hud-star-blink 0.9s steps(2, jump-none) infinite; }
+   animation: hud-star-blink var(--ds-m-max) steps(2, jump-none) 2; }
 @keyframes hud-star-blink { 0% { opacity: 1; } 100% { opacity: 0.25; } }
 #hud .hud-search {
   display: flex; flex-direction: column; align-items: flex-end; gap: 5px; padding: 8px 12px 9px; border-radius: 8px;
-  background: rgba(217, 63, 63, 0.16); box-shadow: inset 0 0 0 1px rgba(217, 63, 63, 0.6);
+  background: color-mix(in srgb, var(--ds-c-rood-glas) 16%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-rood-glas) 60%, transparent);
 }
 #hud .hud-search[hidden] { display: none; }
 /* the red bar and the blinking stars say it; the words stay for screen readers only */
 #hud .hud-search > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-#hud .hud-search > i { display: block; width: 200px; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.15); overflow: hidden; }
-#hud .hud-search > i > i { display: block; width: 0; height: 100%; background: #d93f3f; transition: width var(--dur-bar, 300ms) linear; }
+#hud .hud-search > i { display: block; width: 200px; height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--ds-c-wit) 15%, transparent); overflow: hidden; }
+#hud .hud-search > i > i { display: block; width: 0; height: 100%; background: var(--ds-c-rood-glas); transition: width var(--dur-bar, 300ms) linear; }
 
 #hud .hud-moneyrow { display: flex; gap: 10px; align-items: baseline; }
-#hud .hud-money { font-size: 38px; line-height: 1; letter-spacing: 0.04em; color: var(--gron-green-light); font-variant-numeric: tabular-nums; }
-#hud .hud-money.rolling { color: #f0ede4; }
+#hud .hud-money { font-size: 38px; line-height: 1; letter-spacing: 0.04em; color: var(--ds-c-licht-groen); font-variant-numeric: tabular-nums; }
+#hud .hud-money.rolling { color: var(--ds-c-creme); }
 #hud .hud-money-delta { font-size: 22px; opacity: 0; transform: translateY(6px); transition: opacity var(--ds-m) var(--ds-ease), transform var(--ds-m) var(--ds-ease); }
 #hud .hud-money-delta.visible { opacity: 1; transform: none; }
-#hud .hud-money-delta[data-sign="plus"] { color: var(--gron-green-light); }
+#hud .hud-money-delta[data-sign="plus"] { color: var(--ds-c-licht-groen); }
 #hud .hud-money-delta[data-sign="min"] { color: var(--mk-danger, #d93f3f); } /* #638: één rood, via de tokens */
 
 #hud .hud-weapon { display: flex; align-items: center; gap: 9px; }
 #hud .hud-weapon-col { display: flex; flex-direction: row; align-items: baseline; gap: 6px; min-width: 0; }
-#hud .hud-weapon-text { font-size: 15px; letter-spacing: 0.08em; line-height: 1; color: rgba(240, 237, 228, 0.7); white-space: nowrap; }
-#hud .hud-weapon-ammo { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 20px; color: #f0ede4; text-shadow: inherit; }
+#hud .hud-weapon-text { font-size: 15px; letter-spacing: 0.08em; line-height: 1; color: color-mix(in srgb, var(--ds-c-creme) 70%, transparent); white-space: nowrap; }
+#hud .hud-weapon-ammo { font-family: var(--ds-font-kop); font-size: 20px; color: var(--ds-c-creme); text-shadow: inherit; }
 #hud .hud-weapon-ammo[data-num="1"] { font-size: 22px; line-height: 1; font-variant-numeric: tabular-nums; }
-#hud .hud-weapon-icon { width: 38px; height: 20px; flex: none; fill: #f0ede4; color: #f0ede4; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9)); }
+#hud .hud-weapon-icon { width: 38px; height: 20px; flex: none; fill: var(--ds-c-creme); color: var(--ds-c-creme); filter: drop-shadow(0 1px 2px color-mix(in srgb, var(--ds-c-ink-inkt) 90%, transparent)); }
 #hud .hud-weapon.switched .hud-weapon-icon { animation: hud-weapon-pop var(--dur-slow, 320ms) var(--ease-out, ease-out); }
 @keyframes hud-weapon-pop { 0% { transform: scale(1.25); opacity: 0.4; } 100% { transform: scale(1); opacity: 1; } }
 
@@ -98,7 +95,7 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
   position: absolute;
   inset: 0;
   opacity: 0;
-  background: radial-gradient(ellipse at center, rgba(217, 63, 63, 0) 40%, rgba(217, 63, 63, 0.6) 100%);
+  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--ds-c-rood-glas) 0%, transparent) 40%, color-mix(in srgb, var(--ds-c-rood-glas) 60%, transparent) 100%);
 }
 
 /* --- zone B: the GPS card and the place name ------------------------------ */
@@ -114,23 +111,23 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 #hud .hud-gps {
   position: relative;
   display: flex; gap: 16px; align-items: center; padding: 9px 22px; border-radius: 10px;
-  background: var(--hud-card); box-shadow: var(--hud-card-ring); color: #f0ede4; text-shadow: none; white-space: nowrap;
+  background: var(--hud-card); box-shadow: var(--hud-card-ring); color: var(--ds-c-creme); text-shadow: none; white-space: nowrap;
 }
 #hud .hud-gps[hidden] { display: none; }
-#hud .gps-arrow { width: 36px; height: 36px; color: var(--gron-green-light); fill: none; stroke: var(--gron-green-light); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+#hud .gps-arrow { width: 36px; height: 36px; color: var(--ds-c-licht-groen); fill: none; stroke: var(--ds-c-licht-groen); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 #hud .gps-txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 #hud .gps-txt b { font-weight: normal; font-size: 28px; line-height: 1; }
-#hud .gps-txt span { font-family: 'Arial Narrow', Arial, sans-serif; font-size: max(15px, var(--hud-min)); color: rgba(240, 237, 228, 0.75); overflow: hidden; text-overflow: ellipsis; }
+#hud .gps-txt span { font-family: var(--ds-font-tekst); font-size: max(15px, var(--hud-min)); color: color-mix(in srgb, var(--ds-c-creme) 75%, transparent); overflow: hidden; text-overflow: ellipsis; }
 #hud .gps-txt span:empty { display: none; }
-#hud .gps-sep { width: 1px; align-self: stretch; background: rgba(63, 201, 122, 0.3); }
+#hud .gps-sep { width: 1px; align-self: stretch; background: color-mix(in srgb, var(--ds-c-licht-groen) 30%, transparent); }
 #hud .gps-dist { display: flex; flex-direction: column; align-items: flex-end; }
-#hud .gps-dist b { font-weight: normal; font-size: 25px; line-height: 1; color: var(--gron-green-light); }
-#hud .gps-dist span { font-size: max(13px, var(--hud-min)); color: rgba(240, 237, 228, 0.6); }
+#hud .gps-dist b { font-weight: normal; font-size: 25px; line-height: 1; color: var(--ds-c-licht-groen); }
+#hud .gps-dist span { font-size: max(13px, var(--hud-min)); color: color-mix(in srgb, var(--ds-c-creme) 60%, transparent); }
 #hud .gps-timer { display: none; flex-direction: column; align-items: center; }
-#hud .gps-timer span { font-size: var(--hud-min); color: rgba(240, 237, 228, 0.6); }
+#hud .gps-timer span { font-size: var(--hud-min); color: color-mix(in srgb, var(--ds-c-creme) 60%, transparent); }
 #hud .gps-timer b { font-weight: normal; font-size: 30px; line-height: 1; color: var(--hud-redtx, #ff9a9a); font-variant-numeric: tabular-nums; }
 #hud .hud-gps.has-timer .gps-timer, #hud .hud-gps.has-timer .gps-tsep { display: flex; }
-#hud .hud-gps.time-low .gps-timer b { animation: hud-timelow 0.5s ease-in-out infinite alternate; }
+#hud .hud-gps.time-low .gps-timer b { animation: hud-timelow var(--ds-m-max) ease-in-out 2 alternate; }
 @keyframes hud-timelow { from { opacity: 1; } to { opacity: 0.35; } }
 @media (prefers-reduced-motion: reduce) { #hud .hud-gps.time-low .gps-timer b { animation: none; } }
 #hud .hud-gps:not(.has-timer) .gps-tsep { display: none; }
@@ -148,15 +145,15 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
    kier houdt de kaart en de plaatsnaam (met de titel erin) los van elkaar. */
 #hud .hud-place {
   position: absolute; top: max(calc(var(--hud-top) + 10px), calc(var(--hud-a-bottom, 0px) + 12px), calc(var(--hud-b-bottom, 0px) + 12px)); left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 4px;
-  color: #f0ede4; text-shadow: 0 3px 18px rgba(0, 0, 0, 0.7); opacity: 0; pointer-events: none;
+  color: var(--ds-c-creme); text-shadow: 0 3px 18px color-mix(in srgb, var(--ds-c-ink-inkt) 70%, transparent); opacity: 0; pointer-events: none;
 }
-#hud .hud-place.on { animation: hud-place 4.6s ease-in-out forwards; }
+#hud .hud-place.on { animation: hud-place 4.6s ease-in-out forwards; } /* ds3-dwell: verblijf */
 @keyframes hud-place { 0% { opacity: 0; transform: translateY(8px); } 12%, 82% { opacity: 1; transform: none; } 100% { opacity: 0; } }
-#hud .pl-kick { display: flex; gap: 18px; align-items: center; font-size: 20px; letter-spacing: 0.3em; color: var(--gron-green-light); }
-#hud .pl-kick i { width: 70px; height: 2px; background: linear-gradient(90deg, rgba(63, 201, 122, 0), #3fc97a); }
+#hud .pl-kick { display: flex; gap: 18px; align-items: center; font-size: 20px; letter-spacing: 0.3em; color: var(--ds-c-licht-groen); }
+#hud .pl-kick i { width: 70px; height: 2px; background: linear-gradient(90deg, color-mix(in srgb, var(--ds-c-licht-groen) 0%, transparent), var(--ds-c-licht-groen)); }
 #hud .pl-kick i:last-child { transform: scaleX(-1); }
-#hud .pl-name { font-family: 'Big Shoulders Display', 'Bebas Neue', sans-serif; font-weight: 900; font-size: 76px; line-height: 0.95; letter-spacing: 0.02em; text-transform: uppercase; max-width: 90%; text-align: center; }
-#hud .pl-line { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 16px; color: rgba(240, 237, 228, 0.85); letter-spacing: 0.02em; }
+#hud .pl-name { font-family: var(--ds-font-logo); font-weight: 900; font-size: 76px; line-height: 0.95; letter-spacing: 0.02em; text-transform: uppercase; max-width: 90%; text-align: center; }
+#hud .pl-line { font-family: var(--ds-font-tekst); font-size: 16px; color: color-mix(in srgb, var(--ds-c-creme) 85%, transparent); letter-spacing: 0.02em; }
 #hud .pl-line:empty { display: none; }
 
 /* --- de prestatiekaart wijkt voor een interactiehint (achievements.js) ----- */
@@ -173,12 +170,12 @@ body #hud.hud-ach-yield .ach-toast {
 
 /* --- zone G: the objective (the subtitle sits under it) ------------------- */
 #hud .hud-mission {
-  --obj: #3fc97a;
+  --obj: var(--ds-c-licht-groen);
   position: relative;
   display: flex; align-items: center; gap: 12px; padding: 8px 24px; border-radius: 8px;
-  color: #f0ede4; text-shadow: var(--hud-shadow);
-  background: linear-gradient(90deg, rgba(12, 20, 14, 0), rgba(12, 20, 14, 0.78) 18%, rgba(12, 20, 14, 0.78) 82%, rgba(12, 20, 14, 0));
-  pointer-events: none; transition: opacity 0.4s ease;
+  color: var(--ds-c-creme); text-shadow: var(--hud-shadow);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--ds-c-glas) 0%, transparent), color-mix(in srgb, var(--ds-c-glas) 78%, transparent) 18%, color-mix(in srgb, var(--ds-c-glas) 78%, transparent) 82%, color-mix(in srgb, var(--ds-c-glas) 0%, transparent));
+  pointer-events: none; transition: opacity var(--ds-m-max) ease;
 }
 #hud .hud-mission[hidden] { display: none; }
 /* onder een ondertitel blijft het doel leesbaar: 0.35 maakte het onleesbaar
@@ -186,24 +183,24 @@ body #hud.hud-ach-yield .ach-toast {
 #hud .hud-mission.dim { opacity: 0.7; }
 body.shop-open #hud .hud-mission { visibility: hidden; }
 body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !important; }
-#hud .hud-mission[data-kind="mission"] { --obj: #e8c93a; }
+#hud .hud-mission[data-kind="mission"] { --obj: var(--ds-c-ink-geel); }
 #hud .hud-mission[data-kind="job"] { --obj: #ff9a3c; }
 #hud .hud-mission[data-kind="police"] { --obj: var(--hud-redtx, #ff9a9a); }
 #hud .hud-obj-icon { flex: 0 0 16px; width: 16px; height: 16px; fill: var(--obj); filter: drop-shadow(0 0 6px var(--obj)); }
 #hud .hud-obj-text { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; line-height: 1.1; }
 /* two lines before the ellipsis: at 1280x720 the block is about 300 px wide and most goals ('Stap in de auto: de pinautomaat ligt achterin') were cut off */
-#hud .hud-mission-label { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 20px; letter-spacing: 0.01em; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
+#hud .hud-mission-label { font-family: var(--ds-font-tekst); font-size: 20px; letter-spacing: 0.01em; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
 #hud .hud-mission-label:empty { display: none; }
-#hud .hud-mission-progress { max-width: 100%; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; color: rgba(240, 237, 228, 0.8); white-space: nowrap; }
+#hud .hud-mission-progress { max-width: 100%; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; font-family: var(--ds-font-tekst); font-size: 14px; color: color-mix(in srgb, var(--ds-c-creme) 80%, transparent); white-space: nowrap; }
 #hud .hud-mission-progress:empty { display: none; }
 /* #824: de altijd zichtbare bedieningsregel, binnen de doellijn (zone G) en nooit als eigen vak.
    Klein, één regel die mag wrappen; de toetskappen blijven de canonieke .hud-key. */
-#hud .hud-obj-keys { display: flex; flex-wrap: wrap; align-items: center; gap: 1px 9px; margin-top: 4px; max-width: 100%; font-family: 'Arial Narrow', Arial, sans-serif; font-size: var(--hud-min, 13px); letter-spacing: 0.02em; color: rgba(240, 237, 228, 0.72); }
+#hud .hud-obj-keys { display: flex; flex-wrap: wrap; align-items: center; gap: 1px 9px; margin-top: 4px; max-width: 100%; font-family: var(--ds-font-tekst); font-size: var(--hud-min, 13px); letter-spacing: 0.02em; color: color-mix(in srgb, var(--ds-c-creme) 72%, transparent); }
 #hud .hud-obj-keys[hidden], #hud .hud-mission:not(.obj-fresh) .hud-obj-keys { display: none; } /* #985: de hulpregel alleen de eerste seconden van een nieuw doel (hud_panel.js obj-fresh) */
 #hud .hud-obj-key { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
 @media (max-width: 900px) { #hud .hud-obj-keys { gap: 1px 6px; } }
 #hud .hud-mission.obj-quiet .hud-mission-progress { display: none; }
-#hud .hud-obj-dist { font-size: 18px; color: rgba(240, 237, 228, 0.6); white-space: nowrap; }
+#hud .hud-obj-dist { font-size: 18px; color: color-mix(in srgb, var(--ds-c-creme) 60%, transparent); white-space: nowrap; }
 #hud .hud-obj-dist:empty { display: none; }
 #hud .hud-mission.pop .hud-obj-text { animation: obj-pop var(--ds-m-lang) var(--ds-m-stempel); /* DS3: 250 ms met overshoot, uit bij Beweging beperken (tokens) */ }
 #hud .hud-mission.pop .hud-obj-icon { animation: obj-spin var(--ds-m-lang) var(--ds-m-uit); }
@@ -217,15 +214,15 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 /* --- zone F: the minimap, the street, you ---------------------------------- */
 #hud .hud-minimap-wrap {
   position: absolute; left: var(--hud-edge); bottom: var(--mm-bottom); width: var(--mm-size); height: var(--mm-size);
-  border-radius: 18px; overflow: hidden; background: #17301f;
-  box-shadow: 0 0 0 2px rgba(63, 201, 122, 0.55), 0 14px 32px rgba(0, 0, 0, 0.45);
-  transition: box-shadow 0.4s ease; pointer-events: auto; cursor: pointer;
+  border-radius: 18px; overflow: hidden; background: var(--ds-c-glas-2);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ds-c-licht-groen) 55%, transparent), 0 14px 32px color-mix(in srgb, var(--ds-c-ink-inkt) 45%, transparent);
+  transition: box-shadow var(--ds-m-max) ease; pointer-events: auto; cursor: pointer;
 }
-#hud .hud-minimap-wrap.wanted { box-shadow: 0 0 0 2px #d93f3f, 0 0 18px rgba(217, 63, 63, 0.45), 0 14px 32px rgba(0, 0, 0, 0.5); }
+#hud .hud-minimap-wrap.wanted { box-shadow: 0 0 0 2px var(--ds-c-rood-glas), 0 0 18px color-mix(in srgb, var(--ds-c-rood-glas) 45%, transparent), 0 14px 32px color-mix(in srgb, var(--ds-c-ink-inkt) 50%, transparent); }
 #hud .hud-minimap-wrap canvas { display: block; width: 100%; height: 100%; }
 #hud .hud-fcol {
   position: absolute; left: calc(var(--hud-edge) + var(--mm-size) + 16px); bottom: var(--mm-bottom);
-  display: flex; flex-direction: column; gap: 10px; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7); color: var(--hud-fg);
+  display: flex; flex-direction: column; gap: 10px; text-shadow: 0 2px 8px color-mix(in srgb, var(--ds-c-ink-inkt) 70%, transparent); color: var(--hud-fg);
 }
 #hud .hud-location { display: flex; flex-direction: column; gap: 1px; max-width: min(calc(30vw / var(--ui, 1)), 340px); }
 #hud .hud-location:has(.hud-street:empty) { display: none; }
@@ -235,15 +232,15 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 html.rustig-drukwerk #hud .hud-location, html.reduce-motion #hud .hud-location { transition: none; }
 @media (prefers-reduced-motion: reduce) { #hud .hud-location { transition: none; } }
 #hud .hud-street { font-size: 28px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#hud .hud-district { font-size: max(17px, var(--hud-min)); color: var(--gron-green-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hud .hud-district { font-size: max(17px, var(--hud-min)); color: var(--ds-c-licht-groen); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #hud .hud-street:empty { display: none; }
 #hud .hud-loc-ic { display: none; }
 
-#hud .hud-top-left { --spk: #3fc97a; color: var(--hud-fg); }
+#hud .hud-top-left { --spk: var(--ds-c-licht-groen); color: var(--hud-fg); }
 #hud .hud-id { display: flex; align-items: center; gap: 10px; }
 #hud .hud-portrait, #hud .hud-mate-pic {
   position: relative; flex: 0 0 38px; width: 38px; height: 38px; box-sizing: border-box; border-radius: 50%; overflow: hidden;
-  border: 2px solid var(--gron-green-light); background: radial-gradient(circle at 50% 35%, #2b5f8f, #0c140e);
+  border: 2px solid var(--ds-c-licht-groen); background: radial-gradient(circle at 50% 35%, #2b5f8f, var(--ds-c-glas));
   transition: border-color var(--dur-base, 200ms) var(--ease-out, ease-out), box-shadow var(--dur-base, 200ms) var(--ease-out, ease-out), filter var(--dur-slow, 320ms) var(--ease-out, ease-out);
 }
 #hud .hud-portrait svg { display: block; width: 100%; height: 100%; fill: rgba(243, 239, 230, 0.5); }
@@ -252,8 +249,8 @@ html.rustig-drukwerk #hud .hud-location, html.reduce-motion #hud .hud-location {
 #hud .hud-mate-pic img:not([src]) { display: none; }
 #hud .hud-portrait img.on, #hud .hud-mate-pic img.on { opacity: 1; }
 #hud .hud-portrait:has(img.on) svg { opacity: 0; }
-#hud .hud-portrait.low { border-color: #d93f3f; box-shadow: 0 0 10px rgba(217, 63, 63, 0.6); filter: saturate(0.55) brightness(0.9); }
-#hud .hud-mate { display: inline-flex; align-items: center; gap: 6px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; color: rgba(240, 237, 228, 0.65); }
+#hud .hud-portrait.low { border-color: var(--ds-c-rood-glas); box-shadow: 0 0 10px color-mix(in srgb, var(--ds-c-rood-glas) 60%, transparent); filter: saturate(0.55) brightness(0.9); }
+#hud .hud-mate { display: inline-flex; align-items: center; gap: 6px; font-family: var(--ds-font-tekst); font-size: 14px; color: color-mix(in srgb, var(--ds-c-creme) 65%, transparent); }
 #hud .hud-mate[hidden] { display: none; }
 #hud .hud-mate-pic { display: block; flex-basis: 26px; width: 26px; height: 26px; }
 #hud .hud-mate-txt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -261,12 +258,12 @@ html.rustig-drukwerk #hud .hud-location, html.reduce-motion #hud .hud-location {
 @keyframes hud-slide-in { from { opacity: 0; transform: translateX(-10px); } }
 #hud .hud-id-main { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
 #hud .hud-name-row { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
-#hud .hud-character { font-size: 17px; line-height: 1; color: #f0ede4; }
+#hud .hud-character { font-size: 17px; line-height: 1; color: var(--ds-c-creme); }
 #hud .hud-status { display: flex; gap: 4px; margin-left: 4px; }
-#hud .hud-chip { display: inline-flex; align-items: center; gap: 4px; padding: 0 5px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: var(--hud-min); line-height: 15px; white-space: nowrap; background: rgba(0, 0, 0, 0.55); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 4px; }
+#hud .hud-chip { display: inline-flex; align-items: center; gap: 4px; padding: 0 5px; font-family: var(--ds-font-tekst); font-size: var(--hud-min); line-height: 15px; white-space: nowrap; background: color-mix(in srgb, var(--ds-c-ink-inkt) 55%, transparent); border: 1px solid color-mix(in srgb, var(--ds-c-wit) 30%, transparent); border-radius: 4px; }
 #hud .hud-chip[hidden] { display: none; }
-#hud .hud-chip.drunk { color: var(--mk-job, #ffd36a); border-color: rgba(255, 211, 106, 0.5); }
-#hud .hud-chip.drunk svg { width: 13px; height: 13px; fill: rgba(255, 211, 106, 0.35); stroke: var(--mk-job, #ffd36a); stroke-width: 1.8; stroke-linejoin: round; }
+#hud .hud-chip.drunk { color: var(--mk-job, #ffd36a); border-color: color-mix(in srgb, var(--ds-c-ink-geel) 50%, transparent); }
+#hud .hud-chip.drunk svg { width: 13px; height: 13px; fill: color-mix(in srgb, var(--ds-c-ink-geel) 35%, transparent); stroke: var(--mk-job, #ffd36a); stroke-width: 1.8; stroke-linejoin: round; }
 /* #898: het voortgangschipje naast de naam: stil, in dezelfde maat als de andere chips */
 
 #hud .hud-meter { display: flex; align-items: center; gap: 8px; margin: 0; }
@@ -276,27 +273,27 @@ html.rustig-drukwerk #hud .hud-location, html.reduce-motion #hud .hud-location {
 #hud .hud-meter .hud-meter-ic { flex: 0 0 16px; width: 16px; height: 16px; color: var(--hud-inkt-zacht, rgba(240, 237, 228, 0.75)); }
 #hud .hud-meter .hud-bar { width: 159px; }
 #hud .hud-meter.veh .veh-name { display: none; }
-#hud .hud-bar { position: relative; width: 183px; height: 7px; background: rgba(255, 255, 255, 0.14); border-radius: 4px; overflow: hidden; }
+#hud .hud-bar { position: relative; width: 183px; height: 7px; background: color-mix(in srgb, var(--ds-c-wit) 14%, transparent); border-radius: 4px; overflow: hidden; }
 #hud .hud-bar-fill { position: relative; height: 100%; transition: width var(--dur-bar, 300ms) var(--ease-out, ease-out); }
-#hud .hud-bar-ghost { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: rgba(255, 255, 255, 0.4); transition: width var(--dur-bar, 300ms) var(--ease-out, ease-out); }
-#hud .hud-bar-fill.health { background: linear-gradient(90deg, #1e9e56, #3fc97a); }
+#hud .hud-bar-ghost { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: color-mix(in srgb, var(--ds-c-wit) 40%, transparent); transition: width var(--dur-bar, 300ms) var(--ease-out, ease-out); }
+#hud .hud-bar-fill.health { background: var(--ds-c-licht-groen); }
 #hud .hud-bar-fill.armor { background: #c8d0c9; }
-#hud .hud-meter.low .hud-bar-fill.health { background: repeating-linear-gradient(135deg, #d93f3f 0 5px, #8f2626 5px 8px); }
-#hud .hud-meter.crit .hud-bar { animation-duration: 1.6s; }
+#hud .hud-meter.low .hud-bar-fill.health { background: repeating-linear-gradient(135deg, var(--ds-c-rood-glas) 0 5px, #8f2626 5px 8px); }
+#hud .hud-meter.crit .hud-bar { animation-duration: var(--ds-m-max); }
 #hud .hud-meter.st .hud-bar { height: 3px; }
-#hud .hud-bar-fill.stamina { background: #f0ede4; opacity: 0.7; width: 100%; }
-#hud .hud-meter.veh .veh-name { font-size: 14px; width: 54px; color: rgba(240, 237, 228, 0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hud .hud-bar-fill.stamina { background: var(--ds-c-creme); opacity: 0.7; width: 100%; }
+#hud .hud-meter.veh .veh-name { font-size: 14px; width: 54px; color: color-mix(in srgb, var(--ds-c-creme) 70%, transparent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #hud .hud-meter.veh.no-label .veh-name { visibility: hidden; }
-#hud .hud-bar-fill.vehicle { background: linear-gradient(90deg, #d93f3f, #f07a5a); }
-#hud .hud-meter.veh:not(.hurt) .hud-bar-fill.vehicle { background: linear-gradient(90deg, #1e9e56, #3fc97a); }
-#hud .hud-meter.low .hud-bar { animation: hud-low 0.9s ease-in-out infinite alternate; }
+#hud .hud-bar-fill.vehicle { background: linear-gradient(90deg, var(--ds-c-rood-glas), #f07a5a); }
+#hud .hud-meter.veh:not(.hurt) .hud-bar-fill.vehicle { background: var(--ds-c-licht-groen); }
+#hud .hud-meter.low .hud-bar { animation: hud-low var(--ds-m-max) ease-in-out 2 alternate; }
 @keyframes hud-low { from { opacity: 1; } to { opacity: 0.55; } }
 @media (prefers-reduced-motion: reduce) { #hud .hud-meter.low .hud-bar { animation: none; } }
 
 /* savegame.js's toast, moved into the location block by hud_panel.js */
-#hud .hud-saved { position: absolute; left: 16px; bottom: 70px; display: flex; align-items: center; gap: 5px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: var(--hud-min); color: var(--ds-tx-zacht, #a3b2a6); opacity: 0; transform: translateX(-6px); transition: opacity var(--dur-slow, 320ms) var(--ease-out, ease-out), transform var(--dur-slow, 320ms) var(--ease-out, ease-out); }
+#hud .hud-saved { position: absolute; left: 16px; bottom: 70px; display: flex; align-items: center; gap: 5px; font-family: var(--ds-font-tekst); font-size: var(--hud-min); color: var(--ds-tx-zacht, #a3b2a6); opacity: 0; transform: translateX(-6px); transition: opacity var(--dur-slow, 320ms) var(--ease-out, ease-out), transform var(--dur-slow, 320ms) var(--ease-out, ease-out); }
 #hud .hud-location .hud-saved { position: static; flex: none; }
-#hud .hud-saved svg { width: 13px; height: 13px; color: var(--gron-green-light); }
+#hud .hud-saved svg { width: 13px; height: 13px; color: var(--ds-c-licht-groen); }
 #hud .hud-saved span { text-transform: lowercase; }
 #hud .hud-saved.visible { opacity: 1; transform: none; }
 /* #985 punt 8: de opslag is stuk. Het chipje blijft staan en valt op, zodat een speler het ziet
@@ -306,33 +303,33 @@ html.rustig-drukwerk #hud .hud-location, html.reduce-motion #hud .hud-location {
 
 /* --- zone H: speed, gear, revs; the key hints above ----------------------- */
 #hud .hud-speedo {
-  position: absolute; right: var(--hud-edge); bottom: var(--hud-edge); display: none; align-items: flex-end; gap: 14px; color: #f0ede4;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+  position: absolute; right: var(--hud-edge); bottom: var(--hud-edge); display: none; align-items: flex-end; gap: 14px; color: var(--ds-c-creme);
+  text-shadow: 0 2px 12px color-mix(in srgb, var(--ds-c-ink-inkt) 70%, transparent);
 }
 #hud .hud-speedo.visible { display: flex; animation: hud-rise var(--dur-slow, 320ms) var(--ease-out, ease-out); }
 @keyframes hud-rise { from { opacity: 0; transform: translateY(8px); } }
 #hud .sp-main { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
-#hud .sp-gears { display: flex; gap: 4px; font-size: 18px; color: rgba(240, 237, 228, 0.35); min-height: 18px; }
-#hud .sp-gears .on { color: var(--gron-green-light); }
+#hud .sp-gears { display: flex; gap: 4px; font-size: 18px; color: color-mix(in srgb, var(--ds-c-creme) 35%, transparent); min-height: 18px; }
+#hud .sp-gears .on { color: var(--ds-c-licht-groen); }
 #hud .sp-gears .warn { color: var(--mk-danger, #ff6f61); font-size: 15px; letter-spacing: 0.04em; }
 #hud .hud-speedo.shiftlight .rpm-fill { stroke: var(--mk-mission, #ffd23f); }
-#hud .hud-speedo.limiter .rpm-fill { stroke: var(--mk-danger, #ff6f61); animation: rpm-limit 0.12s steps(2) infinite; }
+#hud .hud-speedo.limiter .rpm-fill { stroke: var(--mk-danger, #ff6f61); animation: rpm-limit 0.12s steps(2) 2; }
 @keyframes rpm-limit { 50% { opacity: 0.35; } }
 @media (prefers-reduced-motion: reduce) { #hud .hud-speedo.limiter .rpm-fill { animation: none; } }
 #hud .sp-val { font-weight: normal; font-size: 100px; line-height: 0.85; font-variant-numeric: tabular-nums; min-width: 2ch; text-align: right; }
-#hud .sp-unit { font-size: 18px; color: rgba(240, 237, 228, 0.65); }
+#hud .sp-unit { font-size: 18px; color: color-mix(in srgb, var(--ds-c-creme) 65%, transparent); }
 #hud .sp-rpm { width: 166px; height: 166px; flex: none; fill: none; }
 #hud .sp-rpm path { stroke-width: 12; stroke-linecap: round; }
-#hud .rpm-bg { stroke: rgba(255, 255, 255, 0.14); }
-#hud .rpm-zone { stroke: rgba(217, 63, 63, 0.55); }
-#hud .rpm-fill { stroke: #3fc97a; transition: stroke 0.2s; }
+#hud .rpm-bg { stroke: color-mix(in srgb, var(--ds-c-wit) 14%, transparent); }
+#hud .rpm-zone { stroke: color-mix(in srgb, var(--ds-c-rood-glas) 55%, transparent); }
+#hud .rpm-fill { stroke: var(--ds-c-licht-groen); transition: stroke 0.2s; }
 #hud .hud-speedo.redline .rpm-fill { stroke: var(--mk-danger, #ff6f61); }
 #hud .hud-speedo.no-rpm .sp-rpm { display: none; }
 #hud .hud-speedo.no-gears .sp-gears { display: none; }
 @media (prefers-reduced-motion: reduce) { #hud .hud-speedo.visible { animation: none; } }
 
 /* --- the left column: zone A (messages) and E (radio, achievements) ----- */
-:where(#hud > :not(.hud-damage)) { transition: opacity 0.35s ease; }
+:where(#hud > :not(.hud-damage)) { transition: opacity var(--ds-m-max) ease; }
 body.cine-hide-hud #hud > :not(.hud-damage) { opacity: 0; }
 /* fallback for 'laag' on a native-AA canvas; otherwise postfx3d.js screenFx */
 body.cine-slowmo:not(.gpu-screenfx) #game3d { filter: saturate(0.6) contrast(1.06); }
@@ -343,8 +340,8 @@ body.cine-slowmo:not(.gpu-screenfx) #game3d { filter: saturate(0.6) contrast(1.0
   inset: 0;
   z-index: 15;
   pointer-events: none;
-  font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
-  color: #f0ede4;
+  font-family: var(--ds-font-kop);
+  color: var(--ds-c-creme);
   --bar: 11vh;
 }
 #cine .cine-bar {
@@ -352,16 +349,16 @@ body.cine-slowmo:not(.gpu-screenfx) #game3d { filter: saturate(0.6) contrast(1.0
   left: 0;
   right: 0;
   height: var(--bar);
-  background: #0c140e;
+  background: var(--ds-c-glas);
   transform: scaleY(0);
-  transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1); /* ds3-film: scene */
 }
 #cine .cine-bar.top { top: 0; transform-origin: top; }
 #cine .cine-bar.bottom { bottom: 0; transform-origin: bottom; }
 #cine.letterbox .cine-bar { transform: scaleY(1); }
-#cine .cine-tint { position: absolute; inset: 0; opacity: 0; transition: opacity 0.5s; }
-#cine[data-tint="death"] .cine-tint { opacity: 1; background: radial-gradient(ellipse at center, rgba(217, 63, 63, 0.12) 20%, rgba(217, 63, 63, 0.5) 100%); }
-#cine[data-tint="bust"] .cine-tint { opacity: 1; background: radial-gradient(ellipse at center, rgba(12, 20, 14, 0.1) 20%, rgba(12, 20, 14, 0.75) 100%); }
+#cine .cine-tint { position: absolute; inset: 0; opacity: 0; transition: opacity 0.5s; } /* ds3-film: scene */
+#cine[data-tint="death"] .cine-tint { opacity: 1; background: radial-gradient(ellipse at center, color-mix(in srgb, var(--ds-c-rood-glas) 12%, transparent) 20%, color-mix(in srgb, var(--ds-c-rood-glas) 50%, transparent) 100%); }
+#cine[data-tint="bust"] .cine-tint { opacity: 1; background: radial-gradient(ellipse at center, color-mix(in srgb, var(--ds-c-glas) 10%, transparent) 20%, color-mix(in srgb, var(--ds-c-glas) 75%, transparent) 100%); }
 body.cine-tint-death:not(.gpu-screenfx) #game3d { filter: grayscale(0.85) contrast(1.1); }
 body.cine-tint-bust:not(.gpu-screenfx) #game3d { filter: grayscale(1) brightness(0.85); }
 
@@ -372,8 +369,8 @@ body.cine-tint-bust:not(.gpu-screenfx) #game3d { filter: grayscale(1) brightness
   max-width: min(80vw, 900px);
   opacity: 0;
   transform: translateX(-24px);
-  transition: opacity 0.5s 0.15s, transform 0.6s 0.15s cubic-bezier(0.2, 0.7, 0.2, 1);
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+  transition: opacity 0.5s 0.15s, transform 0.6s 0.15s cubic-bezier(0.2, 0.7, 0.2, 1); /* ds3-film: scene */
+  text-shadow: 0 2px 10px color-mix(in srgb, var(--ds-c-ink-inkt) 80%, transparent);
 }
 #cine.has-card .cine-card { opacity: 1; transform: none; }
 #cine .cine-name {
@@ -385,15 +382,15 @@ body.cine-tint-bust:not(.gpu-screenfx) #game3d { filter: grayscale(1) brightness
   text-transform: uppercase;
   opacity: 0;
   transform: translateX(-16px);
-  transition: opacity 0.35s, transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85);
-  border-left: 4px solid var(--gron-green-light, #3fc97a);
+  transition: opacity 0.35s, transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1); /* ds3-film: scene */
+  text-shadow: 0 2px 10px color-mix(in srgb, var(--ds-c-ink-inkt) 85%, transparent);
+  border-left: 4px solid var(--ds-c-licht-groen);
   padding-left: 14px;
   pointer-events: none;
 }
 #cine .cine-name.visible { opacity: 1; transform: none; }
-#cine .cine-kicker { font-size: 20px; letter-spacing: 4px; color: var(--gron-green-light, #3fc97a); text-transform: uppercase; }
-#cine[data-accent="wanted"] .cine-kicker { color: #e8c93a; font-size: 28px; }
+#cine .cine-kicker { font-size: 20px; letter-spacing: 4px; color: var(--ds-c-licht-groen); text-transform: uppercase; }
+#cine[data-accent="wanted"] .cine-kicker { color: var(--ds-c-ink-geel); font-size: 28px; }
 #cine .cine-title { font-size: clamp(40px, 7vw, 92px); line-height: 0.95; letter-spacing: 2px; text-transform: uppercase; }
 #cine .cine-title::after {
   content: '';
@@ -401,8 +398,8 @@ body.cine-tint-bust:not(.gpu-screenfx) #game3d { filter: grayscale(1) brightness
   width: 120px;
   height: 4px;
   margin-top: 10px;
-  background: linear-gradient(90deg, #1e9e56, #3fc97a);
-  box-shadow: 0 0 14px rgba(63, 201, 122, 0.4);
+  background: var(--ds-c-licht-groen);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--ds-c-licht-groen) 40%, transparent);
 }
 #cine .cine-big {
   position: absolute;
@@ -414,19 +411,19 @@ body.cine-tint-bust:not(.gpu-screenfx) #game3d { filter: grayscale(1) brightness
   font-size: clamp(64px, 13vw, 180px);
   letter-spacing: 12px;
   opacity: 0;
-  transition: opacity 0.6s 0.2s, transform 1.8s cubic-bezier(0.1, 0.6, 0.2, 1);
-  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.85);
+  transition: opacity 0.6s 0.2s, transform 1.8s cubic-bezier(0.1, 0.6, 0.2, 1); /* ds3-film: scene */
+  text-shadow: 0 4px 24px color-mix(in srgb, var(--ds-c-ink-inkt) 85%, transparent);
 }
 #cine.has-big .cine-big { opacity: 1; transform: translateY(-50%) scale(1); }
-#cine[data-tint="death"] .cine-big { color: #d93f3f; }
+#cine[data-tint="death"] .cine-big { color: var(--ds-c-rood-glas); }
 /* the DOOD / OPGEPAKT moment: a big title on a dark band, a beat late */
 #cine[data-tint="death"] .cine-big, #cine[data-tint="bust"] .cine-big {
   padding: 2.2vh 0 1.4vh;
   line-height: 1;
-  background: linear-gradient(90deg, rgba(12, 20, 14, 0) 0%, rgba(12, 20, 14, 0.72) 25%, rgba(12, 20, 14, 0.78) 50%, rgba(12, 20, 14, 0.72) 75%, rgba(12, 20, 14, 0) 100%);
-  transition: opacity 0.5s 0.55s, transform 2.4s cubic-bezier(0.1, 0.6, 0.2, 1) 0.55s;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--ds-c-glas) 0%, transparent) 0%, color-mix(in srgb, var(--ds-c-glas) 72%, transparent) 25%, color-mix(in srgb, var(--ds-c-glas) 78%, transparent) 50%, color-mix(in srgb, var(--ds-c-glas) 72%, transparent) 75%, color-mix(in srgb, var(--ds-c-glas) 0%, transparent) 100%);
+  transition: opacity 0.5s 0.55s, transform 2.4s cubic-bezier(0.1, 0.6, 0.2, 1) 0.55s; /* ds3-film: scene */
 }
-#cine[data-tint="bust"] .cine-big { color: #f0ede4; }
+#cine[data-tint="bust"] .cine-big { color: var(--ds-c-creme); }
 #cine .cine-sub {
   position: absolute;
   left: 50%;
@@ -434,20 +431,20 @@ body.cine-tint-bust:not(.gpu-screenfx) #game3d { filter: grayscale(1) brightness
   transform: translate(-50%, 50%);
   width: min(86vw, 820px);
   text-align: center;
-  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-family: var(--ds-font-tekst);
   font-size: clamp(16px, 1.6vw, 21px);
   letter-spacing: 0.3px;
   opacity: 0;
-  transition: opacity 0.3s;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  transition: opacity 0.3s; /* ds3-film: scene */
+  text-shadow: 0 1px 3px color-mix(in srgb, var(--ds-c-ink-inkt) 90%, transparent);
 }
 #cine.has-sub .cine-sub { opacity: 1; }
-#cine .cine-speaker { color: var(--gron-green-light, #3fc97a); font-weight: bold; margin-right: 6px; }
+#cine .cine-speaker { color: var(--ds-c-licht-groen); font-weight: bold; margin-right: 6px; }
 /* speaker names in their colour (speakers.js); the dark outline keeps them readable on bright scenes */
 .spk.bubble { text-shadow: none; }
-.spk, #cine .cine-speaker, .bt-speaker, .rv-speaker, #hud .pf-speaker { font-weight: bold; text-shadow: 0 0 2px rgba(0, 0, 0, 0.9), 0 1px 3px rgba(0, 0, 0, 0.8); }
+.spk, #cine .cine-speaker, .bt-speaker, .rv-speaker, #hud .pf-speaker { font-weight: bold; text-shadow: 0 0 2px color-mix(in srgb, var(--ds-c-ink-inkt) 90%, transparent), 0 1px 3px color-mix(in srgb, var(--ds-c-ink-inkt) 80%, transparent); }
 /* Dutch translation under a Frisian or Gronings line (subtitles.js) */
-.nl-sub { display: block; margin-top: 2px; font-size: max(12px, 0.8em); font-style: italic; font-weight: normal; letter-spacing: 0; opacity: 0.82; }
+.nl-sub { display: block; margin-top: 2px; font-size: max(13px, 0.85em); font-style: italic; font-weight: normal; letter-spacing: 0; opacity: 0.82; }
 .nl-gloss { font-size: max(13px, 0.85em); font-style: italic; font-weight: normal; letter-spacing: 0; opacity: 0.82; }
 #cine .cine-big .nl-sub { font-size: 0.42em; margin-top: 0.3em; }
 #cine .cine-skip {
@@ -463,20 +460,20 @@ body.cine-tint-bust:not(.gpu-screenfx) #game3d { filter: grayscale(1) brightness
   letter-spacing: 1px;
   opacity: 0;
   transition: opacity 0.15s;
-  color: rgba(240, 237, 228, 0.75);
+  color: color-mix(in srgb, var(--ds-c-creme) 75%, transparent);
 }
 /* it comes up a moment into the scene, but goes at once with it (never over the HUD) */
-#cine.show-skip.active .cine-skip { opacity: 1; transition: opacity 0.4s 0.8s; }
+#cine.show-skip.active .cine-skip { opacity: 1; transition: opacity 0.4s 0.8s; } /* ds3-film: scene */
 /* a scene that keeps the HUD up (death, busted): bottom centre, clear of the minimap */
 body:not(.cine-hide-hud) #cine .cine-skip { right: 50%; bottom: calc(14px * var(--ui, 1)); transform: translateX(50%); }
 #cine.has-sub .cine-skip { bottom: calc(var(--bar) * 0.5 + 64px * var(--ui, 1)); } /* niet over de ondertitel (#463) */
 body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui, 1) + 64px * var(--ui, 1)); }
-#cine .cine-skip { font-family: 'Arial Narrow', Arial, sans-serif; font-size: calc(14px * var(--ui, 1)); letter-spacing: 0.3px; }
-#cine .cine-skip .hud-key { margin-right: 0; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; }
+#cine .cine-skip { font-family: var(--ds-font-tekst); font-size: calc(14px * var(--ui, 1)); letter-spacing: 0.3px; }
+#cine .cine-skip .hud-key { margin-right: 0; font-family: var(--ds-font-kop); letter-spacing: 1px; }
 #cine .cine-skip-ring { display: inline-block; width: 1.4em; height: 1.4em; margin-right: 0.4em; vertical-align: middle; transform: rotate(-90deg); }
-#cine .cine-skip-ring circle { fill: none; stroke: rgba(240, 237, 228, 0.25); stroke-width: 3; }
-#cine .cine-skip-ring .fill { stroke: var(--gron-green-light, #3fc97a); stroke-linecap: round; stroke-dasharray: 62.8; stroke-dashoffset: calc(62.8 * (1 - var(--hold, 0))); }
-#cine .cine-skip.holding { color: #f0ede4; }
+#cine .cine-skip-ring circle { fill: none; stroke: color-mix(in srgb, var(--ds-c-creme) 25%, transparent); stroke-width: 3; }
+#cine .cine-skip-ring .fill { stroke: var(--ds-c-licht-groen); stroke-linecap: round; stroke-dasharray: 62.8; stroke-dashoffset: calc(62.8 * (1 - var(--hold, 0))); }
+#cine .cine-skip.holding { color: var(--ds-c-creme); }
 #cine .cine-chip {
   position: absolute;
   left: 50%;
@@ -486,7 +483,7 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
   font-size: 17px;
   letter-spacing: 2px;
   background: rgba(15, 30, 20, 0.7);
-  border: 1px solid rgba(63, 201, 122, 0.5);
+  border: 1px solid color-mix(in srgb, var(--ds-c-licht-groen) 50%, transparent);
   border-radius: 4px;
   opacity: 0;
   transition: opacity 0.25s;
@@ -503,50 +500,50 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
   zoom: calc(var(--ui, 1.2) / 1.2);
   opacity: 0;
   pointer-events: none;
-  font-family: 'Arial Narrow', Arial, sans-serif;
-  color: #f0ede4;
+  font-family: var(--ds-font-tekst);
+  color: var(--ds-c-creme);
 }
-#cine .cine-banner::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 45%, rgba(12, 20, 14, 0.35), rgba(12, 20, 14, 0.9) 85%), linear-gradient(90deg, rgba(12, 20, 14, 0.7) 0%, rgba(12, 20, 14, 0) 60%); }
+#cine .cine-banner::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 45%, color-mix(in srgb, var(--ds-c-glas) 35%, transparent), color-mix(in srgb, var(--ds-c-glas) 90%, transparent) 85%), linear-gradient(90deg, color-mix(in srgb, var(--ds-c-glas) 70%, transparent) 0%, color-mix(in srgb, var(--ds-c-glas) 0%, transparent) 60%); }
 #cine .cine-banner > * { position: relative; }
 #cine .cine-banner[hidden] { display: none; }
-#cine .cine-banner.in { animation: cb-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; }
-#cine .cine-banner.out { animation: cb-out 0.5s ease forwards; }
+#cine .cine-banner.in { animation: cb-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; } /* ds3-dwell: verblijf */
+#cine .cine-banner.out { animation: cb-out 0.5s ease forwards; } /* ds3-dwell: verblijf */
 @keyframes cb-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 @keyframes cb-out { from { opacity: 1; } to { opacity: 0; transform: translateY(-10px); } }
 #cine .cb-col { position: absolute; left: 160px; top: 17%; width: 520px; display: flex; flex-direction: column; gap: 24px; }
-#cine .cb-bar { display: block; width: 64px; height: 4px; border-radius: 2px; background: #3fc97a; }
-#cine .cine-banner[data-kind="fail"] .cb-bar { background: #f0ede4; }
+#cine .cb-bar { display: block; width: 64px; height: 4px; border-radius: 2px; background: var(--ds-c-licht-groen); }
+#cine .cine-banner[data-kind="fail"] .cb-bar { background: var(--ds-c-creme); }
 #cine .cb-title {
-  font-family: 'Big Shoulders Display', 'Bebas Neue', 'Arial Narrow', sans-serif; font-weight: 900; text-transform: uppercase;
-  font-size: 88px; line-height: 0.88; letter-spacing: 0.01em; color: #f0ede4; text-shadow: none;
+  font-family: var(--ds-font-logo); font-weight: 900; text-transform: uppercase;
+  font-size: 88px; line-height: 0.88; letter-spacing: 0.01em; color: var(--ds-c-creme); text-shadow: none;
 }
-#cine .cb-reason { font-size: 22px; line-height: 1.45; color: rgba(240, 237, 228, 0.88); }
+#cine .cb-reason { font-size: 22px; line-height: 1.45; color: color-mix(in srgb, var(--ds-c-creme) 88%, transparent); }
 #cine .cb-reason:empty { display: none; }
 #cine .cb-fact { display: flex; flex-direction: column; gap: 4px; }
 #cine .cb-fact:has(.cb-reward:empty) { display: none; }
-#cine .cb-fact > span { font-size: 18px; color: rgba(240, 237, 228, 0.68); }
-#cine .cb-reward { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 72px; line-height: 1; letter-spacing: 0.03em; color: #3fc97a; }
+#cine .cb-fact > span { font-size: 18px; color: color-mix(in srgb, var(--ds-c-creme) 68%, transparent); }
+#cine .cb-reward { font-family: var(--ds-font-kop); font-size: 72px; line-height: 1; letter-spacing: 0.03em; color: var(--ds-c-licht-groen); }
 #cine .cb-stats { display: flex; flex-direction: column; }
-#cine .cb-stats div { display: flex; justify-content: space-between; align-items: baseline; gap: 18px; padding: 12px 0; box-shadow: inset 0 -1px 0 rgba(240, 237, 228, 0.08); }
+#cine .cb-stats div { display: flex; justify-content: space-between; align-items: baseline; gap: 18px; padding: 12px 0; box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--ds-c-creme) 8%, transparent); }
 
 /* #514: het resultaat komt binnen als een kaart, niet als een blok tekst. De
    balk groeit, de titel zakt in beeld, de beloning telt op (cinematics.js) en
    de regels volgen elkaar met een korte vertraging. Alles dooft mee met
    "beweging verminderen". */
-#cine .cine-banner.in .cb-bar { animation: cb-bar-in 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+#cine .cine-banner.in .cb-bar { animation: cb-bar-in 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both; } /* ds3-dwell: verblijf */
 @keyframes cb-bar-in { from { width: 0; opacity: 0; } to { width: 64px; opacity: 1; } }
-#cine .cine-banner.in .cb-title { animation: cb-title-in 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+#cine .cine-banner.in .cb-title { animation: cb-title-in 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both; } /* ds3-dwell: verblijf */
 @keyframes cb-title-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-#cine .cine-banner.in .cb-reason { animation: cb-fade-in 0.5s ease 0.18s both; }
-#cine .cine-banner.in .cb-fact { animation: cb-fade-in 0.5s ease 0.24s both; }
+#cine .cine-banner.in .cb-reason { animation: cb-fade-in 0.5s ease 0.18s both; } /* ds3-dwell: verblijf */
+#cine .cine-banner.in .cb-fact { animation: cb-fade-in 0.5s ease 0.24s both; } /* ds3-dwell: verblijf */
 @keyframes cb-fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-#cine .cine-banner.in .cb-reward { animation: cb-reward-in 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.24s both; }
+#cine .cine-banner.in .cb-reward { animation: cb-reward-in 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.24s both; } /* ds3-dwell: verblijf */
 @keyframes cb-reward-in { 0% { opacity: 0; transform: scale(0.82); } 65% { transform: scale(1.05); } 100% { opacity: 1; transform: none; } }
-#cine .cine-banner.in .cb-stats div { animation: cb-row-in 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 70ms + 220ms); }
+#cine .cine-banner.in .cb-stats div { animation: cb-row-in 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 70ms + 220ms); } /* ds3-dwell: verblijf */
 @keyframes cb-row-in { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
-#cine .cb-stats span { flex: none; max-width: 40%; font-size: 20px; color: rgba(240, 237, 228, 0.68); }
+#cine .cb-stats span { flex: none; max-width: 40%; font-size: 20px; color: color-mix(in srgb, var(--ds-c-creme) 68%, transparent); }
 /* een lange waarde (Gevolg, Ontdekt) slaat om onder zichzelf en botst niet tegen het label (#250) */
-#cine .cb-stats b { flex: 1 1 0; min-width: 0; text-align: right; overflow-wrap: anywhere; line-height: 1.15; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 26px; font-weight: normal; letter-spacing: 0.04em; }
+#cine .cb-stats b { flex: 1 1 0; min-width: 0; text-align: right; overflow-wrap: anywhere; line-height: 1.15; font-family: var(--ds-font-kop); font-size: 26px; font-weight: normal; letter-spacing: 0.04em; }
 @media (prefers-reduced-motion: reduce) { #cine .cine-banner.in, #cine .cine-banner.out { animation: none; opacity: 1; } #cine .cine-banner.out { opacity: 0; } #cine .cine-banner.in .cb-bar, #cine .cine-banner.in .cb-title, #cine .cine-banner.in .cb-reason, #cine .cine-banner.in .cb-fact, #cine .cine-banner.in .cb-reward, #cine .cine-banner.in .cb-stats div { animation: none; opacity: 1; transform: none; } }
 /* #cine sits outside #hud, so its small text follows the HUD scale here */
 #cine .cine-kicker, #cine .cine-chip { zoom: var(--ui, 1); }
@@ -556,35 +553,35 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 #hud .hud-vehname {
   /* the model name for a moment on getting in, above the key hints */
   position: absolute; right: var(--hud-edge); bottom: max(var(--hud-vehname-bottom, calc(var(--hud-edge) + var(--mm-size) + 50px)), var(--hud-vehname-ctx, 0px)); display: flex; align-items: center; gap: 12px;
-  max-width: min(calc(46vw / var(--ui, 1)), 520px); padding: 8px 12px 8px 26px; text-align: right; color: #f0ede4;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85), 0 0 18px rgba(0, 0, 0, 0.5);
-  background: linear-gradient(270deg, rgba(12, 20, 14, 0.82), rgba(23, 48, 31, 0.4) 80%, rgba(23, 48, 31, 0));
-  border-right: 3px solid var(--gron-green-light); opacity: 0; transform: translateX(18px);
-  transition: opacity 0.35s, transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1); pointer-events: none;
+  max-width: min(calc(46vw / var(--ui, 1)), 520px); padding: 8px 12px 8px 26px; text-align: right; color: var(--ds-c-creme);
+  text-shadow: 0 2px 6px color-mix(in srgb, var(--ds-c-ink-inkt) 85%, transparent), 0 0 18px color-mix(in srgb, var(--ds-c-ink-inkt) 50%, transparent);
+  background: linear-gradient(270deg, color-mix(in srgb, var(--ds-c-glas) 82%, transparent), color-mix(in srgb, var(--ds-c-glas-2) 40%, transparent) 80%, color-mix(in srgb, var(--ds-c-glas-2) 0%, transparent));
+  border-right: 3px solid var(--ds-c-licht-groen); opacity: 0; transform: translateX(18px);
+  transition: opacity 0.35s, transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1); pointer-events: none; /* ds3-film: scene */
 }
 #hud .hud-vehname.on { opacity: 1; transform: none; }
 #hud .hud-vehname .vn-text { min-width: 0; }
-#hud .hud-vehname small { display: block; font-size: 16px; letter-spacing: 5px; color: #3fc97a; text-transform: uppercase; }
+#hud .hud-vehname small { display: block; font-size: 16px; letter-spacing: 5px; color: var(--ds-c-licht-groen); text-transform: uppercase; }
 #hud .hud-vehname small:empty { display: none; }
 #hud .hud-vehname b { display: block; font-weight: normal; font-size: 38px; line-height: 0.95; letter-spacing: 1.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#hud .hud-vehname .vn-ic { flex: 0 0 34px; width: 34px; height: 34px; color: var(--gron-green-light); fill: var(--gron-green-light); stroke: var(--gron-green-light); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; filter: drop-shadow(0 0 8px rgba(63, 201, 122, 0.35)); }
+#hud .hud-vehname .vn-ic { flex: 0 0 34px; width: 34px; height: 34px; color: var(--ds-c-licht-groen); fill: var(--ds-c-licht-groen); stroke: var(--ds-c-licht-groen); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; filter: drop-shadow(0 0 8px color-mix(in srgb, var(--ds-c-licht-groen) 35%, transparent)); }
 #hud .hud-vehname .vn-ic .ln { fill: none; stroke-width: 2; }
-#hud .hud-vehname .vn-ic circle:not(.ln) { fill: #0c140e; stroke-width: 2; }
+#hud .hud-vehname .vn-ic circle:not(.ln) { fill: var(--ds-c-glas); stroke-width: 2; }
 @media (prefers-reduced-motion: reduce) { #hud .hud-vehname { transition: opacity 0.2s; transform: none; } }
 
 /* zone E: the radio station (and an achievement card, hudcards.js) */
 #hud .hud-nowplaying {
   position: absolute; top: calc(var(--hud-top) + var(--mm-size) + 46px); left: var(--hud-edge); display: flex; align-items: center; gap: 12px; max-width: min(calc(30vw / var(--ui, 1)), 320px);
-  padding: 8px 16px 8px 8px; border-radius: 10px; color: #f0ede4; text-shadow: var(--hud-shadow); background: var(--hud-card); box-shadow: 0 0 0 1px rgba(63, 201, 122, 0.25);
-  opacity: 0; transform: translateX(-24px); transition: opacity 0.4s, transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+  padding: 8px 16px 8px 8px; border-radius: 10px; color: var(--ds-c-creme); text-shadow: var(--hud-shadow); background: var(--hud-card); box-shadow: 0 0 0 1px color-mix(in srgb, var(--ds-c-licht-groen) 25%, transparent);
+  opacity: 0; transform: translateX(-24px); transition: opacity 0.4s, transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1); /* ds3-film: scene */
 }
 #hud .hud-nowplaying.on { opacity: 1; transform: none; }
-#hud .np-ic { width: 47px; height: 47px; border-radius: 8px; background: #1e9e56; display: grid; place-items: center; flex: none; }
-#hud .np-ic svg { width: 25px; height: 25px; fill: none; stroke: #0c140e; stroke-width: 2; stroke-linecap: round; }
+#hud .np-ic { width: 47px; height: 47px; border-radius: 8px; background: var(--ds-c-licht-groen); display: grid; place-items: center; flex: none; }
+#hud .np-ic svg { width: 25px; height: 25px; fill: none; stroke: var(--ds-c-glas); stroke-width: 2; stroke-linecap: round; }
 #hud .hud-nowplaying div { display: flex; flex-direction: column; line-height: 1.05; min-width: 0; }
-#hud .hud-nowplaying small { font-size: var(--ds-t-kaart-eyebrow); color: var(--gron-green-light); }
+#hud .hud-nowplaying small { font-size: var(--ds-t-kaart-eyebrow); color: var(--ds-c-licht-groen); }
 #hud .hud-nowplaying b { font-weight: normal; font-size: var(--ds-t-kaart-titel); text-transform: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#hud .hud-nowplaying span:not(.np-ic) { font-family: 'Arial Narrow', Arial, sans-serif; font-size: var(--ds-t-kaart-hulp); color: rgba(240, 237, 228, 0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hud .hud-nowplaying span:not(.np-ic) { font-family: var(--ds-font-tekst); font-size: var(--ds-t-kaart-hulp); color: color-mix(in srgb, var(--ds-c-creme) 60%, transparent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (prefers-reduced-motion: reduce) { #hud .hud-nowplaying { transition: opacity 0.2s; transform: none; } }
 
 /* --- race panel (checkpoint races, kroegentocht, rondvaart) ------------ */
@@ -601,9 +598,9 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
   padding: 8px 14px 10px;
   border-radius: 10px;
   background: rgba(10, 19, 13, 0.78);
-  border: 1px solid rgba(63, 201, 122, 0.16);
-  border-right: 3px solid var(--gron-green-light);
-  color: #f0ede4;
+  border: 1px solid color-mix(in srgb, var(--ds-c-licht-groen) 16%, transparent);
+  border-right: 3px solid var(--ds-c-licht-groen);
+  color: var(--ds-c-creme);
   text-shadow: var(--hud-shadow);
   animation: hud-rise var(--dur-slow, 320ms) var(--ease-out, ease-out);
 }
@@ -616,46 +613,39 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
   line-height: 0.9;
 }
 #hud .hud-race .hr-pos b { font-weight: normal; font-size: 56px; }
-#hud .hud-race .hr-pos span { font-size: 22px; color: #a3b2a6; }
-#hud .hud-race .hr-pos[data-lead="1"] b { color: var(--gron-green-light); }
+#hud .hud-race .hr-pos span { font-size: 22px; color: var(--ds-c-creme-zacht); }
+#hud .hud-race .hr-pos[data-lead="1"] b { color: var(--ds-c-licht-groen); }
 #hud .hud-race .hr-row {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
 }
-#hud .hud-race .hr-row span { font-size: 15px; letter-spacing: 1px; color: #a3b2a6; }
+#hud .hud-race .hr-row span { font-size: 15px; letter-spacing: 1px; color: var(--ds-c-creme-zacht); }
 #hud .hud-race .hr-row b { font-weight: normal; font-size: 22px; font-variant-numeric: tabular-nums; }
-#hud .hud-race .hr-row[data-state="low"] b { color: #d93f3f; animation: hud-star-blink 0.6s steps(2, jump-none) infinite; }
-#hud .hud-race .hr-row[data-state="ahead"] b, #hud .hud-race .hr-row[data-k="best"] b { color: var(--gron-green-light); }
+#hud .hud-race .hr-row[data-state="low"] b { color: var(--ds-c-rood-glas); animation: hud-star-blink var(--ds-m-max) steps(2, jump-none) 2; }
+#hud .hud-race .hr-row[data-state="ahead"] b, #hud .hud-race .hr-row[data-k="best"] b { color: var(--ds-c-licht-groen); }
 @media (max-height: 640px) { #hud .hud-race .hr-pos b { font-size: 44px; } #hud .hud-race .hr-row b { font-size: 19px; } }
 
 /* story subtitles: a highlighted clue (missionstory.js) */
 #cine.sub-clue .cine-line { color: var(--mk-mission, #f2d36b); }
-#cine.sub-clue .cine-sub::before { content: 'Aanwijzing'; display: block; font-family: 'Bebas Neue', 'Arial Narrow', sans-serif; font-size: 13px; letter-spacing: 3px; color: var(--mk-mission, #f2c14e); margin-bottom: 2px; text-transform: uppercase; }
+#cine.sub-clue .cine-sub::before { content: 'Aanwijzing'; display: block; font-family: var(--ds-font-kop); font-size: 13px; letter-spacing: 3px; color: var(--mk-mission, #f2c14e); margin-bottom: 2px; text-transform: uppercase; }
 #cine[data-accent="tammo"] .cine-title { color: #9cc1f0; }
-#cine[data-accent="anita"] .cine-title { color: #f39a8c; }
+#cine[data-accent="anita"] .cine-title { color: var(--ds-c-rood-glas-tx); }
 
 /* the canonical keycap (DESIGN_SYSTEM.md) */
 #hud .hud-key, #cine .hud-key {
-  background: #fbfaf5;
+  background: var(--ds-c-toets-vlak);
   border: 0;
   border-radius: 5px;
-  color: #0c140e;
+  color: var(--ds-c-glas);
   font-weight: bold;
   text-shadow: none;
-  box-shadow: 0 2px 0 #a9a69b, 0 0 0 1px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 2px 0 var(--ds-c-toets-rand), 0 0 0 1px color-mix(in srgb, var(--ds-c-ink-inkt) 18%, transparent);
 }
 
-/* drift score chip (driftzone.js) */
-#drift-chip { position: fixed; left: 50%; bottom: 27%; transform: translateX(-50%); z-index: 20; display: flex; align-items: baseline; gap: 10px; padding: 6px 16px; border-radius: 10px; background: rgba(12, 20, 14, 0.72); color: #f0ede4; font-family: 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 0.04em; pointer-events: none; border: 1px solid rgba(232, 82, 58, 0.55); }
-#drift-chip[hidden] { display: none; }
-#drift-chip .dc-k { font-size: 15px; color: rgba(240, 237, 228, 0.7); }
-#drift-chip .dc-p { font-size: 34px; font-weight: normal; color: var(--mk-mission, #ffd23f); min-width: 3ch; text-align: right; font-variant-numeric: tabular-nums; }
-#drift-chip .dc-m { font-size: 22px; color: rgba(240, 237, 228, 0.5); }
-#drift-chip .dc-m.on { color: var(--mk-danger, #ff6f61); }
-#drift-chip .dc-t { font-size: 16px; color: rgba(240, 237, 228, 0.6); }
+/* drift-kaart (driftzone.js): zeefdruk, de regels staan in ds-schermen.css */
 
-.hud-chip.hud-mute { pointer-events: auto; position: relative; z-index: 21; min-height: 0; cursor: pointer; color: #f0ede4; }
+.hud-chip.hud-mute { pointer-events: auto; position: relative; z-index: 21; min-height: 0; cursor: pointer; color: var(--ds-c-creme); }
 /* #638: de enige klikbare HUD-knop haalt op touch de 44 px-regel */
 html.touch-play .hud-chip.hud-mute { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 0 10px; }
 
@@ -762,12 +752,12 @@ body.pigeon-mode #banter-sub, body.pigeon-mode #radio-sub { bottom: calc(198px *
 #hud .hud-money { color: var(--hud-inkt); font-weight: 800; }
 #hud .hud-money.rolling { color: var(--hud-inkt); text-shadow: var(--ds-misdruk); }
 #hud .hud-money-delta { font-weight: 800; }
-#hud .hud-money-delta.visible { text-shadow: var(--ds-misdruk); animation: hud-misdruk-weg 0.01s 1.4s forwards; }
+#hud .hud-money-delta.visible { text-shadow: var(--ds-misdruk); animation: hud-misdruk-weg 0.01s 1.4s forwards; } /* ds3-dwell: verblijf */
 #hud .hud-money-delta[data-sign="plus"] { color: var(--ds-succes-tx); }
 #hud .hud-money-delta[data-sign="min"] { color: var(--ds-probleem-tx); }
 
 /* wapen: misdruk bij een wissel */
-#hud .hud-weapon.switched .hud-weapon-icon { filter: drop-shadow(var(--ds-misdruk-x) var(--ds-misdruk-y) 0 var(--ds-c-ink-roze)); animation: hud-weapon-pop var(--dur-slow, 320ms) var(--ease-out, ease-out), hud-misdruk-weg 0.01s 1.4s forwards; }
+#hud .hud-weapon.switched .hud-weapon-icon { filter: drop-shadow(var(--ds-misdruk-x) var(--ds-misdruk-y) 0 var(--ds-c-ink-roze)); animation: hud-weapon-pop var(--dur-slow, 320ms) var(--ease-out, ease-out), hud-misdruk-weg 0.01s 1.4s forwards; } /* ds3-dwell: verblijf */
 
 /* wanted: roze sterren met inktrand; een lege ster is een raster (vorm en aantal, nooit alleen kleur) */
 #hud .hud-wanted svg { width: 28px; height: 28px; fill: url(#hud-raster); stroke: var(--hud-inkt); stroke-width: 1.8; opacity: 1; }
@@ -805,7 +795,7 @@ body.pigeon-mode #banter-sub, body.pigeon-mode #radio-sub { bottom: calc(198px *
 /* plaatsnaam en prestaties blijven grote letters op het beeld, nu met misdruk op de naam bij het binnenkomen */
 #hud .hud-place { color: var(--ds-c-ink-papier); text-shadow: 3px 3px 0 var(--ds-c-ink-inkt); }
 #hud .pl-name { font-family: var(--ds-font-zeef-kop); font-weight: 800; text-shadow: var(--ds-misdruk), 4px 4px 0 var(--ds-c-ink-inkt); -webkit-text-stroke: 2px var(--ds-c-ink-inkt); paint-order: stroke fill; }
-#hud .pl-kick { color: var(--ds-c-ink-geel); text-shadow: 2px 2px 0 var(--ds-c-ink-inkt); }
+#hud .pl-kick { color: var(--ds-c-ink-papier); text-shadow: 2px 2px 0 var(--ds-c-ink-inkt); }
 #hud .pl-kick i { background: var(--ds-c-ink-geel); }
 #hud .pl-line { font-family: var(--hud-zinnen); text-shadow: 2px 2px 0 var(--ds-c-ink-inkt); }
 
@@ -823,7 +813,7 @@ body.pigeon-mode #banter-sub, body.pigeon-mode #radio-sub { bottom: calc(198px *
 /* de minimap: afgerond vierkant op papier, inktrand, harde schaduw; de buurtnaam hangt als inktlabel eronder */
 #hud .hud-minimap-wrap {
   background: var(--hud-plaat); border: var(--hud-rand); border-radius: 16px; padding: 6px; box-sizing: border-box;
-  box-shadow: var(--hud-schaduw); overflow: hidden; transition: box-shadow 0.4s ease;
+  box-shadow: var(--hud-schaduw); overflow: hidden; transition: box-shadow var(--ds-m-max) ease;
 }
 #hud .hud-minimap-wrap canvas { border-radius: 10px; box-shadow: 0 0 0 1.5px var(--hud-inkt); }
 #hud .hud-minimap-wrap.wanted { box-shadow: var(--ds-schaduw-hard-roze); border-color: var(--hud-inkt); }
@@ -960,8 +950,8 @@ body.cine-hide-hud #story-skip { display: none; }
 #hud .sp-gears .warn { font-size: max(13px, var(--hud-min, 13px)); }
 #hud .sp-rpm { grid-column: 1 / -1; grid-row: 2; width: 100%; height: 7px; }
 #hud .sp-rpm path { stroke-width: 12; stroke-linecap: butt; }
-#hud .rpm-bg { stroke: rgba(12, 20, 14, 0.16); }
-#hud .rpm-zone { stroke: rgba(217, 63, 63, 0.55); }
+#hud .rpm-bg { stroke: color-mix(in srgb, var(--ds-c-glas) 16%, transparent); }
+#hud .rpm-zone { stroke: color-mix(in srgb, var(--ds-c-rood-glas) 55%, transparent); }
 #hud .hud-speedo.no-rpm .sp-main { grid-template-columns: auto 1fr; }
 #hud .hud-speedo.no-rpm.no-gears .sp-main { min-width: 0; }
 

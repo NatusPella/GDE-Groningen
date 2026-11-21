@@ -45,6 +45,17 @@
   --ds-c-amber-glas-vlak: #3a2a0c;
   --ds-c-amber-glas-tx: #ffbe46;
   --ds-c-sel-glas-vlak: #1d3a23;
+  /* ---- Palet: het toetsplaatje (wit plaatje met een rand eronder) en de identiteit van medespelers ---- */
+  --ds-c-toets-vlak: #fbfaf5;
+  --ds-c-toets-rand: #a9a69b;
+  --ds-c-id-1: #4fb3ff;
+  --ds-c-id-2: #5bd6a0;
+  --ds-c-id-3: #f2b134;
+  --ds-c-id-4: #ff9a62;
+  --ds-c-id-5: #ff7ab8;
+  --ds-c-id-6: #b78cff;
+  --ds-c-id-7: #e86a6a;
+  --ds-c-id-8: #6fd3e0;
 
   /* ---- Rollen, standaard op papier ---- */
   --ds-bg: var(--ds-c-papier);
@@ -82,6 +93,7 @@
   /* ---- Typografie: rollen, geen losse px. Ontwerpmaat 1080p (stage, zoom --mz) ---- */
   --ds-font-kop: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
   --ds-font-tekst: 'Arial Narrow', Arial, sans-serif;
+  --ds-font-logo: 'Big Shoulders Display', 'Bebas Neue', 'Arial Narrow', sans-serif; /* het logo en de plaatsnaam in de HUD */
   --ds-t-display: 64px;
   --ds-t-kop: 44px;
   --ds-t-subkop: 28px;
@@ -160,6 +172,13 @@
   --ds-moment-duur: 400ms;                          /* één onderdeel van een hoogtepunt */
   --ds-moment-max: 1600ms;                          /* het hele hoogtepunt, vlak tot en met de glans */
   --ds-moment-leven: 2000ms;                        /* één trage ademhaling van de live-stip (het enige dat mag blijven lopen) */
+}
+/* het wit toetsplaatje en de identiteit van medespelers als rollen (de tabel zelf: coopidentiteit.js) */
+:root {
+  --ds-toetsplaat-bg: var(--ds-c-toets-vlak);
+  --ds-toetsplaat-rand: var(--ds-c-toets-rand);
+  --ds-id-1: var(--ds-c-id-1); --ds-id-2: var(--ds-c-id-2); --ds-id-3: var(--ds-c-id-3); --ds-id-4: var(--ds-c-id-4);
+  --ds-id-5: var(--ds-c-id-5); --ds-id-6: var(--ds-c-id-6); --ds-id-7: var(--ds-c-id-7); --ds-id-8: var(--ds-c-id-8);
 }
 /* de rollen met een vloer opnieuw op #hud: daar bestaat --hud-min (13 px gedeeld door --ui), zodat de vloer na het zoomen 13 px blijft */
 #hud {
@@ -262,6 +281,11 @@ html.reduce-motion { --ds-m-snel: 0ms; --ds-m: 0ms; --ds-m-max: 0ms; --ds-m-kort
   --ds-raster-maat: 6px 6px;
   --ds-raster-dekking: 0.55;
   --ds-lijn-zeef: 2.5px;
+  /* Scrollbalk op papier (F3): één inktduim op een lichte baan; nooit crème of alfa. Duim tegen papier minstens 3:1 (ds3_ratel_test) */
+  --ds-scroll-duim: var(--ds-c-ink-inkt);
+  --ds-scroll-spoor: var(--ds-c-sel-vlak);
+  --ds-scroll-breed: 12px;
+  --ds-scroll-rond: 6px;
   /* Rollen zeefdruk */
   --ds-zeef-bg: var(--ds-c-ink-papier);
   --ds-zeef-tx: var(--ds-c-ink-inkt);
@@ -309,7 +333,7 @@ html.rustig-drukwerk, .ds-rustig {
   --ds-moment-duur: 0ms;
   --ds-moment-max: 0ms;
   --ds-moment-leven: 0ms;
-  --ds-c-ink-roze: #9d1f2a;
+  --ds-c-ink-roze: #8e1a25;
   --ds-c-ink-bord: #0b5530;
 }
 

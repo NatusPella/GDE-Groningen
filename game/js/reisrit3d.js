@@ -185,7 +185,7 @@ function bouwHud(titel, bestemming) {
   const el = document.createElement('div');
   el.className = 'reisrit3d';
   el.style.cssText = 'position:fixed;inset:0;z-index:9000;pointer-events:auto;font:20px var(--ds-font-zeef-tekst);color:var(--ds-c-ink-inkt)';
-  el.innerHTML = '<div class="rr3-zwart" style="position:absolute;inset:0;background:#0c140e;opacity:1;pointer-events:none"></div>'
+  el.innerHTML = '<div class="rr3-zwart" style="position:absolute;inset:0;background:var(--ds-c-glas);opacity:1;pointer-events:none"></div>'
     + '<div class="rr3-sprong" style="position:absolute;inset:0;display:grid;place-items:center;text-align:center;font:800 34px var(--ds-font-zeef-kop);color:var(--ds-c-ink-papier);pointer-events:none;opacity:0"><div><div class="rr3-tekst"></div><div class="rr3-klok" style="font-size:22px;margin-top:10px;opacity:.8"></div></div></div>'
     + '<div class="rr3-balk" style="position:absolute;left:0;right:0;bottom:7%;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;left:50%;right:auto;transform:translateX(-50%);width:max-content;max-width:90vw;padding:10px 24px 12px;box-sizing:border-box;background:var(--ds-c-ink-papier);border:var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt);border-radius:8px;box-shadow:var(--ds-schaduw-hard)">'
     + '<div class="rr3-lijn" style="font:800 16px var(--ds-font-zeef-kop);letter-spacing:0.12em;color:var(--ds-c-ink-bord)"></div>'

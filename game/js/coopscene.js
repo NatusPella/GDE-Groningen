@@ -106,8 +106,8 @@ const pct = (v) => `${Math.round(Math.max(0, Math.min(1, Number(v) || 0)) * 100)
 function meterBalk(paneel) {
   const m = paneel && paneel.meter;
   if (!m) return '';
-  const zone = m.to != null ? `<b style="position:absolute;top:0;bottom:0;left:${pct(m.from)};width:${pct(m.to - m.from)};background:rgba(63,201,122,0.55)"></b>` : '';
-  return `<div style="position:relative;height:10px;margin:8px auto 0;width:min(420px,80%);background:rgba(240,237,228,0.16);border-radius:2px">${zone}<i style="position:absolute;top:0;bottom:0;width:3px;background:var(--hud-fg);left:${pct(m.v)}"></i></div>`;
+  const zone = m.to != null ? `<b style="position:absolute;top:0;bottom:0;left:${pct(m.from)};width:${pct(m.to - m.from)};background:color-mix(in srgb, var(--ds-c-licht-groen) 55%, transparent)"></b>` : '';
+  return `<div style="position:relative;height:10px;margin:8px auto 0;width:min(420px,80%);background:color-mix(in srgb, var(--ds-c-creme) 16%, transparent);border-radius:2px">${zone}<i style="position:absolute;top:0;bottom:0;width:3px;background:var(--hud-fg);left:${pct(m.v)}"></i></div>`;
 }
 export const hasHostScene = () => !!el;
 // (#712) de gast speelt een lange host-film lokaal na: eigen klok vanaf het moment dat de film binnenkomt.
@@ -139,24 +139,24 @@ export function updateHostScene(world) {
   // #686: een verhaal-keuze is van de groep: de gast leest "Jullie kiezen samen" en stemt mee, niet "X kiest".
   const stemt = !!(world && world.coopKeuze);
   const stemRegel = stemt ? (world.coopKeuze.uitslag != null ? `Jullie kozen: ${world.coopKeuze.opties[world.coopKeuze.uitslag] || ''}.` : (world.coopKeuze.eigen != null ? `Je stemde: ${world.coopKeuze.opties[world.coopKeuze.eigen] || ''}. Wachten op de anderen.` : 'Jullie kiezen samen:')) : '';
-  const bar = 'position:absolute;left:0;right:0;background:rgba(0,0,0,.92);';
+  const bar = 'position:absolute;left:0;right:0;background:color-mix(in srgb, var(--ds-c-ink-inkt) 92%, transparent);';
   const balken = (sc.filmpje || sc.film) ? `<div style="${bar}top:0;height:11%"></div><div style="${bar}bottom:0;height:11%"></div>` : '';
   const eigenMenu = !!document.querySelector('#pause-menu.visible'); // de gast zit zelf in zijn pauzemenu: de regel zou over de kop liggen
   const pauze = ''; // de melding 'X heeft het spel op pauze' is op verzoek van de eigenaar weggehaald (24-10): de wereld loopt door of staat stil zonder melding;
-  const kop = (sc.filmpje || sc.film) && !sc.kaart ? `<div style="position:absolute;left:0;right:0;top:12.5%;text-align:center;font-size:22px;text-shadow:0 1px 3px rgba(0,0,0,.92)">${esc(filmpjeTekst(naam))}</div>` : '';
+  const kop = (sc.filmpje || sc.film) && !sc.kaart ? `<div style="position:absolute;left:0;right:0;top:12.5%;text-align:center;font-size:22px;text-shadow:0 1px 3px color-mix(in srgb, var(--ds-c-ink-inkt) 92%, transparent)">${esc(filmpjeTekst(naam))}</div>` : '';
   // (#712) de titelkaart van het host-filmpje: de gast ziet waar het over gaat in plaats van alleen twee balken
   const kk = sc.kaart || (sc.film && sc.film.kaart) || null;
-  const kaart = kk ? `<div style="position:absolute;left:0;right:0;top:13%;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.92),0 0 2px rgba(0,0,0,.92)">${kk.kicker ? `<div style="font-size:18px;letter-spacing:.2em;color:var(--gron-green-light)">${esc(kk.kicker)}</div>` : ''}${kk.title ? `<div style="font-size:44px;font-family:'Bebas Neue','Arial Narrow',Arial,sans-serif;line-height:.95;text-transform:uppercase">${esc(kk.title)}</div>` : ''}${kk.big ? `<div style="font-size:36px;font-family:'Bebas Neue','Arial Narrow',Arial,sans-serif;line-height:.95;text-transform:uppercase">${esc(kk.big)}</div>` : ''}</div>` : '';
-  const filmRegel = filmNu && filmNu.regel ? `<div style="position:absolute;left:10%;right:10%;bottom:13%;text-align:center;font-size:26px;line-height:1.3;text-shadow:0 1px 3px rgba(0,0,0,.92),0 0 2px rgba(0,0,0,.92)">${filmNu.regel.wie ? `<b style="color:var(--gron-green-light)">${esc(filmNu.regel.wie)}</b>: ` : ''}${esc(filmNu.regel.tekst)}</div>` : '';
-  const regel = filmRegel || (sc.regel ? '<div style="position:absolute;left:10%;right:10%;bottom:' + (sc.filmpje ? '13' : '16') + '%;text-align:center;font-size:26px;line-height:1.3;text-shadow:0 1px 3px rgba(0,0,0,.92),0 0 2px rgba(0,0,0,.92)"><b style="color:var(--gron-green-light)">' + esc(sc.regel.wie) + '</b>' + (sc.regel.wie ? ': ' : '') + esc(sc.regel.tekst) + '</div>' : '');
-  const keuze = sc.keuze ? `<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:620px;padding:18px 24px;border-radius:8px;background:rgba(12,20,14,0.88);box-shadow:inset 0 0 0 1px rgba(240,237,228,0.24)"><div style="font-size:24px;line-height:1.3">${esc(sc.keuze.tekst)}</div><div style="margin-top:10px;font-size:20px;opacity:.85">${esc(stemt ? stemRegel : `${naam} kiest:`)}</div><ul style="margin:6px 0 0;padding-left:22px;font-size:22px">${sc.keuze.opties.map((o) => `<li>${esc(o)}</li>`).join('')}</ul></div>` : '';
+  const kaart = kk ? `<div style="position:absolute;left:0;right:0;top:13%;text-align:center;text-shadow:0 1px 3px color-mix(in srgb, var(--ds-c-ink-inkt) 92%, transparent),0 0 2px color-mix(in srgb, var(--ds-c-ink-inkt) 92%, transparent)">${kk.kicker ? `<div style="font-size:18px;letter-spacing:.2em;color:var(--ds-c-licht-groen)">${esc(kk.kicker)}</div>` : ''}${kk.title ? `<div style="font-size:44px;font-family:var(--ds-font-kop);line-height:.95;text-transform:uppercase">${esc(kk.title)}</div>` : ''}${kk.big ? `<div style="font-size:36px;font-family:var(--ds-font-kop);line-height:.95;text-transform:uppercase">${esc(kk.big)}</div>` : ''}</div>` : '';
+  const filmRegel = filmNu && filmNu.regel ? `<div style="position:absolute;left:10%;right:10%;bottom:13%;text-align:center;font-size:26px;line-height:1.3;text-shadow:0 1px 3px color-mix(in srgb, var(--ds-c-ink-inkt) 92%, transparent),0 0 2px color-mix(in srgb, var(--ds-c-ink-inkt) 92%, transparent)">${filmNu.regel.wie ? `<b style="color:var(--ds-c-licht-groen)">${esc(filmNu.regel.wie)}</b>: ` : ''}${esc(filmNu.regel.tekst)}</div>` : '';
+  const regel = filmRegel || (sc.regel ? '<div style="position:absolute;left:10%;right:10%;bottom:' + (sc.filmpje ? '13' : '16') + '%;text-align:center;font-size:26px;line-height:1.3;text-shadow:0 1px 3px color-mix(in srgb, var(--ds-c-ink-inkt) 92%, transparent),0 0 2px color-mix(in srgb, var(--ds-c-ink-inkt) 92%, transparent)"><b style="color:var(--ds-c-licht-groen)">' + esc(sc.regel.wie) + '</b>' + (sc.regel.wie ? ': ' : '') + esc(sc.regel.tekst) + '</div>' : '');
+  const keuze = sc.keuze ? `<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:620px;padding:18px 24px;border-radius:8px;background:color-mix(in srgb, var(--ds-c-glas) 88%, transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 24%, transparent)"><div style="font-size:24px;line-height:1.3">${esc(sc.keuze.tekst)}</div><div style="margin-top:10px;font-size:20px;opacity:.85">${esc(stemt ? stemRegel : `${naam} kiest:`)}</div><ul style="margin:6px 0 0;padding-left:22px;font-size:22px">${sc.keuze.opties.map((o) => `<li>${esc(o)}</li>`).join('')}</ul></div>` : '';
   // de choice-stap toont zijn opties ook als tekstblok in het midden; dan staat er alleen de toetsregel bij (#525)
   const los = sc.keuze && sc.paneel && sc.paneel.stap === 'choice' ? '' : keuze;
   const balk = meterBalk(sc.paneel);
   const vraag = sc.paneel && (sc.paneel.ronde || sc.paneel.tekst)
     ? `${sc.paneel.ronde ? `<div style="font-size:17px;opacity:.85">${esc(sc.paneel.ronde)}</div>` : ''}${sc.paneel.tekst ? `<div style="font-size:22px;margin-top:2px">${esc(sc.paneel.tekst)}</div>` : ''}`
     : '';
-  const paneel = sc.paneel ? `<div style="position:absolute;left:0;right:0;bottom:${sc.filmpje ? '13' : (los ? '16' : '9')}%;text-align:center;font-size:19px;opacity:.9;text-shadow:0 1px 3px rgba(0,0,0,.92)">${vraag}${esc(paneelTekst(sc.paneel))}${balk}</div>` : '';
+  const paneel = sc.paneel ? `<div style="position:absolute;left:0;right:0;bottom:${sc.filmpje ? '13' : (los ? '16' : '9')}%;text-align:center;font-size:19px;opacity:.9;text-shadow:0 1px 3px color-mix(in srgb, var(--ds-c-ink-inkt) 92%, transparent)">${vraag}${esc(paneelTekst(sc.paneel))}${balk}</div>` : '';
   el.innerHTML = balken + kop + kaart + pauze + regel + los + paneel;
 }
 
