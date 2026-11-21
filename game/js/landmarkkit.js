@@ -32,9 +32,12 @@ function year(t) {
   const m = /(\d{4})/.exec((t && t.start_date) || '');
   return m ? Number(m[1]) : null;
 }
+// A height tag in metres, or null. Every use is a building height: an OSM tag like "3300" or "2.770.5" (a typo, a number in the wrong unit) gave a
+// tower of 3300 m: the "huge black pillars" over Usquert (#1057). Outside 1 to 150 m the tag is ignored and the kit's own default height is used.
 function metres(v) {
   const m = /([\d.]+)/.exec(v || '');
-  return m ? Number(m[1]) : null;
+  const n = m ? Number(m[1]) : NaN;
+  return Number.isFinite(n) && n >= 1 && n <= 150 ? n : null;
 }
 
 // Minimum-area rectangle over an outline [x0, y0, x1, y1, ...]: centre,

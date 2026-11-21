@@ -195,9 +195,9 @@ if (wil('vaar') || wil('lucht')) {
     RT.clearUserWaypoint(); p.exitVehicle(map, w);
   });
 }
-// ---- wereldkleuren op drie plekken ----
+// ---- wereldkleuren op drie plekken ---- (k2 staat 45 m naast de kerk van Usquert: op het midden van de kerkkit (2769.7, -20431.3) staat de camera in de kit en zie je zwarte wanden, #1057)
 if (wil('kleur')) await probeer('kleur', async () => {
-  const plekken = [['k1-grotemarkt', 106.3, 58.6, 'oog'], ['k2-ommeland', 2769.7, -20431.3, 'lucht'], ['k3-haven-water', -874, 566, 'lucht']];
+  const plekken = [['k1-grotemarkt', 106.3, 58.6, 'oog'], ['k2-ommeland', 2814.7, -20406.3, 'lucht'], ['k3-haven-water', -874, 566, 'lucht']];
   for (const [nm, x, y, soort] of plekken) {
     await teleport(x, y, 7000); const z = gh(x, y);
     if (soort === 'oog') cam(x - 12, y - 8, z + 4, x + 5, y + 5, z + 3, 70); else cam(x + 90, y - 90, z + 40, x, y, z, 60);
