@@ -107,7 +107,7 @@ export function passedBetweenSteps(done, missionPassed = () => false) {
     const k = oldSteps.findIndex((s) => s.id === id);
     if (k < 0) return false;
     let f = k + 1;                    // the first step after this between-step that is not itself a between-step (V1-V3 follow each other)
-    while (f < STEPS.length && BETWEEN_STEPS.includes(STEPS[f].id)) f++;
+    while (f < oldSteps.length && BETWEEN_STEPS.includes(oldSteps[f].id)) f++;      // in the old order too: k and next are indexes in oldSteps, so f must be as well (indexes in STEPS drift by the added steps)
     return next > f; // the old next step lies past the step that follows this between-step
   });
 }
