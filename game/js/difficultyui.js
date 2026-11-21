@@ -1,4 +1,4 @@
-// De kaart "Hoe pittig moet het zijn?" op het scherm (#1150; difficultycard.js is de regel en de tekst). Dezelfde overlay als de
+// De kaart "Hoe pittig moet het zijn?" op het scherm (#1169; difficultycard.js is de regel en de tekst). Dezelfde overlay als de
 // startkeuze (#online-start, .os-overlay): de bootwachter en de laadschermlaag kennen hem, en de stijl (DS3: toets in de knop,
 // zichtbare focus, microanimatie uit bij Beweging beperken) komt uit onlineconsent.css (.dk-*). Toetsen: zie levelKeyAction en
 // optionsKeyAction; een controller geeft dezelfde toetsen (input.js). Geen netwerk, geen opslag: het antwoord is een profiel.

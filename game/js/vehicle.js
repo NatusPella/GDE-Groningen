@@ -46,7 +46,7 @@ import { newsVanWanted, distToCentre, hourOf } from './streetlifedata.js';
 import { vehicleHooks } from './vehiclehooks.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { MODS } from './cheatmods.js';
-import { vehicleDamageFactor } from './difficulty.js'; // #1150
+import { vehicleDamageFactor } from './difficulty.js'; // #1169
 import { laneLayout } from './lanes.js';
 import { profileFor, createGearbox, stepGearbox } from './gearbox.js';
 import { loadTuning, tuningEffects } from './tuningplan.js';
@@ -1205,7 +1205,7 @@ function applyImpactDamage(v, dmg, playerInvolved, world) {
     if (dmg >= HORSE_KNOCK_DAMAGE) v.health = Math.min(v.health, HORSE_KNOCKED_HEALTH);
     return;
   }
-  if (v.driver === 'player') dmg = assistDamage(dmg) * vehicleDamageFactor(); // #1150: Schade aan je voertuig (Standaard: 1)
+  if (v.driver === 'player') dmg = assistDamage(dmg) * vehicleDamageFactor(); // #1169: Schade aan je voertuig (Standaard: 1)
   if (valtOm(v, dmg)) valOm(v); // #1018: een fiets zonder rijder valt om en ligt tot hij rechtgezet wordt
   // een politicauto op vijf sterren heeft een pantser (#436): hij houdt meer
   // klappen voordat de speler hem stuk rijdt

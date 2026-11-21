@@ -1,4 +1,4 @@
-# Moeilijkheid per save (#1150)
+# Moeilijkheid per save (#1169)
 
 > Naslag. Regels: [AGENTS.md](../AGENTS.md) (constitution, Multiplayer bij ontwerp), [mechanica.md](../.specs-fire/standards/mechanica.md), [ui-taal.md](../.specs-fire/standards/ui-taal.md), [COOP-GAST.md](COOP-GAST.md), [BALANS-21-11.md](BALANS-21-11.md).
 > Code: `game/js/difficulty.js` (de ene bron), `difficultycard.js` en `difficultyui.js` (de kaart bij een nieuw spel), `difficultypanel.js` (Instellingen > Moeilijkheid).
@@ -111,7 +111,7 @@ Elke stap ligt binnen een vaste band: tijd 0,7 tot 2, medailles 0,7 tot 1,4, pol
 
 ## Wat niet is gedaan en wat nog moet
 
-- Niet in beeld bekeken: de kaart en het tabblad (geen Electron in deze ronde; de DS3-controles en de nep-DOM-test dekken de structuur, de toetsen en de tekst, niet de uitstraling). Staat als "nog niet bekeken" in #1150.
+- Niet in beeld bekeken: de kaart en het tabblad (geen Electron in deze ronde; de DS3-controles en de nep-DOM-test dekken de structuur, de toetsen en de tekst, niet de uitstraling). Staat als "nog niet bekeken" in #1169.
 - De sessielijst en de lobby tonen het niveau van de wereld nog niet (zie Samen spelen).
 - De opslagkaart in Opgeslagen spellen noemt het niveau van een save nog niet.
 - De geschaalde tijdlimiet van minigames gebruikt voor het actieve niveau de eigen aanpassing van "Tijd"; een lopende minigame leest hem één keer bij de start, vandaar "volgende start".

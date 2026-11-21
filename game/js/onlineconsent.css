@@ -92,7 +92,7 @@ body:has(#online-start) #loading .bt-load { visibility: hidden; }
 html.reduce-motion .os-kaart { animation: none; }
 html.reduce-motion .sk-keuze { transition: none; }
 
-/* Moeilijkheid (#1150): de kaart "Hoe pittig moet het zijn?" gebruikt de keuzeknoppen hierboven (drie naast elkaar), met de toets in de knop
+/* Moeilijkheid (#1169): de kaart "Hoe pittig moet het zijn?" gebruikt de keuzeknoppen hierboven (drie naast elkaar), met de toets in de knop
    (.sk-toets), en een tweede weergave met een lijst opties. Alleen tokens; tekst nooit onder 13 px; dezelfde focusring; geen beweging als die beperkt is. */
 .dk-knoppen { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .dk-keuze { min-height: 170px; }

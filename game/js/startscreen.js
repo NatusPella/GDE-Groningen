@@ -177,7 +177,7 @@ function afterPaint(fn) {
 // first-run graphics measurement and the boot animations.
 const AUTO = FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly;
 
-// #1150: een NIEUW spel (een verse plek of de allereerste start) vraagt eerst "Hoe pittig moet het zijn?", na de keuzekaart Alleen of Samen en
+// #1169: een NIEUW spel (een verse plek of de allereerste start) vraagt eerst "Hoe pittig moet het zijn?", na de keuzekaart Alleen of Samen en
 // vóór het spel begint. Een testrun (dezelfde vlaggen als de startkeuze) slaat de kaart over en speelt op Standaard; ?moeilijkheid=vraag toont hem toch.
 async function chooseDifficulty() {
   try {
@@ -571,7 +571,7 @@ function runBootScreen(world, opts, pending = null) {
     const startNew = async () => {
       startTheme();
       reseedAutoplay();
-      await chooseDifficulty(); // #1150: de moeilijkheid van dit nieuwe spel, vóór de eerste save
+      await chooseDifficulty(); // #1169: de moeilijkheid van dit nieuwe spel, vóór de eerste save
       // #562: stond de verse plek al klaar (na "Nieuw spel" en de herlaad), dan begint het spel daar en
       // hoeft er geen tweede lege plek bij te komen.
       if (fresh) finishFreshStart(); else startNewSlot();
@@ -627,7 +627,7 @@ function runBootSaveScreen(world, opts) {
       if (!startNewSlot()) { open(); return; }
       startTheme();
       reseedAutoplay();
-      await chooseDifficulty(); // #1150
+      await chooseDifficulty(); // #1169
       warmBeforeFinish(opts, finish);
     };
     const continueGame = () => {

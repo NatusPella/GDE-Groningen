@@ -22,7 +22,7 @@ export function cleanDifficulty(mode) {
 export function difficultyFactors(mode) {
   const m = cleanDifficulty(mode);
   const f = { ...DIFFICULTY[m] };
-  // #1150: voor het actieve niveau van deze save gelden de eigen aanpassingen van Tijd en Medailles
+  // #1169: voor het actieve niveau van deze save gelden de eigen aanpassingen van Tijd en Medailles
   // (de lezers geven het niveau door als tekst; zo hoeft geen van die plekken te veranderen).
   if (m === active.level) {
     f.time = activeOptions.timeFactor;
@@ -74,7 +74,7 @@ export function combinedTimeFactor(mode, settings = {}) {
 }
 
 // ---------------------------------------------------------------------------------------------
-// #1150 Moeilijkheid per save: een niveau (de drie standen hierboven) plus losse opties eronder.
+// #1169 Moeilijkheid per save: een niveau (de drie standen hierboven) plus losse opties eronder.
 // Eén bron: elke plek in het spel leest een optie met opt('sleutel'), nooit een eigen getal.
 // Op Standaard is elke optie exact het gedrag van vóór dit systeem (scripts/difficulty_test.mjs).
 //

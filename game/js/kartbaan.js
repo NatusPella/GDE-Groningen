@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { toonStartkaart } from './startkaart.js';
-import { raceSkillFactor } from './difficulty.js'; // #1150
+import { raceSkillFactor } from './difficulty.js'; // #1169
 import { canvasTex, signBothSides } from './canvastex.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, seatPerson, seatedY, releasePersonGeometry, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';

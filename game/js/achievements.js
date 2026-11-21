@@ -80,7 +80,7 @@ export const ACHIEVEMENTS = [
   { id: 'alle_missies', cat: 'missies', title: 'Grunn is van jou', desc: 'Klaar alle acht missies', count: 'missionsDone', goal: 8 },
   { id: 'alle_zilver', cat: 'missies', title: 'Zilveren Stadjer', desc: 'Minstens zilver op elke missie', count: 'silverPlus', goal: 8 },
   { id: 'alle_goud', cat: 'missies', title: 'Gouden Eierbal', desc: 'Goud op alle acht missies', count: 'goldCount', goal: 8 },
-  { id: 'alle_uitdagend', cat: 'missies', title: 'Geen genade', desc: 'Speel alle acht missies uit op het niveau Uitdagend', count: 'uitdagendKlaar', goal: 8 }, // #1150
+  { id: 'alle_uitdagend', cat: 'missies', title: 'Geen genade', desc: 'Speel alle acht missies uit op het niveau Uitdagend', count: 'uitdagendKlaar', goal: 8 }, // #1169
 
   { id: 'snel_100', cat: 'rijden', title: 'Honderd op de teller', desc: 'Rij 100 km/u', stat: 'topSpeed', goal: 100, unit: 'km/u' },
   { id: 'snel_140', cat: 'rijden', title: 'Harder dan de flitspaal kan tellen', desc: 'Rij 140 km/u', stat: 'topSpeed', goal: 140, unit: 'km/u' },
@@ -494,7 +494,7 @@ function derived(key) {
   const recs = Object.values(bestPerMission());
   if (key === 'silverPlus') return recs.filter((m) => m >= 2).length;
   if (key === 'goldCount') return recs.filter((m) => m >= 3).length;
-  // #1150: een missie telt als uitgespeeld op Uitdagend zodra hij op dat niveau is afgerond (het record van die stand heeft een run)
+  // #1169: een missie telt als uitgespeeld op Uitdagend zodra hij op dat niveau is afgerond (het record van die stand heeft een run)
   if (key === 'uitdagendKlaar') return Object.values(life.missionModes.uitdagend || {}).filter((r) => r && (r.runs | 0) >= 1).length;
   return 0;
 }

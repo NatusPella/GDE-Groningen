@@ -245,7 +245,7 @@ setSimCarAttach(attachToNearestRoad);
 import { scaledTarget, simLevel, nextSimFrame, farAIDist, skipFar, takeDt, keepVehicle } from './simload.js';
 import { getSettings, magOnline } from './settings.js';
 import { MODS } from './cheatmods.js';
-import { trafficFactor } from './difficulty.js'; // #1150: Verkeersdrukte per save
+import { trafficFactor } from './difficulty.js'; // #1169: Verkeersdrukte per save
 import { makeDip, triggerDip, dipScale } from './gamefeel.js';
 import { effectsFor } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';

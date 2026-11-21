@@ -83,7 +83,7 @@ t('de stand staat op de startkaart en in de instellingen', () => {
     assert.ok(ontspannen && /Stand: Ontspannen/.test(ontspannen.bodyHtml), 'de kaart volgt de gekozen stand');
   } finally { zet(); }
   const menu = lees('game/js/pausemenu.js');
-  // #1150: het niveau en de opties staan op een eigen tabblad (difficultypanel.js), per save
+  // #1169: het niveau en de opties staan op een eigen tabblad (difficultypanel.js), per save
   assert.match(menu, /\['moeilijkheid', 'Moeilijkheid'\]/, 'de instellingen hebben een tabblad Moeilijkheid');
   assert.match(menu, /tab\('moeilijkheid', difficultyTabHtml\(\)/, 'dat tabblad toont het niveau en de opties');
   const dm = lees('game/js/difficultypanel.js');

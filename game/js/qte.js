@@ -3,12 +3,12 @@
 // timingbalk) en heist.js (zekeringen, slot, kluis) lezen hier hoeveel ruimer het mag. Het verhaal strandt nooit op een QTE:
 // een misser kost hooguit een tag (de kleine uitkomst), nooit de missie.
 //   node scripts/qte_test.mjs
-import { qteChoice } from './difficulty.js'; // #1150: Moeilijkheid > Quicktime-events en Verhaalmodus
+import { qteChoice } from './difficulty.js'; // #1169: Moeilijkheid > Quicktime-events en Verhaalmodus
 export const QTE_STANDEN = Object.freeze(['normaal', 'makkelijk', 'overslaan']);
 export const QTE_STANDAARD = 'makkelijk';
 export const schoneQte = (v) => (QTE_STANDEN.includes(v) ? v : QTE_STANDAARD);
 // Zonder instellingen (een test, een oud pad) blijft het gedrag van vóór deze optie: Normaal.
-// #1150: het niveau van deze save kan de eigen instelling overrulen ('eigen' laat hem staan); Verhaalmodus zet hem op overslaan.
+// #1169: het niveau van deze save kan de eigen instelling overrulen ('eigen' laat hem staan); Verhaalmodus zet hem op overslaan.
 export const qteStandVan = (settings) => (settings && typeof settings === 'object' ? schoneQte(qteChoice(schoneQte(settings.qteStand))) : 'normaal');
 
 export const QTE_REGELS = Object.freeze({

@@ -20,7 +20,7 @@ const b = pm.indexOf('export function initPauseMenu(');
 ok(a > 0 && m > a && b > m, 'settingsHtml, spelHtml en initPauseMenu staan in die volgorde');
 const settingsSrc = pm.slice(a, m), spelSrc = pm.slice(m, b);
 const keysOf = (src) => [...src.matchAll(/(?:slider|toggle|picker)\('(\w+)'/g)].map((x) => x[1]);
-// #1150: de moeilijkheid (niveau per save) heeft een eigen tabblad in difficultypanel.js; het niveau is daar de gewone kiezer data-setting="difficulty"
+// #1169: de moeilijkheid (niveau per save) heeft een eigen tabblad in difficultypanel.js; het niveau is daar de gewone kiezer data-setting="difficulty"
 const moeilijkheidTab = settingsSrc.includes("tab('moeilijkheid', difficultyTabHtml()") && read('game/js/difficultypanel.js').includes('data-setting="difficulty"');
 const settingsKeys = [...keysOf(settingsSrc), ...(moeilijkheidTab ? ['difficulty'] : [])], spelKeys = keysOf(spelSrc);
 
@@ -53,9 +53,9 @@ const BLIJFT = ['resolution', 'shadows', 'masterVolume', 'mouseSensitivity', 'in
 ok(BLIJFT.every((k) => settingsKeys.includes(k) && !spelKeys.includes(k)), 'beeld, geluid, besturing, interface en toegankelijkheid blijven onder Instellingen');
 ok(settingsSrc.includes('data-preset-btn'), 'de voorinstellingen staan onder Instellingen > Beeld als knoppen, niet als picker (#435)');
 
-// #891, #1150: de moeilijkheid heeft een eigen tabblad Moeilijkheid (difficultypanel.js) met het niveau, de drie niveaus uitgelegd en de opties; het tabblad Spel verwijst ernaar
+// #891, #1169: de moeilijkheid heeft een eigen tabblad Moeilijkheid (difficultypanel.js) met het niveau, de drie niveaus uitgelegd en de opties; het tabblad Spel verwijst ernaar
 const dm = read('game/js/difficultypanel.js');
-ok(moeilijkheidTab && /DIFFICULTY_MODES\.map\(\(m\) => \[m, DIFFICULTY\[m\]\.label\]\)/.test(dm), 'de moeilijkheid heeft een eigen tabblad met het niveau en de drie niveaus (#1150)');
+ok(moeilijkheidTab && /DIFFICULTY_MODES\.map\(\(m\) => \[m, DIFFICULTY\[m\]\.label\]\)/.test(dm), 'de moeilijkheid heeft een eigen tabblad met het niveau en de drie niveaus (#1169)');
 ok(/function levelRows\(\)/.test(dm) && /pm-diff-row/.test(dm) && /data-diff="\$\{m\}"/.test(dm), 'de drie niveaus worden uitgelegd (#891)');
 ok((dm.match(/data-setting="difficulty" data-options/g) || []).length === 1 && !/picker\('difficulty'/.test(settingsSrc), 'het niveau staat op precies één plek');
 
@@ -203,7 +203,7 @@ ok(!subIds.includes('spelers') && !pm.includes('data-of="spel" data-sub="spelers
 ok(pm.includes("name === 'samen' || name === 'samenspelen' || name === 'spelers'") && pm.includes("setN('spel', coopN") && pm.includes('world.coopSpelers.length'), 'de oude namen samen, samenspelen en spelers verwijzen naar Spel > Samen spelen; de rijknop Spel toont het aantal spelers');
 ok(read('game/js/main.js').includes("openPauseMenu('samen')"), 'de coöp-melding opent nog openPauseMenu(samen), dat nu naar Spel > Samen spelen gaat');
 ok(!read('scripts/coop/coop.page.js').includes('.ra[data-goto="samen"]') && !read('scripts/coop/coop.page.js').includes('.ra[data-goto="spelers"]'), 'de coöp-QA zoekt geen oude rijknoppen meer');
-ok(!settingsSrc.includes("tab('cheats'") && /\['video', 'Beeld'\], \['sound', 'Geluid & ondertitels'\], \['spel', 'Spelregels'\], \['moeilijkheid', 'Moeilijkheid'\], \['besturing', 'Besturing'\], \['camera', 'Camera'\], \['display', 'Interface'\], \['hints', 'Hints & uitleg'\], \['a11y', 'Toegankelijkheid'\]/.test(pm), 'Instellingen heeft negen echte instellingstabbladen (met Spel sinds #897, Moeilijkheid sinds #1150, Spelregels sinds #985 en Camera/Hints sinds #979); Cheats staat als eigen onderdeel in de rail (#604)');
+ok(!settingsSrc.includes("tab('cheats'") && /\['video', 'Beeld'\], \['sound', 'Geluid & ondertitels'\], \['spel', 'Spelregels'\], \['moeilijkheid', 'Moeilijkheid'\], \['besturing', 'Besturing'\], \['camera', 'Camera'\], \['display', 'Interface'\], \['hints', 'Hints & uitleg'\], \['a11y', 'Toegankelijkheid'\]/.test(pm), 'Instellingen heeft negen echte instellingstabbladen (met Spel sinds #897, Moeilijkheid sinds #1169, Spelregels sinds #985 en Camera/Hints sinds #979); Cheats staat als eigen onderdeel in de rail (#604)');
 ok(!/\['fouten', 'Foutrapport'\]/.test(pm) && pm.includes('<span>Problemen</span>') && pm.includes('data-errsum'), 'het foutrapport staat onder Over als Problemen met een Nederlandse samenvatting (#604)');
 ok(pm.includes('data-reset-confirm') && pm.includes('data-action="reset-go"') && pm.includes('data-action="reset-undo"') && pm.includes('data-action="reset-cancel"'), 'Standaard herstellen vraagt eerst en kan daarna ongedaan gemaakt worden (#604)');
 ok(pm.includes('const inGameOnly') && /prestart && inGameOnly/.test(pm), 'voor de start zijn Overzicht, Opslaan & stoppen en Samen spelen er niet');

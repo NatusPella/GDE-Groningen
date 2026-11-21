@@ -1,4 +1,4 @@
-// #1150: de kaart "Hoe pittig moet het zijn?" (difficultycard.js, difficultyui.js) en het tabblad Instellingen > Moeilijkheid (difficultypanel.js):
+// #1169: de kaart "Hoe pittig moet het zijn?" (difficultycard.js, difficultyui.js) en het tabblad Instellingen > Moeilijkheid (difficultypanel.js):
 // de pure regels, de toetsen (ook die van de controller: input.js vertaalt knoppen naar dezelfde toetsen), de tekst en een nep-DOM-stroom.
 //   node scripts/difficultycard_test.mjs
 import fs from 'node:fs';
@@ -186,7 +186,7 @@ const next = () => new Promise((r) => setTimeout(r, 0));
   const ss = read('game/js/startscreen.js');
   ok(/import \{ askNewGameDifficulty \} from '\.\/difficultyui\.js'/.test(ss) && /difficultyPlan\(\{ testmodus, vlag: FLAGS\.moeilijkheid \}\)/.test(ss), 'startscreen.js kent de kaart en het plan');
   ok((ss.match(/await chooseDifficulty\(\)/g) || []).length === 2, 'beide nieuwe-spel-paden (boot en bootsave) vragen de moeilijkheid');
-  const i = ss.indexOf('await chooseDifficulty(); // #1150: de moeilijkheid van dit nieuwe spel');
+  const i = ss.indexOf('await chooseDifficulty(); // #1169: de moeilijkheid van dit nieuwe spel');
   ok(i > 0 && i < ss.indexOf('if (fresh) finishFreshStart(); else startNewSlot();'), 'de vraag komt voor de eerste save en voor het begin van het spel');
   ok(/testmodus = !!\(AUTO \|\| FLAGS\.autoplay \|\| FLAGS\.menutest\)/.test(ss), 'dezelfde testvlaggen als de startkeuze');
   const lc = read('game/js/launchchoice.js');

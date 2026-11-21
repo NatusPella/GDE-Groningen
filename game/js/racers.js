@@ -6,7 +6,7 @@ import { hoofdspeler } from './players.js';
 import { Vehicle, MODELS, maxCurvature, resolveVehicleBuildingCollision, makeTwoWheeler } from './vehicle.js';
 import { clamp, pointInPolygon, closestPointOnSegment } from './util.js';
 import { groepsActeurs } from './stagegroep.js';
-import { raceSkillFactor } from './difficulty.js'; // #1150: Tegenstanders in races per save
+import { raceSkillFactor } from './difficulty.js'; // #1169: Tegenstanders in races per save
 
 const A_LAT = 11; // m/s² cornering the speed profile plans for (AI tyre grip is 16)
 const PROFILE_DECEL = 11;

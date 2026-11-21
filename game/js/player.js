@@ -33,7 +33,7 @@ import { flyHeli, heliExitBlock } from './heliflight.js';
 import { flyPlane } from './planeflight.js';
 import { planeExitBlock } from './planecontrol.js';
 import { MODS } from './cheatmods.js';
-import { toggleChoice } from './difficulty.js'; // #1150: Rij-assist per save
+import { toggleChoice } from './difficulty.js'; // #1169: Rij-assist per save
 import { reportCrime } from './crime.js';
 import { shift as shiftGear } from './gearbox.js';
 import { wielInvoer } from './coopgast.js';

@@ -1,4 +1,4 @@
-// Instellingen > Moeilijkheid (#1150): het niveau van deze save en de opties eronder, in het pauzemenu.
+// Instellingen > Moeilijkheid (#1169): het niveau van deze save en de opties eronder, in het pauzemenu.
 // pausemenu.js haalt hier de HTML en de bediening vandaan; dit bestand kent geen opslag en geen netwerk:
 // alles gaat via difficulty.js (de actieve stand, die savegame.js in de save schrijft).
 // Een optie is een kiezer (‹ waarde ›) zoals de andere instellingen en volgt dus dezelfde toetsen, muis en controller.

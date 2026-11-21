@@ -1700,7 +1700,7 @@ function updateObjectiveKeys(world, kind) {
   if (!els.objKeys) return;
   // "Toetshints uit" hoort ook deze regel te verbergen: hij stond in de doellijn en niet in
   // .hud-prompts, dus de instelling liet hem tijdens elke missie staan (QoL-review).
-  const hintsOn = toggleChoice('hints', getSettings().showHints !== false); // #1150: Hints en tips per save
+  const hintsOn = toggleChoice('hints', getSettings().showHints !== false); // #1169: Hints en tips per save
   const hint = hintsOn && (kind === 'mission' || kind === 'job' || kind === 'police' || kind === 'story') ? controlHint(world, hoofdspeler(world), { eerstedoel: kind === 'story' }) : null;
   const sig = hint ? hint.context + '|' + hint.groepen.map((g) => g.keys.join('+') + g.werk).join('|') : '';
   if (sig === els.objKeysSig) return;

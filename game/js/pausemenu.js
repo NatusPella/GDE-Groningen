@@ -8,7 +8,7 @@
 import { keyLabelGlyph, keyLabelHtml } from './keycap.js';
 import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './settings.js';
 import { retryBeschikbaar, herstartMissie, herstartBlokkade } from './missions.js';   // #985 punt 16
-import { difficultyTabHtml, difficultyPaneText, syncDifficultyTab, stepDifficultyPicker, handleDifficultyClick } from './difficultypanel.js'; // #1150: Instellingen > Moeilijkheid, per save
+import { difficultyTabHtml, difficultyPaneText, syncDifficultyTab, stepDifficultyPicker, handleDifficultyClick } from './difficultypanel.js'; // #1169: Instellingen > Moeilijkheid, per save
 import { logoHtml } from './logo.js';
 import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './pausestate.js';
 import { uitlegBlok, zetUitlegGlyph, startUitleg, resetUitlegNietMeer } from './uitleg.js';
@@ -1889,7 +1889,7 @@ function pickerState(pk) {
 
 function stepPicker(pk, dir) {
   if (!pk || pk.getAttribute('aria-disabled') === 'true') return;
-  if (pk.dataset.diffopt) { stepDifficultyPicker(pk, dir); syncControls(); return; } // #1150: een optie van de moeilijkheid, uit de save
+  if (pk.dataset.diffopt) { stepDifficultyPicker(pk, dir); syncControls(); return; } // #1169: een optie van de moeilijkheid, uit de save
   const { options, i } = pickerState(pk);
   const next = Math.min(options.length - 1, Math.max(0, i + dir));
   if (next === i) return;
@@ -2380,7 +2380,7 @@ function syncControls() {
   const shadowBox = root.querySelector('[data-setting="shadows"]');
   shadowBox.disabled = !shadowsAllowed;
   shadowBox.closest('.pm-row').classList.toggle('pm-disabled', !shadowsAllowed);
-  syncDifficultyTab(root); // #891, #1150: het niveau licht op in de uitleg en de opties tonen hun waarde
+  syncDifficultyTab(root); // #891, #1169: het niveau licht op in de uitleg en de opties tonen hun waarde
   syncKeyChanged();
   syncNowFacts(st);
 }

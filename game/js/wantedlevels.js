@@ -1,4 +1,4 @@
-import { policeEscapeFactor, scaleUnits } from './difficulty.js'; // #1150: moeilijkheid per save
+import { policeEscapeFactor, scaleUnits } from './difficulty.js'; // #1169: moeilijkheid per save
 // Wanted per star level (#43), pure data and rules. police.js reads the
 // search area, the cooldown and the units from here, so the five levels feel
 // different without scattering numbers over the chase code.
@@ -19,7 +19,7 @@ const LEVELS = [
   { searchRadius: 130, shrink: 1.0, loseAfter: 7, cooldown: 20, roadblockEvery: 14, roadblockLife: 55, copPeds: 5, spikes: true },
 ];
 
-// #1150: de tijd uit het zicht en de afkoeltijd volgen Moeilijkheid > Politie kwijtraken (op Standaard factor 1).
+// #1169: de tijd uit het zicht en de afkoeltijd volgen Moeilijkheid > Politie kwijtraken (op Standaard factor 1).
 export const loseAfterOf = (lvl) => lvl.loseAfter * policeEscapeFactor();
 export const cooldownOf = (lvl) => lvl.cooldown * policeEscapeFactor();
 
@@ -52,7 +52,7 @@ const COUNTRY_STAGGER = 6;     // s tussen twee eenheden in het Ommeland
 export function policeDensity(stars, { country = false } = {}) {
   const n = starsOf(stars);
   if (n === 0) return { target: 0, stagger: 0 };
-  const target = scaleUnits(country ? COUNTRY_TARGET[n] : TARGET[n - 1]); // #1150: Politiemacht
+  const target = scaleUnits(country ? COUNTRY_TARGET[n] : TARGET[n - 1]); // #1169: Politiemacht
   const stagger = country ? COUNTRY_STAGGER : CITY_STAGGER + (n <= 1 ? 1 : 0);
   return { target, stagger };
 }

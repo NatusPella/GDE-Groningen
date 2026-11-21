@@ -1,4 +1,4 @@
-// De kaart "Hoe pittig moet het zijn?" (#1150): de pure regels en de Nederlandse tekst. Het scherm staat in difficultyui.js.
+// De kaart "Hoe pittig moet het zijn?" (#1169): de pure regels en de Nederlandse tekst. Het scherm staat in difficultyui.js.
 // De kaart komt bij een NIEUW spel en bij de allereerste start (nog geen save), na de keuzekaart Alleen of Samen
 // (launchchoice.js) en voordat het spel begint. Hij heet bewust niet "Hoe wil je spelen?": die naam is van de keuzekaart.
 // Geen DOM en geen opslag hier: de keuze gaat als profiel naar difficulty.js, dat savegame.js in de save schrijft.

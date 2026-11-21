@@ -1,4 +1,4 @@
-// #1150: moeilijkheid per save: het profiel (niveau + opties eronder), de koppelingen met de gameplay, de veilige grenzen,
+// #1169: moeilijkheid per save: het profiel (niveau + opties eronder), de koppelingen met de gameplay, de veilige grenzen,
 // de migratie van een oude save en de spiegel in de instellingen. De regressie die telt: op Standaard is elke optie exact het
 // gedrag van vóór dit systeem. De kaart en de navigatie testen in difficultycard_test.mjs.
 //   node scripts/difficulty_profile_test.mjs
