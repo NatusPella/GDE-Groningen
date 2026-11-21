@@ -7,8 +7,8 @@
 import { noteMoney } from './finance.js';
 import { euro } from './geldtekst.js';
 import * as L from './bezitlive.js';
-import * as SN from './snackwagen.js';
-import * as SP from './standplaats.js';
+import * as SN from './snackvan.js';
+import * as SP from './pitch.js';
 import * as RV from './rival.js';
 import { branchOpen, branchHint } from './bezitgate.js';
 
@@ -65,7 +65,7 @@ export function snackView(w) {
     wagonPrice: SN.wagonPrice(S.fleet.length), stats: S.stats };
 }
 
-// De wagens die in de wereld staan (voor snackwagens3d.js; goedkoop, geen voorspelling): de jouwe, die van je medewerkers en die van Usmem Snacks op zijn plekken.
+// De wagens die in de wereld staan (voor snackvans3d.js; goedkoop, geen voorspelling): de jouwe, die van je medewerkers en die van Usmem Snacks op zijn plekken.
 // Alleen als de poort open is.
 export function wagonSites() {
   if (!snackOpen()) return [];

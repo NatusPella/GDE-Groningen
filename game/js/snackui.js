@@ -3,8 +3,8 @@
 // renderSnackPanel zet hem in het paneel en bindt de knoppen. DS3-klassen van bezitui.js (m-bt, bd-rij, bz-tegel); een koop vraagt een tweede druk. Per speler (#429).
 
 import * as SL from './snacklive.js';
-import * as SN from './snackwagen.js';
-import { PERMIT_DAYS } from './standplaats.js';
+import * as SN from './snackvan.js';
+import { PERMIT_DAYS } from './pitch.js';
 import { euro } from './geldtekst.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -122,5 +122,5 @@ function act(world, d) {
   else if (a === 'modus') say(SL.zetModus(id, d.mode));
   else if (a === 'antwoord') say(SL.antwoord(world, d.choice));
   else if (a === 'open') { const [k, val] = String(d.patch || '').split(':'); say(SL.zetOpen({ [k]: Number(val) })); }
-  else if (a === 'doel-plek') import('./standplaats.js').then((S) => { const p = S.spotXY(id), def = S.spotDef(id); if (p && def) import('./routing.js').then((m) => m.setUserWaypoint(p.x, p.y, def.short)); });
+  else if (a === 'doel-plek') import('./pitch.js').then((S) => { const p = S.spotXY(id), def = S.spotDef(id); if (p && def) import('./routing.js').then((m) => m.setUserWaypoint(p.x, p.y, def.short)); });
 }

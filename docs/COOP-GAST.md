@@ -517,4 +517,4 @@ Wie het spel opende bezit de wereld, niet de standplaatsen. Gedeeld is alleen de
 wint en de verliezer krijgt zijn geld terug via `releaseLostSpot`; wie wegvalt verliest zijn claims, zijn eigen bezit blijft van hem; een gast die aansluit krijgt de kommalijst van de anderen met
 `snapshotSpots` en `adoptSpots`). Wat een medespeler in de sessie heeft is voor jou niet te koop en niet over te nemen, en staat op de kaartlaag Standplaatsen als "van <naam>". Een gast kan
 meewerken achter het luik van jouw wagen (`snackShare`): uurloon of een kwart van de dagwinst, nieuw geld; de eigenaar houdt winst en voortgang (nog geen knop of bericht, de logica is getest).
-De wagens in de wereld (`snackwagens3d.js`) zijn lokaal: elke speler ziet de wagens van zijn eigen imperium en van zijn eigen Usmem. Tests: `bezitcoop_test` en `snacklive_test`.
+De wagens in de wereld (`snackvans3d.js`) zijn lokaal: elke speler ziet de wagens van zijn eigen imperium en van zijn eigen Usmem. Tests: `bezitcoop_test` en `snacklive_test`.

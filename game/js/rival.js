@@ -5,7 +5,7 @@
 // zijn eigen Usmem en zijn eigen voortgang (#429); Samen spelen deelt alleen de claims op plekken (bezitcoop.js).
 
 import { hashUnit, hashPick, clamp, finite } from './bezithash.js';
-import { SPOTS, spotDef, permitPrice } from './standplaats.js';
+import { SPOTS, spotDef, permitPrice } from './pitch.js';
 
 export const RIVAL_NAME = 'Usmem Snacks';
 export const RIVAL_OWNER = 'Jelle Terpstra';

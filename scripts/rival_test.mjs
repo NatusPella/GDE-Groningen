@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import * as R from '../game/js/rival.js';
-import { SPOT_IDS, permitPrice } from '../game/js/standplaats.js';
+import { SPOT_IDS, permitPrice } from '../game/js/pitch.js';
 
 let n = 0, fails = 0;
 const t = (name, fn) => { n++; try { fn(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', String(e.message).split('\n')[0]); } };

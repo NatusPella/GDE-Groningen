@@ -13,8 +13,8 @@ import { mgmtFactor } from '../game/js/farmstaff.js';
 import { createParcelIndex } from '../game/js/parcelindex.js';
 import { streekAt } from '../game/js/regioleven.js';
 import * as BZ from '../game/js/business.js';
-import * as SN from '../game/js/snackwagen.js';
-import * as SP from '../game/js/standplaats.js';
+import * as SN from '../game/js/snackvan.js';
+import * as SP from '../game/js/pitch.js';
 
 export const ACTIVE_PER_HOUR = 1100;          // netto per speluur, actief werk (BALANS-21-11)
 export const START_MONEY = 0;                 // de Duizendpoot-bonus komt na ongeveer twee uur en zit in het actieve tempo

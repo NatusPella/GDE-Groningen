@@ -1,6 +1,6 @@
 // Standplaatsen voor de snackwagen (epic #1095, #1102; ontwerp docs/BEZIT-21-11.md, sectie "Snackwagen en Usmem Snacks"): de plekken in de provincie waar
 // een snackwagen mag staan, met voetgangersdruk, uur- en weekeffect, een vergunning (kosten en geldigheid) en competitie. Puur: geen DOM, geen THREE, geen klok,
-// geen opslag en geen Math.random (alles uit de speldag en de plek; scripts/standplaats_test.mjs).
+// geen opslag en geen Math.random (alles uit de speldag en de plek; scripts/pitch_test.mjs).
 //
 // De namen van de plekken zijn verzonnen bij echte plaatsen en pleinen (constitution 2): "Hoek van de Grote Markt" bestaat als plek, maar de wagens, de
 // vergunningen en de concurrent zijn verzonnen. De ligging komt als lat en lon (WGS84) en wordt met wgsToWorld naar het spel gebracht (rdnew.js).

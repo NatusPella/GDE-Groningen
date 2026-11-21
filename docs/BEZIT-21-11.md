@@ -611,12 +611,12 @@ de opslag (compatibiliteit met bestaande saves en de verhaal-vlaggen); wat de sp
 ### 15.1 Besluiten
 
 1. **Eén wagen, twee lagen.** De bestaande kleine wagen (7.500, `business.js`) is de eerste snackwagen en blijft precies zoals hij was zolang je geen standplaats hebt (geen verandering voor
-   bestaande spelers). Zodra je een vergunning hebt rekent `snackwagen.js` hem af en niet meer `business.stepDay`. De kleine wagen groeit via drie stappen (klein, groot, XL) en bedrijfsbrede
+   bestaande spelers). Zodra je een vergunning hebt rekent `snackvan.js` hem af en niet meer `business.stepDay`. De kleine wagen groeit via drie stappen (klein, groot, XL) en bedrijfsbrede
    upgrades (koeling, eigen merk-sauzen "Terpsaus", dubbele frituurpan).
 2. **Poort.** Het tabblad Snackwagen opent via de gedeelde verhaalpoort: `registerGateWorld({ id: 'snackwagen', part: 'ontzet', by: 'Tessa' })` (akte 5), `bezitgate.branchOpen('snack')`.
    Bij een dichte poort staat er uitleg van Tessa (nooit een leeg scherm). De stubpoort (zonder gedeelde poort) laat de legacy-regel de eindgame niet openen; de gedeelde poort (`worldOpen`)
    volgt zijn eigen migratieregel (bestaande saves houden alles).
-3. **Standplaatsen** (`standplaats.js`, puur): zestien plekken met verzonnen namen bij echte plaatsen (Hoek van de Grote Markt, Martinikerkhof, Stationsplein, Oosterpoort, Reitdiephaven,
+3. **Standplaatsen** (`pitch.js`, puur): zestien plekken met verzonnen namen bij echte plaatsen (Hoek van de Grote Markt, Martinikerkhof, Stationsplein, Oosterpoort, Reitdiephaven,
    Noorderplantsoen, voetbalstadion, kermisterrein, Haren, Winsum, Leek, Veendam, Delfzijl, Zoutkamp, Lauwersoog, Eemshaven), ligging uit lat/lon via `wgsToWorld`. Vraag per dag =
    `260 x druk x weekeffect x gebeurtenis x uurvenster x winkeldichtheid x ruis`. Het uurvenster volgt een profiel per soort plek (dag, spits, avond, haven, club, event); de kermis en de
    thuiswedstrijd (elke 14 dagen op zaterdag) tellen alleen op de dag zelf. Concurrentie per plek (vast) en 3% per Usmem-plek in hetzelfde cluster (max 15%); een goede naam drukt het.
@@ -632,7 +632,7 @@ de opslag (compatibiliteit met bestaande saves en de verhaal-vlaggen); wat de sp
    die levert) maakt het inkopen tot de helft goedkoper en geeft tot 6% extra klanten. Het verbruik wordt NIET van de keten afgetrokken (zie 15.4).
 8. **Voorraad = actief beheer.** De wagen die je zelf runt verkoopt alleen als er voorraad is (vul aan voor 5 dagen, 40 euro per rit); zonder voorraad 15% van de capaciteit en een slechte naam.
 9. **Medewerkers-wagens** (extra wagens, 12.000 + 10% per wagen, max 11): loon (90 + 0,6 x vaardigheid per dag) of 30% aandeel; zonder jou op 85% en 15% aanvoerkosten; ze kiezen zelf het
-   beste uurvenster. Zichtbaar in de wereld (`snackwagens3d.js`).
+   beste uurvenster. Zichtbaar in de wereld (`snackvans3d.js`).
 10. **Eindscore Snackimperium** (0 tot 100): aandeel plekken tegenover Usmem (60), wagens (15), eigen ketens (10), naam (10), het beste plekje (5); elf doelen; prestaties `bz_snack_eerste`,
     `bz_snack_tien` (tien standplaatsen tegelijk) en `bz_usmem` (acht plekken en 75% aandeel).
 
@@ -653,7 +653,7 @@ Ter vergelijking: pacht 0,9%, huur 1,2%, winkel ongeveer 0,55% per speldag. Met 
   reden is dat hij voorraad en aandacht vraagt (besluit 8).
 * **Wat medewerkers verdienen** gaat vóór de bestaande rem `compressPassive` (plafond 3x actief, gedeeld met al het andere passieve inkomen): passief blijft binnen 3x.
 * **Totaal** van een groot imperium (eigen wagen + zes wagens) is ongeveer 4x actief (getest tot 4,25x). Dat is bewust hoger dan de 3x passief omdat de eigen wagen actief werk is; stel bij door
-  `OWN_CAP_DAY`, `STAFF_AUTO` of `FLEET_PRICE` in `snackwagen.js`.
+  `OWN_CAP_DAY`, `STAFF_AUTO` of `FLEET_PRICE` in `snackvan.js`.
 * **Geen exploit:** wagen kopen en verkopen kost 40%, elke upgrade is eenmalig, vergunningen worden duurder per stuk (max x3), er komt geen geld uit het niets (alle kosten lopen via de aanroeper).
 
 ### 15.3 Samen spelen

@@ -20,8 +20,8 @@ import { unlockAchievement, setStatMax } from './achievements.js';
 import * as H from './holdingsmodel.js';
 import { onParcelBought, onWorkerHired, deliverLine } from './bezitworldhooks.js';
 import * as BZ from './business.js';
-import * as SN from './snackwagen.js';
-import * as SPT from './standplaats.js';
+import * as SN from './snackvan.js';
+import * as SPT from './pitch.js';
 import * as FX from './businessexclusion.js';
 import * as EV from './bezitevents.js';
 import { hireWorker, fireWorker, staffOf } from './farmstaff.js';
@@ -468,7 +468,7 @@ export function dagTik(w) {
   let mobNet = 0;
   const SS = snackState(), snackOn = SN.isActive(SS);
   for (const id of Object.keys(b.mobile || {})) {            // de snackwagen (id frietwagen): omzet naar standplaats, weekend en kermis (business.js)
-    if (snackOn && id === 'frietwagen') continue;             // met standplaatsen rekent snackwagen.js de wagen af (Snackimperium)
+    if (snackOn && id === 'frietwagen') continue;             // met standplaatsen rekent snackvan.js de wagen af (Snackimperium)
     const biz = mobileBiz(id);
     if (!biz) continue;
     const spotRegion = CH.SPOT_REGION[biz.cfg.spot] || 'overig';
@@ -484,7 +484,7 @@ export function dagTik(w) {
   net += sn.passive;                                                                              // wat de medewerkers in de wagens verdienen is passief: onder dezelfde rem
   const ev = tickNews(w, farm, from, last, rows);
   if (net > 0) { const dd = Math.max(1, last - from); net = P.compressPassive(net / dd) * dd; }   // de rem op passief inkomen (bezitprijs.js)
-  net += sn.own + sn.fixed;                                                                       // de wagen die je zelf runt heeft zijn eigen plafond (snackwagen.js compressOwn); vergunningen zijn kosten
+  net += sn.own + sn.fixed;                                                                       // de wagen die je zelf runt heeft zijn eigen plafond (snackvan.js compressOwn); vergunningen zijn kosten
   net += ev.money;                                                                                // een boete of de dierenarts is geen passief inkomen: geen rem
   if (net !== 0) { noteMoney(net > 0 ? 'Winkels' : 'Overige uitgaven'); w.money = Math.max(0, (w.money || 0) + net); }
   if (w && typeof w.addMessage === 'function') for (const t of ev.lines.slice(-3).concat(sn.lines.slice(-2))) w.addMessage(t, 5, { kind: 'tip', key: 'bz-nieuws' });
@@ -493,7 +493,7 @@ export function dagTik(w) {
   return lastReport;
 }
 
-// ---- de snackwagen: Snackimperium (snackwagen.js, standplaats.js, rival.js; epic #1102) ----
+// ---- de snackwagen: Snackimperium (snackvan.js, pitch.js, rival.js; epic #1102) ----
 // De toestand zit in bezit.x.snack (per speler, #429) en wordt bij het eerste gebruik genormaliseerd.
 const snackDone = new WeakSet();
 export function snackState() {

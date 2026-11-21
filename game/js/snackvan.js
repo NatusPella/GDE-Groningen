@@ -1,7 +1,7 @@
 // De snackwagen als eindgame van Bezit (epic #1095, #1102; ontwerp docs/BEZIT-21-11.md, sectie "Snackwagen en Usmem Snacks"): een bedrijf-light-sim met standplaatsen
-// (standplaats.js), een menu uit je eigen keten, upgrades, medewerkers (loon of aandeel), een reputatie, de concurrent Usmem Snacks (rival.js) met sabotage als satire,
+// (pitch.js), een menu uit je eigen keten, upgrades, medewerkers (loon of aandeel), een reputatie, de concurrent Usmem Snacks (rival.js) met sabotage als satire,
 // doelen en een eindscore "Snackimperium". Puur: geen DOM, geen THREE, geen klok, geen opslag en geen Math.random; alles uit de speldag (bezithash.js).
-// scripts/snackwagen_test.mjs en scripts/snackbalans_test.mjs.
+// scripts/snackvan_test.mjs en scripts/snackbalans_test.mjs.
 //
 // Eén toestand per speler (S, opgeslagen in bezit.x.snack): { permits, own, fleet, up, rep, rival, ev, stats, lastDay }.
 //   own    de wagen die je zelf runt (het mobiele bedrijf 'frietwagen' van business.js, in het spel Snackwagen): { spot, tier, from, hours, pr, menu, stockDays }
@@ -13,7 +13,7 @@
 import { hashUnit, hashPick, clamp, finite } from './bezithash.js';
 import { FIRST_NAMES } from './businessstaff.js';
 import { maintenanceFactor } from './business.js';
-import * as SP from './standplaats.js';
+import * as SP from './pitch.js';
 import * as RV from './rival.js';
 
 // ---- wagens, upgrades en menu ----

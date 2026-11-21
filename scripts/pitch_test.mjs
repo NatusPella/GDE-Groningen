@@ -1,8 +1,8 @@
-// Standplaatsen (standplaats.js): de plekken, de vraag (druk, week, uur, gebeurtenis), de concurrentie en de vergunning.   node scripts/standplaats_test.mjs
+// Standplaatsen (pitch.js): de plekken, de vraag (druk, week, uur, gebeurtenis), de concurrentie en de vergunning.   node scripts/pitch_test.mjs
 // Puur: geen opslag, geen klok.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import * as S from '../game/js/standplaats.js';
+import * as S from '../game/js/pitch.js';
 import { MOBILE_SPOTS } from '../game/js/business.js';
 
 let n = 0, fails = 0;
@@ -110,8 +110,8 @@ t('claimsleutel voor Samen spelen: sp:<id>', () => {
   assert.equal(S.spotOfClaim('sp:markt'), 'markt'); assert.equal(S.spotOfClaim('sp:zzz'), null); assert.equal(S.spotOfClaim('pabc'), null);
 });
 t('bronregels: geen Math.random, geen fetch, geen DOM', () => {
-  const src = fs.readFileSync(new URL('../game/js/standplaats.js', import.meta.url), 'utf8').split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
+  const src = fs.readFileSync(new URL('../game/js/pitch.js', import.meta.url), 'utf8').split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
   assert.ok(!/Math\.random|fetch\(|document\.|window\.|localStorage/.test(src));
 });
-console.log(`standplaats_test: ${n - fails}/${n} ok`);
+console.log(`pitch_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

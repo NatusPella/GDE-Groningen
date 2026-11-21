@@ -1,5 +1,5 @@
 // De snackwagens in de wereld (Snackimperium, epic #1095, #1102): je eigen snackwagen, die van je medewerkers en die van Usmem Snacks staan geparkeerd op hun standplaats,
-// met een verkoper achter het luik. Hoogstens MAX_WAGONS (vijf, de dichtstbijzijnde) binnen de streamstraal (SPAWN_R 260 m, weg bij DESPAWN_R 340 m, zie snackwagenplan.js).
+// met een verkoper achter het luik. Hoogstens MAX_WAGONS (vijf, de dichtstbijzijnde) binnen de streamstraal (SPAWN_R 260 m, weg bij DESPAWN_R 340 m, zie snackvanplan.js).
 // Het wagenmodel is dat van de bestaande foodtruck (models3d_vehicles.js, de Fjord Frituur) in een eigen kleur met een eigen bord; de verkoper is de gedeelde persoonsfiguur
 // (models3d_people.js). Wat wegvalt gaat via disposeObject (geheugen terug); het bord is een gedeeld materiaal per tekst. De planning is puur en loopt tweemaal per
 // seconde, er beweegt niets per beeld. Geen Math.random.
@@ -11,7 +11,7 @@ import { buildVehicleMesh } from './models3d_vehicles.js';
 import { buildPersonMesh } from './models3d_people.js';
 import { wagonSites, snackOpen } from './snacklive.js';
 import { INK } from './mapstyle.js';
-import { planWagons, diffWagons, PLAN_EVERY_S, MAX_WAGONS } from './snackwagenplan.js';
+import { planWagons, diffWagons, PLAN_EVERY_S, MAX_WAGONS } from './snackvanplan.js';
 
 const S = { actors: new Map(), t: 0, planT: -9 };
 const SIGN_MATS = new Map();

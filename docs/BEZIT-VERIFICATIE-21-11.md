@@ -210,10 +210,10 @@ Bekende gaten:
 
 ## #1102 Snackwagen en Usmem Snacks (eindgame, Snackimperium)
 
-Gebouwd: `standplaats.js` (16 plekken, vraag, vergunning), `rival.js` (Usmem Snacks), `snackwagen.js` (toestand, dag, menu, upgrades, vloot, gebeurtenissen, doelen, score), `snacklive.js` (acties en
-view), `snackui.js` (tabblad Snackwagen), `standplaatsmap.js`, `standplaatsdraw.js`, `standplaatscard.js` (kaartlaag), `snackwagenplan.js` en `snackwagens3d.js` (wagens in de wereld, hoogstens vijf),
+Gebouwd: `pitch.js` (16 plekken, vraag, vergunning), `rival.js` (Usmem Snacks), `snackvan.js` (toestand, dag, menu, upgrades, vloot, gebeurtenissen, doelen, score), `snacklive.js` (acties en
+view), `snackui.js` (tabblad Snackwagen), `pitchmap.js`, `pitchdraw.js`, `pitchcard.js` (kaartlaag), `snackvanplan.js` en `snackvans3d.js` (wagens in de wereld, hoogstens vijf),
 `bezitcoop.js` (claims `sp:`, `snackShare`), `bezitgate.js` (poort akte 5), `bezitlive.js` (dagtik), prestaties in `achievements.js`. Ontwerp en balans: `BEZIT-21-11.md` hoofdstuk 15.
-Tests: `standplaats_test` (16), `rival_test` (14), `snackwagen_test` (29), `snackbalans_test` (12), `snacklive_test` (12), `snackui_test` (8), `snackwagens3d_test` (10), `standplaatsmap_test` (7),
+Tests: `pitch_test` (16), `rival_test` (14), `snackvan_test` (29), `snackbalans_test` (12), `snacklive_test` (12), `snackui_test` (8), `snackvans3d_test` (10), `pitchmap_test` (7),
 `bezitcoop_test` (12, was 10); bestaande bezit-, business-, supplychain-, areamarket- en evenementen-tests blijven groen. Niet in Electron bekeken.
 
 In beeld te controleren (nog niet bekeken):
