@@ -14,7 +14,7 @@ export function idNumbers(id) {
 const idUnit = (id, k = 0) => ((idNumbers(id)[k & 1] >>> ((k >> 1) * 3)) % 1000) / 1000;   // 0..1 vast per perceel
 
 export const GROUND_PER_HA = { w: 1500, a: 2300, b: 3200 };       // weide, akker, boomgaard; weide en akker staan al zo in percelen.js
-export const MIN_PRICE = 1200;
+export const MIN_PRICE = 2400;                                     // het goedkoopste perceel (de Sauwerd-weide van percelen.js): na ongeveer twee uur werk te betalen (1.100 per uur)
 export const REGION_FACTOR = { hogeland: 1.15, hunsingo: 1.15, oldambt: 1.15, eemsdelta: 1.10, lauwerskust: 1.0, westerkwartier: 0.90, veenkolonien: 0.85, westerwolde: 0.80, overig: 1.0 };
 export const REGION_SOIL = { hogeland: 0.85, hunsingo: 0.85, oldambt: 0.90, eemsdelta: 0.80, lauwerskust: 0.70, westerkwartier: 0.55, veenkolonien: 0.50, westerwolde: 0.45, overig: 0.60 };
 export const ACCESS_FACTOR = { weg: 1, pad: 0.92, wegNabij: 0.85, padNabij: 0.78 };
@@ -68,3 +68,10 @@ export const NAME_WORDS = Object.values(WORDS).flat();
 // Verwachte opbrengst voor de perceelkaart: kg per jaar-ish is te groot; de kaart toont de bestaande verwachtingskern: ha x bodemfactor x gewas.
 export const soilWord = (q) => (q < 0.45 ? 'zwak' : q < 0.65 ? 'matig' : q < 0.85 ? 'goed' : 'uitstekend');
 export const soilYieldFactor = (q) => bodemFactor(q);
+
+// ---- de rem op passief inkomen (balans, #1105) ----
+// Wat je zonder werk verdient (pacht, personeel, winkels) loopt per speldag (24 minuten) en wordt zacht afgevlakt naar een plafond van drie keer wat actief werk per
+// speldag oplevert (1.100 per uur x 0,4 uur x 3): bij weinig bezit nauwelijks merkbaar, bij duizend percelen nooit meer dan een factor 3 van de actieve speler.
+export const ACTIVE_PER_DAY = 440;
+export const PASSIVE_CAP_DAY = ACTIVE_PER_DAY * 3;
+export const compressPassive = (perDay) => (perDay > 0 ? Math.round(PASSIVE_CAP_DAY * (1 - Math.exp(-perDay / PASSIVE_CAP_DAY))) : perDay);

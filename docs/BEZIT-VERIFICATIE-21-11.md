@@ -127,3 +127,20 @@ In beeld te controleren:
 - Bij 200 palen geen merkbare fps-daling (perf-run met 1.000 percelen is nog niet gedaan); borden zijn goed leesbaar op 20 m en niet te groot.
 - Geen getekende grenslijn: de index bevat geen vorm en de kaartranden van PERCEELRANDEN-21-11 zijn nog niet aangesloten (bekend gat); alleen de paal staat in het perceel.
 - Een bord boven op een pand staat op de gevel-hoogte van het pand (gok: 3,4 m); controleer bij hoge panden.
+
+## #1104 Samen spelen
+
+Gebouwd: `game/js/bezitcoop.js` (claims met conflictregel laagste (tijd, speler-id), loslaten, wegvallen, aansluiten met een ID-verzameling van 6 byte per perceel,
+`workShare` voor meewerken), `bezitlive.js` (`attachCoop`, `releaseLostClaim` met volledige terugbetaling, claimLookup voor kaart en koopknop), de palen tonen claims van anderen
+in hun kleur. Test `bezitcoop_test` (10).
+
+Nog te doen en in beeld te controleren: het transport (een MISC-soort in `net/codec.js` en de aanroep van `attachCoop` bij sessiestart), een testbankstap met drie instanties,
+het meewerken zelf (gast bestuurt een trekker op andermans veld en krijgt loon) en wat een gast ziet bij een host-wissel (#439).
+
+## #1105 Balans, exploits en prestaties
+
+Gebouwd: `scripts/bezit_sim.mjs` (economiesim over 30 speldagen en verder met de echte prijs-, beheer- en pachtfuncties; zonder index op een vaste prijslijst) en `bezit_sim_test` (9):
+eerste perceel na 2,4 uur (MIN_PRICE nu 2.400), schaalcurve van 10, 100, 1.000 en 20.000 percelen blijft onder 3 keer het actieve tempo (3.300 per uur), geen lus bij kopen en
+direct verkopen (verlies 25%), pacht 0,9% tegen huur 1,2%, schaalprijs max x3, afnemende beheeropbrengst. Nieuw: een zachte rem op passief inkomen (`compressPassive`, plafond 3 x 440 per speldag)
+in de dagtik. Eerste meting: zonder die rem gaf 1.000 percelen ongeveer 30.000 per uur (27 keer het actieve werk).
+Nog te doen: prestaties (eerste perceel, tien percelen, eerste winkel, eerste keten, tien streken) in `achievements.js`, een perf-run met 1.000 percelen en 5.000 panden in Electron, en een spelbot-run die het tempo van twee uur bevestigt.

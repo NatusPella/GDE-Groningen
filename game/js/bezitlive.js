@@ -278,8 +278,40 @@ export function dagTik(w) {
     BZ.storeBiz(b, res.biz); bizNet += res.sum.net; tax += res.sum.tax;
   }
   net += bizNet;
+  if (net > 0) { const dd = Math.max(1, last - from); net = P.compressPassive(net / dd) * dd; }   // de rem op passief inkomen (bezitprijs.js)
   if (net !== 0) { noteMoney(net > 0 ? 'Winkels' : 'Overige uitgaven'); w.money = Math.max(0, (w.money || 0) + net); }
   markeer();
   lastReport = { from: from + 1, to: day, days: rep.days, parcels: Math.round(rep.net), business: Math.round(bizNet), net: Math.round(net), tax: Math.round(tax), events: rep.events };
   return lastReport;
+}
+
+// Samen spelen: onze claim verloor een conflict (een medespeler was eerder). Het perceel gaat terug en het geld komt volledig terug (nooit verlies).
+export function releaseLostClaim(w, id) {
+  const b = getBezit(), r = b.parcels[id];
+  if (!r || r.lg) return { ok: false };
+  const refund = r.p;
+  delete b.parcels[id];
+  PF.syncFarmWithBezit(getBoerderij(), b, ctxOf(), 0);
+  b.totals.earned += refund;
+  noteMoney('Verkoop'); w.money += refund;
+  B.boek(getBoerderij(), { omzet: refund });
+  markeer();
+  return { ok: true, refund, text: 'Een medespeler was net eerder: je geld is terug.' };
+}
+
+// Samen spelen aanzetten voor deze sessie: claims bijhouden en doorsturen via send(msg) (het transport staat in de netlaag, nog te koppelen aan een EXTRA-bericht).
+// Geeft { receive(w, msg), snapshot(), drop(id), stop() }; zonder sessie blijft alles in je eigen spel.
+import { createClaims } from './bezitcoop.js';
+export function attachCoop(w, selfId, name, color, send) {
+  const claims = createClaims(selfId);
+  setClaimLookup((id) => claims.lookup(id));
+  setClaimSend((m) => { const full = { ...m, from: selfId, name, color, t: Date.now() }; claims.apply(full); if (typeof send === 'function') send(full); });
+  if (w) w.bezitClaims = () => claims.list();
+  return {
+    claims,
+    receive(world, msg) { const r = claims.apply(msg); if (r.lost) { const b = releaseLostClaim(world, msg.id); if (b.ok && world.addMessage) world.addMessage(b.text, 4); } return r; },
+    snapshot: () => claims.snapshot(),
+    drop: (id) => claims.drop(id),
+    stop() { setClaimLookup(null); setClaimSend(null); claims.clear(); if (w) w.bezitClaims = null; },
+  };
 }
