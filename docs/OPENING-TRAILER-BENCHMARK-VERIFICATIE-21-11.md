@@ -4,7 +4,16 @@ Voor de coördinator, bij de ene grote Electron-sweep. Ontwerp en besluiten: [OP
 
 ## 1. Opening (nieuw spel, eerste start)
 
-Start met een wegwerpprofiel (`--story-test=<map>` of een nieuw profiel; nooit het profiel van de eigenaar). Let op:
+**Testpad voor de nieuwe film (ronde 2):** start de gestagede build met een wegwerpprofiel en de vlag, bijvoorbeeld `desktop --url-flags=openingfilm` (zonder `noattract`, een nieuw spel: de opening speelt bij de eerste start; of Verhaal > Personages > opening opnieuw bekijken). Zonder de vlag speelt de oude opening: vergelijk die twee. Opnemen: `scripts/trailer` (`--clip`) of een schermopname van de run; de console moet leeg zijn van `opening-film`-waarschuwingen (een waarschuwing betekent dat de film is teruggevallen op de oude opening: noteer welke shot).
+
+Let op bij de film (19 shots, ca. 170 s):
+
+- [ ] Volgorde en tijden: zwart + Rikus, kraan, fietsen, meeuw, Tammo met duiven (naamkaart), duif op de schouder, deur, gevel, keuken (Tessa-naamkaart), de wedstrijd en de tekening, de belofte, de bekentenis met stilte, het raam met stikker en Rikus, "Kom. Werk.", verhuisdag, de regels over geld en de band, titelkaart, zweefvlucht naar de speler.
+- [ ] Nieuwe staging in beeld: de 6 duiven lopen achter Tammo en de duif landt op zijn schouder (geen vlieg door hem heen); de kiosk, de man met zijn rug naar de camera en de stikker staan op een open plek (geen clipping in een gevel); de bandcamera zit bij het voorwiel; geen kaal of zwevend ding.
+- [ ] Geen witte flitsen en geen sluiterklik; de camera's in de keuken blijven aan één kant van de tafel (geen springende as); ondertitels leesbaar.
+- [ ] Fallback: forceer een fout (bijvoorbeeld de shot `c2-raam` laten gooien) en controleer dat de oude opening start in plaats van een vastgelopen scherm.
+
+Voor de oude opening (zonder vlag) geldt:
 
 - [ ] **Titelkaart (88 s):** logo, daaronder "Ontdek jezelf in Grunn." en "Twee afgestudeerden. Eén zomer. Nog geen plan.", geen woord over frietwagen of snacks; kaart blijft ruim leesbaar (13 px-vloer, letterafstand niet uitlopend).
 - [ ] **Overslaan-hint:** "Houd SPATIE ingedrukt om over te slaan" met de toets in een toetsplaatje; de ring vult in 0,9 s; overslaan breekt niets (spel start bij de speler).

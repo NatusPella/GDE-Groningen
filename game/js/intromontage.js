@@ -8,7 +8,7 @@ import { BOAT_KINDS } from './boattypes.js';
 import { spawnPedestriansNear, updatePedestrians } from './pedestrians.js';
 import { updateTrafficLights } from './trafficlights.js';
 import { refreshDayNight } from './daynight.js';
-import { playCinematic } from './cinematics.js';
+import { playCinematic, skipCinematic } from './cinematics.js';
 import { roofAt } from './camerapath.js';
 import { cellPropSpots, CLUTTER_CELL } from './cityprops.js';
 import { lineVoiceFor, NARRATOR } from './linevoice.js';
@@ -33,7 +33,7 @@ import { BIRDS, makeBirds, scatterBirds, updateBirds } from './birds.js';
 import { setIntroPlaying } from './trailerstate.js';
 import { openBank } from './voicebank.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
-import { TITLE } from './openingfilm.js'; // titelkaart en slogan komen uit de filmdata (docs/verhaal/OPENING-FILMSCRIPT-21-11.md)
+import { TITLE, SEQUENCE, NAME_CARDS, FILM_VOICES, engineLines } from './openingfilm.js'; // titelkaart en slogan komen uit de filmdata (docs/verhaal/OPENING-FILMSCRIPT-21-11.md)
 
 // Recorded montage dialogue: the story manifest ("<speaker>|<text>"), then the
 // lines manifest (linevoice.js) for the newer lines.
@@ -137,6 +137,10 @@ const CSS = `
 #intro-montage .im-sub { top: auto; bottom: 2.5vh; left: 50%; right: auto; transform: translateX(-50%); width: min(86vw, 860px); text-align: center; font-family: var(--ds-font-tekst); font-size: clamp(17px, 1.7vw, 23px); letter-spacing: 0.3px; opacity: 0; transition: opacity 0.25s; text-shadow: 2px 2px 0 var(--ds-c-ink-inkt); }
 #intro-montage .im-sub.on { opacity: 1; }
 #intro-montage .im-sub b { color: var(--ds-c-ink-papier); margin-right: 6px; }
+@keyframes im-card-fade { 0% { opacity: 0; } 18% { opacity: 1; } 82% { opacity: 1; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { #intro-montage .im-card.on { animation-name: im-card-fade; } #intro-montage .im-grain { animation: none; } }
+html.reduce-motion #intro-montage .im-card.on { animation-name: im-card-fade; }
+html.reduce-motion #intro-montage .im-grain { animation: none; }
 /* De kleurcorrectie van de montage zit in de im-grade-overlay; een CSS-filter op het WebGL-canvas kost op de echte GPU meetbaar fps (intro 5->11 fps bij 0 s, 11->28 fps bij 25 s). */
 
 `;
@@ -553,7 +557,7 @@ function useKitchen(r, at) {
 // the museum, the trekker-limo on the ring, a skidding tanker, a man on a
 // rope under a helicopter over the Oosterpark), the title. Opening: dawn in
 // the Oosterparkwijk, Rikus on the radio, the kitchen table.
-function buildShots(w) {
+function buildShots(w, film = false) {
   const map = w.map;
   const tower = landmark(w, 'Martinitoren', { x: 213.81, y: 9.9 });
   const vismarkt = landmark(w, 'Vismarkt', { x: 16.36, y: 255.74 });
@@ -1158,10 +1162,320 @@ function buildShots(w) {
     cams: [[0, (u, t, s) => ({ ...s.shot(u), cut: u < 0.9 })]],
   };
 
-  return [
+  const OLD = [
     sun, bikes, gull, boat, anitaCard, tammoCard, pigeon, limo, tanker, heli, title,
     dateCard, dawn, kitchenIn, kitchenCar, liefste, huur, radioTip, verhuis, swoop,
   ];
+  if (!film) return OLD;
+
+  // --- THE FILM (?openingfilm, openingfilm.js SEQUENCE; docs/verhaal/OPENING-FILMSCRIPT-21-11.md) ------------------------------------------
+  // New shots plus the proven ones (gull, kitchen set, moving day, swoop) patched with the lines and the cuts of the film. A shot never reads the
+  // `.timed` of an OLD shot object (it is not in this list): a new shot reads its own through `self`. No white flashes (r.film, enterShot).
+  // The 180 degree rule in the kitchen: every over-the-shoulder camera sits on the same side of the line between the seats (v = -0.32).
+  const base = (id, extra = {}) => { const e = SEQUENCE.find((q) => q.id === id); return { minDur: e.minDur, lead: e.lead, gaps: e.gaps, lines: engineLines(id), film: true, ...extra }; };
+  const zAt = (x, y) => (map.spawnZ ? map.spawnZ(x, y) : 0);
+  const ESCAPADE_RED = '#' + (0xa11f1f).toString(16);
+  const withDawn = (shot) => ({
+    ...shot,
+    enter(r, s) { r.w.lightMood = dawnMood; if (shot.enter) shot.enter(r, s); },
+    exit(r, s) { if (r.w.lightMood === dawnMood) r.w.lightMood = null; if (shot.exit) shot.exit(r, s); },
+  });
+  const said = (L, i, t, d = 0) => !!L && !!L[i] && t > L[i].at + d;
+  const camAnita = (fovA = 30, fovB = fovA) => (u, t) => pose(K(1.4, -0.32, 1.3), anitaHead, lerp(fovA, fovB, smooth(u)), t, 0.004);
+  const camTammo = (fovA = 30, fovB = fovA) => (u, t) => pose(K(-1.4, -0.32, 1.3), tammoHead, lerp(fovA, fovB, smooth(u)), t, 0.004);
+  const camDrawing = (u, t) => pose(K(0.36, 0.12, 1.24), K(KITCHEN.drawing.u - 0.04, KITCHEN.drawing.v, KITCHEN.tableH), lerp(34, 30, u), t, 0.003);
+  const camTable = (u, t) => pose(K(0, -1.38, 1.24), K(0, 0, 1.02), 40, t, 0.002);
+  const cupsOn = (r, s) => { s.kit = useKitchen(r, KIT); for (const c of s.kit.tableCups) c.visible = true; return s.kit; };
+  const sit = (r, aPitch = 0, aYaw = 0, tPitch = 0, tYaw = 0) => { sitK(r.anita, KITCHEN.anitaSeat, 0, aPitch, aYaw); sitK(r.tammo, KITCHEN.tammoSeat, Math.PI, tPitch, tYaw); };
+
+  // C00.1: the cold open
+  const fBlack = { ...base('c1-zwart'), black: true, radio: true };
+  const fCrane = withDawn({
+    ...sun, ...base('c1-markt'), clock: 6.2, clockTo: 6.5, mist: 0.3, card: undefined, cardDur: undefined,
+    // a slow crane up along the tower: 3,6 m in the length of the shot, the lens at 50
+    cams: [[0, (u, t) => {
+      const a = toE + Math.PI + 0.5;
+      const pos = P(tower.x + Math.cos(a) * 52, tower.y + Math.sin(a) * 52, lerp(4, 7.6, smooth(u)));
+      return pose(clearCam(map, pos), P(tower.x, tower.y, lerp(30, 58, smooth(u))), 50, t, 0.03);
+    }]],
+  });
+  const fBikes = withDawn({
+    ...bikes, ...base('c1-fietsen'), clock: 6.3, card: undefined, cardDur: undefined,
+    cams: [[0, (u, t, s) => { const c = blane(7, 3.3); return pose(P(c.x, c.y, 1.0), P(s.mid.x, s.mid.y, 1.0), 46, t, 0.02); }]],
+  });
+  const fGull = withDawn({ ...gull, ...base('c1-meeuw'), clock: 6.4 });
+
+  // Tammo walks down the Korenbloemstraat with a cup of coffee, the pigeons follow him at a respectable distance; then one lands on his shoulder
+  const walkOff = 5.2;
+  const sd = (d, off) => ({ x: home.x + hf.x * d + hn.x * off, y: home.y + hf.y * d + hn.y * off });
+  const TRAIL = [[3.2, 0.4], [4.0, -0.5], [4.8, 0.7], [5.4, -0.2], [6.3, 0.5], [7.0, -0.7]];
+  const cupInHand = (r, s) => { s.kit = useKitchen(r, KIT); s.kit.holdCups(r.tammo, true, 1.6, 'L'); s.kit.group.visible = false; };
+  const fStreet = withDawn({
+    ...base('c1-duiven'), clock: 6.4, mist: 0.2, focus: home,
+    tags: [[NAME_CARDS.tammo.at ?? 1.0, 99, 'Tammo', NAME_CARDS.tammo.line]],
+    enter(r, s) {
+      cupInHand(r, s);
+      s.birds = TRAIL.map(() => { const b = buildPigeonBird('pigeon'); r.group.add(b); return b; });
+    },
+    exit(r, s) { for (const b of s.birds || []) disposeGeometry(b); },
+    tick(r, s, t, dt) {
+      const d = -9 + 1.5 * t, q = sd(d, walkOff);
+      stage(r.tammo, q.x, q.y, home.a, { h: zAt(q.x, q.y), speed: 1.4, pose: 'cups', dt, t });
+      s.birds.forEach((b, i) => {
+        const [back, side] = TRAIL[i];
+        const p = sd(d - back - Math.sin(t * 2 + i) * 0.15, walkOff + side);
+        b.position.set(p.x, zAt(p.x, p.y), p.y);
+        b.rotation.set(0, -home.a, 0);
+        posePigeonBird(b, { flapPhase: 0, amp: 0, fold: 1, grounded: true, walkPhase: t * 9 + i * 1.3, peck: Math.sin(t * 3 + i * 2) > 0.92 ? 1 : 0 });
+      });
+    },
+    // beside him, a camera that walks at his pace (1,5 m/s): he in front, the trail of pigeons behind
+    cams: [[0, (u, t) => {
+      const d = -9 + 1.5 * t, c = sd(d - 2.2, walkOff - 3.4), m = sd(d - 2.2, walkOff + 0.1), z = zAt(c.x, c.y);
+      return pose(clearCam(map, P(c.x, c.y, z + 1.55)), P(m.x, m.y, z + 1.0), 48, t, 0.015);
+    }]],
+  });
+  const fShoulder = withDawn({
+    ...base('c1-schouder'), clock: 6.45, mist: 0.2, focus: home,
+    enter(r, s) { cupInHand(r, s); s.bird = buildPigeonBird('pigeon'); r.group.add(s.bird); },
+    exit(r, s) { if (s.bird) disposeGeometry(s.bird); },
+    tick(r, s, t, dt) {
+      const q = sd(0.5, walkOff), z = zAt(q.x, q.y);
+      stage(r.tammo, q.x, q.y, home.a, { h: z, speed: 0, pose: 'cups', dt, t });
+      const k = smooth(t / 0.9);
+      const sh = { x: q.x + hn.x * 0.18, y: q.y + hn.y * 0.18 };
+      const from = { x: sh.x - hf.x * 1.6 + hn.x * 0.6, y: sh.y - hf.y * 1.6 + hn.y * 0.6, z: z + 2.2 };
+      s.bird.position.set(lerp(from.x, sh.x, k), lerp(from.z, z + 1.55, k), lerp(from.y, sh.y, k));
+      s.bird.rotation.set(0, -home.a, 0);
+      posePigeonBird(s.bird, { flapPhase: t * 20, amp: k < 1 ? 0.9 : 0.1, fold: k < 1 ? 0 : 1, grounded: k >= 1 });
+    },
+    // in front of him, looking back at him and the pigeon on his shoulder
+    cams: [[0, (u, t) => {
+      const q = sd(0.5, walkOff), z = zAt(q.x, q.y), c = { x: q.x + hf.x * 2.5 - hn.x * 1.0, y: q.y + hf.y * 2.5 - hn.y * 1.0 };
+      return pose(clearCam(map, P(c.x, c.y, z + 1.55)), P(q.x, q.y, z + 1.5), 40, t, 0.01);
+    }]],
+  });
+  // he holds the door open with his elbow (the kitchen door of the old name card shot, without the freeze frame and the card)
+  const fDoor = withDawn({ ...tammoCard, ...base('c1-deur'), clock: 6.6, freeze: undefined, tags: undefined });
+
+  // C00.2: the kitchen. The facade first: from the street up to the attic window, a slow dolly (7 m in the shot) with a tilt up
+  const fFacade = withDawn({
+    ...base('c2-gevel'), clock: 7.35, focus: home,
+    enter(r, s) { s.car = tempCar(r, car.x, car.y, home.a) || tempCar(r, car.x, car.y, home.a, { model: { ...MODELS[0], color: ESCAPADE_RED } }); },
+    tick(r, s) { if (s.car) { s.car.roll = 0.06; s.car.pitch = -0.025; } },
+    cams: [[0, (u, t) => {
+      const k = smooth(u);
+      const pos = clearCam(map, P(car.x - hn.x * 12 - hf.x * 4 + hf.x * 7 * k, car.y - hn.y * 12 - hf.y * 4 + hf.y * 7 * k, lerp(1.4, 3.0, k)));
+      return pose(pos, P(lerp(car.x, attic.x, k), lerp(car.y, attic.y, k), lerp(0.7, 8.2, k)), 50, t, 0.02);
+    }]],
+  });
+  const fBank = (() => {
+    const self = {
+      ...base('c2-bank'), clock: 7.4, focus: home, kitchen: true,
+      tags: [[NAME_CARDS.tessa.at ?? 1.0, 99, 'Tessa', NAME_CARDS.tessa.line]],
+      enter(r, s) { s.kit = useKitchen(r, KIT); s.kit.holdCups(r.tammo, true); sfx(r.w, 'door_open', home.x, home.y); },
+      tick(r, s, t, dt) {
+        const L = self.timed;
+        s.kit.hinge.rotation.y = lerp(-0.3, -1.25, smooth(t / 0.8));
+        const k = clamp01((t - 0.3) / 1.4);
+        const u = lerp(door.u, tStand.u, k), v = lerp(1.95, tStand.v, k);
+        const walkA = Math.atan2(tStand.v - 1.95, tStand.u - door.u);
+        stageK(r.tammo, u, v, k < 1 ? walkA : tFace, { speed: k > 0 && k < 1 ? 1 : 0, pose: 'cups', dt, t });
+        const up = said(L, 0, t);
+        sitK(r.anita, KITCHEN.anitaSeat, 0, up ? 0.06 : -0.32, up ? -0.42 : 0);
+      },
+      cams: [
+        [0, (u, t) => pose(K(-1.85, -1.3, 1.7), K(lerp(1.1, 0.8, u), lerp(1.3, 0.8, u), 1.25), 50, t, 0.006)],
+        ['L1', (u, t) => { const c = K(tStand.u + toT.x * 0.7 - toT.y * 0.32, tStand.v + toT.y * 0.7 + toT.x * 0.32, 1.72); return pose(c, anitaHead, lerp(36, 33, u), t, 0.004); }],
+        // after her punch line: Tammo's face over her shoulder
+        ['L1+2.5', (u, t) => { const c = K(KITCHEN.anitaSeat.u - toT.x * 0.55 + toT.y * 0.3, KITCHEN.anitaSeat.v - toT.y * 0.55 - toT.x * 0.3, 1.3); return pose(c, K(tStand.u, tStand.v, 1.6), 38, t, 0.004); }],
+      ],
+    };
+    return self;
+  })();
+  const fCar = (() => {
+    const self = {
+      ...base('c2-wagen'), clock: 7.42, focus: home, kitchen: true,
+      enter: cupsOn,
+      tick(r, s, t) {
+        const L = self.timed;
+        sit(r, 0.04, 0, said(L, 3, t) ? -0.12 : 0);
+        if (said(L, 0, t) && !said(L, 0, t, 1.4)) sitK(r.anita, KITCHEN.anitaSeat, 0, -0.3);
+      },
+      cams: [
+        [0, (u, t) => pose(K(lerp(-0.15, 0.1, u), -1.3, 1.3), K(0, 0, 1.0), 46, t, 0.005)],
+        ['L0+1.4', camDrawing],
+        ['L1', camTammo(30)],
+        ['L2', camAnita(30)],
+        ['L3', camTammo(31, 26)],
+      ],
+    };
+    return self;
+  })();
+  // the competition and the plan: shot / reverse shot per line, a close-up on "Het is een tekening", a reaction on "Dan rijd ik hem"
+  const fPlan = (() => {
+    const self = {
+      ...base('c2-plan'), clock: 7.44, focus: home, kitchen: true,
+      enter: cupsOn,
+      tick(r, s, t) {
+        const L = self.timed;
+        sit(r, said(L, 4, t) && !said(L, 4, t, 2.6) ? -0.28 : 0.03, 0, said(L, 6, t) ? 0.25 : -0.04);
+      },
+      cams: [
+        [0, camTable],
+        ['L0', camAnita(30)],
+        ['L1', camTammo(30)],
+        ['L2', camAnita(30)],
+        ['L3', camTammo(30)],
+        ['L4', camDrawing],
+        ['L4+1.9', camAnita(34, 27)],
+        ['L5', camTammo(32, 27)],
+        ['L6', camTammo(30)],
+      ],
+    };
+    return self;
+  })();
+  const fHome = (() => {
+    const self = {
+      ...base('c2-thuis'), clock: 7.46, focus: home, kitchen: true,
+      enter: cupsOn,
+      tick(r, s, t) {
+        const L = self.timed;
+        sit(r, said(L, 2, t) ? -0.04 : 0.05, 0, said(L, 1, t) ? 0.3 : -0.04);
+      },
+      cams: [
+        [0, camAnita(32)],
+        ['L1', camTammo(32)],
+        ['L2', camAnita(34, 27)],
+        ['L2+5.6', camTammo(30)],
+      ],
+    };
+    return self;
+  })();
+  // the confession: "…Samen." gets a slow zoom and silence, then the contract slides over the table
+  const fRent = (() => {
+    const self = {
+      ...base('c2-huur'), clock: 7.48, focus: home, kitchen: true,
+      enter: cupsOn,
+      tick(r, s, t) {
+        const L = self.timed;
+        sit(r, said(L, 2, t) ? 0.04 : -0.04, said(L, 2, t) ? 0.25 : 0, said(L, 1, t) ? -0.3 : -0.05);
+      },
+      cams: [
+        [0, camAnita(30)],
+        ['L1-0.1', camTammo(31, 26)],
+        ['L2-0.5', camDrawing],
+        ['L2+1.3', camAnita(30)],
+        ['L2+2.5', camTammo(30)],
+      ],
+    };
+    return self;
+  })();
+  // the Fries in a blue blazer, seen from the attic window: a sticker VERKOCHT on the chip shop across the street
+  const KIOSK_GEO = new THREE.BoxGeometry(1, 1, 1);
+  const kp = (d, off) => sd(d, -off);
+  const fKiosk = withDawn({
+    ...base('c2-raam'), clock: 7.5, focus: home,
+    enter(r, s) {
+      s.car = tempCar(r, car.x, car.y, home.a) || tempCar(r, car.x, car.y, home.a, { model: { ...MODELS[0], color: ESCAPADE_RED } });
+      const o = kp(3, 6.4), own = [];
+      const box = (w2, h2, d2, color, x, y, z) => { const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.8 }); own.push(mat); const m = new THREE.Mesh(KIOSK_GEO, mat); m.scale.set(w2, h2, d2); m.position.set(x, y, z); m.rotation.y = -home.a; m.castShadow = true; r.group.add(m); return m; };
+      const gz = zAt(o.x, o.y);
+      box(2.6, 2.3, 2.0, 0xe0b04a, o.x, gz + 1.15, o.y);
+      box(2.9, 0.12, 2.4, 0xb4492f, o.x, gz + 2.36, o.y);
+      s.own = own;
+      s.o = o; s.gz = gz;
+      // the sticker: a red plane with the word, which grows when he sticks it on
+      const cv = document.createElement('canvas');
+      cv.width = 256; cv.height = 96;
+      const g = cv.getContext('2d');
+      g.fillStyle = new THREE.Color(0xc8261e).getStyle(); g.fillRect(0, 0, 256, 96);
+      g.fillStyle = new THREE.Color(0xffffff).getStyle(); g.font = '700 40px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('VERKOCHT', 128, 50);
+      s.tex = new THREE.CanvasTexture(cv);
+      s.sticker = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.56), new THREE.MeshBasicMaterial({ map: s.tex }));
+      s.sticker.position.set(o.x + hn.x * 1.02, gz + 1.45, o.y + hn.y * 1.02);
+      s.sticker.lookAt(s.sticker.position.x + hn.x, s.sticker.position.y, s.sticker.position.z + hn.y);
+      s.sticker.scale.setScalar(0.001);
+      r.group.add(s.sticker);
+      // the man: tall, blue blazer, back to the camera, hands on his hips
+      s.man = makeActor({ shirt: 0x24398a, skin: 0xe2b48c, variant: 'male', seed: 4711, pants: 0x1d2a4a });
+      s.man.scale.setScalar(1.14);
+      r.group.add(s.man);
+      // a pigeon on the roof of the kiosk, watching
+      s.bird = buildPigeonBird('pigeon');
+      r.group.add(s.bird);
+    },
+    exit(r, s) {
+      for (const m of s.own || []) m.dispose();
+      if (s.tex) s.tex.dispose();
+      if (s.sticker) { s.sticker.geometry.dispose(); s.sticker.material.dispose(); }
+      if (s.man) disposeObject(s.man);
+      if (s.bird) disposeGeometry(s.bird);
+    },
+    tick(r, s, t, dt) {
+      if (s.car) { s.car.roll = 0.06; s.car.pitch = -0.025; }
+      const m = { x: s.o.x + hn.x * 2.0, y: s.o.y + hn.y * 2.0 };
+      stage(s.man, m.x, m.y, Math.atan2(-hn.y, -hn.x), { h: zAt(m.x, m.y), speed: 0, pose: 'hips', dt, t });
+      s.sticker.scale.setScalar(clamp01((t - 2.2) / 1.0) * 0.999 + 0.001);
+      s.bird.position.set(s.o.x, s.gz + 2.5, s.o.y);
+      s.bird.rotation.set(0, -(home.a + 0.4), 0);
+      posePigeonBird(s.bird, { flapPhase: 0, amp: 0, fold: 1, grounded: true, walkPhase: 0, peck: t % 3 > 2.7 ? 1 : 0 });
+    },
+    // from the attic window height, a slow dolly along the street (3 m in the shot), looking across at the kiosk
+    cams: [[0, (u, t, s) => {
+      const k = smooth(u);
+      const c = P(attic.x + hf.x * lerp(-1.5, 1.5, k), attic.y + hf.y * lerp(-1.5, 1.5, k), 8.4);
+      return pose(c, P(s.o.x + hn.x * 1.2, s.o.y + hn.y * 1.2, s.gz + 1.5), 46, t, 0.01);
+    }]],
+  });
+  // her phone buzzes on the table: "Kom. Werk."
+  const fPhone = (() => {
+    const self = {
+      ...base('c2-kom'), clock: 7.5, focus: home, kitchen: true, lead: 1.4,
+      enter: cupsOn,
+      tick(r, s, t) {
+        const L = self.timed;
+        if (t > 0.3 && !s.rang) { s.rang = true; sfx(r.w, 'notify', home.x, home.y, { strength: 1 }); }
+        s.kit.buzz(t, t > 0.3 && !said(L, 0, t, 0.6));
+        if (said(L, 0, t)) stageK(r.anita, KITCHEN.anitaSeat.u + 0.1, KITCHEN.anitaSeat.v - 0.5, Math.atan2(0.5, KITCHEN.tammoSeat.u - KITCHEN.anitaSeat.u));
+        else sitK(r.anita, KITCHEN.anitaSeat, 0, t > 0.3 ? -0.4 : 0.02, t > 0.3 ? 0.3 : 0);
+        sitK(r.tammo, KITCHEN.tammoSeat, Math.PI, t > 0.3 ? 0.06 : -0.2, t > 0.3 ? 0.25 : 0);
+      },
+      cams: [
+        [0, (u, t) => pose(K(-0.2, -0.5, 1.02), K(KITCHEN.phone.u, KITCHEN.phone.v, KITCHEN.tableH), 30, t, 0.002)],
+        ['L0', (u, t) => pose(K(1.45, -0.75, 1.5), K(KITCHEN.anitaSeat.u + 0.1, KITCHEN.anitaSeat.v - 0.5, 1.45), 40, t, 0.005)],
+      ],
+    };
+    return self;
+  })();
+
+  // C00.3: moving day. The proven moving-day shot with its own two lines, then a second shot with the competition, the tyre and the kicker
+  const fMoveIn = { ...verhuis, ...base('c3-toren'), clock: 10.6 };
+  const camMoveTammo = verhuis.cams[1][1], camMoveAnita = verhuis.cams[2][1];
+  const fMoveMoney = {
+    ...verhuis, ...base('c3-geld'), clock: 10.65, caption: undefined, stamp: undefined,
+    tick(r, s, t, dt) { verhuis.tick(r, s, 99, dt); if (s.car) { s.car.roll = 0.05; s.car.pitch = -0.02; } },
+    // the camera: Tessa, Tammo, Tessa, the flat tyre close by (where "een lekke band" is said), Tessa for the kicker, Tammo for the reaction
+    cams: [
+      [0, camMoveAnita],
+      ['L1', camMoveTammo],
+      ['L2', camMoveAnita],
+      ['L2+4.6', (u, t, s) => {
+        const c = s.car;
+        if (!c) return camMoveAnita(u, t, s);
+        const perp = { x: -Math.sin(c.angle), y: Math.cos(c.angle) };
+        const sgn = perp.x * (lobby.x - c.x) + perp.y * (lobby.y - c.y) > 0 ? -1 : 1;
+        const wx = c.x + Math.cos(c.angle) * 1.35 + perp.x * sgn * 0.9, wy = c.y + Math.sin(c.angle) * 1.35 + perp.y * sgn * 0.9;
+        return pose(P(wx + perp.x * sgn * 1.2, wy + perp.y * sgn * 1.2, (c.z || 0) + 0.4), P(wx, wy, (c.z || 0) + 0.28), 28, t, 0.004);
+      }],
+      ['L3', camMoveAnita],
+      ['L3+2.6', camMoveTammo],
+    ],
+  };
+  const fTitle = { ...title, ...base('c3-titel'), film: true, minDur: 4.4 };
+  const fSwoop = { ...swoop, ...base('c3-zweef'), film: true };
+
+  return [fBlack, fCrane, fBikes, fGull, fStreet, fShoulder, fDoor, fFacade, fBank, fCar, fPlan, fHome, fRent, fKiosk, fPhone, fMoveIn, fMoveMoney, fTitle, fSwoop];
 }
 
 // Speaker keys: T, A, V (Rikus, the narrator, always on the radio).
@@ -1170,6 +1484,7 @@ const WHO = { T: 'Tammo', A: 'Anita', V: NARRATOR };
 function voiceOf(who, text) {
   const v = voices[who + '|' + text];
   if (v) return { src: VOICE_DIR + v.src, dur: v.dur };
+  if (FILM_VOICES[who + '|' + text]) return FILM_VOICES[who + '|' + text];
   return lineVoiceFor(who, text);
 }
 
@@ -1241,13 +1556,13 @@ function enterShot(r, i) {
   if (shot.black) {
     ui.black.classList.add('on');
     if (shot.card) showCard(shot.card, shot.dur);
-    sfx(w, 'camera_shutter', hoofdspeler(w).x, hoofdspeler(w).y);
+    if (!r.film) sfx(w, 'camera_shutter', hoofdspeler(w).x, hoofdspeler(w).y);
   } else {
     ui.black.classList.remove('on');
     // a big trailer word over the picture
     if (shot.card) showCard(shot.card, shot.cardDur || shot.dur);
     else ui.card.classList.remove('on');
-    if (!prev || !prev.black) flash();
+    if (!r.film && (!prev || !prev.black)) flash();
     sfx(w, 'whoosh', hoofdspeler(w).x, hoofdspeler(w).y);
   }
   ui.flare.classList.toggle('on', !!shot.flare);
@@ -1422,7 +1737,13 @@ export function playTrailerMontage(w, { onDone } = {}) {
   return playIntroMontage(w, { maxShots: 12, onDone });
 }
 
-export function playIntroMontage(w, { startAt = 0, flyShot, onDone, maxShots = Infinity } = {}) {
+// The staged film (openingfilm.js, ?openingfilm). false when it cannot start (the caller plays the old opening); onDone(skipped, failed): failed means
+// a shot threw while playing, the film was stopped and the caller plays the old opening instead.
+export function playOpeningFilm(w, { onDone } = {}) {
+  try { return playIntroMontage(w, { onDone, film: true }); } catch (e) { console.warn('opening-film', e); return false; }
+}
+
+export function playIntroMontage(w, { startAt = 0, flyShot, onDone, maxShots = Infinity, film = false } = {}) {
   if (run) return false;
   ensureUi();
   const scene = getScene();
@@ -1433,7 +1754,8 @@ export function playIntroMontage(w, { startAt = 0, flyShot, onDone, maxShots = I
   const anita = makeActor(ANITA_APPEARANCE);
   tammo.visible = anita.visible = false;
   group.add(tammo, anita);
-  const alle = buildShots(w);
+  let alle;
+  try { alle = buildShots(w, film); } catch (e) { if (!film) throw e; console.warn('opening-film bouwen', e); group.removeFromParent(); disposeObject(tammo); disposeObject(anita); return false; }
   const shots = Number.isFinite(maxShots) ? alle.slice(0, Math.max(1, Math.floor(maxShots))) : alle;
   const total = timeShots(shots);
   const starts = [];
@@ -1443,7 +1765,7 @@ export function playIntroMontage(w, { startAt = 0, flyShot, onDone, maxShots = I
   const p = hoofdspeler(w), c = w.companion;
   const r = {
     w, group, tammo, anita, shots, starts, cars: [], idx: -1, state: {}, lastT: 0, offset: Math.max(0, Math.min(total - 1, startAt)),
-    camIdx: 0, pose: null, flyShot,
+    camIdx: 0, pose: null, flyShot, film, failed: false,
     saved: { px: p.x, py: p.y, pa: p.angle, clock: typeof w.clock === 'number' ? w.clock : 17.5, wanted: w.wanted || 0, weather: w.weather, comp: c ? { x: c.x, y: c.y, angle: c.angle } : null },
   };
   run = r;
@@ -1457,10 +1779,14 @@ export function playIntroMontage(w, { startAt = 0, flyShot, onDone, maxShots = I
   ui.root.classList.add('on');
   const ok = playCinematic({
     id: 'intro', priority: 6, duration: total - r.offset, pause: true, letterbox: true, skippable: true, hideHud: true, realtime: true,
-    shot: (u, t) => frame(r, t),
+    shot: (u, t) => {
+      if (!r.film) return frame(r, t);
+      // the film must never take the game down: an error stops it and the old opening takes over
+      try { return frame(r, t); } catch (e) { if (!r.failed) { r.failed = true; console.warn('opening-film speelfout', e); setTimeout(() => skipCinematic(), 0); } return r.pose; }
+    },
     onEnd: (skipped) => {
       cleanup(r, skipped);
-      if (onDone) onDone(skipped);
+      if (onDone) onDone(skipped, !!r.failed);
     },
   });
   if (!ok) cleanup(r);
