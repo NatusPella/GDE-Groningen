@@ -6,6 +6,7 @@ import fs from 'fs';
 import http from 'http';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { resolveRequest } from './servepath.mjs';
 
 const DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'web-dist');
 const PORT = +process.argv.slice(2).find((a) => /^\d+$/.test(a)) || 8790;
@@ -20,11 +21,9 @@ const TYPES = {
 
 http.createServer((req, res) => {
   if (LOG) res.on('finish', () => console.log(`${res.statusCode} ${res.gdeBytes || 0} ${req.url}${req.headers.range ? ' ' + req.headers.range : ''}`));
-  const url = decodeURIComponent(req.url.split('?')[0]);
-  if (url === '/' || url === PREFIX.slice(0, -1)) { res.writeHead(302, { location: PREFIX }); res.end(); return; }
-  if (!url.startsWith(PREFIX)) { res.writeHead(404); res.end(); return; }
-  let file = path.join(DIR, url.slice(PREFIX.length));
-  if (!file.startsWith(DIR)) { res.writeHead(403); res.end(); return; }
+  const r = resolveRequest(req.url, DIR, PREFIX);
+  if (r.status) { res.writeHead(r.status, r.location ? { location: r.location } : {}); res.end(); return; }
+  let file = r.file;
   if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
   if (!fs.existsSync(file)) { res.writeHead(404); res.end(); return; }
   const size = fs.statSync(file).size;
