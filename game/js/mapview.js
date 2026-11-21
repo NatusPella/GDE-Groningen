@@ -18,6 +18,7 @@ import { gebiedenVan } from './gebieden.js';
 import { getOverzicht, opVeranderen as onGebiedenChange, bezoekPlek } from './gebiedenlive.js';
 import { pinBlijftInMist, unseenDistricts, discoveryRatio, revealAlpha, maskSize, DISCOVERY_RES_M } from './kaartontdekking.js';
 import { getHorecaForRender } from './horeca.js';
+import { poiRules, capPins, fadeIn, createHorecaPlanner } from './mapdeclutter.js';
 import { enterablePlaces, drawDoorBadge } from './interiormap.js'; // de kaartlaag Betreedbaar (#1150)
 import { getShopsForRender, getShopsDecluttered, storyTargetShop, drawStoryShopRing } from './shops.js';
 import { SHOP_TYPES } from './shopdata.js';
@@ -60,7 +61,7 @@ import { getEierbalTips } from './furniture.js';
 import { drawRailsOnMap } from './railway.js';
 import { drawCountryBase, drawCountryDetail, villageLabels, syncMapPhase, MAP_STYLE, builtUpAt } from './countrymap.js';
 import { drawProvinceBase, provinceMapOn, provinceMapBounds, onProvinceMapLoad } from './provincemap.js';
-import { ROAD_ORDER, ZOOM, EMPHASIS, INK, inkA, inkCss, roadWidthPx, layersAtZoom, modeLook, baseFilter, baseDimOverlay } from './mapstyle.js';
+import { ROAD_ORDER, ZOOM, EMPHASIS, INK, inkA, inkCss, roadWidthPx, layersAtZoom, ICON_MIN_ZOOM, modeLook, baseFilter, baseDimOverlay } from './mapstyle.js';
 import { drawSea, drawOutside, regionLabels, regionEdgeLabels, areaNameAt, placeNameAt, regionName, regionBorderColor } from './regions.js';
 import { borderPlaceLabels, borderPlaceAt } from './borderplaces.js';
 import { viewpointHover, areaName } from './verkenpunten.js';
@@ -117,6 +118,7 @@ const TILE_BUDGET_MS = 3.5;
 const L_BASE = 6;
 const LEVEL_COUNT = 14;
 const levelZoom = (L) => Math.SQRT2 ** (L - L_BASE);
+const horecaPlan = createHorecaPlanner();
 const MID_ZOOM = ZOOM.mid;
 const NEAR_ZOOM = ZOOM.near;
 const DRAG_PX = 4;
@@ -1404,17 +1406,7 @@ function drawStaticOverlay(ctx) {
 
   // de vaste pictogrammen eerst: hun plek is bezet voordat de labels gelegd
   // worden, zodat geen naam over een icoon heen valt (#463)
-  if (layerOn('horeca') && mapKindVisible('horeca', z)) {
-    const cellPx = z >= NEAR_ZOOM * 2 ? 26 * sc / 1.9 : 40 * sc / 1.9;
-    for (const h of declutter(getHorecaForRender(), cellPx / state.scale)) {
-      const [sx, sy] = toScreen(h.x, h.y);
-      if (!onScreen(sx, sy)) continue;
-      drawMapIconHalo(ctx, 'horeca', sx, sy, sc);
-      drawMapIcon(ctx, 'horeca', sx, sy, sc, { t: 0 });
-      bezet.push(pinDoos(sx, sy, sc));
-      hover.push({ sx, sy, name: h.name || 'Horeca', sub: 'Horeca' });
-    }
-  }
+  // (horeca staat sinds 21-11 in de pinwachtrij van de dynamische laag: gegroepeerd per zoom, mapdeclutter.js)
   // Betreedbaar (#1150): de plekken waar je door de deur naar binnen kunt lopen, vanaf het stadsniveau
   if (layerOn('betreedbaar') && z >= NEAR_ZOOM) {
     const cellPx = 24 * sc / 1.9;
@@ -1715,6 +1707,26 @@ export function pinSetKey(geplaatst) {
   return (Array.isArray(geplaatst) ? geplaatst : []).map((q) => `${q && q.kind}|${(q && q.name) || ''}`).sort().join(';');
 }
 
+// het aantal van een groep pictogrammen (horeca, mapdeclutter.js): een rond bolletje rechtsboven het icoon
+function drawClusterTelling(ctx, x, y, n) {
+  const tekst = n > 99 ? '99+' : String(n);
+  ctx.save();
+  ctx.font = 'bold 12px sans-serif';
+  const r = Math.max(9, ctx.measureText(tekst).width / 2 + 5);
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = INK.dark;
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = INK.cream;
+  ctx.stroke();
+  ctx.fillStyle = INK.cream;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(tekst, x, y + 0.5);
+  ctx.restore();
+}
+
 // Samen spelen: een onderdeel dat nog niet samen werkt is uitgegrijsd (zelfde grijs als de passieve spelers: INK.passiefGrijs).
 function drawGrijs(ctx, teken) {
   ctx.save();
@@ -1865,6 +1877,15 @@ function drawDynamicMarkers(ctx, world) {
   const onbekend = (x, y) => isAreaHidden(x, y);
   for (const o of getOwnedVehiclesForMap(world)) icon('car', 'own', o.x, o.y, 'Jouw ' + o.label, { vkind: o.kind, color: o.color });
   for (const sh of getShopsDecluttered(z >= NEAR_ZOOM ? 1 : 26 / state.scale)) { if (onbekend(sh.x, sh.y)) continue; icon(SHOP_TYPES[sh.type].group, 'shop-' + sh.type, sh.x, sh.y, sh.name, {}, SHOP_TYPES[sh.type].label); }
+  // horeca (21-11): per zoom gegroepeerd en begrensd (mapdeclutter.js); een groep toont het aantal en zoomt in bij een klik
+  if (layerOn('horeca') && mapKindVisible('horeca', z)) {
+    const [wx0, wy0] = toWorld(0, 0), [wx1, wy1] = toWorld(state.cw, state.ch);
+    const fade = fadeIn(z, ICON_MIN_ZOOM.horeca);
+    for (const h of horecaPlan(getHorecaForRender(), { zoom: z, scale: state.scale, x0: Math.min(wx0, wx1), x1: Math.max(wx0, wx1), y0: Math.min(wy0, wy1), y1: Math.max(wy0, wy1) })) {
+      if (h.n > 1) icon('horeca', 'horeca', h.x, h.y, `${h.n} horecaplekken`, { alpha: fade }, 'Klik om in te zoomen', { clusterN: h.n });
+      else icon('horeca', 'horeca', h.x, h.y, h.first.name || 'Horeca', { alpha: fade }, 'Horeca');
+    }
+  }
   const storyShop = storyTargetShop(world);
   if (storyShop) {
     const [sx, sy] = toScreen(storyShop.x, storyShop.y);
@@ -1987,7 +2008,7 @@ function drawDynamicMarkers(ctx, world) {
   // (missie, doel, speler) houden hun plek en liggen boven de strook
   const strook = state.strook;
   const zichtbaar = strook ? queue.filter((q) => !pinWijktVoorStrook(q.sx, q.sy, mapPriority(q.kind), strook)) : queue;
-  const geplaatst = placeIcons(zichtbaar, iconGapPx(sc));
+  const geplaatst = capPins(placeIcons(zichtbaar, iconGapPx(sc)), poiRules(z).maxPins);
   const scBasis = sc;
   // onthoud waar de pins staan (wereldcoördinaten, zodat de vaste laag ze bij elke
   // zoom opnieuw naar schermpunten kan omrekenen). #759: alleen de set pins (soort en
@@ -2010,6 +2031,7 @@ function drawDynamicMarkers(ctx, world) {
     drawMapIconHalo(ctx, q.kind, q.sx, q.sy, sc);
     if (q.samen && q.samen.grijs) drawGrijs(ctx, () => drawMapIcon(ctx, q.kind, q.sx, q.sy, sc, { t, ...q.opts, alpha: ((q.opts && q.opts.alpha) ?? mapIconAlpha(q.kind, z)) * 0.6 })); // samen spelen: dit werkt nog niet samen (uitgegrijsd)
     else drawMapIcon(ctx, q.kind, q.sx, q.sy, sc, { t, alpha: mapIconAlpha(q.kind, z), ...q.opts });
+    if (q.pick && q.pick.clusterN) drawClusterTelling(ctx, q.sx + 8 * sc, q.sy - 8 * sc, q.pick.clusterN);
     if (q.samen && q.samen.deels) drawDeelsMarkering(ctx, q.sx + 7 * sc, q.sy - 7 * sc, sc);
     if (q.name) hover.push({ sx: q.sx, sy: q.sy, name: q.name, sub: q.sub, tipSub: q.samen ? q.samen.tekst + (q.sub ? ' · ' + q.sub : '') : undefined, x: q.x, y: q.y, kind: q.kind, ...q.pick });
   }
@@ -2461,6 +2483,7 @@ function teleportTo(world, target) {
 
 function handleClick(world, sx, sy, shift = false) {
   const h = nearestHover(sx, sy);
+  if (h && h.clusterN) { zoomAt(1.8, h.sx, h.sy); return; } // een groep horeca (mapdeclutter.js): inzoomen op die groep, geen plekkaart
   const [wx, wy] = toWorld(sx, sy);
   // #972: een klik op je eigen akker opent hetzelfde kaartje als een plek, met de naam van het veld
   const veld = !h ? veldBij(state.eigenVelden, wx, wy) : null;

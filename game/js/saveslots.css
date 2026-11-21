@@ -8,35 +8,32 @@
 
 /* the grid */
 #saveslots .ssl-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; padding: 20px 56px 8px; }
-#saveslots .ssl-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
+/* Tekstdieet 21-11: ruime rijen in plaats van een krap raster van vier: twee kolommen, plaatje links, naam en één regel rechts, de actie altijd zichtbaar. */
+#saveslots .ssl-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
+#saveslots .ssl-card.open { min-height: 290px; }
 #saveslots .ssl-card { position: relative; display: flex; flex-direction: column; border-radius: 12px; overflow: hidden; background: color-mix(in srgb, var(--ds-c-creme) 5%, transparent); box-shadow: inset 0 0 0 1px var(--line); transition: background 0.2s, box-shadow 0.2s; }
 #saveslots .ssl-card:hover { background: color-mix(in srgb, var(--ds-c-creme) 9%, transparent); }
 #saveslots .ssl-card.sel { box-shadow: inset 0 0 0 2px var(--g); }
 #saveslots .ssl-card.empty { background: none; box-shadow: inset 0 0 0 1px var(--line2); }
 #saveslots .ssl-card.bad .ssl-pic { filter: grayscale(0.8) brightness(0.7); }
-#saveslots .ssl-main { display: flex; flex-direction: column; width: 100%; text-align: left; border-radius: 12px; }
+#saveslots .ssl-main { display: flex; flex-direction: row; align-items: stretch; width: 100%; min-height: 148px; text-align: left; border-radius: 12px; }
 #saveslots .ssl-main:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
 #saveslots .ssl-main:disabled { opacity: 1; }
-#saveslots .ssl-pic { position: relative; display: block; aspect-ratio: 16 / 9; background: linear-gradient(160deg, rgba(30, 62, 42, 0.9), color-mix(in srgb, var(--ds-c-glas) 95%, transparent)); }
+#saveslots .ssl-pic { position: relative; display: block; flex: none; width: 38%; min-height: 148px; background: linear-gradient(160deg, rgba(30, 62, 42, 0.9), color-mix(in srgb, var(--ds-c-glas) 95%, transparent)); }
 #saveslots .ssl-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
 #saveslots .ssl-nopic { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
 #saveslots .ssl-nopic-ic { width: 48px; height: 48px; fill: none; stroke: var(--mut); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; opacity: 0.55; }
-#saveslots .ssl-chips { position: absolute; left: 10px; top: 10px; display: flex; gap: 6px; }
-#saveslots .ssl-chip { height: 26px; padding: 0 10px; display: inline-flex; align-items: center; border-radius: 13px; font-size: 16px; background: rgba(6, 12, 8, 0.78); color: var(--ink); }
+#saveslots .ssl-chips { display: flex; flex-wrap: wrap; gap: 6px; min-height: 0; }
+#saveslots .ssl-chip { height: 24px; padding: 0 10px; display: inline-flex; align-items: center; border-radius: 12px; font-size: 16px; background: rgba(6, 12, 8, 0.78); color: var(--ink); }
 #saveslots .ssl-chip.on { background: var(--g2); color: var(--ds-c-wit); }
 #saveslots .ssl-chip.warn { background: color-mix(in srgb, var(--ds-c-rood-glas) 85%, transparent); color: var(--ds-c-wit); }
 /* the one action of the card shows on the chosen card (always on touch) */
-#saveslots .ssl-go { position: absolute; right: 10px; bottom: 10px; height: 36px; padding: 0 16px; display: none; align-items: center; border-radius: 8px; background: var(--g); color: var(--ds-c-glas); font-family: var(--ds-font-kop); font-size: 22px; letter-spacing: 0.05em; }
-#saveslots .ssl-card.sel .ssl-main:not(:disabled) .ssl-go, #saveslots .ssl-main:hover:not(:disabled) .ssl-go { display: inline-flex; }
-#saveslots .ssl-body { display: flex; flex-direction: column; gap: 4px; padding: 12px 16px 14px; min-width: 0; }
-#saveslots .ssl-nm { font-family: var(--ds-font-kop); font-size: 32px; line-height: 1.05; letter-spacing: 0.04em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#saveslots .ssl-go { margin-top: auto; align-self: flex-start; height: 44px; padding: 0 22px; display: inline-flex; align-items: center; border-radius: 8px; background: var(--g); color: var(--ds-c-glas); font-family: var(--ds-font-kop); font-size: 22px; letter-spacing: 0.05em; }
+#saveslots .ssl-main:disabled .ssl-go { display: none; }
+#saveslots .ssl-body { flex: 1; display: flex; flex-direction: column; gap: 8px; padding: 18px 64px 18px 22px; min-width: 0; }
+#saveslots .ssl-nm { font-family: var(--ds-font-kop); font-size: 36px; line-height: 1.05; letter-spacing: 0.04em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #saveslots .ssl-part { font-size: 20px; line-height: 1.25; }
-#saveslots .ssl-meta { font-size: 18px; line-height: 1.25; }
-/* #898: het voortgangspercentage van een opgeslagen spel, als balkje onder de regel */
-#saveslots .ssl-prog { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
-#saveslots .ssl-prog .m-bar { flex: 1; max-width: 150px; height: 4px; }
-#saveslots .ssl-prog .m-bar i { background: var(--g); }
-#saveslots .ssl-prog .bebas { font-size: 16px; color: var(--g); white-space: nowrap; }
+#saveslots .ssl-meta { font-size: 20px; line-height: 1.25; }
 /* the '…' button: top right of the card, visible on the chosen card, on hover and on touch */
 #saveslots .ssl-more { position: absolute; top: 8px; right: 8px; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 22px; background: rgba(6, 12, 8, 0.78); color: var(--ink); opacity: 0; transition: opacity 0.2s, background 0.2s; }
 #saveslots .ssl-card:hover .ssl-more, #saveslots .ssl-card.sel .ssl-more, #saveslots .ssl-more:focus-visible { opacity: 1; }
@@ -101,12 +98,11 @@ html.reduce-motion #saveslots .ssl-card, html.reduce-motion #saveslots .ssl-more
 /* touch: no hover, so the '…' and the action stay visible; bigger targets */
 @media (hover: none) {
   #saveslots .ssl-more { opacity: 1; width: 48px; height: 48px; }
-  #saveslots .ssl-main:not(:disabled) .ssl-go { display: inline-flex; }
   #saveslots .ssl-mi, #saveslots .ssl-fb { min-height: 56px; }
 }
 @media (max-width: 1100px) {
   #saveslots .ssl-panel { left: 2%; right: 2%; top: 3%; bottom: 3%; }
-  #saveslots .ssl-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  #saveslots .ssl-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   #saveslots .m-head, #saveslots .ssl-msg, #saveslots .ssl-note, #saveslots .ssl-foot { padding-left: 20px; padding-right: 20px; }
   #saveslots .ssl-scroll { padding: 16px 20px 8px; }
 }

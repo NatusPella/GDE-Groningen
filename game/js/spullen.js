@@ -32,10 +32,8 @@ import { reducedMotion } from './motion.js';
 import { rasterMaat, kolommenUitTops, focusStep, TEGEL_MIN } from './spullenraster.js';
 import { createThumbs } from './spullenthumbs.js';
 import { moneySpec, wapenSpec, kledingSpec, etenSpec, meubelSpec, cardSpec, upgradeSpec, modelLabel } from './spullen3d.js';
-import { CATS, catVan, LEEG, cycleSort, sortLabel, sorteer, badgeTekst, tegelNaam, kanWeggooien, weggooiStap, weggooi, naWeggooien, WEGGOOI_VRAAG } from './spullenmodel.js';
+import { CATS, itemIcoon, catVan, LEEG, cycleSort, sortLabel, sorteer, badgeTekst, tegelNaam, kanWeggooien, weggooiStap, weggooi, naWeggooien, WEGGOOI_VRAAG } from './spullenmodel.js';
 
-// Phosphor-pictogrammen via icons.js (21-11), per categorie van deze lijst
-const ICOON = { geld: 'geld', wapens: 'zwaard', melee: 'mes', werp: 'pakket', kleding: 'kleding', eten: 'eten', thuis: 'thuis', kaart: 'kaart', upgrade: 'gereedschap' };
 const SECTIONS = [
   ['geld', 'Geld'],
   ['wapens', 'Wapens'],
@@ -87,7 +85,8 @@ let weggooiVraag = null;
 let note = '';
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const euro = (v) => '€' + Math.round(v).toLocaleString('nl-NL');
-const svg = (id) => icoon(ICOON[id] || 'kaart', { cls: 'pm-ic' });
+// Phosphor-pictogram van een ding (spullenmodel.itemIcoon: per soort of groep, nooit het vraagteken van de terugval)
+const svg = (it) => icoon(itemIcoon(it), { cls: 'pm-ic' });
 
 // Kasboek bij het geld (#206): wat er werkelijk in en uit ging, met een strip van de
 // laatste zeven dagen. Is het kasboek nog leeg, dan zegt het detail dat eerlijk in
@@ -140,13 +139,14 @@ const SP_CSS = `<style data-spul-css>
 #pause-menu .sp-ph{position:absolute;inset:0;display:grid;place-items:center;color:var(--g)}
 #pause-menu .sp-ph img{width:100%;height:100%;object-fit:contain;transition:transform var(--ds-m-lang,250ms) var(--ds-m-uit,ease-out);animation:sp-in var(--ds-m-midden,150ms) var(--ds-m-uit,ease-out) both}
 #pause-menu .sp-tile:hover .sp-ph img,#pause-menu .sp-tile:focus-visible .sp-ph img{transform:scale(1.07)}
-#pause-menu .sp-ph[data-state="laden"]::before{content:"";width:38%;height:38%;border-radius:10px;border:2px dashed color-mix(in srgb,var(--ink) 30%,transparent)}
+#pause-menu .sp-ph[data-state="laden"]::before,#pause-menu .sp-stage[data-state="laden"]:not([data-still])::before{content:"";position:absolute;inset:18% 22%;border-radius:12px;background:color-mix(in srgb,var(--ink) 9%,transparent)}
 #pause-menu .sp-ph svg{width:34px;height:34px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 #pause-menu .sp-tile__t{font-size:15px;line-height:1.2;max-width:100%;overflow-wrap:break-word;hyphens:auto;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.4em}
 #pause-menu .sp-tile__s{font-size:13px;line-height:1.2;color:var(--mut);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #pause-menu .sp-badge{position:absolute;top:5px;right:5px;min-width:26px;height:24px;padding:0 7px;display:inline-grid;place-items:center;border-radius:12px;background:var(--ink);color:var(--ds-zeef-bg,#fff);font-size:14px;font-weight:700;letter-spacing:.02em}
 #pause-menu .sp-pip{position:absolute;top:5px;left:5px;max-width:calc(100% - 52px);padding:1px 7px;border-radius:10px;background:var(--ds-zeef-bg,#fff);border:1.5px solid var(--g);color:var(--g);font-size:13px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #pause-menu .sp-soort{position:absolute;left:5px;bottom:5px;max-width:calc(100% - 10px);padding:0 7px;border-radius:9px;background:color-mix(in srgb,var(--ink) 80%,transparent);color:var(--ds-zeef-bg,#fff);font-size:13px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pause-menu .pm-spulchips .m-chip .pm-ic{width:1.1em;height:1.1em;margin-right:6px;vertical-align:-0.18em;flex:none}
 #pause-menu .sp-leeg{padding:var(--ds-s-4,16px) 8px;max-width:420px;font-size:max(16px,var(--menu-min));color:var(--mut)}
 #pause-menu .sp-sort{margin-left:auto}
 #pause-menu .sp-weg{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-radius:12px;border:2px solid var(--redtx);background:color-mix(in srgb,var(--redtx) 8%,transparent);animation:sp-in 160ms ease-out}
@@ -191,7 +191,6 @@ html.reduce-motion #pause-menu .sp-tile,html.reduce-motion #pause-menu .sp-tile:
 #pause-menu .sp-stage[data-state="terugval"] .sp-ic{opacity:1}
 #pause-menu .sp-stage .sp-still{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;transition:opacity 160ms ease-out}
 #pause-menu .sp-stage[data-state="klaar"] .sp-still,#pause-menu .sp-stage[data-state="terugval"] .sp-still{opacity:0}
-#pause-menu .sp-stage[data-state="laden"]:not([data-still])::before{content:"";position:absolute;left:36%;top:30%;width:28%;height:40%;border-radius:12px;border:2px dashed color-mix(in srgb,var(--ink) 30%,transparent)}
 #pause-menu .sp-stage-voet{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;min-height:32px;font-size:max(14px,var(--menu-min,14px));color:var(--mut)}
 #pause-menu .sp-stage-voet .sp-melding{flex:1 1 auto;min-width:0}
 #pause-menu .sp-stage-voet [data-spul-reset]{margin-left:auto;min-height:32px;padding:2px 12px;font-size:max(15px,var(--menu-min,15px));letter-spacing:.02em;text-shadow:none}
@@ -230,15 +229,11 @@ function collect(w) {
       side: held ? 'In de hand' : '', desc: s.desc || (melee ? 'Een slagwapen voor dichtbij.' : ''),
       how: s.gun ? `Pang & Zo, ${euro(s.gun)}` : '',
       rows: [['Toets', String(WEAPONS[k].slot)], ...(WEAPONS[k].damage ? [['Schade', String(WEAPONS[k].damage)]] : [])],
-      act: held ? null : { label: 'In de hand nemen', run: () => { w.weapon = k; return `${s.label || k} in de hand`; } },
+      act: held ? { label: 'Wegleggen', run: () => { w.weapon = 'fists'; return `${s.label || k} weggelegd`; } } : { label: 'In de hand nemen', run: () => { w.weapon = k; return `${s.label || k} in de hand`; } },
     };
   };
   const ownGuns = guns.filter((k) => hasWeapon(w, k));
   counts.wapens = `${ownGuns.length} van ${guns.length}`;
-  out.push({ key: 'w:fists', cat: 'wapens', viewer: wapenSpec('fists'), icon: 'melee', title: 'Vuisten', sub: 'Altijd bij je', side: w.weapon === 'fists' ? 'In de hand' : '',
-    desc: 'Je eigen vuisten: geen munitie nodig en nooit kapot.',
-    rows: [['Toets', '1'], ['Schade', String(WEAPONS.fists.damage)]],
-    act: w.weapon === 'fists' ? null : { label: 'In de hand nemen', run: () => { w.weapon = 'fists'; return 'Vuisten'; } } });
   for (const k of ownGuns) out.push(weaponItem(k, 'wapens'));
   const ownThrows = throws.filter((k) => hasWeapon(w, k));
   counts.werp = `${ownThrows.length} van ${throws.length}`;
@@ -282,7 +277,7 @@ function collect(w) {
   const stuks = eten.reduce((n, e) => n + e.aantal, 0);
   counts.eten = stuks ? `${stuks} ${stuks === 1 ? 'stuk' : 'stuks'}` : '';
   for (const e of eten) {
-    out.push({ key: 'e:' + e.id, cat: 'eten', viewer: etenSpec(e.id), icon: 'eten', title: e.label, sub: e.how, aantal: e.aantal, weg: { id: e.id, aantal: e.aantal },
+    out.push({ key: 'e:' + e.id, cat: 'eten', viewer: etenSpec(e.id), icon: e.id.startsWith('vis:') ? 'vis' : 'eten', title: e.label, sub: e.how, aantal: e.aantal, weg: { id: e.id, aantal: e.aantal },
       desc: e.how === 'Zelf gevangen' ? 'Zelf gevangen aan de waterkant. Opeten kan overal, ook hier in het menu.'
         : `Meegenomen van de ${e.how.toLowerCase()}. Opeten kan overal, ook hier in het menu.`,
       rows: [['Per stuk', `+${e.hp} gezondheid`], ['Jij nu', `${Math.round(w.health)} van 100`]],
@@ -336,7 +331,7 @@ const catLabel = (it) => (CATS.find(([id]) => id === catVan(it)) || [, ''])[1];
 function tegel(it, i) {
   const badge = badgeTekst(it);
   const soort = deel === 'alles' && it.cat !== 'geld' ? catLabel(it) : '';
-  const ph = it.viewer ? '<span class="sp-ph" data-state="laden"></span>' : `<span class="sp-ph" data-state="icoon">${svg(it.icon)}</span>`;
+  const ph = it.viewer ? '<span class="sp-ph" data-state="laden"></span>' : `<span class="sp-ph" data-state="icoon">${svg(it)}</span>`;
   return `<button type="button" class="sp-tile" data-spul="${esc(it.key)}" data-i="${i}" data-cat="${catVan(it)}" aria-label="${esc(tegelNaam(it))}" title="${esc(it.title)}"${sel === it.key ? ' aria-current="true"' : ''}>` +
     `<span class="sp-pw">${ph}${it.side ? `<span class="sp-pip">${esc(it.side)}</span>` : ''}${badge ? `<span class="sp-badge" aria-hidden="true">${badge}</span>` : ''}${soort ? `<span class="sp-soort" aria-hidden="true">${esc(soort)}</span>` : ''}</span>` +
     `<span class="sp-tile__t">${esc(it.title)}</span><span class="sp-tile__s">${esc(it.sub || '')}</span></button>`;
@@ -378,7 +373,7 @@ function startThumbs(panel, lijst, zichtbaar) {
     maat: meetMaat,
     gekozen: () => zichtbaar.findIndex((it) => it.key === sel),
     render: renderSnapshot, release: releaseSnapshots, cancel: cancelSnapshots,
-    icoon: (it) => svg(it.icon),
+    icoon: (it) => svg(it),
   });
 }
 
@@ -416,7 +411,7 @@ const stageKey = (it) => (it && it.viewer ? JSON.stringify(it.viewer) : '');
 function stageHtml(it) {
   const label = esc(modelLabel(it.title));
   return `<div class="sp-model"><div class="sp-stage" data-spul-stage data-key="${esc(stageKey(it))}" data-state="laden">` +
-    `<span class="sp-ic" aria-hidden="true">${svg(it.icon)}</span><img class="sp-still" alt="" draggable="false" hidden>` +
+    `<span class="sp-ic" aria-hidden="true">${svg(it)}</span><img class="sp-still" alt="" draggable="false" hidden>` +
     `<canvas tabindex="0" role="img" aria-label="${label}: sleep of gebruik de pijltjestoetsen om te draaien"></canvas></div>` +
     `<div class="sp-stage-voet"><span class="sp-melding" data-spul-hint>Sleep of gebruik ${glyphHtml('ARROWLEFT')}${glyphHtml('ARROWRIGHT')} om te draaien</span>` +
     `<button type="button" class="ds-z-knop ds-z-knop--ghost" data-spul-reset aria-label="Model terugzetten naar de voorkant">Terugzetten</button></div></div>`;
@@ -517,7 +512,7 @@ function detailHtml() {
   const ledger = it.ledger ? moneyLedgerHtml() : '';
   const cat = (SECTIONS.find(([c]) => c === it.cat) || [, ''])[1];
   const kop = it.cat === 'geld' ? 'Geld' : it.title;
-  return (it.viewer ? stageHtml(it) : '') + `<div class="sp-dhead">${it.viewer ? '' : `<span class="sp-big">${svg(it.icon)}</span>`}<div class="sp-dmeta">` +
+  return (it.viewer ? stageHtml(it) : '') + `<div class="sp-dhead">${it.viewer ? '' : `<span class="sp-big">${svg(it)}</span>`}<div class="sp-dmeta">` +
     `${cat && cat !== kop ? `<span class="m-eb sp-detail-cat">${esc(cat)}</span>` : ''}<h2 class="m-h2 td-h2">${esc(kop)}</h2></div></div>` +
     `${it.desc ? `<p class="sp-desc">${esc(it.desc)}</p>` : ''}` +
     // de acties staan direct onder de omschrijving (compact detail: nooit onder een scrollrand), de cijfers en het kasboek daarna

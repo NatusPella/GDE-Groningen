@@ -30,6 +30,7 @@ export const SPEAKER_TABLE = {
   RIKUS: sp('rikus', 'Rikus'),
   JELLE: sp('jelle', 'Jelle Terpstra'),
   MEM: sp('mem', 'Mem Terpstra'),
+  BEPPE: sp('beppe', 'Beppe'),
   'OMA TRIJNTJE': sp('trijntje', 'Oma Trijntje'),
   DURK: sp('durk', 'Durk'),
   DOUWE: sp('douwe', 'Douwe'),
@@ -97,6 +98,7 @@ function stepOf(id) {
   let m;
   if ((m = /^M(\d\d)\./.exec(id))) return 'M' + m[1];
   if ((m = /^T(\d)/.exec(id))) return 'T' + m[1];
+  if ((m = /^N(\d+)(?:\.|$)/.exec(id))) return 'N' + m[1];
   if (/^C00\./.test(id)) return 'M00';
   if (/^E\d$/.test(id)) return 'E';
   return null;

@@ -70,6 +70,7 @@ import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer, sele
 import { anyFresh } from './characters.js';
 import { maakRegel, zoekRegels, SOORTEN } from './pausesearch.js';
 import { renderSpullen, disposeSpullenViewer, turnSpullenViewer, spullenClick, spullenFocus, spullenEnter, spullenAnnuleer, spullenNavigeer, zetSpullenZoek, DELEN } from './spullen.js';
+import { CAT_ICOON, ICOON_TERUGVAL } from './spullenmodel.js';
 import { phoneClick, phoneUnread, characterForSender } from './phone.js';
 import { takeNoticeThread } from './phonefeed.js';
 import { getErrorLog, errorReport, clearErrorLog, onErrorLogChange } from './errorlog.js';
@@ -1000,7 +1001,7 @@ export function initPauseMenu(w) {
           <section data-panel="spullen" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-spullen">
             <div class="pm-spulbar"><label class="m-inp pm-csearch">${icon('search')}
               <input type="search" data-spul-search placeholder="Zoek in je spullen, bijv. fiets, kast of stempel" aria-label="Zoek in je spullen" autocomplete="off" spellcheck="false"></label>
-              <div class="pm-chips pm-spulchips" role="group" aria-label="Deel van je spullen">${DELEN.map(([id, label]) => `<button type="button" class="m-chip" data-spul-deel="${id}" aria-pressed="${id === 'alles'}">${label}</button>`).join('')}<button type="button" class="m-chip sp-sort" data-spul-sort title="Wissel de volgorde van de tegels">${icon('sorteer')}<span>Sorteren: standaard</span></button></div>
+              <div class="pm-chips pm-spulchips" role="group" aria-label="Deel van je spullen">${DELEN.map(([id, label]) => `<button type="button" class="m-chip" data-spul-deel="${id}" aria-pressed="${id === 'alles'}">${icoon(CAT_ICOON[id] || ICOON_TERUGVAL, { cls: 'pm-ic' })}${label}</button>`).join('')}<button type="button" class="m-chip sp-sort" data-spul-sort title="Wissel de volgorde van de tegels">${icon('sorteer')}<span>Sorteren: standaard</span></button></div>
             </div>
             <div class="m-main"><div class="m-list td-list"></div><aside class="m-pane td-detail" aria-label="Details"></aside></div></div></section>
           <section data-panel="garage" class="pm-panel pm-col" hidden><div class="pm-inner pm-garage"></div></section>

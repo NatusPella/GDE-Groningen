@@ -25,6 +25,11 @@ const RING_GROW_MPS = 80;      // en dan met hoogstens zoveel m/s
 export const FADE_S = 0.25;           // het in- of uitdoven van gevelversiering
 export const DISPOSE_DELAY_MS = 4000; // zo lang blijft iets dat uit beeld raakt gebouwd
 export const DISPOSE_PER_FRAME = 2;   // en zoveel stuks worden per frame echt vrijgegeven
+export const FACADE_OPAQUE_M = 40;    // binnen zoveel m is elk kozijn en glasvlak volledig opaak (geen schermdeur-dither)
+export const FACADE_MIN_M = 60;       // de gevelafstand (kozijnen) wordt bij snelheid of een drukke machine nooit kleiner dan dit
+export const RING_MIN_M = 60;         // de snelheidsregel laat de detailring nooit onder dit krimpen (een tekort aan gebouwen wel: selectRing)
+export const NEAR_BUILD_M = 60;       // een gebouw met zijn gevel binnen zoveel m wordt eerst en boven het budget gebouwd
+export const NEAR_URGENT_MAX = 4;     // hoogstens zoveel nabije gebouwen per frame boven het budget (4 x 0,7 tot 1,6 ms: binnen urgentMs 6 van de planner)
 
 // ---- 1. de ring en zijn uitzonderingen ----
 // missing: [[afstand, ...], ...] van de detailgebouwen binnen de tekenafstand die nog geen mesh hebben, oplopend op afstand.
@@ -81,7 +86,23 @@ export function fadeStep(f, target, dt, secs = FADE_S) {
 export function fadeSecs(reducedMotion) { return reducedMotion ? 0 : FADE_S; }
 
 // De band (m vanaf de camera) waarin gevelversiering uitdooft bij afstand `on`: de band eindigt op `on` zelf.
-export function facadeBand(on, width = 10) { return Number.isFinite(on) ? [Math.max(0, on - width), on] : [1e9, 1e9 + 1]; }
+// Op korte afstand is een kozijn nooit half uitgedoofd: de band begint niet voor FACADE_OPAQUE_M (40 m) en alles daarbinnen is opaak (#1016).
+export function facadeBand(on, width = 10, opaque = FACADE_OPAQUE_M) { return Number.isFinite(on) ? [Math.max(on - width, Math.min(opaque, on), 0), on] : [1e9, 1e9 + 1]; }
+// Afstand van een punt tot de bounding box [x0, y0, x1, y1] van een gebouw (0 binnen). Een groot gebouw heeft zijn gevel veel
+// dichterbij dan zijn middelpunt: kozijnen en bouwvolgorde rekenen met de gevel (#1016, de ramen dichtbij).
+export function boundsDist(b, px, py) {
+  const dx = Math.max(b[0] - px, 0, px - b[2]), dy = Math.max(b[1] - py, 0, py - b[3]);
+  return Math.hypot(dx, dy);
+}
+// De gevelafstand met snelheidsschaal, nooit onder FACADE_MIN_M; Infinity blijft Infinity.
+export function facadeFloor(dist) { return Number.isFinite(dist) ? Math.max(dist, FACADE_MIN_M) : dist; }
+// Bouwvolgorde van wachtende gebouwen (lager eerst): wat met zijn gevel binnen NEAR_BUILD_M staat gaat voor op afstand van die gevel
+// (nabijheid), de rest op de rang in de rijrichting (richting, streambudget.js streamRank). `nearDist` is de afstand tot de gevel.
+export function buildRank(nearDist, aheadRank) { return nearDist < NEAR_BUILD_M ? nearDist - 1e6 : aheadRank; }
+// Mag dit gebouw boven het frame-budget gebouwd worden? Alleen met zijn gevel nabij en als dit frame er nog geen NEAR_URGENT_MAX waren.
+export function nearUrgent(nearDist, urgentBuilt) { return nearDist < NEAR_BUILD_M && urgentBuilt < NEAR_URGENT_MAX; }
+// De detailring na de snelheidsregel: niet onder RING_MIN_M, nooit boven de tekenafstand zelf.
+export function ringFloor(r, drawDist) { return Math.min(drawDist, Math.max(r, RING_MIN_M)); }
 
 // ---- 5. opruimen met vertraging ----
 export function createCooler({ delayMs = DISPOSE_DELAY_MS, perFrame = DISPOSE_PER_FRAME } = {}) {

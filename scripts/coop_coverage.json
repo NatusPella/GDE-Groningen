@@ -588,7 +588,8 @@
     "dienstvoertuig",
     "onderdelen*",
     "carbid",
-    "tuning*"
+    "tuning*",
+    "showroomplan"
    ],
    "eigenaar": "speler",
    "gast": "Eigen voertuigen en panden komen mee in de wereld van een ander (bezorgen en delen, #449): kleur, upgrades, deuken en lekke band reizen mee.",

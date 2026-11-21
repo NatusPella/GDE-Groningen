@@ -136,6 +136,33 @@ Elke meting: mediaan van 3 afwisselende runs, Hoog en Ultra (en Laag voor de pla
 7. **De snelheidsregels**: ring bij 30 en 40 m/s (`ringSpeedScale`, tot 85%) en de kozijnafstand (`facadeSpeedScale`, tot 60%): sneller of juist meer zichtbare pop-in? Zo niet, `?perfoff=ringsnelheid` als standaard of de regel schrappen.
 8. **Het drukte-plafond** (`pressureMs` 6, `PLAN.capMs` 4): proef 4, 6 en 8 op Hoog in de stad (a7-route): de wachttijd tot detail tegen de frames boven 4 ms.
 
+## Ramen dichtbij (#1016, 21-11, "alle ramen dichtbij renderen maar half")
+
+**Onderzoek (node, de echte tegels, `scripts/world/ramen_audit.mjs`):** de gevelgeometrie is volledig. In een steekproef van 99 gebouwen binnen 60 m van de Grote Markt, de Oosterpoort en
+Paddepoel (en 229 rond het centrum van Paddepoel) heeft elk gevelvlak met raamdata (open rand van minstens 1,6 m, geen gemeenschappelijke muur) glas: dekking 100%. Er zijn geen gemeenschappelijke
+muren zonder echte buur (geen valse party-muren), het budget `MAX_WINDOWS` raakt in de steekproef niemand, en de enige kale randen zijn de facetten onder 4 m van de marktgebouwen (`marktgebouwen.js`, eigen
+generator, bewust zonder raam; 16 stuks, apart geteld). "Half" zit dus niet in de data maar in het tekenbeleid. Wat daarin half kon geven:
+
+1. **Dither-band van de kozijnfade.** `facadeEffective()` was `gevelafstand x facadeSpeedScale(snelheid)`: op een drukke machine (cpuLevel 3: 60 m) en 35 m/s werd dat 36 m, met de band (10 m) vanaf 26 m:
+   de kozijnen en het glas stonden dan op 26 tot 36 m als schermdeur-dither, dus half doorzichtig. **Opgelost:** `facadeFloor` (nooit onder 60 m) en een `facadeBand` die niet voor 40 m begint (`FACADE_OPAQUE_M`).
+2. **Middelpunt in plaats van gevel.** De kozijnschakelaar (`hystVisible(centreDist ...)`) keek naar het middelpunt van het gebouw: een lang gebouw (hal, woonblok) met zijn gevel op 30 m en zijn middelpunt voorbij
+   de gevelafstand + 12 m had op elke gevel geen kozijnen of glas. **Opgelost:** `boundsDist` (afstand tot de voetafdruk).
+3. **Bouwvolgorde en budget.** Wachtende gebouwen kwamen in de volgorde van de rijrichting (`streamRank`) en binnen het budget van de planner (4 ms voor alles): een gebouw voor je neus kon na een gebouw 100 m
+   voor je wachten, en bleef dan een kale massa naast gedetailleerde buren. **Opgelost:** `buildRank` (nabijheid gaat voor richting, richting voor de rest) en `nearUrgent`: een gebouw met zijn gevel binnen 60 m
+   mag boven het frame-budget gebouwd worden, hoogstens 4 per frame (4 x 0,7 tot 1,6 ms, binnen de urgente 6 ms van de planner; de tijd telt als schuld, het gemiddelde blijft onder het budget).
+4. **De ring door de snelheidsregel.** `ringSpeedScale` laat de ring tot 85% krimpen: op een kleine tekenafstand (Laag) kon dat onder 60 m komen. **Opgelost:** `ringFloor`. De ring krimpt nog wel bij meer dan 24 wachtende
+   gebouwen (een sprong): alleen zo blijft er nooit een gat (een gebouw zonder mesh en zonder verre kopie). Nabije gebouwen worden dan juist het eerst gebouwd (punt 3).
+
+**Niet de oorzaak (gemeten of gelezen):** de bouwcache (800 gebouwen; `setPartsInUse` spaart wat in beeld staat), de interieurshader (`interiorglass.js` heeft geen discard, geen alpha en geen afstandsfade behalve de kozijnfade
+van `edgefade3d.js`; `detail` van de kamer loopt alleen van 90 naar 30 m; een portaal- of stencilsnede in het glas is in de code niet gevonden, in beeld niet bekeken) en gebouwdelen zonder voltooiing (de geometrie is per gebouw in een keer klaar).
+
+**Wat niet bewezen is:** in Electron niets gezien of gemeten (geen frametijd, geen beeld). Of een speler op Hoog (zonder gevelafstand: geen band) de halve ramen ook zag, is hiermee niet uitgesloten: dan is de oorzaak
+een gebouw dat nog wacht (punt 3) of de verre laag. Controleren in beeld: een straat in de binnenstad bij 5 en 30 m/s op Laag en op Hoog met `window.__scene3d.dists()` (`facadeDetailDist`, `buildingDetailR`), de frames boven 33 ms
+tijdens een teleport naar de Grote Markt (de vier extra gebouwen per frame), en het aantal kale gebouwen binnen 60 m (`streamPending().buildings`). Extra drawcalls en geheugen: geen (geen nieuwe geometrie, alleen
+volgorde en drempels). Samen spelen: lokaal per speler, niets gedeeld.
+
+Herhalen: `node scripts/world/ramen_audit.mjs --verbose` (met een junction naar de gebouwde wereld), test `scripts/ramen_audit_test.mjs`, pure regels in `scripts/lodstable_test.mjs`.
+
 ## Herhalen
 
 ```

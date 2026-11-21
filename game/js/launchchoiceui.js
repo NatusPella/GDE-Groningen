@@ -6,7 +6,7 @@ import { icoon } from './icons.js';
 import { keyLabelHtml, keyTextHtml } from './keycap.js';
 import { KEUZES, LAUNCH_TEXT, TOESTEMMING_TEKST, toetsActie } from './launchchoice.js';
 import { geefToestemming, moetNaamVragen, moetToestemmingVragen } from './onlineconsent.js';
-import { openOnlineStart } from './onlineconsentui.js';
+import { openOnlineStart, meerInfoHtml } from './onlineconsentui.js';
 import { getSettings } from './settings.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -19,10 +19,9 @@ export function launchChoiceHtml({ index = 0 } = {}) {
       <span class="sk-toets">${keyLabelHtml(c.toets)}</span>
       <span class="sk-uitleg" id="sk-u-${c.id}">${esc(c.uitleg)}</span>
     </button>`).join('');
-  return `<section class="os-kaart sk-kaart" role="dialog" aria-modal="true" aria-labelledby="sk-titel" aria-describedby="sk-intro">
+  return `<section class="os-kaart sk-kaart" role="dialog" aria-modal="true" aria-labelledby="sk-titel">
     <p class="os-eb">${esc(LAUNCH_TEXT.eyebrow)}</p>
     <h2 id="sk-titel">${esc(LAUNCH_TEXT.titel)}</h2>
-    <p class="os-uitleg" id="sk-intro">${esc(LAUNCH_TEXT.uitleg)}</p>
     <div class="sk-knoppen" role="group" aria-label="${esc(LAUNCH_TEXT.aria)}">${knoppen}</div>
     <p class="sk-hulp">${LAUNCH_TEXT.hulp.map((h) => `<span>${keyTextHtml(esc(h))}</span>`).join('')}</p>
   </section>`;
@@ -30,11 +29,11 @@ export function launchChoiceHtml({ index = 0 } = {}) {
 
 export function toestemmingHtml() {
   const T = TOESTEMMING_TEKST;
-  return `<section class="os-kaart sk-kaart" role="dialog" aria-modal="true" aria-labelledby="st-titel" aria-describedby="st-uitleg">
+  return `<section class="os-kaart sk-kaart" role="dialog" aria-modal="true" aria-labelledby="st-titel">
     <p class="os-eb">${esc(T.eyebrow)}</p>
     <h2 id="st-titel">${esc(T.titel)}</h2>
-    <p class="os-uitleg" id="st-uitleg">${esc(T.uitleg)}</p>
     <label class="os-consent"><input type="checkbox" class="os-consent-vink"> <span>${esc(T.consent)}</span></label>
+    ${meerInfoHtml(T.meerInfo, T.info)}
     <p class="os-fout" role="alert" hidden>Vink eerst het akkoord aan om verder te gaan.</p>
     <div class="os-knoppen">
       <button type="button" class="os-knop os-doorgaan" data-geef>${esc(T.geef)}</button>

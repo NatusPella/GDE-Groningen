@@ -59,3 +59,7 @@ De lengte en het tempo gelden per speler: elke speler loopt zijn eigen voortgang
 ## 7. Meten
 
 `node scripts/verhaal_tempo.mjs` geeft de tabel uit de verhaaltekst. Wat nog moet in de Electron-sweep (door de coördinator): een speeltest van akte 1 tot en met 5 met de spelbot (`--page`, `--skip-stages`) voor echte minuten, en het controleren van de leestijd van ondertitels zonder opname.
+
+## Ronde 4: akte 1 trager, akte 2 langer (gebouwd)
+
+Acht nieuwe activiteiten (zonder beloning, spelers kunnen ze overslaan) zijn ingevoegd: vier in akte 1 vóór het Loket, vier in akte 2. Verhaaltekst nu: akte 1 23,3 min (was 21,1), akte 2 15,8 min (was 14,5), totaal 99,2 min. Ontwerpraming speeltijd: elke stap is een bestemming met een korte scène (ongeveer 1 minuut tekst plus 3 tot 5 minuten rijden of lopen), dus akte 1 ongeveer 62 naar 77 minuten en akte 2 ongeveer 55 naar 70 minuten; de hoofdlijn komt op ruim 5,5 uur (ontwerpraming, niet gemeten). Akte 2 haalt de eerder genoemde 85 minuten niet: dat vraagt meer boerderij- en carrière-missies met eigen gameplay. De nacht in de wagen (bottle-missie op een dijk) schuift naar akte 4 of 5, met een ouder busje tot de wagen er is.

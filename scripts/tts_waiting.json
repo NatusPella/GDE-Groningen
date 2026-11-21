@@ -49,6 +49,126 @@
  },
  {
   "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Dat is Beppe. Mijn Friese oma.",
+  "scene": "O1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Ja, beppe.",
+  "scene": "O1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "...Ja.",
+  "scene": "O1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Sjabbe",
+  "text": "Ik vraag niks. Ik zeg alleen: dit ding moet naar boven.",
+  "scene": "N1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Hoe zwaar?",
+  "scene": "N1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Sjabbe",
+  "text": "Zwaarder dan jij denkt. Lichter dan ik vertel.",
+  "scene": "N1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Sjabbe",
+  "text": "Dertig. Maar dan draagt hij.",
+  "scene": "N1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Sjabbe",
+  "text": "Een man in een blauw colbert kocht gisteren al mijn kopieerpapier. Contant. Uit een klomp.",
+  "scene": "N1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Sjabbe",
+  "text": "Papier is macht. Zegt hij. Ik zeg niks.",
+  "scene": "N1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Dat is de buurman. Hij woont hier al sinds de verhuisdag, met zijn duiven.",
+  "scene": "N2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Nee. De duiven kennen mij.",
+  "scene": "N2"
+ },
+ {
+  "reason": "stemkeuze",
+  "speaker": "Meneer Veldkamp",
+  "text": "Die zat hier al. Hij wacht op jou.",
+  "scene": "N2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Duiven wachten op niemand.",
+  "scene": "N2"
+ },
+ {
+  "reason": "stemkeuze",
+  "speaker": "Meneer Veldkamp",
+  "text": "Zes jaar zit ik hier. Dat is de eerste die niet wegvliegt.",
+  "scene": "N2"
+ },
+ {
+  "reason": "stemkeuze",
+  "speaker": "Meneer Veldkamp",
+  "text": "Ik eet liever alleen. Maar kom maar.",
+  "scene": "N2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Dit is Tessa, Beppe.",
+  "scene": "N3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Eerst eten. Dan praten.",
+  "scene": "N3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Links of rechts?",
+  "scene": "N4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Ik wacht buiten.",
+  "scene": "N4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Wie koopt een stoep?",
+  "scene": "N4"
+ },
+ {
+  "reason": "spreektekst",
   "speaker": "Mevrouw Hoving",
   "text": "Ik bewaar de Gouden Eierbal, de wisselprijs van de Snackprijs, al sinds 1998. Wie de bal heeft, zit de jury voor.",
   "scene": "M03.2"
@@ -205,6 +325,12 @@
  },
  {
   "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Regels, vergunningen, trucs.",
+  "scene": "M07.1"
+ },
+ {
+  "reason": "spreektekst",
   "speaker": "Oma Trijntje",
   "text": "Tammo, met je oma. Kom naar de Noorderhaven. Wil je eerlijk winnen, dan heb je mijn recept nodig.",
   "scene": "M08.1"
@@ -244,6 +370,102 @@
   "speaker": "Tammo",
   "text": "Een jas in augustus?",
   "scene": "O4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Deze?",
+  "scene": "N8"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Oma Trijntje",
+  "text": "Jullie slapen niet! Ik hoor het!",
+  "scene": "N8"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Oma Trijntje",
+  "text": "Dat klinkt niet als slapen, jong.",
+  "scene": "N8"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Het is een punaise.",
+  "scene": "N8"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Dat wist ik niet.",
+  "scene": "N5"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "De koe kijkt. Naar mij.",
+  "scene": "N5"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Hij is zacht.",
+  "scene": "N5"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Kapitein Klaas",
+  "text": "Praat tegen het water. Dan vangt hij.",
+  "scene": "N6"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "...",
+  "scene": "N6"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Kapitein Klaas",
+  "text": "Dat telt.",
+  "scene": "N6"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Ik heb er één.",
+  "scene": "N6"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Kapitein Klaas",
+  "text": "Jij zit stil en je vangt. Zij praat en zij is groen.",
+  "scene": "N6"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Buschauffeur",
+  "text": "Dankjewel, jongen. Dat doet bijna niemand meer.",
+  "scene": "N7"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Graag gedaan.",
+  "scene": "N7"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Hij reed goed.",
+  "scene": "N7"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Een goede bus.",
+  "scene": "N7"
  },
  {
   "reason": "spreektekst",

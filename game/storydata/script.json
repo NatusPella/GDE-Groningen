@@ -21,6 +21,10 @@
    "name": "Mem Terpstra",
    "voice": "Mem Terpstra"
   },
+  "beppe": {
+   "name": "Beppe",
+   "voice": "Beppe"
+  },
   "trijntje": {
    "name": "Oma Trijntje",
    "voice": "Oma Trijntje"
@@ -1737,7 +1741,7 @@
    "regie": [
     "avond, de flat in Paddepoel. Op de koelkast hangt een kaartje van de eerste Kiezelweek, vijf jaar geleden. Tessa tekent op een bonnetje de luiken van de wagen. Tammo staat met twee koppen thee in de deur en kijkt even naar het kaartje, en dan naar haar.",
     "op de koelkast hangt ook een nieuwe lijst met twee kolommen: TAMMO VINDT en TESSA VINDT. Links: eerst eten, dan plannen. Rechts: eerst plannen, dan eten.",
-    "ze tekent door. Hij blijft nog even staan met de thee."
+    "ze tekent door. Hij blijft nog even staan met de thee. Zijn telefoon gaat."
    ],
    "lines": [
     {
@@ -1817,6 +1821,382 @@
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dat is Beppe. Mijn Friese oma.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Beppe",
+     "key": "beppe",
+     "text": "Jonge, hast al iten?",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Ja, beppe.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Beppe",
+     "key": "beppe",
+     "text": "Is Tessa der ek? Dan meitsje ik sop.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "...Ja.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "N1",
+   "title": "Een klus voor Sjabbe",
+   "act": 1,
+   "region": "Stad, de Herestraat",
+   "vehicle": "te voet",
+   "step": "N1",
+   "kind": "key",
+   "regie": [
+    "zaterdagmiddag. Sjabbe staat voor Pand & Poen met een kopieermachine op een steekkar. Tessa kijkt naar het prijskaartje, Tammo naar de steekkar.",
+    "Tammo tilt, Tessa wijst de trap, en samen krijgen ze de kopieermachine boven zonder één kras. Sjabbe telt het geld uit in kleine briefjes."
+   ],
+   "lines": [
+    {
+     "speaker": "Sjabbe",
+     "key": "sjabbe",
+     "text": "Ik vraag niks. Ik zeg alleen: dit ding moet naar boven.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Hoe zwaar?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Sjabbe",
+     "key": "sjabbe",
+     "text": "Zwaarder dan jij denkt. Lichter dan ik vertel.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "humor": "HN-04"
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Wij doen het voor twintig euro.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Sjabbe",
+     "key": "sjabbe",
+     "text": "Dertig. Maar dan draagt hij.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Sjabbe",
+     "key": "sjabbe",
+     "text": "Een man in een blauw colbert kocht gisteren al mijn kopieerpapier. Contant. Uit een klomp.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Wat moet hij met kopieerpapier?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Sjabbe",
+     "key": "sjabbe",
+     "text": "Papier is macht. Zegt hij. Ik zeg niks.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "N2",
+   "title": "Een duif op de gang",
+   "act": 1,
+   "region": "Stad, Paddepoel, elfde verdieping",
+   "vehicle": "flat",
+   "step": "N2",
+   "kind": "key",
+   "regie": [
+    "vrijdagavond, laat licht. Op de gang van de elfde verdieping staat een oude man in een vest met zes duiven om zich heen. Een duif zit op de deurmat van de flat."
+   ],
+   "lines": [
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dat is de buurman. Hij woont hier al sinds de verhuisdag, met zijn duiven.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Je kent hem?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Nee. De duiven kennen mij.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Meneer Veldkamp",
+     "key": "veldkamp",
+     "text": "Die zat hier al. Hij wacht op jou.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Duiven wachten op niemand.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Meneer Veldkamp",
+     "key": "veldkamp",
+     "text": "Zes jaar zit ik hier. Dat is de eerste die niet wegvliegt.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Zal ik soep maken? Voor drie?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Meneer Veldkamp",
+     "key": "veldkamp",
+     "text": "Ik eet liever alleen. Maar kom maar.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "N3",
+   "title": "Soep bij Beppe",
+   "act": 1,
+   "region": "Stad, Beppe's huis aan de westrand",
+   "vehicle": "te voet",
+   "step": "N3",
+   "kind": "key",
+   "regie": [
+    "zondagmiddag. Een klein huis met een tuin en een rij laarzen bij de deur. Beppe staat al in de deuropening, met een pollepel.",
+    "Beppe schept nog een keer op. Tammo kijkt naar zijn bord."
+   ],
+   "lines": [
+    {
+     "speaker": "Beppe",
+     "key": "beppe",
+     "text": "Dêr bisto, jonge. Kom yn, kom yn. De sop is klear.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dit is Tessa, Beppe.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Beppe",
+     "key": "beppe",
+     "text": "Ytst dan mar earst, dan prate wy.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Wat zegt ze?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Eerst eten. Dan praten.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Beppe",
+     "key": "beppe",
+     "text": "Hy seit neat, mar hy docht it goed.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dat heb ik ook al gezien.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    }
+   ]
+  },
+  {
+   "id": "N4",
+   "title": "Een eerste ronde",
+   "act": 1,
+   "region": "Stad, Station Grunn",
+   "vehicle": "te voet",
+   "step": "N4",
+   "kind": "key",
+   "regie": [
+    "maandagochtend. Op het stationsplein staan een taxi, een stapel formulieren en een klusbord. Ze proberen drie dingen na elkaar.",
+    "de eerste rit gaat soepel. Tammo bedankt de klant; Tessa ziet het in de spiegel."
+   ],
+   "lines": [
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Taxi. Jij rijdt.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Links of rechts?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Ik zeg het wel als het fout gaat.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Formulieren. Dit doe ik liever alleen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Ik wacht buiten.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Jelle Terpstra",
+     "key": "jelle",
+     "text": "Mevrouw Tessa. Uw auto staat op een plek die ik gisteren heb gekocht. Foar mem.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Het is een stoep.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Jelle Terpstra",
+     "key": "jelle",
+     "text": "Een stoep met een overeenkomst.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Wie koopt een stoep?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Iemand die alle regels kent. Behalve de leuke.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "humor": "HN-03",
      "voice": "Anita"
     }
    ]
@@ -2023,11 +2403,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Salamitactiek. Plakje voor plakje, tot hij alles heeft.",
+     "text": "Regels, vergunningen, trucs. Hij wint op papier.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -4385,11 +4764,10 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Salamitactiek. Plakje voor plakje.",
+     "text": "Regels, vergunningen, trucs.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Tessa",
@@ -5215,6 +5593,293 @@
      "channel": "stem",
      "textOnly": true,
      "voice": "Anita"
+    }
+   ]
+  },
+  {
+   "id": "N8",
+   "title": "Een avond bij Oma",
+   "act": 2,
+   "region": "Stad, Noorderhaven",
+   "vehicle": "logeerkamer",
+   "step": "N8",
+   "kind": "key",
+   "regie": [
+    "avond in de logeerkamer. Op het prikbord hangen de namen van de vijf vrienden aan punaises. Tessa hangt de laatste op; Tammo wil de punaise aangeven en hun handen raken elkaar.",
+    "allebei pakken de punaise. Een lange stilte. Beneden klinkt een pollepel op een pan."
+   ],
+   "lines": [
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Die.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Deze?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Oma Trijntje",
+     "key": "trijntje",
+     "text": "Jullie slapen niet! Ik hoor het!",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "We slapen, Oma.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Oma Trijntje",
+     "key": "trijntje",
+     "text": "Dat klinkt niet als slapen, jong.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "humor": "HN-01"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Het is een punaise.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Het is een punaise.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    }
+   ]
+  },
+  {
+   "id": "N5",
+   "title": "De boerderij in Warffum",
+   "act": 2,
+   "region": "Hogeland, Warffum",
+   "vehicle": "te voet",
+   "step": "N5",
+   "kind": "key",
+   "regie": [
+    "woensdagochtend. Een boerenerf met kippen, een hek en een koe die niet weg wil. Tessa loopt het erf op alsof ze er nooit is weggegaan. Tammo blijft bij het hek.",
+    "ze leidt zijn hand langs de neus van de koe. De koe snuift. Tammo houdt zijn adem in. Een duif landt op het hek."
+   ],
+   "lines": [
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dit is het erf van mijn oom. Hier leerde ik melken.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dat wist ik niet.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Je vroeg niet naar de koeien.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "De koe kijkt. Naar mij.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Geef me je hand. Niet wegtrekken.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Hij is zacht.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Ik zei het toch.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    }
+   ]
+  },
+  {
+   "id": "N6",
+   "title": "Een dag op het water",
+   "act": 2,
+   "region": "Hogeland, Noordpolderzijl",
+   "vehicle": "rubberboot",
+   "step": "N6",
+   "kind": "key",
+   "regie": [
+    "donderdagmiddag. Kapitein Klaas heeft twee hengels en een emmer. Tammo zit stil aan de rand; Tessa houdt zich vast aan de reling."
+   ],
+   "lines": [
+    {
+     "speaker": "Kapitein Klaas",
+     "key": "klaas",
+     "text": "Praat tegen het water. Dan vangt hij.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "...",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Kapitein Klaas",
+     "key": "klaas",
+     "text": "Dat telt.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "humor": "HN-02"
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Mag ik weer aan land?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Ik heb er één.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Kapitein Klaas",
+     "key": "klaas",
+     "text": "Jij zit stil en je vangt. Zij praat en zij is groen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Ik heb het water niet gekozen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    }
+   ]
+  },
+  {
+   "id": "N7",
+   "title": "De streekbus naar Winsum",
+   "act": 2,
+   "region": "Hogeland, Winsum",
+   "vehicle": "streekbus",
+   "step": "N7",
+   "kind": "key",
+   "regie": [
+    "vrijdagochtend. Ze rijden mee in de streekbus. Tammo wacht tot een oude vrouw met een tas is uitgestapt voor hij zelf van de trede stapt. Tessa ziet het door het raam."
+   ],
+   "lines": [
+    {
+     "speaker": "Buschauffeur",
+     "key": "buschauffeur",
+     "text": "Dankjewel, jongen. Dat doet bijna niemand meer.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Graag gedaan.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Je bedankt altijd de chauffeur.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Hij reed goed.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Het was een bus.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Een goede bus.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
     }
    ]
   },
@@ -8563,7 +9228,15 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Alles is te koop, mevrouw. Ik wacht. Foar mem.",
+     "text": "Alles is te koop, mevrouw. Mijn moeder wil omzet. Mijn oma wil een eierbal. Ik lever allebei.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Jelle Terpstra",
+     "key": "jelle",
+     "text": "Ik wacht. Foar mem.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true

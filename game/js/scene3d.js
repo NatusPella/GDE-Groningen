@@ -104,7 +104,7 @@ import { treeSyncDue } from './treesync.js';
 import { roadBuildAllowed, createHeavyRoadGate, ROAD_BUILD_MAX_PER_FRAME } from './roadbudget.js';
 import { applyEdgeFade, edgeFadeClone } from './edgefade3d.js';
 import { streamPlanner } from './streamplanner.js';
-import { selectRing, createRingSmoother, hystVisible, facadeBand, facadeSpeedScale, ringSpeedScale, RING_KEEP_MAX } from './lodstable.js';
+import { selectRing, createRingSmoother, hystVisible, facadeBand, facadeSpeedScale, ringSpeedScale, RING_KEEP_MAX, boundsDist, facadeFloor, buildRank, nearUrgent, ringFloor } from './lodstable.js';
 import { glassMaterial } from './interiorglass.js';
 import { detailMaterial } from './models3d_buildings.js';
 import { streamLead } from './streambudget.js';
@@ -1618,7 +1618,7 @@ const _bSeen = new Set(), _bMissing = []; function syncBuildingsPass(world, px, 
     const d = Math.sqrt(d2);
     seen.add(b);
     // [afstand voor de detailring, gebouw, detail?, rang in de rijrichting]
-    if (!buildingMeshes.has(b)) missing.push([d, b, lod, streamRank(streamAhead, centreX(b), centreY(b))]);
+    if (!buildingMeshes.has(b)) { const nd = boundsDist(b.bounds, px, py); missing.push([d, b, lod, buildRank(nd, streamRank(streamAhead, centreX(b), centreY(b))), nd]); }
   };
   for (const b of view) if (!b.landmark) want(b, DRAW_DIST, true);
   for (const b of landmarkBuildings) want(b, isSkyline(b) ? landmarkDist() : Math.max(DRAW_DIST, viewDist), false);
@@ -1633,10 +1633,13 @@ const _bSeen = new Set(), _bMissing = []; function syncBuildingsPass(world, px, 
   const bt0 = performance.now();
   const deadline = bt0 + plan.grant('building', bt0 < streamBoostUntil ? BUILDING_BUILD_BOOST_MS : BUILDING_BUILD_MS);
   let built = 0;
-  for (const [, b] of missing) {
+  let nearBuilt = 0;
+  for (const m of missing) {
+    const b = m[1];
     let mesh = prefetchedBuildings.get(b);
     if (!mesh) {
-      if (built > 0 && performance.now() > deadline) continue;
+      // #1016: een gebouw met zijn gevel binnen 60 m krijgt zijn ramen ook boven het frame-budget (hoogstens 4 per frame): de speler staat ervoor
+      if (built > 0 && performance.now() > deadline) { if (!nearUrgent(m[4], nearBuilt)) continue; nearBuilt++; }
       mesh = makeBuildingMesh(b);
       built++;
       precompile(mesh);
@@ -1681,7 +1684,7 @@ const _bSeen = new Set(), _bMissing = []; function syncBuildingsPass(world, px, 
     for (const m of still) buildingDetailR = Math.min(buildingDetailR, m[0] - 0.01);
   } else {
     still.sort((a, b) => a[0] - b[0]);
-    const speedR = perfOff('ringsnelheid') ? DRAW_DIST : DRAW_DIST * ringSpeedScale(focusSpeed);
+    const speedR = perfOff('ringsnelheid') ? DRAW_DIST : ringFloor(DRAW_DIST * ringSpeedScale(focusSpeed), DRAW_DIST);
     buildingDetailR = ringSmoother.update(Math.min(selectRing(still, DRAW_DIST).ring, speedR), performance.now());
     for (const m of still) {
       if (m[0] > buildingDetailR || ringKeep.length >= RING_KEEP_MAX) break;
@@ -1707,7 +1710,7 @@ const _bSeen = new Set(), _bMissing = []; function syncBuildingsPass(world, px, 
   if (facadeDetailDist < DRAW_DIST || facadeDetailCulled) {
     for (const [b, mesh] of buildingMeshes) {
       const det = mesh.userData.facadeDetail;
-      if (det) det.visible = hystVisible(det.visible, centreDist(b), facadeEff + FACADE_TOGGLE_MARGIN);
+      if (det) det.visible = hystVisible(det.visible, boundsDist(b.bounds, px, py), facadeEff + FACADE_TOGGLE_MARGIN); // de gevel, niet het middelpunt (#1016)
     }
     facadeDetailCulled = facadeDetailDist < DRAW_DIST;
   }
@@ -1821,7 +1824,7 @@ const FACADE_DETAIL_DIST = { laag: 80 };
 let facadeDetailDist = Infinity, facadeDetailCulled = false, facadeQualityDist = Infinity;
 // de gevelafstand van dit moment: de ingestelde afstand, bij snelheid korter (kozijnen zijn dan onscherp); Infinity blijft Infinity
 const FACADE_TOGGLE_MARGIN = 12; // m: de laag blijft zoveel voorbij de fadeband aan staan, zodat de fade (en niet de schakelaar) bepaalt wat je ziet
-function facadeEffective() { return Number.isFinite(facadeDetailDist) && !perfOff('ringsnelheid') ? facadeDetailDist * facadeSpeedScale(focusSpeed) : facadeDetailDist; }
+function facadeEffective() { return Number.isFinite(facadeDetailDist) && !perfOff('ringsnelheid') ? facadeFloor(facadeDetailDist * facadeSpeedScale(focusSpeed)) : facadeDetailDist; }
 // gfxprofile.js cpuLevel (a busy machine): fewer facade details
 const CPU_FACADE_DIST = [Infinity, 140, 90, 60]; // #1016: was [Infinity, 100, 70, 45]: de raamkozijnen sprongen op een drukke machine al op 100 m aan
 let shadowFrame = 0;

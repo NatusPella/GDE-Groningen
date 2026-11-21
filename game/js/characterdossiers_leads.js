@@ -119,7 +119,7 @@ export const LEADS = [
     homeByAct: { 1: "onderweg tussen de boerderij bij Ljouwert en het kantoor in Grunn; een suite in een hotel aan de Grote Markt", 2: "zijn trekker-limo en kantoor in Grunn; de wierde in het Hogeland", 3: "Eemshaven, de ballon, de kermis", 4: "Bourtange en de kruitkelder", 5: "Grunn: notaris, kraam en limo", 6: "terug op de boerderij bij Ljouwert; het kantoor in Grunn blijft", E: "Ljouwert en Grunn; hij gaf bijna alles terug" },
     origin: "Ljouwert; groeide op bij zijn oma Gerda Terpstra (Mem), de bakster die in 1953 tweede werd bij de Snackprijs",
     education: "handelsschool, daarna meteen in de snacks; het koopboek leerde hij uit zijn hoofd",
-    work: "snackbaron: koopt Grunn op, plakje voor plakje, om de Gouden Eierbal en de markt te winnen",
+    work: "snackbaron: wint met regels, vergunningen en trucs (bureaucratie is zijn wapen), voor de erkenning van zijn oma",
     employer: "Us Mem Snacks (eigen bedrijf, met Wiebelwerk en Oldenhuis Bakt als dochters)",
     hobbies: ["zichzelf", "zijn zwarte trekker-limousine", "fierljeppen", "skûtsjes en pompeblêden", "camera's en livestreams"],
     traits: ["ijdel", "charmant", "bureaucratisch", "nooit echt gemeen", "een kleinzoon die zijn oma gelijk wil geven"],
@@ -214,7 +214,7 @@ export const LEADS = [
     canon: ['age', 'pronoun', 'homePlace', 'origin', 'work', 'employer', 'traits', 'tagline', 'want', 'need', 'fear', 'habits', 'dialect', 'rhythm', 'phrases', 'voice', 'voiceTag', 'look', 'arc', 'firstStep', 'lastStep', 'introducedBy', 'storyRole', 'needsFromDuo', 'canonNotes', 'mapLink'],
   }),
   card({
-    id: 'beppe', speakerKey: NA, status: 'canon', tier: 'supporting',
+    id: 'beppe', speakerKey: 'beppe', status: 'canon', tier: 'supporting',
     name: "Hinke Wiersma", nick: "Beppe", age: 88, pronoun: 'zij',
     homePlace: "net over de grens bij Kollum, Fryslân (westgrens van de provincie)",
     homeAddress: "een huis met tuin, vogelhuisje en duiven aan de westgrens; het laatste bankje van Grunn met haar koperen plaatje staat er vlakbij",

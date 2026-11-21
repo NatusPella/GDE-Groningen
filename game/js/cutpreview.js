@@ -263,13 +263,17 @@ export function frameAt(entry, t) {
 // The start time of every shot (and the last frame of the scene as a closing still): the moments for the screenshot export.
 export function stillTimes(entry) {
   if (!entry || !entry.scene) return [];
-  const times = [];
+  const starts = [];
   let lastShot = -1;
   for (let t = 0; t <= entry.duration; t += 0.1) {
     const s = entry.scene.sample(t, ANCHOR).camera.shotIndex;
-    if (s !== lastShot) { times.push(Math.round((t + 0.2) * 10) / 10); lastShot = s; }
+    if (s !== lastShot) { starts.push(t); lastShot = s; }
   }
-  return times.map((t) => Math.min(t, entry.duration));
+  // 0.2 s into the shot, but never past the middle of a very short shot (otherwise the still lands in the next shot: two stills of one shot)
+  return starts.map((t, i) => {
+    const next = i + 1 < starts.length ? starts[i + 1] : entry.duration;
+    return Math.min(Math.round(Math.min(t + 0.2, (t + next) / 2) * 10) / 10, entry.duration);
+  });
 }
 
 // File name of a still: 'M01.intro-shot03-t12.4.png'

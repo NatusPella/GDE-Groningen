@@ -78,7 +78,7 @@ ok(() => {
   // 3. "Autosave" was Engels en stond alleen in een tooltip; nu een Nederlandse chip plus een schermregel.
   assert.match(ui, /chips\.push\('<span class="ssl-chip on">Bewaard vanzelf<\/span>'\)/);
   assert.doesNotMatch(ui, />Autosave</, 'het Engelse woord staat niet meer op het scherm');
-  assert.match(ui, /class="ssl-note">Het spel bewaart vanzelf na een aankoop, een missie of als je stopt; je kunt altijd zelf opslaan\.</, 'de uitleg staat als gewone regel op het scherm');
+  assert.match(ui, /class="ssl-note">Het spel bewaart vanzelf.</, 'de uitleg staat als gewone regel op het scherm');
   assert.ok(ui.indexOf('ssl-note') > ui.indexOf("role=\"list\" aria-label=\"Opgeslagen spellen\""), 'de regel staat onder het raster, bij de spelers zichtbaar');
   assert.match(css, /#saveslots \.ssl-note \{[^}]*font-size: 17px;[^}]*color: var\(--mut\);/);
 }, 'autosave-uitleg is Nederlands en leesbaar voor pad en touch (#606 punt 3)');

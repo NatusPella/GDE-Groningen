@@ -4,7 +4,6 @@
    ds-components.css (.ds-z-*). Beweging: alleen opacity, translate en vullingen, op de tokenduur; "Beweging beperken" zet ze op 0. */
 #tune-menu { position: fixed; inset: 0; z-index: 41; display: none; }
 #tune-menu.visible { display: block; animation: m-fade var(--ds-m-lang) var(--ds-ease); }
-#tune-menu .tm-panel { left: 80px; right: 80px; top: var(--mt); bottom: var(--mb); }
 #tune-menu .tm-accent { display: block; width: var(--ds-s-8); height: var(--ds-s-2); background: var(--ds-c-ink-bord); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); margin-bottom: var(--ds-s-3); }
 #tune-menu .tm-money { color: var(--ds-zeef-tx); white-space: nowrap; }
 #tune-menu .tm-money.pay { animation: tm-pay var(--ds-m-max) var(--ds-ease); }
@@ -17,7 +16,6 @@
 #tune-menu .tm-deal b { font-weight: var(--ds-gewicht-vet); }
 #tune-menu .tm-deal s { color: var(--ds-c-inkt-zacht); }
 #tune-menu .tm-main { padding-top: var(--ds-s-4); }
-#tune-menu .tm-list { width: 700px; scrollbar-width: thin; scrollbar-color: var(--ds-scroll-duim) var(--ds-scroll-spoor); display: flex; flex-direction: column; gap: var(--ds-s-3); }
 #tune-menu .tm-note { padding: 0 var(--ds-s-2); color: var(--ds-zeef-tx); font-size: var(--ds-t-body); }
 /* een rij: kop met naam, gekozen waarde en prijs, daaronder de keuzes; de gefocuste rij krijgt de bordgroene rand en een vinkje-vlak */
 #tune-menu .tm-row { display: flex; flex-direction: column; gap: var(--ds-s-2); padding: var(--ds-s-3) var(--ds-s-4); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); background: var(--ds-zeef-bg); border-radius: var(--ds-r); transition: translate var(--ds-m-midden) var(--ds-m-uit), background-color var(--ds-m-midden) var(--ds-m-uit); }
@@ -54,13 +52,6 @@
 #tune-menu .tm-hint { font-size: var(--ds-t-hulp); color: var(--ds-c-inkt-zacht); }
 #tune-menu .tm-bact { min-width: 120px; }
 /* rechts: het voorbeeld en de kaart */
-#tune-menu .tm-pane { display: flex; flex-direction: column; gap: var(--ds-s-3); min-width: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--ds-scroll-duim) var(--ds-scroll-spoor); }
-#tune-menu .tm-stage { position: relative; flex: none; height: clamp(130px, 21vh, 230px); background-image: var(--ds-raster); background-size: var(--ds-raster-maat); border: var(--ds-lijn-dik) dashed var(--ds-c-ink-inkt); }
-#tune-menu .tm-preview { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; opacity: 0; transition: opacity var(--ds-m-lang) var(--ds-ease); }
-#tune-menu .tm-preview.on { opacity: 1; }
-#tune-menu .tm-preview:active { cursor: grabbing; }
-#tune-menu .tm-badge { position: absolute; left: var(--ds-s-3); top: var(--ds-s-3); padding: 0 var(--ds-s-3); background: var(--ds-c-ink-geel); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-kop); font-weight: 800; letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
-#tune-menu .tm-badge[hidden] { display: none; }
 #tune-menu .tm-card { flex: none; gap: var(--ds-s-3); }
 #tune-menu .tm-chips { display: inline-flex; gap: var(--ds-s-2); }
 #tune-menu .tm-lines { display: flex; flex-direction: column; gap: var(--ds-s-1); max-height: 10vh; overflow: auto; scrollbar-width: thin; }
@@ -91,15 +82,56 @@
 #tune-menu .tm-status[data-tone="no"] { color: var(--ds-c-rood-tx); }
 #tune-menu .tm-status.pop { animation: m-up var(--ds-m-max) ease both; }
 #tune-menu .m-foot .tm-close { display: inline-flex; }
-@media (max-height: 820px) {
-  #tune-menu .tm-total { font-size: var(--ds-t-subkop); }
-  #tune-menu .tm-list { width: 560px; }
-  #tune-menu .tm-rl { font-size: var(--ds-t-body); }
-}
-@media (max-width: 1100px), (pointer: coarse) {
-  #tune-menu .tm-list { width: 520px; }
-  #tune-menu .tm-tab { height: var(--ds-doel-aanraken); }
-}
 /* Beweging beperken en rustig drukwerk: de tokens staan op 0, dus alleen de losse animaties hoeven uit */
 html.reduce-motion #tune-menu :is(.tm-o.on, .tm-sw[aria-checked="true"], .tm-sw.on, .tm-money.pay, .tm-status.pop), html.rustig-drukwerk #tune-menu :is(.tm-o.on, .tm-sw[aria-checked="true"], .tm-sw.on, .tm-money.pay, .tm-status.pop) { animation: none; }
 @media (prefers-reduced-motion: reduce) { #tune-menu :is(.tm-o.on, .tm-sw[aria-checked="true"], .tm-sw.on, .tm-money.pay, .tm-status.pop) { animation: none; } }
+
+/* Ronde 3: de showroom. Het 3D-voorbeeld vult het hele scherm (een draaitafel met studiolicht), het paneel links en de kaart rechts
+   zijn doorzichtige papierkaarten er overheen. Alleen var(--ds-...), geen hex; beweging op de tokenduur. */
+#tune-menu.gm { background: none; }
+#tune-menu .gm-stage { pointer-events: none; }
+#tune-menu .tm-panel, #tune-menu .tm-pane, #tune-menu .m-foot, #tune-menu .tm-views { pointer-events: auto; }
+#tune-menu .tm-stage { position: fixed; inset: 0; background: var(--ds-c-glas); }
+#tune-menu .tm-preview { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+#tune-menu .tm-preview:active { cursor: grabbing; }
+#tune-menu .tm-badge { position: absolute; left: 50%; top: var(--ds-s-5); translate: -50% 0; padding: 0 var(--ds-s-4); background: var(--ds-c-ink-geel); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
+#tune-menu .tm-badge[hidden], #tune-menu .tm-splitlab[hidden] { display: none; }
+#tune-menu .tm-splitlab { position: absolute; left: 0; right: 0; top: var(--ds-s-5); display: grid; grid-template-columns: 1fr 1fr; justify-items: center; }
+#tune-menu .tm-splitlab b { padding: 0 var(--ds-s-4); background: var(--ds-c-ink-geel); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
+#tune-menu .tm-splitlab::after { content: ""; position: absolute; left: 50%; top: calc(-1 * var(--ds-s-5)); bottom: -100vh; width: var(--ds-lijn-dik); background: var(--ds-c-ink-geel); }
+#tune-menu .tm-panel { left: var(--ds-s-6); top: var(--mt); bottom: var(--mb); right: auto; width: min(660px, 47vw); background: color-mix(in srgb, var(--ds-zeef-bg) 90%, transparent); }
+#tune-menu .tm-main { padding-top: var(--ds-s-3); padding-right: var(--ds-s-4); padding-left: var(--ds-s-4); }
+#tune-menu .tm-list { width: 100%; scrollbar-width: thin; scrollbar-color: var(--ds-scroll-duim) var(--ds-scroll-spoor); display: flex; flex-direction: column; gap: var(--ds-s-3); }
+#tune-menu .m-head, #tune-menu .tm-tabs, #tune-menu .tm-deals { padding-left: var(--ds-s-4); padding-right: var(--ds-s-4); }
+#tune-menu .tm-pane { position: fixed; right: var(--ds-s-6); bottom: 100px; width: min(460px, 32vw); max-height: 60vh; border: none; padding: 0; background: none; }
+#tune-menu .tm-card { background: color-mix(in srgb, var(--ds-zeef-bg) 90%, transparent); }
+#tune-menu .tm-status { background: color-mix(in srgb, var(--ds-zeef-bg) 90%, transparent); padding: 0 var(--ds-s-3); }
+#tune-menu .tm-ti { margin-right: var(--ds-s-2); vertical-align: -3px; }
+#tune-menu .tm-ri { flex: none; align-self: center; }
+/* de camerastanden: een balk onderaan het beeld */
+#tune-menu .tm-views { position: fixed; left: calc(min(660px, 47vw) + var(--ds-s-8)); bottom: 112px; display: flex; align-items: center; gap: var(--ds-s-2); padding: var(--ds-s-2) var(--ds-s-3); background: color-mix(in srgb, var(--ds-zeef-bg) 90%, transparent); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); }
+#tune-menu .tm-vw { min-height: var(--ds-doel-aanraken); padding: 0 var(--ds-s-3); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); background: var(--ds-c-toets-vlak); color: var(--ds-c-ink-inkt); border-radius: var(--ds-r); font: inherit; font-size: var(--ds-t-label); cursor: pointer; transition: translate var(--ds-m-kort) var(--ds-m-uit), background-color var(--ds-m-midden) var(--ds-m-uit); }
+#tune-menu .tm-vw:hover { translate: 0 -1px; }
+#tune-menu .tm-vw[aria-pressed="true"] { background: var(--ds-c-ink-bord); color: var(--ds-c-wit); }
+#tune-menu .tm-vk { margin-left: var(--ds-s-2); }
+/* keuzetegels: een groot voorbeeld, de naam en de prijs; gekozen = ring, vinkje en een lichte pop; vergrendeld = gestreepte rand en een slot */
+#tune-menu .tm-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: var(--ds-s-3); }
+#tune-menu .tm-tile { flex-direction: column; align-items: stretch; justify-content: flex-start; gap: var(--ds-s-1); min-height: 0; padding: var(--ds-s-2); text-align: center; }
+#tune-menu .tm-tile .nm { font-size: var(--ds-t-hulp); line-height: var(--ds-lh-kop); overflow-wrap: anywhere; }
+#tune-menu .tm-pic { position: relative; display: grid; place-items: center; height: 72px; background-image: var(--ds-raster); background-size: var(--ds-raster-maat); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); overflow: hidden; }
+#tune-menu .tm-pic img { max-width: 100%; max-height: 100%; width: auto; height: 64px; image-rendering: auto; }
+#tune-menu .tm-pic img.wide { width: 100%; height: auto; }
+#tune-menu .tm-tic { color: var(--ds-c-ink-inkt); }
+#tune-menu .tm-tile.on { background: var(--ds-c-sel-vlak); color: var(--ds-c-ink-inkt); box-shadow: 0 0 0 var(--ds-lijn-dik) var(--ds-c-wit), 0 0 0 calc(var(--ds-lijn-dik) * 2) var(--ds-c-ink-bord); }
+#tune-menu .tm-tile.on, #tune-menu .tm-tile.on.locked { color: var(--ds-c-ink-inkt); }
+#tune-menu .tm-tile .tm-on { position: absolute; right: var(--ds-s-1); top: var(--ds-s-1); width: var(--ds-s-5); height: var(--ds-s-5); display: grid; place-items: center; background: var(--ds-c-ink-bord); color: var(--ds-c-wit); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: 50%; font-size: var(--ds-t-hulp); }
+#tune-menu .tm-tile .tm-on:empty { display: none; }
+#tune-menu .tm-tile.locked .tm-pic { opacity: 0.6; border-style: dashed; }
+#tune-menu .tm-tile:focus-visible, #tune-menu .tm-row:focus-within .tm-tile:hover { translate: 0 -2px; }
+/* kleurstalen: ronde, gelakte stalen met inktrand en een glansvlek (geen verloop: een lichte ellips) */
+#tune-menu .tm-sw { width: var(--ds-s-7); height: var(--ds-s-7); border-radius: 50%; overflow: hidden; }
+#tune-menu .tm-sw[data-val]:not(.none)::before { content: ""; position: absolute; left: 18%; top: 12%; width: 42%; height: 26%; border-radius: 50%; background: var(--ds-c-wit); opacity: 0.38; rotate: -28deg; }
+#tune-menu .tm-sw.none, #tune-menu .tm-sw.own { border-radius: var(--ds-r); width: auto; height: var(--ds-s-7); }
+#tune-menu .tm-sw[aria-checked="true"]:not(.none)::after { right: 0; bottom: 0; }
+@media (max-height: 820px) { #tune-menu .tm-total { font-size: var(--ds-t-subkop); } #tune-menu .tm-rl { font-size: var(--ds-t-body); } #tune-menu .tm-pane { bottom: 90px; max-height: 56vh; } }
+@media (max-width: 1100px), (pointer: coarse) { #tune-menu .tm-tab { height: var(--ds-doel-aanraken); } #tune-menu .tm-panel { width: min(560px, 54vw); } }

@@ -25,7 +25,8 @@ export function bridgeDue({ done, flags, currentId = null, bridges = BRIDGES }) 
   for (const b of bridges) {
     const k = idx(b.after);
     if (k < 0 || !done.has(b.after) || flags.has(bridgeFlag(b.id))) continue;
-    if (cur > k + 1 + BRIDGE_MAX_STEPS_LATE) continue;
+    // te laat: meer dan twee missies voorbij (activiteiten ertussen, ook de nieuwe N-stappen, tellen niet mee)
+    if (STEPS.slice(k + 1, cur).filter((q) => q.kind === 'mission').length > BRIDGE_MAX_STEPS_LATE) continue;
     return b;
   }
   return null;

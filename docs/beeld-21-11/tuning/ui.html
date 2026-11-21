@@ -33,6 +33,8 @@
   const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
   await wacht(400);
   if (view === 'slot') { klik('[data-tab="carrosserie"]'); await wacht(100); klik('[data-field="spoiler"] .tm-o[data-val="gt"]'); }
+  if (view === 'voorna') { klik('[data-tab="carrosserie"]'); await wacht(100); klik('[data-field="spoiler"] .tm-o[data-val="wing"]'); klik('[data-field="kit"] .tm-o[data-val="sport"]'); await wacht(300); klik('.tm-compare'); }
+  if (view === 'wiel') { klik('[data-tab="velgen"]'); await wacht(100); klik('[data-field="rimStyle"] .tm-o[data-val="star"]'); klik('[data-field="rimColor"] .tm-sw[data-val="#f9c80e"]'); klik('[data-view="wiel"]'); }
   if (view === 'lak') { klik('[data-field="finish"] .tm-o[data-val="pearl"]'); klik('[data-field="body"] .tm-sw[data-val="#e8505b"]'); klik('[data-field="color2"] .tm-sw[data-val="#f9c80e"]'); }
   if (view === 'carrosserie') { klik('[data-tab="carrosserie"]'); await wacht(100); klik('[data-field="spoiler"] .tm-o[data-val="wing"]'); klik('[data-field="kit"] .tm-o[data-val="sport"]'); klik('[data-field="diffuser"] .tm-o[data-val="on"]'); klik('[data-field="roof"] .tm-o[data-val="rack"]'); klik('[data-field="exhaust"] .tm-o[data-val="twin"]'); }
   if (view === 'velgen') { klik('[data-tab="velgen"]'); await wacht(100); klik('[data-field="rimStyle"] .tm-o[data-val="star"]'); klik('[data-field="rimColor"] .tm-sw[data-val="#f9c80e"]'); klik('[data-field="rimSize"] .tm-o[data-val="l"]'); klik('[data-field="tire"] .tm-o[data-val="whitewall"]'); }

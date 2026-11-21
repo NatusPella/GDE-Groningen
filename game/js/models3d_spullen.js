@@ -3,7 +3,7 @@ import { markShared } from './pixelart3d.js';
 import { dsWereld } from './worldpalette.js';
 
 // Kleine procedurele modellen voor de Spullen-viewer (#1086), voor alles wat shopmodels3d.js (eten, meubels, onderdelen) en
-// models3d_people.js (wapens, personen) niet al kent: geld, vuisten, vis, kaarten en onderdelen van de Escapade. Eén generator per
+// models3d_people.js (wapens, personen) niet al kent: geld, vis, kaarten en onderdelen van de Escapade. Eén generator per
 // soort, met parameters, zodat varianten (29 vissoorten, drie geldstapels) uit dezelfde functie komen. Alleen verzonnen of
 // generieke vormen, geen letters of merken. Eenheden: ruwweg 1 = 10 cm; de viewer past het kader aan op de omhullende bol.
 // Materialen zijn gedeeld per kleur (markShared) en lopen door dsWereld (het wereldpalet); geometrie hoort bij de mesh en gaat
@@ -38,7 +38,6 @@ const ball = (r, n = 10) => new THREE.SphereGeometry(r, n, Math.max(5, Math.roun
 const METAAL = 0xb8bec4;
 const DONKER = 0x1b1c1f;
 const GEEL = 0xe8c93a;
-const HUID = 0xd9a77a;
 
 // Een stapel biljetten (gewone gekleurde vellen met een bandje, zonder opdruk) en munten; het niveau (0 tot 3) bepaalt hoeveel.
 function money(g, { niveau = 1 } = {}) {
@@ -59,19 +58,6 @@ function money(g, { niveau = 1 } = {}) {
     const a = i * 2.2;
     add(g, munt, mat(i % 2 ? 0xd8b040 : 0xc8ccd0, 0.35, 0.8), 2.4 + Math.cos(a) * 0.35 * (i < 3 ? 0 : 1) + (i % 3) * 0.1, 0.04 + hoog * 0.09, 0.6 + Math.sin(a) * 0.5 * (i < 3 ? 0 : 1));
   }
-}
-
-// Een gebalde vuist, de pols recht omhoog; de hand van het spel is altijd huid, geen handschoen.
-function vuist(g, { huid = HUID } = {}) {
-  const m = mat(huid, 0.8);
-  add(g, box(1.5, 1.1, 1.8), m, 0, 0.9, 0);
-  for (let i = 0; i < 4; i++) {
-    const z = -0.66 + i * 0.44;
-    add(g, box(0.62, 0.5, 0.4), m, 0.62, 1.35, z); // kno
-    add(g, box(0.3, 0.7, 0.38), m, 0.8, 0.8, z); // vinger omgeklapt
-  }
-  add(g, box(0.5, 0.35, 0.5), m, 0.5, 0.35, 1.0, 0, 0.5, 0); // duim
-  add(g, cyl(0.62, 0.7, 1.2, 12), mat(0x3f6ea8, 0.8), -0.4, -0.2, 0); // mouw
 }
 
 // Vis: één generator voor alle soorten. vorm: 'spil' (voorn, baars), 'plat' (bot, schol, tong), 'slang' (paling, prik). Alles in dezelfde
@@ -213,7 +199,7 @@ function neonmeeuw(g, { kleur = 0xff4fa8 } = {}) {
   add(g, cyl(0.05, 0.05, 0.9, 6), mat(0x3a3e44, 0.5), 0, 0.5, 0);
 }
 
-const BOUWERS = { geld: money, vuist, vis, aanwijzing, geheim: secret, motor: engine, bredeband, sperdiff, uitlaat, mosterd, bel, neonmeeuw };
+const BOUWERS = { geld: money, vis, aanwijzing, geheim: secret, motor: engine, bredeband, sperdiff, uitlaat, mosterd, bel, neonmeeuw };
 export const SPUL_TYPES = Object.keys(BOUWERS);
 
 // Het model voor { type, ...parameters }, of null voor een onbekende soort (de viewer valt dan terug op het icoon).
