@@ -15,7 +15,7 @@ import { onthullingScene } from './uitjescene.js';
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { ambientOut } from './audio.js';
 import { activityBlock, iconDisc } from './activitykit.js';
-import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, easeCamera, fmtTime, angDiff, clamp } from './minigamekit.js';
+import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, easeCamera, fmtTime, angDiff, clamp, standTabel } from './minigamekit.js';
 import { KART_LINES, KART_RIVALS } from './minigamelines.js';
 import {
   createKart, stepKart, updateProgress, collideKarts, aiInput, rankKarts, positionMedal, bestLap, pointAt, locate, KART, LAPS, RUNOFF,
@@ -831,7 +831,7 @@ function updateHud() {
   }
   if (!g.online || !board) return;
   // het bord is er alleen voor de tussenstand bij een race tegen anderen (#617)
-  const extra = `<table class="mg-stand"><thead><tr><th scope="col">#</th><th scope="col">Speler</th><th scope="col">Ronde</th><th scope="col">Tijd</th></tr></thead><tbody>${raceStand(g).map((s) => `<tr class="${s.eigen ? 'on' : ''}"><td>${s.plek}</td><th scope="row">${String(s.naam).slice(0, 12)}</th><td>${Math.min(s.ronde, 3)}/3</td><td>${s.klaar && s.tijd != null ? fmtTime(s.tijd) : '-'}</td></tr>`).join('')}</tbody></table>`;
+  const extra = standTabel(['#', 'Speler', 'Ronde', 'Tijd'], raceStand(g).map((s) => ({ naam: String(s.naam).slice(0, 12), eigen: s.eigen, weg: s.weg, cellen: [`${Math.min(s.ronde, 3)}/3`, s.klaar && s.tijd != null ? fmtTime(s.tijd) : '-'] })));
   board.set({ row: '', meter: null, flash: '', bad: false, help: '', extra });
 }
 

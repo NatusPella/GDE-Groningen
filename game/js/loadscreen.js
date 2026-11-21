@@ -11,7 +11,8 @@ import { hudDate } from './hudcalendar.js';
 import { streamPending, prewarmStreamAt, prewarmPending } from './scene3d.js';
 import { placeLabel } from './hud_panel.js';
 import { pictureHtml, missionPicture } from './loadscene.js';
-import { createGate, gateTick, fadeMs } from './loadgate.js';
+import { createGate, gateTick, fadeMs, wachtOpGastheer } from './loadgate.js';
+import { openerNaam } from './coopplayers.js';
 import { JUMP_M as JM, loadKind, stepProgress, startProgress, loadPending, loadStepAt, easeBar } from './loadlogic.js';
 
 export const JUMP_M = JM;
@@ -140,7 +141,7 @@ export function startLoadScreen(world, opts = {}) {
       gateStap = stepNow.label;
     }
     // de ene statusregel onder de balk: de echte stap (of de reden van een lange wacht); alleen schrijven bij een wijziging
-    const gv = gateTick(gate, { done: prog.done, elapsedS: (now - t0) / 1000, stap: gateStap, wachtOp: opts.wachtOp ? opts.wachtOp() : '' });
+    const gv = gateTick(gate, { done: prog.done, elapsedS: (now - t0) / 1000, stap: gateStap, wachtOp: opts.wachtOp ? opts.wachtOp() : wachtOpGastheer(world.coopNet, () => openerNaam(world.coopRoster)) });
     if (stepEl.textContent !== gv.status) { stepEl.textContent = gv.status; barEl.setAttribute('aria-valuetext', gv.status); }
     if (gv.actie === 'door') { finish(); return; }
     requestAnimationFrame(step);

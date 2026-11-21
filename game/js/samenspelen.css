@@ -111,6 +111,10 @@
   font-family: var(--ds-font-zeef-tekst); font-weight: 400; font-size: var(--ds-t-body); line-height: var(--ds-lh-tekst); text-align: center;
 }
 
+/* de vraag en de twee knoppen met de toets erin (J en N); de knoppen zijn echte knoppen voor muis en aanraking */
+:root .cp-meedoen { pointer-events: auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--ds-s-2) var(--ds-s-3); }
+:root .cp-meedoen .cp-meedoen-knop { min-height: var(--ds-doel-aanraken); display: inline-flex; align-items: center; gap: var(--ds-s-2); }
+
 /* De spelerslijst bij Tab en in het pauzemenu (.cs-*) staat in coopspelersui.js; hier alleen de kop-chip. */
 .pm-spelers .cs-kop .ds-z-chip { align-self: flex-start; }
 

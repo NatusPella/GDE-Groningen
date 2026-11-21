@@ -173,6 +173,16 @@ export function maakUitnodiging(b, status = null) {
 }
 // De melding voor een laatkomer bij een opdracht zonder late instap.
 export const toeschouwerTekst = (label) => `${String(label || 'De opdracht').slice(0, 60)} loopt al, de volgende doe je mee.`;
+// De uitnodiging als vorm voor het scherm (#1001): een vraag en twee echte knoppen met de toets erin (J en N, ook op aanraking),
+// of alleen een zin als er niets te kiezen valt (de opdracht is begonnen, het verhaal heeft je nodig, een status). Puur;
+// coophud.js tekent het. Elke speler ziet zijn eigen vraag en antwoordt voor zichzelf.
+export const MEEDOEN_KNOPPEN = [{ toets: 'j', letter: 'J', label: 'Ja' }, { toets: 'n', letter: 'N', label: 'Nee' }];
+export function uitnodigingVorm(u, naam = 'De ander') {
+  if (!u) return null;
+  if (u.start || (u.status && !u.verplicht) || u.verplicht) return { tekst: uitnodigingTekst(u, naam), knoppen: [] };
+  return { tekst: `Meedoen met ${u.label}?`, knoppen: MEEDOEN_KNOPPEN };
+}
+
 export function uitnodigingTekst(u, naam = 'De ander') {
   if (!u) return '';
   if (u.start) return `${u.label} is begonnen: je doet mee.`;

@@ -500,6 +500,18 @@ export function stopPressed(input) {
 // Tekst veilig in innerHTML (een naam van een medespeler in het bord): de naam is al gefilterd door de host, maar de veiligheid hangt niet aan andere bestanden (review 21-11).
 export const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+// Een tussenstand als tabel (#1000, Samen spelen): een rij per deelnemer, de eigen rij gemarkeerd. Wie wegvalt blijft staan met
+// het woord "weg" in de laatste cel (nooit alleen een kleur of een streep), zodat iedereen ziet dat hij er niet meer bij is.
+// kop: de kolomnamen met '#' en de naam vooraan; rijen: [{ naam, cellen: ['..'], eigen, weg }]; de plek is de volgorde.
+export function standTabel(kop, rijen) {
+  const kolommen = kop.map((k) => `<th scope="col">${esc(k)}</th>`).join('');
+  const body = rijen.map((r, i) => {
+    const cellen = r.cellen.map((c, k) => (r.weg ? (k === r.cellen.length - 1 ? 'weg' : '-') : c));
+    return `<tr class="${[r.eigen ? 'on' : '', r.weg ? 'weg' : ''].filter(Boolean).join(' ')}"><td>${i + 1}</td><th scope="row">${esc(r.naam)}</th>${cellen.map((c) => `<td>${esc(c)}</td>`).join('')}</tr>`;
+  }).join('');
+  return `<table class="mg-stand"><thead><tr>${kolommen}</tr></thead><tbody>${body}</tbody></table>`;
+}
+
 export function easeStep(k, dt = 1 / 60) {
   const d = Number.isFinite(dt) && dt > 0 ? Math.min(dt, 0.25) : 1 / 60;
   return 1 - Math.pow(1 - clamp(k, 0.001, 0.999), d * 60);

@@ -5,10 +5,12 @@
 // Geen engine: een paneel dat het wil, zet het attribuut. Samen spelen: elke speler ziet het lokaal op zijn eigen paneel,
 // er gaat niets over het net.
 
-/** band: de inkt van de kopband; tekst: de inkt van de tekst op de band; embleem: de naam in icons.js (24 px); stempel: korte tekst. */
+/** band: de inkt van de kopband; tekst: de inkt van de tekst op de band; embleem: de naam in icons.js (24 px); stempel: korte tekst;
+    motief: de soort en de sterkte (procent van de tekstinkt in de band, hooguit MOTIEF_MAX) van het patroon in de kopband. */
+export const MOTIEF_MAX = 12; // boven dit percentage haalt tekst op de band de 4,5:1 niet meer; de test rekent het per context na
 export const CONTEXTEN = {
-  golf: { band: 'bord', tekst: 'wit', embleem: 'golf', stempel: 'GOLF' },
-  farming: { band: 'geel', tekst: 'inkt', embleem: 'boerderij', stempel: 'BOERDERIJ' },
+  golf: { band: 'bord', tekst: 'wit', embleem: 'golf', stempel: 'GOLF', motief: { soort: 'maaistrepen', sterkte: 8 } },
+  farming: { band: 'geel', tekst: 'inkt', embleem: 'boerderij', stempel: 'BOERDERIJ', motief: { soort: 'voren', sterkte: 10 } },
 };
 
 // welke minigame of bijbaan bij welke context hoort (de proefset: de golfspellen en de boerderij)
