@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Quicktime-events: mis je een balk voor de tweede keer, dan staat onder de balk dat je Quicktime-events in Instellingen op Overslaan kunt zetten; het verhaal gaat dan vanzelf door.
+- Missies: ook bij de muziekkar in de Herenstraat staat nu een toeschouwer te wachten; elke lange wachtstap buiten een binnenset heeft zo iets te zien.
 - Snackwagen: de wagen groeit mee met het verhaal. Het menu samenstellen opent na Oma Trijntjes recept, vergunningen kopen na Lammerts kade en de kermis, medewerkers-wagens na het team van Berend, Tinus en Wubbo, je eigen wagen op een standplaats zetten na de Vismarkt, en een tweede wagen en plekken van Usmem overnemen aan het eind van de zomer. Een dichte stap laat een hint zien; de belettering is eerst SNACKWAGEN en wordt TAM & TES zodra de wagen zijn naam heeft. Een opgeslagen spel van voor deze wijziging houdt alles open.
 - Samen spelen: een gast kan meewerken in de snackwagen van een medespeler (ook van de host); de eigenaar verkoopt die dag 8% meer en de gast verdient zijn uurloon uit nieuw geld.
 - Bezit: de eigen snackwagen levert ongeveer twee keer en een groot snackimperium ongeveer vier keer zoveel als actief werk; passief inkomen buiten de snackwagen blijft binnen drie keer.
