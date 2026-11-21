@@ -168,3 +168,15 @@ Niets hiervan is in een echt venster gezien. Voor de coördinator, bij de beeldr
   `docs/beeld-21-11/spullen-wapens/wapens-0.6.png`.
 - **Nog niet in beeld bekeken** (alleen het headless blad hierboven): de wapens in de hand van het figuur en in de eerste persoon in het echte spel, de
   zwaaihoeken en de muzzle flash op de nieuwe loopmonden, en het Spullen-scherm met de nieuwe tabiconen in Electron.
+
+## Ronde 2 (spullen-r2, 21-11)
+
+- **Gat-lijst:** alle 99 dingen hadden al een model (dekking 100 procent), maar twaalf winkelblokjes waren kaal (12 tot 144 driehoeken, één kleur): spaarkaart, kauwgom,
+  pakket, tv, ehbo, koek, drop, accu, schijf, bureau, frituur en bed. Wapens: hockeystick (recht blad) en klomp (geen zool) waren de zwakste. Iconen waren er al per tab, groep en soort.
+- **Nieuw:** twaalf bouwers in `models3d_spullen.js` (150 tot 700 driehoeken, twee tot zes materialen, geen tekst); `spullen3d.js` wijst ze aan via `SPUL_MODEL_VOOR` (de
+  winkel houdt zijn eigen blokjes). Hockeystick met gebogen blad en tapewikkel op de teen, klomp met zool en opkrul bij de punt.
+- **Iconen en toetsen:** boven het raster staan de toetsen Q en E als `glyphHtml` (`data-gk`: op de controller de bumperknoppen); verborgen op touch.
+- **Test:** `scripts/spullen3d_test.mjs` (14 tests) bewaakt per nieuw model driehoeken, materialen, bounding box, NaN en dispose. Beeld: `node scripts/ui/weapons_mock.mjs --bron=spullen`
+  schrijft `docs/beeld-21-11/spullen-r2/spullen-0.6.png`; het wapenblad is vernieuwd.
+- **Samen spelen:** zie `docs/COOP-GAST.md` (Spullen-modellen en wapens): inventaris per speler, het wapen in de hand loopt mee in de snapshot en toont bij de ander hetzelfde model.
+- **Nog niet in beeld bekeken:** alleen het headless blad; niet in het echte menu (tegels, galerij, Q/E-toetsen) of in de hand in het spel. Boot-upgrades blijven zonder tegel (zie hierboven).

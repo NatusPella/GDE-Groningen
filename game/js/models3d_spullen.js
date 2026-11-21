@@ -203,7 +203,7 @@ function neonmeeuw(g, { kleur = 0xff4fa8 } = {}) {
 // elk ding heeft een eigen silhouet en twee tot vier materialen. Eenheden zoals hierboven (1 = 10 cm).
 
 // Spaarkaart: twee kaarten waaiervormig, voorop een stempelraster (gevulde en lege rondjes) en een lichte strook.
-function spaarkaart(g) {
+function loyaltyCard(g) {
   add(g, box(5.4, 0.1, 3.4), mat(0x2f5c8a, 0.5), 0.35, 0.05, -0.15, 0, 0.22);
   add(g, box(5.4, 0.12, 3.4), mat(0xc23f78, 0.5), 0, 0.16, 0);
   add(g, box(5.4, 0.14, 0.7), mat(0xf0ede4, 0.6), 0, 0.17, -1.25);
@@ -368,7 +368,7 @@ function bed(g) {
   for (const z of [-0.8, 0.8]) add(g, ball(0.7, 8), mat(0xe8e2d0, 0.9), -2.2, 2.0, z).scale.set(1.2, 0.5, 1.0);
 }
 
-const BOUWERS = { geld: money, vis, aanwijzing, geheim: secret, motor: engine, bredeband, sperdiff, uitlaat, mosterd, bel, neonmeeuw, spaarkaart, kauwgom, pakket, tv, ehbo, koek, drop, accu, schijf, bureau, frituur, bed };
+const BOUWERS = { geld: money, vis, aanwijzing, geheim: secret, motor: engine, bredeband, sperdiff, uitlaat, mosterd, bel, neonmeeuw, spaarkaart: loyaltyCard, kauwgom, pakket, tv, ehbo, koek, drop, accu, schijf, bureau, frituur, bed };
 export const SPUL_TYPES = Object.keys(BOUWERS);
 
 // Het model voor { type, ...parameters }, of null voor een onbekende soort (de viewer valt dan terug op het icoon).
