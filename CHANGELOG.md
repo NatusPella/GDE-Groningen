@@ -11,6 +11,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+- **Vertrekbord als tijdlijn:** de eerstvolgende treinen staan op het perronbord niet meer als vier losse blokjes maar als één kaart met een tijdlijn: bovenaan "NU" met de tijd, daaronder per trein een punt op de as met vertrektijd, bestemming, spoor, Live of Rooster, vertraging (+3 met de nieuwe tijd) en "over 4 min" met een balk. De eerstvolgende trein is groot en groen, een trein die vervalt staat doorgestreept met het woord Vervalt. Nieuwe treinen schuiven in en de minuten tikken; onder "Beweging beperken" blijft het stil.
 - Het naamscherm heet nu "Hoe heet je?" en vraagt alleen een naam, ook voor wie Alleen speelt; het akkoord met de online diensten (STUN en brokers, je IP-adres) komt pas als je Samen spelen kiest, en weigeren brengt je terug naar de keuze zonder iets te verliezen.
 - De keuzekaart en het naamscherm staan onderaan, zodat het GDE-logo zichtbaar blijft, en de laadstatus eronder is verborgen. De knop met focus is de gele hoofdknop (standaard Alleen spelen).
 - Het opstartscherm toont geen "Stap n van m" meer: één doorlopende balk met een statusregel die zegt wat het spel doet.
