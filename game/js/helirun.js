@@ -633,50 +633,56 @@ function cleanup(aborted) {
     }
     landHeliOnPad(w, 30);
   } catch (e) { console.error('heli run opruimen', e); }
-  // Rotor Roelf takes his demo heli back
-  v.driver = null;
-  v.passenger = null;
-  v.heliRun = false;
-  const vi = w.vehicles.indexOf(v);
-  if (vi >= 0) w.vehicles.splice(vi, 1);
-  w.heliRun = false;
-  w.heliRunTarget = null;
-  w.cinematicHidePlayers = r.prevCine.hide || false;
-  w.cinematicHideNav = r.prevCine.nav || false;
-  w.cameraOverride = null;
-  document.body.classList.remove('heli-run');
-  hud.root.hidden = true;
-  hud.card.classList.remove('on');
-  hud.say.classList.remove('on');
-  hud.fade.classList.remove('on');
-  const pl = r.actor || hoofdspeler(w);
-  pl.inVehicle = null;
-  // back on the street by the UMCG (a run given up at Eelde stays at Eelde)
-  const atEelde = r.startPad.id === 'eelde' && Math.hypot(v.x - r.startPad.x, v.y - r.startPad.y) < 400;
-  // the new M12 ends on the quay of the Eemshaven, where Dijkstra sets them down
-  const back = r.variant === 'rooster' && r.result && r.result.success ? { x: P.ROOSTER.eemshaven.x, y: P.ROOSTER.eemshaven.y }
-    : r.variant === 'rooster' ? { x: r.startPad.x - 7, y: r.startPad.y + 5 }
-    : atEelde ? { x: r.startPad.x - 7, y: r.startPad.y + 5 } : spot || r.start;
-  // the quay of the Eemshaven and the pad of Eelde are not checked against buildings or water: the nearest open spot
-  let at = back;
-  try { if (w.map && w.map.openSpotNear) at = w.map.openSpotNear(back.x, back.y) || back; } catch (e) { at = back; }
-  pl.x = at.x; pl.y = at.y;
-  pl.angle = r.start.angle;
-  pl.vx = 0; pl.vy = 0; pl.z = 0; pl.vz = 0;
-  pl.water = null; pl.swimming = false; pl.climb = null;
-  w.camYaw = pl.angle;
-  const c = w.companion;
-  if (c && c.state !== 'dead') {
-    if (c.inVehicle === v) c.inVehicle = null;
-    if (!c.inVehicle) { c.x = pl.x + 1.2; c.y = pl.y + 0.6; }
-  }
-  w.input.reset();
   const result = r.result || {
     variant: r.variant, success: false, aborted: true, score: 0, medal: 0, medalName: '', rings: r.st.ringsHit,
     ringsTotal: r.ringsTotal, time: r.elapsed, timeLeft: Math.round(r.timeLeft), hits: r.hits,
   };
   if (aborted) result.aborted = true;
-  if (r.onFinish) { try { r.onFinish(result); } catch (e) { console.error('heli run onFinish', e); } }
+  // The second half is guarded too: a throw there must not skip onFinish (the heli mission step would wait for ever).
+  try {
+    // Rotor Roelf takes his demo heli back
+    v.driver = null;
+    v.passenger = null;
+    v.heliRun = false;
+    const vi = w.vehicles.indexOf(v);
+    if (vi >= 0) w.vehicles.splice(vi, 1);
+    w.heliRun = false;
+    w.heliRunTarget = null;
+    w.cinematicHidePlayers = r.prevCine.hide || false;
+    w.cinematicHideNav = r.prevCine.nav || false;
+    w.cameraOverride = null;
+    document.body.classList.remove('heli-run');
+    hud.root.hidden = true;
+    hud.card.classList.remove('on');
+    hud.say.classList.remove('on');
+    hud.fade.classList.remove('on');
+    const pl = r.actor || hoofdspeler(w);
+    pl.inVehicle = null;
+    // back on the street by the UMCG (a run given up at Eelde stays at Eelde)
+    const atEelde = r.startPad.id === 'eelde' && Math.hypot(v.x - r.startPad.x, v.y - r.startPad.y) < 400;
+    // the new M12 ends on the quay of the Eemshaven, where Dijkstra sets them down
+    const back = r.variant === 'rooster' && r.result && r.result.success ? { x: P.ROOSTER.eemshaven.x, y: P.ROOSTER.eemshaven.y }
+      : r.variant === 'rooster' ? { x: r.startPad.x - 7, y: r.startPad.y + 5 }
+      : atEelde ? { x: r.startPad.x - 7, y: r.startPad.y + 5 } : spot || r.start;
+    // the quay of the Eemshaven and the pad of Eelde are not checked against buildings or water: the nearest open spot
+    let at = back;
+    try { if (w.map && w.map.openSpotNear) at = w.map.openSpotNear(back.x, back.y) || back; } catch (e) { at = back; }
+    pl.x = at.x; pl.y = at.y;
+    pl.angle = r.start.angle;
+    pl.vx = 0; pl.vy = 0; pl.z = 0; pl.vz = 0;
+    pl.water = null; pl.swimming = false; pl.climb = null;
+    w.camYaw = pl.angle;
+    const c = w.companion;
+    if (c && c.state !== 'dead') {
+      if (c.inVehicle === v) c.inVehicle = null;
+      if (!c.inVehicle) { c.x = pl.x + 1.2; c.y = pl.y + 0.6; }
+    }
+    w.input.reset();
+  } catch (e) {
+    console.error('heli run herstellen', e);
+  } finally {
+    if (r.onFinish) { try { r.onFinish(result); } catch (e) { console.error('heli run onFinish', e); } }
+  }
 }
 
 export function abortHeliRun() {

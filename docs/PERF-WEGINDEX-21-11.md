@@ -83,3 +83,9 @@ en zijn dus **niet** beoordeeld.
 Is het van wie het spel opende? Nee: het is afgeleide client-data, per speler uit dezelfde tegels opgebouwd. Wat ziet een
 gast? Hetzelfde wegennet. Beloning of voortgang: geen. Wegvallen of later aansluiten: de index volgt de tegels van de eigen
 wereld. Dekking: `roadindex_test` (pure test) en de bench op echte tegels.
+
+## Correctie na de codereview van 21-11 (stand 828ec9f57)
+
+- **`map._buildingDelta` is nergens begrensd** (review B4): de lijst krijgt een push per gebouwrij en wordt alleen in `buildGraph` geleegd, dat alleen bij een routevraag draait. Wie lang rondrijdt zonder doel laat de lijst, en de gedropte gebouwobjecten met hun `pts`, groeien. Plausibel, niet in een soak gemeten (PERF-HEAP bewijst "geen groei" nergens). De bovengrens hoort bij de streaming-planner.
+- **`road._fit` (`vehicle/roadfit.js`) vervalt wereldwijd op `_buildingVer`** en per gebouwrij, niet per tegel: node 0,17 ms per herberekening van een weg van 240 m met 60 huizen. Het water-deel (`wet`, `endWet`) vervalt nu ook op `_waterVer`, zonder de gebouwenlus (node: ca. 3 us per weg).
+- De bovengrens van de delta (1500 wegen of een derde) heeft geen tijdbudget; de 59 ms bij zware tegels hierboven staat er al.

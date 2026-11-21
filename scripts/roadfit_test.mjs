@@ -49,6 +49,33 @@ m5.buildingsNear = mapOf([box(0, 0.8, 40, 9)]).buildingsNear;
 ok(roadFitsBody(m5, r5, 1.85), 'zonder nieuwe versie blijft het onthouden resultaat');
 m5._buildingVer = 2;
 ok(!roadFitsBody(m5, r5, 1.85), 'met een nieuwe gebouwversie wordt de toets herhaald');
+// water dat later binnenkomt (tegels stromen): een nieuwe _waterVer haalt de verouderde wet/endWet weg, zonder de gebouwenlus
+let waterX = -1e9;
+const m6 = mapOf([], (x) => x > waterX && x < waterX + 10);
+let calls = 0;
+const bn = m6.buildingsNear;
+m6.buildingsNear = (...a) => { calls++; return bn(...a); };
+const r6 = road([[0, 0], [40, 0]]);
+ok(roadFitsBody(m6, r6, 1.85), 'zonder water past de weg');
+waterX = 15;
+ok(roadFitsBody(m6, r6, 1.85), 'zonder nieuwe waterversie blijft de uitkomst (onthouden)');
+m6._waterVer = 1;
+const nCalls = calls;
+ok(!roadFitsBody(m6, r6, 1.85), 'met een nieuwe waterversie komt het water in de uitkomst');
+ok(calls === nCalls, 'de herberekening raakt de gebouwenlus niet', `${calls - nCalls} aanroepen`);
+waterX = -1e9; m6._waterVer = 2;
+ok(roadFitsBody(m6, r6, 1.85), 'en het water dat weer weg is, ook');
+// kosten van het water-deel (node, synthetisch): een weg van 240 m
+{
+  const lang = road([[0, 0], [240, 0]]);
+  const m7 = mapOf([]);
+  roadClearance(m7, lang);
+  const t0 = process.hrtime.bigint();
+  for (let i = 0; i < 2000; i++) { m7._waterVer = i + 1; roadClearance(m7, lang); }
+  const us = Number(process.hrtime.bigint() - t0) / 2000 / 1000;
+  console.log(`roadfit water-deel: ${us.toFixed(1)} us per weg van 240 m`);
+  ok(us < 300, 'het water-deel blijft goedkoop', String(us));
+}
 // canUseRoad: kleine voertuigen worden niet getoetst, auto's wel
 ok(canUseRoad({ isBike: true, model: { wid: 0.6 } }, nauw, m1), 'een fiets mag door de smalle straat');
 ok(!canUseRoad({ model: { wid: 1.85 } }, nauw, m1), 'een auto niet');

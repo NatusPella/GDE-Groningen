@@ -192,6 +192,21 @@ for (const variant of ['ballonjacht', 'traumaduif', 'rooster']) {
   ok(finishes === 1 && schoon(hudStand(w)), 'een gooiende onFinish: de HUD en de vlaggen staan toch terug', JSON.stringify(hudStand(w)));
 }
 
+// --- 4b. een worp in de tweede helft van de opruiming slaat onFinish niet meer over ----------------------
+{
+  const stil = console.error; console.error = () => {};
+  const w = newWorld({ companion: false });
+  R.initHeliRun(w);
+  Object.assign(w.player, { x: UMCG.x + 3, y: UMCG.y + 8, angle: 1.1 });
+  let fin = 0, res = null;
+  R.startHeliRun({ variant: 'ballonjacht', onFinish: (r) => { fin++; res = r; } });
+  w.input.reset = () => { throw new Error('boem in de opruiming'); };
+  R.abortHeliRun();
+  console.error = stil;
+  ok(fin === 1 && res && res.aborted === true, 'een worp in de tweede helft van cleanup: onFinish komt toch (precies een keer)', JSON.stringify({ fin, res }));
+  ok(!R.isHeliRunActive() && w.heliRun === false, 'en de run staat uit');
+}
+
 // --- 5. een tweede run direct na de eerste, en met een metgezel ------------------------------------
 {
   const a = speel('traumaduif', { companion: true });

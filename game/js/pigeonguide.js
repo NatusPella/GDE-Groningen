@@ -14,6 +14,8 @@ import { maakSimKolom, KOLOM_HOOGTE } from './simkolom3d.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { reducedMotion } from './motion.js';
 import { guideModel, edgeIndicator, distText } from './pigeonguidelogic.js';
+import { throttledRead, COLUMN_OPTS_MS } from './hudbus.js';
+import { getUiScale } from './uiscale.js';
 
 const COLUMN_SCALE = 8; // 9 m x 8: de kolom reikt tot 72 m, ruim boven de vlieghoogte
 const LABEL_H = 26;
@@ -25,7 +27,15 @@ let G = null;
 let dom = null;
 
 // Kleuren uit de tokens van het ontwerpsysteem (ds-tokens.css), ook op het canvas en in three: geen losse hex.
-const tok = (naam, terug) => (typeof document !== 'undefined' && getComputedStyle(document.documentElement).getPropertyValue(naam).trim()) || terug;
+// getComputedStyle dwingt een stijlberekening af: de waarde wordt onthouden en pas bij een resize opnieuw gelezen (review 21-11, B3).
+const tokCache = new Map();
+const tok = (naam, terug) => {
+  if (typeof document === 'undefined') return terug;
+  let v = tokCache.get(naam);
+  if (v === undefined) { v = getComputedStyle(document.documentElement).getPropertyValue(naam).trim(); tokCache.set(naam, v); }
+  return v || terug;
+};
+if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('resize', () => tokCache.clear());
 const kleurGeel = () => new THREE.Color(tok('--ds-c-geel', 'gold'));
 
 const CSS = `
@@ -63,7 +73,7 @@ function initDom() {
 }
 
 // De onderkant (HUD-px) van de zichtbare doel- en routekaart van de gewone HUD bovenin het midden; 0 als er geen zijn.
-function kaartenOnder(ui) {
+function kaartenOnderRead(ui) {
   let onder = 0;
   if (typeof document === 'undefined') return onder;
   const mid = (typeof innerWidth === 'number' ? innerWidth : 1280) / 2;
@@ -73,6 +83,22 @@ function kaartenOnder(ui) {
     if (r.height > 0 && r.width > 0 && r.top < 300 * ui && r.left < mid && r.right > mid) onder = Math.max(onder, r.bottom / ui);
   }
   return onder;
+}
+// Layout lezen (getBoundingClientRect) na DOM-schrijven in dezelfde tik is een gedwongen layout per frame: hooguit 4 x per seconde (hudbus.js, net als hudcards #804).
+const kaartenGelezen = throttledRead(() => kaartenOnderRead(getUiScale() || 1), COLUMN_OPTS_MS);
+const kaartenOnder = () => kaartenGelezen();
+
+// schrijf een stijl of verborgen-vlag alleen als hij verandert (geen onnodige style-invalidatie per frame)
+function setStyle(key, el, prop, value) {
+  const k = `${key}:${prop}`;
+  if (dom.last[k] === value) return;
+  dom.last[k] = value;
+  el.style[prop] = value;
+}
+function setHidden(key, el, hidden) {
+  if (dom.last[key] === hidden) return;
+  dom.last[key] = hidden;
+  el.hidden = hidden;
 }
 
 function setText(key, el, text) {
@@ -251,23 +277,23 @@ export function tickPigeonGuide(dt, world, o, flight) {
   }
 
   // de doelkaart
-  dom.root.hidden = false;
+  setHidden('rooth', dom.root, false);
   setText('prog', dom.prog, model.progress);
   setText('line', dom.line, model.line);
   const n = model.nearest;
   const holdOn = !!n && n.hold > 0;
-  dom.holdBox.hidden = !holdOn;
-  if (holdOn) dom.hold.style.transform = `scaleX(${n.hold.toFixed(3)})`;
+  setHidden('holdh', dom.holdBox, !holdOn);
+  if (holdOn) setStyle('hold', dom.hold, 'transform', `scaleX(${n.hold.toFixed(3)})`);
 
   // één stapel (hudstack.js): opdracht (en later hoogtekaart) onder elkaar; krap = compact, daarna weg. De toetsen staan alleen in de balk onderaan.
-  const ui = parseFloat(tok('--ui', '1')) || 1;
+  const ui = getUiScale() || 1;
   const vw = (typeof innerWidth === 'number' ? innerWidth : 1280) / ui, vh = (typeof innerHeight === 'number' ? innerHeight : 720) / ui;
   // de stapel begint onder de doel- en routekaart van de gewone HUD, ook als die hoger zijn (op 1280x720 slaat de doelregel om)
-  const top = Math.max(STAPEL_TOP, Math.ceil(kaartenOnder(ui) + 8));
-  dom.stack.style.top = `${top}px`;
+  const top = Math.max(STAPEL_TOP, Math.ceil(kaartenOnder() + 8));
+  setStyle('stack', dom.stack, 'top', `${top}px`);
   const stap = stapel(duivenKaarten({ introActief: false, holdActief: holdOn }), { top, ruimte: stapelRuimte(vh, top) });
   const { zones, pijl } = duivenZones(vw, vh, stap.onder, top);
-  dom.stack.style.width = `${duivenMaten(vw).stapel}px`; // krimpt mee bij Grootte interface > 1 (zelfde getal als de zone)
+  setStyle('stackw', dom.stack, 'width', `${duivenMaten(vw).stapel}px`); // krimpt mee bij Grootte interface > 1 (zelfde getal als de zone)
 
   // de pijl naar het dichtstbijzijnde doel, binnen de vrije band (nooit over paneel, stapel, kaarten of toetsbalk)
   if (n) {
@@ -282,13 +308,13 @@ export function tickPigeonGuide(dt, world, o, flight) {
       _v.project(cam);
     }
     const e = edgeIndicator(_v.x, _v.y, behind);
-    dom.arrow.hidden = false;
+    setHidden('arrowh', dom.arrow, false);
     const pos = pijlPlek(e, vw, vh, pijl, { w: 240, h: 100 });
-    dom.arrow.style.left = `${pos.x.toFixed(1)}px`;
-    dom.arrow.style.top = `${pos.y.toFixed(1)}px`;
-    dom.arrow.firstElementChild.style.transform = `rotate(${(e.angle * 180 / Math.PI).toFixed(1)}deg)`;
+    setStyle('arrowx', dom.arrow, 'left', `${pos.x.toFixed(1)}px`);
+    setStyle('arrowy', dom.arrow, 'top', `${pos.y.toFixed(1)}px`);
+    setStyle('arrowr', dom.arrow.firstElementChild, 'transform', `rotate(${(e.angle * 180 / Math.PI).toFixed(1)}deg)`);
     setText('adist', dom.adist, `${n.label} ${distText(n.dist)}`);
-  } else dom.arrow.hidden = true;
+  } else setHidden('arrowh', dom.arrow, true);
 
   // de naamplaten: alleen wat past (niet over elkaar, niet onder een kaart); het dichtstbijzijnde doel eerst
   const cam2 = getCamera();

@@ -404,5 +404,25 @@ ok(() => {
   assert.match(r3, /world\.ritBezig = false/);
 }, 'reisrit.js landt niet in een tussentijds geladen wereld; reisrit3d.js zet ritBezig aan en uit');
 
+// review 21-11: een echte save van v0.64.0 (met de savegame.js van die tag gemaakt) en dezelfde zonder ctx/plek laden, en laden op de juiste plek (#984)
+{
+  const { laadtOpOpslagplek } = await import('../game/js/saveplek.js');
+  for (const [file, opPlek] of [['0.64-v0.64.0-echt.json', true], ['0.64-zonder-ctx.json', false]]) {
+    ok(() => {
+      const fx = fixture(file);
+      schoon(); zet(fx.save);
+      const info = SG.readSaveInfo(1);
+      assert.ok(info.data, `leesbaar (${info.state})`);
+      const w = mk({ money: 0 });
+      const [r, meld] = zonderMelding(() => laad(w, info));
+      assert.equal(r, true, `laadt ${meld[0] || ''}`);
+      assert.equal(w.money, fx._expect.money, 'het geld blijft');
+      assert.equal(laadtOpOpslagplek(info.data), opPlek, opPlek ? 'laden zet je op de plek van de save' : 'zonder context begint laden in de flat');
+      assert.deepEqual([info.data.pos.x, info.data.pos.y], fx._expect.pos, 'de positie blijft in de save');
+      assert.ok(SG.storySummary(info.data) === null || typeof SG.storySummary(info.data).part === 'string', 'de savekaart crasht niet');
+    }, `${file}: laadt en kiest de juiste startplek`);
+  }
+}
+
 console.log(`compat_saves_test: ${n - fails}/${n} ok`);
 if (fails) process.exit(1);

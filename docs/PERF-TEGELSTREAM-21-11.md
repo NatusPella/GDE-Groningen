@@ -7,9 +7,9 @@
 
 1. **De "uitbarstingen van 98 tegels" kwamen niet uit de prefetch of de camerasprongen, maar uit de plaatsingsvensters** (`tileplace.js withTiles`): padel, de plaatsing van garages, cafés en winkels in de Ommelanden (187 tegels), de landmark-kits (76), de koeminigame (42) en de dorpjes (22 tot 23). Elk vraagt tegels over de hele provincie, met de hoogste prioriteit (-500), en werkte ze af met `tileQueue.run(1e9)`: in één keer, op de hoofdthread, en de gedeelde wachtrij met de gestreamde tegels van de speler er in één keer bij.
 2. In 0.54 waren al die tegels gepind, dus waren de vensters leeg werk. Sinds #314 (alleen de stad gepind) doen ze echt werk, midden in de eerste scenes: in een run **3,8 s tegelstap (2.091 stappen), langste stap 46 ms, en longtasks van 4,4 s en 6,5 s** (die de benchmark afkapt op 250 ms per frame, zodat hij de uitbarsting onderschat en de verspreide kosten volledig telt).
-3. Fix: een venster is achtergrondwerk (lage prioriteit, eigen wachtrij, 3 ms per frame, wacht alleen op zijn eigen tegels), de rijen van een tegel gaan op afstand door de wachtrij, en tijdens de benchmark, een film of een cutscene wacht het achtergrondwerk.
+3. Fix: een venster is achtergrondwerk (lage prioriteit, eigen wachtrij, 3 ms per frame **per venster**, wacht alleen op zijn eigen tegels), de rijen van een tegel gaan op afstand door de wachtrij, en tijdens de benchmark, een film of een cutscene wacht het achtergrondwerk.
 4. **Resultaat Hoog (mediaan): opwarmfase 25,9 naar 35,3 fps (0.54: 34,6 tot 35,7), gemiddeld 45,5 naar 48,9, longtasks 142 naar 94, heappiek 2,56 naar 1,75 GB.** Ultra: opwarm 17,0 naar 26,2, gemiddeld 39,2 naar 43,4. Geen extra heap (juist lager, zie het voorbehoud).
-5. Voorbehoud: de winst in de benchmark komt doordat het achtergrondwerk er **wacht**, niet doordat het weg is. Het werk gebeurt daarna (nog niet in beeld bekeken, zie "Niet bewezen"). In het echte spel is de winst kleiner dan de tabel: daar draaien de vensters op 3 ms per frame naast het spel, zonder uitbarstingen van seconden.
+5. Voorbehoud: de winst in de benchmark komt doordat het achtergrondwerk er **wacht**, niet doordat het weg is. Het werk gebeurt daarna (nog niet in beeld bekeken, zie "Niet bewezen"). In het echte spel is de winst kleiner dan de tabel: daar draaien de vensters op 3 ms per frame **per venster** naast het spel (zie de correctie onderaan: bij overlappende vensters is dat per frame meer), zonder uitbarstingen van seconden.
 6. Niet gedaan: een poort die de sprong zelf laat wachten tot de ring er is, en een grotere gepinde set. De metingen laten zien dat dat niet de oorzaak was (zie onderaan).
 
 ## Wat de metingen lieten zien
@@ -84,7 +84,7 @@ Laag is niet opnieuw gemeten.
 ## Niet bewezen / nog niet bekeken
 
 - **Het achtergrondwerk loopt na de benchmark door:** door code en unit-test gedekt (`holdBackground` is geteld en wordt in `end()` van de benchmark weer losgelaten; `follow` werkt `bgQueue` weer bij), maar **niet in Electron gezien**: de app sluit na de benchmark af. Of de plaatsing (garages, cafés, winkels, kits, koe, dorpjes) daarna volledig klaar komt, moet iemand in een gewone start controleren.
-- **De winst in het echte spel:** de vensters draaien in het spel nog steeds, nu verdeeld (3 ms per frame, laagste prioriteit) en niet in een klap. Dat is **niet** in Electron met frametijden gemeten (alleen de benchmark, waar ze wachten, en de headless rit). Verwacht een kleinere winst dan in de tabel; de uitbarstingen van seconden zijn weg.
+- **De winst in het echte spel:** de vensters draaien in het spel nog steeds, nu verdeeld (3 ms per frame **per venster**, laagste prioriteit) en niet in een klap. Dat is **niet** in Electron met frametijden gemeten (alleen de benchmark, waar ze wachten, en de headless rit). Verwacht een kleinere winst dan in de tabel; de uitbarstingen van seconden zijn weg.
 - **De bijdrage van `warmAhead` apart:** niet los gemeten (de proefbouw met alleen de eerste versie (zonder eigen wachtrij en vasthouding) was **slechter** dan voor: opwarm 20,0 tegen 25,9, want de vensters bleven werken, nu gespreid, en de benchmark telt gespreide kosten volledig). De winst zit in de vasthouding, niet in het vooraf aanvragen.
 - **De 6,5 s-longtask rond 28 s** (en 7 s bij 7,5 s) staat er na de fix nog: het is het blokkerende linken van shaders (`getProgramParameter`, zie PERF-START-21-11.md), niet tegelwerk.
 - De benchmark vergelijkt nu eerlijker met 0.54, maar hij laat bewust het achtergrondwerk achterwege: wie de tegelkosten van het eerste speelminuut wil meten, moet dat in een gewone start doen.
@@ -94,3 +94,12 @@ Laag is niet opnieuw gemeten.
 ## Meettooling
 
 Staat in `scripts/perf/tegelstream/` (kopieer naar een werkmap `.pt/` naast de worktree; de paden in de scripts wijzen naar de worktree van deze tak): `stage.sh` (een gestagede build van de werkboom), `run1.sh`/`ab.sh` (gepaard afwisselend, via de slotbewaker `tegel`), `bhook.js` (de bisect-hook plus de tegelwachtrij, de tegelvensters en de store-telling), `sum.mjs` (medianen), `win.mjs`/`callers.mjs` (de langste drukke blokken en de aanroepers uit een CPU-profiel).
+
+## Correctie na de codereview van 21-11 (stand 828ec9f57)
+
+De codereview (perf, B1, B7) vond twee beweringen hierboven die niet kloppen zoals ze er staan:
+
+- **"3 ms per frame" geldt per venster, niet per frame.** Elk plaatsingsvenster (`withTiles`) draait zijn eigen `drainSliced`-lus. Overlappen padel, plaatsing, kits, koe en dorpjes in de eerste minuut (zoals in de tabel: laden 12,1 s en 12,6 s tegelijk), dan werken vijf vensters 5 x 3 = 15 ms per frame; na `BG_DRAIN_MAX_MS` (20 s) 5 x 9 = 45 ms. Nagerekend in node (synthetisch, met de echte `drainSliced`); niet in het spel gemeten. De bestaande `tilestream_test` dekt dit niet. De oplossing (een gedeeld budget per frame) hoort bij de streaming-planner; dit document is bijgewerkt zodra die er is.
+- **"Dichtbij eerst" geldt voor de gestreamde wachtrij, niet voor de `bgQueue`.** De prioriteit wordt eenmalig gelezen bij `queueTile`; alle achtergrondtegels hebben dezelfde waarde (`addPriority(5000)`), dus daar is het FIFO. Een tegel die eerst voor een venster is aangevraagd en daarna door de prefetch rond de speler wordt gewild, blijft in de `bgQueue` (1 ms per frame in `follow`).
+
+De rest van de beweringen (geen uitbarsting van seconden meer, de winst in de benchmark komt door wachten) staat als eerder: niet in Electron met frametijden gemeten.

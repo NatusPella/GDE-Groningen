@@ -73,4 +73,27 @@ t('withAllVisible: verborgen objecten zijn zichtbaar tijdens fn en daarna weer v
   assert.equal(kind.visible, false);
 });
 
+t('review 21-11 (N1): add sorteert niet meer elke keer; een add tijdens een run met lagere prio komt toch eerst', () => {
+  const p = new CompilePlanner(), uit = [];
+  p.add('x', () => { uit.push('x'); p.add('vroeg', () => uit.push('vroeg'), 0); }, 0);
+  p.add('y', () => uit.push('y'), 1);
+  p.add('z', () => uit.push('z'), 1);
+  assert.equal(p.pending, 3);
+  assert.equal(p.step(1e9), 4);
+  assert.deepEqual(uit, ['x', 'vroeg', 'y', 'z']);
+  assert.equal(p.pending, 0);
+  assert.equal(p.queue.length, 0, 'de wachtrij is na het leegdraaien ook echt leeg');
+});
+
+t('review 21-11 (N1): 3800 items plannen kost geen kwadratische sorteertijd', () => {
+  const p = new CompilePlanner();
+  const t0 = performance.now();
+  for (let i = 0; i < 3800; i++) p.add('k' + i, () => {}, i % 7);
+  const ms = performance.now() - t0;
+  console.log(`  3800 x add: ${ms.toFixed(1)} ms (voorheen ca. 131 ms)`);
+  assert.ok(ms < 60, `add blijft goedkoop (${ms} ms)`);
+  p.step(1e9);
+  assert.equal(p.done, 3800);
+});
+
 console.log(`compileplanner_test: ${ok} controles OK`);

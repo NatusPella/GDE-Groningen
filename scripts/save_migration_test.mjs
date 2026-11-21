@@ -59,6 +59,8 @@ for (const file of files) {
   ok(m && m.data.v === SAVE_VERSION, `${tag}: migrates to v${SAVE_VERSION}`, m && m.steps.join(' '));
   if (!m) continue;
   const d = m.data;
+  // een save die al in het huidige formaat staat (0.64.0): er valt niets te migreren, de compat-suite (compat_saves_test) toetst het laden
+  if (exp.huidig) { ok(m.steps.length === 0 && same(migrateSave(d).data, d), `${tag}: already current, nothing to migrate`); continue; }
   ok(same(before, fx.save) && before !== d, `${tag}: the original is not modified`);
   ok(same(migrateSave(d).data, d) && migrateSave(d).steps.length === 0, `${tag}: migrating twice changes nothing`);
 

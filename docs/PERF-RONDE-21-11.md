@@ -85,3 +85,15 @@ node desktop/build/runperf.mjs after  a1   # deze tak
 (`desktop/build/` staat niet in git; opnieuw opbouwen: `GDE_PREBUILT_WORLD=<recente build>/game/world GDE_STAGE_OUT=<map>/game node desktop/build.mjs`,
 voor de basislijn met `GDE_STAGE_SRC` op een `git archive` van main.) Herhaal drie keer, neem de mediaan van p95 en de hitchlijst,
 en meld hoeveel andere Electron-instanties er draaiden.
+
+## Correctie na de codereview van 21-11 (stand 828ec9f57)
+
+- **Punt (c), de heavy-wegpoort "laat alles uiteindelijk door"**: waar, maar zonder bovengrens op de totale wachttijd. Na een bouw van `cost` ms wacht de poort `max(250, 4 x cost)` ms. Bij 70 heavy wegen van 300 ms is dat 70 x 1,2 s = ca. 84 s tot de laatste weg er staat (rekenkundig, uit de poort en `roadbudget_test`; niet in het spel gezien, de verre laag dekt een deel). Wie dan 25 m/s rijdt, heeft kilometers zonder wegdek buiten die laag. Een afstandsregel (dichtbij of vooruit zonder rust) hoort bij de streaming-planner.
+- **De bewering "niets per beeld" in de kop van `memwatch.js`** klopte niet voor de lus in `gpudiag.js`: die las elk beeld twee keer `performance.memory`. Dat is gerepareerd (`heapTracker.due`: een lezing per 5 s en bij een hapering, `scripts/gpudiag_test.mjs`).
+- **Punt (b), de gedwongen layout in `hudcards.js` (#804)**: dezelfde fout zat nog in `pigeonguide.js` (`getComputedStyle`, `querySelectorAll` en `getBoundingClientRect` per frame in de spotstage). Gerepareerd met `throttledRead` (4 x per seconde) en een onthouden tokencache (`scripts/pigeonguide_test.mjs`).
+
+### Antwoorden op de vragen van de perf-review (Laag-paragraaf)
+
+- **`GRASS_PREBUILD` (30 m) op Laag.** De aanname "de grasstraal is klein" klopt niet: `syncChunks` krijgt `DRAW_DIST` (de detailstraal, 140 m op Laag), niet de tuftstraal, en Laag heeft geen tufts (`QUALITY.laag = null`). Het gaat om gazonchunks van 64 m. Node-meting (celmiddens op een raster, 400 camerastanden): Laag 24,9 chunks zichtbaar, 33,4 met de 30 m voorbouw (x1,34); Midden x1,33; Hoog x1,34. Dus ca. 8 verborgen chunkgroepen extra, geen (1 + 30/straal)^2 met een kleine straal. Zichtbaar effect op de frametijd niet gemeten; kost vooral geheugen en matrixupdates van verborgen groepen. Geen codewijziging.
+- **Extra laagdoorlaten in `sfx/ambience.js`.** Node-schatting (30 biquad-laagdoorlaten stereo op 48 kHz, in JS, dus een bovengrens voor WebAudio): 113 ms rekentijd per 10 s geluid, ca. 1,1 % van een kern. Per scan staan er ca. 30 `setTargetAtTime`-aanroepen, de browser ruimt verlopen gebeurtenissen op. Op de audiodraad (`renderCapacity`) niet gemeten; geen reden tot ingrijpen.
+- **`discard` in de boommaterialen (`edgefade3d.js`).** Niet in node te beantwoorden: early-z en overdraw zijn GPU-gedrag. De bomen waren opaak zonder `alphaTest`, dus het `discard` is nieuw voor die materialen. Vastgelegd als issue #1067 met de meetopdracht (Laag en Midden, met en zonder `discard`, GPU-tijd).

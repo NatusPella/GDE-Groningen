@@ -90,6 +90,42 @@ ok('de kaart zet en haalt tr-result-open weg', /classList\.add\('tr-result-open'
   ok('sluiten geeft de focus terug', /vorigeFocus/.test(gd) && /function sluitTechInfo/.test(gd));
   const open = gd.slice(gd.indexOf('export async function showTechInfo'));
   ok('openen schrijft niet zelf naar het klembord', !open.includes('await writeClipboard(pre.textContent)'));
+  }
+// review 21-11: showTechInfo zonder annulering overschreef het klembord na sluiten of dubbel openen
+{
+  const el = () => { const e = { hidden: false, textContent: '', children: [], listeners: {}, dataset: {}, style: {}, attrs: {}, setAttribute() {}, appendChild(c) { this.children.push(c); }, addEventListener() {}, focus() {}, querySelector() { return this.sub || (this.sub = el()); } }; return e; };
+  const dlgEl = el();
+  const copies = [];
+  globalThis.window = { gdeDesktop: { clipboard: { writeText: (t) => copies.push(t) }, platform: 'win32' }, addEventListener() {}, innerWidth: 800, innerHeight: 600, devicePixelRatio: 1 };
+  globalThis.document = { createElement: (t) => (t === 'div' ? dlgEl : el()), head: el(), body: el(), hidden: false, hasFocus: () => true };
+  globalThis.requestAnimationFrame = (cb) => setTimeout(() => cb(performance.now()), 4);
+  const G = await import('../game/js/gpudiag.js');
+  const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
+  // 1. sluiten tijdens het meten: niets op het klembord
+  const a = G.showTechInfo({ nowMs: 60 });
+  await wacht(15); dlgEl.hidden = true;
+  await a;
+  ok('sluiten tijdens het meten: het klembord blijft ongemoeid', copies.length === 0, String(copies.length));
+  // 2. dubbel openen: alleen de laatste meting schrijft
+  const b1 = G.showTechInfo({ nowMs: 60 });
+  await wacht(10);
+  const b2 = G.showTechInfo({ nowMs: 60 });
+  await Promise.all([b1, b2]);
+  ok('dubbel openen: nog steeds niets stil op het klembord', copies.length === 0, String(copies.length));
+  // 3. gewoon openen werkt nog
+  await G.showTechInfo({ nowMs: 20 });
+  ok('gewoon openen schrijft niet zelf naar het klembord', copies.length === 0, String(copies.length));
+}
+// review 21-11: de heaplezing per beeld is weg: de tracker zegt zelf wanneer een meting aan de beurt is
+{
+  const { createHeapTracker, MEM_EVERY_MS } = await import('../game/js/memwatch.js');
+  const t = createHeapTracker();
+  ok('heaptracker: de eerste meting is aan de beurt', t.due(1000) === true);
+  t.note(1000, 100);
+  ok('heaptracker: binnen 5 s niet', t.due(1000 + MEM_EVERY_MS - 1) === false);
+  ok('heaptracker: na 5 s weer', t.due(1000 + MEM_EVERY_MS) === true);
+  const src = fs.readFileSync(new URL('../game/js/gpudiag.js', import.meta.url), 'utf8');
+  ok('gpudiag leest performance.memory niet meer elk beeld', /heapTracker\.due\(now\)/.test(src) && !/if \(performance && performance\.memory\) \{ heap/.test(src));
 }
 
 console.log(fail ? `${fail} FAILED` : 'all ok');
