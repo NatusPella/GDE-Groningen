@@ -83,9 +83,99 @@ Grootste bestanden, voor en na (kleur/glas/oud/font/klein):
 
 De resterende 140 glas-regels en 105 kleuren zijn de basislaag van schermen die een zeefdruklaag erbovenop hebben (`ds-menu-zeef.css`, `hud_panel.css`) of die nog een eigen donker oppervlak zijn. Een blinde vervanging door papier verandert de indeling; daarom niet gedaan zonder beeld. Per bestand: `menu.css` (39 glas: panelen, tabs, knoppen van de pauze-basis), `pausemenu.css` (18; de scrim met blur achter het pauzemenu, de kaartlaag, de bindingsrijen), `hud_panel.css` (12 en 12; kaarten, wanted, race), `heist.css` (de kluis-HUD: sloten, schaal, lampen), `prompts.css` (5), `storycontact.js` (14 kleuren; krant- en hout-tinten van het contactenkaartje), `saveslots.css`, `onlineconsent.css`, `startscreen.css` (de donkere scrim en het nieuwskader), `postgame.js`, `helirun.js`, `stunthud.js`, `treincabine.js`, `achievements.js`, `coopscene.js`, `intromontage.js`, `trailer.js` (de titelkaarten: crème tekst met roze misdruk, al zeefdrukachtig, met enkele eenmalige kleuren). De volledige lijst staat in `node scripts/ds3_dekking_test.mjs --lijst`.
 
+## Dekkinglijst per bestand (stand na de rondes van 21-11, #1064)
+
+Deze lijst komt uit dezelfde telling als de ratel en `node scripts/ds3_dekkinglijst_test.mjs` faalt als ze achterloopt; zet ze gelijk met `--write`. Een leeg vak is nul. De tabel "Aantallen voor en na" hierboven is de stand van de eerste ronde; de actuele stand staat hier.
+
+<!-- ds3-dekkinglijst:begin -->
+
+Totaal nog te doen: kleur 84, glas 123, oud 57, font 33, klein 1, lus 0, lang 0, emoji 0, svg 31 in 73 bestanden (bewust buiten de telling: 19).
+
+| bestand | kleur | glas | oud | font | klein | lus | lang | emoji | svg |
+|---|---|---|---|---|---|---|---|---|---|
+| `game/js/menu.css` | 15 | 39 |  |  |  |  |  |  |  |
+| `game/js/ds-components.css` |  |  | 49 |  |  |  |  |  |  |
+| `game/js/hud_panel.css` | 11 | 11 |  |  |  |  |  |  |  |
+| `game/js/pausemenu.css` | 1 | 18 |  |  |  |  |  |  |  |
+| `game/js/storycontact.js` | 14 | 2 |  | 1 |  |  |  |  |  |
+| `game/js/heist.css` | 10 | 6 |  |  |  |  |  |  |  |
+| `game/js/saveslots.css` | 8 | 4 |  |  |  |  |  |  |  |
+| `desktop/vendor-fonts.css` |  |  |  | 11 |  |  |  |  |  |
+| `game/index.html` | 1 | 5 |  |  |  |  |  |  |  |
+| `game/js/hud_panel.js` |  |  |  |  |  |  |  |  | 6 |
+| `game/js/trailer.js` | 1 | 2 |  | 3 |  |  |  |  |  |
+| `game/js/bigmoment.css` |  |  |  | 5 |  |  |  |  |  |
+| `game/js/prompts.css` |  | 5 |  |  |  |  |  |  |  |
+| `game/js/intromontage.js` | 1 | 3 |  |  |  |  |  |  |  |
+| `game/js/onlineconsent.css` | 1 | 3 |  |  |  |  |  |  |  |
+| `game/js/regelwidget.js` |  |  |  |  |  |  |  |  | 4 |
+| `game/js/startscreen.css` | 1 | 3 |  |  |  |  |  |  |  |
+| `game/js/touch.js` | 3 |  |  | 1 |  |  |  |  |  |
+| `game/js/a11y.css` |  | 1 | 2 |  |  |  |  |  |  |
+| `game/js/farmhud.js` |  |  | 3 |  |  |  |  |  |  |
+| `game/js/furniture.js` |  |  |  | 3 |  |  |  |  |  |
+| `game/js/scene3d.js` | 3 |  |  |  |  |  |  |  |  |
+| `game/js/visboekui.js` | 2 |  |  |  |  |  |  |  | 1 |
+| `game/js/wrakduikenlive.js` | 2 | 1 |  |  |  |  |  |  |  |
+| `game/js/farmcards.js` |  |  | 1 |  |  |  |  |  | 1 |
+| `game/js/gfxprofile.js` | 1 |  |  |  |  |  |  |  | 1 |
+| `game/js/loopbaanui.js` |  |  |  |  |  |  |  |  | 2 |
+| `game/js/lowhealth.js` |  | 2 |  |  |  |  |  |  |  |
+| `game/js/main.js` | 2 |  |  |  |  |  |  |  |  |
+| `game/js/missionicons.js` |  |  |  |  |  |  |  |  | 2 |
+| `game/js/padtest.js` | 1 |  |  | 1 |  |  |  |  |  |
+| `game/js/pigeonmode.js` |  |  |  |  |  |  |  |  | 2 |
+| `game/js/postgame.js` | 1 |  |  | 1 |  |  |  |  |  |
+| `game/js/reisrit.js` |  |  |  | 1 | 1 |  |  |  |  |
+| `game/js/sfx/menunav.js` |  | 2 |  |  |  |  |  |  |  |
+| `game/js/simhud.js` |  |  | 1 |  |  |  |  |  | 1 |
+| `game/js/stunthud.js` | 2 |  |  |  |  |  |  |  |  |
+| `game/js/treincabine.js` |  | 1 |  | 1 |  |  |  |  |  |
+| `game/js/achievementicons.js` |  |  |  |  |  |  |  |  | 1 |
+| `game/js/achievements.js` |  |  |  |  |  |  |  |  | 1 |
+| `game/js/achievementsui.js` |  |  |  |  |  |  |  |  | 1 |
+| `game/js/aimassist.js` |  | 1 |  |  |  |  |  |  |  |
+| `game/js/bakeround.js` |  |  | 1 |  |  |  |  |  |  |
+| `game/js/banter.js` |  |  |  | 1 |  |  |  |  |  |
+| `game/js/busbestuurhud.js` | 1 |  |  |  |  |  |  |  |  |
+| `game/js/busboard3d.js` |  | 1 |  |  |  |  |  |  |  |
+| `game/js/calendar.js` |  |  |  |  |  |  |  |  | 1 |
+| `game/js/carrieresfeer.js` |  | 1 |  |  |  |  |  |  |  |
+| `game/js/cheatsui.js` |  |  |  |  |  |  |  |  | 1 |
+| `game/js/choicepanel.js` |  | 1 |  |  |  |  |  |  |  |
+| `game/js/coopoverlay.js` |  | 1 |  |  |  |  |  |  |  |
+| `game/js/coopscene.js` |  |  |  | 1 |  |  |  |  |  |
+| `game/js/drunk.js` |  | 1 |  |  |  |  |  |  |  |
+| `game/js/ds-menu-zeef.css` |  | 1 |  |  |  |  |  |  |  |
+| `game/js/garageui.js` |  |  |  |  |  |  |  |  | 1 |
+| `game/js/golfhud.js` | 1 |  |  |  |  |  |  |  |  |
+| `game/js/golficons.js` |  |  |  |  |  |  |  |  | 1 |
+| `game/js/heliflight.js` |  | 1 |  |  |  |  |  |  |  |
+| `game/js/hudcards.css` |  | 1 |  |  |  |  |  |  |  |
+| `game/js/hudcards.js` |  |  |  |  |  |  |  |  | 1 |
+| `game/js/instrumenten.js` |  | 1 |  |  |  |  |  |  |  |
+| `game/js/pausemenu.js` |  | 1 |  |  |  |  |  |  |  |
+| `game/js/prompts.js` |  |  |  |  |  |  |  |  | 1 |
+| `game/js/radiosub.js` |  |  |  | 1 |  |  |  |  |  |
+| `game/js/regelwidget.css` |  | 1 |  |  |  |  |  |  |  |
+| `game/js/rondvaartchase.js` |  |  |  | 1 |  |  |  |  |  |
+| `game/js/saveslotsui.js` |  |  |  |  |  |  |  |  | 1 |
+| `game/js/shopicons.js` |  |  |  |  |  |  |  |  | 1 |
+| `game/js/shopui.js` |  | 1 |  |  |  |  |  |  |  |
+| `game/js/startscreen.js` | 1 |  |  |  |  |  |  |  |  |
+| `game/js/story.js` |  | 1 |  |  |  |  |  |  |  |
+| `game/js/storytalk.js` |  |  |  | 1 |  |  |  |  |  |
+| `game/js/uitjepaneel.js` |  | 1 |  |  |  |  |  |  |  |
+
+<!-- ds3-dekkinglijst:eind -->
+
+Wat de lijst niet dekt, met reden: `website/` (de marketingpagina, losse bron met eigen zeefdrukstijl, #1003; `website_test`), de Steam- en socialbeelden (`merkbestanden_test`, #1003) en de galerij `game/ds-galerij.html` (toont de oude set bewust als referentie).
+
 ## Hernoeming `.ds-z-*` naar `.ds-*`
 
 Niet gedaan. Reden: `.ds-kaart`, `.ds-knop`, `.ds-chip`, `.ds-papier` en `.ds-glas` bestaan nog als definitie in `ds-components.css` en `ds-tokens.css`, in de galerij en in `a11y.css`, en `ds_tokens_test` (686 controles) toetst ze; een hernoeming zou de namen laten botsen. De volgorde is: eerst de oude set uit de definitie, de galerij en de test halen (er is geen gebruiker meer, `ds_versies_test`), daarna `.ds-z-*` hernoemen met een alias-laag (`.ds-z-knop` blijft als alias van `.ds-knop` zolang er code is) en de testlijsten in dezelfde commit. Dat is een aparte stap met een eigen test van de galerij in beide standen.
+
+Botsingen bij de hernoeming (gecontroleerd 21-11): van de 53 `ds-z-*`-namen bestaat de kortere naam al voor `ds-kaart`, `ds-knop`, `ds-chip` (de oude set), maar ook voor `ds-feit`, `ds-lijst`, `ds-leeg`, `ds-tab` en `ds-componenten`, en `.ds-streep`, `.ds-icoon` en `.ds-t-*` worden door schermen gebruikt. Daarom blijft de oude set staan tot die klassen eerst omgezet of hernoemd zijn; zie ook `ds_versies_test` (de lijst van vijf bestanden).
 
 ## Wat de beeldverificatie moet doen (vraagt beeld)
 

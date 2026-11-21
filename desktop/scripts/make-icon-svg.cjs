@@ -116,7 +116,7 @@ ${plate}</svg>
 `;
 }
 
-module.exports = { build };
+module.exports = { build, textPath, capHeight, INK };
 if (require.main === module) {
   const svg = build('full');
   fs.writeFileSync(OUT, svg);
