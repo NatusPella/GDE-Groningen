@@ -24,7 +24,7 @@ export const STARTKAART = {
   carbid: {
     titel: 'Carbid schieten', doel: 'Vijf schoten op de balen, de tonnen en de stroman',
     medailles: ['45 punten', '80 punten', '120 punten'], beloning: '€20, €45 of €90 per medaille, plus loopbaanpunten',
-    kern: '[A] [D] [W] [S] richten · {SPATIE} water · [E] aansteken',
+    kern: '[A] [D] [W] [S] richten · {SPACE} water · [E] aansteken',
   },
   kermis: {
     titel: "Botsauto's", doel: 'Bots de anderen in de flank, 75 seconden lang',
@@ -44,37 +44,37 @@ export const STARTKAART = {
   drift: {
     titel: 'Driftzones', doel: 'Glijd door de bocht en houd je reeks vast',
     medailles: ['2.500 punten', '5.000 punten', '9.000 punten'], beloning: 'premie per medaille en loopbaanpunten',
-    kern: '[W] gas · {SPATIE} handrem in de bocht',
+    kern: '[W] gas · {SPACE} handrem in de bocht',
   },
   discgolf: {
     titel: 'Discgolf', doel: 'Negen manden in het Stadspark met zo min mogelijk worpen',
     medailles: ['6 boven par', '1 boven par', '2 onder par'], beloning: 'prijzengeld per plek en loopbaanpunten',
-    kern: '[A] [D] richten · houd {SPATIE} en laat los om te gooien',
+    kern: '[A] [D] richten · houd {SPACE} en laat los om te gooien',
   },
   pitchputt: {
     titel: 'Pitch & putt', doel: 'Zes korte banen op de golfbaan',
     medailles: ['7 boven par', '3 boven par', 'op par of beter'], beloning: 'prijzengeld per plek en loopbaanpunten',
-    kern: '[A] [D] richten · houd {SPATIE} en laat los',
+    kern: '[A] [D] richten · houd {SPACE} en laat los',
   },
   penalty: {
     titel: 'Penaltyserie Euroborg', doel: 'Vijf penalty’s op de keeper van FC Grunn-achtig',
     medailles: ['2 doelpunten', '3 doelpunten', '5 doelpunten'], beloning: 'prijzengeld per plek en loopbaanpunten',
-    kern: '[A] [D] [W] [S] richten · houd {SPATIE} en laat los',
+    kern: '[A] [D] [W] [S] richten · houd {SPACE} en laat los',
   },
   voetbal: {
     titel: 'Voetbal Euroborg', doel: 'Vijf of elf tegen elf tegen verzonnen teams, ook als competitie met zes clubs',
     medailles: ['Winst', 'Winst met de nul', 'Winst met een hattrick'], beloning: 'prijzengeld per uitslag en loopbaanpunten',
-    kern: '[W] [A] [S] [D] lopen · [F] [E] passen · {SPATIE} schot',
+    kern: '[W] [A] [S] [D] lopen · [F] [E] passen · {SPACE} schot',
   },
   skatepark: {
     titel: 'Skatepark', doel: 'Negentig seconden trucs, met een keten die oploopt',
     medailles: ['1.200 punten', '3.200 punten', '6.500 punten'], beloning: 'prijzengeld per plek en loopbaanpunten',
-    kern: '[W] duwen · {SPATIE} ollie · [E] kickflip',
+    kern: '[W] duwen · {SPACE} ollie · [E] kickflip',
   },
   kartbaan: {
     titel: 'Karten bij Kardinge', doel: 'Drie ronden tegen drie rijders',
     medailles: ['derde', 'tweede', 'eerste'], beloning: 'prijzengeld per plek en loopbaanpunten',
-    kern: '[W] gas · [S] rem · {SPATIE} handrem in de bocht',
+    kern: '[W] gas · [S] rem · {SPACE} handrem in de bocht',
   },
   ringrace: {
     titel: 'Ringrace', doel: 'Eén rondje ringweg tegen vier tegenstanders',
@@ -84,7 +84,7 @@ export const STARTKAART = {
   zwembad: {
     titel: 'Zwembad Het Natte Papier', doel: 'Honderd meter, vier baantjes',
     medailles: ['binnen 1:40', 'binnen 1:16', 'binnen 1:04'], beloning: 'je record en je prestaties',
-    kern: '{SPATIE} duiken · [A] [D] om en om zwemmen',
+    kern: '{SPACE} duiken · [A] [D] om en om zwemmen',
   },
   klimtoren: {
     titel: 'Klimtoren Zernike', doel: 'Twaalf meter omhoog zonder je armen te verliezen',
@@ -94,32 +94,32 @@ export const STARTKAART = {
   waterski: {
     titel: 'Waterskiën bij het Grunopark', doel: 'Zwaai om de boeien en spring over de golven',
     medailles: ['650 punten', '1.300 punten', '2.200 punten'], beloning: 'je record en je prestaties',
-    kern: '[A] [D] leunen · {SPATIE} springen',
+    kern: '[A] [D] leunen · {SPACE} springen',
   },
   vliegschool: {
     titel: 'Vliegschool De Windwijzer', doel: 'Haal de twintig lessen van de vliegschool',
     medailles: ['één les', 'alle lessen', 'overal goud'], beloning: 'geld en loopbaanpunten per les',
-    kern: '[W] [S] gas · [A] [D] sturen · {SPATIE} neus omhoog',
+    kern: '[W] [S] gas · [A] [D] sturen · {SPACE} neus omhoog',
   },
   carillon: {
     titel: 'Carillon', doel: 'Speel het deuntje zuiver op de klokken van de Martinitoren',
     medailles: ['50% goed', '75% goed', '92% goed'], beloning: 'je record en je prestaties',
-    kern: '[Q] [E] deuntje kiezen · {SPATIE} spelen',
+    kern: '[Q] [E] deuntje kiezen · {SPACE} spelen',
   },
   pannenkoek: {
     titel: 'Pannenkoekenschip', doel: 'Bak en serveer twee minuten lang',
     medailles: ['400 punten', '700 punten', '1.000 punten'], beloning: 'je record en je prestaties',
-    kern: '[1] [2] [3] beslag · {SPATIE} draaien',
+    kern: '[1] [2] [3] beslag · {SPACE} draaien',
   },
   hengelen: {
     titel: 'Hengelen', doel: 'Haal de zwaarste vis binnen; overal aan het water mag vrij',
     medailles: ['4 kg', '7,5 kg', '12 kg'], beloning: 'vangstgeld per vis en je visboek',
-    kern: '[I] vrij hengelen · {SPATIE} uitgooien en binnenhalen',
+    kern: '[I] vrij hengelen · {SPACE} uitgooien en binnenhalen',
   },
   boeren: {
     titel: 'Boerenwerk', doel: 'Vier werkgangen op je eigen akker',
     medailles: null, beloning: 'de oogst en loopbaanpunten; het materiaal betaal je zelf',
-    kern: '{SPATIE} op de tel slaan',
+    kern: '{SPACE} op de tel slaan',
   },
   wandeling: {
     titel: 'Wandeling Winsum', doel: 'Loop in volgorde langs de vijf stempelposten',
@@ -154,7 +154,7 @@ export const STARTKAART = {
   vluchtdienst: {
     titel: 'Vluchtdienst', doel: 'Vlieg door twee poorten en land zacht op het tweede veld',
     medailles: ['gehaald', 'op tijd', 'alles goed'], beloning: 'vluchtloon in geld en loopbaanpunten',
-    kern: '[W] [S] gas · {SPATIE} neus omhoog · [K] kleppen',
+    kern: '[W] [S] gas · {SPACE} neus omhoog · [K] kleppen',
   },
   vaardienst: {
     titel: 'Rondvaart', doel: 'Vaar de drie kades in volgorde langs',
