@@ -495,6 +495,9 @@ RIKUS (radio): De Krolbrug staat nu open. Niemand weet waarom. Dat is verdacht. 
 (regie: Rikus schuift het bakje friet naar de microfoon. In de Fjord Frituur draait Tessa de radio zachter.)
 RIKUS (radio): De politie sloot de zaak van de twee Stadjers in het zwart. Op de camerabeelden is vooral bewaker twee te zien, met een koekje. [NIEUW]
 RIKUS (radio): Sjabbe bracht een horloge terug naar de Vismarkt. Hij vroeg niets. [NIEUW]
+RIKUS (radio): De loketbediende van Loket B stond vooraan. Ze zei dat Tessa haar bij haar naam had gegroet. Dat doet niemand. [NIEUW]
+RIKUS (radio): Een oude vrouw met een rollator kreeg de eerste eierbal. Tammo had op het perron op haar gewacht. [NIEUW]
+RIKUS (radio): Het jongetje van het bankje stond er ook. Hij deelde zijn snack met een duif. [NIEUW]
 RIKUS (radio): Durk en Douwe werken nu voor Jelles oma. Ze sturen een kaartje. [NIEUW]
 RIKUS (radio): Het jurylid met het contract eet nog steeds gratis eierballen. In Ljouwert. [NIEUW]
 RIKUS (radio): En ik heb de tweede friet. Hij heeft betaald, zegt hij. Hij heeft niet betaald. [BEHOUDEN]
