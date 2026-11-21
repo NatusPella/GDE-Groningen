@@ -14,6 +14,8 @@ import * as T from './voetbaltransfers.js';
 import * as Sp from './voetbalsponsors.js';
 import { formationList } from './voetbalrules.js';
 import * as V from './voetbalcarrierelive.js';
+import { dsButtonKey } from './dsbutton.js';
+import { drillFor } from './voetbaltraining.js';
 import { voetbalOpen, voetbalHint } from './voetbalpoort.js';
 
 export const TABS = [['vandaag', 'Vandaag'], ['selectie', 'Selectie'], ['kalender', 'Kalender'], ['stand', 'Stand'], ['training', 'Training']];
@@ -109,8 +111,11 @@ function viewTraining(c) {
     return `<button type="button" class="ds-z-kaart ds-z-kaart--klik ds-m-rij vb-focus${sel ? ' ds-z-kaart--selectie' : ''}" ${rij(i)} data-vb="focus:${k}" aria-pressed="${sel}"><span class="ds-z-kaart__titel">${esc(O.FOCUS_NAMES[k])}</span><span class="ds-z-kaart__tekst">${esc(ATTR_NAMES[k])}</span>${bar(`${v} van ${cap}`, v / cap)}</button>`;
   }).join('');
   const reden = c.injury ? c.injury.text : done ? 'Vandaag al getraind of gespeeld' : '';
-  return `<p>${chip('Een training per speldag')} ${chip('kost 15% energie')}</p><div class="vb-foci">${focusCards}</div><p class="vb-acties">${knop('train', `Train: ${O.FOCUS_NAMES[c.focus]}`, { primair: true, uit: reden })}</p>` +
-    `<p class="ds-z-kaart__voet">Een wedstrijd telt als de training van die dag. Hoe dichter bij je plafond, hoe langzamer het gaat.</p>`;
+  const dr = drillFor(c.focus);
+  const oef = dr ? `<p class="ds-z-kaart__tekst">Oefening: ${esc(dr.naam)}. ${esc(dr.kort)}</p>` : '';
+  const hoofd = dsButtonKey({ label: `Train: ${dr ? dr.naam : O.FOCUS_NAMES[c.focus]}`, toets: 'ENTER', klasse: 'ds-z-knop ds-m-knop', attrs: `data-vb="train"${reden ? ` aria-disabled="true" title="${esc(reden)}"` : ''}` });
+  return `<p>${chip('Een training per speldag')} ${chip('kost 15% energie')} ${chip('score 0,5 tot 1,5')}</p><div class="vb-foci">${focusCards}</div>${oef}<p class="vb-acties">${hoofd} ${knop('train:snel', 'Snel trainen (zonder oefening)', { ghost: true, uit: reden })}</p>` +
+    `<p class="ds-z-kaart__voet">Een wedstrijd telt als de training van die dag. Hoe dichter bij je plafond, hoe langzamer het gaat. Een goede oefening geeft meer groei dan snel trainen.</p>`;
 }
 // De uitnodiging of de dichte staat: voor wie de carrière nog niet begon.
 function viewTrainer(c, env) {
@@ -160,6 +165,9 @@ let progressFn = () => ({});
 export function useProgress(fn) { progressFn = typeof fn === 'function' ? fn : () => ({}); }
 let launcher = null;
 export function registerLauncher(fn) { launcher = fn; }
+// De trainingsminigame (voetbaltrainingrun.js) meldt zich hier aan; zonder aanmelding (node-tests, kapotte import) valt Train terug op de snelle training.
+let trainer = null;
+export function registerTrainer(fn) { trainer = typeof fn === 'function' ? fn : null; }
 
 export function renderVoetbalPanel(el, w = null, close = null) {
   if (!el) return;
@@ -176,7 +184,8 @@ function act(a) {
   if (a.startsWith('tab:')) { tab = a.slice(4); }
   else if (a === 'start') V.createNew(wereld, envFor(wereld, progressFn()).char);
   else if (a.startsWith('focus:')) V.applyFocus(a.slice(6));
-  else if (a === 'train') V.trainNow(wereld, c.focus, 0.8);
+  else if (a === 'train') { if (trainer && trainer(wereld, c.focus)) { if (sluit) sluit(); return; } V.trainNow(wereld, c.focus, 0.8); }
+  else if (a === 'train:snel') V.trainNow(wereld, c.focus, 0.8);
   else if (a === 'sim') V.finishMatch(wereld, null);
   else if (a.startsWith('tactic:')) { const [, k, v] = a.split(':'); V.replaceCareer(C.withTactic(c, k === 'formation' ? { formation: v } : { style: v })); }
   else if (a.startsWith('sponsor:')) { const r = C.acceptSponsor(c, a.slice(8), null); if (r.ok) V.replaceCareer(r.career); }

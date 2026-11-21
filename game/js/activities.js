@@ -25,6 +25,7 @@ import { GEHEIMEN } from './geheimen.js';
 import { DRIFT_ZONE } from './driftzone.js';
 import { DISCGOLF } from './discgolf.js';
 import { PITCHPUTT } from './pitchputt.js';
+import { TRAINING_ACT } from './voetbaltrainingrun.js';
 import { PENALTY } from './penalty.js'; // de penaltyserie in de Euroborg (#981)
 import { VOETBAL } from './voetbal.js'; // de voetbalwedstrijd in de Euroborg (#981)
 import { SKATEPARK } from './skatepark.js';
@@ -423,8 +424,11 @@ export function activityThema(id) {
   return LIST.some((a) => a.id === id) ? mgThema(id) : null;
 }
 
+// Activiteiten zonder spelplek in de wereld (de voetbaltraining, #1109): ze draaien als activiteit (de speler staat stil) maar staan niet in LIST, dus niet in de legenda, de sfeertabel of Te doen.
+const EXTRA = [TRAINING_ACT];
 function current() {
   for (const a of LIST) if (a.active()) return a;
+  for (const a of EXTRA) if (a.active()) return a;
   return null;
 }
 
@@ -435,7 +439,7 @@ registerBusyProbe('activity', isActivityActive);
 
 // A loaded save ends a running minigame (savegame.js).
 export function quitActivity(w) {
-  for (const a of LIST) if (a.active() && a.quit) a.quit(w);
+  for (const a of [...LIST, ...EXTRA]) if (a.active() && a.quit) a.quit(w);
   w.activityGame = null;
 }
 registerQuitHook(quitActivity);

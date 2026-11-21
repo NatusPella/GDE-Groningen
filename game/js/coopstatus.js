@@ -81,6 +81,7 @@ const ACTIVITEIT = {
   vluchtdienst: DEELS, // de rondvlucht is host-only; als passagier meerijden mag (#492)
   safehuis: DEELS, geheimen: DEELS, wandeling: DEELS, snackketen: DEELS, evenementen: DEELS,
   pvparena: DEELS,
+  voetbaltraining: DEELS, // de trainingsoefening (#1109) is lokaal per speler; een gast krijgt de snelle training zonder oefening
   wrakduik: NEE, hogelandrit: NEE, // de PvP-minigame: de host rekent en ziet het bord, de gastenkant van het bord is nog open (#454)
   carbid: NEE, kermis: NEE, hoogvlieger: NEE, drift: NEE, skatepark: WERKT, zwembad: NEE, waterski: NEE, vliegschool: NEE,
 };
@@ -124,6 +125,7 @@ export const DEELS_KEUZE = {
   wandeling: { route: 'host-only', rol: 'wandelaar', reden: 'De wandeling zet je lichaam en de camera in de wereld van wie het spel opende.', kandidaat: 'lokaal', nodig: 'Een eigen wandeling op het eigen scherm, zoals hengelen.' },
   snackketen: { route: 'host-only', rol: 'klant', reden: 'De snackketen draait op de voorraad en de keten van wie het spel opende.', kandidaat: 'lokaal', nodig: 'Een eigen ketenstand per speler in de eigen opslag.' },
   evenementen: { route: 'host-only', rol: 'bezoeker', reden: 'De evenementen hangen aan de kalender en de wereld van wie het spel opende.', kandidaat: 'lokaal', nodig: 'Per speler bijhouden welke evenementen hij meemaakte.' },
+  voetbaltraining: { route: 'lokaal', rol: 'eigen speler', reden: 'De oefening is van jouw eigen carrière en spel; een gast traint in zijn eigen spel, nu zonder oefening (snelle training).', kandidaat: 'lokaal', nodig: 'De oefening zelf voor een gast, zonder zijn lichaam bij wie het spel opende vast te zetten (#1109).' },
   pvparena: { route: 'host-only', rol: 'deelnemer', reden: 'Wie het spel opende rekent en zet het bord; de kant van de meespeler is nog niet af.', kandidaat: 'wedstrijd', nodig: 'Het bord en de uitslag per speler over de netlaag (#454).' },
   // #675: de snackwagen is van de speler, niet van de wereld. Een gast opent zijn eigen wagen in
   // zijn eigen spel; de dagomzet en de upgrades horen bij zijn eigen save, dus er is geen gedeelde pot.

@@ -7,6 +7,7 @@ import { makeParkIndex, HOME_WGS } from '../game/js/voetbalparken.js';
 import * as C from '../game/js/voetbalcarriere.js';
 import { viewHtml, TABS, cardInfo } from '../game/js/voetbalcarriereui.js';
 import { wordCount } from '../game/js/hudtext.js';
+import { buttonsWithoutGlyph } from '../game/js/dsbutton.js';
 
 let n = 0;
 const t = (naam, f) => { try { f(); n++; } catch (e) { console.error('FAIL', naam); throw e; } };
@@ -90,5 +91,13 @@ t('Trainer- en Managertab pas na ontgrendeling; het bod, de tactiek en de markt 
   assert.match(m, /Clubkas €/); assert.match(m, /ds-z-leeg/); assert.match(m, /data-vb="sell:/); assert.match(m, /title="Alleen in de pauze/);
   const bod = viewHtml({ ...c, offer: { club: c.world.terp[0], seasons: 2, salaryBonus: 90 } }, 'vandaag', env);
   assert.match(bod, /data-vb="offer:accept"/); assert.match(bod, /2 seizoenen/); assert.match(bod, /geen druk/);
+});
+t('Training: de trainingsknop draagt zijn toets (Enter) in de knop en de oefening staat erbij; snel trainen blijft mogelijk (#1109)', () => {
+  const c = start();
+  const tr = viewHtml(c, 'training', env);
+  assert.match(tr, /data-vb="train"[^>]*data-key="ENTER"/); assert.match(tr, /ds-z-knop__toets/);
+  assert.deepEqual(buttonsWithoutGlyph(tr), []);
+  assert.match(tr, /Oefening: /); assert.match(tr, /data-vb="train:snel"/);
+  assert.match(viewHtml(C.train(c, 'pace').career, 'training', env), /data-vb="train:snel"[^>]*aria-disabled="true"/);
 });
 console.log(`voetbal_ui_test ok (${n} groepen)`);
