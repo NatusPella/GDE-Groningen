@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildPersonMesh, releasePersonGeometry } from './models3d_people.js';
 import { RIKUS_LOOK } from './storycast.js';
+import { adoptSetLight } from './setlights.js';
 
 // The Radio Nachtstreek studio where Rikus (the narrator) tells the story:
 // a small closed room built high above the city (like the intro's vitrine
@@ -122,10 +123,10 @@ export function buildRadioStudio(x = 0, y = 0) {
   mic.position.set(0.45, 1.58, 0.22);
   group.add(mic);
   // warm lamp and the red of the sign
-  const lamp = new THREE.PointLight(0xffd6a0, 6, 7, 1.6);
+  const lamp = adoptSetLight(new THREE.PointLight(0xffd6a0, 6, 7, 1.6));
   lamp.position.set(1.4, 2.6, 0.6);
   group.add(lamp);
-  const red = new THREE.PointLight(0xff4a4a, 1.2, 3, 2);
+  const red = adoptSetLight(new THREE.PointLight(0xff4a4a, 1.2, 3, 2));
   red.position.set(-2.2, 2.4, -1.2);
   group.add(red);
   group.add(new THREE.AmbientLight(0x6a5a80, 0.9));
