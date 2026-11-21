@@ -33,7 +33,7 @@ import { BIRDS, makeBirds, scatterBirds, updateBirds } from './birds.js';
 import { setIntroPlaying } from './trailerstate.js';
 import { openBank } from './voicebank.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
-import { TITLE, SEQUENCE, NAME_CARDS, FILM_VOICES, engineLines } from './openingfilm.js'; // titelkaart en slogan komen uit de filmdata (docs/verhaal/OPENING-FILMSCRIPT-21-11.md)
+import { TITLE, SEQUENCE, NAME_CARDS, FILM_VOICES, engineLines, themeEntryShot } from './openingfilm.js'; // titelkaart en slogan komen uit de filmdata (docs/verhaal/OPENING-FILMSCRIPT-21-11.md)
 
 // Recorded montage dialogue: the story manifest ("<speaker>|<text>"), then the
 // lines manifest (linevoice.js) for the newer lines.
@@ -1172,7 +1172,7 @@ function buildShots(w, film = false) {
   // New shots plus the proven ones (gull, kitchen set, moving day, swoop) patched with the lines and the cuts of the film. A shot never reads the
   // `.timed` of an OLD shot object (it is not in this list): a new shot reads its own through `self`. No white flashes (r.film, enterShot).
   // The 180 degree rule in the kitchen: every over-the-shoulder camera sits on the same side of the line between the seats (v = -0.32).
-  const base = (id, extra = {}) => { const e = SEQUENCE.find((q) => q.id === id); return { minDur: e.minDur, lead: e.lead, gaps: e.gaps, lines: engineLines(id), film: true, ...extra }; };
+  const base = (id, extra = {}) => { const e = SEQUENCE.find((q) => q.id === id); return { filmId: id, minDur: e.minDur, lead: e.lead, gaps: e.gaps, lines: engineLines(id), film: true, ...extra }; };
   const zAt = (x, y) => (map.spawnZ ? map.spawnZ(x, y) : 0);
   const ESCAPADE_RED = '#' + (0xa11f1f).toString(16);
   const withDawn = (shot) => ({
@@ -1565,6 +1565,7 @@ function enterShot(r, i) {
     if (!r.film && (!prev || !prev.black)) flash();
     sfx(w, 'whoosh', hoofdspeler(w).x, hoofdspeler(w).y);
   }
+  if (r.film && !r.themeOn && shot.filmId && shot.filmId === themeEntryShot()) { r.themeOn = true; cueTheme(0); }
   ui.flare.classList.toggle('on', !!shot.flare);
   if (shot.flare) {
     ui.flare.style.setProperty('--fx', shot.flare.x + '%');
@@ -1775,7 +1776,8 @@ export function playIntroMontage(w, { startAt = 0, flyShot, onDone, maxShots = I
   setCinematicBatches(true); // nieuwe batches gespreid compileren/tonen tijdens de film
   setStoryScene(true, 'intro');
   // from the top, so the cuts land on the song's beats
-  if (!r.offset) cueTheme(0);
+  // the film opens in silence (street sound, Rikus): its theme falls in on the first crane shot (MUSIC cue thema-in, see enterShot)
+  if (!r.offset && !film) cueTheme(0);
   ui.root.classList.add('on');
   const ok = playCinematic({
     id: 'intro', priority: 6, duration: total - r.offset, pause: true, letterbox: true, skippable: true, hideHud: true, realtime: true,

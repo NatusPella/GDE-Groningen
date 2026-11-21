@@ -161,6 +161,8 @@ export function timeline() {
   });
 }
 export const openingDuration = () => { const tl = timeline(); const l = tl[tl.length - 1]; return l.t + l.dur; };
+// The shot where the theme falls in (MUSIC cue 'thema-in'): before it the film is silent apart from street sound and Rikus.
+export const themeEntryShot = () => (MUSIC.find((m) => m.cue === 'thema-in') || {}).shot || null;
 export const voicedLines = () => LINES.filter((l) => l.voice === 'nieuw').map((l) => ({ speaker: l.speaker, text: l.text, who: l.who }));
 // the lines of a shot as the montage engine wants them: [key, text, delivery]
 export const engineLines = (id) => { const s = SEQUENCE.find((x) => x.id === id); return s ? s.lines.map((i) => { const l = lineById(i); return [l.k, l.text, l.tag]; }) : []; };
