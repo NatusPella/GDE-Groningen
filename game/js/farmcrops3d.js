@@ -48,6 +48,14 @@ function bouwPlant(id, gewas, stadium) {
   const blad = lerpHex(gewas.jong, gewas.rijp, t);
   const hoek = [0, 1.26, 2.51, 3.77, 5.03];
   switch (gewas.vorm) {
+    case 'boom': { // boomgaardfruit: een laag boompje met stam en kroon; bijna rijp en rijp hangt er fruit in (rood), altijd zomer
+      const hoogte = [0.3, 0.7, 1.1, 1.3][stadium];
+      voegToe(d, new THREE.CylinderGeometry(0.035 + 0.015 * stadium, 0.05 + 0.02 * stadium, hoogte * 0.55, 5).translate(0, hoogte * 0.275, 0), 0, 0, 0, 0, 0, 0, 1, 1, 1, 0x6b4a2b);
+      const kroon = stadium === 0 ? 0.14 : 0.2 + 0.1 * stadium;
+      voegToe(d, BOL(kroon), 0, hoogte * 0.8, 0, 0, 0.4, 0, 1, 0.85, 1, blad);
+      if (stadium >= 2) for (let i = 0; i < (stadium === 3 ? 5 : 3); i++) voegToe(d, BOL(0.045), Math.cos(hoek[i]) * kroon * 0.85, hoogte * (0.7 + 0.05 * (i % 2)), Math.sin(hoek[i]) * kroon * 0.85, 0, 0, 0, 1, 1, 1, stadium === 3 ? 0xc8503a : 0x9bb04a);
+      break;
+    }
     case 'struik': { // aardappelen: een lage bol van loof; bijna rijp en rijp slaat het loof om naar geel
       const hoogte = [0.12, 0.26, 0.38, 0.34][stadium];
       const loof = stadium >= 2 ? lerpHex(0x6aa043, 0xb7b04a, stadium === 3 ? 1 : 0.4) : blad;
@@ -119,6 +127,7 @@ const LAYOUT = {
   uien: { lijnen: [-2.6, -1.3, 0, 1.3, 2.6], stap: 1.8, schaal: 1.3 },
   graan: { lijnen: [-2.8, -1.4, 0, 1.4, 2.8], stap: 1.6, schaal: 1.15 },
   gras: { lijnen: [-2.8, -1.4, 0, 1.4, 2.8], stap: 1.6, schaal: 1.2 },
+  fruit: { lijnen: [-2.6, 0, 2.6], stap: 3.2, schaal: 1.15 },
 };
 export const plantLayout = (id) => LAYOUT[id] || { lijnen: [-2.2, 0, 2.2], stap: 2.5, schaal: 1 };
 
