@@ -583,7 +583,7 @@ De eerste indeling klopte niet: de fixes van 0.63.0 en 0.65.0 zaten in bundelcom
 | #678 | Activiteiten: één startkaart met doel, medaille-eis, beloning en samen-status | wens | hoog | 4 | 2 | commit + groene test |
 | #677 | Te doen: neem alle 26 activiteiten op in de catalogus | wens | hoog | 4 | 1 | commit + groene test |
 | #676 | Veroverd: eigen tab, eerstvolgende taken en een zichtbare catalogusregel | wens | midden | 4 | 3 | commit + groene test |
-| #675 | Postgame en Fjord Frituur: herbalanceer de prijzen en maak de Fjord een investeringslus | wens | midden | 2 | 2 | commit + groene test |
+| #675 | Postgame en snackwagen: herbalanceer de prijzen en maak de Fjord een investeringslus | wens | midden | 2 | 2 | commit + groene test |
 | #673 | Activiteiten: een variant of vervolgdoel na de hoogste medaille | wens | midden | 2 | 1 | commit + groene test |
 | #672 | Medailles: één uitleg met bedrag en punten, plus de volgende trede in de uitslag | wens | hoog | 4 | 1 | commit + groene test |
 | #671 | Loopbaan: toon per vak de eerstvolgende stap en waar je die doet | wens | hoog | 2 | 1 | commit + groene test |

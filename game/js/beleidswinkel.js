@@ -5,7 +5,7 @@
 // Drie maatregelen, elk met een echte haak in het spel:
 //  - flits: 25% lagere verkeersboetes (trafficlaw.js `charge`);
 //  - subsidie: 5% meer loon per bijbaanronde (sidejobs.js `basisFor`);
-//  - markt: de Vismarkt is elke dag marktdag, dus de Fjord Frituur is er drukker (pg_foodtruck.js).
+//  - markt: de Vismarkt is elke dag marktdag, dus de snackwagen is er drukker (pg_foodtruck.js).
 // De regels zijn puur; alleen `koopBeleid` en `laad`/`bewaar` raken opslag of geld aan, met een opslag-
 // parameter zodat de tests geen echte localStorage nodig hebben.
 import { icoon } from './icons.js';
@@ -16,7 +16,7 @@ import { euro } from './geldtekst.js';
 export const BELEID = [
   { id: 'flits', naam: 'Soepel flitsbeleid', prijs: 250, tekst: 'Verkeersboetes zijn 25% lager.', effect: 'boete' },
   { id: 'subsidie', naam: 'Bijbaansubsidie', prijs: 350, tekst: 'Elke bijbaanronde betaalt 5% meer.', effect: 'loon' },
-  { id: 'markt', naam: 'Altijd marktdag', prijs: 300, tekst: 'De Vismarkt is elke dag marktdag: de Fjord Frituur is er drukker.', effect: 'markt' },
+  { id: 'markt', naam: 'Altijd marktdag', prijs: 300, tekst: 'De Vismarkt is elke dag marktdag: de snackwagen is er drukker.', effect: 'markt' },
 ];
 const BY_ID = new Map(BELEID.map((b) => [b.id, b]));
 export const beleidVan = (id) => BY_ID.get(id) || null;

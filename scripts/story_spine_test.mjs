@@ -12,9 +12,9 @@ const doc = fs.readFileSync(new URL('../docs/verhaal/RUGGENGRAAT.md', import.met
 for (const p of Object.keys(PARTS)) {
   ok(typeof WHY[p] === 'string' && words(WHY[p]) >= 8 && words(WHY[p]) <= 30, `${p}: waar het om draait is 8 tot 30 woorden`, words(WHY[p]));
 }
-ok(/Tessa/.test(WHY.kop) && /frietwagen/i.test(WHY.kop), 'akte 1 noemt Tessa en de frietwagen: het motief staat vanaf het begin');
+ok(/Tammo/.test(WHY.kop) && /Tessa/.test(WHY.kop) && /elkaar/.test(WHY.kop) && !/wagen/i.test(WHY.kop), 'akte 1 draait om Tammo en Tessa die elkaar niet willen kwijtraken; de snackwagen is nog geen doel (kern 21-11)');
 ok(/Jelle/.test(WHY.kop) && /Jelle/.test(WHY.romp) && /Jelle/.test(WHY.staart) && /Jelle/.test(WHY.zuid) && /Jelle/.test(WHY.ontzet), 'Jelle staat in elke akte als tegenstander');
-ok(/Fjord Frituur|frietwagen/.test(WHY.ontzet) && /Fjord Frituur|frietwagen/.test(WHY.nazomer), 'de laatste twee delen noemen de wagen');
+ok(/wagen/.test(WHY.ontzet) && /wagen/.test(WHY.nazomer) && !/wagen/i.test(WHY.romp + WHY.staart + WHY.zuid), 'de wagen duikt pas in akte 5 op (verhaaltwist), niet in akte 1 tot en met 4');
 
 for (const s of STEPS) {
   if (s.id === 'M00' || s.id === 'E') continue;
@@ -23,7 +23,7 @@ for (const s of STEPS) {
 }
 const heads = { kop: 'Akte 1', romp: 'Akte 2', staart: 'Akte 3', zuid: 'Akte 4', ontzet: 'Akte 5', nazomer: 'Deel 4' };
 for (const [p, h] of Object.entries(heads)) ok(new RegExp(`^## ${h}`, 'm').test(doc), `RUGGENGRAAT.md heeft een blad voor ${p}`);
-ok(/De ene zin boven alles/.test(doc), 'RUGGENGRAAT.md heeft de ene zin');
+ok(/## De kern/.test(doc) && /plekje in de wereld/.test(doc), 'RUGGENGRAAT.md heeft de kern (een plek in de wereld)');
 
 console.log(`story_spine_test: ${n - fails}/${n} ok`);
 if (fails) process.exit(1);

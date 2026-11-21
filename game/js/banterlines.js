@@ -1,7 +1,7 @@
 // Tammo and Tessa's car banter as data (banter.js plays it). Pure data: no
 // imports, so scripts/tts_banter_lines.mjs can read it in Node.
 // The beats follow docs/verhaal/nieuw/00-OVERZICHT.md: one summer in August, the
-// Escapade is Tammo's, the Fjord Frituur is Tessa's dream, and Tammo never
+// Escapade is Tammo's, the snackwagen is Tessa's dream, and Tammo never
 // says it out loud before H18.
 //
 // Exchange fields
@@ -93,7 +93,7 @@ export const BANTER = [
     ['A', 'Achtentwintig augustus. Dan vieren we dat de vijand wegging.', 'proud'],
     ['T', 'Handig. Dan weten we alvast de datum.', 'dry']] },
   { id: 'st-end-kop-fjord', trigger: 'story:end:kop', lines: [
-    ['A', 'Zonder die Eierbal geen Fjord Frituur.', 'sad'],
+    ['A', 'Zonder die Eierbal geen snackwagen.', 'sad'],
     ['T', 'Dan halen we hem terug. Uit Friesland, als het moet.', 'determined'],
     ['A', 'Jij. In Friesland.', 'surprised, touched'],
     ['T', 'Met een paspoort. Voor de zekerheid.', 'dry']] },
@@ -487,13 +487,13 @@ export const BANTER = [
 
   // Nachtstreek and its regulars
 
-  // the Fjord Frituur (Tessa's dream) and the Eierbal
+  // the snackwagen (Tessa's dream) and the Eierbal
 
   // the romance, in steps (Tammo never says it before H18)
 
-  // after the story: September, the Fjord Frituur
+  // after the story: September, the snackwagen
 
-  // --- after the story: Jelle's challenges and the Fjord Frituur (postgame.js) ---
+  // --- after the story: Jelle's challenges and the snackwagen (postgame.js) ---
   { id: 'pg-bruggen-pass-hek', trigger: 'after:post-bruggen:pass', lines: [
     ['A', 'Elf bruggen, en Jelle zag alleen ons hek.', 'proud, laughing'],
     ['T', 'Onder de Herebrug keek hij heel verdrietig.', 'dry'],

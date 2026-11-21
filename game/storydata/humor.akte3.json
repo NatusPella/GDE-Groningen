@@ -4,8 +4,16 @@
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
-   "panel": null,
+   "chosen": 2,
+   "panel": {
+    "votes": [
+     2,
+     2,
+     2
+    ],
+    "reason": "Sinds vanochtend wel: bureaucratische arrogantie met timing.",
+    "certainty": "hoog"
+   },
    "id": "H3-01",
    "scene": "R3.0",
    "speaker": "JELLE",
@@ -21,8 +29,16 @@
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
-   "panel": null,
+   "chosen": 2,
+   "panel": {
+    "votes": [
+     2,
+     2,
+     2
+    ],
+    "reason": "Alles voorzien, behalve duiven: pointe laatste, in Jelles stem.",
+    "certainty": "hoog"
+   },
    "id": "H3-02",
    "scene": "M12.3",
    "speaker": "JELLE",
@@ -39,7 +55,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     1
+    ],
+    "reason": "Kaal Misschien is het sterkst, Tammo zonder uitleg.",
+    "certainty": "midden"
+   },
    "id": "H3-03",
    "scene": "M12.2",
    "speaker": "TAMMO",
@@ -56,7 +80,16 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     1,
+     2,
+     0
+    ],
+    "reason": "Nu inboedel is bureaucratisch en kort.",
+    "certainty": "laag",
+    "tiebreak": 0
+   },
    "id": "H3-04",
    "scene": "M14.1",
    "speaker": "JELLE",
@@ -72,8 +105,16 @@
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
-   "panel": null,
+   "chosen": "neutral",
+   "panel": {
+    "votes": [
+     "neutral",
+     "neutral",
+     1
+    ],
+    "reason": "Kort, pointe laatste met het briefje, geen uitleg.",
+    "certainty": "laag"
+   },
    "id": "H3-05",
    "scene": "M15.5",
    "speaker": "JELLE",
@@ -89,8 +130,16 @@
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
-   "panel": null,
+   "chosen": "neutral",
+   "panel": {
+    "votes": [
+     0,
+     "neutral",
+     "neutral"
+    ],
+    "reason": "Geen uitleg, warm en kort.",
+    "certainty": "midden"
+   },
    "id": "H3-06",
    "scene": "M16.1",
    "speaker": "GEERT",
@@ -107,7 +156,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     0
+    ],
+    "reason": "Douwe echoot het laatste woord, dus op.",
+    "certainty": "hoog"
+   },
    "id": "H3-07",
    "scene": "M16.3",
    "speaker": "DOUWE",
@@ -124,7 +181,15 @@
    "label": "humor-review",
    "sensitive": false,
    "chosen": 0,
-   "panel": null,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     0
+    ],
+    "reason": "Moet exact aansluiten op de herhaling in H3-09 en klinkt natuurlijk.",
+    "certainty": "hoog"
+   },
    "id": "H3-08",
    "scene": "M16.5",
    "speaker": "DURK",
@@ -140,8 +205,16 @@
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
-   "panel": null,
+   "chosen": 2,
+   "panel": {
+    "votes": [
+     2,
+     2,
+     1
+    ],
+    "reason": "Zakelijk en stijf, en Tammo's Goed erna werkt als echo.",
+    "certainty": "laag"
+   },
    "id": "H3-09",
    "scene": "M16.5",
    "speaker": "TESSA",

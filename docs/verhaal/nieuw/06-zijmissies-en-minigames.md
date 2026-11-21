@@ -8,7 +8,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Alleen verzonnen namen (geen echte
 
 | Rang | Titel | Regio | Hergebruik (bestand) | Wat maakt het leuk, lokaal of meme-baar | Band met het hoofdverhaal | Maat | Essentieel? |
 |---|---|---|---|---|---|---|---|
-| 1 | **Fjord Frituur-dienst** | alle regio's (na M22) | `pg_foodtruck.js` (bakken en serveren), `economy.js` `FJORD_DAY_PAY` | je eigen frietwagen, rij met een wachtrij; "de rij loopt tot de Korenbeurs" | de wagen uit M22; na de finale het bedrijf | S (bestaat) | nee, wel de beste herspeelbaarheid |
+| 1 | **snackwagen-dienst** | alle regio's (na M22) | `pg_foodtruck.js` (bakken en serveren), `economy.js` `FJORD_DAY_PAY` | je eigen frietwagen, rij met een wachtrij; "de rij loopt tot de Korenbeurs" | de wagen uit M22; na de finale het bedrijf | S (bestaat) | nee, wel de beste herspeelbaarheid |
 | 2 | **Meeuw te slim af** (meeuwenmechaniek) | Stad, Wad | `pigeonmode.js` (`summonDiveGull`, "Meeuw te slim af") | de meeuw steelt je frikandel; jij bent de duif of de meeuw; Sikkom-waardig | Bert (M04); Tammo's duivengave | S | nee |
 | 3 | **Het Loket** (bijbaan) | Stad, daarna elke regio | `sidejob_rechtbank.js`, `sidejobkit.js`, `sidejobs.js` | formulier 7B, "Loket B is vandaag Loket C"; de grap die iedereen herkent | M03 (hoofdverhaal) als instap | S | ja, als terugkerende bijbaan (past bij M03) |
 | 4 | **Botsauto's en kermiscircuit** | Stad, Winschoten, Uithuizen | `kermis.js` | Durk en Douwe in de volgende auto; grijpautomaat, schiettent | M16 | S | nee |
@@ -66,6 +66,6 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Alleen verzonnen namen (geen echte
 De hoofdlijn (26 missies plus vier reisbeats in de vijf akten, en daarna Deel 4 met M27-M30 en T5) komt op ca. 4:37 (zie 00-OVERZICHT, bandbreedte 4:00-5:10). **Niets uit deze lijst is strikt nodig voor 4+ uur.** Drie dingen beschermen de ondergrens van 4:00 voor spelers die snel spelen:
 1. **Het Loket als bijbaan** (rang 3): vult Stad aan zonder nieuwe code.
 2. **De streekbus en museumbus** (rang 7): de reisbeats gaan er via, en reizen is inhoud.
-3. **De Fjord Frituur-dienst** (rang 1): na M22 beschikbaar, de beloning van het bezit.
+3. **De snackwagen-dienst** (rang 1): na M22 beschikbaar, de beloning van het bezit.
 
 Voor 6+ uur (vrij spel, verzamelen): rangen 2, 4, 6, 8-11, 28-40.

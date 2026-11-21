@@ -2,6 +2,7 @@
 // de kermisdraai en de brugdienst (staan op een plek en spelen met een tekstpaneel, Spatie = knop).
 // Zelfde familie als het cabaret: choicepanel bovenin, Backspace stopt, geen opnames, geen leed.
 
+import { hoofdspeler } from './players.js';
 import { startRonde, stapRonde, rondeResultaat, bijbaanById } from './bijbaanregels.js';
 import { STREKEN } from './regioleven.js';
 import { wgsToWorld } from './rdnew.js';
@@ -123,7 +124,7 @@ function paneelBaan(id, kleur, baas, glyph, anker, teken, melding) {
       c.msg(`${b.regel.bedrijf}: ${b.regel.intro[0]}`, 3.5);
     },
     update(dt, c) {
-      const d = c.data, p = c.world.player, input = c.world.input;
+      const d = c.data, p = hoofdspeler(c.world), input = c.world.input;
       if (!d.ronde || dt <= 0) return;
       c.world.minigameUntil = c.world.time + 0.25;
       if (d.flashT > 0) d.flashT -= dt;

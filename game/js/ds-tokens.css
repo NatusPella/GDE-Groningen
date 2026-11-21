@@ -251,6 +251,20 @@
   --ds-toets-tx: var(--ds-c-papier);
 }
 
+/* Meldingen: duur en aflopend balkje (ds-melding.css, game/js/meldingtijd.js DUUR_KLASSEN; scripts/meldingtijd_test.mjs houdt ze gelijk).
+   Dit zijn leestijden, geen animatietijden: ze gaan niet op 0 bij "Beweging beperken" (de speler moet het kunnen lezen). */
+:root {
+  --ds-melding-kort: 4s;
+  --ds-melding-normaal: 6s;
+  --ds-melding-lang: 9s;
+  --ds-melding-max: 10s;
+  --ds-melding-balk-h: 4px;
+  --ds-melding-balk: var(--ds-c-ink-bord);        /* bordgroen is de standaard; geel is gereserveerd en komt hier nooit */
+  --ds-melding-balk-waarschuwing: var(--ds-c-rood);
+  --ds-melding-balk-donker: var(--ds-c-licht-groen); /* op een donkere kaart (prestatietoast) */
+  --ds-melding-stappen: 10;                          /* Beweging beperken: het balkje loopt in tien stappen */
+}
+
 /* Beweging beperken: de tokens zelf worden nul, zodat elke component meebeweegt zonder eigen regel. */
 @media (prefers-reduced-motion: reduce) {
   :root { --ds-m-snel: 0ms; --ds-m: 0ms; --ds-m-max: 0ms; --ds-m-kort: 0ms; --ds-m-midden: 0ms; --ds-m-lang: 0ms; --ds-m-staffel: 0ms; --ds-moment-stap: 0ms; --ds-moment-duur: 0ms; --ds-moment-max: 0ms; --ds-moment-leven: 0ms; }

@@ -39,7 +39,7 @@ import { FAREWELL } from './beppe_texts.js';
 
 // The post-game: once the story's ending card has played (story.js, read
 // only), Jelle Terpstra challenges Tammo and Tessa to three replayable duels
-// and the Fjord Frituur becomes theirs. This module is the hub: it places
+// and the snackwagen becomes theirs. This module is the hub: it places
 // the start markers (3D badge, map icon, E prompt), runs one challenge at a
 // time, shows Jelle's taunts as voiced subtitles, the result banner and the
 // medals and records (achievements.js), and feeds the car banter.
@@ -249,7 +249,7 @@ export function postgameSecondary(w) {
   for (const s of spots) {
     if (Math.abs(s.x - p.x) > 30 || Math.abs(s.y - p.y) > 30) continue;
     if (!!s.def.vehicle !== !!p.inVehicle && s.def.icon !== 'fjord') continue;
-    out.push({ id: 'pg2-' + s.def.id + s.x, x: s.x, y: s.y, h: 2.4, label: s.name, sub: s.def.icon === 'fjord' ? 'Parkeer de Fjord Frituur hier en druk E' : s.def.icon === 'koe' ? 'Ome Jan heeft je hulp nodig: loop erheen en druk E' : 'Uitdaging van Jelle: loop erheen en druk E', kind: 'place' });
+    out.push({ id: 'pg2-' + s.def.id + s.x, x: s.x, y: s.y, h: 2.4, label: s.name, sub: s.def.icon === 'fjord' ? 'Parkeer de snackwagen hier en druk E' : s.def.icon === 'koe' ? 'Ome Jan heeft je hulp nodig: loop erheen en druk E' : 'Uitdaging van Jelle: loop erheen en druk E', kind: 'place' });
   }
   return out;
 }
@@ -281,7 +281,7 @@ export function tryPostgameInteract(w) {
 }
 
 // Samen spelen (#443): de wedstrijdlaag start deze uitdaging voor iedereen, met sc = de baanwedstrijd van de host.
-export function startWedstrijd(id, sc) {
+function startWedstrijd(id, sc) {
   if (run || !open) return false;
   const s = (spots || []).find((q) => q.def.id === id);
   if (!s || !s.def.wedstrijd) return false;
@@ -391,7 +391,7 @@ function handOff(w, def) {
   const list = guideCandidates(w).filter((c) => c.id !== def.id);
   if (!w.phoneNotifications) return;
   if (!list.length) {
-    w.phoneNotifications.push({ from: 'GDE', text: 'Alles gedaan! Grunn is van jou. De bijbaantjes draaien gewoon door, en de Fjord Frituur ook.', duration: 7 });
+    w.phoneNotifications.push({ from: 'GDE', text: 'Alles gedaan! Grunn is van jou. De bijbaantjes draaien gewoon door, en de snackwagen ook.', duration: 7 });
     return;
   }
   if (state.guideOff) return;
@@ -562,10 +562,10 @@ function invite() {
 // Jelle rings after the ending (phonefeed.js startCall; voiced, lines manifest)
 const INVITE_CALL = [
   { speaker: JELLE, text: 'Moai, Grinzers. Revanche? Elf bruggen, een fierljep-duel en een skûtsje-sprint. Mijn stipkes staan op jullie kaart.' },
-  { speaker: 'Anita', text: 'En de Fjord Frituur is van ons! Hij staat in de garage. Parkeer hem bij de drukte en open het luik.' },
+  { speaker: 'Anita', text: 'En de snackwagen is van ons! Hij staat in de garage. Parkeer hem bij de drukte en open het luik.' },
 ];
 
-// The Fjord Frituur keeps earning while you're away: a daily wage each morning, but only once the truck
+// The snackwagen keeps earning while you're away: a daily wage each morning, but only once the truck
 // is open (revealed and parked in the world) and only a share of the day's turnover — the rest is the
 // active investment loop (#675). Upgrades raise the day's turnover in pg_foodtruck.js.
 let lastClock = null;
@@ -579,14 +579,14 @@ function dayWage(w) {
   const pay = fjordPassief(fjordSave().upgrades, { open: true });
   if (pay <= 0) return;
   w.money += pay;
-  if (w.phoneNotifications) w.phoneNotifications.push({ from: 'Fjord Frituur', app: 'geld', text: `Goeiemorgen! Gisteren lekker gedraaid: ${euro(pay)} dagomzet op de rekening.`, duration: 6, say: SMS_SAY.fjordPay.lines[0] });
+  if (w.phoneNotifications) w.phoneNotifications.push({ from: 'snackwagen', app: 'geld', text: `Goeiemorgen! Gisteren lekker gedraaid: ${euro(pay)} dagomzet op de rekening.`, duration: 6, say: SMS_SAY.fjordPay.lines[0] });
 }
 
 // --- automatic route after the ending ------------------------------------------------
 // Like story.js's world.storyGuide during the story: routing.js follows
 // world.postgameGuide when there's no waypoint, mission or side job. It
 // points at the nearest challenge without a medal (then without gold); in
-// the Fjord Frituur its own spots come first. The map's route line has
+// the snackwagen its own spots come first. The map's route line has
 // "Volgende" (next activity) and "Uit"; "Aan" on the map turns it back on.
 
 const isTruckV = (v) => !!(v && FJORD.vehicle(v));
@@ -614,7 +614,7 @@ function guideCandidates(w) {
     let best = null, bd = Infinity;
     if (def.id === 'fjord' && !inTruck) {
       const t = ownTruck(w);
-      if (t) { best = { x: t.x, y: t.y, name: 'Jouw Fjord Frituur' }; bd = Math.hypot(t.x - p.x, t.y - p.y); }
+      if (t) { best = { x: t.x, y: t.y, name: 'Jouw snackwagen' }; bd = Math.hypot(t.x - p.x, t.y - p.y); }
     } else {
       for (const s of spots || []) {
         if (s.def !== def) continue;
@@ -684,13 +684,13 @@ function guideOn() {
   return world && world.postgameGuide ? `Route naar ${world.postgameGuide.name}` : 'Alles al goud!';
 }
 
-// --- the reveal: after the credits the Fjord Frituur comes out from under a sheet ------
+// --- the reveal: after the credits the snackwagen comes out from under a sheet ------
 // story.js queues it behind the finale; when it ends (or is skipped) Tessa
 // sits in the truck with the engine running and the route points at a spot.
 
 const REVEAL_LINES = [
-  { speaker: 'Rikus', text: "Van de beloning kwam de Fjord Frituur. Vier wielen, geen kenteken, en een rij tot aan d'Olle Grieze.", radio: true },
-  { speaker: 'Anita', text: 'Onze eigen Fjord Frituur. Met kenteken, deze keer.' },
+  { speaker: 'Rikus', text: "Van de beloning kwam de snackwagen. Vier wielen, geen kenteken, en een rij tot aan d'Olle Grieze.", radio: true },
+  { speaker: 'Anita', text: 'Onze eigen snackwagen. Met kenteken, deze keer.' },
   // Tammo's deadpan verdict borrows the bubble recording
   { speaker: 'Tammo', text: 'Kon minder.', voiceKey: '~m' },
 ];
@@ -755,7 +755,7 @@ export function queueFjordReveal(w = world) {
   };
   return playCinematic({
     id: 'pg-reveal', priority: 2, duration: at + 0.6, pause: true, letterbox: true, skippable: true, hideHud: true, queue: true,
-    kicker: 'Na het verhaal', title: 'De Fjord Frituur', cardFor: 2.4, lines,
+    kicker: 'Na het verhaal', title: 'De snackwagen', cardFor: 2.4, lines,
     onStart: () => {
       try {
         v = revealTruck(w);
@@ -850,7 +850,7 @@ export function initPostgame(w) {
   if (typeof window !== 'undefined') window.__postgame = debugApi;
 }
 
-// Te doen (todo.js) lists the challenges and the Fjord Frituur upgrades.
+// Te doen (todo.js) lists the challenges and the snackwagen upgrades.
 function postgameOffers(w = world) {
   if (!open || !spots) return [];
   const p = hoofdspeler(w);

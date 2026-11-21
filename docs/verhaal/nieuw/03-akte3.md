@@ -1,6 +1,6 @@
 # Akte 3: "Aan de Eems" (Eemsdelta en Oldambt; vr 21 – zo 23 augustus)
 
-Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte3.md](09-script-akte3.md). Tags: `[BEHOUDEN]` = letterlijk in de repo, `[NIEUW]` = nieuwe of gewijzigde regel. Functies: (1) inschrijving of financiering, (2) een plakje van Jelle blokkeren, (3) de waarheid over de bal ontdekken, (4) de Fjord Frituur en het recept gereedmaken.
+Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte3.md](09-script-akte3.md). Tags: `[BEHOUDEN]` = letterlijk in de repo, `[NIEUW]` = nieuwe of gewijzigde regel. Functies: (1) inschrijving of financiering, (2) een plakje van Jelle blokkeren, (3) de waarheid over de bal ontdekken, (4) de snackwagen en het recept gereedmaken.
 
 ## Intro van de akte
 
@@ -89,7 +89,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte3
 | | |
 |---|---|
 | **Id** | `A3-3` (nieuw, mechaniek van `H9`, step `n-dijkrace`) |
-| **Functie** | **4 · de Fjord Frituur en het recept gereedmaken**: de voorraden van de vrienden veiligstellen op Lammerts woonschip |
+| **Functie** | **4 · de snackwagen en het recept gereedmaken**: de voorraden van de vrienden veiligstellen op Lammerts woonschip |
 | **Plaats** | dijkweg tussen Eemshaven en de sluis van Delfzijl, za 22 bij zonsopgang |
 | **Voertuig** | Escapade tegen Jelles trekker-limo met de deurwaarder |
 | **Mechaniek / hergebruik** | `checkpoint`-race (`racers.js`, de structuur van `RING_ROUTE`); route langs de dijk (AANNAME: routedata nieuw) |

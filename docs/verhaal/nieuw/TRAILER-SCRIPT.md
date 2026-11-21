@@ -7,7 +7,7 @@ Voor issue #63. Herzien na de beoordelingen van Gemini, Copilot en ChatGPT. Twee
 ## Wat is veranderd ten opzichte van v1
 - **Veel minder dialoog:** teaser nog 4 spreekmomenten (was 6); de uitleg staat in tekstkaarten en beeld, niet in gesproken zinnen.
 - **Maar 2 nieuwe regels in de teaser** (Jelle en de Rikus-slotgrap); de hoofdtrailer 3 tot 4. Rest is bestaand.
-- **Geen voltooide Fjord Frituur-wagen** (die ontstaat pas in M26): alleen Tessa's tekening, de rode Escapade en de lege standplaats. De wagen blijft uit beeld of komt hooguit één onscherpe flits. **De Escapade is rood** (niet oranje).
+- **Geen snackwagen als belofte** (de wagen is een verhaaltwist en ontstaat pas rond M22 en M26; niet in marketing): alleen Tessa's tekening, de rode Escapade en de lege standplaats. De wagen blijft uit beeld of komt hooguit één onscherpe flits. **De Escapade is rood** (niet oranje).
 - **"Salamitactiek" als zin vervalt**: het plakjesbord laat zien wat er gebeurt (plakjes worden doorgestreept) op het ritme van de muziek.
 - **Jelle krijgt een echte entree** en een korte, scherpe regel.
 - **Escalatie en misdaad in beeld** (kraam dichtgetimmerd, lege pannen, achtervolging, sluipen, het Loket, eieren heel houden, de duif, bakken), niet alleen voertuigen.
@@ -17,7 +17,7 @@ Voor issue #63. Herzien na de beoordelingen van Gemini, Copilot en ChatGPT. Twee
 
 ## Spoilerregels
 **Mag:** het doel (Snackprijs, standplaats), Jelles plan als mechanisme (plakjes), de provincie, de voertuigen, de humor, de eerste akte, een vroege romantische blik.
-**Mag niet (beeld of geluid):** wie de bal echt heeft en de rol van Mem en Oma in de wending, het briefje "Tige tank! – J." als onthulling (ook de lege vitrine niet tonen), de kus, het dieptepunt in Bourtange, "Ik wil bij jou blijven", de uitslag van de Snackprijs, de finale en wie wint, de voltooide Fjord Frituur-wagen.
+**Mag niet (beeld of geluid):** wie de bal echt heeft en de rol van Mem en Oma in de wending, het briefje "Tige tank! – J." als onthulling (ook de lege vitrine niet tonen), de kus, het dieptepunt in Bourtange, "Ik wil bij jou blijven", de uitslag van de Snackprijs, de finale en wie wint, de voltooide snackwagen-wagen.
 
 ## Teaser (40 s)
 | Tijd | Beeld (echte gameplay) | Geluid | Tekst op beeld |
@@ -47,7 +47,7 @@ Voor issue #63. Herzien na de beoordelingen van Gemini, Copilot en ChatGPT. Twee
 
 ## Opnamelijst en B-roll
 **Nu opneembaar (bestaande gameplay):** d'Olle Grieze bij zonsopgang; Vismarkt met meeuw en frikandel; fietsers in de binnenstad; de rode Escapade (buiten en binnen, Tessa schakelt, Tammo klampt zich vast); trekker met eieren op een wierde; boot op het Reitdiep; trein langs een dijk; heli boven de stad; duif; sluipen langs het museum; Het Loket (stempels); achtervolging met politie; Tammo in de gracht; Eemshaven met windmolens; Oma Trijntje en de eierballen; Berend en zijn bakkie; lege standplaats.
-**Vervangingen voor wat nog niet bestaat:** vliegtuig → heli of tractor door goudgeel graan; zichtbare Waddenzee → kwelder, dijk en boot op het Lauwersmeer; cabinecamera → buitenaanzicht plus close-up uit een bestaande cutscène; Fjord Frituur eindmodel → Tessa's tekening of maquette; plakjesbord als UI → motion graphic in de montage (geen game-UI nodig); de lege vitrine niet gebruiken (spoiler).
+**Vervangingen voor wat nog niet bestaat:** vliegtuig → heli of tractor door goudgeel graan; zichtbare Waddenzee → kwelder, dijk en boot op het Lauwersmeer; cabinecamera → buitenaanzicht plus close-up uit een bestaande cutscène; snackwagen eindmodel → Tessa's tekening of maquette; plakjesbord als UI → motion graphic in de montage (geen game-UI nodig); de lege vitrine niet gebruiken (spoiler).
 **Opnemen na de bouw als het er komt:** vliegtuigshot, plakjesbord in-game.
 
 ## Muziek en licentie

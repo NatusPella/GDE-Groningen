@@ -1,6 +1,8 @@
 # Voetbalcarrière (ontwerp 21-11, epic #1106)
 
-> **Status: ontwerp, geen code.** Dit document is het plan voor de epic [#1106](https://github.com/NatusPella/GDE-Groningen/issues/1106): de voetbalsim in de Euroborg ([VOETBAL-SIM-21-11.md](VOETBAL-SIM-21-11.md), #981) wordt een carrière. Niets hiervan is gebouwd of in beeld bekeken. Alle cijfers zijn startwaarden die het balanspakket (#1116) met de economie-sim moet bevestigen.
+> **Status (21-11, later): gebouwd, niet in beeld bekeken.** De pure kern, de opslag, het kindscherm en de carrièrewedstrijd staan in de code; wat getest is en wat nog in Electron gecontroleerd moet worden staat in [VOETBAL-CARRIERE-VERIFICATIE-21-11.md](VOETBAL-CARRIERE-VERIFICATIE-21-11.md). Eigenaarsbesluiten 21-11 erbij: per ronde zelf spelen of laten uitrekenen, een kort seizoen (7 rondes, een ronde per 3 speldagen) en ontgrendeling per akte (akte 4). Dit document blijft het ontwerp; bij een verschil wint de code en het verificatiedocument.
+>
+> Oorspronkelijke status: ontwerp, geen code. Dit document is het plan voor de epic [#1106](https://github.com/NatusPella/GDE-Groningen/issues/1106): de voetbalsim in de Euroborg ([VOETBAL-SIM-21-11.md](VOETBAL-SIM-21-11.md), #981) wordt een carrière. Alle cijfers zijn startwaarden die het balanspakket (#1116) met de economie-sim moet bevestigen.
 >
 > **Eigenaarsbesluiten 21-11 verwerkt (zeven vragen, zie hoofdstuk 17):** Tammo en Tessa zijn allebei speelbaar (Tessa de ster), de rollen heten Speler, later Trainer en Manager, alle clubs hebben parodienamen, het spel gebruikt de voetbalvelden uit de hele provincie (lokale clubs in het begin, de top in de Euroborg), sponsors zijn parodiebedrijven die ook als panden in de wereld staan, blessures blijven.
 >
@@ -237,7 +239,7 @@ Zonder ratings (de vriendschappelijke competitie en de bestaande wedstrijd) is a
 ### Rollen en talenten
 
 - **Rollen:** keeper, verdediger, middenvelder, aanvaller (bestaand in `VORMINGEN`). Een speler heeft een hoofdrol en een bijrol; buiten de hoofdrol speelt hij op 90% van zijn factor.
-- **Talenten** (kleine eigenschappen, een per twee niveaus, hooguit drie): Dribbelaar (betere aanname onder druk), Vroege schutter, Rustige afwerker, Pitbull (dekken), Marathonloper, Spelverdeler, Laatste man, Keepersvanger. Elk talent is een klein getal in een tabel (`TALENTEN` in `voetbalspelers.js`) en wordt getoond met naam en icoon.
+- **Talenten** (kleine eigenschappen, een per twee niveaus, hooguit drie): Dribbelaar (betere aanname onder druk), Vroege schutter, Rustige afwerker, Pitbull (dekken), Marathonloper, Spelverdeler, Laatste man, Keepersvanger. Elk talent is een klein getal in een tabel (`TALENTEN` in `voetbalplayers.js`) en wordt getoond met naam en icoon.
 - **Potentieel** (verborgen, 60 tot 95): bepaalt de plafonds van de attributen en de groeisnelheid. Tessa begint met een gemiddeld potentieel; een goed seizoen zet het niet omhoog (geen verborgen mechaniek), alleen training en spelen bouwen op.
 
 ### Namen
@@ -329,7 +331,7 @@ Seizoensbeloningen (eenmalig): promotie €200, bekerwinst €400, kampioen Terp
 | Bedrijven (#1102): een pand met omzet per speldag, passief plus beheer, vier knoppen (prijs, voorraad, personeel, openingstijd), verzadiging per woonplaats | het stadion (de Euroborg is een echt gebouw; het pand bestaat als OSM-pand) is een Bedrijven-pand met de rol `stadion`: kaartjesprijs is de prijsknop, het publiek komt uit de klantenpot van de stad, een tribune-upgrade is een verbouwing |
 | Prestaties: een nieuwe prestatielijn per tak, kasboek met posten | clubposten (aankoop, dividend, tribune) in hetzelfde kasboek |
 
-**Wat voetbal levert:** de soort `club` en `stadion` (regels in `voetbalclub_bezit.js`, puur), de omzetformule per ronde en de koppeling aan de competitie (stand, vorm, divisie bepalen het publiek). Zodra #1097 en #1099 gemerged zijn, is pakket 7 klein; tot dan is het een interface (`bezitSoort`) met een stub in de test, zodat pakket 1 tot 6 en 8 tot 10 niet wachten.
+**Wat voetbal levert:** de soort `club` en `stadion` (regels in `voetbalclub_bezit.js`, puur), de omzetformule per ronde en de koppeling aan de competitie (stand, vorm, divisie bepalen het publiek). Zodra #1097 en #1099 gemerged zijn, is pakket 7 klein; tot dan is het een interface (`ownershipBranch`) met een stub in de test, zodat pakket 1 tot 6 en 8 tot 10 niet wachten.
 
 **Gedeelde poort.** Bezit start ook "na akte 1" met een akte-scène (#1099), en de Beppe-boog (#1063) wil rust rond haar afscheid. Beide epics hebben dus dezelfde ontgrendelvoorwaarden. Voorstel: één helper `zijpadPoort(id)` (akte klaar, geen Beppe-conflict, geen lopende missie of scène, hooguit één zijpad-beat per speldag, gedeelde wachtrij zodat Bezit en voetbal elkaar niet tegelijk melden), gebouwd door het pakket dat het eerst landt (waarschijnlijk Bezit 4 of voetbal 6) en door het andere hergebruikt. Zonder dit krijgt de speler twee uitnodigingen in dezelfde minuut.
 
@@ -449,8 +451,8 @@ Epic: [#1106](https://github.com/NatusPella/GDE-Groningen/issues/1106) (mileston
 
 | # | Issue | Pakket | Kosten | Mode | Raakt vooral | Hangt af van |
 |---|---|---|---|---|---|---|
-| 1 | [#1107](https://github.com/NatusPella/GDE-Groningen/issues/1107) | Spelers, ratings en clubs; koppeling aan de sim | M | confirm | `voetbalspelers.js`, `voetbalclubs.js`, `voetbalrules.js`, `voetbalmatch.js`, `voetbalai.js` | |
-| 2 | [#1108](https://github.com/NatusPella/GDE-Groningen/issues/1108) | Seizoenen, divisies, beker, Europa, agenda | L | validate | `voetbalseizoen.js`, `voetbalagenda.js`, `calendarday.js`-haak | 1 |
+| 1 | [#1107](https://github.com/NatusPella/GDE-Groningen/issues/1107) | Spelers, ratings en clubs; koppeling aan de sim | M | confirm | `voetbalplayers.js`, `voetbalclubs.js`, `voetbalrules.js`, `voetbalmatch.js`, `voetbalai.js` | |
+| 2 | [#1108](https://github.com/NatusPella/GDE-Groningen/issues/1108) | Seizoenen, divisies, beker, Europa, agenda | L | validate | `voetbalseason.js`, `voetbalagenda.js`, `calendarday.js`-haak | 1 |
 | 3 | [#1109](https://github.com/NatusPella/GDE-Groningen/issues/1109) | Ontwikkeling, training, vorm, blessures | M | confirm | `voetbalontwikkeling.js`, `voetbaltraining.js` | 1 |
 | 4 | [#1110](https://github.com/NatusPella/GDE-Groningen/issues/1110) | Carrière-opslag, menu en de start (eerste slice) | M | validate | `voetbalcarriere.js`, `voetbalcarriereui.js`, `pausemenu.js`, `storagekeys.js`, `todoui.js` | 1, 2 (licht) |
 | 5 | [#1111](https://github.com/NatusPella/GDE-Groningen/issues/1111) | Transfers, AI-clubs, managerlaag | L | validate | `voetbaltransfers.js`, `voetbalmanager.js` | 2, 3, 4 |

@@ -4,7 +4,7 @@ import * as THREE from 'three';
 // zijn puur; deze adapter zet plekken en voertuig neer, voedt de regels met snelheid,
 // remvertraging en bochtkracht en vertaalt hun gebeurtenissen naar meldingen, HUD en
 // uitbetaling. Vijf missies: Museumbus (Nationaal Busmuseum), Suikerbieten (Hoogkerk),
-// Herstelploeg (Delfstof Noord, Hogeland), Live bij Radio Noordkust (OOGTV) en Rave in
+// Herstelploeg (Dorpshuis Noord, Hogeland), Live bij Radio Noordkust (OOGTV) en Rave in
 // het Telefoonhuis (te voet, volumeregeling in een paneel).
 import {
   STAD_MISSIES, startStadRonde, stapStadRonde, stadRondeResultaat, STAD_DOELEN, STAD_MELDING, RAVE_LENGTH, raveBand,

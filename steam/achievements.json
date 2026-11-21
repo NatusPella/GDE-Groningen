@@ -778,6 +778,94 @@
       "steamApiNaam": ""
     },
     {
+      "id": "vc_debuut",
+      "titel": "Debuut op het sportpark",
+      "omschrijving": "Speel je eerste wedstrijd in de voetbalcarrière",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VC_DEBUUT",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "vc_doelpunt_terp",
+      "titel": "Eerste doelpunt in de Terpklasse",
+      "omschrijving": "Scoor in de Terpklasse voor je club",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VC_DOELPUNT_TERP",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "vc_basis",
+      "titel": "Basisspeler",
+      "omschrijving": "Word basisspeler van je club",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VC_BASIS",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "vc_promotie",
+      "titel": "Promotie",
+      "omschrijving": "Promoveer met je club naar een hogere klasse",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VC_PROMOTIE",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "vc_kampioen_terp",
+      "titel": "Kampioen van de Terpklasse",
+      "omschrijving": "Word kampioen van de Terpklasse",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VC_KAMPIOEN_TERP",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "vc_beker",
+      "titel": "Bekerwinnaar",
+      "omschrijving": "Win de Dijkbeker",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VC_BEKER",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "vc_kroon",
+      "titel": "Kroonklasse bereikt",
+      "omschrijving": "Speel met je club in de Kroonklasse",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VC_KROON",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "vc_kapitein",
+      "titel": "Kapitein",
+      "omschrijving": "Draag de aanvoerdersband van je club",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VC_KAPITEIN",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "vc_waddenbeker",
+      "titel": "Waddenbeker",
+      "omschrijving": "Win de Waddenbeker met je club",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VC_WADDENBEKER",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "vc_trainer",
+      "titel": "Trainer",
+      "omschrijving": "Word trainer van je club",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VC_TRAINER",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "vc_manager",
+      "titel": "Manager",
+      "omschrijving": "Word manager van je club",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VC_MANAGER",
+      "steamApiNaam": ""
+    },
+    {
       "id": "klim_foutloos",
       "titel": "Niet één keer gevallen",
       "omschrijving": "Klim de toren zonder te vallen",
@@ -1116,7 +1204,7 @@
     {
       "id": "fjord_klaar",
       "titel": "Luik open",
-      "omschrijving": "Draai een dienst met de Fjord Frituur",
+      "omschrijving": "Draai een dienst met de snackwagen",
       "verborgen": false,
       "voorstelApiNaam": "ACH_FJORD_KLAAR",
       "steamApiNaam": ""
@@ -1124,7 +1212,7 @@
     {
       "id": "fjord_goud",
       "titel": "Kon minder",
-      "omschrijving": "Goud in een dienst van de Fjord Frituur",
+      "omschrijving": "Goud in een dienst van de snackwagen",
       "verborgen": false,
       "voorstelApiNaam": "ACH_FJORD_GOUD",
       "steamApiNaam": ""
@@ -1148,7 +1236,7 @@
     {
       "id": "fjord_1000",
       "titel": "Frituurbaron",
-      "omschrijving": "Verdien €1000 met de Fjord Frituur",
+      "omschrijving": "Verdien €1000 met de snackwagen",
       "verborgen": false,
       "voorstelApiNaam": "ACH_FJORD_1000",
       "steamApiNaam": ""
@@ -1311,6 +1399,38 @@
       "omschrijving": "Geef in winkels in totaal €2.500 uit",
       "verborgen": false,
       "voorstelApiNaam": "ACH_UITGAVEN",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "kleding_nieuw",
+      "titel": "Nieuwe look",
+      "omschrijving": "Koop een kledingstuk en doe het meteen aan",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_KLEDING_NIEUW",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "kleding_set",
+      "titel": "Past als gegoten",
+      "omschrijving": "Heb alle stukken van een kledingset in je kast",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_KLEDING_SET",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "kapsel_nieuw",
+      "titel": "Nieuw kapsel",
+      "omschrijving": "Ga naar de kapper en kom er anders uit",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_KAPSEL_NIEUW",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "kleding_kast",
+      "titel": "Hele kast",
+      "omschrijving": "Heb van alle 63 soorten kledingstukken er minstens één",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_KLEDING_KAST",
       "steamApiNaam": ""
     },
     {

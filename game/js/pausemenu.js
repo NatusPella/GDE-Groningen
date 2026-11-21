@@ -13,7 +13,7 @@ import { logoHtml } from './logo.js';
 import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './pausestate.js';
 import { uitlegBlok, zetUitlegGlyph, startUitleg, resetUitlegNietMeer } from './uitleg.js';
 import { PRESET_ORDER, presetLabel, PRESET_HINTS, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
-import { mountMapView, kaartUitlegSluiten, kaartReisPopupSluiten, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
+import { mountMapView, kaartUitlegSluiten, kaartReisPopupSluiten, kaartPlekkaartSluiten, kaartToets, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
 import { mountOnlineInstelling } from './onlineconsentui.js';
 import { renderSamenPanel, requestOpenSamen, samenHubTerug } from './samenpanel.js';
 import { isSoloHost, stopSoloHost } from './coopsolo.js';
@@ -39,6 +39,7 @@ import { renderLoopbaanPanel } from './loopbaanui.js';
 import { renderVisboekPanel } from './visboekui.js';
 import { renderBoerderijPanel, boerderijBegonnen } from './boerderijui.js';
 import { renderBezitPanels } from './bezitui.js';
+import { renderVoetbalPanel } from './voetbalcarriereui.js';
 import { getBoerderij } from './boerderijlive.js';
 import { unseenAchievementCount } from './achievements.js';
 import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer, garageNaarWinkel, turnGarageViewer } from './garageui.js';
@@ -68,7 +69,7 @@ import { isPlayAheadOpen } from './todo.js';
 import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer, selectVerhaalCharacter } from './verhaalui.js';
 import { anyFresh } from './characters.js';
 import { maakRegel, zoekRegels, SOORTEN } from './pausesearch.js';
-import { renderSpullen, disposeSpullenViewer, turnSpullenViewer, spullenClick, spullenFocus, spullenEnter, spullenAnnuleer, zetSpullenZoek, DELEN } from './spullen.js';
+import { renderSpullen, disposeSpullenViewer, turnSpullenViewer, spullenClick, spullenFocus, spullenEnter, spullenAnnuleer, spullenNavigeer, zetSpullenZoek, DELEN } from './spullen.js';
 import { phoneClick, phoneUnread, characterForSender } from './phone.js';
 import { takeNoticeThread } from './phonefeed.js';
 import { getErrorLog, errorReport, clearErrorLog, onErrorLogChange } from './errorlog.js';
@@ -91,6 +92,7 @@ const CONTROL_GROUPS = [
     [['E', 'F'], 'Gebruiken'],
     [['E'], 'Word een duif'],
     [['K'], 'Kusje geven'],
+    [['6'], 'Andere kleren'],
     [['I'], 'Hengelen'],
   ]],
   ['vervoer', 'Vervoer', [
@@ -172,6 +174,7 @@ const CONTROL_LONG = [
     ['Gebruiken', 'Instappen, een winkel in, praten of een bijbaantje beginnen.'],
     ['Word een duif', 'Bij een duivenbord: word een duif.'],
     ['Kusje geven', 'Kusje geven aan Tammo of Tessa.'],
+    ['Andere kleren', 'Te voet: de volgende outfit uit je kast (bewaar ze in de kast thuis of in Spullen, Outfit 1 tot 5). Kost niets en werkt overal.'],
     ['Hengelen', 'Hengelen, aan elk water (ook vanuit een boot die stilligt).'],
   ]],
   ['vervoer', [
@@ -346,7 +349,7 @@ function filterBinds(words) {
 }
 
 // Menu-icoon-id naar betekenisnaam (icons.js, Phosphor, ADR 0041).
-const ICONS = { resume: 'hervat', save: 'opslaan', load: 'laden', restart: 'herstart', help: 'hulp', home: 'thuis', abort: 'stop', bird: 'duif', menu: 'menu', exit: 'uitgang', back: 'terug', next: 'volgende', search: 'zoek', map: 'kaart', overzicht: 'overzicht', todo: 'todo', verhaal: 'verhaal', garage: 'garage', fotos: 'fotos', prestaties: 'prestaties', loopbaan: 'loopbaan', visboek: 'visboek', boerderij: 'boerderij', streken: 'streken', spel: 'spel', settings: 'instellingen', controls: 'besturing', mute: 'geluid_uit', spullen: 'spullen', telefoon: 'telefoon', solo: 'solo', new: 'nieuw', news: 'nieuws', about: 'over', spelers: 'spelers', veroverd: 'veroverd', samen: 'samen', sorteer: 'lijst' };
+const ICONS = { resume: 'hervat', save: 'opslaan', load: 'laden', restart: 'herstart', help: 'hulp', home: 'thuis', abort: 'stop', bird: 'duif', menu: 'menu', exit: 'uitgang', back: 'terug', next: 'volgende', search: 'zoek', map: 'kaart', overzicht: 'overzicht', todo: 'todo', verhaal: 'verhaal', garage: 'garage', fotos: 'fotos', prestaties: 'prestaties', loopbaan: 'loopbaan', visboek: 'visboek', boerderij: 'boerderij', voetbal: 'spel', streken: 'streken', spel: 'spel', settings: 'instellingen', controls: 'besturing', mute: 'geluid_uit', spullen: 'spullen', telefoon: 'telefoon', solo: 'solo', new: 'nieuw', news: 'nieuws', about: 'over', spelers: 'spelers', veroverd: 'veroverd', samen: 'samen', sorteer: 'lijst' };
 // An icon of the pause menu's set for the main menu's items, or '' for an unknown name.
 export const menuIcon = (id, cls = 'ss-ic') => (ICONS[id] ? icon(id, cls) : '');
 const icon = (id, cls = 'pm-ic') => icoon(ICONS[id] || 'vraag', { cls });
@@ -370,6 +373,7 @@ const SECTIONS = [
   // onderdelen onder een ander onderdeel (CHILD), niet los in de rail
   ['visboek', 'Visboek', 'Alle vis van de provincie, van jou'],
   ['boerderij', 'Land en bedrijf', 'Boerderij, percelen, bedrijven en wat te koop is'],
+  ['voetbal', 'Voetbal', 'Je club, selectie, kalender en stand'],
   ['controls', 'Besturing', 'Toetsen en knoppen aanpassen en nalezen'],
   ['streken', 'Cheats', 'Een beetje vals spelen'],
 ];
@@ -386,7 +390,7 @@ const RAIL_GROUPS = [
 ];
 // Onderdelen zonder eigen plek in de rail die onder een ander onderdeel hangen (#430): Vissen en Farmen horen bij Loopbaan
 // (de tegels Bezigheden), de toetsen en knoppen bij Instellingen > Besturing. De rail markeert de ouder; Terug gaat naar de ouder.
-const CHILD = { visboek: 'loopbaan', controls: 'settings' };
+const CHILD = { visboek: 'loopbaan', voetbal: 'loopbaan', controls: 'settings' };
 const PRESTART_SECTIONS = ['spel', 'settings', 'controls'];
 const SUBTABS = {
   verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages']],
@@ -452,7 +456,7 @@ function basisUitlegHtml() {
 const HINTS = {
   overzicht: [[['↑', '↓'], 'kiezen'], [['Enter'], 'ok'], [['Esc'], 'doorgaan', 'resume']],
   todo: [[['↑', '↓'], 'kiezen'], [['Enter'], 'zet als doel'], [['Esc'], BACK, 'back']],
-  map: [[['Klik'], 'plek kiezen'], [['Q', 'E'], 'onderdeel'], [['M'], 'sluiten', 'resume'], [['Esc'], BACK, 'back']],
+  map: [[['Klik'], 'plek kiezen'], [['Q', 'E'], 'andere pagina'], [['M'], 'sluiten', 'resume'], [['Esc'], BACK, 'back']],
   verhaal: [[['↑', '↓'], 'kiezen'], [['Enter'], 'kiezen of bellen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
   spullen: [[['↑', '↓', '←', '→'], 'kiezen'], [['Enter'], 'gebruiken'], [['Q', 'E'], 'soort'], [['Esc'], BACK, 'back']],
   garage: [[['↑', '↓'], 'kiezen'], [['Enter'], 'afleveren of kopen'], [['Q', 'E'], 'soort'], [['Esc'], BACK, 'back']],
@@ -460,6 +464,7 @@ const HINTS = {
   loopbaan: [[['↑', '↓'], 'kiezen'], [['→'], 'naar de actie'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
   visboek: [[['↑', '↓'], 'kiezen'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
   boerderij: [[['↑', '↓'], 'kiezen'], [['Enter'], 'doen'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
+  voetbal: [[['↑', '↓'], 'kiezen'], [['Enter'], 'doen'], [['Esc'], BACK, 'back']],
   fotos: [[['F8'], 'fotomodus'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
   spelers: [[['↑', '↓'], 'kiezen'], [['Enter'], 'roepen of erheen'], [['Esc'], BACK, 'back']],
   streken: [[['↑', '↓'], 'kiezen'], [['Enter'], 'aan of uit'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
@@ -1022,6 +1027,7 @@ export function initPauseMenu(w) {
           <section data-panel="boerderij" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-ach pm-bezit">${subtabsHtml('boerderij', 'Land en bedrijf')}
             <div class="m-main pm-vbody"><div data-of="boerderij" data-sub="overzicht" class="pm-vsub pm-bezit-sub"></div><div data-of="boerderij" data-sub="boerderij" class="pm-vsub pm-ach pm-boerderij"></div><div data-of="boerderij" data-sub="bedrijven" class="pm-vsub pm-bezit-sub"></div><div data-of="boerderij" data-sub="tekoop" class="pm-vsub pm-bezit-sub"></div><div data-of="boerderij" data-sub="snack" class="pm-vsub pm-bezit-sub"></div></div>
           </div></section>
+          <section data-panel="voetbal" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach pm-voetbal"></div></section>
           <section data-panel="fotos" class="pm-panel pm-col" hidden><div class="pm-inner pm-fotos"></div></section>
           <section data-panel="streken" class="pm-panel pm-col" hidden><div class="pm-inner pm-streken"></div></section>
           <section data-panel="spel" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-settings">${spelHtml()}</div></section>
@@ -1353,6 +1359,8 @@ function onKey(e) {
   const t = e.target instanceof Element ? e.target : null;
   // text fields (the searches) have their own keys, Escape included
   if (t && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && !['range', 'checkbox'].includes(t.type)))) return;
+  // de kaartvensters (de uitleg, de reispopup) en de plekkaart hebben het toetsenpatroon van alle kaartpopups (mapview.js kaartToets, 21-11)
+  if (tab === 'map' && kaartToets(e)) return;
   const dir = ARROWS[k];
   if (e.repeat && !dir) return;
   // #915: een open vraag houdt alle andere menutoetsen tegen; alleen Esc, Tab, de pijlen
@@ -1387,9 +1395,13 @@ function onKey(e) {
     if (tab === 'map' && !inRail && e.__gde === 'pad') toggleMapControls(root, t);
     else if (tab === 'map' && !inRail) cycleSection(e.shiftKey ? -1 : 1);
     else tabFocus(e.shiftKey ? -1 : 1);
+  } else if (tab === 'spullen' && (k === 'Home' || k === 'End' || k === 'PageUp' || k === 'PageDown') && t && t.dataset && t.dataset.spul && spullenNavigeer(activePanel(), t, k.toLowerCase())) {
+    consume(e);
   } else if (dir) {
     // de draaitafel van de Garage: links en rechts draaien het model als de
     // focus op het model staat (#610); omhoog/omlaag blijven focus verplaatsen
+    // de galerij van Spullen: pijltjes en D-pad lopen over de tegels (links, rechts, omhoog, omlaag); aan de rand neemt het menu het over
+    if (tab === 'spullen' && t && t.dataset && t.dataset.spul && spullenNavigeer(activePanel(), t, dir)) { consume(e); return; }
     if (tab === 'spullen' && (dir === 'left' || dir === 'right') && t && t.closest && t.closest('[data-spul-stage]') && turnSpullenViewer(dir === 'left' ? -1 : 1)) { consume(e); return; }
     if (tab === 'garage' && (dir === 'left' || dir === 'right') && t && t.closest && t.closest('.gar-stage') && turnGarageViewer(dir === 'left' ? -1 : 1)) { consume(e); return; }
     // the map pans with the arrows (and WASD) unless the rail has focus; staat de focus van een controller op een knop van
@@ -1554,7 +1566,7 @@ function goBack() {
   // het zoekvenster (21-11) gaat voor alles met Escape dicht
   if (findOpen()) { closeFind(); return; }
   // de eenmalige uitleg op de kaart gaat met Escape (en B) eerst weg; de kaart blijft open
-  if (tab === 'map' && (kaartUitlegSluiten() || kaartReisPopupSluiten())) return; // daarna de reispopup (21-11): terug naar de plekkaart
+  if (tab === 'map' && (kaartUitlegSluiten() || kaartReisPopupSluiten() || kaartPlekkaartSluiten())) return; // daarna de reispopup en de plekkaart (21-11): een laag terug per Esc of B
   // Spullen (#1013): een openstaande vraag "Weggooien?" gaat eerst weg met Escape
   if (tab === 'spullen' && spullenAnnuleer(activePanel())) return;
   // Samen spelen (#527): de hub met drie stappen gaat eerst zelf een stap terug, zodat Escape de sessie nooit
@@ -2773,6 +2785,7 @@ function showTab(name, how) {
     renderBoerderijPanel(q('boerderij'), world, closePauseMenu);
     renderBezitPanels({ overzicht: q('overzicht'), bedrijven: q('bedrijven'), tekoop: q('tekoop'), snack: q('snack') }, world);
   }
+  if (name === 'voetbal') renderVoetbalPanel(root.querySelector('[data-panel="voetbal"] .pm-inner'), world, closePauseMenu);
   if (name === 'controls') { const q = root.querySelector('[data-controls-search]'); q.value = ''; filterControls(''); showSubtab('controls', pref.sub.controls || defaultControlsSubtab(document.documentElement.classList.contains('touch-device'))); bindMsg = ''; renderBinds(); }
   if (prev === 'controls' && name !== 'controls') cancelRebind();
   if (name === 'spel') { showSubtab('spel', pref.sub.spel || subsOf('spel')[0][0]); syncControls(); syncSaveButtons(); afterSpelSub(); }

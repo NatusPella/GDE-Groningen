@@ -163,7 +163,7 @@ export default {
           const next = s.nextAt || 0;
           if (s.said < s.lines.length && s.t >= next) {
             const text = s.lines[s.said];
-            const v = lineVoiceFor(world.player.character === 'anita' ? 'Anita' : 'Tammo', text);
+            const v = lineVoiceFor(hoofdspeler(world).character === 'anita' ? 'Anita' : 'Tammo', text);
             if (!v || playLineVoice(v.src, v.dur) || s.t - next > 1.5) {
               c.msg(`Gids: "${text}"`, v ? Math.max(3.2, v.dur + 0.4) : 3.2);
               s.said++;

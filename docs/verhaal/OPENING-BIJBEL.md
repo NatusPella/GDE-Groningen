@@ -4,9 +4,9 @@ Dit is de lijn waar het begin van het verhaal op rust. De tekst staat in `docs/v
 
 ## De zin die het hele spel draagt
 
-> Tessa en Tammo willen de Fjord Frituur een thuis geven. Dat kan alleen als ze op 28 augustus de Noordelijke Snackprijs winnen, en Jelle Terpstra, een Friese snackbaron, koopt alles op wat ze daarvoor nodig hebben.
+> Tessa en Tammo willen de snackwagen een thuis geven. Dat kan alleen als ze op 28 augustus de Noordelijke Snackprijs winnen, en Jelle Terpstra, een Friese snackbaron, koopt alles op wat ze daarvoor nodig hebben.
 
-- **Wat willen ze?** Een eigen frietwagen (de Fjord Frituur) met een vaste plek, en samen blijven.
+- **Wat willen ze?** Een eigen frietwagen (de snackwagen) met een vaste plek, en samen blijven.
 - **Waarom?** Tessa wil na jaren verhuizen eindelijk een thuis (met wielen); Tammo wil bij haar blijven. De bank zei "uw plan is sympathiek".
 - **Wat staat in de weg?** De enige vrije standplaats gaat naar de winnaar van de Snackprijs, en Jelle koopt de rij, de standplaatsen, de jury en uiteindelijk de bal.
 

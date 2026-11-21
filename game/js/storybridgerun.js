@@ -94,7 +94,7 @@ function start(w, view, b) {
   bindKeys();
   playing = { id: b.id, flags: flagStore(view) };
   waitingId = null;
-  w.addMessage(`${KICKERS[b.via] || KICKERS.car}. Backspace slaat over.`, 4);
+  w.addMessage(`${KICKERS[b.via] || KICKERS.car}. {BACKSPACE} slaat over.`, 4);
   playTalk([...extra, ...lines], { id: 'bridge:' + b.id, delay: 1.2, onDone: () => { if (playing && playing.id === b.id) afterTalk(b, view.flags); } });
 }
 

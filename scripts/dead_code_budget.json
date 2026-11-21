@@ -1,4 +1,5 @@
 {
   "wees": 0,
-  "ongebruikt": 119
+  "ongebruikt": 141,
+  "reden": "21-11 na de batches: 187 gemeten; 115 exports die alleen intern gebruikt werden zijn niet-geexporteerd, 68 daarvan door scripts/tests nodig gebleken en hersteld. Resterend: 67 geheel dode exports van nieuwe modules (voetbalcarriere, boot-spawn, minimap, cutscene, streamplanner) en 73 exports die alleen door tests/botscripts worden gebruikt. Mag alleen dalen."
 }

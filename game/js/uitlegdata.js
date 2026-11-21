@@ -82,7 +82,7 @@ export const UITLEG_DATA = Object.freeze({
       { icoon: 'zoek', wijs: 'zoek', animatie: 'geen', tekst: 'Zoek een plek, missie of minigame' },
       { icoon: 'lagen', wijs: 'lagen', animatie: 'geen', tekst: 'Lagen zet kaartonderdelen aan of uit' },
       { icoon: 'plek', animatie: 'geen', tekst: '{LMB} Klik een plek: waypoint of reis erheen' },
-      { icoon: 'kaart', animatie: 'geen', tekst: '{Q} {E} wisselt onderdeel, {M} of {ESC} sluit' },
+      { icoon: 'kaart', animatie: 'geen', tekst: '{M} of {ESC} sluit de kaart' },
     ],
     meer: 'Een tweede klik op het waypoint haalt het weg. Er is er één tegelijk.',
   },

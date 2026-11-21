@@ -54,7 +54,7 @@ export const LEXICON = [
   { id: 'hoving', kind: 'persoon', re: /\bHoving\b|\bbewaarder\b/i, speaker: 'Mevrouw Hoving' },
   { id: 'loketbediende', kind: 'persoon', re: /\bloketbediende\b/i, speaker: 'Loketbediende' },
   { id: 'bert', kind: 'persoon', re: /\bBert\b/, speaker: 'Duivenmelker Bert' },
-  { id: 'fjordfrituur', kind: 'organisatie', re: /\bFjord Frituur\b/, regie: /FJORD FRITUUR|Fjord Frituur/, gloss: /frietwagen|frituur(?!e)/i },
+  { id: 'fjordfrituur', kind: 'organisatie', re: /\bsnackwagen\b/, regie: /TAM & TES|snackwagen/, gloss: /frietwagen|frituur(?!e)/i },
   { id: 'snackprijs', kind: 'evenement', re: /\b(?:Noordelijke )?Snackprijs\b/, gloss: /wedstrijd|beste eierbal|prijs voor de beste/i },
   { id: 'usmemsnacks', kind: 'organisatie', re: /\bUs Mem Snacks\b/ },
   { id: 'kiekdoar', kind: 'organisatie', re: /\bKiekdoar\b/, gloss: /\bstream|\bchat\b|filmt|kijkers|content/i },

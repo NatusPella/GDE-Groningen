@@ -34,7 +34,7 @@ export const CHARACTERS = [
   {
     id: 'anita', name: 'Tessa', speakers: ['Anita'], model: 'anita', always: true,
     role: 'Heeft altijd een plan B. Plan A is ook van haar.',
-    bio: 'Snel, ad rem en de baas van het duo. Droomt van de Fjord Frituur, een blauwe frietwagen, en regelt alles zelf. Een frietwagen is een auto met een luik, en ze heeft geen auto. Komt van het platteland: ze kan boeren en voetballen en zegt dat feitelijk.',
+    bio: 'Snel, ad rem en de baas van het duo. Droomt van de snackwagen, een blauwe frietwagen, en regelt alles zelf. Een frietwagen is een auto met een luik, en ze heeft geen auto. Komt van het platteland: ze kan boeren en voetballen en zegt dat feitelijk.',
     quote: 'Rijden, niet praten.',
     relation: 'De andere helft. Huurde de flat in Paddepoel, met hem als huisgenoot. Leidt, regelt en wint meestal.',
     missions: ['H1', 'H2', 'H6', 'H8', 'H11', 'H13', 'H15', 'H16', 'H18'],
@@ -60,7 +60,7 @@ export const CHARACTERS = [
     role: 'Snackkoning. Fries. Heel tevreden met zichzelf.',
     bio: 'De snackkoning van Us Mem Snacks, in een blauw colbert en met een trekker-limo. Stal de Gouden Eierbal om hem eerlijk te winnen op de Noordelijke Snackprijs. Foar mem.',
     quote: 'Oant sjen op it Ontset!',
-    relation: 'De rival. IJdel en charmant, en eigenlijk een zoon die zijn moeder gelijk wil geven.',
+    relation: 'De rival. IJdel en charmant, en eigenlijk een kleinzoon die zijn oma gelijk wil geven.',
     missions: ['H6', 'H8', 'H9', 'H10', 'H14', 'H17', 'H18'],
   },
   {
@@ -82,7 +82,7 @@ export const CHARACTERS = [
   {
     id: 'mem', name: 'Mem Terpstra', speakers: ['Mem Terpstra', 'Gerda Terpstra', 'Mem'], model: 'mem',
     role: 'Iemand uit Friesland.',
-    bio: 'Gerda Terpstra uit Ljouwert. Werd in 1953 tweede bij de Snackprijs, tegen Trijntje, met de betere eierbal. Wil dat haar zoon ophoudt, en appt Tessa stiekem.',
+    bio: 'Gerda Terpstra uit Ljouwert. Werd in 1953 tweede bij de Snackprijs, tegen Trijntje, met de betere eierbal. Is de oma van Jelle en wil dat hij ophoudt, en appt Tessa stiekem.',
     quote: 'Sjochst? Dat wie alles wat ik woe.',
     relation: 'De "iemand uit Friesland" met wie Tessa appt.',
     missions: ['H8', 'H16', 'H18'],
@@ -233,6 +233,9 @@ export const CHARACTERS = [
   },
 ];
 
+// de oude H-codes (eerste verhaal) naar de stappen van het huidige verhaal (storyarc_nieuw.js STEP_ALIAS): de chips "Samen in" vinden zo hun stap
+const H_TO_STEP = { H1: 'M01', H2: 'M02', H3: 'M01', H4: 'M04', H5: 'M05', H6: 'M06', H7: 'M09', H8: 'M08', H9: 'M14', H10: 'M24', H11: 'M16', H12: 'M08', H13: 'M11', H14: 'M11', H15: 'M12', H16: 'M21', H17: 'M25', H18: 'M26' };
+for (const c of CHARACTERS) if (Array.isArray(c.missions)) c.missions = [...new Set(c.missions.map((h) => H_TO_STEP[h] || h))];
 export const CHARACTER_BY_ID = new Map(CHARACTERS.map((c) => [c.id, c]));
 const BY_SPEAKER = new Map(CHARACTERS.flatMap((c) => c.speakers.map((n) => [n, c.id])));
 

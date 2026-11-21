@@ -163,6 +163,8 @@ export class Player {
     // kissing has its own key (K): E next to a car used to kiss instead of
     // getting in whenever the companion stood close
     if (input.wasPressed('k') && !this.inVehicle && !this.water) this.tryKiss(world);
+    // other clothes (6): the next outfit from the wardrobe, on foot (shops.js cycleOutfit via world.cycleOutfit; clothing.js presets)
+    if (input.wasPressed('6') && !this.inVehicle && !this.water && world.cycleOutfit) world.cycleOutfit(1);
     if (this.crack) {
       const c = this.crack;
       c.t += dt;
@@ -1126,7 +1128,7 @@ export class Player {
       return;
     }
     const [ax, ay] = input.axis();
-    // race countdown (world.startLockUntil) or a Fjord Frituur shift (v.shiftParked):
+    // race countdown (world.startLockUntil) or a snackwagen shift (v.shiftParked):
     // engine idles, handbrake on, no creeping over the line
     const held = !!v.shiftParked || (!!world && world.startLockUntil > world.time);
     const throttle = v.disabled || held ? 0 : ay < 0 ? 1 : ay > 0 ? -1 : 0;

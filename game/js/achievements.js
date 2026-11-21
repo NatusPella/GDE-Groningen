@@ -19,8 +19,11 @@ import { isOverlayHeld } from './overlayhold.js';
 import { zones, P3 } from './hudrules.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 import { getSettings } from './settings.js';
+import { SHOP_ITEMS } from './clothingdata.js';
 import { planPrestatie, queueStep, verblijfS, samenvattingTekst, balkTekst } from './achievementunlock.js'; // de prestatie als moment (wens 21-11)
 import { calmState, tikGetal } from './dsmicro.js';
+import { runNoticeTimer } from './melding.js'; // het gedeelde aflopende balkje van alle meldingen
+import { toClass } from './noticetiming.js';
 import { cleanDifficulty, DIFFICULTY_MODES } from './difficulty.js'; // #800: missierecords per stand
 
 const KEY = KEYS.achievements;
@@ -30,6 +33,7 @@ export const EIERBAL_TOTAL = 30;
 // De buurten van de stad (stad.json meta.neighbourhoodPoints): één bron voor de prestatie en
 // de teller in Prestaties, zodat het cijfer niet stil gaat liegen als de kaart groeit.
 export const WIJKEN_TOTAL = 66;
+const KLEDING_SOORTEN = SHOP_ITEMS.length; // de kledingsoorten in de winkel (clothingdata.js)
 
 export const CATEGORIES = [
   ['missies', 'Missies'],
@@ -157,6 +161,17 @@ export const ACHIEVEMENTS = [
   { id: 'voetbal_winst', cat: 'verkennen', title: 'Winst in de Euroborg', desc: 'Win een voetbalwedstrijd vijf tegen vijf in de Euroborg' },
   { id: 'voetbal_hattrick', cat: 'verkennen', title: 'Hattrick op het Euroborggras', desc: 'Scoor drie keer in één voetbalwedstrijd', medal: true },
   { id: 'voetbal_kampioen', cat: 'verkennen', title: 'Kampioen van de Euroborg', desc: 'Word kampioen in de voetbalcompetitie van de Euroborg', medal: true },
+  { id: 'vc_debuut', cat: 'verkennen', title: 'Debuut op het sportpark', desc: 'Speel je eerste wedstrijd in de voetbalcarrière' },
+  { id: 'vc_doelpunt_terp', cat: 'verkennen', title: 'Eerste doelpunt in de Terpklasse', desc: 'Scoor in de Terpklasse voor je club' },
+  { id: 'vc_basis', cat: 'verkennen', title: 'Basisspeler', desc: 'Word basisspeler van je club' },
+  { id: 'vc_promotie', cat: 'verkennen', title: 'Promotie', desc: 'Promoveer met je club naar een hogere klasse' },
+  { id: 'vc_kampioen_terp', cat: 'verkennen', title: 'Kampioen van de Terpklasse', desc: 'Word kampioen van de Terpklasse' },
+  { id: 'vc_beker', cat: 'verkennen', title: 'Bekerwinnaar', desc: 'Win de Dijkbeker' },
+  { id: 'vc_kroon', cat: 'verkennen', title: 'Kroonklasse bereikt', desc: 'Speel met je club in de Kroonklasse' },
+  { id: 'vc_kapitein', cat: 'verkennen', title: 'Kapitein', desc: 'Draag de aanvoerdersband van je club' },
+  { id: 'vc_waddenbeker', cat: 'verkennen', title: 'Waddenbeker', desc: 'Win de Waddenbeker met je club' },
+  { id: 'vc_trainer', cat: 'verkennen', title: 'Trainer', desc: 'Word trainer van je club' },
+  { id: 'vc_manager', cat: 'verkennen', title: 'Manager', desc: 'Word manager van je club' },
   { id: 'klim_foutloos', cat: 'verkennen', title: 'Niet één keer gevallen', desc: 'Klim de toren zonder te vallen' },
   { id: 'ski_klaar', cat: 'verkennen', title: 'Achter de boot', desc: 'Skie een ronde bij het Grunopark' },
   { id: 'ski_goud', cat: 'verkennen', title: 'Koning van het meer', desc: 'Haal goud bij het waterskiën', medal: true },
@@ -196,7 +211,7 @@ export const ACHIEVEMENTS = [
   // description is the arrival line of the place (beppe_texts.js)
   { id: 'goed_eten', cat: 'verkennen', title: 'Goed eten', desc: HOUSE_ARRIVAL.body, hidden: true },
 
-  // post-game (postgame.js): Jelle's challenges and the Fjord Frituur
+  // post-game (postgame.js): Jelle's challenges and the snackwagen
   { id: 'bruggen_klaar', cat: 'nahetverhaal', title: 'Elf bruggen', desc: 'Vaar de Elf Bruggenrace tegen Jelle uit' },
   { id: 'bruggen_goud', cat: 'nahetverhaal', title: 'Brêgekening', desc: 'Goud bij de Elf Bruggenrace', medal: true },
   { id: 'fierljep_klaar', cat: 'nahetverhaal', title: 'Polsstokhoogte', desc: 'Land een sprong bij het fierljep-duel' },
@@ -204,11 +219,11 @@ export const ACHIEVEMENTS = [
   { id: 'skutsje_klaar', cat: 'nahetverhaal', title: 'Wind in de zeilen', desc: 'Zeil de skûtsje-sprint tegen Jelle uit' },
   { id: 'skutsje_goud', cat: 'nahetverhaal', title: 'Skûtsjekening', desc: 'Goud bij de skûtsje-sprint', medal: true },
   { id: 'jelle_alles', cat: 'nahetverhaal', title: 'Better as ús', desc: 'Versla Jelle in alle drie de uitdagingen' },
-  { id: 'fjord_klaar', cat: 'nahetverhaal', title: 'Luik open', desc: 'Draai een dienst met de Fjord Frituur' },
-  { id: 'fjord_goud', cat: 'nahetverhaal', title: 'Kon minder', desc: 'Goud in een dienst van de Fjord Frituur', medal: true },
+  { id: 'fjord_klaar', cat: 'nahetverhaal', title: 'Luik open', desc: 'Draai een dienst met de snackwagen' },
+  { id: 'fjord_goud', cat: 'nahetverhaal', title: 'Kon minder', desc: 'Goud in een dienst van de snackwagen', medal: true },
   { id: 'koe_klaar', cat: 'nahetverhaal', title: 'Geertje is thuis', desc: 'Breng de prijskoe van Ome Jan terug naar zijn boerderij' },
   { id: 'koe_goud', cat: 'nahetverhaal', title: 'Koeienfluisteraar', desc: 'Goud bij De Koe van Ome Jan', medal: true },
-  { id: 'fjord_1000', cat: 'nahetverhaal', title: 'Frituurbaron', desc: 'Verdien €1000 met de Fjord Frituur', stat: 'fjordEarned', goal: 1000, unit: '€' },
+  { id: 'fjord_1000', cat: 'nahetverhaal', title: 'Frituurbaron', desc: 'Verdien €1000 met de snackwagen', stat: 'fjordEarned', goal: 1000, unit: '€' },
 
   { id: 'trein_stations', cat: 'spoor', title: 'Alle haltes af', desc: 'Stap uit op 5 verschillende stations of haltes', set: 'trainStations', goal: 5 },
   { id: 'trein_dorp', cat: 'spoor', title: 'Dorpsstation', desc: 'Reis met de trein naar een dorpshalte', hidden: true },
@@ -231,6 +246,10 @@ export const ACHIEVEMENTS = [
   { id: 'schroefje', cat: 'sociaal', title: 'Eén schroefje te weinig', desc: 'Zet de Buukenkaas zelf in elkaar', hidden: true },
   { id: 'spaarkaart', cat: 'sociaal', title: 'Stempeltje erbij', desc: 'Lever een volle spaarkaart in bij Rook & Geluk', stat: 'stampCards', goal: 1 },
   { id: 'uitgaven', cat: 'sociaal', title: 'Geld moet rollen', desc: 'Geef in winkels in totaal €2.500 uit', stat: 'spent', goal: 2500, unit: '€' },
+  { id: 'kleding_nieuw', cat: 'sociaal', title: 'Nieuwe look', desc: 'Koop een kledingstuk en doe het meteen aan', set: 'kledingStukken', goal: 1 },
+  { id: 'kleding_set', cat: 'sociaal', title: 'Past als gegoten', desc: 'Heb alle stukken van een kledingset in je kast', set: 'kledingSets', goal: 1 },
+  { id: 'kapsel_nieuw', cat: 'sociaal', title: 'Nieuw kapsel', desc: 'Ga naar de kapper en kom er anders uit', set: 'kapsels', goal: 1 },
+  { id: 'kleding_kast', cat: 'sociaal', title: 'Hele kast', desc: `Heb van alle ${KLEDING_SOORTEN} soorten kledingstukken er minstens één`, set: 'kledingItems', goal: KLEDING_SOORTEN },
 
   { id: 'eierbal_1', cat: 'verzamelen', title: 'Eerste eierbal', desc: 'Vind een verstopte eierbal', save: 'eierballen', goal: 1 },
   { id: 'eierbal_15', cat: 'verzamelen', title: 'Halve portie', desc: `Vind 15 van de ${EIERBAL_TOTAL} eierballen`, save: 'eierballen', goal: 15 },
@@ -319,6 +338,7 @@ let toastEl = null;
 let toastQueue = [];
 let toastUntil = 0;
 let toastTimer = 0;
+let toastMeld = null; // melding.js: het balkje en de timer van de kaart die nu staat
 let toastBurst = 0;      // hoeveelste prestatiekaart van deze reeks (0 = de eerste: een volle kaart; queueStep)
 let momentTimers = [];   // geluid, balk, teller en glans van de kaart die nu staat
 
@@ -810,7 +830,7 @@ function ensureToast() {
   style.textContent = CSS + CSS_EXTRA;
   document.head.appendChild(style);
   toastEl = document.createElement('div');
-  toastEl.className = 'ach-toast ds-mi-in';
+  toastEl.className = 'ach-toast ds-mi-in ds-melding';
   toastEl.setAttribute('role', 'status');
   toastEl.setAttribute('aria-live', 'polite');
   hud.appendChild(toastEl);
@@ -903,13 +923,22 @@ function showNextToast() {
   if (plan.impact) momentTimers.push(...momentStappen(el, plan));
   toastUntil = 1;
   if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    wisMomentTimers();
-    el.classList.remove('on', 'ds-moment-stempel');
-    el.classList.add('out');
-    zones.vacate('E', 'ach');
-    toastTimer = setTimeout(() => { if (!toastQueue.length) toastBurst = 0; showNextToast(); }, 450);
-  }, verblijfS(toastDuur(samen ? samen.titel : a.title, tekst), stap.variant) * 1000);
+  if (toastMeld) toastMeld.stop();
+  // De kaart houdt zijn eigen moment (ds-micro.css) en krijgt het gedeelde aflopende balkje (melding.js): de tijd staat stil bij
+  // pauze, menu, film en als de muis erboven staat. De duur is een gedeelde klas (4 / 6 / 9 / 10 s).
+  toastMeld = runNoticeTimer(el, {
+    duur: toClass(verblijfS(toastDuur(samen ? samen.titel : a.title, tekst), stap.variant)),
+    soort: 'donker',
+    hover: true,
+    staat: () => !!(world && (world.paused || world.uiPaused)),
+    onKlaar: () => {
+      wisMomentTimers();
+      el.classList.remove('on', 'ds-moment-stempel');
+      el.classList.add('out');
+      zones.vacate('E', 'ach');
+      toastTimer = setTimeout(() => { if (!toastQueue.length) toastBurst = 0; showNextToast(); }, 450);
+    },
+  });
 }
 
 // De timers van het moment (geluid, balk, teller, glans): bij een nieuwe kaart of het vertrek allemaal weg.

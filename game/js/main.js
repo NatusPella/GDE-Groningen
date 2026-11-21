@@ -77,7 +77,7 @@ import { updateTrafficLaw } from './trafficlaw.js';
 import { updateOffences } from './offences.js';
 import { updateMotorPolice } from './motorpolice.js';
 import { initMissions, updateMissions } from './missions.js';
-import { initStory, updateStory, currentStep, storyBridgeView } from './story.js';
+import { initStory, updateStory, currentStep, storyBridgeView, storyGateProgress } from './story.js';
 import { updateStoryBridge } from './storybridgerun.js';
 import { updateTerugkeer } from './terugkeerrun.js';
 import { updateRecap, isRecapOpen } from './recapcardrun.js';
@@ -161,6 +161,8 @@ import { gateOn, setGate } from './coopgate.js';
 import { updateGastLokaal } from './coopgastlokaal.js';
 import { initDayNight, updateDayNight, refreshDayNight, DAY_LENGTH_S } from './daynight.js';
 import { initCalendar, updateCalendar, today as calendarToday } from './calendarday.js';
+import { loadParkData as loadVoetbalParken, updateDay as updateVoetbalDag, updateBeats as updateVoetbalBeats, zetBezigProbe as zetVoetbalBezig } from './voetbalcarrierelive.js';
+import { cardsBusy as voetbalCardsBusy } from './hudcards.js';
 import { updateFx3D } from './fx3d.js';
 import { updateGore3D } from './gore3d.js';
 import { updateKnockFx3D } from './knockfx3d.js';
@@ -197,6 +199,7 @@ import { initPostgame, updatePostgame, tryPostgameInteract } from './postgame.js
 import { initStationTravel, tryStationInteract } from './stationtravel.js';
 import { initOmmelandFun, updateOmmelandFun, tryOmmelandInteract } from './ommelandfun.js';
 import { BEPPE_KIND } from './beppe_garden.js';
+import { INTERIOR_KIND } from './interiors.js'; // echt binnen lopen door de voordeur van panden (#1150)
 import { tryAaien, updateAaien } from './aaien.js';
 import { tryControle, updateControle } from './kaartjescontrole.js';
 import { registerActivityKind, initActivityKinds, interactActivityKinds, tickActivityKinds } from './activityhub.js';
@@ -213,7 +216,6 @@ import { updateFarmWorkers } from './farmworkers3d.js';
 import { updateSnackWagens } from './snackvans3d.js';
 import { updateHerds } from './herdview3d.js';
 import { setGateProgress } from './bezitgate.js';
-import { progressFrom } from './unlockgate.js';
 import { updateBezitMarkers } from './bezitmarker3d.js';
 import { BOERDERIJ_WERELD_KIND } from './boerderijwereld.js';
 import { probe } from './hitchprobe.js';
@@ -283,6 +285,7 @@ registerActivityKind(reklameTaxiKind);
 registerActivityKind(shopSignKind);
 registerActivityKind({ id: 'ommeland', initPhase: 'early', init: initOmmelandFun, slot: 'uitje', interact: tryOmmelandInteract, tickPhase: 'late', tick: updateOmmelandFun });
 registerActivityKind(BEPPE_KIND); // het eerbetoonbankje aan de westgrens (#832)
+registerActivityKind(INTERIOR_KIND); // panden die je te voet kunt betreden: winkels, cafés, huizen, kerken ... (#1150)
 registerActivityKind({ id: 'aaien', slot: 'uitje', interact: tryAaien, tickPhase: 'world', tick: updateAaien });
 registerActivityKind({ id: 'kaartjes', slot: 'uitje', interact: tryControle, tickPhase: 'world', tick: updateControle });
 
@@ -792,6 +795,8 @@ async function boot() {
   const landData = corLayer && corLayer.global ? loadLandData('world/', corLayer.global.landFile) : null;
   const facilities = loadFacilities('stad.json');
   const shopPlaces = loadShopPlaces('stad.json');
+  loadVoetbalParken(); // de voetbalparken voor de carrière (#1117, klein, een terugval zonder)
+  zetVoetbalBezig(voetbalCardsBusy);
   const map = tiles ? tiles.world : await withDeadline(loadMap('stad.json', onMapProgress), MAP_LOAD_MS, 'kaart laden');
   tileWorldStats = tiles ? tiles.store : null;
   markLoad('map');
@@ -944,7 +949,7 @@ window.__debug = { player, map, input, world, frameStats };
   initOmverrijden(world);
   initBezit();
   // de gedeelde ontgrendelpoort (unlockgate.js): zolang de save geen `gate` heeft (world.gate) staat alles open (migratieregel van de verhaal-epic)
-  setGateProgress(() => { const st = currentStep(); return progressFrom({ stepId: st ? st.id : null, gate: world.gate }); });
+  setGateProgress(() => storyGateProgress());
   initBoerderij();
   initSafety(world);
   initCheats(world);
@@ -1487,6 +1492,8 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     boerderijTijd(world); // de gewassen groeien in speltijd (#415)
     try { const dr = bezitDagTik(world); if (dr) bezitDeliverLine(world, bezitOnDayReport(getBezit(), dr)); updateBezitMarkers(world, dt); updateFarmWorkers(world, dt); updateSnackWagens(world, dt); updateHerds(world, dt); } catch (e) { /* zonder bezit */ } // personeel, pacht, vee en bedrijven per speldag; de palen in de wereld (epic Bezit)
     updateCalendar(dt, world);
+    updateVoetbalDag(dt, world); // de nachten van de voetbalcarrière (#1110): zelfde signaal als de kalender, eigen teller
+    updateVoetbalBeats(dt, world);
     updateCheats(dt, world);
     updateRegioLeven(dt, world);
     updateAchievementTracker(dt, world);

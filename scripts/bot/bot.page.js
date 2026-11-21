@@ -668,7 +668,7 @@ async function boardStage(s, stepKey) {
   mem.board = mem.board || {};
   // in a vehicle that is not the mission's own (a bike, last mission's car): out first, then the right one
   const inWrong = !!s.player.vehicle && !s.player.vehicle.mission;
-  // #312: een board-stage met een specifiek voertuig (quad, trekker-limo, Fjord Frituur): kies op
+  // #312: een board-stage met een specifiek voertuig (quad, trekker-limo, snackwagen): kies op
   // soort/model/naam als de run dat vraagt, anders blijft de dichtstbijzijnde van pickVehicle gelden.
   const stagePick = !inWrong && Bd.pickStageVehicle && CFG.stageVehicle ? Bd.pickStageVehicle(s, CFG.stageVehicle, mem.board) : null;
   const pick = inWrong ? null : (stagePick && stagePick.vehicle ? stagePick : Bd.pickVehicle(s, mem.board));
@@ -1171,7 +1171,7 @@ while (true) {
       if (mem.cvBack != null && worstI >= 0) { aim = { x: members[worstI].x, y: members[worstI].y, distance: gaps[worstI] }; top = 8; }
       if (ticks % 20 === 0) B.log('colonne', { gaps: gaps.map(Math.round), top: Math.round(top * 10) / 10 });
     }
-    // a chase: the fleeing car cruises at 14 and runs at 28, the Fjord Frituur can do 50 (#354)
+    // a chase: the fleeing car cruises at 14 and runs at 28, the snackwagen can do 50 (#354)
     // (far behind it, on a long run through a village like M14's 8 km, 36 m/s ended in a crash and a burning car: 26 until it is within 150 m)
     if (s.mission.stage === 'chase' && s.player.vehicle && !s.player.vehicle.boat) top = Math.max(top, s.target.distance < 150 ? 36 : 26);
     if (act.stunt && s.player.vehicle) {
@@ -1291,7 +1291,7 @@ while (true) {
       wedgeOut = false;
       B.log('klem', { x: s.player.x, y: s.player.y });
       wedgeDir = -wedgeDir;
-      // a car nose-first against a wall or kerb (M26: the Fjord Frituur on the pavement): back out longer and steer harder each time, then a forward arc the other way
+      // a car nose-first against a wall or kerb (M26: the snackwagen on the pavement): back out longer and steer harder each time, then a forward arc the other way
       mem.wedges = (s.t - (mem.wedgeAt || -99) < 25 ? (mem.wedges || 0) : 0) + 1; mem.wedgeAt = s.t;
       B.stick(0.9 * wedgeDir, 1);
       await sleep(1300 + 600 * Math.min(5, mem.wedges));

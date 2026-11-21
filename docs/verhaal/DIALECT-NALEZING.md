@@ -82,7 +82,7 @@ Nieuwe dialectregels: zet ze hier neer voor ze in het script komen. Schrijf de s
 | Dat was de oefening. | Dat was de oefening. |
 | Dat wist de hele flat nu ook. | Dat wust de hele flat nou ook. |
 | De Dorpsweg is afgezet. Via de wierdepaden dan: bulten en gaten. Rustig aan. | De Dorpsweg is afzet. Via de wierdepaden dan: bulten en gaten. Rustig aan. |
-| De Fjord Frituur staat open. Iedereen eet eierballen op de wal. | De Fjord Frituur stait open. Iedereen et eierballen op de wal. |
+| De snackwagen staat open. Iedereen eet eierballen op de wal. | De snackwagen stait open. Iedereen et eierballen op de wal. |
 | De accountmanager belt een collega. Nu snel naar de serverkamer. | De accountmanager belt n collega. Nou snel noar de serverkamer. |
 | De auto blijft bij de sluis, Lammert regelt de rest. Wij gaan te voet verder. | De auto blift bie de sluus, Lammert regelt de rest. Wie goan te voet verder. |
 | De derde deur. De bal blijft hier. | De darde deur. De bal blift hier. |

@@ -34,7 +34,7 @@ tekens heeft: "GDE Groningen - Zomer vol misdaad" met een gewoon streepje.
 
 **NL** (237 tekens):
 
-> Twee net afgestudeerden zonder werk of geld willen de Gouden Eierbal stelen voor een frietwagen. Een gratis open-wereld misdaadparodie in de echte straten van Groningen: auto's jatten, de ring rond, kermis, kroegen en een Fries met een plan. Woist ja wel.
+> Ontdek jezelf in Grunn. Twee net afgestudeerden zonder werk of plan zoeken een plekje in de wereld, en raken verwikkeld in de diefstal van de Gouden Eierbal. Een gratis open-wereld misdaadparodie in de echte straten van Groningen: auto's jatten, de ring rond, kermis, kroegen en een Fries met een plan. Woist ja wel.
 
 **EN** (255 tekens):
 
@@ -53,7 +53,7 @@ Afbeeldingen in de beschrijving (`[img]`) kunnen later; ze moeten eerst als
 
 ```
 [h2]Een zomer in Grunn[/h2]
-Augustus. KEI-week, Noorderzon, kermis op de Grote Markt en aan het eind Gronings Ontzet. Tammo en Tessa hebben samen precies genoeg geld voor een patatje. Tessa wil een frietwagen. Tammo wil Tessa, maar dat zegt hij niet. Al sinds de studie niet.
+Augustus. KEI-week, Noorderzon, kermis op de Grote Markt en aan het eind Gronings Ontzet. Tammo en Tessa hebben samen precies genoeg geld voor een patatje. Tessa weet nog niet wat ze wil. Tammo wil Tessa, maar dat zegt hij niet. Al sinds de studie niet.
 
 Dan ligt de [b]Gouden Eierbal[/b], de wisseltrofee van de Noordelijke Snackprijs, ineens niet meer in het museum. En er rijdt een Friese snackkoning met een trekker-limo door de binnenstad.
 
@@ -145,11 +145,11 @@ The city is built from OpenStreetMap: the real streets, canals, bridges and buil
 | Auto, brommer, fiets, boot, skûtsje, trein, helikopter en duif | Car, moped, bike, boat, sailing barge, train, helicopter and pigeon |
 | Zes bijbaantjes en minigames op de kermis | Six side jobs and fairground minigames |
 | De stad en het Ommeland, met dag, nacht en zomerweer | The city and the countryside, with day, night and summer weather |
-| 225 prestaties in het spel | 224 in-game achievements |
+| 240 prestaties in het spel | 239 in-game achievements |
 | Controller, Steam Deck, vrij in te delen toetsen | Controller and Steam Deck support, rebindable controls |
 | Gratis, offline, geen aankopen, geen account of tracking | Free, offline, no purchases, no account or tracking |
 
-(De 225 prestaties (23 verborgen) zitten in de game; Steam-achievements zijn er nog niet:
+(De 240 prestaties (23 verborgen) zitten in de game; Steam-achievements zijn er nog niet:
 de tabel staat klaar in `steam/achievements.json`, maar het spel heeft geen
 Steam-koppeling. Noem "Steam Achievements" pas als die er zijn.)
 

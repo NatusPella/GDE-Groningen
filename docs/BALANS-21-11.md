@@ -69,3 +69,7 @@ winkels blijven staan.
 Niets in beeld bekeken. De sim is een model met geschatte tijden, geen gemeten speelsessie: een speeltest met de
 spelbot of een mens moet bevestigen dat de jacht ongeveer twee uur kost. Bij een afwijking van meer dan een kwart past
 het bedrag mee (`economie_sim_test.mjs` bewaakt dat de verhouding 1,2 tot 2 blijft).
+
+## Samen spelen
+
+De balans rekent per speler: loon, prijzen en beloningen zijn voor iedereen gelijk en wie het spel opende heeft geen voordeel. Elke deelnemer van een opdracht krijgt de volledige beloning (`coopbeloning.js`); de groepsbonus van ADR 0020 komt per deelnemer erbovenop en is begrensd op drie keer (`groepsbonus.js`), dus twee spelers verdienen samen meer dan alleen maar niet oneindig veel meer. De economiesimulatie (`economie_sim_test.mjs`) rekent met één speler; een sessie met meer spelers is door de groepsbonus in de richting van 1,5 keer sneller, en dat valt binnen de kwartmarge hierboven. Dit is nog niet in een echte sessie gemeten.

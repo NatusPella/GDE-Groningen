@@ -6,7 +6,7 @@
 // 56 px hoge rijen), alle kleuren komen uit de tokens met een terugval (--ink, --g,
 // --redtx, --line2, --mk-*), en er staat geen tekst meer onder 13 px in.
 import { icoon } from './icons.js';
-import { keyTextHtml } from './keycap.js';
+import { dsButtonKey, knopToets, KNOP_TOETSEN } from './dsbutton.js';
 import { KAART_UITLEG, GAST_UITLEG, HIER_TITEL, HIER_HINT, legendaRegels } from './kaartactie.js';
 import { uitlegBlok as iconenBlok } from './uitleg.js';
 
@@ -16,21 +16,29 @@ const svg = (naam) => icoon(naam, { maat: 'l' });
 // de drie knoppen; stap: de actie die nu is uitgeklapt (reis of info)
 export function actiesHtml(model, stap) {
   return '<div class="mv-acties" role="group" aria-label="Wat wil je met deze plek?">' + model.acties.map((a) =>
-    `<button type="button" class="mv-actie${a.id === stap ? ' open' : ''}" data-card="${a.id}"${a.disabled ? ' aria-disabled="true"' : ''}${a.id === 'reis' ? ' aria-haspopup="dialog"' : a.id === 'info' ? ` aria-expanded="${a.id === stap}"` : ''}>` +
-      `${svg(a.icoon)}<span class="mv-at"><span class="mv-al">${esc(a.label)}</span><small>${esc(a.sub)}</small></span></button>`).join('') + '</div>';
+    `<button type="button" class="mv-actie${a.id === stap ? ' open' : ''}" data-card="${a.id}"${a.toets ? ` data-key="${esc(a.toets)}" aria-keyshortcuts="${esc(a.toets)}"` : ''}${a.disabled ? ' aria-disabled="true"' : ''}${a.id === 'reis' ? ' aria-haspopup="dialog"' : a.id === 'info' ? ` aria-expanded="${a.id === stap}"` : ''}>` +
+      `${svg(a.icoon)}<span class="mv-at"><span class="mv-al">${esc(a.label)}</span><small>${esc(a.sub)}</small></span>${knopToets(a.toets, { rechts: true })}</button>`).join('') + '</div>';
 }
 
-// de reiskeuze: een rij per keuze met een zin, de kosten, de duur en 'aanbevolen'
+// Sluiten van de plekkaart: een knop met de Esc-toets erin (de B-knop van een controller), zoals alle knoppen in kaartpopups (21-11).
+export function sluitHtml() {
+  return `<div class="mv-btns">${dsButtonKey({ label: 'Sluiten', toets: KNOP_TOETSEN.terug, klasse: 'ds-z-knop ds-z-knop--secundair mv-sluit', attrs: 'data-card="close"' })}</div>`;
+}
+
+// de reiskeuze: een rij per vervoerswijze met icoon, een zin, de kosten, de duur, 'aanbevolen', de reden als het niet kan en de cijfertoets in de rij zelf.
+// Zelf gaan is geen rij meer: dat is Zet waypoint (21-11).
 export function reisHtml(rijen, gekozen, kleur = {}) {
   const rij = (r) => {
-    const sel = r.soort === 'snel' && r.id === gekozen;
-    const attr = r.soort === 'zelf' ? 'data-card="zelf"' : `data-card="kies:${esc(r.id)}"`;
+    const sel = r.id === gekozen && !r.geenRoute;
     const st = kleur[r.id] ? ` style="border-left-color:${esc(kleur[r.id])}"` : '';
-    return `<button type="button" class="mv-keuze${sel ? ' sel' : ''}" ${attr}${r.disabled ? ' aria-disabled="true"' : ''}${st}>` +
-      `<span class="mv-kk"><span class="mv-kl">${esc(r.label)}</span>${r.aanbevolen ? '<i class="mv-aanb">aanbevolen</i>' : ''}</span>` +
-      `<span class="mv-ku">${esc(r.uitleg)}</span><span class="mv-kd">${esc(r.kosten)} · ${esc(r.duur)}${r.disabled ? ` · ${esc(r.disabled)}` : ''}</span></button>`;
+    const toets = r.toets ? ` data-key="${esc(r.toets)}" aria-keyshortcuts="${esc(r.toets)}"` : '';
+    const feiten = [r.kosten, r.duur, r.disabled].filter(Boolean).map(esc).join(' · ');
+    return `<button type="button" class="mv-keuze${sel ? ' sel' : ''}${r.disabled ? ' uit' : ''}" data-card="kies:${esc(r.id)}"${toets}${r.disabled ? ' aria-disabled="true"' : ''}${sel ? ' aria-pressed="true"' : ''}${st}>` +
+      `<span class="mv-ki" aria-hidden="true">${icoon(r.icoon, { maat: 'l' })}</span>` +
+      `<span class="mv-kt"><span class="mv-kk"><span class="mv-kl">${esc(r.label)}</span>${r.aanbevolen ? '<i class="mv-aanb">aanbevolen</i>' : ''}</span>` +
+      `${r.uitleg ? `<span class="mv-ku">${esc(r.uitleg)}</span>` : ''}<span class="mv-kd">${feiten}</span></span>${knopToets(r.toets, { rechts: true })}</button>`;
   };
-  return `<div class="mv-reiskeuze"><p class="mv-uit">Kies hoe je gaat. Snel reizen kost tijd en geld; Zelf gaan zet een waypoint.</p>${rijen.map(rij).join('')}</div>`;
+  return `<div class="mv-reiskeuze" role="group" aria-label="Hoe wil je reizen?"><p class="mv-uit">Kies hoe je reist. Liever zelf gaan? Zet dan een waypoint.</p>${rijen.map(rij).join('')}</div>`;
 }
 
 export function infoHtml(regels) {
@@ -48,29 +56,24 @@ export function uitlegHtml({ gast = false } = {}) {
   const lijst = '<ul class="ds-z-kaart__tekst mv-help-regels">' + regels.map((l) => `<li>${esc(l)}</li>`).join('') + '</ul>';
   return `<div class="mv-help" role="dialog" aria-modal="true" aria-labelledby="mv-help-t" data-gast="${gast ? 1 : 0}">` +
     '<div class="ds-zeef ds-z-kaart ds-z-kaart--recht mv-help-box"><div class="ds-z-kaart__kop mv-help-head"><h2 id="mv-help-t" class="ds-z-kaart__titel">Zo werkt de kaart</h2></div>' +
-    // #989: eerst de rijen met icoon; de volledige regels blijven in 'Meer uitleg' staan (uit in Instellingen = alleen de regels)
-    (iconen ? iconen + '<details class="ds-uitleg__meer mv-help-meer"><summary>Meer uitleg</summary>' + lijst + '</details>' : lijst) +
-    '<div class="mv-help-foot"><button type="button" class="ds-z-knop mv-help-ok" data-act="uitleg-sluit">Begrepen</button>' +
-    '<span class="mv-help-toets ds-toetsregel" aria-hidden="true">' + keyTextHtml('{ENTER}') + '</span></div>' +
-    '<p class="mv-help-hulp">Terug te vinden onder Instellingen › Besturing › Hulp.</p></div></div>';
+    // #989: de rijen met icoon (uit in Instellingen, geen iconen = alleen de regels); een gast leest de Samen spelen-regel als zin eronder
+    (iconen || lijst) + (gast && iconen ? `<p class="ds-z-kaart__tekst mv-help-gast">${esc(GAST_UITLEG)}</p>` : '') +
+    `<div class="mv-help-foot">${dsButtonKey({ label: 'Begrepen', toets: KNOP_TOETSEN.bevestig, klasse: 'ds-z-knop mv-help-ok', attrs: 'data-act="uitleg-sluit"' })}</div></div></div>`;
 }
 
-// De reiskeuze als eigen popup (21-11): de plekkaart blijft compact, 'Reis erheen' opent dit venster. Dezelfde rijen als reisHtml, de
-// kosten en duur per keuze, de reden als reizen niet kan (gast, te weinig geld, geen verbinding) en onderaan Reis nu (Enter) en Terug (Esc).
+// De reiskeuze als eigen popup (21-11): de plekkaart blijft compact, 'Reis erheen' opent dit venster. Een rij per vervoerswijze (trein, bus,
+// taxi, boot) met kosten, duur en de reden als het niet kan (gast, te weinig geld, geen verbinding); onderaan Reis nu (Enter, A) en Terug (Esc, B)
+// met de toets IN de knop, en elke rij draagt zijn cijfertoets. Zelf gaan is er niet: dat is Zet waypoint op de plekkaart.
 // model: { naam, afstand, rijen, gekozen, kleur, gast, melding, reis: { label, uitgeschakeld, reden } | null }
 export function reisPopupHtml(m) {
   const rijen = m.rijen && m.rijen.length ? reisHtml(m.rijen, m.gekozen, m.kleur || {}) : '';
   const reden = m.melding ? `<p class="ds-z-kaart__tekst mv-reispop-reden" role="status">${esc(m.melding)}</p>` : '';
-  const reis = m.reis
-    ? `<button type="button" class="ds-z-knop mv-reispop-ok" data-card="rij"${m.reis.uitgeschakeld ? ' disabled' : ''}>${esc(m.reis.label)}</button>` +
-      (m.reis.uitgeschakeld ? '' : `<span class="mv-help-toets ds-toetsregel" aria-hidden="true">${keyTextHtml('{ENTER}')}</span>`)
-    : '';
+  const reis = m.reis ? dsButtonKey({ label: m.reis.label, toets: KNOP_TOETSEN.bevestig, klasse: 'ds-z-knop mv-reispop-ok', attrs: 'data-card="rij"', uit: !!m.reis.uitgeschakeld }) : '';
+  const terug = dsButtonKey({ label: 'Terug', toets: KNOP_TOETSEN.terug, klasse: 'ds-z-knop ds-z-knop--secundair mv-reispop-terug', attrs: 'data-card="reis-sluit"' });
   return '<div class="mv-reispop" role="dialog" aria-modal="true" aria-labelledby="mv-reispop-t">' +
     '<div class="ds-zeef ds-z-kaart ds-z-kaart--recht mv-reispop-box"><div class="ds-z-kaart__kop"><h2 id="mv-reispop-t" class="ds-z-kaart__titel">Reis erheen</h2></div>' +
     `<p class="ds-z-kaart__tekst mv-reispop-plek"><b>${esc(m.naam || 'Plek op de kaart')}</b>${m.afstand ? ` · ${esc(m.afstand)}` : ''}</p>` +
-    rijen + reden +
-    `<div class="mv-help-foot">${reis}<button type="button" class="ds-z-knop ds-z-knop--secundair mv-reispop-terug" data-card="reis-sluit">Terug</button>` +
-    `<span class="mv-help-toets ds-toetsregel" aria-hidden="true">${keyTextHtml('{ESC}')}</span></div></div></div>`;
+    rijen + reden + `<div class="mv-help-foot">${reis}${terug}</div></div></div>`;
 }
 
 // De legenda bovenaan het luik Lagen (#445): wat een klik doet en, voor een
@@ -100,9 +103,12 @@ export const KAART_ACTIE_CSS = `
 .mapview-card .mv-actie[aria-disabled] { opacity: 0.55; }
 :is(.mapview-card, .mv-reispop) .mv-reiskeuze { display: flex; flex-direction: column; gap: 6px; margin: 6px 0; }
 :is(.mapview-card, .mv-reispop) .mv-uit, :is(.mapview-card, .mv-reispop) .mv-note { margin: 0; font: 18px/1.4 var(--ds-font-tekst); color: var(--mut, rgba(240,237,228,0.8)); }
-:is(.mapview-card, .mv-reispop) .mv-keuze { display: flex; flex-direction: column; gap: 2px; min-height: 56px; padding: 8px 12px; text-align: left; color: var(--ink, #f0ede4); background: transparent; border: 0; border-left: 6px solid var(--line2, rgba(240,237,228,0.16)); border-radius: 8px; cursor: pointer; font: 18px/1.35 var(--ds-font-tekst); }
+:is(.mapview-card, .mv-reispop) .mv-keuze { display: flex; flex-direction: row; align-items: center; gap: 12px; min-height: 56px; padding: 8px 12px; text-align: left; color: var(--ink, #f0ede4); background: transparent; border: 0; border-left: 6px solid var(--line2, rgba(240,237,228,0.16)); border-radius: 8px; cursor: pointer; font: 18px/1.35 var(--ds-font-tekst); }
 :is(.mapview-card, .mv-reispop) .mv-keuze.sel { background: color-mix(in srgb, var(--ds-c-licht-groen) 18%, transparent); border-left-color: var(--g, #3fc97a); }
 :is(.mapview-card, .mv-reispop) .mv-keuze[aria-disabled] { opacity: 0.55; }
+:is(.mapview-card, .mv-reispop) .mv-kt { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+:is(.mapview-card, .mv-reispop) .mv-ki { display: inline-flex; flex: none; }
+:is(.mapview-card, .mv-reispop) .mv-ki svg { width: 24px; height: 24px; }
 :is(.mapview-card, .mv-reispop) .mv-kk { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 :is(.mapview-card, .mv-reispop) .mv-kk .mv-kl { font-family: var(--ds-font-kop); font-size: 24px; letter-spacing: 0.04em; }
 :is(.mapview-card, .mv-reispop) .mv-aanb { font-style: normal; font-size: max(13px, var(--menu-min, 13px)); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ds-c-glas); background: var(--g, #3fc97a); border-radius: 4px; padding: 1px 8px; }
@@ -118,17 +124,18 @@ export const KAART_ACTIE_CSS = `
 .mapview-overlay .mv-help-head .ds-z-kaart__titel, .mapview-overlay .mv-reispop-box .ds-z-kaart__titel { margin: 0; }
 .mapview-overlay .mv-help-regels { margin: var(--ds-s-2) 0 0 var(--ds-s-5); padding: 0; font-size: max(15px, var(--menu-min, 15px)); }
 .mapview-overlay .mv-help-regels li { margin: var(--ds-s-1) 0; }
-.mapview-overlay .mv-help-meer { margin: 0; }
-.mapview-overlay .mv-help-meer > summary { min-height: var(--ds-s-6); display: flex; align-items: center; }
 .mapview-overlay .mv-help-foot { display: flex; align-items: center; flex-wrap: wrap; gap: var(--ds-s-2) var(--ds-s-3); }
-.mapview-overlay .mv-help-toets { display: inline-flex; align-items: center; gap: var(--ds-s-1); color: var(--ds-tx-zacht, inherit); font-size: max(15px, var(--menu-min, 15px)); }
-.mapview-overlay .mv-help-hulp { margin: 0; color: var(--ds-tx-zacht); font-size: max(15px, var(--menu-min, 15px)); line-height: 1.4; }
+.mapview-overlay .mv-help-gast { margin: 0; color: var(--ds-tx-zacht); font-size: max(15px, var(--menu-min, 15px)); line-height: 1.4; }
+.mapview-card .mv-sluit { min-height: var(--ds-doel-aanraken); padding: var(--ds-s-1) var(--ds-s-4); font-size: var(--ds-t-label); box-shadow: none; }
+.mapview-card .mv-sluit:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-focus); outline-offset: var(--ds-focus-afstand); }
 .mapview-overlay :is(.mv-help-ok, .mv-reispop-ok, .mv-reispop-terug) { min-height: var(--ds-doel-aanraken); font-size: var(--ds-t-label); }
 .mapview-overlay :is(.mv-help-ok, .mv-reispop-ok, .mv-reispop-terug):focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-focus); outline-offset: var(--ds-focus-afstand); }
 .mapview-overlay .mv-reispop-plek { margin: 0; font-size: max(15px, var(--menu-min, 15px)); }
 .mapview-overlay .mv-reispop-reden { margin: 0; padding: var(--ds-s-2) var(--ds-s-3); border: var(--ds-lijn-dik) dashed var(--ds-c-ink-inkt); border-radius: var(--ds-r); font-size: max(15px, var(--menu-min, 15px)); }
 .mapview-overlay .mv-reispop .mv-reiskeuze { margin: 0; }
 .mapview-overlay .mv-reispop .mv-keuze { min-height: var(--ds-doel-aanraken); font-size: max(15px, var(--menu-min, 15px)); color: var(--ds-zeef-tx); border-left-color: var(--ds-c-ink-inkt); }
+.mapview-overlay .mv-reispop .mv-keuze.uit { opacity: 1; }
+.mapview-overlay .mv-reispop .mv-keuze.uit :is(.mv-kl, .mv-ki) { opacity: 0.6; }
 .mapview-overlay .mv-reispop .mv-keuze.sel { background: var(--ds-c-sel-vlak); box-shadow: inset 0 0 0 var(--ds-lijn-dik) var(--ds-c-ink-bord); }
 .mapview-overlay .mv-reispop .mv-keuze:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-focus); outline-offset: var(--ds-focus-afstand); }
 .mapview-overlay .mv-reispop .mv-kk .mv-kl { font-size: max(20px, var(--menu-min, 20px)); }

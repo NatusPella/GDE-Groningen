@@ -10,8 +10,12 @@ import { getProfiel, startLoopbaan } from './loopbaanlive.js';
 import { SIDE_JOBS } from './sidejobs.js';
 import { fillBars } from './motion.js';
 import { boekVoortgang } from './visboeklive.js';
+import { cardInfo } from './voetbalcarriereui.js';
+import { getCareer, getClub } from './voetbalcarrierelive.js';
 import { baanDoelen } from './todoui.js';
 import { loopbaanStap, STEP_BY_ID } from './storyarc.js';
+import { storyGateHint } from './storyquery.js';
+import { CAREER_FIT, FIT } from './careertour.js';
 import { controleStand, CONTROLE_MIN_NIVEAU } from './kaartjescontrole.js';
 import { getServiceMapState } from './machinist.js';
 import { sfeerStijl, sfeerBandHtml, SFEER_BAND_CSS } from './carrieresfeer.js';
@@ -192,6 +196,7 @@ function kaart(k) {
 const VAK_LINK = {
   hengelen: { id: 'visboek', naam: 'Visboek', knop: 'Open je visboek', stand: () => { try { const v = boekVoortgang(); return v && v.totaal ? `${v.gevangen} van ${v.totaal} soorten` : 'Nog geen vis gevangen'; } catch (e) { return 'Al je vis van de provincie'; } } },
   landbouw: { id: 'boerderij', naam: 'Boerderij', knop: 'Open je boerderij', stand: () => 'Je akker, gewassen en machines' },
+  buiten: { id: 'voetbal', naam: 'Voetbal', knop: 'Open je voetbalcarrière', stand: () => { try { const k = cardInfo(getCareer(), getClub); return k.gestart ? `${k.stand} · ${k.niveau}` : 'Nog niet begonnen'; } catch (e) { return 'Je club, selectie en stand'; } } },
 };
 const NAMEN = new Map(SIDE_JOBS.map((j) => [j.id, j.name]));
 const bezighedenAantal = (id) => L.banenVan(id).length + (VAK_LINK[id] ? 1 : 0);
@@ -205,7 +210,12 @@ function startHtml(profiel, id) {
   const gestart = L.isGestart(profiel, id);
   const stap = loopbaanStap(id);
   const step = stap && STEP_BY_ID.get(stap);
-  const verhaal = step ? `<p class="mut">In het verhaal: ${esc(step.title)}${gestart ? ' · telt als gedaan' : ''}</p>` : '';
+  // de carrière-tour (careertour.js): wie is hier goed en kunnen ze samenwerken; een gesloten vak is een zachte hint van het personage (unlockgate.js)
+  const fit = CAREER_FIT[id];
+  const tour = fit ? `<p class="mut">Wie is hier goed: ${esc(FIT[fit.fit])}. ${fit.together ? 'Samen lukt het.' : 'Samen werken lukt hier niet goed.'} ${esc(fit.why)}</p>` : '';
+  const hint = !gestart ? storyGateHint(id) : null;
+  const poort = hint ? `<p class="mut">${esc(hint)}</p>` : '';
+  const verhaal = (step ? `<p class="mut">In het verhaal: ${esc(step.title)}${gestart ? ' · telt als gedaan' : ''}</p>` : '') + tour + poort;
   if (gestart) return `<div class="lb-start klaar"><p class="m-eb">Begonnen</p>${verhaal}</div>`;
   const baan = s.baan && doelen.has(s.baan)
     ? `<button type="button" class="ds-z-knop ds-z-knop--secundair" data-todo-goal="job:${esc(s.baan)}">Eerste klus als doel</button>` : '';

@@ -46,6 +46,12 @@ const SPEAKER_COLORS = {
   // Deel 4
   Willemien: '#9a86b4',
   Buurvrouw: '#c4788c',
+  // inspiratiepakket (21-11)
+  'Meneer Veldkamp': '#7f9a5e',
+  Anneke: '#6aa07a',
+  Lieke: '#d9a920',
+  Daan: '#8d8fd0',
+  Stien: '#c98f6a',
 };
 // generic NPCs, bijbaan bosses, radio and navigation voices
 const NEUTRAL = '#8a8a8a';

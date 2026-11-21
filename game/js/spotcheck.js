@@ -1,6 +1,6 @@
 // Every fixed place the player has to reach (mission starts and targets,
 // activities, side jobs, shops, garages, post-game challenges, pigeon, heli,
-// station and Fjord Frituur spots, eierballen, respawn points (where
+// station and snackwagen spots, eierballen, respawn points (where
 // respawn.js puts you at every reachable facility), the Ommeland
 // extras' wereldeinden and dorpsuitjes), checked for
 // being on open ground you can walk away from: not inside a building

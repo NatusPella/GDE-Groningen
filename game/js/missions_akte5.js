@@ -33,7 +33,7 @@ export function buildAkte5Defs({ map, walk, drive }) {
       type: 'stages',
       label: 'Een luik erin',
       intro: ['Tinus\' schuur bij Zuidhorn. Henk heeft een luik en een koekje. Eén.', 'Doel: bouw een luik in de Escapade. Rij hem de modder in om te laten zien dat de achteras het houdt. Tinus trekt hem er daarna uit.'],
-      outro: 'De Escapade is de Fjord Frituur. Nog geen bal. Mem en Oma hebben de vrienden gebeld: samen naar de Grote Markt.',
+      outro: 'De Escapade is de snackwagen. Nog geen bal. Mem en Oma hebben de vrienden gebeld: samen naar de Grote Markt.',
       timeLimit: null,
       reward: 300,
       costRow: ['Gevolg', 'Het luik is betaald met het horloge van Tammo\'s opa'],
@@ -98,7 +98,7 @@ export function buildAkte5Defs({ map, walk, drive }) {
       vehicle: 'car',
       heroCar: true,
       start: schuur,
-      vehicleFail: { gone: 'de Fjord Frituur is foetsie, en de colonne wacht op niemand', wrecked: 'de Fjord Frituur is afgeschreven. De colonne rijdt zonder leider', left: 'je liet de Fjord Frituur achter. De colonne volgt een lege wagen' },
+      vehicleFail: { gone: 'de snackwagen is foetsie, en de colonne wacht op niemand', wrecked: 'de snackwagen is afgeschreven. De colonne rijdt zonder leider', left: 'je liet de snackwagen achter. De colonne volgt een lege wagen' },
       say: 'Rij voorop. De colonne volgt zolang je hem niet kwijtraakt.',
       // the ally you ride next to decides how Jelle's limo gets held up here and which street closes in M26 (remembered: 'keuze:bond-...')
       remember: ['bond-bus', 'bond-trekker', 'bond-scooter'],
@@ -106,7 +106,7 @@ export function buildAkte5Defs({ map, walk, drive }) {
       tagRows: { 'bond-bus': ['Bondgenoot', 'Wubbo\'s bus: de limo komt een minuut later'], 'bond-trekker': ['Bondgenoot', 'Tinus\' trekker: de zwaarste straatafsluiting van het Ontzet'], 'bond-scooter': ['Bondgenoot', 'Geesjes scooter: de limo mist de steegjes'] },
       stages: [
         {
-          kind: 'choice', kicker: 'De colonne', label: 'Kies wie naast de Fjord Frituur rijdt', say: 'Eén vriend rijdt vlak naast jullie en houdt Jelle bezig. Wie? 1 tot en met 3.',
+          kind: 'choice', kicker: 'De colonne', label: 'Kies wie naast de snackwagen rijdt', say: 'Eén vriend rijdt vlak naast jullie en houdt Jelle bezig. Wie? 1 tot en met 3.',
           rounds: [
             { who: 'Tessa', text: 'Alle vrienden rijden mee, maar één rijdt naast ons. Wie neemt Jelles limo voor zijn rekening?', options: [
               { label: 'Wubbo, met de bus.', tag: 'bond-bus', reply: 'Wubbo: "Een bus is breed. Ik zet hem dwars als het moet."' },
@@ -120,9 +120,9 @@ export function buildAkte5Defs({ map, walk, drive }) {
           scriptIf: [{ tag: 'bond-bus', ids: ['M23.6'] }, { tag: 'bond-trekker', ids: ['M23.7'] }, { tag: 'bond-scooter', ids: ['M23.8'] }],
           cast: [{ key: 'wubbo', pose: 'hips', at: [3.0, 1.4] }, { key: 'tinus', pose: 'hips', at: [3.2, -0.2] }, { key: 'geesje', pose: 'arms', at: [3.0, -1.6] }],
         },
-        { kind: 'board', label: 'Stap in de Fjord Frituur', say: 'Instappen. Tessa zei: wij voorop.' },
+        { kind: 'board', label: 'Stap in de snackwagen', say: 'Instappen. Tessa zei: wij voorop.' },
         {
-          kind: 'convoy', first: true, carHint: 'Stap weer in de Fjord Frituur: de colonne volgt de wagen.', limoAfter: 30, limoAfterIf: { 'bond-bus': 60, 'bond-scooter': 45 }, target: { at: ADUARD, snap: 'drive', label: 'Aduard' }, radius: 45, mode: 'vehicle',
+          kind: 'convoy', first: true, carHint: 'Stap weer in de snackwagen: de colonne volgt de wagen.', limoAfter: 30, limoAfterIf: { 'bond-bus': 60, 'bond-scooter': 45 }, target: { at: ADUARD, snap: 'drive', label: 'Aduard' }, radius: 45, mode: 'vehicle',
           label: 'Rij voorop naar Aduard en houd de colonne bij elkaar', say: 'Rij voorop naar Aduard. Wie te ver achterblijft, valt weg: wacht op ze.',
           talk: { ids: ['M23.2'], delay: 6 }, lost: 'de colonne is uiteengevallen',
         },
@@ -131,11 +131,11 @@ export function buildAkte5Defs({ map, walk, drive }) {
           cast: [{ key: 'durk', pose: 'arms', at: [3.4, 1.4] }, { key: 'douwe', pose: 'arms', at: [3.4, -1.4] }],
         },
         {
-          kind: 'convoy', carHint: 'Stap weer in de Fjord Frituur: de colonne volgt de wagen.', target: { at: HOOGKERK, snap: 'drive', label: 'Hoogkerk' }, radius: 45, mode: 'vehicle',
+          kind: 'convoy', carHint: 'Stap weer in de snackwagen: de colonne volgt de wagen.', target: { at: HOOGKERK, snap: 'drive', label: 'Hoogkerk' }, radius: 45, mode: 'vehicle',
           label: 'Rij met de colonne naar Hoogkerk: Wubbo draait de brug open', say: 'Wubbo opent de brug op afstand, met zijn sleutel, voor de colonne. Niet te hard, de aanhanger met de rubberboot moet er ook onderdoor.', lost: 'de colonne is uiteengevallen',
         },
         {
-          kind: 'convoy', carHint: 'Stap weer in de Fjord Frituur: de colonne volgt de wagen.', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'drive' }, radius: 30, mode: 'vehicle',
+          kind: 'convoy', carHint: 'Stap weer in de snackwagen: de colonne volgt de wagen.', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'drive' }, radius: 30, mode: 'vehicle',
           label: 'Rij met de colonne de Grote Markt op', say: 'Nog vijf kilometer. De hele colonne, de Grote Markt op.', lost: 'de colonne is uiteengevallen',
         },
       ],
@@ -168,7 +168,7 @@ export function applyAkte5(list) {
     vlag.tagAdjust = { 'vlag-top': 100 };
     vlag.tagRows = { 'vlag-top': ['Wind', 'De vlag viel naast de kraam'] };
     vlag.timeLimit = null;
-    vlag.intro = ['Er hangt een reuzenvlag aan de Martinitoren, precies boven de plek van de Fjord Frituur.', 'Doel: pik als duif de vijf touwen van de vlag door.'];
+    vlag.intro = ['Er hangt een reuzenvlag aan de Martinitoren, precies boven de plek van de snackwagen.', 'Doel: pik als duif de vijf touwen van de vlag door.'];
     vlag.outro = 'De vlag ligt op de keien. Heel Grunn klapte voor een duif.';
     vlag.costRow = ['Gevolg', 'Tammo is Stads held. Jelle zag het vanuit de menigte'];
   }
@@ -204,7 +204,7 @@ export function applyAkte5(list) {
     const fire = ontzet.stages.find((q) => q.kind === 'hold');
     const chase = ontzet.stages.find((q) => q.kind === 'chase');
     ontzet.intro = ['Gronings Ontzet, vrijdag 28 augustus. De beste eierbal wint de standplaats; de Gouden Eierbal gaat terug naar het museum.', 'Doel: bak de Groningse eierbal en houd de kraam heel. Stop daarna Jelles limo voor drie uur bij de notaris. Laat dan de jury proeven.'];
-    ontzet.outro = 'De jury koos de Groningse eierbal: vier tegen één. De Fjord Frituur krijgt de standplaats.';
+    ontzet.outro = 'De jury koos de Groningse eierbal: vier tegen één. De snackwagen krijgt de standplaats.';
     ontzet.costRow = ['Gewonnen', 'De standplaats op de Vismarkt, en Gerda Terpstra op het bordje'];
     ontzet.heroCar = true;
     // the baking score decides how the jury votes (M26.10-12) and pays a bonus on the 4000
@@ -215,7 +215,7 @@ export function applyAkte5(list) {
     ontzet.start = { ...ontzet.start };
     fire.label = 'Houd de kraam heel tegen het vuurwerk van Durk en Douwe';
     fire.talk = { ids: ['M26.3'], from: 5, delay: 2 };
-    chase.label = 'Zet de Fjord Frituur dwars voor Jelles limo in de Oude Boteringestraat';
+    chase.label = 'Zet de snackwagen dwars voor Jelles limo in de Oude Boteringestraat';
     chase.say = 'Kwart voor drie. De limo rijdt naar de notaris: zet de wagen dwars in de straat, voor drie uur.';
     chase.vehicle = { name: 'limo', len: 5.6, wid: 2.0, maxSpeed: 28, accel: 6, brake: 14, turnRate: 2.1, color: '#1b1c1f' };
     chase.name = 'Jelles limo';
@@ -243,7 +243,7 @@ export function applyAkte5(list) {
         talk: { ids: ['M26.3'], from: 0, to: 5, delay: 3 },
       },
       fire,
-      { kind: 'board', label: 'Stap in de Fjord Frituur', say: 'Kwart voor drie. Instappen: de limo rijdt naar de notaris.' },
+      { kind: 'board', label: 'Stap in de snackwagen', say: 'Kwart voor drie. Instappen: de limo rijdt naar de notaris.' },
       {
         // #962: de straten werden met een timing-QTE afgesloten; het verhaal
         // zit al in de scène hieronder (M26.14-M26.16, één per bondgenoot).

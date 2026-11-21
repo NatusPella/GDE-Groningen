@@ -34,7 +34,7 @@ in het plan. Uitgangspunten:
 
 ### 2.1 In één zin
 
-De Fjord Frituur raakt haar plek op de Vismarkt kwijt aan een patatbaron
+De snackwagen raakt haar plek op de Vismarkt kwijt aan een patatbaron
 die de hele provincie bezit. Tammo en Tessa gaan met de frietwagen op
 tournee langs de zeven regio's, met Oma Trijntjes lijstje van zeven oude
 vrienden, en verslaan hem op zijn eigen Ommelander Ronde. Onderweg moeten
@@ -43,7 +43,7 @@ ze kiezen: groeien of thuis blijven.
 ### 2.2 De opzet
 
 - **September.** De rij bij de Vismarkt loopt tot de Korenbeurs. Dan krijgt
-  de Fjord Frituur een brief: de standplaats is vergeven aan
+  de snackwagen een brief: de standplaats is vergeven aan
   **Oldenhuis Bakt**, een keten van 41 snackbars van Lauwersoog tot Ter Apel.
 - **Ubbo Oldenhuis, "de Patatbaron"**, is de nieuwe hoofdsponsor van de
   Noordelijke Snackprijs. Hij verandert het reglement: de Gouden Eierbal
@@ -61,7 +61,7 @@ ze kiezen: groeien of thuis blijven.
 - **Het persoonlijke verhaal:**
   - Tammo en Tessa zijn nu samen, en de rest van het verhaal gaat over wat
     dat betekent.
-  - Tessa wil groeien: "een Fjord Frituur in elk dorp".
+  - Tessa wil groeien: "een snackwagen in elk dorp".
   - Tammo wil dat alles blijft zoals het is: Stad, de Vismarkt, één kar.
   - Ubbo biedt Tessa halverwege een franchise aan: haar naam op 41 karren.
     Dat is het dieptepunt (§2.5).
@@ -137,7 +137,7 @@ trein), **wad** (te voet met getij), **vliegtuig** en **trekker**.
 
 | # | Naam | Type | Regio | Haak | Setpiece |
 |---|---|---|---|---|---|
-| O1 | Vergunning verlopen | achtervolging | Stad | de takelwagen sleept de Fjord Frituur weg | de frietwagen slingert achter de takelwagen de oprit van de A7 op |
+| O1 | Vergunning verlopen | achtervolging | Stad | de takelwagen sleept de snackwagen weg | de frietwagen slingert achter de takelwagen de oprit van de A7 op |
 | O2 | Oma's lijstje | trein, verhaal | Stad → Hogeland | Oma geeft zeven namen; de eerste treinrit | de trein rijdt bij zonsopgang de stad uit, de kaart klapt open |
 | O3 | Een kerk op een bult | rijden, trekker | Hogeland | Eppo's mestinjecteur blokkeert het kerkpad van Geesje | met een geleende trekker de wierde op, de kerkhofmuur heel laten |
 | O4 | Oogst met haast | achtervolging | Hogeland | Eppo's combine maait Geesjes perceel "per ongeluk" | een combine tegen een combine tussen de wierden bij ondergaande zon |
@@ -309,7 +309,7 @@ verhaaleis.
 | Veenkoloniën | brugwachtershuisje | na O27 | het huisje naast de brug van Wubbo |
 | Westerwolde | boshut | na O31 | de hut in het bos, met de boswachter |
 
-Daarnaast reist de **Fjord Frituur** zelf mee: vanaf O1 is de wagen de rijdende
+Daarnaast reist de **snackwagen** zelf mee: vanaf O1 is de wagen de rijdende
 basis. Wat je daarin kunt (slapen, opslaan), staat bij de mechanic en niet hier.
 
 ### 6.3 Het bedrijf: Fjord-filialen

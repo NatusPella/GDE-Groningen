@@ -985,7 +985,7 @@ export async function runStoryTest(world) {
       check('no cutscene camera off the map', !cinematicPoseIssues().length, JSON.stringify(cinematicPoseIssues().slice(0, 4)));
       check('Rotor Roelf took his demo heli back', !window.__storyFun || !window.__storyFun.state().demo, JSON.stringify(window.__storyFun && window.__storyFun.state()));
 
-      // after the ending (postgame.js): Jelle's challenges and the Fjord Frituur
+      // after the ending (postgame.js): Jelle's challenges and the snackwagen
       const pg = window.__postgame;
       if (PARTS[FINALE_PART] && PARTS[FINALE_PART].finale) {
         check('post-game opens after the ending', await waitFor(() => pg && pg.open() && pg.spots().length >= 4, 8000), JSON.stringify(pg && pg.spots().map((q) => q.id)));
@@ -1004,7 +1004,7 @@ export async function runStoryTest(world) {
           check(`post-game ${id} runs and records a medal`, started && won && rec && rec.medal > 0, JSON.stringify(rec));
           await drain(world, 700);
         }
-        check('Fjord Frituur unlocked in the garage', await waitFor(() => getOwnedEntries().some((o) => o.key === 'fjordfrituur'), 5000));
+        check('snackwagen unlocked in the garage', await waitFor(() => getOwnedEntries().some((o) => o.key === 'fjordfrituur'), 5000));
         // the credits wait for every mission: the skipped H15 and H17 keep them back
         // (H3 was skipped too, but a pass recorded in the prestaties counts)
         const ending = S().ending();

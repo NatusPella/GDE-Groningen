@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { accentVan } from './sidejobprofiel.js';
 // Uitje: ontspannen rondvaart. The H13 tour without the conflict: the
 // rondvaartboot at the Spilsluizen quay, a boat full of tourists, one whole
@@ -69,7 +70,7 @@ export default {
   update(dt, c) {
     const { world } = c;
     const d = c.data, v = c.vehicle;
-    const onBoat = world.player.inVehicle === v;
+    const onBoat = hoofdspeler(world).inVehicle === v;
     updateRondvaart(dt, world);
     const pr = rondvaartProgress();
     if (!pr) return;

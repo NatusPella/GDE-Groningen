@@ -41,7 +41,7 @@ Elk shot heeft een functie. Geen shot is alleen mooi; elk vertelt iets.
 |---|---|---|---|
 | **Establishing** (wide) | Eerste shot van een scène: waar zijn we, wie is er. | Opening M01: overzicht Martinikerkhof, Berend bij zijn pickup, Tammo en Tessa naderen. | In een kort gesprek zonder locatiewissel (drie regels in de auto: geen wide). |
 | **Medium shot** (MS) | Standaard gesprekshot: hoofd, schouders, bovenlijf. De basis van elke scène. | Twee mensen in gesprek: beiden in beeld, focus op wie praat. | Als "close-up de hele tijd": te weinig variatie. |
-| **Close-up** (CU) | Emotioneel moment, reactie, iets belangrijks wordt gezegd. | Tammo's gezicht als Tessa "Fjord Frituur" zegt; Jelles blik als zijn moeder de bal afpakt. | In een neutral-scène (louter uitleg, geen emotie): daar hoort MS. |
+| **Close-up** (CU) | Emotioneel moment, reactie, iets belangrijks wordt gezegd. | Tammo's gezicht als Tessa "snackwagen" zegt; Jelles blik als zijn moeder de bal afpakt. | In een neutral-scène (louter uitleg, geen emotie): daar hoort MS. |
 | **Insert** | Een prop die de scène uitlegt: de bal, het koopboek, het klembord, de telefoon. | Het logboek met "12 augustus" (M18); de papieren op tafel in de keuken (C00.2). | Als vervanging voor dialoog: de prop moet in dialoog genoemd zijn of vanzelfsprekend zijn. |
 | **Over-the-shoulder** (OTS) | Gesprek tussen twee: de schouder van de één, het gezicht van de ander. | Tessa praat tegen Berend; we zien Berend over Tessa's schouder. | Als er niemand tegenover staat (monoloog, radio, telefoon). |
 | **Two-shot** | Beiden in beeld, neutraal, vaak begin of eind van een beat. | Tammo en Tessa staan bij de auto; opening M03 (het Loket). | Als er maar één persoon in de scène is. |
@@ -769,3 +769,7 @@ Jouw keuze: [ A | B | C | D | Eigen voorstel: ______ ]
 ---
 
 Einde regie-bijbel. Versie 1.0, 21 november 2026.
+
+## Samen spelen
+
+Cutscenes zijn van wie het spel opende: een scène met een scriptbeschrijving gaat als data naar de gasten en speelt daar lokaal na, de overige filmpjes (eigen camerabaan) zijn alleen bij de host en geven de gast een regel tekst. Een gast slaat zijn eigen weergave over zonder dat het de scène van de host stopt. De regels van deze bijbel (ritme, introductie, humor) gelden voor beide kanten; de linter kijkt niet naar het netwerk. De details staan in [COOP-GAST.md](COOP-GAST.md) (Filmpjes zonder script) en worden bewaakt door `scripts/cutgast_test.mjs` en `scripts/coopcut_test.mjs`.

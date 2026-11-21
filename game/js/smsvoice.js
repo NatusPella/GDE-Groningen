@@ -16,7 +16,7 @@ const VOICE_OF = {
   GDE: 'Ubbo',
   Ubbo: 'Ubbo',
   Bank: 'Ubbo',
-  'Fjord Frituur': 'Ubbo',
+  'snackwagen': 'Ubbo',
   'Gerrit Krolbrug': 'Verkeersinformatie',
   'Onbekend nummer (058)': 'Mem Terpstra',
   'Henk (Garage Knalpot)': 'Henk',
@@ -45,7 +45,7 @@ export const SMS_SAY = {
   remindA: { speaker: 'Anita', lines: ['Nog even dit. Het staat op je kaart, als je zin hebt.'] },
   // missions.js: a mission needs something first (a shop name in the text)
   gate: { speaker: SMS_SYSTEM, lines: ['Voor deze missie mis je nog iets. Lees even mee op je telefoon.'] },
-  // postgame.js: the Fjord Frituur's day takings
+  // postgame.js: the snackwagen's day takings
   fjordPay: { speaker: SMS_SYSTEM, lines: ['Goeiemorgen! Gisteren lekker gedraaid. De dagomzet staat op je rekening.'] },
   // flavourlines.js PEERD_NEWS, same order, without the wijk
   peerd: { speaker: SMS_NEWS, lines: [

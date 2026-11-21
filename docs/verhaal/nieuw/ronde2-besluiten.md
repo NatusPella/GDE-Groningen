@@ -31,7 +31,7 @@ M15 (Midwolda), M09/M10/T1 (Warffum en Usquert), T2 (overstap in Winsum, uitstap
 
 ## Gebouwd in ronde 2
 
-- **M23 bondgenoot kiezen (#217):** wie rijdt naast de Fjord Frituur? Wubbo's bus, Tinus' trekker of Geesjes scooter. De keuze telt in M23 (hoe lang Jelles limo wegblijft), wordt bewaard (`keuze:bond-...`, in de save) en keert terug in M26 (breder groen bij zijn straat, meer tijd bij de limo, eigen scène).
+- **M23 bondgenoot kiezen (#217):** wie rijdt naast de snackwagen? Wubbo's bus, Tinus' trekker of Geesjes scooter. De keuze telt in M23 (hoe lang Jelles limo wegblijft), wordt bewaard (`keuze:bond-...`, in de save) en keert terug in M26 (breder groen bij zijn straat, meer tijd bij de limo, eigen scène).
 - **M18 bluf-intake:** drie vragen, elk fout antwoord maakt de accountmanager argwanender (argwaan1 en argwaan2). Eén fout: hij loopt mee en de camerahal is sneller en smaller. Twee fouten: de beveiliging loopt mee en de beloning kost geld. Drie fouten: de missie mislukt.
 - **M26 afwisselend:** voor de limojacht sluit de colonne van M23 de straten af (bus, trekker en scooter, als timing), met een scène per bondgenoot. Daarna pas de jacht, met de extra tijd van je bondgenoot.
 

@@ -20,7 +20,7 @@ export const catVan = (it) => CAT_VAN[it && it.cat] || 'alles';
 export const LEEG = {
   alles: 'Je hebt nog niets bij je. Kijk bij Pang & Zo, Stoer & Stads en de toonbank van de snackbar.',
   wapens: 'Nog geen wapens behalve je vuisten. Pang & Zo verkoopt er een paar.',
-  kleding: 'Nog geen extra kleding. Stoer & Stads heeft een paar setjes.',
+  kleding: 'Nog geen extra kleding. Stoer & Stads heeft losse stukken en setjes.',
   voedsel: 'Nog niets te eten. De toonbank verkoopt snacks; wat je vangt, gaat mee naar huis.',
   upgrades: 'Nog geen upgrades. Knal & Kolder Tuning en Spaak & Band helpen je graag.',
   thuis: 'Nog geen meubels. Het meubelhuis heeft ze; thuis zet je ze neer.',

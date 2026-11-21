@@ -32,7 +32,7 @@ export function bodyDistance(v, p) {
   return Math.hypot(Math.max(0, lx), Math.max(0, ly));
 }
 
-// #312: een board-stage met een specifiek voertuig (M10 quad, M14 trekker-limo, M22/M23 Fjord Frituur). De oude
+// #312: een board-stage met een specifiek voertuig (M10 quad, M14 trekker-limo, M22/M23 snackwagen). De oude
 // pickVehicle koos de dichtstbijzijnde; deze kiest op soort/model/naam en zegt eerlijk wanneer er niets past.
 export function pickStageVehicle(s, vereist = {}, mem = {}) {
   const lijst = (s && s.nearby && s.nearby.vehicles) || [];

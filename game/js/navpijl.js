@@ -10,14 +10,14 @@ import { iconInner } from './icons.js';
 import { dsKleur } from './kaartkleuren.js';
 
 export const TRACK_INSET = 15; // afstand van het hart van een marker tot de kaartrand (px, op een kaart van 250): de schijf (straal 12) zit 3 px van de rand
-export const TRACK_RADIUS = 16; // de hoeken van de baan
+const TRACK_RADIUS = 16; // de hoeken van de baan
 export const ACTIVE_R = 12; // de schijf van het doel dat je volgt
 export const DOT_R = 8.5; // de punten
 export const MIN_ACTIEF = 30; // afstand langs de baan tussen de schijf en een punt
 export const MIN_DOT = 21; // afstand langs de baan tussen twee punten
 export const MAX_WACHTEND = 2; // hooguit zoveel wachtende doelen (navtarget.js MAX_SECUNDAIR); medespelers en voertuigen tellen daar niet bij
 export const MAX_ANDEREN = 3; // en hooguit zoveel medespelers en eigen voertuigen als punt
-export const TAG_H = 17; // de afstandstag: 13 px tekst
+const TAG_H = 17; // de afstandstag: 13 px tekst
 export const TAG_GAP = 3; // tussen schijf en tag
 
 // ------------------------------------------------------------------ meetkunde

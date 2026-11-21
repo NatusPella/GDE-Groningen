@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Spullen: oud en nieuw (mock)</title>
+<!--
+  Headless beeldmock van het Spullen-scherm (spullen-ui 21-11). GEEN Electron: dit is de echte code van het scherm (spullen.js,
+  pausemenu.css en de ds-stijlen) in een nagemaakt menu, met een nagemaakte spelwereld vol spullen. De 3D-plaatjes tekent de echte
+  gedeelde renderer (vehiclepreview.js) met de gevendorde three; geen WebGL (--disable-gpu) geeft de iconen-terugval.
+  Starten: node scripts/ui/spullen_ui_mock.mjs --serve  (of --shots voor de PNG's)  daarna  /mock.html?v=oud|nieuw&scene=...
+  Query: v=oud|nieuw  scene=alles|wapens|detail|leeg  w,h = venstergrootte  ui = interfacegrootte (0,8 tot 1,5)  sel = sleutel van de gekozen tegel
+-->
+<style>html,body{margin:0;height:100%;background:#2a2d26;overflow:hidden}body{background:linear-gradient(135deg,#3b3f34,#1f2a24)}</style>
+</head>
+<body>
+<script type="importmap">
+{ "imports": {
+  "https://cdn.jsdelivr.net/npm/": "/vendor/npm/",
+  "three": "/vendor/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "/vendor/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+const q = new URLSearchParams(location.search);
+const versie = q.get('v') === 'oud' ? 'oud' : 'nieuw';
+const scene = q.get('scene') || 'alles';
+const ui = Number(q.get('ui')) || 1;
+const base = '/' + versie;
+const vw = innerWidth, vh = innerHeight;
+
+// de menu-stijlen, in dezelfde volgorde als game/index.html
+for (const f of ['fonts/fonts.css', 'js/menu.css', 'js/ds-tokens.css', 'js/ds-components.css', 'js/ds-keycap.css', 'js/ds-motion.css', 'js/ds-micro.css', 'js/ds-beweging.css', 'js/ds-menu-zeef.css', 'js/ds-schermen.css', 'js/pausemenu.css']) {
+  const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = `${base}/${f}`; document.head.appendChild(l);
+}
+// uiscale.js: de menukaart is 1920x1080 ontwerp-px, ingezoomd met --mz
+const mz = Math.max(0.5, Math.min(4, Math.min(vh / 1080, vw / 1920) * ui));
+document.documentElement.style.setProperty('--mz-fit', mz.toFixed(3));
+document.documentElement.style.setProperty('--ui', String(ui));
+
+const S = await import(`${base}/js/spullen.js`);
+const { WEAPONS } = await import(`${base}/js/combat.js`);
+const shops = await import(`${base}/js/shops.js`);
+const furn = await import(`${base}/js/furniture.js`);
+const eten = await import(`${base}/js/eten.js`);
+
+// een wereld vol spullen: alle wapens, wat kleding, meubels, eten (met vissen), upgrades
+const ammo = {};
+for (const k of Object.keys(WEAPONS)) if (k !== 'fists') ammo[k] = 18 + (k.length * 3) % 40;
+const w = { money: 2750, health: 82, armor: 0, ammo, weapon: 'fists', stats: {}, vehicles: [], eten: {}, player: { character: 'tammo' }, addMessage() {} };
+if (scene !== 'leeg-wereld') {
+  shops.applyShopSave(w, { ownedOutfits: ['tammo:groenwit', 'tammo:boer', 'tammo:incognito'], heroUpgrades: ['motor', 'remmen', 'turbo'], stamps: 4, vehicles: [] });
+  furn.applyFurnitureSave({ owned: ['kast', 'bank', 'lamp', 'bed', 'tv', 'plant'], built: ['kast', 'bank', 'lamp', 'bed', 'tv', 'plant'] });
+  for (const [id, n] of [['kroket', 3], ['frikandel', 2], ['koffie', 1], ['krentenbol', 4], ['vis:voorn', 2], ['vis:snoek', 1], ['vis:paling', 1], ['vis:baars', 3], ['vis:karper', 1], ['vis:bot', 2], ['vis:meerval', 1], ['vis:haring', 5]]) eten.voegEtenToe(w, id, n);
+}
+
+// het menu, zoals pausemenu.js het neerzet (zonder rail)
+const deel = scene === 'wapens' ? 'wapens' : 'alles';
+const delen = S.DELEN.map(([id, label]) => `<button type="button" class="m-chip" data-spul-deel="${id}" aria-pressed="${id === deel}">${label}</button>`).join('');
+document.body.insertAdjacentHTML('beforeend', `
+<div id="pause-menu" class="visible gm"><div class="pm-fold gm-stage">
+  <section class="pm-sheet m-panel"><header class="pm-sheet-head m-head">
+    <div class="pm-sheet-titles"><span class="m-eb pm-sheet-eb">Alles wat je hebt</span><h1 class="m-h1 pm-sheet-title">Spullen</h1></div>
+    <div class="m-hr pm-sheet-r"><span class="mut pm-sheet-pos">Bezit</span><span class="mut pm-sheet-sub"></span></div></header>
+    <div class="pm-sheet-body"><section data-panel="spullen" class="pm-panel pm-col pm-tabbed"><div class="pm-inner pm-spullen">
+      <div class="pm-spulbar"><label class="m-inp pm-csearch"><input type="search" data-spul-search placeholder="Zoek in je spullen, bijv. fiets, kast of stempel" aria-label="Zoek in je spullen"></label>
+        <div class="pm-chips pm-spulchips" role="group">${delen}<button type="button" class="m-chip sp-sort" data-spul-sort><span>Sorteren: standaard</span></button></div></div>
+      <div class="m-main"><div class="m-list td-list"></div><aside class="m-pane td-detail" aria-label="Details"></aside></div></div></section></div></section>
+</div></div>`);
+
+const panel = document.querySelector('[data-panel="spullen"]');
+const zoek = scene === 'leeg' ? 'zzzz' : '';
+S.zetSpullenDeel(deel);
+S.zetSpullenZoek(zoek);
+if (zoek) panel.querySelector('[data-spul-search]').value = zoek;
+S.renderSpullen(panel, w);
+const sleutel = q.get('sel') || (scene === 'detail' ? 'w:' + Object.keys(WEAPONS).find((k) => k !== 'fists' && ammo[k]) : '');
+const tegel = sleutel ? panel.querySelector(`[data-spul="${sleutel}"]`) : null;
+if (tegel) S.spullenFocus(panel, tegel);
+
+// klaar zodra elke tegel zijn plaatje of icoon heeft (of na 20 s): de screenshot wacht hierop
+const t0 = Date.now();
+const klaar = () => {
+  const open = panel.querySelectorAll('.sp-ph[data-state="laden"]').length;
+  const stage = panel.querySelector('[data-spul-stage]');
+  if ((open === 0 && (!stage || stage.dataset.state !== 'laden')) || Date.now() - t0 > 20000) { document.title = 'KLAAR ' + versie; window.__klaar = true; return; }
+  setTimeout(klaar, 300);
+};
+setTimeout(klaar, 600);
+window.__mock = { S, panel, w };
+</script>
+</body>
+</html>

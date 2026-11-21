@@ -15,6 +15,8 @@ import { registerNarrative, mayStart, noteToast, heldBack } from './narrative.js
 import { zones, P1, P2, hudNow } from './hudrules.js';
 import { appForNote, senderForNote, senderOf, appNaam } from './phoneapp.js';
 import { opschuiven } from './microinteractions.js';
+import { toClass } from './noticetiming.js'; // 6 / 9 / 10 s, zoals alle meldingen
+import { adjustRemaining } from './melding.js'; // het aflopende balkje loopt mee als de stem de tijd rekt
 
 // The folded phone (the Pixie Vouw 11's cover screen) on the HUD, bottom
 // left above the street name: notification cards and incoming calls. Both slide up out of the bottom like a phone
@@ -40,7 +42,6 @@ import { opschuiven } from './microinteractions.js';
 // Kiekdoar history.
 
 const HOLD_MIN = 6;
-const HOLD_MAX = 13;
 // attention budget: one phone card at a time; the rest waits on the counter
 const HOLD_BUSY = 4.5;
 const RING_TIME = 1.6;
@@ -159,7 +160,7 @@ function showNote(w, n) {
   noticeFrom(p.from || 'Kiekdoar');
   if (alreadyShown(w, n.text)) return;
   const el = document.createElement('div');
-  el.className = 'pf-card ds-zeef ds-z-kaart ds-mi-in';
+  el.className = 'pf-card ds-zeef ds-z-kaart ds-mi-in ds-melding';
   el.dataset.app = p.app;
   // #645: een dynamische kaart (naam, bedrag, missietitel) blijft op het kaartbudget
   const cap = p.app === 'sikkom' ? WORD_BUDGET.news : WORD_BUDGET.cardBody;
@@ -167,12 +168,13 @@ function showNote(w, n) {
   el.innerHTML =
     `<div class="pf-head ds-z-kaart__kop"><span class="pf-app">${icon(p.app)}</span><span class="pf-from ds-z-kaart__titel">${naamGelijk(p) ? '' : `<small class="pf-appnaam">${esc(appNaam(p.app))}</small>`}${esc(p.from)}</span><span class="pf-more ds-z-chip" hidden></span><span class="pf-time">${esc(clockNow(w))}</span></div>` +
     (titel ? `<div class="pf-title">${dualHtml(titel)}</div>` : '') +
-    (lichaam ? `<div class="pf-body ds-z-kaart__tekst">${dualHtml(lichaam)}</div>` : '');
+    (lichaam ? `<div class="pf-body ds-z-kaart__tekst">${dualHtml(lichaam)}</div>` : '') +
+    '<i class="ds-melding__tijd" aria-hidden="true"></i>';
   stack.appendChild(el);
   void el.offsetWidth;
   el.classList.add('on');
-  const secs = Math.min(HOLD_MAX, Math.max(HOLD_MIN, (n.duration || 0) + 1, readingSeconds(full) * 1.4));
-  el.style.setProperty('--pf-dur', `${secs}s`);
+  const secs = toClass(Math.max(HOLD_MIN, (n.duration || 0) + 1, readingSeconds(full) * 1.4));
+  el.style.setProperty('--ds-melding-duur', `${secs}s`);
   const c = { el, left: secs, secs, voice: null, speaking: false, t: 0, story: !!n.story };
   if (!n.voiced && !n.silent) {
     const v = smsVoiceFor(n, lineVoiceFor);
@@ -194,7 +196,7 @@ function voiceCard(c) {
   if (r !== 'play') return;
   c.speaking = true;
   c.left = Math.max(c.left, VOICE_TAIL);
-  c.el.style.setProperty('--pf-dur', `${c.t + c.left + (v.dur || 3)}s`);
+  adjustRemaining(c.el, c.left + (v.dur || 3)); // de klok staat stil terwijl hij praat, daarna loopt de rest
 }
 
 // "+2": how many more notifications wait behind the one that is up
@@ -390,6 +392,7 @@ export function updatePhoneFeed(dt, w) {
   // a card that is up steps aside for a cutscene, a story call or a subtitle, and waits (narrative.js)
   const held = !call && heldBack();
   stack.classList.toggle('pf-held', held);
+  stack.classList.toggle('pf-pauze', !(visible && !w.paused && !held)); // het balkje staat stil zolang de klok van de kaart stilstaat
   if (visible && !w.paused && !held) {
     while (w.phoneNotifications.length) {
       const n = w.phoneNotifications.shift();

@@ -116,7 +116,7 @@ S['M14.intro'] = {
     { on: 'Daar heb ik niks aan', actor: 'tammo', anim: 'shrug' },
   ],
   shots: [],
-  wide: { from: [-5, 4.6, 3.2], to: [-2.8, 3.2, 2.4], look: 'mid:jelle,tessa@1', fov: 50, until: 1 },
+  wide: { from: [-5, 4.6, 3.2], to: [-2.8, 3.2, 2.4], look: 'tammo@1.3', fov: 50, until: 1 },
 };
 
 S['M14.outro'] = {
@@ -140,7 +140,7 @@ S['M14.outro'] = {
     { on: 'Durk, Douwe', actor: 'jelle', anim: 'point' },
   ],
   shots: [],
-  wide: { from: [-4.4, 4.4, 3.1], to: [-2.5, 3.0, 2.3], look: 'mid:lammert,tessa@1', fov: 48, until: 1 },
+  wide: { from: [-4.4, 4.4, 3.1], to: [-2.5, 3.0, 2.3], look: 'mid:lammert,jelle@1', fov: 48, until: 1 },
 };
 
 // --- M15 Laag over het graan: Roelfien at her strip; the jury at the kermis ---
@@ -170,6 +170,8 @@ S['M15.outro'] = {
     jurylid1: { key: 'jurylid', at: [6.2, 3.2], face: 195, anim: 'idle', noauto: true },
     jurylid2: { key: 'jurylid', at: [6.6, -2.8], face: 165, anim: 'idle', noauto: true },
     jelle: { key: 'jelle', at: [5.2, 1.4], face: 190, anim: 'hips', gest: ['hips', 'point', 'shake'] },
+    // inspiratiepakket: Daan, de kermiszanger van M15.6, komt aanlopen als Jelle weg is
+    daan: { key: 'daan', at: [9.4, 3.2], face: 190, anim: 'idle', gest: ['talk', 'hips', 'point'] },
   },
   props: { bord: { kind: 'bord', at: [8, 0.6, 0], face: 180 }, limo: { kind: 'trekker', at: [9.5, -5, 0], face: 160 } },
   open: [{ actor: 'tessa', face: 'actor:roelfien' }, { actor: 'tammo', face: 'actor:roelfien' }],
@@ -190,6 +192,11 @@ S['M15.outro'] = {
     { on: 'Dat staat nergens', actor: 'jelle', walk: [[7.6, -3.4]], speed: 1.1 },
     { on: 'Hij laat die koffer niet los', actor: 'tammo', face: 'prop:limo' },
     { on: 'Nee. Waar hij heen gaat', actor: 'tessa', anim: 'point' },
+    { on: 'Jij bent van het spandoek', actor: 'daan', walk: [[4.6, 1.8]], speed: 1.1 },
+    { on: 'Jij bent van het spandoek', dt: 0.2, actor: 'daan', face: 'actor:tessa' },
+    { on: 'Dan heb je veel ongelukken', actor: 'daan', anim: 'point' },
+    { on: 'Ze moet nog eten', actor: 'tammo', anim: 'hips' },
+    { on: 'Eén couplet', dt: 2.6, actor: 'tammo', anim: 'shrug' },
   ],
   shots: [],
   wide: { from: [-4.6, 4.6, 3.1], to: [-2.6, 3.2, 2.3], look: 'mid:roelfien,tessa@1', fov: 48, until: 1 },

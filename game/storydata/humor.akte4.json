@@ -1,0 +1,309 @@
+{
+ "note": "Humorbeats van akte 4 (WP5 #1128, 21-11): per komische beat drie varianten en een veilige neutrale terugval; `chosen` (0, 1, 2 of \"neutral\") gebruikt het spel. Variant 0 staat in docs/verhaal/nieuw/09-script-akte4.md. Schema: humor.json.",
+ "beats": [
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     0
+    ],
+    "reason": "Twee klompen, Foar mem: verdubbeling zonder franje.",
+    "certainty": "hoog"
+   },
+   "id": "H4-01",
+   "scene": "R4.0",
+   "speaker": "JELLE",
+   "context": "Radio Nachtstreek, maandagochtend. Jelle biedt in zijn offerte een klomp per pot mosterd; Rikus zegt dat de mosterd een erfstuk is, waarop Jelle zijn bod verdubbelt.",
+   "shot": "geen beeld: radio over de stad, ochtendlicht op de Martinitoren",
+   "variants": [
+    "Dan bied ik twee klompen. Foar mem.",
+    "Dan bied ik er twee. Foar mem.",
+    "Twee klompen, en een bedankje. Foar mem."
+   ],
+   "neutral": "Dan bied ik twee klompen."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     2,
+     1
+    ],
+    "reason": "Hij kijkt altijd: onderkoeld en kort.",
+    "certainty": "laag",
+    "tiebreak": 0
+   },
+   "id": "H4-02",
+   "scene": "M17.2",
+   "speaker": "TAMMO",
+   "context": "In de sloep tussen de bruggen. Wubbo meldt aan de telefoon dat er een duif op brug acht zit die naar Tammo kijkt; Tammo zegt dat dat niets bijzonders is.",
+   "shot": "halve close-up Tammo aan het roer, op de achtergrond een duif op de brugleuning",
+   "variants": [
+    "Hij kijkt altijd.",
+    "Dat doet hij altijd.",
+    "…Dat doen ze vaker."
+   ],
+   "neutral": "Dat klopt."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     0
+    ],
+    "reason": "Werkfilosofie met Vandaag dicht als pointe.",
+    "certainty": "hoog"
+   },
+   "id": "H4-03",
+   "scene": "M17.3",
+   "speaker": "WUBBO",
+   "context": "Brug elf. Jelle belt vanuit zijn limo aan de overkant dat zijn schip vastzit en dat zijn juristen dat een overtreding noemen; Wubbo antwoordt met zijn werkfilosofie.",
+   "shot": "twee-shot Tessa en Tammo in de sloep, Wubbo op de brug, Jelles limo klein in de verte",
+   "variants": [
+    "Open of dicht. Nooit allebei. Vandaag dicht.",
+    "Open of dicht. Nooit allebei. Vandaag het laatste.",
+    "Dicht. Dat is mijn hele werkfilosofie."
+   ],
+   "neutral": "Een brug is open of dicht. Vandaag dicht."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     2,
+     "neutral"
+    ],
+    "reason": "Sluit exact aan op Tammo's herhaling in H4-12.",
+    "certainty": "laag",
+    "tiebreak": 0
+   },
+   "id": "H4-04",
+   "scene": "M18.1",
+   "speaker": "TAMMO",
+   "context": "Voor het kantoor van Wiebelwerk. Tessa zegt dat de chat hen voor de dieven houdt, twee Stadjers in het zwart; Tammo geeft het toe.",
+   "shot": "twee-shot Tammo en Tessa voor de glazen deur, Tammo kijkt naar zijn schoenen",
+   "variants": [
+    "We waren er wel.",
+    "Dat klopt ook wel.",
+    "…We waren erbij."
+   ],
+   "neutral": "Dat klopt."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     2,
+     1
+    ],
+    "reason": "Dat zei ik ook: droog, Tessa's directheid.",
+    "certainty": "laag",
+    "tiebreak": 0
+   },
+   "id": "H4-05",
+   "scene": "M18.4",
+   "speaker": "TESSA",
+   "context": "Na het bellen van Mem draait Tessa zich terug. Tammo vraagt wat Mem zei en zij zegt wat ze steeds zegt; Tammo merkt op dat het augustus is.",
+   "shot": "halve close-up Tessa, een stap van Tammo vandaan; Tammo's blik blijft op haar",
+   "variants": [
+    "Dat zei ik ook.",
+    "Dat heb ik ook gezegd.",
+    "Zeg dat maar tegen haar."
+   ],
+   "neutral": "Ik weet het."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     0
+    ],
+    "reason": "Geschenk dat een voorschot heet: Jelle op zijn best.",
+    "certainty": "hoog"
+   },
+   "id": "H4-06",
+   "scene": "M19.2",
+   "speaker": "JELLE",
+   "context": "In de stoomtrein. Een jurylid heeft het briefje in zijn eierbal gelezen; Jelle belt Tessa en noemt de eierbal een voorschot.",
+   "shot": "Tessa met de telefoon aan haar oor in het gangpad, het jurylid met zijn eierbal op de achtergrond",
+   "variants": [
+    "Mevrouw. Een eierbal is een geschenk. Mijn juristen noemen het een voorschot.",
+    "Mevrouw. Een eierbal is een geschenk. Mijn juristen hebben dat vastgelegd.",
+    "Mevrouw. Een eierbal is een geschenk, en een voorschot."
+   ],
+   "neutral": "Mevrouw. Een eierbal is een geschenk."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     2,
+     1
+    ],
+    "reason": "Naar het Beleg met zijn mannen is helder en laat Jelle onbenoemd.",
+    "certainty": "laag",
+    "tiebreak": 0
+   },
+   "id": "H4-07",
+   "scene": "M19.3",
+   "speaker": "BEREND",
+   "context": "Op het perron. Tessa heeft Berend gebeld over de jury; hij noemt Jelle niet bij naam maar bij wat hij hem nooit vergeeft.",
+   "shot": "Tessa met de telefoon op luidspreker, Tammo leunt tegen een lantaarnpaal",
+   "variants": [
+    "Dinsdag komt de man die mijn bakkie wilde kopen naar het Beleg. Met zijn mannen.",
+    "Dinsdag komt de man die mijn bakkie wilde kopen. Naar het Beleg, met zijn mannen.",
+    "Dinsdag komt de man die mijn bakkie wilde kopen. Met zijn mannen."
+   ],
+   "neutral": "Dinsdag komt Jelle naar het Beleg. Met zijn mannen."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     1
+    ],
+    "reason": "Moet aansluiten op Klaas in H4-10.",
+    "certainty": "midden"
+   },
+   "id": "H4-08",
+   "scene": "M21.4",
+   "speaker": "KAPITEIN KLAAS",
+   "context": "Bij Tinus' schuur. Geesje en Klaas ruziën over wie van hen als eerste door Jelles advocaten is gebeld; Geesje zegt negen uur.",
+   "shot": "twee-shot Geesje en Klaas, Tammo half in beeld op de achtergrond",
+   "variants": [
+    "Ik om half negen.",
+    "Ik om kwart over acht.",
+    "Ik om acht uur. Ik heb het genoteerd."
+   ],
+   "neutral": "Ik ook, hoor."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     0
+    ],
+    "reason": "Mestemmer als doel is de pointe, laatste.",
+    "certainty": "hoog"
+   },
+   "id": "H4-09",
+   "scene": "B4",
+   "speaker": "TESSA",
+   "context": "In de auto langs een dorpsveldje in Veendam. Tessa vertelt over haar dorpsteam; wat ze als doel had, past in een mestemmer.",
+   "shot": "autoshot, Tessa kijkt uit het raam naar het veld, Tammo stuurt",
+   "variants": [
+    "Ik speelde thuis in een dorpsteam. Met een mestemmer als doel.",
+    "Thuis speelde ik met een mestemmer als doel.",
+    "Ons doel was een mestemmer. Hij hield alles tegen."
+   ],
+   "neutral": "Ik speelde thuis in een dorpsteam."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": {
+    "votes": [
+     0,
+     0,
+     1
+    ],
+    "reason": "Moet aansluiten op de herhaling van Tammo's vastlopende zin in H4-08.",
+    "certainty": "midden"
+   },
+   "id": "H4-10",
+   "scene": "M21.4",
+   "speaker": "TAMMO",
+   "context": "Bij Tinus' schuur. Tammo probeert Geesje en Klaas te kalmeren, maar de zin loopt vast.",
+   "shot": "halve close-up Tammo, hij opent zijn mond en vindt de rest van de zin niet",
+   "variants": [
+    "Het maakt niet uit wie… eh.",
+    "Het gaat er niet om wie… eh.",
+    "Wie het eerst… eh, dat is niet…"
+   ],
+   "neutral": "Dat is nu niet belangrijk."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 1,
+   "panel": {
+    "votes": [
+     1,
+     1,
+     1
+    ],
+    "reason": "Sta jij nergens: warm en droog, zonder uitleg.",
+    "certainty": "midden"
+   },
+   "id": "H4-11",
+   "scene": "O9",
+   "speaker": "TESSA",
+   "context": "Avond, aan de telefoon. Tammo zegt dat Tessa de auto koos en niet de bal; haar antwoord is warmer dan ze het laat klinken.",
+   "shot": "Tessa achter het stuur van de Escapade, de telefoon op het dashboard; Tammo langs een weg, alleen",
+   "variants": [
+    "Zonder auto rijd jij nergens.",
+    "Zonder auto sta jij nergens.",
+    "Jij rijdt nergens zonder auto."
+   ],
+   "neutral": "De auto is belangrijker."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 2,
+   "panel": {
+    "votes": [
+     2,
+     "neutral",
+     2
+    ],
+    "reason": "Een website die nog niet bestaat is de sterkste kicker.",
+    "certainty": "laag"
+   },
+   "id": "H4-12",
+   "scene": "M18.1",
+   "speaker": "SJABBE",
+   "context": "Sjabbe belt terwijl Tammo en Tessa voor Wiebelwerk staan; hij kent het bureau van zijn eigen website.",
+   "shot": "telefoon in Tessa's hand, op de achtergrond het bord van Wiebelwerk",
+   "variants": [
+    "Wiebelwerk? Zij beheren ook de camera's van het museum. Hun accountmanager belt me elke week. Mijn website is nog steeds in aanbouw.",
+    "Wiebelwerk? Zij beheren ook de camera's van het museum. Hun accountmanager belt me elke week. Over mijn website, die nog niet af is.",
+    "Wiebelwerk? Zij beheren ook de camera's van het museum. Hun accountmanager belt me elke week, over een website die nog niet bestaat."
+   ],
+   "neutral": "Wiebelwerk? Zij beheren ook de camera's van het museum."
+  }
+ ]
+}

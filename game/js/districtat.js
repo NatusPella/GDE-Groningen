@@ -12,7 +12,7 @@ import { gebiedIn } from './grenzen.js';
 
 export const CITY_LOCALITY = 'Groningen';
 export const MAX_DISTRICT_DISTANCE = 700;   // zonder grenzen: verder dan dit van een wijkpunt is er geen wijk
-export const MAX_HOOGTE = 40;          // boven dit (m boven de grond) in de lucht noemen we geen wijk
+const MAX_HOOGTE = 40;          // boven dit (m boven de grond) in de lucht noemen we geen wijk
 
 const getal = (v) => Number.isFinite(v);
 

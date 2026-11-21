@@ -307,7 +307,7 @@ Alles met de hand werkt tot ongeveer 5 percelen. Daarna:
 * **Machines en trekkers:** het eigen wagenpark dat je ook zelf bestuurt: het bestaande `machines.js`/`werktuigen.js`/`boerderijwereld.js`
   (gewone voertuigen, `playerOwned`, `farm` = uid). Personeel gebruikt ze zonder dat je erin zit.
 * **Opslag en verwerking:** de silo en schuur van een erf (bestaand, `opslagKg`), en nieuw **verwerkers**: melkfabriek, kaasmakerij,
-  frietfabriek (voor de aardappelen; de Fjord Frituur is het verhaal van Tessa), meelmolen en bakkerij, en **verkooppunten**
+  frietfabriek (voor de aardappelen; de snackwagen is het verhaal van Tessa), meelmolen en bakkerij, en **verkooppunten**
   (boerderijwinkel, markt, eigen supermarkt). Een verwerker is een pand uit Bedrijven met een rol, geen apart gebouwtype.
 
 ### 5.5 Samen spelen: werken op andermans perceel
@@ -391,7 +391,7 @@ leren we het zelf, dan pas een ander."). Kans en cooldown zoals de bestaande per
 | treinstations, busstations en de haltes | reisbeats T1 tot T5 en de rit-flow hangen eraan |
 | het huidige missiedoel en het pand van elke opdracht die nu actief of nog te komen is | de opdracht moet kunnen; het pand **komt vrij** na het slot van de akte waarin het speelt (voorstel) |
 | je eigen safehouse en je huis (`safehuisplek`) | is al van jou |
-| De Zonnehoek en andere verhaalplekken met een eigen eigenaar in de tekst | de tekst noemt de eigenaar; een koop moet de lijn niet breken |
+| snackwagen, De Zonnehoek en andere verhaalplekken met een eigen eigenaar in de tekst | de tekst noemt de eigenaar; een koop moet de lijn niet breken |
 | monumenten en landmarks (kerken, gemeentehuizen, de bekende torens) | Voorstel: **wel** te koop, maar alleen als "Beheer" (geen sloop, geen aanbouw, altijd toegankelijk). De eigenaar zei "alles"; dit is een zachte grens. |
 
 Een pand dat niet te koop is toont "Niet te koop" met de reden op de kaart (geen stille weigering). De lijst is data

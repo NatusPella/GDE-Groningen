@@ -113,7 +113,7 @@ export const KAARTEN = {
         stappen('Het Ontzet', 0, [stap('ei', 'Bak'), stap('auto', 'Limo tegenhouden'), stap('hart', 'De jury proeft')], { na: 15, duur: 9 })] },
     vuurwerk: { doel: 'Houd de kraam heel tegen het vuurwerk',
       regels: [teller('Houd de kraam', 22, { na: 3, duur: 8 })] },
-    limo: { doel: 'Zet de Fjord Frituur dwars voor Jelles limo', druk: 'voor drie uur', afloop: 'is Jelle bij de notaris, dan is plakje acht van hem',
+    limo: { doel: 'Zet de snackwagen dwars voor Jelles limo', druk: 'voor drie uur', afloop: 'is Jelle bij de notaris, dan is plakje acht van hem',
       regels: [stappen('Zo stop je hem', 0, [stap('auto', 'Voor hem rijden'), stap('hand', 'Dwars zetten'), stap('hart', 'Hij staat vast')], { na: 5, duur: 9 }),
         teller('Tijd', 70, { na: 16, duur: 6 })] },
   },

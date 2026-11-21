@@ -19,11 +19,14 @@ for (const a of sched) ok(ids.has(a.step) && (a.at === 'start' || a.at === 'afte
 
 // the order of Mem's countdown follows the story: acht, zeven, zes, vier
 const at = (t) => { const i = sched.findIndex((a) => a.text.startsWith(t)); return i < 0 ? -1 : STEPS.findIndex((s) => s.id === sched[i].step); };
-const order = ['Nog acht dagen', 'Nog zeven dagen', 'Nog zes dagen', 'Kom dinsdag naar Bourtange', 'Nog vier dagen'].map(at);
+const order = ['Nog acht dagen', 'Nog zeven dagen', 'Nog zes dagen', 'Nog vier dagen'].map(at);
 ok(order.every((v, i) => v >= 0 && (i === 0 || v >= order[i - 1])), 'Mem countdown arrives in order', order.join(','));
 ok(at('Nog vier dagen') < STEPS.findIndex((s) => s.id === 'M20'), 'the Bourtange invitation arrives before the Beleg (M20)');
 ok(at('Je moet naar Warffum') < STEPS.findIndex((s) => s.id === 'M09'), 'Warffum is announced before M09');
 ok(at('Ik ben bij het Loket') < STEPS.findIndex((s) => s.id === 'M03'), 'the Loket text arrives before Tammo is in M03');
-ok(appsAt('M21', 'start').some((a) => /rode auto/.test(a.text)), 'the train text opens M21');
+// akte 4 (WP5): Mems tip over Bourtange (M18.4) en over de trein bij Zuidhorn (M21.2) zijn hoorbaar, geen stil appje meer
+const spoken = (id, re) => data.scenes.find((s) => s.id === id).lines.some((l) => l.channel === 'telefoon' && l.key === 'mem' && re.test(l.text));
+ok(spoken('M18.4', /Bourtange/), 'Mem belt over Bourtange (M18.4), hoorbaar');
+ok(spoken('M21.2', /Zuidhorn/), 'Mem belt over de trein bij Zuidhorn (M21.2), hoorbaar');
 console.log(`storyapps_test: ${n - fails}/${n} ok`);
 process.exitCode = fails ? 1 : 0;

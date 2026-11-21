@@ -3,7 +3,7 @@
 //        [--only=<tekst>] [--jobs=2] [--test-timeout=120] [--issues [--create]] [--force] [--locks=<map>] [--stage [--cache=<map>]] [--list]
 //        [--allow-skip|--partial]  een bewuste deelrun mag met 0 eindigen ook als er niets geslaagd is
 // Fasen (standaard licht):
-//   licht     module-check, import_check, voice_coverage, text_audit, spec_check, cutscene_lint (meldt; de gate blokkeert), de player-singleton-audit,
+//   licht     module-check, import_check, voice_coverage, text_audit, spec_check, cutscene_lint (meldt; de gate blokkeert), de player-singleton-audit, de coop-dekking-audit,
 //             dode-code-bewaking en alle scripts/*_test.mjs (met duur en tijdslimiet; import_cycles_test bewaakt de cycli)
 //   zwaar     de wereldchecks en audits (ring_probe, seat_audit, province_test, drive_audit, ...)
 //   electron  smoke-run, verhaaltest, geocheck, spelbot-sweeps en de beeldrondes, met beeldchecks
@@ -164,6 +164,7 @@ async function faseLicht(prev) {
     ['voice_coverage', ['scripts/voice_coverage.mjs', '--quiet']],
     ['text_audit', ['scripts/text_audit.mjs']],
     ['player_singleton_audit', ['scripts/player_singleton_audit.mjs']],
+    ['coop_coverage_audit', ['scripts/coop_coverage_audit.mjs']],
     ['world_eigenaar', ['scripts/world_eigenaar.mjs']],
     ['spec_check', ['scripts/spec_check.mjs']],
     ['cutscene_lint', ['scripts/cutscene_lint.mjs', '--meld', '--quiet']],
@@ -226,6 +227,7 @@ const ZWAAR = [
   ['prop_conflict_audit', 'scripts/world/prop_conflict_audit.mjs', ['--strict'], 900, true],
   ['prop_conflict_audit_test', 'scripts/prop_conflict_audit_test.mjs', [], 600, true],
   ['world_audit', 'scripts/world/world_audit.mjs', ['--strict'], 600, true],
+  ['interior_audit', 'scripts/interior_audit.mjs', [], 600, true],
   ['bridge_support_test', 'scripts/bridge_support_test.mjs', [], 300, true],
   ['world_misplaced_test', 'scripts/world_misplaced_test.mjs', [], 300, true],
   ['mission_prop_audit', 'scripts/world/mission_prop_audit.mjs', ['--strict'], 300, true],

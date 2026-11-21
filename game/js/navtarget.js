@@ -48,7 +48,7 @@ export const NAV_TYPES = {
 
 export const MAX_SECUNDAIR = 2; // zoveel wachtende icoon-punten naast de boog
 export const AANKOMST_M = 10; // dichter dan dit ben je er: geen pijl meer
-export const SAMENVOEG_M = 8; // twee doelen op dezelfde plek zijn één doel
+const SAMENVOEG_M = 8; // twee doelen op dezelfde plek zijn één doel
 
 // Een eigen doel heeft de vorm van wat het is: een plek een vlag, een missie of uitdaging een ster, een klus een ruit.
 export function eigenGlyph(soort) {

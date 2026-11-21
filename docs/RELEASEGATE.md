@@ -200,9 +200,22 @@ afwijking meenemen zonder issue.
 4. **Fixlus** tot de triage groen is (stap 4 hierboven).
 5. **Gate-verificatie.** `node scripts/release_gate.mjs --verify` moet groen zijn op HEAD.
    `desktop/release.sh` doet deze controle zelf; zonder groen rapport stopt hij.
-6. **Release.** `cd desktop && npm run release -- minor|patch --world` (zoals altijd; de
+6. **Eigenaar-review: 20 screenshots (laatste stap vóór `desktop/release.sh`).** Zie hieronder.
+7. **Release.** `cd desktop && npm run release -- minor|patch --world` (zoals altijd; de
    eigenaar publiceert, agents niet).
-7. **Wat niet gedraaid is, staat als "niet getest" in het issue.** De gate liegt daar niet over.
+8. **Wat niet gedraaid is, staat als "niet getest" in het issue.** De gate liegt daar niet over.
+
+### Eigenaar-review: 20 screenshots
+
+De laatste stap vóór `desktop/release.sh`; `release_gate.mjs --verify` keurt een release pas met dit bewijs.
+
+1. **Eerst DS3-conformiteit groen.** `ds3_dekking_test` en `ds3_ratel_test`, `rules_audit` met 0 blokkerend, `keycap_maat_test` en de keycapmeting, en de DS3-compliance-review. Zonder dat vraagt de coördinator de eigenaar niet te kijken.
+2. **Twintig echte screenshots.** De coördinator maakt met één Electron-instantie (na de grote sweep, dus nooit tegelijk met een fps-meting) 20 in-game screenshots op 1920x1080, waar zinvol ook op 1280x720, van AFGEROND UI/UX-werk. Kies uit: startkeuze en Samen-naamkaart, laadscherm, HUD met minimap-doel en wanted-weergave, HUD-meldingen met balkje, kaart met popups en reis, Spullen-galerij met kleding en kapper, Bezit (kaartlaag, perceelkaart, beheerscherm), het voetbalcarrière-scherm, de vertrekbordtijdlijn, de tuninggarage, een interieur van binnen, de eindkaart en prestatietoast, de recapkaart en een cutsceneframe.
+3. **Feedback van de eigenaar.** Blokkerende feedback wordt eerst verwerkt; daarna maakt de coördinator zo nodig nieuwe screenshots van wat veranderde.
+4. **Bewijsbestand.** De coördinator schrijft `release/owner-review.json`: `{ "datum": "JJJJ-MM-DD", "aantal": 20, "status": "akkoord" of "feedback verwerkt", "bestanden": ["...png", ...] }`. `--verify` eist een geldige datum (niet in de toekomst), minstens 20 screenshots met evenveel genoemde bestanden en een van die twee statussen, en toont de regel `owner_review` in de uitvoer.
+5. **Nooduitgang.** `GDE_RELEASE_SKIP_OWNERREVIEW=1` slaat de controle over, luid in de uitvoer, en alleen met akkoord van de eigenaar.
+
+De logica is puur en getest in `scripts/release_ownerreview_test.mjs` (`scripts/release/ownerreview.mjs`).
 
 ### release.sh en de nooduitgang
 
@@ -292,6 +305,7 @@ design system, regels en review, die daarvoor niet structureel werden gecontrole
 | Bestand | Rol |
 |---|---|
 | `scripts/release_gate.mjs` | de orchestrator: plan, fasen, rapport, `--verify` |
+| `scripts/release/ownerreview.mjs` | de eigenaar-review: eisen aan `release/owner-review.json` (20 screenshots, feedback verwerkt) |
 | `scripts/release/stages.mjs` | pure plan- en verdictlogica (getest zonder Electron) |
 | `scripts/release/perf_gate.mjs` | norm- en baselinevergelijking voor perf |
 | `scripts/release/visual_gate.mjs` en `contactsheet.mjs` | beeldchecks, baseline, contactbladen en reviewpakket |
