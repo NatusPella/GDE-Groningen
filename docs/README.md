@@ -203,6 +203,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [SPEELTEST.md](<SPEELTEST.md>) | Voor mensen die de game nog niet kennen. Speel ongeveer 45 tot 60 minuten; zonder save begint het verhaal m… |
 | [STEAM-CHECKLIST.md](<STEAM-CHECKLIST.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standar… |
 | [STEAM-KLAAR.md](<STEAM-KLAAR.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standar… |
+| [VERHAAL-TEMPO-21-11.md](<VERHAAL-TEMPO-21-11.md>) | Lengte- en tempoplan: speeltijd per akte (ontwerpraming), tempocurve, regels tegen filler, rustpunten en versnellers, de speler bepaalt het tempo. |
 | [VERHAAL-THUIS-21-11.md](<VERHAAL-THUIS-21-11.md>) | Thuis per verhaalstap: vier verhuizingen over de aktes, het homebase-model, migratie, Bezit-pand als thuis en wat nog te koppelen is. |
 | [VERHAAL-WEGHALEN-21-11.md](<VERHAAL-WEGHALEN-21-11.md>) | Wat uit het verhaal verdwijnt (gaswinning en aardbevingen): per plek oud, nieuw en wat dat voor de stemmen betekent. |
 | [VERHAAL-RELATIE-21-11.md](<VERHAAL-RELATIE-21-11.md>) | Relatie-bijbel van Tammo en Tessa: waarom ze vrienden zijn, hun taal, de carrière-matrix, 14 bewijsmomenten, hoe dit de romantiek draagt en de personagekaarten. |
