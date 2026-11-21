@@ -101,5 +101,22 @@ t('spullen.js: aria-current wordt "true" of weg, nooit leeg (toggleAttribute)', 
   assert.match(src, /setAttribute\('aria-current', 'true'\)/);
 });
 
-console.log(`spullenmodel_test: ${n - fails}/${n}`);
+const I = await import('../game/js/icons.js');
+t('iconen: elke tab, groep en soort heeft een bekend Phosphor-icoon, nooit het vraagteken van de terugval', () => {
+  for (const [id] of M.CATS) assert.ok(M.CAT_ICOON[id], `tab ${id} heeft geen icoon`);
+  for (const g of Object.keys(M.CAT_VAN)) assert.ok(M.GROEP_ICOON[g], `groep ${g} heeft geen icoon`);
+  const namen = [...Object.values(M.CAT_ICOON), ...Object.values(M.GROEP_ICOON), ...Object.values(M.SOORT_ICOON), M.ICOON_TERUGVAL];
+  for (const nm of namen) { assert.ok(I.iconBekend(nm), `${nm} staat niet in iconmap.js`); assert.notEqual(nm, 'vraag'); assert.ok(!I.icoon(nm).includes('question'), nm); }
+  // een onbekende soort of een ding zonder icoon valt terug op de groep, daarna op de rugzak: nooit op een vraagteken
+  assert.equal(M.itemIcoon({ cat: 'eten', icon: 'bestaatniet' }), 'eten');
+  assert.equal(M.itemIcoon({ cat: 'onbekend' }), M.ICOON_TERUGVAL);
+  assert.equal(M.itemIcoon(null), M.ICOON_TERUGVAL);
+  assert.equal(M.itemIcoon({ cat: 'wapens', icon: 'melee' }), 'mes');
+  const src = fs.readFileSync(new URL('../game/js/spullen.js', import.meta.url), 'utf8');
+  assert.ok(!/icoon\([^)]*'vraag'/.test(src) && !/ICOON\[/.test(src), 'spullen.js tekent iconen via itemIcoon');
+  assert.ok(!/border:2px dashed/.test(src), 'geen stippelvak als plaatsvervanger: een skeleton');
+  assert.match(src, /@keyframes sp-skel/);
+});
+
+console.log(`spullenmodel_test:${n - fails}/${n}`);
 if (fails) process.exit(1);
