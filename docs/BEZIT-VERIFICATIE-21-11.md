@@ -23,3 +23,45 @@ legacy, herkoppelen met terugbetaling), `game/js/bezitprijs.js` (prijs, bodem, s
 (23 controles, met de echte index: mediaan en aandeel goedkope percelen, naamuniciteit).
 
 In beeld te controleren: nog niets zichtbaar; de opslag wordt pas gebruikt door #1098 en #1099.
+
+## #1102 Tak Bedrijven (pure logica)
+
+Gebouwd (geen UI, geen Electron):
+- `game/js/business.js`: pand-model (`classifyBuilding`: winkelplek wint van pandsoort), prijs (woning woonoppervlak x 300 x gemeentefactor, winkel
+  m2 x 900 x typefactor, industrie m2 x 700, schaalprijs via `bezitprijs.js`), omzet per speldag (`stepDay`: klantendruk x prijsstand x voorraad x
+  personeel x verzadiging x openingsuren x onderhoud, plus vaste dagruis), belasting 0,1% progressief (dubbel bij 100 panden), onderhoud (zakt, renovatie
+  herstelt), verhuur van woningen 0,25% met kans op "huurder verhuist" (nooit uitzetting), vier beheerknoppen (`setKnob`), dagrapport met reden,
+  `settleDays` voor achterstand, en het mobiele bedrijf de frietwagen (eigen id, omzet naar plek; Tessa en Tammo, 24 en net afgestudeerd).
+- `game/js/businessexclusion.js`: `BEZIT_UITSLUITING` met Nederlandse redenen, `excluded`/`isBuyable`, missiedoelen die vrijkomen na de akte (`missionSpotsFrom`).
+- `game/js/businessstaff.js`: de kassier die er stond blijft (`existingClerk`), aanstellen en ontslaan, loon, `staffFactor`, en `visibleCustomers`/`customerPlan` (hoogstens 6).
+- `game/js/bezithash.js`: deterministische hash (geen `Math.random`). `game/js/bezit.js` bewaart nu ook `bstate.bp` (basisprijs), `bstate.cfg` (knoppen en personeel),
+  `mobile` (mobiele bedrijven) en onderhoud met een decimaal.
+Tests: `scripts/business_test.mjs` (39 controles, met exploit-tests: kopen-verkopen-lus, schaalcurve, monopolie, herinvesteren binnen factor 3 van het actieve werk)
+en `scripts/businessexclusion_test.mjs` (11 controles).
+
+Open gaten:
+- Missiedoelen die via een naam gaan (`landmark`, `shop`) en doelen die pas in de wereld een plek krijgen staan niet in de steekproef: de test leest de vaste punten
+  (`at: [x, y]`, `walk(x, y)`, `drive(x, y)`) uit de bronbestanden van de akten (de echte defs importeren `three`). De bouwer geeft in het spel de echte defs aan
+  `missionSpotsFrom(defs, actOf)` en lost de namen op met de wereld (ctx.missionSpots).
+- De klantenpot per woonplaats (`town.houses`) en de gemeentefactor moeten uit de pandindex per plaats geteld worden (bouwer).
+- De koppeling met de economiesim (`scripts/lib/economiesim.mjs`, profiel 10, 100, 1.000 panden) is niet gedaan; de test hierboven dekt de factor 3 met een eigen herinvesteringslus.
+In beeld te controleren: niets zichtbaar; de beheerknoppen, het dagrapport en de wandelaars bij winkels komen met de UI van de bouwer.
+
+## #1103 Productieketen, dynamische prijzen en events (pure logica)
+
+Gebouwd (geen afspeelcode, geen UI):
+- `game/js/supplychain.js`: de ketens kaas, friet, brood, eieren, hooi en bieten als schakels met buffer en doorvoer per speldag (stokken als de volgende schakel vol zit),
+  logistiek met AI-chauffeur (reistijd afstand / 15 m/s plus laden, wagens, loon, diesel), extra marge 15% / 15% / 35%, `weakestLink` en `chainView` voor het beheerscherm.
+- `game/js/areamarket.js`: streekprijs per dag (basis x (1 + 0,2 x (vraag - aanbod) / referentie), 0,7 tot 1,4), vraag uit hash, aanbod van spelers (`deliver`,
+  `recordRemoteDelivery`), verzadiging 3% per 1.000 kg met 25% herstel per dag, de dag uit de gedeelde kalender (`marketDay`), `marketBoard` voor het tabblad Markt.
+- `game/js/bezitevents.js`: droogte (zand meer), hagel (optionele verzekering), mierenplaag, wespen, machine kapot (boven 70% slijtage), ziek vee, Inspectiedienst Noordrand,
+  koeling, staking, veiling, veilingdag, landbouwbeurs, buren met keuze, kermis en dorpsfeest en de trekkertrek als gegevensdefinitie. Altijd zomer; geen aardbeving,
+  gaswinning, overval of geweld.
+Tests: `scripts/supplychain_test.mjs` (19), `scripts/areamarket_test.mjs` (18), `scripts/bezitevents_test.mjs` (20), met exploit-tests (opdelen, dumpen, spreiden, vraagplafond, wagens kosten geld).
+
+Open gaten:
+- Geen afspeelcode en geen meldingen: de bouwer roept `eventsOn` aan per speldag en past `parcelLoss`, `businessMods` en `marketEventMult` toe.
+- De trekkertrek is alleen een gegevensdefinitie; de minigame zelf is er niet.
+- Het perceel-ID's en de machines (slijtage) komen uit de percelen-tak; hun koppeling aan `parcelLoss` en `machineBreakdown` moet de bouwer leggen.
+In beeld te controleren: niets zichtbaar (pure regels); de teksten van de meldingen en de keuzescenes bij de buren zijn nog door niemand gelezen in het spel.
+

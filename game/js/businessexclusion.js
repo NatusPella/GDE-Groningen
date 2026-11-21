@@ -10,8 +10,8 @@ import { finite } from './bezithash.js';
 // Tabel per soort (OSM-pandsoort) en per voorzieningsoort (facilities.js): code, reden. Alles hier is "niet te koop".
 export const BEZIT_UITSLUITING = {
   byType: {
-    hospital: ['zorg', 'het spel heeft respawn en hulp op deze plek'],
-    clinic: ['zorg', 'het spel heeft respawn en hulp op deze plek'],
+    hospital: ['zorg', 'hier staat de hulp en de plek waar je weer op de been komt'],
+    clinic: ['zorg', 'hier staat de hulp en de plek waar je weer op de been komt'],
     fire_station: ['hulpdienst', 'de brandweer moet blijven rukken'],
     police: ['hulpdienst', 'aanhouding en politie hangen aan dit bureau'],
     ambulance_station: ['hulpdienst', 'de ambulance heeft dit adres nodig'],
@@ -21,7 +21,7 @@ export const BEZIT_UITSLUITING = {
     transportation: ['reizen', 'de reisritten lopen via dit knooppunt'],
   },
   byFacility: {
-    hospital: ['zorg', 'het spel heeft respawn en hulp op deze plek'],
+    hospital: ['zorg', 'hier staat de hulp en de plek waar je weer op de been komt'],
     gppost: ['zorg', 'de huisartsenpost hoort bij de hulp in het spel'],
     ambulance: ['hulpdienst', 'de ambulance heeft dit adres nodig'],
     police: ['hulpdienst', 'aanhouding en politie hangen aan dit bureau'],
@@ -38,7 +38,7 @@ export const BEZIT_UITSLUITING = {
 
 // De woorden van de redenen (voor de test: Nederlands, zonder merken).
 export const REASONS = {
-  zorg: 'Niet te koop: hulp en respawn in het spel hangen aan dit pand.',
+  zorg: 'Niet te koop: de hulp en de plek waar je weer op de been komt hangen aan dit pand.',
   hulpdienst: 'Niet te koop: dit is een hulpdienst die het spel nodig heeft.',
   reizen: 'Niet te koop: reisritten van het verhaal lopen via dit pand.',
   missie: 'Niet te koop: dit pand is het doel van een opdracht.',

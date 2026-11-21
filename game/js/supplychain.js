@@ -112,7 +112,7 @@ export function extraMargin(chain) {
 const rawPerUnit = (chain, idx) => { let y = 1; for (let i = 0; i < idx; i++) y *= chain.links[i].yield; return y; };
 
 // Eén speldag. Geeft { chain: nieuwe toestand, report }; past de invoer niet aan.
-// produced: kilo grondstof die de percelen die dag in de bron leggen; regionFactor: de streekprijs-factor van het verkooppunt (regionmarket.js, 0,7 tot 1,4).
+// produced: kilo grondstof die de percelen die dag in de bron leggen; regionFactor: de streekprijs-factor van het verkooppunt (areamarket.js, 0,7 tot 1,4).
 // report: { intake, blocked (oogst die niet de schuur in kon), moved: [kg per schakel], sold, fed, revenue, cost: { wages, diesel }, net, margin, stuck: [{ index, why }] }
 export function stepChainDay(chain, { produced = 0, regionFactor = 1, day } = {}) {
   const links = chain.links.map((l) => ({ ...l, trucks: l.trucks.slice() }));

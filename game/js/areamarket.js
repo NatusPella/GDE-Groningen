@@ -3,7 +3,7 @@
 // met een vraag uit een deterministische hash van streek, dag en product (geen Math.random), een aanbod dat bestaat uit wat spelers die dag in die streek
 // leveren, en een verzadiging van 3% per 1.000 kg die je levert en een herstel van 25% per dag. Dat dwingt tot spreiden over streken.
 // De dag komt uit de gedeelde spelkalender (calendar.js, het dagnummer van de wereld), niet uit de boerderijuren (gewasmarkt.js houdt de eigen
-// basisprijzen): medespelers zien daardoor dezelfde prijs. Puur: geen DOM, geen THREE, geen klok, geen opslag (scripts/regionmarket_test.mjs).
+// basisprijzen): medespelers zien daardoor dezelfde prijs. Puur: geen DOM, geen THREE, geen klok, geen opslag (scripts/areamarket_test.mjs).
 
 import { PRIJS_KG as PRICE_KG } from './gewasmarkt.js';
 import { STREKEN } from './regioleven.js';

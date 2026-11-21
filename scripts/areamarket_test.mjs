@@ -1,8 +1,8 @@
 // De streekmarkt (#1103): dynamische prijs per streek per dag (0,7 tot 1,4), vraag uit hash, aanbod van spelers, verzadiging 3% per 1.000 kg
 // met 25% herstel per dag, deterministisch, gedeeld via de kalenderdag, en de exploit-tests (opdelen, dumpen, spreiden).
-//   node scripts/regionmarket_test.mjs
+//   node scripts/areamarket_test.mjs
 import assert from 'node:assert/strict';
-import * as R from '../game/js/regionmarket.js';
+import * as R from '../game/js/areamarket.js';
 import { PRIJS_KG as PRICE_KG } from '../game/js/gewasmarkt.js';
 import { STREKEN } from '../game/js/regioleven.js';
 
@@ -129,5 +129,5 @@ t('de deliver past de invoer niet aan, normalizeMarket zuivert kapotte opslag', 
   assert.deepEqual(R.normalizeMarket(null), R.newMarket());
 });
 
-console.log(`regionmarket_test: ${n - fails}/${n} ok`);
+console.log(`areamarket_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
