@@ -1,4 +1,4 @@
-// Test van de wijkkeuze (game/js/wijkat.js) met de echte gebiedsdata: geen stadswijk buiten de stad, hysterese bij een grens,
+// Test van de wijkkeuze (game/js/districtat.js) met de echte gebiedsdata: geen stadswijk buiten de stad, hysterese bij een grens,
 // geen melding na een sprong (teleport, reizen, laden, film), vliegen en geen NaN. Puur, geen netwerk, geen Electron.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -8,7 +8,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const imp = (p) => import(pathToFileURL(path.join(root, p)).href);
 const { ontvouw, grensVan } = await imp('game/js/grenzen.js');
-const { districtAt, createDistrictTracker, CITY_LOCALITY, MAX_DISTRICT_DISTANCE, applyDistrictBounds } = await imp('game/js/wijkat.js');
+const { districtAt, createDistrictTracker, CITY_LOCALITY, MAX_DISTRICT_DISTANCE, applyDistrictBounds } = await imp('game/js/districtat.js');
 
 let n = 0, f = 0;
 const ok = (fn, naam) => { n++; try { fn(); } catch (e) { f++; console.log('FOUT', naam, '-', e.message); } };
@@ -103,5 +103,5 @@ ok(() => assert.equal(districtAt([{ name: 'X', x: NaN, y: 0 }], 0, 0, { grenzen:
   ok(() => { g.tik(NaN, 'A', NaN, NaN); g.tik(NaN, 'B', 0, NaN); g.tik(1, 'B', 0, 0); }, 'NaN laat de volger niet crashen');
 }
 
-console.log(`wijkat_test: ${n - f}/${n} geslaagd (raster: ${buiten} punten buiten de stad, ${stadMet} in de stad met wijk)`);
+console.log(`districtat_test: ${n - f}/${n} geslaagd (raster: ${buiten} punten buiten de stad, ${stadMet} in de stad met wijk)`);
 process.exit(f ? 1 : 0);

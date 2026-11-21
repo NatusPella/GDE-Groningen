@@ -55,7 +55,7 @@ import { provinceMapOn } from './provincemap.js';
 import { edgeDistance } from './countryfield.js';
 import { streetAt as roadStreetAt } from './tileplace.js';
 import { ommelandArea } from './ommelandplace.js';
-import { districtAt } from './wijkat.js';
+import { districtAt } from './districtat.js';
 import { ommelandMapSpots, drawOmmelandMapIcon } from './ommelandmap.js';
 import { beppeMapSpot } from './beppe_garden.js';
 import { perceelMapSpots, drawPerceelMapIcon } from './perceelmap.js';
@@ -924,7 +924,7 @@ function currentDistrict(world) {
   const area = ommelandArea(x, y);
   if (area) return areaNameAt(x, y).name;
   // The ~66 named neighbourhood/quarter points give a genre-style district name ("Binnenstad", "Ebbingekwartier", ...), but
-  // only where the player really is in the city (wijkat.js): outside it the nearest point of the city is no wijk (before,
+  // only where the player really is in the city (districtat.js): outside it the nearest point of the city is no wijk (before,
   // a spot in Winsum or on the A7 was "Paddepoel-Noord"). Out of the city and the wijken it is the place or Ommeland.
   const wijk = districtAt(meta.neighbourhoodPoints || [], x, y);
   if (wijk) return wijk.name;
