@@ -770,6 +770,14 @@
       "steamApiNaam": ""
     },
     {
+      "id": "voetbal_kampioen",
+      "titel": "Kampioen van de Euroborg",
+      "omschrijving": "Word kampioen in de voetbalcompetitie van de Euroborg",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VOETBAL_KAMPIOEN",
+      "steamApiNaam": ""
+    },
+    {
       "id": "klim_foutloos",
       "titel": "Niet één keer gevallen",
       "omschrijving": "Klim de toren zonder te vallen",

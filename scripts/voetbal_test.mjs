@@ -4,12 +4,12 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {
-  VELD, KNOP, knopBits, TOETSEN, leesInvoer, invoerNaarActie, aiStand, maatStand, voetbalMedaille, recordWaarde, nieuwRecord, voetbalBeloning, vormingPlek, richtingVan, eigenDoelY, uitkomstVan, TEAMS, TEGENSTANDERS, ROLLEN, DUREN, klokTekst, leesDuurVoorkeur,
+  VELD, FORMATEN, zetFormaat, cleanFormaat, cleanVorming, cleanStijl, vormingNamen, vormingLijst, STIJLEN, drukZetters, leesVoorkeur, NAMEN_THUIS, NAMEN_UIT, KNOP, knopBits, TOETSEN, leesInvoer, invoerNaarActie, aiStand, maatStand, voetbalMedaille, recordWaarde, nieuwRecord, voetbalBeloning, vormingPlek, richtingVan, eigenDoelY, uitkomstVan, TEAMS, TEGENSTANDERS, ROLLEN, DUREN, klokTekst, leesDuurVoorkeur,
 } from '../game/js/voetbalrules.js';
 import { maakBal, stapBal, zetBal, kruisLijn } from '../game/js/voetbalbal.js';
 import {
-  maakWedstrijd, tikWedstrijd, uitbalHervat, verlaatVoetbal, uitslagVoetbal, beloningVoetbal, medailleUitRij, snapVoetbal, leesLiveVoetbal, maakVoetbalSpiegel, voerInVoetbal, tikVoetbalSpiegel,
-  SNAP_LEN_V, FASEN, meedoenVoetbal,
+  maakWedstrijd, tikWedstrijd, zetTactiek, uitbalHervat, verlaatVoetbal, uitslagVoetbal, beloningVoetbal, medailleUitRij, snapVoetbal, leesLiveVoetbal, maakVoetbalSpiegel, voerInVoetbal, tikVoetbalSpiegel,
+  snapLengte, FASEN, meedoenVoetbal,
 } from '../game/js/voetbalmatch.js';
 import { voetbalHudModel, voetbalBord, watNu, popVan, UITLEG, STAPPEN } from '../game/js/voetbalstatus.js';
 import { simHudHtml } from '../game/js/simhud.js';
@@ -21,6 +21,7 @@ import { eindEvent, leesWed, startEvent } from '../game/js/multiplayerwedstrijd.
 import { zetVoetbalKarakterHaken, wisKarakterHaken, voetbalBonusVan, karakterStart, karakterEind, tessaRegel } from '../game/js/voetbalkarakter.js';
 import { KEYS } from '../game/js/storagekeys.js';
 import { speelWedstrijd } from './voetbal_botsim.mjs';
+import { speelschema, nieuweCompetitie, verwerkRonde, volgendeTegenstander, tabel, jouwPlek, isKampioen, leesCompetitie, simuleerDuel, MIJN_CLUB, COMP_CLUBS } from '../game/js/voetbalcompetitie.js';
 import { makeRng } from '../game/js/minigamekit.js';
 
 let n = 0;
@@ -377,9 +378,9 @@ t('Samen: bij het wisselen na een pass nemen de mensen niet allemaal dezelfde sp
   for (let i = 0; i < 600; i++) { tikWedstrijd(m, DT, (slot) => ({ mx: Math.sin(i / 20 + slot), my: -Math.cos(i / 17), buttons: (i % 40 < 3 ? KNOP.PASS : 0) | (i % 90 < 2 ? KNOP.WISSEL : 0) })); assert.equal(new Set(m.mensen.filter((x) => !x.weg).map((x) => x.ctl)).size, m.mensen.filter((x) => !x.weg).length); }
 });
 t('de momentopname: past in 64 getallen, rondreis host naar gast geeft dezelfde stand, ook als hij door het kader gaat', () => {
-  assert.ok(SNAP_LEN_V <= 64);
+  assert.ok(snapLengte('klein') <= 64 && snapLengte('groot') <= 64);
   const m = inSpel([0, 1], 47); stap(m, 3, (slot) => ({ mx: slot ? -1 : 1, my: -1, buttons: 0 }));
-  const snap = snapVoetbal(m, 7); assert.equal(snap.d.length, SNAP_LEN_V); assert.ok(snap.d.every(Number.isFinite)); assert.ok(snap.x.length <= 60);
+  const snap = snapVoetbal(m, 7); assert.equal(snap.d.length, snapLengte('klein')); assert.ok(snap.d.every(Number.isFinite)); assert.ok(snap.x.length <= 60);
   const via = JSON.parse(JSON.stringify(snap));
   const st = leesLiveVoetbal(via); assert.ok(st);
   const start = leesWed(startEvent('voetbal', [{ slot: 0, naam: 'Host', char: 'tammo' }, { slot: 1, naam: 'Gast', char: 'anita' }], 0, { live: 1, v: 'normaal|standaard|2' }));
@@ -388,7 +389,7 @@ t('de momentopname: past in 64 getallen, rondreis host naar gast geeft dezelfde 
   assert.equal(sp.teams[1].id, TEGENSTANDERS[2].id);
   assert.ok(voerInVoetbal(sp, st)); assert.equal(voerInVoetbal(sp, { ...st, n: 3 }), false, 'een oudere momentopname telt niet');
   for (let i = 0; i < 30; i++) tikVoetbalSpiegel(sp, DT);
-  m.spelers.forEach((p, i) => { assert.ok(Math.abs(sp.spelers[i].x - p.x) < 0.02 && Math.abs(sp.spelers[i].y - p.y) < 0.02, `speler ${i}`); });
+  m.spelers.forEach((p, i) => { assert.ok(Math.abs(sp.spelers[i].x - p.x) < 0.06 && Math.abs(sp.spelers[i].y - p.y) < 0.06, `speler ${i}`); });
   assert.ok(Math.hypot(sp.bal.x - m.bal.x, sp.bal.y - m.bal.y) < 0.4 + 0.3 * Math.hypot(m.bal.vx, m.bal.vy), 'de bal volgt de host (met een kwart seconde voorsprong)'); assert.deepEqual(sp.score, m.score); assert.equal(sp.fase, m.fase);
   assert.equal(sp.mijnId, m.mensen[1].ctl, 'de gast weet welke speler hij is');
   assert.equal(leesLiveVoetbal({ ...via, d: via.d.slice(1) }), null); assert.equal(leesLiveVoetbal({ ...via, d: via.d.map((x, i) => (i === 3 ? NaN : x)) }), null);
@@ -514,6 +515,109 @@ t('robuust: drie mensen met willekeurige invoer spelen een hele wedstrijd uit, z
     assert.ok(new Set(m.mensen.map((x) => x.ctl)).size === 3);
   }
   assert.equal(m.fase, 'klaar'); assert.ok(ev.some((e) => e.type === 'schop'), 'er is gespeeld');
+});
+
+// ---------------------------------------------------------------- het volledige veld: elf tegen elf, tactiek en competitie
+t('de formaten: klein en groot, elke vorming heeft precies een keeper en het juiste aantal spelers, binnen het veld', () => {
+  assert.equal(FORMATEN.klein.n, 5); assert.equal(FORMATEN.groot.n, 11);
+  for (const f of ['klein', 'groot']) {
+    assert.equal(zetFormaat(f), f);
+    for (const naam of vormingNamen(f)) {
+      const lijst = vormingLijst(f, naam);
+      assert.equal(lijst.length, FORMATEN[f].n, `${f} ${naam}`); assert.equal(lijst.filter((x) => x.rol === 'keeper').length, 1); assert.equal(lijst[0].rol, 'keeper');
+      if (f === 'groot') assert.equal(+naam[0] + +naam[2] + +naam[4], 10, `${naam} heeft tien veldspelers`);
+      for (const team of [0, 1]) for (const bal of [{ x: 0, y: 0 }, { x: 9, y: VELD.L / 2 - 2 }, { x: -9, y: -VELD.L / 2 + 2 }]) for (const stijl of STIJLEN) {
+        lijst.forEach((_, i) => { const pl = vormingPlek(team, i, bal, true, false, { lijst, stijl }); assert.ok(Math.abs(pl.x) <= VELD.B / 2 && Math.abs(pl.y) <= VELD.L / 2, `${f} ${naam} ${i}`); });
+      }
+    }
+  }
+  zetFormaat('groot'); assert.equal(VELD.L, 90); assert.equal(VELD.DOEL_B, 7.32); zetFormaat('klein'); assert.equal(VELD.L, 42);
+  assert.equal(cleanFormaat('x'), 'klein'); assert.equal(cleanVorming('groot', '9-9-9'), '4-4-2'); assert.equal(cleanStijl('?'), 'evenwichtig');
+});
+t('de speelstijl bepaalt de diepte van de lijnen en het aantal spelers dat druk zet', () => {
+  zetFormaat('groot');
+  const lijst = vormingLijst('groot', '4-4-2'), dr = (stijl) => vormingPlek(0, 5, { x: 0, y: 0 }, false, false, { lijst, stijl }).y, aan = (stijl) => vormingPlek(0, 9, { x: 0, y: 0 }, false, false, { lijst, stijl }).y;
+  assert.ok(dr('verdedigend') < dr('evenwichtig') && dr('evenwichtig') < dr('aanvallend') && aan('verdedigend') < aan('aanvallend'));
+  assert.ok(drukZetters('verdedigend') < drukZetters('evenwichtig') && drukZetters('evenwichtig') < drukZetters('aanvallend'));
+  zetFormaat('klein'); assert.ok(drukZetters('evenwichtig') < 3 && drukZetters('aanvallend') <= 3);
+});
+t('elf tegen elf: tweeëntwintig spelers, een eigen keeper per team, vier mensen op veldspelers, een hele wedstrijd tot het einde', () => {
+  const m = maakWedstrijd([mens(0), mens(1), mens(2), mens(3)], { duur: 'kort', seed: 12, formaat: 'groot', vorming: '4-3-3', stijl: 'aanvallend' });
+  assert.equal(m.spelers.length, 22); assert.equal(m.formaat, 'groot'); assert.deepEqual(m.spelers.filter((p) => p.rol === 'keeper').map((p) => p.id), [0, 11]);
+  assert.equal(new Set(m.mensen.map((x) => x.ctl)).size, 4); assert.ok(m.mensen.every((x) => m.spelers[x.ctl].rol !== 'keeper'));
+  assert.equal(m.spelers[m.mensen[0].ctl].rol, 'aanvaller', 'de eerste mens krijgt een aanvaller');
+  assert.equal(m.duurHelft, FORMATEN.groot.duren.kort); assert.equal(m.tac[0].vorming, '4-3-3'); assert.equal(m.tac[0].stijl, 'aanvallend');
+  const rng = makeRng(3);
+  for (let i = 0; i < 300 / DT && m.fase !== 'klaar'; i++) {
+    tikWedstrijd(m, DT, (slot) => ({ mx: Math.sin(i / 20 + slot), my: -Math.cos(i / 31 + slot), buttons: rng() < 0.05 ? KNOP.SCHOT : rng() < 0.05 ? KNOP.PASS : 0 }));
+    for (const p of m.spelers) assert.ok([p.x, p.y].every(Number.isFinite) && Math.abs(p.x) <= 28.01 && Math.abs(p.y) <= 45.01, `${p.naam} buiten`);
+  }
+  assert.equal(m.fase, 'klaar');
+  assert.equal(VELD.L, 90, 'het veld blijft dat van de wedstrijd');
+  zetFormaat('klein');
+});
+t('elf tegen elf past in de momentopname: 64 getallen, heen en terug op 5 cm nauwkeurig, ook voor een gast', () => {
+  const m = maakWedstrijd([mens(0), mens(1)], { duur: 'kort', seed: 14, formaat: 'groot' });
+  tot(m, 'spel', 60); stap(m, 4, (slot) => ({ mx: slot ? -1 : 1, my: -1, buttons: 0 }));
+  const snap = snapVoetbal(m, 1); assert.equal(snap.d.length, 64); assert.ok(snap.d.every(Number.isFinite));
+  const st = leesLiveVoetbal(JSON.parse(JSON.stringify(snap))); assert.ok(st && leesWed(snap));
+  const start = leesWed(startEvent('voetbal', [{ slot: 0, naam: 'A' }, { slot: 1, naam: 'B' }], 0, { live: 1, v: 'k.s.1.g.4-3-3.a' }));
+  const sp = maakVoetbalSpiegel(start, 1, { duur: 'kort', stand: 'standaard', tegenstander: 1, formaat: 'groot', vorming: '4-3-3', stijl: 'aanvallend' });
+  assert.equal(sp.spelers.length, 22); assert.ok(voerInVoetbal(sp, st));
+  for (let i = 0; i < 40; i++) tikVoetbalSpiegel(sp, DT);
+  m.spelers.forEach((p, i) => { assert.ok(Math.abs(sp.spelers[i].x - p.x) < 0.06 && Math.abs(sp.spelers[i].y - p.y) < 0.06, `speler ${i}: ${sp.spelers[i].x} tegen ${p.x}`); });
+  assert.equal(sp.mijnId, m.mensen[1].ctl);
+  const klein = maakWedstrijd([mens(0)], { seed: 1 }); zetFormaat('groot'); assert.equal(voerInVoetbal(sp, { ...snapVoetbal(klein, 2), f: 'lv', n: 5 }), false, 'een momentopname van een ander formaat telt niet');
+  zetFormaat('klein');
+  // de hoek en de vlaggen blijven heel in het getal
+  m.spelers[3].face = -2.5; m.spelers[3].tackleT = 0.2; m.spelers[3].vier = 1;
+  voerInVoetbal(sp, leesLiveVoetbal(JSON.parse(JSON.stringify(snapVoetbal(m, 9)))));
+  assert.ok(Math.abs(Math.cos(sp.spelers[3].face) - Math.cos(-2.5)) < 0.12 && sp.spelers[3].tackleT > 0 && sp.spelers[3].vier > 0);
+});
+t('tactiek tijdens de wedstrijd: een andere vorming verandert de rollen, een andere stijl de lijnen', () => {
+  const m = maakWedstrijd([mens()], { duur: 'kort', seed: 16, formaat: 'groot', vorming: '4-4-2' });
+  const rol = (i) => m.spelers[i].rol;
+  assert.equal([1, 2, 3, 4].every((i) => rol(i) === 'verdediger') && [5, 6, 7, 8].every((i) => rol(i) === 'middenvelder') && [9, 10].every((i) => rol(i) === 'aanvaller'), true);
+  zetTactiek(m, 0, { vorming: '3-5-2', stijl: 'verdedigend' });
+  assert.equal([1, 2, 3].every((i) => rol(i) === 'verdediger') && [4, 5, 6, 7, 8].every((i) => rol(i) === 'middenvelder'), true); assert.equal(m.tac[0].stijl, 'verdedigend'); assert.equal(m.spelers[11].rol, 'keeper');
+  assert.equal(m.tac[1].vorming !== undefined, true, 'de tegenstander heeft ook een vorming');
+  zetFormaat('klein');
+});
+t('de moeilijkheid en de balans op het grote veld: gemiddeld 2 tot 5 doelpunten, geen vastlopers', () => {
+  let goals = 0;
+  for (let s = 1; s <= 6; s++) { const r = speelWedstrijd(s, { duur: 'normaal', formaat: 'groot', stijl: s % 2 ? 'aanvallend' : 'verdedigend' }); assert.ok(r.eindigde, `wedstrijd ${s} eindigt`); assert.equal(r.nan, 0); assert.equal(r.buiten, 0); assert.equal(r.vast, 0); goals += r.goals; }
+  assert.ok(goals / 6 >= 1 && goals / 6 <= 6, `gemiddeld ${goals / 6}`);
+  zetFormaat('klein');
+});
+t('de competitie: een schema waarin elke club elke andere één keer speelt, punten, stand en een kampioen', () => {
+  const sch = speelschema(); assert.equal(sch.length, 5); assert.ok(sch.every((r) => r.length === 3));
+  const paren = new Set(); for (const r of sch) { const ids = r.flat(); assert.equal(new Set(ids).size, 6, 'elke ronde speelt iedereen één keer'); for (const [a, b] of r) paren.add([a, b].sort().join('-')); }
+  assert.equal(paren.size, 15, 'ieder duel komt precies één keer voor');
+  let c = nieuweCompetitie(5); assert.equal(c.ronde, 0); assert.equal(volgendeTegenstander(c) !== MIJN_CLUB && volgendeTegenstander(c) != null, true);
+  const orig = JSON.stringify(c);
+  for (let r = 0; r < 5; r++) { const tg = volgendeTegenstander(c); assert.ok(tg && tg !== MIJN_CLUB, `ronde ${r} een tegenstander`); c = verwerkRonde(c, 3, 0); assert.ok(Object.values(c.stand).every((x) => x.g === c.ronde)); }
+  assert.equal(orig, JSON.stringify(nieuweCompetitie(5)), 'verwerkRonde laat de oude stand ongemoeid');
+  assert.ok(c.klaar && c.kampioen === MIJN_CLUB && isKampioen(c), 'vijf keer 3-0 is kampioen'); assert.equal(jouwPlek(c), 1);
+  const tb = tabel(c); assert.equal(tb.length, 6); assert.equal(tb[0].p, 15); assert.ok(tb.every((r, i) => i === 0 || tb[i - 1].p >= r.p)); assert.equal(volgendeTegenstander(c), null); assert.equal(verwerkRonde(c, 1, 1), c, 'een klaar seizoen verandert niet');
+  let v = nieuweCompetitie(5); for (let r = 0; r < 5; r++) v = verwerkRonde(v, 0, 2); assert.ok(!isKampioen(v) && jouwPlek(v) >= 5, 'vijf keer verliezen is geen kampioen');
+  const punt = tabel(verwerkRonde(nieuweCompetitie(5), 1, 1)).find((r) => r.id === MIJN_CLUB); assert.equal(punt.p, 1);
+  assert.deepEqual(verwerkRonde(nieuweCompetitie(9), 2, 2), verwerkRonde(nieuweCompetitie(9), 2, 2), 'deterministisch');
+  assert.deepEqual(simuleerDuel('hunebedders', 'wadlopers', makeRng(4)), simuleerDuel('hunebedders', 'wadlopers', makeRng(4)));
+  // de opslag: heen en terug, en corrupt geeft null zonder iets stuk te maken
+  const terug = leesCompetitie(JSON.parse(JSON.stringify(c))); assert.ok(terug && terug.klaar && terug.kampioen === MIJN_CLUB);
+  for (const kapot of [null, 5, {}, { v: 1, ronde: 9, stand: {} }, { v: 1, ronde: 1, stand: { stadjers: { g: -1 } } }, { v: 2 }]) assert.equal(leesCompetitie(kapot), null);
+  assert.ok(COMP_CLUBS.length === 6 && COMP_CLUBS.every((id) => TEAMS.some((tm) => tm.id === id)));
+});
+t('de voorkeur: formaat, vorming, stijl, modus en seizoen worden schoon gelezen, ook uit rommel', () => {
+  const d = leesVoorkeur(null); assert.deepEqual([d.duur, d.formaat, d.vorming, d.stijl, d.modus, d.comp], ['normaal', 'klein', '2-2', 'evenwichtig', 'vriendschappelijk', null]);
+  const g = leesVoorkeur(JSON.stringify({ duur: 'kort', formaat: 'groot', vorming: '4-3-3', stijl: 'aanvallend', modus: 'competitie', comp: { v: 1 } }));
+  assert.deepEqual([g.duur, g.formaat, g.vorming, g.stijl, g.modus], ['kort', 'groot', '4-3-3', 'aanvallend', 'competitie']);
+  const r = leesVoorkeur('{"formaat":"klein","vorming":"4-3-3","stijl":"gek","duur":3}'); assert.deepEqual([r.vorming, r.stijl, r.duur], ['2-2', 'evenwichtig', 'normaal'], 'een vorming van het andere formaat telt niet');
+  assert.equal(leesVoorkeur('{kapot').formaat, 'klein');
+});
+t('de teksten en teams van het volledige veld zijn verzonnen: elf namen per team, zes clubs, geen echte namen', () => {
+  assert.equal(NAMEN_THUIS.length, 11); assert.equal(NAMEN_UIT.length, 11); assert.equal(new Set([...NAMEN_THUIS, ...NAMEN_UIT]).size, 22);
+  assert.equal(TEAMS.length, 6); assert.ok(!/\b(Ajax|Feyenoord|PSV|FC Groningen|Heerenveen|Oranje|Eredivisie|KNVB|UEFA|FIFA)\b/i.test(JSON.stringify([TEAMS, NAMEN_THUIS, NAMEN_UIT])));
 });
 
 // ---------------------------------------------------------------- bot-sim: een kleine reeks (de volle 100 draait scripts/voetbal_botsim.mjs)

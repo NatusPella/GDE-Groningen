@@ -1,10 +1,9 @@
 // De computerspelers van de voetbalwedstrijd (#981): puur, zonder DOM en zonder THREE (scripts/voetbal_test.mjs). Teamgenoten en tegenstanders gebruiken dezelfde code; de stand
 // (reactietijd, snelheid, schotafwijking, keeper, tackle) komt uit voetbalrules.js. Een speler heeft een rol (keeper, verdediger, aanvaller) en een plek in de vorming die met de bal
 // meeschuift; wie het dichtst bij de bal staat zet druk of rent erachteraan; wie de bal heeft dribbelt, schiet of speelt over. Dit bestand beslist alleen: voetbalmatch.js voert uit.
-import { VELD, LOOP, richtingVan, eigenDoelY, doelYTegen, vormingPlek, inStrafschop, kl } from './voetbalrules.js';
+import { VELD, LOOP, richtingVan, eigenDoelY, doelYTegen, vormingPlek, inStrafschop, kl, drukZetters } from './voetbalrules.js';
 import { kruisLijn, balSnelheid } from './voetbalbal.js';
 
-const HD = VELD.DOEL_B / 2, HB = VELD.B / 2, HL = VELD.L / 2;
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 export const NIETS = Object.freeze({ dx: 0, dy: 0, sprint: false, tackle: false, kick: null, duik: null });
 
@@ -38,7 +37,7 @@ export function besteOntvanger(m, p, { richting = null, geenKeeper = true, minSc
   for (const q of teamgenoten(m, p)) {
     if (geenKeeper && q.rol === 'keeper' && p.rol !== 'keeper') continue;
     const vx = q.x - p.x, vy = q.y - p.y, d = Math.hypot(vx, vy);
-    if (d < 2.2 || d > 24) continue;
+    if (d < 2.2 || d > VELD.L * 0.57) continue;
     let s;
     if (richting) {
       const c = (vx * richting.x + vy * richting.y) / d;
@@ -54,7 +53,7 @@ export function besteOntvanger(m, p, { richting = null, geenKeeper = true, minSc
 }
 
 // De kracht (0..1) van een grondpass of voorzet naar een afstand, in dezelfde eenheid als het menselijke laden (voetbalmatch.js schopt uit die kracht).
-const passKracht = (d) => kl((d - 2) / 26 + 0.2, 0.2, 1);
+const passKracht = (d) => kl((d - 2) / (VELD.L * 0.62) + 0.2, 0.2, 1);
 
 function dichtstbij(m, p, lijst) {
   let best = null, bd = Infinity;
@@ -84,10 +83,10 @@ export function aiIntentie(m, p, dt) {
   if (drager === p) return dragerIntentie(m, p, lv);
   const aanval = !!drager && drager.team === p.team;
   const rang = balRang(m, p);
-  const plek = vormingPlek(p.team, p.i, bal, aanval, m.fase === 'aftrap');
+  const plek = vormingPlek(p.team, p.i, bal, aanval, m.fase === 'aftrap', m.tac[p.team]);
   if (m.fase !== 'spel' && m.fase !== 'goal') return naar(p, plek.x, plek.y, { sprint: false });
   if (drager && !aanval) { // de tegenstander heeft de bal: de twee dichtstbijzijnden zetten druk, de rest houdt de lijn
-    if (rang <= 1) {
+    if (rang < drukZetters(m.tac[p.team].stijl)) {
       const vt = 0.3;
       const tx = drager.x + drager.vx * vt, ty = drager.y + drager.vy * vt;
       const d = dist(p, drager);
@@ -102,7 +101,7 @@ export function aiIntentie(m, p, dt) {
     return naar(p, plek.x, plek.y, { sprint: dist(p, plek) > 6 });
   }
   if (!drager) { // een losse bal: de dichtstbijzijnde van het team gaat erop af
-    if (rang === 0 || (rang === 1 && dist(p, bal) < 5)) {
+    if (rang === 0 || (rang === 1 && dist(p, bal) < 5) || (rang === 2 && VELD.L > 60 && dist(p, bal) < 8)) {
       const t = 0.22;
       return naar(p, bal.x + bal.vx * t, bal.y + bal.vy * t, { sprint: dist(p, bal) > 2.5, stop: 0.2 });
     }
@@ -124,19 +123,19 @@ function dragerIntentie(m, p, lv) {
     const q = besteOntvanger(m, p, { minScore: -9 }) || teamgenoten(m, p).find((x) => x.rol !== 'keeper') || null;
     p.besluitT = lv.reactie;
     if (!q) return { ...NIETS, kick: { soort: 'pass', kracht: 0.5, dx: 0, dy: dir, doel: -1 } };
-    return kopieer(p, q, m.hervat && (m.hervat.kind === 'hoek' || m.hervat.kind === 'doelschop') && dist(p, q) > 12);
+    return kopieer(p, q, m.hervat && (m.hervat.kind === 'hoek' || m.hervat.kind === 'doelschop') && dist(p, q) > VELD.L * 0.29);
   }
   const loopTijd = p.balT;
   let it = null;
   if (p.besluitT <= 0) {
     p.besluitT = lv.reactie * (0.6 + m.rng() * 0.7);
     // schieten: dichtbij genoeg en met het gezicht naar het doel
-    if (voor && dgoal < 13.5 && Math.abs(p.x) < 8.5) {
-      const kans = 0.45 + (druk < 2 ? 0.3 : 0) + (dgoal < 8 ? 0.25 : 0);
+    if (voor && dgoal < VELD.L * (VELD.L > 60 ? 0.24 : 0.32) && Math.abs(p.x) < VELD.B * 0.33) {
+      const kans = 0.45 + (druk < 2 ? 0.3 : 0) + (dgoal < VELD.L * 0.15 ? 0.25 : 0);
       if (m.rng() < kans * Math.min(1.2, lv.durf)) {
         const keeper = m.spelers.find((q) => q.team !== p.team && q.rol === 'keeper');
         const kant = keeper ? (keeper.x > 0.4 ? -1 : keeper.x < -0.4 ? 1 : (m.rng() < 0.5 ? -1 : 1)) : 1;
-        const ax = kant * HD * (0.5 + 0.35 * m.rng());
+        const ax = kant * (VELD.DOEL_B / 2) * (0.5 + 0.35 * m.rng());
         const dx = ax - p.x, dy = gy - p.y, l = Math.hypot(dx, dy) || 1;
         return { ...NIETS, kick: { soort: 'schot', kracht: 0.78 + 0.22 * m.rng(), dx: dx / l, dy: dy / l, doel: -1 } };
       }
@@ -144,16 +143,16 @@ function dragerIntentie(m, p, lv) {
     // overspelen: onder druk, te lang aan de bal, of een vrije maat die verder staat
     if (druk < 2.6 || loopTijd > 2.6 || m.rng() < 0.14) {
       const q = besteOntvanger(m, p, { minScore: druk < 1.8 ? -0.3 : 0.45 });
-      if (q) return kopieer(p, q, dist(p, q) > 14);
+      if (q) return kopieer(p, q, dist(p, q) > VELD.L * 0.33);
     }
     // een lange bal naar voren vanaf de eigen helft als er niets beters is
     if (druk < 1.6 && (p.y - eigenDoelY(p.team)) * dir < VELD.L * 0.3 && m.rng() < 0.5) return { ...NIETS, kick: { soort: 'lang', kracht: 0.7, dx: 0, dy: dir, doel: -1 } };
   }
   // doorlopen naar het doel, om de dichtstbijzijnde tegenstander heen
   const { q: opp, d: od } = dichtstbij(m, p, tegenstanders(m, p));
-  let tx = kl(p.x, -HB + 2, HB - 2) * 0.7, ty = gy;
+  let tx = kl(p.x, -(VELD.B / 2) + 2, (VELD.B / 2) - 2) * 0.7, ty = gy;
   if (opp && od < 4.2 && (opp.y - p.y) * dir > -0.5) tx = p.x + (p.x >= opp.x ? 1 : -1) * 4;
-  it = naar(p, kl(tx, -HB + 1.5, HB - 1.5), ty, { sprint: p.stamina > 0.35 && (!opp || od > 1.5), stop: 0.2 });
+  it = naar(p, kl(tx, -(VELD.B / 2) + 1.5, (VELD.B / 2) - 1.5), ty, { sprint: p.stamina > 0.35 && (!opp || od > 1.5), stop: 0.2 });
   return it;
 }
 
@@ -170,9 +169,9 @@ function keeperIntentie(m, p, dt, lv, drager) {
     if (p.houdT < lv.reactie + 0.9) return NIETS;
     const q = besteOntvanger(m, p, { geenKeeper: true, minScore: -9 }) || teamgenoten(m, p).find((x) => x.rol !== 'keeper');
     if (!q) return { ...NIETS, kick: { soort: 'lang', kracht: 0.8, dx: 0, dy: dir, doel: -1 } };
-    return kopieer(p, q, dist(p, q) > 11);
+    return kopieer(p, q, dist(p, q) > VELD.L * 0.26);
   }
-  if (m.fase !== 'spel') { const h = vormingPlek(p.team, 0, bal, false, true); return naar(p, h.x, h.y, { stop: 0.2 }); }
+  if (m.fase !== 'spel') { const h = vormingPlek(p.team, 0, bal, false, true, m.tac[p.team]); return naar(p, h.x, h.y, { stop: 0.2 }); }
   // voorspel waar de bal de doellijn kruist (een paar keer per seconde)
   p.voorspelT -= dt;
   if (p.voorspelT <= 0) {
@@ -181,12 +180,12 @@ function keeperIntentie(m, p, dt, lv, drager) {
     p.voorspel = komt ? kruisLijn(bal, yg, 1.6) : null;
   }
   const v = p.voorspel;
-  if (v && Math.abs(v.x) < HD + 0.5 && v.z < 1.9) {
+  if (v && Math.abs(v.x) < (VELD.DOEL_B / 2) + 0.5 && v.z < 1.9) {
     const it = naar(p, v.x, yg + dir * 0.9, { sprint: true, stop: 0.12 });
     const verschil = v.x - p.x;
     if (v.t < 0.55 && Math.abs(verschil) > 0.7 && p.duikT <= 0 && p.besluitT <= 0) {
       p.besluitT = 0.4;
-      if (m.rng() < 0.3 + 0.7 * lv.keeper) it.duik = { dx: Math.sign(verschil), dy: 0 };
+      if (m.rng() < 0.3 + 0.7 * lv.keeper * (VELD.L > 60 ? 0.78 : 1)) it.duik = { dx: Math.sign(verschil), dy: 0 };
     }
     return it;
   }
@@ -198,5 +197,5 @@ function keeperIntentie(m, p, dt, lv, drager) {
   }
   const afstand = Math.hypot(bal.x, bal.y - yg);
   const diepte = kl(1.0 + Math.max(0, 14 - afstand) * 0.11, 0.8, 2.6);
-  return naar(p, kl(bal.x * 0.42, -HD + 0.3, HD - 0.3), yg + dir * diepte, { stop: 0.15 });
+  return naar(p, kl(bal.x * 0.42, -(VELD.DOEL_B / 2) + 0.3, (VELD.DOEL_B / 2) - 0.3), yg + dir * diepte, { stop: 0.15 });
 }

@@ -154,6 +154,7 @@ export const ACHIEVEMENTS = [
   { id: 'klim_goud', cat: 'verkennen', title: 'Koning van de klimtoren', desc: 'Haal goud op de klimtoren', medal: true },
   { id: 'voetbal_winst', cat: 'verkennen', title: 'Winst in de Euroborg', desc: 'Win een voetbalwedstrijd vijf tegen vijf in de Euroborg' },
   { id: 'voetbal_hattrick', cat: 'verkennen', title: 'Hattrick op het Euroborggras', desc: 'Scoor drie keer in één voetbalwedstrijd', medal: true },
+  { id: 'voetbal_kampioen', cat: 'verkennen', title: 'Kampioen van de Euroborg', desc: 'Word kampioen in de voetbalcompetitie van de Euroborg', medal: true },
   { id: 'klim_foutloos', cat: 'verkennen', title: 'Niet één keer gevallen', desc: 'Klim de toren zonder te vallen' },
   { id: 'ski_klaar', cat: 'verkennen', title: 'Achter de boot', desc: 'Skie een ronde bij het Grunopark' },
   { id: 'ski_goud', cat: 'verkennen', title: 'Koning van het meer', desc: 'Haal goud bij het waterskiën', medal: true },

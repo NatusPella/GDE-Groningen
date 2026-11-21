@@ -6,7 +6,7 @@
 // (maakVoetbalSpiegel). Wie wegvalt wordt door de computer vervangen en krijgt niets; de rest speelt door. Geen nieuw netwerkprotocol: dit is de bestaande live-wedstrijd (soort 'live').
 import { makeRng } from './minigamekit.js';
 import {
-  VELD, LOOP, DUREN, HELFTEN, KNOP, LAAD_S, TEAMS, tegenstander, ROLLEN, NAMEN_THUIS, NAMEN_UIT, aiStand, maatStand, invoerNaarActie, voetbalMedaille, uitkomstVan,
+  VELD, LOOP, HELFTEN, KNOP, LAAD_S, TEAMS, tegenstander, FORMATEN, zetFormaat, cleanFormaat, vormingLijst, vormingNamen, cleanVorming, cleanStijl, duurVan, NAMEN_THUIS, NAMEN_UIT, aiStand, maatStand, invoerNaarActie, voetbalMedaille, uitkomstVan,
   voetbalBeloning, scoreTekst, richtingVan, eigenDoelY, doelYTegen, vormingPlek, inStrafschop, kl,
 } from './voetbalrules.js';
 import { maakBal, stapBal, zetBal, balSnelheid } from './voetbalbal.js';
@@ -17,7 +17,6 @@ export const FASEN = ['intro', 'aftrap', 'spel', 'hervat', 'goal', 'rust', 'eind
 export const HERVAT_KINDEN = ['aftrap', 'inworp', 'hoek', 'doelschop', 'vrij'];
 export const STAND_HZ = 12;
 export const MAX_SPELERS_VOETBAL = 4;
-const HB = VELD.B / 2, HL = VELD.L / 2, HD = VELD.DOEL_B / 2;
 const INTRO_S = 3.2, GOAL_S = 3.2, SLOMO_S = 1.1, SLOMO = 0.35, RUST_S = 3.4, EIND_S = 4.5, HERVAT_PAUZE = 1.1, AFTRAP_PAUZE = 0.9, HERVAT_MAX = 3.6;
 const G = 9.8;
 const fin = (x) => Number.isFinite(x);
@@ -26,31 +25,39 @@ const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const hoek = (a, b) => { let d = (a - b) % (2 * Math.PI); if (d > Math.PI) d -= 2 * Math.PI; if (d < -Math.PI) d += 2 * Math.PI; return d; };
 const NEUTRAAL = Object.freeze({ mx: 0, my: 0, buttons: 0 });
 // De volgorde waarin de mensen een speler krijgen: aanvallers eerst, dan verdedigers; de keeper blijft computer tot een mens hem kiest.
-const BESTUUR_VOLGORDE = [3, 4, 1, 2];
+// Voor elke vorming: eerst de aanvallers, dan de middenvelders, dan de verdedigers (bij vijf tegen vijf: 3, 4, 1, 2).
+const ROL_VOORKEUR = { aanvaller: 0, middenvelder: 1, verdediger: 2 };
+const bestuurVolgorde = (lijst) => lijst.map((x, i) => ({ i, r: x.rol })).filter((x) => x.r !== 'keeper').sort((a, b) => ROL_VOORKEUR[a.r] - ROL_VOORKEUR[b.r] || a.i - b.i).map((x) => x.i);
 
-function maakSpeler(team, i, naam, stand) {
+function maakSpeler(team, i, naam, stand, rol, perTeam) {
   const dir = richtingVan(team);
   return {
-    id: team * 5 + i, team, i, rol: ROLLEN[i], naam, x: 0, y: 0, vx: 0, vy: 0, face: dir > 0 ? Math.PI / 2 : -Math.PI / 2, speed: 0, stamina: 1, moe: false,
+    id: team * perTeam + i, team, i, rol, naam, x: 0, y: 0, vx: 0, vy: 0, face: dir > 0 ? Math.PI / 2 : -Math.PI / 2, speed: 0, stamina: 1, moe: false,
     cool: 0, stun: 0, tackleT: 0, tackleCd: 0, tackleGedaan: true, duikT: 0, duikDx: 0, vier: 0, besluitT: 0.3 + 0.1 * i, balT: 0, houdT: 0, slot: null, laatsteMens: null,
     voorspel: null, voorspelT: 0, spreiding: stand.spreiding,
   };
 }
 
 // deeln: [{ slot, naam, char, bonus? }] (bonus: { sprint, schot, aanname } van het personage, voetbalkarakter.js; de mensen, de host eerst), opties: { duur 'kort' | 'normaal', stand (moeilijkheid), seed, tegenstander (0..3), aiBeide (voor de botsim: beide teams als tegenstander) }.
-export function maakWedstrijd(deeln = [], { duur = 'normaal', stand = 'standaard', seed = 1, tegenstander: tg = 0, aiBeide = false } = {}) {
+export function maakWedstrijd(deeln = [], { duur = 'normaal', stand = 'standaard', seed = 1, tegenstander: tg = 0, aiBeide = false, formaat = 'klein', vorming = null, stijl = 'evenwichtig', vormingTegen = null, stijlTegen = 'evenwichtig' } = {}) {
+  formaat = zetFormaat(formaat);
+  const perTeam = FORMATEN[formaat].n;
   const rng = makeRng(seed);
+  const namenV = vormingNamen(formaat);
+  const vT = cleanVorming(formaat, vorming), vU = cleanVorming(formaat, vormingTegen || namenV[seed % namenV.length]);
+  const tac = [{ vorming: vT, stijl: cleanStijl(stijl), lijst: vormingLijst(formaat, vT) }, { vorming: vU, stijl: cleanStijl(stijlTegen), lijst: vormingLijst(formaat, vU) }];
+  const volgorde = bestuurVolgorde(tac[0].lijst);
   const ai = [aiBeide ? aiStand(stand) : maatStand(stand), aiStand(stand)];
   const teams = [TEAMS[0], tegenstander(tg)];
   const spelers = [];
-  for (let t = 0; t < 2; t++) for (let i = 0; i < 5; i++) spelers.push(maakSpeler(t, i, (t === 0 ? NAMEN_THUIS : NAMEN_UIT)[i], ai[t]));
+  for (let t = 0; t < 2; t++) for (let i = 0; i < perTeam; i++) spelers.push(maakSpeler(t, i, (t === 0 ? NAMEN_THUIS : NAMEN_UIT)[i], ai[t], tac[t].lijst[i].rol, perTeam));
   const mensen = (deeln || []).slice(0, MAX_SPELERS_VOETBAL).map((d, k) => ({
-    slot: d.slot, naam: d.naam || 'Speler', char: d.char || null, ctl: BESTUUR_VOLGORDE[k], weg: false, laad: { schot: 0, lang: 0 }, vorig: 0, vorigW: 0, wisselCd: 0, autoT: 0, doelpunten: 0, schoten: 0, assist: 0, inv: NEUTRAAL, bonus: { ...NEUTRALE_BONUS, ...(d.bonus || null) },
+    slot: d.slot, naam: d.naam || 'Speler', char: d.char || null, ctl: volgorde[k], weg: false, laad: { schot: 0, lang: 0 }, vorig: 0, vorigW: 0, wisselCd: 0, autoT: 0, doelpunten: 0, schoten: 0, assist: 0, inv: NEUTRAAL, bonus: { ...NEUTRALE_BONUS, ...(d.bonus || null) },
   }));
   for (const mm of mensen) { spelers[mm.ctl].slot = mm.slot; spelers[mm.ctl].laatsteMens = mm.slot; }
-  const duurHelft = DUREN[duur] || DUREN.normaal;
+  const duurHelft = duurVan(formaat, duur);
   const m = {
-    fase: 'intro', faseT: INTRO_S, helft: 1, klok: duurHelft, duurHelft, duurNaam: DUREN[duur] ? duur : 'normaal', stand, seed, teams, ai, rng, spelers, bal: maakBal(0, 0), mensen,
+    fase: 'intro', faseT: INTRO_S, helft: 1, klok: duurHelft, duurHelft, duurNaam: duur === 'kort' ? 'kort' : 'normaal', formaat, perTeam, tac, stand, seed, teams, ai, rng, spelers, bal: maakBal(0, 0), mensen,
     score: [0, 0], hervat: null, flash: null, flits: 0, ev: [], tijd: 0, n: 0, foulCd: 0, wisselRustTeam: 0, aftrapTeam: 0,
     stat: { schoten: [0, 0], overtredingen: [0, 0], bezit: [0, 0], uit: 0, doelpuntenVan: {} }, winnaar: null, spiegel: false, alleenAi: mensen.length === 0,
   };
@@ -63,19 +70,27 @@ export function maakWedstrijd(deeln = [], { duur = 'normaal', stand = 'standaard
 
 function zetOpstelling(m, aftrapTeam, intro = false) {
   for (const p of m.spelers) {
-    const plek = vormingPlek(p.team, p.i, { x: 0, y: 0 }, p.team === aftrapTeam, true);
+    const plek = vormingPlek(p.team, p.i, { x: 0, y: 0 }, p.team === aftrapTeam, true, m.tac[p.team]);
     p.x = plek.x; p.y = plek.y; p.vx = p.vy = 0; p.speed = 0; p.face = richtingVan(p.team) > 0 ? Math.PI / 2 : -Math.PI / 2;
     p.cool = 0; p.stun = 0; p.tackleT = 0; p.duikT = 0; p.vier = 0; p.balT = 0; p.houdT = 0;
   }
   zetBal(m.bal, 0, 0);
   m.bal.owner = -1; m.bal.laatsteTeam = -1; m.bal.laatsteSpeler = -1;
   if (!intro) {
-    const taker = m.spelers.find((p) => p.team === aftrapTeam && p.i === 3);
+    const taker = m.spelers.find((p) => p.team === aftrapTeam && p.rol === 'aanvaller');
     taker.x = 0; taker.y = -richtingVan(aftrapTeam) * 0.5 * 0; taker.face = richtingVan(aftrapTeam) > 0 ? Math.PI / 2 : -Math.PI / 2;
     m.bal.owner = taker.id; taker.balT = 0;
     m.hervat = { kind: 'aftrap', team: aftrapTeam, taker: taker.id, t: 0, pauze: AFTRAP_PAUZE };
     m.fase = 'aftrap';
   }
+}
+
+// Tactiek tijdens de wedstrijd: een andere vorming (de rollen van de spelers volgen) of speelstijl voor een team.
+export function zetTactiek(m, team, { vorming = null, stijl = null } = {}) {
+  const t = m.tac[team];
+  if (vorming) { t.vorming = cleanVorming(m.formaat, vorming); t.lijst = vormingLijst(m.formaat, t.vorming); for (const p of m.spelers) if (p.team === team) p.rol = t.lijst[p.i].rol; }
+  if (stijl) t.stijl = cleanStijl(stijl);
+  return t;
 }
 
 export function startAftrap(m, team) {
@@ -88,7 +103,7 @@ export function startAftrap(m, team) {
 const HERVAT_TEKST = { inworp: 'Inworp', hoek: 'Hoekschop', doelschop: 'Doelschop', vrij: 'Vrije bal' };
 // Een herstart op (x, y) voor team: de dichtstbijzijnde speler (bij een doelschop de keeper) neemt hem, tegenstanders gaan er een stukje vanaf.
 export function startHervat(m, kind, team, x, y, takerId = null) {
-  x = kl(x, -HB + 0.4, HB - 0.4); y = kl(y, -HL + 0.4, HL - 0.4);
+  x = kl(x, -(VELD.B / 2) + 0.4, (VELD.B / 2) - 0.4); y = kl(y, -(VELD.L / 2) + 0.4, (VELD.L / 2) - 0.4);
   let taker = takerId != null ? m.spelers[takerId] : null;
   if (!taker) {
     const eigen = m.spelers.filter((p) => p.team === team);
@@ -105,7 +120,7 @@ export function startHervat(m, kind, team, x, y, takerId = null) {
   for (const o of m.spelers) { // tegenstanders op een meter of drie
     if (o.team === team) continue;
     const d = Math.hypot(o.x - x, o.y - y);
-    if (d < 3 && d > 1e-6) { o.x = kl(x + (o.x - x) / d * 3, -HB + 0.3, HB - 0.3); o.y = kl(y + (o.y - y) / d * 3, -HL + 0.3, HL - 0.3); }
+    if (d < 3 && d > 1e-6) { o.x = kl(x + (o.x - x) / d * 3, -(VELD.B / 2) + 0.3, (VELD.B / 2) - 0.3); o.y = kl(y + (o.y - y) / d * 3, -(VELD.L / 2) + 0.3, (VELD.L / 2) - 0.3); }
   }
   m.hervat = { kind, team, taker: taker.id, t: 0, pauze: HERVAT_PAUZE };
   m.fase = 'hervat';
@@ -115,10 +130,10 @@ export function startHervat(m, kind, team, x, y, takerId = null) {
 
 // Waar de bal uit ging en wie hem herstart (puur, voor de test): zijlijn = inworp voor de ander; achterlijn = hoekschop voor de aanvaller of doelschop voor de verdediger.
 export function uitbalHervat(uit, laatsteTeam) {
-  if (uit.kind === 'zij') return { kind: 'inworp', team: laatsteTeam === 0 ? 1 : 0, x: Math.sign(uit.x || 1) * (HB - 0.4), y: kl(uit.y, -HL + 2, HL - 2) };
+  if (uit.kind === 'zij') return { kind: 'inworp', team: laatsteTeam === 0 ? 1 : 0, x: Math.sign(uit.x || 1) * ((VELD.B / 2) - 0.4), y: kl(uit.y, -(VELD.L / 2) + 2, (VELD.L / 2) - 2) };
   const eind = uit.y < 0 ? -1 : 1, verdediger = eind < 0 ? 0 : 1;
-  if (laatsteTeam === verdediger) return { kind: 'hoek', team: 1 - verdediger, x: Math.sign(uit.x || 1) * (HB - 0.5), y: eind * (HL - 0.5) };
-  return { kind: 'doelschop', team: verdediger, x: 0, y: eind * (HL - 3.2) };
+  if (laatsteTeam === verdediger) return { kind: 'hoek', team: 1 - verdediger, x: Math.sign(uit.x || 1) * ((VELD.B / 2) - 0.5), y: eind * ((VELD.L / 2) - 0.5) };
+  return { kind: 'doelschop', team: verdediger, x: 0, y: eind * ((VELD.L / 2) - 3.2) };
 }
 
 // ---------------------------------------------------------------- de mensen: wie bestuurt wie
@@ -207,7 +222,7 @@ function menselijkeIntentie(m, p, mens, dt) {
       const naarDoel = (gy - p.y) * dir > 0 && Math.hypot(p.x, gy - p.y) < 22;
       const gx = Math.hypot(0 - p.x, gy - p.y) || 1;
       if (naarDoel && ((-p.x) * ri.x + (gy - p.y) * ri.y) / gx > 0.6) {
-        const ax = kl(wijst ? a.dx * HD * 1.1 : 0, -HD * 0.85, HD * 0.85);
+        const ax = kl(wijst ? a.dx * (VELD.DOEL_B / 2) * 1.1 : 0, -(VELD.DOEL_B / 2) * 0.85, (VELD.DOEL_B / 2) * 0.85);
         const vx = ax - p.x, vy = gy - p.y, l = Math.hypot(vx, vy) || 1;
         dx = vx / l; dy = vy / l;
       }
@@ -223,7 +238,7 @@ function menselijkeIntentie(m, p, mens, dt) {
     }
     if (!it.kick && edge(KNOP.PASS)) {
       const q = besteOntvanger(m, p, { richting: wijst ? ri : null, geenKeeper: false, minScore: 0.1 });
-      if (q) { const d = dist(p, q); it.kick = { soort: 'pass', kracht: kl((d - 2) / 26 + 0.2, 0.2, 1), dx: q.x - p.x, dy: q.y - p.y, doel: q.id }; }
+      if (q) { const d = dist(p, q); it.kick = { soort: 'pass', kracht: kl((d - 2) / (VELD.L * 0.62) + 0.2, 0.2, 1), dx: q.x - p.x, dy: q.y - p.y, doel: q.id }; }
       else it.kick = { soort: 'pass', kracht: 0.45, dx: ri.x, dy: ri.y, doel: -1 };
     }
   } else {
@@ -250,12 +265,12 @@ function beweeg(m, p, it, dt) {
   let tx = it.dx * top, ty = it.dy * top;
   let acc = sterkte > 0.05 ? 10 : 13;
   if (p.tackleT > 0) { p.tackleT -= dt; const f = LOOP.sprint * 1.1; tx = Math.cos(p.face) * f; ty = Math.sin(p.face) * f; acc = 14; }
-  if (p.duikT > 0) { p.duikT -= dt; tx = p.duikDx * 6.8; ty *= 0.3; acc = 18; }
+  if (p.duikT > 0) { p.duikT -= dt; tx = p.duikDx * 6.8 * keeperSchaal(); ty *= 0.3; acc = 18; }
   if (m.fase === 'goal' && p.vier <= 0) { tx = 0; ty = 0; }
   const k = Math.min(1, acc * dt);
   p.vx += (tx - p.vx) * k; p.vy += (ty - p.vy) * k;
   p.x += p.vx * dt; p.y += p.vy * dt;
-  p.x = kl(p.x, -HB + 0.15, HB - 0.15); p.y = kl(p.y, -HL + 0.1, HL - 0.1);
+  p.x = kl(p.x, -(VELD.B / 2) + 0.15, (VELD.B / 2) - 0.15); p.y = kl(p.y, -(VELD.L / 2) + 0.1, (VELD.L / 2) - 0.1);
   p.speed = Math.hypot(p.vx, p.vy);
   const draai = p.speed > 0.6 ? Math.atan2(p.vy, p.vx) : (sterkte > 0.2 ? Math.atan2(it.dy, it.dx) : p.face);
   if (p.tackleT <= 0 && (sterkte > 0.15 || p.speed > 0.6)) { const d = hoek(draai, p.face); p.face += kl(d, -14 * dt, 14 * dt); }
@@ -283,9 +298,9 @@ function schop(m, p, kick) {
   const a = Math.atan2(dy, dx) + (m.rng() * 2 - 1) * spreiding;
   const ca = Math.cos(a), sa = Math.sin(a);
   let vh, vz = 0;
-  if (kick.soort === 'schot') { vh = 8 + 16 * k; vz = 0.5 + 2.4 * k * (0.25 + 0.75 * m.rng()); }
+  if (kick.soort === 'schot') { vh = (8 + 16 * k) * (VELD.L > 60 ? 1.15 : 1); vz = 0.5 + 2.4 * k * (0.25 + 0.75 * m.rng()); }
   else if (kick.soort === 'lang') {
-    const D = kl(ontv && afstand > 0 ? afstand : 8 + 26 * k, 6, 34), th = 0.62;
+    const D = kl(ontv && afstand > 0 ? afstand : VELD.L * 0.2 + VELD.L * 0.62 * k, 6, VELD.L * 0.8), th = 0.62;
     const v = Math.sqrt(D * G / Math.sin(2 * th)) * 1.07;
     vh = v * Math.cos(th); vz = v * Math.sin(th);
   } else vh = ontv && afstand > 0 ? kl(5 + 0.78 * afstand, 6, 15.5) : 5 + 11 * k;
@@ -354,6 +369,7 @@ function carry(m, dt) {
   if (o.rol === 'keeper') o.houdT += dt;
 }
 
+const keeperSchaal = () => 1 + (VELD.DOEL_B / 4.4 - 1) * 0.28; // een keeper in een groter doel reikt iets verder
 const KEEPER_BEREIK = 1.05, KEEPER_DUIK = 1.9;
 function oppakken(m) {
   const b = m.bal;
@@ -365,7 +381,7 @@ function oppakken(m) {
     const rel = Math.hypot(b.vx - p.vx * 0.4, b.vy - p.vy * 0.4); // wie naar de bal toe loopt vangt hem iets lastiger, maar niet zo erg als de ruwe verschilsnelheid
     const keeper = p.rol === 'keeper' && inStrafschop(p.team, p.x, p.y) && b.laatsteTeam !== p.team;
     let r, hoog;
-    if (keeper) { r = p.duikT > 0 ? KEEPER_DUIK : KEEPER_BEREIK; hoog = 2.0; }
+    if (keeper) { r = (p.duikT > 0 ? KEEPER_DUIK : KEEPER_BEREIK) * keeperSchaal(); hoog = VELD.DOEL_H + 0.3; }
     else { r = (kl(0.78 - 0.022 * rel, 0.38, 0.78) + (p.tackleT > 0 ? 0.25 : 0)) * (1 + (bonusVan(m, p).aanname - 1) * 0.8); hoog = 0.75; }
     if (b.z > hoog) continue;
     if (d < r && d < bd) { bd = d; best = { p, keeper, rel }; }
@@ -373,7 +389,7 @@ function oppakken(m) {
   if (!best) return;
   const { p, keeper, rel } = best;
   if (keeper) {
-    const lv = m.ai[p.team], vaardig = p.slot != null ? 0.8 : lv.keeper;
+    const lv = m.ai[p.team], vaardig = (p.slot != null ? 0.8 : lv.keeper) * (VELD.L > 60 ? 0.78 : 1);
     const sp = balSnelheid(b);
     if (sp <= 9 + 13 * vaardig && m.rng() < 0.55 + 0.45 * vaardig) { b.owner = p.id; p.houdT = 0; p.balT = 0; p.duikT = 0; m.ev.push({ type: 'redding', soort: 'vangst', speler: p.id }); }
     else { // weggeslagen: de bal gaat van het doel af, met wat toeval opzij
@@ -411,12 +427,13 @@ function duwSpelers(m) {
     const dm = (0.75 - d) / 2, nx = dx / d, ny = dy / d;
     a.x -= nx * dm; a.y -= ny * dm; c.x += nx * dm; c.y += ny * dm;
   }
-  for (const p of S) { p.x = kl(p.x, -HB + 0.15, HB - 0.15); p.y = kl(p.y, -HL + 0.1, HL - 0.1); }
+  for (const p of S) { p.x = kl(p.x, -(VELD.B / 2) + 0.15, (VELD.B / 2) - 0.15); p.y = kl(p.y, -(VELD.L / 2) + 0.1, (VELD.L / 2) - 0.1); }
 }
 
 // ---------------------------------------------------------------- de stap
 
 export function tikWedstrijd(m, dtIn, invoer = null) {
+  zetFormaat(m.formaat);
   m.ev = [];
   const dt = Math.min(Math.max(dtIn, 0), 0.1);
   if (m.fase === 'klaar') return m.ev;
@@ -553,7 +570,13 @@ export function medailleUitRij(rij) {
 
 const FLASH_CODES = ['', 'goal', 'uit', 'rust', 'eind', 'hervat'];
 const flashCode = (m) => (m.fase === 'goal' ? 1 : m.fase === 'rust' ? 3 : m.fase === 'eind' ? 4 : m.fase === 'hervat' ? 5 : m.fase === 'aftrap' ? 5 : 0);
-// d: [fase, helft, klok, s0, s1, bx, by, bz, bvx, bvy, bvz, eigenaar, hervatsoort, flash, -, -, ctl x4, 10 x (x, y, hoek, vlaggen)]
+// d: [fase, helft, klok, s0, s1, bx, by, bz, bvx, bvy, bvz, eigenaar, hervatsoort, flash, flits, slomo, ctl x4, dan per speler twee getallen]. Per speler: (x, y) in stappen van 5 cm in één
+// getal, en (hoek in 64 stappen, vlaggen) in één getal. Zo past elf tegen elf (44 + 20) in de 64 getallen die het bestaande live-bericht draagt.
+const PLEK_X = 40, PLEK_Y = 60, STAP = 20;
+const packPlek = (x, y) => Math.round(kl(x + PLEK_X, 0, 2 * PLEK_X - 0.05) * STAP) * 4096 + Math.round(kl(y + PLEK_Y, 0, 2 * PLEK_Y - 0.05) * STAP);
+const unpackPlek = (v) => ({ x: Math.floor(v / 4096) / STAP - PLEK_X, y: (v % 4096) / STAP - PLEK_Y });
+const packHoek = (a) => ((Math.round((((a % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)) / (2 * Math.PI) * 64) % 64) * 512);
+export const snapLengte = (formaat) => 20 + 2 * 2 * FORMATEN[cleanFormaat(formaat)].n;
 export function snapVoetbal(m, seq = 0) {
   const b = m.bal;
   const d = [Math.max(0, FASEN.indexOf(m.fase)), m.helft, q2(m.klok, 1), m.score[0], m.score[1], q2(b.x), q2(b.y), q2(b.z), q2(b.vx, 1), q2(b.vy, 1), q2(b.vz, 1), b.owner,
@@ -561,29 +584,29 @@ export function snapVoetbal(m, seq = 0) {
   for (let k = 0; k < 4; k++) { const mm = m.mensen[k]; d.push(mm && !mm.weg ? mm.ctl : -1); }
   for (const p of m.spelers) {
     const vlag = Math.min(15, Math.round(p.speed / 0.6)) + (p.tackleT > 0 ? 16 : 0) + (p.stun > 0 ? 32 : 0) + (p.duikT > 0 ? 64 : 0) + (p.vier > 0 ? 128 : 0) + (p.moe ? 256 : 0);
-    d.push(q2(p.x), q2(p.y), q2(p.face, 2), vlag);
+    d.push(packPlek(p.x, p.y), packHoek(p.face) + vlag);
   }
   return { k: 'wed', f: 'lv', n: seq | 0, d, x: m.flash ? String(m.flash.tekst).slice(0, 60) : '' };
 }
-export const SNAP_LEN_V = 20 + 40;
 export const liveVoetbal = {
   tik: tikWedstrijd, snap: snapVoetbal, verlaat: verlaatVoetbal, uitslag: uitslagVoetbal, beloning: beloningVoetbal, vak: 'buiten', meedoen: meedoenVoetbal,
 };
 export function leesLiveVoetbal(b) {
-  if (!b || b.k !== 'wed' || b.f !== 'lv' || !Number.isInteger(b.n) || !Array.isArray(b.d) || b.d.length !== SNAP_LEN_V || !b.d.every(fin)) return null;
+  if (!b || b.k !== 'wed' || b.f !== 'lv' || !Number.isInteger(b.n) || !Array.isArray(b.d) || (b.d.length !== snapLengte('klein') && b.d.length !== snapLengte('groot')) || !b.d.every(fin)) return null;
   return { f: 'lv', n: b.n, d: b.d.slice(), x: typeof b.x === 'string' ? b.x.replace(/[\u0000-\u001f<>]/g, '').slice(0, 60) : '' };
 }
 
 // De spiegel van een gast: dezelfde velden als de host-wedstrijd voor wie hem tekent, vloeiend gevoed door de momentopnamen.
-export function maakVoetbalSpiegel(start, mijnSlot, { duur = 'normaal', stand = 'standaard', tegenstander: tg = 0 } = {}) {
-  const m = maakWedstrijd(start.deeln.map((d) => ({ slot: d.slot, naam: d.naam, char: d.char })), { duur, stand, seed: 1, tegenstander: tg });
+export function maakVoetbalSpiegel(start, mijnSlot, { duur = 'normaal', stand = 'standaard', tegenstander: tg = 0, formaat = 'klein', vorming = null, stijl = 'evenwichtig' } = {}) {
+  const m = maakWedstrijd(start.deeln.map((d) => ({ slot: d.slot, naam: d.naam, char: d.char })), { duur, stand, seed: 1, tegenstander: tg, formaat, vorming, stijl });
   m.spiegel = true; m.mijnSlot = mijnSlot; m.n = -1; m.leeftijd = 0; m.nSnap = 0; m.flashTekst = ''; m.bt = null; m.mijnId = -1;
   for (const p of m.spelers) { p.tx = p.x; p.ty = p.y; p.slot = null; }
   m.bal.tx = 0; m.bal.ty = 0; m.bal.tz = 0; m.bal.bvx = 0; m.bal.bvy = 0; m.bal.bvz = 0;
   return m;
 }
 export function voerInVoetbal(sp, st) {
-  if (!st || st.f !== 'lv' || st.d.length !== SNAP_LEN_V || st.n < sp.n) return false;
+  if (!st || st.f !== 'lv' || st.d.length !== snapLengte(sp.formaat) || st.n < sp.n) return false;
+  zetFormaat(sp.formaat);
   const d = st.d;
   sp.n = st.n; sp.fase = FASEN[kl(d[0] | 0, 0, FASEN.length - 1)]; sp.helft = d[1] | 0 || 1; sp.klok = d[2]; sp.score = [d[3] | 0, d[4] | 0];
   const b = sp.bal;
@@ -595,8 +618,8 @@ export function voerInVoetbal(sp, st) {
   const eigen = sp.mensen.find((x) => x.slot === sp.mijnSlot);
   sp.mijnId = eigen && !eigen.weg ? eigen.ctl : -1;
   sp.spelers.forEach((p, i) => {
-    const o = 20 + i * 4, vlag = d[o + 3] | 0;
-    p.tx = d[o]; p.ty = d[o + 1]; p.face = d[o + 2];
+    const o = 20 + i * 2, pl = unpackPlek(d[o]), hv = d[o + 1] | 0, vlag = hv % 512;
+    p.tx = pl.x; p.ty = pl.y; p.face = Math.floor(hv / 512) / 64 * 2 * Math.PI;
     p.snelheidSnap = (vlag & 15) * 0.6; p.tackleT = vlag & 16 ? 0.3 : 0; p.stun = vlag & 32 ? 0.3 : 0; p.duikT = vlag & 64 ? 0.3 : 0; p.vier = vlag & 128 ? 1 : 0; p.moe = !!(vlag & 256);
     if (sp.nSnap === 0) { p.x = p.tx; p.y = p.ty; }
     p.slot = null;

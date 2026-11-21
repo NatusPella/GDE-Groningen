@@ -4,10 +4,38 @@
 import { cleanDifficulty } from './difficulty.js';
 
 // Het veld in meters, het midden is (0, 0): x is dwars (links/rechts voor het team dat naar voren kijkt), y is in de lengte. Team 0 verdedigt y = -L/2 en valt aan naar +y.
+// De formaten: klein (vijf tegen vijf op een klein veld) en groot (elf tegen elf op een volledig veld). Het veld is één gedeeld object dat per wedstrijd wordt gezet (zetFormaat);
+// de sim, de bal en de AI lezen er altijd VELD uit. Alleen één wedstrijd tegelijk per proces (de host, of de spiegel van een gast).
 export const VELD = { B: 26, L: 42, DOEL_B: 4.4, DOEL_H: 1.7, DOEL_DIEPTE: 1.3, STRAF_B: 13, STRAF_D: 6.5, PAAL_R: 0.07, BAL_R: 0.11 };
-export const DUREN = { kort: 45, normaal: 90 };     // seconden per helft
+export const FORMATEN = {
+  klein: { n: 5, B: 26, L: 42, DOEL_B: 4.4, DOEL_H: 1.7, STRAF_B: 13, STRAF_D: 6.5, duren: { kort: 45, normaal: 90 }, naam: '5 tegen 5' },
+  groot: { n: 11, B: 56, L: 90, DOEL_B: 7.32, DOEL_H: 2.44, STRAF_B: 30, STRAF_D: 13, duren: { kort: 75, normaal: 150 }, naam: '11 tegen 11' },
+};
+export const FORMAAT_STANDAARD = 'klein';
+export const cleanFormaat = (f) => (FORMATEN[f] ? f : FORMAAT_STANDAARD);
+let huidig = 'klein';
+export function zetFormaat(f) {
+  const c = cleanFormaat(f);
+  if (c === huidig && VELD.B === FORMATEN[c].B) return c;
+  huidig = c;
+  const F = FORMATEN[c];
+  for (const k of ['B', 'L', 'DOEL_B', 'DOEL_H', 'STRAF_B', 'STRAF_D']) VELD[k] = F[k];
+  VELD.DOEL_DIEPTE = c === 'groot' ? 2.1 : 1.3;
+  return c;
+}
+export const huidigFormaat = () => huidig;
+export const DUREN = { kort: 45, normaal: 90 };     // de standaardduur (klein); groot heeft eigen duren in FORMATEN
+export const duurVan = (formaat, duur) => (FORMATEN[cleanFormaat(formaat)].duren[duur] || FORMATEN[cleanFormaat(formaat)].duren.normaal);
 export const DUUR_STANDAARD = 'normaal';
 export const HELFTEN = 2;
+// De voorkeur van de speler (formaat, vorming, speelstijl, duur, vriendschappelijk of competitie, en de stand van het seizoen) staat in één eigen sleutel; alles wat niet klopt wordt de standaard.
+export function leesVoorkeur(raw) {
+  let d = null;
+  try { d = JSON.parse(raw || 'null'); } catch (e) { d = null; }
+  if (!d || typeof d !== 'object') d = {};
+  const formaat = cleanFormaat(d.formaat);
+  return { duur: DUREN[d.duur] ? d.duur : DUUR_STANDAARD, formaat, vorming: cleanVorming(formaat, d.vorming), stijl: cleanStijl(d.stijl), modus: d.modus === 'competitie' ? 'competitie' : 'vriendschappelijk', comp: d.comp && typeof d.comp === 'object' ? d.comp : null };
+}
 // De voorkeur kort of normaal komt uit een eigen sleutel (storagekeys.js KEYS.voetbal, alleen dit apparaat); leeg, corrupt of onzin geeft de standaard.
 export function leesDuurVoorkeur(raw) {
   try { const d = JSON.parse(raw || 'null'); return d && DUREN[d.duur] ? d.duur : DUUR_STANDAARD; } catch (e) { return DUUR_STANDAARD; }
@@ -50,16 +78,40 @@ export const TEAMS = [
   { id: 'wadlopers', naam: 'De Wadlopers', kort: 'Wadlopers', shirt: 0x2f6fb5, broek: 0xf4f1e8, keeperShirt: 0xe8e0c0 },
   { id: 'ommelanders', naam: 'De Ommelanders', kort: 'Ommelanders', shirt: 0x8a4ab5, broek: 0xe8c93a, keeperShirt: 0x6fcf6a },
   { id: 'veenpiraten', naam: 'De Veenpiraten', kort: 'Veenpiraten', shirt: 0x2a2f36, broek: 0xe8e0c0, keeperShirt: 0xff9a3c },
+  { id: 'kleibijters', naam: 'De Kleibijters', kort: 'Kleibijters', shirt: 0xd9a23a, broek: 0x2a3a5a, keeperShirt: 0xc0482b },
 ];
 export const TEGENSTANDERS = TEAMS.slice(1);
 export const tegenstander = (n) => TEGENSTANDERS[((n | 0) % TEGENSTANDERS.length + TEGENSTANDERS.length) % TEGENSTANDERS.length];
 
 // De namen van de spelers van de computer (verzonnen, geen echte voetballers) en hun rol in de vorming 1-2-2: keeper, twee verdedigers, twee aanvallers.
-export const ROLLEN = ['keeper', 'verdediger', 'verdediger', 'aanvaller', 'aanvaller'];
-export const NAMEN_THUIS = ['Keeper Mans', 'Hinderk', 'Wietske', 'Tammo', 'Grietje'];
-export const NAMEN_UIT = ['Keeper Bouwe', 'Roelof', 'Fenna', 'Jelmer', 'Marrit'];
-// De basisplek per rol, gemeten van het eigen doel: u in -1..1 over de breedte, d in 0..1 over de lengte.
-const VORMING = [{ u: 0, d: 0.04 }, { u: -0.42, d: 0.26 }, { u: 0.42, d: 0.26 }, { u: -0.4, d: 0.55 }, { u: 0.4, d: 0.62 }];
+export const NAMEN_THUIS = ['Keeper Mans', 'Hinderk', 'Wietske', 'Tammo', 'Grietje', 'Roel', 'Femke', 'Jouke', 'Anneke', 'Sjoerd', 'Marijke'];
+export const NAMEN_UIT = ['Keeper Bouwe', 'Roelof', 'Fenna', 'Jelmer', 'Marrit', 'Gerben', 'Hanneke', 'Pieter', 'Trijn', 'Eelke', 'Lieuwe'];
+// De vormingen (tactiek): per speler een rol en de basisplek, gemeten van het eigen doel: u in -1..1 over de breedte, d in 0..1 over de lengte. Index 0 is altijd de keeper.
+const K = { rol: 'keeper', u: 0, d: 0.04 };
+const rij = (rol, d, ...us) => us.map((u) => ({ rol, u, d }));
+export const VORMINGEN = {
+  klein: {
+    '2-2': [K, ...rij('verdediger', 0.26, -0.42, 0.42), { rol: 'aanvaller', u: -0.4, d: 0.55 }, { rol: 'aanvaller', u: 0.4, d: 0.62 }],
+    '3-1': [K, ...rij('verdediger', 0.24, -0.55, 0, 0.55), { rol: 'aanvaller', u: 0, d: 0.6 }],
+    '1-3': [K, { rol: 'verdediger', u: 0, d: 0.22 }, ...rij('aanvaller', 0.58, -0.55, 0, 0.55)],
+  },
+  groot: {
+    '4-4-2': [K, ...rij('verdediger', 0.2, -0.65, -0.22, 0.22, 0.65), ...rij('middenvelder', 0.45, -0.65, -0.22, 0.22, 0.65), ...rij('aanvaller', 0.7, -0.2, 0.2)],
+    '4-3-3': [K, ...rij('verdediger', 0.2, -0.65, -0.22, 0.22, 0.65), ...rij('middenvelder', 0.46, -0.4, 0, 0.4), ...rij('aanvaller', 0.72, -0.55, 0, 0.55)],
+    '3-5-2': [K, ...rij('verdediger', 0.2, -0.45, 0, 0.45), ...rij('middenvelder', 0.46, -0.8, -0.4, 0, 0.4, 0.8), ...rij('aanvaller', 0.7, -0.2, 0.2)],
+  },
+};
+export const vormingNamen = (formaat) => Object.keys(VORMINGEN[cleanFormaat(formaat)]);
+export const cleanVorming = (formaat, v) => (VORMINGEN[cleanFormaat(formaat)][v] ? v : vormingNamen(formaat)[0]);
+export const vormingLijst = (formaat, v) => VORMINGEN[cleanFormaat(formaat)][cleanVorming(formaat, v)];
+export const ROLLEN = VORMINGEN.klein['2-2'].map((x) => x.rol);
+// De speelstijl: hoe diep de lijnen staan en hoeveel spelers druk zetten (op een groot veld één meer).
+export const STIJLEN = ['verdedigend', 'evenwichtig', 'aanvallend'];
+export const cleanStijl = (s) => (STIJLEN.includes(s) ? s : 'evenwichtig');
+const STIJL_DIEPTE = { verdedigend: -0.07, evenwichtig: 0, aanvallend: 0.07 };
+const STIJL_PRESS = { verdedigend: 1, evenwichtig: 2, aanvallend: 3 };
+export const drukZetters = (stijl) => STIJL_PRESS[cleanStijl(stijl)] + (huidig === 'groot' ? 1 : 0);
+const ROL_PARAMS = { verdediger: { shift: 0.36, min: 0.1, max: 0.62, aanval: 0.06 }, middenvelder: { shift: 0.43, min: 0.14, max: 0.76, aanval: 0.08 }, aanvaller: { shift: 0.5, min: 0.18, max: 0.9, aanval: 0.1 } };
 
 // De moeilijkheid: reactietijd van de computer, zijn snelheid, de afwijking van zijn schot (rad) en de keeper (0..1) en de tackle (kans). Gelezen uit de bestaande stand.
 const AI_STAND = {
@@ -100,20 +152,20 @@ export function nieuwRecord(prev, { waarde, medaille }) {
 }
 
 // --- meetkunde: richting en plekken per team (team 0 valt aan naar +y, team 1 naar -y) ----------------------------------------------------------------
-const HB = VELD.B / 2, HL = VELD.L / 2;
 export const richtingVan = (team) => (team === 0 ? 1 : -1);          // de y-richting naar voren
-export const eigenDoelY = (team) => -richtingVan(team) * HL;          // de doellijn die dit team verdedigt
-export const doelYTegen = (team) => richtingVan(team) * HL;           // de doellijn waarop dit team aanvalt
+export const eigenDoelY = (team) => -richtingVan(team) * (VELD.L / 2);          // de doellijn die dit team verdedigt
+export const doelYTegen = (team) => richtingVan(team) * (VELD.L / 2);           // de doellijn waarop dit team aanvalt
 export const kl = (x, a, b) => (x < a ? a : x > b ? b : x);
 // De plek van een speler in de vorming: rol-index i (0 keeper .. 4), bal = waar de bal is, aanval = heeft dit team de bal. d (0 eigen doel .. 1 tegendoel) schuift mee met de bal.
-export function vormingPlek(team, i, bal, aanval, aftrap = false) {
-  const v = VORMING[i], dir = richtingVan(team);
+export function vormingPlek(team, i, bal, aanval, aftrap = false, tac = null) {
+  const lijst = tac && tac.lijst ? tac.lijst : VORMINGEN[huidig][vormingNamen(huidig)[0]];
+  const v = lijst[i], dir = richtingVan(team);
   const voortgang = ((bal.y - eigenDoelY(team)) * dir) / VELD.L;       // 0..1 hoe ver de bal van het eigen doel is
   let d = v.d;
-  if (i > 0) d = kl(v.d + (voortgang - 0.5) * (i >= 3 ? 0.5 : 0.36) + (aanval ? (i >= 3 ? 0.1 : 0.06) : -0.04), i >= 3 ? 0.18 : 0.1, i >= 3 ? 0.9 : 0.62);
+  if (i > 0) { const rp = ROL_PARAMS[v.rol]; d = kl(v.d + (voortgang - 0.5) * rp.shift + (aanval ? rp.aanval : -0.04) + STIJL_DIEPTE[cleanStijl(tac && tac.stijl)], rp.min, rp.max); }
   if (aftrap) d = Math.min(d, 0.44);
   const zijde = team === 0 ? 1 : -1;
-  const x = i === 0 ? kl(bal.x * 0.12, -2, 2) : kl(v.u * (aanval ? 1.05 : 0.8) * (HB - 2.5) * zijde + kl(bal.x * 0.22, -3, 3), -HB + 1, HB - 1);
+  const x = i === 0 ? kl(bal.x * 0.12, -2, 2) : kl(v.u * (aanval ? 1.05 : 0.8) * ((VELD.B / 2) - 2.5) * zijde + kl(bal.x * 0.22, -3, 3), -(VELD.B / 2) + 1, (VELD.B / 2) - 1);
   return { x, y: eigenDoelY(team) + dir * d * VELD.L };
 }
 export const inStrafschop = (team, x, y) => Math.abs(x) < VELD.STRAF_B / 2 && Math.abs(y - eigenDoelY(team)) < VELD.STRAF_D;

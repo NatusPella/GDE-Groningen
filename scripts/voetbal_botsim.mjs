@@ -5,12 +5,12 @@ import { VELD } from '../game/js/voetbalrules.js';
 
 const arg = (k, d) => { const a = process.argv.find((x) => x.startsWith(`--${k}=`)); return a ? a.split('=')[1] : d; };
 const aantal = +(process.argv.find((x) => /^\d+$/.test(x)) || 100);
-const duur = arg('duur', 'normaal'), stand = arg('stand', 'standaard');
+const duur = arg('duur', 'normaal'), stand = arg('stand', 'standaard'), formaat = arg('formaat', 'klein');
 const stil = process.argv.includes('--stil');
 const DT = 1 / 30;
 
-export function speelWedstrijd(seed, { duur = 'normaal', stand = 'standaard' } = {}) {
-  const m = maakWedstrijd([], { duur, stand, seed, tegenstander: seed % 4, aiBeide: true });
+export function speelWedstrijd(seed, { duur = 'normaal', stand = 'standaard', formaat = 'klein', stijl = 'evenwichtig' } = {}) {
+  const m = maakWedstrijd([], { duur, stand, seed, tegenstander: seed % 5, aiBeide: true, formaat, stijl });
   const r = { seed, goals: 0, score: null, schoten: 0, overtredingen: 0, uit: 0, nan: 0, buiten: 0, vast: 0, langstStil: 0, stappen: 0, eindigde: false, fases: {}, redd: 0, tackles: 0, passes: 0, lang: 0, hervattingen: {} };
   let stilT = 0;
   const max = Math.ceil((m.duurHelft * 2 + 60) / DT) + 4000;
@@ -50,12 +50,12 @@ export function speelWedstrijd(seed, { duur = 'normaal', stand = 'standaard' } =
 if (import.meta.url === `file://${process.argv[1].replace(/\\/g, '/')}` || process.argv[1].endsWith('voetbal_botsim.mjs')) {
   const t0 = Date.now();
   const alle = [];
-  for (let s = 1; s <= aantal; s++) alle.push(speelWedstrijd(s, { duur, stand }));
+  for (let s = 1; s <= aantal; s++) alle.push(speelWedstrijd(s, { duur, stand, formaat }));
   const som = (f) => alle.reduce((a, r) => a + f(r), 0);
   const gem = (f) => (som(f) / alle.length);
   const goals = alle.map((r) => r.goals);
   const samenvatting = {
-    wedstrijden: alle.length, duur, stand, gemDoelpunten: +gem((r) => r.goals).toFixed(2), min: Math.min(...goals), max: Math.max(...goals),
+    wedstrijden: alle.length, duur, stand, formaat, gemDoelpunten: +gem((r) => r.goals).toFixed(2), min: Math.min(...goals), max: Math.max(...goals),
     gemSchoten: +gem((r) => r.schoten).toFixed(1), gemOvertredingen: +gem((r) => r.overtredingen).toFixed(1), gemUit: +gem((r) => r.uit).toFixed(1), gemRedd: +gem((r) => r.redd).toFixed(1),
     gemTackles: +gem((r) => r.tackles).toFixed(1), gemPasses: +gem((r) => r.passes).toFixed(1), gemLang: +gem((r) => r.lang).toFixed(1),
     thuisWinst: alle.filter((r) => r.score[0] > r.score[1]).length, gelijk: alle.filter((r) => r.score[0] === r.score[1]).length, uitWinst: alle.filter((r) => r.score[0] < r.score[1]).length,

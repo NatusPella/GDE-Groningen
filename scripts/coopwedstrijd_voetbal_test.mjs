@@ -19,7 +19,7 @@ function nepWereld(spelers) {
   const world = { coopNet: { role: 'host', hub }, coop: { remote: false }, coopFigures: { 1: { slot: 1, x: 0, y: 0, input: inv[1] }, 2: { slot: 2, x: 0, y: 0, input: inv[2] }, 3: { slot: 3, x: 0, y: 0, input: inv[3] } }, messages: [], addMessage(t) { this.messages.push(t); } };
   return { world, log, hub, inv };
 }
-const regel = (op) => ({ naam: 'Voetbal Euroborg', soort: 'live', live: V.liveVoetbal, minSpelers: 2, maak: (deeln) => V.maakWedstrijd(deeln, { duur: 'kort', seed: 5, tegenstander: 1 }), start: (w, sim) => { op.sim = sim; return true; }, plek: () => ({ x: 50, y: 60 }), extra: () => ({ v: 'kort|standaard|1' }), solo: () => 'solo' });
+const regel = (op) => ({ naam: 'Voetbal Euroborg', soort: 'live', live: V.liveVoetbal, minSpelers: 2, maak: (deeln) => V.maakWedstrijd(deeln, { duur: 'kort', seed: 5, tegenstander: 1 }), start: (w, sim) => { op.sim = sim; return true; }, plek: () => ({ x: 50, y: 60 }), extra: () => ({ v: 'k.s.1.k.2-2.e' }), solo: () => 'solo' });
 
 { // uitnodigen en starten
   const betaald = []; const op = {};
@@ -32,7 +32,7 @@ const regel = (op) => ({ naam: 'Voetbal Euroborg', soort: 'live', live: V.liveVo
   const sim = op.sim;
   check('de wedstrijd begint met wie ja zei, de host eerst', sim && sim.mensen.map((m) => m.slot).join() === '0,1,2', sim && sim.mensen.map((m) => m.slot).join());
   const start = W.leesWed(log.find(([s, b]) => s === 1 && b.f === 'start')[1]);
-  check('de start vertelt dat het een live wedstrijd is en wat de host koos', start && start.live === true && start.v === 'kort|standaard|1' && start.deeln.length === 3);
+  check('de start vertelt dat het een live wedstrijd is en wat de host koos', start && start.live === true && start.v === 'k.s.1.k.2-2.e' && start.deeln.length === 3);
   check('de lichamen van de gasten staan stil bij de poort', world.coopFigures[1].coopWedstrijd === true && world.coopFigures[2].coopWedstrijd === true && !world.coopFigures[3].coopWedstrijd);
   check('een tweede wedstrijd tegelijk kan niet', W.wedNodigUit(world, 'voetbal').reden === 'bezig');
   // tikken: de aanloop duurt even
@@ -52,7 +52,7 @@ const regel = (op) => ({ naam: 'Voetbal Euroborg', soort: 'live', live: V.liveVo
   // de knoppen van de gast: de bits zijn de voetbalknoppen
   inv[1].my = 0; inv[1].buttons = KNOP.SPRINT | KNOP.TACKLE;
   W.wedLiveTik(world, sim, DT, hostInv);
-  check('de knoppen van een gast komen als voetbalknoppen aan (geen wapenbits)', (inv[1].buttons & (16 | 32)) === 0 && V.snapVoetbal(sim, 1).d.length === 60);
+  check('de knoppen van een gast komen als voetbalknoppen aan (geen wapenbits)', (inv[1].buttons & (16 | 32)) === 0 && V.snapVoetbal(sim, 1).d.length === V.snapLengte('klein'));
   // gast 2 valt weg
   hub.roster.spelers.find((s) => s.slot === 2).verbinding = 'lost';
   W.wedLiveTik(world, sim, DT, hostInv);
@@ -123,15 +123,15 @@ const regel = (op) => ({ naam: 'Voetbal Euroborg', soort: 'live', live: V.liveVo
   const ev = []; const verzonden = [];
   W.zetWedGastHaken('voetbal', { spiegel: (st, mijn) => V.maakVoetbalSpiegel(st, mijn, { duur: 'kort', stand: 'standaard', tegenstander: 1 }), voerIn: V.voerInVoetbal, start: (w, st, sp) => { ev.push(['start', st.v, !!sp]); return true; }, eind: (w, uit) => { ev.push(['eind', !!uit.gestopt]); }, tik: () => true });
   const world = { coopNet: { role: 'client', session: { slot: 1, sendEvent: (b) => { verzonden.push(b); return true; } } }, messages: [], addMessage(t) { this.messages.push(t); } };
-  W.wedHandleHost(world, W.startEvent('voetbal', MENSEN(2), 0, { live: 1, v: 'kort|standaard|1' }));
+  W.wedHandleHost(world, W.startEvent('voetbal', MENSEN(2), 0, { live: 1, v: 'k.s.1.k.2-2.e' }));
   const G = world.coopWedGast;
-  check('de start zet de gast op zijn eigen scherm met een spiegel', ev[0] && ev[0][1] === 'kort|standaard|1' && ev[0][2] === true && G.spiegel && G.spiegel.mijnSlot === 1 && world.coopWedstrijd === true);
+  check('de start zet de gast op zijn eigen scherm met een spiegel', ev[0] && ev[0][1] === 'k.s.1.k.2-2.e' && ev[0][2] === true && G.spiegel && G.spiegel.mijnSlot === 1 && world.coopWedstrijd === true);
   const m = V.maakWedstrijd(MENSEN(2), { duur: 'kort', seed: 2 });
   for (let i = 0; i < 300; i++) V.tikWedstrijd(m, DT, () => ({ mx: 0.3, my: -1, buttons: 0 }));
   check('een momentopname van de host komt in de spiegel', W.wedHandleHost(world, V.snapVoetbal(m, 5)) && G.spiegel.fase === m.fase && G.spiegel.n === 5 && G.spiegel.mijnId === m.mensen[1].ctl);
   check('een oudere momentopname wordt genegeerd', !W.wedHandleHost(world, V.snapVoetbal(m, 3)));
   check('stoppen: de host hoort het en het scherm is vrij', W.wedGastVerlaat(world) && verzonden.at(-1).a === 'weg' && !G.spiegel && world.coopWedstrijd === false);
-  W.wedHandleHost(world, W.startEvent('voetbal', MENSEN(2), 0, { live: 1, v: 'kort|standaard|1' }));
+  W.wedHandleHost(world, W.startEvent('voetbal', MENSEN(2), 0, { live: 1, v: 'k.s.1.k.2-2.e' }));
   W.wedHandleHost(world, W.eindEvent([{ plek: 1, naam: 'Tessa', slot: 1, fin: true, tijd: 2, beste: null, weg: false, tekst: 'gewonnen: 3-0' }], { plek: 1, geld: 60, xp: 26, fin: 1 }));
   const l = G.uitslag;
   check('de uitslag sluit de wedstrijd en de gast kan zijn eigen medaille berekenen', ev.at(-1)[0] === 'eind' && l && l.rijen[0].tekst === 'gewonnen: 3-0' && V.medailleUitRij(l.rijen[0]).medaille === 2 && !G.spiegel);

@@ -4,8 +4,8 @@
 import { VELD } from './voetbalrules.js';
 
 const G = 9.8;
+const R = VELD.BAL_R;
 const MAX_STAP = 1 / 120;
-const HB = VELD.B / 2, HL = VELD.L / 2, HD = VELD.DOEL_B / 2, R = VELD.BAL_R;
 
 export const maakBal = (x = 0, y = 0) => ({ x, y, z: 0, vx: 0, vy: 0, vz: 0, dood: false, netTeam: -1, laatsteTeam: -1, laatsteSpeler: -1 });
 export const balSnelheid = (b) => Math.hypot(b.vx, b.vy);
@@ -44,7 +44,7 @@ function stapKlein(b, h, ev) {
   const zc = b.z + R;
   // de palen: vier cilinders op de hoeken van de doelen (de bal onder de lat)
   if (zc < VELD.DOEL_H + 0.05) {
-    for (const px of [-HD, HD]) for (const py of [-HL, HL]) {
+    for (const px of [-(VELD.DOEL_B / 2), (VELD.DOEL_B / 2)]) for (const py of [-(VELD.L / 2), (VELD.L / 2)]) {
       const dx = b.x - px, dy = b.y - py, d = Math.hypot(dx, dy), min = VELD.PAAL_R + R;
       if (d < min && d > 1e-6) {
         const nx = dx / d, ny = dy / d, vn = b.vx * nx + b.vy * ny;
@@ -54,8 +54,8 @@ function stapKlein(b, h, ev) {
     }
   }
   // de lat en de doellijn: alleen tussen de palen en alleen naar buiten
-  for (const yl of [-HL, HL]) {
-    if ((oy - yl) * (b.y - yl) > 0 || Math.abs(b.x) >= HD || (b.y - oy) * yl <= 0) continue;
+  for (const yl of [-(VELD.L / 2), (VELD.L / 2)]) {
+    if ((oy - yl) * (b.y - yl) > 0 || Math.abs(b.x) >= (VELD.DOEL_B / 2) || (b.y - oy) * yl <= 0) continue;
     if (Math.abs(zc - VELD.DOEL_H) < R + 0.04) { // de lat
       const boven = zc >= VELD.DOEL_H;
       b.y = oy; b.vy = -b.vy * 0.55; b.vz = (boven ? 1 : -1) * (Math.abs(b.vz) * 0.4 + 1.3);
@@ -71,14 +71,14 @@ function stapKlein(b, h, ev) {
   }
   // uit: over de zijlijn, of over de achterlijn naast of boven het doel
   if (!b.dood) {
-    if (Math.abs(b.x) > HB) { b.dood = true; ev.push({ type: 'uit', kind: 'zij', x: b.x, y: b.y }); }
-    else if (Math.abs(b.y) > HL + 0.02) { b.dood = true; ev.push({ type: 'uit', kind: 'achter', x: b.x, y: b.y }); }
+    if (Math.abs(b.x) > (VELD.B / 2)) { b.dood = true; ev.push({ type: 'uit', kind: 'zij', x: b.x, y: b.y }); }
+    else if (Math.abs(b.y) > (VELD.L / 2) + 0.02) { b.dood = true; ev.push({ type: 'uit', kind: 'achter', x: b.x, y: b.y }); }
   }
 }
 
 // In het net: de bal blijft binnen de palen, de lat en de achterkant van het net, en rolt uit.
 function net(b, ev) {
-  const diep = HL + VELD.DOEL_DIEPTE, rand = HD - R;
+  const diep = (VELD.L / 2) + VELD.DOEL_DIEPTE, rand = (VELD.DOEL_B / 2) - R;
   if (b.x > rand) { b.x = rand; b.vx = -Math.abs(b.vx) * 0.2; }
   if (b.x < -rand) { b.x = -rand; b.vx = Math.abs(b.vx) * 0.2; }
   if (b.y > diep - R) { b.y = diep - R; b.vy = -Math.abs(b.vy) * 0.12; }
