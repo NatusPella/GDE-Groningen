@@ -293,4 +293,6 @@ zijn de latere meting (#477).
 - Twee testrunners naast elkaar (#481, opgelost 25-10): `scripts/run_tests.mjs` (CI) en
   `scripts/test_all.mjs` (fasen en rapport) delen hun lijsten; zie ADR 0013 en `docs/TESTEN.md`.
 
+## Moeilijkheid per save (#1150)
 
+**Regels.** Elke save heeft een niveau (ontspannen, standaard, uitdagend) en opties die ervan afwijken: één profiel `{ level, custom }` in het savegame-veld `moeilijkheid`, één bron in `game/js/difficulty.js`. De gameplay leest `opt(sleutel)` of een koppelfunctie; nooit een eigen getal. Op Standaard is elke optie neutraal (exact het oude gedrag, regressietest). Elke optie heeft vaste stappen binnen een veilige band; prijzen zijn geen optie en de beloningsfactor blijft binnen 0,75 en 1,25. Niets blokkeert de verhaalvoortgang; Verhaalmodus haalt de tijdsdruk weg. Samen spelen: politie en verkeer volgen wie het spel opende, al het andere is per speler. Naslag: [docs/MOEILIJKHEID-21-11.md](../../docs/MOEILIJKHEID-21-11.md).

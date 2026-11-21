@@ -288,3 +288,7 @@ Elke HUD-kaart (tip, muziekkaart, telefoon- en nieuwskaart, prestatietoast, acti
   `pausemenu.js` (Cheats is sinds #435 een eigen rail-item, Spelers een tab onder
   Samen spelen). De Q/E-fout uit #480 is met #601 rechtgezet: de code, de voetregel en
   de Besturing-tabel zeggen nu alle drie hetzelfde.
+
+## Kaart "Hoe pittig moet het zijn?" en Instellingen > Moeilijkheid (#1150)
+
+**Regels.** Bij een nieuw spel en de allereerste start komt na de keuzekaart Alleen of Samen één DS3-kaart met drie niveaus (voorselectie Standaard, aanbevolen) en "Aanpassen"; de toets staat in de knop (1 tot 3, 4 voor Aanpassen), de focus volgt pijlen en WASD, Escape kiest Standaard, en een controller geeft dezelfde toetsen. De kaart heet nooit "Hoe wil je spelen?" (de keuzekaart). Later aanpasbaar onder Instellingen > Moeilijkheid met de uitleg dat sommige wijzigingen pas bij de volgende missie ingaan en wat Samen spelen doet. Testruns slaan de kaart over (Standaard). Naslag: [docs/MOEILIJKHEID-21-11.md](../../docs/MOEILIJKHEID-21-11.md).
