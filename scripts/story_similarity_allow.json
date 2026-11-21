@@ -1,6 +1,8 @@
 {
   "_uitleg": "Bedoelde terugkeer in het verhaalscript. herhaling: de hele regel mag bij dezelfde spreker in meer dan één scène staan (maxKeer zet er een plafond op). alternatief: scènes die elkaars alternatief zijn (de speler ziet er maar één). paren: twee bijna-gelijke regels die elkaar bewust citeren. plafond: het aantal regels per verboden zinsbouw dat nu in het script staat; het mag alleen dalen.",
   "herhaling": [
+    { "tekst": "Tessa, eigenlijk—", "reden": "de onvoltooide zin van Tammo (inspiratiepakket D20): hoogstens vier keer (O3, akte 2, 3 en 4) en uitbetaald met de vijf woorden in M26.7", "maxKeer": 4 },
+    { "tekst": "Ik heb niks gezegd.", "reden": "de duivengrap: M15.6 (de duif en het jasje van Daan) en de finalekaart (E1)" },
     { "tekst": "Net fertelle, hè?", "reden": "Durks stopwoord, zo hoog als het nu is", "maxKeer": 5 },
     { "tekst": "Ik rij.", "reden": "Tammo zegt het bij elke rit" },
     { "tekst": "Duiven luisteren naar niemand.", "reden": "M12.1 citeert M04.1 (opgenomen): Dijkstra heeft het van Trijntje, Tessa antwoordt: behalve naar jou" },

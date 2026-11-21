@@ -27,7 +27,11 @@ S['M17.intro'] = {
   wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:wubbo,tessa@1'),
 };
 S['M17.outro'] = {
-  cast: { wubbo: { key: 'wubbo', at: [3, 0.2], face: 180, anim: 'idle', gest: ['talk', 'point', 'hips'] } },
+  cast: {
+    wubbo: { key: 'wubbo', at: [3, 0.2], face: 180, anim: 'idle', gest: ['talk', 'point', 'hips'] },
+    // inspiratiepakket: Stien, de frituurhoudster onder brug elf (M17.5)
+    stien: { key: 'stien', at: [4.2, -1.6], face: 185, anim: 'idle', gest: ['talk', 'point', 'hips'] },
+  },
   props: {},
   open: [{ actor: 'tessa', face: 'actor:wubbo' }, { actor: 'tammo', face: 'actor:wubbo' }],
   beats: [
@@ -41,6 +45,12 @@ S['M17.outro'] = {
     { on: 'Om middernacht. Net als', actor: 'tammo', anim: 'point' },
     { on: 'Dat is toeval', actor: 'tessa', anim: 'shrug' },
     { on: 'Dat moeten we weten', actor: 'tammo', anim: 'nod' },
+    { on: 'Wubbo zei dat jullie kwamen', actor: 'stien', walk: [[2.8, -0.9]], speed: 0.8 },
+    { on: 'Wubbo zei dat jullie kwamen', dt: 0.2, actor: 'stien', face: 'actor:tessa' },
+    { on: 'Ik kijk alleen', actor: 'tessa', anim: 'shrug' },
+    { on: 'Ik kijk alleen', dt: 2.4, actor: 'stien', anim: 'point' },
+    { on: 'Die komen op de geur', actor: 'stien', anim: 'talk' },
+    { on: 'Nee. Maar het is een begin', actor: 'stien', anim: 'nod' },
   ],
   shots: [],
   wide: WIDE([-4.5, 4, 3], [-2.5, 2.8, 2.3], 'mid:wubbo,tammo@1'),
@@ -337,6 +347,10 @@ S['M25.outro'] = {
     trijntje: { key: 'trijntje', at: [2.4, 0.8], face: 180, anim: 'idle', gest: ['talk', 'point'] },
     mem: { key: 'mem', at: [2.6, -1.3], face: 170, anim: 'idle', gest: ['talk', 'nod'] },
     jelle: { key: 'jelle', at: [3.9, 0], face: 180, anim: 'idle', bg: true, gest: ['talk', 'hips'] },
+    // inspiratiepakket: het familiediner (M25.6); Tessa's vader is een figurant zonder tekst
+    anneke: { key: 'anneke', at: [3.4, 1.4], face: 180, anim: 'idle', gest: ['talk', 'hips', 'point'] },
+    lieke: { key: 'lieke', at: [2.2, 1.9], face: 185, anim: 'idle', gest: ['talk', 'shrug'] },
+    vader: { key: 'boer', at: [4.2, 1.1], face: 185, anim: 'idle', bg: true, gest: ['nod'] },
   },
   props: {},
   open: [{ actor: 'tessa', face: 'actor:trijntje' }, { actor: 'tammo', face: 'actor:trijntje' }],
@@ -348,6 +362,16 @@ S['M25.outro'] = {
     { on: 'Mem. Kom je morgen', actor: 'jelle', walk: [[4, -0.6]], speed: 0.9 },
     { on: 'Mem. Kom je morgen', dt: 0.2, actor: 'jelle', face: 'actor:mem' },
     { on: 'Ik kom, jonge', actor: 'mem', anim: 'nod' },
+    { on: 'We waren in de buurt', actor: 'anneke', anim: 'point' },
+    { on: 'Mam. Het is half twaalf', actor: 'tessa', anim: 'hips' },
+    { on: 'Ga zitten. Eet een eierbal', actor: 'trijntje', anim: 'point' },
+    { on: 'Bij ons gaan eieren niet', actor: 'anneke', anim: 'hips' },
+    { on: 'Bij ons gaan eieren niet', dt: 1.8, actor: 'trijntje', anim: 'shrug' },
+    { on: 'Zijn jullie al samen', actor: 'lieke', anim: 'point' },
+    { on: 'Wij wonen samen', dt: 1.5, actor: 'lieke', anim: 'talk' },
+    { on: 'Wij wonen samen', dt: 3.6, actor: 'trijntje', anim: 'point' },
+    { on: 'Ik zeg liever niks', actor: 'tammo', anim: 'shrug' },
+    { on: 'Dat zag ik al', actor: 'anneke', anim: 'nod' },
   ],
   shots: [],
   wide: WIDE([-3.9, 2.4, 2.8], [-2.4, 1.8, 2.2], 'mid:trijntje,mem@1'),

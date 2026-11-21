@@ -39,9 +39,9 @@ letter maakt hem stil. Nieuwe opnames komen er in rondes bij op Flash-Lite (ADR 
 
 ## Structuur
 
-- **Vijf akten** (`PARTS`, `game/js/storyarc_nieuw.js:147-215`): 1 Moi, Grunn (Stad,
+- **Vijf akten** (`PARTS`, `game/js/storyarc_nieuw.js:154-222`): 1 Moi, Grunn (Stad,
   vr 14 aug), 2 Het Noorden is groot, 3 Aan de Eems, 4 Zuidwaarts, 5 Ontzet (vr 28
-  aug), met **Deel 4: Nazomer** erna (`:202`), dat pas opent als de eindkaart van
+  aug), met **Deel 4: Nazomer** erna (`:209`), dat pas opent als de eindkaart van
   akte 5 is gespeeld (`game/js/story.js:181`).
 - **Stappen**: opening M00, 26 missies M01-M26, vier reisbeats T1-T4, twee stille
   tussenstappen A1-A2 (bietenoogst en kermisrit, #845) en epiloog E;
@@ -74,13 +74,13 @@ Vaste cast, stem uit `scripts/tts_cast.mjs` en `scripts/tts_lines_list.mjs`
 Geesje, Lammert, Roelfien, Wubbo, Tinus, mevrouw Hoving en Willemien zijn nieuw en
 hadden geen stem; Geesje, Rotor Roelf en de tien Tessa-regels zijn op 20-11 ingesproken. Wat buiten `script.json` nog geen stem heeft staat in `docs/verhaal/TTS-ACHTERSTAND-21-11.md`. **Geschrapt** zijn
 Femke, Harm, Hilly, Hilje en Boer Roelf (`docs/verhaal/nieuw/00-OVERZICHT.md:67`;
-`game/js/storyarc_nieuw.js:105-106`); Rotor Roelf blijft alleen een stem.
+`game/js/storyarc_nieuw.js:107-108`); Rotor Roelf blijft alleen een stem.
 
 - **Tessa spreekt standaard Nederlands** (#134), ook in de opname: geen Gronings
   accent of dialectspelling; een Gronings woord is een grap over haar
   (`docs/verhaal/STIJLGIDS.md:42-49`).
 - **Naamkaart** bij de eerste ontmoeting: de kaart staat in `CHARACTERS` (`card` en
-  `step`, `game/js/storyarc_nieuw.js:119-143`) en verschijnt alleen als een regel hem
+  `step`, `game/js/storyarc_nieuw.js:121-150`) en verschijnt alleen als een regel hem
   meegeeft met `card: '<key>'` (`game/js/missionstory.js:1119`,
   `game/js/storycontact.js:321`). De `Naamkaart:`-opdracht in het script is de regie,
   geen trigger (#475).
@@ -157,7 +157,7 @@ stille appjes; `scripts/calendar_test.mjs` de datums;
   Tessa's bestaande clips zijn ook nog Gronings.
 - **Nog open:** `docs/personages.md` gebruikt verderop nog de oude H-nummering voor
   verhaalstappen (H4, H10, H13, H16, H18). De vertaling is één tabel: `STEP_ALIAS`
-  (`game/js/storyarc_nieuw.js:112-116`) zegt H4 → M04, H10 → M24, H13 → M11, H16 → M21
+  (`game/js/storyarc_nieuw.js:114-118`) zegt H4 → M04, H10 → M24, H13 → M11, H16 → M21
   en H18 → M26. De kus is M16 (`docs/verhaal/nieuw/09-script-akte3.md:219`; canon
   `docs/verhaal/nieuw/03-akte3.md:141` noemt hem "was H11"), dus `docs/personages.md:275`
   zet de kus ten onrechte op H13; volgens de tabel hoort H13 bij M11, de kustmissie.

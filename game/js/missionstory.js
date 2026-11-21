@@ -92,6 +92,12 @@ export const NPC = {
   // Deel 4 (docs/verhaal/nieuw/DEEL4.md)
   willemien: { name: 'Willemien', shirt: 0x8a6f9a, skin: SKIN.woodLight, variant: 'female', seed: 6116, hairStyle: 'bun', look: { age: 'old' } },
   buurvrouw: { name: 'Buurvrouw', shirt: 0xc27a8a, skin: SKIN.woodMid, variant: 'female', seed: 6117, hairStyle: 'curly' },
+  // inspiratiepakket (21-11): de kleding-epic kleedt deze rollen
+  veldkamp: { name: 'Meneer Veldkamp', shirt: 0x6b6f55, skin: SKIN.woodLight, variant: 'male', seed: 6118, look: { age: 'old' } },
+  anneke: { name: 'Anneke', shirt: 0x6f8f5a, skin: SKIN.woodLight, variant: 'female', seed: 6119, hairStyle: 'bob' },
+  lieke: { name: 'Lieke', shirt: 0xe8c030, skin: SKIN.woodLight, variant: 'female', seed: 6120, hairStyle: 'curly', look: { age: 'child' } },
+  daan: { name: 'Daan', shirt: 0xb8b8d8, skin: SKIN.woodMid, variant: 'male', seed: 6121 },
+  stien: { name: 'Stien', shirt: 0xd8d4c8, skin: SKIN.woodLight, variant: 'female', seed: 6122, hairStyle: 'bun', look: { age: 'old' } },
 };
 
 // Display name for a story speaker key (T, A, V or an NPC key); missions.js

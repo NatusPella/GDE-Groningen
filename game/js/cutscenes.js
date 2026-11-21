@@ -410,6 +410,8 @@ const FLAT_VARIANTS = {
 };
 
 const WHO_ACTOR = { Tammo: 'tammo', Anita: 'tessa', Tessa: 'tessa' };
+// iemand die in persoon op bezoek komt (geen stem aan de telefoon): hij loopt binnen op de regel voor zijn eerste regel
+const FLAT_VISITORS = { 'Meneer Veldkamp': { id: 'veldkamp', look: 'veldkamp', from: [9, 0.2], to: [3.0, 0.2] } };
 
 export function flatScene(variant, lines) {
   const V = FLAT_VARIANTS[variant] || FLAT_VARIANTS.wachten;
@@ -420,6 +422,14 @@ export function flatScene(variant, lines) {
     tessa: { look: 'anita', at: sp.tessa[0], face: 160, anim: 'look', speaker: ['Anita', 'Tessa'], gaze: 'speaker' },
   };
   const cues = [], shots = [];
+  const visitors = {};
+  lines.forEach((l, i) => {
+    const v = FLAT_VISITORS[l.speaker];
+    if (!v || visitors[v.id]) return;
+    visitors[v.id] = i;
+    actors[v.id] = { look: v.look, at: v.from, face: 190, anim: 'idle', speaker: l.speaker, gaze: 'speaker' };
+    cues.push({ t: `L${Math.max(0, i - 1)}`, actor: v.id, walk: [v.to], speed: 1.6 });
+  });
   for (const o of V.open) cues.push({ t: 0, ...o });
   const at = { tammo: 0, tessa: 0 };
   const gi = { tammo: 0, tessa: 0 };
@@ -430,6 +440,11 @@ export function flatScene(variant, lines) {
       cues.push({ t, actor: me, anim: V.gestures[me][gi[me]++ % V.gestures[me].length] });
       cues.push({ t, actor: other, anim: i % 2 ? 'nod' : 'look' });
       cues.push({ t, actor: other, face: 'actor:' + me });
+    } else if (FLAT_VISITORS[l.speaker]) {
+      const vid = FLAT_VISITORS[l.speaker].id;
+      cues.push({ t, actor: vid, anim: 'talk' });
+      cues.push({ t, actor: 'tessa', face: 'actor:' + vid });
+      cues.push({ t, actor: 'tammo', face: 'actor:' + vid });
     } else if (l.speaker && l.speaker !== 'Rikus') {
       // a voice on the phone (Henk, Sjabbe, Bert, the Torenwachter): Tessa holds it, Tammo leans in to listen
       cues.push({ t, actor: 'tessa', anim: 'phone' });
@@ -450,7 +465,7 @@ export function flatScene(variant, lines) {
   lines.forEach((l, i) => {
     const t = `L${i}`;
     switch (i % 4) {
-      case 0: shots.push({ t, shot: 'cut', at: [-1.2, 0.2, 1.7], look: WHO_ACTOR[l.speaker] ? 'mid:tammo,tessa@1.2' : 'tessa@1.5', fov: WHO_ACTOR[l.speaker] ? 64 : 34 }); break;
+      case 0: shots.push({ t, shot: 'cut', at: [-1.2, 0.2, 1.7], look: WHO_ACTOR[l.speaker] ? 'mid:tammo,tessa@1.2' : FLAT_VISITORS[l.speaker] ? 'speaker' : 'tessa@1.5', fov: WHO_ACTOR[l.speaker] ? 64 : 34 }); break;
       case 1: shots.push({ t, shot: 'dolly', from: [3.3, -0.4, 1.5], to: [2.6, -0.3, 1.5], look: 'speaker', fov: 32 }); break;
       case 2: shots.push({ t, shot: 'orbit', target: 'mid:tammo,tessa@1.2', radius: 4.2, start: 250, sweep: -40, h0: 1.5, h1: 1.9, look: 'speaker', fov: 40 }); break;
       default: shots.push({ t, shot: 'cut', at: [-1.4, 1.8, 1.45], look: 'speaker', fov: 30 });

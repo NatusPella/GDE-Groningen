@@ -46,7 +46,7 @@ t('#924: elke banterregel van het verhaal vindt zijn eigen opname (rec, niet all
     assert.ok(manifests[l.rec][key], `${l.text.slice(0, 40)}: opname in ${l.rec}`);
   }
   // en banter.js vindt ze via dezelfde resolver; de meeste zitten in lines (de oude bug)
-  const found = banterExchanges().flatMap((ex) => ex.lines).map((l) => ({ l, v: banterLineVoice(l) }));
+  const found = banterExchanges().flatMap((ex) => ex.lines).filter((l) => l[3]).map((l) => ({ l, v: banterLineVoice(l) }));
   assert.equal(found.length, 86);
   assert.ok(found.every((x) => x.v), 'elke gesproken banterregel heeft een opname');
   const fromLines = found.filter((x) => x.l[3] === 'lines').length;

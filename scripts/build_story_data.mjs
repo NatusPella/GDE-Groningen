@@ -63,6 +63,12 @@ export const SPEAKER_TABLE = {
   DEURWAARDER: sp('deurwaarder', 'Deurwaarder'),
   STUDENT: sp('student', 'Student'),
   BOER: sp('boer', 'Boer'),
+  // inspiratiepakket (21-11, VERHAAL-INSPIRATIEPLAN-21-11.md): nieuwe stemmen, nog geen opnames
+  VELDKAMP: sp('veldkamp', 'Meneer Veldkamp'),
+  ANNEKE: sp('anneke', 'Anneke'),
+  LIEKE: sp('lieke', 'Lieke'),
+  DAAN: sp('daan', 'Daan'),
+  STIEN: sp('stien', 'Stien'),
   // Deel 4 (09-script-akte6.md): no recordings
   WILLEMIEN: sp('willemien', 'Willemien'),
   BUURVROUW: sp('buurvrouw', 'Buurvrouw'),

@@ -100,6 +100,8 @@ export const SPEAKERS = {
   buschauffeur: 'Buschauffeur', kustwachter: 'Kustwachter', kermisexploitant: 'Kermisexploitant', deurwaarder: 'Deurwaarder',
   student: 'Student', boer: 'Boer', kind: 'Kind in het publiek',
   willemien: 'Willemien', buurvrouw: 'Buurvrouw',
+  // inspiratiepakket (21-11)
+  veldkamp: 'Meneer Veldkamp', anneke: 'Anneke', lieke: 'Lieke', daan: 'Daan', stien: 'Stien',
 };
 // Boer Roelf and Hilje are gone in this story
 delete SPEAKERS.roelf;
@@ -139,6 +141,11 @@ export const CHARACTERS = {
   roelfien: { name: 'Roelfien', card: 'Graanboerin. Vliegt laag.', step: 'M15', bio: 'Graanboerin en vlieger in het Oldambt, Oma\'s oudste klant. Vrolijk en praktisch.', quote: 'Vlieg laag, houd de molen rechts en trek de neus pas omhoog na de kermis.' },
   wubbo: { name: 'Wubbo', card: 'Brugwachter. Elf bruggen, één ritme.', step: 'M17', bio: 'Brugwachter in Veendam. Rustig, praktisch, en gek op de fanfare.', quote: 'Mis je de maat, dan wacht je.' },
   willemien: { name: 'Willemien', card: 'Familie van Oma Trijntje. Woont in een huis dat blijft staan.', step: 'M27', bio: 'Oma Trijntjes familie in Loppersum. Nuchter, droog, niet heldhaftig en niet boos: ze wacht, ze pakt in en ze komt terug.', quote: 'Het is een huis. Het moet alleen even blijven staan.' },
+  veldkamp: { name: 'Meneer Veldkamp', card: 'Buurman op elf negen. Zijn duiven kiezen zelf.', step: 'M00', bio: 'Oude buurman in Paddepoel met een duiventil op de galerij. Zegt weinig en ziet veel. Zijn duiven vliegen naar Tammo toe en niet naar hem; hij vraagt er nooit naar.', quote: 'Mijn duiven doen dat bij niemand.' },
+  daan: { name: 'Daan', card: 'Kermiszanger. Heeft een lied over alles.', step: 'M15', bio: 'Zanger en barman op de kermis in Winschoten, charmant en een tikje te zeker van zichzelf. Zijn glimmende jasje houdt niet van duiven.', quote: 'Eén couplet. Over een meisje met een spandoek.' },
+  stien: { name: 'Stien', card: 'Frituurhoudster onder brug elf. Veertig jaar vet.', step: 'M17', bio: 'Zeventig, staat al veertig jaar met haar frituurwagen onder brug elf in Veendam. Kortaf, warm, en leert Tessa het vak.', quote: 'Eerst het vet warm, dan de mensen.' },
+  anneke: { name: 'Anneke', card: 'Tessa\'s moeder. Komt met een mand eieren.', step: 'M25', bio: 'Tessa\'s moeder, van het platteland, praktisch en direct. Haar man had kippen; zij komt onaangekondigd en neemt altijd eieren mee.', quote: 'Jij belt nooit. Dan komen wij.' },
+  lieke: { name: 'Lieke', card: 'Tessa\'s nichtje, tien. Ziet alles.', step: 'M25', bio: 'Tien jaar, in een gele regenjas, Tessa\'s nichtje. Ze heeft het al lang door en zegt het hardop.', quote: 'Jullie zijn al samen.' },
   tinus: { name: 'Tinus', card: 'Trekkertrekker. De modder pakt eerst je auto.', step: 'T4', bio: 'Trekkertrekker en re-enactor uit het Westerkwartier. Joviaal, met een schuur en een trekker.', quote: 'De modder pakt eerst je auto. Je plannen komen daarna.' },
 };
 
@@ -146,28 +153,28 @@ export const CHARACTERS = {
 // title/name/date as the first version's PARTS had them; `card` is the "volgt" card where the built story stops.
 export const PARTS = {
   kop: { title: 'Akte 1: Moi, Grunn', name: 'Moi, Grunn', date: '14 augustus', open: true, end: 'Einde van akte 1',
-    card: [['Tessa', 'Dat was akte 1.'], ['Tammo', 'Er komt meer.']] },
+    card: [['Tessa', 'Dat was akte 1.'], ['Tammo', 'Er komt meer.'], ['Meneer Veldkamp', 'Er zat vanavond een duif op de reling van elf negen. Hij keek omhoog. Ik heb het hok open gelaten.']] },
   romp: { title: 'Akte 2: Het Noorden is groot', name: 'Het Noorden is groot', date: '18 augustus', open: true, end: 'Einde van akte 2', textOnly: true,
     recap: [
       ['studio', 'Er is iets gestolen dat niemand ooit zag, maar dat iedereen mist.'],
       ['Groninger Museum', 'De vitrine was leeg. Op het kussen: "Tige tank! – J."'],
       ['Grote Markt', 'Eerder in GDE. Een Fries in een blauw colbert koopt Grunn op, plakje voor plakje. Het eerste plakje is al van hem.'],
     ],
-    card: [['Tessa', 'Dat was akte 2. De Eemshaven is van Jelle, zegt hij.'], ['Tammo', 'Akte 3 volgt: aan de Eems.']] },
+    card: [['Tessa', 'Dat was akte 2. De Eemshaven is van Jelle, zegt hij.'], ['Tammo', 'Akte 3 volgt: aan de Eems.'], ['Oma Trijntje', 'Eet je krentjebrij, jong. Ook in akte drie.']] },
   staart: { title: 'Akte 3: Aan de Eems', name: 'Aan de Eems', date: '21 augustus', open: true, end: 'Akte 3 volgt', textOnly: true,
     recap: [
       ['Noorderhaven', 'Eerder in GDE. Oma Trijntje bakt het recept van 1953 na, met vijf ingrediënten en vijf vrienden: vet, eieren, zout, meel en mosterd.'],
       ['Hogeland', 'De eieren en het zout zijn gered. Jelle heeft de bal in een koffer, en Mem appt Tessa in het geheim.'],
       ['Eemshaven', 'Aan de Eems. Jelle vliegt met zijn koopboek in een ballon, en zijn voorraad vaart weg met een schip.'],
     ],
-    card: [['Tessa', 'Akte 3 volgt.'], ['Tammo', 'Aan de Eems.']] },
+    card: [['Tessa', 'Akte 3 volgt.'], ['Tammo', 'Aan de Eems.'], ['Roelfien', 'Vlieg laag en houd de molen rechts. De rest komt vanzelf.']] },
   zuid: { title: 'Akte 4: Zuidwaarts', name: 'Zuidwaarts', date: '24 augustus', open: true, end: 'Einde van akte 4', textOnly: true,
     recap: [
       ['Oldambt', 'Eerder in GDE. Jelle probeert de jury, de haven en het graan te kopen. Plakje voor plakje.'],
       ['Kermis', 'Een dijk, een kus, en daarna zei niemand er iets over.'],
       ['Veenkoloniën', 'Zuidwaarts. Elf bruggen, een logboek en een trein die stilstaat.'],
     ],
-    card: [['Tessa', 'Dat was akte 4.'], ['Tammo', 'Daarna komt de schuur.']] },
+    card: [['Tessa', 'Dat was akte 4.'], ['Tammo', 'Daarna komt de schuur.'], ['Meneer Veldkamp', 'Drie duiven zitten al dagen op de reling. Ze wachten op iemand. Ik weet op wie.']] },
   // the finale card: the epilogue (E1, vrijdag 11 september) and Rikus in the studio (E2, E3); the text of the script, kept in sync by scripts/akte5_test.mjs
   ontzet: { title: 'Akte 5: Ontzet', name: 'Ontzet', date: '26 augustus', open: true, end: 'Einde', finale: true, textOnly: true,
     recap: [
@@ -293,7 +300,7 @@ export const STEPS = [
     lead: ['A', 'Geesje woont in de pastorie in Warffum en heeft de laatste eieren van het Hogeland. Eieren ken ik van thuis: jij rijdt, ik zeg hoe.'] }),
   M('M10', 'romp', 'Een trekker-limo op de wierde', 'wierde', { built: true, reward: 900, unlocks: 'jelle', loopbanen: ['landbouw'],
     // the sloot scene (M10.3) is a stage of the mission itself; the talk in the car after it (M10.4) is a banter exchange
-    story: { intro: ['M10.1'], outro: null }, scenes: ['M10.1', 'M10.2', 'M10.3', 'M10.4'],
+    story: { intro: ['M10.1'], outro: null }, scenes: ['M10.1', 'M10.2', 'M10.3', 'M10.4', 'M10.5'],
     lead: ['T', 'Een zwarte trekker met vlaggetjes rijdt het erf van de kerk op. Dat is Jelle.'] }),
   // #845: a between-step (the alternation mission <-> side activity): one round of the Landbouw side job before
   // the story goes on; silent, so no TTS, and the existing skip offers to pass it.
@@ -324,7 +331,7 @@ export const STEPS = [
   A('T3', 'staart', 'De trein naar Winschoten', { type: 'reis', to: 'Winschoten', at: [53.1444, 7.0356], r: 400, scene: 'T3', from: 4 }, { built: true, scenes: ['T3'],
     lead: ['A', 'Van Delfzijl met de trein naar Winschoten. Jelle geeft de juryleden daar op de kermis een proeverij.'] }),
   M('M15', 'staart', 'Laag over het graan', 'graan', { built: true, reward: 900,
-    story: { intro: ['M15.1'], outro: ['M15.3', 'M15.5'], replay: ['M15.4'] }, scenes: ['M15.1', 'M15.2', 'M15.3', 'M15.5', 'M15.4'],
+    story: { intro: ['M15.1'], outro: ['M15.3', 'M15.5', 'M15.6'], replay: ['M15.4'] }, scenes: ['M15.1', 'M15.2', 'M15.3', 'M15.5', 'M15.6', 'M15.4'],
     lead: ['A', 'Roelfien wacht bij haar graanveld bij Midwolda. Haar vliegtuig sleept al twintig jaar een spandoek voor de kermis.'] }),
   M('M16', 'staart', 'Nog eentje dan', 'kroegentocht', { built: true, reward: 600, loopbanen: ['kermis'],
     story: { intro: ['M16.1'], outro: ['M16.3', 'M16.4', 'M16.5', 'M16.6'], replay: ['M16.7'] }, scenes: ['M16.1', 'M16.2', 'M16.3', 'M16.4', 'M16.5', 'M16.6', 'M16.7'],
@@ -335,7 +342,7 @@ export const STEPS = [
 
   // --- Akte 4: Zuidwaarts (Veenkoloniën en Westerwolde, zo 23 - wo 26 augustus) ----------
   M('M17', 'zuid', 'Open, dicht', 'bruggen', { built: true, reward: 700,
-    story: { intro: ['M17.1'], outro: ['M17.3'], replay: ['M17.4'] }, scenes: ['M17.1', 'M17.2', 'M17.3', 'M17.4'],
+    story: { intro: ['M17.1'], outro: ['M17.3', 'M17.5'], replay: ['M17.4'] }, scenes: ['M17.1', 'M17.2', 'M17.3', 'M17.5', 'M17.4'],
     lead: ['A', 'Eerst de mosterd. Wubbo bedient elf bruggen in Veendam: vaar voor Jelles mosterdschip uit, dan sluit hij de bruggen achter je.'] }),
   M('M18', 'zuid', 'Wie draaide de camera\'s uit?', 'wiebelwerk', { built: true, reward: 600,
     story: { intro: ['M18.1'], outro: ['M18.4'], replay: ['M18.5'] }, scenes: ['M18.1', 'M18.2', 'M18.6', 'M18.7', 'M18.3', 'M18.4', 'M18.5'],
@@ -364,7 +371,7 @@ export const STEPS = [
     story: { intro: ['M24.1'], outro: null, replay: ['M24.4'] }, scenes: ['M24.1', 'M24.2', 'M24.3', 'M24.4'],
     lead: ['T', 'Bert zit op de Grote Markt. Jelles Friese vlag hangt boven de plek van de Fjord Frituur: laat Berts duif de vijf touwen doorpikken.'] }),
   M('M25', 'ontzet', 'Het bod viel tegen', 'bod', { built: true, reward: 600,
-    story: { intro: ['M25.1'], outro: ['M25.4'], replay: ['M25.5'] }, scenes: ['M25.1', 'M25.2', 'M25.3', 'M25.4', 'M25.5'],
+    story: { intro: ['M25.1'], outro: ['M25.4', 'M25.6'], replay: ['M25.5'] }, scenes: ['M25.1', 'M25.2', 'M25.3', 'M25.4', 'M25.6', 'M25.5'],
     lead: ['A', "Oma's keuken aan de Noorderhaven. Bak vannacht een proefronde eierballen met alle vijf de ingrediënten: morgen is het Ontzet."] }),
   M('M26', 'ontzet', 'Ontzet, net als in 1672', 'ontzet', { built: true, reward: 4000,
     story: { intro: ['M26.1', 'M26.2'], outro: ['M26.7', 'M26.17', 'M26.8'], replay: ['M26.9'] }, scenes: ['M26.1', 'M26.2', 'M26.3', 'M26.14', 'M26.15', 'M26.16', 'M26.4', 'M26.5', 'M26.6', 'M26.10', 'M26.11', 'M26.12', 'M26.13', 'M26.7', 'M26.17', 'M26.8', 'M26.9'],
