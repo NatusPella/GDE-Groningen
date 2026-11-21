@@ -2793,7 +2793,7 @@ const LEGEND = [
     { kind: 'garage', label: 'Garage en pomp', note: 'repareren, spuiten, opvoeren, wrakken', layers: ['garage'] },
     { kind: 'hospital', label: 'Ziekenhuis en huisarts', layers: ['zorg'] },
     { kind: 'politiebureau', label: 'Politiebureau', layers: ['politiebureau'] },
-    { kind: 'police', label: 'Politie-eenheid', note: 'de ring om het schild is de warmte: rood = je bent gezocht, feller = heter; stippen = meer eenheden' },
+    { kind: 'police', label: 'Politie-eenheid', note: 'de dichtstbijzijnde eenheden in beeld; de sterren staan rechtsboven, en de rand van de kaart pulseert rood en blauw tijdens een achtervolging' },
     { kind: 'horeca', label: 'Horeca', layers: ['horeca'] },
     { kind: 'shop-kleding', label: 'Winkels', note: 'kleding, kapper, loten, krant, super, snacks', layers: ['shops'] },
     { kind: 'shop-fietsen', label: 'Voertuigwinkels', note: 'fietsen, auto\'s, tuning, boten, heli\'s', layers: ['shopsVoertuigen'] },

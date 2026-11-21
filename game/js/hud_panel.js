@@ -1,7 +1,7 @@
 import { glyphHtml } from './keycap.js';
 import { probe } from './hitchprobe.js';
 import { iconInner, icoon } from './icons.js';
-import { wantedPhase } from './wantedstate.js';
+import { wantedPhase, wantedStatus, wantedAnnounce } from './wantedstate.js';
 import { levelOf, zoekBalkVulling } from './wantedlevels.js';
 import { telStap, bewegingUit, MI } from './microinteractions.js';
 import { tikGetal } from './dsmicro.js'; // DS3: het geldgetal tikt even bij geld binnen (ds-micro.css, .ds-m-tik)
@@ -62,7 +62,6 @@ import { perceelMapSpots, drawPerceelMapIcon } from './perceelmap.js';
 import { singleEntryCache } from './hudcache.js';
 import { minimapMoved, minimapRedrawDue } from './minimapcadence.js';
 import { locatieLift, locatieHysterese, locatieVerschuiving, LOCATIE_GAP } from './hudlinks.js'; // #1079: de locatiekaart staat onderin en gaat alleen omhoog voor wat eronder komt
-import { policeBadge, heatTooltip, heatChip, HEAT_RING } from './minimapheat.js'; // #952: warmte bij de politie als ring, plus een chip met icoon en getal
 import { VILLAGES } from './ommelandlines.js';
 import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, getCareRoute, formatDistance } from './routing.js';
 import { getClockText } from './clocktext.js';
@@ -184,8 +183,7 @@ export function initHud(world) {
   topRight.className = 'hud-top-right';
   topRight.innerHTML =
     '<div class="hud-clock" role="timer" aria-label="Tijd in het spel"><span class="hud-special" hidden></span><span class="hud-date"></span><b class="hud-time"></b></div>' +
-    '<div class="hud-wanted" role="img"></div>' +
-    '<div class="hud-search" hidden><span>Uit zicht</span><i role="img" aria-label="Zoekgebied"><i></i></i></div>' +
+    '<div class="hud-wanted" role="img" hidden><div class="hw-sterren"></div><div class="hw-status"><b class="hw-tekst"></b><div class="hud-search" hidden><i role="img" aria-label="Zoekgebied"><i></i></i></div></div></div>' +
     '<div class="hud-moneyrow"><span class="hud-money-delta"></span><span class="hud-money ds-m-tik"></span></div>' +
     '<div class="hud-weapon"></div>';
   root.appendChild(topRight);
@@ -261,14 +259,6 @@ export function initHud(world) {
   mmWrap.className = 'hud-minimap-wrap';
   const mmCanvas = document.createElement('canvas');
   mmWrap.appendChild(mmCanvas);
-  // #952: icoon plus getal bij de politie (schild = eenheden in beeld, ster = gezochtniveau van 5); verborgen zonder politie
-  const mmHeat = document.createElement('div');
-  mmHeat.className = 'hud-mm-heat';
-  mmHeat.hidden = true;
-  mmHeat.setAttribute('role', 'img');
-  mmHeat.innerHTML = `<span class="mmh-eenh">${icoon('schild')}<b class="mmh-n"></b></span>`
-    + `<span class="mmh-ster">${STAR}<b class="mmh-w"></b></span>`;
-  mmWrap.appendChild(mmHeat);
   root.appendChild(mmWrap);
   // #993: de buurtnaam als inktlabel onder de minimap; de rasterpatroon-defs is voor de lege wantedster
   const defsWrap = document.createElement('div');
@@ -335,6 +325,8 @@ export function initHud(world) {
     mute: topLeft.querySelector('.hud-mute'),
     topRight,
     wanted: topRight.querySelector('.hud-wanted'),
+    wantedStars: topRight.querySelector('.hw-sterren'),
+    wantedText: topRight.querySelector('.hw-tekst'),
     search: topRight.querySelector('.hud-search'),
     searchBar: topRight.querySelector('.hud-search i i'),
     clock: topRight.querySelector('.hud-clock'),
@@ -386,11 +378,6 @@ export function initHud(world) {
     npTitle: nowPlaying.querySelector('.np-title'),
     npShown: null,
     mmWrap,
-    mmHeat,
-    mmHeatN: mmHeat.querySelector('.mmh-n'),
-    mmHeatW: mmHeat.querySelector('.mmh-w'),
-    mmHeatEenh: mmHeat.querySelector('.mmh-eenh'),
-    mmHeatSter: mmHeat.querySelector('.mmh-ster'),
     mmCanvas,
     mmCtx: mmCanvas.getContext('2d'),
     vis: {},
@@ -866,7 +853,7 @@ function updateVisibility(dt, world) {
     banner: isBannerUp(),
     busy, dialogue,
     idle: now - S.lastInput,
-    wanted: world.wanted, wantedAgo: S.wantedOff === Infinity ? 0 : now - S.wantedOff,
+    wanted: world.wanted,
     moneyAgo: now - S.moneyAt, moneySign: S.moneySign, nearShop: S.nearShop, moneyHeld: S.moneyHeld != null,
     armed: !!world.weapon && world.weapon !== 'fists', fighting: now - S.fightAt < 5, weaponAgo: now - S.weaponAt,
     hpFull: hp >= 99.5 && !(world.armor > 0 && world.armor < 100), hpAgo: now - S.hpAt, hpLow: hp < 30,
@@ -1264,11 +1251,14 @@ function updateWanted(world) {
   els.search.hidden = !(searching && world.wanted > 0);
   const key = ster + (searching ? 's' : '');
   els.mmWrap.classList.toggle('wanted', ster > 0);
+  els.mmWrap.classList.toggle('chase', ster > 0 && !searching); // #1080: de rand pulseert rustig, alleen tijdens de achtervolging
   if (key === wantedKey) return;
   wantedKey = key;
   const wasSter = wantedShown;
-  if (!els.wanted.children.length) els.wanted.innerHTML = STAR.repeat(5);
-  const stars = [...els.wanted.children];
+  if (!els.wantedStars.children.length) els.wantedStars.innerHTML = STAR.repeat(5);
+  const stars = [...els.wantedStars.children];
+  els.wanted.hidden = ster === 0; // #1080: geen lege sterrenrij bij 0; de kaart is er alleen als je gezocht wordt
+  els.wantedText.textContent = wantedStatus(ster, phase);
   stars.forEach((st, i) => st.classList.toggle('on', i < ster));
   // misdruk alleen bij verandering: de klasse gaat na 1,4 s weer weg (#993)
   els.wanted.classList.add('changed');
@@ -1278,10 +1268,10 @@ function updateWanted(world) {
   for (let i = wantedShown; i < ster; i++) pop(stars[i]);
   wantedShown = ster;
   // #802: een nieuwe ster of het einde van de achtervolging een keer benoemen
-  if (ster !== wasSter) announce(ster === 0 ? 'Je bent niet meer gezocht' : `Politie: ${ster} van 5 sterren${searching ? ', ze zoeken je' : ', achtervolging'}`);
+  if (ster !== wasSter) announce(wantedAnnounce(ster, phase));
   els.wanted.classList.toggle('searching', searching && ster > 0);
   els.wanted.classList.toggle('chase', ster > 0 && !searching);
-  els.wanted.setAttribute('aria-label', `Gezocht: ${ster} van 5, ${wantedPhase(world) === 'zoeken' ? 'politie zoekt je' : 'achtervolging'}`);
+  els.wanted.setAttribute('aria-label', wantedAnnounce(ster, phase));
 }
 
 
@@ -2844,7 +2834,8 @@ function drawVillageNames(ctx, player, radius, toScreen) {
 }
 
 // De cadans (#804: dure kaart 20 fps, lichte 30 fps, stilstaand rustig) staat in minimapcadence.js.
-let mmLastAt = 0, mmCostMs = 0, mmPrev = null, mmSettling = true, mmHeatTip = '';
+const MAX_POLITIE_ICONEN = 3;
+let mmLastAt = 0, mmCostMs = 0, mmPrev = null, mmSettling = true;
 
 function drawMinimap(dt, world) {
   syncMapPhase(world);
@@ -3100,64 +3091,12 @@ function drawMinimap(dt, world) {
   // roepjes van de medespelers (samen spelen, #367): een ster of kruis in de kleur van wie riep
   for (const m of world.coopPingMarks || []) if (!icon('partner', m.x, m.y, { kleur: m.kleur, vorm: m.vorm, angle: 0 })) partnerEdges.push({ a: edgeAngle(m.x, m.y), kleur: m.kleur });
 
-  // #638: bij vijf sterren stonden er tien schilden over de straten. De politie is nu één badge.
-  // #952: het aantal eenheden stond als kaal cijfer naast het schild en werd als heat gelezen.
-  // Nu toont een ring om het schild de warmte (één segment per ster) en kleine stippen de
-  // extra eenheden; de cijfers zijn weg. Review 0.63: de ring hoort er ook bij precies één
-  // eenheid, want de warmte geldt dan net zo goed.
+  // #638: bij vijf sterren stonden er tien schilden over de straten, dus hoogstens de MAX_POLITIE_ICONEN dichtstbijzijnde.
+  // #1080: geen ring, stippen of chip meer: de sterren staan op één plek (rechtsboven); de minimap toont alleen waar de politie staat.
   const polities = [];
-  forEachPoliceUnit(world, (x, y, kind) => polities.push({ x, y, kind }));
-  const heatSter = Math.max(world.wanted | 0, world.coopHudWanted | 0);
-  const badge = policeBadge(polities.length, heatSter, { searching: !!(world.police && world.police.searching), time: t });
-  // de legenda bij de ring: tooltip en schermlezer van de minimap, alleen bijgewerkt als de tekst verandert
-  const heatTip = heatTooltip(heatSter, polities.length, { searching: !!(world.police && world.police.searching) });
-  if (heatTip !== mmHeatTip) {
-    mmHeatTip = heatTip;
-    if (heatTip) { els.mmWrap.title = heatTip; els.mmWrap.setAttribute('aria-label', heatTip); }
-    else { els.mmWrap.removeAttribute('title'); els.mmWrap.removeAttribute('aria-label'); }
-    const chip = heatChip(heatSter, polities.length, { searching: !!(world.police && world.police.searching) });
-    els.mmHeat.hidden = !chip;
-    if (chip) {
-      // elk deel schuift met een korte breedte-overgang in en uit (CSS .weg), de tekst blijft staan tijdens het uitschuiven
-      if (chip.toonEenheden) els.mmHeatN.textContent = chip.eenhedenTekst;
-      if (chip.toonSter) els.mmHeatW.textContent = chip.sterTekst;
-      els.mmHeatEenh.classList.toggle('weg', !chip.toonEenheden);
-      els.mmHeatSter.classList.toggle('weg', !chip.toonSter);
-      els.mmHeat.classList.toggle('warm', chip.sterren > 0);
-      els.mmHeat.title = chip.uitleg;
-      els.mmHeat.setAttribute('aria-label', chip.uitleg);
-    }
-  }
-  if (badge) {
-    let best = polities[0];
-    if (polities.length > 1) {
-      let bestD = Infinity;
-      for (const q of polities) { const d = (q.x - player.x) ** 2 + (q.y - player.y) ** 2; if (d < bestD) { bestD = d; best = q; } }
-    }
-    // bij één eenheid houdt het schild zijn eigen soort (voet, motor, paard); bij meer is het één badge
-    if (icon(polities.length === 1 ? best.kind : 'police', best.x, best.y)) {
-      const [sx, sy] = toScreen(best.x, best.y);
-      ctx.save();
-      ctx.lineCap = 'round';
-      ctx.lineWidth = HEAT_RING.breed;
-      for (const s of badge.ring.segmenten) {
-        ctx.globalAlpha = s.aan ? Math.min(1, badge.ring.alpha + 0.3) : Math.min(0.5, badge.ring.alpha * 0.7);
-        ctx.strokeStyle = s.aan ? C.red : C.policeBlue;
-        ctx.beginPath();
-        ctx.arc(sx, sy, HEAT_RING.r, s.van, s.tot);
-        ctx.stroke();
-      }
-      // de eenheden zelf: stippen in plaats van een getal
-      ctx.globalAlpha = 1;
-      for (let i = 0; i < badge.dots; i++) {
-        const dx = sx + 7.2, dy = sy - 8.4 + i * 3.2;
-        ctx.beginPath(); ctx.arc(dx, dy, 1.35, 0, Math.PI * 2);
-        ctx.fillStyle = INK.cream; ctx.fill();
-        ctx.lineWidth = 1; ctx.strokeStyle = inkA('dark', 0.9); ctx.stroke();
-      }
-      ctx.restore();
-    }
-  }
+  forEachPoliceUnit(world, (x, y, kind) => polities.push({ x, y, kind, d: (x - player.x) ** 2 + (y - player.y) ** 2 }));
+  if (polities.length > 1) polities.sort((a, b) => a.d - b.d);
+  for (let i = 0; i < polities.length && i < MAX_POLITIE_ICONEN; i++) icon(polities[i].kind, polities[i].x, polities[i].y);
   let cashN = 0;
   forEachCashTarget(world, (x, y) => { if (cashN < 3 && icon('cash', x, y)) cashN++; });
 

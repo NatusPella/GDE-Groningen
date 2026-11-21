@@ -48,7 +48,6 @@ export const HUD_MODES = ['slim', 'alles', 'minimaal'];
 // card categories on the P scale and their zones: the table is in hudbus.js
 
 // #995: wat bij behoefte verschijnt, blijft 4 s staan na de laatste verandering
-export const STAR_AFTERGLOW = 4;
 export const MONEY_SHOW = 4;
 export const BAR_SHOW = 4;
 export const WEAPON_SHOW = 4;
@@ -217,7 +216,8 @@ export function decideHud(s = {}) {
   show.gps = !!s.gps;
   // the place name: only when B has nothing else, never under a mission timer, not while busy
   show.place = !!s.place && !show.timer && !show.gps && !busy;
-  show.stars = all || wanted || (s.wantedAgo ?? Infinity) < STAR_AFTERGLOW;
+  // #1080: één wanted-weergave; de sterren staan er alleen bij 1 ster of meer, ook in Alles (geen lege rij bij 0)
+  show.stars = wanted;
   const moneyRecent = (s.moneyAgo ?? Infinity) < MONEY_SHOW;
   // money coming in is P3: it waits out a busy moment (the caller holds it)
   show.money = all || ((moneyRecent || !!s.nearShop) && !busy && !s.moneyHeld);
