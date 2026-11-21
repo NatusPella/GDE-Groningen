@@ -44,7 +44,12 @@ const uniforms = {
   uRoomDepth: { value: 1.0 },
 };
 
-export const glassMaterial = vcMaterial({ roughness: 0.24, metalness: 0.1 });
+// Het glas ligt 1 tot 1,5 cm voor de kozijnplaat erachter (models3d_buildings.js addWindow, shopUV). De kozijnplaat heeft
+// polygonOffset -1/-2 (detailMaterial) en trok daardoor het glas weg zodra de dieptestap boven ~5 mm kwam: bij near 0,08 m
+// (eerste persoon, cameranear.js) is dat al op ~80 m, bij 0,5 m pas op ~200 m. Het glas krijgt daarom een sterkere offset
+// dan het kozijn (-1/-3): het wint van de plaat op elke afstand. Dezelfde programmasleutel (offset is toestand, geen shader).
+export const GLASS_OFFSET = { factor: -1, units: -3 };
+export const glassMaterial = vcMaterial({ roughness: 0.24, metalness: 0.1, polygonOffset: true, polygonOffsetFactor: GLASS_OFFSET.factor, polygonOffsetUnits: GLASS_OFFSET.units });
 
 let interiorOn = true;
 onSettingsChange((st) => {
