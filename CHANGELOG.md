@@ -12,6 +12,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 (De coördinator voegt deze regels bij 0.65.0.)
 
 - **Bezit (epic #1095), in opbouw:** bij het bouwen van de wereld komen er twee kleine indexbestanden met de koopbare percelen (13.664, met een stabiel ID, toegangsklasse en soort) en de bedrijfspanden; het spel laadt ze pas als je iets met Bezit doet.
+- **Bezit, tak Percelen (#1101), in opbouw:** een gekocht perceel werkt als veld van je boerderij, en een grote akker vraagt meer rondes in plaats van meer opbrengst per ronde.
+- Landarbeiders en voormannen werken je percelen af voor een loon per speldag (80 tot 90% van de opbrengst van handwerk); verpachten levert 0,9% van de koopprijs per speldag; hoe meer je beheert, hoe minder elk extra perceel oplevert.
+- Vee op je weide (melkvee, schapen, kippen), boomgaardfruit als gewas, een beheerscherm-model met sorteren, filteren en bulkacties, en korte boerenregels van Tessa.
 - De uitleg bij de cheats toont {ENTER} als toetsplaatje in plaats van een tekstkeycap, en de startkaarten van de activiteiten tonen de spatie als toetsplaatje.
 - Het schildje van de eenheden bij de politiechip op de minikaart is een Phosphor-icoon; sessiecodes en het nieuws op het startscherm gebruiken één vast lettertype voor codes.
 - Boten van het omgevingsverkeer: de kanaalscan kan op verzoek eerst af zijn voor er een plek gekozen wordt (alleen voor tests en audits; in het spel blijft het tijdbudget van 3 ms), zodat dezelfde seed altijd dezelfde plekken geeft. De test van de bootplekken is stabiel (20 van 20 keer groen).

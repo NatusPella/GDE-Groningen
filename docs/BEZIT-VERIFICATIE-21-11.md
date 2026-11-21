@@ -23,3 +23,20 @@ legacy, herkoppelen met terugbetaling), `game/js/bezitprijs.js` (prijs, bodem, s
 (23 controles, met de echte index: mediaan en aandeel goedkope percelen, naamuniciteit).
 
 In beeld te controleren: nog niets zichtbaar; de opslag wordt pas gebruikt door #1098 en #1099.
+
+## #1101 Tak Percelen: de pure logica
+
+Gebouwd (alles puur en getest, geen UI en geen 3D): `game/js/parcelfarm.js` (de brug: een gekocht perceel uit de index werkt als veld via een register in
+`percelen.js`; werkeenheid sqrt(ha/1,2) tot x3; werken op een willekeurig perceel), `game/js/farmstaff.js` (landarbeider, voorman, loon, dagtik van het personeel,
+pacht, afnemende beheeropbrengst, werkactoropdrachten voor hoogstens 4 werkers), `game/js/livestock.js` (melkvee, schapen, kippen), `game/js/tessarules.js` (regels
+voor Tessa, alleen tekst), `game/js/holdingsmodel.js` (lijst, sorteren, filteren, selectie, bulkacties, teeltplan per streek, aandachtspunten, dagverwerking) en
+boomgaardfruit in `boerderij.js`. Tests: `parcelfarm_test` (11), `farmstaff_test` (17), `livestock_test` (10), `tessarules_test` (7), `holdingsmodel_test` (14).
+Gemeten: duizend percelen, elke berekening van het beheerscherm onder 20 ms.
+
+In beeld te controleren (nog niets gezien, de UI en de 3D horen bij de bouwer):
+- Een gekocht perceel verschijnt als veld op de kaart en in het boerderijmenu met naam, soort en bodem; ploegen, zaaien en oogsten werken erop.
+- De opbrengst per werkronde is bij grote percelen niet meer onevenredig hoog (de rijlengte schaalt mee; de rijen in de wereld moeten `rowLayout(ha)` volgen).
+- Een landarbeider rijdt zichtbaar de rijen (hoogstens vier tegelijk, binnen 230 m) en het veld verandert per cel; buiten beeld verandert alleen het cijfer.
+- Het vee in beeld is hoogstens twaalf dieren per perceel; ziekte, voer en opbrengst staan in het beheerscherm.
+- Boomgaardfruit heeft nog geen 3D-vorm, afnemerplek of kleur in de wereld (`boerderijwereld.js`, `farmcrops3d.js`, `werktuigen3d.js`).
+- Balans: een arbeider levert netto ongeveer 43 euro per ha per speldag bij 10 percelen in Oldambt (de pacht 21); te tunen in werkpakket 10.
