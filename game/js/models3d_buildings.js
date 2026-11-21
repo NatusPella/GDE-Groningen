@@ -10,6 +10,7 @@ import { pointInPolygon, segDist as segDistXY, WATER_Y } from './util.js';
 import { passagesOf, doorsOf } from './passages.js';
 import { applyPortalCut, buildPassageTunnels } from './portalcut3d.js';
 import { buildMuseumInterior } from './museum3d.js';
+import { registerMemSource } from './memwatch.js';
 import { buildInteriorOf } from './interieur3d.js';
 import { marktKind, buildMarktGroup } from './marktgebouwen.js';
 import { hash2 } from './rng.js';
@@ -1387,12 +1388,21 @@ function nearestHex(list, hex) {
 // Bounded LRU over cached building geometry: evicted entries are disposed and
 // rebuilt on demand. (A mesh still on screen just re-uploads its buffers.)
 const partLRU = new Map();
+// #1065: een gebouw waarvan het mesh nog in de scene staat of klaarligt (scene3d.js: buildingMeshes, prefetchedBuildings) mag zijn
+// geometrie niet kwijtraken: three.js uploadt de weggegooide buffer bij de volgende tekenbeurt opnieuw terwijl de cache hem niet
+// meer kent, en dan blijft die geometrie voor altijd in de GPU-lijst staan. Zo'n gebouw gaat achteraan de rij.
+let partsInUse = null, partsSpared = 0;
+export function setPartsInUse(fn) { partsInUse = typeof fn === 'function' ? fn : null; }
+export function partCacheStats() { return { size: partLRU.size, max: PART_CACHE_MAX, gespaard: partsSpared }; }
+registerMemSource('gebouwdelen', partCacheStats); // technische info (#1065)
 function touchParts(b) {
   partLRU.delete(b);
   partLRU.set(b, true);
-  while (partLRU.size > PART_CACHE_MAX) {
+  let guard = partLRU.size;
+  while (partLRU.size > PART_CACHE_MAX && guard-- > 0) {
     const old = partLRU.keys().next().value;
     partLRU.delete(old);
+    if (partsInUse && partsInUse(old)) { partLRU.set(old, true); partsSpared++; continue; }
     const parts = old._geo3dParts;
     if (parts) for (const k of Object.keys(parts)) if (parts[k] && parts[k].dispose) parts[k].dispose();
     old._geo3dParts = null;

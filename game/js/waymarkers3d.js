@@ -48,6 +48,29 @@ function stationSign(text) {
   return g;
 }
 
+// #1065: de haltebordjes bleven na hun rit verstopt in de scene staan, elk met een eigen canvas-textuur, twee geometrieen en twee materialen.
+// Boven SIGN_KEEP ongebruikte borden gaan de oudste echt weg (een volgende rit bouwt ze opnieuw).
+export const SIGN_KEEP = 8;
+function disposeSign(sign) {
+  sign.traverse((o) => {
+    if (o.geometry) o.geometry.dispose();
+    const m = o.material;
+    if (m) { if (m.map) m.map.dispose(); m.dispose(); }
+  });
+}
+export function trimSigns(root, signs, live, keep = SIGN_KEEP) {
+  let weg = 0;
+  for (const [k, sign] of signs) {
+    if (signs.size <= keep) break;
+    if (live.has(k)) continue;
+    if (root) root.remove(sign);
+    disposeSign(sign);
+    signs.delete(k);
+    weg++;
+  }
+  return weg;
+}
+
 function padMesh() {
   const g = new THREE.Group();
   const disc = new THREE.Mesh(new THREE.CircleGeometry(7, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffd23c, transparent: true, opacity: 0.5, depthWrite: false }));
@@ -124,6 +147,7 @@ export function updateWaymarkers3D(scene, time, route, ahead, camera) {
     if (camera) sign.userData.plaque.lookAt(camera.position.x, sign.userData.plaque.position.y, camera.position.z);
   }
   for (const [k, sign] of parts.signs) if (!live.has(k)) sign.visible = false;
+  trimSigns(root, parts.signs, live);
 }
 
 export function hideWaymarkers3D() {

@@ -268,10 +268,14 @@ export async function cutGastSpeel(w, p) {
   cutSpoor(w, 'gast-rol', p.id, scène.hoofdrol, scène.eigen, !!scène.tijdelijk);
   if (!w.coopCutHost || w.coopCutHost.id !== p.id) w.coopCutHost = null; // zijn eerste tijdbericht kan al binnen zijn
   const klaar = () => { cutSpoor(w, 'gast-klaar', p.id); if (w.coopCutBezig === p.id) w.coopCutBezig = null; cutsceneKlaar(w, scène); };
-  const ok = m.playScript(w, p.def, {
-    lines: p.lines, duration: p.duration, anchor: p.anchor || undefined, replay: true,
-    cine: gastCine(p, klaar),
-  });
+  let ok = false;
+  // #1065: een fout in het filmpje liet coopCutBezig op dit id staan (en de belofte weigeren); nu geldt het als een scène die niet startte
+  try {
+    ok = m.playScript(w, p.def, {
+      lines: p.lines, duration: p.duration, anchor: p.anchor || undefined, replay: true,
+      cine: gastCine(p, klaar),
+    });
+  } catch (e) { cutSpoor(w, 'gast-fout', p.id, String(e && e.message)); ok = false; }
   cutSpoor(w, 'gast-start', p.id, !!ok);
   if (!ok) klaar();
   return ok;

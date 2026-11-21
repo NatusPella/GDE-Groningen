@@ -18,7 +18,7 @@ const _camSphereHit = new THREE.Vector3();
 const _camInv = new THREE.Matrix4();
 const _segA = new THREE.Vector3();
 const _segB = new THREE.Vector3();
-import { buildBuildingMesh, setBuildingMap, setNightFactor } from './models3d_buildings.js';
+import { buildBuildingMesh, setBuildingMap, setNightFactor, setPartsInUse } from './models3d_buildings.js';
 import { updateDiscoLamp } from './discolight.js';
 import { buildVehicleMesh, updateVehicleWheelSpin, applyFlatTire, setBusRearAngle, updatePoliceLamps, updateIndicatorLamps, syncPoliceMount, riderSeatFor, attachHelmet, releaseVehicleGeometries } from './models3d_vehicles.js';
 import {
@@ -117,7 +117,7 @@ const NO_WHEEL_INSTANCES = NO_BATCH;
 const wheelFrustum = new THREE.Frustum(), wheelProj = new THREE.Matrix4();
 import { getUiScale } from './uiscale.js';
 import { hideWaymarkers3D } from './waymarkers3d.js';
-import { setMarkerCamera, setMarkerEnv } from './worldmarker3d.js';
+import { setMarkerCamera, setMarkerEnv, disposeWorldMarker3D } from './worldmarker3d.js'; // #1065
 import { OUTLINE_MAT } from './pixelart3d.js';
 import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpacity, setStarShare, SKY_HORIZON } from './sky3d.js';
 import { computeLighting } from './daynight.js';
@@ -1906,6 +1906,7 @@ export const precompileKit = () => ({ scene, compile: precompile, withLightRig, 
 const BUILDING_PREFETCH = 30;
 const BUILDING_PREFETCH_MS = 1.5;
 const prefetchedBuildings = new Map();
+setPartsInUse((b) => buildingMeshes.has(b) || prefetchedBuildings.has(b)); // #1065: models3d_buildings.js gooit geen geometrie weg die nog getekend wordt
 function makeBuildingMesh(b) {
   const mesh = enableShadows(buildBuildingMesh(b), true, 2.5);
   if (liftMap && liftMap.terrainOn) mesh.position.y += buildingLift(liftMap, b);
@@ -1979,7 +1980,7 @@ function freeRoadGeometry(r) {
   // en werden nooit vrijgegeven: op een lange rit langs verhoogde wegen liep het GPU-geheugen op
   // (#588). Alleen de geometry's, want de materialen zijn gedeeld (roadstructures3d.js mats); bij
   // terugkomst van de tegel worden de werken opnieuw gebouwd.
-  for (const k of ['_geoStruct', '_geoOverDeck']) {
+  for (const k of ['_geoStruct', '_geoOverDeck', '_geoBridgeCore']) { // #1065: _geoBridgeCore (roadsurface.js) werd nooit vrijgegeven
     const g = r[k];
     if (g) disposeStructureGeometries(g);
     r[k] = undefined;
@@ -2809,6 +2810,7 @@ export function update3D(dt, world) {
     updatePoliceHeliMesh3D(policeHeliMesh, world.time);
   } else if (policeHeliMesh) {
     scene.remove(policeHeliMesh);
+    disposeObject(policeHeliMesh); // #1065: elke politiehelikopter bouwde ca. 12 eigen geometrieen en een lensmateriaal die nooit terugkwamen
     policeHeliMesh = null;
   }
 
@@ -2833,6 +2835,7 @@ export function update3D(dt, world) {
     updateMissionMarker3D(missionMarkerMesh, world.time, world.mission.phase);
   } else if (missionMarkerMesh) {
     scene.remove(missionMarkerMesh);
+    disposeWorldMarker3D(missionMarkerMesh); // #1065
     missionMarkerMesh = null;
   }
   updateRouteRibbon3D(animDt, world);

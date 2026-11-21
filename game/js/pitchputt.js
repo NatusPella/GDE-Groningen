@@ -1,7 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { volgendeTredeRij } from './medalrules.js';
 import { toonStartkaart } from './startkaart.js';
-import { getScene } from './scene3d.js';
+import { getScene, disposeObject } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
 import { simHudTik, simHudPop, uitlegGezien, zetUitlegGezien } from './simhud.js';
@@ -69,6 +69,7 @@ function zetVenue(item) {
   layout(venue.holes);
   if (built) {
     getScene().remove(built.root, built.ball, built.line, built.ring, built.keeper, built.sir, built.wolfie);
+    for (const o of [built.root, built.ball, built.line, built.ring, built.keeper, built.sir, built.wolfie]) if (o) disposeObject(o); // #1065: de oude baan gaf zijn geometrie, de drie personen en hun skeletten nooit terug
     if (built.kolom) { getScene().remove(built.kolom); built.kolom.geometry.dispose(); built.kolom.material.dispose(); }
     built = null;
   }

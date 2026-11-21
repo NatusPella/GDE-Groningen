@@ -193,6 +193,18 @@ export function buildWorldMarker3D(kind = 'start') {
   return group;
 }
 
+// #1065: een marker die nergens meer nodig is geeft zijn eigen geometrie, materialen en labeltextuur terug. De glyph- en kolomtextuur zijn
+// gedeeld met de andere markers en blijven staan (Material.dispose raakt zijn textuur niet aan); Sprite deelt zijn geometrie met three.js zelf.
+export function disposeWorldMarker3D(group) {
+  if (!group) return;
+  group.traverse((o) => {
+    if (o.isMesh && o.geometry) o.geometry.dispose();
+    const ms = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
+    for (const m of ms) m.dispose();
+    if (o.userData && o.userData.tex) o.userData.tex.dispose();
+  });
+}
+
 export function setWorldMarkerKind(group, kind) {
   const wm = group.userData.wm;
   if (!wm || wm.kind === kind || !MARKER_KINDS[kind]) return;

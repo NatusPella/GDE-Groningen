@@ -226,6 +226,8 @@ import { tikBusMelding } from './busmelding.js'; // de rustige melding bij de ee
 import { stapSlaOver } from './simlagen.js';
 import { getSimBridge, setSimCarAttach } from './simbridge.js';
 import { showFrameError, PED_TARGET, thinTraffic, maintainPedestrians } from './streetpopulation.js';
+import { sweepNonFinite } from './finitesweep.js'; // #1065
+import { createFrameGuard } from './framesafe.js'; // #1065: één fout in een systeem legt de rest van het beeld niet stil
 setSimCarAttach(attachToNearestRoad);
 import { scaledTarget, simLevel, nextSimFrame, farAIDist, skipFar, takeDt, keepVehicle } from './simload.js';
 import { getSettings, magOnline } from './settings.js';
@@ -1025,6 +1027,9 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   }
 
   const feelDip = makeDip(), dipSeen = { imp: null, mh: null };
+  let sweepTick = 0;
+  const frameGuard = createFrameGuard({ onFirst: showFrameError, log: (naam, err, n) => console.error(`[framesafe] ${naam} (${n}x):`, err && err.stack ? err.stack : err) });
+  if (typeof window !== 'undefined') window.__frameGuard = frameGuard; // technische info (gpudiag.js)
   let samenSince = null, gateMenu = false;
   function frameBody(dt) {
     stepIdleCompile(2, precompileKit); // #1046: de rest van de laadscherm-compilatie, 2 ms per frame
@@ -1080,11 +1085,11 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     // vehiclesNear()-query bouwde hem opnieuw op (honderden keren per frame) en in de
     // menuroute bevroor de index op het laatste menuframe.
     beginVehicleFrame(world);
-    if (!world.paused) for (let r = 0; r < reps; r++) updateGameplay(gameDt);
+    if (!world.paused) for (let r = 0; r < reps; r++) frameGuard.run('updateGameplay', updateGameplay, gameDt);
     else if (doorloop) { // samen spelen (#434): de wereld loopt door achter een menu; alleen jouw eigen invoer staat stil
       const m = input.mouse, bewaard = { down: m.down, rightDown: m.rightDown, middleDown: m.middleDown, dx: m.dx, dy: m.dy, wheel: m.wheel };
       input.blocked = true; m.down = m.rightDown = m.middleDown = false; m.dx = m.dy = m.wheel = 0;
-      try { updateGameplay(gameDt); } finally { input.blocked = false; Object.assign(m, bewaard); }
+      try { frameGuard.run('updateGameplay', updateGameplay, gameDt); } finally { input.blocked = false; Object.assign(m, bewaard); }
     }
     // the tiles follow the camera or the player (speed and heading prefetch)
     if (world.map.follow) {
@@ -1167,7 +1172,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     if (world.coopRole === 'client') { syncHostEntities(world, dt); syncExtra(world, dt); } else { if (hasHostEntities()) clearHostEntities(); if (hasExtra()) clearExtra(); if (world.coopSirenUnits) world.coopSirenUnits = null; } // voertuigen, doel, voetgangers, dieren, lichten en kapotte objecten van de host bij een gast (#428)
     if (world.coopScene || hasHostScene()) updateHostScene(world); // filmpje, regel en keuze van de host bij een gast
     probe.mark('phone+save');
-    updateSafety(dt, world);
+    frameGuard.run('updateSafety', updateSafety, dt, world);
     // a padel match owns the camera (cinematics.js resets cameraOverride each frame)
     if (world.padelGame) padelCamera(world);
     else if (isActivityActive()) activityCamera(world);
@@ -1176,11 +1181,11 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     setMenuCover(cover);
     menuDt += world.paused ? dt : gameDt;
     if (!cover || menuDt >= MENU_FRAME_S[cover]) {
-      update3D(Math.min(0.1, menuDt), world);
+      frameGuard.run('update3D', update3D, Math.min(0.1, menuDt), world);
       menuDt = 0;
     }
     updatePhotoMode(dt, world);
-    updateHud(dt, world);
+    frameGuard.run('updateHud', updateHud, dt, world);
     // a long jump (fast travel, teleport): the load screen while the city streams in
     if (world.devJumpLoad) { world.devJumpLoad = false; resetJumpWatch(); startLoadScreen(world, { kind: 'travel', x: hoofdspeler(world).x, y: hoofdspeler(world).y, mission: world.loadMission }); }
     watchJumps(world, { swallow: world.pigeonMode || !!world.pendingRespawn || isCinematicActive() || sinceCinematic() < 2 || !!world.cameraOverride, hold: world.paused && !world.uiPaused });
@@ -1290,7 +1295,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
         updateCompanion(dt, world);
       }
       updateHome(dt, world);
-      updateEmergency(dt, world);
+      frameGuard.run('updateEmergency', updateEmergency, dt, world);
       updateIndicators(dt, world);
     }
     updateHomeExterior(dt, world);
@@ -1317,21 +1322,28 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
         if (dd > 150 && stapSlaOver('auto', dd, i, frameNoSim)) { v._simDt = (v._simDt || 0) + dt; continue; }
       }
       const vdt = takeDt(v, dt);
-      updateTrafficAI(v, vdt, map, world, Math.random, { budget: pathBudget });
-      resolveVehicleBuildingCollision(v, map, vdt);
+      try {
+        updateTrafficAI(v, vdt, map, world, Math.random, { budget: pathBudget });
+        resolveVehicleBuildingCollision(v, map, vdt);
+      } catch (err) { frameGuard.fail('verkeer-ai', err); } // één auto met een rare waarde stopt het verkeer niet
     }
     for (const v of world.vehicles) {
       if (v.isBoat && v.driver !== 'player') updateBoatAI(v, dt, map, world, Math.random);
     }
     probe.mark('traffic');
+    // #1065: een NaN in een auto of voetganger gaat eruit (afstandstoetsen zijn bij NaN altijd onwaar, dus het verkeersbeheer ruimde hem nooit op)
+    if (++sweepTick % 30 === 0) {
+      const sw = sweepNonFinite(world);
+      if (sw.voertuigen + sw.voetgangers + sw.snelheid) frameGuard.fail('niet-eindige-waarde', new Error(`${sw.voertuigen} voertuigen, ${sw.voetgangers} voetgangers opgeruimd, ${sw.snelheid} snelheden op nul`), true);
+    }
 
     if (!world.pigeonMode && !world.heliRun) politieMetDoelwit(dt, world, updatePolice); // met een gast die gezocht wordt jaagt de politie op hem (#434)
-    updateTrafficLaw(dt, world);
+    frameGuard.run('updateTrafficLaw', updateTrafficLaw, dt, world);
     updateOffences(dt, world, { signalsNear: trafficSignalsNear, phaseFor: trafficLightPhaseFor });
-    updateMotorPolice(dt, world);
+    frameGuard.run('updateMotorPolice', updateMotorPolice, dt, world);
     resolveVehicleVehicleCollisions(world.vehicles, world);
     tickBurningVehicles(world, dt);
-    updateRailway(dt, world);
+    frameGuard.run('updateRailway', updateRailway, dt, world);
     updateEvenementen(dt, world, calendarToday(world));
     updateWerf(dt, world, calendarToday(world), WERF_ENV); // een zeeschip wordt te water gelaten (#398)
     manageSeaShips(world, dt, WERF_ENV);
@@ -1356,19 +1368,19 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     for (const v of world.vehicles) {
       if (!v.wrecked) checkVehicleWater(v, map, world);
     }
-    updateHelis(dt, world);
+    frameGuard.run('updateHelis', updateHelis, dt, world);
     probe.mark('police+collide');
     if (!world.pigeonMode && !world.heliRun) {
-      updateCombat(dt, world);
-      updateBullets(dt, world);
+      frameGuard.run('updateCombat', updateCombat, dt, world);
+      frameGuard.run('updateBullets', updateBullets, dt, world);
     }
     updateDrunk(dt, world);
     probe.mark('combat');
-    updatePedestrians(dt, world);
+    frameGuard.run('updatePedestrians', updatePedestrians, dt, world);
     probe.mark('peds');
-    updateWildlife(dt, world);
+    frameGuard.run('updateWildlife', updateWildlife, dt, world);
     tickSchaapontvoering(dt, world);
-    updateStreetLife(dt, world);
+    frameGuard.run('updateStreetLife', updateStreetLife, dt, world);
     updateSkyProps(dt, world);
     updatePigeonSpots(dt, world);
     updateHeliSpot(dt);
@@ -1377,13 +1389,13 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     updatePoleVaults(dt, world);
     probe.mark('wildlife');
     if (!world.pigeonMode && !world.heliRun) {
-      updateMissions(dt, world);
+      frameGuard.run('updateMissions', updateMissions, dt, world);
       updateSikkomFeed(dt, world);
       updatePhoneFeed(dt, world);
-      updateGarages(dt, world);
+      frameGuard.run('updateGarages', updateGarages, dt, world);
       updateParkeergarages(dt, world);
       updateHoreca(dt, world);
-      updateShops(dt, world);
+      frameGuard.run('updateShops', updateShops, dt, world);
       updateParkingLots3D(world);
       updateMarinas3D(world);
       updateWaterplekken3D(world);
@@ -1391,12 +1403,12 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
       updateFlitspaal(dt, world);
       updateFlavour(dt, world);
     } else updateMissions(dt, world);
-    updateStory(dt, world);
+    frameGuard.run('updateStory', updateStory, dt, world);
     updateGoal(dt, world);
     updateOnboarding(dt, world);
     updateContextHints(dt, world);
     tickActivityKinds(dt, world, 'late');
-    updateWeather(dt, world);
+    frameGuard.run('updateWeather', updateWeather, dt, world);
     updateWorldEvents(dt, world);
     updateMuggings(dt, world);
     updateRoadRage(dt, world);

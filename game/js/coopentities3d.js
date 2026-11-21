@@ -13,7 +13,7 @@ import { doorsFor, ensureDoors, wantDoor } from './vehicledoors.js';
 import { syncVehicleDoors } from './vehicledoors3d.js';
 import { standVers, MISC_DEUREN, leesDeuren, gastDoelen } from './coopextra.js';
 import { doelMarker } from './coopmissie.js';
-import { buildWorldMarker3D, setWorldMarkerKind, updateWorldMarker3D } from './worldmarker3d.js';
+import { buildWorldMarker3D, setWorldMarkerKind, updateWorldMarker3D, disposeWorldMarker3D } from './worldmarker3d.js';
 import { WATER_Y } from './util.js';
 import { surfaceLiftAt } from './waterlevels.js';
 import { gladBoot, kiesEigenBoot, deiningBoot, bootBlijft } from './coopboot.js';
@@ -352,9 +352,9 @@ export function clearHostEntities() {
   if (schotLijn && scene) ruimMeshOp(scene, schotLijn, { materiaal: true });
   schotLijn = null; schotPos = null;
   // de wereldmarkers delen hun glyph- en kolomtextuur met de andere markers (worldmarker3d.js): alleen uit de scene halen
-  if (doelBaken && scene) scene.remove(doelBaken);
+  if (doelBaken && scene) { scene.remove(doelBaken); disposeWorldMarker3D(doelBaken); } // #1065: eigen geometrie, materialen en label terug
   doelBaken = null;
-  if (startBaken && scene) scene.remove(startBaken);
+  if (startBaken && scene) { scene.remove(startBaken); disposeWorldMarker3D(startBaken); }
   startBaken = null;
 }
 

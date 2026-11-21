@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { canvasTex as sharedCanvasTex } from './canvastex.js';
-import { getScene } from './scene3d.js';
+import { getScene, disposeObject } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE, ANITA_APPEARANCE, PERSON_RIG } from './models3d_people.js';
 import { DURK_LOOK, DOUWE_LOOK } from './storycast.js';
 import { isMissionActive, getActiveRace } from './missionquery.js';
@@ -229,8 +229,8 @@ function materials() {
     shadow: new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35, depthWrite: false }),
     ring: new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthWrite: false, side: THREE.DoubleSide }),
     land: new THREE.MeshBasicMaterial({ color: 0xffd23f, transparent: true, opacity: 0.55, depthWrite: false, side: THREE.DoubleSide }),
-    racket: new THREE.MeshLambertMaterial({ color: 0x1f5fb8 }),
-    grip: new THREE.MeshLambertMaterial({ color: 0x202020 }),
+    racket: Object.assign(new THREE.MeshLambertMaterial({ color: 0x1f5fb8 }), { userData: { shared: true } }), // #1065: gedeeld tussen wedstrijden; disposeObject laat ze staan
+    grip: Object.assign(new THREE.MeshLambertMaterial({ color: 0x202020 }), { userData: { shared: true } }),
   };
   mats.fenceTex = meshTex;
   return mats;
@@ -1048,7 +1048,7 @@ function endMatch(w, { quit = false } = {}) {
   w.cinematicHidePlayers = false;
   w.cameraOverride = null;
   document.body.classList.remove('padel-on');
-  for (const a of [g.me, g.mate, ...g.opp]) getScene().remove(a.mesh);
+  for (const a of [g.me, g.mate, ...g.opp]) { getScene().remove(a.mesh); disposeObject(a.mesh); } // #1065: skelet (bottextuur), racketgeometrie en persoonsteller terug
   for (const m of [g.ballMesh, g.shadow, g.ring, g.land]) { getScene().remove(m); m.geometry.dispose(); }
   if (hud) hud.root.hidden = true;
   simHudTik(0, null);
@@ -1263,7 +1263,7 @@ function endOnline(w, { quit = false, extern = false } = {}) {
   w.cinematicHidePlayers = false;
   w.cameraOverride = null;
   document.body.classList.remove('padel-on');
-  for (const a of g.actors) getScene().remove(a.mesh);
+  for (const a of g.actors) { getScene().remove(a.mesh); disposeObject(a.mesh); } // #1065
   for (const m of [g.ballMesh, g.shadow, g.ring, g.land]) { getScene().remove(m); m.geometry.dispose(); }
   if (hud) hud.root.hidden = true;
   const p = hoofdspeler(w);
