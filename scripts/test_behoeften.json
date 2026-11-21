@@ -1,0 +1,528 @@
+{
+ "_uitleg": "Tests die zonder game/world zelf SKIP meldden of op de wereld stukliepen; gemeten met scripts/test_behoeften.mjs (zie docs/TESTEN.md). De runners slaan ze zonder wereld over met een needs-world-reden.",
+ "versie": 1,
+ "tests": {
+  "akte1_doelen_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "akte2_doelen_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "akte3_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "bag_lod22_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen 3D BAG-extractie (GDE_BAG_EXTRACT of data/cache/3dbag-province/extract): de tegel met echte plekken is niet getest"
+  },
+  "barge_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "beppe_site_test.mjs": {
+   "wereld": true,
+   "reden": "geen game/world met de provincie"
+  },
+  "bezit_test.mjs": {
+   "wereld": true,
+   "reden": "echte index: geen game/world/bezit-percelen.json"
+  },
+  "boat_sea_test.mjs": {
+   "wereld": true,
+   "reden": "no province layer (game/world/index-provincie.json)"
+  },
+  "boat_waypoint_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "boot_spawn_test.mjs": {
+   "wereld": true,
+   "reden": "geen game/world met de provincielaag"
+  },
+  "bot_bikerace_test.mjs": {
+   "wereld": true,
+   "reden": "simulatie: geen game/world"
+  },
+  "bourtange_test.mjs": {
+   "wereld": true,
+   "reden": "geen game/world met de provincie"
+  },
+  "bridge_all_test.mjs": {
+   "wereld": true,
+   "reden": "geen game/world met de provincie"
+  },
+  "bridge_audit_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "bridge_dek_test.mjs": {
+   "wereld": true,
+   "reden": "geen game/world met de provincie"
+  },
+  "bridge_posts_test.mjs": {
+   "wereld": true,
+   "reden": "geen game/world (cd desktop && npm run stage)"
+  },
+  "bridge_support_test.mjs": {
+   "wereld": true,
+   "reden": "geen game/world met de provincie"
+  },
+  "buildingheights_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "bus_route_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "canopy_base_test.mjs": {
+   "wereld": true,
+   "reden": "geen game/world (cd desktop && npm run stage)"
+  },
+  "carillon_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "casework_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "collisie_gaten_test.mjs": {
+   "wereld": true,
+   "reden": "geen game/world met de provincie"
+  },
+  "corridor_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "Error: ENOENT: no such file or directory, open 'data/cache/province/province.json.gz'"
+  },
+  "country_camera_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "country_delivery_test.mjs": {
+   "wereld": true,
+   "reden": "no game/world with the province layer"
+  },
+  "country_vehicles_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "cutscene_tree_test.mjs": {
+   "wereld": true,
+   "reden": "het werelddeel: game/world ontbreekt (stage eerst)"
+  },
+  "dienstregeling_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "edge_grens_test.mjs": {
+   "wereld": true,
+   "reden": "echte data: geen game/world met index-provincie.json (niet gemeten)"
+  },
+  "edge_smoke_test.mjs": {
+   "wereld": true,
+   "reden": "no game/world with the province layer"
+  },
+  "evenementen_test.mjs": {
+   "wereld": true,
+   "reden": "randcheck: geen game/world"
+  },
+  "facilities_test.mjs": {
+   "wereld": true,
+   "reden": "no game/world with the province layer"
+  },
+  "furniture_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "garage_zone_test.mjs": {
+   "wereld": true,
+   "reden": "geen game/world (cd desktop && npm run stage)"
+  },
+  "geheimen_deur_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "geparkeerd_wereld_test.mjs": {
+   "wereld": true,
+   "reden": "geen game/world"
+  },
+  "grass_water_paved_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "greenery_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "greenwater_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "hamlet_traffic_test.mjs": {
+   "wereld": true,
+   "reden": "geen game/world"
+  },
+  "house_water_audit_test.mjs": {
+   "wereld": true,
+   "reden": "geen game/world met de provincie"
+  },
+  "interieurs_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "keuzewerk_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "kitcover_test.mjs": {
+   "wereld": true,
+   "reden": "echte kits: geen game/world"
+  },
+  "landfile_test.mjs": {
+   "wereld": true,
+   "reden": "no game/world with the province layer"
+  },
+  "lanes_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "lanetaper_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "loadworld_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "m20_oever_test.mjs": {
+   "wereld": true,
+   "reden": "geen game/world met de provincie"
+  },
+  "m30_bolwerk_test.mjs": {
+   "wereld": true,
+   "reden": "geen game/world met de provincie"
+  },
+  "machinist_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "marinas_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "marktfiets_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "minigames2_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "minigames3_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "minigames_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "missieplek_test.mjs": {
+   "wereld": true,
+   "reden": "werelddeel: geen game/world met de provincie"
+  },
+  "mode_route_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "movable_paint_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "muggings_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "museum_placement_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "navgraph_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "Error: ENOENT: no such file or directory, open 'data/cache/province/province.json.gz'"
+  },
+  "offroad_scan_test.mjs": {
+   "wereld": true,
+   "reden": "no game/world with the province layer"
+  },
+  "ommelandplace_test.mjs": {
+   "wereld": true,
+   "reden": "no game/world with the province layer"
+  },
+  "overlap_test.mjs": {
+   "wereld": true,
+   "reden": "geen game/world met de provincielaag"
+  },
+  "peerd_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "perron_trein_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "placement_audit_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "plekken_audit_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "procedural_land_test.mjs": {
+   "wereld": true,
+   "reden": "no game/world with the province layer"
+  },
+  "province_profile_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "provincie-extract (zet GDE_VIADUCT_FULL=1 en data/cache/province; die map bestaat alleen in de hoofdmap)"
+  },
+  "railprofile_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "ramen_audit_test.mjs": {
+   "wereld": true,
+   "reden": "ramen_audit: geen game/world met index.json (--world=<map>)"
+  },
+  "regattabaan_haven_test.mjs": {
+   "wereld": true,
+   "reden": "geen wereld in game/world"
+  },
+  "regattaplas_wereld_test.mjs": {
+   "wereld": true,
+   "reden": "geen wereld in game/world"
+  },
+  "reisaudit_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "road_route_test.mjs": {
+   "wereld": true,
+   "reden": "no game/world with the province road net (scripts/world/build_province.mjs)"
+  },
+  "road_seams_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "route_bridge_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "route_quality_test.mjs": {
+   "wereld": true,
+   "reden": "geen game/world met het provincienet (scripts/world/build_province.mjs)"
+  },
+  "safehuisplek_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "shopplaces_test.mjs": {
+   "wereld": true,
+   "reden": "no game/world with the province layer"
+  },
+  "stad_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "stadsprofielen_test.mjs": {
+   "wereld": true,
+   "reden": "waterhart: geen game/world"
+  },
+  "station_machine_test.mjs": {
+   "wereld": true,
+   "reden": "echte tegels: geen game/world"
+  },
+  "storyflow_nieuw_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "streetlife_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "surface_blend_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "surface_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "swim_escape_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "tileplace_test.mjs": {
+   "wereld": true,
+   "reden": "no game/world with the province layer"
+  },
+  "tilewater_test.mjs": {
+   "wereld": true,
+   "reden": "no game/world with the province layer"
+  },
+  "tileworld_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "Error: ENOENT: no such file or directory, open 'data/cache/province/province.json.gz'"
+  },
+  "trafficpath_test.mjs": {
+   "wereld": true,
+   "reden": "geen game/world"
+  },
+  "train_contact_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "train_ride_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "train_smooth_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "vaar_route_water_test.mjs": {
+   "wereld": true,
+   "reden": "geen game/world met de provincie"
+  },
+  "vaarnet_houseboat_test.mjs": {
+   "wereld": true,
+   "reden": "no game/world with the province layer"
+  },
+  "vaarwegklasse_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "verkeer_alloc_test.mjs": {
+   "wereld": true,
+   "reden": "geen game/world"
+  },
+  "verkeer_wereld_test.mjs": {
+   "wereld": true,
+   "reden": "geen game/world"
+  },
+  "vliegschool_stand_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "voetgangers_wereld_test.mjs": {
+   "wereld": true,
+   "reden": "geen game/world"
+  },
+  "water_layers_test.mjs": {
+   "wereld": true,
+   "reden": "the real tiles: no game/world with the province layer"
+  },
+  "water_rule_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "water_spots_test.mjs": {
+   "wereld": true,
+   "reden": "geen game/world (cd desktop && npm run stage)"
+  },
+  "water_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "waypoint_klopt_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM)"
+  },
+  "werf_wereld_test.mjs": {
+   "wereld": true,
+   "reden": "geen wereld in game/world"
+  },
+  "wildlife_road_test.mjs": {
+   "wereld": true,
+   "reden": "geen game/world (cd desktop && npm run stage)"
+  },
+  "world_misplaced_test.mjs": {
+   "wereld": true,
+   "reden": "geen game/world met de provincie"
+  },
+  "world_tiles_test.mjs": {
+   "wereld": true,
+   "data": true,
+   "reden": "Error: ENOENT: no such file or directory, open 'data/cache/province/province.json.gz'"
+  },
+  "world_versie_test.mjs": {
+   "wereld": true,
+   "reden": "geen game/world (cd desktop && npm run stage)"
+  }
+ }
+}

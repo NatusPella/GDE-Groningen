@@ -3,6 +3,8 @@
 // verschil met de tweeling (hetzelfde materiaaltype, andere sleutel) wordt bij naam genoemd. Als de gevendorde three in
 // desktop/vendor-cache staat, worden de veldlijsten ook tegen de echte bron gecontroleerd.
 import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { vindVendorCache } from './lib/vendorcache.mjs';
 import { PARAM_NAMES, BOOL1, BOOL2, parseKey, diffKeys, createProgramWatch } from '../game/js/programwatch.js';
 
 let n = 0, fails = 0;
@@ -67,8 +69,9 @@ ok(rapport.includes('[Shaderprogramma\'s na de start]') && rapport.includes('Let
 ok(!formatReport({}).includes('Shaderprogramma'), 'zonder gegevens geen blok');
 
 // tegen de echte bron van three, als die gevendord is
-const src = new URL('../desktop/vendor-cache/npm/three@0.160.0/build/three.module.js', import.meta.url);
-if (fs.existsSync(src)) {
+// (ook in een verse worktree: scripts/lib/vendorcache.mjs vindt de cache van de hoofdmap, of GDE_VENDOR_CACHE)
+const src = vindVendorCache(fileURLToPath(new URL('..', import.meta.url))).three;
+if (src && fs.existsSync(src)) {
   const s = fs.readFileSync(src, 'utf8');
   const i0 = s.indexOf('function getProgramCacheKeyParameters'), i1 = s.indexOf('function getProgramCacheKeyBooleans'), i2 = s.indexOf('function getUniforms( material )');
   const params = [...s.slice(i0, i1).matchAll(/array\.push\( parameters\.(\w+) \)/g)].map((m) => m[1]);

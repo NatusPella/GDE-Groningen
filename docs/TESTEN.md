@@ -78,6 +78,139 @@ Een volledige poort duurde op 27-10 vijf uur, vrijwel allemaal wachttijd. Wat er
 
 Wat níet helpt en waarom: een stap overslaan omdat hij "toch altijd groen" is. Op 27-10 waren de twee traagste stappen (`qa-features` en de missiesweep) precies de twee die een echte fout vonden, en de coop-stap vond een rol-fout die er al maanden in zat.
 
+## Gezonde testinfrastructuur (21-11)
+
+Een agent in een verse worktree kreeg veel SKIP's en valse FAIL's, en een lange run gaf minuten stilte. Dat is hersteld in `scripts/lib/testloop.mjs` en `scripts/lib/vendorcache.mjs`, die `run_tests.mjs` (CI) en `test_all.mjs` delen. Er is niets aan testinhoud verzwakt: een test die faalt blijft falen.
+
+- **Tijdslimiet per test.** `run_tests`: `--timeout=<sec>` (standaard 120, `--quick` 30, tests uit `SLOW` het viervoud); `test_all`: `--test-timeout=<sec>` (standaard 180, zware en trage tests een veelvoud). Bij de limiet wordt het hele proces gestopt (op PID, nooit op naam) en staat er `TIMEOUT` met de limiet in de melding.
+- **Voortgang.** Elke test meldt zijn uitkomst zodra hij klaar is. Daarnaast staat er elke 30 s een regel `...  nog bezig: <test> (<s>s, limiet <s>s)` over wat nog draait, en de synchrone module-check meldt `node --check: n/N`. Een run is nooit minuten stil.
+- **Parallel waar veilig.** Beide runners draaien nu `--jobs=<n>` tests tegelijk (standaard 2; meer gaf op 29-10 valse rode tests, zie "Sneller draaien"). De tijdgevoelige tests in `SERIE` (`coop_tcp_test`, `coopduur_test`) draaien na de pool één voor één, de losse poorten en de zware fase één tegelijk.
+- **Flaky-herkansing.** `KNOWN_FLAKES` in `scripts/lib/testloop.mjs` noemt de bekende flakes met issue en reden; nu alleen `country_vehicles_test` (#1094). Alleen die krijgen na een mislukte poging één herkansing. Slaagt die, dan staat de test als `FLAKY (#1094): slaagde pas bij poging 2; eerste fout: ...` in de uitvoer, in de samenvatting en in het rapport (sectie "Flaky"); faalt ook de herkansing, dan blijft het FAIL met "geen toeval meer". Een onbekende test wordt nooit herkanst. Voeg een test alleen toe met een issue; haal hem weg als de oorzaak weg is.
+- **three.js vinden zonder `npm run stage`.** `scripts/node3d.mjs` (de lader van vrijwel alle three-tests) en `programwatch_test` zoeken de gevendorde three.js in deze volgorde: `GDE_VENDOR_CACHE` (de map `vendor-cache` zelf, of `desktop/` of de repohoofdmap erboven), de worktree zelf (`desktop/vendor-cache`, `desktop/build/game/vendor`), en daarna dezelfde twee in de hoofdmap van de repo (via het `.git`-bestand van de worktree). Een agent hoeft de cache dus niet te kopiëren. Alleen lezen: er wordt niets gekopieerd of geschreven. Ontbreekt hij overal, dan is een three-test een SKIP (`is not vendored yet`), geen FAIL. Uitzondering: `desktop_preload_test` bouwt echt een stage met `desktop/build.mjs` en heeft de cache in de worktree zelf nodig (SKIP anders).
+- **Needs-world.** `scripts/test_behoeften.json` noemt de tests die zonder `game/world` niets kunnen controleren. De runners slaan die over met `SKIP needs-world: game/world ontbreekt (cd desktop && npm run stage)` plus de reden, zonder ze te starten. De lijst is gemeten, niet gegokt: een test staat er alleen in als hij in een run zonder wereld zelf SKIP meldde of op ontbrekende wereld- of cachedata stukliep; een test die zonder wereld een deel echt controleert, draait gewoon. Opnieuw meten (in een worktree zonder `game/world`): `GDE_TEST_BEHOEFTEN=0 node scripts/run_tests.mjs --json=<bestand>`, dan `node scripts/test_behoeften.mjs --uit=<bestand> --write`. Alle andere tests draaien zonder wereld. `run_tests_test` en `testloop_test` bewaken de regels.
+- **SKIP is geen PASS.** Ook `run_tests` telt een test die zelf `SKIP ...` meldt (exitcode 0) als SKIP, zoals `test_all` al deed; een ontbrekende three.js is een SKIP en geen FAIL.
+- `node scripts/run_tests.mjs --json=<bestand>` schrijft de uitkomst per test (status, duur, flaky, uitvoer van wat niet slaagde) voor wie de run wil verwerken.
+
+Tests die in een worktree zonder wereld overgeslagen worden (needs-world, gemeten; `node scripts/test_behoeften.mjs --doc` maakt deze tabel):
+
+| Test | Reden zonder wereld |
+|---|---|
+| `akte1_doelen_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `akte2_doelen_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `akte3_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `bag_lod22_test.mjs` | geen 3D BAG-extractie (GDE_BAG_EXTRACT of data/cache/3dbag-province/extract): de tegel met echte plekken is niet getest |
+| `barge_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `beppe_site_test.mjs` | geen game/world met de provincie |
+| `bezit_test.mjs` | echte index: geen game/world/bezit-percelen.json |
+| `boat_sea_test.mjs` | no province layer (game/world/index-provincie.json) |
+| `boat_waypoint_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `boot_spawn_test.mjs` | geen game/world met de provincielaag |
+| `bot_bikerace_test.mjs` | simulatie: geen game/world |
+| `bourtange_test.mjs` | geen game/world met de provincie |
+| `bridge_all_test.mjs` | geen game/world met de provincie |
+| `bridge_audit_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `bridge_dek_test.mjs` | geen game/world met de provincie |
+| `bridge_posts_test.mjs` | geen game/world (cd desktop && npm run stage) |
+| `bridge_support_test.mjs` | geen game/world met de provincie |
+| `buildingheights_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `bus_route_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `canopy_base_test.mjs` | geen game/world (cd desktop && npm run stage) |
+| `carillon_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `casework_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `collisie_gaten_test.mjs` | geen game/world met de provincie |
+| `corridor_test.mjs` | Error: ENOENT: no such file or directory, open 'data/cache/province/province.json.gz' |
+| `country_camera_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `country_delivery_test.mjs` | no game/world with the province layer |
+| `country_vehicles_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `cutscene_tree_test.mjs` | het werelddeel: game/world ontbreekt (stage eerst) |
+| `dienstregeling_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `edge_grens_test.mjs` | echte data: geen game/world met index-provincie.json (niet gemeten) |
+| `edge_smoke_test.mjs` | no game/world with the province layer |
+| `evenementen_test.mjs` | randcheck: geen game/world |
+| `facilities_test.mjs` | no game/world with the province layer |
+| `furniture_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `garage_zone_test.mjs` | geen game/world (cd desktop && npm run stage) |
+| `geheimen_deur_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `geparkeerd_wereld_test.mjs` | geen game/world |
+| `grass_water_paved_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `greenery_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `greenwater_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `hamlet_traffic_test.mjs` | geen game/world |
+| `house_water_audit_test.mjs` | geen game/world met de provincie |
+| `interieurs_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `keuzewerk_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `kitcover_test.mjs` | echte kits: geen game/world |
+| `landfile_test.mjs` | no game/world with the province layer |
+| `lanes_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `lanetaper_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `loadworld_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `m20_oever_test.mjs` | geen game/world met de provincie |
+| `m30_bolwerk_test.mjs` | geen game/world met de provincie |
+| `machinist_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `marinas_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `marktfiets_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `minigames2_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `minigames3_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `minigames_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `missieplek_test.mjs` | werelddeel: geen game/world met de provincie |
+| `mode_route_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `movable_paint_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `muggings_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `museum_placement_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `navgraph_test.mjs` | Error: ENOENT: no such file or directory, open 'data/cache/province/province.json.gz' |
+| `offroad_scan_test.mjs` | no game/world with the province layer |
+| `ommelandplace_test.mjs` | no game/world with the province layer |
+| `overlap_test.mjs` | geen game/world met de provincielaag |
+| `peerd_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `perron_trein_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `placement_audit_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `plekken_audit_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `procedural_land_test.mjs` | no game/world with the province layer |
+| `province_profile_test.mjs` | provincie-extract (zet GDE_VIADUCT_FULL=1 en data/cache/province; die map bestaat alleen in de hoofdmap) |
+| `railprofile_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `ramen_audit_test.mjs` | ramen_audit: geen game/world met index.json (--world=<map>) |
+| `regattabaan_haven_test.mjs` | geen wereld in game/world |
+| `regattaplas_wereld_test.mjs` | geen wereld in game/world |
+| `reisaudit_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `road_route_test.mjs` | no game/world with the province road net (scripts/world/build_province.mjs) |
+| `road_seams_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `route_bridge_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `route_quality_test.mjs` | geen game/world met het provincienet (scripts/world/build_province.mjs) |
+| `safehuisplek_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `shopplaces_test.mjs` | no game/world with the province layer |
+| `stad_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `stadsprofielen_test.mjs` | waterhart: geen game/world |
+| `station_machine_test.mjs` | echte tegels: geen game/world |
+| `storyflow_nieuw_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `streetlife_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `surface_blend_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `surface_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `swim_escape_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `tileplace_test.mjs` | no game/world with the province layer |
+| `tilewater_test.mjs` | no game/world with the province layer |
+| `tileworld_test.mjs` | Error: ENOENT: no such file or directory, open 'data/cache/province/province.json.gz' |
+| `trafficpath_test.mjs` | geen game/world |
+| `train_contact_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `train_ride_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `train_smooth_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `vaar_route_water_test.mjs` | geen game/world met de provincie |
+| `vaarnet_houseboat_test.mjs` | no game/world with the province layer |
+| `vaarwegklasse_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `verkeer_alloc_test.mjs` | geen game/world |
+| `verkeer_wereld_test.mjs` | geen game/world |
+| `vliegschool_stand_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `voetgangers_wereld_test.mjs` | geen game/world |
+| `water_layers_test.mjs` | the real tiles: no game/world with the province layer |
+| `water_rule_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `water_spots_test.mjs` | geen game/world (cd desktop && npm run stage) |
+| `water_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `waypoint_klopt_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
+| `werf_wereld_test.mjs` | geen wereld in game/world |
+| `wildlife_road_test.mjs` | geen game/world (cd desktop && npm run stage) |
+| `world_misplaced_test.mjs` | geen game/world met de provincie |
+| `world_tiles_test.mjs` | Error: ENOENT: no such file or directory, open 'data/cache/province/province.json.gz' |
+| `world_versie_test.mjs` | geen game/world (cd desktop && npm run stage) |
+
 ## Visuele sweep
 
 `node scripts/qa/sweep.mjs --seed=<n> [--part=wereld,verhaal,cut] [--wereld=45] [--verhaal=26] [--cut=14] [--slot] [--plan]` maakt met een vaste seed minstens 150 beelden op willekeurige momenten en beoordeelt ze. Met dezelfde seed krijg je hetzelfde plan (`plan.json`); een nieuwe seed geeft nieuwe plekken, tijden en weersoorten.

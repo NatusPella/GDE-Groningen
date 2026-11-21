@@ -7,6 +7,10 @@
 //             dode-code-bewaking en alle scripts/*_test.mjs (met duur en tijdslimiet; import_cycles_test bewaakt de cycli)
 //   zwaar     de wereldchecks en audits (ring_probe, seat_audit, province_test, drive_audit, ...)
 //   electron  smoke-run, verhaaltest, geocheck, spelbot-sweeps en de beeldrondes, met beeldchecks
+// Tijdslimiet per test met een duidelijke TIMEOUT-melding; elke 30 s een regel "nog bezig: ..." (geen tien minuten stilte);
+// bekende flakes (KNOWN_FLAKES in scripts/lib/testloop.mjs, nu country_vehicles_test #1094) krijgen één herkansing die als
+// FLAKY in het rapport staat; tests die de wereld nodig hebben (scripts/test_behoeften.json) krijgen zonder game/world een
+// SKIP "needs-world"; three.js wordt ook in een verse worktree gevonden (scripts/lib/vendorcache.mjs, GDE_VENDOR_CACHE).
 // Exitcodes (#593): 0 = minstens één item geslaagd en niets gefaald; 1 = een fout of timeout;
 //   2 = het script crashte; 3 = er is niets gemeten (nul PASS of een gevraagde fase zonder PASS;
 //   een SKIP heet niet geslaagd). --allow-skip/--partial maakt van 3 een 0.
@@ -21,6 +25,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkSyntax } from './lib/syntaxcheck.mjs';
+import { SERIE, runProces, pool, maakHartslag, runMetHerkansing, flakeMelding, laadBehoeften, skipReden, dataCacheAanwezig } from './lib/testloop.mjs';
+import { heeftVendorCache } from './lib/vendorcache.mjs';
 import { EXCLUDED, SLOW, MISSING_DATA, listFiles } from './run_tests.mjs';
 import { decodePng, analyseImage, signature, signatureDiff } from './lib/pngcheck.mjs';
 import * as R from './lib/testrapport.mjs';
@@ -45,37 +51,12 @@ const log = (...a) => console.log(...a);
 
 // ---------------------------------------------------------------- processen
 
-function killTree(child) {
-  try {
-    if (process.platform === 'win32') spawnSync('taskkill', ['/PID', String(child.pid), '/T', '/F'], { stdio: 'ignore' });
-    else child.kill('SIGKILL');
-  } catch { /* al weg */ }
-}
-
-// -> { code, timedOut, out, secs }; sluit het hele proces af bij de tijdslimiet.
+// -> { code, timedOut, out, secs }; sluit het hele proces af bij de tijdslimiet (scripts/lib/testloop.mjs).
 export function runCmd(cmd, args, { ms = TEST_MS, env = {}, cwd = ROOT } = {}) {
-  return new Promise((resolve) => {
-    const t0 = Date.now();
-    let out = '', timedOut = false, done = false;
-    let child;
-    try { child = spawn(cmd, args, { cwd, env: { ...process.env, ...env }, windowsHide: true, shell: /\.(cmd|bat)$/i.test(cmd) }); } catch (e) { resolve({ code: -1, timedOut: false, out: 'starten mislukt: ' + e.message, secs: 0 }); return; }
-    const add = (d) => { out += d; if (out.length > 8e6) out = out.slice(-4e6); };
-    child.stdout.on('data', add); child.stderr.on('data', add);
-    const fin = (code) => { if (done) return; done = true; clearTimeout(timer); resolve({ code, timedOut, out, secs: (Date.now() - t0) / 1000 }); };
-    const timer = setTimeout(() => { timedOut = true; killTree(child); setTimeout(() => fin(null), 2000); }, ms);
-    child.on('error', (e) => { out += '\nstarten mislukt: ' + e.message; fin(-1); });
-    child.on('close', (code) => fin(code));
-  });
+  return runProces(cmd, args, { ms, env, cwd, shell: /\.(cmd|bat)$/i.test(cmd) });
 }
 
-async function pool(taken, n) {
-  const res = new Array(taken.length);
-  let i = 0;
-  await Promise.all(Array.from({ length: Math.min(n, taken.length) }, async () => {
-    while (i < taken.length) { const k = i++; res[k] = await taken[k](); }
-  }));
-  return res;
-}
+const hartslag = maakHartslag();
 
 const NIET_NODIG = /Cannot find (package|module)[^\n]*['"]three['"]|vendor[\\/]+three|is not vendored yet/i;
 export function statusVan(res) {
@@ -107,6 +88,8 @@ export function eindCode(report, fasen, { allowSkip = false } = {}) {
   return 0;
 }
 
+const behoeften = laadBehoeften(ROOT);
+const omgeving = () => ({ wereld: heeftWereld(), three: heeftVendorCache(ROOT), data: dataCacheAanwezig(ROOT) });
 const heeftWereld = () => fs.existsSync(path.join(ROOT, 'game', 'world', 'index-provincie.json'));
 const skip = (fase, id, naam, reden) => R.maakItem(fase, id, naam, 'SKIP', 0, 'niet gedraaid: ' + reden);
 const wilDit = (id) => !ONLY || id.includes(ONLY);
@@ -149,8 +132,10 @@ async function faseLicht(prev) {
   if (!ONLY || 'module-check'.includes(ONLY) || ONLY === 'module') {
     const t0 = Date.now();
     const files = ['game', 'scripts', 'desktop', 'web'].filter((d) => fs.existsSync(path.join(ROOT, d))).flatMap((d) => listFiles(path.join(ROOT, d), /\.(js|mjs|cjs)$/)).sort();
-    let bad = 0;
-    for (const f of files) {
+    let bad = 0, laatste = Date.now();
+    for (const [i, f] of files.entries()) {
+      // synchroon, dus de hartslagtimer komt er niet doorheen: zelf elke 30 s voortgang melden
+      if (Date.now() - laatste >= 30e3) { laatste = Date.now(); log(`...     module-check: ${i}/${files.length} bestanden`); }
       const r = checkSyntax(f);
       if (!r.ok) { bad++; items.push(R.maakItem('licht', 'module:' + rel(f), 'module-check ' + rel(f), 'FAIL', 0, R.eersteFout(r.out) + '\n' + tail(r.out, 6))); }
     }
@@ -191,28 +176,31 @@ async function faseLicht(prev) {
     items.push(it); log(`${it.status.padEnd(7)} dode-code ${it.detail}`);
   }
   // 4. alle scripts/*_test.mjs (zonder de zware: die staan in fase zwaar)
-  // Een paar tests meten tijd en verlies in een eigen simulatie (coop_tcp_test: 80 ms vertraging en 5%
-  // pakketverlies). Die halen hun eigen aannames niet als er drie tegelijk draaien: ze zijn alleen groen
-  // en zeiden met drie tegelijk onterecht rood. Ze draaien daarom na de pool, één voor één (#519).
-  const SERIE = new Set(['coop_tcp_test.mjs', 'coopduur_test.mjs']);
+  // Een paar tests meten tijd en verlies in een eigen simulatie (SERIE in scripts/lib/testloop.mjs): ze draaien na de pool, één voor één (#519).
   const alle = fs.readdirSync(path.join(ROOT, 'scripts')).filter((n) => /_test\.mjs$/.test(n) && !EXCLUDED.has(n)).filter((n) => wilDit(n)).sort();
   const tests = alle.filter((n) => !SERIE.has(n));
-  const taken = tests.map((t) => async () => {
-    const ms = ZWARE_TESTS.test(t) ? TEST_MS * 15 : SLOW.has(t) ? TEST_MS * 4 : TEST_MS;
+  const eenTest = async (t, alleen) => {
+    const ms = alleen ? TEST_MS * 4 : ZWARE_TESTS.test(t) ? TEST_MS * 15 : SLOW.has(t) ? TEST_MS * 4 : TEST_MS;
+    const reden = skipReden(t, behoeften, omgeving());
+    if (reden) { const it = skip('licht', 'test:' + t, t, reden); log(`${it.status.padEnd(7)} ${t} (${reden})`); return it; }
     // province_profile_test slaat zichzelf over zonder GDE_VIADUCT_FULL=1; met de provincie-extract (data/cache/province) draait hij echt
     const env = t === 'province_profile_test.mjs' && fs.existsSync(path.join(ROOT, 'data', 'cache', 'province')) ? { GDE_VIADUCT_FULL: '1' } : {};
-    const r = await runCmd(process.execPath, [path.join('scripts', t)], { ms, env });
-    const it = itemUitRes('licht', 'test:' + t, t, r, ms);
-    log(`${it.status.padEnd(7)} ${t} ${it.secs}s`);
+    const h = await runMetHerkansing(t, async (poging) => {
+      hartslag.start(t, ms, poging);
+      try { return await runCmd(process.execPath, [path.join('scripts', t)], { ms, env }); } finally { hartslag.stop(t); }
+    }, { isFout: (x) => R.isFout(statusVan(x)) });
+    const it = itemUitRes('licht', 'test:' + t, t, h.res, ms);
+    const melding = flakeMelding(h);
+    if (melding) {
+      // Een herkansing is nooit stil: FLAKY staat als waarschuwing in het rapport, een mislukte flake houdt zijn FAIL.
+      it.detail = it.status === 'PASS' ? melding : (melding + '\n' + it.detail).slice(0, 1500);
+      if (it.status === 'PASS') { it.warn = true; it.flaky = true; }
+    }
+    log(`${it.status.padEnd(7)} ${t} ${it.secs}s${alleen ? ' (alleen)' : ''}${melding ? ' [' + melding + ']' : ''}${it.status === 'TIMEOUT' ? ' (' + it.detail + ')' : ''}`);
     return it;
-  });
-  items.push(...(await pool(taken, JOBS)));
-  for (const t of alle.filter((n) => SERIE.has(n))) {
-    const ms = TEST_MS * 4;
-    const r = await runCmd(process.execPath, [path.join('scripts', t)], { ms });
-    const it = itemUitRes('licht', 'test:' + t, t, r, ms);
-    items.push(it); log(`${it.status.padEnd(7)} ${t} ${it.secs}s (alleen)`);
-  }
+  };
+  items.push(...(await pool(tests.map((t) => () => eenTest(t, false)), JOBS)));
+  for (const t of alle.filter((n) => SERIE.has(n))) items.push(await eenTest(t, true));
   return items;
 }
 
@@ -282,7 +270,9 @@ async function faseZwaar() {
     if (!fs.existsSync(path.join(ROOT, script))) return skip('zwaar', id, id, `${script} bestaat niet (meer)`);
     if (metWereld && !wereld) return skip('zwaar', id, id, 'game/world ontbreekt (cd desktop && npm run stage)');
     const ms = secs * 1000;
-    const r = await runCmd(process.execPath, [script, ...args], { ms });
+    hartslag.start(id, ms);
+    let r;
+    try { r = await runCmd(process.execPath, [script, ...args], { ms }); } finally { hartslag.stop(id); }
     const it = itemUitRes('zwaar', id, id, r, ms);
     const meer = it.status === 'PASS' && extra && extra(r.out);
     if (meer) { it.status = 'FAIL'; it.detail = meer; }

@@ -7,13 +7,14 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { vindVendorCache } from '../lib/vendorcache.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..', '..');
 const arg = (k, d = '') => { const a = process.argv.find((x) => x.startsWith('--' + k + '=')); return a ? a.slice(k.length + 3) : d; };
 
 // --- the key layout, read from the vendored three so it follows an upgrade -------------------------------------------------------------------
-export function keyLayout(threeFile = path.join(ROOT, 'desktop', 'vendor-cache', 'npm', 'three@0.160.0', 'build', 'three.module.js')) {
+export function keyLayout(threeFile = vindVendorCache(ROOT).three || path.join(ROOT, 'desktop', 'vendor-cache', 'npm', 'three@0.160.0', 'build', 'three.module.js')) {
   const src = fs.readFileSync(threeFile, 'utf8');
   const a = src.indexOf('function getProgramCacheKeyParameters(');
   const b = src.indexOf('function getProgramCacheKeyBooleans(');

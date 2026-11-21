@@ -5,17 +5,23 @@
 //   import './node3d.mjs';  (before any game module, then import() them)
 import fs from 'node:fs';
 import { registerHooks } from 'node:module';
+import { pathToFileURL, fileURLToPath } from 'node:url';
+import { vendorKandidaten, vindVendorCache } from './lib/vendorcache.mjs';
 
 const CDN = 'https://cdn.jsdelivr.net/npm/';
 const ROOT = new URL('../', import.meta.url);
-const CACHES = ['desktop/vendor-cache/npm/', 'desktop/build/game/vendor/npm/'].map((p) => new URL(p, ROOT));
+// De cache staat in de worktree zelf of, in een verse worktree zonder `npm run stage`, in de hoofdmap
+// van de repo; GDE_VENDOR_CACHE wijst er desnoods handmatig naartoe (scripts/lib/vendorcache.mjs).
+const ROOT_DIR = fileURLToPath(ROOT);
+const gevonden = vindVendorCache(ROOT_DIR).dirs;
+const CACHES = (gevonden.length ? gevonden : vendorKandidaten(ROOT_DIR).slice(0, 2)).map((d) => new URL('npm/', pathToFileURL(d + '/')));
 
 function local(url) {
   for (const c of CACHES) {
     const f = new URL(url.slice(CDN.length), c);
     if (fs.existsSync(f)) return f.href;
   }
-  throw new Error(`${url} is not vendored yet: run \`cd desktop && npm run stage\` once`);
+  throw new Error(`${url} is not vendored yet: run \`cd desktop && npm run stage\` once (or set GDE_VENDOR_CACHE to a vendor-cache folder)`);
 }
 const vendored = (url) => CACHES.some((c) => url.startsWith(c.href));
 

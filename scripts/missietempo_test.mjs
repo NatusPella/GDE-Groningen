@@ -8,6 +8,7 @@
 //  - M09 faalt pas onder 38% eieren (was 50%), met twee waarschuwingen
 //    (75% en 60%/45%) vóór die grens in de eierregel.
 import fs from 'node:fs';
+import './node3d.mjs'; // three.js uit de vendor-cache (ook van de hoofdmap, of GDE_VENDOR_CACHE)
 // missions_akte2.js haalt three.js binnen (missiedecor.js): zonder gevendorde three (npm run stage) is dit een SKIP, geen fout.
 let buildAkte2Defs;
 try { ({ buildAkte2Defs } = await import('../game/js/missions_akte2.js')); } catch (e) {
