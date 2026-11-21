@@ -473,7 +473,8 @@
     "voetbalextrarules",
     "voetbalpresentatie",
     "voetbalregie",
-    "voetbaltvlayer"
+    "voetbaltvlayer",
+    "voetbalpubliek"
    ],
    "eigenaar": "wedstrijd",
    "gast": "E bij de spelerspoort: Meedoen? J of N; elf tegen elf met twee tot vier mensen; momentopname van 64 getallen.",
@@ -724,7 +725,7 @@
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
-    "zoek": "**Pings en waypoints (21-11)"
+    "zoek": "**Pings, snelle zinnen en een doel delen (21-11"
    },
    "status": "gat",
    "prio": "middel",
