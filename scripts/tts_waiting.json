@@ -2,6 +2,36 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
+  "text": "Waarom nou een frietwagen?",
+  "scene": "C00.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "En ik rijd.",
+  "scene": "C00.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "En nu een plaat voor Tammo, mijn vriend sinds groep drie. Hij heeft een grote dag en zegt niks.",
+  "scene": "C00.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Rikus draait mijn plaat.",
+  "scene": "C00.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Fijn, die nieuwe band. Henk van Garage Knalpot vroeg niks.",
+  "scene": "M02.5"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
   "text": "Welke mensen?",
   "scene": "O1"
  },
@@ -16,6 +46,42 @@
   "speaker": "Tammo",
   "text": "Het hing al aan de koelkast.",
   "scene": "O1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Mevrouw Hoving",
+  "text": "Ik bewaar de Gouden Eierbal, de wisselprijs van de Snackprijs, al sinds 1998. Wie de bal heeft, zit de jury voor.",
+  "scene": "M03.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Loketbediende",
+  "text": "Is zij er niet, dan zit Berend Bos voor. Jurylid sinds 1982.",
+  "scene": "M03.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Mevrouw Hoving",
+  "text": "Meneer Terpstra heeft mij en de vier andere juryleden uitgenodigd voor een treinreis met volpension. Vanaf maandag, tot na het Ontzet.",
+  "scene": "M03.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Als iemand het museum kent, is het Bert. De beste vriend van mijn opa.",
+  "scene": "M03.4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "Een beller voor de zaterdagavond. Hij zegt dat hij de markt koopt. Ik zeg niks.",
+  "scene": "R1.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "Dat is een duidelijk plan. Ik draai een plaat.",
+  "scene": "R1.1"
  },
  {
   "reason": "spreektekst",
@@ -80,7 +146,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Mijn oma won in 1953.",
+  "text": "Oma Trijntje won in 1953.",
   "scene": "O3"
  },
  {

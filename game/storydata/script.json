@@ -320,6 +320,40 @@
     {
      "speaker": "Tammo",
      "key": "T",
+     "text": "Waarom nou een frietwagen?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Omdat mensen bij een luik blijven staan en gaan praten. Een thuis met wielen, Tammo. Dat wil ik.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "En ik rijd.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Jij rijdt.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
      "text": "En tot die tijd? Hier past geen frietwagen.",
      "tag": "NIEUW",
      "channel": "stem",
@@ -348,6 +382,15 @@
     {
      "speaker": "Tessa",
      "key": "A",
+     "text": "Vierentwintig, net afgestudeerd en samen nul banen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
      "text": "Alleen kan ik de huur niet betalen. Jij ook niet. Samen net.",
      "tag": "BEHOUDEN",
      "channel": "stem",
@@ -363,6 +406,22 @@
      "channel": "stem",
      "textOnly": false,
      "rec": "lines"
+    },
+    {
+     "speaker": "Rikus",
+     "key": "rikus",
+     "text": "En nu een plaat voor Tammo, mijn vriend sinds groep drie. Hij heeft een grote dag en zegt niks.",
+     "tag": "NIEUW",
+     "channel": "radio",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Rikus draait mijn plaat.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
     },
     {
      "speaker": "Tessa",
@@ -439,11 +498,19 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Een streamer betaalt honderdvijftig euro voor stunts. Alleen heeft de Escapade een lekke band, dus we lenen een bakkie. Rijden, niet praten.",
+     "text": "Een streamer betaalt honderdvijftig euro voor stunts. Alleen heeft de Escapade een lekke band.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dus we lenen het bakkie van Berend Bos. Rijden, niet praten.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
      "voice": "Anita"
     }
    ]
@@ -1382,11 +1449,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Ik ken iemand die opent wat niemand kan. Wij brengen de automaat naar hem.",
+     "text": "Ik ken Sjabbe. Hij opent wat niemand kan. Wij brengen de automaat naar hem.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -1615,6 +1681,23 @@
     "ze zitten in de Escapade voor de winkel, de motor tikt af."
    ],
    "lines": [
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Fijn, die nieuwe band. Henk van Garage Knalpot vroeg niks.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Alleen of we een koekje wilden.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
     {
      "speaker": "Tammo",
      "key": "T",
@@ -1972,29 +2055,26 @@
     {
      "speaker": "Mevrouw Hoving",
      "key": "bewaarder",
-     "text": "Ik bewaar de Gouden Eierbal, de wisselprijs van de Snackprijs, al sinds 1998. Wie de bal bewaart, zit de jury voor en tekent de uitslag.",
+     "text": "Ik bewaar de Gouden Eierbal, de wisselprijs van de Snackprijs, al sinds 1998. Wie de bal heeft, zit de jury voor.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Loketbediende",
      "key": "loketbediende",
-     "text": "Is de bewaarder er niet, dan zit het oudste jurylid voor. Dat is Berend Bos, jurylid sinds 1982.",
+     "text": "Is zij er niet, dan zit Berend Bos voor. Jurylid sinds 1982.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Mevrouw Hoving",
      "key": "bewaarder",
-     "text": "Meneer Terpstra heeft de vier andere juryleden en mij uitgenodigd voor een treinreis met volpension: alle maaltijden erbij. Vanaf maandag, tot na het Ontzet.",
+     "text": "Meneer Terpstra heeft mij en de vier andere juryleden uitgenodigd voor een treinreis met volpension. Vanaf maandag, tot na het Ontzet.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Mevrouw Hoving",
@@ -2135,21 +2215,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Hij vroeg Sjabbe waar het museum alarmen heeft. Hij wil de bal, want wie de bal bewaart, zit de jury voor.",
+     "text": "Hij vroeg Sjabbe waar het museum alarmen heeft. Hij wil de bal, want wie de bal heeft, zit de jury voor, en dat wil Jelle.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
-     "voice": "Anita"
-    },
-    {
-     "speaker": "Tessa",
-     "key": "A",
-     "text": "Tenzij iemand de bal eerder pakt.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -2229,6 +2298,14 @@
      "rec": "banter"
     },
     {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Als iemand het museum kent, is het Bert. De beste vriend van mijn opa.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
      "speaker": "Duivenmelker Bert",
      "key": "bert",
      "text": "Tammo. Bert, van de duiven. Er staat elke nacht een zwarte trekker bij het museum, met een limousine erachter.",
@@ -2240,11 +2317,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Bert kende jouw opa. Eerst kijken hoe het museum bewaakt wordt. Naar het Stationsplein.",
+     "text": "Eerst kijken hoe het museum bewaakt wordt. Naar het Stationsplein.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     }
    ]
@@ -2267,6 +2343,46 @@
      "channel": "stem",
      "textOnly": false,
      "rec": "lines"
+    }
+   ]
+  },
+  {
+   "id": "R1.1",
+   "title": "Nachtstreek, zaterdagavond",
+   "act": 1,
+   "region": "Stad",
+   "vehicle": "radio",
+   "step": "M03",
+   "kind": "radio",
+   "anchor": {
+    "at": "after",
+    "step": "M03"
+   },
+   "regie": [],
+   "lines": [
+    {
+     "speaker": "Rikus",
+     "key": "rikus",
+     "text": "Een beller voor de zaterdagavond. Hij zegt dat hij de markt koopt. Ik zeg niks.",
+     "tag": "NIEUW",
+     "channel": "radio",
+     "textOnly": true
+    },
+    {
+     "speaker": "Jelle Terpstra",
+     "key": "jelle",
+     "text": "Jelle Terpstra, Us Mem Snacks. U kent mij van de plakjes: elke dag één, tot alles van mij is.",
+     "tag": "NIEUW",
+     "channel": "radio",
+     "textOnly": true
+    },
+    {
+     "speaker": "Rikus",
+     "key": "rikus",
+     "text": "Dat is een duidelijk plan. Ik draai een plaat.",
+     "tag": "NIEUW",
+     "channel": "radio",
+     "textOnly": true
     }
    ]
   },
@@ -3969,7 +4085,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Mijn oma won in 1953.",
+     "text": "Oma Trijntje won in 1953.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
