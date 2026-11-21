@@ -92,6 +92,9 @@ export function ensureIndex(base = 'world/') {
   return laden;
 }
 export const getIndexNow = () => index;
+// Een haak voor extra omzetfactoren per pand en kalenderdag (sponsorpanden.js: thuiswedstrijddag); geeft de (eventueel aangepaste) event-mods terug.
+let eventHook = (osm, mods) => mods;
+export const setEventHook = (fn) => { eventHook = typeof fn === 'function' ? fn : (osm, mods) => mods; };
 export function setIndexForTest(parcelFile, buildingFile = null) {
   index = { parcels: createParcelIndex(parcelFile), buildings: createBuildingIndex(buildingFile) };
   afterIndex();
@@ -467,7 +470,7 @@ export function dayTick(w) {
   const last = Math.min(day, from + 60);
   for (const m of myBusinesses()) {
     const x = m.row ? m.row.x : 0, y = m.row ? m.row.y : 0, district = districtOfPoint(x, y);
-    const res = BZ.settleDays(m.biz, from, last, (d) => ({ day: d, town: townOf(x, y), owned: Z.ownedCount(b), sameType: 0, event: EV.businessMods(m.biz, district, calOf(d)) }));
+    const res = BZ.settleDays(m.biz, from, last, (d) => ({ day: d, town: townOf(x, y), owned: Z.ownedCount(b), sameType: 0, event: eventHook(m.osm, EV.businessMods(m.biz, district, calOf(d)), calOf(d)) }));
     BZ.storeBiz(b, res.biz); bizNet += res.sum.net; tax += res.sum.tax;
   }
   let mobNet = 0;

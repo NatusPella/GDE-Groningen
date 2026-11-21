@@ -41,7 +41,11 @@ export function offersFor(clubId, division, seasonNr) {
   return sorts.map((sort, i) => ({ id: `sp${seasonNr}-${i}`, sort, naam: sponsorName(sort, rng), goal: goals[i % goals.length], amount: Math.round((lo + rng() * (hi - lo)) / 10) * 10, accepted: false, paid: false, osm: null }));
 }
 export const newSponsors = (clubId, division, seasonNr) => ({ nr: seasonNr, slots: offersFor(clubId, division, seasonNr) });
+// De pandindex die sponsorpanden.js registreert (geen import van Bezit hier, dus geen cyclus); een expliciet meegegeven index wint.
+let registeredIndex = null;
+export const setPandIndex = (ix) => { registeredIndex = ix && typeof ix.find === 'function' ? ix : null; };
 export function accept(sp, slotId, pandIndex = null, plaats = null) {
+  pandIndex = pandIndex || registeredIndex;
   const s = JSON.parse(JSON.stringify(sp));
   const deal = s.slots.find((x) => x.id === slotId);
   if (!deal || deal.accepted) return { sponsors: sp, ok: false };

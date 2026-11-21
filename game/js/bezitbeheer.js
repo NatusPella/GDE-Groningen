@@ -12,6 +12,7 @@
 import * as L from './bezitlive.js';
 import * as BZ from './business.js';
 import { staffWages } from './businessstaff.js';
+import { sponsorNameOf } from './sponsorpanden.js';
 
 export const OPEN_ALWAYS = true;
 export const MAX_CUSTOMERS = 6;
@@ -32,7 +33,7 @@ export function manageView(osm, w = null) {
   try { report = BZ.stepDay(biz, { day, town: { id: m.place, name: m.place, houses: 1500 }, owned: 1, event: {} }).report; } catch (e) { report = null; }
   const customers = report ? Math.min(MAX_CUSTOMERS, report.customers | 0) : 0;
   return {
-    osm, type: m.kind.type, cls: m.kind.cls, name: `${m.kind.type} bij ${m.place}`, place: m.place, quality: Math.round(biz.q), value: Math.round(biz.p),
+    osm, type: m.kind.type, cls: m.kind.cls, name: sponsorNameOf(osm) || `${m.kind.type} bij ${m.place}`, place: m.place, quality: Math.round(biz.q), value: Math.round(biz.p),
     knobs: { prijs: cfg.pr, voorraad: cfg.st, uren: cfg.hr }, open: OPEN_ALWAYS, staff: (cfg.staff || []).length, wagesPerDay: staffWages ? staffWages(cfg.staff || [], cfg.hr) : 0,
     report: report ? { revenue: report.revenue, net: report.net, reason: report.reason } : null, customers, canManage: canManage(w, osm),
   };
