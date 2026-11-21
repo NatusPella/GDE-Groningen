@@ -384,9 +384,13 @@ export const STEPS = [
     lead: ['A', 'De Escapade staat op een goederentrein richting Ljouwert. Ik haal hem terug. Alleen.'] }),
 
   // --- Akte 5: Ontzet (Westerkwartier en Stad, wo 26 - vr 28 augustus, epiloog 11 september) --
+  // het slot (verhaal-eind, 21-11): de wagen ontdekken en samen bouwen (F1, F2), de verzoening, Jelle achteraan de rij en de eerste avond als stel (F3 tot en met F5), de kaart (F6, na M30);
+  // activiteiten zonder beloning, met migratie voor oude saves (added: true, zie storyarc.js ADDED_STEPS)
+  A('F1', 'ontzet', 'Een wagen langs de weg', { type: 'reis', to: 'een zandweg bij Zuidhorn', at: [53.2490, 6.4150], r: 500, scene: 'F1' }, { built: true, added: true, scenes: ['F1'], lead: ['A', 'Langs een zandweg bij Zuidhorn staat een aanhanger met een luik en een bordje: te koop. Ik wil hem zien. Even.'] }),
   M('M22', 'ontzet', 'Een luik erin', 'luik', { built: true, reward: 300, loopbanen: ['race'],
     story: { intro: ['M22.1'], outro: null, replay: ['M22.5'] }, scenes: ['M22.1', 'M22.2', 'M22.3', 'M22.4', 'M22.5'],
     lead: ['T', "Tinus' schuur bij Zuidhorn. Henk bouwt een luik in de Escapade: dan is het de snackwagen. Eerst de modder in, om de as te testen."] }),
+  A('F2', 'ontzet', 'De eerste bak', { type: 'reis', to: 'een loods in Hoogkerk', at: [53.2158, 6.4850], r: 450, scene: 'F2' }, { built: true, added: true, scenes: ['F2'], lead: ['T', "Het luik zit erin. Nu de eerste bak: een loods in Hoogkerk, een friteuse en Oma's beslag. Jij bakt, ik sleutel."] }),
   M('M23', 'ontzet', 'De colonne', 'colonne', { built: true, reward: 500,
     story: { intro: ['M23.1'], outro: ['M23.4'], replay: ['M23.5'] }, scenes: ['M23.1', 'M23.6', 'M23.7', 'M23.8', 'M23.2', 'M23.3', 'M23.4', 'M23.5'],
     lead: ['A', "Mem en Oma hebben de vrienden gebeld. We rijden samen naar de Grote Markt, vanaf Tinus' schuur."] }),
@@ -399,6 +403,9 @@ export const STEPS = [
   M('M26', 'ontzet', 'Ontzet, net als in 1672', 'ontzet', { built: true, reward: 4000,
     story: { intro: ['M26.1', 'M26.2'], outro: ['M26.7', 'M26.17', 'M26.8'], replay: ['M26.9'] }, scenes: ['M26.1', 'M26.2', 'M26.3', 'M26.14', 'M26.15', 'M26.16', 'M26.4', 'M26.5', 'M26.6', 'M26.10', 'M26.11', 'M26.12', 'M26.13', 'M26.7', 'M26.17', 'M26.8', 'M26.9'],
     lead: ['A', 'De Grote Markt, vrijdag, Gronings Ontzet. Win met de beste eierbal, hou de kraam heel en houd Jelle voor drie uur bij de notaris vandaan.'] }),
+  A('F3', 'ontzet', 'Soep en eierbal', { type: 'reis', to: 'de Noorderhaven', at: [53.2250, 6.5610], r: 250, scene: 'F3' }, { built: true, added: true, scenes: ['F3'], lead: ['T', 'Oma Trijntje en Beppe in één keuken aan de Noorderhaven, met Mem erbij. Neem brood mee en blijf kalm.'] }),
+  A('F4', 'ontzet', 'Foar mem, achteraan de rij', { type: 'reis', to: 'de Vismarkt', at: [53.2196, 6.5688], r: 250, scene: 'F4' }, { built: true, added: true, scenes: ['F4'], lead: ['A', 'Zondagochtend bij de Vismarkt: het luik is open, de rij staat er al. En achteraan staat iemand die we kennen.'] }),
+  A('F5', 'ontzet', 'Een avond voor twee', { type: 'reis', to: 'de kade aan de Noorderhaven', at: [53.2268, 6.5590], r: 250, scene: 'F5' }, { built: true, added: true, scenes: ['F5'], lead: ['T', 'Vanavond aan de Noorderhaven. Ik heb een deken en twee eierballen. Zeg maar niks.'] }),
   A('E', 'ontzet', 'Epiloog en slot', { type: 'epilogue' }, { built: true, scenes: ['E1', 'E2', 'E3'] }),
 
   // --- Deel 4: Nazomer (Loppersum en Bourtange, ma 14 - za 19 september), after the finale card ------------------
@@ -417,6 +424,7 @@ export const STEPS = [
   M('M30', 'nazomer', 'Het proefbeleg', 'proefbeleg', { built: true, reward: 1500, loopbanen: ['golf'],
     story: { intro: ['M30.1'], outro: ['M30.6'], replay: ['M30.7'] }, scenes: ['M30.1', 'M30.2', 'M30.3', 'M30.4', 'M30.5', 'M30.6', 'M30.7'],
     lead: ['A', 'Het proefbeleg van Bourtange. Zeven vrienden, vier fronten en één bisschop die niet graag wint.'] }),
+  A('F6', 'nazomer', 'De kaart op het luik', { type: 'reis', to: 'de Vismarkt', at: [53.2196, 6.5688], r: 250, scene: 'F6' }, { built: true, added: true, scenes: ['F6'], lead: ['A', 'De Vismarkt, zaterdagochtend. Ik heb een kaart van de provincie en een stift. Wedstrijd.'] }),
 ];
 
 // what Tammo and Tessa are after, per part ("Wat weten we?")

@@ -210,3 +210,19 @@ VELDKAMP: De duiven vragen of jullie blijven. [NIEUW]
 TESSA: Samen. [NIEUW]
 TAMMO: Samen. [NIEUW]
 
+## [F6] De kaart op het luik – Stad, Vismarkt – snackwagen
+(regie: zaterdag 19 september, ochtend. Op de Vismarkt staat de snackwagen met het luik open, nog zonder rij. Tessa legt een kaart van de provincie op het luik met knijpers. Rood staat voor Us Mem Snacks, en dat is veel. Ze plakt er één blauw stipje bij: de Vismarkt.)
+TESSA: Eenenveertig tegen één. [NIEUW]
+TAMMO: Dat is een goede verhouding. Voor Jelle. [NIEUW]
+TESSA: Wij hebben een wagen, een standplaats en een rij. [NIEUW]
+TAMMO: En een Escapade die trekt. [NIEUW]
+JELLE (telefoon): Mevrouw Tessa. Ik hoor dat u een tweede standplaats zoekt. Aan de Hereweg is er een. Ik wil hem ook. [NIEUW]
+TESSA (telefoon): Wedstrijd? [NIEUW]
+JELLE (telefoon): Wedstrijd. Foar mem. [NIEUW]
+RIKUS (radio): Het is half tien. Het luik is open, de kaart ligt klaar. Ik zeg niks. Ik reken wel. [NIEUW]
+(regie: Tessa schuift het blauwe stipje een centimeter naar links, naar de Hereweg. Tammo kijkt naar de kaart, dan naar haar.)
+TAMMO: Alles blijft open. De boerderij, de panden, het voetbal. [NIEUW]
+TESSA: En de wagen. Hij rijdt, Tammo. [NIEUW]
+TAMMO: Dan rijden we. [NIEUW]
+TESSA: Eerst de Hereweg. [NIEUW]
+TAMMO: Eerst de Hereweg. [NIEUW]

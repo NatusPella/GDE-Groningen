@@ -1,0 +1,133 @@
+{
+ "note": "Humorkeuze (#1134), verhaal-eind (21-11): de slotstappen F1-F6. Voorstel: nog niet door het paneel beoordeeld; chosen is de variant die nu in het script staat.",
+ "beats": [
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "id": "HE-01",
+   "scene": "F1",
+   "speaker": "TAMMO",
+   "context": "Langs de zandweg bij Zuidhorn, bij de verroeste frituuraanhanger. Tessa kijkt verlangend naar het luik; Tammo zegt dat ze kijkt zoals hij naar... en wordt onderbroken door haar vraag.",
+   "shot": "halve close-up Tammo, ogen op de aanhanger; Tessa half in beeld",
+   "variants": [
+    "Naar de motor.",
+    "Naar het chassis.",
+    "Naar de aandrijfas."
+   ],
+   "neutral": "Naar de wagen."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "id": "HE-02",
+   "scene": "F2",
+   "speaker": "TAMMO",
+   "context": "Loods in Hoogkerk, de eerste bak. Tessa zegt dat hij de friteuse moet aanzetten; Tammo, die alleen motoren kent, vraagt wat voor knop het is.",
+   "shot": "twee-shot bij de friteuse, Tammo wijst met een steeksleutel",
+   "variants": [
+    "Is dat een knop of een gebed?",
+    "Is dat een knop of een hoop?",
+    "Is dit een knop of een offer?"
+   ],
+   "neutral": "Welke knop?"
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "id": "HE-03",
+   "scene": "F3",
+   "speaker": "TAMMO",
+   "context": "Oma's keuken, Oma Trijntje (Gronings) en Beppe (Fries) kijken elkaar aan als een grensgeschil. Tessa noemt Tammo, die van beide oma's is, de verzoening.",
+   "shot": "totaal van de keuken, dan inzet op Tammo tussen de twee fornuizen",
+   "variants": [
+    "Ik ben het compromis.",
+    "Ik ben de grensovergang.",
+    "Ik ben de ruzie die het overleefde."
+   ],
+   "neutral": "Ik ben van allebei."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "id": "HE-04",
+   "scene": "F4",
+   "speaker": "TAMMO",
+   "context": "Vismarkt, Jelle staat achteraan de rij. Tessa zegt dat Tammo hem één klap mag geven; Jelle merkt op dat het niet in zijn vergunning staat.",
+   "shot": "close-up Tammo, de vuist opent zich langzaam",
+   "variants": [
+    "Ik heb ook geen vergunning.",
+    "Ik heb geen vergunning. Alleen een vuist.",
+    "Ik ook niet. Dat maakt het eerlijk."
+   ],
+   "neutral": "Ik heb erover nagedacht."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "id": "HE-05",
+   "scene": "F4",
+   "speaker": "JELLE",
+   "context": "Vismarkt, aan het luik. Tessa vraagt een euro vijftig voor de eierbal en zegt dat dit de prijs is. Zijn eerste echte nederlaag in een onderhandeling.",
+   "shot": "halve close-up Jelle, de mond half open; Mem kijkt zijdelings toe",
+   "variants": [
+    "...Dat is de eerste prijs die ik niet kon onderhandelen.",
+    "...Een vaste prijs. Het voelt als een vergunning.",
+    "...Dat is de eerste prijs zonder korting. Ik bewonder het bijna."
+   ],
+   "neutral": "...Goed. Eén euro vijftig."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "id": "HE-06",
+   "scene": "F5",
+   "speaker": "TESSA",
+   "context": "De kade aan de Noorderhaven. Tammo zegt dat hij het hier het liefst wil, met haar erbij. Tessa telt de woorden, een knipoog naar de vijf woorden van de Grote Markt.",
+   "shot": "twee-shot op het luik, Tessa telt op haar vingers",
+   "variants": [
+    "Dat waren er drie. Kon meer.",
+    "Drie. Kon meer.",
+    "Drie woorden. Dat is een stijging."
+   ],
+   "neutral": "Dat was mooi."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "id": "HE-07",
+   "scene": "F5",
+   "speaker": "TAMMO",
+   "context": "De kade, na Tessa's vraag of ze nu een stel zijn. Tammo verwijst naar Berends tellen van de kus op de Grote Markt als bewijs.",
+   "shot": "close-up Tammo, ernstig, met een eierbal in de hand",
+   "variants": [
+    "Berend telde elf seconden. Dat is officieel.",
+    "Elf seconden, met getuigen. Dat is officieel.",
+    "Berend heeft het genoteerd. Dat is officieel."
+   ],
+   "neutral": "Ja."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "id": "HE-08",
+   "scene": "F6",
+   "speaker": "TAMMO",
+   "context": "Vismarkt, de kaart van de provincie ligt op het luik: eenenveertig rode stippen van Us Mem Snacks tegen één blauwe van de wagen. Tessa heeft het aantal net genoemd.",
+   "shot": "hoge opname van de kaart op het luik, Tammo's vinger op het blauwe stipje",
+   "variants": [
+    "Dat is een goede verhouding. Voor Jelle.",
+    "Dat is een goede verhouding. Voor de duiven.",
+    "Eén blauw is genoeg. Het valt meer op."
+   ],
+   "neutral": "Dat zijn er veel."
+  }
+ ]
+}

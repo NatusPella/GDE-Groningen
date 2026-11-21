@@ -1,6 +1,8 @@
 {
   "_uitleg": "Bedoelde terugkeer in het verhaalscript. herhaling: de hele regel mag bij dezelfde spreker in meer dan één scène staan (maxKeer zet er een plafond op). alternatief: scènes die elkaars alternatief zijn (de speler ziet er maar één). paren: twee bijna-gelijke regels die elkaar bewust citeren. plafond: het aantal regels per verboden zinsbouw dat nu in het script staat; het mag alleen dalen.",
   "herhaling": [
+    { "tekst": "Ytst dan mar earst, dan prate wy.", "reden": "Beppes vaste zin: N3 (soep bij Beppe) en F3 (Beppe in Oma's keuken); een Friese regel die er nog geen opname van heeft, dus geen nieuwe woorden" },
+    { "tekst": "Hy seit neat, mar hy docht it goed.", "reden": "Beppe over Tammo: N3 en F3, het slot van de verzoening met Oma Trijntje" },
     { "tekst": "Tessa, eigenlijk—", "reden": "de onvoltooide zin van Tammo (inspiratiepakket D20): hoogstens vier keer (O3, akte 2, 3 en 4) en uitbetaald met de vijf woorden in M26.7", "maxKeer": 4 },
     { "tekst": "Ik heb niks gezegd.", "reden": "de duivengrap: M15.6 (de duif en het jasje van Daan) en de finalekaart (E1)" },
     { "tekst": "Net fertelle, hè?", "reden": "Durks stopwoord, zo hoog als het nu is", "maxKeer": 5 },

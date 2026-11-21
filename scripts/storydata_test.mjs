@@ -73,7 +73,7 @@ for (const st of STEPS) {
 const missions = STEPS.filter((s) => s.kind === 'mission');
 // 26 missions of the five acts and the four of Deel 4 (M27-M30, after the epilogue E)
 ok(missions.length === 30 && missions.map((s) => s.id).join() === [...Array(30)].map((_, i) => 'M' + String(i + 1).padStart(2, '0')).join(), '30 main missions, M01-M30 in order');
-ok(STEPS.filter((s) => /^T\d$/.test(s.id)).length === 5 && STEPS[0].id === 'M00' && STEPS.filter((s) => s.part === 'ontzet').pop().id === 'E' && STEPS[STEPS.length - 1].id === 'M30', 'five travel beats, the opening first, the epilogue last of the five acts and Deel 4 after it');
+ok(STEPS.filter((s) => /^T\d$/.test(s.id)).length === 5 && STEPS[0].id === 'M00' && STEPS.filter((s) => s.part === 'ontzet').pop().id === 'E' && STEPS[STEPS.length - 1].id === 'F6' && STEPS[STEPS.length - 2].id === 'M30', 'five travel beats, the opening first, the epilogue last of the five acts and Deel 4 after it');
 for (const m of missions) {
   const sc = scenes.filter((q) => q.step === m.id && /^M\d\d\.\d$/.test(q.id));
   ok(sc.some((q) => q.kind === 'intro'), `${m.id}: has an intro`);

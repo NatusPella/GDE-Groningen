@@ -668,6 +668,12 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 
 ### Akte 5: Ontzet
 
+**Sequentie F1: Een wagen langs de weg** (activiteit; speler-protagonist Tammo)
+
+- **F1** BUITEN – WESTERKWARTIER, EEN ZANDWEG BIJ ZUIDHORN – DAG · Een wagen langs de weg · cutscene of gespeeld in de missie
+  - woensdag 26 augustus, vroeg. Langs een zandweg staat een verroeste frituuraanhanger aan een hek, met een bordje: TE KOOP, AFHALEN. Tessa stapt uit zonder iets te zeggen. Tammo blijft achter het stuur zitten, dan stapt hi
+  - praat: Tammo, Tessa
+
 **Sequentie M22: Een luik erin** (missie luik; speler-protagonist Tammo)
 
 - **M22.1** BINNEN – WESTERKWARTIER, TINUS' SCHUUR BIJ ZUIDHORN – OCHTEND · Een luik erin: intro · cutscene of gespeeld in de missie
@@ -683,6 +689,12 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
   - praat: Tessa, Tammo
 - **M22.5** BUITEN – WESTERKWARTIER, TINUS' SCHUUR – DAG · Een luik erin: herhaling · replay
   - praat: Henk
+
+**Sequentie F2: De eerste bak** (activiteit; speler-protagonist Tammo)
+
+- **F2** BUITEN – STAD, HOOGKERK, EEN LOODS – DAG · De eerste bak · cutscene of gespeeld in de missie
+  - donderdag 27 augustus, vroeg. Een loods in Hoogkerk, buiten ruikt het naar suiker. De wagen staat op blokken. Tammo ligt eronder met een zaklamp, Tessa staat bij de friteuse met Oma's schort.
+  - praat: Tammo, Tessa
 
 **Sequentie M23: De colonne** (missie colonne; speler-protagonist Tammo)
 
@@ -803,6 +815,24 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
   - praat: Berend Bos
 - **A5.2** BUITEN – STAD – DAG · Appjes zaterdag 29 augustus (stil, geen stem) · appjes
 
+**Sequentie F3: Soep en eierbal** (activiteit; speler-protagonist Tammo)
+
+- **F3** BINNEN – STAD, NOORDERHAVEN, OMA'S KEUKEN – MIDDAG · Soep en eierbal · cutscene of gespeeld in de missie
+  - zaterdag 29 augustus, middag. Oma's keuken is te klein voor zes mensen en een pan soep. Beppe staat bij het fornuis, Oma Trijntje bij de friteuse, en ze kijken elkaar aan alsof het een grensgeschil is. Durk en Douwe staa
+  - praat: Oma Trijntje, Beppe, Mem Terpstra, Tammo, Tessa, Douwe, Durk
+
+**Sequentie F4: Foar mem, achteraan de rij** (activiteit; speler-protagonist Tammo)
+
+- **F4** BUITEN – STAD, VISMARKT – OCHTEND · Foar mem, achteraan de rij · cutscene of gespeeld in de missie
+  - zondag 30 augustus, ochtend. Bij de Vismarkt staat de snackwagen met TAM & TES op het luik en een rij van veertig mensen. Achteraan staat Jelle, in een gewone jas, zonder limo, met Mem aan zijn arm. Durk en Douwe houden 
+  - praat: Jelle Terpstra, Tessa, Durk, Douwe, Tammo, Mem Terpstra
+
+**Sequentie F5: Een avond voor twee** (activiteit; speler-protagonist Tammo)
+
+- **F5** BUITEN – STAD, NOORDERHAVEN, DE KADE – AVOND · Een avond voor twee · cutscene of gespeeld in de missie
+  - zondag 30 augustus, avond. De wagen staat gesloten aan de kade. Tammo heeft een opgevouwen briefje bij zich, een deken en twee eierballen in een zak. Tessa zit op de rand van het luik. Boven hen draait een duif rondjes. 
+  - praat: Tessa, Tammo
+
 **Sequentie E: Epiloog en slot** (activiteit; speler-protagonist Tammo)
 
 - **E1** BUITEN – STAD, VISMARKT – DAG · Epiloog · cutscene of gespeeld in de missie
@@ -899,23 +929,25 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
   - avond, de flat. Op het prikbord hangen de vijf vrienden van Oma, het plakjesbord van Jelle en een briefje in Tessa's hand: snackwagen, wat nu? Beneden staat de Escapade met het luik open.
   - praat: Tessa, Tammo, Meneer Veldkamp
 
+**Sequentie F6: De kaart op het luik** (activiteit; speler-protagonist Tammo)
+
+- **F6** BUITEN – STAD, VISMARKT – OCHTEND · De kaart op het luik · cutscene of gespeeld in de missie
+  - zaterdag 19 september, ochtend. Op de Vismarkt staat de snackwagen met het luik open, nog zonder rij. Tessa legt een kaart van de provincie op het luik met knijpers. Rood staat voor Us Mem Snacks, en dat is veel. Ze plak
+  - praat: Tessa, Tammo, Jelle Terpstra, Rikus
+
 ## Scènebord: personage per akte
 
 | Personage | Akte 1 | Akte 2 | Akte 3 | Akte 4 | Akte 5 | Deel 4 |
 |---|---|---|---|---|---|---|
-| Tessa | 39 | 37 | 28 | 30 | 34 | 15 |
-| Tammo | 39 | 35 | 28 | 28 | 28 | 16 |
-| Jelle Terpstra | 4 | 10 | 11 | 7 | 11 | 3 |
-| Rikus | 9 | 4 | 4 | 6 | 11 | 3 |
-| Tessa | 39 | 34 | 31 | 32 | 34 | 15 |
-| Tammo | 39 | 32 | 31 | 30 | 28 | 16 |
-| Jelle Terpstra | 4 | 10 | 11 | 8 | 11 | 3 |
-| Rikus | 9 | 4 | 4 | 6 | 11 | 3 |
+| Tessa | 39 | 37 | 31 | 33 | 39 | 16 |
+| Tammo | 39 | 35 | 31 | 31 | 33 | 17 |
+| Jelle Terpstra | 4 | 10 | 11 | 8 | 12 | 4 |
+| Rikus | 9 | 4 | 4 | 7 | 11 | 4 |
 | Berend Bos | 4 |  |  | 14 | 10 | 8 |
-| Oma Trijntje |  | 5 | 1 | 5 | 7 | 1 |
-| Douwe | 1 | 2 | 5 | 5 | 3 | 2 |
-| Durk | 1 | 1 | 5 | 4 | 3 | 2 |
-| Mem Terpstra |  | 2 |  | 6 | 7 |  |
+| Douwe | 1 | 2 | 5 | 5 | 5 | 2 |
+| Oma Trijntje |  | 5 | 1 | 5 | 8 | 1 |
+| Durk | 1 | 1 | 5 | 4 | 5 | 2 |
+| Mem Terpstra |  | 2 |  | 6 | 9 |  |
 | Kapitein Klaas |  | 8 |  | 1 | 1 | 2 |
 | Willemien |  |  |  |  |  | 12 |
 | Sjabbe | 7 |  |  | 1 | 2 | 1 |
@@ -932,12 +964,11 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 | Loketbediende | 5 |  |  |  |  |  |
 | Streamer | 4 |  |  |  |  |  |
 | Torenwachter | 1 |  |  |  | 3 |  |
-| Beppe | 2 |  |  | 1 |  |  |
+| Beppe | 2 |  |  | 1 | 1 |  |
 | Meneer Veldkamp | 2 |  |  |  |  | 1 |
 | Sjoerd | 3 |  |  |  |  |  |
 | Snackbarhouder |  | 3 |  |  |  |  |
 | Terrasgast | 1 | 1 |  |  |  |  |
-| Beppe | 2 |  |  |  |  |  |
 | Mevrouw Hoving | 1 |  |  | 1 |  |  |
 | Boer |  | 1 |  |  |  | 1 |
 | Buschauffeur |  | 2 |  |  |  |  |

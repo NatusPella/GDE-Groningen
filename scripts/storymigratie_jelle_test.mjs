@@ -38,7 +38,7 @@ ok(huidige('M19').id === 'J6', 'na M19 volgt Beppe aan de deur (J6)', huidige('M
 ok(huidige('T4').id === 'M20', 'voorbij T4 geen herhaling van J6', huidige('T4').id);
 const s21 = saveTot('M21');
 ok(J.every((id) => stepDone(idx(id), (x) => s21.done.has(x), s21.mp)), 'een save voorbij M21 heeft alle J-stappen als gedaan (geen blokkade)');
-ok(huidige('M30') && huidige('M30').end !== undefined, 'een uitgespeelde oude save blijft uitgespeeld');
+ok(huidige('M30') && huidige('M30').id === 'F6', 'een uitgespeelde oude save krijgt alleen het slot F6 nog te spelen (verhaal-eind)');
 
 // geen dubbele beloning of vlag: de mijlpaalvlaggen en het tussenstuk reageren niet op de nieuwe stappen
 const tot = (laatste) => new Set(OUD.slice(0, OUD.findIndex((s) => s.id === laatste) + 1).map((s) => s.id));
