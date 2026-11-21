@@ -19,6 +19,60 @@
  },
  {
   "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "Vijftig euro voor wie mijn bakkie naar mijn zus brengt. Aan het Boterdiep.",
+  "scene": "M01.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Waarom doe je het niet zelf?",
+  "scene": "M01.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "Gips.",
+  "scene": "M01.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "Niet erbij vertellen.",
+  "scene": "M01.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Sjabbe",
+  "text": "Dan moet je groter denken. Durk en Douwe, die twee reuzen, werken voor een Fries in een blauw colbert.",
+  "scene": "M02.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Sjabbe",
+  "text": "Jelle Terpstra. Betaalt contant, uit een klomp.",
+  "scene": "M02.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Een klomp?",
+  "scene": "M02.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Sjabbe",
+  "text": "Een klomp is snel leeg.",
+  "scene": "M02.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Sjabbe",
+  "text": "Daarom halen ze pinautomaten uit de muur.",
+  "scene": "M02.3"
+ },
+ {
+  "reason": "spreektekst",
   "speaker": "Tammo",
   "text": "Fijn, die nieuwe band. Henk vroeg niks.",
   "scene": "M02.5"
@@ -182,13 +236,61 @@
  {
   "reason": "spreektekst",
   "speaker": "Mevrouw Hoving",
-  "text": "Meneer Terpstra heeft mij en de vier andere juryleden uitgenodigd voor een treinreis met volpension. Vanaf maandag, tot na het Ontzet.",
+  "text": "Maar ik ben er maandag niet. Meneer Terpstra nodigde mij en de vier andere juryleden uit voor een treinreis.",
+  "scene": "M03.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Loketbediende",
+  "text": "Met volpension.",
+  "scene": "M03.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Mevrouw Hoving",
+  "text": "Tot na het Ontzet. Alleen Berend Bos bedankte, want hij heeft een bakkie.",
+  "scene": "M03.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Mevrouw Hoving",
+  "text": "Een bijzonder aardige man, meneer Terpstra.",
   "scene": "M03.2"
  },
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
+  "text": "Bijzonder.",
+  "scene": "M03.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Hij wil de bal.",
+  "scene": "M03.4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
   "text": "Als iemand het museum kent, is het Bert. De beste vriend van mijn opa.",
+  "scene": "M03.4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Duivenmelker Bert",
+  "text": "Tammo. Bert, van de duiven.",
+  "scene": "M03.4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Bert, wij wilden je net bellen.",
+  "scene": "M03.4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Duivenmelker Bert",
+  "text": "Ik weet het. Elke nacht staat er een zwarte trekker bij het museum. Met een limousine erachter.",
   "scene": "M03.4"
  },
  {
@@ -338,25 +440,43 @@
  {
   "reason": "spreektekst",
   "speaker": "Oma Trijntje",
-  "text": "1953. Dat ik won, weet je. Tweede werd Gerda Terpstra. Haar eierbal was beter.",
+  "text": "1953. Dat ik won, weet je.",
   "scene": "M08.3"
  },
  {
   "reason": "spreektekst",
   "speaker": "Oma Trijntje",
-  "text": "Haar kleinzoon, zeker. Ik heb het nooit gezegd. Zeventig jaar trots. Dat is lang voor iets wat in één zin past.",
+  "text": "Tweede werd Gerda Terpstra. Haar eierbal was beter.",
   "scene": "M08.3"
  },
  {
   "reason": "spreektekst",
   "speaker": "Oma Trijntje",
-  "text": "Het recept van 1953 had vijf dingen van vijf vrienden: vet, eieren, zout, meel en mosterd.",
+  "text": "Haar kleinzoon, zeker. Ik heb het nooit gezegd.",
   "scene": "M08.3"
  },
  {
   "reason": "spreektekst",
   "speaker": "Oma Trijntje",
-  "text": "Klaas in Zoutkamp heeft het zout. De rest staat op het lijstje. En Dijkstra van het ziekenhuis helpt: ik kookte voor zijn afdeling.",
+  "text": "Zeventig jaar trots. Dat is lang voor iets wat in één zin past.",
+  "scene": "M08.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Oma Trijntje",
+  "text": "Het recept van 1953 had vijf dingen van vijf vrienden. Vet, eieren, zout, meel en mosterd.",
+  "scene": "M08.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "En de rest?",
+  "scene": "M08.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Oma Trijntje",
+  "text": "Klaas in Zoutkamp heeft het zout. De rest staat op het lijstje. Dijkstra van het ziekenhuis helpt: ik kookte voor zijn afdeling.",
   "scene": "M08.3"
  },
  {
@@ -469,6 +589,18 @@
  },
  {
   "reason": "spreektekst",
+  "speaker": "Geesje",
+  "text": "Jelle Terpstra heeft alle eieren van het Hogeland gekocht.",
+  "scene": "M09.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Geesje",
+  "text": "Behalve de mijne. Mijn kippen hebben geen contract.",
+  "scene": "M09.1"
+ },
+ {
+  "reason": "spreektekst",
   "speaker": "Tammo",
   "text": "Vijf jaar. En dat zeg je nu pas?",
   "scene": "M09.1"
@@ -476,7 +608,13 @@
  {
   "reason": "spreektekst",
   "speaker": "Geesje",
-  "text": "Zijn oma, Gerda, belt Trijntje elk jaar op haar verjaardag. Ze zeggen dan allebei niks.",
+  "text": "Zijn oma, Gerda, belt Trijntje elk jaar op haar verjaardag.",
+  "scene": "M09.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Geesje",
+  "text": "Ze zeggen dan allebei niks.",
   "scene": "M09.1"
  },
  {
@@ -537,6 +675,18 @@
   "reason": "spreektekst",
   "speaker": "Kapitein Klaas",
   "text": "Dertig jaar viste ik fietsen uit de Diepenring. Nu vis ik ze uit het Reitdiep. Bijna niemand mist ze.",
+  "scene": "M11.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Kapitein Klaas",
+  "text": "Jelle vaart met een skûtsje naar Lauwersoog, voor de pers. Gouden bal in de kist.",
+  "scene": "M11.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Kapitein Klaas",
+  "text": "Maar zolang hij naar het water kijkt, kijkt hij niet naar het wad. Daar ligt vanavond het zout van Oma.",
   "scene": "M11.1"
  },
  {
@@ -668,7 +818,13 @@
  {
   "reason": "spreektekst",
   "speaker": "Lammert",
-  "text": "Mijn vrachtwagen brengt het naar mijn woonschip in Delfzijl. Dit vat is van mijn vader: het vet van 1953. Voor Oma.",
+  "text": "Mijn vrachtwagen brengt het naar Delfzijl. Het vat is van mijn vader.",
+  "scene": "M13.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Lammert",
+  "text": "Het vet van 1953. Voor Oma.",
   "scene": "M13.3"
  },
  {
@@ -680,13 +836,19 @@
  {
   "reason": "spreektekst",
   "speaker": "Lammert",
-  "text": "Om acht uur komt zijn deurwaarder. Maar Trijntje tekent eerder de overdracht van mijn woonschip, op de sluis. Dan mag hij er niet bij.",
+  "text": "Om acht uur komt zijn deurwaarder. Trijntje tekent eerder de overdracht van mijn woonschip, op de sluis. Dan mag hij er niet bij.",
   "scene": "M13.3"
  },
  {
   "reason": "spreektekst",
   "speaker": "Lammert",
   "text": "En als jullie ooit een wagen hebben, staat hij aan mijn kade. Een stek. Vannacht slapen jullie in mijn havenkantoor.",
+  "scene": "M13.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Prima.",
   "scene": "M13.3"
  },
  {
@@ -908,6 +1070,48 @@
  {
   "reason": "spreektekst",
   "speaker": "Wubbo",
+  "text": "Open of dicht.",
+  "scene": "M17.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Wubbo",
+  "text": "Nooit allebei.",
+  "scene": "M17.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Is dat een regel?",
+  "scene": "M17.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Wubbo",
+  "text": "Dat is mijn hele werkfilosofie. Trijntje zocht iemand die kan wachten, en ik ben brugwachter.",
+  "scene": "M17.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Wubbo",
+  "text": "Elf bruggen. Toeter bij een gesloten brug, dan open ik op het ritme van de fanfare.",
+  "scene": "M17.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "En als we de maat missen?",
+  "scene": "M17.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Wubbo",
+  "text": "Dan wacht je. Open of dicht.",
+  "scene": "M17.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Wubbo",
   "text": "Onder brug elf staat Stien met haar frituur. Haar friet is de beste van Veendam. Kom daarna even langs.",
   "scene": "M17.1"
  },
@@ -1069,6 +1273,30 @@
  },
  {
   "reason": "spreektekst",
+  "speaker": "Oma Trijntje",
+  "text": "Gerda belde mij. Ze zei: mijn jongen heeft de bal.",
+  "scene": "M20.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Oma Trijntje",
+  "text": "Ik zei: dan nemen we de bal van hem af.",
+  "scene": "M20.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "Ik reed. Nul krassen. Op de heenweg.",
+  "scene": "M20.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Oma Trijntje",
+  "text": "Gerda.",
+  "scene": "M20.3"
+ },
+ {
+  "reason": "spreektekst",
   "speaker": "Tammo",
   "text": "\"Tige tank foar de auto. – J.\" Hij bedankt ons voor een auto die hij niet heeft.",
   "scene": "M20.5"
@@ -1189,8 +1417,20 @@
  },
  {
   "reason": "spreektekst",
+  "speaker": "Tinus",
+  "text": "Ik de trekker. Wat Jelle ook neerzet, ik trek het weg.",
+  "scene": "M23.1"
+ },
+ {
+  "reason": "spreektekst",
   "speaker": "Kapitein Klaas",
-  "text": "Ik heb mijn rubberboot terug. De oma van Jelle belde de deurwaarder. De boot ligt op een aanhanger en ik praat tegen hem.",
+  "text": "Ik heb mijn rubberboot terug, op een aanhanger. De oma van Jelle belde de deurwaarder. Ik praat tegen hem.",
+  "scene": "M23.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "Ik achteraan. Vijftien kanonnen en een doos vuurwerk voor het Ontzet. Dan zie ik alles.",
   "scene": "M23.1"
  },
  {
@@ -1316,13 +1556,25 @@
  {
   "reason": "spreektekst",
   "speaker": "Berend Bos",
-  "text": "Regel twee: zonder bewaarder zit het oudste jurylid voor. Dat ben ik.",
+  "text": "Regel twee: zonder bewaarder zit het oudste jurylid voor.",
+  "scene": "M26.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "Ik.",
   "scene": "M26.2"
  },
  {
   "reason": "spreektekst",
   "speaker": "Berend Bos",
   "text": "Ik heb nog nooit iets gewonnen. Nu moet ik oordelen.",
+  "scene": "M26.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "Ik ben maar een nepbisschop.",
   "scene": "M26.2"
  },
  {
@@ -1520,7 +1772,37 @@
  {
   "reason": "spreektekst",
   "speaker": "Willemien",
-  "text": "De aannemer zet het huis op nieuwe poten. De ploeg is aardig. Het duurt alleen langer dan een kopje koffie.",
+  "text": "De aannemer zet het huis op nieuwe poten. De ploeg is aardig.",
+  "scene": "M27.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Willemien",
+  "text": "Het duurt alleen langer dan een kopje koffie.",
+  "scene": "M27.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Willemien",
+  "text": "Dat zegt Trijntje van alles. Breekbaar in de krant. Boeken in kleine dozen, anders til je ze niet.",
+  "scene": "M27.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "En de kat?",
+  "scene": "M27.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Willemien",
+  "text": "De kat weet het al.",
+  "scene": "M27.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Willemien",
+  "text": "Hij zit sinds gisteren onder de bank.",
   "scene": "M27.1"
  },
  {
@@ -1534,6 +1816,30 @@
   "speaker": "Willemien",
   "text": "Trijntjes recept. Het is een bal.",
   "scene": "M29.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Lammert",
+  "text": "Ik heb de sleutel van de sluis. Vrij genomen.",
+  "scene": "M30.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Roelfien",
+  "text": "Ik vlieg boven. Zes zakken meel. Eén keer wit. Daarna sta ik stil.",
+  "scene": "M30.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Wubbo",
+  "text": "Ik doe de lier van de brug. Open of dicht. Vandaag een tel te vroeg.",
+  "scene": "M30.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tinus",
+  "text": "De trekker heeft een toren. Zonder motor ging het niet. Met motor wel.",
+  "scene": "M30.1"
  },
  {
   "reason": "spreektekst",
