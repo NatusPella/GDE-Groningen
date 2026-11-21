@@ -313,7 +313,8 @@
     "gebieden*",
     "gebiedtoestand",
     "prestige",
-    "streekuitdaging*"
+    "streekuitdaging*",
+    "careertimeline"
    ],
    "eigenaar": "speler",
    "gast": "Eigen niveaus en titels op het eigen apparaat; wat je als gast verdient rekent met je eigen niveau.",
@@ -1526,6 +1527,10 @@
   {
    "glob": "pathlane",
    "reden": "Tekent de routelijn in de wereld van de eigen speler (beeld); de route is lokaal per speler."
+  },
+  {
+   "glob": "holdlatch",
+   "reden": "Zuivere vasthoudtoets voor een knop (toegankelijkheid): lokaal bij de speler, geen spelstaat."
   }
  ],
  "opslag": {
