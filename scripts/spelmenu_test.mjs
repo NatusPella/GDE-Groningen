@@ -176,7 +176,7 @@ ok(/data-of="verhaal" data-sub="opdrachten" data-keep/.test(pm) && /renderTodoSt
 ok(/data-todo-view="verhaal"/.test(read('game/js/todoui.js')) && /view === 'verhaal'\) \{ pref\.sub\.verhaal = 'opdrachten'/.test(pm), 'Alle opdrachten in Overzicht leidt naar Verhaal > Opdrachten');
 // elke actie bereikbaar, geen dubbele data-actions of panelen
 const panels = [...pm.matchAll(/data-panel="(\w+)" class/g)].map((x) => x[1]);
-ok(new Set(panels).size === panels.length && panels.length === 16, 'elk paneel staat één keer in het blad', String(panels.length));
+ok(new Set(panels).size === panels.length && panels.length === 17, 'elk paneel staat één keer in het blad', String(panels.length));
 // --- #430 definitief: Spel (met Overzicht), Verhaal (met de telefoon), Loopbanen, Activiteiten, Samen spelen (met Spelers), Instellingen (met Cheats)
 const secties = new Function('return ' + pm.slice(pm.indexOf('const SECTIONS = [') + 'const SECTIONS = '.length, pm.indexOf('];', pm.indexOf('const SECTIONS = [')) + 1))();
 ok(secties.map((x) => x[0]).slice(0, 11).join() === 'spel,verhaal,todo,loopbaan,map,spullen,garage,veroverd,prestaties,fotos,settings', 'de secties staan in de volgorde van de eigenaar (20-11: Spel | Doen | Bezit | Voortgang | Systeem)', secties.map((x) => x[0]).join());

@@ -37,6 +37,7 @@ import { trackTabLine } from './dsmicro.js'; // DS3: de glijdende onderstreping 
 import { renderLoopbaanPanel } from './loopbaanui.js';
 import { renderVisboekPanel } from './visboekui.js';
 import { renderBoerderijPanel, boerderijBegonnen } from './boerderijui.js';
+import { renderVoetbalPanel } from './voetbalcarriereui.js';
 import { getBoerderij } from './boerderijlive.js';
 import { unseenAchievementCount } from './achievements.js';
 import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer, garageNaarWinkel, turnGarageViewer } from './garageui.js';
@@ -343,7 +344,7 @@ function filterBinds(words) {
 }
 
 // Menu-icoon-id naar betekenisnaam (icons.js, Phosphor, ADR 0041).
-const ICONS = { resume: 'hervat', save: 'opslaan', load: 'laden', restart: 'herstart', help: 'hulp', home: 'thuis', abort: 'stop', bird: 'duif', menu: 'menu', exit: 'uitgang', back: 'terug', next: 'volgende', search: 'zoek', map: 'kaart', overzicht: 'overzicht', todo: 'todo', verhaal: 'verhaal', garage: 'garage', fotos: 'fotos', prestaties: 'prestaties', loopbaan: 'loopbaan', visboek: 'visboek', boerderij: 'boerderij', streken: 'streken', spel: 'spel', settings: 'instellingen', controls: 'besturing', mute: 'geluid_uit', spullen: 'spullen', telefoon: 'telefoon', solo: 'solo', new: 'nieuw', news: 'nieuws', about: 'over', spelers: 'spelers', veroverd: 'veroverd', samen: 'samen', sorteer: 'lijst' };
+const ICONS = { resume: 'hervat', save: 'opslaan', load: 'laden', restart: 'herstart', help: 'hulp', home: 'thuis', abort: 'stop', bird: 'duif', menu: 'menu', exit: 'uitgang', back: 'terug', next: 'volgende', search: 'zoek', map: 'kaart', overzicht: 'overzicht', todo: 'todo', verhaal: 'verhaal', garage: 'garage', fotos: 'fotos', prestaties: 'prestaties', loopbaan: 'loopbaan', visboek: 'visboek', boerderij: 'boerderij', voetbal: 'spel', streken: 'streken', spel: 'spel', settings: 'instellingen', controls: 'besturing', mute: 'geluid_uit', spullen: 'spullen', telefoon: 'telefoon', solo: 'solo', new: 'nieuw', news: 'nieuws', about: 'over', spelers: 'spelers', veroverd: 'veroverd', samen: 'samen', sorteer: 'lijst' };
 // An icon of the pause menu's set for the main menu's items, or '' for an unknown name.
 export const menuIcon = (id, cls = 'ss-ic') => (ICONS[id] ? icon(id, cls) : '');
 const icon = (id, cls = 'pm-ic') => icoon(ICONS[id] || 'vraag', { cls });
@@ -367,6 +368,7 @@ const SECTIONS = [
   // onderdelen onder een ander onderdeel (CHILD), niet los in de rail
   ['visboek', 'Visboek', 'Alle vis van de provincie, van jou'],
   ['boerderij', 'Boerderij', 'Je eigen akker, gewassen en machines'],
+  ['voetbal', 'Voetbal', 'Je club, selectie, kalender en stand'],
   ['controls', 'Besturing', 'Toetsen en knoppen aanpassen en nalezen'],
   ['streken', 'Cheats', 'Een beetje vals spelen'],
 ];
@@ -383,7 +385,7 @@ const RAIL_GROUPS = [
 ];
 // Onderdelen zonder eigen plek in de rail die onder een ander onderdeel hangen (#430): Vissen en Farmen horen bij Loopbaan
 // (de tegels Bezigheden), de toetsen en knoppen bij Instellingen > Besturing. De rail markeert de ouder; Terug gaat naar de ouder.
-const CHILD = { visboek: 'loopbaan', controls: 'settings' };
+const CHILD = { visboek: 'loopbaan', voetbal: 'loopbaan', controls: 'settings' };
 const PRESTART_SECTIONS = ['spel', 'settings', 'controls'];
 const SUBTABS = {
   verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen']],
@@ -454,6 +456,7 @@ const HINTS = {
   loopbaan: [[['↑', '↓'], 'kiezen'], [['→'], 'naar de actie'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
   visboek: [[['↑', '↓'], 'kiezen'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
   boerderij: [[['↑', '↓'], 'kiezen'], [['Enter'], 'doen'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
+  voetbal: [[['↑', '↓'], 'kiezen'], [['Enter'], 'doen'], [['Esc'], BACK, 'back']],
   fotos: [[['F8'], 'fotomodus'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
   spelers: [[['↑', '↓'], 'kiezen'], [['Enter'], 'roepen of erheen'], [['Esc'], BACK, 'back']],
   streken: [[['↑', '↓'], 'kiezen'], [['Enter'], 'aan of uit'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
@@ -1013,6 +1016,7 @@ export function initPauseMenu(w) {
           <section data-panel="veroverd" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach pm-veroverd"></div></section>
           <section data-panel="visboek" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach pm-loopbaan pm-visboek"></div></section>
           <section data-panel="boerderij" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach pm-boerderij"></div></section>
+          <section data-panel="voetbal" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach pm-voetbal"></div></section>
           <section data-panel="fotos" class="pm-panel pm-col" hidden><div class="pm-inner pm-fotos"></div></section>
           <section data-panel="streken" class="pm-panel pm-col" hidden><div class="pm-inner pm-streken"></div></section>
           <section data-panel="spel" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-settings">${spelHtml()}</div></section>
@@ -2762,6 +2766,7 @@ function showTab(name, how) {
   if (name === 'veroverd') renderVeroverdPanel(root.querySelector('[data-panel="veroverd"] .pm-inner'), closePauseMenu, world);
   if (name === 'visboek') renderVisboekPanel(root.querySelector('[data-panel="visboek"] .pm-inner'));
   if (name === 'boerderij') renderBoerderijPanel(root.querySelector('[data-panel="boerderij"] .pm-inner'), world, closePauseMenu);
+  if (name === 'voetbal') renderVoetbalPanel(root.querySelector('[data-panel="voetbal"] .pm-inner'), world, closePauseMenu);
   if (name === 'controls') { const q = root.querySelector('[data-controls-search]'); q.value = ''; filterControls(''); showSubtab('controls', pref.sub.controls || defaultControlsSubtab(document.documentElement.classList.contains('touch-device'))); bindMsg = ''; renderBinds(); }
   if (prev === 'controls' && name !== 'controls') cancelRebind();
   if (name === 'spel') { showSubtab('spel', pref.sub.spel || subsOf('spel')[0][0]); syncControls(); syncSaveButtons(); afterSpelSub(); }

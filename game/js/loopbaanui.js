@@ -10,6 +10,8 @@ import { getProfiel, startLoopbaan } from './loopbaanlive.js';
 import { SIDE_JOBS } from './sidejobs.js';
 import { fillBars } from './motion.js';
 import { boekVoortgang } from './visboeklive.js';
+import { kaartInfo } from './voetbalcarriereui.js';
+import { getCareer, getClub } from './voetbalcarrierelive.js';
 import { baanDoelen } from './todoui.js';
 import { loopbaanStap, STEP_BY_ID } from './storyarc.js';
 import { controleStand, CONTROLE_MIN_NIVEAU } from './kaartjescontrole.js';
@@ -192,6 +194,7 @@ function kaart(k) {
 const VAK_LINK = {
   hengelen: { id: 'visboek', naam: 'Visboek', knop: 'Open je visboek', stand: () => { try { const v = boekVoortgang(); return v && v.totaal ? `${v.gevangen} van ${v.totaal} soorten` : 'Nog geen vis gevangen'; } catch (e) { return 'Al je vis van de provincie'; } } },
   landbouw: { id: 'boerderij', naam: 'Boerderij', knop: 'Open je boerderij', stand: () => 'Je akker, gewassen en machines' },
+  buiten: { id: 'voetbal', naam: 'Voetbal', knop: 'Open je voetbalcarrière', stand: () => { try { const k = kaartInfo(getCareer(), getClub); return k.gestart ? `${k.stand} · ${k.niveau}` : 'Nog niet begonnen'; } catch (e) { return 'Je club, selectie en stand'; } } },
 };
 const NAMEN = new Map(SIDE_JOBS.map((j) => [j.id, j.name]));
 const bezighedenAantal = (id) => L.banenVan(id).length + (VAK_LINK[id] ? 1 : 0);
