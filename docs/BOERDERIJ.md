@@ -3,6 +3,7 @@
 > **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/mechanica.md`](../.specs-fire/standards/mechanica.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
 
 Voor wie aan `boerderij.js`, `werkgang.js`, `boerderijlive.js`, `sidejob_boerderij.js` of `boerderijui.js` werkt. Tests: `scripts/boerderij_test.mjs`.
+Uitbreiding naar de hele provincie (koopbare percelen en panden, productieketen): [BEZIT-21-11.md](BEZIT-21-11.md).
 Het vak in de loopbaan is Landbouw ([LOOPBAAN.md](LOOPBAAN.md)); de losse oogstbaan is Bietenoogst (`sidejob_bieten.js`, #393).
 
 ## Wat de speler doet
