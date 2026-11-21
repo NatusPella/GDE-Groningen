@@ -103,7 +103,7 @@ const P = {
     [28, 'allesstap', { stap: 'outfit', s: 3 }], [34, 'allesstap', { stap: 'tuning', s: 3 }], [40, 'allesstap', { stap: 'bezit', s: 14 }],
     [58, 'gastwinkel', { s: 50 }],
     [114, 'gastbijbaan', { s: 50, wie: 'gast', id: 'krantenwijk', beloon: 150 }],
-    [170, 'filmpje', { s: 8 }], [186, 'allesstap', { stap: 'geld', s: 2 }], [192, 'opslagcheck', {}], [194, 'wacht', { s: 4 }],
+    [170, 'filmpje', { s: 8 }], [178, 'allesstap', { stap: 'zinnen', wie: 'gast', s: 3 }], [182, 'allesstap', { stap: 'doel', wie: 'gast', s: 3 }], [186, 'allesstap', { stap: 'geld', s: 2 }], [192, 'opslagcheck', {}], [194, 'wacht', { s: 4 }],
     ...(me === 'host' ? [[200, 'stopHost', {}]] : []),
   ]])),
   touch: { host: [[0, 'kijk', { s: 16 }]], gast: [[0, 'touch', { s: 12 }]], gast2: [[0, 'wacht', { s: 16 }]] },
@@ -768,6 +768,9 @@ if (SUITE === 'alles') {
   const ping = ['host', 'gast', 'gast2'].map((n) => [n, e1(n, 'alles-ping')]);
   for (const [n, e] of ping) if (n !== 'gast') check(!!e && e.marks >= 1, `alles ping: ${n} zag geen baken van de gast (${JSON.stringify(e)})`);
   for (const n of NAMES) { const e = e1(n, 'alles-waypoint'); check(!!e && (n === 'gast' ? e.heeftDoel : !e.heeftDoel), `alles waypoint: ${n} ${e && e.heeftDoel ? 'heeft' : 'mist'} het doel van de gast terwijl een waypoint per speler is`); }
+  // snelle zinnen en een doel delen (#1159): de gast zegt iets en deelt zijn doel; de anderen zien het, de afzender krijgt geen voorstel van zichzelf
+  for (const n of NAMES) { const e = e1(n, 'alles-zinnen'); check(!!e && !e.fout && (n === 'gast' ? e.regels.length === 0 : e.regels.length >= 1), `alles zinnen: ${n} zag ${e && e.regels ? e.regels.length : '?'} regels van de gast`); }
+  for (const n of NAMES) { const e = e1(n, 'alles-doel'); check(!!e && !e.fout && (n === 'gast' ? !e.voorstel : e.voorstel), `alles doel: ${n} ${e && e.voorstel ? 'kreeg' : 'kreeg geen'} een voorstel van het doel van de gast`); }
   for (const stap of ['outfit', 'tuning', 'bezit']) for (const n of NAMES) { const e = e1(n, 'alles-' + stap); if (!e) check(false, `alles ${stap}: ${n} logde niets`); else if (e.fout) check(false, `alles ${stap}: ${n} fout ${e.fout}`); else if (e.skip) note(`alles ${stap}: ${n} wacht (${e.reden})`); }
   { const E3 = {}; for (const n of NAMES) E3[n] = e1(n, 'alles-bezit') || null; for (const m of keurBezitStap(E3)) check(false, 'alles ' + m); }
   // kleding (ronde 4): de gast koos postuur breed (outfit-code versie 3, vierde teken na het kapsel is 2); host en tweede gast zien die code in hun spelerslijst

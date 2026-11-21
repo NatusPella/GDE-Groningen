@@ -32,7 +32,9 @@ import { voertuigId, verzamelEntiteiten, leesEntiteiten, missieBericht, leesMiss
 import { verhaalRol, openerNaam, charInfo } from './coopplayers.js';
 import { KLOK_EVERY, klokEvent, leesKlokEvent, KlokVolger } from './net/speelklok.js';
 import { HASH_EVERY, viewOf, hashEvent, leesHashEvent, DesyncMonitor } from './net/desync.js';
-import { PING_TOETSEN, PING_TEKST, pingPlek, pingMarkers, pingRegel } from './coopping.js';
+import { PING_TOETSEN, PING_TEKST, pingPlek, pingMarkers, pingRegel, afzender as pingSender } from './coopping.js';
+import { receivePhrase, readPhrase, phraseEvent, createPhraseState, allowPhrase as zinNeemOp, mayReceive as zinMag, toggleMuteState as zinWisselStand, muteStateOf as zinStandVan, PHRASE_TTL } from './multiplayerphrases.js';
+import { goalEvent, readGoal, receiveGoal, answerGoal, openGoal, createGoalState, recipients as doelOntvangers, defaultReach, roleInVehicle, occupancyOf, goalPace } from './multiplayergoal.js';
 import { spelersRijen, groepenVoor, wegMelding } from './coopspelers.js';
 import { maakMeedoen, opdrachtSleutel, standVan, begin as meedoenBegin, einde as meedoenEinde, antwoord as meedoenAntwoord, tik as meedoenTik, loopVrij, krijgtDeel, maakUitnodiging, uitnodigingTekst, toeschouwerTekst, LATE_GRENS, laat as meedoenLaat, bevestig as meedoenBevestig, meespelers } from './coopmeedoen.js';
 import { stapVanMissie, geldigeStap, uitslagTekst } from './coopverhaal.js';
@@ -383,6 +385,9 @@ export function startHost(world, info, opts = {}) {
     onEvent: (slot, body) => {
       handleEvent(world, body, slot);
       if (body && body.k === 'ping') for (const s of hub.roster.spelers) if (s.slot !== 0 && s.slot !== slot) hub.announce({ ...body, van: slot }, s.slot); // iedereen ziet elke ping
+      if (body && body.k === 'zin' && readPhrase(body) && world.coopNet && zinNeemOp(world.coopNet.phraseRelay || (world.coopNet.phraseRelay = createPhraseState()), slot, now(world))) {
+        for (const s of hub.roster.spelers) if (s.slot !== 0 && s.slot !== slot) hub.announce({ k: 'zin', z: body.z, van: slot }, s.slot); // elke ontvanger kiest zelf (opt-in, dempen, blokkeren)
+      }
     },
   });
   hub.onchange = (roster) => { world.coopRoster = lijst(roster); if (onChange) onChange(roster); };
@@ -1092,6 +1097,14 @@ export function tickCoopNet(world, dt) {
     if (!world.paused && !world.uiPaused && !world.coopHold && iemandOmTeZien && world.input && world.input.wasPressed && (n.role === 'host' || n.joined)) for (const k of PING_TOETSEN) if (world.input.wasPressed(k.toets)) pingGebaar(world, k.soort); // 7, 8, 9 (#367)
     world.coopPingMarks = pingMarkers(world.coopPings, world.coopRoster, n.role === 'client' && n.session ? n.session.slot : 0, now(world));
   }
+  // een gedeeld doel (multiplayergoal.js): J = volgen op je eigen kaart, N = negeren; een andere vraag (stemming, uitnodiging, overname) gaat voor
+  const dv = goalProposal(world), andereVraag = !!(world.coopGastVraag || world.coopStem || world.coopUitnodiging || (world.coopWisselUi && world.coopWisselUi.vraag));
+  world.coopDoelVraag = !!dv && !andereVraag;
+  if (world.coopDoelVraag && !world.paused && !world.uiPaused && world.input && world.input.wasPressed && (world.input.wasPressed('j') || world.input.wasPressed('n'))) {
+    const r = answerSharedGoal(world, world.input.wasPressed('j'));
+    if (r && r.actie === 'volg') world.coopDoelVolg = r; // multiplayerphrasesradial.js zet het op de kaart (routing.js)
+    world.coopDoelVraag = false;
+  }
   n.tSpelers += dt;
   if (n.tSpelers >= 0.25) { n.tSpelers = 0; bouwSpelers(world, n); }
   if (n.role === 'host') { wedHostTik(world, dt); bijbaanHostTik(world, dt); } // een uitnodiging voor een race, minigame of bijbaan loopt af (#443, #452)
@@ -1292,11 +1305,28 @@ export function handleEvent(world, body, van = 0) {
     }
     case 'ping': { // de host stuurt door met 'van'; een gast stuurt zonder
       const afz = n && n.role === 'client' && Number.isInteger(body.van) ? body.van : van;
+      if (afz !== 'eigen' && !zinMag(phraseStateOf(world), pingSender(afz, world.coopRoster, n && n.role === 'client' && n.session ? n.session.slot : 0), 'ping')) return false; // een geblokkeerde speler (multiplayerphrases.js)
       const ok = !!(world.coopPings && addPing(world.coopPings, { x: body.x, y: body.y, soort: body.soort, van: afz }, now(world)));
       const hier = hoofdspeler(world);
       if (ok && afz !== 'eigen' && (world.audioEvents || (world.audioEvents = [])).length < 64) world.audioEvents.push({ kind: 'notify', x: hier ? hier.x : 0, y: hier ? hier.y : 0 }); // een bestaand geluidje: iemand roept (#367)
       if (ok && world.addMessage) world.addMessage(pingRegel(afz, PING_TEKST[body.soort] ? body.soort : 'hier', world.coopRoster, n && n.role === 'client' && n.session ? n.session.slot : 0), 3);
       return ok;
+    }
+    case 'zin': { // een snelle zin of emote (multiplayerphrases.js): alleen een bekend id, de tekst komt van de ontvanger
+      if (!n || (n.role === 'client' && !n.joined)) return false;
+      const afz = n.role === 'client' && Number.isInteger(body.van) ? body.van : van;
+      const a = pingSender(afz, world.coopRoster, n.role === 'client' && n.session ? n.session.slot : 0);
+      const r = receivePhrase(phraseStateOf(world), body, a, now(world), phrasesEnabled());
+      if (!r.toon) return false;
+      if (world.addMessage) world.addMessage(r.regel, PHRASE_TTL);
+      return true;
+    }
+    case 'doel': { // een gedeeld navigatiedoel (multiplayergoal.js): de host stuurt het naar de juiste spelers, de ontvanger kiest zelf (J of N)
+      if (!n) return false;
+      const d = readGoal(body); if (!d) return false;
+      if (n.role === 'host') return van >= 1 ? routeGoal(world, n, van, d) : false;
+      if (!n.joined || !Number.isInteger(body.van)) return false;
+      return receiveGoalLocally(world, d, body.van, body.rol === 'bestuurder' || body.rol === 'navigator' ? body.rol : null);
     }
     case 'missie': { // wat de host speelt; de gast ziet het als melding, extra spelers lopen mee in de open wereld
       if (!n || n.role !== 'client') return false;
@@ -1627,6 +1657,76 @@ export function sendPing(world, x, y, soort = 'hier') {
   if (!addPing(world.coopPings, { x, y, soort, van: 'eigen' }, now(world))) return false;
   return n.role === 'host' ? n.hub.announce({ ...pingEvent(x, y, soort), van: 0 }) : n.session.sendEvent(pingEvent(x, y, soort));
 }
+// ---- snelle zinnen, emotes en een doel delen (#1159, multiplayerphrases.js en multiplayergoal.js; zonder opslag, alleen met opt-in)
+// De opt-in: `samenZinnen` in de instellingen. Wie hem niet aanzet verstuurt en ziet geen zinnen, emotes of gedeelde doelen.
+export const phrasesEnabled = () => getSettings().samenZinnen === true;
+// De standen (dempen, blokkeren) staan op de wereld en blijven bij een hostwissel gelden: ze gaan op naam, niet op plek.
+export const phraseStateOf = (world) => world.coopZinnen || (world.coopZinnen = createPhraseState());
+const goalStateOf = (world) => world.coopDoel || (world.coopDoel = createGoalState());
+const mijnSlot = (n) => (n && n.role === 'client' && n.session ? n.session.slot : 0);
+const someoneToShareWith = (n) => n.role !== 'host' || n.hub.roster.spelers.some((x) => x.slot >= 1);
+// Een zin of emote kiezen uit het wiel: de host maakt hem bekend bij iedereen, een gast stuurt hem naar de host.
+export function sayPhrase(world, id) {
+  const n = world.coopNet, z = readPhrase({ k: 'zin', z: id });
+  if (!n || !z || !phrasesEnabled() || (n.role === 'client' && !n.joined) || !someoneToShareWith(n)) return false;
+  if (!zinNeemOp(phraseStateOf(world), 'eigen', now(world))) return false;
+  const ok = n.role === 'host' ? n.hub.announce({ ...phraseEvent(id), van: 0 }) : n.session.sendEvent(phraseEvent(id));
+  if (ok !== false && world.addMessage) world.addMessage(z.soort === 'emote' ? `Je ${z.tekst}.` : `Je zegt: "${z.tekst}"`, 2);
+  return ok !== false;
+}
+// Dempen of blokkeren van een speler (de knop in de spelerslijst); een tweede keer zet het weer terug. Geeft de nieuwe stand.
+export function setPlayerMuteState(world, slot, stand) {
+  const n = world.coopNet; if (!n) return null;
+  return zinWisselStand(phraseStateOf(world), pingSender(slot, world.coopRoster, mijnSlot(n)), stand, slot === mijnSlot(n));
+}
+export function playerMuteState(world, slot) {
+  const n = world.coopNet; if (!n) return 'gewoon';
+  return zinStandVan(phraseStateOf(world), pingSender(slot, world.coopRoster, mijnSlot(n)));
+}
+// Het eigen doel delen. punt: { x, y } (het doel op je kaart, getUserWaypoint); aan: 'voertuig' | 'iedereen' (anders de standaardkeuze).
+export function shareGoal(world, punt, aan = null) {
+  const n = world.coopNet;
+  if (!n || !punt || !phrasesEnabled() || (n.role === 'client' && !n.joined)) return false;
+  if (!readGoal({ k: 'doel', x: punt.x, y: punt.y })) return false;
+  const bez = occupancyOf(world), ik = mijnSlot(n);
+  const bereik = aan || (n.role === 'host' ? defaultReach(ik, bez) : (world.coopInVoertuig ? 'voertuig' : 'iedereen'));
+  if (n.role === 'client') { const ok = n.session.sendEvent(goalEvent(punt.x, punt.y, bereik)); if (ok && world.addMessage) world.addMessage('Je deelt je doel.', 2); return !!ok; }
+  const ok = routeGoal(world, n, 0, { x: punt.x, y: punt.y, aan: bereik });
+  if (world.addMessage) world.addMessage(ok ? 'Je deelt je doel.' : 'Er is niemand om je doel mee te delen.', 3);
+  return ok;
+}
+// Een ping op je doel (het kaartpunt dat je koos): dezelfde ster "Kijk daar" als de roepjes.
+export function pingGoal(world, punt) {
+  if (!punt || !Number.isFinite(punt.x) || !Number.isFinite(punt.y)) return false;
+  const n = world.coopNet; if (!n || (n.role !== 'host' && !n.joined) || !someoneToShareWith(n)) return false;
+  const ok = sendPing(world, punt.x, punt.y, 'doel');
+  if (ok && world.addMessage) world.addMessage('Je wijst je doel aan.', 2);
+  return ok;
+}
+// De host stuurt een gedeeld doel naar wie het volgens de bezetting hoort te krijgen (bestuurder en navigator, of iedereen).
+function routeGoal(world, n, van, d) {
+  if (!goalPace(n.goalRelay || (n.goalRelay = createGoalState()), van, now(world))) return false;
+  const bez = occupancyOf(world), rol = roleInVehicle(van, bez);
+  const slots = doelOntvangers(van, d.aan, bez, n.hub.roster.spelers.map((s) => s.slot));
+  let gelukt = false;
+  for (const s of slots) {
+    if (s === 0) gelukt = receiveGoalLocally(world, d, van, rol) || gelukt;
+    else if (n.hub.announce({ k: 'doel', x: d.x, y: d.y, aan: d.aan, van, ...(rol ? { rol } : {}) }, s) !== false) gelukt = true;
+  }
+  return gelukt;
+}
+function receiveGoalLocally(world, d, van, rol) {
+  const n = world.coopNet;
+  const a = pingSender(van, world.coopRoster, mijnSlot(n));
+  const r = receiveGoal(goalStateOf(world), { k: 'doel', x: d.x, y: d.y, aan: d.aan }, a, now(world), { mag: zinMag(phraseStateOf(world), a, 'doel'), aan: phrasesEnabled(), rol });
+  if (!r.toon) return false;
+  if (world.addMessage) world.addMessage(r.regel, 8);
+  return true;
+}
+// J of N op een gedeeld doel; bij "volg" geeft dit { actie: 'volg', x, y, naam } terug en zet de aanroeper het op zijn eigen kaart.
+export function answerSharedGoal(world, volg) { return answerGoal(goalStateOf(world), volg, now(world)); }
+export function goalProposal(world) { return openGoal(goalStateOf(world), now(world)); }
+
 // ---- de gast doet iets bij de host (#291, docs/COOP-GAST.md)
 const gastNaam = (world, slot) => { const p = (world.coopRoster || []).find((x) => x && x.slot === slot); return (p && ((p.avatar && p.avatar.naam) || p.naam || (charInfo(p.char) || {}).naam)) || 'De ander'; };
 

@@ -2,6 +2,7 @@
 // de spelerslijst staat niet permanent in beeld maar bij Tab en in het pauzemenu (coopspelersui.js, #377).
 // Niet in beeld bekeken.
 import { updateSpelersOverlay } from './coopspelersui.js';
+import { updatePhrasesRadial } from './multiplayerphrasesradial.js';
 import { uitnodigingTekst } from './coopmeedoen.js';
 import { updateSamenHints } from './contexthints.js';
 
@@ -20,7 +21,7 @@ export function fadeFlash(richting = 'in') {
 }
 
 // Elke frame vanuit main.js, alleen als er een sessie is: de lijst met spelers zolang Tab wordt ingedrukt.
-export function updatePartnerChip(world) { updateSpelersOverlay(world); updateMeedoenChip(world); updateSamenHints(world); }
+export function updatePartnerChip(world) { updateSpelersOverlay(world); updatePhrasesRadial(world); updateMeedoenChip(world); updateSamenHints(world); }
 
 // "Meedoen?" blijft in beeld tot de gast antwoordt of de opdracht voorbij is: geen antwoord is nee (#452)
 let meedoenEl = null;

@@ -143,6 +143,7 @@ const CONTROL_GROUPS = [
     [['7'], 'Kom hier'],
     [['8'], 'Help'],
     [['9'], 'Kijk daar'],
+    [['T'], 'Snelle zinnen'],
   ]],
   ['menu', 'Menu en radio', [
     [['ESC'], 'Pauzemenu'],
