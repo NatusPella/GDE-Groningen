@@ -8,6 +8,7 @@ import { rand as rnd } from '../rng.js';
 import { seaAt } from '../regions.js';
 import { streekAt } from '../regioleven.js';
 import { streekNiveaus } from './streekklank.js';import { stepContext } from './steps.js';
+import { SFX_MAP, sfxClips } from './sfxmap.js';
 import { havenNiveau, HAVEN_PEAK, HAVEN_LP, spoorNiveau, treinHoornPauze, verkeerDagNiveau, scheepshoornPauze, occlusie, bedWobble, bedStartRate } from './lagenplan.js';
 import { RAIN_KEYS, rainTargets, summerTargets, thunderPick } from './weermap.js';
 
@@ -132,7 +133,7 @@ export function initAmbience(kit, world) {
     if (!arr) { arr = []; horecaGrid.set(k, arr); }
     arr.push(h);
   }
-  timers = { bird: rnd(1, 4), gull: rnd(4, 10), clink: rnd(2, 6), animals: 0, trein: rnd(30, 90), hoorn: rnd(60, 200) };
+  timers = { nat: rnd(8, 20), bird: rnd(1, 4), gull: rnd(4, 10), clink: rnd(2, 6), animals: 0, trein: rnd(30, 90), hoorn: rnd(60, 200) };
   lastHour = world.dayNight ? world.dayNight.hour : null;
 }
 
@@ -460,7 +461,23 @@ function ambientEvents(dt, world) {
       const tr = place.treePts.length ? pick(place.treePts) : null;
       const a = Math.random() * Math.PI * 2, r = rnd(8, 25);
       const x = tr ? tr[0] : lx + Math.cos(a) * r, y = tr ? tr[1] : ly + Math.sin(a) * r;
-      playAt('bird_' + Math.floor(Math.random() * 5), x, y, rnd(4, 9), { gain: rnd(0.1, 0.2), rate: rnd(0.9, 1.12), ref: 5, rolloff: 1.4, range: 60 });
+      // SFX ronde 5: de helft van de keren een echte vogel (sfxmap.js bird_chirp), anders de procedurele
+      const vogel = K.samples && Math.random() < 0.5 ? dierOpname(sfxClips('bird_chirp'), K.samples) : null;
+      if (vogel) playAt(vogel.key, x, y, rnd(4, 9), { gain: rnd(0.14, 0.24), rate: rnd(0.95, 1.08), ref: 5, rolloff: 1.4, range: 60, buffer: vogel.buffer, cat: 'dier' });
+      else playAt('bird_' + Math.floor(Math.random() * 5), x, y, rnd(4, 9), { gain: rnd(0.1, 0.2), rate: rnd(0.9, 1.12), ref: 5, rolloff: 1.4, range: 60 });
+    }
+  }
+
+  // SFX ronde 5: kikker aan het water, uil in het groen (zomernacht) en een windvlaag door de bomen (overdag)
+  timers.nat -= dt;
+  if (timers.nat <= 0) {
+    timers.nat = rnd(9, 24);
+    const night = dn.night || 0, roll = Math.random();
+    const ev = rain > 0.6 || world.paused || !K.samples ? null : night > 0.6 && place.waterD < 60 && roll < 0.55 ? 'frog_croak' : night > 0.6 && (place.trees > 0.3 || place.rural > 0.3) && roll < 0.8 ? 'owl_hoot' : night < 0.6 && place.trees > 0.35 && roll < 0.45 ? 'wind_gust' : null;
+    const rec = ev ? dierOpname(sfxClips(ev), K.samples) : null;
+    if (rec) {
+      const e = SFX_MAP[ev], a = Math.random() * Math.PI * 2, r = rnd(10, 40);
+      playAt(rec.key, lx + Math.cos(a) * r, ly + Math.sin(a) * r, 1.5, { gain: e.gain * 0.3, rate: rnd(0.95, 1.05), ref: e.ref, rolloff: 1.2, range: e.range * 0.5, buffer: rec.buffer, cat: e.cat });
     }
   }
 
@@ -526,6 +543,9 @@ function bellLowpass(lm) {
 function playCarillon() {
   const lm = landmarks.tower;
   if (!lm) return;
+  // SFX ronde 5: soms luidt in plaats van het kunstmatige beiaardspel een echte kerkklok (sfxmap.js church_bell)
+  const klok = K.samples && Math.random() < 0.4 ? dierOpname(sfxClips('church_bell'), K.samples) : null;
+  if (klok) { const e = SFX_MAP.church_bell; playAt(klok.key, lm.x, lm.y, 30, { gain: e.gain * 0.45, rate: 1, ref: e.ref, rolloff: 1, range: e.range, lp: 3500, buffer: klok.buffer, cat: e.cat }); return; }
   let t = 0;
   for (const [semi, beats] of CARILLON) {
     later(t, () => {
@@ -606,25 +626,30 @@ function weatherEvents(world) {
 
 // rec: sleutels van de opnames (samples.js) die de procedurele roep vervangen; dag: zwijgt meestal in de nacht
 const ANIMALS = {
-  cow: { buf: 'cow', rec: ['dier_koe'], dag: true, gap: [9, 26], gain: 0.3, rate: [0.9, 1.08], h: 1.3, range: 80 },
-  sheep: { buf: 'sheep', rec: ['dier_schaap'], dag: true, gap: [6, 18], gain: 0.22, rate: [0.9, 1.15], h: 0.8, range: 60 },
+  cow: { buf: 'cow', rec: ['dier_koe', ...sfxClips('cow_moo')], dag: true, gap: [9, 26], gain: 0.3, rate: [0.9, 1.08], h: 1.3, range: 80 },
+  sheep: { buf: 'sheep', rec: ['dier_schaap', ...sfxClips('sheep_bleat')], dag: true, gap: [6, 18], gain: 0.22, rate: [0.9, 1.15], h: 0.8, range: 60 },
   horse: { buf: null, rec: ['dier_paard'], dag: true, gap: [14, 40], gain: 0.22, rate: [0.94, 1.06], h: 1.4, range: 70 },
   seagull: { buf: 'gull', rec: ['dier_meeuw_0', 'dier_meeuw_1'], dag: true, gap: [7, 20], gain: 0.18, rate: [0.92, 1.1], h: 8, range: 90 },
   duck: { buf: 'duck', rec: ['dier_eend'], dag: true, gap: [4, 12], gain: 0.16, rate: [0.9, 1.1], h: 0.2, range: 45 },
   heron: { buf: 'heron', gap: [14, 40], gain: 0.2, rate: [0.9, 1.1], h: 0.8, range: 70 },
   seal: { buf: 'seal', gap: [12, 30], gain: 0.2, rate: [0.9, 1.1], h: 0.2, range: 60 },
   fish: { buf: 'imp_water', gap: [8, 20], gain: 0.07, rate: [1.6, 2.1], h: 0, range: 18 },
+  chicken: { buf: null, rec: sfxClips('chicken_cluck'), dag: true, gap: [5, 16], gain: 0.2, rate: [0.95, 1.05], h: 0.4, range: 50 },
   pigeon: { buf: 'pigeon', gap: [5, 14], gain: 0.1, rate: [0.92, 1.08], h: 0.3, range: 30 },
-  dog: { buf: 'dog', gap: [4, 14], gain: 0.22, rate: [0.8, 1.25], h: 0.5, range: 70, double: true },
-  cat: { buf: 'cat', gap: [10, 30], gain: 0.14, rate: [0.9, 1.15], h: 0.3, range: 35 },
+  dog: { buf: 'dog', rec: sfxClips('dog_bark'), gap: [4, 14], gain: 0.22, rate: [0.8, 1.25], h: 0.5, range: 70, double: true },
+  cat: { buf: 'cat', rec: sfxClips('cat_meow'), gap: [10, 30], gain: 0.14, rate: [0.9, 1.15], h: 0.3, range: 35 },
 };
-const ALIASES = { gans: 'duck', gull: 'seagull', meeuw: 'seagull', eend: 'duck', duif: 'pigeon', hond: 'dog', kat: 'cat', koe: 'cow', schaap: 'sheep', paard: 'horse', reiger: 'heron', zeehond: 'seal', vis: 'fish' };
+const ALIASES = { gans: 'duck', gull: 'seagull', meeuw: 'seagull', eend: 'duck', duif: 'pigeon', hond: 'dog', kat: 'cat', koe: 'cow', kip: 'chicken', hen: 'chicken', haan: 'chicken', schaap: 'sheep', paard: 'horse', reiger: 'heron', zeehond: 'seal', vis: 'fish' };
 
 // een geladen opname uit de lijst sleutels (samples.js), of null
+const dierVorige = new Map();   // per lijst de opname die als laatste klonk: nooit twee keer dezelfde achter elkaar (SFX ronde 5)
 function dierOpname(keys, S) {
-  const klaar = keys.filter((k) => S.has(k));
+  let klaar = keys.filter((k) => S.has(k));
   if (!klaar.length) return null;
+  const lijstId = keys[0];
+  if (klaar.length > 1 && dierVorige.has(lijstId)) klaar = klaar.filter((k) => k !== dierVorige.get(lijstId));
   const key = klaar[Math.floor(Math.random() * klaar.length)];
+  dierVorige.set(lijstId, key);
   return { key, buffer: S.buffer(key) };
 }
 

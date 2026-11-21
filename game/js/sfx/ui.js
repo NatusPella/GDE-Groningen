@@ -40,7 +40,7 @@ export function uiFx(naam, { gain = 1, delay = 0 } = {}) {
   if (!magKlinken(st.uiLast, naam, t())) return true;   // net gespeeld: stil, en geen terugval op een ander geluid
   // een opname in plaats van de synth (samples.js FX_VERVANG, SFX ronde 3), zodra hij geladen is
   const S = K.samples, rec = S ? vervangSleutel(naam, (k) => S.has(k)) : null;
-  if (rec) return !!K.buf(rec, { bus: ui(), buffer: S.buffer(rec), gain: (SAMPLE_INFO[rec].gain || 1) * categoryLevel('ui') * gain, rate: 1, delay, prio: 2 });
+  if (rec) return !!K.buf(rec, { bus: ui(), buffer: S.buffer(rec), gain: (SAMPLE_INFO[rec].gain || 1) * categoryLevel('ui') * gain, rate: SAMPLE_INFO[rec].vary ? toonSpreiding(Math.random()) : 1, delay, prio: 2 });
   const namen = variantsOf(naam);
   const kies = kiesVariant(namen.length ? namen : [naam], Math.random(), st.uiVorige.get(naam) || null);
   const info = FX_INFO[kies];
@@ -144,9 +144,9 @@ function play(r) {
     case 'tick': tick(r.f); break;
     case 'select': select(); break;
     case 'tab': if (!uiFx('ui_tab')) select(); break;
-    case 'back': back(); break;
-    case 'toggle': toggleSnd(r.on); break;
-    case 'slider': K.tone({ freq: 400 + r.u * 900, type: 'sine', duration: 0.035, gain: 0.05, bus: ui(), prio: 2 }); break;
+    case 'back': if (!uiFx('ui_cancel')) back(); break;   // SFX ronde 5: opnames (sfxmap.js), de synth blijft de terugval
+    case 'toggle': if (!uiFx(r.on ? 'ui_toggle_on' : 'ui_toggle_off')) toggleSnd(r.on); break;
+    case 'slider': if (!uiFx('ui_slider_tick', { gain: 0.6 + r.u * 0.5 })) K.tone({ freq: 400 + r.u * 900, type: 'sine', duration: 0.035, gain: 0.05, bus: ui(), prio: 2 }); break;
     default: break;
   }
 }
