@@ -18,7 +18,7 @@ export const HERVAT_KINDEN = ['aftrap', 'inworp', 'hoek', 'doelschop', 'vrij'];
 export const STAND_HZ = 12;
 export const MAX_SPELERS_VOETBAL = 4;
 const HB = VELD.B / 2, HL = VELD.L / 2, HD = VELD.DOEL_B / 2;
-const INTRO_S = 3.2, GOAL_S = 3.2, SLOMO_S = 1.1, SLOMO = 0.35, RUST_S = 3.4, EIND_S = 4.5, HERVAT_PAUZE = 1.1, AFTRAP_PAUZE = 0.9, HERVAT_MAX = 6;
+const INTRO_S = 3.2, GOAL_S = 3.2, SLOMO_S = 1.1, SLOMO = 0.35, RUST_S = 3.4, EIND_S = 4.5, HERVAT_PAUZE = 1.1, AFTRAP_PAUZE = 0.9, HERVAT_MAX = 3.6;
 const G = 9.8;
 const fin = (x) => Number.isFinite(x);
 const q2 = (x, d = 2) => { const m = 10 ** d; return Math.round((Number(x) || 0) * m) / m; };
@@ -288,7 +288,7 @@ function schop(m, p, kick) {
     const D = kl(ontv && afstand > 0 ? afstand : 8 + 26 * k, 6, 34), th = 0.62;
     const v = Math.sqrt(D * G / Math.sin(2 * th)) * 1.07;
     vh = v * Math.cos(th); vz = v * Math.sin(th);
-  } else vh = ontv && afstand > 0 ? kl(5.5 + 0.95 * afstand, 6, 17.5) : 5 + 12 * k;
+  } else vh = ontv && afstand > 0 ? kl(5 + 0.78 * afstand, 6, 15.5) : 5 + 11 * k;
   b.owner = -1; b.dood = false;
   b.x = p.x + ca * 0.75; b.y = p.y + sa * 0.75; b.z = vz > 0 ? 0.05 : 0;
   b.vx = ca * vh; b.vy = sa * vh; b.vz = vz;
@@ -362,7 +362,7 @@ function oppakken(m) {
   for (const p of m.spelers) {
     if (p.cool > 0 || p.stun > 0.3) continue;
     const d = Math.hypot(p.x - b.x, p.y - b.y);
-    const rel = Math.hypot(b.vx - p.vx, b.vy - p.vy);
+    const rel = Math.hypot(b.vx - p.vx * 0.4, b.vy - p.vy * 0.4); // wie naar de bal toe loopt vangt hem iets lastiger, maar niet zo erg als de ruwe verschilsnelheid
     const keeper = p.rol === 'keeper' && inStrafschop(p.team, p.x, p.y) && b.laatsteTeam !== p.team;
     let r, hoog;
     if (keeper) { r = p.duikT > 0 ? KEEPER_DUIK : KEEPER_BEREIK; hoog = 2.0; }
