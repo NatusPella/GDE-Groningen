@@ -14,7 +14,7 @@ import array, json, math, os, subprocess, sys
 
 SR = 24000
 FR = SR // 50            # 20 ms
-VOICED = -50.0           # dBFS: onder dit niveau is een frame stil
+VOICED = -42.0           # dBFS: onder dit niveau is een frame stil (de ruisvloer van sommige clips ligt rond -47)
 GAP = 0.12               # s stilte tussen de spraak en een afgesplitste stoot of plof
 HEAD_MAX, TAIL_MAX = 0.12, 0.40
 TAIL_LOUDER = 3.0        # dB: de eindstoot is zo veel luider dan de spraak ervoor
