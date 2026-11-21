@@ -386,6 +386,7 @@
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
+     "humor": "H08",
      "voice": "Anita"
     },
     {
@@ -413,7 +414,8 @@
      "text": "En nu een plaat voor Tammo, mijn vriend sinds groep drie. Hij heeft een grote dag en zegt niks.",
      "tag": "NIEUW",
      "channel": "radio",
-     "textOnly": true
+     "textOnly": true,
+     "humor": "H05"
     },
     {
      "speaker": "Tammo",
@@ -1696,6 +1698,7 @@
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
+     "humor": "H06",
      "voice": "Anita"
     },
     {
@@ -1794,7 +1797,8 @@
      "text": "Het hing al aan de koelkast.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": true,
+     "humor": "H01"
     },
     {
      "speaker": "Tessa",
@@ -2382,7 +2386,8 @@
      "text": "Dat is een duidelijk plan. Ik draai een plaat.",
      "tag": "NIEUW",
      "channel": "radio",
-     "textOnly": true
+     "textOnly": true,
+     "humor": "H07"
     }
    ]
   },
@@ -2869,7 +2874,8 @@
      "text": "Dat zeg je altijd.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": true
+     "textOnly": true,
+     "humor": "H02"
     },
     {
      "speaker": "Rikus",
@@ -7832,6 +7838,7 @@
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
+     "humor": "H03",
      "voice": "Anita"
     }
    ]
@@ -16379,7 +16386,8 @@
      "text": "Dat is een ander gesprek.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": true
+     "textOnly": true,
+     "humor": "H04"
     },
     {
      "speaker": "Tammo",

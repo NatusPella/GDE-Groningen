@@ -68,6 +68,7 @@ import { storyLines, talkLines, radioContacts, appsAt, storyDataReady, readingTi
 import { openingBlockers, openingIsNext, openingActEnd, openingFinish, openingReplayBlockers, openingReplayGate } from './openingstart.js';
 import { updateStoryTalk, stopTalk, playTalk } from './storytalk.js';
 import { bridgeActive } from './storybridgerun.js';
+import { milestoneFlagsFor, milestoneFlagsForDone } from './storymilestones.js';
 import { makeReisGoals } from './storyreis.js';
 import { plakjesState } from './plakjes.js';
 import { registerStoryQueries } from './storyquery.js';
@@ -334,6 +335,7 @@ function markDone(step, { skipped = false, quiet = false } = {}) {
   if (!skipped) noteStepCleared(step.id);
   rt.skipUntil = -1;
   if (step.unlocks) state.flags.add(step.unlocks);
+  for (const fl of milestoneFlagsFor(step.id)) state.flags.add(fl);   // de frietwagen groeit mee (#1136)
   if (!quiet && step.kind === 'activity' && step.done) {
     // "Even onderduiken": the scene and text of the option the player picked
     const shown = step.goal && step.goal.type === 'hideout' ? hideoutStep(step, rt.base) : step;
@@ -1315,6 +1317,7 @@ export function applyStorySave(d) {
   state.waived = new Set((Array.isArray(d.waived) ? d.waived : []).filter((k) => typeof k === 'string'));
   state.cards = new Set((Array.isArray(d.cards) ? d.cards : []).filter((k) => PARTS[k]));
   state.flags = new Set((Array.isArray(d.flags) ? d.flags : []).filter((k) => typeof k === 'string'));
+  for (const fl of milestoneFlagsForDone(state.done)) state.flags.add(fl);   // een oude save krijgt de mijlpalen van wat hij al deed (#1136)
   for (const [id, n] of Object.entries(d.fails || {})) if (STEP_BY_ID.has(id) && Number.isFinite(n)) state.fails[id] = n;
   // no frame with the old save's kisses (player.js runs before updateStory)
   if (world) world.kissUnlocked = kissUnlockedNow();
@@ -1445,6 +1448,7 @@ export function devJumpTo(id, opts = {}) {
   for (const s of prior) {
     state.done.add(s.id);
     if (s.unlocks) state.flags.add(s.unlocks);
+    for (const fl of milestoneFlagsFor(s.id)) state.flags.add(fl);
   }
   // a jump into Deel 4: the finale card of act 5 has played, or the gate (nextStoryStep) would send the story back to it
   if (PARTS[STEPS[k].part].after) state.cards.add(PARTS[STEPS[k].part].after);

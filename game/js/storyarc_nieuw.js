@@ -234,7 +234,8 @@ export const BRIDGES = [
   { id: 'O9', after: 'M21', via: 'phone', scene: 'O9' },  // apart: "Ik heb de auto"
   { id: 'O10', after: 'M24', via: 'flat', scene: 'O10' }, // Jelles rekening voor de colonne
   { id: 'O11', after: 'M28', via: 'phone', scene: 'O11' }, // Jelle bestelt een eierbal voor zijn moeder
-  { id: 'O12', after: 'M30', via: 'flat', scene: 'O12' }, // wat nu: de wagen groeit, de wereld staat open
+  // wat nu: de wagen groeit, de wereld staat open; een eerdere keuze (storyromance.js) geeft een extra openingsregel
+  { id: 'O12', after: 'M30', via: 'flat', scene: 'O12', extra: [{ if: 'romantiek:kaartje-hangt', line: ['Tessa', 'Het kaartje hangt er nog.'] }, { if: 'romantiek:kaartje-zak', line: ['Tammo', 'Het kaartje zit nog in mijn zak.'] }] },
 ];
 
 const M = (id, part, title, def, o = {}) => ({ id, part, kind: 'mission', mission: def, title, built: false, silent: true, ...o });

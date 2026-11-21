@@ -18,6 +18,7 @@ import { withEllipsisAliases } from '../game/js/voicebank.js';
 const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = path.join(REPO, 'docs', 'verhaal', 'nieuw');
 const OUT = path.join(REPO, 'game', 'storydata', 'script.json');
+const HUMOR = path.join(REPO, 'game', 'storydata', 'humor.json');
 const VL = path.join(REPO, 'game', 'audio', 'voicelines');
 
 // script speaker -> { key: speaker key of the game (storyarc SPEAKERS / missionstory NPC), name: shown, voice: name in the voice manifests }
@@ -110,6 +111,29 @@ function kindOf(id, title) {
   return 'key';
 }
 
+// De humorkeuze (#1134 en docs/verhaal/HUMOR-WERKWIJZE.md): een nieuwe of herschreven komische beat heeft drie varianten en een
+// veilige neutrale terugval in game/storydata/humor.json; `chosen` (0, 1, 2 of 'neutral') is de variant die het spel gebruikt.
+// De bron (de 09-scripts) draagt een van de teksten; de build zet de gekozen tekst in de regel en geeft hem het label 'humor'.
+export function readHumor(file = HUMOR) {
+  if (!fs.existsSync(file)) return { beats: [] };
+  const j = JSON.parse(fs.readFileSync(file, 'utf8'));
+  if (!j || !Array.isArray(j.beats)) throw new Error(file + ': "beats" ontbreekt');
+  return j;
+}
+export const humorText = (b) => (b.chosen === 'neutral' ? b.neutral : b.variants[b.chosen]);
+function applyHumor(scenes) {
+  for (const b of readHumor().beats) {
+    const sc = scenes.find((q) => q.id === b.scene);
+    if (!sc) throw new Error('humor.json: scène ' + b.scene + ' bestaat niet (' + b.id + ')');
+    const all = [...b.variants, b.neutral];
+    const l = sc.lines.find((x) => all.includes(x.text) && (!b.speaker || x.who === b.speaker));
+    if (!l) throw new Error('humor.json: ' + b.id + ' vindt geen regel in ' + b.scene + ' met een van de varianten');
+    l.text = humorText(b);
+    l.humor = b.id;
+    l.tag = 'NIEUW';
+  }
+}
+
 export function parseScripts() {
   const files = fs.readdirSync(SRC).filter((f) => /^09-script-akte\d\.md$/.test(f)).sort();
   const scenes = [];
@@ -146,6 +170,7 @@ export function parseScripts() {
       scene.lines.push(line);
     }
   }
+  applyHumor(scenes);
   return scenes;
 }
 
@@ -200,6 +225,7 @@ export function build() {
       if (l.tag === 'BEHOUDEN' && !recorded) behoudenMissing.push({ scene: s.id, speaker: spk.name, voice: spk.voice, text: l.text });
       const out = { speaker: spk.name, key: spk.key, text: l.text, tag: l.tag, channel: l.channel, textOnly: !recorded };
       if (l.manner) out.manner = l.manner;
+      if (l.humor) out.humor = l.humor;
       if (rec) out.rec = rec;
       if (spk.voice !== spk.name) out.voice = spk.voice;
       return out;

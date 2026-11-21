@@ -13,6 +13,8 @@ import { isRecapOpen } from './recapstate.js';
 import { BRIDGES } from './storyarc.js';
 import { AUTOPLAY, STORY_TEST } from './devflags.js';
 import { bridgeDue, bridgeFlag, bridgeBlockers, bridgeDecide } from './storybridge.js';
+import { romanceFor, romanceStage, romanceFlagFor, extraLines } from './storyromance.js';
+import { enterChoice, updateChoice, closeChoice } from './stagechoice.js';
 
 const KICKERS = { car: 'In de auto', flat: 'Thuis in Paddepoel', phone: 'Aan de telefoon' };
 
@@ -22,6 +24,7 @@ let waitingId = null;
 let playing = null;   // { id, flags }
 let deathAgoS = 1e9;
 let keyBound = false;
+let choice = null;    // { c, st, S }: de kleine romantische keuze na de scène (storyromance.js)
 let forced = null;    // voor de testbank: een scène die zonder wachten speelt
 
 // story.js laat een lopende overgangsscène meetellen als 'say' (de opmerking van de metgezel): autopraat en contacten wachten
@@ -57,13 +60,24 @@ function snapshot(w, view, menuOpen) {
 function finish(id, flags) {
   flags.add(bridgeFlag(id));
   playing = null;
+  choice = null;
+}
+
+// Na de scène een kleine keuze (alleen de toon van het moment, nooit het verloop): stagechoice.js met één ronde.
+function afterTalk(b, flags) {
+  const c = romanceFor(b.id);
+  if (!c || c.flags.some((f) => flags.has(f))) { finish(b.id, flags); return; }
+  const st = romanceStage(c);
+  const S = {};
+  enterChoice(S);
+  choice = { c, st, S, flags, id: b.id };
 }
 
 function bindKeys() {
   if (keyBound || typeof window === 'undefined') return;
   keyBound = true;
   window.addEventListener('keydown', (e) => {
-    if (!playing || e.repeat) return;
+    if (!playing || choice || e.repeat) return;
     if (e.key !== 'Backspace' && e.key !== 'Escape') return;
     const { id, flags } = playing;
     stopTalk();
@@ -74,18 +88,30 @@ function bindKeys() {
 function start(w, view, b) {
   const sc = scene(b.scene);
   const lines = sc ? talkLines(b.scene) : [];
+  // een eerdere romantische keuze geeft hooguit een extra regel (kleur), nooit een ander verloop
+  const extra = extraLines(b.extra, view.flags).map(([who, text]) => ({ speaker: who, text, voice: null, channel: 'stem', textOnly: true }));
   if (!lines.length) { view.flags.add(bridgeFlag(b.id)); return; }
   bindKeys();
   playing = { id: b.id, flags: flagStore(view) };
   waitingId = null;
   w.addMessage(`${KICKERS[b.via] || KICKERS.car}. Backspace slaat over.`, 4);
-  playTalk(lines, { id: 'bridge:' + b.id, delay: 1.2, onDone: () => { if (playing && playing.id === b.id) finish(b.id, view.flags); } });
+  playTalk([...extra, ...lines], { id: 'bridge:' + b.id, delay: 1.2, onDone: () => { if (playing && playing.id === b.id) afterTalk(b, view.flags); } });
 }
 
 // `view`: story.js storyBridgeView() { done, flags, currentId }; `menuOpen`: main.js geeft mee of een menu open staat.
 export function updateStoryBridge(dt, w, view, menuOpen) {
   if (!w || !view || typeof document === 'undefined') return;
   if (w.health <= 0 || w.pendingRespawn) deathAgoS = 0; else deathAgoS += dt;
+  if (choice) {
+    const r = updateChoice(dt, w, choice.st, choice.S);
+    if (r) {
+      const { c, S, flags, id } = choice;
+      closeChoice();
+      flags.add(romanceFlagFor(c, S.picks && S.picks.length ? S.picks[0] : 0));
+      finish(id, flags);
+    }
+    return;
+  }
   if (playing) return;
   if (forced) {
     const b = BRIDGES.find((x) => x.id === forced);
