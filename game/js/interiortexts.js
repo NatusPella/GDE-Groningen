@@ -16,7 +16,7 @@ export const LOCKED_HOME = ['De deur zit op slot.', 'Niemand thuis. De deur blij
 export const hourText = (h) => { const hh = Math.floor(h % 24), mm = Math.round((h - Math.floor(h)) * 60); return `${hh}:${String(mm).padStart(2, '0')}`; };
 
 // the line of the person at the counter, by kind (a counter, a bar, a desk)
-export const CLERK = {
+const CLERK = {
   winkel: ['Zoekt u iets bijzonders?', 'Mooi weer, hè? Kijk gerust rond.', 'Alles in de aanbieding vandaag, behalve de dingen die niet in de aanbieding zijn.', 'Pinnen mag. Contant ook. Zolang het maar geen eierballen zijn.'],
   horeca: ['Zegt u het maar.', 'De koffie is warm en de grappen zijn gratis.', 'Gezellig dat u er bent. Zoek maar een plekje.'],
   kantoor: ['Heeft u een afspraak? Nee? Dan heeft u hem nu.', 'De directeur is in een vergadering. Hij is altijd in een vergadering.'],
