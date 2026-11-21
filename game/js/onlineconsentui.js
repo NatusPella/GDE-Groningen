@@ -1,5 +1,5 @@
 // Samen spelen (#530, ADR 0022): the one screen at the first start (only a name, 21-11: the
-// online agreement comes with Samen spelen, startchoiceui.js) and the switch in the players panel. The rules and the Dutch
+// online agreement comes with Samen spelen, launchchoiceui.js) and the switch in the players panel. The rules and the Dutch
 // texts are in onlineconsent.js; this file is DOM only, in the style of the other screens.
 // Neither the screen nor the switch connects to anything: they only record the answer in
 // gde-settings, and the lobby (lobbyui.js) is still the one place that asks before connecting.

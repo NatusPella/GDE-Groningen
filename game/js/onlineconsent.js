@@ -31,7 +31,7 @@ export function geefToestemming({ zet = setSetting } = {}) {
 }
 
 // What the first start shows: only a name (21-11: the name comes first and once, also for whoever plays Alleen).
-// The online agreement is not asked here: it comes with Samen spelen (startchoiceui.js), before anything uses the network.
+// The online agreement is not asked here: it comes with Samen spelen (launchchoiceui.js), before anything uses the network.
 export const EERSTE_START = {
   titel: 'Hoe heet je?',
   uitleg: 'Je naam bewaar je op dit apparaat. Andere spelers zien hem alleen als je later met ze een sessie deelt. Je kunt hem altijd aanpassen in het pauzemenu.',
