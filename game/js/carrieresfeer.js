@@ -6,12 +6,12 @@
 // spel; de vorm (vlak, ruit, vouw) draagt de verwijzing. Puur: geen DOM, geen THREE, geen
 // opslag, zodat scripts/carrieresfeer_test.mjs de sferen kan natrekken.
 
-const CREAM = 'rgba(240, 237, 228, 0.92)';
-const CREAM_SOFT = 'rgba(240, 237, 228, 0.38)';
-const GREEN = 'rgba(30, 158, 86, 0.92)';
-const GREEN_LIGHT = 'rgba(63, 201, 122, 0.88)';
-const GREEN_DARK = 'rgba(15, 92, 48, 0.94)';
-const DARK = 'rgba(12, 20, 14, 0.72)';
+const CREAM = 'color-mix(in srgb, var(--ds-c-creme) 92%, transparent)';
+const CREAM_SOFT = 'color-mix(in srgb, var(--ds-c-creme) 38%, transparent)';
+const GREEN = 'color-mix(in srgb, var(--ds-c-licht-groen) 75%, var(--ds-c-glas))';
+const GREEN_LIGHT = 'color-mix(in srgb, var(--ds-c-licht-groen) 88%, transparent)';
+const GREEN_DARK = 'color-mix(in srgb, var(--ds-c-licht-groen) 38%, var(--ds-c-glas))';
+const DARK = 'color-mix(in srgb, var(--ds-c-glas) 72%, transparent)';
 
 // beeld: de lagen van background-image; maat: background-size voor alle lagen. Grote
 // vlakken en een enkele duidelijke vorm in plaats van fijne lijntjes: kleur boven textuur.
@@ -150,10 +150,10 @@ const LEGE = { naam: '', vorm: '', motief: '' };
 // en een melkwitte waas. Zo krijgt elk vak niet alleen een ander vlak, maar ook een
 // andere toon; het blijft allemaal cream en groen uit DESIGN_SYSTEM.md.
 const TINT = {
-  nacht: 'rgba(12, 20, 14, 0.62)',
-  bos: 'rgba(15, 92, 48, 0.58)',
-  veld: 'rgba(30, 158, 86, 0.26)',
-  melk: 'rgba(240, 237, 228, 0.12)',
+  nacht: 'color-mix(in srgb, var(--ds-c-glas) 62%, transparent)',
+  bos: 'color-mix(in srgb, var(--ds-c-licht-groen) 38%, var(--ds-c-glas))',
+  veld: 'color-mix(in srgb, var(--ds-c-licht-groen) 26%, transparent)',
+  melk: 'color-mix(in srgb, var(--ds-c-creme) 12%, transparent)',
 };
 const TINT_VAN = {
   trein: 'nacht', bus: 'veld', taxi: 'melk', bezorg: 'nacht', vracht: 'bos',

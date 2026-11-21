@@ -105,10 +105,10 @@ export const sfeerVan = (id) => ACTIVITEIT_SFEER[id] || null;
 
 // De vier tinten als rgba, gelijk aan TINT in carrieresfeer.js (cream en de drie groenen).
 export const TINT_RGBA = {
-  nacht: 'rgba(12, 20, 14, 0.62)',
-  bos: 'rgba(15, 92, 48, 0.58)',
-  veld: 'rgba(30, 158, 86, 0.26)',
-  melk: 'rgba(240, 237, 228, 0.12)',
+  nacht: 'color-mix(in srgb, var(--ds-c-glas) 62%, transparent)',
+  bos: 'color-mix(in srgb, var(--ds-c-licht-groen) 38%, var(--ds-c-glas))',
+  veld: 'color-mix(in srgb, var(--ds-c-licht-groen) 26%, transparent)',
+  melk: 'color-mix(in srgb, var(--ds-c-creme) 12%, transparent)',
 };
 
 // De CSS-variabelen voor de sfeerband: tint als achtergrond, accent voor de identiteitsrand.

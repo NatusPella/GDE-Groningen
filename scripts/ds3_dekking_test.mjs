@@ -102,6 +102,11 @@ for (const f of ['game/js/ds-schermen.css', 'game/js/fouttoast.js', 'game/js/ds-
   const regels = await import('./release/design_rules.mjs');
   ok(!regels.ALLOWED_FONTS.has('bebas neue') && !regels.ALLOWED_FONTS.has('arial narrow') && !regels.ALLOWED_FONTS.has('arial'), 'F19: Bebas Neue, Arial Narrow en Arial staan niet meer voorop in ALLOWED_FONTS');
   ok(regels.TEXT_FLOOR_PX === 13 && regels.TEXT_KEY_FLOOR_PX === 12, 'F19: de vloer is 13 px, een toetsplaatje 12 px');
+  // F18: de sfeerpaletten zijn tokens (geen eigen rgba of hex); de samenvoeging met ctxidentiteit.js staat als schuld in docs/DESIGN-AUDIT-UI-21-11.md
+  for (const f of ['game/js/carrieresfeer.js', 'game/js/activiteitensfeer.js']) {
+    const src = lees(f).replace(/\/\/.*$/gm, '').split('\n').filter((r) => !/^\s*\w+: S\(/.test(r)).join('\n'); // de accenttabel (S(...)) is data
+    ok(!/rgba?\(\s*\d/.test(src) && !/#[0-9a-fA-F]{6}\b/.test(src), `F18: ${f} heeft geen eigen rgba of hex buiten de accenttabel`);
+  }
   // F26: de toetsfonts worden één keer voorgeladen
   const pre = [...lees('game/index.html').matchAll(/rel="preload" href="(fonts\/input\/[^"]+)"/g)].map((m) => m[1]);
   ok(new Set(pre).size === pre.length, `F26: geen dubbele font-preload (${pre.length} regels, ${new Set(pre).size} uniek)`);

@@ -33,10 +33,8 @@ t('de patronen gebruiken alleen de tokens van het designsysteem', () => {
   const tinten = new Set();
   for (const id of L.VAK_IDS) {
     const css = S.sfeerStijl(id);
-    for (const m of css.matchAll(/rgba?\(([^)]*)\)/g)) {
-      const delen = m[1].split(',').map((x) => x.trim());
-      kleuren.add(delen.slice(0, 3).join(','));
-    }
+    assert.ok(!/rgba?\(/.test(css), `geen eigen rgba in ${id} (F18: de sfeer leest de tokens)`);
+    for (const m of css.matchAll(/var\((--ds-c-[\w-]+)\)/g)) kleuren.add(m[1]);
     const tint = css.match(/background-color:([^;]+);/);
     assert.ok(tint, `geen tint in ${id}`);
     tinten.add(tint[1]);
@@ -45,7 +43,7 @@ t('de patronen gebruiken alleen de tokens van het designsysteem', () => {
     assert.ok(!/[<>"]/.test(css), `geen invoer van buiten in ${id}`);
     assert.equal(S.sfeerStijl(id), S.sfeerStijl(id), `deterministisch in ${id}`);
   }
-  assert.deepEqual([...kleuren].sort(), ['12,20,14', '15,92,48', '240,237,228', '30,158,86', '63,201,122'], 'alleen de basis, cream en de drie groenen');
+  assert.deepEqual([...kleuren].sort(), ['--ds-c-creme', '--ds-c-glas', '--ds-c-licht-groen'], 'alleen de basis, cream en groen, als tokens');
   assert.ok(tinten.size >= 4, 'er zijn minstens vier tonaliteiten');
 });
 
@@ -56,7 +54,7 @@ t('de boerenzakdoek is geblokt cream/groen met een vouw', () => {
   assert.equal(s.vouw, true, 'de zakdoek heeft een gevouwen punt');
   const css = S.sfeerStijl('landbouw');
   assert.ok((css.match(/repeating-linear-gradient/g) || []).length >= 4, 'het geblokte patroon heeft horizontale en verticale draden');
-  assert.ok(css.includes('30, 158, 86') && css.includes('240, 237, 228'));
+  assert.ok(css.includes('--ds-c-licht-groen') && css.includes('--ds-c-creme'), 'de zakdoek is cream en groen uit de tokens (F18)');
 });
 
 t('de loopbaan-UI gebruikt de sfeer in de lijst en boven het vak', () => {
