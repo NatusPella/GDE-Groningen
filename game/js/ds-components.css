@@ -158,9 +158,11 @@ html.pad-active :is(.ds-z-knop, .ds-z-kaart, .ds-z-tab, .ds-z-rij):focus { outli
   background: var(--ds-zeef-primair); color: var(--ds-zeef-tx);
   font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-label); text-align: center;
   cursor: pointer; box-shadow: var(--ds-schaduw-hard);
-  transition: transform var(--ds-m-snel) var(--ds-ease), box-shadow var(--ds-m-snel) var(--ds-ease), background-color var(--ds-m-snel) var(--ds-ease);
+  transition: transform var(--ds-m-snel) var(--ds-ease), box-shadow var(--ds-m-snel) var(--ds-ease), background-color var(--ds-m-snel) var(--ds-ease), translate var(--ds-m-snel) var(--ds-ease);
 }
 .ds-z-knop:hover { background: var(--ds-c-geel-hover); }
+/* Microanimatie (DS3): hover en focus tillen de knop 1 px op (translate, geen layout); de druk doet de transform eronder. */
+@media (prefers-reduced-motion: no-preference) { html:not(.reduce-motion, .rustig-drukwerk) .ds-z-knop:is(:hover, :focus-visible):not(:disabled, [aria-disabled="true"], :active) { translate: -1px -1px; } }
 .ds-z-knop:active { background: var(--ds-c-geel-druk); transform: translate(var(--ds-hard-x), var(--ds-hard-y)); box-shadow: none; }
 .ds-z-knop--secundair { background: var(--ds-zeef-bg); }
 .ds-z-knop--secundair:hover { background: var(--ds-c-wit); }
@@ -184,7 +186,7 @@ html.pad-active :is(.ds-z-knop, .ds-z-kaart, .ds-z-tab, .ds-z-rij):focus { outli
   padding: var(--ds-s-4); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx);
   border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r);
   box-shadow: var(--ds-schaduw-hard); transform: rotate(var(--ds-schuin));
-  transition: transform var(--ds-m-snel) var(--ds-ease), box-shadow var(--ds-m-snel) var(--ds-ease);
+  transition: transform var(--ds-m-snel) var(--ds-ease), box-shadow var(--ds-m-snel) var(--ds-ease), translate var(--ds-m-midden) var(--ds-ease);
 }
 .ds-z-kaart__kop {
   display: flex; align-items: center; justify-content: space-between; gap: var(--ds-s-3);
@@ -198,6 +200,7 @@ html.pad-active :is(.ds-z-knop, .ds-z-kaart, .ds-z-tab, .ds-z-rij):focus { outli
 .ds-z-kaart--klik { cursor: pointer; }
 .ds-z-kaart--klik:hover, .ds-z-kaart:focus-visible { transform: rotate(0deg); }
 .ds-z-kaart--klik:active { transform: translate(var(--ds-hard-x), var(--ds-hard-y)); box-shadow: none; }
+@media (prefers-reduced-motion: no-preference) { html:not(.reduce-motion, .rustig-drukwerk) .ds-z-kaart--klik:is(:hover, :focus-visible):not(:active, .ds-z-kaart--uit) { translate: 0 -2px; } }
 .ds-z-kaart--selectie, .ds-z-kaart[aria-current="true"] { background: var(--ds-c-sel-vlak); border-color: var(--ds-c-ink-bord); box-shadow: var(--ds-schaduw-hard-bord); }
 .ds-z-kaart--selectie::before, .ds-z-kaart[aria-current="true"]::before {
   content: "\2713"; position: absolute; right: var(--ds-s-2); bottom: var(--ds-s-1); color: var(--ds-c-ink-bord);
@@ -239,9 +242,11 @@ html.pad-active :is(.ds-z-knop, .ds-z-kaart, .ds-z-tab, .ds-z-rij):focus { outli
   display: inline-flex; align-items: center; justify-content: center; min-height: var(--ds-hoogte-tab); padding: 0 var(--ds-s-4);
   border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-pil); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx);
   font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-label); text-transform: uppercase;
-  cursor: pointer; transition: background-color var(--ds-m-snel) var(--ds-ease);
+  cursor: pointer; transition: background-color var(--ds-m-snel) var(--ds-ease), translate var(--ds-m-snel) var(--ds-ease), scale var(--ds-m-snel) var(--ds-ease);
 }
 .ds-z-tab:hover { background: var(--ds-c-sel-vlak); }
+@media (prefers-reduced-motion: no-preference) { html:not(.reduce-motion, .rustig-drukwerk) .ds-z-tab:is(:hover, :focus-visible):not(:active, :disabled, [aria-disabled="true"], [aria-selected="true"]) { translate: 0 -1px; } }
+@media (prefers-reduced-motion: no-preference) { html:not(.reduce-motion, .rustig-drukwerk) .ds-z-tab:active:not(:disabled, [aria-disabled="true"]) { scale: 0.96; } }
 .ds-z-tab[aria-selected="true"], .ds-z-tab--actief { background: var(--ds-c-ink-inkt); color: var(--ds-c-ink-papier); box-shadow: var(--ds-schaduw-hard-klein); }
 .ds-z-tab:disabled, .ds-z-tab[aria-disabled="true"] { border-style: dashed; cursor: not-allowed; background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); }
 
@@ -250,7 +255,10 @@ html.pad-active :is(.ds-z-knop, .ds-z-kaart, .ds-z-tab, .ds-z-rij):focus { outli
   position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--ds-s-3);
   min-height: var(--ds-hoogte-rij); padding: var(--ds-s-2) var(--ds-s-4); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx);
   border-bottom: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-left: var(--ds-status-rand) solid transparent;
+  transition: background-color var(--ds-m-snel) var(--ds-ease), translate var(--ds-m-snel) var(--ds-ease);
 }
+/* Microanimatie (DS3): een rij die je kunt kiezen schuift 2 px naar rechts bij hover of focus (translate, geen layout). */
+@media (prefers-reduced-motion: no-preference) { html:not(.reduce-motion, .rustig-drukwerk) .ds-z-rij:is(button, a, [role="button"], [role="option"], [tabindex]):is(:hover, :focus-visible):not(.ds-z-rij--uit, [aria-disabled="true"]) { translate: 2px 0; } }
 .ds-z-rij__naam { display: block; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); }
 .ds-z-rij__sub { display: block; font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-hulp); }
 .ds-z-rij__waarde { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); font-variant-numeric: tabular-nums; }

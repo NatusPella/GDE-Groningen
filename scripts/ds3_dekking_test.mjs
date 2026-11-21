@@ -109,6 +109,19 @@ ok(/\[unreleased\]/i.test(lees('CHANGELOG.md')) && /Microanimaties/.test(lees('C
 ok(leesCss('@media (a) { .x { color: red; } } .y { top: 0; } @keyframes k { from { opacity: 0; } }').regels.length === 2, 'de css-lezer leest regels in en buiten @media');
 ok(microKlassen(micro).includes('ds-m-binnen') && microKlassen(micro).includes('ds-moment-stempel'), 'microKlassen vindt de klassen met beweging');
 
+// 6b. De componenten zelf (ds-components.css) bewegen mee op elk scherm: knop, klikbare kaart, tab en kiesbare rij krijgen hover/focus/druk
+// met translate en scale (geen layout), alleen met tokens, en niet onder Beweging beperken, Rustig drukwerk of prefers-reduced-motion.
+{
+  const comp = lees('game/js/ds-components.css');
+  const plat = comp.replace(/\r?\n/g, ' ');
+  const regels = comp.split(/\r?\n/).filter((l) => /^@media \(prefers-reduced-motion: no-preference\)/.test(l));
+  ok(regels.length >= 5, 'de componenten hebben hun hover- en drukbeweging (knop, kaart, tab, rij)', String(regels.length));
+  ok(regels.every((l) => l.includes('html:not(.reduce-motion, .rustig-drukwerk)')), 'die beweging staat uit bij Beweging beperken en Rustig drukwerk');
+  ok(regels.every((l) => /(?:translate|scale):/.test(l) && !/(?:width|height|top|left|margin|padding|filter|\d+ms)/.test(l.replace(/min-height/g, ''))), 'die beweging gebruikt alleen translate of scale, geen layout en geen losse tijd');
+  for (const k of ['.ds-z-knop', '.ds-z-kaart--klik', '.ds-z-tab', '.ds-z-rij']) ok(regels.some((l) => l.includes(k)), `${k} beweegt bij hover en focus`);
+  ok(/\.ds-z-tab \{[^}]*translate var\(--ds-m-snel\)/.test(plat) && /\.ds-z-rij \{[^}]*translate var\(--ds-m-snel\)/.test(plat), 'tab en rij hebben een overgang op translate met een token');
+}
+
 // 7. Toets in de knop (21-11): een knop met data-key heeft zijn glyph IN de knop, en er staat geen losse toetshint naast een knop in een kaartpopup
 const { actiesHtml, reisPopupHtml, uitlegHtml, sluitHtml } = await import('../game/js/kaartactieui.js');
 const K = await import('../game/js/kaartactie.js');
