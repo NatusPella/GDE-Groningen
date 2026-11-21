@@ -100,6 +100,13 @@ function faseStatisch(ctx) {
   const merken = runStep('merkenregister', process.execPath, ['scripts/merkenregister_check.mjs'], { ms: 120e3, logDir: d });
   items.push({ naam: 'merkenregister tegen de code', status: merken.code === 0 ? 'PASS' : 'FAIL', code: merken.code === 0 ? 0 : 1, secs: merken.secs, detail: merken.code === 0 ? '' : MELDING(merken) });
 
+  // De dekking van Samen spelen (21-11): elk systeem een Samen-regel, nieuwe modules bij een systeem, opslagsleutels per speler of als wereldstaat; blokkeert bij een vondst.
+  {
+    const cd = runStep('coop_coverage_audit', process.execPath, ['scripts/coop_coverage_audit.mjs'], { ms: 5 * 60e3, logDir: d });
+    const cdFouten = cd.out.split(/\r?\n/).filter((l) => /^FOUT/.test(l)).slice(0, 3).join(' | ');
+    items.push({ naam: 'dekking Samen spelen (systemen, regels, opslagsleutels)', status: cd.code === 0 ? 'PASS' : 'FAIL', code: cd.code === 0 ? 0 : 1, secs: cd.secs, detail: cd.code === 0 ? '' : (cdFouten || MELDING(cd)) });
+  }
+
   // De cutscene-linter (regie-bijbel docs/CUTSCENE-REGIE-21-11.md): streng voor alle cutscenes, ook de bestaande (eigenaar-besluit 21-11); faalt bij elke blokkerende vondst zonder gedocumenteerde uitzondering in scripts/release/cutscene-uitzonderingen.json.
   // Het rapport (per cutscene en de globale score) komt in de map van de run; de blokkerende vondsten zijn ook als lijst te lezen.
   {

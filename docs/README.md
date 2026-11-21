@@ -44,6 +44,8 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [BOERDERIJ.md](<BOERDERIJ.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/mechanica.md`](../.specs-fire/standard… |
 | [BEZIT-21-11.md](<BEZIT-21-11.md>) | Werkdocument. Onderzoek, data-audit en ontwerp van de epic Bezit: koopbare percelen en panden in de hele provincie (13.883 percelen, 370.144 panden), prijsmodel, bezit-opslag, productieketen, AI-personeel, Samen spelen en het stappenplan met werkpakketten. Gemeten met `scripts/world/percelen_audit.mjs`. |
 | [COOP-GAST.md](<COOP-GAST.md>) | Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). Dit docu… |
+| [COOP-DEKKING-21-11.md](<COOP-DEKKING-21-11.md>) | Werkdocument. Audit-matrix: per systeem van de hele game de zes vragen over Samen spelen (bezit, gast, beloning, wegvallen en hostwissel, enkelspeler-aanname, dekking), gegenereerd uit scripts/coop_coverage.json. |
+| [COOP-SWEEP-21-11.md](<COOP-SWEEP-21-11.md>) | Werkdocument. Draaiboek voor de sweep: welke testbank-suites, hoeveel Electron-instanties, hoe lang. |
 | [COOP-OPSLAAN.md](<COOP-OPSLAAN.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/multiplayer.md`](../.specs-fire/standa… |
 | [COOP-OVERDRAGEN.md](<COOP-OVERDRAGEN.md>) | Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). Dit docu… |
 | [COOP-TESTBANK.md](<COOP-TESTBANK.md>) | Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). Dit docu… |

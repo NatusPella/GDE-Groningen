@@ -14,6 +14,7 @@ import { nextBeat, inviteBeat, markBeat, hudLine, beatText } from './voetbalbeat
 import { getStoryView } from './storyquery.js';
 import { unlockAchievement } from './achievements.js';
 import { playerBusy } from './busy.js';
+import { hoofdspeler } from './players.js';
 import { narrativeBusy } from './narrative.js';
 
 const WRITE_DELAY_MS = 1500;
@@ -159,7 +160,7 @@ export function updateBeats(dt, w) {
   beatCheck = 2;
   const c = getCareer();
   const ctx = { unlocked: isUnlockedNow(w), busy: sidePathBusy(w), day: currentDay() };
-  const char = hoofdspeler(w) && hoofdspeler(w).character === 'tammo' ? 'tammo' : 'anita';
+  const char = (hoofdspeler(w) || {}).character === 'tammo' ? 'tammo' : 'anita';
   if (!C.hasCareer(c)) {
     // de uitnodiging: hooguit een keer per speldag en drie keer in totaal (het paneel toont hem altijd); een gemiste uitnodiging vervalt niet maar zeurt niet
     const nu = Math.floor((w.time || 0) / 1440);

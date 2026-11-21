@@ -11,6 +11,8 @@
 //   camera   true als een scene of fotocamera het beeld heeft (world.cameraOverride): de camerahoek zegt dan niets over jou
 import { hoofdspeler } from './players.js';
 
+import { hoofdspeler } from './spelersregister.js';
+
 const TAU = Math.PI * 2;
 const fin = (n) => typeof n === 'number' && Number.isFinite(n);
 const num = (n, d = 0) => (fin(n) ? n : d);
@@ -31,7 +33,7 @@ export function vehicleKind(v) {
 const HEADING_UP = new Set(['duif', 'heli', 'vliegtuig', 'trein']);
 
 export function getViewAnchor(world, opts = {}) {
-  const body = opts.body || (world && (world.lokaalLichaam || hoofdspeler(world)));
+  const body = opts.body || (world && hoofdspeler(world));
   if (!body) return null;
   const camera = !!world.cameraOverride;
   const camYaw = fin(world.camYaw) ? world.camYaw : null;

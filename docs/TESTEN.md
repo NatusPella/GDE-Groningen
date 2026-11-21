@@ -12,7 +12,7 @@ node scripts/test_all.mjs [--fase=licht|zwaar|electron|alles] [--rapport=<map>]
 
 `--fase` mag ook een lijst zijn (`--fase=licht,zwaar`). Standaard is `licht`. `--only=<tekst>` draait alleen de items waarvan de naam de tekst bevat (handig om één test of één audit te proberen). `--list` toont de items.
 
-De `player_singleton_audit` (#500) telt per bestand hoe vaak code `world.player` of de vaste alias `w.player` rechtstreeks aanraakt en vergelijkt dat met `scripts/player_singleton_baseline.json`. Groei of een nieuw bestand is een fout; een daling is winst en werk je bij met `node scripts/player_singleton_audit.mjs --update`. Nieuwe code leest de eigen speler via `game/js/players.js` (zie ADR [0018](../.specs-fire/standards/adr/0018-een-ingang-voor-de-speler.md)).
+De `coop_coverage_audit` (21-11, docs/COOP-DEKKING-21-11.md) keurt dat elk systeem een Samen-regel en een test heeft, dat nieuwe modules bij een systeem horen en dat opslagsleutels per speler, per apparaat of als wereldstaat zijn ingedeeld; `--write` herschrijft de matrix. De `player_singleton_audit` (#500) telt per bestand hoe vaak code `world.player` of de vaste alias `w.player` rechtstreeks aanraakt en vergelijkt dat met `scripts/player_singleton_baseline.json`. Groei of een nieuw bestand is een fout; een daling is winst en werk je bij met `node scripts/player_singleton_audit.mjs --update`. Nieuwe code leest de eigen speler via `game/js/players.js` (zie ADR [0018](../.specs-fire/standards/adr/0018-een-ingang-voor-de-speler.md)).
 
 ## Toetshints (opdracht 21-11)
 
