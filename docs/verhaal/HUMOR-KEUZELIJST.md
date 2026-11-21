@@ -146,10 +146,10 @@ Eerlijk over de proef: 106 beats. De beoordelaars lazen de stijlgids en de beats
 | HN-13 | N5 | TESSA | Je vroeg ook niet naar de kippen. Er zijn er zeventien. Ze hebben namen. | variant 1, variant 2, variant 3 | laag | Meest onverwachte pointe die bij het personage past. |
 | HN-14 | N5 | TAMMO | De koe kijkt. Naar mij. Ze kent mijn duiven. | variant 1, variant 2, variant 2 | midden | Meest onverwachte pointe die bij het personage past. |
 | HN-15 | N7 | TAMMO | Een bus met principes. | variant 2, variant 2, variant 3 | midden | Bus met principes: serieus oordeel, absurd. |
-| HN-05 | N10 | TERRASGAST | Ik bedoelde de rekening. | voorstel, paneel nog te doen |  |  |
-| HN-06 | N12 | TAMMO | Dat wordt een mooie regel. | voorstel, paneel nog te doen |  |  |
-| HN-07 | N9 | TESSA | Het eet je sok. | voorstel, paneel nog te doen |  |  |
-| HN-08 | N9 | TAMMO | Ik kijk naar de beer. | voorstel, paneel nog te doen |  |  |
+| HN-16 | N10 | TERRASGAST | Ik bedoelde de rekening. | voorstel, paneel nog te doen |  |  |
+| HN-17 | N12 | TAMMO | Dat wordt een mooie regel. | voorstel, paneel nog te doen |  |  |
+| HN-18 | N9 | TESSA | Het eet je sok. | voorstel, paneel nog te doen |  |  |
+| HN-19 | N9 | TAMMO | Ik kijk naar de beer. | voorstel, paneel nog te doen |  |  |
 
 ## De alternatieven per beat
 
@@ -765,25 +765,25 @@ Eerlijk over de proef: 106 beats. De beoordelaars lazen de stijlgids en de beats
 - variant 3: Een goede bus. Hij nam ons samen mee.
 - neutraal: Een goede bus.
 
-**HN-05** (N10): Terras aan de Grote Markt. De gast vroeg of Tammo en Tessa al samen zijn; zij beantwoorden dat als vraag over hun relatie. De gast bedoelde iets heel anders.
+**HN-16** (N10): Terras aan de Grote Markt. De gast vroeg of Tammo en Tessa al samen zijn; zij beantwoorden dat als vraag over hun relatie. De gast bedoelde iets heel anders.
 - variant 1 (gekozen): Ik bedoelde de rekening.
 - variant 2: Ik vroeg naar de rekening.
 - variant 3: Ik wilde alleen betalen.
 - neutraal: Ik wilde graag afrekenen.
 
-**HN-06** (N12): De flat, bij de koelkast. Tessa heeft een lijstje gemaakt van wie wat kan en zet SAMEN met een dubbele punt op een lege regel. Tammo kijkt naar de lege regel en dan naar haar.
+**HN-17** (N12): De flat, bij de koelkast. Tessa heeft een lijstje gemaakt van wie wat kan en zet SAMEN met een dubbele punt op een lege regel. Tammo kijkt naar de lege regel en dan naar haar.
 - variant 1 (gekozen): Dat wordt een mooie regel.
 - variant 2: Ik hoop dat die regel lang wordt.
 - variant 3: Die regel wil ik zelf invullen.
 - neutraal: Dat komt nog wel.
 
-**HN-07** (N9): Nacht op een dijk, in een oud busje met de achterdeuren open. Een schaap staat tussen hen in het beeld en kauwt op Tammo's sok; het bijna-moment is net voorbij.
+**HN-18** (N9): Nacht op een dijk, in een oud busje met de achterdeuren open. Een schaap staat tussen hen in het beeld en kauwt op Tammo's sok; het bijna-moment is net voorbij.
 - variant 1 (gekozen): Het eet je sok.
 - variant 2: Het schaap eet je sok.
 - variant 3: Hij heeft je sok.
 - neutraal: Het pakt je sok.
 
-**HN-08** (N9): Nacht op een dijk. Tessa wijst naar de Grote Beer en zegt dat hij niet kijkt; Tammo kijkt naar haar vinger en niet naar de lucht.
+**HN-19** (N9): Nacht op een dijk. Tessa wijst naar de Grote Beer en zegt dat hij niet kijkt; Tammo kijkt naar haar vinger en niet naar de lucht.
 - variant 1 (gekozen): Ik kijk naar de beer.
 - variant 2: Ik kijk naar het sterrenbeeld.
 - variant 3: Ik kijk wel degelijk.
