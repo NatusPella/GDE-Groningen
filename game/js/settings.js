@@ -45,6 +45,10 @@ const BASE_DEFAULTS = {
   // zet het uit onder Instellingen, Spel. Alleen publieke buslocaties ophalen, niets van de speler
   // versturen; zonder bron of met de optie uit rijden de bussen hun eigen dienst.
   liveBussen: true,
+  // live treinen (livetreinen.js + treinlive.js, #1085): een eigen schakelaar naast de bussen (de feed is ca. 1 MB per
+  // minuut op de lijn); standaard aan. Alleen publieke vertragingen ophalen, niets van de speler versturen; uit of zonder
+  // bron toont het bord het rooster zonder vertraging.
+  liveTreinen: true,
   // which glyphs every hint shows: 'auto' (what you used last), 'keys' or 'pad'
   hintSource: 'auto',
   // touch buttons: 'auto' (on a touch device), 'aan' or 'uit' (touchlogic.js)

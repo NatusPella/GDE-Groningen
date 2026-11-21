@@ -767,6 +767,7 @@ function settingsHtml() {
       ${toggle('driftAssist', 'Driften met hulp', 'Helpt tegensturen en houdt een slip beheersbaar; uit is realistischer')}
       ${toggle('bikeAssist', 'Motor met hulp', 'Houdt een motor of brommer rechtop in bochten; uit is realistischer')}
       ${toggle('liveBussen', 'Live bussen', 'Bussen rijden waar ze in het echt rijden. Het spel haalt alleen publieke buslocaties op; er worden geen gegevens van jou verstuurd. Uit, of als de bron niet bereikbaar is: de bussen rijden het rooster van het spel, op de kaart gemarkeerd als Rooster')}
+      ${toggle('liveTreinen', 'Live treinen', 'De vertrekborden tonen de vertragingen van de echte treinen. Het spel haalt eens per minuut alleen openbare gegevens op (ongeveer 1 MB); er worden geen gegevens van jou verstuurd. Uit, of als de bron niet bereikbaar is: het bord toont het rooster zonder vertraging, met het woord Rooster')}
       <div class="m-gh"><span>Kaart</span></div>
       ${toggle('mapShiftTeleport','{SHIFT}+{LMB} op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}`,
       `${pane('Spelregels', 'Zo speelt het', '<p>Hoe moeilijk het is, hoe het verkeer en het geweld zich gedragen en hoe het rijden aanvoelt. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan op de andere tabbladen. Camera-afstand, beeldhoek en eerste persoon staan onder Instellingen &gt; Camera; toetshints en uitleg onder Instellingen &gt; Hints &amp; uitleg.</p>')}`)}

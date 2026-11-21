@@ -37,6 +37,7 @@ contextBridge.exposeInMainWorld('gdeDesktop', {
   },
   // Live bussen (#395): één vaste leesopvraag (GET) naar de open buslocaties, zonder gegevens van de speler; main.js doet hem (geen CORS in het main-proces)
   liveBussen: () => ipcRenderer.invoke('gde:live-bussen'),
+  liveTreinen: () => ipcRenderer.invoke('gde:live-treinen'),
   // 0.64.1: GPU-status van het hoofdproces voor Technische info (gpudiag.js): alleen lezen, niets over de speler
   gpuInfo: () => ipcRenderer.invoke('gde:gpu-info'),
   // only answered in a --trailer-frames run (main.js)

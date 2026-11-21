@@ -3,6 +3,8 @@ import { hoofdspeler } from './players.js';
 // bij de speler, uit dienstregeling.js. Het deel zonder wereld is puur (testbaar zonder
 // browser: scripts/stationlife_test.mjs); updateStationLife hangt het aan HUD en geluid.
 import { vertrekBord, bordUitTreinen, omroep, perronDrukte, tijdLabel, VERVOERDER } from './dienstregeling.js';
+import { heeftStation, rijenUitRooster, pasVertragingToe } from './treinrooster.js';
+import { bronStand, bronLabel, vertrekRegel } from './treinbron.js';
 
 export const NEAR_R = 45;      // m: zo dichtbij moet je bij het perron zijn voor bord en omroep
 export const CROWD_R = 140;    // m: zo dichtbij worden reizigers getekend
@@ -44,8 +46,22 @@ export function nearestStation(stations, x, y, r = NEAR_R) {
 // tien minuten weg is, is op de spelklok tien uur weg en gaf een bord met willekeurige tijden (#339). Met
 // minder dan BORD_MIN echte treinen vult het rooster het bord aan (dubbelen weggelaten), op volgorde van tijd.
 export const BORD_HORIZON = 90 * 60, BORD_MIN = 4, BORD_N = 5;
-export function stationView(station, clock, dag, treinen = null, schaal = 60) {
+// #1085: met `dienst` ({ rooster, dagsoort, live (Map vertragingen of null) }) volgt het bord de ECHTE dienstregeling van dit station
+// (treinrooster.js, vertrektijden uit open gegevens, verzonnen lijnnamen) met de live vertragingen erop; het is dan niet meer
+// gekoppeld aan de treinen die toevallig rijden. Een station zonder echt rooster houdt zijn eigen dienst (hieronder).
+export function stationView(station, clock, dag, treinen = null, schaal = 60, dienst = null) {
   const nu = ((clock % 24) + 24) % 24 * 3600;
+  if (dienst && dienst.rooster && heeftStation(dienst.rooster, station.name)) {
+    const basis = rijenUitRooster(dienst.rooster, station.name, dienst.dagsoort || 'werk', nu, { aantal: BORD_N + 4, terug: 30 });
+    const bord = pasVertragingToe(basis, dienst.live).slice(0, BORD_N);
+    const eerst = bord.find((r) => !r.vervallen) || null;
+    const wacht = eerst ? eerst.tijd - nu : Infinity;
+    return {
+      name: station.name, nu, bord, eerst, echtRooster: true,
+      drukte: perronDrukte(station.lijnen.length, nu / 3600, Number.isFinite(wacht) ? wacht : 900),
+      tekst: eerst ? omroep(eerst, nu) : '',
+    };
+  }
   const echt = (treinen ? bordUitTreinen(treinen.filter((t) => station.lijnen.includes(t.route)), station.name, nu, { aantal: 12, schaal }) : [])
     .filter((r) => r.tijd - nu <= BORD_HORIZON).slice(0, BORD_N);
   let bord = echt;
@@ -66,9 +82,18 @@ export function stationView(station, clock, dag, treinen = null, schaal = 60) {
 // Regels voor het bord: { label, cls } per cel.
 export function bordCellen(view) {
   return view.bord.slice(0, 4).map((r) => ({
-    t: `${tijdLabel(r.tijd)} ${r.richting} sp.${r.spoor}${r.vertraging >= 60 ? ` +${Math.round(r.vertraging / 60)}` : ''}`,
-    cls: r.vertraging >= 60 ? 'bad' : '',
+    t: `${tijdLabel(r.tijd)} ${r.richting}${r.spoor !== '' && r.spoor != null ? ` sp.${r.spoor}` : ''}${r.vervallen ? ' vervalt' : r.vertraging >= 60 ? ` +${Math.round(r.vertraging / 60)}` : ''}`,
+    cls: r.vertraging >= 60 || r.vervallen ? 'bad' : '',
   }));
+}
+
+// De bron van het bord in woorden (#1085): { kort: 'Live' | 'Rooster' | 'Rooster (eigen dienst)', regel, eerste } voor het label en de
+// regels onder het bord. De eerste regel is "Vertrekt over 4 min · 3 min vertraagd". liveStand: treinlive stand(); instelling: liveTreinen.
+export function bordBron(view, { instelling = true, liveStand = null, nu = Date.now() } = {}) {
+  const stand = bronStand({ instelling, stand: liveStand, nu });
+  const label = bronLabel(stand, { eigenDienst: !view.echtRooster });
+  const rij = view.bord.find((r) => !r.vervallen) || view.bord[0] || null;
+  return { ...label, soort: view.echtRooster ? stand.soort : 'eigen', eerste: view.echtRooster ? vertrekRegel(rij, view.nu) : '', tekst: stand.tekst };
 }
 
 // Waar reizigers staan: aan de rechterkant van het spoor (kijkrichting van de eerste lijn), verspreid
@@ -118,11 +143,12 @@ export function allStations() { return stations || []; }
 
 export function updateStationLife(dt, world, opts) {
   const { routes, point, day, createBoard } = opts;
+  const dienst = opts.rooster ? { rooster: opts.rooster, dagsoort: opts.dagsoort, live: opts.live ? opts.live.vertragingen() : null } : null;
   const sig = routes.length + ':' + routes.map((r) => r.stops.length).join(',');
   if (!stations || sig !== routesSig) { stations = stationsFromRoutes(routes, point); routesSig = sig; }
   const p = hoofdspeler(world);
   const hit = nearestStation(stations, p.x, p.y, CROWD_R);
-  cur = hit ? { station: hit.station, d: hit.d, view: stationView(hit.station, world.clock || 0, day, opts.trains ? opts.trains.map((t) => ({ route: t.route, c: t.c, dir: t.dir, v: t.v, state: t.state, target: t.target, timer: t.timer, vmax: t.cfg && t.cfg.vmax })) : null, opts.schaal || 60) } : null;
+  cur = hit ? { station: hit.station, d: hit.d, view: stationView(hit.station, world.clock || 0, day, opts.trains ? opts.trains.map((t) => ({ route: t.route, c: t.c, dir: t.dir, v: t.v, state: t.state, target: t.target, timer: t.timer, vmax: t.cfg && t.cfg.vmax })) : null, opts.schaal || 60, dienst) } : null;
   // een ander bord (machinist, minigame) gaat voor: het station laat zijn bord dan weg
   const other = opts.driving || (!shown && typeof document !== 'undefined' && document.body.classList.contains('mg-on'));
   const near = cur && cur.d < NEAR_R && !other;
@@ -137,11 +163,13 @@ export function updateStationLife(dt, world, opts) {
   if (v.name !== lastName) { lastName = v.name; ost = omroepToestand(); }
   board.show();
   shown = true;
+  const bron = bordBron(v, { instelling: opts.liveInstelling !== false, liveStand: opts.live ? opts.live.stand() : null });
   board.set({
-    row: `<b>${v.name}</b> &middot; ${tijdLabel(v.nu)}`,
+    row: `<b>${v.name}</b> &middot; ${tijdLabel(v.nu)} <em class="mg-sfeer">${bron.kort}</em>`,
     cells: bordCellen(v),
+    extra: bron.eerste ? `<span>${bron.eerste}</span>` : '',
     flash: v.eerst && v.eerst.vertraging >= 60 ? v.eerst.reden : '',
-    help: v.bord.length ? '' : 'Geen treinen meer vandaag',
+    help: v.bord.length ? bron.regel : 'Geen treinen meer vandaag',
   });
   const msg = omroepStap(ost, v, world.time);
   if (msg) world.addMessage(msg, 5);
