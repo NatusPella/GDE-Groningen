@@ -54,6 +54,7 @@ t('bezit_sim: eerste perceel ongeveer twee uur, schaal hoogstens drie maal actie
     assert.ok(Sim.passivePerHourAt(1000) <= 3 * Sim.ACTIVE_PER_HOUR + 1, m);
     assert.ok(sp.best.ownVsActive <= 2.3, `${m} eigen wagen ${sp.best.ownVsActive}`);
     assert.ok(sp.imperium.vsActive <= 4.7, `${m} imperium ${sp.imperium.vsActive}`);
+    if (m === 'standaard') { assert.ok(sp.best.ownVsActive >= 1.8 && sp.best.ownVsActive <= 2.2, `standaard eigen wagen ${sp.best.ownVsActive}`); assert.ok(sp.imperium.vsActive >= 3.8 && sp.imperium.vsActive <= 4.2, `standaard imperium ${sp.imperium.vsActive}`); }   // besluit eigenaar 21-11: eigen wagen ~2x, imperium ~4x
   }
   assert.ok(out.ontspannen.firstHours <= out.standaard.firstHours && out.standaard.firstHours <= out.uitdagend.firstHours);
   assert.ok(out.ontspannen.imperium >= out.standaard.imperium && out.standaard.imperium >= out.uitdagend.imperium);
