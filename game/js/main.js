@@ -205,7 +205,7 @@ import { tryQuickWaypoint } from './snelwaypoint.js'; // #836: T zet of wist je 
 import { initAchievementTracker, updateAchievementTracker } from './achievementtracker.js';
 import { initOmverrijden } from './omverrijden.js';
 import { initBoerderij, boerderijTijd, boerderijKlokNul } from './boerderijlive.js';
-import { initBezit } from './bezitlive.js';
+import { initBezit, dagTik as bezitDagTik } from './bezitlive.js';
 import { BOERDERIJ_WERELD_KIND } from './boerderijwereld.js';
 import { probe } from './hitchprobe.js';
 import { initSafety, updateSafety } from './safety.js';
@@ -1470,6 +1470,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     updateClearZones(dt, world);
     updateDayNight(dt, world);
     boerderijTijd(world); // de gewassen groeien in speltijd (#415)
+    try { bezitDagTik(world); } catch (e) { /* zonder bezit */ } // personeel, pacht, vee en bedrijven per speldag (epic Bezit)
     updateCalendar(dt, world);
     updateCheats(dt, world);
     updateRegioLeven(dt, world);

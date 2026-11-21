@@ -97,3 +97,19 @@ In beeld te controleren:
   daarna staat het perceel groen op de kaart, het geld is eraf en het veld staat in Bezit/Boerderij. Doel zetten en Reis werken via de bestaande actiebalk.
 - De legenda-rij Te koop (de rij Percelen met geel voor de twaalf vaste percelen blijft nog staan).
 - Een speler zonder index (bouw zonder bezit-bestanden): de laag blijft leeg en het spel gaat door.
+
+## #1099 Menu Land en bedrijf, tak Percelen en Bedrijven in het menu
+
+Gebouwd: `game/js/bezitui.js` (Overzicht met aandachtspunten, percelenlijst, sorteren, filteren, selectie en bulkacties, personeel; Bedrijven met je panden
+en de panden binnen 250 m; Te koop met de dichtstbijzijnde percelen; alles met een tweede druk bij kopen en verkopen), `pausemenu.js` (de rail-item
+Boerderij heet nu Land en bedrijf, met de onderdelen Overzicht, Boerderij, Bedrijven en Te koop; de id `boerderij` blijft, `bezit` wijst ernaar door; zonder
+voorkeur opent hij op Boerderij: voor wie al boert verandert er niets), `bezitlive.js` (panden kopen en verkopen, renovatie, personeel, de dagtik per speldag
+vanuit `main.js`), `bezitgate.js` (tak dicht = uitleg). Stijl in `farm.css` (`bz-`). Tests `bezitui_test` (12); `spelmenu_test` (310) en `menu_issues_062_test` blijven groen.
+De poort per akte is een stub (open); de verhaal-epic koppelt de echte poort via `setUnlockGate` (akte 2 Percelen, akte 3 Bedrijven).
+
+In beeld te controleren:
+- Esc, rail Bezit > Land en bedrijf: vier tabs; de tab Boerderij is de oude boerderij (Q en E wisselen over alle vier).
+- Overzicht: tegels, aandachtspunten, lijst met sorteren/filteren, kiezen en bulkknoppen, personeel aanstellen; Te koop: Doel zet een waypoint, Koop vraagt Ja of Nee.
+- Bedrijven: een winkelpand dichtbij kopen (kerken en monumenten staan er met de reden bij), renoveren, verkopen; omzet verschijnt per speldag in je geld (dagtik).
+- Het uitzicht van de nieuwe tegels en knoppen op 1080p en bij de kleinste venstergrootte (nog niet bekeken).
+Bekende gaten: de beheerknoppen (prijs, voorraad, uren) en klanten in de winkel zelf staan nog niet in de wereld; het aantal woningen per plaats is een schatting (1.500).

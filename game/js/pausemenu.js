@@ -37,6 +37,7 @@ import { trackTabLine } from './dsmicro.js'; // DS3: de glijdende onderstreping 
 import { renderLoopbaanPanel } from './loopbaanui.js';
 import { renderVisboekPanel } from './visboekui.js';
 import { renderBoerderijPanel, boerderijBegonnen } from './boerderijui.js';
+import { renderBezitPanels } from './bezitui.js';
 import { getBoerderij } from './boerderijlive.js';
 import { unseenAchievementCount } from './achievements.js';
 import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer, garageNaarWinkel, turnGarageViewer } from './garageui.js';
@@ -366,7 +367,7 @@ const SECTIONS = [
   ['over', 'Over', 'Nieuws, credits, versie en licenties'],
   // onderdelen onder een ander onderdeel (CHILD), niet los in de rail
   ['visboek', 'Visboek', 'Alle vis van de provincie, van jou'],
-  ['boerderij', 'Boerderij', 'Je eigen akker, gewassen en machines'],
+  ['boerderij', 'Land en bedrijf', 'Boerderij, percelen, bedrijven en wat te koop is'],
   ['controls', 'Besturing', 'Toetsen en knoppen aanpassen en nalezen'],
   ['streken', 'Cheats', 'Een beetje vals spelen'],
 ];
@@ -407,6 +408,9 @@ const SUBTABS = {
   // Twee dingen met dezelfde naam in hetzelfde menu is een raadsel; "Spelregels" zegt wat erin staat
   // (moeilijkheid, verkeer, geweld, rijden) en botst nergens meer mee.
   settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['spel', 'Spelregels'], ['besturing', 'Besturing'], ['camera', 'Camera'], ['display', 'Interface'], ['hints', 'Hints & uitleg'], ['a11y', 'Toegankelijkheid']],
+  // Bezit (epic #1095, #1099): Land en bedrijf is de oude Boerderij met drie onderdelen erbij; de id blijft 'boerderij' (zoekregel, hints, data-goto),
+  // 'bezit' wijst ernaar door. Zonder voorkeur opent het op Boerderij: voor wie al boert verandert er niets.
+  boerderij: [['overzicht', 'Overzicht'], ['boerderij', 'Boerderij'], ['bedrijven', 'Bedrijven'], ['tekoop', 'Te koop']],
   controls: [['toetsen', 'Toetsenbord en muis'], ['knoppen', 'Controller'], ['overzicht', 'Toetsenoverzicht'], ['aanraken', 'Aanraken'], ['hulp', 'Hulp']],
 };
 // old tab names (saved preferences, other modules)
@@ -1012,7 +1016,9 @@ export function initPauseMenu(w) {
           <section data-panel="loopbaan" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach pm-loopbaan"></div></section>
           <section data-panel="veroverd" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach pm-veroverd"></div></section>
           <section data-panel="visboek" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach pm-loopbaan pm-visboek"></div></section>
-          <section data-panel="boerderij" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach pm-boerderij"></div></section>
+          <section data-panel="boerderij" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-ach pm-bezit">${subtabsHtml('boerderij', 'Land en bedrijf')}
+            <div class="m-main pm-vbody"><div data-of="boerderij" data-sub="overzicht" class="pm-vsub pm-bezit-sub"></div><div data-of="boerderij" data-sub="boerderij" class="pm-vsub pm-ach pm-boerderij"></div><div data-of="boerderij" data-sub="bedrijven" class="pm-vsub pm-bezit-sub"></div><div data-of="boerderij" data-sub="tekoop" class="pm-vsub pm-bezit-sub"></div></div>
+          </div></section>
           <section data-panel="fotos" class="pm-panel pm-col" hidden><div class="pm-inner pm-fotos"></div></section>
           <section data-panel="streken" class="pm-panel pm-col" hidden><div class="pm-inner pm-streken"></div></section>
           <section data-panel="spel" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-settings">${spelHtml()}</div></section>
@@ -1100,7 +1106,7 @@ export function initPauseMenu(w) {
     const rp = e.target.closest('[data-rebind-pad]');
     if (rp) return startPadRebind(rp);
     const st = e.target.closest('[data-subtab]');
-    if (st) { showSubtab(st.dataset.of, st.dataset.subtab); if (st.dataset.of === 'verhaal') renderVerhaalPanel(); if (st.dataset.of === 'controls') renderBinds(); if (st.dataset.of === 'spel' || st.dataset.of === 'samen') afterSpelSub(); return; }
+    if (st) { showSubtab(st.dataset.of, st.dataset.subtab); if (st.dataset.of === 'verhaal') renderVerhaalPanel(); if (st.dataset.of === 'boerderij' && st.dataset.subtab !== 'boerderij') { const q = (sub) => root.querySelector(`[data-panel="boerderij"] [data-sub="${sub}"]`); renderBezitPanels({ overzicht: q('overzicht'), bedrijven: q('bedrijven'), tekoop: q('tekoop') }, world); } if (st.dataset.of === 'controls') renderBinds(); if (st.dataset.of === 'spel' || st.dataset.of === 'samen') afterSpelSub(); return; }
     if (e.target.closest('[data-story-skip]')) {
       if (skipCurrent()) setOpen(false);
       else rerenderTodo();
@@ -1639,6 +1645,7 @@ function cycleSection(dir) {
 // Opens a section from inside the menu (rail, Q/E, M, a card) and puts the
 // focus in it; Esc then leads back to Overzicht.
 function enterSection(id) {
+  if (id === 'bezit') id = 'boerderij';
   if (!sectionIds().includes(id)) id = sectionIds()[0];
   showTab(id, 'home');
   focusSheet();
@@ -2676,6 +2683,7 @@ function syncFooter() {
 
 function showTab(name, how) {
   const ids = sectionIds();
+  if (name === 'bezit') name = 'boerderij'; // Bezit (epic #1095): Land en bedrijf heet intern nog boerderij
   // de oude namen: Overzicht is Spel > Overzicht, cheats zijn een onderdeel van Instellingen.
   // 'telefoon' bestond als los scherm; dat is weg, dus de naam wijst door naar Personages.
   if (name === 'overzicht' || name === 'game') { pref.sub.spel = 'overzicht'; name = 'spel'; }
@@ -2761,7 +2769,12 @@ function showTab(name, how) {
   if (name === 'loopbaan') renderLoopbaanPanel(root.querySelector('[data-panel="loopbaan"] .pm-inner'), closePauseMenu, world);
   if (name === 'veroverd') renderVeroverdPanel(root.querySelector('[data-panel="veroverd"] .pm-inner'), closePauseMenu, world);
   if (name === 'visboek') renderVisboekPanel(root.querySelector('[data-panel="visboek"] .pm-inner'));
-  if (name === 'boerderij') renderBoerderijPanel(root.querySelector('[data-panel="boerderij"] .pm-inner'), world, closePauseMenu);
+  if (name === 'boerderij') {
+    const q = (sub) => root.querySelector(`[data-panel="boerderij"] [data-sub="${sub}"]`);
+    showSubtab('boerderij', pref.sub.boerderij || 'boerderij');
+    renderBoerderijPanel(q('boerderij'), world, closePauseMenu);
+    renderBezitPanels({ overzicht: q('overzicht'), bedrijven: q('bedrijven'), tekoop: q('tekoop') }, world);
+  }
   if (name === 'controls') { const q = root.querySelector('[data-controls-search]'); q.value = ''; filterControls(''); showSubtab('controls', pref.sub.controls || defaultControlsSubtab(document.documentElement.classList.contains('touch-device'))); bindMsg = ''; renderBinds(); }
   if (prev === 'controls' && name !== 'controls') cancelRebind();
   if (name === 'spel') { showSubtab('spel', pref.sub.spel || subsOf('spel')[0][0]); syncControls(); syncSaveButtons(); afterSpelSub(); }
