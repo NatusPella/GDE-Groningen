@@ -62,7 +62,7 @@ import { wantsTeleport, plekNaam } from './kaartteleport.js';
 import { ALLEEN_EIGEN_SPEL } from './coopgast.js';
 import { DEV } from './devflags.js';
 import { getGoal, setGoal, clearGoal, missionOnMap } from './goal.js';
-import { resolveNavTargets, snapshotFromWorld, distanceFor, navColor, GLYPH } from './navtarget.js';
+import { resolveNavTargets, snapshotFromWorld, distanceFor, compactDistance, navColor, GLYPH } from './navtarget.js';
 import { drawMapTargets } from './navpijl.js';
 import { markerColors } from './a11y.js';
 import { gameBusy } from './busy.js';
@@ -81,6 +81,7 @@ import {
 import { KEYS } from './storagekeys.js';
 import { grijsBijPassief } from './cooppvp.js';
 import { hoofdspeler } from './players.js';
+import { getViewAnchor } from './viewanchor.js';
 import { gastDoelen } from './coopextra.js';
 import { kaartDoelen, KAART_ANDER_ALPHA } from './coopmissie.js';
 import { samenWaarschuwing } from './coopstatus.js';
@@ -121,6 +122,12 @@ import { MIST_ALPHA, OPEN_MS, NAAMKAART_MS, mistByte, streekOwnerGrid, applyStre
 import { STREKEN } from './regioleven.js';
 import { wgsToWorld } from './rdnew.js';
 import { icoon } from './icons.js';
+
+// Jij op de kaart (#1141): de bestuurde entiteit (duif, heli, trein, voertuig) geeft plek en richting; het lichaam leent de rest.
+function jijVan(world) {
+  const body = hoofdspeler(world), a = getViewAnchor(world, { body });
+  return a ? Object.assign(Object.create(body), { x: a.x, y: a.y, angle: a.heading }) : body;
+}
 
 // city ground and the endless meadows past it share one colour (countrymap.js)
 // (read live: the palette turns to its night colours, see mapstyle.js)
@@ -1936,7 +1943,7 @@ function drawDynamicMarkers(ctx, world) {
 
   // de hint bij je eigen plek (#445): waar je staat, ook als je even niet weet waar je bent. #674: met de
   // hoogste titel erbij (alleen je eigen scherm; een gast leest zijn eigen titel, niet die van de opener).
-  const ik = hoofdspeler(world);
+  const ik = jijVan(world);
   const hier = plekHier(ik);
   const teken = loopbaanTeken();
   const mijnTitel = teken ? ` · ${teken.titel}` : '';
@@ -1984,7 +1991,7 @@ function drawDynamicMarkers(ctx, world) {
     const lijst = nav.alle.map((d) => {
       const [sx, sy] = toScreen(d.x, d.y);
       const actief = d.rol === 'actief';
-      return { sx, sy, kleur: navColor(d, palet), icoon: GLYPH[d.glyph] || GLYPH.punt, actief, tekst: actief ? formatDistance(distanceFor(d, actieveRoute)) : '', zonderSchijf: d.type === 'eigen' };
+      return { sx, sy, kleur: navColor(d, palet), icoon: GLYPH[d.glyph] || GLYPH.punt, actief, tekst: actief ? compactDistance(distanceFor(d, actieveRoute)) : '', zonderSchijf: d.type === 'eigen' };
     }).filter((q) => q.sx > -30 && q.sy > -30 && q.sx < state.cw + 30 && q.sy < state.ch + 30);
     // een wachtend eigen doel heeft al zijn pin: geen tweede icoon eroverheen
     drawMapTargets(ctx, lijst.filter((q) => q.actief || !q.zonderSchijf), { s: Math.max(0.8, Math.min(1.25, scBasis / ICON)), t, beweging: !reducedMotion() });
@@ -2028,7 +2035,7 @@ function drawFullRoute(ctx, world, t, route) {
   ctx.restore();
 }
 function drawFullRouteLijn(ctx, world, t, route, dikte) {
-  const ik = hoofdspeler(world);
+  const ik = jijVan(world);
   const color = ROUTE_COLORS[route.kind] || ROUTE_COLORS.user;
   const width = Math.max(3, Math.min(9, 3 + state.zoom * 0.7)) * dikte;
   const ahead = getRouteAhead(Infinity, route);
@@ -2479,7 +2486,7 @@ function showCard(world, h, sx, sy) {
     return;
   }
   const goal = getGoal();
-  const ik = hoofdspeler(world);
+  const ik = jijVan(world);
   const d = Math.hypot(h.x - ik.x, h.y - ik.y);
   const pips = it && it.medal != null ? `<span class="mv-pips">${[1, 2, 3].map((m) => `<span class="mv-pip" data-m="${m}"${it.medal >= m ? ' data-on' : ''} title="${MEDALS[m]}">${'BZG'[m - 1]}</span>`).join('')}</span>` : '';
   const meta = [it ? it.meta : h.sub, formatDistance(d), h.isGoal ? 'jouw waypoint' : ''].filter(Boolean).map(escHtml).join(' · ');
@@ -2762,7 +2769,7 @@ function handleKeys(dt, world) {
     state.cy += py * speed;
     updateTransform();
   }
-  if (input.wasPressed(' ')) { const ik = hoofdspeler(world); centreOn(ik.x, ik.y, 3); }
+  if (input.wasPressed(' ')) { const ik = jijVan(world); centreOn(ik.x, ik.y, 3); }
 }
 
 // --- lifecycle --------------------------------------------------------------
@@ -2793,7 +2800,7 @@ const LEGEND = [
     { kind: 'garage', label: 'Garage en pomp', note: 'repareren, spuiten, opvoeren, wrakken', layers: ['garage'] },
     { kind: 'hospital', label: 'Ziekenhuis en huisarts', layers: ['zorg'] },
     { kind: 'politiebureau', label: 'Politiebureau', layers: ['politiebureau'] },
-    { kind: 'police', label: 'Politie-eenheid', note: 'de ring om het schild is de warmte: rood = je bent gezocht, feller = heter; stippen = meer eenheden' },
+    { kind: 'police', label: 'Politie-eenheid', note: 'de dichtstbijzijnde eenheden in beeld; de sterren staan rechtsboven, en de rand van de kaart pulseert rood en blauw tijdens een achtervolging' },
     { kind: 'horeca', label: 'Horeca', layers: ['horeca'] },
     { kind: 'shop-kleding', label: 'Winkels', note: 'kleding, kapper, loten, krant, super, snacks', layers: ['shops'] },
     { kind: 'shop-fietsen', label: 'Voertuigwinkels', note: 'fietsen, auto\'s, tuning, boten, heli\'s', layers: ['shopsVoertuigen'] },
@@ -3229,7 +3236,7 @@ export function initMapView(world) {
       const on = !getRoutePrefs().avoidMotorways;
       setRoutePrefs({ avoidMotorways: on });
       btn.setAttribute('aria-pressed', String(on));
-    } else if (act === 'centre') { const ik = hoofdspeler(world); centreOn(ik.x, ik.y, 3); }
+    } else if (act === 'centre') { const ik = jijVan(world); centreOn(ik.x, ik.y, 3); }
     else if (act === 'layers') toggleLegend();
     else if (act === 'close') { if (closeHandler) closeHandler(); else closeMap(); } // no Esc on a touchscreen
     else if (act === 'clear') clearUserWaypoint();
@@ -3438,7 +3445,7 @@ export function setMapActive(world, on) {
     if (!state.legendGezien && !uitlegOpen) { state.legendGezien = true; toggleLegend(true); }
     else { state.legendGezien = true; toggleLegend(false); }
     if (uitlegOpen) plaatsWijzers();
-    const ik = hoofdspeler(world);
+    const ik = jijVan(world);
     centreOn(ik.x, ik.y, 2);
     // staat de eenmalige uitleg open, dan houdt zijn knop de focus (21-11): met de focus op het doek deed Enter niets of klikte onder het richtkruis
     const uitlegKnop = state.overlay.querySelector('.mv-help .mv-help-ok');

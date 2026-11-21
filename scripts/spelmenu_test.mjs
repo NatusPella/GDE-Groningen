@@ -72,7 +72,7 @@ ok(subIds.every((id) => ['overzicht', 'samen'].includes(id) || spelSrc.includes(
 // #979: de twee verhuisde tabbladen staan nu onder Instellingen, met hun eigen inhoud.
 const setSub = (pm.match(/settings: \[((?:\[[^\]]+\],? ?)+)\],/) || [])[1] || '';
 const setIds = [...setSub.matchAll(/\['(\w+)', '([^']+)'\]/g)].map((x) => x[1]);
-ok(setIds.join() === 'video,sound,spel,besturing,camera,display,hints,a11y', 'Instellingen heeft Camera en Hints & uitleg naast de bestaande tabbladen (#979)', setIds.join());
+ok(setIds.join() === 'video,sound,spel,besturing,camera,display,hints,a11y,online', 'Instellingen heeft Camera en Hints & uitleg naast de bestaande tabbladen en Samen spelen (online) (#979)', setIds.join());
 ok(setIds.filter((id) => ['camera', 'hints'].includes(id)).every((id) => settingsSrc.includes(`tab('${id}'`)), 'Camera en Hints hebben hun eigen inhoud onder Instellingen');
 ok(!/data-goto-sub="spel:camera"/.test(pm) && !/data-goto-sub="spel:hints"/.test(pm), 'geen enkele knop of verwijzing wijst nog naar Spel > Camera of Spel > Hints');
 ok(/\['spel', 'Spel', '/.test(pm), "'spel' staat in de sectielijst");
@@ -176,7 +176,7 @@ ok(/data-of="verhaal" data-sub="opdrachten" data-keep/.test(pm) && /renderTodoSt
 ok(/data-todo-view="verhaal"/.test(read('game/js/todoui.js')) && /view === 'verhaal'\) \{ pref\.sub\.verhaal = 'opdrachten'/.test(pm), 'Alle opdrachten in Overzicht leidt naar Verhaal > Opdrachten');
 // elke actie bereikbaar, geen dubbele data-actions of panelen
 const panels = [...pm.matchAll(/data-panel="(\w+)" class/g)].map((x) => x[1]);
-ok(new Set(panels).size === panels.length && panels.length === 16, 'elk paneel staat één keer in het blad', String(panels.length));
+ok(new Set(panels).size === panels.length && panels.length === 17, 'elk paneel staat één keer in het blad', String(panels.length));
 // --- #430 definitief: Spel (met Overzicht), Verhaal (met de telefoon), Loopbanen, Activiteiten, Samen spelen (met Spelers), Instellingen (met Cheats)
 const secties = new Function('return ' + pm.slice(pm.indexOf('const SECTIONS = [') + 'const SECTIONS = '.length, pm.indexOf('];', pm.indexOf('const SECTIONS = [')) + 1))();
 ok(secties.map((x) => x[0]).slice(0, 11).join() === 'spel,verhaal,todo,loopbaan,map,spullen,garage,veroverd,prestaties,fotos,settings', 'de secties staan in de volgorde van de eigenaar (20-11: Spel | Doen | Bezit | Voortgang | Systeem)', secties.map((x) => x[0]).join());

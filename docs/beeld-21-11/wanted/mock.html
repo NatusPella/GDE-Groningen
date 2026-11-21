@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="nl"><head><meta charset="utf-8"><title>Eén wanted-systeem (#1142): oud en nieuw</title>
+<style>
+:root { --papier:#f2e8d0; --inkt:#1d1a14; --roze:#ee6c8a; --rood:#d93f3f; --geel:#f9c80e; }
+body { margin:0; font:700 15px/1.2 "Arial Narrow", Arial, sans-serif; background:#6d6a62; color:var(--inkt); }
+h1 { margin:0; padding:10px 16px; font-size:18px; background:#222; color:#fff; }
+.rij { display:grid; grid-template-columns: 1fr 1fr; gap:12px; padding:12px; }
+.rij h2 { margin:0 0 6px; font-size:14px; color:#fff; }
+.scene { position:relative; height:420px; background:#9a8f7c; overflow:hidden; border:2px solid #222; }
+.plaat { background:var(--papier); border:2.5px solid var(--inkt); border-radius:8px; box-shadow:3px 3px 0 var(--roze); padding:4px 8px; }
+.mm { position:absolute; left:14px; bottom:14px; width:130px; height:130px; background:var(--papier); border:3px solid var(--inkt); border-radius:16px; padding:6px; box-sizing:border-box; }
+.mm i { display:block; width:100%; height:100%; border-radius:10px; background:repeating-linear-gradient(45deg,#6f9a6a 0 8px,#8cb184 8px 16px); position:relative; }
+.mm.chase { box-shadow:4px 4px 0 var(--rood); }
+.chip { position:absolute; left:10px; top:10px; z-index:2; display:flex; gap:6px; padding:2px 7px; background:var(--papier); border:2.5px solid var(--inkt); border-radius:10px; font-size:13px; }
+.pol { position:absolute; width:14px; height:14px; border-radius:50%; background:#3f6fd9; border:2px solid #fff; }
+.ring { position:absolute; width:26px; height:26px; border-radius:50%; border:3px solid var(--rood); border-bottom-color:transparent; }
+.rechts { position:absolute; right:12px; top:12px; display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+.ster { width:26px; height:26px; fill:none; stroke:var(--inkt); stroke-width:1.8; }
+.ster.on { fill:var(--roze); }
+.sterren { display:flex; gap:4px; }
+.stat { font-size:13px; text-transform:uppercase; letter-spacing:.04em; }
+.bar { width:150px; height:9px; border:1.5px solid var(--inkt); background:var(--papier); }
+.bar b { display:block; height:100%; width:55%; background:var(--rood); }
+.tag { position:absolute; right:0; top:130px; width:230px; background:var(--papier); border:3px solid var(--inkt); border-right:0; padding:8px 14px; box-shadow:3px 3px 0 var(--roze); }
+.tag small { background:var(--roze); padding:1px 6px; font-size:12px; }
+.tag strong { display:block; font-size:34px; margin-top:4px; }
+.zone { position:absolute; left:14px; top:12px; width:200px; background:#1c6b45; color:#fff; padding:8px 10px; border:2.5px solid var(--inkt); border-radius:8px; font-size:13px; }
+.lbl { position:absolute; left:50%; bottom:6px; transform:translateX(-50%); background:#000a; color:#fff; padding:2px 8px; font-size:12px; }
+</style></head><body>
+<h1>Eén wanted-systeem (#1142): oud links, nieuw rechts (mock, geen echte render)</h1>
+<svg width="0" height="0" style="position:absolute"><defs><symbol id="s" viewBox="0 0 24 24"><path d="M12 2l3 6.9 7.5.7-5.7 5 1.7 7.4L12 18l-6.5 4 1.7-7.4-5.7-5 7.5-.7z"/></symbol></defs></svg>
+
+<div class="rij">
+ <div><h2>Oud: 0 sterren, 3 eenheden in beeld (de verwarring)</h2>
+  <div class="scene"><div class="zone">Achtervolging eindigt zonder arrestatie</div>
+   <div class="rechts"><div class="plaat sterren"><svg class="ster"><use href="#s"/></svg><svg class="ster"><use href="#s"/></svg><svg class="ster"><use href="#s"/></svg><svg class="ster"><use href="#s"/></svg><svg class="ster"><use href="#s"/></svg></div></div>
+   <div class="tag"><small>WEG UIT BEELD</small><div class="sterren" style="opacity:.5"><svg class="ster"><use href="#s"/></svg><svg class="ster"><use href="#s"/></svg><svg class="ster"><use href="#s"/></svg><svg class="ster"><use href="#s"/></svg><svg class="ster"><use href="#s"/></svg></div><strong>Vrij</strong>De politie ziet je niet meer.</div>
+   <div class="mm"><div class="chip"><span>&#9921; 3</span></div><i><span class="ring" style="left:50px;top:40px"></span><span class="pol" style="left:56px;top:46px"></span></i></div>
+   <span class="lbl">drie weergaven: lege sterren, chip met 3, kaart met doorgekraste sterren</span></div></div>
+ <div><h2>Nieuw: 0 sterren (alleen het statuskaartje)</h2>
+  <div class="scene"><div class="zone">Achtervolging eindigt zonder arrestatie</div>
+   <div class="tag"><small>WEG UIT BEELD</small><strong>Vrij</strong>De politie ziet je niet meer.</div>
+   <div class="mm"><i><span class="pol" style="left:30px;top:30px"></span><span class="pol" style="left:60px;top:70px"></span><span class="pol" style="left:80px;top:40px"></span></i></div>
+   <span class="lbl">geen sterrenkaart, geen chip; politie als iconen</span></div></div>
+</div>
+<div class="rij">
+ <div><h2>Oud: 3 sterren, achtervolging</h2>
+  <div class="scene">
+   <div class="rechts"><div class="plaat sterren"><svg class="ster on"><use href="#s"/></svg><svg class="ster on"><use href="#s"/></svg><svg class="ster on"><use href="#s"/></svg><svg class="ster"><use href="#s"/></svg><svg class="ster"><use href="#s"/></svg></div></div>
+   <div class="mm"><div class="chip"><span>&#9921; 3</span><span>&#9733; 3/5</span></div><i><span class="ring" style="left:50px;top:40px"></span><span class="pol" style="left:56px;top:46px"></span></i></div>
+   <span class="lbl">sterren op twee plekken (rechtsboven en op de minimap)</span></div></div>
+ <div><h2>Nieuw: 3 sterren, achtervolging</h2>
+  <div class="scene">
+   <div class="rechts"><div class="plaat"><div class="sterren"><svg class="ster on"><use href="#s"/></svg><svg class="ster on"><use href="#s"/></svg><svg class="ster on"><use href="#s"/></svg><svg class="ster"><use href="#s"/></svg><svg class="ster"><use href="#s"/></svg></div><div class="stat" style="text-align:right">Ze zoeken je</div></div></div>
+   <div class="mm chase"><i><span class="pol" style="left:30px;top:30px"></span><span class="pol" style="left:60px;top:70px"></span><span class="pol" style="left:80px;top:40px"></span></i></div>
+   <span class="lbl">sterren op één plek met statusje; minimaprand rood</span></div></div>
+</div>
+<div class="rij">
+ <div><h2>Oud: 2 sterren, uit zicht</h2><div class="scene"><div class="rechts"><div class="plaat sterren"><svg class="ster on"><use href="#s"/></svg><svg class="ster on"><use href="#s"/></svg><svg class="ster"><use href="#s"/></svg><svg class="ster"><use href="#s"/></svg><svg class="ster"><use href="#s"/></svg></div><div class="plaat"><div class="bar"><b></b></div></div></div><div class="mm"><div class="chip"><span>&#9733; 2/5</span></div><i></i></div></div></div>
+ <div><h2>Nieuw: 2 sterren, uit zicht (aftelbalk in dezelfde kaart)</h2><div class="scene"><div class="rechts"><div class="plaat" style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><div class="sterren"><svg class="ster on"><use href="#s"/></svg><svg class="ster on"><use href="#s"/></svg><svg class="ster"><use href="#s"/></svg><svg class="ster"><use href="#s"/></svg><svg class="ster"><use href="#s"/></svg></div><div class="stat">Weg uit beeld</div><div class="bar"><b></b></div></div></div><div class="mm" style="box-shadow:4px 4px 0 var(--roze)"><i></i></div></div></div>
+</div>
+</body></html>

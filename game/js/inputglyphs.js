@@ -2,6 +2,13 @@
 // A glyph is one character of the matching font; the table is generated (scripts/input_glyph_map.mjs).
 // Pure functions: no DOM, no storage. The keycap itself is the white .ds-z-toets plate with the glyph inside.
 import { INPUT_GLYPHS } from './inputglyphs_data.js';
+import { GLYPH_INK } from './inputglyphs_ink.js';
+
+/** ` data-ink="573"` voor een glyph waarvan de inkt lager of hoger is dan de standaard 983/2048 (Spatie, Shift, Tab, schouderknoppen, muis), anders ''. ds-keycap.css schaalt daarmee de INKT naar dezelfde hoogte (#1075). */
+export function inkAttr(set, char) {
+  const v = GLYPH_INK[set] && GLYPH_INK[set][String(char).codePointAt(0).toString(16)];
+  return v ? ` data-ink="${v}"` : '';
+}
 
 // font families of game/fonts/fonts.css, per glyph set
 export const GLYPH_FAMILY = Object.freeze({

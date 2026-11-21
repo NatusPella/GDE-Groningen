@@ -1,0 +1,381 @@
+{
+  "version": "1.0.0",
+  "generated": "2026-11-21",
+  "source": "docs/CUTSCENE-AUDIT-OPUS-21-11.md",
+  "description": "Kalibratieset voor cutscene-reviews: 10 goede en 10 foute voorbeelden (echt of hypothetisch) om linters, ai-reviewers en het panel te kalibreren. Elk voorbeeld heeft een ID, type (goed/fout), wat het illustreert, waarom het goed/fout is, en welke regels (R-xx) het raakt.",
+  "usage": "Gebruik deze voorbeelden om te controleren of tools en reviewers consistent scoren. Een goed voorbeeld moet 4-5 scoren, een fout voorbeeld 1-2.",
+  "examples": {
+    "good": [
+      {
+        "id": "G01",
+        "scene": "M01.intro",
+        "type": "goed",
+        "category": "volledigScène",
+        "title": "Berend bij zijn pickup: referentie-scène",
+        "description": "Wide establishing (Martinikerkhof, Martinitoren, 3,5 s), naamkaart Berend ('Nul krassen'), beweging (Berend loopt om pickup), shot/reverse (Tammo, Tessa, Berend), humor-structuur (setup, punch, 1 s stilte, reactie, kicker), continuïteit OK.",
+        "waaromGoed": "Alles klopt: establishing, introductie, beweging, dialoog, shot-techniek, humor-structuur, continuïteit. Dit is het template.",
+        "rules": ["R-01", "R-02", "R-03", "R-04", "R-05", "R-08", "R-13", "R-15", "R-24"],
+        "scores": {
+          "tekstkwaliteit": 5,
+          "volgbaarheid": 5,
+          "introducties": 5,
+          "cameraRegie": 4,
+          "visueleLogica": 5,
+          "toonStructuur": 4,
+          "emotioneleMomenten": 4,
+          "dialoogFlow": 5,
+          "ondertitels": 5,
+          "groningsCultureel": 5,
+          "overall": 4.6
+        },
+        "codeSnippet": "SPECS['M01.intro'] = { cast: { berend: {...}, ...life.cast }, props: { kladblok, bakkie, escapade, ...life.props }, open: [...], beats: [...], shots: [...], cuts: [...], wide: { from: [-5.5, 4.5, 3.4], to: [-3.2, 3.3, 2.6], look: 'mid:berend,bakkie@1', fov: 48, until: 1 } }",
+        "note": "Gebruik als referentie voor intro-scènes met nieuw personage op nieuwe locatie."
+      },
+      {
+        "id": "G02",
+        "scene": "M16.6",
+        "type": "goed",
+        "category": "emotioneel",
+        "title": "De kus op de kermis: perfecte romantische uitbetaling",
+        "description": "Opbouw (botsauto-spelletje), stilte, close-up Tessa (FOV 28, 2 s), close-up Tammo (FOV 26, 2 s), crane-out over reuzenrad (FOV 44, 4 s), kicker ('Moi.' 'Moi.'), twee woorden, 8 seconden emotie.",
+        "waaromGoed": "Emotioneel moment krijgt maximale ruimte: opbouw, stilte, twee close-ups, crane-out, kicker kort. Geen haast, geen uitleg. Perfect.",
+        "rules": ["R-05", "R-08", "R-21", "R-24"],
+        "scores": {
+          "emotioneleMomenten": 5,
+          "toonStructuur": 5,
+          "cameraRegie": 5,
+          "dialoogFlow": 5,
+          "overall": 5
+        },
+        "note": "Gebruik als referentie voor romantische momenten. Ook: M22.4 (knuffel), M26.7 (vijf woorden)."
+      },
+      {
+        "id": "G03",
+        "scene": "M01.outro",
+        "type": "goed",
+        "category": "humor",
+        "title": "Humor-structuur: 'Hij zei moi.' / 'Tegen mij.'",
+        "description": "Setup (Berend zegt 'Moi' tegen Tessa na het controleren van de pickup), Tammo reageert ('Hij zei moi.'), Tessa antwoordt ('Tegen mij.'), 0,8 s tussen regels, twee-regelige kicker, droog.",
+        "waaromGoed": "Humor-STRUCTUUR klopt: setup, punch (observatie van Tammo), kicker (Tessa bevestigt), stilte tussen regels, geen uitleg. Of het grappig is: panelOordeel, maar structuur is perfect.",
+        "rules": ["R-08", "R-24"],
+        "scores": {
+          "toonStructuur": 5,
+          "dialoogFlow": 5
+        },
+        "humorStructuur": {
+          "setup": "Berend zegt 'Moi' (compliment in Gronings) tegen Tessa.",
+          "punch": "Tammo observeert ('Hij zei moi.').",
+          "kicker": "Tessa bevestigt ('Tegen mij.'), impliceert 'niet tegen jou'.",
+          "stilte": "0,8 s tussen regels L7 en L8.",
+          "reactie": "Geen extra reactie nodig; kicker sluit af.",
+          "uitleg": "Nee, grap legt zichzelf niet uit."
+        },
+        "note": "Gebruik als referentie voor twee-regelige kicker. Ook: 'Nul krassen. Of ik tel.' (M01), 'Moi.' 'Moi.' (M16.6)."
+      },
+      {
+        "id": "G04",
+        "scene": "M03.4",
+        "type": "goed",
+        "category": "visueel",
+        "title": "Visuele grap zonder woorden: briefje op lege vitrine",
+        "description": "Setup (kraak), Tammo en Tessa naderen vitrine, insert van vitrine (leeg, 2 s), insert van briefje ('Tige tank! – J.', 2 s), close-up Tammo's gezicht (verbaasd, 3 s), geen dialog.",
+        "waaromGoed": "Grap zonder woorden: de visuele vertelling (leeg, briefje, gezicht) is de punchline. Stilte aanwezig, insert-duren OK (2 s elk), reactie-shot aanwezig.",
+        "rules": ["R-08", "R-09", "R-10"],
+        "scores": {
+          "cameraRegie": 5,
+          "toonStructuur": 5,
+          "emotioneleMomenten": 4
+        },
+        "note": "Gebruik als referentie voor visuele grappen. Insert moet prop tonen die in verhaal ertoe doet."
+      },
+      {
+        "id": "G05",
+        "scene": "M20.3",
+        "type": "goed",
+        "category": "emotioneel",
+        "title": "Kruitkelder: beste onthulling van het spel",
+        "description": "Mem neemt bal af van Jelle, zegt 'Er is geen overeenkomst, jonge. Er is een moeder.', close-up Mem (4 s), close-up Jelle (ontroering en paniek, 3 s), stilte (1,5 s), Tammo en Tessa kijken (two-shot, 2 s).",
+        "waaromGoed": "Emotioneel hoogtepunt: korte krachtige regel, lange stilte, twee close-ups, reactie-shot duo. Jelle krijgt diepte (hij is een zoon, niet alleen een schurk). Perfect.",
+        "rules": ["R-08", "R-10", "R-21", "R-23"],
+        "scores": {
+          "emotioneleMomenten": 5,
+          "dialoogFlow": 5,
+          "cameraRegie": 5,
+          "toonStructuur": 5,
+          "overall": 5
+        },
+        "note": "Gebruik als referentie voor emotionele onthullingen. Ook: M22.4 (Tessa's verhaal), M26.7 (vijf woorden)."
+      },
+      {
+        "id": "G06",
+        "scene": "M01.intro",
+        "type": "goed",
+        "category": "introductie",
+        "title": "Introductieprotocol: Berend",
+        "description": "Geen aanloop (eerste klus, geen eerdere vermelding mogelijk), maar: wide establishing (Martinikerkhof), Berend staat bij pickup (context), naamkaart ('Berend Bos. Nul krassen.'), tag meteen duidelijk ('Nul krassen. Of ik tel.').",
+        "waaromGoed": "Introductie klopt: establishing, naamkaart + tag, context (pickup = zijn werk). Geen aanloop mogelijk (eerste missie), maar eerste verschijning is helder.",
+        "rules": ["R-01", "R-13"],
+        "scores": {
+          "introducties": 5,
+          "volgbaarheid": 5
+        },
+        "note": "Gebruik als referentie voor eerste personage zonder aanloop. Jelle (M03.2) is beter: hij heeft wel aanloop (chat, Berend, Sjabbe)."
+      },
+      {
+        "id": "G07",
+        "scene": "M09.1",
+        "type": "goed",
+        "category": "introductie",
+        "title": "Introductieprotocol: Geesje met aanloop",
+        "description": "Aanloop: Oma Trijntje noemt Geesje in M08.3 ('Geesje is kosteres in Warffum, ze heeft het vet nog'). Eerste verschijning M09.1: establishing shot (kerk), Geesje in beeld (oudere vrouw, mand eieren), naamkaart ('Geesje. Kosteres.'), tag ('Eieren zijn relikwieën').",
+        "waaromGoed": "Perfecte introductie: aanloop (speler verwacht een kosteres in een kerk), establishing, naamkaart, tag meteen duidelijk, stem klopt (behandelt alles als kerkelijk).",
+        "rules": ["R-01", "R-13", "R-14"],
+        "scores": {
+          "introducties": 5,
+          "volgbaarheid": 5
+        },
+        "note": "Gebruik als referentie voor introductie met aanloop. Ook: Jelle (M03.2 met aanloop via chat/Berend/Sjabbe)."
+      },
+      {
+        "id": "G08",
+        "scene": "M01.intro",
+        "type": "goed",
+        "category": "shotTechniek",
+        "title": "Shot-duren, FOV, bewegingen binnen norm",
+        "description": "8 shots in 42 s, gem. 5,25 s per shot. FOV: wide 48, medium 36-40, close-up 22-28. Bewegingen: dolly 0,65 m/s (shot 2), crane 0,4 m/s (shot 1). Allemaal binnen norm.",
+        "waaromGoed": "Techniek klopt: shot-duren OK (R-02), FOV matcht type (R-05), bewegingen menselijk-tempo (R-07). Dit is correct gebouwd.",
+        "rules": ["R-02", "R-05", "R-06", "R-07"],
+        "scores": {
+          "cameraRegie": 5
+        },
+        "codeSnippet": "shots: [{ t: 0, shot: 'orbit', ..., h0: 10, h1: 4, fov: 42 }, { t: 'L0+1.8', shot: 'dolly', from: [-7, -7.5, 0.5], to: [6, -7, 0.85], look: 'fiets1@0.9', fov: 32 }, ...]",
+        "note": "Gebruik als referentie voor technische correctheid."
+      },
+      {
+        "id": "G09",
+        "scene": "M01.intro",
+        "type": "goed",
+        "category": "ondertitels",
+        "title": "Ondertitels: korte regels, leesbaarheid perfect",
+        "description": "9 regels, lengte: 5, 7, 9, 11, 7, 12, 8, 6, 9 woorden. Allemaal ≤12 woorden. Leessnelheid: 74 woorden in 42 s = 17,6 woorden per 10 s. Binnen norm (15-17).",
+        "waaromGoed": "Ondertitels perfect: alle regels kort, leessnelheid OK, geen muur van tekst. Toegankelijk.",
+        "rules": ["R-11", "R-12"],
+        "scores": {
+          "ondertitels": 5
+        },
+        "note": "Gebruik als referentie voor ondertitel-lengte. Contra-voorbeeld: M08.3 (één regel 32 woorden)."
+      },
+      {
+        "id": "G10",
+        "scene": "M10.3",
+        "type": "goed",
+        "category": "dialoogFlow",
+        "title": "Dialoog-flow: ping-pong, reacties, geen monoloog",
+        "description": "Jelle praat (2 regels), Tammo reageert (1 regel), Jelle antwoordt (2 regels), Tessa reageert (1 regel), Jelle sluit af (1 regel). Totaal 7 regels, 3 sprekers, max 2 beurten achter elkaar, reacties aanwezig.",
+        "waaromGoed": "Dialoog is gesprek, niet monoloog. Luisteraars reageren (gezicht, woord). Niemand praat 4+ beurten achter elkaar. Flow natuurlijk.",
+        "rules": ["R-20", "R-22", "R-23"],
+        "scores": {
+          "dialoogFlow": 5,
+          "tekstkwaliteit": 5
+        },
+        "note": "Gebruik als referentie voor goede dialoog-flow. Contra-voorbeeld: M13.3 (Lammert 5 beurten, 11 regels)."
+      }
+    ],
+    "bad": [
+      {
+        "id": "F01",
+        "scene": "M06.0 (hypothetisch zonder fix)",
+        "type": "fout",
+        "category": "introductie",
+        "title": "Henk valt uit de lucht: geen aanloop",
+        "description": "Henk belt in M06.0 zonder ooit te zijn genoemd. Geen naamkaart (alleen naam in ondertitel). Wie is dit? Waarom belt hij Tammo?",
+        "waaromFout": "Introductieprotocol faalt: geen aanloop (R-14), geen naamkaart (R-13). Speler weet niet wie Henk is of waarom hij ertoe doet. Valt uit de lucht.",
+        "rules": ["R-13", "R-14"],
+        "scores": {
+          "introducties": 2,
+          "volgbaarheid": 3
+        },
+        "fix": "Vermeld Henk in M05 of M02: 'Henk belt, zijn bakkie heeft een deuk.' Dan is M06.0 een uitnodiging, niet een verrassing.",
+        "severity": "belangrijk",
+        "note": "Contra-voorbeeld voor introductie zonder aanloop. Goed voorbeeld: Geesje (M09.1) met aanloop via Oma."
+      },
+      {
+        "id": "F02",
+        "scene": "M13.3",
+        "type": "fout",
+        "category": "dialoogFlow",
+        "title": "Lammert's monoloog: 5 beurten, 11 regels",
+        "description": "Lammert praat 5 beurten achter elkaar (11 regels), Tammo en Tessa staan stil en zwijgen. Geen reacties, geen vragen, geen ping-pong. Dit is een opsomming.",
+        "waaromFout": "Dialoog-flow faalt: >3 beurten achter elkaar (R-22), geen reacties luisteraars (R-23), geen gesprek. Voelt als info-dump.",
+        "rules": ["R-22", "R-23"],
+        "scores": {
+          "dialoogFlow": 2,
+          "tekstkwaliteit": 3
+        },
+        "fix": "Split met vragen Tammo/Tessa. Tammo: 'Waar ligt die container?' Lammert: 'In vak C, achter het Noorse schip.' Tessa: 'Hoe komen we daar?' Lammert: 'Met de vorkheftruck, maar die is bezet.'",
+        "severity": "belangrijk",
+        "note": "Contra-voorbeeld voor dialoog-flow. Goed voorbeeld: M10.3 (Jelle, Tammo, Tessa ping-pong)."
+      },
+      {
+        "id": "F03",
+        "scene": "M08.3 (hypothetisch zonder fix)",
+        "type": "fout",
+        "category": "introductie",
+        "title": "Oma Trijntje valt via radio uit de lucht",
+        "description": "Oma verschijnt eerste keer op radio (R2.2) zonder ooit te zijn genoemd. Tammo zegt dan pas 'oma' in M08.1. Wie is dit? Waarom belt ze Rikus?",
+        "waaromFout": "Introductie faalt: geen aanloop (R-14). Speler weet niet wie Oma is of waarom ze belangrijk is tot M08.3 (8 missies later).",
+        "rules": ["R-14"],
+        "scores": {
+          "introducties": 2,
+          "volgbaarheid": 3
+        },
+        "fix": "Tammo noemt Oma in M07 of M05: 'Mijn oma won in 1953, ik bel haar.' Dan is R2.2 een uitnodiging.",
+        "severity": "belangrijk",
+        "note": "Contra-voorbeeld voor introductie zonder aanloop (radiobeeld). Goed voorbeeld: Jelle met aanloop (chat, Berend, Sjabbe)."
+      },
+      {
+        "id": "F04",
+        "scene": "M07.1",
+        "type": "fout",
+        "category": "dialoogFlow",
+        "title": "Tessa legt uit: 4 beurten, 8 regels, geen reactie Tammo",
+        "description": "Tessa legt het recept uit (4 beurten, 8 regels: vet, eieren, zout, meel, mosterd, vijf vrienden, Jelle koopt op). Tammo zegt weinig ('Oké', 'Klopt'). Geen vragen, geen reacties.",
+        "waaromFout": "Dialoog-flow faalt: >3 beurten achter elkaar (R-22), geen reacties (R-23). Voelt als monoloog, niet gesprek.",
+        "rules": ["R-22", "R-23"],
+        "scores": {
+          "dialoogFlow": 3,
+          "tekstkwaliteit": 3
+        },
+        "fix": "Tammo onderbreekt: 'Vijf dingen?' Tessa: 'Ja, en Jelle koopt ze allemaal op.' Tammo: 'Dat is een lijst.' Tessa: 'Daarom hebben we vijf vrienden nodig.'",
+        "severity": "belangrijk",
+        "note": "Contra-voorbeeld voor uitleg-monoloog. Ook: M12.1 (Tessa 6 regels), M13.1 (Tessa 4 regels)."
+      },
+      {
+        "id": "F05",
+        "scene": "M26.2",
+        "type": "fout",
+        "category": "ondertitels",
+        "title": "Berends regel: 31 woorden in één regel",
+        "description": "Berend legt wedstrijdregels uit in één regel van 31 woorden: 'Volgens artikel vijf... als de bewaarder verhinderd is... oudste jurylid... ik zit voor... drie van de vijf... uitslag geldt.' Te lang.",
+        "waaromFout": "Ondertitel te lang: >18 woorden (R-11). Leessnelheid faalt: 31 woorden in ~8 s = 38,75 woorden per 10 s (norm 15-17). Onleesbaar.",
+        "rules": ["R-11"],
+        "scores": {
+          "ondertitels": 2,
+          "tekstkwaliteit": 3
+        },
+        "fix": "Split in twee beurten: Berend: 'Volgens artikel vijf zit ik voor als mevrouw Hoving verhinderd is.' [pauze] Berend: 'Drie van de vijf beslist. De uitslag geldt.' Of: laat Jelle reageren tussen de regels.",
+        "severity": "belangrijk",
+        "note": "Contra-voorbeeld voor te lange regels. Ook: M08.3 (32 woorden), M13.1 (28 woorden). Goed voorbeeld: M01 (alle regels ≤12 woorden)."
+      },
+      {
+        "id": "F06",
+        "scene": "M03.2 (hypothetisch zonder regie)",
+        "type": "fout",
+        "category": "shotTechniek",
+        "title": "Statische scène: 18 regels, één shot, geen beweging",
+        "description": "Hypothetisch (als er geen regie was): drie mensen (Tammo, Tessa, Jelle) staan bij het Loket, camera statisch medium two-shot, 18 regels lang (1 minuut), geen cut, geen beweging.",
+        "waaromFout": "Shot-techniek faalt: shot te lang (>15 s, R-02), geen shot-wissel per 1-2 regels (R-03), geen beweging. Voelt als radio-show met plaatjes.",
+        "rules": ["R-02", "R-03"],
+        "scores": {
+          "cameraRegie": 2,
+          "volgbaarheid": 3
+        },
+        "fix": "Wissel per 1-2 regels van shot: wide establishing, shot/reverse Tammo-Jelle, shot/reverse Tessa-Jelle, insert van bal, two-shot, crane-out.",
+        "severity": "belangrijk",
+        "note": "Hypothetisch contra-voorbeeld voor statische scène. De echte M03.2 is goed (heeft regie: 8 shots in 1 minuut)."
+      },
+      {
+        "id": "F07",
+        "scene": "M03.2 (hypothetisch)",
+        "type": "fout",
+        "category": "shotTechniek",
+        "title": "180°-regel gebroken: Tammo links, rechts, links",
+        "description": "Hypothetisch: shot 1 toont Tammo links, Tessa rechts. Shot 2 springt over de lijn: Tessa links, Tammo rechts. Shot 3: Tammo weer links. Speler raakt weg kwijt.",
+        "waaromFout": "180°-regel gebroken (R-04). Speler weet niet meer wie waar staat. Ruimtelijke verwarring.",
+        "rules": ["R-04"],
+        "scores": {
+          "cameraRegie": 1,
+          "volgbaarheid": 2
+        },
+        "fix": "Kies één kant van de lijn en blijf daar. Tammo altijd links, Tessa altijd rechts. Of: gebruik neutral shot (wide, insert) om van kant te wisselen.",
+        "severity": "blokkerend",
+        "note": "Hypothetisch contra-voorbeeld. De echte cutscenes respecteren de 180°-regel (Tammo [0, 0.6], Tessa [0, -0.6])."
+      },
+      {
+        "id": "F08",
+        "scene": "M11.5/M11.6 (hypothetisch zonder verbetering)",
+        "type": "fout",
+        "category": "emotioneel",
+        "title": "Romantisch moment te kort: 6 s, zou 10 s zijn",
+        "description": "Sterren-scène (romantiek): Tammo kijkt naar Tessa, close-up Tessa (1,5 s), close-up Tammo (1,5 s), crane-out (3 s). Totaal 6 s. Emotioneel moment krijgt weinig ruimte.",
+        "waaromFout": "Emotionele uitbetaling te kort (R-21). Moment werkt, maar voelt gehaast. Zou 10-12 s zijn (4 s per close-up, 4 s crane-out).",
+        "rules": ["R-21"],
+        "scores": {
+          "emotioneleMomenten": 3
+        },
+        "fix": "Houd stilte 2 s langer, close-up Tessa 3 s (niet 1,5 s), close-up Tammo 3 s, crane-out 4 s. Totaal 10 s.",
+        "severity": "nit",
+        "note": "Contra-voorbeeld (mild). Goed voorbeeld: M16.6 (kus, 8 s voor twee woorden), M22.4 (knuffel, 12 s)."
+      },
+      {
+        "id": "F09",
+        "scene": "M21.4",
+        "type": "fout",
+        "category": "dialoogFlow",
+        "title": "Zes mensen, elk één regel: rollenlijst, geen gesprek",
+        "description": "Tammo belt zes vrienden (Bert, Dijkstra, Geesje, Klaas, Roelfien, Wubbo), elk levert één slecht nieuwsbericht af. Totaal 7 regels, 7 sprekers, geen dialoog.",
+        "waaromFout": "Te veel sprekers (>3, R-20), geen dialoog (R-22). Voelt als opsomming, niet gesprek. Speler onthoudt niemand.",
+        "rules": ["R-20", "R-22"],
+        "scores": {
+          "dialoogFlow": 2,
+          "volgbaarheid": 3
+        },
+        "fix": "Laat Tammo met één of twee vrienden praten (Bert, Dijkstra), de rest geschrapt of achtergrond. Of: twee scènes (één vriend per scène).",
+        "severity": "belangrijk",
+        "note": "Contra-voorbeeld voor te veel sprekers. Goed voorbeeld: M10.3 (Jelle, Tammo, Tessa = 3 sprekers, gesprek)."
+      },
+      {
+        "id": "F10",
+        "scene": "E2",
+        "type": "fout",
+        "category": "dialoogFlow",
+        "title": "Epiloog: 15 regels Rikus, opsomming, geen emotie",
+        "description": "Epiloog: Rikus somt op wat iedereen overkwam (15 regels, één spreker). Geen reacties Tammo/Tessa, geen beelden, geen emotionele uitbetaling.",
+        "waaromFout": "Monoloog (>3 beurten, R-22), geen emotionele uitbetaling (R-21). Charmant op de radio, maar geen visuele uitbetaling van het verhaal.",
+        "rules": ["R-21", "R-22"],
+        "scores": {
+          "dialoogFlow": 3,
+          "emotioneleMomenten": 3
+        },
+        "fix": "Laat Tammo en Tessa reageren (één of twee regels), of toon beelden van wat Rikus noemt (montage: Jelle met zijn moeder, Berend telt krassen, de vrienden vieren).",
+        "severity": "nit",
+        "note": "Contra-voorbeeld voor epiloog zonder emotie. Goed voorbeeld: M26.7 (vijf woorden) als emotionele afsluiting."
+      }
+    ]
+  },
+  "statistics": {
+    "totalExamples": 20,
+    "good": 10,
+    "bad": 10,
+    "byCategory": {
+      "volledigScène": 1,
+      "emotioneel": 3,
+      "humor": 1,
+      "visueel": 1,
+      "introductie": 4,
+      "shotTechniek": 3,
+      "ondertitels": 2,
+      "dialoogFlow": 5
+    },
+    "bySeverity": {
+      "blokkerend": 1,
+      "belangrijk": 7,
+      "nit": 2
+    }
+  },
+  "usage": {
+    "linter": "Gebruik good examples G08, G09 om te checken of linter correct valideert (shot-duren, FOV, ondertitel-lengte). Gebruik bad examples F05, F06, F07 om te checken of linter correct faalt.",
+    "aiReview": "Gebruik good examples G01-G10 als referentie-input voor ai-reviewer (contactbladen + script → JSON). Check of ai-reviewer consistent 4-5 scoort. Gebruik bad examples F01-F10 als contra-input; check of ai-reviewer consistent 1-2 scoort.",
+    "panel": "Gebruik good example G03 en bad example F02 om te checken of panel consistent humor-structuur beoordeelt (G03 moet 'structuur: OK', F02 moet 'structuur: niet-OK' voor de stilte/reactie)."
+  }
+}

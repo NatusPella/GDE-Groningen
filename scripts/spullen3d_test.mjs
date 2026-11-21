@@ -112,9 +112,9 @@ t('spullen.js: de viewer gebruikt createSharedPreview (geen eigen WebGLRenderer)
   assert.match(s, /speed: reducedMotion\(\) \? 0 : /); // beperkte beweging: geen automatische draai
   assert.match(s, /data-spul-reset/);
   assert.match(s, /3D is hier niet beschikbaar/); // terugval naar het icoon
-  // elk ding in collect() zet viewer (geld, wapens, vuisten, kleding, thuis, eten, vier kaarten, drie upgradesoorten)
+  // elk ding in collect() zet viewer (geld, wapens, vuisten, kleding, thuis, eten, drie kaarten (de Wat weten we?-kaart is weg, verhaalanalyse 21-11), drie upgradesoorten)
   const gezet = (s.match(/viewer: /g) || []).length;
-  assert.ok(gezet >= 13, 'te weinig items met viewer in collect(): ' + gezet);
+  assert.ok(gezet >= 12, 'te weinig items met viewer in collect(): ' + gezet);
 });
 
 t('pausemenu.js: de viewer gaat weg bij een ander tabblad en bij sluiten, en draait op de pijltjes', () => {
