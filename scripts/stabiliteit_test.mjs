@@ -69,5 +69,14 @@ ok(/removeListener\('child-process-gone'/.test(desk), 'desktop: de child-process
 ok(/win\.on\('unresponsive'/.test(desk), 'desktop: een vastgelopen venster wordt gelogd');
 ok(/262144/.test(desk), 'desktop: gpu-events.log heeft een grens');
 
+// --- #1074: restpunten van de lekkenronde (bronchecks; de soak in Electron is nog niet gedraaid)
+ok(/gde:save-text[\s\S]{0,700}try \{ await fs\.writeFile[\s\S]{0,120}catch/.test(desk), 'desktop: gde:save-text vangt een schrijffout af');
+const dorp = src('game/js/dorpsuitjes.js');
+ok(/async function placeSoon[\s\S]{0,600}catch \(e\) \{ v\.placeFails/.test(dorp) && /PLACE_MAX_FAILS/.test(dorp), 'dorpsuitjes: placeSoon vangt een afgewezen withTiles af en geeft na drie pogingen op');
+const busInt = src('game/js/businterieur3d.js');
+ok(/REIZIGERS_MAX = 64/.test(busInt) && /reizigersSleutels\.shift\(\)/.test(busInt), 'businterieur3d: de reizigersgeometrie heeft een grens');
+const pm = src('game/js/provincemap.js');
+ok(/IMGS_MAX = 256/.test(pm) && /imgs\.delete\(imgs\.keys\(\)\.next\(\)\.value\)/.test(pm), 'provincemap: de kaartbladen zijn een LRU');
+
 console.log(`stabiliteit_test: ${n - bad}/${n} ok`);
 process.exit(bad ? 1 : 0);

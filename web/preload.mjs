@@ -12,10 +12,12 @@
 // let op: js/vehicle/trailer.js is de aanhangwagen van het spel, geen dev-hulp.
 const DEV_ONLY = new Set([
   'js/trailer.js', 'js/trailerplan.js', 'js/trailerprops.js',
-  'js/testmenu.js', 'js/testmenulogic.js', 'js/padtest.js', 'js/storytest.js', 'js/sfx/sfxtest.js',
+  'js/testmenu.js', 'js/testmenulogic.js', 'js/storytest.js', 'js/sfx/sfxtest.js',
   'js/cutpreview.js', 'js/cutpreviewui.js', 'js/worldbuilder.js', 'js/sfx/engineworklet.js',
 ]);
-const isDevOnly = (f) => DEV_ONLY.has(f) || /^js\/[^/]*(?:audit|test)[^/]*\.js$/.test(f);
+// #1072: alleen namen die op audit eindigen; de oude regel (…test…) hield ook skatestatus.js en padtest.js (beide vanuit het spel
+// statisch geimporteerd) uit de lijst, zodat die via de waterval laadden (modulepreload_dekking_test)
+const isDevOnly = (f) => DEV_ONLY.has(f) || /^js\/[^/]*audit\.js$/.test(f);
 
 export function modulePreloadTags(relFiles) {
   const out = [];

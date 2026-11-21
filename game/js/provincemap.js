@@ -7,6 +7,7 @@ import { herkleurRaster, KAART_PALET_VERSIE } from './kaartkleuren.js';
 
 let M = null;
 let base = 'world/';
+const IMGS_MAX = 256; // #1074: ruim boven wat een scherm toont (ca. 60 bladen), daaronder valt het langst ongebruikte weg
 const imgs = new Map(); // 'z-tx_ty' -> HTMLImageElement (loading) or, once in, the image or its recoloured canvas
 const listeners = new Set();
 let queued = false;
@@ -62,13 +63,18 @@ export function levelFor(pxPerM) {
 function image(k, key) {
   const id = `${M.levels[k].z}-${key}`;
   let im = imgs.get(id);
-  if (im) return im.tagName === 'CANVAS' || (im.complete && im.naturalWidth) ? im : null;
+  if (im) {
+    // #1074: LRU, het laatst gebruikte blad achteraan
+    imgs.delete(id); imgs.set(id, im);
+    return im.tagName === 'CANVAS' || (im.complete && im.naturalWidth) ? im : null;
+  }
   if (typeof Image === 'undefined') return null;
   im = new Image();
   im.decoding = 'async';
   im.onload = () => { imgs.set(id, recoloured(im)); loaded(); };
   im.src = `${base}${M.dir}z${M.levels[k].z}-${key}.png`;
   imgs.set(id, im);
+  while (imgs.size > IMGS_MAX) imgs.delete(imgs.keys().next().value);
   return null;
 }
 

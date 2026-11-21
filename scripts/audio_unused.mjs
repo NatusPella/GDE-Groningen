@@ -3,6 +3,9 @@
 //   node scripts/audio_unused.mjs           report
 //   node scripts/audio_unused.mjs --delete  also delete them (files, manifest
 //                                           and tts.json entries)
+//   node scripts/audio_unused.mjs --delete --voicelines-only
+//                                           only voicelines/ files (sfx is a
+//                                           dynamic table the scan cannot see)
 // An entry whose text still appears in the game code is kept and reported as
 // "kept (text in code)": the collector may just not know that table yet.
 import fs from 'fs';
@@ -11,6 +14,7 @@ import { collect, manifest, REPO } from './voicelines_collect.mjs';
 import { BANTER, REACTIONS, SPEAKERS } from '../game/js/banterlines.js';
 
 const del = process.argv.includes('--delete');
+const voicelinesOnly = process.argv.includes('--voicelines-only');
 const GAME = path.join(REPO, 'game');
 const AUDIO = path.join(GAME, 'audio');
 const VL = path.join(AUDIO, 'voicelines');
@@ -19,7 +23,9 @@ const MANIFESTS = ['banter', 'lines', 'story', 'hints', 'sms', 'jobs', 'trailer'
 // recursief: de audio-, sfx- en scene3d-submappen noemen ook bestanden en regels
 const jsFiles = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? jsFiles(path.join(d, e.name)) : [path.join(d, e.name)]));
 const code = jsFiles(path.join(GAME, 'js')).filter((f) => /\.(js|mjs)$/.test(f) && path.basename(f) !== 'subtitles.js')
-  .map((f) => fs.readFileSync(f, 'utf8')).join('\n') + fs.readFileSync(path.join(GAME, 'index.html'), 'utf8');
+  .map((f) => fs.readFileSync(f, 'utf8')).join('\n') + fs.readFileSync(path.join(GAME, 'index.html'), 'utf8')
+  // the story data (script.json: recorded lines with rec/voice, humor.*.json) names its clips by spoken text
+  + fs.readdirSync(path.join(GAME, 'storydata')).filter((f) => f.endsWith('.json')).map((f) => fs.readFileSync(path.join(GAME, 'storydata', f), 'utf8')).join('\n');
 // Source text with JS string escapes undone, so a line can be found by its spoken text.
 const codeText = code.replace(/\\(['"\\])/g, '$1');
 
@@ -59,12 +65,12 @@ for (const m of MANIFESTS) {
 // --- fixed-path clips built in audio.js (wav barks, npc, police, nieuws, jingles)
 const audioJs = fs.readFileSync(path.join(GAME, 'js', 'audio.js'), 'utf8');
 const fixed = new Set();
-for (const [, d, k] of audioJs.matchAll(/variants\('(\w+)', '(\w+)'\)/g)) for (const s of ['', '_v1', '_v2']) fixed.add(`voicelines/${d}/${k}${s}.wav`);
+for (const [, d, k] of audioJs.matchAll(/variants\('(\w+)', '(\w+)'\)/g)) for (const s of ['', '_v1', '_v2']) fixed.add(`voicelines/${d}/${k}${s}.ogg`);
 const arr = (name) => [...audioJs.match(new RegExp(`const ${name} = \\[([^\\]]*)\\]`))[1].matchAll(/'(\w+)'/g)].map((x) => x[1]);
-for (const k of arr('POLICE_BARK_KEYS')) for (const v of [0, 1]) fixed.add(`police/${k}_v${v}.wav`);
-for (const k of arr('SIKKOM_AUDIO_KEYS')) for (const v of [0, 1]) fixed.add(`nieuws/${k}_v${v}.wav`);
+for (const k of arr('POLICE_BARK_KEYS')) for (const v of [0, 1]) fixed.add(`police/${k}_v${v}.ogg`);
+for (const k of arr('SIKKOM_AUDIO_KEYS')) for (const v of [0, 1]) fixed.add(`nieuws/${k}_v${v}.ogg`);
 const npcN = +audioJs.match(/NPC_PHRASE_AUDIO = Array\.from\(\{ length: (\d+) \}/)[1];
-for (let i = 0; i < npcN; i++) for (const v of [0, 1, 2]) fixed.add(`npc/phrase_${i}_v${v}.wav`);
+for (let i = 0; i < npcN; i++) for (const v of [0, 1, 2]) fixed.add(`npc/phrase_${i}_v${v}.ogg`);
 for (const t of JSON.parse(fs.readFileSync(path.join(AUDIO, 'gmusic', 'manifest.json'), 'utf8')).tracks) fixed.add('gmusic/' + (typeof t === 'string' ? t : t.file));
 
 const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]));
@@ -100,13 +106,19 @@ if (del) {
     for (const name of ['manifest.json', 'tts.json']) {
       const p = path.join(VL, m, name);
       if (!fs.existsSync(p)) continue;
-      const raw = fs.readFileSync(p, 'utf8');
+      // a CRLF working tree (autocrlf) has the same layout: compare on LF, write back in the file's own EOL
+      const rawFile = fs.readFileSync(p, 'utf8');
+      const crlf = rawFile.includes('\r\n');
+      const raw = rawFile.replace(/\r\n/g, '\n');
       const o = JSON.parse(raw);
       if (fmt(o) !== raw) throw new Error(`${p}: layout not reproducible, not touching it`);
       for (const k of gone) delete o[k];
-      fs.writeFileSync(p, fmt(o));
+      fs.writeFileSync(p, crlf ? fmt(o).replace(/\n/g, '\r\n') : fmt(o));
     }
   }
-  for (const f of unusedFiles) fs.unlinkSync(f);
+  for (const f of unusedFiles) {
+    if (voicelinesOnly && !path.relative(AUDIO, f).split(path.sep).join('/').startsWith('voicelines/')) continue;
+    fs.unlinkSync(f);
+  }
   console.log('Deleted.');
 }

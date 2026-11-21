@@ -15,10 +15,11 @@ ok(tags[0] === '<link rel="modulepreload" href="js/m0.js">', 'de vorm klopt', ta
 const stats = preloadStats(files, (f) => (/^js\//.test(f) ? 1000 : 0));
 ok(stats.files === 893 && stats.bytes === 893000, 'de meting telt modules en bytes', stats.files + '/' + stats.bytes);
 // #757: dev/QA/trailerhulpen niet eager; de gewone trailer (vehicle) blijft
-const dev = ['js/trailer.js', 'js/trailerplan.js', 'js/trailerprops.js', 'js/testmenu.js', 'js/testmenulogic.js', 'js/padtest.js', 'js/storytest.js', 'js/sfx/sfxtest.js', 'js/cutpreview.js', 'js/cutpreviewui.js', 'js/worldbuilder.js', 'js/sfx/engineworklet.js', 'js/randaudit.js', 'js/streekaudit.js', 'js/terrainaudit.js'];
+const dev = ['js/trailer.js', 'js/trailerplan.js', 'js/trailerprops.js', 'js/testmenu.js', 'js/testmenulogic.js', 'js/storytest.js', 'js/sfx/sfxtest.js', 'js/cutpreview.js', 'js/cutpreviewui.js', 'js/worldbuilder.js', 'js/sfx/engineworklet.js', 'js/randaudit.js', 'js/streekaudit.js', 'js/terrainaudit.js'];
 const gewoon = ['js/vehicle/trailer.js', 'js/semitrailer.js', 'js/trailerstate.js'];
 const metDev = modulePreloadTags([...files, ...dev, ...gewoon]);
 ok(dev.every((f) => !metDev.some((t) => t.includes('href="' + f + '"'))), 'geen dev/QA/trailer-hints');
+ok(modulePreloadTags(['js/padtest.js', 'js/skatestatus.js']).length === 2, '#1072: padtest en skatestatus (door het spel geimporteerd) krijgen wel een hint');
 ok(gewoon.every((f) => metDev.some((t) => t.includes('href="' + f + '"'))), 'gewone trailer- en semitrailer-modules blijven erin');
 const devStats = preloadStats([...dev, 'js/main.js'], () => 1000);
 ok(devStats.files === 1 && devStats.bytes === 1000, 'de meting telt dev-modules niet mee', devStats.files + '/' + devStats.bytes);

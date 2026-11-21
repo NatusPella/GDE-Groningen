@@ -1,6 +1,6 @@
 {
 "Agente|Achtervolging gaande, richting centrum.": {
-"src": "achtervolging_v1.wav",
+"src": "achtervolging_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Kore",
@@ -10,7 +10,7 @@
 "date": "2026-10-05"
 },
 "Agente|Sta stil! Handen omhoog!": {
-"src": "handen_omhoog_v1.wav",
+"src": "handen_omhoog_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Kore",
@@ -20,7 +20,7 @@
 "date": "2026-10-05"
 },
 "Agente|Stop! Politie!": {
-"src": "stop_politie_v1.wav",
+"src": "stop_politie_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Kore",
@@ -30,7 +30,7 @@
 "date": "2026-10-05"
 },
 "Agente|Verdacht voertuig, alle eenheden.": {
-"src": "verdachte_voertuig_v1.wav",
+"src": "verdachte_voertuig_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Kore",
@@ -40,7 +40,7 @@
 "date": "2026-10-05"
 },
 "Agente|Verdachte aangehouden.": {
-"src": "aangehouden_v1.wav",
+"src": "aangehouden_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Kore",
@@ -50,7 +50,7 @@
 "date": "2026-10-05"
 },
 "Agente|Zet de auto aan de kant!": {
-"src": "zet_kant_v1.wav",
+"src": "zet_kant_v1.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Kore",
@@ -60,7 +60,7 @@
 "date": "2026-10-05"
 },
 "Agent|Achtervolging gaande, richting centrum.": {
-"src": "achtervolging_v0.wav",
+"src": "achtervolging_v0.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Alnilam",
@@ -70,7 +70,7 @@
 "date": "2026-10-05"
 },
 "Agent|Sta stil! Handen omhoog!": {
-"src": "handen_omhoog_v0.wav",
+"src": "handen_omhoog_v0.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Alnilam",
@@ -80,7 +80,7 @@
 "date": "2026-10-05"
 },
 "Agent|Stop! Politie!": {
-"src": "stop_politie_v0.wav",
+"src": "stop_politie_v0.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Alnilam",
@@ -90,7 +90,7 @@
 "date": "2026-10-05"
 },
 "Agent|Verdacht voertuig, alle eenheden.": {
-"src": "verdachte_voertuig_v0.wav",
+"src": "verdachte_voertuig_v0.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Alnilam",
@@ -100,7 +100,7 @@
 "date": "2026-10-05"
 },
 "Agent|Verdachte aangehouden.": {
-"src": "aangehouden_v0.wav",
+"src": "aangehouden_v0.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Alnilam",
@@ -110,7 +110,7 @@
 "date": "2026-10-05"
 },
 "Agent|Zet de auto aan de kant!": {
-"src": "zet_kant_v0.wav",
+"src": "zet_kant_v0.ogg",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Alnilam",

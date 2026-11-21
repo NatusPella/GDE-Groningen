@@ -19,10 +19,10 @@ import { createGmusicPreloadWindow } from './gmusicpreload.js';
 const GMUSIC_MANIFEST_URL = './audio/gmusic/manifest.json';
 const GMUSIC_DUCK_VOLUME = 0.5;
 const GMUSIC_JINGLES = {
-  station_id: './audio/gmusic/jingles/station_id.wav',
-  nummerovergang: './audio/gmusic/jingles/nummerovergang.wav',
-  rij_knipoog: './audio/gmusic/jingles/rij_knipoog.wav',
-  hoge_wanted: './audio/gmusic/jingles/hoge_wanted.wav',
+  station_id: './audio/gmusic/jingles/station_id.ogg',
+  nummerovergang: './audio/gmusic/jingles/nummerovergang.ogg',
+  rij_knipoog: './audio/gmusic/jingles/rij_knipoog.ogg',
+  hoge_wanted: './audio/gmusic/jingles/hoge_wanted.ogg',
 };
 const AMBIENT_JINGLE_KEYS = ['station_id', 'nummerovergang', 'rij_knipoog'];
 

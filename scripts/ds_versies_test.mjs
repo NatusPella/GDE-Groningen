@@ -31,7 +31,7 @@ const PATRONEN = [
   new RegExp(`\\b(?:design|ds|zeef|hud|ui)\\w*[-_ ]?${V}\\b`, 'i'),
 ];
 // uitzonderingen op een regel: opslag, protocol, audio
-const UIT = /gde-[a-z0-9-]*-v[123]|gte-[a-z0-9-]*-v[123]|serverlijst-v1|coop-signal-v1|_v[123]\.wav/i;
+const UIT = /gde-[a-z0-9-]*-v[123]|gte-[a-z0-9-]*-v[123]|serverlijst-v1|coop-signal-v1|_v[123]\.(wav|ogg)/i;
 
 function bestanden() {
   const r = spawnSync('git', ['ls-files', '-z'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 28 });

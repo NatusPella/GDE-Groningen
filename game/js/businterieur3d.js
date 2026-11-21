@@ -33,6 +33,9 @@ const JASSEN = [0xc0553d, 0x4b7a5a, 0x7a5aa6, 0xd2a04a, 0x3d6e9e, 0x8a8f95, 0xa6
 const HUIDEN = [0xe8c4a0, 0xc99a74, 0x8d5b3a, 0xf0d2b4];
 const GEEN_BEZET = [];
 const geoCache = new Map();
+// #1074: de sleutel van de reizigersgeometrie bevat de stoelbezetting (Samen spelen); zonder grens groeit de cache met elke wisselende gast
+const REIZIGERS_MAX = 64;
+const reizigersSleutels = [];
 let material = null;
 
 export function busLodAt(afstand) {
@@ -223,6 +226,12 @@ function reizigersGeo(v, unit, n, bezet, allowBuild) {
     const L = layoutOf(v);
     g = markShared(unit === 'achter' ? buildAchterReizigers(L.rear, n) : buildReizigers(L, n, bezet));
     geoCache.set(k, g);
+    reizigersSleutels.push(k);
+    while (reizigersSleutels.length > REIZIGERS_MAX) {
+      const oud = reizigersSleutels.shift(), og = geoCache.get(oud);
+      geoCache.delete(oud);
+      if (og && og.dispose) og.dispose(); // een mesh die hem nog toont, uploadt hem bij het volgende beeld opnieuw
+    }
   }
   return g || null;
 }

@@ -293,7 +293,8 @@ if (!app.requestSingleInstanceLock()) {
       filters: [{ name: 'Tekst', extensions: ['txt'] }],
     });
     if (res.canceled || !res.filePath) return false;
-    await fs.writeFile(res.filePath, String(text).slice(0, 2_000_000), 'utf8');
+    // #1074: een schijf die vol is of een map zonder schrijfrecht gaf een afgewezen belofte in het renderproces; nu gewoon 'niet bewaard'
+    try { await fs.writeFile(res.filePath, String(text).slice(0, 2_000_000), 'utf8'); } catch (e) { return false; }
     return true;
   });
   app.whenReady().then(() => {

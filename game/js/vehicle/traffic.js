@@ -451,28 +451,39 @@ const _prA = { s: 0, lat: 0, tx: 0, ty: 0 }, _prB = { s: 0, lat: 0, tx: 0, ty: 0
 // Points flagged j are junction nodes. #652: it fills the vehicle's own buffer
 // (v._path) with reused point objects instead of building a new array and a new
 // object per point every frame.
+// #1048: de twee hulpfuncties (point, push) waren per aanroep nieuwe sluitingen; nu staan ze op moduleniveau en delen
+// hun stand in _bp (een pad wordt altijd in een keer gebouwd, geen herhaling in nextTurn).
+const _bp = { path: null, n: 0, s: 0, px: 0, py: 0, map: null, v: null, road: null, idx: 0, dir: 1 };
+function bpPoint() {
+  const path = _bp.path;
+  let p = path[_bp.n];
+  if (!p) { p = path[_bp.n] = {}; PATH_STATS.newPoints++; }
+  _bp.n++;
+  return p;
+}
+function bpPush(junction) {
+  lanePoint(_bp.map, _bp.road, _bp.idx, _bp.dir, _bp.v, _lc);
+  _bp.s += Math.hypot(_lc[0] - _bp.px, _lc[1] - _bp.py);
+  _bp.px = _lc[0]; _bp.py = _lc[1];
+  const p = bpPoint();
+  p.x = _bp.px; p.y = _bp.py; p.s = _bp.s; p.j = junction; p.r = _bp.road; p.i = _bp.idx;
+  p.node = undefined; p.from = undefined; p.fromDir = undefined;
+  return p;
+}
 function buildPathInto(v, map, rng, goal) {
   let road = v.road, dir = v.dir, idx = v.segIdx + dir;
   const A = lanePoint(map, road, v.segIdx, dir, v, _la), B = lanePoint(map, road, idx, dir, v, _lb);
   const start = closestPointOnSegment(v.x, v.y, A[0], A[1], B[0], B[1], _cpA);
   const path = v._path || (v._path = []);
-  let n = 0;
-  const point = () => { let p = path[n]; if (!p) { p = path[n] = {}; PATH_STATS.newPoints++; } n++; return p; };
-  const p0 = point();
+  _bp.path = path; _bp.n = 0; _bp.map = map; _bp.v = v;
+  let k = 0;
+  const p0 = bpPoint();
   p0.x = start.x; p0.y = start.y; p0.s = 0; p0.j = false; p0.r = undefined; p0.i = undefined; p0.node = undefined; p0.from = undefined; p0.fromDir = undefined;
-  let px = start.x, py = start.y, s = 0, k = 0;
-  const push = (junction) => {
-    lanePoint(map, road, idx, dir, v, _lc);
-    s += Math.hypot(_lc[0] - px, _lc[1] - py);
-    px = _lc[0]; py = _lc[1];
-    const p = point();
-    p.x = px; p.y = py; p.s = s; p.j = junction; p.r = road; p.i = idx;
-    p.node = undefined; p.from = undefined; p.fromDir = undefined;
-    return p;
-  };
-  for (let guard = 0; guard < 120 && s < PATH_LEN; guard++) {
+  _bp.px = start.x; _bp.py = start.y; _bp.s = 0;
+  for (let guard = 0; guard < 120 && _bp.s < PATH_LEN; guard++) {
     const junction = isJunction(map, road, idx);
-    const jp = push(junction);
+    _bp.road = road; _bp.idx = idx; _bp.dir = dir;
+    const jp = bpPush(junction);
     if (junction) {
       jp.node = roadNode(map, road, idx);
       jp.from = road;
@@ -480,12 +491,14 @@ function buildPathInto(v, map, rng, goal) {
       if (k >= PLAN_DEPTH) break;
       const t = nextTurn(v, map, rng, goal, k++, road, idx, dir);
       road = t.road; dir = t.dir; idx = t.idx;
-      push(false);
+      _bp.road = road; _bp.idx = idx; _bp.dir = dir;
+      bpPush(false);
     }
     idx += dir;
   }
-  path.length = n;
+  path.length = _bp.n;
   PATH_STATS.builds++;
+  _bp.path = null; _bp.map = null; _bp.v = null; _bp.road = null;
   return path;
 }
 
@@ -597,6 +610,7 @@ function walkerAheadLimit(v, path, world, decel) {
 // #1047: een hergebruikt resultaat (de beller leest het in dezelfde stap en bewaart het niet)
 const _follow = { vmax: Infinity, leader: null, leaderS: Infinity };
 const _hitFront = { s: 0, lat: 0, tx: 0, ty: 0 };
+const _PROBE_K = [0, 0.8, -0.8];
 function followSpeedLimit(v, path, world, decel, chase) {
   let vmax = Infinity, leader = null, leaderS = Infinity;
   const ignoring = world.time < (v.ignoreUntil || 0) ? v.ignoreId : -1;
@@ -606,7 +620,10 @@ function followSpeedLimit(v, path, world, decel, chase) {
   const corridor = v.halfLen + 3 + Math.abs(v.speed) * 0.8;
   const creeping = world.time < (v.creepUntil || 0);
   // #653: alleen de buren uit de index; de checks binnen de lus blijven gelijk
-  for (const o of vehiclesNear(world, v.x, v.y, PATH_LEN + 5, _nearVeh)) {
+  // #1048: geindexeerde lus en een vaste lijst voor de drie meetpunten: geen iterator en geen array-literal per buur
+  const near = vehiclesNear(world, v.x, v.y, PATH_LEN + 5, _nearVeh);
+  for (let ni = 0; ni < near.length; ni++) {
+    const o = near[ni];
     if (o === v || o.isBoat || o.sinking || o.id === ignoring || Math.abs((o.z || 0) - (v.z || 0)) > 3) continue;   // (a car in the garage under the street is no leader, parkeergarage.js)
     if (chase && v.chaseDodge && o.driver === 'player') continue;
     const dx = o.x - v.x, dy = o.y - v.y;
@@ -620,7 +637,8 @@ function followSpeedLimit(v, path, world, decel, chase) {
     const reach = v.halfWid + o.halfWid + (rel < -0.5 ? 0.1 : 0.3);
     const passing = v.laneMode === 'pass' && o.id === v.passId;
     let hit = null;
-    for (const k of [0, 0.8, -0.8]) {
+    for (let ki = 0; ki < 3; ki++) {
+      const k = _PROBE_K[ki];
       const qx = o.x + ofx * o.halfLen * k, qy = o.y + ofy * o.halfLen * k;
       const fwd = (qx - v.x) * fx + (qy - v.y) * fy;
       if (fwd < 0.3) continue;

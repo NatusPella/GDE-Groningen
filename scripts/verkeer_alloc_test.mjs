@@ -26,6 +26,7 @@ if (!T) { console.log('SKIP verkeer_alloc_test: geen game/world'); process.exit(
 const map = T.world;
 const V = await import('../game/js/vehicle.js');
 const TL = await import('../game/js/trafficlights.js');
+const { beginVehicleFrame } = await import('../game/js/vehicleindex.js');
 let n = 0, fails = 0;
 const ok = (c, m, info = '') => { n++; if (!c) { fails++; console.log('FAIL', m, info); } };
 
@@ -38,6 +39,7 @@ let steps = 0, bytes = 0, worstMs = 0, totMs = 0;
 for (let t = 0, f = 0; t < 80; t += DT, f++) {
   virtueleMs = t * 1000;
   world.time = t;
+  beginVehicleFrame(world); // zoals main.js per frame doet; zonder stempel bouwt vehiclesNear de index per vraag (dat gaf 105 van de 207 MB in de steekproef)
   if (f % 30 === 0) V.manageTrafficPopulation(world, { target: 30, spawnMin: 30, spawnMax: 200, despawnDist: 260 });
   TL.updateTrafficLights(DT, world);
   const measure = t > 60;
@@ -71,10 +73,13 @@ if (profile) {
   for (const [k, v] of [...by.entries()].sort((a, b) => b[1] - a[1]).slice(0, 25)) console.log(`${(v / 1024).toFixed(0).padStart(7)} KB ${k}`);
   process.exit(0);
 }
+// gedragscontrole: een controlegetal over alle posities na de run (bij een herschrijving voor minder afval moet het gelijk blijven)
+const som = world.vehicles.reduce((a, v) => a + v.x * 1.3 + v.y * 0.7 + v.speed * 0.1, 0);
+console.log('positiesom', som.toFixed(6));
 const perStep = bytes / Math.max(1, steps);
 console.log(`${steps} auto-stappen: ${perStep.toFixed(0)} B per auto-stap kortlevend, ${(totMs / (steps / 30)).toFixed(3)} ms per frame (gemiddeld), zwaarste frame ${worstMs.toFixed(2)} ms`);
 ok(steps > 300, 'er zijn auto-stappen gemeten', String(steps));
-ok(perStep < 20000, 'de verkeers-AI maakt niet meer kortlevend afval per auto-stap dan de gemeten stand (restpunt, zie docs/VERKEER-AUDIT-21-11.md)', `${perStep.toFixed(0)} B`);
+ok(perStep < 9000, 'de verkeers-AI maakt niet meer kortlevend afval per auto-stap dan de gemeten stand (restpunt, zie docs/VERKEER-AUDIT-21-11.md)', `${perStep.toFixed(0)} B`);
 ok(worstMs < 25, 'het zwaarste AI-frame blijft onder het tijdbudget van 25 ms voor 30 auto\'s', `${worstMs.toFixed(1)} ms`);
 console.log(`verkeer_alloc_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);
