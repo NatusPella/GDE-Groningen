@@ -74,23 +74,6 @@
    "sensitive": false,
    "chosen": 0,
    "panel": null,
-   "id": "H05",
-   "scene": "C00.2",
-   "speaker": "RIKUS",
-   "context": "De opening, keuken. Net nadat Tammo \"…Samen.\" zei hoort hij zijn jeugdvriend Rikus op de radio een plaat voor hem draaien.",
-   "shot": "close-up op de oude radio, dan Tammo; Tessa kijkt naar het contract",
-   "variants": [
-    "En nu een plaat voor Tammo, mijn vriend sinds groep drie. Hij heeft een grote dag en zegt niks.",
-    "En nu een plaat voor Tammo, mijn vriend sinds groep drie. Hij zit aan een keukentafel en zegt niks.",
-    "En nu een plaat voor Tammo, mijn vriend sinds groep drie. Ik zeg niks, hij ook niet."
-   ],
-   "neutral": "En nu een plaat voor Tammo, mijn vriend sinds groep drie."
-  },
-  {
-   "label": "humor-review",
-   "sensitive": false,
-   "chosen": 0,
-   "panel": null,
    "id": "H06",
    "scene": "M02.5",
    "speaker": "TESSA",
@@ -131,11 +114,11 @@
    "context": "De opening. Tessa zet de situatie in één zin neer: vierentwintig, net afgestudeerd, samen werkloos.",
    "shot": "Tessa aan de keukentafel, Tammo met koffie in de deur",
    "variants": [
-    "Vierentwintig, net afgestudeerd en samen nul banen.",
-    "Vierentwintig, afgestudeerd en samen precies nul banen.",
-    "Wij zijn vierentwintig, afgestudeerd en werkloos. Dat is een begin."
+    "Vierentwintig, net afgestudeerd en samen nul banen. Na de studie gaat iedereen ergens anders heen. Wij niet.",
+    "Vierentwintig, afgestudeerd en samen precies nul banen. Na de studie gaat iedereen ergens anders heen. Wij niet.",
+    "Wij zijn vierentwintig, afgestudeerd en werkloos. Dat is een begin. Na de studie gaat iedereen ergens anders heen. Wij niet."
    ],
-   "neutral": "Wij zijn vierentwintig, net afgestudeerd en werkloos."
+   "neutral": "Wij zijn vierentwintig, net afgestudeerd en werkloos. Na de studie gaat iedereen ergens anders heen. Wij niet."
   }
  ]
 }

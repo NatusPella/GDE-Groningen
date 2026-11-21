@@ -7,7 +7,7 @@ Voor issue #63. Herzien na de beoordelingen van Gemini, Copilot en ChatGPT. Twee
 ## Wat is veranderd ten opzichte van v1
 - **Veel minder dialoog:** teaser nog 4 spreekmomenten (was 6); de uitleg staat in tekstkaarten en beeld, niet in gesproken zinnen.
 - **Maar 2 nieuwe regels in de teaser** (Jelle en de Rikus-slotgrap); de hoofdtrailer 3 tot 4. Rest is bestaand.
-- **Geen voltooide Fjord Frituur-wagen** (die ontstaat pas in M26): alleen Tessa's tekening, de rode Escapade en de lege standplaats. De wagen blijft uit beeld of komt hooguit één onscherpe flits. **De Escapade is rood** (niet oranje).
+- **Geen snackwagen als belofte** (de wagen is een verhaaltwist en ontstaat pas rond M22 en M26; niet in marketing): alleen Tessa's tekening, de rode Escapade en de lege standplaats. De wagen blijft uit beeld of komt hooguit één onscherpe flits. **De Escapade is rood** (niet oranje).
 - **"Salamitactiek" als zin vervalt**: het plakjesbord laat zien wat er gebeurt (plakjes worden doorgestreept) op het ritme van de muziek.
 - **Jelle krijgt een echte entree** en een korte, scherpe regel.
 - **Escalatie en misdaad in beeld** (kraam dichtgetimmerd, lege pannen, achtervolging, sluipen, het Loket, eieren heel houden, de duif, bakken), niet alleen voertuigen.

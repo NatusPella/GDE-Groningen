@@ -104,8 +104,8 @@ const ACT_KEUKEN = {
     { t: 'L2-3.6', fx: 'cups', actor: 'tammo', on: true },
     { t: 'L2-0.2', fx: 'cups', actor: 'tammo', on: false },
     { t: 'L2-0.2', fx: 'tablecups', on: true },
-    { t: 'L24+1.0', fx: 'buzz', dur: 3.2 },
-    { t: 'L25+1.9', fx: 'sfx', kind: 'door_open' },
+    { t: 'L20+1.0', fx: 'buzz', dur: 3.2 },
+    { t: 'L21+1.9', fx: 'sfx', kind: 'door_open' },
   ],
   cues: [
     // Tessa studies her papers; the radio murmurs
@@ -135,28 +135,23 @@ const ACT_KEUKEN = {
     { t: 'L10+3', actor: 'tessa', anim: 'talk' },
     { t: 'L10', actor: 'tammo', anim: 'look' },
     { t: 'L10', actor: 'tessa', anim: 'laugh' },
-    { t: 'L15', actor: 'tammo', anim: 'shrug' },
-    { t: 'L16', actor: 'tessa', anim: 'point' },
-    { t: 'L17', actor: 'tammo', anim: 'shake' },
-    { t: 'L20', actor: 'tessa', anim: 'lean' },
-    { t: 'L21', actor: 'tammo', anim: 'nod' },
+    { t: 'L14', actor: 'tammo', anim: 'shrug' },
+    { t: 'L15', actor: 'tessa', anim: 'point' },
+    { t: 'L16', actor: 'tammo', anim: 'shake' },
+    { t: 'L18', actor: 'tessa', anim: 'lean' },
+    { t: 'L19', actor: 'tammo', anim: 'nod' },
     // de nieuwe regels (kern 21-11): de tekening, de twijfel, de zorg om elkaar kwijt te raken, de plaat voor Tammo
     { t: 'L11', actor: 'tammo', anim: 'look' },
     { t: 'L12', actor: 'tessa', anim: 'shrug' },
     { t: 'L13', actor: 'tammo', anim: 'nod' },
-    { t: 'L14', actor: 'tessa', anim: 'lean' },
-    { t: 'L18', actor: 'tessa', anim: 'shrug' },
-    { t: 'L19', actor: 'tessa', anim: 'look' },
-    { t: 'L22', actor: 'tessa', gaze: [-2.2, 0, 1.6] },
-    { t: 'L23', actor: 'tammo', anim: 'shrug' },
-    { t: 'L23+0.1', actor: 'tessa', gaze: 'actor:tammo' },
+    { t: 'L17', actor: 'tessa', anim: 'shrug' },
     // the phone buzzes: a glance, then "Kom. Werk." and out through the door
-    { t: 'L24+1.3', actor: 'tessa', anim: 'phone' },
-    { t: 'L24+1.6', actor: 'tessa', anim: 'idle' },
-    { t: 'L25+0.2', actor: 'tessa', sit: false },
-    { t: 'L25+0.3', actor: 'tessa', walk: [[-0.9, 0.9], [0.9, 1.3], [1.3, 2.3]], speed: 1.8 },
-    { t: 'L25+1.2', actor: 'tammo', sit: false },
-    { t: 'L25+1.3', actor: 'tammo', walk: [[1.0, 0.9], [1.3, 1.5], [0.85, 2.3], [0.85, 2.9]], speed: 1.7 },
+    { t: 'L20+1.3', actor: 'tessa', anim: 'phone' },
+    { t: 'L20+1.6', actor: 'tessa', anim: 'idle' },
+    { t: 'L21+0.2', actor: 'tessa', sit: false },
+    { t: 'L21+0.3', actor: 'tessa', walk: [[-0.9, 0.9], [0.9, 1.3], [1.3, 2.3]], speed: 1.8 },
+    { t: 'L21+1.2', actor: 'tammo', sit: false },
+    { t: 'L21+1.3', actor: 'tammo', walk: [[1.0, 0.9], [1.3, 1.5], [0.85, 2.3], [0.85, 2.9]], speed: 1.7 },
     // pose-clips (poseclips.js): what each of them does with hands and head while the other talks (the scene's content is unchanged)
     { t: 'L1+0.6', actor: 'tessa', anim: 'nadenken', dur: 2.6 },
     { t: 'L3+0.4', actor: 'tessa', anim: 'schouderophalen', dur: 1.8 },
@@ -166,11 +161,11 @@ const ACT_KEUKEN = {
     { t: 'L7+0.5', actor: 'tammo', anim: 'verontwaardigd', dur: 2.4 },
     { t: 'L8+0.4', actor: 'tessa', anim: 'wijzen', dur: 1.8 },
     { t: 'L9+0.3', actor: 'tammo', anim: 'nadenken', dur: 2.0 },
-    { t: 'L15+0.2', actor: 'tammo', anim: 'rondkijken', dur: 3.0 },
-    { t: 'L17+0.2', actor: 'tammo', anim: 'verontwaardigd', dur: 2.2 },
-    { t: 'L20+0.4', actor: 'tessa', anim: 'zuchten', dur: 2.0 },
-    { t: 'L21+0.2', actor: 'tammo', anim: 'aarzelen', dur: 2.6 },
-    { t: 'L24+0.3', actor: 'tessa', anim: 'geven', dur: 1.8 },
+    { t: 'L14+0.2', actor: 'tammo', anim: 'rondkijken', dur: 3.0 },
+    { t: 'L16+0.2', actor: 'tammo', anim: 'verontwaardigd', dur: 2.2 },
+    { t: 'L18+0.4', actor: 'tessa', anim: 'zuchten', dur: 2.0 },
+    { t: 'L19+0.2', actor: 'tammo', anim: 'aarzelen', dur: 2.6 },
+    { t: 'L20+0.3', actor: 'tessa', anim: 'geven', dur: 1.8 },
   ],
   shots: [
     { t: 0, shot: 'dolly', from: [1.9, 1.2, 1.7], to: [1.0, 0.9, 1.5], look: [-2.1, 0.1, 1.5], fov: 50 },
@@ -199,20 +194,16 @@ const ACT_KEUKEN = {
     { t: 'L11', shot: 'cut', at: [-0.4, 0.75, 1.35], look: 'tammo@1.2', fov: 30 },
     { t: 'L12', shot: 'dolly', from: [0.5, -0.75, 1.38], to: [0.3, -0.75, 1.3], look: 'tessa@1.15', fov: 26 },
     { t: 'L13', shot: 'cut', at: [-0.4, 0.7, 1.4], look: 'tammo@1.2', fov: 28 },
-    { t: 'L14', shot: 'cut', at: [0.55, -0.8, 1.4], look: 'tessa@1.15', fov: 26 },
-    { t: 'L15', shot: 'cut', at: [0.0, -1.45, 1.4], look: 'mid:tammo,tessa@1.1', fov: 46 },
-    { t: 'L16', shot: 'dolly', from: [0.6, -0.75, 1.4], to: [0.35, -0.75, 1.32], look: 'tessa@1.15', fov: 26 },
-    { t: 'L17', shot: 'cut', at: [-0.4, 0.75, 1.35], look: 'tammo@1.2', fov: 30 },
-    { t: 'L18', shot: 'cut', at: [0.5, -0.8, 1.4], look: 'tessa@1.15', fov: 30 },
-    { t: 'L19', shot: 'dolly', from: [0.5, -0.75, 1.38], to: [0.25, -0.75, 1.3], look: 'tessa@1.15', fov: 24 },
-    { t: 'L20', shot: 'cut', at: [0.5, 0.75, 1.4], look: 'tessa@1.15', fov: 26 },
-    { t: 'L21', shot: 'dolly', from: [-0.5, 0.75, 1.3], to: [-0.2, 0.45, 1.27], look: 'tammo@1.2', fov: 22 },
-    { t: 'L22', shot: 'cut', at: [-1.9, -0.2, 1.3], look: [-2.2, 0.1, 1.45], fov: 34 },
-    { t: 'L23', shot: 'cut', at: [-0.4, 0.75, 1.35], look: 'tammo@1.2', fov: 24 },
-    { t: 'L24', shot: 'dolly', from: [0.5, -0.75, 1.4], to: [0.2, -0.75, 1.3], look: 'tessa@1.15', fov: 24 },
-    { t: 'L25', shot: 'cut', at: [1.4, -1.2, 1.7], look: 'mid:tammo,tessa@1.0', fov: 52 },
-    { t: 'L25+1.3', shot: 'follow', target: 'tessa', dist: 1.1, side: -0.2, h: 1.55, fov: 44 },
-    { t: 'L25+2.6', shot: 'dolly', from: [-1.0, -0.8, 1.4], to: [-1.0, -0.8, 1.6], look: [1.3, 1.7, 1.2], fov: 42 },
+    { t: 'L14', shot: 'cut', at: [0.0, -1.45, 1.4], look: 'mid:tammo,tessa@1.1', fov: 46 },
+    { t: 'L15', shot: 'dolly', from: [0.6, -0.75, 1.4], to: [0.35, -0.75, 1.32], look: 'tessa@1.15', fov: 26 },
+    { t: 'L16', shot: 'cut', at: [-0.4, 0.75, 1.35], look: 'tammo@1.2', fov: 30 },
+    { t: 'L17', shot: 'cut', at: [0.5, -0.8, 1.4], look: 'tessa@1.15', fov: 30 },
+    { t: 'L18', shot: 'cut', at: [0.5, 0.75, 1.4], look: 'tessa@1.15', fov: 26 },
+    { t: 'L19', shot: 'dolly', from: [-0.5, 0.75, 1.3], to: [-0.2, 0.45, 1.27], look: 'tammo@1.2', fov: 22 },
+    { t: 'L20', shot: 'dolly', from: [0.5, -0.75, 1.4], to: [0.2, -0.75, 1.3], look: 'tessa@1.15', fov: 24 },
+    { t: 'L21', shot: 'cut', at: [1.4, -1.2, 1.7], look: 'mid:tammo,tessa@1.0', fov: 52 },
+    { t: 'L21+1.3', shot: 'follow', target: 'tessa', dist: 1.1, side: -0.2, h: 1.55, fov: 44 },
+    { t: 'L21+2.6', shot: 'dolly', from: [-1.0, -0.8, 1.4], to: [-1.0, -0.8, 1.6], look: [1.3, 1.7, 1.2], fov: 42 },
   ],
 };
 
@@ -286,8 +277,8 @@ const ACT_VERHUISDAG = {
 };
 
 export const OPENING_ACTS = [ACT_TRAILER, ACT_KEUKEN, ACT_VERHUISDAG];
-// the story line each act starts at (C00.1: 0-2, C00.2: 3-28, C00.3: 29-34) and the silence around it
-const ACT_SPLIT = [0, 3, 29, Infinity];
+// the story line each act starts at (C00.1: 0-2, C00.2: 3-24, C00.3: 25-30) and the silence around it
+const ACT_SPLIT = [0, 3, 25, Infinity];
 const ACT_LEAD = [1.2, 1.0, 1.0];
 const ACT_TAIL = [2.6, 4.2, 4.6];
 

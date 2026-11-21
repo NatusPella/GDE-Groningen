@@ -342,15 +342,6 @@
      "textOnly": true
     },
     {
-     "speaker": "Tessa",
-     "key": "A",
-     "text": "Tot ik het weet.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true,
-     "voice": "Anita"
-    },
-    {
      "speaker": "Tammo",
      "key": "T",
      "text": "En tot die tijd? Hier past geen frietwagen.",
@@ -381,20 +372,11 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Vierentwintig, net afgestudeerd en samen nul banen.",
+     "text": "Vierentwintig, net afgestudeerd en samen nul banen. Na de studie gaat iedereen ergens anders heen. Wij niet.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
      "humor": "H08",
-     "voice": "Anita"
-    },
-    {
-     "speaker": "Tessa",
-     "key": "A",
-     "text": "Iedereen gaat na zijn studie ergens anders heen. Wij niet.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -415,23 +397,6 @@
      "channel": "stem",
      "textOnly": false,
      "rec": "lines"
-    },
-    {
-     "speaker": "Rikus",
-     "key": "rikus",
-     "text": "En nu een plaat voor Tammo, mijn vriend sinds groep drie. Hij heeft een grote dag en zegt niks.",
-     "tag": "NIEUW",
-     "channel": "radio",
-     "textOnly": true,
-     "humor": "H05"
-    },
-    {
-     "speaker": "Tammo",
-     "key": "T",
-     "text": "Rikus draait mijn plaat.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true
     },
     {
      "speaker": "Tessa",
@@ -517,7 +482,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Dus we lenen het bakkie van Berend Bos. Rijden, niet praten.",
+     "text": "Dus we lenen een bakkie. Rijden, niet praten.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,

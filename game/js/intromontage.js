@@ -844,7 +844,7 @@ function buildShots(w) {
 
   const title = {
     minDur: 3.6, black: true,
-    card: logoHtml() + '<div class="im-tagline">Er gaat niets boven Grunn. Behalve de Martinitoren.</div><div class="im-kicker">Twee afgestudeerden. Eén frietwagen. Geen plek.</div>',
+    card: logoHtml() + '<div class="im-tagline">Er gaat niets boven Grunn. Behalve de Martinitoren.</div><div class="im-kicker">Ontdek jezelf in Grunn.</div>',
   };
 
   // --- opening ---------------------------------------------------------------

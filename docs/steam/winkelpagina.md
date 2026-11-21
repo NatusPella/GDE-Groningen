@@ -34,7 +34,7 @@ tekens heeft: "GDE Groningen - Zomer vol misdaad" met een gewoon streepje.
 
 **NL** (237 tekens):
 
-> Twee net afgestudeerden zonder werk of geld willen de Gouden Eierbal stelen voor een frietwagen. Een gratis open-wereld misdaadparodie in de echte straten van Groningen: auto's jatten, de ring rond, kermis, kroegen en een Fries met een plan. Woist ja wel.
+> Ontdek jezelf in Grunn. Twee net afgestudeerden zonder werk of plan zoeken een plekje in de wereld, en raken verwikkeld in de diefstal van de Gouden Eierbal. Een gratis open-wereld misdaadparodie in de echte straten van Groningen: auto's jatten, de ring rond, kermis, kroegen en een Fries met een plan. Woist ja wel.
 
 **EN** (255 tekens):
 
@@ -53,7 +53,7 @@ Afbeeldingen in de beschrijving (`[img]`) kunnen later; ze moeten eerst als
 
 ```
 [h2]Een zomer in Grunn[/h2]
-Augustus. KEI-week, Noorderzon, kermis op de Grote Markt en aan het eind Gronings Ontzet. Tammo en Tessa hebben samen precies genoeg geld voor een patatje. Tessa wil een frietwagen. Tammo wil Tessa, maar dat zegt hij niet. Al sinds de studie niet.
+Augustus. KEI-week, Noorderzon, kermis op de Grote Markt en aan het eind Gronings Ontzet. Tammo en Tessa hebben samen precies genoeg geld voor een patatje. Tessa weet nog niet wat ze wil. Tammo wil Tessa, maar dat zegt hij niet. Al sinds de studie niet.
 
 Dan ligt de [b]Gouden Eierbal[/b], de wisseltrofee van de Noordelijke Snackprijs, ineens niet meer in het museum. En er rijdt een Friese snackkoning met een trekker-limo door de binnenstad.
 

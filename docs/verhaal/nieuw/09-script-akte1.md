@@ -25,16 +25,12 @@ TESSA: Wij winnen op 28 augustus, wij krijgen die standplaats, en de Fjord Fritu
 TAMMO: Is dat het plan? Een frietwagen? [NIEUW]
 TESSA: Het is een tekening, Tammo. Ik weet nog niet wat ik wil. Dit heb ik tot nu toe. [NIEUW]
 TAMMO: Dan rijd ik hem. Tot je het weet. [NIEUW]
-TESSA: Tot ik het weet. [NIEUW]
 TAMMO: En tot die tijd? Hier past geen frietwagen. [NIEUW]
 TESSA: Daarom. Paddepoel, elfde verdieping. Twee kamers en een garage, voor de Fjord. [BEHOUDEN]
 TAMMO: Paddepoel? Dat is buitenland. [BEHOUDEN]
-TESSA: Vierentwintig, net afgestudeerd en samen nul banen. [NIEUW]
-TESSA: Iedereen gaat na zijn studie ergens anders heen. Wij niet. [NIEUW]
+TESSA: Vierentwintig, net afgestudeerd en samen nul banen. Na de studie gaat iedereen ergens anders heen. Wij niet. [NIEUW]
 TESSA: Alleen kan ik de huur niet betalen. Jij ook niet. Samen net. [BEHOUDEN]
 TAMMO: …Samen. [BEHOUDEN]
-RIKUS (radio): En nu een plaat voor Tammo, mijn vriend sinds groep drie. Hij heeft een grote dag en zegt niks. [NIEUW]
-TAMMO: Rikus draait mijn plaat. [NIEUW]
 TESSA: Als huisgenoten, Tammo. Teken nou maar. [BEHOUDEN]
 (regie: ze schuift het huurcontract over de tafel. Haar telefoon trilt.)
 TESSA: Kom. Werk. [BEHOUDEN]
@@ -46,7 +42,7 @@ TESSA: Je bent niet rijk, Tammo. Je bent huisgenoot. [BEHOUDEN]
 TESSA: Eerst geld. Meedoen aan die wedstrijd, de Noordelijke Snackprijs, kost honderdvijftig euro, contant, uiterlijk morgen om twaalf uur. [NIEUW]
 TAMMO: Honderdvijftig euro. Vandaag. [NIEUW]
 TESSA: Een streamer betaalt honderdvijftig euro voor stunts. Alleen heeft de Escapade een lekke band. [NIEUW]
-TESSA: Dus we lenen het bakkie van Berend Bos. Rijden, niet praten. [NIEUW]
+TESSA: Dus we lenen een bakkie. Rijden, niet praten. [NIEUW]
 
 ## [M01.1] Nul krassen, vijftienhonderd punten: intro – Stad, Martinikerkhof – Berends bakkie
 (regie: vrijdag 14 augustus, middag. Berend staat bij zijn bakkie, een nors mannetje met zijn arm in het gips en een kladblok. Aan het bakkie hangt een bord: CHAUFFEUR GEZOCHT, VIJFTIG EURO, BEREND BOS. De Escapade staat met een lekke band aan de kant. Gameplay: Berends bakkie door het centrum, nul krassen.)
