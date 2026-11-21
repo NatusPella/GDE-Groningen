@@ -64,16 +64,16 @@ const html = leesHtml();
   setSetting('firstPersoon', false);
 }
 
-// --- #891: de moeilijkheid staat bovenaan Instellingen > Spel -------------------------------
+// --- #891, #1169: de moeilijkheid heeft een eigen tabblad in Instellingen (difficultypanel.js) -------------------------------
 {
-  const spelTab = pm.slice(pm.indexOf("tab('spel'"), pm.indexOf("tab('besturing'"));
-  ok(spelTab.indexOf("picker('difficulty'") >= 0, '#891: de moeilijkheid staat op het tabblad Spel van Instellingen');
-  ok(spelTab.indexOf("picker('difficulty'") < spelTab.indexOf("picker('ruzie'"), '#891: bovenaan, niet tussen de rest verstopt');
-  ok(/function difficultyRows\(\)/.test(pm) && /DIFFICULTY_MODES\.map\(rij\)/.test(pm), '#891: de drie standen worden uit difficulty.js opgehaald');
-  okRegex(pm, /meer tijd|minder tijd/, '#891: de uitleg noemt de tijd');
-  okRegex(pm, /ruimere medailles|strengere medailles/, '#891: de uitleg noemt de medailles');
-  okRegex(pm, /meer schade|minder schade/, '#891: de uitleg noemt de schade');
-  ok(/data-diff-now/.test(pm) && /data-on/.test(css), '#891: de gekozen stand licht op tussen de uitleg');
+  const dm = fs.readFileSync(new URL('../game/js/difficultypanel.js', import.meta.url), 'utf8');  const df = fs.readFileSync(new URL('../game/js/difficulty.js', import.meta.url), 'utf8');
+  ok(/\['moeilijkheid', 'Moeilijkheid'\]/.test(pm) && /tab\('moeilijkheid', difficultyTabHtml\(\)/.test(pm), '#891: de moeilijkheid staat op een eigen tabblad van Instellingen');
+  ok(/data-setting="difficulty" data-options/.test(dm), '#891: het niveau is de gewone kiezer van de instellingen');
+  ok(/function levelRows\(\)/.test(dm) && /DIFFICULTY_MODES\.map\(rij\)/.test(dm), '#891: de drie niveaus worden uit difficulty.js opgehaald');
+  okRegex(df, /Meer tijd|minder tijd|Minder tijd/, '#891: de uitleg noemt de tijd');
+  okRegex(df, /medailles/, '#891: de uitleg noemt de medailles');
+  okRegex(df, /schade|Schade/, '#891: de uitleg noemt de schade');
+  ok(/data-diff-now/.test(dm) && /data-on/.test(css), '#891: het gekozen niveau licht op tussen de uitleg');
   ok(!/picker\('difficulty'/.test(pm.slice(pm.indexOf("tab('a11y'"), pm.indexOf('function spelHtml'))), '#891: de moeilijkheid staat niet meer onder Toegankelijkheid > Hulp');
 }
 
