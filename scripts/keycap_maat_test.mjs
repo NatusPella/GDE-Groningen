@@ -383,6 +383,28 @@ ok(real.length === 0, `de game-CSS heeft geen vaste px-maat voor een toetsplaatj
   }
 }
 
+// ---------- 8. de overslaan-hint van de openings-/montagefilm (letterbox, --ui 1 tot 1,5, 1280x720 en 1920x1080) ----------
+// De echte markup van cinematics.js (de toets als tekst 'SPATIE', door glyphs.js een glyph) in de echte #cine. Zonder data-ink op de glyph
+// (een build van vóór de ink-tabel) lag de toets 5 tot 8 px te laag en 40% te klein: de meting hieronder is daar de bewaking van.
+{
+  const { meetOpening, TOL_PX } = await import('./ui/keycap_meet.mjs');
+  const res = await meetOpening({});
+  if (!res) console.log('  (keycap_meet: geen Chrome gevonden, openingsmeting overgeslagen)');
+  else {
+    ok(res.length === 6, `de openingsmeting dekt 2 schermen x 3 schalen (${res.length})`);
+    for (const { b, h, ui, rijen } of res) {
+      const g = rijen.filter((x) => x.soort === 'glyph'), ringen = rijen.filter((x) => x.soort === 'ring');
+      const wat = `opening ${b}x${h} ui ${ui}`;
+      ok(g.length === 2 && ringen.length === 2, `${wat}: toets en ring van beide varianten gemeten (${g.length} glyphs, ${ringen.length} ringen)`);
+      for (const x of g) {
+        ok(Math.abs(x.dy) <= TOL_PX, `${wat} ${x.naam}: het midden van de toets ligt binnen ${TOL_PX} px van het midden van de tekst (nu ${x.dy.toFixed(1)} px)`);
+        ok(x.inkH >= 1.4 * x.tekstPx && x.inkH <= 1.6 * x.tekstPx, `${wat} ${x.naam}: de inkt is 1,5 keer de tekst (nu ${(x.inkH / x.tekstPx).toFixed(2)})`);
+      }
+      for (const x of ringen) ok(Math.abs(x.dy) <= TOL_PX, `${wat} ${x.naam}: de ring staat op de tekstregel (nu ${x.dy.toFixed(1)} px)`);
+    }
+  }
+}
+
 if (TOON) { console.log(VOORB.join('\n\n')); console.log('\n' + STRUT_NOTE.join('\n')); }
 console.log(fails ? `keycap_maat_test: ${fails} FAIL` : `keycap_maat_test: ok (${n} controles)`);
 process.exit(fails ? 1 : 0);

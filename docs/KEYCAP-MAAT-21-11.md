@@ -117,3 +117,13 @@ De eerste fix (inline, zonder flex) bleek in een echt screenshot niet te werken:
 De test staat op 1,5 px (1 px plus 0,5 voor het afronden van de canvasmeting); de grootste restwaarde is -1,3 px in de heist-chip (14 px tekst: de vloer van 20 px duwt het plaatje 0,6 px omhoog). De Esc- en Enter-glyph blijven kleine labels in de Kenney-tekening houden.
 
 **Te verifiëren in het echte spel (Electron)**: de overslaan-hint rechtsonder in de opening op 1920x1080 en 1280x720 (inclusief de grotere pil van `launchchoice*`), de hold-ring om een glyph (ring en glyph concentrisch), en een glyph in een knop met `Bebas`-kop.
+
+## Vervolg 21-11 (2): de overslaan-hint in de openings-/montagefilm (#1075)
+
+Eigenaar: de hint is na de fix beter, maar in het openingsbeeld (`90-overslaan-hint-opening-1920`) nog te laag en klein. `node scripts/ui/keycap_meet.mjs --opening` rendert nu de echte markup van `cinematics.js` (de toets als tekst `SPATIE`, door `glyphs.js` een glyph) in de echte `#cine` met letterbox (balken 11vh), met en zonder ondertitel, op 1280x720 en 1920x1080 en bij `--ui` 1, 1,25 en 1,5.
+
+- **Met de huidige CSS en `data-ink`:** glyph -0,2 tot +0,1 px van het tekstmidden, ring -0,6 tot -0,2 px, inkt 1,5 keer de tekst (27, 34 en 41 px), op alle zes combinaties. Letterbox, `translateY(50%)` van de pil en `--ui` verplaatsen de glyph niet.
+- **Zonder `data-ink`** (`--zonder-ink`: een build van vóór de ink-tabel, commit b1954c58d) is het beeld van de eigenaar gereproduceerd: de Spatie-glyph staat +5,3 px (ui 1) tot +8,4 px (ui 1,5) te laag en is 40% te klein (16 px inkt bij 18 px tekst). Het screenshot komt dus van een build zonder de ink-tabel; `docs/beeld-21-11/keycap-opening/voor-1920.png` en `na-1920.png` tonen het verschil.
+- `scripts/keycap_maat_test.mjs` (sectie 8) bewaakt de zes combinaties: glyph en ring binnen 1 px en de inkt 1,4 tot 1,6 keer de tekst.
+
+Nog te bekijken in het echte spel: de openingsfilm in een build mét de ink-tabel.
