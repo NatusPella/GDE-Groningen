@@ -139,6 +139,10 @@
 "src": "anita/een_meeuw_hij_wil_je_patat_19185921.mp3",
 "dur": 3.91
 },
+"Anita|Een sloep op het Oosterdiep, elf bruggen en Jelles mosterdschip erachteraan.": {
+"src": "anita/een_sloep_op_het_oosterdiep_elf__f753712f.mp3",
+"dur": 5.62
+},
 "Anita|Eerst aanmeren en uitstappen. De rondvaartboot ligt al klaar aan de kade.": {
 "src": "anita/eerst_aanmeren_en_uitstappen_de__89119169.mp3",
 "dur": 4.37
@@ -282,6 +286,10 @@
 "Anita|Instappen, Femke heeft hem voor ons klaargezet. De tankwagen staat bij de groothandel.": {
 "src": "anita/instappen_femke_heeft_hem_voor_o_236f3cf4.mp3",
 "dur": 4.22
+},
+"Anita|Instappen. De sloep ligt aan de kant, Wubbo wacht bij de eerste brug.": {
+"src": "anita/instappen_de_sloep_ligt_aan_de_k_fc068bd4.mp3",
+"dur": 5.01
 },
 "Anita|Instappen: de automaat ligt achterin, met mijn pas erin. Hij piept een beetje.": {
 "src": "anita/instappen_de_automaat_ligt_achte_0dda1f21.mp3",
@@ -458,6 +466,10 @@
 "Anita|Terug naar de kraam, met de bal! Voordat de eierballen koud zijn.": {
 "src": "anita/terug_naar_de_kraam_met_de_bal_v_62eccca5.mp3",
 "dur": 3.37
+},
+"Anita|Toeter bij een gesloten brug, Wubbo opent op het ritme van de fanfare.": {
+"src": "anita/toeter_bij_een_gesloten_brug_wub_4aab79be.mp3",
+"dur": 5.67
 },
 "Anita|Uitstappen bij de duiven. Een duif rijdt geen auto.": {
 "src": "anita/uitstappen_bij_de_duiven_een_dui_fcb19364.mp3",
@@ -651,6 +663,10 @@
 "src": "tammo/een_meeuw_hij_wil_je_patat_3193d48a.mp3",
 "dur": 1.68
 },
+"Tammo|Een sloep op het Oosterdiep, elf bruggen en Jelles mosterdschip erachteraan.": {
+"src": "tammo/een_sloep_op_het_oosterdiep_elf__0c965364.mp3",
+"dur": 5.42
+},
 "Tammo|Eerst aanmeren en uitstappen. De rondvaartboot ligt al klaar aan de kade.": {
 "src": "tammo/eerst_aanmeren_en_uitstappen_de__8f4da361.mp3",
 "dur": 4.32
@@ -798,6 +814,10 @@
 "Tammo|Instappen, Femke heeft hem voor ons klaargezet. De tankwagen staat bij de groothandel.": {
 "src": "tammo/instappen_femke_heeft_hem_voor_o_918d41d0.mp3",
 "dur": 4.25
+},
+"Tammo|Instappen. De sloep ligt aan de kant, Wubbo wacht bij de eerste brug.": {
+"src": "tammo/instappen_de_sloep_ligt_aan_de_k_fd061817.mp3",
+"dur": 4.56
 },
 "Tammo|Instappen: de automaat ligt achterin, met mijn pas erin. Hij piept een beetje.": {
 "src": "tammo/instappen_de_automaat_ligt_achte_3bae4d1b.mp3",
@@ -966,6 +986,10 @@
 "Tammo|Terug naar de kraam, met de bal! Voordat de eierballen koud zijn.": {
 "src": "tammo/terug_naar_de_kraam_met_de_bal_v_44a7550f.mp3",
 "dur": 3.76
+},
+"Tammo|Toeter bij een gesloten brug, Wubbo opent op het ritme van de fanfare.": {
+"src": "tammo/toeter_bij_een_gesloten_brug_wub_2f305acc.mp3",
+"dur": 5.11
 },
 "Tammo|Uitstappen bij de duiven. Een duif rijdt geen auto.": {
 "src": "tammo/uitstappen_bij_de_duiven_een_dui_c5c698a5.mp3",
