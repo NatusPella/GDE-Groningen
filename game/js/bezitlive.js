@@ -33,6 +33,7 @@ import * as HS from './housing.js';
 import { herdsOf, infect, SPECIES } from './livestock.js';
 import { MACHINE_CATALOGUS } from './percelen.js';
 import { setAreaPrice, setYieldInfo } from './bezithooks.js';
+import * as CT from './chaintrucks.js'; // fillLinkPositions: een schakel zonder plek krijgt een terugvalplek
 
 const SCHRIJF_VERTRAGING_MS = 2000;
 let bezit = null, opslagOverride = null, timer = 0, vuil = false, index = null, laden = null;
@@ -578,7 +579,7 @@ export function chainTruckInput(views = null) {
   const out = [], b = getBezit();
   for (const c of views || chainViews()) {
     if (!c.links.some((l) => l.trucks > 0)) continue;
-    out.push({ id: c.id, links: c.links.map((l, i) => {
+    out.push({ id: c.id, links: CT.fillLinkPositions(c.id, c.links.map((l, i) => {
       let pos = null;
       if (i === 0) { const src = c.sources.find((x) => x.picked) || c.sources[0]; pos = src ? parcelPoint(src.id) : null; }
       else if (l.ref) {
@@ -586,7 +587,7 @@ export function chainTruckInput(views = null) {
         else { const i2 = refInfo(l.ref); pos = i2 && !i2.mobile ? { x: i2.x, y: i2.y } : null; }
       }
       return { id: l.id, trucks: l.trucks, moved: l.moved, distance: l.distance, pos };
-    }) });
+    })) });
   }
   return out;
 }

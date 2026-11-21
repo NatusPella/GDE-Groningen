@@ -8,6 +8,7 @@
 import * as L from './bezitlive.js';
 import { ownerOf, manageView, manageAction, customersAt, canManage, MAX_CUSTOMERS } from './bezitbeheer.js';
 import { euro } from './geldtekst.js';
+import { sponsorNameOf } from './sponsorpanden.js';
 
 export const MATCH_R = 12;
 export { MAX_CUSTOMERS };
@@ -23,6 +24,12 @@ export function osmOfBuilding(b, index = L.getIndexNow()) {
   let best = null, bd = MATCH_R;
   for (const c of index.buildings.near(cx, cy, MATCH_R)) { const d = Math.hypot(c.x - cx, c.y - cy); if (d <= bd) { bd = d; best = c; } }
   return best ? best.osm : null;
+}
+
+// De naam op de gevel: de verzonnen sponsornaam van het voetbal als dit pand een sponsorpand is, anders de gewone naam (shopsigns3d.js).
+export function facadeName(b, fallback) {
+  const osm = osmOfBuilding(b);
+  return (osm != null && sponsorNameOf(osm)) || fallback;
 }
 
 // De omzetregel in het interieur: wat het pand vandaag doet, in gewone woorden (altijd Nederlands, nooit een leeg veld).

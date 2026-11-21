@@ -357,12 +357,18 @@ export function acceptOffer(c) {
   s.club = s.offer.club; s.me.club = s.club; s.mate.club = s.club; s.offer = null; s.flags.moved = (s.flags.moved | 0) + 1; s.flags.bid = false;
   return { career: s, ok: true };
 }
-export function acceptSponsor(c, slotId, pandIndex = null) {
-  const club = c.club;
-  const r = Sp.accept(c.sponsors, slotId, pandIndex, null);
-  void club;
+// plaats = [x, y] van de club (de wereldplek van zijn park): daar zoekt de pandindex het sponsorpand bij; zonder plaats vindt hij niets.
+export function acceptSponsor(c, slotId, pandIndex = null, plaats = null) {
+  const r = Sp.accept(c.sponsors, slotId, pandIndex, plaats);
   return r.ok ? { career: { ...c, sponsors: r.sponsors }, ok: true, slot: r.slot } : { career: c, ok: false };
 }
+// Is het vandaag een thuiswedstrijddag van de club (de volgende wedstrijd staat vandaag open en is thuis)? Voor de klantenbonus van het sponsorpand (sponsorpanden.js).
+export function homeMatchToday(c, getClub) {
+  if (!c || !c.started) return false;
+  const m = nextMatch(c, getClub);
+  return !!m && m.isHome && m.status === 'open';
+}
+export const formOfCareer = (c) => (c && c.history ? O.formFactor(c.history) : 1);
 export const declineOffer = (c) => (c && c.offer ? { ...c, offer: null, flags: { ...c.flags, bid: false } } : c);
 export const TACTICS = { formations: ['4-4-2', '4-3-3', '3-5-2'], styles: ['verdedigend', 'evenwichtig', 'aanvallend'] };
 export function withTactic(c, { formation, style } = {}) {

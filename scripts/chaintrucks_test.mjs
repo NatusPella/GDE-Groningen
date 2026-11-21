@@ -97,5 +97,18 @@ t('bezitlive.chainTruckInput: zonder wagens niets, met een wagen de schakels met
   const out = L.chainTruckInput(views);
   assert.equal(out.length, 1); assert.equal(out[0].links.length, 2); assert.equal(out[0].links[0].trucks, 1); assert.equal(out[0].links[1].pos, null);
 });
+t('fillLinkPositions: een schakel zonder plek krijgt een terugvalplek bij de dichtstbijzijnde bekende, vast en binnen 1500 m', () => {
+  const c = chain(2); c.links[1].pos = null; c.links[2].pos = null;
+  const a = C.fillLinkPositions('friet', c.links), b = C.fillLinkPositions('friet', c.links);
+  assert.deepEqual(a, b);
+  assert.deepEqual(a[0].pos, { x: 0, y: 0 });
+  for (const l of a.slice(1)) { assert.equal(l.pos.approx, true); assert.ok(Number.isFinite(l.pos.x) && Number.isFinite(l.pos.y)); }
+  assert.ok(Math.hypot(a[1].pos.x, a[1].pos.y) <= C.FALLBACK_MAX_M + 1);
+  assert.ok(Math.hypot(a[2].pos.x - a[1].pos.x, a[2].pos.y - a[1].pos.y) > 0);
+  assert.equal(C.chainTrips([{ ...c, links: a }]).length, 2);                       // nu rijdt de eerste schakel wel
+  c.links.forEach((l) => { l.pos = null; });
+  assert.equal(C.fillLinkPositions('friet', c.links).every((l) => l.pos === null), true); // zonder een bekende plek: niets verzinnen
+  assert.deepEqual(C.fillLinkPositions('x', null), []);
+});
 console.log(`chaintrucks_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

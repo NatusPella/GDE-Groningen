@@ -161,7 +161,8 @@ import { gateOn, setGate } from './coopgate.js';
 import { updateGastLokaal } from './coopgastlokaal.js';
 import { initDayNight, updateDayNight, refreshDayNight, DAY_LENGTH_S } from './daynight.js';
 import { initCalendar, updateCalendar, today as calendarToday } from './calendarday.js';
-import { loadParkData as loadVoetbalParken, updateDay as updateVoetbalDag, updateBeats as updateVoetbalBeats, zetBezigProbe as zetVoetbalBezig } from './voetbalcarrierelive.js';
+import { homeMatchToday as voetbalThuisVandaag, formOfCareer as voetbalVorm } from './voetbalcarriere.js';
+import { getCareer as getVoetbalCarriere, subscribe as volgVoetbalCarriere, getClub as getVoetbalClub, loadParkData as loadVoetbalParken, updateDay as updateVoetbalDag, updateBeats as updateVoetbalBeats, zetBezigProbe as zetVoetbalBezig } from './voetbalcarrierelive.js';
 import { cardsBusy as voetbalCardsBusy } from './hudcards.js';
 import { updateFx3D } from './fx3d.js';
 import { updateGore3D } from './gore3d.js';
@@ -200,7 +201,7 @@ import { initStationTravel, tryStationInteract } from './stationtravel.js';
 import { initOmmelandFun, updateOmmelandFun, tryOmmelandInteract } from './ommelandfun.js';
 import { BEPPE_KIND } from './beppe_garden.js';
 import { INTERIOR_KIND, assignInteriorHooks } from './interiors.js'; // echt binnen lopen door de voordeur van panden (#1150)
-import { registerSponsorPanden } from './sponsorpanden.js'; // sponsorpanden van het voetbal in de Bezit-pandindex
+import { registerSponsorPanden, linkCareer } from './sponsorpanden.js'; // sponsorpanden van het voetbal in de Bezit-pandindex
 import { installBezitInterior } from './bezitinterior.js'; // het beheer van je eigen pand aan de toonbank (#1102)
 import { tryAaien, updateAaien } from './aaien.js';
 import { tryControle, updateControle } from './kaartjescontrole.js';
@@ -959,7 +960,7 @@ window.__debug = { player, map, input, world, frameStats };
   initOmverrijden(world);
   initBezit();
   installBezitInterior(assignInteriorHooks, { openMenu: () => openPauseMenu('boerderij', { sub: 'bedrijven' }) }); // E bij de toonbank van je eigen pand: het volledige Bezit-menu (Land en bedrijf > Bedrijven)
-  try { registerSponsorPanden(); } catch (e) { /* zonder voetbal */ }
+  try { registerSponsorPanden(); linkCareer({ getCareer: getVoetbalCarriere, subscribe: volgVoetbalCarriere, homeMatchToday: voetbalThuisVandaag, formOf: voetbalVorm, getClub: getVoetbalClub }); } catch (e) { /* zonder voetbal */ }
   // de gedeelde ontgrendelpoort (unlockgate.js): zolang de save geen `gate` heeft (world.gate) staat alles open (migratieregel van de verhaal-epic)
   setGateProgress(() => storyGateProgress());
   // de snackwagen opent in fasen met de stille verhaalvlaggen wagen:* (snackstory.js); een oude save (geen gate) laat alles open

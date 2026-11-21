@@ -77,6 +77,18 @@ export function eventModsFor(osm, mods, day) {
   return { ...mods, revMult: (mods.revMult || 1) * f };
 }
 
+// De carrière aan de pandkant: de sponsorstand (naam per pand) volgt elke wijziging van de carrière en wordt nu meteen gelezen (na laden); de thuisbonus telt alleen voor vandaag.
+// c = { getCareer, subscribe, homeMatchToday(career, getClub), formOf(career), getClub, today() } uit voetbalcarrierelive.js en voetbalcarriere.js; geeft de afmelder terug.
+export function linkCareer({ getCareer, subscribe, homeMatchToday, formOf, getClub, today = () => L.calToday() } = {}) {
+  setCareerHooks({
+    homeDayOf: (day) => day === today() && !!homeMatchToday(getCareer(), getClub),
+    formOf: () => formOf(getCareer()),
+  });
+  const sync = (c) => syncSponsorDeals(c && c.sponsors);
+  sync(getCareer());
+  return subscribe(sync);
+}
+
 export function registerSponsorPanden() {
   setPandIndex({ find: (type, xy) => findSponsorBuilding(type, xy) });
   L.setEventHook(eventModsFor);
