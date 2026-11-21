@@ -20,7 +20,7 @@ import { placeTemplate, shiftTime } from './cineshots.js';
 
 export const MIN_SHOT = 1.2; // s: a shot shorter than this is a flicker
 export const MAX_HOLD = 7; // s: a still shot longer than this gets a second frame
-export const REACTION_HOLD = 1.3; // s: the listener stays in frame after a promise, confession or punch line
+const REACTION_HOLD = 1.3; // s: the listener stays in frame after a promise, confession or punch line
 export const EMOTIONS = ['neutral', 'joy', 'angry', 'sad', 'tender', 'shock', 'whisper'];
 export const KINDS = ['line', 'question', 'promise', 'confession', 'punch'];
 
@@ -41,7 +41,7 @@ export function templateFor(line) {
 
 export function directDialogue({ lines, actors = [], wide = null } = {}) {
   const notes = [];
-  if (!Array.isArray(lines) || !lines.length) return { shots: [], humor: [], notes: ['no lines: nothing to direct'], stats: { shots: 0, reverse: 0, closeUps: 0, reactions: 0 } };
+  if (!Array.isArray(lines) || !lines.length) return { shots: [], humor: [], notes: ['geen regels: niets te regisseren'], stats: { shots: 0, reverse: 0, closeUps: 0, reactions: 0 } };
   const ids = actors.length ? actors : [...new Set(lines.map((l) => l.speaker).filter(Boolean))];
   const side = (id) => (ids.indexOf(id) % 2 === 0 ? 1 : -1); // the same person is always on the same side: the camera never crosses the axis
   const listenerOf = (l, i) => {
@@ -107,7 +107,7 @@ export function directDialogue({ lines, actors = [], wide = null } = {}) {
   for (const p of plan) {
     const prev = kept[kept.length - 1];
     if (prev && p.t - prev.t < MIN_SHOT && p.t > 0.001) {
-      if (p.strong && !prev.strong && prev.t > 0.001) { kept[kept.length - 1] = p; notes.push(`dropped a ${prev.tag} shot at ${r2(prev.t)} s: too short before the ${p.tag}`); } else notes.push(`dropped a ${p.tag} shot at ${r2(p.t)} s: under ${MIN_SHOT} s after the ${prev.tag}`);
+      if (p.strong && !prev.strong && prev.t > 0.001) { kept[kept.length - 1] = p; notes.push(`shot ${prev.tag} op ${r2(prev.t)} s weggelaten: te kort voor het shot ${p.tag}`); } else notes.push(`shot ${p.tag} op ${r2(p.t)} s weggelaten: minder dan ${MIN_SHOT} s na het shot ${prev.tag}`);
       continue;
     }
     kept.push(p);
@@ -124,7 +124,7 @@ export function directDialogue({ lines, actors = [], wide = null } = {}) {
       const dt = li >= 0 ? r2(mid - lines[li].at) : 0;
       const a = ids[0], b = ids[1] || ids[0];
       extra.push({ t: mid, key: li >= 0 ? shiftTime(`L${li}`, dt) : r2(mid), shot: placeTemplate('tweeshot', { a, b }, 0)[0], tag: 'refresh', strong: false });
-      notes.push(`added a two-shot at ${r2(mid)} s: the ${p.tag} shot would hold ${r2(next - p.t)} s`);
+      notes.push(`tweeshot toegevoegd op ${r2(mid)} s: het shot ${p.tag} zou ${r2(next - p.t)} s stilstaan`);
     }
   });
   const all = [...kept, ...extra].sort((a, b) => a.t - b.t);

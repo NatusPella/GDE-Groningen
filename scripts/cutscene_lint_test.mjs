@@ -1,10 +1,10 @@
 // Test van de cutscene-linter (laag 2): opzettelijk foute eenheden moeten de juiste regel raken, een nette eenheid niet,
-// en de baseline-ratel werkt als ds3_dekking (alleen dalen). Geen browser, geen wereld.
+// en de strengheid klopt: de regels gelden voor alle cutscenes, geen baseline, een uitzondering heeft een reden. Geen browser, geen wereld.
 //   node scripts/cutscene_lint_test.mjs
 import fs from 'node:fs';
 import { compileScene } from '../game/js/cutscript.js';
 import { propFoot } from '../game/js/cutscenemodels.js';
-import { lintUnit, checkText, checkIntroductions, humorCandidates, checkHumorStructure, rapportVan, globaleScore, ratel, scoreVan, inFrame, bijbelIds, RULES, scoreVan as _s } from './lib/cutscene_lint.mjs';
+import { lintUnit, checkText, checkIntroductions, humorCandidates, checkHumorStructure, rapportVan, globaleScore, scoreVan, inFrame, bijbelIds, RULES, valideerUitzonderingen, pasUitzonderingenToe } from './lib/cutscene_lint.mjs';
 
 let n = 0, fails = 0;
 const ok = (c, naam, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${naam}${info ? ` (${info})` : ''}`); } };
@@ -162,37 +162,56 @@ const CTX = { speakers: { T: {}, A: {}, berend: {}, rikus: {} }, npc: {} };
   ok(!Object.entries(RULES).some(([id, r2]) => r2.categorie === 'smaak' && r2.ernst !== 'nit'), 'smaakregels zijn nooit blokkerend of belangrijk');
 }
 
-// ---- 7. score, ratel en bijbel-ID's -------------------------------------------------------------------------------------------
+
+// ---- 7. score, bijbel-ID's en uitzonderingen (streng voor alles, geen baseline) --------------------------------------------------------------
 {
-  const a = rapportVan({ id: 'a', lines: [] }, [{ cutscene: 'a', regel: 'CS-T05', categorie: 'tekst', ernst: 'blokkerend', bericht: 'x' }, { cutscene: 'a', regel: 'CS-T02', categorie: 'tekst', ernst: 'belangrijk', bericht: 'y' }]);
+  const v = (cutscene, regel, ernst, extra = {}) => ({ cutscene, regel, categorie: RULES[regel].categorie, ernst, bericht: 'x', ...extra });
+  const a = rapportVan({ id: 'a', lines: [] }, [v('a', 'CS-T05', 'blokkerend'), v('a', 'CS-T02', 'belangrijk')]);
   const b = rapportVan({ id: 'b', lines: [] }, []);
   ok(a.score === 67 && b.score === 100 && globaleScore([a, b]) === 84, 'score: blokkerend 25, belangrijk 8, globale score is het gemiddelde', `${a.score} ${globaleScore([a, b])}`);
-  const basis = { 'a|CS-T05': 1, 'a|CS-T02': 2, 'x|CS-T01': 1 };
-  const r = ratel([a, b], basis);
-  ok(r.nieuw.length === 0 && r.erger.length === 0 && r.beter.length === 2, 'ratel: gelijke en lagere aantallen mogen', JSON.stringify(r));
-  const a2 = rapportVan({ id: 'a', lines: [] }, [...a.vondsten, { cutscene: 'a', regel: 'CS-T05', categorie: 'tekst', ernst: 'blokkerend', bericht: 'weer' }]);
-  ok(ratel([a2, b], basis).erger.length === 1, 'ratel: een toename faalt');
-  const c = rapportVan({ id: 'c', lines: [] }, [{ cutscene: 'c', regel: 'CS-T06', categorie: 'tekst', ernst: 'blokkerend', bericht: 'z' }]);
-  ok(ratel([a, c], basis).nieuw.length === 1, 'ratel: een nieuwe cutscene met een vondst faalt (nieuwe scènes moeten schoon zijn)');
   const ids = bijbelIds({ regels: [{ id: 'R-03', lint: 'CS-C05' }, { id: 'R-09', linter: ['CS-T01', 'CS-T02'] }, { id: 'R-10' }] });
   ok(ids['CS-C05'] === 'R-03' && ids['CS-T02'] === 'R-09' && Object.keys(ids).length === 3, 'bijbelIds: koppelt voorlopige ID\'s aan de R-nummers van de bijbel');
+  // uitzonderingen
+  const goed = { uitzonderingen: [{ cutscene: 'a', regel: 'CS-T05', reden: 'een bewuste parodie op een verzonnen merknaam in deze scène', akkoord: 'eigenaar' }] };
+  ok(valideerUitzonderingen(goed, { cutscenes: new Set(['a', 'b']) }).length === 0, 'een uitzondering met reden is geldig');
+  ok(valideerUitzonderingen({ uitzonderingen: [{ cutscene: 'a', regel: 'CS-T05', reden: 'kort' }] }).some((f) => /reden/.test(f)), 'een uitzondering zonder echte reden wordt geweigerd');
+  ok(valideerUitzonderingen({ uitzonderingen: [{ cutscene: 'a', regel: 'CS-X99', reden: 'een heel lange reden die genoeg tekens heeft hoor' }] }).some((f) => /onbekende regel/.test(f)), 'een uitzondering voor een onbekende regel wordt geweigerd');
+  ok(valideerUitzonderingen(goed, { cutscenes: new Set(['b']) }).some((f) => /onbekende cutscene/.test(f)), 'een uitzondering voor een onbekende cutscene wordt geweigerd');
+  ok(valideerUitzonderingen({ uitzonderingen: [{ cutscene: 'a', regel: 'CS-H01', reden: 'een heel lange reden die genoeg tekens heeft hoor' }] }).some((f) => /smaak/.test(f)), 'een smaakregel heeft geen uitzondering nodig');
+  ok(valideerUitzonderingen({ uitzonderingen: [goed.uitzonderingen[0], goed.uitzonderingen[0]] }).some((f) => /dubbel/.test(f)), 'een dubbele uitzondering wordt geweigerd');
+  ok(valideerUitzonderingen({}).length === 1, 'een bestand zonder lijst wordt geweigerd');
+  // toepassen
+  const perId = { a: [v('a', 'CS-T05', 'blokkerend'), v('a', 'CS-T02', 'belangrijk', { regelNr: 3 })], b: [v('b', 'CS-T05', 'blokkerend')] };
+  const res = pasUitzonderingenToe(perId, [goed.uitzonderingen[0], { cutscene: 'c', regel: 'CS-T01', reden: 'een heel lange reden die genoeg tekens heeft hoor' }]);
+  ok(perId.a[0].uitzondering && !perId.a[1].uitzondering && !perId.b[0].uitzondering, 'een uitzondering dekt alleen zijn eigen cutscene en regel');
+  ok(res.verouderd.length === 1 && res.verouderd[0].cutscene === 'c', 'een uitzondering zonder vondst is verouderd en wordt gemeld');
+  const na = rapportVan({ id: 'a', lines: [] }, perId.a);
+  ok(na.blokkerend === 0 && na.uitgezonderd === 1 && na.belangrijk === 1 && na.score === 92, 'een uitgezonderde vondst telt niet meer mee in de aantallen en de score', JSON.stringify([na.blokkerend, na.uitgezonderd, na.score]));
+  const metRegelNr = { a: [v('a', 'CS-T02', 'belangrijk', { regelNr: 3 }), v('a', 'CS-T02', 'belangrijk', { regelNr: 7 })] };
+  pasUitzonderingenToe(metRegelNr, [{ cutscene: 'a', regel: 'CS-T02', regelNr: 3, reden: 'een heel lange reden die genoeg tekens heeft hoor' }]);
+  ok(metRegelNr.a[0].uitzondering && !metRegelNr.a[1].uitzondering, 'een uitzondering met regelNr dekt alleen die regel');
 }
 
-// ---- 8. de echte data: de catalogus laadt, de ratel van de repo staat groen --------------------------------------------------------
+// ---- 8. de echte data en de CLI -------------------------------------------------------------------------------------------------------------
 {
-  const { runLint, samenvatting } = await import('./cutscene_lint.mjs');
-  const { rapporten } = await runLint();
+  const { runLint, samenvatting, faalLijst } = await import('./cutscene_lint.mjs');
+  const { rapporten, uitzonderingFouten } = await runLint();
   const sam = samenvatting(rapporten);
   ok(sam.cutscenes >= 150 && sam.gestaged >= 90, 'de linter ziet alle cutscenes (geregisseerd en script)', `${sam.cutscenes}/${sam.gestaged}`);
   ok(rapporten.every((r) => Number.isFinite(r.score)), 'elke cutscene heeft een score');
   ok(rapporten.some((r) => r.humor.length), 'humorkandidaten worden gelabeld voor het panel');
-  const basisPad = new URL('./cutscene_lint_basis.json', import.meta.url);
-  ok(fs.existsSync(basisPad), 'de baseline-ratel staat in de repo');
-  if (fs.existsSync(basisPad)) {
-    const basis = JSON.parse(fs.readFileSync(basisPad, 'utf8')).sleutels;
-    const r = ratel(rapporten, basis);
-    ok(r.nieuw.length === 0 && r.erger.length === 0, 'geen nieuwe of verergerde cutscene-vondst tegenover de basis', JSON.stringify([...r.nieuw, ...r.erger].slice(0, 3)));
-  }
+  ok(uitzonderingFouten.length === 0, 'het uitzonderingenbestand is geldig en geen uitzondering is verouderd', uitzonderingFouten.join('; '));
+  ok(!fs.existsSync(new URL('./cutscene_lint_basis.json', import.meta.url)), 'er is geen stille baseline meer (cutscene_lint_basis.json bestaat niet)');
+  const lijst = faalLijst(rapporten);
+  ok(/## Blokkerend \(\d+\)/.test(lijst) && /## Belangrijk/.test(lijst), 'de faallijst voor de verhaal-lead heeft een blokkerend- en een belangrijk-deel');
+  const blokkerend = rapporten.reduce((s, r) => s + r.blokkerend, 0);
+  ok(new RegExp(`## Blokkerend \\(${blokkerend}\\)`).test(lijst), 'de faallijst telt de blokkerende vondsten', String(blokkerend));
+  // de CLI: --meld blokkeert niet, --strict blokkeert zolang er een blokkerende vondst zonder uitzondering is
+  const { spawnSync } = await import('node:child_process');
+  const cli = (...a) => spawnSync(process.execPath, [new URL('./cutscene_lint.mjs', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'), ...a], { encoding: 'utf8' });
+  ok(cli('--meld', '--quiet').status === 0, '--meld blokkeert niet op bestaande cutscenes');
+  const streng = cli('--strict', '--quiet');
+  ok(blokkerend === 0 ? streng.status === 0 : streng.status === 1, '--strict blokkeert precies zolang er een blokkerende vondst zonder uitzondering is', `exit ${streng.status}, ${blokkerend} blokkerend`);
 }
 
 console.log(fails ? `${fails} van ${n} cutscene_lint-controles falen` : `cutscene_lint_test: ${n} controles ok`);

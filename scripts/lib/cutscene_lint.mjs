@@ -80,11 +80,6 @@ function vondst(unit, ruleId, bericht, extra = {}) {
   return { cutscene: unit.id, regel: ruleId, categorie: r.categorie, ernst: extra.ernst || r.ernst, bericht, ...(extra.t != null ? { t: Math.round(extra.t * 10) / 10 } : {}), ...(extra.regelNr != null ? { regelNr: extra.regelNr } : {}) };
 }
 
-export function scoreVan(vondsten) {
-  let straf = 0;
-  for (const v of vondsten) if (v.categorie !== 'smaak') straf += GEWICHT[v.ernst] || 0;
-  return Math.max(0, Math.round(100 - straf));
-}
 
 // ---------------------------------------------------------------- tekstregels
 
@@ -134,7 +129,7 @@ export function checkText(unit, ctx = {}) {
   let run = 1;
   for (let i = 1; i <= lines.length; i++) {
     if (i < lines.length && lines[i].speaker === lines[i - 1].speaker) { run++; continue; }
-    if (run > 3 && lines[i - 1].channel !== 'app-stil') out.push(vondst(unit, 'CS-T03', `${lines[i - 1].speaker} praat ${run} beurten achter elkaar (max 3)`, { regelNr: i - run, ernst: run >= 6 ? 'blokkerend' : 'belangrijk' }));
+    if (run > 3 && lines[i - 1].channel !== 'app-stil') out.push(vondst(unit, 'CS-T03', `${lines[i - 1].speaker} praat ${run} beurten achter elkaar (max 3)`, { regelNr: i - run, ernst: run >= 6 && !isOff(lines[i - 1]) ? 'blokkerend' : 'belangrijk' }));
     run = 1;
   }
   // sprekers per scène
@@ -540,9 +535,16 @@ export function lintUnit(unit, ctx = {}) {
   return v;
 }
 
+// De score van een cutscene: blokkerend 25, belangrijk 8, nit 1 per vondst. Uitgezonderde vondsten en smaak tellen niet mee.
+export function scoreVan(vondsten) {
+  let straf = 0;
+  for (const v of vondsten) if (!v.uitzondering && v.categorie !== 'smaak') straf += GEWICHT[v.ernst] || 0;
+  return Math.max(0, Math.round(100 - straf));
+}
+
 export function rapportVan(unit, vondsten) {
-  const per = { blokkerend: 0, belangrijk: 0, nit: 0, smaak: 0 };
-  for (const v of vondsten) { if (v.categorie === 'smaak') per.smaak++; else per[v.ernst]++; }
+  const per = { blokkerend: 0, belangrijk: 0, nit: 0, smaak: 0, uitgezonderd: 0 };
+  for (const v of vondsten) { if (v.uitzondering) per.uitgezonderd++; else if (v.categorie === 'smaak') per.smaak++; else per[v.ernst]++; }
   return { id: unit.id, group: unit.group, kind: unit.kind, regels: (unit.lines || []).length, shots: unit.def ? (unit.def.shots || []).length : 0, score: scoreVan(vondsten), ...per, vondsten };
 }
 
@@ -551,16 +553,45 @@ export function globaleScore(rapporten) {
   return Math.round(rapporten.reduce((s, r) => s + r.score, 0) / rapporten.length);
 }
 
-// De baseline-ratel: { 'cutscene|regel': aantal } (smaak telt niet). Geeft { nieuw, erger, beter }.
-export function ratel(rapporten, basis = {}) {
-  const nu = {};
-  for (const r of rapporten) for (const v of r.vondsten) { if (v.categorie === 'smaak') continue; const k = `${r.id}|${v.regel}`; nu[k] = (nu[k] || 0) + 1; }
-  const nieuw = [], erger = [], beter = [];
-  for (const [k, n] of Object.entries(nu)) {
-    const was = basis[k];
-    if (was == null) nieuw.push({ sleutel: k, aantal: n });
-    else if (n > was) erger.push({ sleutel: k, aantal: n, was });
-  }
-  for (const [k, was] of Object.entries(basis)) { const n = nu[k] || 0; if (n < was) beter.push({ sleutel: k, aantal: n, was }); }
-  return { nu, nieuw, erger, beter };
+// ---------------------------------------------------------------- strengheid en uitzonderingen
+
+// Eigenaar-besluit 21-11: de regels gelden voor ALLE cutscenes, ook de bestaande; geen stille baseline. Een regel die bij een bestaande
+// cutscene bewust niet geldt, staat met een reden in scripts/release/cutscene-uitzonderingen.json:
+//   { "uitzonderingen": [ { "cutscene": "E2", "regel": "CS-T03", "regelNr": 4, "reden": "waarom dit hier bewust zo is", "akkoord": "wie" } ] }
+// Een uitzondering zonder reden, voor een onbekende regel of cutscene, of die geen vondst meer dekt, is zelf een fout.
+export const MIN_REDEN = 20;
+
+export function valideerUitzonderingen(data, { cutscenes = null } = {}) {
+  const fouten = [];
+  const lijst = data && Array.isArray(data.uitzonderingen) ? data.uitzonderingen : null;
+  if (!lijst) return ['cutscene-uitzonderingen.json heeft geen lijst "uitzonderingen"'];
+  const gezien = new Set();
+  lijst.forEach((u, i) => {
+    const waar = `uitzondering ${i + 1}${u && u.cutscene ? ` (${u.cutscene} ${u.regel || ''})` : ''}`;
+    if (!u || typeof u !== 'object') { fouten.push(`${waar}: geen object`); return; }
+    if (!u.cutscene) fouten.push(`${waar}: cutscene ontbreekt`);
+    else if (cutscenes && !cutscenes.has(u.cutscene)) fouten.push(`${waar}: onbekende cutscene "${u.cutscene}"`);
+    if (!u.regel || !RULES[u.regel]) fouten.push(`${waar}: onbekende regel "${u.regel}"`);
+    else if (RULES[u.regel].categorie === 'smaak') fouten.push(`${waar}: smaakregels tellen niet mee en hebben geen uitzondering nodig`);
+    if (typeof u.reden !== 'string' || u.reden.trim().length < MIN_REDEN) fouten.push(`${waar}: een uitzondering heeft een reden van minstens ${MIN_REDEN} tekens (waarom geldt de regel hier bewust niet)`);
+    if (u.regelNr != null && !Number.isInteger(u.regelNr)) fouten.push(`${waar}: regelNr is een geheel getal`);
+    const sleutel = `${u.cutscene}|${u.regel}|${u.regelNr ?? ''}`;
+    if (gezien.has(sleutel)) fouten.push(`${waar}: dubbel`);
+    gezien.add(sleutel);
+  });
+  return fouten;
 }
+
+// Zet de uitzonderingen op de vondsten: een gedekte vondst krijgt `uitzondering` (de reden) en telt niet meer mee in de aantallen en de score.
+// Geeft { verouderd } met de uitzonderingen die geen vondst meer dekken (een stille, vergeten uitzondering is zelf een fout).
+export function pasUitzonderingenToe(vondstenPerCutscene, uitzonderingen = []) {
+  const gebruikt = new Set();
+  for (const [id, vondsten] of Object.entries(vondstenPerCutscene)) {
+    for (const v of vondsten) {
+      const i = uitzonderingen.findIndex((u) => u.cutscene === id && u.regel === v.regel && (u.regelNr == null || u.regelNr === v.regelNr));
+      if (i >= 0) { v.uitzondering = uitzonderingen[i].reden; gebruikt.add(i); }
+    }
+  }
+  return { verouderd: uitzonderingen.filter((u, i) => !gebruikt.has(i)) };
+}
+
