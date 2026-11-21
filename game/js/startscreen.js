@@ -20,7 +20,7 @@ import { makeMenuGate, GATE } from './menuready.js';
 import { isAdvisorSampling, startGfxAdvisor, classifyGpu, readGpu, presetFromSample, currentPreset, applyPreset, isDefaultGfx, readAdvice, writeAdvice, presetLabel } from './gfxprofile.js';
 import { ABOUT_HTML } from './credits.js';
 import { startLoadScreen, setLoadTips } from './loadscreen.js';
-import { stepDurations, bootPlan, bootProgress, bootPhaseAt, bootCreepCap, bootStepText, BOOT_DONE_LABEL, easeBar } from './loadlogic.js';
+import { stepDurations, bootPlan, bootProgress, bootPhaseAt, bootCreepCap, BOOT_DONE_LABEL, easeBar } from './loadlogic.js';
 import { padGlyphInner } from './glyphs.js';
 import { onDeviceChange, getDevice } from './inputdevice.js';
 import { MENU_PLEKKEN, stadPlek, leesVerleden, bewaarVerleden, kiesVolgende, noteer, maakBeeld } from './menuplekken.js';
@@ -124,14 +124,11 @@ function paint() {
   if (fill) fill.style.transform = `scaleX(${Math.min(1, shown).toFixed(3)})`;
   const bar = document.querySelector('#loading .ld-bar');
   const phase = bootPhaseAt(progress, plan);
-  const stap = bootStepText(phase, plan.total);
   if (bar) {
     bar.setAttribute('aria-valuenow', String(Math.round(Math.min(1, shown) * 100)));
-    // the real step as text, so a screen reader hears what the bar is doing
-    bar.setAttribute('aria-valuetext', stap + ': ' + phase.label);
+    // what the boot is doing, as text, so a screen reader hears it (no "step n of m": one continuous bar, 21-11)
+    bar.setAttribute('aria-valuetext', phase.label);
   }
-  const nr = document.querySelector('#loading .ld-step');
-  if (nr && stepId !== 'klaar' && nr.textContent !== stap) nr.textContent = stap;
   // only when the step changes: another part (the first-run measurement, the save choice) may own the line in between
   if (stepId && stepId !== 'klaar' && phase.id !== lastStatusStep) { lastStatusStep = phase.id; bootStatus(phase.label); }
 }
@@ -218,8 +215,6 @@ export async function finishLoading() {
   if (!l) return;
   const status = l.querySelector('.ld-status');
   if (status) status.textContent = BOOT_DONE_LABEL;
-  const nr = l.querySelector('.ld-step');
-  if (nr) nr.textContent = `Stap ${plan.total} van ${plan.total} klaar`;
   await new Promise((r) => setTimeout(r, 380));
 }
 

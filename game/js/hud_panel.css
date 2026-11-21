@@ -547,7 +547,7 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 @media (prefers-reduced-motion: reduce) { #cine .cine-banner.in, #cine .cine-banner.out { animation: none; opacity: 1; } #cine .cine-banner.out { opacity: 0; } #cine .cine-banner.in .cb-bar, #cine .cine-banner.in .cb-title, #cine .cine-banner.in .cb-reason, #cine .cine-banner.in .cb-fact, #cine .cine-banner.in .cb-reward, #cine .cine-banner.in .cb-stats div { animation: none; opacity: 1; transform: none; } }
 /* #cine sits outside #hud, so its small text follows the HUD scale here */
 #cine .cine-kicker, #cine .cine-chip { zoom: var(--ui, 1); }
-#cine .cine-skip { font-size: calc(14px * var(--ui, 1)); }
+#cine .cine-skip { font-size: max(15px, calc(18px * var(--ui, 1))); } /* leesbaar: 15 px vloer, het toetsplaatje staat op de tekstregel (21-11) */
 #cine .cine-sub { font-size: clamp(calc(16px * var(--ui, 1)), 1.6vw, calc(21px * var(--ui, 1))); width: min(86vw, calc(820px * var(--ui, 1))); }
 
 #hud .hud-vehname {
@@ -885,7 +885,7 @@ body #hud .ach-toast .ach-pct { color: var(--ds-c-inkt-zacht); }
 #cine.sub-clue .cine-sub::before { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: max(13px, calc(13px * var(--ui, 1))); letter-spacing: 0.12em; color: var(--ds-c-ink-bord); }
 /* Overslaan: houd de toets ingedrukt; een papieren plaatje met een ring in zomergeel */
 #cine .cine-skip {
-  padding: 5px 12px 5px 8px; font-family: var(--ds-font-zeef-tekst); font-size: calc(14px * var(--ui, 1)); letter-spacing: 0; color: var(--ds-c-ink-inkt);
+  padding: 8px 16px 8px 12px; font-family: var(--ds-font-zeef-tekst); font-size: max(15px, calc(18px * var(--ui, 1))); letter-spacing: 0; color: var(--ds-c-ink-inkt);
   background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard-klein);
 }
 #cine .cine-skip.holding { color: var(--ds-c-ink-inkt); }

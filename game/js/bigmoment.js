@@ -239,7 +239,7 @@ function binnenHtml(m) {
   if (m.vorm === 'band') return `<div class="bm-dim"></div><div class="bm-band ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${kop}${regel}${metaHtml}${m.sterren != null && m.soort === 'geslaagd' ? sterrenHtml(m.sterren) : ''}<span class="bm-glans" aria-hidden="true"></span></div>`;
   if (m.vorm === 'stempel') return `<div class="bm-dim"></div><div class="bm-slip ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${regel}${metaHtml}<div class="bm-stempel ds-mi-in ds-mi-landing ds-mi-na" aria-hidden="true">${esc(m.kop)}</div></div>`;
   if (m.vorm === 'plaats') return `<div class="bm-kaart ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${kop}${regel}<div class="bm-zegel" aria-hidden="true"></div></div>`;
-  return `<div class="bm-tag ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${sterrenHtml(m.sterren)}<span class="bm-kop">${esc(m.kop)}</span><span class="bm-regel">${esc(m.regelNl)}</span></div>`;
+  return `<div class="bm-tag ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${m.sterren > 0 ? sterrenHtml(m.sterren) : ''}<span class="bm-kop">${esc(m.kop)}</span><span class="bm-regel">${esc(m.regelNl)}</span></div>`;
 }
 
 // Het geluid van de eindkaart komt van buiten (cinematics.js koppelt audio.js): dit bestand blijft zonder audio-import testbaar.

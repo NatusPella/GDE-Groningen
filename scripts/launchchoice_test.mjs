@@ -215,6 +215,24 @@ await t('pad: startKeuze=vraag in een testrun toont de kaart en de naamkaart (ni
   await K.askLaunchChoice(s.deps);
   assert.deepEqual(s.gevraagd, ['naam', 'keuze:0']);
 });
+await t('eerste start: de naam komt zonder toestemming; Alleen laat onlineMeedoen leeg, Samen vraagt het akkoord pas daarna', async () => {
+  nieuwProfiel();
+  let s = stroom(K.launchPlan(S.getSettings()), { keuzes: ['alleen'] });
+  await K.askLaunchChoice(s.deps);
+  assert.deepEqual(s.gevraagd, ['naam', 'keuze:0']);
+  assert.equal(S.getSettings().onlineNaam, 'Bouwer');
+  assert.notEqual(S.getSettings().onlineMeedoen, true, 'Alleen: geen netwerktoestemming');
+  nieuwProfiel();
+  s = stroom(K.launchPlan(S.getSettings()), { keuzes: ['samen', 'alleen'], toestemming: [false], sessie: [] });
+  assert.equal(await K.askLaunchChoice(s.deps), 'alleen', 'het akkoord weigeren brengt je terug op de keuze, Alleen blijft kunnen');
+  assert.deepEqual(s.gevraagd, ['naam', 'keuze:0', 'toestemming', 'keuze:0']);
+  assert.notEqual(S.getSettings().onlineMeedoen, true);
+  nieuwProfiel();
+  s = stroom(K.launchPlan(S.getSettings()), { keuzes: ['samen'], toestemming: [true], sessie: ['host'] });
+  assert.equal(await K.askLaunchChoice(s.deps), 'samen');
+  assert.deepEqual(s.gevraagd, ['naam', 'keuze:0', 'toestemming', 'sessie']);
+  assert.equal(S.getSettings().onlineMeedoen, true, 'het akkoord is bewaard na de toestemmingskaart');
+});
 await t('de naamkaart blijft verplicht en eenmalig: nooit een weg zonder geldige naam, nooit opnieuw na een geldige', () => {
   nieuwProfiel();
   assert.equal(C.kiesNaam('').ok, false);
@@ -347,7 +365,10 @@ await t('css: tekst op de keuzekaart nooit onder 13 px, focusring aanwezig, bewe
   const css = lees('game/js/onlineconsent.css');
   const stuk = css.slice(css.indexOf('/* Startkeuze'));
   for (const m of stuk.matchAll(/font-size:\s*(\d+)px/g)) assert.ok(Number(m[1]) >= 13, `font-size ${m[1]}px`);
-  assert.match(stuk, /\.sk-keuze:focus-visible \{ outline: var\(--ds-focus-dikte\)/);
+  assert.match(stuk, /\.sk-keuze:focus, \.sk-keuze:focus-visible \{ background: var\(--ds-zeef-primair\)[^}]*outline: var\(--ds-focus-dikte\)/, 'de knop met focus is de gele hoofdknop met de DS-focusring');
+  assert.doesNotMatch(stuk, /\.sk-keuze\[data-keuze="samen"\] \{ background/, 'Samen is niet altijd de gele hoofdknop');
+  assert.match(css, /\.os-overlay \{ place-items: end center;/, 'de kaart staat onderaan: het logo blijft zichtbaar');
+  assert.match(css, /body:has\(#online-start\) #loading \.bt-load \{ visibility: hidden; \}/, 'de laadstatus lekt niet onder de kaart door');
   assert.match(stuk, /prefers-reduced-motion: reduce/);
   assert.match(stuk, /html\.reduce-motion \.sk-keuze \{ transition: none; \}/);
 });
