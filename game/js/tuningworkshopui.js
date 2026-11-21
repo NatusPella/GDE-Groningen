@@ -23,6 +23,7 @@ import { tuneId, tuneKind, partsKindOf, readState, readBuilds, installState, sav
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const ARM_TIME = 4000, ARM_FROM = 200;
+const KEY_CONFIRM = 'Enter'; // het toetsplaatje van installeren
 
 let root = null, world = null, veh = null, site = null;
 let open = false, installed = null, draft = null, tabId = 'lak', ctx = null, compare = false, armed = null, closeArmed = 0, preview = null;
@@ -197,7 +198,8 @@ function renderCard() {
   btn.disabled = false;
   btn.setAttribute('aria-disabled', chk.ok ? 'false' : 'true');
   btn.classList.toggle('armed', !!armed);
-  btn.innerHTML = `<span class="tm-buy-t">${armed ? `Nog een keer: ${euro(q.total)}` : q.changed ? 'Installeren' : 'Niets te installeren'}</span><span class="ds-z-knop__sub">${chk.ok ? keyChip('Enter', 'a') : esc(chk.reason)}</span>`;
+  const sub = chk.ok ? keyChip(KEY_CONFIRM, 'a') : esc(chk.reason);
+  btn.innerHTML = `<span class="tm-buy-t">${armed ? `Nog een keer: ${euro(q.total)}` : q.changed ? 'Installeren' : 'Niets te installeren'}</span><span class="ds-z-knop__sub">${sub}</span>`;
   root.querySelector('.tm-revert').disabled = sameState(draft, installed);
   const cmp = root.querySelector('.tm-compare');
   cmp.setAttribute('aria-pressed', String(compare));

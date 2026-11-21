@@ -10,7 +10,7 @@ Epic #1155. Geen Electron gebruikt; alles hieronder is headless of puur.
 | `scripts/vehiclelook3d_test.mjs` | echte THREE-geometrie in Node: eindig, binnen het voertuig, driehoekbudget, drawcallbudget, gedeelde geometrie, afwerking, ruitfolie, underglow, snackwagen, NPC-bus en wrak blijven kaal, cache begrensd |
 | `scripts/tuningplan_test.mjs` | onderdeel ophanging, grenzen op `draai` en `grip`, rijhaak alleen voor de speler |
 | `scripts/tuningdraft_test.mjs` | concept, kosten, garageniveau, dagaanbiedingen (25%), vergrendelen, tabbladen en groepen, effecten, builds |
-| `scripts/tuningworld_test.mjs` | aandeel per profiel en uur, nooit meer dan 5%, platteland 0, budgetten, treffen, glow-begroting |
+| `scripts/tuningworld_test.mjs` | aandeel per profiel en uur, nooit meer dan 3%, platteland 0, budgetten, treffen, glow-begroting |
 | `scripts/coopbezit_test.mjs`, `net_codec_test.mjs`, `coopworld_test.mjs` | tuning in bezorgbericht en uiterlijkrecord, oud en nieuw formaat |
 
 Plus `node --check`, `spec_check`, `docs_index_test`, `lineendings_test`, `text_audit`, `undef_check`, `import_cycles_test`, `naamtaal_check` (alleen de voetbalbestanden van een andere epic falen), `ds3_ratel_test` en `ds3_dekking_test` (geen stijging).

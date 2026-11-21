@@ -39,7 +39,7 @@ for (const [profile, hours] of [['centrum', [8, 14, 20, 23]], ['student', [8, 14
 let mixed = 0, M = 40000;
 const kindsMix = ['hatch', 'hatch', 'hatch', 'sedan', 'sedan', 'wagon', 'suv', 'van', 'sport', 'tokkie', 'roestbak', 'elektrisch', 'taxi', 'delivery', 'truck'];
 for (let i = 0; i < M; i++) if (tunedLookFor(i, ['centrum', 'student', 'standaard', 'standaard', 'bakfiets'][i % 5], { hour: 17, weekday: 3, kind: kindsMix[i % kindsMix.length] })) mixed++;
-ok(mixed / M < 0.04 && mixed / M > 0.005, 'een gewone mix van verkeer: ruim onder de vijf procent', `${(mixed / M * 100).toFixed(2)}%`);
+ok(mixed / M < 0.025 && mixed / M > 0.002, 'een gewone mix van verkeer: ruim onder de drie procent', `${(mixed / M * 100).toFixed(2)}%`);
 
 // deterministisch
 ok(JSON.stringify(tunedLookFor(4242, 'centrum', { hour: 22, kind: 'sport', weekday: 6 })) === JSON.stringify(tunedLookFor(4242, 'centrum', { hour: 22, kind: 'sport', weekday: 6 })), 'zelfde id, zelfde uitkomst');
@@ -72,7 +72,7 @@ ok(meetActive(5, 20) && meetActive(6, 23) && meetActive(6, 0.5) && meetActive(0,
 ok(!meetActive(2, 20) && !meetActive(5, 12) && !meetActive(0, 20) && !meetActive(1, 14) && !meetActive(3, 0.5), 'doordeweeks en overdag niet');
 let meetN = 0;
 for (let i = 0; i < 12000; i++) if (isMeetLotId(1000 + i * 7)) meetN++;
-ok(meetN > 700 && meetN < 1300, 'ongeveer een op de twaalf parkeerplaatsen is een treffenplek', String(meetN));
+ok(meetN > 120 && meetN < 300, 'ongeveer een op de zestig parkeerplaatsen is een treffenplek (zeldzaam)', String(meetN));
 ok(isMeetLotId(777) === isMeetLotId(777), 'treffenplek is stabiel');
 ok(meetNotice(true, 30) && meetNotice(true, 30).title === 'Autotreffen' && !meetNotice(true, 200) && !meetNotice(false, 10), 'melding alleen dichtbij en tijdens het treffen');
 const BR = /\b(bmw|audi|ford|opel|volkswagen|mercedes|toyota|tesla|ferrari|porsche|shell|bp)\b/i;

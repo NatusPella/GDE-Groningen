@@ -70,6 +70,7 @@ ok(lockedQ.locked.length === 1 && /garage/.test(lockedQ.locked[0].locked), 'een 
 ok(!canInstall(changeField(inst, 'spoiler', 'gt', 'auto'), inst, { ...ctx, site: lowSite }, 9999).ok && /garage/.test(canInstall(changeField(inst, 'spoiler', 'gt', 'auto'), inst, { ...ctx, site: lowSite }, 9999).reason), 'niet te installeren zonder niveau');
 ok(canInstall(st, inst, ctx, 9999).ok && !canInstall(st, inst, ctx, 10).ok && canInstall(st, inst, ctx, 10).reason === 'Te weinig geld', 'installeren hangt van het geld af');
 ok(canInstall(inst, inst, ctx, 9999).reason === 'Niets veranderd', 'niets te installeren');
+ok(quote(st, inst, { ...ctx, priceFactor: 2 }).total === quote(st, inst, ctx).lines.reduce((a, l) => a + l.price * 2, 0) && quote(st, inst, { ...ctx, priceFactor: 0 }).total === q.total, 'een prijsfactor schaalt alleen de kosten');
 ok(summaryText(q) === '2 wijzigingen' && summaryText(quote(inst, inst, ctx)) === 'Niets veranderd' && summaryText({ changed: 1 }) === '1 wijziging', 'samenvatting');
 ok(/Niveau [123] van 3/.test(levelText(topSite)), 'niveautekst');
 

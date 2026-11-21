@@ -60,6 +60,9 @@ export function quote(st, inst, ctx = {}) {
     lines.push({ id: 'part:' + part, label: nu ? `${PART_LABELS[part]}: ${o.label}` : `${PART_LABELS[part]}: eraf`, price: nu ? installPrice(inst.parts, nu) ?? 0 : 0, deal: false, locked: '' });
   }
   if ((st.body || null) !== (inst.body || null) && st.body) lines.push({ id: 'body', label: 'Nieuwe lak', price: ctx.paintPrice ?? DEFAULT_PAINT_PRICE, deal: false, locked: '' });
+  // een prijsfactor van buitenaf (de moeilijkheid, difficulty.js, zodra die er is): alleen kosten, nooit de effecten
+  const f = ctx.priceFactor > 0 ? ctx.priceFactor : 1;
+  if (f !== 1) for (const l of lines) l.price = Math.round(l.price * f);
   const total = lines.reduce((s, l) => s + l.price, 0);
   return { lines, total, changed: lines.length, locked: lines.filter((l) => l.locked) };
 }

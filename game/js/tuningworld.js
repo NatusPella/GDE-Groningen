@@ -12,13 +12,13 @@
 // Politie: een gepimpte auto is geen reden tot optreden. Wie de wet overtreedt wordt gezocht, wie een mooie auto heeft niet.
 import { generateLook, seedOf, STYLES } from './vehiclelook.js';
 
-export const MAX_SHARE = 0.05;
+export const MAX_SHARE = 0.03; // eigenaarsbesluit 21-11: liever 2 tot 3% dan 5%
 export const MAX_TUNED_TRAFFIC = 8;
 export const MAX_GLOW_VISIBLE = 6;
 export const MEET_SHARE = 0.3;
 
 // Aandeel per wijkprofiel (trafficfleet.js PROFILES). Het platteland (country) is altijd 0.
-export const PROFILE_SHARE = { centrum: 0.03, student: 0.032, chic: 0.024, industrie: 0.014, bakfiets: 0.008, standaard: 0.01 };
+export const PROFILE_SHARE = { centrum: 0.018, student: 0.02, chic: 0.015, industrie: 0.008, bakfiets: 0.005, standaard: 0.006 };
 export const STYLE_BY_PROFILE = {
   centrum: ['show', 'race', 'cruiser'], student: ['race', 'show', 'cruiser'], chic: ['show', 'cruiser'],
   industrie: ['rally', 'cruiser'], bakfiets: ['cruiser'], standaard: ['cruiser', 'rally', 'show'],
@@ -63,10 +63,10 @@ export function meetActive(weekday, hour) {
   return weekday === 0 && h >= 13 && h < 17;
 }
 
-// Welke parkeerplaatsen zijn treffenplekken? Eén op de twaalf, uit zijn id (parkinglots.js geeft elke plaats een stabiel id), alleen in
+// Welke parkeerplaatsen zijn treffenplekken? Eén op de zestig (zeldzaam, eigenaarsbesluit 21-11), uit zijn id (parkinglots.js geeft elke plaats een stabiel id), alleen in
 // de stad (de aanroeper laat het platteland weg). Op zo'n plek staat de hele week 30% gepimpt; vrijdag- en zaterdagavond en
 // zondagmiddag staat dan ook het treffen "aan": een melding bij het naderen en voorbijgangers die erover praten.
-export const isMeetLotId = (id) => seedOf('treffen', id) % 12 === 0;
+export const isMeetLotId = (id) => seedOf('treffen', id) % 60 === 0;
 
 // Wat voorbijgangers zeggen bij een treffen; geen echte merken, Nederlands, gezellig.
 export const MEET_LINES = [
