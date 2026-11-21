@@ -3,10 +3,11 @@
 // Geen netwerk en geen DOM hier: de keuze zelf gebruikt niets buiten het apparaat (constitution 4 en 10).
 //
 // De volgorde (vastgelegd in docs/COOP-GAST.md):
-//   1. eerste start (nog geen geldige naam bewaard): de naamkaart, EENMALIG en verplicht (onlineconsent.js), dan de keuzekaart;
+//   1. eerste start (nog geen geldige naam bewaard): de naamkaart, EENMALIG en verplicht, alleen een naam en zonder netwerktoestemming
+//      (onlineconsent.js), dan de keuzekaart;
 //   2. elke volgende start: alleen de keuzekaart; wie al een naam heeft krijgt de naamkaart nooit opnieuw vanzelf;
 //   3. Alleen: het enkelspelerpad (Doorgaan of Nieuw spel zoals het was), het netwerk blijft dicht;
-//   4. Samen zonder bewaarde toestemming (ingetrokken in het spelerspaneel, of een oude 'nee'): eerst de toestemmingskaart,
+//   4. Samen zonder bewaarde toestemming (nog nooit gegeven, ingetrokken in het spelerspaneel, of een oude 'nee'): eerst de toestemmingskaart,
 //      pas daarna kan er iets naar buiten; daarna de sessiekeuze (Een spel openen of Meedoen, samenkeuze.js);
 //   5. testruns (--stil, --story-test, --clip, benchmark, autoplay, testbank) en ?startkeuze=alleen slaan de kaart over.
 // Er is geen "onthoud en sla over": de laatste keuze (gde-settings, startKeuze) is alleen de voorselectie.
@@ -50,7 +51,7 @@ export function launchPlan(settings = getSettings(), { testmodus = false, vlag =
 export const voorselectie = (settings = getSettings()) => (settings && settings.startKeuze === 'samen' ? 1 : 0);
 
 // Na de keuze: wat is er nog nodig voordat het spel verder mag?
-//   'klaar' (Alleen), 'naam' (geen geldige naam: de volle naamkaart met toestemming), 'toestemming', of 'sessie' (Een spel openen / Meedoen).
+//   'klaar' (Alleen), 'naam' (geen geldige naam: de naamkaart, daarna alsnog de toestemming), 'toestemming', of 'sessie' (Een spel openen / Meedoen).
 export function naKeuze(modus, settings = getSettings()) {
   if (modus !== 'samen') return 'klaar';
   if (moetNaamVragen(settings)) return 'naam';

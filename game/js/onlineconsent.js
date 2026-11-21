@@ -30,13 +30,13 @@ export function geefToestemming({ zet = setSetting } = {}) {
   return { ok: true, meedoen: true };
 }
 
-// What the first start shows: a name, and one honest question with two answers.
+// What the first start shows: only a name (21-11: the name comes first and once, also for whoever plays Alleen).
+// The online agreement is not asked here: it comes with Samen spelen (startchoiceui.js), before anything uses the network.
 export const EERSTE_START = {
-  titel: 'Je naam voor Samen spelen',
-  uitleg: `${CONSENT_TEXT} Bij elke start kies je zelf of je alleen of samen speelt; alleen bij Samen spelen gaat er iets naar buiten. Onder deze naam zien anderen je alleen als je een sessie deelt. Je kunt je naam later in het pauzemenu aanpassen.`,
+  titel: 'Hoe heet je?',
+  uitleg: 'Je naam bewaar je op dit apparaat. Andere spelers zien hem alleen als je later met ze een sessie deelt. Je kunt hem altijd aanpassen in het pauzemenu.',
   naamLabel: 'Je naam',
-  naamHint: 'Verplicht. Andere spelers zien je onder deze naam.',
-  consent: 'Ik ga ermee akkoord dat het spel online verbindt met een STUN-server en openbare brokers; mijn IP-adres gaat daarvoor naar die diensten.',
+  naamHint: 'Verplicht.',
   doorgaan: 'Doorgaan',
 };
 
@@ -51,17 +51,15 @@ export const SCHAKELAAR = {
   uit: 'Je speelt alleen. Je sessie gaat niet naar buiten.',
 };
 
-// De enige uitkomst van de eerste-startkaart: een verplichte naam. Dezelfde filter als
-// het profielveld (lobby.js) en altijd onlineMeedoen = true; niets wordt bewaard bij een
+// De enige uitkomst van de eerste-startkaart: een verplichte naam. Dezelfde filter als het profielveld (lobby.js).
+// Alleen de naam wordt bewaard, nooit de online-toestemming (die komt bij Samen spelen); niets wordt bewaard bij een
 // fout, zodat een typefout nooit een halve keuze achterlaat.
-export function kiesNaam(naam, { zet = setSetting, consent = true } = {}) {
-  if (!consent) return { ok: false, error: 'Vink eerst de online-toestemming aan.' };
+export function kiesNaam(naam, { zet = setSetting } = {}) {
   const fout = onlineNaamFout(naam);
   if (fout) return { ok: false, error: fout };
   const r = profielNaam(naam);
   zet('onlineNaam', r.naam);
-  zet('onlineMeedoen', true);
-  return { ok: true, meedoen: true, naam: r.naam };
+  return { ok: true, meedoen: false, naam: r.naam };
 }
 // Oude naam van dezelfde regel, voor bestaande aanroepers: altijd online.
 export function kiesToestemming(_meedoen, naam, opts = {}) { return kiesNaam(naam, opts); }
