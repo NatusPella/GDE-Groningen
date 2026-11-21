@@ -81,7 +81,7 @@ ok(!/#ff9a3c|#ffd23f|#5dff7a/.test(golf.replace(/var\(--[a-z-]+,\s*#[0-9a-fA-F]{
 const padel = read('padel.js');
 ok(/const ACCENT = mgThema\('padel'\)\.accent/.test(padel), 'padel.js: het accent komt uit de accenttabel');
 ok(!/#3aa6e8|#ffd23f|#5dff7a/.test(padel.replace(/var\(--[a-z-]+,\s*#[0-9a-fA-F]{3,6}\)/g, 'var()')), 'padel.js: geen eigen blauw of losse statushexen in de HUD');
-ok(/var\(--mk-mission/.test(padel) && /GP = gouden punt/.test(padel), 'padel.js: de puntstand is een token en GP heeft uitleg');
+ok(/pb-teams i \{[^}]*var\(--ds-c-ink-bord\)/.test(padel) && /GP = gouden punt/.test(padel), 'padel.js: de puntstand is een token en GP heeft uitleg');
 
 
 // De machinist (#625): de cabine gebruikt de tokens (geen eigen blauw/rood), en de knipperende

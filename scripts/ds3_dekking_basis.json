@@ -329,17 +329,6 @@
   "emoji": 0,
   "svg": 0
  },
- "game/js/helirun.js": {
-  "kleur": 8,
-  "glas": 2,
-  "oud": 0,
-  "font": 0,
-  "klein": 0,
-  "lus": 0,
-  "lang": 0,
-  "emoji": 0,
-  "svg": 0
- },
  "game/js/hud_panel.css": {
   "kleur": 11,
   "glas": 12,
@@ -494,17 +483,6 @@
   "emoji": 0,
   "svg": 0
  },
- "game/js/padel.js": {
-  "kleur": 0,
-  "glas": 1,
-  "oud": 0,
-  "font": 0,
-  "klein": 0,
-  "lus": 0,
-  "lang": 0,
-  "emoji": 0,
-  "svg": 0
- },
  "game/js/padtest.js": {
   "kleur": 1,
   "glas": 0,
@@ -551,7 +529,7 @@
  },
  "game/js/pigeonmode.js": {
   "kleur": 0,
-  "glas": 5,
+  "glas": 0,
   "oud": 0,
   "font": 0,
   "klein": 0,
@@ -561,8 +539,8 @@
   "svg": 2
  },
  "game/js/postgame.js": {
-  "kleur": 9,
-  "glas": 2,
+  "kleur": 1,
+  "glas": 0,
   "oud": 0,
   "font": 1,
   "klein": 0,
