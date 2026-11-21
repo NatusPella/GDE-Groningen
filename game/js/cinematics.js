@@ -1035,7 +1035,7 @@ function showWijkCard(w, wijk, left = 30) {
     const st = document.createElement('style');
     st.textContent = `
 #wijk-card { position: fixed; left: max(6vw, calc((46px + 250px + 190px) * var(--ui, 1))); bottom: calc(11vh + 12vh); z-index: 17; pointer-events: none; color: var(--ds-c-creme); max-width: 44ch;
-  opacity: 0; transform: translateX(-28px); transition: opacity .35s, transform .6s cubic-bezier(.2,.7,.2,1); text-shadow: 0 2px 12px rgba(0,0,0,.85); }
+  opacity: 0; transform: translateX(-28px); transition: opacity .35s, transform .6s cubic-bezier(.2,.7,.2,1); text-shadow: 0 2px 12px color-mix(in srgb, var(--ds-c-ink-inkt) 85%, transparent); }
 #wijk-card.on { opacity: 1; transform: none; }
 #wijk-card .wc-kick { font-family: var(--ds-font-kop); font-size: 18px; letter-spacing: .2em; color: var(--ds-c-licht-groen); }
 #wijk-card .wc-name { font-family: var(--ds-font-kop); font-size: clamp(44px, 6vw, 84px); line-height: .9; letter-spacing: 1px; text-transform: uppercase; }

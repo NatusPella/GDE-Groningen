@@ -1,11 +1,8 @@
-import { telAlles } from './lib/ds3_telling.mjs';
+import { telAlles, SOORTEN } from './lib/ds3_telling.mjs';
+const soort = process.argv[2];
+const bestand = process.argv[3];
 const r = telAlles();
-const c = {};
 for (const [f, v] of Object.entries(r)) {
-  if (v.bewust) continue;
-  for (const x of v.regels) {
-    if (!x.font) continue;
-    for (const m of x.t.matchAll(/(?:font-family\s*:|font\s*:\s*[^;}]*?\d+(?:\.\d+)?px(?:\/[\d.]+)?\s*)([^;}]+)/gi)) { const k = m[1].trim().replace(/!important/, '').trim(); c[k] = (c[k] || 0) + 1; }
-  }
+  if (v.bewust || (bestand && !f.includes(bestand))) continue;
+  for (const x of v.regels) if (!soort || x[soort]) console.log(f + ':' + x.r + '  [' + SOORTEN.filter((s) => x[s]).join(',') + ']  ' + x.t.slice(0, 230));
 }
-console.log(Object.entries(c).sort((a, b) => b[1] - a[1]).slice(0, 40).map(([k, n]) => n + ' ' + k).join('\n'));

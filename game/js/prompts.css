@@ -53,7 +53,7 @@
   transform-origin: 0 50%;
   transform: rotate(-38deg) scaleX(0);
   transition: transform 0.22s ease 0.05s;
-  box-shadow: 0 0 2px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 0 2px color-mix(in srgb, var(--ds-c-ink-inkt) 70%, transparent);
 }
 #hud .wp.in .wp-line { transform: rotate(-38deg) scaleX(1); }
 
@@ -144,7 +144,7 @@
 #hud .wp.dim .hud-hold-ring .r-fg { stroke: color-mix(in srgb, var(--ds-c-creme) 70%, transparent); filter: none; }
 
 #hud .hud-mouse { width: 15px; height: 21px; flex: none; overflow: visible; }
-#hud .hud-mouse .m-body { fill: rgba(42, 46, 40, 0.9); stroke: color-mix(in srgb, var(--ds-c-wit) 55%, transparent); stroke-width: 1.2; }
+#hud .hud-mouse .m-body { fill: color-mix(in srgb, var(--ds-c-glas-3) 90%, transparent); stroke: color-mix(in srgb, var(--ds-c-wit) 55%, transparent); stroke-width: 1.2; }
 #hud .hud-mouse .m-seam { stroke: color-mix(in srgb, var(--ds-c-wit) 35%, transparent); stroke-width: 0.9; fill: none; }
 #hud .hud-mouse .m-l, #hud .hud-mouse .m-r, #hud .hud-mouse .m-w { fill: transparent; }
 #hud .hud-mouse[data-btn="l"] .m-l, #hud .hud-mouse[data-btn="r"] .m-r, #hud .hud-mouse[data-btn="w"] .m-w { fill: var(--gron-green-light); }
@@ -209,7 +209,7 @@ body.heli-flying #hud .hud-vehname { display: none; }
   stroke-width: 1.9;
   stroke-linecap: round;
   stroke-linejoin: round;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.8));
+  filter: drop-shadow(0 1px 1px color-mix(in srgb, var(--ds-c-ink-inkt) 80%, transparent));
 }
 #hud .ctx-row[data-id="weapon"] .ctx-pic { fill: var(--ds-c-creme); stroke: none; }
 #hud .ctx-text { display: flex; flex-direction: column; line-height: 1; }
@@ -249,7 +249,7 @@ body.heli-flying #hud .hud-vehname { display: none; }
 #hud .ctx-row { background: none; border-right: 0; padding: 2px 0; flex-direction: row-reverse; gap: 10px; box-shadow: none; }
 #hud .ctx-row.learn { background: none; box-shadow: none; border-right: 0; padding: 2px 0; }
 #hud .ctx-row .ctx-pic { display: none; }
-#hud .ctx-row .ctx-glyphs .hud-key { border-radius: 6px; min-width: 30px; height: 30px; padding: 0 8px; font-size: 16px; box-shadow: 0 3px 0 #a9a69b, 0 0 0 1px rgba(0, 0, 0, 0.18); }
+#hud .ctx-row .ctx-glyphs .hud-key { border-radius: 6px; min-width: 30px; height: 30px; padding: 0 8px; font-size: 16px; box-shadow: 0 3px 0 var(--ds-c-toets-rand), 0 0 0 1px color-mix(in srgb, var(--ds-c-ink-inkt) 18%, transparent); }
 #hud .ctx-row.icon { opacity: 0.8; }
 #hud .ctx-row.icon::before { content: attr(title); font-size: 16px; color: var(--ds-c-creme); text-shadow: var(--hud-shadow); }
 #hud .ctx-row.learn .ctx-text b, #hud .ctx-row.new .ctx-text b { color: var(--ds-c-creme); font-size: 17px; text-transform: none; font-family: var(--ds-font-tekst); }

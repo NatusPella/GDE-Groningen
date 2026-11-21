@@ -14,11 +14,11 @@ const CSS = `
   border-right: 3px solid var(--gron-green-light); color: var(--ds-c-creme); text-shadow: var(--hud-shadow); font-family: var(--ds-font-kop); }
 #hud .stunt-hud[hidden], #hud .stunt-brief[hidden] { display: none; }
 #hud .stunt-hud .sh-top { display: flex; justify-content: space-between; align-items: baseline; }
-#hud .stunt-hud .sh-label { font-size: 15px; letter-spacing: 1px; color: #a3b2a6; }
+#hud .stunt-hud .sh-label { font-size: 15px; letter-spacing: 1px; color: var(--ds-c-creme-zacht); }
 #hud .stunt-hud .sh-combo { font-size: 22px; color: var(--gron-green-light); }
-#hud .stunt-hud .sh-combo[data-on="0"] { color: #a3b2a6; opacity: 0.6; }
+#hud .stunt-hud .sh-combo[data-on="0"] { color: var(--ds-c-creme-zacht); opacity: 0.6; }
 #hud .stunt-hud .sh-score { font-size: 48px; line-height: 0.95; font-variant-numeric: tabular-nums; }
-#hud .stunt-hud .sh-score small { font-size: 22px; color: #a3b2a6; }
+#hud .stunt-hud .sh-score small { font-size: 22px; color: var(--ds-c-creme-zacht); }
 #hud .stunt-hud .sh-bar { position: relative; height: 10px; margin-top: 4px; border-radius: 5px; background: color-mix(in srgb, var(--ds-c-wit) 12%, transparent); overflow: hidden; }
 #hud .stunt-hud .sh-bar i { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--gron-green-light); transition: width 0.25s ease-out; }
 #hud .stunt-hud .sh-cw { height: 3px; margin-top: 3px; border-radius: 2px; background: color-mix(in srgb, var(--ds-c-wit) 8%, transparent); overflow: hidden; }
@@ -45,7 +45,7 @@ const CSS = `
 #hud .stunt-brief li { display: contents; }
 #hud .stunt-brief li span:last-child { text-align: right; font-family: var(--ds-font-kop); font-size: 21px; color: var(--gron-green-light); }
 #hud .stunt-brief li.bad span:last-child { color: var(--ds-c-rood-glas); }
-#hud .stunt-brief .sb-foot { margin-top: 8px; font: 15px var(--ds-font-tekst); color: #a3b2a6; }
+#hud .stunt-brief .sb-foot { margin-top: 8px; font: 15px var(--ds-font-tekst); color: var(--ds-c-creme-zacht); }
 @media (prefers-reduced-motion: reduce) { #hud .stunt-pop { animation-duration: 1.2s; } #hud .stunt-hud .sh-left[data-urgent="1"] { animation: none; } }
 @media (max-width: 760px) { #hud .stunt-pops { right: 14px; top: calc(var(--hud-tr-bottom) + 150px); } }
 /* Zomerse zeefdruk (ADR 0040): de stuntscore en het stuntbord als papier met inktrand en harde schaduw. */

@@ -7,18 +7,18 @@
   "klein": 0
  },
  "game/index.html": {
-  "kleur": 6,
+  "kleur": 4,
   "glas": 10,
   "oud": 0,
   "font": 0,
-  "klein": 1
+  "klein": 0
  },
  "game/js/a11y.css": {
-  "kleur": 12,
+  "kleur": 0,
   "glas": 5,
   "oud": 2,
   "font": 0,
-  "klein": 3
+  "klein": 0
  },
  "game/js/achievements.js": {
   "kleur": 0,
@@ -77,7 +77,7 @@
   "klein": 0
  },
  "game/js/choicepanel.js": {
-  "kleur": 1,
+  "kleur": 0,
   "glas": 1,
   "oud": 0,
   "font": 0,
@@ -105,7 +105,7 @@
   "klein": 0
  },
  "game/js/coopscene.js": {
-  "kleur": 1,
+  "kleur": 0,
   "glas": 3,
   "oud": 0,
   "font": 1,
@@ -168,7 +168,7 @@
   "klein": 0
  },
  "game/js/heist.css": {
-  "kleur": 22,
+  "kleur": 13,
   "glas": 10,
   "oud": 0,
   "font": 0,
@@ -179,21 +179,21 @@
   "glas": 1,
   "oud": 0,
   "font": 0,
-  "klein": 1
+  "klein": 0
  },
  "game/js/helirun.js": {
-  "kleur": 9,
+  "kleur": 8,
   "glas": 2,
   "oud": 0,
   "font": 0,
   "klein": 0
  },
  "game/js/hud_panel.css": {
-  "kleur": 22,
+  "kleur": 12,
   "glas": 34,
   "oud": 0,
   "font": 0,
-  "klein": 1
+  "klein": 0
  },
  "game/js/hudcards.css": {
   "kleur": 0,
@@ -202,22 +202,15 @@
   "font": 0,
   "klein": 0
  },
- "game/js/hudcards.js": {
-  "kleur": 0,
-  "glas": 0,
-  "oud": 0,
-  "font": 0,
-  "klein": 1
- },
  "game/js/instrumenten.js": {
   "kleur": 0,
   "glas": 1,
   "oud": 0,
   "font": 0,
-  "klein": 4
+  "klein": 0
  },
  "game/js/intromontage.js": {
-  "kleur": 2,
+  "kleur": 1,
   "glas": 3,
   "oud": 0,
   "font": 0,
@@ -252,14 +245,14 @@
   "klein": 0
  },
  "game/js/menu.css": {
-  "kleur": 24,
+  "kleur": 16,
   "glas": 40,
   "oud": 0,
   "font": 0,
   "klein": 0
  },
  "game/js/onlineconsent.css": {
-  "kleur": 3,
+  "kleur": 1,
   "glas": 3,
   "oud": 0,
   "font": 0,
@@ -273,14 +266,14 @@
   "klein": 0
  },
  "game/js/padtest.js": {
-  "kleur": 6,
+  "kleur": 1,
   "glas": 0,
   "oud": 0,
   "font": 1,
   "klein": 0
  },
  "game/js/pausemenu.css": {
-  "kleur": 24,
+  "kleur": 1,
   "glas": 23,
   "oud": 0,
   "font": 3,
@@ -293,29 +286,22 @@
   "font": 0,
   "klein": 0
  },
- "game/js/pigeonguide.js": {
-  "kleur": 0,
-  "glas": 0,
-  "oud": 0,
-  "font": 0,
-  "klein": 1
- },
  "game/js/pigeonmode.js": {
-  "kleur": 1,
+  "kleur": 0,
   "glas": 5,
   "oud": 0,
   "font": 0,
-  "klein": 4
+  "klein": 0
  },
  "game/js/postgame.js": {
-  "kleur": 14,
+  "kleur": 9,
   "glas": 2,
   "oud": 0,
   "font": 1,
   "klein": 0
  },
  "game/js/prompts.css": {
-  "kleur": 2,
+  "kleur": 0,
   "glas": 14,
   "oud": 0,
   "font": 0,
@@ -406,11 +392,11 @@
   "klein": 0
  },
  "game/js/storycontact.js": {
-  "kleur": 15,
+  "kleur": 14,
   "glas": 2,
   "oud": 0,
   "font": 1,
-  "klein": 7
+  "klein": 0
  },
  "game/js/storytalk.js": {
   "kleur": 0,
@@ -420,7 +406,7 @@
   "klein": 0
  },
  "game/js/stunthud.js": {
-  "kleur": 6,
+  "kleur": 2,
   "glas": 10,
   "oud": 0,
   "font": 0,
@@ -434,7 +420,7 @@
   "klein": 0
  },
  "game/js/trailer.js": {
-  "kleur": 3,
+  "kleur": 1,
   "glas": 2,
   "oud": 0,
   "font": 3,
@@ -452,7 +438,7 @@
   "glas": 1,
   "oud": 0,
   "font": 0,
-  "klein": 2
+  "klein": 0
  },
  "game/js/visboekui.js": {
   "kleur": 2,

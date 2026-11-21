@@ -336,7 +336,7 @@ ok(/el\.innerHTML = heroHtml\(world\) \+ '<div class="ov-scroll">'/.test(todoSrc
 ok(/class="ov-scroll"/.test(todoSrc) && /'<\/div><\/div>';/.test(todoSrc), 'de inhoud onder de hero zit in één scroller (#965)');
 ok(/querySelector\('\.ov-scroll'\)/.test(pm) && /body\.insertAdjacentHTML\('afterbegin', blok\)/.test(pm), 'het voortgangsblok staat bovenaan de scrollende inhoud, niet meer tussen de tabs en de hero (#965)');
 ok(/#pause-menu \.pm-ov \{[^}]*overflow: hidden/.test(pmcss) && /#pause-menu \.ov-scroll \{[^}]*overflow-y: auto/.test(pmcss), 'de tabs en de hero blijven staan en alleen .ov-scroll scrolt (#965)');
-ok(/-webkit-mask-image: linear-gradient\(180deg, transparent 0, #000 14px\)/.test(pmcss), 'wat wegscrolt vervaagt, in plaats van midden in een regel af te knippen (#965)');
+ok(/-webkit-mask-image: linear-gradient\(180deg, transparent 0, (?:#000|var\(--ds-c-ink-inkt\)) 14px\)/.test(pmcss), 'wat wegscrolt vervaagt, in plaats van midden in een regel af te knippen (#965)');
 ok(/\.ov-scroll'\)\) n\.scrollTop = 0/.test(pm), 'bij het openen begint het Overzicht weer bovenaan (#965)');
 
 console.log(`${n - fails}/${n} ok`);

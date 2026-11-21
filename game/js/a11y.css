@@ -3,16 +3,16 @@
 /* --- controller glyphs ---------------------------------------------------- */
 /* A controller glyph is drawn as the same white keycap as a keyboard key (DESIGN_SYSTEM.md, .hud-key in
    hud_panel.css, .m-kc in menu.css), so a hint looks the same on a keyboard and on a controller. */
-:root { --keycap-bg: #fbfaf5; --keycap-ink: var(--ds-c-glas); --keycap-edge: #a9a69b; --keycap-line: rgba(0, 0, 0, 0.18); }
+:root { --keycap-bg: var(--ds-c-toets-vlak); --keycap-ink: var(--ds-c-glas); --keycap-edge: var(--ds-c-toets-rand); --keycap-line: color-mix(in srgb, var(--ds-c-ink-inkt) 18%, transparent); }
 .pad-g {
   display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;
   min-width: 20px; height: 20px; padding: 0 5px; vertical-align: middle;
-  font: bold 12px/1 var(--ds-font-tekst); letter-spacing: 0.3px; text-transform: none;
+  font: bold var(--ds-t-toets)/1 var(--ds-font-tekst); letter-spacing: 0.3px; text-transform: none;
   color: var(--keycap-ink); background: var(--keycap-bg); border: 0; border-radius: 5px;
   box-shadow: 0 2px 0 var(--keycap-edge), 0 0 0 1px var(--keycap-line);
   text-shadow: none;
 }
-.pad-face { width: 20px; padding: 0; border-radius: 50%; font-size: 12px; }
+.pad-face { width: 20px; padding: 0; border-radius: 50%; font-size: var(--ds-t-toets); }
 .pad-face svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linejoin: round; }
 .pad-sh { border-radius: 7px 7px 4px 4px; }
 .pad-stick { width: 20px; padding: 0; border-radius: 50%; box-shadow: 0 2px 0 var(--keycap-edge), 0 0 0 1px var(--keycap-line), inset 0 0 0 3px color-mix(in srgb, var(--ds-c-glas) 14%, transparent); }
@@ -43,7 +43,7 @@ html.pad-active #pause-menu [data-panel="map"] canvas:focus { outline: none !imp
 /* the map: A sets a goal under the crosshair in the middle */
 .map-pad-reticle { display: none; position: absolute; left: 50%; top: 50%; width: 34px; height: 34px; margin: -17px 0 0 -17px; pointer-events: none; z-index: 3; }
 html.pad-active .map-pad-reticle { display: block; }
-.map-pad-reticle svg { width: 100%; height: 100%; color: var(--ds-c-creme); fill: none; stroke: var(--ds-c-creme); stroke-width: 2; filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.9)); }
+.map-pad-reticle svg { width: 100%; height: 100%; color: var(--ds-c-creme); fill: none; stroke: var(--ds-c-creme); stroke-width: 2; filter: drop-shadow(0 0 2px color-mix(in srgb, var(--ds-c-ink-inkt) 90%, transparent)); }
 
 /* --- subtitle size (Instellingen > Toegankelijk) ---------------------------- */
 html:is(.sub-klein, .sub-groot, .sub-extragroot) #cine .cine-sub { font-size: calc(clamp(calc(16px * var(--ui, 1)), 1.6vw, calc(21px * var(--ui, 1))) * var(--sub-scale, 1)); }
@@ -114,7 +114,7 @@ html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-meter.veh:no
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-meter.veh.hurt .hud-bar-fill.vehicle { background: repeating-linear-gradient(135deg, var(--mk-danger) 0 5px, color-mix(in srgb, var(--ds-c-glas) 85%, transparent) 5px 8px); }
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-search > i > i { background: var(--mk-danger); }
 /* round 2: the remaining red accents follow the palette, and a low race time carries a mark */
-html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-minimap-wrap.wanted { box-shadow: 0 0 0 2px var(--mk-danger), 0 14px 32px rgba(0, 0, 0, 0.5); }
+html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-minimap-wrap.wanted { box-shadow: 0 0 0 2px var(--mk-danger), 0 14px 32px color-mix(in srgb, var(--ds-c-ink-inkt) 50%, transparent); }
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .gps-timer b { color: var(--mk-danger); }
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-race .hr-row[data-state="low"] b { color: var(--mk-danger); }
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-race .hr-row[data-state="low"] b::before { content: '! '; }
@@ -147,15 +147,15 @@ html.reduce-flash :is(#hud .hud-wanted.searching svg.on, #hud .stunt-hud .sh-lef
 
 /* schermtoetsenbord voor de controller (padkeyboard.js, #151) */
 #padkeyboard { position: fixed; inset: auto 0 0 0; z-index: 99998; display: flex; justify-content: center; padding: 12px; pointer-events: none; }
-#padkeyboard .pk-box { pointer-events: auto; width: min(760px, 96vw); padding: 12px; border-radius: 14px; background: #17201a; border: 1px solid #3a4a3e; color: var(--ds-c-creme); font: 16px var(--ds-font-tekst); box-shadow: 0 8px 32px rgba(0, 0, 0, .5); }
-#padkeyboard .pk-val { min-height: 1.6em; margin-bottom: 8px; padding: 6px 10px; border-radius: 8px; background: #0e1510; font-size: 20px; word-break: break-all; }
+#padkeyboard .pk-box { pointer-events: auto; width: min(760px, 96vw); padding: 12px; border-radius: 14px; background: var(--ds-c-glas-2); border: 1px solid var(--ds-c-glas-3); color: var(--ds-c-creme); font: 16px var(--ds-font-tekst); box-shadow: 0 8px 32px color-mix(in srgb, var(--ds-c-ink-inkt) 50%, transparent); }
+#padkeyboard .pk-val { min-height: 1.6em; margin-bottom: 8px; padding: 6px 10px; border-radius: 8px; background: var(--ds-c-glas); font-size: 20px; word-break: break-all; }
 #padkeyboard .pk-row { display: flex; gap: 6px; margin-bottom: 6px; justify-content: center; }
-#padkeyboard button { flex: 1 1 0; min-width: 0; min-height: 44px; padding: 0 4px; border-radius: 8px; border: 1px solid #3a4a3e; background: #223026; color: inherit; font: inherit; cursor: pointer; }
+#padkeyboard button { flex: 1 1 0; min-width: 0; min-height: 44px; padding: 0 4px; border-radius: 8px; border: 1px solid var(--ds-c-glas-3); background: var(--ds-c-glas-3); color: inherit; font: inherit; cursor: pointer; }
 #padkeyboard button.act { flex: 1.6 1 0; }
 #padkeyboard button.space { flex: 4 1 0; }
-#padkeyboard button.on { outline: 3px solid #f2c230; background: #34503c; }
-#padkeyboard button.shift-on { background: #f2c230; color: #17201a; }
-#padkeyboard .pk-help { margin: 6px 0 0; font-size: 12px; opacity: .7; text-align: center; }
+#padkeyboard button.on { outline: 3px solid var(--ds-c-ink-geel); background: var(--ds-c-glas-3); }
+#padkeyboard button.shift-on { background: var(--ds-c-ink-geel); color: var(--ds-c-glas-2); }
+#padkeyboard .pk-help { margin: 6px 0 0; font-size: 13px; opacity: .7; text-align: center; }
 
 /* geluidsondertitels (soundcaptions.js, #200) */
 #sound-captions { position: fixed; left: 50%; bottom: 22%; transform: translateX(-50%); z-index: 60; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font: 400 calc(18px * var(--sub-scale, 1)) var(--ds-font-zeef-tekst); color: var(--ds-c-ink-inkt); text-shadow: none; }

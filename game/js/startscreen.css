@@ -13,11 +13,11 @@
 #start-screen.ss-handoff .ss-menu, #start-screen.ss-handoff .ss-save, #start-screen.ss-handoff .ss-foot, #start-screen.ss-handoff .ss-credit { animation: ss-in 0.6s ease 1.8s both; }
 #start-screen .ss-logo { position: absolute; left: 160px; top: 112px; display: flex; flex-direction: column; align-items: flex-start; gap: 16px; }
 #start-screen .gde-logo { font-size: 192px; margin: 0; }
-#start-screen .ss-tag { margin: 0; font-size: 22px; font-style: italic; color: color-mix(in srgb, var(--ds-c-creme) 78%, transparent); text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8); }
+#start-screen .ss-tag { margin: 0; font-size: 22px; font-style: italic; color: color-mix(in srgb, var(--ds-c-creme) 78%, transparent); text-shadow: 0 1px 8px color-mix(in srgb, var(--ds-c-ink-inkt) 80%, transparent); }
 #start-screen .ss-menu { position: absolute; left: 128px; bottom: 88px; width: 640px; display: flex; flex-direction: column; }
 #start-screen .ss-item { position: relative; display: flex; flex-direction: row; align-items: center; gap: 8px; width: 100%; height: 56px; padding: 0 32px; border-radius: 8px; text-align: left;
   font-family: var(--ds-font-kop); font-size: 36px; letter-spacing: 0.05em; line-height: 1; color: color-mix(in srgb, var(--ds-c-creme) 66%, transparent); background: none; border: 0; cursor: pointer;
-  transition: color 0.2s, background 0.2s; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6); }
+  transition: color 0.2s, background 0.2s; text-shadow: 0 2px 12px color-mix(in srgb, var(--ds-c-ink-inkt) 60%, transparent); }
 #start-screen .ss-item:hover { color: var(--ink); }
 #start-screen .ss-item.sel { color: var(--ink); }
 #start-screen .ss-item.sel::before { content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 4px; border-radius: 2px; background: var(--g); }
@@ -30,7 +30,7 @@
 #start-screen .ss-item.ss-hero.sel::before { top: 0; bottom: 0; border-radius: 8px 0 0 8px; }
 #start-screen .ss-hero .ss-label { font-size: 60px; line-height: 0.9; }
 #start-screen .ss-hero:not(.sel) .ss-label { color: color-mix(in srgb, var(--ds-c-creme) 88%, transparent); }
-#start-screen .ss-save { position: absolute; right: 128px; bottom: 128px; max-width: 760px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; text-align: right; text-shadow: 0 2px 16px rgba(0, 0, 0, 0.5); }
+#start-screen .ss-save { position: absolute; right: 128px; bottom: 128px; max-width: 760px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; text-align: right; text-shadow: 0 2px 16px color-mix(in srgb, var(--ds-c-ink-inkt) 50%, transparent); }
 #start-screen .ss-save .big { font-family: var(--ds-font-kop); font-size: 72px; line-height: 0.9; letter-spacing: 0.04em; }
 #start-screen .ss-save .big.long { font-size: 52px; }
 #start-screen .ss-save .line { font-size: 20px; }
@@ -41,7 +41,7 @@
 #start-screen .ss-credit .heart { display: inline-block; animation: ss-beat 1.6s ease-in-out infinite; }
 @keyframes ss-beat { 0%, 60%, 100% { transform: scale(1); } 30% { transform: scale(1.18); } }
 #start-screen .ss-news { position: absolute; top: var(--mt); bottom: var(--mb); right: 80px; width: 760px; display: flex; flex-direction: column; border-radius: 16px; overflow: hidden;
-  background: linear-gradient(180deg, rgba(20, 40, 27, 0.9), color-mix(in srgb, var(--ds-c-glas) 94%, transparent)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 7%, transparent), 0 32px 64px rgba(0, 0, 0, 0.3); animation: m-panel-in 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+  background: linear-gradient(180deg, rgba(20, 40, 27, 0.9), color-mix(in srgb, var(--ds-c-glas) 94%, transparent)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 7%, transparent), 0 32px 64px color-mix(in srgb, var(--ds-c-ink-inkt) 30%, transparent); animation: m-panel-in 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
 #start-screen .ss-news[hidden] { display: none; }
 #start-screen .ss-news-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: 48px 56px 0; }
 #start-screen .ss-news-head h2 { font-family: var(--ds-font-kop); font-size: 64px; line-height: 0.92; letter-spacing: 0.02em; font-weight: normal; }

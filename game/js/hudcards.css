@@ -102,7 +102,7 @@ body.hud-call-on #hud .hud-nowplaying, body.hud-call-on #hud .hud-vehname, body.
   line-height: 1;
   letter-spacing: 4px;
   color: var(--ds-c-creme);
-  text-shadow: 0 4px 0 rgba(0, 0, 0, 0.55), 0 0 30px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 4px 0 color-mix(in srgb, var(--ds-c-ink-inkt) 55%, transparent), 0 0 30px color-mix(in srgb, var(--ds-c-ink-inkt) 60%, transparent);
   opacity: 0;
   pointer-events: none;
 }
@@ -130,7 +130,7 @@ body.pigeon-mode.hud-card-on #hud .phonefeed { visibility: hidden; }
 
 /* zone E: an achievement, left middle */
 #hud .hud-cards-e { position: absolute; bottom: calc(var(--mm-bottom, 46px) + var(--mm-size, 250px) + 14px); left: var(--hud-edge, 46px); width: min(calc(30vw / var(--ui, 1)), 320px); pointer-events: none; }
-#hud .hud-cards .hud-card { border-radius: 10px; border-left: 0; box-shadow: 0 0 0 1px color-mix(in srgb, var(--hc) 45%, transparent), 0 10px 26px rgba(0, 0, 0, 0.35); background: var(--hud-card); }
+#hud .hud-cards .hud-card { border-radius: 10px; border-left: 0; box-shadow: 0 0 0 1px color-mix(in srgb, var(--hc) 45%, transparent), 0 10px 26px color-mix(in srgb, var(--ds-c-ink-inkt) 35%, transparent); background: var(--hud-card); }
 #hud .hud-cards-e .hud-card { position: relative; border-radius: 10px; border-left: 0; background: var(--hud-card); box-shadow: 0 0 0 1px color-mix(in srgb, var(--hc) 45%, transparent); }
 #hud .hud-cards .hud-card, #hud .hud-cards-e .hud-card { overflow: hidden; } /* de tijdbalk onderaan volgt de afgeronde hoeken */
 body.hud-card-on #hud .hud-nowplaying { opacity: 0; }

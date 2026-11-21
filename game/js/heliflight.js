@@ -571,7 +571,7 @@ body.hide-minimap #hud .hud-heli { right: 16px; bottom: 50px; }
 #hud .hud-heli .hh2-row { display: flex; gap: 16px; align-items: baseline; margin-top: 2px; }
 #hud .hud-heli .hh2-row div { display: flex; flex-direction: column; line-height: 1; }
 #hud .hud-heli .hh2-row b { font-weight: normal; font-size: 30px; letter-spacing: 1px; }
-#hud .hud-heli .hh2-row span { font-size: 12px; letter-spacing: 1px; color: color-mix(in srgb, var(--ds-c-creme) 65%, transparent); }
+#hud .hud-heli .hh2-row span { font-size: 13px; letter-spacing: 1px; color: color-mix(in srgb, var(--ds-c-creme) 65%, transparent); }
 #hud .hud-heli .hh2-vs { font-size: 16px; }
 #hud .hud-heli .hh2-st { margin-top: 5px; font-family: var(--ds-font-tekst); font-size: 15px; letter-spacing: 0.2px; }
 #hud .hud-heli .hh2-bar { margin-top: 5px; height: 4px; background: color-mix(in srgb, var(--ds-c-creme) 15%, transparent); }

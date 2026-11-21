@@ -98,7 +98,7 @@ t('wachtkamer: geen inline stijl meer, profiel en wachtwoord op klassen (#634)',
   assert.match(ui, /class="coop-profiel"/);
   assert.match(ui, /coop-wachtwoord-label/);
   assert.match(ui, /coop-kleur-stip/);
-  assert.match(css, /\.coop-kleur-0 \{ color: #4fb3ff; \}/);
+  assert.match(css, /\.coop-kleur-0 \{ color: (?:#4fb3ff|var\(--ds-c-id-1\)); \}/); // sinds 21-11 een palettoken (--ds-c-id-1 is #4fb3ff)
   assert.match(css, /\.coop-chip\[aria-pressed="true"\]/);
 });
 

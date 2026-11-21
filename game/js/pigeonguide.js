@@ -33,7 +33,7 @@ const CSS = `
 #pigeon-guide[hidden] { display: none; }
 #pigeon-guide .pg-stack { position: absolute; top: 204px; left: 50%; width: 480px; max-width: calc(100vw / var(--ui, 1) - 32px); transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; }
 #pigeon-guide .pg-card { box-sizing: border-box; width: 100%; min-width: 0; padding: 8px 18px 10px; background: var(--ds-c-ink-papier, #f3ead3); border: var(--ds-lijn-zeef, 3px) solid var(--ds-c-ink-inkt, #1d1b17); border-left: 8px solid var(--ds-c-geel, #f9c80e); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); text-align: center; }
-#pigeon-guide .pg-card small { display: block; font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+#pigeon-guide .pg-card small { display: block; font-size: 13px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
 #pigeon-guide .pg-card b { display: block; font-family: var(--ds-font-zeef-kop); font-size: 28px; font-weight: 800; line-height: 1.1; }
 #pigeon-guide .pg-card i { display: block; font-style: normal; font-size: 16px; font-weight: 700; margin-top: 2px; }
 #pigeon-guide .pg-hold { height: 10px; margin-top: 6px; border: 2px solid var(--ds-c-ink-inkt, #1d1b17); border-radius: 6px; background: var(--ds-c-wit, #fff); overflow: hidden; }

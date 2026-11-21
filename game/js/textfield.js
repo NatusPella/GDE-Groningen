@@ -50,7 +50,7 @@ function showMenu(el, x, y) {
   menu = document.createElement('div');
   menu.className = 'tfmenu-gde';
   menu.setAttribute('role', 'menu');
-  menu.style.cssText = `position:fixed;left:${Math.round(x)}px;top:${Math.round(y)}px;z-index:99999;min-width:160px;padding:4px;border-radius:8px;background:var(--ds-c-glas-2);box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 24%, transparent),0 8px 24px rgba(0,0,0,0.5);font:20px var(--ds-font-kop);letter-spacing:0.05em;color:var(--ds-c-creme);`;
+  menu.style.cssText = `position:fixed;left:${Math.round(x)}px;top:${Math.round(y)}px;z-index:99999;min-width:160px;padding:4px;border-radius:8px;background:var(--ds-c-glas-2);box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 24%, transparent),0 8px 24px color-mix(in srgb, var(--ds-c-ink-inkt) 50%, transparent);font:20px var(--ds-font-kop);letter-spacing:0.05em;color:var(--ds-c-creme);`;
   const items = [['Knippen', () => copyFrom(el, true)], ['Kopiëren', () => copyFrom(el, false)], ['Plakken', () => pasteInto(el)], ['Alles selecteren', () => selectAll(el)]];
   for (const [label, fn] of items) {
     const b = document.createElement('button');

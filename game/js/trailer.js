@@ -138,15 +138,15 @@ const CSS = `
 #trailer { position: fixed; inset: 0; z-index: 17; pointer-events: none; font-family: var(--ds-font-zeef-kop); color: var(--ds-c-ink-papier); opacity: 0; transition: opacity 0.4s; --bar: 9vh; }
 #trailer.on { opacity: 1; }
 #trailer > div { position: absolute; }
-#trailer .tr-vig { inset: 0; background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 55%, rgba(4, 10, 8, 0.5) 100%); transition: opacity 1.2s; }
-#trailer .tr-bar { left: 0; right: 0; height: var(--bar); background: #000; transition: transform 0.8s cubic-bezier(0.6, 0, 0.3, 1); }
+#trailer .tr-vig { inset: 0; background: radial-gradient(ellipse at center, color-mix(in srgb, var(--ds-c-ink-inkt) 0%, transparent) 55%, rgba(4, 10, 8, 0.5) 100%); transition: opacity 1.2s; }
+#trailer .tr-bar { left: 0; right: 0; height: var(--bar); background: var(--ds-c-ink-inkt); transition: transform 0.8s cubic-bezier(0.6, 0, 0.3, 1); }
 #trailer .tr-bar.top { top: 0; } #trailer .tr-bar.bottom { bottom: 0; }
 #trailer.handoff .tr-bar.top { transform: translateY(-100%); } #trailer.handoff .tr-bar.bottom { transform: translateY(100%); }
 #trailer.handoff .tr-vig { opacity: 0; }
 /* during a run frame() sets the black's opacity from the trailer clock (the
    fixed-step export would turn these transitions into hard cuts); the
    classes are for fadeOutTrailer, after the run */
-#trailer .tr-black { inset: 0; background: #050807; opacity: 0; transition: opacity 0.35s; }
+#trailer .tr-black { inset: 0; background: var(--ds-c-glas); opacity: 0; transition: opacity 0.35s; }
 #trailer .tr-black.on { opacity: 1; transition: opacity 0.12s; }
 #trailer .tr-black.fade { opacity: 1; transition: opacity 0.4s; }
 #trailer .tr-black.dim { opacity: 0.55; transition: opacity 0.9s; }
@@ -171,7 +171,7 @@ const CSS = `
 #trailer .tr-name b { display: block; font-weight: normal; font-size: clamp(64px, 10vw, 160px); line-height: 0.88; text-transform: uppercase; letter-spacing: 0.02em; }
 #trailer .tr-name b .amp { color: var(--ds-c-ink-roze); }
 #trailer .tr-name i { display: block; margin-top: 0.5vh; border-left: 0.14em solid var(--ds-c-ink-roze); padding-left: 0.4em; font: clamp(20px, 2.5vw, 64px) var(--ds-font-zeef-tekst); letter-spacing: 0.3px; color: var(--ds-c-ink-papier); }
-#trailer .tr-sub { left: 50%; bottom: calc(var(--bar) + 3vh); transform: translateX(-50%); width: min(86vw, 1500px); text-align: center; font: 700 clamp(18px, 2.3vw, 60px) var(--ds-font-zeef-tekst); letter-spacing: 0.3px; opacity: 0; text-shadow: 2px 2px 0 var(--ds-c-ink-inkt), 0 0 2px rgba(0, 0, 0, 0.9); }
+#trailer .tr-sub { left: 50%; bottom: calc(var(--bar) + 3vh); transform: translateX(-50%); width: min(86vw, 1500px); text-align: center; font: 700 clamp(18px, 2.3vw, 60px) var(--ds-font-zeef-tekst); letter-spacing: 0.3px; opacity: 0; text-shadow: 2px 2px 0 var(--ds-c-ink-inkt), 0 0 2px color-mix(in srgb, var(--ds-c-ink-inkt) 90%, transparent); }
 #trailer .tr-sub.on { opacity: 1; }
 #trailer .tr-sub b { color: var(--ds-c-ink-roze); margin-right: 6px; }
 #trailer .tr-skip { right: 3vw; bottom: calc(var(--bar) * 0.5); transform: translateY(50%); display: flex; opacity: 0; transition: opacity 0.25s; } /* uiterlijk: ds-schermen.css */

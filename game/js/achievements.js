@@ -711,7 +711,7 @@ const CSS = `
 #hud .ach-toast { position: absolute; top: auto; bottom: calc(var(--mm-bottom, 46px) + var(--mm-size, 250px) + 14px); left: var(--hud-edge, 46px); z-index: 6; display: flex; align-items: center; gap: 14px;
   min-width: 300px; max-width: calc(100vw / var(--ui, 1) - 32px); box-sizing: border-box; padding: 10px 22px 10px 12px;
   background: linear-gradient(90deg, color-mix(in srgb, var(--ds-c-glas) 94%, transparent) 0%, color-mix(in srgb, var(--ds-c-glas) 86%, transparent) 70%, color-mix(in srgb, var(--ds-c-glas) 60%, transparent) 100%);
-  border-left: 4px solid var(--mk-ok, #3fc97a); box-shadow: 0 8px 28px rgba(0,0,0,0.55), 0 0 22px color-mix(in srgb, var(--ds-c-licht-groen) 18%, transparent);
+  border-left: 4px solid var(--mk-ok, #3fc97a); box-shadow: 0 8px 28px color-mix(in srgb, var(--ds-c-ink-inkt) 55%, transparent), 0 0 22px color-mix(in srgb, var(--ds-c-licht-groen) 18%, transparent);
   opacity: 0; --ds-mi-x: -8px; pointer-events: none; } /* ds-motion.css (.ds-mi-in): 8 px vanaf de linkerrand, 200 ms in en uit */
 #hud .ach-toast.on { opacity: 1; }
 /* Tijdens een minigame staat het bord met de toetshulp bovenaan rechts: de prestatiekaart zakt dan naar
@@ -738,7 +738,7 @@ body.mg-on #hud .ach-toast { top: auto; bottom: max(calc(13vh / var(--ui, 1)), 1
 const CSS_EXTRA = `
 #hud .ach-toast { min-width: 340px; padding: 14px 26px 14px 14px; gap: 16px; border-radius: 12px; border-left-width: 5px;
   background: var(--hud-card);
-  box-shadow: 0 10px 34px rgba(0,0,0,0.6), 0 0 30px color-mix(in srgb, var(--ds-c-licht-groen) 22%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 8%, transparent); }
+  box-shadow: 0 10px 34px color-mix(in srgb, var(--ds-c-ink-inkt) 60%, transparent), 0 0 30px color-mix(in srgb, var(--ds-c-licht-groen) 22%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 8%, transparent); }
 #hud .ach-toast .ach-badge { position: relative; flex: none; width: 64px; height: 64px; display: grid; place-items: center; }
 #hud .ach-toast .ach-ico { position: relative; z-index: 2; width: 56px; height: 56px; }
 #hud .ach-toast .ach-ico .ach-pic { width: 32px; height: 32px; }
@@ -753,12 +753,12 @@ const CSS_EXTRA = `
 #hud .ach-toast .ach-spark.s3 { left: 12px; bottom: 0; --dx: -4px; animation-delay: 0.26s; }
 #hud .ach-toast .ach-spark.s4 { right: 9px; bottom: 3px; --dx: 5px; animation-delay: 0.34s; background: var(--mk-mission, #e8c93a); }
 @keyframes ach-spark { 0% { opacity: 0; transform: translate(0, 0) scale(0.6); } 25% { opacity: 0.95; } 100% { opacity: 0; transform: translate(var(--dx, 0), -20px) scale(1.1); } }
-#hud .ach-toast .ach-title { text-shadow: 0 1px 0 rgba(0,0,0,0.4); }
+#hud .ach-toast .ach-title { text-shadow: 0 1px 0 color-mix(in srgb, var(--ds-c-ink-inkt) 40%, transparent); }
 #hud .ach-toast::after { content: ''; position: absolute; inset: 0; border-radius: 12px; pointer-events: none;
   background: linear-gradient(115deg, transparent 30%, color-mix(in srgb, var(--ds-c-creme) 14%, transparent) 45%, transparent 60%); background-size: 220% 100%;
   animation: ach-shimmer 1.6s 0.15s ease-out 1; }
 @keyframes ach-shimmer { from { background-position: 120% 0; } to { background-position: -40% 0; } }
-#hud .ach-toast.gold { box-shadow: 0 10px 34px rgba(0,0,0,0.6), 0 0 34px color-mix(in srgb, var(--ds-c-ink-geel) 30%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 10%, transparent); }
+#hud .ach-toast.gold { box-shadow: 0 10px 34px color-mix(in srgb, var(--ds-c-ink-inkt) 60%, transparent), 0 0 34px color-mix(in srgb, var(--ds-c-ink-geel) 30%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 10%, transparent); }
 #hud .ach-toast.gold .ach-rays { background: repeating-conic-gradient(var(--mk-mission, #e8c93a) 0deg 2deg, transparent 2deg 18deg); opacity: 0.4; }
 #hud .ach-toast.gold .ach-title { color: var(--mk-mission, #e8c93a); }
 html.reduce-motion #hud .ach-toast, html.reduce-motion #hud .ach-toast .ach-title,

@@ -50,6 +50,8 @@ export const ALLOWED_COLORS = new Set([
   '#1f3a28', '#b9b7ad', '#3a1816', '#f5b5ad', '#3a2a0c',
   // Zomerse zeefdruk (ADR 0040): papier, roze en de Rustig-drukwerk-varianten; de rest staat hierboven.
   '#f3ead3', '#e8505b', '#9d1f2a', '#0b5530',
+  // Identiteit van medespelers (--ds-c-id-1 tot 8 in ds-tokens.css; de tabel zelf staat in coopidentiteit.js)
+  '#4fb3ff', '#5bd6a0', '#f2b134', '#ff9a62', '#ff7ab8', '#b78cff', '#e86a6a', '#6fd3e0',
 ]);
 
 // Dezelfde kleuren als RGB-triples, voor rgb()/rgba()-notatie.

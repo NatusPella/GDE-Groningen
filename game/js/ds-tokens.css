@@ -45,6 +45,17 @@
   --ds-c-amber-glas-vlak: #3a2a0c;
   --ds-c-amber-glas-tx: #ffbe46;
   --ds-c-sel-glas-vlak: #1d3a23;
+  /* ---- Palet: het toetsplaatje (wit plaatje met een rand eronder) en de identiteit van medespelers ---- */
+  --ds-c-toets-vlak: #fbfaf5;
+  --ds-c-toets-rand: #a9a69b;
+  --ds-c-id-1: #4fb3ff;
+  --ds-c-id-2: #5bd6a0;
+  --ds-c-id-3: #f2b134;
+  --ds-c-id-4: #ff9a62;
+  --ds-c-id-5: #ff7ab8;
+  --ds-c-id-6: #b78cff;
+  --ds-c-id-7: #e86a6a;
+  --ds-c-id-8: #6fd3e0;
 
   /* ---- Rollen, standaard op papier ---- */
   --ds-bg: var(--ds-c-papier);
@@ -144,6 +155,13 @@
   --ds-m: 200ms;
   --ds-m-max: 250ms;
   --ds-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+/* het wit toetsplaatje en de identiteit van medespelers als rollen (de tabel zelf: coopidentiteit.js) */
+:root {
+  --ds-toetsplaat-bg: var(--ds-c-toets-vlak);
+  --ds-toetsplaat-rand: var(--ds-c-toets-rand);
+  --ds-id-1: var(--ds-c-id-1); --ds-id-2: var(--ds-c-id-2); --ds-id-3: var(--ds-c-id-3); --ds-id-4: var(--ds-c-id-4);
+  --ds-id-5: var(--ds-c-id-5); --ds-id-6: var(--ds-c-id-6); --ds-id-7: var(--ds-c-id-7); --ds-id-8: var(--ds-c-id-8);
 }
 /* de rollen met een vloer opnieuw op #hud: daar bestaat --hud-min (13 px gedeeld door --ui), zodat de vloer na het zoomen 13 px blijft */
 #hud {

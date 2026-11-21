@@ -101,8 +101,8 @@ const CSS = `
 #intro-montage { position: fixed; inset: 0; z-index: 16; pointer-events: none; font-family: var(--ds-font-zeef-kop); color: var(--ds-c-ink-papier); opacity: 0; transition: opacity 0.3s; }
 #intro-montage.on { opacity: 1; }
 #intro-montage > div { position: absolute; inset: 0; }
-#intro-montage .im-grade { background: linear-gradient(160deg, rgba(0, 150, 170, 0.22) 0%, rgba(0, 0, 0, 0) 45%, rgba(255, 128, 40, 0.2) 100%); mix-blend-mode: soft-light; }
-#intro-montage .im-vig { background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 55%, rgba(4, 10, 8, 0.55) 100%); }
+#intro-montage .im-grade { background: linear-gradient(160deg, rgba(0, 150, 170, 0.22) 0%, color-mix(in srgb, var(--ds-c-ink-inkt) 0%, transparent) 45%, rgba(255, 128, 40, 0.2) 100%); mix-blend-mode: soft-light; }
+#intro-montage .im-vig { background: radial-gradient(ellipse at center, color-mix(in srgb, var(--ds-c-ink-inkt) 0%, transparent) 55%, rgba(4, 10, 8, 0.55) 100%); }
 #intro-montage .im-grain { background-image: var(--grain); opacity: 0.07; animation: grain 0.5s steps(4) infinite; }
 #intro-montage .im-flare { opacity: 0; transition: opacity 0.8s; mix-blend-mode: screen;
   background: radial-gradient(circle at var(--fx, 80%) var(--fy, 20%), rgba(255, 214, 150, 0.75) 0, rgba(255, 170, 80, 0.28) 7%, rgba(255, 140, 60, 0) 26%),
@@ -110,7 +110,7 @@ const CSS = `
     radial-gradient(circle at calc(50% + (50% - var(--fx, 80%)) * 0.4) calc(50% + (50% - var(--fy, 20%)) * 0.4), rgba(255, 190, 120, 0.14) 0, rgba(255, 190, 120, 0) 4%),
     linear-gradient(90deg, rgba(255, 180, 90, 0) 0%, rgba(255, 180, 90, 0.08) 50%, rgba(255, 180, 90, 0) 100%); }
 #intro-montage .im-flare.on { opacity: var(--fa, 1); }
-#intro-montage .im-black { background: #050807; opacity: 0; transition: opacity 0.35s; }
+#intro-montage .im-black { background: var(--ds-c-glas); opacity: 0; transition: opacity 0.35s; }
 #intro-montage .im-black.on { opacity: 1; transition: opacity 0.12s; }
 #intro-montage .im-flash { background: #fff6e6; opacity: 0; }
 #intro-montage .im-flash.go { animation: im-flash 0.28s ease-out; }

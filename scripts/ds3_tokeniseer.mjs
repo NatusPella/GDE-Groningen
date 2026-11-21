@@ -18,6 +18,18 @@ export const HEX_NAAR_TOKEN = {
   '#dcefdc': '--ds-c-groen-vlak', '#14582f': '--ds-c-groen-tx', '#dcebdd': '--ds-c-sel-vlak', '#fdebc8': '--ds-c-amber-vlak', '#7a4a00': '--ds-c-amber-tx', '#a15c00': '--ds-c-amber',
   // de twee geeltinten en het tweede glasgroen gaan op in het palet (docs/DESIGN-SCHULD.md: één geel, één bordgroen)
   '#e8c93a': '--ds-c-ink-geel', '#0f5c30': '--ds-c-ink-bord', '#1e9e56': '--ds-c-licht-groen',
+  // het toetsplaatje en de identiteitskleuren van medespelers zijn palet (21-11)
+  '#fbfaf5': '--ds-c-toets-vlak', '#a9a69b': '--ds-c-toets-rand',
+  '#4fb3ff': '--ds-c-id-1', '#5bd6a0': '--ds-c-id-2', '#f2b134': '--ds-c-id-3', '#ff9a62': '--ds-c-id-4',
+  '#ff7ab8': '--ds-c-id-5', '#b78cff': '--ds-c-id-6', '#e86a6a': '--ds-c-id-7', '#6fd3e0': '--ds-c-id-8',
+  // de dichtstbijzijnde token voor een eenmalige glaskleur (verschil kleiner dan een tint; glas verdwijnt met de ombouw)
+  '#a3b2a6': '--ds-c-creme-zacht', '#f2c230': '--ds-c-ink-geel', '#f2c744': '--ds-c-ink-geel', '#ffd36a': '--ds-c-ink-geel',
+  '#62d792': '--ds-c-licht-groen', '#5fe39a': '--ds-c-licht-groen', '#3ecf7c': '--ds-c-licht-groen', '#4fd98a': '--ds-c-licht-groen',
+  '#ffb0b0': '--ds-c-rood-glas-tx', '#ff9a8f': '--ds-c-rood-glas-tx', '#ff8f86': '--ds-c-rood-glas-tx', '#f08a8a': '--ds-c-rood-glas-tx', '#f39a8c': '--ds-c-rood-glas-tx',
+  '#e55a5a': '--ds-c-rood-glas',
+  '#17201a': '--ds-c-glas-2', '#1a241d': '--ds-c-glas-2', '#13221a': '--ds-c-glas-2', '#12200f': '--ds-c-glas', '#0e1510': '--ds-c-glas', '#050807': '--ds-c-glas', '#15110b': '--ds-c-glas',
+  '#223026': '--ds-c-glas-3', '#2a2e28': '--ds-c-glas-3', '#3a4a3e': '--ds-c-glas-3', '#34503c': '--ds-c-glas-3',
+  '#000': '--ds-c-ink-inkt', '#000000': '--ds-c-ink-inkt',
 };
 const RGB_NAAR_TOKEN = {};
 for (const [hex, tok] of Object.entries(HEX_NAAR_TOKEN)) {
@@ -45,6 +57,7 @@ function zetOm(tekst, { schaduwBlijft }) {
   uit = uit.replace(HEX, (m) => {
     const tok = HEX_NAAR_TOKEN[m.toLowerCase()];
     if (!tok) return m;
+    if (schaduwBlijft && /^#(?:000|000000)$/i.test(m)) return m; // een zwarte slagschaduw blijft chroom
     n++;
     return `var(${tok})`;
   });
