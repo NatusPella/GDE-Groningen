@@ -2645,8 +2645,23 @@ function nearestWithin(list, x, y, r, max) {
   return hits.slice(0, max).map((h) => h[1]);
 }
 
-function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
-  const player = hoofdspeler(world);
+// #1008: de keuze van de POI's (ca. 25 lijstscans met filters, closures en arrays) is van beeld tot beeld dezelfde. Hij wordt vier keer
+// per seconde opnieuw gedaan, of eerder als de speler verder dan MM_POI_CACHE_M liep, de wereld wisselde of een bijbaan begon of eindigde;
+// de minikaart tekent op 20 tot 30 beelden per seconde, dus ruim 80% van de allocaties van deze functie vervalt.
+const MM_POI_CACHE_MS = 250, MM_POI_CACHE_M = 6;
+const poiCache = { at: -1e9, x: 0, y: 0, world: null, job: false, veh: false, list: [] };
+const _poiXY = [0, 0];
+const _poiDrawn = [];
+function minimapPoiList(world, job, player) {
+  const c = poiCache, now = performance.now();
+  const dx = player.x - c.x, dy = player.y - c.y;
+  if (c.world === world && c.job === !!job && c.veh === !!player.inVehicle && now - c.at < MM_POI_CACHE_MS && dx * dx + dy * dy < MM_POI_CACHE_M * MM_POI_CACHE_M) return c.list;
+  c.at = now; c.x = player.x; c.y = player.y; c.world = world; c.job = !!job; c.veh = !!player.inVehicle;
+  return (c.list = collectMinimapPois(world, job, player));
+}
+
+// De POI's rond de speler als [soort, x, y], het belangrijkste eerst.
+function collectMinimapPois(world, job, player) {
   const px = player.x, py = player.y;
   const inVehicle = !!player.inVehicle;
   const pois = [];
@@ -2705,22 +2720,32 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
 
   // the most important place wins where two would touch
   pois.sort((a, b) => mapPriority(b[0]) - mapPriority(a[0]));
+  return pois;
+}
+
+function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
+  const pois = minimapPoiList(world, job, hoofdspeler(world));
   const gap2 = MM_POI_GAP_PX * MM_POI_GAP_PX;
-  const drawn = [];
+  const drawn = _poiDrawn; // vlak: soort, sx, sy per icoon (geen array per icoon)
+  drawn.length = 0;
+  const xy = _poiXY;
   const mist = getSettings().showFog; // 20-11: in nog onbezocht gebied geen pins op de minikaart (zoals op de grote kaart)
-  for (const [kind, x, y] of pois) {
+  for (let k = 0; k < pois.length; k++) {
+    const p = pois[k], kind = p[0], x = p[1], y = p[2];
     if (!inRange(x, y)) continue;
     if (mist && !pinBlijftInMist(kind, null) && plekOnbezocht(x, y)) continue;
-    const [sx, sy] = toScreen(x, y);
+    toScreen.into(x, y, xy);
+    const sx = xy[0], sy = xy[1];
     let blocked = false;
     for (let i = 0; i < placed.length && !blocked; i += 2) blocked = (placed[i] - sx) ** 2 + (placed[i + 1] - sy) ** 2 < gap2;
     if (blocked) continue;
     placed.push(sx, sy);
-    drawn.push([kind, sx, sy]);
+    drawn.push(kind, sx, sy);
   }
-  for (const [kind, sx, sy] of drawn) {
-    drawMapIconHalo(ctx, kind, sx, sy, MM_POI_ICON);
-    drawMapIcon(ctx, kind, sx, sy, MM_POI_ICON, { t });
+  const opts = { t };
+  for (let i = 0; i < drawn.length; i += 3) {
+    drawMapIconHalo(ctx, drawn[i], drawn[i + 1], drawn[i + 2], MM_POI_ICON);
+    drawMapIcon(ctx, drawn[i], drawn[i + 1], drawn[i + 2], MM_POI_ICON, opts);
   }
 }
 
@@ -2896,6 +2921,13 @@ function drawMinimap(dt, world) {
   const toScreen = (x, y) => {
     const dx = x - player.x, dy = y - player.y;
     return [cx + (dx * cosR - dy * sinR) * mmScale, cy + (dx * sinR + dy * cosR) * mmScale];
+  };
+  // dezelfde afbeelding zonder array per punt (de POI-lus, #1008)
+  toScreen.into = (x, y, out) => {
+    const dx = x - player.x, dy = y - player.y;
+    out[0] = cx + (dx * cosR - dy * sinR) * mmScale;
+    out[1] = cy + (dx * sinR + dy * cosR) * mmScale;
+    return out;
   };
 
   if (edgeDistance(player.x, player.y) > -150) drawVillageNames(ctx, player, MM_RADIUS_M, toScreen);
