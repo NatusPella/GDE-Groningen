@@ -1,4 +1,6 @@
 import { pointInPolygon } from './util.js';
+import { insideBuilding } from './buildinghit.js';
+import { trimPathEnd } from './pathlane.js';
 import { gridItems } from './spatialgrid.js';
 import { hoofdspeler } from './players.js';
 import { getHorecaForRender } from './horeca.js';
@@ -127,37 +129,14 @@ const isBikeable = (road) => roadAllowed(road, 'fiets') !== false && !road.busOn
 const BIKE_COST = { cycle: 0.8, minor: 1.15, normal: 1, major: 1.8, foot: 1.4 };
 // Some OSM footways/service roads cross building footprints (passages,
 // courtyards); still usable, but routes should strongly prefer streets.
-const THROUGH_BUILDING_COST = 8;
+const SOFT_COST = 1.25;
+const SOFT_ROAD_COST = 1.6;
+const THROUGH_BUILDING_COST = 40;
 // Straight connectors from the player/target to the road network are only
 // drawn when short; longer ones would cut through blocks.
 const CONNECTOR_MAX_M = 15;
 
-// Ligt (x, y) in een gebouw? (De wereldbouw kent de footprints; een poort of
-// passage is voor de botsing open, maar voor de route telt elk gebouw: een lijn
-// door de gevel is wat de speler op de kaart ziet en niet wil.)
-export function insideBuilding(map, x, y) {
-  // Een gebouw dat (x, y) bevat, staat in de cel van dat punt (het raster zet elk gebouw in
-  // alle cellen van zijn bounds): lees die ene cel zonder kopie. De route bouwt de graaf met
-  // tienduizenden van deze toetsen; buildingsNear (kopie + Set per aanroep) was daar de hoofdkost.
-  const grid = map.buildingGrid;
-  const cells = grid && grid.cellItems ? grid.cellItems(Math.floor(x / grid.cell), Math.floor(y / grid.cell)) : null;
-  if (grid && grid.cellItems) {
-    if (!cells) return false;
-    for (let i = 0; i < cells.length; i++) {
-      const b = cells[i];
-      const bb = b.bounds;
-      if (x < bb[0] || x > bb[2] || y < bb[1] || y > bb[3]) continue;
-      if (pointInPolygon(x, y, b.pts)) return true;
-    }
-    return false;
-  }
-  for (const b of map.buildingsNear(x, y, 1)) {
-    const [minx, miny, maxx, maxy] = b.bounds;
-    if (x < minx || x > maxx || y < miny || y > maxy) continue;
-    if (pointInPolygon(x, y, b.pts)) return true;
-  }
-  return false;
-}
+export { insideBuilding };
 
 // Steekt het stuk van a naar b een gebouw in? Voor de graaf: drie punten op de
 // lijn (0,25 / 0,5 / 0,75) is genoeg om een weg die dwars door een blok loopt
@@ -246,7 +225,7 @@ function throughOf(map, road, i, ax, ay, bx, by) {
 const GRAPH_HOOKS = {
   isDrivable, isWalkable, isBikeable, oneWayFor,
   throughOf: null, // per bouw: kent de kaart
-  consts: { THROUGH_BUILDING_COST, SERVICE_COST, OFFROAD_COST, STEPS_COST, MOTORWAY_AVOID, BIKE_COST, MOTORWAY_TYPES },
+  consts: { SOFT_COST, SOFT_ROAD_COST, THROUGH_BUILDING_COST, SERVICE_COST, OFFROAD_COST, STEPS_COST, MOTORWAY_AVOID, BIKE_COST, MOTORWAY_TYPES },
 };
 // De bouw is hervatbaar (pathgraphbuild.js): een lopende bouw staat hier tot hij klaar is of de lagen veranderden.
 let pendingBuild = null;
@@ -360,6 +339,9 @@ function snapToRoad(map, x, y, kind, lvl = null, outside = true) {
   return fallback;
 }
 
+// De snelste route (21-11): de wegen die het voertuig officieel niet mag liggen er met een lichte toeslag in (pathgraphbuild.js).
+const SOFT_ADJ = { walkSoft: 'walkSoft', bikeSoft: 'bikeSoft', driveSoft: 'driveSoft', driveSoftAvoid: 'driveSoftAvoid' };
+
 class Heap {
   constructor() { this.f = []; this.n = []; }
   get size() { return this.n.length; }
@@ -402,8 +384,8 @@ let used = null;
 function astar(fromSnap, toSnap, walkMode, nodesOut = null) {
   const G = graph;
   const mode = walkMode === true ? 'walk' : walkMode === false ? 'drive' : walkMode;
-  const adj = mode === 'walk' ? G.walk : mode === 'bike' ? G.bike : mode === 'mixed' ? G.mixed : mode === 'free' ? G.free : mode === 'driveAvoid' ? G.driveAvoid : G.drive;
-  walkMode = mode === 'walk' || mode === 'bike';
+  const adj = SOFT_ADJ[mode] ? G[SOFT_ADJ[mode]] : mode === 'walk' ? G.walk : mode === 'bike' ? G.bike : mode === 'mixed' ? G.mixed : mode === 'free' ? G.free : mode === 'driveAvoid' ? G.driveAvoid : G.drive;
+  walkMode = mode === 'walk' || mode === 'bike' || mode === 'walkSoft' || mode === 'bikeSoft';
   const stamp = ++G.stamp;
   const gx = toSnap.x, gy = toSnap.y;
   // the alts lie within the tie distance of the snap itself, from both ends
@@ -416,7 +398,7 @@ function astar(fromSnap, toSnap, walkMode, nodesOut = null) {
     G.prev[n] = p;
     heap.push(g + h(n), n);
   };
-  const oneWay = (snap) => snap.road.oneway && !walkMode && mode !== 'free' && isDrivable(snap.road);
+  const oneWay = (snap) => snap.road.oneway && !walkMode && mode !== 'free' && !SOFT_ADJ[mode] && isDrivable(snap.road);
 
   const froms = fromSnap.alts ? [fromSnap, ...fromSnap.alts] : [fromSnap];
   const tos = toSnap.alts ? [toSnap, ...toSnap.alts] : [toSnap];
@@ -514,9 +496,10 @@ function travelMode(player) {
 const levelOf = (player) => { const v = player.inVehicle; return (v ? v.z : player.gz) || 0; };
 
 // What the player chose in the route settings (and on the big map).
-const prefs = { avoidMotorways: false, planMode: null };
+const prefs = { avoidMotorways: false, planMode: null, fastest: true };
 export function setRoutePrefs(o = {}) {
   if ('avoidMotorways' in o && !!o.avoidMotorways !== prefs.avoidMotorways) { prefs.avoidMotorways = !!o.avoidMotorways; invalidateRoutes(); }
+  if ('fastest' in o && !!o.fastest !== prefs.fastest) { prefs.fastest = !!o.fastest; invalidateRoutes(); }
   if ('planMode' in o && o.planMode !== prefs.planMode) { prefs.planMode = o.planMode || null; invalidateRoutes(); }
 }
 export function getRoutePrefs() { return { ...prefs }; }
@@ -896,6 +879,8 @@ function computeRoute(world, target, mode, start = hoofdspeler(world)) {
       const dLast = Math.hypot(last[0] - target.x, last[1] - target.y);
       // #930: geen rechte lijn door een gebouw of over een kerkhof
       if (dLast > 0.5 && targetLeadAllowed(map, last[0], last[1], target.x, target.y)) pts.push([target.x, target.y]);
+      // eindigt de weg in een pand (het doel is een gebouw): de route eindigt bij de gevel, niet in de hal (21-11)
+      pts = trimPathEnd(map, pts);
     }
   }
 
@@ -934,6 +919,7 @@ function landRoute(world, target, mode, p) {
   const lvlTo = { z: Number.isFinite(target.z) ? target.z : 0, pen: Number.isFinite(target.z) ? LEVEL_PEN_START_M : LEVEL_PEN_TARGET_M / 2 };
   let to = snapToRoad(map, target.x, target.y, kind, lvlTo);
   let graphMode = driveOnly ? (avoid ? 'driveAvoid' : 'drive') : kind;
+  if (prefs.fastest) graphMode = driveOnly ? (avoid ? 'driveSoftAvoid' : 'driveSoft') : kind + 'Soft';
   let compromise = null, carTo = null;
   // targets in car-free areas (Grote Markt, Poelestraat): drive along the
   // streets as close as possible, the last bit over the pedestrian area

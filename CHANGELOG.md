@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Route: de routelijn in de wereld loopt niet meer door gebouwen. Wegstukken door een gevel zijn voortaan alleen de laatste keus, en de rechter rijbaan van de auto schuift de lijn niet meer een gevel in.
+- Route: de route geeft de snelste weg voor je voertuig, ook over wegen die je daar officieel niet mee mag (tegen de richting in, een voetpad, fietspad of buslaan, te voet de snelweg), met een lichte toeslag zodat een weg voor jouw voertuig bij gelijke afstand wint. Zie docs/ROUTEREGELS.md.
 - Kaart: Reis erheen gaat nu alleen over hoe je reist: met de trein, de bus, de taxi of per boot, elk met prijs, duur en aanbevolen, en als iets niet kan staat de reden in de rij (te dichtbij, geen verbinding, te weinig geld). De optie 'Zelf gaan' en de zin 'Dat kan ook in Samen spelen' zijn weg: Zet waypoint is de manier om zelf te gaan.
 - Kaart: de toets staat voortaan IN de knop (Enter in Reis nu en Begrepen, Esc in Terug en Sluiten, een cijfer in elke vervoersrij en op de drie acties van de plekkaart), niet meer ernaast. Op een controller wordt dat de A- of B-knop van jouw controller en een cijfer verdwijnt.
 - Kaart: alle kaartpopups werken hetzelfde met toetsenbord en controller: Enter of A bevestigt, Esc of B gaat één laag terug (venster, plekkaart, kaart), pijlen en D-pad lopen door de knoppen, de eerste focus staat op de hoofdactie en de focus blijft binnen een open venster.

@@ -11,10 +11,14 @@ const EDGES_PER_STEP = 40000;
 
 export function* graphBuildSteps(graphRoads, h) {
   const { THROUGH_BUILDING_COST, SERVICE_COST, OFFROAD_COST, STEPS_COST, MOTORWAY_AVOID, BIKE_COST, MOTORWAY_TYPES } = h.consts;
+  // de snelste route (21-11): wat het voertuig officieel niet mag (tegen de richting in, een voetpad, fietspad, snelweg, buslaan) is met
+  // een lichte toeslag toegestaan; alleen trappen blijven duur voor wie niet loopt. Zie docs/ROUTEREGELS.md.
+  const SOFT = h.consts.SOFT_COST, SOFT_ROAD = h.consts.SOFT_ROAD_COST;
   const ids = new Map();
   const xs = [], ys = [];
   const roadNodes = new Map();
   const drive = [], driveRoad = [], walk = [], walkRoad = [], mixed = [], bike = [], bikeRoad = [], driveAvoid = [];
+  const walkSoft = [], bikeSoft = [], driveSoft = [], driveSoftAvoid = [];
   const nodeOf = (x, y) => {
     const key = (Math.round(x * 2) + 32768) * 65536 + (Math.round(y * 2) + 32768);
     let id = ids.get(key);
@@ -46,11 +50,19 @@ export function* graphBuildSteps(graphRoads, h) {
       if (canWalk) {
         walk.push(a, b, len, b, a, len);
         walkRoad.push(ri, ri);
+        walkSoft.push(a, b, len, b, a, len);
+      } else {
+        const wl = len * (mw ? MOTORWAY_AVOID : SOFT_ROAD);
+        walkSoft.push(a, b, wl, b, a, wl);
       }
       if (canBike) {
         const bl = len * (BIKE_COST[road.cat] ?? 1);
         bike.push(a, b, bl); bikeRoad.push(ri);
         if (!bikeOne) { bike.push(b, a, bl); bikeRoad.push(ri); }
+        bikeSoft.push(a, b, bl, b, a, bikeOne ? bl * SOFT : bl);
+      } else {
+        const bl = len * (road.type === 'steps' ? STEPS_COST : mw ? MOTORWAY_AVOID : SOFT_ROAD);
+        bikeSoft.push(a, b, bl, b, a, bl);
       }
       if (canDrive) {
         const dl = road.type === 'service' || road.type === 'track' ? len * SERVICE_COST : len;
@@ -59,7 +71,14 @@ export function* graphBuildSteps(graphRoads, h) {
         driveAvoid.push(a, b, al);
         mixed.push(a, b, dl);
         if (!road.oneway) { drive.push(b, a, dl); driveRoad.push(ri); driveAvoid.push(b, a, al); mixed.push(b, a, dl); }
-      } else if (!road.busOnly) {
+        driveSoft.push(a, b, dl, b, a, road.oneway ? dl * SOFT : dl);
+        driveSoftAvoid.push(a, b, al, b, a, road.oneway ? al * SOFT : al);
+      } else {
+        const sl = len * (road.type === 'steps' ? STEPS_COST : SOFT_ROAD);
+        driveSoft.push(a, b, sl, b, a, sl);
+        driveSoftAvoid.push(a, b, sl, b, a, sl);
+      }
+      if (!canDrive && !road.busOnly) {
         const ml = len * (road.type === 'steps' ? STEPS_COST : OFFROAD_COST);
         mixed.push(a, b, ml, b, a, ml);
       }
@@ -121,7 +140,15 @@ export function* graphBuildSteps(graphRoads, h) {
   const driveAvoidAdj = yield* csr(driveAvoid, driveRoad); yield 'avoid';
   const bikeComp = components(yield* csr(bikeUndirected)); yield 'bikecomp';
   const mixedAdj = yield* csr(mixed);
+  const walkSoftAdj = yield* csr(walkSoft); yield 'walk-snelste';
+  const bikeSoftAdj = yield* csr(bikeSoft); yield 'bike-snelste';
+  const driveSoftAdj = yield* csr(driveSoft); yield 'drive-snelste';
+  const driveSoftAvoidAdj = yield* csr(driveSoftAvoid);
   return {
+    walkSoft: walkSoftAdj,
+    bikeSoft: bikeSoftAdj,
+    driveSoft: driveSoftAdj,
+    driveSoftAvoid: driveSoftAvoidAdj,
     N,
     walkComp,
     driveComp,

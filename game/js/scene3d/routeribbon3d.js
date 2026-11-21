@@ -17,6 +17,7 @@ import { ribbonFault, needsAlphaFloor, noteRibbonRepair, RIBBON_ALPHA_FLOOR } fr
 import { buildWorldMarker3D, updateWorldMarker3D } from '../worldmarker3d.js';
 import { updateWaymarkers3D, routeColor } from '../waymarkers3d.js';
 import { isAirCraft } from '../airguide.js';
+import { keepRight, resamplePath } from '../pathlane.js';
 import { updateAirLine3D, hideAirLine3D } from './airline3d.js';
 import { updateVaarlijn3D, hideVaarlijn3D } from './sailline3d.js';
 
@@ -68,20 +69,6 @@ function buildChevronTexture() {
   return tex;
 }
 
-// Route points can be 50 m apart on a straight road; a ramp climbs more than
-// groundHeightAt's step-up between two of them, so resample every 2 m.
-function resampleRoute(pts, step = 2) {
-  const out = [pts[0]];
-  for (let i = 1; i < pts.length; i++) {
-    const a = pts[i - 1], b = pts[i];
-    const L = Math.hypot(b[0] - a[0], b[1] - a[1]);
-    const n = Math.floor(L / step);
-    for (let k = 1; k < n; k++) out.push([a[0] + (b[0] - a[0]) * (k / n), a[1] + (b[1] - a[1]) * (k / n)]);
-    out.push(b);
-  }
-  return out;
-}
-
 // Raised pavement (kerb) under a route point off the carriageway: the ribbon
 // would otherwise vanish under the sidewalk mesh.
 function routeLift(map, x, y) {
@@ -103,7 +90,7 @@ function routeLift(map, x, y) {
 }
 
 function buildRouteRibbonGeometry(pts, along0, map = null, z0 = 0) {
-  if (pts.length >= 2) pts = resampleRoute(pts);
+  if (pts.length >= 2) pts = resamplePath(pts);
   const n = pts.length;
   // follow the ring's ramps: each point takes the surface nearest the previous one
   const zs = new Float32Array(n);
@@ -170,33 +157,6 @@ function buildRouteRibbonGeometry(pts, along0, map = null, z0 = 0) {
   // (z van het steekpunt met dezelfde vraag als de waakhond stelt, zodat een gelijke grond nooit als verschoven telt)
   g.userData = { maxAlpha, probe: elev ? { x: pts[midRaw][0], y: pts[midRaw][1], z: map.surfaceAt(pts[midRaw][0], pts[midRaw][1], { z: rawMid, ribbon: map.ribbonAt(pts[midRaw][0], pts[midRaw][1], rawMid) }).z } : null };
   return g;
-}
-
-// Driving routes follow the right-hand lane (Dutch traffic): shift each
-// point to the lane centre of the road it lies on; one-way roads stay centred.
-function keepRight(pts, map) {
-  const out = [];
-  for (let i = 0; i < pts.length; i++) {
-    const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
-    const dx = b[0] - a[0], dy = b[1] - a[1];
-    const len = Math.hypot(dx, dy) || 1;
-    const [x, y] = pts[i];
-    let best = null, bestD = 16;
-    for (const road of map.roadsNear(x, y, 4)) {
-      if (road.cat === 'foot' || road.cat === 'cycle') continue;
-      const rp = road.pts;
-      for (let k = 0; k < rp.length - 1; k++) {
-        const ex = rp[k + 1][0] - rp[k][0], ey = rp[k + 1][1] - rp[k][1];
-        const l2 = ex * ex + ey * ey || 1;
-        const t = Math.max(0, Math.min(1, ((x - rp[k][0]) * ex + (y - rp[k][1]) * ey) / l2));
-        const d = (x - rp[k][0] - ex * t) ** 2 + (y - rp[k][1] - ey * t) ** 2;
-        if (d < bestD) { bestD = d; best = road; }
-      }
-    }
-    const off = best && !best.oneway ? Math.min(2.2, (best.width || 6) / 4) : 0;
-    out.push([x - (dy / len) * off, y + (dx / len) * off]);
-  }
-  return out;
 }
 
 // routing.js (shops, goal, ...) comes in through main.js (setRouteLinks), so scene3d.js does not import it (#108)
