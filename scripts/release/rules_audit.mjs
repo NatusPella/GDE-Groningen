@@ -64,6 +64,10 @@ const TODO_RE = /(?:\/\/|\/\*|^\s*\*|#|<!--)\s*(?:TODO|FIXME|HACK|XXX)\b/;
 export const NETWERK_GOEDGEKEURD = {
   'game/js/livetrains.js': { host: 'gtfs.ovapi.nl', reden: 'live treinvertragingen (#1085), besluit eigenaar 21-11, zie docs/TREINEN-LIVE-21-11.md en docs/LICENTIES.md; uitzetter liveTreinen' },
 };
+// Lokaal lezen van wereldbestanden (zelfde herkomst, geen webadres, geen spelergegevens): een fetch zonder URL is geen externe verbinding.
+export const NETWERK_LOKAAL = {
+  'game/js/bezitlive.js': { reden: 'de Bezit-index (bezit-percelen.json en bezit-panden.json naast de tegels, epic #1095) lui laden uit world/; geen webadres' },
+};
 const THREE_CDN = /from\s+(['"])https:\/\/cdn\.jsdelivr\.net\/npm\/three@[\w.]+\/build\/three\.module\.js\1/;
 const urlHosts = (tekst) => [...String(tekst).matchAll(/\bhttps?:\/\/([^\s'"`)/:]+)/gi)].map((m) => m[1].toLowerCase());
 const NEW_JS = /^game\/js\/.+\.(?:m?js|cjs)$/;
@@ -420,6 +424,8 @@ export function auditLines(addedLines = [], addedFiles = [], options = {}) {
       const hosts = urlHosts(clean);
       if (goedgekeurd && !FETCH_CODE.test(clean) && hosts.length && hosts.every((h) => h === goedgekeurd.host)) {
         // goedgekeurde bron: geen bevinding (zie NETWERK_GOEDGEKEURD)
+      } else if (NETWERK_LOKAAL[file] && FETCH_CODE.test(clean) && !URL_ANY.test(clean)) {
+        // lokaal lezen uit de wereldmap: geen bevinding (zie NETWERK_LOKAAL)
       } else if (FETCH_CODE.test(clean) || URL_ANY.test(clean)) {
         voegToe(finding({
           file, line, text, ernst: 'blokkerend', categorie: 'privacy',

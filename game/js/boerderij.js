@@ -10,10 +10,11 @@
 // er is geen winter (constitution 3). Eggen en koolzaad zijn de uitbreiding (docs/BOERDERIJ.md).
 // De boerderij is van de speler en leeft in zijn eigen opslag (gde-boerderij-v1), nooit in een savegame. Alle namen zijn verzonnen.
 
-import { nieuwBedrijf, normaliseerBedrijf, actiefPerceel, perceelDef, bodemFactor, START_PERCEEL, PERCEEL_IDS } from './percelen.js';
+import { nieuwBedrijf, normaliseerBedrijf, actiefPerceel, perceelDef, bodemFactor, START_PERCEEL, isPerceelId } from './percelen.js';
 import { PRIJS_KG, dagprijs, dagVan, markt } from './gewasmarkt.js';
 import * as CT from './boerderijcontracten.js';
 import { euro } from './geldtekst.js';
+import { areaPrice } from './bezithooks.js';
 
 export const VERSIE = 1;
 export const MAX_UREN = 1e7;
@@ -27,10 +28,13 @@ export const GEWASSEN = {
   graan: { naam: 'Graan', zaaigoed: 35, groeiUren: 40, kgBasis: 2600, prijsKg: PRIJS_KG.graan, afnemer: 'Graanzolder Noorderveld', jong: 0x8fb04a, rijp: 0xd9b84a, vorm: 'halm', soort: 'akker' },
   gras: { naam: 'Gras', zaaigoed: 20, groeiUren: 20, kgBasis: 5000, prijsKg: PRIJS_KG.gras, afnemer: 'Hooimarkt Reitdiep', jong: 0x5fb04a, rijp: 0x7fc24f, vorm: 'halm', soort: 'weiland' },
   uien: { naam: 'Uien', zaaigoed: 45, groeiUren: 36, kgBasis: 3000, prijsKg: PRIJS_KG.uien, afnemer: 'Uienloods De Kleihoek', jong: 0x6aa24c, rijp: 0xc9a24f, vorm: 'kegel', soort: 'akker' },
+  // Boomgaardfruit (Bezit #1101): het gewas van een boomgaard (soort 'boomgaard'), een korte zomercyclus (pluk in de zomer, nooit winter); zwaardere grond dan akker, dus een hogere prijs per kilo.
+  fruit: { naam: 'Boomgaardfruit', zaaigoed: 60, groeiUren: 36, kgBasis: 1500, prijsKg: PRIJS_KG.fruit, afnemer: 'Fruitveiling De Bongerd', jong: 0x6aa24c, rijp: 0xc8503a, vorm: 'boom', soort: 'boomgaard' },
 };
-export const GEWAS_IDS = Object.keys(GEWASSEN);
+export const ALLE_GEWAS_IDS = Object.keys(GEWASSEN);                 // ook de boomgaard; de volgorde staat vast (een gewasindex gaat over het net)
+export const GEWAS_IDS = ALLE_GEWAS_IDS.filter((g) => GEWASSEN[g].soort !== 'boomgaard');   // de akker- en weidegewassen van de markt en de contracten
 export const STANDAARD_GEWAS = 'aardappelen';
-export const standaardVoor = (soort) => (soort === 'weiland' ? 'gras' : STANDAARD_GEWAS);
+export const standaardVoor = (soort) => (soort === 'weiland' ? 'gras' : soort === 'boomgaard' ? 'fruit' : STANDAARD_GEWAS);
 // Op een akker zaai je akkerbouw, op een weiland gras: het gekozen gewas past zich aan het perceel aan.
 export const gewasVoor = (gewas, soort) => (GEWASSEN[gewas] && GEWASSEN[gewas].soort === soort ? gewas : standaardVoor(soort));
 
@@ -107,14 +111,14 @@ export function normaliseer(raw) {
     b.perceel = { x: d.perceel.x, y: d.perceel.y, a: Number.isFinite(d.perceel.a) ? d.perceel.a : 0 };
   }
   b.veld = leesVeld(d.veld);
-  if (PERCEEL_IDS.includes(d.veldVan)) b.veldVan = d.veldVan;
-  if (d.velden && typeof d.velden === 'object') for (const id of PERCEEL_IDS) { const v = leesVeld(d.velden[id]); if (id !== b.veldVan && (v.fase !== 'braak' || v.stoppel)) b.velden[id] = v; }
+  if (isPerceelId(d.veldVan)) b.veldVan = d.veldVan;
+  if (d.velden && typeof d.velden === 'object') for (const id of Object.keys(d.velden)) { if (!isPerceelId(id)) continue; const v = leesVeld(d.velden[id]); if (id !== b.veldVan && (v.fase !== 'braak' || v.stoppel)) b.velden[id] = v; }
   const s = d.schuur;
-  if (s && typeof s === 'object' && GEWASSEN[s.gewas] && s.kg > 0) b.schuur = { gewas: s.gewas, kg: Math.round(getal(s.kg, 0, 1e6)), kwaliteit: getal(s.kwaliteit, 0, 1, 1), veld: PERCEEL_IDS.includes(s.veld) ? s.veld : null };
+  if (s && typeof s === 'object' && GEWASSEN[s.gewas] && s.kg > 0) b.schuur = { gewas: s.gewas, kg: Math.round(getal(s.kg, 0, 1e6)), kwaliteit: getal(s.kwaliteit, 0, 1, 1), veld: isPerceelId(s.veld) ? s.veld : null };
   if (d.machines && typeof d.machines === 'object') for (const m of MACHINE_IDS) if (d.machines[m] === 'eigen') b.machines[m] = 'eigen';
   if (d.totaal && typeof d.totaal === 'object') for (const k of Object.keys(b.totaal)) b.totaal[k] = Math.round(getal(d.totaal[k], 0, 1e9));
-  if (d.bodemlog && typeof d.bodemlog === 'object') for (const id of PERCEEL_IDS) { const l = d.bodemlog[id]; if (l && typeof l === 'object') b.bodemlog[id] = { u: Math.round(getal(l.u, 0, UITPUTTING_MAX) * 1000) / 1000, g: GEWASSEN[l.g] ? l.g : null }; }
-  if (d.posities && typeof d.posities === 'object') for (const id of PERCEEL_IDS) { const q = d.posities[id]; if (id !== START_PERCEEL && q && Number.isFinite(q.x) && Number.isFinite(q.y)) b.posities[id] = { x: q.x, y: q.y, a: Number.isFinite(q.a) ? q.a : 0 }; }
+  if (d.bodemlog && typeof d.bodemlog === 'object') for (const id of Object.keys(d.bodemlog)) { const l = d.bodemlog[id]; if (isPerceelId(id) && l && typeof l === 'object') b.bodemlog[id] = { u: Math.round(getal(l.u, 0, UITPUTTING_MAX) * 1000) / 1000, g: GEWASSEN[l.g] ? l.g : null }; }
+  if (d.posities && typeof d.posities === 'object') for (const id of Object.keys(d.posities)) { const q = d.posities[id]; if (isPerceelId(id) && id !== START_PERCEEL && q && Number.isFinite(q.x) && Number.isFinite(q.y)) b.posities[id] = { x: q.x, y: q.y, a: Number.isFinite(q.a) ? q.a : 0 }; }
   leesBoek(b, d.boek);
   b.bedrijf = normaliseerBedrijf(d.bedrijf);
   b.contracten = CT.normaliseer(d.contracten, dagVan(b.uren));   // oud of kapot: een lege stand met het aanbod van vandaag
@@ -126,7 +130,7 @@ export function normaliseer(raw) {
 // Het teeltplan per perceel (#492): het gewas voor het volgende zaaien. Een oude opslag kent maar één keuze (`keuze`): die hoort bij het
 // perceel waar de boerderij werkt, en past hij niet bij de grond (gras op een akker), dan geldt de standaard van dat perceel.
 function leesPlan(b, d) {
-  if (d.plan && typeof d.plan === 'object') for (const id of PERCEEL_IDS) { const g = d.plan[id]; if (GEWASSEN[g]) b.plan[id] = g; }
+  if (d.plan && typeof d.plan === 'object') for (const id of Object.keys(d.plan)) { const g = d.plan[id]; if (isPerceelId(id) && GEWASSEN[g]) b.plan[id] = g; }
   const actief = b.bedrijf.actief;
   if (!b.plan[actief] && GEWASSEN[d.keuze]) b.plan[actief] = gewasVoor(d.keuze, actiefPerceel(b.bedrijf).soort);
 }
@@ -134,7 +138,7 @@ function leesPlan(b, d) {
 function leesBoek(b, raw) {
   if (!raw || typeof raw !== 'object') return;
   const som = (x) => ({ omzet: Math.round(getal(x && x.omzet, 0, 1e9)), kosten: Math.round(getal(x && x.kosten, 0, 1e9)) });
-  if (raw.velden && typeof raw.velden === 'object') for (const id of PERCEEL_IDS) if (raw.velden[id] && typeof raw.velden[id] === 'object') b.boek.velden[id] = { ...som(raw.velden[id]), kg: Math.round(getal(raw.velden[id].kg, 0, 1e9)) };
+  if (raw.velden && typeof raw.velden === 'object') for (const id of Object.keys(raw.velden)) if (isPerceelId(id) && raw.velden[id] && typeof raw.velden[id] === 'object') b.boek.velden[id] = { ...som(raw.velden[id]), kg: Math.round(getal(raw.velden[id].kg, 0, 1e9)) };
   if (raw.jaren && typeof raw.jaren === 'object') {
     const jaren = Object.keys(raw.jaren).filter((j) => /^\d{1,4}$/.test(j)).map(Number).sort((x, y) => y - x).slice(0, BOEKJAREN_BEWAARD);
     for (const j of jaren) {
@@ -278,7 +282,7 @@ export function boek(b, { omzet = 0, kosten: k = 0, veld = null, kg = 0, post = 
   jr.omzet += o; jr.kosten += c;
   if (post && c > 0) jr.posten[post] = (jr.posten[post] || 0) + c;
   for (const oud of Object.keys(b.boek.jaren).map(Number).sort((x, y) => y - x).slice(BOEKJAREN_BEWAARD)) delete b.boek.jaren[oud];
-  if (veld && PERCEEL_IDS.includes(veld)) {
+  if (veld && isPerceelId(veld)) {
     const f = b.boek.velden[veld] || (b.boek.velden[veld] = { omzet: 0, kosten: 0, kg: 0 });
     f.omzet += o; f.kosten += c; f.kg += Math.round(kg);
   }
@@ -403,7 +407,8 @@ export function leverVracht(b, vracht, kwaliteit) {
   const q = clamp(Number.isFinite(kwaliteit) ? kwaliteit : 0, 0, 1) * clamp(Number.isFinite(vracht.kwaliteit) ? vracht.kwaliteit : 1, 0, 1);
   const dag = dagVan(b.uren);
   const basis = GEWASSEN[vracht.gewas].prijsKg;
-  const prijs = dagprijs(vracht.gewas, dag) || (basis > 0 ? basis : 0);
+  const prijs0 = dagprijs(vracht.gewas, dag) || (basis > 0 ? basis : 0);
+  const prijs = prijs0 > 0 ? areaPrice(vracht.gewas, vracht.kg, dag, vracht.veld, prijs0) : 0;   // de streekmarkt van Bezit (bezithooks.js), zonder haak de dagprijs
   if (!(prijs > 0)) return { bedrag: 0, kg: 0, gewas: null };
   const bedrag = Math.round(vracht.kg * prijs * q);
   const r = { bedrag, kg: vracht.kg, gewas: vracht.gewas, kwaliteit: q, prijs, dag };

@@ -67,6 +67,8 @@ import { registerNarrative, mayStart, narrativeBusy, narrativeState } from './na
 import { storyLines, talkLines, radioContacts, appsAt, storyDataReady, readingTime, scene as storyScene } from './storytext.js';
 import { openingBlockers, openingIsNext, openingActEnd, openingFinish, openingReplayBlockers, openingReplayGate } from './openingstart.js';
 import { updateStoryTalk, stopTalk, playTalk } from './storytalk.js';
+import { bridgeActive } from './storybridgerun.js';
+import { milestoneFlagsFor, milestoneFlagsForDone } from './storymilestones.js';
 import { makeReisGoals } from './storyreis.js';
 import { plakjesState } from './plakjes.js';
 import { registerStoryQueries } from './storyquery.js';
@@ -333,6 +335,7 @@ function markDone(step, { skipped = false, quiet = false } = {}) {
   if (!skipped) noteStepCleared(step.id);
   rt.skipUntil = -1;
   if (step.unlocks) state.flags.add(step.unlocks);
+  for (const fl of milestoneFlagsFor(step.id)) state.flags.add(fl);   // de frietwagen groeit mee (#1136)
   if (!quiet && step.kind === 'activity' && step.done) {
     // "Even onderduiken": the scene and text of the option the player picked
     const shown = step.goal && step.goal.type === 'hideout' ? hideoutStep(step, rt.base) : step;
@@ -1154,7 +1157,7 @@ export function initStory(w) {
   initStoryFun(w);
   initStoryEikea(w, () => (rt.cur && !rt.cur.end && rt.cur.goal && rt.cur.goal.type === 'eikea' ? rt.base : null));
   initSkipUi();
-  registerNarrative('say', { active: () => !!world && (rt.sayUntil || 0) > world.time });
+  registerNarrative('say', { active: () => (!!world && (rt.sayUntil || 0) > world.time) || bridgeActive() });
   ready = true;
   window.__story = storyApi;
 }
@@ -1235,7 +1238,7 @@ export function updateStory(dt, w) {
   }
   if (rt.clueToasts.length && !isCinematicActive() && !w.pigeonMode) {
     const c = rt.clueToasts.shift();
-    w.addMessage(c.kind === 'taal' ? `Gronings geleerd: ${c.title}. Lees terug in het pauzemenu, Verhaal: "Aanwijzingen"` : `Nieuwe aanwijzing: ${c.title}. Lees terug in het pauzemenu, Verhaal: "Aanwijzingen"`, 4.5);
+    w.addMessage(c.kind === 'taal' ? `Gronings geleerd: ${c.title}` : `Nieuwe aanwijzing: ${c.title}`, 4.5);
     playClueSting();
   }
   // the next step's text waits until a scene has been over for a moment, and
@@ -1314,6 +1317,7 @@ export function applyStorySave(d) {
   state.waived = new Set((Array.isArray(d.waived) ? d.waived : []).filter((k) => typeof k === 'string'));
   state.cards = new Set((Array.isArray(d.cards) ? d.cards : []).filter((k) => PARTS[k]));
   state.flags = new Set((Array.isArray(d.flags) ? d.flags : []).filter((k) => typeof k === 'string'));
+  for (const fl of milestoneFlagsForDone(state.done)) state.flags.add(fl);   // een oude save krijgt de mijlpalen van wat hij al deed (#1136)
   for (const [id, n] of Object.entries(d.fails || {})) if (STEP_BY_ID.has(id) && Number.isFinite(n)) state.fails[id] = n;
   // no frame with the old save's kisses (player.js runs before updateStory)
   if (world) world.kissUnlocked = kissUnlockedNow();
@@ -1332,6 +1336,9 @@ function meet(key) {
 export function getStoryCharacters() {
   return Object.entries(CHARACTERS).map(([key, c]) => ({ key, ...c, met: state.flags.has('met:' + key) }));
 }
+
+// Voor de overgangsscènes (storybridgerun.js): de echte sets, zodat de scène zijn eigen vlag zet.
+export const storyBridgeView = () => { const c = currentStep(); return { done: state.done, flags: state.flags, currentId: c && !c.end ? c.id : null }; };
 
 export function storyFlag(name) {
   return state.flags.has(name);
@@ -1441,6 +1448,7 @@ export function devJumpTo(id, opts = {}) {
   for (const s of prior) {
     state.done.add(s.id);
     if (s.unlocks) state.flags.add(s.unlocks);
+    for (const fl of milestoneFlagsFor(s.id)) state.flags.add(fl);
   }
   // a jump into Deel 4: the finale card of act 5 has played, or the gate (nextStoryStep) would send the story back to it
   if (PARTS[STEPS[k].part].after) state.cards.add(PARTS[STEPS[k].part].after);

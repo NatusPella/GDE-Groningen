@@ -1,11 +1,12 @@
 // De kaartlaag 'Percelen' (#415): akkers en weilanden te koop, te huur en van jou, elk met een doel (waypoint) bij het aanklikken.
 // Te koop is geel, te huur blauw, van jou groen; een blokje met akkerstrepen. De Zonnehoek ligt waar je eigen perceel gevonden is.
 import { getBoerderij } from './boerderijlive.js';
-import { PERCELEN, START_PERCEEL, stand, kaartSoort, kaartOnderschrift, perceelVlak } from './percelen.js';
+import { PERCELEN, START_PERCEEL, stand, kaartSoort, kaartOnderschrift, perceelVlak, perceelDef } from './percelen.js';
 import { wgsToWorld } from './rdnew.js';
 import { INK, inkA } from './mapstyle.js';
 import { veldStatus, KAART_STIJL, GROEI_STANDEN, watNu, machinePlekken, afnemerPlekken } from './farmstatus.js';
 import { iconInner } from './icons.js';
+import { getBezit } from './bezitlive.js';
 
 const pos = new Map();
 const wereld = (p) => { let q = pos.get(p.id); if (!q) { q = wgsToWorld(p.lat, p.lon); pos.set(p.id, q); } return q; };
@@ -20,6 +21,7 @@ export function perceelMapSpots() {
     const eigen = s.van === 'jou' ? veldStatus(b, p.id) : null;
     out.push({ kind: eigen ? `perceel-eigen-${eigen.statusId}` : kaartSoort(s), x, y, name: p.naam, sub: eigen ? `${eigen.klaar ? 'Oogstklaar' : eigen.status} · nu: ${watNu(eigen, b.schuur.kg || 0).toLowerCase()}` : kaartOnderschrift(s), id: p.id, goal: { kind: 'place', name: p.naam, sub: 'Perceel', x, y } });
   }
+  out.push(...bezitKaartSpots(b));   // epic Bezit: de percelen die je in de provincie kocht (op de kaart en de minikaart)
   // #985: je machines in de wereld (trekker, maaidorser, laadmachine) met hun dieselstand
   for (const m of machinePlekken()) out.push({ kind: 'perceel-machine', x: m.x, y: m.y, name: m.naam, sub: `Van jou · diesel ${Math.round(m.diesel * 100)}%${m.diesel <= 0.15 ? ' (bijna leeg)' : ''}`, id: m.uid, goal: { kind: 'place', name: m.naam, sub: 'Machine', x: m.x, y: m.y } });
   // #1005: de afnemers van je oogst, zodra je een veld of machine hebt: dan weet je waar je heen moet nog voor je de aanhanger laadt
@@ -139,4 +141,23 @@ export function drawPerceelMapIcon(ctx, kind, s) {
     ctx.fillStyle = INK.dark; ctx.fillText(stijl.letter, 0, 0.4 * s);
   }
   return true;
+}
+
+// Epic Bezit (#1100): je gekochte percelen als pin met hun stand (zoals de vaste velden); hoogstens 300 en hooguit twee keer per seconde opnieuw berekend, ook bij duizend percelen.
+let spotsMemo = { t: 0, lijst: [] };
+function bezitKaartSpots(b) {
+  const nu = typeof performance !== 'undefined' ? performance.now() : 0;
+  if (spotsMemo.lijst.length && nu - spotsMemo.t < 500) return spotsMemo.lijst;
+  const lijst = [];
+  const bz = getBezit();
+  for (const id of Object.keys(bz.parcels)) {
+    const r = bz.parcels[id];
+    if (r.lg || !r.c || lijst.length >= 300) continue;
+    const d = perceelDef(id);
+    if (!d) continue;
+    const st = veldStatus(b, id);
+    lijst.push({ kind: `perceel-eigen-${st.statusId}`, x: r.c[0], y: r.c[1], name: d.naam, sub: `${st.klaar ? 'Oogstklaar' : st.status} · van jou`, id, goal: { kind: 'place', name: d.naam, sub: 'Van jou', x: r.c[0], y: r.c[1] } });
+  }
+  spotsMemo = { t: nu, lijst };
+  return lijst;
 }

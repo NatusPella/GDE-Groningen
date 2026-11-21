@@ -43,6 +43,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [BAG-LOD22.md](<BAG-LOD22.md>) | Besluit van de eigenaar: de 3D BAG-modellen (LoD 2.2: echte daken met dakkapellen, overstekken en schoorste… |
 | [BOERDERIJ.md](<BOERDERIJ.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/mechanica.md`](../.specs-fire/standard… |
 | [BEZIT-21-11.md](<BEZIT-21-11.md>) | Werkdocument. Onderzoek, data-audit en ontwerp van de epic Bezit: koopbare percelen en panden in de hele provincie (13.883 percelen, 370.144 panden), prijsmodel, bezit-opslag, productieketen, AI-personeel, Samen spelen en het stappenplan met werkpakketten. Gemeten met `scripts/world/percelen_audit.mjs`. |
+| [BEZIT-VERIFICATIE-21-11.md](<BEZIT-VERIFICATIE-21-11.md>) | Werkdocument. Per pakket van de epic Bezit wat gebouwd en getest is en wat nog in beeld (Electron) te controleren valt. |
 | [COOP-GAST.md](<COOP-GAST.md>) | Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). Dit docu… |
 | [COOP-DEKKING-21-11.md](<COOP-DEKKING-21-11.md>) | Werkdocument. Audit-matrix: per systeem van de hele game de zes vragen over Samen spelen (bezit, gast, beloning, wegvallen en hostwissel, enkelspeler-aanname, dekking), gegenereerd uit scripts/coop_coverage.json. |
 | [COOP-SWEEP-21-11.md](<COOP-SWEEP-21-11.md>) | Werkdocument. Draaiboek voor de sweep: welke testbank-suites, hoeveel Electron-instanties, hoe lang. |

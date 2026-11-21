@@ -77,7 +77,8 @@ import { updateTrafficLaw } from './trafficlaw.js';
 import { updateOffences } from './offences.js';
 import { updateMotorPolice } from './motorpolice.js';
 import { initMissions, updateMissions } from './missions.js';
-import { initStory, updateStory, currentStep } from './story.js';
+import { initStory, updateStory, currentStep, storyBridgeView } from './story.js';
+import { updateStoryBridge } from './storybridgerun.js';
 import { updateTerugkeer } from './terugkeerrun.js';
 import { updateRecap, isRecapOpen } from './recapcardrun.js';
 import { initGoal, updateGoal } from './goal.js';
@@ -209,6 +210,14 @@ import { tryQuickWaypoint } from './snelwaypoint.js'; // #836: T zet of wist je 
 import { initAchievementTracker, updateAchievementTracker } from './achievementtracker.js';
 import { initOmverrijden } from './omverrijden.js';
 import { initBoerderij, boerderijTijd, boerderijKlokNul } from './boerderijlive.js';
+import { initBezit, dagTik as bezitDagTik, getBezit } from './bezitlive.js';
+import { onDayReport as bezitOnDayReport, deliverLine as bezitDeliverLine } from './bezitworldhooks.js';
+import { updateFarmWorkers } from './farmworkers3d.js';
+import { updateSnackWagens } from './snackvans3d.js';
+import { updateHerds } from './herdview3d.js';
+import { setGateProgress } from './bezitgate.js';
+import { progressFrom } from './unlockgate.js';
+import { updateBezitMarkers } from './bezitmarker3d.js';
 import { BOERDERIJ_WERELD_KIND } from './boerderijwereld.js';
 import { probe } from './hitchprobe.js';
 import { initSafety, updateSafety } from './safety.js';
@@ -940,6 +949,9 @@ const frameStats = { workMs: 0, frameMs: 16, at: 0 };
 window.__debug = { player, map, input, world, frameStats };
   initAchievementTracker(world);
   initOmverrijden(world);
+  initBezit();
+  // de gedeelde ontgrendelpoort (unlockgate.js): zolang de save geen `gate` heeft (world.gate) staat alles open (migratieregel van de verhaal-epic)
+  setGateProgress(() => { const st = currentStep(); return progressFrom({ stepId: st ? st.id : null, gate: world.gate }); });
   initBoerderij();
   initSafety(world);
   initCheats(world);
@@ -1190,6 +1202,8 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     // de recapkaart 'Waar waren we?' komt eerst; de terugkeerscène wacht tot hij dicht is (menuOpen)
     updateRecap(dt, world, () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen());
     updateTerugkeer(dt, world, () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen() || isRecapOpen());
+    // #1125: een korte overgangsscène van Tammo en Tessa tussen twee missies (storybridgerun.js), op een rustig moment
+    updateStoryBridge(world.paused ? 0 : dt, world, storyBridgeView(), () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen());
     probe.mark('story');
     updateStreetSigns(dt, world, getScene());
     const animDt = world.paused && !doorloop ? 0 : gameDt;
@@ -1478,6 +1492,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     updateClearZones(dt, world);
     updateDayNight(dt, world);
     boerderijTijd(world); // de gewassen groeien in speltijd (#415)
+    try { const dr = bezitDagTik(world); if (dr) bezitDeliverLine(world, bezitOnDayReport(getBezit(), dr)); updateBezitMarkers(world, dt); updateFarmWorkers(world, dt); updateSnackWagens(world, dt); updateHerds(world, dt); } catch (e) { /* zonder bezit */ } // personeel, pacht, vee en bedrijven per speldag; de palen in de wereld (epic Bezit)
     updateCalendar(dt, world);
     updateVoetbalDag(dt, world); // de nachten van de voetbalcarrière (#1110): zelfde signaal als de kalender, eigen teller
     updateVoetbalBeats(dt, world);

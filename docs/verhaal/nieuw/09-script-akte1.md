@@ -22,11 +22,18 @@ TAMMO: Dan rijdt hij nauwelijks voor jou. De Fjord Frituur, op een Fjord. Dan kl
 TESSA: Zonder bank blijft er één weg over: een wedstrijd. Wie wint, krijgt de enige vrije standplaats van Grunn, een plek voor een frietwagen. [NIEUW]
 TAMMO: De prijs voor de beste eierbal. [NIEUW]
 TESSA: Wij winnen op 28 augustus, wij krijgen die standplaats, en de Fjord Frituur heeft een thuis. [NIEUW]
+TAMMO: Waarom nou een frietwagen? [NIEUW]
+TESSA: Omdat mensen bij een luik blijven staan en gaan praten. Een thuis met wielen, Tammo. Dat wil ik. [NIEUW]
+TAMMO: En ik rijd. [NIEUW]
+TESSA: Jij rijdt. [NIEUW]
 TAMMO: En tot die tijd? Hier past geen frietwagen. [NIEUW]
 TESSA: Daarom. Paddepoel, elfde verdieping. Twee kamers en een garage, voor de Fjord. [BEHOUDEN]
 TAMMO: Paddepoel? Dat is buitenland. [BEHOUDEN]
+TESSA: Vierentwintig, net afgestudeerd en samen nul banen. [NIEUW]
 TESSA: Alleen kan ik de huur niet betalen. Jij ook niet. Samen net. [BEHOUDEN]
 TAMMO: …Samen. [BEHOUDEN]
+RIKUS (radio): En nu een plaat voor Tammo, mijn vriend sinds groep drie. Hij heeft een grote dag en zegt niks. [NIEUW]
+TAMMO: Rikus draait mijn plaat. [NIEUW]
 TESSA: Als huisgenoten, Tammo. Teken nou maar. [BEHOUDEN]
 (regie: ze schuift het huurcontract over de tafel. Haar telefoon trilt.)
 TESSA: Kom. Werk. [BEHOUDEN]
@@ -37,7 +44,8 @@ TAMMO: Elf hoog. Met een lift. Ik voel me rijk. [BEHOUDEN]
 TESSA: Je bent niet rijk, Tammo. Je bent huisgenoot. [BEHOUDEN]
 TESSA: Eerst geld. Meedoen aan die wedstrijd, de Noordelijke Snackprijs, kost honderdvijftig euro, contant, uiterlijk morgen om twaalf uur. [NIEUW]
 TAMMO: Honderdvijftig euro. Vandaag. [NIEUW]
-TESSA: Een streamer betaalt honderdvijftig euro voor stunts. Alleen heeft de Escapade een lekke band, dus we lenen een bakkie. Rijden, niet praten. [NIEUW]
+TESSA: Een streamer betaalt honderdvijftig euro voor stunts. Alleen heeft de Escapade een lekke band. [NIEUW]
+TESSA: Dus we lenen het bakkie van Berend Bos. Rijden, niet praten. [NIEUW]
 
 ## [M01.1] Nul krassen, vijftienhonderd punten: intro – Stad, Martinikerkhof – Berends bakkie
 (regie: vrijdag 14 augustus, middag. Berend staat bij zijn bakkie, een nors mannetje met zijn arm in het gips en een kladblok. Aan het bakkie hangt een bord: CHAUFFEUR GEZOCHT, VIJFTIG EURO, BEREND BOS. De Escapade staat met een lekke band aan de kant. Gameplay: Berends bakkie door het centrum, nul krassen.)
@@ -152,7 +160,7 @@ TAMMO: Moi. Wat is er gebeurd? [BEHOUDEN]
 TESSA: Mijn pas zit in die automaat. En die automaat zit op die aanhanger. En die aanhanger is van niemand. [BEHOUDEN]
 TESSA: Ze trokken hem met een kabel uit de muur. Ik was nog niet klaar met mijn pincode. [NIEUW]
 TAMMO: Dus we pinnen even. [BEHOUDEN]
-TESSA: Ik ken iemand die opent wat niemand kan. Wij brengen de automaat naar hem. [NIEUW]
+TESSA: Ik ken Sjabbe. Hij opent wat niemand kan. Wij brengen de automaat naar hem. [NIEUW]
 TESSA: Een gestolen automaat op een aanhanger, en wij ernaast. [NIEUW]
 TESSA: Er komt een politieauto aan. Instappen. [BEHOUDEN]
 TAMMO: Ik rij. [NIEUW]
@@ -183,9 +191,22 @@ SJABBE: Weer een automaat? Dit wordt een gewoonte. Een goede. [BEHOUDEN]
 
 ## [M02.5] Slot: naar het Loket – Stad, Pand & Poen – Escapade
 (regie: ze zitten in de Escapade voor de winkel, de motor tikt af.)
+TAMMO: Fijn, die nieuwe band. Henk vroeg niks. [NIEUW]
+TESSA: Alleen of we een koekje wilden. [NIEUW]
 TAMMO: Waarom vraagt een snackbaron naar alarmen? [NIEUW]
 TESSA: Dat weten we na het Loket. Hij heeft het vast over meer dan een museum. [NIEUW]
 TAMMO: Dan eerst het Loket. [NIEUW]
+
+## [O1] Het kaartje – Stad, Paddepoel – flat
+(regie: avond, de flat in Paddepoel. Op de koelkast hangt een kaartje van de eerste Kiezelweek, vijf jaar geleden. Tessa tekent op een bonnetje de luiken van de wagen. Tammo staat met twee koppen thee in de deur en kijkt even naar het kaartje, en dan naar haar.)
+TESSA: Het luik moet aan de zijkant, dan staat niemand in de weg. [NIEUW]
+TAMMO: Welke mensen? [NIEUW]
+TESSA: De mensen die gaan komen, Tammo. [NIEUW]
+TAMMO: Dan zet ik hem zo neer dat het past. [NIEUW]
+TESSA: Je hebt dat kaartje nog. Van die eerste week. [NIEUW]
+TAMMO: Het hing al aan de koelkast. [NIEUW]
+TESSA: Ja. Natuurlijk. [NIEUW]
+(regie: ze tekent door. Hij blijft nog even staan met de thee.)
 
 ## [M03.1] Het Loket: intro – Stad, Het Loket bij de Grote Markt – te voet
 (regie: zaterdag 15 augustus, tien uur. Een wachtruimte met nummerautomaat, een scherm dat 4093 toont, een bord "Loket B is vandaag Loket C". Gameplay: een wachtrijpuzzel met een klok: nummer trekken, formulier halen, stempel halen, voor twaalf uur.)
@@ -218,9 +239,9 @@ JELLE: Foar mem. [NIEUW]
 TAMMO: Wat zei hij? [NIEUW]
 TESSA: Voor zijn moeder. Hij doet alles voor zijn moeder. [NIEUW]
 (regie: achter Jelle staat een kleine, oude dame met een hoed, een gouden speldje en een stempel. Naamkaart: MEVROUW HOVING.)
-BEWAARDER: Ik bewaar de Gouden Eierbal, de wisselprijs van de Snackprijs, al sinds 1998. Wie de bal bewaart, zit de jury voor en tekent de uitslag. [NIEUW]
-LOKETBEDIENDE: Is de bewaarder er niet, dan zit het oudste jurylid voor. Dat is Berend Bos, jurylid sinds 1982. [NIEUW]
-BEWAARDER: Meneer Terpstra heeft de vier andere juryleden en mij uitgenodigd voor een treinreis met volpension: alle maaltijden erbij. Vanaf maandag, tot na het Ontzet. [NIEUW]
+BEWAARDER: Ik bewaar de Gouden Eierbal, de wisselprijs van de Snackprijs, al sinds 1998. Wie de bal heeft, zit de jury voor. [NIEUW]
+LOKETBEDIENDE: Is zij er niet, dan zit Berend Bos voor. Jurylid sinds 1982. [NIEUW]
+BEWAARDER: Meneer Terpstra heeft mij en de vier andere juryleden uitgenodigd voor een treinreis met volpension. Vanaf maandag, tot na het Ontzet. [NIEUW]
 BEWAARDER: Berend Bos bedankte, want hij heeft een bakkie. Een bijzonder aardige man, meneer Terpstra. [NIEUW]
 TESSA: En wie let dan op de bal? [NIEUW]
 BEWAARDER: Het museum. De koepel hangt sinds woensdag onder een doek, wegens restauratie. [NIEUW]
@@ -237,8 +258,7 @@ TESSA: Dat is een gemeente. [NIEUW]
 ## [M03.4] Het Loket: outro – Stad, Het Loket – te voet
 LOKETBEDIENDE: Gefeliciteerd. U bent ingeschreven voor de Noordelijke Snackprijs, met wagen. Zonder wagen vervalt uw inschrijving. [NIEUW]
 TESSA: Wij zijn ingeschreven. Op 28 augustus op de Grote Markt. [NIEUW]
-TESSA: Hij vroeg Sjabbe waar het museum alarmen heeft. Hij wil de bal, want wie de bal bewaart, zit de jury voor. [NIEUW]
-TESSA: Tenzij iemand de bal eerder pakt. [NIEUW]
+TESSA: Hij vroeg Sjabbe waar het museum alarmen heeft. Hij wil de bal, want wie de bal heeft, zit de jury voor, en dat wil Jelle. [NIEUW]
 TESSA: Als iemand die bal steelt, Tammo, dan liever wij. Dan is hij tenminste nog in Stad. [BEHOUDEN]
 TAMMO: Wij stelen de Gouden Eierbal. [NIEUW]
 TESSA: Wij bewaken hem. Na het Ontzet brengen we hem terug. [NIEUW]
@@ -247,11 +267,17 @@ TESSA: Je opa huilde bij elke voetbalwedstrijd. [BEHOUDEN]
 TAMMO: Dat was verlies. Dit was anders. [BEHOUDEN]
 TESSA: …Je mag nee zeggen. [BEHOUDEN]
 TAMMO: Ik zeg niks. Dat is ook een antwoord. [BEHOUDEN]
+TAMMO: Als iemand het museum kent, is het Bert. De beste vriend van mijn opa. [NIEUW]
 BERT (telefoon): Tammo. Bert, van de duiven. Er staat elke nacht een zwarte trekker bij het museum, met een limousine erachter. [NIEUW]
-TESSA: Bert kende jouw opa. Eerst kijken hoe het museum bewaakt wordt. Naar het Stationsplein. [NIEUW]
+TESSA: Eerst kijken hoe het museum bewaakt wordt. Naar het Stationsplein. [NIEUW]
 
 ## [M03.5] Het Loket: herhaling – Stad, Het Loket – te voet
 LOKETBEDIENDE: Weer bij ons? Loket B is nog steeds Loket C. [NIEUW]
+
+## [R1.1] Nachtstreek, zaterdagavond – Stad – radio
+RIKUS (radio): Een beller voor de zaterdagavond. Hij zegt dat hij de markt koopt. Ik zeg niks. [NIEUW]
+JELLE (radio): Jelle Terpstra, Us Mem Snacks. U kent mij van de plakjes: elke dag één, tot alles van mij is. [NIEUW]
+RIKUS (radio): Dat is een duidelijk plan. Ik draai een plaat. [NIEUW]
 
 ## [M04.1] Kieken van boven: intro – Stad, Stationsplein – duif
 (regie: zondag 16 augustus, ochtend. Bert op het Stationsplein bij zijn duiventil. Naamkaart: DUIVENMELKER BERT. Gameplay: Tammo is de duif en fotografeert camera's, bewakers en de stroomkast bij het museum.)
@@ -301,6 +327,18 @@ TESSA: We gaan hem eerder halen dan die Fries. Daarna zien we wel. [BEHOUDEN]
 TAMMO: "Daarna zien we wel" is geen plan. [BEHOUDEN]
 TESSA: Als het niet gaat zoals het moet, doen we het anders. [NIEUW]
 TAMMO: Dat is ook geen plan. Dat is een tegeltje. [BEHOUDEN]
+
+## [O2] Ik draai je plaat – Stad, Paddepoel – telefoon
+(regie: nacht. Tammo ligt op de bank, de telefoon op zijn borst. Rikus belt vanuit de studio van Nachtstreek, zacht op de achtergrond een plaat.)
+RIKUS (telefoon): Tammo. Ben je wakker? Ik draai je plaat. [NIEUW]
+TAMMO (telefoon): Welke plaat? [NIEUW]
+RIKUS (telefoon): Die van de zomer dat we twaalf waren. Op de fiets naar de Hunze. [NIEUW]
+TAMMO (telefoon): Dat zeg je elke keer. [NIEUW]
+RIKUS (telefoon): En jij woont ineens op de elfde verdieping met een meisje. Dat hoor ik uit de chat. [NIEUW]
+TAMMO (telefoon): Ze is mijn huisgenoot. [NIEUW]
+RIKUS (telefoon): Vijf jaar, Tammo. Ik zeg niks. [NIEUW]
+TAMMO (telefoon): Dat zeg je altijd. [NIEUW]
+RIKUS (telefoon): Slaap lekker, jongen. [NIEUW]
 
 ## [M05.1] Wind tegen, beide kanten op: intro – Stad, Academiegebouw – fiets
 (regie: zondag 16 augustus, middag. Sjoerd staat bij het Academiegebouw met een clipboard en een rij eerstejaars. Gameplay: een fietsrace door de binnenstad, altijd tegenwind.)
@@ -436,3 +474,14 @@ APP TAMMO→TESSA (stil): Ik ben je nog niet kwijt. [NIEUW]
 APP SJOERD→TAMMO (stil): Podium, dan praten we. [NIEUW]
 APP HENK→TAMMO (stil): Zender zit erin. Als de Escapade wordt gejat, weet ik waar hij staat. [NIEUW]
 APP SJABBE→TESSA (stil): Kopieermachine. Niet vergeten. [NIEUW]
+
+## [O3] Eerlijk winnen – Stad, ringweg – Escapade
+(regie: laat in de nacht. De Escapade rijdt zonder haast door een lege straat. Tammo stuurt, Tessa kijkt voor zich uit.)
+TESSA: Wij staan op de camera. [NIEUW]
+TAMMO: Hij had hem al. [NIEUW]
+TESSA: Dan moeten we weten wat hij nog meer heeft. [NIEUW]
+TAMMO: En daarna? [NIEUW]
+TESSA: Daarna winnen we gewoon eerlijk. Met een eierbal die beter is dan de zijne. [NIEUW]
+TAMMO: Oma Trijntje won in 1953. [NIEUW]
+TESSA: Dan weet zij hoe dat moet. [NIEUW]
+

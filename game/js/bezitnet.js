@@ -1,0 +1,118 @@
+// Het netwerktransport van de Bezit-claims (epic #1095, #1104) over het bestaande JSON-gebeurtenissenkanaal van Samen spelen (coopnet.js handleEvent, body.k === 'bezit').
+// Geen nieuw binair formaat: een oude client kent de sleutel 'bezit' niet en negeert het bericht (handleEvent geeft false), dus er breekt niets. De claim-regels zelf staan
+// in bezitcoop.js (puur); dit bestand regelt alleen wie wat naar wie stuurt: een gast stuurt zijn claim naar de host, de host past hem toe (laagste (tijd, speler-id) wint)
+// en geeft hem door aan de anderen; bij aansluiten stuurt de gast zijn ID-verzameling en krijgt hij de claims van de sessie terug; wie wegvalt verliest zijn claims.
+// Bezit is per speler (#429): de claims zijn een zachte laag, er verandert niets in andermans opslag. Geen THREE, geen DOM (scripts/bezitnet_test.mjs).
+
+import { attachCoop, setCoopEnsure } from './bezitlive.js';
+import { encodeIds, decodeIds, ID_RE } from './bezitcoop.js';
+
+export const SYNC_CHUNK = 150;                       // ID's per bericht: 150 x 8 tekens blijft ruim onder MAX_JSON (2048)
+const slotId = (slot) => `s${slot}`;
+const nameOf = (world, slot) => {
+  const r = Array.isArray(world.coopRoster) ? world.coopRoster.find((s) => s && s.slot === slot) : null;
+  return String((r && (r.naam || r.name)) || `Speler ${slot}`).slice(0, 24);
+};
+const colorOf = (world, slot) => { const r = Array.isArray(world.coopRoster) ? world.coopRoster.find((s) => s && s.slot === slot) : null; return (r && typeof r.kleur === 'string' && r.kleur) || null; };
+
+// Aanmaken (één keer per sessie). transport: { role: 'host' | 'client', toHost(body), toGuest(slot, body), guests() -> [slots] }.
+export function ensureBezitNet(world, transport) {
+  if (world.bezitNet && world.bezitNet.transport === transport) return world.bezitNet;
+  const isHost = transport.role === 'host';
+  const selfId = isHost ? slotId(0) : 'me';
+  const selfName = (world.coopSelfName && String(world.coopSelfName).slice(0, 24)) || 'Medespeler';
+  const send = (full) => {
+    if (isHost) { for (const s of transport.guests()) transport.toGuest(s, { k: 'bezit', a: full.action, id: full.id, from: full.from, name: full.name, color: full.color, t: full.t }); }
+    else transport.toHost({ k: 'bezit', a: full.action, id: full.id, t: full.t });
+  };
+  const net = attachCoop(world, selfId, selfName, null, send);
+  const o = { transport, isHost, net, hello: false };
+  world.bezitNet = o;
+  // aansluiten: de gast meldt zijn bezit aan de host; de host stuurt de claims van de sessie
+  if (!isHost) { o.hello = true; transport.toHost({ k: 'bezit', a: 'hello', ids: net.snapshot() }); }
+  return o;
+}
+
+const chunks = (ids) => { const out = []; for (let i = 0; i < ids.length; i += SYNC_CHUNK) out.push(ids.slice(i, i + SYNC_CHUNK)); return out; };
+
+// Een 'bezit'-bericht uit handleEvent. van: het slot van de afzender (0 = de host zelf). Geeft true als het bericht van ons is (ook als het niets deed).
+export function handleBezit(world, body, van, transport) {
+  if (!body || body.k !== 'bezit' || typeof body.a !== 'string') return false;
+  const o = ensureBezitNet(world, transport);
+  const { net } = o;
+  if (o.isHost) {
+    if (!(van >= 1)) return true;                                          // de host luistert alleen naar gasten
+    const from = slotId(van), name = nameOf(world, van), color = colorOf(world, van);
+    if (body.a === 'hello') {
+      const ids = decodeIds(body.ids);
+      let n = 0;
+      for (const c of chunks(ids)) { const adopted = net.claims.adopt(from, name, color, encodeIds(c), Number.isFinite(body.t) ? body.t : 0); n += adopted; }
+      for (const s of transport.guests()) if (s !== van) for (const c of chunks(ids)) transport.toGuest(s, { k: 'bezit', a: 'sync', from, name, color, ids: encodeIds(c) });
+      // de claims die al in de sessie staan naar de nieuwe gast
+      const known = net.claims.list().map((c) => c.id), own = net.claims.snapshot();
+      for (const c of chunks(decodeIds(own))) transport.toGuest(van, { k: 'bezit', a: 'sync', from: slotId(0), name: nameOf(world, 0), color: null, ids: encodeIds(c) });
+      for (const [fromId, grp] of byOwner(net.claims, from)) for (const c of chunks(grp.ids)) transport.toGuest(van, { k: 'bezit', a: 'sync', from: fromId, name: grp.name, color: grp.color, ids: encodeIds(c) });
+      void known;
+      return true;
+    }
+    if (body.a !== 'claim' && body.a !== 'release') return true;
+    if (typeof body.id !== 'string' || !ID_RE.test(body.id)) return true;
+    const msg = { id: body.id, action: body.a, from, name, color, t: Number.isFinite(body.t) ? body.t : 0 };
+    const r = net.receive(world, msg);
+    for (const s of transport.guests()) if (s !== van) transport.toGuest(s, { k: 'bezit', a: msg.action, id: msg.id, from, name, color, t: msg.t });
+    // de gast verloor: hij hoort het van de host, zodat hij zijn geld terugkrijgt
+    if (r && r.ignored === 'verloren') { const w = net.claims.lookup(msg.id); if (w) transport.toGuest(van, { k: 'bezit', a: 'claim', id: msg.id, from: w.playerId, name: w.name, color: w.color, t: 0 }); }
+    return true;
+  }
+  // client: een bericht van de host
+  if (body.a === 'sync') { if (typeof body.from === 'string') net.claims.adopt(body.from, String(body.name || 'Medespeler'), body.color || null, body.ids, 0); return true; }
+  if (body.a === 'drop') { if (typeof body.from === 'string') net.claims.drop(body.from); return true; }
+  if (body.a !== 'claim' && body.a !== 'release') return true;
+  if (typeof body.id !== 'string' || !ID_RE.test(body.id) || typeof body.from !== 'string') return true;
+  net.receive(world, { id: body.id, action: body.a, from: body.from, name: body.name, color: body.color, t: Number.isFinite(body.t) ? body.t : 0 });
+  return true;
+}
+function* byOwner(claims, exceptFrom) {
+  const per = new Map();
+  for (const c of claims.listAll()) { if (c.from === exceptFrom || c.from === slotId(0)) continue; let g = per.get(c.from); if (!g) per.set(c.from, (g = { ids: [], name: c.name, color: c.color })); g.ids.push(c.id); }
+  yield* per.entries();
+}
+
+// Een gast die weggaat: zijn claims verdwijnen bij de host en bij de anderen.
+export function dropSlot(world, slot, transport) {
+  const o = world.bezitNet;
+  if (!o || !o.isHost) return 0;
+  const from = slotId(slot);
+  const n = o.net.claims.drop(from);
+  for (const s of transport.guests()) if (s !== slot) transport.toGuest(s, { k: 'bezit', a: 'drop', from });
+  return n;
+}
+
+// Opruimen bij het einde van de sessie.
+export function stopBezitNet(world) { if (world.bezitNet) { world.bezitNet.net.stop(); world.bezitNet = null; } }
+
+// De transport van de huidige sessie uit world.coopNet (coopnet.js): de host spreekt de gasten via de hub aan, een gast praat met de host via zijn sessie. null zonder sessie.
+export function transportOf(world) {
+  const n = world && world.coopNet;
+  if (!n) return null;
+  if (n.role === 'host' && n.hub) {
+    return { role: 'host', toGuest: (slot, body) => { try { n.hub.announce(body, slot); } catch (e) { /* gast weg */ } },
+      guests: () => n.hub.roster.spelers.filter((s) => s.slot !== 0 && s.verbinding !== 'lost').map((s) => s.slot) };
+  }
+  if (n.role === 'client' && n.session) return { role: 'client', toHost: (body) => { try { n.session.sendEvent(body); } catch (e) { /* geen verbinding */ } }, guests: () => [] };
+  return null;
+}
+// Een transport per sessie: dezelfde sessie geeft hetzelfde object terug zodat ensureBezitNet niet steeds opnieuw begint.
+const cache = new WeakMap();
+export function sessionTransport(world) {
+  const n = world && world.coopNet;
+  if (!n) return null;
+  let t = cache.get(n);
+  if (!t) { t = transportOf(world); if (t) cache.set(n, t); }
+  return t;
+}
+// Voor coopnet.js: een bericht en een vertrek.
+export function bezitEvent(world, body, van) { const t = sessionTransport(world); return t ? handleBezit(world, body, van, t) : false; }
+export function bezitLeave(world, slot) { const t = sessionTransport(world); return t ? dropSlot(world, slot, t) : 0; }
+// Bezit meldt een koop of verkoop hier aan: zorgt dat het transport er is voordat de claim verstuurd wordt.
+setCoopEnsure((w) => { const t = sessionTransport(w); if (t) ensureBezitNet(w, t); });

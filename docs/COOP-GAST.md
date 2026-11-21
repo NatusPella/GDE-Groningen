@@ -529,3 +529,47 @@ Bij de dekkingsaudit ([COOP-DEKKING-21-11.md](COOP-DEKKING-21-11.md), `scripts/c
 **Instellingen.** Instellingen (`gde-settings`) zijn per apparaat; niemand, ook niet wie het spel opende, past de instellingen van een ander aan. Cheats zijn de uitzondering die hierboven staat (uit zodra er een tweede speler is). Samen spelen aan of uit zetten staat bij Instellingen > Samen spelen. Tests: `scripts/settings_online_test.mjs`, `scripts/instellingen_test.mjs`.
 
 **Balans en groepsbonus.** Prijzen, loon en beloningen rekenen per speler en zijn voor iedereen gelijk (geen voordeel voor wie het spel opende); de groepsbonus van ADR 0020 komt per deelnemer erbovenop en is begrensd (`groepsbonus.js`). Zie [BALANS-21-11.md](BALANS-21-11.md).
+
+## Werken op andermans perceel (Bezit, #1101, 21-11)
+
+Bezit is per speler (#429, [BEZIT-21-11.md](BEZIT-21-11.md) hoofdstuk 5.5 en 10): een perceel, het personeel, de pacht, het vee en de Tessa-regels staan in het eigen bezit (`gde-bezit-v1`) en worden niet gedeeld. Wie het spel opende bezit de wereld, niet de percelen. Een gast die meewerkt op het perceel van de eigenaar:
+- **Eigenaar:** krijgt de oogst en de voortgang (de veldtoestand, de schuur, zijn prestatie en zijn Landbouw-niveau); het veld is zijn toestand.
+- **Gast:** krijgt loon: het loonwerktarief van het perceel (`LOONWERK_HA` van `machines.js`, per klus en per hectare) via `coopDeel`, plus zijn eigen Landbouw-punten en zijn eigen teller "gewerkte hectares" in zijn eigen opslag. Dat loon is nieuw geld en gaat niet van de eigenaar af, zodat meewerken nooit een last is.
+- **Wegvallen:** valt de gast weg midden in een klus, dan blijft het veld staan zoals het is (de cellen zijn eigenaarstoestand); de eigenaar of een ander maakt het af. Het personeel en de pacht van de eigenaar draaien door op de speldag van de eigenaar en gaan niet over het net.
+- **Later aansluiten:** een gast die later aansluit ziet de velden van de eigenaar via het bestaande `MISC_VELDEN`; hij ziet niets van beheerscherm, personeel of kasboek van een ander.
+- **Test:** pure tests `farmstaff_test` en `holdingsmodel_test` (het beheer is eigen toestand); de verdeling van het loon dekt de bestaande testbankstap van de gast-bestuurderketen (`coopbestuur.js`, #434).
+## Bezit: bedrijven en ketens bij Samen spelen (#1102, #1103, 21-11)
+
+**Winkelomzet gaat naar de eigenaar; een gast die in jouw winkel werkt krijgt loon.** Bezit is per speler (#429): wie het spel opende en wie meedoet houdt zijn eigen
+winkels, ketens en kasboek in zijn eigen opslag (`gde-bezit-v1`); niemand ziet andermans kasboek of beheerscherm, alleen de omtrek en naam van de winkels. De omzet per speldag
+en de keten draaien als cijfers in de eigen opslag van de eigenaar, ook als hij zelf niet speelt. Werkt een gast mee achter de toonbank of in een keten, dan is het loon nieuw geld voor
+de gast (zoals `coopDeel`) en geen aftrek bij de eigenaar. **Valt de gast weg of de eigenaar, dan gaat het dagschema door:** omzet, loon en voorraad zijn per speldag gerekend zonder
+dat iemand erbij is, en een later aansluitende speler pakt zijn eigen bezit gewoon weer op. Het weer en de streekprijzen komen uit dezelfde kalenderdag en dezelfde hash, dus alle
+spelers zien dezelfde droogte en dezelfde marktprijs; de levering van een medespeler in een streek wordt als EXTRA-bericht doorgegeven (`recordRemoteDelivery`) en drukt de prijs voor iedereen.
+
+
+## Bezit: claim, omtrek van medespelers en aansluiten (#1104, 21-11)
+
+Wie koopt in een sessie, meldt zijn perceel (claim). Elke speler ziet het als "van <naam>" in zijn kleur (kaartlaag Te koop en de palen in de wereld) en kan het deze sessie niet kopen; buiten een sessie is er geen claim. **Conflict** (twee kopers binnen dezelfde seconde): de claim met de laagste (tijd, speler-id) wint voor iedereen, ongeacht de volgorde van binnenkomst; wie verliest krijgt zijn geld volledig terug (`releaseLostClaim`) en een melding, nooit verlies. **Wegvallen:** de claims van wie weggaat verdwijnen, zijn bezit blijft van hem in zijn eigen spel. **Aansluiten:** een gast stuurt zijn ID-verzameling (6 byte per perceel, geen polygonen) en krijgt die van de anderen terug (`snapshot`, `adopt`). Een gast ziet de omtrek, naam en kleur van andermans bezit, geen kasboek en geen beheerscherm. Wie meewerkt op andermans perceel: de eigenaar krijgt oogst en voortgang, de gast loon, punten en zijn eigen teller (`workShare`). Code: `game/js/bezitcoop.js` (puur), `bezitlive.js` (`attachCoop`). Test: `scripts/bezitcoop_test.mjs` (10). **Gat:** het transport is nog niet aan een EXTRA-bericht gekoppeld (een nieuw MISC-soort in `net/codec.js`); `attachCoop(world, selfId, name, color, send)` verwacht alleen een `send`-functie. Twee of drie echte instanties zijn nog niet getest.
+
+## Snackwagen en Usmem Snacks bij Samen spelen (#1102, 21-11)
+
+**Elke speler heeft zijn eigen snackimperium, zijn eigen Usmem Snacks en zijn eigen voortgang (#429); het staat in `bezit.x.snack` (`gde-bezit-v1`), nooit in een savegame of snapshot.**
+Wie het spel opende bezit de wereld, niet de standplaatsen. Gedeeld is alleen de claim op een standplaats (`sp:<plek>`, `bezitcoop.js`, zelfde regels als bij percelen: de laagste (tijd, speler-id)
+wint en de verliezer krijgt zijn geld terug via `releaseLostSpot`; wie wegvalt verliest zijn claims, zijn eigen bezit blijft van hem; een gast die aansluit krijgt de kommalijst van de anderen met
+`snapshotSpots` en `adoptSpots`). Wat een medespeler in de sessie heeft is voor jou niet te koop en niet over te nemen, en staat op de kaartlaag Standplaatsen als "van <naam>". Een gast kan
+meewerken achter het luik van jouw wagen (`snackShare`): uurloon of een kwart van de dagwinst, nieuw geld; de eigenaar houdt winst en voortgang (nog geen knop of bericht, de logica is getest).
+De wagens in de wereld (`snackwagens3d.js`) zijn lokaal: elke speler ziet de wagens van zijn eigen imperium en van zijn eigen Usmem. Tests: `bezitcoop_test` en `snacklive_test`.
+
+## Bezit (21-11, epic Bezit)
+
+Bezit is per speler (#429): percelen, panden, personeel, ketens, snackwagen en kasboek staan in het eigen `gde-bezit-v1`; niets daarvan zit in een snapshot of een savegame. Wat wel gedeeld wordt is een zachte laag van claims.
+- **Claim.** Wie in een sessie koopt, meldt zijn perceel (of standplaats) via het JSON-gebeurtenissenkanaal (`k: 'bezit'`, `bezitnet.js`, aangesloten in `coopnet.js` handleEvent). Een gast stuurt zijn claim naar de host; de host past hem toe en geeft hem door aan de andere gasten. Iedereen ziet het als "van <naam>" in zijn kleur op de kaartlaag Te koop en in de wereld, en kan het deze sessie niet kopen. Een oude client kent de sleutel niet en negeert het bericht: er breekt niets.
+- **Conflict.** Twee kopers binnen dezelfde seconde: de claim met de laagste (tijd, speler-id) wint voor iedereen, ongeacht de volgorde van aankomst (getest met drie instanties en omgekeerde en gehusselde levering). Wie verliest krijgt zijn geld volledig terug (`releaseLostClaim`) en een melding; nooit verlies.
+- **Meewerken.** Een gast die op andermans perceel werkt, geeft de eigenaar de oogst en de voortgang; de gast krijgt loon (loonwerktarief, nieuw geld), zijn eigen Landbouw-punten en zijn teller gewerkte hectares (`bezitcoop.workShare`). In een snackwagen werkt een gast voor uurloon of een kwart van de winst (`snackShare`).
+- **Aansluiten.** Een gast meldt bij het aansluiten zijn ID-verzameling (6 byte per perceel, in stukken van 150) en krijgt de claims van de sessie terug.
+- **Wegvallen.** De claims van wie weggaat of wegvalt verdwijnen bij iedereen; zijn eigen bezit blijft van hem. Een veld dat tijdens een klus blijft staan is gewoon eigenaarstoestand.
+- **Hostwissel (#439).** Er is niets host-eigens: de dagtik per speldag rekent op de eigen boerderijklok in de eigen opslag, dus een hostwissel telt een dag niet dubbel (een klok die terugspringt doet niets, een sprong vooruit rekent de gemiste dagen een keer af, hoogstens 60). Een gast draait de dagtik niet (het gastpad in main.js keert eerder terug); zijn bedrijven lopen door als hij weer in zijn eigen spel is. De claims worden bij een nieuwe host opnieuw opgebouwd uit de ID-verzamelingen die de gasten bij het aansluiten sturen.
+Code: `game/js/bezitcoop.js` (puur), `bezitnet.js` (transport), `bezitlive.js` (`attachCoop`). Test: `scripts/bezitcoop_test.mjs`, `scripts/bezitnet_test.mjs` (12). Nog niet getest met echte vensters: de testbankstap voor de suite alles (Electron) staat open.
+meewerken achter het luik van jouw wagen (`snackShare`): uurloon of een kwart van de dagwinst, nieuw geld; de eigenaar houdt winst en voortgang (knop Meewerken in het blok Buurt en klanten; eigenaarskant `ontvangWerk`: 8% meer verkoop die dag; het netwerkbericht `{ type: 'snack-work', spot, hours }` koppelt de bouwer met `setSnackWorkSend`). Goodwill, vaste klanten en bondgenoten zijn per speler.
+De wagens in de wereld (`snackvans3d.js`) zijn lokaal: elke speler ziet de wagens van zijn eigen imperium en van zijn eigen Usmem. Tests: `bezitcoop_test` en `snacklive_test`.

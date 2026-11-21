@@ -113,7 +113,7 @@ export const GROEI_STANDEN = ['zaailing', 'groeiend', 'bijna', 'rijp'];
 export const WERELD_KLEUR = { braak: 0x9a9488, stoppel: 0xb8ad8e, geploegd: 0xe6dcc2, zaailing: 0xf3e07a, groeiend: 0xe8c93a, bijna: 0xd2a72c, rijp: 0x2fb36a };
 
 // Compact voor Samen spelen: één byte per veld (statusindex 0..6 in de bovenste drie bits, gewasindex in de onderste vijf) en de groei in 1/255.
-export const GEWAS_INDEX = B.GEWAS_IDS;
+export const GEWAS_INDEX = B.ALLE_GEWAS_IDS;
 export function codeerVeld(s) {
   const si = Math.max(0, STATUS_IDS.indexOf(s.statusId));
   const gi = s.gewas ? Math.max(0, GEWAS_INDEX.indexOf(s.gewas)) : 0;

@@ -18,6 +18,7 @@ import * as PC from './percelen.js';
 import * as M from './machines.js';
 import * as CT from './boerderijcontracten.js';
 import { dagVan } from './gewasmarkt.js';
+import { yieldInfo } from './bezithooks.js';
 import { unlockAchievement } from './achievements.js';
 import { farmFractie, farmOpbrengst, heeftBonus, characterForActivity, TESSA_LINES } from './karakterbonus.js';
 
@@ -39,8 +40,13 @@ const opslag = () => {
 // Het boerderijzaad van een verse boerderij: uit de klok, één keer, en daarna bewaard. De regels zelf blijven puur.
 const nieuwZaad = () => (typeof Date !== 'undefined' ? Math.floor(Date.now() / 1000) % 0x7fffffff : CT.ZAAD);
 
+// Bezit (bezitlive.js) meldt zich hier aan: voor het laden de gekochte percelen in het register zetten, anders kent normaliseer hun id's niet.
+let voorLaad = null;
+export const setVoorLaadHaak = (fn) => { voorLaad = typeof fn === 'function' ? fn : null; };
+
 export function getBoerderij() {
   if (!boer) {
+    if (voorLaad) { try { voorLaad(); } catch (e) { /* bezit niet klaar: de vaste percelen werken gewoon */ } }
     const st = opslag();
     let raw = null;
     try { raw = st ? st.getItem(KEYS.boerderij) : null; } catch (e) { raw = null; }
@@ -159,7 +165,10 @@ export function rondAf(w, taak, fractie, { vrij = false } = {}) {
   const b = getBoerderij();
   // Boeren doe je als Tessa (karakterbonus.js): de regels van de activiteit gelden voor wie de klus doet, per speler, nooit voor de wereld.
   const kar = characterForActivity('farm');
-  const uit = B.rondTaakAf(b, taak, farmFractie(kar, taak, fractie), { vrij, opbrengst: farmOpbrengst(kar) });
+  // Handwerk-oogst: een droogte, stortbui, mierenplaag of wespen op dit perceel drukt de opbrengst (bezitevents.js via bezithooks.js) en je krijgt een melding.
+  const verlies = taak === 'oogsten' ? yieldInfo(b.bedrijf.actief, dagVan(b.uren)) : { mult: 1, text: '' };
+  const uit = B.rondTaakAf(b, taak, farmFractie(kar, taak, fractie), { vrij, opbrengst: farmOpbrengst(kar) * verlies.mult });
+  if (verlies.mult < 0.995 && uit.kg > 0) { uit.verlies = Math.round((1 - verlies.mult) * 100); if (w && typeof w.addMessage === 'function') w.addMessage(`Oogst ${uit.verlies}% lager: ${verlies.text}`, 5, { kind: 'tip', key: 'bz-oogstverlies' }); }
   const f = uit.fractie || 0;
   if (heeftBonus(kar) && taak === 'oogsten' && uit.kg > 0 && unlockAchievement(w, TESSA_LINES.prestatie.id) && w && typeof w.addMessage === 'function') {
     w.addMessage(TESSA_LINES.farm.beat, 7, { kind: 'tip', key: 'tessa-beat-boer' });   // de eerste oogst als Tessa: een boer herkent haar
