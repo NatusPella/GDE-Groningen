@@ -125,6 +125,10 @@ Een gast kiest per opdracht of hij meedoet (J of N). Wie niet meedoet is vrij en
 - De gast meldt een wisseling als `{ k: 'bezig', a: 'hengelen' | null }`, een gewoon JSON-bericht (geen nieuw formaat; PROTO en CODEC_VERSION blijven 2). Een host die het nog niet kent, slaat het over. Wie het spel opende bewaart het per plek (`world.coopBezigVan`) en geeft het als `{ k: 'bezigvan', slot, a }` door aan de andere gasten (ook aan een gast die later aansluit; een gast die weggaat is niet meer bezig). `coopbezig3d.js` tekent er de hengel (dezelfde `maakHengelAnim` als je eigen hengel, eerst een worp en dan wachten), een hark, een pan of twee klepels bij, in wereldruimte bij het lichaam; de armen van het model staan niet in een eigen houding (nog niet in beeld bekeken). Zo'n eigen activiteit is op de host ook een groep van één (`bezig|<plek>|<activiteit>`, met de gast als leider); ze verdwijnt als hij stopt of als hij aan een missiegroep meedoet.
 - De boerderij groeit bij een gast in `updateGameplay` (`boerderijTijd`); het sprongetje naar de klok van de host telt niet mee (`boerderijKlokNul`).
 
+## Prestaties zijn per speler en blijven stil voor de ander (#1093)
+
+Een prestatie is van de speler die hem haalt (#429). De toast, het stempelmoment en het geluid (`achievements.js`, `achievementunlock.js`, `achievementgeluid.js`) draaien alleen op het apparaat van die speler: er gaat geen bericht over het net en een medespeler ziet en hoort er niets van (besluit: niemand, geen pill; een tweede melding naast de eigen kaarten en wanted-sterren zou de HUD vullen). Dezelfde regel geldt voor de microanimaties van de componenten (knop, kaart, tab, rij): puur lokaal. Een gast die aansluit of wegvalt heeft niets om bij te werken; zijn lijst in Pauze, Prestaties is zijn eigen opslag. Dekking: `scripts/achievementunlock_test.mjs` (plan zonder netwerkveld) en `scripts/ds3_dekking_test.mjs`.
+
 ## De velden van de boerderij bij een gast (#985)
 
 De boerderij is per speler (#429): wat je verdient en wat er in je schuur ligt blijft van jou. De **velden in de wereld** zijn van wie het spel opende. Voor de gast betekent dat:
