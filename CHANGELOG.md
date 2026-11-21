@@ -9,6 +9,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+## [0.65.0] - 2026-11-21
+
+Samen spelen met vier echte vensters getest, een ronde zeefdruk-menu's (Spullen, Loopbanen, Boerderij, zoeken), echte voetstappen en weergeluid, AAA-aankleding van de missies van akte 1 tot en met 4 en een snellere start. Pre-release voor de speeltest.
+
 ### Nieuw
 
 - **Boerderij, bakronde en strook van de light sims in zeefdruk (#1006, #999):** de kaarten, knoppen en chips van de HUD-strook, de bakronde en het Boerderij-scherm zijn omgezet naar de zeefdrukset; de oude papieren set staat alleen nog in de definitie, de galerij en de rolvariabelen. Nog niet in beeld gezien.
@@ -192,6 +196,17 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - **Je wordt niet meer ten onrechte teruggestuurd naar de grens (nog niet in beeld gezien, #1034):** bij scherpe knikken in de grenslijn rekende het spel een heel stuk Groningen (o.a. ten zuiden en oosten van de stad en bij Ter Apel) als "buiten", zodat je zonder waarschuwing een scène kreeg ("Drenthe is dicht") en daarna op een plek werd gezet die zelf nog in dat stuk lag, steeds opnieuw. De grens kijkt nu bij zo'n knik naar beide kanten, een lijneinde is geen grens, de Dollard telt niet als open zee, de terugzetplek ligt altijd binnen de grens (anders verder naar binnen of de laatste veilige plek) en een scène vervalt als je zelf omdraait. Tijdens een filmpje, sterven of treinrit grijpt de grens niet in; een duif telt als luchtruim. De waarschuwing zegt nu ook "Je verlaat het speelgebied: keer om." Samen spelen: lokaal per speler, niets wordt gesynchroniseerd. Test: `edge_grens_test`.
 - Het containerlabyrint (M13): de kraan staat nu op de kade van de Eemshaven en de container op open terrein achter de kaderweg, niet meer in een weiland of op de weg. De plekken hangen aan één anker en vallen terug op de dichtstbijzijnde vrije plek; voor iedereen in Samen spelen is dat dezelfde plek.
 - Varen: je vaarroute is nu een doorlopende lijn op het water (gele chevrons met donkere rand, in vaarrichting) in plaats van een rij boeien. De lijn volgt de berekende vaarroute, loopt zacht uit na 240 m en staat stil bij verminderde beweging. Is er geen vaarroute, dan zie je een gestippelde lijn en de melding 'Geen vaarroute gevonden'. Boeien blijven alleen echte markeringen. Samen spelen: lokaal per speler.
+
+### Bekende beperkingen
+
+- **Samen spelen:** een sessie met vier echte vensters is gedraaid (basis, vier spelers, net, bijbaan door een gast, hostwissel via de kamerroute). Niet in vensters getest: Fatbikes ontwijken, de penaltyserie, duivenspot, een wissel tijdens een filmpje en spelen over internet. Valt wie het spel opende hard weg (proces beëindigd, geen nette afsluiting), dan kiezen de gasten wel dezelfde opvolger, maar sluiten ze niet bij hem aan: de groep splitst en iedereen belandt in een eigen lege sessie (#1059, open). Iedereen moet op dezelfde versie zitten; verbind één voor één.
+- **Stemmen:** 302 gesproken regels van de nieuwe missies en bijbanen wachten nog op de spraakdienst; die regels verschijnen voorlopig alleen als tekst (zie docs/verhaal/TTS-ACHTERSTAND-21-11.md).
+- **Usquert:** de route bij de kerk van Usquert loopt nog over het grasveld en het kerkhof (#1057).
+- **Niet door een mens gespeeld of beluisterd:** de nieuwe menu's (Spullen als raster, Loopbanen als kaarten, Boerderij onder Bezit, het zoekvenster), de nieuwe kaartlagen, het ontdekken van buurten, de taxi-kaartkeuze en het ritpad, de trekkercamera, de eerste-persoonshanden, de heli- en vaarlijnen, de AAA-aankleding van akte 1 tot en met 6 en alle nieuwe geluiden (voetstappen, regen, onweer, heli, vliegtuig, motorboot). Ze zijn met tests bewezen, niet met oren of ogen.
+- **Wereldkleuren:** standaard staat de menging op 0,3; verder dan 0,5 is niet bekeken. `?dswereld=0` zet het oude palet terug.
+- **Uitleganimaties:** de pijltjes en toetsen in de uitleg bewegen een seconde per ronde, langer dan het designsysteem voor beweging toestaat; dat is een ontwerpkeuze die nog beslist moet worden.
+- **Prestaties:** er is voor de GPU-ronde, de wegenindex en het geheugen geen 10-minuten-meting gedaan; het herstel na een verloren beeldcontext is alleen nagebootst getest.
+- **Niet samengevoegd:** een deel van de gesproken regels (TTS-ronde) en een eerdere menu-ronde (Spullen-lijst en Loopbanen-kruimelpad) zijn bewust niet meegekomen.
 
 ## [0.64.0] - 2026-11-20
 
