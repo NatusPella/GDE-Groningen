@@ -24,7 +24,7 @@ export function levelViewHtml(profile) {
   return `<section class="os-kaart sk-kaart dk-kaart" role="dialog" aria-modal="true" aria-labelledby="dk-titel" aria-describedby="dk-intro">
     <p class="os-eb">${esc(CARD_TEXT.eyebrow)}</p>
     <h2 id="dk-titel">${esc(CARD_TEXT.titel)}</h2>
-    <p class="os-uitleg" id="dk-intro">${esc(CARD_TEXT.uitleg)} ${esc(CARD_TEXT.samen)}</p>
+    <p class="os-uitleg" id="dk-intro">${esc(CARD_TEXT.uitleg)}</p>
     <div class="sk-knoppen dk-knoppen" role="group" aria-label="${esc(CARD_TEXT.aria)}">${knoppen}</div>
     <div class="os-knoppen dk-onder"><button type="button" class="os-knop os-alleen dk-aanpassen" data-aanpassen data-i="3" aria-keyshortcuts="4">${esc(CARD_TEXT.aanpassen)} <span class="sk-toets-in">${keyLabelHtml('4')}</span><span class="dk-aanpassen-u">${esc(CARD_TEXT.aanpassenUitleg)}</span></button></div>
     ${helpHtml(CARD_TEXT.hulp)}

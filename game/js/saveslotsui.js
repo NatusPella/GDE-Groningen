@@ -15,7 +15,7 @@
 //     (the host of Samen spelen picks the game to play with); an empty card calls onNew() as usual.
 import * as S from './saveslots.js';
 import { MAX_SLOTS } from './storagekeys.js';
-import { saveGame, loadSlot, readSave, bindSlot, storySummary, onThumbKept, coopSessieLoopt, currentSlot, GAST_BEWAARD_TEKST } from './savegame.js';
+import { saveGame, loadSlot, readSave, bindSlot, onThumbKept, coopSessieLoopt, currentSlot, GAST_BEWAARD_TEKST } from './savegame.js';
 import { saveProgress } from './progress.js';
 import { stopCoopNet } from './coopnet.js';
 import { coopLoadTekst, coopActieTekst, COOP_LOAD_FAIL, COOP_ACTIE_FAIL, runCoopLoad, runCoopStop } from './cooploadrules.js';
@@ -182,8 +182,6 @@ export function openSaveSlots(opts = {}) {
 
   const card = (s) => {
     const sm = s.summary;
-    const data = S.readSlot(null, s.n).data;
-    const story = data ? storySummary(data) : null;
     const thumb = S.readThumb(null, s.n);
     const bad = s.state === 'kapot' || s.state === 'nieuwer' || s.state === 'ander-verhaal';
     const inSessie = coopSessieLoopt(world);
@@ -198,21 +196,14 @@ export function openSaveSlots(opts = {}) {
     if (bad) chips.push('<span class="ssl-chip warn">Kan niet laden</span>');
     if (sm && sm.niveau && !bad) chips.push(`<span class="ssl-chip" title="Moeilijkheid van dit spel">${esc(sm.niveau)}</span>`); // #1169
     const pic = thumb ? `<img src="${thumb}" alt="" draggable="false">` : `<span class="ssl-nopic">${svg(IC.person, 'ssl-nopic-ic')}</span>`;
-    const part = bad ? S.stateText(s.state) : story ? (story.ended ? 'Het verhaal is uit' : story.part) : sm ? 'Het begin' : '';
     const ago = sm ? S.agoText(sm.savedAt) || dateText(sm.savedAt) : '';
-    const meta = sm ? [sm.plek, S.formatPlaytime(sm.playSeconds), ago].filter(Boolean).join(' · ') : '';
-    // #898: hoe ver het verhaal van dít spel is, ook op de kaarten (niet alleen op de grote
-    // knop bovenaan): één balk en het percentage, dezelfde maat als op het Overzicht. Het
-    // label "verhaal" staat er zichtbaar bij, want dit cijfer telt alleen het verhaal van deze
-    // save; de HUD en het Overzicht tellen verhaal, prestaties, kaart en gebieden samen.
-    const prog = data && !bad ? saveProgress(data) : null;
-    const progHtml = prog != null ? `<span class="ssl-prog" title="Verhaal: ${prog}%"><span class="m-bar"><i style="width:${prog}%"></i></span><span class="bebas">${prog}% verhaal</span></span>` : '';
-    const tip = story && story.next && !bad ? `Volgende stap: ${story.next}` : '';
+    // Tekstdieet 21-11: per rij alleen de naam, één regel (speeltijd, plek, datum) en kleine tags; geen verhaaldeel, geen balk, geen tip.
+    const meta = bad ? S.stateText(s.state) : sm ? [S.formatPlaytime(sm.playSeconds), sm.plek, ago].filter(Boolean).join(' · ') : '';
     const open = over && over.n === s.n && over.kind !== 'coop-load' && over.kind !== 'coop-actie';
     return `<div class="ssl-card${s.n === sel ? ' sel' : ''}${bad ? ' bad' : ''}${open ? ' open' : ''}" role="listitem" data-slot="${s.n}">` +
-      `<button type="button" class="ssl-main" data-grp="list" data-slot="${s.n}" data-do="load"${bad || !sm || currentBlocked ? ' disabled' : ''} aria-label="${esc(s.name)}: ${label}"${tip ? ` title="${esc(tip)}"` : ''}>` +
-      `<span class="ssl-pic">${pic}<span class="ssl-chips">${chips.join('')}</span><span class="ssl-go">${esc(label)}</span></span>` +
-      `<span class="ssl-body"><span class="ssl-nm">${esc(s.name)}</span><span class="ssl-part one">${esc(part)}</span><span class="ssl-meta one mut">${esc(meta)}</span>${progHtml}</span></button>` +
+      `<button type="button" class="ssl-main" data-grp="list" data-slot="${s.n}" data-do="load"${bad || !sm || currentBlocked ? ' disabled' : ''} aria-label="${esc(s.name)}: ${label}">` +
+      `<span class="ssl-pic">${pic}</span>` +
+      `<span class="ssl-body"><span class="ssl-nm">${esc(s.name)}</span><span class="ssl-meta one mut">${esc(meta)}</span><span class="ssl-chips">${chips.join('')}</span><span class="ssl-go">${esc(label)}</span></span></button>` +
       `<button type="button" class="ssl-more" data-grp="list" data-more="${s.n}" aria-haspopup="menu" aria-expanded="${!!open}" aria-label="Meer voor ${esc(s.name)}" title="Meer">${svg(IC.more)}</button>` +
       (open ? overHtml(s) : '') + '</div>';
   };
@@ -220,7 +211,7 @@ export function openSaveSlots(opts = {}) {
   const emptyCard = (n) => `<div class="ssl-card empty" role="listitem" data-slot="${n}">` +
     `<button type="button" class="ssl-main" data-grp="list" data-do="new" data-want="${n}" aria-label="Lege plek ${n}: ${mode === 'start' ? 'nieuw spel' : 'spel opslaan'}">` +
     '<span class="ssl-pic"><span class="ssl-nopic">' + svg(IC.plus, 'ssl-nopic-ic') + '</span></span>' +
-    `<span class="ssl-body"><span class="ssl-nm mut">Leeg</span><span class="ssl-part mut one">${mode === 'start' ? 'Nieuw spel' : 'Spel opslaan'}</span><span class="ssl-meta">&nbsp;</span></span></button></div>`;
+    `<span class="ssl-body"><span class="ssl-nm mut">Leeg</span><span class="ssl-meta mut one">${mode === 'start' ? 'Nieuw spel' : 'Spel opslaan'}</span></span></button></div>`;
 
   // Alleen spelen: Nieuw spel is the first card. With every place in use it asks first (it takes the place of the active game)
   const newCard = (n, active) => {
@@ -231,8 +222,8 @@ export function openSaveSlots(opts = {}) {
       '<div class="ssl-qacts"><button type="button" class="m-bp" data-grp="menu" data-do="back">Nee, terug</button><button type="button" class="m-bg danger" data-grp="menu" data-do="newfull-ok">Ja, nieuw spel</button></div></div>' : '';
     return `<div class="ssl-card ssl-new${ask ? ' open' : ''}" role="listitem" data-slot="0">` +
       `<button type="button" class="ssl-main" data-grp="list" data-slot="0" data-do="${n ? 'new' : 'new-ask'}" data-want="${n}" aria-label="Nieuw spel">` +
-      `<span class="ssl-pic"><span class="ssl-nopic">${svg(IC.plus, 'ssl-nopic-ic')}</span><span class="ssl-go">Beginnen</span></span>` +
-      '<span class="ssl-body"><span class="ssl-nm">Nieuw spel</span><span class="ssl-part one">Moi! Stap in en rij</span><span class="ssl-meta">&nbsp;</span></span></button>' + q + '</div>';
+      `<span class="ssl-pic"><span class="ssl-nopic">${svg(IC.plus, 'ssl-nopic-ic')}</span></span>` +
+      '<span class="ssl-body"><span class="ssl-nm">Nieuw spel</span><span class="ssl-go">Beginnen</span></span></button>' + q + '</div>';
   };
 
   // the game played last: the active one, else the one saved last; Doorgaan on top
@@ -242,16 +233,13 @@ export function openSaveSlots(opts = {}) {
   };
   const heroHtml = (s) => {
     const data = S.readSlot(null, s.n).data;
-    const story = data ? storySummary(data) : null;
     const thumb = S.readThumb(null, s.n);
-    const part = story ? (story.ended ? 'Het verhaal is uit' : story.part) : 'Het begin';
     const ago = S.agoText(s.summary.savedAt) || dateText(s.summary.savedAt);
     const prog = data ? saveProgress(data) : null;
-    const nog = story && story.next && !story.ended ? `Volgende stap: ${story.next}` : '';
     const pic = thumb ? `<img src="${thumb}" alt="" draggable="false">` : `<span class="ssl-nopic">${svg(IC.person, 'ssl-nopic-ic')}</span>`;
     return `<button type="button" class="ssl-hero" data-grp="hero" data-do="load" data-slot="${s.n}" aria-label="Doorgaan: ${esc(s.name)}">` +
       `<span class="ssl-hero-pic">${pic}</span><span class="ssl-hero-body"><span class="ssl-hero-lab">${svg(IC.resume, 'ssl-hero-ic')}Doorgaan</span>` +
-      `<span class="ssl-hero-nm one">${esc(s.name)} · ${esc(part)}</span><span class="ssl-hero-meta one mut">${s.summary.plek ? esc(s.summary.plek) + ' · ' : ''}${esc(S.formatPlaytime(s.summary.playSeconds))} · ${esc(ago)}${nog ? ` · ${esc(nog)}` : ''}</span>` +
+      `<span class="ssl-hero-nm one">${esc(s.name)}</span><span class="ssl-hero-meta one mut">${[S.formatPlaytime(s.summary.playSeconds), s.summary.plek, ago].filter(Boolean).map(esc).join(' · ')}</span>` +
       (prog != null ? `<span class="ssl-hero-prog"><span class="m-bar"><i style="width:${prog}%"></i></span><span class="bebas">${prog}% verhaal</span></span>` : '') + '</span></button>';
   };
 
@@ -281,7 +269,7 @@ export function openSaveSlots(opts = {}) {
       <header class="m-head"><div><span class="m-eb">${esc(opts.eyebrow || (mode === 'start' ? 'Spel' : 'Pauze'))}</span><h1 class="m-h1" id="ssl-title">${esc(opts.titel || 'Opgeslagen spellen')}</h1>${opts.hint ? `<p class="mut ssl-intro">${esc(opts.hint)}</p>` : ''}</div><div class="m-hr"><span class="mut">${slots.length} van ${MAX_SLOTS}</span></div></header>
       ${last ? `<div class="ssl-hero-wrap">${heroHtml(last)}</div>` : ''}
       <div class="ssl-scroll"><div class="ssl-grid" role="list" aria-label="Opgeslagen spellen">${tiles.join('')}</div></div>
-      ${mode === 'game' ? '<p class="ssl-note">Het spel bewaart vanzelf na een aankoop, een missie of als je stopt; je kunt altijd zelf opslaan.</p>' : ''}
+      ${mode === 'game' ? '<p class="ssl-note">Het spel bewaart vanzelf.</p>' : ''}
       <p class="ssl-msg" role="status">${esc(message)}</p>
       <footer class="ssl-foot"><button type="button" class="ssl-fb" data-grp="foot" data-do="import"${full ? ' disabled title="Alle plekken zijn in gebruik"' : ''}>${svg(IC.import)}<span>Spel importeren</span></button>
         ${backup ? `<button type="button" class="ssl-fb" data-grp="foot" data-do="restore-backup"${full ? ' disabled title="Alle plekken zijn in gebruik"' : ''}>${svg(IC.save)}<span>Reservekopie herstellen</span></button>` : ''}

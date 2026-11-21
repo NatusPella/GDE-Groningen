@@ -134,9 +134,9 @@ const LEVEL_INDEX = { ontspannen: 0, standaard: 1, uitdagend: 2 };
 
 // De uitleg per niveau voor de kaart "Hoe pittig moet het zijn?" (spelertekst, Nederlands).
 export const LEVEL_TEXT = Object.freeze({
-  ontspannen: { naam: 'Ontspannen', uitleg: 'Meer tijd, ruimere medailles, minder schade en een rustiger politiekorps. Voor wie vooral het verhaal wil beleven.' },
-  standaard: { naam: 'Standaard', uitleg: 'Zoals het spel bedoeld is. De beste plek om te beginnen.' },
-  uitdagend: { naam: 'Uitdagend', uitleg: 'Minder tijd, strengere medailles, drukker verkeer en een scherpere politie. Voor wie het spannend wil houden.' },
+  ontspannen: { naam: 'Ontspannen', uitleg: 'Meer tijd, rustige politie. Voor het verhaal.' },
+  standaard: { naam: 'Standaard', uitleg: 'Zoals bedoeld. Goed om mee te beginnen.' },
+  uitdagend: { naam: 'Uitdagend', uitleg: 'Minder tijd, scherpe politie, druk verkeer.' },
 });
 
 export const optionDef = (key) => DEF_BY_KEY[key] || null;
