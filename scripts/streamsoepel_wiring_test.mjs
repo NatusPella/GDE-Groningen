@@ -23,7 +23,7 @@ for (const [cls, n1] of [['building', 2], ['road', 2], ['actors', 3], ['far', 1]
   ok((scene.match(new RegExp(`plan\\.grant\\('${cls}'`, 'g')) || []).length >= n1, `scene3d.js vraagt '${cls}' aan de planner (${n1}x of vaker)`);
   ok(new RegExp(`plan\\.spend\\('${cls}'`).test(scene), `scene3d.js meldt de uitgave van '${cls}'`);
 }
-ok(/planner\.beginFrame\(/.test(main) && /planner\.grant\('tile'/.test(main) && /planner\.spend\('tile'/.test(main), 'main.js begint de frame en vraagt de tegeltijd');
+ok(/planner\.openFrame\(/.test(main) && /planner\.grant\('tile'/.test(main) && /planner\.spend\('tile'/.test(main), 'main.js begint de frame en vraagt de tegeltijd');
 ok(/grant\('ground'/.test(grass) && /spend\('ground'/.test(grass), 'grass.js vraagt zijn tijd aan de planner');
 ok(/createCooler/.test(grass) && /createCooler/.test(far), 'gras en de verre laag ruimen met vertraging op');
 // de ring met uitzonderingen
