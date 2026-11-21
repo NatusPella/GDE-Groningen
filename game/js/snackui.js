@@ -43,14 +43,14 @@ function ownHtml(v) {
     `<span class="mut">Open vanaf ${hh(o.from)}</span> ${btn('open', '-1 uur', ` data-patch="from:${(o.from + 23) % 24}"`)} ${btn('open', '+1 uur', ` data-patch="from:${(o.from + 1) % 24}"`)} ` +
     `<span class="mut">${o.hours} uur open</span> ${btn('open', 'Korter', ` data-patch="hours:${o.hours - 1}"`, o.hours <= 4)} ${btn('open', 'Langer', ` data-patch="hours:${o.hours + 1}"`, o.hours >= 14)} ` +
     `<span class="mut">Prijs ${Math.round(o.pr * 100)}%</span> ${btn('open', 'Lager', ` data-patch="pr:${Math.round((o.pr - 0.05) * 100) / 100}"`, o.pr <= 0.7)} ${btn('open', 'Hoger', ` data-patch="pr:${Math.round((o.pr + 0.05) * 100) / 100}"`, o.pr >= 1.4)}</div>`;
-  const menu = `<div class="bz-bulk" role="group" aria-label="Menu">${v.menu.map((m) => {
+  const offeringsBlock = `<div class="bz-bulk" role="group" aria-label="Menu">${v.menu.map((m) => {
     const own = m.chainOwn >= 0.5 ? ' (uit je eigen keten)' : '';
     return btn('menu', `${m.on ? 'Af: ' : 'Op: '}${esc(m.label)} €${eur2(m.price)}${own}`, ` data-id="${esc(m.id)}" data-on="${m.on ? 1 : 0}"`, !m.unlocked);
   }).join(' ')}</div><p class="mut">Menu: ${o.menu.length} van ${o.tierDef.slots} plekken. Per klant ongeveer €${eur2(o.numbers.ticket)} omzet en €${eur2(o.numbers.cogs)} inkoop.${v.menu.some((m) => !m.unlocked) ? ' Burger, milkshake en softy vragen koeling.' : ''}</p>`;
   const up = SN.UPGRADE_IDS.map((id) => (v.up.includes(id) ? `<span class="mut">${esc(SN.UPGRADES[id].label)}: aanwezig</span>` : askOr('upgrade', id, `${esc(SN.UPGRADES[id].label)} ${euro(SN.UPGRADES[id].price)}`, `Voor ${euro(SN.UPGRADES[id].price)}?`, '', v.money < SN.UPGRADES[id].price))).join(' ');
   return `<h3 class="m-h3">Jouw snackwagen</h3><div class="bd-rij" data-own="1"><span class="bd-naam"><b>${esc(o.tierDef.label)}</b><span class="bd-feiten"><span>${spot ? esc(spot.short) : 'nog thuis'}</span><span>voorraad voor ${o.stockDays} ${o.stockDays === 1 ? 'dag' : 'dagen'}</span>` +
     `${f ? `<span>vandaag ongeveer ${euro(f.net)} winst (${f.sold} klanten${f.unserved ? `, ${f.unserved} gemist` : ''})</span>` : ''}</span>${f ? `<small class="mut">${esc(f.note)}</small>` : ''}</span>` +
-    `<span class="bd-acties">${btn('vul', `Vul aan (${euro(SN.RESTOCK_FEE)})`, '', o.stockDays >= SN.STOCK_MAX)} ${next ? askOr('tier', 'own', `Grotere wagen ${euro(SN.TIERS[next].up)}`, `Voor ${euro(SN.TIERS[next].up)}?`, '', v.money < SN.TIERS[next].up) : ''}</span></div>${knobs}${menu}<div class="bz-bulk">${up}</div>`;
+    `<span class="bd-acties">${btn('vul', `Vul aan (${euro(SN.RESTOCK_FEE)})`, '', o.stockDays >= SN.STOCK_MAX)} ${next ? askOr('tier', 'own', `Grotere wagen ${euro(SN.TIERS[next].up)}`, `Voor ${euro(SN.TIERS[next].up)}?`, '', v.money < SN.TIERS[next].up) : ''}</span></div>${knobs}${offeringsBlock}<div class="bz-bulk">${up}</div>`;
 }
 
 function spotsHtml(v) {
@@ -80,7 +80,7 @@ function fleetHtml(v) {
 }
 
 // ---- Buurt en klanten: tevredenheid, goodwill, bondgenoten, vaste klanten en hulp aan de buurt (goodwill.js) ----
-export function buurtHtml(v) {
+export function neighbourhoodHtml(v) {
   const g = v.gw;
   if (!g) return '';
   const allies = g.allies.length ? `Bondgenoten: ${g.allies.map(esc).join(', ')}.` : 'Nog geen bondgenoten: help de buurt op drie plekken in hetzelfde gebied.';
@@ -99,7 +99,7 @@ export function snackHtml(v) {
   const war = v.war ? `<p class="bz-zwak" data-kind="oorlog">Prijzenoorlog tot dag ${v.war.until}: Usmem Snacks verlaagt zijn prijzen met ${Math.round(v.war.depth * 100)}%${v.war.matched ? '; jij prijst mee.' : '.'}</p>` : '';
   return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Snackwagen</h2></div><div class="bz-tegels">${tiles}</div>` +
     `<p class="mut">${esc(v.rival.name)} van ${esc(v.rival.owner)} heeft ${v.rival.spots} standplaatsen, ${v.rival.pand} panden en een keten van niveau ${v.rival.chain}. Jouw aandeel: ${Math.round(v.score.share * 100)}%.</p>${war}${eventHtml(v)}` +
-    ownHtml(v) + fleetHtml(v) + spotsHtml(v) + buurtHtml(v) + `<h3 class="m-h3">Doelen</h3>${goals}<p class="bd-melding" aria-live="polite">${esc(sui.msg)}</p>`;
+    ownHtml(v) + fleetHtml(v) + spotsHtml(v) + neighbourhoodHtml(v) + `<h3 class="m-h3">Doelen</h3>${goals}<p class="bd-melding" aria-live="polite">${esc(sui.msg)}</p>`;
 }
 
 // ---- binden ----
@@ -122,20 +122,20 @@ function act(world, d) {
   const ask = (name) => { if (!ok) { sui.confirm = key(name, id); sui.msg = ''; return true; } sui.confirm = null; return false; };
   const say = (r) => { sui.msg = r.text || ''; if (r.ok && world.addMessage && r.cost) world.addMessage(r.text, 3); };
   if (a === 'annuleer') sui.confirm = null;
-  else if (a === 'koop-wagen') { if (!ask(a)) say(SL.koopWagen(world)); }
+  else if (a === 'koop-wagen') { if (!ask(a)) say(SL.buyVan(world)); }
   else if (a === 'vergunning') { if (!ask(a)) say(SL.koopVergunning(world, id)); }
-  else if (a === 'neem-over') { if (!ask(a)) say(SL.neemOver(world, id)); }
+  else if (a === 'neem-over') { if (!ask(a)) say(SL.acquireRivalSpot(world, id)); }
   else if (a === 'upgrade') { if (!ask(a)) say(SL.koopUpgrade(world, id)); }
-  else if (a === 'tier') { if (!ask(a)) say(SL.grotereWagen(world, id === 'snack' ? 'own' : id)); }
+  else if (a === 'tier') { if (!ask(a)) say(SL.upgradeVan(world, id === 'snack' ? 'own' : id)); }
   else if (a === 'vloot') { if (!ask(a)) say(SL.koopVloot(world, id)); }
   else if (a === 'verkoop-vloot') { if (!ask(a)) say(SL.verkoopVloot(world, id)); }
-  else if (a === 'zet-wagen') say(SL.zetWagen(id));
-  else if (a === 'vul') say(SL.vulAan(world));
-  else if (a === 'help') { if (!ask(a)) say(SL.helpBuurt(world, d.spot, d.kind)); }
-  else if (a === 'meewerken') say(SL.meewerken(world, id, 6));
-  else if (a === 'menu') say(SL.menuKnop(id));
+  else if (a === 'zet-wagen') say(SL.placeVan(id));
+  else if (a === 'vul') say(SL.refillStock(world));
+  else if (a === 'help') { if (!ask(a)) say(SL.helpNeighbourhood(world, d.spot, d.kind)); }
+  else if (a === 'meewerken') say(SL.workAlong(world, id, 6));
+  else if (a === 'menu') say(SL.offeringButton(id));
   else if (a === 'modus') say(SL.zetModus(id, d.mode));
-  else if (a === 'antwoord') say(SL.antwoord(world, d.choice));
+  else if (a === 'antwoord') say(SL.answerEvent(world, d.choice));
   else if (a === 'open') { const [k, val] = String(d.patch || '').split(':'); say(SL.zetOpen({ [k]: Number(val) })); }
   else if (a === 'doel-plek') import('./pitch.js').then((S) => { const p = S.spotXY(id), def = S.spotDef(id); if (p && def) import('./routing.js').then((m) => m.setUserWaypoint(p.x, p.y, def.short)); });
 }

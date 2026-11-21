@@ -84,7 +84,7 @@ function build() {
 }
 
 // --- open en dicht --------------------------------------------------------------------------------------------------
-export function openTuningWorkshop(w, v, s = {}) {
+function openTuningWorkshop(w, v, s = {}) {
   if (!tuneId(v) || !tuneKind(v)) return false;
   world = w; veh = v; site = s;
   if (!root) build();
@@ -110,7 +110,7 @@ export function openTuningWorkshop(w, v, s = {}) {
   return true;
 }
 
-export function closeTuningWorkshop() {
+function closeTuningWorkshop() {
   if (!open) return;
   open = false;
   if (preview) preview.clear();

@@ -191,7 +191,7 @@ Tessa; een nieuwe of uitgestapte figuur komt op een droge vrije plek of in de bo
 De afstandsregel is er één: spelers binnen 150 m van elkaar delen een focus
 (`SAMENVOEG_M`, `game/js/coopfoci.js:9`). Zit een figuur in de groep van de gastheer zelf,
 dan geldt de band van 110 m — waarschuwen boven 80 m, na 4 s terug bij de groep
-(`FIGUUR_BAND`, `FIGUUR_WAARSCHUWING`, `FIGUUR_TERUG_S`, `game/js/coopnet.js:73-77`).
+(`FIGUUR_BAND`, `FIGUUR_WAARSCHUWING`, `FIGUUR_TERUG_S`, `game/js/coopnet.js:83-87`).
 Hoort hij bij een losse groep (buiten 150 m van de gastheer), dan is de wereld rond die
 groep geladen en loopt hij vrij; alleen bij 300 m zegt het spel één keer dat B hem bij de
 groep brengt (`LOS_MELD_M`, `game/js/coopnet.js:655`). Er is geen vaste maximale afstand

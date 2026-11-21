@@ -74,7 +74,7 @@ const campaign = (perDay) => {
   const S = SN.newSnack(); let money = 60000;
   for (let d = 2; d < 302; d++) {
     money += perDay;
-    for (const id of SP.SPOT_IDS) { if (SP.permitHeld(S.permits, id, d) || money < 0) continue; const r = RV.holds(S.rival, id) ? SN.bidTakeover(S, id, d, money) : SN.buyPermit(S, id, d, money); if (r.ok) money -= r.cost; }
+    for (const id of SP.SPOT_IDS) { if (SP.permitHeld(S.permits, id, d) || money < 0) continue; const r = RV.holds(S.rival, id) ? SN.bidForSpot(S, id, d, money) : SN.buyPermit(S, id, d, money); if (r.ok) money -= r.cost; }
     const r = SN.settleDay(S, { day: d, weekend: false, money, ownWagon: false, ownQ: 100 }); money -= r.fixed;
     if (SN.pendingEvent(S)) SN.answerEvent(S, SN.pendingEvent(S).choices.find((c) => c.def).id, d, 0);
   }

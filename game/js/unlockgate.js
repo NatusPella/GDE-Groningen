@@ -19,7 +19,7 @@ const partIdx = (p) => PART_ORDER.indexOf(p);
 
 // Wat de loopbanen-data zegt (storyarc_nieuw.js `loopbanen`): de akte van de stap waar het vak voor het eerst opduikt.
 // `by`: het personage dat het inleidt; `hint`: de zin voor de gedimde startplek.
-const LOOPBAAN_BY = {
+const CAREER_BY = {
   klus: ['Sjabbe', 'Vraag het Sjabbe: die heeft altijd werk dat niemand wil.'],
   taxi: ['Tammo', 'Tammo rijdt het liefst zelf: eerst het museum, dan de taxi.'],
   kantoor: ['Sjabbe', 'Loop bij het Loket langs: daar kijkt een kantoor naar je.'],
@@ -54,7 +54,7 @@ function seed() {
   for (const s of STEPS) {
     for (const v of s.loopbanen || []) {
       if (registry.has(v)) continue;
-      const [by, hint] = LOOPBAAN_BY[v] || ['', ''];
+      const [by, hint] = CAREER_BY[v] || ['', ''];
       registry.set(v, { id: v, kind: 'loopbaan', part: s.part, step: s.id, by, hint });
     }
   }

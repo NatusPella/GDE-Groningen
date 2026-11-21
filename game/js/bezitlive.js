@@ -44,10 +44,10 @@ const opslag = () => {
 };
 
 // ---- de streek en woonplaats van een perceel (voor naam, bodem en prijs) ----
-export const regionOfPoint = (x, y) => { const s = streekAt(x, y); return s ? s.id : 'overig'; };
+export const districtOfPoint = (x, y) => { const s = streekAt(x, y); return s ? s.id : 'overig'; };
 const placeOfPoint = (x, y) => (index && index.parcels.placeAt(x, y)) || undefined;
 const ctxOf = () => ({
-  region: (id) => { const r = bezit && bezit.parcels[id]; return r && r.a ? regionOfPoint(r.a[0], r.a[1]) : 'overig'; },
+  region: (id) => { const r = bezit && bezit.parcels[id]; return r && r.a ? districtOfPoint(r.a[0], r.a[1]) : 'overig'; },
   place: (id) => { const r = bezit && bezit.parcels[id]; return r && r.a ? placeOfPoint(r.a[0], r.a[1]) : undefined; },
 });
 
@@ -120,15 +120,15 @@ export function parcelOffer(id) {
   const p = index.parcels.byId(id);
   if (!p) return null;
   const b = getBezit();
-  const region = regionOfPoint(p.x, p.y);
+  const district = districtOfPoint(p.x, p.y);
   const place = placeOfPoint(p.x, p.y) || 'het Hogeland';
   const mine = Z.ownsParcel(b, id);
   const claim = mine ? null : claimLookup(id);
-  const price = P.parcelPrice(p, region, Z.ownedCount(b));
-  const soil = P.soilQuality(id, region);
+  const price = P.parcelPrice(p, district, Z.ownedCount(b));
+  const soil = P.soilQuality(id, district);
   return {
-    id, parcel: p, region, place, name: P.parcelName(p, place), seller: P.sellerName(p), kindName: P.KIND_NAME[p.kind],
-    ha: p.ha, soil, soilWord: P.soilWord(soil), access: p.access, price, basePrice: P.basePrice(p, region),
+    id, parcel: p, region: district, place, name: P.parcelName(p, place), seller: P.sellerName(p), kindName: P.KIND_NAME[p.kind],
+    ha: p.ha, soil, soilWord: P.soilWord(soil), access: p.access, price, basePrice: P.basePrice(p, district),
     scaleNote: P.scaleFactor(Z.ownedCount(b)) > 1 ? `Schaalprijs x${P.scaleFactor(Z.ownedCount(b)).toFixed(2).replace('.', ',')}: wie veel land heeft, betaalt meer voor het volgende perceel.` : '',
     forSale: P.isForSale(p) && !mine && !claim, mine, claim,
     sellValue: mine ? P.sellValue((b.parcels[id] || {}).p || 0) : 0,
@@ -189,7 +189,7 @@ export function zetBezitVoorTest(raw, st) { bezit = raw ? Z.normalizeBezit(raw) 
 // ---- de kaartlaag Te koop (forsalemap.js): de dichtstbijzijnde diepte uit de live toestand ----
 import { forSaleLayer } from './forsalemap.js';
 const baseCache = new Map();                                            // basisprijs per ID: de streek rekent niet elk beeld opnieuw
-const baseOf = (p) => { let v = baseCache.get(p.id); if (v === undefined) { v = P.basePrice(p, regionOfPoint(p.x, p.y)); baseCache.set(p.id, v); } return v; };
+const baseOf = (p) => { let v = baseCache.get(p.id); if (v === undefined) { v = P.basePrice(p, districtOfPoint(p.x, p.y)); baseCache.set(p.id, v); } return v; };
 const layer = forSaleLayer({
   get parcels() { return index ? index.parcels : null; },
   ownsId: (id) => Z.ownsParcel(getBezit(), id),
@@ -290,7 +290,7 @@ export function ontslaArbeider(id) { const r = fireWorker(getBezit(), id); if (r
 
 // ---- de klok: de kalenderdag van de wereld naast de dag van de boerderij ----
 // De streekprijs en de gebeurtenissen rekenen met de gedeelde kalender (calendar.js, world.calendar.day) zodat medespelers dezelfde dag zien; de
-// boerderij en het bezit tellen in hun eigen speldagen (uren / 24). dagTik legt de twee naast elkaar: de dag van de boerderij d is kalenderdag cal + (d - farm).
+// boerderij en het bezit tellen in hun eigen speldagen (uren / 24). dayTick legt de twee naast elkaar: de dag van de boerderij d is kalenderdag cal + (d - farm).
 let clock = { cal: 0, farm: 0 };
 const calDayOf = (w) => { const d = w && w.calendar && w.calendar.day; return Number.isFinite(d) && d >= 1 ? Math.floor(d) : 0; };
 const calOf = (farmDay) => (clock.cal > 0 ? Math.max(1, clock.cal + (farmDay - clock.farm)) : Math.max(1, farmDay + 1));
@@ -305,8 +305,8 @@ const setMarket = (m) => { getBezit().x.market = m; marketDone.add(m); };
 // met de verzadiging door wat je levert en de veilingdag. Een gewas zonder streekprijs houdt de gewone dagprijs.
 function areaPriceHook(gewas, kg, farmDay, veld, base) {
   if (!(AM.BASE_PRICE[gewas] > 0)) return base;
-  const cd = calOf(farmDay), region = AM.regionOf(veld ? ctxOf().region(veld) : 'overig');
-  const r = AM.deliver(marketOf(), region, gewas, kg, cd, EV.marketEventMult(gewas, cd));
+  const cd = calOf(farmDay), district = AM.districtOf(veld ? ctxOf().region(veld) : 'overig');
+  const r = AM.deliver(marketOf(), district, gewas, kg, cd, EV.marketEventMult(gewas, cd));
   setMarket(r.market); markeer();
   return r.avgPrice;
 }
@@ -339,7 +339,7 @@ const parcelPoint = (id) => { const r = getBezit().parcels[id]; const c = r && (
 function chainEnv(rows) {
   const b = getBezit();
   return { rows, herds: herdsOf(b), loc: (ref) => { const i = refInfo(ref); return i && !i.mobile ? { x: i.x, y: i.y } : null; }, valid: (ref) => !!refInfo(ref), parcelLoc: parcelPoint,
-    regionOf: regionOfPoint, spotOf: (ref) => ((getBezit().mobile[String(ref).slice(2)] || {}).cfg || {}).spot };
+    regionOf: districtOfPoint, spotOf: (ref) => ((getBezit().mobile[String(ref).slice(2)] || {}).cfg || {}).spot };
 }
 const ownedRows = (farm, b) => H.holdingRows(b, farm, { regionOf: (id) => ctxOf().region(id) });
 
@@ -368,7 +368,7 @@ function tickChains(w, farm, from, last, rows) {
 // De gebeurtenissen van de dag(en): opbrengstverlies zit al in de haken; hier de pech, het vee, de inspectie, de koeling en de buren. Geeft { money, lines }.
 function tickNews(w, farm, from, last, rows) {
   const b = getBezit(), news = newsOf(), herds = herdsOf(b), chains = CH.chainsOf(b);
-  const regions = [...new Set([...Object.keys(b.parcels).map((id) => ctxOf().region(id)), ...myBusinesses().map((m) => (m.row ? regionOfPoint(m.row.x, m.row.y) : 'overig'))])];
+  const districts = [...new Set([...Object.keys(b.parcels).map((id) => ctxOf().region(id)), ...myBusinesses().map((m) => (m.row ? districtOfPoint(m.row.x, m.row.y) : 'overig'))])];
   const machines = ((farm.bedrijf.machinepark || {}).machines || []).filter((m) => m.slijtage > 70 && MACHINE_CATALOGUS[m.type]).map((m) => ({ id: m.uid, name: MACHINE_CATALOGUS[m.type].naam, wear: m.slijtage, price: MACHINE_CATALOGUS[m.type].koop }));
   const herdList = Object.keys(herds).map((id) => { const h = herds[id], rec = b.parcels[id], sp = SPECIES[h.sp]; return { id, kind: h.sp, count: h.n, perHa: rec && rec.ha > 0 ? h.n / rec.ha : 0, refPerHa: sp && sp.perHa > 0 ? sp.perHa : Infinity }; });
   const cooled = Object.values(chains).filter((e) => Object.keys(e.bind.l).some((k) => refInfo(e.bind.l[k])));          // een keten met minstens één eigen schakel heeft een koeling
@@ -376,7 +376,7 @@ function tickNews(w, farm, from, last, rows) {
   const out = { money: 0, lines: [] };
   for (let d = from + 1; d <= last; d++) {
     const cd = calOf(d);
-    const r = NW.processDay(news, cd, { regions, seed: news.seed, machines, herds: herdList, audit,
+    const r = NW.processDay(news, cd, { regions: districts, seed: news.seed, machines, herds: herdList, audit,
       buildings: cooled.map((e) => ({ id: e.chain.name, stock: Object.fromEntries(e.chain.links.filter((l) => l.in).map((l) => [l.in, l.stock])) })) });
     out.money += r.money; out.lines.push(...r.lines);
     for (const id of r.infect) if (herds[id]) infect(herds[id]);
@@ -417,7 +417,7 @@ export function verkoopMobiel(w, id) {
   noteMoney('Verkoop'); w.money += r.refund; markeer();
   return { ok: true, refund: r.refund, text: `Verkocht voor ${euro(r.refund)}.` };
 }
-export function zetStandplaats(id, spot) {
+export function setPitch(id, spot) {
   const b = getBezit();
   if (!b.mobile[id] || !BZ.MOBILE_SPOTS[spot]) return { ok: false, text: 'Die standplaats bestaat niet.' };
   b.mobile[id].cfg = { ...b.mobile[id].cfg, spot }; markeer();
@@ -452,7 +452,7 @@ export function rentView(biz, day) {
 // Elk beeld aangeroepen (goedkoop: werkt alleen als de speldag veranderd is). Het geld gaat via world.money met noteMoney.
 let lastReport = null;
 export const takeDayReport = () => { const r = lastReport; lastReport = null; return r; };
-export function dagTik(w) {
+export function dayTick(w) {
   const b = getBezit(), farm = getBoerderij();
   const day = Math.floor(farm.uren / 24);
   clock = { cal: calDayOf(w), farm: day };
@@ -466,8 +466,8 @@ export function dagTik(w) {
   let net = dI(rep.net), bizNet = 0, tax = 0;
   const last = Math.min(day, from + 60);
   for (const m of myBusinesses()) {
-    const x = m.row ? m.row.x : 0, y = m.row ? m.row.y : 0, region = regionOfPoint(x, y);
-    const res = BZ.settleDays(m.biz, from, last, (d) => ({ day: d, town: townOf(x, y), owned: Z.ownedCount(b), sameType: 0, event: EV.businessMods(m.biz, region, calOf(d)) }));
+    const x = m.row ? m.row.x : 0, y = m.row ? m.row.y : 0, district = districtOfPoint(x, y);
+    const res = BZ.settleDays(m.biz, from, last, (d) => ({ day: d, town: townOf(x, y), owned: Z.ownedCount(b), sameType: 0, event: EV.businessMods(m.biz, district, calOf(d)) }));
     BZ.storeBiz(b, res.biz); bizNet += res.sum.net; tax += res.sum.tax;
   }
   let mobNet = 0;
@@ -476,8 +476,8 @@ export function dagTik(w) {
     if (snackOn && id === 'frietwagen') continue;             // met standplaatsen rekent snackvan.js de wagen af (Snackimperium)
     const biz = mobileBiz(id);
     if (!biz) continue;
-    const spotRegion = CH.SPOT_REGION[biz.cfg.spot] || 'overig';
-    const res = BZ.settleDays(biz, from, last, (d) => { const cd = calOf(d), fest = EV.festivalOn(spotRegion, cd); return { day: d, owned: Z.ownedCount(b) + 1, kermis: !!(fest && fest.kermis), weekend: weekendDay(cd), event: EV.businessMods(biz, spotRegion, cd) }; });
+    const spotDistrict = CH.SPOT_DISTRICT[biz.cfg.spot] || 'overig';
+    const res = BZ.settleDays(biz, from, last, (d) => { const cd = calOf(d), fest = EV.festivalOn(spotDistrict, cd); return { day: d, owned: Z.ownedCount(b) + 1, kermis: !!(fest && fest.kermis), weekend: weekendDay(cd), event: EV.businessMods(biz, spotDistrict, cd) }; });
     BZ.storeBiz(b, res.biz); mobNet += res.sum.net; tax += res.sum.tax;
   }
   bizNet += mobNet;
@@ -542,8 +542,8 @@ function tickSnack(w, S, from, last, money) {
 // ---- het nieuws en de keuze van de buurman ----
 export function newsView(w) {
   const news = newsOf(), b = getBezit();
-  const regions = [...new Set(Object.keys(b.parcels).map((id) => ctxOf().region(id)))];
-  return { lines: news.lines.slice(0, NW.MAX_LINES), scene: NW.sceneView(news), goodwill: news.goodwill, pull: NW.pullOffers(regions, calToday()), day: calToday() };
+  const districts = [...new Set(Object.keys(b.parcels).map((id) => ctxOf().region(id)))];
+  return { lines: news.lines.slice(0, NW.MAX_LINES), scene: NW.sceneView(news), goodwill: news.goodwill, pull: NW.pullOffers(districts, calToday()), day: calToday() };
 }
 export function kiesBuur(w, choiceId) {
   const news = newsOf(), r = NW.chooseNeighbor(news, choiceId, Number.isFinite(w && w.money) ? w.money : 0);
@@ -566,7 +566,7 @@ export function chainViews() {
   const entries = CH.chainsOf(b);
   return SC.CHAIN_IDS.map((id) => {
     const v = CH.viewOf(entries[id], { ...env, lossOf: (pid) => 1 - lossMult(pid, cd).mult });
-    return { ...v, raw: entries[id].chain.raw, output: entries[id].chain.output, region: CH.outletRegion(entries[id], env), sources: chainSources(id, rows).slice(0, 12), links: v.links.map((l) => ({ ...l, options: l.ownable ? chainOptions(id, l.id) : [] })) };
+    return { ...v, raw: entries[id].chain.raw, output: entries[id].chain.output, region: CH.outletDistrict(entries[id], env), sources: chainSources(id, rows).slice(0, 12), links: v.links.map((l) => ({ ...l, options: l.ownable ? chainOptions(id, l.id) : [] })) };
   });
 }
 // De eigen panden en wagens die bij een schakel passen: [{ ref, label }].
@@ -592,7 +592,7 @@ export function koppelSchakel(chainId, linkId, ref) {
 export function ontkoppelSchakel(chainId, linkId) { const ok = CH.unbindLink(getBezit(), chainId, linkId); if (ok) markeer(); return { ok, text: ok ? 'Losgekoppeld.' : 'Er was niets gekoppeld.' }; }
 export function kiesBron(chainId, id) { const ok = CH.toggleSourceParcel(getBezit(), chainId, id); if (ok) markeer(); return { ok, text: ok ? 'Bron bijgewerkt.' : 'Dat lukt niet.' }; }
 // Een wagen met chauffeur erbij (+1) of weg (-1) tussen deze schakel en de volgende; de chauffeur kost per speldag loon (supplychain.js).
-export function wagenKnop(chainId, linkId, delta) {
+export function adjustWagons(chainId, linkId, delta) {
   const e = CH.chainsOf(getBezit())[chainId];
   if (!e) return { ok: false, text: 'Die keten bestaat niet.' };
   const r = delta > 0 ? SC.addTruck(e.chain, linkId) : SC.removeTruck(e.chain, linkId);
@@ -662,7 +662,7 @@ function achieve(w) {
   const own = Object.keys(b.parcels).filter((id) => !b.parcels[id].lg);
   if (own.length) unlockAchievement(w, 'bz_perceel');
   setStatMax(w, 'bzPercelen', own.length);
-  const regions = new Set(own.map((id) => { const r = b.parcels[id]; return r.c ? regionOfPoint(r.c[0], r.c[1]) : 'overig'; }));
-  regions.delete('overig');
-  setStatMax(w, 'bzStreken', regions.size);
+  const districts = new Set(own.map((id) => { const r = b.parcels[id]; return r.c ? districtOfPoint(r.c[0], r.c[1]) : 'overig'; }));
+  districts.delete('overig');
+  setStatMax(w, 'bzStreken', districts.size);
 }

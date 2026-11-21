@@ -10,13 +10,13 @@ export const COOLDOWN_DAYS = 2;      // tussen twee regels minstens zoveel speld
 export const DEFAULT_CHANCE = 0.75;
 
 // Grondsoort per streek van bezitprijs.js (klei, zand of veen) voor de regel bij het eerste perceel in een streek.
-export const GROUND_OF_REGION = {
+export const GROUND_OF_DISTRICT = {
   hogeland: 'klei', hunsingo: 'klei', oldambt: 'klei', eemsdelta: 'klei', lauwerskust: 'klei',
   westerkwartier: 'zand', westerwolde: 'zand', overig: 'zand', veenkolonien: 'veen',
 };
 
 // gebeurtenis -> { kans, regels }. Een regel is een korte zin in de eerste persoon.
-export const TESSA_REGELS = {
+export const TESSA_LINES = {
   'perceel-klei': { kans: 0.8, regels: ['Klei blijft aan je laarzen, zand niet. Dit ruikt naar thuis.', 'Zware klei: dat is werk, maar het geeft ook wat terug.'] },
   'perceel-zand': { kans: 0.8, regels: ['Zand loopt je door de vingers. Dit land vraagt om vers water en goed voer.', 'Zand werkt licht, maar het houdt niets vast. Zuinig mee zijn.'] },
   'perceel-veen': { kans: 0.8, regels: ['Zwarte veengrond, zacht onder je voeten. Daar moet je voorzichtig mee zijn.', 'Veen is eigenzinnig, maar met geduld krijg je er wat uit.'] },
@@ -25,7 +25,7 @@ export const TESSA_REGELS = {
   'eerste-personeel': { kans: 0.9, regels: ['Eerst leren we het zelf, dan pas een ander.', 'Iemand anders op mijn trekker. Ik moet er even aan wennen.'] },
   'eerste-pacht': { kans: 0.7, regels: ['Een ander op mijn land, maar de pacht komt wel binnen.', 'Verpachten is rustig geld verdienen. Het land blijft van ons.'] },
 };
-export const TESSA_EVENTS = Object.keys(TESSA_REGELS);
+export const TESSA_EVENTS = Object.keys(TESSA_LINES);
 
 // ---- de staat: { seen: { '<gebeurtenis>|<sleutel>': true }, last: laatste speldag met een regel (-1 = nog nooit) } ----
 export const newTessaState = () => ({ seen: {}, last: -1 });
@@ -36,7 +36,7 @@ export function normalizeTessa(raw) {
   if (raw.seen && typeof raw.seen === 'object') {
     for (const k of Object.keys(raw.seen).slice(0, 200)) {
       const ev = k.split('|')[0];
-      if (raw.seen[k] && TESSA_REGELS[ev] && k.length < 64) s.seen[k] = true;
+      if (raw.seen[k] && TESSA_LINES[ev] && k.length < 64) s.seen[k] = true;
     }
   }
   return s;
@@ -58,14 +58,14 @@ function noise(text, day) {
 }
 
 // De gebeurtenis bij het eerste perceel in een streek: 'perceel-klei', 'perceel-zand' of 'perceel-veen', met de streek als sleutel.
-export const parcelEventFor = (regionId) => ({ event: `perceel-${GROUND_OF_REGION[regionId] || 'zand'}`, key: String(regionId || 'overig') });
+export const parcelEventFor = (regionId) => ({ event: `perceel-${GROUND_OF_DISTRICT[regionId] || 'zand'}`, key: String(regionId || 'overig') });
 
 // Moet er nu een regel komen? Alleen voor Tessa, elke (gebeurtenis, sleutel) hooguit één keer, met een cooldown en een kans. Geeft { id, text } en
 // legt het vast in de staat (de aanroeper bewaart de staat), of null. Een regel die door kans of cooldown niet komt, kan bij een volgende
 // gelegenheid (andere speldag) nog komen: "eerste" betekent de eerste die getoond is.
 export function pickTessaLine(state, { character, event, key = '', day = 0 }) {
   if (character !== TESSA_CHARACTER) return null;
-  const rule = TESSA_REGELS[event];
+  const rule = TESSA_LINES[event];
   if (!rule || !state) return null;
   const id = `${event}|${key}`;
   if (state.seen[id]) return null;

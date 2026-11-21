@@ -66,5 +66,5 @@ export function updateHerds(w, dt) {
     sc.add(g);
   }
 }
-export function clearHerds() { for (const id of [...S.herds.keys()]) dropHerd(id); S.t = 0; }
+function clearHerds() { for (const id of [...S.herds.keys()]) dropHerd(id); S.t = 0; }
 export const herdCount = () => S.herds.size;

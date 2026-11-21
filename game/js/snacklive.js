@@ -68,11 +68,11 @@ export function snackView(w) {
   const S = L.snackState(), day = L.calToday(), held = SP.heldIds(S.permits, day);
   const owner = L.snackChainOwner();
   const spots = spotRows();
-  const own = { ...S.own, forecast: forecastOwn(), hasWagon: L.myMobile().some((m) => m.id === 'frietwagen'), tierDef: SN.TIERS[S.own.tier], numbers: SN.menuNumbers(S.own.menu, S.up, owner) };
+  const own = { ...S.own, forecast: forecastOwn(), hasWagon: L.myMobile().some((m) => m.id === 'frietwagen'), tierDef: SN.TIERS[S.own.tier], numbers: SN.offeringNumbers(S.own.menu, S.up, owner) };
   const sc = SN.empireScore(S, day, { chains: L.chainViews().filter((c) => c.closedDays > 0 || c.margin >= 0.3).length });
   return { open: snackOpen(), hint: snackOpen() ? '' : snackHint(), day, money: money(w), active: SN.isActive(S), rep: S.rep, effRep: SN.effRep(S, day), up: S.up, spots, own, fleet: S.fleet.map((f) => ({ ...f, tierDef: SN.TIERS[f.tier], wage: SN.staffWage(f.staff.skill, f.wageUp), spotName: f.spot ? SP.spotDef(f.spot).short : null })),
     rival: { name: RV.RIVAL_NAME, owner: RV.RIVAL_OWNER, spots: S.rival.spots.length, pand: S.rival.pand, chain: S.rival.chain, mood: S.rival.mood, rep: S.rival.rep }, gw: neighbourhood(S, day), score: sc, goals: SN.goalStatus(S, { day }), pending: SN.pendingEvent(S), war: S.ev.war && S.ev.war.until >= day ? S.ev.war : null,
-    menu: SN.ITEM_IDS.map((id) => ({ id, ...SN.ITEMS[id], on: S.own.menu.includes(id), unlocked: SN.menuUnlocked(S, id), chainOwn: SN.ITEMS[id].chain ? owner(SN.ITEMS[id].chain) : 0 })),
+    menu: SN.ITEM_IDS.map((id) => ({ id, ...SN.ITEMS[id], on: S.own.menu.includes(id), unlocked: SN.offeringUnlocked(S, id), chainOwn: SN.ITEMS[id].chain ? owner(SN.ITEMS[id].chain) : 0 })),
     wagonPrice: SN.wagonPrice(S.fleet.length), stats: S.stats };
 }
 
@@ -88,7 +88,7 @@ export function wagonSites() {
   return out;
 }
 
-export function koopWagen(w) { const c = closed(); if (c) return c; return L.koopMobiel(w, 'frietwagen'); }
+export function buyVan(w) { const c = closed(); if (c) return c; return L.koopMobiel(w, 'frietwagen'); }
 export function koopVergunning(w, spot) {
   const c = closed(); if (c) return c;
   const S = L.snackState(), r = SN.buyPermit(S, spot, L.calToday(), money(w), { taken: (id) => !!L.claimOfKey(SP.claimKey(id)) });
@@ -96,14 +96,14 @@ export function koopVergunning(w, spot) {
   spend(w, r.cost); claim(spot, 'claim'); L.markeer();
   return { ok: true, cost: r.cost, text: `Vergunning voor ${SP.spotDef(spot).short} is van jou voor ${euro(r.cost)}: ${SP.PERMIT_DAYS} speldagen geldig.` };
 }
-export function neemOver(w, spot) {
+export function acquireRivalSpot(w, spot) {
   const c = closed(); if (c) return c;
-  const S = L.snackState(), r = SN.bidTakeover(S, spot, L.calToday(), money(w), { taken: (id) => !!L.claimOfKey(SP.claimKey(id)) });
+  const S = L.snackState(), r = SN.bidForSpot(S, spot, L.calToday(), money(w), { taken: (id) => !!L.claimOfKey(SP.claimKey(id)) });
   if (!r.ok) return fail(r);
   spend(w, r.cost); claim(spot, 'claim'); L.markeer();
   return { ok: true, cost: r.cost, text: `Je hebt ${SP.spotDef(spot).short} overgenomen van Usmem Snacks voor ${euro(r.cost)}.` };
 }
-export function zetWagen(spot) {
+export function placeVan(spot) {
   const c = closed(); if (c) return c;
   const S = L.snackState();
   if (spot !== null && !SP.permitHeld(S.permits, spot, L.calToday())) return fail({ why: 'geen-vergunning' });
@@ -113,9 +113,9 @@ export function zetWagen(spot) {
   return { ok: true, text: spot ? `Je snackwagen staat bij ${SP.spotDef(spot).short}.` : 'Je snackwagen staat thuis.' };
 }
 export function zetOpen(patch) { const r = SN.setOwn(L.snackState(), patch); if (r.ok) L.markeer(); return r.ok ? { ok: true, text: 'Opgeslagen.' } : fail(r); }
-export function vulAan(w) { const c = closed(); if (c) return c; const r = SN.restock(L.snackState(), money(w)); if (!r.ok) return r.why === 'vol' ? { ok: false, text: 'De wagen is al helemaal gevuld.' } : fail(r); spend(w, r.cost, 'Overige uitgaven'); L.markeer(); return { ok: true, cost: r.cost, text: `De wagen is gevuld voor ${SN.STOCK_MAX} dagen (${euro(r.cost)} voor de rit).` }; }
+export function refillStock(w) { const c = closed(); if (c) return c; const r = SN.restock(L.snackState(), money(w)); if (!r.ok) return r.why === 'vol' ? { ok: false, text: 'De wagen is al helemaal gevuld.' } : fail(r); spend(w, r.cost, 'Overige uitgaven'); L.markeer(); return { ok: true, cost: r.cost, text: `De wagen is gevuld voor ${SN.STOCK_MAX} dagen (${euro(r.cost)} voor de rit).` }; }
 export function koopUpgrade(w, id) { const c = closed(); if (c) return c; const r = SN.buyUpgrade(L.snackState(), id, money(w)); if (!r.ok) return fail(r); spend(w, r.cost); L.markeer(); return { ok: true, cost: r.cost, text: `${SN.UPGRADES[id].label} is aangeschaft voor ${euro(r.cost)}.` }; }
-export function grotereWagen(w, wagon) { const c = closed(); if (c) return c; const r = SN.upgradeTier(L.snackState(), wagon, money(w)); if (!r.ok) return fail(r); spend(w, r.cost); L.markeer(); return { ok: true, cost: r.cost, text: `Een ${SN.TIERS[r.tier].label.toLowerCase()} voor ${euro(r.cost)}.` }; }
+export function upgradeVan(w, wagon) { const c = closed(); if (c) return c; const r = SN.upgradeTier(L.snackState(), wagon, money(w)); if (!r.ok) return fail(r); spend(w, r.cost); L.markeer(); return { ok: true, cost: r.cost, text: `Een ${SN.TIERS[r.tier].label.toLowerCase()} voor ${euro(r.cost)}.` }; }
 export function koopVloot(w, spot, mode = 'loon') {
   const c = closed(); if (c) return c;
   const r = SN.buyFleetWagon(L.snackState(), spot, L.calToday(), money(w), mode);
@@ -124,10 +124,10 @@ export function koopVloot(w, spot, mode = 'loon') {
   return { ok: true, cost: r.cost, text: `Een extra wagen bij ${SP.spotDef(spot).short} met ${r.wagon.staff.name} achter het luik, voor ${euro(r.cost)}.` };
 }
 export function verkoopVloot(w, id) { const r = SN.sellFleetWagon(L.snackState(), id); if (!r.ok) return fail(r); earn(w, r.refund); L.markeer(); return { ok: true, refund: r.refund, text: `Wagen verkocht voor ${euro(r.refund)}.` }; }
-export function verplaatsVloot(w, id, spot) { const r = SN.moveFleetWagon(L.snackState(), id, spot, L.calToday(), money(w)); if (!r.ok) return fail(r); spend(w, r.cost, 'Overige uitgaven'); L.markeer(); return { ok: true, cost: r.cost, text: `De wagen staat nu bij ${SP.spotDef(spot).short} (${euro(r.cost)} verhuiskosten).` }; }
+export function moveFleet(w, id, spot) { const r = SN.moveFleetWagon(L.snackState(), id, spot, L.calToday(), money(w)); if (!r.ok) return fail(r); spend(w, r.cost, 'Overige uitgaven'); L.markeer(); return { ok: true, cost: r.cost, text: `De wagen staat nu bij ${SP.spotDef(spot).short} (${euro(r.cost)} verhuiskosten).` }; }
 export function zetModus(id, mode) { const r = SN.setFleetMode(L.snackState(), id, mode); if (r.ok) L.markeer(); return r.ok ? { ok: true, text: mode === 'aandeel' ? 'Je verkoper krijgt 30% van de winst.' : 'Je verkoper krijgt een vast loon.' } : fail(r); }
-export function menuKnop(id) { const r = SN.toggleMenuItem(L.snackState(), id); if (r.ok) L.markeer(); return r.ok ? { ok: true, text: '' } : { ok: false, text: r.why === 'vol' ? 'Het menu zit vol: een grotere wagen heeft meer plekken.' : fail(r).text }; }
-export function antwoord(w, choice) {
+export function offeringButton(id) { const r = SN.toggleOffering(L.snackState(), id); if (r.ok) L.markeer(); return r.ok ? { ok: true, text: '' } : { ok: false, text: r.why === 'vol' ? 'Het menu zit vol: een grotere wagen heeft meer plekken.' : fail(r).text }; }
+export function answerEvent(w, choice) {
   const S = L.snackState(), p = SN.pendingEvent(S), spot = p ? p.spot : null;
   const r = SN.answerEvent(S, choice, L.calToday(), money(w));
   if (!r.ok) return fail(r);
@@ -138,9 +138,9 @@ export function antwoord(w, choice) {
 }
 
 // Hulp aan de buurt (goodwill.js): gratis porties, een schoonmaakdag of een buurtavond op een plek waar je een vergunning hebt. Kost geld, geeft goodwill en vaste klanten.
-export function helpBuurt(w, spot, kind) {
+export function helpNeighbourhood(w, spot, kind) {
   const c = closed(); if (c) return c;
-  const r = SN.helpBuurt(L.snackState(), spot, kind, L.calToday(), money(w));
+  const r = SN.helpNeighbourhood(L.snackState(), spot, kind, L.calToday(), money(w));
   if (!r.ok) return fail(r);
   spend(w, r.cost, 'Overige uitgaven'); L.markeer();
   return { ok: true, cost: r.cost, text: r.text };
@@ -150,7 +150,7 @@ export function helpBuurt(w, spot, kind) {
 // Het netwerkbericht regelt de aanroeper met setSnackWorkSend(fn); fn krijgt { type: 'snack-work', spot, hours }. Hoogstens eenmaal per plek per speldag.
 let workSend = () => {};
 export const setSnackWorkSend = (fn) => { workSend = typeof fn === 'function' ? fn : () => {}; };
-export function meewerken(w, spot, hours = 6) {
+export function workAlong(w, spot, hours = 6) {
   const c = closed(); if (c) return c;
   const S = L.snackState(), day = L.calToday();
   if (!SP.isSpot(spot) || !L.claimOfKey(SP.claimKey(spot))) return fail({ why: 'geen-claim' });
@@ -162,7 +162,7 @@ export function meewerken(w, spot, hours = 6) {
   return { ok: true, wage: share.guest.wage, text: `Je hebt ${h} uur meegewerkt bij ${SP.spotDef(spot).short} en verdient ${euro(share.guest.wage)}.` };
 }
 // De eigenaarskant: een medespeler werkte mee in jouw wagen (het ontvangen bericht van meewerken). Geeft { ok } of { ok: false, why }.
-export function ontvangWerk(msg) {
+export function receiveWork(msg) {
   if (!msg || msg.type !== 'snack-work' || !SP.isSpot(msg.spot)) return { ok: false, why: 'onbekend' };
   const r = SN.receiveHelper(L.snackState(), msg.spot, Number(msg.hours) || 0, L.calToday());
   if (r.ok) L.markeer();

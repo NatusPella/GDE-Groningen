@@ -13,7 +13,7 @@ import { branchOpen, branchHint } from './bezitgate.js';
 import { euro } from './geldtekst.js';
 import { noteMoney } from './finance.js';
 import { hoofdspeler } from './players.js';
-import { regionName } from './bezitnews.js';
+import { districtName } from './bezitnews.js';
 import { MOBILE_SPOTS } from './business.js';
 import { renderSnackPanel } from './snackui.js';
 
@@ -34,7 +34,7 @@ const askOr = (act, id, text, sure, extra = '', uit = false) => (ui.confirm === 
   : btn(act, text, ` data-id="${esc(id)}"${extra}`, uit));
 
 // ---- Overzicht ----
-export function overviewHtml({ bezit, farm, money = 0, day = 0, news = null, chains = null, board = null, products = [] } = {}) {
+export function summaryHtml({ bezit, farm, money = 0, day = 0, news = null, chains = null, board = null, products = [] } = {}) {
   const rows = H.holdingRows(bezit, farm, { regionOf: (id) => (L.parcelOffer(id) || {}).region });
   const own = rows.filter((r) => !((bezit.parcels[r.id] || {}).lg));
   const sum = H.summarize(rows);
@@ -67,7 +67,7 @@ export function newsHtml(news) {
   const lines = news.lines && news.lines.length ? `<ul class="bz-nieuws">${news.lines.slice(0, 5).map((l) => `<li data-kind="${esc(l.k)}">${esc(l.t)}</li>`).join('')}</ul>` : '<p class="mut">Geen nieuws: het land is rustig.</p>';
   const sc = news.scene;
   const scene = sc ? `<div class="bd-rij" data-scene="${esc(sc.id)}"><span class="bd-naam"><b>De buren</b><span>${esc(sc.text)}</span></span><span class="bd-acties">${sc.choices.map((c) => btn('buur', `${esc(c.label)}${c.cost ? ` (${euro(c.cost)})` : ''}`, ` data-choice="${esc(c.id)}"`)).join(' ')}</span></div>` : '';
-  const pull = (news.pull || []).map((p) => `<p class="mut" data-pull="${esc(p.region)}">${esc(p.label)} bij ${esc(p.name)} in ${esc(regionName(p.region))}: ${p.classes.map((c) => `${esc(c.label)}, inleg ${euro(c.fee)}, prijs tot ${euro(c.top)}`).join('; ')}. De wedstrijd zelf is nog niet te spelen.</p>`).join('');
+  const pull = (news.pull || []).map((p) => `<p class="mut" data-pull="${esc(p.region)}">${esc(p.label)} bij ${esc(p.name)} in ${esc(districtName(p.region))}: ${p.classes.map((c) => `${esc(c.label)}, inleg ${euro(c.fee)}, prijs tot ${euro(c.top)}`).join('; ')}. De wedstrijd zelf is nog niet te spelen.</p>`).join('');
   return `<h3 class="m-h3">Nieuws van het land</h3>${lines}${scene}${pull}`;
 }
 
@@ -97,10 +97,10 @@ export function chainsHtml(chains, money = 0) {
 export function marketHtml(board, products = []) {
   if (!board) return '';
   const TREND = { op: 'stijgt', neer: 'daalt', gelijk: 'gelijk' };
-  const rows = board.rows.map((r, i) => `<tr data-region="${esc(r.region)}"${i === 0 ? ' data-best="1"' : ''}><td>${esc(regionName(r.region))}</td><td>${euro(r.price)} per kg</td><td>${Math.round(r.factor * 100)}%</td><td>${TREND[r.trend] || ''}</td></tr>`).join('');
+  const rows = board.rows.map((r, i) => `<tr data-region="${esc(r.region)}"${i === 0 ? ' data-best="1"' : ''}><td>${esc(districtName(r.region))}</td><td>${euro(r.price)} per kg</td><td>${Math.round(r.factor * 100)}%</td><td>${TREND[r.trend] || ''}</td></tr>`).join('');
   const pick = `<label class="bz-sel">Product<select data-bz-product>${products.map((p) => `<option value="${esc(p)}"${p === board.product ? ' selected' : ''}>${esc(p)}</option>`).join('')}</select></label>`;
   const auction = board.auction ? `<p class="mut">${esc(board.auction.text)}</p>` : '';
-  return `<h3 class="m-h3">Prijzen vandaag per streek</h3><p class="mut">Wat je levert drukt de prijs in die streek (3% per 1.000 kg, herstel 25% per dag): spreid je leveringen.${board.best ? ` Nu het beste: ${esc(regionName(board.best.region))}.` : ''}</p>${pick}${auction}<table class="bz-prijzen"><thead><tr><th>Streek</th><th>Prijs</th><th>Marktfactor</th><th>Trend</th></tr></thead><tbody>${rows}</tbody></table>`;
+  return `<h3 class="m-h3">Prijzen vandaag per streek</h3><p class="mut">Wat je levert drukt de prijs in die streek (3% per 1.000 kg, herstel 25% per dag): spreid je leveringen.${board.best ? ` Nu het beste: ${esc(districtName(board.best.region))}.` : ''}</p>${pick}${auction}<table class="bz-prijzen"><thead><tr><th>Streek</th><th>Prijs</th><th>Marktfactor</th><th>Trend</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 // ---- Bedrijven ----
@@ -156,7 +156,7 @@ export function renderBezitPanels(els, world) {
   const bezit = L.getBezit(), farm = getBoerderij();
   const money = (world && world.money) || 0, day = Math.floor(farm.uren / 24);
   L.ensureIndex().then(() => { if (els.rerender) els.rerender(); }).catch(() => {});
-  if (els.overzicht) els.overzicht.innerHTML = overviewHtml({ bezit, farm, money, day, news: L.newsView(world), chains: L.chainViews(), board: L.priceBoard(ui.product), products: L.marketProducts() });
+  if (els.overzicht) els.overzicht.innerHTML = summaryHtml({ bezit, farm, money, day, news: L.newsView(world), chains: L.chainViews(), board: L.priceBoard(ui.product), products: L.marketProducts() });
   if (els.bedrijven) { const p = playerPos(world); els.bedrijven.innerHTML = businessesHtml({ money, mine: L.myBusinesses(), near: L.buildingsNear(p.x, p.y), day, mobile: L.myMobile(), mobileOffers: L.mobileOffers(), homes: L.homesNear(p.x, p.y) }); }
   if (els.tekoop) els.tekoop.innerHTML = forSaleHtml({ money, offers: nearbyOffers(world) });
   if (els.snack) renderSnackPanel(els.snack, world);
@@ -202,12 +202,12 @@ function act(world, d, els) {
   else if (a === 'buur') ui.msg = L.kiesBuur(world, d.choice).text;
   else if (a === 'keten-los') ui.msg = L.ontkoppelSchakel(d.chain, d.link).text;
   else if (a === 'keten-bron') ui.msg = L.kiesBron(d.chain, id).text;
-  else if (a === 'wagen-plus') ui.msg = L.wagenKnop(d.chain, d.link, 1).text;
-  else if (a === 'wagen-min') ui.msg = L.wagenKnop(d.chain, d.link, -1).text;
+  else if (a === 'wagen-plus') ui.msg = L.adjustWagons(d.chain, d.link, 1).text;
+  else if (a === 'wagen-min') ui.msg = L.adjustWagons(d.chain, d.link, -1).text;
   else if (a === 'keten-uit') ui.msg = L.schakelUitbreiden(world, d.chain, d.link).text;
   else if (a === 'koop-mobiel') { if (!ask(a)) { const r = L.koopMobiel(world, id); ui.msg = r.text; if (r.ok && world.addMessage) world.addMessage(r.text, 3); } }
   else if (a === 'verkoop-mobiel') { if (!ask(a)) ui.msg = L.verkoopMobiel(world, id).text; }
-  else if (a === 'plek') ui.msg = L.zetStandplaats(id, d.spot).text;
+  else if (a === 'plek') ui.msg = L.setPitch(id, d.spot).text;
   else if (a === 'reno-mobiel') ui.msg = L.renoveerMobiel(world, id).text;
   else if (a === 'huur') ui.msg = L.huurArbeider(world, Number(d.skill)).text;
   else if (a === 'ontsla') { if (!ask(a)) { L.ontslaArbeider(id); ui.msg = 'Ontslagen. De percelen van die arbeider staan weer op Zelf.'; } }

@@ -27,12 +27,12 @@ t('Martinikerkhof ligt binnen 150 m van de Martinikerk uit de herkenningspunten'
   assert.ok(Math.hypot(m.x - 267.2, m.y + 7.6) < 150);
 });
 t('het uurprofiel: een lunchvenster vangt meer dan een nachtvenster, het beste venster is het grootst', () => {
-  assert.ok(S.windowFraction('dag', 11, 10) > 0.75);
-  assert.equal(S.windowFraction('dag', 0, 6), 0);
-  const b = S.bestWindow('avond', 8);
-  assert.ok(b.from >= 15 && b.fraction >= S.windowFraction('avond', 8, 8));
-  assert.ok(S.windowFraction('dag', 22, 6) > 0);             // een venster over middernacht telt door
-  assert.ok(S.windowFraction('spits', 7, 3) > S.windowFraction('spits', 10, 3));
+  assert.ok(S.openingShare('dag', 11, 10) > 0.75);
+  assert.equal(S.openingShare('dag', 0, 6), 0);
+  const b = S.bestOpening('avond', 8);
+  assert.ok(b.from >= 15 && b.fraction >= S.openingShare('avond', 8, 8));
+  assert.ok(S.openingShare('dag', 22, 6) > 0);             // een venster over middernacht telt door
+  assert.ok(S.openingShare('spits', 7, 3) > S.openingShare('spits', 10, 3));
 });
 t('de vraag: een drukke plek in het weekend, een rustig dorp op een doordeweekse dag', () => {
   const markt = S.demandAt('markt', { weekend: true, from: 11, hours: 10, day: 5 }).demand;

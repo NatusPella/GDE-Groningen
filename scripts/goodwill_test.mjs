@@ -91,7 +91,7 @@ t('een mislukte omkoping maakt Usmem goedkoper en voorzichtiger: de overnameprij
   assert.ok(RV.askPrice('markt', 50, 0) < 0.82 * RV.askPrice('markt', 50, 60) && RV.askPrice('markt', 50, 0) > 0.79 * RV.askPrice('markt', 50, 60));
   const r = RV.newRival();
   assert.ok(RV.eventChance({ ...r, rep: 0 }) < RV.eventChance(r) && RV.eventChance({ ...r, rep: 100 }) > RV.eventChance(r));
-  assert.equal(RV.takeOver({ ...r, rep: 0 }, 'markt', 1e9, 50).price, RV.askPrice('markt', 50, 0));
+  assert.equal(RV.acquireSpot({ ...r, rep: 0 }, 'markt', 1e9, 50).price, RV.askPrice('markt', 50, 0));
 });
 t('Jelle blijft satire: de enveloppe gaat naar de verzonnen Gemeentelijke Vergunningsdienst Noord, geen echte instantie, nooit geweld', () => {
   assert.equal(RV.SERVICE, 'Gemeentelijke Vergunningsdienst Noord');
@@ -139,7 +139,7 @@ function campaign(helps, days = 500) {
   SN.buyFleetWagon(S, 'reitdiep', 1, 1e9); SN.buyFleetWagon(S, 'haren', 1, 1e9);
   for (let d = 2; d < 2 + days; d++) {
     S.own.stockDays = 5; for (const id of spots) S.permits[id].until = 1e7; S.rival.mood = 80;            // een agressieve Jelle: elke dag opnieuw boos
-    if (helps && d % 3 === 0) for (const id of spots) for (const kind of GW.HELP_IDS) { if ((S.gw.helped[id] || 0) >= 6 && !(kind === 'avond' && d % 60 === 0)) continue; const r = SN.helpBuurt(S, id, kind, d, 1e9); if (r.ok) helpCost += r.cost; }
+    if (helps && d % 3 === 0) for (const id of spots) for (const kind of GW.HELP_IDS) { if ((S.gw.helped[id] || 0) >= 6 && !(kind === 'avond' && d % 60 === 0)) continue; const r = SN.helpNeighbourhood(S, id, kind, d, 1e9); if (r.ok) helpCost += r.cost; }
     const p = SN.pendingEvent(S);
     if (p) { const choice = p.kind === 'vergunning' ? (S.gw.allies.length ? 'bondgenoten' : 'beroep') : p.kind === 'bod' ? 'weiger' : p.choices.find((c) => c.def).id; const a = SN.answerEvent(S, choice, d, 1e9); if (a.ok) answerCost += a.cost; }
     const r = SN.settleDay(S, ctx(d));

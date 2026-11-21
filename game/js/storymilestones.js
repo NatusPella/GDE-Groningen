@@ -9,7 +9,7 @@
 import { STEPS } from './storyarc.js';
 
 // stap = de stap waarna de mijlpaal geldt; `akte` hoort bij de ruggengraat (docs/verhaal/RUGGENGRAAT.md)
-export const WAGEN_MILESTONES = [
+export const VAN_MILESTONES = [
   { flag: 'wagen:naam', step: 'M00', akte: 'kop', text: 'De Fjord Frituur heeft een naam, een tekening en een auto met een lekke band.' },
   { flag: 'wagen:menu', step: 'M08', akte: 'romp', text: "Oma Trijntjes recept van 1953: vet, eieren, zout, meel en mosterd zijn het eerste menu." },
   { flag: 'wagen:stek', step: 'M13', akte: 'staart', text: "Lammerts kade en de kermis: de eerste plekken waar de wagen kan staan." },
@@ -17,20 +17,20 @@ export const WAGEN_MILESTONES = [
   { flag: 'wagen:standplaats', step: 'M26', akte: 'ontzet', text: 'Een luik en een standplaats op de Vismarkt.' },
   { flag: 'wagen:keten', step: 'M30', akte: 'nazomer', text: 'De wagen groeit: een tweede wagen, een pand en de boerderij als leverancier zijn mogelijk.' },
 ];
-export const WAGEN_FLAGS = WAGEN_MILESTONES.map((m) => m.flag);
+export const VAN_FLAGS = VAN_MILESTONES.map((m) => m.flag);
 
 const idx = (id) => STEPS.findIndex((s) => s.id === id);
 
 // De vlaggen die bij het afronden van één stap horen.
-export const milestoneFlagsFor = (stepId) => WAGEN_MILESTONES.filter((m) => m.step === stepId).map((m) => m.flag);
+export const milestoneFlagsFor = (stepId) => VAN_MILESTONES.filter((m) => m.step === stepId).map((m) => m.flag);
 
 // Alle vlaggen die horen bij wat al af is (`done`: Set of lijst met stap-id's). Een mijlpaal geldt ook als een latere
 // stap af is (een save die een stap oversloeg of vooruit sprong, devJumpTo).
 export function milestoneFlagsForDone(done) {
   const have = done instanceof Set ? done : new Set(done || []);
   const last = Math.max(-1, ...[...have].map(idx));
-  return WAGEN_MILESTONES.filter((m) => have.has(m.step) || idx(m.step) < last).map((m) => m.flag);
+  return VAN_MILESTONES.filter((m) => have.has(m.step) || idx(m.step) < last).map((m) => m.flag);
 }
 
 // Hoe ver is de wagen? 0 (niets) tot en met het aantal mijlpalen; Bezit leest dit voor zijn tijdlijn.
-export const wagenStage = (flags) => WAGEN_FLAGS.filter((f) => (flags && (flags.has ? flags.has(f) : flags.includes(f)))).length;
+export const vanStage = (flags) => VAN_FLAGS.filter((f) => (flags && (flags.has ? flags.has(f) : flags.includes(f)))).length;

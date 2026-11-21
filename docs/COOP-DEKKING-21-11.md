@@ -167,6 +167,8 @@ De bron is [scripts/coop_coverage.json](../scripts/coop_coverage.json); de tabel
 | `recap` | apparaat | Recapkaart: nooit in een savegame. |
 | `gebieden` | speler | Gebieden per speler. |
 | `exploration` | speler | Verkenning per speler. |
+| `tuningLook` | speler | Het uiterlijk dat deze speler aan een eigen voertuig gaf; per speler (#429), nooit in een savegame, niet gedeeld. |
+| `bezit` | speler | Percelen en panden van deze speler (#1097); per speler (#429), nooit in een savegame. |
 
 <!-- MATRIX:END -->
 

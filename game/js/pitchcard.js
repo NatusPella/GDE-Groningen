@@ -5,13 +5,13 @@
 import { euro } from './geldtekst.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const STAND = { jij: 'Van jou', usmem: 'Van Usmem Snacks', medespeler: 'Van een medespeler', vrij: 'Vrij' };
+const STATUS_LABEL = { jij: 'Van jou', usmem: 'Van Usmem Snacks', medespeler: 'Van een medespeler', vrij: 'Vrij' };
 const act = (card, label, small) => `<button type="button" class="mv-actie" data-card="${card}"><span class="mv-at"><span class="mv-al">${label}</span><small>${small}</small></span></button>`;
 
 // row: een rij van snacklive.spotRows(); stap: null | 'koop'; melding: tekst na een actie; money: het geld; hasWagon: je hebt een snackwagen.
 export function spotCardHtml(row, { stap = null, melding = '', money = 0, hasWagon = false } = {}) {
   if (!row) return '';
-  const feiten = [['Plaats', esc(row.place)], ['Stand', `${STAND[row.status] || STAND.vrij}${row.claim ? ` (${esc(row.claim.name)})` : ''}`], ['Drukte', `${String(row.foot.toFixed(2)).replace('.', ',')} (1 is een gewone drukke plek)`]];
+  const feiten = [['Plaats', esc(row.place)], ['Stand', `${STATUS_LABEL[row.status] || STATUS_LABEL.vrij}${row.claim ? ` (${esc(row.claim.name)})` : ''}`], ['Drukte', `${String(row.foot.toFixed(2)).replace('.', ',')} (1 is een gewone drukke plek)`]];
   if (row.status === 'jij') feiten.push(['Vergunning', `nog ${row.daysLeft} speldagen, verlengen ${euro(row.renew)}`]);
   const dl = '<dl class="mv-bezit">' + feiten.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('') + '</dl>';
   let top = '', buttons = '';
@@ -33,4 +33,4 @@ export function spotCardHtml(row, { stap = null, melding = '', money = 0, hasWag
   } else top = `<p class="mv-note" data-spot="medespeler">${row.claim ? `${esc(row.claim.name)} heeft deze plek in deze sessie.` : 'Een medespeler heeft deze plek.'}</p>`;
   return `<div class="mv-bezit-kaart">${top}${dl}${melding ? `<p class="mv-note" role="status">${esc(melding)}</p>` : ''}${buttons}</div>`;
 }
-export const hoverSubSpot = (row) => (row ? `${STAND[row.status] || ''} · ${row.status === 'vrij' ? `vergunning ${euro(row.price)}` : row.status === 'usmem' ? `overnemen ${euro(row.ask)}` : row.place}` : '');
+export const pitchTipLine = (row) => (row ? `${STATUS_LABEL[row.status] || ''} · ${row.status === 'vrij' ? `vergunning ${euro(row.price)}` : row.status === 'usmem' ? `overnemen ${euro(row.ask)}` : row.place}` : '');

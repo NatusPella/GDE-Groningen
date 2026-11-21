@@ -34,14 +34,14 @@ export const EVENT_DEFS = {
 export const EVENT_IDS = Object.keys(EVENT_DEFS);
 
 // ---- de ruggengraat: wanneer is een gebeurtenis actief ----
-const startsOn = (def, key, d) => hashUnit('bezitev', def.id, key, d) < def.chance;
+const opensOn = (def, key, d) => hashUnit('bezitev', def.id, key, d) < def.chance;
 // Het zwaarste actieve exemplaar op `day` voor deze definitie en sleutel (streek of spelerszaad+bezit), of null. Geen toestand: de dagen terug worden gescand.
 export function activeSpan(def, key, day) {
   const d = Math.floor(finite(day, 0));
   if (d < 1 || !def) return null;
   let best = null;
   for (let s = d; s > d - def.duration[1] && s >= 1; s--) {
-    if (!startsOn(def, key, s)) continue;
+    if (!opensOn(def, key, s)) continue;
     const dur = def.duration[0] + Math.floor(hashUnit('duur', def.id, key, s) * (def.duration[1] - def.duration[0] + 1));
     if (d >= s + dur) continue;
     const sev = hashUnit('ernst', def.id, key, s);
@@ -51,7 +51,7 @@ export function activeSpan(def, key, day) {
 }
 export const droughtOn = (region, day) => activeSpan(EVENT_DEFS.droogte, region, day);
 
-const regionName = (r) => String(r || 'de streek').replace(/^./, (c) => c.toUpperCase());
+const districtName = (r) => String(r || 'de streek').replace(/^./, (c) => c.toUpperCase());
 const fill = (text, o = {}) => text.replace(/\{(\w+)\}/g, (_, k) => (o[k] !== undefined ? o[k] : `{${k}}`));
 
 // ---- opbrengst: droogte, stortbui, mieren en wespen op een perceel ----
@@ -166,7 +166,7 @@ export function festivalOn(region, day) {
 export function auctionOffer(region, day) {
   const span = activeSpan(EVENT_DEFS.veiling, region, day);
   if (!span) return null;
-  return { discount: Math.round((0.2 + 0.15 * span.sev) * 100) / 100, pick: hashUnit('veiling-keuze', region, span.start), kind: hashUnit('veiling-soort', region, span.start) < 0.5 ? 'perceel' : 'pand', text: fill(EVENT_DEFS.veiling.text, { r: regionName(region) }) };
+  return { discount: Math.round((0.2 + 0.15 * span.sev) * 100) / 100, pick: hashUnit('veiling-keuze', region, span.start), kind: hashUnit('veiling-soort', region, span.start) < 0.5 ? 'perceel' : 'pand', text: fill(EVENT_DEFS.veiling.text, { r: districtName(region) }) };
 }
 export const AUCTION_PRODUCTS = ['aardappelen', 'bieten', 'graan', 'uien', 'melk', 'kaas', 'brood', 'eieren', 'fruit', 'souvenir'];
 // De veilingdag: één product brengt vandaag 25% meer op (mult voor areamarket.js eventMult), of null.
@@ -239,10 +239,10 @@ export function eventsOn(day, ctx = {}) {
   for (const r of [...new Set(ctx.regions || [])]) {
     for (const id of ['droogte', 'stortbui', 'mierenplaag', 'wespen', 'staking', 'veiling']) {
       const span = activeSpan(EVENT_DEFS[id], r, day);
-      if (span) out.push({ id, kind: EVENT_DEFS[id].kind, scope: 'region', region: r, title: EVENT_DEFS[id].label, text: fill(EVENT_DEFS[id].text, { r: regionName(r), bond: UNION }), first: span.first });
+      if (span) out.push({ id, kind: EVENT_DEFS[id].kind, scope: 'region', region: r, title: EVENT_DEFS[id].label, text: fill(EVENT_DEFS[id].text, { r: districtName(r), bond: UNION }), first: span.first });
     }
     const fest = festivalOn(r, day);
-    if (fest) out.push({ id: fest.kind, kind: 'verhaal', scope: 'region', region: r, title: fest.name, text: `${fest.name} in ${regionName(r)}: de winkels draaien extra.`, first: false });
+    if (fest) out.push({ id: fest.kind, kind: 'verhaal', scope: 'region', region: r, title: fest.name, text: `${fest.name} in ${districtName(r)}: de winkels draaien extra.`, first: false });
   }
   const vd = auctionDay(day); if (vd) out.push({ id: 'veilingdag', kind: 'kans', scope: 'global', title: 'Veilingdag', text: vd.text, first: true });
   const fair = fairOn(day); if (fair) out.push({ id: 'landbouwbeurs', kind: 'kans', scope: 'global', title: FAIR, text: fair.text, first: fair.dayOfFair === 1 });

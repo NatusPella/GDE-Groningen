@@ -102,10 +102,10 @@ export function herdDayTick(herd, ctx = {}) {
   if (s.grazen && ctx.kind === 'w' && ctx.ha > 0) left -= Math.min(left, ctx.ha * PASTURE_KG_HA_DAY);
   // 2. de opslag: hooi of gras, kippen graan
   const hay = ctx.hay || {};
-  for (const soort of s.grazen ? ['gras', 'hooi'] : ['graan']) {
+  for (const feed of s.grazen ? ['gras', 'hooi'] : ['graan']) {
     if (left <= 1e-9) break;
-    const take = Math.min(left, Math.max(0, hay[soort] || 0));
-    if (take > 0) { rep.hayUsed[soort] = Math.round(take * 10) / 10; left -= take; }
+    const take = Math.min(left, Math.max(0, hay[feed] || 0));
+    if (take > 0) { rep.hayUsed[feed] = Math.round(take * 10) / 10; left -= take; }
   }
   // 3. bijkopen, anders honger: de productie volgt het deel dat gevoerd is
   if (left > 1e-9 && ctx.buy !== false) { rep.feedCost = Math.round(left * (s.grazen ? FEED_PRICE.hooi : FEED_PRICE.graan) * 100) / 100; left = 0; }

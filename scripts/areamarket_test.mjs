@@ -11,7 +11,7 @@ const t = (name, fn) => { n++; try { fn(); } catch (e) { fails++; console.log('F
 const M0 = () => R.advanceMarket(R.newMarket(), 5);
 
 t('de streken zijn die van het spel plus overig; de basisprijzen van de gewassen zijn die van gewasmarkt.js', () => {
-  assert.deepEqual(R.REGION_IDS.slice(0, -1), STREKEN.map((s) => s.id)); assert.equal(R.REGION_IDS.at(-1), 'overig');
+  assert.deepEqual(R.DISTRICT_IDS.slice(0, -1), STREKEN.map((s) => s.id)); assert.equal(R.DISTRICT_IDS.at(-1), 'overig');
   for (const [k, v] of Object.entries(PRICE_KG)) assert.equal(R.BASE_PRICE[k], v);
   for (const p of R.PRODUCTS) assert.ok(R.REFERENCE[p] > 0 && R.BASE_PRICE[p] > 0, p);
 });
@@ -33,7 +33,7 @@ t('de vraag ligt tussen 0,3 en 2,2 maal de referentie en wisselt echt', () => {
 });
 t('de marktfactor blijft binnen 0,7 en 1,4 (zonder event), voor elke streek, product en dag', () => {
   const m = M0();
-  for (const r of R.REGION_IDS) for (const p of R.PRODUCTS) for (let d = 1; d <= 120; d += 3) { const f = R.priceFactor(m, r, p, d); assert.ok(f >= 0.7 - 1e-9 && f <= 1.4 + 1e-9, `${r} ${p} ${d}: ${f}`); }
+  for (const r of R.DISTRICT_IDS) for (const p of R.PRODUCTS) for (let d = 1; d <= 120; d += 3) { const f = R.priceFactor(m, r, p, d); assert.ok(f >= 0.7 - 1e-9 && f <= 1.4 + 1e-9, `${r} ${p} ${d}: ${f}`); }
 });
 t('de formule: basis x (1 + 0,2 x (vraag - aanbod) / referentie), met een schone markt', () => {
   const m = R.advanceMarket(R.newMarket(), 20);

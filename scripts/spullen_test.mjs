@@ -81,7 +81,7 @@ t('#1013: Spullen is een raster van tegels met aantal-badges en een detail met a
   assert.match(sp, /class="sp-raster"/, 'de tegels staan in een raster');
   assert.match(sp, /sp-badge/, 'het aantal staat op de tegel zelf');
   assert.match(sp, /data-spul-weg-ja/, 'weggooien vraagt eerst een bevestiging');
-  assert.doesNotMatch(sp, /overviewHtml|pctVan|sp-cat/, 'geen oude lijst met groepskoppen en tellers meer');
+  assert.doesNotMatch(sp, /summaryHtml|pctVan|sp-cat/, 'geen oude lijst met groepskoppen en tellers meer');
   assert.match(sp, /sp-detail-cat/, 'het detail noemt de categorie');
 });
 

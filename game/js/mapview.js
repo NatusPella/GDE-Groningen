@@ -49,11 +49,11 @@ import { veldBij } from './percelen.js';
 import { forSaleView, parcelOffer, koopPerceel, verkoopPerceel, bezitOpen, ensureIndex } from './bezitlive.js';
 import { pickShape } from './forsalemap.js';
 import { drawForSale } from './forsaledraw.js';
-import { offerCardHtml, hoverSub } from './forsalecard.js';
-import { standplaatsView, pickMarker } from './pitchmap.js';
-import { drawStandplaatsen } from './pitchdraw.js';
-import { spotCardHtml, hoverSubSpot } from './pitchcard.js';
-import { spotRows, koopVergunning, neemOver, zetWagen, snackOpen } from './snacklive.js';
+import { offerCardHtml, pointerSub } from './forsalecard.js';
+import { pitchMarkerView, pickMarker } from './pitchmap.js';
+import { drawPitchMarkers } from './pitchdraw.js';
+import { spotCardHtml, pitchTipLine } from './pitchcard.js';
+import { spotRows, koopVergunning, acquireRivalSpot, placeVan, snackOpen } from './snacklive.js';
 import { myMobile } from './bezitlive.js';
 import { getSideJobSpotsForRender } from './sidejobs.js';
 import { getEierbalTips } from './furniture.js';
@@ -1796,9 +1796,9 @@ function drawDynamicMarkers(ctx, world) {
   if (koopView && koopView.loading) ensureIndex().then(() => { state.dirty = true; }).catch(() => {});
   if (koopView) drawForSale(ctx, koopView, toScreen, state.zoom, state.hoverKoopId, state.card && state.card.h && state.card.h.bezit);
   // Snackimperium (#1102): de kaartlaag Standplaatsen (pitchmap.js): vrij, van jou, van Usmem Snacks, van een medespeler
-  const standView = layerOn('standplaats') && snackOpen() ? standplaatsView(spotRows(), viewRect(), state.scale) : null;
+  const standView = layerOn('standplaats') && snackOpen() ? pitchMarkerView(spotRows(), viewRect(), state.scale) : null;
   state.standMarkers = standView && standView.mode === 'markers' ? standView.markers : [];
-  if (standView) drawStandplaatsen(ctx, standView, toScreen, state.zoom, null, state.card && state.card.h && state.card.h.standplaats);
+  if (standView) drawPitchMarkers(ctx, standView, toScreen, state.zoom, null, state.card && state.card.h && state.card.h.standplaats);
   // de OV-lijnen van de bestemming waar de kaartkaart open voor staat (#97)
   if (state.reis) tekenLijnen(ctx, state.reis.lagen, toScreen, 1);
 
@@ -2387,7 +2387,7 @@ function updateTooltip(sx, sy) {
   const veld = !nearestHover(sx, sy) ? veldBij(state.eigenVelden, wx, wy) : null;
   const koop = !nearestHover(sx, sy) && !veld ? pickShape(state.koopVelden, wx, wy, 8) : null;
   const koopOffer = koop ? parcelOffer(koop.id) : null;
-  const h = nearestHover(sx, sy) || (veld ? { name: veld.naam, sub: veld.sub, x: veld.x, y: veld.y, veld: true } : koopOffer ? { name: koopOffer.name, sub: hoverSub(koopOffer), x: koop.x, y: koop.y, veld: true } : null);
+  const h = nearestHover(sx, sy) || (veld ? { name: veld.naam, sub: veld.sub, x: veld.x, y: veld.y, veld: true } : koopOffer ? { name: koopOffer.name, sub: pointerSub(koopOffer), x: koop.x, y: koop.y, veld: true } : null);
   if ((state.hoverKoopId || null) !== (koop ? koop.id : null)) { state.hoverKoopId = koop ? koop.id : null; state.dirty = true; }
   if ((state.hoverVeldId || null) !== (veld ? veld.id : null)) {
     state.hoverVeldId = veld ? veld.id : null;
@@ -2478,8 +2478,8 @@ function handleClick(world, sx, sy, shift = false) {
   // je eigen veld: het kaartje van het perceel, met dezelfde acties als een plek
   if (veld) { showCard(world, { name: veld.naam, sub: veld.sub, x: veld.x, y: veld.y, spot: true }, sx, sy); return; }
   // epic Bezit (#1098): een perceel op de kaartlaag Te koop: de perceelkaart met Koop, Doel en Info
-  if (koop) { const o = parcelOffer(koop.id); if (o) { showCard(world, { name: o.name, sub: hoverSub(o), x: koop.x, y: koop.y, spot: true, bezit: koop.id }, sx, sy); return; } }
-  if (stand) { const r = spotRows().find((q) => q.id === stand.id); if (r) { showCard(world, { name: r.name, sub: hoverSubSpot(r), x: r.x, y: r.y, spot: true, standplaats: r.id }, sx, sy); return; } }
+  if (koop) { const o = parcelOffer(koop.id); if (o) { showCard(world, { name: o.name, sub: pointerSub(o), x: koop.x, y: koop.y, spot: true, bezit: koop.id }, sx, sy); return; } }
+  if (stand) { const r = spotRows().find((q) => q.id === stand.id); if (r) { showCard(world, { name: r.name, sub: pitchTipLine(r), x: r.x, y: r.y, spot: true, standplaats: r.id }, sx, sy); return; } }
   // je eigen plek: een hint waar je staat, geen waypoint naar jezelf
   if (h && h.self) { showCard(world, h, sx, sy); return; }
   // een marker: een kaartje met wat het is en "Zet als doel"
@@ -2866,7 +2866,7 @@ function standActie(world, c, act) {
   const id = c.h.standplaats, row = spotRows().find((q) => q.id === id);
   if (act === 'sp-koop') { c.bezitStap = 'koop'; c.bezitMelding = ''; showCard(world, c.h); return; }
   if (act === 'sp-annuleer') { c.bezitStap = null; c.bezitMelding = ''; showCard(world, c.h); return; }
-  const r = act === 'sp-zet' ? zetWagen(id) : row && row.status === 'usmem' ? neemOver(world, id) : koopVergunning(world, id);
+  const r = act === 'sp-zet' ? placeVan(id) : row && row.status === 'usmem' ? acquireRivalSpot(world, id) : koopVergunning(world, id);
   c.bezitStap = null; c.bezitMelding = r.text || '';
   if (r.ok && world.addMessage) world.addMessage(r.text, 3);
   state.dirty = true;

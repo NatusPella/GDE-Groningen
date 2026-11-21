@@ -64,7 +64,7 @@ export const PROFILES = {
 };
 const TOTAL = Object.fromEntries(Object.entries(PROFILES).map(([k, v]) => [k, v.reduce((a, b) => a + b, 0)]));
 // Het aandeel van de dagdruk dat een wagen vangt die om `from` uur opent en `hours` uur openblijft (0 tot 1). Een venster over middernacht telt door.
-export function windowFraction(profile, from, hours) {
+export function openingShare(profile, from, hours) {
   const p = PROFILES[profile] || PROFILES.dag;
   const f = Math.floor(clamp(finite(from, 11), 0, 23)), h = Math.floor(clamp(finite(hours, 10), 0, 18));
   let s = 0;
@@ -72,9 +72,9 @@ export function windowFraction(profile, from, hours) {
   return Math.round((s / TOTAL[profile || 'dag']) * 1000) / 1000;
 }
 // Het beste venster van h uur voor dit profiel: { from, fraction }.
-export function bestWindow(profile, hours) {
+export function bestOpening(profile, hours) {
   let best = { from: 0, fraction: -1 };
-  for (let f = 0; f < 24; f++) { const fr = windowFraction(profile, f, hours); if (fr > best.fraction) best = { from: f, fraction: fr }; }
+  for (let f = 0; f < 24; f++) { const fr = openingShare(profile, f, hours); if (fr > best.fraction) best = { from: f, fraction: fr }; }
   return best;
 }
 
@@ -108,7 +108,7 @@ export function demandAt(id, ctx = {}) {
   if (!s) return { demand: 0, parts: {} };
   const weekend = !!ctx.weekend;
   const ev = eventMult(s, ctx);
-  const win = windowFraction(s.profile, finite(ctx.from, 11), finite(ctx.hours, 10));
+  const win = openingShare(s.profile, finite(ctx.from, 11), finite(ctx.hours, 10));
   const dens = ctx.shops === undefined ? 1 : densityFactor(ctx.shops);
   const wk = weekMult(s, weekend);
   const day = 0.94 + 0.12 * hashUnit('standdag', id, Math.floor(finite(ctx.day, 0)));         // vaste ruis per plek en dag: 0,94 tot 1,06

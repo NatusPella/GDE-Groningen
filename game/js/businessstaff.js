@@ -9,7 +9,7 @@ import { hashUnit, hashPick, clamp, finite } from './bezithash.js';
 export const FIRST_NAMES = ['Marit', 'Joost', 'Fenna', 'Sjoerd', 'Anke', 'Wessel', 'Lieke', 'Harm', 'Roos', 'Gerrit', 'Sanne', 'Tjeerd',
   'Hilde', 'Menno', 'Ilse', 'Auke', 'Nynke', 'Berend', 'Janna', 'Okke'];
 export const MAX_STAFF = 12;
-export const STANDARD_HOURS = 10;                                // een standaard openingsdag in uren
+export const DEFAULT_HOURS = 10;                                // een standaard openingsdag in uren
 export const SKILL_PAR = 60;                                      // een vaardigheid van 60 telt voor één volledige kracht
 export const SQM_PER_WORKER = 80;                                 // zoveel m2 vloer houdt één volledige kracht bij
 
@@ -17,7 +17,7 @@ export const SQM_PER_WORKER = 80;                                 // zoveel m2 v
 export const staffNeed = (m2) => clamp(Math.ceil(finite(m2, 0) / SQM_PER_WORKER), 1, 6);
 
 // Loon per speldag bij een standaarddag: een basis plus een deel van de vaardigheid; meer openingsuren kosten naar rato.
-export const wagePerDay = (skill, hours = STANDARD_HOURS) => Math.round(((40 + 0.8 * clamp(finite(skill, 0), 0, 100)) * (clamp(finite(hours, STANDARD_HOURS), 0, 24) / STANDARD_HOURS)) / 5) * 5;
+export const wagePerDay = (skill, hours = DEFAULT_HOURS) => Math.round(((40 + 0.8 * clamp(finite(skill, 0), 0, 100)) * (clamp(finite(hours, DEFAULT_HOURS), 0, 24) / DEFAULT_HOURS)) / 5) * 5;
 
 const person = (seed, k, o = {}) => {
   const skill = Math.round(35 + hashUnit(seed, k, 'skill') * 40);
@@ -71,7 +71,7 @@ export function staffFactor(list, m2) {
 }
 
 // Totaal loon per speldag voor een lijst bij een openingsdag van `hours` uur.
-export const staffWages = (list, hours = STANDARD_HOURS) => (Array.isArray(list) ? list.reduce((s, p) => s + wagePerDay(p && p.skill, hours), 0) : 0);
+export const staffWages = (list, hours = DEFAULT_HOURS) => (Array.isArray(list) ? list.reduce((s, p) => s + wagePerDay(p && p.skill, hours), 0) : 0);
 
 // ---- klantenweergave (voor de bouwer, ontwerp 6.4) ----
 export const MAX_VISIBLE_CUSTOMERS = 6;

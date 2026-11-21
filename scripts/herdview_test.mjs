@@ -10,7 +10,7 @@ import * as K from '../game/js/bezitworldhooks.js';
 import * as T from '../game/js/tessarules.js';
 import * as S from '../game/js/farmstaff.js';
 import * as F from '../game/js/farmworkers.js';
-import { REGION_FACTOR } from '../game/js/bezitprijs.js';
+import { DISTRICT_FACTOR } from '../game/js/bezitprijs.js';
 
 let n = 0, fails = 0;
 const t = (name, fn) => { n++; F.clearStaffWork(); try { fn(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', String(e.stack || e.message).split('\n').slice(0, 6).join('\n   ')); } };
@@ -94,11 +94,11 @@ t('het eerste perceel per streek: een regel van Tessa, met haar naam, eenmalig p
   let line = null, d = 0;
   for (; d < 30 && !line; d += 3) line = K.tessaLineForPurchase(b, 'hogeland', d);   // de kans is 0,8: binnen een paar dagen komt hij
   assert.ok(line && line.startsWith('Tessa: '), String(line));
-  assert.ok(T.TESSA_REGELS['perceel-klei'].regels.some((r) => line === `Tessa: ${r}`));
+  assert.ok(T.TESSA_LINES['perceel-klei'].regels.some((r) => line === `Tessa: ${r}`));
   assert.equal(K.tessaLineForPurchase(b, 'hogeland', d + 10), null, 'dezelfde streek niet nog een keer');
   let zand = null;
   for (let e = d + 10; e < d + 60 && !zand; e += 3) zand = K.tessaLineForPurchase(b, 'westerkwartier', e);
-  assert.ok(zand && T.TESSA_REGELS['perceel-zand'].regels.some((r) => zand === `Tessa: ${r}`), 'een andere streek, een andere grond');
+  assert.ok(zand && T.TESSA_LINES['perceel-zand'].regels.some((r) => zand === `Tessa: ${r}`), 'een andere streek, een andere grond');
 });
 t('de cooldown: twee gebeurtenissen vlak na elkaar geven één regel', () => {
   const b = mk([['w', 3, 0, 0]]);
@@ -119,7 +119,7 @@ t('alleen Tessa: Tammo krijgt de regels niet; zonder bezit geen regel', () => {
   assert.equal(K.tessaLineFor(b, 'onbekend', '', 3), null);
 });
 t('elke streek van het prijsmodel geeft een regel binnen een maand (kans 0,8 per dag)', () => {
-  for (const r of Object.keys(REGION_FACTOR)) {
+  for (const r of Object.keys(DISTRICT_FACTOR)) {
     const b = mk([['w', 3, 0, 0]]);
     let line = null;
     for (let d = 0; d < 40 && !line; d += 3) line = K.tessaLineForPurchase(b, r, d);
@@ -134,11 +134,11 @@ t('het dagrapport: zet de bewerkte percelen klaar en geeft de eerste oogst-, vee
   let line = null, d = 0;
   for (; d < 30 && !line; d += 3) line = K.onDayReport(b, { to: d, worked });
   assert.ok(line && /^Tessa: /.test(line));
-  assert.ok(T.TESSA_REGELS['eerste-oogst'].regels.some((r) => line === `Tessa: ${r}`));
+  assert.ok(T.TESSA_LINES['eerste-oogst'].regels.some((r) => line === `Tessa: ${r}`));
   assert.equal(F.staffWorkOf(d - 3).length, 1, 'de zichtbare werkers krijgen de opdrachten van die dag');
   let pacht = null;
   for (let e = d + 3; e < d + 60 && !pacht; e += 3) pacht = K.onDayReport(b, { to: e, worked: [] });
-  assert.ok(pacht && T.TESSA_REGELS['eerste-pacht'].regels.some((r) => pacht === `Tessa: ${r}`), String(pacht));
+  assert.ok(pacht && T.TESSA_LINES['eerste-pacht'].regels.some((r) => pacht === `Tessa: ${r}`), String(pacht));
 });
 t('tonen is alleen tekst: addMessage, geen audio; de staat blijft klein en wordt bewaard in het bezit', () => {
   const got = [];
@@ -155,7 +155,7 @@ t('tonen is alleen tekst: addMessage, geen audio; de staat blijft klein en wordt
 });
 t('alle regels staan los van de gesproken lijst (alleen tekst)', () => {
   const lijst = fs.existsSync('scripts/tts_lines.json') ? fs.readFileSync('scripts/tts_lines.json', 'utf8') : '';
-  for (const r of Object.values(T.TESSA_REGELS)) for (const z of r.regels) assert.ok(!lijst.includes(z.replace(/"/g, '\\"')), z);
+  for (const r of Object.values(T.TESSA_LINES)) for (const z of r.regels) assert.ok(!lijst.includes(z.replace(/"/g, '\\"')), z);
 });
 
 console.log(`herdview_test: ${n - fails}/${n} ok`);

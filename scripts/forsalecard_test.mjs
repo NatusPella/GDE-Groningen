@@ -57,8 +57,8 @@ t('verwachte opbrengst volgt soort, bodem en grootte', () => {
   assert.equal(C.expectedYield('w', 2, 0.6).gewas, 'Gras'); assert.equal(C.expectedYield('b', 2, 0.6).gewas, 'Boomgaardfruit');
 });
 t('hoverregel: Nederlands en met prijs', () => {
-  assert.match(C.hoverSub(L.parcelOffer('pbbbbbbbbbbb2')), /akker · 15,0 ha · te koop €/);
-  assert.match(C.hoverSub(L.parcelOffer('paaaaaaaaaaa1')), /van jou/);
+  assert.match(C.pointerSub(L.parcelOffer('pbbbbbbbbbbb2')), /akker · 15,0 ha · te koop €/);
+  assert.match(C.pointerSub(L.parcelOffer('paaaaaaaaaaa1')), /van jou/);
 });
 t('de bodembalk heeft altijd tien tekens', () => { for (const q of [0, 0.3, 0.75, 1]) assert.equal(C.soilBar(q).length, 10); });
 console.log(`forsalecard_test: ${n - fails}/${n} ok`);

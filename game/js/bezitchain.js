@@ -17,7 +17,7 @@ import { clamp, finite } from './bezithash.js';
 export const EGG_KG = 0.125;                         // een ei weegt 125 gram (acht per kilo): zo past 0,20 per stuk bij de 1,60 per kilo van de keten
 export const MAX_BIND_PARCELS = 60;
 export const YARD_M = 500;                          // binnen 500 m ligt een schakel op hetzelfde erf of in dezelfde straat: geen wagen nodig
-export const SPOT_REGION = { markt: 'overig', station: 'overig', park: 'overig', dorp: 'hunsingo', kust: 'lauwerskust', kermis: 'westerkwartier' };
+export const SPOT_DISTRICT = { markt: 'overig', station: 'overig', park: 'overig', dorp: 'hunsingo', kust: 'lauwerskust', kermis: 'westerkwartier' };
 
 // ---- welke panden bij welke schakel passen ----
 // Verwerkers zijn bedrijfsruimte (industrie) of een bakkerij/snackbar; verkooppunten zijn winkels van een passend type, of de frietwagen bij de friet.
@@ -168,9 +168,9 @@ export function applyBindings(entry, env = {}) {
 }
 
 // De streek van het verkooppunt, voor de streekprijs: het pand (via regionOf) of de standplaats van de frietwagen.
-export function outletRegion(entry, env = {}) {
+export function outletDistrict(entry, env = {}) {
   const out = entry.chain.links.at(-1), ref = entry.bind.l[out.id];
-  if (typeof ref === 'string' && ref.startsWith('m:')) return (env.spotOf && SPOT_REGION[env.spotOf(ref)]) || 'overig';
+  if (typeof ref === 'string' && ref.startsWith('m:')) return (env.spotOf && SPOT_DISTRICT[env.spotOf(ref)]) || 'overig';
   const p = ref && env.loc ? env.loc(ref) : null;
   return p && env.regionOf ? env.regionOf(p.x, p.y) : 'overig';
 }
@@ -190,18 +190,18 @@ export function stepEntry(entry, env) {
   const e = { ...entry, chain: { ...entry.chain, links: entry.chain.links.map((l) => ({ ...l, trucks: l.trucks.slice() })) }, bind: entry.bind };
   const src = sourceKgPerDay(e.chain.raw, env.rows || [], env.herds || {}, e.bind.p, env.lossOf);
   applyBindings(e, { ...env, sourceIds: src.ids });
-  const region = outletRegion(e, env), out = e.chain.output, ev = env.eventMult ? env.eventMult(out) : 1;
-  const rf = clamp(AM.priceFactor(env.market, region, out, env.calDay, ev), 0.7, 1.4);
+  const district = outletDistrict(e, env), out = e.chain.output, ev = env.eventMult ? env.eventMult(out) : 1;
+  const rf = clamp(AM.priceFactor(env.market, district, out, env.calDay, ev), 0.7, 1.4);
   const r = SC.stepChainDay(e.chain, { produced: src.kg, regionFactor: rf, day: env.calDay });
   e.chain = r.chain;
   let market = env.market;
-  if (r.report.sold > 0) market = AM.deliver(market, region, out, r.report.sold, env.calDay, ev).market;
+  if (r.report.sold > 0) market = AM.deliver(market, district, out, r.report.sold, env.calDay, ev).market;
   const bonus = bonusOf(e.chain, r.report);
   const ownable = e.chain.links.filter((l) => l.ownable);
   const closedNow = ownable.length > 0 && ownable.every((l) => l.owned) && src.kg > 0 && r.report.moved.every((m) => m > 0);
   if (closedNow) e.closed++;
   e.last = { day: env.calDay, net: Math.round(bonus), sold: Math.round(r.report.sold + r.report.fed), margin: r.report.margin, stuck: r.report.stuck, blocked: Math.round(r.report.blocked), moved: r.report.moved.map((m) => Math.round(m)) };
-  return { entry: e, market, rep: r.report, bonus, closed: closedNow, produced: src.kg, region };
+  return { entry: e, market, rep: r.report, bonus, closed: closedNow, produced: src.kg, region: district };
 }
 
 // Het beeld van een keten voor het scherm: de schakels met balk, de zwakste schakel (uit de laatste dag) en wat je kunt koppelen.

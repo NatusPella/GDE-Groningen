@@ -369,7 +369,13 @@
     "supplychain",
     "tessarules",
     "perceelmap",
-    "percelen"
+    "percelen",
+    "goodwill",
+    "herdview",
+    "housing",
+    "pitch*",
+    "rival",
+    "snack*"
    ],
    "eigenaar": "speler",
    "gast": "Eigen bezit in de eigen progress; medespelers zien jouw percelen als gekleurde omtrek met naam (ID-verzameling); een gast kan op andermans perceel meewerken voor loon.",
@@ -563,7 +569,6 @@
    "naam": "Tuning, onderdelen, lak en gepimpte auto's",
    "groep": "Uiterlijk",
    "modules": [
-    "tuningplan",
     "garage*",
     "ownedvehicles",
     "coopbezit",
@@ -571,7 +576,8 @@
     "vehicleregister",
     "dienstvoertuig",
     "onderdelen*",
-    "carbid"
+    "carbid",
+    "tuning*"
    ],
    "eigenaar": "speler",
    "gast": "Eigen voertuigen en panden komen mee in de wereld van een ander (bezorgen en delen, #449): kleur, upgrades, deuken en lekke band reizen mee.",
@@ -1460,6 +1466,10 @@
   {
    "glob": "minimapheat",
    "reden": "Alleen beeld op de kaart."
+  },
+  {
+   "glob": "characterdossiers*",
+   "reden": "Alleen tekst en data voor de personagekaart (Verhaal > Personages); lokaal per speler, geen spelstaat."
   }
  ],
  "opslag": {
@@ -1694,6 +1704,14 @@
   "exploration": {
    "scope": "speler",
    "reden": "Verkenning per speler."
+  },
+  "tuningLook": {
+   "scope": "speler",
+   "reden": "Het uiterlijk dat deze speler aan een eigen voertuig gaf; per speler (#429), nooit in een savegame, niet gedeeld."
+  },
+  "bezit": {
+   "scope": "speler",
+   "reden": "Percelen en panden van deze speler (#1097); per speler (#429), nooit in een savegame."
   }
  },
  "sleutelLiteralenBuitenRegister": [

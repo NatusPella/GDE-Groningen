@@ -373,7 +373,7 @@ Pure regels in dezelfde stijl als `eventrules.js`, afspeelcode in `worldevents.j
 
 Boeren doe je als Tessa (`karakterVoorActiviteit('farm')`, de karakterwissel zoals bij voetbal): het handwerk op het veld loopt
 daarom via de bestaande karakterbonus (15% sneller netjes-band, +5% oogst). De beheerschermen, het kopen en het personeel zijn geen
-veldwerk en gaan niet via de wissel. Nieuwe **boerenpersona-regels** (`TESSA_REGELS`, alleen tekst; geen TTS: het besluit van 20-10 en
+veldwerk en gaan niet via de wissel. Nieuwe **boerenpersona-regels** (`TESSA_LINES`, alleen tekst; geen TTS: het besluit van 20-10 en
 de achterstandslijst gelden): een korte, af en toe getoonde regel bij het eerste perceel per streek ("Klei blijft aan je laarzen, zand
 niet. Dit ruikt naar thuis."), bij de eerste oogst van een nieuw gewas, bij het eerste vee en bij het eerste personeel ("Eerst
 leren we het zelf, dan pas een ander."). Kans en cooldown zoals de bestaande persona-regels.
@@ -658,7 +658,7 @@ Ter vergelijking: pacht 0,9%, huur 1,2%, winkel ongeveer 0,55% per speldag. Met 
   reden is dat hij voorraad en aandacht vraagt (besluit 8).
 * **Wat medewerkers verdienen** gaat vóór de bestaande rem `compressPassive` (plafond 3x actief, gedeeld met al het andere passieve inkomen): passief blijft binnen 3x.
 * **Totaal** van een groot imperium (eigen wagen + zes wagens) is ongeveer 4x actief (getest tot 4,25x). Dat is bewust hoger dan de 3x passief omdat de eigen wagen actief werk is; stel bij door
-  `OWN_CAP_DAY`, `STAFF_AUTO` of `FLEET_PRICE` in `snackvan.js`.
+  `OWN_CAP_DAY`, `STAFF_UNATTENDED` of `FLEET_PRICE` in `snackvan.js`.
 * **Geen exploit:** wagen kopen en verkopen kost 40%, elke upgrade is eenmalig, vergunningen worden duurder per stuk (max x3), er komt geen geld uit het niets (alle kosten lopen via de aanroeper).
 
 ### 15.3 Samen spelen
@@ -675,7 +675,7 @@ dagwinst (aandeel) naar rato van zijn uren; de eigenaar houdt zijn winst en voor
   stoep vallen; in beeld controleren (zie `BEZIT-VERIFICATIE-21-11.md`).
 * Opgelost in de tweede ronde: het menuverbruik van friet en kaas gaat van de voorraad van je eigen verwerker af (alleen als die van jou is en voorraad heeft; zonder voorraad geen korting);
   de prijzenoorlog drukt ook de streekprijs van friet en kaas bij de ketenleveringen (`snackvan.warPriceMult` als factor op `areamarket` eventMult); meewerken heeft een knop (`snackui`:
-  Meewerken bij een medespeler) en `snacklive.meewerken` / `ontvangWerk` met de haak `setSnackWorkSend` (het netwerkbericht `{ type: 'snack-work', spot, hours }` koppelt de bouwer).
+  Meewerken bij een medespeler) en `snacklive.workAlong` / `receiveWork` met de haak `setSnackWorkSend` (het netwerkbericht `{ type: 'snack-work', spot, hours }` koppelt de bouwer).
 * Melk en vlees: melk telt via de bron van de kaasketen (geen stock om af te trekken), vlees heeft geen eigen keten (geen vleesvee): altijd 0.
 * De winkeldichtheid (`densityFactor`) staat in de logica maar is niet aangesloten op `shopspots.js`; de ruis per dag en het uurvenster doen het werk.
 * De balans is een sim, geen speeltest.

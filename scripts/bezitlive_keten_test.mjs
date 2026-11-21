@@ -40,7 +40,7 @@ t('streekprijs: een grote levering drukt de prijs, een kleine in een andere stre
   const st = reset();
   const w = wereld(); L.koopPerceel(w, 'pbbbbbbbbbbb2');
   const farm = BL.getBoerderij();
-  L.dagTik(w);
+  L.dayTick(w);
   const a = FS.sellLoad(farm, 'pbbbbbbbbbbb2', 'aardappelen', 100, 20);          // 100 kg: een paar euro
   const e1 = Math.round(a / 100 * 100) / 100;
   const big = FS.sellLoad(farm, 'pbbbbbbbbbbb2', 'aardappelen', 30000, 20);
@@ -63,12 +63,12 @@ t('opbrengstverlies: een droogte of stortbui op een dag drukt de oogst van het p
   reset();
   const w = wereld(); L.koopPerceel(w, 'pbbbbbbbbbbb2');
   // zoek een kalenderdag met een stortbui in de streek van het perceel
-  const region = L.regionOfPoint(220900, 590500);
+  const region = L.districtOfPoint(220900, 590500);
   let day = 0;
   for (let d = 1; d < 3000 && !day; d++) if (EV.activeSpan(EV.EVENT_DEFS.stortbui, region, d)) day = d;
   assert.ok(day > 0, 'er is een stortbui in de eerste 3000 dagen');
   const w2 = wereld(100000, day);
-  L.dagTik(w2);                                                    // legt de klok vast
+  L.dayTick(w2);                                                    // legt de klok vast
   const farm = BL.getBoerderij();
   const info = (null, EV.parcelLoss({ id: 'x', kind: 'a', region, sown: true }, day));
   assert.ok(info.loss >= 0.3 - 1e-9);
@@ -82,11 +82,11 @@ t('opbrengstverlies: een droogte of stortbui op een dag drukt de oogst van het p
 t('handwerk-oogst: een melding en een lagere opbrengst bij een stortbui', () => {
   reset();
   const w = wereld(); L.koopPerceel(w, 'pbbbbbbbbbbb2');
-  const region = L.regionOfPoint(220900, 590500);
+  const region = L.districtOfPoint(220900, 590500);
   let day = 0;
   for (let d = 12; d < 3000 && !day; d++) if (EV.activeSpan(EV.EVENT_DEFS.stortbui, region, d)) day = d;
   const w2 = wereld(100000, day - 8);                             // na 200 speluren (8 dagen) is het de dag van de bui
-  L.dagTik(w2);
+  L.dayTick(w2);
   const farm = BL.getBoerderij();
   farm.bedrijf.actief = 'pbbbbbbbbbbb2';
   assert.ok(B.kiesGewas(farm, 'aardappelen'));
@@ -107,9 +107,9 @@ t('keten: kaas uit eigen melkvee met een eigen verwerker en verkooppunt: extra m
   r = L.koppelSchakel('kaas', 'verkoop', 1002); assert.ok(r.ok, JSON.stringify(r));
   const v0 = L.chainViews().find((c) => c.id === 'kaas');
   assert.equal(Math.round(v0.margin * 100), 35); assert.ok(v0.sourceKg > 0);
-  L.dagTik(w);                                                      // legt lastDay vast
+  L.dayTick(w);                                                      // legt lastDay vast
   dagen(4);                                                         // de keten heeft een paar dagen nodig om van de bron tot de toonbank te lopen
-  const rep = L.dagTik(w);
+  const rep = L.dayTick(w);
   assert.ok(rep && rep.chains !== undefined);
   const v = L.chainViews().find((c) => c.id === 'kaas');
   assert.ok(v.links.some((l) => l.stock > 0 || l.moved > 0));
@@ -134,9 +134,9 @@ t('keten: wagens, uitbreiden en bronnen kiezen', () => {
   const w = wereld(); L.koopPerceel(w, 'paaaaaaaaaaa1'); L.koopPand(w, 1001);
   LS.stockHerd(L.getBezit(), 'paaaaaaaaaaa1', 'melkvee', 3);
   L.koppelSchakel('kaas', 'kaasmakerij', 1001);
-  assert.ok(L.wagenKnop('kaas', 'melk', 1).ok);
+  assert.ok(L.adjustWagons('kaas', 'melk', 1).ok);
   assert.equal(L.chainViews().find((c) => c.id === 'kaas').links[0].trucks, 1);
-  assert.ok(L.wagenKnop('kaas', 'melk', -1).ok); assert.equal(L.wagenKnop('kaas', 'melk', -1).ok, false);
+  assert.ok(L.adjustWagons('kaas', 'melk', -1).ok); assert.equal(L.adjustWagons('kaas', 'melk', -1).ok, false);
   assert.ok(L.schakelUitbreiden(w, 'kaas', 'kaasmakerij').ok);
   assert.equal(L.schakelUitbreiden(w, 'kaas', 'melk').ok, false, 'een bron is niet te koop of uit te breiden');
   const src = L.chainSources('kaas');
@@ -151,12 +151,12 @@ t('frietwagen: kopen, standplaats, dagomzet in de dagtik, verkopen met 75%; comp
   const r = L.koopMobiel(w, 'frietwagen'); assert.ok(r.ok, JSON.stringify(r));
   assert.equal(w.money, 20000 - BZ.MOBILE_TYPES.frietwagen.price);
   assert.equal(L.koopMobiel(w, 'frietwagen').why, 'al-van-jou');
-  assert.equal(L.zetStandplaats('frietwagen', 'markt').ok, true);
+  assert.equal(L.setPitch('frietwagen', 'markt').ok, true);
   assert.equal(L.myMobile()[0].spotLabel, 'Grote Markt');
-  assert.equal(L.zetStandplaats('frietwagen', 'bestaatniet').ok, false);
-  L.dagTik(w); dagen(3);
+  assert.equal(L.setPitch('frietwagen', 'bestaatniet').ok, false);
+  L.dayTick(w); dagen(3);
   const before = w.money;
-  const rep = L.dagTik(w);
+  const rep = L.dayTick(w);
   assert.ok(rep.mobile > 0 && w.money > before, `dagomzet ${rep.mobile}`);
   const v = L.verkoopMobiel(w, 'frietwagen'); assert.ok(v.ok); assert.equal(v.refund, Math.round(BZ.MOBILE_TYPES.frietwagen.price * 0.75 / 5) * 5);
   assert.equal(L.myMobile().length, 0);
@@ -182,8 +182,8 @@ t('woningen: koopbaar in de buurt, begrensd op het aantal in de plaats, verhuur 
   assert.equal(L.homesNear(220100, 590100, 4).some((h) => h.osm === h0.osm), false, 'een gekochte woning staat niet meer te koop');
   const my = L.myBusinesses().find((m) => m.osm === h0.osm);
   assert.equal(my.biz.cls, 'rent'); assert.equal(my.biz.type, 'woning');
-  L.dagTik(w); dagen(10);
-  const rep = L.dagTik(w);
+  L.dayTick(w); dagen(10);
+  const rep = L.dayTick(w);
   assert.ok(rep.business > 0, `huur ${rep.business}`);
   assert.ok(L.rentView(L.myBusinesses().find((m) => m.osm === h0.osm).biz, 30).text.length > 5);
   assert.ok(L.verkoopPand(w, h0.osm).ok);
@@ -206,7 +206,7 @@ t('nieuws: de buurman met een keuze kost hooguit een kleine som, het nieuws telt
   const b = L.getBezit(); b.x.lastDay = 0;
   // veel dagen terug laten lopen: het nieuws loopt vol maar blijft bij vijf
   let rep = null;
-  for (let i = 0; i < 8; i++) { dagen(10); rep = L.dagTik(wereldMetDag(w, 20 + 10 * (i + 1))) || rep; }
+  for (let i = 0; i < 8; i++) { dagen(10); rep = L.dayTick(wereldMetDag(w, 20 + 10 * (i + 1))) || rep; }
   const nv = L.newsView(w);
   assert.ok(nv.lines.length <= 5);
   assert.ok(Array.isArray(nv.pull));
