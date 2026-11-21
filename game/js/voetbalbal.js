@@ -34,10 +34,10 @@ function stapKlein(b, h, ev) {
   const s = Math.hypot(b.vx, b.vy);
   if (s > 0) {
     const rem = b.z > 0.02 ? 0.14 * s : 0.9 + 0.35 * s;
-    const ns = Math.max(0, s - rem * h);
-    const f = ns / s;
+    const na = Math.max(0, s - rem * h);
+    const f = na / s;
     b.vx *= f; b.vy *= f;
-    if (ns < 0.04) { b.vx = 0; b.vy = 0; }
+    if (na < 0.04) { b.vx = 0; b.vy = 0; }
   }
   b.x += b.vx * h; b.y += b.vy * h;
   if (b.netTeam >= 0) { net(b, ev); return; }
