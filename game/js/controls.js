@@ -26,6 +26,7 @@ export const KEY_ACTIONS = [
   ['7', 'Samen spelen: roepen "Kom hier" (een baken voor iedereen)', 'actie'],
   ['8', 'Samen spelen: roepen "Help!"', 'actie'],
   ['9', 'Samen spelen: wijzen "Kijk daar" (een stuk voor je uit)', 'actie'],
+  ['t', 'Samen spelen: het wiel met snelle zinnen, emotes en doel delen (controller: X)', 'actie'],
   ['q', 'Achterom kijken; skûtsje: zeil aanhalen; vliegtuig: roer links', 'actie'],
   ['z', 'Skûtsje: zeil vieren; trekker: ploeg aankoppelen, omhoog of omlaag', 'actie'],
   ['h', 'Toeteren', 'actie'],
@@ -270,7 +271,7 @@ export const PAD_MAPS = {
 // Te voet: D-pad links, omlaag en rechts zijn de roepjes Kom hier (7), Help! (8) en Kijk daar (9, #367); D-pad omhoog
 // brengt je bij de groep (B, #429): de radio staat dan alleen op het toetsenbord. Het kusje, het overslaan van een
 // verhaalstap en het lakmenu staan dan ook alleen op het toetsenbord.
-export const PAD_COOP = { vehicle: { up: 'y', rs: 'tab' }, bus: { up: 'y', rs: 'tab' }, vehicleManual: { up: 'y', rs: 'tab' }, skutsje: { up: 'y', rs: 'tab' }, foot: { up: 'b', left: '7', down: '8', right: '9' } }; // #636: rs opent de spelerslijst ook in een voertuig
+export const PAD_COOP = { vehicle: { up: 'y', rs: 'tab' }, bus: { up: 'y', rs: 'tab' }, vehicleManual: { up: 'y', rs: 'tab' }, skutsje: { up: 'y', rs: 'tab' }, foot: { up: 'b', left: '7', down: '8', right: '9', x: 't' } }; // #636: rs opent de spelerslijst ook in een voertuig
 
 // Is er een echte samen-sessie? Een sessie van één (Alleen spelen, #554) telt niet mee: de speler is alleen
 // en houdt de gewone indeling en uitleg (#560, #568). De hub is er wel, maar er is niemand om iets mee te delen.
@@ -286,6 +287,7 @@ export function coopVraag(w) {
   if (w.coopGastVraag) return true;                                     // de gastheer: doet hij mee met de opdracht van een gast?
   if (w.coopStem) return true;                                          // een stemming over een tijdsprong
   if (w.coopUitnodiging) return true;                                   // Meedoen met deze opdracht?
+  if (w.coopDoelVraag) return true;                                     // een gedeeld doel volgen? (multiplayergoal.js, J of N)
   if (w.coopWisselUi && w.coopWisselUi.vraag) return true;              // het spel overnemen
   const n = w.coopNet;
   if (n && n.role === 'host' && n.wed) {

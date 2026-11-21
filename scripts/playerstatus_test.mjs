@@ -2,7 +2,7 @@
 //   node scripts/playerstatus_test.mjs
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { statusVan, startKnop, magStarten, foutUitleg, tabRegel, richtingVan, versieRegel, LATER_ACTIES, START_LANG_NA_S, hintTekst, hintStand, volgHint, HINT } from '../game/js/playerstatus.js';
+import { statusVan, startKnop, magStarten, foutUitleg, tabRegel, richtingVan, versieRegel, MUTE_ACTIONS, START_LANG_NA_S, hintTekst, hintStand, volgHint, HINT } from '../game/js/playerstatus.js';
 import { REASON_TEXT } from '../game/js/net/protocol.js';
 
 let n = 0;
@@ -107,9 +107,9 @@ t('richting: y wijst naar het zuiden; onbekende plek geeft null', () => {
   assert.equal(richtingVan(null, { x: 1, y: 1 }), null);
 });
 
-t('later: dempen en blokkeren staan klaar met uitleg', () => {
-  assert.deepEqual(LATER_ACTIES.map((a) => a.id), ['dempen', 'blokkeren']);
-  for (const a of LATER_ACTIES) assert.match(a.uitleg, /later/);
+t('dempen en blokkeren zijn echte acties met uitleg', () => {
+  assert.deepEqual(MUTE_ACTIONS.map((a) => a.id), ['gedempt', 'geblokkeerd']);
+  for (const a of MUTE_ACTIONS) assert.ok(a.uitleg.length > 20 && !/later/.test(a.uitleg));
 });
 
 t('hint: Spelers · n, alleen met een sessie', () => {

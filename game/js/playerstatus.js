@@ -108,10 +108,11 @@ export function tabRegel(r, ctx = {}) {
   };
 }
 
-// Dempen en blokkeren komen later (#451: opt-in, zonder opslag). De knoppen staan er al, uitgeschakeld.
-export const LATER_ACTIES = [
-  { id: 'dempen', icoon: 'geluid_uit', label: 'Dempen', uitleg: 'Dempen komt later.' },
-  { id: 'blokkeren', icoon: 'stop', label: 'Blokkeren', uitleg: 'Blokkeren komt later.' },
+// Dempen en blokkeren (#1159, multiplayerphrases.js): per speler, alleen in het geheugen en op naam, zonder opslag.
+// Dempen: geen zinnen en emotes van die speler. Blokkeren: ook geen pings en gedeelde doelen.
+export const MUTE_ACTIONS = [
+  { id: 'gedempt', icoon: 'geluid_uit', label: 'Dempen', uitleg: 'Je ziet geen zinnen en emotes meer van deze speler. Pings en doelen blijven.' },
+  { id: 'geblokkeerd', icoon: 'stop', label: 'Blokkeren', uitleg: 'Je ziet geen zinnen, emotes, pings of gedeelde doelen meer van deze speler.' },
 ];
 
 // ---- de hint "Spelers · 2" in de HUD: geen knop, want in het spel is de muis vergrendeld en een klik doet niets

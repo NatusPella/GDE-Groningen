@@ -163,6 +163,8 @@ const BASE_DEFAULTS = {
   // play with others, false = a private session for one. Null must never read as
   // "yes": it means the game still has to ask, and asks before any contact.
   onlineMeedoen: null,
+  // Samen spelen (#1159): snelle zinnen, emotes en gedeelde doelen versturen en zien. Opt-in: alleen een echte true telt (coopzinnen.js).
+  samenZinnen: false,
   // Alleen of Samen bij de start (launchchoice.js): alleen de voorselectie van de keuzekaart, nooit een reden om de kaart over te slaan.
   startKeuze: null,
   // Samen spelen (#526): dit apparaat koos "Niet meer vragen" op het
@@ -183,7 +185,7 @@ const DEFAULTS = { ...BASE_DEFAULTS, ...deckDefaults(isSteamDeck()) };
 // `multiplayerConsentRemembered` niet: na een herstel vroeg het spel opnieuw om toestemming
 // terwijl het antwoord bewaard bleef, en je kleur sprong terug (#985 punt 6).
 // #1169: de moeilijkheid hoort bij de save, niet bij de voorkeuren van het apparaat: herstellen zet hem niet terug.
-const KEEP_ON_RESET = new Set(['difficulty', 'attractSeen', 'keyBinds', 'padBinds', 'onlineMeedoen', 'onlineNaam', 'onlineKleur', 'multiplayerConsentRemembered']);
+const KEEP_ON_RESET = new Set(['difficulty', 'attractSeen', 'keyBinds', 'padBinds', 'onlineMeedoen', 'samenZinnen', 'onlineNaam', 'onlineKleur', 'multiplayerConsentRemembered']);
 const SHIFT_CHOICES = ['auto', 'manual', 'clutch'];
 export const SUBTITLE_SIZES = { klein: 0.85, normaal: 1, groot: 1.25, extragroot: 1.5 };
 export const COLOR_BLIND_MODES = ['uit', 'deuteranopie', 'protanopie', 'tritanopie'];
@@ -252,6 +254,7 @@ function load() {
     // De lus hierboven kopieert geen null (typeof null is 'object'), dus dit moet apart:
     // ontbrekend, null, "true", 1 of wat dan ook wordt null en dus "nog nooit gevraagd".
     out.onlineMeedoen = raw.onlineMeedoen === true ? true : raw.onlineMeedoen === false ? false : null;
+    out.samenZinnen = raw.samenZinnen === true;
     out.startKeuze = raw.startKeuze === 'alleen' || raw.startKeuze === 'samen' ? raw.startKeuze : null; // alleen de voorselectie van de startkaart
     if (!(out.padLookSensitivity >= 0.3 && out.padLookSensitivity <= 2.5)) out.padLookSensitivity = DEFAULTS.padLookSensitivity;
     if (stored && mig && mig.from < SETTINGS_VERSION) {

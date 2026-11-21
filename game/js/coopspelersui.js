@@ -1,6 +1,6 @@
 import { hoofdspeler } from './players.js';
 import { icoon } from './icons.js';
-import { statusVan, tabRegel, versieRegel, LATER_ACTIES, hintStand, hintTekst, volgHint } from './playerstatus.js';
+import { statusVan, tabRegel, versieRegel, MUTE_ACTIONS, hintStand, hintTekst, volgHint } from './playerstatus.js';
 import { gateOn } from './coopgate.js';
 import { VERSION } from './version.js';
 import { keyTextHtml } from './keycap.js';
@@ -9,7 +9,8 @@ import { keyTextHtml } from './keycap.js';
 // In het pauzemenu stel je ook je online-avatar in (#455): de naam en kleur die anderen van je zien.
 // De gegevens komen uit world.coopSpelers (coopnet.js, gebouwd met coopspelers.js, getest); dit bestand is alleen DOM.
 // Niet door een mens in beeld bekeken.
-import { pingGebaar, zetPassiefGebaar, kanPassiefKiezen, passiefStandVan } from './coopnet.js';
+import { pingGebaar, zetPassiefGebaar, kanPassiefKiezen, passiefStandVan, setPlayerMuteState, playerMuteState } from './coopnet.js';
+import { muteButtonText } from './multiplayerphrases.js';
 import { isSoloHost } from './coopsolo.js';
 import { PVP_TEKST } from './cooppvp.js';
 import { PING_TOETSEN } from './coopping.js';
@@ -28,8 +29,13 @@ const netStand = (v) => (v === 'lag' || v === 'lost' ? v : 'ok');
 const echteSessie = (world) => !!(world && world.coopNet && !isSoloHost(world));
 
 const chipHtml = (c) => `<span class="cs-chip cs-chip--${c.soort}" data-chip="${c.id}">${icoon(c.icoon, { maat: 's' })}<span>${esc(c.tekst)}</span></span>`;
-// dempen en blokkeren komen later (#451): de knoppen staan er al, uitgeschakeld met uitleg
-const laterHtml = () => LATER_ACTIES.map((a) => `<button type="button" class="cs-later" disabled aria-disabled="true" title="${esc(a.uitleg)}" aria-label="${esc(a.label + ': ' + a.uitleg)}">${icoon(a.icoon, { maat: 's' })}</button>`).join('');
+// dempen en blokkeren (#1159): per speler, alleen in het geheugen en op naam; de wereld waarvoor de lijst getekend wordt staat in muteWorld
+let muteWorld = null;
+const muteHtml = (slot) => MUTE_ACTIONS.map((a) => {
+  const aan = !!muteWorld && playerMuteState(muteWorld, slot) === a.id, t = muteButtonText(a.id, aan ? a.id : 'gewoon');
+  return `<button type="button" class="cs-stand" data-stand="${a.id}" data-slot="${slot}" aria-pressed="${aan ? 'true' : 'false'}" title="${esc(a.uitleg)}" aria-label="${esc(t + ': ' + a.uitleg)}">${icoon(a.icoon, { maat: 's' })}<span>${esc(t)}</span></button>`;
+}).join('');
+const muteWord = (slot) => { const st = muteWorld ? playerMuteState(muteWorld, slot) : 'gewoon'; return st === 'gewoon' ? '' : `<small class="cs-tab-actief">${esc(st)}</small>`; };
 
 function rijHtml(r, acties, rol = null, bevestig = null, ctx = {}) {
   const vraagt = acties && bevestig === r.slot && kanEruitZetten(rol, r);
@@ -40,7 +46,7 @@ function rijHtml(r, acties, rol = null, bevestig = null, ctx = {}) {
   const naar = acties && !vraagt && !r.jij && r.x != null ? `<button type="button" class="cs-naar" data-naar="${r.slot}">Ga erheen</button>` : '';
   // de groep (#492): "leidt <label>" bij de leider, de groepsnaam bij de andere deelnemers, niets bij wie niet meedoet
   const groep = r.groep ? ` <small class="cs-groep${r.leidt ? ' cs-leidt' : ''}">${esc(r.groep)}</small>` : '';
-  const later = acties && !r.jij && !vraagt ? `<span class="cs-laterrij">${laterHtml()}</span>` : '';
+  const later = acties && !r.jij && !vraagt ? `<span class="cs-laterrij">${muteHtml(r.slot)}</span>` : '';
   const actiesHtml = naar || geef || eruit || later ? `<span class="cs-acties">${naar}${geef}${eruit}${later}</span>` : '';
   // #903: de speler is een kaart met een avatar in zijn eigen kleur en vorm; de status staat als woorden met een icoon (playerstatus.js statusVan).
   // Kleur is nooit het enige signaal: de vorm en het woord staan ernaast.
@@ -58,7 +64,7 @@ function tabRijHtml(r, ctx = {}) {
     `<span class="cs-tab-naam">${esc(t.naam)}${t.jij ? ' <small class="cs-jij">(jij)</small>' : ''}${t.passief === false ? ' <small class="cs-tab-actief">actief</small>' : ''}</span>` +
     `<span class="cs-tab-ping cs-net-${netStand(t.verbinding)}">${icoon(t.verbinding === 'lost' ? 'wifi_uit' : 'wifi', { maat: 's' })}${esc(t.ping || 'goed')}</span>` +
     `<span class="cs-tab-afstand"${t.afstandWoord ? ` title="${esc(t.afstandWoord)}"` : ''}>${esc(t.afstand)}</span>${klaar}` +
-    `<span class="cs-tab-later">${t.jij ? '' : laterHtml()}</span></li>`;
+    `<span class="cs-tab-later">${t.jij ? '' : muteWord(t.slot)}</span></li>`;
 }
 // De passieve stand (#447): een knop met uitleg, alleen als de host het kent
 function pvpHtml(world) {
@@ -168,6 +174,10 @@ const CSS = `
 .cs-chip--let-op { border-color: var(--ds-c-geel); border-style: dashed; }
 .cs-chip--slecht { border-color: var(--ds-c-rood); color: var(--ds-c-rood-tx); border-style: dotted; }
 .cs-vraag { font-weight: 800; color: var(--ds-c-rood-tx); align-self: center; }
+.cs-stand { display: inline-flex; align-items: center; gap: var(--ds-s-2); min-height: var(--ds-doel-aanraken); padding: 0 var(--ds-s-3); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); font-size: var(--ds-t-hulp); cursor: pointer; }
+.cs-stand:hover, .cs-stand:focus-visible { background: var(--ds-c-sel-vlak); }
+.cs-stand[aria-pressed="true"] { background: var(--ds-c-sel-vlak); border-color: var(--ds-c-ink-bord); font-weight: 800; }
+.cs-stand .ic { width: 1.1em; height: 1.1em; }
 .cs-laterrij { display: inline-flex; gap: var(--ds-s-1); margin-left: auto; }
 .cs-later { display: inline-grid; place-items: center; width: var(--ds-doel-aanraken); min-height: var(--ds-doel-aanraken); padding: 0; border: var(--ds-lijn) dashed var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: transparent; color: var(--ds-tx-zacht); cursor: not-allowed; opacity: .6; }
 .pm-spelers .cs-kop-klein { font-size: var(--ds-t-hulp); color: var(--ds-tx-zacht); }
@@ -226,6 +236,7 @@ function zorgVoorKnop(world, zichtbaar, aantal = 0) {
 }
 export function updateSpelersOverlay(world) {
   if (typeof document === 'undefined') return;
+  muteWorld = world;
   const rijen = echteSessie(world) && world.coopSpelers;
   const menu = document.getElementById('pause-menu');
   const film = document.body.classList.contains('cine-hide-hud'); // een filmpje verbergt de HUD, dus ook de lijst
@@ -265,6 +276,7 @@ function profielHtml(world) {
 }
 export function renderSpelersPanel(root, world, sluit = () => {}, opts = {}) {
   if (!root) return;
+  muteWorld = world;
   zorgVoorStijl();
   root.classList.add('pm-spelers');
   const teken = () => {
@@ -317,6 +329,8 @@ export function renderSpelersPanel(root, world, sluit = () => {}, opts = {}) {
       if (kk) { profielFout = ''; setSetting('onlineKleur', profielKleur(kk.getAttribute('data-kleur'))); root.dataset.klaar = ''; teken(); return; }
       const p = e.target.closest('[data-ping]');
       if (p && hoofdspeler(world)) { if (pingGebaar(world, p.getAttribute('data-ping'))) sluit(); return; }
+      const sk = e.target.closest('[data-stand]');
+      if (sk) { setPlayerMuteState(world, +sk.getAttribute('data-slot'), sk.getAttribute('data-stand')); root.dataset.klaar = ''; teken(); return; } // dempen of blokkeren, een tweede keer terugzetten (#1159)
       const ps = e.target.closest('[data-passief]');
       if (ps) { zetPassiefGebaar(world, ps.getAttribute('data-passief') === '1'); root.dataset.klaar = ''; teken(); return; } // omschakelen met afkoeling; de gast ziet de stand zodra de host antwoordt (#447)
       if (e.target.closest('[data-eruit-nee]')) { bevestig = null; root.dataset.klaar = ''; teken(); return; }
