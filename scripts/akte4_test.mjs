@@ -24,7 +24,7 @@ const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL $
 // --- steps
 const ids = ['M17', 'M18', 'M19', 'T4', 'M20', 'M21'];
 const at = ids.map((id) => STEPS.findIndex((s) => s.id === id));
-ok(at.every((i, k) => i >= 0 && (k === 0 || i === at[k - 1] + 1)), 'M17, M18, M19, T4, M20, M21 follow each other in STEPS', at.join());
+ok(at.every((i, k) => i >= 0 && (k === 0 || i > at[k - 1])), 'M17, M18, M19, T4, M20, M21 follow each other in STEPS in this order (activities N9, J4, J5, J6 may sit between them)', at.join());
 for (const id of ids) {
   const st = STEPS.find((s) => s.id === id);
   ok(st.part === 'zuid' && st.built === true, `${id}: part zuid, built`);

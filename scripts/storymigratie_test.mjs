@@ -8,7 +8,8 @@ let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info !== '' ? ` (${info})` : ''}`); } };
 const idx = (id) => STEPS.findIndex((s) => s.id === id);
 
-ok([...ADDED_STEPS].sort((a, b) => a.slice(1) - b.slice(1)).join() === 'N1,N2,N3,N4,N5,N6,N7,N8,N9,N10,N11,N12', 'twaalf nieuwe stappen');
+ok([...ADDED_STEPS].filter((id) => /^N/.test(id)).sort((a, b) => a.slice(1) - b.slice(1)).join() === 'N1,N2,N3,N4,N5,N6,N7,N8,N9,N10,N11,N12', 'twaalf nieuwe stappen N');
+ok([...ADDED_STEPS].filter((id) => /^J/.test(id)).sort().join() === 'J1,J2,J3,J4,J5,J6', 'zes nieuwe stappen J (Jelle en de romantiek)');
 ok(STEPS.filter((s) => s.kind === 'mission').map((s) => s.id).join() === [...Array(30)].map((_, i) => 'M' + String(i + 1).padStart(2, '0')).join(), 'de dertig missies staan nog in dezelfde volgorde');
 ok(idx('M02') < idx('N1') && idx('N4') < idx('M03') && idx('M08') < idx('N8') && idx('N8') < idx('T1') && idx('N5') < idx('M10') && idx('N7') < idx('T2') && idx('M08') < idx('N10') && idx('N10') < idx('N8') && idx('A1') < idx('N11') && idx('N11') < idx('N12') && idx('N12') < idx('N6') && idx('M18') < idx('N9') && idx('N9') < idx('M19'), 'de stappen staan op hun invoegpunt (N9 in akte 4, N10 tot en met N12 in akte 2)');
 ok(ADDED_STEPS.every((id) => { const s = STEPS.find((x) => x.id === id); return s.kind === 'activity' && s.built && !s.reward && !s.cost && !s.unlocks; }), 'elke nieuwe stap is een activiteit zonder beloning, kosten of vlag');
@@ -39,7 +40,7 @@ ok(huidige('M30') && huidige('M30').end !== undefined, 'een uitgespeelde oude sa
 
 // de nacht op een dijk (N9, akte 4): een oude save voor M19 speelt hem, een save voorbij M19 niet
 ok(huidige('M18').id === 'N9', 'een oude save na M18 krijgt de nacht op een dijk (N9) nog te spelen', huidige('M18').id);
-ok(huidige('M19').id === 'T4' && huidige('M17').id === 'M18', 'voorbij M19 geen herhaling van N9, vóór M18 verandert er niets', `${huidige('M19').id} ${huidige('M17').id}`);
+ok(huidige('M19').id === 'J6' && huidige('M17').id === 'J4', 'voorbij M19 geen herhaling van N9 (de volgende is J6 van Jelle), vóór M18 volgt J4', `${huidige('M19').id} ${huidige('M17').id}`);
 const s19 = saveTot('M19');
 ok(stepDone(idx('N9'), (x) => s19.done.has(x), s19.mp), 'N9 telt als gedaan voor een save voorbij M19 (geen blokkade)');
 ok(milestoneFlagsForDone(new Set(['M00', 'N10', 'N11', 'N12'])).join() === 'wagen:idee,wagen:menu' && milestoneFlagsForDone(new Set(['M00', 'N9'])).join() === 'wagen:idee,wagen:menu,wagen:stek', 'N9 en N10 tot en met N12 geven alleen de vlaggen van de missies ervoor (menu na M08, stek na M13), nooit een eigen vlag');

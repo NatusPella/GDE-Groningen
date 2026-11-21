@@ -2,7 +2,7 @@
 
 Gegenereerd door `node scripts/tts_opnamelijst.mjs` uit `game/storydata/script.json`, `scripts/tts_lines.json`, `scripts/gronings_spoken.json` en `scripts/tts_cast.mjs`. Niet met de hand aanpassen; draai `node scripts/tts_opnamelijst.mjs --check` om te zien of deze lijst achterloopt.
 
-**Stand van deze bronnen:** 811 clips staan klaar in de wachtrij (`scripts/tts_lines.json`), 282 verhaalregels wachten nog (19 op een stemkeuze, 263 op een Groningse spreektekst). Samen **1093 regels/clips**. De 37 bewust stille appjes (`channel: app-stil`) staan er niet op.
+**Stand van deze bronnen:** 851 clips staan klaar in de wachtrij (`scripts/tts_lines.json`), 315 verhaalregels wachten nog (26 op een stemkeuze, 289 op een Groningse spreektekst). Samen **1166 regels/clips**. De 37 bewust stille appjes (`channel: app-stil`) staan er niet op.
 
 > Het issue #735 noemt 670 regels/671 clips (stand 6-11-2026). De scripts zijn de bron: inmiddels zijn er regels bijgekomen of opgenomen, dus deze lijst telt wat de code nu zegt. Zie "Verschil met #735" onderaan.
 
@@ -146,696 +146,742 @@ Gegenereerd door `node scripts/tts_opnamelijst.mjs` uit `game/storydata/script.j
 | 127 | M12.4 | Anita (Callirrhoe) | `lines/anita/plakje_vijf_de_haven_vannacht_ee_66503cda.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #127 |
 | 128 | M12.4 | Anita (Callirrhoe) | `lines/anita/oma_s_vet_en_alles_wat_haar_vrie_da5bc4e3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #128 |
 | 129 | M12.4 | Anita (Callirrhoe) | `lines/anita/de_bewaarder_notaris_28_augustus_e708f5aa.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #129 |
-| 130 | M13.1 | Anita (Callirrhoe) | `lines/anita/container_4471_het_schip_vertrek_f393f791.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #130 |
-| 131 | M13.3 | Anita (Callirrhoe) | `lines/anita/en_alles_wat_we_gered_hebben_e2640fed.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #131 |
-| 132 | O6 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/mevrouw_tessa_jelle_terpstra_u_h_ff899445.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #132 |
-| 133 | O6 | Anita (Callirrhoe) | `lines/anita/dat_was_een_misverstand_675a7785.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #133 |
-| 134 | O6 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/er_zijn_geen_misverstanden_er_zi_120e687e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #134 |
-| 135 | O6 | Anita (Callirrhoe) | `lines/anita/hij_is_niet_te_koop_89fdbb3b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #135 |
-| 136 | O6 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/alles_is_te_koop_mevrouw_mijn_mo_4d920782.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #136 |
-| 137 | O6 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/ik_wacht_foar_mem_b8173b36.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #137 |
-| 138 | O6 | Anita (Callirrhoe) | `lines/anita/dat_weet_hij_ook_daarom_belt_hij_613a22c9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #138 |
-| 139 | M14.1 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/goedemorgen_ik_heb_lammerts_huur_8241874e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #139 |
-| 140 | M14.1 | Anita (Callirrhoe) | `lines/anita/met_het_vet_erin_939041f2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #140 |
-| 141 | M14.1 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/dat_is_nu_inboedel_8169ac01.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #141 |
-| 142 | M14.1 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/mijn_deurwaarder_is_om_acht_uur__98212624.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #142 |
-| 143 | M14.1 | Anita (Callirrhoe) | `lines/anita/eerste_aan_de_sluis_wint_fd32ea0e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #143 |
-| 144 | M14.2 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/mevrouw_mijn_juristen_vinden_dat_3c4402b3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #144 |
-| 145 | T3 | Anita (Callirrhoe) | `lines/anita/dan_gaan_wij_daar_ook_heen_roelf_70ced563.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #145 |
-| 146 | T3 | Anita (Callirrhoe) | `lines/anita/van_het_meel_in_oma_s_lijstje_ze_9cff5bea.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #146 |
-| 147 | M15.1 | Anita (Callirrhoe) | `lines/anita/jelle_wil_de_jury_kopen_met_een__ab5ea1db.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #147 |
-| 148 | M15.3 | Anita (Callirrhoe) | `lines/anita/twee_weg_dat_scheelt_ec0b2437.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #148 |
-| 149 | M15.5 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/mevrouw_tessa_een_moment_mijn_ju_c9e0a851.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #149 |
-| 150 | M15.5 | Anita (Callirrhoe) | `lines/anita/een_dagvaarding_da0c7deb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #150 |
-| 151 | M15.5 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/een_bedankbriefje_voor_het_spand_48de1970.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #151 |
-| 152 | M15.5 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/twee_van_de_vier_de_mensen_kwame_8ad89388.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #152 |
-| 153 | M15.5 | Anita (Callirrhoe) | `lines/anita/dat_was_niet_de_bedoeling_730245db.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #153 |
-| 154 | M15.5 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/dat_staat_nergens_in_het_contrac_37b5e948.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #154 |
-| 155 | M15.5 | Anita (Callirrhoe) | `lines/anita/nee_waar_hij_heen_gaat_gaat_de_b_f95c8176.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #155 |
-| 156 | M15.6 | Anita (Callirrhoe) | `lines/anita/het_was_een_ongeluk_285b2a83.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #156 |
-| 157 | M15.6 | Anita (Callirrhoe) | `lines/anita/kom_geert_wacht_f4b94b1d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #157 |
-| 158 | M16.3 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/durk_mijn_juristen_willen_een_ra_93b62778.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #158 |
-| 159 | M16.3 | Durk (Algieba) | `lines/durk/op_een_kermis_baas_919c3d11.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #159 |
-| 160 | M16.3 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/ik_hoor_botsauto_s_ik_betaal_jul_09a965cb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #160 |
-| 161 | M16.3 | Durk (Algieba) | `lines/durk/nee_baas_douwe_hang_op_79df57d8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #161 |
-| 162 | M16.3 | Douwe (Algenib) | `lines/douwe/op_40b135e8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #162 |
-| 163 | M16.3 | Anita (Callirrhoe) | `lines/anita/die_zeg_ik_als_ik_win_557bdc25.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #163 |
-| 164 | M16.5 | Anita (Callirrhoe) | `lines/anita/niemand_won_want_iedereen_werd_e_e4b9d385.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #164 |
-| 165 | M16.5 | Durk (Algieba) | `lines/durk/gelijkspel_is_ook_een_antwoord_v_f43c5f47.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #165 |
-| 166 | M16.5 | Anita (Callirrhoe) | `lines/anita/waar_gaat_jelle_maandag_heen_36d4b9c7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #166 |
-| 167 | M16.5 | Durk (Algieba) | `lines/durk/baas_rijdt_maandag_naar_veendam__f2f4ebea.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #167 |
-| 168 | M16.5 | Durk (Algieba) | `lines/durk/gaat_mee_in_de_koffer_onder_het__74d4f500.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #168 |
-| 169 | M16.5 | Anita (Callirrhoe) | `lines/anita/maandag_veendam_c8fbfb25.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #169 |
-| 170 | M16.5 | Anita (Callirrhoe) | `lines/anita/heel_goed_maandag_e2be0e06.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #170 |
-| 171 | B3.1 | Anita (Callirrhoe) | `lines/anita/wat_dan_3d929414.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #171 |
-| 172 | B3.1 | Anita (Callirrhoe) | `lines/anita/ik_dacht_even_dat_het_iets_was_9fae63f7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #172 |
-| 173 | B3.2 | Anita (Callirrhoe) | `lines/anita/vraag_van_de_dag_hoe_hoog_vliegt_92071e8d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #173 |
-| 174 | B3.2 | Anita (Callirrhoe) | `lines/anita/dat_is_geen_hoogte_95160d63.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #174 |
-| 175 | B3.3 | Anita (Callirrhoe) | `lines/anita/dit_nummer_ken_ik_zet_harder_195cabbc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #175 |
-| 176 | B3.3 | Anita (Callirrhoe) | `lines/anita/jij_zingt_altijd_de_bas_3ad6dc54.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #176 |
-| 177 | O7 | Anita (Callirrhoe) | `lines/anita/het_is_mooi_weer_9b860bdc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #177 |
-| 178 | R4.0 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/jelle_terpstra_ik_bied_een_klomp_7a576a14.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #178 |
-| 179 | R4.0 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/dan_bied_ik_twee_klompen_foar_me_db55de9e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #179 |
-| 180 | M17.3 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/mevrouw_tessa_mijn_schip_staat_v_69126ddc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #180 |
-| 181 | M17.5 | Anita (Callirrhoe) | `lines/anita/ik_kijk_alleen_zo_n_wagen_is_voo_73cd3ffe.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #181 |
-| 182 | M17.5 | Anita (Callirrhoe) | `lines/anita/dat_is_het_hele_vak_4d561b53.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #182 |
-| 183 | M18.1 | Anita (Callirrhoe) | `lines/anita/volgens_de_chat_van_rikus_zijn_w_870ec6e1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #183 |
-| 184 | M18.1 | Anita (Callirrhoe) | `lines/anita/staat_in_het_logboek_dat_jelle_d_6f7a89d6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #184 |
-| 185 | M18.3 | Anita (Callirrhoe) | `lines/anita/zodat_zij_niets_merkte_dat_is_vi_ac9bcc9a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #185 |
-| 186 | M18.3 | Anita (Callirrhoe) | `lines/anita/voor_iedereen_die_ons_een_dief_n_18c3682f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #186 |
-| 187 | M18.4 | Mem Terpstra (Gacrux) | `lines/mem_terpstra/famke_dinsdag_naar_bourtange_voo_aca10cba.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #187 |
-| 188 | M18.4 | Anita (Callirrhoe) | `lines/anita/ik_kom_5ca3e3df.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #188 |
-| 189 | M18.4 | Mem Terpstra (Gacrux) | `lines/mem_terpstra/doe_je_jas_aan_6911ac77.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #189 |
-| 190 | M18.4 | Anita (Callirrhoe) | `lines/anita/dat_zei_ik_ook_28afc592.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #190 |
-| 191 | O8 | Anita (Callirrhoe) | `lines/anita/geprint_53af6875.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #191 |
-| 192 | N9 | Anita (Callirrhoe) | `lines/anita/dat_daar_is_de_grote_beer_3d6cc0a6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #192 |
-| 193 | N9 | Anita (Callirrhoe) | `lines/anita/dan_is_dat_de_grote_beer_29602144.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #193 |
-| 194 | N9 | Anita (Callirrhoe) | `lines/anita/je_kijkt_niet_1b09932d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #194 |
-| 195 | N9 | Anita (Callirrhoe) | `lines/anita/dat_is_geen_beer_e724c885.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #195 |
-| 196 | N9 | Anita (Callirrhoe) | `lines/anita/het_eet_je_sok_0a0adfc2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #196 |
-| 197 | N9 | Anita (Callirrhoe) | `lines/anita/welterusten_tammo_cb733d40.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #197 |
-| 198 | M19.1 | Anita (Callirrhoe) | `lines/anita/de_machinist_is_omgekocht_hij_ee_361aad50.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #198 |
-| 199 | M19.1 | Anita (Callirrhoe) | `lines/anita/in_jelles_salonrijtuig_zitten_de_352ea865.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #199 |
-| 200 | M19.1 | Anita (Callirrhoe) | `lines/anita/wie_de_jury_koopt_hoeft_niet_te__1280e2d5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #200 |
-| 201 | M19.2 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/mevrouw_een_eierbal_is_een_gesch_648f1be8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #201 |
-| 202 | M19.3 | Anita (Callirrhoe) | `lines/anita/berend_wie_zit_de_jury_voor_als__d30fd68e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #202 |
-| 203 | M20.3 | Mem Terpstra (Gacrux) | `lines/mem_terpstra/er_is_geen_overeenkomst_jonge_er_52b695e3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #203 |
-| 204 | M20.3 | Anita (Callirrhoe) | `lines/anita/van_de_jas_tammo_en_tige_tank_j__8afbf9b5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #204 |
-| 205 | M20.3 | Mem Terpstra (Gacrux) | `lines/mem_terpstra/omdat_mijn_kleinzoon_gekke_dinge_00bf2429.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #205 |
-| 206 | M20.5 | Anita (Callirrhoe) | `lines/anita/henks_zender_piept_onze_auto_sta_779a7d18.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #206 |
-| 207 | M21.2 | Mem Terpstra (Gacrux) | `lines/mem_terpstra/famke_de_trein_met_de_rode_auto__732f0c29.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #207 |
-| 208 | M21.2 | Anita (Callirrhoe) | `lines/anita/dank_u_mevrouw_terpstra_db3640ff.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #208 |
-| 209 | M21.2 | Mem Terpstra (Gacrux) | `lines/mem_terpstra/zeg_maar_weer_mem_c341dbeb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #209 |
-| 210 | B4 | Anita (Callirrhoe) | `lines/anita/ik_speelde_thuis_in_een_dorpstea_03583ba1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #210 |
-| 211 | B4.1 | Anita (Callirrhoe) | `lines/anita/dat_ik_te_veel_praat_fab06448.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #211 |
-| 212 | B4.2 | Anita (Callirrhoe) | `lines/anita/mijn_moeder_belde_anneke_ze_komt_0e422942.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #212 |
-| 213 | B4.2 | Anita (Callirrhoe) | `lines/anita/alleen_lieke_mijn_nichtje_ze_is__0d7db67a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #213 |
-| 214 | O9 | Anita (Callirrhoe) | `lines/anita/ik_heb_de_auto_31b5e933.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #214 |
-| 215 | O9 | Anita (Callirrhoe) | `lines/anita/hoe_is_het_met_de_vrienden_van_o_64126236.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #215 |
-| 216 | O9 | Anita (Callirrhoe) | `lines/anita/dat_doet_er_niet_toe_b58d6f56.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #216 |
-| 217 | O9 | Anita (Callirrhoe) | `lines/anita/zonder_auto_sta_jij_nergens_5854a97f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #217 |
-| 218 | O9 | Anita (Callirrhoe) | `lines/anita/ik_ook_9e34229c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #218 |
-| 219 | M22.1 | Anita (Callirrhoe) | `lines/anita/wij_maken_van_de_escapade_de_sna_face5df1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #219 |
-| 220 | M22.2 | Anita (Callirrhoe) | `lines/anita/dat_is_een_snackwagen_148b4aee.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #220 |
-| 221 | M22.2 | Anita (Callirrhoe) | `lines/anita/het_is_een_voordeur_een_voordeur_46e80c72.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #221 |
-| 222 | M22.2 | Anita (Callirrhoe) | `lines/anita/het_is_een_naam_83e303b3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #222 |
-| 223 | M22.4 | Anita (Callirrhoe) | `lines/anita/ik_moet_je_iets_vertellen_ik_woo_126a1af3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #223 |
-| 224 | M22.4 | Anita (Callirrhoe) | `lines/anita/mem_zegt_elke_zomer_jas_het_enig_4224b857.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #224 |
-| 225 | M22.4 | Anita (Callirrhoe) | `lines/anita/de_snackwagen_is_een_thuis_op_wi_5845b0cb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #225 |
-| 226 | M24.1 | Anita (Callirrhoe) | `lines/anita/de_vlag_hangt_precies_boven_de_p_6d464267.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #226 |
-| 227 | M24.1 | Anita (Callirrhoe) | `lines/anita/foar_mem_voor_zijn_oma_b00b6df2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #227 |
-| 228 | M24.1 | Anita (Callirrhoe) | `lines/anita/en_waarom_luistert_die_duif_naar_0316bafb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #228 |
-| 229 | O10 | Anita (Callirrhoe) | `lines/anita/rekening_voor_het_gebruik_van_de_4d913bd8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #229 |
-| 230 | O10 | Anita (Callirrhoe) | `lines/anita/genoeg_om_te_zien_dat_hij_bang_i_0df15930.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #230 |
-| 231 | O10 | Anita (Callirrhoe) | `lines/anita/hij_stuurt_een_rekening_hij_belt_8df99fac.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #231 |
-| 232 | O10 | Anita (Callirrhoe) | `lines/anita/zijn_vergunning_voor_morgen_even_c66a45e9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #232 |
-| 233 | O10 | Anita (Callirrhoe) | `lines/anita/hij_stuurt_altijd_alles_in_driev_731de779.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #233 |
-| 234 | M25.3 | Anita (Callirrhoe) | `lines/anita/je_biedt_geld_voor_iets_wat_geen_7a19a11a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #234 |
-| 235 | M25.6 | Anita (Callirrhoe) | `lines/anita/mam_het_is_half_twaalf_6c86280f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #235 |
-| 236 | M25.6 | Anita (Callirrhoe) | `lines/anita/wij_wonen_samen_5c1745e2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #236 |
-| 237 | M26.2 | Anita (Callirrhoe) | `lines/anita/en_de_gouden_eierbal_20aae43c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #237 |
-| 238 | M26.4 | Anita (Callirrhoe) | `lines/anita/de_snackwagen_is_breder_dan_de_s_45a8c3b9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #238 |
-| 239 | M26.5 | Anita (Callirrhoe) | `lines/anita/je_eigen_vergunning_jelle_deze_s_cc6911f1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #239 |
-| 240 | M26.5 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/voor_mijn_vlag_225598b4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #240 |
-| 241 | M26.5 | Anita (Callirrhoe) | `lines/anita/op_een_evenement_staat_een_kraam_351df14c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #241 |
-| 242 | M26.5 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/jouw_duiven_hadden_geen_vergunni_71dc2491.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #242 |
-| 243 | M26.6 | Anita (Callirrhoe) | `lines/anita/en_de_onze_df92f2e6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #243 |
-| 244 | M26.13 | Mem Terpstra (Gacrux) | `lines/mem_terpstra/dat_is_mijn_kleinzoon_1a39d933.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #244 |
-| 245 | M26.7 | Anita (Callirrhoe) | `lines/anita/mien_jong_dat_duurde_vijf_jaar_d0a579f9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #245 |
-| 246 | E1 | Anita (Callirrhoe) | `lines/anita/willemien_staat_weer_vooraan_haa_b37272c2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #246 |
-| 247 | E1 | Anita (Callirrhoe) | `lines/anita/berend_heeft_de_foto_laten_inlij_624cdaff.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #247 |
-| 248 | E1 | Anita (Callirrhoe) | `lines/anita/de_duiven_staan_weer_in_de_rij_1c7c2c25.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #248 |
-| 249 | E2 | Anita (Callirrhoe) | `lines/anita/hij_zegt_niks_4a5de544.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #249 |
-| 250 | E2 | Anita (Callirrhoe) | `lines/anita/hij_koopt_door_0a590412.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #250 |
-| 251 | O11 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/mevrouw_tessa_ee_n_eierbal_met_m_c927fd99.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #251 |
-| 252 | O11 | Anita (Callirrhoe) | `lines/anita/de_snackwagen_staat_op_de_vismar_c9043c3a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #252 |
-| 253 | O11 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/mijn_assistent_haalt_hem_ik_beta_5432ae72.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #253 |
-| 254 | O11 | Anita (Callirrhoe) | `lines/anita/uit_een_klomp_f5444363.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #254 |
-| 255 | O11 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/mijn_juristen_kijken_naar_die_kl_99e5df1b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #255 |
-| 256 | O11 | Anita (Callirrhoe) | `lines/anita/een_eierbal_voor_zijn_oma_d6b4453e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #256 |
-| 257 | M29.2 | Anita (Callirrhoe) | `lines/anita/en_de_eierballen_die_staan_er_mo_44402c57.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #257 |
-| 258 | M29.2 | Tammo (Orus) | `lines/tammo/een_eierbal_dat_is_anders_e75b2145.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #258 |
-| 259 | M30.6 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/dat_pand_ken_ik_ik_wacht_tot_de__59f83380.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #259 |
-| 260 | O12 | Anita (Callirrhoe) | `lines/anita/wat_nu_64c9b123.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #260 |
-| 261 | O12 | Anita (Callirrhoe) | `lines/anita/waarheen_186b2466.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #261 |
-| 262 | O12 | Anita (Callirrhoe) | `lines/anita/een_pand_de_bieten_veendam_een_t_9b2335f1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #262 |
-| 263 | O12 | Anita (Callirrhoe) | `lines/anita/samen_fe4daed9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #263 |
-| 264 | Missie-cutscenes | Tammo (Orus) | `lines/tammo/hij_hangt_een_vlag_aan_onze_tore_180bffcc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #264 |
-| 265 | Missie-cutscenes | Anita (Callirrhoe) | `lines/anita/een_oefenbal_hij_oefent_hoe_hij__b4840ae1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #265 |
-| 266 | Missie-cutscenes | Tammo (Orus) | `lines/tammo/tige_tank_foar_de_auto_j_de_snac_bece8bc9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #266 |
-| 267 | Missie-cutscenes | Tammo (Orus) | `lines/tammo/iemand_uit_friesland_dat_was_zij_8e0a74d6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #267 |
-| 268 | Intro-montage | Tammo (Orus) | `lines/tammo/dan_rijdt_hij_nauwelijks_voor_jo_6d30f2bd.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #268 |
-| 269 | Missie-intro (terugval) | Tammo (Orus) | `lines/tammo/gronings_ontzet_de_noordelijke_s_c980a213.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #269 |
-| 270 | Missie-intro (terugval) | Anita (Callirrhoe) | `lines/anita/gronings_ontzet_de_noordelijke_s_60a120cf.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #270 |
-| 271 | Na het verhaal (intro) | Anita (Callirrhoe) | `lines/anita/onze_eigen_snackwagen_met_kentek_4ef39a32.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #271 |
-| 272 | Telefoon (gesprekken) | Anita (Callirrhoe) | `lines/anita/en_de_snackwagen_is_van_ons_hij__2e025aac.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #272 |
-| 273 | Berichten (app) | Ubbo (Laomedeia) | `sms/ubbo/alles_gedaan_grunn_is_van_jou_de_ef9cfbeb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #273 |
-| 274 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/ver_weg_he_open_de_kaart_daar_be_8bf3f56b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #274 |
-| 275 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/ver_weg_he_open_de_kaart_daar_be_ee6a704c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #275 |
-| 276 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/dat_is_een_heel_eind_via_de_kaar_5774d079.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #276 |
-| 277 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/dat_is_een_heel_eind_via_de_kaar_11802675.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #277 |
-| 278 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/ver_weg_he_er_rijdt_ook_een_bus__f3131ee5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #278 |
-| 279 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/ver_weg_he_er_rijdt_ook_een_bus__90efd1c6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #279 |
-| 280 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/wist_je_dat_het_ook_met_het_ov_k_b4f8fbae.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #280 |
-| 281 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/wist_je_dat_het_ook_met_het_ov_k_db6f7b65.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #281 |
-| 282 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/geen_zin_om_zo_ver_te_rijden_pak_52a181c4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #282 |
-| 283 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/geen_zin_om_zo_ver_te_rijden_pak_e095e9f5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #283 |
-| 284 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/instappen_met_e_bij_de_kop_w_is__9bbe11a8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #284 |
-| 285 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/blijf_op_de_noordwal_staan_tot_h_c4513247.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #285 |
-| 286 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/durk_en_douwe_houden_je_bezig_na_34ed86d4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #286 |
-| 287 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/durk_en_douwe_houden_je_bezig_na_1f297e34.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #287 |
-| 288 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/durk_en_douwe_springen_mee_aanlo_12c36149.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #288 |
-| 289 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/durk_en_douwe_springen_mee_aanlo_ea108637.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #289 |
-| 290 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/mem_en_oma_trijntje_zitten_in_de_f06b7018.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #290 |
-| 291 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/mem_en_oma_trijntje_zitten_in_de_b9e248a6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #291 |
-| 292 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/houd_de_deur_van_de_kruitkelder__c4aaa50f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #292 |
-| 293 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/houd_de_deur_van_de_kruitkelder__cc44a6c6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #293 |
-| 294 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_tweede_deur_geeft_mee_rennen_c1608fb9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #294 |
-| 295 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_tweede_deur_geeft_mee_rennen_8750afb8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #295 |
-| 296 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/houd_ook_de_tweede_deur_daarna_d_c0796402.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #296 |
-| 297 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/houd_ook_de_tweede_deur_daarna_d_a921c676.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #297 |
-| 298 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_derde_deur_de_bal_blijft_hier_5c29331b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #298 |
-| 299 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_derde_deur_de_bal_blijft_hier_256b1e2b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #299 |
-| 300 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_laatste_deur_daarna_naar_de_p_51cf9b30.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #300 |
-| 301 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_laatste_deur_daarna_naar_de_p_c7e152c7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #301 |
-| 302 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/links_is_vrij_naar_de_poort_bere_bf9402a5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #302 |
-| 303 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/links_is_vrij_naar_de_poort_bere_2916f3a9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #303 |
-| 304 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_naspeling_is_klaar_blijf_even_f1dc5452.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #304 |
-| 305 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_naspeling_is_klaar_blijf_even_c59705d5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #305 |
-| 306 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_kras_van_de_wagon_zit_op_de_e_947f02ce.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #306 |
-| 307 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_kras_van_de_wagon_zit_op_de_e_57099ad9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #307 |
-| 308 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/mems_appje_de_trein_met_de_rode__47a5cae7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #308 |
-| 309 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/mems_appje_de_trein_met_de_rode__03403f60.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #309 |
-| 310 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_trein_rijdt_druk_op_spatie_om_e87508db.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #310 |
-| 311 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_trein_rijdt_druk_op_spatie_om_2d4f0e71.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #311 |
-| 312 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/jelles_mannen_staan_op_de_wagon__7c76ec5e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #312 |
-| 313 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/jelles_mannen_staan_op_de_wagon__0f9ae746.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #313 |
-| 314 | Keuzegesprekken | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/u_kunt_de_auto_redden_of_de_bal__4c61688a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #314 |
-| 315 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/oma_heeft_alle_vrienden_met_hun__9e75fa96.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #315 |
-| 316 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/oma_heeft_alle_vrienden_met_hun__528b3c1d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #316 |
-| 317 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/blijf_bij_de_wagen_henk_bouwt_he_23021a92.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #317 |
-| 318 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/blijf_bij_de_wagen_henk_bouwt_he_ab31ccde.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #318 |
-| 319 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/henk_zaagt_een_gat_in_de_zijkant_6eeaa325.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #319 |
-| 320 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/henk_zaagt_een_gat_in_de_zijkant_573b88df.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #320 |
-| 321 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/instappen_tinus_wijst_naar_het_w_e086fa47.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #321 |
-| 322 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/instappen_tinus_wijst_naar_het_w_f2bed051.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #322 |
-| 323 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/gas_sturen_niet_vastlopen_henk_w_1ad93cad.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #323 |
-| 324 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/gas_sturen_niet_vastlopen_henk_w_2c595403.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #324 |
-| 325 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/houd_de_snelheid_erin_in_de_modd_37cff950.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #325 |
-| 326 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/houd_de_snelheid_erin_in_de_modd_7c1d2904.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #326 |
-| 327 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/rij_hem_de_modder_in_als_de_acht_feed3d3d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #327 |
-| 328 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/rij_hem_de_modder_in_als_de_acht_149308d5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #328 |
-| 329 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/vast_tinus_haakt_de_trekker_aan__1c10146f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #329 |
-| 330 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/vast_tinus_haakt_de_trekker_aan__7b1fee60.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #330 |
-| 331 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/rij_voorop_de_colonne_volgt_zola_91ac2b9b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #331 |
-| 332 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/rij_voorop_de_colonne_volgt_zola_5ebadc50.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #332 |
-| 333 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/ee_n_vriend_rijdt_vlak_naast_jul_7596b732.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #333 |
-| 334 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/ee_n_vriend_rijdt_vlak_naast_jul_d2c7de23.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #334 |
-| 335 | Keuzegesprekken | Anita (Callirrhoe) | `lines/anita/alle_vrienden_rijden_mee_maar_e__65994f51.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #335 |
-| 336 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/instappen_tessa_zei_wij_voorop_010388aa.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #336 |
-| 337 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/rij_voorop_naar_aduard_wie_te_ve_b6a4af07.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #337 |
-| 338 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/rij_voorop_naar_aduard_wie_te_ve_fde26a4b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #338 |
-| 339 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/wubbo_opent_de_brug_op_afstand_m_6ac8b600.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #339 |
-| 340 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/wubbo_opent_de_brug_op_afstand_m_fd276ec5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #340 |
-| 341 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/nog_vijf_kilometer_de_hele_colon_3f1e45dc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #341 |
-| 342 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/nog_vijf_kilometer_de_hele_colon_083b1d83.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #342 |
-| 343 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/bak_in_oma_s_keuken_ei_zout_grof_8245aa8b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #343 |
-| 344 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/bak_in_oma_s_keuken_ei_zout_grof_f29c248d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #344 |
-| 345 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/oma_s_volgorde_eerst_het_ei_dan__ec64947f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #345 |
-| 346 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/oma_s_volgorde_eerst_het_ei_dan__ac2e806f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #346 |
-| 347 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/kwart_voor_drie_de_limo_rijdt_na_964ada11.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #347 |
-| 348 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/kwart_voor_drie_de_limo_rijdt_na_a46268a8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #348 |
-| 349 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/oma_s_volgorde_ei_zout_grof_meel_f0d16170.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #349 |
-| 350 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/oma_s_volgorde_ei_zout_grof_meel_a14dbbd9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #350 |
-| 351 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/kwart_voor_drie_instappen_de_lim_49ac03e7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #351 |
-| 352 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/kwart_voor_drie_instappen_de_lim_e776dbd1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #352 |
-| 353 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/berend_proeft_voor_het_laatst_ze_62b01348.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #353 |
-| 354 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/berend_proeft_voor_het_laatst_ze_2c906a7a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #354 |
-| 355 | Keuzegesprekken | Berend Bos (Charon) | `lines/berend_bos/wat_maakt_deze_eierbal_gronings__e0a308e6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #355 |
-| 356 | Keuzegesprekken | Berend Bos (Charon) | `lines/berend_bos/en_waarom_moet_de_standplaats_na_cb573f08.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #356 |
-| 357 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/willemiens_huis_in_loppersum_boe_f98990b9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #357 |
-| 358 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/willemiens_huis_in_loppersum_boe_c2e58fec.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #358 |
-| 359 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/boeken_in_kleine_dozen_blijf_bij_fdc6386a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #359 |
-| 360 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/boeken_in_kleine_dozen_blijf_bij_63e22e0e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #360 |
-| 361 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/breekbaar_in_de_krant_blijf_in_d_7f7b7f24.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #361 |
-| 362 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/breekbaar_in_de_krant_blijf_in_d_efaa96a3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #362 |
-| 363 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_kat_wil_nergens_in_blijf_bij__68e4842a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #363 |
-| 364 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_kat_wil_nergens_in_blijf_bij__92e13d56.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #364 |
-| 365 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_dozen_staan_klaar_naar_de_ver_bac6a78e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #365 |
-| 366 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_dozen_staan_klaar_naar_de_ver_596f56a7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #366 |
-| 367 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_verhuisbus_staat_voor_het_hui_1a6213e6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #367 |
-| 368 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_verhuisbus_staat_voor_het_hui_c10d0560.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #368 |
-| 369 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/instappen_tammo_rijdt_rustig_7b1e92a9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #369 |
-| 370 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/rustig_rijden_niet_om_de_spullen_39698032.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #370 |
-| 371 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/rustig_rijden_niet_om_de_spullen_8234dbba.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #371 |
-| 372 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/een_buurtfeest_op_het_erf_in_lop_2616ebd4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #372 |
-| 373 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/een_buurtfeest_op_het_erf_in_lop_50020713.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #373 |
-| 374 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/tafels_op_het_erf_blijf_staan_to_c000632a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #374 |
-| 375 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/tafels_op_het_erf_blijf_staan_to_aa717e1c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #375 |
-| 376 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_foto_hangt_in_de_gang_waar_je_e13e3c7c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #376 |
-| 377 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_foto_hangt_in_de_gang_waar_je_8d7e09ba.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #377 |
-| 378 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/een_hooiberg_op_de_heide_ten_noo_1080b90b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #378 |
-| 379 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/een_hooiberg_op_de_heide_ten_noo_a6ef2d47.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #379 |
-| 380 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/aanvallen_eerst_de_gracht_lammer_21ccc193.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #380 |
-| 381 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/aanvallen_eerst_de_gracht_lammer_9d72285e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #381 |
-| 382 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/wubbo_staat_bij_de_lier_hij_open_70d8aa4a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #382 |
-| 383 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/wubbo_staat_bij_de_lier_hij_open_60e1ea73.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #383 |
-| 384 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/boven_jullie_komt_meel_hoofd_oml_05122999.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #384 |
-| 385 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/boven_jullie_komt_meel_hoofd_oml_dc71c330.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #385 |
-| 386 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/blijf_op_het_bolwerk_staan_tot_d_91f0e960.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #386 |
-| 387 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/blijf_op_het_bolwerk_staan_tot_d_0b423f46.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #387 |
-| 388 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/het_tweede_bolwerk_de_duiven_lui_4209ae51.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #388 |
-| 389 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/het_derde_bolwerk_tinus_trekt_de_6d7ab59c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #389 |
-| 390 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/het_derde_bolwerk_tinus_trekt_de_95651283.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #390 |
-| 391 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/blijf_op_het_bolwerk_staan_tot_d_23d6f271.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #391 |
-| 392 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/blijf_op_het_bolwerk_staan_tot_d_9a253293.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #392 |
-| 393 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/drie_vlaggen_naar_de_poort_beren_1a9344a6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #393 |
-| 394 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/drie_vlaggen_naar_de_poort_beren_a868d1cf.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #394 |
-| 395 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_snackwagen_staat_open_iederee_0a1ce2d5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #395 |
-| 396 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_snackwagen_staat_open_iederee_38820ad8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #396 |
-| 397 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_rij_staat_binnen_achter_de_gl_bb1d8947.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #397 |
-| 398 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_rij_staat_binnen_achter_de_gl_0743bdf5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #398 |
-| 399 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/blijf_in_de_rij_staan_tot_4117_w_679bfc91.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #399 |
-| 400 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/blijf_in_de_rij_staan_tot_4117_w_830e2386.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #400 |
-| 401 | Keuzegesprekken | Loketbediende (Autonoe) | `lines/loketbediende/welk_formulier_had_u_nodig_7c955923.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #401 |
-| 402 | Keuzegesprekken | Loketbediende (Autonoe) | `lines/loketbediende/en_waar_haalt_u_de_stempel_0834d0ca.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #402 |
-| 403 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/alles_bij_elkaar_nu_inschrijven__c1c11d35.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #403 |
-| 404 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/alles_bij_elkaar_nu_inschrijven__8d8ac02a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #404 |
-| 405 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/eerst_de_grote_markt_vijftienhon_424120cf.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #405 |
-| 406 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/eerst_de_grote_markt_vijftienhon_affd2864.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #406 |
-| 407 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/in_de_kooi_van_de_kraan_lammert__1683774a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #407 |
-| 408 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/in_de_kooi_van_de_kraan_lammert__2c8123c9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #408 |
-| 409 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/van_boven_zag_je_hem_de_blauwe_n_f4086149.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #409 |
-| 410 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/van_boven_zag_je_hem_de_blauwe_n_ff7df391.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #410 |
-| 411 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/papieren_eruit_papieren_erin_eve_b99da06f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #411 |
-| 412 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/papieren_eruit_papieren_erin_eve_b9751011.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #412 |
-| 413 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/klaar_terug_naar_de_kade_voor_he_0e3246ab.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #413 |
-| 414 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/klaar_terug_naar_de_kade_voor_he_52a29308.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #414 |
-| 415 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_auto_blijft_bij_de_sluis_lamm_2a083678.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #415 |
-| 416 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_auto_blijft_bij_de_sluis_lamm_447f169f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #416 |
-| 417 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/instappen_de_trekker_limo_van_je_d9cbd146.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #417 |
-| 418 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/instappen_de_trekker_limo_van_je_80c774db.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #418 |
-| 419 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/naar_de_sluis_van_delfzijl_over__24b97c12.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #419 |
-| 420 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/naar_de_sluis_van_delfzijl_over__f2ecbc57.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #420 |
-| 421 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/roelfiens_rode_gewasspuiter_staa_e9f47e39.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #421 |
-| 422 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/opstijgen_en_laag_over_het_graan_5ebb9c06.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #422 |
-| 423 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/opstijgen_en_laag_over_het_graan_4b4f21a9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #423 |
-| 424 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/spandoek_opgepikt_laag_blijven_n_028b69f4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #424 |
-| 425 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/spandoek_opgepikt_laag_blijven_n_d71247b8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #425 |
-| 426 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/ze_lezen_het_door_de_rij_kramen_3b76a234.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #426 |
-| 427 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/ze_lezen_het_door_de_rij_kramen_6143a3f3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #427 |
-| 428 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/voorbij_de_kermis_nu_terug_naar__959c5f21.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #428 |
-| 429 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/voorbij_de_kermis_nu_terug_naar__89cd0799.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #429 |
-| 430 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/terug_naar_de_strook_gas_terug_m_4167ca05.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #430 |
-| 431 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/terug_naar_de_strook_gas_terug_m_7053dbe9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #431 |
-| 432 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/podium_in_de_kiezelrace_dan_vert_48887f24.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #432 |
-| 433 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/podium_in_de_kiezelrace_dan_vert_1d8eb0c2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #433 |
-| 434 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/instappen_de_tankwagen_staat_bij_ce5b97f5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #434 |
-| 435 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/instappen_de_tankwagen_staat_bij_325c65a4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #435 |
-| 436 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/instappen_bij_dijkstra_spatie_om_64a6e3c8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #436 |
-| 437 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/instappen_bij_dijkstra_spatie_om_101e075b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #437 |
-| 438 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/loop_langs_drie_tenten_en_drink__8059ba59.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #438 |
-| 439 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/loop_langs_drie_tenten_en_drink__0f02c918.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #439 |
-| 440 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/die_pan_staat_hier_al_sinds_gist_0c3ca9ea.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #440 |
-| 441 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dat_is_een_pan_met_een_verhaal_b4ad0266.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #441 |
-| 442 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/het_verhaal_heet_wie_wast_hem_af_1e74667c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #442 |
-| 443 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_morgen_06f3414d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #443 |
-| 444 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/wie_neemt_de_badkamer_als_eerste_336b767f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #444 |
-| 445 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ik_ik_sta_er_al_drie_minuten_voo_e8f17e9b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #445 |
-| 446 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/je_zit_hier_aan_tafel_fea6e5c5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #446 |
-| 447 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/in_gedachten_cd1938da.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #447 |
-| 448 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/wie_heeft_mijn_yoghurt_opgegeten_bbae9fba.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #448 |
-| 449 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/er_stond_geen_naam_op_b7efcbb8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #449 |
-| 450 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/er_stond_tessa_op_b9de03ab.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #450 |
-| 451 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_las_dat_als_een_suggestie_94c081ce.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #451 |
-| 452 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/koffie_f36dc5b3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #452 |
-| 453 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ja_eh_nee_ja_c9337043.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #453 |
-| 454 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_zet_er_twee_neer_dan_kies_jij_841b8af1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #454 |
-| 455 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_is_eigenlijk_heel_redelijk_90a24600.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #455 |
-| 456 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ik_heb_een_schoonmaakrooster_gem_a2c5009f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #456 |
-| 457 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_zie_mijn_naam_zeven_keer_4c93519f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #457 |
-| 458 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ik_zie_jouw_pan_zeven_keer_f860a899.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #458 |
-| 459 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dat_is_een_eerlijke_ruil_538fc4bb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #459 |
-| 460 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/je_wekker_ging_om_zes_uur_af_b3a0faa4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #460 |
-| 461 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_weet_ik_ik_leg_hem_ver_weg_15c690f5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #461 |
-| 462 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dat_wist_de_hele_flat_nu_ook_036f0bde.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #462 |
-| 463 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dan_zijn_we_eerlijk_tegen_elkaar_27338a29.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #463 |
-| 464 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/roerei_of_spiegelei_fbb82d0d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #464 |
-| 465 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/wat_wordt_het_als_jij_er_verstan_c5e35f06.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #465 |
-| 466 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/roerei_dan_zie_je_niet_dat_het_m_6fa95b47.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #466 |
-| 467 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ik_eet_het_toch_op_5923d272.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #467 |
-| 468 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/proef_eens_f7f31f40.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #468 |
-| 469 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/het_is_goed_97201844.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #469 |
-| 470 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_zeg_je_altijd_1f2a3223.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #470 |
-| 471 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/omdat_het_altijd_goed_is_d92e590d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #471 |
-| 472 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/je_hebt_een_kruimel_op_je_kin_1e0cca39.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #472 |
-| 473 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/waar_c8edf50c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #473 |
-| 474 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/links_nee_jouw_links_6b2fbb5a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #474 |
-| 475 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/nu_zit_hij_op_je_mouw_b7a485bc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #475 |
-| 476 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/je_haar_zit_anders_644e671d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #476 |
-| 477 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/het_is_dinsdag_a7479158.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #477 |
-| 478 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/het_staat_je_goed_op_dinsdag_d90c71d7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #478 |
-| 479 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dank_je_eet_je_boterham_8ee2f095.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #479 |
-| 480 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_heb_een_eierbal_gebakken_voor_cc47fdbb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #480 |
-| 481 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/hij_is_vierkant_66cb3b09.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #481 |
-| 482 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/hij_is_creatief_edae7e63.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #482 |
-| 483 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ik_eet_hem_toch_op_voor_de_vrien_d412758c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #483 |
-| 484 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/als_we_winnen_wat_dan_13f04b08.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #484 |
-| 485 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dan_krijgt_de_frietwagen_een_nie_8a2c5b1e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #485 |
-| 486 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/een_lamp_50e0b284.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #486 |
-| 487 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/een_grote_zodat_jij_hem_ziet_d9bbeb81.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #487 |
-| 488 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/wat_kijken_we_db231066.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #488 |
-| 489 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/maakt_niet_uit_6bb74591.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #489 |
-| 490 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/omdat_jij_naast_me_zit_be3522fc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #490 |
-| 491 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_was_aardig_zet_maar_iets_aan_696edcd0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #491 |
-| 492 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dit_nummer_ken_ik_e32aa27a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #492 |
-| 493 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dans_je_mee_8a0a7d71.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #493 |
-| 494 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/in_de_keuken_5747ce43.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #494 |
-| 495 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/overal_waar_jij_staat_3baa671e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #495 |
-| 496 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/goedemorgen_9cc8e12a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #496 |
-| 497 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/koffie_staat_klaar_027f0493.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #497 |
-| 498 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/je_bent_de_beste_2f6f533c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #498 |
-| 499 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/wacht_ik_moet_even_gaan_zitten_c976ceff.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #499 |
-| 500 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/eerst_de_vismarkt_c7c3faaa.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #500 |
-| 501 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dan_de_kade_7aff1578.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #501 |
-| 502 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/en_daarna_95bcc718.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #502 |
-| 503 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/daarna_iets_met_jou_08fdcd3e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #503 |
-| 504 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_staat_al_op_de_lijst_b670c12b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #504 |
-| 505 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/met_melk_niet_te_veel_2d33f190.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #505 |
-| 506 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/je_weet_het_nog_43472179.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #506 |
-| 507 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ik_weet_alles_van_jou_cd14dfdc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #507 |
-| 508 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dat_is_veel_6de340a5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #508 |
-| 509 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/het_is_tweee_ntwintig_graden_631b8d35.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #509 |
-| 510 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_zeg_je_elke_dag_439b008d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #510 |
-| 511 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/omdat_ik_het_fijn_vind_fccf497e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #511 |
-| 512 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/het_is_stil_in_de_flat_ce68a564.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #512 |
-| 513 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/niemand_zoekt_ons_ac33b0eb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #513 |
-| 514 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_is_nieuw_e5b8edc6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #514 |
-| 515 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_wen_eraan_f6cb9f1f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #515 |
-| 516 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/roerei_zoals_jij_het_wilt_04f2dcd3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #516 |
-| 517 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/zonder_dat_het_mislukt_is_4321bb33.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #517 |
-| 518 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dat_was_de_oefening_43009ff6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #518 |
-| 519 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/en_dit_is_de_les_42c3b3a8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #519 |
-| 520 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/hoeveel_woorden_waren_het_ook_al_d34c455f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #520 |
-| 521 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/vijf_98324fee.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #521 |
-| 522 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/zeg_ze_nog_eens_26f4f9ff.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #522 |
-| 523 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/je_wast_af_2da188bd.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #523 |
-| 524 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_zei_toch_morgen_597766da.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #524 |
-| 525 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_was_twee_weken_geleden_38580660.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #525 |
-| 526 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_ben_een_man_van_mijn_woord_22c2d0db.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #526 |
-| 527 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/wat_doen_we_vandaag_a4252802.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #527 |
-| 528 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/niks_a0b352a1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #528 |
-| 529 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/niks_is_een_goed_plan_073a6a22.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #529 |
-| 530 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dan_is_het_al_gelukt_390e85a2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #530 |
-| 531 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/rikus_zegt_dat_het_zomer_blijft_f3e0692a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #531 |
-| 532 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/rikus_heeft_altijd_gelijk_0b3dddc3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #532 |
-| 533 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_zegt_hij_zelf_ook_5ac623dd.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #533 |
-| 534 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dan_zal_het_wel_kloppen_4bcf6172.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #534 |
-| 535 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/welkom_in_de_euroborg_de_zon_sch_84ac7958.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #535 |
-| 536 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/goedemiddag_allemaal_het_is_zome_9a005ca6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #536 |
-| 537 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/daar_komen_de_spelers_het_veld_o_bb1d52dc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #537 |
-| 538 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_tribunes_zitten_vol_nou_ja_vo_3ed21133.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #538 |
-| 539 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hier_zijn_we_dan_elf_tegen_elf_e_79bcc99f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #539 |
-| 540 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_scheidsrechter_kijkt_op_zijn__74db8827.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #540 |
-| 541 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_heb_er_zin_in_hilbrand_het_gr_4e2c2c5e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #541 |
-| 542 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/let_op_de_middenmoot_vandaag_daa_9d841f89.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #542 |
-| 543 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/mooie_dag_voor_voetbal_slechte_d_7f8a8fc2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #543 |
-| 544 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_zeg_de_eerste_tien_minuten_zi_a6046190.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #544 |
-| 545 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/oma_trijntje_zit_op_haar_vaste_p_a925caf7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #545 |
-| 546 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/en_we_zijn_weer_begonnen_de_twee_2ceccfae.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #546 |
-| 547 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_spelers_staan_weer_klaar_alle_d34a8cbc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #547 |
-| 548 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/daar_gaan_we_weer_de_thermosfles_9335d95c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #548 |
-| 549 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/tweede_helft_wie_heeft_in_de_rus_2e0db135.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #549 |
-| 550 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/in_de_rust_wordt_het_gewonnen_ze_880341c5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #550 |
-| 551 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_ben_benieuwd_wie_er_nog_benen_76b020bf.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #551 |
-| 552 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/nu_komt_het_op_conditie_aan_en_o_e012734a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #552 |
-| 553 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/dit_is_wat_we_noemen_een_groning_0a8155b5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #553 |
-| 554 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_echte_derby_vandaag_dat_is_z_ee2d29de.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #554 |
-| 555 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/het_is_een_derby_de_tribunes_zij_2ca05dc6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #555 |
-| 556 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/bij_een_derby_zijn_de_regels_dez_e8cb0596.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #556 |
-| 557 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_heb_in_mijn_tijd_drie_derby_s_20309283.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #557 |
-| 558 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/niemand_wil_de_buurman_laten_win_b3cfb1c4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #558 |
-| 559 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/wat_een_kans_hij_kon_alles_doen__bc27a4d2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #559 |
-| 560 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/gevaar_dat_scheelde_niet_veel_3198c3cb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #560 |
-| 561 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/dat_had_een_doelpunt_moeten_zijn_12c03d0a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #561 |
-| 562 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_grote_kans_en_de_bal_gaat_ne_6f591e8d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #562 |
-| 563 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/dichtbij_heel_dichtbij_e649364e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #563 |
-| 564 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/daar_komt_een_schot_net_niet_net_aa417887.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #564 |
-| 565 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/bijna_bijna_de_tribunes_zuchten_2da616ac.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #565 |
-| 566 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/wat_een_mogelijkheid_maar_de_afw_327dccc1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #566 |
-| 567 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/die_moet_er_in_hilbrand_zelfs_mi_f4831b83.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #567 |
-| 568 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_is_het_verschil_tussen_een_g_281c4e2e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #568 |
-| 569 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/net_als_bij_het_dorpsteam_eerst__9500524f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #569 |
-| 570 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/hij_keek_te_veel_naar_de_keeper__5a10e0bc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #570 |
-| 571 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/pech_en_een_beetje_onhandig_21990078.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #571 |
-| 572 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_schot_het_gaat_hard_3636ba3c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #572 |
-| 573 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hij_haalt_uit_5b5948d3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #573 |
-| 574 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/daar_gaat_de_bal_richting_het_do_8852fa34.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #574 |
-| 575 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/schieten_en_het_is_een_harde_e5a70099.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #575 |
-| 576 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hij_probeert_het_van_afstand_5ea6ad54.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #576 |
-| 577 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_poging_de_keeper_moet_oplett_25196d21.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #577 |
-| 578 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_kogel_wat_doet_de_keeper_35942b0a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #578 |
-| 579 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hij_schiet_hij_schiet_8956b730.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #579 |
-| 580 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/rustig_aan_jongen_eerst_richten__093d992a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #580 |
-| 581 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/daar_zit_kracht_achter_3bcce8b0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #581 |
-| 582 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_doe_je_met_je_hele_been_niet_879237d9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #582 |
-| 583 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_mooie_poging_maar_vooral_een_d4894999.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #583 |
-| 584 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/wat_een_redding_de_keeper_houdt__7e07c642.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #584 |
-| 585 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/gestopt_die_ging_er_bijna_in_7d7d4317.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #585 |
-| 586 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_keeper_vloog_erheen_er_zat_gr_4f546e98.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #586 |
-| 587 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/daar_is_hij_de_keeper_redt_met_z_9b3865d2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #587 |
-| 588 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/weggeslagen_wat_een_reflex_1e36b4e0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #588 |
-| 589 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hij_pakt_hem_zekerheid_in_het_do_50bcaf2a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #589 |
-| 590 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/op_de_lijn_gered_die_keeper_heef_a3d6eb75.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #590 |
-| 591 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_bal_is_veilig_bij_de_keeper_fac88333.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #591 |
-| 592 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_noem_ik_keeperswerk_alleen_d_8c16c7b7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #592 |
-| 593 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/hij_stond_precies_goed_dat_is_ge_e1316304.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #593 |
-| 594 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_keeper_is_een_eenzaam_beroep_2c912e4a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #594 |
-| 595 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/bij_ons_in_het_dorp_heette_zo_ie_83665b12.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #595 |
-| 596 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_spits_dacht_dat_hij_hem_had_d_3e0afd0b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #596 |
-| 597 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/mooi_gedaan_hij_verdient_een_pep_c4324016.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #597 |
-| 598 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/tegen_de_paal_dat_scheelde_een_h_de148eb7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #598 |
-| 599 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/op_de_lat_de_hele_tribune_hield__8fb649fd.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #599 |
-| 600 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_paal_redt_het_doelpunt_blijft_d45fd784.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #600 |
-| 601 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/ping_dat_klonk_als_een_klok_net__80c8ee6b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #601 |
-| 602 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hout_het_doel_staat_nog_81121743.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #602 |
-| 603 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_is_nog_net_zo_erg_als_missen_83f5d0fd.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #603 |
-| 604 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_paal_is_de_beste_verdediger_v_ee6e4612.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #604 |
-| 605 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/zo_dicht_bij_het_hout_was_zijn_v_a46a8431.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #605 |
-| 606 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_hoor_het_nog_galmen_23fc4832.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #606 |
-| 607 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/goal_voor_de_stadjers_dat_noem_i_87d1bcda.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #607 |
-| 608 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/binnen_de_stadjers_vieren_het_me_0c751af1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #608 |
-| 609 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/wat_een_schot_de_keeper_keek_nog_2ecc69ab.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #609 |
-| 610 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/doelpunt_wat_een_mooi_moment_voo_52c235f7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #610 |
-| 611 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/en_hij_zit_de_bal_ligt_in_het_ne_b94ea5f6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #611 |
-| 612 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/ja_daar_is_het_doelpunt_de_eurob_f0b85a5c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #612 |
-| 613 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/zo_spelen_we_het_thuis_ook_zonde_7c42cd0d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #613 |
-| 614 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/mooi_dat_was_niet_alleen_een_goa_ad66a5ce.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #614 |
-| 615 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_was_verdiend_hilbrand_heel_v_0710c7fb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #615 |
-| 616 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/als_dat_niet_binnen_gaat_eet_ik__27d74a40.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #616 |
-| 617 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_keeper_had_geen_schijn_van_ka_64b2dac0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #617 |
-| 618 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dit_is_het_mooiste_geluid_van_he_3694113f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #618 |
-| 619 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/oma_trijntje_is_opgestaan_dat_do_a5fe612e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #619 |
-| 620 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_zou_zeggen_dikke_goal_d4be43b5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #620 |
-| 621 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_tegenstander_scoort_even_slik_92cc948c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #621 |
-| 622 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/tegendoelpunt_oma_trijntje_schud_6a2df40f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #622 |
-| 623 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/binnen_de_keeper_wil_de_grasmat__5917b263.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #623 |
-| 624 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/tegenvaller_de_bal_zit_achter_de_7e049ebb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #624 |
-| 625 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_doelpunt_voor_de_bezoekers_h_cbd89844.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #625 |
-| 626 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_doet_pijn_hilbrand_maar_het__871253a0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #626 |
-| 627 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/daar_had_de_verdediging_bij_moet_1451e43e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #627 |
-| 628 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/je_moet_het_toegeven_dat_was_moo_abe96ea3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #628 |
-| 629 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/even_doorademen_en_opnieuw_begin_994e4806.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #629 |
-| 630 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/in_het_dorpsteam_zeiden_we_dan_v_fbd560b1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #630 |
-| 631 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/bij_een_tegendoelpunt_kijkt_de_h_79f0a137.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #631 |
-| 632 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/nou_dat_was_effe_niet_best_4e054b02.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #632 |
-| 633 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_eigen_doelpunt_dat_gaat_in_d_2f5750c8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #633 |
-| 634 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/oei_die_gaat_in_zijn_eigen_doel__93e298c1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #634 |
-| 635 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/dat_was_niet_de_bedoeling_de_bal_dc461ec9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #635 |
-| 636 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dit_kan_elke_speler_overkomen_be_f52c9834.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #636 |
-| 637 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/het_is_geen_schande_het_is_een_a_5baf3c9b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #637 |
-| 638 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/hij_kijkt_nu_heel_erg_naar_de_lu_dc9ec8cf.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #638 |
-| 639 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/pech_zeg_ik_pure_pech_ik_heb_er__a439cf92.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #639 |
-| 640 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_comeback_is_compleet_wie_had__a892bbeb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #640 |
-| 641 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/terug_in_de_wedstrijd_wat_een_ve_54690b5b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #641 |
-| 642 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/wat_een_wedstrijd_eerst_achter_n_3ff93987.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #642 |
-| 643 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/zie_je_wel_nooit_opgeven_dat_is__64441190.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #643 |
-| 644 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_is_karakter_dat_kan_je_niet__4ddbcafc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #644 |
-| 645 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dit_is_waarom_we_naar_voetbal_ki_ff62b103.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #645 |
-| 646 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_gele_kaart_de_scheidsrechter_e8413527.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #646 |
-| 647 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/geel_dat_was_een_gele_kaart_71cf2f54.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #647 |
-| 648 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_scheidsrechter_trekt_geel_dat_6cf8fd0e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #648 |
-| 649 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/gele_kaart_en_terecht_voorzichti_ee1e1b53.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #649 |
-| 650 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_waarschuwing_met_een_kaartje_7a89b86b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #650 |
-| 651 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_is_de_goedkoopste_les_van_he_7209da73.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #651 |
-| 652 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/hij_mag_nu_niet_meer_te_vurig_wo_187c203b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #652 |
-| 653 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/geel_is_een_vriendelijk_verzoek__b133dc39.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #653 |
-| 654 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_hadden_we_kunnen_zien_aankom_98406990.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #654 |
-| 655 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/eerlijk_is_eerlijk_dat_was_een_t_b964ac25.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #655 |
-| 656 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/rood_de_scheidsrechter_stuurt_he_d8ed534f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #656 |
-| 657 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hij_moet_eraf_dat_wordt_lastig_ea4f0ec0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #657 |
-| 658 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_wordt_een_lange_middag_met_t_a2f5d081.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #658 |
-| 659 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/rood_hij_had_beter_kunnen_kiezen_ba89dfaf.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #659 |
-| 660 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dit_verandert_alles_het_hele_pla_00a4ade4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #660 |
-| 661 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/niemand_wil_dit_zien_maar_de_reg_e68bd825.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #661 |
-| 662 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/er_is_nu_ruimte_en_die_ruimte_mo_c2983bf1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #662 |
-| 663 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hij_blijft_even_liggen_het_medis_e75ea035.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #663 |
-| 664 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_blessure_we_hopen_dat_het_me_bdf064d1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #664 |
-| 665 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_spelers_houden_even_in_een_ge_aac9f81f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #665 |
-| 666 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hij_haalt_de_wedstrijd_niet_er_k_3017b933.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #666 |
-| 667 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/rustig_aan_even_uitlopen_zo_gaat_8b0187f1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #667 |
-| 668 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_wedstrijd_gaat_daarna_gewoon__82b9b47c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #668 |
-| 669 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_goede_wissel_is_soms_het_bes_6d4c3c40.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #669 |
-| 670 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/beterschap_alvast_a4994777.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #670 |
-| 671 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/er_wordt_gewisseld_verse_benen_o_3c1e8148.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #671 |
-| 672 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/nieuwe_speler_nieuwe_kansen_41d4e3a5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #672 |
-| 673 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_wissel_daar_zit_een_idee_ach_a9e38e7d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #673 |
-| 674 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_trainer_weet_iets_wat_wij_nie_6c9ccd4d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #674 |
-| 675 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/verse_benen_zijn_goud_waard_in_d_36088499.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #675 |
-| 676 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/die_was_moe_hilbrand_dat_zag_je__000421ad.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #676 |
-| 677 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_goede_wissel_verandert_de_we_94fc7e68.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #677 |
-| 678 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/strafschop_de_scheidsrechter_wij_40608f27.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #678 |
-| 679 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/penalty_dit_wordt_spannend_986b89d7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #679 |
-| 680 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_bal_ligt_op_de_stip_het_hele__fb09c958.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #680 |
-| 681 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/alle_ogen_op_de_stip_ee_n_speler_fa384da8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #681 |
-| 682 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/straf_en_nu_is_het_stil_8d69927d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #682 |
-| 683 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dit_is_het_enige_moment_waarop_h_249c50db.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #683 |
-| 684 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/je_kijkt_niet_naar_de_keeper_je__638ebd7f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #684 |
-| 685 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_is_alleen_maar_zenuwen_het_d_20c1c37e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #685 |
-| 686 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_heb_er_eens_een_gemist_op_een_47f641b8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #686 |
-| 687 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_hoekschop_alle_lange_spelers_25ca58c1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #687 |
-| 688 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_bal_gaat_de_hoek_in_kan_dit_g_f0a6be08.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #688 |
-| 689 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_corner_en_dat_levert_altijd__cf752f0b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #689 |
-| 690 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hoekschop_het_wordt_druk_voor_he_7d4c2dcc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #690 |
-| 691 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_hoekschop_is_een_uitnodiging_85cde7f3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #691 |
-| 692 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/bij_een_corner_telt_alleen_de_ee_6b5dac4c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #692 |
-| 693 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dit_kan_een_goede_kans_worden_al_0df00bfe.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #693 |
-| 694 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_bal_gaat_uit_de_ingooi_is_voo_68b2cca9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #694 |
-| 695 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_inworp_aan_de_zijlijn_4895da6a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #695 |
-| 696 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/even_rust_bij_de_zijlijn_een_ing_04022ba4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #696 |
-| 697 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_ingooi_is_de_enige_keer_dat__f1f3182d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #697 |
-| 698 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/vergeet_je_voeten_niet_op_de_gro_9faf027f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #698 |
-| 699 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/altijd_opletten_bij_een_ingooi_d_1850bc91.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #699 |
-| 700 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_keeper_pakt_de_bal_en_gaat_he_68025a35.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #700 |
-| 701 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/doelschop_rustig_opbouwen_is_het_593e8635.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #701 |
-| 702 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_bal_ging_over_de_achterlijn_d_b8038e8f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #702 |
-| 703 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_doelschop_is_een_tweede_kans_a31bc218.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #703 |
-| 704 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dit_is_het_ideale_moment_om_je_e_8d784cf0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #704 |
-| 705 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_keeper_heeft_alle_tijd_en_geb_ae69d52f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #705 |
-| 706 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/vrije_bal_wie_gaat_hem_nemen_cde15e7b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #706 |
-| 707 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_scheidsrechter_geeft_een_vrij_43b46e32.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #707 |
-| 708 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_vrije_trap_en_dat_kan_gevaar_24c99aa0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #708 |
-| 709 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/bij_een_vrije_trap_telt_de_muur__b85aa25d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #709 |
-| 710 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_is_een_kans_om_iets_moois_te_461ad335.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #710 |
-| 711 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dit_zijn_de_momenten_waar_je_voo_c77680d8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #711 |
-| 712 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/buitenspel_de_vlag_gaat_omhoog_9e9450e5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #712 |
-| 713 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hij_stond_buitenspel_vrije_bal_v_f4d2b82e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #713 |
-| 714 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/buitenspel_dat_is_de_regel_c548acbd.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #714 |
-| 715 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/te_vroeg_gestart_buitenspel_7c7fcbbb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #715 |
-| 716 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/het_is_een_heel_simpele_regel_da_2977b145.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #716 |
-| 717 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_stap_te_ver_en_het_hele_plan_6ca3e209.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #717 |
-| 718 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/hij_liep_mooi_maar_iets_te_vroeg_e84b655b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #718 |
-| 719 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_bal_is_uit_38242b35.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #719 |
-| 720 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/naar_de_tribune_oma_trijntje_van_3d9149f7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #720 |
-| 721 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/uit_even_de_adem_inhouden_7c97920f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #721 |
-| 722 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_bal_verlaat_het_veld_d84fd3ea.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #722 |
-| 723 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/zo_gaan_er_elk_jaar_veertig_ball_c4fa1e23.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #723 |
-| 724 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_balletje_over_de_lijn_is_noo_4e853e86.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #724 |
-| 725 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_mooie_poging_maar_buiten_ber_88cc3c86.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #725 |
-| 726 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/overtreding_vrije_bal_de_scheids_d741bb59.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #726 |
-| 727 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/dat_was_te_fel_vrije_bal_voor_de_436758be.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #727 |
-| 728 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_overtreding_het_spel_ligt_ev_451d5c38.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #728 |
-| 729 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_scheidsrechter_fluit_dat_was__17af5bd2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #729 |
-| 730 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hard_spel_een_vrije_bal_830df0ea.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #730 |
-| 731 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_tackle_van_achteren_is_nooit_218b97d2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #731 |
-| 732 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/je_mag_best_hard_spelen_maar_nie_022b65b6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #732 |
-| 733 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_is_een_kleine_overtreding_me_916bd225.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #733 |
-| 734 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/van_achteren_dat_doe_je_niet_cdd7cced.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #734 |
-| 735 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/rust_de_thermosfles_gaat_rond_adbf7996.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #735 |
-| 736 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/rust_even_bijkomen_en_dan_weer_v_3ff1d09f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #736 |
-| 737 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/het_fluitsignaal_klinkt_het_is_r_01c6e1e4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #737 |
-| 738 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_eerste_helft_zit_erop_tijd_vo_64163be4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #738 |
-| 739 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/rust_wat_vond_roelie_ervan_14b1d3df.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #739 |
-| 740 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/dat_was_de_eerste_helft_de_tweed_f4d20226.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #740 |
-| 741 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_zou_zeggen_een_helft_vol_bijn_9d8edc92.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #741 |
-| 742 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_trainer_heeft_vijftien_minute_b6d2f2d0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #742 |
-| 743 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_ga_even_in_de_statistieken_ki_4d9a630f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #743 |
-| 744 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/het_is_te_warm_dat_zeg_ik_elke_z_a089919b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #744 |
-| 745 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_goede_rust_is_half_gewonnen__15ff1be1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #745 |
-| 746 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/zoveel_gras_zo_weinig_schaduw_44d6ffe8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #746 |
-| 747 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/gewonnen_de_stadjers_dansen_over_493cd138.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #747 |
-| 748 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_overwinning_in_de_euroborg_o_7b2566b8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #748 |
-| 749 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/het_eindsignaal_en_het_is_winst__2c440ac8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #749 |
-| 750 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/gewonnen_het_is_een_feest_op_de__93f4cc08.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #750 |
-| 751 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/verdiend_hilbrand_heel_verdiend__f044f1a1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #751 |
-| 752 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/het_is_een_dag_om_in_te_lijsten__51837ded.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #752 |
-| 753 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_doe_je_niet_vaak_maar_vandaa_c53df683.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #753 |
-| 754 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/verloren_de_volgende_keer_beter__142253d0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #754 |
-| 755 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/dat_was_niet_ons_dagje_het_gras__b0128a05.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #755 |
-| 756 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/het_eindsignaal_dit_was_geen_moo_c7494d8d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #756 |
-| 757 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/verloren_maar_de_zon_schijnt_nog_b5595fb3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #757 |
-| 758 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/het_is_maar_voetbal_hilbrand_zeg_e04bfd57.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #758 |
-| 759 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/we_leren_ervan_ik_zeg_dat_elke_k_c26ea2db.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #759 |
-| 760 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_tribune_klapt_toch_dat_is_een_974e7f40.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #760 |
-| 761 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/gelijkspel_niemand_wint_niemand__e7c19546.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #761 |
-| 762 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/gelijk_de_pepermunt_wordt_eerlij_55da23b8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #762 |
-| 763 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/het_eindsignaal_klinkt_het_blijf_a4a3cbc2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #763 |
-| 764 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_gelijkspel_beide_teams_nemen_d173c34d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #764 |
-| 765 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_gelijkspel_is_een_lekker_neu_0e22468c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #765 |
-| 766 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/eerlijk_gedeeld_eerlijk_gespeeld_8ac2dc09.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #766 |
-| 767 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/daar_is_niemand_ongelukkig_mee_e_f8bb9a00.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #767 |
-| 768 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_bal_gaat_heen_en_weer_en_de_z_3ccedc23.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #768 |
-| 769 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/rustig_opbouwen_kijk_eens_hoe_ze_609560c3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #769 |
-| 770 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/het_is_een_tactisch_spel_elke_zi_382fe5e9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #770 |
-| 771 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/er_wordt_geduldig_gespeeld_een_k_f2a0ebd3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #771 |
-| 772 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_middenvelders_voeren_de_strij_d200943e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #772 |
-| 773 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/het_spel_verplaatst_zich_naar_de_69ba6ba5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #773 |
-| 774 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/mooie_passing_dat_zie_je_niet_va_82600f6e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #774 |
-| 775 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/ze_zoeken_een_opening_en_die_is__ff0cf0d5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #775 |
-| 776 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/let_op_de_achterhoede_die_staat__3adaf5f7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #776 |
-| 777 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_bal_rolt_over_het_gras_zomer__d13e04d4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #777 |
-| 778 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_wind_draait_een_beetje_dat_me_5d5c3c8f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #778 |
-| 779 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/op_een_warme_dag_is_het_tempo_va_49a2a3bb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #779 |
-| 780 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dit_is_ouderwets_voetbal_ik_hou__6cd02eca.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #780 |
-| 781 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_goede_pass_is_een_geheugenoe_fbf8f1cb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #781 |
-| 782 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/kijk_naar_de_ruimte_ruimte_is_wa_9152b2ea.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #782 |
-| 783 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/niet_alles_hoeft_een_schot_te_zi_e12aad13.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #783 |
-| 784 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/in_het_dorp_zeiden_we_eerst_de_b_2c2a52fc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #784 |
-| 785 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/het_gras_is_erg_kort_dat_is_ook__fa6ad643.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #785 |
-| 786 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/mooie_middag_voor_een_pakje_frie_1807ad9f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #786 |
-| 787 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/die_verdediger_weet_precies_wat__b68a1d96.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #787 |
-| 788 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_stadjers_houden_de_bal_lekker_943a19c1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #788 |
-| 789 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/veel_balbezit_voor_de_thuisploeg_21a0da46.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #789 |
-| 790 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/als_je_de_bal_hebt_kan_de_tegens_a897e94c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #790 |
-| 791 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/balbezit_is_mooi_maar_het_moet_w_b2c6b08a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #791 |
-| 792 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_tegenstander_heeft_de_bal_vee_b3e5ba43.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #792 |
-| 793 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_bezoekers_houden_de_bal_vast_6dec03ef.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #793 |
-| 794 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/als_je_de_bal_niet_hebt_moet_je__cdd0181e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #794 |
-| 795 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/eerst_de_bal_terugwinnen_dan_pas_70c82e2d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #795 |
-| 796 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_laatste_minuten_alles_of_niet_7fad1783.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #796 |
-| 797 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/het_loopt_naar_het_einde_wat_kun_3ac0876e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #797 |
-| 798 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/nog_maar_even_te_gaan_de_spannin_18ca9cce.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #798 |
-| 799 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_klok_tikt_de_laatste_kansen_3374a09d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #799 |
-| 800 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/nu_merk_je_wie_het_meest_conditi_8199af0b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #800 |
-| 801 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_laatste_minuten_zijn_voor_hel_523d24bd.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #801 |
-| 802 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_zeg_alles_op_de_laatste_lange_e65eb9ac.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #802 |
-| 803 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/wat_een_spanning_het_kan_nog_all_4144caa3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #803 |
-| 804 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/dit_blijft_tot_het_einde_spannen_b4b8d75f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #804 |
-| 805 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/het_is_een_heel_gelijkopgaande_w_7a5261e6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #805 |
-| 806 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/zo_wil_je_voetbal_zien_iedereen__d1a575f3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #806 |
-| 807 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/met_e_e_n_doelpunt_verschil_is_h_6c34a328.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #807 |
-| 808 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_durf_er_niets_over_te_zeggen__379ad5e7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #808 |
-| 809 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_had_hem_ook_gekozen_ik_zeg_he_c64a3631.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #809 |
-| 810 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_prima_prestatie_die_niet_zom_b083e308.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #810 |
-| 811 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_is_een_speler_die_je_in_je_t_78a151aa.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #811 |
+| 130 | J1 | Anita (Callirrhoe) | `lines/anita/zeven_brieven_allemaal_van_de_ge_faa80619.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #130 |
+| 131 | J1 | Anita (Callirrhoe) | `lines/anita/bezwaar_tegen_uw_parkeervergunni_5071b715.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #131 |
+| 132 | J1 | Anita (Callirrhoe) | `lines/anita/dat_is_het_probleem_hij_was_eerd_0fc0ea2d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #132 |
+| 133 | J1 | Anita (Callirrhoe) | `lines/anita/wat_jij_wil_1467a2b9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #133 |
+| 134 | J1 | Anita (Callirrhoe) | `lines/anita/dat_is_niet_waarom_je_het_kiest_c4105067.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #134 |
+| 135 | J1 | Anita (Callirrhoe) | `lines/anita/kasboekje_postzegels_twee_euro_t_b7f5e01f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #135 |
+| 136 | J1 | Anita (Callirrhoe) | `lines/anita/ik_leer_vanavond_hoe_dit_werkt_e_474678c2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #136 |
+| 137 | J1 | Anita (Callirrhoe) | `lines/anita/niet_vechten_lezen_dat_is_erger_bda93ed4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #137 |
+| 138 | M13.1 | Anita (Callirrhoe) | `lines/anita/container_4471_het_schip_vertrek_f393f791.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #138 |
+| 139 | M13.3 | Anita (Callirrhoe) | `lines/anita/en_alles_wat_we_gered_hebben_e2640fed.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #139 |
+| 140 | O6 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/mevrouw_tessa_jelle_terpstra_u_h_ff899445.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #140 |
+| 141 | O6 | Anita (Callirrhoe) | `lines/anita/dat_was_een_misverstand_675a7785.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #141 |
+| 142 | O6 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/er_zijn_geen_misverstanden_er_zi_120e687e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #142 |
+| 143 | O6 | Anita (Callirrhoe) | `lines/anita/hij_is_niet_te_koop_89fdbb3b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #143 |
+| 144 | O6 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/alles_is_te_koop_mevrouw_mijn_mo_4d920782.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #144 |
+| 145 | O6 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/ik_wacht_foar_mem_b8173b36.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #145 |
+| 146 | O6 | Anita (Callirrhoe) | `lines/anita/dat_weet_hij_ook_daarom_belt_hij_613a22c9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #146 |
+| 147 | M14.1 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/goedemorgen_ik_heb_lammerts_huur_8241874e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #147 |
+| 148 | M14.1 | Anita (Callirrhoe) | `lines/anita/met_het_vet_erin_939041f2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #148 |
+| 149 | M14.1 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/dat_is_nu_inboedel_8169ac01.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #149 |
+| 150 | M14.1 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/mijn_deurwaarder_is_om_acht_uur__98212624.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #150 |
+| 151 | M14.1 | Anita (Callirrhoe) | `lines/anita/eerste_aan_de_sluis_wint_fd32ea0e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #151 |
+| 152 | M14.2 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/mevrouw_mijn_juristen_vinden_dat_3c4402b3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #152 |
+| 153 | J2 | Anita (Callirrhoe) | `lines/anita/dat_is_omkoping_790ccdac.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #153 |
+| 154 | J2 | Durk (Algieba) | `lines/durk/het_is_een_cadeau_baas_zegt_cade_ec2f1716.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #154 |
+| 155 | J2 | Anita (Callirrhoe) | `lines/anita/een_cadeau_met_een_voorwaarde_is_b9fee969.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #155 |
+| 156 | J2 | Douwe (Algenib) | `lines/douwe/contract_5e94d71a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #156 |
+| 157 | J2 | Anita (Callirrhoe) | `lines/anita/dan_vraag_ik_het_helpt_u_ons_4b89b86b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #157 |
+| 158 | J2 | Durk (Algieba) | `lines/durk/mijn_oma_bakt_ook_ze_zegt_een_ei_ce43823b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #158 |
+| 159 | J2 | Anita (Callirrhoe) | `lines/anita/dan_weet_jouw_oma_meer_dan_jelle_519d1aa9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #159 |
+| 160 | J2 | Douwe (Algenib) | `lines/douwe/zout_ffae330d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #160 |
+| 161 | T3 | Anita (Callirrhoe) | `lines/anita/dan_gaan_wij_daar_ook_heen_roelf_70ced563.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #161 |
+| 162 | T3 | Anita (Callirrhoe) | `lines/anita/van_het_meel_in_oma_s_lijstje_ze_9cff5bea.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #162 |
+| 163 | M15.1 | Anita (Callirrhoe) | `lines/anita/jelle_wil_de_jury_kopen_met_een__ab5ea1db.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #163 |
+| 164 | M15.3 | Anita (Callirrhoe) | `lines/anita/twee_weg_dat_scheelt_ec0b2437.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #164 |
+| 165 | M15.5 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/mevrouw_tessa_een_moment_mijn_ju_c9e0a851.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #165 |
+| 166 | M15.5 | Anita (Callirrhoe) | `lines/anita/een_dagvaarding_da0c7deb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #166 |
+| 167 | M15.5 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/een_bedankbriefje_voor_het_spand_48de1970.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #167 |
+| 168 | M15.5 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/twee_van_de_vier_de_mensen_kwame_8ad89388.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #168 |
+| 169 | M15.5 | Anita (Callirrhoe) | `lines/anita/dat_was_niet_de_bedoeling_730245db.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #169 |
+| 170 | M15.5 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/dat_staat_nergens_in_het_contrac_37b5e948.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #170 |
+| 171 | M15.5 | Anita (Callirrhoe) | `lines/anita/nee_waar_hij_heen_gaat_gaat_de_b_f95c8176.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #171 |
+| 172 | M15.6 | Anita (Callirrhoe) | `lines/anita/het_was_een_ongeluk_285b2a83.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #172 |
+| 173 | M15.6 | Anita (Callirrhoe) | `lines/anita/kom_geert_wacht_f4b94b1d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #173 |
+| 174 | M16.3 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/durk_mijn_juristen_willen_een_ra_93b62778.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #174 |
+| 175 | M16.3 | Durk (Algieba) | `lines/durk/op_een_kermis_baas_919c3d11.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #175 |
+| 176 | M16.3 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/ik_hoor_botsauto_s_ik_betaal_jul_09a965cb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #176 |
+| 177 | M16.3 | Durk (Algieba) | `lines/durk/nee_baas_douwe_hang_op_79df57d8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #177 |
+| 178 | M16.3 | Douwe (Algenib) | `lines/douwe/op_40b135e8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #178 |
+| 179 | M16.3 | Anita (Callirrhoe) | `lines/anita/die_zeg_ik_als_ik_win_557bdc25.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #179 |
+| 180 | M16.5 | Anita (Callirrhoe) | `lines/anita/niemand_won_want_iedereen_werd_e_e4b9d385.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #180 |
+| 181 | M16.5 | Durk (Algieba) | `lines/durk/gelijkspel_is_ook_een_antwoord_v_f43c5f47.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #181 |
+| 182 | M16.5 | Anita (Callirrhoe) | `lines/anita/waar_gaat_jelle_maandag_heen_36d4b9c7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #182 |
+| 183 | M16.5 | Durk (Algieba) | `lines/durk/baas_rijdt_maandag_naar_veendam__f2f4ebea.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #183 |
+| 184 | M16.5 | Durk (Algieba) | `lines/durk/gaat_mee_in_de_koffer_onder_het__74d4f500.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #184 |
+| 185 | M16.5 | Anita (Callirrhoe) | `lines/anita/maandag_veendam_c8fbfb25.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #185 |
+| 186 | M16.5 | Anita (Callirrhoe) | `lines/anita/heel_goed_maandag_e2be0e06.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #186 |
+| 187 | B3.1 | Anita (Callirrhoe) | `lines/anita/wat_dan_3d929414.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #187 |
+| 188 | B3.1 | Anita (Callirrhoe) | `lines/anita/ik_dacht_even_dat_het_iets_was_9fae63f7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #188 |
+| 189 | B3.2 | Anita (Callirrhoe) | `lines/anita/vraag_van_de_dag_hoe_hoog_vliegt_92071e8d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #189 |
+| 190 | B3.2 | Anita (Callirrhoe) | `lines/anita/dat_is_geen_hoogte_95160d63.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #190 |
+| 191 | B3.3 | Anita (Callirrhoe) | `lines/anita/dit_nummer_ken_ik_zet_harder_195cabbc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #191 |
+| 192 | B3.3 | Anita (Callirrhoe) | `lines/anita/jij_zingt_altijd_de_bas_3ad6dc54.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #192 |
+| 193 | O7 | Anita (Callirrhoe) | `lines/anita/het_is_mooi_weer_9b860bdc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #193 |
+| 194 | J3 | Anita (Callirrhoe) | `lines/anita/mam_c24c79db.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #194 |
+| 195 | J3 | Anita (Callirrhoe) | `lines/anita/het_is_een_bank_f61fec36.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #195 |
+| 196 | J3 | Tammo (Orus) | `lines/tammo/en_377e47bb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #196 |
+| 197 | R4.0 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/jelle_terpstra_ik_bied_een_klomp_7a576a14.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #197 |
+| 198 | R4.0 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/dan_bied_ik_twee_klompen_foar_me_db55de9e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #198 |
+| 199 | M17.3 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/mevrouw_tessa_mijn_schip_staat_v_69126ddc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #199 |
+| 200 | M17.5 | Anita (Callirrhoe) | `lines/anita/ik_kijk_alleen_zo_n_wagen_is_voo_73cd3ffe.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #200 |
+| 201 | M17.5 | Anita (Callirrhoe) | `lines/anita/dat_is_het_hele_vak_4d561b53.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #201 |
+| 202 | J4 | Anita (Callirrhoe) | `lines/anita/femke_is_mijn_keeper_ze_weet_bij_8a3ddc0c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #202 |
+| 203 | J4 | Rikus (Schedar) | `lines/rikus/ik_zeg_niks_f7f51bb4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #203 |
+| 204 | J4 | Anita (Callirrhoe) | `lines/anita/een_voorschot_daar_komt_een_reke_b8c32c87.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #204 |
+| 205 | J4 | Anita (Callirrhoe) | `lines/anita/het_is_geen_date_83db1ed9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #205 |
+| 206 | J4 | Rikus (Schedar) | `lines/rikus/ik_zeg_niks_dat_is_ook_een_antwo_60939b18.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #206 |
+| 207 | M18.1 | Anita (Callirrhoe) | `lines/anita/volgens_de_chat_van_rikus_zijn_w_870ec6e1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #207 |
+| 208 | M18.1 | Anita (Callirrhoe) | `lines/anita/staat_in_het_logboek_dat_jelle_d_6f7a89d6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #208 |
+| 209 | M18.3 | Anita (Callirrhoe) | `lines/anita/zodat_zij_niets_merkte_dat_is_vi_ac9bcc9a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #209 |
+| 210 | M18.3 | Anita (Callirrhoe) | `lines/anita/voor_iedereen_die_ons_een_dief_n_18c3682f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #210 |
+| 211 | M18.4 | Mem Terpstra (Gacrux) | `lines/mem_terpstra/famke_dinsdag_naar_bourtange_voo_aca10cba.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #211 |
+| 212 | M18.4 | Anita (Callirrhoe) | `lines/anita/ik_kom_5ca3e3df.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #212 |
+| 213 | M18.4 | Mem Terpstra (Gacrux) | `lines/mem_terpstra/doe_je_jas_aan_6911ac77.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #213 |
+| 214 | M18.4 | Anita (Callirrhoe) | `lines/anita/dat_zei_ik_ook_28afc592.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #214 |
+| 215 | O8 | Anita (Callirrhoe) | `lines/anita/geprint_53af6875.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #215 |
+| 216 | N9 | Anita (Callirrhoe) | `lines/anita/dat_daar_is_de_grote_beer_3d6cc0a6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #216 |
+| 217 | N9 | Anita (Callirrhoe) | `lines/anita/dan_is_dat_de_grote_beer_29602144.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #217 |
+| 218 | N9 | Anita (Callirrhoe) | `lines/anita/je_kijkt_niet_1b09932d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #218 |
+| 219 | N9 | Anita (Callirrhoe) | `lines/anita/dat_is_geen_beer_e724c885.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #219 |
+| 220 | N9 | Anita (Callirrhoe) | `lines/anita/het_eet_je_sok_0a0adfc2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #220 |
+| 221 | N9 | Anita (Callirrhoe) | `lines/anita/welterusten_tammo_cb733d40.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #221 |
+| 222 | J5 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/mevrouw_de_klem_zit_er_legaal_ar_990845b8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #222 |
+| 223 | J5 | Anita (Callirrhoe) | `lines/anita/artikel_4_gaat_over_stoepen_22786e35.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #223 |
+| 224 | J5 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/artikel_4a_gaat_over_wielen_sind_3ea0c862.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #224 |
+| 225 | J5 | Anita (Callirrhoe) | `lines/anita/dan_artikel_9_geen_klem_op_een_v_eb201956.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #225 |
+| 226 | J5 | Anita (Callirrhoe) | `lines/anita/brief_vier_ik_heb_ze_allemaal_ge_7dc7515c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #226 |
+| 227 | J5 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/ja_moeder_omzet_ja_moeder_ab8c2242.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #227 |
+| 228 | J5 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/ze_houdt_hem_altijd_warm_df6e79f3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #228 |
+| 229 | J5 | Anita (Callirrhoe) | `lines/anita/het_is_een_eierbal_6f84bade.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #229 |
+| 230 | J5 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/dit_is_niet_gebeurd_durk_de_limo_7bfedfc0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #230 |
+| 231 | J5 | Douwe (Algenib) | `lines/douwe/eet_wat_9dab9fbc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #231 |
+| 232 | M19.1 | Anita (Callirrhoe) | `lines/anita/de_machinist_is_omgekocht_hij_ee_361aad50.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #232 |
+| 233 | M19.1 | Anita (Callirrhoe) | `lines/anita/in_jelles_salonrijtuig_zitten_de_352ea865.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #233 |
+| 234 | M19.1 | Anita (Callirrhoe) | `lines/anita/wie_de_jury_koopt_hoeft_niet_te__1280e2d5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #234 |
+| 235 | M19.2 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/mevrouw_een_eierbal_is_een_gesch_648f1be8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #235 |
+| 236 | M19.3 | Anita (Callirrhoe) | `lines/anita/berend_wie_zit_de_jury_voor_als__d30fd68e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #236 |
+| 237 | J6 | Beppe (Aoede) | `lines/beppe/ik_haw_sop_meinommen_jimme_ite_t_8e7ab6ec.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #237 |
+| 238 | J6 | Beppe (Aoede) | `lines/beppe/wannear_trouwe_jim_19b03989.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #238 |
+| 239 | J6 | Anita (Callirrhoe) | `lines/anita/beppe_wij_zijn_37bfc15d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #239 |
+| 240 | J6 | Anita (Callirrhoe) | `lines/anita/overig_62ebc256.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #240 |
+| 241 | J6 | Beppe (Aoede) | `lines/beppe/ik_freegje_mar_aa803b41.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #241 |
+| 242 | J6 | Anita (Callirrhoe) | `lines/anita/je_lacht_naar_de_soep_68627b23.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #242 |
+| 243 | M20.3 | Mem Terpstra (Gacrux) | `lines/mem_terpstra/er_is_geen_overeenkomst_jonge_er_52b695e3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #243 |
+| 244 | M20.3 | Anita (Callirrhoe) | `lines/anita/van_de_jas_tammo_en_tige_tank_j__8afbf9b5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #244 |
+| 245 | M20.3 | Mem Terpstra (Gacrux) | `lines/mem_terpstra/omdat_mijn_kleinzoon_gekke_dinge_00bf2429.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #245 |
+| 246 | M20.5 | Anita (Callirrhoe) | `lines/anita/henks_zender_piept_onze_auto_sta_779a7d18.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #246 |
+| 247 | M21.2 | Mem Terpstra (Gacrux) | `lines/mem_terpstra/famke_de_trein_met_de_rode_auto__732f0c29.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #247 |
+| 248 | M21.2 | Anita (Callirrhoe) | `lines/anita/dank_u_mevrouw_terpstra_db3640ff.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #248 |
+| 249 | M21.2 | Mem Terpstra (Gacrux) | `lines/mem_terpstra/zeg_maar_weer_mem_c341dbeb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #249 |
+| 250 | B4 | Anita (Callirrhoe) | `lines/anita/ik_speelde_thuis_in_een_dorpstea_03583ba1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #250 |
+| 251 | B4.1 | Anita (Callirrhoe) | `lines/anita/dat_ik_te_veel_praat_fab06448.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #251 |
+| 252 | B4.2 | Anita (Callirrhoe) | `lines/anita/mijn_moeder_belde_anneke_ze_komt_0e422942.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #252 |
+| 253 | B4.2 | Anita (Callirrhoe) | `lines/anita/alleen_lieke_mijn_nichtje_ze_is__0d7db67a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #253 |
+| 254 | O9 | Anita (Callirrhoe) | `lines/anita/ik_heb_de_auto_31b5e933.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #254 |
+| 255 | O9 | Anita (Callirrhoe) | `lines/anita/hoe_is_het_met_de_vrienden_van_o_64126236.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #255 |
+| 256 | O9 | Anita (Callirrhoe) | `lines/anita/dat_doet_er_niet_toe_b58d6f56.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #256 |
+| 257 | O9 | Anita (Callirrhoe) | `lines/anita/zonder_auto_sta_jij_nergens_5854a97f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #257 |
+| 258 | O9 | Anita (Callirrhoe) | `lines/anita/ik_ook_9e34229c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #258 |
+| 259 | M22.1 | Anita (Callirrhoe) | `lines/anita/wij_maken_van_de_escapade_de_sna_face5df1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #259 |
+| 260 | M22.2 | Anita (Callirrhoe) | `lines/anita/dat_is_een_snackwagen_148b4aee.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #260 |
+| 261 | M22.2 | Anita (Callirrhoe) | `lines/anita/het_is_een_voordeur_een_voordeur_46e80c72.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #261 |
+| 262 | M22.2 | Anita (Callirrhoe) | `lines/anita/het_is_een_naam_83e303b3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #262 |
+| 263 | M22.4 | Anita (Callirrhoe) | `lines/anita/ik_moet_je_iets_vertellen_ik_woo_126a1af3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #263 |
+| 264 | M22.4 | Anita (Callirrhoe) | `lines/anita/mem_zegt_elke_zomer_jas_het_enig_4224b857.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #264 |
+| 265 | M22.4 | Anita (Callirrhoe) | `lines/anita/de_snackwagen_is_een_thuis_op_wi_5845b0cb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #265 |
+| 266 | M24.1 | Anita (Callirrhoe) | `lines/anita/de_vlag_hangt_precies_boven_de_p_6d464267.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #266 |
+| 267 | M24.1 | Anita (Callirrhoe) | `lines/anita/foar_mem_voor_zijn_oma_b00b6df2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #267 |
+| 268 | M24.1 | Anita (Callirrhoe) | `lines/anita/en_waarom_luistert_die_duif_naar_0316bafb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #268 |
+| 269 | O10 | Anita (Callirrhoe) | `lines/anita/rekening_voor_het_gebruik_van_de_4d913bd8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #269 |
+| 270 | O10 | Anita (Callirrhoe) | `lines/anita/genoeg_om_te_zien_dat_hij_bang_i_0df15930.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #270 |
+| 271 | O10 | Anita (Callirrhoe) | `lines/anita/hij_stuurt_een_rekening_hij_belt_8df99fac.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #271 |
+| 272 | O10 | Anita (Callirrhoe) | `lines/anita/zijn_vergunning_voor_morgen_even_c66a45e9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #272 |
+| 273 | O10 | Anita (Callirrhoe) | `lines/anita/hij_stuurt_altijd_alles_in_driev_731de779.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #273 |
+| 274 | M25.3 | Anita (Callirrhoe) | `lines/anita/je_biedt_geld_voor_iets_wat_geen_7a19a11a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #274 |
+| 275 | M25.6 | Anita (Callirrhoe) | `lines/anita/mam_het_is_half_twaalf_6c86280f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #275 |
+| 276 | M25.6 | Anita (Callirrhoe) | `lines/anita/wij_wonen_samen_5c1745e2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #276 |
+| 277 | M26.2 | Anita (Callirrhoe) | `lines/anita/en_de_gouden_eierbal_20aae43c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #277 |
+| 278 | M26.4 | Anita (Callirrhoe) | `lines/anita/de_snackwagen_is_breder_dan_de_s_45a8c3b9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #278 |
+| 279 | M26.5 | Anita (Callirrhoe) | `lines/anita/je_eigen_vergunning_jelle_deze_s_cc6911f1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #279 |
+| 280 | M26.5 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/voor_mijn_vlag_225598b4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #280 |
+| 281 | M26.5 | Anita (Callirrhoe) | `lines/anita/op_een_evenement_staat_een_kraam_351df14c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #281 |
+| 282 | M26.5 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/jouw_duiven_hadden_geen_vergunni_71dc2491.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #282 |
+| 283 | M26.6 | Anita (Callirrhoe) | `lines/anita/en_de_onze_df92f2e6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #283 |
+| 284 | M26.13 | Mem Terpstra (Gacrux) | `lines/mem_terpstra/dat_is_mijn_kleinzoon_1a39d933.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #284 |
+| 285 | M26.7 | Anita (Callirrhoe) | `lines/anita/mien_jong_dat_duurde_vijf_jaar_d0a579f9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #285 |
+| 286 | E1 | Anita (Callirrhoe) | `lines/anita/willemien_staat_weer_vooraan_haa_b37272c2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #286 |
+| 287 | E1 | Anita (Callirrhoe) | `lines/anita/berend_heeft_de_foto_laten_inlij_624cdaff.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #287 |
+| 288 | E1 | Anita (Callirrhoe) | `lines/anita/de_duiven_staan_weer_in_de_rij_1c7c2c25.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #288 |
+| 289 | E2 | Anita (Callirrhoe) | `lines/anita/hij_zegt_niks_4a5de544.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #289 |
+| 290 | E2 | Anita (Callirrhoe) | `lines/anita/hij_koopt_door_0a590412.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #290 |
+| 291 | O11 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/mevrouw_tessa_ee_n_eierbal_met_m_c927fd99.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #291 |
+| 292 | O11 | Anita (Callirrhoe) | `lines/anita/de_snackwagen_staat_op_de_vismar_c9043c3a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #292 |
+| 293 | O11 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/mijn_assistent_haalt_hem_ik_beta_5432ae72.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #293 |
+| 294 | O11 | Anita (Callirrhoe) | `lines/anita/uit_een_klomp_f5444363.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #294 |
+| 295 | O11 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/mijn_juristen_kijken_naar_die_kl_99e5df1b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #295 |
+| 296 | O11 | Anita (Callirrhoe) | `lines/anita/een_eierbal_voor_zijn_oma_d6b4453e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #296 |
+| 297 | M29.2 | Anita (Callirrhoe) | `lines/anita/en_de_eierballen_die_staan_er_mo_44402c57.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #297 |
+| 298 | M29.2 | Tammo (Orus) | `lines/tammo/een_eierbal_dat_is_anders_e75b2145.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #298 |
+| 299 | M30.6 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/dat_pand_ken_ik_ik_wacht_tot_de__59f83380.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #299 |
+| 300 | O12 | Anita (Callirrhoe) | `lines/anita/wat_nu_64c9b123.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #300 |
+| 301 | O12 | Anita (Callirrhoe) | `lines/anita/waarheen_186b2466.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #301 |
+| 302 | O12 | Anita (Callirrhoe) | `lines/anita/een_pand_de_bieten_veendam_een_t_9b2335f1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #302 |
+| 303 | O12 | Anita (Callirrhoe) | `lines/anita/samen_fe4daed9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #303 |
+| 304 | Missie-cutscenes | Tammo (Orus) | `lines/tammo/hij_hangt_een_vlag_aan_onze_tore_180bffcc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #304 |
+| 305 | Missie-cutscenes | Anita (Callirrhoe) | `lines/anita/een_oefenbal_hij_oefent_hoe_hij__b4840ae1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #305 |
+| 306 | Missie-cutscenes | Tammo (Orus) | `lines/tammo/tige_tank_foar_de_auto_j_de_snac_bece8bc9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #306 |
+| 307 | Missie-cutscenes | Tammo (Orus) | `lines/tammo/iemand_uit_friesland_dat_was_zij_8e0a74d6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #307 |
+| 308 | Intro-montage | Tammo (Orus) | `lines/tammo/dan_rijdt_hij_nauwelijks_voor_jo_6d30f2bd.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #308 |
+| 309 | Missie-intro (terugval) | Tammo (Orus) | `lines/tammo/gronings_ontzet_de_noordelijke_s_c980a213.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #309 |
+| 310 | Missie-intro (terugval) | Anita (Callirrhoe) | `lines/anita/gronings_ontzet_de_noordelijke_s_60a120cf.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #310 |
+| 311 | Na het verhaal (intro) | Anita (Callirrhoe) | `lines/anita/onze_eigen_snackwagen_met_kentek_4ef39a32.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #311 |
+| 312 | Telefoon (gesprekken) | Anita (Callirrhoe) | `lines/anita/en_de_snackwagen_is_van_ons_hij__2e025aac.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #312 |
+| 313 | Berichten (app) | Ubbo (Laomedeia) | `sms/ubbo/alles_gedaan_grunn_is_van_jou_de_ef9cfbeb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #313 |
+| 314 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/ver_weg_he_open_de_kaart_daar_be_8bf3f56b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #314 |
+| 315 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/ver_weg_he_open_de_kaart_daar_be_ee6a704c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #315 |
+| 316 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/dat_is_een_heel_eind_via_de_kaar_5774d079.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #316 |
+| 317 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/dat_is_een_heel_eind_via_de_kaar_11802675.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #317 |
+| 318 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/ver_weg_he_er_rijdt_ook_een_bus__f3131ee5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #318 |
+| 319 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/ver_weg_he_er_rijdt_ook_een_bus__90efd1c6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #319 |
+| 320 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/wist_je_dat_het_ook_met_het_ov_k_b4f8fbae.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #320 |
+| 321 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/wist_je_dat_het_ook_met_het_ov_k_db6f7b65.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #321 |
+| 322 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/geen_zin_om_zo_ver_te_rijden_pak_52a181c4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #322 |
+| 323 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/geen_zin_om_zo_ver_te_rijden_pak_e095e9f5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #323 |
+| 324 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/instappen_met_e_bij_de_kop_w_is__9bbe11a8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #324 |
+| 325 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/blijf_op_de_noordwal_staan_tot_h_c4513247.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #325 |
+| 326 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/durk_en_douwe_houden_je_bezig_na_34ed86d4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #326 |
+| 327 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/durk_en_douwe_houden_je_bezig_na_1f297e34.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #327 |
+| 328 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/durk_en_douwe_springen_mee_aanlo_12c36149.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #328 |
+| 329 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/durk_en_douwe_springen_mee_aanlo_ea108637.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #329 |
+| 330 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/mem_en_oma_trijntje_zitten_in_de_f06b7018.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #330 |
+| 331 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/mem_en_oma_trijntje_zitten_in_de_b9e248a6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #331 |
+| 332 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/houd_de_deur_van_de_kruitkelder__c4aaa50f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #332 |
+| 333 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/houd_de_deur_van_de_kruitkelder__cc44a6c6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #333 |
+| 334 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_tweede_deur_geeft_mee_rennen_c1608fb9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #334 |
+| 335 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_tweede_deur_geeft_mee_rennen_8750afb8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #335 |
+| 336 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/houd_ook_de_tweede_deur_daarna_d_c0796402.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #336 |
+| 337 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/houd_ook_de_tweede_deur_daarna_d_a921c676.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #337 |
+| 338 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_derde_deur_de_bal_blijft_hier_5c29331b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #338 |
+| 339 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_derde_deur_de_bal_blijft_hier_256b1e2b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #339 |
+| 340 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_laatste_deur_daarna_naar_de_p_51cf9b30.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #340 |
+| 341 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_laatste_deur_daarna_naar_de_p_c7e152c7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #341 |
+| 342 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/links_is_vrij_naar_de_poort_bere_bf9402a5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #342 |
+| 343 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/links_is_vrij_naar_de_poort_bere_2916f3a9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #343 |
+| 344 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_naspeling_is_klaar_blijf_even_f1dc5452.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #344 |
+| 345 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_naspeling_is_klaar_blijf_even_c59705d5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #345 |
+| 346 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_kras_van_de_wagon_zit_op_de_e_947f02ce.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #346 |
+| 347 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_kras_van_de_wagon_zit_op_de_e_57099ad9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #347 |
+| 348 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/mems_appje_de_trein_met_de_rode__47a5cae7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #348 |
+| 349 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/mems_appje_de_trein_met_de_rode__03403f60.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #349 |
+| 350 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_trein_rijdt_druk_op_spatie_om_e87508db.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #350 |
+| 351 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_trein_rijdt_druk_op_spatie_om_2d4f0e71.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #351 |
+| 352 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/jelles_mannen_staan_op_de_wagon__7c76ec5e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #352 |
+| 353 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/jelles_mannen_staan_op_de_wagon__0f9ae746.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #353 |
+| 354 | Keuzegesprekken | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/u_kunt_de_auto_redden_of_de_bal__4c61688a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #354 |
+| 355 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/oma_heeft_alle_vrienden_met_hun__9e75fa96.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #355 |
+| 356 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/oma_heeft_alle_vrienden_met_hun__528b3c1d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #356 |
+| 357 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/blijf_bij_de_wagen_henk_bouwt_he_23021a92.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #357 |
+| 358 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/blijf_bij_de_wagen_henk_bouwt_he_ab31ccde.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #358 |
+| 359 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/henk_zaagt_een_gat_in_de_zijkant_6eeaa325.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #359 |
+| 360 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/henk_zaagt_een_gat_in_de_zijkant_573b88df.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #360 |
+| 361 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/instappen_tinus_wijst_naar_het_w_e086fa47.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #361 |
+| 362 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/instappen_tinus_wijst_naar_het_w_f2bed051.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #362 |
+| 363 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/gas_sturen_niet_vastlopen_henk_w_1ad93cad.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #363 |
+| 364 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/gas_sturen_niet_vastlopen_henk_w_2c595403.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #364 |
+| 365 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/houd_de_snelheid_erin_in_de_modd_37cff950.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #365 |
+| 366 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/houd_de_snelheid_erin_in_de_modd_7c1d2904.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #366 |
+| 367 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/rij_hem_de_modder_in_als_de_acht_feed3d3d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #367 |
+| 368 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/rij_hem_de_modder_in_als_de_acht_149308d5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #368 |
+| 369 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/vast_tinus_haakt_de_trekker_aan__1c10146f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #369 |
+| 370 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/vast_tinus_haakt_de_trekker_aan__7b1fee60.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #370 |
+| 371 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/rij_voorop_de_colonne_volgt_zola_91ac2b9b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #371 |
+| 372 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/rij_voorop_de_colonne_volgt_zola_5ebadc50.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #372 |
+| 373 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/ee_n_vriend_rijdt_vlak_naast_jul_7596b732.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #373 |
+| 374 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/ee_n_vriend_rijdt_vlak_naast_jul_d2c7de23.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #374 |
+| 375 | Keuzegesprekken | Anita (Callirrhoe) | `lines/anita/alle_vrienden_rijden_mee_maar_e__65994f51.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #375 |
+| 376 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/instappen_tessa_zei_wij_voorop_010388aa.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #376 |
+| 377 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/rij_voorop_naar_aduard_wie_te_ve_b6a4af07.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #377 |
+| 378 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/rij_voorop_naar_aduard_wie_te_ve_fde26a4b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #378 |
+| 379 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/wubbo_opent_de_brug_op_afstand_m_6ac8b600.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #379 |
+| 380 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/wubbo_opent_de_brug_op_afstand_m_fd276ec5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #380 |
+| 381 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/nog_vijf_kilometer_de_hele_colon_3f1e45dc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #381 |
+| 382 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/nog_vijf_kilometer_de_hele_colon_083b1d83.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #382 |
+| 383 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/bak_in_oma_s_keuken_ei_zout_grof_8245aa8b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #383 |
+| 384 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/bak_in_oma_s_keuken_ei_zout_grof_f29c248d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #384 |
+| 385 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/oma_s_volgorde_eerst_het_ei_dan__ec64947f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #385 |
+| 386 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/oma_s_volgorde_eerst_het_ei_dan__ac2e806f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #386 |
+| 387 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/kwart_voor_drie_de_limo_rijdt_na_964ada11.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #387 |
+| 388 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/kwart_voor_drie_de_limo_rijdt_na_a46268a8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #388 |
+| 389 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/oma_s_volgorde_ei_zout_grof_meel_f0d16170.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #389 |
+| 390 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/oma_s_volgorde_ei_zout_grof_meel_a14dbbd9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #390 |
+| 391 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/kwart_voor_drie_instappen_de_lim_49ac03e7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #391 |
+| 392 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/kwart_voor_drie_instappen_de_lim_e776dbd1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #392 |
+| 393 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/berend_proeft_voor_het_laatst_ze_62b01348.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #393 |
+| 394 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/berend_proeft_voor_het_laatst_ze_2c906a7a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #394 |
+| 395 | Keuzegesprekken | Berend Bos (Charon) | `lines/berend_bos/wat_maakt_deze_eierbal_gronings__e0a308e6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #395 |
+| 396 | Keuzegesprekken | Berend Bos (Charon) | `lines/berend_bos/en_waarom_moet_de_standplaats_na_cb573f08.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #396 |
+| 397 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/willemiens_huis_in_loppersum_boe_f98990b9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #397 |
+| 398 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/willemiens_huis_in_loppersum_boe_c2e58fec.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #398 |
+| 399 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/boeken_in_kleine_dozen_blijf_bij_fdc6386a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #399 |
+| 400 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/boeken_in_kleine_dozen_blijf_bij_63e22e0e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #400 |
+| 401 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/breekbaar_in_de_krant_blijf_in_d_7f7b7f24.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #401 |
+| 402 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/breekbaar_in_de_krant_blijf_in_d_efaa96a3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #402 |
+| 403 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_kat_wil_nergens_in_blijf_bij__68e4842a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #403 |
+| 404 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_kat_wil_nergens_in_blijf_bij__92e13d56.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #404 |
+| 405 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_dozen_staan_klaar_naar_de_ver_bac6a78e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #405 |
+| 406 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_dozen_staan_klaar_naar_de_ver_596f56a7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #406 |
+| 407 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_verhuisbus_staat_voor_het_hui_1a6213e6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #407 |
+| 408 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_verhuisbus_staat_voor_het_hui_c10d0560.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #408 |
+| 409 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/instappen_tammo_rijdt_rustig_7b1e92a9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #409 |
+| 410 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/rustig_rijden_niet_om_de_spullen_39698032.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #410 |
+| 411 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/rustig_rijden_niet_om_de_spullen_8234dbba.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #411 |
+| 412 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/een_buurtfeest_op_het_erf_in_lop_2616ebd4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #412 |
+| 413 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/een_buurtfeest_op_het_erf_in_lop_50020713.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #413 |
+| 414 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/tafels_op_het_erf_blijf_staan_to_c000632a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #414 |
+| 415 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/tafels_op_het_erf_blijf_staan_to_aa717e1c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #415 |
+| 416 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_foto_hangt_in_de_gang_waar_je_e13e3c7c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #416 |
+| 417 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_foto_hangt_in_de_gang_waar_je_8d7e09ba.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #417 |
+| 418 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/een_hooiberg_op_de_heide_ten_noo_1080b90b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #418 |
+| 419 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/een_hooiberg_op_de_heide_ten_noo_a6ef2d47.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #419 |
+| 420 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/aanvallen_eerst_de_gracht_lammer_21ccc193.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #420 |
+| 421 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/aanvallen_eerst_de_gracht_lammer_9d72285e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #421 |
+| 422 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/wubbo_staat_bij_de_lier_hij_open_70d8aa4a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #422 |
+| 423 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/wubbo_staat_bij_de_lier_hij_open_60e1ea73.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #423 |
+| 424 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/boven_jullie_komt_meel_hoofd_oml_05122999.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #424 |
+| 425 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/boven_jullie_komt_meel_hoofd_oml_dc71c330.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #425 |
+| 426 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/blijf_op_het_bolwerk_staan_tot_d_91f0e960.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #426 |
+| 427 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/blijf_op_het_bolwerk_staan_tot_d_0b423f46.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #427 |
+| 428 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/het_tweede_bolwerk_de_duiven_lui_4209ae51.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #428 |
+| 429 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/het_derde_bolwerk_tinus_trekt_de_6d7ab59c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #429 |
+| 430 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/het_derde_bolwerk_tinus_trekt_de_95651283.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #430 |
+| 431 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/blijf_op_het_bolwerk_staan_tot_d_23d6f271.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #431 |
+| 432 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/blijf_op_het_bolwerk_staan_tot_d_9a253293.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #432 |
+| 433 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/drie_vlaggen_naar_de_poort_beren_1a9344a6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #433 |
+| 434 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/drie_vlaggen_naar_de_poort_beren_a868d1cf.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #434 |
+| 435 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_snackwagen_staat_open_iederee_0a1ce2d5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #435 |
+| 436 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_snackwagen_staat_open_iederee_38820ad8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #436 |
+| 437 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_rij_staat_binnen_achter_de_gl_bb1d8947.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #437 |
+| 438 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_rij_staat_binnen_achter_de_gl_0743bdf5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #438 |
+| 439 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/blijf_in_de_rij_staan_tot_4117_w_679bfc91.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #439 |
+| 440 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/blijf_in_de_rij_staan_tot_4117_w_830e2386.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #440 |
+| 441 | Keuzegesprekken | Loketbediende (Autonoe) | `lines/loketbediende/welk_formulier_had_u_nodig_7c955923.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #441 |
+| 442 | Keuzegesprekken | Loketbediende (Autonoe) | `lines/loketbediende/en_waar_haalt_u_de_stempel_0834d0ca.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #442 |
+| 443 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/alles_bij_elkaar_nu_inschrijven__c1c11d35.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #443 |
+| 444 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/alles_bij_elkaar_nu_inschrijven__8d8ac02a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #444 |
+| 445 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/eerst_de_grote_markt_vijftienhon_424120cf.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #445 |
+| 446 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/eerst_de_grote_markt_vijftienhon_affd2864.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #446 |
+| 447 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/in_de_kooi_van_de_kraan_lammert__1683774a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #447 |
+| 448 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/in_de_kooi_van_de_kraan_lammert__2c8123c9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #448 |
+| 449 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/van_boven_zag_je_hem_de_blauwe_n_f4086149.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #449 |
+| 450 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/van_boven_zag_je_hem_de_blauwe_n_ff7df391.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #450 |
+| 451 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/papieren_eruit_papieren_erin_eve_b99da06f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #451 |
+| 452 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/papieren_eruit_papieren_erin_eve_b9751011.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #452 |
+| 453 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/klaar_terug_naar_de_kade_voor_he_0e3246ab.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #453 |
+| 454 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/klaar_terug_naar_de_kade_voor_he_52a29308.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #454 |
+| 455 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/de_auto_blijft_bij_de_sluis_lamm_2a083678.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #455 |
+| 456 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/de_auto_blijft_bij_de_sluis_lamm_447f169f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #456 |
+| 457 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/instappen_de_trekker_limo_van_je_d9cbd146.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #457 |
+| 458 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/instappen_de_trekker_limo_van_je_80c774db.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #458 |
+| 459 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/naar_de_sluis_van_delfzijl_over__24b97c12.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #459 |
+| 460 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/naar_de_sluis_van_delfzijl_over__f2ecbc57.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #460 |
+| 461 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/roelfiens_rode_gewasspuiter_staa_e9f47e39.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #461 |
+| 462 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/opstijgen_en_laag_over_het_graan_5ebb9c06.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #462 |
+| 463 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/opstijgen_en_laag_over_het_graan_4b4f21a9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #463 |
+| 464 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/spandoek_opgepikt_laag_blijven_n_028b69f4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #464 |
+| 465 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/spandoek_opgepikt_laag_blijven_n_d71247b8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #465 |
+| 466 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/ze_lezen_het_door_de_rij_kramen_3b76a234.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #466 |
+| 467 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/ze_lezen_het_door_de_rij_kramen_6143a3f3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #467 |
+| 468 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/voorbij_de_kermis_nu_terug_naar__959c5f21.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #468 |
+| 469 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/voorbij_de_kermis_nu_terug_naar__89cd0799.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #469 |
+| 470 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/terug_naar_de_strook_gas_terug_m_4167ca05.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #470 |
+| 471 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/terug_naar_de_strook_gas_terug_m_7053dbe9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #471 |
+| 472 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/podium_in_de_kiezelrace_dan_vert_48887f24.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #472 |
+| 473 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/podium_in_de_kiezelrace_dan_vert_1d8eb0c2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #473 |
+| 474 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/instappen_de_tankwagen_staat_bij_ce5b97f5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #474 |
+| 475 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/instappen_de_tankwagen_staat_bij_325c65a4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #475 |
+| 476 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/instappen_bij_dijkstra_spatie_om_64a6e3c8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #476 |
+| 477 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/instappen_bij_dijkstra_spatie_om_101e075b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #477 |
+| 478 | Hints (Tammo/Tessa) | Tammo (Orus) | `hints/tammo/loop_langs_drie_tenten_en_drink__8059ba59.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #478 |
+| 479 | Hints (Tammo/Tessa) | Anita (Callirrhoe) | `hints/anita/loop_langs_drie_tenten_en_drink__0f02c918.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #479 |
+| 480 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/die_pan_staat_hier_al_sinds_gist_0c3ca9ea.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #480 |
+| 481 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dat_is_een_pan_met_een_verhaal_b4ad0266.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #481 |
+| 482 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/het_verhaal_heet_wie_wast_hem_af_1e74667c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #482 |
+| 483 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_morgen_06f3414d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #483 |
+| 484 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/wie_neemt_de_badkamer_als_eerste_336b767f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #484 |
+| 485 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ik_ik_sta_er_al_drie_minuten_voo_e8f17e9b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #485 |
+| 486 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/je_zit_hier_aan_tafel_fea6e5c5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #486 |
+| 487 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/in_gedachten_cd1938da.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #487 |
+| 488 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/wie_heeft_mijn_yoghurt_opgegeten_bbae9fba.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #488 |
+| 489 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/er_stond_geen_naam_op_b7efcbb8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #489 |
+| 490 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/er_stond_tessa_op_b9de03ab.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #490 |
+| 491 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_las_dat_als_een_suggestie_94c081ce.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #491 |
+| 492 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/koffie_f36dc5b3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #492 |
+| 493 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ja_eh_nee_ja_c9337043.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #493 |
+| 494 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_zet_er_twee_neer_dan_kies_jij_841b8af1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #494 |
+| 495 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_is_eigenlijk_heel_redelijk_90a24600.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #495 |
+| 496 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ik_heb_een_schoonmaakrooster_gem_a2c5009f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #496 |
+| 497 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_zie_mijn_naam_zeven_keer_4c93519f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #497 |
+| 498 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ik_zie_jouw_pan_zeven_keer_f860a899.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #498 |
+| 499 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dat_is_een_eerlijke_ruil_538fc4bb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #499 |
+| 500 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/je_wekker_ging_om_zes_uur_af_b3a0faa4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #500 |
+| 501 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_weet_ik_ik_leg_hem_ver_weg_15c690f5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #501 |
+| 502 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dat_wist_de_hele_flat_nu_ook_036f0bde.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #502 |
+| 503 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dan_zijn_we_eerlijk_tegen_elkaar_27338a29.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #503 |
+| 504 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/roerei_of_spiegelei_fbb82d0d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #504 |
+| 505 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/wat_wordt_het_als_jij_er_verstan_c5e35f06.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #505 |
+| 506 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/roerei_dan_zie_je_niet_dat_het_m_6fa95b47.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #506 |
+| 507 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ik_eet_het_toch_op_5923d272.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #507 |
+| 508 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/proef_eens_f7f31f40.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #508 |
+| 509 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/het_is_goed_97201844.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #509 |
+| 510 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_zeg_je_altijd_1f2a3223.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #510 |
+| 511 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/omdat_het_altijd_goed_is_d92e590d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #511 |
+| 512 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/je_hebt_een_kruimel_op_je_kin_1e0cca39.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #512 |
+| 513 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/waar_c8edf50c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #513 |
+| 514 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/links_nee_jouw_links_6b2fbb5a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #514 |
+| 515 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/nu_zit_hij_op_je_mouw_b7a485bc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #515 |
+| 516 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/je_haar_zit_anders_644e671d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #516 |
+| 517 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/het_is_dinsdag_a7479158.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #517 |
+| 518 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/het_staat_je_goed_op_dinsdag_d90c71d7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #518 |
+| 519 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dank_je_eet_je_boterham_8ee2f095.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #519 |
+| 520 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_heb_een_eierbal_gebakken_voor_cc47fdbb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #520 |
+| 521 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/hij_is_vierkant_66cb3b09.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #521 |
+| 522 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/hij_is_creatief_edae7e63.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #522 |
+| 523 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ik_eet_hem_toch_op_voor_de_vrien_d412758c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #523 |
+| 524 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/als_we_winnen_wat_dan_13f04b08.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #524 |
+| 525 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dan_krijgt_de_frietwagen_een_nie_8a2c5b1e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #525 |
+| 526 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/een_lamp_50e0b284.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #526 |
+| 527 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/een_grote_zodat_jij_hem_ziet_d9bbeb81.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #527 |
+| 528 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/wat_kijken_we_db231066.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #528 |
+| 529 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/maakt_niet_uit_6bb74591.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #529 |
+| 530 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/omdat_jij_naast_me_zit_be3522fc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #530 |
+| 531 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_was_aardig_zet_maar_iets_aan_696edcd0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #531 |
+| 532 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dit_nummer_ken_ik_e32aa27a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #532 |
+| 533 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dans_je_mee_8a0a7d71.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #533 |
+| 534 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/in_de_keuken_5747ce43.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #534 |
+| 535 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/overal_waar_jij_staat_3baa671e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #535 |
+| 536 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/goedemorgen_9cc8e12a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #536 |
+| 537 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/koffie_staat_klaar_027f0493.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #537 |
+| 538 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/je_bent_de_beste_2f6f533c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #538 |
+| 539 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/wacht_ik_moet_even_gaan_zitten_c976ceff.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #539 |
+| 540 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/eerst_de_vismarkt_c7c3faaa.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #540 |
+| 541 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dan_de_kade_7aff1578.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #541 |
+| 542 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/en_daarna_95bcc718.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #542 |
+| 543 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/daarna_iets_met_jou_08fdcd3e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #543 |
+| 544 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_staat_al_op_de_lijst_b670c12b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #544 |
+| 545 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/met_melk_niet_te_veel_2d33f190.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #545 |
+| 546 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/je_weet_het_nog_43472179.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #546 |
+| 547 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/ik_weet_alles_van_jou_cd14dfdc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #547 |
+| 548 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dat_is_veel_6de340a5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #548 |
+| 549 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/het_is_tweee_ntwintig_graden_631b8d35.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #549 |
+| 550 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_zeg_je_elke_dag_439b008d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #550 |
+| 551 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/omdat_ik_het_fijn_vind_fccf497e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #551 |
+| 552 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/het_is_stil_in_de_flat_ce68a564.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #552 |
+| 553 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/niemand_zoekt_ons_ac33b0eb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #553 |
+| 554 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_is_nieuw_e5b8edc6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #554 |
+| 555 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_wen_eraan_f6cb9f1f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #555 |
+| 556 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/roerei_zoals_jij_het_wilt_04f2dcd3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #556 |
+| 557 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/zonder_dat_het_mislukt_is_4321bb33.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #557 |
+| 558 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dat_was_de_oefening_43009ff6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #558 |
+| 559 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/en_dit_is_de_les_42c3b3a8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #559 |
+| 560 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/hoeveel_woorden_waren_het_ook_al_d34c455f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #560 |
+| 561 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/vijf_98324fee.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #561 |
+| 562 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/zeg_ze_nog_eens_26f4f9ff.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #562 |
+| 563 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/je_wast_af_2da188bd.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #563 |
+| 564 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_zei_toch_morgen_597766da.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #564 |
+| 565 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_was_twee_weken_geleden_38580660.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #565 |
+| 566 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/ik_ben_een_man_van_mijn_woord_22c2d0db.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #566 |
+| 567 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/wat_doen_we_vandaag_a4252802.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #567 |
+| 568 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/niks_a0b352a1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #568 |
+| 569 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/niks_is_een_goed_plan_073a6a22.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #569 |
+| 570 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dan_is_het_al_gelukt_390e85a2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #570 |
+| 571 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/rikus_zegt_dat_het_zomer_blijft_f3e0692a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #571 |
+| 572 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/rikus_heeft_altijd_gelijk_0b3dddc3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #572 |
+| 573 | Terugkeer (vignetten) | Anita (Callirrhoe) | `lines/anita/dat_zegt_hij_zelf_ook_5ac623dd.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #573 |
+| 574 | Terugkeer (vignetten) | Tammo (Orus) | `lines/tammo/dan_zal_het_wel_kloppen_4bcf6172.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #574 |
+| 575 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/welkom_in_de_euroborg_de_zon_sch_84ac7958.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #575 |
+| 576 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/goedemiddag_allemaal_het_is_zome_9a005ca6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #576 |
+| 577 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/daar_komen_de_spelers_het_veld_o_bb1d52dc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #577 |
+| 578 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_tribunes_zitten_vol_nou_ja_vo_3ed21133.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #578 |
+| 579 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hier_zijn_we_dan_elf_tegen_elf_e_79bcc99f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #579 |
+| 580 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_scheidsrechter_kijkt_op_zijn__74db8827.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #580 |
+| 581 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_heb_er_zin_in_hilbrand_het_gr_4e2c2c5e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #581 |
+| 582 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/let_op_de_middenmoot_vandaag_daa_9d841f89.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #582 |
+| 583 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/mooie_dag_voor_voetbal_slechte_d_7f8a8fc2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #583 |
+| 584 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_zeg_de_eerste_tien_minuten_zi_a6046190.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #584 |
+| 585 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/oma_trijntje_zit_op_haar_vaste_p_a925caf7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #585 |
+| 586 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/en_we_zijn_weer_begonnen_de_twee_2ceccfae.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #586 |
+| 587 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_spelers_staan_weer_klaar_alle_d34a8cbc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #587 |
+| 588 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/daar_gaan_we_weer_de_thermosfles_9335d95c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #588 |
+| 589 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/tweede_helft_wie_heeft_in_de_rus_2e0db135.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #589 |
+| 590 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/in_de_rust_wordt_het_gewonnen_ze_880341c5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #590 |
+| 591 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_ben_benieuwd_wie_er_nog_benen_76b020bf.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #591 |
+| 592 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/nu_komt_het_op_conditie_aan_en_o_e012734a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #592 |
+| 593 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/dit_is_wat_we_noemen_een_groning_0a8155b5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #593 |
+| 594 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_echte_derby_vandaag_dat_is_z_ee2d29de.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #594 |
+| 595 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/het_is_een_derby_de_tribunes_zij_2ca05dc6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #595 |
+| 596 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/bij_een_derby_zijn_de_regels_dez_e8cb0596.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #596 |
+| 597 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_heb_in_mijn_tijd_drie_derby_s_20309283.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #597 |
+| 598 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/niemand_wil_de_buurman_laten_win_b3cfb1c4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #598 |
+| 599 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/wat_een_kans_hij_kon_alles_doen__bc27a4d2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #599 |
+| 600 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/gevaar_dat_scheelde_niet_veel_3198c3cb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #600 |
+| 601 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/dat_had_een_doelpunt_moeten_zijn_12c03d0a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #601 |
+| 602 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_grote_kans_en_de_bal_gaat_ne_6f591e8d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #602 |
+| 603 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/dichtbij_heel_dichtbij_e649364e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #603 |
+| 604 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/daar_komt_een_schot_net_niet_net_aa417887.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #604 |
+| 605 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/bijna_bijna_de_tribunes_zuchten_2da616ac.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #605 |
+| 606 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/wat_een_mogelijkheid_maar_de_afw_327dccc1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #606 |
+| 607 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/die_moet_er_in_hilbrand_zelfs_mi_f4831b83.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #607 |
+| 608 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_is_het_verschil_tussen_een_g_281c4e2e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #608 |
+| 609 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/net_als_bij_het_dorpsteam_eerst__9500524f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #609 |
+| 610 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/hij_keek_te_veel_naar_de_keeper__5a10e0bc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #610 |
+| 611 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/pech_en_een_beetje_onhandig_21990078.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #611 |
+| 612 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_schot_het_gaat_hard_3636ba3c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #612 |
+| 613 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hij_haalt_uit_5b5948d3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #613 |
+| 614 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/daar_gaat_de_bal_richting_het_do_8852fa34.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #614 |
+| 615 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/schieten_en_het_is_een_harde_e5a70099.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #615 |
+| 616 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hij_probeert_het_van_afstand_5ea6ad54.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #616 |
+| 617 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_poging_de_keeper_moet_oplett_25196d21.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #617 |
+| 618 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_kogel_wat_doet_de_keeper_35942b0a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #618 |
+| 619 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hij_schiet_hij_schiet_8956b730.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #619 |
+| 620 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/rustig_aan_jongen_eerst_richten__093d992a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #620 |
+| 621 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/daar_zit_kracht_achter_3bcce8b0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #621 |
+| 622 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_doe_je_met_je_hele_been_niet_879237d9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #622 |
+| 623 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_mooie_poging_maar_vooral_een_d4894999.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #623 |
+| 624 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/wat_een_redding_de_keeper_houdt__7e07c642.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #624 |
+| 625 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/gestopt_die_ging_er_bijna_in_7d7d4317.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #625 |
+| 626 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_keeper_vloog_erheen_er_zat_gr_4f546e98.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #626 |
+| 627 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/daar_is_hij_de_keeper_redt_met_z_9b3865d2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #627 |
+| 628 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/weggeslagen_wat_een_reflex_1e36b4e0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #628 |
+| 629 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hij_pakt_hem_zekerheid_in_het_do_50bcaf2a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #629 |
+| 630 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/op_de_lijn_gered_die_keeper_heef_a3d6eb75.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #630 |
+| 631 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_bal_is_veilig_bij_de_keeper_fac88333.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #631 |
+| 632 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_noem_ik_keeperswerk_alleen_d_8c16c7b7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #632 |
+| 633 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/hij_stond_precies_goed_dat_is_ge_e1316304.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #633 |
+| 634 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_keeper_is_een_eenzaam_beroep_2c912e4a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #634 |
+| 635 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/bij_ons_in_het_dorp_heette_zo_ie_83665b12.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #635 |
+| 636 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_spits_dacht_dat_hij_hem_had_d_3e0afd0b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #636 |
+| 637 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/mooi_gedaan_hij_verdient_een_pep_c4324016.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #637 |
+| 638 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/tegen_de_paal_dat_scheelde_een_h_de148eb7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #638 |
+| 639 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/op_de_lat_de_hele_tribune_hield__8fb649fd.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #639 |
+| 640 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_paal_redt_het_doelpunt_blijft_d45fd784.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #640 |
+| 641 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/ping_dat_klonk_als_een_klok_net__80c8ee6b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #641 |
+| 642 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hout_het_doel_staat_nog_81121743.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #642 |
+| 643 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_is_nog_net_zo_erg_als_missen_83f5d0fd.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #643 |
+| 644 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_paal_is_de_beste_verdediger_v_ee6e4612.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #644 |
+| 645 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/zo_dicht_bij_het_hout_was_zijn_v_a46a8431.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #645 |
+| 646 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_hoor_het_nog_galmen_23fc4832.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #646 |
+| 647 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/goal_voor_de_stadjers_dat_noem_i_87d1bcda.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #647 |
+| 648 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/binnen_de_stadjers_vieren_het_me_0c751af1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #648 |
+| 649 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/wat_een_schot_de_keeper_keek_nog_2ecc69ab.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #649 |
+| 650 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/doelpunt_wat_een_mooi_moment_voo_52c235f7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #650 |
+| 651 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/en_hij_zit_de_bal_ligt_in_het_ne_b94ea5f6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #651 |
+| 652 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/ja_daar_is_het_doelpunt_de_eurob_f0b85a5c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #652 |
+| 653 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/zo_spelen_we_het_thuis_ook_zonde_7c42cd0d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #653 |
+| 654 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/mooi_dat_was_niet_alleen_een_goa_ad66a5ce.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #654 |
+| 655 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_was_verdiend_hilbrand_heel_v_0710c7fb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #655 |
+| 656 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/als_dat_niet_binnen_gaat_eet_ik__27d74a40.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #656 |
+| 657 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_keeper_had_geen_schijn_van_ka_64b2dac0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #657 |
+| 658 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dit_is_het_mooiste_geluid_van_he_3694113f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #658 |
+| 659 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/oma_trijntje_is_opgestaan_dat_do_a5fe612e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #659 |
+| 660 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_zou_zeggen_dikke_goal_d4be43b5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #660 |
+| 661 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_tegenstander_scoort_even_slik_92cc948c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #661 |
+| 662 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/tegendoelpunt_oma_trijntje_schud_6a2df40f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #662 |
+| 663 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/binnen_de_keeper_wil_de_grasmat__5917b263.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #663 |
+| 664 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/tegenvaller_de_bal_zit_achter_de_7e049ebb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #664 |
+| 665 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_doelpunt_voor_de_bezoekers_h_cbd89844.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #665 |
+| 666 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_doet_pijn_hilbrand_maar_het__871253a0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #666 |
+| 667 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/daar_had_de_verdediging_bij_moet_1451e43e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #667 |
+| 668 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/je_moet_het_toegeven_dat_was_moo_abe96ea3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #668 |
+| 669 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/even_doorademen_en_opnieuw_begin_994e4806.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #669 |
+| 670 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/in_het_dorpsteam_zeiden_we_dan_v_fbd560b1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #670 |
+| 671 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/bij_een_tegendoelpunt_kijkt_de_h_79f0a137.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #671 |
+| 672 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/nou_dat_was_effe_niet_best_4e054b02.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #672 |
+| 673 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_eigen_doelpunt_dat_gaat_in_d_2f5750c8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #673 |
+| 674 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/oei_die_gaat_in_zijn_eigen_doel__93e298c1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #674 |
+| 675 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/dat_was_niet_de_bedoeling_de_bal_dc461ec9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #675 |
+| 676 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dit_kan_elke_speler_overkomen_be_f52c9834.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #676 |
+| 677 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/het_is_geen_schande_het_is_een_a_5baf3c9b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #677 |
+| 678 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/hij_kijkt_nu_heel_erg_naar_de_lu_dc9ec8cf.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #678 |
+| 679 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/pech_zeg_ik_pure_pech_ik_heb_er__a439cf92.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #679 |
+| 680 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_comeback_is_compleet_wie_had__a892bbeb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #680 |
+| 681 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/terug_in_de_wedstrijd_wat_een_ve_54690b5b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #681 |
+| 682 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/wat_een_wedstrijd_eerst_achter_n_3ff93987.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #682 |
+| 683 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/zie_je_wel_nooit_opgeven_dat_is__64441190.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #683 |
+| 684 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_is_karakter_dat_kan_je_niet__4ddbcafc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #684 |
+| 685 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dit_is_waarom_we_naar_voetbal_ki_ff62b103.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #685 |
+| 686 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_gele_kaart_de_scheidsrechter_e8413527.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #686 |
+| 687 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/geel_dat_was_een_gele_kaart_71cf2f54.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #687 |
+| 688 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_scheidsrechter_trekt_geel_dat_6cf8fd0e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #688 |
+| 689 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/gele_kaart_en_terecht_voorzichti_ee1e1b53.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #689 |
+| 690 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_waarschuwing_met_een_kaartje_7a89b86b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #690 |
+| 691 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_is_de_goedkoopste_les_van_he_7209da73.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #691 |
+| 692 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/hij_mag_nu_niet_meer_te_vurig_wo_187c203b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #692 |
+| 693 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/geel_is_een_vriendelijk_verzoek__b133dc39.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #693 |
+| 694 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_hadden_we_kunnen_zien_aankom_98406990.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #694 |
+| 695 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/eerlijk_is_eerlijk_dat_was_een_t_b964ac25.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #695 |
+| 696 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/rood_de_scheidsrechter_stuurt_he_d8ed534f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #696 |
+| 697 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hij_moet_eraf_dat_wordt_lastig_ea4f0ec0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #697 |
+| 698 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_wordt_een_lange_middag_met_t_a2f5d081.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #698 |
+| 699 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/rood_hij_had_beter_kunnen_kiezen_ba89dfaf.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #699 |
+| 700 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dit_verandert_alles_het_hele_pla_00a4ade4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #700 |
+| 701 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/niemand_wil_dit_zien_maar_de_reg_e68bd825.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #701 |
+| 702 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/er_is_nu_ruimte_en_die_ruimte_mo_c2983bf1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #702 |
+| 703 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hij_blijft_even_liggen_het_medis_e75ea035.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #703 |
+| 704 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_blessure_we_hopen_dat_het_me_bdf064d1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #704 |
+| 705 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_spelers_houden_even_in_een_ge_aac9f81f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #705 |
+| 706 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hij_haalt_de_wedstrijd_niet_er_k_3017b933.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #706 |
+| 707 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/rustig_aan_even_uitlopen_zo_gaat_8b0187f1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #707 |
+| 708 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_wedstrijd_gaat_daarna_gewoon__82b9b47c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #708 |
+| 709 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_goede_wissel_is_soms_het_bes_6d4c3c40.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #709 |
+| 710 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/beterschap_alvast_a4994777.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #710 |
+| 711 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/er_wordt_gewisseld_verse_benen_o_3c1e8148.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #711 |
+| 712 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/nieuwe_speler_nieuwe_kansen_41d4e3a5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #712 |
+| 713 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_wissel_daar_zit_een_idee_ach_a9e38e7d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #713 |
+| 714 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_trainer_weet_iets_wat_wij_nie_6c9ccd4d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #714 |
+| 715 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/verse_benen_zijn_goud_waard_in_d_36088499.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #715 |
+| 716 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/die_was_moe_hilbrand_dat_zag_je__000421ad.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #716 |
+| 717 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_goede_wissel_verandert_de_we_94fc7e68.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #717 |
+| 718 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/strafschop_de_scheidsrechter_wij_40608f27.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #718 |
+| 719 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/penalty_dit_wordt_spannend_986b89d7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #719 |
+| 720 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_bal_ligt_op_de_stip_het_hele__fb09c958.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #720 |
+| 721 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/alle_ogen_op_de_stip_ee_n_speler_fa384da8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #721 |
+| 722 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/straf_en_nu_is_het_stil_8d69927d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #722 |
+| 723 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dit_is_het_enige_moment_waarop_h_249c50db.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #723 |
+| 724 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/je_kijkt_niet_naar_de_keeper_je__638ebd7f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #724 |
+| 725 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_is_alleen_maar_zenuwen_het_d_20c1c37e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #725 |
+| 726 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_heb_er_eens_een_gemist_op_een_47f641b8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #726 |
+| 727 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_hoekschop_alle_lange_spelers_25ca58c1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #727 |
+| 728 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_bal_gaat_de_hoek_in_kan_dit_g_f0a6be08.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #728 |
+| 729 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_corner_en_dat_levert_altijd__cf752f0b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #729 |
+| 730 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hoekschop_het_wordt_druk_voor_he_7d4c2dcc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #730 |
+| 731 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_hoekschop_is_een_uitnodiging_85cde7f3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #731 |
+| 732 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/bij_een_corner_telt_alleen_de_ee_6b5dac4c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #732 |
+| 733 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dit_kan_een_goede_kans_worden_al_0df00bfe.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #733 |
+| 734 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_bal_gaat_uit_de_ingooi_is_voo_68b2cca9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #734 |
+| 735 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_inworp_aan_de_zijlijn_4895da6a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #735 |
+| 736 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/even_rust_bij_de_zijlijn_een_ing_04022ba4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #736 |
+| 737 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_ingooi_is_de_enige_keer_dat__f1f3182d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #737 |
+| 738 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/vergeet_je_voeten_niet_op_de_gro_9faf027f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #738 |
+| 739 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/altijd_opletten_bij_een_ingooi_d_1850bc91.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #739 |
+| 740 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_keeper_pakt_de_bal_en_gaat_he_68025a35.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #740 |
+| 741 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/doelschop_rustig_opbouwen_is_het_593e8635.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #741 |
+| 742 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_bal_ging_over_de_achterlijn_d_b8038e8f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #742 |
+| 743 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_doelschop_is_een_tweede_kans_a31bc218.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #743 |
+| 744 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dit_is_het_ideale_moment_om_je_e_8d784cf0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #744 |
+| 745 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_keeper_heeft_alle_tijd_en_geb_ae69d52f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #745 |
+| 746 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/vrije_bal_wie_gaat_hem_nemen_cde15e7b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #746 |
+| 747 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_scheidsrechter_geeft_een_vrij_43b46e32.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #747 |
+| 748 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_vrije_trap_en_dat_kan_gevaar_24c99aa0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #748 |
+| 749 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/bij_een_vrije_trap_telt_de_muur__b85aa25d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #749 |
+| 750 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_is_een_kans_om_iets_moois_te_461ad335.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #750 |
+| 751 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dit_zijn_de_momenten_waar_je_voo_c77680d8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #751 |
+| 752 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/buitenspel_de_vlag_gaat_omhoog_9e9450e5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #752 |
+| 753 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hij_stond_buitenspel_vrije_bal_v_f4d2b82e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #753 |
+| 754 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/buitenspel_dat_is_de_regel_c548acbd.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #754 |
+| 755 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/te_vroeg_gestart_buitenspel_7c7fcbbb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #755 |
+| 756 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/het_is_een_heel_simpele_regel_da_2977b145.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #756 |
+| 757 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_stap_te_ver_en_het_hele_plan_6ca3e209.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #757 |
+| 758 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/hij_liep_mooi_maar_iets_te_vroeg_e84b655b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #758 |
+| 759 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_bal_is_uit_38242b35.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #759 |
+| 760 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/naar_de_tribune_oma_trijntje_van_3d9149f7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #760 |
+| 761 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/uit_even_de_adem_inhouden_7c97920f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #761 |
+| 762 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_bal_verlaat_het_veld_d84fd3ea.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #762 |
+| 763 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/zo_gaan_er_elk_jaar_veertig_ball_c4fa1e23.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #763 |
+| 764 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_balletje_over_de_lijn_is_noo_4e853e86.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #764 |
+| 765 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_mooie_poging_maar_buiten_ber_88cc3c86.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #765 |
+| 766 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/overtreding_vrije_bal_de_scheids_d741bb59.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #766 |
+| 767 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/dat_was_te_fel_vrije_bal_voor_de_436758be.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #767 |
+| 768 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_overtreding_het_spel_ligt_ev_451d5c38.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #768 |
+| 769 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_scheidsrechter_fluit_dat_was__17af5bd2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #769 |
+| 770 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hard_spel_een_vrije_bal_830df0ea.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #770 |
+| 771 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_tackle_van_achteren_is_nooit_218b97d2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #771 |
+| 772 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/je_mag_best_hard_spelen_maar_nie_022b65b6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #772 |
+| 773 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_is_een_kleine_overtreding_me_916bd225.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #773 |
+| 774 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/van_achteren_dat_doe_je_niet_cdd7cced.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #774 |
+| 775 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/rust_de_thermosfles_gaat_rond_adbf7996.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #775 |
+| 776 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/rust_even_bijkomen_en_dan_weer_v_3ff1d09f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #776 |
+| 777 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/het_fluitsignaal_klinkt_het_is_r_01c6e1e4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #777 |
+| 778 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_eerste_helft_zit_erop_tijd_vo_64163be4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #778 |
+| 779 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/rust_wat_vond_roelie_ervan_14b1d3df.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #779 |
+| 780 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/dat_was_de_eerste_helft_de_tweed_f4d20226.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #780 |
+| 781 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_zou_zeggen_een_helft_vol_bijn_9d8edc92.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #781 |
+| 782 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_trainer_heeft_vijftien_minute_b6d2f2d0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #782 |
+| 783 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_ga_even_in_de_statistieken_ki_4d9a630f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #783 |
+| 784 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/het_is_te_warm_dat_zeg_ik_elke_z_a089919b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #784 |
+| 785 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_goede_rust_is_half_gewonnen__15ff1be1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #785 |
+| 786 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/zoveel_gras_zo_weinig_schaduw_44d6ffe8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #786 |
+| 787 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/gewonnen_de_stadjers_dansen_over_493cd138.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #787 |
+| 788 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_overwinning_in_de_euroborg_o_7b2566b8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #788 |
+| 789 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/het_eindsignaal_en_het_is_winst__2c440ac8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #789 |
+| 790 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/gewonnen_het_is_een_feest_op_de__93f4cc08.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #790 |
+| 791 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/verdiend_hilbrand_heel_verdiend__f044f1a1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #791 |
+| 792 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/het_is_een_dag_om_in_te_lijsten__51837ded.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #792 |
+| 793 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_doe_je_niet_vaak_maar_vandaa_c53df683.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #793 |
+| 794 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/verloren_de_volgende_keer_beter__142253d0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #794 |
+| 795 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/dat_was_niet_ons_dagje_het_gras__b0128a05.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #795 |
+| 796 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/het_eindsignaal_dit_was_geen_moo_c7494d8d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #796 |
+| 797 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/verloren_maar_de_zon_schijnt_nog_b5595fb3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #797 |
+| 798 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/het_is_maar_voetbal_hilbrand_zeg_e04bfd57.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #798 |
+| 799 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/we_leren_ervan_ik_zeg_dat_elke_k_c26ea2db.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #799 |
+| 800 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_tribune_klapt_toch_dat_is_een_974e7f40.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #800 |
+| 801 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/gelijkspel_niemand_wint_niemand__e7c19546.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #801 |
+| 802 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/gelijk_de_pepermunt_wordt_eerlij_55da23b8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #802 |
+| 803 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/het_eindsignaal_klinkt_het_blijf_a4a3cbc2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #803 |
+| 804 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_gelijkspel_beide_teams_nemen_d173c34d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #804 |
+| 805 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_gelijkspel_is_een_lekker_neu_0e22468c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #805 |
+| 806 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/eerlijk_gedeeld_eerlijk_gespeeld_8ac2dc09.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #806 |
+| 807 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/daar_is_niemand_ongelukkig_mee_e_f8bb9a00.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #807 |
+| 808 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_bal_gaat_heen_en_weer_en_de_z_3ccedc23.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #808 |
+| 809 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/rustig_opbouwen_kijk_eens_hoe_ze_609560c3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #809 |
+| 810 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/het_is_een_tactisch_spel_elke_zi_382fe5e9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #810 |
+| 811 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/er_wordt_geduldig_gespeeld_een_k_f2a0ebd3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #811 |
+| 812 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_middenvelders_voeren_de_strij_d200943e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #812 |
+| 813 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/het_spel_verplaatst_zich_naar_de_69ba6ba5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #813 |
+| 814 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/mooie_passing_dat_zie_je_niet_va_82600f6e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #814 |
+| 815 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/ze_zoeken_een_opening_en_die_is__ff0cf0d5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #815 |
+| 816 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/let_op_de_achterhoede_die_staat__3adaf5f7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #816 |
+| 817 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_bal_rolt_over_het_gras_zomer__d13e04d4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #817 |
+| 818 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_wind_draait_een_beetje_dat_me_5d5c3c8f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #818 |
+| 819 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/op_een_warme_dag_is_het_tempo_va_49a2a3bb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #819 |
+| 820 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dit_is_ouderwets_voetbal_ik_hou__6cd02eca.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #820 |
+| 821 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_goede_pass_is_een_geheugenoe_fbf8f1cb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #821 |
+| 822 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/kijk_naar_de_ruimte_ruimte_is_wa_9152b2ea.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #822 |
+| 823 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/niet_alles_hoeft_een_schot_te_zi_e12aad13.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #823 |
+| 824 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/in_het_dorp_zeiden_we_eerst_de_b_2c2a52fc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #824 |
+| 825 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/het_gras_is_erg_kort_dat_is_ook__fa6ad643.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #825 |
+| 826 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/mooie_middag_voor_een_pakje_frie_1807ad9f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #826 |
+| 827 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/die_verdediger_weet_precies_wat__b68a1d96.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #827 |
+| 828 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_stadjers_houden_de_bal_lekker_943a19c1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #828 |
+| 829 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/veel_balbezit_voor_de_thuisploeg_21a0da46.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #829 |
+| 830 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/als_je_de_bal_hebt_kan_de_tegens_a897e94c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #830 |
+| 831 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/balbezit_is_mooi_maar_het_moet_w_b2c6b08a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #831 |
+| 832 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_tegenstander_heeft_de_bal_vee_b3e5ba43.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #832 |
+| 833 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_bezoekers_houden_de_bal_vast_6dec03ef.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #833 |
+| 834 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/als_je_de_bal_niet_hebt_moet_je__cdd0181e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #834 |
+| 835 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/eerst_de_bal_terugwinnen_dan_pas_70c82e2d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #835 |
+| 836 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_laatste_minuten_alles_of_niet_7fad1783.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #836 |
+| 837 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/het_loopt_naar_het_einde_wat_kun_3ac0876e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #837 |
+| 838 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/nog_maar_even_te_gaan_de_spannin_18ca9cce.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #838 |
+| 839 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_klok_tikt_de_laatste_kansen_3374a09d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #839 |
+| 840 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/nu_merk_je_wie_het_meest_conditi_8199af0b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #840 |
+| 841 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_laatste_minuten_zijn_voor_hel_523d24bd.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #841 |
+| 842 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_zeg_alles_op_de_laatste_lange_e65eb9ac.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #842 |
+| 843 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/wat_een_spanning_het_kan_nog_all_4144caa3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #843 |
+| 844 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/dit_blijft_tot_het_einde_spannen_b4b8d75f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #844 |
+| 845 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/het_is_een_heel_gelijkopgaande_w_7a5261e6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #845 |
+| 846 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/zo_wil_je_voetbal_zien_iedereen__d1a575f3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #846 |
+| 847 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/met_e_e_n_doelpunt_verschil_is_h_6c34a328.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #847 |
+| 848 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_durf_er_niets_over_te_zeggen__379ad5e7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #848 |
+| 849 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_had_hem_ook_gekozen_ik_zeg_he_c64a3631.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #849 |
+| 850 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_prima_prestatie_die_niet_zom_b083e308.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #850 |
+| 851 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_is_een_speler_die_je_in_je_t_78a151aa.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #851 |
 
-De wachtrij heeft 811 clips (3 manifest(en): lines, sms, hints).
+De wachtrij heeft 851 clips (3 manifest(en): lines, sms, hints).
 
 ## 2. Wacht op een Groningse spreektekst of stemkeuze
 
 | Stap | Reden | Regels |
 |---|---|---|
 | E | Groningse spreektekst ontbreekt | 10 |
+| J1 | Groningse spreektekst ontbreekt | 5 |
+| J2 | Groningse spreektekst ontbreekt | 5 |
+| J3 | Groningse spreektekst ontbreekt | 6 |
+| J4 | Groningse spreektekst ontbreekt | 9 |
+| J5 | Groningse spreektekst ontbreekt | 2 |
+| J6 | Groningse spreektekst ontbreekt | 3 |
 | M00 | Groningse spreektekst ontbreekt | 3 |
 | M02 | Groningse spreektekst ontbreekt | 8 |
 | M03 | Groningse spreektekst ontbreekt | 6 |
@@ -850,7 +896,7 @@ De wachtrij heeft 811 clips (3 manifest(en): lines, sms, hints).
 | M13 | Groningse spreektekst ontbreekt | 8 |
 | M14 | Groningse spreektekst ontbreekt | 3 |
 | M15 | Groningse spreektekst ontbreekt | 7 |
-| M16 | Groningse spreektekst ontbreekt | 19 |
+| M16 | Groningse spreektekst ontbreekt | 15 |
 | M17 | Groningse spreektekst ontbreekt | 5 |
 | M18 | Groningse spreektekst ontbreekt | 9 |
 | M19 | Groningse spreektekst ontbreekt | 8 |
@@ -880,6 +926,7 @@ De wachtrij heeft 811 clips (3 manifest(en): lines, sms, hints).
 | T2 | Groningse spreektekst ontbreekt | 3 |
 | T3 | Groningse spreektekst ontbreekt | 3 |
 | T4 | Groningse spreektekst ontbreekt | 1 |
+| J3 | stemkeuze ontbreekt in CAST | 7 |
 | M06 | stemkeuze ontbreekt in CAST | 2 |
 | M15 | stemkeuze ontbreekt in CAST | 3 |
 | M17 | stemkeuze ontbreekt in CAST | 4 |
@@ -887,7 +934,7 @@ De wachtrij heeft 811 clips (3 manifest(en): lines, sms, hints).
 | M30 | stemkeuze ontbreekt in CAST | 1 |
 | N2 | stemkeuze ontbreekt in CAST | 3 |
 
-Alle 282 regels staan met bron, spreker, stem en beoogde bestandsnaam in `TTS-OPNAMELIJST-735.jsonl` (status `stemkeuze` of `spreektekst`); die kunnen pas in de wachtrij als de stem of de spreektekst er is.
+Alle 315 regels staan met bron, spreker, stem en beoogde bestandsnaam in `TTS-OPNAMELIJST-735.jsonl` (status `stemkeuze` of `spreektekst`); die kunnen pas in de wachtrij als de stem of de spreektekst er is.
 
 ## 3. Technische laadhint (aparte beslissing)
 
@@ -902,4 +949,4 @@ De nieuwe laadhint `"De weg hier wordt nog geladen. Even wachten…"` staat bewu
 
 ## 5. Verschil met #735
 
-Het issue telt 670 regels/671 clips (67 klaar + 604 wachtend, plus de laadhint van 2 clips). De huidige bronnen geven 1093 regels/clips: 811 klaar + 282 wachtend. Dat verschil komt doordat `script.json`, `gronings_spoken.json` en de opnames sinds 6-11 zijn bijgewerkt; deze lijst volgt de code, niet het issue.
+Het issue telt 670 regels/671 clips (67 klaar + 604 wachtend, plus de laadhint van 2 clips). De huidige bronnen geven 1166 regels/clips: 851 klaar + 315 wachtend. Dat verschil komt doordat `script.json`, `gronings_spoken.json` en de opnames sinds 6-11 zijn bijgewerkt; deze lijst volgt de code, niet het issue.

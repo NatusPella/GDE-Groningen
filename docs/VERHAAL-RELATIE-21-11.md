@@ -76,7 +76,7 @@ Tammo is een hele lieve jongen, Tessa echt een schatje; ze zien van elkaar hoe l
 | 21 | 4 | Tessa maakt Tammo's onvoltooide zin af ("Dat ik te veel praat"); hij laat het zo | Tammo | twee-shot, hij kijkt naar de weg | B4.1 (nieuw) |
 | 22 | 5 | Lieke zegt hardop dat ze al samen zijn; Oma vraagt wanneer ze trouwen; Tessa's vader knikt bij de eierbal | Tessa en Tammo, de families | close-up Lieke, halve close-up Tammo | M25.6 (nieuw) |
 
-De onvoltooide zin komt vier keer terug (O3, B2.1, B3.1, B4.1) en wordt uitbetaald met de vijf woorden in M26.7; daarna nooit meer.
+De onvoltooide zin komt vijf keer terug (O3, B2.1, B3.1, J3 en B4.1; J3 is een gespeelde stap bij Tessa's ouders, ronde 5) en wordt uitbetaald met de vijf woorden in M26.7; daarna nooit meer.
 
 Regel: het bewijs wordt nooit uitgelegd. Hooguit zegt de ander één zin die het bevestigt (de reactie, geen toelichting).
 

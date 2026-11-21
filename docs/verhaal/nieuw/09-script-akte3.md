@@ -80,6 +80,24 @@ DOKTER DIJKSTRA: Die Fries is geland in een weiland bij Winschoten. Tussen de ko
 ## [M12.5] Het staat niet in het rooster: herhaling – Waddenkust, Eemshaven, helidek – helikopter
 DOKTER DIJKSTRA: Weer een spoedje? Ik zet het deze keer in het rooster. [BEHOUDEN]
 
+## [J1] Post van de gemeente – Stad, Paddepoel, de flat – te voet
+(regie: vrijdagmiddag, de flat in Paddepoel. Op de mat ligt een stapel brieven van de gemeente, bijna een bouwpakket. Tessa sorteert, Tammo zet thee.)
+TESSA: Zeven brieven. Allemaal van de gemeente. Allemaal van vanochtend. [NIEUW]
+TAMMO: Dat is veel aandacht. [NIEUW]
+TESSA: "Bezwaar tegen uw parkeervergunning, ingediend door J. Terpstra." [NIEUW]
+TAMMO: Wij hebben nog geen bezwaar. [NIEUW]
+TESSA: Dat is het probleem. Hij was eerder. [NIEUW]
+(regie: onderop de stapel ligt een formulier. Tammo vult zijn naam in en kijkt naar het tweede vak: partner, huisgenoot of overig.)
+TAMMO: Wat ben jij? Partner, huisgenoot of overig. [NIEUW]
+TESSA: Wat jij wil. [NIEUW]
+TAMMO: Huisgenoot is het kortst. [NIEUW]
+TESSA: Dat is niet waarom je het kiest. [NIEUW]
+(regie: Tessa pakt de pen, zet een kruisje en vouwt het formulier dicht voordat Tammo kan zien waar.)
+TESSA: Kasboekje. Postzegels, twee euro tachtig. Op naam van ons allebei. Eén boekje. [NIEUW]
+TESSA: Ik leer vanavond hoe dit werkt. Elk artikel. [NIEUW]
+TAMMO: Je gaat tegen hem vechten met zijn eigen papier. [NIEUW]
+TESSA: Niet vechten. Lezen. Dat is erger. [NIEUW]
+
 ## [M13.1] Het containerlabyrint: intro – Waddenkust, Eemshaven, de kade – te voet
 (regie: vrijdagnacht 21 augustus. Windmolenbladen, kabelrollen, kolenbergen, een paar containers, een kraan, schijnwerpers. Naamkaart: LAMMERT. Gameplay: een sluipmissie tussen de opslag; container 4471 vinden en de papieren verwisselen.)
 LAMMERT: Moi. Lammert, havenmeester. Ik vertel altijd wat er niet is: een leeg schip, een volle kabel. [NIEUW]
@@ -183,6 +201,23 @@ RIKUS (radio): Kiekdoar meldt dat Oldenhuis Bakt in Delfzijl een bestaande snack
 ## [R3.4] Nachtstreek, vrijdagnacht: een plaat – Stad – radio
 RIKUS (radio): Mijn verzoekplaat van de week: "Elfde Verdieping", van De Fietstunnels. Een nummer over een lift die werkt. [NIEUW]
 RIKUS (radio): Voor twee Stadjers die elk een kant van het refrein zingen. Ik zeg niks. [NIEUW]
+
+## [J2] Een envelop in Appingedam – Eemsdelta, Appingedam, de brug over het Damsterdiep – te voet
+(regie: zaterdagmiddag. Op de brug over het Damsterdiep, onder de hangende balkons. Lammert staat bij zijn auto met een dikke envelop. Durk staat stijf naast hem, Douwe iets verder, met een tas. Op Tammo's schouder zit een duif.)
+LAMMERT: Van Terpstra. Gratis frikandellen, levenslang. Als de kade van hem wordt, en niet van jullie. [NIEUW]
+TESSA: Dat is omkoping. [NIEUW]
+DURK: Het is een cadeau. Baas zegt cadeau. [NIEUW]
+TESSA: Een cadeau met een voorwaarde is een contract. [NIEUW]
+DOUWE: …Contract. [NIEUW]
+LAMMERT: Ik ben havenmeester. Voor een kade neem ik geen frikandellen aan. [NIEUW]
+TAMMO: Wat neem je wel aan? [NIEUW]
+LAMMERT: Een vraag. Zonder envelop. Dat heeft Jelle nog nooit geprobeerd. [NIEUW]
+TESSA: Dan vraag ik het: helpt u ons? [NIEUW]
+LAMMERT: Dat is geen vraag. Dat is een buurman. Ja. [NIEUW]
+(regie: Durk legt zijn envelop op de reling en kijkt naar Tessa.)
+DURK: Mijn oma bakt ook. Ze zegt: een eierbal zonder zout is geen eierbal. [NIEUW]
+TESSA: Dan weet jouw oma meer dan Jelle. [NIEUW]
+DOUWE: …Zout. [NIEUW]
 
 ## [T3] De trein naar Winschoten – Eemsdelta, Delfzijl naar Winschoten – trein (meerijden)
 TAMMO: Het koopboek. Plakje zes: bloem en jury. Proeverij, kermis Winschoten. [NIEUW]
@@ -417,3 +452,20 @@ TAMMO: ...Laat maar. [NIEUW]
 (regie: stilte. Tessa kijkt naar buiten, de weg gaat verder.)
 TESSA: Het is mooi weer. [NIEUW]
 TAMMO: Ja. [NIEUW]
+
+## [J3] Koffie bij Tessa's ouders – Midden-Groningen, het erf bij Siddeburen – te voet
+(regie: zondagmiddag. Een erf bij Siddeburen met kippen, een moestuin en een tafel onder de appelboom. Naamkaart ANNEKE. Tessa's vader staat bij het hek met een mand eieren en zegt niets. Tessa en Tammo zitten op één bank, een halve meter uit elkaar.)
+ANNEKE: Dus jij bent Tammo. Ze belt nooit, maar als ze belt gaat het over jou. [NIEUW]
+TESSA: Mam. [NIEUW]
+ANNEKE: Jullie zitten ver uit elkaar. [NIEUW]
+TESSA: Het is een bank. [NIEUW]
+ANNEKE: Een bank voor drie. Jullie gebruiken anderhalf. [NIEUW]
+(regie: Anneke legt een brief op tafel. Afzender: Us Mem Snacks.)
+ANNEKE: Dit kwam gisteren, voor jullie allebei. Hij belde ook. Hij vroeg naar een vergunning voor de kippen. [NIEUW]
+TAMMO: En? [NIEUW]
+ANNEKE: Wij hebben kippen sinds 1987. Hij moet eerst de kippen vragen. [NIEUW]
+(regie: Tessa's vader zet de mand eieren op tafel en knikt één keer. Dat is alles. Tammo draait zich naar Tessa; Anneke legt haar breiwerk neer.)
+TAMMO: Tessa, eigenlijk— [NIEUW]
+ANNEKE: Ja? [NIEUW]
+TAMMO: ...Eigenlijk is de koffie heel goed, mevrouw. [NIEUW]
+ANNEKE: Dat dacht ik al. [NIEUW]

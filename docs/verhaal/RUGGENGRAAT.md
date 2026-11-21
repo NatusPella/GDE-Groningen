@@ -124,3 +124,13 @@ Doel: de wagen laten groeien en de gemeenschap iets teruggeven. Willemien is vas
 - `scripts/dialogue_rhythm_test.mjs`: regels van meer dan 25 woorden, vier beurten van één spreker, scènes van één spreker, scènes van meer dan 14 regels; bestaande uitzonderingen in een lijst die alleen korter wordt.
 - `scripts/introduction_test.mjs`: elk personage met meer dan één regel is aangekondigd of krijgt een naamkaart; radio en telefoon introduceren nooit.
 - `scripts/story_spine_test.mjs`: elk deel heeft een waar-het-om-draait van hoogstens 30 woorden, elke stap een lead, de ruggengraat heeft een blad per akte.
+
+## Akte 3 en 4: Jelle dwarsboomt, de romantiek groeit (ronde 5, gebouwd)
+
+Zes nieuwe activiteiten (J1 tot en met J6, zonder beloning, overslaanbaar, zelfde migratie als N1 tot en met N8): **akte 3** J1 Post van de gemeente (flat, na M12), J2 Een envelop in Appingedam (na M14), J3 Koffie bij Tessa's ouders (na de kermisrit); **akte 4** J4 Een dubbele date in Veendam (na M17), J5 Een wielklem in Stadskanaal (na M18), J6 Beppe aan de deur (flat, na M19). De ruzie van M20 blijft de bodem: de stappen ervoor zijn zoet en komisch, zodat het verlies groter voelt.
+
+- **Jelle (C-lijn):** zijn wapens zijn papier en geld, de tegenzet is Tessa die zijn papier leert lezen (J1: "Niet vechten. Lezen. Dat is erger."; J5: artikel 9 tegen zijn artikel 4a). Het formulier in drievoud van het Ontzet is zo voorbereid. J2: omkoping met gratis frikandellen; Lammert helpt wie vraagt, niet wie betaalt. J4: een betaalde tafel als voorschot.
+- **Redemption-zaadje:** Durk en Douwe worden mensen (J2: Durks oma bakt ook en zegt dat een eierbal zonder zout geen eierbal is; J5: Douwe zegt Mems briefje na, "Eet wat"). In J5 draagt Jelles oma Mem hem een warme eierbal in een broodtrommel mee terwijl zijn moeder Sytske aan de telefoon omzet wil (zij is alleen te horen via Jelles helft van het gesprek). Tessa kent Mem en zegt niets.
+- **Romantiek (B-lijn):** het kasboekje en het formulier "partner, huisgenoot of overig" (J1), de ouders die de afstand op de bank zien en Tammo's onvoltooide zin (de vijfde, J3), de dubbele date waar beiden zeggen dat het geen date is (J4), Beppe's "Wannear trouwe jim?" met Tammo's dagdroom van de bruiloft bij de snackwagen en "Overig." (J6). Het bewijs wordt niet uitgelegd.
+- **Beppe en Douwe/Durk:** Beppe komt met soep en herhaalt haar zin uit N3 ("Hy seit neat, mar hy docht it goed."); Durk en Douwe staan in J2 en J5.
+- **Samen spelen:** de stappen zijn van wie het spel opende (de wereld); Tammo en Tessa zijn de lokale hoofdpersonen, een andere speler is partner en NPC, en de voortgang is per speler.
