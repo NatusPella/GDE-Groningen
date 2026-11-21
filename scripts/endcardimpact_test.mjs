@@ -1,7 +1,7 @@
-// Planning en regels van de eindkaart met impact (game/js/eindkaartimpact.js, bigmoment.css):  node scripts/eindkaartimpact_test.mjs
+// Planning en regels van de eindkaart met impact (game/js/endcardimpact.js, bigmoment.css):  node scripts/endcardimpact_test.mjs
 // Geen DOM, geen Electron: staffeltijden, teller, geluidsmomenten, de grens van 1,6 s en wat de CSS niet mag.
 import fs from 'node:fs';
-import { planIntro, counterSteps, isSkipEvent, FAST_MS, STEP_MS, MAX_TOTAAL_MS, MAX_TIKKEN } from '../game/js/eindkaartimpact.js';
+import { planIntro, counterSteps, isSkipEvent, FAST_MS, STEP_MS, MAX_TOTAAL_MS, MAX_TIKKEN } from '../game/js/endcardimpact.js';
 import { bouwMoment } from '../game/js/bigmoment.js';
 
 let n = 0, fails = 0;
@@ -72,14 +72,14 @@ ok(b.beloningWaarde === 1250 && b.beloning === '€ 1.250', 'moment: numerieke b
 ok(bouwMoment({ soort: 'geslaagd', beloning: '3 kaarten' }).beloningWaarde === null, 'moment: een tekstbeloning telt niet op');
 
 // bronnen
-const css = fs.readFileSync(new URL('../game/js/eindkaartimpact.css', import.meta.url), 'utf8');
+const css = fs.readFileSync(new URL('../game/js/endcardimpact.css', import.meta.url), 'utf8');
 const blok = css;
 ok(blok.length > 200, 'css: het impactblok bestaat');
 ok(!/\b\d+(?:\.\d+)?m?s\b/.test(blok.replace(/\/\*[\s\S]*?\*\//g, '')), 'css: geen losse duur, alleen --ds-m* tokens');
 ok(!/#[0-9a-fA-F]{3,8}\b|rgba?\(/.test(blok.replace(/\/\*[\s\S]*?\*\//g, '')), 'css: geen losse kleuren');
 ok(/prefers-reduced-motion: reduce\)[^}]*\.bm-i[^}]*animation: none/.test(blok) && /html\.reduce-motion \.bm-i/.test(blok) && /rustig-drukwerk \.bm-i/.test(blok), 'css: prefers-reduced-motion, Beweging beperken en Rustig drukwerk zetten de animatie uit');
 ok(/\.bm-i\.bm-klaar[^{]*\{[^}]*animation: none/.test(blok), 'css: overslaan toont de eindstand');
-ok(/eindkaartimpact.css/.test(fs.readFileSync(new URL('../game/js/bigmoment.js', import.meta.url), 'utf8')), 'css: wordt door bigmoment.js geladen');
+ok(/endcardimpact.css/.test(fs.readFileSync(new URL('../game/js/bigmoment.js', import.meta.url), 'utf8')), 'css: wordt door bigmoment.js geladen');
 const js = fs.readFileSync(new URL('../game/js/bigmoment.js', import.meta.url), 'utf8');
 ok(!/from '\.\/audio\.js'/.test(js), 'bigmoment.js blijft zonder audio-import (testbaar)');
 ok(/capture|, true\)/.test(js) && !/preventDefault/.test(js.slice(js.indexOf('function startImpact'), js.indexOf('function toonNu'))), 'overslaan neemt geen invoer weg');

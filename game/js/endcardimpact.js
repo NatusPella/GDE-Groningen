@@ -1,7 +1,7 @@
 // Eindkaart met impact (wens van de eigenaar 21-11): het gele vlak van "Missie geslaagd" slaat in beeld,
 // de losse onderdelen komen gestaffeld binnen, de beloning telt hoorbaar op en een glans sluit af.
 // Dit bestand is alleen de pure planning (geen DOM, geen audio): bigmoment.js leest het plan en zet er
-// klassen, CSS-variabelen en timers van; de tests staan in scripts/eindkaartimpact_test.mjs.
+// klassen, CSS-variabelen en timers van; de tests staan in scripts/endcardimpact_test.mjs.
 //
 // Design System 3: elke stap duurt hooguit --ds-m-max (250 ms) en elke vertraging is een veelvoud van
 // --ds-m-snel (120 ms), dus "Beweging beperken" en Rustig drukwerk (tokens op 0) nemen alles mee. Bij
