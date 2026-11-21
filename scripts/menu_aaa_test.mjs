@@ -33,7 +33,7 @@ const ok = (c, name) => { n++; if (!c) { bad++; console.log('FAIL ' + name); } }
   ok(/--stap:\$\{niv - 1\}/.test(lb), 'Loopbanen: elk niveau staat een stap verder naar rechts');
   ok(/loon/.test(lb) && /basisloon/.test(lb), 'Loopbanen: per niveau staat wat het oplevert');
   ok(/lb-next/.test(lb), 'Loopbanen: de eerstvolgende stap heeft een eigen kader');
-  ok(/lb-hero-sfeer/.test(lb), 'Loopbanen: de hero draagt het sfeervlak van je hoogste vak');
+  ok(/lb-stop/.test(lb) && /lb-wissel/.test(lb), 'Loopbanen: de tour is een tijdlijn met een wissel naar de vakken');
 }
 
 // --- Prestaties: categorieen als kaarten met hun eerstvolgende ----------------------------

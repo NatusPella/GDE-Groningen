@@ -36,6 +36,7 @@ import { isCinematicActive } from './cinematics.js';
 import { renderAchievementsPanel } from './achievementsui.js';
 import { trackTabLine } from './dsmicro.js'; // DS3: de glijdende onderstreping van de tabs (ds-micro.css)
 import { renderLoopbaanPanel } from './loopbaanui.js';
+import { navIndex } from './listnav.js';
 import { renderVisboekPanel } from './visboekui.js';
 import { renderBoerderijPanel, boerderijBegonnen } from './boerderijui.js';
 import { renderVoetbalPanel } from './voetbalcarriereui.js';
@@ -462,7 +463,7 @@ const HINTS = {
   spullen: [[['↑', '↓', '←', '→'], 'kiezen'], [['Enter'], 'gebruiken'], [['Q', 'E'], 'soort'], [['Esc'], BACK, 'back']],
   garage: [[['↑', '↓'], 'kiezen'], [['Enter'], 'afleveren of kopen'], [['Q', 'E'], 'soort'], [['Esc'], BACK, 'back']],
   prestaties: [[['↑', '↓'], 'kiezen'], [['Enter'], 'openen'], [['Q', 'E'], 'weergave'], [['Esc'], BACK, 'back']],
-  loopbaan: [[['↑', '↓'], 'kiezen'], [['→'], 'naar de actie'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
+  loopbaan: [[['↑', '↓'], 'kiezen'], [['T'], 'tour of vakken'], [['→'], 'naar de actie'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
   visboek: [[['↑', '↓'], 'kiezen'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
   boerderij: [[['↑', '↓'], 'kiezen'], [['Enter'], 'doen'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
   voetbal: [[['↑', '↓'], 'kiezen'], [['Enter'], 'doen'], [['Esc'], BACK, 'back']],
@@ -1388,6 +1389,10 @@ function onKey(e) {
     if (tab === 'map' && !inRail && e.__gde === 'pad') toggleMapControls(root, t);
     else if (tab === 'map' && !inRail) cycleSection(e.shiftKey ? -1 : 1);
     else tabFocus(e.shiftKey ? -1 : 1);
+  } else if (tab === 'loopbaan' && lower === 't' && !e.repeat && loopbaanWissel(activePanel())) {
+    consume(e);
+  } else if (tab === 'loopbaan' && (dir === 'up' || dir === 'down' || k === 'Home' || k === 'End') && tourNavigeer(activePanel(), t, k)) {
+    consume(e);
   } else if (tab === 'spullen' && (k === 'Home' || k === 'End' || k === 'PageUp' || k === 'PageDown') && t && t.dataset && t.dataset.spul && spullenNavigeer(activePanel(), t, k.toLowerCase())) {
     consume(e);
   } else if (dir) {
@@ -1926,6 +1931,24 @@ function toggleFold(btn, open) {
   body.hidden = !on;
   btn.setAttribute('aria-expanded', String(on));
   foldNote(btn.dataset.fold, on);
+}
+
+// Loopbanen (DS3, 21-11): T wisselt tussen de tour en de vakken (de toets staat in de knop), en in de tijdlijn lopen de pijlen en het D-pad
+// stop voor stop (listnav.js, hetzelfde patroon als de kaartpopups). Aan de rand van de tijdlijn neemt het menu het over (false).
+function loopbaanWissel(paneel) {
+  const knop = paneel && paneel.querySelector('[data-lb-weergave][aria-pressed="false"]');
+  if (!knop) return false;
+  knop.click();
+  return true;
+}
+function tourNavigeer(paneel, t, k) {
+  if (!paneel || !t || !t.closest || !t.closest('.lb-tour')) return false;
+  const lijst = [...paneel.querySelectorAll('.lb-tour button')];
+  const i = lijst.indexOf(t);
+  const n = navIndex(lijst.length, i, k);
+  if (n < 0 || n === i) return false;
+  focusEl(lijst[n]);
+  return true;
 }
 
 // Arrow keys: jump to the nearest control in that direction, within the rail

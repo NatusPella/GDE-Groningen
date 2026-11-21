@@ -14,11 +14,13 @@ import { cardInfo } from './voetbalcarriereui.js';
 import { getCareer, getClub } from './voetbalcarrierelive.js';
 import { baanDoelen } from './todoui.js';
 import { loopbaanStap, STEP_BY_ID } from './storyarc.js';
-import { storyGateHint } from './storyquery.js';
+import { storyGateHint, storyWorldOpen } from './storyquery.js';
+import { tourStops, stopLine, STATE } from './careertimeline.js';
+import { keyTextHtml } from './keycap.js';
 import { CAREER_FIT, FIT } from './careertour.js';
 import { controleStand, CONTROLE_MIN_NIVEAU } from './kaartjescontrole.js';
 import { getServiceMapState } from './machinist.js';
-import { sfeerStijl, sfeerBandHtml, SFEER_BAND_CSS } from './carrieresfeer.js';
+import { sfeerBandHtml, SFEER_BAND_CSS } from './carrieresfeer.js';
 import { overzicht as modelOverzicht, hoofdActie, eisEnVerdiensten } from './careermodel.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -60,7 +62,7 @@ const CSS = `${SFEER_BAND_CSS}
 .lb-balk__s { display: flex; flex-wrap: wrap; gap: var(--ds-s-1) var(--ds-s-4); font-size: max(14px, var(--menu-min, 14px)); color: var(--mut); }
 .lb-balk__s b { color: var(--ink); font-weight: 700; }
 /* kaarten (#1010) */
-.lb-kaart { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; grid-template-areas: "ic t act" "ic bar bar" "ic volgt volgt" "fit fit fit"; column-gap: var(--ds-s-3); row-gap: 3px; align-items: center; width: 100%; min-height: 84px; padding: 10px 12px; text-align: left; transition: background-color 150ms ease-out, transform 120ms ease-out; }
+.lb-kaart { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; grid-template-areas: "ic t act" "ic bar bar"; column-gap: var(--ds-s-3); row-gap: 3px; align-items: center; width: 100%; min-height: 84px; padding: 10px 12px; text-align: left; transition: background-color 150ms ease-out, transform 120ms ease-out; }
 .lb-kaart:active { transform: scale(0.99); }
 .lb-kaart > .pa-ico { grid-area: ic; align-self: start; width: 36px; height: 36px; }
 .lb-kaart > .pa-ico svg { width: 100%; height: 100%; }
@@ -71,22 +73,20 @@ const CSS = `${SFEER_BAND_CSS}
 .lb-k-act[data-actie="doorgaan"] { border-color: var(--g); color: var(--g); }
 .lb-k-act[data-actie="klaar"] { border-style: dashed; color: var(--mut); border-color: var(--mut); }
 .lb-k-bar { grid-area: bar; height: 6px; width: 100%; }
-.lb-k-volgt { grid-area: volgt; font-size: max(13px, var(--menu-min, 13px)); color: var(--mut); overflow-wrap: break-word; }
 .lb-kaart.nul .lb-k-naam { opacity: 0.85; }
+.lb-kaart.dicht { opacity: 0.7; }
+.lb-k-act .ic { width: 1em; height: 1em; vertical-align: -0.12em; margin-right: 4px; }
+.lb-k-act[data-actie="dicht"] { border-style: dashed; color: var(--mut); border-color: var(--mut); }
 /* 21-11 (pauzemenu-ruimte): de loopbanen als kaartenraster over de ruimte links (groepskoppen over de volle breedte), het detail rechts
    ruim en in twee kolommen zodra het paneel breed genoeg is; niets plakt meer rechtsonder. */
 #pause-menu [data-panel="loopbaan"] .m-main { gap: var(--ds-s-4); }
 #pause-menu .m-list.lb-list { flex: 1 1 0; width: auto; min-width: 0; margin-left: 0; padding-right: var(--ds-s-3); box-sizing: border-box; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: var(--ds-s-2); align-content: start; grid-auto-rows: min-content; }
-.lb-list > .lb-groep { grid-column: 1 / -1; margin: var(--ds-s-3) 0 0; }
+.lb-list > .lb-groep { grid-column: 1 / -1; margin: var(--ds-s-3) 0 0; font-size: max(14px, var(--menu-min, 14px)); }
 .lb-list > .lb-groep:first-child { margin-top: 0; }
 #pause-menu .m-pane.lb-pane { flex: 0 0 clamp(400px, 46%, 720px); min-width: 0; padding-left: var(--ds-s-4); container: lbp / inline-size; }
-.lb-kaart { align-content: start; min-height: 108px; border-radius: var(--ds-r, 8px); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--ink) 16%, transparent); }
+.lb-kaart { align-content: start; min-height: 76px; border-radius: var(--ds-r, 8px); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--ink) 16%, transparent); }
 .lb-kaart:hover { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--ink) 40%, transparent); }
 .lb-kaart.sel { box-shadow: inset 0 0 0 3px var(--ink); background: var(--ds-c-sel-vlak); }
-.lb-k-fit { grid-area: fit; display: flex; flex-wrap: wrap; gap: var(--ds-s-1); margin-top: 2px; }
-.lb-chip { padding: 0 var(--ds-s-2); border-radius: 999px; border: 1.5px solid color-mix(in srgb, var(--ink) 35%, transparent); font-size: max(13px, var(--menu-min, 13px)); line-height: 1.5; white-space: nowrap; }
-.lb-chip[data-samen="nee"] { border-style: dashed; }
-.lb-chip[data-tour="ja"] { border-color: var(--g); color: var(--g); }
 .lb-d-kop { display: flex; flex-direction: column; gap: var(--ds-s-2); flex: none; }
 .lb-d-kol { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ds-s-3) var(--ds-s-4); align-items: start; }
 .lb-d-a, .lb-d-b { display: flex; flex-direction: column; gap: var(--ds-s-3); min-width: 0; }
@@ -94,9 +94,36 @@ const CSS = `${SFEER_BAND_CSS}
 @container lbp (min-width: 600px) { .lb-d-kol { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
 @media (max-height: 820px) {
   .lb-kaart { min-height: 60px; }
-  .lb-k-volgt, .lb-k-fit { display: none; }
   .lb-pane .lb-sfeer { min-height: 44px; }
 }
+/* de wissel Tour of Vakken, met de toets in de knop (DS3) */
+.lb-wissel { display: inline-flex; gap: var(--ds-s-2); }
+.lb-wissel button { display: inline-flex; align-items: center; gap: var(--ds-s-2); min-height: 36px; padding: 0 var(--ds-s-3); border-radius: 999px; font-size: max(14px, var(--menu-min, 14px)); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--ink) 30%, transparent); transition: background-color 150ms ease-out, box-shadow 150ms ease-out; }
+.lb-wissel button[aria-pressed="true"] { box-shadow: inset 0 0 0 3px var(--ink); background: var(--ds-c-sel-vlak); }
+/* de tour als tijdlijn: gedaan, nu, volgende en dicht; vorm en icoon dragen het, nooit alleen kleur */
+#pause-menu .m-list.lb-list.lb-list--tour { display: block; }
+.lb-tour { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.lb-stop { position: relative; display: grid; grid-template-columns: 28px minmax(0, 1fr); column-gap: var(--ds-s-3); padding-bottom: var(--ds-s-2); animation: lb-in 160ms ease-out both; }
+.lb-stop::before { content: ""; position: absolute; left: 13px; top: 46px; bottom: 0; width: 2px; background: color-mix(in srgb, var(--ink) 22%, transparent); }
+.lb-stop:last-child::before { display: none; }
+.lb-stop__punt { display: grid; place-items: center; align-self: start; margin-top: 14px; width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--ink); transition: background-color 150ms ease-out, transform 150ms ease-out; }
+.lb-stop__punt .ic { width: 14px; height: 14px; }
+.lb-stop[data-staat="gedaan"] .lb-stop__punt { border-color: var(--g); color: var(--g); }
+.lb-stop[data-staat="nu"] .lb-stop__punt { border-width: 3px; background: var(--ds-c-sel-vlak); transform: scale(1.1); }
+.lb-stop[data-staat="volgende"] .lb-stop__punt { border-color: color-mix(in srgb, var(--ink) 45%, transparent); }
+.lb-stop[data-staat="dicht"] .lb-stop__punt { border-style: dashed; border-color: var(--mut); color: var(--mut); }
+.lb-stop__knop, .lb-stop__dicht { display: flex; align-items: center; gap: var(--ds-s-3); width: 100%; min-height: 56px; padding: 8px 12px; text-align: left; border-radius: var(--ds-r, 8px); box-sizing: border-box; }
+.lb-stop__knop { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--ink) 16%, transparent); transition: background-color 150ms ease-out, transform 120ms ease-out; }
+.lb-stop__knop:hover { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--ink) 40%, transparent); }
+.lb-stop__knop:active { transform: scale(0.99); }
+.lb-stop__knop.sel { box-shadow: inset 0 0 0 3px var(--ink); background: var(--ds-c-sel-vlak); }
+.lb-stop__knop > .pa-ico { width: 32px; height: 32px; flex: none; }
+.lb-stop__knop > .pa-ico svg { width: 100%; height: 100%; }
+.lb-stop__t { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+.lb-stop__naam { font-size: 20px; overflow-wrap: break-word; }
+.lb-stop__s { font-size: max(14px, var(--menu-min, 14px)); color: var(--mut); }
+.lb-stop__dicht { color: var(--mut); border: 1.5px dashed color-mix(in srgb, var(--ink) 25%, transparent); }
+.lb-stop[data-staat="dicht"] .lb-stop__naam { font-size: 18px; }
 /* hoofdactie, voortgang en feiten in het detail */
 .lb-actie { display: flex; flex-direction: column; gap: var(--ds-s-3); padding: var(--ds-s-3) 0; border-bottom: 1px solid var(--line); animation: lb-in 160ms ease-out; }
 .lb-actie__r { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ds-s-3); }
@@ -104,7 +131,6 @@ const CSS = `${SFEER_BAND_CSS}
 .lb-hoofd { min-height: var(--ds-doel-aanraken, 44px); }
 /* #1055: het vinkje van de gekozen rij staat rechtsonder, niet over de pill rechtsboven; de laatste regel laat er ruimte voor */
 #pause-menu [data-panel="loopbaan"] .m-li.lb-kaart.sel::after, #pause-menu [data-panel="loopbaan"] .m-li.lb-kaart[aria-current="true"]::after { top: auto; bottom: var(--ds-s-1); right: var(--ds-s-3); }
-.lb-kaart .lb-k-volgt { padding-right: 40px; }
 .lb-actie .lb-voort { margin: 0; }
 .lb-voort__t { font-size: max(14px, var(--menu-min, 14px)); color: var(--mut); white-space: nowrap; }
 .lb-voort__p { font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: 22px; }
@@ -113,17 +139,7 @@ const CSS = `${SFEER_BAND_CSS}
 .lb-feiten dt { font-size: max(13px, var(--menu-min, 13px)); letter-spacing: 0.06em; text-transform: uppercase; color: var(--mut); }
 .lb-feiten dd { margin: 0; font-size: 18px; line-height: 1.3; overflow-wrap: break-word; }
 @keyframes lb-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) { .lb-kaart, .lb-actie { transition: none; animation: none; } }
-.lb-hero { flex: none; }
-.lb-hero--leeg .lb-eerste { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); margin-top: 2px; }
-.lb-hero--leeg .lb-eerste .ds-z-chip { min-height: 32px; }
-.lb-hero--leeg .lb-eerste .ds-z-chip { padding: 0 var(--ds-s-4); }
-.lb-hero .pm-hero-t { font-size: 36px; }
-.lb-hero > :not(.lb-hero-sfeer):not(.lb-hero-ico) { position: relative; z-index: 1; }
-.lb-hero > .lb-hero-sfeer { position: absolute; z-index: 0; top: 0; right: 0; bottom: 0; width: 320px; opacity: 0.42; pointer-events: none; -webkit-mask-image: linear-gradient(90deg, transparent, var(--ds-c-ink-inkt) 70%); mask-image: linear-gradient(90deg, transparent, var(--ds-c-ink-inkt) 70%); }
-.lb-hero > .lb-hero-ico { position: absolute; z-index: 2; right: 32px; top: 50%; width: 72px; height: 72px; margin: 0; color: color-mix(in srgb, var(--ink) 90%, transparent); transform: translateY(-50%); }
-.lb-hero-ico svg { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-.lb-stats { flex: none; }
+@media (prefers-reduced-motion: reduce) { .lb-kaart, .lb-actie, .lb-stop, .lb-stop__punt, .lb-stop__knop, .lb-wissel button { transition: none; animation: none; } }
 .lb-groep { display: flex; align-items: baseline; gap: 10px; margin: 16px 0 4px; font-family: var(--ds-font-zeef-tekst); font-size: max(14px, var(--menu-min, 14px)); letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; }
 .lb-groep:first-child { margin-top: 0; }
 .lb-li { gap: 12px; }
@@ -155,10 +171,7 @@ const CSS = `${SFEER_BAND_CSS}
 .lb-next.klaar { box-shadow: inset 3px 0 0 var(--line2); }
 .lb-next p { margin: 4px 0; }
 .lb-next .lb-voort { margin: 0 0 6px; }
-.lb-hero:has(.lb-hero-ico) :is(.pm-hero-h, .pm-hero-t, .pm-hero-lead) { padding-right: 120px; }
 @media (max-height: 820px) {
-  .lb-hero:has(.lb-hero-ico) :is(.pm-hero-h, .pm-hero-t, .pm-hero-lead) { padding-right: 92px; }
-  .lb-hero > .lb-hero-ico { right: 20px; width: 54px; height: 54px; }
   .lb-trap li { min-height: 40px; }
 }
 .lb-banen { list-style: none; margin: 4px 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px 0; }
@@ -196,6 +209,8 @@ function zetCss() {
 }
 
 let gekozen = 'trein';
+let gekozenDoorSpeler = false; // zolang de speler niets koos, opent het detail bij de stop waar de tour nu is
+let weergave = 'tour'; // 'tour' (tijdlijn) of 'vakken' (kaarten per groep)
 const bars = new Map();
 
 // Een loopbaan als kaart (careermodel.js, #1010): icoon, naam, titel en niveau, een voortgangsbalk naar het volgende niveau, de
@@ -203,26 +218,36 @@ const bars = new Map();
 // er per kaart één focusstop is). De kaart is één knop: kiezen toont het detail rechts.
 function kaart(k) {
   const aan = gekozen === k.id;
-  const namen = bezighedenNamen(k.id);
-  const aantal = bezighedenAantal(k.id);
-  const label = `${k.naam}, ${k.stand}${k.gestart ? `, ${k.titel}, ${k.pct} procent naar het volgende niveau` : ''}, ${k.actieLabel}`;
-  return `<button type="button" class="m-li lb-li lb-kaart ds-m-knop${k.gestart ? '' : ' nul'}${aan ? ' sel' : ''}" data-vak="${k.id}" data-actie="${k.actie}" aria-label="${esc(label)}" title="${esc(namen.length ? 'Bezigheden: ' + namen.join(', ') : 'Geen aparte bijbaan')}"${aan ? ' aria-current="true"' : ''}>` +
-    `${loopbaanIcoon(k.icoon)}<span class="lb-k-t"><span class="lb-k-naam">${esc(k.naam)}</span><span class="lb-k-stand">${esc(k.gestart ? k.titel + ' · niveau ' + k.niveau : 'Nog niet begonnen')}</span></span>` +
-    `<span class="lb-k-act" data-actie="${k.actie}">${esc(k.actieLabel)}</span>` +
-    (k.gestart && k.volgend ? `<span class="m-bar lb-k-bar" aria-hidden="true"><i data-bar="lbk-${k.id}" data-w="${k.pct}"></i></span>` : '') +
-    `<span class="lb-k-volgt">${k.gestart ? esc(k.beloning) : esc(aantal ? aantal + (aantal === 1 ? ' bezigheid' : ' bezigheden') + ' erbij' : 'Begin met een eerste klus')}</span>` +
-    fitChips(k) + '</button>';
+  const dicht = !k.gestart && !storyWorldOpen(k.id);
+  const actie = dicht ? 'dicht' : k.actie;
+  const pil = dicht ? `${icoon('slot')}Dicht` : esc(k.actieLabel);
+  const stand = k.gestart ? `${k.titel} · niveau ${k.niveau}` : dicht ? 'Later in het verhaal' : 'Nog niet begonnen';
+  const label = `${k.naam}, ${dicht ? 'nog dicht, later in het verhaal' : k.stand}${k.gestart ? `, ${k.titel}, ${k.pct} procent naar het volgende niveau` : ''}${dicht ? '' : ', ' + k.actieLabel}`;
+  return `<button type="button" class="m-li lb-li lb-kaart ds-m-knop${k.gestart ? '' : ' nul'}${dicht ? ' dicht' : ''}${aan ? ' sel' : ''}" data-vak="${k.id}" data-actie="${actie}" aria-label="${esc(label)}"${aan ? ' aria-current="true"' : ''}>` +
+    `${loopbaanIcoon(k.icoon)}<span class="lb-k-t"><span class="lb-k-naam">${esc(k.naam)}</span><span class="lb-k-stand">${esc(stand)}</span></span>` +
+    `<span class="lb-k-act" data-actie="${actie}">${pil}</span>` +
+    (k.gestart && k.volgend ? `<span class="m-bar lb-k-bar" aria-hidden="true"><i data-bar="lbk-${k.id}" data-w="${k.pct}"></i></span>` : '') + '</button>';
 }
 
-// De carrière-tour op de kaart (careertour.js): wie is hier goed (Tammo, Tessa of samen), of ze samen kunnen werken, en of je het vak al probeerde.
-// Tekst en vorm dragen het, nooit alleen kleur.
-function fitChips(k) {
-  const f = CAREER_FIT[k.id];
-  if (!f) return '';
-  return `<span class="lb-k-fit"><span class="lb-chip" data-fit="${f.fit}">Goed: ${esc(FIT[f.fit])}</span>` +
-    `<span class="lb-chip" data-samen="${f.together ? 'ja' : 'nee'}">${f.together ? 'Samen lukt het' : 'Samen lastig'}</span>` +
-    `<span class="lb-chip" data-tour="${k.gestart ? 'ja' : 'nee'}">${k.gestart ? 'Geprobeerd' : 'Nog niet geprobeerd'}</span></span>`;
+// De tour als tijdlijn (careertimeline.js): gedaan, nu, volgende en dicht. Een dichte stop is geen knop en verklapt niets (geen naam, geen icoon).
+const STOP_ICOON = { gedaan: 'vinkje', nu: 'afspelen', volgende: 'volgende', dicht: 'slot' };
+function tourHtml(profiel) {
+  const stops = tourStops(profiel, storyWorldOpen);
+  return '<ol class="lb-tour" aria-label="De tour door de loopbanen">' + stops.map((s, i) => {
+    const punt = `<span class="lb-stop__punt">${icoon(STOP_ICOON[s.staat])}</span>`;
+    const stijl = `style="animation-delay:${Math.min(i, 8) * 20}ms"`;
+    if (s.staat === STATE.closed) {
+      return `<li class="lb-stop" data-staat="dicht" ${stijl}>${punt}<span class="lb-stop__dicht" aria-label="Stop ${s.nr}, nog dicht, later in het verhaal"><span class="lb-stop__t"><span class="lb-stop__naam">Nog dicht</span><span class="lb-stop__s">${esc(stopLine(s))}</span></span></span></li>`;
+    }
+    const aan = gekozen === s.vak;
+    const regel = stopLine(s);
+    return `<li class="lb-stop" data-staat="${s.staat}" ${stijl}${s.staat === STATE.now ? ' aria-current="step"' : ''}>${punt}<button type="button" class="m-li lb-stop__knop ds-m-knop${aan ? ' sel' : ''}" data-vak="${s.vak}" data-stop="${s.staat}" aria-label="${esc(`Stop ${s.nr}, ${s.naam}, ${regel}`)}"${aan ? ' aria-current="true"' : ''}>` +
+      `${loopbaanIcoon(s.icoon)}<span class="lb-stop__t"><span class="lb-stop__naam">${esc(s.naam)}</span><span class="lb-stop__s">${esc(regel)}</span></span></button></li>`;
+  }).join('') + '</ol>';
 }
+
+// De wissel Tour of Vakken: de toets staat in de knop van de weergave waar je naartoe gaat (T).
+const wisselKnop = (id, tekst, aan) => `<button type="button" class="m-bt ds-m-knop" data-lb-weergave="${id}" aria-pressed="${aan}">${esc(tekst)}${aan ? '' : keyTextHtml('{T}')}</button>`;
 
 // Elke bezigheid van een loopbaan staat er één keer: de bijbanen uit loopbaan.js (BAAN_VAK) en, bij Vissen en Landbouw, het
 // visboek of de boerderij als eigen bezigheid. Zo zie je bij elk vak wat je er kunt doen, zonder dubbele regels (#430).
@@ -232,8 +257,6 @@ const VAK_LINK = {
   buiten: { id: 'voetbal', naam: 'Voetbal', knop: 'Open je voetbalcarrière', stand: () => { try { const k = cardInfo(getCareer(), getClub); return k.gestart ? `${k.stand} · ${k.niveau}` : 'Nog niet begonnen'; } catch (e) { return 'Je club, selectie en stand'; } } },
 };
 const NAMEN = new Map(SIDE_JOBS.map((j) => [j.id, j.name]));
-const bezighedenAantal = (id) => L.banenVan(id).length + (VAK_LINK[id] ? 1 : 0);
-const bezighedenNamen = (id) => [...L.banenVan(id).map((b) => NAMEN.get(b) || b), ...(VAK_LINK[id] ? [VAK_LINK[id].naam] : [])];
 
 // De eerste klus en waar die staat (#431): elke loopbaan is vanaf zijn eigen startplek of hier te beginnen.
 // Een vak dat al begonnen is (ook via de eerste punten) telt voor de verhaalstap die erbij hoort als gedaan.
@@ -341,7 +364,6 @@ function detailHtml(profiel, id, w = null) {
   const v = profiel.vakken[id];
   const d = L.volgendDoel(profiel, id);
   const groep = (L.GROEPEN.find((g) => g.id === info.groep) || {}).naam || '';
-  const factor = L.loonFactor(profiel, id);
   // #671: één regel in gewone taal met de eerstvolgende stap en waar je die doet, plus de knop naar Te doen.
   const stap = L.volgendeStap(profiel, id);
   const waar = stap && stap.waar ? NAMEN.get(stap.waar) || stap.waar : '';
@@ -350,8 +372,6 @@ function detailHtml(profiel, id, w = null) {
     ? `<p class="lb-stap"><b>Eerstvolgende stap:</b> ${esc(stap.tekst)}${!stap.klaar && waarTekst ? ` <span class="mut">Waar: ${esc(waarTekst)}.</span>` : ''}</p>` +
       (!stap.klaar && stap.waar && doelen.has(stap.waar) ? `<p class="lb-stap-actie"><button type="button" class="m-bt lb-doel" data-todo-goal="job:${esc(stap.waar)}">Waar kan ik dat doen?</button></p>` : '')
     : '';
-  const telt = [L.tellerTekst(profiel, id)];
-  if (v.uniek.length) telt.push(`${v.uniek.length} verschillende ${esc(info.uniek)}`);
   const trap = trapHtml(id, d, v);
   const banen = L.banenVan(id);
   const bezigheden = bezighedenHtml(id, v, banen);
@@ -367,17 +387,17 @@ function detailHtml(profiel, id, w = null) {
   // plakkende balk onderaan), daaronder twee kolommen zodra het paneel breed genoeg is: links de ladder en de eerste klus, rechts de
   // volgende stap, de bezigheden en de uitleg (de container query staat in de CSS hierboven).
   const gestartNu = L.isGestart(profiel, id);
+  const kaartjes = kaartjesHtml(id, d.niveau);
+  const dienst = dienstHtml(id, w);
   return `<div class="lb-d-kop"><div class="pm-pane-top">${sfeerBandHtml(id, { icoon: loopbaanIcoon(info.icoon, 'lb-sfeer-ico'), klein: groep })}<h2 class="m-h2 td-h2">${loopbaanIcoon(info.icoon, 'pa-ico big')}${esc(info.naam)}</h2></div>` +
-    `<div class="lb-kop"><p class="lb-titel"><b>${esc(d.titel)}</b> <span class="mut">· niveau ${d.niveau} van ${L.MAX_NIVEAU}</span></p><p class="mut">${esc(info.wat)}</p></div>` +
+    `<div class="lb-kop"><p class="lb-titel"><b>${esc(d.titel)}</b> <span class="mut">· niveau ${d.niveau} van ${L.MAX_NIVEAU}</span></p></div>` +
     // de ene gele hoofdknop (Doorgaan of Nu starten) staat direct bij de titel, met de voortgang en de drie feiten
     actieHtml(profiel, id) + '</div>' +
     '<div class="lb-d-kol"><div class="lb-d-a">' + (gestartNu ? '' : start) + trap + '</div>' +
     '<div class="lb-d-b">' + `<div class="lb-next${stap && stap.klaar ? ' klaar' : ''}">${stapHtml}</div>` +
     (gestartNu ? start : '') +
     bezigheden +
-    `<div class="lb-blok"><h3 class="m-eb lb-h3">Over dit vak</h3>` +
-    `<p>${v.xp > 0 ? esc(telt.join(' \u00b7 ')) : gestartNu ? 'Begonnen, nog geen klus gedaan.' : 'Nog niet begonnen.'}</p>` +
-    `<p class="${factor > 1 ? 'g' : 'mut'}">${factor > 1 ? `Dit vak betaalt nu ${L.percentage(factor)}% meer. ` : ''}${esc(L.loonTekst(id))}</p>${vaardigheid}${kaartjesHtml(id, d.niveau)}${dienstHtml(id, w)}</div>` +
+    (vaardigheid || kaartjes || dienst ? `<div class="lb-blok">${vaardigheid}${kaartjes}${dienst}</div>` : '') +
     landbouwGidsHtml(id) + '</div></div>';
 }
 
@@ -412,44 +432,42 @@ export function renderLoopbaanPanel(el, sluit = null, w = null) {
   // #846: de overkoepelende teller naast de niveaus: hoeveel loopbanen je al met een echte eerste klus begon, en
   // op negentien de blijvende titel. De felicitatie zelf komt eenmalig als prestatiekaart (achievements.js).
   const eerste = L.eersteKlusStand(profiel);
-  const duizendpoot = eerste.klaar ? ` · titel ${esc(L.DUIZENDPOOT_TITEL)}` : '';
-  const omhoog = sam.som - L.VAKKEN.length;
-  const maxOmhoog = sam.max - L.VAKKEN.length;
-  const pctEerste = eerste.totaal ? Math.round((eerste.gedaan / eerste.totaal) * 100) : 0;
-  const pctNiveau = maxOmhoog ? Math.round((omhoog / maxOmhoog) * 100) : 0;
-  const pctGestart = Math.round((sam.aantal / L.VAKKEN.length) * 100);
-  const hoogsteTitel = sam.hoogste ? sam.hoogste.titel : 'Je eerste titel wacht';
-  // De hero draagt het sfeervlak en -icoon van het vak waar je het hoogst staat, zodat de opening niet alleen tekst is.
-  // Zonder enige voortgang is er nog geen loopbaan om te tonen en blijft de hero tekst (het gekozen vak staat rechts).
-  // Kleur is nooit de enige cue: het patroon, het icoon en de titel staan erbij.
-  const heroVak = sam.hoogste ? sam.hoogste.vak : null;
-  const heroInfo = heroVak ? L.vakInfo(heroVak) : null;
-  const heroSfeer = heroInfo
-    ? `<span class="lb-hero-sfeer" style="${sfeerStijl(heroVak)}" aria-hidden="true"></span>` + loopbaanIcoon(heroInfo.icoon, 'lb-hero-ico')
-    : '';
   const leeg = sam.aantal === 0;
-  const hero = `<section class="pm-hero lb-hero${leeg ? ' lb-hero--leeg' : ''}" aria-label="Loopbanen">${heroSfeer}<div class="pm-hero-h"><span class="m-eb">Je loopbaan</span>${leeg ? '' : `<span class="pm-badge" data-tone="ok">${sam.aantal} van ${L.VAKKEN.length} begonnen</span>`}</div>` +
-    `<h2 class="pm-hero-t${hoogsteTitel.length > 22 ? ' long' : ''}">${esc(hoogsteTitel)}</h2>` +
-    (leeg
-      ? `<p class="pm-hero-lead">Er wachten ${L.VAKKEN.length} loopbanen op je. Doe in één vak een eerste klus en je krijgt je eerste titel, met meer loon bij elke stap omhoog.</p>` +
-        `<div class="lb-eerste ds-zeef" role="list" aria-label="Zo begin je"><span class="ds-z-chip" role="listitem">1. Kies een vak</span><span class="ds-z-chip" role="listitem">2. Doe de eerste klus</span><span class="ds-z-chip" role="listitem">3. Krijg je titel</span></div></section>`
-      : `<p class="pm-hero-lead">Kies links een vak: elk vak heeft zijn eigen ladder, zijn eigen loon en de klussen die erbij horen.${eerste.klaar ? ' Je bent de duizendpoot van Grunn.' : ''}</p></section>`);
-  const lijst = modelOverzicht(profiel).groepen.map((g) => `<div class="lb-groep"><span>${esc(g.groep.naam)}</span></div>` + g.kaarten.map(kaart).join('')).join('');
-  // zonder één begonnen loopbaan zijn drie nul-kaarten geen voortgang: de uitnodiging in de hero zegt het al (#846)
-  const balk = `<header class="lb-balk" aria-label="Je loopbaan"><span class="lb-balk__t"><span class="m-eb">Je loopbaan</span><b>${esc(hoogsteTitel)}</b></span><span class="lb-balk__s"><span><b>${sam.aantal}</b> van ${L.VAKKEN.length} begonnen</span><span><b>${eerste.gedaan}</b> van ${eerste.totaal} eerste klussen${duizendpoot}</span><span><b>${omhoog}</b> van ${maxOmhoog} niveaus omhoog</span></span></header>`;
-  el.innerHTML = (leeg ? hero : balk) +
-    `<div class="m-main"><div class="m-list pa-list lb-list">${lijst}</div><aside class="m-pane pa-pane lb-pane" aria-live="polite">${detailHtml(profiel, gekozen, wereld)}</aside></div>`;
+  // De kop: titel (hooguit 30 tekens), één ondertitel (hooguit 40) en de wissel Tour of Vakken. Geen hero en geen alinea's meer (DS3, tekstdieet).
+  const titel = leeg ? 'Je loopbaan' : sam.hoogste.titel;
+  const onder = leeg ? 'Kies een vak en doe een eerste klus' : eerste.klaar ? `${L.DUIZENDPOOT_TITEL} · alle ${eerste.totaal} gedaan` : `${eerste.gedaan} van ${eerste.totaal} eerste klussen`;
+  const kop = `<header class="lb-balk" aria-label="Je loopbaan"><span class="lb-balk__t"><span class="m-eb">Je loopbaan</span><b>${esc(titel)}</b></span><span class="lb-balk__s">${esc(onder)}</span>` +
+    `<span class="lb-wissel" role="group" aria-label="Weergave">${wisselKnop('tour', 'Tour', weergave === 'tour')}${wisselKnop('vakken', 'Vakken', weergave === 'vakken')}</span></header>`;
+  // de tour opent bij de stop waar je nu bent, tot je zelf een vak kiest
+  if (!gekozenDoorSpeler) {
+    const nu = tourStops(profiel, storyWorldOpen).find((st) => st.staat === STATE.now);
+    if (nu) gekozen = nu.vak;
+  }
+  const lijst = weergave === 'tour'
+    ? tourHtml(profiel)
+    : modelOverzicht(profiel).groepen.map((g) => `<div class="lb-groep"><span>${esc(g.groep.naam)}</span></div>` + g.kaarten.map(kaart).join('')).join('');
+  el.innerHTML = kop +
+    `<div class="m-main"><div class="m-list pa-list lb-list${weergave === 'tour' ? ' lb-list--tour' : ''}">${lijst}</div><aside class="m-pane pa-pane lb-pane" aria-live="polite">${detailHtml(profiel, gekozen, wereld)}</aside></div>`;
   fillBars(el, bars);
   if (!el.dataset.bound) {
     el.dataset.bound = '1';
     const kies = (id) => {
       if (!id || id === gekozen) return;
       gekozen = id;
+      gekozenDoorSpeler = true;
       for (const b of el.querySelectorAll('[data-vak]')) { const aan = b.dataset.vak === gekozen; b.classList.toggle('sel', aan); b.toggleAttribute('aria-current', aan); }
       el.querySelector('.lb-pane').innerHTML = detailHtml(getProfiel(), gekozen, wereld);
       queueMicrotask(() => fillBars(el, bars));
     };
     el.addEventListener('click', (e) => {
+      const wissel = e.target.closest('[data-lb-weergave]');
+      if (wissel) {
+        weergave = wissel.dataset.lbWeergave === 'vakken' ? 'vakken' : 'tour';
+        renderLoopbaanPanel(el, sluit, wereld);
+        const nieuweKnop = el.querySelector('[data-lb-weergave][aria-pressed="true"]');
+        if (nieuweKnop) nieuweKnop.focus();
+        return;
+      }
       const start = e.target.closest('[data-vak-start]');
       if (start) { startLoopbaan(wereld, start.dataset.vakStart); renderLoopbaanPanel(el, sluit, wereld); return; }
       const b = e.target.closest('[data-vak]');

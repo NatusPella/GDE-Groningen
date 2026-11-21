@@ -51,7 +51,7 @@ if (STAP.includes('todo')) {
 if (STAP.includes('loopbaan')) {
   const LL = await imp('loopbaanlive');
   await open('loopbaan');
-  out.loopbaanLeeg = { klein: kleinste(q('#pause-menu')), titel: (q('#pause-menu .pm-hero-t, #pause-menu .lb-hero-t') || {}).textContent, dood0van19: /0 van 19/.test(q('#pause-menu').innerText) };
+  out.loopbaanLeeg = { klein: kleinste(q('#pause-menu')), titel: (q('#pause-menu .lb-balk__t b') || {}).textContent, dood0van19: /0 van 19/.test(q('#pause-menu').innerText) };
   await shot('loopbaan-leeg', 600);
   await sluit();
   LL.startLoopbaan(w, 'trein');

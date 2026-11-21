@@ -96,10 +96,10 @@ t('eis en verdiensten zijn korte zinnen: wat nog moet, wat het nu betaalt en wat
 
 t('de bron: kaarten zonder tellers achter de kop, één gele hoofdknop in het detail, leeg-staat met uitnodiging', () => {
   const ui = fs_lees('game/js/loopbaanui.js');
-  assert.match(ui, /class="m-bp lb-hoofd" data-vak-start=/);
+  assert.match(ui, /class="m-bp lb-hoofd ds-m-knop" data-vak-start=/);
   assert.match(ui, /data-todo-goal="job:\$\{esc\(a\.baan\)\}">\$\{esc\(a\.label\)\}/);
   assert.doesNotMatch(ui, /lb-gn/);
-  assert.match(ui, /\(leeg \? hero : balk\)/, 'zonder voortgang de uitnodiging, anders de koprij');
+  assert.match(ui, /Kies een vak en doe een eerste klus/, 'zonder voortgang een korte uitnodiging in de ene kop');
   assert.match(ui, /aria-label="\$\{esc\(label\)\}"/, 'elke kaart heeft een volledige naam voor een schermlezer');
 });
 

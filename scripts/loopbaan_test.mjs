@@ -480,8 +480,8 @@ t('#846: wat het scherm en Te doen tonen komt uit dezelfde teller', () => {
 
 t('#1010: het Loopbanen-scherm heeft een koprij, kaarten met hoofdactie en een detail met feiten, zonder tellers achter koppen', () => {
   const ui = fs.readFileSync(JS + 'loopbaanui.js', 'utf8');
-  assert.match(ui, /pm-hero lb-hero/, 'zonder voortgang opent de kop met een uitnodiging');
-  assert.match(ui, /lb-balk/, 'met voortgang staat de stand op één regel');
+  assert.match(ui, /Kies een vak en doe een eerste klus/, 'zonder voortgang staat in de kop één korte uitnodiging');
+  assert.match(ui, /lb-balk/, 'de stand staat in één kop met de wissel Tour of Vakken');
   assert.match(ui, /lb-kaart/, 'elke loopbaan is een kaart');
   assert.match(ui, /lb-feiten/, 'het detail heeft eis, verdiensten en volgende beloning');
   assert.doesNotMatch(ui, /lb-gn|lb-kpi/, 'geen aantallen achter de groepskoppen en geen oude KPI-strook');
