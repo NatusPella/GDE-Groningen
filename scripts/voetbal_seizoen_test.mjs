@@ -1,7 +1,7 @@
 // Test van de seizoenen, divisies en knock-outs (#1108): scripts/voetbal_seizoen_test.mjs. Puur, geen DOM.
 import PARKDATA from '../game/js/voetbalparkendata.js';
 import assert from 'node:assert/strict';
-import { schedule, newLeague, playRound, playOut, table, points, myFixture, awayCount, newWorld, endSeason, outcomeFor, divisionOf, newKnockout, playKnockoutRound, playKnockoutOut, myTie, shootout, cupEntrants, europeEntrants, makeCtx, baseStrength, lambdaFor, ROUNDS, knockoutRoundName } from '../game/js/voetbalseizoen.js';
+import { schedule, newLeague, playRound, playOut, table, points, myFixture, awayCount, newWorld, endSeason, outcomeFor, divisionOf, newKnockout, playKnockoutRound, playKnockoutOut, myTie, shootout, cupEntrants, europeEntrants, makeCtx, baseStrength, lambdaFor, ROUNDS, knockoutRoundName } from '../game/js/voetbalseason.js';
 import { CLUBS, EUROPE_CLUBS, clubById, clubsOf } from '../game/js/voetbalclubs.js';
 import { makeParkIndex, localDivision, HOME_WGS } from '../game/js/voetbalparken.js';
 import { wgsToWorld } from '../game/js/rdnew.js';

@@ -4,7 +4,7 @@
 // Na zeven rondes gaan de eerste twee omhoog en de laatste twee omlaag (de Kroonklasse heeft geen promotie); onder de Talentenklasse ligt een pool van lokale clubs.
 // De beker (Dijkbeker, 16 clubs uit alle klassen) en de Waddenbeker (de kampioen van de Kroonklasse plus verzonnen buitenlandse clubs) zijn knock-outs met strafschoppen bij gelijkspel.
 import { makeRng } from './minigamekit.js';
-import { hashSeed } from './voetbalspelers.js';
+import { hashSeed } from './voetbalplayers.js';
 
 export const ROUNDS = 7;
 export const POINTS = { winst: 3, gelijk: 1 };

@@ -32,19 +32,8 @@
 #hud .pf-card[data-app="geld"] { --pf: var(--ds-c-groen-tx); }
 #hud .pf-card[data-app="bericht"] { --pf: var(--ds-c-ink-inkt); }
 
-/* de tijdbalk onderaan, in de inkt van de app */
-#hud .pf-card::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  height: var(--ds-s-1);
-  width: 100%;
-  background: var(--pf);
-  transform-origin: left;
-}
-#hud .pf-card.on::after { animation: pf-time var(--pf-dur, 7s) linear forwards; }
-@keyframes pf-time { to { transform: scaleX(0); } }
+/* de tijdbalk onderaan: ds-melding.css (.ds-melding__tijd, bordgroen); hij staat stil als de HUD stilstaat */
+#hud .pf-stack.pf-pauze .ds-melding__tijd, #hud .pf-pauze .ds-melding__tijd { animation-play-state: paused; }
 
 #hud .pf-head { gap: var(--ds-s-2); justify-content: flex-start; }
 #hud .pf-card .pf-body.ds-z-kaart__tekst { font-size: var(--ds-t-kaart-body); line-height: var(--ds-lh-kaart-tekst); }

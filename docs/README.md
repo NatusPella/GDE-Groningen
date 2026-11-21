@@ -44,6 +44,8 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [BOERDERIJ.md](<BOERDERIJ.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/mechanica.md`](../.specs-fire/standard… |
 | [BEZIT-21-11.md](<BEZIT-21-11.md>) | Werkdocument. Onderzoek, data-audit en ontwerp van de epic Bezit: koopbare percelen en panden in de hele provincie (13.883 percelen, 370.144 panden), prijsmodel, bezit-opslag, productieketen, AI-personeel, Samen spelen en het stappenplan met werkpakketten. Gemeten met `scripts/world/percelen_audit.mjs`. |
 | [COOP-GAST.md](<COOP-GAST.md>) | Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). Dit docu… |
+| [COOP-DEKKING-21-11.md](<COOP-DEKKING-21-11.md>) | Werkdocument. Audit-matrix: per systeem van de hele game de zes vragen over Samen spelen (bezit, gast, beloning, wegvallen en hostwissel, enkelspeler-aanname, dekking), gegenereerd uit scripts/coop_coverage.json. |
+| [COOP-SWEEP-21-11.md](<COOP-SWEEP-21-11.md>) | Werkdocument. Draaiboek voor de sweep: welke testbank-suites, hoeveel Electron-instanties, hoe lang. |
 | [COOP-OPSLAAN.md](<COOP-OPSLAAN.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/multiplayer.md`](../.specs-fire/standa… |
 | [COOP-OVERDRAGEN.md](<COOP-OVERDRAGEN.md>) | Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). Dit docu… |
 | [COOP-TESTBANK.md](<COOP-TESTBANK.md>) | Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). Dit docu… |
@@ -67,6 +69,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [FARMING-SPEELRONDE-20-11.md](<FARMING-SPEELRONDE-20-11.md>) | Verslag van een speelronde over de hele boerderijlus (beeldbank, 1280x720): wat is gefixt (water op de rijen, dubbele kaart, HUD-overlap, toestand per veld, pin ver uitgezoomd), wat niet en wat niet gezien is (#985, #980). |
 | [KEYS-AUDIT-20-11.md](<KEYS-AUDIT-20-11.md>) | Naslag (#1003, #985). Telling van toets-iconen, tekstkeycaps en zinnen met toetsnamen per scène, met toetsenbord en controller, en wat is omgezet. |
 | [KEYCAP-MAAT-21-11.md](<KEYCAP-MAAT-21-11.md>) | Naslag en ontwerpbesluit (#1075). Toetsplaatjes als inline zetwerk: maat als factor van de tekst, uitlijning uit de fontmetrics, nowrap-eenheden, voor/na per context en de beeldchecks die nog nodig zijn. |
+| [KAART-POPUPS-21-11.md](<KAART-POPUPS-21-11.md>) | Ontwerp en onderzoek van de kaartpopups: de flow van kaartklik tot reis, de vervoerswijzen met kosten, duur en redenen, de toets IN de knop, de invoerkaart per apparaat, het navigatiepatroon en de beelden die nog te controleren zijn. Spec: ui-taal.md. |
 | [LIGHT-SIMS-AUDIT-20-11.md](<LIGHT-SIMS-AUDIT-20-11.md>) | Werkdocument bij de feedback van de eigenaar over de light sims: inventaris en keuze van vijf (hengelen eerst), per sim de audit, wat er is gebouwd (gedeelde HUD-strook, wereldfeedback, uitleg) en wat niet (#985, #980). |
 | [GEBIEDEN.md](<GEBIEDEN.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/wereld.md`](../.specs-fire/standards/w… |
 | [GELUID.md](<GELUID.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/mechanica.md`](../.specs-fire/standard… |
@@ -77,6 +80,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [INTOCHT.md](<INTOCHT.md>) | De intocht na een verovering: wachtrij, acht scènes, terugkijken en de host-only-regel (#704). |
 | [KAART-GEBIEDEN-20-11.md](<KAART-GEBIEDEN-20-11.md>) | Kaart en minikaart: kleuren uit de ds-tokens (`kaartkleuren.js`) en de vier gebiedstoestanden (onzichtbaar, zichtbaar, bezig, veroverd). Naslag; de kaartregels staan in de specs wereld en ui-taal. |
 | [KANALEN.md](<KANALEN.md>) | Input voor #92 (minder ruis, meer visuele communicatie), uit #104 (één planner). Dit bestand wordt gemaakt… |
+| [MELDINGEN-21-11.md](<MELDINGEN-21-11.md>) | Meldingen: inventaris van alle tijdelijke meldingen, de vier duurklassen (4, 6, 9, 10 s), het aflopende balkje, pauze en hover, en het besluit voor Beweging beperken. Naslag bij DESIGN_SYSTEM.md en ui-taal.md. |
 | [LEEFTIJD.md](<LEEFTIJD.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standar… |
 | [LEGAL-AI-ASSETS.md](<LEGAL-AI-ASSETS.md>) | Dit is geen juridisch advies. Het is een leesverslag door een AI-assistent |
 | [LICENTIES.md](<LICENTIES.md>) | Stand van 3 oktober 2026. Dit is een inventaris en een advies, geen |
@@ -111,9 +115,13 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [TREINEN-LIVE-21-11.md](<TREINEN-LIVE-21-11.md>) | Live treinvertragingen op de vertrekborden (#1085). |
 | [KEUZESCHERMEN-21-11.md](<KEUZESCHERMEN-21-11.md>) | Keuzeschermen die de speler onderbreken (#1091). |
 | [SPULLEN-3D-21-11.md](<SPULLEN-3D-21-11.md>) | Spullen in 3D in het pauzemenu (#1086). |
+| [KLEDING-21-11.md](<KLEDING-21-11.md>) | Kleding als eigen systeem: stukken, kast per personage, winkel, NPC-outfits, Samen spelen (epic Kleding). |
+| [KLEDING-TEKSTEN-21-11.md](<KLEDING-TEKSTEN-21-11.md>) | Teksten die kleding noemen: wat is aangepast en wat blijft. |
+| [KLEDING-VERIFICATIE-21-11.md](<KLEDING-VERIFICATIE-21-11.md>) | Wat van de kleding nog in beeld bekeken moet worden. |
 | [MINIMAP-PIJLEN-21-11.md](<MINIMAP-PIJLEN-21-11.md>) | Pijlen op de minikaart naar het doel. |
 | [KAART-HEADING-21-11.md](<KAART-HEADING-21-11.md>) | Wie ben jij op de kaart: plek en kijkrichting per besturingsmodus (#1141). |
 | [VOETBAL-SIM-21-11.md](<VOETBAL-SIM-21-11.md>) | Voetbal Sim Light in de Euroborg (#981). |
+| [VERHAAL-SYNOPSIS-21-11.md](<VERHAAL-SYNOPSIS-21-11.md>) | Synopsis van het nieuwe volledige verhaal (pitch, vijf akten en Deel 4), de matrix van alles wat in de game bestaat en waar het in het verhaal terugkomt, en hoe je het samen en solo beleeft; met open punten en voorstellen. |
 | [VERHAAL-ANALYSE-21-11.md](<VERHAAL-ANALYSE-21-11.md>) | Verhaalanalyse: kan een speler met nul context het verhaal volgen? Top-20 problemen, ruggengraat per akte, introductie- en dialoogregels, tussenscènes, recap-kaart, ontgrendeling per akte en uitvoeringsplan.
 | [VOETBAL-CARRIERE-21-11.md](<VOETBAL-CARRIERE-21-11.md>) | Ontwerp van de voetbalcarrière (epic #1106): boog, seizoenen, ontwikkeling, manager, economie, clubbezit, UI, Samen spelen en stappenplan. |
 | [VOETBAL-CARRIERE-VERIFICATIE-21-11.md](<VOETBAL-CARRIERE-VERIFICATIE-21-11.md>) | Voetbalcarrière: wat gebouwd en getest is, de sim-testbank en de lijst wat nog in beeld te controleren valt.
@@ -157,6 +165,8 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [EERSTE-30-MINUTEN-20-11.md](<EERSTE-30-MINUTEN-20-11.md>) | De eerste 30 minuten van een nieuw spel beoordeeld als nieuwe speler zonder voorkennis (progressive disclosure, doel, bediening, overslaan, Samen-spelen-kaarten): wat goed is, wat verwarrend is, verbeteringen op impact en kosten, en wat nog niet in beeld bekeken is. |
 | [BINNENSETS-21-11.md](<BINNENSETS-21-11.md>) | Binnenmissies spelen echt binnen (#956): hoe een binnenset werd gebouwd en wat misging (wereld erdoorheen, camera buiten, soms geen kamer), het generieke mechanisme (clearzone, kamercamera, plek zoeken, binnenplek), de spawnregels, het pan-budget van cutscenes, Samen spelen (lokaal bij wie de stap draait) en wat niet bewezen is. |
 | [BEPPE-HUIS-21-11.md](<BEPPE-HUIS-21-11.md>) | Beppes huis en de Beppe-verhaalboog (#1063): open na M01, de eerste ontmoeting met Tessa, bezoeken terwijl ze leeft, het overlijden na M06 (terugval M08), de herinnering, canon-afweging, afgeleid uit de verhaalstand (geen migratie), echt binnen (vaste kamercamera), Samen spelen (lokaal per speler) en wat niet in beeld bekeken is. |
+| [INTERIEURS-21-11.md](<INTERIEURS-21-11.md>) | Interieurs (epic #1150): panden echt te betreden in het pand zelf, te voet door de voordeur (ADR 0044): architectuur, soorten, indeling, lopen, camera, openingstijden, Samen spelen, politie, bereikbaarheidsaudit (370.144 panden, ca. 39% betreedbaar) en dekkingsplan. |
+| [INTERIEURS-VERIFICATIE-21-11.md](<INTERIEURS-VERIFICATIE-21-11.md>) | Interieurs: de lijst van wat in beeld en in het spel nog gecontroleerd moet worden (deur, gevel, licht, camera, mensen, kosten). |
 | [MISSIE-AAA-AKTE1-2.md](<MISSIE-AAA-AKTE1-2.md>) | AAA voor akte 1 en 2 (#955, #963): auditkaart per missie (nu, mist, AAA-versie, kosten, stand), de tussen-beats en nasleep, de aankleding bij start en doel, wachten met een tweede wachtende, wat niet is gedaan of bekeken. |
 | [MISSIE-AAA-AKTE3-4.md](<MISSIE-AAA-AKTE3-4.md>) | AAA-auditkaarten voor de missies van akte 3 en 4 (M12 tot M21): wat er was, wat er bij kwam (openingsbeeld, tussenbeats, nasleep, aankleding, wachtspullen), de zes grensgevallen van de missieprop-audit en wat nog niet in beeld is bekeken. |
 | [MISSIE-AAA-AKTE5-6-BIJBANEN.md](<MISSIE-AAA-AKTE5-6-BIJBANEN.md>) | AAA-auditkaarten voor akte 5 en 6, de bijbanen en Na het verhaal (#955, #956, #963). |
@@ -186,6 +196,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [PERF-TEGELSTREAM-21-11.md](<PERF-TEGELSTREAM-21-11.md>) | Tegelstroom zonder uitbarstingen (#1052): de plaatsingsvensters waren de bron, achtergrondwerk en vasthouding, meting Hoog en Ultra. |
 | [QOL-STAND-21-11.md](<QOL-STAND-21-11.md>) | QoL-stand van epic #985: de 52 bevindingen van 17-11 en wat ervan af is. |
 | [BALANS-21-11.md](<BALANS-21-11.md>) | Naslag. Economiebalans met een sim van 10 uur: verdienste per uur, de Duizendpoot (#1050) en de voor/na-tabel. |
+| [MOEILIJKHEID-21-11.md](<MOEILIJKHEID-21-11.md>) | Naslag. Moeilijkheid per save (#1169): niveau en opties, de kaart bij een nieuw spel, de tabel van alle opties met bereik en standaard, de Samen-regel en de migratie. |
 | [VERKEER-AUDIT-21-11.md](<VERKEER-AUDIT-21-11.md>) | Verkeers- en wereldleven-audit (#1047 tot #1049): AI-verkeer, parkeren, voetgangers, fietsers. |
 | [WERELD-AUDIT-21-11.md](<WERELD-AUDIT-21-11.md>) | Wereldaudit: props en gebouwen op verkeerde plekken over de hele provincie (#1044, #1045). |
 | [SAMEN-MISSIES-20-11.md](<SAMEN-MISSIES-20-11.md>) | Audit en voorstel. Wat een gast nu doet in elke missie, bijbaan en wedstrijd, welke onderdelen van nature gezamenlijk zijn en per onderdeel een rol per speler, beloning per speler, wegvallen en later aansluiten en schaal van 1 tot 4 spelers; plus wat in ronde #983 is gebouwd (M30 bolwerken, pannenkoekenwedstrijd, bezorgen met verdeelde adressen) en wat niet is gezien. Regels: [`.specs-fire/standards/multiplayer.md`](../.specs-fire/standards/multiplayer.md). |
@@ -195,6 +206,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [SPEELTEST.md](<SPEELTEST.md>) | Voor mensen die de game nog niet kennen. Speel ongeveer 45 tot 60 minuten; zonder save begint het verhaal m… |
 | [STEAM-CHECKLIST.md](<STEAM-CHECKLIST.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standar… |
 | [STEAM-KLAAR.md](<STEAM-KLAAR.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standar… |
+| [VERHAAL-INSPIRATIE-21-11.md](<VERHAAL-INSPIRATIE-21-11.md>) | Inspiratie uit Moffel en Piertje, Dharma & Greg en Melissa & Joey (Kit & Mouse niet te verifiëren): archetypes, mechanieken en 30 onderdelen met vragenlijst voor de eigenaar. |
 | [VERHAALCANON-21-11.md](<VERHAALCANON-21-11.md>) | Canonblad en audit: Tammo en Tessa zijn net afgestudeerd (24), kennen elkaar uit de studie; wat er in docs en speltekst veranderde en welke 4 gesproken regels opnieuw moeten. |
 | [TESSA-CIJFERS.md](<TESSA-CIJFERS.md>) | Gecontroleerd op 17 oktober 2026 met publieke CBS-pagina's. Het feitenblok |
 | [TAAL-VAN-DOCUMENTATIE.md](<TAAL-VAN-DOCUMENTATIE.md>) | Besluit voor de eigenaar: Nederlands of Engels in de docs, met de meting en twee opties. |

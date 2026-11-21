@@ -14,6 +14,7 @@ import { registerMemSource } from './memwatch.js';
 import { buildInteriorOf } from './interieur3d.js';
 import { marktKind, buildMarktGroup } from './marktgebouwen.js';
 import { hash2 } from './rng.js';
+import { paneKey } from './interiorlook.js';
 import { poiLayerPlace } from './facilities.js';
 import { woonbootY, WOONBOOT_DIEPTE } from './waterlevels.js';
 
@@ -512,6 +513,8 @@ function addWindow(B, e, c, w, y0, y1, S, seed) {
   if (w > 0.85) wallQuad(B, e, c - 0.03, c + 0.03, y0, tY, WINDOW_BAR_D, S.frame);
   wallBox(B, e, c - w / 2 - f - 0.06, c + w / 2 + f + 0.06, y0 - f - 0.07, y0 - f, 0, 0.13, S.sill, G_DETAIL, FACE_FRONT | FACE_TOP);
   if (S.lintel) wallQuad(B, e, c - w / 2 - f - 0.05, c + w / 2 + f + 0.05, y1 + f, y1 + f + 0.16, 0.06, S.lintel);
+  // the room behind the pane, for the interior that matches it (interiorlook.js paneKey, epic Interieurs #1150)
+  return paneKey(hash2(seed * 1.31, y0 * 7.7 + c), y0 < 2 ? PANE_GROUND : PANE_HOME, w, y1 - y0);
 }
 
 function addDoor(B, e, c, w, S, opts = {}) {
@@ -584,6 +587,7 @@ function addKraam(B, e, s0, s1, top, seed) {
 }
 
 function addShopfront(B, e, s0, s1, top, S, seed, poiType = null) {
+  const panes = []; // the glass of the front, for the interior (b.entrance.windows)
   const span = s1 - s0;
   wallBox(B, e, s0, s1, 0, 0.4, 0, 0.075, HARDSTONE, G_DETAIL, FACE_FRONT | FACE_TOP | FACE_SIDES);
   const frameC = S.shopFrame;
@@ -594,7 +598,7 @@ function addShopfront(B, e, s0, s1, top, S, seed, poiType = null) {
   const shopRank = poiType ? rankForType(poiType, seed) : hash2(seed, 5.5);
   // gevelreclame en markies van hetzelfde winkeltype als het interieur in de ruit (winkelkit.js)
   const look = facadeLook(shopRank);
-  const shopUV = (s0, s1, y0, y1, bay) => wallQuad(B, e, s0, s1, y0, y1, 0.055, GLASS_TONES[(bay + Math.floor(seed * 7)) % 4 + 1], G_GLASS, edgePaneUV(e, shopRank, PANE_SHOP, s1 - s0, y1 - y0, bay));
+  const shopUV = (s0, s1, y0, y1, bay) => panes.push({ c: (s0 + s1) / 2, w: s1 - s0, y0, y1 }) && wallQuad(B, e, s0, s1, y0, y1, 0.055, GLASS_TONES[(bay + Math.floor(seed * 7)) % 4 + 1], G_GLASS, edgePaneUV(e, shopRank, PANE_SHOP, s1 - s0, y1 - y0, bay));
   for (let i = 0; i < n; i++) {
     const a = s0 + i * bw + 0.07, b = s0 + (i + 1) * bw - 0.07;
     if (i === doorBay && bw > 1.1) {
@@ -610,6 +614,7 @@ function addShopfront(B, e, s0, s1, top, S, seed, poiType = null) {
   wallBox(B, e, s0, s1, top, top + 0.5, 0, 0.12, look.sign);
   if (look.type === 'kermiskraam') { const dc = s0 + (doorBay + 0.5) * bw, k0 = Math.max(s0, dc - 3), k1 = Math.min(s1, dc + 3); addKraam(B, e, k0, k1, top, seed); return { kraam: [k0, k1] }; } // (een kraam is zes meter, niet de hele gevel)
   addShopProps(B, e, s0, s1, bw, doorBay, look.buiten, seed);
+  const shopDoor = bw > 1.1 ? { c: s0 + (doorBay + 0.5) * bw, w: 1.1, h: Math.min(2.3, top - 0.45) } : null;
   if (look.awning) {
     const a0 = s0 + 0.15, a1 = s1 - 0.15, ya = top - 0.05, yb = top - 0.6, da = 0.12, db = 1.25;
     const strips = Math.max(1, Math.round((a1 - a0) / 0.45));
@@ -623,6 +628,7 @@ function addShopfront(B, e, s0, s1, top, S, seed, poiType = null) {
       wallQuad(B, e, p0, p1, yb - 0.22, yb, db, c);
     }
   }
+  return { door: shopDoor, panes };
 }
 
 // --- roofs --------------------------------------------------------------------------
@@ -1112,6 +1118,8 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
   }
 
   let windows = 0;
+  const winList = [];
+  let entrance = null, lookPane = null; // the front door and the pane next to it (b.entrance, interiors: interiorrules.js)
   // het budget volgt de gevel: anders blijft de lange straatmuur van een groot gebouw kaal als de eerste muren het op hebben (#421)
   let wanted = 0;
   for (const e of open) wanted += Math.max(1, Math.floor((e.len - 0.4) / style.bay)) * floorCount;
@@ -1138,7 +1146,11 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
         const c = (i + 0.5) * bw;
         if (f === 0 && doorHere && i === doorBay) {
           const dw = doorWide ? Math.min(1.7, bw - 0.4) : Math.min(1.0, bw - 0.4);
-          if (dw > 0.7) addDoor(B, e, c, dw, S, { h: Math.min(2.25, floorH - 0.65), canopy: archetype === 'apartments' });
+          if (dw > 0.7) {
+            const dh = Math.min(2.25, floorH - 0.65);
+            addDoor(B, e, c, dw, S, { h: dh, canopy: archetype === 'apartments' });
+            entrance = { e, c, w: dw, h: dh, shop: false };
+          }
           continue;
         }
         if (windows >= maxWindows) continue;
@@ -1146,7 +1158,8 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
           wallQuad(B, e, c - w, c + w, y0, y0 + 0.7, 0.03, GLASS_TONES[2], G_GLASS, edgePaneUV(e, 0.3 + hash2(seed + c, y0) * 0.7, PANE_OFFICE, 2 * w, 0.7));
           wallBox(B, e, c - w - 0.05, c + w + 0.05, y0 - 0.06, y0, 0, 0.06, S.frame, G_DETAIL, FACE_FRONT | FACE_TOP);
         } else {
-          addWindow(B, e, c, w, y0, y1, S, seed + i * 7.7 + f * 3.1 + e.ax);
+          const pane = addWindow(B, e, c, w, y0, y1, S, seed + i * 7.7 + f * 3.1 + e.ax);
+          if (f === 0 && e === mainEdge) { if (!lookPane) lookPane = { c, pane }; winList.push({ c, w, y0, y1 }); }
         }
         windows++;
       }
@@ -1159,10 +1172,21 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
       wallQuad(B, e, c - dw / 2, c + dw / 2, 0, dh, 0.055, 0x8a8c8e);
       for (let k = 1; k < 6; k++) wallQuad(B, e, c - dw / 2, c + dw / 2, (dh * k) / 6 - 0.02, (dh * k) / 6 + 0.02, 0.07, 0x6a6c6e);
     } else if (industrial && e === mainEdge) {
-      addDoor(B, e, e.len / 2, Math.min(1, e.len - 0.6), S, { h: Math.min(2.1, depth - 0.3) });
+      const dw = Math.min(1, e.len - 0.6), dh = Math.min(2.1, depth - 0.3);
+      addDoor(B, e, e.len / 2, dw, S, { h: dh });
+      if (dw > 0.7) entrance = { e, c: e.len / 2, w: dw, h: dh, shop: false };
     }
   }
   const front = shopEdge ? addShopfront(B, shopEdge, 0.15, shopEdge.len - 0.15, shopTop, S, seed, poiType) : null;
+  if (front && front.door) entrance = { e: shopEdge, c: front.door.c, w: front.door.w, h: front.door.h, shop: true };
+  // The door of this building as the interior needs it (epic Interieurs, #1150): the facade edge, where on it and how big, the
+  // room behind the window next to it (the interior shows the same room), and the heights of the ground floor.
+  b.entrance = entrance ? {
+    ax: entrance.e.ax, ay: entrance.e.ay, tx: entrance.e.tx, ty: entrance.e.ty, nx: entrance.e.nx, ny: entrance.e.ny, len: entrance.e.len,
+    c: entrance.c, w: entrance.w, h: entrance.h, shop: entrance.shop, floorH, floors: floorCount, depth,
+    look: lookPane ? lookPane.pane : null, archetype, doorColor: S.door, frameColor: entrance.shop ? S.shopFrame : S.frame,
+    windows: entrance.shop && front ? front.panes : winList,
+  } : null;
   // read by the QA scenes (scripts/ui/shots_scenes_r39.js): where the shopfront is and what it sells
   // (shopsigns3d.js hangs the name of the shop on it)
   b.shopFront = shopEdge ? {
@@ -1274,6 +1298,19 @@ function unit(group, geo, mat, sx, sy, sz, x, y, z) {
   m.position.set(x, y, z);
   group.add(m);
   return m;
+}
+
+// The door of a church for its interior (epic Interieurs, #1150): in the middle of the gable end on the side of the tower. The
+// church has no door drawn on the facade; the interior cuts the opening and hangs its own leaf there.
+function churchEntrance(box, depth) {
+  const longX = box.w >= box.d;
+  const sw = Math.min(Math.min(box.w, box.d) * 0.55, 6);
+  const tx = longX ? box.minx + sw * 0.7 : box.cx, ty = longX ? box.cz : box.miny + sw * 0.7;
+  const ends = box.edges.filter((e) => e.len >= 4).sort((a, c) => a.len - c.len).slice(0, 2);
+  if (!ends.length) return null;
+  ends.sort((a, c) => Math.hypot((a.ax + a.bx) / 2 - tx, (a.ay + a.by) / 2 - ty) - Math.hypot((c.ax + c.bx) / 2 - tx, (c.ay + c.by) / 2 - ty));
+  const e = ends[0];
+  return { ax: e.ax, ay: e.ay, tx: e.tx, ty: e.ty, nx: e.nx, ny: e.ny, len: e.len, c: e.len / 2, w: 1.6, h: Math.min(3.0, depth - 0.5), shop: false, floorH: depth, floors: 1, depth, look: null, archetype: 'church', doorColor: 0x4a3322, frameColor: 0x3a2a1c, windows: [] };
 }
 
 function addChurchDetail(group, box, parts, depth, wallMat, roofMat, fine2) {
@@ -1622,6 +1659,7 @@ function buildBuildingMeshRaw(b) {
 
   if (archetype !== 'houseboat') addPassages(group, b, parts, depth);
   if (archetype === 'church') {
+    b.entrance = churchEntrance(box, depth);
     addChurchDetail(group, box, parts, depth, wallMat, roofMat, fine2);
     return group;
   }

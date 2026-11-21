@@ -148,7 +148,7 @@ function stripTags(s) {
 // What goes through keyTextHtml has no braces left; this catches the rest and leaves code, inputs and [data-g-raw] alone.
 const SKIP_TAG = /^(SCRIPT|STYLE|TEXTAREA|INPUT|CODE|PRE|SELECT|OPTION)$/;
 const HAS_BRACE = /\{[A-Z0-9]+\}/;
-export function sweepTokens(root) {
+function sweepTokens(root) {
   if (typeof document === 'undefined' || !root || root.nodeType === undefined) return 0;
   let n = 0;
   const base = root.nodeType === 1 ? root : root.parentElement;

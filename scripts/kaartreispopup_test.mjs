@@ -19,26 +19,28 @@ const speler = { x: 0, y: 0 };
 const spot = { x: 3000, y: 400, name: 'Vismarkt' };
 const opts = reisOpties({ auto: { length: 3200, etaS: 260 }, trein: { length: 3500, etaS: 420, legs: [{ kind: 'train', length: 3500, line: 'Lijn 1' }] } }, { money: 50 });
 const rijen = K.reisKeuzes(opts, 3200, {});
-const gekozen = rijen.find((r) => r.aanbevolen && r.soort === 'snel').id;
+const gekozen = rijen.find((r) => r.aanbevolen).id;
 const basis = { naam: 'Vismarkt', afstand: '3,2 km', rijen, gekozen, kleur: {}, gast: false, melding: '', reis: { label: 'Reis nu · € 12 · 4 min', uitgeschakeld: false } };
 
 // 1. de popup: dialoog met naam, titel in DS-stijl, de keuzes, Reis nu met Enter ernaast, Terug met Esc ernaast
 const h = reisPopupHtml(basis);
 ok(/role="dialog" aria-modal="true" aria-labelledby="mv-reispop-t"/.test(h) && /id="mv-reispop-t"/.test(h), 'de popup is een dialoog met een naam');
 ok(/ds-zeef ds-z-kaart ds-z-kaart--recht mv-reispop-box/.test(h) && /ds-z-kaart__kop/.test(h) && /ds-z-kaart__titel">Reis erheen</.test(h), 'de popup is een .ds-z-kaart met de titel Reis erheen');
-ok((h.match(/class="mv-keuze/g) || []).length === rijen.length && /data-card="kies:/.test(h) && /data-card="zelf"/.test(h), 'elke keuze (snel en Zelf gaan) staat in de popup');
+ok((h.match(/class="mv-keuze/g) || []).length === rijen.length && /data-card="kies:/.test(h) && !/data-card="zelf"/.test(h), 'elke vervoerswijze staat in de popup, Zelf gaan niet (21-11)');
+ok(rijen.length === 4 && ['trein', 'bus', 'taxi', 'boot'].every((id) => h.includes(`data-card="kies:${id}"`)), 'trein, bus, taxi en boot staan er, ook als er geen route is (dan met de reden)');
 ok(/mv-aanb/.test(h) && /gratis|€/.test(h), 'de aanbeveling, de kosten en de duur staan erbij');
-ok(/data-card="rij"/.test(h) && />Reis nu · € 12 · 4 min<\/button><span class="mv-help-toets/.test(h), 'Reis nu bevestigt, met de Enter-toets als toetskap ernaast (geen icoon in de knop)');
-ok(/data-card="reis-sluit"/.test(h) && /Terug<\/button><span class="mv-help-toets/.test(h), 'Terug sluit, met de Esc-toets ernaast');
+ok(/<button[^>]*class="ds-z-knop mv-reispop-ok ds-z-knop--toets"[^>]*data-card="rij"[^>]*data-key="ENTER"[^>]*><span class="ds-z-knop__label">Reis nu · € 12 · 4 min<\/span><span class="ds-z-knop__toets"/.test(h), 'Reis nu bevestigt, met de Enter-toets IN de knop');
+ok(/data-card="reis-sluit"[^>]*data-key="ESC"[^>]*><span class="ds-z-knop__label">Terug<\/span><span class="ds-z-knop__toets"/.test(h), 'Terug sluit, met de Esc-toets IN de knop');
+ok(!/mv-help-toets|ds-toetsregel/.test(h), 'geen losse toetshint naast een knop in de popup');
 ok(/Vismarkt<\/b> · 3,2 km/.test(h), 'de plek en de afstand staan bovenaan');
 
 // 2. reizen kan niet: een duidelijke reden, en geen knop die Enter kan afvuren
 const gast = reisPopupHtml({ ...basis, gast: true, melding: K.GAST_REIS_MELDING, reis: null });
 ok(gast.includes(K.GAST_REIS_MELDING) && /role="status"/.test(gast) && !/data-card="rij"/.test(gast) && /data-card="reis-sluit"/.test(gast), 'een gast leest waarom snel reizen niet kan, kan alleen Zelf gaan of terug');
 const arm = reisPopupHtml({ ...basis, melding: 'Je hebt te weinig geld voor deze rit.', reis: { label: 'Reis nu · € 400 · 4 min', uitgeschakeld: true } });
-ok(/mv-reispop-ok" data-card="rij" disabled/.test(arm) && /te weinig geld/.test(arm) && !/Reis nu[^<]*<\/button><span class="mv-help-toets/.test(arm), 'te weinig geld: Reis nu is uit, de reden staat er en er is geen Enter-toets');
-const kaal = reisPopupHtml({ ...basis, rijen: K.reisKeuzes([], 3200, {}), gekozen: null, melding: 'Er gaat hier geen snelle verbinding heen. Kies Zelf gaan: dat zet een waypoint.', reis: null });
-ok(/data-card="zelf"/.test(kaal) && /geen snelle verbinding/.test(kaal) && !/data-card="rij"/.test(kaal), 'geen ov-verbinding: Zelf gaan blijft, met een reden');
+ok(/mv-reispop-ok[^>]*data-card="rij" disabled/.test(arm) && /te weinig geld/.test(arm) && !/mv-reispop-ok[^>]*data-key/.test(arm), 'te weinig geld: Reis nu is uit, de reden staat er en er is geen Enter-toets in de knop');
+const kaal = reisPopupHtml({ ...basis, rijen: K.reisKeuzes([], 3200, {}), gekozen: null, melding: 'Er gaat geen vervoer naar deze plek. Zet een waypoint om er zelf heen te gaan.', reis: null });
+ok(!/data-card="zelf"/.test(kaal) && /geen vervoer/.test(kaal) && /Geen treinverbinding hierheen/.test(kaal) && !/data-card="rij"/.test(kaal), 'geen verbinding: elke rij zegt waarom, de melding wijst naar Zet waypoint');
 
 // 3. de plekkaart verandert niet van grootte: de reiskeuze staat niet meer in de kaart
 ok(!/reisHtml/.test(mv.split('\n').filter((l) => /^import/.test(l)).join('\n')), 'mapview.js haalt reisHtml niet meer binnen: de plekkaart bouwt de keuze niet');
@@ -53,13 +55,15 @@ ok(reisHtml(rijen, gekozen).includes('mv-reiskeuze'), 'de rijen zelf (reisHtml) 
 ok(/function syncReisPopup\(popup\)/.test(mv) && /wens\.focus\(\{ preventScroll: true \}\)/.test(mv) && /mv-reispop-ok:not\(:disabled\)/.test(mv), 'bij het openen krijgt Reis nu de focus (anders de gekozen keuze, anders Terug)');
 ok(/fc && \[\.\.\.pop\.querySelectorAll\('\[data-card\]'\)\]/.test(mv), 'bij een andere keuze blijft de focus op dezelfde knop');
 ok(/export function kaartReisPopupSluiten\(\)/.test(mv) && /state\.card\.stap = null/.test(mv) && /\[data-card="reis"\]/.test(mv), 'Esc sluit terug naar de plekkaart en zet de focus terug op Reis erheen');
-ok(/kaartUitlegSluiten\(\) \|\| kaartReisPopupSluiten\(\)/.test(pm) && /kaartReisPopupSluiten, /.test(pm), 'pausemenu.js goBack (Esc en B) sluit eerst de uitleg, dan de popup, dan pas de kaart');
-ok(/e\.key === 'Enter' && !\(e\.target && e\.target\.closest && e\.target\.closest\('\.mv-keuze, \.mv-reispop-terug'\)\)/.test(mv) && /ok\.click\(\)/.test(mv), 'Enter bevestigt (op een keuze kiest hij die keuze)');
-ok(/e\.key === 'Tab' && knoppen\.length/.test(mv) && /knoppen\[n\]\.focus/.test(mv), 'de focus blijft binnen het venster (Tab en Shift+Tab lopen rond)');
-ok(/ArrowDown/.test(mv) && /keuzes\[Math\.max/.test(mv), 'pijl omhoog en omlaag lopen langs de keuzes (ook voor een controller)');
+ok(/kaartUitlegSluiten\(\) \|\| kaartReisPopupSluiten\(\) \|\| kaartPlekkaartSluiten\(\)/.test(pm), 'pausemenu.js goBack (Esc en B) sluit eerst de uitleg, dan de popup, dan de plekkaart, dan pas de kaart');
+ok(/e\.key === 'Enter' \|\| e\.key === ' '\) && !e\.repeat/.test(mv) && /op\.closest\('\.mv-keuze'\)/.test(mv) && /mv-reispop-ok:not\(:disabled\)/.test(mv), 'Enter bevestigt (op een rij kiest hij die rij en springt de focus naar Reis nu)');
+ok(/e\.key === 'Tab' && knoppen\.length/.test(mv) && /lijstFocus\(knoppen, e, true\)/.test(mv), 'de focus blijft binnen het venster (Tab en Shift+Tab lopen rond)');
+ok(/ArrowDown' \|\| e\.key === 'ArrowUp' \|\| e\.key === 'Home'/.test(mv) && /navIndex\(/.test(mv), 'pijl omhoog en omlaag, Home en End lopen door alle knoppen (rijen en voetknoppen, ook voor een controller)');
+ok(/rijCijfer\(e\.key\)/.test(mv) && /\.mv-keuze\[data-key=/.test(mv), 'de cijfers 1 tot 9 kiezen een rij');
 ok(/if \(e\.target === pop\) \{ kaartReisPopupSluiten\(\)/.test(mv), 'een klik naast het venster is Terug');
 ok(/querySelector\('\.mv-reispop, \.mv-help'\)\) return;/.test(mv), 'de pijltjes schuiven de kaart niet terwijl een popup openstaat');
-ok(/reisPopupToets\(e, reisPop\)\) return;/.test(mv) && mv.indexOf('reisPopupToets(e, reisPop)') < mv.indexOf('Enter on the map itself'), 'de popup krijgt de toets vóór de Enter-onder-het-richtkruis-regel');
+ok(/if \(kaartToets\(e\)\) return;/.test(mv) && mv.indexOf('if (kaartToets(e)) return;') < mv.indexOf('Enter on the map itself'), 'de popup krijgt de toets vóór de Enter-onder-het-richtkruis-regel');
+ok(/if \(tab === 'map' && kaartToets\(e\)\) return;/.test(pm) && pm.indexOf("kaartToets(e)) return;") < pm.indexOf('const dir = ARROWS[k];'), 'pausemenu.js geeft de kaartvensters de toets vóór de menutoetsen (Tab en Q/E wisselen het menu niet onder een open venster)');
 ok(/closeMap\(\) \{[\s\S]{0,200}hideCard\(\)/.test(mv), 'sluiten van de kaart ruimt de popup op (hideCard)');
 ok(/function hideCard\(\) \{[\s\S]{0,200}syncReisPopup\(null\)/.test(mv), 'hideCard haalt de popup weg');
 

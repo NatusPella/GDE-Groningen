@@ -10,14 +10,14 @@ export const ATTR_NAMES = { pace: 'Tempo', shot: 'Schot', pass: 'Pass', stamina:
 export const ROLES = ['keeper', 'verdediger', 'middenvelder', 'aanvaller'];
 export const ROLE_NAMES = { keeper: 'Keeper', verdediger: 'Verdediger', middenvelder: 'Middenvelder', aanvaller: 'Aanvaller' };
 // Het gewicht van elke vaardigheid in de rating van een rol (de som is 1).
-export const ROLE_WEIGHTS = {
+const ROLE_WEIGHTS = {
   aanvaller: { shot: 0.35, pace: 0.25, pass: 0.2, stamina: 0.1, defend: 0.1 },
   middenvelder: { pass: 0.35, stamina: 0.25, pace: 0.15, shot: 0.1, defend: 0.15 },
   verdediger: { defend: 0.4, pace: 0.2, stamina: 0.2, pass: 0.2 },
   keeper: { reflex: 0.6, pass: 0.2, stamina: 0.2 },
 };
 export const MAX_FACTOR = 1.3;
-export const OFF_ROLE = 0.9;           // buiten de hoofdrol speelt een speler op 90% van zijn factor
+const OFF_ROLE = 0.9;           // buiten de hoofdrol speelt een speler op 90% van zijn factor
 export const SQUAD_SIZE = 18;
 export const SQUAD_SHAPE = { keeper: 2, verdediger: 6, middenvelder: 6, aanvaller: 4 };
 
@@ -36,8 +36,8 @@ export const TALENTS = {
   laatsteMan: { naam: 'Laatste man', uitleg: 'Redt op de lijn', f: { verd: 1.04, sprint: 1.01 } },
   keepersvanger: { naam: 'Keepersvanger', uitleg: 'Pakt de bal vast', f: { schot: 1.02 } },
 };
-export const TALENT_IDS = Object.keys(TALENTS);
-export const MAX_TALENTS = 3;
+const TALENT_IDS = Object.keys(TALENTS);
+const MAX_TALENTS = 3;
 
 const FIRST = ['Bram', 'Sieb', 'Jelle', 'Wiebe', 'Gerrit', 'Roelof', 'Hidde', 'Teun', 'Lars', 'Douwe', 'Folkert', 'Ids', 'Menno', 'Rutger', 'Sybren', 'Tijmen', 'Anko', 'Berend', 'Evert', 'Gosse', 'Harmen', 'Jurre', 'Klaas-Jan', 'Lammert', 'Mees', 'Niek', 'Okke', 'Pim', 'Reinder', 'Stijn', 'Tjitse', 'Ubbo', 'Volkert', 'Wessel', 'Yoran', 'Zwier', 'Aart', 'Boris', 'Daan', 'Eelco'];
 const LAST = ['Veenbrand', 'Kleijans', 'Dijkvoogd', 'Wierdebrink', 'Kluunzak', 'Slootmans', 'Kwelderman', 'Greppelaar', 'Poldermeer', 'Terpzicht', 'Boterkamp', 'Stoeptegel', 'Fietsbel', 'Meerkoet', 'Aaltink', 'Zoutwerf', 'Kapsalon', 'Bietenhof', 'Eendekooi', 'Lutjewal', 'Maaiveld', 'Notenkraker', 'Ooievaar', 'Pannekoek', 'Rietkraag', 'Schaapskooi', 'Tochtsloot', 'Uiterdijk', 'Vlonderman', 'Waddenzicht', 'IJsselhof', 'Zandstra-Berg', 'Brugwachter', 'Kruidenier', 'Kuipertje', 'Leemkuil', 'Mosselbank', 'Naaldwijk-Dal', 'Oeverloper', 'Plasdrasser', 'Riethoed', 'Slibbergen', 'Turfstrooier', 'Vaarboom', 'Weidehek', 'Zwaluwstaart', 'Appelflap', 'Bolderkar', 'Dobbeplas', 'Elzenbosch'];
@@ -126,7 +126,7 @@ export function makeSquad(clubId, level, seed = 1) {
 
 // De twee hoofdpersonen. Tessa is de ster (hoger potentieel, de dorpsteambonus als startvoordeel: tempo, schot en pass iets hoger, geen tweede vermenigvuldiging);
 // Tammo is een gewone amateur (lagere start, gewoon potentieel, nooit uitgeschakeld). Allebei beginnen in de Talentenklasse, niemand heeft een leeftijd.
-export const PROTAGONISTS = {
+const PROTAGONISTS = {
   anita: { id: 'tessa', name: 'Tessa', char: 'anita', role: 'aanvaller', pot: 90, attrs: { pace: 46, shot: 49, pass: 46, stamina: 38, defend: 28 }, talents: ['dribbler'] },
   tammo: { id: 'tammo', name: 'Tammo', char: 'tammo', role: 'middenvelder', pot: 72, attrs: { pace: 34, shot: 30, pass: 38, stamina: 36, defend: 36 }, talents: [] },
 };

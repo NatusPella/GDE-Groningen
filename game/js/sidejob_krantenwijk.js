@@ -238,7 +238,7 @@ export default {
       m.rotation.y = Math.atan2(vijver.water.x - vijver.container.x, vijver.water.y - vijver.container.y);
       c.addMesh(m); d.mesh.push(m);
     }
-    const eerste = d.huizen[0], p = c.world.player;
+    const eerste = d.huizen[0], p = hoofdspeler(c.world);
     c.timeLeft = Math.max(90, Math.hypot(eerste.x - p.x, eerste.y - p.y) * 1.6 / 6 + 36 * d.huizen.length);
     c.msg(`Nieuwe wijk: ${d.wijk.name}. ${d.huizen.length} brievenbussen in de ${d.straat}.`, 3.5);
   },
@@ -251,7 +251,7 @@ export default {
 
   // E gooit: naar de dichtstbijzijnde brievenbus binnen bereik, of (in een vijverwijk) de hele stapel in de container.
   interact(c) {
-    const d = c.data, p = c.world.player;
+    const d = c.data, p = hoofdspeler(c.world);
     if (!d.huizen || !d.huizen.length || d.phase === 'klaar') return false;
     const doel = nieuwsteDoel(c);
     if (doel && doel.soort === 'container') {
@@ -272,7 +272,7 @@ export default {
   },
 
   prompt(c) {
-    const d = c.data, p = c.world.player;
+    const d = c.data, p = hoofdspeler(c.world);
     if (!d.huizen || d.phase === 'klaar' || !d.huizen.length) return null;
     const doel = nieuwsteDoel(c);
     if (!doel) return null;
@@ -321,7 +321,7 @@ export default {
     const d = c.data;
     if (!d.huizen || !d.huizen.length) return {};
     const open = d.huizen.filter((h) => !h.status);
-    const p = c.world.player;
+    const p = hoofdspeler(c.world);
     open.sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y));
     const gedaan = d.huizen.length - open.length;
     const dots = open.slice(1).map((h) => ({ x: h.x, y: h.y }));

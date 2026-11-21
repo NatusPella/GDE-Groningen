@@ -108,7 +108,11 @@ export function countReferences(src) {
   const masked = maskSource(src);
   const namen = worldNames(masked).map((x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
   const re = new RegExp(`(?<![\\w$.])(?:${namen.join('|')})\\.player\\b`, 'g');
-  return (masked.match(re) || []).length;
+  // Sinds 21-11 telt ook mee wat de eerste meting miste: `ctx.world.player` (een wereld als eigenschap)
+  // en destructurering `const { map, player } = world;` (de speler als gewone variabele uit de wereld).
+  const viaEigenschap = /[\w$\])]\.world\.player\b/g;
+  const destructurering = new RegExp(`\\{[^{}]*(?<![\\w$.])player\\b(?!\\s*:)[^{}]*\\}\\s*=\\s*(?:${namen.join('|')}|[\\w$]+\\.world)\\s*(?=[;,)\\n|]|$)`, 'g');
+  return (masked.match(re) || []).length + (masked.match(viaEigenschap) || []).length + (masked.match(destructurering) || []).length;
 }
 
 // Pad zoals het in de basislijn staat: vanaf de repo, of vanaf de meekregen map.
@@ -193,7 +197,7 @@ function main() {
 
   if (update) {
     const alleen = Object.fromEntries(Object.entries(telling).filter(([, n]) => n > 0).sort(([a], [b]) => a.localeCompare(b)));
-    const basis = { version: 1, note: 'Aantal directe verwijzingen naar world.player per bestand (#500), inclusief de alias w.player. Alleen omlaag; zie scripts/player_singleton_audit.mjs.', total: totaal, files: alleen };
+    const basis = { version: 1, note: 'Aantal directe verwijzingen naar world.player per bestand (#500), inclusief de alias w.player en (sinds 21-11) ctx.world.player en destructurering uit de wereld. Alleen omlaag; zie scripts/player_singleton_audit.mjs.', total: totaal, files: alleen };
     fs.writeFileSync(baselineFile, JSON.stringify(basis, null, 1) + '\n');
     console.log(`Basislijn bijgewerkt: ${totaal} verwijzingen in ${bestanden} bestanden (waarvan ${literalTotal} letterlijk world.player; ${path.relative(ROOT, baselineFile)}).`);
     return 0;

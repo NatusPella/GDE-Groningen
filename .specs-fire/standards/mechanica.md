@@ -171,7 +171,7 @@ kost niets. De banen komen uit `game/vliegplekken.json`.
 
 **Regels.** Eigen profiel per speler in `gde-voetbalcarriere-v1`, nooit in een savegame (ADR 0042); eigen dagteller op het nachtsignaal van `calendarday.js`, los van de verhaaldatum. Drie klassen van acht clubs (Talentenklasse, Terpklasse, Kroonklasse) met promotie en degradatie, beker en Waddenbeker; alle clubs hebben een parodienaam (ADR 0043). Seizoen: 7 rondes, een ronde per 3 speldagen. Per ronde zelf spelen (contractdeel plus bonus, volle ervaring) of laten uitrekenen (alleen het contractdeel, 60% ervaring). Niet-gespeelde duels zijn deterministisch (Poisson op de ratings, zaad uit seizoen, klasse, ronde en clubs): dezelfde seed geeft voor iedere speler dezelfde uitkomst. Alle geld loopt via `loopbaanVerdien` (vak Buiten); salaris volgt rondes, nooit nachten. Blessures: nooit getoond, hooguit 3 speldagen, uit te zetten. Ontgrendeling via de gedeelde poort (akte 4). Samen spelen: de carrière is van de speler zelf; een gast krijgt geld en ervaring per speler, geen competitiepunten; ratings worden aan de hostkant op het niveau van de klasse geklemd.
 
-**Bestanden.** `voetbalspelers.js`, `voetbalclubs.js`, `voetbalparken.js` met `voetbalparkendata.js` (gebouwd door `scripts/world/build_voetbalparken.mjs`), `voetbalseizoen.js`, `voetbalagenda.js`, `voetbalontwikkeling.js`, `voetbalcarriere.js`, `voetbalcarrierelive.js`, `voetbalcarriereui.js`, `voetbaltransfers.js`, `voetbalbeats.js`, `voetbalpoort.js`, `voetbalsamen.js`, `voetbalsponsors.js`, `voetbalclub_bezit.js`, `voetbalwereld.js`.
+**Bestanden.** `voetbalplayers.js`, `voetbalclubs.js`, `voetbalparken.js` met `voetbalparkendata.js` (gebouwd door `scripts/world/build_voetbalparken.mjs`), `voetbalseason.js`, `voetbalagenda.js`, `voetbalontwikkeling.js`, `voetbalcarriere.js`, `voetbalcarrierelive.js`, `voetbalcarriereui.js`, `voetbaltransfers.js`, `voetbalbeats.js`, `voetbalpoort.js`, `voetbalsamen.js`, `voetbalsponsors.js`, `voetbalclub_bezit.js`, `voetbalworld.js`.
 
 **Tests.** `voetbal_spelers_test`, `voetbalparken_test`, `voetbal_seizoen_test`, `voetbal_ontwikkeling_test`, `voetbal_carriere_test`, `voetbal_carrierelive_test`, `voetbal_ui_test`, `voetbal_transfers_test`, `voetbal_beats_test`, `voetbal_samen_test`, `voetbal_sponsors_test`, `voetbal_wereld_test` en de sim-testbank `scripts/voetbal_carriere_sim.mjs`.
 
@@ -213,7 +213,7 @@ van (`game/js/audio/scenario.js:127`).
 **Doel.** Levenslange prestaties per speler, en beeld dat zich aanpast.
 
 **Regels.** Prestaties staan in `gde-prestaties-v1` (`storagekeys.js:27`); tellers lopen via
-`recordStat` (`game/js/achievements.js:511`) en de gate (`:379`) zet ze stil bij een streek. Vier
+`recordStat` (`game/js/achievements.js:516`) en de gate (`:384`) zet ze stil bij een streek. Vier
 presets: laag, middel, vlot en hoog (`game/js/gfxprofile.js:10`). Automatische kwaliteit beoordeelt
 elke seconde op de mediaan, traag boven 27 ms (`:282`), schaalt de resolutie tot 50% (`:281`) en kent
 cpuniveau 0 tot 3 (`:284`); `simload.js` volgt dat niveau voor verkeer en voetgangers. Het bewuste
@@ -293,4 +293,6 @@ zijn de latere meting (#477).
 - Twee testrunners naast elkaar (#481, opgelost 25-10): `scripts/run_tests.mjs` (CI) en
   `scripts/test_all.mjs` (fasen en rapport) delen hun lijsten; zie ADR 0013 en `docs/TESTEN.md`.
 
+## Moeilijkheid per save (#1169)
 
+**Regels.** Elke save heeft een niveau (ontspannen, standaard, uitdagend) en opties die ervan afwijken: één profiel `{ level, custom }` in het savegame-veld `moeilijkheid`, één bron in `game/js/difficulty.js`. De gameplay leest `opt(sleutel)` of een koppelfunctie; nooit een eigen getal. Op Standaard is elke optie neutraal (exact het oude gedrag, regressietest). Elke optie heeft vaste stappen binnen een veilige band; prijzen zijn geen optie en de beloningsfactor blijft binnen 0,75 en 1,25. Niets blokkeert de verhaalvoortgang; Verhaalmodus haalt de tijdsdruk weg. Samen spelen: politie en verkeer volgen wie het spel opende, al het andere is per speler. Naslag: [docs/MOEILIJKHEID-21-11.md](../../docs/MOEILIJKHEID-21-11.md).

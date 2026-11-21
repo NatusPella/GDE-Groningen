@@ -135,6 +135,14 @@ float igBox(vec3 ro, vec3 ird, vec3 b0, vec3 b1, inout vec3 n) {
 
 float igDisc(vec2 p, vec2 r) { return length(p / r); }
 
+// integer hash to [0, 1): the same code as hashU/hash24 in interiorlook.js (epic Interieurs, #1150)
+float igHash24(uint x) {
+  x ^= x >> 16u; x *= 0x7feb352du;
+  x ^= x >> 15u; x *= 0x846ca68bu;
+  x ^= x >> 16u;
+  return float(x >> 8u) / 16777216.0;
+}
+
 // Wat er in de ruit staat verschilt per winkeltype (winkelkit.js, STIJL.patroon): schappen,
 // broden, koelvitrine, menubord, kledingrekken, fietswielen, bloemen, spiegels, tv's,
 // rommel, kaarten en tijdschriften. Op afstand blijft de kleur van het type over.
@@ -326,7 +334,7 @@ vec3 igProducts(vec2 c, float detail, float style, int st) {
 vec3 igInterior(IgPane q, vec3 N, vec3 V, float dist, out float fres) {
   bool ground = abs(q.kind - 1.0) < 0.5, shop = abs(q.kind - 2.0) < 0.5, office = q.kind > 2.5;
   float W = max(q.size.x, 0.05), H = max(q.size.y, 0.05);
-  float s1 = igH(vec2(q.K + q.kind * 17.0, W * 3.1 + H * 7.7));
+  float s1 = igHash24(uint((q.K * 8.0 + q.kind) * 977.0 + 0.5) + uint(W * 10.0 + 0.5) * 61u + uint(H * 10.0 + 0.5)); // the palette seed: an integer hash, so interiorlook.js (the room you walk into) picks the same
   float s2 = fract(s1 * 13.37 + 0.21), s3 = fract(s1 * 71.93 + 0.47), s4 = fract(s1 * 31.17 + 0.83), s5 = fract(s1 * 5.71 + 0.13);
 
   vec3 T = length(N.xz) > 1e-3 ? normalize(vec3(N.z, 0.0, -N.x)) : vec3(1.0, 0.0, 0.0);

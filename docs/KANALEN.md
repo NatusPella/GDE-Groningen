@@ -22,8 +22,8 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 
 | Kanaal | Module | Aanroepers | Prioriteit | Zone | Via hudbus | Voorstel #92 |
 |---|---|---|---|---|---|---|
-| kaart | hudcards.js | 182 modules, 751 aanroepen | P0 tot P3 per soort | A | ja: hud, narrative (card), tip | Blijft de ene tekstkaart. Alles wat nu een eigen tekstkaartje is (Opgeslagen, prestatietoast) kan hier als soort in; dat scheelt twee eigen DOM-elementen. |
-| prestatie | achievements.js | 35 modules, 101 aanroepen | P3 | E | ja: narrative (award), overlay (prestatie) | Samen met kaart: de soort prestatie bestaat al in KINDS (zone E). Een kaart met een medaille-icoon in plaats van een tweede element. |
+| kaart | hudcards.js | 184 modules, 765 aanroepen | P0 tot P3 per soort | A | ja: hud, narrative (card), tip | Blijft de ene tekstkaart. Alles wat nu een eigen tekstkaartje is (Opgeslagen, prestatietoast) kan hier als soort in; dat scheelt twee eigen DOM-elementen. |
+| prestatie | achievements.js | 36 modules, 102 aanroepen | P3 | E | ja: narrative (award), overlay (prestatie) | Samen met kaart: de soort prestatie bestaat al in KINDS (zone E). Een kaart met een medaille-icoon in plaats van een tweede element. |
 | bel | phonefeed.js | 3 modules, 3 aanroepen | P1 | A | ja: narrative (call), speech (call) | Samen met radio: twee telefoonschermen (phonefeed en storycontact) voor hetzelfde gesprek; één telefoonpaneel met een portret en een regel. |
 | bericht | phonefeed.js, sikkomfeed.js | 4 modules, 4 aanroepen | P1 tot P2 per soort | A | ja: narrative (text, phone), voice | Samen met kaart voor wat niet verhaal is (bank, nieuws, app): dezelfde zone, dezelfde rang, nu twee stromen. Voorlezen: alleen verhaal. |
 | radio | storycontact.js | 1 module, 2 aanroepen | P1 | - | ja: narrative (contact) | Samen met bel (zie daar). Het portret en de ondertitelregel zijn het enige dat de speler echt nodig heeft. |
@@ -32,7 +32,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 | ondertitel | cinematics.js, storytalk.js, subtitles.js en 1 andere | 4 modules, 4 aanroepen | P1 | G | ja: narrative (sub-cine) | Blijft. setDualText is een tekstmaker, geen kanaal: meerdere modules bouwen er hun eigen regel mee; de plaatsing hoort bij het ene ondertitelblok. |
 | scene | cinematics.js, intromontage.js, respawn.js en 2 andere | 14 modules, 30 aanroepen | n.v.t. | - | ja: narrative (scene) | Blijft. |
 | moment | cinematics.js | beslist zelf | n.v.t. | - | ja: moment (wijk, landmark, ommelanden, veroverd, crash, wanted5) | wijk en landmark kunnen samen met de plaatsnaam: het vlucht-shot is dezelfde boodschap als de naam. Minder momenten, meer plaatsnaam. |
-| banner | cinematics.js | 22 modules, 33 aanroepen | P0 | D | ja: overlay (resultaat), narrative (scene) | Blijft de ene resultaatkaart. Veel minigame- en bijbaanmodules roepen hem apart aan; één gedeeld resultaat via minigamekit scheelt herhaling. |
+| banner | cinematics.js | 22 modules, 34 aanroepen | P0 | D | ja: overlay (resultaat), narrative (scene) | Blijft de ene resultaatkaart. Veel minigame- en bijbaanmodules roepen hem apart aan; één gedeeld resultaat via minigamekit scheelt herhaling. |
 | grotemomenten | bigmoment.js | beslist zelf | P0 | D | ja: overlay (resultaat), narrative (scene) |  |
 | naamkaart | namecard.js | 3 modules, 4 aanroepen | n.v.t. | - | ja: overlay (naamkaart) | Samen met ondertitel: de naam staat al als sprekerlabel in de regel; de grote kaart alleen voor het eerste ontmoeten. |
 | plaatsnaam | hud_panel.js | beslist zelf | P3 | B | ja: overlay (locatie) | Samen met moment (wijk, landmark) en opgeslagen: een plaatsblok. |
@@ -43,10 +43,12 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 | spraak | speech.js | 14 modules, 19 aanroepen | n.v.t. | - | ja: speech | Blijft. Zie ook #110 (voicebank). |
 | status | hud_panel.js, hudgps.js, lowhealth.js | beslist zelf | P2 | - | nee: decideHud (hudrules.js) zet sterren, geld, kaart, voertuig, doel en balken neer | Blijft; dit is de vaste laag. decideHud blijft in hudrules (zonelayout), de tabellen zijn die van hudbus. |
 | opgeslagen | savegame.js | beslist zelf | P3 | F | nee: het kleine Opgeslagen-vinkje bij de plaatsnaam, links onder; een eigen DOM-element, geen kaart | Weg als eigen element: een pictogram in het plaatsblok, of een kaart van de soort tip. |
-| recapkaart | recapcardrun.js | beslist zelf | n.v.t. | - | nee: de recapkaart Waar waren we? na Doorgaan: wacht op een rustig moment (geen scene, geen verhaalbeat), houdt de wereld stil (uiPaused) en sluit met Enter of Esc; alleen lokaal, niets in het opgeslagen spel |  |
+| recapkaart | recapcardrun.js | beslist zelf | n.v.t. | - | nee: de recapkaart Waar waren we? na Doorgaan: wacht op een rustig moment (geen scene, geen verhaalbeat), houdt de wereld stil (uiPaused) en sluit via de knop of de terugtoets; alleen lokaal, niets in het opgeslagen spel |  |
+| vertrekbordtijdlijn | departuretimelineui.js | beslist zelf | n.v.t. | - | nee: de tijdlijn op het vertrekbord van een station (#1085): een element in het bord zelf, geen kaart of melding op de HUD |  |
+| voetbalcarriere | voetbalcarriereui.js | beslist zelf | n.v.t. | - | nee: het kindscherm Voetbal onder Loopbanen in het pauzemenu: de speler opent het zelf, geen melding en geen HUD-kaart |  |
 | binnenset | stagesets.js | beslist zelf | n.v.t. | - | nee: de korte fade en de binnenset (kantoor/serverkamer) die een missie zelf opent en weer opruimt (#955/#956) |  |
 | duikscene | wrakduikenlive.js | beslist zelf | P3 | G | nee: de korte duikscène die de speler zelf start bij een wrak (E) en die vanzelf weer weggaat |  |
-| toetsen | prompts.js, hudtext.js | 32 modules, 32 aanroepen | P2 | H | nee: de toetstips tellen mee in decideHud (keys); gameBusy houdt ze weg | Blijft. Veel modules leveren een toetstip aan; geen planner nodig, de ruimte is vast (twee regels). |
+| toetsen | prompts.js, hudtext.js | 33 modules, 33 aanroepen | P2 | H | nee: de toetstips tellen mee in decideHud (keys); gameBusy houdt ze weg | Blijft. Veel modules leveren een toetstip aan; geen planner nodig, de ruimte is vast (twee regels). |
 | activiteit | stunthud.js, heistui.js, casework.js en 12 andere | beslist zelf | P1 | C | nee: het paneel van de activiteit zelf; de activiteit bepaalt wanneer, playerBusy houdt de rest weg | Samen met keuze en bord: een gedeeld activiteitenpaneel (createBoard) voor titel, stand en toetsen. Veel eigen CSS-strings verdwijnen. |
 | boerderijhud | farmhud.js | beslist zelf | P2 | C | nee: de strook onderin tijdens het werk met je trekker of maaidorser (klus, voortgang, snelheid, diesel, lading); alleen zolang je in een machine van je boerderij zit, geen eigen planner (#985) |  |
 | simhud | simhud.js | beslist zelf | P2 | C | nee: de strook onderin tijdens een light sim (hengelen, krantenwijk): stappen, meter, cijfers, wat nu en een opspringend getal; alleen zolang de sim loopt, geen eigen planner (#985, #980) |  |
@@ -82,6 +84,8 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 - **status**: De vaste HUD: sterren, geld, wapen, klok, kaart, balken, voertuig, doel, GPS (zones B, C, F, G). decideHud in hudrules.js zet ze neer.
 - **opgeslagen**: Het kleine Opgeslagen-vinkje links onder, bij de plaatsnaam.
 - **recapkaart**: 
+- **vertrekbordtijdlijn**: 
+- **voetbalcarriere**: 
 - **binnenset**: 
 - **duikscene**: 
 - **toetsen**: De toetstips onderaan rechts (zone H, maximaal twee): wat E, Spatie en de rest hier doen.

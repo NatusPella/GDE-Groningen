@@ -216,6 +216,9 @@ const BUITEN = new Set(['aimassist.js', 'banter.js', 'bakeround.js', 'boerderiju
 // Technische info (gpudiag.js): een diagnosevenster met eigen donkere opmaak, geen HUD-chroom.
 BUITEN.add('gpudiag.js');
 BUITEN.add('gpuherstel.js'); // de donkere sluier bij een verloren beeldcontext: een vlak, geen HUD-chroom
+BUITEN.add('recapcardrun.js'); // de recapkaart Waar waren we? bouwt op de ds-kaartstijl; eigen kleuren komen uit tokens
+BUITEN.add('departuretimelineui.js'); // de tijdlijn in het vertrekbord: een element van het bord, geen HUD-chroom
+BUITEN.add('voetbalcarriereui.js'); // een paneel in het pauzemenu (Loopbanen), geen HUD-chroom
 for (const [naam, s] of Object.entries(SURFACES)) {
   for (const f of s.files || []) ok(HUD_AUDIT.has(f) || BUITEN.has(f), `surface ${naam}: ${f} is niet geauditeerd en niet als beeld gemarkeerd`);
 }

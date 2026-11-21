@@ -20,7 +20,7 @@ const newSignaler = () => new MultiSignaler(CONFIG, { socket: (url) => { const w
 const KAMER_OPEN_MS = 5 * 60 * 1000; // zo lang blijft de kamer van de nieuwe host open voor wie nog moet aansluiten
 
 // De route voor de overdracht (deps van coophostwisselnet.js). opts: { fade, scene, onHold } zoals samenpanel.js ze ook aan startHost geeft.
-export function wisselRoute(world, opts = {}) {
+function wisselRoute(world, opts = {}) {
   const api = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.coop ? window.gdeDesktop.coop : null;
   return {
     ...wisselWereldHaken(world), // opdracht, kapotte objecten, voertuigen, plek en geld per gast (coophostwisselwereld.js)

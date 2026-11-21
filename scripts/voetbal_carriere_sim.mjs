@@ -7,8 +7,8 @@ import { wgsToWorld } from '../game/js/rdnew.js';
 import { makeParkIndex, HOME_WGS } from '../game/js/voetbalparken.js';
 import * as C from '../game/js/voetbalcarriere.js';
 import { makeRng } from '../game/js/minigamekit.js';
-import { hashSeed } from '../game/js/voetbalspelers.js';
-import { simulateDuel } from '../game/js/voetbalseizoen.js';
+import { hashSeed } from '../game/js/voetbalplayers.js';
+import { simulateDuel } from '../game/js/voetbalseason.js';
 
 const arg = (k, d) => { const a = process.argv.find((x) => x.startsWith(`--${k}=`)); return a ? a.split('=')[1] : d; };
 const WALL_MIN_PER_MATCH = 8;                       // echte minuten per gespeelde wedstrijd inclusief menu's (ontwerp hoofdstuk 7)

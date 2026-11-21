@@ -4,7 +4,7 @@
 // vaste bronnen en putten (omzet, salarissen, de transactiebelasting en wat naar de spelersmarkt gaat). Een koop-verkoopcyclus geeft altijd verlies (verkoop hooguit 80% binnen een seizoen, 10% belasting).
 // De clubkas is gescheiden van het eigen geld van de speler (de manager beheert alleen de kas van zijn club).
 import { makeRng } from './minigamekit.js';
-import { makePlayer, hashSeed, playerRating, ROLES, SQUAD_SHAPE, inventName } from './voetbalspelers.js';
+import { makePlayer, hashSeed, playerRating, ROLES, SQUAD_SHAPE, inventName } from './voetbalplayers.js';
 
 export const SELL_FACTOR = 0.8, TAX = 0.1;
 export const REVENUE_RATE = 0.06;            // de omzet per seizoen als deel van de kas bij de start van het seizoen (kaartjes, sponsors)

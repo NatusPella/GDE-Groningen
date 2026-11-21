@@ -23,6 +23,14 @@ ok(countReferences('const andere = { player: 1 }; andere.player;') === 0, 'een a
 ok(countReferences('// world.player\nconst a = "world.player";\nconst t = `world.player`;') === 0, 'commentaar en strings tellen niet');
 ok(countReferences('const r = /world\\.player/;') === 0, 'een regex is geen leesactie');
 
+// 21-11: de eerste meting miste een wereld als eigenschap en destructurering uit de wereld
+ok(countReferences('const p = ctx.world.player;') === 1, 'ctx.world.player');
+ok(countReferences('const { map, player } = world;') === 1, 'destructurering { player } = world');
+ok(countReferences('const { map, player, vehicles } = this.world;') === 1, 'destructurering uit this.world');
+ok(countReferences('const { map, player: p } = world;') === 0, 'player: p is een hernoeming, geen wereldspeler');
+ok(countReferences('const { map, vehicles } = world;') === 0, 'destructurering zonder player');
+ok(countReferences('const { player } = hoofdspeler(world);') === 0, 'destructurering uit een andere bron');
+
 // ---- synthetische map
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'gde-psa-'));
 const schrijf = (naam, tekst) => fs.writeFileSync(path.join(tmp, naam), tekst);

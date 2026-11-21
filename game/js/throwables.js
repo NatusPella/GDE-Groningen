@@ -357,7 +357,7 @@ function writePoints(pts, count, fill) {
   geo._lastN = n;
 }
 
-export function updateThrowables3D(dt, world, sc) {
+function updateThrowables3D(dt, world, sc) {
   if (!sc) return;
   if (!scene) init(sc);
   for (const b of blasts) burstFx(b);

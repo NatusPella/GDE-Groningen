@@ -3,6 +3,8 @@ import { HABBO_PALETTE, SkinBuilder, loftGeometry, composeMatrix, vcMaterial, ma
 import { hash2 } from './rng.js';
 import { footContact, turnLean, approachTo, wrapPi, fidgetAt } from './gait.js';
 import { idlePose } from './idleclips.js';
+import { attachAccessories } from './models3d_clothing.js';
+import { npcLook } from './clothing.js';
 
 // Low-poly humanoid for the on-foot player, every pedestrian, drivers and
 // bike/scooter riders: one SkinnedMesh (one draw call, one shared material)
@@ -848,7 +850,7 @@ function geometryKey(shirt, skin, L) {
   return JSON.stringify([shirt, skin, L.coatOpen, L.character, L.cop, L.female, L.age, L.build, L.top, L.topColor,
     L.bottom, L.pants, L.skirtColor, L.hairStyle, L.hair, L.hat, L.hatColor, L.hijabColor, L.hood, L.hoodUp,
     L.scarf, L.scarfColor, L.bag, L.bagColor, L.glasses, L.facial, L.swim, L.raincoatColor, L.shoes, L.shoeType,
-    L.under, L.rolled, L.tights, L.forceOpen, L.shortCoat]);
+    L.under, L.rolled, L.tights, L.forceOpen, L.shortCoat, L.capColor, L.shades]);
 }
 
 function autoKnee(z) {
@@ -957,6 +959,19 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
   } else if (L.character === 'anita') {
     Object.assign(L, { top: 'coat', shortCoat: true, bottom: 'jeans', shoeType: 'boot', scarf: false });
   }
+  // NPC-rol (clothing.js, ROLE_POOLS): kleding uit dezelfde stukken als die van de speler, deterministisch uit zaad en rol
+  if (opts.role && !L.character && !L.cop && !opts.look) {
+    const n = npcLook(L.seed, opts.role, { ...(opts.outfitCtx || {}), female: L.female, old: L.age === 'old' }, {});
+    Object.assign(L, n.look);
+    // sieraden, horloge en handschoenen zijn losse meshes: een NPC in de menigte krijgt ze niet (geen extra drawcalls, ze zijn op afstand niet te zien)
+    if (!(opts.outfitCtx && opts.outfitCtx.detail)) L.acc = null;
+    // het kapsel uit de outfit (clothinghair.js); een hoofddoek blijft een hoofddoek
+    if (L.hairStyle !== 'hijab') { if (n.hairStyle) L.hairStyle = n.hairStyle; if (n.hair != null) L.hair = n.hair; }
+    L.topColor = n.shirt;
+    if (n.pants != null) { L.pants = n.pants; L.skirtColor = n.pants; }
+    if (n.shoes != null) L.shoes = n.shoes;
+    if (n.look.hat === 'tammo') L.hat = 'cap';
+  }
   // story characters (missionstory.js NPC looks): fixed clothes, hat, build
   if (opts.look) Object.assign(L, opts.look);
   // swimwear (swimmers3d.js): 'trunks', 'swimsuit' or 'bikini' in opts.swimColor, barefoot
@@ -1031,6 +1046,7 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
     rig.limbs[k].arm.rotation.z = 0;
   }
   if (L.umbrella !== null && L.umbrella !== undefined) attachUmbrella(ud, L.umbrella);
+  if (L.acc) attachAccessories(group, L.acc);
 
   group.scale.set(L.buildScale, L.heightScale, L.buildScale);
   if (opts.seed !== undefined) ud.lookSeed = opts.seed;

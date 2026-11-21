@@ -4,14 +4,14 @@ import { hoofdspeler } from './players.js';
 // de routes per vervoerswijze uit; tekenLijnen tekent de OV-lijnen op het canvas.
 import { planTrainTrip, planBoatTrip } from './routing.js';
 import { getBusLines } from './vehicle.js';
-import { busTrip, reisOpties, etaText, TAXI_WAIT_S } from './ovopties.js';
+import { busTrip, reisOpties, etaText, TAXI_WAIT_S, OV_MIN_M } from './ovopties.js';
 import { travelSeconds } from './reistijd.js';
 import { lijnLagen } from './ovkaart.js';
 import { travelFactorFor } from './explorationlive.js';
 import { INK, inkA } from './mapstyle.js';
 
-// Onder deze afstand is meerijden geen keuze: gewoon lopen of rijden.
-const MIN_OV_M = 1500;
+// Onder deze afstand (OV_MIN_M, ovopties.js) is meerijden geen keuze: gewoon lopen of rijden.
+const MIN_OV_M = OV_MIN_M;
 
 const cache = { key: '', opts: null };
 

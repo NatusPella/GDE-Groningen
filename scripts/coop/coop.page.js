@@ -1244,6 +1244,42 @@ const PHASES = {
       log('filmpje-gast-na', { sc: W().coopScene || null, sceneEl: !!document.getElementById('coop-scene') });
     }
   },
+  // Suite 'alles' (docs/COOP-SWEEP-21-11.md): een korte, dekkende stap per systeem. Elke stap logt 'alles-<stap>' met wat dit venster zag;
+  // de testbank keurt dat per stap. Systemen van een epic die nog niet in de gestagede game staan worden gelogd als { skip: true }.
+  async allesstap({ stap, wie = 'gast', s = 8 }) {
+    const w = W();
+    const uit = (data) => log('alles-' + stap, { rol: CFG.role, ...data });
+    try {
+      if (stap === 'ping') { // kaartping: een gast roept (9, Kijk daar), de anderen zien een baken
+        if (CFG.name === wie) key('9', 'Digit9');
+        await sleep(s * 1000);
+        uit({ marks: (W().coopPingMarks || []).length, teksten: (W().coopPingMarks || []).map((m) => m.tekst) });
+      } else if (stap === 'waypoint') { // een waypoint is per speler: wat de gast kiest staat niet bij de anderen
+        const G = await imp('goal');
+        if (CFG.name === wie) G.setGoal({ kind: 'place', name: 'Alles-test', x: W().player.x + 150, y: W().player.y + 150 }, { quiet: true });
+        await sleep(s * 1000);
+        const g = G.getGoal && G.getGoal();
+        uit({ heeftDoel: !!(g && g.name === 'Alles-test') });
+      } else if (stap === 'outfit') { // kleding: de outfit-code in de spelerslijst (epic Kleding)
+        let C = null; try { C = await imp('clothing'); } catch (e) { /* nog niet gemerged */ }
+        if (!C) return uit({ skip: true, reden: 'clothing.js ontbreekt' });
+        await sleep(s * 1000);
+        uit({ codes: (W().coopRoster || []).map((r) => (r.avatar && r.avatar.outfit) || null) });
+      } else if (stap === 'tuning') { // tuning: onderdelen van een eigen auto komen mee in het bezorg-bericht (#1158)
+        const T = await imp('tuningplan');
+        await sleep(s * 1000);
+        uit({ onderdelen: Array.isArray(T.PARTS) ? T.PARTS.length : 0, bezorgVeld: !!(await imp('coopbezit')).TUNING_VELD, skip: !(await imp('coopbezit')).TUNING_VELD, reden: 'wacht op #1158' });
+      } else if (stap === 'bezit') { // bezit: een claim van een gast (epic Bezit)
+        let B = null; try { B = await imp('bezitcoop'); } catch (e) { /* nog niet gemerged */ }
+        if (!B) return uit({ skip: true, reden: 'bezitcoop.js ontbreekt' });
+        await sleep(s * 1000);
+        uit({ export: Object.keys(B).slice(0, 12) });
+      } else if (stap === 'geld') { // geld per speler: elk venster houdt zijn eigen saldo
+        const g0 = w.money | 0; await sleep(s * 1000);
+        uit({ voor: g0, na: W().money | 0 });
+      } else uit({ onbekend: true });
+    } catch (e) { uit({ fout: String(e && e.message || e) }); }
+  },
   // de gast verlaat het spel via het menu (zoals een speler)
   async verlaat({ wie = 'gast2' }) {
     if (CFG.name !== wie) { await sleep(6000); return; }

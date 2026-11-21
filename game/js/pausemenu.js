@@ -8,12 +8,12 @@
 import { keyLabelGlyph, keyLabelHtml } from './keycap.js';
 import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './settings.js';
 import { retryBeschikbaar, herstartMissie, herstartBlokkade } from './missions.js';   // #985 punt 16
-import { DIFFICULTY, DIFFICULTY_MODES } from './difficulty.js';
+import { difficultyTabHtml, difficultyPaneText, syncDifficultyTab, stepDifficultyPicker, handleDifficultyClick } from './difficultypanel.js'; // #1169: Instellingen > Moeilijkheid, per save
 import { logoHtml } from './logo.js';
 import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './pausestate.js';
 import { uitlegBlok, zetUitlegGlyph, startUitleg, resetUitlegNietMeer } from './uitleg.js';
 import { PRESET_ORDER, presetLabel, PRESET_HINTS, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
-import { mountMapView, kaartUitlegSluiten, kaartReisPopupSluiten, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
+import { mountMapView, kaartUitlegSluiten, kaartReisPopupSluiten, kaartPlekkaartSluiten, kaartToets, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
 import { mountOnlineInstelling } from './onlineconsentui.js';
 import { renderSamenPanel, requestOpenSamen, samenHubTerug } from './samenpanel.js';
 import { isSoloHost, stopSoloHost } from './coopsolo.js';
@@ -68,7 +68,7 @@ import { isPlayAheadOpen } from './todo.js';
 import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer, selectVerhaalCharacter } from './verhaalui.js';
 import { anyFresh } from './characters.js';
 import { maakRegel, zoekRegels, SOORTEN } from './pausesearch.js';
-import { renderSpullen, disposeSpullenViewer, turnSpullenViewer, spullenClick, spullenFocus, spullenEnter, spullenAnnuleer, zetSpullenZoek, DELEN } from './spullen.js';
+import { renderSpullen, disposeSpullenViewer, turnSpullenViewer, spullenClick, spullenFocus, spullenEnter, spullenAnnuleer, spullenNavigeer, zetSpullenZoek, DELEN } from './spullen.js';
 import { phoneClick, phoneUnread, characterForSender } from './phone.js';
 import { takeNoticeThread } from './phonefeed.js';
 import { getErrorLog, errorReport, clearErrorLog, onErrorLogChange } from './errorlog.js';
@@ -91,6 +91,7 @@ const CONTROL_GROUPS = [
     [['E', 'F'], 'Gebruiken'],
     [['E'], 'Word een duif'],
     [['K'], 'Kusje geven'],
+    [['6'], 'Andere kleren'],
     [['I'], 'Hengelen'],
   ]],
   ['vervoer', 'Vervoer', [
@@ -172,6 +173,7 @@ const CONTROL_LONG = [
     ['Gebruiken', 'Instappen, een winkel in, praten of een bijbaantje beginnen.'],
     ['Word een duif', 'Bij een duivenbord: word een duif.'],
     ['Kusje geven', 'Kusje geven aan Tammo of Tessa.'],
+    ['Andere kleren', 'Te voet: de volgende outfit uit je kast (bewaar ze in de kast thuis of in Spullen, Outfit 1 tot 5). Kost niets en werkt overal.'],
     ['Hengelen', 'Hengelen, aan elk water (ook vanuit een boot die stilligt).'],
   ]],
   ['vervoer', [
@@ -410,7 +412,7 @@ const SUBTABS = {
   // #985 punt 7: dit tabblad heette ook "Spel", net als het rail-onderdeel waar je je save beheert.
   // Twee dingen met dezelfde naam in hetzelfde menu is een raadsel; "Spelregels" zegt wat erin staat
   // (moeilijkheid, verkeer, geweld, rijden) en botst nergens meer mee.
-  settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['spel', 'Spelregels'], ['besturing', 'Besturing'], ['camera', 'Camera'], ['display', 'Interface'], ['hints', 'Hints & uitleg'], ['a11y', 'Toegankelijkheid'], ['online', 'Samen spelen']],
+  settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['spel', 'Spelregels'], ['moeilijkheid', 'Moeilijkheid'], ['besturing', 'Besturing'], ['camera', 'Camera'], ['display', 'Interface'], ['hints', 'Hints & uitleg'], ['a11y', 'Toegankelijkheid'], ['online', 'Samen spelen']],
   controls: [['toetsen', 'Toetsenbord en muis'], ['knoppen', 'Controller'], ['overzicht', 'Toetsenoverzicht'], ['aanraken', 'Aanraken'], ['hulp', 'Hulp']],
 };
 // old tab names (saved preferences, other modules)
@@ -450,7 +452,7 @@ function basisUitlegHtml() {
 const HINTS = {
   overzicht: [[['↑', '↓'], 'kiezen'], [['Enter'], 'ok'], [['Esc'], 'doorgaan', 'resume']],
   todo: [[['↑', '↓'], 'kiezen'], [['Enter'], 'zet als doel'], [['Esc'], BACK, 'back']],
-  map: [[['Klik'], 'plek kiezen'], [['Q', 'E'], 'onderdeel'], [['M'], 'sluiten', 'resume'], [['Esc'], BACK, 'back']],
+  map: [[['Klik'], 'plek kiezen'], [['Q', 'E'], 'andere pagina'], [['M'], 'sluiten', 'resume'], [['Esc'], BACK, 'back']],
   verhaal: [[['↑', '↓'], 'kiezen'], [['Enter'], 'kiezen of bellen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
   spullen: [[['↑', '↓', '←', '→'], 'kiezen'], [['Enter'], 'gebruiken'], [['Q', 'E'], 'soort'], [['Esc'], BACK, 'back']],
   garage: [[['↑', '↓'], 'kiezen'], [['Enter'], 'afleveren of kopen'], [['Q', 'E'], 'soort'], [['Esc'], BACK, 'back']],
@@ -576,20 +578,6 @@ function disclosure(id, title, hint, inner, open = false) {
 // De decoratieve kolom naast een instellingentab. De titel is een kop van 48 px (niet 64):
 // in een smalle kolom brak "ZO SPEEL HET" anders af tegen de rand (#911-QA, 1280x720).
 const pane = (eyebrow, title, inner = '') => `<aside class="m-pane"><div class="pm-pane-top"><span class="m-eb">${eyebrow}</span><h2 class="m-h2 td-h2">${title}</h2></div>${inner}</aside>`;
-
-// #891: de drie moeilijkheidsstanden in gewone taal, met de factoren uit difficulty.js erbij.
-// De keuze stond verstopt onder Toegankelijkheid > Hulp; nu staat hij bovenaan Instellingen > Spel,
-// met de gevolgen ernaast zodat je weet wat je kiest in plaats van een woord te raden.
-function difficultyRows() {
-  const D = DIFFICULTY;
-  const p = (f) => `${Math.round(Math.abs(f - 1) * 100)}%`;
-  const tijd = (f) => (f > 1 ? `${p(f)} meer tijd` : f < 1 ? `${p(f)} minder tijd` : 'geen extra tijd');
-  const doel = (f) => (f > 1 ? `${p(f)} ruimere medailles` : f < 1 ? `${p(f)} strengere medailles` : 'de gewone medailles');
-  const schade = (f) => (f > 1 ? `${p(f)} meer schade` : f < 1 ? `${p(f)} minder schade` : 'de gewone schade');
-  const rij = (id) => `<div class="pm-diff-row" data-diff="${id}" role="listitem"><b>${esc(D[id].label)}</b>` +
-    `<span>${tijd(D[id].time)}, ${doel(D[id].target)} en ${schade(D[id].damage)}</span></div>`;
-  return `<div class="pm-diff" role="list" data-diff-now aria-label="Wat de drie standen doen">${DIFFICULTY_MODES.map(rij).join('')}</div>`;
-}
 
 // #894: hoeveel toetsen en knoppen wijken af van de standaard, met één knop om alles terug te
 // zetten. Zo zie je meteen of je iets veranderd hebt zonder alle rijen langs te lopen.
@@ -762,8 +750,7 @@ function settingsHtml() {
         <div class="pm-subprev" data-sub-preview><span class="pm-subtxt"><b>Tammo:</b> Rustig an, rustig an.</span></div>
         <p class="mut">Muziek is de radio (G-Music, 's nachts Nachtstreek) en de titelsong, stemmen zijn Tammo, Tessa, de politie, de mensen op straat en de praatjes op de radio. Kleurenblind, interfacegrootte en beweging beperken vind je onder Toegankelijkheid.</p></aside>`)}
     ${tab('spel', `
-      ${picker('difficulty', 'Moeilijkheid', [['ontspannen', 'Ontspannen'], ['standaard', 'Standaard'], ['uitdagend', 'Uitdagend']], 'Bepaalt hoeveel tijd je krijgt, hoe streng de medailles zijn en hoeveel schade je voertuig houdt. Je keuze geldt meteen; records en medailles zijn per stand gescheiden')}
-      ${difficultyRows()}
+      <div class="m-li pm-row">${rowName('Moeilijkheid', 'Het niveau en de opties van dit spel: politie, verkeer, schade, hulp, geld en meer')}<button type="button" class="m-bg" data-goto-sub="settings:moeilijkheid">Aanpassen</button></div>
       <div class="m-gh"><span>Verkeer en geweld</span></div>
       ${picker('ruzie', 'Verkeersruzie', [['uit', 'Uit'], ['weinig', 'Weinig'], ['normaal', 'Normaal'], ['veel', 'Veel']], 'Hoe vaak een boze bestuurder uitstapt na een botsing of getoeter. Zonder bloed; sommigen hebben iets in de hand')}
       ${picker('drunkFx', 'Dronken effecten', [['aan', 'Aan'], ['mild', 'Mild'], ['uit', 'Uit']], 'Het wiebelende beeld en de dubbele tong als je gedronken hebt')}
@@ -778,6 +765,7 @@ function settingsHtml() {
       <div class="m-gh"><span>Kaart</span></div>
       ${toggle('mapShiftTeleport','{SHIFT}+{LMB} op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}`,
       `${pane('Spelregels', 'Zo speelt het', '<p>Hoe moeilijk het is, hoe het verkeer en het geweld zich gedragen en hoe het rijden aanvoelt. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan op de andere tabbladen. Camera-afstand, beeldhoek en eerste persoon staan onder Instellingen &gt; Camera; toetshints en uitleg onder Instellingen &gt; Hints &amp; uitleg.</p>')}`)}
+    ${tab('moeilijkheid', difficultyTabHtml(), pane('Moeilijkheid', 'Hoe pittig', `<p>${difficultyPaneText}</p>`))}
     ${tab('besturing', `
       <div class="m-gh"><span>Muis</span></div>
       ${slider('mouseSensitivity', 'Muisgevoeligheid', 0.3, 2.5, 0.05, 'Hoe snel de camera draait als je de muis beweegt', 'keer')}
@@ -1097,6 +1085,7 @@ export function initPauseMenu(w) {
     if (fold) { toggleFold(fold); return; }
     const pb = e.target.closest('[data-preset-btn]');
     if (pb) { applyPreset(pb.dataset.presetBtn); syncControls(); return; } // de voorinstellingen zijn knoppen (#435)
+    if (handleDifficultyClick(e.target)) { syncControls(); return; }
     const pick = e.target.closest('[data-pick]');
     if (pick) { stepPicker(pick.closest('.m-pk'), Number(pick.dataset.pick)); return; }
     if (e.target.closest('[data-pad-test]')) { openPadTest(); return; }
@@ -1351,6 +1340,8 @@ function onKey(e) {
   const t = e.target instanceof Element ? e.target : null;
   // text fields (the searches) have their own keys, Escape included
   if (t && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && !['range', 'checkbox'].includes(t.type)))) return;
+  // de kaartvensters (de uitleg, de reispopup) en de plekkaart hebben het toetsenpatroon van alle kaartpopups (mapview.js kaartToets, 21-11)
+  if (tab === 'map' && kaartToets(e)) return;
   const dir = ARROWS[k];
   if (e.repeat && !dir) return;
   // #915: een open vraag houdt alle andere menutoetsen tegen; alleen Esc, Tab, de pijlen
@@ -1385,9 +1376,13 @@ function onKey(e) {
     if (tab === 'map' && !inRail && e.__gde === 'pad') toggleMapControls(root, t);
     else if (tab === 'map' && !inRail) cycleSection(e.shiftKey ? -1 : 1);
     else tabFocus(e.shiftKey ? -1 : 1);
+  } else if (tab === 'spullen' && (k === 'Home' || k === 'End' || k === 'PageUp' || k === 'PageDown') && t && t.dataset && t.dataset.spul && spullenNavigeer(activePanel(), t, k.toLowerCase())) {
+    consume(e);
   } else if (dir) {
     // de draaitafel van de Garage: links en rechts draaien het model als de
     // focus op het model staat (#610); omhoog/omlaag blijven focus verplaatsen
+    // de galerij van Spullen: pijltjes en D-pad lopen over de tegels (links, rechts, omhoog, omlaag); aan de rand neemt het menu het over
+    if (tab === 'spullen' && t && t.dataset && t.dataset.spul && spullenNavigeer(activePanel(), t, dir)) { consume(e); return; }
     if (tab === 'spullen' && (dir === 'left' || dir === 'right') && t && t.closest && t.closest('[data-spul-stage]') && turnSpullenViewer(dir === 'left' ? -1 : 1)) { consume(e); return; }
     if (tab === 'garage' && (dir === 'left' || dir === 'right') && t && t.closest && t.closest('.gar-stage') && turnGarageViewer(dir === 'left' ? -1 : 1)) { consume(e); return; }
     // the map pans with the arrows (and WASD) unless the rail has focus; staat de focus van een controller op een knop van
@@ -1552,7 +1547,7 @@ function goBack() {
   // het zoekvenster (21-11) gaat voor alles met Escape dicht
   if (findOpen()) { closeFind(); return; }
   // de eenmalige uitleg op de kaart gaat met Escape (en B) eerst weg; de kaart blijft open
-  if (tab === 'map' && (kaartUitlegSluiten() || kaartReisPopupSluiten())) return; // daarna de reispopup (21-11): terug naar de plekkaart
+  if (tab === 'map' && (kaartUitlegSluiten() || kaartReisPopupSluiten() || kaartPlekkaartSluiten())) return; // daarna de reispopup en de plekkaart (21-11): een laag terug per Esc of B
   // Spullen (#1013): een openstaande vraag "Weggooien?" gaat eerst weg met Escape
   if (tab === 'spullen' && spullenAnnuleer(activePanel())) return;
   // Samen spelen (#527): de hub met drie stappen gaat eerst zelf een stap terug, zodat Escape de sessie nooit
@@ -1902,6 +1897,7 @@ function pickerState(pk) {
 
 function stepPicker(pk, dir) {
   if (!pk || pk.getAttribute('aria-disabled') === 'true') return;
+  if (pk.dataset.diffopt) { stepDifficultyPicker(pk, dir); syncControls(); return; } // #1169: een optie van de moeilijkheid, uit de save
   const { options, i } = pickerState(pk);
   const next = Math.min(options.length - 1, Math.max(0, i + dir));
   if (next === i) return;
@@ -2392,9 +2388,7 @@ function syncControls() {
   const shadowBox = root.querySelector('[data-setting="shadows"]');
   shadowBox.disabled = !shadowsAllowed;
   shadowBox.closest('.pm-row').classList.toggle('pm-disabled', !shadowsAllowed);
-  // #891: de gekozen moeilijkheidsstand licht op in de uitleg ernaast
-  const diffBox = root.querySelector('[data-diff-now]');
-  if (diffBox) for (const row of diffBox.querySelectorAll('[data-diff]')) row.toggleAttribute('data-on', row.dataset.diff === st.difficulty);
+  syncDifficultyTab(root); // #891, #1169: het niveau licht op in de uitleg en de opties tonen hun waarde
   syncKeyChanged();
   syncNowFacts(st);
 }

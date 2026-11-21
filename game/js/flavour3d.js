@@ -324,7 +324,7 @@ function stepPicnicPeople(world, p) {
     const q = pn.pool[i];
     if (q.who < 0) { if (q.mesh) q.mesh.visible = false; continue; }
     const who = pn.people[q.who];
-    if (!q.mesh) { q.mesh = buildPersonMesh(SHIRTS[(i * 3) % SHIRTS.length], SKINS[(i * 7 + 1) % SKINS.length]); q.mesh.name = 'picknicker'; pn.g.add(q.mesh); }
+    if (!q.mesh) { q.mesh = buildPersonMesh(SHIRTS[(i * 3) % SHIRTS.length], SKINS[(i * 7 + 1) % SKINS.length], { role: 'toerist', seed: i * 5.3 + 2 }); q.mesh.name = 'picknicker'; pn.g.add(q.mesh); }
     seatPose(q.mesh, SIT_GROUND[who.pose]);
     q.mesh.position.set(who.x, seatedY(q.mesh, SEAT_TOP), who.y);
     q.mesh.rotation.y = who.ry;

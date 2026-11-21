@@ -1,8 +1,8 @@
 // Ontwikkeling van de speler in de voetbalcarrière (#1109, epic #1106, docs/VOETBAL-CARRIERE-21-11.md hoofdstuk 5): puur, geen DOM (scripts/voetbal_ontwikkeling_test.mjs).
 // Ervaring uit wedstrijden en training voedt de vijf vaardigheden; de winst neemt af naar het plafond (potentieel), hooguit 4 punten per vaardigheid per seizoensfase. Vorm (0,92 tot 1,08),
 // vermoeidheid (0 tot 100) en blessures horen erbij. Blessures zijn nooit getoond (geen beeld, geen woord als "gebroken"), uit te zetten en nooit blijvend: hooguit 3 speldagen rust.
-import { ATTRS, attrCap, clampAttr } from './voetbalspelers.js';
-import { hashSeed } from './voetbalspelers.js';
+import { ATTRS, attrCap, clampAttr } from './voetbalplayers.js';
+import { hashSeed } from './voetbalplayers.js';
 import { makeRng } from './minigamekit.js';
 
 export const PHASE_CAP = 4;                 // hooguit 4 punten per vaardigheid per seizoensfase (een seizoen heeft er twee)

@@ -15,7 +15,7 @@
 /* one prominent thing at a time: the now-playing card steps aside for a card */
 body.hud-card-on #hud .hud-nowplaying { opacity: 0; transform: translateX(-24px); }
 body.hud-call-on #hud .hud-nowplaying, body.hud-call-on #hud .hud-vehname, body.hud-call-on #hud .hud-ctx, body.hud-call-on #hud .wp-secondary { opacity: 0 !important; }
-#hud .hud-cards.paused .hc-timer { animation-play-state: paused; }
+#hud .hud-cards.paused .ds-melding__tijd, #hud .hud-cards-e.paused .ds-melding__tijd { animation-play-state: paused; } /* het balkje zelf: ds-melding.css */
 
 #hud .hud-card {
   --hc: var(--ds-c-creme);
@@ -79,18 +79,7 @@ body.hud-call-on #hud .hud-nowplaying, body.hud-call-on #hud .hud-vehname, body.
   letter-spacing: 0;
 }
 #hud .hc-text span.solo { margin-top: 4px; } /* dezelfde rol als elke body */
-#hud .hc-timer {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  height: 2px;
-  width: 70%;
-  background: linear-gradient(90deg, var(--hc), transparent);
-  transform-origin: left;
-  opacity: 0.7;
-}
-#hud .hud-card.on .hc-timer { animation: hc-time var(--hc-dur, 5s) linear forwards; }
-@keyframes hc-time { to { transform: scaleX(0); } }
+/* het aflopende balkje onderaan: ds-melding.css (.ds-melding__tijd) */
 
 /* countdowns: big and central */
 #hud .hud-count {
@@ -135,7 +124,7 @@ body.pigeon-mode.hud-card-on #hud .phonefeed { visibility: hidden; }
 body.hud-card-on #hud .hud-nowplaying { opacity: 0; }
 body.pigeon-mode #hud .hud-cards { top: 300px; }
 /* #801: "Leestijd: geen timer" laat een belangrijke kaart staan tot een klik of Enter */
-#hud .hud-card.sticky .hc-timer { display: none; }
+/* (een blijvende kaart heeft geen balkje: ds-melding.css) */
 /* De kaart zegt "Klik of druk op Enter", en #hud staat op pointer-events: none: zonder
    deze regel kwam de klik nooit bij de kaart aan. Alleen de blijvende kaart is klikbaar;
    de gewone kaarten blijven doorklikbaar naar de wereld. */
@@ -160,7 +149,6 @@ body.pigeon-mode #hud .hud-cards { top: 300px; }
 #hud .hc-text b { font-weight: 800; letter-spacing: 0.02em; text-transform: none; }
 #hud .hud-card.on .hc-text b { text-shadow: var(--ds-misdruk); animation: hud-misdruk-weg 0.01s 1.4s forwards; } /* ds3-dwell: verblijf */
 #hud .hc-text span { font-family: var(--ds-font-zeef-tekst); font-weight: 400; letter-spacing: 0; color: var(--ds-c-ink-inkt); }
-#hud .hc-timer { height: 4px; background: var(--ds-c-ink-inkt); opacity: 0.85; }
 #hud .hud-card .hc-close { font-family: var(--ds-font-zeef-tekst); }
 #hud .hc-text kbd.hud-key, #hud .hc-text .hud-key { font-family: var(--ds-font-zeef-kop); font-weight: 800; }
 #hud .hud-count { color: var(--ds-c-ink-papier); font-family: var(--ds-font-zeef-kop); font-weight: 800; -webkit-text-stroke: 4px var(--ds-c-ink-inkt); paint-order: stroke fill; text-shadow: var(--ds-misdruk), 6px 6px 0 var(--ds-c-ink-inkt); }

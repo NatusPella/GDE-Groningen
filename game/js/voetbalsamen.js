@@ -5,7 +5,7 @@
 // mee als een compact blok in het bestaande EXTRA-bericht (`v`). Derby (vrienden als rivalen, mensen in team 1): de indeling is hier gepland; de sim ondersteunt mensen in team 1 nog niet (zie het doc).
 export const MAX_PER_TEAM = 4;
 export const LEVEL_CAP = { talent: 56, terp: 72, kroon: 90, europa: 95 };       // het hoogste rating dat een gast mee mag nemen per klasse
-export const FIGURES = ['anita', 'tammo'];
+const FIGURES = ['anita', 'tammo'];
 const klem = (v, a, b) => (Number.isFinite(v) ? Math.min(b, Math.max(a, v)) : a);
 
 // Een gastfactor (0,6 tot 1,3 van simFactors) wordt geklemd op wat past bij de rating-cap van de klasse: een factor hoort bij een vaardigheid; de cap is een vaardigheid in factor.

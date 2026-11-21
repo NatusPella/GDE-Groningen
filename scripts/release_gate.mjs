@@ -21,6 +21,7 @@ import { fileURLToPath } from 'node:url';
 import {
   STAGES, STAGE_NAAM, planStages, requiredStages, mergeVerdict, verifyGate, beschrijfPlan,
 } from './release/stages.mjs';
+import { checkOwnerReview, OWNER_REVIEW_FILE } from './release/ownerreview.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
@@ -99,6 +100,13 @@ function faseStatisch(ctx) {
 
   const merken = runStep('merkenregister', process.execPath, ['scripts/merkenregister_check.mjs'], { ms: 120e3, logDir: d });
   items.push({ naam: 'merkenregister tegen de code', status: merken.code === 0 ? 'PASS' : 'FAIL', code: merken.code === 0 ? 0 : 1, secs: merken.secs, detail: merken.code === 0 ? '' : MELDING(merken) });
+
+  // De dekking van Samen spelen (21-11): elk systeem een Samen-regel, nieuwe modules bij een systeem, opslagsleutels per speler of als wereldstaat; blokkeert bij een vondst.
+  {
+    const cd = runStep('coop_coverage_audit', process.execPath, ['scripts/coop_coverage_audit.mjs'], { ms: 5 * 60e3, logDir: d });
+    const cdFouten = cd.out.split(/\r?\n/).filter((l) => /^FOUT/.test(l)).slice(0, 3).join(' | ');
+    items.push({ naam: 'dekking Samen spelen (systemen, regels, opslagsleutels)', status: cd.code === 0 ? 'PASS' : 'FAIL', code: cd.code === 0 ? 0 : 1, secs: cd.secs, detail: cd.code === 0 ? '' : (cdFouten || MELDING(cd)) });
+  }
 
   // De cutscene-linter (regie-bijbel docs/CUTSCENE-REGIE-21-11.md): streng voor alle cutscenes, ook de bestaande (eigenaar-besluit 21-11); faalt bij elke blokkerende vondst zonder gedocumenteerde uitzondering in scripts/release/cutscene-uitzonderingen.json.
   // Het rapport (per cutscene en de globale score) komt in de map van de run; de blokkerende vondsten zijn ook als lijst te lezen.
@@ -402,9 +410,16 @@ function main() {
       allowReleaseCommit: flag('allow-release-commit'),
       filesSinds: flag('allow-release-commit') && gate.commit && gate.commit !== commit ? changedBetween(gate.commit, commit) : null,
     });
+    // Laatste stap vóór release.sh: de eigenaar-review met 20 screenshots (scripts/release/ownerreview.mjs, docs/RELEASEGATE.md).
+    let bewijs = null;
+    try { bewijs = JSON.parse(fs.readFileSync(path.join(ROOT, OWNER_REVIEW_FILE), 'utf8')); } catch { /* geen bewijs */ }
+    const or = checkOwnerReview(bewijs, { skip: process.env.GDE_RELEASE_SKIP_OWNERREVIEW === '1' });
+    if (!or.ok) { v.ok = false; v.code = v.code || 1; v.problemen = [...(v.problemen || []), ...or.problemen]; }
+    const orRegel = or.samenvatting;
     console.log(`Releasegate ${v.ok ? 'GROEN' : 'NIET GROEN'} (${bestand})`);
     for (const w of v.waarschuwingen || []) console.log('  let op: ' + w);
     if (!v.ok) for (const p of v.problemen) console.log('  - ' + p);
+    console.log('  '+orRegel);
     if (v.ok) console.log(`  commit ${commit.slice(0, 10)}, ${gate.verdict.status}, ${gate.stages ? Object.values(gate.stages).filter((s) => s && s.status === 'PASS').length : 0} fase(n) groen`);
     return v.code;
   }

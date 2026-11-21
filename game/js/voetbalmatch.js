@@ -29,7 +29,7 @@ const NEUTRAAL = Object.freeze({ mx: 0, my: 0, buttons: 0 });
 const ROL_VOORKEUR = { aanvaller: 0, middenvelder: 1, verdediger: 2 };
 const controlOrder = (lijst) => lijst.map((x, i) => ({ i, r: x.rol })).filter((x) => x.r !== 'keeper').sort((a, b) => ROL_VOORKEUR[a.r] - ROL_VOORKEUR[b.r] || a.i - b.i).map((x) => x.i);
 
-// De factoren van een speler uit de carrière (voetbalspelers.js simFactors): geklemd op 0,6 tot 1,3; ontbrekende waarden zijn neutraal.
+// De factoren van een speler uit de carrière (voetbalplayers.js simFactors): geklemd op 0,6 tot 1,3; ontbrekende waarden zijn neutraal.
 const NEUTRAAL_FAC = Object.freeze({ sprint: 1, schot: 1, aanname: 1, verd: 1, uit: 1 });
 const ratingFac = (f) => { const o = {}; for (const k of ['sprint', 'schot', 'aanname', 'verd', 'uit']) o[k] = Number.isFinite(f[k]) ? Math.min(1.3, Math.max(0.6, f[k])) : 1; return o; };
 function makePlayer(team, i, name, level, rol, perTeam) {
@@ -41,7 +41,7 @@ function makePlayer(team, i, name, level, rol, perTeam) {
   };
 }
 
-// ratings: [[per plek van team 0], [idem team 1]] met { naam?, f: { sprint, schot, aanname, verd, uit } } (carrière, voetbalspelers.js simFactors); teams: [team0, team1] overschrijft de zes vaste clubs (voetbalclubs.js teamFor).
+// ratings: [[per plek van team 0], [idem team 1]] met { naam?, f: { sprint, schot, aanname, verd, uit } } (carrière, voetbalplayers.js simFactors); teams: [team0, team1] overschrijft de zes vaste clubs (voetbalclubs.js teamFor).
 // deeln: [{ slot, naam, char, bonus? }] (bonus: { sprint, schot, aanname } van het personage, voetbalkarakter.js; de mensen, de host eerst), opties: { duur 'kort' | 'normaal', stand (moeilijkheid), seed, tegenstander (0..3), aiBeide (voor de botsim: beide teams als tegenstander) }.
 export function makeMatch(deeln = [], { duur = 'normaal', stand: level = 'standaard', seed = 1, tegenstander: tg = 0, aiBeide = false, formaat = 'klein', vorming = null, stijl = 'evenwichtig', vormingTegen = null, stijlTegen = 'evenwichtig', teams: teamsOpt = null, ratings = null } = {}) {
   formaat = zetFormaat(formaat);

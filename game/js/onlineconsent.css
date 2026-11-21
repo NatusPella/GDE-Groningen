@@ -91,3 +91,33 @@ body:has(#online-start) #loading .bt-load { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) { .os-kaart { animation: none; } .sk-keuze { transition: none; } }
 html.reduce-motion .os-kaart { animation: none; }
 html.reduce-motion .sk-keuze { transition: none; }
+
+/* Moeilijkheid (#1169): de kaart "Hoe pittig moet het zijn?" gebruikt de keuzeknoppen hierboven (drie naast elkaar), met de toets in de knop
+   (.sk-toets), en een tweede weergave met een lijst opties. Alleen tokens; tekst nooit onder 13 px; dezelfde focusring; geen beweging als die beperkt is. */
+.dk-knoppen { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.dk-keuze { min-height: 170px; }
+.dk-keuze .sk-label { font-size: 30px; padding-right: 34px; }
+.dk-keuze .sk-uitleg { font-size: 16px; }
+.dk-tag { display: inline-block; padding: 2px 8px; font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ds-primair-tx); background: var(--ds-zeef-primair); border: 2px solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); }
+.dk-keuze:focus .dk-tag, .dk-keuze:focus-visible .dk-tag { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); }
+.dk-onder { margin-top: 14px; }
+.dk-aanpassen { display: inline-flex; align-items: center; gap: 10px; }
+.dk-aanpassen:focus, .dk-aanpassen:focus-visible { background: var(--ds-zeef-primair); color: var(--ds-primair-tx); outline: var(--ds-focus-dikte) solid var(--ds-c-ink-inkt); outline-offset: var(--ds-focus-afstand); }
+.dk-aanpassen-u { font-size: 14px; opacity: 0.75; }
+.sk-toets-in { display: inline-flex; }
+.dk-opties { width: min(820px, 100%); }
+.dk-lijst { display: flex; flex-direction: column; gap: 6px; max-height: min(52vh, 460px); overflow-y: auto; padding: 2px 4px 6px 2px; margin-top: 6px; }
+.dk-groep { margin: 10px 0 2px; font-size: 14px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ds-tx-zacht); }
+.dk-rij { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 14px; text-align: left; cursor: pointer; font: inherit; color: var(--ds-zeef-tx);
+  background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); transition: background var(--ds-m-snel, 120ms) var(--ds-ease, ease-out); }
+.dk-rij:hover { background: var(--ds-c-sel-vlak); }
+.dk-rij:focus, .dk-rij:focus-visible { background: var(--ds-zeef-primair); color: var(--ds-primair-tx); outline: var(--ds-focus-dikte) solid var(--ds-c-ink-inkt); outline-offset: var(--ds-focus-afstand); }
+.dk-rij[data-custom] .dk-rij-waarde output { text-decoration: underline; text-underline-offset: 3px; }
+.dk-rij-naam { display: flex; flex-direction: column; gap: 2px; font-weight: 800; font-size: 18px; }
+.dk-rij-u { font-weight: 400; font-size: 14px; line-height: 1.3; opacity: 0.8; }
+.dk-rij-waarde { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; font-size: 17px; white-space: nowrap; }
+.dk-chev { display: inline-flex; width: 20px; height: 20px; opacity: 0.7; }
+.dk-klaar { margin-top: 10px; }
+@media (max-width: 760px) { .dk-knoppen { grid-template-columns: 1fr; } .dk-keuze { min-height: 0; } .dk-rij { flex-direction: column; align-items: flex-start; } }
+@media (prefers-reduced-motion: reduce) { .dk-rij { transition: none; } }
+html.reduce-motion .dk-rij { transition: none; }
