@@ -49,6 +49,7 @@ slot los te laten) loopt een proef in een minuut.
 | `montage.mjs`, `audio/mix.mjs` | montage en geluidsmix (SFX-synthese, ducking, -14 LUFS) |
 | `audio/analyze_music.mjs`, `audio/voice_catalog.mjs` | tempo en schone stukken van de nummers; alle bestaande stemopnames |
 | `check_video.mjs`, `check_audio.mjs`, `contact*.mjs`, `pv.mjs` | controle en contactbladen |
+| `opnamelijst.mjs` | draaiboek van de verhaaltrailer `ontdek` (tijden, plaats, uur, tekst, stemmen, eisen) uit PLAN en het filmscript, zonder op te nemen; test: `scripts/trailer_opnamelijst_test.mjs` |
 | `thumbs.mjs`, `kenburns.mjs` | miniaturen (1280x720) en zoom over een stilstaand beeld |
 
 ## Valkuilen (uit de praktijk)

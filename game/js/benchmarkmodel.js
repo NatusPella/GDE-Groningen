@@ -47,6 +47,31 @@ export function choiceModel(choice = DEFAULT_CHOICE, { preset = null, presetLabe
   };
 }
 
+// A pick on the choice screen. The commentary switch is a wish that survives a visit to the classic course (which has no commentary): choosing
+// classic and then the film course again must not leave the switch silently off. Returns the new choice and the wish.
+export function pickChoice(choice, wish, group, id) {
+  const w = group === 'commentary' ? !wish : wish !== false;
+  const next = { ...choice, commentary: w };
+  if (group === 'course' || group === 'length') next[group] = id;
+  return { choice: normaliseChoice(next), wish: w };
+}
+
+// The keyboard and controller walk of the choice dialog as a pure step. key: KeyboardEvent.key; index: the focused button (-1: none), count: the
+// enabled buttons. Returns null (not ours), { cancel: true }, { focus: n } or { press: n } / { press: null } (Enter on nothing does nothing).
+export function choiceKey(key, { index = -1, count = 0, shift = false, repeat = false } = {}) {
+  if (key === 'Escape' || key === 'Backspace') return { cancel: true };
+  const forward = key === 'ArrowRight' || key === 'ArrowDown' || key === 'Tab';
+  const back = key === 'ArrowLeft' || key === 'ArrowUp';
+  if (forward || back) {
+    if (count < 1) return { focus: null };
+    const dir = forward && !shift ? 1 : -1;
+    if (index < 0) return { focus: dir > 0 ? 0 : count - 1 };
+    return { focus: (index + dir + count) % count };
+  }
+  if (key === 'Enter' || key === ' ') return { press: !repeat && index >= 0 && index < count ? index : null };
+  return null;
+}
+
 // --- commentary (Tammo and Tessa, in tone: warm, droog, zomer) ---------------------------------------------------
 
 // shot id -> [speaker, text]; each shows from 0.6 s for 2.8 s ('Anita' is the speaker key of Tessa in the story data).

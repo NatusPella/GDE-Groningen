@@ -3,7 +3,7 @@
 // Samen spelen, toegankelijkheid, en de veiligheid van de koppeling (vlag, terugval, geen flitsen, geen verwijzing naar niet-gespeelde shots).
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { SCENES, SEQUENCE, LINES, NAME_CARDS, MUSIC, TITLE, MULTIPLAYER, ACCESS, GRADES, FILM_VOICES, validateOpening, openingDuration, timeline, kitchenDirection, skipHint, engineLines, OPENING_RANGE } from '../game/js/openingfilm.js';
+import { SCENES, SEQUENCE, LINES, NAME_CARDS, MUSIC, TITLE, MULTIPLAYER, ACCESS, GRADES, FILM_VOICES, validateOpening, openingDuration, timeline, kitchenDirection, skipHint, engineLines, themeEntryShot, OPENING_RANGE } from '../game/js/openingfilm.js';
 import { directDialogue, MIN_SHOT } from '../game/js/cutdirector.js';
 import { checkText } from './lib/cutscene_lint.mjs';
 
@@ -110,6 +110,12 @@ assert.ok(im.includes("buildShots(w, film = false)") || im.includes('function bu
 // de oude opening is ongemoeid: de oude lijst staat er nog en de titelkaart komt uit de data
 assert.match(im, /const OLD = \[\s*sun, bikes, gull, boat, anitaCard, tammoCard, pigeon, limo, tanker, heli, title,/);
 assert.ok(im.includes('TITLE.tagline'));
+// de muziek: de film opent in stilte (straatgeluid, Rikus); het thema valt in op de eerste kraanshot (cue thema-in), niet bij het openen van de film
+assert.equal(themeEntryShot(), 'c1-markt');
+assert.ok(SEQUENCE.findIndex((s) => s.id === themeEntryShot()) > SEQUENCE.findIndex((s) => s.id === 'c1-zwart'), 'het thema valt na de koude opening');
+assert.ok(im.includes('if (!r.offset && !film) cueTheme(0);'), 'de film start zijn thema niet bij het openen');
+assert.ok(im.includes('if (r.film && !r.themeOn && shot.filmId && shot.filmId === themeEntryShot()) { r.themeOn = true; cueTheme(0); }'), 'het thema valt in op de thema-in-shot, één keer');
+assert.ok(im.includes('return { filmId: id, minDur: e.minDur'), 'elke filmshot kent zijn id uit de reeks');
 // de engine-regels van een shot komen uit de reeks
 assert.deepEqual(engineLines('c2-bank').map((l) => l[0]), ['T', 'A']);
 assert.equal(engineLines('c3-geld').length, 4);

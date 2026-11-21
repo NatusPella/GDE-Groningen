@@ -25,13 +25,15 @@ Voor de oude opening (zonder vlag) geldt:
 
 ## 2. Trailer: opnemen en controleren
 
+Het draaiboek met tijden, plaats, uur, tekst, stemmen en eisen per shot staat klaar: `node scripts/trailer/opnamelijst.mjs` (of `--json`); het toetst PLAN en dit filmscript tegen elkaar (`scripts/trailer_opnamelijst_test.mjs`). Correctie ronde 3: de fasetijden in het filmscript volgden niet de cut; de tempo-opbouw loopt van 33 tot 59 s (de tijdsprong van 3 s is de langste shot daarin).
+
 ```
 node scripts/record_trailer.mjs --run --cut=ontdek --res=1080p --out=<map buiten de repo> --game-dir=<staged game> --slot
 ```
 
 (één Electron-instantie, eigen profiel; ELECTRON_EXE als desktop/node_modules ontbreekt.) Daarna `node scripts/trailer/check_video.mjs`, `check_audio.mjs` en `contact_video.mjs` op de MP4 (zie `scripts/trailer/README.md`).
 
-- [ ] 75 s, 24 shots, in de volgorde van de shotlijst (`verhaal/TRAILER-FILMSCRIPT-21-11.md`); tempo-opbouw tussen 36 en 58 s zichtbaar; de grap "…Kon minder." krijgt stilte ervoor.
+- [ ] 75 s, 24 shots, in de volgorde van de shotlijst (`verhaal/TRAILER-FILMSCRIPT-21-11.md`); tempo-opbouw tussen 33 en 59 s zichtbaar; de grap "…Kon minder." krijgt stilte ervoor.
 - [ ] Geen vitrine, briefje, kus, finale of uitslag; Jelle alleen als silhouet/kleur; **geen snackwagen** in beeld of tekst.
 - [ ] Slotkaart: "GDE Groningen – Zomer vol misdaad", **Ontdek jezelf in Grunn.**, "Gratis · voor pc en Mac".
 - [ ] Spraak: Rikus (radio), Tessa "Rijden, niet praten.", Tammo "Dat bedoelde ik ook.", Berend "…Kon minder." (allemaal bestaande opnames).
@@ -49,6 +51,7 @@ Met een wegwerpprofiel, zonder andere programma's (fps-meting is exclusief, AGEN
 - [ ] **Rapportkaart:** cijfer en oordeel kloppen met de feiten; de grafiek toont de dips (rode staven) op de scènes met haperingen; percentielen oplopend (mediaan < p95 < p99; laagste 0,1% <= laagste 1%); "Haperingen per scène" noemt echte scènes; de vergelijking zegt "andere route: geen vergelijking" na een wissel van route.
 - [ ] **Bewaar als bestand:** een `gde-benchmark-<datum>.txt` in de downloads, leesbaar, zonder naam, IP of pad; er gaat niets over het netwerk (netwerkpaneel leeg).
 - [ ] **Nog een keer** meet direct op dezelfde keuze, zonder nieuwe vraag; **Toepassen** zet de aanbevolen stand; Technische info kopiëren werkt nog.
+- [ ] Hoogte (schatting, `scripts/benchmarkkeuze_test.mjs`): de kaart heeft ca. 940 px nodig op 720p (688 beschikbaar) en ca. 1120 px op 1080p (1048 beschikbaar), dus het paneel scrolt op beide; kijk of de knoppen onderaan met de pijltjes bereikbaar blijven en overweeg een bredere kaart in twee kolommen.
 - [ ] Kaart op 1280×720 en 1920×1080: scrolt zonder afgekapte knoppen, 13 px-vloer, toets in de knop, focusring zichtbaar; reduced-motion (grafiek groeit niet, kaarten bewegen niet).
 - [ ] De meting zelf: fps van de klassieke route op dezelfde computer als de vorige release (0.64.x): binnen de ruis. De commentaar-ondertitels mogen de fps niet meetbaar veranderen (meet één keer met en één keer zonder).
 

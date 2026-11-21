@@ -9,11 +9,11 @@ Formaat: slugline, actieregels, geluid, kaarten. Opnemen: `node scripts/record_t
 | Fase | Tijd | Wat |
 |---|---|---|
 | Koude opening | 0 tot 4 s | zwart, een radio, één zin; geen muziek |
-| Wereld en paar | 4 tot 23 s | zon, markt, Tammo, Tessa, de duiven; het thema draagt, grote beelden, 3 tot 4 s per shot |
-| Hindernis en belofte | 23 tot 36 s | "Rijden, niet praten.", een blauw colbert, "Heel Groningen. Eén zomer."; riser op de stoot |
-| Tempo-opbouw | 36 tot 58 s | shots van 2,0 tot 2,6 s, een tik op elke snede, de snare versnelt; water, kermis, spoor, achtervolging, race, lucht, nacht, storm |
-| Komische beat | 58 tot 62 s | een stilte op de uitademing, dan "…Kon minder." |
-| Adem | 62 tot 70 s | het Noorderplantsoen, rustig, "Zoek je plek. Samen." |
+| Wereld en paar | 4 tot 22 s | zon, markt, Tammo, Tessa, de duiven; het thema draagt, grote beelden, 3 tot 4 s per shot |
+| Hindernis en belofte | 22 tot 33 s | "Rijden, niet praten.", een blauw colbert, "Heel Groningen. Eén zomer."; riser op de stoot |
+| Tempo-opbouw | 33 tot 59 s | shots van 2,0 tot 3,0 s (de tijdsprong is de langste), een tik op elke snede, de snare versnelt; water, kermis, spoor, achtervolging, race, lucht, nacht, storm |
+| Komische beat | 59 tot 64 s | een stilte op de uitademing, dan "…Kon minder." |
+| Adem | 64 tot 70 s | het Noorderplantsoen, rustig, "Zoek je plek. Samen." |
 | Slotkaart | 70 tot 75 s | titel, slogan, platforms |
 
 ## Shotlijst met opnamepositie
@@ -59,10 +59,10 @@ De verhaal-lead heeft de slogan al in Steam (`docs/steam/winkelpagina.md`), de p
 |---|---|---|---|
 | 0 | stilte met straatgeluid | rustig | alleen radio, meeuwen |
 | 4 | thema in | warm, hoopvol | opbouw over twee maten, kick op de stoot van `sunrise` |
-| 23 | spanningsbocht | speels, een tikje dreigend | twee diepe noten op `jelle` (tuba), dan weer licht |
-| 36 | tempo omhoog | rennend | snare op elke snede, riser vooraf, crescendo tot 58 s |
-| 58 | stilte | adem | één halve seconde stilte op de uitademing voor `berend` |
-| 62 | zacht terug | tederheid | gitaar en bas, geen drums, onder "Zoek je plek. Samen." |
+| 22 | spanningsbocht | speels, een tikje dreigend | twee diepe noten op `jelle` (tuba), dan weer licht |
+| 33 | tempo omhoog | rennend | snare op elke snede, riser vooraf, crescendo tot 59 s |
+| 59 | stilte | adem | één halve seconde stilte op de uitademing voor `berend` |
+| 64 | zacht terug | tederheid | gitaar en bas, geen drums, onder "Zoek je plek. Samen." |
 | 70 | titel-sting | groot, vrolijk | het thema vol op de slotkaart, een klokje op de laatste beat |
 
 ## Toegankelijkheid
