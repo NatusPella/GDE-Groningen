@@ -238,7 +238,7 @@ JELLE: Dat noemen wij ondernemen. Oant sjen. [NIEUW]
 (regie: in de deuropening mompelt hij iets.)
 JELLE: Foar mem. [NIEUW]
 TAMMO: Wat zei hij? [NIEUW]
-TESSA: Voor zijn moeder. Hij doet alles voor zijn moeder. [NIEUW]
+TESSA: Voor zijn oma. Hij doet alles voor zijn oma. [NIEUW]
 (regie: achter Jelle staat een kleine, oude dame met een hoed, een gouden speldje en een stempel. Naamkaart: MEVROUW HOVING.)
 BEWAARDER: Ik bewaar de Gouden Eierbal, de wisselprijs van de Snackprijs, al sinds 1998. Wie de bal heeft, zit de jury voor. [NIEUW]
 LOKETBEDIENDE: Is zij er niet, dan zit Berend Bos voor. Jurylid sinds 1982. [NIEUW]

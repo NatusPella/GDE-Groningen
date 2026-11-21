@@ -2061,11 +2061,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Voor zijn moeder. Hij doet alles voor zijn moeder.",
+     "text": "Voor zijn oma. Hij doet alles voor zijn oma.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -4977,11 +4976,10 @@
     {
      "speaker": "Oma Trijntje",
      "key": "trijntje",
-     "text": "Haar zoon, zeker. Ik heb het nooit gezegd. Zeventig jaar trots. Dat is lang voor iets wat in één zin past.",
-     "tag": "BEHOUDEN",
+     "text": "Haar kleinzoon, zeker. Ik heb het nooit gezegd. Zeventig jaar trots. Dat is lang voor iets wat in één zin past.",
+     "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Oma Trijntje",
@@ -5402,11 +5400,10 @@
     {
      "speaker": "Geesje",
      "key": "geesje",
-     "text": "Zijn moeder, Gerda, belt Trijntje elk jaar op haar verjaardag. Ze zeggen dan allebei niks.",
+     "text": "Zijn oma, Gerda, belt Trijntje elk jaar op haar verjaardag. Ze zeggen dan allebei niks.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Geesje",
@@ -6206,7 +6203,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Mem, vandaag was er een man met een trekker-limo. Hij zei dat zijn mem niks wil.",
+     "text": "Mem, vandaag was er een man met een trekker-limo. Hij zei dat zijn oma niks wil.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true,
@@ -6633,7 +6630,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Zijn moeder pakt nog zijn brood in.",
+     "text": "Zijn oma pakt nog zijn brood in.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -6641,7 +6638,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "…Dat doen moeders.",
+     "text": "…Dat doen oma's.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -10282,7 +10279,7 @@
      "speaker": "Mem",
      "from": "MEM",
      "to": "TESSA",
-     "text": "Dat weet ik, famke. Jij bent aardiger dan mijn zoon verdient. – M.",
+     "text": "Dat weet ik, famke. Jij bent aardiger dan mijn kleinzoon verdient. – M.",
      "tag": "NIEUW",
      "channel": "app-stil",
      "textOnly": true,
@@ -12978,11 +12975,10 @@
     {
      "speaker": "Mem Terpstra",
      "key": "mem",
-     "text": "Er is geen overeenkomst, jonge. Er is een moeder.",
+     "text": "Er is geen overeenkomst, jonge. Er is een oma.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Oma Trijntje",
@@ -13042,11 +13038,10 @@
     {
      "speaker": "Mem Terpstra",
      "key": "mem",
-     "text": "Omdat mijn zoon gekke dingen doet om iets voor mij te winnen wat ik niet meer hoef. En omdat ik in 1953 tweede werd, tegen Trijntje. Dat heeft hij nooit losgelaten. Ik wel.",
-     "tag": "BEHOUDEN",
+     "text": "Omdat mijn kleinzoon gekke dingen doet om iets voor mij te winnen wat ik niet meer hoef. En omdat ik in 1953 tweede werd, tegen Trijntje. Dat heeft hij nooit losgelaten. Ik wel.",
+     "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Jelle Terpstra",
@@ -14920,11 +14915,10 @@
     {
      "speaker": "Kapitein Klaas",
      "key": "klaas",
-     "text": "Ik heb mijn rubberboot terug. De moeder van Jelle belde de deurwaarder. De boot ligt op een aanhanger en ik praat tegen hem.",
+     "text": "Ik heb mijn rubberboot terug. De oma van Jelle belde de deurwaarder. De boot ligt op een aanhanger en ik praat tegen hem.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Berend Bos",
@@ -15524,21 +15518,19 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "\"Foar mem.\" Voor zijn moeder.",
-     "tag": "BEHOUDEN",
+     "text": "\"Foar mem.\" Voor zijn oma.",
+     "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Hij hangt een vlag aan onze toren voor zijn moeder.",
-     "tag": "BEHOUDEN",
+     "text": "Hij hangt een vlag aan onze toren voor zijn oma.",
+     "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Tessa",
@@ -16163,11 +16155,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Je biedt geld voor iets wat geen geld is. En je moeder wil iets anders.",
-     "tag": "BEHOUDEN",
+     "text": "Je biedt geld voor iets wat geen geld is. En je oma wil iets anders.",
+     "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -17607,11 +17598,10 @@
     {
      "speaker": "Mem Terpstra",
      "key": "mem",
-     "text": "Dat is mijn zoon.",
+     "text": "Dat is mijn kleinzoon.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Jelle Terpstra",
@@ -18185,11 +18175,10 @@
     {
      "speaker": "Rikus",
      "key": "rikus",
-     "text": "Durk en Douwe werken nu voor Jelles moeder. Ze sturen een kaartje.",
+     "text": "Durk en Douwe werken nu voor Jelles oma. Ze sturen een kaartje.",
      "tag": "NIEUW",
      "channel": "radio",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Rikus",
@@ -18622,7 +18611,7 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Mevrouw Tessa. Eén eierbal, met mosterd. Voor mijn moeder.",
+     "text": "Mevrouw Tessa. Eén eierbal, met mosterd. Voor mijn oma.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true
@@ -18673,7 +18662,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Een eierbal. Voor zijn moeder.",
+     "text": "Een eierbal. Voor zijn oma.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,

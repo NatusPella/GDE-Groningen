@@ -297,8 +297,8 @@ const STORY = [
     npc: 'bert', outroPose: 'cheer', ask: 0,
     intro: [
       ['N', 'Die Fries noemde d\'Olle Grieze "in aardich tuorke". Een áárdig torentje!'],
-      ['A', '"Foar mem." Voor zijn moeder.', { clue: true }],
-      ['T', 'Hij hangt een vlag aan onze toren voor zijn moeder.'],
+      ['A', '"Foar mem." Voor zijn oma.', { clue: true }],
+      ['T', 'Hij hangt een vlag aan onze toren voor zijn oma.'],
       ['A', 'Dat is eigenlijk best lief.'],
       ['T', 'Het is vandalisme.'],
       ['A', 'Lief vandalisme.'],
@@ -328,7 +328,7 @@ const STORY = [
     outroNpc: false,
     outro: [
       ['T', 'Chocola. We hebben een boot gekaapt voor chocola.'],
-      ['A', 'Een oefenbal. Hij oefent hoe hij hem aan zijn moeder geeft.', { clue: true }],
+      ['A', 'Een oefenbal. Hij oefent hoe hij hem aan zijn oma geeft.', { clue: true }],
       ['T', 'Hij is romantischer dan ik.'],
       ['A', 'Iedereen is romantischer dan jij.'],
       ['klaas', 'Jongens. Ik heb net twee reuzen uit de haven gevist. Ze zwommen synchroon.'],
@@ -375,7 +375,7 @@ const STORY = [
       ['A', 'Hoe wist jij dat hij hier was?'],
       ['T', 'Ik luisterde naar Rikus. En ik ben de trein achterna gefietst. Wind tegen.'],
       ['A', 'Beide kanten op.'],
-      ['T', '"Iemand uit Friesland." Dat was zijn moeder.'],
+      ['T', '"Iemand uit Friesland." Dat was zijn oma.'],
       ['A', 'Ze wil dat hij ophoudt.', { clue: true }],
       ['T', '…Een moeder. Ik was jaloers op een moeder.'],
       ['A', 'Een beetje, hè.'],

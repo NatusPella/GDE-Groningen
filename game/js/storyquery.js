@@ -14,3 +14,6 @@ export const prepareStoryShop = () => { if (impl.prepareStoryShop) impl.prepareS
 export const getStorySave = () => (impl.getStorySave
   ? impl.getStorySave()
   : { v: 2, done: [], skipped: [], fails: {}, waived: [], voorschot: [], cards: [], flags: [] });
+// de ontgrendelpoort (unlockgate.js): zonder story.js is alles open, zoals een oude save
+export const storyWorldOpen = (id) => (impl.storyWorldOpen ? impl.storyWorldOpen(id) : true);
+export const storyGateHint = (id) => (impl.storyGateHint ? impl.storyGateHint(id) : null);

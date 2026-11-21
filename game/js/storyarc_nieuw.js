@@ -178,7 +178,7 @@ export const PARTS = {
   // the finale card: the epilogue (E1, vrijdag 11 september) and Rikus in the studio (E2, E3); the text of the script, kept in sync by scripts/akte5_test.mjs
   ontzet: { title: 'Akte 5: Ontzet', name: 'Ontzet', date: '26 augustus', open: true, end: 'Einde', finale: true, textOnly: true,
     recap: [
-      ['Bourtange', 'Het Beleg. De bal ging naar de moeder van Jelle, en de Escapade naar Jelle.'],
+      ['Bourtange', 'Het Beleg. De bal ging naar de oma van Jelle, en de Escapade naar Jelle.'],
       ['Zuidhorn', 'De Escapade is terug en de bal is weg. De vrienden van Oma twijfelen.'],
       ['Overmorgen', 'Het Ontzet. Om drie uur laat Jelle zich bij de notaris inschrijven als nieuwe bewaarder: dan tekent hij zelf de uitslag.'],
     ],
@@ -210,7 +210,7 @@ export const PARTS = {
       ['Rikus', 'De Krolbrug staat nu open. Niemand weet waarom. Dat is verdacht.'],
       ['Rikus', 'De politie sloot de zaak van de twee Stadjers in het zwart. Op de camerabeelden is vooral bewaker twee te zien, met een koekje.'],
       ['Rikus', 'Sjabbe bracht een horloge terug naar de Vismarkt. Hij vroeg niets.'],
-      ['Rikus', 'Durk en Douwe werken nu voor Jelles moeder. Ze sturen een kaartje.'],
+      ['Rikus', 'Durk en Douwe werken nu voor Jelles oma. Ze sturen een kaartje.'],
       ['Rikus', 'Het jurylid met het contract eet nog steeds gratis eierballen. In Ljouwert.'],
       ['Rikus', 'En ik heb de tweede friet. Hij heeft betaald, zegt hij. Hij heeft niet betaald.'],
       ['Rikus', 'Dit is voor twee Stadjers. Ze zeggen nooit wat. Vandaag wel. Moi.'],
@@ -227,7 +227,7 @@ export const PARTS = {
       ['Rikus', 'Moi. Nachtstreek, nazomer. In Loppersum brandt licht in de gang. Ik zeg niks.'],
       ['Rikus', 'In Bourtange won een bisschop van karton. Hij zegt dat het verkeerd voelde. Volgend jaar verliest hij weer.'],
       ['Rikus', 'De Fjord Frituur staat op de Vismarkt. De rij loopt tot de Korenbeurs. Elke zomer rijdt hij één ronde.'],
-      ['Rikus', 'Jelle bestelde een eierbal, voor zijn moeder. Hij betaalde contant. Uit een klomp, vermoed ik.'],
+      ['Rikus', 'Jelle bestelde een eierbal, voor zijn oma. Hij betaalde contant. Uit een klomp, vermoed ik.'],
       ['Tessa', 'Dat was Deel 4.'],
       ['Tammo', 'Nu de rest van de wereld.'],
     ] },
@@ -252,7 +252,7 @@ export const BRIDGES = [
   { id: 'O8', after: 'M18', via: 'phone', scene: 'O8' },  // Rikus: de politie zoekt twee Stadjers; bewaar het logboek
   { id: 'O9', after: 'M21', via: 'phone', scene: 'O9' },  // apart: "Ik heb de auto"
   { id: 'O10', after: 'M24', via: 'flat', scene: 'O10' }, // Jelles rekening voor de colonne
-  { id: 'O11', after: 'M28', via: 'phone', scene: 'O11' }, // Jelle bestelt een eierbal voor zijn moeder
+  { id: 'O11', after: 'M28', via: 'phone', scene: 'O11' }, // Jelle bestelt een eierbal voor zijn oma
   // wat nu: de wagen groeit, de wereld staat open; een eerdere keuze (storyromance.js) geeft een extra openingsregel
   { id: 'O12', after: 'M30', via: 'flat', scene: 'O12', extra: [{ if: 'romantiek:kaartje-hangt', line: ['Tessa', 'Het kaartje hangt er nog.'] }, { if: 'romantiek:kaartje-zak', line: ['Tammo', 'Het kaartje zit nog in mijn zak.'] }] },
 ];
@@ -355,7 +355,7 @@ export const STEPS = [
     lead: ['T', 'Jelle komt dinsdag met zijn mannen naar het Beleg van Bourtange. Berend heeft veertig man, vijftien kartonnen kanonnen en een bus. Hij wacht in het bos bij Ter Apel.'] }),
   M('M20', 'zuid', 'Het beleg van Bourtange', 'beleg', { built: true, reward: 1200,
     story: { intro: ['M20.1'], outro: ['M20.5'], replay: ['M20.6'] }, scenes: ['M20.1', 'M20.2', 'M20.3', 'M20.4', 'M20.5', 'M20.6'],
-    lead: ['A', 'Het Beleg van Bourtange begint om negen uur. Jelle komt, en de bal reist met hem mee. Haal hem terug, voordat hij hem aan zijn moeder geeft.'] }),
+    lead: ['A', 'Het Beleg van Bourtange begint om negen uur. Jelle komt, en de bal reist met hem mee. Haal hem terug, voordat hij hem aan zijn oma geeft.'] }),
   M('M21', 'zuid', 'Iedereen heeft een rode auto gezien', 'fjord', { built: true, reward: 1100, player: 'anita', solo: true,
     story: { intro: ['M21.1'], outro: null, replay: ['M21.5'] }, scenes: ['M21.1', 'M21.2', 'M21.3', 'M21.4', 'M21.5', 'M21.6'],
     lead: ['A', 'De Escapade staat op een goederentrein richting Ljouwert. Ik haal hem terug. Alleen.'] }),

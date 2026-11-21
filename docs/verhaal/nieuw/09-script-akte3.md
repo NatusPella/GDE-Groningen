@@ -348,7 +348,7 @@ GEERT: Drie tenten? Nog eentje dan. [NIEUW]
 
 ## [A3.3] Appjes akte 3: dubbele geheimen (stil, geen stem) – Oldambt – telefoon
 APP TESSA→MEM (stil): Ik zeg het hem niet. Maar het voelt niet fijn, Mem. – T. [NIEUW]
-APP MEM→TESSA (stil): Dat weet ik, famke. Jij bent aardiger dan mijn zoon verdient. – M. [NIEUW]
+APP MEM→TESSA (stil): Dat weet ik, famke. Jij bent aardiger dan mijn kleinzoon verdient. – M. [NIEUW]
 
 ## [R3.3] Overgang naar akte 4: Nachtstreek – studio – radio
 RIKUS (radio): Zondag. Het is stil in Winschoten. Dat is ook een kermis. [NIEUW]

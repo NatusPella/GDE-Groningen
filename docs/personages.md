@@ -123,7 +123,7 @@ Regels die voor iedereen gelden:
 ## Jelle Terpstra
 **In één zin:** de ijdele, charmante Friese snackbaron van *Us Mem Snacks*, die vindt dat alles wat lekker is eigenlijk Fries is. Hij is de schurk, maar vooral ijdel en nooit echt gemeen.
 
-**Naamkaart:** *Snackkoning. Fries. Heel tevreden met zichzelf.* Eigenlijk is hij een zoon die zijn moeder gelijk wil geven. Zijn **Operaasje Aaibal** heeft vier stappen: de wisseltrofee van de Noordelijke Snackprijs stelen, al het frituurvet opkopen zodat geen Stadjer kan bakken, Stad vernederen, en op Gronings Ontzet winnen, zodat de bal volgens artikel 4 van het reglement van Friesland is. "Foar mem." Zijn moeder wil dat helemaal niet. Hij belt graag in bij Nachtstreek ("Gezellig programma.") en flirt met "famke in het rood".
+**Naamkaart:** *Snackkoning. Fries. Heel tevreden met zichzelf.* Eigenlijk is hij een kleinzoon die zijn oma gelijk wil geven. Zijn **Operaasje Aaibal** heeft vier stappen: de wisseltrofee van de Noordelijke Snackprijs stelen, al het frituurvet opkopen zodat geen Stadjer kan bakken, Stad vernederen, en op Gronings Ontzet winnen, zodat de bal volgens artikel 4 van het reglement van Friesland is. "Foar mem." Zijn moeder wil dat helemaal niet. Hij belt graag in bij Nachtstreek ("Gezellig programma.") en flirt met "famke in het rood".
 
 - **Stem:** Fenrir. Basistag: *ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden*. Emoties: charmant, opschepperig, zelfvoldaan, plechtig, en betrapt als het misgaat.
 - **Zo praat hij:**
@@ -150,9 +150,9 @@ Regels die voor iedereen gelden:
   - elke ontsnapping is een polsstoksprong, en de laatste gaat mis;
   - hij stuurt kaartjes met "Tige tank! – J.", zo beleefd is hij;
   - hij noemt zijn tweeling-handlangers bij de verkeerde naam;
-  - zijn livestreams hebben altijd drie kijkers, waarvan één zijn moeder;
+  - zijn livestreams hebben altijd drie kijkers, waarvan één zijn oma;
   - hij is jaloers op Tammo's duiven: "Friese meeuwen luisteren naar niemand. Ook niet naar mij.";
-  - tegen zijn moeder zegt hij alleen "Ja, mem." In de finale laat zij hem de eierbal proeven.
+  - tegen zijn oma zegt hij alleen "Ja, mem." In de finale laat zij hem de eierbal proeven.
 - **Nooit:**
   - echt geweld of haat;
   - vloeken;
@@ -241,14 +241,14 @@ Regels die voor iedereen gelden:
   - "De tweede was voor mij. Zelf betaald, natuurlijk. Hier was Rikus, op Nachtstreek. Welterusten, Grunn."
 
 ## Mem Terpstra
-**In één zin:** Jelle's moeder, de "Mem" van *Us Mem Snacks*, een oude vriendin van Oma Trijntje uit 1953 en de enige naar wie Jelle luistert.
+**In één zin:** Jelle's oma, de "Mem" van *Us Mem Snacks*, een oude vriendin van Oma Trijntje uit 1953 en de enige naar wie Jelle luistert.
 
-- **Stem:** Gacrux. Basistag: *warme, stellige oude Friese moeder, spreekt Nederlands met Friese woorden*. Emoties: warm, stellig, samenzweerderig.
-- **Uiterlijk:** marineblauwe jas met een witte kraag, bril, grijze knot en de pompeblêd-rode sjaal die haar zoon van haar afkeek (`MEM_LOOK` in `storycast.js`).
+- **Stem:** Gacrux. Basistag: *warme, stellige oude Friese oma, spreekt Nederlands met Friese woorden*. Emoties: warm, stellig, samenzweerderig.
+- **Uiterlijk:** marineblauwe jas met een witte kraag, bril, grijze knot en de pompeblêd-rode sjaal die haar kleinzoon van haar afkeek (`MEM_LOOK` in `storycast.js`).
 - **Zo praat ze:** kort en stellig, Nederlands met Friese woorden (*famke*, *jonge*, *myn*, *net fertelle*), altijd met een Nederlandse ondertitel.
 - **Naamkaart:** *Iemand uit Friesland.* Voluit **Gerda Terpstra** uit Ljouwert.
-- **Rol:** in 1953 werd ze als jonge bakster tweede bij de Snackprijs, tegen Trijntje, met de betere eierbal. Haar zoon heeft dat nooit losgelaten; zij wel. Ze appt Tessa stiekem ("Pas op dysels, famke. – M."), belt in H16 naar Nachtstreek over de trein naar Ljouwert, en in de finale zegt Trijntje het eindelijk: "Gerda. Jouw eierbal was beter." "Dat duurde lang." Dan laat ze Jelle proeven: "Priuw, jonge." Op het bordje in het museum komt haar naam erbij.
-- **Nooit:** gemeen, of partij kiezen tegen haar zoon (ze wil alleen dat hij eerlijk verliest).
+- **Rol:** in 1953 werd ze als jonge bakster tweede bij de Snackprijs, tegen Trijntje, met de betere eierbal. Haar kleinzoon heeft dat nooit losgelaten; zij wel. Ze appt Tessa stiekem ("Pas op dysels, famke. – M."), belt in H16 naar Nachtstreek over de trein naar Ljouwert, en in de finale zegt Trijntje het eindelijk: "Gerda. Jouw eierbal was beter." "Dat duurde lang." Dan laat ze Jelle proeven: "Priuw, jonge." Op het bordje in het museum komt haar naam erbij.
+- **Nooit:** gemeen, of partij kiezen tegen haar kleinzoon (ze wil alleen dat hij eerlijk verliest).
 
 ---
 

@@ -56,13 +56,13 @@ WILLEMIEN: Nog een ritje? De kat blijft hier. Die heeft het wel gezien. [NIEUW]
 
 ## [O11] Een eierbal – Loppersum – telefoon
 (regie: middag. De verhuisbus staat bij de wisselwoning. Tessa's telefoon: een onbekend nummer, en ze weet al wie.)
-JELLE (telefoon): Mevrouw Tessa. Eén eierbal, met mosterd. Voor mijn moeder. [NIEUW]
+JELLE (telefoon): Mevrouw Tessa. Eén eierbal, met mosterd. Voor mijn oma. [NIEUW]
 TESSA (telefoon): De Fjord Frituur staat op de Vismarkt, vanaf twaalf uur. [NIEUW]
 JELLE (telefoon): Mijn assistent haalt hem. Ik betaal contant. [NIEUW]
 TESSA (telefoon): Uit een klomp? [NIEUW]
 JELLE (telefoon): Dat is een ander gesprek. [NIEUW]
 TAMMO: Wat wilde hij nou? [NIEUW]
-TESSA: Een eierbal. Voor zijn moeder. [NIEUW]
+TESSA: Een eierbal. Voor zijn oma. [NIEUW]
 
 ## [M29.1] Terug: intro – Eemsdelta, Loppersum, het erf – bestelbus
 (regie: donderdag 17 september, late middag. Een strakke, nieuwe gevel zonder balken; de kat zit al op de stoep. Mensen zetten tafels op het erf. Gameplay: breng Willemien en haar spullen terug naar huis; daarna het buurtfeest op het erf.)

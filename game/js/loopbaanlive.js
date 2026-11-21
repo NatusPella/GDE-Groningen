@@ -7,6 +7,7 @@
 // telt de punten bij zijn eigen profiel (loopbaanGast). Een gast draait updateGameplay niet; zijn tellers lopen dus
 // alleen via die beloningen.
 
+import { storyWorldOpen, storyGateHint } from './storyquery.js';
 import { KEYS } from './storagekeys.js';
 import { euro } from './geldtekst.js';
 import { noteMoney } from './finance.js';
@@ -176,6 +177,11 @@ export function controleerDuizendpoot(w) {
 export function startLoopbaan(w, vak) {
   const info = L.vakInfo(vak);
   if (!info) return { gestart: false, nieuw: false, start: null };
+  // de ontgrendelpoort (unlockgate.js, #1131): een nieuw spel opent een loopbaan via het verhaal; een begonnen vak of een oude save is nooit dicht
+  if (!L.isGestart(getProfiel(), vak) && !storyWorldOpen(vak)) {
+    if (w && w.addMessage) w.addMessage(storyGateHint(vak) || 'Dit komt later in het verhaal.', 4.5, { kind: 'missie', key: 'loopbaan-poort-' + vak });
+    return { gestart: false, nieuw: false, start: null };
+  }
   const r = L.startVak(getProfiel(), vak);
   if (!r.nieuw) return r;
   markeer();

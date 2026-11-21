@@ -499,13 +499,13 @@ S['M20.3'] = {
     { on: 'Jij kende Mem', actor: 'tammo', anim: 'look' },
     { on: 'Van de jas', actor: 'tessa', anim: 'shrug' },
     { on: 'Dat heb ik hem geleerd', actor: 'mem', anim: 'nod' },
-    { on: 'Omdat mijn zoon', actor: 'mem', anim: 'shrug' },
+    { on: 'Omdat mijn kleinzoon', actor: 'mem', anim: 'shrug' },
     { on: 'Mem. Dit is nog niet voorbij', actor: 'jelle', anim: 'point' },
     { on: 'Durk. Douwe. Haal', actor: 'jelle', walk: [[7.5, 1.5]], speed: 1.4 },
   ],
   shots: [
     { on: 'Nul krassen. Op de heenweg', dt: 0.1, shot: 'dolly', from: [-2.6, 3.4, 1.7], to: [-0.8, 2.4, 1.6], look: 'mid:berend,mem@1', fov: 44 },
-    { on: 'Omdat mijn zoon', dt: 0.1, shot: 'dolly', from: [-2.2, -2.6, 1.6], to: [-0.8, -1.4, 1.5], look: 'mid:mem,jelle@1', fov: 40 },
+    { on: 'Omdat mijn kleinzoon', dt: 0.1, shot: 'dolly', from: [-2.2, -2.6, 1.6], to: [-0.8, -1.4, 1.5], look: 'mid:mem,jelle@1', fov: 40 },
     // sleutelscène: reactieshot op Jelle terwijl Mem de zin uitspreekt die ertoe doet (R-21)
     { on: 'Er is geen overeenkomst', dt: 2.6, shot: 'close', target: 'jelle', dist: 1.3, side: 0.2, fov: 28, offscreen: 'reaction: Mem is te horen, Jelle is te zien' },
   ],
@@ -771,7 +771,7 @@ S['M26.13'] = {
     { on: 'De standplaats op de Vismarkt', actor: 'tessa', anim: 'cheer' },
     { on: 'En na afloop', actor: 'berend', anim: 'point' },
     { on: 'De standplaatsen houd ik', actor: 'jelle', anim: 'hips' },
-    { on: 'Dat is mijn zoon', actor: 'mem', anim: 'nod' },
+    { on: 'Dat is mijn kleinzoon', actor: 'mem', anim: 'nod' },
   ],
   shots: [], wide: JURY_WIDE,
 };
