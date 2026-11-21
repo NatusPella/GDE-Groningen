@@ -3,7 +3,9 @@
 //   node scripts/multiplayerreview_22_11_test.mjs
 import assert from 'node:assert/strict';
 import * as P from '../game/js/coopplayers.js';
-import { encodeJson, MAX_JSON } from '../game/js/net/codec.js';
+import * as K from '../game/js/net/codec.js';
+const MAX_JSON = K.MAX_JSON;
+import { pingRegel } from '../game/js/coopping.js';
 import { encodeOutfit, cleanOutfitCode } from '../game/js/clothing.js';
 import { ITEMS, SLOT_IDS } from '../game/js/clothingdata.js';
 
@@ -28,11 +30,11 @@ t('B1: elk lijstbericht (16 spelers, lange namen, volle kast) past in MAX_JSON',
   const r = volleRoster();
   const ev = P.lijstBerichten(r);
   assert.ok(ev.length >= 1);
-  for (const e of ev) assert.doesNotThrow(() => encodeJson(0, 0, 0, 0, e), 'bericht te groot');
+  for (const e of ev) assert.doesNotThrow(() => K.encodeJson(0, 0, 0, 0, e), 'bericht te groot');
   assert.ok(ev.every((e) => new TextEncoder().encode(JSON.stringify(e)).length <= MAX_JSON));
 });
 t('B1: lijstEvent zelf blijft onder MAX_JSON, ook met 16 spelers met een volle kast', () => {
-  assert.doesNotThrow(() => encodeJson(0, 0, 0, 0, P.lijstEvent(volleRoster())));
+  assert.doesNotThrow(() => K.encodeJson(0, 0, 0, 0, P.lijstEvent(volleRoster())));
 });
 t('B1: de outfits gaan in eigen berichten mee en komen na het samenvoegen bij de ontvanger aan', () => {
   const r = volleRoster();
@@ -52,7 +54,7 @@ t('B1: met weinig spelers blijft de lijst één bericht met de outfit erin (onge
 t('B1: het welkom met 16 spelers past ook (de korte lijst)', () => {
   const r = volleRoster();
   const extra = { char: 'rik', naam: 'Rik', kleur: '#aabbcc', max: 16, lijst: P.lijstEvent(r, P.WELKOM_BUDGET).lijst };
-  assert.doesNotThrow(() => encodeJson(0, 0, 0, 0, { ...extra, niveau: { a: 'x'.repeat(200) } }));
+  assert.doesNotThrow(() => K.encodeJson(0, 0, 0, 0, { ...extra, niveau: { a: 'x'.repeat(200) } }));
 });
 t('B1: leesOutfitsEvent weigert rommel en kapt af op geldige codes', () => {
   assert.equal(P.leesOutfitsEvent({ k: 'spelers' }), null);
@@ -103,8 +105,7 @@ t('N1: een ping met soort "constructor" of "__proto__" laat geen prototype-tekst
     assert.ok(msgs.length === 1 && /Kom hier/.test(msgs[0]) && !/native code|object/i.test(msgs[0]), `${soort}: ${msgs[0]}`);
   }
 });
-t('N1: pingRegel kent alleen eigen soorten', async () => {
-  const { pingRegel } = await import('../game/js/coopping.js');
+t('N1: pingRegel kent alleen eigen soorten', () => {
   const r = [{ slot: 1, naam: 'Kwaad' }];
   assert.equal(pingRegel(1, 'constructor', r, 0), 'Kwaad: Kom hier');
   assert.equal(pingRegel(1, '__proto__', r, 0), 'Kwaad: Kom hier');
@@ -136,8 +137,7 @@ t('N2: een gast die steeds van outfit wisselt, laat de host de lijst hoogstens e
   NET.outfitLijstTik(world);
   assert.equal(aantal, 2, 'daarna gaat de open wijziging alsnog mee');
 });
-t('N3: readLook weigert onleesbare tekens in de tuning-code', async () => {
-  const K = await import('../game/js/net/codec.js');
+t('N3: readLook weigert onleesbare tekens in de tuning-code', () => {
   const snap = { players: [{ slot: 0, x: 1, y: 2, z: 0, angle: 0, alive: true, health: 100 }], shared: { money: 0, wanted: 0, clock: 0 }, mission: { stage: 0, state: 'none', present: 3 }, entities: [], looks: [{ id: 7, model: 2, fl: 1, len: 4.4, wid: 1.8, color: 0x7a1f1f, color2: 0x12294f, extra: 5, dents: [], tune: 'QWERTY' }] };
   const buf = K.encodeSnapshot(1, 1, 0, snap);
   assert.equal(K.decodeSnapshot(buf, new Map()).looks[0].tune, 'QWERTY');

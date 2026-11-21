@@ -39,7 +39,7 @@ export function pingMarkers(pings, roster, mijnPlek, nu) {
   for (const p of (pings && pings.lijst) || []) {
     if (p.tot <= nu) continue;
     const a = afzender(p.van, roster, mijnPlek);
-    out.push({ id: `${p.x.toFixed(1)}|${p.y.toFixed(1)}|${p.tot.toFixed(2)}`, x: p.x, y: p.y, soort: p.soort, kleur: a.kleur || markerColors()[PING_ROLE[p.soort]] || '#ffffff', vorm: p.soort === 'gevaar' ? 'kruis' : p.soort === 'doel' ? 'ster' : a.vorm, naam: a.naam, tekst: PING_TEKST[p.soort] || PING_TEKST.hier, rest: p.tot - nu });
+    out.push({ id: `${p.x.toFixed(1)}|${p.y.toFixed(1)}|${p.tot.toFixed(2)}`, x: p.x, y: p.y, soort: p.soort, kleur: a.kleur || markerColors()[PING_ROLE[p.soort]] || '#ffffff', vorm: p.soort === 'gevaar' ? 'kruis' : p.soort === 'doel' ? 'ster' : a.vorm, naam: a.naam, tekst: Object.hasOwn(PING_TEKST, p.soort) ? PING_TEKST[p.soort] : PING_TEKST.hier, rest: p.tot - nu });
   }
   return out;
 }
@@ -47,5 +47,6 @@ export function pingMarkers(pings, roster, mijnPlek, nu) {
 // De regel voor wie de ping ontvangt ("Tessa: Kom hier"); leeg als de afzender onbekend is.
 export function pingRegel(van, soort, roster, mijnPlek) {
   const a = afzender(van, roster, mijnPlek);
-  return a.naam ? `${a.naam}: ${PING_TEKST[soort] || PING_TEKST.hier}` : (PING_TEKST[soort] || PING_TEKST.hier);
+  const tekst = typeof soort === 'string' && Object.hasOwn(PING_TEKST, soort) ? PING_TEKST[soort] : PING_TEKST.hier; // geen prototype-sleutels (review 22-11, N1)
+  return a.naam ? `${a.naam}: ${tekst}` : tekst;
 }
