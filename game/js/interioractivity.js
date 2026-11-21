@@ -17,7 +17,9 @@ export const SPEED = 1.1;
 
 // --- the scripts ---------------------------------------------------------------------------------------------
 
-const S = (id, at, pose, a, b) => ({ id, at, pose, dur: [a, b] });
+// `when` (optional): the parts of the day (interiorcrowd.js PHASES) in which this is done; none = always
+const S = (id, at, pose, a, b, when = null) => (when ? { id, at, pose, dur: [a, b], when } : { id, at, pose, dur: [a, b] });
+const DN = ['dag', 'avond'], AN = ['avond', 'nacht'], DAG = ['dag'];
 export const SCRIPTS = {
   // behind the counter (staff stay in their pocket)
   winkelier: [S('afrekenen', 'home', 'vendor', 5, 9), S('wachten', 'home', null, 3, 6), S('aanvullen', 'shelf', 'crouch', 5, 9), S('inpakken', 'home', 'vendor', 4, 7), S('bellen', 'home', 'phone', 4, 7)],
@@ -25,10 +27,13 @@ export const SCRIPTS = {
   receptionist: [S('typen', 'home', 'phone', 6, 12), S('wachten', 'home', null, 3, 6), S('ontvangen', 'home', 'vendor', 4, 7)],
   loketmedewerker: [S('loket', 'home', 'vendor', 5, 9), S('wachten', 'home', null, 3, 6), S('bellen', 'home', 'phone', 4, 7)],
   baliemedewerker: [S('balie', 'home', 'vendor', 5, 9), S('wachten', 'home', null, 3, 6), S('bellen', 'home', 'phone', 4, 7)],
+  kapper: [S('knippen', 'home', 'vendor', 8, 16), S('wachten', 'home', null, 3, 6), S('bellen', 'home', 'phone', 4, 7), S('schoonmaken', 'shelf', 'crouch', 4, 8)],
+  bakker: [S('kneden', 'home', 'vendor', 8, 14), S('oven', 'home', null, 4, 8), S('uitstallen', 'home', 'vendor', 3, 6)],
   bibliothecaris: [S('uitlenen', 'home', 'vendor', 5, 9), S('wachten', 'home', null, 3, 6), S('terugzetten', 'shelf', 'crouch', 4, 8)],
   // the floor
-  klant: [S('kijken', 'shelf', null, 4, 9), S('pakken', 'shelf', 'crouch', 2, 4), S('rondkijken', 'shelf', null, 3, 7), S('afrekenen', 'counterFront', null, 4, 7), S('slenteren', 'wander', null, 1, 2)],
-  gast: [S('eten', 'seat', 'sit', 18, 40), S('praten', 'seat', 'sit', 12, 28), S('naar de bar', 'counterFront', null, 3, 6), S('slenteren', 'wander', null, 1, 2)],
+  klant: [S('kijken', 'shelf', null, 4, 9), S('pakken', 'shelf', 'crouch', 2, 4), S('rondkijken', 'shelf', null, 3, 7), S('afrekenen', 'counterFront', null, 4, 7), S('slenteren', 'wander', null, 1, 2), S('wachten', 'seat', 'sit', 10, 24)],
+  knipklant: [S('geknipt worden', 'home', 'sit', 20, 40), S('in de spiegel kijken', 'home', 'sit', 5, 10), S('praten', 'home', 'sit', 10, 20)],
+  gast: [S('eten', 'seat', 'sit', 18, 40, DN), S('praten', 'seat', 'sit', 12, 28), S('naar de bar', 'counterFront', null, 3, 6), S('slenteren', 'wander', null, 1, 2)],
   serveerster: [S('bestelling halen', 'counterFront', 'vendor', 2, 4), S('bestelling brengen', 'seat', null, 3, 5), S('afruimen', 'seat', 'crouch', 2, 4), S('slenteren', 'wander', null, 1, 2)],
   medewerker: [S('typen', 'seat', 'sit', 20, 45), S('overleggen', 'seat', 'sit', 10, 20), S('koffie halen', 'machine', null, 4, 7), S('kopiëren', 'machine', null, 3, 6)],
   bezoeker: [S('zitten', 'seat', 'sit', 25, 60), S('knielen', 'seat', 'crouch', 8, 16), S('kaarsje', 'candle', null, 4, 8), S('rondkijken', 'board', null, 4, 8), S('slenteren', 'wander', null, 1, 2)],
@@ -36,11 +41,14 @@ export const SCRIPTS = {
   lezer: [S('lezen', 'seat', 'phone', 25, 55), S('zoeken', 'shelf', null, 5, 10), S('terugzetten', 'shelf', 'crouch', 2, 4), S('slenteren', 'wander', null, 1, 2)],
   reiziger: [S('wachten', 'seat', 'sit', 12, 28), S('vertrektijden', 'board', null, 4, 9), S('kaartje', 'machine', null, 4, 7), S('slenteren', 'wander', null, 1, 2)],
   monteur: [S('sleutelen', 'work', 'crouch', 8, 15), S('gereedschap', 'work', null, 3, 6), S('onder de auto', 'work', 'crouch', 8, 14), S('slenteren', 'wander', null, 1, 2)],
-  bewoner: [S('tv kijken', 'seat', 'sit', 20, 45), S('koken', 'work', 'vendor', 10, 20), S('lezen', 'seat', 'phone', 15, 30), S('slenteren', 'wander', null, 1, 3)],
+  bewoner: [S('tv kijken', 'seat', 'sit', 20, 45, AN), S('koken', 'work', 'vendor', 10, 20, DN), S('lezen', 'seat', 'phone', 15, 30), S('slenteren', 'wander', null, 1, 3)],
+  student: [S('studeren', 'seat', 'phone', 25, 55, DN), S('koken', 'work', 'vendor', 8, 16, DN), S('gamen', 'seat', 'sit', 20, 45, AN), S('lezen', 'seat', 'phone', 15, 30), S('slenteren', 'wander', null, 1, 3)],
+  sporter: [S('hardlopen', 'machine', null, 20, 40), S('gewichten heffen', 'lift', 'crouch', 8, 14), S('uitrusten', 'seat', 'sit', 8, 16), S('water drinken', 'machine', null, 3, 6), S('slenteren', 'wander', null, 1, 2)],
+  trainer: [S('begeleiden', 'machine', null, 6, 12), S('aanwijzen', 'lift', null, 4, 8), S('slenteren', 'wander', null, 1, 3), S('pauze', 'seat', 'sit', 8, 16)],
 };
 const FALLBACK = [S('rondkijken', 'shelf', null, 3, 7), S('slenteren', 'wander', null, 1, 3)];
 export const scriptOf = (role) => SCRIPTS[role] || FALLBACK;
-export const STAFF_ROLES = new Set(['winkelier', 'barman', 'receptionist', 'loketmedewerker', 'baliemedewerker', 'bibliothecaris']);
+export const STAFF_ROLES = new Set(['winkelier', 'barman', 'receptionist', 'loketmedewerker', 'baliemedewerker', 'bibliothecaris', 'kapper', 'bakker', 'knipklant']);
 
 // --- anchors: where a kind of activity happens, from the layout --------------------------------------------
 
@@ -51,12 +59,13 @@ const ANCHOR_TYPES = {
   candle: ['candle', 'altar'],
   board: ['board', 'noticeboard', 'clock', 'painting', 'poster', 'flag'],
   work: ['carlift', 'workbench', 'kitchen', 'sink', 'desk', 'table'],
+  lift: ['bench', 'rack', 'rug'],
 };
 const SEATS = new Set(ANCHOR_TYPES.seat);
 
 // anchors of every kind, validated against a reach map: [{ at, u, v, hu, hv, sit, key, item }]
 export function anchorsOf(layout, reach) {
-  const out = { shelf: [], seat: [], machine: [], candle: [], board: [], work: [], counterFront: [] };
+  const out = { shelf: [], seat: [], machine: [], candle: [], board: [], work: [], lift: [], counterFront: [] };
   const ok = (u, v) => reachableAt(reach, u, v, 0.3);
   layout.items.forEach((it, i) => {
     const [dx, dy] = faceDir(it.face), fp = footprint(it);
@@ -88,7 +97,7 @@ export function anchorsOf(layout, reach) {
 
 // --- the actor -----------------------------------------------------------------------------------------------
 
-// shared state of one interior: which anchors are taken
+// shared state of one interior: which anchors are taken; `phase` (interiorcrowd.js phaseOf) is set by the game from the clock
 export const makeStage = (layout, grid, reach) => ({ layout, grid, reach, anchors: anchorsOf(layout, reach), taken: new Map(), staffAnchors: new Map() });
 
 // n: the layout person { role, u, v, face, pose }; rnd: a seeded generator; domainReach: reach map the person can walk in (staff: their pocket)
@@ -133,6 +142,7 @@ function chooseNext(stage, a) {
   for (let tries = 0; tries < a.script.length + 1; tries++) {
     a.idx = (a.idx + 1 + (tries === 0 && a.rnd() < 0.3 ? 1 : 0)) % a.script.length;
     const act = a.script[a.idx];
+    if (act.when && stage.phase && !act.when.includes(stage.phase)) continue; // not at this time of day
     a.act = act;
     if (act.at === 'home') {
       // go back to the place behind the counter (or stay)

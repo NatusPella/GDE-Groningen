@@ -89,7 +89,7 @@ function lBuilding(w, d, notchW, notchD, c) {
 
 // --- de indeling: determinisme en geldigheid -------------------------------------------------------------------
 const rnd = mulberry32(7);
-const subsFor = (kind) => (kind === 'winkel' ? SHOP_KINDS.filter((s) => s !== 'kermiskraam') : kind === 'horeca' ? ['cafe', 'kroeg', 'restaurant'] : kind === 'publiek' ? PUBLIEK_VARIANTS : kind === 'garage' ? ['werkplaats'] : [null]);
+const subsFor = (kind) => (kind === 'winkel' ? SHOP_KINDS.filter((s) => s !== 'kermiskraam') : kind === 'horeca' ? ['cafe', 'kroeg', 'restaurant'] : kind === 'publiek' ? PUBLIEK_VARIANTS : kind === 'garage' ? ['werkplaats'] : kind === 'woning' ? [null, 'studentenkamer'] : [null]);
 function specFor(kind, sub, w, d, seed) {
   const hall = { u0: -w / 2 + (rnd() - 0.5) * w * 0.5, u1: 0, v0: WALL_T, v1: WALL_T + d };
   hall.u1 = hall.u0 + w;
