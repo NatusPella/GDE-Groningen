@@ -11,6 +11,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Nieuw
 
+- **Echte vertrektijden en live vertragingen op de stationsborden (#1085):** de vertrekborden van de stations in en rond Groningen tonen nu de echte dienstregeling (vertrektijden, treinnummers, sporen en bestemmingen uit open gegevens, gebouwd bij de ontwikkeling; de lijnnamen en de omroep blijven die van het spel). Het bord zegt in woorden of het **Live** of **Rooster** is, toont "Vertrekt over 4 min · 3 min vertraagd" voor de eerstvolgende trein, een bronregel ("Bron: open OV-gegevens") en "vervalt" bij een rit die niet rijdt. De vertragingen worden eens per minuut opgehaald uit een openbare bron zonder gegevens van jou; uitzetten kan onder Instellingen, Spel ("Live treinen"). Zonder bron of met de optie uit toont het bord het rooster zonder vertraging. Samen spelen: elke speler heeft zijn eigen bord. Nog niet in een draaiend spel bekeken.
+
 - **Boerderij, bakronde en strook van de light sims in zeefdruk (#1006, #999):** de kaarten, knoppen en chips van de HUD-strook, de bakronde en het Boerderij-scherm zijn omgezet naar de zeefdrukset; de oude papieren set staat alleen nog in de definitie, de galerij en de rolvariabelen. Nog niet in beeld gezien.
 - **Kaart en minikaart volgen de wereldkleuren (#1006):** het land en de gebouwen op de kaart gaan door dezelfde kleurrollen als de 3D-wereld, met behoud van helderheid (dus hetzelfde contrast). De wereldmenging staat nu standaard op 0,4 (was 0,3): iets zichtbaarder, nog steeds rustig. Met `?dswereld=0` zie je het oude palet. Nog niet in beeld gezien.
 - **Kleine tekst in minigames en Samen spelen is nu minstens 13 px (#1000, #1001):** golfbord, treincabine, wedstrijdkaart, keuzepaneel en de heistschermen.
