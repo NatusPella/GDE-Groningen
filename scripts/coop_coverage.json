@@ -1097,6 +1097,8 @@
    "groep": "Spelmenu",
    "modules": [
     "spullen*",
+    "models3d_spullen",
+    "models3d_weapons",
     "todo*",
     "pausemenu",
     "pausesearch",
@@ -1107,12 +1109,15 @@
     "lobby*"
    ],
    "eigenaar": "speler",
-   "gast": "Je eigen spullen, kast en Te doen staan in je eigen opslag; het spelersmenu is een weergave van de spelerslijst.",
+   "gast": "Je eigen spullen, kast en Te doen staan in je eigen opslag; het spelersmenu is een weergave van de spelerslijst. Het wapen in je hand zien de anderen als hetzelfde model (snapshot-veld weapon, zelfde bouwer).",
    "beloning": "Geen.",
    "wegval": "Niets te herstellen; het menu leest de actuele lijst.",
    "test": [
     "scripts/spullen_test.mjs",
     "scripts/todo_ui_test.mjs",
+    "scripts/spullen3d_test.mjs",
+    "scripts/weapons3d_test.mjs",
+    "scripts/coopwapen_test.mjs",
     "scripts/spelmenu_test.mjs",
     "scripts/lobby_test.mjs"
    ],

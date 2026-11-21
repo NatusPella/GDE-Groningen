@@ -812,7 +812,9 @@ html.sub-box #pause-menu .pm-subtxt { background: color-mix(in srgb, var(--ds-c-
 /* Spullen (#435): zoeken en de delen bovenaan, zodat je snel vindt wat je hebt */
 #pause-menu .pm-spulbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 14px 24px 14px; flex: none; } /* lucht boven het zoekveld: de kop Spullen met zijn schaduw mag er niet onder staan */
 #pause-menu .pm-spulbar .pm-csearch { margin: 0; flex: 1 1 260px; max-width: 520px; }
-#pause-menu .pm-spulchips { justify-content: flex-start; }
+#pause-menu .pm-spulchips { justify-content: flex-start; align-items: center; }
+#pause-menu .sp-tabkey { display: inline-flex; align-items: center; opacity: 0.75; } /* Q en E wisselen het deel; de controller toont zijn knoppen via data-gk */
+html.touch-device #pause-menu .sp-tabkey { display: none; }
 #pause-menu .sp-detail-cat { display: inline-flex; align-items: center; gap: 10px; }
 #pause-menu .sp-detail-cat .pm-ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 #pause-menu .sp-detail-sub { font-size: 22px; line-height: 1.35; color: var(--ink); }
