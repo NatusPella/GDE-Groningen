@@ -44,7 +44,7 @@ export const BUILD_R = 24, DROP_R = 34, MAX_LIVE = 2, NPC_R = 24, MAX_NPC = 8;
 const OPEN_TIME = 0.3, OPEN_ANGLE = 1.75, DOOR_REACH = 3.0;
 const BRON = 'interieur';
 
-const S = { world: null, live: new Map(), plans: new WeakMap(), scan: 0, spots: null, spotsN: -1, closedAt: new WeakMap(), inside: null, listeners: [], hooks: { owned: () => false, manage: () => null, homeStyle: () => null, customers: () => 0 }, sets: [], pinned: new Set(), time: 0 };
+const S = { world: null, live: new Map(), plans: new WeakMap(), scan: 0, spots: null, spotsN: -1, closedAt: new WeakMap(), inside: null, listeners: [], hooks: { owned: () => false, manage: () => null, homeStyle: () => null, customers: () => 0, epoch: () => 0 }, sets: [], pinned: new Set(), time: 0 };
 
 // homeStyle(b) -> { wall, floor, fabric } | null: the colours of a home the player lives in (Homebase: a variant per living place)
 // hooks other systems set: owned(b) -> true for a pand of the player (Bezit, Homebase: the door always opens);
@@ -111,6 +111,13 @@ function gameShopOf(b) {
   return null;
 }
 
+const hookEpoch = () => { try { return S.hooks.epoch() | 0; } catch (e) { return 0; } };
+// A plan is made once; when the owner's side changed (a pand bought or sold: other colours) a quiet building gets a new plan. A live or pinned room stays as it is until it is dropped.
+function restyleIfStale(b, rec, epoch) {
+  if (!rec || rec.epoch === epoch || S.live.has(b) || S.pinned.has(b)) return rec;
+  S.plans.delete(b);
+  return undefined;
+}
 function planOf(b) {
   let rec = S.plans.get(b);
   if (rec === undefined) {
@@ -119,6 +126,7 @@ function planOf(b) {
     try { style = S.hooks.homeStyle(b); } catch (e) { style = null; }
     rec = planInterior(b, { spot, style });
     rec.b = b;
+    rec.epoch = hookEpoch();
     if (!rec.ok && spot && (rec.why === 'small' || rec.why === 'low')) markNotEnterable(spot.x, spot.y); // the map layer stops promising it
     S.plans.set(b, rec);
   }
@@ -255,9 +263,10 @@ function scan(w, p) {
   const near = w.map.buildingsNear(p.x, p.y, DROP_R + 12);
   const want = [];
   let computed = 0;
+  const epoch = hookEpoch();
   for (const b of near) {
     if (b.dropped || !planReady(b)) continue;
-    let rec = S.plans.get(b);
+    let rec = restyleIfStale(b, S.plans.get(b), epoch);
     if (rec === undefined) { if (computed >= 1) continue; computed++; rec = planOf(b); }
     if (!rec.ok) continue;
     const d = Math.hypot(rec.plan.frame.ox - p.x, rec.plan.frame.oy - p.y);

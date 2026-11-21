@@ -15,8 +15,20 @@ import { dagVan } from './gewasmarkt.js';
 import { LOONWERKER, LOONWERK_AFLEVEREN, loonwerkKosten } from './machines.js';
 import { fieldPhase, workField, workUnits, unitScale } from './parcelfarm.js';
 import { staffOf, staffCapacity, staffDayTick, leaseDayTick, planStaffDay, mgmtFactor, managedCount, paidFor, sellLoad, SKILL_RATIO, MAX_CATCHUP_DAYS } from './farmstaff.js';
-import { herdsOf, livestockDayTick, visibleAnimals, PRODUCT_PRICE } from './livestock.js';
+import { herdsOf, livestockDayTick, visibleAnimals, PRODUCT_PRICE, SPECIES } from './livestock.js';
+import { areaPrice } from './bezithooks.js';
 
+// Wat een dag vee-opbrengst oplevert: de streekprijs van de streek van de grootste kudde van dit product (bezithooks.js, met verzadiging door wat je levert), zonder haak de vaste prijs.
+// Eieren gaan per stuk (PRODUCT_PRICE) maar de markt rekent per kilo (acht per kilo).
+const EGG_KG = 0.125;
+export function livestockRevenue(product, amount, day, herds) {
+  const base = PRODUCT_PRICE[product];
+  if (!(amount > 0) || !(base > 0)) return 0;
+  let parcelId = null, biggest = 0;
+  for (const id of Object.keys(herds || {})) { const h = herds[id], sp = SPECIES[h.sp]; if (sp && sp.product === product && h.n > biggest) { biggest = h.n; parcelId = id; } }
+  if (product === 'eieren') return Math.round(amount * areaPrice('eieren', amount * EGG_KG, day, parcelId, base / EGG_KG) * EGG_KG);
+  return Math.round(amount * areaPrice(product, amount, day, parcelId, base));
+}
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
 
 export const LEVELS = ['self', 'leased', 'staff'];
@@ -277,7 +289,7 @@ export function advanceDays(bezit, farm, toDay, ctx = {}) {
     for (const p of Object.keys(v.products)) {
       let rest = v.products[p];
       if (ctx.deliver === 'store') { const r = PC.bergOp(farm.bedrijf, home, p, rest); if (r.ok) rest -= r.kg; }   // wat niet in de opslag past, wordt verkocht
-      veeInkomsten += Math.round(Math.max(0, rest) * PRODUCT_PRICE[p]);
+      veeInkomsten += livestockRevenue(p, Math.max(0, rest), day, herdsOf(bezit));
     }
     if (veeInkomsten > 0) { B.boek(farm, { omzet: veeInkomsten }); farm.totaal.omzet += veeInkomsten; }
     if (v.feedCost > 0) B.uitgaven(farm, v.feedCost, 'voer');

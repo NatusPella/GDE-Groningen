@@ -73,6 +73,8 @@ export function schrijfNu() {
   if (!st || !bezit) return;
   try { CH.packForSave(bezit); st.setItem(KEYS.bezit, JSON.stringify(Z.serializeBezit(bezit))); vuil = false; } catch (e) { /* opslag vol of geblokkeerd: het bezit blijft in dit spel */ }
 }
+// Verandert als een pand gekocht of verkocht wordt (genoeg voor wie het pand van het bezit tekent: interieurkleuren van een net gekocht pand); zonder bezit 0.
+export const bezitVersion = () => { try { return bezit ? bezit.buildings.size : 0; } catch (e) { return 0; } };
 export function markeer() {
   vuil = true;
   if (!timer && typeof setTimeout === 'function') { timer = setTimeout(schrijfNu, SCHRIJF_VERTRAGING_MS); if (timer && timer.unref) timer.unref(); }
@@ -106,7 +108,16 @@ export function setIndexForTest(parcelFile, buildingFile = null) {
   return index;
 }
 // Na het laden: een bezit dat naar een niet meer bestaand ID wijst terugdraaien (met terugbetaling), en de namen verversen met de echte woonplaats.
+const indexListeners = new Set();
+// Een haak voor wie op de index wacht (sponsorpanden.js: een sponsor aangenomen voor het laden); roept meteen aan als hij er al is. Geeft de afmelder terug.
+export function onIndexReady(fn) {
+  if (typeof fn !== 'function') return () => {};
+  indexListeners.add(fn);
+  if (index) { try { fn(index); } catch (e) { /* de luisteraar is niet ons probleem */ } }
+  return () => indexListeners.delete(fn);
+}
 function afterIndex() {
+  for (const f of indexListeners) { try { f(index); } catch (e) { /* idem */ } }
   const b = getBezit();
   const r = Z.reconcileWithIndex(b, index.parcels);
   if (r.rematched.length || r.refunded.length) {

@@ -8,7 +8,7 @@
 import * as L from './bezitlive.js';
 import { ownerOf, manageView, manageAction, customersAt, canManage, MAX_CUSTOMERS } from './bezitbeheer.js';
 import { euro } from './geldtekst.js';
-import { sponsorNameOf } from './sponsorpanden.js';
+import { sponsorNameOf, hasSponsorPanden } from './sponsorpanden.js';
 
 export const MATCH_R = 12;
 export { MAX_CUSTOMERS };
@@ -30,6 +30,23 @@ export function osmOfBuilding(b, index = L.getIndexNow()) {
 export function facadeName(b, fallback) {
   const osm = osmOfBuilding(b);
   return (osm != null && sponsorNameOf(osm)) || fallback;
+}
+
+// Het bord voor een pand: een winkelpand houdt zijn eigen pui (b.shopFront), een sponsorpand zonder winkelpui (een zuivelhoeve, een kantoor) krijgt een bord boven de voordeur uit b.entrance.
+// Geeft { front, name, hex } voor signLayout/signColors of null; alleen verzonnen sponsornamen komen zo op een pand zonder winkelpui.
+export const SPONSOR_SIGN_HEX = 0x1f3a5f;
+export function signSpecFor(b) {
+  if (!b) return null;
+  const f = b.shopFront;
+  if (f && f.name) return { front: f, name: facadeName(b, f.name), hex: f.sign };
+  if (!hasSponsorPanden()) return null;
+  const osm = osmOfBuilding(b), name = osm != null ? sponsorNameOf(osm) : null, e = b.entrance;
+  if (!name || !e || !(e.len > 1.2) || !Number.isFinite(e.c) || !Number.isFinite(e.h)) return null;
+  const half = Math.max(0.5, (e.w || 1) / 2) + 0.8;
+  const s0 = Math.max(0.15, e.c - half), s1 = Math.min(e.len - 0.15, e.c + half);
+  if (s1 - s0 < 0.9) return null;
+  const top = Math.min(e.h + 0.1, Math.max(e.h, (e.floorH || 3) - 0.5));
+  return { front: { ax: e.ax, ay: e.ay, tx: e.tx, ty: e.ty, nx: e.nx, ny: e.ny, s0, s1, top }, name, hex: SPONSOR_SIGN_HEX };
 }
 
 // De omzetregel in het interieur: wat het pand vandaag doet, in gewone woorden (altijd Nederlands, nooit een leeg veld).
@@ -86,6 +103,7 @@ export function makeInteriorHooks({ index = null, openMenu = null, now = () => D
       };
     },
     homeStyle(b) { const osm = osmOf(b); return osm != null && ownerOf(osm).mine ? ownStyleOf(osm) : null; },
+    epoch: () => L.bezitVersion(),
     customers(b) { const osm = osmOf(b); return osm != null ? Math.min(MAX_CUSTOMERS, customersAt(osm)) : 0; },
   };
 }

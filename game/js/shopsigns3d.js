@@ -6,7 +6,7 @@ import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { signLayout, signText, signColors } from './shopsign.js';
-import { facadeName } from './bezitinterior.js'; // een sponsorpand van het voetbal draagt de naam van zijn sponsor
+import { signSpecFor } from './bezitinterior.js'; // een sponsorpand van het voetbal draagt de naam van zijn sponsor, ook zonder winkelpui
 
 const REACH = 42;         // m: borden van panden verder weg zijn niet nodig
 const DROP = 56;          // m: daarna gaat het bord weer weg
@@ -43,13 +43,13 @@ function texFor(text, hex) {
   return t;
 }
 
-function build(b) {
-  const f = b.shopFront;
+function build(spec) {
+  const f = spec.front;
   const L = signLayout(f);
   if (!geo) geo = new THREE.PlaneGeometry(1, 1);
-  const name = facadeName(b, f.name);
+  const name = spec.name;
   const text = signText(name);
-  const mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: texFor(text, f.sign), polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -8 }));
+  const mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: texFor(text, spec.hex), polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -8 }));
   mesh.scale.set(L.w, L.h, 1);
   mesh.position.set(L.x, L.y, L.z);
   mesh.rotation.y = L.rotY;
@@ -72,15 +72,18 @@ function tick(dt, w) {
   const scene = getScene();
   const p = hoofdspeler(w);
   if (!scene || !p || !w.map || !w.map.buildingsNear) return;
+  let sp = null;
   for (const [b, s] of signs) {
     const cx = (b.bounds[0] + b.bounds[2]) / 2, cy = (b.bounds[1] + b.bounds[3]) / 2;
-    if (Math.hypot(cx - p.x, cy - p.y) > DROP || !b.shopFront || facadeName(b, b.shopFront.name) !== s.mesh.userData.name) drop(b, s);
+    if (Math.hypot(cx - p.x, cy - p.y) > DROP || (sp = signSpecFor(b)) == null || sp.name !== s.mesh.userData.name) drop(b, s);
   }
   let made = 0;
   for (const b of w.map.buildingsNear(p.x, p.y, REACH)) {
     if (made >= PER_TICK || signs.size >= MAX_SIGNS) break;
-    if (signs.has(b) || !b.shopFront || !b.shopFront.name) continue;
-    const mesh = build(b);
+    if (signs.has(b)) continue;
+    const spec = signSpecFor(b);
+    if (!spec) continue;
+    const mesh = build(spec);
     scene.add(mesh);
     signs.set(b, { mesh });
     made++;

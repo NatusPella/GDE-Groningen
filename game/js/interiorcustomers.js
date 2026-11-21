@@ -36,13 +36,14 @@ export function extraCustomers(grid, reach, npcs, n, rnd) {
 }
 
 // Hook sets of several systems (Bezit, Homebase) become one: owned: any says yes; manage and homeStyle: the first answer that is not empty;
-// customers: the highest. A hook that throws counts as no answer.
+// customers: the highest; epoch: the sum. A hook that throws counts as no answer.
 export function combineHooks(sets) {
   const call = (k, ...a) => { const out = []; for (const x of sets) { if (typeof x[k] !== 'function') continue; try { out.push(x[k](...a)); } catch (e) { out.push(undefined); } } return out; };
   return {
     owned: (b) => call('owned', b).some(Boolean),
     manage: (b, plan) => call('manage', b, plan).find((r) => r) || null,
     homeStyle: (b) => call('homeStyle', b).find((r) => r) || null,
+    epoch: () => call('epoch').reduce((a, n) => a + (Number(n) || 0), 0),   // telt elke wijziging die het plan van een pand kan veranderen (Bezit: gekocht, verkocht)
     customers: (b) => Math.max(0, ...call('customers', b).map((n) => Number(n) || 0)),
   };
 }

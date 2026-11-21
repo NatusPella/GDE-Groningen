@@ -53,6 +53,19 @@ export function accept(sp, slotId, pandIndex = null, plaats = null) {
   deal.osm = pandIndex && typeof pandIndex.find === 'function' ? (pandIndex.find(SORTS[deal.sort].pand, plaats) || null) : null;
   return { sponsors: s, ok: true, slot: deal };
 }
+// Een aangenomen overeenkomst zonder pand (de speler tekende voordat de Bezit-pandindex geladen was) krijgt het pand alsnog zodra de index er is. Geeft { sponsors, changed }; een tweede aanroep verandert niets.
+export function resolveMissingPanden(sp, pandIndex = null, plaats = null) {
+  pandIndex = pandIndex || registeredIndex;
+  if (!sp || !pandIndex || typeof pandIndex.find !== 'function' || !Array.isArray(plaats)) return { sponsors: sp, changed: 0 };
+  const s = JSON.parse(JSON.stringify(sp));
+  let changed = 0;
+  for (const deal of s.slots) {
+    if (!deal.accepted || Number.isFinite(deal.osm) || !SORTS[deal.sort]) continue;
+    const osm = pandIndex.find(SORTS[deal.sort].pand, plaats);
+    if (osm != null) { deal.osm = osm; changed++; }
+  }
+  return { sponsors: changed ? s : sp, changed };
+}
 // De stand voor de doelen: doelpunten dit seizoen, wedstrijden zonder verlies op rij (uit de vorm) en of het seizoen met promotie eindigde. Geeft de nieuwe sponsors en de uit te betalen regels (elk doel eenmalig).
 export function settle(sp, state) {
   if (!sp) return { sponsors: sp, earn: [] };
@@ -72,5 +85,6 @@ export const commentaryLine = (sp) => { const n = boardNames(sp)[0]; return n ? 
 // De klantenbonus voor wie het sponsorpand bezit: hooguit +10% op de omzet van dat pand, alleen op thuiswedstrijddagen; nooit een tweede uitbetaling van de sponsor.
 export function ownerBonus({ isHomeDay = false, ownsPand = false, form = 1 } = {}) {
   if (!isHomeDay || !ownsPand) return { factor: 1, extraPayout: 0 };
-  return { factor: 1 + Math.min(OWNER_BONUS_MAX, 0.04 + Math.max(0, form - 1) * 0.5), extraPayout: 0 };
+  const fo = Number.isFinite(form) ? form : 1;       // een kapotte vorm (NaN) geeft geen NaN-omzet
+  return { factor: 1 + Math.min(OWNER_BONUS_MAX, 0.04 + Math.max(0, fo - 1) * 0.5), extraPayout: 0 };
 }

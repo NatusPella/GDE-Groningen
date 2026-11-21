@@ -100,9 +100,35 @@ t('linkCareer: sync na laden en na wijziging, thuisdag alleen vandaag, vorm van 
   assert.ok(SP.eventModsFor(778, mods, 9).revMult === 1);                       // een andere dag: nooit een thuisbonus
   L.getBezit().buildings.add(778);
   assert.ok(SP.eventModsFor(778, mods, today).revMult > 1 && SP.eventModsFor(778, mods, today).revMult <= 1 + V.OWNER_BONUS_MAX + 1e-9);
-  home = false; assert.equal(SP.eventModsFor(778, mods, today).revMult, 1);
+  home = false; assert.ok(SP.eventModsFor(778, mods, today).revMult > 1, 'de thuisdag is onthouden');   // ook nadat de wedstrijd gespeeld is
+  assert.equal(SP.eventModsFor(778, mods, today + 1).revMult, 1);
   L.getBezit().buildings.delete(778);
   SP.syncSponsorDeals(null);
+});
+t('thuisdag wordt onthouden: een rekendag na slapen krijgt de bonus, een andere dag niet', () => {
+  let career = { sponsors: { slots: [{ accepted: true, osm: 790, naam: 'Weide Bank' }] } }, listener = null, today = 20, home = true;
+  const off = SP.linkCareer({ getCareer: () => career, subscribe: (f) => { listener = f; return () => { listener = null; }; }, homeMatchToday: () => home, formOf: () => 1, getClub: () => null, today: () => today });
+  L.getBezit().buildings.add(790);
+  home = false; today = 22;                                                      // de wedstrijd van dag 20 is gespeeld, het is dag 22
+  assert.ok(SP.eventModsFor(790, { revMult: 1 }, 20).revMult > 1);
+  assert.equal(SP.eventModsFor(790, { revMult: 1 }, 21).revMult, 1);
+  assert.equal(SP.eventModsFor(790, { revMult: 1 }, 22).revMult, 1);
+  off(); L.getBezit().buildings.delete(790); SP.syncSponsorDeals(null);
+});
+t('sponsor aangenomen voor het laden van de index: het pand komt er alsnog, een tweede keer verandert niets', () => {
+  SP.registerSponsorPanden();
+  let career = { club: 'club-a', sponsors: V.accept(V.newSponsors('club-a', 'talent', 1), 'sp1-0', { find: () => null }, [0, 0]).sponsors };
+  assert.equal(career.sponsors.slots[0].osm, null);
+  const r = V.resolveMissingPanden(career.sponsors, { find: () => 4242 }, [0, 0]);
+  assert.equal(r.changed, 1); assert.equal(r.sponsors.slots[0].osm, 4242); assert.equal(career.sponsors.slots[0].osm, null);
+  assert.equal(V.resolveMissingPanden(r.sponsors, { find: () => 9 }, [0, 0]).changed, 0);
+  assert.equal(V.resolveMissingPanden(career.sponsors, { find: () => 4242 }, null).changed, 0);     // zonder plaats niets
+  assert.equal(V.resolveMissingPanden(career.sponsors, { find: () => null }, [0, 0]).changed, 0);
+  let saved = null, ready = null;
+  const off = SP.linkCareer({ getCareer: () => career, subscribe: () => () => {}, homeMatchToday: () => false, formOf: () => 1, getClub: () => null, replaceCareer: (c) => { saved = c; career = c; }, clubPlace: () => [0, 0] });
+  assert.equal(typeof off, 'function');
+  off();
+  assert.equal(SP.resolvePendingSponsors({ getCareer: () => ({ club: 'x', sponsors: null }), replaceCareer: () => assert.fail('geen carrière'), clubPlace: () => [0, 0] }), 0);
 });
 t('accept met plaats: het pand komt uit de index bij de plek van de club, zonder plaats niets', () => {
   SP.registerSponsorPanden();
