@@ -11,7 +11,8 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const JS = path.join(ROOT, 'game', 'js');
 const BASELINE = path.join(ROOT, 'scripts', 'naamtaal_baseline.json');
 
-// Woorden die in een nieuwe bestandsnaam of identifier Nederlands verraden.
+// Woorden die in een nieuwe bestandsnaam of identifier Nederlands verraden. 'set' en 'slot' staan er niet in: het zijn ook gewone
+// Engelse woorden (clothing.js: slot, set), dus geen bewijs van Nederlands.
 const NL = new Set([
   'aan', 'achter', 'activiteit', 'afstand', 'auto', 'baan', 'bedrag', 'beeld', 'begin', 'bericht',
   'bestand', 'beurt', 'bezoek', 'bijbaan', 'blok', 'boek', 'boerderij', 'boot', 'bord', 'brug',
@@ -22,7 +23,7 @@ const NL = new Set([
   'maak', 'man', 'markt', 'mens', 'menu', 'missie', 'moment', 'motor', 'naam', 'nacht', 'nieuw',
   'niveau', 'nummer', 'object', 'omgeving', 'onder', 'opdracht', 'over', 'pad', 'partij', 'plaats',
   'plek', 'plicht', 'punt', 'raad', 'recht', 'regel', 'regio', 'ringbaan', 'route', 'samenhub',
-  'schip', 'scherm', 'school', 'seizoen', 'sessiekeuze', 'set', 'sfeer', 'slot', 'snel', 'soort',
+  'schip', 'scherm', 'school', 'seizoen', 'sessiekeuze', 'sfeer', 'snel', 'soort',
   'speler', 'spel', 'stad', 'stand', 'stap', 'start', 'station', 'stuk', 'taak', 'tijd', 'toestand',
   'trein', 'treincontrole', 'tuin', 'uur', 'vaart', 'vak', 'veld', 'verhaal', 'verkeer', 'vervoer',
   'vlag', 'vlak', 'voertuig', 'volg', 'vorm', 'vraag', 'vriend', 'waarde', 'wagen', 'water', 'weer',

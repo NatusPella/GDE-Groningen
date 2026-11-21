@@ -1,0 +1,382 @@
+// Kleding (epic Kleding, 21-11): catalogus, kast per personage, aan en uit, outfits, setbonus, opslag en migratie, outfit-code,
+// NPC-outfits en het aanbod van de winkel. De migratietest bouwt elke oude set als model en vergelijkt hem met de nieuwe stukken:
+// een bestaande outfit ziet er na de migratie precies zo uit.
+//   node scripts/clothing_test.mjs   (heeft de gevendorde three nodig voor de modelcontroles: cd desktop && npm run stage)
+import './node3d.mjs';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+
+const D = await import('../game/js/clothingdata.js');
+const C = await import('../game/js/clothing.js');
+const P = await import('../game/js/models3d_people.js');
+const A = await import('../game/js/models3d_clothing.js');
+const SH = await import('../game/js/shops.js');
+
+let n = 0, fails = 0;
+const tests = [];
+const t = (name, fn) => tests.push([name, fn]);
+const src = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
+
+t('catalogus: minstens 60 stukken, unieke id\'s, geldige kleuren, geldige soorten', () => {
+  const shop = D.ITEMS.filter((i) => !i.npc);
+  assert.ok(shop.length >= 60, 'te weinig stukken: ' + shop.length);
+  assert.equal(new Set(D.ITEMS.map((i) => i.id)).size, D.ITEMS.length, 'dubbele id');
+  for (const it of D.ITEMS) {
+    assert.ok(D.SLOT_IDS.includes(it.slot), `${it.id}: slot`);
+    assert.ok(it.kind in D.KIND_LOOK, `${it.id}: soort ${it.kind}`);
+    assert.ok(it.colors.length >= 1 && it.colors.every((c) => c in D.PALETTE), `${it.id}: kleur`);
+    assert.ok(it.label && it.desc, `${it.id}: tekst`);
+    if (!it.npc) { assert.ok(it.price > 0 && it.profiles.length >= 1, `${it.id}: prijs of afdeling`); }
+  }
+  for (const slot of D.SLOT_IDS) assert.ok(shop.some((i) => i.slot === slot), 'slot zonder stukken: ' + slot);
+  assert.equal(new Set(D.PALETTE_IDS).size, D.PALETTE_IDS.length);
+});
+
+t('geen merken, geen winter, geen echte personen in de tekst van de kleding', () => {
+  const tekst = [...D.ITEMS.flatMap((i) => [i.label, i.desc]), ...D.SETS.flatMap((s) => [s.label, s.desc]), ...D.LOOKS.flatMap((s) => [s.label, s.desc]), ...Object.values(D.PALETTE).map((p) => p[0])].join(' | ').toLowerCase();
+  for (const w of ['nike', 'adidas', 'puma', 'zara', 'h&m', 'levi', 'gucci', 'lacoste', 'north face', 'canada goose', 'fc groningen', 'ajax', 'psv', 'feyenoord']) assert.ok(!tekst.includes(w), 'merk of club: ' + w);
+  for (const w of ['winter', 'sneeuw', 'ijs', 'skipak', 'bontjas', 'dikke wollen', 'kerst', 'schaats']) assert.ok(!new RegExp(`\\b${w}`).test(tekst), 'winterwoord: ' + w);
+  // geen opdruk met letters: de modules gebruiken geen canvas of tekst
+  const bron = src('../game/js/models3d_clothing.js');
+  assert.ok(!/canvas|fillText|CanvasTexture/.test(bron), 'tekst op kleding');
+});
+
+t('de twaalf oude sets: dezelfde kleuren, prijs en stealth als OUTFITS van vroeger', () => {
+  for (const ch of ['tammo', 'anita']) {
+    const sets = D.setsFor(ch);
+    assert.equal(sets.length, SH.OUTFITS[ch].length);
+    for (const o of SH.OUTFITS[ch]) {
+      const s = D.setKeyFor(ch, o.id);
+      assert.ok(s, `set ${ch}:${o.id}`);
+      assert.equal(s.price, o.price);
+      assert.equal(s.label, o.label);
+      assert.equal(!!(s.bonus && s.bonus.stealth), !!o.stealth);
+      const worn = {};
+      for (const p of s.pieces) worn[D.pieceSlot(p)] = p;
+      const l = C.outfitToLook({ ...D.DEFAULT_WORN[ch], ...worn }, {});
+      assert.equal(l.shirt, o.shirt, `${ch}:${o.id} shirt`);
+      assert.equal(l.pants, o.pants, `${ch}:${o.id} pants`);
+      assert.equal(l.shoes, o.shoes, `${ch}:${o.id} shoes`);
+      if (o.cap != null) assert.equal(l.cap, o.cap, `${ch}:${o.id} cap`);
+    }
+  }
+});
+
+t('migratie: elke oude set ziet er als stukken precies zo uit als vroeger (geometrie en kleuren)', () => {
+  for (const ch of ['tammo', 'anita']) {
+    const base = ch === 'tammo' ? P.TAMMO_APPEARANCE : P.ANITA_APPEARANCE;
+    for (const o of SH.OUTFITS[ch]) {
+      const oldApp = { ...base, shirt: o.shirt, pants: o.pants, shoes: o.shoes, ...(o.cap != null ? { cap: o.cap } : {}) };
+      const oldMesh = P.buildPersonMesh(oldApp.shirt, oldApp.skin, oldApp);
+      C.migrateLegacy({ ownedOutfits: [`${ch}:${o.id}`], outfit: { [ch]: o.id } });
+      const app = { ...base, ...C.outfitToLook(C.effectiveWorn(ch), base) };
+      const nieuw = P.buildPersonMesh(app.shirt, app.skin, app);
+      const a = oldMesh.userData.body.geometry.attributes, b = nieuw.userData.body.geometry.attributes;
+      assert.equal(a.position.count, b.position.count, `${ch}:${o.id} aantal`);
+      assert.ok(a.position.array.every((v, i) => v === b.position.array[i]), `${ch}:${o.id} vorm`);
+      assert.ok(a.color.array.every((v, i) => v === b.color.array[i]), `${ch}:${o.id} kleur`);
+    }
+  }
+});
+
+t('begin: elk personage heeft zijn eigen kast met alleen zijn startkleding', () => {
+  assert.equal(C.ownedCount('tammo'), 5);
+  assert.equal(C.ownedCount('anita'), 3);
+  assert.ok(C.ownsPiece('tammo', 'jack.blauw') && !C.ownsPiece('anita', 'jack.blauw'));
+  assert.ok(C.givePiece('anita', 'hoodie.zwart'));
+  assert.ok(!C.ownsPiece('tammo', 'hoodie.zwart'), 'de kast van Tammo is niet die van Tessa');
+});
+
+t('aan en uit: één stuk per slot, vervangen, uitdoen alleen waar het mag', () => {
+  C.givePiece('tammo', 'zonnebril.zwart'); C.givePiece('tammo', 'polo.wit'); C.givePiece('tammo', 'hoodie.grijs');
+  assert.equal(C.wearPiece('tammo', 'zonnebril.zwart').ok, true);
+  assert.equal(C.wornPieces('tammo').glasses, 'zonnebril.zwart');
+  assert.equal(C.wearPiece('tammo', 'zonnebril.zwart').ok, false, 'al aan');
+  assert.equal(C.wearPiece('tammo', 'jack.zwart').ok, false, 'niet in de kast');
+  assert.equal(C.takeOffSlot('tammo', 'glasses').ok, true);
+  assert.ok(!C.wornPieces('tammo').glasses);
+  assert.ok(C.takeOffBlock('tammo', 'shoes'), 'schoenen kun je niet uitdoen');
+  assert.ok(C.takeOffBlock('tammo', 'bottom'));
+  // de jas uit mag niet als er geen shirt is; met een shirt mag het wel
+  assert.ok(C.takeOffBlock('tammo', 'outer'), 'zonder shirt en jas');
+  C.wearPiece('tammo', 'polo.wit');
+  assert.equal(C.takeOffBlock('tammo', 'outer'), '');
+});
+
+t('een jurk telt voor shirt en broek', () => {
+  C.givePiece('anita', 'jurk.mint');
+  C.wearPiece('anita', 'jurk.mint');
+  const l = C.outfitToLook(C.effectiveWorn('anita'), {});
+  assert.equal(l.look.bottom, 'dress');
+  assert.equal(l.look.top, 'coat', 'de jas eroverheen blijft de vorm');
+  C.takeOffSlot('anita', 'outer');
+  const l2 = C.outfitToLook(C.effectiveWorn('anita'), {});
+  assert.equal(l2.look.top, 'dress');
+});
+
+t('setbonus: alleen alle stukken van zwart incognito geven stealth 2, een half stel niet', () => {
+  assert.equal(C.setBonus('tammo').stealth, 0);
+  const s = D.setKeyFor('tammo', 'incognito');
+  for (const p of s.pieces) C.givePiece('tammo', p);
+  for (const p of s.pieces.slice(0, 3)) C.wearPiece('tammo', p);
+  assert.equal(C.setBonus('tammo').stealth, 0, 'drie van vier');
+  C.wearPiece('tammo', s.pieces[3]);
+  assert.equal(C.setBonus('tammo').stealth, 2);
+  assert.equal(C.wornSet('tammo').key, 'incognito');
+  assert.equal(C.setBonus('anita').stealth, 0, 'per personage');
+  // geen andere kleding geeft een bonus
+  for (const set of [...D.SETS, ...D.LOOKS]) if (!/incognito/.test(set.id)) assert.ok(!set.bonus, set.id);
+});
+
+t('sets kopen: naar rato van wat je mist, gratis als je alles hebt', () => {
+  const s = D.setKeyFor('tammo', 'groenwit');
+  assert.equal(C.setPriceFor('tammo', s), s.price);
+  C.givePiece('tammo', s.pieces[0]);
+  assert.equal(C.setPriceFor('tammo', s), Math.round(s.price * 3 / 4));
+  for (const p of s.pieces) C.givePiece('tammo', p);
+  assert.equal(C.setPriceFor('tammo', s), 0);
+  assert.equal(C.wearSet('tammo', s).ok, true);
+  assert.equal(C.wornMatches('tammo', s.pieces), true);
+  assert.equal(C.wearSet('anita', s).ok, false, 'ontbrekende stukken');
+});
+
+t('outfits: vijf plekken, bewaren en aantrekken per personage, ontbrekende stukken blijven weg', () => {
+  C.givePiece('tammo', 'hoodie.grijs'); C.givePiece('tammo', 'zonnebril.zwart');
+  C.wearPiece('tammo', 'hoodie.grijs'); C.wearPiece('tammo', 'zonnebril.zwart');
+  assert.ok(C.savePreset('tammo', 0, 'Zomerdag'));
+  assert.ok(!C.savePreset('tammo', 5, 'te veel'));
+  C.takeOffSlot('tammo', 'glasses');
+  C.wearPiece('tammo', 'jack.blauw');
+  assert.equal(C.wearPreset('tammo', 0).ok, true);
+  assert.equal(C.wornPieces('tammo').glasses, 'zonnebril.zwart');
+  assert.equal(C.presetsOf('tammo')[0].name, 'Zomerdag');
+  assert.equal(C.presetsOf('anita')[0], null, 'de outfits van Tessa zijn van haar');
+  assert.equal(C.wearPreset('anita', 0).ok, false);
+  assert.equal(C.presetsOf('tammo')[1], null);
+  assert.equal(C.wearPreset('tammo', 4).ok, false, 'lege plek');
+});
+
+t('verhaaloutfit: komt over wat je aan hebt en gaat weg zonder iets te kosten', () => {
+  const eigen = C.wornPieces('tammo');
+  assert.equal(C.forceStoryLook('incognito'), true);
+  assert.equal(C.storyLookKey(), 'incognito');
+  assert.equal(C.effectiveWorn('tammo').outer, 'jack.zwart');
+  assert.equal(C.effectiveWorn('anita').outer, 'korte_jas.zwart');
+  assert.deepEqual(C.wornPieces('tammo'), eigen, 'je eigen kleding blijft');
+  assert.equal(C.forceStoryLook('incognito'), false, 'dezelfde twee keer is geen wijziging');
+  assert.equal(C.forceStoryLook(null), true);
+  assert.deepEqual(C.effectiveWorn('tammo'), eigen);
+  assert.equal(C.forceStoryLook('bestaatniet'), false);
+  assert.equal(C.forceStoryLook({ tammo: { top: 'tshirt.groen', bottom: 'jeans.zwart', shoes: 'gympen.wit' } }), true, 'een eigen kaart per personage');
+  assert.equal(C.effectiveWorn('tammo').top, 'tshirt.groen');
+  assert.equal(C.effectiveWorn('anita').outer, 'korte_jas.rood', 'Tessa blijft zoals ze was');
+});
+
+t('opslag: rondreis, onzin wordt genegeerd, oude save migreert, niets raakt kwijt', () => {
+  C.givePiece('tammo', 'hoodie.grijs'); C.wearPiece('tammo', 'hoodie.grijs'); C.savePreset('tammo', 2, 'Twee');
+  const save = JSON.parse(JSON.stringify(C.getClothingSave()));
+  assert.ok(JSON.stringify(save).length < 4000, 'compact: ' + JSON.stringify(save).length);
+  C.resetClothing();
+  assert.equal(C.applyClothingSave(save), 'nieuw');
+  assert.equal(C.wornPieces('tammo').top, 'hoodie.grijs');
+  assert.equal(C.presetsOf('tammo')[2].name, 'Twee');
+  // kapotte invoer
+  C.resetClothing();
+  assert.equal(C.applyClothingSave({ v: 1, tammo: { o: ['jack.nietbestaand', 5, null], w: { top: 'hoodie.grijs', glasses: 'jack.blauw', outer: 42 }, p: [{ n: '<b>x</b>'.repeat(30), w: {} }, 'x'] }, anita: 'rommel' }), 'nieuw');
+  assert.ok(C.wornPieces('tammo').bottom && C.wornPieces('tammo').shoes, 'valt terug op de startkleding');
+  assert.ok(C.ownsPiece('tammo', 'hoodie.grijs'), 'wat je aan hebt bezit je ook');
+  assert.ok(!C.wornPieces('tammo').glasses, 'een stuk in het verkeerde slot telt niet');
+  assert.ok(C.presetsOf('tammo')[0].name.length <= D.PRESET_NAME_MAX && !/[<>]/.test(C.presetsOf('tammo')[0].name));
+  assert.equal(C.applyClothingSave(null), 'leeg');
+  // oude save (alleen outfit en ownedOutfits)
+  const oud = { outfit: { tammo: 'boer', anita: 'wadloper' }, ownedOutfits: ['tammo:stadjer', 'anita:classic', 'tammo:boer', 'anita:wadloper', 'anita:incognito'] };
+  assert.equal(C.applyClothingSave(undefined, oud), 'migratie');
+  assert.equal(C.wornPieces('tammo').outer, 'jack.olijf');
+  assert.equal(C.wornPieces('tammo').face, 'stoppels.natuur', 'de stoppels van Tammo blijven');
+  assert.equal(C.wornPieces('anita').outer, 'korte_jas.zeeblauw');
+  for (const s of ['tammo:stadjer', 'tammo:boer']) assert.ok(D.SET_BY_ID[s].pieces.every((p) => C.ownsPiece('tammo', p)), s);
+  assert.ok(D.SET_BY_ID['anita:incognito'].pieces.every((p) => C.ownsPiece('anita', p)));
+  assert.ok(!D.SET_BY_ID['tammo:corps'].pieces.every((p) => C.ownsPiece('tammo', p)), 'wat je niet had, krijg je niet');
+});
+
+t('de shop-save: shops.js schrijft het kleding-blok en de oude velden, en leest ze terug', () => {
+  const bron = src('../game/js/shops.js');
+  assert.ok(/kleding: getClothingSave\(\)/.test(bron));
+  assert.ok(/applyClothingSave\(d\.kleding, d\)/.test(bron));
+  assert.ok(/outfit: wornSetKeys\(\)/.test(bron) && /ownedOutfits: ownedSetIds\(\)/.test(bron));
+});
+
+t('outfit-code: rondreis voor spelers en NPC\'s, korte code, een onbekend nummer wordt overgeslagen', () => {
+  for (const ch of ['tammo', 'anita']) {
+    const code = C.encodeOutfit(C.effectiveWorn(ch));
+    assert.ok(code.length <= 30, code);
+    assert.deepEqual(C.decodeOutfit(code), C.effectiveWorn(ch));
+  }
+  for (let i = 0; i < 200; i++) {
+    const w = C.npcOutfit(i, 'voetganger');
+    assert.deepEqual(C.decodeOutfit(C.encodeOutfit(w)), w);
+  }
+  assert.equal(C.decodeOutfit('rommel'), null);
+  assert.equal(C.decodeOutfit(42), null);
+  assert.equal(C.decodeOutfit('k1' + 'zz09'), null, 'onbekend item');
+  assert.equal(C.decodeOutfit('k1'.padEnd(200, 'a')), null, 'te lang');
+  const alles = {}; for (const s of D.SLOT_IDS) { const it = D.ITEMS.find((i) => i.slot === s); alles[s] = `${it.id}.${it.colors[0]}`; }
+  assert.ok(C.encodeOutfit(alles).length <= 2 + 4 * D.SLOT_IDS.length);
+});
+
+t('NPC-outfits: deterministisch, rol bepaalt de kleding, altijd een geldige outfit', () => {
+  assert.deepEqual(C.npcOutfit(42, 'kok'), C.npcOutfit(42, 'kok'));
+  assert.notDeepEqual(C.npcOutfit(1, 'voetganger'), C.npcOutfit(2, 'voetganger'));
+  for (let i = 0; i < 300; i++) {
+    for (const role of Object.keys(D.ROLE_POOLS)) {
+      const w = C.npcOutfit(i, role, { rain: i % 3 === 0, hot: i % 5 === 0 });
+      assert.ok(C.hasTorso(w) && w.shoes && (w.bottom || (w.top && D.parsePiece(w.top).item.kind === 'dress')), `${role} ${i}`);
+      for (const p of Object.values(w)) assert.ok(D.parsePiece(p), p);
+    }
+  }
+  assert.equal(C.npcOutfit(3, 'kok').outer.split('.')[0], 'koksjas');
+  let veilig = 0; for (let i = 0; i < 100; i++) if (C.npcOutfit(i, 'bouwvakker').shoes.startsWith('veiligheidsschoen')) veilig++;
+  assert.ok(veilig > 75, 'bouwvakkers dragen veiligheidsschoenen: ' + veilig);
+  assert.ok(C.npcOutfit(9, 'zakenman').outer.startsWith('colbert'));
+  assert.equal(C.npcOutfit(9, 'bestaatniet', {}).shoes != null, true, 'onbekende rol valt terug op voetganger');
+  // het weer: bij regen meer jassen, bij hitte minder
+  let regen = 0, droog = 0, heet = 0;
+  for (let i = 0; i < 400; i++) { if (C.npcOutfit(i, 'voetganger', { rain: true }).outer) regen++; if (C.npcOutfit(i, 'voetganger').outer) droog++; if (C.npcOutfit(i, 'voetganger', { hot: true }).outer) heet++; }
+  assert.ok(regen > droog && heet === 0, `regen ${regen} droog ${droog} heet ${heet}`);
+  // de rolpool is gewogen: een gewone voetganger draagt vaker een T-shirt dan een blouse
+  const tel = {};
+  for (let i = 0; i < 600; i++) { const k = C.npcOutfit(i, 'voetganger').top.split('.')[0]; tel[k] = (tel[k] || 0) + 1; }
+  assert.ok(tel.tshirt > tel.blouse * 3, JSON.stringify(tel));
+});
+
+t('NPC-model: buildPersonMesh met een rol geeft een persoon met de kleding van die rol', () => {
+  const kok = P.buildPersonMesh(0x888888, 0xd9aa82, { seed: 3, role: 'kok' });
+  const zelfde = P.buildPersonMesh(0x888888, 0xd9aa82, { seed: 3, role: 'kok' });
+  assert.equal(kok.userData.body.geometry, zelfde.userData.body.geometry, 'dezelfde NPC deelt zijn geometrie (cache)');
+  const bouw = P.buildPersonMesh(0x888888, 0xd9aa82, { seed: 3, role: 'bouwvakker' });
+  assert.notEqual(kok.userData.body.geometry, bouw.userData.body.geometry);
+});
+
+t('winkel: aanbod deterministisch per winkel en dag, wisselt per dag, uitverkoop op vrijdag', () => {
+  const a = C.shopStock('Stoer & Stads|10,20', 3), b = C.shopStock('Stoer & Stads|10,20', 3);
+  assert.deepEqual(a, b);
+  assert.notDeepEqual(a, C.shopStock('Stoer & Stads|10,20', 4), 'morgen ander aanbod');
+  assert.notDeepEqual(a, C.shopStock('Stoer & Stads|99,20', 3), 'andere winkel, ander aanbod');
+  assert.ok(a.length >= 15 && a.length <= D.SHOP_STOCK + 8, 'aantal ' + a.length);
+  for (const p of a) { assert.ok(D.parsePiece(p) && !D.parsePiece(p).item.npc, p); }
+  assert.ok(C.shopProfiles('x').length >= 1 && C.shopProfiles('x').every((p) => p in D.PROFILES));
+  let dagen = 0; for (let d = 0; d < 28; d++) if (C.saleOn(d)) dagen++;
+  assert.equal(dagen, 4, 'één dag per week');
+  const dag = [0, 1, 2, 3, 4, 5, 6].find((d) => C.saleOn(d));
+  const sale = C.saleOn(dag);
+  const stuk = D.SHOP_ITEMS.find((i) => i.profiles.includes(sale.profile));
+  const winkel = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'].find((k) => C.shopProfiles(k).includes(sale.profile));
+  const p = `${stuk.id}.${stuk.colors[0]}`;
+  assert.ok(C.shopPrice(p, winkel, dag) < stuk.price, 'uitverkoop is goedkoper');
+  assert.equal(C.shopPrice(p, winkel, dag + 1), stuk.price);
+  // elke winkel heeft over een week elk slot minstens een keer
+  const slots = new Set();
+  for (let d = 0; d < 7; d++) for (const q of C.shopStock('Stoer & Stads|10,20', d)) slots.add(D.pieceSlot(q));
+  assert.ok(slots.size >= 6, [...slots].join());
+});
+
+t('balans: prijzen in lijn met de oude sets en geen goedkope bonus', () => {
+  for (const s of D.SETS) {
+    const som = s.pieces.reduce((n, p) => n + D.piecePrice(p), 0);
+    assert.ok(s.price <= som * 1.4, `${s.id}: set ${s.price} duurder dan stukken ${som}`);
+    assert.ok(s.price >= som * 0.3, `${s.id}: set ${s.price} spotgoedkoop tegen stukken ${som}`);
+  }
+  const prijzen = D.SHOP_ITEMS.map((i) => i.price);
+  assert.ok(Math.min(...prijzen) >= 8 && Math.max(...prijzen) <= 250, 'prijsbereik');
+  // de hele winkel in één keer is grof gelijk aan de som: geen lek in de economie (spel levert ca. 1.100 per uur)
+  assert.ok(D.SHOP_ITEMS.reduce((n, i) => n + i.price * i.colors.length, 0) > 2500);
+});
+
+t('prestaties: tellers kloppen', () => {
+  const st = C.clothingStats('tammo');
+  assert.equal(st.shopItems, D.SHOP_ITEMS.length);
+  assert.equal(st.allItems, false);
+  for (const it of D.SHOP_ITEMS) C.givePiece('tammo', `${it.id}.${it.colors[0]}`);
+  assert.equal(C.clothingStats('tammo').allItems, true);
+  assert.ok(C.completeSetIds('tammo').length >= 1);
+  const ach = src('../game/js/achievements.js');
+  for (const id of ['kleding_nieuw', 'kleding_set', 'kleding_kast']) assert.ok(ach.includes(`id: '${id}'`), id);
+});
+
+t('modellen: een outfit met alles aan is één rompmesh plus hoogstens vier kleine meshes, binnen het driehoeksbudget', () => {
+  const alles = { ...D.DEFAULT_WORN.tammo, glasses: 'zonnebril.zwart', neck: 'sjaal.rood', back: 'rugzak.zwart', jewel: 'ketting.mosterd', wrist: 'horloge.zwart', hands: 'werkhandschoen.mosterd', top: 'hoodie.grijs' };
+  const o = C.outfitToLook(alles, P.TAMMO_APPEARANCE);
+  const m = P.buildPersonMesh(o.shirt, P.TAMMO_APPEARANCE.skin, { ...P.TAMMO_APPEARANCE, ...o });
+  const meshes = []; m.traverse((x) => { if (x.isMesh) meshes.push(x); });
+  assert.ok(meshes.length <= 5, 'drawcalls: ' + meshes.length);
+  const tris = meshes.reduce((s, x) => s + x.geometry.attributes.position.count / 3, 0);
+  assert.ok(tris < 4500, 'driehoeken: ' + tris);
+  assert.equal(m.userData.clothingMeshes.length, 4);
+  for (const x of m.userData.clothingMeshes) assert.ok(x.geometry.userData.shared, 'accessoire-geometrie is gedeeld');
+  // zonder sieraden geen extra meshes
+  const kaal = P.buildPersonMesh(0x888888, 0xd9aa82, { seed: 1 });
+  const kaalMeshes = []; kaal.traverse((x) => { if (x.isMesh) kaalMeshes.push(x); });
+  assert.equal(kaalMeshes.length, 1);
+  assert.equal(A.accessoryCacheSize() > 0, true);
+});
+
+t('modellen: elk stuk (elke soort, elke kleur-eerste) bouwt zonder NaN en binnen budget', () => {
+  for (const it of D.ITEMS) {
+    const worn = { ...D.DEFAULT_WORN.anita, [it.slot]: `${it.id}.${it.colors[0]}` };
+    if (it.slot === 'top' || it.slot === 'outer') worn[it.slot] = `${it.id}.${it.colors[0]}`;
+    const o = C.outfitToLook(worn, P.ANITA_APPEARANCE);
+    const m = P.buildPersonMesh(o.shirt, P.ANITA_APPEARANCE.skin, { ...P.ANITA_APPEARANCE, ...o });
+    const pos = m.userData.body.geometry.attributes.position.array;
+    for (let i = 0; i < pos.length; i += 97) assert.ok(Number.isFinite(pos[i]), `${it.id}: NaN`);
+    for (const x of m.userData.clothingMeshes || []) { const q = x.geometry.attributes.position.array; for (let i = 0; i < q.length; i++) assert.ok(Number.isFinite(q[i]), `${it.id}: NaN accessoire`); }
+    assert.ok(m.userData.body.geometry.attributes.position.count / 3 < 6000, `${it.id}: te zwaar`);
+  }
+});
+
+t('geheugen: duizend NPC\'s van dezelfde rol delen een klein aantal rompgeometrieën', () => {
+  P.resetPersonCacheStats();
+  for (let i = 0; i < 400; i++) P.buildPersonMesh(0x888888, 0xd9aa82, { seed: i % 40, role: 'voetganger' });
+  assert.ok(P.personCacheStats().builds <= 40, 'builds ' + P.personCacheStats().builds);
+});
+
+t('Samen spelen: de avatar draagt een optionele outfit-code en een oude client breekt er niet op', () => {
+  const sp = src('../game/js/coopspeler.js');
+  assert.ok(/outfit/.test(sp), 'avatarVan en avatarLook kennen de outfit');
+  const pl = src('../game/js/coopplayers.js');
+  assert.ok(/outfit/.test(pl), 'de avatar-whitelist in coopplayers.js kent de outfit');
+});
+
+t('menu\'s: kledingwinkel en kast leveren secties met items in de vorm van shopui', async () => {
+  const M = await import('../game/js/clothingpanel.js');
+  let geld = 500;
+  const ctx = {
+    ch: 'tammo', name: 'Tammo', shopKey: 'Stoer & Stads|1,2', day: 5, hexCss: (x) => '#' + x.toString(16).padStart(6, '0'),
+    broke: (p) => (geld < p ? 'Te weinig geld' : ''), pay: (p) => { if (geld < p) return false; geld -= p; return true; },
+    previewOf: (w) => ({ kind: 'person', worn: w }), apply: () => false,
+  };
+  const secties = M.shopSections(ctx);
+  assert.ok(secties.length >= 3 && secties[0].items.length === 6, 'sets eerst: ' + secties.map((s) => s.title));
+  const items = secties.flatMap((s) => s.items);
+  for (const it of items) assert.ok(it.id && it.label && Number.isFinite(it.price) && typeof it.buy === 'function' && it.preview, it.id);
+  const koop = items.find((it) => it.id.startsWith('c-') && !it.disabled && it.price > 0);
+  const voor = geld;
+  assert.ok(typeof koop.buy() === 'string');
+  assert.ok(geld < voor && C.ownsPiece('tammo', koop.id.slice(2)), 'betaald en in de kast');
+  assert.equal(C.wornPieces('tammo')[D.pieceSlot(koop.id.slice(2))], koop.id.slice(2), 'en meteen aan');
+  geld = 0;
+  assert.equal(M.shopSections(ctx).flatMap((s) => s.items).find((it) => it.id.startsWith('c-') && !C.ownsPiece('tammo', it.id.slice(2))).disabled, 'Te weinig geld');
+  const kast = M.wardrobeSections(ctx);
+  assert.ok(kast.some((s) => s.title === 'Bewaar') && kast.some((s) => s.title === 'Boven'));
+  const uit = kast.flatMap((s) => s.items).find((it) => it.id === 'c-' + koop.id.slice(2));
+  assert.equal(uit.verb, 'Uitdoen');
+  const bewaar = kast.flatMap((s) => s.items).find((it) => it.id === 'cv-0');
+  bewaar.buy();
+  assert.ok(C.presetsOf('tammo')[0]);
+});
+
+for (const [name, fn] of tests) {
+  n++;
+  try { C.resetClothing(); await fn(); } catch (e) { fails++; console.log('FAIL', name, '|', String(e.stack || e.message).split('\n').slice(0, 3).join(' / ')); }
+}
+console.log(fails ? `${fails} van ${n} mislukt` : `ok: ${n} tests`);
+process.exit(fails ? 1 : 0);

@@ -19,6 +19,7 @@ import { isOverlayHeld } from './overlayhold.js';
 import { zones, P3 } from './hudrules.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 import { getSettings } from './settings.js';
+import { SHOP_ITEMS } from './clothingdata.js';
 import { planPrestatie, queueStep, verblijfS, samenvattingTekst, balkTekst } from './achievementunlock.js'; // de prestatie als moment (wens 21-11)
 import { calmState, tikGetal } from './dsmicro.js';
 import { cleanDifficulty, DIFFICULTY_MODES } from './difficulty.js'; // #800: missierecords per stand
@@ -30,6 +31,7 @@ export const EIERBAL_TOTAL = 30;
 // De buurten van de stad (stad.json meta.neighbourhoodPoints): één bron voor de prestatie en
 // de teller in Prestaties, zodat het cijfer niet stil gaat liegen als de kaart groeit.
 export const WIJKEN_TOTAL = 66;
+const KLEDING_SOORTEN = SHOP_ITEMS.length; // de kledingsoorten in de winkel (clothingdata.js)
 
 export const CATEGORIES = [
   ['missies', 'Missies'],
@@ -231,6 +233,9 @@ export const ACHIEVEMENTS = [
   { id: 'schroefje', cat: 'sociaal', title: 'Eén schroefje te weinig', desc: 'Zet de Buukenkaas zelf in elkaar', hidden: true },
   { id: 'spaarkaart', cat: 'sociaal', title: 'Stempeltje erbij', desc: 'Lever een volle spaarkaart in bij Rook & Geluk', stat: 'stampCards', goal: 1 },
   { id: 'uitgaven', cat: 'sociaal', title: 'Geld moet rollen', desc: 'Geef in winkels in totaal €2.500 uit', stat: 'spent', goal: 2500, unit: '€' },
+  { id: 'kleding_nieuw', cat: 'sociaal', title: 'Nieuwe look', desc: 'Koop een kledingstuk en doe het meteen aan', set: 'kledingStukken', goal: 1 },
+  { id: 'kleding_set', cat: 'sociaal', title: 'Past als gegoten', desc: 'Heb alle stukken van een kledingset in je kast', set: 'kledingSets', goal: 1 },
+  { id: 'kleding_kast', cat: 'sociaal', title: 'Hele kast', desc: `Heb van alle ${KLEDING_SOORTEN} soorten kledingstukken er minstens één`, set: 'kledingItems', goal: KLEDING_SOORTEN },
 
   { id: 'eierbal_1', cat: 'verzamelen', title: 'Eerste eierbal', desc: 'Vind een verstopte eierbal', save: 'eierballen', goal: 1 },
   { id: 'eierbal_15', cat: 'verzamelen', title: 'Halve portie', desc: `Vind 15 van de ${EIERBAL_TOTAL} eierballen`, save: 'eierballen', goal: 15 },

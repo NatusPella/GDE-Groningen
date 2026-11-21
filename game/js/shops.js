@@ -23,7 +23,7 @@ import { getHorecaForRender } from './horeca.js';
 import { initShopUi, openShopMenu, isShopOpen } from './shopui.js';
 import { voegEtenToe } from './eten.js';
 import { isCinematicActive } from './cinematics.js';
-import { recordStat, isUnlocked } from './achievements.js';
+import { recordStat, recordUnique, isUnlocked } from './achievements.js';
 import { isMissionCompleted, missionIndexById } from './missionquery.js';
 import { registerShopIcon } from './shopicon.js';
 import { furnitureShopHook as furnitureShop } from './latehooks.js';
@@ -38,6 +38,12 @@ import { noteMoney } from './finance.js';
 import { euro } from './geldtekst.js';
 import { winkelMagVoorGast, MELDING_WINKEL } from './coopgast.js';
 import { hoofdspeler } from './spelersregister.js';
+import {
+  effectiveWorn, outfitToLook, getClothingSave, applyClothingSave, forceStoryLook, storyLookKey, ownsAll, ownedPieces, givePiece, setBonus,
+  completeSetIds, wornSet, wearPiece, takeOffSlot, setLocalCharProvider,
+} from './clothing.js';
+import { SETS, setKeyFor, parsePiece } from './clothingdata.js';
+import { shopSections, wardrobeSections } from './clothingpanel.js';
 import { wantedClearCooldownLeft, markWantedCleared } from './heatcooldown.js'; // #838: spuiterij-cooldown
 
 export const SHOP_USE_RADIUS = 2.6;
@@ -217,10 +223,7 @@ const RESALE = { bike: 15, scooter: 60, hatch: 150, sedan: 200, wagon: 180, van:
 
 let shops = [];
 const state = {
-  outfit: { ...DEFAULT_OUTFIT },
-  ownedOutfits: new Set(['tammo:stadjer', 'anita:classic']),
-  // what the story puts both of them in for a while (H6 to the train: black), over their own outfit
-  storyOutfit: null,
+  // outfits and the wardrobe live in clothing.js (epic Kleding); the story's temporary outfit too (setStoryOutfit)
   hair: { tammo: { color: 'naturel', style: 'short' }, anita: { color: 'naturel', style: 'long' } },
   vehicles: [], // one per stock key: { key, spec, color, upgrades, v, x, y, angle, lost }
   heroColor: null,
@@ -404,6 +407,7 @@ function wijkAt(map, x, y) {
 
 export function initShops(world) {
   worldRef = world;
+  setLocalCharProvider(() => currentChar(world)); // coopnet.js stuurt de kleding van dit personage mee bij het meedoen
   initShopUi(world);
   baseLook = { tammo: snapshot(TAMMO_APPEARANCE), anita: snapshot(ANITA_APPEARANCE) };
   const map = world.map;
@@ -775,7 +779,7 @@ function lookWith(world, over, look = null) {
 
 function shopMenu(world, s, werf = false) {
   const build = {
-    wapens: weaponSections, kleding: outfitSections, kapper: hairSections, tabak: tabakSections,
+    wapens: weaponSections, kleding: (w) => clothingShopSections(w, s), kapper: hairSections, tabak: tabakSections,
     fietsen: (w) => vehicleSections(w, 'fietsen', s), auto: (w) => vehicleSections(w, 'auto', s),
     super: (w) => [...foodSections(w, 'Uit de schappen', SUPER_ITEMS), ...dierenSections(w), ...hengelSections(w)], snack: (w) => foodSections(w, 'Uit het vet', SNACK_ITEMS),
     fietsenmaker: (w) => workshopSections(w, s, true), tuning: (w) => workshopSections(w, s, false),
@@ -1219,45 +1223,66 @@ function currentChar(world) {
   return hoofdspeler(world).character === 'anita' ? 'anita' : 'tammo';
 }
 
-function outfitSections(world) {
+// The shared bits the clothing menus (clothingpanel.js) need from this file: money, the character, the preview, the look.
+function clothingCtx(world, shopKey = null) {
   const ch = currentChar(world);
-  const name = ch === 'anita' ? 'Tessa' : 'Tammo';
-  const items = OUTFITS[ch].map((o) => {
-    const key = ch + ':' + o.id;
-    const owned = state.ownedOutfits.has(key);
-    const wearing = state.outfit[ch] === o.id;
-    return {
-      id: 'o-' + o.id,
-      label: o.label,
-      desc: o.desc,
-      price: owned ? 0 : o.price,
-      tag: wearing ? 'Aan' : owned ? 'In bezit' : '',
-      swatch: [o.shirt, o.pants, o.cap ?? o.shoes].map(hexCss),
-      preview: lookWith(world, { shirt: o.shirt, pants: o.pants, shoes: o.shoes, ...(o.cap != null ? { cap: o.cap } : {}) }),
-      effect: o.stealth ? 'Politie raakt je sneller kwijt' : '',
-      disabled: wearing ? 'Heb je al aan' : owned ? '' : broke(world, o.price),
-      buy() {
-        if (!owned && !pay(world, o.price)) return null;
-        state.ownedOutfits.add(key);
-        state.outfit[ch] = o.id;
-        state.storyOutfit = null;
-        // the kraak's black is bought for both of them, and both wear it at once
-        if (o.id === 'incognito') for (const c of ['tammo', 'anita']) state.ownedOutfits.add(c + ':incognito');
-        if (!syncHeistOutfit()) applyLooks();
-        const lost = shakeWanted(world, o.stealth || 1);
-        return (owned ? `${o.label} weer aangetrokken` : `${o.label} gekocht en meteen aan`) + (lost ? '. De politie herkent je niet meer zo goed!' : '');
-      },
-    };
-  });
-  const note = world.wanted > 0 ? 'Nieuwe kleren terwijl de politie je kwijt is: een ster minder' : 'Omkleden terwijl je gezocht wordt en niemand je ziet? Scheelt een ster';
-  return [{ title: `Outfits voor ${name}`, note, items }];
+  const app = () => (ch === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE);
+  return {
+    ch, name: ch === 'anita' ? 'Tessa' : 'Tammo', shopKey, hexCss,
+    day: world && world.calendar && Number.isFinite(world.calendar.day) ? world.calendar.day : 1, // calendarday.js: world.calendar.day
+    broke: (price) => broke(world, price),
+    pay: (price) => pay(world, price),
+    // a worn outfit on the player's own figure, for the shop preview and the fitting room (drag turns it)
+    previewOf: (worn) => ({ kind: 'person', look: { ...app(), ...outfitToLook(worn, baseLook ? baseLook[ch] : app()) } }),
+    apply: (stars) => {
+      if (!syncHeistOutfit()) applyLooks();
+      return stars ? shakeWanted(world, stars) : false;
+    },
+    // the kraak's black is bought for both of them, and both wear it at once
+    onSet: (set) => { if (set.key === 'incognito') for (const c of ['tammo', 'anita']) for (const q of setKeyFor(c, 'incognito').pieces) givePiece(c, q); },
+    onWear: (piece) => { recordUnique(world, 'kledingStukken', piece); noteClothingAchievements(world); },
+  };
 }
 
-// The wardrobe at home (home.js): the outfits you own, for free.
+// Prestaties voor kleding (achievements.js): een nieuwe look (eerste stuk), een hele kast (elk soort stuk) en een complete set.
+function noteClothingAchievements(world) {
+  for (const ch of ['tammo', 'anita']) {
+    for (const p of ownedPieces(ch)) { const x = parsePiece(p); if (x) recordUnique(world, 'kledingItems', x.item.id); }
+    for (const id of completeSetIds(ch)) recordUnique(world, 'kledingSets', id);
+  }
+}
+
+// For Spullen (spullen.js): the figure of one character in a worn map, and wearing or taking off straight from the list.
+export function clothingLook(ch, worn) {
+  const app = ch === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
+  return { ...app, ...outfitToLook(worn, baseLook ? baseLook[ch] : app) };
+}
+export function wearClothing(world, ch, piece) {
+  const r = wearPiece(ch, piece);
+  if (!r.ok) return r.reason;
+  if (!syncHeistOutfit()) applyLooks();
+  shakeWanted(world, 1);
+  return `${(parsePiece(piece) || { item: { label: 'Kleding' } }).item.label} aan`;
+}
+export function takeOffClothing(ch, slot) {
+  const r = takeOffSlot(ch, slot);
+  if (!r.ok) return r.reason;
+  if (!syncHeistOutfit()) applyLooks();
+  return 'Uitgedaan';
+}
+
+// A clothing shop: its own daily stock (clothing.js shopStock), sets, fitting in the preview.
+function clothingShopSections(world, s) {
+  const key = s ? `${s.name}|${Math.round(s.x)},${Math.round(s.y)}` : 'kleding';
+  return shopSections(clothingCtx(world, key));
+}
+
+// The wardrobe at home (home.js, safehuizen.js): the pieces you own, per person, aan of uit. Not tied to one flat: the wardrobe goes
+// with the person, so every home the story gives you opens the same one.
 export function wardrobeMenu(world) {
   const ch = currentChar(world);
-  const items = () => outfitSections(world)[0].items.filter((it) => state.ownedOutfits.has(ch + ':' + it.id.slice(2)));
-  return { name: 'Kledingkast', type: 'kleding', tagline: 'Alles wat je ooit gekocht hebt, netjes op een hangertje', color: '#2f6fb0', sections: () => [{ title: `Kast van ${ch === 'anita' ? 'Tessa' : 'Tammo'}`, note: 'Meer kleren? Die liggen bij de kledingwinkel', items: items() }] };
+  const name = ch === 'anita' ? 'Tessa' : 'Tammo';
+  return { name: 'Kledingkast', type: 'kleding', tagline: `Kast van ${name}: alles wat je ooit gekocht hebt, netjes op een hangertje`, color: '#2f6fb0', sections: () => wardrobeSections(clothingCtx(world)) };
 }
 
 function shakeWanted(world, stars) {
@@ -1554,11 +1579,10 @@ function applyLooks() {
   if (!baseLook) return;
   for (const ch of ['tammo', 'anita']) {
     const app = ch === 'tammo' ? TAMMO_APPEARANCE : ANITA_APPEARANCE;
-    const o = OUTFITS[ch].find((x) => x.id === (state.storyOutfit || state.outfit[ch])) || OUTFITS[ch][0];
     const h = state.hair[ch];
     const hc = HAIR_COLORS.find((c) => c.id === h.color);
-    Object.assign(app, baseLook[ch], { shirt: o.shirt, pants: o.pants, shoes: o.shoes });
-    if (o.cap != null) app.cap = o.cap;
+    // the worn pieces (or the story's outfit) over the character's own colours; look carries what the model needs (top, shoes, hat ...)
+    Object.assign(app, baseLook[ch], outfitToLook(effectiveWorn(ch), baseLook[ch]));
     if (hc && hc.hair != null) app.hair = hc.hair;
     if (HAIR_STYLES[ch].some(([id]) => id === h.style)) app.hairStyle = h.style;
   }
@@ -1736,7 +1760,7 @@ const shopVisits = {};
 // What the player has from the shops, for Spullen (spullen.js). Read only.
 export function inventoryShopState() {
   return {
-    outfit: { ...state.outfit }, ownedOutfits: [...state.ownedOutfits], storyOutfit: state.storyOutfit,
+    outfit: wornSetKeys(), ownedOutfits: ownedSetIds(), storyOutfit: storyLookKey(),
     heroUpgrades: [...state.heroUpgrades], stamps: state.stamps, stampCard: STAMP_CARD,
     vehicles: state.vehicles.filter((o) => !o.lost).map((o) => ({ key: o.key, label: o.spec.label, kind: o.spec.kind, upgrades: [...(o.v ? o.v.upgrades || [] : o.upgrades || [])] })),
   };
@@ -1748,7 +1772,7 @@ export function getShopVisits(type) {
 
 export function storyShopState() {
   return {
-    incognito: [...state.ownedOutfits].some((k) => k.endsWith(':incognito')),
+    incognito: SETS.some((x) => x.key === 'incognito' && ownsAll(x.char, x.pieces)),
     rental: !!(state.rental && !state.rental.wrecked && !state.rental.sinking),
   };
 }
@@ -1756,9 +1780,7 @@ export function storyShopState() {
 // Both of them in one outfit for a stretch of the story (id), or back in
 // their own (null). Not bought, not in the wardrobe; saved with the shops.
 export function setStoryOutfit(id) {
-  const next = id && OUTFITS.tammo.some((o) => o.id === id) && OUTFITS.anita.some((o) => o.id === id) ? id : null;
-  if (next === state.storyOutfit) return false;
-  state.storyOutfit = next;
+  if (!forceStoryLook(id == null ? null : id)) return false;
   applyLooks();
   return true;
 }
@@ -1767,14 +1789,24 @@ export function setStoryOutfit(id) {
 // both of them wear it, not just whoever was in the shop. True when it changed.
 const HEIST_STEPS = new Set(['k-kraakspullen', 'k-nacht', 'H6', 'M06']);
 export function syncHeistOutfit() {
-  if (state.storyOutfit || !storyShopState().incognito) return false;
+  if (storyLookKey() || !storyShopState().incognito) return false;
   let step = null;
   try { step = currentStep(); } catch (e) { return false; }
   return !!step && HEIST_STEPS.has(step.id) && setStoryOutfit('incognito');
 }
 
 export function storyOutfit() {
-  return state.storyOutfit;
+  return storyLookKey();
+}
+
+// Derived for the old save fields and for Spullen: the key of the set a character wears (or the first set), and the sets that are complete.
+function wornSetKeys() {
+  const out = {};
+  for (const ch of ['tammo', 'anita']) { const s = wornSet(ch); out[ch] = s ? s.key : DEFAULT_OUTFIT[ch]; }
+  return out;
+}
+function ownedSetIds() {
+  return SETS.filter((x) => ownsAll(x.char, x.pieces)).map((x) => x.id);
 }
 
 function nearestOfType(world, type) {
@@ -1812,8 +1844,7 @@ export function grantStoryItem(world, what) {
     return true;
   }
   if (what === 'incognito') {
-    state.ownedOutfits.add('tammo:incognito');
-    state.ownedOutfits.add('anita:incognito');
+    for (const c of ['tammo', 'anita']) for (const q of setKeyFor(c, 'incognito').pieces) givePiece(c, q);
     syncHeistOutfit();
     return true;
   }
@@ -1950,9 +1981,11 @@ export function getShopSave() {
   const hero = worldRef && (worldRef.vehicles.find((x) => x.isHeroCar && !x.wrecked) || worldRef.vehicles.find((x) => x.isHeroCar));
   return {
     hero: hero ? damageSave(hero) : {},
-    outfit: { ...state.outfit },
-    ownedOutfits: [...state.ownedOutfits],
-    storyOutfit: state.storyOutfit,
+    // the old fields stay (derived) so an older build still finds its outfit; clothing.js's block is the real one
+    outfit: wornSetKeys(),
+    ownedOutfits: ownedSetIds(),
+    storyOutfit: storyLookKey(),
+    kleding: getClothingSave(),
     hair: { tammo: { ...state.hair.tammo }, anita: { ...state.hair.anita } },
     heroColor: state.heroColor,
     heroUpgrades: [...state.heroUpgrades],
@@ -1970,16 +2003,15 @@ export function getShopSave() {
 const isColor = (c) => typeof c === 'string' && /^#[0-9a-f]{6}$/i.test(c);
 
 export function applyShopSave(world, d) {
-  if (!d || typeof d !== 'object') return;
+  if (!d || typeof d !== 'object') { applyClothingSave(null); return; }
+  // the new block (clothing.js) or, in an older save, the old sets (outfit and ownedOutfits) turned into pieces
+  applyClothingSave(d.kleding, d);
+  if (typeof d.storyOutfit === 'string') forceStoryLook(d.storyOutfit);
   for (const ch of ['tammo', 'anita']) {
-    if (d.outfit && OUTFITS[ch].some((o) => o.id === d.outfit[ch])) state.outfit[ch] = d.outfit[ch];
     const h = d.hair && d.hair[ch];
     if (h && HAIR_COLORS.some((c) => c.id === h.color)) state.hair[ch].color = h.color;
     if (h && HAIR_STYLES[ch].some(([id]) => id === h.style)) state.hair[ch].style = h.style;
   }
-  state.ownedOutfits = new Set(['tammo:stadjer', 'anita:classic']);
-  if (Array.isArray(d.ownedOutfits)) for (const k of d.ownedOutfits) if (typeof k === 'string') state.ownedOutfits.add(k);
-  state.storyOutfit = OUTFITS.tammo.some((o) => o.id === d.storyOutfit) && OUTFITS.anita.some((o) => o.id === d.storyOutfit) ? d.storyOutfit : null;
   state.heroColor = isColor(d.heroColor) ? d.heroColor : null;
   state.heroUpgrades = Array.isArray(d.heroUpgrades) ? d.heroUpgrades.filter((id) => CAR_UPGRADES.some((u) => u.id === id)) : [];
   state.stamps = Number.isFinite(d.stamps) ? Math.max(0, Math.min(STAMP_CARD, Math.floor(d.stamps))) : 0;

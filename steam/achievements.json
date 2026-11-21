@@ -1314,6 +1314,30 @@
       "steamApiNaam": ""
     },
     {
+      "id": "kleding_nieuw",
+      "titel": "Nieuwe look",
+      "omschrijving": "Koop een kledingstuk en doe het meteen aan",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_KLEDING_NIEUW",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "kleding_set",
+      "titel": "Past als gegoten",
+      "omschrijving": "Heb alle stukken van een kledingset in je kast",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_KLEDING_SET",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "kleding_kast",
+      "titel": "Hele kast",
+      "omschrijving": "Heb van alle 63 soorten kledingstukken er minstens één",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_KLEDING_KAST",
+      "steamApiNaam": ""
+    },
+    {
       "id": "eierbal_1",
       "titel": "Eerste eierbal",
       "omschrijving": "Vind een verstopte eierbal",

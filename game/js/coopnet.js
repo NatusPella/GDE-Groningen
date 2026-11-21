@@ -68,6 +68,7 @@ import { lichaamVan, startPlek, isKoploos } from './net/koploos.js'; // een gast
 import { heistRolGebruik, heistGastTik } from './heistrollen.js'; // de rolstap van de inbraak in Samen spelen (#438)
 import { activeStage, getMissionDefs } from './missionquery.js'; // de lopende stap van de opdracht (#438)
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
+import { localOutfitCode } from './clothing.js';
 
 // (#684) De positieve "samen kan"-kaart naast de eerste "Meedoen?" is HUD-werk (samenplan.js →
 // hudcards.js) en dat laadt niet in elke Node-test. main.js zet de haak, net als bij de bestuurhaken;
@@ -94,7 +95,9 @@ export const VERBODEN_MAX = 64;   // verbannen tokens die de gastheer onthoudt (
 export function handshakeInfo({ tiles, story }) {
   const info = { game: 'gde', proto: PROTO, version: String(VERSION), tiles: String(tiles), story: String(story) };
   const p = onlineProfiel();
-  if (p.naam) info.avatar = { naam: p.naam, kleur: p.kleur };
+  // de kleding van dit apparaat (clothing.js): een korte code, optioneel; een oudere client negeert het veld
+  const outfit = localOutfitCode();
+  if (p.naam || outfit) info.avatar = { ...(p.naam ? { naam: p.naam, kleur: p.kleur } : {}), outfit };
   return info;
 }
 function onlineProfiel() {
