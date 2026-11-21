@@ -10,7 +10,7 @@
   gap: 10px;
   width: min(calc(30vw / var(--ui, 1)), 350px);
   pointer-events: none;
-  transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition: transform var(--ds-m-max) cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 /* one prominent thing at a time: the now-playing card steps aside for a card */
 body.hud-card-on #hud .hud-nowplaying { opacity: 0; transform: translateX(-24px); }
@@ -34,7 +34,7 @@ body.hud-call-on #hud .hud-nowplaying, body.hud-call-on #hud .hud-vehname, body.
 }
 #hud .hud-card.on { opacity: 1; transform: none; }
 #hud .hud-card.out { opacity: 0; }
-#hud .hud-card.bump .hc-icon svg { animation: hc-bump 0.45s ease-out; }
+#hud .hud-card.bump .hc-icon svg { animation: hc-bump var(--ds-m-max) ease-out; }
 /* De kleur van een kaart komt uit de statuskleuren van de a11y-paletten (#479): zo doen de
    kleurenblindmodi mee en is er geen tweede rood of blauw naast de tokens. */
 #hud .hud-card[data-kind="missie"] { --hc: var(--mk-mission, #e8c93a); }
@@ -53,8 +53,8 @@ body.hud-call-on #hud .hud-nowplaying, body.hud-call-on #hud .hud-vehname, body.
   filter: drop-shadow(0 0 8px color-mix(in srgb, var(--hc) 45%, transparent));
 }
 #hud .hc-icon .hc-cut { fill: var(--ds-c-glas); }
-#hud .hud-card.on .hc-icon svg { animation: hc-in 0.6s cubic-bezier(0.2, 0.7, 0.2, 1); }
-#hud .hud-card[data-kind="gevaar"].on .hc-icon svg, #hud .hud-card[data-kind="politie"].on .hc-icon svg { animation: hc-in 0.6s cubic-bezier(0.2, 0.7, 0.2, 1), hc-pulse 1s ease-in-out 0.6s 3; }
+#hud .hud-card.on .hc-icon svg { animation: hc-in var(--ds-m-max) cubic-bezier(0.2, 0.7, 0.2, 1); }
+#hud .hud-card[data-kind="gevaar"].on .hc-icon svg, #hud .hud-card[data-kind="politie"].on .hc-icon svg { animation: hc-in var(--ds-m-max) cubic-bezier(0.2, 0.7, 0.2, 1), hc-pulse var(--ds-m-max) ease-in-out var(--ds-m-max) 3; }
 @keyframes hc-in { from { transform: scale(0.4) rotate(-20deg); opacity: 0; } }
 @keyframes hc-bump { 40% { transform: scale(1.25); } }
 @keyframes hc-pulse { 50% { transform: scale(1.12); } }
@@ -106,7 +106,7 @@ body.hud-call-on #hud .hud-nowplaying, body.hud-call-on #hud .hud-vehname, body.
   opacity: 0;
   pointer-events: none;
 }
-#hud .hud-count.on { animation: hc-count 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; }
+#hud .hud-count.on { animation: hc-count 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; } /* ds3-dwell: verblijf */
 #hud .hud-count[data-go="1"] { color: var(--ds-c-licht-groen); font-size: calc(var(--ds-t-moment-getal) * 0.8); }
 @keyframes hc-count { 0% { opacity: 0; transform: translate(-50%, -50%) scale(1.8); } 25% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); } }
 
@@ -159,7 +159,7 @@ body.pigeon-mode #hud .hud-cards { top: 300px; }
 #hud .hc-text small { color: var(--ds-c-inkt-zacht); font-weight: 800; letter-spacing: 0.12em; }
 #hud .hc-text small::before { content: ''; display: inline-block; width: 0.7em; height: 0.7em; margin-right: 0.5em; background: var(--hc); border: 1.5px solid var(--ds-c-ink-inkt); vertical-align: -0.02em; }
 #hud .hc-text b { font-weight: 800; letter-spacing: 0.02em; text-transform: none; }
-#hud .hud-card.on .hc-text b { text-shadow: var(--ds-misdruk); animation: hud-misdruk-weg 0.01s 1.4s forwards; }
+#hud .hud-card.on .hc-text b { text-shadow: var(--ds-misdruk); animation: hud-misdruk-weg 0.01s 1.4s forwards; } /* ds3-dwell: verblijf */
 #hud .hc-text span { font-family: var(--ds-font-zeef-tekst); font-weight: 400; letter-spacing: 0; color: var(--ds-c-ink-inkt); }
 #hud .hc-timer { height: 4px; background: var(--ds-c-ink-inkt); opacity: 0.85; }
 #hud .hud-card .hc-close { font-family: var(--ds-font-zeef-tekst); }

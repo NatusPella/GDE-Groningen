@@ -264,6 +264,11 @@ html.reduce-motion { --ds-m-snel: 0ms; --ds-m: 0ms; --ds-m-max: 0ms; }
   --ds-raster-maat: 6px 6px;
   --ds-raster-dekking: 0.55;
   --ds-lijn-zeef: 2.5px;
+  /* Scrollbalk op papier (F3): één inktduim op een lichte baan; nooit crème of alfa. Duim tegen papier minstens 3:1 (ds3_dekking_test) */
+  --ds-scroll-duim: var(--ds-c-ink-inkt);
+  --ds-scroll-spoor: var(--ds-c-sel-vlak);
+  --ds-scroll-breed: 12px;
+  --ds-scroll-rond: 6px;
   /* Rollen zeefdruk */
   --ds-zeef-bg: var(--ds-c-ink-papier);
   --ds-zeef-tx: var(--ds-c-ink-inkt);

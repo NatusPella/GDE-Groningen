@@ -3,14 +3,14 @@
    Over the flying city camera. menu.css base. */
 #start-screen { position: fixed; inset: 0; z-index: 20; display: none; font-family: var(--ds-font-tekst);
   background: linear-gradient(90deg, color-mix(in srgb, var(--ds-c-glas) 92%, transparent) 0%, color-mix(in srgb, var(--ds-c-glas) 70%, transparent) 34%, color-mix(in srgb, var(--ds-c-glas) 10%, transparent) 64%, color-mix(in srgb, var(--ds-c-glas) 40%, transparent) 100%), radial-gradient(ellipse at 60% 40%, color-mix(in srgb, var(--ds-c-glas) 0%, transparent) 50%, color-mix(in srgb, var(--ds-c-glas) 60%, transparent) 100%);
-  animation: ss-in 0.8s ease both; }
+  animation: ss-in 0.8s ease both; } /* ds3-film: scene */
 @keyframes ss-in { from { opacity: 0; } to { opacity: 1; } }
 #start-screen.visible { display: block; }
-#start-screen.ss-slide .ss-menu { animation: ss-slide 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-#start-screen.ss-slide .ss-save, #start-screen.ss-slide .ss-foot, #start-screen.ss-slide .ss-credit { animation: ss-in 0.8s 0.2s ease both; }
+#start-screen.ss-slide .ss-menu { animation: ss-slide 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both; } /* ds3-film: scene */
+#start-screen.ss-slide .ss-save, #start-screen.ss-slide .ss-foot, #start-screen.ss-slide .ss-credit { animation: ss-in 0.8s 0.2s ease both; } /* ds3-film: scene */
 @keyframes ss-slide { from { opacity: 0; transform: translateX(-48px); } to { opacity: 1; transform: none; } }
 #start-screen.ss-handoff { animation: none; }
-#start-screen.ss-handoff .ss-menu, #start-screen.ss-handoff .ss-save, #start-screen.ss-handoff .ss-foot, #start-screen.ss-handoff .ss-credit { animation: ss-in 0.6s ease 1.8s both; }
+#start-screen.ss-handoff .ss-menu, #start-screen.ss-handoff .ss-save, #start-screen.ss-handoff .ss-foot, #start-screen.ss-handoff .ss-credit { animation: ss-in 0.6s ease 1.8s both; } /* ds3-film: scene */
 #start-screen .ss-logo { position: absolute; left: 160px; top: 112px; display: flex; flex-direction: column; align-items: flex-start; gap: 16px; }
 #start-screen .gde-logo { font-size: 192px; margin: 0; }
 #start-screen .ss-tag { margin: 0; font-size: 22px; font-style: italic; color: color-mix(in srgb, var(--ds-c-creme) 78%, transparent); text-shadow: 0 1px 8px color-mix(in srgb, var(--ds-c-ink-inkt) 80%, transparent); }
@@ -38,16 +38,17 @@
 #start-screen .ss-foot { position: absolute; right: 80px; bottom: 40px; height: 32px; display: flex; align-items: center; gap: 32px; margin: 0; }
 #start-screen .ss-credit { position: absolute; left: 160px; bottom: 40px; height: 32px; display: flex; align-items: center; gap: 8px; margin: 0; font-size: 18px; color: var(--mut); }
 #start-screen .ss-credit .ss-ver { color: var(--mut); }
-#start-screen .ss-credit .heart { display: inline-block; animation: ss-beat 1.6s ease-in-out infinite; }
+#start-screen .ss-credit .heart { display: inline-block; animation: ss-beat var(--ds-m-max) ease-in-out 3; }
+#start-screen .ss-credit .heart .ic { width: 1.1em; height: 1.1em; vertical-align: -0.2em; color: var(--ds-c-rood); }
 @keyframes ss-beat { 0%, 60%, 100% { transform: scale(1); } 30% { transform: scale(1.18); } }
 #start-screen .ss-news { position: absolute; top: var(--mt); bottom: var(--mb); right: 80px; width: 760px; display: flex; flex-direction: column; border-radius: 16px; overflow: hidden;
-  background: linear-gradient(180deg, rgba(20, 40, 27, 0.9), color-mix(in srgb, var(--ds-c-glas) 94%, transparent)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 7%, transparent), 0 32px 64px color-mix(in srgb, var(--ds-c-ink-inkt) 30%, transparent); animation: m-panel-in 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+  background: linear-gradient(180deg, rgba(20, 40, 27, 0.9), color-mix(in srgb, var(--ds-c-glas) 94%, transparent)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 7%, transparent), 0 32px 64px color-mix(in srgb, var(--ds-c-ink-inkt) 30%, transparent); animation: m-panel-in 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); } /* ds3-film: scene */
 #start-screen .ss-news[hidden] { display: none; }
 #start-screen .ss-news-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: 48px 56px 0; }
 #start-screen .ss-news-head h2 { font-family: var(--ds-font-kop); font-size: 64px; line-height: 0.92; letter-spacing: 0.02em; font-weight: normal; }
 #start-screen .ss-news-close { height: 40px; padding: 0 8px; font-family: var(--ds-font-kop); font-size: 22px; letter-spacing: 0.06em; color: color-mix(in srgb, var(--ds-c-creme) 72%, transparent); background: none; border: 0; cursor: pointer; }
 #start-screen .ss-news-close:hover { color: var(--ink); }
-#start-screen .ss-news-body { flex: 1; min-height: 0; overflow-y: auto; padding: 24px 56px 48px; font-size: 20px; line-height: 1.5; color: color-mix(in srgb, var(--ds-c-creme) 90%, transparent); scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--ds-c-creme) 20%, transparent) transparent; }
+#start-screen .ss-news-body { flex: 1; min-height: 0; overflow-y: auto; padding: 24px 56px 48px; font-size: 20px; line-height: 1.5; color: color-mix(in srgb, var(--ds-c-creme) 90%, transparent); scrollbar-width: thin; scrollbar-color: var(--ds-scroll-duim) var(--ds-scroll-spoor); }
 #start-screen .ss-news-body:focus-visible { outline-offset: -4px; }
 #start-screen .ss-news-body h3 { margin: 32px 0 4px; font-family: var(--ds-font-kop); font-weight: normal; font-size: 36px; letter-spacing: 0.04em; color: var(--ink); }
 #start-screen .ss-news-body h3:first-child { margin-top: 0; }
@@ -168,7 +169,7 @@ html.reduce-motion #start-screen, html.reduce-motion #start-screen * { animation
 #start-screen .ss-news { background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); }
 #start-screen .ss-news-head h2 { font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-inkt); text-shadow: var(--ds-misdruk); }
 #start-screen .ss-news-close { font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-inkt); }
-#start-screen .ss-news-body { color: var(--ds-c-ink-inkt); scrollbar-color: var(--ds-c-ink-inkt) var(--ds-c-ink-papier); }
+#start-screen .ss-news-body { color: var(--ds-c-ink-inkt); scrollbar-color: var(--ds-scroll-duim) var(--ds-scroll-spoor); }
 #start-screen .ss-news-body :is(h3, h4) { font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-inkt); }
 #start-screen .ss-news-body h4 { color: var(--ds-c-ink-bord); }
 #start-screen .ss-news-body a { color: var(--ds-c-ink-bord); text-decoration: underline; }

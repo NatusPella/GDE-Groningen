@@ -302,12 +302,12 @@ body.heli-run #hud .hud-speedo, body.heli-run #hud .hud-route, body.heli-run #hu
 #heli-hud .hh-msg.on { opacity: 1; }
 #heli-hud .hh-say { position: absolute; left: 50%; bottom: 27%; transform: translateX(-50%); width: max-content; max-width: min(640px, 90vw); padding: 6px 14px; background: rgba(12,12,12,0.66); border-radius: 6px; font: 18px/1.3 var(--ds-font-tekst); text-align: center; opacity: 0; transition: opacity .2s; }
 #heli-hud .hh-say.on { opacity: 1; }
-#heli-hud .hh-help { position: absolute; left: 50%; bottom: 7%; transform: translateX(-50%); max-width: 92vw; font: 15px var(--ds-font-tekst); letter-spacing: .5px; padding: 6px 14px; background: rgba(20,16,6,0.6); border-radius: 6px; transition: opacity .6s; text-align: center; }
+#heli-hud .hh-help { position: absolute; left: 50%; bottom: 7%; transform: translateX(-50%); max-width: 92vw; font: 15px var(--ds-font-tekst); letter-spacing: .5px; padding: 6px 14px; background: rgba(20,16,6,0.6); border-radius: 6px; transition: opacity var(--ds-m-max); text-align: center; }
 #heli-hud .hh-help kbd, #heli-hud .hh-help .hud-key { display: inline-block; min-width: 12px; margin: 0 2px; padding: 1px 6px; border: 1px solid color-mix(in srgb, var(--ds-c-creme) 60%, transparent); border-bottom-width: 3px; border-radius: 5px; background: color-mix(in srgb, var(--ds-c-wit) 8%, transparent); color: #f3efe4; font: bold 12px/1.2 var(--ds-font-tekst); text-align: center; }
-#heli-hud .hh-fade { position: absolute; inset: 0; background: var(--ds-c-ink-inkt); opacity: 0; transition: opacity .6s; }
+#heli-hud .hh-fade { position: absolute; inset: 0; background: var(--ds-c-ink-inkt); opacity: 0; transition: opacity .6s; } /* ds3-film: scene */
 #heli-hud .hh-fade.on { opacity: 1; }
 #heli-hud .hh-fade span { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 30px; letter-spacing: 3px; color: var(--mk-mission, #e8c93a); white-space: nowrap; }
-#heli-hud .hh-card { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(.96); min-width: min(340px, 90vw); padding: 18px 26px; text-align: center; background: rgba(20,16,6,0.86); border-top: 4px solid var(--mk-mission, #e8c93a); border-radius: 8px; opacity: 0; transition: opacity .35s, transform .35s; }
+#heli-hud .hh-card { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(.96); min-width: min(340px, 90vw); padding: 18px 26px; text-align: center; background: rgba(20,16,6,0.86); border-top: 4px solid var(--mk-mission, #e8c93a); border-radius: 8px; opacity: 0; transition: opacity var(--ds-m-max), transform var(--ds-m-max); }
 #heli-hud .hh-card.on { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 #heli-hud .hh-card h2 { margin: 0; font-size: 42px; font-weight: normal; letter-spacing: 3px; color: var(--mk-mission, #e8c93a); }
 #heli-hud .hh-card p { margin: 4px 0 0; font: 16px var(--ds-font-tekst); color: color-mix(in srgb, var(--ds-c-creme) 85%, transparent); }

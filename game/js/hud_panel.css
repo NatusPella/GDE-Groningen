@@ -27,7 +27,7 @@
 body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 
 /* what the rules (hudrules.js) leave out: faded, not removed, so layout holds */
-#hud .hv-off, #hud.hv-e-off .hud-nowplaying, #hud.hv-e-off .hud-cards-e, #hud.hv-keys-off .hud-ctx, #hud.hv-keys-off .hud-obj-keys, body.hide-hints #hud .hud-obj-keys { opacity: 0 !important; visibility: hidden; transition: opacity 0.5s ease, visibility 0s 0.5s !important; }
+#hud .hv-off, #hud.hv-e-off .hud-nowplaying, #hud.hv-e-off .hud-cards-e, #hud.hv-keys-off .hud-ctx, #hud.hv-keys-off .hud-obj-keys, body.hide-hints #hud .hud-obj-keys { opacity: 0 !important; visibility: hidden; transition: opacity var(--ds-m-max) ease, visibility 0s var(--ds-m-max) !important; }
 #hud .hv-in { animation: hud-rise var(--dur-slow, 320ms) var(--ease-out, ease-out); }
 #hud.hud-dimmed > :not(.hud-damage) { opacity: 0.12; }
 
@@ -62,7 +62,7 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 #hud .hud-wanted svg { width: 28px; height: 28px; fill: none; stroke: color-mix(in srgb, var(--ds-c-wit) 30%, transparent); stroke-width: 1.6; stroke-linejoin: round; }
 #hud .hud-wanted svg.on { fill: var(--ds-c-ink-geel); stroke: #7a6610; stroke-width: 1; }
 #hud .hud-wanted.searching svg.on { stroke-dasharray: 3 2;
-   animation: hud-star-blink 0.9s steps(2, jump-none) infinite; }
+   animation: hud-star-blink var(--ds-m-max) steps(2, jump-none) 2; }
 @keyframes hud-star-blink { 0% { opacity: 1; } 100% { opacity: 0.25; } }
 #hud .hud-search {
   display: flex; flex-direction: column; align-items: flex-end; gap: 5px; padding: 8px 12px 9px; border-radius: 8px;
@@ -127,7 +127,7 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 #hud .gps-timer span { font-size: var(--hud-min); color: color-mix(in srgb, var(--ds-c-creme) 60%, transparent); }
 #hud .gps-timer b { font-weight: normal; font-size: 30px; line-height: 1; color: var(--hud-redtx, #ff9a9a); font-variant-numeric: tabular-nums; }
 #hud .hud-gps.has-timer .gps-timer, #hud .hud-gps.has-timer .gps-tsep { display: flex; }
-#hud .hud-gps.time-low .gps-timer b { animation: hud-timelow 0.5s ease-in-out infinite alternate; }
+#hud .hud-gps.time-low .gps-timer b { animation: hud-timelow var(--ds-m-max) ease-in-out 2 alternate; }
 @keyframes hud-timelow { from { opacity: 1; } to { opacity: 0.35; } }
 @media (prefers-reduced-motion: reduce) { #hud .hud-gps.time-low .gps-timer b { animation: none; } }
 #hud .hud-gps:not(.has-timer) .gps-tsep { display: none; }
@@ -147,7 +147,7 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
   position: absolute; top: max(calc(var(--hud-top) + 10px), calc(var(--hud-a-bottom, 0px) + 12px), calc(var(--hud-b-bottom, 0px) + 12px)); left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 4px;
   color: var(--ds-c-creme); text-shadow: 0 3px 18px color-mix(in srgb, var(--ds-c-ink-inkt) 70%, transparent); opacity: 0; pointer-events: none;
 }
-#hud .hud-place.on { animation: hud-place 4.6s ease-in-out forwards; }
+#hud .hud-place.on { animation: hud-place 4.6s ease-in-out forwards; } /* ds3-dwell: verblijf */
 @keyframes hud-place { 0% { opacity: 0; transform: translateY(8px); } 12%, 82% { opacity: 1; transform: none; } 100% { opacity: 0; } }
 #hud .pl-kick { display: flex; gap: 18px; align-items: center; font-size: 20px; letter-spacing: 0.3em; color: var(--ds-c-licht-groen); }
 #hud .pl-kick i { width: 70px; height: 2px; background: linear-gradient(90deg, color-mix(in srgb, var(--ds-c-licht-groen) 0%, transparent), var(--ds-c-licht-groen)); }
@@ -175,7 +175,7 @@ body #hud.hud-ach-yield .ach-toast {
   display: flex; align-items: center; gap: 12px; padding: 8px 24px; border-radius: 8px;
   color: var(--ds-c-creme); text-shadow: var(--hud-shadow);
   background: linear-gradient(90deg, color-mix(in srgb, var(--ds-c-glas) 0%, transparent), color-mix(in srgb, var(--ds-c-glas) 78%, transparent) 18%, color-mix(in srgb, var(--ds-c-glas) 78%, transparent) 82%, color-mix(in srgb, var(--ds-c-glas) 0%, transparent));
-  pointer-events: none; transition: opacity 0.4s ease;
+  pointer-events: none; transition: opacity var(--ds-m-max) ease;
 }
 #hud .hud-mission[hidden] { display: none; }
 /* onder een ondertitel blijft het doel leesbaar: 0.35 maakte het onleesbaar
@@ -203,8 +203,8 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 #hud .hud-mission.obj-quiet .hud-mission-progress { display: none; }
 #hud .hud-obj-dist { font-size: 18px; color: color-mix(in srgb, var(--ds-c-creme) 60%, transparent); white-space: nowrap; }
 #hud .hud-obj-dist:empty { display: none; }
-#hud .hud-mission.pop .hud-obj-text { animation: obj-pop 0.55s cubic-bezier(0.2, 0.7, 0.2, 1); }
-#hud .hud-mission.pop .hud-obj-icon { animation: obj-spin 0.55s ease-out; }
+#hud .hud-mission.pop .hud-obj-text { animation: obj-pop var(--ds-m-max) cubic-bezier(0.2, 0.7, 0.2, 1); }
+#hud .hud-mission.pop .hud-obj-icon { animation: obj-spin var(--ds-m-max) ease-out; }
 @keyframes obj-pop { from { opacity: 0; transform: translateY(-8px) scale(1.06); } }
 @keyframes obj-spin { from { transform: rotate(-90deg) scale(1.6); } }
 @media (prefers-reduced-motion: reduce) { #hud .hud-mission.pop .hud-obj-text, #hud .hud-mission.pop .hud-obj-icon, #hud .hud-place.on { animation: none; opacity: 1; } }
@@ -217,7 +217,7 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
   position: absolute; left: var(--hud-edge); bottom: var(--mm-bottom); width: var(--mm-size); height: var(--mm-size);
   border-radius: 18px; overflow: hidden; background: var(--ds-c-glas-2);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--ds-c-licht-groen) 55%, transparent), 0 14px 32px color-mix(in srgb, var(--ds-c-ink-inkt) 45%, transparent);
-  transition: box-shadow 0.4s ease; pointer-events: auto; cursor: pointer;
+  transition: box-shadow var(--ds-m-max) ease; pointer-events: auto; cursor: pointer;
 }
 #hud .hud-minimap-wrap.wanted { box-shadow: 0 0 0 2px var(--ds-c-rood-glas), 0 0 18px color-mix(in srgb, var(--ds-c-rood-glas) 45%, transparent), 0 14px 32px color-mix(in srgb, var(--ds-c-ink-inkt) 50%, transparent); }
 #hud .hud-minimap-wrap canvas { display: block; width: 100%; height: 100%; }
@@ -275,14 +275,14 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 #hud .hud-bar-fill.health { background: var(--ds-c-licht-groen); }
 #hud .hud-bar-fill.armor { background: #c8d0c9; }
 #hud .hud-meter.low .hud-bar-fill.health { background: repeating-linear-gradient(135deg, var(--ds-c-rood-glas) 0 5px, #8f2626 5px 8px); }
-#hud .hud-meter.crit .hud-bar { animation-duration: 1.6s; }
+#hud .hud-meter.crit .hud-bar { animation-duration: var(--ds-m-max); }
 #hud .hud-meter.st .hud-bar { height: 3px; }
 #hud .hud-bar-fill.stamina { background: var(--ds-c-creme); opacity: 0.7; width: 100%; }
 #hud .hud-meter.veh .veh-name { font-size: 14px; width: 54px; color: color-mix(in srgb, var(--ds-c-creme) 70%, transparent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #hud .hud-meter.veh.no-label .veh-name { visibility: hidden; }
 #hud .hud-bar-fill.vehicle { background: linear-gradient(90deg, var(--ds-c-rood-glas), #f07a5a); }
 #hud .hud-meter.veh:not(.hurt) .hud-bar-fill.vehicle { background: var(--ds-c-licht-groen); }
-#hud .hud-meter.low .hud-bar { animation: hud-low 0.9s ease-in-out infinite alternate; }
+#hud .hud-meter.low .hud-bar { animation: hud-low var(--ds-m-max) ease-in-out 2 alternate; }
 @keyframes hud-low { from { opacity: 1; } to { opacity: 0.55; } }
 @media (prefers-reduced-motion: reduce) { #hud .hud-meter.low .hud-bar { animation: none; } }
 
@@ -309,7 +309,7 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 #hud .sp-gears .on { color: var(--ds-c-licht-groen); }
 #hud .sp-gears .warn { color: var(--mk-danger, #ff6f61); font-size: 15px; letter-spacing: 0.04em; }
 #hud .hud-speedo.shiftlight .rpm-fill { stroke: var(--mk-mission, #ffd23f); }
-#hud .hud-speedo.limiter .rpm-fill { stroke: var(--mk-danger, #ff6f61); animation: rpm-limit 0.12s steps(2) infinite; }
+#hud .hud-speedo.limiter .rpm-fill { stroke: var(--mk-danger, #ff6f61); animation: rpm-limit 0.12s steps(2) 2; }
 @keyframes rpm-limit { 50% { opacity: 0.35; } }
 @media (prefers-reduced-motion: reduce) { #hud .hud-speedo.limiter .rpm-fill { animation: none; } }
 #hud .sp-val { font-weight: normal; font-size: 100px; line-height: 0.85; font-variant-numeric: tabular-nums; min-width: 2ch; text-align: right; }
@@ -325,7 +325,7 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 @media (prefers-reduced-motion: reduce) { #hud .hud-speedo.visible { animation: none; } }
 
 /* --- the left column: zone A (messages) and E (radio, achievements) ----- */
-:where(#hud > :not(.hud-damage)) { transition: opacity 0.35s ease; }
+:where(#hud > :not(.hud-damage)) { transition: opacity var(--ds-m-max) ease; }
 body.cine-hide-hud #hud > :not(.hud-damage) { opacity: 0; }
 /* fallback for 'laag' on a native-AA canvas; otherwise postfx3d.js screenFx */
 body.cine-slowmo:not(.gpu-screenfx) #game3d { filter: saturate(0.6) contrast(1.06); }
@@ -347,12 +347,12 @@ body.cine-slowmo:not(.gpu-screenfx) #game3d { filter: saturate(0.6) contrast(1.0
   height: var(--bar);
   background: var(--ds-c-glas);
   transform: scaleY(0);
-  transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1); /* ds3-film: scene */
 }
 #cine .cine-bar.top { top: 0; transform-origin: top; }
 #cine .cine-bar.bottom { bottom: 0; transform-origin: bottom; }
 #cine.letterbox .cine-bar { transform: scaleY(1); }
-#cine .cine-tint { position: absolute; inset: 0; opacity: 0; transition: opacity 0.5s; }
+#cine .cine-tint { position: absolute; inset: 0; opacity: 0; transition: opacity 0.5s; } /* ds3-film: scene */
 #cine[data-tint="death"] .cine-tint { opacity: 1; background: radial-gradient(ellipse at center, color-mix(in srgb, var(--ds-c-rood-glas) 12%, transparent) 20%, color-mix(in srgb, var(--ds-c-rood-glas) 50%, transparent) 100%); }
 #cine[data-tint="bust"] .cine-tint { opacity: 1; background: radial-gradient(ellipse at center, color-mix(in srgb, var(--ds-c-glas) 10%, transparent) 20%, color-mix(in srgb, var(--ds-c-glas) 75%, transparent) 100%); }
 body.cine-tint-death:not(.gpu-screenfx) #game3d { filter: grayscale(0.85) contrast(1.1); }
@@ -365,7 +365,7 @@ body.cine-tint-bust:not(.gpu-screenfx) #game3d { filter: grayscale(1) brightness
   max-width: min(80vw, 900px);
   opacity: 0;
   transform: translateX(-24px);
-  transition: opacity 0.5s 0.15s, transform 0.6s 0.15s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition: opacity 0.5s 0.15s, transform 0.6s 0.15s cubic-bezier(0.2, 0.7, 0.2, 1); /* ds3-film: scene */
   text-shadow: 0 2px 10px color-mix(in srgb, var(--ds-c-ink-inkt) 80%, transparent);
 }
 #cine.has-card .cine-card { opacity: 1; transform: none; }
@@ -378,7 +378,7 @@ body.cine-tint-bust:not(.gpu-screenfx) #game3d { filter: grayscale(1) brightness
   text-transform: uppercase;
   opacity: 0;
   transform: translateX(-16px);
-  transition: opacity 0.35s, transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition: opacity 0.35s, transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1); /* ds3-film: scene */
   text-shadow: 0 2px 10px color-mix(in srgb, var(--ds-c-ink-inkt) 85%, transparent);
   border-left: 4px solid var(--ds-c-licht-groen);
   padding-left: 14px;
@@ -407,7 +407,7 @@ body.cine-tint-bust:not(.gpu-screenfx) #game3d { filter: grayscale(1) brightness
   font-size: clamp(64px, 13vw, 180px);
   letter-spacing: 12px;
   opacity: 0;
-  transition: opacity 0.6s 0.2s, transform 1.8s cubic-bezier(0.1, 0.6, 0.2, 1);
+  transition: opacity 0.6s 0.2s, transform 1.8s cubic-bezier(0.1, 0.6, 0.2, 1); /* ds3-film: scene */
   text-shadow: 0 4px 24px color-mix(in srgb, var(--ds-c-ink-inkt) 85%, transparent);
 }
 #cine.has-big .cine-big { opacity: 1; transform: translateY(-50%) scale(1); }
@@ -417,7 +417,7 @@ body.cine-tint-bust:not(.gpu-screenfx) #game3d { filter: grayscale(1) brightness
   padding: 2.2vh 0 1.4vh;
   line-height: 1;
   background: linear-gradient(90deg, color-mix(in srgb, var(--ds-c-glas) 0%, transparent) 0%, color-mix(in srgb, var(--ds-c-glas) 72%, transparent) 25%, color-mix(in srgb, var(--ds-c-glas) 78%, transparent) 50%, color-mix(in srgb, var(--ds-c-glas) 72%, transparent) 75%, color-mix(in srgb, var(--ds-c-glas) 0%, transparent) 100%);
-  transition: opacity 0.5s 0.55s, transform 2.4s cubic-bezier(0.1, 0.6, 0.2, 1) 0.55s;
+  transition: opacity 0.5s 0.55s, transform 2.4s cubic-bezier(0.1, 0.6, 0.2, 1) 0.55s; /* ds3-film: scene */
 }
 #cine[data-tint="bust"] .cine-big { color: var(--ds-c-creme); }
 #cine .cine-sub {
@@ -431,7 +431,7 @@ body.cine-tint-bust:not(.gpu-screenfx) #game3d { filter: grayscale(1) brightness
   font-size: clamp(16px, 1.6vw, 21px);
   letter-spacing: 0.3px;
   opacity: 0;
-  transition: opacity 0.3s;
+  transition: opacity 0.3s; /* ds3-film: scene */
   text-shadow: 0 1px 3px color-mix(in srgb, var(--ds-c-ink-inkt) 90%, transparent);
 }
 #cine.has-sub .cine-sub { opacity: 1; }
@@ -458,7 +458,7 @@ body.cine-tint-bust:not(.gpu-screenfx) #game3d { filter: grayscale(1) brightness
   color: color-mix(in srgb, var(--ds-c-creme) 75%, transparent);
 }
 /* it comes up a moment into the scene, but goes at once with it (never over the HUD) */
-#cine.show-skip.active .cine-skip { opacity: 1; transition: opacity 0.4s 0.8s; }
+#cine.show-skip.active .cine-skip { opacity: 1; transition: opacity 0.4s 0.8s; } /* ds3-film: scene */
 /* a scene that keeps the HUD up (death, busted): bottom centre, clear of the minimap */
 body:not(.cine-hide-hud) #cine .cine-skip { right: 50%; bottom: calc(14px * var(--ui, 1)); transform: translateX(50%); }
 #cine.has-sub .cine-skip { bottom: calc(var(--bar) * 0.5 + 64px * var(--ui, 1)); } /* niet over de ondertitel (#463) */
@@ -501,8 +501,8 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 #cine .cine-banner::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 45%, color-mix(in srgb, var(--ds-c-glas) 35%, transparent), color-mix(in srgb, var(--ds-c-glas) 90%, transparent) 85%), linear-gradient(90deg, color-mix(in srgb, var(--ds-c-glas) 70%, transparent) 0%, color-mix(in srgb, var(--ds-c-glas) 0%, transparent) 60%); }
 #cine .cine-banner > * { position: relative; }
 #cine .cine-banner[hidden] { display: none; }
-#cine .cine-banner.in { animation: cb-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; }
-#cine .cine-banner.out { animation: cb-out 0.5s ease forwards; }
+#cine .cine-banner.in { animation: cb-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; } /* ds3-dwell: verblijf */
+#cine .cine-banner.out { animation: cb-out 0.5s ease forwards; } /* ds3-dwell: verblijf */
 @keyframes cb-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 @keyframes cb-out { from { opacity: 1; } to { opacity: 0; transform: translateY(-10px); } }
 #cine .cb-col { position: absolute; left: 160px; top: 17%; width: 520px; display: flex; flex-direction: column; gap: 24px; }
@@ -525,16 +525,16 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
    balk groeit, de titel zakt in beeld, de beloning telt op (cinematics.js) en
    de regels volgen elkaar met een korte vertraging. Alles dooft mee met
    "beweging verminderen". */
-#cine .cine-banner.in .cb-bar { animation: cb-bar-in 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+#cine .cine-banner.in .cb-bar { animation: cb-bar-in 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both; } /* ds3-dwell: verblijf */
 @keyframes cb-bar-in { from { width: 0; opacity: 0; } to { width: 64px; opacity: 1; } }
-#cine .cine-banner.in .cb-title { animation: cb-title-in 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+#cine .cine-banner.in .cb-title { animation: cb-title-in 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both; } /* ds3-dwell: verblijf */
 @keyframes cb-title-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-#cine .cine-banner.in .cb-reason { animation: cb-fade-in 0.5s ease 0.18s both; }
-#cine .cine-banner.in .cb-fact { animation: cb-fade-in 0.5s ease 0.24s both; }
+#cine .cine-banner.in .cb-reason { animation: cb-fade-in 0.5s ease 0.18s both; } /* ds3-dwell: verblijf */
+#cine .cine-banner.in .cb-fact { animation: cb-fade-in 0.5s ease 0.24s both; } /* ds3-dwell: verblijf */
 @keyframes cb-fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-#cine .cine-banner.in .cb-reward { animation: cb-reward-in 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.24s both; }
+#cine .cine-banner.in .cb-reward { animation: cb-reward-in 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.24s both; } /* ds3-dwell: verblijf */
 @keyframes cb-reward-in { 0% { opacity: 0; transform: scale(0.82); } 65% { transform: scale(1.05); } 100% { opacity: 1; transform: none; } }
-#cine .cine-banner.in .cb-stats div { animation: cb-row-in 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 70ms + 220ms); }
+#cine .cine-banner.in .cb-stats div { animation: cb-row-in 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 70ms + 220ms); } /* ds3-dwell: verblijf */
 @keyframes cb-row-in { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
 #cine .cb-stats span { flex: none; max-width: 40%; font-size: 20px; color: color-mix(in srgb, var(--ds-c-creme) 68%, transparent); }
 /* een lange waarde (Gevolg, Ontdekt) slaat om onder zichzelf en botst niet tegen het label (#250) */
@@ -552,7 +552,7 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
   text-shadow: 0 2px 6px color-mix(in srgb, var(--ds-c-ink-inkt) 85%, transparent), 0 0 18px color-mix(in srgb, var(--ds-c-ink-inkt) 50%, transparent);
   background: linear-gradient(270deg, color-mix(in srgb, var(--ds-c-glas) 82%, transparent), color-mix(in srgb, var(--ds-c-glas-2) 40%, transparent) 80%, color-mix(in srgb, var(--ds-c-glas-2) 0%, transparent));
   border-right: 3px solid var(--ds-c-licht-groen); opacity: 0; transform: translateX(18px);
-  transition: opacity 0.35s, transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1); pointer-events: none;
+  transition: opacity 0.35s, transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1); pointer-events: none; /* ds3-film: scene */
 }
 #hud .hud-vehname.on { opacity: 1; transform: none; }
 #hud .hud-vehname .vn-text { min-width: 0; }
@@ -568,7 +568,7 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 #hud .hud-nowplaying {
   position: absolute; top: calc(var(--hud-top) + var(--mm-size) + 46px); left: var(--hud-edge); display: flex; align-items: center; gap: 12px; max-width: min(calc(30vw / var(--ui, 1)), 320px);
   padding: 8px 16px 8px 8px; border-radius: 10px; color: var(--ds-c-creme); text-shadow: var(--hud-shadow); background: var(--hud-card); box-shadow: 0 0 0 1px color-mix(in srgb, var(--ds-c-licht-groen) 25%, transparent);
-  opacity: 0; transform: translateX(-24px); transition: opacity 0.4s, transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+  opacity: 0; transform: translateX(-24px); transition: opacity 0.4s, transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1); /* ds3-film: scene */
 }
 #hud .hud-nowplaying.on { opacity: 1; transform: none; }
 #hud .np-ic { width: 47px; height: 47px; border-radius: 8px; background: var(--ds-c-licht-groen); display: grid; place-items: center; flex: none; }
@@ -617,7 +617,7 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 }
 #hud .hud-race .hr-row span { font-size: 15px; letter-spacing: 1px; color: var(--ds-c-creme-zacht); }
 #hud .hud-race .hr-row b { font-weight: normal; font-size: 22px; font-variant-numeric: tabular-nums; }
-#hud .hud-race .hr-row[data-state="low"] b { color: var(--ds-c-rood-glas); animation: hud-star-blink 0.6s steps(2, jump-none) infinite; }
+#hud .hud-race .hr-row[data-state="low"] b { color: var(--ds-c-rood-glas); animation: hud-star-blink var(--ds-m-max) steps(2, jump-none) 2; }
 #hud .hud-race .hr-row[data-state="ahead"] b, #hud .hud-race .hr-row[data-k="best"] b { color: var(--ds-c-licht-groen); }
 @media (max-height: 640px) { #hud .hud-race .hr-pos b { font-size: 44px; } #hud .hud-race .hr-row b { font-size: 19px; } }
 
@@ -755,12 +755,12 @@ body.pigeon-mode #banter-sub, body.pigeon-mode #radio-sub { bottom: calc(198px *
 #hud .hud-money { color: var(--hud-inkt); font-weight: 800; }
 #hud .hud-money.rolling { color: var(--hud-inkt); text-shadow: var(--ds-misdruk); }
 #hud .hud-money-delta { font-weight: 800; }
-#hud .hud-money-delta.visible { text-shadow: var(--ds-misdruk); animation: hud-misdruk-weg 0.01s 1.4s forwards; }
+#hud .hud-money-delta.visible { text-shadow: var(--ds-misdruk); animation: hud-misdruk-weg 0.01s 1.4s forwards; } /* ds3-dwell: verblijf */
 #hud .hud-money-delta[data-sign="plus"] { color: var(--ds-succes-tx); }
 #hud .hud-money-delta[data-sign="min"] { color: var(--ds-probleem-tx); }
 
 /* wapen: misdruk bij een wissel */
-#hud .hud-weapon.switched .hud-weapon-icon { filter: drop-shadow(var(--ds-misdruk-x) var(--ds-misdruk-y) 0 var(--ds-c-ink-roze)); animation: hud-weapon-pop var(--dur-slow, 320ms) var(--ease-out, ease-out), hud-misdruk-weg 0.01s 1.4s forwards; }
+#hud .hud-weapon.switched .hud-weapon-icon { filter: drop-shadow(var(--ds-misdruk-x) var(--ds-misdruk-y) 0 var(--ds-c-ink-roze)); animation: hud-weapon-pop var(--dur-slow, 320ms) var(--ease-out, ease-out), hud-misdruk-weg 0.01s 1.4s forwards; } /* ds3-dwell: verblijf */
 
 /* wanted: roze sterren met inktrand; een lege ster is een raster (vorm en aantal, nooit alleen kleur) */
 #hud .hud-wanted svg { width: 28px; height: 28px; fill: url(#hud-raster); stroke: var(--hud-inkt); stroke-width: 1.8; opacity: 1; }
@@ -790,7 +790,7 @@ body.pigeon-mode #banter-sub, body.pigeon-mode #radio-sub { bottom: calc(198px *
 #hud .hud-mission[data-kind="job"] { --obj: var(--ds-c-ink-bord); }
 #hud .hud-mission[data-kind="police"] { --obj: var(--ds-probleem); }
 #hud .hud-obj-icon { color: var(--obj); fill: var(--obj); stroke: var(--hud-inkt); stroke-width: 1.4; filter: none; width: 22px; height: 22px; flex-basis: 22px; }
-#hud .hud-mission.pop .hud-obj-text { animation: obj-pop 0.55s cubic-bezier(0.2, 0.7, 0.2, 1); } /* geen misdruk op lopende tekst (doel, toetsregel) */
+#hud .hud-mission.pop .hud-obj-text { animation: obj-pop var(--ds-m-max) cubic-bezier(0.2, 0.7, 0.2, 1); } /* geen misdruk op lopende tekst (doel, toetsregel) */
 
 /* toetsplaatje op papier: inkt met papieren letter, zonder misdruk */
 #hud .hud-key, #cine .hud-key { background: var(--hud-inkt); color: var(--ds-c-ink-papier); box-shadow: none; border-radius: 4px; }
@@ -816,7 +816,7 @@ body.pigeon-mode #banter-sub, body.pigeon-mode #radio-sub { bottom: calc(198px *
 /* de minimap: afgerond vierkant op papier, inktrand, harde schaduw; de buurtnaam hangt als inktlabel eronder */
 #hud .hud-minimap-wrap {
   background: var(--hud-plaat); border: var(--hud-rand); border-radius: 16px; padding: 6px; box-sizing: border-box;
-  box-shadow: var(--hud-schaduw); overflow: hidden; transition: box-shadow 0.4s ease;
+  box-shadow: var(--hud-schaduw); overflow: hidden; transition: box-shadow var(--ds-m-max) ease;
 }
 #hud .hud-minimap-wrap canvas { border-radius: 10px; box-shadow: 0 0 0 1.5px var(--hud-inkt); }
 #hud .hud-minimap-wrap.wanted { box-shadow: var(--ds-schaduw-hard-roze); border-color: var(--hud-inkt); }

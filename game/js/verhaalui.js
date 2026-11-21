@@ -3,6 +3,7 @@
 // one quiet line with a silhouette) and Aanwijzingen (the clues per story
 // part). pausemenu.js owns the shell, keys and focus. The portraits and the
 // viewer draw through vehiclepreview.js's shared renderer, like the garage.
+import { icoon } from './icons.js';
 import { CHARACTERS, CHARACTER_BY_ID, hasMet, isFresh, metCount, knownCharacters, unknownLine, markCharacterSeen } from './characters.js';
 import { createSharedPreview, renderSnapshot, PORTRAIT_ANGLE } from './vehiclepreview.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
@@ -30,7 +31,7 @@ let viewer = null;
 const CSS = `
 #pause-menu .pm-vsub { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
 #pause-menu .vh-layout { display: flex; flex: 1; min-height: 0; }
-#pause-menu .vh-left { flex: 1 1 46%; min-width: 0; display: flex; flex-direction: column; padding-right: 48px; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--ink) 18%, transparent) transparent; }
+#pause-menu .vh-left { flex: 1 1 46%; min-width: 0; display: flex; flex-direction: column; padding-right: 48px; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--ds-scroll-duim) var(--ds-scroll-spoor); }
 #pause-menu .vh-left .m-gh { padding-left: 0; padding-top: 0; }
 /* Het losse BERICHTEN-blok bovenaan is weg: dezelfde regels stonden al bij het personage
    zelf, waardoor je ze twee keer las. De ongelezen-teller staat nu in de hero. */
@@ -78,7 +79,7 @@ const CSS = `
 #pause-menu .vh-miss span { font-family: var(--ds-font-zeef-kop); font-size: 20px; letter-spacing: 0.05em; color: var(--mut); }
 #pause-menu .vh-miss span[data-st="klaar"] { color: var(--g); }
 #pause-menu .vh-miss span[data-st="nu"] { color: var(--ink); text-decoration: underline; text-decoration-color: var(--g); text-underline-offset: 4px; }
-#pause-menu .vh-parts { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--ink) 18%, transparent) transparent; max-width: 1000px; }
+#pause-menu .vh-parts { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--ds-scroll-duim) var(--ds-scroll-spoor); max-width: 1000px; }
 #pause-menu .vh-part { display: flex; flex-direction: column; padding-bottom: 8px; }
 #pause-menu .vh-part .m-gh { padding-left: 0; }
 #pause-menu .vh-part[data-cur] .m-gh span:first-child { color: var(--ink); }
@@ -238,7 +239,7 @@ function overigCard() {
 }
 
 // Een silhouet voor de regel met de mensen die je nog kunt tegenkomen (#608).
-const SIL = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c1.2-4 3.8-6 7-6s5.8 2 7 6"/></svg>';
+const SIL = icoon('speler'); // F6: Phosphor via icons.js
 
 function peopleHtml() {
   const n = metCount();
@@ -293,7 +294,7 @@ function cluesHtml() {
     // Een hoofdstuk zonder gevonden aanwijzing waar je niet bent, is één rustige regel met een chip in plaats van een eigen blok met een
     // lege balk: vijf van die blokken onder elkaar lazen als een muur van "nog te ontdekken" (#980).
     if (!known.length && !(cur && cur.part === part)) {
-      return `<div class="vh-kort"><span>${esc(partName(part))}</span><span class="ds-zeef ds-z-chip"><svg class="ds-z-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 7V5a4 4 0 0 1 8 0v2h1v7H3V7zm1.6 0h4.8V5a2.4 2.4 0 0 0-4.8 0z"/></svg>${clues.length} te ontdekken</span></div>`;
+      return `<div class="vh-kort"><span>${esc(partName(part))}</span><span class="ds-zeef ds-z-chip">${icoon('slot', { cls: 'ds-z-chip__icoon' })}${clues.length} te ontdekken</span></div>`;
     }
     return `<section class="vh-part"${here ? ' data-cur' : ''}><div class="m-gh"><span>${esc(partName(part))}${here ? ' · nu' : ''}</span><span>${known.length} van ${clues.length}</span></div>` +
       `<span class="m-bar vh-pbar${known.length ? ' on' : ''}"><i data-bar="clue-${part}" data-w="${Math.round((known.length / clues.length) * 100)}"></i></span>` +

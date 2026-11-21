@@ -219,6 +219,10 @@ export function checkDs3Line({ file, line, text } = {}) {
   if (n.glas) reden.push('glas-op-donker, verloop of backdrop-filter: het designsysteem is vlak papier met inktrand');
   if (n.oud) reden.push('oude componentklasse: gebruik .ds-z-kaart, .ds-z-knop, .ds-z-chip');
   if (n.klein) reden.push('tekst onder 13 px');
+  if (n.lus) reden.push('oneindige animatie: een lus is verboden (zet ds3-lus met reden bij de bel en de live-stip)');
+  if (n.lang) reden.push('animatie of transitie boven 250 ms (een verblijftijd krijgt het commentaar ds3-dwell)');
+  if (n.emoji) reden.push('echte emoji in spelertekst: gebruik een Phosphor-icoon via icoon()');
+  if (n.svg) reden.push('eigen <svg> buiten icons.js: gebruik icoon() of voeg het icoon toe via scripts/ui/phosphor_kies.mjs (ADR 0041)');
   const out = [];
   if (reden.length) {
     out.push(finding({

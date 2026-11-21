@@ -29,7 +29,8 @@ if (process.argv.includes('--lijst')) {
 if (process.argv.includes('--write')) {
   const oud = fs.existsSync(BASIS) ? JSON.parse(fs.readFileSync(BASIS, 'utf8')) : null;
   if (oud) {
-    const hoger = Object.keys(stand).filter((f) => SOORTEN.some((s) => stand[f][s] > ((oud[f] || {})[s] || 0)));
+    const bekend = new Set(Object.values(oud).flatMap((o) => Object.keys(o))); // een nieuwe soort mag voor het eerst in de stand komen
+    const hoger = Object.keys(stand).filter((f) => SOORTEN.some((s) => bekend.has(s) && stand[f][s] > ((oud[f] || {})[s] || 0)));
     if (hoger.length) { console.error('ds3_dekking_test --write: een ratel stijgt niet; eerst terug naar de stand in ' + hoger.join(', ')); process.exit(1); }
   }
   fs.writeFileSync(BASIS, JSON.stringify(stand, null, 1) + '\n');

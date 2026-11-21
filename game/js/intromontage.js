@@ -98,19 +98,19 @@ function polyline(pts) {
 // --- styling -----------------------------------------------------------------
 
 const CSS = `
-#intro-montage { position: fixed; inset: 0; z-index: 16; pointer-events: none; font-family: var(--ds-font-zeef-kop); color: var(--ds-c-ink-papier); opacity: 0; transition: opacity 0.3s; }
+#intro-montage { position: fixed; inset: 0; z-index: 16; pointer-events: none; font-family: var(--ds-font-zeef-kop); color: var(--ds-c-ink-papier); opacity: 0; transition: opacity 0.3s; } /* ds3-film: scene */
 #intro-montage.on { opacity: 1; }
 #intro-montage > div { position: absolute; inset: 0; }
 #intro-montage .im-grade { background: linear-gradient(160deg, rgba(0, 150, 170, 0.22) 0%, color-mix(in srgb, var(--ds-c-ink-inkt) 0%, transparent) 45%, rgba(255, 128, 40, 0.2) 100%); mix-blend-mode: soft-light; }
 #intro-montage .im-vig { background: radial-gradient(ellipse at center, color-mix(in srgb, var(--ds-c-ink-inkt) 0%, transparent) 55%, rgba(4, 10, 8, 0.55) 100%); }
-#intro-montage .im-grain { background-image: var(--grain); opacity: 0.07; animation: grain 0.5s steps(4) infinite; }
+#intro-montage .im-grain { background-image: var(--grain); opacity: 0.07; animation: grain 0.5s steps(4) infinite; } /* ds3-film: scene */
 #intro-montage .im-flare { opacity: 0; transition: opacity 0.8s; mix-blend-mode: screen;
   background: radial-gradient(circle at var(--fx, 80%) var(--fy, 20%), rgba(255, 214, 150, 0.75) 0, rgba(255, 170, 80, 0.28) 7%, rgba(255, 140, 60, 0) 26%),
     radial-gradient(circle at calc(100% - var(--fx, 80%)) calc(100% - var(--fy, 20%)), rgba(120, 220, 200, 0.18) 0, rgba(120, 220, 200, 0) 7%),
     radial-gradient(circle at calc(50% + (50% - var(--fx, 80%)) * 0.4) calc(50% + (50% - var(--fy, 20%)) * 0.4), rgba(255, 190, 120, 0.14) 0, rgba(255, 190, 120, 0) 4%),
     linear-gradient(90deg, rgba(255, 180, 90, 0) 0%, rgba(255, 180, 90, 0.08) 50%, rgba(255, 180, 90, 0) 100%); }
 #intro-montage .im-flare.on { opacity: var(--fa, 1); }
-#intro-montage .im-black { background: var(--ds-c-glas); opacity: 0; transition: opacity 0.35s; }
+#intro-montage .im-black { background: var(--ds-c-glas); opacity: 0; transition: opacity 0.35s; } /* ds3-film: scene */
 #intro-montage .im-black.on { opacity: 1; transition: opacity 0.12s; }
 #intro-montage .im-flash { background: #fff6e6; opacity: 0; }
 #intro-montage .im-flash.go { animation: im-flash 0.28s ease-out; }
@@ -124,11 +124,11 @@ const CSS = `
 #intro-montage .im-title { font-size: clamp(56px, 11vw, 160px); line-height: 0.9; text-transform: uppercase; text-shadow: 3px 3px 0 var(--ds-c-ink-roze); }
 #intro-montage .im-title .amp { color: var(--ds-c-ink-roze); }
 #intro-montage .im-card .gde-logo { font-size: clamp(110px, 19vw, 230px); text-shadow: none; }
-#intro-montage .im-lower { top: auto; bottom: calc(11vh + 6vh); left: 6vw; right: auto; opacity: 0; transform: translateX(-30px); transition: opacity 0.5s, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1); text-shadow: 2px 2px 0 var(--ds-c-ink-inkt); }
+#intro-montage .im-lower { top: auto; bottom: calc(11vh + 6vh); left: 6vw; right: auto; opacity: 0; transform: translateX(-30px); transition: opacity 0.5s, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1); text-shadow: 2px 2px 0 var(--ds-c-ink-inkt); } /* ds3-film: scene */
 #intro-montage .im-lower.on { opacity: 1; transform: none; }
 #intro-montage .im-lower .im-title { font-size: clamp(48px, 8vw, 110px); }
 #intro-montage .im-lower .im-title::after { content: ''; display: block; width: 130px; height: 4px; margin-top: 10px; background: var(--ds-c-ink-geel); border: 2px solid var(--ds-c-ink-inkt); box-shadow: 3px 3px 0 var(--ds-c-ink-roze); }
-#intro-montage .im-cap { top: calc(11vh + 3.5vh); left: 6vw; right: auto; bottom: auto; max-width: min(70vw, 760px); opacity: 0; transform: translateY(-10px); transition: opacity 0.6s, transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1); text-shadow: 2px 2px 0 var(--ds-c-ink-inkt); }
+#intro-montage .im-cap { top: calc(11vh + 3.5vh); left: 6vw; right: auto; bottom: auto; max-width: min(70vw, 760px); opacity: 0; transform: translateY(-10px); transition: opacity 0.6s, transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1); text-shadow: 2px 2px 0 var(--ds-c-ink-inkt); } /* ds3-film: scene */
 #intro-montage .im-cap.on { opacity: 1; transform: none; }
 #intro-montage .im-cap small { display: block; font-size: clamp(14px, 1.4vw, 19px); letter-spacing: 4px; color: var(--ds-c-ink-papier); }
 #intro-montage .im-cap span { display: block; margin-top: 2px; font-size: clamp(26px, 3.2vw, 44px); line-height: 1; letter-spacing: 1px; }

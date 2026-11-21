@@ -50,7 +50,7 @@
   padding: 8px 14px; border-radius: 10px; background: rgba(20, 24, 32, 0.88); color: var(--hud-fg, #f0ede4);
   font: 600 14px/1.35 var(--ds-font-tekst); text-align: center; pointer-events: none;
   box-shadow: var(--hud-card-ring, 0 0 0 1px rgba(240, 237, 228, 0.2)); }
-.cp-fade { position: fixed; inset: 0; z-index: 8000; background: color-mix(in srgb, var(--ds-c-ink-inkt) 92%, transparent); opacity: 0; pointer-events: none; transition: opacity 0.35s; }
+.cp-fade { position: fixed; inset: 0; z-index: 8000; background: color-mix(in srgb, var(--ds-c-ink-inkt) 92%, transparent); opacity: 0; pointer-events: none; transition: opacity 0.35s; } /* ds3-film: scene */
 .gm .bebas, .gm .m-bebas { font-family: var(--ds-font-kop); letter-spacing: 0.04em; font-weight: normal; }
 .gm .m-eb { font-family: var(--ds-font-kop); font-size: 20px; letter-spacing: 0.18em; color: var(--mut); text-transform: uppercase; }
 .gm .m-h1 { font-family: var(--ds-font-kop); font-size: 80px; line-height: 0.9; letter-spacing: 0.02em; }
@@ -60,7 +60,7 @@
 /* the surface */
 .m-panel { position: absolute; display: flex; flex-direction: column; border-radius: 16px; overflow: hidden;
   background: linear-gradient(180deg, rgba(20, 40, 27, 0.8), color-mix(in srgb, var(--ds-c-glas) 88%, transparent)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 7%, transparent), 0 32px 64px color-mix(in srgb, var(--ds-c-ink-inkt) 22%, transparent);
-  animation: m-panel-in 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+  animation: m-panel-in var(--ds-m-max) cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 .m-head { flex: none; display: flex; align-items: flex-end; justify-content: space-between; gap: 48px; padding: 56px 64px 0; }
 .m-head > div { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .m-head .m-hr { align-items: flex-end; text-align: right; gap: 4px; padding-bottom: 6px; flex: none; }
@@ -76,7 +76,7 @@
 .m-main { flex: 1; min-height: 0; display: flex; padding: 32px 64px 48px; }
 .m-list { display: flex; flex-direction: column; margin-left: -24px; padding-right: 64px; flex: none; width: 600px; box-sizing: content-box; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; min-height: 0; }
 .m-pane { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 20px; padding-left: 64px; box-shadow: inset 1px 0 0 color-mix(in srgb, var(--ds-c-creme) 8%, transparent); overflow-y: auto; scrollbar-width: none; min-height: 0; }
-.m-pane > * { animation: m-up 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.m-pane > * { animation: m-up var(--ds-m-max) cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 .m-pane p { color: color-mix(in srgb, var(--ds-c-creme) 88%, transparent); max-width: 640px; }
 .m-pane p.mut { color: var(--mut); }
 .m-grow { flex: 1; }
@@ -203,7 +203,7 @@ button.m-li:hover, label.m-li:hover { background: color-mix(in srgb, var(--ds-c-
 @keyframes m-rail-in { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: none; } }
 @keyframes m-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 @keyframes m-fade { from { opacity: 0; } to { opacity: 1; } }
-.m-up { animation: m-up 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.m-up { animation: m-up var(--ds-m-max) cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 .m-d1 { animation-delay: 0.08s; } .m-d2 { animation-delay: 0.16s; } .m-d3 { animation-delay: 0.24s; } .m-d4 { animation-delay: 0.32s; }
 @media (prefers-reduced-motion: reduce) { .gm, .gm *, .gm *::before, .gm *::after { animation: none !important; transition: none !important; } }
 html.reduce-motion .gm, html.reduce-motion .gm *, html.reduce-motion .gm *::before, html.reduce-motion .gm *::after { animation: none !important; transition: none !important; }

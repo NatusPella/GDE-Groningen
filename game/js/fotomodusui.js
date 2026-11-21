@@ -6,6 +6,7 @@
 // Spatie/Ctrl omhoog/omlaag, Shift sneller, F filter, G raster, T weer,
 // , en . tijd, [ en ] zoom, C en V kantelen, H terug bij Tammo, Z en X
 // scherptediepte, Enter/klik foto, Esc of F8 terug.
+import { icoon } from './icons.js';
 import * as F from './fotomodus.js';
 import { glyphHtml, keyLabelHtml } from './keycap.js';
 import { getRenderer } from './scene3d.js';
@@ -284,7 +285,7 @@ function takeShot(world) {
 
 // --- pauzemenu: sectie Foto's ---------------------------------------------------------------
 
-const CAM = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5h3l1.5-2h7L17 8.5h3v10H4z"/><circle cx="12" cy="13" r="3.4"/></svg>';
+const CAM = icoon('camera'); // F6: Phosphor via icons.js
 
 // De stijl van Foto's woont bij deze module, net als bij Prestaties en Veroverd: alleen de
 // bestaande tokens en lettertypen van het menu. Hero bovenaan, de galerij als echte galerij
@@ -346,7 +347,7 @@ function heroHtml(n) {
   const lead = leeg
     ? 'Zet de wereld stil, loop met een vrije camera rond, kies een filter en het weer, en maak een foto. Hij komt als bestand op je eigen schijf; er gaat niets het internet op.'
     : 'Elke foto die je maakte, nieuwste eerst. Wijs er een aan om hem weg te halen; het bestand op je eigen schijf blijft staan.';
-  const stand = `<span class="ds-z-chip${leeg ? '' : ' ds-z-chip--succes'}"><svg class="ds-z-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.2 11.6 2.8 8.2l1.4-1.4 2 2 5.6-5.6 1.4 1.4z"/></svg>${n} van ${F.GALLERY.max} foto's</span>`;
+  const stand = `<span class="ds-z-chip${leeg ? '' : ' ds-z-chip--succes'}">${icoon('vinkje', { cls: 'ds-z-chip__icoon' })}${n} van ${F.GALLERY.max} foto's</span>`;
   return '<section class="ds-zeef ds-z-kaart foto-hero" aria-label="Foto\'s">' +
     `<div class="ds-z-kaart__kop"><span class="ds-z-kaart__titel">${titel}</span>${stand}</div>` +
     `<p class="ds-z-kaart__tekst">${lead}</p></section>`;

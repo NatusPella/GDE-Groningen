@@ -1,13 +1,14 @@
 // Gebieden veroveren (#414): het overzicht "Veroverd" in het Loopbaan-scherm (loopbaanui.js). Links alle te veroveren
 // wijken, plaatsen en streken met een voortgangsbalk, rechts wat er in het gekozen gebied te doen is, per soort, en wat je
 // al gedaan hebt. De gegevens komen uit gebiedenlive.js (en gebieden.js); dit bestand is alleen HTML. Niet door een mens in beeld bekeken.
+import { icoon } from './icons.js';
 import * as G from './gebieden.js';
 import { getOverzicht } from './gebiedenlive.js';
 import { reisNaarHuis } from './safehuizen.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
-const VLAG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 21V4M7 5l10 3.5L7 12"/></svg>';
+const CHECK = icoon('vinkje'); // F6: Phosphor via icons.js
+const VLAG = icoon('vlag'); // F6: Phosphor via icons.js
 
 export const GEBIEDEN_CSS = `
 .gb-groep { display: flex; align-items: baseline; gap: 10px; margin: 16px 0 4px; font-family: var(--ds-font-tekst); font-size: max(14px, var(--menu-min, 14px)); letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; }

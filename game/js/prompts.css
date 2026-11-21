@@ -37,7 +37,7 @@
   transition: transform 0.2s cubic-bezier(0.3, 1.6, 0.5, 1);
 }
 #hud .wp.in .wp-dot { transform: scale(1); }
-#hud .wp-primary.in .wp-dot { animation: wp-ping 1.6s ease-out infinite; }
+#hud .wp-primary.in .wp-dot { animation: wp-ping var(--ds-m-max) ease-out 2; }
 @keyframes wp-ping {
   0% { box-shadow: 0 0 0 2px color-mix(in srgb, var(--ds-c-glas) 70%, transparent), 0 0 0 0 color-mix(in srgb, var(--ds-c-licht-groen) 55%, transparent); }
   70%, 100% { box-shadow: 0 0 0 2px color-mix(in srgb, var(--ds-c-glas) 70%, transparent), 0 0 0 12px color-mix(in srgb, var(--ds-c-licht-groen) 0%, transparent); }
@@ -172,7 +172,7 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 5px;
-  transition: opacity 0.4s ease;
+  transition: opacity var(--ds-m-max) ease;
 }
 body.hud-in-vehicle #hud .hud-ctx { bottom: calc(var(--hud-edge, 46px) + 80px); } /* #985: de snelheidsmeter is één blok van ca. 66 px hoog */
 /* #876: in de lucht vervangt het vliegpaneel de snelheidsmeter in zone H en is het
@@ -193,8 +193,8 @@ body.heli-flying #hud .hud-vehname { display: none; }
   text-shadow: var(--hud-shadow);
   background: linear-gradient(270deg, color-mix(in srgb, var(--ds-c-glas) 78%, transparent), color-mix(in srgb, var(--ds-c-glas) 30%, transparent));
   border-right: 2px solid color-mix(in srgb, var(--ds-c-licht-groen) 55%, transparent);
-  animation: ctx-in 0.3s ease both;
-  transition: opacity 0.4s ease, transform 0.4s ease;
+  animation: ctx-in var(--ds-m-max) ease both;
+  transition: opacity var(--ds-m-max) ease, transform var(--ds-m-max) ease;
 }
 #hud .ctx-row.gone { opacity: 0; transform: translateX(14px); }
 @keyframes ctx-in { from { opacity: 0; transform: translateX(10px); } }

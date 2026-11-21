@@ -54,7 +54,7 @@
     position: fixed; inset: 0; z-index: 30; overflow: hidden; color: var(--ds-c-ink-inkt);
     background-color: var(--ds-c-ink-papier);
     background-image: var(--ds-raster); background-size: 14px 14px; background-position: 0 0;
-    font-family: var(--ds-font-zeef-tekst); transition: opacity 0.7s ease;
+    font-family: var(--ds-font-zeef-tekst); transition: opacity 0.7s ease; /* ds3-film: scene */
   }
   #loading::before { content: ''; position: absolute; inset: 0; background: var(--ds-c-ink-papier); -webkit-mask-image: radial-gradient(ellipse at center, rgba(29,27,23,1) 38%, transparent 95%); mask-image: radial-gradient(ellipse at center, rgba(29,27,23,1) 38%, transparent 95%); pointer-events: none; }
   #loading.ls-over .bt-load { opacity: 0; transition: opacity 0.2s; }
@@ -62,9 +62,9 @@
   #loading .bt { position: absolute; left: 0; top: 0; width: calc(100vw / var(--ui, 1)); height: calc(100vh / var(--ui, 1)); zoom: var(--ui, 1); }
   #loading .bt-logo { position: absolute; left: 0; right: 0; top: 17%; display: flex; flex-direction: column; align-items: center; transform: rotate(var(--ds-schuin)); }
   #loading .gde-logo { font-size: 216px; font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-inkt); }
-  #loading .gde-mark { animation: bt-stamp 0.9s cubic-bezier(.2,.7,.2,1) both; position: relative; background: none; -webkit-background-clip: border-box; background-clip: border-box; color: var(--ds-c-ink-inkt); filter: none; text-shadow: var(--ds-misdruk); letter-spacing: 0.01em; }
-  #loading .gde-sign { animation: bt-stamp 0.7s 0.5s cubic-bezier(.2,.7,.2,1) both; font-size: max(13px, 0.28em); font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-papier); background: var(--ds-c-ink-bord); border-radius: 0; box-shadow: var(--ds-schaduw-hard); }
-  #loading .gde-sub { animation: bt-stamp 0.7s 0.9s both; font: 600 0.14em/1.1 var(--ds-font-zeef-kop); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ds-c-ink-inkt); text-shadow: none; margin-top: 0.6em; }
+  #loading .gde-mark { animation: bt-stamp 0.9s cubic-bezier(.2,.7,.2,1) both; position: relative; background: none; -webkit-background-clip: border-box; background-clip: border-box; color: var(--ds-c-ink-inkt); filter: none; text-shadow: var(--ds-misdruk); letter-spacing: 0.01em; } /* ds3-film: scene */
+  #loading .gde-sign { animation: bt-stamp 0.7s 0.5s cubic-bezier(.2,.7,.2,1) both; font-size: max(13px, 0.28em); font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-papier); background: var(--ds-c-ink-bord); border-radius: 0; box-shadow: var(--ds-schaduw-hard); } /* ds3-film: scene */
+  #loading .gde-sub { animation: bt-stamp 0.7s 0.9s both; font: 600 0.14em/1.1 var(--ds-font-zeef-kop); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ds-c-ink-inkt); text-shadow: none; margin-top: 0.6em; } /* ds3-film: scene */
   #loading .bt-load { position: absolute; left: 0; right: 0; top: 72%; display: flex; flex-direction: column; align-items: center; gap: 14px; }
   #loading .ld-bar { width: 467px; height: 20px; box-sizing: border-box; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); background-color: var(--ds-c-ink-papier); background-image: var(--ds-raster); background-size: var(--ds-raster-maat); box-shadow: var(--ds-schaduw-hard); overflow: hidden; position: relative; }
   #loading .ld-tick { position: absolute; top: 0; bottom: 0; width: var(--ds-lijn-zeef); margin-left: calc(var(--ds-lijn-zeef) / -2); background: var(--ds-c-ink-inkt); pointer-events: none; }
@@ -73,8 +73,8 @@
   #loading .ld-status.swap { opacity: 0; }
   #loading .ld-step { font: 600 14px var(--ds-font-zeef-kop); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ds-c-ink-inkt); min-height: 1.3em; margin-top: -6px; }
   #loading .ld-status.error { color: var(--ds-c-rood-tx); font-weight: 700; }
-  #loading .bt-key { margin-top: 18px; font: 800 25px var(--ds-font-zeef-kop); letter-spacing: 0.12em; opacity: 0; transition: opacity 0.5s; }
-  #loading.ready .bt-key { opacity: 1; animation: bt-breathe 2.2s ease-in-out infinite; }
+  #loading .bt-key { margin-top: 18px; font: 800 25px var(--ds-font-zeef-kop); letter-spacing: 0.12em; opacity: 0; transition: opacity 0.5s; } /* ds3-film: scene */
+  #loading.ready .bt-key { opacity: 1; animation: bt-breathe 2.2s ease-in-out 3; } /* ds3-film: scene */
   #loading.ready .ld-bar, #loading.ready .ld-status { opacity: 0.55; }
   #loading .bt-foot { position: absolute; left: 46px; right: 46px; bottom: 36px; display: flex; align-items: flex-end; justify-content: space-between; gap: 33px; }
   #loading .bt-age { display: flex; gap: 13px; align-items: center; }
@@ -115,8 +115,8 @@
   .mo-pop { animation: mo-pop var(--dur-base) var(--ease-pop); }
   /* knop-tik (#985): een ingedrukte menuknop zakt in (alleen transform); geen eigen transition, zodat de bestaande hover niet wordt overschreven */
   .m-bg:active:not(:disabled), .m-li button:active:not(:disabled) { transform: scale(0.96); }
-  .mo-ring { animation: mo-ring 700ms var(--ease-out); }
-  .mo-shine::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--ds-c-wit) 75%, transparent), transparent); animation: mo-shine 520ms var(--ease-out) forwards; pointer-events: none; }
+  .mo-ring { animation: mo-ring var(--ds-m-max) var(--ease-out); }
+  .mo-shine::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--ds-c-wit) 75%, transparent), transparent); animation: mo-shine var(--ds-m-max) var(--ease-out) forwards; pointer-events: none; }
 
   /* "H9 nu al spelen?" (todo.js) and the help offer: a paper card in screen print (ADR 0040) */
   #gde-ahead , #hulpaanbod { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: color-mix(in srgb, var(--ds-c-ink-inkt) 55%, transparent); font-family: var(--ds-font-zeef-tekst); }
@@ -191,7 +191,7 @@
       <div class="ss-news-body" tabindex="0"></div>
     </section>
     <p class="ss-foot"><span class="m-hint"><span class="m-kc">↑</span><span class="m-kc">↓</span><span>kiezen</span></span><span class="m-hint"><span class="m-kc">Enter</span><span>ok</span></span></p>
-    <p class="ss-credit">Met liefde <span class="heart" role="img" aria-label="liefde">❤️</span> in Grunn gemaakt, met AI<span class="ss-ver"></span></p>
+    <p class="ss-credit">Met liefde <span class="heart" role="img" aria-label="liefde"></span> in Grunn gemaakt, met AI<span class="ss-ver"></span></p>
   </div>
 </div>
 <!-- GLTFLoader.js (used by landmarkmodels.js) imports the bare specifier

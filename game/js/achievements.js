@@ -745,9 +745,9 @@ const CSS_EXTRA = `
 #hud .ach-toast .ach-rays { position: absolute; inset: -10px; z-index: 0; border-radius: 50%; opacity: 0.34;
   background: repeating-conic-gradient(var(--mk-ok, #3fc97a) 0deg 2deg, transparent 2deg 18deg);
   -webkit-mask: radial-gradient(circle, transparent 52%, #000 54%); mask: radial-gradient(circle, transparent 52%, #000 54%);
-  animation: ach-rays 2.6s linear infinite; }
+  }
 @keyframes ach-rays { to { transform: rotate(360deg); } }
-#hud .ach-toast .ach-spark { position: absolute; z-index: 3; width: 7px; height: 7px; border-radius: 50%; background: var(--mk-ok, #3fc97a); opacity: 0; animation: ach-spark 1.15s ease-out 0.05s forwards; }
+#hud .ach-toast .ach-spark { position: absolute; z-index: 3; width: 7px; height: 7px; border-radius: 50%; background: var(--mk-ok, #3fc97a); opacity: 0; animation: ach-spark 1.15s ease-out 0.05s forwards; } /* ds3-dwell: verblijf */
 #hud .ach-toast .ach-spark.s1 { left: 5px; top: 1px; --dx: -7px; }
 #hud .ach-toast .ach-spark.s2 { right: 3px; top: 11px; --dx: 7px; animation-delay: 0.16s; background: var(--mk-mission, #e8c93a); }
 #hud .ach-toast .ach-spark.s3 { left: 12px; bottom: 0; --dx: -4px; animation-delay: 0.26s; }

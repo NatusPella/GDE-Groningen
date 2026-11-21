@@ -4,6 +4,7 @@
 // class `mg-on` takes the speedo and the phone cards out of the way, and
 // `world.minigameUntil` (set by the job while it is up) keeps the number keys
 // and Space from switching weapons.
+import { icoon } from './icons.js';
 const CSS = `
 #hud .cw-panel[hidden] { display: none; }
 #hud .cw-panel { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); box-sizing: border-box; width: min(640px, calc(100vw / var(--ui, 1) - 2 * max(var(--hud-edge, 46px) + 370px, var(--hud-c-right, 0px) + 12px)), calc(100vw - 32px)); min-width: min(400px, calc(100vw - 32px)); padding: 10px 18px 12px 14px; color: var(--ds-c-creme); text-shadow: var(--hud-shadow); pointer-events: none; z-index: 4;
@@ -27,6 +28,8 @@ const CSS = `
 #hud .cw-panel .cw-flash.bad { color: var(--mk-job, #ff9a3c); }
 #hud .cw-panel .cw-help { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; margin-top: 4px; font: 13px var(--ds-font-tekst); color: color-mix(in srgb, var(--ds-c-creme) 78%, transparent); }
 #hud .cw-panel .hud-key { margin: 0 2px; vertical-align: middle; }
+#hud .cw-panel .cw-ic { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 24px; }
+#hud .cw-panel .cw-ic .ic { width: 20px; height: 20px; }
 /* #985: onder 1100 px past het paneel niet tussen de berichtkolom en zone C: het hangt rechts onder zone C */
 @media (max-width: 1100px) and (min-width: 481px) { #hud .cw-panel { left: auto; right: var(--hud-edge, 46px); transform: none; top: calc(var(--hud-tr-bottom, 150px) + 8px); min-width: 0; width: min(460px, calc(100vw / var(--ui, 1) - 2 * var(--hud-edge, 46px))); } }
 @media (max-width: 480px) { #hud .cw-panel { top: 64px; } }
@@ -94,7 +97,7 @@ export function createChoicePanel(accent = 'var(--mk-mission, #e8c93a)') {
       el.text.textContent = s.text || '';
       el.rule.hidden = !s.rule;
       el.rule.textContent = s.rule || '';
-      el.opts.innerHTML = (s.options || []).map((o) => `<div class="cw-opt ${o.cls || ''}" data-key="${esc(o.key)}">${keycap(o.key)}${o.note ? `<span class="cw-body"><span>${esc(o.label)}</span><span class="cw-note">${esc(o.note)}</span></span>` : `<span>${esc(o.label)}</span>`}${o.badge ? `<span class="cw-badge">${esc(o.badge)}</span>` : ''}</div>`).join('');
+      el.opts.innerHTML = (s.options || []).map((o) => `<div class="cw-opt ${o.cls || ''}" data-key="${esc(o.key)}">${o.icon ? `<span class="cw-ic">${icoon(o.icon, { maat: 'm' })}</span>` : keycap(o.key)}${o.note ? `<span class="cw-body"><span>${esc(o.label)}</span><span class="cw-note">${esc(o.note)}</span></span>` : `<span>${esc(o.label)}</span>`}${o.badge ? `<span class="cw-badge">${esc(o.badge)}</span>` : ''}</div>`).join('');
       if (s.meter) {
         el.meter.hidden = false;
         el.mark.style.left = `${Math.round(Math.max(0, Math.min(1, s.meter.v)) * 100)}%`;

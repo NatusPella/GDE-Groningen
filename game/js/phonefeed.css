@@ -21,10 +21,10 @@
   opacity: 0;
   transform: translateY(-40px) rotate(calc(var(--ds-schuin) * -2)) scale(0.96);
   transform-origin: 20% 0%;
-  transition: opacity 0.35s ease, transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.4s;
+  transition: opacity var(--ds-m-max) ease, transform var(--ds-m-max) cubic-bezier(0.2, 0.8, 0.2, 1), filter var(--ds-m-max);
 }
 #hud .pf-card.on, #hud .pf-callcard.on { opacity: 1; transform: rotate(var(--ds-schuin)); }
-#hud .pf-card.out, #hud .pf-callcard.out { opacity: 0; transform: translateY(-30px) scale(0.96); transition-duration: 0.45s; }
+#hud .pf-card.out, #hud .pf-callcard.out { opacity: 0; transform: translateY(-30px) scale(0.96); transition-duration: var(--ds-m-max); }
 /* ds-motion.css (.ds-mi-in): de telefoonmelding schuift 8 px in vanaf de bovenrand en faadt in 200 ms uit; de schuinte blijft op transform, zonder schaal */
 #hud .pf-card.ds-mi-in { --ds-mi-y: -8px; transform: rotate(var(--ds-schuin)); transition: opacity var(--ds-m) var(--ds-ease), translate var(--ds-m) var(--ds-ease); }
 #hud .pf-card.ds-mi-in.on { opacity: 1; transform: rotate(var(--ds-schuin)); }
@@ -83,9 +83,9 @@
   inset: calc(var(--ds-s-1) * -1);
   border-radius: 50%;
   border: var(--ds-lijn-dik) solid var(--pf);
-  animation: pf-ring 0.8s ease-out infinite;
+  animation: pf-ring var(--ds-m-max) ease-out 2; /* ds3-lus: bel of live-stip */
 }
-#hud .pf-callcard.ringing { animation: pf-buzz 0.4s ease-in-out infinite alternate; }
+#hud .pf-callcard.ringing { animation: pf-buzz var(--ds-m-max) ease-in-out 2 alternate; } /* ds3-lus: bel of live-stip */
 @keyframes pf-ring { from { transform: scale(0.9); opacity: 1; } to { transform: scale(1.5); opacity: 0; } }
 @keyframes pf-buzz { from { transform: rotate(-1deg); } to { transform: rotate(1deg); } }
 #hud .pf-callwho { display: flex; flex-direction: column; line-height: 1.05; min-width: 0; }
@@ -93,11 +93,11 @@
 #hud .pf-callwho b { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-kaart-titel); letter-spacing: var(--ds-ls-label); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #hud .pf-state, #hud .pf-live { margin-left: auto; white-space: nowrap; }
 #hud .pf-clock { font-weight: normal; font-variant-numeric: tabular-nums; }
-#hud .pf-dot { width: var(--ds-s-2); height: var(--ds-s-2); border-radius: 50%; background: var(--ds-c-ink-bord); animation: pf-blink 1.2s ease-in-out infinite; }
-#hud .pf-live { animation: pf-blink 1.4s ease-in-out infinite; }
+#hud .pf-dot { width: var(--ds-s-2); height: var(--ds-s-2); border-radius: 50%; background: var(--ds-c-ink-bord); animation: pf-blink var(--ds-m-max) ease-in-out 2; } /* ds3-lus: bel of live-stip */
+#hud .pf-live { animation: pf-blink var(--ds-m-max) ease-in-out 2; } /* ds3-lus: bel of live-stip */
 @keyframes pf-blink { 50% { opacity: 0.4; } }
 #hud .pf-line { display: flex; flex-direction: column; gap: var(--ds-s-1); padding: var(--ds-s-1) 0 var(--ds-s-1) var(--ds-s-3); border-left: var(--ds-status-rand) solid var(--pf); min-height: 22px; }
-#hud .pf-line.new { animation: pf-line 0.35s ease-out; }
+#hud .pf-line.new { animation: pf-line var(--ds-m-max) ease-out; }
 @keyframes pf-line { from { opacity: 0; transform: translateY(6px); } }
 #hud .pf-speaker { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-kaart-eyebrow); letter-spacing: var(--ds-ls-kaart-eyebrow); text-transform: uppercase; }
 #hud .pf-speaker:empty, #hud .pf-sub:empty { display: none; }

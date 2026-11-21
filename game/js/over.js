@@ -1,6 +1,7 @@
 // "Wat is er nieuw" and "Over": the changelog loader and the version-seen bookkeeping, shared by
 // the pause menu's Over section and the old start screen (QA/trailer). The start screen used to own
 // this; the pause menu is now the normal place, so the loader lives here.
+import { icoon } from './icons.js';
 import { VERSION } from './version.js';
 import { checkWhatsNew, markVersionSeen, compareVersions } from './whatsnew.js';
 import { CREDITS_HTML, LICENSES_HTML, ABOUT_HTML } from './credits.js';
@@ -11,7 +12,7 @@ const inline = (s) => esc(s)
   .replace(/`([^`]+)`/g, '<code>$1</code>')
   .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
   .replace(/\*([^*]+)\*/g, '<em>$1</em>');
-const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg>';
+const CHEV = icoon('volgende'); // F6: Phosphor via icons.js
 
 // Just enough Markdown for CHANGELOG.md: version headings, section headings, bullets (with
 // wrapped continuation lines) and paragraphs. The title, the intro and the [Unreleased] section

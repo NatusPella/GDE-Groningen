@@ -1,7 +1,10 @@
 // Pure kern van de ds3-telling (zonder fs of git), zodat ook de regelaudit (scripts/release/design_rules.mjs) hem per diffregel kan gebruiken.
 // Zie ds3_telling.mjs voor het lezen van de bestanden en ds3_dekking_test.mjs voor de ratel.
 
-export const SOORTEN = ['kleur', 'glas', 'oud', 'font', 'klein'];
+export const SOORTEN = ['kleur', 'glas', 'oud', 'font', 'klein', 'lus', 'lang', 'emoji', 'svg'];
+// Nieuwe soorten (ds3-vervolg 21-11, F5, F6, F15, F16): lus = een oneindige animatie, lang = een animatie of transitie boven 250 ms,
+// emoji = een echte emoji in spelertekst (Phosphor, ADR 0041), svg = een eigen <svg> buiten icons.js. Een regel met `ds3-dwell` (een verblijftijd
+// of wachttimer, geen beweging), `ds3-film` (een scène of cutscene: de speler kijkt, geen UI-beweging), `ds3-lus` (de bel en de live-stip, bewust) of `ds3-uitzondering` telt niet.
 
 // Bestanden die bewust buiten de telling vallen: definitie, 3D, canvas in de wereld, debug.
 // Elke regel heeft een reden; een bestand dat hier niet staat telt mee.
@@ -25,6 +28,18 @@ export const BEWUST_PATROON = [
   [/^game\/js\/(?:coopidentiteit|ctxidentiteit|minigamekit)\.js$/, 'identiteitskleuren per speler en context (een tabel, bewust)'],
 ];
 
+// Eigen <svg> die geen icoon is maar meetgeometrie of een toetsvorm (F6): Phosphor kent daar geen equivalent voor, en de vorm hangt van data af
+// (voortgangsring, wijzerplaat, kompas- of windpijl, richtkijker, muis- en controllervormen). Alleen hier mag een bestand eigen <svg> houden
+// zonder dat de ratel (soort svg) hem telt; een echt icoon hoort via icons.js (scripts/ui/phosphor_kies.mjs, ADR 0041).
+export const SVG_GEOMETRIE = [
+  [/^game\/js\/keycap\.js$/, 'toetsplaatjes: de muisvorm en de houdring zijn geometrie van het toetsplaatje'],
+  [/^game\/js\/glyphs\.js$/, 'controllervormen (d-pad, PlayStation-symbolen) zijn toetsvormen, geen iconen'],
+  [/^game\/js\/(?:heistui|trailer|cinematics)\.js$/, 'wijzerplaat en voortgangsring (skip-ring) zijn meetgeometrie met data-afhankelijke dash-lengte'],
+  [/^game\/js\/(?:helirun|zeilvaren)\.js$/, 'richtings- en windpijl draait mee met de data: geometrie, geen icoon'],
+  [/^game\/js\/aimassist\.js$/, 'richtkijker en richtcirkel zijn meetgeometrie'],
+];
+const svgGeometrie = (f) => SVG_GEOMETRIE.some(([re]) => re.test(f));
+
 export function bewustReden(f) {
   if (BEWUST[f]) return BEWUST[f];
   for (const [re, reden] of BEWUST_PATROON) if (reden && re.test(f)) return reden;
@@ -43,12 +58,19 @@ const KLEUR_CONTEXT = /(?:color|background(?:-color)?|border(?:-[a-z]+)?|outline
 const HEX = /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3})(?![0-9a-zA-Z_-])/g;
 const RGB = /\brgba?\(\s*\d/g;
 
+// Echte emoji: alles met emoji-presentatie, een teken uit 2190 tot 2BFF met FE0F erachter (bijvoorbeeld het hart), en de drie tekens uit F5 die
+// zonder FE0F al als emoji getekend worden. Pijlen, sterren, vinkjes en andere tekstsymbolen zijn F7 en tellen hier niet mee.
+// (De codepunten staan als getallen, zodat geen editor of harnas er een ander teken van maakt.)
+const CH = (...c) => c.map((x) => String.fromCharCode(x)).join('');
+const EMOJI = new RegExp('\\p{Emoji_Presentation}|[' + CH(0x2190) + '-' + CH(0x2BFF) + ']' + CH(0xFE0F) + '|[' + CH(0x2709, 0x263A, 0x26F4) + ']', 'u');
+
 /** Telt per regel; `regel` geeft de regelnummers terug voor de lijst. */
 export function telBestand(f, src) {
   const css = /\.css$/.test(f);
   const html = /\.html$/.test(f);
   const schoon = zonderCommentaar(src, css);
-  const n = { kleur: 0, glas: 0, oud: 0, font: 0, klein: 0 };
+  const ruw = src.split('\n');
+  const n = Object.fromEntries(SOORTEN.map((x) => [x, 0]));
   const regels = [];
   schoon.split('\n').forEach((l, i) => {
     if (!l.trim()) return;
@@ -104,8 +126,18 @@ export function telBestand(f, src) {
       }
       for (const m of k.matchAll(/\bfont\s*:\s*(?:[a-z0-9 ]+\s)?(\d+(?:\.\d+)?)px/gi)) if (Number(m[1]) < 13) klein++;
     }
-    const tel = { kleur, glas, oud, font, klein };
-    tel.kleur = kleur;
+    // beweging: alleen declaraties (animation, transition); de tijd in een var(--x, 5s) is al weggehaald in k
+    let lus = 0, lang = 0;
+    if (stijl && /\banimation(?:-[a-z-]+)?\s*:|\btransition(?:-[a-z-]+)?\s*:/.test(k) && !/ds3-(?:dwell|film|uitzondering)/.test(ruw[i] || '')) {
+      if (/\binfinite\b/.test(k) && !/ds3-lus/.test(ruw[i] || '')) lus++;
+      const dec = k.match(/\b(?:animation|transition)(?:-duration)?\s*:[^;}]*/g) || [];
+      if (dec.some((d) => [...d.matchAll(/(?<![\w.-])(\d*\.?\d+)(ms|s)\b/g)].some((m) => (m[2] === 's' ? Number(m[1]) * 1000 : Number(m[1])) > 250))) lang++;
+    }
+    // echte emoji in spelertekst (geen tekstsymbolen als pijlen of sterren; die zijn F7)
+    const emoji = EMOJI.test(k) && !/ds3-uitzondering/.test(ruw[i] || '') ? 1 : 0;
+    // een eigen <svg> (icons.js en phosphordata.js zijn de ene bron)
+    const svg = !css && !svgGeometrie(f) && !/(?:^|\/)(?:icons|phosphordata)\.js$/.test(f) && /<svg\b/.test(k) && !/ds3-uitzondering/.test(ruw[i] || '') ? 1 : 0;
+    const tel = { kleur, glas, oud, font, klein, lus, lang, emoji, svg };
     for (const s of SOORTEN) n[s] += tel[s] || 0;
     if (SOORTEN.some((s) => tel[s])) regels.push({ r: i + 1, t: l.trim().slice(0, 150), ...tel });
   });

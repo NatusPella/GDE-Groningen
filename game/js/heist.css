@@ -15,7 +15,7 @@
   border: 1px solid color-mix(in srgb, var(--ds-c-licht-groen) 45%, transparent); box-shadow: 0 10px 30px color-mix(in srgb, var(--ds-c-ink-inkt) 50%, transparent), 0 0 18px color-mix(in srgb, var(--ds-c-licht-groen) 12%, transparent);
 }
 #heist-ui .hx-panel.on { opacity: 1; transform: translate(-50%, 0); }
-#heist-ui .hx-panel.shake { animation: hx-shake 0.28s; }
+#heist-ui .hx-panel.shake { animation: hx-shake var(--ds-m-max); }
 @keyframes hx-shake { 20% { margin-left: -7px; } 45% { margin-left: 6px; } 70% { margin-left: -4px; } 100% { margin-left: 0; } }
 #heist-ui .hx-title { font-size: 22px; letter-spacing: 2px; color: var(--ds-c-licht-groen); text-shadow: 0 0 10px color-mix(in srgb, var(--ds-c-licht-groen) 30%, transparent); }
 #heist-ui .hx-sub { font-family: var(--ds-font-tekst); font-size: 13px; opacity: 0.75; margin-top: 1px; letter-spacing: 0.3px; }
@@ -69,7 +69,7 @@
 /* --- the blueprint (plan scene) ------------------------------------------------------- */
 #heist-ui .hx-plan {
   position: absolute; right: 3vw; top: 12.5vh; width: min(56vw, 880px, calc(114vh - 260px)); opacity: 0; transform: translateX(24px) rotate(0.6deg);
-  transition: opacity 0.4s, transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition: opacity var(--ds-m-max), transform var(--ds-m-max) cubic-bezier(0.2, 0.7, 0.2, 1);
   padding: 12px 14px 10px; border-radius: 6px;
   background: radial-gradient(ellipse at 40% 30%, var(--ds-c-glas-2), var(--ds-c-glas) 85%);
   border: 2px solid color-mix(in srgb, var(--ds-c-licht-groen) 55%, transparent); box-shadow: 0 16px 40px color-mix(in srgb, var(--ds-c-ink-inkt) 60%, transparent);
@@ -102,7 +102,7 @@
 /* --- the card on the empty cushion ------------------------------------------------------ */
 #heist-ui .hx-note {
   position: absolute; left: 50%; top: 42%; width: min(460px, 80vw); padding: 26px 30px 20px; border-radius: 4px; opacity: 0;
-  transform: translate(-50%, -30%) rotate(-7deg) scale(0.8); transition: opacity 0.4s, transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform: translate(-50%, -30%) rotate(-7deg) scale(0.8); transition: opacity var(--ds-m-max), transform var(--ds-m-max) cubic-bezier(0.2, 0.8, 0.2, 1);
   background: #f6efdc; color: #2b2418; box-shadow: 0 22px 50px color-mix(in srgb, var(--ds-c-ink-inkt) 60%, transparent);
   font-family: var(--ds-font-tekst); font-style: italic; /* #629: geen handgeschreven font; cursief Arial Narrow zoals afgesproken */
 }
@@ -114,12 +114,12 @@
 
 /* --- the alarm and the laser zap ------------------------------------------------------------ */
 #heist-ui .hx-alarm { position: absolute; inset: 0; opacity: 0; background: radial-gradient(ellipse at center, transparent 45%, color-mix(in srgb, var(--ds-c-rood-glas) 55%, transparent) 100%); }
-#heist-ui .hx-flash { position: absolute; inset: 0; opacity: 0; background: color-mix(in srgb, var(--ds-c-rood-glas) 35%, transparent); transition: opacity 0.5s; }
+#heist-ui .hx-flash { position: absolute; inset: 0; opacity: 0; background: color-mix(in srgb, var(--ds-c-rood-glas) 35%, transparent); transition: opacity var(--ds-m-max); }
 #heist-ui .hx-flash.on { opacity: 1; transition: none; }
 
 /* --- "hold O to skip" when a stage is giving trouble ------------------------------------ */
 #heist-ui .hx-skipchip {
-  position: absolute; left: 50%; top: 21%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; opacity: 0; transition: opacity 0.3s;
+  position: absolute; left: 50%; top: 21%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; opacity: 0; transition: opacity var(--ds-m-max);
   padding: 5px 12px; border-radius: 16px; background: color-mix(in srgb, var(--ds-c-glas) 82%, transparent); border: 1px solid color-mix(in srgb, var(--ds-c-licht-groen) 35%, transparent);
   font-family: var(--ds-font-tekst); font-size: 14px; letter-spacing: 0.3px;
 }

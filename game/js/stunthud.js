@@ -24,13 +24,13 @@ const CSS = `
 #hud .stunt-hud .sh-cw { height: 3px; margin-top: 3px; border-radius: 2px; background: color-mix(in srgb, var(--ds-c-wit) 8%, transparent); overflow: hidden; }
 #hud .stunt-hud .sh-cw i { display: block; height: 100%; width: 0; background: var(--ds-c-licht-groen); }
 #hud .stunt-hud .sh-left { margin-top: 4px; font-size: 20px; letter-spacing: 0.5px; }
-#hud .stunt-hud .sh-left[data-urgent="1"] { color: var(--ds-c-ink-geel); animation: sh-pulse 0.9s ease-in-out infinite alternate; }
+#hud .stunt-hud .sh-left[data-urgent="1"] { color: var(--ds-c-ink-geel); animation: sh-pulse var(--ds-m-max) ease-in-out 2 alternate; }
 #hud .stunt-hud .sh-left[data-done="1"] { color: var(--ds-c-licht-groen); }
 #hud .stunt-hud .rw { background: none; box-shadow: none; padding: 6px 0 0; }
 @keyframes sh-pulse { to { opacity: 0.55; } }
 #hud .stunt-pops { position: absolute; top: calc(var(--hud-tr-bottom) + 12px); right: 292px; width: 220px; height: 150px; pointer-events: none; }
 #hud .stunt-pop { position: absolute; right: 0; top: 0; font-family: var(--ds-font-kop); font-size: 28px;
-  letter-spacing: 0.5px; color: var(--ds-c-creme); text-shadow: var(--hud-shadow); white-space: nowrap; animation: sh-rise 1.5s ease-out forwards; }
+  letter-spacing: 0.5px; color: var(--ds-c-creme); text-shadow: var(--hud-shadow); white-space: nowrap; animation: sh-rise 1.5s ease-out forwards; } /* ds3-dwell: verblijf */
 #hud .stunt-pop b { font-weight: normal; color: var(--ds-c-licht-groen); }
 #hud .stunt-pop.combo { font-size: 24px; color: var(--ds-c-licht-groen); }
 #hud .stunt-pop.bad b, #hud .stunt-pop.bad { color: var(--ds-c-rood-glas); }

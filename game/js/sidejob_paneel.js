@@ -166,7 +166,7 @@ export const kermisdraai = paneelBaan('kermisdraai', accentVan('kermisdraai'), '
       flash: d.flashT > 0 ? d.flash : '',
       bad: !!d.bad,
       help: `${keycap('SPATIE')} in het groen · ${keycap('BACKSPACE')} stoppen`,
-      options: [{ key: '☺', label: `Rij blij: ${Math.round(s.happy * 100)}%` }],
+      options: [{ key: 'hart', icon: 'hart', label: `Rij blij: ${Math.round(s.happy * 100)}%` }],
     });
   },
   { goed: ['Precies op tijd!', false], fout: ['Te vroeg of te laat: de rij kijkt.', true], rit: ['Een rit erop, volgende groep!', false] });
@@ -181,9 +181,9 @@ export const brugdienst = paneelBaan('brugdienst', accentVan('brugdienst'), 'Bru
       bad: !!d.bad,
       help: `${keycap('SPATIE')} brug open of dicht · ${keycap('BACKSPACE')} stoppen`,
       options: [
-        { key: '⛴', label: `Boten in de rij: ${Math.floor(s.boats)}` },
-        { key: '🚗', label: `Auto's in de rij: ${Math.floor(s.cars)}` },
-        { key: '✉', label: `Klachten: ${s.complaints}/4` },
+        { key: 'boot', icon: 'boot', label: `Boten in de rij: ${Math.floor(s.boats)}` },
+        { key: 'auto', icon: 'auto', label: `Auto's in de rij: ${Math.floor(s.cars)}` },
+        { key: 'mail', icon: 'mail', label: `Klachten: ${s.complaints}/4` },
       ],
     });
   },

@@ -103,7 +103,7 @@ html.touch-device.touch-portrait #hud .pl-name { font-size: clamp(34px, 10vw, 56
 html.touch-device.touch-portrait #hud .pl-kick { gap: 10px; font-size: 16px; }
 html.touch-device.touch-portrait #hud .pl-kick i { width: 42px; }
 /* De pause-rail is op een korte telefoon scrollbaar; een dunne scrollbar maakt dat zichtbaar. */
-html.touch-device #pause-menu .pm-inner.pm-game { scrollbar-width: thin; scrollbar-color: rgba(240, 237, 228, 0.35) transparent; }
+html.touch-device #pause-menu .pm-inner.pm-game { scrollbar-width: thin; scrollbar-color: var(--ds-scroll-duim) var(--ds-scroll-spoor); }
 
 /* #826: HUD-blokken niet onder de aanraakknoppen; tekst in de nowplaying >= 12 px. */
 /* #850/#877/#985: het doel hangt bovenin (zone B), dus het vliegtuigpaneel onderin raakt het niet meer; staat het les-/minigamebord

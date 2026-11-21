@@ -125,7 +125,7 @@ const CSS = `
 #hud .tc-cab .tc-row .tc-door.open { background: color-mix(in srgb, var(--mk-ok, #3fc97a) 25%, transparent); color: var(--ink, #f0ede4); }
 #hud .tc-cab .tc-row .tc-storing { color: var(--mk-job, #ff9a3c); font-size: 16px; letter-spacing: 1px; }
 #hud .tc-cab .tc-row .tc-storing::before { content: '\\26A0\\a0'; }
-#hud .tc-cab .tc-alert { grid-column: 1 / -1; padding: 5px 10px; background: color-mix(in srgb, var(--mk-danger, #d93f3f) 90%, transparent); color: var(--ink, #fff); font-size: 20px; letter-spacing: 2px; text-align: center; animation: tcblink 0.5s steps(2) infinite; }
+#hud .tc-cab .tc-alert { grid-column: 1 / -1; padding: 5px 10px; background: color-mix(in srgb, var(--mk-danger, #d93f3f) 90%, transparent); color: var(--ink, #fff); font-size: 20px; letter-spacing: 2px; text-align: center; animation: tcblink var(--ds-m-max) steps(2) 2; }
 #hud .tc-cab .tc-alert[hidden] { display: none; }
 @keyframes tcblink { 50% { background: color-mix(in srgb, var(--mk-danger, #d93f3f) 55%, var(--ds-c-glas)); } }
 #hud .tc-cab .hud-key { margin: 0 2px; vertical-align: middle; }

@@ -135,18 +135,18 @@ const POLICE_MODEL = { name: 'police', len: 4.3, wid: 1.8, maxSpeed: 55, accel: 
 // --- UI ---------------------------------------------------------------------------
 
 const CSS = `
-#trailer { position: fixed; inset: 0; z-index: 17; pointer-events: none; font-family: var(--ds-font-zeef-kop); color: var(--ds-c-ink-papier); opacity: 0; transition: opacity 0.4s; --bar: 9vh; }
+#trailer { position: fixed; inset: 0; z-index: 17; pointer-events: none; font-family: var(--ds-font-zeef-kop); color: var(--ds-c-ink-papier); opacity: 0; transition: opacity 0.4s; --bar: 9vh; } /* ds3-film: scene */
 #trailer.on { opacity: 1; }
 #trailer > div { position: absolute; }
-#trailer .tr-vig { inset: 0; background: radial-gradient(ellipse at center, color-mix(in srgb, var(--ds-c-ink-inkt) 0%, transparent) 55%, rgba(4, 10, 8, 0.5) 100%); transition: opacity 1.2s; }
-#trailer .tr-bar { left: 0; right: 0; height: var(--bar); background: var(--ds-c-ink-inkt); transition: transform 0.8s cubic-bezier(0.6, 0, 0.3, 1); }
+#trailer .tr-vig { inset: 0; background: radial-gradient(ellipse at center, color-mix(in srgb, var(--ds-c-ink-inkt) 0%, transparent) 55%, rgba(4, 10, 8, 0.5) 100%); transition: opacity 1.2s; } /* ds3-film: scene */
+#trailer .tr-bar { left: 0; right: 0; height: var(--bar); background: var(--ds-c-ink-inkt); transition: transform 0.8s cubic-bezier(0.6, 0, 0.3, 1); } /* ds3-film: scene */
 #trailer .tr-bar.top { top: 0; } #trailer .tr-bar.bottom { bottom: 0; }
 #trailer.handoff .tr-bar.top { transform: translateY(-100%); } #trailer.handoff .tr-bar.bottom { transform: translateY(100%); }
 #trailer.handoff .tr-vig { opacity: 0; }
 /* during a run frame() sets the black's opacity from the trailer clock (the
    fixed-step export would turn these transitions into hard cuts); the
    classes are for fadeOutTrailer, after the run */
-#trailer .tr-black { inset: 0; background: var(--ds-c-glas); opacity: 0; transition: opacity 0.35s; }
+#trailer .tr-black { inset: 0; background: var(--ds-c-glas); opacity: 0; transition: opacity 0.35s; } /* ds3-film: scene */
 #trailer .tr-black.on { opacity: 1; transition: opacity 0.12s; }
 #trailer .tr-black.fade { opacity: 1; transition: opacity 0.4s; }
 #trailer .tr-black.dim { opacity: 0.55; transition: opacity 0.9s; }

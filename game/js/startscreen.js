@@ -1,3 +1,4 @@
+import { icoon } from './icons.js';
 import { hoofdspeler } from './players.js';
 import { FLAGS, reseedAutoplay } from './devflags.js';
 import { hasSave, loadBootSave, startNewSlot, getSaveSummary, ensureActiveSlot, ensureLatestSlot, isFreshStart, finishFreshStart, currentSlot } from './savegame.js';
@@ -78,6 +79,8 @@ function el(id) {
 }
 
 function showVersion() {
+  const hart = document.querySelector('#start-screen .ss-credit .heart');
+  if (hart && !hart.firstChild) hart.innerHTML = icoon('hart_vol', { maat: 'm' }); // F5: Phosphor in plaats van de emoji
   const v = document.querySelector('#start-screen .ss-ver');
   if (v && VERSION && VERSION !== 'dev') v.textContent = 'v' + VERSION;
   const b = document.querySelector('#loading .bt-ver');
