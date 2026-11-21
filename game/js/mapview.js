@@ -214,10 +214,10 @@ function injectStyles() {
     .mapview-btn[hidden] { display: none; }
     .mapview-btn:focus-visible { outline: 3px solid ink(cream); outline-offset: 2px; }
     .mapview-route { margin-left: auto; font-size: 16px; color: ink(cream); white-space: nowrap; }
-    .mapview-route .user { color: var(--mk-user, ${ROUTE_COLORS.user}); }
-    .mapview-route .mission { color: var(--mk-mission, ${ROUTE_COLORS.mission}); }
-    .mapview-route .job { color: var(--mk-job, ${ROUTE_COLORS.job}); }
-    .mapview-route .care { color: var(--mk-care, ${ROUTE_COLORS.care}); }
+    .mapview-route .user { color: var(--nav-eigen, ${ROUTE_COLORS.user}); }
+    .mapview-route .mission { color: var(--nav-actief, ${ROUTE_COLORS.mission}); }
+    .mapview-route .job { color: var(--nav-klus, ${ROUTE_COLORS.job}); }
+    .mapview-route .care { color: var(--nav-zorg, ${ROUTE_COLORS.care}); }
     .mapview-route > span + span { margin-left: 14px; }
     .mapview-route button { margin-left: 6px; padding: 0 6px; font: inherit; font-size: max(13px, var(--menu-min, 13px)); color: inherit; background: transparent; border: 1px solid currentColor; border-radius: 3px; cursor: pointer; }
     .mapview-footer b { color: ink(greenLight); font-weight: normal; }
@@ -354,10 +354,10 @@ function injectStyles() {
     .mapview-btn:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-c-ink-inkt); outline-offset: var(--ds-focus-afstand); }
     .mapview-route { color: var(--ds-zeef-tx); }
     .mapview-route .user, .mapview-route .mission, .mapview-route .job, .mapview-route .care { color: var(--ds-zeef-tx); border-bottom: 4px solid currentColor; }
-    .mapview-route .user { border-bottom-color: var(--mk-user, ${ROUTE_COLORS.user}); }
-    .mapview-route .mission { border-bottom-color: var(--ds-c-ink-geel); }
-    .mapview-route .job { border-bottom-color: var(--mk-job, ${ROUTE_COLORS.job}); }
-    .mapview-route .care { border-bottom-color: var(--mk-care, ${ROUTE_COLORS.care}); }
+    .mapview-route .user { border-bottom-color: var(--nav-eigen, ${ROUTE_COLORS.user}); }
+    .mapview-route .mission { border-bottom-color: var(--nav-actief, var(--ds-c-ink-geel)); }
+    .mapview-route .job { border-bottom-color: var(--nav-klus, ${ROUTE_COLORS.job}); }
+    .mapview-route .care { border-bottom-color: var(--nav-zorg, ${ROUTE_COLORS.care}); }
     .mapview-footer b { color: var(--ds-zeef-kop); }
     .mapview-canvas { box-shadow: none; }
     .mapview-zoom button { color: var(--ds-zeef-tx); background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); font-family: var(--ds-font-zeef-kop); font-weight: 800; }

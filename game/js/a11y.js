@@ -7,6 +7,7 @@ import { getSettings, onSettingsChange, SUBTITLE_SIZES } from './settings.js';
 import { TEXT_SIZES, textScale, shakeAmount } from './a11ylogic.js';
 import { setShakeFilter } from './cutscript.js';
 import { reducedMotion } from './motion.js';
+import { NAV_ROL } from './navdoel.js';
 
 // Semantic marker colours. The default is the design system; the others
 // follow the Okabe-Ito palette, which stays apart for all three kinds of
@@ -53,6 +54,11 @@ function apply(s, key) {
   for (const m of Object.keys(PALETTES)) html.classList.toggle('cb-' + m, s.colorBlind === m && m !== 'uit');
   const p = markerColors();
   for (const [k, v] of Object.entries(p)) html.style.setProperty('--mk-' + k, v);
+  // #1078 navdoel.js: de doelkleuren volgen NAV_ROL en dus ook de kleurenblindpaletten (--nav-secundair staat in ds-tokens.css: crème)
+  html.style.setProperty('--nav-actief', p[NAV_ROL.missie]);
+  html.style.setProperty('--nav-eigen', p[NAV_ROL.eigen]);
+  html.style.setProperty('--nav-klus', p[NAV_ROL.klus]);
+  html.style.setProperty('--nav-zorg', p[NAV_ROL.zorg]);
   if (!key || key === 'colorBlind') for (const cb of listeners) cb(p);
 }
 

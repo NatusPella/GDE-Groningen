@@ -8,6 +8,7 @@
 // init3D binnen via setRouteRibbonScene(), dus er is geen modulecyclus.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { markerColors } from '../a11y.js';
+import { routeRol } from '../navdoel.js';
 import { hoofdspeler } from '../players.js';
 import { gameBusy } from '../busy.js';
 import { SIDEWALK_EXTRA } from '../roadsurface.js';
@@ -262,7 +263,7 @@ export function updateRouteRibbon3D(dt, world) {
   } catch (e) { reportRibbonError('waymarkers', e); }
   // op het water: een doorlopende vaarlijn (vaarlijn3d.js) in plaats van boeien
   try {
-    updateVaarlijn3D(dt, scene, route, routeLinks.getRouteAhead, world, routeColor(route, markerColors()[route && route.kind] || markerColors().mission));
+    updateVaarlijn3D(dt, scene, route, routeLinks.getRouteAhead, world, routeColor(route, markerColors()[routeRol(route && route.kind)] || markerColors().mission));
   } catch (e) { reportRibbonError('vaarlijn', e); }
   // In een luchtvaartuig is de route een rechte lijn door de lucht (airline3d.js) en bouwen we geen grondstrook:
   // geen wegroute-herberekening in de scene en de waakhond hieronder verwacht dan geen strook.
@@ -313,7 +314,7 @@ export function updateRouteRibbon3D(dt, world) {
       const geo = buildRouteRibbonGeometry(lane, route.cum[route.idx] + Math.hypot(route.px - p0[0], route.py - p0[1]), world.map, pl && pl.inVehicle ? pl.inVehicle.z || 0 : (pl && pl.gz) || 0);
       routeRibbonMesh.geometry.dispose();
       routeRibbonMesh.geometry = geo;
-      routeRibbonMesh.material.color.set(routeColor(route, markerColors()[route.kind] || markerColors().mission)); // a11y.js palette
+      routeRibbonMesh.material.color.set(routeColor(route, markerColors()[routeRol(route.kind)] || markerColors().mission)); // a11y.js palette
       routeRibbonKey = key;
       ribbonBuildFailed = false;
     } catch (e) {
