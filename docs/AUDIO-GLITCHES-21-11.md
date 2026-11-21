@@ -47,6 +47,10 @@ Melding van de eigenaar: Nikky (AMD RX 9070 XT, een sterke pc, maar ook hapering
 5. Sluit andere programma's die geluid of de videokaart gebruiken (opname- en overlaysoftware). Zet de resolutieschaal in het spel omlaag: hapert het beeld door de processor, dan hapert ook de audiodraad.
 6. Hoor je het nog? Start het spel met `?geenlimiter` om te zien of de limiter er iets mee te maken heeft, en meld of het ruisgeluid bij een bepaalde plek of een bepaald geluid hoorde (rijden, regen, muziek).
 
+## Ketenaudit (21-11)
+
+`node scripts/audio_ketenaudit.mjs` (test: `scripts/audio_ketenaudit_test.mjs`) leest de bron van alle audiopaden en keurt: niets langs de limiter naar de uitgang, limiterwaarden (drempel, ratio, attack, release), gain-stapeling van bus naar master, lussen en oscillatoren met een stoppad, exponentiele ramps naar 0, mediaelementen met pause, de motor-werklet (true, NaN-wacht, geen allocatie in process), de plekken waar buffers worden gebouwd en de stemlimiet per categorie. Bewust blijvende stemmen (gepoolde synth- en lusstemmen op volume 0) staan in BLIJVENDE_STEMMEN; een nieuwe moet daar bewust bij. Gevonden en gefixt: de vliegtuig- en bootlussen stopten nooit (sfx/aircraft.js). Niet gemeten: werkelijke belasting, pompen van de limiter en luisterkwaliteit.
+
 ## Nog te bekijken
 
 Zie de sectie "Glitches en ruis" in [SFX-LUISTERLIJST.md](SFX-LUISTERLIJST.md).
