@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Afsluiten in het hoofdmenu vraagt nu eerst "Weet je het zeker?", met de melding dat je voortgang al is opgeslagen; Annuleren staat voorgeselecteerd, dus een verdwaalde Enter sluit niets (#915). Samen spelen: lokaal, het sluit alleen je eigen venster.
+- Voortgangsbalken (loopbaan, prestaties, garage, doellijst en drift) lopen vloeiender: de vulling schuift in plaats van te groeien, en blijft stil bij Beweging beperken en Rustig drukwerk (#1093). Dit is een weergave, per speler lokaal.
 - Snackwagen: de wagen groeit mee met het verhaal. Het menu samenstellen opent na Oma Trijntjes recept, vergunningen kopen na Lammerts kade en de kermis, medewerkers-wagens na het team van Berend, Tinus en Wubbo, je eigen wagen op een standplaats zetten na de Vismarkt, en een tweede wagen en plekken van Usmem overnemen aan het eind van de zomer. Een dichte stap laat een hint zien; de belettering is eerst SNACKWAGEN en wordt TAM & TES zodra de wagen zijn naam heeft. Een opgeslagen spel van voor deze wijziging houdt alles open.
 - Samen spelen: een gast kan meewerken in de snackwagen van een medespeler (ook van de host); de eigenaar verkoopt die dag 8% meer en de gast verdient zijn uurloon uit nieuw geld.
 - Bezit: de eigen snackwagen levert ongeveer twee keer en een groot snackimperium ongeveer vier keer zoveel als actief werk; passief inkomen buiten de snackwagen blijft binnen drie keer.

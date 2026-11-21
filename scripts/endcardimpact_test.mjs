@@ -3,6 +3,7 @@
 import fs from 'node:fs';
 import { planIntro, counterSteps, isSkipEvent, FAST_MS, STEP_MS, MAX_TOTAAL_MS, MAX_TIKKEN } from '../game/js/endcardimpact.js';
 import { bouwMoment } from '../game/js/bigmoment.js';
+import { mayStartOverlay } from '../game/js/overlayrules.js';
 
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info !== '' ? ` (${info})` : ''}`); } };
@@ -85,6 +86,14 @@ ok(!/from '\.\/audio\.js'/.test(js), 'bigmoment.js blijft zonder audio-import (t
 ok(/capture|, true\)/.test(js) && !/preventDefault/.test(js.slice(js.indexOf('function startImpact'), js.indexOf('function toonNu'))), 'overslaan neemt geen invoer weg');
 const cine = fs.readFileSync(new URL('../game/js/cinematics.js', import.meta.url), 'utf8');
 ok(/setEindkaartGeluid\(playEindkaartGeluid\)/.test(cine), 'cinematics koppelt het eindkaartgeluid');
+
+// geen overlap met de prestatietoast (#1081): de slag van de eindkaart en die van de prestatie staan en klinken nooit tegelijk
+ok(!mayStartOverlay('prestatie', ['resultaat']), 'prestatie wacht zolang de resultaatkaart in beeld is');
+ok(mayStartOverlay('prestatie', []), 'prestatie mag weer als de resultaatkaart weg is');
+ok(mayStartOverlay('resultaat', ['prestatie']), 'de resultaatkaart begint altijd, ook als een prestatie nog staat');
+const overlayDom = fs.readFileSync(new URL('../game/js/overlayhold.js', import.meta.url), 'utf8');
+ok(/resultaat: '#cine \.cine-banner:not\(\[hidden\]\)'/.test(overlayDom), 'de DOM-kant herkent de resultaatkaart (showBanner houdt de banner open onder het moment)');
+ok(/isOverlayHeld\('prestatie'\)/.test(fs.readFileSync(new URL('../game/js/achievements.js', import.meta.url), 'utf8')), 'de prestatietoast vraagt isOverlayHeld');
 
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

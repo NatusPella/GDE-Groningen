@@ -14,6 +14,7 @@ import { difficultyPlan } from './difficultycard.js';
 import { openSamenKeuze, isSamenKeuzeOpen } from './samenkeuze.js';
 import { stopSoloHost } from './coopsolo.js';
 import { isPauseMenuOpen } from './pausestate.js';
+import { askQuitConfirm, isQuitConfirmOpen } from './quitconfirmui.js';
 import { pendingTrailer } from './trailerstate.js';
 // trailer.js (2500 lines) is only loaded when a trailer or benchmark really runs
 import { startTheme, stopTheme } from './theme.js';
@@ -840,7 +841,8 @@ function runMenuScreen(world, { render, relocate, tick, ready }, pending = null)
       } else if (it.act === 'settings') {
         openPauseMenu('settings', { prestart: true, onClose: () => focus(sel) });
       } else if (it.act === 'exit') {
-        window.gdeDesktop.quit();
+        // #915: eerst de vraag, met de melding over de voortgang; Annuleren zet de focus terug
+        askQuitConfirm({ onYes: () => window.gdeDesktop.quit(), onNo: () => focus(sel) });
       }
     };
     // for the QA scripts and recordings (docs/ONTWIKKELEN.md): start without clicking through Alleen spelen
@@ -865,7 +867,7 @@ function runMenuScreen(world, { render, relocate, tick, ready }, pending = null)
     };
     news.querySelector('.ss-news-close').addEventListener('click', closeNews);
     const onKey = (e) => {
-      if (isPauseMenuOpen() || isSaveSlotsOpen() || isSamenKeuzeOpen() || done || trailerOn) return;
+      if (isPauseMenuOpen() || isSaveSlotsOpen() || isSamenKeuzeOpen() || isQuitConfirmOpen() || done || trailerOn) return;
       if (e.target && e.target.closest && e.target.closest('#gfx-advice')) return;
       const k = e.key;
       if (!news.hidden) {
