@@ -34,6 +34,13 @@ export function qtePas(st, stand = 'normaal') {
 
 // Het faalpad: mag een timingstap de missie nog laten mislukken? Alleen op Normaal en alleen met een failAt; op Makkelijk en Overslaan
 // gaat het verhaal altijd door (met de lage tag). Geen enkele verhaalstap heeft nog een failAt (qte_story_test), dit is het vangnet.
+// De uitweg bij een tweede misser (eenmaal per stap): de speler weet vaak niet dat er een instelling is. Alleen als er nog iets te kiezen valt
+// (niet op Overslaan); nooit bij de eerste misser, want één misser hoort bij het spel.
+export const QTE_TIP_VANAF = 2;
+export function qteTip(stand, missers) {
+  if (schoneQte(stand) === 'overslaan' || !(missers >= QTE_TIP_VANAF)) return '';
+  return 'Te lastig? Zet Instellingen › Hints & uitleg › Quicktime-events op Overslaan: het verhaal gaat dan vanzelf door.';
+}
 export const qteKanFalen = (stand) => schoneQte(stand) === 'normaal';
 
 // De heist (zekeringen, slot, kluis): na hoeveel missers biedt de metgezel hulp aan (de speler komt nooit vast te zitten).

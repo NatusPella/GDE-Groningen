@@ -16,7 +16,7 @@
 import { createChoicePanel, keycap } from './choicepanel.js';
 import { neemTimingDruk } from './coopgast.js'; // de toets van een gast bij de gastheer (#525)
 import { timingGrace, widenZone, graceHint } from './timingassist.js'; // #957: ruimere zone per stand en hulp
-import { qtePas, qteStandVan, qteKanFalen } from './qte.js'; // #962: Normaal / Makkelijk / Overslaan, per speler
+import { qtePas, qteStandVan, qteKanFalen, qteTip } from './qte.js'; // #962: Normaal / Makkelijk / Overslaan, per speler
 import { uitlegModel, uitlegHtml, uitlegIconenAan, zetUitlegGlyph } from './uitleg.js'; // #989: het toetsplaatje met een druk-lus als prompt
 
 const REPLY_S = 1.5;
@@ -48,6 +48,7 @@ export function enterTiming(S, st, on, opts = {}) {
   S.ti = 0;
   S.hits = 0;
   S.miss = 0;
+  S.tipGezien = false;
   S.tphase = 'ask';
   S.needleT = 0;
   S.replyT = 0;
@@ -72,6 +73,7 @@ export function stepTiming(st, S, press, dt) {
     if (hit) S.hits++;
     else {
       S.miss++;
+      if (!S.tipGezien && qteTip(S.qte || 'normaal', S.miss)) S.tipGezien = true; // #962: bij de tweede misser eenmaal de uitweg in beeld (paint)
       // #962: een gemiste druk maakt de volgende poging makkelijker (ruimere
       // zone, langzamere naald) in plaats van het verhaal meteen te laten
       // mislukken. Alleen de kopie van deze ronde wordt aangepast.
@@ -124,7 +126,7 @@ function paint(st, S, round) {
     nr: Math.min(S.ti + 1, rondes.length),
     flash: reply ? reply.text : '',
     bad: !!reply && reply.bad,
-    help: reply ? '' : promptHtml(st, S, S.qte === 'overslaan' ? 'Het verhaal gaat zo door' : `${st.help || 'druk als de streep in het groen is'}${!gebaar && graceHint(S.grace) ? ` · ${graceHint(S.grace).toLowerCase()}` : ''}`),
+    help: reply ? '' : promptHtml(st, S, S.qte === 'overslaan' ? 'Het verhaal gaat zo door' : `${st.help || 'druk als de streep in het groen is'}${!gebaar && graceHint(S.grace) ? ` · ${graceHint(S.grace).toLowerCase()}` : ''}`) + (S.tipGezien ? '<span class="cw-tip">' + qteTip(S.qte || 'normaal', 99) + '</span>' : ''),
   });
 }
 
