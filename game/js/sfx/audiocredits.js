@@ -758,6 +758,13 @@ export const AUDIO_CREDITS = [
     "by": true
   },
   {
+    "id": 271659,
+    "beschrijving": "Kassalade gaat open",
+    "auteur": "HonorHunter",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 415153,
     "beschrijving": "Uil roept",
     "auteur": "howebzar",
@@ -1283,6 +1290,13 @@ export const AUDIO_CREDITS = [
     "by": true
   },
   {
+    "id": 522711,
+    "beschrijving": "Verkopen",
+    "auteur": "mitchanary",
+    "licentie": "CC BY 4.0",
+    "by": true
+  },
+  {
     "id": 81175,
     "beschrijving": "Kappersschaar knipt",
     "auteur": "mkoenig",
@@ -1752,13 +1766,6 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
-    "id": 245782,
-    "beschrijving": "Kassalade gaat open",
-    "auteur": "Rocotilos",
-    "licentie": "CC0 1.0",
-    "by": false
-  },
-  {
     "id": 678453,
     "beschrijving": "Binnendeur gaat open",
     "auteur": "rubberduck9999",
@@ -2049,13 +2056,6 @@ export const AUDIO_CREDITS = [
     "id": 341802,
     "beschrijving": "Weer",
     "auteur": "TiesWijnen",
-    "licentie": "CC BY 4.0",
-    "by": true
-  },
-  {
-    "id": 93915,
-    "beschrijving": "Verkopen",
-    "auteur": "tim.kahn",
     "licentie": "CC BY 4.0",
     "by": true
   },
