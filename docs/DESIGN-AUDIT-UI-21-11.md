@@ -176,7 +176,7 @@ De 55 belangrijke en nits die verdwenen, per categorie: eigen lettertype buiten 
 
 Wat blijft (niet blokkerend):
 
-- 12 nieuwe bestanden met een Nederlandse naam (`endcardimpact`, `livetreinen`, `navdoel`, `routegraphbuild`, `startchoice`, `startchoiceui`, `treinbron`, `treindienst`, `treinlive`, `treinrooster`, `bootplekken`, `wijkat`): hernoemen raakt imports, tests en docs; `naamtaal_check` meldt ook identifiers in `wijkat.js`. Besluit voor de coördinator.
+- 12 nieuwe bestanden met een Nederlandse naam (`endcardimpact`, `livetreinen`, `navdoel`, `pathgraphbuild`, `startchoice`, `startchoiceui`, `treinbron`, `treindienst`, `treinlive`, `treinrooster`, `bootplekken`, `wijkat`): hernoemen raakt imports, tests en docs; `naamtaal_check` meldt ook identifiers in `wijkat.js`. Besluit voor de coördinator.
 - Het logo in `index.html` (`.gde-sign` 0.25em en `.gde-meaning` 0.065em): relatieve maat zonder vloer; het woordmerk is beeld en hangt aan de afmetingen van het logo. Vraagt beeld.
 - Het handschrift van `storycontact.js` (`'Segoe Print'`): geen token voor een handschriftfont.
 - 6 nits `!important` in `hud_panel.css`, `pausemenu.css` en `ds-schermen.css`.

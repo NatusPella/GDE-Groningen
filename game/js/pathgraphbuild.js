@@ -2,7 +2,7 @@
 // hoofdthread op de echte stadswereld, achter elkaar: een hapering van een kwart seconde bij elke tegelwissel. Hier is dezelfde
 // berekening een generator die na een klein aantal wegen en na elke CSR-/componentenstap `yield`t; `runSteps` draait hem
 // in porties met een tijdbudget (routing.js ensureGraph, een portie per beeld). Zuiver (geen THREE, geen DOM, geen kaart):
-// scripts/routegraphbuild_test.mjs bewijst dat stap voor stap bouwen dezelfde graaf geeft als achter elkaar.
+// scripts/pathgraphbuild_test.mjs bewijst dat stap voor stap bouwen dezelfde graaf geeft als achter elkaar.
 //
 // h = { isDrivable, isWalkable, isBikeable, oneWayFor(road, mode), throughOf(road, i, ax, ay, bx, by) -> bool, consts }
 // consts = { THROUGH_BUILDING_COST, SERVICE_COST, OFFROAD_COST, STEPS_COST, MOTORWAY_AVOID, BIKE_COST, MOTORWAY_TYPES }
