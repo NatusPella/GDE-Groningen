@@ -126,4 +126,12 @@ t('baseStrength is stabiel en wijkt een klein beetje af per club', () => {
   assert.ok(Math.abs(a.attack - 72) <= 2 && Math.abs(a.defense - 72) <= 2);
   assert.ok(CLUBS.length === 16);
 });
+t('een beschermde club (jouw club) zakt nooit in de pool, ook niet als laatste', () => {
+  const world = startWorld();
+  const leagues = Object.fromEntries(['kroon', 'terp', 'talent'].map((d) => [d, playOut(newLeague(d, world[d], 1), 1, ctx)]));
+  const laatste = table(leagues.talent)[7].id;
+  const { world: next } = endSeason(world, leagues, 1, laatste);
+  assert.ok(next.talent.includes(laatste) && !next.pool.includes(laatste));
+  assert.equal(next.talent.length, 8); assert.equal(new Set([...next.kroon, ...next.terp, ...next.talent, ...next.pool]).size, world.pool.length + 24);
+});
 console.log(`voetbal_seizoen_test ok (${n} groepen)`);

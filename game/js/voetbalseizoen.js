@@ -92,18 +92,20 @@ export function newWorld({ kroon, terp, talent, pool = [] }) { return { kroon: k
 export const divisionOf = (world, id) => DIV_ORDER.find((d) => world[d].includes(id)) || (world.pool.includes(id) ? 'pool' : null);
 // Na een seizoen: de top twee van een lagere klasse gaan omhoog, de onderste twee van een hogere klasse omlaag; de Talentenklasse vult zich uit de pool (volgorde op hash, deterministisch).
 // leagues = { kroon, terp, talent } (alle drie klaar). Geeft de nieuwe wereld en een verslag per club.
-export function endSeason(world, leagues, seed) {
+export function endSeason(world, leagues, seed, keep = null) {
   const tab = {};
   for (const d of DIV_ORDER) tab[d] = table(leagues[d]).map((r) => r.id);
   const next = { kroon: [], terp: [], talent: [], pool: world.pool.slice() };
   const report = { promoted: [], relegated: [], champions: {}, toPool: [], fromPool: [] };
   for (const d of DIV_ORDER) report.champions[d] = tab[d][0];
   // kroon: laatste twee naar terp; terp: eerste twee naar kroon, laatste twee naar talent; talent: eerste twee naar terp, laatste twee naar de pool
-  const keep = (list, from, to) => list.slice(from, to);
-  next.kroon = [...keep(tab.kroon, 0, 8 - RELEGATE), ...keep(tab.terp, 0, PROMOTE)];
-  next.terp = [...keep(tab.kroon, 8 - RELEGATE, 8), ...keep(tab.terp, PROMOTE, 8 - RELEGATE), ...keep(tab.talent, 0, PROMOTE)];
-  const stay = keep(tab.talent, PROMOTE, 8 - RELEGATE);
-  const out = keep(tab.talent, 8 - RELEGATE, 8);
+  const part = (list, from, to) => list.slice(from, to);
+  next.kroon = [...part(tab.kroon, 0, 8 - RELEGATE), ...part(tab.terp, 0, PROMOTE)];
+  next.terp = [...part(tab.kroon, 8 - RELEGATE, 8), ...part(tab.terp, PROMOTE, 8 - RELEGATE), ...part(tab.talent, 0, PROMOTE)];
+  let stay = part(tab.talent, PROMOTE, 8 - RELEGATE);
+  let out = part(tab.talent, 8 - RELEGATE, 8);
+  // een beschermde club (de club van de speler) zakt nooit in de pool: de beste van de zakkers blijft, de laagste van wie bleef gaat in zijn plaats
+  if (keep && out.includes(keep)) { const worstStay = stay[stay.length - 1]; out = out.map((id) => (id === keep ? worstStay : id)); stay = [...stay.slice(0, -1), keep]; }
   const pool = world.pool.slice().sort((a, b) => hashSeed('pool', seed, a) - hashSeed('pool', seed, b) || (a < b ? -1 : 1));
   const inn = pool.slice(0, RELEGATE);
   next.talent = [...tab.terp.slice(8 - RELEGATE), ...stay, ...inn];
