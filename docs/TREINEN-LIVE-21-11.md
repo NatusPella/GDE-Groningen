@@ -80,7 +80,7 @@ komen uit de zoekresultaten en de openbare voorpagina's, niet uit de volledige v
 
 - **Bron:** `https://gtfs.ovapi.nl/nl/trainUpdates.pb`, alleen GET, vaste url, `credentials: 'omit'`, `referrerPolicy: 'no-referrer'`, geen cookies, geen id, geen querystring, alleen de kopregels
   `Accept` en `User-Agent`. 8 s time-out, maximaal 8 MB uitgepakt (de feed is nu 2,9 MB; de bussen mogen 3 MB, dat is hier te krap), hooguit 4.000 meldingen na het filteren op de stations.
-- **Electron:** het main-proces doet de opvraag (`desktop/livetreinen.cjs`, IPC `gde:live-treinen`, zonder argumenten; in het pakket opgenomen); het web doet hem direct (en valt bij een CORS-weigering zacht
+- **Electron:** het main-proces doet de opvraag (`desktop/livetrains.cjs`, IPC `gde:live-treinen`, zonder argumenten; in het pakket opgenomen); het web doet hem direct (en valt bij een CORS-weigering zacht
   terug op het rooster, zoals bij de bussen: de server stuurt geen CORS-koppen).
 - **Ritme:** één opvraag per minuut met ±15% spreiding, bij fouten verdubbelend tot 10 minuten, een 429 of 503 geeft meteen de lange rust, een lege feed is geen fout. De laatste goede stand blijft
   180 s staan; daarna toont het bord het rooster.
@@ -139,13 +139,13 @@ op een zwakke machine draait; in Electron is het ook de renderer. Een tweede sta
 | bouwstap + filter, lijnkeuze, dagen, tijden | `scripts/treinrooster_bouw.mjs`, `scripts/treinrooster_lib.mjs` | `treinrooster_test` |
 | het rooster in het spel, tijdafbeelding, vertraging per rit | `game/js/treinrooster.js` | `treinrooster_test` |
 | bron in woorden (Live/Rooster), regel "Vertrekt over ..." | `game/js/treinbron.js` | `treinrooster_test` |
-| feed lezen, opvraag zonder spelergegevens, zacht falen | `game/js/livetreinen.js` | `livetreinen_test` |
-| ritme, backoff, spreiding, uitzetter, brug | `game/js/treinlive.js`, `desktop/livetreinen.cjs` | `livetreinen_test` |
+| feed lezen, opvraag zonder spelergegevens, zacht falen | `game/js/livetrains.js` | `livetrains_test` |
+| ritme, backoff, spreiding, uitzetter, brug | `game/js/treinlive.js`, `desktop/livetrains.cjs` | `livetrains_test` |
 | bord (rijen, +N, vervalt, label, bronregel) | `game/js/stationlife.js` | `treinrooster_test`, `stationlife_test` |
 | treinen in de wereld uit het rooster, pool, gast, overgenomen trein, machinistdienst | `game/js/treindienst.js`, `game/js/railway.js`, `game/js/machinist.js`, `game/js/coopnet.js`, `game/js/coopworld.js` | `treindienst_test` (vraagt een gevendorde three, zoals `gasttrein_test`) |
 | Instellingen (`liveTreinen`) | `game/js/settings.js`, `game/js/pausemenu.js` | `spelmenu_test` |
 
-`livetreinen_test` draait ook tegen de echte feed als je `GDE_TRAIN_PB=<pad naar een afgehaalde trainUpdates.pb>` zet (21-11: 590 meldingen voor de drie stations die de test filtert, 16 met vertraging).
+`livetrains_test` draait ook tegen de echte feed als je `GDE_TRAIN_PB=<pad naar een afgehaalde trainUpdates.pb>` zet (21-11: 590 meldingen voor de drie stations die de test filtert, 16 met vertraging).
 Vooraf al gecontroleerd op de echte feed: 2.288 meldingen op de 26 stations, 98 met een vertraging van een minuut of meer, 0 vroege, 0 vervallen op dat moment; van de 2.971 werkdagrijen
 had 1.666 een melding voor vandaag (het was zaterdag).
 

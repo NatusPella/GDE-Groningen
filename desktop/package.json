@@ -36,7 +36,7 @@
       "gpuflags.cjs",
       "coopcore.cjs",
       "livebussen.cjs",
-      "livetreinen.cjs",
+      "livetrains.cjs",
       "gpuinfo.cjs",
       "gpuevents.cjs",
       "externurl.cjs",

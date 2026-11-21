@@ -1,7 +1,7 @@
 // Het echte treinrooster in het spel (#1085): de vertrektijden van de stations in en rond Groningen uit
 // game/treinrooster.json (gebouwd door scripts/treinrooster_bouw.mjs uit de open GTFS van OVapi, CC0), met de
 // VERZONNEN lijnnamen van het spel. Puur: geen THREE, geen DOM, geen netwerk; het bestand komt als data binnen.
-// De live vertragingen (livetreinen.js) worden hier per rit op de rijen gezet. Tests: scripts/treinrooster_test.mjs.
+// De live vertragingen (livetrains.js) worden hier per rit op de rijen gezet. Tests: scripts/treinrooster_test.mjs.
 //
 // Spelklok en rooster. De spelklok (daynight.js) loopt in uren van de lokale dag (0..24) en de speldag heeft een
 // weekdag (calendar.js weekdayOf). Het rooster kent drie soorten dagen: werk (ma t/m vr), za en zo. Een vertrek om
@@ -9,7 +9,7 @@
 // van zomer- en wintertijd (de spelwereld heeft altijd zomer; het rooster is dat van een zomerdag in 2027).
 // De spelkalender (augustus 2026 en daarna "nazomer") blijft zoals hij is; alleen de tijd van de dag en de weekdag tellen.
 
-import { meldSleutel } from './livetreinen.js';
+import { meldSleutel } from './livetrains.js';
 
 export const GAME_NAMES = { Groningen: 'Groningen Hoofdstation' };
 const SOURCE_NAMES = Object.fromEntries(Object.entries(GAME_NAMES).map(([b, s]) => [s, b]));

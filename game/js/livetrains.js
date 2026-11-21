@@ -10,7 +10,7 @@
 //
 // Alles faalt zacht: bij een fout, time-out, te groot of ongeldig bestand, een lege feed of een bron die weg is, toont het
 // bord het rooster zonder vertraging. Puur: geen THREE, geen DOM; fetch komt van buiten (in tests een nep-fetch).
-// Het ritme, de stand en de uitzetter staan in treinlive.js. Tests: scripts/livetreinen_test.mjs.
+// Het ritme, de stand en de uitzetter staan in treinlive.js. Tests: scripts/livetrains_test.mjs.
 
 export const LIVE_TRAINS = {
   url: 'https://gtfs.ovapi.nl/nl/trainUpdates.pb',

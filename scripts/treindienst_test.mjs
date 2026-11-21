@@ -6,7 +6,7 @@ import fs from 'node:fs';
 
 const { bouwDienst, actieveLegs, legTimes, legState, createServiceSource, dienstVanLeg, DIENST } = await import('../game/js/treindienst.js');
 const { rijenUitRooster, pasVertragingToe, validSchedule } = await import('../game/js/treinrooster.js');
-const { meldSleutel } = await import('../game/js/livetreinen.js');
+const { meldSleutel } = await import('../game/js/livetrains.js');
 const { stationView } = await import('../game/js/stationlife.js');
 
 let fails = 0, n = 0;

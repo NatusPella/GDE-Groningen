@@ -5,7 +5,7 @@ import assert from 'node:assert';
 import fs from 'node:fs';
 import { spelLijn, dienstenOp, dagsoortVan as dagsoortLib, secVan, maakRij, sorteerRijen, valideerRooster, STATIONS, SPEL_LIJNEN, SPEL_NAAM as SPEL_LIB } from './treinrooster_lib.mjs';
 import { validSchedule, hasStop, codesUit, rijenUitRooster, pasVertragingToe, sourceName, dayTypeOf, laadRooster, GAME_NAMES } from '../game/js/treinrooster.js';
-import { meldSleutel } from '../game/js/livetreinen.js';
+import { meldSleutel } from '../game/js/livetrains.js';
 import { sourceState, bronLabel, departureLine, ageText, KIND } from '../game/js/treinbron.js';
 import { stationView, bordCellen, bordBron } from '../game/js/stationlife.js';
 import { weekdayOf } from '../game/js/calendar.js';

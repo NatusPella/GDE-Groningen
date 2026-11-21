@@ -281,7 +281,7 @@
     {
       "rule": "url",
       "term": "https://gtfs.ovapi.nl/nl/trainUpdates.pb",
-      "file": "livetreinen.js",
+      "file": "livetrains.js",
       "why": "live treinvertragingen (#1085, zelfde regel als live bussen, constitutie 4 sinds 24-10): een leesopvraag (GET) naar openbare gegevens, zonder gegevens van de speler, met uitzetter in Instellingen en terugval op het rooster"
     },
     {
