@@ -251,7 +251,7 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Contant. Het Loket', dt: 1.5, actor: 'tessa', anim: 'cheer' },
     ],
     shots: [],
-    wide: { from: [-3.5, 4, 3], to: [-2, 3, 2.4], look: 'mid:sjabbe,automaat@1', fov: 48, until: 1 },
+    wide: { from: [-3.5, 4, 3], to: [-2.2, 3.5, 2.8], look: 'mid:sjabbe,automaat@1', fov: 48, until: 1 },
   };
 }
 

@@ -104,6 +104,19 @@
   "file": "anita/ik_ken_sjabbe_hij_opent_wat_niem_4d2aa7a4.mp3"
  },
  {
+  "key": "Anita|Het museum. De Gouden Eierbal, de wisselprijs.",
+  "speaker": "Anita",
+  "text": "Het museum. De Gouden Eierbal, de wisselprijs.",
+  "area": "M02.3",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "lacherig, ad rem",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+  "file": "anita/het_museum_de_gouden_eierbal_de__c361a9db.mp3"
+ },
+ {
   "key": "Anita|Alleen of we een koekje wilden.",
   "speaker": "Anita",
   "text": "Alleen of we een koekje wilden.",

@@ -220,7 +220,7 @@ const STORY = [
       ['A', 'Daar koop je nog geen halve frietwagen van.'],
       ['N', 'Dan moet je groter denken. Die reuzen kwamen hier vorige week met een klomp vol geld. Ze kochten alles wat met frituren te maken heeft.'],
       ['N', 'En hun baas vroeg waar het museum alarmen heeft.', { clue: true }],
-      ['A', 'Het museum. De Gouden Eierbal.'],
+      ['A', 'Het museum. De Gouden Eierbal, de wisselprijs.'],
       ['N', 'Achttien karaat. Ik vraag niks. Ik zeg alleen: wie hem eerst heeft, heeft hem.'],
     ],
     replay: [['N', 'Weer een automaat? Dit wordt een gewoonte. Een goede.']],

@@ -1679,14 +1679,13 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Het museum. De Gouden Eierbal.",
+     "text": "Het museum. De Gouden Eierbal, de wisselprijs.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
+     "textOnly": true,
      "form": {
       "ov": 0.3
      },
-     "rec": "lines",
      "voice": "Anita"
     },
     {
