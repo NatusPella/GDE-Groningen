@@ -91,10 +91,10 @@ if (wil('samen')) {
     afstand: [null, 40, 420, null][r.slot], afstandTekst: ['', 'bij je', '420 m', ''][r.slot] || (r.slot === 1 ? '40 m' : ''), x: r.slot === 3 ? null : px + 40 * r.slot, y: r.slot === 3 ? null : py - 30 * r.slot,
   }));
   const maakSessie = (rol) => {
-    const hub = { roster: { max: 4, spelers: rooster }, cfg: {}, publiek: () => null, announce() {}, zetOpenbaar: () => ({ ok: true }), on() {}, off() {} };
+    const hub = { roster: { max: 4, spelers: rooster }, cfg: {}, publiek: () => null, announce() {}, tick() {}, release() {}, zetOpenbaar: () => ({ ok: true }), on() {}, off() {} };
     w.coopSolo = false; w.coopRole = rol; w.coopPvp = { aan: true, passief: {} };
     w.coopRoster = rooster; w.coopSpelers = rijen(rol);
-    w.coopNet = rol === 'host' ? { role: 'host', hub, route: 'kamer', info: {} } : { role: 'client', route: 'kamer', session: { slot: 1, caps: ['pvp'], welcome: { max: 4, lijst: rooster }, sendEvent: () => true }, info: {} };
+    w.coopNet = rol === 'host' ? { role: 'host', hub, route: 'kamer', info: {}, removing: {} } : { role: 'client', route: 'kamer', session: { slot: 1, caps: ['pvp'], welcome: { max: 4, lijst: rooster }, sendEvent: () => true, setInput() {} }, info: {} };
   };
   const weg = () => { w.coopNet = null; w.coopRole = null; w.coopSpelers = []; };
   const esc2 = async () => { tap('Escape', 'Escape'); await sleep(400); tap('Escape', 'Escape'); await sleep(600); };
