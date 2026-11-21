@@ -19,6 +19,8 @@ import { isOverlayHeld } from './overlayhold.js';
 import { zones, P3 } from './hudrules.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 import { getSettings } from './settings.js';
+import { planPrestatie, wachtrijStap, verblijfS, samenvattingTekst, balkTekst } from './achievementunlock.js'; // de prestatie als moment (wens 21-11)
+import { rustigeStand, tikGetal } from './dsmicro.js';
 import { cleanDifficulty, DIFFICULTY_MODES } from './difficulty.js'; // #800: missierecords per stand
 
 const KEY = KEYS.achievements;
@@ -306,6 +308,8 @@ let toastEl = null;
 let toastQueue = [];
 let toastUntil = 0;
 let toastTimer = 0;
+let toastBurst = 0;      // hoeveelste prestatiekaart van deze reeks (0 = de eerste: een volle kaart; wachtrijStap)
+let momentTimers = [];   // geluid, balk, teller en glans van de kaart die nu staat
 
 function blankLife() {
   return { v: 1, unlocked: {}, stats: {}, sets: {}, missions: {}, missionModes: {}, challenges: {}, fresh: [] };
@@ -747,8 +751,8 @@ const CSS_EXTRA = `
 #hud .ach-toast .ach-rays { position: absolute; inset: -10px; z-index: 0; border-radius: 50%; opacity: 0.34;
   background: repeating-conic-gradient(var(--mk-ok, #3fc97a) 0deg 2deg, transparent 2deg 18deg);
   -webkit-mask: radial-gradient(circle, transparent 52%, #000 54%); mask: radial-gradient(circle, transparent 52%, #000 54%);
-  animation: ach-rays 2.6s linear infinite; }
-@keyframes ach-rays { to { transform: rotate(360deg); } }
+  animation: ach-rays var(--ds-moment-max) var(--ds-m-uit) 1 both; }
+@keyframes ach-rays { from { rotate: 0deg; } to { rotate: 90deg; } } /* één draai, geen lus (DS3: alleen de live-stip loopt door) */
 #hud .ach-toast .ach-spark { position: absolute; z-index: 3; width: 7px; height: 7px; border-radius: 50%; background: var(--mk-ok, #3fc97a); opacity: 0; animation: ach-spark 1.15s ease-out 0.05s forwards; }
 #hud .ach-toast .ach-spark.s1 { left: 5px; top: 1px; --dx: -7px; }
 #hud .ach-toast .ach-spark.s2 { right: 3px; top: 11px; --dx: 7px; animation-delay: 0.16s; background: var(--mk-mission, #e8c93a); }
@@ -756,23 +760,31 @@ const CSS_EXTRA = `
 #hud .ach-toast .ach-spark.s4 { right: 9px; bottom: 3px; --dx: 5px; animation-delay: 0.34s; background: var(--mk-mission, #e8c93a); }
 @keyframes ach-spark { 0% { opacity: 0; transform: translate(0, 0) scale(0.6); } 25% { opacity: 0.95; } 100% { opacity: 0; transform: translate(var(--dx, 0), -20px) scale(1.1); } }
 #hud .ach-toast .ach-title { text-shadow: 0 1px 0 rgba(0,0,0,0.4); }
-#hud .ach-toast::after { content: ''; position: absolute; inset: 0; border-radius: 12px; pointer-events: none;
-  background: linear-gradient(115deg, transparent 30%, rgba(240,237,228,0.14) 45%, transparent 60%); background-size: 220% 100%;
-  animation: ach-shimmer 1.6s 0.15s ease-out 1; }
-@keyframes ach-shimmer { from { background-position: 120% 0; } to { background-position: -40% 0; } }
-#hud .ach-toast.gold { box-shadow: 0 10px 34px rgba(0,0,0,0.6), 0 0 34px rgba(232,201,58,0.3), inset 0 0 0 1px rgba(240,237,228,0.1); }
+/* DS3-moment (achievementunlock.js, ds-micro.css): de zeefdruk-schaduw in de inkt van de zeldzaamheid of categorie, de zeldzaamheidschip,
+   het balkje "x/y prestaties" en de glans (.ds-moment-glans). Een donkere HUD-ondergrond krijgt voor bord het lichte HUD-groen. */
+#hud .ach-toast { overflow: hidden; transform-origin: left center; border-left-color: var(--ds-m-accent, var(--mk-ok, #3fc97a));
+  box-shadow: 6px 6px 0 var(--ds-m-accent, var(--mk-ok, #3fc97a)), 0 10px 34px rgba(0,0,0,0.5); }
+#hud .ach-toast.ds-m-inkt--bord { --ds-m-accent: var(--mk-ok, #3fc97a); }
+#hud .ach-toast .ach-kicker { color: var(--ds-m-accent, var(--mk-ok, #3fc97a)); }
+#hud .ach-toast .ach-zeld { display: inline-block; margin-left: 8px; padding: 0 6px; border: var(--ds-lijn, 1px) solid var(--ds-m-accent, currentColor); border-radius: var(--ds-r-pil, 999px); font-size: var(--ds-t-kaart-hulp); letter-spacing: 0.06em; }
+#hud .ach-toast .ach-prog { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+#hud .ach-toast .ach-prog-baan { flex: 1 1 auto; min-width: 96px; height: 8px; border: var(--ds-lijn, 1px) solid var(--ds-m-accent, var(--mk-ok, #3fc97a)); border-radius: var(--ds-r-pil, 999px); box-sizing: border-box; }
+#hud .ach-toast .ach-prog-vul { display: block; width: 100%; height: 100%; background: var(--ds-m-accent, var(--mk-ok, #3fc97a)); }
+#hud .ach-toast .ach-prog-tx { font-size: var(--ds-t-kaart-hulp); letter-spacing: 0.04em; color: rgba(240,237,228,0.75); white-space: nowrap; }
+#hud .ach-toast.ach-kort .ach-desc { display: none; }
+#hud .ach-toast.gold { box-shadow: 6px 6px 0 var(--ds-m-accent, var(--mk-mission, #e8c93a)), 0 10px 34px rgba(0,0,0,0.5); }
 #hud .ach-toast.gold .ach-rays { background: repeating-conic-gradient(var(--mk-mission, #e8c93a) 0deg 2deg, transparent 2deg 18deg); opacity: 0.4; }
 #hud .ach-toast.gold .ach-title { color: var(--mk-mission, #e8c93a); }
 html.reduce-motion #hud .ach-toast, html.reduce-motion #hud .ach-toast .ach-title,
-html.reduce-motion #hud .ach-toast .ach-rays, html.reduce-motion #hud .ach-toast .ach-spark, html.reduce-motion #hud .ach-toast::after {
+html.reduce-motion #hud .ach-toast .ach-rays, html.reduce-motion #hud .ach-toast .ach-spark {
   animation: none !important; transition: none !important; transform: none; }
 html.reduce-motion #hud .ach-toast.on { opacity: 1; transform: none; }
-html.reduce-motion #hud .ach-toast .ach-spark, html.reduce-motion #hud .ach-toast::after { display: none; }
+html.reduce-motion #hud .ach-toast .ach-spark { display: none; }
 @media (prefers-reduced-motion: reduce) {
-  #hud .ach-toast, #hud .ach-toast .ach-title, #hud .ach-toast .ach-rays, #hud .ach-toast .ach-spark, #hud .ach-toast::after {
+  #hud .ach-toast, #hud .ach-toast .ach-title, #hud .ach-toast .ach-rays, #hud .ach-toast .ach-spark {
     animation: none !important; transition: none !important; transform: none; }
   #hud .ach-toast.on { opacity: 1; transform: none; }
-  #hud .ach-toast .ach-spark, #hud .ach-toast::after { display: none; }
+  #hud .ach-toast .ach-spark { display: none; }
 }
 @media (max-width: 480px) { #hud .ach-toast { min-width: 0; padding: 12px 18px 12px 10px; gap: 10px; } #hud .ach-toast .ach-badge { width: 54px; height: 54px; } #hud .ach-toast .ach-ico { width: 46px; height: 46px; } }
 `;
@@ -824,49 +836,95 @@ function showNextToast() {
     toastTimer = setTimeout(showNextToast, 500);
     return;
   }
-  const a = toastQueue.shift();
-  if (!el || !a) { toastUntil = 0; return; }
-  const gold = a.medal || a.id === 'alle_goud';
-  el.classList.toggle('gold', gold);
-  noteToast();
-  const { pct } = getAchievementSummary();
-  // #840: een grotere badge met stralen en vonken; de decoratie is aria-hidden, de tekst blijft
-  // dezelfde Nederlandse kicker/titel/beschrijving voor de schermlezer.
-  el.innerHTML = `<span class="ach-badge" aria-hidden="true"><span class="ach-rays"></span><span class="ach-ico">${a.hidden ? TROPHY_SVG : iconSvg(a, 'ach-pic')}</span>` +
-    '<span class="ach-spark s1"></span><span class="ach-spark s2"></span><span class="ach-spark s3"></span><span class="ach-spark s4"></span></span>' +
-    `<span class="ach-txt">` +
-    `<span class="ach-kicker">PRESTATIE ONTGRENDELD<span class="ach-pct">${pct >= 1 ? pct : '&lt;1'}% totaal</span></span>` +
-    `<span class="ach-title">${dualHtml(a.title)}</span><span class="ach-desc">${escHtml(a.desc)}</span></span>`;
+  const a = toastQueue[0];
+  if (!el || !a) { toastUntil = 0; toastBurst = 0; return; }
+  // De wachtrij (achievementunlock.js, wachtrijStap): de eerste van een reeks is een volle kaart, de volgende zijn kort, en
+  // wachten er na drie nog meer, dan komen ze samen in één samenvatting (de prestaties zelf staan in het menu).
+  const stap = wachtrijStap({ index: toastBurst, resterend: toastQueue.length });
+  const samen = stap.variant === 'samenvatting' ? samenvattingTekst(stap.aantal) : null;
   // #643: de toast bezet zone E via het zonebord, net als een kaart van hudcards.js; is de zone bezet,
-  // dan wacht hij even in plaats van over de plaatsnaam of het activiteitenbord te vallen.
+  // dan wacht hij even in plaats van over de plaatsnaam of het activiteitenbord te vallen (de prestatie blijft in de wachtrij).
   if (!zones.occupy('E', 'ach', P3)) {
     toastUntil = 1;
     if (toastTimer) clearTimeout(toastTimer);
     toastTimer = setTimeout(showNextToast, 500);
     return;
   }
+  if (samen) toastQueue.splice(0); else toastQueue.shift();
+  toastBurst++;
+  noteToast();
+  wisMomentTimers();
+  const gold = !samen && (a.medal || a.id === 'alle_goud');
+  const rustig = rustigeStand();
+  const { done, total, pct } = getAchievementSummary();
+  const plan = planPrestatie({ id: a.id, cat: a.cat, medal: a.medal, hidden: a.hidden, behaald: done, totaal: total, kort: stap.variant !== 'vol', rustig });
+  const inkt = samen ? 'bord' : plan.inkt;
+  const zeld = samen ? 'gewoon' : plan.zeldzaam;
+  el.classList.toggle('gold', !!gold);
+  el.classList.toggle('ach-kort', stap.variant !== 'vol');
+  for (const k of ['bord', 'roze', 'geel', 'inkt']) el.classList.toggle('ds-m-inkt--' + k, k === inkt);
+  const m = (x, kl) => (plan.impact && x ? ` ${kl}" style="--ds-moment-n:${x.eenh}` : '');
+  const titel = samen ? escHtml(samen.titel) : dualHtml(a.title);
+  const tekst = samen ? samen.tekst : a.desc;
+  const nog = !samen && stap.nog > 0 ? `<span class="ach-zeld">nog ${stap.nog}</span>` : '';
+  const chip = zeld === 'goud' ? '<span class="ach-zeld">Goud</span>' : zeld === 'zeldzaam' ? '<span class="ach-zeld">Geheim</span>' : '';
+  const balkP = plan.balk ? (plan.impact ? plan.balk.pctVan : plan.balk.pctNaar) / 100 : 0;
+  const balk = plan.balk && !samen
+    ? `<span class="ach-prog${m(plan.balk, 'ds-moment-binnen')}"><span class="ach-prog-baan ds-m-glans"><span class="ach-prog-vul ds-m-vul" style="--ds-m-p:${balkP}"></span></span>` +
+      `<span class="ach-prog-tx ds-m-tik">${balkTekst(plan.impact ? plan.balk.van : plan.balk.naar, plan.balk.totaal)}</span></span>`
+    : '';
+  // #840: een grotere badge met stralen en vonken; de decoratie is aria-hidden, de tekst blijft
+  // dezelfde Nederlandse kicker/titel/beschrijving voor de schermlezer.
+  el.innerHTML = `<span class="ach-badge" aria-hidden="true"><span class="ach-rays"></span><span class="ach-ico${m(plan.icoon, 'ds-moment-ploft')}">${samen || a.hidden ? TROPHY_SVG : iconSvg(a, 'ach-pic')}</span>` +
+    '<span class="ach-spark s1"></span><span class="ach-spark s2"></span><span class="ach-spark s3"></span><span class="ach-spark s4"></span></span>' +
+    `<span class="ach-txt">` +
+    `<span class="ach-kicker${m(plan.icoon, 'ds-moment-binnen')}">${samen ? 'PRESTATIES ONTGRENDELD' : 'PRESTATIE ONTGRENDELD'}${chip}${nog}${samen ? '' : `<span class="ach-pct">${pct >= 1 ? pct : '&lt;1'}% totaal</span>`}</span>` +
+    `<span class="ach-title${m(plan.titel, 'ds-moment-binnen')}">${titel}</span><span class="ach-desc${m(plan.beschrijving, 'ds-moment-binnen')}">${escHtml(tekst)}</span>${balk}</span>` +
+    (plan.impact && plan.glans ? `<span class="ds-moment-glans ds-moment-veeg" style="--ds-moment-n:${plan.glans.eenh}" aria-hidden="true"></span>` : '');
   // ds-motion.css: eerst zonder overgang terug naar de startplek (de vorige toast faadde uit zonder te bewegen), dan inschuiven
   el.style.transition = 'none';
-  el.classList.remove('out');
+  el.classList.remove('out', 'ds-moment-stempel');
   void el.offsetWidth;
   el.style.transition = '';
   el.classList.add('on');
-  if (world) {
-    const q = world.audioEvents || (world.audioEvents = []);
-    if (q.length < 64) {
-      // Het geluid van de prestatie komt van de plek waar de speler staat; die
-      // plek vragen we via de leesbare ingang (#500), want dit is geen eigendom
-      // van deze module.
-      const p = hoofdspeler(world);
-      q.push({ kind: 'prestatie', x: p ? p.x : 0, y: p ? p.y : 0, goud: !!gold });
-    }
-  }
+  if (plan.impact) el.classList.add('ds-moment-stempel'); // de inslag van de kaart (overshoot, 250 ms); bij het vertrek eraf, anders houdt de animatie de dekking vast
+  momentGeluid(plan, !!gold, stap.variant === 'vol');
+  if (plan.impact) momentTimers.push(...momentStappen(el, plan));
   toastUntil = 1;
   if (toastTimer) clearTimeout(toastTimer);
   toastTimer = setTimeout(() => {
-    el.classList.remove('on');
+    wisMomentTimers();
+    el.classList.remove('on', 'ds-moment-stempel');
     el.classList.add('out');
     zones.vacate('E', 'ach');
-    toastTimer = setTimeout(showNextToast, 450);
-  }, toastDuur(a.title, a.desc) * 1000);
+    toastTimer = setTimeout(() => { if (!toastQueue.length) toastBurst = 0; showNextToast(); }, 450);
+  }, verblijfS(toastDuur(samen ? samen.titel : a.title, tekst), stap.variant) * 1000);
+}
+
+// De timers van het moment (geluid, balk, teller, glans): bij een nieuwe kaart of het vertrek allemaal weg.
+function wisMomentTimers() { for (const t of momentTimers) clearTimeout(t); momentTimers = []; }
+
+// Het geluid van het moment, alleen lokaal (de audioEvents zijn van dit apparaat; er gaat niets over het net, #429): de bestaande
+// prestatie-sting (alleen bij een volle kaart) plus de slag, de tikjes van de teller en de glans uit het plan. Het geluid komt van
+// de plek waar de speler staat; die plek vragen we via de leesbare ingang (#500), want dit is geen eigendom van deze module.
+function momentGeluid(plan, gold, vol) {
+  if (!world) return;
+  const q = world.audioEvents || (world.audioEvents = []);
+  const p = hoofdspeler(world);
+  const x = p ? p.x : 0, y = p ? p.y : 0;
+  if (vol && q.length < 64) q.push({ kind: 'prestatie', x, y, goud: !!gold });
+  for (const g of plan.geluid) {
+    const speel = () => { if (q.length < 64) q.push({ kind: 'prestatiemoment', x, y, naam: g.naam, i: g.i || 0, goud: !!gold }); };
+    if (g.at <= 0) speel(); else momentTimers.push(setTimeout(speel, g.at));
+  }
+}
+
+// De balk vult op zijn tijd, de teller tikt mee en de glans loopt over de baan (ds-micro.css: .ds-m-vul, .ds-m-tik, .ds-m-glanst).
+function momentStappen(el, plan) {
+  const uit = [];
+  const vul = el.querySelector('.ach-prog-vul'), tx = el.querySelector('.ach-prog-tx'), baan = el.querySelector('.ach-prog-baan');
+  if (plan.balk && vul) uit.push(setTimeout(() => vul.style.setProperty('--ds-m-p', String(plan.balk.p)), plan.balk.at));
+  if (plan.teller && tx) for (const s of plan.teller.stappen) uit.push(setTimeout(() => { tx.textContent = balkTekst(s.waarde, plan.balk.totaal); tikGetal(tx); }, plan.teller.at + s.t));
+  if (plan.glans && baan) uit.push(setTimeout(() => baan.classList.add('ds-m-glanst'), plan.glans.at));
+  return uit;
 }

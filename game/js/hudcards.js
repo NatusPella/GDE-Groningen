@@ -251,7 +251,7 @@ const zoneOf = (c) => cardZone(c.spec.kind);
 
 function mount(c) {
   const el = document.createElement('div');
-  el.className = 'hud-card ds-mi-in'; // ds-motion.css: inschuiven, staan, uitfaden
+  el.className = 'hud-card ds-mi-in ds-m-overshoot'; // ds-motion.css: inschuiven, staan, uitfaden; ds-micro.css: met een lichte overshoot (DS3)
   el.dataset.kind = c.spec.kind;
   el.innerHTML = cardHtml(c);
   if (!c.sticky) el.style.setProperty('--hc-dur', `${c.secs}s`);

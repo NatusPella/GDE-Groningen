@@ -4,6 +4,7 @@ import { iconInner, icoon } from './icons.js';
 import { wantedPhase } from './wantedstate.js';
 import { levelOf, zoekBalkVulling } from './wantedlevels.js';
 import { telStap, bewegingUit, MI } from './microinteractions.js';
+import { tikGetal } from './dsmicro.js'; // DS3: het geldgetal tikt even bij geld binnen (ds-micro.css, .ds-m-tik)
 import { moneyLabel, moneyNeedsUpdate } from './hudmoney.js';
 import { getMissionLayer, updateMissionNotices } from './missionmaplive.js';
 import { missionMinimapScale, selectMiniItems } from './missionmap.js';
@@ -185,7 +186,7 @@ export function initHud(world) {
     '<div class="hud-clock" role="timer" aria-label="Tijd in het spel"><span class="hud-special" hidden></span><span class="hud-date"></span><b class="hud-time"></b></div>' +
     '<div class="hud-wanted" role="img"></div>' +
     '<div class="hud-search" hidden><span>Uit zicht</span><i role="img" aria-label="Zoekgebied"><i></i></i></div>' +
-    '<div class="hud-moneyrow"><span class="hud-money-delta"></span><span class="hud-money"></span></div>' +
+    '<div class="hud-moneyrow"><span class="hud-money-delta"></span><span class="hud-money ds-m-tik"></span></div>' +
     '<div class="hud-weapon"></div>';
   root.appendChild(topRight);
 
@@ -1484,6 +1485,7 @@ function updateMoneyWeapon(dt, world) {
     els.moneyDelta.dataset.sign = deltaSum > 0 ? 'plus' : 'min';
     els.moneyDelta.classList.add('visible');
     if (S.moneySign > 0) pop(els.moneyDelta); // het bedrag springt even op bij geld binnen (#985); uit bij Beweging beperken
+    if (S.moneySign > 0) tikGetal(els.money); // DS3: het getal zelf tikt één keer mee (80 ms); uit bij Beweging beperken en Rustig drukwerk
   }
   if (deltaTimer > 0 && (deltaTimer -= dt) <= 0) els.moneyDelta.classList.remove('visible');
   const diff = moneyTarget - moneyShown;

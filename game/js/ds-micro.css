@@ -1,0 +1,200 @@
+/* Microanimaties (Design System 3; DESIGN_SYSTEM.md, "Microanimaties (DS3)"; ui-taal.md; wens van de eigenaar 21-11).
+   Een catalogus met vaste patronen per componenttype, in twee families:
+     .ds-m-*       microinteracties: elke duur is een --ds-m-*-token en hooguit 250 ms (80 / 150 / 250).
+     .ds-moment-*  hoogtepunten (prestatie, eindkaart, level-up): gestaffeld in stappen van --ds-moment-stap,
+                   een onderdeel hooguit --ds-moment-duur en het geheel hooguit --ds-moment-max (1,6 s).
+   Regels (bewaakt door scripts/ds3_dekking_test.mjs met scripts/lib/ds3_regels.mjs):
+     - alleen transform, opacity en de losse eigenschappen translate, scale en rotate; paintvulling (box-shadow, kleur) alleen
+       op de knop, hooguit --ds-m-midden; nooit width, height, top, left, margin, padding, filter of all;
+     - tijden alleen uit tokens (geen letterlijke ms, behalve 0ms in de reduced-motion-takken);
+     - geen @keyframes die iets anders dan transform, opacity, translate, scale of rotate verandert;
+     - geen lus (infinite), behalve de live-stip (.ds-m-stip--live): één trage opacity-ademhaling;
+     - elke .ds-m-*- en .ds-moment-*-klasse staat onderaan in de drie reduced-motion-takken (html.reduce-motion,
+       html.rustig-drukwerk, prefers-reduced-motion): geen beweging, geen vertraging, direct de eindstand;
+     - een animatie hoort bij een gebeurtenis (één per gebeurtenis), blokkeert nooit invoer en kan overgeslagen worden
+       (.ds-moment-klaar toont direct de eindstand). Geluid en wachtrij zitten in de JS (achievementunlock.js), niet hier;
+     - de tokens (ds-tokens.css) staan onder "Beweging beperken", Rustig drukwerk en prefers-reduced-motion op 0 ms, dus een
+       overgang springt dan naar de eindstand zonder eigen regel; de takken onderaan zetten de keyframes en vertragingen uit.
+   De toestandsklassen zijn dezelfde als in ds-motion.css: .on / .aan bij aankomst, .out / .uit bij vertrek. */
+
+/* ===== Binnenkomen en verlaten (kaart, paneel, melding) ===== */
+/* Kaart of paneel: opacity, een kleine stijging (--ds-m-y, standaard 8 px) en een lichte overshoot van de schaal. */
+.ds-m-binnen {
+  opacity: 0;
+  translate: var(--ds-m-x, 0) var(--ds-m-y, 8px);
+  scale: 0.98;
+  transition: opacity var(--ds-m-lang) var(--ds-m-uit), translate var(--ds-m-lang) var(--ds-m-stempel), scale var(--ds-m-lang) var(--ds-m-stempel);
+}
+.ds-m-binnen.on, .ds-m-binnen.aan, .aan > .ds-m-binnen { opacity: 1; translate: 0 0; scale: 1; }
+.ds-m-binnen.out, .ds-m-binnen.uit { opacity: 0; translate: 0 0; scale: 1; transition: opacity var(--ds-m-midden) var(--ds-m-uit); }
+/* Verlaten: alleen uitfaden, geen beweging; het element staat al op zijn plek. */
+.ds-m-weg { transition: opacity var(--ds-m-midden) var(--ds-m-uit); }
+.ds-m-weg.out, .ds-m-weg.uit { opacity: 0; }
+/* Toast: schuift vanaf de rand waar hij hoort (--ds-m-x of --ds-m-y), met dezelfde overshoot. */
+.ds-m-toast {
+  opacity: 0;
+  translate: var(--ds-m-x, 0) var(--ds-m-y, 0);
+  transition: opacity var(--ds-m-lang) var(--ds-m-uit), translate var(--ds-m-lang) var(--ds-m-stempel);
+}
+.ds-m-toast.on, .ds-m-toast.aan { opacity: 1; translate: 0 0; }
+.ds-m-toast.out, .ds-m-toast.uit { opacity: 0; translate: 0 0; transition: opacity var(--ds-m-midden) var(--ds-m-uit); }
+
+/* ===== Knop: hover, druk en focus (de indruk van zeefdruk) ===== */
+/* Op een knop zonder eigen harde schaduw: de schaduw blijft op dezelfde plek staan en de knop zakt erin. Hover: 1 px omhoog,
+   schaduw 1 px langer. Druk: --ds-m-druk-x (2 px) naar de schaduw toe, schaduw 2 px korter. Zo verspringt de schaduw-offset 2 px
+   en de rand van de schaduw beweegt niet. Zet --ds-m-sx op de knop (standaard 3 px). Focus-visible doet wat hover doet.
+   Op een .ds-z-knop (die zijn eigen schaduw en druk al heeft, ds-components.css) komt er alleen de overgang en de hover-lift bij. */
+.ds-m-knop { transition: translate var(--ds-m-midden) var(--ds-m-uit), transform var(--ds-m-kort) var(--ds-m-uit), box-shadow var(--ds-m-kort) var(--ds-m-uit); }
+.ds-m-knop:hover, .ds-m-knop:focus-visible { translate: calc(var(--ds-m-druk-x) * -0.5) calc(var(--ds-m-druk-x) * -0.5); }
+.ds-m-knop:active { translate: 0 0; }
+.ds-m-knop:not(.ds-z-knop) { --ds-m-sx: 3px; box-shadow: var(--ds-m-sx) var(--ds-m-sx) 0 var(--ds-c-ink-inkt); }
+.ds-m-knop:not(.ds-z-knop):hover, .ds-m-knop:not(.ds-z-knop):focus-visible {
+  box-shadow: calc(var(--ds-m-sx) + var(--ds-m-druk-x) * 0.5) calc(var(--ds-m-sx) + var(--ds-m-druk-x) * 0.5) 0 var(--ds-c-ink-inkt);
+}
+.ds-m-knop:not(.ds-z-knop):active {
+  translate: var(--ds-m-druk-x) var(--ds-m-druk-x);
+  box-shadow: calc(var(--ds-m-sx) - var(--ds-m-druk-x)) calc(var(--ds-m-sx) - var(--ds-m-druk-x)) 0 var(--ds-c-ink-inkt);
+}
+.ds-m-knop:disabled, .ds-m-knop[aria-disabled="true"] { translate: 0 0; }
+
+/* ===== Lijstrij: gestaffeld binnenkomen ===== */
+/* Zet --ds-m-i (0, 1, 2, ...) op elke rij; de vertraging is i x --ds-m-staffel, hooguit 8 stappen (320 ms), daarna
+   komen alle rijen tegelijk. De container (of de rij zelf) krijgt .on. */
+.ds-m-rij {
+  opacity: 0;
+  translate: 0 6px;
+  --ds-m-na: calc(min(var(--ds-m-i, 0), 8) * var(--ds-m-staffel));
+  transition: opacity var(--ds-m-lang) var(--ds-m-uit) var(--ds-m-na), translate var(--ds-m-lang) var(--ds-m-uit) var(--ds-m-na);
+}
+.ds-m-rij.on, .ds-m-rij.aan, .on > .ds-m-rij, .aan > .ds-m-rij { opacity: 1; translate: 0 0; }
+
+/* ===== Teller en getal: tabulair, tikt op ===== */
+/* Het getal blijft op zijn plek (tabular-nums); bij elke stap krijgt het .ds-m-tikt één keer: 80 ms, een kleine hartslag. */
+.ds-m-tik { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; } /* de hartslag (scale) werkt op een blok- of inline-block-element */
+.ds-m-tik.ds-m-tikt { animation: ds-m-tikje var(--ds-m-kort) var(--ds-m-uit) 1; }
+@keyframes ds-m-tikje { from { scale: 1; } 50% { scale: 1.08; } to { scale: 1; } }
+
+/* ===== Badge en chip: pop ===== */
+.ds-m-pop {
+  opacity: 0;
+  scale: 0.6;
+  transition: opacity var(--ds-m-kort) var(--ds-m-uit), scale var(--ds-m-midden) var(--ds-m-stempel);
+}
+.ds-m-pop.on, .ds-m-pop.aan, .on > .ds-m-pop, .aan > .ds-m-pop { opacity: 1; scale: 1; }
+
+/* ===== Voortgangsbalk: vult met glans ===== */
+/* .ds-m-vul is de vulling (scale op de x-as, --ds-m-p van 0 tot 1, nooit width); .ds-m-glans staat op de baan eromheen
+   en krijgt .ds-m-glanst als de balk vol is of net gevuld: één platte veeg, geen verloop. */
+.ds-m-vul { transform-origin: left center; scale: var(--ds-m-p, 0) 1; transition: scale var(--ds-m-lang) var(--ds-m-uit); }
+.ds-m-glans { position: relative; overflow: hidden; }
+.ds-m-glans::after {
+  content: '';
+  position: absolute; top: 0; bottom: 0; left: 0; width: 22%;
+  background: var(--ds-c-ink-papier);
+  opacity: 0;
+  pointer-events: none;
+  transform: skewX(-18deg);
+}
+.ds-m-glans.ds-m-glanst::after { animation: ds-m-veeg var(--ds-m-lang) var(--ds-m-uit) 1 both; }
+@keyframes ds-m-veeg { from { opacity: 0.5; translate: -120% 0; } to { opacity: 0; translate: 520% 0; } }
+
+/* ===== Tab en segment: glijdende onderstreping, zachte wissel van de inhoud ===== */
+/* Het JS (dsmicro.js, tabLijn) zet --ds-m-tab-x (px) en --ds-m-tab-w (px, een getal zonder eenheid) op .ds-m-tabs;
+   de lijn is 1 px breed en schaalt, zodat er geen layout verandert. */
+.ds-m-tabs { position: relative; }
+.ds-m-tabs__lijn {
+  position: absolute; left: 0; bottom: 0; width: 1px; height: var(--ds-m-lijn-h, var(--ds-lijn-dik, 2px));
+  background: var(--ds-m-lijn-kleur, var(--ds-c-ink-bord));
+  transform-origin: left center;
+  transform: translateX(var(--ds-m-tab-x, 0px)) scaleX(var(--ds-m-tab-w, 0));
+  transition: transform var(--ds-m-midden) var(--ds-m-inuit);
+  pointer-events: none;
+  opacity: 0;
+}
+/* Pas als de streep echt gemeten is (dsmicro.js, zetTabLijn) zet het kader .ds-m-tabs--aan: dan neemt hij het over van de eigen
+   onderstreping van de tab. Tot dan (of als het JS ontbreekt) blijft de oude streep staan, dus er is nooit een tab zonder streep. */
+.ds-m-tabs--aan > .ds-m-tabs__lijn { opacity: 1; }
+.ds-m-tabs--aan > [role="tab"][aria-selected="true"] { box-shadow: none; }
+.ds-m-wissel { opacity: 0; transition: opacity var(--ds-m-midden) var(--ds-m-inuit); }
+.ds-m-wissel.on, .ds-m-wissel.aan { opacity: 1; }
+
+/* ===== Schakelaar, vinkje en schuifknop ===== */
+.ds-m-schakel__knop { transition: translate var(--ds-m-midden) var(--ds-m-stempel); }
+.ds-m-schakel[aria-checked="true"] .ds-m-schakel__knop, .ds-m-schakel.aan .ds-m-schakel__knop { translate: var(--ds-m-weg-x, 20px) 0; }
+.ds-m-vink { scale: 0; transition: scale var(--ds-m-midden) var(--ds-m-stempel); }
+.ds-m-vink.aan, [aria-checked="true"] > .ds-m-vink, :checked + .ds-m-vink { scale: 1; }
+.ds-m-greep { transition: scale var(--ds-m-kort) var(--ds-m-uit); }
+.ds-m-greep:active, .ds-m-greep:focus-visible { scale: 1.12; }
+
+/* ===== Tooltip: een tik (80 ms) ===== */
+.ds-m-tip {
+  opacity: 0;
+  translate: 0 4px;
+  pointer-events: none;
+  transition: opacity var(--ds-m-kort) var(--ds-m-uit), translate var(--ds-m-kort) var(--ds-m-uit);
+}
+.ds-m-tip.on, .ds-m-tip.aan, :hover > .ds-m-tip, :focus-within > .ds-m-tip { opacity: 1; translate: 0 0; }
+
+/* ===== Scrollen: de randen vervagen waar nog meer staat ===== */
+/* Op de scrollcontainer: data-boven en data-onder (beide "1" als er daar nog inhoud is, zie scrollRanden in dsmicro.js). */
+.ds-m-scrollfade { position: relative; }
+.ds-m-scrollfade::before, .ds-m-scrollfade::after {
+  content: ''; position: sticky; display: block; left: 0; right: 0; height: var(--ds-s-4, 16px); margin: 0;
+  background: var(--ds-bg, var(--ds-c-papier)); opacity: 0; pointer-events: none; z-index: 1;
+  transition: opacity var(--ds-m-midden) var(--ds-m-uit);
+}
+.ds-m-scrollfade::before { top: 0; margin-bottom: calc(var(--ds-s-4, 16px) * -1); }
+.ds-m-scrollfade::after { bottom: 0; margin-top: calc(var(--ds-s-4, 16px) * -1); }
+.ds-m-scrollfade[data-boven="1"]::before, .ds-m-scrollfade[data-onder="1"]::after { opacity: 0.9; }
+
+/* ===== Selectie: één puls ===== */
+.ds-m-puls.aan, .ds-m-puls.ds-m-gepulst { animation: ds-m-puls var(--ds-m-midden) var(--ds-m-uit) 1; }
+@keyframes ds-m-puls { from { scale: 1; } 40% { scale: 1.04; } to { scale: 1; } }
+
+/* ===== Nieuwe-melding-stip ===== */
+/* De stip op een tab of een railknop is een ::after die er is zolang [data-new] staat (menu.css, pausemenu.css); .ds-m-nieuw laat hem
+   één keer poppen als hij verschijnt. De stip zelf blijft stil staan: geen lus. */
+.ds-m-nieuw[data-new]::after, .ds-m-nieuw[data-new] .ra-t::after { animation: ds-m-stip-in var(--ds-m-midden) var(--ds-m-stempel) 1 both; }
+@keyframes ds-m-stip-in { from { scale: 0; } to { scale: 1; } }
+/* Overshoot voor een kaart die al .ds-mi-in draagt (ds-motion.css): dezelfde inschuiving met een lichte overshoot (DS3: kaart binnenkomen). */
+.ds-m-overshoot { --ds-mi-ease: var(--ds-m-stempel); }
+.ds-m-stip { scale: 0; transition: scale var(--ds-m-midden) var(--ds-m-stempel); }
+.ds-m-stip.aan, .ds-m-stip.on { scale: 1; }
+/* De live-stip en de bel zijn de enige die mogen blijven lopen: één trage opacity-ademhaling, nooit een flits. */
+.ds-m-stip--live.aan { animation: ds-m-leven var(--ds-moment-leven) var(--ds-m-inuit) infinite; }
+@keyframes ds-m-leven { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+
+/* ===== Hoogtepunten (.ds-moment-*): staffel van --ds-moment-stap, onderdeel --ds-moment-duur, geheel --ds-moment-max ===== */
+/* Zet --ds-moment-n (het staffelgetal uit het plan van achievementunlock.js of eindkaartimpact.js) op elk onderdeel. */
+.ds-moment-stempel { animation: ds-moment-slag var(--ds-m-lang) var(--ds-m-stempel) calc(var(--ds-moment-stap) * var(--ds-moment-n, 0)) both; }
+.ds-moment-binnen { animation: ds-moment-in var(--ds-m-lang) var(--ds-m-uit) calc(var(--ds-moment-stap) * var(--ds-moment-n, 0)) both; }
+.ds-moment-ploft { animation: ds-moment-pof var(--ds-moment-duur) var(--ds-m-stempel) calc(var(--ds-moment-stap) * var(--ds-moment-n, 0)) both; }
+.ds-moment-glans { position: absolute; top: 0; bottom: 0; left: 0; width: 22%; opacity: 0; pointer-events: none; background: var(--ds-c-ink-papier); transform: skewX(-18deg); }
+.ds-moment-glans.ds-moment-veeg { animation: ds-m-veeg var(--ds-moment-duur) var(--ds-m-uit) calc(var(--ds-moment-stap) * var(--ds-moment-n, 0)) both; }
+.ds-moment-vlieg { animation: ds-moment-vlucht var(--ds-moment-duur) var(--ds-m-inuit) calc(var(--ds-moment-stap) * var(--ds-moment-n, 0)) both; }
+@keyframes ds-moment-slag { from { opacity: 0; scale: 1.35; } 60% { opacity: 1; scale: 0.97; } to { opacity: 1; scale: 1; } }
+@keyframes ds-moment-in { from { opacity: 0; translate: -24px 0; } to { opacity: 1; translate: 0 0; } }
+@keyframes ds-moment-pof { from { opacity: 0; scale: 0.4; rotate: -10deg; } 60% { opacity: 1; scale: 1.15; rotate: 3deg; } to { opacity: 1; scale: 1; rotate: 0deg; } }
+@keyframes ds-moment-vlucht { from { opacity: 1; translate: 0 0; scale: 1; } 80% { opacity: 1; } to { opacity: 0; translate: var(--ds-moment-dx, 0px) var(--ds-moment-dy, 0px); scale: 0.4; } }
+/* Overslaan (toets of klik): direct de eindstand, geen animatie meer. */
+.ds-moment-klaar, .ds-moment-klaar .ds-moment-stempel, .ds-moment-klaar .ds-moment-binnen, .ds-moment-klaar .ds-moment-ploft, .ds-moment-klaar .ds-moment-vlieg { animation: none; opacity: 1; translate: none; scale: none; rotate: none; }
+.ds-moment-klaar .ds-moment-glans { animation: none; opacity: 0; }
+
+/* ===== Accent (inkten uit de tokens; geen losse kleur) ===== */
+/* Zet --ds-m-accent voor de kaart: goud is geel, zeldzaam roze, een gewone krijgt de inkt van zijn categorie (achievementunlock.js,
+   accentInkt). Een donkere ondergrond (de HUD) kiest zelf een lichtere inkt voor bord; de klasse zet alleen de variabele. */
+.ds-m-inkt--bord { --ds-m-accent: var(--ds-c-ink-bord); }
+.ds-m-inkt--roze { --ds-m-accent: var(--ds-c-ink-roze); }
+.ds-m-inkt--geel { --ds-m-accent: var(--ds-c-ink-geel); }
+.ds-m-inkt--inkt { --ds-m-accent: var(--ds-c-ink-papier); }
+
+/* ===== Reduced motion: drie takken, elke klasse hierboven staat erbij ===== */
+html.reduce-motion :is(.ds-m-binnen, .ds-m-weg, .ds-m-toast, .ds-m-knop, .ds-m-rij, .ds-m-tik, .ds-m-pop, .ds-m-vul, .ds-m-glans, .ds-m-glanst, .ds-m-tabs__lijn, .ds-m-wissel, .ds-m-schakel__knop, .ds-m-vink, .ds-m-greep, .ds-m-tip, .ds-m-scrollfade, .ds-m-puls, .ds-m-gepulst, .ds-m-stip, .ds-m-stip--live, .ds-m-nieuw, .ds-m-tikt, .ds-moment-stempel, .ds-moment-binnen, .ds-moment-ploft, .ds-moment-glans, .ds-moment-veeg, .ds-moment-vlieg),
+html.reduce-motion .ds-m-glans::after, html.reduce-motion .ds-m-scrollfade::before, html.reduce-motion .ds-m-scrollfade::after, html.reduce-motion .ds-m-nieuw[data-new]::after, html.reduce-motion .ds-m-nieuw[data-new] .ra-t::after { transition-duration: 0ms; transition-delay: 0ms; animation: none; }
+html.rustig-drukwerk :is(.ds-m-binnen, .ds-m-weg, .ds-m-toast, .ds-m-knop, .ds-m-rij, .ds-m-tik, .ds-m-pop, .ds-m-vul, .ds-m-glans, .ds-m-glanst, .ds-m-tabs__lijn, .ds-m-wissel, .ds-m-schakel__knop, .ds-m-vink, .ds-m-greep, .ds-m-tip, .ds-m-scrollfade, .ds-m-puls, .ds-m-gepulst, .ds-m-stip, .ds-m-stip--live, .ds-m-nieuw, .ds-m-tikt, .ds-moment-stempel, .ds-moment-binnen, .ds-moment-ploft, .ds-moment-glans, .ds-moment-veeg, .ds-moment-vlieg),
+html.rustig-drukwerk .ds-m-glans::after, html.rustig-drukwerk .ds-m-scrollfade::before, html.rustig-drukwerk .ds-m-scrollfade::after, html.rustig-drukwerk .ds-m-nieuw[data-new]::after, html.rustig-drukwerk .ds-m-nieuw[data-new] .ra-t::after { transition-duration: 0ms; transition-delay: 0ms; animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  :is(.ds-m-binnen, .ds-m-weg, .ds-m-toast, .ds-m-knop, .ds-m-rij, .ds-m-tik, .ds-m-pop, .ds-m-vul, .ds-m-glans, .ds-m-glanst, .ds-m-tabs__lijn, .ds-m-wissel, .ds-m-schakel__knop, .ds-m-vink, .ds-m-greep, .ds-m-tip, .ds-m-scrollfade, .ds-m-puls, .ds-m-gepulst, .ds-m-stip, .ds-m-stip--live, .ds-m-nieuw, .ds-m-tikt, .ds-moment-stempel, .ds-moment-binnen, .ds-moment-ploft, .ds-moment-glans, .ds-moment-veeg, .ds-moment-vlieg),
+  .ds-m-glans::after, .ds-m-scrollfade::before, .ds-m-scrollfade::after, .ds-m-nieuw[data-new]::after, .ds-m-nieuw[data-new] .ra-t::after { transition-duration: 0ms; transition-delay: 0ms; animation: none; }
+}
+/* Elke tak laat de eindstand staan en verbergt niets: de woorden en het getal staan er ook zonder beweging. */

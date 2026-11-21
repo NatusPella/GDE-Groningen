@@ -13,13 +13,15 @@ import { SIDE_JOBS } from './sidejobs.js';
 import { getOverzicht } from './gebiedenlive.js';
 import { iconSvg, ICON_PATHS } from './achievementicons.js';
 import { fillBars, countTo } from './motion.js';
+import { rijAttr, rijPlan, aanNaFrame, rijenKlaar, staffelDuur, rustigeStand, tikGetal } from './dsmicro.js';
+import { menuPlan } from './achievementunlock.js'; // DS3: staffel van de rijen, eenmalige glans, teller en balken (ds-micro.css)
 import { achStilNoot, achPct as pctOf, achNear, achDone, achCategoryOrder, achCategoryPct, achWhen } from './menumodels.js';
 
 const CHEV = icoon('volgende');
 const LOCK = icoon('slot');
 const CHIP_ICOON = { ok: 'vinkje', ster: 'ster' };
-const chip = (toon, naam, tekst) => `<span class="ds-z-chip${toon ? ' ds-z-chip--' + toon : ''}">${icoon(CHIP_ICOON[naam], { cls: 'ds-z-chip__icoon', maat: 's' })}${tekst}</span>`;
-const streep = (pct, label, dik) => `<div class="ds-z-balk${dik ? ' ' : ''}" style="--ds-z-w:${Math.max(0, Math.min(100, pct))}%"><span class="ds-z-balk__baan"><span class="ds-z-balk__vul"></span></span><span class="ds-z-balk__label">${label}</span></div>`;
+const chip = (toon, naam, tekst) => `<span class="ds-z-chip ds-m-pop${toon ? ' ds-z-chip--' + toon : ''}">${icoon(CHIP_ICOON[naam], { cls: 'ds-z-chip__icoon', maat: 's' })}${tekst}</span>`;
+const streep = (pct, label, dik, sleutel = '') => `<div class="ds-z-balk${dik ? ' ' : ''}"${sleutel ? ` data-bk="${sleutel}"` : ''} style="--ds-z-w:${Math.max(0, Math.min(100, pct))}%"><span class="ds-z-balk__baan"><span class="ds-z-balk__vul"></span></span><span class="ds-z-balk__label${sleutel ? ' ds-m-tik' : ''}">${label}</span></div>`;
 const CHECK = icoon('vinkje');
 
 // de categorieën zijn kaarten met een icoon, een balk en de eerstvolgende
@@ -77,6 +79,11 @@ const openExtra = new Set();
 const bars = new Map();
 let shownPct = null;
 let freshIds = new Set();
+let glansIds = new Set();            // rijen die in deze render hun glans krijgen (eenmalig per sessie)
+let staffelAan = false;              // deze render staffelt de rijen (eerste keer, tabwissel); een vouw of selectie niet
+const glansGezien = new Set();       // welke nieuwe rijen al glansden (menuPlan)
+const tellerMem = new Map();         // het vorige aantal per categorie, voor de teller
+const balkMem = new Map();           // de vorige breedte per balk, zodat een balk vult van wat er was
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const nl = (n, d = 0) => n.toLocaleString('nl-NL', { minimumFractionDigits: d, maximumFractionDigits: d });
 
@@ -91,7 +98,7 @@ function fmtAmount(v, unit) {
 
 const whenText = (at) => achWhen(at, Date.now(), new Date(at).getTimezoneOffset(), (t) => new Date(t).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }));
 
-function row(it, catLabel) {
+function row(it, catLabel, i = 0) {
   const title = it.hidden ? '???' : dualHtml(it.title);
   // #909: waar je al bijna bent laat de rij zelf zien: een dunne balk onder de titel met
   // dezelfde verhouding als het cijfer ernaast, zodat je in één oogopslag ziet hoever je bent.
@@ -101,7 +108,8 @@ function row(it, catLabel) {
   if (it.unlocked) end = freshIds.has(it.id) ? '<span class="t g">nieuw</span>' + CHECK : CHECK;
   else if (it.hidden) end = LOCK;
   else if (bijna) end = `<span class="pa-row-end"><span class="v">${fmtAmount(it.progress.cur, it.progress.unit)}/${fmtAmount(it.progress.goal, it.progress.unit)}</span><span class="pa-row-pct">${Math.round(pctOf(it))}%</span></span>`;
-  return `<button type="button" class="m-li${it.unlocked ? '' : ' off'}${bijna ? ' near' : ''}${sel === it.id ? ' sel' : ''}" data-ach="${esc(it.id)}" data-cat-label="${esc(catLabel)}"${sel === it.id ? ' aria-current="true"' : ''}>` +
+  const ra = rijAttr(i, glansIds.has(it.id) ? 'ds-m-glans ds-m-glanst' : '', { rustig: !staffelAan || rustigeStand() }); // DS3: gestaffeld binnenkomen, een net-ontgrendelde rij glanst één keer
+  return `<button type="button" class="m-li${it.unlocked ? '' : ' off'}${bijna ? ' near' : ''}${sel === it.id ? ' sel' : ''}${ra.klasse ? ' ' + ra.klasse : ''}"${ra.stijl ? ` style="${ra.stijl}"` : ''} data-ach="${esc(it.id)}" data-cat-label="${esc(catLabel)}"${sel === it.id ? ' aria-current="true"' : ''}>` +
     `<span class="pa-ico">${iconSvg(it)}</span><span class="nm"><span class="one">${title}</span>${it.unlocked && it.at ? `<span class="mut one">${whenText(it.at)}</span>` : ''}${rowbar}</span>${end}</button>`;
 }
 
@@ -140,8 +148,8 @@ function catTile(c) {
       `<span class="pa-tile-next">${nextLine}</span>` +
       `<span class="pa-tile-end"><span class="pa-tile-pct">${pct}%</span><span class="pa-tile-chev" aria-hidden="true">${CHEV}</span></span>` +
     `</button>` +
-    streep(pct, `${c.done} van ${c.items.length}`) + `</div>` +
-    `<div class="m-fold" ${open ? '' : 'hidden'}>${items.map((a) => row(a, c.label)).join('')}</div></div>`;
+    streep(pct, `${c.done} van ${c.items.length}`, false, `c-${c.cat}`) + `</div>` +
+    `<div class="m-fold" ${open ? '' : 'hidden'}>${items.map((a, i) => row(a, c.label, i)).join('')}</div></div>`;
 }
 
 // a progress bar with its own fill animation; the number is written next to it,
@@ -217,7 +225,7 @@ function detailHtml(it, catLabel, next) {
     return '<div class="pa-empty-pane">' +
       '<div class="pm-pane-top"><span class="m-eb">Eerstvolgende</span><h2 class="m-h2 td-h2"><span class="pa-ico big">' + iconSvg(next) + '</span>' + nt + '</h2></div>' +
       `<p>${next.hidden ? 'Geheim. Blijf rondkijken in Grunn.' : esc(next.desc)}</p>${np}` +
-      `<div class="m-acts pa-next-acts ds-zeef"><button type="button" class="ds-z-knop" data-ach-next="${esc(next.id)}">Bekijk in de lijst</button></div></div>`;
+      `<div class="m-acts pa-next-acts ds-zeef"><button type="button" class="ds-z-knop ds-m-knop" data-ach-next="${esc(next.id)}">Bekijk in de lijst</button></div></div>`;
   }
   const title = it.hidden ? '???' : dualHtml(it.title);
   const desc = it.hidden ? 'Geheim. Blijf rondkijken in Grunn.' : esc(it.desc);
@@ -258,10 +266,42 @@ function heroHtml(sum, near, verborgen) {
     streep(pct, `${sum.done} van ${sum.total} behaald`, true) + '</section>';
 }
 
-export function renderAchievementsPanel(el, { keepFresh = false } = {}) {
+// DS3 (ds-micro.css, achievementunlock.js menuPlan): de categorie-teller tikt op naar het nieuwe aantal, een balk vult van wat er
+// was (nooit opnieuw bij een vouw of tabwissel), een balk die net vol is glanst één keer en de rijen zijn na het staffelen weer
+// gewone rijen. Alles blijft staan zoals het was bij Beweging beperken en Rustig drukwerk (dan doet deze functie niets).
+function microStap(el, plan) {
+  aanNaFrame([...el.querySelectorAll('.ds-m-pop')]); // de chips poppen (Bijna binnen, Alles gehaald); bij rustig meteen
+  if (rustigeStand() || typeof requestAnimationFrame !== 'function') { for (const b of el.querySelectorAll('.ds-z-balk[data-bk]')) balkMem.set(b.dataset.bk, parseFloat(b.style.getPropertyValue('--ds-z-w')) || 0); return; }
+  for (const b of el.querySelectorAll('.ds-z-balk[data-bk]')) {
+    const id = b.dataset.bk;
+    const w = parseFloat(b.style.getPropertyValue('--ds-z-w')) || 0;
+    const was = balkMem.has(id) ? balkMem.get(id) : 0;
+    balkMem.set(id, w);
+    if (was === w) continue;
+    b.style.setProperty('--ds-z-w', was + '%');
+    requestAnimationFrame(() => requestAnimationFrame(() => b.style.setProperty('--ds-z-w', w + '%')));
+    const baan = b.querySelector('.ds-z-balk__baan');
+    if (w >= 100 && baan) setTimeout(() => baan.classList.add('ds-m-glans', 'ds-m-glanst'), 260);
+  }
+  for (const t of plan.tellers) {
+    if (!t.stappen.length) continue;
+    const lab = el.querySelector(`.ds-z-balk[data-bk="c-${t.cat}"] .ds-z-balk__label`);
+    if (!lab) continue;
+    const n = lab.textContent.replace(/^\d+ van /, '');
+    lab.textContent = `${t.was} van ${n}`;
+    for (const s of t.stappen) setTimeout(() => { lab.textContent = `${s.waarde} van ${n}`; tikGetal(lab); }, s.t);
+  }
+  const rijen = [...el.querySelectorAll('.ds-m-rij')];
+  if (rijen.length) { aanNaFrame(rijen); rijenKlaar(rijen, staffelDuur(rijen.length)); }
+}
+
+export function renderAchievementsPanel(el, { keepFresh = false, animeer } = {}) {
   if (!el) return;
   const view = getAchievementView();
   if (!keepFresh) freshIds = new Set(view.flatMap((c) => c.items).filter((a) => isAchievementFresh(a.id)).map((a) => a.id));
+  staffelAan = animeer != null ? !!animeer : !keepFresh;
+  const mp = menuPlan({ vers: [...freshIds], gezien: glansGezien, vorigeTellers: tellerMem, tellers: view.map((c) => ({ cat: c.cat, done: c.done })), rustig: rustigeStand() });
+  glansIds = new Set(mp.glans);
   if (unseenAchievementCount()) markAchievementsSeen();
   const sum = getAchievementSummary();
   const st = getLifetimeStats();
@@ -275,9 +315,9 @@ export function renderAchievementsPanel(el, { keepFresh = false } = {}) {
   const tab = (id, label, n) => `<button type="button" role="tab" class="m-tab" data-achview="${id}" aria-selected="${tabView === id}">${label}${n != null ? `<small>${n}</small>` : ''}</button>`;
   const extras = [['gebieden', 'Gebieden', 'buurt tot provincie', gebiedenBlock()], ['cijfers', 'Cijfers', 'sinds je eerste spel', figuresBlock(st)], ['medailles', 'Medailles', 'per missie', medalsBlock()], ['records', 'Records', 'per bijbaantje', jobRecordsBlock()]];
   let list;
-  if (tabView === 'bijna') list = near.length ? near.map((a) => row(a, a.catLabel)).join('')
+  if (tabView === 'bijna') list = near.length ? near.map((a, i) => row(a, a.catLabel, i)).join('')
     : '<div class="pa-leeg"><b>Nog niks dichtbij</b><p class="m-note">Speel wat rond: bijna elke prestatie laat vanzelf een balk zien zodra je begint.</p></div>';
-  else if (tabView === 'behaald') list = done.length ? done.map((a) => row(a, a.catLabel)).join('')
+  else if (tabView === 'behaald') list = done.length ? done.map((a, i) => row(a, a.catLabel, i)).join('')
     : '<div class="pa-leeg"><b>Nog niks behaald</b><p class="m-note">De eerste komt vanzelf: een missie, een ritje of een bezoekje aan de markt.</p></div>';
   else {
     // elke categorie is een kaart met een icoon, de stand in woorden, een balk en de
@@ -293,6 +333,7 @@ export function renderAchievementsPanel(el, { keepFresh = false } = {}) {
     heroHtml(sum, near, all.filter((a) => a.hidden).length) +
     `<div class="m-main"><div class="m-list pa-list">${list}</div><aside class="m-pane pa-pane" aria-live="polite">${detailHtml(selItem, selItem && selItem.catLabel, nextOverall)}</aside></div>`;
   zetCss();
+  microStap(el, mp);
   fillBars(el, bars);
   const pct = el.querySelector('[data-pa-pct]');
   if (shownPct != null) pct.dataset.moValue = String(shownPct);
@@ -307,7 +348,7 @@ export function renderAchievementsPanel(el, { keepFresh = false } = {}) {
       const x = e.target.closest('[data-achextra]');
       const a = e.target.closest('[data-ach]');
       const n = e.target.closest('[data-ach-next]');
-      if (t) { tabView = t.dataset.achview; renderAchievementsPanel(el, { keepFresh: true }); keepFocus(`[data-achview="${tabView}"]`); }
+      if (t) { tabView = t.dataset.achview; renderAchievementsPanel(el, { keepFresh: true, animeer: true }); keepFocus(`[data-achview="${tabView}"]`); }
       else if (c) { const id = c.dataset.achcat; if (openCats.has(id)) openCats.delete(id); else openCats.add(id); renderAchievementsPanel(el, { keepFresh: true }); keepFocus(`[data-achcat="${id}"]`); }
       else if (x) { const id = x.dataset.achextra; if (openExtra.has(id)) openExtra.delete(id); else openExtra.add(id); renderAchievementsPanel(el, { keepFresh: true }); keepFocus(`[data-achextra="${id}"]`); }
       else if (n) {

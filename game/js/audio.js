@@ -1595,6 +1595,28 @@ export function playEindkaartGeluid(naam, i = 0) {
   }
 }
 
+// De prestatie als moment (achievementunlock.js, wens 21-11): een korte slag bij de inslag van de kaart, tikjes van de teller en een
+// zachte glans. Aanvullend op de prestatie-sting (playPrestatieSting); de teller-tik en -munt zijn die van de eindkaart. De slag
+// is lichter dan de eindkaart-inslag en klinkt nooit samen met die: de prestatie wacht tot de eindkaart weg is (achievements.js).
+export function playPrestatieMoment(naam, i = 0, goud = false) {
+  if (!ctx || muted || !stingBus) return;
+  const sting = { bus: stingBus, prio: 2 };
+  switch (naam) {
+    case 'slag':
+      playTone({ freq: 150, freqEnd: 52, type: 'sine', duration: 0.22, gain: goud ? 0.2 : 0.15, ...sting });
+      playNoiseBurst({ duration: 0.05, freq: 2400, freqEnd: 900, q: 0.8, gain: 0.05, type: 'highpass', ...sting });
+      break;
+    case 'tik':
+    case 'munt':
+      playEindkaartGeluid(naam, i);
+      break;
+    case 'glans':
+      playTone({ freq: goud ? 2093 : 1568, type: 'sine', duration: 0.16, gain: 0.028, ...sting });
+      break;
+    default: break;
+  }
+}
+
 // De klok van een missie of klus staat op 30 s (twee tonen) of 10 s (drie, hoger): een piep, geen stem (#985).
 export function playTimeWarning(urgent = false) {
   if (!ctx || muted || !uiBus) return;
@@ -2670,6 +2692,9 @@ function playAudioEvents(world) {
       // een medaille van een minigame (achievements.js geeft e.medal mee) krijgt zijn eigen sting; zonder medaille of zonder bank het oude geluid
       case 'prestatie':
         if (!(medailleSting(e.medal) && speelMissieSting(medailleSting(e.medal)))) playPrestatieSting({ goud: !!e.goud }); // #840: eigen prestatiegeluid (gewoon of goud)
+        break;
+      case 'prestatiemoment': // achievementunlock.js: slag, teller-tikjes en glans van de prestatiekaart (alleen lokaal, nooit via het net)
+        if (!(world.paused || world.menuMuffle)) playPrestatieMoment(e.naam, e.i || 0, !!e.goud);
         break;
       case 'achievement':
         if (!(medailleSting(e.medal) && speelMissieSting(medailleSting(e.medal)))) playPrestatieSting({ goud: true }); // medailles en uitdagingen: de gouden variant
