@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Samen spelen: de vraag Meedoen? is nu een korte vraag met twee knoppen, Ja en Nee, met de toets J en N erin; je kunt dus ook met muis of aanraking antwoorden. Het antwoord geldt alleen voor jezelf (#1001). Test: meedoenvorm_test.
 - Laadscherm (Samen spelen): een gast die nog op de eerste wereldstand wacht ziet onder de balk "Wachten op <naam>" met de naam van wie het spel opende; wie alleen speelt of het spel opende wacht op niemand en ziet de gewone stappen (#1002, #1001). Test: loadgate_test.
 - Minigames (Samen spelen): de tussenstand van de kartbaan en de klimtoren is één gedeelde tabel; wie wegvalt blijft staan met het woord "weg" in de laatste cel en niet alleen met een doorgestreepte kleur, en pitch & putt zet "weg" achter de naam. Per speler lokaal, er gaat niets over het net (#1000). Test: standtabel_test.
 - Golf en boerderij: de kopband van het bord heeft een eigen motief, maaistrepen bij golf en voren bij de boerderij, een lichte laag van de tekstinkt (8 en 10 procent) die de tekst op de band boven 4,5:1 houdt; Rustig drukwerk laat het motief vallen. Per speler lokaal (#1004). Test: ctxidentiteit_test.

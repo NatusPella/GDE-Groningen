@@ -295,7 +295,8 @@
     "scripts/coopbezig_test.mjs",
     "scripts/coopstatus_test.mjs",
     "scripts/simhud_layout_test.mjs",
-    "scripts/standtabel_test.mjs"
+    "scripts/standtabel_test.mjs",
+    "scripts/meedoenvorm_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
