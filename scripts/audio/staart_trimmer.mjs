@@ -11,6 +11,7 @@ import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { eindBurst, EIND } from './ruisachtig_scan.mjs';
+import { popBegin } from './pop_begin.mjs';
 
 export const FADE_S = 0.03;     // fade-out op het nieuwe einde
 export const NASLEEP_S = 0.04;  // de stem mag zo lang na het laatste stille frame doorklinken
@@ -33,6 +34,25 @@ export function trimRuisEinde(x, sr) {
   return { samples: uit, geknipt: x.length - uit.length, burst: e };
 }
 
+// Het pop-begin: de losse klik op ca. 40 ms (zie pop_begin.mjs) gaat op nul tot net erna, met een korte fade-in op wat volgt.
+export const FADE_IN_S = 0.01;
+export function trimPopBegin(x, sr) {
+  const p = popBegin(x, sr);
+  if (!p.pop) return { samples: x, nul: 0, pop: p };
+  const tot = Math.min(x.length, Math.round((p.vanMs + 10) / 1000 * sr));   // blok van de klik (5 ms) en de 5 ms erna
+  const uit = x.slice();
+  uit.fill(0, 0, tot);
+  const fade = Math.min(uit.length - tot, Math.round(FADE_IN_S * sr));
+  for (let k = 0; k < fade; k++) uit[tot + k] *= k / fade;
+  return { samples: uit, nul: tot, pop: p };
+}
+
+// Beide nabewerkingen achter elkaar (de volgorde maakt niet uit: de een raakt het begin, de ander het einde)
+export function trimClip(x, sr) {
+  const a = trimPopBegin(x, sr), b = trimRuisEinde(a.samples, sr);
+  return { samples: b.samples, popWeg: a.pop.pop, ruisEindeWeg: b.burst.burst, geknipt: b.geknipt, pop: a.pop, burst: b.burst };
+}
+
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const [inn, uit] = process.argv.slice(2).filter((a) => !a.startsWith('--'));
   const controle = process.argv.includes('--controle');
@@ -40,10 +60,10 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const SR = 24000;
   const buf = execFileSync('ffmpeg', ['-v', 'error', '-i', inn, '-ac', '1', '-ar', String(SR), '-f', 'f32le', '-'], { maxBuffer: 1 << 28 });
   const x = new Float32Array(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength - (buf.byteLength % 4)));
-  const r = trimRuisEinde(x, SR);
-  if (controle) { console.log(r.burst.burst ? `ruis-einde: ${r.burst.ms} ms op ${r.burst.vanafS} s, piek ${r.burst.piekDb} dB` : 'geen ruis-einde'); process.exit(r.burst.burst ? 1 : 0); }
-  if (!r.burst.burst) { console.log('geen ruis-einde, niets geknipt'); process.exit(0); }
+  const r = trimClip(x, SR);
+  if (controle) { console.log(`ruis-einde: ${r.burst.burst ? `ja (${r.burst.ms} ms op ${r.burst.vanafS} s, piek ${r.burst.piekDb} dB)` : 'nee'}; pop-begin: ${r.pop.pop ? `ja (${r.pop.piekDb} dB op ${r.pop.vanMs} ms)` : 'nee'}`); process.exit(r.burst.burst || r.pop.pop ? 1 : 0); }
+  if (!r.burst.burst && !r.pop.pop) { console.log('geen ruis-einde en geen pop-begin, niets aangepast'); process.exit(0); }
   const codec = /\.mp3$/i.test(uit) ? ['-c:a', 'libmp3lame', '-q:a', '4'] : ['-c:a', 'pcm_s16le'];
   execFileSync('ffmpeg', ['-v', 'error', '-y', '-f', 'f32le', '-ar', String(SR), '-ac', '1', '-i', 'pipe:0', ...codec, uit], { input: Buffer.from(r.samples.buffer, r.samples.byteOffset, r.samples.byteLength) });
-  console.log(`geknipt: ${(r.geknipt / SR * 1000).toFixed(0)} ms ruis-einde weg, geschreven naar ${uit}`);
+  console.log(`aangepast: ${(r.geknipt / SR * 1000).toFixed(0)} ms ruis-einde weg${r.pop.pop ? ', pop-begin gedempt' : ''}, geschreven naar ${uit}`);
 }

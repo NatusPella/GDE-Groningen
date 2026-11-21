@@ -47,7 +47,8 @@ export function bouwBronnen() {
   return kaart;
 }
 
-export const ernst = (r) => (r.eind && r.eind.burst ? (r.eind.piekDb > -12 && r.eind.ms >= 150 ? 'hoog' : 'midden') : 'controle');
+// hoog: ruis-einde én pop-begin (het patroon van de gemelde clips); midden: één van beide; controle: alleen ruisaandeel
+export const ernst = (r) => ((r.eind && r.eind.burst) && (r.pop && r.pop.pop) ? 'hoog' : (r.eind && r.eind.burst) || (r.pop && r.pop.pop) ? 'midden' : 'controle');
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const jp = path.join(ROOT, 'docs', 'witte-ruis-scan.json');
@@ -56,11 +57,11 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const kaart = bouwBronnen();
   const rijen = lijst.map((r) => {
     const m = kaart.get(r.f) || null;
-    return { f: r.f, ernst: ernst(r), aandeel: r.aandeel, sec: r.sec, eind: r.eind, sleutel: m ? m.sleutel : null, stem: m ? m.stem : null, tekst: m ? m.tekst : null, bron: m ? m.bron : [], tts: m && m.tts ? m.tts : null };
+    return { f: r.f, ernst: ernst(r), ruisEinde: !!(r.eind && r.eind.burst), popBegin: !!(r.pop && r.pop.pop), aandeel: r.aandeel, sec: r.sec, eind: r.eind, pop: r.pop, sleutel: m ? m.sleutel : null, stem: m ? m.stem : null, tekst: m ? m.tekst : null, bron: m ? m.bron : [], tts: m && m.tts ? m.tts : null };
   });
   scan.bronnen = rijen;
   fs.writeFileSync(jp, JSON.stringify(scan, null, 1));
-  const burst = rijen.filter((r) => r.ernst !== 'controle');
+  const burst = rijen.filter((r) => r.ernst !== 'controle');   // ruis-einde en/of pop-begin
   const perStem = {};
   for (const r of burst) perStem[r.stem || '(onbekend)'] = (perStem[r.stem || '(onbekend)'] || 0) + 1;
   const perMap = {};
@@ -69,18 +70,18 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const url = (f) => `file:///${WORTEL}/${f}`;
   let h = `<!doctype html><html lang="nl"><head><meta charset="utf-8"><title>Witte ruis: verdachte spraakclips</title><style>body{font:14px system-ui;max-width:940px;margin:2em auto;padding:0 1em}li{margin:.7em 0;list-style:none;border-bottom:1px solid #ddd;padding-bottom:.5em}audio{display:block;width:100%;margin-top:3px}small{color:#555}.hoog{color:#b00}.midden{color:#a60}.controle{color:#555}</style></head><body>\n<h1>Witte ruis: verdachte spraakclips</h1>\n<p>Gemaakt met <code>node scripts/audio/witte_ruis_rapport.mjs</code> uit <code>docs/witte-ruis-scan.json</code>. Eerst de clips met een <b>ruis-einde</b> (een harde burst van ca. 0,2 s na bijna-stilte, vlak voor het einde), daarna de clips op aandeel ruisframes (vanaf 8 procent). Luister vooral naar het <b>laatste halve seconde</b>. ${burst.length} met ruis-einde, ${rijen.length - burst.length} ter controle.</p>\n<ol>\n`;
   for (const r of rijen) {
-    h += `<li><b class="${r.ernst}">${r.ernst}</b> <code>${esc(r.f.replace('game/audio/', ''))}</code><br><small>${esc(r.stem || 'bron onbekend')}: ${esc(r.tekst || '')} &middot; ${r.sec} s, ruisframes ${(r.aandeel * 100).toFixed(0)}%${r.eind && r.eind.burst ? `, ruis-einde ${r.eind.ms} ms vanaf ${r.eind.vanafS} s (piek ${r.eind.piekDb} dB)` : ''}</small><audio controls preload="none" src="${esc(url(r.f))}"></audio></li>\n`;
+    h += `<li><b class="${r.ernst}">${r.ernst}</b> <code>${esc(r.f.replace('game/audio/', ''))}</code><br><small>${esc(r.stem || 'bron onbekend')}: ${esc(r.tekst || '')} &middot; ${r.sec} s, ruisframes ${(r.aandeel * 100).toFixed(0)}% &middot; ruis-einde: <b>${r.ruisEinde ? 'ja' : 'nee'}</b>${r.ruisEinde ? ` (${r.eind.ms} ms vanaf ${r.eind.vanafS} s, ${r.eind.piekDb} dB)` : ''}, pop-begin: <b>${r.popBegin ? 'ja' : 'nee'}</b>${r.popBegin ? ` (${r.pop.piekDb} dB op ${r.pop.vanMs} ms)` : ''}</small><audio controls preload="none" src="${esc(url(r.f))}"></audio></li>\n`;
   }
   h += '</ol></body></html>\n';
   fs.writeFileSync(path.join(ROOT, 'docs', 'WITTE-RUIS-LUISTER-VERDACHT.html'), h);
 
   const md = ['<!-- RAPPORT-BEGIN (gegenereerd door scripts/audio/witte_ruis_rapport.mjs; niet met de hand bewerken) -->', '',
-    `**Ruis-einde:** ${burst.length} spraakclips hebben aan het eind een harde burst (hoog: ${burst.filter((r) => r.ernst === 'hoog').length}, midden: ${burst.filter((r) => r.ernst === 'midden').length}); ${rijen.length - burst.length} clips staan er ter controle bij (ruisaandeel 8 procent of meer, zonder burst).`, '',
+    `**Ruis-einde en pop-begin:** ${burst.length} van ${scan.spraak_gemeten || '?'} spraakclips hebben een van beide of beide (hoog = beide: ${burst.filter((r) => r.ernst === 'hoog').length}; midden = een van beide: ${burst.filter((r) => r.ernst === 'midden').length}); ${rijen.length - burst.length} clips staan er ter controle bij (ruisaandeel 8 procent of meer, zonder een van beide).`, '',
     `Per stem (alleen ruis-einde): ${Object.entries(perStem).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v}`).join(', ') || '-'}.`, '',
     `Per map: ${Object.entries(perMap).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k.replace('game/audio/voicelines/', '')} ${v}`).join(', ') || '-'}.`, '',
     'Gerangschikt: ernst, bestand, sleutel (Stem|tekst), stem, duur, het ruis-einde. Het volledige rijtje met bronbestanden (manifest en tts.json) en TTS-stem staat in `witte-ruis-scan.json` onder `bronnen`; het luisterpaneel is [WITTE-RUIS-LUISTER-VERDACHT.html](WITTE-RUIS-LUISTER-VERDACHT.html).', '',
-    '| Ernst | Bestand | Sleutel | Duur | Ruis-einde |', '|---|---|---|---|---|'];
-  for (const r of burst) md.push(`| ${r.ernst} | ${r.f.replace('game/audio/voicelines/', '')} | ${(r.sleutel || '(onbekend)').replace(/\|/g, '\\|')} | ${r.sec} s | ${r.eind.ms} ms vanaf ${r.eind.vanafS} s, ${r.eind.piekDb} dB |`);
+    '| Ernst | Bestand | Sleutel | Stem | Duur | Ruis-einde | Pop-begin |', '|---|---|---|---|---|---|---|'];
+  for (const r of burst) md.push(`| ${r.ernst} | ${r.f.replace('game/audio/voicelines/', '')} | ${(r.sleutel || '(onbekend)').replace(/\|/g, '\\|')} | ${r.tts ? r.tts.voice : '-'} | ${r.sec} s | ${r.ruisEinde ? `ja (${r.eind.ms} ms vanaf ${r.eind.vanafS} s)` : 'nee'} | ${r.popBegin ? `ja (${r.pop.piekDb} dB)` : 'nee'} |`);
   md.push('', '<!-- RAPPORT-EINDE -->');
   const mp = path.join(ROOT, 'docs', 'WITTE-RUIS-21-11.md');
   let doc = fs.readFileSync(mp, 'utf8');
@@ -88,5 +89,5 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   if (doc.includes('<!-- RAPPORT-BEGIN')) doc = doc.replace(/<!-- RAPPORT-BEGIN[\s\S]*?<!-- RAPPORT-EINDE -->/, () => blok);
   else doc += `\n## Ruis-einde in spraakclips (gemeld door de eigenaar)\n\n${blok}\n`;
   fs.writeFileSync(mp, doc);
-  console.log(`rapport: ${burst.length} met ruis-einde, ${rijen.length - burst.length} ter controle, ${rijen.filter((r) => !r.sleutel).length} zonder gevonden bron`);
+  console.log(`rapport: ${burst.length} met ruis-einde en/of pop-begin, ${rijen.length - burst.length} ter controle, ${rijen.filter((r) => !r.sleutel).length} zonder gevonden bron`);
 }

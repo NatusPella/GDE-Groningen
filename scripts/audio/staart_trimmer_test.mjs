@@ -1,6 +1,7 @@
 // Pure test van het ruis-einde-patroon en de staarttrimmer (scripts/audio/staart_trimmer.mjs, ruisachtig_scan.mjs eindBurst).
 //   node scripts/audio/staart_trimmer_test.mjs
-import { trimRuisEinde, FADE_S } from './staart_trimmer.mjs';
+import { trimRuisEinde, trimPopBegin, trimClip, FADE_S } from './staart_trimmer.mjs';
+import { popBegin } from './pop_begin.mjs';
 import { eindBurst } from './ruisachtig_scan.mjs';
 
 let n = 0, fails = 0;
@@ -42,6 +43,26 @@ ok(trimRuisEinde(schoon, SR).samples === schoon && trimRuisEinde(schoon, SR).gek
 // 5. ook bij een andere samplefrequentie
 const lo = Float32Array.from(slecht.filter((_, i) => i % 2 === 0));
 ok(eindBurst(lo, SR / 2).burst, 'werkt bij een andere samplefrequentie');
+
+// 6. pop-begin: digitale stilte, een klik van 5 ms op 40 ms (-6 dB), dan zachte stem
+{
+  const x = new Float32Array(SR);
+  for (let i = Math.round(0.04 * SR); i < Math.round(0.045 * SR); i++) x[i] = 0.5 * Math.sin(i * 1.3);
+  for (let i = Math.round(0.1 * SR); i < SR; i++) x[i] = 0.01 * Math.sin(i * 0.07);
+  ok(popBegin(x, SR).pop, 'pop-begin gevonden', JSON.stringify(popBegin(x, SR)));
+  const t = trimPopBegin(x, SR);
+  ok(!popBegin(t.samples, SR).pop && Math.abs(t.samples[Math.round(0.042 * SR)]) === 0, 'de klik is weg');
+  ok(t.samples[Math.round(0.5 * SR)] === x[Math.round(0.5 * SR)], 'de stem erna blijft ongemoeid');
+  // een gewone luide inzet is geen pop
+  const y = new Float32Array(SR);
+  for (let i = Math.round(0.04 * SR); i < SR; i++) y[i] = 0.3 * Math.sin(i * 0.07);
+  ok(!popBegin(y, SR).pop, 'een gewone luide inzet is geen pop');
+  const z = new Float32Array(SR);   // een zachte inzet
+  for (let i = Math.round(0.04 * SR); i < SR; i++) z[i] = 0.02 * Math.sin(i * 0.07) * Math.min(1, (i - 0.04 * SR) / (0.05 * SR));
+  ok(!popBegin(z, SR).pop, 'een zachte inzet is geen pop');
+  const c = trimClip(Float32Array.from([...x.subarray(0, Math.round(0.6 * SR)), ...new Float32Array(Math.round(0.3 * SR)).map(() => 0.0003 * rnd()), ...new Float32Array(Math.round(0.2 * SR)).map(() => 0.3 * rnd()), ...new Float32Array(1200)]), SR);
+  ok(c.popWeg && c.ruisEindeWeg, 'trimClip herkent en verwijdert beide', JSON.stringify([c.popWeg, c.ruisEindeWeg]));
+}
 
 console.log(`staart_trimmer_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
