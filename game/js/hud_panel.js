@@ -61,7 +61,7 @@ import { beppeMapSpot } from './beppe_garden.js';
 import { perceelMapSpots, drawPerceelMapIcon } from './perceelmap.js';
 import { singleEntryCache } from './hudcache.js';
 import { minimapMoved, minimapRedrawDue } from './minimapcadence.js';
-import { locatieLift, locatieHysterese, locatieVerschuiving, LOCATIE_GAP } from './hudlinks.js'; // #1079: de locatiekaart staat onderin en gaat alleen omhoog voor wat eronder komt
+import { locatieLift, locatieHysterese, locatieVerschuiving, LOCATIE_GAP } from './hudlinks.js'; // #1141: de locatiekaart staat onderin en gaat alleen omhoog voor wat eronder komt
 import { policeBadge, heatTooltip, heatChip, HEAT_RING } from './minimapheat.js'; // #952: warmte bij de politie als ring, plus een chip met icoon en getal
 import { VILLAGES } from './ommelandlines.js';
 import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, getCareRoute, formatDistance } from './routing.js';
@@ -102,6 +102,7 @@ import { bindMinimapOpen } from './minimaptap.js'; // #985
 import { hudExpensiveDue, intervalDue } from './hudgate.js';
 import { isOverlayHeld } from './overlayhold.js';
 import { hoofdspeler } from './spelersregister.js';
+import { getViewAnchor, easeAnchor, mapUpRotation } from './viewanchor.js'; // wat als jij telt: duif, heli, trein, voertuig of figuur (#1141)
 import { maakWidget, zetAankondiger } from './regelwidget.js'; // #987: regel als icoon en meter (eierrit)
 // portraits share the HUD's green (DESIGN_SYSTEM: no blue accents); speaker
 // colours stay in subtitles
@@ -115,6 +116,7 @@ let mmScale = 1.45;
 let mmSkip = 0, mmDt = 0;
 let mmMode = 'lopen';
 let mmRot = null;
+const mmEase = { heading: null, kind: null, t: 0 }; // zachte richting van de driehoek bij in- en uitstappen (viewanchor.js)
 
 // Genre convention: purple for your own waypoint, yellow for missions, orange for
 // side jobs, pink for care (food when hurt, a garage for your own damaged ride)
@@ -411,7 +413,7 @@ export function initHud(world) {
   watchInput();
 }
 
-// #1079 (eigenaar, 21-11): de locatiekaart (straat + plaats) staat standaard onderaan de kolom naast de minimap. Het speler-blok
+// #1141 (eigenaar, 21-11): de locatiekaart (straat + plaats) staat standaard onderaan de kolom naast de minimap. Het speler-blok
 // eronder (meters) houdt zijn ruimte ook als het verborgen is (hv-off is alleen doorzichtig), dus de kaart zweefde boven een
 // lege plek. De regels staan in hudlinks.js; hier alleen het meten (bij een verandering, niet per frame) en het zetten van
 // --hud-loc-y, de verschuiving die de CSS als `translate` op .hud-location toepast.
@@ -763,7 +765,8 @@ export function updateHud(dt, world) {
   // De cadans hangt ook af van beweging: een stilstaande kaart (speler staat, geen rotatie of
   // zoom-easing) tekent op een rustige cadans (minimapcadence.js), een bewegende houdt zijn tempo.
   const mmP = hoofdspeler(world);
-  const mmCur = { x: mmP.x, y: mmP.y, yaw: world.pigeonMode ? mmP.angle : world.camYaw ?? mmP.angle };
+  const mmA = getViewAnchor(world, { body: mmP });
+  const mmCur = { x: mmA.x, y: mmA.y, yaw: mmA.upYaw };
   const mmMoved = minimapMoved(mmPrev, mmCur, mmSettling);
   if (!minimapRedrawDue(mmNow, mmLastAt, mmCostMs, mmMoved)) return;
   mmPrev = mmCur;
@@ -2851,7 +2854,11 @@ function drawMinimap(dt, world) {
   const ctx = els.mmCtx;
   const dpr = hudPixelRatio();
   sizeSquareCanvas(els.mmCanvas, Math.round(MINIMAP_SIZE * dpr));
-  const player = hoofdspeler(world);
+  // "jij" is de bestuurde entiteit (viewanchor.js): plek, richting en kijkhoek komen van de duif, de heli, het voertuig of de trein;
+  // het lichaam leent de rest (inVehicle enz.)
+  const body = hoofdspeler(world);
+  const anchor = easeAnchor(mmEase, getViewAnchor(world, { body }), dt);
+  const player = Object.assign(Object.create(body), { x: anchor.x, y: anchor.y, angle: anchor.heading });
   const t = performance.now() / 1000;
 
   ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -2872,9 +2879,8 @@ function drawMinimap(dt, world) {
   // The map rotates so the camera heading always points up (or stays north-up
   // in the air or by setting); any world angle plus mapRotation gives its
   // on-screen angle. A change of mode turns it smoothly.
-  // a flying pigeon: its own heading (pigeonmode.js keeps player.angle on it)
-  const upYaw = world.pigeonMode ? player.angle : world.camYaw ?? player.angle;
-  const rotTarget = northUp(st.minimapNorth, mmMode) ? 0 : -Math.PI / 2 - upYaw;
+  // viewanchor.js: de camerahoek, maar de richting van de duif, heli, het vliegtuig en de trein, en bij een scenecamera de eigen richting
+  const rotTarget = mapUpRotation(anchor, northUp(st.minimapNorth, mmMode));
   if (mmRot == null) mmRot = rotTarget;
   let dr = rotTarget - mmRot;
   dr -= Math.round(dr / (Math.PI * 2)) * Math.PI * 2;

@@ -11,6 +11,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+- Minimap en grote kaart: je driehoekje en de kaart draaien nu mee met wat je bestuurt. Bij een duif, helikopter, vliegtuig en trein draait de kaart op de eigen richting in plaats van op de camera (een filmstand of scènecamera liet de kaart tollen), en bij een scène of de fotomodus blijft de kaart rustig. In- en uitstappen draait de driehoek zacht in plaats van te springen (#1141).
+
 - Het naamscherm heet nu "Hoe heet je?" en vraagt alleen een naam, ook voor wie Alleen speelt; het akkoord met de online diensten (STUN en brokers, je IP-adres) komt pas als je Samen spelen kiest, en weigeren brengt je terug naar de keuze zonder iets te verliezen.
 - De keuzekaart en het naamscherm staan onderaan, zodat het GDE-logo zichtbaar blijft, en de laadstatus eronder is verborgen. De knop met focus is de gele hoofdknop (standaard Alleen spelen).
 - Het opstartscherm toont geen "Stap n van m" meer: één doorlopende balk met een statusregel die zegt wat het spel doet.
