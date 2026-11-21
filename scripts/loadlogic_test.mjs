@@ -81,7 +81,7 @@ ok(APPROVED.every((p) => { const h = pictureHtml(p); return h.includes('img/laad
 ok(pictureHtml('x').includes('img/laad/vismarkt.jpg') && !/<svg/.test(pictureHtml('duif', 'bt-bg')), 'unknown falls back, no own svg style');
 // every load screen picks from the approved set (loadscreen.js imports the DOM-free parts only at call time)
 const src = fs.readFileSync(new URL('../game/js/loadscreen.js', import.meta.url), 'utf8');
-const pickBody = src.slice(src.indexOf('export function pickImage'), src.indexOf('function recapText'));
+const pickBody = src.slice(src.indexOf('export function pickImage'), src.indexOf('function ensureCss'));
 const used = [...pickBody.matchAll(/'([a-z]+)'/g)].map((x) => x[1]).filter((w) => !['haven', 'kade', 'diep', 'gracht', 'water', 'markt', 'binnenstad', 'forum', 'toren', 'kerk'].includes(w));
 ok(used.length >= 5 && used.every(pictureOk), 'pickImage only names approved pictures', used.join());
 // #600: an unknown place gets the neutral render, and the country at night is never the chase picture
@@ -176,10 +176,10 @@ ok(loadStepAt(0).id === 'plek' && loadStepAt(0.3).id === 'gebouwen' && loadStepA
 ok(loadStepAt(NaN).id === 'plek' && loadStepAt(-3).id === 'plek' && loadStepAt(9).id === 'bijna', 'load step clamps');
 ok(loadStepAt(0.5, 'snel').id === 'snel', 'snel has one step');
 ok(LOAD_STEPS.every((s, i) => s.label.length > 8 && (i === 0 || s.from > LOAD_STEPS[i - 1].from)), 'load steps are words in ascending order');
-// beeldronde 21-11: de kopstijl van de tip geldt alleen voor het kopje (div > span); een toetsplaatje in de tipregel erft hem niet
+// tekstdieet 21-11: het laadscherm heeft precies één statusregel; geen tipregel, geen verhaalterugblik, geen "Stap n van m"
 {
   const css = fs.readFileSync(new URL('../game/js/loadscreen.css', import.meta.url), 'utf8');
-  ok(/#load-screen \.ls-tip div > span \{/.test(css) && !/\.ls-tip div span \{/.test(css), 'tip heading style does not hit key caps inside the tip line');
+  ok(!/ls-tip/.test(src + css) && (src.match(/class="ls-step"/g) || []).length === 1, 'het laadscherm heeft één statusregel en geen tipregel');
 }
 console.log(`${n - fails}/${n} loadlogic`);
 process.exit(fails ? 1 : 0);

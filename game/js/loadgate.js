@@ -36,7 +36,7 @@ export function gateTick(g, input) {
 export function statusLine(state, stap, wachtOp = '') {
   const s = String(stap || '').trim();
   if (state === 'wacht-host') return `Wachten op ${wachtOp}`;
-  if (state === 'hangt') return `Dit duurt langer dan normaal, het spel is niet vastgelopen. Nog bezig met: ${s || 'laden'}`;
+  if (state === 'hangt') return `Dit duurt even, niet vastgelopen: ${s || 'laden'}`;
   if (state === 'klaar') return 'Klaar';
   return s || 'Het spel wordt geladen';
 }

@@ -1,25 +1,18 @@
 import { hoofdspeler } from './players.js';
 // The load screen (the approved "Laadscherm"): a slow Ken Burns picture of the
-// place you are going to, the logo, "Eerder in het verhaal", a "Je gaat verder
-// in" card, a tip and a real progress bar with the phase of the work. It
+// place you are going to, the logo, a "Je gaat verder in" card and a real progress
+// bar with ONE status line under it (21-11, text diet: no tips, no story recap). It
 // covers loading a save, fast travel and long jumps (teleport, a long
 // respawn); the work it waits for is the city streaming in round the player
 // (scene3d.js streamPending). The picture is one of the game's own renders
 // (img/laad/), chosen by where you are going.
-import { getStoryView } from './storyquery.js';
 import { zachtePauze } from './coopgroep.js';
-import { PARTS } from './storyarc.js';
 import { hudDate } from './hudcalendar.js';
 import { streamPending, prewarmStreamAt, prewarmPending } from './scene3d.js';
 import { placeLabel } from './hud_panel.js';
-import { LANDMARK_LINES } from './placelines.js';
 import { pictureHtml, missionPicture } from './loadscene.js';
 import { createGate, gateTick, fadeMs } from './loadgate.js';
-import { JUMP_M as JM, loadKind, stepProgress, startProgress, pickTips, buildLines, LINE_S, loadPending, loadStepAt, easeBar } from './loadlogic.js';
-
-let tips = [];
-export const setLoadTips = (list) => { tips = [...list]; };
-let lastTip = '';
+import { JUMP_M as JM, loadKind, stepProgress, startProgress, loadPending, loadStepAt, easeBar } from './loadlogic.js';
 
 export const JUMP_M = JM;
 
@@ -40,15 +33,6 @@ export function pickImage(world, place, mission) {
   if (/markt|binnenstad|forum|toren|kerk/i.test(place.name || '')) return night ? 'kermis' : 'vismarkt';
   if (night) return 'kermis';
   return 'luchtfoto';
-}
-
-function recapText(view) {
-  const part = view && view.part && PARTS[view.part] ? PARTS[view.part] : PARTS.kop;
-  if (part.recap) {
-    const lines = part.recap.filter(([w]) => w !== 'studio').map(([, t]) => t.replace(/^Eerder in GDE\.\s*/, ''));
-    return lines.slice(0, 3).join(' ');
-  }
-  return 'Iemand heeft de Gouden Eierbal gejat. Tammo en Tessa hebben geen cent, wel een droom met een luik, en heel Grunn kijkt mee.';
 }
 
 function ensureCss() {
@@ -72,17 +56,8 @@ export function startLoadScreen(world, opts = {}) {
   const kind = ['save', 'travel', 'snel'].includes(opts.kind) ? opts.kind : 'travel';
   let place = { name: opts.name || '', country: false, district: '' };
   try { place = { ...place, ...placeLabel(world, x, y) }; } catch (e) { /* the label is a nicety */ }
-  const view = (() => { try { return getStoryView(); } catch (e) { return null; } })();
   const date = hudDate(world);
   const img = pickImage(world, place, opts.mission);
-  const line = place.line || LANDMARK_LINES[place.name] || '';
-  // one short line at a time: where you are going or the story so far, then tips
-  // (#600: the recap keeps two to three sentences instead of only the first)
-  const lead = kind === 'save' ? ['Eerder in het verhaal', recapText(view)] : ['Onderweg', line];
-  const picked = kind === 'snel' ? [] : pickTips(tips, 3, Math.random, lastTip);
-  if (picked.length) lastTip = picked[picked.length - 1];
-  const pool = buildLines(kind, lead, picked);
-
   const el = document.createElement('div');
   el.id = 'load-screen';
   el.className = 'ls ls-' + kind + ' instant';
@@ -100,7 +75,6 @@ export function startLoadScreen(world, opts = {}) {
         (date.special ? `<div class="ls-when"><span class="ls-badge">${esc(date.special)}</span></div>` : '') +
       '</div>' +
       '<div class="ls-bottom">' +
-        '<div class="ls-tip" aria-live="polite"><span class="ls-tip-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/></svg></span><div><span></span><p></p></div></div>' +
         '<div class="ls-prog"><div class="ls-bar" role="progressbar" aria-label="Voortgang laden" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div><div class="ls-step" role="status" aria-live="polite"></div></div>' +
       '</div>' +
     '</div>';
@@ -122,21 +96,7 @@ export function startLoadScreen(world, opts = {}) {
   const fill = el.querySelector('.ls-bar i');
   const barEl = el.querySelector('.ls-bar');
   const stepEl = el.querySelector('.ls-step');
-  const lineKick = el.querySelector('.ls-tip div span');
-  const lineText = el.querySelector('.ls-tip p');
-  const tipBox = el.querySelector('.ls-tip');
-  let lineI = -1, lineAt = -1e9, gateStap = '';
-  const lineS = LINE_S[kind];
-  const nextLine = (now) => {
-    if (!pool.length) { tipBox.hidden = true; lineAt = Infinity; return; }
-    lineI = (lineI + 1) % pool.length;
-    lineAt = now;
-    lineKick.textContent = pool[lineI][0];
-    lineText.textContent = pool[lineI][1];
-    tipBox.classList.remove('swap');
-    void tipBox.offsetWidth;
-    tipBox.classList.add('swap');
-  };
+  let gateStap = '';
   const t0 = performance.now();
   let prog = startProgress();
   let res;
@@ -183,7 +143,6 @@ export function startLoadScreen(world, opts = {}) {
     const gv = gateTick(gate, { done: prog.done, elapsedS: (now - t0) / 1000, stap: gateStap, wachtOp: opts.wachtOp ? opts.wachtOp() : '' });
     if (stepEl.textContent !== gv.status) { stepEl.textContent = gv.status; barEl.setAttribute('aria-valuetext', gv.status); }
     if (gv.actie === 'door') { finish(); return; }
-    if (now - lineAt >= lineS * 1000) nextLine(now);
     requestAnimationFrame(step);
   };
   requestAnimationFrame(step);

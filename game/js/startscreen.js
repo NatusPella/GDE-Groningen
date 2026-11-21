@@ -22,7 +22,7 @@ import { MENU_FRAME_S, getRenderer, streamPending } from './scene3d.js';
 import { makeMenuGate, GATE } from './menuready.js';
 import { isAdvisorSampling, startGfxAdvisor, classifyGpu, readGpu, presetFromSample, currentPreset, applyPreset, isDefaultGfx, readAdvice, writeAdvice, presetLabel } from './gfxprofile.js';
 import { ABOUT_HTML } from './credits.js';
-import { startLoadScreen, setLoadTips } from './loadscreen.js';
+import { startLoadScreen } from './loadscreen.js';
 import { stepDurations, bootPlan, bootProgress, bootPhaseAt, bootCreepCap, BOOT_DONE_LABEL, easeBar } from './loadlogic.js';
 import { padGlyphInner } from './glyphs.js';
 import { onDeviceChange, getDevice } from './inputdevice.js';
@@ -55,7 +55,6 @@ export const TIPS = [
 ];
 // the commentary cows chime in between the tips
 COW_LOADING.forEach((t, i) => TIPS.splice(i * 3 + 1, 0, t));
-setLoadTips(TIPS);
 const TIP_MS = 3800;
 
 let fakeTimer = 0;
