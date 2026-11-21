@@ -928,7 +928,7 @@ body.cine-hide-hud #story-skip { display: none; }
 /* #985 (eigenaar 20-11): de snelheidsmeter is één compact blok: de snelheid als hoofdgetal, de versnelling als klein getal rechts, de toeren als dunne balk eronder */
 #hud .hud-speedo { align-items: flex-end; gap: 0; }
 #hud .sp-main { display: grid; grid-template-columns: auto auto 1fr; align-items: end; column-gap: 6px; row-gap: 6px; padding: 7px 12px 8px; min-width: 150px; }
-#hud .sp-val { grid-column: 1; grid-row: 1; font-size: 40px; line-height: 0.9; min-width: 2ch; }
+#hud .sp-val { grid-column: 1; grid-row: 1; font-size: 52px; line-height: 0.9; min-width: 2ch; }
 #hud .sp-unit { grid-column: 2; grid-row: 1; font-size: max(13px, var(--hud-min, 13px)); line-height: 1.2; }
 #hud .sp-gears { grid-column: 3; grid-row: 1; justify-self: end; align-self: center; gap: 4px; font-size: max(14px, var(--hud-min, 13px)); min-height: 0; line-height: 1; }
 #hud .sp-gears .warn { font-size: max(13px, var(--hud-min, 13px)); }

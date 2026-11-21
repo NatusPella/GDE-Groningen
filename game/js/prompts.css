@@ -160,7 +160,7 @@
   gap: 5px;
   transition: opacity var(--ds-m-max) ease;
 }
-body.hud-in-vehicle #hud .hud-ctx { bottom: calc(var(--hud-edge, 46px) + 80px); } /* #985: de snelheidsmeter is één blok van ca. 66 px hoog */
+body.hud-in-vehicle #hud .hud-ctx { bottom: calc(var(--hud-edge, 46px) + 92px); } /* #985: de snelheidsmeter is één blok van ca. 78 px hoog (52 px getal, #1175) */
 /* #876: in de lucht vervangt het vliegpaneel de snelheidsmeter in zone H en is het
    ~221 HUD-px hoog; de toetshint-regels lagen er dwars doorheen (84%/41%). Ze wijken
    boven het paneel. De voertuignaam verdwijnt daar (het paneel noemt de kist al). */

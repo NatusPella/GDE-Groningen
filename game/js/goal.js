@@ -15,6 +15,7 @@
 import { STEP_BY_ID, missionIndexOf } from './storyarc.js';
 import { setNextMission, getMissionDefs, unmetRequirement, requirementPlace, isMissionActive } from './missionquery.js';
 import { hoofdspeler } from './players.js';
+import { bestemmingTitel } from './doeltekst.js';
 
 const REACH_M = 8;
 const TARGET_EVERY = 2;
@@ -95,7 +96,7 @@ export function setGoal(spec, { quiet = false } = {}) {
   if (world) {
     world.goal = goal;
     if (goal.kind === 'mission' && !isMissionActive()) setNextMission(world, goal.id);
-    if (!quiet) world.addMessage(`Doel: ${goal.name}`, 3, { kind: 'missie', key: 'goal' });
+    if (!quiet) world.addMessage(bestemmingTitel(goal.name), 3, { kind: 'missie', key: 'goal' });
   }
   return true;
 }

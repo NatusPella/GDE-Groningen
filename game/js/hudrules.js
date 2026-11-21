@@ -241,7 +241,8 @@ export function decideHud(s = {}) {
     // route loopt (hud_panel geeft 'er is een afslagkaart of een reiskaart'), dus
     // een lopende route houdt zijn kaart vanzelf en zonder route valt er niets
     // te bewaren.
-    for (const k of ['place', 'money', 'weapon', 'clock', 'bars', 'vehicle', 'keys']) show[k] = false;
+    // de snelheidsmeter gaat er niet uit: stilstaan of cruisen is geen niets doen (eigenaar 21-11: 'ik zie de snelheidsmeter niet meer')
+    for (const k of ['place', 'money', 'weapon', 'clock', 'bars', 'keys']) show[k] = false;
     // de balken blijven bij lage gezondheid: een speler die stil staat en bloedt moet dat zien
     if (s.hpLow || (s.hpFull === false && (s.hpAgo ?? Infinity) < BAR_SHOW)) show.bars = true;
     if (show.cardE) show.cardE = false;
