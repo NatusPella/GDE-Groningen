@@ -618,7 +618,8 @@
    "test": [
     "scripts/interieurs_test.mjs",
     "scripts/binnenset_test.mjs",
-    "scripts/interior_coop_test.mjs"
+    "scripts/interior_coop_test.mjs",
+    "scripts/interior_crowd_test.mjs"
    ],
    "regel": {
     "doc": "docs/BINNENSETS-21-11.md",

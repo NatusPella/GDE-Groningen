@@ -23,8 +23,10 @@ import { makeWalk } from './interiorwalk.js';
 import { makeStage, makeActor, stepActor, STAFF_ROLES } from './interioractivity.js';
 import { walkGrid, reachable } from './interiorlayout.js';
 import { mulberry32 } from './rng.js';
-import { toWorld, frameOf } from './interiorframe.js';
+import { toWorld, toLocal, frameOf } from './interiorframe.js';
 import { npcLook, yawOfFace } from './interiornpc.js';
+import { crowdAt, phaseOf, presentAt } from './interiorcrowd.js';
+import { sightSpans, seenThrough } from './interiorsight.js';
 import { buildPersonMesh, animatePersonWalk, registerPoseSource, unregisterPoseSource } from './models3d_people.js';
 import { FAC } from './facilities.js';
 import { PROMPT, LOCKED_HOME, clerkLine, HOME_LOOK, FITTING, HAIRCUT, CHURCH_CANDLE, TICKET_LINES, LEZEN, BOUGHT, TOO_POOR, NOT_FOR_SALE } from './interiortexts.js';
@@ -45,7 +47,12 @@ const S = { world: null, live: new Map(), plans: new WeakMap(), scan: 0, spots: 
 // homeStyle(b) -> { wall, floor, fabric } | null: the colours of a home the player lives in (Homebase: a variant per living place)
 // hooks other systems set: owned(b) -> true for a pand of the player (Bezit, Homebase: the door always opens);
 // manage(b, plan) -> { label, sub, run(w) } | null: the management of an owned pand, at its counter (Bezit: turnover, staff, customers)
+S.sfx = defaultSfx;
 export function assignInteriorHooks(h) { Object.assign(S.hooks, h || {}); }
+// The sound hook (round 4): sfx(w, key, x, y). By default a key becomes an audio event at the place; the central sound map (sfx/haken.js sfxEvent) takes over
+// by assigning it: assignInteriorSfx((w, key, x, y) => sfxEvent(w, key, x, y)). Keys are those of sfx/sfxmap.js (shop_buy_coins, scissors_snip, coffee_brew ...).
+export function assignInteriorSfx(fn) { S.sfx = typeof fn === 'function' ? fn : defaultSfx; }
+function defaultSfx(w, key, x, y) { if (w && w.audioEvents && w.audioEvents.length < 64) w.audioEvents.push({ kind: 'fx', name: key, x, y }); }
 // what is happening: { type: 'enter'|'leave', plan, b } for sound, police, missions
 export function onInteriorChange(fn) { if (typeof fn === 'function') S.listeners.push(fn); }
 const emit = (e) => { for (const f of S.listeners) { try { f(e); } catch (err) { console.error('interior listener', err); } } };
@@ -192,6 +199,7 @@ function drop(w, ls) {
 function addNpcs(ls) {
   const { plan } = ls, L = plan.layout;
   const accent = L.palette ? L.palette.accent : 0x3f6ea8;
+  const firstSeen = new Set();
   const all = [...L.npc.map((n) => ({ ...n, level: 1 })), ...(L.upper ? L.upper.npc.map((n) => ({ ...n, level: 2 })) : [])].slice(0, MAX_NPC);
   if (!ls.grid) { ls.grid = walkGrid(L); ls.reach = reachable(L, ls.grid); ls.stage = makeStage(L, ls.grid, ls.reach); }
   all.forEach((n, i) => {
@@ -211,9 +219,20 @@ function addNpcs(ls) {
       actor = makeActor(ls.stage, n, mulberry32((plan.seed ^ (i * 7919 + 13)) >>> 0), i, domain);
     }
     ls.group.add(fig);
-    ls.npcs.push({ fig, n, src, actor, seed: look.opts.seed, baseY });
+    ls.npcs.push({ fig, n, src, actor, seed: look.opts.seed, baseY, idx: i, first: !STAFF_ROLES.has(n.role) && !firstSeen.has(n.role) && !!firstSeen.add(n.role), present: true, seen: true });
   });
   ls.npcsOn = true;
+  ls.crowdKey = null; // the first update sets who is there at this hour
+}
+
+// The crowd of the hour: who is there (interiorcrowd.js) and what part of the day the scripts follow; once per game half hour, not per frame.
+function applyCrowd(w, ls) {
+  const hour = hourOf(w), key = Math.floor(hour * 2);
+  if (ls.crowdKey === key) return;
+  ls.crowdKey = key;
+  const level = crowdAt(ls.plan.kind, ls.plan.sub, hour);
+  if (ls.stage) ls.stage.phase = phaseOf(hour);
+  for (const o of ls.npcs) o.present = presentAt(o.n.role, ls.plan.seed, o.idx, level, o.first);
 }
 function dropNpcs(ls) {
   for (const o of ls.npcs) { unregisterPoseSource(o.seed); ls.group.remove(o.fig); disposeObject(o.fig); }
@@ -271,9 +290,16 @@ function updateLive(w, ls, dt, p, onFoot) {
   if (wantNpcs && !ls.npcsOn) addNpcs(ls);
   else if (!wantNpcs && ls.npcsOn) dropNpcs(ls);
   if (ls.npcsOn && dd < NPC_R) {
+    applyCrowd(w, ls);
+    // Seen from outside only what shows through a window or the door; the rest is behind a wall and costs nothing (no draw, no animation)
+    let eye = null;
+    if (!inside) { if (!ls.spans) ls.spans = sightSpans(plan); eye = toLocal(fr, p.x, p.y); }
     for (const o of ls.npcs) {
       let speed = 0;
       const A = o.actor;
+      if (!o.present) { o.fig.visible = false; continue; }
+      o.seen = inside || (A ? seenThrough(ls.spans, eye[0], eye[1], A.u, A.v) : seenThrough(ls.spans, eye[0], eye[1], o.n.u, o.n.v));
+      o.fig.visible = o.seen;
       if (A) {
         stepActor(ls.stage, A, dt);
         const [x, z] = toWorld(plan.frame, A.u, A.v);
@@ -283,6 +309,7 @@ function updateLive(w, ls, dt, p, onFoot) {
         o.src.pose = A.pose;
         speed = A.moving ? 1.1 : 0;
       } else o.fig.position.y = o.baseY;
+      if (!o.seen) continue;
       try { animatePersonWalk(o.fig, speed, dt); } catch (e) { /* idles */ }
     }
   }
@@ -353,7 +380,7 @@ function useSpot(w, hit) {
       const r = buyProduct(w, prod);
       if (r.ok && s.id === 'bestellen' && w.audioEvents && w.audioEvents.length < 64) w.audioEvents.push({ kind: 'fx', name: 'horeca_hap', x: hit.x, y: hit.y });
       if (!r.ok) say(w, TOO_POOR(prod.item, prod.price));
-      else { w.kassaKlik = true; say(w, BOUGHT(prod.item, prod.price) + (r.healed ? ` +${Math.round(r.healed)} gezondheid` : '')); }
+      else { w.kassaKlik = true; S.sfx(w, plan.sub === 'supermarkt' ? 'shop_scanner_beep' : plan.kind === 'horeca' ? 'coffee_brew' : 'shop_buy_coins', hit.x, hit.y); say(w, BOUGHT(prod.item, prod.price) + (r.healed ? ` +${Math.round(r.healed)} gezondheid` : '')); }
       return true;
     }
     case 'passen': {
@@ -365,12 +392,22 @@ function useSpot(w, hit) {
     case 'kappen': {
       const gameShop = gameShopOf(ls.b);
       if (gameShop && openShopFromInterior(w, gameShop)) return true;
+      S.sfx(w, 'scissors_snip', hit.x, hit.y);
       say(w, HAIRCUT[n % HAIRCUT.length]);
       return true;
     }
     case 'balie': {
       const gameShop = gameShopOf(ls.b);
       if (gameShop && openShopFromInterior(w, gameShop)) return true; // a garage or workshop of the game: its own menu (tuning, repair, paint)
+      // a gym sells its day card at the desk (round 4); price and effect from the product table, money of the player himself (#429)
+      const dayCard = plan.sub === 'sportschool' ? productFor(plan.kind, plan.sub) : null;
+      if (dayCard) {
+        noteMoney('Winkels');
+        const r = buyProduct(w, dayCard);
+        if (!r.ok) say(w, TOO_POOR(dayCard.item, dayCard.price));
+        else { w.kassaKlik = true; S.sfx(w, 'shop_buy_coins', hit.x, hit.y); say(w, BOUGHT(dayCard.item, dayCard.price) + (r.healed ? ` +${Math.round(r.healed)} gezondheid` : '')); }
+        return true;
+      }
       say(w, clerkLine(plan.kind, seed, n));
       return true;
     }
