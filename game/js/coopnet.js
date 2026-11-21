@@ -17,7 +17,7 @@ import { bindCoop } from './coopglue.js';
 import { ververs } from './spelersregister.js';
 import { partnersInfo, createPings, addPing, tickPings, pingEvent } from './partnerhud.js';
 import { getDifficultyLevel } from './difficulty.js'; // #1169: het niveau van de wereld in het welkom
-import { holdBeleid, vereistVoor, leesLijstEvent, leesWelkomstLijst, lijst, zetAvatar } from './coopplayers.js';
+import { holdBeleid, vereistVoor, leesLijstEvent, leesOutfitsEvent, voegOutfitsSamen, leesWelkomstLijst, lijst, zetAvatar } from './coopplayers.js';
 import { cameraRelative, stepSlot2, sharedCamera } from './coop.js';
 import { coopStep, missieGastVerzoek } from './coopglue.js';
 import { gateOn, setGate, hekBericht } from './coopgate.js';
@@ -384,7 +384,7 @@ export function startHost(world, info, opts = {}) {
     },
     onEvent: (slot, body) => {
       handleEvent(world, body, slot);
-      if (body && body.k === 'ping') for (const s of hub.roster.spelers) if (s.slot !== 0 && s.slot !== slot) hub.announce({ ...body, van: slot }, s.slot); // iedereen ziet elke ping
+      if (body && body.k === 'ping') relayPing(world, hub, slot, body); // iedereen ziet elke ping
       if (body && body.k === 'zin' && readPhrase(body) && world.coopNet && zinNeemOp(world.coopNet.phraseRelay || (world.coopNet.phraseRelay = createPhraseState()), slot, now(world))) {
         for (const s of hub.roster.spelers) if (s.slot !== 0 && s.slot !== slot) hub.announce({ k: 'zin', z: body.z, van: slot }, s.slot); // elke ontvanger kiest zelf (opt-in, dempen, blokkeren)
       }
@@ -1105,6 +1105,7 @@ export function tickCoopNet(world, dt) {
     if (r && r.actie === 'volg') world.coopDoelVolg = r; // multiplayerphrasesradial.js zet het op de kaart (routing.js)
     world.coopDoelVraag = false;
   }
+  outfitLijstTik(world);
   n.tSpelers += dt;
   if (n.tSpelers >= 0.25) { n.tSpelers = 0; bouwSpelers(world, n); }
   if (n.role === 'host') { wedHostTik(world, dt); bijbaanHostTik(world, dt); } // een uitnodiging voor een race, minigame of bijbaan loopt af (#443, #452)
@@ -1309,7 +1310,7 @@ export function handleEvent(world, body, van = 0) {
       const ok = !!(world.coopPings && addPing(world.coopPings, { x: body.x, y: body.y, soort: body.soort, van: afz }, now(world)));
       const hier = hoofdspeler(world);
       if (ok && afz !== 'eigen' && (world.audioEvents || (world.audioEvents = [])).length < 64) world.audioEvents.push({ kind: 'notify', x: hier ? hier.x : 0, y: hier ? hier.y : 0 }); // een bestaand geluidje: iemand roept (#367)
-      if (ok && world.addMessage) world.addMessage(pingRegel(afz, PING_TEKST[body.soort] ? body.soort : 'hier', world.coopRoster, n && n.role === 'client' && n.session ? n.session.slot : 0), 3);
+      if (ok && world.addMessage) world.addMessage(pingRegel(afz, typeof body.soort === 'string' && Object.hasOwn(PING_TEKST, body.soort) ? body.soort : 'hier', world.coopRoster, n && n.role === 'client' && n.session ? n.session.slot : 0), 3);
       return ok;
     }
     case 'zin': { // een snelle zin of emote (multiplayerphrases.js): alleen een bekend id, de tekst komt van de ontvanger
@@ -1633,7 +1634,13 @@ export function handleEvent(world, body, van = 0) {
       const sp = n.hub.roster.spelers.find((x) => x.slot === van);
       if (!sp || (sp.avatar && sp.avatar.outfit === code)) return false;
       zetAvatar(n.hub.roster, van, { outfit: code });
-      n.hub._announceList();
+      lijstAankondigen(world, n);
+      return true;
+    }
+    case 'outfits': { // de outfits die niet in het lijstbericht pasten (coopplayers.js lijstBerichten): alleen de host stuurt ze, een oudere gast negeert het bericht
+      if (!n || n.role !== 'client') return false;
+      const o = leesOutfitsEvent(body); if (!o || !Array.isArray(world.coopRoster)) return false;
+      world.coopRoster = voegOutfitsSamen(world.coopRoster, o);
       return true;
     }
     case 'weg': // de host heeft deze speler verwijderd
@@ -1897,6 +1904,25 @@ export function coopWereldDoorloop(world, menuOpen = true) {
   return !!((menuOpen && !world.uiPaused) || zachtAlleen(world));
 }
 
+// De host geeft een ping van een gast door aan de andere gasten, met alleen de bekende velden en niet sneller dan de ping-afkoeling per afzender (review 22-11, N2).
+// De eigen ontvangst van de host (handleEvent) blijft apart: een gast die de host geblokkeerd heeft, wordt door de anderen nog gewoon gezien.
+export function relayPing(world, hub, slot, body) {
+  const n = world.coopNet || world;
+  const rp = addPing(n.pingRelay || (n.pingRelay = createPings()), { x: body.x, y: body.y, soort: body.soort, van: slot }, now(world));
+  if (!rp) return false;
+  for (const s of hub.roster.spelers) if (s.slot !== 0 && s.slot !== slot) hub.announce({ k: 'ping', x: body.x, y: body.y, soort: rp.soort, van: slot }, s.slot);
+  return true;
+}
+
+// De lijst na een nieuwe outfit: hoogstens één keer per OUTFIT_LIJST_S naar iedereen (een gast die steeds wisselt, vult anders de wachtrij van de anderen met 2 KB per keer, review 22-11, N2).
+export function outfitLijstTik(world) { const n = world.coopNet; if (n && n.role === 'host' && n.outfitOpen && now(world) - (n.outfitLijstT ?? -1e9) >= OUTFIT_LIJST_S) lijstAankondigen(world, n); }
+// Valt een wijziging binnen die tijd, dan blijft ze open staan en gaat de lijst mee zodra de tijd om is (tickCoopNet), dus de laatste kleding komt altijd aan.
+export const OUTFIT_LIJST_S = 1;
+function lijstAankondigen(world, n) {
+  const nu = now(world);
+  if (nu - (n.outfitLijstT ?? -1e9) >= OUTFIT_LIJST_S) { n.outfitLijstT = nu; n.outfitOpen = false; n.hub._announceList(); } else n.outfitOpen = true;
+}
+
 // Andere kleding midden in een sessie (clothing.js): een gast meldt de nieuwe outfit-code aan de host, de host zet hem zelf in de lijst.
 // Zonder sessie of zonder veranderde code gebeurt er niets. Geeft true als er iets verstuurd of gezet is.
 export function stuurOutfit(world) {
@@ -1907,7 +1933,7 @@ export function stuurOutfit(world) {
   n.outfitVerstuurd = code;
   if (n.role === 'host') {
     zetAvatar(n.hub.roster, 0, { outfit: code });
-    n.hub._announceList();
+    lijstAankondigen(world, n);
     return true;
   }
   try { return !!n.session.sendEvent({ k: 'outfit', o: code }); } catch (e) { return false; }
