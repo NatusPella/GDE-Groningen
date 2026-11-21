@@ -57,7 +57,7 @@ const html = UI.actiesHtml(m, null) + UI.reisHtml(keuzes, 'trein') + UI.infoHtml
 for (const id of ['waypoint', 'reis', 'info']) ok(html.includes(`data-card="${id}"`), `knop data-card=${id}`);
 ok(html.includes('aanbevolen') && html.includes('data-card="zelf"') && html.includes('data-card="kies:trein"'), 'de reiskeuze: aanbevolen, Zelf gaan en Snel reizen klikbaar');
 ok(html.includes('data-act="uitleg-sluit"') && html.includes('Besturing'), 'de uitleg is te sluiten en zegt waar je hem terugvindt');
-ok(!html.includes('mv-help-x') && (html.match(/data-act="uitleg-sluit"/g) || []).length === 1 && /Begrepen<\/button><span class="mv-help-toets"[^>]*>[\s\S]*?<\/span><\/span>/.test(html) && !/Begrepen\s*<span/.test(html), 'de uitleg heeft één sluitknop Begrepen zonder icoon erin, met de Enter-toets als toetskap ernaast, en geen kruisje (21-11)');
+ok(!html.includes('mv-help-x') && (html.match(/data-act="uitleg-sluit"/g) || []).length === 1 && /Begrepen<\/button><span class="mv-help-toets[^"]*"[^>]*>[\s\S]*?<\/span><\/span>/.test(html) && !/Begrepen\s*<span/.test(html), 'de uitleg heeft één sluitknop Begrepen zonder icoon erin, met de Enter-toets als toetskap ernaast, en geen kruisje (21-11)');
 ok(UI.uitlegHtml({ gast: true }).includes('Samen spelen') && !UI.uitlegHtml().includes('Samen spelen'), 'een gast leest de Samen spelen-regel bij de uitleg');
 ok(/Je staat hier/.test(UI.hierHtml('Vismarkt')) && UI.hierHtml('Vismarkt').includes('Vismarkt'), 'hint bij je eigen plek op de kaart');
 ok(K.KAART_UITLEG.some((l) => /legenda/.test(l)) && UI.uitlegHtml().includes('legenda'), 'de eerste-keer-uitleg noemt de legenda');

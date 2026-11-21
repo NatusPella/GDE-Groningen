@@ -51,7 +51,7 @@ export function uitlegHtml({ gast = false } = {}) {
     // #989: eerst de rijen met icoon; de volledige regels blijven in 'Meer uitleg' staan (uit in Instellingen = alleen de regels)
     (iconen ? iconen + '<details class="ds-uitleg__meer mv-help-meer"><summary>Meer uitleg</summary>' + lijst + '</details>' : lijst) +
     '<div class="mv-help-foot"><button type="button" class="ds-z-knop mv-help-ok" data-act="uitleg-sluit">Begrepen</button>' +
-    '<span class="mv-help-toets" aria-hidden="true">' + keyTextHtml('{ENTER}') + '</span></div>' +
+    '<span class="mv-help-toets ds-toetsregel" aria-hidden="true">' + keyTextHtml('{ENTER}') + '</span></div>' +
     '<p class="mv-help-hulp">Terug te vinden onder Instellingen › Besturing › Hulp.</p></div></div>';
 }
 
@@ -63,14 +63,14 @@ export function reisPopupHtml(m) {
   const reden = m.melding ? `<p class="ds-z-kaart__tekst mv-reispop-reden" role="status">${esc(m.melding)}</p>` : '';
   const reis = m.reis
     ? `<button type="button" class="ds-z-knop mv-reispop-ok" data-card="rij"${m.reis.uitgeschakeld ? ' disabled' : ''}>${esc(m.reis.label)}</button>` +
-      (m.reis.uitgeschakeld ? '' : `<span class="mv-help-toets" aria-hidden="true">${keyTextHtml('{ENTER}')}</span>`)
+      (m.reis.uitgeschakeld ? '' : `<span class="mv-help-toets ds-toetsregel" aria-hidden="true">${keyTextHtml('{ENTER}')}</span>`)
     : '';
   return '<div class="mv-reispop" role="dialog" aria-modal="true" aria-labelledby="mv-reispop-t">' +
     '<div class="ds-zeef ds-z-kaart ds-z-kaart--recht mv-reispop-box"><div class="ds-z-kaart__kop"><h2 id="mv-reispop-t" class="ds-z-kaart__titel">Reis erheen</h2></div>' +
     `<p class="ds-z-kaart__tekst mv-reispop-plek"><b>${esc(m.naam || 'Plek op de kaart')}</b>${m.afstand ? ` · ${esc(m.afstand)}` : ''}</p>` +
     rijen + reden +
     `<div class="mv-help-foot">${reis}<button type="button" class="ds-z-knop ds-z-knop--secundair mv-reispop-terug" data-card="reis-sluit">Terug</button>` +
-    `<span class="mv-help-toets" aria-hidden="true">${keyTextHtml('{ESC}')}</span></div></div></div>`;
+    `<span class="mv-help-toets ds-toetsregel" aria-hidden="true">${keyTextHtml('{ESC}')}</span></div></div></div>`;
 }
 
 // De legenda bovenaan het luik Lagen (#445): wat een klik doet en, voor een
@@ -96,18 +96,18 @@ export const KAART_ACTIE_CSS = `
 .mapview-card .mv-actie .mv-al { font: normal 26px/1.05 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.04em; }
 .mapview-card .mv-actie small { font: 18px/1.2 'Arial Narrow', Arial, sans-serif; color: var(--mut, rgba(240,237,228,0.7)); }
 .mapview-card .mv-actie:hover, .mapview-card .mv-actie.open { background: rgba(63,201,122,0.16); box-shadow: inset 0 0 0 1px var(--g, #3fc97a); }
-.mapview-card .mv-actie:focus-visible, .mapview-card .mv-keuze:focus-visible { outline: 2px solid var(--ink, #f0ede4); outline-offset: 2px; }
+.mapview-card .mv-actie:focus-visible, :is(.mapview-card, .mv-reispop) .mv-keuze:focus-visible { outline: 2px solid var(--ink, #f0ede4); outline-offset: 2px; }
 .mapview-card .mv-actie[aria-disabled] { opacity: 0.55; }
-.mapview-card .mv-reiskeuze { display: flex; flex-direction: column; gap: 6px; margin: 6px 0; }
-.mapview-card .mv-uit, .mapview-card .mv-note { margin: 0; font: 18px/1.4 'Arial Narrow', Arial, sans-serif; color: var(--mut, rgba(240,237,228,0.8)); }
-.mapview-card .mv-keuze { display: flex; flex-direction: column; gap: 2px; min-height: 56px; padding: 8px 12px; text-align: left; color: var(--ink, #f0ede4); background: transparent; border: 0; border-left: 6px solid var(--line2, rgba(240,237,228,0.16)); border-radius: 8px; cursor: pointer; font: 18px/1.35 'Arial Narrow', Arial, sans-serif; }
-.mapview-card .mv-keuze.sel { background: rgba(63,201,122,0.18); border-left-color: var(--g, #3fc97a); }
-.mapview-card .mv-keuze[aria-disabled] { opacity: 0.55; }
-.mapview-card .mv-kk { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.mapview-card .mv-kk .mv-kl { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 24px; letter-spacing: 0.04em; }
-.mapview-card .mv-aanb { font-style: normal; font-size: max(13px, var(--menu-min, 13px)); letter-spacing: 0.14em; text-transform: uppercase; color: #0c140e; background: var(--g, #3fc97a); border-radius: 4px; padding: 1px 8px; }
-.mapview-card .mv-ku { color: var(--mut, rgba(240,237,228,0.78)); }
-.mapview-card .mv-kd { color: var(--ink, #f0ede4); }
+:is(.mapview-card, .mv-reispop) .mv-reiskeuze { display: flex; flex-direction: column; gap: 6px; margin: 6px 0; }
+:is(.mapview-card, .mv-reispop) .mv-uit, :is(.mapview-card, .mv-reispop) .mv-note { margin: 0; font: 18px/1.4 'Arial Narrow', Arial, sans-serif; color: var(--mut, rgba(240,237,228,0.8)); }
+:is(.mapview-card, .mv-reispop) .mv-keuze { display: flex; flex-direction: column; gap: 2px; min-height: 56px; padding: 8px 12px; text-align: left; color: var(--ink, #f0ede4); background: transparent; border: 0; border-left: 6px solid var(--line2, rgba(240,237,228,0.16)); border-radius: 8px; cursor: pointer; font: 18px/1.35 'Arial Narrow', Arial, sans-serif; }
+:is(.mapview-card, .mv-reispop) .mv-keuze.sel { background: rgba(63,201,122,0.18); border-left-color: var(--g, #3fc97a); }
+:is(.mapview-card, .mv-reispop) .mv-keuze[aria-disabled] { opacity: 0.55; }
+:is(.mapview-card, .mv-reispop) .mv-kk { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+:is(.mapview-card, .mv-reispop) .mv-kk .mv-kl { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 24px; letter-spacing: 0.04em; }
+:is(.mapview-card, .mv-reispop) .mv-aanb { font-style: normal; font-size: max(13px, var(--menu-min, 13px)); letter-spacing: 0.14em; text-transform: uppercase; color: #0c140e; background: var(--g, #3fc97a); border-radius: 4px; padding: 1px 8px; }
+:is(.mapview-card, .mv-reispop) .mv-ku { color: var(--mut, rgba(240,237,228,0.78)); }
+:is(.mapview-card, .mv-reispop) .mv-kd { color: var(--ink, #f0ede4); }
 .mapview-card .mv-infostap p { margin: 2px 0; font: 20px/1.4 'Arial Narrow', Arial, sans-serif; color: var(--ink, #f0ede4); }
 .mapview-card .mv-hier b { display: block; font: normal 26px/1.1 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.04em; }
 .mapview-card .mv-hier .mv-hier-plek { margin: 2px 0 4px; font: 20px/1.35 'Arial Narrow', Arial, sans-serif; color: var(--ink, #f0ede4); }

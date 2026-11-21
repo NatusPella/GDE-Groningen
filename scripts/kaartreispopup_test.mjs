@@ -28,15 +28,15 @@ ok(/role="dialog" aria-modal="true" aria-labelledby="mv-reispop-t"/.test(h) && /
 ok(/ds-zeef ds-z-kaart ds-z-kaart--recht mv-reispop-box/.test(h) && /ds-z-kaart__kop/.test(h) && /ds-z-kaart__titel">Reis erheen</.test(h), 'de popup is een .ds-z-kaart met de titel Reis erheen');
 ok((h.match(/class="mv-keuze/g) || []).length === rijen.length && /data-card="kies:/.test(h) && /data-card="zelf"/.test(h), 'elke keuze (snel en Zelf gaan) staat in de popup');
 ok(/mv-aanb/.test(h) && /gratis|€/.test(h), 'de aanbeveling, de kosten en de duur staan erbij');
-ok(/data-card="rij"/.test(h) && />Reis nu · € 12 · 4 min<\/button><span class="mv-help-toets"/.test(h), 'Reis nu bevestigt, met de Enter-toets als toetskap ernaast (geen icoon in de knop)');
-ok(/data-card="reis-sluit"/.test(h) && /Terug<\/button><span class="mv-help-toets"/.test(h), 'Terug sluit, met de Esc-toets ernaast');
+ok(/data-card="rij"/.test(h) && />Reis nu · € 12 · 4 min<\/button><span class="mv-help-toets/.test(h), 'Reis nu bevestigt, met de Enter-toets als toetskap ernaast (geen icoon in de knop)');
+ok(/data-card="reis-sluit"/.test(h) && /Terug<\/button><span class="mv-help-toets/.test(h), 'Terug sluit, met de Esc-toets ernaast');
 ok(/Vismarkt<\/b> · 3,2 km/.test(h), 'de plek en de afstand staan bovenaan');
 
 // 2. reizen kan niet: een duidelijke reden, en geen knop die Enter kan afvuren
 const gast = reisPopupHtml({ ...basis, gast: true, melding: K.GAST_REIS_MELDING, reis: null });
 ok(gast.includes(K.GAST_REIS_MELDING) && /role="status"/.test(gast) && !/data-card="rij"/.test(gast) && /data-card="reis-sluit"/.test(gast), 'een gast leest waarom snel reizen niet kan, kan alleen Zelf gaan of terug');
 const arm = reisPopupHtml({ ...basis, melding: 'Je hebt te weinig geld voor deze rit.', reis: { label: 'Reis nu · € 400 · 4 min', uitgeschakeld: true } });
-ok(/mv-reispop-ok" data-card="rij" disabled/.test(arm) && /te weinig geld/.test(arm) && !/Reis nu[^<]*<\/button><span class="mv-help-toets"/.test(arm), 'te weinig geld: Reis nu is uit, de reden staat er en er is geen Enter-toets');
+ok(/mv-reispop-ok" data-card="rij" disabled/.test(arm) && /te weinig geld/.test(arm) && !/Reis nu[^<]*<\/button><span class="mv-help-toets/.test(arm), 'te weinig geld: Reis nu is uit, de reden staat er en er is geen Enter-toets');
 const kaal = reisPopupHtml({ ...basis, rijen: K.reisKeuzes([], 3200, {}), gekozen: null, melding: 'Er gaat hier geen snelle verbinding heen. Kies Zelf gaan: dat zet een waypoint.', reis: null });
 ok(/data-card="zelf"/.test(kaal) && /geen snelle verbinding/.test(kaal) && !/data-card="rij"/.test(kaal), 'geen ov-verbinding: Zelf gaan blijft, met een reden');
 

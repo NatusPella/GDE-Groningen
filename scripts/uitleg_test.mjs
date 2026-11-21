@@ -132,7 +132,7 @@ for (const [id, lijst] of Object.entries(sims)) {
   ok(blok.length > 500, 'het uitleg-blok staat in ds-components.css');
   ok(!/#[0-9a-fA-F]{3,8}\b/.test(blok) && !/rgba?\(/.test(blok), 'geen hex of rgb: alleen tokens');
   const maten = [...blok.matchAll(/font-size:\s*([^;]+);/g)].map((m) => m[1]);
-  ok(maten.every((m) => /max\((13|15)px|var\(--ds-t-label\)/.test(m)), 'tekst nooit onder 13 px', maten.join(' | '));
+  ok(maten.every((m) => /max\((13|15)px|var\(--ds-t-(label|hulp)\)/.test(m)), 'tekst nooit onder 13 px', maten.join(' | '));
   // de rijen-uitleg (21-11): tekst, nummer en uitklapper op 15 px of meer, geen vaste px-maat voor een toets
   const rij = blok.slice(blok.indexOf('.ds-uitleg--rij .ds-uitleg__lijst'));
   ok(/\.ds-uitleg--rij \.ds-uitleg__tekst \{[^}]*font-size: max\(15px/.test(rij) && /\.ds-uitleg:not\(\.ds-uitleg--compact\) \.ds-uitleg__meer \{ font-size: max\(15px/.test(rij), 'de rijen-uitleg en Meer uitleg staan op 15 px of meer');
