@@ -999,7 +999,7 @@ function flash() {
   if (!fadeEl) {
     fadeEl = document.createElement('div');
     fadeEl.id = 'story-swap-fade';
-    fadeEl.style.cssText = 'position:fixed;inset:0;z-index:13;background:#0c140e;opacity:0;pointer-events:none';
+    fadeEl.style.cssText = 'position:fixed;inset:0;z-index:13;background:var(--ds-c-glas);opacity:0;pointer-events:none';
     document.body.appendChild(fadeEl);
   }
   fadeEl.style.transition = 'none';

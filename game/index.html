@@ -38,12 +38,12 @@
   @keyframes grain { 0% { background-position: 0 0; } 25% { background-position: -40px 30px; } 50% { background-position: 30px -50px; } 75% { background-position: -60px -20px; } 100% { background-position: 0 0; } }
 
   /* the GDE wordmark (logo.js): GDE, the place on a place-name sign, the subtitle */
-  .gde-logo { display: inline-flex; flex-direction: column; align-items: stretch; text-align: center; font-family: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif; font-weight: 800; line-height: 1; color: #1d1b17;
-    padding: 0.07em 0.13em 0.1em; background: #f3ead3; border: 0.035em solid #1d1b17; border-radius: 0.07em; box-shadow: 0.045em 0.045em 0 #1d1b17; }
-  .gde-logo .gde-mark { line-height: 0.74; padding-top: 0.05em; letter-spacing: 0.01em; color: #0e6b3c; text-shadow: 0.03em 0.03em 0 #e8505b; }
-  .gde-logo .gde-sign { margin-top: 0.3em; padding: 0.2em 0.5em 0.12em; font-size: 0.25em; font-weight: 800; letter-spacing: 0.09em; text-indent: 0.09em; text-transform: uppercase; color: #1d1b17; background: #f9c80e; border: 0.14em solid #1d1b17; border-radius: 0.2em; }
-  .gde-logo .gde-sub { margin-top: 0.5em; font: 700 0.13em/1.1 'Atkinson Hyperlegible', Arial, sans-serif; letter-spacing: 0.02em; color: #0e6b3c; }
-  .gde-logo .gde-meaning { margin-top: 0.7em; font-size: 0.065em; font-weight: 700; letter-spacing: 0.42em; text-indent: 0.42em; text-transform: uppercase; color: #1d1b17; }
+  .gde-logo { display: inline-flex; flex-direction: column; align-items: stretch; text-align: center; font-family: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif; font-weight: 800; line-height: 1; color: var(--ds-c-ink-inkt);
+    padding: 0.07em 0.13em 0.1em; background: var(--ds-c-ink-papier); border: 0.035em solid var(--ds-c-ink-inkt); border-radius: 0.07em; box-shadow: 0.045em 0.045em 0 var(--ds-c-ink-inkt); }
+  .gde-logo .gde-mark { line-height: 0.74; padding-top: 0.05em; letter-spacing: 0.01em; color: var(--ds-c-ink-bord); text-shadow: 0.03em 0.03em 0 var(--ds-c-ink-roze); }
+  .gde-logo .gde-sign { margin-top: 0.3em; padding: 0.2em 0.5em 0.12em; font-size: 0.25em; font-weight: 800; letter-spacing: 0.09em; text-indent: 0.09em; text-transform: uppercase; color: var(--ds-c-ink-inkt); background: var(--ds-c-ink-geel); border: 0.14em solid var(--ds-c-ink-inkt); border-radius: 0.2em; }
+  .gde-logo .gde-sub { margin-top: 0.5em; font: 700 0.13em/1.1 'Atkinson Hyperlegible', Arial, sans-serif; letter-spacing: 0.02em; color: var(--ds-c-ink-bord); }
+  .gde-logo .gde-meaning { margin-top: 0.7em; font-size: 0.065em; font-weight: 700; letter-spacing: 0.42em; text-indent: 0.42em; text-transform: uppercase; color: var(--ds-c-ink-inkt); }
   #cine .cine-big .gde-logo { position: relative; isolation: isolate; font-size: clamp(100px, 16vw, 210px); letter-spacing: 0; text-shadow: none; }
 
   /* the boot screen (startscreen.js): the first thing the window shows. Summer screen print
@@ -97,7 +97,7 @@
 
   #start-screen .key, #pause-menu .hud-key {
     display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 22px; padding: 0 7px;
-    background: linear-gradient(180deg, #4a4f47, #2a2e28); border: 1px solid rgba(255,255,255,0.35); border-bottom: 2px solid rgba(0,0,0,0.6);
+    background: linear-gradient(180deg, #4a4f47, #2a2e28); border: 1px solid color-mix(in srgb, var(--ds-c-wit) 35%, transparent); border-bottom: 2px solid rgba(0,0,0,0.6);
     border-radius: 4px; color: var(--gron-green-light); font-weight: bold; font-size: 12px; letter-spacing: 0.5px;
     box-shadow: 0 1px 0 rgba(255,255,255,0.08) inset; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
   }
@@ -108,17 +108,17 @@
   html.reduce-motion { --dur-fast: 0ms; --dur-base: 0ms; --dur-slow: 0ms; --dur-bar: 0ms; }
   html.reduce-motion *, html.reduce-motion *::before, html.reduce-motion *::after { animation-duration: 0ms !important; animation-delay: 0ms !important; transition-duration: 0ms !important; transition-delay: 0ms !important; }
   @keyframes mo-pop { 0% { transform: scale(1); } 45% { transform: scale(1.06); } 100% { transform: scale(1); } }
-  @keyframes mo-ring { 0% { box-shadow: 0 0 0 0 rgba(63,201,122,0.55); } 100% { box-shadow: 0 0 0 14px rgba(63,201,122,0); } }
+  @keyframes mo-ring { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ds-c-licht-groen) 55%, transparent); } 100% { box-shadow: 0 0 0 14px color-mix(in srgb, var(--ds-c-licht-groen) 0%, transparent); } }
   @keyframes mo-shine { from { transform: translateX(-120%) skewX(-20deg); } to { transform: translateX(220%) skewX(-20deg); } }
   @keyframes mo-in { from { opacity: 0; transform: translateY(6px); } }
   .mo-pop { animation: mo-pop var(--dur-base) var(--ease-pop); }
   /* knop-tik (#985): een ingedrukte menuknop zakt in (alleen transform); geen eigen transition, zodat de bestaande hover niet wordt overschreven */
   .m-bg:active:not(:disabled), .m-li button:active:not(:disabled) { transform: scale(0.96); }
   .mo-ring { animation: mo-ring 700ms var(--ease-out); }
-  .mo-shine::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.75), transparent); animation: mo-shine 520ms var(--ease-out) forwards; pointer-events: none; }
+  .mo-shine::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--ds-c-wit) 75%, transparent), transparent); animation: mo-shine 520ms var(--ease-out) forwards; pointer-events: none; }
 
   /* "H9 nu al spelen?" (todo.js) and the help offer: a paper card in screen print (ADR 0040) */
-  #gde-ahead , #hulpaanbod { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: rgba(29,27,23,0.55); font-family: var(--ds-font-zeef-tekst); }
+  #gde-ahead , #hulpaanbod { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: color-mix(in srgb, var(--ds-c-ink-inkt) 55%, transparent); font-family: var(--ds-font-zeef-tekst); }
   #gde-ahead[hidden] , #hulpaanbod[hidden] { display: none; }
   #gde-ahead .ga-box , #hulpaanbod .ga-box { zoom: calc(var(--ui, 1.2) / 1.2); width: min(600px, calc(100vw / var(--ui, 1.2) * 1.2 - 32px)); box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; padding: 36px 40px; background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard); transform: rotate(var(--ds-schuin)); animation: mo-in var(--dur-slow) var(--ease-out); }
   #gde-ahead b , #hulpaanbod b { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 52px; line-height: 0.95; letter-spacing: 0.01em; color: var(--ds-c-ink-bord); text-shadow: var(--ds-misdruk); }
@@ -134,8 +134,8 @@
   html.rustig-drukwerk #gde-ahead .ga-box , html.rustig-drukwerk #hulpaanbod .ga-box { animation: none; }
 
   #pause-menu .hud-mouse { width: 19px; height: 27px; flex: none; overflow: visible; }
-  #pause-menu .hud-mouse .m-body { fill: rgba(42,46,40,0.9); stroke: rgba(255,255,255,0.55); stroke-width: 1.2; }
-  #pause-menu .hud-mouse .m-seam { stroke: rgba(255,255,255,0.35); stroke-width: 0.9; fill: none; }
+  #pause-menu .hud-mouse .m-body { fill: rgba(42,46,40,0.9); stroke: color-mix(in srgb, var(--ds-c-wit) 55%, transparent); stroke-width: 1.2; }
+  #pause-menu .hud-mouse .m-seam { stroke: color-mix(in srgb, var(--ds-c-wit) 35%, transparent); stroke-width: 0.9; fill: none; }
   #pause-menu .hud-mouse .m-l, #pause-menu .hud-mouse .m-r, #pause-menu .hud-mouse .m-w { fill: transparent; }
   #pause-menu .hud-mouse[data-btn="l"] .m-l, #pause-menu .hud-mouse[data-btn="r"] .m-r, #pause-menu .hud-mouse[data-btn="w"] .m-w { fill: var(--gron-green-light); }
   #pause-menu .hud-mouse[data-btn="move"] .m-body { stroke: var(--gron-green-light); }

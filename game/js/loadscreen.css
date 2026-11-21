@@ -2,7 +2,7 @@
    render as a framed print with a hard shadow, a yellow progress bar with the step in words.
    Laid out for 1440x900 like the HUD and zoomed with --ui; no backdrop-filter. */
 #load-screen { position: fixed; inset: 0; z-index: 50; overflow: hidden; color: var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-tekst); background-color: var(--ds-c-ink-papier); background-image: var(--ds-raster); background-size: 14px 14px; opacity: 0; transition: opacity 0.45s ease; }
-#load-screen::before { content: ''; position: absolute; inset: 0; background: var(--ds-c-ink-papier); -webkit-mask-image: radial-gradient(ellipse at 40% 50%, rgba(29,27,23,1) 40%, transparent 98%); mask-image: radial-gradient(ellipse at 40% 50%, rgba(29,27,23,1) 40%, transparent 98%); pointer-events: none; }
+#load-screen::before { content: ''; position: absolute; inset: 0; background: var(--ds-c-ink-papier); -webkit-mask-image: radial-gradient(ellipse at 40% 50%, var(--ds-c-ink-inkt) 40%, transparent 98%); mask-image: radial-gradient(ellipse at 40% 50%, var(--ds-c-ink-inkt) 40%, transparent 98%); pointer-events: none; }
 #load-screen.on { opacity: 1; }
 #load-screen.instant { opacity: 1; transition: none; }
 #load-screen.instant.out { transition: opacity 0.7s ease; }

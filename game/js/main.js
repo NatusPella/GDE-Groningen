@@ -635,7 +635,7 @@ function showBootFailure(msg) {
   knop.id = 'boot-reload';
   knop.type = 'button';
   knop.textContent = 'Opnieuw laden';
-  knop.style.cssText = 'display:block;margin:18px auto 0;padding:10px 22px;font:inherit;cursor:pointer;border:1px solid #ffffff66;border-radius:6px;background:#ffffff22;color:#fff';
+  knop.style.cssText = 'display:block;margin:18px auto 0;padding:10px 22px;font:inherit;cursor:pointer;border:1px solid #ffffff66;border-radius:6px;background:#ffffff22;color:var(--ds-c-wit)';
   knop.addEventListener('click', () => { try { location.reload(); } catch (e) { /* geen locatie */ } });
   box.appendChild(knop);
   if (knop.focus) knop.focus();

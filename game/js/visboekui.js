@@ -29,7 +29,7 @@ const CSS = `${SFEER_BAND_CSS}
 .vb-li .lb-niv { margin-left: auto; padding-left: 12px; white-space: nowrap; font-size: 15px; opacity: 0.8; }
 .vb-li .m-bar { flex: none; width: 76px; margin-left: 12px; }
 .vb-soorten { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 6px 18px; }
-.vb-soorten li { display: grid; grid-template-columns: 1fr auto; column-gap: 10px; padding: 4px 0; border-bottom: 1px solid rgba(240,237,228,0.08); }
+.vb-soorten li { display: grid; grid-template-columns: 1fr auto; column-gap: 10px; padding: 4px 0; border-bottom: 1px solid color-mix(in srgb, var(--ds-c-creme) 8%, transparent); }
 .vb-soorten li.nog { opacity: 0.5; }
 .vb-soorten .nm { font-size: 17px; }
 .vb-soorten .wat { grid-column: 1 / -1; font-size: max(14px, var(--menu-min, 14px)); opacity: 0.72; }

@@ -455,30 +455,30 @@ export function getChallengeProgress() {
 const CSS = `
 #pg-panel[hidden] { display: none; }
 #pg-panel { position: fixed; left: 14px; top: 40%; min-width: 220px; max-width: min(340px, calc(100vw - 32px)); padding: 10px 14px 12px; z-index: 5;
-  font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; color: #f0ede4; pointer-events: none;
+  font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; color: var(--ds-c-creme); pointer-events: none;
   background: linear-gradient(160deg, rgba(10,18,34,0.84), rgba(10,18,34,0.55)); border-left: 4px solid #3d7fd9; border-radius: 0 6px 6px 0; box-shadow: 0 4px 18px rgba(0,0,0,0.35); }
 #pg-panel[data-kind="fjord"] { border-left-color: #f2c230; }
 #pg-panel .pg-title { font-size: 24px; letter-spacing: 2.5px; color: #8fb8f0; line-height: 1; }
 #pg-panel[data-kind="fjord"] .pg-title { color: #f2c230; }
-#pg-panel .pg-rows div { display: flex; justify-content: space-between; gap: 14px; margin-top: 3px; font-size: 16px; letter-spacing: 1px; color: rgba(240,237,228,0.75); }
-#pg-panel .pg-rows b { font-weight: normal; font-size: 21px; color: #f0ede4; }
+#pg-panel .pg-rows div { display: flex; justify-content: space-between; gap: 14px; margin-top: 3px; font-size: 16px; letter-spacing: 1px; color: color-mix(in srgb, var(--ds-c-creme) 75%, transparent); }
+#pg-panel .pg-rows b { font-weight: normal; font-size: 21px; color: var(--ds-c-creme); }
 #pg-panel .pg-slot:empty { display: none; }
 #pg-panel .pg-slot { margin-top: 8px; font: 15px/1.35 'Arial Narrow', Arial, sans-serif; letter-spacing: .3px; }
-#pg-panel .pg-help { margin-top: 6px; font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.7); }
-#pg-panel .pg-bar { position: relative; height: 16px; margin-top: 6px; background: rgba(240,237,228,0.14); border-radius: 8px; overflow: hidden; }
+#pg-panel .pg-help { margin-top: 6px; font: 13px 'Arial Narrow', Arial, sans-serif; color: color-mix(in srgb, var(--ds-c-creme) 70%, transparent); }
+#pg-panel .pg-bar { position: relative; height: 16px; margin-top: 6px; background: color-mix(in srgb, var(--ds-c-creme) 14%, transparent); border-radius: 8px; overflow: hidden; }
 #pg-panel .pg-bar i { position: absolute; top: 0; bottom: 0; background: rgba(93,255,122,0.45); }
 #pg-panel .pg-bar i.gold { background: rgba(255,210,63,0.8); }
-#pg-panel .pg-bar u { position: absolute; top: -2px; bottom: -2px; width: 4px; margin-left: -2px; background: #fff; box-shadow: 0 0 6px #fff; text-decoration: none; }
+#pg-panel .pg-bar u { position: absolute; top: -2px; bottom: -2px; width: 4px; margin-left: -2px; background: var(--ds-c-wit); box-shadow: 0 0 6px var(--ds-c-wit); text-decoration: none; }
 #pg-panel .pg-order { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 #pg-panel .pg-order span { padding: 3px 8px; border-radius: 4px; background: rgba(242,194,48,0.18); border: 1px solid rgba(242,194,48,0.45); }
 #pg-panel .pg-order span.ok { background: rgba(93,255,122,0.2); border-color: rgba(93,255,122,0.6); }
 #pg-panel .pg-order span.bad { background: rgba(255,90,60,0.25); border-color: rgba(255,90,60,0.7); }
-#pg-panel .pg-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 10px; margin-top: 8px; font-size: 13px; color: rgba(240,237,228,0.85); }
-#pg-panel .pg-menu kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; margin-right: 5px; box-sizing: border-box; background: #fbfaf5; border: 0; border-radius: 5px; color: #0c140e; font-weight: bold; text-shadow: none; box-shadow: 0 2px 0 #a9a69b, 0 0 0 1px rgba(0, 0, 0, 0.18); font: bold 12px 'Arial Narrow', Arial, sans-serif; }
-#pg-panel .pg-slot > div:not(.pg-menu) kbd { display: inline-block; min-width: 12px; margin: 0 3px; padding: 1px 6px; border: 1px solid rgba(240,237,228,0.6); border-bottom-width: 3px; border-radius: 5px; background: rgba(255,255,255,0.08); color: #f3efe4; font: bold 12px/1.2 'Arial Narrow', Arial, sans-serif; text-align: center; }
+#pg-panel .pg-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 10px; margin-top: 8px; font-size: 13px; color: color-mix(in srgb, var(--ds-c-creme) 85%, transparent); }
+#pg-panel .pg-menu kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; margin-right: 5px; box-sizing: border-box; background: #fbfaf5; border: 0; border-radius: 5px; color: var(--ds-c-glas); font-weight: bold; text-shadow: none; box-shadow: 0 2px 0 #a9a69b, 0 0 0 1px rgba(0, 0, 0, 0.18); font: bold 12px 'Arial Narrow', Arial, sans-serif; }
+#pg-panel .pg-slot > div:not(.pg-menu) kbd { display: inline-block; min-width: 12px; margin: 0 3px; padding: 1px 6px; border: 1px solid color-mix(in srgb, var(--ds-c-creme) 60%, transparent); border-bottom-width: 3px; border-radius: 5px; background: color-mix(in srgb, var(--ds-c-wit) 8%, transparent); color: #f3efe4; font: bold 12px/1.2 'Arial Narrow', Arial, sans-serif; text-align: center; }
 #pg-panel .pg-patience { height: 5px; margin-top: 6px; border-radius: 3px; background: linear-gradient(90deg, #5dff7a, #f2c230); }
 #pg-sub { position: fixed; left: 50%; bottom: 22vh; transform: translateX(-50%); width: min(86vw, 760px); text-align: center; z-index: 40; pointer-events: none;
-  font: clamp(15px, 1.5vw, 20px) 'Arial Narrow', Arial, sans-serif; color: #fff; letter-spacing: .3px; text-shadow: 0 1px 3px rgba(0,0,0,.95), 0 0 12px rgba(0,0,0,.6); opacity: 0; transition: opacity .25s; }
+  font: clamp(15px, 1.5vw, 20px) 'Arial Narrow', Arial, sans-serif; color: var(--ds-c-wit); letter-spacing: .3px; text-shadow: 0 1px 3px rgba(0,0,0,.95), 0 0 12px rgba(0,0,0,.6); opacity: 0; transition: opacity .25s; }
 #pg-sub b { margin-right: 6px; }
 @media (max-width: 480px) { #pg-panel { top: auto; bottom: 30vh; } }
 /* Zomerse zeefdruk (ADR 0040): het paneel als papier met inktrand en harde schaduw; de ondertitel (#pg-sub) komt uit hud_panel.css. */

@@ -26,7 +26,7 @@ export const GEBIEDEN_CSS = `
 .gb-pane .gb-titel { margin: 0 0 2px; font-size: 22px; overflow-wrap: anywhere; }
 .gb-pane .gb-regel { margin: 4px 0 10px; }
 .gb-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 2px 0 6px; }
-.gb-kpi { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 8px 12px; border-radius: 8px; background: rgba(240, 237, 228, 0.05); box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.12); }
+.gb-kpi { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 8px 12px; border-radius: 8px; background: color-mix(in srgb, var(--ds-c-creme) 5%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 12%, transparent); }
 .gb-kpi span { font-size: max(13px, var(--menu-min, 13px)); color: var(--mut); }
 .gb-kpi b { font-family: "Bebas Neue", "Arial Narrow", Arial, sans-serif; font-weight: normal; font-size: 24px; line-height: 1.05; letter-spacing: 0.02em; }
 .gb-kpi small { font-size: 16px; color: var(--mut); }

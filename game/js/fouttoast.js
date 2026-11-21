@@ -63,7 +63,7 @@ export function showFrameError(err) {
   });
   const sluit = document.createElement('button');
   sluit.type = 'button';
-  sluit.className = 'ds-z-knop ds-z-knop--ghost';
+  sluit.className = 'ds-z-knop ds-z-knop--secundair';
   sluit.textContent = 'Sluiten';
   sluit.addEventListener('click', () => el.remove());
   voet.append(sluit, kopieer);

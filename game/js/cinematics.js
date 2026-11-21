@@ -1034,14 +1034,14 @@ function showWijkCard(w, wijk, left = 30) {
   if (!wijkCardEl) {
     const st = document.createElement('style');
     st.textContent = `
-#wijk-card { position: fixed; left: max(6vw, calc((46px + 250px + 190px) * var(--ui, 1))); bottom: calc(11vh + 12vh); z-index: 17; pointer-events: none; color: #f0ede4; max-width: 44ch;
+#wijk-card { position: fixed; left: max(6vw, calc((46px + 250px + 190px) * var(--ui, 1))); bottom: calc(11vh + 12vh); z-index: 17; pointer-events: none; color: var(--ds-c-creme); max-width: 44ch;
   opacity: 0; transform: translateX(-28px); transition: opacity .35s, transform .6s cubic-bezier(.2,.7,.2,1); text-shadow: 0 2px 12px rgba(0,0,0,.85); }
 #wijk-card.on { opacity: 1; transform: none; }
-#wijk-card .wc-kick { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 18px; letter-spacing: .2em; color: #3fc97a; }
+#wijk-card .wc-kick { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 18px; letter-spacing: .2em; color: var(--ds-c-licht-groen); }
 #wijk-card .wc-name { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: clamp(44px, 6vw, 84px); line-height: .9; letter-spacing: 1px; text-transform: uppercase; }
-#wijk-card .wc-name::after { content: ''; display: block; width: 120px; height: 4px; margin-top: 8px; background: linear-gradient(90deg, #1e9e56, #3fc97a); }
+#wijk-card .wc-name::after { content: ''; display: block; width: 120px; height: 4px; margin-top: 8px; background: linear-gradient(90deg, var(--ds-c-licht-groen), var(--ds-c-licht-groen)); }
 #wijk-card .wc-line { font-family: 'Arial Narrow', Arial, sans-serif; font-size: clamp(16px, 1.6vw, 22px); margin-top: 8px; }
-#wijk-card .wc-hi { font-family: 'Arial Narrow', Arial, sans-serif; font-size: clamp(14px, 1.3vw, 18px); margin-top: 8px; color: rgba(240,237,228,.75); }
+#wijk-card .wc-hi { font-family: 'Arial Narrow', Arial, sans-serif; font-size: clamp(14px, 1.3vw, 18px); margin-top: 8px; color: color-mix(in srgb, var(--ds-c-creme) 75%, transparent); }
 #wijk-card .wc-hi:empty { display: none; }
 `;
     document.head.appendChild(st);

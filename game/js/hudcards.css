@@ -18,16 +18,16 @@ body.hud-call-on #hud .hud-nowplaying, body.hud-call-on #hud .hud-vehname, body.
 #hud .hud-cards.paused .hc-timer { animation-play-state: paused; }
 
 #hud .hud-card {
-  --hc: #f0ede4;
+  --hc: var(--ds-c-creme);
   position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
   max-width: 100%;
   padding: 9px 20px 11px 12px;
-  color: #f0ede4;
+  color: var(--ds-c-creme);
   text-shadow: var(--hud-shadow);
-  background: linear-gradient(90deg, rgba(12, 20, 14, 0.86), rgba(23, 48, 31, 0.5) 78%, rgba(23, 48, 31, 0));
+  background: linear-gradient(90deg, color-mix(in srgb, var(--ds-c-glas) 86%, transparent), color-mix(in srgb, var(--ds-c-glas-2) 50%, transparent) 78%, color-mix(in srgb, var(--ds-c-glas-2) 0%, transparent));
   border-left: 3px solid var(--hc);
   opacity: 0;
   --ds-mi-x: -8px; /* ds-motion.css (.ds-mi-in): de kaart schuift 8 px in vanaf de linkerrand en faadt in 200 ms uit */
@@ -52,7 +52,7 @@ body.hud-call-on #hud .hud-nowplaying, body.hud-call-on #hud .hud-vehname, body.
   color: var(--hc);
   filter: drop-shadow(0 0 8px color-mix(in srgb, var(--hc) 45%, transparent));
 }
-#hud .hc-icon .hc-cut { fill: #0c140e; }
+#hud .hc-icon .hc-cut { fill: var(--ds-c-glas); }
 #hud .hud-card.on .hc-icon svg { animation: hc-in 0.6s cubic-bezier(0.2, 0.7, 0.2, 1); }
 #hud .hud-card[data-kind="gevaar"].on .hc-icon svg, #hud .hud-card[data-kind="politie"].on .hc-icon svg { animation: hc-in 0.6s cubic-bezier(0.2, 0.7, 0.2, 1), hc-pulse 1s ease-in-out 0.6s 3; }
 @keyframes hc-in { from { transform: scale(0.4) rotate(-20deg); opacity: 0; } }
@@ -101,7 +101,7 @@ body.hud-call-on #hud .hud-nowplaying, body.hud-call-on #hud .hud-vehname, body.
   font-size: var(--ds-t-moment-getal);
   line-height: 1;
   letter-spacing: 4px;
-  color: #f0ede4;
+  color: var(--ds-c-creme);
   text-shadow: 0 4px 0 rgba(0, 0, 0, 0.55), 0 0 30px rgba(0, 0, 0, 0.6);
   opacity: 0;
   pointer-events: none;

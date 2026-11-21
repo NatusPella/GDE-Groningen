@@ -56,7 +56,7 @@ export function openPadTest() {
   root.setAttribute('role', 'dialog');
   root.setAttribute('aria-modal', 'true');
   root.setAttribute('aria-label', 'Controller testen');
-  root.style.cssText = 'position:fixed;inset:0;z-index:99999;display:grid;place-items:center;background:rgba(10,14,12,.82);color:#f0ede4;font:16px system-ui,sans-serif';
+  root.style.cssText = 'position:fixed;inset:0;z-index:99999;display:grid;place-items:center;background:rgba(10,14,12,.82);color:var(--ds-c-creme);font:16px system-ui,sans-serif';
   root.innerHTML = `<div style="width:min(640px,92vw);max-height:90vh;overflow:auto;padding:20px;border-radius:14px;background:#17201a;border:1px solid #3a4a3e">
     <h2 style="margin:0 0 8px">Controller testen</h2>
     <p class="pt-id" style="margin:0 0 4px"></p><p class="pt-info" style="margin:0 0 4px"></p><p class="pt-note" style="margin:0 0 8px;color:#f2c230"></p>

@@ -135,7 +135,7 @@ const POLICE_MODEL = { name: 'police', len: 4.3, wid: 1.8, maxSpeed: 55, accel: 
 // --- UI ---------------------------------------------------------------------------
 
 const CSS = `
-#trailer { position: fixed; inset: 0; z-index: 17; pointer-events: none; font-family: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif; color: #f3ead3; opacity: 0; transition: opacity 0.4s; --bar: 9vh; }
+#trailer { position: fixed; inset: 0; z-index: 17; pointer-events: none; font-family: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif; color: var(--ds-c-ink-papier); opacity: 0; transition: opacity 0.4s; --bar: 9vh; }
 #trailer.on { opacity: 1; }
 #trailer > div { position: absolute; }
 #trailer .tr-vig { inset: 0; background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 55%, rgba(4, 10, 8, 0.5) 100%); transition: opacity 1.2s; }
@@ -156,24 +156,24 @@ const CSS = `
 #trailer .tr-flash.big { animation: tr-flash-big 0.5s ease-out; }
 @keyframes tr-flash { 0% { opacity: 0.8; } 100% { opacity: 0; } }
 @keyframes tr-flash-big { 0% { opacity: 1; } 30% { opacity: 0.25; } 45% { opacity: 0.9; } 100% { opacity: 0; } }
-#trailer .tr-card { inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; opacity: 0; padding: 0 6vw; text-shadow: 3px 3px 0 #e8505b; }
-#trailer .tr-kicker { font-size: clamp(16px, 2vw, 26px); letter-spacing: 6px; color: #f3ead3; text-transform: uppercase; margin-bottom: 6px; }
+#trailer .tr-card { inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; opacity: 0; padding: 0 6vw; text-shadow: 3px 3px 0 var(--ds-c-ink-roze); }
+#trailer .tr-kicker { font-size: clamp(16px, 2vw, 26px); letter-spacing: 6px; color: var(--ds-c-ink-papier); text-transform: uppercase; margin-bottom: 6px; }
 #trailer .tr-title { font-size: clamp(48px, 8.5vw, 132px); line-height: 0.92; text-transform: uppercase; }
 #trailer .tr-title.small { font-size: clamp(38px, 5.8vw, 88px); }
-#trailer .tr-title .amp { color: #e8505b; }
+#trailer .tr-title .amp { color: var(--ds-c-ink-roze); }
 /* no card text-shadow here: it shows through the logo's transparent, gradient-clipped letters */
 #trailer .tr-card .gde-logo { font-size: clamp(110px, 19vw, 230px); text-shadow: none; }
 #trailer .tr-title.tr-tagline { margin-top: 10px; font-size: clamp(30px, 4.4vw, 64px); letter-spacing: 0.08em; }
-#trailer .tr-radio { font-size: clamp(64px, 11vw, 168px); line-height: 1; color: rgba(243,234,211, 0.9); letter-spacing: 0.06em; }
+#trailer .tr-radio { font-size: clamp(64px, 11vw, 168px); line-height: 1; color: color-mix(in srgb, var(--ds-c-ink-papier) 90%, transparent); letter-spacing: 0.06em; }
 /* name cards over a freeze frame: lower left, like a character intro */
 #trailer .tr-freeze { inset: 0; opacity: 0; background: radial-gradient(ellipse at 30% 60%, color-mix(in srgb, var(--ds-c-geel, #f9c80e) 8%, transparent), color-mix(in srgb, var(--ds-c-ink-inkt, #1d1b17) 42%, transparent) 85%); }
-#trailer .tr-name { left: 6vw; bottom: calc(var(--bar) + 7vh); max-width: min(72vw, 1500px); opacity: 0; text-shadow: 3px 3px 0 #e8505b; }
+#trailer .tr-name { left: 6vw; bottom: calc(var(--bar) + 7vh); max-width: min(72vw, 1500px); opacity: 0; text-shadow: 3px 3px 0 var(--ds-c-ink-roze); }
 #trailer .tr-name b { display: block; font-weight: normal; font-size: clamp(64px, 10vw, 160px); line-height: 0.88; text-transform: uppercase; letter-spacing: 0.02em; }
-#trailer .tr-name b .amp { color: #e8505b; }
-#trailer .tr-name i { display: block; margin-top: 0.5vh; border-left: 0.14em solid #e8505b; padding-left: 0.4em; font: clamp(20px, 2.5vw, 64px) 'Atkinson Hyperlegible', Arial, sans-serif; letter-spacing: 0.3px; color: #f3ead3; }
-#trailer .tr-sub { left: 50%; bottom: calc(var(--bar) + 3vh); transform: translateX(-50%); width: min(86vw, 1500px); text-align: center; font: 700 clamp(18px, 2.3vw, 60px) 'Atkinson Hyperlegible', Arial, sans-serif; letter-spacing: 0.3px; opacity: 0; text-shadow: 2px 2px 0 #1d1b17, 0 0 2px rgba(0, 0, 0, 0.9); }
+#trailer .tr-name b .amp { color: var(--ds-c-ink-roze); }
+#trailer .tr-name i { display: block; margin-top: 0.5vh; border-left: 0.14em solid var(--ds-c-ink-roze); padding-left: 0.4em; font: clamp(20px, 2.5vw, 64px) 'Atkinson Hyperlegible', Arial, sans-serif; letter-spacing: 0.3px; color: var(--ds-c-ink-papier); }
+#trailer .tr-sub { left: 50%; bottom: calc(var(--bar) + 3vh); transform: translateX(-50%); width: min(86vw, 1500px); text-align: center; font: 700 clamp(18px, 2.3vw, 60px) 'Atkinson Hyperlegible', Arial, sans-serif; letter-spacing: 0.3px; opacity: 0; text-shadow: 2px 2px 0 var(--ds-c-ink-inkt), 0 0 2px rgba(0, 0, 0, 0.9); }
 #trailer .tr-sub.on { opacity: 1; }
-#trailer .tr-sub b { color: #e8505b; margin-right: 6px; }
+#trailer .tr-sub b { color: var(--ds-c-ink-roze); margin-right: 6px; }
 #trailer .tr-skip { right: 3vw; bottom: calc(var(--bar) * 0.5); transform: translateY(50%); display: flex; opacity: 0; transition: opacity 0.25s; } /* uiterlijk: ds-schermen.css */
 #trailer.skippable .tr-skip { opacity: 1; }
 body.trailer-rec #trailer .tr-skip, body.trailer-rec #trailer .tr-fps { display: none; }
@@ -187,11 +187,11 @@ body.trailer-rec #trailer .tr-skip, body.trailer-rec #trailer .tr-fps { display:
 /* 0.64.1: the cursor is only hidden while a picture plays; on the result card (class tr-result-open) it is back, otherwise the card looked unclickable */
 body.trailer-on:not(.tr-result-open), body.trailer-on:not(.tr-result-open) * { cursor: none !important; }
 #trailer .tr-slices { display: flex; gap: 1.1vw; margin-top: 1.4vh; }
-#trailer .tr-slices i { display: block; width: 5.2vw; height: 2.6vw; border-radius: 0.5vw; background: #f3ead3; position: relative; transition: none; }
-#trailer .tr-slices i.x { background: rgba(243,234,211, 0.28); }
-#trailer .tr-slices i.x::after { content: ''; position: absolute; left: -8%; right: -8%; top: 46%; height: 0.35vw; background: #f3ead3; transform: rotate(-6deg); }
+#trailer .tr-slices i { display: block; width: 5.2vw; height: 2.6vw; border-radius: 0.5vw; background: var(--ds-c-ink-papier); position: relative; transition: none; }
+#trailer .tr-slices i.x { background: color-mix(in srgb, var(--ds-c-ink-papier) 28%, transparent); }
+#trailer .tr-slices i.x::after { content: ''; position: absolute; left: -8%; right: -8%; top: 46%; height: 0.35vw; background: var(--ds-c-ink-papier); transform: rotate(-6deg); }
 #trailer .tr-title.tr-tagline.tight { letter-spacing: 0.06em; }
-#trailer .tr-info { margin-top: 2.4vh; font: 700 clamp(16px, 1.7vw, 30px) 'Atkinson Hyperlegible', Arial, sans-serif; letter-spacing: 3px; text-transform: uppercase; color: rgba(243,234,211, 0.85); }
+#trailer .tr-info { margin-top: 2.4vh; font: 700 clamp(16px, 1.7vw, 30px) 'Atkinson Hyperlegible', Arial, sans-serif; letter-spacing: 3px; text-transform: uppercase; color: color-mix(in srgb, var(--ds-c-ink-papier) 85%, transparent); }
 body.trailer-on:not(.trailer-hud) #hud, body.trailer-on .prompts, body.trailer-on #cine { display: none !important; }
 /* gameplay shots (hud: true): the real HUD, no bars or vignette over it */
 body.trailer-on.trailer-hud #hud { visibility: visible; }

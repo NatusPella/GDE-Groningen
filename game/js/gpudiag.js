@@ -315,14 +315,14 @@ const CSS = `
 #gpudiag { position: fixed; inset: 0; z-index: 45; display: flex; align-items: center; justify-content: center; background: rgba(4, 8, 6, 0.7); }
 #gpudiag[hidden] { display: none; }
 #gpudiag, #gpudiag * { cursor: default; }
-#gpudiag .gd-box { width: min(720px, calc(100vw - 32px)); max-height: calc(100vh - 48px); display: flex; flex-direction: column; box-sizing: border-box; background: rgba(8, 14, 10, 0.96); border: 1px solid rgba(63, 201, 122, 0.4); border-radius: 6px; padding: 18px 22px; color: #f0ede4; font: 15px/1.4 'Arial Narrow', Arial, sans-serif; }
-#gpudiag h2 { margin: 0 0 8px; font: 30px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 2px; font-weight: normal; color: #3fc97a; }
+#gpudiag .gd-box { width: min(720px, calc(100vw - 32px)); max-height: calc(100vh - 48px); display: flex; flex-direction: column; box-sizing: border-box; background: rgba(8, 14, 10, 0.96); border: 1px solid color-mix(in srgb, var(--ds-c-licht-groen) 40%, transparent); border-radius: 6px; padding: 18px 22px; color: var(--ds-c-creme); font: 15px/1.4 'Arial Narrow', Arial, sans-serif; }
+#gpudiag h2 { margin: 0 0 8px; font: 30px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 2px; font-weight: normal; color: var(--ds-c-licht-groen); }
 #gpudiag pre { margin: 0 0 12px; overflow: auto; flex: 1; white-space: pre-wrap; font: 13px/1.35 Consolas, monospace; color: #d8d4c8; user-select: text; }
 #gpudiag .gd-row { display: flex; gap: 8px; }
-#gpudiag button { font: 19px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1.5px; padding: 7px 16px; border-radius: 4px; background: transparent; color: #f0ede4; border: 1px solid rgba(63, 201, 122, 0.6); }
+#gpudiag button { font: 19px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1.5px; padding: 7px 16px; border-radius: 4px; background: transparent; color: var(--ds-c-creme); border: 1px solid color-mix(in srgb, var(--ds-c-licht-groen) 60%, transparent); }
 #gpudiag button, #gpudiag button * { cursor: pointer; }
-#gpudiag button.primary { background: #1e9e56; color: #0c140e; border-color: #1e9e56; }
-#gpudiag button:hover, #gpudiag button:focus-visible { border-color: #5fe39a; outline: none; box-shadow: 0 0 0 2px #f0ede4; }
+#gpudiag button.primary { background: var(--ds-c-licht-groen); color: var(--ds-c-glas); border-color: var(--ds-c-licht-groen); }
+#gpudiag button:hover, #gpudiag button:focus-visible { border-color: #5fe39a; outline: none; box-shadow: 0 0 0 2px var(--ds-c-creme); }
 `;
 
 let dlg = null;

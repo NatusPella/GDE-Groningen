@@ -49,13 +49,13 @@ const CSS = `
 #uitje-paneel[hidden] { display: none; }
 #uitje-paneel { position: fixed; left: 50%; bottom: max(13vh, 88px); transform: translateX(-50%) translateY(10px); z-index: 6; max-width: min(560px, calc(100vw / var(--ui, 1) - 32px)); pointer-events: none; opacity: 0; transition: opacity 0.3s, transform 0.35s; zoom: var(--ui, 1); }
 #uitje-paneel.on { opacity: 1; transform: translateX(-50%) translateY(0); }
-#uitje-paneel .uitje-kaart { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 2px; padding: 9px 16px 10px 84px; color: #f0ede4; text-shadow: var(--hud-shadow); background: linear-gradient(90deg, rgba(12,20,14,0.94), rgba(12,20,14,0.78) 78%, rgba(12,20,14,0.5)); border-left: 3px solid var(--uitje-acc); border-radius: 0 8px 8px 0; }
+#uitje-paneel .uitje-kaart { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 2px; padding: 9px 16px 10px 84px; color: var(--ds-c-creme); text-shadow: var(--hud-shadow); background: linear-gradient(90deg, color-mix(in srgb, var(--ds-c-glas) 94%, transparent), color-mix(in srgb, var(--ds-c-glas) 78%, transparent) 78%, color-mix(in srgb, var(--ds-c-glas) 50%, transparent)); border-left: 3px solid var(--uitje-acc); border-radius: 0 8px 8px 0; }
 #uitje-paneel .uitje-vorm { position: absolute; left: 0; top: 0; bottom: 0; width: 70px; opacity: 0.42; pointer-events: none; }
 #uitje-paneel .uitje-kicker { display: flex; align-items: center; gap: 5px; font: 12px 'Arial Narrow', Arial, sans-serif; letter-spacing: 3px; color: var(--uitje-acc); text-transform: uppercase; }
 #uitje-paneel .uitje-kicker .mg-ic { width: 14px; height: 14px; }
 #uitje-paneel .uitje-titel { font: 22px/1.05 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1.5px; }
-#uitje-paneel .uitje-regel { font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.86); }
-#uitje-paneel .uitje-hint { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; font: 12px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.72); min-height: 1em; }
+#uitje-paneel .uitje-regel { font: 13px 'Arial Narrow', Arial, sans-serif; color: color-mix(in srgb, var(--ds-c-creme) 86%, transparent); }
+#uitje-paneel .uitje-hint { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; font: 12px 'Arial Narrow', Arial, sans-serif; color: color-mix(in srgb, var(--ds-c-creme) 72%, transparent); min-height: 1em; }
 #uitje-paneel .uitje-hint:empty, #uitje-paneel .uitje-regel:empty { display: none; }
 #uitje-paneel .hud-key { margin: 0 2px; vertical-align: middle; }
 @media (prefers-reduced-motion: reduce) { #uitje-paneel { transition: none; } }
