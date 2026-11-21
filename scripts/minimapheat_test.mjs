@@ -29,19 +29,28 @@ ok(H.policeBadge(0, 5) === null && H.policeBadge(-1, 5) === null, 'zonder politi
 ok(H.policeBadge(9, 9).dots === H.UNIT_DOTS, 'het aantal stippen blijft begrensd');
 ok(H.heatUitleg(0, 0) === '', 'geen politie, geen tekst');
 ok(/2 politie-eenheden/.test(H.heatUitleg(2, 2)) && /2 van 5/.test(H.heatUitleg(2, 2)), 'de uitleg noemt eenheden en heat');
-ok(/niet gezocht/.test(H.heatUitleg(0, 1)) && /zoeken je/.test(H.heatUitleg(3, 1, { searching: true })), 'de uitleg zegt koud of zoekend');
+ok(!/van 5|sterren|niet gezocht/.test(H.heatUitleg(0, 1)) && /1 politie-eenheid in beeld/.test(H.heatUitleg(0, 1)) && /zoeken je/.test(H.heatUitleg(3, 1, { searching: true })), 'de uitleg zegt koud of zoekend');
 ok(!/\d{1,2}(?! van)/.test(H.heatUitleg(0, 1).replace('1 politie', '')), 'geen los cijfer als heat');
 
-ok(H.heatTooltip(0, 0) === '', 'zonder politie in beeld geen tooltip');
+ok(H.heatTooltip(0, 0) === '', 'zonder politie en zonder ster geen tooltip');
+ok(/3 van 5/.test(H.heatTooltip(3, 0)) && !/segment/.test(H.heatTooltip(3, 0)), 'gezocht zonder politie in beeld: alleen de ster in de tooltip, geen ringlegenda');
+ok(!/0 van 5/.test(H.heatTooltip(0, 2)), 'bij 0 sterren leest niets "0 van 5" voor');
 const tip = H.heatTooltip(3, 2, { searching: true });
 ok(/3 van 5 sterren/.test(tip) && /2 politie-eenheden/.test(tip) && /segment is een ster/.test(tip) && /stippen/.test(tip), 'de tooltip noemt de stand en legt ring en stippen uit');
 ok(!/(police|wanted|heat)/i.test(tip), 'de tooltip is Nederlands, zonder Engelse rolwoorden');
 
 // de chip met icoon en getal (#952)
-ok(H.heatChip(3, 0) === null, 'zonder politie in beeld geen chip');
+ok(H.heatChip(0, 0) === null, '0 sterren en 0 eenheden: geen chip');
 const chip = H.heatChip(3, 2, { searching: true });
 ok(chip && chip.eenhedenTekst === '2' && chip.sterTekst === '3/5' && chip.searching, 'de chip toont eenheden en sterren als getal');
-ok(H.heatChip(0, 1).sterTekst === '0/5' && H.heatChip(9, 1).sterTekst === '5/5', 'sterren in de chip blijven binnen 0 tot 5');
+ok(H.heatChip(9, 1).sterTekst === '5/5', 'sterren in de chip blijven binnen 0 tot 5');
+const koudChip = H.heatChip(0, 2);
+ok(koudChip.toonEenheden && koudChip.eenhedenTekst === '2' && !koudChip.toonSter && koudChip.sterTekst === '' && !/0\/5/.test(JSON.stringify(koudChip)), '0 sterren + 2 eenheden: alleen het schild met 2, geen 0/5');
+ok(chip.toonEenheden && chip.toonSter, '3 sterren + 2 eenheden: schild 2 en ster 3/5');
+const zoek = H.heatChip(3, 0);
+ok(zoek && !zoek.toonEenheden && zoek.toonSter && zoek.sterTekst === '3/5', 'gezocht maar niemand in beeld: alleen het ster-deel');
+const eenChip = H.heatChip(1, 0);
+ok(eenChip.toonSter && !eenChip.toonEenheden && eenChip.sterTekst === '1/5', '1 ster zonder eenheden: alleen het ster-deel');
 ok(chip.uitleg === H.heatTooltip(3, 2, { searching: true }) && /segment is een ster/.test(chip.uitleg), 'de chip heeft de uitleg als tooltip');
 ok(H.CHIP_MIN_PX >= 13, 'de chip is minstens 13 px');
 

@@ -382,6 +382,8 @@ export function initHud(world) {
     mmHeat,
     mmHeatN: mmHeat.querySelector('.mmh-n'),
     mmHeatW: mmHeat.querySelector('.mmh-w'),
+    mmHeatEenh: mmHeat.querySelector('.mmh-eenh'),
+    mmHeatSter: mmHeat.querySelector('.mmh-ster'),
     mmCanvas,
     mmCtx: mmCanvas.getContext('2d'),
     vis: {},
@@ -3054,8 +3056,11 @@ function drawMinimap(dt, world) {
     const chip = heatChip(heatSter, polities.length, { searching: !!(world.police && world.police.searching) });
     els.mmHeat.hidden = !chip;
     if (chip) {
-      els.mmHeatN.textContent = chip.eenhedenTekst;
-      els.mmHeatW.textContent = chip.sterTekst;
+      // elk deel schuift met een korte breedte-overgang in en uit (CSS .weg), de tekst blijft staan tijdens het uitschuiven
+      if (chip.toonEenheden) els.mmHeatN.textContent = chip.eenhedenTekst;
+      if (chip.toonSter) els.mmHeatW.textContent = chip.sterTekst;
+      els.mmHeatEenh.classList.toggle('weg', !chip.toonEenheden);
+      els.mmHeatSter.classList.toggle('weg', !chip.toonSter);
       els.mmHeat.classList.toggle('warm', chip.sterren > 0);
       els.mmHeat.title = chip.uitleg;
       els.mmHeat.setAttribute('aria-label', chip.uitleg);

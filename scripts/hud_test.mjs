@@ -305,6 +305,7 @@ ok(A.planModeFor('ov', 'lopen') === 'ov' && A.planModeFor('boot', 'auto') === 'b
   ok(/hud-money-delta\[data-sign="min"\] \{ color: var\(--mk-danger/.test(css), 'geld eraf is het ene gevaar-rood via de tokens');
   ok(/MM_ICON_BUDGET = 10/.test(panel), 'de minimap heeft een totaalbudget');
   ok(/policeBadge\(polities\.length/.test(panel) && /polities\.length === 1 \? best\.kind : 'police'/.test(panel) && /badge\.ring\.segmenten/.test(panel) && /badge\.dots/.test(panel) && !/strokeText\(String\(polities\.length\)/.test(panel), 'de politie is één badge met een heat-ring (ook bij één eenheid), geen cijfer (#952, review 0.63)');
+  ok(/toonSter/.test(panel) && /mmHeatSter\.classList\.toggle\('weg'/.test(panel) && /mmh-ster/.test(panel), 'de chip toont het ster-deel alleen bij 1 ster of meer en het schild alleen met politie in beeld (geen 0/5)');
   // #638: op 1280x720 en 1280x800 raakt de naamkaart het racepaneel niet en blijft de telefoonkolom links.
   for (const vh of [720, 800]) {
     const raceTop = 173;
