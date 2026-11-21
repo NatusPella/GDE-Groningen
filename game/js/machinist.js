@@ -6,7 +6,7 @@
 import { createBoard, mgThema, key } from './minigamekit.js';
 import { driveRange, routePoint, hijackTrain, blokseinenVoor } from './railway.js';
 import { dienstVoor, instapHalte, dienstTekst } from './dienstregeling.js'; // het rooster van de dienst (#492)
-import { dienstVanLeg } from './treindienst.js'; // #1085: de dienst van de trein van het bord (echt rooster)
+import { dienstVanLeg } from './trainservice.js'; // #1085: de dienst van de trein van het bord (echt rooster)
 import { loopbaanVerdien, loopbaanDeel } from './loopbaanlive.js';
 import { metGroepsbonus } from './groepsbonus.js';
 import { splitReward } from './treincoop.js'; // de crew van de trein en de beloning per lid (#492)

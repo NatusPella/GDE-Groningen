@@ -1,7 +1,7 @@
 // Het echte treinrooster in het spel (#1085): de vertrektijden van de stations in en rond Groningen uit
-// game/treinrooster.json (gebouwd door scripts/treinrooster_bouw.mjs uit de open GTFS van OVapi, CC0), met de
+// game/trainschedule.json (gebouwd door scripts/trainschedule_build.mjs uit de open GTFS van OVapi, CC0), met de
 // VERZONNEN lijnnamen van het spel. Puur: geen THREE, geen DOM, geen netwerk; het bestand komt als data binnen.
-// De live vertragingen (livetrains.js) worden hier per rit op de rijen gezet. Tests: scripts/treinrooster_test.mjs.
+// De live vertragingen (livetrains.js) worden hier per rit op de rijen gezet. Tests: scripts/trainschedule_test.mjs.
 //
 // Spelklok en rooster. De spelklok (daynight.js) loopt in uren van de lokale dag (0..24) en de speldag heeft een
 // weekdag (calendar.js weekdayOf). Het rooster kent drie soorten dagen: werk (ma t/m vr), za en zo. Een vertrek om
@@ -35,7 +35,7 @@ export const codesUit = (r) => new Set(validSchedule(r) ? r.stations.map((s) => 
 // De volgende vertrekken op een station vanaf `nu` (s na middernacht), over middernacht heen (de vroege ochtend van de volgende dag).
 // Rij zoals dienstregeling.vertrekBord: { lijn, richting, dir, k, spoor, plan, tijd, vertraging: 0, reden: '', aankomst } plus
 // nummer, code, vervallen en live (true als er een live melding op zit). `terug`: hoeveel seconden een net vertrokken trein nog blijft staan.
-// Met `dienst` (treindienst.js bouwDienst) telt alleen een vertrek waar een wereldtrein bij hoort: de rij krijgt de lijn van die trein (leg.route) en zijn rit-id,
+// Met `dienst` (trainservice.js bouwDienst) telt alleen een vertrek waar een wereldtrein bij hoort: de rij krijgt de lijn van die trein (leg.route) en zijn rit-id,
 // zodat bord en trein dezelfde trein zijn en er geen bordregel zonder trein staat.
 export function rijenUitRooster(r, spelNaam, dagsoort, nu, { aantal = 8, terug = 30, dienst = null } = {}) {
   if (!hasStop(r, spelNaam)) return [];
@@ -66,7 +66,7 @@ export const REDEN_LIVE = 'Zo meldt de open reisinformatie';
 export async function laadRooster(fetchFn = globalThis.fetch, basis = (typeof location !== 'undefined' ? location.href : '')) {
   try {
     if (typeof fetchFn !== 'function' || !basis) return null;
-    const res = await fetchFn(new URL('treinrooster.json', basis).href);
+    const res = await fetchFn(new URL('trainschedule.json', basis).href);
     if (!res.ok) return null;
     const r = await res.json();
     return validSchedule(r) ? r : null;

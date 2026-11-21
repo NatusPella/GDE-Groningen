@@ -1,6 +1,6 @@
-// Treinrooster bouwen (#1085): filtert de statische GTFS van OVapi tot game/treinrooster.json.
+// Treinrooster bouwen (#1085): filtert de statische GTFS van OVapi tot game/trainschedule.json.
 //
-//   node scripts/treinrooster_bouw.mjs --gtfs=<map met uitgepakte gtfs-nl.zip> [--uit=game/treinrooster.json]
+//   node scripts/trainschedule_build.mjs --gtfs=<map met uitgepakte gtfs-nl.zip> [--uit=game/trainschedule.json]
 //        [--werk=20270818 --za=20270821 --zo=20270822]
 //
 // Alleen bij het BOUWEN (ontwikkeling): het spel haalt de grote GTFS nooit op. Ophalen en uitpakken, in een eigen lege map:
@@ -8,18 +8,18 @@
 //   unzip gtfs-nl.zip -d <map>
 // Er blijft niets persoonlijks achter: het bestand bevat alleen stations, tijden, treinnummers, sporen en bestemmingen.
 // De vervoerder komt niet in het bestand (constitutie 2); het rapport telt hem wel, voor docs/TREINEN-LIVE-21-11.md.
-// De regels staan in scripts/treinrooster_lib.mjs (test: scripts/treinrooster_test.mjs).
+// De regels staan in scripts/trainschedule_lib.mjs (test: scripts/trainschedule_test.mjs).
 import fs from 'node:fs';
 import path from 'node:path';
 import readline from 'node:readline';
 import {
   STATIONS, DAGSOORTEN, spelLijn, dienstenOp, maakRij, sorteerRijen, valideerRooster,
-} from './treinrooster_lib.mjs';
+} from './trainschedule_lib.mjs';
 
 const arg = (k, d) => { const a = process.argv.find((x) => x.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
 const MAP = arg('gtfs');
-if (!MAP) { console.error('Gebruik: node scripts/treinrooster_bouw.mjs --gtfs=<map met uitgepakte GTFS>'); process.exit(2); }
-const UIT = arg('uit', 'game/treinrooster.json');
+if (!MAP) { console.error('Gebruik: node scripts/trainschedule_build.mjs --gtfs=<map met uitgepakte GTFS>'); process.exit(2); }
+const UIT = arg('uit', 'game/trainschedule.json');
 // een zomerdag in 2027 (woensdag, zaterdag, zondag): het spel kent alleen zomer; het rooster dat de feed voor die dagen bevat
 const DATA = { werk: arg('werk', '20270818'), za: arg('za', '20270821'), zo: arg('zo', '20270822') };
 

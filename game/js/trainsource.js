@@ -1,5 +1,5 @@
 // De bron van de vertrekborden, in woorden (#1085, model: busbron.js): zijn de vertragingen op het bord echt (Live), of toont het
-// bord het rooster (Rooster)? Puur: geen THREE, geen DOM, geen opslag (scripts/treinbron_test.mjs). De stand komt uit treinlive.js
+// bord het rooster (Rooster)? Puur: geen THREE, geen DOM, geen opslag (scripts/trainsource_test.mjs). De stand komt uit trainlive.js
 // (stand()), de instelling uit Instellingen. Dit bestand beslist alleen wat de speler te zien krijgt; het haalt niets op.
 // De bron staat nooit alleen in een kleur: er staat altijd een woord (Live of Rooster) en een bronregel.
 
@@ -16,7 +16,7 @@ const REDEN = {
   leeg: 'er zijn nu geen treinmeldingen',
 };
 
-// stand: treinlive.js stand() = { aan, laatsteOk (ms), reden, fouten, opgevraagd, aantal }; nu in ms.
+// stand: trainlive.js stand() = { aan, laatsteOk (ms), reden, fouten, opgevraagd, aantal }; nu in ms.
 // Geeft { soort, aantal, leeftijdS, reden, tekst, kort }; kort is het woord in het label ('Live' of 'Rooster').
 export function sourceState({ instelling = true, stand = null, nu = Date.now(), verouderd = VEROUDERD_MS } = {}) {
   const rooster = (reden, tekst) => ({ soort: KIND.rooster, aantal: 0, leeftijdS: null, reden, tekst, kort: 'Rooster' });

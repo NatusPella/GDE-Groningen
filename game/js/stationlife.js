@@ -3,8 +3,8 @@ import { hoofdspeler } from './players.js';
 // bij de speler, uit dienstregeling.js. Het deel zonder wereld is puur (testbaar zonder
 // browser: scripts/stationlife_test.mjs); updateStationLife hangt het aan HUD en geluid.
 import { vertrekBord, bordUitTreinen, omroep, perronDrukte, tijdLabel, VERVOERDER } from './dienstregeling.js';
-import { hasStop, rijenUitRooster, pasVertragingToe } from './treinrooster.js';
-import { sourceState, bronLabel, departureLine } from './treinbron.js';
+import { hasStop, rijenUitRooster, pasVertragingToe } from './trainschedule.js';
+import { sourceState, bronLabel, departureLine } from './trainsource.js';
 
 export const NEAR_R = 45;      // m: zo dichtbij moet je bij het perron zijn voor bord en omroep
 export const CROWD_R = 140;    // m: zo dichtbij worden reizigers getekend
@@ -46,9 +46,9 @@ export function nearestStation(stations, x, y, r = NEAR_R) {
 // tien minuten weg is, is op de spelklok tien uur weg en gaf een bord met willekeurige tijden (#339). Met
 // minder dan BORD_MIN echte treinen vult het rooster het bord aan (dubbelen weggelaten), op volgorde van tijd.
 export const BORD_HORIZON = 90 * 60, BORD_MIN = 4, BORD_N = 5;
-// #1085: met `dienst` ({ rooster, dagsoort, live (Map vertragingen of null), dienst (treindienst.js bouwDienst) }) volgt het bord de ECHTE dienstregeling
-// van dit station (treinrooster.js, vertrektijden uit open gegevens, verzonnen lijnnamen) met de live vertragingen erop. Elke bordrij is een
-// wereldtrein: dezelfde rit (rij.rit = leg.id) met dezelfde tijden (treindienst.js legTimes); een vertrek zonder trein in de wereld staat er niet.
+// #1085: met `dienst` ({ rooster, dagsoort, live (Map vertragingen of null), dienst (trainservice.js bouwDienst) }) volgt het bord de ECHTE dienstregeling
+// van dit station (trainschedule.js, vertrektijden uit open gegevens, verzonnen lijnnamen) met de live vertragingen erop. Elke bordrij is een
+// wereldtrein: dezelfde rit (rij.rit = leg.id) met dezelfde tijden (trainservice.js legTimes); een vertrek zonder trein in de wereld staat er niet.
 // Een station zonder echt rooster (of zonder rij) houdt zijn eigen dienst (hieronder, label 'Rooster (eigen dienst)').
 export function stationView(station, clock, dag, treinen = null, schaal = 60, dienst = null) {
   const nu = ((clock % 24) + 24) % 24 * 3600;

@@ -5,12 +5,12 @@
 // Bron: de open GTFS-Realtime-feed `trainUpdates.pb` van OVapi (https://gtfs.ovapi.nl/nl/trainUpdates.pb): per rit het
 // treinnummer, per halte de geplande en verwachte tijd, de vertraging in seconden, het spoor en de stationscode, en of een
 // rit vervalt. Zonder account of sleutel, CC0 volgens OVapi. De feed bevat heel Nederland (ca. 3 MB, ca. 1 MB gecomprimeerd);
-// het spel houdt alleen de stations over die in het rooster staan (game/treinrooster.json). De feed heeft GEEN posities van
+// het spel houdt alleen de stations over die in het rooster staan (game/trainschedule.json). De feed heeft GEEN posities van
 // treinen (vehiclePositions bevat alleen bus, tram en metro): daarom volgt het spel de treinen in beeld niet live.
 //
 // Alles faalt zacht: bij een fout, time-out, te groot of ongeldig bestand, een lege feed of een bron die weg is, toont het
 // bord het rooster zonder vertraging. Puur: geen THREE, geen DOM; fetch komt van buiten (in tests een nep-fetch).
-// Het ritme, de stand en de uitzetter staan in treinlive.js. Tests: scripts/livetrains_test.mjs.
+// Het ritme, de stand en de uitzetter staan in trainlive.js. Tests: scripts/livetrains_test.mjs.
 
 export const LIVE_TRAINS = {
   url: 'https://gtfs.ovapi.nl/nl/trainUpdates.pb',

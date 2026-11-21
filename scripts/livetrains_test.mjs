@@ -5,7 +5,7 @@ import assert from 'node:assert';
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import { LIVE_TRAINS, REQUEST_OPTIONS, parseTrainReports, fetchLiveTrains, buildDelayMap, meldSleutel, nlSecOfDay, nlDatum, bridgeAsFetch } from '../game/js/livetrains.js';
-import { createLiveTrains, createTrainLive, kiesFetch } from '../game/js/treinlive.js';
+import { createLiveTrains, createTrainLive, kiesFetch } from '../game/js/trainlive.js';
 
 // --- een kleine protobuf-schrijver voor het nepbestand (GTFS-RT TripUpdate met de OVapi-uitbreiding) ---
 const vi = (n) => { const o = []; let b = BigInt(n); if (b < 0n) b += 1n << 64n; while (b > 127n) { o.push(Number(b & 127n) | 128); b >>= 7n; } o.push(Number(b)); return o; };
@@ -86,9 +86,9 @@ const demo = () => feed(
   assert.ok(!/gde-|player|speler|naam|name|token|key|id=|cookie|authorization/i.test(alles.replace(/Accept|User-Agent|OpenDataLezer/g, '')), 'geen spelergegevens in de opvraag');
   const src = fs.readFileSync(new URL('../game/js/livetrains.js', import.meta.url), 'utf8');
   assert.ok(!/localStorage|sessionStorage|storagekeys|getSettings|document\.cookie|navigator\./.test(src), 'livetrains.js leest geen opslag of instellingen');
-  const src2 = fs.readFileSync(new URL('../game/js/treinlive.js', import.meta.url), 'utf8');
-  assert.ok(!/localStorage|sessionStorage|storagekeys|document\.cookie|navigator\./.test(src2), 'treinlive.js leest geen opslag');
-  assert.ok(!/https?:\/\//.test(src2.replace(/\/\/.*$/gm, '')), 'treinlive.js heeft geen eigen url');
+  const src2 = fs.readFileSync(new URL('../game/js/trainlive.js', import.meta.url), 'utf8');
+  assert.ok(!/localStorage|sessionStorage|storagekeys|document\.cookie|navigator\./.test(src2), 'trainlive.js leest geen opslag');
+  assert.ok(!/https?:\/\//.test(src2.replace(/\/\/.*$/gm, '')), 'trainlive.js heeft geen eigen url');
 }
 
 // --- zacht falen ---

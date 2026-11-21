@@ -1,8 +1,8 @@
-// De treinen van de wereld volgen het echte rooster (#1085): uit game/treinrooster.json (treinrooster.js) en de spoorlijnen van het
+// De treinen van de wereld volgen het echte rooster (#1085): uit game/trainschedule.json (trainschedule.js) en de spoorlijnen van het
 // spel (railway.getRoutes(): { name, len, stops: [{ name, s, offmap }] }) volgt per rit ("leg": één trein op één spoorlijn, met
 // haltetijden) waar die trein op de spelklok is. PUUR en DETERMINISTISCH: geen THREE, geen wereld, geen toeval, geen klok die
 // ergens bijgehouden wordt. Dezelfde spelklok geeft overal dezelfde trein op dezelfde plek: de host, een gast en het bord.
-// Een trein buiten bereik hoeft dus niet gesimuleerd: zijn plek volgt uit de klok (legState). Tests: scripts/treindienst_test.mjs.
+// Een trein buiten bereik hoeft dus niet gesimuleerd: zijn plek volgt uit de klok (legState). Tests: scripts/trainservice_test.mjs.
 //
 // Wat een rit is. Het rooster heeft per station vertrekrijen met treinnummer; rijen met hetzelfde nummer in tijdsvolgorde zijn
 // één rit. Een rit die over het station Groningen (de knoop van alle spellijnen) rijdt valt in twee legs, één per spoorlijn
@@ -16,7 +16,7 @@
 // Het perron is de halte van de lijn (stop.s); de echte sporen (sp. 3 enz.) zijn tekst op het bord: de wereld heeft per lijn
 // één spoor per richting, dus de sporennummers zijn geen aparte geometrie.
 
-import { vertragingVan } from './treinrooster.js';
+import { vertragingVan } from './trainschedule.js';
 
 export const DIENST = {
   vooraf: 120,      // s dat een beginnende trein klaarstaat voor zijn vertrek
@@ -28,7 +28,7 @@ export const DIENST = {
   gat: 9000,        // s tussen twee vertrekken waarna hetzelfde treinnummer een andere rit is
 };
 
-// De rijen van één dagsoort als haltes per rit. rooster: treinrooster.json. routes: spoorlijnen van het spel.
+// De rijen van één dagsoort als haltes per rit. rooster: trainschedule.json. routes: spoorlijnen van het spel.
 // Geeft { legs, vindRij, perLijn, legMet }.
 export function bouwDienst(rooster, dagsoort, routes, opts = {}) {
   const cfg = { ...DIENST, ...opts };
@@ -243,7 +243,7 @@ export function dienstVanLeg(leg, tijden, vanaf, dag = 1) {
 }
 
 // De bron voor railway.setTreinDienst: bouwt de dienst per dagsoort één keer (zodra de spoorlijnen en het rooster er zijn) en geeft elke
-// frame { dienst, nu, stand } terug. Alles komt als functie binnen, zodat dit puur blijft: rooster() -> treinrooster.json of null,
+// frame { dienst, nu, stand } terug. Alles komt als functie binnen, zodat dit puur blijft: rooster() -> trainschedule.json of null,
 // routes() -> railway.getRoutes(), dagsoort(world) -> 'werk' | 'za' | 'zo', klok(world) -> spelklok in uren, stand(world) -> live vertragingen (Map) of null.
 export function createServiceSource({ rooster, routes, dagsoort, klok, stand = () => null }) {
   const cache = new Map();
