@@ -11,7 +11,7 @@ export const HAIR_GROUPS = [
   { id: 'krul', title: 'Krullen', ids: ['curly', 'afro'] },
   { id: 'op', title: 'Opgestoken en gevlochten', ids: ['bun', 'ponytail', 'pigtails', 'braid'] },
 ];
-const OVERIG = { id: 'overig', title: 'Overig', ids: [] };
+const OTHER_GROUP = { id: 'overig', title: 'Overig', ids: [] };
 
 // styles: [[id, label], ...] zoals HAIR_STYLES[personage]. Geeft [{ id, title, items: [[id, label], ...] }] zonder lege groepen.
 export function hairGroups(styles) {
@@ -24,7 +24,7 @@ export function hairGroups(styles) {
     if (items.length) out.push({ id: g.id, title: g.title, items });
   }
   const rest = list.filter((s) => !taken.has(s[0]));
-  if (rest.length) out.push({ id: OVERIG.id, title: OVERIG.title, items: rest });
+  if (rest.length) out.push({ id: OTHER_GROUP.id, title: OTHER_GROUP.title, items: rest });
   return out;
 }
 

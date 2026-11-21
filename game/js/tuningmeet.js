@@ -18,8 +18,8 @@ export const MEET_SITES = [
   { id: 'reitdiep', name: 'het Reitdiep bij Hoogkerk', x: -4265, y: 412, r: 650 },
 ];
 export const MEET_DAY_CHANCE = { weekend: 0.16, week: 0.05 };
-export const MEET_FROM_HOUR = 19, MEET_TO_HOUR = 1; // van 19 uur 's avonds tot 01 uur 's nachts
-export const MEET_SITE_BAY_SHARE = 0.5;             // van de vakken in de straal doet de helft mee (de rest blijft een gewone auto)
+const MEET_FROM_HOUR = 19, MEET_TO_HOUR = 1; // van 19 uur 's avonds tot 01 uur 's nachts
+const MEET_SITE_BAY_SHARE = 0.5;             // van de vakken in de straal doet de helft mee (de rest blijft een gewone auto)
 
 const unit01 = (...p) => (seedOf(...p) % 100000) / 100000;
 
@@ -76,22 +76,22 @@ const PLAIN_LINES = [
 ];
 
 // Wat de eigenaar zegt als je hem aanspreekt. look: de look van de auto, id: het vak of de auto (stabiele zaadwaarde),
-// beurt: de hoeveelste keer (0, 1, ...), zodat een tweede praatje een andere zin geeft.
-export function ownerLine(look, id, beurt = 0) {
+// turn: de hoeveelste keer (0, 1, ...), zodat een tweede praatje een andere zin geeft.
+export function ownerLine(look, id, turn = 0) {
   const pool = [];
   if (look) {
     for (const [field, fmt] of BUILD_LINES) { const l = look[field] && LABEL_OF(field, look[field]); if (l) pool.push(fmt(l)); }
     if (look.glow) pool.push(GLOW_LINE);
   }
   for (const p of PLAIN_LINES) pool.push(p);
-  const i = (seedOf('eigenaarzin', id) + Math.max(0, beurt | 0)) % pool.length;
+  const i = (seedOf('eigenaarzin', id) + Math.max(0, turn | 0)) % pool.length;
   return pool[i];
 }
 
 // Afstand en wachttijd om een eigenaar aan te spreken: hij hoort je binnen TALK_RANGE; daarna wacht hij TALK_COOLDOWN s.
 export const TALK_RANGE = 3.2;
 export const TALK_COOLDOWN = 25;
-export const TALK_LABEL = 'Eigenaar';
+const TALK_LABEL = 'Eigenaar';
 
 // --- de haken in de wereld ----------------------------------------------------------------------------------------------
 const weekdayNow = (world) => (world && world.calendar && Number.isFinite(world.calendar.day) ? weekdayOf(world.calendar.day) : 3);
@@ -140,9 +140,9 @@ function ownerTalk(world, st, v, now) {
   const id = v.parkSlot ? Math.round(v.parkSlot.x) + '_' + Math.round(v.parkSlot.y) : String(v.id);
   const last = st.owner.get(id);
   if (last && now - last.t < TALK_COOLDOWN) return false;
-  const beurt = last ? last.n + 1 : 0;
-  st.owner.set(id, { t: now, n: beurt });
+  const turn = last ? last.n + 1 : 0;
+  st.owner.set(id, { t: now, n: turn });
   if (st.owner.size > 64) st.owner.delete(st.owner.keys().next().value);
-  world.addMessage(`${TALK_LABEL}: "${ownerLine(v.look, id, beurt)}"`, 5);
+  world.addMessage(`${TALK_LABEL}: "${ownerLine(v.look, id, turn)}"`, 5);
   return true;
 }
