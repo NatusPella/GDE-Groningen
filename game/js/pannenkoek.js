@@ -7,7 +7,7 @@ import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
 import { standActivity, recLine } from './standactivity.js';
-import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, geo, makeRng } from './minigamekit.js';
+import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, geo, makeRng, esc } from './minigamekit.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostPunt, wedGastPunt, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './multiplayerwedstrijd.js'; // Samen spelen (#983): de pannenkoekenwedstrijd
 import { getPancakeBoatSpot } from './cityprops.js';
@@ -143,7 +143,7 @@ function updateHud(w) {
   });
   const want = s.guests.map((q) => `${TOPPINGS.find((x) => x.id === q.topping).name} ${Math.ceil(q.patience)}`).join(' · ') || 'niemand';
   const online = g.online ? wedScoreRijen(w) : [];
-  const stand = online.length ? `<span>${online.map((r) => `${r.weg ? '<s>' : ''}${r.naam}${r.weg ? '</s>' : ''}`).join(' · ')}</span>` : '';
+  const stand = online.length ? `<span>${online.map((r) => `${r.weg ? '<s>' : ''}${esc(r.naam)}${r.weg ? '</s>' : ''}`).join(' · ')}</span>` : '';
   const row = `${stand}<span>Punten <b>${s.points}</b></span><span>Tijd <b>${Math.max(0, Math.ceil(s.left))}</b></span><span>Bord <b>${s.plate.length}</b></span><span>Gasten: ${want}</span>`;
   board.set({ row, cells, flash: g.flash ? g.flash.text : '', bad: !!(g.flash && g.flash.bad), help: `${key('1')}${key('2')}${key('3')} pan · ${key('Q')} stroop ${key('W')} spek ${key('E')} appel ${key('R')} kaas · ${key('BACKSPACE')} stoppen` });
 }

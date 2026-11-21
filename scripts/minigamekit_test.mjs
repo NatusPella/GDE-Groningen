@@ -2,7 +2,7 @@
 // beeld (#436, dezelfde klasse als de treincamera): dezelfde verstreken tijd geeft op 30 en op 144 beelden per
 // seconde dezelfde camerapose, en een hapering slaat niet in één keer door.
 //   node scripts/minigamekit_test.mjs
-import { easeStep, easeCamera } from '../game/js/minigamekit.js';
+import { easeStep, easeCamera, esc } from '../game/js/minigamekit.js';
 
 let n = 0, bad = 0;
 const ok = (c, m) => { n++; if (!c) { bad++; console.log('FAIL', m); } };
@@ -36,6 +36,13 @@ ok(st.cam.pos.x > 9.9, 'na 1 s staat de camera (bijna) op het doel: ' + st.cam.p
 // een nieuwe camera begint meteen op het doel (geen zwaai vanaf 0,0,0)
 const first = easeCamera({}, { x: 3, y: 4, z: 5 }, { x: 0, y: 0, z: 0 }, 0.1);
 ok(near(first.position.x, 3) && near(first.position.z, 5), 'de eerste pose staat meteen goed');
+
+// review 21-11: namen van medespelers gaan met esc() in het bord (pannenkoek, hengelen, skatepark)
+ok(esc(`<img src=x onerror=1>&"'`) === '&lt;img src=x onerror=1&gt;&amp;&quot;&#39;' && esc(null) === '' && esc('Tammo') === 'Tammo', 'esc maakt HTML onschadelijk');
+for (const f of ['pannenkoek.js', 'hengelen.js', 'skatepark.js']) {
+  const src = fs.readFileSync(new URL('../game/js/' + f, import.meta.url), 'utf8');
+  ok(src.includes('${esc(r.naam)}') && !src.includes("'' }${r.naam}"), f + ': de naam gaat door esc()');
+}
 
 // review 21-11: geen tekst onder 13 px in de scorebordkit en de loopbaankaarten (DESIGN_SYSTEM: 13 px-vloer)
 import fs from 'node:fs';

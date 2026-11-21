@@ -497,6 +497,9 @@ export function stopPressed(input) {
 // 60 frames per second, scaled to `dt` seconds. A pause or a hitch counts for
 // at most a quarter second, so the camera glides on instead of jumping; the
 // same elapsed time gives the same pose on a fast and a slow screen (#436).
+// Tekst veilig in innerHTML (een naam van een medespeler in het bord): de naam is al gefilterd door de host, maar de veiligheid hangt niet aan andere bestanden (review 21-11).
+export const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
 export function easeStep(k, dt = 1 / 60) {
   const d = Number.isFinite(dt) && dt > 0 ? Math.min(dt, 0.25) : 1 / 60;
   return 1 - Math.pow(1 - clamp(k, 0.001, 0.999), d * 60);

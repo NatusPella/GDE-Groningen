@@ -9,7 +9,7 @@ import { pushAudioEvent } from './pedgeom.js';
 import { haakFx } from './sfx/haken.js'; // ronde 4: de plons van een binnengehaalde vis
 import { standActivity, recLine } from './standactivity.js';
 import { activityBlock } from './activitykit.js';
-import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, geo } from './minigamekit.js';
+import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, geo, esc } from './minigamekit.js';
 import { HENGEL_LINES } from './minigamelines3.js';
 import { FISH, HENGEL, createHengel, stepHengel, hengelMedal, MEDAL_AT, scaledMedalAt } from './hengelrules.js';
 import { hourOf } from './streetlifedata.js';
@@ -244,7 +244,7 @@ function updateHud(w) {
   }));
   if (!vrij && g.online && board) { // de stand van de anderen in de wedstrijd blijft op het bord
     const online = wedScoreRijen(w);
-    if (online.length) board.set({ row: `<span>${online.map((r) => `${r.weg ? '<s>' : ''}${r.naam} ${kgTekst((r.slagen || 0) / 1000)}${r.weg ? '</s>' : ''}`).join(' · ')}</span>`, cells: [], flash: '', help: '' });
+    if (online.length) board.set({ row: `<span>${online.map((r) => `${r.weg ? '<s>' : ''}${esc(r.naam)} ${kgTekst((r.slagen || 0) / 1000)}${r.weg ? '</s>' : ''}`).join(' · ')}</span>`, cells: [], flash: '', help: '' });
   }
 }
 
