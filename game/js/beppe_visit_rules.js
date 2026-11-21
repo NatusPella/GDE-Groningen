@@ -147,6 +147,9 @@ export const SOLIDS = [
   [-0.15, 2.25, 0.75, 3.5],      // armchair (to the wall: nobody squeezes behind it)
 ];
 
+// Beppe herself, standing by the table while she lives.
+export const SOLID_BEPPE = [0.65, -1.7, 1.25, -1.1];
+
 export function nearestSpot(lx, lz, r = SPOT_R) {
   let best = null, bd = r;
   for (const k of ['door', 'stove', 'table', 'board']) {
@@ -161,14 +164,15 @@ export const nearDoorOutside = (lx, lz) => Math.hypot(lx - SPOTS.doorOutside.x, 
 
 // Keep a walker (radius r) inside the walls and out of the furniture; returns
 // the corrected house-frame position.
-export function keepInRoom(lx, lz, r = 0.32) {
+export function keepInRoom(lx, lz, r = 0.32, extra = []) {
+  if (!Number.isFinite(lx) || !Number.isFinite(lz)) { lx = SPOTS.enter.x; lz = SPOTS.enter.z; }
   const m = 0.15;
   const cl = () => {
     lx = Math.max(-ROOM.hw + r + m, Math.min(ROOM.hw - r - m, lx));
     lz = Math.max(-ROOM.hd + r + m, Math.min(ROOM.hd - r - m, lz));
   };
   cl();
-  for (const [x0, z0, x1, z1] of SOLIDS) {
+  for (const [x0, z0, x1, z1] of [...SOLIDS, ...extra]) {
     const cx = Math.max(x0, Math.min(x1, lx)), cz = Math.max(z0, Math.min(z1, lz));
     const dx = lx - cx, dz = lz - cz, d = Math.hypot(dx, dz);
     if (d >= r) continue;

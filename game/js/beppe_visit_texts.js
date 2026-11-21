@@ -40,7 +40,7 @@ export const STOVE = {
   cookie: 'Er ligt een koek in je zak. En een briefje: "Voor onderweg."',
   done: 'Het bord van vandaag staat al in de afwas. Morgen is er weer soep.',
 };
-export const TABLE = { prompt: 'Briefje lezen', sub: 'Er ligt een briefje op de keukentafel', kicker: 'Briefje op tafel' };
+export const TABLE = { prompt: 'Briefje lezen', sub: 'Er ligt een briefje op de keukentafel', kicker: 'Briefje op tafel', talk: 'Praten met Beppe', talkSub: 'Ze staat bij de keukentafel' };
 export const BOARD = { prompt: 'Prikbord', sub: 'Briefjes en een kaartje', kicker: 'Op het prikbord' };
 
 // The soup: health plus a little pocket money; both small on purpose.
