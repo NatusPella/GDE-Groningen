@@ -20,6 +20,7 @@ naslag: de bron, de scripts, de opnames en de verslagen. Bij verschil wint de sp
 | 5d. De humorkeuze (veto-lijst, 21-11): per komische beat de gekozen variant, het paneeloordeel en de alternatieven | [HUMOR-KEUZELIJST.md](HUMOR-KEUZELIJST.md) | gegenereerd door `node scripts/humor_doc.mjs` |
 | 5e. Het filmscript (21-11): logline, beat sheet per akte, sluglines per scène, muziekmomenten en scènebord | [FILMSCRIPT-21-11.md](FILMSCRIPT-21-11.md) | gegenereerd door `node scripts/filmscript_export.mjs` |
 | 5f. De muzieklijst (verzonnen nummers, richting per akte en het autoduet) | [MUZIEKLIJST-21-11.md](MUZIEKLIJST-21-11.md) | voor een latere muziekronde |
+| 5g. Twaalf radionummers met lyrics over Groningen (prompts voor Gemini, stand) | [MUZIEK-LYRICS-21-11.md](MUZIEK-LYRICS-21-11.md) | eigenaar wil ze; wacht op akkoord voor downloaden |
 | 6. Presentatie: trailer | [E-trailer.md](E-trailer.md) (leidend), [nieuw/TRAILER-SCRIPT.md](nieuw/TRAILER-SCRIPT.md) (concept voor #63) | concept, niet leidend |
 
 ## Personages en stem
