@@ -253,7 +253,7 @@ ok(pm.includes('if (isPhotoMode()) return;'), 'het pauzemenu opent niet over de 
 ok(fu.includes('BAR_HTML') && fu.includes("KEYBTN('W A S D', 'Lopen')") && fu.includes('data-foto-stop'), 'de fotomodus heeft een knoppenbalk met sleutelhints en Terug');
 ok(fu.includes("inProvinceData(p.cam.x, p.cam.y) === false"), 'de vrije camera van de fotomodus blijft binnen de wereld');
 ok(read('game/js/gebiedenkaart.js').includes('landBorders()') && read('game/js/regions.js').includes('export const landBorders'), 'de kaart tekent de landgrenzen in de kleur van het buurgebied');
-ok(sp.includes('LEEG[deel]') && sp.includes('svg(it.icon)') && sp.includes('class="sp-raster"'), 'Spullen: pictogrammen en een uitleg bij een lege categorie');
+ok(sp.includes('LEEG[deel]') && sp.includes('itemIcoon(') && sp.includes('class="sp-raster"'), 'Spullen: pictogrammen en een uitleg bij een lege categorie');
 const ac = read('game/js/achievements.js');
 ok(ac.includes("id: 'kaart_alle'") && ac.includes("stat: 'gebied_provincie'") && read('game/js/achievementtracker.js').includes('syncGebiedStats') && read('game/js/gebieden.js').includes('function kaartVerkend'), 'Prestaties: de hele kaart verkend en de gebiedenvoortgang tellen mee');
 ok(read('game/js/player.js').includes('Even uitpuffen'), 'Shift zonder sprint zegt waarom');
