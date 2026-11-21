@@ -7,6 +7,7 @@ export function registerStoryQueries(o) { Object.assign(impl, o); }
 
 export const currentStep = () => (impl.currentStep ? impl.currentStep() : null);
 export const storyFlag = (name) => (impl.storyFlag ? impl.storyFlag(name) : false);
+export const getStorySteps = () => (impl.getStorySteps ? impl.getStorySteps() : []);
 export const getStoryView = () => (impl.getStoryView ? impl.getStoryView() : { end: false });
 export const storyVoorschotInfo = (id) => (impl.storyVoorschotInfo ? impl.storyVoorschotInfo(id) : null);
 export const prepareStoryShop = () => { if (impl.prepareStoryShop) impl.prepareStoryShop(); };

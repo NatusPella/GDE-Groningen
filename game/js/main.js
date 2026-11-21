@@ -79,6 +79,7 @@ import { updateMotorPolice } from './motorpolice.js';
 import { initMissions, updateMissions } from './missions.js';
 import { initStory, updateStory, currentStep } from './story.js';
 import { updateTerugkeer } from './terugkeerrun.js';
+import { updateRecap, isRecapOpen } from './recapcardrun.js';
 import { initGoal, updateGoal } from './goal.js';
 import { updateOnboarding } from './onboarding.js';
 import { updateContextHints } from './contexthints.js';
@@ -913,10 +914,10 @@ async function boot() {
   initInputDevice();
   initPadKeyboard();
   initTextFields(); // alle toetsen, plakken en een rechtermuismenu in tekstvelden (#95)
-  initGamepad(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen(), phoneOpen: isPhoneOpen, pauseOpen: isPauseMenuOpen, mapOpen: () => isMapOpen() });
-  initTouch(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen() });
+  initGamepad(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen() || isRecapOpen(), phoneOpen: isPhoneOpen, pauseOpen: isPauseMenuOpen, mapOpen: () => isMapOpen() });
+  initTouch(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen() || isRecapOpen() });
   document.addEventListener('pointerlockchange', () => {
-    if (!document.pointerLockElement && lockVerlorenOpentMenu({ gestart: document.body.classList.contains('game-started'), menuOpen: menuOpen(), vraagOpen: isPlayAheadOpen() || isHelpOfferOpen() })) openPauseMenu();
+    if (!document.pointerLockElement && lockVerlorenOpentMenu({ gestart: document.body.classList.contains('game-started'), menuOpen: menuOpen(), vraagOpen: isPlayAheadOpen() || isHelpOfferOpen() || isRecapOpen() })) openPauseMenu();
   });
   initDayNight(world);
   initCalendar(world);
@@ -1179,7 +1180,9 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     updateStoryContact(world.paused ? 0 : dt, world);
     updatePractice(world.paused ? 0 : dt, world);
     // #986 #987: na Doorgaan een korte flatscène van Tammo en Tessa (terugkeerrun.js); wacht zelf op een rustig moment
-    updateTerugkeer(dt, world, () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen());
+    // de recapkaart 'Waar waren we?' komt eerst; de terugkeerscène wacht tot hij dicht is (menuOpen)
+    updateRecap(dt, world, () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen());
+    updateTerugkeer(dt, world, () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen() || isRecapOpen());
     probe.mark('story');
     updateStreetSigns(dt, world, getScene());
     const animDt = world.paused && !doorloop ? 0 : gameDt;

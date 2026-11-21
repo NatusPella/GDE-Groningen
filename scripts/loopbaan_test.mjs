@@ -388,7 +388,7 @@ t('elke loopbaan heeft een weg naar de volgende klus (#435)', () => {
   const td = fs.readFileSync(JS + 'todoui.js', 'utf8');
   assert.match(td, /const goal = t\.closest\('\[data-todo-goal\]'\)/, 'en die kent data-todo-goal');
   // Veroverd hoort bij Verhaal, niet bij Loopbaan
-  assert.match(pm, /verhaal: \[\['opdrachten', 'Opdrachten'\], \['personages', 'Personages'\], \['aanwijzingen', 'Aanwijzingen'\]/, 'Verhaal heeft zijn eigen tabbladen');
+  assert.match(pm, /verhaal: \[\['opdrachten', 'Opdrachten'\], \['personages', 'Personages'\]\]/, 'Verhaal heeft zijn eigen tabbladen (zonder Aanwijzingen sinds 21-11)');
   assert.match(pm, /\['veroverd', 'Veroverd', /, 'Veroverd is een eigen railrij (#676)');
   assert.ok(!/data-sub="veroverd"/.test(pm) && !/'loopbaan'[^\n]*'Veroverd'/.test(pm), 'Veroverd staat niet onder Loopbaan');
 });

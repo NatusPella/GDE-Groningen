@@ -71,13 +71,12 @@ t('elk deel klapt open met zijn eigen voortgang en "waar het om draait"', () => 
   assert.match(td, /data-part-toggle="\$\{part\}"/, 'een deel is open te klikken');
   assert.match(td, /data-num="part-\$\{part\}" data-to="\$\{done\}"/, 'de teller loopt naar de nieuwe stand');
   assert.match(td, /Waar het om draait/, 'het huidige deel zegt waar het over gaat');
-  assert.match(td, /Wat weten we\?/, 'de aanwijzingen van dat deel staan erbij');
+  assert.ok(!/Wat weten we\?/.test(td), 'de aanwijzingen zijn uit de lijst (21-11: hints en clues voegen niets toe)');
 });
 
-t('Aanwijzingen staan per opdracht gegroepeerd', () => {
+t('de Aanwijzingen-tab bestaat niet meer', () => {
   const vu = lees('verhaalui.js');
-  assert.match(vu, /vh-gk/, 'elke opdracht heeft een kop');
-  assert.match(vu, /function partOrder\(/, 'de volgorde komt uit het verhaal, niet uit de lijst');
+  assert.ok(!/vh-gk|function partOrder\(|function cluesHtml\(/.test(vu), 'de aanwijzingenlijst is uit verhaalui.js');
 });
 
 console.log(`verhaalopdrachten_test: ${n}/${n} ok`);
