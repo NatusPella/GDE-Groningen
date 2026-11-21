@@ -9,6 +9,8 @@
 // Test: scripts/karakterbonus_test.mjs. Docs: docs/COOP-GAST.md, docs/verhaal/OPENING-BIJBEL.md (Tessa komt van het platteland).
 
 // Neutraal: factor 1 en geen foutenhulp. Een onbekend personage (of geen) krijgt dit.
+import { hoofdspeler } from './players.js';
+
 export const NEUTRAAL = Object.freeze({
   farm: Object.freeze({ snelheid: 1, opbrengst: 1, foutloos: 0 }),
   voetbal: Object.freeze({ sprint: 1, schotnauwkeurigheid: 1, aanname: 1 }),
@@ -97,7 +99,7 @@ export const overnameTekst = (soort) => OVERNAME[soort] || 'Tessa neemt het over
 let haak = null;   // { mag(w) -> bool, toon(w, tekst) }: story.js zet de rustige overgang (fade) en weet wanneer wisselen niet mag
 export function zetWisselHaak(h) { haak = h || null; }
 
-const lichaam = (w) => (w && w.player) || null;
+const lichaam = (w) => hoofdspeler(w);
 const vast = (w) => !!(w && w.coop && w.coop.fixedChars);
 
 function ruil(w, want) {

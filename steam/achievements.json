@@ -1434,6 +1434,14 @@
       "steamApiNaam": ""
     },
     {
+      "id": "boerendochter",
+      "titel": "Boerendochter",
+      "omschrijving": "Oogst als Tessa een veld op je eigen akker",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_BOERENDOCHTER",
+      "steamApiNaam": ""
+    },
+    {
       "id": "sj_alle",
       "titel": "Duizendpoot",
       "omschrijving": "Rond bij alle zes bijbaantjes een klus af",

@@ -55,7 +55,7 @@ for (const [file, loop] of [['game/js/vehicle/traffic.js', /for \(const o of veh
   const main = fs.readFileSync(new URL('../game/js/main.js', import.meta.url), 'utf8');
   const frameBody = main.slice(main.indexOf('function frameBody('));
   const call = frameBody.indexOf('beginVehicleFrame(world)');
-  const loop = frameBody.indexOf('updateGameplay(gameDt)');
+  const loop = frameBody.indexOf("frameGuard.run('updateGameplay'");
   ok(call !== -1 && loop !== -1 && call < loop, 'main.js frameBody ververst de index één keer per spel-frame', call);
 }
 console.log(`${n - fails}/${n} vehicleindex`);

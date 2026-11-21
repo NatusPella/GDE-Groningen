@@ -191,7 +191,7 @@ if (forum) {
 // als de luchtlijn vrij is). Hier is de controle op de vlag die dat regelt.
 {
   const r = plan([forum ? (forum.bounds[0] + forum.bounds[2]) / 2 : 300, -900], [-2600, 2400]);
-  ok(!r || r.noRoute === false || r.pts.length >= 2, 'een route zonder weg heeft geen lijn (noRoute)');
+  ok(!r || (r.noRoute ? r.pts.length < 2 : r.pts.length >= 2), 'een route zonder weg heeft geen lijn (noRoute)');
 }
 
 // ---- c. het vliegvelddoel ------------------------------------------------

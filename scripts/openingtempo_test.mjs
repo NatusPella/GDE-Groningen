@@ -38,7 +38,7 @@ const cine = fs.readFileSync(new URL('game/js/cinematics.js', root), 'utf8');
 const toggle = cine.match(/r\.classList\.toggle\('show-skip',([^\n]*)\)/);
 ok(!!toggle && /skippable/.test(toggle[1]), 'show-skip gaat meteen aan voor een scène die over te slaan is', toggle && toggle[1].trim());
 ok(!/setTimeout\([^)]*show-skip/.test(cine), 'geen vertraging op de overslaan-hint');
-ok(/Houd<\/span><span class="hud-key">SPATIE/.test(cine), 'de hint noemt Spatie');
+ok(/Houd<\/span> ?<span class="hud-key">SPATIE/.test(cine), 'de hint noemt Spatie');
 
 console.log(`${n - fails}/${n} openingtempo`);
 process.exit(fails ? 1 : 0);

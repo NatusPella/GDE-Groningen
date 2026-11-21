@@ -1,6 +1,6 @@
 # Minimap: pijlen en doelkleuren (21-11, #1078)
 
-Vraag van de eigenaar: de kleine pijltjes op de minimap naar bepaalde doelen zijn soms niet duidelijk (wat is het, welke moet ik volgen?). Misschien is geel altijd de volgende missie in de autoroute en krijgt de rest de kleur van het icoon op de kaart, en is paars een route die je zelf bepaald hebt. Wat zijn alle scenario's en wat is het advies, ook gezien designsysteem v3 (ADR 0040 en 0041)?
+Vraag van de eigenaar: de kleine pijltjes op de minimap naar bepaalde doelen zijn soms niet duidelijk (wat is het, welke moet ik volgen?). Misschien is geel altijd de volgende missie in de autoroute en krijgt de rest de kleur van het icoon op de kaart, en is paars een route die je zelf bepaald hebt. Wat zijn alle scenario's en wat is het advies, ook gezien het designsysteem (ADR 0040 en 0041)?
 
 **Besluit van de eigenaar (21-11):** geel is het actieve doel van de autoroute (de volgende missie), paars is wat je zelf koos, alle andere doelen houden de kleur van hun icoon en zijn hol (secundair). Dat is alternatief A2 hieronder. Het is gebouwd als token-mapping (`NAV_ROL` in `game/js/navdoel.js`, `--nav-actief`, `--nav-eigen`, `--nav-secundair` in `ds-tokens.css`), zodat een kleur met één regel wisselt.
 
@@ -174,7 +174,7 @@ Wat dit zegt: het geel-paars-onderscheid (A2) is robuust voor alle drie de soort
 
 ## 8. De mocks
 
-**Ronde 1** (kleurstelsel A1 tot A3, de pijl als in de eerste bouw): `docs/beeld-21-11/minimap-pijlen/mock-ronde1.html`, gemaakt door `scripts/minimap_pijlen_mock_ronde1.mjs`.
+**Ronde 1** (kleurstelsel A1 tot A3, de pijl als in de eerste bouw): `docs/beeld-21-11/minimap-pijlen/mock-ronde1.html` (het maakscript is vervallen toen de eerste pijl vervangen werd door de kompasboog; de pagina blijft als vastgelegd beeld).
 
 **Ronde 2 (21-11, na de reactie "nog niet duidelijk en lelijk")**: drie visueel verschillende ontwerpen op de echte minimap (uitsneden uit de spelbeelden), met de echte tokens en Phosphor-iconen in de marker. Gemeenschappelijk: één actief doel met afstand (14 px, papieren plaatje met inktrand en harde schaduw), hooguit twee wachtende doelen als klein rond icoon-punt zonder pijl, markers die langs de rand uit elkaar schuiven (nooit gestapeld) en een vaste afstand tot de kaartrand.
 
