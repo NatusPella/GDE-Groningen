@@ -172,9 +172,12 @@ function shopRecipe(p, sub) {
       for (let v = H.v0 + 2.4; v < H.v1 - 3.2; v += 1.6) {
         const ch = p.add('barber_chair', H.u0 + 1.2, v, 0.7, 0.8, FACE.W, { h: 1.0 });
         if (ch && first) { first = false; p.useAt('kappen', ch.u + 1.0, ch.v, 0.9, { face: FACE.W, target: 'kapper' }); }
+        // the stylist behind the chair, the customer in it (round 4): both stay in their place and do their thing
+        if (ch && p.rnd() < 0.85) { p.npcAt('kapper', ch.u + 0.75, ch.v - 0.5, FACE.W, 'stand'); p.npcAt('knipklant', ch.u, ch.v, FACE.W, 'sit'); }
       }
       p.add('sink', H.u1 - 0.5, H.v1 - 1.2, 0.6, 0.5, FACE.W, { h: 0.9 });
-      p.add('bench', H.u1 - 0.45, H.v0 + 2.6, 1.6, 0.5, FACE.W, { h: 0.45 });
+      const wb = p.add('bench', H.u1 - 0.45, H.v0 + 2.6, 1.6, 0.5, FACE.W, { h: 0.45 });
+      if (wb && p.chance(0.8)) p.npcAt('klant', wb.u, wb.v, FACE.W, 'sit'); // someone waits for a turn
     } else if (sub === 'bloemist') {
       for (let i = 0; i < 3; i++) p.add('bucket', H.u0 + 0.7 + i * 0.9, H.v0 + 2 + (i % 2) * 0.6, 0.6, 0.6, FACE.DOOR, { h: 0.8, color: [0xd8508a, 0xf0c030, 0xf2f2f2][i] });
       p.add('table', H.u1 - 0.8, H.v0 + 2.6, 1.4, 0.8, FACE.W, { h: 0.9 });
@@ -184,6 +187,8 @@ function shopRecipe(p, sub) {
       p.add('poster', 0, H.v1 - 0.02, 2.4, 0.04, FACE.DOOR, { h: 1.2, y0: 1.5, solid: false, color: 0xf2c24a, tag: 'menu' });
     } else if (sub === 'bakker' || sub === 'slager') {
       p.run(H, 'right', 'showcase', 1.2, 0.6, H.v0 + 1.8, H.v1 - 2.4, { h: 1.2, color: T.accent });
+      // the baker kneads behind the counter, next to the one who sells (round 4); an oven against the side wall behind it
+      if (sub === 'bakker' && counter) { p.add('machine', H.u1 - 0.4, H.v1 - 1.0, 0.9, 0.7, FACE.W, { h: 1.3, color: 0x3a3a3e, tag: 'oven' }); p.npcAt('bakker', cu + Math.min(1.0, cw / 2 - 0.4), (cv + 0.35 + H.v1) / 2 - 0.15, FACE.DOOR, 'stand'); }
     } else if (sub === 'kiosk') {
       p.run(H, 'left', 'newsrack', 0.9, 0.35, H.v0 + 1.8, H.v1 - 2.2, { h: 1.7, color: T.accent });
     }
@@ -232,7 +237,7 @@ function shopRecipe(p, sub) {
     }
   }
   // loose customers
-  scatterPeople(p, 'klant', Math.min(3, Math.floor(p.W * p.D / 28)) * (p.rnd() < 0.8 ? 1 : 0));
+  scatterPeople(p, 'klant', Math.min(sub === 'supermarkt' ? 5 : 3, Math.floor(p.W * p.D / (sub === 'supermarkt' ? 20 : 28))) * (p.rnd() < 0.8 ? 1 : 0));
   p.palette = { wall: T.wall, floor: T.floor, floorPattern: T.floorPattern, accent: T.accent, ceil: 0xf2efe8, sign: T.sign };
 }
 
@@ -312,7 +317,8 @@ function officeRecipe(p) {
   p.palette = { wall: 0xe2e5e9, floor: 0x5a6068, floorPattern: 1, accent: 0x3a6ad8, ceil: 0xf4f5f7 };
 }
 
-function homeRecipe(p) {
+function homeRecipe(p, sub) {
+  if (sub === 'studentenkamer') return studentRecipe(p);
   const H = p.hall, W = p.W, D = p.D;
   const look = p.look || {};
   const living = { ...H, v1: H.v0 + Math.max(3.2, D * 0.55) };
@@ -456,6 +462,7 @@ function garageRecipe(p, sub) {
 }
 
 function publicRecipe(p, sub) {
+  if (sub === 'sportschool') return gymRecipe(p, sub);
   const H = p.hall, W = p.W, D = p.D;
   const n = Math.max(1, Math.min(3, Math.floor((W - 1) / 2.6)));
   for (let i = 0; i < n; i++) {
@@ -475,6 +482,64 @@ function publicRecipe(p, sub) {
   p.add('plant', H.u0 + 0.5, H.v0 + 0.8, 0.6, 0.6, FACE.DOOR, { h: 1.2 });
   scatterPeople(p, 'bezoeker', Math.min(2, Math.floor(W * D / 40)), 'sit');
   p.palette = { wall: sub === 'politie' ? 0xdfe6ee : 0xe8e4da, floor: 0x8a8e92, floorPattern: 1, accent: sub === 'politie' ? 0x2a3f6a : 0x6a5a48, ceil: 0xf4f4f2 };
+}
+
+// A student house or room (round 4): a bed in the corner, a desk with a chair, a kitchenette, a table with chairs, books and posters. The student is
+// at the desk, in the kitchen or on the sofa (scripts in interioractivity.js, with a night version).
+function studentRecipe(p) {
+  const H = p.hall, W = p.W, D = p.D;
+  const look = p.look || {};
+  const dv = H.v0 + Math.max(2.4, D * 0.45);
+  p.add('bed', H.u1 - 0.5, H.v1 - 1.1, 2.0, 0.95, FACE.W, { h: 0.55, color: p.pickFabric });
+  p.add('cabinet', H.u1 - 0.3, H.v1 - 2.5, 0.5, 0.4, FACE.W, { h: 0.5 });
+  const desk = p.add('desk', H.u0 + 0.35, dv, 1.4, 0.65, FACE.E, { h: 0.75 });
+  if (desk) {
+    const ch = p.add('chair', H.u0 + 1.15, dv, 0.45, 0.45, FACE.W, { h: 0.9 });
+    if (ch && p.chance(0.85)) p.npcAt('student', ch.u, ch.v, FACE.W, 'sit');
+  }
+  p.run(H, 'left', 'bookcase', 1.0, 0.35, dv + 1.2, H.v1 - 0.6, { h: 2.0 }, 0.04, 0.2);
+  p.run(H, 'back', 'kitchen', 0.9, 0.6, H.u0 + 0.2, Math.min(H.u1 - 2.4, H.u0 + 3.6), { h: 0.9, color: 0xdad6cc });
+  p.add('fridge', H.u0 + W * 0.45, H.v1 - 0.4, 0.7, 0.7, FACE.DOOR, { h: 1.2, color: 0xe4e6e8, tag: 'koelkast' });
+  const tu = H.u0 + W * 0.5, tv = H.v0 + 2.3;
+  const t = p.add('table', tu, tv, 1.2, 0.8, FACE.DOOR, { h: 0.75 });
+  if (t) for (const du of [-0.4, 0.4]) { p.add('chair', tu + du, tv - 0.65, 0.42, 0.42, FACE.BACK, { h: 0.9 }); p.add('chair', tu + du, tv + 0.65, 0.42, 0.42, FACE.DOOR, { h: 0.9 }); }
+  p.add('sofa', H.u1 - 0.55, H.v0 + 2.6, 1.8, 0.9, FACE.W, { h: 0.85, color: p.pickFabric2 });
+  p.add('rug', tu, tv, 2.2, 1.8, FACE.DOOR, { h: 0.02, solid: false, color: p.pickFabric2 });
+  p.add('floorlamp', H.u1 - 0.4, H.v0 + 0.9, 0.4, 0.4, FACE.DOOR, { h: 1.7 });
+  p.add('plant', H.u0 + 0.5, H.v0 + 0.8, 0.6, 0.6, FACE.DOOR, { h: 1.0 });
+  p.add('coatrack', H.u1 - 0.3, H.v0 + 0.5, 0.4, 0.3, FACE.W, { h: 1.7, solid: true });
+  p.add('bike', H.u0 + 0.5, H.v0 + 1.4, 1.7, 0.6, FACE.E, { h: 1.0, color: 0x3a6ad8 }); // a student bike in the hall
+  p.useAt('rondkijken', H.u0 + W / 2, H.v0 + 1.2, 1.4, { face: FACE.BACK });
+  p.palette = { wall: look.wall ?? 0xe6e0d0, floor: look.floor ?? 0xa89070, floorPattern: 0, accent: look.accent ?? 0x4a7aa8, ceil: 0xf4f0e8 };
+}
+
+// A gym (round 4): a reception desk by the door, treadmills along one wall, benches and weight racks, a mirror wall, mats, lockers. Sporters
+// run, lift, rest and wander; the trainer walks the floor.
+function gymRecipe(p, sub) {
+  const H = p.hall, W = p.W, D = p.D;
+  const cl = Math.min(2.2, Math.max(1.4, D * 0.3)), cv = H.v0 + 1.4 + cl / 2;
+  // the desk stands against the side wall that has room beside the door (right first, else left); the machines take the other side
+  let right = true, cu = H.u1 - 1.5;
+  let desk = p.add('counter', cu, cv, cl, 0.7, FACE.W, { h: 1.1, color: 0x2a7a8a }, H);
+  if (!desk) { right = false; cu = H.u0 + 1.5; desk = p.add('counter', cu, cv, cl, 0.7, FACE.E, { h: 1.1, color: 0x2a7a8a }, H); }
+  if (desk) {
+    p.npcAt('baliemedewerker', right ? H.u1 - 0.5 : H.u0 + 0.5, cv, right ? FACE.W : FACE.E, 'stand');
+    p.useAt('balie', right ? cu - 0.35 - 0.8 : cu + 0.35 + 0.8, cv, 1.4, { face: right ? FACE.E : FACE.W, target: sub });
+  }
+  const mach = right ? 'left' : 'right', rackSide = right ? 'right' : 'left';
+  p.run(H, 'back', 'mirror', 1.6, 0.1, H.u0 + 0.5, H.u1 - 0.5, { h: 1.6, y0: 0.5, solid: false });
+  p.run(H, mach, 'machine', 0.9, 1.5, H.v0 + 2.2, H.v1 - 0.8, { h: 1.3, color: 0x3a3f46, tag: 'loopband' }, 0.55);
+  if (W >= 5) p.run(H, rackSide, 'rack', 1.2, 0.5, cv + cl / 2 + 0.6, H.v1 - 0.8, { h: 1.2, color: 0x5a5f66, tag: 'gewichten' }, 0.5);
+  const mu = H.u0 + W * 0.5;
+  if (W >= 6.8) for (let v = H.v0 + 3.2; v < H.v1 - 1.6; v += 2.0) p.add('bench', mu, v, 1.4, 0.5, FACE.DOOR, { h: 0.45, color: 0x2a7a8a, tag: 'bankdrukken' });
+  p.add('rug', mu, H.v1 - 2.6, 2.4, 1.2, FACE.DOOR, { h: 0.02, solid: false, color: 0x3a8a6a, tag: 'mat' });
+  if (W >= 6) p.run(H, rackSide, 'locker', 0.5, 0.5, H.v0 + 0.4, cv - cl / 2 - 0.2, { h: 1.9 }, 0.02);
+  p.add('sink', right ? H.u1 - 0.4 : H.u0 + 0.4, H.v1 - 0.45, 0.5, 0.5, right ? FACE.W : FACE.E, { h: 0.9, tag: 'waterpunt' });
+  p.add('plant', H.u0 + 0.5, H.v0 + 0.8, 0.6, 0.6, FACE.DOOR, { h: 1.2 });
+  p.add('bench', H.u0 + 0.5, H.v0 + 1.4, 1.0, 0.45, FACE.E, { h: 0.45 });
+  scatterPeople(p, 'sporter', Math.min(5, Math.max(2, Math.floor(W * D / 14))), 'stand');
+  scatterPeople(p, 'trainer', 1, 'stand');
+  p.palette = { wall: 0xe6eaea, floor: 0x4a5058, floorPattern: 1, accent: 0x2a7a8a, ceil: 0xdcdedf };
 }
 
 const RECIPES = { winkel: shopRecipe, horeca: horecaRecipe, kantoor: officeRecipe, woning: homeRecipe, kerk: churchRecipe, station: terminalRecipe, bibliotheek: libraryRecipe, garage: garageRecipe, publiek: publicRecipe };
@@ -541,7 +606,7 @@ export function reachableAt(res, u, v, r = 0.8) {
 }
 
 // people behind a counter: nobody has to reach them
-export const STAFF = new Set(['winkelier', 'barman', 'receptionist', 'loketmedewerker', 'baliemedewerker', 'bibliothecaris', 'monteur']);
+export const STAFF = new Set(['winkelier', 'barman', 'receptionist', 'loketmedewerker', 'baliemedewerker', 'bibliothecaris', 'monteur', 'kapper', 'bakker', 'knipklant']);
 
 // --- decoration: what makes a room look lived in --------------------------------------------------------------
 // Wall hangings (posters, paintings, clocks, notice boards), plants in the corners and a doormat, chosen per kind and varied from the

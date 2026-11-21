@@ -11,17 +11,17 @@ export const KINDS = {
   winkel:      { label: 'Winkel', minW: 3.2, minD: 3.5, h: [2.6, 3.4], open: null, ambience: 'winkel', roles: ['winkelier', 'klant'] },
   horeca:      { label: 'Horeca', minW: 4, minD: 5, h: [2.7, 3.6], open: null, ambience: 'horeca', roles: ['barman', 'gast'] },
   kantoor:     { label: 'Kantoor', minW: 4, minD: 5, h: [2.6, 3.2], open: null, ambience: 'kantoor', roles: ['receptionist', 'medewerker'] },
-  woning:      { label: 'Woning', minW: 3.4, minD: 4.5, h: [2.5, 2.9], open: null, ambience: 'woning', roles: ['bewoner'] },
+  woning:      { label: 'Woning', minW: 3.4, minD: 4.5, h: [2.5, 2.9], open: null, ambience: 'woning', roles: ['bewoner', 'student'] },
   kerk:        { label: 'Kerk', minW: 6, minD: 8, h: [6, 9], open: null, ambience: 'kerk', roles: ['koster', 'bezoeker'] },
   station:     { label: 'Stationshal', minW: 6, minD: 6, h: [4, 6], open: null, ambience: 'station', roles: ['loketmedewerker', 'reiziger'] },
   bibliotheek: { label: 'Bibliotheek', minW: 6, minD: 6, h: [3, 4], open: null, ambience: 'bibliotheek', roles: ['bibliothecaris', 'lezer'] },
   garage:      { label: 'Garage', minW: 5, minD: 6, h: [3.2, 4.5], open: null, ambience: 'garage', roles: ['monteur'] },
-  publiek:     { label: 'Publiek gebouw', minW: 5, minD: 5, h: [2.8, 3.6], open: null, ambience: 'kantoor', roles: ['baliemedewerker', 'bezoeker'] },
+  publiek:     { label: 'Publiek gebouw', minW: 5, minD: 5, h: [2.8, 3.6], open: null, ambience: 'kantoor', roles: ['baliemedewerker', 'bezoeker', 'sporter', 'trainer'] },
 };
 export const KIND_IDS = Object.keys(KINDS);
 
 // publiek variants (a counter hall with its own props)
-export const PUBLIEK_VARIANTS = ['gemeente', 'politie', 'apotheek', 'ziekenhuis', 'school', 'hotel'];
+export const PUBLIEK_VARIANTS = ['gemeente', 'politie', 'apotheek', 'ziekenhuis', 'school', 'hotel', 'sportschool'];
 
 // Owner decision (21-11): shops, cafes, offices and every other business are ALWAYS open. Only the homes of other people are shut.
 export const HORECA_TYPES = ['cafe', 'kroeg', 'restaurant'];
@@ -36,9 +36,9 @@ const BY_TYPE = {
   library: 'bibliotheek',
   garage: 'garage', garages: 'garage', service: 'garage', industrial: 'garage', warehouse: 'garage', factory: 'garage', workshop: 'garage',
   civic: 'publiek', public: 'publiek', government: 'publiek', hospital: 'publiek', school: 'publiek', hotel: 'publiek',
-  university: 'publiek', college: 'publiek', kindergarten: 'publiek', sports_centre: 'publiek',
+  university: 'publiek', college: 'publiek', kindergarten: 'publiek', sports_centre: 'publiek', fitness_centre: 'publiek',
 };
-const PUBLIEK_BY_TYPE = { civic: 'gemeente', public: 'gemeente', government: 'gemeente', hospital: 'ziekenhuis', school: 'school', university: 'school', college: 'school', kindergarten: 'school', hotel: 'hotel', sports_centre: 'school' };
+const PUBLIEK_BY_TYPE = { civic: 'gemeente', public: 'gemeente', government: 'gemeente', hospital: 'ziekenhuis', school: 'school', university: 'school', college: 'school', kindergarten: 'school', hotel: 'hotel', sports_centre: 'sportschool', fitness_centre: 'sportschool' };
 // types that never get an interior (the building is no room: sheds, roofs, ruins, farms' barns, towers)
 export const NOT_ENTERABLE = new Set(['shed', 'roof', 'carport', 'ruins', 'construction', 'greenhouse', 'barn', 'farm_auxiliary', 'cowshed', 'stable', 'silo', 'water_tower', 'guardhouse', 'static_caravan', 'houseboat', 'tent', 'toilets', 'hut', 'cabin', 'kiosk']);
 
@@ -54,6 +54,7 @@ export function kindOfFacility(f) {
     case 'hospital': case 'doctors': case 'gppost': case 'ambulance': return { kind: 'publiek', sub: 'ziekenhuis' };
     case 'car_repair': case 'car': case 'tyres': case 'car_parts': return { kind: 'garage', sub: 'werkplaats' };
     case 'fuel': return { kind: 'winkel', sub: 'kiosk' };
+    case 'gym': case 'fitness': case 'fitness_centre': case 'sports_centre': return { kind: 'publiek', sub: 'sportschool' };
     case 'busstation': return { kind: 'station', sub: 'bus' };
     default: return null;
   }
@@ -70,7 +71,7 @@ export function kindOfBuilding(b, spot = null) {
   if (sf && sf.type && sf.type !== 'kermiskraam' && WINKEL[sf.type]) return { kind: 'winkel', sub: sf.type };
   if (spot) return spot;
   const k = BY_TYPE[t];
-  if (k) return { kind: k, sub: k === 'publiek' ? PUBLIEK_BY_TYPE[t] || 'gemeente' : (t === 'industrial' || t === 'warehouse' || t === 'factory') ? 'magazijn' : null };
+  if (k) return { kind: k, sub: k === 'publiek' ? PUBLIEK_BY_TYPE[t] || 'gemeente' : (t === 'industrial' || t === 'warehouse' || t === 'factory') ? 'magazijn' : t === 'dormitory' ? 'studentenkamer' : null };
   if (t === 'yes') return (b.h || 0) >= 5 ? { kind: 'kantoor', sub: null } : { kind: 'woning', sub: null };
   return null;
 }

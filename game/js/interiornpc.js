@@ -29,6 +29,12 @@ export const ROLES = {
   lezer: {},
   monteur: { top: 'jacket', shirt: 0x2f5aa8 },
   baliemedewerker: { top: 'blazer', shirt: 0x4a5a6a },
+  kapper: { top: 'cardigan', shirt: 0x2a2a2e },
+  knipklant: {},
+  bakker: { top: 'cardigan', shirt: 0xf2efe8 },
+  student: {},
+  sporter: { top: 'tee' },
+  trainer: { top: 'tee', shirt: 0x2a7a8a },
 };
 
 let provider = null;
@@ -42,6 +48,7 @@ const CLOTHING_ROLE = {
   serveerster: 'winkelier', winkelier: 'winkelier', klant: 'voetganger', barman: 'winkelier', gast: 'voetganger', receptionist: 'zakenman', medewerker: 'zakenman',
   bewoner: 'voetganger', koster: 'zakenman', bezoeker: 'voetganger', loketmedewerker: 'zakenman', reiziger: 'toerist', bibliothecaris: 'winkelier',
   lezer: 'student', monteur: 'bouwvakker', baliemedewerker: 'zakenman',
+  kapper: 'winkelier', knipklant: 'voetganger', bakker: 'bakker', student: 'student', sporter: 'sporter', trainer: 'sporter',
 };
 function clothingRole(role, sub = null) {
   if (role === 'winkelier' && sub === 'bakker') return 'bakker';
