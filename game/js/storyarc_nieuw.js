@@ -300,6 +300,7 @@ export const STEPS = [
     story: { intro: ['M08.1'], outro: ['M08.3'], replay: ['M08.5'] }, scenes: ['M08.1', 'M08.2', 'M08.3', 'M08.4', 'M08.5'],
     lead: ['T', 'Oma Trijntje belde: wie eerlijk wil winnen, heeft haar recept van 1953 nodig. Loop te voet heelhuids door de fatbikes in de Oude Ebbingestraat naar de Noorderhaven.'] }),
   // travel steps: the goal is the place (storyreis.js); the lines of the trip itself are the travel beat's (reisbeats.js)
+  A('N10', 'romp', 'Een middag op het terras', { type: 'reis', to: 'de Grote Markt', at: [53.2192, 6.5668], r: 250, scene: 'N10' }, { built: true, scenes: ['N10'], lead: ['A', 'Een terras aan de Grote Markt zoekt hulp voor één middag. Ik neem de bestellingen op, jij draagt. Niet kantelen.'] }),
   A('N8', 'romp', 'Een avond bij Oma', { type: 'reis', to: 'de Noorderhaven', at: [53.2250, 6.5610], r: 250, scene: 'N8' }, { built: true, scenes: ['N8'], lead: ['T', 'Oma Trijntje heeft een logeerkamer voor ons en een prikbord vol namen. Terug naar de Noorderhaven.'] }),
   A('T1', 'romp', 'De trein naar Warffum', { type: 'reis', to: 'Warffum', at: [53.3903, 6.5667], r: 400, scene: 'T1', from: 4 }, { built: true, loopbanen: ['trein'], scenes: ['T1'],
     lead: ['A', 'Met de trein naar Warffum. Daar begint het Hogeland, en Geesje woont in de pastorie.'] }),
@@ -315,6 +316,8 @@ export const STEPS = [
   // the story goes on; silent, so no TTS, and the existing skip offers to pass it.
   A('A1', 'romp', 'De bietenoogst bij Hoogkerk', { type: 'sideJob', job: 'bietenoogst' }, { built: true, loopbanen: ['landbouw'],
     lead: ['A', 'De bieten moeten van het land. Akkerbouw Zonnehoek zoekt bij Hoogkerk een rooier: vier rijen, één trekker. Dit werk ken ik van thuis.'] }),
+  A('N11', 'romp', 'Een bezorgrondje bij Bedum', { type: 'reis', to: 'Bedum', at: [53.3000, 6.6000], r: 400, scene: 'N11' }, { built: true, scenes: ['N11'], lead: ['A', 'Een bezorgdienst zoekt een rijder voor een rondje pakketten bij Bedum. Jij rijdt, ik lees de lijst. Dat gaat goed, zeg ik nu alvast.'] }),
+  A('N12', 'romp', 'De lijst op de koelkast', { type: 'reis', to: 'de flat in Paddepoel', at: [53.2405, 6.5335], r: 250, scene: 'N12' }, { built: true, scenes: ['N12'], lead: ['T', 'Mijn schone sokken zijn op. De flat in Paddepoel, even langs, en dan weer verder.'] }),
   A('N6', 'romp', 'Een dag op het water', { type: 'reis', to: 'Noordpolderzijl', at: [53.4130, 6.5810], r: 400, scene: 'N6' }, { built: true, scenes: ['N6'], lead: ['T', 'Klaas heeft twee hengels en een emmer. Noordpolderzijl. Praat tegen het water, zegt hij.'] }),
   A('N7', 'romp', 'De streekbus naar Winsum', { type: 'reis', to: 'Winsum', at: [53.3330, 6.5160], r: 400, scene: 'N7' }, { built: true, scenes: ['N7'], lead: ['A', 'Een ritje met de streekbus naar Winsum, om te zien wat dat is: chauffeur zijn. Jij mag de halte kiezen.'] }),
   A('T2', 'romp', 'De streekbus naar Zoutkamp', { type: 'reis', to: 'Zoutkamp', at: [53.3377, 6.2986], r: 400 }, { built: true, loopbanen: ['bus', 'hengelen'], scenes: ['T2'],
@@ -358,6 +361,7 @@ export const STEPS = [
   M('M18', 'zuid', 'Wie draaide de camera\'s uit?', 'wiebelwerk', { built: true, reward: 600,
     story: { intro: ['M18.1'], outro: ['M18.4'], replay: ['M18.5'] }, scenes: ['M18.1', 'M18.2', 'M18.6', 'M18.7', 'M18.3', 'M18.4', 'M18.5'],
     lead: ['T', "Dan het bewijs. Grunn houdt ons voor de dieven; Wiebelwerk in Veendam beheert de museumcamera's. Het logboek van 12 augustus moet laten zien dat Jelle de bal al had."] }),
+  A('N9', 'zuid', 'Nacht op een dijk', { type: 'reis', to: 'de dijk bij de Dollard', at: [53.2600, 7.0600], r: 600, scene: 'N9' }, { built: true, scenes: ['N9'], lead: ['T', 'Rikus belde: de politie zoekt twee Stadjers in het zwart. Hij leent ons zijn oude busje en kent een dijk waar niemand komt. Neem een deken mee.'] }),
   M('M19', 'zuid', 'Stoom', 'stoom', { built: true, reward: 800,
     story: { intro: ['M19.1'], outro: ['M19.3'], replay: ['M19.4'] }, scenes: ['M19.1', 'M19.2', 'M19.3', 'M19.4'],
     lead: ['A', 'Dan de jury: wie de jury koopt, hoeft niet te winnen. In Jelles stilstaande stoomtrein in Veendam zitten de laatste juryleden vast. Rij hem naar Wildervank.'] }),
