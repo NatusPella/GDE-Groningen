@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Ramen: kozijnen en glas staan dichtbij altijd volledig, niet meer half doorzichtig. Binnen 40 m is elk raam opaak; bij snelheid of op een drukke machine zakt de kozijnafstand niet meer onder 60 m (die kon naar 36 m zakken); een groot gebouw krijgt zijn ramen op de afstand van zijn gevel in plaats van van zijn middelpunt; en gebouwen met hun gevel binnen 60 m worden eerst gebouwd, ook boven het frame-budget (hoogstens vier per frame). Nieuwe audit `scripts/world/ramen_audit.mjs` (dekking van gevelvlakken met raamdata: 100% in de steekproef). Zie docs/PERF-STREAM-SOEPEL-21-11.md, #1016.
 - Kaart: Reis erheen gaat nu alleen over hoe je reist: met de trein, de bus, de taxi of per boot, elk met prijs, duur en aanbevolen, en als iets niet kan staat de reden in de rij (te dichtbij, geen verbinding, te weinig geld). De optie 'Zelf gaan' en de zin 'Dat kan ook in Samen spelen' zijn weg: Zet waypoint is de manier om zelf te gaan.
 - Kaart: de toets staat voortaan IN de knop (Enter in Reis nu en Begrepen, Esc in Terug en Sluiten, een cijfer in elke vervoersrij en op de drie acties van de plekkaart), niet meer ernaast. Op een controller wordt dat de A- of B-knop van jouw controller en een cijfer verdwijnt.
 - Kaart: alle kaartpopups werken hetzelfde met toetsenbord en controller: Enter of A bevestigt, Esc of B gaat één laag terug (venster, plekkaart, kaart), pijlen en D-pad lopen door de knoppen, de eerste focus staat op de hoofdactie en de focus blijft binnen een open venster.
