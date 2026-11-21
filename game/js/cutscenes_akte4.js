@@ -61,6 +61,8 @@ S['M17.outro'] = {
 // mee op de achtergrond en de camera gaat van een over-de-schouder naar de spreker.
 S['M18.intro'] = {
   set: 'kantoor',
+  // R-13: de accountmanager krijgt een naamkaart (#1138)
+  fx: [{ t: 1.0, fx: 'naam', text: 'Accountmanager, Wiebelwerk', dur: 2.6 }],
   cast: {
     accountmanager: { key: 'accountmanager', at: [3.4, -0.4], face: 175, anim: 'idle', gest: ['talk', 'hips', 'point', 'talk'] },
     collega: { key: 'student', at: [1.4, 2.5], face: 250, anim: 'idle', bg: true, gest: ['talk', 'phone', 'look', 'hips'] },
@@ -500,6 +502,7 @@ S['M20.3'] = {
     { on: 'Van de jas', actor: 'tessa', anim: 'shrug' },
     { on: 'Dat heb ik hem geleerd', actor: 'mem', anim: 'nod' },
     { on: 'Omdat mijn kleinzoon', actor: 'mem', anim: 'shrug' },
+    { on: 'En omdat ik in 1953', actor: 'jelle', anim: 'look' },
     { on: 'Mem. Dit is nog niet voorbij', actor: 'jelle', anim: 'point' },
     { on: 'Durk. Douwe. Haal', actor: 'jelle', walk: [[7.5, 1.5]], speed: 1.4 },
   ],

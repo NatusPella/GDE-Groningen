@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Verhaal: Berend (M01), de loketbediende (M03) en de accountmanager van Wiebelwerk (M18) krijgen een naamkaart bij hun eerste optreden, en de naamkaarten van Oma Trijntje (M08) en Durk en Douwe (M10) staan nu echt in beeld (ze werden eerder niet getoond). In de kruitkelder (M20) is Mems lange antwoord in twee zinnen gesplitst, met een reactie van Jelle ertussen, en bij de Melkweg (M11) staat een close-up op Tammo bij de laatste zin. Samen spelen: de naamkaarten horen bij de scène van wie het spel opende; een gast ziet ze mee, wie later aansluit mist alleen een kaart, voortgang blijft per speler.
+
 - Snackwagen: de wagen groeit mee met het verhaal. Het menu samenstellen opent na Oma Trijntjes recept, vergunningen kopen na Lammerts kade en de kermis, medewerkers-wagens na het team van Berend, Tinus en Wubbo, je eigen wagen op een standplaats zetten na de Vismarkt, en een tweede wagen en plekken van Usmem overnemen aan het eind van de zomer. Een dichte stap laat een hint zien; de belettering is eerst SNACKWAGEN en wordt TAM & TES zodra de wagen zijn naam heeft. Een opgeslagen spel van voor deze wijziging houdt alles open.
 - Samen spelen: een gast kan meewerken in de snackwagen van een medespeler (ook van de host); de eigenaar verkoopt die dag 8% meer en de gast verdient zijn uurloon uit nieuw geld.
 - Bezit: de eigen snackwagen levert ongeveer twee keer en een groot snackimperium ongeveer vier keer zoveel als actief werk; passief inkomen buiten de snackwagen blijft binnen drie keer.

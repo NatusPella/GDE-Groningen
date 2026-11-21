@@ -46,6 +46,7 @@ TESSA: Dus we lenen een bakkie. Rijden, niet praten. [NIEUW]
 
 ## [M01.1] Nul krassen, vijftienhonderd punten: intro – Stad, Martinikerkhof – Berends bakkie
 (regie: vrijdag 14 augustus, middag. Berend staat bij zijn bakkie, een nors mannetje met zijn arm in het gips en een kladblok. Aan het bakkie hangt een bord: CHAUFFEUR GEZOCHT, VIJFTIG EURO, BEREND BOS. De Escapade staat met een lekke band aan de kant. Gameplay: Berends bakkie door het centrum, nul krassen.)
+(regie: naamkaart voor Berend in beeld: Berend Bos, Bommen Berend.)
 BEREND: Goidag. [BEHOUDEN]
 TESSA: Goidag, Berend. [BEHOUDEN]
 BEREND: Mijn arm zit in het gips. Mijn bakkie, mijn pick-up, moet naar mijn zus, aan het Boterdiep. Vijftig euro voor wie hem brengt. [NIEUW]
@@ -264,6 +265,7 @@ TESSA: Iemand die het kleine lettertje leest. Voor de lol. [NIEUW]
 ## [M03.1] Het Loket: intro – Stad, Het Loket bij de Grote Markt – te voet
 (regie: bewijsmoment, relatie-bijbel 3: Tessa leest het naamplaatje van de loketbediende en groet haar bij haar naam. Tammo kijkt even naar zijn schoenen en glimlacht.)
 (regie: zaterdag 15 augustus, tien uur. Een wachtruimte met nummerautomaat, een scherm dat 4093 toont, een bord "Loket B is vandaag Loket C". Gameplay: een wachtrijpuzzel met een klok: nummer trekken, formulier halen, stempel halen, voor twaalf uur.)
+(regie: naamkaart voor de loketbediende in beeld: Loketbediende, Loket C.)
 TESSA: Twaalf uur, contant. Hoe moeilijk kan een stempel zijn? [NIEUW]
 LOKETBEDIENDE: Nummer 4117 aan loket A. Op het scherm staat 4093. [NIEUW]
 TAMMO: Vierentwintig mensen voor ons. [NIEUW]

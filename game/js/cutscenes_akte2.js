@@ -339,6 +339,8 @@ SPECS_AKTE2['M11.5'] = {
   shots: [
     { on: 'Dat is de Melkweg', dt: 0.3, shot: 'dolly', from: [-2.0, -2.6, 0.95], to: [-0.8, -1.4, 1.05], look: 'tessa@1.45', fov: 46 },
     { on: 'Het is een vlek van driehonderd miljard', dt: 0.2, shot: 'cut', at: [-1.4, 2.2, 1.0], look: 'tammo@1.4', fov: 40 },
+    // sleutelscène (#1138, R-21): Tammo's gezicht onder de sterren op de zin die ertoe doet
+    { on: '…Groter dan een vlek', dt: 0.1, shot: 'close', target: 'tammo', dist: 1.3, side: -0.2, fov: 28 },
   ],
   wide: { from: [-4.8, 4.0, 3.2], to: [-2.8, 3.0, 2.4], look: 'mid:tammo,tessa@1.1', fov: 50, until: 1 },
 };
