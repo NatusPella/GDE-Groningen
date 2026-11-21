@@ -49,3 +49,14 @@ Nieuw: "Ruisbronnen (lussen)": aantal levende ruislussen met hun namen, en "Ruis
 1. Het luisterpaneel [WITTE-RUIS-LUISTER.html](WITTE-RUIS-LUISTER.html) (open het in een browser vanuit de map docs): de verdachte spraak- en muziekclips en de ruisachtigste effecten. Hoor je daar sissen zonder stem, noteer de bestandsnaam.
 2. In het spel: rijden in de regen (de wegsis), een boot stilstaand, de politieheli die weggaat, schuren langs een muur, de overgang van menu naar spel. Staat de witte ruis er nog, open dan Ctrl+Shift+G en kijk bij "Ruisbronnen (lussen)" welke lus levend is en bij "Ruis die bleef hangen" of er iets is dichtgezet.
 3. `?geenlimiter` (zie AUDIO-GLITCHES-21-11.md) om de limiter als oorzaak uit te sluiten.
+
+## Uitkomst van de scan
+
+Gemeten op 21-11: 4.193 spraak-, nieuws-, NPC- en politieclips, 150 effecten en 63 muziek- en scenariotracks (de eerste 40 s per bestand).
+
+- **Spraak: 0 clips verdacht** (geen clip met meer dan 60 procent ruisframes of een ruisstaart van 0,37 s of meer). De hoogste aandelen zijn 0,29 en lager, en dat zijn sisklanken in de stem (bijvoorbeeld `banter/wk-oosterpark-stoep_3_a_033661.mp3`, `anita/missie_gelukt_v2.wav`). De TTS-clips hebben dus geen lange ruisstaarten.
+- **Muziek: 0 verdacht.** Hoogste is `scenario/Redline_Ascent.mp3` met 0,10.
+- **Effecten: 1 boven de grens, en dat is bedoeld:** `sfx/stap_gras_2.ogg` is een voetstap op gras van 0,3 s (grasritsel is ruis). Verder `hydrauliek_sis`, `ei_breuk_1`, `stap_wet_*`, `plons_groot`: alles waar ruis bij hoort.
+- Er is dus **geen opname gevonden die als witte ruis fout is**; er is niets aan clips aangepast. De drempels zijn niet gekalibreerd op een bekende foute clip (die is er niet): een ruisstaart onder 0,37 s of een zachte sis in een lange clip valt buiten de scan. Het luisterpaneel toont daarom altijd de ruisachtigste clips per groep, ook onder de grens: [WITTE-RUIS-LUISTER.html](WITTE-RUIS-LUISTER.html) (40 per groep), de ruwe lijst staat in `witte-ruis-scan.json`.
+
+Conclusie: de witte ruis die de eigenaar soms hoort komt waarschijnlijk niet uit een clip maar uit een procedurele bron (de wegsis bij regen, een bed of stem die bleef hangen) of uit het uitvoerapparaat (zie AUDIO-GLITCHES-21-11.md, hypothese 7). Dat is niet te bewijzen zonder de lus-teller in een echte sessie.

@@ -1,0 +1,1100 @@
+{
+ "spraak": {
+  "gemeten": 4193,
+  "verdacht": 0,
+  "top": [
+   {
+    "f": "game/audio/voicelines/banter/wk-oosterpark-stoep_3_a_033661.mp3",
+    "frames": 28,
+    "actief": 17,
+    "aandeel": 0.29411764705882354,
+    "staart": 0,
+    "langste": 4,
+    "sec": 1.3219954648526078
+   },
+   {
+    "f": "game/audio/voicelines/anita/missie_gelukt_v2.wav",
+    "frames": 36,
+    "actief": 23,
+    "aandeel": 0.2608695652173913,
+    "staart": 0,
+    "langste": 3,
+    "sec": 1.6805442176870748
+   },
+   {
+    "f": "game/audio/voicelines/lines/douwe/fierljep_73752cd4.mp3",
+    "frames": 26,
+    "actief": 24,
+    "aandeel": 0.20833333333333334,
+    "staart": 0,
+    "langste": 5,
+    "sec": 1.2205442176870749
+   },
+   {
+    "f": "game/audio/voicelines/lines/anita/alleen_75b2d578.mp3",
+    "frames": 30,
+    "actief": 16,
+    "aandeel": 0.1875,
+    "staart": 0,
+    "langste": 2,
+    "sec": 1.4073469387755102
+   },
+   {
+    "f": "game/audio/voicelines/lines/anita/jij_stuurt_ik_zeg_wanneer_f6514353.mp3",
+    "frames": 53,
+    "actief": 35,
+    "aandeel": 0.17142857142857143,
+    "staart": 0,
+    "langste": 4,
+    "sec": 2.4805442176870747
+   },
+   {
+    "f": "game/audio/voicelines/lines/anita/dat_weet_je_gewoon_27acfb05.mp3",
+    "frames": 41,
+    "actief": 31,
+    "aandeel": 0.16129032258064516,
+    "staart": 0,
+    "langste": 4,
+    "sec": 1.9219954648526076
+   },
+   {
+    "f": "game/audio/voicelines/anita/missie_gelukt_v1.wav",
+    "frames": 43,
+    "actief": 32,
+    "aandeel": 0.15625,
+    "staart": 0,
+    "langste": 4,
+    "sec": 2.0405442176870747
+   },
+   {
+    "f": "game/audio/voicelines/banter/q-h12-gerda_4_t_4a65f8.mp3",
+    "frames": 8,
+    "actief": 7,
+    "aandeel": 0.14285714285714285,
+    "staart": 0,
+    "langste": 1,
+    "sec": 0.41278911564625853
+   },
+   {
+    "f": "game/audio/voicelines/story/m2/intro_4_anita.mp3",
+    "frames": 38,
+    "actief": 28,
+    "aandeel": 0.14285714285714285,
+    "staart": 0,
+    "langste": 4,
+    "sec": 1.8019954648526078
+   },
+   {
+    "f": "game/audio/voicelines/lines/geesje/dan_koopt_u_een_eierkoek_b46628c6.mp3",
+    "frames": 50,
+    "actief": 36,
+    "aandeel": 0.1388888888888889,
+    "staart": 0,
+    "langste": 2,
+    "sec": 2.342902494331066
+   },
+   {
+    "f": "game/audio/voicelines/lines/rikus/waarom_vertel_je_dat_jelle_c47e0920.mp3",
+    "frames": 39,
+    "actief": 37,
+    "aandeel": 0.13513513513513514,
+    "staart": 0,
+    "langste": 3,
+    "sec": 1.8377324263038548
+   },
+   {
+    "f": "game/audio/voicelines/lines/anita/wat_8e0c039a.mp3",
+    "frames": 30,
+    "actief": 15,
+    "aandeel": 0.13333333333333333,
+    "staart": 0,
+    "langste": 1,
+    "sec": 1.4104308390022675
+   },
+   {
+    "f": "game/audio/voicelines/lines/anita/dat_is_geen_noodgeval_efbed5f9.mp3",
+    "frames": 51,
+    "actief": 39,
+    "aandeel": 0.1282051282051282,
+    "staart": 0,
+    "langste": 3,
+    "sec": 2.4058049886621315
+   },
+   {
+    "f": "game/audio/voicelines/lines/anita/mijn_vriend_de_duivenkoning_1b952b25.mp3",
+    "frames": 53,
+    "actief": 39,
+    "aandeel": 0.1282051282051282,
+    "staart": 0,
+    "langste": 4,
+    "sec": 2.483265306122449
+   },
+   {
+    "f": "game/audio/voicelines/lines/rikus/dit_is_erger_dan_de_fietstunnel_9e78c04c.mp3",
+    "frames": 42,
+    "actief": 39,
+    "aandeel": 0.1282051282051282,
+    "staart": 0,
+    "langste": 3,
+    "sec": 1.9517006802721089
+   },
+   {
+    "f": "game/audio/voicelines/lines/anita/ja_f13ec633.mp3",
+    "frames": 11,
+    "actief": 8,
+    "aandeel": 0.125,
+    "staart": 0,
+    "langste": 1,
+    "sec": 0.5278458049886622
+   },
+   {
+    "f": "game/audio/voicelines/lines/anita/vijf_woorden_1cd012de.mp3",
+    "frames": 38,
+    "actief": 34,
+    "aandeel": 0.11764705882352941,
+    "staart": 0,
+    "langste": 4,
+    "sec": 1.7989115646258504
+   },
+   {
+    "f": "game/audio/voicelines/lines/anita/het_is_een_gronings_bedrijf_0a7e0ead.mp3",
+    "frames": 45,
+    "actief": 35,
+    "aandeel": 0.11428571428571428,
+    "staart": 0,
+    "langste": 3,
+    "sec": 2.120544217687075
+   },
+   {
+    "f": "game/audio/voicelines/lines/bubbles/f/bah_een_duif_b6ab2582.mp3",
+    "frames": 44,
+    "actief": 35,
+    "aandeel": 0.11428571428571428,
+    "staart": 0,
+    "langste": 2,
+    "sec": 2.0864399092970523
+   },
+   {
+    "f": "game/audio/voicelines/banter/h2-pass-weigering_4_a_121f2b.mp3",
+    "frames": 39,
+    "actief": 27,
+    "aandeel": 0.1111111111111111,
+    "staart": 0,
+    "langste": 2,
+    "sec": 1.8405442176870748
+   },
+   {
+    "f": "game/audio/voicelines/story/m2/intro_2_anita.mp3",
+    "frames": 71,
+    "actief": 54,
+    "aandeel": 0.1111111111111111,
+    "staart": 0,
+    "langste": 4,
+    "sec": 3.341995464852608
+   },
+   {
+    "f": "game/audio/police/verdachte_voertuig_v0.wav",
+    "frames": 40,
+    "actief": 36,
+    "aandeel": 0.1111111111111111,
+    "staart": 0,
+    "langste": 2,
+    "sec": 1.8778231292517007
+   },
+   {
+    "f": "game/audio/voicelines/lines/anita/je_praatte_de_hele_tijd_aan_dat__bd1ed937.mp3",
+    "frames": 65,
+    "actief": 47,
+    "aandeel": 0.10638297872340426,
+    "staart": 0,
+    "langste": 3,
+    "sec": 3.046485260770975
+   },
+   {
+    "f": "game/audio/voicelines/lines/anita/dan_neem_ik_die_bij_de_koelkast_6aca03e9.mp3",
+    "frames": 53,
+    "actief": 38,
+    "aandeel": 0.10526315789473684,
+    "staart": 0,
+    "langste": 3,
+    "sec": 2.4714739229024945
+   },
+   {
+    "f": "game/audio/voicelines/banter/h17-pass-bod_0_t_06d63a.mp3",
+    "frames": 23,
+    "actief": 20,
+    "aandeel": 0.1,
+    "staart": 0,
+    "langste": 1,
+    "sec": 1.0848072562358277
+   },
+   {
+    "f": "game/audio/voicelines/lines/anita/vlag_vlag_vlag_drie_0b54944f.mp3",
+    "frames": 42,
+    "actief": 30,
+    "aandeel": 0.1,
+    "staart": 0,
+    "langste": 1,
+    "sec": 1.9585034013605442
+   },
+   {
+    "f": "game/audio/voicelines/lines/bubbles/m/tot_kiek_cd1d750e.mp3",
+    "frames": 12,
+    "actief": 10,
+    "aandeel": 0.1,
+    "staart": 0,
+    "langste": 1,
+    "sec": 0.5839002267573696
+   },
+   {
+    "f": "game/audio/voicelines/lines/tammo/vriend_bc3f134f.mp3",
+    "frames": 11,
+    "actief": 10,
+    "aandeel": 0.1,
+    "staart": 0,
+    "langste": 1,
+    "sec": 0.5463492063492064
+   },
+   {
+    "f": "game/audio/voicelines/lines/tammo_gids/fietsen_47f4da79.mp3",
+    "frames": 14,
+    "actief": 10,
+    "aandeel": 0.1,
+    "staart": 0,
+    "langste": 1,
+    "sec": 0.6718820861678004
+   },
+   {
+    "f": "game/audio/voicelines/lines/bubbles/f/ach_wat_n_dikke_duif_85c5bf43.mp3",
+    "frames": 58,
+    "actief": 51,
+    "aandeel": 0.09803921568627451,
+    "staart": 0,
+    "langste": 3,
+    "sec": 2.7044444444444444
+   },
+   {
+    "f": "game/audio/voicelines/lines/anita/een_oefenbal_hij_oefent_hoe_hij__92a52b03.mp3",
+    "frames": 94,
+    "actief": 72,
+    "aandeel": 0.09722222222222222,
+    "staart": 0,
+    "langste": 4,
+    "sec": 4.401995464852607
+   },
+   {
+    "f": "game/audio/voicelines/lines/anita/niemand_a495de6d.mp3",
+    "frames": 43,
+    "actief": 31,
+    "aandeel": 0.0967741935483871,
+    "staart": 0,
+    "langste": 2,
+    "sec": 2.013469387755102
+   },
+   {
+    "f": "game/audio/voicelines/lines/geesje/weer_eieren_de_kippen_sturen_een_7286c593.mp3",
+    "frames": 80,
+    "actief": 64,
+    "aandeel": 0.09375,
+    "staart": 0,
+    "langste": 2,
+    "sec": 3.7164172335600907
+   },
+   {
+    "f": "game/audio/voicelines/lines/rikus/weer_een_stukje_grunn_dat_je_nu__353b4c36.mp3",
+    "frames": 56,
+    "actief": 43,
+    "aandeel": 0.09302325581395349,
+    "staart": 0,
+    "langste": 3,
+    "sec": 2.615873015873016
+   },
+   {
+    "f": "game/audio/voicelines/banter/h11-pass-moi_4_a_09ba9f.mp3",
+    "frames": 12,
+    "actief": 11,
+    "aandeel": 0.09090909090909091,
+    "staart": 0,
+    "langste": 1,
+    "sec": 0.6026303854875283
+   },
+   {
+    "f": "game/audio/voicelines/banter/h17-pass-bod_2_t_e469b5.mp3",
+    "frames": 14,
+    "actief": 11,
+    "aandeel": 0.09090909090909091,
+    "staart": 0,
+    "langste": 1,
+    "sec": 0.6648072562358277
+   },
+   {
+    "f": "game/audio/voicelines/lines/jurylid/dat_is_toch_niet_waar_94a58e73.mp3",
+    "frames": 35,
+    "actief": 33,
+    "aandeel": 0.09090909090909091,
+    "staart": 0,
+    "langste": 1,
+    "sec": 1.6466666666666667
+   },
+   {
+    "f": "game/audio/voicelines/lines/tammo/straks_624071a2.mp3",
+    "frames": 12,
+    "actief": 11,
+    "aandeel": 0.09090909090909091,
+    "staart": 0,
+    "langste": 1,
+    "sec": 0.5947845804988662
+   },
+   {
+    "f": "game/audio/police/aangehouden_v1.wav",
+    "frames": 24,
+    "actief": 22,
+    "aandeel": 0.09090909090909091,
+    "staart": 0,
+    "langste": 2,
+    "sec": 1.1304308390022675
+   },
+   {
+    "f": "game/audio/voicelines/lines/tammo/ja_dank_je_dat_je_het_vraagt_18ce42db.mp3",
+    "frames": 47,
+    "actief": 35,
+    "aandeel": 0.08571428571428572,
+    "staart": 0,
+    "langste": 1,
+    "sec": 2.2099319727891156
+   }
+  ]
+ },
+ "sfx": {
+  "gemeten": 150,
+  "verdacht": 1,
+  "top": [
+   {
+    "f": "game/audio/sfx/stap_gras_2.ogg",
+    "frames": 6,
+    "actief": 6,
+    "aandeel": 0.6666666666666666,
+    "staart": 0,
+    "langste": 4,
+    "sec": 0.2947845804988662
+   },
+   {
+    "f": "game/audio/sfx/hydrauliek_sis.ogg",
+    "frames": 51,
+    "actief": 48,
+    "aandeel": 0.375,
+    "staart": 0,
+    "langste": 3,
+    "sec": 2.3769614512471655
+   },
+   {
+    "f": "game/audio/sfx/ei_breuk_1.ogg",
+    "frames": 21,
+    "actief": 16,
+    "aandeel": 0.25,
+    "staart": 2,
+    "langste": 2,
+    "sec": 1.0168253968253969
+   },
+   {
+    "f": "game/audio/sfx/stap_wet_3.ogg",
+    "frames": 8,
+    "actief": 7,
+    "aandeel": 0.2857142857142857,
+    "staart": 0,
+    "langste": 1,
+    "sec": 0.40049886621315195
+   },
+   {
+    "f": "game/audio/sfx/plons_groot.ogg",
+    "frames": 46,
+    "actief": 44,
+    "aandeel": 0.25,
+    "staart": 0,
+    "langste": 5,
+    "sec": 2.1722902494331064
+   },
+   {
+    "f": "game/audio/sfx/stap_grind_2.ogg",
+    "frames": 7,
+    "actief": 5,
+    "aandeel": 0.2,
+    "staart": 0,
+    "langste": 1,
+    "sec": 0.33709750566893426
+   },
+   {
+    "f": "game/audio/sfx/deur_huis_dicht_op.ogg",
+    "frames": 17,
+    "actief": 17,
+    "aandeel": 0.17647058823529413,
+    "staart": 0,
+    "langste": 2,
+    "sec": 0.811201814058957
+   },
+   {
+    "f": "game/audio/sfx/zomer_insecten.ogg",
+    "frames": 430,
+    "actief": 430,
+    "aandeel": 0.1697674418604651,
+    "staart": 0,
+    "langste": 4,
+    "sec": 20
+   },
+   {
+    "f": "game/audio/sfx/stap_grind_5.ogg",
+    "frames": 7,
+    "actief": 6,
+    "aandeel": 0.16666666666666666,
+    "staart": 0,
+    "langste": 1,
+    "sec": 0.33709750566893426
+   },
+   {
+    "f": "game/audio/sfx/stap_wet_0.ogg",
+    "frames": 7,
+    "actief": 7,
+    "aandeel": 0.14285714285714285,
+    "staart": 0,
+    "langste": 1,
+    "sec": 0.3628571428571429
+   },
+   {
+    "f": "game/audio/sfx/stap_wet_5.ogg",
+    "frames": 7,
+    "actief": 7,
+    "aandeel": 0.14285714285714285,
+    "staart": 0,
+    "langste": 1,
+    "sec": 0.3437641723356009
+   },
+   {
+    "f": "game/audio/sfx/dobber_plons.ogg",
+    "frames": 17,
+    "actief": 15,
+    "aandeel": 0.13333333333333333,
+    "staart": 0,
+    "langste": 2,
+    "sec": 0.7970975056689342
+   },
+   {
+    "f": "game/audio/sfx/vuurwerk_knal_1.ogg",
+    "frames": 63,
+    "actief": 17,
+    "aandeel": 0.11764705882352941,
+    "staart": 0,
+    "langste": 1,
+    "sec": 2.951065759637188
+   },
+   {
+    "f": "game/audio/sfx/dier_meeuw_0.ogg",
+    "frames": 34,
+    "actief": 34,
+    "aandeel": 0.029411764705882353,
+    "staart": 1,
+    "langste": 1,
+    "sec": 1.6
+   },
+   {
+    "f": "game/audio/sfx/vuurwerk_knal_0.ogg",
+    "frames": 71,
+    "actief": 61,
+    "aandeel": 0.01639344262295082,
+    "staart": 0,
+    "langste": 1,
+    "sec": 3.301768707482993
+   },
+   {
+    "f": "game/audio/sfx/regen_plens.ogg",
+    "frames": 301,
+    "actief": 301,
+    "aandeel": 0.009966777408637873,
+    "staart": 0,
+    "langste": 1,
+    "sec": 13.998412698412698
+   },
+   {
+    "f": "game/audio/sfx/regen_motregen.ogg",
+    "frames": 301,
+    "actief": 301,
+    "aandeel": 0.006644518272425249,
+    "staart": 0,
+    "langste": 1,
+    "sec": 13.999863945578232
+   },
+   {
+    "f": "game/audio/sfx/regen_bui.ogg",
+    "frames": 258,
+    "actief": 258,
+    "aandeel": 0.003875968992248062,
+    "staart": 0,
+    "langste": 1,
+    "sec": 12.010113378684807
+   },
+   {
+    "f": "game/audio/sfx/alarm_loeit.ogg",
+    "frames": 86,
+    "actief": 85,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 4
+   },
+   {
+    "f": "game/audio/sfx/applaus_klein.ogg",
+    "frames": 77,
+    "actief": 74,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 3.613650793650794
+   },
+   {
+    "f": "game/audio/sfx/auto_deur_dicht_1.ogg",
+    "frames": 8,
+    "actief": 7,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 0.4137868480725624
+   },
+   {
+    "f": "game/audio/sfx/auto_deur_dicht_2.ogg",
+    "frames": 7,
+    "actief": 7,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 0.3711111111111111
+   },
+   {
+    "f": "game/audio/sfx/auto_deur_open.ogg",
+    "frames": 15,
+    "actief": 12,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 0.7043537414965987
+   },
+   {
+    "f": "game/audio/sfx/auto_portiergreep.ogg",
+    "frames": 15,
+    "actief": 15,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 0.717687074829932
+   },
+   {
+    "f": "game/audio/sfx/band_drift.ogg",
+    "frames": 51,
+    "actief": 51,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 2.399501133786848
+   },
+   {
+    "f": "game/audio/sfx/band_piep_bocht.ogg",
+    "frames": 25,
+    "actief": 25,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 1.2
+   },
+   {
+    "f": "game/audio/sfx/bel_uitslag.ogg",
+    "frames": 33,
+    "actief": 28,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 1.5462585034013605
+   },
+   {
+    "f": "game/audio/sfx/boot_motor_stat.ogg",
+    "frames": 258,
+    "actief": 258,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 11.999773242630386
+   },
+   {
+    "f": "game/audio/sfx/boot_motor_vol.ogg",
+    "frames": 219,
+    "actief": 219,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 10.19859410430839
+   },
+   {
+    "f": "game/audio/sfx/brievenbus_klep.ogg",
+    "frames": 14,
+    "actief": 10,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 0.685578231292517
+   },
+   {
+    "f": "game/audio/sfx/bus_deur_sis.ogg",
+    "frames": 76,
+    "actief": 76,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 3.566575963718821
+   },
+   {
+    "f": "game/audio/sfx/bus_halte_ding.ogg",
+    "frames": 57,
+    "actief": 53,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 2.6666666666666665
+   },
+   {
+    "f": "game/audio/sfx/deur_hout_dicht_op.ogg",
+    "frames": 12,
+    "actief": 9,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 0.5764625850340136
+   },
+   {
+    "f": "game/audio/sfx/deur_hout_open_op.ogg",
+    "frames": 46,
+    "actief": 42,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 2.13687074829932
+   },
+   {
+    "f": "game/audio/sfx/dier_eend.ogg",
+    "frames": 6,
+    "actief": 4,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 0.2858956916099773
+   },
+   {
+    "f": "game/audio/sfx/dier_koe.ogg",
+    "frames": 32,
+    "actief": 24,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 1.506575963718821
+   },
+   {
+    "f": "game/audio/sfx/dier_meeuw_1.ogg",
+    "frames": 43,
+    "actief": 41,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 2
+   },
+   {
+    "f": "game/audio/sfx/dier_paard.ogg",
+    "frames": 28,
+    "actief": 26,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 1.3131065759637188
+   },
+   {
+    "f": "game/audio/sfx/dier_schaap.ogg",
+    "frames": 59,
+    "actief": 27,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 2.7629478458049888
+   },
+   {
+    "f": "game/audio/sfx/donder_dichtbij_0.ogg",
+    "frames": 215,
+    "actief": 167,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 10
+   }
+  ]
+ },
+ "muziek": {
+  "gemeten": 63,
+  "verdacht": 0,
+  "top": [
+   {
+    "f": "game/audio/scenario/Redline_Ascent.mp3",
+    "frames": 861,
+    "actief": 861,
+    "aandeel": 0.09872241579558652,
+    "staart": 0,
+    "langste": 4,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/Geen_stoplicht_houdt_ons_tegen.mp3",
+    "frames": 861,
+    "actief": 860,
+    "aandeel": 0.013953488372093023,
+    "staart": 2,
+    "langste": 2,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/jingles/station_id.wav",
+    "frames": 76,
+    "actief": 70,
+    "aandeel": 0.014285714285714285,
+    "staart": 0,
+    "langste": 1,
+    "sec": 3.56453514739229
+   },
+   {
+    "f": "game/audio/gmusic/Vismarkt_Sprint.mp3",
+    "frames": 861,
+    "actief": 860,
+    "aandeel": 0.00813953488372093,
+    "staart": 0,
+    "langste": 2,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/Trouw_aan_het_blok.mp3",
+    "frames": 861,
+    "actief": 859,
+    "aandeel": 0.004656577415599534,
+    "staart": 0,
+    "langste": 1,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/Staal_op_staal.mp3",
+    "frames": 861,
+    "actief": 860,
+    "aandeel": 0.004651162790697674,
+    "staart": 0,
+    "langste": 1,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/Langs_het_Grunneger_Land.mp3",
+    "frames": 861,
+    "actief": 855,
+    "aandeel": 0.0035087719298245615,
+    "staart": 0,
+    "langste": 2,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/Koplampen_in_de_Mist.mp3",
+    "frames": 861,
+    "actief": 859,
+    "aandeel": 0.0034924330616996507,
+    "staart": 0,
+    "langste": 2,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/Goud_in_de_Nacht.mp3",
+    "frames": 861,
+    "actief": 860,
+    "aandeel": 0.0034883720930232558,
+    "staart": 0,
+    "langste": 1,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/Zomerse_droom_in_de_Stad.mp3",
+    "frames": 861,
+    "actief": 860,
+    "aandeel": 0.0034883720930232558,
+    "staart": 0,
+    "langste": 1,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/scenario/fiets_loop.mp3",
+    "frames": 861,
+    "actief": 845,
+    "aandeel": 0.002366863905325444,
+    "staart": 0,
+    "langste": 1,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/Zomeravond_in_Dalsum.mp3",
+    "frames": 861,
+    "actief": 858,
+    "aandeel": 0.002331002331002331,
+    "staart": 0,
+    "langste": 1,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/Hart_van_Beton.mp3",
+    "frames": 861,
+    "actief": 860,
+    "aandeel": 0.002325581395348837,
+    "staart": 0,
+    "langste": 1,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/scenario/padel_loop.mp3",
+    "frames": 861,
+    "actief": 860,
+    "aandeel": 0.002325581395348837,
+    "staart": 0,
+    "langste": 1,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/Trots_op_mien_grond.mp3",
+    "frames": 861,
+    "actief": 839,
+    "aandeel": 0.0011918951132300357,
+    "staart": 0,
+    "langste": 1,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/Ivoren_Toren_in_Helpman.mp3",
+    "frames": 861,
+    "actief": 857,
+    "aandeel": 0.0011668611435239206,
+    "staart": 0,
+    "langste": 1,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/scenario/bus_loop.mp3",
+    "frames": 861,
+    "actief": 859,
+    "aandeel": 0.0011641443538998836,
+    "staart": 0,
+    "langste": 1,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/Wie_stoan_nait_stil.mp3",
+    "frames": 861,
+    "actief": 860,
+    "aandeel": 0.0011627906976744186,
+    "staart": 0,
+    "langste": 1,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/scenario/boerderij_loop.mp3",
+    "frames": 861,
+    "actief": 860,
+    "aandeel": 0.0011627906976744186,
+    "staart": 0,
+    "langste": 1,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/scenario/missie_wandeling.mp3",
+    "frames": 861,
+    "actief": 860,
+    "aandeel": 0.0011627906976744186,
+    "staart": 0,
+    "langste": 1,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/De_Geest_Van_Oosterpark.mp3",
+    "frames": 861,
+    "actief": 849,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/De_Zwaan_sluut.mp3",
+    "frames": 861,
+    "actief": 857,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/Fietsend_door_de_Ochtend.mp3",
+    "frames": 861,
+    "actief": 855,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/Goudgeld_op_de_oprit.mp3",
+    "frames": 861,
+    "actief": 853,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/Hatchback_op_de_Ring.mp3",
+    "frames": 861,
+    "actief": 849,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/Hooge_Lucht.mp3",
+    "frames": 861,
+    "actief": 860,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/jingles/hoge_wanted.wav",
+    "frames": 50,
+    "actief": 48,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 2.3435374149659864
+   },
+   {
+    "f": "game/audio/gmusic/jingles/nummerovergang.wav",
+    "frames": 51,
+    "actief": 48,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 2.407891156462585
+   },
+   {
+    "f": "game/audio/gmusic/jingles/rij_knipoog.wav",
+    "frames": 72,
+    "actief": 61,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 3.3709750566893426
+   },
+   {
+    "f": "game/audio/gmusic/Kasseien_bij_Middernacht.mp3",
+    "frames": 861,
+    "actief": 842,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/Kleur_in_de_Wind.mp3",
+    "frames": 861,
+    "actief": 855,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/Letste_bus_noar_nargens.mp3",
+    "frames": 861,
+    "actief": 845,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/Onder_de_Martinitoren.mp3",
+    "frames": 861,
+    "actief": 845,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/Oosterpark_is_m_n_droom.mp3",
+    "frames": 861,
+    "actief": 840,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/Op_de_Fietse_noar_Klompenoord.mp3",
+    "frames": 861,
+    "actief": 849,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/Perfectie_kent_geen_grens.mp3",
+    "frames": 861,
+    "actief": 840,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/Schaduwen_bij_de_steiger.mp3",
+    "frames": 861,
+    "actief": 859,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/Staal_en_suiker.mp3",
+    "frames": 861,
+    "actief": 842,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/Suikerbuiken_in_de_nacht.mp3",
+    "frames": 861,
+    "actief": 860,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 40
+   },
+   {
+    "f": "game/audio/gmusic/Zilverglans_op_het_Asfalt.mp3",
+    "frames": 861,
+    "actief": 860,
+    "aandeel": 0,
+    "staart": 0,
+    "langste": 0,
+    "sec": 40
+   }
+  ]
+ }
+}
