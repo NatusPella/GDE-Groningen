@@ -2,7 +2,7 @@
 // Puur: geen DOM, geen spel. Samen spelen: de doelen zijn per speler lokaal; de groep komt als eigen lijst binnen (net als in coopmissie.js).
 import fs from 'node:fs';
 import { snapshotFromWorld, distanceFor, compactDistance, resolveNavTargets, navColor, navTekst, pathRole, eigenGlyph, lineStyleFor, NAV_ROL, NAV_TYPES, GLYPH, MAX_SECUNDAIR, AANKOMST_M, PATH_KIND } from '../game/js/navtarget.js';
-import { drawMapTargets, track, place, spreid, drawKompasRand, TRACK_INSET, MIN_ACTIEF, MIN_DOT, ACTIVE_R, DOT_R, TAG_GAP, tagPlace } from '../game/js/navpijl.js';
+import { drawMapTargets, track, place, spreid, drawKompasRand, TRACK_INSET, MIN_ACTIEF, MIN_DOT, ACTIVE_R, DOT_R, TAG_GAP, tagPlace, ACTIEF_UIT, TAG_H, TAG_W_MAX, TAG_TEKST_PX, tagMaat, activeArea, rectCirkel, obstakelCirkel } from '../game/js/navpijl.js';
 import { iconBekend } from '../game/js/icons.js';
 import { PALETTES } from '../game/js/a11y.js';
 import { dsKleur, contrast, kaartLand } from '../game/js/kaartkleuren.js';
@@ -135,7 +135,7 @@ const types = (r) => r.alle.map((d) => d.type + ':' + d.rol);
   const S = 250, b = track(S);
   let min = 1e9, max = 0;
   for (let q = 0; q < b.lengte; q += 3) { const [x, y] = b.punt(q); const d = Math.min(x, y, S - x, S - y); min = Math.min(min, d); max = Math.max(max, d); }
-  ok(Math.abs(min - TRACK_INSET) < 0.6 && max <= TRACK_INSET + 7.2, `de baan ligt op rechte stukken ${TRACK_INSET} px van de rand en rondt de hoeken af (${min.toFixed(1)}..${max.toFixed(1)})`);
+  ok(Math.abs(min - TRACK_INSET) < 0.6 && max <= TRACK_INSET + 6.2, `de baan ligt op rechte stukken ${TRACK_INSET} px van de rand en rondt de hoeken af (${min.toFixed(1)}..${max.toFixed(1)})`);
   for (const graden of [0, 45, 90, 135, 180, 225, 270, 315]) {
     const [x, y] = b.punt(b.sVoor(graden * Math.PI / 180));
     let h = Math.atan2(y - S / 2, x - S / 2) * 180 / Math.PI; h = (h + 360) % 360;
@@ -229,17 +229,17 @@ const types = (r) => r.alle.map((d) => d.type + ':' + d.rol);
   ok(compactDistance(9950) === '10 km' && compactDistance(12400) === '12 km' && compactDistance(123456) === '123 km', 'afstand: hele kilometers vanaf 10 km, geen decimale ruis');
   ok(compactDistance(NaN) === '' && compactDistance(-5) === '', 'afstand: geen onzin bij een ongeldige waarde');
   const S = 250, b = track(S);
-  // inzet: de schijf zit 3 px van de rand (op de rechte stukken), nooit erbuiten
-  ok(TRACK_INSET - ACTIVE_R >= 2.5 && TRACK_INSET - ACTIVE_R <= 4, `vaste inzet van de schijf: ${TRACK_INSET - ACTIVE_R} px van de rand`);
-  let binnen = true; for (let q = 0; q < b.lengte; q += 2) { const [x, y] = b.punt(q); if (Math.min(x, y, S - x, S - y) < ACTIVE_R + 2) binnen = false; }
+  // inzet (ronde 5): de schijf zit half op de rand, 0 tot 2 px ervandaan (op de rechte stukken), nooit erbuiten
+  ok(TRACK_INSET - ACTIEF_UIT >= -0.01 && TRACK_INSET - ACTIEF_UIT <= 2, `inzet van de schijf: ${(TRACK_INSET - ACTIEF_UIT).toFixed(1)} px van de rand (0 tot 2)`);
+  let binnen = true; for (let q = 0; q < b.lengte; q += 2) { const [x, y] = b.punt(q); if (Math.min(x, y, S - x, S - y) < ACTIEF_UIT - 0.01) binnen = false; }
   ok(binnen, 'elke plek op de baan houdt de schijf binnen de kaart');
   // de tag staat tegen de schijf aan, aan de binnenkant, en nooit buiten de kaart
-  const l = tagPlace(TRACK_INSET, 120, S, 38, 17), r = tagPlace(S - TRACK_INSET, 120, S, 38, 17), o = tagPlace(120, TRACK_INSET, S, 38, 17), u = tagPlace(120, S - TRACK_INSET, S, 38, 17);
-  ok(l.kant === 0 && l.cx - 19 >= TRACK_INSET + ACTIVE_R + TAG_GAP - 0.01 && Math.abs(l.cy - 120) < 0.01, 'tag links: rechts naast de schijf, op dezelfde hoogte');
-  ok(r.kant === 2 && r.cx + 19 <= S - TRACK_INSET - ACTIVE_R - TAG_GAP + 0.01, 'tag rechts: links naast de schijf');
-  ok(o.kant === 1 && o.cy - 8.5 >= TRACK_INSET + ACTIVE_R + TAG_GAP - 0.01 && u.kant === 3 && u.cy + 8.5 <= S - TRACK_INSET - ACTIVE_R - TAG_GAP + 0.01, 'tag boven en onder: aan de binnenkant');
-  const hoek = tagPlace(TRACK_INSET, TRACK_INSET, S, 60, 17);
-  ok(hoek.cx - 30 >= 2 && hoek.cy - 8.5 >= 2 && hoek.cx + 30 <= S - 2, 'tag in de hoek blijft binnen de kaart');
+  const l = tagPlace(TRACK_INSET, 120, S, 38, TAG_H), r = tagPlace(S - TRACK_INSET, 120, S, 38, TAG_H), o = tagPlace(120, TRACK_INSET, S, 38, TAG_H), u = tagPlace(120, S - TRACK_INSET, S, 38, TAG_H);
+  ok(l.kant === 0 && l.cx - 19 >= TRACK_INSET + ACTIEF_UIT + TAG_GAP - 0.01 && Math.abs(l.cy - 120) < 0.01, 'tag links: rechts naast de schijf, op dezelfde hoogte');
+  ok(r.kant === 2 && r.cx + 19 <= S - TRACK_INSET - ACTIEF_UIT - TAG_GAP + 0.01, 'tag rechts: links naast de schijf');
+  ok(o.kant === 1 && o.cy - TAG_H / 2 >= TRACK_INSET + ACTIEF_UIT + TAG_GAP - 0.01 && u.kant === 3 && u.cy + TAG_H / 2 <= S - TRACK_INSET - ACTIEF_UIT - TAG_GAP + 0.01, 'tag boven en onder: aan de binnenkant');
+  const hoek = tagPlace(TRACK_INSET, TRACK_INSET, S, 60, TAG_H);
+  ok(hoek.cx - 30 >= 2 && hoek.cy - TAG_H / 2 >= 2 && hoek.cx + 30 <= S - 2, 'tag in de hoek blijft binnen de kaart');
   // obstakels: een marker op de plek van de N-badge schuift opzij en blijft op de baan
   const n = place([{ a: -Math.PI / 2, actief: true }], S, [{ a: -Math.PI / 2, nodig: 28 }]).items[0];
   const noord = b.sVoor(-Math.PI / 2);
@@ -252,7 +252,56 @@ const types = (r) => r.alle.map((d) => d.type + ':' + d.rol);
   ok(wind.every((q) => Math.min(Math.abs(q.s - b.sVoor(2.72)) % b.lengte, b.lengte - (Math.abs(q.s - b.sVoor(2.72)) % b.lengte)) >= 30 - 0.6), 'punten wijken ook voor het windschijfje');
   const hud = fs.readFileSync(new URL('../game/js/hud_panel.js', import.meta.url), 'utf8');
   ok(/compactDistance\(/.test(hud) && /obstakels/.test(hud), 'hud_panel.js: compacte afstand en obstakels');
-  ok(DOT_R < ACTIVE_R && DOT_R * 2 >= 16, 'punten kleiner dan de schijf, maar minstens 16 px');
+  ok(DOT_R < ACTIVE_R && DOT_R <= 7 && ACTIVE_R <= 10, `schijf hooguit straal 10 en punten hooguit 7 (${ACTIVE_R} en ${DOT_R})`);
+}
+
+// 21. ronde 5 (minder ruimte): oppervlaktebudget, afstandstekst, klemming in de hoeken, geen overlap met N-badge, windschijf en de schijf zelf
+{
+  const S = 250, b = track(S);
+  // het budget: het doel dat je volgt met de langste gangbare tekst ("12,5 km" is smaller dan "420 m" niet; we nemen 36 px tekst) neemt hooguit 1.000 px2 in; het
+  // oude (ronde 4: schijf 12 met halo 13,6, tag 17 hoog met 9 px opvulling) nam ca. 1.280 px2 voor 30 px tekst
+  const oud = Math.round(Math.PI * 13.6 ** 2 + (30 + 9) * 17);
+  const nieuw = activeArea(30);
+  ok(nieuw <= 1000 && nieuw <= oud * 0.8, `oppervlak doel + tag: ${nieuw} px2 tegen ${oud} px2 (ronde 4): ${Math.round((1 - nieuw / oud) * 100)} % minder, budget 1000`);
+  ok(tagMaat(10).h <= 16 && tagMaat(10).w <= 40 && tagMaat(99).w === TAG_W_MAX && tagMaat(99).h === TAG_H, 'de tag is hooguit 40 x 16 px, ook bij een lange tekst');
+  ok(TAG_TEKST_PX >= 13, `afstandstekst minstens 13 px (DS3-vloer), nu ${TAG_TEKST_PX}`);
+  // contrast: de tekst staat in inkt op papier (en heeft een inktrand): minstens 4,5:1
+  ok(contrast(dsKleur('ink-inkt'), dsKleur('ink-papier')) >= 4.5, `afstandstekst: inkt op papier ${contrast(dsKleur('ink-inkt'), dsKleur('ink-papier')).toFixed(1)}:1 (minstens 4,5)`);
+  // geometrie van elke plek op de baan: schijf, tag, obstakels
+  const WIND = { x: 30, y: 250 - 48, r: 24 };
+  const rondje = (cx, cy, r, x0, y0, x1, y1) => rectCirkel(x0, y0, x1 - x0, y1 - y0, { x: cx, y: cy, r });
+  let fouten = [];
+  for (let q = 0; q < b.lengte; q += 3) {
+    const [x, y] = b.punt(q);
+    for (const w of [30, 34, 38, 40]) {
+      const t = tagPlace(x, y, S, w, TAG_H), x0 = t.cx - w / 2, y0 = t.cy - TAG_H / 2;
+      if (x0 < 2 - 0.01 || y0 < 2 - 0.01 || x0 + w > S - 2 + 0.01 || y0 + TAG_H > S - 2 + 0.01) fouten.push(`buiten de kaart bij s=${q} w=${w}`);
+      if (rondje(x, y, ACTIEF_UIT + TAG_GAP - 0.5, x0, y0, x0 + w, y0 + TAG_H)) fouten.push(`tag overlapt de schijf bij s=${q} w=${w} (${x.toFixed(0)},${y.toFixed(0)})`);
+    }
+  }
+  ok(fouten.length === 0, `tag in alle hoeken en langs de hele rand: binnen de kaart en niet op de schijf (${fouten.slice(0, 2).join('; ') || 'geen fouten'})`);
+  // N-badge (straal 13, hart 17 px van de rand: hud_panel.js drawNorthIndicator) en windschijfje (straal 24 op 30, 202): schijf, punt en tag raken ze niet,
+  // ook niet met het doel precies op de N (obstakels zoals hud_panel.js ze doorgeeft)
+  fouten = [];
+  const windA = Math.atan2(WIND.y - S / 2, WIND.x - S / 2);
+  for (let g = 0; g < 360; g += 3) {
+    const a = g * Math.PI / 180;
+    for (const metWind of [false, true]) {
+      const obst = [{ a, nodig: 31, r: 13, inset: 17 }, ...(metWind ? [{ a: windA, nodig: 34, r: 24, x: WIND.x, y: WIND.y }] : [])];
+      const cirkels = obst.map((o) => obstakelCirkel(o, S));
+      for (const extra of [[], [{ a: a + 0.05, actief: false }, { a: a - 0.05, actief: false }]]) {
+        const it = place([{ a, actief: true }, ...extra], S, obst).items;
+        for (const q of it) for (const c of cirkels) if (Math.hypot(q.x - c.x, q.y - c.y) < (q.actief ? ACTIEF_UIT : DOT_R + 1.1) + c.r - 0.5) fouten.push(`${q.actief ? 'doel' : 'punt'} op een obstakel bij ${g} graden`);
+        const act = it.find((q) => q.actief);
+        const dots = it.filter((q) => !q.actief).map((q) => ({ x: q.x, y: q.y, r: DOT_R + 1.2 }));
+        const w = 34, t = tagPlace(act.x, act.y, S, w, TAG_H, ACTIEF_UIT, [...cirkels, ...dots]), x0 = t.cx - w / 2, y0 = t.cy - TAG_H / 2;
+        for (const c of [...cirkels, ...dots, { x: act.x, y: act.y, r: ACTIEF_UIT }]) if (rectCirkel(x0, y0, w, TAG_H, { ...c, r: c.r - 0.5 })) fouten.push(`tag raakt een ${c === cirkels[0] ? 'N-badge' : c.r === 24 ? 'windschijf' : 'schijf'} bij ${g} graden${metWind ? ' met wind' : ''}`);
+        if (x0 < 1.99 || y0 < 1.99 || x0 + w > S - 1.99 || y0 + TAG_H > S - 1.99) fouten.push(`tag buiten de kaart bij ${g} graden`);
+      }
+    }
+  }
+  ok(fouten.length === 0, `schijf, punt en tag raken N-badge, windschijf en elkaar niet, in elke richting (${fouten.length} fouten: ${fouten.slice(0, 3).join('; ') || 'geen'})`);
+  ok(/nodig: 34, r: 24/.test(fs.readFileSync(new URL('../game/js/hud_panel.js', import.meta.url), 'utf8')), 'hud_panel.js: het windschijfje houdt 34 px afstand');
 }
 
 console.log(`navtarget_test: ${n} controles, ${fails} fouten`);

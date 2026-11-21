@@ -3125,8 +3125,8 @@ function drawMinimap(dt, world) {
     kompas.push({ a: edgeAngle(d.x, d.y), kleur: navColor(d, palet), icoon: GLYPH[d.glyph] || GLYPH.punt, actief, tekst: actief ? compactDistance(distanceFor(d, actieveRoute)) : '' });
   }
   // obstakels op of bij de rand waar de markers omheen schuiven: de N-badge en het windschijfje (de hitte-chip is er niet meer, #1141)
-  const obstakels = [{ a: mapRotation - Math.PI / 2, nodig: 28 }];
-  if (wind) obstakels.push({ a: Math.atan2(MINIMAP_SIZE - WIND_Y - cy, WIND_X - cx), nodig: 30 });
+  const obstakels = [{ a: mapRotation - Math.PI / 2, nodig: 31, r: 13, inset: 17 }];
+  if (wind) obstakels.push({ a: Math.atan2(MINIMAP_SIZE - WIND_Y - cy, WIND_X - cx), nodig: 34, r: 24, x: WIND_X, y: MINIMAP_SIZE - WIND_Y });
   drawKompasRand(ctx, MINIMAP_SIZE, kompas, { t, beweging: !reducedMotion(), obstakels });
 }
 
