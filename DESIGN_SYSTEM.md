@@ -555,6 +555,7 @@ Classes in `ds-components.css` (block, `__part`, `--modifier`). The list below i
 | `.ds-z-glyph` | one key or button glyph (keyboard, mouse, controller, Steam Deck, touch) on a white plate with ink edge; `data-set` picks the font | none | none |
 | `.ds-z-stempel` | stamp: a tilted print with an edge | none | `--geel`, `--gevaar`, `--in` (drops in within 250 ms; none in Rustig drukwerk) |
 | `.ds-z-bon` | receipt line: name, dotted leader, amount, double rule above the total | `__regel`, `__stippen`, `__bedrag`, `__totaal` | none |
+| `.ds-z-feit` | fact tile: a number with a word under it, paper with an ink edge (benchmark result, summaries); the number is a Barlow figure | `__n`, `__l` | `--probleem` |
 | `.ds-z-leeg` | halftone empty state: raster block with a dashed edge, a word and one action | `__beeld`, `__kop`, `__tekst` | none (Rustig drukwerk: no raster, the dashed edge and the word stay) |
 | `.ds-z-balk` | progress bar: raster track, ink fill, a label with the numbers; set `--ds-z-w` | `__baan`, `__vul`, `__label` | `--tijd` (yellow), `--laag` (red) |
 | `.ds-z-waarde` | plate for HUD values: paper with an ink edge | `__icoon`, `__getal`, `__eenheid` | `--wijzig` (misregistration pulse on change), `--gevaar`, `--weg` (faded out) |

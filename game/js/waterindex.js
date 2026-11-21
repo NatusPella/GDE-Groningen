@@ -220,11 +220,15 @@ function staticWater(map) {
   const rows = map.waterGrid ? gridItems(map.waterGrid) : map['water'] || [];
   return (map._staticWater = new Set(rows.filter((w) => !w.tile)));
 }
+// Een index is bruikbaar als hij zijn vragen kan beantwoorden. Een kaart zonder waterraster, een mislukte opbouw of een
+// kaartkopie zonder functies (een werker) mag nooit 'idx.inWater is not a function' per beeld geven: dan bouwen we opnieuw.
+const heelIndex = (ix) => !!ix && typeof ix.inWater === 'function';
 export function getWaterIndex(map, poly = null) {
+  if (!map) return (LEGE_INDEX || (LEGE_INDEX = createWaterIndex([])));
   if (poly && map.waterNear && !staticWater(map).has(poly)) return polyWaterIndex(map, poly);
   const st = staticWater(map);
   const ver = map._staticWaterVer || 0;
-  if (map._waterIndex && map._waterIndexSeen === ver) return map._waterIndex;
+  if (heelIndex(map._waterIndex) && map._waterIndexSeen === ver) return map._waterIndex;
   map._waterIndexSeen = ver;
   return (map._waterIndex = createWaterIndex([...st]));
 }
@@ -232,11 +236,12 @@ export function getWaterIndex(map, poly = null) {
 // the index that has (x, y) in its water: the tile polygons' where they hold it, else the city's
 export function waterIndexAt(map, x, y) {
   const t = tileWaterIndex(map, x, y);
-  return t && t.inWater(x, y) ? t : getWaterIndex(map);
+  return heelIndex(t) && t.inWater(x, y) ? t : getWaterIndex(map);
 }
 
+let LEGE_INDEX = null;
 function polyWaterIndex(map, poly) {
-  if (poly._wi) return poly._wi;
+  if (heelIndex(poly._wi)) return poly._wi;
   const b = poly.bounds || [Infinity, Infinity, -Infinity, -Infinity];
   const cx = (b[0] + b[2]) / 2, cy = (b[1] + b[3]) / 2, r = Math.max(b[2] - b[0], b[3] - b[1]) / 2 + 40;
   const near = new Set(map.waterNear(cx, cy, r));

@@ -206,6 +206,19 @@ html.pad-active :is(.ds-z-knop, .ds-z-kaart, .ds-z-tab, .ds-z-rij):focus { outli
 .ds-z-kaart--probleem { background: var(--ds-c-rood-vlak); border-color: var(--ds-c-rood); color: var(--ds-c-rood-tx); box-shadow: var(--ds-schaduw-hard-roze); }
 .ds-z-kaart--uit, .ds-z-kaart[aria-disabled="true"] { border-style: dashed; box-shadow: none; transform: none; }
 
+.ds-z-kaart--bord { background: var(--ds-c-ink-bord); border-color: var(--ds-c-ink-inkt); color: var(--ds-c-wit); box-shadow: var(--ds-schaduw-hard); }
+
+/* ---- Feit: een getal met een woord eronder, als papieren tegel (benchmark, samenvattingen); het getal draagt de kop ---- */
+.ds-z-feit {
+  display: flex; flex-direction: column; gap: var(--ds-s-1); min-width: calc(var(--ds-s-8) * 1.5); padding: var(--ds-s-2) var(--ds-s-3);
+  background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r);
+  box-shadow: var(--ds-schaduw-hard-klein);
+}
+.ds-z-feit__n { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-cijfer); line-height: var(--ds-lh-kop); font-variant-numeric: tabular-nums; }
+.ds-z-feit__n small { font-size: var(--ds-t-subkop); }
+.ds-z-feit__l { font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-hulp); line-height: var(--ds-lh-tekst); }
+.ds-z-feit--probleem { background: var(--ds-c-rood-vlak); border-color: var(--ds-c-rood); color: var(--ds-c-rood-tx); }
+
 /* ---- Chip: status of gevolg, altijd icoon of vorm plus een woord ---- */
 .ds-z-chip {
   display: inline-flex; align-items: center; gap: var(--ds-s-1); min-height: var(--ds-hoogte-chip); padding: 0 var(--ds-s-3);

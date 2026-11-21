@@ -174,51 +174,18 @@ const CSS = `
 #trailer .tr-sub { left: 50%; bottom: calc(var(--bar) + 3vh); transform: translateX(-50%); width: min(86vw, 1500px); text-align: center; font: 700 clamp(18px, 2.3vw, 60px) 'Atkinson Hyperlegible', Arial, sans-serif; letter-spacing: 0.3px; opacity: 0; text-shadow: 2px 2px 0 #1d1b17, 0 0 2px rgba(0, 0, 0, 0.9); }
 #trailer .tr-sub.on { opacity: 1; }
 #trailer .tr-sub b { color: #e8505b; margin-right: 6px; }
-#trailer .tr-skip { right: 3vw; bottom: calc(var(--bar) * 0.5); transform: translateY(50%); display: flex; align-items: center; gap: 6px; font: 16px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240, 237, 228, 0.92); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8); opacity: 0; transition: opacity 0.25s; }
+#trailer .tr-skip { right: 3vw; bottom: calc(var(--bar) * 0.5); transform: translateY(50%); display: flex; opacity: 0; transition: opacity 0.25s; } /* uiterlijk: ds-schermen.css */
 #trailer.skippable .tr-skip { opacity: 1; }
 body.trailer-rec #trailer .tr-skip, body.trailer-rec #trailer .tr-fps { display: none; }
-#trailer .tr-skip .key { display: inline-flex; align-items: center; justify-content: center; height: 20px; padding: 0 5px; background: #fbfaf5; border: 0; border-radius: 5px; color: #0c140e; font-weight: bold; text-shadow: none; box-shadow: 0 2px 0 #a9a69b, 0 0 0 1px rgba(0, 0, 0, 0.18); font: 11px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1px; }
 #trailer .tr-skip svg { width: 20px; height: 20px; transform: rotate(-90deg); }
-#trailer .tr-skip circle { fill: none; stroke: rgba(240, 237, 228, 0.25); stroke-width: 3; }
-#trailer .tr-skip .fill { stroke: #3fc97a; stroke-linecap: round; stroke-dasharray: 62.8; stroke-dashoffset: calc(62.8 * (1 - var(--hold, 0))); }
-#trailer .tr-skip.holding { color: #f0ede4; }
-#trailer .tr-fps { right: 2.2vw; bottom: 1.6vh; font: 13px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1.5px; color: rgba(243,234,211, 0.55); display: none; }
+#trailer .tr-skip circle { fill: none; stroke-width: 3; }
+#trailer .tr-skip .fill { stroke-linecap: round; stroke-dasharray: 62.8; stroke-dashoffset: calc(62.8 * (1 - var(--hold, 0))); }
+#trailer .tr-fps { right: 2.2vw; bottom: 1.6vh; display: none; } /* uiterlijk: ds-schermen.css */
 #trailer.bench .tr-fps { display: block; }
-#trailer .tr-cancel { display: none; left: 3vw; bottom: calc(var(--bar) * 0.5); transform: translateY(50%); align-items: center; gap: 8px; font: 16px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240, 237, 228, 0.92); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8); }
+#trailer .tr-cancel { display: none; left: 3vw; bottom: calc(var(--bar) * 0.5); transform: translateY(50%); }
 #trailer.bench .tr-cancel { display: flex; }
-#trailer .tr-cancel .key { display: inline-flex; align-items: center; justify-content: center; height: 22px; padding: 0 8px; background: linear-gradient(180deg, #ffffff, #d9d6cc); border: 1px solid rgba(0, 0, 0, 0.4); border-bottom: 2px solid rgba(0, 0, 0, 0.55); border-radius: 4px; color: #1a1d18; font: 12px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1px; }
-#trailer-result { position: fixed; inset: 0; z-index: 30; display: flex; align-items: center; justify-content: center; background: rgba(4, 8, 6, 0.55); font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; color: #f0ede4; animation: tr-res-in 0.35s ease both; }
-#trailer-result[hidden] { display: none; }
-@keyframes tr-res-in { from { opacity: 0; } to { opacity: 1; } }
-#trailer-result .tr-res { width: min(520px, calc(100vw - 32px)); background: rgba(8, 14, 10, 0.88); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid rgba(63, 201, 122, 0.4); border-radius: 6px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); padding: 22px 26px 20px; box-sizing: border-box; }
-#trailer-result h2 { margin: 0; font-size: 38px; letter-spacing: 2px; font-weight: normal; color: #3fc97a; }
-#trailer-result .tr-meta { margin: 2px 0 14px; font: 14px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240, 237, 228, 0.65); }
-#trailer-result .tr-nums { display: flex; flex-wrap: wrap; gap: 14px 30px; margin-bottom: 12px; }
-#trailer-result .tr-nums div { display: flex; flex-direction: column; }
-#trailer-result .tr-nums b { font-size: 56px; line-height: 1; font-weight: normal; }
-#trailer-result .tr-nums b small { font-size: 20px; color: rgba(240, 237, 228, 0.7); }
-#trailer-result .tr-cmp { color: rgba(240, 237, 228, 0.8); }
-#trailer-result .tr-cmp.sneller { color: #3fc97a; } #trailer-result .tr-cmp.trager { color: #e8a24a; }
-#trailer-result .tr-cats { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
-#trailer-result .tr-cats span { display: flex; flex-direction: column; min-width: 84px; padding: 5px 9px; border: 1px solid rgba(240, 237, 228, 0.18); border-radius: 4px; font: 12px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; text-transform: uppercase; color: rgba(240, 237, 228, 0.7); }
-#trailer-result .tr-cats span.weak { border-color: #e8a24a; }
-#trailer-result .tr-cats b { font: 20px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1px; color: #f0ede4; }
-#trailer-result .tr-nums span { font: 13px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; color: rgba(240, 237, 228, 0.7); text-transform: uppercase; }
-#trailer-result p { margin: 6px 0; font: 16px/1.4 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.2px; }
-#trailer-result .tr-advice { color: #f0ede4; border-left: 3px solid #3fc97a; padding-left: 10px; margin-top: 12px; }
-#trailer-result .tr-advice b { color: #3fc97a; }
-#trailer-result .tr-advice small { display: block; margin-top: 2px; font-size: 14px; color: rgba(240, 237, 228, 0.7); }
-#trailer-result .tr-keys { margin: 12px 0 0; font-size: 14px; opacity: 0.8; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-#trailer-result .tr-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
-#trailer-result button { font: 20px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1.5px; padding: 7px 16px; border-radius: 3px; cursor: pointer; background: transparent; color: #f0ede4; border: 1px solid rgba(63, 201, 122, 0.6); }
-#trailer-result button.primary { background: linear-gradient(90deg, #1e9e56, #3fc97a); color: #0c140e; border-color: transparent; }
-#trailer-result button:hover, #trailer-result button:focus-visible { border-color: #5fe39a; color: #5fe39a; outline: none; }
-#trailer-result button.primary:hover, #trailer-result button.primary:focus-visible { color: #0c140e; box-shadow: 0 0 0 2px #f0ede4; }
-#trailer-result button[hidden] { display: none; }
 /* 0.64.1: the cursor is only hidden while a picture plays; on the result card (class tr-result-open) it is back, otherwise the card looked unclickable */
 body.trailer-on:not(.tr-result-open), body.trailer-on:not(.tr-result-open) * { cursor: none !important; }
-body.tr-result-open #trailer-result, body.tr-result-open #trailer-result * { cursor: default; }
-body.tr-result-open #trailer-result button { cursor: pointer; }
 #trailer .tr-slices { display: flex; gap: 1.1vw; margin-top: 1.4vh; }
 #trailer .tr-slices i { display: block; width: 5.2vw; height: 2.6vw; border-radius: 0.5vw; background: #f3ead3; position: relative; transition: none; }
 #trailer .tr-slices i.x { background: rgba(243,234,211, 0.28); }
@@ -231,7 +198,6 @@ body.trailer-on.trailer-hud #hud { visibility: visible; }
 body.trailer-hud #hud .hud-prompts, body.trailer-hud #hud .hud-ctx { display: none; }
 #trailer.hudshot .tr-bar, #trailer.hudshot .tr-vig { display: none; }
 body.trailer-heli #hud .hud-top-left { display: none; }
-@media (max-width: 700px) { #trailer-result .tr-nums { gap: 20px; } #trailer-result .tr-nums b { font-size: 42px; } }
 `;
 
 let ui = null;
@@ -2561,20 +2527,32 @@ export function showBenchmarkResults(res) {
   const adv = stats ? advise(stats) : { text: 'Er is niets gemeten. Probeer het nog een keer.', apply: null };
   // #379: the JS heap only when the browser gives it (performance.memory)
   const mem = stats && stats.memory > 0 ? memText(stats.memory).split(' ') : null;
-  const meta = `Kwaliteit ${st.quality} · schaduwen ${st.shadows && QUALITY_PRESETS[st.quality].shadows ? 'aan' : 'uit'} · zichtafstand ${st.drawDistance} · resolutie ${Math.round(st.resolution * 100)}%${st.autoResolution ? ' (auto)' : ''} · ${innerWidth}×${innerHeight}`;
-  resultEl.innerHTML = `<div class="tr-res">
-    <h2 id="tr-res-title">Benchmark</h2>
-    <div class="tr-meta">${meta}</div>
-    ${stats ? `<div class="tr-nums"><div><b>${r(stats.avg)}</b><span>fps gemiddeld</span></div><div><b>${r(stats.p95)}<small> ms</small></b><span>p95-frametijd</span></div><div><b>${r(stats.low1)}</b><span>laagste 1%</span></div>${stats.play ? `<div title="Zonder de cutscenes: wat je in het spel zelf ziet."><b>${r(stats.play.avg)}</b><span>fps in het spel</span></div>` : ''}${mem ? `<div title="De JavaScript-heap van het spel, de hoogste stand tijdens de meting. Niet het beeldgeheugen van de videokaart."><b>${mem[0]}<small> ${mem[1]}</small></b><span>JS-heap (piek)</span></div>` : ''}</div>
+  const meta = `Kwaliteit ${st.quality} · schaduwen ${st.shadows && QUALITY_PRESETS[st.quality].shadows ? 'aan' : 'uit'} · zichtafstand ${st.drawDistance} · resolutie ${Math.round(st.resolution * 100)}%${st.autoResolution ? ' (auto)' : ''}`;
+  // Het resultaat is een zeefdrukpaneel (designsysteem): cijfers als feiten, het advies in een bordgroene kaart, één gele hoofdknop.
+  const feit = (n, l, title = '') => `<li class="ds-z-feit"${title ? ` title="${title}"` : ''}><b class="ds-z-feit__n">${n}</b><span class="ds-z-feit__l">${l}</span></li>`;
+  const zwakste = stats ? weakestCategory(stats.cats) : null;
+  const cats = stats ? Object.entries(stats.cats).map(([c, v]) => {
+    const zwak = c === zwakste && stats.cats[c].avg < 60;
+    return `<li class="ds-z-chip${zwak ? ' ds-z-chip--probleem' : ''}">${BENCH_CATEGORIES[c]} <b>${r(v.avg)} fps</b>${zwak ? ' · laagste' : ''}</li>`;
+  }).join('') : '';
+  const heap = mem ? feit(`${mem[0]}<small> ${mem[1]}</small>`, 'JS-heap (piek)', 'De JavaScript-heap van het spel, de hoogste stand tijdens de meting. Niet het beeldgeheugen van de videokaart.') : '';
+  const play = stats && stats.play ? feit(r(stats.play.avg), 'fps in het spel', 'Zonder de cutscenes: wat je in het spel zelf ziet.') : '';
+  const cijfers = stats
+    ? `<ul class="tr-feiten">${feit(r(stats.avg), 'fps gemiddeld')}${feit(`${r(stats.p95)}<small> ms</small>`, 'p95-frametijd')}${feit(r(stats.low1), 'laagste 1%')}${play}${heap}</ul>
     <p class="tr-cmp ${diff ? diff.verdict : ''}">${compareText(diff)}</p>
-    ${Object.keys(stats.cats).length ? `<div class="tr-cats">${Object.entries(stats.cats).map(([c, v]) => `<span class="${c === weakestCategory(stats.cats) && stats.cats[c].avg < 60 ? 'weak' : ''}">${BENCH_CATEGORIES[c]}<b>${r(v.avg)} fps</b></span>`).join('')}</div>` : ''}` : ''}
-    <p class="tr-advice">${adv.text}${adv.what ? `<small>${adv.what}</small>` : ''}</p>
+    ${cats ? `<ul class="tr-cats">${cats}</ul>` : ''}`
+    : '';
+  resultEl.innerHTML = `<div class="tr-res ds-zeef ds-z-kaart ds-z-kaart--recht">
+    <div class="ds-z-kaart__kop"><h2 id="tr-res-title" class="ds-z-kaart__titel">Benchmark</h2><span class="ds-z-chip">${innerWidth}×${innerHeight}</span></div>
+    <p class="tr-meta">${meta}</p>
+    ${cijfers}
+    <div class="tr-advice ds-z-kaart ds-z-kaart--bord ds-z-kaart--recht"><p class="tr-advice__kop">${adv.text}</p>${adv.what ? `<small>${adv.what}</small>` : ''}</div>
     <div class="tr-actions">
-      <button type="button" class="primary" data-act="apply"${adv.apply ? '' : ' hidden'}>Toepassen</button>
-      <button type="button" data-act="again">Nog een keer</button>
-      <button type="button" data-act="settings">Instellingen</button>
-      <button type="button" data-act="diag">Technische info kopiëren</button>
-      <button type="button"${adv.apply ? '' : ' class="primary"'} data-act="back">Terug {ESC}</button>
+      <button type="button" class="ds-z-knop" data-act="apply"${adv.apply ? '' : ' hidden'}>Toepassen</button>
+      <button type="button" class="ds-z-knop ds-z-knop--secundair" data-act="again">Nog een keer</button>
+      <button type="button" class="ds-z-knop ds-z-knop--secundair" data-act="settings">Instellingen</button>
+      <button type="button" class="ds-z-knop ds-z-knop--secundair" data-act="diag">Technische info kopiëren</button>
+      <button type="button" class="ds-z-knop${adv.apply ? ' ds-z-knop--secundair' : ''}" data-act="back">Terug {ESC}</button>
     </div>
     <p class="tr-keys">{ARROWS} kiezen · {ENTER} ok · {ESC} terug</p></div>`;
   resultEl.hidden = false;
@@ -2592,8 +2570,9 @@ export function showBenchmarkResults(res) {
     const act = (a, btn) => {
       if (a === 'apply' && adv.apply) {
         applyPreset(adv.apply);
-        resultEl.querySelector('.tr-advice').textContent = 'Toegepast. Draai de benchmark nog een keer om het verschil te zien.';
+        resultEl.querySelector('.tr-advice').innerHTML = '<p class="tr-advice__kop">Toegepast.</p><small>Draai de benchmark nog een keer om het verschil te zien.</small>';
         btn.hidden = true;
+        resultEl.querySelector('[data-act="back"]').classList.remove('ds-z-knop--secundair'); // zonder Toepassen is Terug de hoofdknop
         buttons()[0].focus({ preventScroll: true });
       } else if (a === 'diag') {
         import('./gpudiag.js').then((G) => G.copyTechInfo()).then((ok) => { btn.textContent = ok ? 'Gekopieerd' : 'Kopiëren lukte niet'; }, () => { btn.textContent = 'Kopiëren lukte niet'; });
