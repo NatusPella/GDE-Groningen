@@ -122,7 +122,10 @@ export function bargesPerWater(vehicles) {
 // excluded here exactly like manageTrafficPopulation excludes police cars -
 // police.js owns their spawn/despawn lifecycle on its own wanted-driven
 // schedule, not the ambient civilian quota.
-export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMax = 180, despawnDist = 260 } = {}) {
+// budget: ms van het kanaalpuntenscannen per aanroep (waterindex.js, tijdbudget per frame). In het spel blijft dat 3 ms: de scan loopt over
+// meerdere frames en een boot komt zodra er punten zijn. Een test of audit die dezelfde plekken voor dezelfde seed wil, geeft Infinity:
+// dan is de scan af voordat er gekozen wordt en hangt de keuze niet van de klok af (boot_spawn_test).
+export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMax = 180, despawnDist = 260, budget = 3 } = {}) {
   const { map, player, vehicles } = world;
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
@@ -155,7 +158,7 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
     // the barge fleet stays at four in the whole world: the second loop below
     // fills the rest per canal (#502 review)
     if (lifeKind && BOAT_KINDS[lifeKind].kind === 'binnenvaart' && have.binnenvaart >= BARGE_MAX) continue;
-    const v = spawnBoatOnWater(map, poly, Math.random, { near: [player.x, player.y], min: spawnMin, max: spawnMax, budget: 3, model: lifeKind ? BOAT_KINDS[lifeKind] : undefined });
+    const v = spawnBoatOnWater(map, poly, Math.random, { near: [player.x, player.y], min: spawnMin, max: spawnMax, budget, model: lifeKind ? BOAT_KINDS[lifeKind] : undefined });
     if (v && lifeKind) have[BOAT_KINDS[lifeKind].kind === 'binnenvaart' ? 'binnenvaart' : lifeKind]++;
     if (!v || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
     if (vehicles.some((o) => o.isBoat && !o.wrecked && Math.hypot(o.x - v.x, o.y - v.y) < (isBarge(v) ? v.halfLen + o.halfLen + 20 : (isBarge(o) ? BARGE_ROOM * 0.6 : 0) + o.halfLen))) continue;
@@ -174,7 +177,7 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
       const poly = wide[Math.floor(Math.random() * wide.length)];
       const body = waterBodyKey(poly);
       if ((perWater.get(body) || 0) >= BARGE_PER_WATER) continue;
-      const v = spawnBoatOnWater(map, poly, Math.random, { near: [player.x, player.y], min: spawnMin + 20, max: spawnMax, budget: 3, model: BOAT_KINDS[Math.random() < 0.55 ? 'spits' : 'kempenaar'] });
+      const v = spawnBoatOnWater(map, poly, Math.random, { near: [player.x, player.y], min: spawnMin + 20, max: spawnMax, budget, model: BOAT_KINDS[Math.random() < 0.55 ? 'spits' : 'kempenaar'] });
       if (!v || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
       if (vehicles.some((o) => o.isBoat && !o.wrecked && Math.hypot(o.x - v.x, o.y - v.y) < v.halfLen + o.halfLen + 20)) continue;
       if (Math.hypot(v.x - player.x, v.y - player.y) < 40 + v.halfLen) continue;
