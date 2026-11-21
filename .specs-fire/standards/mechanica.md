@@ -177,6 +177,22 @@ kost niets. De banen komen uit `game/vliegplekken.json`.
 
 **Tests.** `voetbal_spelers_test`, `voetbalparken_test`, `voetbal_seizoen_test`, `voetbal_ontwikkeling_test`, `voetbal_carriere_test`, `voetbal_carrierelive_test`, `voetbal_ui_test`, `voetbal_transfers_test`, `voetbal_beats_test`, `voetbal_samen_test`, `voetbal_sponsors_test`, `voetbal_wereld_test` en de sim-testbank `scripts/voetbal_carriere_sim.mjs`.
 
+## Bezit en snackwagen (epic #1095)
+
+**Doel.** Percelen en panden in de hele provincie zijn te koop; wie ze heeft, laat ze draaien (land, vee, ketens, winkels, woningen) en eindigt met een eigen snackwagen tegenover de concurrent Usmem Snacks. Ontwerp en werkpakketten: docs/BEZIT-21-11.md; wat nog gecontroleerd moet worden: docs/BEZIT-VERIFICATIE-21-11.md.
+
+**Regels.** Alles is een pure functie van de speldag (`bezithash.js`), zonder Math.random en zonder klok. Opslag per speler; een gast bouwt een eigen imperium (#429) en claims lopen over het netwerk (`bezitnet.js`, `bezitcoop.js`). Een sponsor van de voetbalcarrière krijgt een eigen pand (`sponsorpanden.js`). Het verhaal opent de wereld in fasen via `unlockgate.js` en de stille vlaggen `wagen:*`. De concurrent is satire: zakelijk pesten, nooit geweld, nooit een echt slachtoffer (constitutie 6); alle namen zijn verzonnen (constitutie 2).
+
+**Bestanden.** `parcelindex.js`, `bezit.js`, `bezitprijs.js`, `bezitchain.js`, `supplychain.js`, `chaintrucks.js`, `bezitbeheer.js`, `bezitevents.js`, `bezitnews.js`, `housing.js`, `snackvan.js`, `snackstory.js`, `rival.js`, `goodwill.js`, `reputation.js`. **Tests.** `bezit_test`, `bezit_index_test`, `bezit_sim_test`, `bezitchain_test`, `bezitcoop_test`, `bezitnet_test`, `snackvan_test`, `economie_sim_test`.
+
+## Kleding (epic Kleding)
+
+**Doel.** Kleding is een eigen systeem: losse stukken in twaalf slots die je koopt, past en combineert, met een kast per personage en dezelfde stukken voor NPC's. Zie docs/KLEDING-21-11.md.
+
+**Regels.** Elk stuk is los te kiezen (sets zijn een snelkoppeling); alleen de pasvorm hangt van de lichaamsvorm af. De kapper hoort bij de outfit. Samen spelen: medespelers zien elkaars kleding en haar als optioneel veld. NPC's kleden zich uit rolpools per buurt en uur, zonder extra drawcalls per stuk.
+
+**Bestanden.** `clothing.js`, `clothingdata.js`, `clothinghair.js`, `clothingpanel.js`, `kapperkeuze.js`, `models3d_clothing.js`, `models3d_hair.js`. **Tests.** `clothing_test`.
+
 ## Autotuning (epic #1155)
 
 **Doel.** Je kunt je eigen voertuig pimpen in elke garage, en soms zie je een gepimpte auto in de wereld, maar nooit veel.

@@ -174,6 +174,7 @@ De kern (eigenaar, 21-11): twee net afgestudeerde vrienden zoeken een plekje in 
 - **Dialoogvorm** (`dialogueform.js`; `dialoogvorm_test`): `{ov}`, `{cut}`, `{pause}` per regel; zonder tag verandert niets.
 - **Toetsen op de tekst** (`dialogue_rhythm_test`, `introduction_test`, `story_spine_test`): ritme, introducties en de ruggengraat; de allowlists worden alleen korter.
 - **Reputatie, thuis en carrière-tour** (`reputation.js`, `homebase.js`, `careertour.js`): zuivere modellen met tests; de koppeling aan de wereld staat in [docs/VERHAAL-VERIFICATIE-21-11.md](../../docs/VERHAAL-VERIFICATIE-21-11.md).
+- **Beppe** (`beppe_boog.js`, `beppe_visit_rules.js`, `beppe_binnen.js`; `beppe_boog_test`, `beppe_visit_test`): haar huis is open na M01, ze overlijdt na M06 en de herinnering blijft; afgeleid uit de verhaalstand, geen migratie, binnen met een vaste kamercamera. Zie docs/BEPPE-HUIS-21-11.md.
 - **Samen spelen:** iedereen is lokaal de hoofdpersoon die de stap nodig heeft en ziet de ander als partner-NPC; alles hierboven is per speler lokaal of scènetekst (zie docs/COOP-GAST.md).
 
 ## Afwijkingen tussen docs en code
