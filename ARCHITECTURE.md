@@ -170,6 +170,48 @@ Short notes on what was added after 0.35.0 (all in `game/js/` unless stated). "P
 - `desktop/devtools.js`: benchmark, smoke, perf and story-test harness, loaded only when the app is unpackaged or `GDE_DEV=1` (constitution 9). `desktop/args.cjs` is the single argument parser (`desktop_args_test.mjs`); `desktop/envcompat.js` maps the old `GTE_*` environment names to `GDE_*`.
 - `scripts/run_tests.mjs` runs the standard tests (`--quick`, `--only=`, `--list`); `.github/workflows/test.yml` runs it on Linux and Windows. `scripts/text_audit.mjs` checks all player-facing text against the constitution (allowlist in `text_audit_allow.json`).
 
+## Modules since 0.64
+
+What was added after 0.64.0 (21-11, all in `game/js/` unless stated). The same rule as above: "pure" has no THREE, DOM or clock and has a `scripts/<name>_test.mjs`. Each area has a working document in `docs/`; this is only the map.
+
+**Interiors (epic #1150, ADR 0044, `docs/INTERIEURS-21-11.md`)**
+- `interiors.js` is the entry (walk through the front door into the building itself, built lazily, no teleport). Pure parts: `interiorkinds.js` (kinds), `interiorlayout.js` and `interiorplanner.js` (floor plan), `interiorrules.js`, `interiortexts.js`, `interiorspots.js`, `interiorsight.js`. 3D and glue: `interiorbuild3d.js`, `interiorscene.js`, `interiorframe.js`, `interiorwalk.js`, `interiorlook.js`, `interiorupper.js`. People: `interiornpc.js`, `interiorcrowd.js`, `interiorcustomers.js`, `interiorwander.js`, `interioractivity.js`, `interiorbuy.js`. `binnenset.js` is the same idea for indoor missions (`docs/BINNENSETS-21-11.md`); `beppe_*.js` is the house of Beppe and her story arc (`docs/BEPPE-HUIS-21-11.md`).
+
+**Bezit and the snack van (epic #1095, `docs/BEZIT-21-11.md`)**
+- Buyable parcels and buildings across the province: `parcelindex.js` (index over `bezit-percelen.json` and `bezit-panden.json`), `bezit.js` (state), `bezitprijs.js` (price model), `bezitchain.js`, `supplychain.js` and `chaintrucks*.js` (production chain), `bezitbeheer.js`, `bezitevents.js`, `bezitnews.js`, `bezitdifficulty.js`, `housing.js` (homes), `holdingsmodel.js`, `bezitnet.js` and `bezitcoop.js` (Samen spelen, per-player ownership), `bezitui.js`, `bezitmarker*.js`, `forsale*.js` (for-sale cards and map), `sponsorpanden.js`. `unlockgate.js` is the one gate that opens Bezit, farm and football through the story.
+- Farm: `farmmodel.js`, `farmstaff.js`, `farmworkers*.js`, `livestock.js`, `herdview*.js`, `parcelfarm.js`.
+- Snack van as end game: `snackvan.js` (pure sim), `snackstory.js` (story adapter), `snackvanplan.js`, `snacklive.js`, `snackui.js`, `snackvans3d.js`, `pitch*.js` (stands), `rival.js` (the competitor Usmem Snacks, satire only), `goodwill.js`, `reputation.js` (fame, kind, neighbourhood: colour, never a lock).
+
+**Football career (epic #1106, ADR 0042 and 0043)**
+- `voetbal*.js`: `voetbalmatch.js`, `voetbalai.js`, `voetbalbal.js`, `voetbalrules.js` (match), `voetbalregie.js`, `voetbalcommentaar*.js`, `voetbalpresentatie.js` and `voetbaltv.css` (broadcast), `voetbalcarriere*.js`, `voetbalseason.js`, `voetbalcompetitie.js`, `voetbaltransfers.js`, `voetbalsponsors.js`, `voetbalclub_bezit.js`, `voetbalsamen.js`. `penalty*.js` is the Euroborg penalty series (#981). Docs: `docs/VOETBAL-CARRIERE-21-11.md`, `docs/VOETBAL-SIM-21-11.md`, `docs/VOETBAL-UITZENDING-21-11.md`.
+
+**Tuning, clothing, belongings**
+- Autotuning (ADR 0045, `docs/TUNING-21-11.md`): `tuning*.js` is one look system for all vehicles as an overlay on the existing model (`tuningdraft.js`, `tuningoffer.js`, `tuningtraffic.js` for the share in traffic, `tuningworld.js`, `tuningshowroom.js`, `tuningworkshopui.js`, `tuningsfx.js`), with `vehiclelook*.js` for the stored look.
+- Clothing (`docs/KLEDING-21-11.md`): `clothing.js` (wardrobe per character), `clothingdata.js`, `clothinghair.js`, `clothingpanel.js`, `kapperkeuze.js`, `models3d_clothing.js`, `models3d_hair.js`.
+- Belongings in 3D in the pause menu (`docs/SPULLEN-3D-21-11.md`): `spullenmodel.js`, `spullenraster.js`, `spullen3d.js`, `spullenthumbs.js`, `models3d_spullen.js`; weapons in `models3d_weapons.js`.
+
+**Story, missions, opening**
+- `storybridge.js` and `storybridgerun.js` (transition scenes between missions), `storymilestones.js`, `storyromance.js`, `homebase.js` (the home per story step), `recapcard.js` and `recapstate.js` ("Waar waren we?" after Doorgaan), `careertour.js`, `careerbeats.js`, `careermodel.js`, `missionbeats.js`, `missionrules.js`, `missionplace.js`, `missionrequirements.js`, `sidejobbeats.js`, `characterdossiers*.js` (82 casting cards, `docs/PERSONAGES-DOSSIERS-21-11.md`), `dialogueform.js` (overlap, cut and pause tags), `cutdirector.js` (directing engine on `cutscript.js`, `docs/CUTSCENE-REGIE-21-11.md`), `openingfilm.js` (the opening as film data), `launchchoice.js` with `launchchoiceui.js` (Alleen or Samen at every start), `qte.js` (Makkelijk, Normaal, Overslaan, per device), `uitleg.js` with `uitlegdata.js` (icon and animation explainers).
+
+**Air and water guidance, pigeon**
+- `airguide.js` (pure): in a plane, helicopter or as a pigeon the route is a straight line from the nose to the target (`airprofile.js`, `scene3d/airline3d.js`). `pigeonguide.js` and `pigeonguidelogic.js`: the spotting mission of the pigeon (light columns and name plates in the world). `birdbake.js` bakes a bird into a few meshes (draw calls). `sailline.js` with `scene3d/sailline3d.js` and `scene3d/boatbuoy3d.js`: the sailing route line on the water over `vaarnet.js`; `vehicle/boatspots.js` says where boats may appear (`docs/BOOT-SPAWN-21-11.md`).
+
+**Public transport, live data**
+- `trainlive.js`, `trainschedule.js`, `trainservice.js`, `trainsource.js`, `livetrains.js`, `departuretimeline*.js`: live train delays on the departure boards (`docs/TREINEN-LIVE-21-11.md`). `busbron.js`, `busmelding.js` and `ovhint*.js`: the live bus source, its calm notice and the light bus or taxi hint (`docs/BUSSEN-LIVE-21-11.md`). Both only fetch public data, with an off switch in Instellingen (constitution 4).
+
+**Map, HUD, notices**
+- `navtarget.js` (one source for "which target do I follow") and `navpijl.js` (edge marker on the minimap), `mapdeclutter.js`, `hudlinks.js` and `hudstack.js` (location card and police chip on the left), `melding.js` and `fouttoast.js` (notices in four duration classes, `docs/MELDINGEN-21-11.md`), `noticetiming.js`, `pausesearch.js` (search in the pause menu), `listnav.js`, `difficulty*.js` (difficulty per save, `docs/MOEILIJKHEID-21-11.md`), `dsbutton.js`, `dsmicro.js` and the `ds-*.css` files (design system, ADR 0040), `inputglyphs_ink.js`, `achievementunlock.js`, `endcardimpact.js`.
+
+**World, streaming, performance**
+- Streaming and pop-in (#1052, #1016): `tilestream.js` (how tiles are requested without a burst), `placementurgency.js`, `popinrules.js`, `lodstable.js`, `propfilter.js`, `scene3d/cull3d.js`, `scene3d/pedfade3d.js`, `scene3d/prewarm3d.js`, `edgefade3d.js`, `viewanchor.js`. `roadindex.js` is the shared incremental vertex-to-roads index (`docs/PERF-WEGINDEX-21-11.md`); `pathgraphbuild.js`, `pathlane.js`, `pathribbonwatch.js`, `vehicle/roadfit.js`, `vehicle/ditchsweep.js`, `vehicle/trafficstuck.js` for lanes and traffic; `edgeclasses.js` is the one table of parcel and meadow edges (`docs/PERCEELRANDEN-21-11.md`).
+- Look: `worldpalette.js`, `worldgrade.js` and `worldgrade3d.js` (subtle DS3 colour, Uit/Subtiel/Drukwerk, `docs/WERELDKLEUR-21-11.md`), `worldcolormode.js`, `summerday.js` (summer variety per calendar day: heat, clouds, storm, mist, rainbow; pure function of day and clock, equal for all players, `docs/ZOMERVARIATIE-21-11.md`) with `scene3d/kissheart3d.js` and `summerflies3d.js`.
+- Stability and diagnosis: `framesafe.js` (safe update loop), `leakwatch.js` and `memwatch.js` (counters in the technical info, `docs/LEKKEN-21-11.md`), `gpudiag.js`, `gpuherstel.js` and `gpuherstelinfo.js` (soft recovery after a lost WebGL context), `programwatch.js` (shader programs created after start), `audiodiag.js`, `loadgate.js` (loading screen without Enter), `benchmarkmodel.js` and `benchmarkui.js`.
+
+**Sound**
+- `sfx/sfxmap.js` (the central table from event key to clips, level, bus and Samen spelen policy; `sfxEvent()` in `sfx/haken.js`), `sfx/lagenplan.js` (ambience layers per environment), `sfx/stemlimiet.js` (voice cap per category and declick), `audio/ruisbronnen.js`, `tuningsfx.js`, `clothingsfx.js`. Licences in `docs/AUDIO-LICENTIES.md` (ADR 0039).
+
+**Samen spelen for all of this:** per-player progress for Bezit, football, clothing and tuning looks; the host day and clock for `summerday.js`; interiors and indoor scenes are local to the player who enters. The exact rule per feature is in its working document and in `scripts/coop_coverage.json`.
+
 ## Spoken lines
 
 Every line shown as a speech bubble or subtitle has a recording, looked up
