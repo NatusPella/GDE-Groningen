@@ -1,5 +1,12 @@
 {
   "gronings": {
+    "wiet": {
+      "nl": "weet",
+      "status": "twijfel",
+      "n": 1,
+      "opm": "klanknabootsing in \"Tswiet\" (het geluid van een zwaluw), geen Gronings woord; laten staan",
+      "voorstel": "laten staan"
+    },
     "bieno": {
       "nl": "bijna",
       "status": "twijfel",
@@ -4481,6 +4488,11 @@
     }
   },
   "nl_ok": [
+    "joen",
+    "praatjes",
+    "rust",
+    "wandeling",
+    "weertje",
     "baken",
     "doses",
     "duifvlag",
