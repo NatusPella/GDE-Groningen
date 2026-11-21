@@ -129,7 +129,7 @@ const WERF_ENV = { Vehicle: WerfVehicle, getVaarNet: werfVaarNet, waterAt: werfW
 import { routePenalty } from './evenementen.js';
 import { setRouteClosures, getActiveRoute, getRouteAhead, getUserWaypoint } from './routing.js';
 let routeSigDone = '';
-import { updateStationLife } from './stationlife.js';
+import { updateStationLife, allStations, liveOpvraagNodig } from './stationlife.js';
 import { createBoard as createStationBoard } from './minigamekit.js';
 import { applyCityRoutes, loadLandData } from './corridorrail.js';
 import { setFarProps } from './farprops.js';
@@ -322,7 +322,9 @@ const treinDienstBron = createServiceSource({ rooster: () => treinRooster, route
 setTreinDienst(treinDienstBron);
 const treinBord = (world) => {
   if (!treinRooster) return {};
-  treinLive.tick(treinCodes(treinRooster));
+  // alleen opvragen als het gebruikt wordt: niet in Samen spelen en niet ver van elk station (review 22-11)
+  const sp = hoofdspeler(world);
+  treinLive.tick(liveOpvraagNodig(world, allStations(), sp.x, sp.y) ? treinCodes(treinRooster) : null);
   const b = treinDienstBron(world);
   return { rooster: treinRooster, dagsoort: treinDagsoortVan(world), live: world.coopRole ? null : treinLive.bron, liveInstelling: getSettings().liveTreinen !== false, dienst: b ? b.dienst : null };
 };
