@@ -1,4 +1,4 @@
-// Eén wanted-systeem (#1080): sterren alleen rechtsboven, geen schild-chip of sterren op de minimap.
+// Eén wanted-systeem (#1080, aangepast #1175): de sterren staan op de minimap (alleen bij 1 ster of meer), niet meer groot rechtsboven; geen schild-chip.
 //   node scripts/wanted_een_test.mjs
 import { readFileSync } from 'node:fs';
 import { wantedPhase, wantedStatus, wantedAnnounce } from '../game/js/wantedstate.js';
@@ -31,8 +31,12 @@ ok(momentVanWanted(2, 0).titel === 'Vrij' && momentVanWanted(2, 0).klein === 'We
 const panel = lees('../game/js/hud_panel.js'), css = lees('../game/js/hud_panel.css');
 ok(!/minimapheat|heatChip|policeBadge|mmHeat/.test(panel), 'hud_panel.js kent de oude chip niet meer');
 ok(!/hud-mm-heat/.test(css), 'de chip-CSS is weg');
-ok(/class="hud-wanted" role="img" hidden/.test(panel) && /els\.wanted\.hidden = ster === 0/.test(panel), 'de kaart is verborgen bij 0 sterren');
-ok(/hw-status/.test(panel) && /class="hud-search" hidden/.test(panel) && /hw-sterren[\s\S]*hw-status/.test(panel), 'status en aftelbalk zitten in dezelfde kaart');
+ok(/class="hud-wanted" role="img" hidden/.test(panel) && /els\.wanted\.hidden = ster === 0/.test(panel), 'de statuskaart is verborgen bij 0 sterren');
+ok(/els\.wantedStars\.hidden = ster === 0/.test(panel) && /wantedStars: mmSterren/.test(panel) && /mmWrap\.appendChild\(mmSterren\)/.test(panel), '#1175: de sterren zitten op de minimap en zijn verborgen bij 0');
+ok(!/hw-sterren/.test(panel) && !/hw-sterren/.test(css), '#1175: geen grote sterren meer rechtsboven');
+ok(/\.hud-mm-sterren \{ position: absolute/.test(css) && /\.hud-mm-sterren\[hidden\] \{ display: none; \}/.test(css) && !/\.hud-wanted svg/.test(css), '#1175: de sterren-CSS hoort bij de minimap');
+ok(/aria-hidden', 'true'/.test(panel) && /els\.wanted\.setAttribute\('aria-label', wantedAnnounce/.test(panel), '#1175: schermlezer: één regel (de statuskaart), de sterren zelf zijn aria-hidden');
+ok(/hw-status/.test(panel) && /class="hud-search" hidden/.test(panel), 'status en aftelbalk zitten in dezelfde kaart, zonder eigen sterren');
 ok(/mmWrap\.classList\.toggle\('chase'/.test(panel) && /hud-minimap-wrap\.wanted\.chase \{ box-shadow/.test(css) && !/hud-mm-sirene/.test(css), 'de rand is rood bij een achtervolging, zonder beweging (ds3: geen lus)');
 ok(!/ring om het (politie)?schild/i.test(lees('../game/js/mapview.js')) && !/ring om het (politie)?schild/i.test(panel), 'de legenda verwijst niet meer naar een ring');
 console.log(`wanted_een_test: ${n - fails}/${n}`);

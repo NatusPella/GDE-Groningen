@@ -187,7 +187,7 @@ export function initHud(world) {
   topRight.className = 'hud-top-right';
   topRight.innerHTML =
     '<div class="hud-clock" role="timer" aria-label="Tijd in het spel"><span class="hud-special" hidden></span><span class="hud-date"></span><b class="hud-time"></b></div>' +
-    '<div class="hud-wanted" role="img" hidden><div class="hw-sterren"></div><div class="hw-status"><b class="hw-tekst"></b><div class="hud-search" hidden><i role="img" aria-label="Zoekgebied"><i></i></i></div></div></div>' +
+    '<div class="hud-wanted" role="img" hidden><div class="hw-status"><b class="hw-tekst"></b><div class="hud-search" hidden><i role="img" aria-label="Zoekgebied"><i></i></i></div></div></div>' +
     '<div class="hud-moneyrow"><span class="hud-money-delta"></span><span class="hud-money ds-m-tik"></span></div>' +
     '<div class="hud-weapon"></div>';
   root.appendChild(topRight);
@@ -263,6 +263,12 @@ export function initHud(world) {
   mmWrap.className = 'hud-minimap-wrap';
   const mmCanvas = document.createElement('canvas');
   mmWrap.appendChild(mmCanvas);
+  // #1175: de sterren staan op de minimap, alleen bij 1 ster of meer; de schermlezer hoort één regel (de aria-label van de statuskaart)
+  const mmSterren = document.createElement('div');
+  mmSterren.className = 'hud-mm-sterren';
+  mmSterren.hidden = true;
+  mmSterren.setAttribute('aria-hidden', 'true');
+  mmWrap.appendChild(mmSterren);
   root.appendChild(mmWrap);
   // #993: de buurtnaam als inktlabel onder de minimap; de rasterpatroon-defs is voor de lege wantedster
   const defsWrap = document.createElement('div');
@@ -329,7 +335,7 @@ export function initHud(world) {
     mute: topLeft.querySelector('.hud-mute'),
     topRight,
     wanted: topRight.querySelector('.hud-wanted'),
-    wantedStars: topRight.querySelector('.hw-sterren'),
+    wantedStars: mmSterren,
     wantedText: topRight.querySelector('.hw-tekst'),
     search: topRight.querySelector('.hud-search'),
     searchBar: topRight.querySelector('.hud-search i i'),
@@ -1262,18 +1268,21 @@ function updateWanted(world) {
   const wasSter = wantedShown;
   if (!els.wantedStars.children.length) els.wantedStars.innerHTML = STAR.repeat(5);
   const stars = [...els.wantedStars.children];
-  els.wanted.hidden = ster === 0; // #1080: geen lege sterrenrij bij 0; de kaart is er alleen als je gezocht wordt
+  els.wanted.hidden = ster === 0; // #1080: de statuskaart is er alleen als je gezocht wordt
+  els.wantedStars.hidden = ster === 0; // #1175: de sterren op de minimap ook niet bij 0
   els.wantedText.textContent = wantedStatus(ster, phase);
   stars.forEach((st, i) => st.classList.toggle('on', i < ster));
   // misdruk alleen bij verandering: de klasse gaat na 1,4 s weer weg (#993)
-  els.wanted.classList.add('changed');
+  els.wantedStars.classList.add('changed');
   clearTimeout(wantedChangedT);
-  wantedChangedT = setTimeout(() => els.wanted.classList.remove('changed'), 1400);
+  wantedChangedT = setTimeout(() => els.wantedStars.classList.remove('changed'), 1400);
   // a new star pops in, one at a time
   for (let i = wantedShown; i < ster; i++) pop(stars[i]);
   wantedShown = ster;
   // #802: een nieuwe ster of het einde van de achtervolging een keer benoemen
   if (ster !== wasSter) announce(wantedAnnounce(ster, phase));
+  els.wantedStars.classList.toggle('searching', searching && ster > 0);
+  els.wantedStars.classList.toggle('chase', ster > 0 && !searching);
   els.wanted.classList.toggle('searching', searching && ster > 0);
   els.wanted.classList.toggle('chase', ster > 0 && !searching);
   els.wanted.setAttribute('aria-label', wantedAnnounce(ster, phase));

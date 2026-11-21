@@ -110,7 +110,7 @@ html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-minimap-wrap
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .gps-timer b { color: var(--mk-danger); }
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-race .hr-row[data-state="low"] b { color: var(--mk-danger); }
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-race .hr-row[data-state="low"] b::before { content: '! '; }
-html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-wanted svg.on { fill: var(--mk-mission); stroke: var(--ds-c-creme); stroke-width: 1.4; }
+html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-mm-sterren svg.on { fill: var(--mk-mission); stroke: var(--ds-c-creme); stroke-width: 1.4; }
 
 /* --- subtitle contrast "Hoog" (a11ylogic.js subtitleStyle): white on a nearly opaque dark box, heavier letters --- */
 html.subc-hoog :is(#cine .cine-sub, #banter-sub, #radio-sub, #rv-sub, #pg-sub, #intro-montage .im-sub, #trailer .tr-sub) {
@@ -127,7 +127,7 @@ html:is(.text-groot, .text-extragroot) :is(#hud .hc-text, #hud .ctx-row, #hud .s
 /* --- no screen flashes (Flitsen beperken): the white flashes of montage and trailer, and light pulses, stay off --- */
 html.reduce-flash :is(#intro-montage .im-flash, #trailer .tr-flash) { display: none !important; animation: none !important; }
 /* blinking stars and urgent timers stay lit instead of blinking */
-html.reduce-flash :is(#hud .hud-wanted.searching svg.on, #hud .stunt-hud .sh-left[data-urgent="1"]) { animation: none !important; }
+html.reduce-flash :is(#hud .hud-mm-sterren.searching svg.on, #hud .stunt-hud .sh-left[data-urgent="1"]) { animation: none !important; }
 
 /* --- Hulp (helpoverview.js): the help tab under Besturing --- */
 #pause-menu .pm-csub[data-sub="hulp"]:not([hidden]) { flex: 1; min-height: 0; display: flex; flex-direction: column; }

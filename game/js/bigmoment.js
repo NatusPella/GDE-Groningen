@@ -131,7 +131,7 @@ export function momentVanBanner({ kind = 'pass', title = '', reason = '', reward
 }
 
 // Wanted went up or down (prev and nu are star counts 0..5): null when nothing changed, else the
-// options of the edge tag. Going to zero is "out of sight". #1080: a short status card without stars; the stars live in one place (the HUD card top right).
+// options of the edge tag. Going to zero is "out of sight". #1080: a short status card without stars; the stars live in one place (the minimap, #1175).
 export function momentVanWanted(prev, nu) {
   if (!Number.isFinite(prev) || !Number.isFinite(nu) || prev === nu) return null;
   const omhoog = nu > prev;
