@@ -470,7 +470,7 @@ body:not(.cine-hide-hud) #cine .cine-skip { right: 50%; bottom: calc(14px * var(
 body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui, 1) + 64px * var(--ui, 1)); }
 #cine .cine-skip { font-family: var(--ds-font-tekst); font-size: calc(14px * var(--ui, 1)); letter-spacing: 0.3px; }
 #cine .cine-skip .hud-key { margin-right: 0; font-family: var(--ds-font-kop); letter-spacing: 1px; }
-#cine .cine-skip-ring { display: inline-block; width: 1.4em; height: 1.4em; margin-right: 0.4em; vertical-align: middle; transform: rotate(-90deg); }
+#cine .cine-skip-ring { display: inline-block; width: 1.4em; height: 1.4em; margin-right: 0.4em; transform: rotate(-90deg); }
 #cine .cine-skip-ring circle { fill: none; stroke: color-mix(in srgb, var(--ds-c-creme) 25%, transparent); stroke-width: 3; }
 #cine .cine-skip-ring .fill { stroke: var(--ds-c-licht-groen); stroke-linecap: round; stroke-dasharray: 62.8; stroke-dashoffset: calc(62.8 * (1 - var(--hold, 0))); }
 #cine .cine-skip.holding { color: var(--ds-c-creme); }

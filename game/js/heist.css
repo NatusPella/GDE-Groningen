@@ -123,7 +123,7 @@
 }
 #heist-ui .hx-skipchip.on { opacity: 1; }
 @media (pointer: coarse) { #heist-ui .hx-skipchip { min-height: 44px; padding: 10px 14px; } }
-#heist-ui .hx-skipchip svg { display: inline-block; width: 1.4em; height: 1.4em; margin-right: 0.5em; vertical-align: middle; transform: rotate(-90deg); }
+#heist-ui .hx-skipchip svg { display: inline-block; width: 1.4em; height: 1.4em; margin-right: 0.5em; transform: rotate(-90deg); }
 #heist-ui .hx-skipchip circle { fill: none; stroke-width: 3; }
 #heist-ui .hx-skipchip .bg { stroke: color-mix(in srgb, var(--ds-c-creme) 20%, transparent); }
 #heist-ui .hx-skipchip .fg { stroke: var(--ds-c-licht-groen); stroke-linecap: round; stroke-dasharray: 50.3; stroke-dashoffset: calc(50.3 * (1 - var(--hold, 0))); }
