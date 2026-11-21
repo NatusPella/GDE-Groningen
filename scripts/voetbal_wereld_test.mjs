@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import PARKDATA from '../game/js/voetbalparkendata.js';
 import { makeParkIndex } from '../game/js/voetbalparken.js';
 import { CLUBS, EUROPE_CLUBS, PATTERNS } from '../game/js/voetbalclubs.js';
-import * as W from '../game/js/voetbalwereld.js';
+import * as W from '../game/js/voetbalworld.js';
 
 let n = 0;
 const t = (naam, f) => { try { f(); n++; } catch (e) { console.error('FAIL', naam); throw e; } };

@@ -2,7 +2,7 @@
 // Wat hier staat is de BESLISSING (patronen, aantallen, namen van geluiden, bijschriften, kaartmarkers, trainende teams); het tekenen (canvas, InstancedMesh) hangt eraan in voetbal.js en is niet door een mens in beeld bekeken
 // (docs/VOETBAL-CARRIERE-VERIFICATIE-21-11.md). Geluiden: alleen CC0 of CC-BY van Freesound, Kenney of OpenGameArt (ADR 0039) met de handle in docs/AUDIO-LICENTIES.md; zonder bestand valt het geluid terug op gefilterde ruis
 // (WebAudio). Geen liedjes of zang met tekst. Elk geluid heeft een bijschrift (ui-taal regel 4).
-import { hashSeed } from './voetbalspelers.js';
+import { hashSeed } from './voetbalplayers.js';
 import { makeRng } from './minigamekit.js';
 
 // ---- shirts: een patroon per club zodat kleur nooit het enige verschil is (128 x 128, voor beide teams hergebruikt) ----
