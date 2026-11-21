@@ -384,7 +384,8 @@
     "pitch*",
     "rival",
     "snack*",
-    "chaintrucks*"
+    "chaintrucks*",
+    "sponsorpanden"
    ],
    "eigenaar": "speler",
    "gast": "Eigen bezit in de eigen progress; medespelers zien jouw percelen en standplaatsen als gekleurde omtrek met naam (ID-verzameling, claims sp:<plek>); een gast kan op andermans perceel of in andermans snackwagen meewerken voor loon (bericht snack-work: gast, host-relay, eigenaar). De ketenwagens en het personeel in de wereld zijn per speler en niet te zien voor een gast.",
@@ -397,6 +398,10 @@
     "scripts/snackstory_test.mjs",
     "scripts/chaintrucks_test.mjs",
     "scripts/chaintrucks3d_test.mjs",
+    "scripts/interiorcustomers_test.mjs",
+    "scripts/bezitinterior_test.mjs",
+    "scripts/sponsorpanden_test.mjs",
+    "scripts/voetbal_sponsors_test.mjs",
     "scripts/coop/bezitstap_test.mjs",
     "scripts/snacklive_test.mjs"
    ],
@@ -460,7 +465,12 @@
     "voetbalpoort",
     "voetbalparken*",
     "penalty*",
-    "coopwedstrijdpunt"
+    "coopwedstrijdpunt",
+    "voetbalcommentaar*",
+    "voetbalextrarules",
+    "voetbalpresentatie",
+    "voetbalregie",
+    "voetbaltvlayer"
    ],
    "eigenaar": "wedstrijd",
    "gast": "E bij de spelerspoort: Meedoen? J of N; elf tegen elf met twee tot vier mensen; momentopname van 64 getallen.",
@@ -1735,6 +1745,7 @@
   }
  },
  "sleutelLiteralenBuitenRegister": [
+  "gde-voetbal-v1",
   "gde-engine",
   "gde-audioglitch-v1",
   "gde-beleid-v1",
