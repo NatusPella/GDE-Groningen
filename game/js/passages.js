@@ -236,8 +236,14 @@ function deadEnd(map, way, e) {
   }
   return true;
 }
+// A church is drawn as one solid mass (the landmark kit, landmarkkit.js; a hall through it showed the inside of that mass: the
+// black columns of #1057, Usquert, where two footways end on the west and east wall of the Petrus en Pauluskerk). Its doors
+// stay doors on the facade, but they are not joined by a hall: the walker goes round.
+const CHURCH_TYPES = new Set(['church', 'chapel', 'cathedral', 'religious']);
+const CHURCH_NAME = /kerk|kathedraal|basiliek|kapel|cathedral|church/i;
+export const isChurchBuilding = (b) => CHURCH_TYPES.has(b.type) || CHURCH_NAME.test(b.name || '');
 function linkDoors(b, doors, out) {
-  if (doors.length < 2) return;
+  if (doors.length < 2 || isChurchBuilding(b)) return;
   const linked = new Set();
   for (let i = 0; i < doors.length; i++) {
     let best = -1, bestD = HALL_MAX;
