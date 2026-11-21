@@ -79,4 +79,16 @@ t('de kaart in Loopbanen: niet begonnen of stand en niveau', () => {
   const k = kaartInfo(start(), getClub);
   assert.ok(k.gestart && /Talentenklasse, plek \d/.test(k.stand) && k.niveau === 'Talent' && /over 3 speldagen/.test(k.volgende));
 });
+t('Trainer- en Managertab pas na ontgrendeling; het bod, de tactiek en de markt staan in beeld', () => {
+  const c = start('anita');
+  assert.ok(!/data-vb="tab:trainer"/.test(viewHtml(c, 'vandaag', env)) && !/data-vb="tab:manager"/.test(viewHtml(c, 'vandaag', env)));
+  const tr = { ...c, roles: { trainer: true, manager: false } };
+  const h = viewHtml(tr, 'trainer', env);
+  assert.match(h, /data-vb="tab:trainer"/); assert.match(h, /data-vb="tactic:formation:4-3-3"/); assert.match(h, /data-vb="tactic:style:aanvallend"/); assert.match(h, /Basis \(11\)/); assert.match(h, /Bank \(7\)/);
+  const mg = { ...c, roles: { trainer: true, manager: true }, market: { ...c.market, pool: [] } };
+  const m = viewHtml(mg, 'manager', env);
+  assert.match(m, /Clubkas €/); assert.match(m, /ds-z-leeg/); assert.match(m, /data-vb="sell:/); assert.match(m, /title="Alleen in de pauze/);
+  const bod = viewHtml({ ...c, offer: { club: c.world.terp[0], seasons: 2, salaryBonus: 90 } }, 'vandaag', env);
+  assert.match(bod, /data-vb="offer:accept"/); assert.match(bod, /2 seizoenen/); assert.match(bod, /geen druk/);
+});
 console.log(`voetbal_ui_test ok (${n} groepen)`);
