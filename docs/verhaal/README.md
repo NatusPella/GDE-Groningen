@@ -38,6 +38,7 @@ kop; vervangen door de spec of de actuele documenten:
 - [OPENING-ONTHULLING.md](OPENING-ONTHULLING.md) (#987, actueel): meting en ontwerp van de geleidelijke onthulling in de opening en M01-M03; de test is `scripts/verhaal_onthulling_test.mjs`.
 - [OPENING-BIJBEL.md](OPENING-BIJBEL.md), [OPENING-DIAGNOSE.md](OPENING-DIAGNOSE.md),
   [OPENING-LEESTEST.md](OPENING-LEESTEST.md) — de opening van het verhaal, oude ronde.
+- [OPENING-FILMSCRIPT-21-11.md](OPENING-FILMSCRIPT-21-11.md) (filmscript van de opening, C00.1 tot C00.3) en [TRAILER-FILMSCRIPT-21-11.md](TRAILER-FILMSCRIPT-21-11.md) (verhaaltrailer ontdek, 75 s): sluglines, shotlijst, cues; zie ../OPENING-TRAILER-BENCHMARK-21-11.md.
 - [REVIEWS-RONDE3.md](REVIEWS-RONDE3.md) — verslag van de derde reviewronde.
 - [BALANS-TEMPO.md](BALANS-TEMPO.md) — tempo-analyse; de bot speelt inmiddels anders.
 
