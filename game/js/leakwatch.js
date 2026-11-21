@@ -6,13 +6,13 @@
 // niets buiten de browser. Kosten: een telling per addEventListener/setTimeout, een meting per 5 s. scripts/leakwatch_test.mjs bewaakt het.
 
 export const LEAK_EVERY_MS = 5000;
-export const LEAK_KEEP = 360;          // 360 metingen van 5 s: het laatste halfuur
-export const LEAK_WARM_S = 180;        // de eerste 3 minuten stijgen caches en tegels vanzelf
-export const LEAK_BLOCK = 12;          // een blok is een minuut
-export const LEAK_MIN_BLOCKS = 4;      // ten minste vier minuten na het opwarmen voor een oordeel
+const LEAK_KEEP = 360;          // 360 metingen van 5 s: het laatste halfuur
+const LEAK_WARM_S = 180;        // de eerste 3 minuten stijgen caches en tegels vanzelf
+const LEAK_BLOCK = 12;          // een blok is een minuut
+const LEAK_MIN_BLOCKS = 4;      // ten minste vier minuten na het opwarmen voor een oordeel
 
 // De tellers waarvan een aanhoudende stijging verdacht is (de rest wordt alleen getoond).
-export const LEAK_WATCHED = ['geometries', 'textures', 'programs', 'domNodes', 'listeners', 'timers', 'intervals', 'peerConns'];
+const LEAK_WATCHED = ['geometries', 'textures', 'programs', 'domNodes', 'listeners', 'timers', 'intervals', 'peerConns'];
 
 // Stijgt reeks `floor` (laagste punt per minuut) aanhoudend? Elke stap hoogstens een afwijking van -1, en de totale stijging is
 // minstens 5 stuks en 5% van het begin.
