@@ -87,15 +87,16 @@ export const RECHTS_KAART_BREED = 280;
 const rect = (id, x, y, w, h) => ({ id, x, y, w: Math.max(0, w), h: Math.max(0, h) });
 
 // Alle zones van de duivenmodus voor een venster van vw x vh HUD-px, met de stapel zoals stapel() hem berekent (onder = de onderkant).
+// top: waar de stapel begint (STAPEL_TOP, of lager als de doel- en routekaart van de gewone HUD hoger zijn, bijvoorbeeld bij 1280x720 waar de doelregel omslaat).
 // Geeft { zones: [rect], pijl: rect }; pijl is de vrije band voor de richtingspijl.
-export function duivenZones(vw, vh, onder = STAPEL_TOP + 110) {
+export function duivenZones(vw, vh, onder = STAPEL_TOP + 110, top = STAPEL_TOP) {
   const mmTop = vh - MM_BODEM - MM;
   const hintsW = Math.min(760, vw - HINTS_LINKS - LINKS_RAND);
   const hintsY = vh - HINTS_BODEM - HINTS_H;
   const zones = [
     rect('paneel', 14, 12, 262, 140),
-    rect('bovenbalk', vw / 2 - 300, 34, 600, STAPEL_TOP - 8 - 34),   // doel- en routekaart van de gewone HUD
-    rect('stapel', vw / 2 - STAPEL_BREED / 2, STAPEL_TOP, STAPEL_BREED, onder - STAPEL_TOP),
+    rect('bovenbalk', vw / 2 - 300, 34, 600, top - 8 - 34),   // doel- en routekaart van de gewone HUD
+    rect('stapel', vw / 2 - STAPEL_BREED / 2, top, STAPEL_BREED, onder - top),
     rect('linkskaart', LINKS_RAND, LINKS_KAART_TOP, LINKS_KAART_BREED, mmTop - 12 - LINKS_KAART_TOP),
     rect('meldingen', vw - 14 - RECHTS_KAART_BREED, 96, RECHTS_KAART_BREED, 84),
     rect('minikaart', LINKS_RAND, mmTop, MM, MM),

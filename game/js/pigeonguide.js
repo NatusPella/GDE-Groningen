@@ -7,7 +7,7 @@
 // - per gespot ding een ring rond de duif, een flits van de kolom en een belletje.
 // De logica staat in pigeonguidelogic.js (puur). Samen spelen: de spotmissie is van wie het spel opende (de duif is van de eigenaar, #525);
 // de gast ziet de duif vliegen maar heeft deze kolommen en kaart niet.
-import { stapel, stapelRuimte, duivenKaarten, duivenZones, pijlPlek, plaatSelectie } from './hudstapel.js';
+import { stapel, stapelRuimte, duivenKaarten, duivenZones, pijlPlek, plaatSelectie, STAPEL_TOP } from './hudstapel.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene, getCamera } from './scene3d.js';
 import { maakSimKolom, KOLOM_HOOGTE } from './simkolom3d.js';
@@ -59,7 +59,20 @@ function initDom() {
     <div class="pg-arrow" data-arrow hidden><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 L35 34 L20 27 L5 34 Z"/></svg><span data-adist></span></div>`;
   document.body.appendChild(root);
   const q = (s) => root.querySelector(s);
-  dom = { root, prog: q('[data-prog]'), line: q('[data-line]'), holdBox: q('[data-holdbox]'), hold: q('[data-hold]'), arrow: q('[data-arrow]'), adist: q('[data-adist]'), last: {} };
+  dom = { root, stack: q('.pg-stack'), prog: q('[data-prog]'), line: q('[data-line]'), holdBox: q('[data-holdbox]'), hold: q('[data-hold]'), arrow: q('[data-arrow]'), adist: q('[data-adist]'), last: {} };
+}
+
+// De onderkant (HUD-px) van de zichtbare doel- en routekaart van de gewone HUD bovenin het midden; 0 als er geen zijn.
+function kaartenOnder(ui) {
+  let onder = 0;
+  if (typeof document === 'undefined') return onder;
+  const mid = (typeof innerWidth === 'number' ? innerWidth : 1280) / 2;
+  for (const el of document.querySelectorAll('#hud .hud-mission, #hud .hud-zone-b, #hud .hud-gps, #hud .hud-route')) {
+    const r = el.getBoundingClientRect();
+    // alleen wat bovenin het midden staat (niet de kolommen links en rechts)
+    if (r.height > 0 && r.width > 0 && r.top < 300 * ui && r.left < mid && r.right > mid) onder = Math.max(onder, r.bottom / ui);
+  }
+  return onder;
 }
 
 function setText(key, el, text) {
@@ -249,8 +262,11 @@ export function tickPigeonGuide(dt, world, o, flight) {
   // één stapel (hudstapel.js): opdracht (en later hoogtekaart) onder elkaar; krap = compact, daarna weg. De toetsen staan alleen in de balk onderaan.
   const ui = parseFloat(tok('--ui', '1')) || 1;
   const vw = (typeof innerWidth === 'number' ? innerWidth : 1280) / ui, vh = (typeof innerHeight === 'number' ? innerHeight : 720) / ui;
-  const stap = stapel(duivenKaarten({ introActief: false, holdActief: holdOn }), { ruimte: stapelRuimte(vh) });
-  const { zones, pijl } = duivenZones(vw, vh, stap.onder);
+  // de stapel begint onder de doel- en routekaart van de gewone HUD, ook als die hoger zijn (op 1280x720 slaat de doelregel om)
+  const top = Math.max(STAPEL_TOP, Math.ceil(kaartenOnder(ui) + 8));
+  dom.stack.style.top = `${top}px`;
+  const stap = stapel(duivenKaarten({ introActief: false, holdActief: holdOn }), { top, ruimte: stapelRuimte(vh, top) });
+  const { zones, pijl } = duivenZones(vw, vh, stap.onder, top);
 
   // de pijl naar het dichtstbijzijnde doel, binnen de vrije band (nooit over paneel, stapel, kaarten of toetsbalk)
   if (n) {
