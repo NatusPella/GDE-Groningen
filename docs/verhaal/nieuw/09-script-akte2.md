@@ -116,6 +116,22 @@ TESSA: Mem. Ik logeerde elke zomer naast haar, in Ljouwert. [NIEUW]
 TAMMO: Een jas in augustus? [NIEUW]
 TESSA: Jij weet niet hoe lang ze dat al zegt. [NIEUW]
 
+## [N10] Een middag op het terras – Stad, Grote Markt – terras
+(regie: dinsdagmiddag. Ze proberen horeca: een terras aan de Grote Markt zoekt hulp voor één middag. Tessa neemt de bestellingen op alsof ze het al jaren doet. Tammo draagt een dienblad met vier glazen en kijkt er zeer ernstig naar.)
+TESSA: Twee koffie, een thee, een tosti. Alles op één blad. Niet kantelen. [NIEUW]
+TAMMO: Ik kantel niet. Ik rijd. [NIEUW]
+(regie: hij loopt met het blad als met een Escapade over een drempel. Alles komt aan, op één glas na.)
+TERRASGAST: Zijn jullie al samen? [NIEUW]
+TESSA: Nee. [NIEUW]
+TAMMO: Dat ligt eraan wat je met samen bedoelt. [NIEUW]
+TESSA: Nee, Tammo. [NIEUW]
+TERRASGAST: Ik bedoelde de rekening. [NIEUW]
+TAMMO: Ah. Ja. Samen. [NIEUW]
+(regie: aan het eind van de middag is Tessa's fooienpot vol. Tammo heeft er twee glazen en een stoel op zijn naam.)
+TAMMO: Dit is niet mijn vak. [NIEUW]
+TESSA: Jouw vak is stilstaan als ik praat. [NIEUW]
+TAMMO: Dat kan ik. [NIEUW]
+
 ## [N8] Een avond bij Oma – Stad, Noorderhaven – logeerkamer
 (regie: avond in de logeerkamer. Op het prikbord hangen de namen van de vijf vrienden aan punaises. Tessa hangt de laatste op; Tammo wil de punaise aangeven en hun handen raken elkaar.)
 TESSA: Die. [NIEUW]
@@ -137,6 +153,32 @@ TESSA: Geef me je hand. Niet wegtrekken. [NIEUW]
 (regie: ze leidt zijn hand langs de neus van de koe. De koe snuift. Tammo houdt zijn adem in. Een duif landt op het hek.)
 TAMMO: Hij is zacht. [NIEUW]
 TESSA: Ik zei het toch. [NIEUW]
+
+## [N11] Een bezorgrondje bij Bedum – Hogeland, Bedum – bestelbus
+(regie: woensdagmiddag. Een bezorgdienst zoekt een rijder voor een rondje met twaalf pakketten en één kaart zonder straatnamen. Tammo rijdt de bestelbus; Tessa zit naast hem met de lijst op haar knie.)
+TESSA: Links. Bij de zwarte koe. [NIEUW]
+TAMMO: Welke zwarte koe? Hier staan er veertig. [NIEUW]
+TESSA: Die met dat gezicht. [NIEUW]
+(regie: hij zwenkt soepel om een trekker en zet de bus op de centimeter voor een brievenbus. Zij zoekt nog naar de koe.)
+TAMMO: Pakket drie. Op de minuut. [NIEUW]
+TESSA: Dat is jouw vak. [NIEUW]
+TAMMO: En jij? [NIEUW]
+TESSA: Ik kan geen kaart lezen. Wel een weiland. [NIEUW]
+TAMMO: Twaalf pakketten, tien minuten te vroeg. [NIEUW]
+TESSA: Ik heb elf koeien geteld. [NIEUW]
+
+## [N12] De lijst op de koelkast – Stad, Paddepoel – flat
+(regie: woensdagavond. Ze halen schone sokken uit de flat. Op de koelkast hangt de lijst met twee kolommen. Tessa pakt een stift en schrijft er een derde bij: WIE KAN WAT.)
+TESSA: Tammo. Rijden, wachten, de chauffeur bedanken. [NIEUW]
+TAMMO: En jij? [NIEUW]
+TESSA: Plannen, koeien, praten met mensen die ik niet ken. [NIEUW]
+TAMMO: Er staat niks tussen. [NIEUW]
+TESSA: Dat is de bedoeling. Daar komt het nog. [NIEUW]
+(regie: ze schrijft SAMEN op de laatste regel en zet er een dubbele punt achter. Tammo kijkt naar de lege regel en dan naar haar.)
+TAMMO: Dat wordt een mooie regel. [NIEUW]
+TESSA: Pak je sokken. [NIEUW]
+TAMMO: Dit zijn mijn laatste schone. [NIEUW]
+TESSA: Dan wees er zuinig op. [NIEUW]
 
 ## [N6] Een dag op het water – Hogeland, Noordpolderzijl – rubberboot
 (regie: donderdagmiddag. Kapitein Klaas heeft twee hengels en een emmer. Tammo zit stil aan de rand; Tessa houdt zich vast aan de reling.)

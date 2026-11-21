@@ -2,7 +2,7 @@
 
 Je hoeft niets te doen. Voor elke nieuwe of herschreven komische beat heeft de schrijver drie varianten en een veilige neutrale terugval gemaakt; drie onafhankelijke beoordelaars (zonder elkaars oordeel, met de varianten in een andere volgorde) kozen de beste. De winnaar staat in het spel; de andere twee en de terugval staan hieronder als alternatief. Wil je iets anders: zet `chosen` van die beat in het bijbehorende bestand `game/storydata/humor*.json` op 0, 1, 2 of `"neutral"` en draai `node scripts/build_story_data.mjs`. Werkwijze: [SCHRIJFREGELS-21-11.md](SCHRIJFREGELS-21-11.md). Na een wijziging: draai ook de cutscene-tests (`cutscenes_akte*_test`), want de cues van een scène (`on:`) volgen de gekozen tekst. Samen spelen: een beat is gewone scènetekst; een gast ziet de gekozen variant mee in de scène van de host. Gegenereerd door `node scripts/humor_doc.mjs`; kies hier niet met de hand.
 
-Eerlijk over de proef: 70 beats. De beoordelaars lazen de stijlgids en de beats; minstens twee van de drie lazen de ijkregels uit akte 1 ([BEHOUDEN]-grappen) niet. Wees dus kritisch bij beats met lage zekerheid.
+Eerlijk over de proef: 74 beats. De beoordelaars lazen de stijlgids en de beats; minstens twee van de drie lazen de ijkregels uit akte 1 ([BEHOUDEN]-grappen) niet. Wees dus kritisch bij beats met lage zekerheid.
 
 ## Bovenaan: gevoelig of gespleten met lage zekerheid
 
@@ -110,6 +110,10 @@ Eerlijk over de proef: 70 beats. De beoordelaars lazen de stijlgids en de beats;
 | HN-02 | N6 | KAPITEIN KLAAS | Dat telt. | variant 2, variant 2, variant 1 | midden | Kort en droog understatement dat Tammo's stilte als vangst erkent, zonder uitleg. |
 | HN-03 | N4 | TESSA | Iemand die alle regels kent. Behalve de leuke. | variant 3, variant 2, variant 3 | laag | De kicker 'Behalve de leuke' geeft Tessa een droge, eigen pointe op de bureaucratische stoepkoop. |
 | HN-04 | N1 | SJABBE | Zwaarder dan jij denkt. Lichter dan ik vertel. | variant 1, neutraal, variant 3 | laag | Past bij Sjabbes vaagheid-met-een-wenk en laat de prijs aan Tessa, zodat haar twintig euro erna als tegenzet werkt. |
+| HN-05 | N10 | TERRASGAST | Ik bedoelde de rekening. | voorstel, paneel nog te doen |  |  |
+| HN-06 | N12 | TAMMO | Dat wordt een mooie regel. | voorstel, paneel nog te doen |  |  |
+| HN-07 | N9 | TESSA | Het eet je sok. | voorstel, paneel nog te doen |  |  |
+| HN-08 | N9 | TAMMO | Ik kijk naar de beer. | voorstel, paneel nog te doen |  |  |
 
 ## De alternatieven per beat
 
@@ -532,3 +536,27 @@ Eerlijk over de proef: 70 beats. De beoordelaars lazen de stijlgids en de beats;
 - variant 2: Net zwaar genoeg voor dertig euro.
 - variant 3: Zwaar. Ik zeg niks over hoe zwaar.
 - neutraal: Zwaar genoeg. Dertig euro.
+
+**HN-05** (N10): Terras aan de Grote Markt. De gast vroeg of Tammo en Tessa al samen zijn; zij beantwoorden dat als vraag over hun relatie. De gast bedoelde iets heel anders.
+- variant 1 (gekozen): Ik bedoelde de rekening.
+- variant 2: Ik vroeg naar de rekening.
+- variant 3: Ik wilde alleen betalen.
+- neutraal: Ik wilde graag afrekenen.
+
+**HN-06** (N12): De flat, bij de koelkast. Tessa heeft een lijstje gemaakt van wie wat kan en zet SAMEN met een dubbele punt op een lege regel. Tammo kijkt naar de lege regel en dan naar haar.
+- variant 1 (gekozen): Dat wordt een mooie regel.
+- variant 2: Ik hoop dat die regel lang wordt.
+- variant 3: Die regel wil ik zelf invullen.
+- neutraal: Dat komt nog wel.
+
+**HN-07** (N9): Nacht op een dijk, in een oud busje met de achterdeuren open. Een schaap staat tussen hen in het beeld en kauwt op Tammo's sok; het bijna-moment is net voorbij.
+- variant 1 (gekozen): Het eet je sok.
+- variant 2: Het schaap eet je sok.
+- variant 3: Hij heeft je sok.
+- neutraal: Het pakt je sok.
+
+**HN-08** (N9): Nacht op een dijk. Tessa wijst naar de Grote Beer en zegt dat hij niet kijkt; Tammo kijkt naar haar vinger en niet naar de lucht.
+- variant 1 (gekozen): Ik kijk naar de beer.
+- variant 2: Ik kijk naar het sterrenbeeld.
+- variant 3: Ik kijk wel degelijk.
+- neutraal: Ik kijk wel.

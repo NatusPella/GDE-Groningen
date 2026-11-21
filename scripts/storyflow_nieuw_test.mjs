@@ -40,7 +40,7 @@ const src = fs.readFileSync(new URL('js/missions.js', root), 'utf8') + fs.readFi
 const first = STEPS.findIndex((s) => s.id === 'M07');
 const story = STEPS.slice(first);
 ok(first > 0 && story.at(-1).id === 'M30', 'M07 to M30 are the last steps of the arc (Deel 4 follows E)');
-ok(story.map((s) => s.id).join() === 'M07,M08,N8,T1,M09,N5,M10,A1,N6,N7,T2,M11,M12,M13,M14,T3,M15,M16,A2,M17,M18,M19,T4,M20,M21,M22,M23,M24,M25,M26,E,M27,M28,M29,T5,M30', 'acts 2 to 5 and Deel 4 in story order');
+ok(story.map((s) => s.id).join() === 'M07,M08,N10,N8,T1,M09,N5,M10,A1,N11,N12,N6,N7,T2,M11,M12,M13,M14,T3,M15,M16,A2,M17,M18,N9,M19,T4,M20,M21,M22,M23,M24,M25,M26,E,M27,M28,M29,T5,M30', 'acts 2 to 5 and Deel 4 in story order');
 ok(new Set(STEPS.map((s) => s.id)).size === STEPS.length, 'step ids are unique');
 const partOrder = ['kop', 'romp', 'staart', 'zuid', 'ontzet', 'nazomer'];
 let pi = 0;
