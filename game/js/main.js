@@ -1027,6 +1027,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   }
 
   const feelDip = makeDip(), dipSeen = { imp: null, mh: null };
+  let sweepTick = 0;
   const frameGuard = createFrameGuard({ onFirst: showFrameError, log: (naam, err, n) => console.error(`[framesafe] ${naam} (${n}x):`, err && err.stack ? err.stack : err) });
   if (typeof window !== 'undefined') window.__frameGuard = frameGuard; // technische info (gpudiag.js)
   let samenSince = null, gateMenu = false;
@@ -1331,7 +1332,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     }
     probe.mark('traffic');
     // #1065: een NaN in een auto of voetganger gaat eruit (afstandstoetsen zijn bij NaN altijd onwaar, dus het verkeersbeheer ruimde hem nooit op)
-    if ((world.frameNo = (world.frameNo || 0) + 1) % 30 === 0) {
+    if (++sweepTick % 30 === 0) {
       const sw = sweepNonFinite(world);
       if (sw.voertuigen + sw.voetgangers + sw.snelheid) frameGuard.fail('niet-eindige-waarde', new Error(`${sw.voertuigen} voertuigen, ${sw.voetgangers} voetgangers opgeruimd, ${sw.snelheid} snelheden op nul`), true);
     }
