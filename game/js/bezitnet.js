@@ -20,7 +20,7 @@ export function ensureBezitNet(world, transport) {
   if (world.bezitNet && world.bezitNet.transport === transport) return world.bezitNet;
   const isHost = transport.role === 'host';
   const selfId = isHost ? slotId(0) : 'me';
-  const selfName = (world.coopSelfName && String(world.coopSelfName).slice(0, 24)) || (isHost ? 'Gastheer' : 'Gast');
+  const selfName = (world.coopSelfName && String(world.coopSelfName).slice(0, 24)) || 'Medespeler';
   const send = (full) => {
     if (isHost) { for (const s of transport.guests()) transport.toGuest(s, { k: 'bezit', a: full.action, id: full.id, from: full.from, name: full.name, color: full.color, t: full.t }); }
     else transport.toHost({ k: 'bezit', a: full.action, id: full.id, t: full.t });
