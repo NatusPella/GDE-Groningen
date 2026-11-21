@@ -287,6 +287,12 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
   - woensdagochtend. Een boerenerf met kippen, een hek en een koe die niet weg wil. Tessa loopt het erf op alsof ze er nooit is weggegaan. Tammo blijft bij het hek.
   - praat: Tessa, Tammo
 
+**Sequentie K1: Het land achter de pastorie** (activiteit; speler-protagonist Tammo)
+
+- **K1** BUITEN – HOGELAND, WARFFUM, DE PASTORIE – OCHTEND · Het land achter de pastorie · cutscene of gespeeld in de missie
+  - woensdag, laat in de ochtend. Achter de pastorie een kippenren, een moestuin en een leeg stuk land met een hekje en een bordje: TE HUUR. Geesje zit op een omgekeerde emmer. Tessa sorteert eieren in een krat zonder te kij
+  - praat: Geesje, Tammo, Tessa
+
 **Sequentie M10: Een trekker-limo op de wierde** (missie wierde; speler-protagonist Tammo)
 
 - **M10.1** BUITEN – HOGELAND, USQUERT, DE KERK – MIDDAG · Een trekker-limo op de wierde: intro · cutscene of gespeeld in de missie
@@ -372,6 +378,12 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
   - praat: Tessa, Tammo
 - **A2.1** BUITEN – ALLE REGIO'S – DAG · Appjes akte 2 (stil, geen stem) · appjes
 - **A2.2** BUITEN – STAD, PADDEPOEL – DAG · Appjes akte 2: de logeerkamer en Mem (stil, geen stem) · appjes
+
+**Sequentie K2: De kade in de ochtend** (activiteit; speler-protagonist Tammo)
+
+- **K2** BUITEN – HOGELAND, ZOUTKAMP, DE HAVEN – OCHTEND · De kade in de ochtend · cutscene of gespeeld in de missie
+  - donderdag, bij zonsopgang. Mist boven het water van de haven van Zoutkamp. Tammo zit op een bolder met twee bekers koffie uit de bus, al sinds half zes. Tessa komt aanlopen in haar jas, haar haren nog nat.
+  - praat: Tessa, Tammo
 - **R3.0** BUITEN – STAD – DAG · Nachtstreek, vrijdagochtend · radio
   - praat: Rikus, Jelle Terpstra
 
@@ -416,6 +428,17 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 - **O6** BUITEN – EEMSHAVEN, DE KADE – OCHTEND · Een bod · overgangsscène (BRIDGES)
   - ochtend op de kade. Een onbekend nummer belt Tessa. Ze zet hem op de luidspreker, Tammo komt erbij staan.
   - praat: Jelle Terpstra, Tessa, Tammo
+
+**Sequentie K3: Het havenkantoor in de nacht** (activiteit; speler-protagonist Tammo)
+
+- **K3** BINNEN – EEMSDELTA, EEMSHAVEN, LAMMERTS HAVENKANTOOR – NACHT · Het havenkantoor in de nacht · cutscene of gespeeld in de missie
+  - vrijdagnacht, na de container. Twee bedden in een kantoor, het licht van de kranen valt door de lamellen. Op het bureau zit Sjabbe met zijn koptelefoon om zijn nek en een map onder zijn arm.
+  - praat: Sjabbe, Tammo, Tessa
+- **R4.0** BINNEN – STAD – OCHTEND · Nachtstreek, maandagochtend · radio
+  - maandag 24 augustus, ochtend. Rikus in de studio; Jelle belt in met zijn offerte.
+  - praat: Rikus, Jelle Terpstra
+- **R4.0b** BUITEN – STAD – DAG · Nachtstreek, maandagavond · radio
+  - praat: Rikus
 
 **Sequentie M14: De dijk** (missie dijk; speler-protagonist Tammo)
 
@@ -512,11 +535,6 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 - **J3** BUITEN – MIDDEN-GRONINGEN, HET ERF BIJ SIDDEBUREN – MIDDAG · Koffie bij Tessa's ouders · cutscene of gespeeld in de missie
   - zondagmiddag. Een erf bij Siddeburen met kippen, een moestuin en een tafel onder de appelboom. Naamkaart ANNEKE. Tessa's vader staat bij het hek met een mand eieren en zegt niets. Tessa en Tammo zitten op één bank, een h
   - praat: Anneke, Tessa, Tammo
-- **R4.0** BINNEN – STAD – OCHTEND · Nachtstreek, maandagochtend · radio
-  - maandag 24 augustus, ochtend. Rikus in de studio; Jelle belt in met zijn offerte.
-  - praat: Rikus, Jelle Terpstra
-- **R4.0b** BUITEN – STAD – DAG · Nachtstreek, maandagavond · radio
-  - praat: Rikus
 
 ### Akte 4: Zuidwaarts
 
@@ -524,7 +542,7 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 
 - **M17.1** BUITEN – VEENKOLONIËN, VEENDAM, OOSTERDIEP – OCHTEND · Open, dicht: intro · cutscene of gespeeld in de missie
   - maandag 24 augustus, ochtend. Een brug, een kanaal, een fanfare in de verte. Naamkaart: WUBBO. Gameplay: met een sloep door elf bruggen varen, voor Jelles mosterdschip, op het ritme van de bruggen.
-  - praat: Wubbo, Tessa, Tammo
+  - praat: Wubbo, Tammo, Tessa
 - **M17.2** BUITEN – VEENKOLONIËN, OOSTERDIEP – DAG · Open, dicht: de fanfare weg · cutscene of gespeeld in de missie
   - halverwege valt de muziek weg. Op de oever loopt de fanfare in optocht naar een zwarte trekker-limo.
   - praat: Wubbo, Jelle Terpstra, Tessa, Tammo
@@ -597,6 +615,15 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 - **J6** BINNEN – STAD, PADDEPOEL, DE FLAT – AVOND · Beppe aan de deur · cutscene of gespeeld in de missie
   - dinsdagavond, de flat. Er wordt aangebeld. Beppe staat in de deur met een pan soep in een handdoek, haar jas aan, in augustus.
   - praat: Beppe, Tessa, Tammo, Oma Trijntje
+
+**Sequentie V1: Schoenen voor de ster** (activiteit; speler-protagonist Tessa)
+
+
+**Sequentie V2: De eerste training** (activiteit; speler-protagonist Tessa)
+
+
+**Sequentie V3: Het is jouw avond** (activiteit; speler-protagonist Tessa)
+
 
 **Sequentie T4: De bus naar Bourtange** (activiteit; speler-protagonist Tammo)
 
@@ -939,8 +966,8 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 
 | Personage | Akte 1 | Akte 2 | Akte 3 | Akte 4 | Akte 5 | Deel 4 |
 |---|---|---|---|---|---|---|
-| Tessa | 39 | 37 | 31 | 33 | 39 | 16 |
-| Tammo | 39 | 35 | 31 | 31 | 33 | 17 |
+| Tessa | 39 | 39 | 32 | 33 | 39 | 16 |
+| Tammo | 39 | 37 | 32 | 31 | 33 | 17 |
 | Jelle Terpstra | 4 | 10 | 11 | 8 | 12 | 4 |
 | Rikus | 9 | 4 | 4 | 7 | 11 | 4 |
 | Berend Bos | 4 |  |  | 14 | 10 | 8 |
@@ -948,10 +975,10 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 | Oma Trijntje |  | 5 | 1 | 5 | 8 | 1 |
 | Durk | 1 | 1 | 5 | 4 | 5 | 2 |
 | Mem Terpstra |  | 2 |  | 6 | 9 |  |
+| Sjabbe | 7 |  | 1 | 1 | 2 | 1 |
 | Kapitein Klaas |  | 8 |  | 1 | 1 | 2 |
 | Willemien |  |  |  |  |  | 12 |
-| Sjabbe | 7 |  |  | 1 | 2 | 1 |
-| Geesje |  | 3 |  | 1 | 3 | 3 |
+| Geesje |  | 4 |  | 1 | 3 | 3 |
 | Wubbo |  |  |  | 4 | 4 | 2 |
 | Tinus |  |  |  | 2 | 6 | 2 |
 | Duivenmelker Bert | 3 |  |  |  | 5 | 1 |

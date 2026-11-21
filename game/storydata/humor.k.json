@@ -1,0 +1,69 @@
+{
+ "note": "Humorvoorstellen (#1126 #1127), WP-aanvulling K1-K3. Nog niet door het paneel beoordeeld (geen panel); chosen 0 is het voorstel van de schrijver.",
+ "beats": [
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "id": "HK-01",
+   "scene": "K1",
+   "speaker": "GEESJE",
+   "context": "Achter de pastorie in Warffum. Tessa zegt dat ze de sleutel van de schuur niet pakt; Geesje wijst naar de spijker en laat haar bezwaar in de lucht hangen.",
+   "shot": "halve close-up Geesje op haar emmer, Tessa met één handschoen aan bij het hek",
+   "variants": [
+    "Dat hoeft ook niet.",
+    "Dat hoefde ook niet.",
+    "Dat doet de kip voor je."
+   ],
+   "neutral": "Je hoeft niets te zeggen."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "id": "HK-02",
+   "scene": "K2",
+   "speaker": "TAMMO",
+   "context": "De kade van Zoutkamp bij zonsopgang. Tammo zegt dat hij het al lang wist en Tessa vraagt wat; hij redt zich met een heel kleine waarheid in plaats van het grote woord.",
+   "shot": "twee-shot op de bolder, Tessa kijkt hem aan, Tammo kijkt in zijn beker",
+   "variants": [
+    "Dat je je koffie met melk drinkt.",
+    "Hoe je je koffie drinkt.",
+    "Dat je koffie met melk hoort."
+   ],
+   "neutral": "Dat je koffie met melk neemt."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "id": "HK-03",
+   "scene": "K2",
+   "speaker": "TESSA",
+   "context": "De kade van Zoutkamp. Na het bijna-moment proeft Tessa van de koffie die Tammo sinds half zes warm hield; zij ontkent met een droge zin dat er iets gebeurd is.",
+   "shot": "close-up Tessa met de beker, Tammo vaag op de achtergrond",
+   "variants": [
+    "Hij is lauw.",
+    "Hij is al uren koud.",
+    "Dit is geen koffie meer."
+   ],
+   "neutral": "De koffie is lauw."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "id": "HK-04",
+   "scene": "K3",
+   "speaker": "SJABBE",
+   "context": "Het havenkantoor, drie uur in de nacht. Sjabbe herhaalt zijn eigen vaste zin op het moment dat Tessa hem, onbedoeld, citeert; hij neemt hem terug alsof het een contract is.",
+   "shot": "halve close-up Sjabbe op het bureau, Tessa met de sleutel in de voorgrond",
+   "variants": [
+    "Dat is mijn zin.",
+    "Die zin is van mij.",
+    "Die staat op mijn naam."
+   ],
+   "neutral": "Dat zeg ik meestal."
+  }
+ ]
+}

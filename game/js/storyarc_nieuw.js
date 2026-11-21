@@ -308,6 +308,8 @@ export const STEPS = [
     story: { intro: ['M09.1'], outro: ['M09.4'], replay: ['M09.5'] }, scenes: ['M09.1', 'M09.2', 'M09.3', 'M09.4', 'M09.5'],
     lead: ['A', 'Geesje woont in de pastorie in Warffum en heeft de laatste eieren van het Hogeland. Eieren ken ik van thuis: jij rijdt, ik zeg hoe.'] }),
   A('N5', 'romp', 'De boerderij in Warffum', { type: 'reis', to: 'het erf in Warffum', at: [53.3925, 6.5600], r: 500, scene: 'N5' }, { built: true, scenes: ['N5'], lead: ['A', 'Ik wil je iets laten zien: het erf waar ik melken leerde, bij Warffum. Neem je hand mee, en geen angst.'] }),
+  // WP-pakket-aanvulling (21-11, #1126 #1127): K1 tot en met K3, activiteiten zonder beloning met migratie voor oude saves (added: true, zie storyarc.js ADDED_STEPS)
+  A('K1', 'romp', 'Het land achter de pastorie', { type: 'reis', to: 'de pastorie in Warffum', at: [53.3888, 6.5690], r: 300, scene: 'K1' }, { built: true, added: true, scenes: ['K1'], lead: ['A', 'Geesje belde: er ligt iets achter de pastorie dat ze mij wil laten zien. Het ruikt naar kippen. Naar Warffum, dus.'] }),
   M('M10', 'romp', 'Een trekker-limo op de wierde', 'wierde', { built: true, reward: 900, unlocks: 'jelle', loopbanen: ['landbouw'],
     // the sloot scene (M10.3) is a stage of the mission itself; the talk in the car after it (M10.4) is a banter exchange
     story: { intro: ['M10.1'], outro: null }, scenes: ['M10.1', 'M10.2', 'M10.3', 'M10.4', 'M10.5'],
@@ -331,6 +333,7 @@ export const STEPS = [
     },
     scenes: ['M11.1', 'M11.2', 'M11.3', 'M11.4', 'M11.5', 'M11.6', 'M11.7', 'M11.8'],
     lead: ['A', 'Jelles skûtsje vaart naar Lauwersoog, met een gouden bal in de kist. Klaas leent je een snelle boot, tot de sluizen.'] }),
+  A('K2', 'romp', 'De kade in de ochtend', { type: 'reis', to: 'de haven van Zoutkamp', at: [53.3377, 6.2986], r: 300, scene: 'K2' }, { built: true, added: true, scenes: ['K2'], lead: ['T', 'Ik zit op de kade in Zoutkamp. Ik heb koffie. Twee. Kom maar als je wakker bent.'] }),
 
   // --- Akte 3: Aan de Eems (Eemsdelta en Oldambt, vr 21 - zo 23 augustus) ----------------
   M('M12', 'staart', 'Het staat niet in het rooster', 'traumaduif', { built: true, reward: 1500, loopbanen: ['lucht'],
@@ -341,6 +344,7 @@ export const STEPS = [
   M('M13', 'staart', 'Het containerlabyrint', 'containers', { built: true, reward: 900, loopbanen: ['handhaving'],
     story: { intro: ['M13.1'], outro: ['M13.3'], replay: ['M13.4'] }, scenes: ['M13.1', 'M13.2', 'M13.3', 'M13.4'],
     lead: ['A', 'De Eemshaven, vannacht. Lammert wacht aan de kade: container 4471 moet leeg uitvaren.'] }),
+  A('K3', 'staart', 'Het havenkantoor in de nacht', { type: 'reis', to: 'Lammerts havenkantoor', at: [53.4395, 6.8350], r: 400, scene: 'K3' }, { built: true, added: true, scenes: ['K3'], lead: ['T', "Sjabbe zegt dat hij in de buurt is. Om drie uur 's nachts. In Lammerts havenkantoor, in de Eemshaven."] }),
   M('M14', 'staart', 'De dijk', 'dijk', { built: true, reward: 1000,
     story: { intro: ['M14.1'], outro: ['M14.3'], replay: ['M14.4'] }, scenes: ['M14.1', 'M14.2', 'M14.3', 'M14.4'],
     lead: ['T', 'Zonsopgang op de dijk bij Bierum. Om acht uur legt Jelles deurwaarder beslag in Delfzijl. Wij zijn eerder bij de sluis.'] }),
@@ -444,7 +448,7 @@ export const WHY = {
   kop: 'Tammo en Tessa weten niet wat ze met hun leven moeten en willen elkaar niet kwijtraken. Eerst geld en een plek in de Noordelijke Snackprijs, voordat Jelle alles opkoopt.',
   romp: "Een recept van 1953 om eerlijk te winnen: Oma Trijntjes vijf ingrediënten van vijf vrienden. Jelle koopt ze op.",
   staart: 'Jelle koopt de haven, het graan en de jury. Tammo en Tessa proberen van alles en merken dat ze samen sterker zijn.',
-  zuid: 'Bewijs dat Jelle de bal al had, en een team om samen iets te beginnen. Samen, ook als het schuurt.',
+  zuid: 'De bal terughalen van Jelle, voordat hij hem in Bourtange aan zijn oma geeft. Eerst het bewijs dat hij hem al had, dan de jury. Samen, ook als het schuurt.',
   ontzet: 'Het Ontzet winnen met de beste eierbal en de snackwagen een standplaats geven. Jelle zit ons op de hielen.',
   nazomer: "De wagen groeit. Oma's familie heeft hulp nodig en Jelle bestelt stiekem eierballen.",
 };

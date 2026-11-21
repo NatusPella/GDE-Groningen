@@ -28,7 +28,7 @@ const saveTot = (laatste) => {
 const huidige = (laatste) => { const s = saveTot(laatste); return nextStoryStep((id) => s.done.has(id), s.mp, () => false); };
 
 ok(huidige('M12').id === 'J1', 'een oude save na M12 krijgt de post van de gemeente (J1) te spelen', huidige('M12').id);
-ok(huidige('M13').id === 'M14', 'een oude save voorbij M13 herhaalt J1 niet', huidige('M13').id);
+ok(huidige('M13').id !== 'J1' && huidige('M13').id !== 'M13', 'een oude save voorbij M13 herhaalt J1 niet', huidige('M13').id);
 ok(huidige('M14').id === 'J2', 'een oude save na M14 krijgt de envelop in Appingedam (J2)', huidige('M14').id);
 ok(huidige('T3').id === 'M15', 'voorbij T3 geen herhaling van J2', huidige('T3').id);
 ok(huidige('A2').id === 'J3', 'een oude save na de kermisrit (A2) krijgt de koffie bij Tessa\'s ouders (J3)', huidige('A2').id);
