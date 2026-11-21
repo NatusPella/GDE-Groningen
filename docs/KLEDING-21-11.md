@@ -69,7 +69,15 @@ Prestaties: Nieuwe look, Past als gegoten, Hele kast (228 in totaal).
 - **Teksten:** zie [KLEDING-TEKSTEN-21-11.md](KLEDING-TEKSTEN-21-11.md).
 - **Mocks (headless Chrome, geen Electron):** `docs/beeld-21-11/kleding/` (`mock.html` plus `serve.mjs`): winkel, kast, pashokje, NPC-rollen, kapper. De mocks lieten zien dat alles tekent; de Tammo-bermuda en de handschoenen staan er goed op. Ze zijn gemaakt met `desktop/vendor-cache` en tellen samen ongeveer 560 KB.
 
-## 9. Niet gedaan en open
+## 9. Ronde 3: mix en match, geen geslachtsbinding, nieuwe kapsels
+
+- **Mix en match:** elk stuk is los te kiezen en te combineren. De winkel toont elke soort van de dagvoorraad in al zijn kleuren (14 soorten per winkel en dag, dus ruim 60 stukken); de kast en Spullen toonden al elk bezit los per slot. Sets zijn alleen een snelkoppeling: zodra je een stuk wisselt, is de setbonus weg, met alle stukken weer aan is hij terug (test met 300 willekeurige combinaties).
+- **Alle kleding voor iedereen:** de catalogus kent geen geslachtsveld of -label (test); jurk, rok, baard en sieraden kunnen alle personages en NPC's dragen. De aanspreekvorm blijft canon per personage. De NPC-rolpools en NPC-kapsels zijn niet geslachtsgebonden (één pool met alle stijlen).
+- **Lichaamsvormen:** `BODY_TYPES` in `clothinghair.js` (gemiddeld, smal, breed, lang, kort): postuur (`build`) plus maat (breedte en lengte) bovenop wat het personage al heeft, als `opts.body` in `buildPersonMesh`. Tammo en Tessa kiezen hun vorm in de kast (Postuur, gratis, per personage opgeslagen en in de outfit-code, versie 3; versie 1 en 2 blijven leesbaar). NPC's krijgen een gewogen vorm. Maattest: elk van de 67 stukken op elke vorm en beide basislichamen, geen NaN, figuur binnen het venster, accessoires binnen het lichaam.
+- **Kapsels:** `models3d_hair.js` bouwt 17 stijlen (kort, tondeuse, kaal, krullen, afro, lang, knot, paardenstaart, bob, golvend, pony, pixie, opgekamd, undercut, hanenkam, twee staartjes, vlecht) uit een schedelschil met haarlijn en onregelmatige rand, losse lokken die taps toelopen, en bollen voor krullen; de kleur loopt op naar de kruin (highlight) en elke lok krijgt een tint. Nog steeds één haarmesh (geen extra drawcall); hoogstens ongeveer 1.000 extra driehoeken per kapsel (test), krullen en afro zijn bewust goedkoop (20 driehoeken per krul). Alle 17 voor alle personages. Draaitafel: `docs/beeld-21-11/kleding/haar.png` (`mock.html?s=haar`).
+- **Eerlijke beoordeling van de kapsels in de render:** krullen, afro, lang, golvend, knot, staarten en vlecht lezen duidelijk beter dan de oude helmen. Kort, pixie, opgekamd en undercut zijn netter maar nog bescheiden (een gelaagde kap), en bob en pony hebben van opzij nog een klokvorm; de hanenkam is van opzij een waaier. Dat is wat de low-poly vorm nu toelaat; verfijnen kan met losse lokken op de kap.
+
+## 10. Niet gedaan en open
 
 - Winkeliers en andere beroepsfiguren in interieurs: er zijn nog geen personen in de winkels; `opts.role` is er klaar voor.
 - Chauffeurs, ambulancepersoneel en brandweer hebben nog geen eigen rolpool (politie blijft de vaste look).

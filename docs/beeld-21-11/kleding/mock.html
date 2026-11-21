@@ -12,6 +12,7 @@
   .grid { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 12px; }
   .cell { width: 150px; background: #2a3347; border: 2px solid #0f131c; text-align: center; }
   .cell canvas { width: 150px; height: 220px; display: block; }
+  .cell.k { width: 104px; } .cell.k canvas { width: 104px; height: 140px; } .cell.k small { min-height: 0; font-size: 10px; }
   .cell small { display: block; padding: 2px 4px 4px; font-size: 12px; line-height: 1.2; min-height: 30px; }
 </style>
 </head>
@@ -38,16 +39,17 @@ const sun = new THREE.DirectionalLight(0xfff2d8, 2.2); sun.position.set(2, 3, 2.
 const cam = new THREE.PerspectiveCamera(32, W / Hh, 0.1, 50);
 
 const grid = document.getElementById('grid');
-function cell(label, mesh, angle = 0.55, frame = 'full') {
+function cell(label, mesh, angle = 0.55, frame = 'full', klein = false) {
   const g = new THREE.Group(); g.add(mesh); g.rotation.y = angle; scene.add(g);
   if (frame === 'head') { cam.position.set(0.0, 1.66, 1.0); cam.lookAt(0, 1.62, 0); }
+  else if (frame === 'kop') { cam.position.set(0.0, 1.64, 1.15); cam.lookAt(0, 1.58, 0); }
   else { cam.position.set(0, 1.0, 3.3); cam.lookAt(0, 0.98, 0); }
   mesh.rotation.y = -Math.PI / 2; // het model kijkt langs +X: naar de camera draaien
   renderer.render(scene, cam);
   scene.remove(g);
   const c = document.createElement('canvas'); c.width = W; c.height = Hh;
   c.getContext('2d').drawImage(renderer.domElement, 0, 0);
-  const d = document.createElement('div'); d.className = 'cell'; d.appendChild(c);
+  const d = document.createElement('div'); d.className = 'cell' + (klein ? ' k' : ''); d.appendChild(c);
   const s = document.createElement('small'); s.textContent = label; d.appendChild(s);
   grid.appendChild(d);
 }
@@ -99,6 +101,19 @@ if (sectie === 'shop') {
   for (const [id, label] of H.HAIR_STYLES.tammo) cell(`Tammo: ${label}`, figuur('tammo', { ...eigen('tammo', {}), hat: undefined, hair: id + '.naturel' }), 0.4, 'head');
   for (const [id, label] of H.HAIR_STYLES.anita) cell(`Tessa: ${label}`, figuur('anita', { ...eigen('anita', {}), hair: id + '.naturel' }), 0.4, 'head');
   for (const c of H.HAIR_COLORS.slice(6)) cell(`Tessa: ${c.label}`, figuur('anita', { ...eigen('anita', {}), hair: 'bob.' + c.id }), 0.4, 'head');
+}
+if (sectie === 'haar') {
+  titel('Haar: elke stijl uit vier hoeken (voor, driekwart, zij, achter)');
+  const styles = q.get('ids') ? q.get('ids').split(',') : H.HAIR_STYLE_IDS;
+  const kleur = q.get('c') || 'bruin';
+  const body = q.get('b') || '';
+  for (const id of styles) for (const [hoek, naam] of [[0.2, 'voor'], [0.9, '3/4'], [1.57, 'zij'], [3.1, 'achter']]) {
+    const ch = q.get('ch') || 'anita';
+    const w = { ...D.DEFAULT_WORN[ch], hair: id + '.' + kleur }; delete w.hat; if (ch === 'tammo') delete w.face;
+    const base = ch === 'tammo' ? TAMMO_APPEARANCE : ANITA_APPEARANCE;
+    const o = C.outfitToLook(w, base);
+    cell(id + ' ' + naam, buildPersonMesh(o.shirt, base.skin, { ...base, ...o, ...(body ? { body } : {}) }), hoek, 'kop', true);
+  }
 }
 document.title = 'klaar';
 window.__klaar = true;

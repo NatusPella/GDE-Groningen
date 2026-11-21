@@ -12,9 +12,11 @@ const P = await import('../game/js/models3d_people.js');
 const A = await import('../game/js/models3d_clothing.js');
 const SH = await import('../game/js/shops.js');
 const H = await import('../game/js/clothinghair.js');
+const THREE = await import('three');
 
 let n = 0, fails = 0;
 const tests = [];
+const norm = (w) => { const o = { ...w }; if (o.body === 'gemiddeld') delete o.body; return o; };
 const t = (name, fn) => tests.push([name, fn]);
 const src = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
 
@@ -166,7 +168,7 @@ t('verhaaloutfit: komt over wat je aan hebt en gaat weg zonder iets te kosten', 
   assert.deepEqual(C.wornPieces('tammo'), eigen, 'je eigen kleding blijft');
   assert.equal(C.forceStoryLook('incognito'), false, 'dezelfde twee keer is geen wijziging');
   assert.equal(C.forceStoryLook(null), true);
-  assert.deepEqual(C.effectiveWorn('tammo'), { ...eigen, hair: C.getHair('tammo') });
+  assert.deepEqual(C.effectiveWorn('tammo'), { ...eigen, hair: C.getHair('tammo'), body: 'gemiddeld' });
   assert.equal(C.forceStoryLook('bestaatniet'), false);
   assert.equal(C.forceStoryLook({ tammo: { top: 'tshirt.groen', bottom: 'jeans.zwart', shoes: 'gympen.wit' } }), true, 'een eigen kaart per personage');
   assert.equal(C.effectiveWorn('tammo').top, 'tshirt.groen');
@@ -211,18 +213,18 @@ t('outfit-code: rondreis voor spelers en NPC\'s, korte code, een onbekend nummer
   for (const ch of ['tammo', 'anita']) {
     const code = C.encodeOutfit(C.effectiveWorn(ch));
     assert.ok(code.length <= 30, code);
-    assert.deepEqual(C.decodeOutfit(code), C.effectiveWorn(ch));
+    assert.deepEqual(C.decodeOutfit(code), norm(C.effectiveWorn(ch)));
   }
   for (let i = 0; i < 200; i++) {
     const w = C.npcOutfit(i, 'voetganger');
-    assert.deepEqual(C.decodeOutfit(C.encodeOutfit(w)), w);
+    assert.deepEqual(C.decodeOutfit(C.encodeOutfit(w)), norm(w));
   }
   assert.equal(C.decodeOutfit('rommel'), null);
   assert.equal(C.decodeOutfit(42), null);
   assert.equal(C.decodeOutfit('k1' + 'zz09'), null, 'onbekend item');
   assert.equal(C.decodeOutfit('k1'.padEnd(200, 'a')), null, 'te lang');
   const alles = {}; for (const s of D.SLOT_IDS) { const it = D.ITEMS.find((i) => i.slot === s); alles[s] = `${it.id}.${it.colors[0]}`; }
-  assert.ok(C.encodeOutfit(alles).length <= 4 + 4 * D.SLOT_IDS.length);
+  assert.ok(C.encodeOutfit(alles).length <= 6 + 4 * D.SLOT_IDS.length);
 });
 
 t('NPC-outfits: deterministisch, rol bepaalt de kleding, altijd een geldige outfit', () => {
@@ -301,7 +303,8 @@ t('verhaalpersonages en politie houden hun vaste look: een look of cop gaat voor
 t('kapper: haar is deel van de outfit, per personage, in presets, code, save en verhaaloutfit', () => {
   assert.equal(C.getHair('tammo'), 'short.naturel');
   assert.equal(C.getHair('anita'), 'long.naturel');
-  assert.equal(C.setHair('tammo', 'bob', 'zwart'), false, 'een stijl van Tessa kan Tammo niet (zijn eigen lijst)');
+  assert.equal(C.setHair('tammo', 'bob', 'zwart'), true, 'elk kapsel voor elk personage');
+  assert.equal(C.setHair('tammo', 'nietbestaand', 'zwart'), false);
   assert.equal(C.setHair('tammo', 'bald', 'zwart'), true);
   assert.equal(C.setHair('tammo', 'bald', 'zwart'), false, 'dezelfde twee keer');
   assert.equal(C.setHair('anita', 'bob', 'nietbestaand'), false);
@@ -324,9 +327,9 @@ t('kapper: haar is deel van de outfit, per personage, in presets, code, save en 
   assert.equal(C.getHair('tammo'), 'bald.zwart');
   // outfit-code: haar zit erin, een oude k1-code (zonder haar) blijft leesbaar
   const code = C.encodeOutfit(C.effectiveWorn('anita'));
-  assert.ok(code.startsWith('k2'));
+  assert.ok(code.startsWith('k3'));
   assert.equal(C.decodeOutfit(code).hair, 'bob.roze');
-  const oud = 'k1' + code.slice(4); // een code van versie 1: zonder kapsel
+  const oud = 'k1' + code.slice(6); // een code van versie 1: zonder kapsel en lichaamsvorm
   assert.ok(C.decodeOutfit(oud), 'k1 blijft werken');
   assert.equal(C.decodeOutfit(oud).hair, undefined);
   assert.equal(C.decodeOutfit(oud).outer, C.effectiveWorn('anita').outer);
@@ -337,8 +340,8 @@ t('kapper: haar is deel van de outfit, per personage, in presets, code, save en 
   C.resetClothing(); C.applyClothingSave(undefined, { ownedOutfits: [], outfit: {}, hair: { tammo: { color: 'groen', style: 'buzz' }, anita: { color: 'naturel', style: 'ponytail' } } });
   assert.equal(C.getHair('tammo'), 'buzz.groen', 'het kapsel van een oude save blijft');
   assert.equal(C.getHair('anita'), 'ponytail.naturel');
-  C.applyClothingSave({ v: 1, tammo: { h: 'bob.roze' } });
-  assert.equal(C.getHair('tammo'), 'short.naturel', 'een kapsel dat Tammo niet kent wordt genegeerd');
+  C.applyClothingSave({ v: 1, tammo: { h: 'zzz.roze' } });
+  assert.equal(C.getHair('tammo'), 'short.naturel', 'een onbekend kapsel wordt genegeerd');
   // verhaalscène forceert alleen een kapsel: de eigen kleding blijft, het eigen kapsel komt terug
   C.resetClothing();
   assert.equal(C.forceStoryLook({ tammo: { hair: 'bald.naturel' } }), true);
@@ -350,16 +353,16 @@ t('kapper: haar is deel van de outfit, per personage, in presets, code, save en 
 });
 
 t('NPC-kapsels: deterministisch uit zaad, man of vrouw, oud wordt grijs, een eigen kapsel zit in de code', () => {
-  const w1 = C.npcOutfit(5, 'voetganger', { female: true }), w2 = C.npcOutfit(5, 'voetganger', { female: true });
+  const w1 = C.npcOutfit(5, 'voetganger', { hair: true }), w2 = C.npcOutfit(5, 'voetganger', { hair: true });
   assert.deepEqual(w1, w2);
   assert.ok(w1.hair && H.parseHair(w1.hair));
-  assert.equal(C.npcOutfit(5, 'voetganger').hair, undefined, 'zonder geslacht geen kapsel (het model kiest zelf)');
+  assert.equal(C.npcOutfit(5, 'voetganger').hair, undefined, 'zonder vraag geen kapsel (het model kiest zelf)');
   let kaal = 0, bob = 0;
-  for (let i = 0; i < 600; i++) { if (C.npcOutfit(i, 'voetganger', { female: false }).hair.startsWith('bald')) kaal++; if (C.npcOutfit(i, 'voetganger', { female: false }).hair.startsWith('bob')) bob++; }
-  assert.ok(kaal > 10 && bob === 0, `mannen: kaal ${kaal} bob ${bob}`);
-  for (let i = 0; i < 60; i++) assert.match(C.npcOutfit(i, 'voetganger', { female: i % 2 === 0, old: true }).hair, /\.(grijs|platina)$/);
-  const w = C.npcOutfit(9, 'student', { female: true });
-  assert.deepEqual(C.decodeOutfit(C.encodeOutfit(w)), w);
+  for (let i = 0; i < 600; i++) { const h = C.npcOutfit(i, 'voetganger', { hair: true }).hair; if (h.startsWith('bald')) kaal++; if (h.startsWith('bob')) bob++; }
+  assert.ok(kaal > 5 && bob > 10, `niet aan een geslacht gebonden: kaal ${kaal} bob ${bob}`);
+  for (let i = 0; i < 60; i++) assert.match(C.npcOutfit(i, 'voetganger', { hair: true, old: true }).hair, /\.(grijs|platina)$/);
+  const w = C.npcOutfit(9, 'student', { hair: true, body: true });
+  assert.deepEqual(C.decodeOutfit(C.encodeOutfit(w)), norm(w));
   const a = P.buildPersonMesh(0x888888, 0xd9aa82, { seed: 9, role: 'student' });
   assert.ok(a.userData.body);
 });
@@ -367,8 +370,8 @@ t('NPC-kapsels: deterministisch uit zaad, man of vrouw, oud wordt grijs, een eig
 t('kapper in de winkel: eigen opties per personage, reactie, prestatie, prijs', () => {
   const bron = src('../game/js/shops.js');
   assert.ok(/HAIR_REACTIONS\[ch\]/.test(bron) && /recordUnique\(world, 'kapsels'/.test(bron));
-  assert.ok(H.HAIR_STYLES.tammo.some(([id]) => id === 'bald') && !H.HAIR_STYLES.tammo.some(([id]) => id === 'bob'));
-  assert.ok(H.HAIR_STYLES.anita.some(([id]) => id === 'bob'));
+  assert.deepEqual(H.HAIR_STYLES.tammo, H.HAIR_STYLES.anita, 'alle kapsels voor alle personages');
+  assert.ok(H.HAIR_STYLE_IDS.length >= 14, 'minstens 14 kapsels: ' + H.HAIR_STYLE_IDS.length);
   for (const ch of ['tammo', 'anita']) for (const [id] of H.HAIR_STYLES[ch]) assert.ok(H.HAIR_STYLE_IDS.includes(id), id);
   for (const list of Object.values(H.HAIR_REACTIONS)) for (const l of list) assert.ok(l.length > 20 && !/(nike|adidas)/i.test(l));
   assert.ok(H.hairPrice('bald') < H.hairPrice('short'));
@@ -420,12 +423,118 @@ t('snelwisseltoets: door de gevulde outfits heen, per personage, de toets zit aa
   const CT = D; void CT;
 });
 
+t('mix en match: elk stuk los te kiezen en te combineren, sets zijn een snelkoppeling', () => {
+  // elke combinatie van één stuk per slot (willekeurig 300 keer) is een geldige outfit voor beide personages
+  const r = C.rng('mix');
+  for (let n = 0; n < 300; n++) {
+    const ch = n % 2 ? 'tammo' : 'anita';
+    for (const slot of D.SLOT_IDS) {
+      const l = D.SHOP_ITEMS.filter((i) => i.slot === slot);
+      if (r() < 0.4) continue;
+      const it = l[Math.floor(r() * l.length)];
+      const p = `${it.id}.${it.colors[Math.floor(r() * it.colors.length)]}`;
+      C.givePiece(ch, p);
+      assert.ok(C.wearPiece(ch, p).ok || C.wornPieces(ch)[slot] === p, p);
+    }
+    const o = C.outfitToLook(C.effectiveWorn(ch), {});
+    assert.ok(Number.isFinite(o.shirt) && o.look);
+  }
+  // een set dragen is een snelkoppeling: een stuk eruit wisselen kan, de setbonus verdwijnt dan vanzelf
+  const s = D.setKeyFor('tammo', 'incognito');
+  C.resetClothing();
+  for (const p of s.pieces) C.givePiece('tammo', p);
+  C.wearSet('tammo', s);
+  assert.equal(C.setBonus('tammo').stealth, 2);
+  C.givePiece('tammo', 'gympen.wit'); C.wearPiece('tammo', 'gympen.wit');
+  assert.equal(C.setBonus('tammo').stealth, 0, 'een ander stuk erin: geen setbonus');
+  C.wearPiece('tammo', s.pieces[3]);
+  assert.equal(C.setBonus('tammo').stealth, 2, 'alle stukken weer aan: de bonus is terug');
+  const bron = src('../game/js/clothingpanel.js');
+  assert.ok(/ownedPieces\(ch\)\.filter/.test(bron), 'de kast toont elk stuk los');
+});
+
+t('niet aan een geslacht gebonden: geen geslachtslabels, alle kleding en alle kapsels voor iedereen', () => {
+  const tekst = D.ITEMS.flatMap((i) => [i.label, i.desc, i.id]).join(' ').toLowerCase();
+  for (const w of ['dames', 'heren', 'jongens', 'meisjes', 'vrouwen', 'mannen']) assert.ok(!new RegExp(`\\b${w}`).test(tekst), 'geslachtslabel: ' + w);
+  for (const it of D.ITEMS) assert.ok(!('for' in it) && !('gender' in it) && !('sex' in it), it.id + ' heeft een geslachtsveld');
+  for (const ch of ['tammo', 'anita']) for (const it of D.SHOP_ITEMS) {
+    const p = `${it.id}.${it.colors[0]}`;
+    C.givePiece(ch, p);
+    assert.ok(C.wearPiece(ch, p).ok || C.wornPieces(ch)[it.slot] === p, `${ch}: ${it.id}`);
+  }
+  assert.deepEqual(H.HAIR_STYLES.tammo, H.HAIR_STYLES.anita);
+});
+
+t('lichaamsvormen: elk stuk past op elk lichaamstype zonder clipping (maattest)', () => {
+  const types = H.BODY_IDS;
+  assert.ok(['smal', 'gemiddeld', 'breed', 'lang', 'kort'].every((b) => types.includes(b)));
+  for (const body of types) for (const variant of ['male', 'female']) {
+    const ch = variant === 'male' ? 'tammo' : 'anita';
+    const base = { ...(variant === 'male' ? P.TAMMO_APPEARANCE : P.ANITA_APPEARANCE) };
+    const kaal = P.buildPersonMesh(0x888888, base.skin, { ...base, body, ...C.outfitToLook(C.effectiveWorn(ch), base) });
+    kaal.updateMatrixWorld(true);
+    const bb = new THREE.Box3().setFromObject(kaal.userData.body);
+    for (const it of D.ITEMS) {
+      const worn = { ...D.DEFAULT_WORN[ch], [it.slot]: `${it.id}.${it.colors[0]}`, hair: 'short.naturel' };
+      const o = C.outfitToLook(worn, base);
+      const m = P.buildPersonMesh(o.shirt, base.skin, { ...base, ...o, body });
+      m.updateMatrixWorld(true);
+      const pos = m.userData.body.geometry.attributes.position.array;
+      for (let i = 0; i < pos.length; i += 61) assert.ok(Number.isFinite(pos[i]), `${it.id} ${body} ${variant}: NaN`);
+      const sc = new THREE.Box3().setFromObject(m.userData.body);
+      assert.ok(sc.max.y - sc.min.y < 2.3 && sc.max.x - sc.min.x < 0.75 && sc.max.z - sc.min.z < 0.8, `${it.id} ${body} ${variant}: past niet`);
+      for (const a of m.userData.clothingMeshes || []) {
+        const ab = new THREE.Box3().setFromObject(a);
+        assert.ok(bb.clone().expandByScalar(0.16).containsBox(ab), `${it.id} ${body} ${variant}: accessoire buiten het lichaam`);
+        assert.ok(ab.max.y - ab.min.y < 0.5, `${it.id}: accessoire te groot`);
+      }
+    }
+  }
+  const maat = (b) => { const base = P.TAMMO_APPEARANCE; const m = P.buildPersonMesh(0x888888, base.skin, { ...base, body: b }); m.updateMatrixWorld(true); const x = new THREE.Box3().setFromObject(m.userData.body); return { w: x.max.z - x.min.z, h: x.max.y - x.min.y }; };
+  assert.ok(maat('smal').w < maat('breed').w && maat('lang').h > maat('kort').h, 'de types verschillen echt');
+  assert.equal(C.setBody('tammo', 'nietbestaand'), false);
+  assert.equal(C.setBody('tammo', 'breed'), true);
+  assert.equal(C.outfitToLook(C.effectiveWorn('tammo'), {}).body, 'breed');
+  assert.equal(C.getBody('anita'), 'gemiddeld', 'elk personage zijn eigen vorm');
+  const save = JSON.parse(JSON.stringify(C.getClothingSave())); C.resetClothing(); C.applyClothingSave(save);
+  assert.equal(C.getBody('tammo'), 'breed');
+  assert.equal(C.decodeOutfit(C.encodeOutfit(C.effectiveWorn('tammo'))).body, 'breed', 'de vorm zit in de outfit-code');
+  const bodies = new Set(); for (let i = 0; i < 200; i++) bodies.add(C.npcOutfit(i, 'voetganger', { body: true }).body);
+  assert.equal(bodies.size, 5, 'NPC-s hebben alle vijf de vormen');
+});
+
+t('kapsels: 17 stijlen, één haarmesh, binnen budget, geen NaN, ook met hoed en op elk lichaamstype', () => {
+  assert.equal(H.HAIR_STYLE_IDS.length, 17);
+  for (const id of H.HAIR_STYLE_IDS) {
+    for (const hat of [null, 'pet.rood', 'mutsje.grijs']) {
+      for (const body of ['smal', 'breed']) {
+        const w = { ...D.DEFAULT_WORN.anita, hair: `${id}.blond`, ...(hat ? { hat } : {}) };
+        const o = C.outfitToLook(w, P.ANITA_APPEARANCE);
+        const m = P.buildPersonMesh(o.shirt, P.ANITA_APPEARANCE.skin, { ...P.ANITA_APPEARANCE, ...o, body });
+        let c = 0; m.traverse((x) => { if (x.isMesh) c++; });
+        assert.equal(c, 1, `${id}: haar is geen extra mesh`);
+        const g = m.userData.body.geometry;
+        const pos = g.attributes.position.array;
+        for (let i = 0; i < pos.length; i += 7) assert.ok(Number.isFinite(pos[i]), `${id}: NaN`);
+        assert.ok(g.attributes.position.count / 3 < 5200, `${id}: ${g.attributes.position.count / 3} driehoeken`);
+      }
+    }
+  }
+  const geos = new Set();
+  for (const id of H.HAIR_STYLE_IDS) { const m = P.buildPersonMesh(0x888888, 0xd9aa82, { seed: 1, variant: 'female', hairStyle: id, hair: 0x5a3d26 }); geos.add(m.userData.body.geometry.attributes.position.count); }
+  assert.ok(geos.size >= 12, 'te veel gelijke kapsels: ' + geos.size);
+  const tri = (id) => P.buildPersonMesh(0x888888, 0xd9aa82, { seed: 1, variant: 'female', hairStyle: id, hair: 0x5a3d26 }).userData.body.geometry.attributes.position.count / 3;
+  for (const id of H.HAIR_STYLE_IDS) assert.ok(tri(id) - tri('bald') < 1000, `${id}: ${tri(id) - tri('bald')} extra driehoeken`);
+});
+
 t('winkel: aanbod deterministisch per winkel en dag, wisselt per dag, uitverkoop op vrijdag', () => {
   const a = C.shopStock('Stoer & Stads|10,20', 3), b = C.shopStock('Stoer & Stads|10,20', 3);
   assert.deepEqual(a, b);
   assert.notDeepEqual(a, C.shopStock('Stoer & Stads|10,20', 4), 'morgen ander aanbod');
   assert.notDeepEqual(a, C.shopStock('Stoer & Stads|99,20', 3), 'andere winkel, ander aanbod');
-  assert.ok(a.length >= 15 && a.length <= D.SHOP_STOCK + 8, 'aantal ' + a.length);
+  const soorten = new Set(a.map((p) => p.split('.')[0]));
+  assert.ok(soorten.size >= 8 && soorten.size <= D.SHOP_STOCK + 4, 'soorten ' + soorten.size);
+  for (const id of soorten) assert.deepEqual(a.filter((p) => p.startsWith(id + '.')).map((p) => p.split('.')[1]).sort(), [...D.ITEM_BY_ID[id].colors].sort(), `${id}: elk stuk in alle kleuren te kiezen`);
   for (const p of a) { assert.ok(D.parsePiece(p) && !D.parsePiece(p).item.npc, p); }
   assert.ok(C.shopProfiles('x').length >= 1 && C.shopProfiles('x').every((p) => p in D.PROFILES));
   let dagen = 0; for (let d = 0; d < 28; d++) if (C.saleOn(d)) dagen++;

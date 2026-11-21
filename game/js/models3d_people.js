@@ -4,6 +4,8 @@ import { hash2 } from './rng.js';
 import { footContact, turnLean, approachTo, wrapPi, fidgetAt } from './gait.js';
 import { idlePose } from './idleclips.js';
 import { attachAccessories } from './models3d_clothing.js';
+import { buildHairStyle } from './models3d_hair.js';
+import { BODY_TYPES } from './clothinghair.js';
 import { npcLook } from './clothing.js';
 
 // Low-poly humanoid for the on-foot player, every pedestrian, drivers and
@@ -414,6 +416,8 @@ function lumpyCap(B, k, color, seed, lift = 0) {
 }
 
 function buildHair(B, L) {
+  // the 17 styles (models3d_hair.js: scalp shell with a hairline, locks, a highlight); the hijab stays here
+  if (L.hairStyle !== 'hijab' && buildHairStyle(B, L, { HEAD_Y, headShape, shade, mix })) return;
   const c = L.hair, style = L.hairStyle;
   const capped = L.hat === 'tammo' || L.hat === 'cap' || L.hat === 'police' || L.hat === 'flatcap' || L.hat === 'beanie' || L.hoodUp;
   switch (style) {
@@ -960,8 +964,10 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
     Object.assign(L, { top: 'coat', shortCoat: true, bottom: 'jeans', shoeType: 'boot', scarf: false });
   }
   // NPC-rol (clothing.js, ROLE_POOLS): kleding uit dezelfde stukken als die van de speler, deterministisch uit zaad en rol
+  let bodyId = opts.body;
   if (opts.role && !L.character && !L.cop && !opts.look) {
-    const n = npcLook(L.seed, opts.role, { ...(opts.outfitCtx || {}), female: L.female, old: L.age === 'old' }, {});
+    const n = npcLook(L.seed, opts.role, { ...(opts.outfitCtx || {}), hair: true, body: !bodyId, old: L.age === 'old' }, {});
+    if (!bodyId && n.body) bodyId = n.body;
     Object.assign(L, n.look);
     // sieraden, horloge en handschoenen zijn losse meshes: een NPC in de menigte krijgt ze niet (geen extra drawcalls, ze zijn op afstand niet te zien)
     if (!(opts.outfitCtx && opts.outfitCtx.detail)) L.acc = null;
@@ -970,7 +976,7 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
     L.topColor = n.shirt;
     if (n.pants != null) { L.pants = n.pants; L.skirtColor = n.pants; }
     if (n.shoes != null) L.shoes = n.shoes;
-    if (n.look.hat === 'tammo') L.hat = 'cap';
+    if (n.look.hat === 'tammo') { L.hat = 'cap'; L.hatColor = n.look.capColor; }
   }
   // story characters (missionstory.js NPC looks): fixed clothes, hat, build
   if (opts.look) Object.assign(L, opts.look);
@@ -981,6 +987,9 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
     if (L.hairStyle === 'hijab') L.hairStyle = 'bun';
   }
 
+  // lichaamsvorm (clothinghair.js BODY_TYPES): postuur en maat bovenop wat het personage al heeft; kleding is niet aan een geslacht gebonden
+  const bt = bodyId && BODY_TYPES[bodyId];
+  if (bt) { L.build = bt.build; L.buildScale *= bt.bs; L.heightScale *= bt.hs; }
   // #658: dezelfde look (expliciete seed, kleding, kleuren) hergebruikt dezelfde rompgeometrie.
   L.coatOpen = L.top === 'blazer' || L.forceOpen || L.r(30) < 0.6;
   const shZ = (L.female ? 0.172 : 0.198) * (L.build === 'heavy' ? 1.06 : L.build === 'slim' ? 0.95 : 1) + 0.03;

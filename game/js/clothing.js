@@ -15,11 +15,11 @@ import {
   DEFAULT_WORN, ROLE_POOLS, SHOP_ITEMS, SHOP_STOCK, SHOP_RARE_CHANCE, SALE_DISCOUNT, PRESET_COUNT, PRESET_NAME_MAX, PROFILES,
   parsePiece, pieceLabel, colorHex, colorName, setsFor, setKeyFor,
 } from './clothingdata.js';
-import { HAIR_STYLE_IDS, HAIR_COLORS, HAIR_COLOR_BY_ID, HAIR_STYLES, DEFAULT_HAIR, NPC_HAIR, NPC_HAIR_COLORS, parseHair } from './clothinghair.js';
+import { HAIR_STYLE_IDS, HAIR_COLORS, HAIR_COLOR_BY_ID, HAIR_STYLES, DEFAULT_HAIR, NPC_HAIR, NPC_HAIR_COLORS, parseHair, BODY_IDS, BODY_TYPES, NPC_BODY } from './clothinghair.js';
 
 export const CHARS = ['tammo', 'anita'];
 export const SAVE_VERSION = 1;
-export const CODE_VERSION = 2;
+export const CODE_VERSION = 3;
 const isChar = (c) => c === 'tammo' || c === 'anita';
 
 // ---------------------------------------------------------------- toevalsbron (deterministisch, zonder globale staat)
@@ -42,7 +42,7 @@ export function rng(seed) {
 }
 
 // ---------------------------------------------------------------- de staat
-const emptyWardrobe = () => ({ owned: new Set(), worn: {}, hair: null, presets: Array.from({ length: PRESET_COUNT }, () => null), seen: new Set() });
+const emptyWardrobe = () => ({ owned: new Set(), worn: {}, hair: null, body: 'gemiddeld', presets: Array.from({ length: PRESET_COUNT }, () => null), seen: new Set() });
 const store = { tammo: emptyWardrobe(), anita: emptyWardrobe(), forced: null, forcedKey: null, bought: 0 };
 
 export function resetClothing() {
@@ -69,11 +69,18 @@ export const boughtCount = () => store.bought;
 export function effectiveWorn(ch) {
   const c = isChar(ch) ? ch : 'tammo';
   // hair: the kapsel is part of the outfit (a forced story look may carry its own, otherwise your own stays)
-  if (store.forced && store.forced[c]) return { hair: W(c).hair, ...store.forced[c] };
-  return { ...W(c).worn, hair: W(c).hair };
+  if (store.forced && store.forced[c]) return { hair: W(c).hair, body: W(c).body, ...store.forced[c] };
+  return { ...W(c).worn, hair: W(c).hair, body: W(c).body };
 }
 
 // ---------------------------------------------------------------- haar (clothinghair.js)
+// De lichaamsvorm van een personage (clothinghair.js BODY_TYPES): alleen de pasvorm, geen kleding of geslacht.
+export const getBody = (ch) => W(ch).body;
+export function setBody(ch, id) {
+  if (!BODY_TYPES[id] || W(ch).body === id) return false;
+  W(ch).body = id;
+  return true;
+}
 export const getHair = (ch) => W(ch).hair;
 export function setHair(ch, style, color) {
   const c = isChar(ch) ? ch : 'tammo';
@@ -292,6 +299,7 @@ export function outfitToLook(worn, base = {}) {
   if (Object.keys(acc).length) look.acc = acc; else look.acc = null;
   const hair = worn.hair && parseHair(worn.hair);
   if (hair) { out.hairStyle = hair.style; if (hair.hex != null) out.hair = hair.hex; }
+  if (worn.body && BODY_TYPES[worn.body]) out.body = worn.body;
   out.shirt = shirt;
   out.look = look;
   return out;
@@ -305,7 +313,8 @@ const b36 = (n, len) => n.toString(36).padStart(len, '0');
 export function encodeOutfit(worn) {
   let s = 'k' + CODE_VERSION;
   const hair = worn.hair && parseHair(worn.hair);
-  s += hair ? b36(HAIR_STYLE_IDS.indexOf(hair.style), 1) + b36(HAIR_COLORS.findIndex((c) => c.id === hair.color), 1) : '--';
+  s += hair ? b36(HAIR_STYLE_IDS.indexOf(hair.style), 2) + b36(HAIR_COLORS.findIndex((c) => c.id === hair.color), 1) : '---';
+  s += b36(Math.max(0, BODY_IDS.indexOf(worn.body)), 1);
   for (const slot of SLOT_IDS) {
     const x = worn[slot] ? parsePiece(worn[slot]) : null;
     if (x) s += b36(ITEM_INDEX[x.item.id], 2) + b36(PALETTE_INDEX[x.color], 2);
@@ -316,10 +325,15 @@ export function decodeOutfit(code) {
   if (typeof code !== 'string' || code.length > 80 || !/^k[0-9]/.test(code)) return null;
   const worn = {};
   let body = code.slice(2);
-  if (code[1] >= '2') { // sinds versie 2 staat het kapsel voorop: twee tekens (stijl en kleur), of '--' zonder
+  if (code[1] === '2') { // versie 2: het kapsel voorop, twee tekens (stijl en kleur), of '--' zonder
     const st = HAIR_STYLE_IDS[parseInt(body[0], 36)], co = HAIR_COLORS[parseInt(body[1], 36)];
     if (st && co) worn.hair = `${st}.${co.id}`;
     body = body.slice(2);
+  } else if (code[1] >= '3') { // versie 3: stijl (2 tekens), kleur, lichaamsvorm
+    const st = HAIR_STYLE_IDS[parseInt(body.slice(0, 2), 36)], co = HAIR_COLORS[parseInt(body[2], 36)], bd = BODY_IDS[parseInt(body[3], 36)];
+    if (st && co) worn.hair = `${st}.${co.id}`;
+    if (bd && bd !== 'gemiddeld') worn.body = bd;
+    body = body.slice(4);
   }
   for (let i = 0; i + 4 <= body.length; i += 4) {
     const idx = parseInt(body.slice(i, i + 2), 36), ci = parseInt(body.slice(i + 2, i + 4), 36);
@@ -380,12 +394,13 @@ export function npcOutfit(seed, role = 'voetganger', ctx = {}) {
   if (!worn.shoes) worn.shoes = 'gympen.ecru';
   if (!hasTorso(worn)) worn.top = 'tshirt.wit';
   // het kapsel (clothinghair.js): man of vrouw, een natuurlijke kleur, een oudere NPC wordt grijs; geen kapsel voor wie het niet vraagt
-  if (ctx.female !== undefined || ctx.hair) {
+  if (ctx.hair) {
     const hr = rng(`${seed}|haar|${role}`);
-    const style = pickWeighted(NPC_HAIR[ctx.female ? 'female' : 'male'], hr);
+    const style = pickWeighted(NPC_HAIR.all, hr);
     const color = ctx.old ? ['grijs', 'platina', 'lichtgrijs'].filter((id) => HAIR_COLOR_BY_ID[id])[Math.floor(hr() * 2)] : pickWeighted(NPC_HAIR_COLORS, hr);
     worn.hair = `${style}.${color}`;
   }
+  if (ctx.body) worn.body = pickWeighted(NPC_BODY, rng(`${seed}|lijf|${role}`));
   return worn;
 }
 // Welke rol een voetganger heeft: gewogen per buurtprofiel (trafficfleet.js WIJK_PROFILE) en uur van de dag, deterministisch uit zijn zaad.
@@ -447,24 +462,23 @@ export function shopStock(shopKey, day, size = SHOP_STOCK) {
   const pool = SHOP_ITEMS.filter((it) => it.profiles.some((p) => profs.includes(p)));
   const common = pool.filter((it) => it.rarity === 'g');
   const special = pool.filter((it) => it.rarity !== 'g');
-  const out = new Set();
-  const want = Math.min(size, pool.length * 2);
+  const items = new Set();
+  const want = Math.min(size, pool.length);
   let guard = 0;
-  while (out.size < want && guard++ < 400) {
+  while (items.size < want && guard++ < 400) {
     const list = special.length && r() < SHOP_RARE_CHANCE ? special : common;
     if (!list.length) break;
-    const it = list[Math.floor(r() * list.length)];
-    out.add(`${it.id}.${it.colors[Math.floor(r() * it.colors.length)]}`);
+    items.add(list[Math.floor(r() * list.length)].id);
   }
-  // elk slot waarvoor de winkel iets heeft, krijgt minstens één stuk
+  // elk slot waarvoor de winkel iets heeft, krijgt minstens één soort
   for (const slot of SLOT_IDS) {
     const l = pool.filter((it) => it.slot === slot);
-    if (l.length && ![...out].some((p) => pieceSlot(p) === slot) && r() < 0.8) {
-      const it = l[Math.floor(r() * l.length)];
-      out.add(`${it.id}.${it.colors[Math.floor(r() * it.colors.length)]}`);
-    }
+    if (l.length && ![...items].some((id) => ITEM_BY_ID[id].slot === slot) && r() < 0.8) items.add(l[Math.floor(r() * l.length)].id);
   }
-  return [...out].sort((a, b) => SLOT_IDS.indexOf(pieceSlot(a)) - SLOT_IDS.indexOf(pieceSlot(b)) || a.localeCompare(b));
+  // mix en match: elke soort ligt er in al zijn kleuren, zodat je zelf kiest en combineert (sets zijn alleen een snelkoppeling)
+  const out = [];
+  for (const id of items) for (const color of ITEM_BY_ID[id].colors) out.push(`${id}.${color}`);
+  return out.sort((a, b) => SLOT_IDS.indexOf(pieceSlot(a)) - SLOT_IDS.indexOf(pieceSlot(b)) || a.localeCompare(b));
 }
 // De prijs van een stuk in een winkel op een dag (uitverkoop meegerekend), in hele euro's.
 export function shopPrice(piece, shopKey, day) {
@@ -490,6 +504,7 @@ export function getClothingSave() {
       p: w.presets.map((p) => (p ? { n: p.name, w: { ...p.worn } } : null)),
       s: [...w.seen].sort(),
       h: w.hair,
+      b: w.body,
     };
   }
   return { v: SAVE_VERSION, ...per, story: store.forcedKey || null, bought: store.bought };
@@ -515,6 +530,7 @@ export function applyClothingSave(d, legacy = null) {
       for (const p of Object.values(worn)) w.owned.add(p);
       w.worn = Object.keys(worn).length && hasTorso(worn) && worn.bottom && worn.shoes ? worn : { ...DEFAULT_WORN[c], ...worn };
       for (const p of Object.values(w.worn)) if (validPiece(p)) w.owned.add(p);
+      if (BODY_TYPES[src.b]) w.body = src.b;
       if (parseHair(src.h) && HAIR_STYLES[c].some(([id]) => id === src.h.split('.')[0])) w.hair = src.h;
       w.presets = Array.from({ length: PRESET_COUNT }, (_, i) => {
         const p = arr(src.p)[i];

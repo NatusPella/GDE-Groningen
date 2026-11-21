@@ -17,4 +17,7 @@ Niets hiervan is in beeld gezien: er is geen Electron gebruikt. De geometrie is 
 13. Kapper: preview (hoofdkader) per stijl en kleur, de reactie van Tammo of Tessa, haar blijft bij outfitwissel, bij de heist is het eigen kapsel daarna terug.
 14. Voetgangers: meer variatie per buurt (studenten rond Paddepoel, bouwvakkers op het industrieterrein, feestgangers 's avonds), politie en verhaalfiguren ongewijzigd, geen pop-in of haperen bij veel voetgangers.
 15. Samen spelen met twee instanties: wissel op de gast en op de host midden in de sessie; de ander ziet het binnen een seconde.
-16. Prestaties van de renderer: een personage met alles aan blijft bij vijf meshes; geen fps-dip bij veel NPC-outfits.
+16. Mix en match: in de winkel elk stuk in elke kleur; stukken wisselen in kast, Spullen en pashokje; set aan en één stuk wisselen: de setbonus verdwijnt.
+17. Postuur (kast): vijf vormen op Tammo en Tessa; kleding en haar zitten overal goed, geen doorsteken bij handschoenen, horloge, ketting, jas.
+18. Alle 17 kapsels op Tammo en Tessa, ook met pet en muts; vooral krullen, afro, golvend, bob en pony van opzij en achter (rand, doorsteken in nek of schouders).
+19. Prestaties van de renderer: een personage met alles aan blijft bij vijf meshes; geen fps-dip bij veel NPC-outfits.
