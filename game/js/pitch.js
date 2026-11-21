@@ -79,7 +79,7 @@ export function bestWindow(profile, hours) {
 }
 
 // ---- de vraag: klanten per dag ----
-export const BASE_DEMAND = 260;                  // klanten per dag als je de héle dagdruk vangt bij druk 1 (een venster van tien uur vangt ruim 80% ervan)
+export const BASE_DEMAND = 250;                  // klanten per dag als je de héle dagdruk vangt bij druk 1 (een venster van tien uur vangt ruim 80% ervan)
 export const weekMult = (spot, weekend) => (spot.week ? spot.week[weekend ? 1 : 0] : 1);
 // Gebeurtenissen: de kermis telt alleen op een kermisdag (ctx.kermis), de wedstrijd op een thuiswedstrijd (ctx.matchDay, zie matchDay); anders weinig.
 export const MATCH_PERIOD = 14;                  // elke veertien speldagen een thuiswedstrijd, altijd op een zaterdag

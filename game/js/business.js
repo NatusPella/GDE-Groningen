@@ -256,7 +256,7 @@ export function stepDay(biz, ctx = {}) {
 
   rep.opex = Math.round(basis * OPEX_RATE);
 
-  if (ev.closed) { rep.open = false; rep.reason = ev.note || 'Een dag dicht.'; rep.opex = 0; return fin(); }
+  if (ev.closed) { rep.open = false; rep.reason = ev.note || 'Vandaag geen omzet.'; rep.opex = 0; return fin(); }
 
   if (biz.cls === 'industry') {
     const mf = maintenanceFactor(biz.q);
@@ -283,7 +283,7 @@ export function stepDay(biz, ctx = {}) {
   // winkel
   const T = SHOP_TYPES[biz.type] || SHOP_TYPES.winkel;
   const hours = cfg.hr;
-  if (hours <= 0) { rep.open = false; rep.reason = 'Gesloten: stel een openingstijd in.'; rep.opex = 0; return fin(); }
+  if (hours <= 0) { rep.open = false; rep.reason = 'Geen openingsuren ingesteld: er is geen omzet. Het pand blijft gewoon toegankelijk.'; rep.opex = 0; return fin(); }
   const dm = demandToday(biz.id, day);
   const sEff = cfg.st / dm;
   const f = {

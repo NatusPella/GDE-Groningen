@@ -351,7 +351,7 @@ function tickChains(w, farm, from, last, rows) {
       const e = chains[id];
       const src = CH.sourceKgPerDay(e.chain.raw, rows, base.herds, e.bind.p, () => 0);
       if (!(src.kg > 0) && !e.chain.links.some((l) => l.stock > 0)) continue;
-      const r = CH.stepEntry(e, { ...base, market, calDay: cd, lossOf: (pid) => 1 - lossMult(pid, cd).mult, eventMult: (p) => EV.marketEventMult(p, cd) });
+      const r = CH.stepEntry(e, { ...base, market, calDay: cd, lossOf: (pid) => 1 - lossMult(pid, cd).mult, eventMult: (p) => EV.marketEventMult(p, cd) * SN.warPriceMult(snackState(), p, cd) });
       chains[id] = r.entry; market = r.market; bonus += r.bonus;
       if (r.closed) closed = true;
     }
@@ -508,7 +508,8 @@ export function snackState() {
 export function snackChainOwner(views = null) {
   const v = views || chainViews();
   const by = (id) => v.find((c) => c.id === id);
-  const level = (c) => (c ? (c.links.some((l) => l.role === 'processor' && l.owned) ? 0.5 : 0) + (c.sourceCount > 0 ? 0.5 : 0) : 0);
+  // alleen als de keten het levert: de verwerker van jou moet voorraad hebben (anders geen korting) en de bron moet leveren
+  const level = (c) => (c ? (c.links.some((l) => l.role === 'processor' && l.owned && l.stock > 0) ? 0.5 : 0) + (c.sourceCount > 0 ? 0.5 : 0) : 0);
   return (p) => (p === 'friet' ? level(by('friet')) : p === 'kaas' ? level(by('kaas')) : p === 'melk' ? ((by('kaas') || {}).sourceCount > 0 ? 0.5 : 0) : 0);
 }
 export const weekendOf = (cd) => weekendDay(cd);
@@ -520,6 +521,10 @@ function tickSnack(w, S, from, last, money) {
   const res = SN.settleDays(S, from, last, (d) => { const cd = calOf(d); return { day: cd, ...snackCal(cd), money, ownWagon: !!ownBiz, ownQ: ownBiz ? ownBiz.q : 100, chainOwn, taken: (id) => !!claimLookup('sp:' + id) }; });
   if (ownBiz && res.sum.ownQ !== null) b.mobile.frietwagen.q = res.sum.ownQ;
   for (const id of had) if (!S.permits[id]) claimSend({ id: SPT.claimKey(id), action: 'release' });      // een vervallen vergunning geeft de plek in de sessie vrij
+  for (const prod of ['friet', 'kaas']) {                  // het menuverbruik gaat van de voorraad van je eigen verwerker af (alleen als die van jou is en levert)
+    const kg = res.sum.usage[prod], e = CH.chainsOf(b)[prod], link = e && e.chain.links.find((l) => l.role === 'processor');
+    if (kg > 0 && link && link.owned && link.stock > 0) link.stock = Math.max(0, link.stock - kg);
+  }
   const inc = SN.incomeOf(res.sum);
   const held = SPT.heldIds(S.permits, calToday()).length;
   try {

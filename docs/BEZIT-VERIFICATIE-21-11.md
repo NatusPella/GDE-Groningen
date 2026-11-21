@@ -225,5 +225,13 @@ In beeld te controleren (nog niet bekeken):
   Let op: staat een wagen in een gevel of op een rijbaan (coordinaten komen uit lat/lon), is het bord goed leesbaar en staat de verkoper aan de stoeprand en kijkt hij naar de wagen?
 - Dagtik: de snackregel verschijnt in het dagrapport (`snack`); een sabotagebericht verschijnt als tip.
 - Samen spelen: een plek die een medespeler heeft staat bij jou als "van <naam>" en is niet te koop; een vervallen vergunning geeft de plek vrij.
-Bekende gaten: zie `BEZIT-21-11.md` 15.4 (verbruik niet van de keten, winkeldichtheid niet aangesloten, prijzenoorlog niet in de ketenleveringen, gast-meewerken zonder UI).
+Bekende gaten: zie `BEZIT-21-11.md` 15.4 (winkeldichtheid niet aangesloten, vlees zonder keten, het netwerkbericht voor meewerken is aan de bouwer).
+
+Tweede ronde (strijd om standplaatsen, altijd open, moeilijkheid, gaten): `goodwill.js`, uitbreidingen in `rival.js`, `snackvan.js`, `snacklive.js`, `snackui.js` (blok Buurt en klanten),
+`bezitdifficulty.js` en `bezitprijs.difficultyFactor`. Tests: `goodwill_test` (16), `bezitdifficulty_test` (5), `bezitopen_test` (5), `snacklive_test` (17), `snackui_test` (9), `snackvan_test` (29), `rival_test` (14).
+Bestandsnamen zijn nu Engels (`pitch*.js`, `snackvan*.js`, `snackvans3d.js`). In beeld te controleren (nog niet bekeken):
+- Het blok Buurt en klanten onder Standplaatsen: de vier tegels, bondgenoten, per eigen plek de vaste klanten met drie hulpknoppen (tweede druk, rust per knop zichtbaar), Meewerken bij een medespeler.
+- Een vergunningsgeschil als gebeurtenis (Gedoe met de vergunning) met Bondgenoten om steun vragen, In beroep gaan en De leges betalen; na een enveloppe ("Gemeentelijke Vergunningsdienst Noord") kan
+  de uitslag in jouw voordeel zijn als de omkoping mislukt; de tekst blijft satire en vriendelijk-venijnig.
+- Moeilijkheid: zolang `difficulty.js` niet is gekoppeld verandert er niets (factor 1).
 

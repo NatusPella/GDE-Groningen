@@ -159,7 +159,7 @@ t('gebeurtenissen over 300 dagen: een wacht op antwoord, het standaardgevolg tre
     if (p && p.day === d) {
       seen[p.kind] = (seen[p.kind] || 0) + 1;
       assert.ok(p.choices.length >= 2 && p.text);
-      if (d % 2 === 0) { const a = SN.answerEvent(S, p.choices[0].id, d, money); assert.ok(a.ok && a.cost >= 0); money -= a.cost; assert.equal(SN.pendingEvent(S), null); }
+      if (d % 2 === 0) { const a = SN.answerEvent(S, p.kind === 'vergunning' ? 'beroep' : p.choices[0].id, d, money); assert.ok(a.ok && a.cost >= 0); money -= a.cost; assert.equal(SN.pendingEvent(S), null); }
     }
     assert.ok(Number.isFinite(r.ownNet) && Number.isFinite(r.fleetNet));
   }
