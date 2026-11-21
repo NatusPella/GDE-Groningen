@@ -6,7 +6,7 @@
 // Geometry: the stair runs along the side wall from vBot (front) up to vRamp, then a flat landing to the back wall (vTop). The hole
 // in the upstairs slab is the ramp part (vBot..vRamp); the landing belongs to the slab. A rail guards the inner edge of the hole.
 import { mulberry32 } from './rng.js';
-import { Plan, FACE, lampGrid, scatterPeople, repairLayout, validateLayout, rectOf, DOOR_CLEAR_D } from './interiorlayout.js';
+import { Plan, FACE, decorate, lampGrid, scatterPeople, repairLayout, validateLayout, rectOf, DOOR_CLEAR_D } from './interiorlayout.js';
 
 export const STAIR_W = 1.1, LANDING = 0.8, SLOPE = 1.376, STEP_H = 0.19;
 export const MIN_FLOOR_H = 2.6;
@@ -111,6 +111,8 @@ export function generateUpper(spec, ground, st) {
     p.fabric = spec.look && spec.look.fabric != null ? spec.look.fabric : 0x8a2a2a;
     p.fabric2 = 0xcbb894;
     rec(p);
+    p.palette = ground.palette;
+    decorate(p, spec.kind);
     lampGrid(p);
     const L = {
       v: 1, kind: spec.kind, sub: spec.sub || null, seed: spec.seed >>> 0, hall: p.hall, door: null, height: spec.height2,
@@ -118,7 +120,7 @@ export function generateUpper(spec, ground, st) {
       palette: ground.palette, density, removed: 0, rails: upperRails(st), blocks: [hole],
     };
     const body = (n) => ({ u0: n.u - 0.25, u1: n.u + 0.25, v0: n.v - 0.25, v1: n.v + 0.25 });
-    L.npc = L.npc.filter((n) => !L.items.some((it) => it.solid && rectsMeet(body(n), rectOf(it))) && !L.walls.some((w) => rectsMeet(body(n), w)));
+    L.npc = L.npc.filter((n) => (n.pose === 'sit' || !L.items.some((it) => it.solid && rectsMeet(body(n), rectOf(it)))) && !L.walls.some((w) => rectsMeet(body(n), w)));
     const origin = { u: (st.u0 + st.u1) / 2, v: st.vRamp + LANDING / 2 };
     repairLayout(L, origin);
     if (!validateLayout(L, origin).length) return L;

@@ -159,7 +159,14 @@ export function buildInteriorGeometry(plan, baseY, origin, opts = {}) {
       if (o.axis === 'u') box(o.u - o.w / 2, o.u + o.w / 2, o.v - 0.06, o.v + 0.06, o.h, hh, shade(wallC, 0.97));
       else box(o.u - 0.06, o.u + 0.06, o.v - o.w / 2, o.v + o.w / 2, o.h, hh, shade(wallC, 0.97));
     }
-    for (const [u, v] of lay.lamps) box(u - 0.45, u + 0.45, v - 0.2, v + 0.2, hh - 0.05, hh - 0.01, 0xfff1d6, G_LAMP, true);
+    const lm = pal.lamp || { color: 0xfff1d6, pendant: false };
+    for (const [u, v] of lay.lamps) {
+      if (lm.pendant) {
+        // a hanging lamp: a cord and a shade that glows
+        box(u - 0.01, u + 0.01, v - 0.01, v + 0.01, hh - 0.55, hh - 0.01, 0x2c2f33, G_SOLID, true);
+        box(u - 0.25, u + 0.25, v - 0.25, v + 0.25, hh - 0.7, hh - 0.52, shade(lm.color, 0.9), G_LAMP, true);
+      } else box(u - 0.45, u + 0.45, v - 0.2, v + 0.2, hh - 0.05, hh - 0.01, lm.color, G_LAMP, true);
+    }
     for (let k = 0; k < lay.items.length; k++) drawItem(lay.items[k], k);
     if (lay === up) for (const r of lay.rails || []) box(r.u0, r.u1, r.v0, r.v1, 0, r.h, WOOD_D);
     yOff = 0;
@@ -403,6 +410,11 @@ const DRAW = {
   locker(x) { x.bx(-x.w / 2, x.w / 2, -x.d / 2, x.d / 2, 0, x.h, 0x4a6a8a); x.bx(-0.01, 0.01, x.d / 2, x.d / 2 + 0.01, 0.1, x.h - 0.1, DARK); },
   flag(x) { x.bx(-0.02, 0.02, -0.02, 0.02, 0, x.h, STEEL); x.bx(0.02, 0.5, -0.01, 0.01, x.h - 0.6, x.h - 0.1, 0x2f4f8a); },
   trolley(x) { x.bx(-0.22, 0.22, -0.4, 0.4, 0.2, 0.9, 0xb8bcc0, G_SOLID, true); x.bx(-0.22, 0.22, -0.4, -0.35, 0.9, 1.0, DARK); x.bx(-0.2, 0.2, -0.38, 0.38, 0.05, 0.2, DARK); },
+  clock(x) { const y0 = x.it.y0 ?? 2.0; x.bx(-0.18, 0.18, -x.d / 2, -x.d / 2 + 0.05, y0, y0 + 0.36, 0xece8de); x.bx(-0.02, 0.02, -x.d / 2 + 0.05, -x.d / 2 + 0.06, y0 + 0.18, y0 + 0.32, 0x2c2f33); x.bx(-0.01, 0.1, -x.d / 2 + 0.05, -x.d / 2 + 0.06, y0 + 0.17, y0 + 0.19, 0x2c2f33); },
+  painting(x) { const y0 = x.it.y0 ?? 1.5; x.bx(-x.w / 2, x.w / 2, -x.d / 2, -x.d / 2 + 0.04, y0, y0 + x.h, 0x5a3d26); x.bx(-x.w / 2 + 0.05, x.w / 2 - 0.05, -x.d / 2 + 0.04, -x.d / 2 + 0.045, y0 + 0.05, y0 + x.h - 0.05, x.color); x.bx(-x.w / 2 + 0.05, x.w / 2 - 0.05, -x.d / 2 + 0.045, -x.d / 2 + 0.05, y0 + 0.05, y0 + x.h * 0.45, x.shade(x.color, 0.6)); },
+  noticeboard(x) { const y0 = x.it.y0 ?? 1.2; x.bx(-x.w / 2, x.w / 2, -x.d / 2, -x.d / 2 + 0.04, y0, y0 + x.h, 0xb88a52); for (let i = 0; i < 5; i++) x.bx(-x.w / 2 + 0.1 + i * (x.w - 0.2) / 5, -x.w / 2 + 0.1 + (i + 0.7) * (x.w - 0.2) / 5, -x.d / 2 + 0.04, -x.d / 2 + 0.045, y0 + 0.15 + (i % 2) * 0.3, y0 + 0.5 + (i % 2) * 0.3, [0xf2efe6, 0xe8c24a, 0xd8423a, 0x3a6ad8, 0xe8e0cc][i]); },
+  coffee(x) { x.bx(-x.w / 2, x.w / 2, -x.d / 2, x.d / 2, 0, 0.9, 0x6a6f73); x.bx(-x.w / 2 + 0.05, x.w / 2 - 0.05, -x.d / 2, x.d / 2, 0.9, x.h, 0x2c2f33); x.bx(-0.1, 0.1, x.d / 2, x.d / 2 + 0.02, 1.0, 1.15, 0xd8423a, G_LAMP); },
+  newsrack(x) { const { w, h } = x, a = w / 2; x.bx(-a, a, -0.15, 0.15, 0, h, 0x4a4d50); for (let i = 0; i < 4; i++) x.bx(-a + 0.03, a - 0.03, 0.15, 0.2, 0.4 + i * 0.3, 0.65 + i * 0.3, [0xf2efe6, 0xe8c24a, 0xc23f78, 0x3a6ad8][i], G_SOLID, true); },
   dartboard(x) { const y0 = x.it.y0 ?? 1.6; x.bx(-0.25, 0.25, -x.d / 2, -x.d / 2 + 0.03, y0, y0 + 0.5, 0x16151c); x.bx(-0.16, 0.16, -x.d / 2 + 0.03, -x.d / 2 + 0.04, y0 + 0.09, y0 + 0.41, 0xc2423a); x.bx(-0.06, 0.06, -x.d / 2 + 0.04, -x.d / 2 + 0.05, y0 + 0.19, y0 + 0.31, 0x2f6a3a); },
 };
 

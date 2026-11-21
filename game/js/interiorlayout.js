@@ -25,7 +25,7 @@ export const ITEM_TYPES = [
   'shelf', 'gondola', 'counter', 'fridge', 'rack', 'cabin', 'mirror', 'barber_chair', 'sink', 'bench', 'bike', 'workbench', 'bucket',
   'tvwall', 'showcase', 'cabinet', 'table', 'chair', 'stool', 'plant', 'crate', 'poster', 'desk', 'sofa', 'tv', 'bed', 'wardrobe',
   'kitchen', 'rug', 'floorlamp', 'pew', 'altar', 'pulpit', 'candle', 'organ', 'board', 'pillar', 'machine', 'bookcase', 'carlift',
-  'tyres', 'barrel', 'toolwall', 'taps', 'coatrack', 'cubicle', 'copier', 'locker', 'flag', 'trolley', 'dartboard', 'bar',
+  'tyres', 'barrel', 'toolwall', 'taps', 'coatrack', 'cubicle', 'copier', 'locker', 'flag', 'trolley', 'dartboard', 'bar', 'clock', 'painting', 'noticeboard', 'coffee', 'newsrack',
 ];
 
 // sizes of the footprint on the floor: face 0/2 look along v (width along u), 1/3 look along u
@@ -62,9 +62,9 @@ export class Plan {
   fits(r, area = this.hall, gap = 0.04, deco = null) {
     if (r.u0 < area.u0 - 1e-6 || r.u1 > area.u1 + 1e-6 || r.v0 < area.v0 - 1e-6 || r.v1 > area.v1 + 1e-6) return false;
     if (r.u0 < this.hall.u0 - 1e-6 || r.u1 > this.hall.u1 + 1e-6 || r.v0 < this.hall.v0 - 1e-6 || r.v1 > this.hall.v1 + 1e-6) return false;
+    if (deco && deco.floor) return true; // a rug or a doormat lies under everything
     for (const q of this.reserved) if (boxesMeet(r, q)) return false;
     for (const w of this.walls) if (boxesMeet(r, w)) return false;
-    if (deco && deco.floor) return true; // a rug lies under everything
     for (const it of this.items) {
       if (!it.solid || !boxesMeet(r, rectOf(it), deco ? 0 : gap)) continue;
       if (deco && it.h < deco.y0 - 0.05) continue; // hangs above the furniture
@@ -185,7 +185,7 @@ function shopRecipe(p, sub) {
     } else if (sub === 'bakker' || sub === 'slager') {
       p.run(H, 'right', 'showcase', 1.2, 0.6, H.v0 + 1.8, H.v1 - 2.4, { h: 1.2, color: T.accent });
     } else if (sub === 'kiosk') {
-      p.run(H, 'left', 'rack', 0.9, 0.35, H.v0 + 1.8, H.v1 - 2.2, { h: 1.7, color: T.accent });
+      p.run(H, 'left', 'newsrack', 0.9, 0.35, H.v0 + 1.8, H.v1 - 2.2, { h: 1.7, color: T.accent });
     }
   } else {
     // self-service: a cash desk by the door at one side wall, wares on the walls and in the middle
@@ -247,6 +247,7 @@ function horecaRecipe(p, sub) {
   if (bar) {
     p.run(H, left ? 'left' : 'right', 'taps', 1.0, 0.4, b0, b0 + bl, { h: 1.8, solid: true });
     p.npcAt('barman', left ? H.u0 + 0.95 : H.u1 - 0.95, b0 + bl / 2, left ? FACE.E : FACE.W, 'stand');
+    if (sub !== 'kroeg' || p.chance(0.6)) p.npcAt('serveerster', left ? bu + 0.35 + 0.7 : bu - 0.35 - 0.7, b0 + bl / 2 - 1.0, left ? FACE.W : FACE.E, 'stand');
     p.useAt('bestellen', left ? bu + 0.35 + 0.7 : bu - 0.35 - 0.7, b0 + bl / 2, 1.5, { face: left ? FACE.W : FACE.E, target: sub });
     for (let v = b0 + 0.4; v < b0 + bl - 0.2; v += 0.8) p.add('stool', left ? bu + 0.35 + 0.45 : bu - 0.35 - 0.45, v, 0.4, 0.4, FACE.DOOR, { h: 0.7 });
   }
@@ -303,6 +304,7 @@ function officeRecipe(p) {
     }
   }
   p.add('copier', H.u1 - 0.5, work.v1 - 0.5, 0.8, 0.7, FACE.W, { h: 1.1 }, work);
+  p.add('coffee', H.u1 - 0.4, work.v1 - 1.5, 0.6, 0.5, FACE.W, { h: 1.3 }, work);
   p.add('plant', H.u0 + 0.5, H.v0 + 0.6, 0.6, 0.6, FACE.DOOR, { h: 1.2 });
   p.add('plant', H.u1 - 0.5, H.v0 + 0.6, 0.6, 0.6, FACE.DOOR, { h: 1.2 });
   p.add('cabinet', H.u0 + 0.3, H.v0 + 3.4 + 0.8, 1.2, 0.5, FACE.E, { h: 1.9 }, work);
@@ -541,6 +543,32 @@ export function reachableAt(res, u, v, r = 0.8) {
 // people behind a counter: nobody has to reach them
 export const STAFF = new Set(['winkelier', 'barman', 'receptionist', 'loketmedewerker', 'baliemedewerker', 'bibliothecaris', 'monteur']);
 
+// --- decoration: what makes a room look lived in --------------------------------------------------------------
+// Wall hangings (posters, paintings, clocks, notice boards), plants in the corners and a doormat, chosen per kind and varied from the
+// seed. Non-solid hangings only fit where nothing tall stands against the wall, so they never collide.
+const POSTER_COLORS = [0xe8c24a, 0xd8423a, 0x3a6ad8, 0x4f9a52, 0xe8e0cc, 0xd88a3a, 0x8a4fb0];
+const HANG = {
+  winkel: ['poster', 'poster', 'clock', 'painting'], horeca: ['painting', 'painting', 'clock', 'poster'], kantoor: ['noticeboard', 'clock', 'painting', 'poster'],
+  woning: ['painting', 'painting', 'clock', 'painting'], kerk: ['painting', 'noticeboard'], station: ['poster', 'poster', 'clock', 'noticeboard'],
+  bibliotheek: ['noticeboard', 'poster', 'clock', 'painting'], garage: ['poster', 'clock', 'noticeboard'], publiek: ['noticeboard', 'noticeboard', 'clock', 'poster', 'painting'],
+};
+export function decorate(p, kind) {
+  const H = p.hall, kinds = HANG[kind] || ['poster'];
+  const n = Math.max(2, Math.min(9, Math.round((p.W + p.D) / 3.5)));
+  for (let i = 0; i < n; i++) {
+    const type = kinds[Math.floor(p.rnd() * kinds.length)];
+    const side = ['back', 'left', 'right'][Math.floor(p.rnd() * 3)];
+    const along = side === 'back' ? H.u0 + 0.9 + p.rnd() * Math.max(0.1, p.W - 1.8) : H.v0 + 2.2 + p.rnd() * Math.max(0.1, p.D - 3.0);
+    const dims = type === 'clock' ? [0.36, 0.36, 2.05] : type === 'noticeboard' ? [1.2, 0.9, 1.25] : type === 'painting' ? [0.7 + p.rnd() * 0.5, 0.5 + p.rnd() * 0.3, 1.4 + p.rnd() * 0.25] : [0.6, 0.9, 1.3 + p.rnd() * 0.2];
+    const y0 = Math.min(dims[2], p.height - dims[1] - 0.2);
+    p.onWall(H, side, type, along, dims[0], 0.04, { h: dims[1], y0, solid: false, color: POSTER_COLORS[Math.floor(p.rnd() * POSTER_COLORS.length)], tag: type === 'poster' && kind === 'horeca' ? 'menu' : undefined });
+  }
+  if (kind !== 'kerk' && kind !== 'station' && p.chance(0.9)) for (const u of [H.u0 + 0.5, H.u1 - 0.5]) if (p.rnd() < 0.7) p.add('plant', u, H.v1 - 0.55, 0.6, 0.6, FACE.DOOR, { h: 1.0 + p.rnd() * 0.4 });
+  if (kind === 'winkel' || kind === 'kantoor' || kind === 'publiek' || kind === 'horeca' || kind === 'bibliotheek') p.add('rug', 0, H.v0 + 0.55, 1.0, 0.6, FACE.DOOR, { h: 0.02, solid: false, color: p.palette ? p.palette.accent : 0x555555, tag: 'mat' });
+  if (p.palette && !p.palette.lamp) p.palette.lamp = LAMPS[kind] || LAMPS.winkel;
+}
+const LAMPS = { winkel: { color: 0xfff1d6, pendant: false }, horeca: { color: 0xffd9a0, pendant: true }, kantoor: { color: 0xe8f4ff, pendant: false }, woning: { color: 0xffe6b0, pendant: true }, kerk: { color: 0xffe3b0, pendant: true }, station: { color: 0xf4f6ff, pendant: false }, bibliotheek: { color: 0xfff0c8, pendant: true }, garage: { color: 0xeaf2ff, pendant: false }, publiek: { color: 0xf4f4ee, pendant: false } };
+
 // What is wrong with a layout (empty = valid): items out of the hall, in the doorway, unreachable spots.
 export function validateLayout(L, startAt = null) {
   const bad = [];
@@ -613,6 +641,8 @@ export function generateLayout(spec) {
     p.pickFabric = spec.look && spec.look.fabric != null ? spec.look.fabric : FABRIC[Math.floor(p.rnd() * FABRIC.length)];
     p.pickFabric2 = FABRIC[Math.floor(p.rnd() * FABRIC.length)];
     recipe(p, spec.sub);
+    decorate(p, spec.kind);
+    if (p.palette && p.palette.lamp && (spec.kind === 'winkel' || spec.kind === 'woning') && p.rnd() < 0.5) p.palette.lamp = { ...p.palette.lamp, pendant: !p.palette.lamp.pendant }; // varied from the seed
     lampGrid(p);
     if (st) p.useAt('trap', (st.u0 + st.u1) / 2, st.vBot - 0.5, 0.45); // the foot of the stair must be reachable
     const L = {
@@ -623,7 +653,7 @@ export function generateLayout(spec) {
     L.removed = 0;
     // a person who stands inside a solid or a partition wall is dropped
     const body = (n) => ({ u0: n.u - 0.25, u1: n.u + 0.25, v0: n.v - 0.25, v1: n.v + 0.25 });
-    L.npc = L.npc.filter((n) => !L.items.some((it) => it.solid && boxesMeet(body(n), rectOf(it))) && !L.walls.some((w) => boxesMeet(body(n), w)));
+    L.npc = L.npc.filter((n) => (n.pose === 'sit' || !L.items.some((it) => it.solid && boxesMeet(body(n), rectOf(it)))) && !L.walls.some((w) => boxesMeet(body(n), w)));
     repairLayout(L);
     const bads = validateLayout(L);
     if (!bads.length) return L;
