@@ -43,6 +43,10 @@
 "src": "anita/bijna_bij_de_sloot_jelle_zit_er__19ebb9d2.mp3",
 "dur": 4.08
 },
+"Anita|Blijf op de wal staan. De kartonnen kogels zijn confetti, maar ze duwen je wel om.": {
+"src": "anita/blijf_op_de_wal_staan_de_kartonn_bb304e97.mp3",
+"dur": 5.92
+},
 "Anita|Boink! Die meeuw spreekt Fries.": {
 "src": "anita/boink_die_meeuw_spreekt_fries_e945c616.mp3",
 "dur": 3.22
@@ -258,6 +262,10 @@
 "Anita|Het is een fietsrace. Kom op je eigen fiets.": {
 "src": "anita/het_is_een_fietsrace_kom_op_je_e_319b10b7.mp3",
 "dur": 2.73
+},
+"Anita|Het leger van de bisschop komt aan de andere kant. Ren naar de noordwal.": {
+"src": "anita/het_leger_van_de_bisschop_komt_a_5c18047f.mp3",
+"dur": 4.51
 },
 "Anita|Het logboek van 12 augustus. Blijf bij de server staan tot alles gelezen is.": {
 "src": "anita/het_logboek_van_12_augustus_blij_4d89f6cc.mp3",
@@ -846,6 +854,10 @@
 "Tammo|Het is een fietsrace. Kom op je eigen fiets.": {
 "src": "tammo/het_is_een_fietsrace_kom_op_je_e_8e401af0.mp3",
 "dur": 2.82
+},
+"Tammo|Het leger van de bisschop komt aan de andere kant. Ren naar de noordwal.": {
+"src": "tammo/het_leger_van_de_bisschop_komt_a_3df1c6c4.mp3",
+"dur": 4.23
 },
 "Tammo|Het logboek van 12 augustus. Blijf bij de server staan tot alles gelezen is.": {
 "src": "tammo/het_logboek_van_12_augustus_blij_86b32ed7.mp3",

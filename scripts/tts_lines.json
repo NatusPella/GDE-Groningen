@@ -14,48 +14,6 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, adviserend."
  },
  {
-  "key": "Anita|Blijf op de wal staan. De kartonnen kogels zijn confetti, maar ze duwen je wel om.",
-  "speaker": "Anita",
-  "text": "Blijf op de wal staan. De kartonnen kogels zijn confetti, maar ze duwen je wel om.",
-  "area": "Hints (Tammo/Tessa)",
-  "out": "hints",
-  "lang": "own",
-  "say": "Blijf op de wal staan. De kartonnen kogels zijn confetti, maar ze duwen je wel om.",
-  "file": "anita/blijf_op_de_wal_staan_de_kartonn_bb304e97.mp3",
-  "voice": "Callirrhoe",
-  "who": "Nederlandse vrouw, lacherig en ad rem",
-  "tag": "droog, adviserend",
-  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: droog, adviserend."
- },
- {
-  "key": "Tammo|Het leger van de bisschop komt aan de andere kant. Ren naar de noordwal.",
-  "speaker": "Tammo",
-  "text": "Het leger van de bisschop komt aan de andere kant. Ren naar de noordwal.",
-  "area": "Hints (Tammo/Tessa)",
-  "out": "hints",
-  "lang": "gro",
-  "say": "Het leger van de bisschop komt aan de andere kant. Ren naar de noordwal.",
-  "file": "tammo/het_leger_van_de_bisschop_komt_a_3df1c6c4.mp3",
-  "voice": "Orus",
-  "who": "dry, deadpan man in his thirties",
-  "tag": "kort, alert, tegen de ander naast je",
-  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: kort, alert, tegen de ander naast je."
- },
- {
-  "key": "Anita|Het leger van de bisschop komt aan de andere kant. Ren naar de noordwal.",
-  "speaker": "Anita",
-  "text": "Het leger van de bisschop komt aan de andere kant. Ren naar de noordwal.",
-  "area": "Hints (Tammo/Tessa)",
-  "out": "hints",
-  "lang": "own",
-  "say": "Het leger van de bisschop komt aan de andere kant. Ren naar de noordwal.",
-  "file": "anita/het_leger_van_de_bisschop_komt_a_5c18047f.mp3",
-  "voice": "Callirrhoe",
-  "who": "Nederlandse vrouw, lacherig en ad rem",
-  "tag": "aanwijzend, gehaast",
-  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: aanwijzend, gehaast."
- },
- {
   "key": "Tammo|Blijf op de noordwal staan tot het beleg voorbij is.",
   "speaker": "Tammo",
   "text": "Blijf op de noordwal staan tot het beleg voorbij is.",
