@@ -211,6 +211,9 @@ import { initAchievementTracker, updateAchievementTracker } from './achievementt
 import { initOmverrijden } from './omverrijden.js';
 import { initBoerderij, boerderijTijd, boerderijKlokNul } from './boerderijlive.js';
 import { initBezit, dayTick as bezitDagTik, getBezit } from './bezitlive.js';
+import { setBezitDifficultyProvider } from './bezitdifficulty.js';
+// Bezit leest zijn moeilijkheid via difficulty.js: alleen de omzet (incomeFactor, per speler, 0,75 tot 1,25); aankoopprijs en kosten blijven op 1: er is geen prijsoptie (besluit moeilijkheid #1169).
+setBezitDifficultyProvider((kind) => (kind === 'income' ? incomeFactor() : 1));
 import { onDayReport as bezitOnDayReport, deliverLine as bezitDeliverLine } from './bezitworldhooks.js';
 import { updateFarmWorkers } from './farmworkers3d.js';
 import { updateSnackVans } from './snackvans3d.js';
@@ -255,7 +258,7 @@ setSimCarAttach(attachToNearestRoad);
 import { scaledTarget, simLevel, nextSimFrame, farAIDist, skipFar, takeDt, keepVehicle } from './simload.js';
 import { getSettings, magOnline } from './settings.js';
 import { MODS } from './cheatmods.js';
-import { trafficFactor } from './difficulty.js'; // #1169: Verkeersdrukte per save
+import { trafficFactor, incomeFactor } from './difficulty.js'; // #1169: Verkeersdrukte per save; incomeFactor voor Bezit
 import { makeDip, triggerDip, dipScale } from './gamefeel.js';
 import { effectsFor } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
