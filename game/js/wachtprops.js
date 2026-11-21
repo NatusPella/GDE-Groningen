@@ -209,14 +209,14 @@ export function buildWaitDressing(st, target, radius = 3.5, world = null) {
   const plan = waitFigureFor(st);
   if (plan) {
     try {
-      const mesh = buildPersonMesh(plan.shirt, plan.skin, { seed: Math.floor(plan.seed * 1e6) });
+      const mesh = buildPersonMesh(plan.shirt, plan.skin, { seed: Math.floor(plan.seed * 1e6), role: 'voetganger' });
       const a = spots[plan.plek].a + 0.5;
       mesh.position.set(Math.cos(a) * (r + 1.6), 0, Math.sin(a) * (r + 1.6));
       mesh.rotation.y = -a - Math.PI / 2;
       group.add(mesh);
       group.userData.figuur = { mesh, plan, pose: neutralPose(), t: 0, uit: { clip: '', tl: 0, dur: 1 } };
       if (plan.maat) { // de maat staat naast hem, met het gezicht naar hem toe
-        const m2 = buildPersonMesh(plan.maat.shirt, plan.maat.skin, { seed: Math.floor(plan.seed * 1e6) + 7 });
+        const m2 = buildPersonMesh(plan.maat.shirt, plan.maat.skin, { seed: Math.floor(plan.seed * 1e6) + 7, role: 'voetganger' });
         const a2 = a + 0.2, r2 = r + 1.5;
         m2.position.set(Math.cos(a2) * r2, 0, Math.sin(a2) * r2);
         m2.rotation.y = mesh.rotation.y + 0.9;

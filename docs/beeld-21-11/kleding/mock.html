@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Kleding: mocks (headless, zonder Electron)</title>
+<script type="importmap">
+{ "imports": { "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js": "/desktop/vendor-cache/npm/three@0.160.0/build/three.module.js" } }
+</script>
+<style>
+  body { margin: 0; background: #1d2433; color: #f2ede0; font: 14px system-ui, sans-serif; }
+  h1 { font-size: 16px; margin: 8px 12px 4px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 12px; }
+  .cell { width: 150px; background: #2a3347; border: 2px solid #0f131c; text-align: center; }
+  .cell canvas { width: 150px; height: 220px; display: block; }
+  .cell small { display: block; padding: 2px 4px 4px; font-size: 12px; line-height: 1.2; min-height: 30px; }
+</style>
+</head>
+<body>
+<h1 id="titel"></h1>
+<div class="grid" id="grid"></div>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { buildPersonMesh, TAMMO_APPEARANCE, ANITA_APPEARANCE } from '/game/js/models3d_people.js';
+import * as C from '/game/js/clothing.js';
+import * as D from '/game/js/clothingdata.js';
+import * as H from '/game/js/clothinghair.js';
+
+const q = new URLSearchParams(location.search);
+const sectie = q.get('s') || 'shop';
+const W = 300, Hh = 440;
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(W, Hh);
+renderer.setPixelRatio(1);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x3a4560);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x556070, 1.5));
+const sun = new THREE.DirectionalLight(0xfff2d8, 2.2); sun.position.set(2, 3, 2.5); scene.add(sun);
+const cam = new THREE.PerspectiveCamera(32, W / Hh, 0.1, 50);
+
+const grid = document.getElementById('grid');
+function cell(label, mesh, angle = 0.55, frame = 'full') {
+  const g = new THREE.Group(); g.add(mesh); g.rotation.y = angle; scene.add(g);
+  if (frame === 'head') { cam.position.set(0.0, 1.66, 1.0); cam.lookAt(0, 1.62, 0); }
+  else { cam.position.set(0, 1.0, 3.3); cam.lookAt(0, 0.98, 0); }
+  mesh.rotation.y = -Math.PI / 2; // het model kijkt langs +X: naar de camera draaien
+  renderer.render(scene, cam);
+  scene.remove(g);
+  const c = document.createElement('canvas'); c.width = W; c.height = Hh;
+  c.getContext('2d').drawImage(renderer.domElement, 0, 0);
+  const d = document.createElement('div'); d.className = 'cell'; d.appendChild(c);
+  const s = document.createElement('small'); s.textContent = label; d.appendChild(s);
+  grid.appendChild(d);
+}
+const figuur = (ch, worn, extra = {}) => {
+  const base = ch === 'tammo' ? TAMMO_APPEARANCE : ANITA_APPEARANCE;
+  const o = C.outfitToLook(worn, base);
+  const app = { ...base, ...o, ...extra };
+  return buildPersonMesh(app.shirt, app.skin, app);
+};
+const eigen = (ch, over) => ({ ...C.effectiveWorn(ch), ...over });
+const titel = (t) => { document.getElementById('titel').textContent = t; };
+
+if (sectie === 'shop') {
+  titel('Kledingwinkel: elk stuk past op je eigen personage (Tammo boven, Tessa onder)');
+  const picks = [['hat', 'pet.rood'], ['glasses', 'zonnebril.zwart'], ['top', 'hoodie.bordeaux'], ['outer', 'regenjas.mosterd'], ['bottom', 'korte_broek.kaki'], ['shoes', 'hardloopschoen.oranje'], ['back', 'rugzak.bos'], ['jewel', 'ketting.mosterd']];
+  for (const ch of ['tammo', 'anita']) for (const [slot, p] of picks) {
+    const worn = eigen(ch, { [slot]: p });
+    cell(`${ch === 'tammo' ? 'Tammo' : 'Tessa'}: ${D.pieceLabel(p)}`, figuur(ch, worn), 0.5);
+  }
+} else if (sectie === 'kast') {
+  titel('Kast: Tessa en Tammo met alles aan, voor- en achterkant, plus sets');
+  const alles = { hat: 'pet.zwart', glasses: 'zonnebril.zwart', face: 'volbaard.natuur', neck: 'sjaal.rood', jewel: 'parels.wit', top: 'hoodie.grijs', outer: 'jack.olijf', bottom: 'chino.kaki', shoes: 'laarzen.donkerbruin', back: 'rugzak.zwart', wrist: 'horloge.zwart', hands: 'werkhandschoen.mosterd' };
+  const nietTammoPet = { ...alles }; // Tammo draagt zijn petje als stadjerspet
+  cell('Tammo, alles aan (voor)', figuur('tammo', { ...nietTammoPet, hair: 'short.naturel' }, { }), 0.3);
+  cell('Tammo, alles aan (achter)', figuur('tammo', { ...nietTammoPet, hair: 'short.naturel' }), 3.2);
+  cell('Tessa, alles aan (voor)', figuur('anita', { ...alles, face: undefined, hair: 'long.naturel' }), 0.3);
+  cell('Tessa, alles aan (achter)', figuur('anita', { ...alles, face: undefined, hair: 'long.naturel' }), 3.2);
+  for (const s of [...D.setsFor('tammo').slice(0, 3), ...D.setsFor('anita').slice(0, 3), ...D.LOOKS.slice(0, 4)]) {
+    const ch = s.char || 'anita';
+    const worn = { ...D.DEFAULT_WORN[ch] }; const slots = s.pieces.map(D.pieceSlot); for (const sl of ['hat', 'outer']) if (!slots.includes(sl)) delete worn[sl]; for (const p of s.pieces) worn[D.pieceSlot(p)] = p;
+    cell(`${s.label}`, figuur(ch, { ...worn, hair: C.getHair(ch) }), 0.5);
+  }
+} else if (sectie === 'pashokje') {
+  titel('Pashokje: dezelfde outfit van vier kanten (slepen draait in het spel)');
+  const w = { ...D.DEFAULT_WORN.anita, outer: 'regenjas.mosterd', glasses: 'zonnebril.zwart', back: 'schoudertas.cognac', hair: 'bob.roze' };
+  for (const hoek of [0.2, 1.4, 3.1, 4.7]) cell(`hoek ${hoek.toFixed(1)}`, figuur('anita', w), hoek);
+  const t = { ...D.DEFAULT_WORN.tammo, top: 'blouse.turquoise', outer: undefined, bottom: 'bermuda.kaki', hat: 'krans.roze', wrist: 'polsbandje.rood', hair: 'curly.zonnegeel' };
+  delete t.outer;
+  for (const hoek of [0.2, 1.4, 3.1, 4.7]) cell(`Tammo, hoek ${hoek.toFixed(1)}`, figuur('tammo', t), hoek);
+} else if (sectie === 'npc') {
+  titel('NPC-rollen (deterministisch uit zaad): drie per rol');
+  for (const role of Object.keys(D.ROLE_POOLS)) for (let i = 0; i < 3; i++) {
+    const seed = 3 + i * 7;
+    const m = buildPersonMesh(0x888888, 0xd9aa82, { seed, role, variant: i % 2 ? 'female' : 'male' });
+    cell(`${role} (zaad ${seed})`, m, 0.45);
+  }
+} else if (sectie === 'kapper') {
+  titel('Kapper: stijlen en kleuren (spiegel: hoofd en schouders)');
+  for (const [id, label] of H.HAIR_STYLES.tammo) cell(`Tammo: ${label}`, figuur('tammo', { ...eigen('tammo', {}), hat: undefined, hair: id + '.naturel' }), 0.4, 'head');
+  for (const [id, label] of H.HAIR_STYLES.anita) cell(`Tessa: ${label}`, figuur('anita', { ...eigen('anita', {}), hair: id + '.naturel' }), 0.4, 'head');
+  for (const c of H.HAIR_COLORS.slice(6)) cell(`Tessa: ${c.label}`, figuur('anita', { ...eigen('anita', {}), hair: 'bob.' + c.id }), 0.4, 'head');
+}
+document.title = 'klaar';
+window.__klaar = true;
+</script>
+</body>
+</html>

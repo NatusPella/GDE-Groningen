@@ -93,7 +93,7 @@ TERRASGAST: Kon minder! [BEHOUDEN]
 STREAMER: Tienduizend kijkers! En kijk: ene JelleWâld typt in de chat. [NIEUW]
 STREAMER: "En dat famke yn it read: sa'n leaf gesicht." [BEHOUDEN]
 TESSA: Dat is Fries. Ik vertaal het niet. [NIEUW]
-(regie: Tammo kijkt naar Tessa's rode jas, en dan naar de telefoon.)
+(regie: Tammo kijkt naar Tessa, en dan naar de telefoon.)
 TAMMO: Wie is die man. [BEHOUDEN]
 TESSA: Is dat een vraag? [BEHOUDEN]
 TAMMO: Nee. [BEHOUDEN]
@@ -259,7 +259,7 @@ TAMMO: Bert was de beste vriend van mijn opa. [NIEUW]
 BERT: Niemand kijkt naar een duif. Behalve als hij op je jas poept. [BEHOUDEN]
 TAMMO: Hoe stuur je een duif? [BEHOUDEN]
 BERT: Diep in de ogen kieken. Fluiten. Ogen dicht. [BEHOUDEN]
-(regie: Tammo fluit. Een duif landt op zijn pet.)
+(regie: Tammo fluit. Een duif landt op zijn schouder.)
 BERT: Kiek. Hij luustert noar dij, jong. [BEHOUDEN]
 TAMMO: Duiven luisteren naar niemand. [BEHOUDEN]
 TESSA: Mijn vriend de duivenkoning. [BEHOUDEN]

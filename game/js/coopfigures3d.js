@@ -44,7 +44,7 @@ function build(scene, fig) {
   const label = makeLabel(avatarLabel(av));
   mesh.add(label);
   scene.add(mesh);
-  return { mesh, char: av.char, label, prev: null };
+  return { mesh, char: av.char, outfit: av.outfit || null, label, prev: null };
 }
 function dispose(scene, e) {
   if (e.label) { e.mesh.remove(e.label); ruimMeshOp(null, e.label, { geometrie: false, materiaal: true }); } // het label heeft een eigen kaart en materiaal
@@ -68,7 +68,8 @@ export function syncFigures(world, dt) {
   for (const f of [...plan.keep, ...plan.add]) {
     let e = meshes.get(f.slot);
     const avatarChar = avatarVan(f, f.slot).char; // (#455) de avatar bepaalt het model, niet de verhaalrol
-    if (e.char !== avatarChar) { dispose(scene, e); e = build(scene, f); meshes.set(f.slot, e); }
+    if (e.char !== avatarChar || (e.outfit || null) !== (avatarVan(f, f.slot).outfit || null)) { // ander model, of andere kleding (clothing.js, avatar.outfit)
+       dispose(scene, e); e = build(scene, f); meshes.set(f.slot, e); }
     const map = world.map;
     if (map && map.elev && map.elev.has && map.groundHeightAt) { try { f.gz = map.groundHeightAt(f.x, f.y, f.gz || 0); } catch (er) { /* hoogte onbekend: vlak */ } }
     e.mesh.visible = !f.coopVoertuig && !filmpje; // wie meerijdt zit in het voertuig (#372); in een filmpje staan alleen de spelers van de scène in beeld (#376)
