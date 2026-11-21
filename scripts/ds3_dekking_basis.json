@@ -571,17 +571,6 @@
   "emoji": 0,
   "svg": 0
  },
- "game/js/saveslots.css": {
-  "kleur": 8,
-  "glas": 4,
-  "oud": 0,
-  "font": 0,
-  "klein": 0,
-  "lus": 0,
-  "lang": 0,
-  "emoji": 0,
-  "svg": 0
- },
  "game/js/saveslotsui.js": {
   "kleur": 0,
   "glas": 0,
