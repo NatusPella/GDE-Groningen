@@ -28,9 +28,9 @@ t('geen regel voor een soort die niet bestaat (geen dode regels)', () => {
   const gebruikt = new Set(tussen.map(stepKind));
   for (const soort of Object.keys(STEP_MULTIPLAYER)) assert.ok(gebruikt.has(soort), `de regel ${soort} hoort bij geen enkele stap`);
 });
-t('de stappen N, T, A, J, F en E zitten er allemaal bij en de regelkeuring is schoon', () => {
+t('de stappen N, T, A, J, F, V en E zitten er allemaal bij en de regelkeuring is schoon', () => {
   const ids = new Set(tussen.map((s) => s.id));
-  for (const voorloop of ['N', 'T', 'A', 'J', 'F']) assert.ok([...ids].some((i) => i.startsWith(voorloop)), voorloop);
+  for (const voorloop of ['N', 'T', 'A', 'J', 'F', 'V']) assert.ok([...ids].some((i) => i.startsWith(voorloop)), voorloop);
   assert.ok(ids.has('E'));
   assert.deepEqual(auditSteps(STEPS), []);
   for (const s of tussen) assert.equal(coopRule(s).presence, 'dichtstbij', `${s.id}: een tussenstap houdt niemand op`);
