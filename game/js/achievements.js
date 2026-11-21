@@ -19,7 +19,7 @@ import { isOverlayHeld } from './overlayhold.js';
 import { zones, P3 } from './hudrules.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 import { getSettings } from './settings.js';
-import { planPrestatie, wachtrijStap, verblijfS, samenvattingTekst, balkTekst } from './prestatiemoment.js'; // de prestatie als moment (wens 21-11)
+import { planPrestatie, wachtrijStap, verblijfS, samenvattingTekst, balkTekst } from './achievementmoment.js'; // de prestatie als moment (wens 21-11)
 import { rustigeStand, tikGetal } from './dsmicro.js';
 import { cleanDifficulty, DIFFICULTY_MODES } from './difficulty.js'; // #800: missierecords per stand
 
@@ -758,7 +758,7 @@ const CSS_EXTRA = `
 #hud .ach-toast .ach-spark.s4 { right: 9px; bottom: 3px; --dx: 5px; animation-delay: 0.34s; background: var(--mk-mission, #e8c93a); }
 @keyframes ach-spark { 0% { opacity: 0; transform: translate(0, 0) scale(0.6); } 25% { opacity: 0.95; } 100% { opacity: 0; transform: translate(var(--dx, 0), -20px) scale(1.1); } }
 #hud .ach-toast .ach-title { text-shadow: 0 1px 0 rgba(0,0,0,0.4); }
-/* DS3-moment (prestatiemoment.js, ds-micro.css): de zeefdruk-schaduw in de inkt van de zeldzaamheid of categorie, de zeldzaamheidschip,
+/* DS3-moment (achievementmoment.js, ds-micro.css): de zeefdruk-schaduw in de inkt van de zeldzaamheid of categorie, de zeldzaamheidschip,
    het balkje "x/y prestaties" en de glans (.ds-moment-glans). Een donkere HUD-ondergrond krijgt voor bord het lichte HUD-groen. */
 #hud .ach-toast { overflow: hidden; transform-origin: left center; border-left-color: var(--ds-m-accent, var(--mk-ok, #3fc97a));
   box-shadow: 6px 6px 0 var(--ds-m-accent, var(--mk-ok, #3fc97a)), 0 10px 34px rgba(0,0,0,0.5); }
@@ -836,7 +836,7 @@ function showNextToast() {
   }
   const a = toastQueue[0];
   if (!el || !a) { toastUntil = 0; toastBurst = 0; return; }
-  // De wachtrij (prestatiemoment.js, wachtrijStap): de eerste van een reeks is een volle kaart, de volgende zijn kort, en
+  // De wachtrij (achievementmoment.js, wachtrijStap): de eerste van een reeks is een volle kaart, de volgende zijn kort, en
   // wachten er na drie nog meer, dan komen ze samen in één samenvatting (de prestaties zelf staan in het menu).
   const stap = wachtrijStap({ index: toastBurst, resterend: toastQueue.length });
   const samen = stap.variant === 'samenvatting' ? samenvattingTekst(stap.aantal) : null;

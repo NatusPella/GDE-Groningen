@@ -1581,7 +1581,7 @@ export function playEindkaartGeluid(naam, i = 0) {
   }
 }
 
-// De prestatie als moment (prestatiemoment.js, wens 21-11): een korte slag bij de inslag van de kaart, tikjes van de teller en een
+// De prestatie als moment (achievementmoment.js, wens 21-11): een korte slag bij de inslag van de kaart, tikjes van de teller en een
 // zachte glans. Aanvullend op de prestatie-sting (playPrestatieSting); de teller-tik en -munt zijn die van de eindkaart. De slag
 // is lichter dan de eindkaart-inslag en klinkt nooit samen met die: de prestatie wacht tot de eindkaart weg is (achievements.js).
 export function playPrestatieMoment(naam, i = 0, goud = false) {
@@ -2669,7 +2669,7 @@ function playAudioEvents(world) {
       case 'prestatie':
         if (!(medailleSting(e.medal) && speelMissieSting(medailleSting(e.medal)))) playPrestatieSting({ goud: !!e.goud }); // #840: eigen prestatiegeluid (gewoon of goud)
         break;
-      case 'prestatiemoment': // prestatiemoment.js: slag, teller-tikjes en glans van de prestatiekaart (alleen lokaal, nooit via het net)
+      case 'prestatiemoment': // achievementmoment.js: slag, teller-tikjes en glans van de prestatiekaart (alleen lokaal, nooit via het net)
         if (!(world.paused || world.menuMuffle)) playPrestatieMoment(e.naam, e.i || 0, !!e.goud);
         break;
       case 'achievement':

@@ -12,7 +12,7 @@
      - elke .ds-m-*- en .ds-moment-*-klasse staat onderaan in de drie reduced-motion-takken (html.reduce-motion,
        html.rustig-drukwerk, prefers-reduced-motion): geen beweging, geen vertraging, direct de eindstand;
      - een animatie hoort bij een gebeurtenis (één per gebeurtenis), blokkeert nooit invoer en kan overgeslagen worden
-       (.ds-moment-klaar toont direct de eindstand). Geluid en wachtrij zitten in de JS (prestatiemoment.js), niet hier;
+       (.ds-moment-klaar toont direct de eindstand). Geluid en wachtrij zitten in de JS (achievementmoment.js), niet hier;
      - de tokens (ds-tokens.css) staan onder "Beweging beperken", Rustig drukwerk en prefers-reduced-motion op 0 ms, dus een
        overgang springt dan naar de eindstand zonder eigen regel; de takken onderaan zetten de keyframes en vertragingen uit.
    De toestandsklassen zijn dezelfde als in ds-motion.css: .on / .aan bij aankomst, .out / .uit bij vertrek. */
@@ -165,7 +165,7 @@
 @keyframes ds-m-leven { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
 
 /* ===== Hoogtepunten (.ds-moment-*): staffel van --ds-moment-stap, onderdeel --ds-moment-duur, geheel --ds-moment-max ===== */
-/* Zet --ds-moment-n (het staffelgetal uit het plan van prestatiemoment.js of eindkaartimpact.js) op elk onderdeel. */
+/* Zet --ds-moment-n (het staffelgetal uit het plan van achievementmoment.js of eindkaartimpact.js) op elk onderdeel. */
 .ds-moment-stempel { animation: ds-moment-slag var(--ds-m-lang) var(--ds-m-stempel) calc(var(--ds-moment-stap) * var(--ds-moment-n, 0)) both; }
 .ds-moment-binnen { animation: ds-moment-in var(--ds-m-lang) var(--ds-m-uit) calc(var(--ds-moment-stap) * var(--ds-moment-n, 0)) both; }
 .ds-moment-ploft { animation: ds-moment-pof var(--ds-moment-duur) var(--ds-m-stempel) calc(var(--ds-moment-stap) * var(--ds-moment-n, 0)) both; }
@@ -181,7 +181,7 @@
 .ds-moment-klaar .ds-moment-glans { animation: none; opacity: 0; }
 
 /* ===== Accent (inkten uit de tokens; geen losse kleur) ===== */
-/* Zet --ds-m-accent voor de kaart: goud is geel, zeldzaam roze, een gewone krijgt de inkt van zijn categorie (prestatiemoment.js,
+/* Zet --ds-m-accent voor de kaart: goud is geel, zeldzaam roze, een gewone krijgt de inkt van zijn categorie (achievementmoment.js,
    accentInkt). Een donkere ondergrond (de HUD) kiest zelf een lichtere inkt voor bord; de klasse zet alleen de variabele. */
 .ds-m-inkt--bord { --ds-m-accent: var(--ds-c-ink-bord); }
 .ds-m-inkt--roze { --ds-m-accent: var(--ds-c-ink-roze); }

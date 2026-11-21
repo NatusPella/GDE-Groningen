@@ -14,7 +14,7 @@ import { getOverzicht } from './gebiedenlive.js';
 import { iconSvg, ICON_PATHS } from './achievementicons.js';
 import { fillBars, countTo } from './motion.js';
 import { rijAttr, rijPlan, aanNaFrame, rijenKlaar, staffelDuur, rustigeStand, tikGetal } from './dsmicro.js';
-import { menuPlan } from './prestatiemoment.js'; // DS3: staffel van de rijen, eenmalige glans, teller en balken (ds-micro.css)
+import { menuPlan } from './achievementmoment.js'; // DS3: staffel van de rijen, eenmalige glans, teller en balken (ds-micro.css)
 import { achStilNoot, achPct as pctOf, achNear, achDone, achCategoryOrder, achCategoryPct, achWhen } from './menumodels.js';
 
 const CHEV = icoon('volgende');
@@ -266,7 +266,7 @@ function heroHtml(sum, near, verborgen) {
     streep(pct, `${sum.done} van ${sum.total} behaald`, true) + '</section>';
 }
 
-// DS3 (ds-micro.css, prestatiemoment.js menuPlan): de categorie-teller tikt op naar het nieuwe aantal, een balk vult van wat er
+// DS3 (ds-micro.css, achievementmoment.js menuPlan): de categorie-teller tikt op naar het nieuwe aantal, een balk vult van wat er
 // was (nooit opnieuw bij een vouw of tabwissel), een balk die net vol is glanst één keer en de rijen zijn na het staffelen weer
 // gewone rijen. Alles blijft staan zoals het was bij Beweging beperken en Rustig drukwerk (dan doet deze functie niets).
 function microStap(el, plan) {
