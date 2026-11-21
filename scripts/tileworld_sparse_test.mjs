@@ -148,7 +148,7 @@ if (heeftWereld()) {
   const denseWorld = denseLoad.world;
   const sparseFiles = { ...files };
   sparseFiles['index.json'] = new TextEncoder().encode(JSON.stringify({ ...idx, sparse: KINDS }));
-  const sparseLoad = await loadTileWorld('world/', { source: new T.MemorySource(sparseFiles), pool: false });
+  const sparseLoad = await loadTileWorld('world/', { source: new T.MemorySource(sparseFiles), pool: false, cityHoldMs: 0 });
   const sparseWorld = sparseLoad.world;
   const wsig = (g) => gridItems(g).map((o) => JSON.stringify({ k: o.k || o.type || '', pts: o.pts && o.pts.slice(0, 2), z: o.z && o.z.slice(0, 2) })).sort();
   ok(KINDS.every((k) => sparseWorld[k].length === 0), 'de echte wereld laadt zonder arraylaag voor de zeven sparse soorten');
@@ -162,6 +162,12 @@ if (heeftWereld()) {
   const pinned = (load) => [...Object.keys(idx.tiles)].filter((k) => { const e = load.store.entries.get(k); return e && e.pinned; });
   ok(pinned(sparseLoad).length === 0, 'de sparse wereld laadt zonder city-pin', String(pinned(sparseLoad).length));
   ok(pinned(denseLoad).length > 0, 'de oude dichte wereld blijft gepind (achterwaartse compatibiliteit)');
+  // #1060: in het spel blijft de stad de opwarmfase (CITY_HOLD_MS) vastgepind en gaat daarna alsnog los
+  const holdLoad = await loadTileWorld('world/', { source: new T.MemorySource(sparseFiles), pool: false, cityHoldMs: 150 });
+  ok(pinned(holdLoad).length > 0, 'de sparse stad blijft in de opwarmfase vastgepind (cityHoldMs)', String(pinned(holdLoad).length));
+  await new Promise((r) => setTimeout(r, 400));
+  ok(pinned(holdLoad).length === 0, 'en gaat na de wachttijd alsnog los', String(pinned(holdLoad).length));
+  ok(T.CITY_HOLD_MS >= 30000 && T.CITY_HOLD_MS <= 120000, 'de standaardwachttijd dekt de eerste minuut', String(T.CITY_HOLD_MS));
   // een stadstegel valt uit de store en komt terug, zoals bij het streamen
   const key = Object.keys(idx.tiles).find((k) => (idx.tiles[k].n && idx.tiles[k].n.buildings > 300) && !idx.tiles[k].ov);
   const tegel = idx.tiles[key];
