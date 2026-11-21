@@ -547,7 +547,7 @@ Classes in `ds-components.css` (block, `__part`, `--modifier`). The list below i
 | `.ds-leeg` | an empty, locked or reached state that says something useful and offers an action | | |
 | `.ds-zeef`, `.ds-rustig` | surface scope: cream paper, ink text; `.ds-rustig` scopes Rustig drukwerk to one panel (the game sets `html.rustig-drukwerk`) | none | see "Screen-print components" |
 | `.ds-z-knop` | button: yellow primary with ink edge and hard shadow; pressed = shadow gone and the button moved by the offset | none | `--secundair`, `--ghost`, `--gevaar`; hover, `:focus-visible`, `:disabled`, `[aria-disabled]`, `[aria-busy]` |
-| `.ds-z-kaart` | card: paper, hard shadow, tilt, bordgroen header with misregistration under the title | `__kop`, `__titel`, `__tekst`, `__voet` | `--recht`, `--klik`, `--selectie` or `[aria-current]`, `--probleem`, `--uit` |
+| `.ds-z-kaart` | card: paper, hard shadow, tilt, bordgroen header with misregistration under the title | `__kop`, `__titel`, `__tekst`, `__voet` | `--recht`, `--klik`, `--selectie` or `[aria-current]`, `--probleem`, `--uit`, `--bord` (solid bordgroen with white text: an advice card) |
 | `.ds-z-chip` | status pill: icon or shape plus a word | `__icoon` | `--primair`, `--selectie`, `--probleem`, `--succes`, `--uit` |
 | `.ds-z-tabs`, `.ds-z-tab` | tab pills, the active one filled ink | none | `[aria-selected="true"]` or `--actief`, `:disabled` |
 | `.ds-z-rij` | list row: icon, name with sub line, value | `__naam`, `__sub`, `__waarde` | `--selectie` or `[aria-current]`, `--probleem`, `--uit` |
@@ -625,7 +625,7 @@ One small library, `game/js/ds-motion.css` (the `.ds-mi-*` classes, loaded after
 10. **Two surfaces only.** Paper for shop, offers, missions, careers and anything you read and decide; glass for the pause rail, the map layer and the HUD. Do not put a glass card on paper or the reverse without the scope class.
 11. **Checks.** `scripts/release/design_rules.mjs` (`checkDsLine`, `checkDsFiles`) enforces rules 1, 2 and 9 on the two files and the contrast, motion and focus checks in `scripts/ds_tokens_test.mjs`; the rest is review and the checklist below.
 
-Extra checklist items for a screen (on top of "New UI checklist"): [ ] roles only, no palette colour; [ ] one yellow primary; [ ] hero or its reason named; [ ] empty and locked states drawn in the gallery; [ ] every status has an icon and a word; [ ] tab, shift-tab and a controller reach everything with one visible ring; [ ] seen with "Beweging beperken" on; [ ] Samen spelen: the six questions.
+Extra checklist items for a screen (on top of "New UI checklist"): [ ] roles only, no palette colour; [ ] one yellow primary; [ ] hero or its reason named; [ ] empty and locked states drawn in the gallery; [ ] every status has an icon and a word; [ ] tab, shift-tab and a controller reach everything with one visible ring; [ ] seen with "Beweging beperken" on; [ ] Samen spelen: the six questions. Every new screen passes `node scripts/ds3_dekking_test.mjs` (a ratchet on hard colours, dark glass, old classes, loose fonts and text under 13 px) and `rules_audit` blocks new ones in a diff; a deliberate exception carries a `ds3-uitzondering` comment with its reason (see docs/DESIGN-AUDIT-UI-21-11.md).
 
 ## Panels
 
