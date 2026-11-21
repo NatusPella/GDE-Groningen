@@ -61,6 +61,39 @@ export function meetFrame(x, o) {
 }
 export const isRuisFrame = (f) => f.db >= GRENS.hoorbaarDb && f.vlak > GRENS.vlak && f.toon < GRENS.toon;
 
+// Ruis-einde (21-11, de eigenaar hoorde dit in zes clips): een korte, harde burst (ca. 0,2 s, tot -9 dBFS rms, nulkruising 0,25 tot 0,45)
+// vlak voor het einde van het bestand, na een stuk bijna-stilte (onder -45 dB) dat op de stem volgt, en daarna digitale stilte.
+// Het is geen sis van een woord: dat staat midden in de stem en wordt niet voorafgegaan door stilte. Gemeten op 20 ms-frames.
+export const EIND = { frameS: 0.02, venster: 0.7, burstDb: -25, burstZcr: 0.2, minFrames: 5,   /* harde frames: minFrames - 1 of meer */ stilteDb: -45, minStilte: 3 };
+export function eindBurst(x, sr = SR) {
+  const F = Math.floor(sr * EIND.frameS), n = Math.floor(x.length / F);
+  const db = new Float32Array(n), zcr = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    let e = 0, z = 0;
+    for (let j = 0; j < F; j++) { const v = x[i * F + j]; e += v * v; if (j && (v >= 0) !== (x[i * F + j - 1] >= 0)) z++; }
+    db[i] = 20 * Math.log10(Math.sqrt(e / F) + 1e-9); zcr[i] = z / F;
+  }
+  // het laatste frame dat geen digitale stilte is
+  let end = n - 1;
+  while (end > 0 && db[end] < -90) end--;
+  const start = Math.max(0, n - Math.ceil(EIND.venster / EIND.frameS));
+  // de burst: harde, ruisachtig kruisende frames die bij het einde horen (gaten van hooguit 3 frames, ook digitale stilte, mogen)
+  let b0 = -1, harde = 0, gat = 0;
+  for (let i = end; i >= start; i--) {
+    if (db[i] > EIND.burstDb && zcr[i] > EIND.burstZcr) { b0 = i; harde++; gat = 0; }
+    else if (b0 === -1 ? end - i > 6 : ++gat > 3) break;
+  }
+  if (b0 === -1 || harde < EIND.minFrames - 1) return { burst: false, harde, ms: 0 };
+  // de stilte voor de burst: maximaal 2 overgangsframes, daarna minstens minStilte frames onder de stiltegrens
+  let i = b0 - 1, over = 0;
+  while (i >= 0 && over < 2 && db[i] >= EIND.stilteDb) { over++; i--; }
+  let stil = 0;
+  for (; i >= 0 && db[i] < EIND.stilteDb; i--) stil++;
+  const burst = stil >= EIND.minStilte && harde >= EIND.minFrames - 1;
+  let piek = -200; for (let k = b0; k <= end; k++) piek = Math.max(piek, db[k]);
+  return { burst, harde, stilteFrames: stil, ms: Math.round((end - b0 + 1) * EIND.frameS * 1000), piekDb: +piek.toFixed(1), vanafS: +(b0 * EIND.frameS).toFixed(2) };
+}
+
 export function scoreClip(x) {
   let actief = 0, ruis = 0, staart = 0, langste = 0, run = 0;
   const frames = Math.floor(x.length / N);
@@ -73,7 +106,7 @@ export function scoreClip(x) {
     flags.push(r);
   }
   for (let f = frames - 1; f >= 0 && flags[f]; f--) staart++;
-  return { frames, actief, aandeel: actief ? ruis / actief : 0, staart, langste, sec: x.length / SR };
+  return { frames, actief, aandeel: actief ? ruis / actief : 0, staart, langste, sec: x.length / SR, eind: eindBurst(x) };
 }
 
 function* bestanden(dir) {
@@ -100,6 +133,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const lijst = [];
     let k = 0;
     for (const d of dirs) for (const f of bestanden(path.join(ROOT, d))) { if (k++ < MAX) lijst.push(f); }
+    lijst.sort((a, b) => /anita/i.test(b) - /anita/i.test(a));   // eerst alle Anita-clips (de bekende fouten zijn vooral Anita)
     const rijen = [];
     for (const f of lijst) {
       const x = decodeer(f);
@@ -108,7 +142,10 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       rijen.push({ f: path.relative(ROOT, f).replace(/\\/g, '/'), ...s });
     }
     // spraak en muziek: verdacht = veel ruisframes of een ruisstaart; sfx: alleen de hoogste scores ter informatie
-    const verdacht = rijen.filter((r) => (groep === 'sfx' ? r.aandeel > 0.5 : r.aandeel > GRENS.spraakAandeel || r.staart >= GRENS.staartFrames)).sort((a, b) => b.aandeel - a.aandeel || b.staart - a.staart);
+    // de volledige gerangschikte lijst voor de spraakgroep: eerst de clips met een ruis-einde, dan op aandeel ruisframes (vanaf 8 procent)
+    uit[groep + '_lijst'] = rijen.filter((r) => r.eind.burst || r.aandeel >= 0.08).sort((x, y) => (y.eind.burst - x.eind.burst) || y.aandeel - x.aandeel)
+      .map((r) => ({ f: r.f, sec: +r.sec.toFixed(2), aandeel: +r.aandeel.toFixed(3), staart: r.staart, eind: r.eind }));
+    const verdacht = rijen.filter((r) => (groep === 'sfx' ? r.aandeel > 0.5 : r.aandeel > GRENS.spraakAandeel || r.staart >= GRENS.staartFrames || r.eind.burst)).sort((a, b) => (b.eind.burst - a.eind.burst) || b.aandeel - a.aandeel || b.staart - a.staart);
     // het paneel toont altijd de ruisachtigste clips van de groep, ook als er geen over de grens zijn: dan is dat de lijst om te beluisteren
     const ranglijst = [...rijen].sort((x, y) => (y.aandeel + Math.min(y.staart, 20) / 40) - (x.aandeel + Math.min(x.staart, 20) / 40));
     uit[groep] = { gemeten: rijen.length, verdacht: verdacht.length, top: (verdacht.length >= 10 ? verdacht : ranglijst).slice(0, TOP) };
@@ -117,6 +154,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   }
   if (process.argv.includes('--paneel')) {
     fs.writeFileSync(path.join(ROOT, 'docs', 'witte-ruis-scan.json'), JSON.stringify(uit, null, 1));
+    process.exit(0);   // het luisterpaneel maakt scripts/audio/witte_ruis_rapport.mjs (met de bronnen erbij)
     const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
     let h = `<!doctype html><html lang="nl"><head><meta charset="utf-8"><title>Witte ruis: luisterpaneel</title><style>body{font:14px system-ui;max-width:900px;margin:2em auto;padding:0 1em}h2{margin-top:2em}li{margin:.6em 0;list-style:none}audio{display:block;width:100%;margin-top:2px}small{color:#555}</style></head><body>\n<h1>Witte ruis: luisterpaneel</h1>\n<p>Gemaakt met <code>node scripts/audio/ruisachtig_scan.mjs --paneel</code>. Luister of er onverwacht witte ruis (sissen zonder stem of geluid) in zit. Opent vanuit de map docs; de paden verwijzen naar ../game/audio.</p>\n`;
     for (const [groep, d] of Object.entries(uit)) {
