@@ -143,6 +143,10 @@
 "src": "anita/door_naar_usquert_de_kerk_staat__abd2a7cc.mp3",
 "dur": 5.0
 },
+"Anita|Drie camera's in de gang. Wacht tot de streep in het vak staat, dan sluip je door.": {
+"src": "anita/drie_camera_s_in_de_gang_wacht_t_c8e2d3f1.mp3",
+"dur": 5.64
+},
 "Anita|Drie kuipen zout. Rennen naar de steiger, Klaas wacht.": {
 "src": "anita/drie_kuipen_zout_rennen_naar_de__49418607.mp3",
 "dur": 4.24
@@ -247,6 +251,10 @@
 "src": "anita/het_is_een_fietsrace_kom_op_je_e_319b10b7.mp3",
 "dur": 2.73
 },
+"Anita|Het logboek van 12 augustus. Blijf bij de server staan tot alles gelezen is.": {
+"src": "anita/het_logboek_van_12_augustus_blij_4d89f6cc.mp3",
+"dur": 5.64
+},
 "Anita|Het piepje wordt sneller. Achter het station, bij de goederentrein. Perron 3.": {
 "src": "anita/het_piepje_wordt_sneller_achter__fe9a4987.mp3",
 "dur": 4.28
@@ -258,6 +266,10 @@
 "Anita|Hij grist de Eierbal!": {
 "src": "anita/hij_grist_de_eierbal_0e0d3417.mp3",
 "dur": 1.81
+},
+"Anita|Hij loopt twee stappen achter je. De camera's draaien sneller en het groen is smaller.": {
+"src": "anita/hij_loopt_twee_stappen_achter_je_f652e476.mp3",
+"dur": 5.27
 },
 "Anita|Hij slingert! Durk krijgt de zenuwen.": {
 "src": "anita/hij_slingert_durk_krijgt_de_zenu_2eb83310.mp3",
@@ -695,6 +707,10 @@
 "src": "tammo/door_naar_usquert_de_kerk_staat__0a263686.mp3",
 "dur": 6.21
 },
+"Tammo|Drie camera's in de gang. Wacht tot de streep in het vak staat, dan sluip je door.": {
+"src": "tammo/drie_camera_s_in_de_gang_wacht_t_1987446b.mp3",
+"dur": 4.86
+},
 "Tammo|Drie kuipen zout. Rennen naar de steiger, Klaas wacht.": {
 "src": "tammo/drie_kuipen_zout_rennen_naar_de__41380aff.mp3",
 "dur": 4.28
@@ -798,6 +814,10 @@
 "Tammo|Het is een fietsrace. Kom op je eigen fiets.": {
 "src": "tammo/het_is_een_fietsrace_kom_op_je_e_8e401af0.mp3",
 "dur": 2.82
+},
+"Tammo|Het logboek van 12 augustus. Blijf bij de server staan tot alles gelezen is.": {
+"src": "tammo/het_logboek_van_12_augustus_blij_86b32ed7.mp3",
+"dur": 5.87
 },
 "Tammo|Het piepje wordt sneller. Achter het station, bij de goederentrein. Perron 3.": {
 "src": "tammo/het_piepje_wordt_sneller_achter__783e2e79.mp3",
@@ -1038,6 +1058,10 @@
 "Tammo|Terug naar de kraam, met de bal! Voordat de eierballen koud zijn.": {
 "src": "tammo/terug_naar_de_kraam_met_de_bal_v_44a7550f.mp3",
 "dur": 3.76
+},
+"Tammo|Tessa heeft het logboek geprint. Nu weg voor de accountmanager terug is.": {
+"src": "tammo/tessa_heeft_het_logboek_geprint__d999167b.mp3",
+"dur": 4.28
 },
 "Tammo|Toeter bij een gesloten brug, Wubbo opent op het ritme van de fanfare.": {
 "src": "tammo/toeter_bij_een_gesloten_brug_wub_2f305acc.mp3",
