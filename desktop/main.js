@@ -207,10 +207,21 @@ function createWindow() {
   // GPU- of renderproces weg: logregel in userData, melding naar de pagina (technische info) en
   // bij een renderproces één zachte herlaadronde
   const gone = (text) => {
-    try { fsSync.appendFileSync(path.join(app.getPath('userData'), 'gpu-events.log'), `${new Date().toISOString()} ${text}\n`); } catch (e) { /* ignore */ }
+    try {
+      const logFile = path.join(app.getPath('userData'), 'gpu-events.log');
+      // #1065: het logboek groeide zonder grens; boven 256 kB blijven de laatste 100 regels over
+      try { if (fsSync.statSync(logFile).size > 262144) fsSync.writeFileSync(logFile, fsSync.readFileSync(logFile, 'utf8').split('\n').slice(-100).join('\n')); } catch (e) { /* nog geen logboek */ }
+      fsSync.appendFileSync(logFile, `${new Date().toISOString()} ${text}\n`);
+    } catch (e) { /* ignore */ }
     if (!win.isDestroyed()) win.webContents.send('gde:gpu-event', text);
   };
-  app.on('child-process-gone', (e, d) => { const t = describeGone('child', d); if (t) gone(t); });
+  // #1065: per venster één luisteraar, en weg als het venster sluit (anders bleef er één per createWindow hangen)
+  const onChildGone = (e, d) => { const t = describeGone('child', d); if (t) gone(t); };
+  app.on('child-process-gone', onChildGone);
+  win.on('closed', () => app.removeListener('child-process-gone', onChildGone));
+  // een vastgelopen venster: alleen loggen, de speler beslist zelf (niets afsluiten of herladen)
+  win.on('unresponsive', () => gone('venster reageert niet meer'));
+  win.on('responsive', () => gone('venster reageert weer'));
   let reloads = [];
   win.webContents.on('render-process-gone', (e, d) => {
     const t = describeGone('render', d);
@@ -218,7 +229,8 @@ function createWindow() {
     gone(t);
     const r = reloadAllowed(reloads, Date.now());
     reloads = r.history;
-    if (r.ok && !win.isDestroyed()) { reloads.push(Date.now()); win.webContents.reload(); }
+    // #1065: na een herlaad kent de nieuwe pagina de verbindingen van Samen spelen niet meer: de TCP-server en de poort op de router gaan dicht
+    if (r.ok && !win.isDestroyed()) { reloads.push(Date.now()); app.emit('gde-coop-reset'); win.webContents.reload(); }
   });
   win.webContents.on('before-input-event', (e, input) => {
     if (input.type !== 'keyDown') return;
@@ -269,6 +281,7 @@ if (!app.requestSingleInstanceLock()) {
   ipcMain.handle('gde:coop-diagnose', (e) => coopFor(e.sender).diagnose());
   ipcMain.handle('gde:coop-stop', () => (coop ? coop.stop() : null));
   app.on('before-quit', () => { if (coop) coop.stop(); }); // sluit de poort op de router weer
+  app.on('gde-coop-reset', () => { if (coop) coop.stop(); }); // renderproces herladen (#1065)
   require('./gpuinfo.cjs').registerGpuInfo({ ipcMain, app, screen: require('electron').screen }); // 0.64.1: Technische info (gpudiag.js)
   ipcMain.handle('gde:live-bussen', () => haalLiveBussen()); // #395: zonder argumenten: de vaste url, niets van de speler
   ipcMain.handle('gde:save-text', async (e, name, text) => {

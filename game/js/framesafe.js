@@ -12,7 +12,8 @@ export function createFrameGuard({ onFirst = null, log = null, every = 600, keep
     run(name, fn, a, b) {
       try { return fn(a, b); } catch (err) { this.fail(name, err); return undefined; }
     },
-    fail(name, err) {
+    // quiet: een geval dat het systeem zelf heeft opgevangen (geen melding in beeld), alleen geteld voor de technische info
+    fail(name, err, quiet = false) {
       total++;
       let e = by.get(name);
       if (!e) {
@@ -21,8 +22,8 @@ export function createFrameGuard({ onFirst = null, log = null, every = 600, keep
       }
       e.n++;
       e.last = String((err && err.message) || err).slice(0, 160);
-      if (e.first) { e.first = false; if (onFirst) { try { onFirst(err, name); } catch (e2) { /* het melden mag niet zelf falen */ } } }
-      if (log && (e.n === 1 || e.n % every === 0)) { try { log(name, err, e.n); } catch (e2) { /* idem */ } }
+      if (e.first) { e.first = false; if (onFirst && !quiet) { try { onFirst(err, name); } catch (e2) { /* het melden mag niet zelf falen */ } } }
+      if (log && !quiet && (e.n === 1 || e.n % every === 0)) { try { log(name, err, e.n); } catch (e2) { /* idem */ } }
     },
     snapshot() {
       return { total, by: [...by.entries()].map(([name, e]) => ({ name, n: e.n, last: e.last })).sort((a, b) => b.n - a.n) };

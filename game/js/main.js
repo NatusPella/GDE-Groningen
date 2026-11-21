@@ -226,6 +226,7 @@ import { tikBusMelding } from './busmelding.js'; // de rustige melding bij de ee
 import { stapSlaOver } from './simlagen.js';
 import { getSimBridge, setSimCarAttach } from './simbridge.js';
 import { showFrameError, PED_TARGET, thinTraffic, maintainPedestrians } from './streetpopulation.js';
+import { sweepNonFinite } from './finitesweep.js'; // #1065
 import { createFrameGuard } from './framesafe.js'; // #1065: één fout in een systeem legt de rest van het beeld niet stil
 setSimCarAttach(attachToNearestRoad);
 import { scaledTarget, simLevel, nextSimFrame, farAIDist, skipFar, takeDt, keepVehicle } from './simload.js';
@@ -1329,6 +1330,11 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
       if (v.isBoat && v.driver !== 'player') updateBoatAI(v, dt, map, world, Math.random);
     }
     probe.mark('traffic');
+    // #1065: een NaN in een auto of voetganger gaat eruit (afstandstoetsen zijn bij NaN altijd onwaar, dus het verkeersbeheer ruimde hem nooit op)
+    if ((world.frameNo = (world.frameNo || 0) + 1) % 30 === 0) {
+      const sw = sweepNonFinite(world);
+      if (sw.voertuigen + sw.voetgangers + sw.snelheid) frameGuard.fail('niet-eindige-waarde', new Error(`${sw.voertuigen} voertuigen, ${sw.voetgangers} voetgangers opgeruimd, ${sw.snelheid} snelheden op nul`), true);
+    }
 
     if (!world.pigeonMode && !world.heliRun) politieMetDoelwit(dt, world, updatePolice); // met een gast die gezocht wordt jaagt de politie op hem (#434)
     frameGuard.run('updateTrafficLaw', updateTrafficLaw, dt, world);

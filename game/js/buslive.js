@@ -75,11 +75,11 @@ export function maakLiveBussen({ fetchFn, nu = () => Date.now(), opts = {} } = {
     if (st.bezig || t < st.volgendeOp) return null;
     st.bezig = true; st.opgevraagd++;
     st.volgendeOp = t + cfg.interval;
+    // #1065: st.bezig gaat altijd weer uit, ook als verwerk valt over rare busgegevens of de opvraag zelf faalt; anders bleef 'bezig' voor altijd staan en kwamen er nooit live bussen meer
     return haalLiveBussen({ fetchFn, url: cfg.url, timeout: cfg.timeout, maxBytes: cfg.maxBytes, maxVoertuigen: cfg.maxVoertuigen }).then((res) => {
-      if (st.aan) verwerk(res, nu(), lines);
-      st.bezig = false;
+      try { if (st.aan) verwerk(res, nu(), lines); } catch (e) { st.fouten = (st.fouten || 0) + 1; } finally { st.bezig = false; }
       return res;
-    });
+    }, () => { st.fouten = (st.fouten || 0) + 1; st.bezig = false; return null; });
   }
 
   // De stand van een live bus nu: gladgestreken tussen de laatste twee posities (een opvraag vertraagd, dus altijd
