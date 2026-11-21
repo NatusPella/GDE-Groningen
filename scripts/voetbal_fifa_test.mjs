@@ -5,9 +5,12 @@ import assert from 'node:assert/strict';
 import { PITCH, zetFormaat, richtingVan } from '../game/js/voetbalrules.js';
 import { makeMatch, tikWedstrijd, setupResume, snapVoetbal, leesLiveVoetbal, makeFootballMirror, voerInVoetbal } from '../game/js/voetbalmatch.js';
 import { REGELS_STANDAARD, GEEN_REGELS, cleanRegels, strafschopPlek, beoordeelFout, pasBeoordelingToe, wisselSpeler, rustWissels, blessureWissels, buitenspelBijSchop, manVanDeMatch, statistiekenVan, speelMinuut } from '../game/js/voetbalspelregels.js';
+import { COMMENTATOREN, SOORTEN, COMMENTAAR, MIN_PER_SOORT, MIN_TOTAAL, MAX_WOORDEN } from '../game/js/voetbalcommentaardata.js';
+import { makeCommentaar, commentaarVoor, tikCommentaar, alleRegels, tellRegels, vulSjabloon, stemSleutel, derbyVan } from '../game/js/voetbalcommentaar.js';
+import { hasForbiddenWord } from './voetbal_verboden.mjs';
 
 let n = 0;
-const t = (naam, f) => { try { f(); n++; } catch (e) { console.error('FAIL', naam); throw e; } };
+const t =(naam, f) => { try { f(); n++; } catch (e) { console.error('FAIL', naam); throw e; } };
 const DT = 1 / 30;
 const stap = (m, sec, inv = null) => { const ev = []; for (let i = 0; i < Math.ceil(sec / DT); i++) ev.push(...tikWedstrijd(m, DT, inv)); return ev; };
 const tot = (m, fase, max = 120, inv = null) => { const ev = []; for (let i = 0; i < Math.ceil(max / DT) && m.fase !== fase; i++) ev.push(...tikWedstrijd(m, DT, inv)); return ev; };
@@ -130,6 +133,94 @@ t('de momentopname kent de strafschop en blijft even lang (het protocol is ongew
   const st = leesLiveVoetbal(JSON.parse(JSON.stringify(snap)));
   const sp = makeFootballMirror({ deeln: [{ slot: 0, naam: 'Jij' }] }, 0, { formaat: 'groot', duur: 'kort' });
   assert.equal(voerInVoetbal(sp, st), true); assert.equal(sp.hervat.kind, 'strafschop');
+});
+
+// ---------------------------------------------------------------- het commentaar
+t('commentaar: 200+ regels als data, elke soort met genoeg regels, twee commentatoren', () => {
+  assert.ok(tellRegels() >= MIN_TOTAAL, `aantal ${tellRegels()}`);
+  for (const soort of Object.keys(SOORTEN)) {
+    const p = COMMENTAAR[soort]; assert.ok(p, `soort ${soort} mist`);
+    assert.ok((p.h || []).length + (p.r || []).length >= MIN_PER_SOORT, `${soort} heeft te weinig regels`);
+  }
+  for (const soort of Object.keys(COMMENTAAR)) assert.ok(SOORTEN[soort], `soort ${soort} zonder instelling`);
+  assert.ok(Object.values(COMMENTAAR).every((p) => (p.h || []).length >= 2 && (p.r || []).length >= 2), 'beide commentatoren praten bij elke soort');
+  assert.deepEqual(Object.keys(COMMENTATOREN), ['h', 'r']);
+});
+t('commentaar: geen echte clubs of merken, geen "de Grunn", geen dubbele regel, woordbudget', () => {
+  const gezien = new Set();
+  for (const r of alleRegels()) {
+    assert.equal(hasForbiddenWord(r.tekst), false, r.tekst);
+    assert.equal(/de Grunn\b/.test(r.tekst), false, r.tekst);
+    assert.equal(/\b(winter|sneeuw|ijs)\b/i.test(r.tekst), false, `altijd zomer: ${r.tekst}`);
+    assert.ok(r.tekst.split(/\s+/).length <= MAX_WOORDEN, `te lang: ${r.tekst}`);
+    assert.equal(gezien.has(r.tekst), false, `dubbel: ${r.tekst}`); gezien.add(r.tekst);
+    assert.ok(/[.!?]$/.test(r.tekst), `eindigt zonder leesteken: ${r.tekst}`);
+    const open = (r.tekst.match(/\{/g) || []).length; assert.equal(open, (r.tekst.match(/\}/g) || []).length);
+    for (const mm of r.tekst.matchAll(/\{([a-z]+)\}/g)) assert.ok(['speler', 'team', 'ander', 'stand'].includes(mm[1]), `onbekend sjabloon ${mm[0]}`);
+  }
+});
+t('commentaar: sjablonen worden gevuld, een vaste regel heeft een stemsleutel, een sjabloon niet', () => {
+  assert.equal(vulSjabloon('Goal! {speler} scoort voor {team}. De stand: {stand}.', { speler: 'Wietske', team: 'Stadjers', stand: '1-0' }), 'Goal! Wietske scoort voor Stadjers. De stand: 1-0.');
+  assert.equal(vulSjabloon('Hij komt erin: {speler}.', {}), 'Hij komt erin: de speler.');
+  assert.equal(stemSleutel('h', 'Rust. De thermosfles gaat rond.'), 'Hilbrand|Rust. De thermosfles gaat rond.');
+  assert.equal(stemSleutel('r', 'Goal! {speler} scoort.'), null);
+  assert.equal(stemSleutel('x', 'Iets.'), null);
+});
+t('commentaar: niet herhalend: nooit twee dezelfde achter elkaar, de eerste ronde gebruikt de hele zak', () => {
+  const c = makeCommentaar({ seed: 5 });
+  const lijst = COMMENTAAR.goalThuis.h, gezien = [];
+  for (let i = 0; i < lijst.length * 3; i++) {
+    const [a] = commentaarVoor(c, { type: 'goal', team: 0, speler: 3, eigen: false, stand: [i + 1, 0] }, { score: [i + 1, 0], naamVan: () => 'Wietske' });
+    c.scorePrev = [0, 0]; c.rij = [];
+    gezien.push(a.tekst);
+  }
+  for (let i = 1; i < gezien.length; i++) assert.notEqual(gezien[i], gezien[i - 1], 'twee dezelfde achter elkaar');
+  const eerste = gezien.slice(0, lijst.length);
+  assert.ok(new Set(eerste).size >= lijst.length - 3, 'de eerste ronde gebruikt (bijna) alle regels');
+});
+t('commentaar: een doelpunt komt altijd door, kleine dingen vallen weg bij drukte, de rij loopt af', () => {
+  const c = makeCommentaar({ seed: 6 });
+  const g = commentaarVoor(c, { type: 'goal', team: 0, speler: 2, eigen: false, stand: [1, 0] }, { score: [1, 0], naamVan: () => 'Hinderk' });
+  assert.ok(g.length >= 1 && g[0].soort === 'goalThuis' && g[0].wie === 'h');
+  const net = commentaarVoor(c, { type: 'hervat', kind: 'inworp', team: 0 }, { score: [1, 0] });
+  assert.equal(net.length, 0, 'een ingooi direct na een doelpunt blijft stil');
+  const klinkt = []; for (let i = 0; i < 400; i++) klinkt.push(...tikCommentaar(c, 0.05, { fase: 'goal', score: [1, 0] }));
+  assert.ok(klinkt.length >= 1 && klinkt[0].soort === 'goalThuis'); assert.ok(klinkt.length <= 2);
+  if (klinkt.length === 2) assert.notEqual(klinkt[0].wie, klinkt[1].wie, 'de ander reageert');
+});
+t('commentaar: comeback, eigen doelpunt, tegendoelpunt en kaarten kiezen de goede soort', () => {
+  const c = makeCommentaar({ seed: 7 });
+  const stands = { s: [0, 0] };
+  const goal = (team, eigen = false) => { stands.s[team]++; const r = commentaarVoor(c, { type: 'goal', team, speler: eigen ? -1 : 1, eigen, stand: stands.s.slice() }, { score: stands.s.slice(), naamVan: () => 'Roel' }); c.rij = []; c.sinds = 99; return r[0].soort; };
+  assert.equal(goal(1), 'goalUit'); assert.equal(goal(1), 'goalUit');
+  assert.equal(goal(0), 'goalThuis'); assert.equal(goal(0), 'comeback');
+  assert.equal(goal(0, true), 'goalEigen');
+  const k1 = commentaarVoor(c, { type: 'kaart', kleur: 'geel', team: 1, speler: 4 }, { naamVan: () => 'Jouke' }); assert.equal(k1[0].soort, 'geel');
+  const k2 = commentaarVoor(c, { type: 'kaart', kleur: 'rood', team: 1, speler: 4 }, { naamVan: () => 'Jouke' }); assert.equal(k2[0].soort, 'rood');
+});
+t('commentaar: een hele wedstrijd levert afwisselend commentaar van beide commentatoren zonder herhaling', () => {
+  const m = makeMatch([], { duur: 'kort', seed: 21, aiBeide: true, formaat: 'groot' });
+  const c = makeCommentaar({ seed: 21, teams: [m.teams[0].kort, m.teams[1].kort], ids: [m.teams[0].id, m.teams[1].id], duurHelft: m.duurHelft });
+  const regels = [], naamVan = (id) => (m.spelers[id] ? m.spelers[id].naam : '');
+  for (let i = 0; i < 30 * 700 && m.fase !== 'klaar'; i++) {
+    const ev = tikWedstrijd(m, DT);
+    const ctx = { fase: m.fase, helft: m.helft, klok: m.klok, duurHelft: m.duurHelft, score: m.score.slice(), bezit: statistiekenVan(m).bezit, naamVan };
+    for (const e of ev) commentaarVoor(c, e, ctx);
+    regels.push(...tikCommentaar(c, DT, ctx));
+  }
+  assert.ok(regels.length >= 12, `te weinig commentaar: ${regels.length}`);
+  assert.ok(regels.some((r) => r.wie === 'h') && regels.some((r) => r.wie === 'r'), 'beide commentatoren');
+  assert.ok(regels.every((r) => !/\{[a-z]+\}/.test(r.tekst)), 'geen onopgeloste sjablonen');
+  const teksten = regels.map((r) => r.tekst), uniek = new Set(teksten);
+  assert.ok(uniek.size >= teksten.length * 0.9, `te veel herhaling: ${uniek.size}/${teksten.length}`);
+  for (let i = 1; i < teksten.length; i++) assert.notEqual(teksten[i], teksten[i - 1]);
+  assert.ok(regels.some((r) => r.soort === 'start') && regels.some((r) => r.soort === 'rust') && regels.some((r) => /^eind/.test(r.soort)));
+});
+t('commentaar: de derby krijgt een eigen regel bij de aftrap', () => {
+  assert.equal(derbyVan('stadjers', 'ommelanders'), true); assert.equal(derbyVan('stadjers', 'wadlopers'), false);
+  const c = makeCommentaar({ seed: 8 });
+  const r = commentaarVoor(c, { type: 'aftrap', team: 0 }, { helft: 1, derby: true, score: [0, 0] });
+  assert.ok(r.some((x) => x.soort === 'derby') && r.some((x) => x.soort === 'start'));
 });
 
 console.log(`voetbal_fifa_test ok (${n} groepen)`);
