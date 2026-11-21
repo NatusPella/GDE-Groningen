@@ -85,6 +85,8 @@ Object.assign(SPECS, SPECS_AKTE2);
 {
   const life = merge(cyclist('fietser', 'harm', [-14, -6.5], [40, -6.5], 0.5), passer('toerist', 'toerist', [6, -7], [-6, -7.5], 2, 1.1, 'phone'));
   SPECS['M01.intro'] = {
+    // R-13: Berend krijgt een naamkaart bij zijn eerste verschijning (#1124, #1138)
+    fx: [{ t: 1.0, fx: 'naam', text: 'Berend Bos, Bommen Berend', dur: 2.8 }],
     cast: {
       berend: { key: 'berend', at: [2.5, 0.5], face: 180, anim: 'idle', gest: ['hips', 'talk', 'point', 'shake', 'hips'], carry: 'kladblok' },
       ...life.cast,
@@ -261,6 +263,8 @@ Object.assign(SPECS, SPECS_AKTE2);
   const q = merge(queue('wachter1', 'femke', [3.8, -3.1], 200, 'phone'), queue('wachter2', 'harm', [4.9, -1.6], 190, 'lean'), queue('wachter3', 'geert', [4.4, 3.4], 170, 'idle'));
   SPECS['M03.intro'] = {
     set: 'loket',
+    // R-13: de loketbediende krijgt een naamkaart (#1138)
+    fx: [{ t: 1.0, fx: 'naam', text: 'Loketbediende, Loket C', dur: 2.6 }],
     cast: {
       loketbediende: { key: 'loketbediende', at: [4.6, 0.2], face: 180, anim: 'idle', gest: ['talk', 'point', 'hips', 'talk'] },
       ...q.cast,
@@ -778,7 +782,14 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
     if (d.shots.length) { shots.length = 0; shots.push(...d.shots); }
     humor = d.humor;
   }
-  const fx =(spec.fx || []).map((f) => ({ f, idx: resolveOn(f.on, lines) })).filter((q) => q.idx !== -1).map(({ f, idx }) => { const { on, dt, ...rest } = f; return { t: idx == null ? 'end' : tspec(idx, dt || 0), ...rest }; });
+  // an effect is placed on a line (`on`, with `dt`) or at a scene time (`t`, e.g. a name card at 1.0 s; before #1138 such an fx was dropped)
+  const fx = (spec.fx || []).flatMap((f) => {
+    if (f.on === undefined && f.t !== undefined) return [{ ...f }];
+    const idx = resolveOn(f.on, lines);
+    if (idx === -1) return [];
+    const { on, dt, ...rest } = f;
+    return [{ t: idx == null ? 'end' : tspec(idx, dt || 0), ...rest }];
+  });
   return { id: 'story-' + key, actors, props, cues, shots, ...(humor && humor.length ? { humor } : {}), ...(spec.set ? { set: spec.set } : {}), ...(spec.crowd ? { crowd: spec.crowd } : {}), ...(fx.length ? { fx } : {}) };
 }
 

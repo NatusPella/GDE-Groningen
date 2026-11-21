@@ -105,6 +105,7 @@ RIKUS: Dan leen ik hem. [NIEUW]
 
 ## [M18.1] Wie draaide de camera's uit?: intro – Veenkoloniën, Veendam, Wiebelwerk – te voet
 (regie: maandag 24 augustus, middag. Een kantoorpand bij een rotonde. Een bord: Wiebelwerk, websites met karakter. Een e-step staat voor de deur. Gameplay: een kantoor als speelveld; de juiste antwoorden kiezen, de serverkamer in en het logboek van 12 augustus bekijken.)
+(regie: naamkaart voor de accountmanager in beeld: Accountmanager, Wiebelwerk.)
 TAMMO: Wiebelwerk. Websites met karakter. [NIEUW]
 TAMMO: Wie de camera's uitzet, heeft de bal. [NIEUW]
 TESSA: Volgens de chat van Rikus zijn wij de dieven: twee Stadjers in het zwart. [NIEUW]
@@ -370,6 +371,7 @@ MEM: Altijd bedanken. Dat heb ik hem geleerd. Alles wat goed is in mijn jongen k
 TESSA: Waarom doet u dit, mevrouw Terpstra? [NIEUW]
 MEM: Omdat mijn kleinzoon gekke dingen doet om iets voor mij te winnen wat ik niet meer hoef. [NIEUW]
 OMA TRIJNTJE: Gerda. {pause=0.8} [NIEUW]
+(regie: reactieshot op Jelle: hij kijkt weg, zijn kaak staat strak.)
 MEM: In 1953 werd ik tweede, Trijntje. Hij heeft het nooit losgelaten. Ik wel. [NIEUW]
 JELLE: Mem. Dit is nog niet voorbij. Mijn juristen noemen het een geschil. [NIEUW]
 (regie: Jelle gaat naar de deur, Berend laat hem door. Buiten klinkt zijn stem.)
