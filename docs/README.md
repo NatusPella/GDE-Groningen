@@ -159,6 +159,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [QA-AUDIT-2026-11-16.md](<QA-AUDIT-2026-11-16.md>) | Onafhankelijke QA-audit van 0.65.0: scorekaart, de bevindingen en hun fixes, de open risico's (Samen spelen, M02, TTS) en wat niet is getest. De bewijsbeelden staan in een worktree en niet in git. |
 | [QA-START-VAN-MENU-AF.md](<QA-START-VAN-MENU-AF.md>) | Het oude startscherm (`runMenuScreen`, `#start-screen`) is alleen nog de |
 | [RELEASE-CHECKLIST-VANMIDDAG.md](<RELEASE-CHECKLIST-VANMIDDAG.md>) | Naslag. Releasechecklist van 20-11 voor de speeltest met vier: de commando's in volgorde (releasegate, release.sh, Actions-builds, installatie- en Samen-spelen-rooktest) met de valkuilen uit eerdere releases. |
+| [GATE-VOORBEREIDING-21-11.md](<GATE-VOORBEREIDING-21-11.md>) | Afvinklijst voor de gate en release van 0.65.0: voorbereiding, testlijst, de AI-review, het plan voor de eigenaar-review met twintig schermen, de release-builds en de open punten die de gate niet oplost. |
 | [RELEASEGATE.md](<RELEASEGATE.md>) | Het releasegate-rapport en draaiboek: elke release bewijsbaar zonder regressie (ADR 0034). |
 | [QA-SAVES-20-11.md](<QA-SAVES-20-11.md>) | QA van opslaan en laden voor de release van 20-11 (#983, #429): oude en beschadigde saves, opslag per speler, ritten en instellingen; de compat-suite. |
 | [REVIEW-20-11.md](<REVIEW-20-11.md>) | AI-codereview van de wijzigingen van 20-11 voor de releasegate (ADR 0034): bevindingen op ernst en testgaten. |
