@@ -105,8 +105,8 @@ for (const l of lines) {
 // #744 heeft vier lange scènes ingekort; daardoor zakte het aantal tekstregels
 // onder de oude grens van 700. De bovengrens blijft streng: elke opname moet
 // resolven en elke tekst-only regel mag geen opname hebben.
-// de opnames van nieuwe en herschreven regels volgen in een TTS-ronde (voetnoot: scripts/voice_wacht.json); tot dan staan ze als tekst
-ok(recorded > 1200 && textOnly < 700, 'recorded and text-only counts are in the expected range', `${recorded} recorded, ${textOnly} text only`);
+// de opnames van nieuwe en herschreven regels volgen in een TTS-ronde (voetnoot: scripts/voice_wacht.json); tot dan staan ze als tekst (21-11 na de verhaalrondes Jelle, eind en humor: 758 tekstregels, de grens is 900)
+ok(recorded > 1200 && textOnly < 900, 'recorded and text-only counts are in the expected range', `${recorded} recorded, ${textOnly} text only`);
 ok(lines.filter((l) => l.channel === 'app-stil').length === lines.filter((l) => l.silent).length, 'every silent line is an app text and the other way round');
 ok(behouden >= 300 && behoudenText < 20, 'the BEHOUDEN lines nearly all resolve to a recording', `${behouden} BEHOUDEN, ${behoudenText} without a recording`);
 
