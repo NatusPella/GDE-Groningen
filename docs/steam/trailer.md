@@ -107,8 +107,8 @@ heen, alleen als hint:
 1. **Tammo en Tessa, of ze wel of niet…** Oogcontact, een onafgemaakte zin
    ("Praat straks eens tegen mij." / "…Straks."). De kus en het antwoord
    blijven eruit.
-2. **Van "wij" naar "Grunn".** Eerst geld en de Fjord Frituur ("Iemand moet
-   de Fjord Frituur betalen"), aan het eind Oma Trijntje: "Die bal is gien
+2. **Van "wij" naar "Grunn".** Eerst geld en de snackwagen ("Iemand moet
+   de snackwagen betalen"), aan het eind Oma Trijntje: "Die bal is gien
    geld, jong. Die bal is Grunn."
 3. **Jelle Terpstra.** Rivaal, snackkoning, ijdel ("Zelfs zijn naam klinkt
    als een fierljepper"), en er zit meer achter: "Foar mem." Niet wie mem
@@ -123,8 +123,8 @@ Alle stemmen zijn bestaande opnames (`audio/voicelines/`), geen nieuwe TTS.
 | 3 | 0:07 | 3,4 | Terrassen op de Vismarkt | **Tammo:** "Oogcontact. Dat zei Sjoerd." (banter H5) | *Een zomer.* |
 | 4 | 0:11 | 3,0 | Naamkaart Tessa (pinautomaat) | – | **TESSA** |
 | 5 | 0:14 | 3,0 | Naamkaart Tammo (deur) | – | **TAMMO** |
-| 6 | 0:17 | 4,6 | Noorderplantsoen | **Tessa:** "De Fjord Frituur. Blauw, met een meeuw erop." (banter `id-fjord-meeuw`) | – |
-| 7 | 0:21 | 3,6 | De Escapade in de Herestraat | **Tessa:** "Iemand moet de Fjord Frituur betalen." (banter `st-bijbaan`) | – |
+| 6 | 0:17 | 4,6 | Noorderplantsoen | **Tessa:** "De snackwagen. Blauw, met een meeuw erop." (banter `id-fjord-meeuw`) | – |
+| 7 | 0:21 | 3,6 | De Escapade in de Herestraat | **Tessa:** "Iemand moet de snackwagen betalen." (banter `st-bijbaan`) | – |
 | 8 | 0:25 | 6,0 | **De Gouden Eierbal in de vitrine**, gloeiend, langzame push-in | **Tammo:** "Achttien karaat. Hoeveel eierballen is dat?" (H2) · **Tessa:** "Vannacht. Het museum. Geen zaklamp." (vóór H6) | *De Gouden Eierbal.* / *Groninger Museum* |
 | 9 | 0:31 | 5,4 | Naamkaart Jelle Terpstra (trekker-limo) | **Tessa:** "Jelle Terpstra. Zelfs zijn naam klinkt als een fierljepper." (banter `id-fierljeppen`) | **JELLE TERPSTRA** |
 | 10 | 0:36 | 3,8 | Duif langs de Martinitoren | **Jelle:** "Moai, Grinzers! Kijk eens omhoog. Foar mem." (H10) | *Kieken van boven.* |

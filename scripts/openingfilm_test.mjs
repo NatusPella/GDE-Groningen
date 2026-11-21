@@ -33,11 +33,14 @@ assert.deepEqual(checkText(unit, {}).filter((f) => f.ernst === 'blokkerend').map
 assert.equal(TITLE.tagline, 'Ontdek jezelf in Grunn.');
 assert.ok(!/frietwagen|snack|eierbal/i.test(JSON.stringify(TITLE)), 'de titelkaart belooft geen snackwagen');
 assert.ok(!/de grunn/i.test(JSON.stringify([LINES, TITLE])));
+assert.ok(!/Fjord Frituur/.test(JSON.stringify([LINES, TITLE, SEQUENCE])), 'de naam Fjord Frituur is weg (eigenaar 21-11)');
+assert.ok(!/TAM & TES/.test(JSON.stringify([TITLE, LINES])), 'TAM & TES staat alleen als belettering in beeld, niet in titel, slogan of tekst');
 // de regels zijn die van de verhaal-lead (09-script-akte1.md, C00.2 en C00.3), in volgorde van deze film: nieuwe tekst alleen waar het script hem niet heeft
 const script = read('../docs/verhaal/nieuw/09-script-akte1.md');
 const norm = (t) => t.replace(/[“”"]/g, '"');
 const scriptText = norm(script);
-const fromScript = LINES.filter((l) => l.scene !== 'C00.1' && l.id !== 'L29' && l.id !== 'L30');
+// L15 is door de eigenaar-besluiten van 21-11 (de naam Fjord Frituur verdwijnt) afgeweken van het script; de verhaal-lead neemt hem over
+const fromScript = LINES.filter((l) => l.scene !== 'C00.1' && !['L15', 'L29', 'L30'].includes(l.id));
 for (const l of fromScript) assert.ok(scriptText.includes(norm(l.text)), `de regel ${l.id} staat niet in 09-script-akte1.md: ${l.text}`);
 assert.ok(scriptText.includes('Een luisteraar meldt een Fries in een blauw colbert'), 'de Jelle-hint staat ook in het script van de verhaal-lead');
 

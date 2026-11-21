@@ -45,7 +45,7 @@ const voices = openBank('story').entries;
 // Grieze, cyclists, a gull with a frikandel, freeze frames with name cards
 // for Tessa and Tammo, flashes ahead in the story, the title), then the
 // opening scene: dawn in the Oosterparkwijk, Rikus on Nachtstreek, the
-// attic kitchen table where the Fjord Frituur gets its car and the two of
+// attic kitchen table where the snack van gets its car and the two of
 // them a flat (the rent split in two), then moving day at the House of
 // Groningen in Paddepoel. Ends in the swoop down to the spawn there, their
 // new home. Narration it told is skipped in H1's intro.

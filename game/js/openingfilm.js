@@ -55,7 +55,7 @@ export const LINES = [
   L('L12', 'A', 'Een frietwagen is een auto met een luik, Tammo. En ik heb geen auto.', 'behouden', 'C00.2', { kind: 'line', emotion: 'neutral', tag: 'zakelijk, ad rem, een beetje moedeloos' }),
   L('L13', 'T', 'Ik wel. De Escapade.', 'behouden', 'C00.2', { kind: 'line', emotion: 'joy', tag: 'droog, terloops' }),
   L('L14', 'A', 'Die rijdt nauwelijks.', 'behouden', 'C00.2', { kind: 'line', emotion: 'neutral', tag: 'droog, ongelovig' }),
-  L('L15', 'T', 'Dan rijdt hij nauwelijks voor jou. De Fjord Frituur, op een Fjord. Dan klopt de naam ook.', 'behouden', 'C00.2', { kind: 'line', emotion: 'tender', tag: 'warm, verlegen, droog, alsof het niks is' }),
+  L('L15', 'T', 'Dan rijdt hij nauwelijks voor jou. Een snackwagen, op een Fjord. Dat klopt wel.', 'nieuw', 'C00.2', { kind: 'line', emotion: 'tender', tag: 'warm, verlegen, droog, alsof het niks is' }),
   L('L16', 'A', 'Zonder bank blijft er één weg over: een wedstrijd. Wie wint, krijgt de enige vrije standplaats van Grunn, een plek voor een wagen.', 'nieuw', 'C00.2', { kind: 'line', emotion: 'neutral', tag: 'nuchter, helder, legt uit' }),
   L('L17', 'T', 'De prijs voor de beste eierbal.', 'nieuw', 'C00.2', { kind: 'line', emotion: 'neutral', tag: 'droog, hoopvol' }),
   L('L18', 'A', 'Wij winnen op 28 augustus, wij krijgen die standplaats, en dan zien we wel wat erop komt te staan.', 'nieuw', 'C00.2', { kind: 'line', emotion: 'joy', tag: 'zelfverzekerd, snel' }),
@@ -103,7 +103,7 @@ export const SEQUENCE = [
   // --- C00.2: the kitchen ---
   S('c2-gevel', 'C00.2', 'facade', 'wide', 50, { kind: 'dolly', dist: 7 }, { minDur: 5.4, at: 'Oosterparkwijk, zolder', establishing: true, cam: 'van het zolderraam in de gevel naar de straat; een rode Escapade met een lekke band, een radio zingt zacht', clock: 'kamer-ochtend' }),
   S('c2-bank', 'C00.2', 'kitchenBank', 'medium', 36, { kind: 'dolly', dist: 1.2 }, { lines: ['L10', 'L11'], lead: 1.1, minDur: 6, at: 'Zolderkeuken', cam: 'wide van de keuken; dan over de schouder op Tessa; reactie van Tammo', tag: { who: 'tessa', at: 1.0 }, cue: 'thema-onder' }),
-  S('c2-wagen', 'C00.2', 'kitchenCar', 'medium', 36, ST, { lines: ['L12', 'L13', 'L14', 'L15'], lead: 0.4, minDur: 6, at: 'Zolderkeuken', insert: true, cam: 'shot/reverse over de tafel; een insert op de tekening van de blauwe wagen' }),
+  S('c2-wagen', 'C00.2', 'kitchenCar', 'medium', 36, ST, { lines: ['L12', 'L13', 'L14', 'L15'], lead: 0.4, minDur: 6, at: 'Zolderkeuken', insert: true, cam: 'shot/reverse over de tafel; een insert op de tekening van de blauwe snackwagen (belettering TAM & TES, alleen hier in beeld, nooit in titel of slogan)' }),
   S('c2-plan', 'C00.2', 'kitchenPlan', 'medium', 36, ST, { lines: ['L16', 'L17', 'L18', 'L19', 'L20', 'L21', 'L22'], lead: 0.4, minDur: 6, at: 'Zolderkeuken', cam: 'shot/reverse per regel; op "Het is een tekening" een close-up op Tessa; op "Dan rijd ik hem" een reactie' }),
   S('c2-thuis', 'C00.2', 'kitchenHome', 'close', 30, ST, { lines: ['L23', 'L24', 'L25'], lead: 0.4, minDur: 6, at: 'Zolderkeuken', cam: 'de belofte: langzame zoom op Tessa; dan Tammo' }),
   S('c2-huur', 'C00.2', 'kitchenRent', 'close', 30, ST, { lines: ['L26', 'L27', 'L28'], lead: 0.4, gaps: { 1: 0.7, 2: 0.8 }, minDur: 6, at: 'Zolderkeuken', insert: true, cam: 'de bekentenis: langzame zoom op Tammo, stilte; een insert op het huurcontract; reactie' }),

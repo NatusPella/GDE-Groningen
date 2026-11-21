@@ -80,11 +80,11 @@ TAMMO: Moi. De bank? [BEHOUDEN]
 TESSA: "Uw plan is sympathiek." Dat betekent nee, met een strikje. [BEHOUDEN] *(grap; daarna Tammo's gezicht, stilte)*
 MUZIEK: thema onder het gesprek, een kamertoon-gitaar; ducket onder elke stem.
 
-(regie: **c2-wagen.** Ze zitten tegenover elkaar; shot/reverse over de tafel; op "een auto met een luik" een insert op de tekening.)
+(regie: **c2-wagen.** Ze zitten tegenover elkaar; shot/reverse over de tafel; op "een auto met een luik" een insert op de tekening, met de belettering TAM & TES op de blauwe snackwagen: de enige plek waar de naam in beeld komt, nooit in titel of slogan.)
 TESSA: Een frietwagen is een auto met een luik, Tammo. En ik heb geen auto. [BEHOUDEN]
 TAMMO: Ik wel. De Escapade. [BEHOUDEN]
 TESSA: Die rijdt nauwelijks. [BEHOUDEN]
-TAMMO: Dan rijdt hij nauwelijks voor jou. De Fjord Frituur, op een Fjord. Dan klopt de naam ook. [BEHOUDEN]
+TAMMO: Dan rijdt hij nauwelijks voor jou. Een snackwagen, op een Fjord. Dat klopt wel. [NIEUW]
 
 (regie: **c2-plan.** Shot/reverse per regel; op "Het is een tekening" eerst de tekening, dan een close-up op Tessa; op "Dan rijd ik hem" een close-up op Tammo.)
 TESSA: Zonder bank blijft er één weg over: een wedstrijd. Wie wint, krijgt de enige vrije standplaats van Grunn, een plek voor een wagen. [NIEUW]

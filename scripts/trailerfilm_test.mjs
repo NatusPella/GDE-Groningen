@@ -15,6 +15,7 @@ assert.ok(beats.at(-1).caps.some((c) => c.kind === 'eind' && c.tagline === SLOGA
 const text = JSON.stringify(beats.map((b) => [b.caps, b.lines]));
 assert.ok(!/frietwagen|snackwagen|standplaats|Frituur|eierbal/i.test(text), 'de snackwagen is geen marketingbelofte');
 assert.ok(!/de grunn/i.test(text));
+assert.ok(!/TAM & TES|Fjord Frituur/.test(text), 'de snackwagen heet niet in de trailer (eigenaar 21-11)');
 // tempo-opbouw: tussen de komst van Jelle en de grap worden de shots korter, nooit langer dan 2,6 s, en de grap laat adem
 const i0 = beats.findIndex((b) => b.shot === 'boat'), i1 = beats.findIndex((b) => b.shot === 'bijna');
 const fast = beats.slice(i0, i1 + 1).map((b) => b.dur);
