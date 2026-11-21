@@ -135,3 +135,15 @@ html.reduce-motion #tune-menu :is(.tm-o.on, .tm-sw[aria-checked="true"], .tm-sw.
 #tune-menu .tm-sw[aria-checked="true"]:not(.none)::after { right: 0; bottom: 0; }
 @media (max-height: 820px) { #tune-menu .tm-total { font-size: var(--ds-t-subkop); } #tune-menu .tm-rl { font-size: var(--ds-t-body); } #tune-menu .tm-pane { bottom: 90px; max-height: 56vh; } }
 @media (max-width: 1100px), (pointer: coarse) { #tune-menu .tm-tab { height: var(--ds-doel-aanraken); } #tune-menu .tm-panel { width: min(560px, 54vw); } }
+/* categoriekop (ronde 4): groot icoon, naam en een zin uitleg boven de keuzes */
+#tune-menu .tm-cat { display: flex; align-items: center; gap: var(--ds-s-4); padding: var(--ds-s-3) var(--ds-s-4); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-c-ink-geel); color: var(--ds-c-ink-inkt); }
+#tune-menu .tm-cat-i { flex: none; }
+#tune-menu .tm-cat-t { display: flex; flex-direction: column; gap: var(--ds-s-1); min-width: 0; flex: 1; }
+#tune-menu .tm-cat-n { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
+#tune-menu .tm-cat-b { font-size: var(--ds-t-hulp); line-height: var(--ds-lh-kop); }
+#tune-menu .tm-cat-c { flex: none; }
+/* toetsen in de knoppen en bij de tabbladen */
+#tune-menu .tm-sub .ds-z-knop { display: flex; align-items: center; justify-content: center; gap: var(--ds-s-2); }
+#tune-menu .tm-bk { display: inline-flex; align-items: center; gap: var(--ds-s-1); }
+#tune-menu .tm-tabk { display: inline-flex; align-items: center; align-self: center; padding: 0 var(--ds-s-1); opacity: 0.8; }
+@media (prefers-reduced-motion: reduce) { #tune-menu .tm-cat { transition: none; } }

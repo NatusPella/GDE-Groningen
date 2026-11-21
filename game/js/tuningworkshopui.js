@@ -2,7 +2,9 @@ import { icoon } from './icons.js';
 import { keyTextHtml } from './keycap.js';
 import { euro } from './geldtekst.js';
 import { createShowroom } from './tuningshowroom.js';
-import { VIEW_IDS, VIEW_LABELS, TAB_ICON, iconOfField, EFFECT_OF_CATEGORY, categoryOfField } from './showroomplan.js';
+import { VIEW_IDS, VIEW_LABELS, TAB_ICON, iconOfField, EFFECT_OF_CATEGORY, categoryOfField, blurbOf } from './showroomplan.js';
+import { navIndex } from './listnav.js';
+import { playChange, playInstall } from './tuningsfx.js';
 import { finishSphere, rimPicture, decalPicture, stripePicture } from './tuningtiles.js';
 import { hudPixelRatio } from './uiscale.js';
 import { isPadActive, onPadChange } from './gamepad.js';
@@ -70,7 +72,7 @@ function build() {
             <div class="tm-lines"></div>
             <div class="tm-fx"></div>
             <div class="tm-buyrow"><span class="tm-total"></span><button type="button" class="ds-z-knop tm-buy"></button></div>
-            <div class="tm-sub"><button type="button" class="ds-z-knop ds-z-knop--secundair tm-revert">Terugdraaien</button><button type="button" class="ds-z-knop ds-z-knop--secundair tm-compare" aria-pressed="false">Voor en na</button></div>
+            <div class="tm-sub"><button type="button" class="ds-z-knop ds-z-knop--secundair tm-revert"><span class="tm-bt">Terugdraaien</span><span class="tm-bk"></span></button><button type="button" class="ds-z-knop ds-z-knop--secundair tm-compare" aria-pressed="false"><span class="tm-bt">Voor en na</span><span class="tm-bk"></span></button></div>
           </div>
           <div class="tm-status" role="status" aria-live="polite"></div>
         </aside>
@@ -138,14 +140,22 @@ function render(keepFocus = true) {
     const n = tabChanges(t, draft, installed, kind());
     return `<button type="button" class="m-tab tm-tab" role="tab" data-tab="${t.id}" aria-selected="${t.id === tabId}" tabindex="-1">${icoon(TAB_ICON[t.id] || 'tune_onderdelen', { cls: 'tm-ti', maat: 's' })}${esc(t.label)}${n ? `<small aria-label="${n} wijzigingen">${n}</small>` : ''}</button>`;
   }).join('');
+  nav.insertAdjacentHTML('afterbegin', `<span class="tm-tabk" aria-hidden="true">${keyChip('[', 'lt')}</span>`);
+  nav.insertAdjacentHTML('beforeend', `<span class="tm-tabk" aria-hidden="true">${keyChip(']', 'rt')}</span>`);
   renderDeals();
   renderViews();
   const tab = tabs.find((t) => t.id === tabId) || tabs[0];
   const list = root.querySelector('.tm-list');
-  list.innerHTML = tab.id === 'builds' ? buildsHtml() : groupsFor(tab, draft, installed, ctx, money()).map(rowHtml).join('');
+  list.innerHTML = catHeadHtml(tab) + (tab.id === 'builds' ? buildsHtml() : groupsFor(tab, draft, installed, ctx, money()).map(rowHtml).join(''));
   if (f) { const el = list.querySelector(`[data-field="${CSS.escape(f)}"]`); if (el) el.focus({ preventScroll: true }); }
   renderCard();
   syncFooter();
+}
+
+// De kop van een categorie: groot icoon, naam, een zin uitleg en hoeveel wijzigingen er nog niet geïnstalleerd zijn (geen focusdoel: de rijen zijn het).
+function catHeadHtml(tab) {
+  const n = tabChanges(tab, draft, installed, kind());
+  return `<header class="tm-cat" aria-hidden="false">${icoon(TAB_ICON[tab.id] || 'tune_onderdelen', { cls: 'tm-cat-i', maat: 'xl' })}<div class="tm-cat-t"><span class="tm-cat-n">${esc(tab.label)}</span><span class="tm-cat-b">${esc(blurbOf(tab.id))}</span></div>${n ? `<span class="ds-z-chip tm-cat-c">${n} nieuw</span>` : ''}</header>`;
 }
 
 function renderViews() {
@@ -229,6 +239,8 @@ function renderCard() {
   const sub = chk.ok ? keyChip(KEY_CONFIRM, 'a') : esc(chk.reason);
   btn.innerHTML = `<span class="tm-buy-t">${armed ? `Nog een keer: ${euro(q.total)}` : q.changed ? 'Installeren' : 'Niets te installeren'}</span><span class="ds-z-knop__sub">${sub}</span>`;
   root.querySelector('.tm-revert').disabled = sameState(draft, installed);
+  root.querySelector('.tm-revert .tm-bk').innerHTML = keyChip('Del', 'x');
+  root.querySelector('.tm-compare .tm-bk').innerHTML = keyChip('V', 'y');
   const cmp = root.querySelector('.tm-compare');
   cmp.setAttribute('aria-pressed', String(compare));
   cmp.disabled = sameState(draft, installed);
@@ -294,6 +306,7 @@ function change(next, what, field = '') {
   render();
   showPreview();
   playEffect(field);
+  if (field) playChange(world, categoryOfField(field));
   if (what) showStatus(what, '');
 }
 
@@ -318,11 +331,21 @@ function install() {
     return;
   }
   armed = null;
+  const fields = changedFieldIds(), partsChanged = JSON.stringify(draft.parts || {}) !== JSON.stringify(installed.parts || {});
   const r = installState(world, veh, draft, ctx);
   showStatus(r.text, r.tone);
-  if (r.ok) { installed = readState(veh); draft = installed; compare = false; flashMoney(); }
+  if (r.ok) {
+    playInstall(world, fields, partsChanged); installed = readState(veh); draft = installed; compare = false; flashMoney(); }
   render();
   showPreview();
+}
+
+// Welke velden zijn anders dan wat er nu op zit (voor het geluid bij Installeren).
+function changedFieldIds() {
+  const out = [];
+  for (const k of new Set([...Object.keys(draft.look || {}), ...Object.keys(installed.look || {})])) if (((draft.look || {})[k] ?? null) !== ((installed.look || {})[k] ?? null)) out.push(k);
+  if ((draft.body || null) !== (installed.body || null)) out.push('body');
+  return out;
 }
 
 function flashMoney() {
@@ -347,8 +370,8 @@ function focusRow(i) { const r = rows(); const el = r[Math.max(0, Math.min(r.len
 
 function moveRow(dir) {
   const r = rows(), i = r.indexOf(document.activeElement.closest ? document.activeElement.closest('.tm-row') : null);
-  const j = i + dir;
-  if (j >= 0 && j < r.length) { focusRow(j); return; }
+  const j = navIndex(r.length, i, dir > 0 ? 'ArrowDown' : 'ArrowUp'); // listnav.js: hetzelfde pad voor toetsenbord en controller
+  if (j >= 0 && j !== i) { focusRow(j); return; }
   // voorbij het eind: het volgende (of vorige) tabblad, zodat een controller zonder tabknoppen overal komt
   const tabs = tabsFor(kind(), ctx.partsKind), ti = tabs.findIndex((t) => t.id === tabId), nt = tabs[ti + dir];
   if (nt) { showTab(nt.id); focusRow(dir > 0 ? 0 : rows().length - 1); }
@@ -362,8 +385,8 @@ function showTab(id) {
 }
 function stepTab(dir) {
   const tabs = tabsFor(kind(), ctx.partsKind), i = tabs.findIndex((t) => t.id === tabId);
-  const t = tabs[(i + dir + tabs.length) % tabs.length];
-  showTab(t.id);
+  const t = tabs[navIndex(tabs.length, i, dir > 0 ? 'ArrowRight' : 'ArrowLeft', { wrap: true })];
+  if (t) showTab(t.id);
 }
 
 // pijl links of rechts: de volgende waarde van de rij (of de volgende knop bij een build)
@@ -380,7 +403,7 @@ function stepValue(row, dir) {
   if (!vals.length) return;
   let i = vals.findIndex((b) => b.getAttribute('aria-checked') === 'true');
   if (i < 0) i = 0;
-  const next = vals[Math.max(0, Math.min(vals.length - 1, i + dir))];
+  const next = vals[navIndex(vals.length, i, dir > 0 ? 'ArrowRight' : 'ArrowLeft')];
   if (next) pickValue(row, next.dataset.val);
 }
 
@@ -450,6 +473,7 @@ function onKey(e) {
   else if (k === 'ArrowUp' || lower === 'w') moveRow(-1);
   else if (k === 'ArrowDown' || lower === 's') moveRow(1);
   else if (k === 'ArrowLeft' || k === 'ArrowRight') { const row = document.activeElement.closest && document.activeElement.closest('.tm-row'); if (row) stepValue(row, k === 'ArrowLeft' ? -1 : 1); }
+  else if (k === 'Home' || k === 'End') focusRow(navIndex(rows().length, -1, k));
   else if (k === '[') stepTab(-1);
   else if (k === ']') stepTab(1);
   else if (k === 'Delete' || lower === 'r') revert();
