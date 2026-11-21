@@ -284,7 +284,7 @@ export function dagTik(w) {
   if (net > 0) { const dd = Math.max(1, last - from); net = P.compressPassive(net / dd) * dd; }   // de rem op passief inkomen (bezitprijs.js)
   if (net !== 0) { noteMoney(net > 0 ? 'Winkels' : 'Overige uitgaven'); w.money = Math.max(0, (w.money || 0) + net); }
   markeer();
-  lastReport = { from: from + 1, to: day, days: rep.days, parcels: Math.round(rep.net), business: Math.round(bizNet), net: Math.round(net), tax: Math.round(tax), events: rep.events };
+  lastReport = { from: from + 1, to: day, days: rep.days, parcels: Math.round(rep.net), business: Math.round(bizNet), net: Math.round(net), tax: Math.round(tax), events: rep.events, worked: rep.staff.worked || [] };
   return lastReport;
 }
 

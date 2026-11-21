@@ -646,6 +646,17 @@ function celKlaar(veld, ri, c, b) {
   }
 }
 
+// Een AI-werker (farmworkers3d.js) is net door een cel gereden: dezelfde celkleur als bij het handwerk (kleurVan met de taak), geen tweede simulatie.
+export function paintWorkerCell(id, taak, ri, c) {
+  const veld = S.velden.get(id);
+  if (!veld || !(ri >= 0 && ri < RIJEN && c >= 0 && c < WT.CELLEN)) return false;
+  const stub = { taak, cellen: [] };
+  stub.cellen[ri] = []; stub.cellen[ri][c] = 1;
+  veld.cellen.setColorAt(ri * WT.CELLEN + c, tmpKleur.setHex(kleurVan(B.veldStand(getBoerderij(), id), stub, ri, c)));
+  if (veld.cellen.instanceColor) veld.cellen.instanceColor.needsUpdate = true;
+  return true;
+}
+
 // --- het werk ------------------------------------------------------------------------------------------
 
 const WERK_TEKST = {
