@@ -4,6 +4,7 @@
 const { app, BrowserWindow, Menu, protocol, shell, ipcMain, dialog } = require('electron');
 const { createCoopCore } = require('./coopcore.cjs');
 const { haalLiveBussen } = require('./livebussen.cjs');
+const { haalLiveTreinen } = require('./livetreinen.cjs');
 const path = require('path');
 const fs = require('fs/promises');
 const fsSync = require('fs');
@@ -284,6 +285,7 @@ if (!app.requestSingleInstanceLock()) {
   app.on('gde-coop-reset', () => { if (coop) coop.stop(); }); // renderproces herladen (#1065)
   require('./gpuinfo.cjs').registerGpuInfo({ ipcMain, app, screen: require('electron').screen }); // 0.64.1: Technische info (gpudiag.js)
   ipcMain.handle('gde:live-bussen', () => haalLiveBussen()); // #395: zonder argumenten: de vaste url, niets van de speler
+  ipcMain.handle('gde:live-treinen', () => haalLiveTreinen()); // #1085: idem, de vertragingen van de treinen
   ipcMain.handle('gde:save-text', async (e, name, text) => {
     const w = BrowserWindow.fromWebContents(e.sender);
     const res = await dialog.showSaveDialog(w, {

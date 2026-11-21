@@ -34,7 +34,7 @@ ok(VOOR.length === 58, 'de lijst van vóór de wijziging heeft 58 opties (53 + #
 ok(VOOR.filter((k) => k !== 'preset').every((k) => NU.includes(k)), 'geen optie verloren', VOOR.filter((k) => k !== 'preset' && !NU.includes(k)).join(', '));
 // #985: nieuwe opties staan hier met hun issuenummer. VOOR blijft de bevroren lijst van main,
 // zodat een optie die zonder uitleg verdwijnt of verschijnt nog steeds opvalt.
-const NIEUW = ['showSubtitles', 'rustigDrukwerk', 'rumbleStrength', 'terugkeerScene', 'uitlegIconen', 'qteStand'];   // #985 punt 4: ondertitels uit; #992: Rustig drukwerk
+const NIEUW = ['showSubtitles', 'rustigDrukwerk', 'rumbleStrength', 'terugkeerScene', 'uitlegIconen', 'qteStand', 'liveTreinen'];   // #985 punt 4: ondertitels uit; #992: Rustig drukwerk
 ok(NU.every((k) => VOOR.includes(k) || NIEUW.includes(k)), 'geen optie erbij die geen instelling is', NU.filter((k) => !VOOR.includes(k) && !NIEUW.includes(k)).join(', '));
 ok(new Set(NU).size === NU.length, 'elke optie staat op één plek', NU.filter((k, i) => NU.indexOf(k) !== i).join(', '));
 
@@ -43,7 +43,7 @@ ok(new Set(NU).size === NU.length, 'elke optie staat op één plek', NU.filter((
 // kaart staan onder Instellingen > Spel, net als de moeilijkheid (#891).
 // #979: Camera & richten en Hints & uitleg horen bij Instellingen, niet als losse Spel-tabs: ze
 // gaan over hoe je kijkt en wat je in beeld ziet, niet over je spel zelf.
-const NAAR_INSTELLINGEN = ['ruzie', 'drunkFx', 'gore', 'shiftMode', 'speedFeel', 'driftAssist', 'bikeAssist', 'mapShiftTeleport', 'liveBussen', 'difficulty'];
+const NAAR_INSTELLINGEN = ['ruzie', 'drunkFx', 'gore', 'shiftMode', 'speedFeel', 'driftAssist', 'bikeAssist', 'mapShiftTeleport', 'liveBussen', 'liveTreinen', 'difficulty'];
 ok(NAAR_INSTELLINGEN.every((k) => settingsKeys.includes(k) && !spelKeys.includes(k)), 'de speelopties en de moeilijkheid staan onder Instellingen > Spel', NAAR_INSTELLINGEN.filter((k) => !settingsKeys.includes(k)).join(', '));
 const IN_INSTELLINGEN = ['fov', 'cameraDistance', 'autoAim', 'cinematicMoments', 'showHints', 'hintSource', 'onboardingTips', 'firstPersoon'];
 ok(IN_INSTELLINGEN.every((k) => settingsKeys.includes(k) && !spelKeys.includes(k)), 'camera, richten en hints staan onder Instellingen (#979)', IN_INSTELLINGEN.filter((k) => !settingsKeys.includes(k)).join(', '));;

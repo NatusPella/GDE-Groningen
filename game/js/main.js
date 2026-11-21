@@ -110,7 +110,7 @@ import { updateNarrative } from './narrative.js';
 import { initStoryContact, updateStoryContact } from './storycontact.js';
 import { initTheme } from './theme.js';
 import { initTrafficLights, updateTrafficLights, trafficSignalsNear, trafficLightPhaseFor } from './trafficlights.js';
-import { initRailway, updateRailway, setRailExtraWorld, getTrains, getRoutes, routePoint, zetTreinVanHost, zetTreinenVanHost } from './railway.js';
+import { initRailway, updateRailway, setRailExtraWorld, getTrains, getRoutes, routePoint, zetTreinVanHost, zetTreinenVanHost, setTreinDienst } from './railway.js';
 import { updateZeilvaren } from './zeilvaren.js';
 import { updateEvenementen } from './evenementenlive.js';
 import { updateWerf } from './werflive.js';
@@ -228,6 +228,10 @@ import { shopSignKind } from './shopsigns3d.js';
 import { loadBusLines } from './busroutes.js';
 import { setBusLines, attachToNearestRoad, getBusLines, setLiveBussen } from './vehicle.js';
 import { maakBusLive } from './buslive.js';
+import { maakTreinLive } from './treinlive.js';
+import { maakDienstBron } from './treindienst.js';
+import { laadRooster as laadTreinRooster, codesUit as treinCodes, dagsoortVan as treinDagsoort } from './treinrooster.js';
+import { weekdayOf } from './calendar.js';
 import { tikBusMelding } from './busmelding.js'; // de rustige melding bij de eerste live bus (#922)
 import { stapSlaOver } from './simlagen.js';
 import { getSimBridge, setSimCarAttach } from './simbridge.js';
@@ -278,6 +282,23 @@ registerActivityKind({ id: 'kaartjes', slot: 'uitje', interact: tryControle, tic
 // direct), houdt de stand bij en respecteert de instelling. Zonder netwerk-opvraag in de testruns.
 const liveBussenToegestaan = !(DEV || FLAGS.trailer);
 const busLive = maakBusLive({ zetBron: setLiveBussen, instellingen: getSettings, toegestaan: () => liveBussenToegestaan });
+// live treinen (#1085): het echte rooster (game/treinrooster.json) op de vertrekborden, met de live vertragingen uit treinlive.js (zelfde opzet
+// als de bussen: uitzetter liveTreinen in Instellingen, zonder opvraag in de testruns). Zonder rooster houden de stations hun eigen dienst.
+let treinRooster = null;
+laadTreinRooster().then((r) => { treinRooster = r; });
+const treinLive = maakTreinLive({ instellingen: getSettings, toegestaan: () => liveBussenToegestaan });
+// De treinen in de wereld volgen hetzelfde rooster als het bord (treindienst.js, railway.js planTreinDienst): de plek komt uit de spelklok. In Samen
+// spelen rekent iedereen zonder live vertraging, zodat host en gasten dezelfde treinen op dezelfde plek zien (de vertraging komt uit een eigen opvraag).
+const treinDagsoortVan = (w) => treinDagsoort(weekdayOf(calendarToday(w)));
+const treinLiveStand = (w) => (w && w.coopRole ? null : treinLive.bron.vertragingen());
+const treinDienstBron = maakDienstBron({ rooster: () => treinRooster, routes: getRoutes, dagsoort: treinDagsoortVan, klok: (w) => w.clock || 0, stand: treinLiveStand });
+setTreinDienst(treinDienstBron);
+const treinBord = (world) => {
+  if (!treinRooster) return {};
+  treinLive.tick(treinCodes(treinRooster));
+  const b = treinDienstBron(world);
+  return { rooster: treinRooster, dagsoort: treinDagsoortVan(world), live: world.coopRole ? null : treinLive.bron, liveInstelling: getSettings().liveTreinen !== false, dienst: b ? b.dienst : null };
+};
 const boatTarget = () => scaledTarget(getSettings().quality === 'laag' ? 5 : 7);
 
 // 3D (scene3d.js) is the only game view - see ARCHITECTURE.md. The old 2D
@@ -1236,7 +1257,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   function updateGameplay(dt) {
     world.time += dt;
     // samen spelen (#95): een gast draait de wereld van de host niet zelf; die komt via het net (coopnet.js, coopworld.js)
-    if (world.coopRole === 'client' && world.coopNet && world.coopNet.joined) { updateGastLokaal(world, dt); try { if (world.coopBoerNet !== world.coopNet) { world.coopBoerNet = world.coopNet; boerderijKlokNul(); } boerderijTijd(world); } catch (e) { /* zonder boerderij */ } updateWeather(dt, world); refreshDayNight(world); try { updateEvenementen(dt, world, Number.isInteger(world.coopDag) ? world.coopDag : calendarToday(world)); } catch (e) { /* zonder evenementen */ } try { updateHomeExterior(dt, world); } catch (e) { /* zonder garage */ } try { updateGarages(dt, world, true); tickActivitiesGast(dt, world); updateStationLife(dt, world, { routes: getRoutes(), point: routePoint, day: calendarToday(world), createBoard: createStationBoard, trains: getTrains().filter((t) => !t.gastWeg), schaal: 86400 / DAY_LENGTH_S, driving: false }); } catch (e) { console.error('gast: gebouwen', e); } return; } // een gast ziet ook de garages en safehouses waar zijn lichaam tegenaan botst (#434) // het weer en de dagstand volgen de gastheer (#378) // winkelen en in- of uitstappen (#291)
+    if (world.coopRole === 'client' && world.coopNet && world.coopNet.joined) { updateGastLokaal(world, dt); try { if (world.coopBoerNet !== world.coopNet) { world.coopBoerNet = world.coopNet; boerderijKlokNul(); } boerderijTijd(world); } catch (e) { /* zonder boerderij */ } updateWeather(dt, world); refreshDayNight(world); try { updateEvenementen(dt, world, Number.isInteger(world.coopDag) ? world.coopDag : calendarToday(world)); } catch (e) { /* zonder evenementen */ } try { updateHomeExterior(dt, world); } catch (e) { /* zonder garage */ } try { updateGarages(dt, world, true); tickActivitiesGast(dt, world); updateStationLife(dt, world, { routes: getRoutes(), point: routePoint, day: calendarToday(world), createBoard: createStationBoard, trains: getTrains().filter((t) => !t.gastWeg), schaal: 86400 / DAY_LENGTH_S, driving: false, ...treinBord(world) }); } catch (e) { console.error('gast: gebouwen', e); } return; } // een gast ziet ook de garages en safehouses waar zijn lichaam tegenaan botst (#434) // het weer en de dagstand volgen de gastheer (#378) // winkelen en in- of uitstappen (#291)
     // money must stay a number: a NaN from any price or reward is undone
     if (Number.isFinite(world.money)) world._goodMoney = world.money;
     else {
@@ -1387,7 +1408,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
       setRouteClosures(routeSigDone ? (x, y) => routePenalty(x, y, n, hour) : null, routeSigDone || '');
     }
     updateZeilvaren(dt, world, calendarToday(world));
-    updateStationLife(dt, world, { routes: getRoutes(), point: routePoint, day: calendarToday(world), createBoard: createStationBoard, trains: getTrains(), schaal: 86400 / DAY_LENGTH_S, driving: getTrains().some((t) => t.state === 'player') });
+    updateStationLife(dt, world, { routes: getRoutes(), point: routePoint, day: calendarToday(world), createBoard: createStationBoard, trains: getTrains(), schaal: 86400 / DAY_LENGTH_S, driving: getTrains().some((t) => t.state === 'player'), ...treinBord(world) });
     updateMovableBridges(dt, world);
     updateSluizen(dt, world);
     // a ship against a bridge deck: the crash sound of a car contact, by how hard the deck was hit (audio.js updateContactAudio)

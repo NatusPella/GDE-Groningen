@@ -15,6 +15,7 @@ import { onPerron } from './perrons.js';
 import { duwVanWagen, volgTrein, treinKlap, TREIN_SPRONG_M } from './treincoop.js';
 import { MAP_PALETTE, INK } from './mapstyle.js';
 import { baanvakken, vakPunten } from './blokseinen.js';
+import { actieveLegs } from './treindienst.js';
 
 const HALF_WIDTH = 1.45;
 const DWELL = 25;
@@ -81,6 +82,69 @@ let bridgeZones = [];
 let lifts = [];
 let bounds = null;
 let ready = false;
+
+// --- de treinen volgen het echte rooster (#1085, treindienst.js) -------------------------------------------------
+// main.js geeft een bron: (world) => { dienst, nu, stand } | null. Heeft een spoorlijn legs in de dienst, dan is haar kleine
+// "heen en weer"-trein weg en rijdt er een pool treinen die elk een rit (leg) van het bord spelen: de plek, snelheid, het stilstaan
+// op de haltes en de richting komen uit de spelklok (legStand), niet uit een simulatie, dus overal gelijk (host, gast, bord).
+// Een trein buiten de wereld (nog niet of niet meer actief) staat niet in getTrains(). Spoorlijnen zonder rooster houden hun eigen dienst.
+const POOL = 8;
+let dienstBron = null;
+export function setTreinDienst(f) { dienstBron = typeof f === 'function' ? f : null; }
+export const heeftTreinDienst = () => !!dienstBron;
+const gestolen = (t) => t.state === 'player' || t.state === 'parked' || t.state === 'mission';
+
+// Eén keer per lijn met legs: de oude pendeltrein eruit en een pool erin.
+function zetPoolOp(route, dienst) {
+  if (route.pool) return;
+  route.pool = [];
+  trains = trains.filter((t) => !(t.route === route && !t.rit && !t.pool && (t.state === 'dwell' || t.state === 'run')));   // de verzonnen pendeltrein
+  for (let i = 0; i < POOL; i++) {
+    const t = makeTrain(route, route.train, 0, 1, 0);
+    t.pool = true; t.slot = i; t.rit = null; t.gastWeg = false;
+    route.pool.push(t);
+  }
+}
+
+// Eén keer per frame (host in updateRailway, gast in gastOverwegen): leg -> trein, trein -> plek van de klok.
+export function planTreinDienst(world) {
+  const bron = dienstBron && dienstBron(world);
+  if (!bron || !bron.dienst) return false;
+  const { dienst, nu, stand } = bron;
+  for (const leg of dienst.legs) { const r = routes[leg.routeIdx]; if (r && !r.pool) zetPoolOp(r, dienst); }
+  const actief = actieveLegs(dienst, routes, nu, stand);
+  const perId = new Map(actief.map((a) => [a.leg.id, a]));
+  for (const route of routes) {
+    if (!route.pool) continue;
+    for (const t of route.pool) {
+      const eigen = gestolen(t);
+      if (eigen) { t.stolen = true; if (!trains.includes(t)) trains.push(t); continue; }
+      if (t.stolen) { t.stolen = false; t.rit = null; t.gastVolgt = false; t.v = 0; }   // terug in de dienst: de volgende frame krijgt hij een rit of verdwijnt hij
+      if (t.gastVolgt) continue;   // een gast: de host stuurt deze trein (overgenomen)
+      if (!t.rit || !perId.has(t.rit.leg.id)) { t.rit = null; if (trains.includes(t)) trains = trains.filter((q) => q !== t); }
+    }
+  }
+  const bezet = new Set();
+  for (const route of routes) if (route.pool) for (const t of route.pool) if (t.rit) bezet.add(t.rit.leg.id);
+  for (const a of actief) {
+    const route = routes[a.leg.routeIdx];
+    let t = route.pool.find((q) => q.rit && q.rit.leg.id === a.leg.id);
+    if (!t) {
+      if (route.pool.some((q) => q.stolen && q.rit && q.rit.leg.id === a.leg.id)) continue;   // de speler heeft deze trein
+      t = route.pool.find((q) => !q.rit && !q.stolen);
+      if (!t) continue;                                                                          // meer gelijktijdige ritten dan pool: de rest rijdt niet
+      t.rit = a;
+      t.placedAt = NaN;
+      if (!trains.includes(t)) trains.push(t);
+    }
+    t.rit = a;
+    if (t.stolen || (t.gastVolgt && Number.isFinite(t.gastDoel))) continue;   // overgenomen of door de host gestuurd: de plek komt niet uit de klok
+    const st = a.stand;
+    t.vorigeState = t.state;
+    t.c = st.s; t.v = st.v; t.dir = st.dir; t.state = st.staat; t.target = st.doel; t.timer = st.rest; t.gastWeg = false;
+  }
+  return true;
+}
 
 export function getTrains() { return trains; }
 // the built routes (stagerit.js finds the line near a story platform)
@@ -166,12 +230,31 @@ function projectOnRoute(route, x, y) {
 // en zijn snelheid met teken). Zet de dienstregeltrein van die route daar neer; de wagons volgen uit de route.
 // De gast zet de wagens niet meteen op die plek (#434): het doel komt van de host, zijn eigen booglengte (t.gastC) loopt
 // tussen twee snapshots door met de laatste snelheid mee en schuift zacht bij (stapTreinenGast, treincoop.js volgTrein).
-export function zetTreinVanHost(routeIdx, x, y, v) {
+export function zetTreinVanHost(routeIdx, x, y, v, overgenomen = false) {
   const route = routes[routeIdx];
   if (!route) return null;
-  const t = trains.find((q) => q.route === route && q.state !== 'mission' && q.state !== 'player');
+  const sHost = projectOnRoute(route, x, y).s;
+  if (route.pool) {
+    // een trein van het rooster: de gast heeft hem zelf (zelfde klok). Alleen een door de host overgenomen trein (speler of geparkeerd) volgt de snapshot:
+    // de dichtstbijzijnde trein van de lijn die nog niet overgenomen is; zonder dienst-trein een vrije uit de pool
+    if (!overgenomen) {
+      const dicht = route.pool.filter((q) => q.rit && !q.gastVolgt).sort((a, b) => Math.abs(a.c - sHost) - Math.abs(b.c - sHost))[0];
+      if (dicht) route.afwijking = Math.max(route.afwijking || 0, Math.abs(dicht.c - sHost));   // alleen voor de controle (testbank)
+      return dicht || null;
+    }
+    let t0 = route.pool.find((q) => q.gastVolgt);
+    if (!t0) t0 = route.pool.filter((q) => q.rit).sort((a, b) => Math.abs(a.c - sHost) - Math.abs(b.c - sHost))[0] || route.pool.find((q) => !q.rit);
+    if (!t0) return null;
+    if (!trains.includes(t0)) trains.push(t0);
+    t0.gastVolgt = true;
+    if (!t0.rit) t0.rit = { leg: { id: 'overgenomen' + t0.slot, bestemming: '' }, stand: { halte: 0 } };
+    return volgSnapshot(t0, sHost, v);
+  }
+  const t = trains.find((q) => q.route === route && q.state !== 'mission' && q.state !== 'player' && !q.pool);
   if (!t) return null;
-  const s = projectOnRoute(route, x, y).s;
+  return volgSnapshot(t, sHost, v);
+}
+function volgSnapshot(t, s, v) {
   t.gastDoel = s;
   t.gastV = Number.isFinite(v) ? v : 0; // met teken: de booglengte loopt mee met de rijrichting
   t.v = Math.abs(t.gastV);
@@ -196,12 +279,16 @@ export function stapTreinenGast(dt) {
 // niet noemt, staat bij de gast niet getekend (gastWeg) en laat de overwegen met rust, in plaats van stil te staan op een verzonnen plek.
 export function zetTreinenVanHost(lijst) {
   const gekozen = new Set();
-  for (const h of lijst || []) { const t = zetTreinVanHost(h.route, h.x, h.y, h.v); if (t) gekozen.add(t); }
-  for (const t of trains) if (t.state !== 'mission' && t.state !== 'player') t.gastWeg = !gekozen.has(t);
+  for (const t of trains) if (t.pool && t.gastVolgt) t.gastVolgt = 'oud';
+  for (const h of lijst || []) { const t = zetTreinVanHost(h.route, h.x, h.y, h.v, !!h.overgenomen); if (t) gekozen.add(t); }
+  for (const t of trains) if (t.gastVolgt === 'oud') { t.gastVolgt = false; t.gastDoel = NaN; t.rit = null; if (!t.pool) t.gastWeg = true; }   // niet meer overgenomen: terug naar de klok
+  for (const t of trains) if (t.state !== 'mission' && t.state !== 'player' && !t.pool) t.gastWeg = !gekozen.has(t);
 }
 // De overwegen van een gast: de slagbomen, het knipperlicht en de bel volgen de treinen die de host stuurt (elke frame; updateRailway draait niet bij een gast).
 // Daarna de trein zelf: die is ook solide (gastTreinContact).
 export function gastOverwegen(dt, world) {
+  planTreinDienst(world);   // een gast rekent het rooster zelf uit de gezamenlijke spelklok: dezelfde treinen als de host
+  for (const t of trains) if (t.rit && !t.stolen) { stapRooster(t, world); placeCars(t); }
   stapTreinenGast(dt);
   for (const c of crossings) c.threat = false;
   for (const t of trains) {
@@ -416,6 +503,23 @@ function stepTrain(t, dt, world) {
     else if (t.target === stops.length - 1) t.dir = -1;
     if (!stops[t.target].offmap && nearPlayer(world, t, 90)) world.addMessage(`${cfg.label} is aangekomen in ${stops[t.target].name}`, 3);
   }
+}
+
+// Een trein van het rooster: de plek staat al (planTreinDienst); hier alleen wat erbij hoort: claxon en melding bij vertrek, melding bij aankomst, ritme van de rails.
+function stapRooster(t, world) {
+  const stops = t.route.stops;
+  const was = t.vorigeState;
+  t.vorigeState = t.state;
+  if (was === 'dwell' && t.state === 'run' && t.v < 3) {
+    const from = stops[t.rit.stand.halte];
+    if (from && !from.offmap) {
+      audio(world, { kind: 'train_horn', x: t.cars[0].x, y: t.cars[0].y });
+      if (nearPlayer(world, t, 90)) world.addMessage(`${t.cfg.label} naar ${t.rit.leg.bestemming} vertrekt`, 3.5);
+    }
+  } else if (was === 'run' && t.state === 'dwell' && nearPlayer(world, t, 90) && !stops[t.target].offmap) {
+    world.addMessage(`${t.cfg.label} is aangekomen in ${stops[t.target].name}`, 3);
+  }
+  if (t.state === 'run') clack(t, t.v / 60, world);
 }
 
 function clack(t, step, world) {
@@ -873,7 +977,8 @@ function resolveContacts(world) {
 
 export function updateRailway(dt, world) {
   if (!ready || dt <= 0) return;
-  for (const t of trains) { stepTrain(t, dt, world); placeCars(t); }
+  planTreinDienst(world);
+  for (const t of trains) { if (t.rit && !t.stolen) { stapRooster(t, world); } else stepTrain(t, dt, world); placeCars(t); }
   updateCrossings(dt, world);
   updateThrown(dt, world);
   resolveContacts(world);
