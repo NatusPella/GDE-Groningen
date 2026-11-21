@@ -32,18 +32,6 @@
       "akkoord": "verhaal-lead (voorstel van de agent bij #1146, nog niet door de eigenaar gezien)"
     },
     {
-      "cutscene": "M03.intro",
-      "regel": "CS-T08",
-      "reden": "De loketbediende is een rolfiguur (het loket zelf is de aankondiging); een naamkaart voor een functie zonder naam zou een grap zijn die er niet staat.",
-      "akkoord": "verhaal-lead (voorstel van de agent bij #1146, nog niet door de eigenaar gezien)"
-    },
-    {
-      "cutscene": "M18.intro",
-      "regel": "CS-T08",
-      "reden": "De accountmanager is een rolfiguur van Wiebelwerk die zich met het bedrijf en zijn functie voorstelt (\"Welkom bij Wiebelwerk\"); geen eigen naamkaart.",
-      "akkoord": "verhaal-lead (voorstel van de agent bij #1146, nog niet door de eigenaar gezien)"
-    },
-    {
       "cutscene": "N7",
       "regel": "CS-T08",
       "reden": "De buschauffeur is een rolfiguur zonder naam met drie regels in een busrit; een naamkaart voor een functie zou de grap van de anonieme chauffeur breken.",

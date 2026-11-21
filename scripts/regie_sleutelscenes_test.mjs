@@ -42,7 +42,7 @@ for (const [id, naam] of KAART) {
 // R-22: de sleutelscenes hebben geen beurt boven 25 woorden die we geknipt hebben
 const kruit = alle.find((u) => u.sceneIds && u.sceneIds.includes('M20.3'));
 ok(kruit && kruit.lines.every((l) => woorden(l.text) <= 25), 'M20.3: geen beurt boven de 25 woorden');
-ok(kruit && kruit.lines.some((l) => /^En omdat ik in 1953/.test(l.text)), 'M20.3: Mems tweede zin staat apart');
+ok(kruit && kruit.lines.some((l) => /^In 1953 werd ik tweede/.test(l.text)), 'M20.3: Mems tweede zin staat apart');
 const jelleReactie = kruit && kruit.def.cues.some((c) => c.actor === 'jelle' && c.anim === 'look');
 ok(jelleReactie, 'M20.3: Jelle reageert in beeld op Mems zin');
 

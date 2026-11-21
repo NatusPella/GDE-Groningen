@@ -503,7 +503,7 @@ S['M20.3'] = {
     { on: 'Van de jas', actor: 'tessa', anim: 'shrug' },
     { on: 'Altijd bedanken', actor: 'mem', anim: 'nod' },
     { on: 'Omdat mijn kleinzoon', actor: 'mem', anim: 'shrug' },
-    { on: 'En omdat ik in 1953', actor: 'jelle', anim: 'look' },
+    { on: 'In 1953 werd ik tweede', actor: 'jelle', anim: 'look' },
     { on: 'Mem. Dit is nog niet voorbij', actor: 'jelle', anim: 'point' },
     { on: 'Durk. Douwe. Haal', actor: 'jelle', walk: [[7.5, 1.5]], speed: 1.4 },
   ],
