@@ -81,6 +81,7 @@ import {
 import { KEYS } from './storagekeys.js';
 import { grijsBijPassief } from './cooppvp.js';
 import { hoofdspeler } from './players.js';
+import { getViewAnchor } from './viewanchor.js';
 import { gastDoelen } from './coopextra.js';
 import { kaartDoelen, KAART_ANDER_ALPHA } from './coopmissie.js';
 import { samenWaarschuwing } from './coopstatus.js';
@@ -121,6 +122,12 @@ import { MIST_ALPHA, OPEN_MS, NAAMKAART_MS, mistByte, streekOwnerGrid, applyStre
 import { STREKEN } from './regioleven.js';
 import { wgsToWorld } from './rdnew.js';
 import { icoon } from './icons.js';
+
+// Jij op de kaart (#1141): de bestuurde entiteit (duif, heli, trein, voertuig) geeft plek en richting; het lichaam leent de rest.
+function jijVan(world) {
+  const body = hoofdspeler(world), a = getViewAnchor(world, { body });
+  return a ? Object.assign(Object.create(body), { x: a.x, y: a.y, angle: a.heading }) : body;
+}
 
 // city ground and the endless meadows past it share one colour (countrymap.js)
 // (read live: the palette turns to its night colours, see mapstyle.js)
@@ -1936,7 +1943,7 @@ function drawDynamicMarkers(ctx, world) {
 
   // de hint bij je eigen plek (#445): waar je staat, ook als je even niet weet waar je bent. #674: met de
   // hoogste titel erbij (alleen je eigen scherm; een gast leest zijn eigen titel, niet die van de opener).
-  const ik = hoofdspeler(world);
+  const ik = jijVan(world);
   const hier = plekHier(ik);
   const teken = loopbaanTeken();
   const mijnTitel = teken ? ` · ${teken.titel}` : '';
@@ -2028,7 +2035,7 @@ function drawFullRoute(ctx, world, t, route) {
   ctx.restore();
 }
 function drawFullRouteLijn(ctx, world, t, route, dikte) {
-  const ik = hoofdspeler(world);
+  const ik = jijVan(world);
   const color = ROUTE_COLORS[route.kind] || ROUTE_COLORS.user;
   const width = Math.max(3, Math.min(9, 3 + state.zoom * 0.7)) * dikte;
   const ahead = getRouteAhead(Infinity, route);
@@ -2479,7 +2486,7 @@ function showCard(world, h, sx, sy) {
     return;
   }
   const goal = getGoal();
-  const ik = hoofdspeler(world);
+  const ik = jijVan(world);
   const d = Math.hypot(h.x - ik.x, h.y - ik.y);
   const pips = it && it.medal != null ? `<span class="mv-pips">${[1, 2, 3].map((m) => `<span class="mv-pip" data-m="${m}"${it.medal >= m ? ' data-on' : ''} title="${MEDALS[m]}">${'BZG'[m - 1]}</span>`).join('')}</span>` : '';
   const meta = [it ? it.meta : h.sub, formatDistance(d), h.isGoal ? 'jouw waypoint' : ''].filter(Boolean).map(escHtml).join(' · ');
@@ -2762,7 +2769,7 @@ function handleKeys(dt, world) {
     state.cy += py * speed;
     updateTransform();
   }
-  if (input.wasPressed(' ')) { const ik = hoofdspeler(world); centreOn(ik.x, ik.y, 3); }
+  if (input.wasPressed(' ')) { const ik = jijVan(world); centreOn(ik.x, ik.y, 3); }
 }
 
 // --- lifecycle --------------------------------------------------------------
@@ -3229,7 +3236,7 @@ export function initMapView(world) {
       const on = !getRoutePrefs().avoidMotorways;
       setRoutePrefs({ avoidMotorways: on });
       btn.setAttribute('aria-pressed', String(on));
-    } else if (act === 'centre') { const ik = hoofdspeler(world); centreOn(ik.x, ik.y, 3); }
+    } else if (act === 'centre') { const ik = jijVan(world); centreOn(ik.x, ik.y, 3); }
     else if (act === 'layers') toggleLegend();
     else if (act === 'close') { if (closeHandler) closeHandler(); else closeMap(); } // no Esc on a touchscreen
     else if (act === 'clear') clearUserWaypoint();
@@ -3438,7 +3445,7 @@ export function setMapActive(world, on) {
     if (!state.legendGezien && !uitlegOpen) { state.legendGezien = true; toggleLegend(true); }
     else { state.legendGezien = true; toggleLegend(false); }
     if (uitlegOpen) plaatsWijzers();
-    const ik = hoofdspeler(world);
+    const ik = jijVan(world);
     centreOn(ik.x, ik.y, 2);
     // staat de eenmalige uitleg open, dan houdt zijn knop de focus (21-11): met de focus op het doek deed Enter niets of klikte onder het richtkruis
     const uitlegKnop = state.overlay.querySelector('.mv-help .mv-help-ok');
