@@ -266,7 +266,7 @@ export function advanceDays(bezit, farm, toDay, ctx = {}) {
   while (day < last) {
     day++;
     const s = staffDayTick(bezit, farm, day, { money, deliver: ctx.deliver });
-    rep.staff.income += s.income; rep.staff.wages += s.wages; rep.staff.diesel += s.diesel; rep.staff.seed += s.seed; rep.staff.harvestedKg += s.harvestedKg; rep.staff.waiting = s.waiting;
+    rep.staff.income += s.income; rep.staff.wages += s.wages; rep.staff.diesel += s.diesel; rep.staff.seed += s.seed; rep.staff.harvestedKg += s.harvestedKg; rep.staff.waiting = s.waiting; rep.staff.worked = s.worked;
     for (const e of s.events) rep.events.push({ ...e, day });
     const l = leaseDayTick(bezit, farm, day);
     rep.lease += l.income;

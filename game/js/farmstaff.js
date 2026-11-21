@@ -176,7 +176,7 @@ export function staffDayTick(bezit, farm, day, ctx = {}) {
     for (const j of plan.jobs) {
       const ratio = SKILL_RATIO[j.skill] || SKILL_RATIO[1];
       const units = workUnits(j.ha);
-      const entry = { id: j.id, worker: j.worker, workerName: j.workerName, ha: j.ha, phase: j.phase, tasks: tasksOf(j), t0: j.t0, t1: j.t1, kg: 0 };
+      const entry = { id: j.id, worker: j.worker, workerName: j.workerName, skill: j.skill, ha: j.ha, phase: j.phase, tasks: tasksOf(j), t0: j.t0, t1: j.t1, kg: 0 };
       if (j.phase === 'rijp') {
         const r = workField(farm, j.id, 'oogsten', { fractie: 1, opbrengst: unitScale(j.ha) * mf * ratio * yieldInfo(j.id, day).mult });
         const load = r && r.load;
@@ -188,7 +188,7 @@ export function staffDayTick(bezit, farm, day, ctx = {}) {
           if (ctx.deliver === 'store') { const s = PC.bergOp(farm.bedrijf, farm.bedrijf.thuis, load.gewas, kg); sold = kg - (s.ok ? s.kg : 0); rep.storedKg += kg - sold; if (kg - sold > 0) B.boek(farm, { veld: j.id, kg: kg - sold }); }
           if (sold > 0) rep.income += sellLoad(farm, j.id, load.gewas, sold, day);
           rep.harvestedKg += kg;
-          entry.kg = kg;
+          entry.kg = kg; entry.gewas = load.gewas;
         }
       } else {
         if (j.phase === 'braak') workField(farm, j.id, 'ploegen', { fractie: 1 });
@@ -230,6 +230,6 @@ export function visibleJobs(worked, viewer, { posOf, dayFrac, max = VISIBLE_MAX,
   return cand.slice(0, Math.max(0, max)).map(({ j, t, pos, dist }) => {
     const progress = t.t1 > t.t0 ? clamp((f - t.t0) / (t.t1 - t.t0), 0, 1) : 0;
     const pose = rowPose(rowLayout(j.ha), pos, progress);
-    return { actorId: `${j.id}:${j.worker}`, parcelId: j.id, workerId: j.worker, workerName: j.workerName, taak: t.taak, progress, x: pose.x, y: pose.y, heading: pose.heading, row: pose.row, vehicle: 'trekker', distance: Math.round(dist) };
+    return { actorId: `${j.id}:${j.worker}`, parcelId: j.id, workerId: j.worker, workerName: j.workerName, skill: j.skill || 1, ha: j.ha, taak: t.taak, progress, x: pose.x, y: pose.y, heading: pose.heading, row: pose.row, vehicle: 'trekker', distance: Math.round(dist) };
   });
 }

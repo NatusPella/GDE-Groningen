@@ -37,7 +37,7 @@ const doe = (b, taak, { speed = 4.5 } = {}) => {
 t('de tabellen: gewassen, machines en taken horen bij elkaar', () => {
   assert.deepEqual(B.GEWAS_IDS, ['aardappelen', 'bieten', 'graan', 'gras', 'uien']);
   assert.equal(B.MACHINE_IDS.length, 3);
-  for (const g of Object.values(B.GEWASSEN)) { assert.ok(g.zaaigoed > 0 && g.groeiUren > 0 && g.kgBasis > 0 && g.prijsKg > 0 && g.afnemer && g.naam); assert.ok(['struik', 'kegel', 'halm'].includes(g.vorm), `${g.naam}: vorm ${g.vorm}`); }
+  for (const g of Object.values(B.GEWASSEN)) { assert.ok(g.zaaigoed > 0 && g.groeiUren > 0 && g.kgBasis > 0 && g.prijsKg > 0 && g.afnemer && g.naam); assert.ok(['struik', 'kegel', 'halm', 'boom'].includes(g.vorm), `${g.naam}: vorm ${g.vorm}`); }
   for (const taak of ['ploegen', 'zaaien', 'bemesten', 'oogsten']) { assert.ok(B.machineVoor(taak), taak); assert.ok(W.BAND[taak], taak); assert.ok(B.TAKEN[taak].rijen); }
   assert.equal(B.machineVoor('afleveren'), null);
   for (const m of Object.values(B.MACHINES)) assert.ok(m.koop > m.huur * 5, 'kopen loont pas na meerdere keren huren');

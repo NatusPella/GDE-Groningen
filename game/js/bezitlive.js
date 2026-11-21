@@ -18,6 +18,7 @@ import { streekAt } from './regioleven.js';
 import { branchOpen, branchClosedText } from './bezitgate.js';
 import { unlockAchievement, setStatMax } from './achievements.js';
 import * as H from './holdingsmodel.js';
+import { onParcelBought, onWorkerHired, deliverLine } from './bezitworldhooks.js';
 import * as BZ from './business.js';
 import * as FX from './businessexclusion.js';
 import * as EV from './bezitevents.js';
@@ -153,6 +154,7 @@ export function koopPerceel(w, id) {
   claimSend({ id, action: 'claim' });
   markeer();
   try { achieve(w); } catch (e) { /* prestaties niet klaar */ }
+  try { deliverLine(w, onParcelBought(getBezit(), o.region, Math.floor(farm.uren / 24))); } catch (e) { /* geen regel */ }   // Tessa bij het eerste perceel per streek
   return { ok: true, cost: o.price, name: o.name, text: `${o.name} is van jou voor ${euro(o.price)}.` };
 }
 export function verkoopPerceel(w, id) {
@@ -273,6 +275,7 @@ export function huurArbeider(w, skill) {
   const r = hireWorker(getBezit(), skill, Math.floor(farm.uren / 24), Number.isFinite(w && w.money) ? w.money : 0);
   if (!r.ok) return { ok: false, text: r.why === 'te-weinig-geld' ? `Je mist nog ${euro(r.tekort)}.` : r.why === 'vol' ? 'Je hebt al zoveel personeel als kan.' : 'Aanstellen lukt nu niet.' };
   markeer();
+  try { deliverLine(w, onWorkerHired(getBezit(), Math.floor(farm.uren / 24))); } catch (e) { /* geen regel */ }
   return { ok: true, text: `${r.worker.name} is aangesteld.` };
 }
 export function ontslaArbeider(id) { const r = fireWorker(getBezit(), id); if (r && r.ok !== false) markeer(); return !!(r && r.ok !== false); }
@@ -477,7 +480,7 @@ export function dagTik(w) {
   if (net !== 0) { noteMoney(net > 0 ? 'Winkels' : 'Overige uitgaven'); w.money = Math.max(0, (w.money || 0) + net); }
   if (w && typeof w.addMessage === 'function') for (const t of ev.lines.slice(-3)) w.addMessage(t, 5, { kind: 'tip', key: 'bz-nieuws' });
   markeer();
-  lastReport = { from: from + 1, to: day, days: rep.days, parcels: Math.round(rep.net), business: Math.round(bizNet), mobile: Math.round(mobNet), chains: ch.bonus, eventMoney: Math.round(ev.money), news: ev.lines.length, net: Math.round(net), tax: Math.round(tax), events: rep.events };
+  lastReport = { from: from + 1, to: day, days: rep.days, parcels: Math.round(rep.net), business: Math.round(bizNet), mobile: Math.round(mobNet), chains: ch.bonus, eventMoney: Math.round(ev.money), news: ev.lines.length, net: Math.round(net), tax: Math.round(tax), events: rep.events, worked: rep.staff.worked || [] };
   return lastReport;
 }
 

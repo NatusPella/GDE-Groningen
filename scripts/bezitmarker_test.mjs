@@ -79,5 +79,62 @@ t('THREE-kant: gedeelde geometrie en materialen, geen licht, geen Math.random, o
   assert.ok(src.includes('TEX_MAX') && src.includes('dispose()'), 'het cachegeheugen van de borden is begrensd en geeft vrij');
   assert.ok(src.includes('function drop') && src.includes('clearBezitMarkers'));
 });
+// ---- de grenslijn (#1100) ----
+const square = (x, y, r) => [[x - r, y - r], [x + r, y - r], [x + r, y + r], [x - r, y + r]];
+const outlineIndex = (shapes, extra = {}) => ({ parcels: { shapeOf: (id) => shapes[id] || null, byId: (id) => extra[id] || null, hasShapes: () => true }, buildings: { byId: () => null } });
+t('grenslijn: alleen eigen percelen met een vorm, binnen de straal, de dichtstbijzijnde eerst, hoogstens 40', () => {
+  const b = mk(100, 5);                                    // 0 tot 495 m
+  const shapes = {};
+  for (const id of Object.keys(b.parcels)) { const c = b.parcels[id].c; shapes[id] = square(c[0], c[1], 20); }
+  const o = M.planOutlines({ player: { x: 0, y: 0 }, bezit: b, index: outlineIndex(shapes) });
+  assert.equal(o.length, M.MAX_OUTLINES);
+  for (let i = 1; i < o.length; i++) assert.ok(o[i - 1].d <= o[i].d);
+  assert.ok(o.every((x) => x.key.startsWith('o:') && x.pts.length === 4));
+  const ids = Object.keys(b.parcels);
+  assert.equal(M.planOutlines({ player: { x: 0, y: 0 }, bezit: b, index: outlineIndex({ [ids[3]]: square(15, 0, 5) }) }).length, 1, 'zonder vorm geen lijn (de paal blijft)');
+  assert.equal(M.planOutlines({ player: { x: 5000, y: 0 }, bezit: b, index: outlineIndex(shapes) }).length, 0, 'buiten de straal');
+  assert.equal(M.planOutlines({ player: { x: 0, y: 0 }, bezit: b, index: null }).length, 0, 'zonder index');
+  assert.equal(M.planOutlines({ player: { x: 0, y: 0 }, bezit: b, index: { parcels: {} } }).length, 0, 'index zonder vormen');
+});
+t('grenslijn: de hand-gezette percelen en kapotte vormen krijgen geen lijn; een medespeler wel, in zijn eigen sleutel', () => {
+  const b = mk(2);
+  b.parcels.zonnehoek = { k: 'a', ha: 1, t: 0, p: 0, w: 0, m: 'self', lg: 1, c: [5, 5] };
+  const ids = Object.keys(b.parcels);
+  const shapes = { zonnehoek: square(5, 5, 10), [ids[0]]: [[0, 0], [NaN, 1], [2, 2]], [ids[1]]: square(20, 0, 10), c1: square(50, 50, 10) };
+  const o = M.planOutlines({ player: { x: 0, y: 0 }, bezit: b, index: outlineIndex(shapes, { c1: { id: 'c1', x: 50, y: 50 } }), claims: [{ id: 'c1', name: 'Lotte', color: '#c0c' }] });
+  assert.deepEqual(o.map((x) => x.key).sort(), ['o:' + ids[1], 'oc:c1'].sort());
+  assert.equal(o.find((x) => x.key === 'oc:c1').state, 'claimed');
+  assert.equal(o.find((x) => x.key === 'oc:c1').color, '#c0c');
+});
+t('grenslijn: lijnstukken van hoogstens 8 m op grondhoogte, alleen eindige getallen, ook als de hoogte NaN geeft', () => {
+  const seg = M.outlineSegments(square(0, 0, 20), (x, y) => 3 + 0.01 * x, 0.2);
+  assert.equal(seg.length % 6, 0);
+  assert.equal(seg.length / 6, 4 * 5, 'vier zijden van 40 m in vijf stukken van 8 m');
+  assert.ok(seg.every(Number.isFinite));
+  for (let i = 0; i < seg.length; i += 6) assert.ok(Math.hypot(seg[i + 3] - seg[i], seg[i + 5] - seg[i + 2]) <= M.OUTLINE_STEP_M + 1e-9);
+  assert.ok(Math.abs(seg[1] - (3 + 0.01 * -20 + 0.2)) < 1e-9, 'de hoogte volgt de grond met een kleine tilling');
+  assert.ok(M.outlineSegments(square(0, 0, 20), () => NaN).every(Number.isFinite), 'NaN uit de hoogtelaag wordt 0');
+  assert.ok(M.outlineSegments(square(0, 0, 20), null).every(Number.isFinite));
+});
+t('grenslijn: diff als bij de palen (nieuw, ongewijzigd, weg) zodat een late vorm een lijn toevoegt', () => {
+  const b = mk(2), ids = Object.keys(b.parcels);
+  const sig = new Map();
+  const none = M.planOutlines({ player: { x: 0, y: 0 }, bezit: b, index: outlineIndex({}) });
+  assert.equal(none.length, 0);
+  const later = M.planOutlines({ player: { x: 0, y: 0 }, bezit: b, index: outlineIndex({ [ids[0]]: square(0, 0, 10) }) });
+  const d = M.diffMarkers(sig, later);
+  assert.equal(d.add.length, 1);
+  M.applyDiff(sig, d);
+  assert.equal(M.diffMarkers(sig, later).add.length + M.diffMarkers(sig, later).update.length, 0);
+  assert.deepEqual(M.diffMarkers(sig, none).remove, ['o:' + ids[0]]);
+});
+const srcLines = src.replace(/\/\/.*$/gm, '');
+t('grenslijn THREE-kant: dunne LineSegments met een gedeeld materiaal, geometrie vrijgegeven, geen NaN, begrensd, opnieuw plannen als de vormen laden', () => {
+  assert.ok(srcLines.includes('LineSegments') && srcLines.includes('LineBasicMaterial') && srcLines.includes('LINE_MATS'));
+  assert.ok(srcLines.includes('geometry.dispose()') && srcLines.includes('dropLine'));
+  assert.ok(srcLines.includes('planOutlines') && srcLines.includes('outlineSegments') && srcLines.includes('hasShapes'));
+  assert.ok(!/Math\.random|fetch\(/.test(srcLines));
+  assert.ok(M.MAX_OUTLINES <= 40);
+});
 console.log(`bezitmarker_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

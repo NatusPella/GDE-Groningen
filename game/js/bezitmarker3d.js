@@ -4,7 +4,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { getBezit, getIndexNow, parcelOffer } from './bezitlive.js';
-import { planMarkers, diffMarkers, applyDiff, needsReplan, bezitVersion } from './bezitmarker.js';
+import { planMarkers, diffMarkers, applyDiff, needsReplan, bezitVersion, planOutlines, outlineSegments } from './bezitmarker.js';
 import { hoofdspeler } from './players.js';
 import { INK } from './mapstyle.js';
 
@@ -39,7 +39,14 @@ function boardMaterial(m) {
   return mat;
 }
 
-const S = { groups: new Map(), sig: new Map(), last: null, t: 0 };
+const S = { groups: new Map(), sig: new Map(), last: null, t: 0, lines: new Map(), lsig: new Map() };
+const LINE_MATS = new Map();   // één materiaal per kleur: de lijnen delen het (de geometrie is per lijn en gaat bij het weghalen weg)
+const lineMat = (o) => {
+  const key = o.state === 'claimed' ? hex(o.color || INK.amber) : 'own';
+  let m = LINE_MATS.get(key);
+  if (!m) { m = new THREE.LineBasicMaterial({ color: new THREE.Color(key === 'own' ? 0x3fc97a : key) }); LINE_MATS.set(key, m); }
+  return m;
+};
 const ground = (w, x, y) => (w.map && w.map.groundHeightAt ? w.map.groundHeightAt(x, y, 0) || 0 : 0);
 
 function build(w, m) {
@@ -52,6 +59,16 @@ function build(w, m) {
   return g;
 }
 function drop(g) { if (g && g.parent) g.parent.remove(g); }   // geometrie en materialen zijn gedeeld: alleen loskoppelen
+// De grenslijn van een eigen of geclaimd perceel (de omtrek van de vorm zelf; PERCEELRANDEN is een kaartrand, dit een eigendomsmarkering): dunne MeshBasic-lijn op grondhoogte, zonder botsing.
+function buildOutline(w, o) {
+  const seg = outlineSegments(o.pts, (x, y) => ground(w, x, y));
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(seg), 3));
+  const l = new THREE.LineSegments(geo, lineMat(o));
+  l.name = 'bezitgrens'; l.frustumCulled = false;
+  return l;
+}
+function dropLine(l) { if (!l) return; if (l.parent) l.parent.remove(l); if (l.geometry) l.geometry.dispose(); }
 
 // Elke 0,5 s aangeroepen (main.js): plant, vergelijkt en bouwt alleen wat nieuw is.
 export function updateBezitMarkers(w, dt) {
@@ -63,7 +80,8 @@ export function updateBezitMarkers(w, dt) {
   if (!sc || !pl) return;
   const bezit = getBezit();
   const claims = (w.bezitClaims && w.bezitClaims()) || [];
-  const version = bezitVersion(bezit, claims);
+  const ix = getIndexNow();
+  const version = bezitVersion(bezit, claims) + (ix && ix.parcels.hasShapes && ix.parcels.hasShapes() ? 7919 : 0);   // de omtrekken komen lui: bij het laden opnieuw plannen
   const now = { x: pl.x, y: pl.y };
   if (!needsReplan(S.last, now, version)) return;
   S.last = { ...now, version };
@@ -72,6 +90,12 @@ export function updateBezitMarkers(w, dt) {
   for (const k of d.remove) { drop(S.groups.get(k)); S.groups.delete(k); }
   for (const m of [...d.update, ...d.add]) { drop(S.groups.get(m.key)); const g = build(w, m); S.groups.set(m.key, g); sc.add(g); }
   applyDiff(S.sig, d);
+  const lines = planOutlines({ player: now, bezit, index: ix, claims });
+  const ld = diffMarkers(S.lsig, lines);
+  for (const k of ld.remove) { dropLine(S.lines.get(k)); S.lines.delete(k); }
+  for (const o of [...ld.update, ...ld.add]) { dropLine(S.lines.get(o.key)); const l = buildOutline(w, o); S.lines.set(o.key, l); sc.add(l); }
+  applyDiff(S.lsig, ld);
 }
-export function clearBezitMarkers() { for (const g of S.groups.values()) drop(g); S.groups.clear(); S.sig.clear(); S.last = null; }
+export function clearBezitMarkers() { for (const g of S.groups.values()) drop(g); S.groups.clear(); S.sig.clear(); for (const l of S.lines.values()) dropLine(l); S.lines.clear(); S.lsig.clear(); S.last = null; }
+export const bezitOutlineCount = () => S.lines.size;
 export const bezitMarkerCount = () => S.groups.size;

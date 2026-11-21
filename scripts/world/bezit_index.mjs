@@ -238,6 +238,88 @@ export function parcelRows(parcels) {
   return parcels.map((p) => [p.id, p.pt[0], p.pt[1], Math.max(1, Math.round(p.m2 / 100)), USE_TO_KIND[p.use], ACCESS.indexOf(p.access || 'geen'), p.anchor[0], p.anchor[1]]);
 }
 
+// ---- de getekende grenslijn (#1100): een vereenvoudigde omtrek per perceel, apart en lui geladen ----
+// Rijen [id, [dx1, dy1, dx2, dy2, ...]]: de omtrek van het grootste stuk (buitenste ring, geen gaten) met Douglas-Peucker (SHAPE_TOLERANCE m), op SHAPE_STEP m
+// afgerond. Het eerste punt is relatief aan het binnenpunt van het perceel, elk volgend punt relatief aan het vorige (delta). Hoogstens SHAPE_MAX_POINTS punten:
+// past het niet, dan wordt de tolerantie stapsgewijs groter. Een perceel dat over een tegelrand loopt heeft hier de vorm van zijn grootste stuk (de index kent
+// het perceel als geheel, de tegel levert de rest). Percelen onder SHAPE_MIN_HA krijgen geen vorm: de schets blijft.
+export const SHAPE_FILE = 'bezit-vormen.json';
+export const SHAPE_VERSION = 1;
+export const SHAPE_STEP = 5;
+export const SHAPE_TOLERANCE = 8;
+export const SHAPE_MAX_POINTS = 24;
+export const SHAPE_MIN_HA = 0;
+
+const segDist = (p, a, b) => {
+  const dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy;
+  if (l2 === 0) return Math.hypot(p[0] - a[0], p[1] - a[1]);
+  const t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l2));
+  return Math.hypot(p[0] - (a[0] + t * dx), p[1] - (a[1] + t * dy));
+};
+// Douglas-Peucker op een open lijn: houdt de eindpunten; geeft de indices.
+function dpKeep(pts, tol) {
+  const keep = new Uint8Array(pts.length);
+  keep[0] = 1; keep[pts.length - 1] = 1;
+  const stack = [[0, pts.length - 1]];
+  while (stack.length) {
+    const [a, b] = stack.pop();
+    let bi = -1, bd = tol;
+    for (let i = a + 1; i < b; i++) { const d = segDist(pts[i], pts[a], pts[b]); if (d > bd) { bd = d; bi = i; } }
+    if (bi >= 0) { keep[bi] = 1; stack.push([a, bi], [bi, b]); }
+  }
+  return keep;
+}
+// Een gesloten ring (zonder herhaald slotpunt) vereenvoudigen: splitsen bij het punt dat het verst van het eerste ligt.
+export function simplifyRing(ring, tol) {
+  const n = ring.length;
+  if (n <= 3) return ring.slice();
+  let far = 1, fd = -1;
+  for (let i = 1; i < n; i++) { const d = Math.hypot(ring[i][0] - ring[0][0], ring[i][1] - ring[0][1]); if (d > fd) { fd = d; far = i; } }
+  const a = ring.slice(0, far + 1), b = ring.slice(far).concat([ring[0]]);
+  const ka = dpKeep(a, tol), kb = dpKeep(b, tol);
+  const out = [];
+  a.forEach((p, i) => { if (ka[i]) out.push(p); });
+  b.forEach((p, i) => { if (kb[i] && i > 0 && i < b.length - 1) out.push(p); });
+  return out;
+}
+// De omtrek van een perceel als delta's: [dx0, dy0, dx1, dy1, ...] in eenheden van SHAPE_STEP m, of null als er geen bruikbare vorm uit komt.
+export function shapeDeltas(p, tolerance = SHAPE_TOLERANCE) {
+  if (!p.pieces || !p.pieces.length) return null;
+  const big = p.pieces.reduce((a, b) => (polyArea(b.pts) > polyArea(a.pts) ? b : a));
+  let ring = big.pts.map((q) => [q[0], q[1]]);
+  if (ring.length > 1 && ring[0][0] === ring[ring.length - 1][0] && ring[0][1] === ring[ring.length - 1][1]) ring.pop();
+  if (ring.length < 3) return null;
+  for (let tol = tolerance; tol <= 200; tol = Math.ceil(tol * 1.5)) {
+    const q = [];
+    for (const r of simplifyRing(ring, tol)) {
+      const c = [Math.round((r[0] - p.pt[0]) / SHAPE_STEP), Math.round((r[1] - p.pt[1]) / SHAPE_STEP)];
+      const l = q[q.length - 1];
+      if (!l || l[0] !== c[0] || l[1] !== c[1]) q.push(c);
+    }
+    while (q.length > 1 && q[0][0] === q[q.length - 1][0] && q[0][1] === q[q.length - 1][1]) q.pop();
+    if (q.length < 3) return null;
+    if (q.length > SHAPE_MAX_POINTS) continue;
+    let area = 0;
+    for (let i = 0, j = q.length - 1; i < q.length; j = i++) area += q[j][0] * q[i][1] - q[i][0] * q[j][1];
+    if (area === 0) return null;
+    const flat = [];
+    let px = 0, py = 0;
+    for (const c of q) { flat.push(c[0] - px, c[1] - py); px = c[0]; py = c[1]; }
+    return flat;
+  }
+  return null;
+}
+export function shapeRows(parcels, { minHa = SHAPE_MIN_HA, tolerance = SHAPE_TOLERANCE } = {}) {
+  const rows = [];
+  for (const p of parcels) {
+    if (p.m2 < minHa * 10000) continue;
+    const s = shapeDeltas(p, tolerance);
+    if (s) rows.push([p.id, s]);
+  }
+  rows.sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
+  return rows;
+}
+
 export function buildBezitIndex(worldDir) {
   const w = readWorld(worldDir);
   const built = buildParcels(w.pieces);
@@ -256,6 +338,7 @@ export function buildBezitIndex(worldDir) {
   return {
     percelen: { v: BEZIT_INDEX_VERSION, kinds: KINDS, access: ACCESS, places, rows: parcelRows(m.parcels), stats: { pieces: w.pieces.length, joins: built.joins, duplicates: built.duplicates, merged: m.merged, tiles: w.tiles, homes: w.homes.length } },
     panden: { v: BEZIT_INDEX_VERSION, types, rows: bs.map((b) => [b.osm, b.x, b.y, b.m2, types.indexOf(b.type), b.h, b.landmark]) },
+    vormen: { v: SHAPE_VERSION, step: SHAPE_STEP, tol: SHAPE_TOLERANCE, rows: shapeRows(m.parcels) },
   };
 }
 
@@ -263,6 +346,7 @@ export function writeBezitIndex(out, worldDir = out) {
   const r = buildBezitIndex(worldDir);
   fs.writeFileSync(path.join(out, PARCEL_FILE), JSON.stringify(r.percelen));
   fs.writeFileSync(path.join(out, BUILDING_FILE), JSON.stringify(r.panden));
+  fs.writeFileSync(path.join(out, SHAPE_FILE), JSON.stringify(r.vormen));
   return r;
 }
 
@@ -275,6 +359,6 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const r = writeBezitIndex(out, world);
   if (!process.argv.includes('--quiet')) {
     const gz = (o) => zlib.gzipSync(JSON.stringify(o)).length;
-    console.log(`bezit-index: ${r.percelen.rows.length} percelen (${JSON.stringify(r.percelen.stats)}), ${r.panden.rows.length} bedrijfspanden; ${Math.round(gz(r.percelen) / 1024)} KB + ${Math.round(gz(r.panden) / 1024)} KB gzip; ${Date.now() - t0} ms`);
+    console.log(`bezit-index: ${r.percelen.rows.length} percelen (${JSON.stringify(r.percelen.stats)}), ${r.panden.rows.length} bedrijfspanden; ${Math.round(gz(r.percelen) / 1024)} KB + ${Math.round(gz(r.panden) / 1024)} KB gzip; ${r.vormen.rows.length} vormen ${Math.round(JSON.stringify(r.vormen).length / 1024)} KB (${Math.round(gz(r.vormen) / 1024)} KB gzip); ${Date.now() - t0} ms`);
   }
 }

@@ -29,7 +29,7 @@ export const GEWASSEN = {
   gras: { naam: 'Gras', zaaigoed: 20, groeiUren: 20, kgBasis: 5000, prijsKg: PRIJS_KG.gras, afnemer: 'Hooimarkt Reitdiep', jong: 0x5fb04a, rijp: 0x7fc24f, vorm: 'halm', soort: 'weiland' },
   uien: { naam: 'Uien', zaaigoed: 45, groeiUren: 36, kgBasis: 3000, prijsKg: PRIJS_KG.uien, afnemer: 'Uienloods De Kleihoek', jong: 0x6aa24c, rijp: 0xc9a24f, vorm: 'kegel', soort: 'akker' },
   // Boomgaardfruit (Bezit #1101): het gewas van een boomgaard (soort 'boomgaard'), een korte zomercyclus (pluk in de zomer, nooit winter); zwaardere grond dan akker, dus een hogere prijs per kilo.
-  fruit: { naam: 'Boomgaardfruit', zaaigoed: 60, groeiUren: 36, kgBasis: 1500, prijsKg: PRIJS_KG.fruit, afnemer: 'Fruitveiling De Bongerd', jong: 0x6aa24c, rijp: 0xc8503a, vorm: 'struik', soort: 'boomgaard' },
+  fruit: { naam: 'Boomgaardfruit', zaaigoed: 60, groeiUren: 36, kgBasis: 1500, prijsKg: PRIJS_KG.fruit, afnemer: 'Fruitveiling De Bongerd', jong: 0x6aa24c, rijp: 0xc8503a, vorm: 'boom', soort: 'boomgaard' },
 };
 export const ALLE_GEWAS_IDS = Object.keys(GEWASSEN);                 // ook de boomgaard; de volgorde staat vast (een gewasindex gaat over het net)
 export const GEWAS_IDS = ALLE_GEWAS_IDS.filter((g) => GEWASSEN[g].soort !== 'boomgaard');   // de akker- en weidegewassen van de markt en de contracten
