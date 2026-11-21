@@ -9,6 +9,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Verhaal akte 2: drie nieuwe korte scènes. Bij de pastorie in Warffum biedt Geesje Tessa het land achter de kerk aan (de boerderij- en Landbouwwereld), en de ochtend na de sterren zegt Tammo op de kade van Zoutkamp dat hij het al lang wist, zonder het woord.
+- Verhaal akte 3: Sjabbe komt in eigen persoon naar Lammerts havenkantoor in de Eemshaven en geeft Tammo en Tessa de sleutel van hun eerste pand: Jelle koopt, zij beheren.
+- Verhaal akte 4: het doel in "Wat weten we?" is nu de bal terughalen van Jelle voordat hij hem in Bourtange aan zijn oma geeft.
+- Samen spelen: de drie nieuwe verhaalstappen (K1 tot en met K3) zijn van de speler die ze speelt, met eigen voortgang (#429). Een gast speelt ze niet voor wie het spel opende, wie later aansluit mist hooguit een zin, en er gaat niets over het net dat er niet al was. Een bewaard spel slaat ze over als het al voorbij het invoegpunt is.
 - Snackwagen: de wagen groeit mee met het verhaal. Het menu samenstellen opent na Oma Trijntjes recept, vergunningen kopen na Lammerts kade en de kermis, medewerkers-wagens na het team van Berend, Tinus en Wubbo, je eigen wagen op een standplaats zetten na de Vismarkt, en een tweede wagen en plekken van Usmem overnemen aan het eind van de zomer. Een dichte stap laat een hint zien; de belettering is eerst SNACKWAGEN en wordt TAM & TES zodra de wagen zijn naam heeft. Een opgeslagen spel van voor deze wijziging houdt alles open.
 - Samen spelen: een gast kan meewerken in de snackwagen van een medespeler (ook van de host); de eigenaar verkoopt die dag 8% meer en de gast verdient zijn uurloon uit nieuw geld.
 - Bezit: de eigen snackwagen levert ongeveer twee keer en een groot snackimperium ongeveer vier keer zoveel als actief werk; passief inkomen buiten de snackwagen blijft binnen drie keer.

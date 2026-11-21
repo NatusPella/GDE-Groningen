@@ -2,7 +2,7 @@
 
 Je hoeft niets te doen. Voor elke nieuwe of herschreven komische beat heeft de schrijver drie varianten en een veilige neutrale terugval gemaakt; drie onafhankelijke beoordelaars (zonder elkaars oordeel, met de varianten in een andere volgorde) kozen de beste. De winnaar staat in het spel; de andere twee en de terugval staan hieronder als alternatief. Wil je iets anders: zet `chosen` van die beat in het bijbehorende bestand `game/storydata/humor*.json` op 0, 1, 2 of `"neutral"` en draai `node scripts/build_story_data.mjs`. Werkwijze: [SCHRIJFREGELS-21-11.md](SCHRIJFREGELS-21-11.md). Na een wijziging: draai ook de cutscene-tests (`cutscenes_akte*_test`), want de cues van een scène (`on:`) volgen de gekozen tekst. Samen spelen: een beat is gewone scènetekst; een gast ziet de gekozen variant mee in de scène van de host. Gegenereerd door `node scripts/humor_doc.mjs`; kies hier niet met de hand.
 
-Eerlijk over de proef: 102 beats. De beoordelaars lazen de stijlgids en de beats; minstens twee van de drie lazen de ijkregels uit akte 1 ([BEHOUDEN]-grappen) niet. Wees dus kritisch bij beats met lage zekerheid.
+Eerlijk over de proef: 106 beats. De beoordelaars lazen de stijlgids en de beats; minstens twee van de drie lazen de ijkregels uit akte 1 ([BEHOUDEN]-grappen) niet. Wees dus kritisch bij beats met lage zekerheid.
 
 ## Bovenaan: gevoelig of gespleten met lage zekerheid
 
@@ -127,6 +127,10 @@ Eerlijk over de proef: 102 beats. De beoordelaars lazen de stijlgids en de beats
 | H06 | M02.5 | TESSA | Alleen of we een koekje wilden. | variant 1, variant 3, variant 2 | laag | Koekje wilden: Tessa's droge understatement. |
 | H07 | R1.1 | RIKUS | Dat is een helder plan. Ik zeg niks. Ik draai een plaat. | variant 2, neutraal, variant 2 | midden | Ik zeg niks als mening, dan de plaat: Rikus. |
 | H08 | C00.2 | TESSA | Vierentwintig, net afgestudeerd en samen nul banen. Na de studie gaat iedereen ergens anders heen. Wij niet. | variant 1, variant 1, variant 1 | hoog | Samen nul banen is de pointe, en de rest is kort. |
+| HK-01 | K1 | GEESJE | Dat hoeft ook niet. | niet beoordeeld |  |  |
+| HK-02 | K2 | TAMMO | Dat je je koffie met melk drinkt. | niet beoordeeld |  |  |
+| HK-03 | K2 | TESSA | Hij is lauw. | niet beoordeeld |  |  |
+| HK-04 | K3 | SJABBE | Dat is mijn zin. | niet beoordeeld |  |  |
 | HN-01 | N8 | OMA TRIJNTJE | Dat is geen slapen. Dat is stilte met een plan. | variant 1, variant 2, variant 2 | midden | Meest onverwachte pointe die bij het personage past. |
 | HN-02 | N6 | KAPITEIN KLAAS | Dat telt. | neutraal, variant 2, variant 1 | laag | Twee woorden, maximaal understatement. |
 | HN-03 | N4 | TESSA | Iemand die alle regels kent. Behalve de leuke. | neutraal, variant 2, variant 3 | laag | Droog en past bij Jelle; 'behalve de leuke' landt. |
@@ -646,6 +650,30 @@ Eerlijk over de proef: 102 beats. De beoordelaars lazen de stijlgids en de beats
 - variant 2: Vierentwintig, afgestudeerd en samen precies nul banen. Na de studie gaat iedereen ergens anders heen. Wij niet.
 - variant 3: Wij zijn vierentwintig, afgestudeerd en werkloos. Dat is een begin. Na de studie gaat iedereen ergens anders heen. Wij niet.
 - neutraal: Wij zijn vierentwintig, net afgestudeerd en werkloos. Na de studie gaat iedereen ergens anders heen. Wij niet.
+
+**HK-01** (K1): Achter de pastorie in Warffum. Tessa zegt dat ze de sleutel van de schuur niet pakt; Geesje wijst naar de spijker en laat haar bezwaar in de lucht hangen.
+- variant 1 (gekozen): Dat hoeft ook niet.
+- variant 2: Dat hoefde ook niet.
+- variant 3: Dat doet de kip voor je.
+- neutraal: Je hoeft niets te zeggen.
+
+**HK-02** (K2): De kade van Zoutkamp bij zonsopgang. Tammo zegt dat hij het al lang wist en Tessa vraagt wat; hij redt zich met een heel kleine waarheid in plaats van het grote woord.
+- variant 1 (gekozen): Dat je je koffie met melk drinkt.
+- variant 2: Hoe je je koffie drinkt.
+- variant 3: Dat je koffie met melk hoort.
+- neutraal: Dat je koffie met melk neemt.
+
+**HK-03** (K2): De kade van Zoutkamp. Na het bijna-moment proeft Tessa van de koffie die Tammo sinds half zes warm hield; zij ontkent met een droge zin dat er iets gebeurd is.
+- variant 1 (gekozen): Hij is lauw.
+- variant 2: Hij is al uren koud.
+- variant 3: Dit is geen koffie meer.
+- neutraal: De koffie is lauw.
+
+**HK-04** (K3): Het havenkantoor, drie uur in de nacht. Sjabbe herhaalt zijn eigen vaste zin op het moment dat Tessa hem, onbedoeld, citeert; hij neemt hem terug alsof het een contract is.
+- variant 1 (gekozen): Dat is mijn zin.
+- variant 2: Die zin is van mij.
+- variant 3: Die staat op mijn naam.
+- neutraal: Dat zeg ik meestal.
 
 **HN-01** (N8): Oma's logeerkamer, avond. Tessa en Tammo pakken tegelijk dezelfde punaise; een lange stilte. Beneden klinkt Oma's pollepel op een pan en ze roept dat ze niet slapen. Tessa: "We slapen, Oma." Oma antwoordt; daarna zegt Tammo "Het is een punaise."
 - variant 1: Ik ben tweeënnegentig. Ik weet hoe slapen klinkt.
