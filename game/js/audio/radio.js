@@ -166,6 +166,7 @@ const GMUSIC_ARTISTS = {
   'Kapsalon Kees en de Vismarkt': 'MC Zoutkorrel',
   'Klompendans bij de Sloot': 'Jelle en de Natte Voeten',
   'Rood Licht Is Een Mening': 'De Ringweg Drillers',
+  'Elfde Verdieping': 'De Fietstunnels',
 };
 // file names can't carry every character of a title
 const GMUSIC_TITLES = {
