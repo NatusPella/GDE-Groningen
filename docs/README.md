@@ -42,6 +42,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [ARCHITECTUUR-STAD-NAAR-TEGELS.md](<ARCHITECTUUR-STAD-NAAR-TEGELS.md>) | *Migratieplan voor issue #90, 17 oktober 2026 (stand 0.34 + Unreleased). Historisch: de migratie is |
 | [BAG-LOD22.md](<BAG-LOD22.md>) | Besluit van de eigenaar: de 3D BAG-modellen (LoD 2.2: echte daken met dakkapellen, overstekken en schoorste… |
 | [BOERDERIJ.md](<BOERDERIJ.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/mechanica.md`](../.specs-fire/standard… |
+| [BEZIT-21-11.md](<BEZIT-21-11.md>) | Werkdocument. Onderzoek, data-audit en ontwerp van de epic Bezit: koopbare percelen en panden in de hele provincie (13.883 percelen, 370.144 panden), prijsmodel, bezit-opslag, productieketen, AI-personeel, Samen spelen en het stappenplan met werkpakketten. Gemeten met `scripts/world/percelen_audit.mjs`. |
 | [COOP-GAST.md](<COOP-GAST.md>) | Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). Dit docu… |
 | [COOP-OPSLAAN.md](<COOP-OPSLAAN.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/multiplayer.md`](../.specs-fire/standa… |
 | [COOP-OVERDRAGEN.md](<COOP-OVERDRAGEN.md>) | Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). Dit docu… |
