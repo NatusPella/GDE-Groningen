@@ -87,7 +87,10 @@ const dir = new URL('../game/world', import.meta.url).pathname.replace(/^\/([A-Z
 const list = [];
 for (const key of [...W1.rail, ...W1.random]) list.push(A.auditWindow(dir, index, key));
 const total = A.sumWindows(list);
-ok(total.posts > 1000 && total.wires > 300, 'the windows have fences', JSON.stringify({ posts: total.posts, wires: total.wires }));
+ok(total.osmPieces > 100, 'the windows have the own fences and hedges of the map', String(total.osmPieces));
+ok((total.edgeObjects || 0) === 0 && (total.edgeWalls || 0) === 0 && (total.posts || 0) === 0 && (total.wires || 0) === 0 && (total.hedges || 0) === 0, 'no procedural edge object from the hash grid (#1092)', JSON.stringify({ edgeObjects: total.edgeObjects, posts: total.posts, wires: total.wires, hedges: total.hedges }));
+ok((total.edgeNoSource || 0) === 0, 'every fence or hedge piece lies on a mapped source line', String(total.edgeNoSource || 0));
+ok((total.ditchNoWater || 0) === 0, 'the ditches are real water of the tiles', JSON.stringify({ rows: total.ditchRows, noWater: total.ditchNoWater }));
 const bad = A.overLimits(total);
 ok(bad.length === 0, 'no fence, hedge or herd over the track, a road, water or a house; seams and ditches within the limits', bad.join('; '));
 ok(list.slice(0, 3).reduce((t, c) => t + (c.postOnRail || 0) + (c.wireOnRail || 0), 0) === 0, 'the windows with a track have no fence on it');

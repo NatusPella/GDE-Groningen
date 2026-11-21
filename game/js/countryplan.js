@@ -17,12 +17,8 @@ import { baleRadius, BALE_HEIGHT } from './bales.js';
 export const ROAD_C = ROAD_IN + ROAD_W / 2;
 const EDGE_CLEAR = 4;
 
-// Strip-boundary rows (per strip column) and polder-road tree lanes; shared
-// by the near props and the maps.
-export const TREE_ROW_P = 0.11;
-export const WILLOW_ROW_P = 0.05;
-export const HEDGE_ROW_P = 0.19;
-export const WIRE_ROW_P = 0.34;
+// Polder-road tree lanes; shared by the near props and the maps. (The strip-boundary rows of
+// trees, hedges and wire are gone: no edge without a line of the map, #1092.)
 export function ROAD_ROW(bx, by, s) {
   return chash(bx * 5 + s, by * 9) < 0.5 ? 'poplar' : chash(bx + s, by) < 0.8 ? 'tree' : null;
 }
@@ -85,7 +81,6 @@ function farmItems(f, R) {
   if (f.front > 0) {
     slab(-f.front - 0.4, 2, d0, d1, GRAVEL);
     add('grid', -f.front + 1.6, dz, 0, 1, 1, (d1 - d0) / 3.6);
-    for (let z = -T.hw + 5; z < d0 - 1.5; z += 2.3) add('hedge', -f.front + 1.4, z, Math.PI / 2, 2.6, 0.8 + R() * 0.25, 1.2);
     if (R() < 0.8) add('tree', -f.front * 0.45, d0 - 6 - R() * 4, R() * 6, 0.6, 0.6, 0.6);
   }
   const tractor = () => [0x3f7d3a, 0xb8322a, 0x2f5fa8, 0x3f7d3a, 0xc9a227][Math.floor(R() * 5)];

@@ -1,3 +1,5 @@
+// (#1092: de procedurele weilandranden zijn weg; wat hier nog telt is de poort realBlockedAt/edgeBlocked voor de overige props en de
+// regel dat het hashraster geen paal, draad, poort, berm of bies meer zet.)
 // Weilandranden over spoor (#124): the province's rails are an obstacle for fences, hedges and
 // herds everywhere, not only within 5 km of the city (countryedge.js edgeBlocked) and the real
 // tiles' track blocks too (provinceworld.js realBlockedAt via map.railNear).
@@ -38,27 +40,17 @@ ok(CE.edgeBlocked(30002, 30002, 2), 'a rail cell 30 km from the city blocks');
 ok(!CE.edgeBlocked(30200, 30200, 2), 'and its neighbour does not');
 CE.EDGE.ready = false;
 
-// the fences across a tile seam (#124): no hole of 10 m in a row of posts on the border of two 160 m tiles
+// #1092: the hash grid sets no fence post, wire, gate, bank or rush any more: an edge needs a line of the map
 {
   const CS = await import('../game/js/countryside.js');
   const CF = await import('../game/js/countryfield.js');
   CF.setCountryBounds([-2000, -2000, 2000, 2000]);
-  const posts = [];
+  const count = { post: 0, wire: 0, gate: 0, bank: 0, rush: 0, hedge: 0 };
   for (let tx = 40; tx < 46; tx++) for (let ty = 40; ty < 46; ty++) {
-    const m = (CS.countryTileItems(tx, ty).items.post || { m: [] }).m;
-    for (let q = 0; q < m.length; q += 16) posts.push([m[q + 12], m[q + 14]]);
+    const items = CS.countryTileItems(tx, ty).items;
+    for (const k of Object.keys(count)) count[k] += ((items[k] || { m: [] }).m.length) / 16;
   }
-  let seam = 0;
-  for (const axis of [0, 1]) {
-    const rows = new Map();
-    for (const p of posts) { const k = Math.round(p[axis] * 20); (rows.get(k) || rows.set(k, []).get(k)).push(p[1 - axis]); }
-    for (const list of rows.values()) {
-      list.sort((u, v) => u - v);
-      for (let i = 1; i < list.length; i++) { const gap = list[i] - list[i - 1]; if (gap > 6.5 && gap < 13 && Math.floor(list[i - 1] / 160) !== Math.floor(list[i] / 160)) seam++; }
-    }
-  }
-  ok(posts.length > 500, 'the test area has fences', String(posts.length));
-  ok(seam <= posts.length * 0.004, 'a seam gap in less than 0.4% of the posts', `${seam} of ${posts.length}`);
+  ok(Object.values(count).every((v) => v === 0), 'no post, wire, gate, bank or rush from the hash grid', JSON.stringify(count));
 }
 
 // the painted ditches are off where the tiles hold the real ones (#124): only after the world is built with them
@@ -83,28 +75,25 @@ CE.EDGE.ready = false;
   CF.setProvinceBlocks(null);
 }
 
-// the land use of the tiles (OSM landuse) over the hash (#124): no wire and no herd on arable, wire and herds on a meadow
+// the land use of the tiles (OSM landuse) over the hash (#124): no herd on arable, herds on a meadow (the wire of the meadow is gone, #1092)
 {
   const CS = await import('../game/js/countryside.js');
   const CF = await import('../game/js/countryfield.js');
   CF.setCountryBounds([-2000, -2000, 2000, 2000]);
   const run = (use) => {
     CE.setExtraUse(use ? () => use : null);
-    let posts = 0, wires = 0, animals = 0;
+    let animals = 0;
     for (let tx = 40; tx < 46; tx++) for (let ty = 40; ty < 46; ty++) {
       const t = CS.countryTileItems(tx, ty);
-      posts += ((t.items.post || { m: [] }).m.length) / 16;
-      wires += ((t.items.wire || { m: [] }).m.length) / 16;
       animals += t.animals.filter((a) => a.kind === 'cow' || a.kind === 'sheep' || a.kind === 'horse').length;
     }
     CE.setExtraUse(null);
-    return { posts, wires, animals };
+    return { animals };
   };
   const hash = run(null), akker = run('akker'), weide = run('weide');
-  ok(hash.posts > 500 && hash.animals > 20, 'the hash makes fences and herds', JSON.stringify(hash));
+  ok(hash.animals > 20, 'the hash makes herds', JSON.stringify(hash));
   ok(akker.animals === 0, 'no herd grazes on arable', JSON.stringify(akker));
-  ok(akker.posts < hash.posts * 0.6, 'and far fewer fence posts', akker.posts + ' vs ' + hash.posts);
-  ok(weide.animals > hash.animals * 0.8 && weide.posts > hash.posts, 'a meadow keeps its herds and its wire', JSON.stringify(weide));
+  ok(weide.animals > hash.animals * 0.8, 'a meadow keeps its herds', JSON.stringify(weide));
   ok(CE.landUseAt(0, 0) === null, 'without tiles the land use is silent');
 }
 
@@ -125,25 +114,8 @@ CE.EDGE.ready = false;
   ok(PW.realUseAt({ resident: new Set(), landUseAt: () => 'akker' }, isT, 500, 500) === null, 'and is silent for a tile that is not in');
 }
 
-// a mapped OSM hedge keeps the hash's own hedges out (#124)
+// the mapped hedges of the tiles stay queryable (the trim of tilegreenery.js), the countryside does not look at them any more
 {
-  const CS = await import('../game/js/countryside.js');
-  const CF = await import('../game/js/countryfield.js');
-  const PW2 = await import('../game/js/provinceworld.js');
-  CF.setCountryBounds([-2000, -2000, 2000, 2000]);
-  const hedges = (hook) => {
-    CE.setExtraHedge(hook);
-    let h = 0;
-    for (let tx = 40; tx < 48; tx++) for (let ty = 40; ty < 48; ty++) h += ((CS.countryTileItems(tx, ty).items.hedge || { m: [] }).m.length) / 16;
-    CE.setExtraHedge(null);
-    return h;
-  };
-  const free = hedges(null), mapped = hedges(() => true);
-  ok(free > 50, 'the hash makes hedges', String(free));
-  ok(free - mapped >= 50, 'the hash grid hedges (cross ditches, road verges) stay out where OSM maps a hedge; the farm and village ones are not the grid', free + ' vs ' + mapped);
-  const row = { pts: [[0, 0], [100, 0]] };
-  const m = { hedgeNear: (x, y, r) => (Math.abs(y) <= r + 1 ? [row] : []) };
-  ok(PW2.realHedgeNear(m, 50, 3, 6) && !PW2.realHedgeNear(m, 50, 9, 6) && !PW2.realHedgeNear({}, 50, 1, 6), 'a mapped hedge within r, not beyond, not without a world query');
   const { TileWorld } = await import('../game/js/tileworld.js');
   ok(TileWorld.prototype.hedgeNear.call({}, 0, 0, 5).length === 0, 'a world without mapped hedges is silent');
 }

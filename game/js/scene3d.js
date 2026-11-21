@@ -151,7 +151,7 @@ import { treeDims, treeColor, SPECIES, TREE_FLAG } from './greenery.js';
 import { buildCanopies, streamCanopies } from './canopies3d.js';
 import { buildPerrons3D } from './perrons3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
-import { updateCountryside, setCountryPropLevel } from './countryside.js';
+import { updateCountryside } from './countryside.js';
 import { updateOmmelandLandmarks } from './ommelandlandmarks.js';
 import { setCountryNight, setCountryFacadeLevel } from './countrybuilding.js';
 import { edgeDistance, setCountryBounds } from './countryfield.js';
@@ -1070,7 +1070,6 @@ function applyViewSettings(st, key) {
   starShare = STAR_SHARE[level] ?? 1;
   if (skyDome) setStarShare(skyDome, starShare);
   setCountryFacadeLevel(level);
-  setCountryPropLevel(level);
   facadeQualityDist = FACADE_DETAIL_DIST[level] || Infinity;
   facadeDetailDist = Math.min(facadeQualityDist, CPU_FACADE_DIST[cpuLevel()]);
   if (postfx.level !== level) postfx.setLevel(level);

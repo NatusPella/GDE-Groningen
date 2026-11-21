@@ -24,6 +24,7 @@ import { hash2 as hash } from './rng.js';
 import { placeSignItems, entryOf } from './placesigns.js';
 import { segDistD, buildingAt } from './tileplace.js';
 import { hedgeLines } from './tilegreenery.js';
+import { edgeCollider, edgeHeight } from './edgeclasses.js';
 
 const MAIN = new Set(['motorway', 'trunk']);
 const LINK = new Set(['motorway_link', 'trunk_link']);
@@ -378,7 +379,7 @@ export function furnitureForTile({ x0, y0, size = 1000, roads = [], mapped = [],
       for (const line of k === 'hedge' ? hedgeLines(m) : [m.pts]) for (const [x, y, a, s] of pieces(line, k === 'guardrail' ? RULES.guardrailPiece : 3)) {
         // a mapped fence or hedge that OSM draws over a carriageway or into water is a gap in the data, not a barrier to put there (issue #124)
         if ((k === 'fence' || k === 'hedge') && pieceOnWayOrWater(x, y, a, s)) continue;
-        add({ k, x, y, a, s, h: k === 'noise' ? (m.h || 4) : k === 'hedge' ? (m.h || 1.4) : undefined, src: 'osm' });
+        add({ k, x, y, a, s, h: k === 'noise' ? (m.h || 4) : k === 'hedge' ? edgeHeight('hedge', m.h) : undefined, src: 'osm' });
       }
       continue;
     }
@@ -555,8 +556,9 @@ export function furnitureColliders(items) {
   for (const it of items) {
     switch (it.k) {
       case 'guardrail': out.push({ kind: 'vangrail', x: it.x, y: it.y, r: 0.14, half: it.s / 2, angle: it.a, key: it.key }); break;
-      case 'fence': out.push({ kind: 'hek', x: it.x, y: it.y, r: 0.08, half: it.s / 2, angle: it.a, key: it.key }); break;
-      case 'hedge': out.push({ kind: 'heg', x: it.x, y: it.y, r: 0.4, half: it.s / 2, angle: it.a, key: it.key, static: true, top: it.h }); break;
+      // hek en heg: de ene regelset van edgeclasses.js (zelfde tabel als wat streetfurniture3d.js tekent)
+      case 'fence': out.push(edgeCollider('fence', it)); break;
+      case 'hedge': out.push(edgeCollider('hedge', it)); break;
       case 'noise': out.push({ kind: 'wall', x: it.x, y: it.y, r: 0.15, half: it.s / 2, angle: it.a, key: it.key, static: true, top: it.h }); break;
       case 'gantry': {
         const nx = Math.sin(it.a), ny = -Math.cos(it.a);
