@@ -35,7 +35,7 @@ Bron: `spullen.js` (`collect`) en wat het leest. Er is geen gewicht en er zijn g
 | Categorie | Aantal | Had al een model | Nieuw gemaakt | Dekking |
 |---|---|---|---|---|
 | Geld | 1 | 0 | 1 | 1 van 1 |
-| Wapens (slag en vuur, incl. vuisten) | 12 | 11 (`GUN_SPECS`) | 1 (vuist) | 12 van 12 |
+| Wapens (slag en vuur; vuisten zijn geen spul) | 11 | 11 (`GUN_SPECS`) | 0 | 11 van 11 |
 | Werpspul (carbidbus, vuurwerk) | 2 | 2 | 0 | 2 van 2 |
 | Kleding (6 sets per personage) | 12 | 12 (personage in de set, `buildPersonMesh`) | 0 | 12 van 12 |
 | Thuis (meubelhuis) | 9 | 9 (`shopmodels3d.js`) | 0 | 9 van 9 |
@@ -43,14 +43,13 @@ Bron: `spullen.js` (`collect`) en wat het leest. Er is geen gewicht en er zijn g
 | Eten, gevangen vis | 29 | 0 | 29 (één generator) | 29 van 29 |
 | Kaarten en verzamelingen | 4 | 2 (spaarkaart, eierbal) | 2 (aanwijzingen, geheimpje) | 4 van 4 |
 | Upgrades (Escapade, fiets, scooter, snackwagen) | 17 | 10 | 7 | 17 van 17 |
-| **Totaal** | **100** | **60** | **40** | **100 van 100** |
+| **Totaal** | **99** | **59** | **40** | **99 van 99** |
 
 ### Item voor item
 
 | Item | Bestaand model? | Gekozen |
 |---|---|---|
 | Geld | nee | nieuw: `geld` (stapels vellen met bandje en munten, dikte per bedrag in vier niveaus, geen opdruk) |
-| Vuisten | nee (de hand was het "wapen") | nieuw: `vuist` (gebalde hand op een mouw) |
 | knuppel, hockeystick, bezem, fietspomp, klomp, polsstok, pistool, uzi, waterpistool, shotgun, jachtgeweer | ja, `buildWeaponMesh` | hergebruikt |
 | carbidbus, vuurwerk | ja, `buildWeaponMesh` | hergebruikt |
 | 12 kledingsets | ja, het personage met de kleuren van de set | hergebruikt (`kind: 'person'`, kleuren uit `OUTFITS`) |
@@ -150,7 +149,22 @@ Niets hiervan is in een echt venster gezien. Voor de coördinator, bij de beeldr
 
 1. Het Spullen-detail in 1920x1080 en 1280x720: past het model (200 tot 320 px) met de tekst eronder, scrolt het detail netjes, geen overlap met de acties.
 2. Een kaart per categorie: de framing (te klein of afgesneden?): vooral de polsstok (3,4 lang), de jachtgeweer, de kledingsets, de vis `paling` en `snoek`.
-3. De nieuwe modellen op herkenbaarheid en kleur: geld (drie niveaus), vuist, aanwijzingen, geheimpje, motor, brede band, sperdiff, uitlaat, mosterd, bel, neon-meeuw
+3. De nieuwe modellen op herkenbaarheid en kleur: geld (drie niveaus), aanwijzingen, geheimpje, motor, brede band, sperdiff, uitlaat, mosterd, bel, neon-meeuw
    en een paar vissen (voorn, baars, bot, paling, meerval).
 4. Pijltjes en D-pad op de focus van het model; Terugzetten met Enter en A; Beweging beperken (geen draai); geen model zonder WebGL (icoon blijft).
 5. Geheugen: een paar keer tussen tegels wisselen en het menu sluiten; geen groei van GL-contexten (de leakwatch in `blackframe.js`).
+
+## Wapens, vuisten en iconen (21-11, Spullen-wensen)
+
+- **Vuisten** zijn geen spul: uit de lijst, de galerij, de dekkingsaudit en de tellers (11 wapens, 99 dingen). Onbewapend blijft `world.weapon === 'fists'`;
+  een wapen in de hand krijgt in Spullen de actie "Wegleggen" (terug naar de vuisten). Het model `vuist` is weg.
+- **Iconen**: `spullenmodel.js` kent per tabblad (`CAT_ICOON`), per groep (`GROEP_ICOON`) en per soort (`SOORT_ICOON`, bv. mes, vis) een Phosphor-naam uit
+  `iconmap.js`; `itemIcoon` valt terug op de groep en daarna op de rugzak, nooit op het vraagteken (`vraag`). De tabs tonen hun pictogram; tijdens het laden
+  staat een rustig skeleton-vlak (geen stippelvak, geen lus: DS3). Test: `scripts/spullenmodel_test.mjs`.
+- **Wapenmodellen**: `game/js/models3d_weapons.js` is de ene bron voor de hand (`setHeldWeapon`), de eerste-persoonhanden (`firstpersonhands.js`), weggegooide
+  wapens (`weapondrops.js`) en de 3D-voorbeelden. Onderdelen (box, cilinder, draaivorm, romp door doorsneden) per materiaal samengevoegd: 96 tot 532 driehoeken
+  en hooguit 6 tekenaanroepen per wapen (de oude blokjes: 2 tot 5 vlakken). Test: `scripts/weapons3d_test.mjs` (budget, eigen silhouet via een contour-hash van
+  zij- en bovenaanzicht, windingsrichting, dispose, loopmond bij het uiteinde, geen tekst). Beeld: `node scripts/ui/weapons_mock.mjs` (headless Chrome, geen Electron);
+  `docs/beeld-21-11/spullen-wapens/wapens-0.6.png`.
+- **Nog niet in beeld bekeken** (alleen het headless blad hierboven): de wapens in de hand van het figuur en in de eerste persoon in het echte spel, de
+  zwaaihoeken en de muzzle flash op de nieuwe loopmonden, en het Spullen-scherm met de nieuwe tabiconen in Electron.

@@ -14,7 +14,7 @@ const t = (name, f) => { f(); n++; };
 
 const spullen = [
   { key: 'w:buks', cat: 'wapens', title: 'Buks', sub: '12 patronen', how: 'Pang & Zo, €450', perk: 'Jachtgeweer' },
-  { key: 'w:fists', cat: 'wapens', title: 'Vuisten', sub: 'Altijd bij je', how: 'Van jezelf', perk: 'Slaan' },
+  { key: 'w:knuppel', cat: 'wapens', title: 'Knuppel', sub: 'Slaan · altijd bij de hand', how: 'Van een wegloper', perk: 'Slaan' },
   { key: 'o:stadjer', cat: 'kleding', title: 'Stadjer', sub: 'Gewone kleren', how: 'Van jezelf', perk: 'Omkleden kan thuis bij de kast' },
   { key: 'f:bank', cat: 'thuis', title: 'Bank', sub: 'Staat in de woonkamer', how: 'EIKEA, €300', perk: 'Zitten' },
   { key: 'k:stempels', cat: 'kaart', title: 'Spaarkaart Krant & Kauwgom', sub: '3 van 12 stempels', how: 'Een stempel per aankoop', perk: 'Volle kaart: inleveren' },
@@ -47,7 +47,7 @@ t('niks gevonden is leeg, niet alles', () => {
 
 t('de delen: de soorten die dit spel echt heeft', () => {
   assert.deepEqual(DELEN.map(([id]) => id), ['alles', 'wapens', 'kleding', 'voedsel', 'upgrades', 'thuis', 'verzameling']);
-  assert.deepEqual(titels(zoekSpullen(spullen, '', 'wapens')), ['Buks', 'Vuisten']);
+  assert.deepEqual(titels(zoekSpullen(spullen, '', 'wapens')), ['Buks', 'Knuppel']);
   assert.deepEqual(titels(zoekSpullen(spullen, '', 'kleding')), ['Stadjer']);
   assert.deepEqual(titels(zoekSpullen(spullen, '', 'thuis')), ['Bank']);
   assert.deepEqual(titels(zoekSpullen(spullen, '', 'verzameling')), ['Spaarkaart Krant & Kauwgom']);

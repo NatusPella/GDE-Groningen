@@ -13,7 +13,7 @@ const frikandel = { id: E.TOONBANK[5][0] }; // kroket
 const items = [
   { key: 'geld', cat: 'geld', title: '€120', sub: 'Contant' },
   { key: 'w:buks', cat: 'wapens', title: 'Buks', aantal: 12, eenheid: 'patronen' },
-  { key: 'w:fists', cat: 'wapens', title: 'Vuisten', aantal: 0 },
+  { key: 'w:waterpistool', cat: 'wapens', title: 'Waterpistool', aantal: 0 },
   { key: 'w:gooi', cat: 'werp', title: 'Bierfles', aantal: 150 },
   { key: 'o:stad', cat: 'kleding', title: 'Stadjer' },
   { key: 'e:a', cat: 'eten', title: 'Kroket', aantal: 3, weg: { id: frikandel ? frikandel.id : 'x', aantal: 3 } },
@@ -34,7 +34,7 @@ t('sorteren: geld blijft vooraan; naam is A tot Z; aantal zet de grootste stapel
   assert.deepEqual(M.sorteer(items).map((i) => i.key), items.map((i) => i.key), 'standaard houdt de volgorde');
   const naam = M.sorteer(items, 'naam').map((i) => i.title);
   assert.equal(naam[0], '€120');
-  assert.deepEqual(naam.slice(1), ['Bank', 'Bierfles', 'Buks', 'Kroket', 'Spaarkaart', 'Stadjer', 'Turbo', 'Vuisten']);
+  assert.deepEqual(naam.slice(1), ['Bank', 'Bierfles', 'Buks', 'Kroket', 'Spaarkaart', 'Stadjer', 'Turbo', 'Waterpistool']);
   const aantal = M.sorteer(items, 'aantal').map((i) => i.title);
   assert.deepEqual(aantal.slice(0, 4), ['€120', 'Bierfles', 'Buks', 'Kroket']);
   assert.equal(M.cycleSort('soort'), 'naam');
@@ -101,5 +101,22 @@ t('spullen.js: aria-current wordt "true" of weg, nooit leeg (toggleAttribute)', 
   assert.match(src, /setAttribute\('aria-current', 'true'\)/);
 });
 
-console.log(`spullenmodel_test: ${n - fails}/${n}`);
+const I = await import('../game/js/icons.js');
+t('iconen: elke tab, groep en soort heeft een bekend Phosphor-icoon, nooit het vraagteken van de terugval', () => {
+  for (const [id] of M.CATS) assert.ok(M.CAT_ICOON[id], `tab ${id} heeft geen icoon`);
+  for (const g of Object.keys(M.CAT_VAN)) assert.ok(M.GROEP_ICOON[g], `groep ${g} heeft geen icoon`);
+  const namen = [...Object.values(M.CAT_ICOON), ...Object.values(M.GROEP_ICOON), ...Object.values(M.SOORT_ICOON), M.ICOON_TERUGVAL];
+  for (const nm of namen) { assert.ok(I.iconBekend(nm), `${nm} staat niet in iconmap.js`); assert.notEqual(nm, 'vraag'); assert.ok(!I.icoon(nm).includes('question'), nm); }
+  // een onbekende soort of een ding zonder icoon valt terug op de groep, daarna op de rugzak: nooit op een vraagteken
+  assert.equal(M.itemIcoon({ cat: 'eten', icon: 'bestaatniet' }), 'eten');
+  assert.equal(M.itemIcoon({ cat: 'onbekend' }), M.ICOON_TERUGVAL);
+  assert.equal(M.itemIcoon(null), M.ICOON_TERUGVAL);
+  assert.equal(M.itemIcoon({ cat: 'wapens', icon: 'melee' }), 'mes');
+  const src = fs.readFileSync(new URL('../game/js/spullen.js', import.meta.url), 'utf8');
+  assert.ok(!/icoon\([^)]*'vraag'/.test(src) && !/ICOON\[/.test(src), 'spullen.js tekent iconen via itemIcoon');
+  assert.ok(!/border:2px dashed/.test(src), 'geen stippelvak als plaatsvervanger: een skeleton');
+  assert.match(src, /data-state="laden"\]::before[^}]*color-mix/, "de skeleton is een rustig, vlak blok (DS3: geen lus, geen verloop)");
+});
+
+console.log(`spullenmodel_test:${n - fails}/${n}`);
 if (fails) process.exit(1);

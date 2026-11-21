@@ -19,7 +19,7 @@ export const catVan = (it) => CAT_VAN[it && it.cat] || 'alles';
 // Wat er in een lege tab staat: waar je het vindt, in plaats van een leeg vlak.
 export const LEEG = {
   alles: 'Je hebt nog niets bij je. Kijk bij Pang & Zo, Stoer & Stads en de toonbank van de snackbar.',
-  wapens: 'Nog geen wapens behalve je vuisten. Pang & Zo verkoopt er een paar.',
+  wapens: 'Nog geen wapens. Pang & Zo verkoopt er een paar.',
   kleding: 'Nog geen extra kleding. Stoer & Stads heeft losse stukken en setjes.',
   voedsel: 'Nog niets te eten. De toonbank verkoopt snacks; wat je vangt, gaat mee naar huis.',
   upgrades: 'Nog geen upgrades. Knal & Kolder Tuning en Spaak & Band helpen je graag.',
@@ -88,3 +88,13 @@ export function naWeggooien(keys, key) {
   if (i < 0) return keys[0] || null;
   return keys[i + 1] || keys[i - 1] || null;
 }
+
+// Iconen (Phosphor via icons.js, betekenisnamen uit iconmap.js): elke categorie en elk soort ding heeft er een, zodat een tegel zonder
+// 3D-plaatje (geen model, geen WebGL) een passend plaatje toont en nooit het vraagteken van de terugval. Puur: alleen namen;
+// scripts/spullenmodel_test.mjs vergelijkt ze met de iconenmodule.
+export const CAT_ICOON = { alles: 'spullen', wapens: 'zwaard', kleding: 'kleding', voedsel: 'eten', upgrades: 'gereedschap', thuis: 'thuis', verzameling: 'ster' };
+// per interne groep (it.cat) de standaardnaam, per soort (it.icon) een preciezere
+export const GROEP_ICOON = { geld: 'geld', wapens: 'zwaard', werp: 'pakket', kleding: 'kleding', eten: 'eten', thuis: 'thuis', kaart: 'ster', upgrade: 'gereedschap' };
+export const SOORT_ICOON = { ...GROEP_ICOON, melee: 'mes', vis: 'vis' };
+export const ICOON_TERUGVAL = 'spullen';
+export const itemIcoon = (it) => (it && (SOORT_ICOON[it.icon] || GROEP_ICOON[it.cat])) || ICOON_TERUGVAL;
