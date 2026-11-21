@@ -119,7 +119,7 @@ Object.assign(SPECS, SPECS_AKTE2);
     ],
     shots: [],
     // direction templates (cineshots.js, #955)
-    cuts: [{ on: 2, dt: 0.8, tpl: 'trackIn', target: 'berend', angle: -75, hold: 5 }, { on: 3, tpl: 'shotReverse', a: 'tammo', b: 'berend', beats: [0] }, { on: 6, tpl: 'shotReverse', a: 'tammo', b: 'berend', beats: [0] }, { on: 7, tpl: 'shotReverse', a: 'berend', b: 'tammo', beats: [0, 4.2] }, { on: 8, tpl: 'shotReverse', a: 'tessa', b: 'berend', beats: [0] }, { on: 11, tpl: 'langzameZoom', target: 'berend', fov0: 34, fov1: 22, hold: 2 }],
+    cuts: [{ on: 2, tpl: 'trackIn', target: 'berend', angle: -75, hold: 5 }, { on: 3, tpl: 'shotReverse', a: 'tammo', b: 'berend', beats: [0] }, { on: 6, tpl: 'shotReverse', a: 'tammo', b: 'berend', beats: [0] }, { on: 7, tpl: 'shotReverse', a: 'berend', b: 'tammo', beats: [0, 4.2] }, { on: 8, tpl: 'shotReverse', a: 'tessa', b: 'berend', beats: [0] }, { on: 11, tpl: 'langzameZoom', target: 'berend', fov0: 34, fov1: 22, hold: 2 }],
     wide: { from: [-5.5, 4.5, 3.4], to: [-3.2, 3.3, 2.6], look: 'mid:berend,bakkie@1', fov: 48, until: 1 },
   };
 
@@ -708,8 +708,10 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
       const farSide = me === 'tammo' || me === 'tessa';
       shot = k === 0 ? CAMS.cut(duoSide, farSide) : k === 1 ? CAMS.dolly(duoSide, farSide) : k === 2 ? CAMS.orbit(duoSide, farSide, farSide ? 160 + i * 20 : 20 + i * 25) : k === 3 ? CAMS.high(duoSide, farSide) : CAMS.close(duoSide, farSide);
     }
-    const dt = shot.dt || 0;
+    let dt = shot.dt || 0;
     delete shot.dt;
+    // #1146 (R-12): the establishing shot lasts at least 0.9 s: the first frame of the coverage never starts earlier (no flicker)
+    if (i === 0 && l.at + dt > 0.05 && l.at + dt < 0.9) dt = Math.round((0.9 - l.at) * 100) / 100;
     const t = tspec(i, dt);
     shots.push({ t, ...shot });
     lastT = l.at + dt; lastSpeaker = me; lastIdx = i;
@@ -735,7 +737,11 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
   // the closing frame: back out to the street
   const wend = spec.wide ? { shot: 'dolly', from: [spec.wide.to[0] + 0.5, spec.wide.to[1], spec.wide.to[2] + 0.3], to: [spec.wide.to[0] + 2.2, spec.wide.to[1] * 0.9, spec.wide.to[2] + 1.2], look: spec.wide.look, fov: spec.wide.fov || 48 } : null;
   const lastLine = lines[lines.length - 1];
-  if (wend && !spec.manual && lastLine.dur > 1.6) shots.push({ t: tspec(lines.length - 1, Math.max(1.0, lastLine.dur - 1.4)), ...wend });
+  if (wend && !spec.manual && lastLine.dur > 1.6) {
+    // the closing frame comes at least a second after the shot before it (#1146: no flicker on the last line)
+    const prevAt = shots.reduce((m, q) => Math.max(m, typeof q.t === 'number' ? q.t : (m2 => (m2 && lines[+m2[1]] ? lines[+m2[1]].at + (m2[2] ? +m2[2] : 0) : 0))(/^L([0-9]+)([+-][0-9.]+)?$/.exec(q.t))), 0);
+    shots.push({ t: tspec(lines.length - 1, Math.max(1.0, lastLine.dur - 1.4, Math.round((prevAt + 1.0 - lastLine.at) * 100) / 100)), ...wend });
+  }
   if (spec.cuts && spec.cuts.length) { const tn = (t) => { if (typeof t === 'number') return t; const m = /^L(\d+)([+-][\d.]+)?$/.exec(t); return m && lines[+m[1]] ? lines[+m[1]].at + (m[2] ? +m[2] : 0) : 0; }; shots.sort((x, y) => tn(x.t) - tn(y.t)); for (let i = shots.length - 1; i > 0; i--) if (tn(shots[i].t) - tn(shots[i - 1].t) < 0.05) shots.splice(i - 1, 1); }
   splitLongShots(shots, lines, endT, (i, near) => {
     const me = speakerActor(lines[i].speaker);
