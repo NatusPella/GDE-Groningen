@@ -139,8 +139,7 @@ const SP_CSS = `<style data-spul-css>
 #pause-menu .sp-ph{position:absolute;inset:0;display:grid;place-items:center;color:var(--g)}
 #pause-menu .sp-ph img{width:100%;height:100%;object-fit:contain;transition:transform var(--ds-m-lang,250ms) var(--ds-m-uit,ease-out);animation:sp-in var(--ds-m-midden,150ms) var(--ds-m-uit,ease-out) both}
 #pause-menu .sp-tile:hover .sp-ph img,#pause-menu .sp-tile:focus-visible .sp-ph img{transform:scale(1.07)}
-#pause-menu .sp-ph[data-state="laden"]::before,#pause-menu .sp-stage[data-state="laden"]:not([data-still])::before{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,color-mix(in srgb,var(--ink) 9%,transparent) 50%,transparent 70%) 0 0/220% 100%;animation:sp-skel 1.3s linear infinite}
-@keyframes sp-skel{from{background-position:120% 0}to{background-position:-120% 0}}
+#pause-menu .sp-ph[data-state="laden"]::before,#pause-menu .sp-stage[data-state="laden"]:not([data-still])::before{content:"";position:absolute;inset:18% 22%;border-radius:12px;background:color-mix(in srgb,var(--ink) 9%,transparent)}
 #pause-menu .sp-ph svg{width:34px;height:34px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 #pause-menu .sp-tile__t{font-size:15px;line-height:1.2;max-width:100%;overflow-wrap:break-word;hyphens:auto;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.4em}
 #pause-menu .sp-tile__s{font-size:13px;line-height:1.2;color:var(--mut);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -198,7 +197,6 @@ html.reduce-motion #pause-menu .sp-tile,html.reduce-motion #pause-menu .sp-tile:
 #pause-menu [data-panel="spullen"] .m-pane > .m-acts.td-acts{position:static;padding:0;margin:0}
 #pause-menu .sp-stage-voet [hidden]{display:none}
 @media (prefers-reduced-motion:reduce){#pause-menu .sp-model,#pause-menu .sp-stage canvas,#pause-menu .sp-stage .sp-ic{transition:none;animation:none}}
-html.reduce-motion #pause-menu .sp-ph[data-state="laden"]::before,html.reduce-motion #pause-menu .sp-stage[data-state="laden"]::before{animation:none}
 html.reduce-motion #pause-menu .sp-model,html.reduce-motion #pause-menu .sp-stage canvas,html.reduce-motion #pause-menu .sp-stage .sp-ic,html.reduce-motion #pause-menu .sp-stage[data-state="laden"] .sp-ic{transition:none;animation:none}
 </style>`;
 

@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { HABBO_PALETTE, SkinBuilder, loftGeometry, composeMatrix, vcMaterial, markShared, tubeGeometry } from './pixelart3d.js';
 import { hash2 } from './rng.js';
+import { weaponLayers } from './models3d_weapons.js';
 import { footContact, turnLean, approachTo, wrapPi, fidgetAt } from './gait.js';
 import { idlePose } from './idleclips.js';
 import { attachAccessories } from './models3d_clothing.js';
@@ -1443,64 +1444,34 @@ function setArm(arm, elbow, z, e, x = 0) {
   if (elbow) elbow.rotation.z = e;
 }
 
-// Guns in the right hand. Built along the forearm bone: -y runs down the
-// forearm towards the fingers (forward once the arm is raised), +x is the
-// back of the hand (up when aiming). userData.muzzle marks the barrel tip.
-const GUN_MAT = markShared(new THREE.MeshStandardMaterial({ color: 0x1b1c1f, roughness: 0.45, metalness: 0.6 }));
-const GUN_WOOD = markShared(new THREE.MeshStandardMaterial({ color: 0x5a3a22, roughness: 0.7 }));
+// Guns in the right hand. The models (parts, materials, merged per material) live in models3d_weapons.js, built along the forearm
+// bone: -y runs down the forearm towards the fingers (forward once the arm is raised), +x is the back of the hand (up when
+// aiming). userData.muzzle marks the barrel tip.
 const HAND_Y = -0.575;
-const heldMat = (color, roughness = 0.7, metalness = 0) => markShared(new THREE.MeshStandardMaterial({ color, roughness, metalness }));
-const BAT_WOOD = heldMat(0xc9a36a, 0.6);
-const POLE_WOOD = heldMat(0x8a6a3e, 0.75);
-const STICK_BLACK = heldMat(0x202226, 0.5);
-const TAPE_WHITE = heldMat(0xe8e6e0, 0.8);
-const BRISTLE = heldMat(0x9c7a3c, 0.95);
-const PUMP_METAL = heldMat(0xb8bec4, 0.35, 0.8);
-const KLOMP_YELLOW = heldMat(0xe0b640, 0.7);
-const TOY_GREEN = heldMat(0x2fb56a, 0.4);
-const TOY_ORANGE = heldMat(0xf0892a, 0.4);
-const CHURN_GREY = heldMat(0x9aa2a8, 0.4, 0.7);
-const ROCKET_RED = heldMat(0xc8261e, 0.6);
-// parts: [x, thickness along x, length down the hand (-y), width (z), y, material, 'c' = round].
-// rest: tilt forward while carried (rad); two: second hand on it when aimed.
+// tip: distance of the muzzle / business end from the palm (m); rest: tilt forward while carried (rad); two: second hand on it
+// when aimed; melee: a swing weapon.
 const GUN_SPECS = {
-  pistol: { parts: [[0.035, 0.03, 0.2, 0.03, -0.075, GUN_MAT], [-0.02, 0.08, 0.035, 0.028, 0, GUN_MAT]], tip: 0.19 },
-  uzi: { parts: [[0.03, 0.055, 0.27, 0.045, -0.1, GUN_MAT], [-0.03, 0.09, 0.035, 0.03, 0.01, GUN_MAT], [-0.055, 0.12, 0.03, 0.025, -0.1, GUN_MAT]], tip: 0.25, two: true },
-  shotgun: { parts: [[0.03, 0.04, 0.62, 0.04, -0.2, GUN_MAT], [0.0, 0.05, 0.26, 0.05, -0.12, GUN_WOOD], [-0.01, 0.07, 0.3, 0.05, 0.2, GUN_WOOD]], tip: 0.52, two: true },
-  jachtgeweer: { parts: [[0.03, 0.03, 0.9, 0.03, -0.32, GUN_MAT], [0.0, 0.055, 0.3, 0.045, -0.1, GUN_WOOD], [-0.01, 0.075, 0.34, 0.05, 0.25, GUN_WOOD], [0.085, 0.045, 0.26, 0.045, -0.1, GUN_MAT, 'c']], tip: 0.95, two: true },
-  waterpistool: { parts: [[0.035, 0.06, 0.22, 0.05, -0.06, TOY_GREEN], [0.1, 0.08, 0.11, 0.07, -0.03, TOY_ORANGE, 'c'], [-0.025, 0.08, 0.045, 0.035, 0, TOY_GREEN]], tip: 0.2 },
-  knuppel: { parts: [[0, 0.035, 0.34, 0.035, 0.1, BAT_WOOD, 'c'], [0, 0.07, 0.5, 0.07, -0.24, BAT_WOOD, 'c']], tip: 0.7, rest: 2.5, melee: true },
-  hockeystick: { parts: [[0, 0.03, 0.95, 0.03, 0.16, STICK_BLACK, 'c'], [-0.07, 0.2, 0.06, 0.03, -0.72, TAPE_WHITE]], tip: 0.75, rest: 0.55, melee: true },
-  bezem: { parts: [[0, 0.03, 1.2, 0.03, 0.34, POLE_WOOD, 'c'], [0, 0.07, 0.12, 0.34, -0.8, BRISTLE]], tip: 0.95, rest: 0.35, melee: true },
-  fietspomp: { parts: [[0, 0.045, 0.44, 0.045, -0.02, PUMP_METAL, 'c'], [0, 0.03, 0.03, 0.16, 0.08, STICK_BLACK]], tip: 0.42, rest: 0.9, melee: true },
-  klomp: { parts: [[0.02, 0.13, 0.28, 0.11, 0.02, KLOMP_YELLOW], [-0.01, 0.09, 0.08, 0.1, -0.26, KLOMP_YELLOW]], tip: 0.34, rest: 1.5, melee: true },
-  polsstok: { parts: [[0, 0.05, 3.4, 0.05, 1.1, POLE_WOOD, 'c']], tip: 2.3, rest: 1.35, melee: true, two: true },
-  carbidbus: { parts: [[0, 0.3, 0.38, 0.3, 0.02, CHURN_GREY, 'c'], [0, 0.2, 0.06, 0.2, -0.34, CHURN_GREY, 'c']], tip: 0.3, rest: 0 },
-  vuurwerk: { parts: [[0, 0.07, 0.24, 0.07, -0.02, ROCKET_RED, 'c'], [0.04, 0.012, 0.6, 0.012, 0.4, BAT_WOOD]], tip: 0.2, rest: 2.8 },
+  pistol: { tip: 0.2 },
+  uzi: { tip: 0.29, two: true },
+  shotgun: { tip: 0.68, two: true },
+  jachtgeweer: { tip: 0.96, two: true },
+  waterpistool: { tip: 0.27 },
+  knuppel: { tip: 0.71, rest: 2.5, melee: true },
+  hockeystick: { tip: 0.8, rest: 0.55, melee: true },
+  bezem: { tip: 1.08, rest: 0.35, melee: true },
+  fietspomp: { tip: 0.5, rest: 0.9, melee: true },
+  klomp: { tip: 0.31, rest: 1.5, melee: true },
+  polsstok: { tip: 2.3, rest: 1.35, melee: true, two: true },
+  carbidbus: { tip: 0.37, rest: 0 },
+  vuurwerk: { tip: 0.26, rest: 2.8 },
 };
-const gunGeos = {};
-function gunGeometry(key) {
-  if (gunGeos[key]) return gunGeos[key];
-  const parts = GUN_SPECS[key].parts.map(([x, h, len, w, y, , shape]) => (shape === 'c' ? new THREE.CylinderGeometry(w / 2, w / 2, len, 10) : new THREE.BoxGeometry(h, len, w)).translate(x, y - len * 0.5 + 0.06, 0));
-  const g = { geos: parts.map((pg) => markShared(pg)) };
-  gunGeos[key] = g;
-  return g;
-}
 
 // A loose weapon for the shop preview: length along +x, back of the hand up.
 export function buildWeaponMesh(key) {
-  const spec = GUN_SPECS[key];
-  if (!spec) return null;
-  const geo = gunGeometry(key);
+  const layers = GUN_SPECS[key] && weaponLayers(key);
+  if (!layers) return null;
   const inner = new THREE.Group();
-  spec.parts.forEach((pt, i) => inner.add(new THREE.Mesh(geo.geos[i], pt[5])));
-  // the hand normally hides the gap between barrel and grip
-  if (!spec.melee && spec.parts.length > 1 && spec.parts[0][2] < 0.4) {
-    const [x, h, , w, , m] = spec.parts[0];
-    const bridge = new THREE.Mesh(new THREE.BoxGeometry(h, 0.09, w), m);
-    bridge.position.set(x, 0.02, 0);
-    inner.add(bridge);
-  }
+  for (const l of layers) inner.add(new THREE.Mesh(l.geometry, l.material));
   inner.rotation.z = key === 'carbidbus' ? Math.PI : Math.PI / 2;
   const g = new THREE.Group();
   g.add(inner);
@@ -1522,8 +1493,7 @@ export function setHeldWeapon(mesh, weapon) {
   if (!g) {
     g = new THREE.Group();
     const spec = GUN_SPECS[key];
-    const geo = gunGeometry(key);
-    spec.parts.forEach((pt, i) => { const m = new THREE.Mesh(geo.geos[i], pt[5]); m.castShadow = true; g.add(m); });
+    for (const l of weaponLayers(key)) { const m = new THREE.Mesh(l.geometry, l.material); m.castShadow = true; g.add(m); }
     // pivot in the palm, so the gun can tilt forward while the arm hangs
     g.position.set(0.01, HAND_Y, 0);
     const tip = new THREE.Object3D();

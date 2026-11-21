@@ -115,7 +115,7 @@ t('iconen: elke tab, groep en soort heeft een bekend Phosphor-icoon, nooit het v
   const src = fs.readFileSync(new URL('../game/js/spullen.js', import.meta.url), 'utf8');
   assert.ok(!/icoon\([^)]*'vraag'/.test(src) && !/ICOON\[/.test(src), 'spullen.js tekent iconen via itemIcoon');
   assert.ok(!/border:2px dashed/.test(src), 'geen stippelvak als plaatsvervanger: een skeleton');
-  assert.match(src, /@keyframes sp-skel/);
+  assert.match(src, /data-state="laden"\]::before[^}]*color-mix/, "de skeleton is een rustig, vlak blok (DS3: geen lus, geen verloop)");
 });
 
 console.log(`spullenmodel_test:${n - fails}/${n}`);

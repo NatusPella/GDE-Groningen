@@ -153,3 +153,18 @@ Niets hiervan is in een echt venster gezien. Voor de coördinator, bij de beeldr
    en een paar vissen (voorn, baars, bot, paling, meerval).
 4. Pijltjes en D-pad op de focus van het model; Terugzetten met Enter en A; Beweging beperken (geen draai); geen model zonder WebGL (icoon blijft).
 5. Geheugen: een paar keer tussen tegels wisselen en het menu sluiten; geen groei van GL-contexten (de leakwatch in `blackframe.js`).
+
+## Wapens, vuisten en iconen (21-11, Spullen-wensen)
+
+- **Vuisten** zijn geen spul: uit de lijst, de galerij, de dekkingsaudit en de tellers (11 wapens, 99 dingen). Onbewapend blijft `world.weapon === 'fists'`;
+  een wapen in de hand krijgt in Spullen de actie "Wegleggen" (terug naar de vuisten). Het model `vuist` is weg.
+- **Iconen**: `spullenmodel.js` kent per tabblad (`CAT_ICOON`), per groep (`GROEP_ICOON`) en per soort (`SOORT_ICOON`, bv. mes, vis) een Phosphor-naam uit
+  `iconmap.js`; `itemIcoon` valt terug op de groep en daarna op de rugzak, nooit op het vraagteken (`vraag`). De tabs tonen hun pictogram; tijdens het laden
+  staat een rustig skeleton-vlak (geen stippelvak, geen lus: DS3). Test: `scripts/spullenmodel_test.mjs`.
+- **Wapenmodellen**: `game/js/models3d_weapons.js` is de ene bron voor de hand (`setHeldWeapon`), de eerste-persoonhanden (`firstpersonhands.js`), weggegooide
+  wapens (`weapondrops.js`) en de 3D-voorbeelden. Onderdelen (box, cilinder, draaivorm, romp door doorsneden) per materiaal samengevoegd: 96 tot 532 driehoeken
+  en hooguit 6 tekenaanroepen per wapen (de oude blokjes: 2 tot 5 vlakken). Test: `scripts/weapons3d_test.mjs` (budget, eigen silhouet via een contour-hash van
+  zij- en bovenaanzicht, windingsrichting, dispose, loopmond bij het uiteinde, geen tekst). Beeld: `node scripts/ui/weapons_mock.mjs` (headless Chrome, geen Electron);
+  `docs/beeld-21-11/spullen-wapens/wapens-0.6.png`.
+- **Nog niet in beeld bekeken** (alleen het headless blad hierboven): de wapens in de hand van het figuur en in de eerste persoon in het echte spel, de
+  zwaaihoeken en de muzzle flash op de nieuwe loopmonden, en het Spullen-scherm met de nieuwe tabiconen in Electron.
