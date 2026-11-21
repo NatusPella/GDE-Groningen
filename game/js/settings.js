@@ -2,6 +2,7 @@ import { normalizeKeyBinds, normalizePadBinds } from './controls.js';
 import { migrateSettings, SETTINGS_VERSION } from './savemigrate.js';
 import { VIEW_DISTANCES } from './viewdist.js';
 import { KEYS } from './storagekeys.js';
+import { WORLD_COLOR_MODES } from './worldcolormode.js';
 import { FLAGS } from './devflags.js';
 import { RAGE_CHOICES } from './roadragerules.js';
 import { SUBTITLE_CONTRASTS, TEXT_SIZES } from './a11ylogic.js';
@@ -72,6 +73,9 @@ const BASE_DEFAULTS = {
   // zet html.rustig-drukwerk (motion.js). Standaard aan op de Steam Deck (deck.js). Een oud bestand zonder
   // de sleutel valt op deze standaard terug, dus een versiesprong in savemigrate.js is niet nodig.
   rustigDrukwerk: false,
+  // Wereldkleur (worldgrade.js, 21-11): 'uit', 'subtiel' of 'drukwerk'; lokaal per speler (bij Samen spelen niet gesynchroniseerd). De materiaalkleuren
+  // gaan in na een herstart, licht en nabewerking meteen. Een oud bestand zonder de sleutel valt op de standaard terug.
+  worldColor: 'subtiel',
   // instap- en uitstapanimatie (#459): uit = meteen op je stoel, zonder deur open en
   // dicht en zonder de loop- en zitbeweging (Instellingen, Toegankelijkheid)
   stapAnimatie: true,
@@ -215,6 +219,7 @@ function load() {
     out.difficulty = cleanDifficulty(out.difficulty); // #800: onbekend of kapot valt terug op standaard
     if (!['cabine', 'achter', 'zij', 'boven'].includes(out.ritCamera)) out.ritCamera = DEFAULTS.ritCamera;
     if (!COLOR_BLIND_MODES.includes(out.colorBlind)) out.colorBlind = DEFAULTS.colorBlind;
+    if (!WORLD_COLOR_MODES.includes(out.worldColor)) out.worldColor = DEFAULTS.worldColor;
     if (!PAD_LAYOUT_CHOICES.includes(out.padLayout)) out.padLayout = DEFAULTS.padLayout;
     if (!HINT_SOURCE_CHOICES.includes(out.hintSource)) out.hintSource = DEFAULTS.hintSource;
     if (!TOUCH_CONTROLS_CHOICES.includes(out.touchControls)) out.touchControls = DEFAULTS.touchControls;

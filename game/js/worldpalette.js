@@ -9,6 +9,7 @@
 // - bij meng 0 is de uitkomst gelijk aan de invoer; de uitkomst is deterministisch en blijft binnen 0x000000..0xffffff;
 // - geen wintertint: alleen warme, groene en inktblauwe doelen, geen wit en geen kou.
 import { FLAGS } from './devflags.js';
+import { WORLD_COLOR_STRENGTH, storedWorldColor } from './worldcolormode.js';
 
 // De inkten van het designsysteem (gelijk aan ds-tokens.css en kaartkleuren.js) plus het ene inktblauwgroen van het water.
 export const WERELD_INKTEN = Object.freeze({
@@ -31,15 +32,18 @@ export const WERELD_ROLLEN = Object.freeze({
   water: { doel: 'water', w: 0.8, luma: true },   // inktblauwgroen, minder neon
   blauw: { doel: 'water', w: 0.6, luma: true },   // glas, schaduwtint
   papier: { doel: 'papier', w: 0.8, luma: false }, // wit (wegmarkering, kozijn) wordt papier
-  geel: { doel: 'geel', w: 0.5, luma: false },    // gerichte accenten: luifels, markers
-  roze: { doel: 'roze', w: 0.5, luma: false },
+  // gerichte accenten (luifels, markers): geel is 'volg dit' en blijft gereserveerd, dus ook bij Drukwerk trekt de wereld hooguit 0,25 naar het geel
+  geel: { doel: 'geel', w: 0.5, luma: true, max: 0.25 },
+  roze: { doel: 'roze', w: 0.5, luma: true, max: 0.3 },
 });
 
 let _meng = null;
-// De huidige menging: ?dswereld=0..1 in de URL (browser en Electron), anders de constante.
+// De huidige menging: ?dswereld=0..1 in de URL (browser en Electron), anders de stand van Instellingen > Beeld > Wereldkleur
+// (uit 0, subtiel 0,4 = WERELD_DS_MENG, drukwerk 0,65; worldcolormode.js). De materiaalkleuren liggen vast bij het bouwen: een
+// nieuwe stand werkt dus na een herstart; licht en nabewerking (worldgrade.js) volgen meteen.
 export function wereldMeng() {
   if (_meng !== null) return _meng;
-  let m = WERELD_DS_MENG;
+  let m = WORLD_COLOR_STRENGTH[storedWorldColor()].meng;
   const v = FLAGS.dswereld;
   if (v !== null && v !== undefined && v !== '' && Number.isFinite(Number(v))) m = Number(v);
   _meng = Math.max(0, Math.min(1, m));
@@ -53,17 +57,24 @@ const rgb = (hex) => [(hex >> 16) & 255, (hex >> 8) & 255, hex & 255];
 const pack = (r, g, b) => (Math.round(Math.max(0, Math.min(255, r))) << 16) | (Math.round(Math.max(0, Math.min(255, g))) << 8) | Math.round(Math.max(0, Math.min(255, b)));
 export const wereldLuma = (r, g, b) => 0.2126 * r + 0.7152 * g + 0.0722 * b; // 0..255 op de sRGB-waarden
 
-// Het doel op dezelfde helderheid als de bron: schaal, begrens, vul het tekort op.
-function matchLuma(t, L) {
-  const lt = wereldLuma(t[0], t[1], t[2]) || 1;
-  let o = [t[0] * L / lt, t[1] * L / lt, t[2] * L / lt];
-  for (let i = 0; i < 3; i++) {
-    o = o.map((v) => Math.max(0, Math.min(255, v)));
-    const d = L - wereldLuma(o[0], o[1], o[2]);
-    if (Math.abs(d) < 0.5) break;
+// Het doel op dezelfde helderheid als de bron, gemeten in lineair licht (de relatieve luminantie van de contrastregels van WCAG): schaal,
+// begrens, vul het tekort op. Voorheen op de sRGB-waarden gemeten; dan werd een donkerrode steen bij het mengen tot 30% lichter in
+// luminantie en verloor hij contrast tegen lichte markers (docs/WERELDKLEUR-21-11.md, worldgrade_test).
+const toLin = (v) => { const c = v / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+const fromLin = (v) => { const c = Math.max(0, Math.min(1, v)); return 255 * (c <= 0.0031308 ? c * 12.92 : 1.055 * c ** (1 / 2.4) - 0.055); };
+const linY = (r, g, b) => 0.2126 * r + 0.7152 * g + 0.0722 * b; // op lineaire waarden 0..1
+function matchLuma(t, srcRgb) {
+  const Y = linY(toLin(srcRgb[0]), toLin(srcRgb[1]), toLin(srcRgb[2]));
+  const lt = t.map(toLin);
+  const yt = linY(lt[0], lt[1], lt[2]) || 1e-6;
+  let o = lt.map((v) => v * Y / yt);
+  for (let i = 0; i < 4; i++) {
+    o = o.map((v) => Math.max(0, Math.min(1, v)));
+    const d = Y - linY(o[0], o[1], o[2]);
+    if (Math.abs(d) < 0.0005) break;
     o = o.map((v) => v + d);
   }
-  return o.map((v) => Math.max(0, Math.min(255, v)));
+  return o.map(fromLin);
 }
 
 // De rol van een kleur, afgeleid van tint, verzadiging en helderheid (vloeiende drempels zijn niet nodig: de verschillen tussen rollen zijn klein).
@@ -104,8 +115,8 @@ export function dsWereld(hex, rol = 'auto', meng = null) {
   if (spec) {
     const s = rgb(hex);
     let t = rgb(WERELD_INKTEN[spec.doel]);
-    if (spec.luma) t = matchLuma(t, wereldLuma(s[0], s[1], s[2]));
-    const k = Math.min(1, m * spec.w);
+    if (spec.luma) t = matchLuma(t, s);
+    const k = Math.min(spec.max === undefined ? 1 : spec.max, m * spec.w);
     out = pack(s[0] + (t[0] - s[0]) * k, s[1] + (t[1] - s[1]) * k, s[2] + (t[2] - s[2]) * k);
   }
   if (_cache.size > 20000) _cache.clear();
