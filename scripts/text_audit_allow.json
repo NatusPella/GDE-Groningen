@@ -280,6 +280,12 @@
     },
     {
       "rule": "url",
+      "term": "https://gtfs.ovapi.nl/nl/trainUpdates.pb",
+      "file": "livetreinen.js",
+      "why": "live treinvertragingen (#1085, zelfde regel als live bussen, constitutie 4 sinds 24-10): een leesopvraag (GET) naar openbare gegevens, zonder gegevens van de speler, met uitzetter in Instellingen en terugval op het rooster"
+    },
+    {
+      "rule": "url",
       "term": "http://schemas.xmlsoap.org/soap/envelope/",
       "file": "upnp.js",
       "why": "XML-naamruimte van het UPnP-protocol (samen spelen, poort openen); geen verbinding en geen tekst voor de speler"
