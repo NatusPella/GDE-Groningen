@@ -804,7 +804,8 @@ function boatContext(map) {
     return c;
   };
   return (map._boatCtx = {
-    isWater: (x, y) => idx.inWater(x, y) || isInWater(map, x, y),
+    // (#1089) een ontbrekende of verkeerde index mag nooit een fout geven: dan telt alleen de kaartregel
+    isWater: (x, y) => (idx && typeof idx.inWater === 'function' && idx.inWater(x, y)) || isInWater(map, x, y),
     clearance: (x, y) => waterClearance(map, x, y, 4),
     clearAt,
   });
