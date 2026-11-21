@@ -81,9 +81,12 @@ export function telBestand(f, src) {
     const stijl = css || html || bereiken.length > 0 || /\.style\b|cssText|<style/.test(k);
     let glas = 0;
     if (/--gron-green/.test(k)) glas++;
-    if (/backdrop-filter/.test(k)) glas++;
-    if (/(?:radial|linear|conic)-gradient\(/.test(k) && stijl) glas++;
-    if (/(?:^|[\s"'`{,.>+~(])\.gm(?![\w-])|class\s*=\s*["'`][^"'`]*\bgm\b|classList\.(?:add|toggle)\(\s*['"]gm['"]/.test(k)) glas++;
+    // een echte blur of saturatie achter het paneel; `backdrop-filter: none` is juist de zeefdrukvariant
+    if (/backdrop-filter\s*:\s*(?!none)/.test(k)) glas++;
+    // een zacht verloop (glans of schaduwvlak); een rasterstip, een streeppatroon (repeating-) en een mask (alleen alfa) zijn geen glas
+    if (/(?:radial|linear|conic)-gradient\(/.test(k) && stijl && !/repeating-|mask|--ds-raster|1\.1px/.test(k)) glas++;
+    // het donkere glas (.gm); .gm-zeef is de zeefdrukvariant daarvan
+    if (/(?:^|[\s"'`{,.>+~(])\.gm(?![\w-])|class\s*=\s*["'`][^"'`]*\bgm\b|classList\.(?:add|toggle)\(\s*['"]gm['"]/.test(k) && !/gm-zeef/.test(k)) glas++;
     let oud = 0;
     if (/\bds-(?:kaart|knop|chip|papier|glas|streep)\b/.test(k)) oud++;
     let font = 0;

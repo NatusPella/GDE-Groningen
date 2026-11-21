@@ -7,22 +7,22 @@
   "klein": 0
  },
  "game/index.html": {
-  "kleur": 4,
-  "glas": 10,
+  "kleur": 1,
+  "glas": 5,
   "oud": 0,
   "font": 0,
   "klein": 0
  },
  "game/js/a11y.css": {
   "kleur": 0,
-  "glas": 5,
+  "glas": 1,
   "oud": 2,
   "font": 0,
   "klein": 0
  },
  "game/js/achievements.js": {
   "kleur": 0,
-  "glas": 6,
+  "glas": 4,
   "oud": 0,
   "font": 0,
   "klein": 0
@@ -83,20 +83,6 @@
   "font": 0,
   "klein": 0
  },
- "game/js/cinematics.js": {
-  "kleur": 0,
-  "glas": 1,
-  "oud": 0,
-  "font": 0,
-  "klein": 0
- },
- "game/js/cockpit.js": {
-  "kleur": 0,
-  "glas": 1,
-  "oud": 0,
-  "font": 0,
-  "klein": 0
- },
  "game/js/coopoverlay.js": {
   "kleur": 0,
   "glas": 1,
@@ -106,7 +92,7 @@
  },
  "game/js/coopscene.js": {
   "kleur": 0,
-  "glas": 3,
+  "glas": 0,
   "oud": 0,
   "font": 1,
   "klein": 0
@@ -127,7 +113,7 @@
  },
  "game/js/ds-menu-zeef.css": {
   "kleur": 0,
-  "glas": 2,
+  "glas": 1,
   "oud": 0,
   "font": 0,
   "klein": 0
@@ -169,7 +155,7 @@
  },
  "game/js/heist.css": {
   "kleur": 13,
-  "glas": 10,
+  "glas": 6,
   "oud": 0,
   "font": 0,
   "klein": 0
@@ -190,14 +176,14 @@
  },
  "game/js/hud_panel.css": {
   "kleur": 12,
-  "glas": 34,
+  "glas": 12,
   "oud": 0,
   "font": 0,
   "klein": 0
  },
  "game/js/hudcards.css": {
   "kleur": 0,
-  "glas": 3,
+  "glas": 2,
   "oud": 0,
   "font": 0,
   "klein": 0
@@ -223,13 +209,6 @@
   "font": 0,
   "klein": 0
  },
- "game/js/loadscreen.css": {
-  "kleur": 0,
-  "glas": 1,
-  "oud": 0,
-  "font": 0,
-  "klein": 0
- },
  "game/js/lowhealth.js": {
   "kleur": 0,
   "glas": 2,
@@ -246,7 +225,7 @@
  },
  "game/js/menu.css": {
   "kleur": 16,
-  "glas": 40,
+  "glas": 39,
   "oud": 0,
   "font": 0,
   "klein": 0
@@ -274,7 +253,7 @@
  },
  "game/js/pausemenu.css": {
   "kleur": 1,
-  "glas": 23,
+  "glas": 18,
   "oud": 0,
   "font": 3,
   "klein": 0
@@ -302,7 +281,7 @@
  },
  "game/js/prompts.css": {
   "kleur": 0,
-  "glas": 14,
+  "glas": 5,
   "oud": 0,
   "font": 0,
   "klein": 0
@@ -316,7 +295,7 @@
  },
  "game/js/regelwidget.css": {
   "kleur": 0,
-  "glas": 5,
+  "glas": 1,
   "oud": 0,
   "font": 0,
   "klein": 0
@@ -407,7 +386,7 @@
  },
  "game/js/stunthud.js": {
   "kleur": 2,
-  "glas": 10,
+  "glas": 0,
   "oud": 0,
   "font": 0,
   "klein": 0

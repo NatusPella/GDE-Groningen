@@ -107,7 +107,7 @@ body.hud-call-on #hud .hud-nowplaying, body.hud-call-on #hud .hud-vehname, body.
   pointer-events: none;
 }
 #hud .hud-count.on { animation: hc-count 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; }
-#hud .hud-count[data-go="1"] { color: var(--gron-green-light); font-size: calc(var(--ds-t-moment-getal) * 0.8); }
+#hud .hud-count[data-go="1"] { color: var(--ds-c-licht-groen); font-size: calc(var(--ds-t-moment-getal) * 0.8); }
 @keyframes hc-count { 0% { opacity: 0; transform: translate(-50%, -50%) scale(1.8); } 25% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); } }
 
 @media (max-height: 640px) {

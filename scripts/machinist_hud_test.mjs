@@ -31,7 +31,7 @@ ok(/tc-speed/.test(cab) && /tc-lever/.test(cab), 'cabine: snelheid en tractiehen
 }
 
 // Tokens en geen eigen keycapstijl in de cabine; reduce-motion en reduce-flash stoppen de waarschuwing.
-ok(/--mk-/.test(cab) && /--gron-green/.test(cab), 'cabine: kleuren uit de tokens');
+ok(/--mk-/.test(cab) && /--gron-green|--ds-c-licht-groen/.test(cab), 'cabine: kleuren uit de tokens');
 ok(/class="hud-key"/.test(cab) || /\.hud-key/.test(cab), 'cabine: de canonieke keycap');
 ok(/html\.reduce-motion #hud \.tc-cab \.tc-alert, html\.reduce-flash #hud \.tc-cab \.tc-alert \{ animation: none !important/.test(cab), 'cabine: beweging en flitsen beperken stopt het knipperen');
 ok(/@media \(prefers-reduced-motion: reduce\) \{ #hud \.tc-cab \.tc-alert \{ animation: none/.test(cab), 'cabine: prefers-reduced-motion stopt het knipperen');

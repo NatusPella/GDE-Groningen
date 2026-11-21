@@ -98,7 +98,7 @@ html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-speedo.hurt 
 #pause-menu .pm-bindbtn { min-width: 92px; justify-content: center; }
 #pause-menu .pm-bindbtn .hud-key { min-width: 30px; height: 26px; padding: 0 8px; font-size: 14px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; }
 #pause-menu .pm-bindbtn.pm-changed { border-color: var(--pm-acc, #3fc97a); }
-#pause-menu .pm-bindbtn.pm-waiting { color: var(--ds-c-glas); background: linear-gradient(180deg, var(--ds-c-licht-groen), var(--ds-c-licht-groen)); }
+#pause-menu .pm-bindbtn.pm-waiting { color: var(--ds-c-glas); background: var(--ds-c-licht-groen); }
 #pause-menu .pm-bindmsg:empty { display: none; }
 .pm-pad-g { display: inline-flex; align-items: center; margin: 0 2px; vertical-align: middle; }
 .pm-pad-g .pad-g { height: 22px; min-width: 22px; }

@@ -718,7 +718,7 @@ const CSS = `
    de onderkant in plaats van eroverheen te vallen (#504). */
 body.mg-on #hud .ach-toast { top: auto; bottom: max(calc(13vh / var(--ui, 1)), 104px); }
 #hud .ach-toast .ach-ico { flex: none; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center;
-  background: radial-gradient(circle at 35% 30%, var(--mk-ok, #6fe39d) 0%, var(--gron-green, #1e9e56) 70%); color: var(--ds-c-glas); box-shadow: 0 0 16px color-mix(in srgb, var(--ds-c-licht-groen) 50%, transparent); }
+  background: radial-gradient(circle at 35% 30%, var(--mk-ok, #6fe39d) 0%, var(--ds-c-licht-groen) 70%); color: var(--ds-c-glas); box-shadow: 0 0 16px color-mix(in srgb, var(--ds-c-licht-groen) 50%, transparent); }
 #hud .ach-toast .ach-pic { width: 26px; height: 26px; }
 #hud .ach-toast.gold { border-left-color: var(--mk-mission, #e8c93a); }
 #hud .ach-toast.gold .ach-ico { background: radial-gradient(circle at 35% 30%, var(--mk-mission, #fff0a8) 0%, var(--mk-mission, #d9a91e) 70%); box-shadow: 0 0 16px color-mix(in srgb, var(--ds-c-ink-geel) 55%, transparent); }

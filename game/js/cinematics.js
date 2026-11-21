@@ -1039,7 +1039,7 @@ function showWijkCard(w, wijk, left = 30) {
 #wijk-card.on { opacity: 1; transform: none; }
 #wijk-card .wc-kick { font-family: var(--ds-font-kop); font-size: 18px; letter-spacing: .2em; color: var(--ds-c-licht-groen); }
 #wijk-card .wc-name { font-family: var(--ds-font-kop); font-size: clamp(44px, 6vw, 84px); line-height: .9; letter-spacing: 1px; text-transform: uppercase; }
-#wijk-card .wc-name::after { content: ''; display: block; width: 120px; height: 4px; margin-top: 8px; background: linear-gradient(90deg, var(--ds-c-licht-groen), var(--ds-c-licht-groen)); }
+#wijk-card .wc-name::after { content: ''; display: block; width: 120px; height: 4px; margin-top: 8px; background: var(--ds-c-licht-groen); }
 #wijk-card .wc-line { font-family: var(--ds-font-tekst); font-size: clamp(16px, 1.6vw, 22px); margin-top: 8px; }
 #wijk-card .wc-hi { font-family: var(--ds-font-tekst); font-size: clamp(14px, 1.3vw, 18px); margin-top: 8px; color: color-mix(in srgb, var(--ds-c-creme) 75%, transparent); }
 #wijk-card .wc-hi:empty { display: none; }

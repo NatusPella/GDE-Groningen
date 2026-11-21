@@ -14,7 +14,7 @@
   height: 0;
   opacity: 0;
   will-change: transform;
-  --wp-accent: var(--gron-green-light);
+  --wp-accent: var(--ds-c-licht-groen);
   --wp-line: color-mix(in srgb, var(--ds-c-creme) 85%, transparent);
 }
 #hud .wp[data-kind="steal"], #hud .wp[data-kind="danger"] { --wp-accent: var(--ds-c-creme); }
@@ -135,7 +135,7 @@
 #hud .hud-hold-ring circle { fill: none; stroke-width: 2.4; }
 #hud .hud-hold-ring .r-bg { stroke: color-mix(in srgb, var(--ds-c-creme) 14%, transparent); }
 #hud .hud-hold-ring .r-fg {
-  stroke: var(--gron-green-light);
+  stroke: var(--ds-c-licht-groen);
   stroke-dasharray: 100;
   stroke-dashoffset: 100;
   stroke-linecap: round;
@@ -147,8 +147,8 @@
 #hud .hud-mouse .m-body { fill: color-mix(in srgb, var(--ds-c-glas-3) 90%, transparent); stroke: color-mix(in srgb, var(--ds-c-wit) 55%, transparent); stroke-width: 1.2; }
 #hud .hud-mouse .m-seam { stroke: color-mix(in srgb, var(--ds-c-wit) 35%, transparent); stroke-width: 0.9; fill: none; }
 #hud .hud-mouse .m-l, #hud .hud-mouse .m-r, #hud .hud-mouse .m-w { fill: transparent; }
-#hud .hud-mouse[data-btn="l"] .m-l, #hud .hud-mouse[data-btn="r"] .m-r, #hud .hud-mouse[data-btn="w"] .m-w { fill: var(--gron-green-light); }
-#hud .hud-mouse[data-btn="move"] .m-body { stroke: var(--gron-green-light); }
+#hud .hud-mouse[data-btn="l"] .m-l, #hud .hud-mouse[data-btn="r"] .m-r, #hud .hud-mouse[data-btn="w"] .m-w { fill: var(--ds-c-licht-groen); }
+#hud .hud-mouse[data-btn="move"] .m-body { stroke: var(--ds-c-licht-groen); }
 #hud .wp-glyph .hud-mouse { width: 17px; height: 24px; }
 #hud .wp-learn .wp-glyph .hud-mouse { width: 20px; height: 28px; }
 
@@ -223,17 +223,17 @@ body.heli-flying #hud .hud-vehname { display: none; }
 }
 #hud .ctx-row.icon { padding: 4px 7px; gap: 6px; opacity: 0.82; }
 #hud .ctx-row.rare .ctx-text b { font-size: 13px; letter-spacing: 1.5px; color: color-mix(in srgb, var(--ds-c-creme) 80%, transparent); }
-#hud .ctx-row.new .ctx-pic { stroke: var(--gron-green-light); }
-#hud .ctx-row.new .ctx-text b { color: var(--gron-green-light); }
+#hud .ctx-row.new .ctx-pic { stroke: var(--ds-c-licht-groen); }
+#hud .ctx-row.new .ctx-text b { color: var(--ds-c-licht-groen); }
 
 #hud .ctx-row.learn {
   padding: 7px 12px 7px 10px;
-  border-right: 3px solid var(--gron-green-light);
+  border-right: 3px solid var(--ds-c-licht-groen);
   background: linear-gradient(270deg, color-mix(in srgb, var(--ds-c-glas-2) 88%, transparent), color-mix(in srgb, var(--ds-c-glas) 40%, transparent));
   box-shadow: 0 0 14px color-mix(in srgb, var(--ds-c-licht-groen) 25%, transparent);
 }
-#hud .ctx-row.learn .ctx-pic { width: 28px; height: 28px; stroke: var(--gron-green-light); }
-#hud .ctx-row.learn .ctx-text b { font-size: 22px; color: var(--gron-green-light); }
+#hud .ctx-row.learn .ctx-pic { width: 28px; height: 28px; stroke: var(--ds-c-licht-groen); }
+#hud .ctx-row.learn .ctx-text b { font-size: 22px; color: var(--ds-c-licht-groen); }
 #hud .ctx-row.learn .hud-key { min-width: 26px; height: 26px; font-size: 14px; }
 #hud .ctx-row.learn .hud-wasd .hud-key { min-width: 16px; height: 16px; font-size: var(--hud-min); }
 #hud .ctx-row.learn .hud-mouse { width: 19px; height: 27px; }

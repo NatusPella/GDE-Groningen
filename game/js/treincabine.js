@@ -101,7 +101,7 @@ export const distText = (m) => (m < 0 ? 'voorbij' : m >= 1000 ? `${(m / 1000).to
 const CSS = `
 #hud .tc-cab[hidden], #hud .tc-result[hidden] { display: none; }
 #hud .tc-cab { position: absolute; bottom: var(--hud-bottom, 22px); left: max(300px, calc(50% - 350px)); display: grid; grid-template-columns: auto auto auto minmax(190px, 1fr); gap: 4px 18px; align-items: center; width: min(700px, calc(100vw - 316px)); padding: 10px 18px 8px 14px; color: var(--ds-c-creme); text-shadow: var(--hud-shadow); pointer-events: none; z-index: 4;
-  background: linear-gradient(0deg, color-mix(in srgb, var(--ds-c-glas) 96%, transparent), color-mix(in srgb, var(--ds-c-glas-2) 90%, transparent)); border-bottom: 3px solid var(--gron-green, #1e9e56); }
+  background: linear-gradient(0deg, color-mix(in srgb, var(--ds-c-glas) 96%, transparent), color-mix(in srgb, var(--ds-c-glas-2) 90%, transparent)); border-bottom: 3px solid var(--ds-c-licht-groen); }
 #hud .tc-cab .tc-sign { width: 58px; height: 58px; border-radius: 50%; background: var(--ink, #f0ede4); border: 6px solid var(--mk-danger, #d93f3f); color: var(--gd, #0f5c30); font: bold 22px Arial, sans-serif; display: flex; align-items: center; justify-content: center; text-shadow: none; }
 #hud .tc-cab .tc-sign.none { background: color-mix(in srgb, var(--ds-c-creme) 12%, transparent); border-color: color-mix(in srgb, var(--ds-c-creme) 30%, transparent); color: color-mix(in srgb, var(--ds-c-creme) 50%, transparent); font-size: 14px; }
 #hud .tc-cab .tc-speed { text-align: center; line-height: 1; }
@@ -115,7 +115,7 @@ const CSS = `
 #hud .tc-cab .tc-lever i.zero { border-left: 4px solid var(--mut, rgba(240,237,228,0.5)); }
 #hud .tc-cab .tc-lever i.on { background: color-mix(in srgb, var(--mk-mission, #e8c93a) 40%, transparent); color: var(--ink, #fff); }
 #hud .tc-cab .tc-next { min-width: 0; }
-#hud .tc-cab .tc-next small { display: block; font-size: 13px; letter-spacing: 3px; color: var(--gron-green, #1e9e56); filter: brightness(1.35); }
+#hud .tc-cab .tc-next small { display: block; font-size: 13px; letter-spacing: 3px; color: var(--ds-c-licht-groen); filter: brightness(1.35); }
 #hud .tc-cab .tc-next b { display: block; font-weight: normal; font-size: 21px; letter-spacing: 1px; color: var(--ds-c-creme); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #hud .tc-cab .tc-next span { display: block; font-size: 15px; color: color-mix(in srgb, var(--ds-c-creme) 85%, transparent); }
 #hud .tc-cab .tc-next em { font-style: normal; color: var(--mk-mission, #e8c93a); }
@@ -132,7 +132,7 @@ const CSS = `
 #hud .tc-intro { position: absolute; bottom: calc(var(--hud-bottom, 22px) + 190px); left: 50%; transform: translateX(-50%); width: min(560px, calc(100vw - 32px)); padding: 10px 16px; color: var(--ds-c-creme); font-size: 15px; line-height: 1.6; background: color-mix(in srgb, var(--ds-c-glas) 88%, transparent); border-left: 3px solid var(--mk-mission, #e8c93a); pointer-events: none; z-index: 4; text-shadow: var(--hud-shadow); }
 #hud .tc-intro[hidden] { display: none; }
 #hud .tc-intro b { font-weight: normal; color: var(--mk-mission, #e8c93a); letter-spacing: 2px; font-size: 13px; display: block; }
-#hud .tc-result { position: absolute; top: 18%; left: 50%; transform: translateX(-50%); min-width: 340px; padding: 14px 22px 12px; color: var(--ds-c-creme); background: color-mix(in srgb, var(--ds-c-glas) 93%, transparent); border-top: 3px solid var(--gron-green, #1e9e56); pointer-events: none; z-index: 5; text-shadow: var(--hud-shadow); }
+#hud .tc-result { position: absolute; top: 18%; left: 50%; transform: translateX(-50%); min-width: 340px; padding: 14px 22px 12px; color: var(--ds-c-creme); background: color-mix(in srgb, var(--ds-c-glas) 93%, transparent); border-top: 3px solid var(--ds-c-licht-groen); pointer-events: none; z-index: 5; text-shadow: var(--hud-shadow); }
 #hud .tc-result small { display: block; font-size: 13px; letter-spacing: 3px; color: var(--g, #3fc97a); }
 #hud .tc-result h3 { margin: 2px 0 8px; font-weight: normal; font-size: 30px; letter-spacing: 2px; color: var(--mk-mission, #e8c93a); }
 #hud .tc-result .tc-score { display: flex; justify-content: space-between; gap: 24px; font-size: 18px; padding: 2px 0; border-bottom: 1px solid color-mix(in srgb, var(--ds-c-creme) 12%, transparent); }

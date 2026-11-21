@@ -16,7 +16,7 @@ ok(/font-style: italic/.test(css) && /Arial Narrow/.test(css), 'de notitie is cu
 // Goud en canvasdonker uit de tokens/chroom, geen eigen hexen.
 ok(!/#f2c14e|#0f1c13/.test(js), 'geen eigen goud of canvasdonker meer');
 ok(/markerColors\(\)\.mission/.test(js), 'het goud komt uit de mission-token (markerColors)');
-ok(/var\(--mk-mission|var\(--mk-job|var\(--mk-ok|var\(--mk-danger|var\(--gron-green/.test(css), 'de heistkleuren komen uit de tokens');
+ok(/var\(--mk-mission|var\(--mk-job|var\(--mk-ok|var\(--mk-danger|var\(--gron-green|var\(--ds-c-licht-groen/.test(css), 'de heistkleuren komen uit de tokens');
 ok(/border-top: 3px solid var\(--mk-job/.test(css) && /repeating-linear-gradient/.test(css), 'de sfeerband (maat, nacht) staat op panelen en bouwtekening');
 
 // Rolchip en skipchip in heist.css, 44 px op touch, met pad-glyph.
