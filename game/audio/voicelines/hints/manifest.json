@@ -127,6 +127,10 @@
 "src": "anita/de_tankwagen_blijft_bij_de_ooste_04cf0582.mp3",
 "dur": 4.27
 },
+"Anita|De trein staat stil, de machinist zit op een bank. Naar de kop van de trein.": {
+"src": "anita/de_trein_staat_stil_de_machinist_0922bc74.mp3",
+"dur": 5.01
+},
 "Anita|De trekker staat bij de schuur. Instappen, de kratten staan achterop.": {
 "src": "anita/de_trekker_staat_bij_de_schuur_i_3476d507.mp3",
 "dur": 4.09
@@ -255,6 +259,10 @@
 "src": "anita/het_logboek_van_12_augustus_blij_4d89f6cc.mp3",
 "dur": 5.64
 },
+"Anita|Het perron in Veendam. De machinist eet een eierbal op een bank.": {
+"src": "anita/het_perron_in_veendam_de_machini_0769a2f2.mp3",
+"dur": 4.58
+},
 "Anita|Het piepje wordt sneller. Achter het station, bij de goederentrein. Perron 3.": {
 "src": "anita/het_piepje_wordt_sneller_achter__fe9a4987.mp3",
 "dur": 4.28
@@ -314,6 +322,10 @@
 "Anita|Instappen bij Roelf. Spatie omhoog, W vooruit, A/D draaien. De rest staat in beeld.": {
 "src": "anita/instappen_bij_roelf_spatie_omhoo_196b8237.mp3",
 "dur": 6.18
+},
+"Anita|Instappen met {E} bij de kop. {W} is gas, {S} is rem, {H} is de fluit. Rem op tijd bij het perron.": {
+"src": "anita/instappen_met_e_bij_de_kop_w_is__f07b9037.mp3",
+"dur": 7.79
 },
 "Anita|Instappen, Femke heeft hem voor ons klaargezet. De tankwagen staat bij de groothandel.": {
 "src": "anita/instappen_femke_heeft_hem_voor_o_236f3cf4.mp3",
@@ -691,6 +703,10 @@
 "src": "tammo/de_tankwagen_blijft_bij_de_ooste_b02dfdd3.mp3",
 "dur": 4.19
 },
+"Tammo|De trein staat stil, de machinist zit op een bank. Naar de kop van de trein.": {
+"src": "tammo/de_trein_staat_stil_de_machinist_aa5be044.mp3",
+"dur": 5.21
+},
 "Tammo|De trekker staat bij de schuur. Instappen, de kratten staan achterop.": {
 "src": "tammo/de_trekker_staat_bij_de_schuur_i_9fc0de96.mp3",
 "dur": 4.39
@@ -818,6 +834,10 @@
 "Tammo|Het logboek van 12 augustus. Blijf bij de server staan tot alles gelezen is.": {
 "src": "tammo/het_logboek_van_12_augustus_blij_86b32ed7.mp3",
 "dur": 5.87
+},
+"Tammo|Het perron in Veendam. De machinist eet een eierbal op een bank.": {
+"src": "tammo/het_perron_in_veendam_de_machini_313015c0.mp3",
+"dur": 4.77
 },
 "Tammo|Het piepje wordt sneller. Achter het station, bij de goederentrein. Perron 3.": {
 "src": "tammo/het_piepje_wordt_sneller_achter__783e2e79.mp3",
