@@ -149,6 +149,10 @@ import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from '.
 import { aandeel, tegelFoci, nietBijFoci } from './coopfoci.js';
 import { wantsOpenSamen, takeOpenSamen, samenGate } from './samenpanel.js';
 import { maybeOpenOnlineStart } from './onlineconsentui.js';
+import { startPlan, startVragen, zetStartModus, startModus, bewaarKeuze } from './startkeuze.js'; // Alleen of Samen bij elke start (eigenaarsbesluit 21-11)
+import { openStartKeuze, openToestemming } from './startkeuzeui.js';
+import { openSamenKeuze } from './samenkeuze.js';
+import { requestOpenSamen } from './samenpanel.js';
 import { gateOn, setGate } from './coopgate.js';
 import { updateGastLokaal } from './coopgastlokaal.js';
 import { initDayNight, updateDayNight, refreshDayNight, DAY_LENGTH_S } from './daynight.js';
@@ -597,11 +601,25 @@ const loadMarks = window.__loadMarks = {};
 const markLoad = (k) => { loadMarks[k] = Math.round(performance.now()); };
 let tileWorldStats = null;
 
-// De eerste-startvraag (Samen spelen) is verplicht: altijd online en een geldige naam.
-// Er is geen time-out en geen Escape die hem overslaat; pas na Doorgaan gaat de boot verder.
+// De startvragen (startkeuze.js): de naamkaart EENMALIG op de eerste start (verplicht, geen time-out en geen Escape), daarna bij
+// elke start de keuzekaart Alleen of Samen. Alleen kiest het enkelspelerpad zonder netwerk; Samen vraagt zo nodig eerst de
+// toestemming en daarna Een spel openen of Meedoen. Een testrun (vlaggen hieronder) en ?startkeuze=alleen slaan de kaart over.
 let onlineVraag = null;
 function beginOnlineStartQuestion() {
-  if (!onlineVraag) onlineVraag = maybeOpenOnlineStart();
+  if (!onlineVraag) {
+    const testmodus = !!(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menutest);
+    const plan = startPlan(getSettings(), { testmodus, vlag: FLAGS.startkeuze });
+    onlineVraag = startVragen({
+      plan,
+      settings: () => getSettings(),
+      naam: () => maybeOpenOnlineStart(),
+      keuze: (index) => openStartKeuze({ index }),
+      toestemming: () => openToestemming(),
+      sessie: () => new Promise((klaar) => openSamenKeuze({ onKies: (rol) => klaar(rol), onClose: () => klaar(null) })),
+      samen: (rol) => requestOpenSamen(rol === 'host' ? { rol: 'host', gate: true } : { rol: 'gast', gate: true, lijst: rol === 'lijst' }),
+      bewaar: (modus) => bewaarKeuze(modus),
+    }).then((modus) => { zetStartModus(modus); return modus; });
+  }
   return onlineVraag;
 }
 
@@ -915,7 +933,8 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   // vlak voor de start wachten we op het antwoord (#751: time-out en Escape).
   // Zo staat de popup niet boven een laadscherm dat al "Klaar" zegt en hoeft hij
   // het laden niet stil te leggen.
-  const vraagOnline = !(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menutest);
+  const vraagOnline = !(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menutest) || FLAGS.startkeuze === 'vraag';
+  if (FLAGS.startkeuze === 'alleen') zetStartModus('alleen'); // testruns en QA: de kaart overslaan, solo en zonder netwerk
   if (vraagOnline) beginOnlineStartQuestion();
   // opdracht 21-11: on the warm route the bar stays open: the warm-up steps follow and the start screen finishes it
   if (!BOOT_WARM_ROUTE) await finishLoading();
@@ -926,10 +945,10 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
       const bijZicht = () => { if (!document.hidden) { document.removeEventListener('visibilitychange', bijZicht); klaar(); } };
       document.addEventListener('visibilitychange', bijZicht);
     });
-    setLoadingStatus('Vul je naam in voor Samen spelen');
-    await beginOnlineStartQuestion(); // verplicht: geen time-out en geen Escape
+    setLoadingStatus('Kies hoe je speelt');
+    const gekozen = await beginOnlineStartQuestion(); // geen time-out en geen Escape: de naam is verplicht, de keuze wacht op de speler
     onlineVraag = null;
-    setLoadingStatus('Samen spelen: de wereld wordt klaargezet');
+    setLoadingStatus(gekozen === 'samen' ? 'Samen spelen: de wereld wordt klaargezet' : 'De wereld wordt klaargezet');
   }
   markLoad('title');
   // the garages, cafés and shops out in the Ommelanden get their doors from the
@@ -1033,7 +1052,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     // Wie online meedoet, wacht eerst op de startzoektocht (#528); die host of sluit aan, of
     // geeft na een paar pogingen op. Duurt het te lang of kan hij niet beginnen, dan valt de
     // sessie van één na 12 s in (de zoektocht stopt dan zelf zodra hij een sessie ziet).
-    const onlineNu = magOnline();
+    const onlineNu = magOnline() && startModus() !== 'alleen'; // Alleen spelen houdt het netwerk dicht (startkeuze.js)
     soloWachtS = onlineNu ? soloWachtS + dt : 0;
     const soloKlaar = !onlineNu || sessionBootDone(world) || (soloWachtS > 12 && !sessionBootBezig(world));
     if (!world.coopNet && !world.coopWissel && !wantsOpenSamen() && !isPauseMenuOpen() && !document.getElementById('load-screen') && document.body.classList.contains('game-started')
@@ -1057,7 +1076,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     // zoekt het spel een sessie of opent het er zelf een. Zonder toestemming gebeurt hier niets; de wereld
     // loopt gewoon door terwijl er gezocht wordt (sessionboot.js). Wie in het titelscherm al voor Samen
     // spelen koos, houdt de bestaande lobby: die gaat voor.
-    if (!wantsOpenSamen()) sessionBootTick(world, { onHold: (rol, slot, reden) => openHold(world, rol, slot, reden) });
+    if (!wantsOpenSamen() && startModus() !== 'alleen') sessionBootTick(world, { onHold: (rol, slot, reden) => openHold(world, rol, slot, reden) });
     updateMapView(dt, world);
     world.paused = isMapOpen() || isPauseMenuOpen() || isShopOpen() || !!world.uiPaused || !!world.coopHold; // coopHold: wachtscherm bij een weggevallen speler (coophold.js)
     if (document.pointerLockElement && (isMapOpen() || isPauseMenuOpen() || isPhoneOpen())) document.exitPointerLock();

@@ -79,6 +79,7 @@ export const FLAGS = Object.freeze({
   brugbotsing: has('brugbotsing'),
   sfxtest: has('sfxtest'),
   perfoff: val('perfoff'),
+  startkeuze: val('startkeuze'),
 });
 
 // Prestatiestappen die voor een A/B-meting uit kunnen: ?perfoff=schaduw+actoren (scripts/perf/ab.mjs). Alles staat standaard aan.
@@ -135,6 +136,7 @@ export const FLAG_DOCS = Object.freeze({
   brugbotsing: 'Stuurt na een paar seconden een binnenvaartschip tegen de dichtstbijzijnde brug (#9)',
   reizen: 'Reisbeats in het nieuwe verhaal: keuze Meerijden, Zelf rijden of Overslaan bij een sprong (#97); staat standaard aan, uit met zonderreizen en in de testmodi',
   zonderreizen: 'Zet de reisbeats uit (zie reizen)',
+  startkeuze: "Startkaart Alleen of Samen spelen (startkeuze.js): startkeuze=alleen slaat de kaart over en speelt alleen, zonder netwerk (devtools zet dit in elke testrun behalve --coop); startkeuze=vraag toont de kaart ook in een testrun (beeld en tests)",
   perfoff: 'A/B-meting: zet prestatiestappen uit, namen gescheiden door +, bv. perfoff=schaduw+actoren (devflags.js, scripts/perf/ab.mjs)',
 });
 
