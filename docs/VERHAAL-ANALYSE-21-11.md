@@ -580,7 +580,29 @@ Zie hoofdstuk 19.
 
 ## 19. Issues
 
-Aangemaakt op GitHub met label `wens`, `impact-hoog` en een kostenlabel, in de mijlpaal "Verhaal: rode draad, introducties en natuurlijke dialogen" (zie de lijst onderaan dit document na het aanmaken).
+Aangemaakt op GitHub (21-11) met label `wens`, `impact-hoog` en een kostenlabel, in de mijlpaal "Verhaal: rode draad, introducties en natuurlijke dialogen", op het bord in Wensen (WP-A staat in Review met `wacht-beeld`):
+
+| Issue | Inhoud | Kosten |
+|---|---|---|
+| [#1121](https://github.com/NatusPella/GDE-Groningen/issues/1121) | Epic: verhaal, rode draad, introducties en natuurlijke dialogen | L |
+| [#1122](https://github.com/NatusPella/GDE-Groningen/issues/1122) | WP-A: Aanwijzingen weg en recapkaart (gebouwd, wacht op beeld) | S |
+| [#1123](https://github.com/NatusPella/GDE-Groningen/issues/1123) | WP0: ruggengraat per akte en toetsen | S |
+| [#1124](https://github.com/NatusPella/GDE-Groningen/issues/1124) | WP1: akte 1 | M |
+| [#1125](https://github.com/NatusPella/GDE-Groningen/issues/1125) | WP2: overgangsscènes en telefoontjes | M |
+| [#1126](https://github.com/NatusPella/GDE-Groningen/issues/1126) | WP3: akte 2 | L |
+| [#1127](https://github.com/NatusPella/GDE-Groningen/issues/1127) | WP4: akte 3 | L |
+| [#1128](https://github.com/NatusPella/GDE-Groningen/issues/1128) | WP5: akte 4 | L |
+| [#1129](https://github.com/NatusPella/GDE-Groningen/issues/1129) | WP6: akte 5 en epiloog | M |
+| [#1130](https://github.com/NatusPella/GDE-Groningen/issues/1130) | WP7: Deel 4 en de open wereld | S |
+| [#1131](https://github.com/NatusPella/GDE-Groningen/issues/1131) | WP8: ontgrendeling per akte met migratieregel | L |
+| [#1132](https://github.com/NatusPella/GDE-Groningen/issues/1132) | WP9: beeld en Electron-verhaaltest | M |
+| [#1133](https://github.com/NatusPella/GDE-Groningen/issues/1133) | WP10: stemmen (ca. 350 regels) | M |
+| [#1134](https://github.com/NatusPella/GDE-Groningen/issues/1134) | WP11: dialoogvorm (overlap, onderbreking, stilte) | M |
+| [#1135](https://github.com/NatusPella/GDE-Groningen/issues/1135) | WP12: lichte reputatie | M |
+| [#1136](https://github.com/NatusPella/GDE-Groningen/issues/1136) | WP13: frietwagen-mijlpalen | S |
+| [#1137](https://github.com/NatusPella/GDE-Groningen/issues/1137) | WP14: romantiek als momenten en kleine keuzes | S |
+| [#1138](https://github.com/NatusPella/GDE-Groningen/issues/1138) | WP15: regie in sleutelscènes | M |
+| [#1139](https://github.com/NatusPella/GDE-Groningen/issues/1139) | WP16: Jelle als eindbaas | M |
 
 ---
 
