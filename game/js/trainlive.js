@@ -14,6 +14,8 @@ import { LIVE_TRAINS, fetchLiveTrains, buildDelayMap, bridgeAsFetch } from './li
 export function kiesFetch(omgeving = globalThis) {
   const bridge = omgeving && omgeving.gdeDesktop && omgeving.gdeDesktop.liveTreinen;
   if (typeof bridge === 'function') return bridgeAsFetch(bridge);
+  // de webbuild (web/web.js zet __gteWeb): dezelfde host stuurt geen CORS-koppen; het bord toont het rooster
+  if (omgeving && omgeving.__gteWeb) return null;
   const fetchFn = omgeving && omgeving.fetch;
   if (typeof fetchFn === 'function') return (url, opties) => fetchFn.call(omgeving, url, opties);
   return null;

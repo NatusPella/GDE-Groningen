@@ -57,6 +57,8 @@
     if (!blobs.has(key)) {
       blobs.set(key, (async () => {
         const idx = await audioIndex();
+        // an Opus-only build (Pages) has no mp3/wav to fall back on: the clip stays silent
+        if (!OPUS && idx.opusOnly) throw new Error('no Opus support in an Opus-only build: ' + key);
         const music = idx.music[key];
         if (music) {
           const r = await nativeFetch(BASE + (OPUS ? music : key));
@@ -187,6 +189,19 @@
       if (st) { st.textContent = 'Fout bij laden: ' + e.message; st.classList.add('error'); }
     });
   }
+  // GitHub Pages: een kleine, wegklikbare melding dat dit de webversie in preview is. Alleen tekst,
+  // geen verzoek naar buiten (geen telemetrie); niet in de APK of lokaal, daar is hij niet waar.
+  function previewBadge() {
+    if (!/\.github\.io$/.test(location.hostname)) return;
+    const b = document.createElement('div');
+    b.textContent = 'Webversie (preview)';
+    b.title = 'Dit is de webversie in preview. Geen telemetrie: alleen openbaar gehoste bestanden. Klik om te sluiten.';
+    b.style.cssText = 'position:fixed;right:8px;bottom:8px;z-index:99999;padding:3px 8px;font:12px sans-serif;color:#fff;background:rgba(0,0,0,.55);border-radius:4px;cursor:pointer;opacity:.8';
+    b.addEventListener('click', () => b.remove());
+    setTimeout(() => b.remove(), 20000);
+    (document.body || document.documentElement).appendChild(b);
+  }
+  previewBadge();
   const s = status();
   if (s) s.textContent = 'Opstarten…';
   // #657: de eerste module hoeft niet op de service worker te wachten; die

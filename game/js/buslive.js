@@ -17,6 +17,9 @@ import { LIVE_BRON, MAX_LIVE_NABIJ, haalLiveBussen, koppelAanLijn, peilNaarHoek,
 export function kiesFetch(omgeving = globalThis) {
   const brug = omgeving && omgeving.gdeDesktop && omgeving.gdeDesktop.liveBussen;
   if (typeof brug === 'function') return brugAlsFetch(brug);
+  // de webbuild (web/web.js zet __gteWeb): de bron stuurt geen CORS-koppen, dus de opvraag zou altijd
+  // falen en een rode regel in de console geven; de bussen rijden dan meteen hun eigen dienst
+  if (omgeving && omgeving.__gteWeb) return null;
   const fetchFn = omgeving && omgeving.fetch;
   if (typeof fetchFn === 'function') return (url, opties) => fetchFn.call(omgeving, url, opties);
   return null;

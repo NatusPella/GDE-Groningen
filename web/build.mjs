@@ -5,6 +5,8 @@
 //
 //   node web/build.mjs          build web-dist/
 //   node web/build.mjs --zip    and zip it for itch.io
+//   GDE_WEB_OPUS_ONLY=1 (or --opus-only)  publish only the Opus clips, no mp3/wav fallback: about
+//                               300 MB less; used by the Pages workflow (ADR 0043); Safari before 18.4 stays silent
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -19,6 +21,7 @@ const ROOT = path.join(HERE, '..');
 const OUT = path.join(ROOT, 'web-dist');
 const CACHE = path.join(HERE, '.cache', 'opus');
 const ZIP = process.argv.includes('--zip');
+const OPUS_ONLY = process.argv.includes('--opus-only') || process.env.GDE_WEB_OPUS_ONLY === '1';
 const { version } = JSON.parse(fs.readFileSync(path.join(ROOT, 'desktop', 'package.json'), 'utf8'));
 
 // itch.io HTML5 limits (itch.io/docs/creators/html5)
@@ -86,6 +89,7 @@ async function main() {
   // packs per folder, one set of Opus packs and one of the originals (Safari
   // before 18.4 has no Opus in WebM)
   const index = { packs: [], files: {}, music: {} };
+  if (OPUS_ONLY) index.opusOnly = true;
   const byDir = new Map();
   for (const f of audio) {
     const o = opusOf.get(f);
@@ -93,6 +97,7 @@ async function main() {
       const dst = f.replace(/\.[^.]+$/, '.webm');
       fs.copyFileSync(o.file, dst);
       index.music[rel(f)] = rel(dst);
+      if (OPUS_ONLY) fs.rmSync(f);
     } else {
       const d = path.dirname(f);
       if (!byDir.has(d)) byDir.set(d, []);
@@ -129,8 +134,8 @@ async function main() {
   for (const [, files] of [...byDir].sort((a, b) => a[0].localeCompare(b[0]))) {
     files.sort();
     const opus = pack(files, (f) => fs.readFileSync(opusOf.get(f).file));
-    const orig = pack(files, (f) => fs.readFileSync(f));
-    for (const f of files) { index.files[rel(f)] = [...opus.get(f), ...orig.get(f)]; fs.rmSync(f); }
+    const orig = OPUS_ONLY ? null : pack(files, (f) => fs.readFileSync(f));
+    for (const f of files) { index.files[rel(f)] = orig ? [...opus.get(f), ...orig.get(f)] : [...opus.get(f)]; fs.rmSync(f); }
   }
   fs.writeFileSync(path.join(OUT, 'audio', 'index.json'), JSON.stringify(index));
 

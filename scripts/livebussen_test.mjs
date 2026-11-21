@@ -175,6 +175,7 @@ const bus = (id, x, y, bearing, speed = 8) => { const [lat, lon] = ll(x, y); ret
   await haalLiveBussen({ fetchFn: kiesFetch({ fetch: async (u, o) => { direct++; return respons(feed(voertuig(bus('8', 100, 1, 90)))); } }) });
   assert.strictEqual(direct, 1, 'zonder brug vraagt de webversie het zelf op');
   assert.strictEqual(kiesFetch({}), null, 'zonder netwerk geen bron');
+  assert.strictEqual(kiesFetch({ __gteWeb: {}, fetch: async () => { throw new Error('mag niet'); } }), null, 'de webbuild slaat de opvraag over (CORS)');
 
   // de uitzetter: uit = geen opvraag; aan = wel; een devrun vraagt nooit op
   let t = 2_000_000, opgevraagd = 0, gezet = 'niets';
