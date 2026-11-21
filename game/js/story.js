@@ -67,6 +67,7 @@ import { registerNarrative, mayStart, narrativeBusy, narrativeState } from './na
 import { storyLines, talkLines, radioContacts, appsAt, storyDataReady, readingTime, scene as storyScene } from './storytext.js';
 import { openingBlockers, openingIsNext, openingActEnd, openingFinish, openingReplayBlockers, openingReplayGate } from './openingstart.js';
 import { updateStoryTalk, stopTalk, playTalk } from './storytalk.js';
+import { bridgeActive } from './storybridgerun.js';
 import { makeReisGoals } from './storyreis.js';
 import { plakjesState } from './plakjes.js';
 import { registerStoryQueries } from './storyquery.js';
@@ -1154,7 +1155,7 @@ export function initStory(w) {
   initStoryFun(w);
   initStoryEikea(w, () => (rt.cur && !rt.cur.end && rt.cur.goal && rt.cur.goal.type === 'eikea' ? rt.base : null));
   initSkipUi();
-  registerNarrative('say', { active: () => !!world && (rt.sayUntil || 0) > world.time });
+  registerNarrative('say', { active: () => (!!world && (rt.sayUntil || 0) > world.time) || bridgeActive() });
   ready = true;
   window.__story = storyApi;
 }
@@ -1235,7 +1236,7 @@ export function updateStory(dt, w) {
   }
   if (rt.clueToasts.length && !isCinematicActive() && !w.pigeonMode) {
     const c = rt.clueToasts.shift();
-    w.addMessage(c.kind === 'taal' ? `Gronings geleerd: ${c.title}. Lees terug in het pauzemenu, Verhaal: "Aanwijzingen"` : `Nieuwe aanwijzing: ${c.title}. Lees terug in het pauzemenu, Verhaal: "Aanwijzingen"`, 4.5);
+    w.addMessage(c.kind === 'taal' ? `Gronings geleerd: ${c.title}` : `Nieuwe aanwijzing: ${c.title}`, 4.5);
     playClueSting();
   }
   // the next step's text waits until a scene has been over for a moment, and
@@ -1332,6 +1333,9 @@ function meet(key) {
 export function getStoryCharacters() {
   return Object.entries(CHARACTERS).map(([key, c]) => ({ key, ...c, met: state.flags.has('met:' + key) }));
 }
+
+// Voor de overgangsscènes (storybridgerun.js): de echte sets, zodat de scène zijn eigen vlag zet.
+export const storyBridgeView = () => { const c = currentStep(); return { done: state.done, flags: state.flags, currentId: c && !c.end ? c.id : null }; };
 
 export function storyFlag(name) {
   return state.flags.has(name);

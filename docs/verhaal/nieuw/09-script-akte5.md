@@ -173,6 +173,14 @@ TESSA: Nee. Gewoon. [NIEUW]
 ## [M24.4] Er hangt iets Fries aan d'Olle Grieze: herhaling – Stad, Grote Markt – duif
 BERT: Weer iets aan de toren? Fluiten maar, jong. [BEHOUDEN]
 
+## [O10] De rekening – Stad, Noorderhaven – Oma's keuken
+(regie: avond, de dag voor het Ontzet. Op de mat van Oma's keuken ligt een witte envelop met een J. Tessa vouwt hem open, Tammo leest mee over haar schouder.)
+TESSA: "Rekening voor het gebruik van de openbare weg. Eenmalig." [NIEUW]
+TAMMO: Hoeveel? [NIEUW]
+TESSA: Genoeg om te zien dat hij bang is. [NIEUW]
+TAMMO: Dat is nieuw. [NIEUW]
+TESSA: Hij stuurt een rekening. Hij belt niet meer. [NIEUW]
+
 ## [A5.1] Appjes donderdagavond (stil, geen stem) – Stad – telefoon
 APP TAMMO→TESSA (stil): Ik zeg het op de Grote Markt. Voor iedereen. [NIEUW]
 APP TESSA→TAMMO (stil): Ik wacht. [NIEUW]

@@ -14,6 +14,11 @@ import { spokenKeyTokens } from './keycap.js';
 export const FY = {
   // the definitive script (docs/verhaal/nieuw/09-script-akte*.md)
   'Ljouwert': 'Leeuwarden',
+  // overgangsscènes O4 en O5 (#1125): Tessa zegt Mem tegen de buurvrouw uit Ljouwert
+  'Het is augustus, Mem.': 'Het is augustus, moedertje.',
+  '...Ja, Mem.': '...Ja, moedertje.',
+  'Mem...': 'Moedertje...',
+  'Mem, vandaag was er een man met een trekker-limo. Hij zei dat zijn mem niks wil.': 'Moedertje, vandaag was er een man met een trekker-limo. Hij zei dat zijn moeder niks wil.',
   'pompeblêden': 'pompeblêden (rode blaadjes uit de Friese vlag)',
   'iets wat van mem is': 'iets wat van mijn moeder is',
   'dan ziet mem hem': 'dan ziet mijn moeder hem',

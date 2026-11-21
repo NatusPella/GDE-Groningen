@@ -23,7 +23,7 @@ const LOOPBAAN_BY = {
   klus: ['Sjabbe', 'Vraag het Sjabbe: die heeft altijd werk dat niemand wil.'],
   taxi: ['Tammo', 'Tammo rijdt het liefst zelf: eerst het museum, dan de taxi.'],
   kantoor: ['Sjabbe', 'Loop bij het Loket langs: daar kijkt een kantoor naar je.'],
-  padel: ['Sjoerd', 'Sjoerd van de Kiezelcommissie kent een baan.'],
+  padel: ['Sjoerd', 'Sjoerd weet waar een baan vrij is.'],
   vracht: ['Oma Trijntje', 'Oma Trijntje heeft vet nodig: vrachtwerk komt vanzelf.'],
   bezorg: ['Oma Trijntje', 'Oma Trijntje stuurt je op bezorgrondes.'],
   buiten: ['Oma Trijntje', 'Frisse lucht: Oma Trijntje weet wel iets.'],

@@ -31,7 +31,7 @@ zomer en in de stem van de vaste cast; tekst is data (canon, script, build, spel
 4. **Spel**: `game/js/storytext.js` leest `game/storydata/script.json`;
    `game/js/storyarc.js` is de enige facade voor de rest van het spel (`:7`, `:16`).
 
-De data: 207 scènes, 1.431 regels in act 1 tot en met 6; 37 zijn stille appjes en 41 hebben geen opname (de 37 appjes zijn bewust stil; 4 regels wachten sinds de verhaalcanon van 21-11 op een nieuwe opname, zie docs/VERHAALCANON-21-11.md; de
+De data: 219 scènes, 1.515 regels in act 1 tot en met 6; 37 zijn stille appjes en 121 hebben geen opname (de 37 appjes zijn bewust stil; 4 regels wachten sinds de verhaalcanon van 21-11 op een nieuwe opname, zie docs/VERHAALCANON-21-11.md; de
 1.390 andere gesproken regels hebben een opname, stand 21-11). Een regel zonder opname toont
 het spel als ondertitel met leestijd (`game/js/storytext.js:53`). Een `[BEHOUDEN]`-regel heeft een opname: één andere
 letter maakt hem stil. Nieuwe opnames komen er in rondes bij op Flash-Lite (ADR 0019,
@@ -42,7 +42,7 @@ letter maakt hem stil. Nieuwe opnames komen er in rondes bij op Flash-Lite (ADR 
 - **Vijf akten** (`PARTS`, `game/js/storyarc_nieuw.js:147-215`): 1 Moi, Grunn (Stad,
   vr 14 aug), 2 Het Noorden is groot, 3 Aan de Eems, 4 Zuidwaarts, 5 Ontzet (vr 28
   aug), met **Deel 4: Nazomer** erna (`:202`), dat pas opent als de eindkaart van
-  akte 5 is gespeeld (`game/js/story.js:179`).
+  akte 5 is gespeeld (`game/js/story.js:181`).
 - **Stappen**: opening M00, 26 missies M01-M26, vier reisbeats T1-T4, twee stille
   tussenstappen A1-A2 (bietenoogst en kermisrit, #845) en epiloog E;
   Deel 4 voegt M27-M30 en T5 toe: samen 30 missies en vijf reisbeats
@@ -168,7 +168,7 @@ stille appjes; `scripts/calendar_test.mjs` de datums;
 |---|---|
 | `docs/verhaal/nieuw/00-OVERZICHT.md:118` | T1 heet daar "Station Grunn → Winsum", met een losse rit naar Warffum erna (`:119`); `docs/verhaal/nieuw/09-script-akte2.md:111` en `game/js/storyarc_nieuw.js:257` zeggen allebei dat T1 naar Warffum gaat. |
 | `docs/verhaal/nieuw/00-OVERZICHT.md:80` | De totaalrij zegt nog "26 missies, 4 reisbeats" (het plan van vóór Deel 4, `:82`); de code heeft er 30 en 5 door Deel 4 (`docs/verhaal/nieuw/DEEL4.md:21-25`). |
-| `docs/verhaal/nieuw/07-TTS-RAMING.md:24` | 172 scènes en 1.164 uitingen voor de vijf akten; `game/storydata/script.json` telt er 207 en 1431 |
+| `docs/verhaal/nieuw/07-TTS-RAMING.md:24` | 172 scènes en 1.164 uitingen voor de vijf akten; `game/storydata/script.json` telt er 219 en 1515 |
 
 Opgelost op 25-10: de dubbele kermisdatum, "KEI-week" op vier plekken, Tessa's
 stemprofiel, en de verouderde `built`-comment.

@@ -218,6 +218,25 @@ export const PARTS = {
 // v:1 save does not know them: storyarc.js passedBetweenSteps closes the ones that save had already passed.
 export const BETWEEN_STEPS = ['A1', 'A2'];
 
+// Overgangsscènes (#1125, storybridge.js): een korte scène van Tammo en Tessa (soms Rikus, Mem of Jelle) tussen twee
+// missies, op een rustig moment gespeeld zodra de stap `after` af is. De regels staan als scène `scene` (kind 'bridge')
+// in script.json; `via` zegt waar het speelt ('car', 'flat' of 'phone'). Elke scène is overslaanbaar en nooit nodig om
+// door te kunnen. Nooit twee scènes na twee opeenvolgende missies (scripts/storybridge_test.mjs).
+export const BRIDGES = [
+  { id: 'O1', after: 'M02', via: 'flat', scene: 'O1' },   // het kaartje van de eerste studieweek, de luiken van de wagen
+  { id: 'O2', after: 'M04', via: 'phone', scene: 'O2' },  // Rikus belt Tammo: de jeugdvriend, "vijf jaar"
+  { id: 'O3', after: 'M06', via: 'car', scene: 'O3' },    // na de kraak: eerlijk winnen, Oma's 1953
+  { id: 'O4', after: 'M08', via: 'car', scene: 'O4' },    // Mem belt Tessa (1): de jas
+  { id: 'O5', after: 'M10', via: 'phone', scene: 'O5' },  // Mem belt Tessa (2): "Straks"
+  { id: 'O6', after: 'M13', via: 'phone', scene: 'O6' },  // Jelle biedt op de Fjord Frituur
+  { id: 'O7', after: 'M16', via: 'car', scene: 'O7' },    // "Over zaterdag"
+  { id: 'O8', after: 'M18', via: 'phone', scene: 'O8' },  // Rikus: de politie zoekt twee Stadjers; bewaar het logboek
+  { id: 'O9', after: 'M21', via: 'phone', scene: 'O9' },  // apart: "Ik heb de auto"
+  { id: 'O10', after: 'M24', via: 'flat', scene: 'O10' }, // Jelles rekening voor de colonne
+  { id: 'O11', after: 'M28', via: 'phone', scene: 'O11' }, // Jelle bestelt een eierbal voor zijn moeder
+  { id: 'O12', after: 'M30', via: 'flat', scene: 'O12' }, // wat nu: de wagen groeit, de wereld staat open
+];
+
 const M = (id, part, title, def, o = {}) => ({ id, part, kind: 'mission', mission: def, title, built: false, silent: true, ...o });
 const A = (id, part, title, goal, o = {}) => ({ id, part, kind: 'activity', title, goal, built: false, silent: true, ...o });
 

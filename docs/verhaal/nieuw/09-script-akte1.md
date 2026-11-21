@@ -187,6 +187,17 @@ TAMMO: Waarom vraagt een snackbaron naar alarmen? [NIEUW]
 TESSA: Dat weten we na het Loket. Hij heeft het vast over meer dan een museum. [NIEUW]
 TAMMO: Dan eerst het Loket. [NIEUW]
 
+## [O1] Het kaartje – Stad, Paddepoel – flat
+(regie: avond, de flat in Paddepoel. Op de koelkast hangt een kaartje van de eerste Kiezelweek, vijf jaar geleden. Tessa tekent op een bonnetje de luiken van de wagen. Tammo staat met twee koppen thee in de deur en kijkt even naar het kaartje, en dan naar haar.)
+TESSA: Het luik moet aan de zijkant, dan staat niemand in de weg. [NIEUW]
+TAMMO: Welke mensen? [NIEUW]
+TESSA: De mensen die gaan komen, Tammo. [NIEUW]
+TAMMO: Dan zet ik hem zo neer dat het past. [NIEUW]
+TESSA: Je hebt dat kaartje nog. Van die eerste week. [NIEUW]
+TAMMO: Het hing al aan de koelkast. [NIEUW]
+TESSA: Ja. Natuurlijk. [NIEUW]
+(regie: ze tekent door. Hij blijft nog even staan met de thee.)
+
 ## [M03.1] Het Loket: intro – Stad, Het Loket bij de Grote Markt – te voet
 (regie: zaterdag 15 augustus, tien uur. Een wachtruimte met nummerautomaat, een scherm dat 4093 toont, een bord "Loket B is vandaag Loket C". Gameplay: een wachtrijpuzzel met een klok: nummer trekken, formulier halen, stempel halen, voor twaalf uur.)
 TESSA: Twaalf uur, contant. Hoe moeilijk kan een stempel zijn? [NIEUW]
@@ -301,6 +312,18 @@ TESSA: We gaan hem eerder halen dan die Fries. Daarna zien we wel. [BEHOUDEN]
 TAMMO: "Daarna zien we wel" is geen plan. [BEHOUDEN]
 TESSA: Als het niet gaat zoals het moet, doen we het anders. [NIEUW]
 TAMMO: Dat is ook geen plan. Dat is een tegeltje. [BEHOUDEN]
+
+## [O2] Ik draai je plaat – Stad, Paddepoel – telefoon
+(regie: nacht. Tammo ligt op de bank, de telefoon op zijn borst. Rikus belt vanuit de studio van Nachtstreek, zacht op de achtergrond een plaat.)
+RIKUS (telefoon): Tammo. Ben je wakker? Ik draai je plaat. [NIEUW]
+TAMMO (telefoon): Welke plaat? [NIEUW]
+RIKUS (telefoon): Die van de zomer dat we twaalf waren. Op de fiets naar de Hunze. [NIEUW]
+TAMMO (telefoon): Dat zeg je elke keer. [NIEUW]
+RIKUS (telefoon): En jij woont ineens op de elfde verdieping met een meisje. Dat hoor ik uit de chat. [NIEUW]
+TAMMO (telefoon): Ze is mijn huisgenoot. [NIEUW]
+RIKUS (telefoon): Vijf jaar, Tammo. Ik zeg niks. [NIEUW]
+TAMMO (telefoon): Dat zeg je altijd. [NIEUW]
+RIKUS (telefoon): Slaap lekker, jongen. [NIEUW]
 
 ## [M05.1] Wind tegen, beide kanten op: intro – Stad, Academiegebouw – fiets
 (regie: zondag 16 augustus, middag. Sjoerd staat bij het Academiegebouw met een clipboard en een rij eerstejaars. Gameplay: een fietsrace door de binnenstad, altijd tegenwind.)
@@ -436,3 +459,14 @@ APP TAMMO→TESSA (stil): Ik ben je nog niet kwijt. [NIEUW]
 APP SJOERD→TAMMO (stil): Podium, dan praten we. [NIEUW]
 APP HENK→TAMMO (stil): Zender zit erin. Als de Escapade wordt gejat, weet ik waar hij staat. [NIEUW]
 APP SJABBE→TESSA (stil): Kopieermachine. Niet vergeten. [NIEUW]
+
+## [O3] Eerlijk winnen – Stad, ringweg – Escapade
+(regie: laat in de nacht. De Escapade rijdt zonder haast door een lege straat. Tammo stuurt, Tessa kijkt voor zich uit.)
+TESSA: Wij staan op de camera. [NIEUW]
+TAMMO: Hij had hem al. [NIEUW]
+TESSA: Dan moeten we weten wat hij nog meer heeft. [NIEUW]
+TAMMO: En daarna? [NIEUW]
+TESSA: Daarna winnen we gewoon eerlijk. Met een eierbal die beter is dan de zijne. [NIEUW]
+TAMMO: Mijn oma won in 1953. [NIEUW]
+TESSA: Dan weet zij hoe dat moet. [NIEUW]
+

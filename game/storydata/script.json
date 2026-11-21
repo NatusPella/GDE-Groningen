@@ -1646,6 +1646,85 @@
    ]
   },
   {
+   "id": "O1",
+   "title": "Het kaartje",
+   "act": 1,
+   "region": "Stad, Paddepoel",
+   "vehicle": "flat",
+   "step": "M02",
+   "kind": "bridge",
+   "anchor": {
+    "at": "after",
+    "step": "M02"
+   },
+   "regie": [
+    "avond, de flat in Paddepoel. Op de koelkast hangt een kaartje van de eerste Kiezelweek, vijf jaar geleden. Tessa tekent op een bonnetje de luiken van de wagen. Tammo staat met twee koppen thee in de deur en kijkt even naar het kaartje, en dan naar haar.",
+    "ze tekent door. Hij blijft nog even staan met de thee."
+   ],
+   "lines": [
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Het luik moet aan de zijkant, dan staat niemand in de weg.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Welke mensen?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "De mensen die gaan komen, Tammo.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dan zet ik hem zo neer dat het past.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Je hebt dat kaartje nog. Van die eerste week.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Het hing al aan de koelkast.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Ja. Natuurlijk.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    }
+   ]
+  },
+  {
    "id": "M03.1",
    "title": "Het Loket: intro",
    "act": 1,
@@ -2593,6 +2672,96 @@
      "channel": "stem",
      "textOnly": false,
      "rec": "banter"
+    }
+   ]
+  },
+  {
+   "id": "O2",
+   "title": "Ik draai je plaat",
+   "act": 1,
+   "region": "Stad, Paddepoel",
+   "vehicle": "telefoon",
+   "step": "M04",
+   "kind": "bridge",
+   "anchor": {
+    "at": "after",
+    "step": "M04"
+   },
+   "regie": [
+    "nacht. Tammo ligt op de bank, de telefoon op zijn borst. Rikus belt vanuit de studio van Nachtstreek, zacht op de achtergrond een plaat."
+   ],
+   "lines": [
+    {
+     "speaker": "Rikus",
+     "key": "rikus",
+     "text": "Tammo. Ben je wakker? Ik draai je plaat.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Welke plaat?",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Rikus",
+     "key": "rikus",
+     "text": "Die van de zomer dat we twaalf waren. Op de fiets naar de Hunze.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dat zeg je elke keer.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Rikus",
+     "key": "rikus",
+     "text": "En jij woont ineens op de elfde verdieping met een meisje. Dat hoor ik uit de chat.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Ze is mijn huisgenoot.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Rikus",
+     "key": "rikus",
+     "text": "Vijf jaar, Tammo. Ik zeg niks.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dat zeg je altijd.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Rikus",
+     "key": "rikus",
+     "text": "Slaap lekker, jongen.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
     }
    ]
   },
@@ -3739,6 +3908,84 @@
    ]
   },
   {
+   "id": "O3",
+   "title": "Eerlijk winnen",
+   "act": 1,
+   "region": "Stad, ringweg",
+   "vehicle": "Escapade",
+   "step": "M06",
+   "kind": "bridge",
+   "anchor": {
+    "at": "after",
+    "step": "M06"
+   },
+   "regie": [
+    "laat in de nacht. De Escapade rijdt zonder haast door een lege straat. Tammo stuurt, Tessa kijkt voor zich uit."
+   ],
+   "lines": [
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Wij staan op de camera.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Hij had hem al.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dan moeten we weten wat hij nog meer heeft.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "En daarna?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Daarna winnen we gewoon eerlijk. Met een eierbal die beter is dan de zijne.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Mijn oma won in 1953.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dan weet zij hoe dat moet.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    }
+   ]
+  },
+  {
    "id": "R2.0",
    "title": "Nachtstreek, dinsdagochtend",
    "act": 2,
@@ -4568,6 +4815,100 @@
      "channel": "stem",
      "textOnly": false,
      "rec": "lines"
+    }
+   ]
+  },
+  {
+   "id": "O4",
+   "title": "Een jas",
+   "act": 2,
+   "region": "Stad, onderweg",
+   "vehicle": "Escapade",
+   "step": "M08",
+   "kind": "bridge",
+   "anchor": {
+    "at": "after",
+    "step": "M08"
+   },
+   "regie": [
+    "de Escapade, onderweg naar het Hogeland. Op Tessa's telefoon verschijnt een naam: Mem. Ze neemt op en zet hem zachter."
+   ],
+   "lines": [
+    {
+     "speaker": "Mem Terpstra",
+     "key": "mem",
+     "text": "Famke. Heb je een jas aan?",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Het is augustus, Mem.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Mem Terpstra",
+     "key": "mem",
+     "text": "Het waait. Jas.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "...Ja, Mem.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Mem Terpstra",
+     "key": "mem",
+     "text": "Is de jongen er ook? Zeg dat hij moet eten.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Wie was dat?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Mem. Ik logeerde elke zomer naast haar, in Ljouwert.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Een jas in augustus?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Jij weet niet hoe lang ze dat al zegt.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
     }
    ]
   },
@@ -5425,6 +5766,92 @@
      "channel": "app-stil",
      "textOnly": true,
      "silent": true
+    }
+   ]
+  },
+  {
+   "id": "O5",
+   "title": "Straks",
+   "act": 2,
+   "region": "Hogeland, wierde",
+   "vehicle": "Escapade",
+   "step": "M10",
+   "kind": "bridge",
+   "anchor": {
+    "at": "after",
+    "step": "M10"
+   },
+   "regie": [
+    "avond op de wierde. De Escapade staat stil, de zon zakt. Tessa zit op de motorkap met haar telefoon, Tammo leunt tegen het portier."
+   ],
+   "lines": [
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Mem, vandaag was er een man met een trekker-limo. Hij zei dat zijn mem niks wil.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Mem Terpstra",
+     "key": "mem",
+     "text": "...Dat zegt hij al jaren.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Kent u hem?",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Mem Terpstra",
+     "key": "mem",
+     "text": "Doe je jas aan, famke.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Mem...",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Mem Terpstra",
+     "key": "mem",
+     "text": "Straks. Eerst het Ontzet.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Wat zei ze?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dat ik mijn jas moet aandoen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
     }
    ]
   },
@@ -7217,6 +7644,83 @@
    ]
   },
   {
+   "id": "O6",
+   "title": "Een bod",
+   "act": 3,
+   "region": "Eemshaven, de kade",
+   "vehicle": "Escapade",
+   "step": "M13",
+   "kind": "bridge",
+   "anchor": {
+    "at": "after",
+    "step": "M13"
+   },
+   "regie": [
+    "ochtend op de kade. Een onbekend nummer belt Tessa. Ze zet hem op de luidspreker, Tammo komt erbij staan."
+   ],
+   "lines": [
+    {
+     "speaker": "Jelle Terpstra",
+     "key": "jelle",
+     "text": "Mevrouw Tessa. Jelle Terpstra. U hebt een container leeggehaald die mijn juristen vol wilden hebben.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dat was een misverstand.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Jelle Terpstra",
+     "key": "jelle",
+     "text": "Er zijn geen misverstanden. Er zijn overeenkomsten. Ik bied dertigduizend euro voor de Fjord Frituur. De naam, het luik, alles.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Hij is niet te koop.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Jelle Terpstra",
+     "key": "jelle",
+     "text": "Alles is te koop, mevrouw. Ik wacht. Foar mem.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "We hebben nog geen wagen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dat weet hij ook. Daarom biedt hij zoveel.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    }
+   ]
+  },
+  {
    "id": "M14.1",
    "title": "De dijk: intro",
    "act": 3,
@@ -8804,6 +9308,68 @@
    ]
   },
   {
+   "id": "O7",
+   "title": "Over zaterdag",
+   "act": 3,
+   "region": "Oldambt, de weg naar Stad",
+   "vehicle": "Escapade",
+   "step": "M16",
+   "kind": "bridge",
+   "anchor": {
+    "at": "after",
+    "step": "M16"
+   },
+   "regie": [
+    "nacht, terug van de kermis. Tammo stuurt, Tessa kijkt naar buiten. Een tijd lang zegt niemand iets.",
+    "stilte. Tessa kijkt naar buiten, de weg gaat verder."
+   ],
+   "lines": [
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Over zaterdag.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Welke zaterdag?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": false,
+     "rec": "lines",
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "...Laat maar.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Het is mooi weer.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Ja.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
    "id": "M17.1",
    "title": "Open, dicht: intro",
    "act": 4,
@@ -9631,6 +10197,65 @@
      "channel": "stem",
      "textOnly": false,
      "rec": "lines"
+    }
+   ]
+  },
+  {
+   "id": "O8",
+   "title": "Bewaar het",
+   "act": 4,
+   "region": "Veenkoloniën, Veendam",
+   "vehicle": "telefoon",
+   "step": "M18",
+   "kind": "bridge",
+   "anchor": {
+    "at": "after",
+    "step": "M18"
+   },
+   "regie": [
+    "avond. Het logboek van Wiebelwerk ligt geprint op de motorkap. Tammo's telefoon gaat: Rikus."
+   ],
+   "lines": [
+    {
+     "speaker": "Rikus",
+     "key": "rikus",
+     "text": "Tammo. De politie zoekt twee Stadjers in het zwart. Dat heb je niet van mij.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Wij zijn niet de dieven.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Rikus",
+     "key": "rikus",
+     "text": "Dat weet ik. Hebben jullie dat logboek nog?",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Geprint.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Rikus",
+     "key": "rikus",
+     "text": "Bewaar het. Ik heb dit niet gezegd.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
     }
    ]
   },
@@ -11679,6 +12304,85 @@
    ]
   },
   {
+   "id": "O9",
+   "title": "Ik heb de auto",
+   "act": 4,
+   "region": "Westerkwartier, op weg naar Zuidhorn",
+   "vehicle": "telefoon",
+   "step": "M21",
+   "kind": "bridge",
+   "anchor": {
+    "at": "after",
+    "step": "M21"
+   },
+   "regie": [
+    "avond. Tessa rijdt de teruggehaalde Escapade, Tammo staat langs een weg met zijn telefoon. Ze hebben elkaar de hele dag niet gebeld. Nu belt zij."
+   ],
+   "lines": [
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Ik heb de auto.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Goed.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": false,
+     "rec": "banter"
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Hoe is het met de vrienden van Oma?",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Niet goed. Ik heb het niet goed gezegd.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dat doet er niet toe.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Ik kom naar Tinus.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Ik ook.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true,
+     "voice": "Anita"
+    }
+   ]
+  },
+  {
    "id": "M22.1",
    "title": "Een luik erin: intro",
    "act": 5,
@@ -13064,6 +13768,67 @@
      "channel": "stem",
      "textOnly": false,
      "rec": "lines"
+    }
+   ]
+  },
+  {
+   "id": "O10",
+   "title": "De rekening",
+   "act": 5,
+   "region": "Stad, Noorderhaven",
+   "vehicle": "Oma's keuken",
+   "step": "M24",
+   "kind": "bridge",
+   "anchor": {
+    "at": "after",
+    "step": "M24"
+   },
+   "regie": [
+    "avond, de dag voor het Ontzet. Op de mat van Oma's keuken ligt een witte envelop met een J. Tessa vouwt hem open, Tammo leest mee over haar schouder."
+   ],
+   "lines": [
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "\"Rekening voor het gebruik van de openbare weg. Eenmalig.\"",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Hoeveel?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Genoeg om te zien dat hij bang is.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dat is nieuw.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Hij stuurt een rekening. Hij belt niet meer.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
     }
    ]
   },
@@ -15443,6 +16208,84 @@
    ]
   },
   {
+   "id": "O11",
+   "title": "Een eierbal",
+   "act": 6,
+   "region": "Loppersum",
+   "vehicle": "telefoon",
+   "step": "M28",
+   "kind": "bridge",
+   "anchor": {
+    "at": "after",
+    "step": "M28"
+   },
+   "regie": [
+    "middag. De verhuisbus staat bij de wisselwoning. Tessa's telefoon: een onbekend nummer, en ze weet al wie."
+   ],
+   "lines": [
+    {
+     "speaker": "Jelle Terpstra",
+     "key": "jelle",
+     "text": "Mevrouw Tessa. Eén eierbal, met mosterd. Voor mijn moeder.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "De Fjord Frituur staat op de Vismarkt, vanaf twaalf uur.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Jelle Terpstra",
+     "key": "jelle",
+     "text": "Mijn assistent haalt hem. Ik betaal contant.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Uit een klomp?",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Jelle Terpstra",
+     "key": "jelle",
+     "text": "Dat is een ander gesprek.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Wat wil hij?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": false,
+     "rec": "lines"
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Een eierbal. Voor zijn moeder.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    }
+   ]
+  },
+  {
    "id": "M29.1",
    "title": "Terug: intro",
    "act": 6,
@@ -16409,6 +17252,93 @@
      "channel": "stem",
      "textOnly": false,
      "rec": "lines"
+    }
+   ]
+  },
+  {
+   "id": "O12",
+   "title": "Wat nu",
+   "act": 6,
+   "region": "Stad, Paddepoel",
+   "vehicle": "flat",
+   "step": "M30",
+   "kind": "bridge",
+   "anchor": {
+    "at": "after",
+    "step": "M30"
+   },
+   "regie": [
+    "avond, de flat. Op het prikbord hangen de vijf vrienden van Oma, het plakjesbord van Jelle en een briefje in Tessa's hand: Fjord Frituur, wat nu? Beneden staat de Escapade met het luik open."
+   ],
+   "lines": [
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Wat nu?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Rijden.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Waarheen?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Waar jij wilt.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Sjabbe heeft een pand. Geesje zegt dat de bieten tot aan de weg staan. En in Veendam zoeken ze nog een aanvalster.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dan beginnen we overal.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Samen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Samen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": false,
+     "rec": "story"
     }
    ]
   }

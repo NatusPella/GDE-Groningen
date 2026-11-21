@@ -100,6 +100,7 @@ function kindOf(id, title) {
   if (/^A\d/.test(id)) return 'app';
   if (/^B\d/.test(id)) return 'banter';
   if (/^S\d/.test(id)) return 'side';
+  if (/^O\d/.test(id)) return 'bridge';
   if (/^T\d/.test(id)) return /herhaling/.test(title) ? 'replay' : /instappen|intro/.test(title) ? 'intro' : /aankomst/.test(title) ? 'outro' : 'travel';
   if (/^E\d/.test(id)) return 'epilogue';
   if (/Autogesprek/.test(title)) return 'banter';
@@ -152,7 +153,7 @@ export function parseScripts() {
 // or at the start of the step when they sit between two scenes of one step
 function anchor(scenes) {
   scenes.forEach((s, i) => {
-    if (s.step || (s.kind !== 'radio' && s.kind !== 'app' && s.kind !== 'banter' && s.kind !== 'side')) return;
+    if (s.step || (s.kind !== 'radio' && s.kind !== 'app' && s.kind !== 'banter' && s.kind !== 'side' && s.kind !== 'bridge')) return;
     let prev = null, next = null;
     for (let j = i - 1; j >= 0; j--) if (scenes[j].step) { prev = scenes[j].step; break; }
     // what comes after the scene: a banter or replay line of the step before it does not count

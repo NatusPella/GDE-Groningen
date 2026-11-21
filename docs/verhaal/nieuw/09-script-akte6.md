@@ -53,6 +53,16 @@ TAMMO: Dat weet ze. [NIEUW]
 ## [M28.4] De wisselwoning: herhaling – Eemsdelta, Loppersum – bestelbus
 WILLEMIEN: Nog een ritje? De kat blijft hier. Die heeft het wel gezien. [NIEUW]
 
+## [O11] Een eierbal – Loppersum – telefoon
+(regie: middag. De verhuisbus staat bij de wisselwoning. Tessa's telefoon: een onbekend nummer, en ze weet al wie.)
+JELLE (telefoon): Mevrouw Tessa. Eén eierbal, met mosterd. Voor mijn moeder. [NIEUW]
+TESSA (telefoon): De Fjord Frituur staat op de Vismarkt, vanaf twaalf uur. [NIEUW]
+JELLE (telefoon): Mijn assistent haalt hem. Ik betaal contant. [NIEUW]
+TESSA (telefoon): Uit een klomp? [NIEUW]
+JELLE (telefoon): Dat is een ander gesprek. [NIEUW]
+TAMMO: Wat wil hij? [NIEUW]
+TESSA: Een eierbal. Voor zijn moeder. [NIEUW]
+
 ## [M29.1] Terug: intro – Eemsdelta, Loppersum, het erf – bestelbus
 (regie: donderdag 17 september, late middag. Een strakke, nieuwe gevel zonder balken; de kat zit al op de stoep. Mensen zetten tafels op het erf. Gameplay: breng Willemien en haar spullen terug naar huis; daarna het buurtfeest op het erf.)
 WILLEMIEN: Een paar weken, zeiden ze. Dit keer klopte het. [NIEUW]
@@ -175,3 +185,15 @@ TESSA: Kon veel minder. [NIEUW]
 
 ## [M30.7] Het proefbeleg: herhaling – Westerwolde, Bourtange, de hooiberg – te voet
 BEREND: Nog een proefbeleg? Ik win nog steeds niet graag. Doe maar. [NIEUW]
+
+## [O12] Wat nu – Stad, Paddepoel – flat
+(regie: avond, de flat. Op het prikbord hangen de vijf vrienden van Oma, het plakjesbord van Jelle en een briefje in Tessa's hand: Fjord Frituur, wat nu? Beneden staat de Escapade met het luik open.)
+TESSA: Wat nu? [NIEUW]
+TAMMO: Rijden. [NIEUW]
+TESSA: Waarheen? [NIEUW]
+TAMMO: Waar jij wilt. [NIEUW]
+TESSA: Sjabbe heeft een pand. Geesje zegt dat de bieten tot aan de weg staan. En in Veendam zoeken ze nog een aanvalster. [NIEUW]
+TAMMO: Dan beginnen we overal. [NIEUW]
+TESSA: Samen. [NIEUW]
+TAMMO: Samen. [NIEUW]
+

@@ -104,6 +104,18 @@ TAMMO: Rijden, niet praten. Dat zeg jij altijd. [BEHOUDEN]
 ## [M08.5] Fatbikes tellen niet als fiets: herhaling – Stad, Noorderhaven – te voet
 OMA TRIJNTJE: Hest weer veur 'n ander? Dat was geen compliment, jong. [BEHOUDEN]
 
+## [O4] Een jas – Stad, onderweg – Escapade
+(regie: de Escapade, onderweg naar het Hogeland. Op Tessa's telefoon verschijnt een naam: Mem. Ze neemt op en zet hem zachter.)
+MEM (telefoon): Famke. Heb je een jas aan? [NIEUW]
+TESSA (telefoon): Het is augustus, Mem. [NIEUW]
+MEM (telefoon): Het waait. Jas. [NIEUW]
+TESSA (telefoon): ...Ja, Mem. [NIEUW]
+MEM (telefoon): Is de jongen er ook? Zeg dat hij moet eten. [NIEUW]
+TAMMO: Wie was dat? [NIEUW]
+TESSA: Mem. Ik logeerde elke zomer naast haar, in Ljouwert. [NIEUW]
+TAMMO: Een jas in augustus? [NIEUW]
+TESSA: Jij weet niet hoe lang ze dat al zegt. [NIEUW]
+
 ## [T1] De trein naar Warffum – Stad, Station Grunn naar Warffum – trein (meerijden)
 (regie: de keuze: trein, zelf rijden of skippen. Bij de trein: een korte scène.)
 TESSA: Een kaartje naar maakt niet uit waar. Jij kijkt te schuldig voor een conducteur. [BEHOUDEN]
@@ -206,6 +218,17 @@ TESSA: Hij heeft de bal. Wij hebben de eieren. [NIEUW]
 APP OMA→TESSA (stil): Zoutkamp. Kapitein Klaas. Zeg dat ik je stuur. [NIEUW]
 APP MEM→TESSA (stil): Jij zat elke zomer bij mij aan tafel, famke. Help mij nu. – M. [NIEUW]
 APP MEM→TESSA (stil): Is mijn jongen droog? Zeg niks tegen Tammo. – M. [NIEUW]
+
+## [O5] Straks – Hogeland, wierde – Escapade
+(regie: avond op de wierde. De Escapade staat stil, de zon zakt. Tessa zit op de motorkap met haar telefoon, Tammo leunt tegen het portier.)
+TESSA (telefoon): Mem, vandaag was er een man met een trekker-limo. Hij zei dat zijn mem niks wil. [NIEUW]
+MEM (telefoon): ...Dat zegt hij al jaren. [NIEUW]
+TESSA (telefoon): Kent u hem? [NIEUW]
+MEM (telefoon): Doe je jas aan, famke. [NIEUW]
+TESSA (telefoon): Mem... [NIEUW]
+MEM (telefoon): Straks. Eerst het Ontzet. [NIEUW]
+TAMMO: Wat zei ze? [NIEUW]
+TESSA: Dat ik mijn jas moet aandoen. [NIEUW]
 
 ## [T2] De streekbus naar Zoutkamp – Hogeland, Uithuizen naar Zoutkamp – bus (meerijden)
 TESSA: Oma Trijntje stuurt ons naar Kapitein Klaas in Zoutkamp. Hij heeft een boot, en Jelle heeft daar een skûtsje: een groot Fries zeilschip. [NIEUW]
