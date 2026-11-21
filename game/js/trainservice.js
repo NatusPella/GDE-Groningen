@@ -139,7 +139,7 @@ function buildIndex(legs, routes) {
   };
 }
 
-// De haltetijden van een leg met de live vertraging (dezelfde functie als het bord: treinrooster.vertragingVan). stand: Map of null.
+// De haltetijden van een leg met de live vertraging (dezelfde functie als het bord: trainschedule.vertragingVan). stand: Map of null.
 // Geeft { aan: [], weg: [], vervallen, vertraging: [] } per halte. Een vervallen rit rijdt niet.
 export function legTimes(leg, stand, cfg = DIENST) {
   const n = leg.halten.length;
@@ -223,7 +223,7 @@ export function actieveLegs(dienst, routes, nu, stand = null) {
 }
 
 // Een bordrij is dezelfde trein als de wereldtrein: zelfde rit-id en dezelfde tijden. Hulp voor tests en de omroep: de vertrektijd
-// van de leg op halte j met vertraging (gelijk aan rij.tijd van treinrooster.rijenUitRooster).
+// van de leg op halte j met vertraging (gelijk aan rij.tijd van trainschedule.rijenUitRooster).
 export const vertrekVan = (leg, j, stand) => legTimes(leg, stand).weg[j];
 
 // De dienst van de machinist uit een leg (machinist.js): dezelfde vorm als dienstregeling.dienstVanRit, maar met de haltes en tijden van de

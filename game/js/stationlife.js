@@ -91,7 +91,7 @@ export function bordCellen(view) {
 }
 
 // De bron van het bord in woorden (#1085): { kort: 'Live' | 'Rooster' | 'Rooster (eigen dienst)', regel, eerste } voor het label en de
-// regels onder het bord. De eerste regel is "Vertrekt over 4 min · 3 min vertraagd". liveStand: treinlive stand(); instelling: liveTreinen.
+// regels onder het bord. De eerste regel is "Vertrekt over 4 min · 3 min vertraagd". liveStand: trainlive stand(); instelling: liveTreinen.
 export function bordBron(view, { instelling = true, liveStand = null, nu = Date.now() } = {}) {
   const stand = sourceState({ instelling, stand: liveStand, nu });
   const label = bronLabel(stand, { eigenDienst: !view.echtRooster });

@@ -75,7 +75,7 @@ export async function laadRooster(fetchFn = globalThis.fetch, basis = (typeof lo
   }
 }
 
-// De live stand (Map uit livetreinen.buildDelayMap) op de rijen zetten: de vertraging per rit in seconden, en of de rit vervalt.
+// De live stand (Map uit livetrains.buildDelayMap) op de rijen zetten: de vertraging per rit in seconden, en of de rit vervalt.
 // De vertraging van één vertrek (of aankomst) uit de live stand: { vertraging (s, 0 onder een minuut), vervallen, live }; null zonder melding.
 // Bord en wereldtrein gebruiken dezelfde functie, zodat ze dezelfde tijden hebben. plan: seconden na middernacht (ook boven 86400).
 export function vertragingVan(stand, nummer, code, plan) {

@@ -118,5 +118,5 @@ B.configureBoatSource({});
 ok(B.isBoatSpotValid(map, 3200, 1.5, 'kano'), 'zonder net: breed genoeg is genoeg');
 ok(!B.isBoatSpotValid(map, 1200, 2, 'sloep'), 'zonder net: een sloot blijft een sloot');
 
-console.log(`bootplekken: ${n - fails}/${n} checks passed`);
+console.log(`boatspots: ${n - fails}/${n} checks passed`);
 process.exit(fails ? 1 : 0);
