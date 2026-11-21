@@ -44,7 +44,7 @@ interiors.js  (activiteit, per frame)  ->  bouwt bij <20 m, gooit weg bij >32 m,
 
 ## Mensen en gebruik
 
-NPC's (winkelier achter de balie, klanten, barman, gasten, receptionist, medewerkers, koster, reizigers, monteur) komen uit `interiornpc.js` met een deterministische look per rol en plek; `assignRoleOutfit` is het haakje voor de kledingset van epic Kleding. Ze staan op hun plek (idle, zittend of staand), alleen als het pand open is en de speler binnen 16 m is, hooguit zes. Ze lopen niet rond (open punt).
+NPC's (winkelier achter de balie, klanten, barman, gasten, receptionist, medewerkers, koster, reizigers, monteur) komen uit `interiornpc.js` met een deterministische look per rol en plek; `assignRoleOutfit` is het haakje voor de kledingset van epic Kleding. Ze staan op hun plek (idle, zittend of staand), alleen als het pand open is en de speler binnen 16 m is, hooguit zes. Klanten en gasten lopen rond, zie hieronder.
 
 Interactie (E): kopen of bestellen (een winkel van het spel in het pand opent zijn eigen menu, anders een klein product uit `interiorbuy.js` met geld en gezondheid), passen (kledingwinkel: het menu van de winkel), balie (een regel van de medewerker), kaarsje, loket, boeken, rondkijken (woning). Alle tekst in `interiortexts.js`, alleen tekst, verzonnen namen.
 
@@ -86,22 +86,54 @@ Redenen dat een gemeten pand niet kan: hal te klein 13.581, te laag (minder dan 
 
 | Onderdeel | Stand |
 | --- | --- |
-| Bezit (eigen pand) | haakje `assignInteriorHooks({ owned })`; het beheer binnen (kassa, beheerder) is nog niet gebouwd |
-| Kleding | pashokje met menu van de kledingwinkel; `assignRoleOutfit` voor outfits per rol |
-| Homebase / verhuizen | `owned` laat de deur altijd open; de woning als eigen thuis is epic verhaal |
-| Politie | gebouwd: zichtlijnen (zie boven) |
-| Missies en verhaalbeats in een interieur | interface: `onInteriorChange({ type, plan, b })`, `insideInterior()` en `interiorSeed(b)`; een missie kan een pand vragen via `planInterior(b)` en erin spelen zonder eigen kamer. Nog geen missie gebouwd |
-| Geluid | `onInteriorChange` + `KINDS[kind].ambience` (muziek en gedempt buiten); de koppeling aan geluid.js is nog niet gedaan |
-| Kaartlaag "Betreedbaar" | nog niet gedaan; de data staat klaar (`planInterior` op de panden in de buurt) |
+| Bezit (eigen pand) | contract hieronder; de deur gaat altijd open voor een eigen pand (`owned`), de kassa wordt het beheer (`manage`). Wiring aan `bezit.js` (`ownsBuilding(bezit, b.osm)`) is aan de Bezit-lead |
+| Kleding | pashokje met het menu van de kledingwinkel; mensen worden aangekleed uit de rolpools van epic Kleding (`opts.role`: winkelier, bakker, kok, zakenman, bouwvakker, toerist, student, feestganger, voetganger); `assignRoleOutfit` blijft het haakje voor een eigen outfit per rol; de kappersstoel (`kappen`) opent het kappermenu van de winkel in het pand |
+| Homebase / verhuizen | `assignInteriorHooks({ homeStyle(b) })` geeft wand, vloer en bekleding van een woning waar je woont; `owned` laat de deur open; de woning als eigen thuis en het verhuizen zelf zijn van epic verhaal |
+| Garage en tuning | een garage of werkplaats met een winkel van het spel erin (tuning, fietsenmaker, spuiterij) opent bij de balie zijn eigen menu; zonder die winkel een regel van de monteur |
+| Politie | gebouwd: zichtlijnen, `world.insideBuilding` |
+| Missies en verhaalbeats in een interieur | `interiorscene.js`: ankerpunten (`sceneAnchors`), camera's binnen de hal (`sceneCamera`), `pinInterior(b)` houdt het interieur in leven zolang de scène speelt, `onInteriorChange` meldt binnenkomen en vertrekken |
+| Geluid | gebouwd: binnen dempt het buitengeluid (de bestaande binnen-occlusie), kamertoon per soort, deurgeluid, winkelbel, kassa, bar |
+| Kaartlaag "Betreedbaar" | gebouwd: laag `betreedbaar` in de volledige kaart (deurbadge, vanaf stadsniveau) en een bordje bij de deur (groen open, rood dicht) |
+| Beppe-huis | bewust niet gemigreerd, zie hieronder |
+
+### Tweede verdieping en trap
+
+Woningen, kantoren, hotels, gemeentehuizen, scholen en winkels met een etage (kleding, tweedehands, elektronica, souvenir, supermarkt) krijgen een tweede verdieping als het pand twee lagen of meer heeft, de hal 4,2 x 8,2 m of groter is en de verdiepingshoogte minstens 2,6 m (`interiorupper.js`). Eén rechte trap langs een zijmuur (helling 36 graden, treden van 19 cm), een vlak bordes achter, een gat in de vloer boven de trap met een leuning. Boven: slaapkamer en toilet, open kantoor, hotelkamer of meer winkelvloer, met eigen mensen. De trap is een helling die je loopt: `interiors.js` zet `map.surfaceAt` en `groundHeightAt` zo dat de trap en de tweede verdieping de grondhoogte van de speler zijn zolang zo'n interieur leeft (de gewone `followGround` van `player.js` doet de rest), en de botsing kiest de benedenste of bovenste indeling uit de hoogte. Geen teleport. `planInterior(b, { upper: false })` zet de verdieping uit. Beperking: werkt alleen in een wereld met hoogtemodel (`map.elev.has`); anders staat de speler beneden op de grond terwijl de trap omhoog loopt.
+
+### Mensen en winkelacties
+
+Klanten, gasten, reizigers, bezoekers, lezers en bewoners lopen rond (`interiorwander.js`): ze kiezen een bereikbaar punt op 2 tot 9 m, lopen er over het looprooster naartoe (nooit in een meubel of muur), wachten een paar seconden en gaan door. Personeel achter de balie en wie zit blijft staan. Lopen is lokaal decor (niet gesynchroniseerd) en botst niet met de speler. Een winkel van het spel (`shopInBuilding`) opent zijn eigen menu bij de kassa (`openShopFromInterior`); een andere winkel verkoopt een klein product.
+
+### Bezit-beheer in het pand: het contract met epic Bezit
+
+Bezit hangt twee haken aan `assignInteriorHooks` (in `bezitlive.js`, zoals `bezithooks.js` dat voor de boerderij doet):
+- `owned(b) -> boolean`: is dit pand van de speler (`ownsBuilding(bezit, b.osm)`); de deur opent dan altijd, ook buiten de openingstijden.
+- `manage(b, plan) -> { label, sub, run(w) } | null`: het beheer van dit pand; bij de kassa, bar of balie staat dan "Beheer" in plaats van kopen en `run(w)` opent het beheerscherm van Bezit (omzet, personeel, klanten van dat pand). `plan.kind` en `plan.sub` zeggen wat voor zaak het is.
+De mensen in een eigen zaak kunnen later via `assignRoleOutfit` een eigen outfit krijgen. Bezit weet niets van de binnenkant; de binnenkant weet alleen of er een beheerscherm is.
+
+### Het Beppe-huis blijft zoals het is
+
+Beppes huis (`beppe_binnen.js`) is geen pand uit de tegels: het staat op een plek die uit de weg en de grens wordt afgeleid, heeft geen `b.entrance`, een eigen kamer met een vaste camera en een verhaalstand met scènes. Migreren naar het interieursysteem zou betekenen dat de kamer, de camera en de scènes opnieuw gebouwd moeten worden zonder winst en met kans op regressie (de verhaalboog is getest met 2.553 en 998 controles). Gekozen: niet migreren; wel consistent: terwijl je in het Beppe-huis bent telt `w.insideExternal` mee voor de politiezichtlijnen en het binnengeluid, en een volgende scène kan `interiorscene.js` gebruiken voor echte panden.
+
+### Samen spelen (regels)
+
+- **Het interieur** is deterministisch uit de gebouwsleutel (`interiorSeed`: het zaad van het pand, geen RNG-toestand, geen volgorde): host, gast, een gast die later aansluit en de nieuwe host na een hostwissel bouwen dezelfde kamer. Test: `scripts/interior_coop_test.mjs`.
+- **Spelers in dezelfde kamer** zien elkaar: posities synchroniseren al; ze botsen op dezelfde hal (`b.walk` is overal gelijk).
+- **De mensen** zijn lokaal decor, op dezelfde plekken, met dezelfde look uit zaad en rol; ze worden niet door de host gesimuleerd en niet gesynchroniseerd (de wereld buiten is van de host, de binnenkant van iedereen zelf). Een bijkomend gevolg: twee spelers zien een klant op verschillende plekken lopen.
+- **Kopen en beheer** zijn per speler (#429): geld en gezondheid van wie koopt, nooit een host-recht, niets over het netwerk. Een winkelmenu van het spel volgt de bestaande gastregel (`winkelMagVoorGast`).
+- **Een speler binnen bij een hostwissel** merkt niets: het interieur hangt aan zijn eigen spel. **Een gast die later aansluit** terwijl een ander binnen is, bouwt het interieur zodra hij in de buurt komt.
 
 ## Prestaties
 
 Alles is lui: niets wordt gebouwd buiten 20 m, hooguit twee interieurs, een per scan van 0,3 s, geometrie en mensen worden bij vertrek vrijgegeven. Meting (node en headless mock, `scripts/interior_mock_render.mjs`): bouwen 1 tot 10 ms per interieur, 2 tot 4 draw calls in beeld, 760 tot 7300 driehoeken. In het spel nog niet gemeten (geen Electron): de frametijd met een interieur in beeld, de kosten van `findHall` op de eerste scan, en leakwatch na een uur wandelen door winkelstraten.
 
+Stress (`scripts/interior_stress_test.mjs`, node): een wandeling van 5 m/s door een straat met tien betreedbare panden: 20 bouwen en 18 weggooien over twee passages, nooit meer dan twee tegelijk, geen bouwen-weggooien-bouwen aan de grens (hysterese 20 m / 32 m), alles vrijgegeven na de wandeling, de zwaarste scan (geometrie bouwen) 11 ms, wat leeft hooguit 580 KB. Een plan maken kost 2 tot 9 ms in rust (eenmalig per pand, hoogstens een per scan van 0,3 s, en nooit in dezelfde scan als een bouw). De planregel van `interiorplanner.js` is pure code en dezelfde als in het spel.
+
 ## Wat niet is gedaan
 
-- Geen Electron-beeld; zie de verificatielijst. De portal-snede door de gevel, de raam-shader (integer-hash) en de camera binnen zijn nooit in het echte spel gezien.
-- Geen tweede verdieping, geen trappen, geen achterdeur (de hal heeft één deur: de voordeur).
-- NPC's lopen niet; geen eigen gesprekken behalve de balieregel.
-- Geen geluid, geen kaartlaag, geen beheer van eigen panden.
+- Geen Electron-beeld; zie de verificatielijst. De portal-snede door de gevel, de raam-shader (integer-hash), de camera binnen, de trap in het echte spel en alle geluid zijn nooit in het echte spel gezien.
+- Geen achterdeur, geen tweede trap, geen verdiepingen boven de tweede, geen liften.
+- Mensen lopen niet naar boven of weg uit hun kamer, en botsen niet met de speler.
+- Het beheer van eigen panden is een contract: de Bezit-kant is nog niet gewired.
 - Interieur en raam komen overeen in kleur, vloer en meubelsoort; de exacte plaats van het meubel in het raam en dat in de hal zijn niet gelijk.
+- De kaartlaag toont alle winkels en voorzieningen; een pand dat te klein blijkt wordt pas van de kaart gehaald als je er in de buurt komt.

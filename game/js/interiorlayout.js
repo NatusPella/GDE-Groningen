@@ -168,7 +168,11 @@ function shopRecipe(p, sub) {
     p.run(H, 'back', 'shelf', 1.0, 0.45, H.u0, H.u1, { h: shelfH, color: T.accent, row: T.row });
     if (sub === 'kapper') {
       p.run(H, 'left', 'mirror', 1.6, 0.1, H.v0 + 1.8, H.v1 - 2.5, { h: 1.5, solid: false, y0: 0.9 });
-      for (let v = H.v0 + 2.4; v < H.v1 - 3.2; v += 1.6) p.add('barber_chair', H.u0 + 1.2, v, 0.7, 0.8, FACE.W, { h: 1.0 });
+      let first = true;
+      for (let v = H.v0 + 2.4; v < H.v1 - 3.2; v += 1.6) {
+        const ch = p.add('barber_chair', H.u0 + 1.2, v, 0.7, 0.8, FACE.W, { h: 1.0 });
+        if (ch && first) { first = false; p.useAt('kappen', ch.u + 1.0, ch.v, 0.9, { face: FACE.W, target: 'kapper' }); }
+      }
       p.add('sink', H.u1 - 0.5, H.v1 - 1.2, 0.6, 0.5, FACE.W, { h: 0.9 });
       p.add('bench', H.u1 - 0.45, H.v0 + 2.6, 1.6, 0.5, FACE.W, { h: 0.45 });
     } else if (sub === 'bloemist') {

@@ -32,3 +32,15 @@ Niets hiervan is in Electron of in het echte spel gezien; de agent had alleen no
 20. Voetgangers: komt er een voorbijganger de open deur in? Zo ja, is dat acceptabel?
 21. Een pand dat ook een landmark of een museum is blijft zijn handgemaakte interieur houden (geen tweede interieur erop).
 22. Winkels in dorpen en de Ommelanden: heeft de gevelbouwer daar dezelfde deur; en heeft een kerk de kopgevel-deur op een plek die er logisch uitziet (de kerk heeft geen getekende deur; de vleugel is de enige)?
+
+## Ronde 2: trap, mensen, geluid, kaart
+
+23. Trap: loop de trap van een huis, kantoor of kleine kledingwinkel op: stijgt de speler vloeiend mee (geen sprong, geen zinken in de trede), is de leuning boven te zien en houdt hij je uit het gat, en lopen camera en prompts normaal door op de tweede verdieping? Werkt dat ook in een wereld zonder hoogtemodel (daar blijft de speler beneden)?
+24. Boven: de vloer, het plafond, de ruiten van de tweede verdieping in de gevel en de mensen boven staan op de goede hoogte.
+25. Rondlopers: lopen klanten zonder door meubels te gaan, draaien ze mooi bij, en lopen ze niet op een vervelende manier door jou heen?
+26. Geluid: binnen klinkt de straat gedempt, het kamergeluid past bij het soort (café druk, kerk en bibliotheek stil), de deur klinkt open en dicht, de winkelbel klinkt, de kassa en de bar klinken bij kopen en bestellen.
+27. Kaart: de laag "Betreedbaar" in de legenda en de volledige kaart (zoom in), de badge is leesbaar en het bordje bij de deur is groen of rood naar de openingstijd.
+28. Kapper en pashokje: de kappersstoel en het pashokje openen het menu van de winkel in het pand.
+29. Politie: schuil in een open pand; de sterren zakken sneller als niemand binnen 9 m is.
+30. Beppe-huis: de verhaalboog is ongewijzigd, het binnengeluid en de politiezichtlijnen tellen mee.
+31. Eerste scan: loop snel langs veel panden: geen hapering van het plan (2 tot 9 ms, hoogstens een per scan).

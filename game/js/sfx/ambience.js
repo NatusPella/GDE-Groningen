@@ -390,6 +390,12 @@ function setTargets(world) {
   beds.stadNacht.target = (0.06 + place.traffic * 0.1 + place.density * 0.05) * night * (1 - 0.9 * place.rural) * cabin * paused;
   beds.city.target *= 1 - 0.5 * night * (K.samples && K.samples.has('stad_nacht_nl') ? 1 : 0);
   beds.binnen.target = indoors ? 0.25 * paused : 0;
+  // in a pand (interiors.js, #1150): a bar and a station hall have people in them, a library and a church do not
+  if (indoors && world.insideKind) {
+    const room = { horeca: 0.22, station: 0.14, winkel: 0.05, publiek: 0.06 }[world.insideKind] || 0;
+    if (room) beds.crowd.target = Math.max(beds.crowd.target, room * paused);
+    if (world.insideKind === 'kerk' || world.insideKind === 'bibliotheek') beds.binnen.target = 0.12 * paused;
+  }
   // de kermis op de Grote Markt: drukte en attracties op afstand zolang hij open is (opname kermis_lawaai), zachter bij regen en in een voertuig
   const kermisMid = sfxLinks.kermisPunt(world);
   if (kermisMid) {

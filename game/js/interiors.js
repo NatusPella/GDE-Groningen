@@ -15,7 +15,9 @@ import { hoofdspeler } from './players.js';
 import { getScene, addCamTargetSource, disposeObject } from './scene3d.js';
 import { registerPortalBoxes, unregisterPortalBoxes, updatePortals } from './portalcut3d.js';
 import { planInterior, doorState, planReady } from './interiorrules.js';
+import { chooseLive } from './interiorplanner.js';
 import { makeSpotIndex, spotFor } from './interiorspots.js';
+import { markNotEnterable } from './interiormap.js';
 import { buildInteriorGeometry, buildLeafGeometry, solidMaterial, lampMaterial, glassMaterial, leafMaterial } from './interiorbuild3d.js';
 import { makeWalk } from './interiorwalk.js';
 import { makeWanderer, stepWanderer, mayWander } from './interiorwander.js';
@@ -25,7 +27,7 @@ import { toWorld, frameOf } from './interiorframe.js';
 import { npcLook, yawOfFace } from './interiornpc.js';
 import { buildPersonMesh, animatePersonWalk, seatPerson, seatedY } from './models3d_people.js';
 import { FAC } from './facilities.js';
-import { PROMPT, CLOSED, LOCKED_HOME, clerkLine, HOME_LOOK, FITTING, CHURCH_CANDLE, TICKET_LINES, LEZEN, BOUGHT, TOO_POOR, NOT_FOR_SALE } from './interiortexts.js';
+import { PROMPT, CLOSED, LOCKED_HOME, clerkLine, HOME_LOOK, FITTING, HAIRCUT, CHURCH_CANDLE, TICKET_LINES, LEZEN, BOUGHT, TOO_POOR, NOT_FOR_SALE } from './interiortexts.js';
 import { productFor, buyProduct } from './interiorbuy.js';
 import { shopInBuilding, openShopFromInterior } from './shops.js';
 import { noteMoney } from './finance.js';
@@ -35,14 +37,26 @@ import { isCinematicActive } from './cinematics.js';
 export const BUILD_R = 20, DROP_R = 32, MAX_LIVE = 2, NPC_R = 16, MAX_NPC = 6;
 const OPEN_TIME = 0.3, OPEN_ANGLE = 1.75, DOOR_REACH = 3.0;
 const BRON = 'interieur';
+// the little sign beside a door of a shop, cafe or office: green when it is open, red when it is closed (shared geometry and materials)
+const SIGN_GEO = new THREE.BoxGeometry(0.26, 0.16, 0.03); SIGN_GEO.userData.shared = true;
+const SIGN_OPEN = new THREE.MeshBasicMaterial({ color: 0x3fc97a }); SIGN_OPEN.userData.shared = true;
+const SIGN_SHUT = new THREE.MeshBasicMaterial({ color: 0xd93f3f }); SIGN_SHUT.userData.shared = true;
 
-const S = { live: new Map(), plans: new WeakMap(), scan: 0, spots: null, spotsN: -1, closedAt: new WeakMap(), inside: null, listeners: [], hooks: { owned: () => false }, time: 0 };
+const S = { live: new Map(), plans: new WeakMap(), scan: 0, spots: null, spotsN: -1, closedAt: new WeakMap(), inside: null, listeners: [], hooks: { owned: () => false, manage: () => null, homeStyle: () => null }, pinned: new Set(), time: 0 };
 
-// hooks other systems set: owned(b) -> true for a pand of the player (Bezit, Homebase: the door always opens)
+// homeStyle(b) -> { wall, floor, fabric } | null: the colours of a home the player lives in (Homebase: a variant per living place)
+// hooks other systems set: owned(b) -> true for a pand of the player (Bezit, Homebase: the door always opens);
+// manage(b, plan) -> { label, sub, run(w) } | null: the management of an owned pand, at its counter (Bezit: turnover, staff, customers)
 export function assignInteriorHooks(h) { Object.assign(S.hooks, h || {}); }
 // what is happening: { type: 'enter'|'leave', plan, b } for sound, police, missions
 export function onInteriorChange(fn) { if (typeof fn === 'function') S.listeners.push(fn); }
 const emit = (e) => { for (const f of S.listeners) { try { f(e); } catch (err) { console.error('interior listener', err); } } };
+
+// A scene (mission, cutscene, story beat) keeps the interior of a building alive while it plays, wherever the player is (interiorscene.js).
+// Returns the plan (or null: the building cannot be entered); the room is built on the next scan. releaseInterior lets it go again.
+export function pinInterior(b) { const rec = b && planReady(b) ? planOf(b) : null; if (!rec || !rec.ok) return null; S.pinned.add(b); return rec.plan; }
+export function releaseInterior(b) { S.pinned.delete(b); }
+export const livePlanOf = (b) => { const ls = S.live.get(b); return ls ? ls.plan : null; };
 
 export const insideInterior = () => (S.inside ? { b: S.inside.b, plan: S.inside.plan, kind: S.inside.plan.kind, sub: S.inside.plan.sub } : null);
 export const liveInteriors = () => S.live.size;
@@ -60,8 +74,11 @@ function planOf(b) {
   let rec = S.plans.get(b);
   if (rec === undefined) {
     const spot = spotFor(spotIndex(), b.pts, b.entrance || null);
-    rec = planInterior(b, { spot });
+    let style = null;
+    try { style = S.hooks.homeStyle(b); } catch (e) { style = null; }
+    rec = planInterior(b, { spot, style });
     rec.b = b;
+    if (!rec.ok && spot && (rec.why === 'small' || rec.why === 'low')) markNotEnterable(spot.x, spot.y); // the map layer stops promising it
     S.plans.set(b, rec);
   }
   return rec;
@@ -90,10 +107,18 @@ function build(w, rec) {
   leaf.userData.noBatch = true;
   pivot.add(leaf);
   group.add(pivot);
+  let sign = null;
+  if (plan.kind !== 'woning') {
+    sign = new THREE.Mesh(SIGN_GEO, SIGN_OPEN);
+    const [sx, sz] = toWorld(fr, plan.door.w / 2 + 0.28, -0.07);
+    sign.position.set(sx - fr.ox, ground + 1.45, sz - fr.oy);
+    sign.rotation.y = Math.atan2(fr.nx, fr.ny); // faces outward
+    group.add(sign);
+  }
   scene.add(group);
   // the facade is cut open where the door is (the leaf and the reveal fill the gap)
   const box = { cx: fr.ox, cy: fr.oy, ux: fr.nx, uy: fr.ny, hl: 0.6, hw: plan.door.w / 2, top: ground + plan.door.h + 0.02, bottom: ground - 0.3 };
-  const ls = { b, plan, group, mesh, pivot, leaf, ground, box, boxes: [box], open: 0, target: 0, npcs: [], npcsOn: false, triangles, side: Math.sign(fr.tx * -fr.ny + fr.ty * fr.nx) || 1, bellAt: 0, walk: null };
+  const ls = { b, plan, group, mesh, pivot, leaf, sign, openNow: true, ground, box, boxes: [box], open: 0, target: 0, npcs: [], npcsOn: false, triangles, side: Math.sign(fr.tx * -fr.ny + fr.ty * fr.nx) || 1, bellAt: 0, walk: null };
   registerPortalBoxes(ls, ls.boxes);
   ls.walk = makeWalk(plan, b.pts, () => ls.open > 0.55, ground);
   b.walk = ls.walk;
@@ -170,28 +195,13 @@ function scan(w, p) {
     if (rec === undefined) { if (computed >= 1) continue; computed++; rec = planOf(b); }
     if (!rec.ok) continue;
     const d = Math.hypot(rec.plan.frame.ox - p.x, rec.plan.frame.oy - p.y);
-    if (d <= BUILD_R) want.push([d, rec]);
+    if (d <= BUILD_R) want.push({ id: rec.b, d, rec });
   }
-  want.sort((a, c) => a[0] - c[0]);
-  // drop what is far away (and not where the player stands)
-  for (const ls of [...S.live.values()]) {
-    const d = Math.hypot(ls.plan.frame.ox - p.x, ls.plan.frame.oy - p.y);
-    if (d > DROP_R && S.inside !== ls) drop(w, ls);
-  }
-  // build the nearest that is missing, one per scan, keeping the maximum
-  for (const [, rec] of want) {
-    if (S.live.has(rec.b)) continue;
-    if (S.live.size >= MAX_LIVE) {
-      // make room by dropping the farthest one that is not the one the player is in
-      let far = null, fd = -1;
-      for (const ls of S.live.values()) { if (S.inside === ls) continue; const d = Math.hypot(ls.plan.frame.ox - p.x, ls.plan.frame.oy - p.y); if (d > fd) { fd = d; far = ls; } }
-      if (!far || fd <= Math.hypot(rec.plan.frame.ox - p.x, rec.plan.frame.oy - p.y)) break;
-      drop(w, far);
-    }
-    const ls = build(w, rec);
-    if (ls) S.live.set(rec.b, ls);
-    break;
-  }
+  want.sort((a, c) => a.d - c.d);
+  const live = [...S.live.values()].map((ls) => ({ id: ls.b, d: Math.hypot(ls.plan.frame.ox - p.x, ls.plan.frame.oy - p.y), inside: S.inside === ls || S.pinned.has(ls.b) }));
+  const { drops, build: pick } = chooseLive(want, live, { buildR: BUILD_R, dropR: DROP_R, max: MAX_LIVE });
+  for (const id of drops) { const ls = S.live.get(id); if (ls) drop(w, ls); }
+  if (pick && !computed) { const rec = want.find((x) => x.id === pick).rec; const ls = build(w, rec); if (ls) S.live.set(rec.b, ls); }
 }
 
 function updateLive(w, ls, dt, p, onFoot) {
@@ -205,7 +215,10 @@ function updateLive(w, ls, dt, p, onFoot) {
   const was = ls.open;
   ls.open += Math.sign(ls.target - ls.open) * Math.min(Math.abs(ls.target - ls.open), dt / OPEN_TIME);
   if (ls.open !== was) ls.pivot.rotation.y = -ls.side * ls.open * OPEN_ANGLE;
+  if (was < 0.05 && ls.open > 0.05 && !plan.shop && w.audioEvents && w.audioEvents.length < 64 && S.time - ls.bellAt > 3) { ls.bellAt = S.time; w.audioEvents.push({ kind: 'fx', name: 'door_wood_open', x: fr.ox, y: fr.oy }); }
+  if (was > 0.95 && ls.open < 0.95 && w.audioEvents && w.audioEvents.length < 64 && S.time - (ls.closeAt || -9) > 3) { ls.closeAt = S.time; w.audioEvents.push({ kind: 'fx', name: 'door_wood_close', x: fr.ox, y: fr.oy }); }
   if (was < 0.05 && ls.open > 0.05 && plan.shop && w.audioEvents && w.audioEvents.length < 64 && S.time - ls.bellAt > 3) { ls.bellAt = S.time; w.audioEvents.push({ kind: 'fx', name: 'shop_bell', x: fr.ox, y: fr.oy }); }
+  if (ls.sign && ls.openNow !== st.open) { ls.openNow = st.open; ls.sign.material = st.open ? SIGN_OPEN : SIGN_SHUT; }
   // a closed door says so, once per approach
   if (!st.open && onFoot && dd < 2.4 && !inside && S.time - (S.closedAt.get(ls.b) || -99) > 20) {
     S.closedAt.set(ls.b, S.time);
@@ -246,7 +259,8 @@ export function updateInteriors(dt, w) {
   const onFoot = !p.inVehicle && !p.swimming && !p.dead;
   if ((S.scan -= dt) <= 0) { S.scan = 0.3; scan(w, p); }
   for (const ls of S.live.values()) updateLive(w, ls, dt, p, onFoot);
-  w.insideBuilding = !!S.inside; // read by police.js: inside, the walls are the sight lines
+  w.insideBuilding = !!S.inside || !!w.insideExternal; // read by police.js (the walls are the sight lines) and worldevents.js (indoor sound)
+  w.insideKind = S.inside ? S.inside.plan.kind : w.insideExternal ? 'woning' : null; // read by sfx/ambience.js: the room tone per kind
 }
 
 // --- using what is in the room --------------------------------------------------------------------------------------
@@ -269,6 +283,8 @@ export function interiorPrompt(w) {
   if (!S.inside || !ready(w)) return null;
   const hit = nearSpot(w);
   if (!hit) return null;
+  const mg = managedAt(hit);
+  if (mg) return { id: 'interieur-beheer', x: hit.x, y: hit.y, h: 1.3, key: 'E', label: mg.label || 'Beheer', sub: mg.sub || 'Je eigen pand', ring: true };
   const t = PROMPT[hit.s.id];
   if (!t) return null;
   return { id: 'interieur-' + hit.s.id, x: hit.x, y: hit.y, h: 1.3, key: 'E', label: t.label, sub: t.sub, ring: true };
@@ -276,7 +292,17 @@ export function interiorPrompt(w) {
 
 function say(w, text) { if (w.addMessage) w.addMessage(text, 3.6, { kind: 'tip' }); }
 
+// the counter of a pand the player owns is its management (the Bezit hook), not a shop
+function managedAt(hit) {
+  if (!['kopen', 'bestellen', 'balie'].includes(hit.s.id)) return null;
+  let m = null;
+  try { m = S.hooks.owned(hit.ls.b) ? S.hooks.manage(hit.ls.b, hit.ls.plan) : null; } catch (e) { m = null; }
+  return m && typeof m.run === 'function' ? m : null;
+}
+
 function useSpot(w, hit) {
+  const mg = managedAt(hit);
+  if (mg) { mg.run(w); return true; }
   const { ls, s } = hit, plan = ls.plan, seed = plan.seed;
   const n = Math.floor(S.time);
   switch (s.id) {
@@ -287,6 +313,7 @@ function useSpot(w, hit) {
       if (!prod) { say(w, NOT_FOR_SALE); return true; }
       noteMoney('Winkels');
       const r = buyProduct(w, prod);
+      if (r.ok && s.id === 'bestellen' && w.audioEvents && w.audioEvents.length < 64) w.audioEvents.push({ kind: 'fx', name: 'horeca_hap', x: hit.x, y: hit.y });
       if (!r.ok) say(w, TOO_POOR(prod.item, prod.price));
       else { w.kassaKlik = true; say(w, BOUGHT(prod.item, prod.price) + (r.healed ? ` +${Math.round(r.healed)} gezondheid` : '')); }
       return true;
@@ -297,7 +324,18 @@ function useSpot(w, hit) {
       say(w, FITTING[n % FITTING.length]);
       return true;
     }
-    case 'balie': say(w, clerkLine(plan.kind, seed, n)); return true;
+    case 'kappen': {
+      const gameShop = shopInBuilding(ls.b);
+      if (gameShop && openShopFromInterior(w, gameShop)) return true;
+      say(w, HAIRCUT[n % HAIRCUT.length]);
+      return true;
+    }
+    case 'balie': {
+      const gameShop = shopInBuilding(ls.b);
+      if (gameShop && openShopFromInterior(w, gameShop)) return true; // a garage or workshop of the game: its own menu (tuning, repair, paint)
+      say(w, clerkLine(plan.kind, seed, n));
+      return true;
+    }
     case 'kaars': say(w, CHURCH_CANDLE[n % CHURCH_CANDLE.length]); return true;
     case 'kaartje': say(w, TICKET_LINES[n % TICKET_LINES.length]); return true;
     case 'lezen': say(w, LEZEN[n % LEZEN.length]); return true;

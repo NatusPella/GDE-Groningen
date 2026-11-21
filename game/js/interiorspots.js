@@ -51,5 +51,5 @@ export function spotFor(index, ring, edge = null, reach = 4) {
       }
     }
   }
-  return best ? { kind: best.kind, sub: best.sub, name: best.name } : null;
+  return best ? { kind: best.kind, sub: best.sub, name: best.name, x: best.x, y: best.y } : null;
 }

@@ -52,7 +52,8 @@ export function planInterior(b, opts = {}) {
   if (!hall) return { ok: false, why: 'small', kind: ks.kind };
   const seed = interiorSeed(b);
   const door = { w: Math.max(DOOR_GAP, en.w + 0.2), h: Math.min(en.h, ceiling - 0.15) };
-  const look = ks.kind === 'woning' || ks.kind === 'kantoor' ? homeLook(en.look, seed / 4294967296) : null;
+  let look = ks.kind === 'woning' || ks.kind === 'kantoor' ? homeLook(en.look, seed / 4294967296) : null;
+  if (look && opts.style) look = { ...look, ...opts.style, accent: opts.style.accent ?? opts.style.fabric ?? look.accent }; // Homebase: the colours of a home you live in
   // a second floor where the building has one and the kind can use it (woningen, kantoren, hotels, winkels met een etage)
   let stairs = null, upper = null, layout = null, height2 = 0;
   const floors = en.floors || 1, floorH = en.floorH || 3;

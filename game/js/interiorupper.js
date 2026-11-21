@@ -119,9 +119,9 @@ export function generateUpper(spec, ground, st) {
     };
     const body = (n) => ({ u0: n.u - 0.25, u1: n.u + 0.25, v0: n.v - 0.25, v1: n.v + 0.25 });
     L.npc = L.npc.filter((n) => !L.items.some((it) => it.solid && rectsMeet(body(n), rectOf(it))) && !L.walls.some((w) => rectsMeet(body(n), w)));
-    const start = { u: (st.u0 + st.u1) / 2, v: st.vRamp + LANDING / 2 };
-    repairLayout(L, start);
-    if (!validateLayout(L, start).length) return L;
+    const origin = { u: (st.u0 + st.u1) / 2, v: st.vRamp + LANDING / 2 };
+    repairLayout(L, origin);
+    if (!validateLayout(L, origin).length) return L;
   }
   return null;
 }
