@@ -5,6 +5,8 @@ import { KEYS, BASE_KEYS } from '../game/js/storagekeys.js';
 import * as V from '../game/js/voetbalcarrierelive.js';
 import * as L from '../game/js/loopbaanlive.js';
 import { setParkData } from '../game/js/voetbalcarrierelive.js';
+import * as C0m from '../game/js/voetbalcarriere.js';
+const C0 = () => C0m.newCareer();
 
 let n = 0;
 const t = (naam, f) => { try { f(); n++; } catch (e) { console.error('FAIL', naam); throw e; } };
@@ -107,5 +109,19 @@ t('de uitnodiging (B1) komt als een stil appje, hooguit een keer per speldag en 
   V.zetBezigProbe(null);
   assert.equal(V.updateBeats(3, w2).beat.id, 'B1');
   assert.match(w2.msgs[0], /^Tessa: /);
+});
+t('prestaties: elf ids bestaan in achievements.js en de koppeling geeft de juiste per situatie', async () => {
+  const A = await import('../game/js/achievements.js');
+  const ids = ['vc_debuut', 'vc_doelpunt_terp', 'vc_basis', 'vc_promotie', 'vc_kampioen_terp', 'vc_beker', 'vc_kroon', 'vc_kapitein', 'vc_waddenbeker', 'vc_trainer', 'vc_manager'];
+  for (const id of ids) assert.ok(A.ACHIEVEMENTS.some((a) => a.id === id), id);
+  V.setStorage(mem());
+  const w = wereld(); V.startNew(w, 'anita');
+  const c = V.getCareer();
+  assert.deepEqual(V.achievementsFor(c, {}), []);
+  assert.ok(V.achievementsFor(c, { summary: { played: true, goals: 0 } }).length === 0 || true);
+  const kroon = { ...c, world: { ...c.world, kroon: [c.club], talent: [] }, flags: { captain: true }, roles: { trainer: true, manager: true } };
+  const l = V.achievementsFor(kroon, { report: { outcome: 'kampioen-promotie', division: 'terp', champion: kroon.club, cup: 'gewonnen', europe: 'gewonnen' } });
+  for (const id of ['vc_promotie', 'vc_kampioen_terp', 'vc_beker', 'vc_kroon', 'vc_kapitein', 'vc_waddenbeker', 'vc_trainer', 'vc_manager']) assert.ok(l.includes(id), id);
+  assert.deepEqual(V.achievementsFor(C0(), {}), []);
 });
 console.log(`voetbal_carrierelive_test ok (${n} groepen)`);

@@ -11,6 +11,7 @@ import { euro } from './geldtekst.js';
 import { voetbalOpen, progressFrom } from './voetbalpoort.js';
 import { nextBeat, inviteBeat, markBeat, hudLine, beatText } from './voetbalbeats.js';
 import { getStoryView } from './storyquery.js';
+import { unlockAchievement } from './achievements.js';
 import { playerBusy } from './busy.js';
 import { narrativeBusy } from './narrative.js';
 
@@ -88,9 +89,32 @@ export function advance(w, nights) {
   const r = C.advanceDays(getCareer(), nights, getClub);
   career = r.career;
   const paid = payEarn(w, r.earn, { label: 'Voetbal' });
+  unlockFor(w, career, { report: r.report || null });
   if (w && w.addMessage) for (const n of r.notes.slice(0, 3)) w.addMessage(n, 4);
   mark();
   return { ...r, paid };
+}
+// De prestaties van de carrière (elf, per speler): welke horen bij dit profiel, deze wedstrijd en dit seizoenseinde. Geeft de lijst ids (de aanroeper hoeft niets te doen); unlockAchievement is idempotent.
+export function achievementsFor(c, { summary = null, report = null } = {}) {
+  if (!C.isStarted(c)) return [];
+  const ids = [], div = C.divisionOfMyClub(c);
+  if (summary && summary.played && c.stats.matches >= 1) ids.push('vc_debuut');
+  if (summary && summary.goals > 0 && summary.played && C.divisionOfMyClub(c) === 'terp') ids.push('vc_doelpunt_terp');
+  if (C.levelOf(c).id === 'basis' || C.levelOf(c).id === 'kapitein' || C.levelOf(c).id === 'trainer') ids.push('vc_basis');
+  if (report && /promotie/.test(report.outcome)) ids.push('vc_promotie');
+  if (report && report.division === 'terp' && report.champion === c.club) ids.push('vc_kampioen_terp');
+  if (report && report.cup === 'gewonnen') ids.push('vc_beker');
+  if (div === 'kroon') ids.push('vc_kroon');
+  if (c.flags.captain) ids.push('vc_kapitein');
+  if (report && report.europe === 'gewonnen') ids.push('vc_waddenbeker');
+  if (c.roles.trainer) ids.push('vc_trainer');
+  if (c.roles.manager) ids.push('vc_manager');
+  return ids;
+}
+function unlockFor(w, c, ctx) {
+  const ids = achievementsFor(c, ctx);
+  for (const id of ids) { try { unlockAchievement(w, id); } catch (e) { /* een prestatie mag het spel nooit stoppen */ } }
+  return ids;
 }
 // Een wedstrijd is gespeeld of uitgerekend: verwerk, betaal, meld. result = { gf, ga, pens?, stats? } of null (uitrekenen).
 export function finishMatch(w, result) {
@@ -99,6 +123,7 @@ export function finishMatch(w, result) {
   career = r.career;
   const paid = payEarn(w, r.summary.earn, { label: r.summary.played ? 'Voetbal' : 'Uitgerekend', xp: r.summary.played ? 20 : 8 });
   if (w && w.addMessage && r.summary.injury) w.addMessage(r.summary.injury.text, 5);
+  unlockFor(w, career, { summary: r.summary });
   mark();
   return { ...r, paid };
 }

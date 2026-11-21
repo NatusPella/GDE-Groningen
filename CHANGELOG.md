@@ -14,6 +14,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - De uitleg bij de cheats toont {ENTER} als toetsplaatje in plaats van een tekstkeycap, en de startkaarten van de activiteiten tonen de spatie als toetsplaatje.
 - Het schildje van de eenheden bij de politiechip op de minikaart is een Phosphor-icoon; sessiecodes en het nieuws op het startscherm gebruiken één vast lettertype voor codes.
 - Boten van het omgevingsverkeer: de kanaalscan kan op verzoek eerst af zijn voor er een plek gekozen wordt (alleen voor tests en audits; in het spel blijft het tijdbudget van 3 ms), zodat dezelfde seed altijd dezelfde plekken geeft. De test van de bootplekken is stabiel (20 van 20 keer groen).
+- **Voetbalcarrière (nieuw, nog niet in beeld bekeken, #1106):** na akte 4 kun je als Tessa of Tammo een carrière beginnen bij een lokale club bij jou in de buurt, met de ander als teamgenoot. Elk seizoen heeft zeven rondes, een ronde per drie speldagen: speel een ronde zelf (meer geld en ervaring) of laat hem uitrekenen. Je traint per speldag, groeit in tempo, schot, pass, uithouding en verdedigen en stijgt via Talentenklasse en Terpklasse naar de Kroonklasse, met de Dijkbeker en de Waddenbeker. Later word je kapitein, trainer en manager (transfers en clubkas). Alle clubs en spelers zijn verzonnen. Je vindt het onder Loopbanen bij het vak Buiten.
+- Voetbalcarrière: een wedstrijd speel je op het echte sportpark van de thuisploeg (281 parken in de provincie), sponsors zijn verzonnen bedrijven en blessures zijn zonder beeld, uit te zetten en nooit blijvend.
+- Er zijn elf nieuwe prestaties voor de voetbalcarrière (Debuut op het sportpark tot en met Manager).
 - Regelaudit op de release-diff: telt netto per bestand (een herschreven regel is geen nieuwe overtreding), kent de goedgekeurde treinfeed, en keurt merken alleen in tekst; zie docs/DESIGN-AUDIT-UI-21-11.md.
 
 ## [0.65.0] - 2026-11-21
