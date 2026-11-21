@@ -10,6 +10,7 @@ import { DIVISION_NAMES } from './voetbalclubs.js';
 import { proposal, inviteBeat } from './voetbalbeats.js';
 import { ROUNDS } from './voetbalseizoen.js';
 import * as T from './voetbaltransfers.js';
+import * as Sp from './voetbalsponsors.js';
 import { formationList } from './voetbalrules.js';
 import * as V from './voetbalcarrierelive.js';
 import { voetbalOpen, voetbalHint } from './voetbalpoort.js';
@@ -56,7 +57,8 @@ export function viewVandaag(c, env) {
   const stat = `<p class="vb-stat">${chip(`energie ${O.energy(c.fatigue)}%`, O.isTired(c.fatigue) ? 'probleem' : '')} ${c.injury ? chip(c.injury.text, 'probleem') : ''} ${chip(`rating ${ov.rating}`)}</p>`;
   const reg = voorstel ? `<article class="ds-z-kaart ds-z-kaart--bord ds-m-binnen on"><p class="ds-z-kaart__tekst"><strong>${esc(voorstel.wie)}</strong>: ${esc(voorstel.tekst)}</p></article>` : '';
   const bod = c.offer ? `<article class="ds-z-kaart ds-z-kaart--bord ds-m-binnen on"><h3 class="ds-z-kaart__titel">Een club biedt</h3><p class="ds-z-kaart__tekst"><strong>${esc(C.nameOf(env.getClub, c.offer.club))}</strong> biedt een contract van ${c.offer.seasons} seizoen${c.offer.seasons === 1 ? '' : 'en'}. Jij kiest, geen druk.</p><p class="vb-acties">${knop('offer:accept', 'Bod aannemen', { uit: c.evDone === 0 ? '' : 'Alleen aan het begin van een seizoen' })} ${knop('offer:decline', 'Blijven', { ghost: true })}</p></article>` : '';
-  return `${bod}${kaart}${stat}<p class="vb-acties">${knop('play', 'Speel de wedstrijd', { primair: true, uit: speel ? '' : reden })} ${knop('sim', 'Laat uitrekenen', { uit: m && (m.status === 'open' || m.status === 'missed') ? '' : reden || 'Nog niet aan de beurt' })} ${knop('tab:training', 'Naar training', { ghost: true })}</p>${reg}`;
+  const spons = c.sponsors && c.sponsors.slots.length ? `<h3 class="ds-z-kaart__titel">Sponsors dit seizoen</h3><ul class="ds-z-lijst vb-selectie">${c.sponsors.slots.map((x, i) => `<li class="ds-z-rij ds-m-rij" ${rij(i)}><span class="ds-z-rij__naam">${esc(x.naam)}</span><span class="ds-z-rij__sub">${esc(Sp.SORTS[x.sort].naam)} · ${esc(Sp.GOALS[x.goal].tekst)}</span><span class="ds-z-rij__waarde">${euro(x.amount)} ${x.paid ? chip('Betaald', 'succes') : x.accepted ? chip('Aangenomen') : knop(`sponsor:${x.id}`, 'Neem aan', { ghost: true })}</span></li>`).join('')}</ul>` : '';
+  return `${bod}${kaart}${stat}<p class="vb-acties">${knop('play', 'Speel de wedstrijd', { primair: true, uit: speel ? '' : reden })} ${knop('sim', 'Laat uitrekenen', { uit: m && (m.status === 'open' || m.status === 'missed') ? '' : reden || 'Nog niet aan de beurt' })} ${knop('tab:training', 'Naar training', { ghost: true })}</p>${reg}${spons}`;
 }
 const bal = (naam, v, cap) => `<li class="ds-z-rij ds-m-rij"><span class="ds-z-rij__naam">${esc(naam)}</span><span class="ds-z-rij__waarde">${bar(`${v} van ${cap}`, v / 100)}</span></li>`;
 export function viewSelectie(c, env) {
@@ -176,6 +178,7 @@ function act(a) {
   else if (a === 'train') V.trainNow(wereld, c.focus, 0.8);
   else if (a === 'sim') V.finishMatch(wereld, null);
   else if (a.startsWith('tactic:')) { const [, k, v] = a.split(':'); V.set(C.setTactic(c, k === 'formation' ? { formation: v } : { style: v })); }
+  else if (a.startsWith('sponsor:')) { const r = C.acceptSponsor(c, a.slice(8), null); if (r.ok) V.set(r.career); }
   else if (a === 'offer:accept') { const r = C.acceptOffer(c); if (r.ok) V.set(r.career); }
   else if (a === 'offer:decline') V.set(C.declineOffer(c));
   else if (a.startsWith('buy:')) { const r = C.managerBuy(c, a.slice(4), V.getClub); if (r.ok) V.set(r.career); }

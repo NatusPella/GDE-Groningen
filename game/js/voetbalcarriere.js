@@ -9,6 +9,7 @@ import * as S from './voetbalseizoen.js';
 import * as A from './voetbalagenda.js';
 import * as O from './voetbalontwikkeling.js';
 import * as T from './voetbaltransfers.js';
+import * as Sp from './voetbalsponsors.js';
 import { makeRng } from './minigamekit.js';
 
 export const VERSION = 1;
@@ -68,6 +69,7 @@ export function startSeason(c) {
   s.seasonStats = { goals: 0, assists: 0, played: 0 };
   s.phase = O.resetPhase(); s.mphase = O.resetPhase();
   s.result = null;
+  s.sponsors = Sp.newSponsors(s.club, S.divisionOf(s.world, s.club) || 'talent', s.seasonNr);
   return s;
 }
 
@@ -218,6 +220,8 @@ export function playEvent(c, getClub, result = null, { missed = false } = {}) {
   s.stats.goals += stat.goals | 0; s.stats.assists += stat.assists | 0;
   s.seasonStats.goals += stat.goals | 0; s.seasonStats.assists += stat.assists | 0; if (played) s.seasonStats.played++;
   const earn = payFor(division, m.kind, outcome, played);
+  const sp = Sp.settle(s.sponsors, { goals: s.seasonStats.goals, unbeaten: Sp.unbeatenRun(s.history), promoted: false });
+  s.sponsors = sp.sponsors; earn.push(...sp.earn);
   s.stats.earned += earn.reduce((a, x) => a + x.amount, 0);
   const summary = {
     kind: m.kind, n: m.n, opponent: m.opponent, opponentName: m.opponentName, isHome: m.isHome, gf: own.gf, ga: own.ga, pens: own.pens, outcome, played, missed, earn, gains: g.gains, injury, notes, goals: stat.goals | 0,
@@ -296,6 +300,8 @@ export function finishSeason(c, getClub) {
   const cupWon = s.cup && s.cup.winner === s.club;
   if (cupWon) { earn.push({ label: 'Dijkbeker gewonnen', amount: SEASON_PAY.cup, bron: 'seizoen' }); s.stats.cups++; }
   if (s.europe && s.europe.winner === s.club) { earn.push({ label: 'Waddenbeker gewonnen', amount: SEASON_PAY.europe, bron: 'seizoen' }); s.stats.europe++; }
+  const spf = Sp.settle(s.sponsors, { goals: s.seasonStats.goals, unbeaten: Sp.unbeatenRun(s.history), promoted: outcome === 'promotie' || outcome === 'kampioen-promotie' });
+  s.sponsors = spf.sponsors; earn.push(...spf.earn);
   s.stats.earned += earn.reduce((a, x) => a + x.amount, 0);
   const result = { nr: s.seasonNr, division: before, rank, outcome, champion: report.champions[before], cup: cupWon ? 'gewonnen' : s.cup ? (s.cup.alive.length ? 'uit' : 'uit') : null, europe: s.europe ? (s.europe.winner === s.club ? 'gewonnen' : 'uit') : null, goals: s.seasonStats.goals, earn };
   s.stats.seasons++;
@@ -351,6 +357,12 @@ export function acceptOffer(c) {
   s.club = s.offer.club; s.me.club = s.club; s.mate.club = s.club; s.offer = null; s.flags.moved = (s.flags.moved | 0) + 1; s.flags.bid = false;
   return { career: s, ok: true };
 }
+export function acceptSponsor(c, slotId, pandIndex = null) {
+  const club = c.club;
+  const r = Sp.accept(c.sponsors, slotId, pandIndex, null);
+  void club;
+  return r.ok ? { career: { ...c, sponsors: r.sponsors }, ok: true, slot: r.slot } : { career: c, ok: false };
+}
 export const declineOffer = (c) => (c && c.offer ? { ...c, offer: null, flags: { ...c.flags, bid: false } } : c);
 export const TACTICS = { formations: ['4-4-2', '4-3-3', '3-5-2'], styles: ['verdedigend', 'evenwichtig', 'aanvallend'] };
 export function setTactic(c, { formation, style } = {}) {
@@ -386,6 +398,11 @@ export function managerSell(c, playerId, getClub) {
 export const clubCash = (c, getClub) => T.cashOf(c.market || T.emptyMarket(), getClub(c.club) || { id: c.club, budget: 0 });
 
 // ---- opslag ----
+function normSponsors(sp) {
+  if (!sp || typeof sp !== 'object' || !Array.isArray(sp.slots)) return null;
+  const slots = sp.slots.slice(0, Sp.MAX_SLOTS).filter((x) => x && Sp.SORTS[x.sort] && Sp.GOALS[x.goal] && Number.isFinite(x.amount)).map((x) => ({ id: String(x.id).slice(0, 20), sort: x.sort, naam: String(x.naam || '').slice(0, 40), goal: x.goal, amount: Math.max(0, Math.min(2000, Math.round(x.amount))), accepted: !!x.accepted, paid: !!x.paid, osm: Number.isFinite(x.osm) ? x.osm : null }));
+  return { nr: Math.max(1, sp.nr | 0), slots };
+}
 function normMarket(m) {
   const e = T.emptyMarket();
   if (!m || typeof m !== 'object') return e;
@@ -423,7 +440,7 @@ export function normalize(raw) {
       stats, seasonStats: { goals: num(d.seasonStats && d.seasonStats.goals), assists: num(d.seasonStats && d.seasonStats.assists), played: num(d.seasonStats && d.seasonStats.played) },
       log: [], flags: d.flags && typeof d.flags === 'object' ? Object.fromEntries(Object.entries(d.flags).slice(0, 40).map(([k, v]) => [String(k).slice(0, 24), v === true ? true : v === false ? false : typeof v === 'number' ? v : 0])) : {},
       last: d.last && typeof d.last === 'object' ? { kind: String(d.last.kind || ''), text: String(d.last.text || '').slice(0, 80), outcome: String(d.last.outcome || '') } : null,
-      market: normMarket(d.market), tactic: { formation: TACTICS.formations.includes(d.tactic && d.tactic.formation) ? d.tactic.formation : '4-4-2', style: TACTICS.styles.includes(d.tactic && d.tactic.style) ? d.tactic.style : 'evenwichtig' }, offer: d.offer && typeof d.offer.club === 'string' ? { club: d.offer.club, seasons: Math.max(1, Math.min(3, d.offer.seasons | 0)), salaryBonus: Math.max(0, d.offer.salaryBonus | 0) } : null, bezit: d.bezit && typeof d.bezit === 'object' ? d.bezit : {},
+      sponsors: normSponsors(d.sponsors), market: normMarket(d.market), tactic: { formation: TACTICS.formations.includes(d.tactic && d.tactic.formation) ? d.tactic.formation : '4-4-2', style: TACTICS.styles.includes(d.tactic && d.tactic.style) ? d.tactic.style : 'evenwichtig' }, offer: d.offer && typeof d.offer.club === 'string' ? { club: d.offer.club, seasons: Math.max(1, Math.min(3, d.offer.seasons | 0)), salaryBonus: Math.max(0, d.offer.salaryBonus | 0) } : null, bezit: d.bezit && typeof d.bezit === 'object' ? d.bezit : {},
       settings: { injuries: !(d.settings && d.settings.injuries === false) }, result: d.result && typeof d.result === 'object' ? d.result : null, lastResults: Array.isArray(d.lastResults) ? d.lastResults.slice(-6) : [],
     };
     return out;
