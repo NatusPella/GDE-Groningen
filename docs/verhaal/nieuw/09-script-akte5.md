@@ -508,3 +508,91 @@ RIKUS (radio): Durk en Douwe werken nu voor Jelles oma. Ze sturen een kaartje. [
 RIKUS (radio): Het jurylid met het contract eet nog steeds gratis eierballen. In Ljouwert. [NIEUW]
 RIKUS (radio): En ik heb de tweede friet. Hij heeft betaald, zegt hij. Hij heeft niet betaald. [BEHOUDEN]
 RIKUS (radio): Dit is voor twee Stadjers. Ze zeggen nooit wat. Vandaag wel. Moi. [BEHOUDEN]
+
+## [F1] Een wagen langs de weg – Westerkwartier, een zandweg bij Zuidhorn – Escapade
+(regie: woensdag 26 augustus, vroeg. Langs een zandweg staat een verroeste frituuraanhanger aan een hek, met een bordje: TE KOOP, AFHALEN. Tessa stapt uit zonder iets te zeggen. Tammo blijft achter het stuur zitten, dan stapt hij ook uit.)
+TAMMO: Tessa. We moeten naar Tinus. [NIEUW]
+TESSA: Even. [NIEUW]
+(regie: ze veegt het stof van het luik. Uit haar jaszak komt een opgevouwen bierviltje met een tekening, van twaalf dagen geleden.)
+TESSA: Dit tekende ik. In het café, op een viltje. Ik dacht dat ik niks meende. [NIEUW]
+TAMMO: Je zei: het is een tekening. [NIEUW]
+TESSA: Het is een tekening met een luik. En dit is het luik. [NIEUW]
+TAMMO: Je kijkt naar die wagen zoals ik naar... [NIEUW]
+TESSA: Zoals jij naar wat? [NIEUW]
+TAMMO: Naar de motor. [NIEUW]
+TESSA: Er zit geen motor in. Het is een aanhanger. [NIEUW]
+TAMMO: Dan naar de trekhaak. [NIEUW]
+(regie: Tessa lacht, voor het eerst sinds Bourtange. Ze legt het viltje op het luik. Tammo kijkt naar de Escapade en dan naar de trekhaak.)
+TESSA: Een snackwagen. Geen frietwagen die je koopt: een wagen die wij maken. [NIEUW]
+TAMMO: De Escapade kan trekken. [NIEUW]
+TESSA: Bel Henk. Hij had een luik. [NIEUW]
+
+## [F2] De eerste bak – Stad, Hoogkerk, een loods – snackwagen
+(regie: donderdag 27 augustus, vroeg. Een loods in Hoogkerk, buiten ruikt het naar suiker. De wagen staat op blokken. Tammo ligt eronder met een zaklamp, Tessa staat bij de friteuse met Oma's schort.)
+TAMMO: De gasslang is goed. Alles klopt, behalve de rem. [NIEUW]
+TESSA: Wat is er met de rem? [NIEUW]
+TAMMO: Niks. Ik zeg het uit gewoonte. [NIEUW]
+TESSA: Het beslag staat. Vet, eieren, zout, meel, mosterd. [NIEUW]
+TAMMO: Zoals Oma zei. [NIEUW]
+TESSA: Doe de friteuse aan. [NIEUW]
+TAMMO: Is dat een knop of een gebed? [NIEUW]
+TESSA: Eerst een knop. Dan een gebed. [NIEUW]
+(regie: de friteuse sist. De eerste eierbal zakt, draait, komt goudbruin boven. Ze staan schouder aan schouder voor het luik.)
+TESSA: Ik kan hem laten smaken. Ik kan hem niet laten rijden. [NIEUW]
+TAMMO: Ik kan hem laten rijden. Ik kan hem niet laten smaken. [NIEUW]
+TESSA: Dus we blijven bij elkaar. [NIEUW]
+TAMMO: Dat was mijn plan al. [NIEUW]
+TESSA: Sinds wanneer? [NIEUW]
+TAMMO: Sinds de Escapade. [NIEUW]
+
+## [F3] Soep en eierbal – Stad, Noorderhaven, Oma's keuken – te voet
+(regie: zaterdag 29 augustus, middag. Oma's keuken is te klein voor zes mensen en een pan soep. Beppe staat bij het fornuis, Oma Trijntje bij de friteuse, en ze kijken elkaar aan alsof het een grensgeschil is. Durk en Douwe staan in de deuropening en passen er net niet in.)
+OMA TRIJNTJE: Dit is mijn keuken. [NIEUW]
+BEPPE: Ytst dan mar earst, dan prate wy. [NIEUW]
+OMA TRIJNTJE: Wat zegt ze? [NIEUW]
+MEM: Dat ze eerst wil eten. Ze is een verstandige vrouw. [NIEUW]
+TAMMO: Oma Trijntje, Beppe. Beppe, Oma Trijntje. [NIEUW]
+TESSA: Jij bent van beide. Jij bent de verzoening. [NIEUW]
+TAMMO: Ik ben het compromis. [NIEUW]
+DOUWE: Mogen wij ook soep? [NIEUW]
+DURK: Wij passen er niet in. [NIEUW]
+MEM: Dan eet je in de gang. Op een Fries mat. [NIEUW]
+(regie: Beppe schept soep. Oma legt een eierbal in de kom. Het wordt even heel stil in de keuken.)
+BEPPE: Hy seit neat, mar hy docht it goed. [NIEUW]
+OMA TRIJNTJE: Moi. Het is soep met een eierbal. Daar kan niemand wat van zeggen. [NIEUW]
+TESSA: Dat is het menu. Eén kom, twee oma's. [NIEUW]
+
+## [F4] Foar mem, achteraan de rij – Stad, Vismarkt – snackwagen
+(regie: zondag 30 augustus, ochtend. Bij de Vismarkt staat de snackwagen met TAM & TES op het luik en een rij van veertig mensen. Achteraan staat Jelle, in een gewone jas, zonder limo, met Mem aan zijn arm. Durk en Douwe houden de rij in orde. De rij schuift een plek op, alsof hij besmettelijk is.)
+JELLE: Eén eierbal. Met mosterd. [NIEUW]
+TESSA: Je staat achteraan. [NIEUW]
+JELLE: Ik had een vergunning om voor te dringen. Ik heb hem ingetrokken. [NIEUW]
+DURK: Rij maar gewoon, baas. [NIEUW]
+DOUWE: Het werkt, hè. [NIEUW]
+(regie: Tessa kijkt naar Tammo. Tammo ballt zijn vuist, kijkt ernaar, en opent hem weer.)
+TESSA: Je mag hem één klap geven. [NIEUW]
+TAMMO: Ik heb erover nagedacht. [NIEUW]
+JELLE: Dat staat niet in de vergunning. [NIEUW]
+TAMMO: Ik heb ook geen vergunning. [NIEUW]
+(regie: Jelle zet een pot op het luik, met een lap erom. Mem kijkt de andere kant op.)
+JELLE: Mems mosterd. Van 1953. Zij zegt dat jullie hem mogen hebben. [NIEUW]
+MEM: Ik zei niet mogen. Ik zei: ik heb er genoeg. [NIEUW]
+TESSA: Een euro vijftig. Dat is de prijs. [NIEUW]
+JELLE: ...Dat is de eerste prijs die ik niet kon onderhandelen. [NIEUW]
+
+## [F5] Een avond voor twee – Stad, Noorderhaven, de kade – te voet
+(regie: zondag 30 augustus, avond. De wagen staat gesloten aan de kade. Tammo heeft een opgevouwen briefje bij zich, een deken en twee eierballen in een zak. Tessa zit op de rand van het luik. Boven hen draait een duif rondjes. Het is windstil.)
+TESSA: Is dit een afspraak? [NIEUW]
+TAMMO: Het is een gelegenheid. [NIEUW]
+TESSA: Er hangt een lijstje uit je zak. [NIEUW]
+TAMMO: Eten. Wandelen. En eentje doorgestreept. [NIEUW]
+TESSA: Wat stond er? [NIEUW]
+TAMMO: Zeggen dat ik je leuk vind. Dat is al gebeurd. Met publiek. [NIEUW]
+(regie: ze zitten naast elkaar op het luik. Zij legt haar hand op de zijne en haalt hem weg. Dan legt ze hem er weer op, met een beetje meer overtuiging.)
+TESSA: Waar zet ik mijn hand? [NIEUW]
+TAMMO: Hier. Dat is goed. [NIEUW]
+TESSA: Zijn we nu een stel? [NIEUW]
+TAMMO: Berend telde elf seconden. Dat is officieel. [NIEUW]
+TESSA: Wat wil jij eigenlijk? [NIEUW]
+TAMMO: Hier. Met jou erbij. [NIEUW]
+TESSA: Dat waren er drie. Kon meer. [NIEUW]
