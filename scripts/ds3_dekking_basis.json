@@ -79,7 +79,7 @@
  "game/js/bakeround.js": {
   "kleur": 0,
   "glas": 0,
-  "oud": 2,
+  "oud": 1,
   "font": 0,
   "klein": 0,
   "lus": 0,
@@ -211,7 +211,7 @@
  "game/js/ds-components.css": {
   "kleur": 0,
   "glas": 0,
-  "oud": 53,
+  "oud": 49,
   "font": 0,
   "klein": 0,
   "lus": 0,
@@ -244,7 +244,7 @@
  "game/js/farmhud.js": {
   "kleur": 0,
   "glas": 0,
-  "oud": 5,
+  "oud": 3,
   "font": 0,
   "klein": 0,
   "lus": 0,
@@ -349,7 +349,7 @@
   "lus": 0,
   "lang": 0,
   "emoji": 0,
-  "svg": 8
+  "svg": 6
  },
  "game/js/hudcards.css": {
   "kleur": 0,
@@ -504,17 +504,6 @@
   "lang": 0,
   "emoji": 0,
   "svg": 0
- },
- "game/js/pigeonguide.js": {
-  "kleur": 0,
-  "glas": 0,
-  "oud": 0,
-  "font": 0,
-  "klein": 0,
-  "lus": 0,
-  "lang": 0,
-  "emoji": 0,
-  "svg": 1
  },
  "game/js/pigeonmode.js": {
   "kleur": 0,

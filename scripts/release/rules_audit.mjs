@@ -24,7 +24,8 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-import { checkDesignLine, checkDs3Line, checkKeyLine, designCandidates, stripComments } from './design_rules.mjs';
+import { checkDesignLine, checkDs3Line, checkKeyLine, designCandidates, stripComments, strayColors } from './design_rules.mjs';
+import { telBestand, SOORTEN as DS3_SOORTEN } from '../lib/ds3_regels.mjs';
 import { nederlandseNaam } from '../naamtaal_check.mjs';
 import { parseRegister } from '../merkenregister_check.mjs';
 
@@ -57,6 +58,12 @@ const ENV_REF = /(?<![\w.])\.env\b/;
 const STORAGE_CALL = /(?:localStorage|sessionStorage)\s*\.\s*(?:setItem|getItem|removeItem)\s*\(\s*(?:([A-Za-z_$][\w$]*)|(['"`])([^'"`]*)\2)/g;
 const CONST_STRING = /\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(['"`])([^'"`]*)\2/g;
 const TODO_RE = /\b(?:TODO|FIXME|HACK|XXX)\b/;
+// Goedgekeurde openbare leesopvragen (AGENTS.md constitutie 4: alleen OPHALEN, zonder spelergegevens, met uitzetter en terugval).
+// Een bestand staat hier alleen met zijn host en de reden; een URL op een andere host, of een fetch-aanroep, blijft blokkerend.
+export const NETWERK_GOEDGEKEURD = {
+  'game/js/livetreinen.js': { host: 'gtfs.ovapi.nl', reden: 'live treinvertragingen (#1085), besluit eigenaar 21-11, zie docs/TREINEN-LIVE-21-11.md en docs/LICENTIES.md; uitzetter liveTreinen' },
+};
+const urlHosts = (tekst) => [...String(tekst).matchAll(/\bhttps?:\/\/([^\s'"`)/:]+)/gi)].map((m) => m[1].toLowerCase());
 const NEW_JS = /^game\/js\/.+\.(?:m?js|cjs)$/;
 
 const normalize = (file) => String(file || '').replaceAll('\\', '/');
@@ -90,10 +97,12 @@ function finding({ file, line = 0, text = '', ernst, categorie, titel, beschrijv
  *
  * @param {string} tekst
  * @returns {{files: string[], addedFiles: string[], deletedFiles: string[],
- *            addedLines: {file: string, line: number, text: string}[]}}
+ *            addedLines: {file: string, line: number, text: string}[],
+ *            removedLines: {file: string, text: string}[]}}
  */
 export function parseUnifiedDiff(tekst) {
   const addedLines = [];
+  const removedLines = [];
   const files = [];
   const addedFiles = [];
   const deletedFiles = [];
@@ -161,7 +170,8 @@ export function parseUnifiedDiff(tekst) {
     } else if (prefix === ' ') {
       newLine += 1;
     } else if (prefix === '-') {
-      // telt niet mee in het nieuwe bestand
+      // telt niet mee in het nieuwe bestand; wel bewaard voor de nettotelling (een herschreven regel is geen nieuwe overtreding)
+      removedLines.push({ file: current, text: regel.slice(1) });
     } else if (prefix === '\\') {
       // "\ No newline at end of file"
     } else {
@@ -170,7 +180,7 @@ export function parseUnifiedDiff(tekst) {
     }
   }
 
-  return { files, addedFiles, deletedFiles, addedLines };
+  return { files, addedFiles, deletedFiles, addedLines, removedLines };
 }
 
 // ---------------------------------------------------------------- merkenregister
@@ -252,6 +262,44 @@ export function storageKeySeverity(key) {
 // vrij zijn (zelfde grens als hud_kleuren_test se BUITEN-lijst).
 export const ART_FILES = new Set(['office3d.js', 'loket3d.js', 'omakeuken3d.js', 'missiedecor.js', 'coopfigures3d.js', 'cooppings3d.js', 'racedecor.js', 'wachtprops.js', 'pg_koe.js', 'trainride.js', 'containerterminal.js', 'penalty.js', 'kissheart3d.js', 'gpudiag.js']); // penalty.js en kissheart3d.js: canvastexturen; gpudiag.js: diagnosevenster (hud_kleuren_test BUITEN)
 
+/**
+ * Nettotelling per bestand (ds3-soorten en losse kleur): een soort telt als nieuwe overtreding in een bestand
+ * alleen als de toegevoegde regels er meer van hebben dan de verwijderde regels van dat bestand. Zo is een regel
+ * die alleen is herschreven (de tokeniser, een kleur die naar een token ging, een verloop dat al bestond) geen
+ * nieuwe overtreding, terwijl nieuwe code en nieuwe bestanden (geen verwijderde regels) volledig meetellen.
+ * Dezelfde afspraak als de ratel (scripts/ds3_ratel_test.mjs): het totaal mag niet stijgen.
+ */
+const DS3_UI_NET = /^(?:game|desktop|web)\/.*\.(?:css|html|m?js)$/;
+const DS3_GEEN_NET = /^game\/(?:world|audio|models|img|storydata|fonts)\//;
+export function nettoVrij(addedLines = [], removedLines = []) {
+  const som = (lijst) => {
+    const m = new Map();
+    for (const { file, text } of lijst) {
+      const f = normalize(file);
+      if (!DS3_UI_NET.test(f) || DS3_GEEN_NET.test(f)) continue;
+      const t = String(text ?? '');
+      if (!t.trim()) continue;
+      const { n } = telBestand(f, t);
+      const tel = { ...n, designkleur: strayColors(t, f).length };
+      for (const s of [...DS3_SOORTEN, 'designkleur']) {
+        if (!tel[s]) continue;
+        const k = `${f}|${s}`;
+        m.set(k, (m.get(k) || 0) + tel[s]);
+      }
+    }
+    return m;
+  };
+  const netto = som(addedLines);
+  for (const [k, v] of som(removedLines)) netto.set(k, (netto.get(k) || 0) - v);
+  const vrij = new Map(); // bestand -> soorten zonder netto stijging
+  for (const f of new Set(addedLines.map((l) => normalize(l.file)))) {
+    const s = new Set();
+    for (const soort of [...DS3_SOORTEN, 'designkleur']) if ((netto.get(`${f}|${soort}`) || 0) <= 0) s.add(soort);
+    vrij.set(f, s);
+  }
+  return vrij;
+}
+
 export function auditLines(addedLines = [], addedFiles = [], options = {}) {
   const findings = [];
   const brands = options.brands || [];
@@ -261,6 +309,7 @@ export function auditLines(addedLines = [], addedFiles = [], options = {}) {
     grunn: 0, winter: 0, merken: 0, netwerk: 0, env: 0, opslagsleutel: 0, todo: 0, bestandsnaam: 0,
   };
   const gezien = new Set();
+  const vrij = options.removedLines ? nettoVrij(addedLines, options.removedLines) : new Map();
   const voegToe = (f, regelId) => {
     const sleutel = `${regelId}|${f.bestanden[0]}|${f.bewijs[0]}`;
     if (gezien.has(sleutel)) return;
@@ -279,10 +328,11 @@ export function auditLines(addedLines = [], addedFiles = [], options = {}) {
     const kandidaten = ART_FILES.has(file.split('/').pop()) ? { kleur: 0, typografie: 0, fontgrootte: 0, important: 0 } : designCandidates(file, text);
     for (const soort of ['kleur', 'typografie', 'fontgrootte', 'important']) if (kandidaten[soort]) perRegel[soort] += 1;
     if (kandidaten.kleur || kandidaten.typografie || kandidaten.fontgrootte || kandidaten.important) {
-      for (const f of checkDesignLine({ file, line, text })) voegToe(f, `design-${f.titel}`);
+      const vr = vrij.get(file);
+      for (const f of checkDesignLine({ file, line, text }, { vrijKleur: Boolean(vr && vr.has('designkleur')) })) voegToe(f, `design-${f.titel}`);
     }
     // Alle UI via het designsysteem (21-11): geen nieuwe harde kleur, glas-op-donker of oude componentklasse (zelfde telling als ds3_ratel_test).
-    if (!ART_FILES.has(file.split('/').pop())) for (const f of checkDs3Line({ file, line, text })) voegToe(f, `ds3-${f.titel}`);
+    if (!ART_FILES.has(file.split('/').pop())) for (const f of checkDs3Line({ file, line, text }, { vrij: vrij.get(file) })) voegToe(f, `ds3-${f.titel}`);
 
     // Toetsen en knoppen in spelertekst: een token, nooit een woord of een tekstkeycap (DESIGN_SYSTEM.md "Controls and key hints").
     for (const f of checkKeyLine({ file, line, text })) voegToe(f, `toets-${f.titel}`);
@@ -342,7 +392,11 @@ export function auditLines(addedLines = [], addedFiles = [], options = {}) {
     if (GAME_JS.test(file)) {
       perRegel.netwerk += 1;
       const clean = stripComments(text, file).replace(/from\s+(['"])https:\/\/cdn\.jsdelivr\.net\/npm\/three@[\w.]+\/build\/three\.module\.js\1/, "from 'three'"); // het bouwen zet dit om naar de eigen vendormap (desktop/vendor-cache)
-      if (FETCH_CODE.test(clean) || URL_ANY.test(clean)) {
+      const goedgekeurd = NETWERK_GOEDGEKEURD[file];
+      const hosts = urlHosts(clean);
+      if (goedgekeurd && !FETCH_CODE.test(clean) && hosts.length && hosts.every((h) => h === goedgekeurd.host)) {
+        // goedgekeurde bron: geen bevinding (zie NETWERK_GOEDGEKEURD)
+      } else if (FETCH_CODE.test(clean) || URL_ANY.test(clean)) {
         voegToe(finding({
           file, line, text, ernst: 'blokkerend', categorie: 'privacy',
           titel: 'Nieuwe externe verbinding in game/js',
@@ -585,6 +639,7 @@ function main(argv) {
   const { findings, telling } = auditLines(parsed.addedLines, parsed.addedFiles, {
     brands: register.realBrands,
     sensitive: register.sensitive,
+    removedLines: parsed.removedLines,
   });
   if (args.streng) verbeterStreng(findings);
   if (args.streng) {

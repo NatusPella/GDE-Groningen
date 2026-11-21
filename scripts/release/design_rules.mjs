@@ -214,12 +214,14 @@ const DS3_GEEN = /^game\/(?:world|audio|models|img|storydata|fonts)\//;
  * gebruik var(--ds-c-...) en de .ds-z-componenten. Dezelfde telling als scripts/ds3_ratel_test.mjs (de ratel),
  * per diffregel. Een regel met 'ds3-uitzondering' (met reden) en een bestand in BEWUST (scripts/lib/ds3_regels.mjs) zijn vrij.
  */
-export function checkDs3Line({ file, line, text } = {}) {
+export function checkDs3Line({ file, line, text } = {}, opts = {}) {
   const filePath = String(file ?? '').replaceAll('\\', '/');
   const raw = String(text ?? '');
   if (!DS3_UI.test(filePath) || DS3_GEEN.test(filePath) || !raw.trim() || FULL_LINE_COMMENT.test(raw)) return [];
   if (bewustReden(filePath) || /ds3-uitzondering/.test(raw)) return [];
-  const { n } = telBestand(filePath, raw);
+  const n = { ...telBestand(filePath, raw).n };
+  // nettotelling van de regelaudit: een soort die in dit bestand niet netto stijgt (een herschreven regel, de tokeniser) is geen nieuwe overtreding
+  if (opts.vrij) for (const s of opts.vrij) if (s in n) n[s] = 0;
   const reden = [];
   if (n.kleur) reden.push(`harde kleur (${n.kleur}x): gebruik var(--ds-c-...)`);
   if (n.glas) reden.push('glas-op-donker, verloop of backdrop-filter: het designsysteem is vlak papier met inktrand');
@@ -305,7 +307,7 @@ function finding({ file, line, text, ernst, categorie, titel, beschrijving, fix 
 }
 
 /** Losse kleurwaarden op een regel, zonder commentaar en zonder var()-terugval. */
-function strayColors(text, file) {
+export function strayColors(text, file) {
   let clean = stripComments(text, file);
   // De terugval van een token is de token zelf; die waarde keuren we niet.
   clean = clean.replace(/var\(\s*--[\w-]+\s*,\s*[^)]*\)/g, 'var()');
@@ -401,7 +403,7 @@ export function checkDesignLine({ file, line, text } = {}, opts = {}) {
   const findings = [];
 
   // Kleur: losse hex of rgb() buiten de tokens, ook in een inline style.
-  if (candidates.kleur) {
+  if (candidates.kleur && !opts.vrijKleur) {
     let stray = strayColors(raw, filePath);
     if (allowed) stray = stray.filter((c) => !(c.startsWith('#') && allowed.has(c.slice(0, 7).toLowerCase())));
     if (stray.length) {

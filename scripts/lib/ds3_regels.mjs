@@ -198,6 +198,7 @@ export const SVG_GEOMETRIE = [
   [/^game\/js\/(?:heistui|trailer|cinematics)\.js$/, 'wijzerplaat en voortgangsring (skip-ring) zijn meetgeometrie met data-afhankelijke dash-lengte'],
   [/^game\/js\/(?:helirun|zeilvaren)\.js$/, 'richtings- en windpijl draait mee met de data: geometrie, geen icoon'],
   [/^game\/js\/aimassist\.js$/, 'richtkijker en richtcirkel zijn meetgeometrie'],
+  [/^game\/js\/pigeonguide\.js$/, 'de richtingspijl naar de volgende plek draait mee met de hoek (data), met omtrek en schaduw: geometrie, geen icoon'],
 ];
 const svgGeometrie = (f) => SVG_GEOMETRIE.some(([re]) => re.test(f));
 
@@ -271,7 +272,7 @@ export function telBestand(f, src) {
     // het donkere glas (.gm); .gm-zeef is de zeefdrukvariant daarvan
     if (/(?:^|[\s"'`{,.>+~(])\.gm(?![\w-])|class\s*=\s*["'`][^"'`]*\bgm\b|classList\.(?:add|toggle)\(\s*['"]gm['"]/.test(k) && !/gm-zeef/.test(k)) glas++;
     let oud = 0;
-    if (/\bds-(?:kaart|knop|chip|papier|glas|streep)\b/.test(k)) oud++;
+    if (/(?<![\w-])ds-(?:kaart|knop|chip|papier|glas|streep)\b/.test(k)) oud++; // een eigenschap (--ds-kaart-rand) is een token, geen oude klasse
     let font = 0;
     for (const m of k.matchAll(/font-family\s*:\s*([^;}`'"]+(?:['"][^;}]*)?)/gi)) {
       const v = m[1].trim();
