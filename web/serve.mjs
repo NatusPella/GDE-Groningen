@@ -1,6 +1,7 @@
 // Serves web-dist/ like a static host would (Range requests, real MIME
 // types, a sub path like itch.io and GitHub Pages): http://localhost:8790/gde/
-//   node web/serve.mjs [port] [--log]   (--log: one line per request)
+//   node web/serve.mjs [port] [--log] [--prefix=/GDE-Groningen/]   (--log: one line per request;
+//   --prefix: another sub path, e.g. the one GitHub Pages gives a project site)
 import fs from 'fs';
 import http from 'http';
 import path from 'path';
@@ -9,18 +10,18 @@ import { fileURLToPath } from 'url';
 const DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'web-dist');
 const PORT = +process.argv.slice(2).find((a) => /^\d+$/.test(a)) || 8790;
 const LOG = process.argv.includes('--log');
-const PREFIX = '/gde/';
+const PREFIX = ((process.argv.find((a) => a.startsWith('--prefix=')) || '').slice(9) || '/gde/').replace(/^\/?/, '/').replace(/\/?$/, '/');
 const TYPES = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css',
   '.json': 'application/json', '.md': 'text/markdown; charset=utf-8', '.bin': 'application/octet-stream',
   '.pack': 'application/octet-stream', '.glb': 'model/gltf-binary', '.png': 'image/png', '.svg': 'image/svg+xml',
-  '.woff2': 'font/woff2', '.mp3': 'audio/mpeg', '.wav': 'audio/wav', '.webm': 'audio/webm',
+  '.woff2': 'font/woff2', '.mp3': 'audio/mpeg', '.ogg': 'audio/ogg', '.txt': 'text/plain; charset=utf-8', '.ttf': 'font/ttf', '.jpg': 'image/jpeg', '.wav': 'audio/wav', '.webm': 'audio/webm',
 };
 
 http.createServer((req, res) => {
   if (LOG) res.on('finish', () => console.log(`${res.statusCode} ${res.gdeBytes || 0} ${req.url}${req.headers.range ? ' ' + req.headers.range : ''}`));
   const url = decodeURIComponent(req.url.split('?')[0]);
-  if (url === '/' || url === '/gde') { res.writeHead(302, { location: PREFIX }); res.end(); return; }
+  if (url === '/' || url === PREFIX.slice(0, -1)) { res.writeHead(302, { location: PREFIX }); res.end(); return; }
   if (!url.startsWith(PREFIX)) { res.writeHead(404); res.end(); return; }
   let file = path.join(DIR, url.slice(PREFIX.length));
   if (!file.startsWith(DIR)) { res.writeHead(403); res.end(); return; }

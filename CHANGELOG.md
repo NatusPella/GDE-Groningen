@@ -16,6 +16,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Ontwerp: nieuwe DS3-regels 'Toets in de knop' en 'Navigatie met controller en toetsenbord' (menu-patroon), met bewaking in de DS3-dekkingstest. Zie docs/KAART-POPUPS-21-11.md.
 - Verhaal › Personages: onder elke personagekaart staat nu "Wie is dit?" met leeftijd, woonplaats, werk, herkomst en wat iemand voor Tammo en Tessa is. Je ziet alleen wat je al weet: een veld komt erbij als je iemand ontmoet of als een verhaalstap klaar is. Achter de kaarten staan nu 82 personagedossiers (ook wonen per akte en relaties), zie docs/PERSONAGES-DOSSIERS-21-11.md.
 
+- Webversie: er komt een handmatige workflow om het spel op GitHub Pages te zetten (onder /play/, naast de marketingpagina), met alleen Opus-geluid (ca. 300 MB kleiner; Safari vóór 18.4 speelt dan zonder geluid), de wereld uit de release en een klein wegklikbaar label "Webversie (preview)". Livebussen en live treinen worden in de webversie niet opgevraagd (geen CORS), het spel rijdt dan het eigen rooster. Geen telemetrie.
+
 (De coördinator voegt deze regels bij 0.65.0.)
 
 - Nieuw: de Pimp-werkplaats. In elke garage, op de werf, bij de fietsenmaker en bij de tuningwinkel staat bovenaan "Pimp-werkplaats" voor je eigen voertuig. Je ziet elke keuze meteen op je auto (draaien met de muis) en betaalt pas bij Installeren: lak en afwerking (glans, metallic, parelmoer, mat), tweede kleur, strepen en stickers (Frituur Zonnedijk, Kwark Racing, Grunn Drift Team en meer), velgen en banden, spoiler, bodykit, diffuser, dakdrager, uitlaat, koplampen, underglow die 's nachts brandt, raamfolie, een verzonnen nummerbord en een hanger. Drie builds per voertuig, voor en na naast elkaar, volledig met controller.

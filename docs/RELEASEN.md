@@ -174,6 +174,8 @@ Nu bouwen we alleen x64 (Windows en Linux), macOS universal (arm64 en x64 in é�
 
 ## Webversie publiceren (#57)
 
+**Pages (#1090):** de workflow `pages-deploy.yml` bouwt spel en marketingpagina en zet ze samen op Pages (spel onder `/play/`); de coördinator start hem met `gh workflow run pages-deploy.yml -f ref=<tag>`. Zie [PAGES-WORKFLOW-21-11.md](PAGES-WORKFLOW-21-11.md). Wat hieronder staat is de lokale route.
+
 De webversie wordt lokaal gebouwd en nergens automatisch geüpload. `web-dist/` staat in
 `.gitignore`; er gaat niets de repo in.
 

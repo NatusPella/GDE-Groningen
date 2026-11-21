@@ -164,6 +164,7 @@ const demo = () => feed(
   await fetchLiveTrains({ fetchFn: kiesFetch({ fetch: async () => { direct++; return respons(demo()); } }), codes: CODES });
   assert.strictEqual(direct, 1);
   assert.strictEqual(kiesFetch({}), null, 'zonder netwerk geen bron');
+  assert.strictEqual(kiesFetch({ __gteWeb: {}, fetch: async () => { throw new Error('mag niet'); } }), null, 'de webbuild slaat de opvraag over (CORS)');
   assert.ok((await bridgeAsFetch(async () => ({ ok: true, status: 200, bytes: new Uint8Array([1, 2]) }))()).ok);
 
   let t = 9_000_000, opgevraagd = 0, gezet = 'niets';
