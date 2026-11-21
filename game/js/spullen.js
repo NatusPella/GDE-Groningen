@@ -12,7 +12,7 @@
 // Zonder model of zonder WebGL blijft het icoon staan. The in-world TV overlay in
 // furniture.js is HUD, not this screen (#610).
 import { WEAPONS, hasWeapon, isMeleeWeapon } from './combat.js';
-import { WEAPON_STOCK, OUTFITS, CAR_UPGRADES, BIKE_UPGRADES, MOTO_UPGRADES, inventoryShopState, upgradeListForStock } from './shops.js';
+import { WEAPON_STOCK, clothingLook, wearClothing, takeOffClothing, CAR_UPGRADES, BIKE_UPGRADES, MOTO_UPGRADES, inventoryShopState, upgradeListForStock } from './shops.js';
 import { VEHICLE_STOCK } from './shopdata.js';
 import { furnitureOwned, FURNITURE_TOTAL } from './furniture.js';
 import { fjordUpgradeOffers } from './pg_foodtruck.js';
@@ -26,7 +26,8 @@ import { icoon } from './icons.js';
 import { deviceText } from './touchui.js';
 import { glyphHtml } from './keycap.js';
 import { createSharedPreview, renderSnapshot, cancelSnapshots, releaseSnapshots } from './vehiclepreview.js';
-import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { ownedPieces, wornPieces, effectiveWorn, takeOffBlock, ownsAll, wornMatches, wearSet } from './clothing.js';
+import { SLOTS, SLOT_IDS, LOOKS, setsFor, parsePiece, pieceLabel } from './clothingdata.js';
 import { reducedMotion } from './motion.js';
 import { rasterMaat, kolommenUitTops, focusStep, TEGEL_MIN } from './spullenraster.js';
 import { createThumbs } from './spullenthumbs.js';
@@ -243,18 +244,27 @@ function collect(w) {
   counts.werp = `${ownThrows.length} van ${throws.length}`;
   for (const k of ownThrows) out.push(weaponItem(k, 'werp'));
 
-  const outfits = OUTFITS[ch] || [];
-  const ownOutfits = outfits.filter((o) => shop.ownedOutfits.includes(`${ch}:${o.id}`));
-  counts.kleding = `${ownOutfits.length} van ${outfits.length}`;
-  for (const o of ownOutfits) {
-    const wearing = (shop.storyOutfit || shop.outfit[ch]) === o.id;
-    const app = ch === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
-    const look = { ...app, shirt: o.shirt, pants: o.pants, shoes: o.shoes, ...(o.cap != null ? { cap: o.cap } : {}) };
-    out.push({ key: 'o:' + o.id, cat: 'kleding', viewer: kledingSpec(look), icon: 'kleding', title: o.label, sub: wearing ? '' : 'Ligt thuis in de kast', side: wearing ? 'Aan' : '',
-      desc: o.desc,
-      how: o.price && o.id !== 'stadjer' && o.id !== 'classic' ? `Stoer & Stads, ${euro(o.price)}` : 'Van jezelf',
-      perk: o.stealth ? 'Onopvallend: de politie raakt je sneller kwijt' : 'Omkleden kan thuis bij de kast',
-      act: !wearing && getHomeForRender().length ? { label: 'Route naar de kast thuis', run: () => homeRoute('Kledingkast') } : null });
+  // Kleding (epic Kleding): losse stukken in je kast en de sets die compleet zijn; aan of uit kan hier, ook onderweg
+  const ownPieces = ownedPieces(ch).map((p) => parsePiece(p)).filter(Boolean);
+  counts.kleding = `${ownPieces.length} stukken`;
+  const worn = wornPieces(ch);
+  const storyOn = !!shop.storyOutfit;
+  for (const x of ownPieces.sort((a, b) => SLOT_IDS.indexOf(a.item.slot) - SLOT_IDS.indexOf(b.item.slot) || a.id.localeCompare(b.id))) {
+    const on = worn[x.item.slot] === x.id;
+    const block = on ? takeOffBlock(ch, x.item.slot) : '';
+    out.push({ key: 'k:' + x.id, cat: 'kleding', viewer: kledingSpec(clothingLook(ch, on ? effectiveWorn(ch) : { ...effectiveWorn(ch), [x.item.slot]: x.id })), icon: 'kleding',
+      title: pieceLabel(x), sub: SLOTS.find((s) => s.id === x.item.slot).label, side: on ? 'Aan' : '',
+      desc: x.item.desc, how: x.item.price ? `Kledingwinkel, ${euro(x.item.price)}` : 'Van jezelf',
+      perk: storyOn ? 'Het verhaal bepaalt nu wat je aanhebt' : block || (on ? 'Uitdoen kan hier' : 'Aantrekken kan hier'),
+      act: storyOn || block ? null : on ? { label: 'Uitdoen', run: () => takeOffClothing(ch, x.item.slot) } : { label: 'Aantrekken', run: () => wearClothing(w, ch, x.id) } });
+  }
+  for (const set of [...setsFor(ch), ...LOOKS]) {
+    if (!ownsAll(ch, set.pieces)) continue;
+    const on = wornMatches(ch, set.pieces);
+    out.push({ key: 's:' + set.id, cat: 'kleding', viewer: kledingSpec(clothingLook(ch, setLookWorn(ch, set))), icon: 'kleding', title: `Set: ${set.label}`, sub: `${set.pieces.length} stukken`, side: on ? 'Aan' : '',
+      desc: set.desc, how: set.price ? `Kledingwinkel, ${euro(set.price)}` : 'Van jezelf',
+      perk: set.bonus && set.bonus.stealth ? 'Onopvallend: de politie raakt je sneller kwijt' : 'Alle stukken bij elkaar',
+      act: storyOn || on ? null : { label: 'Hele set aantrekken', run: () => { const r = wearSet(ch, set); if (!r.ok) return r.reason; wearClothing(w, ch, set.pieces[0]); return `${set.label} aan`; } } });
   }
 
   const furn = furnitureOwned();
@@ -302,6 +312,13 @@ function collect(w) {
   for (const u of ups) out.push({ ...u, cat: 'upgrade', icon: 'upgrade', link: u.sub === 'Fjord Frituur' ? null : ['garage', 'Naar Garage'] });
   counts.upgrade = `${ups.length} van ${upgradeTotaal(shop, fjordUpgradeOffers(w))}`;
   return { items: out, counts };
+}
+
+// What a character looks like in a set (the set's pieces over what they wear now), for the viewer.
+function setLookWorn(ch, set) {
+  const next = { ...effectiveWorn(ch) };
+  for (const p of set.pieces) { const x = parsePiece(p); if (x) next[x.item.slot] = p; }
+  return next;
 }
 
 function homeRoute(what) {

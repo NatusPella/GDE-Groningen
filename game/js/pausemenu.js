@@ -91,6 +91,7 @@ const CONTROL_GROUPS = [
     [['E', 'F'], 'Gebruiken'],
     [['E'], 'Word een duif'],
     [['K'], 'Kusje geven'],
+    [['6'], 'Andere kleren'],
     [['I'], 'Hengelen'],
   ]],
   ['vervoer', 'Vervoer', [
@@ -172,6 +173,7 @@ const CONTROL_LONG = [
     ['Gebruiken', 'Instappen, een winkel in, praten of een bijbaantje beginnen.'],
     ['Word een duif', 'Bij een duivenbord: word een duif.'],
     ['Kusje geven', 'Kusje geven aan Tammo of Tessa.'],
+    ['Andere kleren', 'Te voet: de volgende outfit uit je kast (bewaar ze in de kast thuis of in Spullen, Outfit 1 tot 5). Kost niets en werkt overal.'],
     ['Hengelen', 'Hengelen, aan elk water (ook vanuit een boot die stilligt).'],
   ]],
   ['vervoer', [
