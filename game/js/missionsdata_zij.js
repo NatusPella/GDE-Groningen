@@ -82,6 +82,7 @@ export function buildZijDefs({ map, walk }) {
           kind: 'hold', target: { ...s.groep, label: 'De fatbikes voor de snackbar' }, radius: 9, time: 7, mode: 'foot',
           ticks: ['De eerste fatbike start.', 'Nog twee, met een lach. De stoep is weer vrij.'],
           label: 'Wacht tot de fatbikes wegrijden',
+          wacht: { figuur: true, prop: 'radio', seed: 0.27 }, // #963: een toeschouwer bij de muziekkar
           say: 'Niet zwaaien, niet duwen. Gewoon heel mooi blijven spelen.',
         },
       ],
