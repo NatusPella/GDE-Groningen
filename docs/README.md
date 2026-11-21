@@ -96,6 +96,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [PERF-METING-2026-10-19.md](<PERF-METING-2026-10-19.md>) | Dit is de actuele meetbron voor prestaties (zie `.specs-fire/standards/mechanica.md`, |
 | [PERF-BESLUITEN.md](<PERF-BESLUITEN.md>) | Bewuste prestatiebesluiten en de onderbouwing per punt. |
 | [PERF-STREAM-SOEPEL-21-11.md](<PERF-STREAM-SOEPEL-21-11.md>) | Soepeler streamen: één framebudget, bewegingsgericht vooruitladen en stabiele LOD-overgangen (#1016, #1052, #1008). |
+| [HUD-LINKS-21-11.md](<HUD-LINKS-21-11.md>) | De locatiekaart en de politiechip links in de HUD (#1079): regel, meting en chip. |
 | [PERF-METING-2026-11-05.md](<PERF-METING-2026-11-05.md>) | Dit is een nieuwe, gedateerde meetbron naast `docs/PERF-METING-2026-10-19.md`. |
 | [PERF-METING-2026-11-09.md](<PERF-METING-2026-11-09.md>) | Prestatiemeting 9-11-2026: verificatie na de merge (#804/#806), top-5 hitchbronnen en de eerlijke norm-uitslag. |
 | [PERF-RONDE-20-11.md](<PERF-RONDE-20-11.md>) | Prestatieronde 20-11 (#985, #937, #921): statische audit van de per-frame-paden, microbenchmarks, kleine fixes, Samen-spelen-kosten per speler en wat open staat. |
