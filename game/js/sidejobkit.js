@@ -3,6 +3,7 @@ import { gridItems } from './spatialgrid.js';
 // jobs): placing things on streets and at doors, handing the player a job
 // vehicle, customers that wait or walk, and small carryable props.
 
+import { leggBootGeldig } from './vehicle/bootplekken.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { Vehicle, spawnVehicleOnRoad } from './vehicle.js';
 import { Pedestrian } from './pedestrians.js';
@@ -239,6 +240,7 @@ export function spawnJobBoat(world, x, y, heading, model) {
       boat.x = nx; boat.y = ny;
     }
   }
+  leggBootGeldig(map, boat);   // een bijbaanboot ligt aan een kade of op een vaarweg, niet op een sloot (bootplekken.js)
   boat.waterPoly = waterPolyAt(map, boat.x, boat.y);
   world.vehicles.push(boat);
   return boat;

@@ -10,6 +10,7 @@ import { tractorBodyGeometry, tractorBaseGeometry, trailerBodyGeometry, trailerB
 import { glowMaterial, headlightGeometry } from './countryglow.js';
 import { Vehicle, MODELS, TRACTOR_MODEL, QUAD_MODEL, makeTwoWheeler, attachToNearestRoad } from './vehicle.js';
 import { isSpawnHidden } from './pedestrians.js';
+import { bootPlekGeldig } from './vehicle/bootplekken.js';
 
 // Life in the Ommelanden: a few slow road users on the polder roads (a
 // tractor, a cyclist, the odd car), boats puttering along the maaren, and
@@ -576,7 +577,7 @@ function placeTraffic(a, dt) {
 
 // ------------------------------------------------------------------ boats
 
-function spawnBoat(px, py, dist) {
+function spawnBoat(px, py, dist, map = null) {
   const lines = [];
   const i0 = Math.floor((px - dist) / BLOCK), i1 = Math.floor((px + dist) / BLOCK) + 1;
   const j0 = Math.floor((py - dist) / BLOCK), j1 = Math.floor((py + dist) / BLOCK) + 1;
@@ -593,6 +594,8 @@ function spawnBoat(px, py, dist) {
   const [x, y] = boatPos(b);
   // (the maaren are the polder grid's: not in the blocks the tiles cover, where their water is)
   if (!openLand(x, y) || provinceBlock(Math.floor(x / BLOCK), Math.floor(y / BLOCK)) || edgeDistance(x, y) < 30 || Math.hypot(x - px, y - py) < 120) return;
+  // een maar is een polderslootje van 7 m: daar vaart geen boot, alleen op water waar een boot logisch is (bootplekken.js)
+  if (map && !bootPlekGeldig(map, x, y, 'kano')) return;
   b.g = new THREE.Mesh(cachedGeo('boat' + b.kind, () => boatGeometry(b.kind)), MAT);
   b.g.castShadow = true;
   b.yaw = boatYaw(b);
@@ -763,7 +766,7 @@ export function updateCountryLife(dt, world, scene, flocks, fogFar) {
     if (active && L.boatT <= 0) {
       L.boatT = 3 + Math.random() * 4;
       if (L.boats.length < MAX_BOATS) {
-        spawnBoat(p.x, p.y, spawnD);
+        spawnBoat(p.x, p.y, spawnD, world.map);
       }
     }
   }

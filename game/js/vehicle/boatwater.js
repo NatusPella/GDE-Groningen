@@ -13,6 +13,7 @@ import { pickWaterLife, distToCentre, hourOf } from '../streetlifedata.js';
 import { pickBoatModel, BOAT_KINDS } from '../boattypes.js';
 import { pickTrip, classOfKind } from '../vaarnet.js';
 import { hoofdspeler } from '../players.js';
+import { bootPlekGeldig } from './bootplekken.js';
 
 // Wat dit blok uit vehicle.js nodig heeft (de klasse Vehicle en de spawncontroles) komt van
 // buiten: vehicle.js geeft het hier bij het laden door met setBoatHost. Zo importeert deze
@@ -60,6 +61,9 @@ export function spawnBoatOnWater(map, waterPoly, rng = Math.random, opts = {}) {
   for (let attempt = 0; attempt < 12; attempt++) {
     const q = pts[Math.floor(rng() * pts.length)];
     if (map.isOnBridge(q.x, q.y)) continue;
+    // alleen waar een boot logisch is: een kade, steiger of echt bevaarbaar water, geen sloot of vijver (bootplekken.js);
+    // opts.plek === false voor wie de plek zelf kiest (een ligplaats bij een steiger)
+    if (opts.plek !== false && !bootPlekGeldig(map, q.x, q.y, model)) continue;
     const flip = rng() < 0.5 ? 0 : Math.PI;
     for (const turn of [0, Math.PI, 0.3, -0.3]) {
       const angle = normalizeAngle(q.a + flip + turn);

@@ -26,6 +26,7 @@ import { showTowerFlag, cutFlagRope, dropFlag, updateStoryProps, clearStoryProps
 import { RING_ROUTE, RING_CHECKPOINTS } from './ringroute.js';
 import { KEI_ROUTE, KEI_CHECKPOINTS } from './keiroute.js';
 import { createRace, updateRace, raceStandings, disposeRace, updateRetiredRacers } from './racers.js';
+import { leggBootGeldig } from './vehicle/bootplekken.js';
 import { TOUR_BOAT, rondvaartWaypoints, rondvaartBerth, startRondvaart, updateRondvaart, stopRondvaart, rondvaartStatus, rondvaartTip, rondvaartOutro, playRondvaartBoarding, routeAt, ROUTE_LENGTH } from './rondvaartchase.js';
 import { startHeliRun, isHeliRunActive, abortHeliRun, getHeliSpotsForRender } from './helirun.js';
 import { createSearchlight } from './searchlight.js';
@@ -1405,6 +1406,7 @@ function spawnStoryBoat(world, def) {
     }
     if (best) { boat.x = best.x; boat.y = best.y; boat.angle = best.a; }
   }
+  if (map) leggBootGeldig(map, boat);   // (idem: nooit op een sloot of vijver)
   world.vehicles.push(boat);
   chainState().storyBoat = boat;
 }
@@ -1431,6 +1433,7 @@ function spawnMissionBoat(def, map) {
     }
     if (best) { boat.x = best.x; boat.y = best.y; boat.angle = best.a; }
   }
+  if (map) leggBootGeldig(map, boat);   // aan een kade of op een vaarweg, niet op een sloot (bootplekken.js)
   return boat;
 }
 
