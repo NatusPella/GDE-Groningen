@@ -5,6 +5,8 @@ import { hoofdspeler } from './players.js';
 import { vertrekBord, bordUitTreinen, omroep, perronDrukte, tijdLabel, VERVOERDER } from './dienstregeling.js';
 import { hasStop, rijenUitRooster, pasVertragingToe } from './trainschedule.js';
 import { sourceState, bronLabel, departureLine } from './trainsource.js';
+import { buildTimeline } from './departuretimeline.js';
+import { createTimeline } from './departuretimelineui.js';
 
 export const NEAR_R = 45;      // m: zo dichtbij moet je bij het perron zijn voor bord en omroep
 export const CROWD_R = 140;    // m: zo dichtbij worden reizigers getekend
@@ -136,6 +138,7 @@ export function omroepStap(st, view, tijd) {
 let stations = null;
 let routesSig = '';
 let board = null;
+let timeline = null;  // de tijdlijn in het bord (departuretimelineui.js)
 let shown = false;
 let ost = omroepToestand();
 let lastName = '';
@@ -162,6 +165,7 @@ export function updateStationLife(dt, world, opts) {
     return;
   }
   if (!board) board = createBoard('station'); // #596: het vertrekbord uit de thematabel, geen eigen hex meer
+  if (!timeline && board.root && typeof board.root.querySelector === 'function') timeline = createTimeline(board.root, { before: board.root.querySelector('.mg-flash') });
   const v = cur.view;
   if (v.name !== lastName) { lastName = v.name; ost = omroepToestand(); }
   board.show();
@@ -169,11 +173,11 @@ export function updateStationLife(dt, world, opts) {
   const bron = bordBron(v, { instelling: opts.liveInstelling !== false, liveStand: opts.live ? opts.live.stand() : null });
   board.set({
     row: `<b>${v.name}</b> &middot; ${tijdLabel(v.nu)} <em class="mg-sfeer">${bron.kort}</em>`,
-    cells: bordCellen(v),
-    extra: bron.eerste ? `<span>${bron.eerste}</span>` : '',
+    cells: null, extra: '', // de eerstvolgende treinen staan als tijdlijn onder de kop (#1085)
     flash: v.eerst && v.eerst.vertraging >= 60 ? v.eerst.reden : '',
-    help: v.bord.length ? bron.regel : 'Geen treinen meer vandaag',
+    help: bron.regel, // de lege stand (geen treinen meer vandaag) staat in de tijdlijn zelf
   });
+  if (timeline) timeline.set(buildTimeline(v));
   const msg = omroepStap(ost, v, world.time);
   if (msg) world.addMessage(msg, 5);
 }
