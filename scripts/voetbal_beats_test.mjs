@@ -1,6 +1,7 @@
 // Test van de verhaalbeats en de ontgrendeling van de voetbalcarrière (#1112): scripts/voetbal_beats_test.mjs. Puur.
 import PARKDATA from '../game/js/voetbalparkendata.js';
 import assert from 'node:assert/strict';
+import { STEPS, BETWEEN_STEPS } from '../game/js/storyarc_nieuw.js';
 import { wgsToWorld } from '../game/js/rdnew.js';
 import { makeParkIndex, HOME_WGS } from '../game/js/voetbalparken.js';
 import * as C from '../game/js/voetbalcarriere.js';
@@ -105,5 +106,15 @@ t('de regelaar doet een voorstel in zijn persona; Tammo en Tessa gaan nooit over
   assert.match(proposal({ ...a, trainedDay: 2 }, { status: 'open' }).tekst, /wedstrijd/);
   assert.equal(proposal(null), null);
   for (const x of [a, b]) assert.ok(!/(geld van|je geld|mijn geld)/i.test(proposal(x, null).tekst));
+});
+t('verhaallijn V1-V3 (#1179): akte 4, na M19 en voor T4, bestaande doeltypes, stil, geen jeugd of leeftijd, Tessa speelt en Tammo regelt', () => {
+  const ids = STEPS.map((x) => x.id), v = ['V1', 'V2', 'V3'].map((id) => STEPS.find((x) => x.id === id));
+  assert.ok(v.every(Boolean) && v.every((x) => x.part === 'zuid' && x.kind === 'activity' && x.built && x.silent && x.player === 'anita'));
+  assert.ok(ids.indexOf('V1') === ids.indexOf('M19') + 1 && ids.indexOf('V3') + 1 === ids.indexOf('T4'), 'tussen M19 en de bus naar Bourtange');
+  assert.deepEqual(v.map((x) => x.goal.type), ['shop', 'reis', 'shop'], 'alleen bestaande doeltypes');
+  for (const x of v) {
+    assert.ok(BETWEEN_STEPS.includes(x.id), `${x.id} is een tussenstap (migratie)`);
+    for (const [who, tekst] of [x.lead, x.done]) { assert.equal(who, 'T', 'Tammo regelt'); assert.ok(!hasForbiddenWord(tekst) && !/(jeugd|kind|kinderen|jaren|jarig)/i.test(tekst) && !/de Grunn/.test(tekst), tekst); }
+  }
 });
 console.log(`voetbal_beats_test ok (${n} groepen)`);

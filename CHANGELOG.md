@@ -9,6 +9,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Voetbal: Tessa is de ster en Tammo helpt haar shinen. In akte 4 komen drie korte stappen (schoenen kopen, de eerste training in Veendam, een rondje voor het team); oude saves krijgen ze als gedaan of nog te spelen. Samen spelen: per speler, in zijn eigen verhaal.
+- Voetbal: clubaandelen. In het Manager-scherm koop je een deel van je club (10, 25, 51 of 100 procent); elke competitieronde keert dividend uit en je kunt het aandeel voor 75 procent terugverkopen. Een sponsor kiest voortaan een echt bedrijfspand uit de Bezit-pandindex; wie dat pand bezit, krijgt hooguit tien procent meer klanten op thuisdagen.
+- Voetbal: het commentaar kent het seizoen. Hilbrand en Roelie praten over de ronde, de plek in de stand, de laatste ronde, de beker, de Waddenbeker, een debuut, een doelpunt van de ster en de sponsor (82 nieuwe vaste regels staan op de wachtlijst voor de stemmen).
 - Voetbal: de hele wedstrijd staat voorop. De poort in de Euroborg heet nu "Wedstrijd spelen" (elf tegen elf of vijf tegen vijf, vorming, stijl, competitie) en het keuzescherm opent met die knop; de penalty's blijven een minigame bij de poort ernaast.
 - Voetbal: een wedstrijd als uitzending. Je ziet de opstelling bij de aftrap, een scorebord met clubembleem (verzonnen), klok, stand en kaart- en blessure-icoontjes, een rustpauze met statistieken (balbezit, schoten, hoekschoppen) en een eindsignaal met samenvatting en Man van de match. Boven je speler staat zijn naam, met een passpijl, een schotpijl en een veldradar.
 - Voetbal: camera-regie en herhaling. De camera wisselt bij een dode bal naar de zijlijn, de doelcamera, de viering of de hoekschop; {3} (of de D-pad omlaag) kiest automatisch, achter je speler, tv-uitzending of hoog. Na een doelpunt of een grote kans zie je een korte herhaling (alleen als je alleen speelt; overslaan met {F}).

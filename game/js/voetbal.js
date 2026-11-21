@@ -13,7 +13,7 @@ import { keyTextHtml } from './keycap.js';
 import { createBoard, mgThema, bubble, clearBubbles, pick, stopPressed, easeCamera, clamp } from './minigamekit.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import * as CL from './voetbalcarrierelive.js';
-import { matchSetup } from './voetbalcarriere.js';
+import { matchSetup, commentaryContext } from './voetbalcarriere.js';
 import { pitchPlacement } from './voetbalparken.js';
 import { registerLauncher } from './voetbalcarriereui.js';
 import { formationList } from './voetbalrules.js';
@@ -403,7 +403,7 @@ function launch(w, { force = false, online = null, sim = null, career = null } =
   if (!built) built = bouw(w, sim.formaat);
   if (career && career.site) { ruimParkOp(); parkBuilt = bouw(w, sim.formaat, career.site); }
   const bon = career ? null : characterEnter(w, 'voetbal'); // de speler voetbalt als Tessa (wissel per speler, terug bij het einde); zonder haak gebeurt er niets
-  game = { online, sim, t: 0, dt: 0, cam: null, actors: makeActors(sim), marks: makeMarkings(), mode, said: 0, lastFase: sim.fase, laadG: { schot: 0, lang: 0 }, bon, exitX: career && career.site ? toWorld((PITCH.B / 2) + 4, 0).x : GATE.x, exitY: career && career.site ? toWorld((PITCH.B / 2) + 4, 0).y : GATE.y, career, gemeld: false, comp: online || !opt ? null : opt.comp };
+  game = { online, sim, cctx: career ? career.cctx || null : null, t: 0, dt: 0, cam: null, actors: makeActors(sim), marks: makeMarkings(), mode, said: 0, lastFase: sim.fase, laadG: { schot: 0, lang: 0 }, bon, exitX: career && career.site ? toWorld((PITCH.B / 2) + 4, 0).x : GATE.x, exitY: career && career.site ? toWorld((PITCH.B / 2) + 4, 0).y : GATE.y, career, gemeld: false, comp: online || !opt ? null : opt.comp };
   tvInit(w, game);
   const fl = fld();
   fl.root.visible = true; fl.bord.visible = !parkBuilt;
@@ -540,7 +540,7 @@ function updateGame(w, dt) {
 
 // --- de tv-laag: commentaar, regie, herhaling, namen, pijlen en overlay (alleen lokaal; Samen spelen stuurt hier niets voor over het net) -----------------------------------------------
 
-const comCtx = (g) => ({ fase: g.sim.fase, helft: g.sim.helft, klok: g.sim.klok, duurHelft: g.sim.duurHelft, score: g.sim.score.slice(), bezit: g.bezitPct, derby: g.derby, naamVan: (id) => (g.sim.spelers[id] ? g.sim.spelers[id].naam : '') });
+const comCtx = (g) => ({ carriere: g.cctx || null, fase: g.sim.fase, helft: g.sim.helft, klok: g.sim.klok, duurHelft: g.sim.duurHelft, score: g.sim.score.slice(), bezit: g.bezitPct, derby: g.derby, naamVan: (id) => (g.sim.spelers[id] ? g.sim.spelers[id].naam : '') });
 
 function tvInit(w, g) {
   const sim = g.sim;
@@ -818,7 +818,7 @@ export function launchCareerMatch(w) {
   const venue = m.park ? m.park : null;
   let site = null;
   if (venue) { const pp = pitchPlacement(venue); site = { x: pp.x, y: pp.y, a: pp.angle - Math.PI / 2 }; }
-  return launch(w, { force: true, career: { teams: setup.teams, ratings: setup.ratings, bonus: setup.bonus, char: c.char, naam: c.me.name, site: site, match: m } });
+  return launch(w, { force: true, career: { teams: setup.teams, ratings: setup.ratings, bonus: setup.bonus, char: c.char, naam: c.me.name, site: site, match: m, cctx: commentaryContext(c, CL.getClub, m) } });
 }
 registerLauncher((w) => launchCareerMatch(w));
 

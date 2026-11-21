@@ -363,11 +363,24 @@ function normClubBezit(raw) {
   for (const id of Object.keys(src).slice(0, 40)) {
     const h = src[id];
     if (!/^[a-z0-9_-]{1,40}$/i.test(id) || !h || typeof h !== 'object') continue;
-    const aandeel = Math.round(Number(h.aandeel) * 100) / 100;
-    if (!(aandeel > 0 && aandeel <= 1)) continue;
-    out.clubs[id] = { aandeel, sinds: Math.max(0, Math.min(1e6, Math.round(Number(h.sinds)) || 0)), prijs: Math.max(0, Math.min(1e9, Math.round(Number(h.prijs)) || 0)) };
+    const frac = Math.round(Number(h.aandeel) * 100) / 100;
+    if (!(frac > 0 && frac <= 1)) continue;
+    out.clubs[id] = { aandeel: frac, sinds: Math.max(0, Math.min(1e6, Math.round(Number(h.sinds)) || 0)), prijs: Math.max(0, Math.min(1e9, Math.round(Number(h.prijs)) || 0)) };
   }
   return out;
+}
+
+// De context voor het commentaar van een carrièrewedstrijd (#1179, voetbalcommentaar.js ctx.carriere): welke ronde, welke plek, de laatste ronde, het debuut, de ster en de sponsor.
+export function commentaryContext(c, getClub, m = null) {
+  if (!hasCareer(c)) return null;
+  const ev = m || nextMatch(c, getClub);
+  if (!ev) return null;
+  const st = leagueTable(c), mine = st.rows.find((r) => r.id === c.club);
+  const first = (c.sponsors && c.sponsors.slots ? c.sponsors.slots : []).find((x) => x.accepted);
+  return {
+    kind: ev.kind, ronde: ev.n, rondes: ev.kind === 'league' ? S.ROUNDS : ev.n, laatste: ev.kind === 'league' && ev.n === S.ROUNDS, divisie: ({ kroon: 'Kroonklasse', terp: 'Terpklasse', talent: 'Talentenklasse' })[st.division] || 'competitie',
+    rank: mine ? mine.plek : 0, clubs: st.rows.length, debuut: !c.flags.debut, naam: c.me.name, sponsor: first ? first.naam : '',
+  };
 }
 
 // ---- stand en overzicht voor de schermen ----

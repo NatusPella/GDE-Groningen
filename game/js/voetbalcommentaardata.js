@@ -4,6 +4,8 @@
 // Hilbrand = de verslaggever (warm, vol vuur, praat het spel). Roelie = de kleurcommentator (droog, speelde jaren in het dorpsteam, weet het altijd net iets beter).
 // Een regel zonder accolade is vast en kan ingesproken worden (stem `Hilbrand|tekst` of `Roelie|tekst`, scripts/tts_cast.mjs); een regel met {speler}, {team}, {ander} of {stand} is een
 // sjabloon en blijft ondertitel (de naam verandert per wedstrijd). De humor is bewust droog: grappen die al in de eerste versie stonden (de thermosfles, de pepermunt, de klompen) blijven.
+import { KINDS_CARRIER, COMMENTAAR_CARRIER } from './voetbalcommentarycareer.js';
+
 export const COMMENTATOREN = {
   h: { id: 'h', naam: 'Hilbrand', stem: 'Hilbrand', rol: 'Verslaggever' },
   r: { id: 'r', naam: 'Roelie', stem: 'Roelie', rol: 'Kleurcommentaar' },
@@ -156,6 +158,10 @@ export const COMMENTAAR = {
     r: ['Ik had hem ook gekozen. Ik zeg het alleen niet hardop.', 'Een prima prestatie, die niet zomaar uit de lucht komt vallen.', 'Dat is een speler die je in je team wilt.'],
   },
 };
+
+// De seizoens- en carrièreregels (#1179) horen bij dezelfde tabellen: zelfde zakken, zelfde geheugen, zelfde tests.
+Object.assign(KINDS, KINDS_CARRIER);
+Object.assign(COMMENTAAR, COMMENTAAR_CARRIER);
 
 // Een aantal regels dat er altijd moet zijn (de test eist een ondergrens per soort en in totaal).
 export const MIN_PER_KIND = 5;
