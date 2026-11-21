@@ -33,6 +33,7 @@ import { versionLabel } from './menumodels.js';
 import { storyDate } from './calendarday.js';
 import { isCinematicActive } from './cinematics.js';
 import { renderAchievementsPanel } from './achievementsui.js';
+import { volgTabLijn } from './dsmicro.js'; // DS3: de glijdende onderstreping van de tabs (ds-micro.css)
 import { renderLoopbaanPanel } from './loopbaanui.js';
 import { renderVisboekPanel } from './visboekui.js';
 import { renderBoerderijPanel, boerderijBegonnen } from './boerderijui.js';
@@ -534,8 +535,9 @@ const inGameOnly = (of, id) => of === 'spel' && (id === 'acties' || id === 'over
 // "Alleen spelen" bij de eerste start een doodlopende weg (ADR 0022: later alsnog kunnen meedoen).
 const subsOf = (of) => SUBTABS[of].filter(([id]) => !(prestart && inGameOnly(of, id)));
 function subtabsHtml(of, label) {
-  return `<div class="m-tabs"><nav class="m-tablist" role="tablist" aria-label="${label}">` + SUBTABS[of].map(([id, text]) =>
-    `<button type="button" role="tab" class="m-tab${inGameOnly(of, id) ? ' pm-ingame' : ''}" data-of="${of}" data-subtab="${id}" aria-selected="false">${esc(text)}<small data-count="${id}"></small></button>`).join('') + '</nav>' +
+  // DS3 (ds-micro.css): de nav draagt .ds-m-tabs en de glijdende streep; de stip op een tab met [data-new] poppen met .ds-m-nieuw
+  return `<div class="m-tabs"><nav class="m-tablist ds-m-tabs" role="tablist" aria-label="${label}">` + SUBTABS[of].map(([id, text]) =>
+    `<button type="button" role="tab" class="m-tab ds-m-nieuw${inGameOnly(of, id) ? ' pm-ingame' : ''}" data-of="${of}" data-subtab="${id}" aria-selected="false">${esc(text)}<small data-count="${id}"></small></button>`).join('') + '<span class="ds-m-tabs__lijn" aria-hidden="true"></span></nav>' +
     (of === 'controls' ? '<span class="m-grow"></span><button type="button" class="m-bt" data-goto-sub="settings:besturing">Terug naar Instellingen</button>' : '') + '</div>';
 }
 
@@ -967,7 +969,7 @@ export function initPauseMenu(w) {
   root.setAttribute('aria-modal', 'true');
   root.setAttribute('aria-labelledby', 'pm-title');
   root.dataset.level = 'section';
-  const railBtn = (id) => { const [, label] = sectionOf(id); return `<button type="button" class="ra" data-goto="${id}" aria-current="false">${icon(id, 'pm-ic ra-ic')}<span class="ra-t">${label}</span><span class="n" data-n="${id}"></span></button>`; };
+  const railBtn = (id) => { const [, label] = sectionOf(id); return `<button type="button" class="ra ds-m-nieuw" data-goto="${id}" aria-current="false">${icon(id, 'pm-ic ra-ic')}<span class="ra-t">${label}</span><span class="n" data-n="${id}"></span></button>`; };
   // #911: elke groep met een eigen kop en het aantal onderdelen erachter; de telling volgt in
   // showTab wat er echt in de rail staat (het hoofdmenu toont er maar drie).
   const railGroup = ([id, label, members]) => `<div class="pm-rail-group" data-group="${id}"><span class="pm-rail-h"><span>${esc(label)}</span></span>` +
@@ -2335,6 +2337,7 @@ function showSubtab(of, name) {
   if (SUB_ALIAS[of] && SUB_ALIAS[of][name]) name = SUB_ALIAS[of][name];
   if (!subs.some(([id]) => id === name)) name = subs[0][0];
   for (const b of root.querySelectorAll(`[data-subtab][data-of="${of}"]`)) b.setAttribute('aria-selected', String(b.dataset.subtab === name));
+  for (const nav of root.querySelectorAll(`.ds-m-tabs:has([data-of="${of}"])`)) volgTabLijn(nav); // DS3: de streep glijdt naar de gekozen tab (en volgt het paneel als het zichtbaar wordt)
   for (const p of root.querySelectorAll(`[data-sub][data-of="${of}"]`)) p.hidden = p.dataset.sub !== name;
   if (of === 'verhaal' && pref.sub[of] === 'aanwijzingen' && name !== 'aanwijzingen') { markCluesSeen(); syncNavBadges(); } // nieuw blijft staan zolang je op het tabblad bent, weg als je het verlaat (#435)
   if (pref.sub[of] !== name) { pref.sub[of] = name; savePref(); }

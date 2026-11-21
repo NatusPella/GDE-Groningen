@@ -1124,6 +1124,10 @@ html.pad-active #pause-menu.gm :is(.ra, .m-li, .m-tab, .m-bp, .m-bg, .m-bt, .m-c
 #pause-menu.gm .m-tab, #pause-menu.gm .m-tab small { color: var(--ds-tx-zacht); }
 #pause-menu.gm .m-tab:hover, #pause-menu.gm .m-tab[aria-selected="true"] { color: var(--ds-c-ink-inkt); }
 #pause-menu.gm .m-tab[aria-selected="true"] { box-shadow: inset 0 -6px 0 var(--ds-c-ink-bord); }
+#pause-menu .m-tablist.ds-m-tabs { --ds-m-lijn-h: 3px; --ds-m-lijn-kleur: var(--g); } /* DS3 (ds-micro.css): de glijdende streep van de tabs; .gm hieronder is dikker */
+#pause-menu.gm .m-tablist.ds-m-tabs { --ds-m-lijn-h: 6px; --ds-m-lijn-kleur: var(--ds-c-ink-bord); } /* DS3: de glijdende streep (ds-micro.css) is net zo dik als de streep van de tab */
+#pause-menu.gm .ds-m-tabs--aan > .m-tab[aria-selected="true"] { box-shadow: none; }
+#pause-menu .ds-m-tabs--aan > .m-tab[aria-selected="true"] { box-shadow: none; }
 #pause-menu.gm .m-tab[data-new]::after { background: var(--ds-c-ink-roze); }
 #pause-menu.gm .m-pane { box-shadow: inset var(--ds-lijn) 0 0 var(--line2); }
 #pause-menu.gm .m-pane p, #pause-menu.gm :is(.pm-quitpane p, .pm-hero-lead, .td-next-lead, .ov-lead) { color: var(--ds-c-ink-inkt); }
