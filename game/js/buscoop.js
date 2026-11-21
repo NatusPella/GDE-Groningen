@@ -5,9 +5,9 @@
 import { lateInstapVoor } from './coopmeedoen.js';
 import { beloningVoorGebeurtenis, gebeurtenisId } from './coopbeloning.js';
 
-export const VALIDEER_BONUS = 0.5;   // euro per gevalideerde reiziger
-export const HALTE_BASIS = 3;        // euro per halte
-export const HALTE_PER_REIZIGER = 0.8;
+const VALIDEER_BONUS = 0.5;   // euro per gevalideerde reiziger
+const HALTE_BASIS = 3;        // euro per halte
+const HALTE_PER_REIZIGER = 0.8;
 
 export function maakBusCoop(sessie = 's') {
   return { sessie: String(sessie).slice(0, 16), deelnemers: [], chauffeur: 0, begonnen: false, wacht: 0, gevalideerd: 0, haltes: 0, geboekt: 0 };

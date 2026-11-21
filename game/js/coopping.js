@@ -6,7 +6,7 @@ import { charInfo } from './coopplayers.js';
 import { markerColors } from './a11y.js';
 // #809: de pingkleur komt uit de marker-/kleurenblindpaletten (a11y.js), niet uit
 // een eigen hex; de vorm (kruis/ster) blijft het tweede signaal.
-export const PING_ROLE = { hier: 'user', gevaar: 'danger', doel: 'mission' };
+const PING_ROLE = { hier: 'user', gevaar: 'danger', doel: 'mission' };
 
 // toets -> soort (de soort gaat over het net, partnerhud.js addPing kent 'hier', 'gevaar', 'doel')
 export const PING_TOETSEN = [

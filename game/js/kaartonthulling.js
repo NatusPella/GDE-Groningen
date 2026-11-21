@@ -100,9 +100,9 @@ export const openingDone = (now, at, ms = OPEN_MS) => !Number.isFinite(now) || !
 // De mist ligt onder de pictogrammen en de wereld blijft bestaan: wat een speler moet kunnen vinden
 // verdwijnt nooit achter de mist. Op de kaart (de mist ligt eronder) en in Te doen (todofilter.js)
 // geldt dezelfde lijst. Een onbekende streek verbergt alleen namen en activiteiten.
-export const NOOIT_VERBORGEN_GROEPEN = ['missies', 'verhaal'];
-export const NOOIT_VERBORGEN_SLEUTEL = /^om:(uitkijk|dorp:|beppe$)/;
-export const NOOIT_VERBORGEN_SOORTEN = ['mission', 'missie', 'story', 'verhaal', 'uitkijkpunt', 'station', 'beppe', 'eerbetoon', 'speler', 'player', 'waypoint'];
+const NOOIT_VERBORGEN_GROEPEN = ['missies', 'verhaal'];
+const NOOIT_VERBORGEN_SLEUTEL = /^om:(uitkijk|dorp:|beppe$)/;
+const NOOIT_VERBORGEN_SOORTEN = ['mission', 'missie', 'story', 'verhaal', 'uitkijkpunt', 'station', 'beppe', 'eerbetoon', 'speler', 'player', 'waypoint'];
 
 // Mag dit ding op de kaart of in Te doen nooit door onbekend gebied verborgen worden? item: { group, key, kind }.
 export function isNeverHidden(item) {

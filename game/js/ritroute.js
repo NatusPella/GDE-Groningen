@@ -50,7 +50,7 @@ export function maakPad(pts, step = 1, mix = 1) {
 const rechts = (q, afstand) => ({ x: q.x - Math.sin(q.a) * afstand, y: q.y + Math.cos(q.a) * afstand });
 
 // Hoeveel punten van het pad (om de `stap` meter, op de rechterbaan) liggen in een gebouw?
-export const RIT_BEREIK_M = 450; // alleen het echte begin en einde worden gereden (ritpad.RIT.openS en sluitS, 9 s); het midden is een tijdsprong
+const RIT_BEREIK_M = 450; // alleen het echte begin en einde worden gereden (ritpad.RIT.openS en sluitS, 9 s); het midden is een tijdsprong
 export function schendingen(pad, binnen, { baan = 1.3, stap = 1.5, bereik = RIT_BEREIK_M } = {}) {
   let n = 0;
   for (let s = 0; s <= pad.len; s += stap) {

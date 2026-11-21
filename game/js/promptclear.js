@@ -3,7 +3,7 @@
 // A label that hangs over a part of the top half moves under it, one over a part of the bottom half moves above it;
 // a second obstacle on the way is handled in the next round (at most MAX_ROUNDS), and the label never leaves the window.
 // node scripts/overlap_fixes_test.mjs
-export const MAX_ROUNDS = 3;
+const MAX_ROUNDS = 3;
 export const CLEAR_GAP = 6; // px between the label and the HUD part it avoids
 const raakt = (a, o, tol = 2) => Math.min(a.right, o.right) - Math.max(a.left, o.left) > tol && Math.min(a.bottom, o.bottom) - Math.max(a.top, o.top) > tol;
 

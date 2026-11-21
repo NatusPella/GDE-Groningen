@@ -32,8 +32,8 @@ export function zetUitlegGezien(id) {
 // in het spel nagelaadd; zonder die (een test) valt het terug op het canonieke .hud-key-plaatje.
 let glyph = (token) => `<span class="hud-key" data-gk="${esc(token)}">${esc(token)}</span>`;
 let glyphVer = 0;
-export const zetGlyph = (fn) => { if (typeof fn === 'function') { glyph = fn; glyphVer++; zetUitlegGlyph(fn); } };
-export const tekstHtml = (t) => esc(t == null ? '' : t).replace(/\{([A-Z0-9]+)\}/g, (_, k) => glyph(k));
+const zetGlyph = (fn) => { if (typeof fn === 'function') { glyph = fn; glyphVer++; zetUitlegGlyph(fn); } };
+const tekstHtml = (t) => esc(t == null ? '' : t).replace(/\{([A-Z0-9]+)\}/g, (_, k) => glyph(k));
 
 export function simHudHtml(m) {
   if (!m) return '';

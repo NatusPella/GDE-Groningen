@@ -2,7 +2,7 @@
 // (pigeonguide.js tekent het). Doel: elk te spotten ding heeft een plek in de wereld (kolom en naam), de dichtstbijzijnde is het hoofddoel
 // met afstand en richting, en de voortgang staat er in woorden bij ("Gespot 2 van 6").
 
-export const GUIDE_MARGIN = 0.86; // hoe dicht bij de rand van het scherm de pijl blijft (genormaliseerd -1..1)
+const GUIDE_MARGIN = 0.86; // hoe dicht bij de rand van het scherm de pijl blijft (genormaliseerd -1..1)
 
 const TAU = Math.PI * 2;
 export const wrapAngle = (a) => { a %= TAU; return a > Math.PI ? a - TAU : a < -Math.PI ? a + TAU : a; };

@@ -81,7 +81,7 @@ const ICOON = {
   nee: '<svg class="ds-z-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8 1.5 15 14H1zM7.2 6h1.6v4H7.2zm0 5h1.6v1.6H7.2z"/></svg>',
   kan: '<svg class="ds-z-chip__icoon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2.5l10 5.5-10 5.5z"/></svg>',
 };
-export const BELEID_CSS = `
+const BELEID_CSS = `
 .bw-beleid { margin: var(--ds-s-3) 0 var(--ds-s-1); display: flex; flex-direction: column; gap: var(--ds-s-3); font-family: var(--ds-font-zeef-tekst); }
 .bw-beleid h3 { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
 .bw-beleid p { margin: 0; color: var(--ds-zeef-tx); max-width: 60ch; }

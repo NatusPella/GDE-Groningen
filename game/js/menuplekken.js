@@ -132,9 +132,9 @@ const hoekVerschil = (a, b) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a -
 export const UREN = [];
 for (let u = 7.5; u <= 18.75; u += 0.25) UREN.push(u);
 const ZON_MIN_HOOGTE = 8;
-export const ZON_MAX_AFWIJKING = 55 * D2R;
+const ZON_MAX_AFWIJKING = 55 * D2R;
 // de kanten waar de zon in de wereld achter de camera kan staan (noord tot oost, 225 tot 405 graden): daar kiest de camera, tenzij een plek eigen grenzen heeft
-export const ZON_KANT = [225, 405];
+const ZON_KANT = [225, 405];
 
 // de uren waarop de zon aan de kant van de camera staat (achter of schuin achter je) en hoog genoeg staat
 export function uurKandidaten(theta) {

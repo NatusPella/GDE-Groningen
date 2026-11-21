@@ -52,7 +52,7 @@ function keyCap(k) {
 // A keyboard key as an icon of the Kenney Input Prompts set (game/fonts/input, CC0): the glyph draws its own key
 // (arrow, Enter, Esc, space bar, letter), so the plate around it steps back (.is-kbg in a11y.css). A key without a glyph keeps its word.
 const KEY_LABEL = { ' ': 'Spatie', shift: 'Shift', control: 'Ctrl', tab: 'Tab', backspace: 'Backspace', escape: 'Esc', enter: 'Enter', arrowup: 'Pijl omhoog', arrowdown: 'Pijl omlaag', arrowleft: 'Pijl links', arrowright: 'Pijl rechts' };
-export function keyGlyphInner(phys) {
+function keyGlyphInner(phys) {
   const k = String(phys);
   const g = keyGlyph(k === ' ' ? 'space' : k === 'control' ? 'ctrl' : k);
   if (!g) return null;

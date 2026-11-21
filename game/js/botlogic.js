@@ -681,7 +681,7 @@ export function pigeonKeys(f, tgt) {
 // (alleen als de regelmodule ontbreekt); die is nooit de proef. `env` gaat ongewijzigd naar simulateFlight:
 // zit daar een `rng` in (de kettingen loten of de schijf blijft hangen), geef er dan een met een zaadje aan,
 // anders is dezelfde worp niet dezelfde worp.
-export const DISC_WORP = {
+const DISC_WORP = {
   ver: 50,             // verder dan dit: de afstandsschijf (suggestDisc)
   nadering: 22,        // verder dan dit: de naderingsschijf, daaronder de putt
   kracht: [0.12, 1],   // simulateFlight klemt de power hierop

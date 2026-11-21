@@ -4,7 +4,7 @@
 // reclames tussen twee sessies, zoals de muziekgeschiedenis (musicpick.js) al deed. Pure logica, geen opslag zelf.
 
 export const PRAAT_RECENT_MAX = 60; // zoveel gekozen regels bewaren
-export const PRAAT_VERS = 3;        // zoveel laatste regels van dezelfde poel komen niet meteen terug (hoogstens poel - 1)
+const PRAAT_VERS = 3;        // zoveel laatste regels van dezelfde poel komen niet meteen terug (hoogstens poel - 1)
 
 // Kies een regel uit `pool` die niet tot de laatste regels van die poel hoort; `recent` (lijst met sleutels, oudste
 // eerst) wordt bijgewerkt. Een poel van één regel geeft die regel: er is niets anders.

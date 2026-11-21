@@ -2,7 +2,7 @@
 // marge: vol gas op de tractor (top ~40 km/u) mag, hard remmen of stoten kost
 // eieren. Puur, zodat de HUD en de test dezelfde regel gebruiken.
 export const EGG_KMH = 3.6;
-export const EGG_SPEED_MARGIN_KMH = 2;
+const EGG_SPEED_MARGIN_KMH = 2;
 
 export function eggSpeedKmh(mps) {
   return Number.isFinite(mps) ? Math.max(0, mps) * EGG_KMH : 0;

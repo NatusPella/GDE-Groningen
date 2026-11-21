@@ -152,7 +152,7 @@ export const LOAD_STEPS = [
   { from: 0.6, id: 'tegels', label: 'De tegels rond je worden gelegd' },
   { from: 0.9, id: 'bijna', label: 'Bijna klaar: de buurt wordt gladgestreken' },
 ];
-export const SNEL_STEP = { id: 'snel', label: 'De buurt wordt ingeladen' };
+const SNEL_STEP = { id: 'snel', label: 'De buurt wordt ingeladen' };
 // The same principle as the boot bar (opdracht 21-11): the step counter of the load screen. The thresholds
 // above are the weights (25%, 35%, 30%, 10% of the bar); the bar is only 1 when stepProgress says done.
 export function loadStepNr(bar, kind = 'travel') {

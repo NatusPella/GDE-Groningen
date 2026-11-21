@@ -4,15 +4,15 @@
 // spel. De ritlogica staat in busride.js. Tests: scripts/busbestuur_test.mjs.
 
 export const DEUR_TIJD = 0.6;           // s van dicht naar open (en terug)
-export const DEUR_STAND_MAX = 0.8;      // m/s: sneller dan dit gaan de deuren niet open
-export const DEUR_SLAG = 3;             // m/s: sneller dan dit slaan open deuren dicht
-export const KNEEL_TIJD = 1.1;          // s van rijhoogte naar gekneld
+const DEUR_STAND_MAX = 0.8;      // m/s: sneller dan dit gaan de deuren niet open
+const DEUR_SLAG = 3;             // m/s: sneller dan dit slaan open deuren dicht
+const KNEEL_TIJD = 1.1;          // s van rijhoogte naar gekneld
 export const KNEEL_DIEPTE = 0.1;        // m dat de bak zakt (alleen beeld)
-export const KNEEL_OPSTAAN = 2;         // m/s: de bus komt vanzelf omhoog
+const KNEEL_OPSTAAN = 2;         // m/s: de bus komt vanzelf omhoog
 export const START_TEVREDEN = 82;       // 0..100
-export const ACC_OK = 2.0;              // m/s^2 optrekken zonder dat iemand het merkt
-export const REM_OK = 3.0;              // m/s^2 remmen zonder dat iemand het merkt
-export const KLEVER_TIJD = 0.7;         // s: dichter op de voorganger dan dit is kleven
+const ACC_OK = 2.0;              // m/s^2 optrekken zonder dat iemand het merkt
+const REM_OK = 3.0;              // m/s^2 remmen zonder dat iemand het merkt
+const KLEVER_TIJD = 0.7;         // s: dichter op de voorganger dan dit is kleven
 
 const clamp = (x, a, b) => (x < a ? a : x > b ? b : x);
 

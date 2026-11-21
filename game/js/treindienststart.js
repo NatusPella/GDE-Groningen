@@ -19,7 +19,7 @@ let kaart = null;
 const FREE_S = 300; // s: zo lang houdt de dienstregeling afstand van het stuk waar jij begint
 
 // De trein van de lijn van deze dienst staat klaar op het perron en jij zit erin. False als dat niet kan.
-export function startTreindienst(w, station, optie) {
+function startTreindienst(w, station, optie) {
   const t = optie && optie.trein;
   if (!t || w.trainDriving || t.state === 'player' || t.state === 'mission') {
     w.addMessage('De trein staat nu niet klaar. Probeer het over een minuut.', 3);

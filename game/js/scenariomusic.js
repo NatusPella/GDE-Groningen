@@ -17,8 +17,8 @@ const ACT_STOP_S = 1.5;
 // #931: het pauzemenu is vaak maar een tik op Escape. De menu-loop start daarom
 // pas na een flinke tijd in het menu, en na het sluiten blijft hij nog even
 // staan (de bron in audio/scenario.js speelt door en pakt zijn plek weer op).
-export const MENU_START_S = 8;
-export const MENU_STOP_S = 2;
+const MENU_START_S = 8;
+const MENU_STOP_S = 2;
 
 import { isPauseMenuOpen } from './pausestate.js';
 import { SFEER_KEYS, missieMuziekKey, bijbaanMuziekKey } from './missiesfeer.js';

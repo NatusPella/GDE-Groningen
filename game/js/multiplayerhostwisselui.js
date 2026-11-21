@@ -66,7 +66,7 @@ export function koppelWissel(world, opts = {}) {
 // ---- het scherm -----------------------------------------------------------------------------------------------------------------
 let overlay = null, houder = null, timer = null, laatste = '', eindTot = 0, huidige = null;
 
-export function startWisselUi(world) {
+function startWisselUi(world) {
   if (timer || typeof document === 'undefined') return;
   timer = setInterval(() => teken(world), 200);
   window.addEventListener('keydown', toets);

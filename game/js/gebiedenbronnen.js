@@ -16,7 +16,7 @@ import { SPEL_SLEUTELS } from './gebieden.js';
 
 const pos = (o) => ({ x: Number(o.x), y: Number(o.y) });
 
-export function verzamelTaken() {
+function verzamelTaken() {
   const taken = [];
   for (const m of getMissionList()) {
     taken.push({ id: 'm:' + m.id, soort: 'missie', naam: m.label || m.id, ...pos(m.start), sleutels: ['m:' + m.id] });
@@ -57,7 +57,7 @@ function bekendeSleutels() {
 let grenzen = null;
 let grenzenKlaar = false;
 let grenzenBezig = false;
-export function laadGrenzen() {
+function laadGrenzen() {
   if (grenzenBezig || grenzenKlaar || typeof fetch !== 'function' || typeof location === 'undefined') return;
   grenzenBezig = true;
   fetch(new URL('grenzen.json', location.href).href)

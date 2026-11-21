@@ -14,8 +14,8 @@ import { isInWater, pointInPolygon } from './util.js';
 // Een kustvaarder: een zeeschip met dezelfde kont als de grote vaart, maar kort genoeg
 // om in de haven te manoeuvreren en aan de kade te liggen. Past de lange niet langs de
 // kade (een smalle haven), dan leggen we de korte neer.
-export const KUSTVAARDER = { ...BOAT_KINDS.zeeVracht, len: 42, wid: 8.4, maxSpeed: 5.6, accel: 0.5, brake: 0.8, turnRate: 0.34, color: '#2d4a63', cabin: '#e8e6e0' };
-export const KUSTVAARDER_KORT = { ...KUSTVAARDER, len: 26, wid: 6.2 };
+const KUSTVAARDER = { ...BOAT_KINDS.zeeVracht, len: 42, wid: 8.4, maxSpeed: 5.6, accel: 0.5, brake: 0.8, turnRate: 0.34, color: '#2d4a63', cabin: '#e8e6e0' };
+const KUSTVAARDER_KORT = { ...KUSTVAARDER, len: 26, wid: 6.2 };
 
 const MELDING = {
   tehard: 'Rustig in de haven: een zeeschip is niet wendbaar.',

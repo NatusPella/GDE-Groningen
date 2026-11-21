@@ -5,8 +5,8 @@
 // (scripts/samenposten_test.mjs). De koppeling met de stappen staat in missieposten.js.
 
 export const POST_AFNAME = 0.5;      // buiten de kring zakt de klok half zo snel als hij loopt (zoals missions.js bij `hold`)
-export const POST_MAX = 6;           // een groep heeft hoogstens zes posten
-export const POST_RADIUS = 9;        // standaardkring in meters
+const POST_MAX = 6;           // een groep heeft hoogstens zes posten
+const POST_RADIUS = 9;        // standaardkring in meters
 
 const fin = (x) => Number.isFinite(x);
 

@@ -41,7 +41,7 @@ export function startSkatefiets(w, at) {
   return true;
 }
 
-export function endSkatefiets(w, reason = '') {
+function endSkatefiets(w, reason = '') {
   if (!run) return;
   const r = run;
   run = null;

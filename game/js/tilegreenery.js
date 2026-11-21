@@ -12,7 +12,7 @@ import { treeBesideRoad } from './treeclear.js';
 import { inBuildingAt, waterDistance } from './propfilter.js';
 
 // Een heg stopt deze afstand vóór de rand van de rijbaan (m); de audits gunnen 0,2 m afronding.
-export const HEDGE_ROOM = 0.3;
+const HEDGE_ROOM = 0.3;
 // Zo ver reikt de zoom van een weg vanaf zijn middellijn (breedste rijbaan plus de zoom van een heg).
 const REACH = 12;
 // Een heg wordt in stappen van een meter nagelopen, dezelfde stap waarmee de audits meten.
@@ -52,7 +52,7 @@ function onWay(map, x, y) {
 // komt de lijn zelf terug ([pts], hetzelfde array); anders wordt hij geknipt en houdt elk stuk zijn eigen punten, op
 // een meter gesampled en op de centimeter afgerond zoals de tegelrij ze heeft. De twee kanten van een weg worden twee
 // stukken en geen lijn over het asfalt: wat ertussen ligt, is geen heg.
-export function cutHedgeOffWays(map, pts) {
+function cutHedgeOffWays(map, pts) {
   let dirty = false;
   for (let i = 0; i + 1 < pts.length && !dirty; i++) {
     const a = pts[i], b = pts[i + 1];

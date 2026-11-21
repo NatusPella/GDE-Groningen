@@ -10,7 +10,7 @@ import { makeRng } from './minigamekit.js';
 export const SNACKBAR = { zaak: 'Kroketkoning Herenstraat', baas: 'Snackbarhouder Rinus', straat: 'Herenstraat', groep: 'de Dikke Banden' };
 export const DOEL_PUNTEN = 4;      // zoveel punten sturen de groep weg
 export const MAX_POGINGEN = 3;
-export const BONUS_ANDERE_SOORT = 1;
+const BONUS_ANDERE_SOORT = 1;
 export const BASIS = { snel: 78, gewoon: 60, mager: 44 };   // betaling bij weg in 2, weg in 3, vanzelf vertrokken
 
 // kracht 0 (ze blijven en vinden het geweldig) tot 3 (ze vinden het te mooi en gaan). soort: praat, bord, geluid of actie.
