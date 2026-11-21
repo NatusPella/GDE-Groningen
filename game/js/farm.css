@@ -6,7 +6,7 @@
   /* de vrije band onderin tussen de straatnaamkaart (links) en de snelheidsmeter (rechts); het doel van de missie boven het scherm blijft zichtbaar (beeldrun 20-11: de strook lag erover) */
   left: 43.8vw; bottom: max(2vh, var(--ds-s-4)); font-family: var(--ds-font-tekst); z-index: 6; box-sizing: border-box; width: clamp(calc(var(--ds-s-8) * 4.5), 28vw, calc(var(--ds-s-8) * 8)); max-width: calc(100vw - var(--ds-s-6));
   gap: var(--ds-s-2); pointer-events: none; }
-.bd-hud[hidden], .bd-hud [hidden] { display: none; }   /* ds-streep is flex en zou het hidden-attribuut anders overrulen */
+.bd-hud[hidden], .bd-hud [hidden] { display: none; }   /* ds-z-balk is flex en zou het hidden-attribuut anders overrulen */
 .bd-hud__kop { display: flex; align-items: center; gap: var(--ds-s-3); }
 .bd-hud__taak { flex: 1; }
 .bd-hud__rij { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ds-s-2) var(--ds-s-4); align-items: center; }

@@ -26,9 +26,9 @@ function bouw() {
   el.hidden = true;
   el.innerHTML = '<header class="bd-hud__kop"><span class="bd-hud__icoon"></span>' +
     '<span class="bd-hud__taak ds-t-subkop"></span><span class="ds-z-chip bd-hud__veld"></span></header>' +
-    '<div class="ds-streep bd-hud__voortgang" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Voortgang van de klus"><span class="ds-streep__baan"><span class="ds-streep__vul"></span></span><span class="ds-streep__label"></span></div>' +
+    '<div class="ds-z-balk ds-z-balk--rij bd-hud__voortgang" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Voortgang van de klus"><span class="ds-z-balk__baan"><span class="ds-z-balk__vul"></span></span><span class="ds-z-balk__label"></span></div>' +
     '<div class="bd-hud__rij"><div class="bd-hud__snel"><span class="bd-hud__baan" aria-hidden="true"><span class="bd-hud__zone"></span><span class="bd-hud__naald"></span></span><span class="ds-t-hulp bd-hud__snelte"></span></div>' +
-    '<div class="ds-streep bd-hud__diesel" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Diesel"><span class="ds-streep__label">Diesel</span><span class="ds-streep__baan"><span class="ds-streep__vul"></span></span><span class="ds-streep__label bd-hud__dieselte"></span></div>' +
+    '<div class="ds-z-balk ds-z-balk--rij bd-hud__diesel" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Diesel"><span class="ds-z-balk__label">Diesel</span><span class="ds-z-balk__baan"><span class="ds-z-balk__vul"></span></span><span class="ds-z-balk__label bd-hud__dieselte"></span></div>' +
     '<span class="ds-t-hulp bd-hud__lading"></span></div>' +
     '<p class="ds-t-hulp bd-hud__nu" aria-live="polite"></p>';
   document.body.appendChild(el);
@@ -38,7 +38,7 @@ function bouw() {
   popEl.setAttribute('aria-hidden', 'true');
   document.body.appendChild(popEl);
   for (const k of ['icoon', 'taak', 'veld', 'voortgang', 'diesel', 'zone', 'naald', 'snelte', 'dieselte', 'lading', 'nu']) refs[k] = el.querySelector('.bd-hud__' + k);
-  refs.voortgangLabel = refs.voortgang.querySelector('.ds-streep__label');
+  refs.voortgangLabel = refs.voortgang.querySelector('.ds-z-balk__label');
 }
 
 // De tekst en maten van de strook uit een stand: puur, zodat de test (boerderijhud_test.mjs) ze zonder DOM kan nakijken.
@@ -86,14 +86,14 @@ export function boerderijHudTik(dt, stand) {
   el.dataset.snelheid = m.staat;
   refs.voortgang.hidden = !m.bezig;
   refs.voortgang.setAttribute('aria-valuenow', String(m.voortgang));
-  refs.voortgang.style.setProperty('--ds-streep-w', m.voortgang + '%');
+  refs.voortgang.style.setProperty('--ds-z-w', m.voortgang + '%');
   refs.voortgangLabel.textContent = `${m.voortgang}%`;
   refs.zone.style.setProperty('--a', m.zoneA + '%'); refs.zone.style.setProperty('--b', m.zoneB + '%'); refs.naald.style.setProperty('--n', m.naald + '%');
   refs.zone.hidden = !m.zoneB;
   refs.snelte.textContent = m.snelheidTekst;
-  refs.diesel.classList.toggle('ds-streep--laag', m.dieselLaag);
+  refs.diesel.classList.toggle('ds-z-balk--laag', m.dieselLaag);
   refs.diesel.setAttribute('aria-valuenow', String(m.dieselPct));
-  refs.diesel.style.setProperty('--ds-streep-w', m.dieselPct + '%');
+  refs.diesel.style.setProperty('--ds-z-w', m.dieselPct + '%');
   refs.dieselte.textContent = `${m.dieselPct}%${m.dieselLaag ? ' laag' : ''}`;
   refs.lading.textContent = m.lading; refs.lading.hidden = !m.lading;
   refs.nu.textContent = m.nu;

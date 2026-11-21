@@ -1,7 +1,7 @@
 // Headless screenshots of the HUD and the menus at 720p, 1080p and 4K (#92,
 // #34, #33). One Electron at a time, a throwaway profile that is removed again,
 // and the process is closed when the run ends or times out.
-//   node scripts/ui_shots.mjs [--out=<map>] [--sizes=1280x720,1920x1080,3840x2160] [--only=voet,auto,garage] [--scenes=<eigen scenebestand>] [--emulate=0.45] [--flags=touch=1] [--args=--audio-graph,--bench-eval=<js>]
+//   node scripts/ui_shots.mjs [--out=<map>] [--sizes=1280x720,1920x1080,3840x2160] [--only=voet,auto,garage] [--scenes=<eigen scenebestand>] [--emulate=0.45] [--flags=touch=1] [--rustig] [--args=--audio-graph,--bench-eval=<js>]
 // Needs `cd desktop && npm install && npm run stage` once. GDE_ELECTRON=<pad>
 // points at another electron binary (a worktree has no node_modules of its own).
 import { spawn, spawnSync } from 'node:child_process';
@@ -25,6 +25,9 @@ const timeoutS = Number(arg('timeout', 240)) || 240;
 const emulate = Number(arg('emulate', '0')) || 0;
 // --flags=touch=1,...: extra ?-switches of devflags.js (touch controls on a desktop window, #96 #227)
 const flags = arg('flags', '');
+// --rustig: zet Rustig drukwerk (instelling rustigDrukwerk, html.rustig-drukwerk) aan in het wegwerpprofiel voordat de scenes beginnen (#994, #992)
+const rustig = process.argv.includes('--rustig');
+const RUSTIG_VOORAF = "{ const S = await import('/js/settings.js'); S.setSetting('rustigDrukwerk', true); await new Promise((r) => setTimeout(r, 300)); }\n";
 // --args=a,b: extra command-line switches for Electron (--audio-graph with --bench-eval=scripts/qa/audiotap.js measures sound)
 const extraArgs = arg('args', '').split(',').filter(Boolean);
 const scenes = path.resolve(arg('scenes', path.join(root, 'scripts', 'ui', 'shots_scenes.js')));
@@ -59,7 +62,7 @@ for (const size of sizes) {
   verwijderProfiel(profDir);
   fs.mkdirSync(profDir, { recursive: true });
   const script = path.join(out, `_scenes-${size}.js`);
-  fs.writeFileSync(script, `window.__shotsOnly = ${JSON.stringify(only)};\nwindow.__shotsTypes = ${JSON.stringify(types)};\n` + fs.readFileSync(scenes, 'utf8'));
+  fs.writeFileSync(script, `window.__shotsOnly = ${JSON.stringify(only)};\nwindow.__shotsTypes = ${JSON.stringify(types)};\n` + (rustig ? RUSTIG_VOORAF : '') + fs.readFileSync(scenes, 'utf8'));
   // devtools adds -<scene> to the name for every capture
   const png = path.join(out, size + '.png');
   const args = ['.', '--windowed', '--stil', '--no-sandbox', '--force-device-scale-factor=1', '--window-size=' + (emulate ? size.split('x').map((n) => Math.round(Number(n) * emulate)).join('x') : size), ...(emulate ? ['--emulate-view=' + size + '@' + emulate] : []), ...(flags ? ['--url-flags=' + flags] : []), '--smoke-test=' + png, '--perf-script=' + script, ...extraArgs];

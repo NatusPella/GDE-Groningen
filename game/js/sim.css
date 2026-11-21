@@ -28,9 +28,9 @@
 .sh-groot { flex: none; font-family: var(--ds-font-kop); font-size: var(--ds-t-subkop); font-weight: 700; line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); white-space: nowrap; }
 .sh-groot--lang { font-size: var(--ds-t-body); }
 .sh-meter { grid-row: 3; }
-.sh-meter--laag .ds-streep__vul { background: var(--ds-probleem); }
-.sh-meter--goed .ds-streep__vul { background: var(--ds-succes); }
-.sh-meter .ds-streep__label { font-size: var(--ds-t-hulp); }
+.sh-meter--laag .ds-z-balk__vul { background: var(--ds-probleem); }
+.sh-meter--goed .ds-z-balk__vul { background: var(--ds-succes); }
+.sh-meter .ds-z-balk__label { font-size: var(--ds-t-hulp); }
 /* 4. wat nu: de enige zin die opvalt, één regel; bij een probleem op het probleemvlak (kleur plus woorden, nooit kleur alleen) */
 .sh-nu { grid-row: 4; margin: 0; font-size: var(--ds-t-label); line-height: var(--ds-lh-tekst); font-weight: 600; color: var(--ds-tx); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sh-nu--slecht { padding: 0 var(--ds-s-2); border-radius: var(--ds-r); background: var(--ds-probleem-vlak); color: var(--ds-probleem-tx); }
