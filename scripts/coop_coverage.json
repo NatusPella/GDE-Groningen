@@ -615,7 +615,8 @@
    "wegval": "Niets te herstellen: het interieur is een deterministische functie van het gebouw.",
    "test": [
     "scripts/interieurs_test.mjs",
-    "scripts/binnenset_test.mjs"
+    "scripts/binnenset_test.mjs",
+    "scripts/interior_coop_test.mjs"
    ],
    "regel": {
     "doc": "docs/BINNENSETS-21-11.md",
@@ -625,7 +626,7 @@
    "status": "gat",
    "prio": "hoog",
    "lead": "Interieurs",
-   "gat": "Bepaal en test: (1) twee spelers in dezelfde kamer zien elkaar (positie in het snapshot, avatar in het interieur); (2) het interieur komt deterministisch uit de gebouwsleutel zodat host en gast hetzelfde indelen (geen RNG-toestand); (3) NPC's en bezit in een interieur (interiornpc, interiorbuy): wie simuleert ze, wie krijgt de koop (per speler); (4) een speler binnen bij een hostwissel; (5) regel in COOP-GAST.md."
+   "gat": "Lead Interieurs meldt (epic-interieurs-21-11): regels staan in docs/INTERIEURS-21-11.md (kop Samen spelen (regels)) en in COOP-GAST.md; pure test scripts/interior_coop_test.mjs (39 controles: host, gast, late gast en nieuwe host bouwen dezelfde kamer uit het gebouwszaad; kopen per speler; geen netwerkverkeer). Open: testbankstap interieur in de suite alles (interiorSeed/planInterior op twee clients vergelijken) en de status naar OK na de merge."
   },
   {
    "id": "voertuigen",
