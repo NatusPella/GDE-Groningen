@@ -693,7 +693,8 @@ export function tryBeppeGardenInteract(w) {
   }
   // the garden bench: the rest stop, every visit (the weapons and the repaired
   // vehicles are idempotent); the remembrance card only the first time
-  const first = !hasUnique(TRIBUTE.set, TRIBUTE.remembrance);
+  // the remembrance card belongs to the memory phase (#1063): while she lives the bench is only a rest stop
+  const first = visitStatus().phase === 'herinnering' && !hasUnique(TRIBUTE.set, TRIBUTE.remembrance);
   gift(w);
   if (first) recordUnique(w, TRIBUTE.set, TRIBUTE.remembrance);
   showRemembranceCard(w, first);
@@ -724,7 +725,7 @@ export function updateBeppeGarden(dt, w) {
   if (d < LAYOUT.arrivalR) showArrivalCard(w);
   // the memory also comes when the player walks up to the house without using
   // the bench (the garden bench is the normal way)
-  if (!hasUnique(TRIBUTE.set, TRIBUTE.remembrance) && near(p, site.house, LAYOUT.houseR)) {
+  if (visitStatus().phase === 'herinnering' && !hasUnique(TRIBUTE.set, TRIBUTE.remembrance) && near(p, site.house, LAYOUT.houseR)) {
     const first = true;
     recordUnique(w, TRIBUTE.set, TRIBUTE.remembrance);
     gift(w);

@@ -22,49 +22,28 @@
 import * as THREE from 'three';
 import { hoofdspeler } from './players.js';
 import { showCard } from './hudcards.js';
-import { hasUnique, markLifetime, recordStat, getStat } from './achievements.js';
-import { getStorySave } from './storyquery.js';
-import { isMissionCompleted } from './missions.js';
-import { MISSION_IDS } from './storyarc.js';
+import { hasUnique, markLifetime, recordStat } from './achievements.js';
+import { animatePersonWalk } from './models3d_people.js';
 import { today as calendarDay } from './calendarday.js';
 import { playerBusy } from './busy.js';
 import { isCinematicActive } from './cinematics.js';
 import { respawnFade } from './respawn.js';
 import { housePoint } from './beppe_rules.js';
 import {
-  VISIT, ROOM, SPOTS, soupKey, soupState, visitUnlocked, reachedAct, timeOfDay, isRaining,
-  pickNote, pickTip, nearestSpot, nearDoorOutside, keepInRoom, insideRoom, roomCamera, canEnter,
+  VISIT, ROOM, SPOTS, SOLID_BEPPE, soupKey, soupState, timeOfDay, isRaining,
+  pickTip, nearestSpot, nearDoorOutside, keepInRoom, insideRoom, roomCamera, canEnter,
 } from './beppe_visit_rules.js';
-import { DOOR, STOVE, TABLE, BOARD, SOUP, CARD, INVITE } from './beppe_visit_texts.js';
+import { DOOR, STOVE, TABLE, BOARD, SOUP, CARD } from './beppe_visit_texts.js';
+import { MARK, sceneOnEnter, nextVisitMark, visitsDone, aliveVisit, pickMemory } from './beppe_boog_rules.js';
+import { FAREWELL_SCENE, MEMORY_UI, FIRST_VISIT } from './beppe_boog_texts.js';
+import { visitStatus, resetArc, arcTick, mark, marks, buildBeppeFigure } from './beppe_boog.js';
+import { startGesprek, stopGesprek, tickGesprek, gesprekActive } from './beppe_gesprek.js';
+
+export { visitStatus };
 
 const BRON = 'beppe-huis';
 let inside = null;          // { t, last: { note, tip } } while the player is in the room
 let busyFade = false;
-let cache = { at: -1e9, unlocked: false, act: 'kop' };
-let invitedThisSession = false;
-
-// --- the story state, derived and never stored ----------------------------------------
-
-// The snapshot that visitUnlocked/reachedAct read: finished steps from the story
-// save and the missions the chain counts as passed. Cached for a second: the map
-// asks every frame.
-function snapshot() {
-  let done = [];
-  try { done = getStorySave().done || []; } catch (e) { done = []; }
-  const completed = [];
-  try { MISSION_IDS.forEach((_, i) => { if (isMissionCompleted(i)) completed.push(i); }); } catch (e) { /* no chain yet */ }
-  return { done, completed };
-}
-
-export function visitStatus(now = (typeof performance !== 'undefined' ? performance.now() : 0)) {
-  if (now - cache.at > 1000) {
-    const snap = snapshot();
-    cache = { at: now, unlocked: visitUnlocked(snap), act: reachedAct(snap) };
-  }
-  return cache;
-}
-export const visitUnlockedNow = () => visitStatus().unlocked;
-export const resetVisitCache = () => { cache = { at: -1e9, unlocked: false, act: 'kop' }; };
 
 // --- the room mesh ---------------------------------------------------------------------
 
@@ -130,6 +109,25 @@ export function buildBeppeRoom(own) {
   light.position.set(0, h - 0.35, 0);
   g.add(light);
   g.userData.light = light;
+  // what belongs to the phase: while she lives a cup, a plate and Beppe herself; after
+  // it a candle, her photograph and the empty chair by the window
+  const alive = new THREE.Group(), memory = new THREE.Group();
+  const put = (grp, m) => { grp.add(m); return m; };
+  put(alive, box(-0.25, 0.79, -1.5, 0.1, 0.08, 0.1, C.white));
+  put(alive, box(0.3, 0.76, -1.4, 0.25, 0.02, 0.25, C.white));
+  const fig = buildBeppeFigure();
+  fig.position.set(0.95, 0.06, -1.4);
+  fig.rotation.y = -Math.atan2(0.8, -0.95);
+  alive.add(fig);
+  put(memory, box(0.1, 0.84, -1.1, 0.05, 0.16, 0.05, C.white));
+  put(memory, box(0.1, 0.95, -1.1, 0.03, 0.05, 0.03, C.lamp, { emissive: C.lamp, emissiveIntensity: 1 }));
+  put(memory, box(-2.32, 2.2, -2.65, 0.04, 0.32, 0.26, C.wain));
+  put(memory, box(-2.29, 2.2, -2.65, 0.02, 0.24, 0.18, C.white));
+  put(memory, box(-2.1, 0.25, 0.2, 0.5, 0.5, 0.5, C.chair));
+  put(memory, box(-2.3, 0.7, 0.2, 0.1, 0.5, 0.5, C.chair));
+  alive.visible = false; memory.visible = false;
+  g.add(alive); g.add(memory);
+  g.userData.alive = alive; g.userData.memory = memory; g.userData.figure = fig;
   return g;
 }
 
@@ -162,7 +160,13 @@ function fade(fn) {
 
 function setRoom(ctx, on) {
   const r = ctx.room;
-  if (r) { r.visible = on; if (r.userData.light) r.userData.light.intensity = on ? 1.15 : 0; }
+  if (r) {
+    r.visible = on;
+    if (r.userData.light) r.userData.light.intensity = on ? 1.15 : 0;
+    const phase = visitStatus().phase;
+    if (r.userData.alive) r.userData.alive.visible = on && phase === 'levend';
+    if (r.userData.memory) r.userData.memory.visible = on && phase === 'herinnering';
+  }
   if (ctx.house) ctx.house.visible = !on;
 }
 
@@ -173,15 +177,32 @@ function clearCamera(w) {
 function enter(w, ctx) {
   const site = ctx.site();
   if (!site || inside) return false;
-  const first = !hasUnique(VISIT.set, VISIT.first);
   return fade(() => {
-    inside = { t: 0, last: { note: '', tip: '' }, got: false };
+    inside = { t: 0, last: { note: '', tip: '' }, pin: null };
     setRoom(ctx, true);
     putPlayer(w, site, SPOTS.enter, true);
     cameraNow(w, site);
-    markLifetime(VISIT.set, VISIT.first);
+    const vm = nextVisitMark(marks());
+    if (vm) mark(w, vm);
     recordStat(w, VISIT.stat, 1);
-    if (first) showCard(w, { kind: 'tip', kicker: CARD.kicker, title: DOOR.firstTitle, body: DOOR.firstBody, duration: 9, key: 'beppe-binnen', voice: false });
+    const st = visitStatus();
+    const scene = sceneOnEnter(st.phase, marks());
+    if (scene === 'eerste') playScene(w, ctx, FIRST_VISIT, MARK.first, true);
+    else if (scene === 'afscheid') playScene(w, ctx, FAREWELL_SCENE, MARK.farewell, false);
+  });
+}
+
+// A scene of the arc (the first visit, the farewell): the player stays where he stands, the text
+// runs; the mark is set when it is over, so a save loaded in the middle plays it again.
+function playScene(w, ctx, script, markId, soupAfter) {
+  const p = hoofdspeler(w);
+  if (inside) inside.pin = { x: p.x, y: p.y };
+  startGesprek(w, script, {
+    done: (ww) => {
+      mark(ww, markId);
+      if (inside) inside.pin = null;
+      if (soupAfter) eatSoup(ww);
+    },
   });
 }
 
@@ -189,6 +210,7 @@ export function leave(w, ctx, silent = false) {
   if (!inside) return false;
   const site = ctx.site();
   const out = () => {
+    stopGesprek(w);
     inside = null;
     setRoom(ctx, false);
     clearCamera(w);
@@ -201,13 +223,13 @@ export function leave(w, ctx, silent = false) {
 // Drop everything when the site is dropped or the world is left.
 export function dropInside(w, ctx) {
   if (!inside) return;
+  stopGesprek(w);
   inside = null;
   setRoom(ctx, false);
   if (w) clearCamera(w);
 }
 
 export const isInside = () => !!inside;
-export function resetVisit() { inside = null; busyFade = false; invitedThisSession = false; resetVisitCache(); }
 
 function cameraNow(w, site) {
   const cam = roomCamera();
@@ -234,11 +256,12 @@ const dayOf = (w) => { try { return calendarDay(w); } catch (e) { return 0; } };
 
 export function visitPrompt(w, ctx) {
   const site = ctx.site();
-  if (!w || !site || busyFade || w.paused || w.uiPaused || w.pigeonMode || w.heliRun) return null;
+  if (!w || !site || busyFade || w.paused || w.uiPaused || w.pigeonMode || w.heliRun || gesprekActive()) return null;
   const p = hoofdspeler(w);
   if (!p) return null;
   const { lx, lz } = local(site, p);
   if (inside) {
+    const memory = visitStatus().phase === 'herinnering';
     const k = nearestSpot(lx, lz);
     const at = (s) => housePoint(site, s.x, s.z);
     const base = (w.map && w.map.groundHeightAt ? w.map.groundHeightAt(site.house.x, site.house.y, 60) : 0) || 0;
@@ -246,9 +269,13 @@ export function visitPrompt(w, ctx) {
     if (k === 'stove') {
       const due = soupState({ day: dayOf(w), has: hasUnique, health: w.health, maxHealth: 100 }).due;
       const q = at(SPOTS.stove);
-      return { id: 'beppe-soep', x: q.x, y: q.y, h: base + 1.3, key: 'E', label: STOVE.prompt, sub: due ? STOVE.promptReady : STOVE.promptDone, ring: true, dim: !due };
+      return { id: 'beppe-soep', x: q.x, y: q.y, h: base + 1.3, key: 'E', label: STOVE.prompt, sub: due ? (memory ? MEMORY_UI.stove : STOVE.promptReady) : STOVE.promptDone, ring: true, dim: !due };
     }
-    if (k === 'table') { const q = at(SPOTS.table); return { id: 'beppe-briefje', x: q.x, y: q.y, h: base + 1.0, key: 'E', label: TABLE.prompt, sub: TABLE.sub, ring: true }; }
+    if (k === 'table') {
+      const q = at(SPOTS.table);
+      if (memory) return { id: 'beppe-briefje', x: q.x, y: q.y, h: base + 1.0, key: 'E', label: MEMORY_UI.prompt, sub: MEMORY_UI.sub, ring: true };
+      return { id: 'beppe-praten', x: q.x, y: q.y, h: base + 1.6, key: 'E', label: TABLE.talk, sub: TABLE.talkSub, ring: true };
+    }
     if (k === 'board') { const q = at(SPOTS.board); return { id: 'beppe-prikbord', x: q.x, y: q.y, h: base + 1.4, key: 'E', label: BOARD.prompt, sub: BOARD.sub, ring: true }; }
     return null;
   }
@@ -272,19 +299,38 @@ function eatSoup(w) {
   markLifetime(VISIT.set, soupKey(dayOf(w)));
   if (st.heal) w.health = Math.min(100, (w.health || 0) + st.heal);
   if (st.money) w.money = (w.money || 0) + st.money;
-  const parts = [st.heal ? STOVE.eat : STOVE.eatFull];
+  const parts = [visitStatus().phase === 'herinnering' ? MEMORY_UI.stove : (st.heal ? STOVE.eat : STOVE.eatFull)];
   if (st.money) parts.push(STOVE.cookie);
   showCard(w, { kind: st.money ? 'geld' : 'tip', kicker: CARD.kicker, title: STOVE.title, body: parts.join(' '), duration: 7, key: 'beppe-soep', voice: false });
 }
 
-function readNote(w, kind) {
-  const list = kind === 'tip' ? pickTip : pickNote;
-  const visit = getStat(VISIT.stat);
-  const beat = list(ctxOf(w), { day: dayOf(w), visit, last: inside ? inside.last[kind] : '' });
+// The board: a tip (in her words; after her death it reads as a card in her handwriting).
+function readTip(w) {
+  const visit = visitsDone(marks());
+  const beat = pickTip(ctxOf(w), { day: dayOf(w), visit, last: inside ? inside.last.tip : '' });
   if (!beat) return;
-  if (inside) inside.last[kind] = beat.id;
-  const spec = kind === 'tip' ? BOARD : TABLE;
-  showCard(w, { kind: 'tip', kicker: spec.kicker, title: kind === 'tip' ? 'Een tip' : 'Van Beppe', body: beat.text, duration: 9, key: `beppe-${kind}`, voice: false });
+  if (inside) inside.last.tip = beat.id;
+  showCard(w, { kind: 'tip', kicker: BOARD.kicker, title: 'Een tip', body: beat.text, duration: 9, key: 'beppe-tip', voice: false });
+}
+
+// The table: while she lives, a short talk with her (a few lines, by visit, who plays, time and
+// weather); afterwards a memory note, "wat Beppe zou zeggen".
+function talk(w) {
+  const visit = visitsDone(marks());
+  const st = { day: dayOf(w), visit, last: inside ? inside.last.note : '' };
+  if (visitStatus().phase === 'herinnering') {
+    const m = pickMemory(ctxOf(w), st);
+    if (!m) return;
+    if (inside) inside.last.note = m.id;
+    showCard(w, { kind: 'tip', kicker: MEMORY_UI.kicker, title: 'Een briefje', body: m.text, duration: 9, key: 'beppe-herinnering-briefje', voice: false });
+    return;
+  }
+  const beats = aliveVisit(ctxOf(w), st);
+  const note = beats.find((b) => b.id && !b.id.startsWith('tip-'));
+  if (inside && note) inside.last.note = note.id;
+  const p = hoofdspeler(w);
+  if (inside) inside.pin = { x: p.x, y: p.y };
+  startGesprek(w, beats, { skippable: true, done: () => { if (inside) inside.pin = null; } });
 }
 
 export function visitInteract(w, ctx) {
@@ -298,51 +344,42 @@ export function visitInteract(w, ctx) {
     case 'beppe-deur': enter(w, ctx); break;
     case 'beppe-uit': leave(w, ctx); break;
     case 'beppe-soep': eatSoup(w); break;
-    case 'beppe-briefje': readNote(w, 'note'); break;
-    case 'beppe-prikbord': readNote(w, 'tip'); break;
+    case 'beppe-briefje': case 'beppe-praten': talk(w); break;
+    case 'beppe-prikbord': readTip(w); break;
     default: return false;
   }
   return true;
 }
 
-// Per frame (from beppe_garden's tick): inside, keep the player in the room and the
-// camera fixed; outside, send the invitation once when the house opens.
+// Per frame (from beppe_garden's tick): inside, keep the player in the room (or pinned while a
+// conversation runs), the camera fixed and Beppe breathing; outside, the arc's slow checks
+// (invitation, nudges, news, echoes: beppe_boog.js).
 export function visitTick(dt, w, ctx) {
   if (!w) return;
-  if (!inside) { invite(w); return; }
+  if (!inside) { arcTick(w); return; }
   const site = ctx.site();
   if (!site) { dropInside(w, ctx); return; }
-  {
-    const p = hoofdspeler(w);
-    const { lx, lz } = local(site, p);
-    // a respawn, a vehicle, a teleport or a cutscene takes the player out of the room
-    if (!p || p.inVehicle || w.pigeonMode || w.pendingRespawn || !insideRoom(lx, lz, 0.6) || p.dead
-      || (w.cameraOverride && w.cameraOverride.bron !== BRON)) {
-      leave(w, ctx, true);
-      return;
-    }
-    inside.t += dt;
-    const k = keepInRoom(lx, lz);
-    const q = housePoint(site, k.lx, k.lz);
-    p.x = q.x; p.y = q.y;
-    w.camYaw = site.house.a + roomCamera().yaw;
-    if (!w.cameraOverride || w.cameraOverride.bron !== BRON) cameraNow(w, site);
+  const p = hoofdspeler(w);
+  const { lx, lz } = local(site, p);
+  // a respawn, a vehicle, a teleport or a cutscene takes the player out of the room
+  if (!p || p.inVehicle || w.pigeonMode || w.pendingRespawn || !insideRoom(lx, lz, 0.6) || p.dead
+    || (w.cameraOverride && w.cameraOverride.bron !== BRON)) {
+    leave(w, ctx, true);
+    return;
   }
+  inside.t += dt;
+  tickGesprek(w);
+  const alive = visitStatus().phase === 'levend';
+  const k = keepInRoom(lx, lz, 0.32, alive ? [SOLID_BEPPE] : []);
+  const q = housePoint(site, k.lx, k.lz);
+  p.x = q.x; p.y = q.y;
+  if (gesprekActive() && inside.pin) { p.x = inside.pin.x; p.y = inside.pin.y; p.vx = 0; p.vy = 0; }
+  w.camYaw = site.house.a + roomCamera().yaw;
+  if (!w.cameraOverride || w.cameraOverride.bron !== BRON) cameraNow(w, site);
+  const fig = ctx.room && ctx.room.userData && ctx.room.userData.figure;
+  if (fig && alive) { try { animatePersonWalk(fig, 0, dt); } catch (e) { /* the figure only idles */ } }
 }
 
-// The invitation: one text from Tammo as soon as the house is open and the
-// player is free, once in a lifetime (also for a save that was already past it:
-// the house simply is open there; the text tells it once).
-function invite(w) {
-  if (invitedThisSession || !w.phoneNotifications) return;
-  const st = visitStatus();
-  if (!st.unlocked) return;
-  if (hasUnique(VISIT.set, VISIT.invited)) { invitedThisSession = true; return; }
-  if (playerBusy(w).busy || isCinematicActive() || w.cameraOverride) return;
-  invitedThisSession = true;
-  markLifetime(VISIT.set, VISIT.invited);
-  w.phoneNotifications.push({ from: INVITE.from, text: INVITE.text, duration: 9 });
-  showCard(w, { kind: 'tip', kicker: CARD.kicker, title: INVITE.card.title, body: INVITE.card.body, duration: 8, key: 'beppe-uitnodiging', voice: false });
-}
+export function resetVisit() { inside = null; busyFade = false; stopGesprek(null); resetArc(); }
 
 export const visitDebug = () => ({ inside: !!inside, status: visitStatus() });
