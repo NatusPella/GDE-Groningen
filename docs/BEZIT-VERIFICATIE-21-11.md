@@ -70,7 +70,7 @@ Gebouwd (geen afspeelcode, geen UI):
   logistiek met AI-chauffeur (reistijd afstand / 15 m/s plus laden, wagens, loon, diesel), extra marge 15% / 15% / 35%, `weakestLink` en `chainView` voor het beheerscherm.
 - `game/js/areamarket.js`: streekprijs per dag (basis x (1 + 0,2 x (vraag - aanbod) / referentie), 0,7 tot 1,4), vraag uit hash, aanbod van spelers (`deliver`,
   `recordRemoteDelivery`), verzadiging 3% per 1.000 kg met 25% herstel per dag, de dag uit de gedeelde kalender (`marketDay`), `marketBoard` voor het tabblad Markt.
-- `game/js/bezitevents.js`: droogte (zand meer), hagel (optionele verzekering), mierenplaag, wespen, machine kapot (boven 70% slijtage), ziek vee, Inspectiedienst Noordrand,
+- `game/js/bezitevents.js`: droogte (zand meer), stortbui (optionele verzekering), mierenplaag, wespen, machine kapot (boven 70% slijtage), ziek vee, Inspectiedienst Noordrand,
   koeling, staking, veiling, veilingdag, landbouwbeurs, buren met keuze, kermis en dorpsfeest en de trekkertrek als gegevensdefinitie. Altijd zomer; geen aardbeving,
   gaswinning, overval of geweld.
 Tests: `scripts/supplychain_test.mjs` (19), `scripts/areamarket_test.mjs` (18), `scripts/bezitevents_test.mjs` (20), met exploit-tests (opdelen, dumpen, spreiden, vraagplafond, wagens kosten geld).

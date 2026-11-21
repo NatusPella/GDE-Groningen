@@ -19,7 +19,7 @@ export const MAX_EVENT_MULT = 1.25;                   // de veilingdag (+25% op 
 
 // Basisprijs per kilo (gewassen uit gewasmarkt.js, de rest nieuw) en de referentiehoeveelheid per streek per dag (kg): wat de streek
 // op een gewone dag opneemt. De achtergrondvraag en het achtergrondaanbod zijn deze referentie (de NPC-boeren).
-export const BASE_PRICE = { ...PRICE_KG, fruit: 0.9, melk: 0.45, kaas: 4.5, friet: 0.9, meel: 0.3, brood: 1.6, eieren: 1.6, hooi: 0.12 };
+export const BASE_PRICE = { ...PRICE_KG, melk: 0.45, kaas: 4.5, friet: 0.9, meel: 0.3, brood: 1.6, eieren: 1.6, hooi: 0.12 };
 export const REFERENCE = { aardappelen: 12000, bieten: 20000, graan: 10000, gras: 15000, uien: 6000, fruit: 3000, melk: 8000, kaas: 800, friet: 3000, meel: 2500, brood: 2500, eieren: 1200, hooi: 5000 };
 export const PRODUCTS = Object.keys(BASE_PRICE);
 export const regionOf = (r) => (REGION_IDS.includes(r) ? r : 'overig');

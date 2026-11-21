@@ -1,4 +1,4 @@
-// Gebeurtenissen van Bezit (#1103): droogte (zand meer), hagel (verzekering), mieren, wespen, machine kapot (boven 70% slijtage), ziek vee,
+// Gebeurtenissen van Bezit (#1103): droogte (zand meer), stortbui (verzekering), mieren, wespen, machine kapot (boven 70% slijtage), ziek vee,
 // Inspectiedienst Noordrand, koeling, staking, veiling, veilingdag, landbouwbeurs, buren met keuze, kermis, trekkertrek.
 //   node scripts/bezitevents_test.mjs
 import assert from 'node:assert/strict';
@@ -38,14 +38,14 @@ t('droogte: duurt 3 tot 6 dagen, komt voor, en op zand is het verlies groter (15
   for (const d of DAYS) { if (!E.droughtOn('hogeland', d)) continue; const c = droughtOnly(d, false), s = droughtOnly(d, true); assert.ok(c >= 0.15 && c <= 0.25 && s >= 0.25 && s <= 0.35 && s > c, `${c} ${s}`); }
   assert.equal(E.yieldMultiplier(field({ region: 'hogeland' }), DAYS.find((d) => !E.droughtOn('hogeland', d) && E.parcelLoss(field({ region: 'hogeland' }), d).loss === 0)), 1);
 });
-t('hagel: een gezaaid perceel verliest 30% op de dag zelf; een niet gezaaid perceel niets; verzekering dekt 80%', () => {
-  const d = DAYS.find((x) => E.activeSpan(E.EVENT_DEFS.hagel, 'oldambt', x)); assert.ok(d, 'er is hagel binnen 300 dagen');
+t('stortbui: een gezaaid perceel verliest 30% op de dag zelf; een niet gezaaid perceel niets; verzekering dekt 80%', () => {
+  const d = DAYS.find((x) => E.activeSpan(E.EVENT_DEFS.stortbui, 'oldambt', x)); assert.ok(d, 'er is stortbui binnen 300 dagen');
   const f = (o) => field({ region: 'oldambt', ...o });
-  const loss = E.parcelLoss(f(), d).causes.find((c) => c.id === 'hagel'); assert.equal(loss.loss, 0.3);
-  assert.ok(!E.parcelLoss(f({ sown: false }), d).causes.some((c) => c.id === 'hagel'));
-  assert.ok(Math.abs(E.parcelLoss(f(), d, { insured: true }).causes.find((c) => c.id === 'hagel').loss - 0.06) < 1e-9);
-  assert.equal(E.hailPayout(1000, true), 800); assert.equal(E.hailPayout(1000, false), 0); assert.equal(E.insurancePremium(10), 30);
-  assert.ok(E.HAIL_INSURANCE.covers < 1, 'de verzekering dekt nooit alles');
+  const loss = E.parcelLoss(f(), d).causes.find((c) => c.id === 'stortbui'); assert.equal(loss.loss, 0.3);
+  assert.ok(!E.parcelLoss(f({ sown: false }), d).causes.some((c) => c.id === 'stortbui'));
+  assert.ok(Math.abs(E.parcelLoss(f(), d, { insured: true }).causes.find((c) => c.id === 'stortbui').loss - 0.06) < 1e-9);
+  assert.equal(E.stormPayout(1000, true), 800); assert.equal(E.stormPayout(1000, false), 0); assert.equal(E.insurancePremium(10), 30);
+  assert.ok(E.STORM_INSURANCE.covers < 1, 'de verzekering dekt nooit alles');
 });
 t('mierenplaag treft akker en weide, wespen alleen de boomgaard; bestrijden voorkomt het verlies en kost geld', () => {
   const dA = DAYS.find((x) => E.activeSpan(E.EVENT_DEFS.mierenplaag, 'hunsingo', x)), dW = DAYS.find((x) => E.activeSpan(E.EVENT_DEFS.wespen, 'hunsingo', x));
@@ -159,7 +159,7 @@ t('eventsOn: meldt alleen wat in de streken van de speler speelt, en een begin Ã
 });
 t('frequentie: een speler wordt niet doodgegooid: samen hoogstens zo\'n 45% van de dagen heeft een regionale gebeurtenis, de persoonlijke zijn zeldzaam', () => {
   const ctx = { regions: ['hogeland'], seed: 'a', audit: { qAvg: 50 } };
-  const busy = DAYS.filter((d) => E.eventsOn(d, ctx).some((e) => e.scope === 'region' && ['droogte', 'hagel', 'mierenplaag', 'wespen', 'staking'].includes(e.id))).length;
+  const busy = DAYS.filter((d) => E.eventsOn(d, ctx).some((e) => e.scope === 'region' && ['droogte', 'stortbui', 'mierenplaag', 'wespen', 'staking'].includes(e.id))).length;
   assert.ok(busy / DAYS.length < 0.45, `${busy}`);
   const personal = DAYS.filter((d) => E.eventsOn(d, ctx).some((e) => e.scope === 'player')).length; assert.ok(personal < 25, `${personal}`);
 });

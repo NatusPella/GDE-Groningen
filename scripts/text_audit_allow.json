@@ -2,24 +2,6 @@
   "note": "Bewust toegestane gevallen voor scripts/text_audit.mjs. Elke regel heeft een reden (why). term = het gevonden woord (hoofdletterongevoelig), file/ctx maken het smaller.",
   "allow": [
     {
-      "rule": "winter",
-      "term": "Hagelbui",
-      "file": "bezitevents.js",
-      "why": "hagel is een zomerse bui (Bezit #1103, ontwerp 5.8: een hagelbui in de zomer, geen winter of ijs); het woord staat in de winterlijst omdat hagel ook als winterweer gebruikt wordt"
-    },
-    {
-      "rule": "winter",
-      "term": "hagelbui",
-      "file": "bezitevents.js",
-      "why": "hagel is een zomerse bui (Bezit #1103, ontwerp 5.8: een hagelbui in de zomer, geen winter of ijs); het woord staat in de winterlijst omdat hagel ook als winterweer gebruikt wordt"
-    },
-    {
-      "rule": "winter",
-      "term": "Hagel",
-      "file": "bezitevents.js",
-      "why": "hagel is een zomerse bui (Bezit #1103, ontwerp 5.8: een hagelbui in de zomer, geen winter of ijs); het woord staat in de winterlijst omdat hagel ook als winterweer gebruikt wordt"
-    },
-    {
       "rule": "persoonsgegevens",
       "term": "050-555 01 23",
       "file": "reklametaxi.js",

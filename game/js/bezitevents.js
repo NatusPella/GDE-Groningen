@@ -1,4 +1,4 @@
-// Gebeurtenissen van Bezit (epic #1095, #1103; ontwerp docs/BEZIT-21-11.md 5.8): droogte, hagel, mierenplaag, wespen, machine kapot, ziek vee, de
+// Gebeurtenissen van Bezit (epic #1095, #1103; ontwerp docs/BEZIT-21-11.md 5.8): droogte, stortbui, mierenplaag, wespen, machine kapot, ziek vee, de
 // Inspectiedienst Noordrand, storing in de koeling, staking, veiling (koopje), veilingdag, landbouwbeurs, buren-kibbelen met een keuze, kermis en
 // dorpsfeest en een trekkertrek-wedstrijd als gegevensdefinitie. Alleen regels (pure functies in de stijl van eventrules.js): de afspeelcode en de
 // meldingen zijn aan de bouwer. Puur: geen DOM, geen THREE, geen klok, geen opslag en geen Math.random (scripts/bezitevents_test.mjs).
@@ -19,7 +19,7 @@ export const FAIR = 'Landbouwbeurs Noorderveld';
 // chance: kans per dag per scope-sleutel dat hij begint; duration: [min, max] dagen.
 export const EVENT_DEFS = {
   droogte: { id: 'droogte', kind: 'weer', scope: 'region', chance: 0.03, duration: [3, 6], label: 'Droogte', text: 'Het is al dagen droog in {r}: het land is dor.' },
-  hagel: { id: 'hagel', kind: 'weer', scope: 'region', chance: 0.015, duration: [1, 1], label: 'Hagelbui', text: 'Een hagelbui trekt over {r}: gezaaide percelen verliezen 30%.' },
+  stortbui: { id: 'stortbui', kind: 'weer', scope: 'region', chance: 0.015, duration: [1, 1], label: 'Stortbui', text: 'Een stortbui trekt over {r}: gezaaide percelen verliezen 30%.' },
   mierenplaag: { id: 'mierenplaag', kind: 'natuur', scope: 'region', chance: 0.02, duration: [4, 8], label: 'Mierenplaag', text: 'Mieren in de akkers en weiden van {r}. Bestrijden voor de oogst.' },
   wespen: { id: 'wespen', kind: 'natuur', scope: 'region', chance: 0.02, duration: [3, 5], label: 'Wespen in de boomgaard', text: 'Wespen in de boomgaarden van {r}: het fruit wordt aangevreten.' },
   machine: { id: 'machine', kind: 'pech', scope: 'asset', chance: 0, duration: [1, 3], label: 'Machine kapot', text: '{naam} staat stil met pech.' },
@@ -54,10 +54,10 @@ export const droughtOn = (region, day) => activeSpan(EVENT_DEFS.droogte, region,
 const regionName = (r) => String(r || 'de streek').replace(/^./, (c) => c.toUpperCase());
 const fill = (text, o = {}) => text.replace(/\{(\w+)\}/g, (_, k) => (o[k] !== undefined ? o[k] : `{${k}}`));
 
-// ---- opbrengst: droogte, hagel, mieren en wespen op een perceel ----
+// ---- opbrengst: droogte, stortbui, mieren en wespen op een perceel ----
 // parcel: { id, kind ('w' weide, 'a' akker, 'b' boomgaard), region, sandy (zand), sown (gezaaid), treated: { ants, wasps } }
-export const HAIL_LOSS = 0.3;
-export const HAIL_INSURANCE = { premiumPerHaDay: 3, covers: 0.8 };      // optioneel: een premie per ha per speldag; dekt 80% van het verlies
+export const STORM_LOSS = 0.3;
+export const STORM_INSURANCE = { premiumPerHaDay: 3, covers: 0.8 };      // optioneel: een premie per ha per speldag; dekt 80% van het verlies
 export const DROUGHT_RANGE = { clay: [0.15, 0.25], sand: [0.25, 0.35] };   // opbrengstverlies: zand meer (-15..-35% in totaal)
 export const ANT_LOSS = 0.1, WASP_LOSS = 0.2;
 export const ANT_CONTROL_PER_HA = 15, WASP_NEST_COST = 40;                  // wat bestrijden kost
@@ -71,8 +71,8 @@ export function parcelLoss(parcel, day, { insured = false } = {}) {
     const [a, b] = parcel.sandy ? DROUGHT_RANGE.sand : DROUGHT_RANGE.clay;
     causes.push({ id: 'droogte', loss: Math.round((a + (b - a) * dr.sev) * 1000) / 1000, text: parcel.sandy ? 'Droogte: zand houdt geen water vast.' : 'Droogte.' });
   }
-  const hail = activeSpan(EVENT_DEFS.hagel, reg, day);
-  if (hail && parcel.sown) causes.push({ id: 'hagel', loss: insured ? Math.round(HAIL_LOSS * (1 - HAIL_INSURANCE.covers) * 1000) / 1000 : HAIL_LOSS, text: insured ? 'Hagel, door je verzekering grotendeels gedekt.' : 'Hagel: een derde van het gewas ligt plat.' });
+  const storm = activeSpan(EVENT_DEFS.stortbui, reg, day);
+  if (storm && parcel.sown) causes.push({ id: 'stortbui', loss: insured ? Math.round(STORM_LOSS * (1 - STORM_INSURANCE.covers) * 1000) / 1000 : STORM_LOSS, text: insured ? 'Stortbui, door je verzekering grotendeels gedekt.' : 'Stortbui: een derde van het gewas ligt plat.' });
   const ants = activeSpan(EVENT_DEFS.mierenplaag, reg, day);
   if (ants && (parcel.kind === 'a' || parcel.kind === 'w') && !(parcel.treated && parcel.treated.ants)) causes.push({ id: 'mierenplaag', loss: ANT_LOSS, text: 'Mierenplaag: bestrijd ze voor de oogst.' });
   const wasps = activeSpan(EVENT_DEFS.wespen, reg, day);
@@ -81,9 +81,9 @@ export function parcelLoss(parcel, day, { insured = false } = {}) {
   return { loss: Math.round(clamp(1 - keep, 0, 0.6) * 1000) / 1000, causes };
 }
 export const yieldMultiplier = (parcel, day, o) => 1 - parcelLoss(parcel, day, o).loss;
-// De verzekering: premie per ha per speldag, en de uitkering bij hagel (80% van de geleden schade in euro).
-export const insurancePremium = (ha) => Math.round(Math.max(0, finite(ha, 0)) * HAIL_INSURANCE.premiumPerHaDay);
-export const hailPayout = (lossValue, insured) => (insured ? Math.round(Math.max(0, finite(lossValue, 0)) * HAIL_INSURANCE.covers) : 0);
+// De verzekering: premie per ha per speldag, en de uitkering bij stortbui (80% van de geleden schade in euro).
+export const insurancePremium = (ha) => Math.round(Math.max(0, finite(ha, 0)) * STORM_INSURANCE.premiumPerHaDay);
+export const stormPayout = (lossValue, insured) => (insured ? Math.round(Math.max(0, finite(lossValue, 0)) * STORM_INSURANCE.covers) : 0);
 export const antControlCost = (ha) => Math.round(Math.max(0, finite(ha, 0)) * ANT_CONTROL_PER_HA);
 
 // ---- machine kapot (kans boven 70% slijtage) ----
@@ -237,7 +237,7 @@ export const pullPrize = (cls, place) => { const c = TRACTOR_PULL.classes.find((
 export function eventsOn(day, ctx = {}) {
   const out = [], seed = ctx.seed || '';
   for (const r of [...new Set(ctx.regions || [])]) {
-    for (const id of ['droogte', 'hagel', 'mierenplaag', 'wespen', 'staking', 'veiling']) {
+    for (const id of ['droogte', 'stortbui', 'mierenplaag', 'wespen', 'staking', 'veiling']) {
       const span = activeSpan(EVENT_DEFS[id], r, day);
       if (span) out.push({ id, kind: EVENT_DEFS[id].kind, scope: 'region', region: r, title: EVENT_DEFS[id].label, text: fill(EVENT_DEFS[id].text, { r: regionName(r), bond: UNION }), first: span.first });
     }
