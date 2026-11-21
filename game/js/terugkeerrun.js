@@ -45,6 +45,7 @@ function momentopname(w, menuOpen) {
     sinceCinematicS: sinceCinematic(),
     narrativeBusy: narrativeBusy(),
     pigeon: !!w.pigeonMode,
+    activiteit: !!w.activityGame,
     respawn: !!w.pendingRespawn,
     inVehicle: !!(p && p.inVehicle),
     wanted: w.wanted || 0,
