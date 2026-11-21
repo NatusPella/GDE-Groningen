@@ -40,7 +40,7 @@ import { winkelMagVoorGast, MELDING_WINKEL } from './coopgast.js';
 import { hoofdspeler } from './spelersregister.js';
 import {
   effectiveWorn, outfitToLook, getClothingSave, applyClothingSave, forceStoryLook, storyLookKey, ownsAll, ownedPieces, givePiece, setBonus,
-  completeSetIds, wornSet, wearPiece, takeOffSlot, setLocalCharProvider, emitLocalOutfitChange, getHair, setHair, wornPieces,
+  completeSetIds, wornSet, wearPiece, takeOffSlot, setLocalCharProvider, emitLocalOutfitChange, cyclePreset, getHair, setHair, wornPieces,
 } from './clothing.js';
 import { HAIR_COLORS, HAIR_STYLES, hairPrice, parseHair, HAIR_REACTIONS } from './clothinghair.js';
 import { SETS, setKeyFor, parsePiece } from './clothingdata.js';
@@ -392,6 +392,7 @@ function wijkAt(map, x, y) {
 
 export function initShops(world) {
   worldRef = world;
+  world.cycleOutfit = (dir) => cycleOutfit(world, dir); // the 6 key (player.js)
   setLocalCharProvider(() => currentChar(world)); // coopnet.js stuurt de kleding van dit personage mee bij het meedoen
   initShopUi(world);
   baseLook = { tammo: snapshot(TAMMO_APPEARANCE), anita: snapshot(ANITA_APPEARANCE) };
@@ -1242,6 +1243,22 @@ export function clothingLook(ch, worn) {
   const app = ch === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
   return { ...app, ...outfitToLook(worn, baseLook ? baseLook[ch] : app) };
 }
+// The quick-change key (6, player.js): on to the next saved outfit, on foot, anywhere. The story's outfit wins while it lasts.
+let lastCycleAt = -Infinity;
+function cycleOutfit(world, dir = 1) {
+  const now = world.time || 0;
+  if (now - lastCycleAt < 0.6) return false;
+  lastCycleAt = now;
+  if (storyLookKey()) { world.addMessage('Het verhaal bepaalt nu wat je aanhebt', 3); return false; }
+  const ch = currentChar(world);
+  const r = cyclePreset(ch, dir);
+  if (!r.ok) { world.addMessage(r.reason, 3.5); return false; }
+  if (!syncHeistOutfit()) applyLooks();
+  shakeWanted(world, 1);
+  world.addMessage(`${r.name} aan${r.missing && r.missing.length ? ` (${r.missing.length} stuk${r.missing.length > 1 ? 'ken' : ''} ontbreken)` : ''}`, 2.5);
+  return true;
+}
+
 export function wearClothing(world, ch, piece) {
   const r = wearPiece(ch, piece);
   if (!r.ok) return r.reason;

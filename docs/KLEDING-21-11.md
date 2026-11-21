@@ -58,10 +58,21 @@ Wie de wereld heeft (host): niets extra. Gast: draagt zijn eigen outfit. Wegvall
 `node scripts/clothing_test.mjs` (24 tests): catalogus, geen merken of winter, oude sets gelijk aan `OUTFITS` en identieke geometrie, kast per personage, aan en uit, jurk, setbonus, outfits, verhaaloutfit, opslag en migratie, outfit-code, NPC-pools en weer, aanbod en uitverkoop, balans, prestaties, drawcalls en driehoeken, NaN per stuk, geheugen, menu's.
 Prestaties: Nieuwe look, Past als gegoten, Hele kast (228 in totaal).
 
-## 8. Niet gedaan en open
+## 8. Ronde 2: gaten dichtgemaakt
 
-- Pedestrians en winkeliers in de wereld gebruiken nog hun oude willekeurige look; `opts.role` is klaar, de aanroepen niet verbonden (veel plekken, risico op beeldregressie; eigen pakket).
-- Een outfit-wissel midden in een sessie bereikt anderen pas bij het (her)meedoen: dat vraagt een avatar-update-bericht.
-- Pashokje in de auto en een toets voor snelwissel.
+- **NPC's in de echte bouwpaden (#1152):** gewone voetgangers (`scene3d.js` `buildPedActor`) krijgen een rol uit `pedRole(zaad, { buurtprofiel, uur })`: studenten rond de campus, toeristen en zakenlieden in het centrum, bouwvakkers op het industrieterrein, feestgangers in de avond; regen geeft vaker een jas, droge warme uren een korte broek. Ook halte-wachters, wachtprops, picknickers, fietsers-in-het-verkeer en het festivalpubliek gebruiken een rol. **Politie, figuren met een eigen `look` en alle verhaalpersonages (Jelle, Rikus, Mem, Durk, Douwe, Rotor Roelf, Beppe, Oma Trijntje) blijven zoals ze waren**: hun looks staan al als data in `storycast.js`/`missionstory.js` met exacte kleuren; omzetten naar paletstukken zou ze veranderen. Een eigen look gaat altijd voor een rol (test). Winkeliers in winkels hebben nog geen eigen persoon in de wereld.
+- **Prestaties van NPC's:** één drawcall per NPC, altijd (de sieraden, het horloge en de handschoenen krijgen NPC's niet: `acc = null` zonder `outfitCtx.detail`); de rompgeometrie wordt gedeeld via de bestaande LRU (120). Gemeten met pure tests: 300 rolfiguren, gemiddeld 1,00 mesh en minder dan 6.500 driehoeken; 600 NPC's bouwen ongeveer even veel unieke rompen als de oude willekeurige look (geen extra geheugen).
+- **Outfit-wissel midden in een sessie (#1153):** `{ k: 'outfit', o: code }` van gast naar host (alleen een geldige code komt door); de host zet hem in de spelerslijst en stuurt de lijst naar iedereen; de host zelf zet zijn eigen code direct. Een oude host kent het bericht niet en negeert het, een oude client negeert het veld. `coopfigures3d.js` bouwt de figuur opnieuw bij een andere code. Elke wissel (`applyLooks`) meldt zich via `emitLocalOutfitChange`.
+- **Snelwisseltoets (#1154):** `6` te voet = de volgende gevulde outfit uit je kast (`cyclePreset`), overal, gratis, 1 ster minder per cooldown. Toets 6 was vrij (T is de trekker en de treinwandeling, B is bewust leeg). Het overzicht en Hulp noemen hem. Pashokje: de kledingwinkel past elk stuk in de 3D-preview op je eigen figuur; "in de auto" is Spullen > Kleding (aan en uit overal, ook in een voertuig).
+- **Kapper:** haar is deel van de outfit (`worn.hair = 'stijl.kleur'`, data in `clothinghair.js`): 9 stijlen (Tammo 6, Tessa 7, eigen lijsten), 11 kleuren (natuurlijk plus zomers speels). Opslag per personage in dezelfde `kleding`-save (`h`); een oude save houdt zijn kapsel. Outfit-presets, de outfit-code (versie 2, twee tekens voorop; versie 1 blijft leesbaar), het verhaaloutfit (`setStoryOutfit({ tammo: { hair: 'bald.naturel' } })` forceert alleen het kapsel) en NPC's (kapsel per man of vrouw, oud wordt grijs) gebruiken hetzelfde. Eén haarmesh per figuur: het haar zit in de rompgeometrie. Na een kapperbezoek zegt Tammo of Tessa iets (4 korte regels per personage, alleen tekst), prestatie Nieuw kapsel. De kapper-preview is de bestaande hoofdkader-preview (de "spiegel"); of de kapper een interieur krijgt (epic-interieurs) is aan die epic.
+- **Homebase:** `git fetch` toont geen `homebase`-model in `epic-verhaal-21-11` (nog niet gemerged). De kast hangt aan het personage; `wardrobeMenu(world)` is het enige ingangspunt, dus een data-gedreven huis roept hem aan.
+- **Teksten:** zie [KLEDING-TEKSTEN-21-11.md](KLEDING-TEKSTEN-21-11.md).
+- **Mocks (headless Chrome, geen Electron):** `docs/beeld-21-11/kleding/` (`mock.html` plus `serve.mjs`): winkel, kast, pashokje, NPC-rollen, kapper. De mocks lieten zien dat alles tekent; de Tammo-bermuda en de handschoenen staan er goed op. Ze zijn gemaakt met `desktop/vendor-cache` en tellen samen ongeveer 560 KB.
+
+## 9. Niet gedaan en open
+
+- Winkeliers en andere beroepsfiguren in interieurs: er zijn nog geen personen in de winkels; `opts.role` is er klaar voor.
+- Chauffeurs, ambulancepersoneel en brandweer hebben nog geen eigen rolpool (politie blijft de vaste look).
+- Een snelwisseltoets op de controller en op touch (nu toets 6; de controller gebruikt Spullen).
 - Homebase: zodra `epic-verhaal-21-11` het model heeft, roept elk huis `wardrobeMenu(world)` aan; nu doen flat (`home.js`) en safehuis (`safehuizen.js`) dat al.
 - Alles in beeld: zie [KLEDING-VERIFICATIE-21-11.md](KLEDING-VERIFICATIE-21-11.md).

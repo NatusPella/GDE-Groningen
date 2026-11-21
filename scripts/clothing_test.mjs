@@ -406,6 +406,20 @@ t('Samen spelen: outfit-update midden in een sessie (avatar-event), validatie en
   assert.equal(NET.stuurOutfit({}), false, 'zonder sessie niets');
 });
 
+t('snelwisseltoets: door de gevulde outfits heen, per personage, de toets zit aan de speler', () => {
+  assert.equal(C.cyclePreset('tammo', 1).ok, false, 'zonder outfits een uitleg');
+  C.givePiece('tammo', 'hoodie.grijs'); C.givePiece('tammo', 'polo.wit');
+  C.wearPiece('tammo', 'hoodie.grijs'); C.savePreset('tammo', 0, 'Een');
+  C.wearPiece('tammo', 'polo.wit'); C.savePreset('tammo', 3, 'Vier');
+  assert.equal(C.cyclePreset('tammo', 1).index, 0, 'na Vier komt Een');
+  assert.equal(C.cyclePreset('tammo', 1).index, 3);
+  assert.equal(C.cyclePreset('tammo', -1).index, 0);
+  assert.equal(C.wornPieces('tammo').top, 'hoodie.grijs');
+  assert.equal(C.cyclePreset('anita', 1).ok, false, 'Tessa heeft haar eigen outfits');
+  assert.ok(/world\.cycleOutfit\(1\)/.test(src('../game/js/player.js')) && /wasPressed\('6'\)/.test(src('../game/js/player.js')));
+  const CT = D; void CT;
+});
+
 t('winkel: aanbod deterministisch per winkel en dag, wisselt per dag, uitverkoop op vrijdag', () => {
   const a = C.shopStock('Stoer & Stads|10,20', 3), b = C.shopStock('Stoer & Stads|10,20', 3);
   assert.deepEqual(a, b);

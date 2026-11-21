@@ -13,4 +13,8 @@ Niets hiervan is in beeld gezien: er is geen Electron gebruikt. De geometrie is 
 9. Personagewissel (Tessa bij boeren en voetbal): elke kast blijft de eigen.
 10. Samen spelen met twee instanties: de medespeler draagt zijn eigen outfit (zonder code: zijn avatarkleur).
 11. Prestaties: Nieuwe look, Past als gegoten, Hele kast verschijnen.
-12. Prestaties van de renderer: een personage met alles aan blijft bij vijf meshes; geen fps-dip bij veel NPC-outfits.
+12. Toets 6 te voet: de volgende outfit; zonder opgeslagen outfit komt een uitleg. In de auto doet hij niets; Spullen werkt daar wel.
+13. Kapper: preview (hoofdkader) per stijl en kleur, de reactie van Tammo of Tessa, haar blijft bij outfitwissel, bij de heist is het eigen kapsel daarna terug.
+14. Voetgangers: meer variatie per buurt (studenten rond Paddepoel, bouwvakkers op het industrieterrein, feestgangers 's avonds), politie en verhaalfiguren ongewijzigd, geen pop-in of haperen bij veel voetgangers.
+15. Samen spelen met twee instanties: wissel op de gast en op de host midden in de sessie; de ander ziet het binnen een seconde.
+16. Prestaties van de renderer: een personage met alles aan blijft bij vijf meshes; geen fps-dip bij veel NPC-outfits.

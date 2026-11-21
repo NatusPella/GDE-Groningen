@@ -230,6 +230,20 @@ export function wearPreset(ch, i) {
   return { ok: true, missing };
 }
 
+// De volgende gevulde outfit (Outfit 1 tot 5) na degene die je nu aanhebt, voor de snelwisseltoets. dir 1 vooruit, -1 terug.
+export function cyclePreset(ch, dir = 1) {
+  const w = W(ch);
+  const filled = w.presets.map((p, i) => (p ? i : -1)).filter((i) => i >= 0);
+  if (!filled.length) return { ok: false, reason: 'Bewaar eerst een outfit in je kast: Outfit 1 tot 5' };
+  const worn = effectiveWorn(ch);
+  const same = (p) => SLOT_IDS.every((s) => (p.worn[s] || null) === (worn[s] || null)) && (!p.worn.hair || p.worn.hair === worn.hair);
+  const cur = w.presets.findIndex((p) => p && same(p));
+  const at = filled.indexOf(cur);
+  const next = filled[((at < 0 ? (dir > 0 ? -1 : 0) : at) + (dir > 0 ? 1 : -1) + filled.length) % filled.length];
+  const r = wearPreset(ch, next);
+  return r.ok ? { ok: true, index: next, name: w.presets[next].name, missing: r.missing } : r;
+}
+
 // ---------------------------------------------------------------- van kleding naar een uiterlijk voor het model
 // base: de kleuren van het personage ({ shirt, pants, shoes, cap }); worn: slot -> stuk. Het resultaat gaat in de appearance
 // (models3d_people.js, TAMMO_APPEARANCE/ANITA_APPEARANCE) of in de opties van buildPersonMesh: { shirt, pants, shoes, cap?, look }.
