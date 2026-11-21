@@ -202,10 +202,12 @@ komt niet terug (`:87`), in 60% van de overgangen zit een jingle (`:118`). Sting
 (`game/js/stings.js`): nooit twee tegelijk, 0,6 s afkoeling (`:10`), en de radio gaat er 45% zachter
 van (`game/js/audio/scenario.js:127`).
 
-**Bestanden.** `audio.js`, `sfx/samples.js`, `sfx/mixplan.js`, `musicpick.js`, `radio.js`,
+Nieuw geluid koppel je via de centrale tabel `game/js/sfx/sfxmap.js` (gebeurtenis-sleutel naar opnames, bus, niveau, afkoeltijd en Samen-spelen-beleid) en `sfxEvent(world, sleutel, x, y)` uit `sfx/haken.js`; nooit dezelfde variant twee keer achter elkaar, lokale geluiden (UI, eigen handen, eigen voortgang) alleen op de eigen machine, wereldgeluiden van een medespeler alleen dichtbij en spaarzaam. Zie [SFX-DEKKING-21-11.md](../../docs/SFX-DEKKING-21-11.md).
+
+**Bestanden.** `audio.js`, `sfx/samples.js`, `sfx/sfxmap.js`, `sfx/mixplan.js`, `musicpick.js`, `radio.js`,
 `stings.js`.
 
-**Tests.** `sfx_test.mjs`, `sfxsamples_test.mjs`, `stings_test.mjs`, `music_pick_test.mjs`,
+**Tests.** `sfx_test.mjs`, `sfxsamples_test.mjs`, `sfx_round5_test.mjs`, `stings_test.mjs`, `music_pick_test.mjs`,
 `minigamefoley_test.mjs`.
 
 ## Prestaties en kwaliteitsstanden
