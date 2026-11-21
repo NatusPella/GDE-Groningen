@@ -2,11 +2,11 @@
 // laten zien, met per doel een type, een kleurrol, een prioriteit en een vorm (glyph). Pure logica, geen DOM en geen THREE (scripts/navdoel_test.mjs).
 //
 // De regels (besluit eigenaar 21-11, docs/MINIMAP-PIJLEN-21-11.md):
-//  - Er is precies één ACTIEF doel: het doel met de hoogste prioriteit. Dat is de pijl die gevuld is, pulseert en de afstand toont.
+//  - Er is precies één ACTIEF doel: het doel met de hoogste prioriteit. Dat is de boog met het icoon, de afstand erbij, die als enige pulseert.
 //  - Geel (rol 'mission') is het doel van de autoroute: de actieve of de volgende missie van het verhaal. Paars (rol 'user') is wat de speler
 //    zelf koos (een klik op de kaart, 'Zet als doel'). Alle andere doelen houden de kleur van hun icoon (klus oranje, zorg roze).
-//  - Elk ander doel is SECUNDAIR: een holle pijl in de kleur van zijn type, hooguit MAX_SECUNDAIR tegelijk. Nooit alleen kleur: elk type heeft
-//    zijn eigen vorm in de pijl (GLYPH) en het actieve doel heeft bovendien de afstand erbij.
+//  - Elk ander doel is SECUNDAIR: een klein rond icoon-punt in de kleur van zijn type (geen pijl), hooguit MAX_SECUNDAIR tegelijk. Nooit alleen
+//    kleur: elk type heeft zijn eigen Phosphor-icoon (GLYPH) en het actieve doel heeft bovendien de afstand erbij (kompasboog, navpijl.js).
 //  - Een doel dat klaar is, nooit gestart kan worden of er al is (aankomst) heeft geen pijl; twee doelen op dezelfde plek zijn één doel
 //    (het hoogste wint, het andere staat in `samengevoegd`).
 //  - Een minigame op de plek (padel, kermis, ...) of een heli-run laat alle andere doelen verdwijnen: rustige kaart.
@@ -29,8 +29,8 @@ export const ROUTE_TYPE = { user: 'eigen', mission: 'missie', job: 'klus', care:
 // De paletsleutel van een route-soort (voor markerColors()[...]).
 export const routeRol = (kind) => NAV_ROL[ROUTE_TYPE[kind] || 'missie'] || 'mission';
 
-// Vormen in de pijl (tekening: hud_panel.js drawEdgeArrow). Het getal is de rang in de lijst, voor de test.
-export const GLYPH = { ster: 1, vlag: 2, ruit: 3, kruis: 4, ring: 5, auto: 6, punt: 7 };
+// Het type in de markering: de sleutel is de vorm, de waarde de Phosphor-naam (icons.js) die navpijl.js in het ronde icoon van de kompasboog tekent.
+export const GLYPH = { ster: 'ster', vlag: 'vlag', ruit: 'tas', kruis: 'ehbo', ring: 'helikopter', auto: 'auto', punt: 'doel', speler: 'speler' };
 
 // rank: hoe hoger, hoe eerder actief. De volgorde is die van routing.js (heli, klus, missie in uitvoering, eigen doel, verhaalstap, uitdaging, zorg).
 // volg: telt mee voor "het actieve doel". glyph: de vorm. label: de korte naam voor de afstandsregel en de schermlezer.
@@ -46,13 +46,13 @@ export const NAV_TYPES = {
   eigenauto: { rank: 10, volg: false, glyph: 'auto', label: 'Jouw auto' },
 };
 
-export const MAX_SECUNDAIR = 2; // zoveel holle pijlen naast de gevulde
+export const MAX_SECUNDAIR = 2; // zoveel wachtende icoon-punten naast de boog
 export const AANKOMST_M = 10; // dichter dan dit ben je er: geen pijl meer
 export const SAMENVOEG_M = 8; // twee doelen op dezelfde plek zijn één doel
 
 // Een eigen doel heeft de vorm van wat het is: een plek een vlag, een missie of uitdaging een ster, een klus een ruit.
 export function eigenGlyph(soort) {
-  return soort === 'mission' || soort === 'challenge' ? 'ster' : soort === 'job' ? 'ruit' : soort === 'play' ? 'ring' : 'vlag';
+  return soort === 'mission' || soort === 'challenge' ? 'ster' : soort === 'job' ? 'ruit' : soort === 'play' ? 'punt' : 'vlag';
 }
 
 const afstand = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);

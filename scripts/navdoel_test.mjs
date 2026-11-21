@@ -2,7 +2,8 @@
 // Puur: geen DOM, geen spel. Samen spelen: de doelen zijn per speler lokaal; de groep komt als eigen lijst binnen (net als in coopmissie.js).
 import fs from 'node:fs';
 import { bepaalNavDoelen, navKleur, navTekst, routeRol, eigenGlyph, lijnVoor, NAV_ROL, NAV_TYPES, GLYPH, MAX_SECUNDAIR, AANKOMST_M, ROUTE_TYPE } from '../game/js/navdoel.js';
-import { drawNavPijl, NAV_PIJL_VORMEN } from '../game/js/navpijl.js';
+import { baan, plaats, spreid, drawKompasRand, BAAN_INSET, MIN_ACTIEF, MIN_PUNT } from '../game/js/navpijl.js';
+import { iconBekend } from '../game/js/icons.js';
 import { PALETTES } from '../game/js/a11y.js';
 
 let n = 0, fails = 0;
@@ -128,21 +129,60 @@ const types = (r) => r.alle.map((d) => d.type + ':' + d.rol);
   ok(new Set(zichtbaar).size === zichtbaar.length, 'missie, eigen doel, klus, zorg en heli hebben elk een eigen vorm (nooit alleen kleur)');
   ok(navTekst({ type: 'klus', rol: 'actief', afstand: 420 }) === 'Klus, 420 m' && /wacht/.test(navTekst({ type: 'eigen', rol: 'secundair', afstand: 90 })), 'de tekst voor de schermlezer');
 }
-// 16. de tekening: gevuld of hol, elke glyph tekent zonder fout en komt in evenwicht (save/restore)
+// 16. de kompasboog: meetkunde (vaste afstand tot de rand, markers schuiven uit elkaar, één boog) en tekenen (ook zonder beweging)
 {
-  for (const hol of [false, true]) for (const glyph of NAV_PIJL_VORMEN.concat(['', 'onbekend'])) {
-    const tel = { save: 0, restore: 0, fill: 0, stroke: 0 };
-    const c2 = new Proxy({}, { get: (t, k) => (k in tel ? (...a) => { tel[k]++; } : () => {}), set: () => true });
-    try { drawNavPijl(c2, 100, 100, 0.5, { kleur: '#f9c80e', hol, glyph, s: 1.25 }); } catch (e) { ok(false, `tekenen ${glyph} ${hol}: ${e.message}`); continue; }
-    ok(tel.save === tel.restore && tel.save === 1, `save/restore in evenwicht (${glyph || 'geen'} ${hol ? 'hol' : 'gevuld'})`);
-    ok(tel.stroke >= (hol ? 2 : 1), `de pijl heeft een rand (${hol ? 'hol: kleur en donkere rand' : 'gevuld'})`);
+  const S = 250, b = baan(S);
+  let min = 1e9, max = 0;
+  for (let q = 0; q < b.lengte; q += 3) { const [x, y] = b.punt(q); const d = Math.min(x, y, S - x, S - y); min = Math.min(min, d); max = Math.max(max, d); }
+  ok(Math.abs(min - BAAN_INSET) < 0.6 && max <= BAAN_INSET + 7.2, `de baan ligt op rechte stukken ${BAAN_INSET} px van de rand en rondt de hoeken af (${min.toFixed(1)}..${max.toFixed(1)})`);
+  for (const graden of [0, 45, 90, 135, 180, 225, 270, 315]) {
+    const [x, y] = b.punt(b.sVoor(graden * Math.PI / 180));
+    let h = Math.atan2(y - S / 2, x - S / 2) * 180 / Math.PI; h = (h + 360) % 360;
+    const d = Math.min(Math.abs(h - graden), 360 - Math.abs(h - graden));
+    ok(d < 1.5, `de marker voor peiling ${graden} ligt in die richting (${d.toFixed(2)} graden ernaast)`);
   }
+  // drie markers in bijna dezelfde richting liggen na het plaatsen niet op elkaar
+  const dicht = plaats([{ a: -0.9, actief: true }, { a: -0.85, actief: false }, { a: -0.95, actief: false }, { a: -0.88, actief: false }], S).items;
+  const langs = (p, q) => { const d = Math.abs(p.s - q.s) % b.lengte; return Math.min(d, b.lengte - d); };
+  let goed = true;
+  for (let i = 0; i < dicht.length; i++) for (let j = i + 1; j < dicht.length; j++) {
+    const nodig = dicht[i].actief || dicht[j].actief ? MIN_ACTIEF : MIN_PUNT;
+    if (langs(dicht[i], dicht[j]) < nodig - 0.6) goed = false;
+  }
+  ok(goed, 'markers in dezelfde richting schuiven uit elkaar');
+  ok(dicht.find((q) => q.actief).s === b.sVoor(-0.9), 'de boog van het doel blijft op zijn plek staan');
+  ok(plaats([{ a: 0, actief: true }, { a: 1, actief: true }], S).items.filter((q) => q.actief).length === 1, 'er is hooguit één boog');
+  ok(spreid([{ s: 5, actief: false }], b.lengte).length === 1, 'spreid met één punt doet niets');
+
+  // tekenen op een nep-canvas met Path2D
+  globalThis.Path2D = globalThis.Path2D || class { constructor(d) { this.d = d; } };
+  const maak = () => {
+    const tel = { fill: 0, stroke: 0, arc: 0, save: 0, restore: 0, text: 0, radii: [] };
+    const c = new Proxy({}, { get: (t, k) => (k === 'measureText' ? () => ({ width: 30 }) : k === 'fillText' ? () => { tel.text++; } : k in tel ? (...a) => { tel[k]++; if (k === 'arc') tel.radii.push(a[2]); } : () => {}), set: () => true });
+    return { c, tel };
+  };
+  const items = [{ a: -0.8, kleur: '#f9c80e', icoon: 'ster', actief: true, tekst: '420 m' }, { a: 0.4, kleur: '#c068ff', icoon: 'vlag' }, { a: 2.5, kleur: '#4363d8', icoon: 'speler' }];
+  const m1 = maak(), m2 = maak(), leeg = maak();
+  const r1 = drawKompasRand(m1.c, S, items, { t: 0.3, beweging: true });
+  drawKompasRand(m2.c, S, items, { t: 0.3, beweging: false });
+  ok(drawKompasRand(leeg.c, S, [], {}).length === 0 && leeg.tel.fill === 0 && leeg.tel.stroke === 0, 'zonder doelen tekent de kaart niets (rustige kaart)');
+  ok(r1.length === 3 && m1.tel.save === m1.tel.restore, 'drie markers, save en restore in evenwicht');
+  ok(m1.tel.text === 1, 'alleen de boog krijgt een afstand (' + m1.tel.text + ' teksten)');
+  ok(m1.tel.fill > 6 && m1.tel.stroke > 6, 'schijven, iconen en randen worden getekend');
+  const pulsRadius = (m) => Math.max(...m.tel.radii);
+  ok(pulsRadius(m2) === 17 && pulsRadius(m1) > 17 && pulsRadius(m1) < 18, 'met Beweging beperken pulseert de boog niet');
+  // elk type heeft een Phosphor-icoon in de icoonset
+  for (const [g, naam] of Object.entries(GLYPH)) ok(iconBekend(naam), `glyph ${g} is een bestaand Phosphor-icoon (${naam})`);
 }
 // 17. de bedrading: de minikaart leest nav, de oude losse pijlen zijn weg; de tokens staan er
 {
   const hud = fs.readFileSync(new URL('../game/js/hud_panel.js', import.meta.url), 'utf8');
-  ok(/bepaalNavDoelen\(/.test(hud) && !/missionEdge|jobEdge|wpEdge|heliEdge|lekEdge/.test(hud), 'hud_panel.js: de minikaart krijgt zijn pijlen uit navdoel.js, geen losse missionEdge/jobEdge/wpEdge meer');
+  ok(/bepaalNavDoelen\(/.test(hud) && !/missionEdge|jobEdge|wpEdge|heliEdge|lekEdge/.test(hud), 'hud_panel.js: de minikaart krijgt zijn markeringen uit navdoel.js, geen losse missionEdge/jobEdge/wpEdge meer');
   ok(/NAV_ROL\.eigen/.test(hud), 'hud_panel.js: ROUTE_COLORS volgt NAV_ROL');
+  ok(/drawKompasRand\(/.test(hud) && !/drawNavPijl|drawEdgeArrow/.test(hud), 'hud_panel.js tekent de kompasboog, niet de oude pijl');
+  ok(/reducedMotion\(\)/.test(hud) && /--nav-doel/.test(hud), 'hud_panel.js: Beweging beperken en de kleur van de GPS-kaart');
+  const ka = fs.readFileSync(new URL('../game/js/kaartactie.js', import.meta.url), 'utf8');
+  ok(/stippellijn langs de rand/.test(ka), 'Zo werkt de kaart legt de boog uit');
   const css = fs.readFileSync(new URL('../game/js/ds-tokens.css', import.meta.url), 'utf8');
   for (const t of ['--nav-actief', '--nav-eigen', '--nav-secundair']) ok(css.includes(t + ':'), `ds-tokens.css heeft ${t}`);
   const a11y = fs.readFileSync(new URL('../game/js/a11y.js', import.meta.url), 'utf8');

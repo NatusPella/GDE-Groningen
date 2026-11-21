@@ -65,9 +65,9 @@ import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, getCareRoute
 import { getClockText } from './clocktext.js';
 export { getClockText };
 import { storyWaiting, missionOnMap, getGoal } from './goal.js';
-import { bepaalNavDoelen, navKleur, NAV_ROL } from './navdoel.js';
-import { drawNavPijl } from './navpijl.js';
-import { setGhostBar, ring, pop } from './motion.js';
+import { bepaalNavDoelen, navKleur, NAV_ROL, GLYPH } from './navdoel.js';
+import { drawKompasRand, MAX_ANDEREN } from './navpijl.js';
+import { setGhostBar, ring, pop, reducedMotion } from './motion.js';
 import { renderSnapshot, PORTRAIT_ANGLE } from './vehiclepreview.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { initPrompts, updatePrompts, hintCount } from './prompts.js';
@@ -1022,6 +1022,8 @@ function updateGps(dt, world) {
   const v0 = p.inVehicle;
   const card = turn ? null : modeCard(route, mode, mode === 'lucht' ? { x: v0 ? v0.x : p.x, y: v0 ? v0.y : p.y, z: v0 ? v0.z || 0 : p.gz || 0, angle: v0 ? v0.angle : p.angle, speed: v0 ? v0.speed : 0 } : null);
   gpsState.card = card;
+  // de kaart volgt de kleur van de route die hij uitlegt (geel autoroute, paars eigen doel): dezelfde bron als de boog op de minimap (navdoel.js)
+  els.gps.style.setProperty('--nav-doel', route ? ROUTE_COLORS[route.kind] || '' : '');
   if (!turn && !card && !gpsState.timer) return;
   let key = gpsState.timer;
   if (turn) {
@@ -2522,27 +2524,6 @@ function drawCrowLine(ctx, [ax, ay], [bx, by], color) {
   ctx.restore();
 }
 
-// De pijl aan de rand (navpijl.js): gevuld = het doel dat je volgt, hol = wacht; glyph = de vorm van het type (navdoel.js GLYPH)
-function drawEdgeArrow(ctx, x, y, angle, color, s = 1, glyph = '', hol = false) {
-  drawNavPijl(ctx, x, y, angle, { kleur: color, s, glyph, hol, rand: C.dark });
-}
-
-// De afstand bij de gevulde pijl, binnen de kaart langs de pijl (13 px, donkere halo): de enige pijl die een getal krijgt
-function drawNavLabel(ctx, x, y, angle, tekst) {
-  ctx.save();
-  ctx.font = "13px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif";
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  const lx = x - Math.cos(angle) * 20, ly = y - Math.sin(angle) * 20;
-  ctx.lineJoin = 'round';
-  ctx.lineWidth = 3.4;
-  ctx.strokeStyle = inkA('dark', 0.9);
-  ctx.strokeText(tekst, lx, ly);
-  ctx.fillStyle = C.cream;
-  ctx.fillText(tekst, lx, ly);
-  ctx.restore();
-}
-
 export function drawRoute(ctx, pts, s = 1) {
   if (pts.length < 2) return;
   ctx.save();
@@ -3110,25 +3091,20 @@ function drawMinimap(dt, world) {
   const wind = miniWind(world);
   if (wind) drawMiniWind(ctx, WIND_X, MINIMAP_SIZE - WIND_Y, wind, mapRotation);
 
-  const edgeR = MINIMAP_SIZE / 2 - 11;
-  const aanRand = (a, r = edgeR) => [cx + Math.cos(a) * r, cy + Math.sin(a) * r];
-  // eerst wat geen doel is (hol: mensen en je eigen voertuigen), dan de wachtende doelen (hol), als laatste het doel dat je volgt (gevuld, met de afstand)
-  for (const a of ownEdges) { const [ax, ay] = aanRand(a); drawEdgeArrow(ctx, ax, ay, a, C.greenLight, 0.9, 'auto', true); }
-  for (const e of partnerEdges) if (e.a != null) { const [ax, ay] = aanRand(e.a); drawEdgeArrow(ctx, ax, ay, e.a, e.kleur, 0.9, '', true); }
+  // de kompasboog (navpijl.js, ontwerp C): het doel dat je volgt als boog met icoon en afstand, wachtende doelen, medespelers en voertuigen als punten
   const palet = markerColors();
   const actieveRoute = getActiveRoute();
+  const kompas = [];
+  const anderen = [...ownEdges.map((a) => ({ a, kleur: C.greenLight, icoon: GLYPH.auto })), ...partnerEdges.filter((e) => e.a != null).map((e) => ({ a: e.a, kleur: e.kleur, icoon: GLYPH.speler }))];
+  kompas.push(...anderen.slice(0, MAX_ANDEREN));
   for (const d of [...nav.secundair, ...(nav.actief ? [nav.actief] : [])]) {
-    if (inRange(d.x, d.y)) continue; // in beeld staat zijn marker; de pijl is voor wat buiten de kaart ligt
-    const a = edgeAngle(d.x, d.y);
-    const [ax, ay] = aanRand(a);
+    if (inRange(d.x, d.y)) continue; // in beeld staat zijn marker; de markering aan de rand is voor wat buiten de kaart ligt
     const actief = d.rol === 'actief';
-    drawEdgeArrow(ctx, ax, ay, a, navKleur(d, palet), actief ? 1.25 + pulseAt(t) * 0.15 : 0.9, d.glyph, !actief);
-    if (actief) {
-      // langs de route als die er is en naar dit doel loopt, anders hemelsbreed: hetzelfde getal als de doelregel
-      const langs = actieveRoute && actieveRoute.target && Math.hypot(actieveRoute.target.x - d.x, actieveRoute.target.y - d.y) < 40 ? actieveRoute.remaining : d.afstand;
-      drawNavLabel(ctx, ax, ay, a, formatDistance(langs));
-    }
+    // langs de route als die er is en naar dit doel loopt, anders hemelsbreed: hetzelfde getal als de doelregel
+    const langs = actieveRoute && actieveRoute.target && Math.hypot(actieveRoute.target.x - d.x, actieveRoute.target.y - d.y) < 40 ? actieveRoute.remaining : d.afstand;
+    kompas.push({ a: edgeAngle(d.x, d.y), kleur: navKleur(d, palet), icoon: GLYPH[d.glyph] || GLYPH.punt, actief, tekst: actief ? formatDistance(langs) : '' });
   }
+  drawKompasRand(ctx, MINIMAP_SIZE, kompas, { t, beweging: !reducedMotion() });
 }
 
 // A heli run (helirun.js): its rings as circles where they hang, the H to land
