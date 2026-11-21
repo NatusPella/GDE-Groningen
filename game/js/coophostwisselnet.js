@@ -96,8 +96,12 @@ export function pasMomentopnameToe(world, m, d = {}, opt = {}) {
     else uit.plek = 'eigen';
   }
   if (m.opdracht) {
-    if (d.zetOpdracht) { d.zetOpdracht(world, m.opdracht); uit.opdracht = true; }
-    else meld(world, `De opdracht ${m.opdracht.id} liep nog bij de vorige speler. Start hem zelf opnieuw als je hem wilt doen.`, 6);
+    // (#1059) de staat van de opdracht komt uit de eigen kopie van de momentopname; kan de nieuwe host hem niet hervatten (onbekende opdracht,
+    // ontbrekende staat, hij doet zelf al een opdracht), dan eindigt hij netjes met een melding en blijft er geen spookstaat achter.
+    let hervat = false;
+    if (d.zetOpdracht) { try { hervat = d.zetOpdracht(world, m.opdracht) !== false; } catch (e) { hervat = false; } }
+    uit.opdracht = hervat;
+    if (!hervat) meld(world, d.zetOpdracht ? OPDRACHT_WEG_TEKST : `De opdracht ${m.opdracht.id} liep nog bij de vorige speler. Start hem zelf opnieuw als je hem wilt doen.`, 7);
   }
   if (d.zetKapot && m.kapot.length) d.zetKapot(world, m.kapot);
   if (d.zetVoertuigen && m.voertuigen.length) d.zetVoertuigen(world, m.voertuigen);
@@ -109,6 +113,9 @@ export function pasMomentopnameToe(world, m, d = {}, opt = {}) {
     try { if (world.coopNet && world.coopNet.role === 'host' && world.coopNet.hub) world.coopNet.hub.announce({ k: 'melding', tekst }); } catch (e) { /* nog geen hub */ }
     import('./cinematics.js').then((c) => { if (c.isCinematicActive()) c.skipCinematic(); }).catch(() => {});
   }
+  // (#1060) de opening en de vlucht-in van het eigen spel zijn van wie ze zelf start: de nieuwe host speelt ze niet voor de groep (de opening
+  // wacht ook zelf tot hij weer alleen is, openingstart.js). Is een van beide al aan de gang, dan stopt hij hier.
+  import('./cinematics.js').then((c) => { if (c.isCinematicActive('intro') || c.isCinematicActive('start')) c.skipCinematic(); }).catch(() => {});
   erf.klaar = true;
   return uit;
 }
@@ -260,6 +267,13 @@ function verbindMet(world, kamer, wens = null, opt = {}) {
 // start de wereld op de momentopname en opent zijn kamer; de anderen sluiten daar aan. Lukt dat niet binnen een beurt (BEURT_S), dan is de
 // volgende opvolger aan de beurt. Alleen met een kamercode (de lijst en de codes gaan niet over een IP-adres) en niet zonder gasten.
 const POGING_S = 1.5;       // s tussen twee pogingen om bij de kamer van de opvolger aan te sluiten
+const EERSTE_EXTRA_S = 15;  // s: extra beurttijd voor de eerste opvolger (kamer openen + verbinden + één mislukte poging)
+const POGING_MAX_S = 6;    // s: de wachttijd tussen twee pogingen groeit (uitstel) tot hoogstens dit (#1059)
+const PROBE_MAX_S = 12;     // s: een poging die zo lang hangt (de verbinding komt niet op gang) wordt losgelaten en opnieuw gedaan; anders vrat één hangende poging de hele beurt van de opvolger (#1059)
+const UITSTEL_S = 8;        // s: komt de eigen beurt terwijl er nog een poging naar de opvolger loopt, dan wacht de gast hier hoogstens zo lang op voor hij zelf host wordt
+const SOLO_MAX_S = 240;     // s: zo lang blijft een tijdelijke host zonder rechtmatige rang zoeken naar de rechtmatige opvolger (daarna is het zijn spel)
+const SOLO_START_S = 4;     // s: de eerste poging van een tijdelijke host
+const SOLO_POGING_S = 5;    // s: de wachttijd tussen twee pogingen van een tijdelijke host (groeit mee met het mislukken, tot POGING_MAX_S)
 const HERSTEL_PENDING = 12; // een gast met meer dan dit nog onderweg krijgt deze ronde geen herstelmomentopname (het bandbreedtebudget)
 
 function herstelTik(world, dt) {
@@ -305,13 +319,22 @@ function controleerWeg(world) {
   const h = w.herstel; if (!h || h.net !== n || !h.laatst) return;
   startVal(world, h.laatst);
 }
+// Een bijbaan van de groep (die van een gast, of waar deze speler aan meedoet) loopt niet door over een overname of overdracht: de staat van een
+// baan staat bij wie het spel opende en gaat niet mee in de momentopname. Dan eindigt hij netjes met een melding in plaats van stil (#1060).
+export const BIJBAAN_WEG_TEKST = 'De bijbaan is gestopt, want het spel wisselt van speler. Je geld en je voortgang blijven van jezelf. Start hem straks opnieuw.';
+export const OPDRACHT_WEG_TEKST = 'De opdracht van de vorige speler kon niet verder. Je geld en je voortgang blijven van jezelf. Start hem zelf opnieuw als je hem wilt doen.';
+function bijbaanStopMelding(world, tekst) {
+  const G = world.coopBijbaanGast, sj = world.sideJob;
+  if (world.coopNet && ((G && (G.id || G.deelt)) || (sj && sj.active))) meld(world, tekst, 7);
+}
 // De gedeelde zoektocht naar een host: een lijst van kamers (elk met zijn eigen beurt, `duur` seconden), de eigen plek `ik` in die lijst (is de
 // beurt van jezelf, dan open je de kamer en wordt je host, anders probeer je bij die kamer aan te sluiten). Tikken in valTik (de speltijd, geen
 // echte klok). Gebruikt door de overname bij wegvallen en door het aansluiten bij een nieuwe host met zijn terugval.
 function startZoek(world, o) {
   const w = st(world);
-  const v = w.val = { t0: w.nu, lijst: o.lijst, ik: o.ik, info: o.info, max: o.max, zaad: o.zaad, wens: o.wens === undefined ? null : o.wens, m: o.m || null, namen: o.namen || (() => 'De ander'), tekst: o.tekst, meldAan: o.meldAan || 0, beurt: -1, volgende: 0, probe: null, eigenBezig: false, eigenGedaan: false, klaar: false, plek: bewaarPlek(world) };
+  const v = w.val = { t0: w.nu, lijst: o.lijst, ik: o.ik, info: o.info, max: o.max, zaad: o.zaad, wens: o.wens === undefined ? null : o.wens, m: o.m || null, namen: o.namen || (() => 'De ander'), tekst: o.tekst, meldAan: o.meldAan || 0, beurt: -1, volgende: 0, probe: null, fouten: 0, verhuisd: {}, uitstelTot: 0, eigenBezig: false, eigenGedaan: false, klaar: false, plek: bewaarPlek(world) };
   w.verbindt = !!o.verbind;
+  bijbaanStopMelding(world, BIJBAAN_WEG_TEKST); // (#1059, #1060) een baan van de groep stopt hier: zeg het, geen stille stop
   if (world.coopNet) N.stopCoopNet(world); // de eigen plek in de oude sessie loslaten: het eigen spel en personage komen terug
   zetPlekTerug(world, v.plek); // ... maar niet op de plek waar hij ooit binnenkwam: hij blijft staan (#452)
   const duur = o.lijst.reduce((a, r) => a + (r.duur || BEURT_S), 0);
@@ -320,7 +343,9 @@ function startZoek(world, o) {
 }
 function startVal(world, h) {
   const w = st(world), n = world.coopNet, d = w.deps;
-  const lijst = h.rang.filter((r) => r.kamer); if (!lijst.length || !d) return false;
+  // De eerste opvolger krijgt een langere beurt (EERSTE_EXTRA_S): zijn kamer moet nog open (meting, aanbod op de brokers) en dan kost een
+  // verbinding met STUN snel 10 tot 15 s; met één mislukte poging erbij paste dat niet in 30 s (#1059). Voor iedereen dezelfde tijd.
+  const lijst = h.rang.filter((r) => r.kamer).map((r, i) => (i === 0 ? { ...r, duur: BEURT_S + EERSTE_EXTRA_S } : r)); if (!lijst.length || !d) return false;
   const namen = (slot) => { const x = h.m.spelers.find((q) => q.slot === slot); return (x && x.naam) || 'De ander'; };
   const ik = n.session.slot, tekst = weggevallenTekst(lijst[0].slot === ik ? 'Jij' : namen(lijst[0].slot));
   startZoek(world, { lijst, ik, info: n.info, max: (n.session.welcome && n.session.welcome.max) || undefined, wens: n.wens !== undefined ? n.wens : null, m: h.m, namen, pauze: tekst, tekst: { aan: sluitAanTekst, mislukt: overnameMisluktTekst, host: jijOvernameTekst } });
@@ -334,26 +359,50 @@ function valTik(world) {
   const w = st(world), v = w.val, d = w.deps; if (!v) return;
   if (world.coopNet && !v.klaar) { w.val = null; w.verbindt = false; return; } // de speler zelf startte intussen een sessie: de zoektocht vervalt
   const beurt = beurtOp(v.lijst, w.nu - v.t0);
-  if (beurt >= v.lijst.length) { valKlaar(world, v.tekst.mislukt); return; }
+  if (beurt >= v.lijst.length) { losPoging(v); valKlaar(world, v.tekst.mislukt); return; }
   const kand = v.lijst[beurt];
   if (v.beurt !== beurt) { v.beurt = beurt; v.volgende = w.nu; }
-  if (kand.slot === v.ik) { if (!v.eigenBezig && !v.eigenGedaan) startEigen(world, v, kand); return; }
+  if (v.probe && w.nu - v.probe.t0 > PROBE_MAX_S + 2) { losPoging(v); v.fouten++; v.volgende = w.nu + pogingWacht(v.fouten); } // een poging die blijft hangen
+  if (kand.slot === v.ik) {
+    // Eerst afmaken wat al onderweg is: een poging naar de rechtmatige opvolger die bijna binnen is gaat voor de eigen beurt (uitstel, begrensd).
+    if (v.probe && !v.eigenBezig && !v.eigenGedaan) { if (!v.uitstelTot) v.uitstelTot = w.nu + UITSTEL_S; if (w.nu < v.uitstelTot) return; losPoging(v); }
+    if (!v.eigenBezig && !v.eigenGedaan) startEigen(world, v, kand);
+    return;
+  }
   if (v.probe || w.nu < v.volgende) return;
-  v.volgende = w.nu + POGING_S;
-  const probe = v.probe = {};
-  Promise.resolve().then(() => d.verbind(kand.kamer)).then((tr) => tr, () => null).then((tr) => {
-    if (v.probe === probe) v.probe = null;
-    if (!tr) return;
+  v.volgende = w.nu + pogingWacht(v.fouten);
+  const kamer = v.verhuisd[kand.slot] || kand.kamer;
+  doePoging(world, v, kamer, (tr) => {
     if (w.val !== v || v.klaar) { try { tr.close(); } catch (e) { /* al dicht */ } return; } // intussen afgehandeld
-    try { N.startClient(world, tr, v.info, { ...(d.clientOpts ? d.clientOpts(v.wens) : {}), wens: v.wens, code: kand.kamer }); }
+    try { N.startClient(world, tr, v.info, { ...(d.clientOpts ? d.clientOpts(v.wens) : {}), wens: v.wens, code: kamer }); }
     catch (e) { try { tr.close(); } catch (er) { /* al dicht */ } v.volgende = w.nu + 5; return; }
     // #983: na een hostwissel is de bron van de eerste route (lijstrij of oude kamer) van een andere host. De kamer van de nieuwe host
     // wordt de laatste code, zodat een gast die hier wegvalt via Opnieuw verbinden dezelfde sessie terugvindt.
-    if (d.onCode) { try { d.onCode(kand.kamer); } catch (e) { /* geen opslag: dan typt de gast de code */ } }
+    if (d.onCode) { try { d.onCode(kamer); } catch (e) { /* geen opslag: dan typt de gast de code */ } }
     v.klaar = true; if (v.meldAan) w.meldAan = v.meldAan; // wie het spel opende meldt de nieuwe host dat hij is aangesloten (hw-aangesloten, zodra het welkom er is)
     valKlaar(world, v.tekst.aan(v.namen(kand.slot)));
+  }, (e) => {
+    v.fouten++;
+    if (e && typeof e.verhuisd === 'string' && e.verhuisd && e.verhuisd !== kamer) { v.verhuisd[kand.slot] = e.verhuisd; v.volgende = w.nu; } // de opvolger woont nu in een andere kamer: meteen daarheen
+    else v.volgende = Math.max(v.volgende, w.nu + pogingWacht(v.fouten));
   });
 }
+
+// De wachttijd na een mislukte poging groeit (uitstel), met een bovengrens: een opvolger die nog bezig is met zijn kamer krijgt zo de tijd,
+// zonder dat de gast elke 1,5 s een nieuwe verbinding opzet (#1059).
+export const pogingWacht = (fouten) => Math.min(POGING_MAX_S, POGING_S * Math.pow(1.5, Math.max(0, fouten | 0)));
+// Een poging naar een kamer. Hangt hij langer dan PROBE_MAX_S, dan laat valTik hem los (een late transport gaat dan dicht). Een kamer die
+// verhuisd is (de opvolger kon de afgesproken kamer niet openen: `verhuisd-naar`) komt terug als e.verhuisd.
+function doePoging(world, houder, kamer, ok, mis) {
+  const w = st(world), d = w.deps;
+  const probe = houder.probe = { t0: w.nu, verlaten: false };
+  Promise.resolve().then(() => d.verbind(kamer, { tijd: PROBE_MAX_S * 1000 })).then((tr) => tr, (e) => { if (!probe.verlaten) mis(e); return null; }).then((tr) => {
+    if (probe.verlaten) { if (tr) { try { tr.close(); } catch (e) { /* al dicht */ } } return; }
+    if (houder.probe === probe) houder.probe = null;
+    if (tr) ok(tr);
+  });
+}
+function losPoging(houder) { if (houder.probe) { houder.probe.verlaten = true; houder.probe = null; } }
 // Deze speler is aan de beurt om host te zijn: de kamer openen, de wereld starten (op de momentopname, als die er is) en de anderen aannemen.
 async function startEigen(world, v, kand) {
   const w = st(world), d = w.deps;
@@ -363,15 +412,73 @@ async function startEigen(world, v, kand) {
   try {
     if (d.bereikbaar && !(await d.bereikbaar())) { faal(); return; }
     const wachtrij = []; let hub = null;
-    rm = await d.opKamer({ kamer: kand.kamer, aanvaard: (tr) => { if (hub) N.addGuest(world, tr); else wachtrij.push(tr); } });
+    const aanvaard = (tr) => { if (hub) N.addGuest(world, tr); else wachtrij.push(tr); };
+    let verwijs = null;
+    try { rm = await d.opKamer({ kamer: kand.kamer, aanvaard }); }
+    catch (e) {
+      // (#1059) de afgesproken kamer kon niet open (code bezet of de broker weigerde): een verse kamer en een verwijzing onder de afgesproken
+      // code (`verhuisd-naar`), zodat de gasten die nog zoeken de nieuwe kamer volgen. Lukt ook dat niet, dan is de volgende aan de beurt.
+      if (!d.maakKamer || !d.verwijs) throw e;
+      const nieuw = d.maakKamer();
+      rm = await d.opKamer({ kamer: nieuw, aanvaard });
+      try { verwijs = await d.verwijs(kand.kamer, nieuw); } catch (er) { verwijs = null; }
+    }
+    if (verwijs && verwijs.stop) { const stopKamer = rm.stop; rm = { ...rm, stop() { try { verwijs.stop(); } catch (e) { /* al weg */ } stopKamer(); } }; }
     if (w.val !== v || v.klaar || world.coopNet) { faal(); return; } // intussen afgebroken, of de speler zit al in een sessie
     hub = N.startHost(world, v.info, { ...(d.hostOpts ? d.hostOpts() : {}), seed: v.m ? v.m.zaad : v.zaad, max: v.max });
     zetPlekTerug(world, v.plek); // de gast blijft staan waar hij stond (geen sprong van de eigenlijke plek naar de oude)
     if (v.m) pasMomentopnameToe(world, v.m, d, { slot: v.ik, eigenKlokWeer: true, eigenPlek: true }); // zonder momentopname (de terugval van wie het spel opende) is de eigen wereld al goed
     for (const tr of wachtrij.splice(0)) N.addGuest(world, tr);
     v.klaar = true; w.rol = 'host'; w.rm = rm; w.overgenomen = (w.overgenomen || 0) + 1;
+    // Wie niet de eerste van de lijst is, is een tijdelijke host zolang er een rechtmatiger opvolger kan verschijnen (#1059, split-brain):
+    // zie soloTik. De eerste van de lijst (en de terugval van wie het spel opende, plek <= 0) heeft niemand om aan toe te geven.
+    const idx = v.lijst.findIndex((r) => r.slot === v.ik);
+    if (v.m && v.ik > 0 && idx > 0) w.solo = { net: world.coopNet, lijst: v.lijst, idx, verhuisd: v.verhuisd, info: v.info, wens: v.wens, namen: v.namen, sinds: w.nu, volgende: w.nu + SOLO_START_S, fouten: 0, rij: 0, probe: null, fase: 'zoek' };
     valKlaar(world, v.tekst.host);
   } catch (e) { faal(); } finally { v.eigenBezig = false; }
+}
+
+// ---- split-brain herstel (#1059) ----------------------------------------------------------------------------------------------
+// Een gast die na zijn eigen beurt host werd terwijl de rechtmatige opvolger (hoger in de lijst) er wel is, is een tijdelijke host. Hij blijft
+// zoeken naar de kamers van de opvolgers die voor hem in de lijst staan (de eerste het vaakst); lukt het aansluiten, dan geeft hij zijn eigen
+// sessie op: hij vraagt zijn eigen gasten mee te komen (hw-verbind, zoals bij een overdracht), wacht kort tot dat bericht er is, stopt zijn hub
+// en sluit zelf aan. Geld en voortgang zijn per speler (#429) en blijven van de speler zelf; er is geen wereld om te verliezen die niet toch
+// al een kopie was van de momentopname. Na SOLO_MAX_S is de sessie gewoon van hem (dan speelt iemand al een tijd in dat spel).
+function soloTik(world) {
+  const w = st(world), s = w.solo, n = world.coopNet, d = w.deps; if (!s) return;
+  if (!n || n !== s.net || n.role !== 'host' || !n.hub || !d || w.oud || (w.nieuw && w.nieuw.bezig) || w.val || w.verbindt || w.overname) { if (s.tr) { try { s.tr.close(); } catch (e) { /* al dicht */ } } w.solo = null; return; } // intussen iets anders geworden
+  if (s.fase === 'flush') { // het bericht aan de eigen gasten is weg: even wachten tot het aankomt, dan zelf van sessie wisselen
+    const open = [...n.hub.sessions.values()].some((x) => x.rel.pending.length > 0);
+    if (open && w.nu - s.t < FLUSH_MAX) return;
+    return soloSluitAan(world, s);
+  }
+  if (w.nu - s.sinds > SOLO_MAX_S) { w.solo = null; return; }
+  if (s.probe || w.nu < s.volgende) return;
+  const vooraf = s.lijst.slice(0, s.idx); if (!vooraf.length) { w.solo = null; return; }
+  const k = s.rij++, kand = vooraf[vooraf.length === 1 || k % 2 === 0 ? 0 : 1 + ((k >> 1) % (vooraf.length - 1))]; // de eerste van de lijst het vaakst
+  s.volgende = w.nu + Math.min(POGING_MAX_S, SOLO_POGING_S * Math.pow(1.5, Math.min(s.fouten, 4)));
+  const kamer = s.verhuisd[kand.slot] || kand.kamer;
+  doePoging(world, s, kamer, (tr) => {
+    if (w.solo !== s || world.coopNet !== n) { try { tr.close(); } catch (e) { /* al dicht */ } return; } // intussen anders geworden
+    s.tr = tr; s.kamer = kamer; s.naam = s.namen(kand.slot); s.fase = 'flush'; s.t = w.nu;
+    const id = nieuwId(d);
+    for (const x of rest(n, -1)) n.hub.announce({ k: HW.VERBIND, id, kamer, naam: naamVan(world, 0) }, x); // de eigen gasten gaan mee
+  }, (e) => {
+    s.fouten++;
+    if (e && typeof e.verhuisd === 'string' && e.verhuisd && e.verhuisd !== kamer) { s.verhuisd[kand.slot] = e.verhuisd; s.volgende = w.nu; }
+  });
+}
+function soloSluitAan(world, s) {
+  const w = st(world), d = w.deps, tr = s.tr; w.solo = null;
+  const plek = bewaarPlek(world);
+  try { if (w.rm) w.rm.stop(); } catch (e) { /* al weg */ } w.rm = null; w.rol = null;
+  N.stopCoopNet(world);
+  zetPlekTerug(world, plek); // hij blijft staan waar hij stond (#452)
+  try { N.startClient(world, tr, s.info, { ...(d.clientOpts ? d.clientOpts(s.wens) : {}), wens: s.wens, code: s.kamer }); }
+  catch (e) { try { tr.close(); } catch (er) { /* al dicht */ } meld(world, overnameMisluktTekst, 6); return; }
+  if (d.onCode) { try { d.onCode(s.kamer); } catch (e) { /* geen opslag */ } }
+  w.solo = null; w.soloGesloten = (w.soloGesloten || 0) + 1;
+  meld(world, sluitAanTekst(s.naam), 6);
 }
 
 // De nieuwe host na hw-draait: sluit wie het spel opende niet binnen AANSLUIT_S aan, dan neemt hij het weer over. De nieuwe host stuurt zijn
@@ -452,7 +559,8 @@ export function wisselTik(world, dt) {
   const o = w.oud;
   if (w.aansluit) { aansluitTik(world); if (world.coopNet !== n) return; } // de nieuwe host stopte zijn hub (terugval)
   if (w.meldAan && n && n.role === 'client' && n.joined) { n.session.sendEvent({ k: HW.AANGESLOTEN, id: w.meldAan }); w.meldAan = 0; }
-  if (n && n.role === 'host' && n.hub) herstelTik(world, dt);
+  if (w.solo) soloTik(world);
+  if (n && n.role === 'host' && n.hub && world.coopNet === n) herstelTik(world, dt);
   if (o && n && n.role === 'host') {
     if (o.bezig) {
       const s = n.hub.sessions.get(w.doel), sp = n.hub.roster.spelers.find((x) => x.slot === w.doel);

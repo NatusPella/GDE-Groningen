@@ -79,11 +79,13 @@ export async function hostRoom(room, env) {
     blob = await encryptBlob(room, JSON.stringify({ type: 'offer', sdp: pc.localDescription.sdp }));
     topic = await topicFor(room);
   } catch (e) { fail('Het aanbod voor je medespeler kon niet worden gemaakt. Probeer het opnieuw, of gebruik het IP-adres.'); return { transport, cancel }; }
+  let beantwoord = false;
   signaler.host(topic, blob, async (ablob) => {
-    if (ended) return;
+    if (ended || beantwoord) return; // #1059: een aanbod hoort bij één antwoord; een tweede gast op hetzelfde aanbod mag de lopende verbinding niet slopen
     let txt = null; try { txt = await decryptBlob(room, ablob); } catch (e) { txt = null; }
     const ans = txt && readSdp(txt, 'answer');
     if (!ans) return; // verkeerde code of geknoeid bericht: negeren
+    beantwoord = true;
     onstate('verbinden');
     clearTimeout(timer); timer = setTimeout(() => fail(MELDING), timeouts.connect); // het antwoord is binnen: nu telt de verbindingstijd
     try { await pc.setRemoteDescription({ type: 'answer', sdp: ans.sdp }); } catch (e) { fail('Het antwoord van je medespeler klopte niet.'); }
@@ -99,6 +101,7 @@ export async function joinRoom(room, env) {
   const fail = (txt) => { if (!ended) { ended = true; onstate('fout', txt); cancel(); } };
   const cancel = () => { ended = true; clearTimeout(timer); try { signaler.close(); } catch (e) { /* weg */ } try { pc.close(); } catch (e) { /* weg */ } }; // #589: ook een open kanaal hoort bij het opruimen dicht
   const timer = setTimeout(() => fail('Er kwam geen verbinding tot stand. Controleer de code en of het spel open staat.'), timeouts.connect);
+  let failedNu = null; const failed = new Promise((resolve) => { failedNu = resolve; }); // #1059: ook een ICE-fout of een verhuisde kamer meldt zich meteen, niet pas na de hele verbindtijd
   const opened = new Promise((resolve) => {
     pc.ondatachannel = (e) => {
       transport = wrapChannel(e.channel, pc);
@@ -108,9 +111,12 @@ export async function joinRoom(room, env) {
     };
   });
   onstate('wacht');
+  try { pc.addEventListener('connectionstatechange', () => { if (pc.connectionState === 'failed' && !ended) { ended = true; clearTimeout(timer); onstate('fout', 'De verbinding lukte niet.'); failedNu({ tekst: 'De verbinding lukte niet.' }); try { signaler.close(); } catch (e) { /* weg */ } try { pc.close(); } catch (e) { /* weg */ } } }); } catch (e) { /* een nep-pc zonder events */ }
   signaler.join(await topicFor(room), async (blob, reply) => {
     if (ended) return;
     let txt = null; try { txt = await decryptBlob(room, blob); } catch (e) { txt = null; }
+    const verh = txt && leesVerhuisd(txt); // #1059: de opvolger woont in een andere kamer (verhuisd-naar)
+    if (verh) { ended = true; clearTimeout(timer); try { signaler.close(); } catch (e) { /* weg */ } try { pc.close(); } catch (e) { /* weg */ } failedNu({ tekst: 'verhuisd', verhuisd: verh }); return; }
     const off = txt && readSdp(txt, 'offer');
     if (!off) { fail('De kamercode klopt niet, of het bericht is beschadigd.'); return; }
     try {
@@ -121,5 +127,21 @@ export async function joinRoom(room, env) {
       reply(await encryptBlob(room, JSON.stringify({ type: 'answer', sdp: pc.localDescription.sdp })));
     } catch (e) { fail('Het aanbod klopte niet.'); }
   });
-  return { opened, cancel };
+  return { opened, cancel, failed };
+}
+
+// #1059: `verhuisd-naar`. De opvolger die zijn afgesproken kamer niet kon openen zet onder die oude code een versleuteld bericht met de nieuwe kamer;
+// wie nog bij de oude kamer zoekt (joinRoom) krijgt dat in plaats van een aanbod en volgt de verwijzing. Alleen de kamercode gaat mee, geen adres.
+const KAMER_RE = /^[A-Za-z0-9_-]{4,32}$/;
+export function leesVerhuisd(txt) {
+  let o; try { o = JSON.parse(txt); } catch (e) { return null; }
+  return o && o.type === 'moved' && typeof o.kamer === 'string' && KAMER_RE.test(o.kamer) ? o.kamer : null;
+}
+export async function verwijsKamer(oud, nieuw, env) {
+  const { signaler } = env;
+  if (!KAMER_RE.test(nieuw)) throw new Error('ongeldige kamer');
+  const blob = await encryptBlob(oud, JSON.stringify({ type: 'moved', kamer: nieuw }));
+  const topic = await topicFor(oud);
+  signaler.host(topic, blob, () => {});
+  return { stop() { try { signaler.close(); } catch (e) { /* weg */ } } };
 }

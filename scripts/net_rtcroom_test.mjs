@@ -1,7 +1,7 @@
 // Samen spelen (#95): WebRTC via kamercode (game/js/net/rtcroom.js) met nep-RTCPeerConnection
 // en een nep-signaleerder. Geen echt netwerk, geen echte STUN of brokers.
 import assert from 'node:assert/strict';
-import { hostRoom, joinRoom, MAX_CHANNEL_BYTES } from '../game/js/net/rtcroom.js';
+import { hostRoom, joinRoom, verwijsKamer, leesVerhuisd, MAX_CHANNEL_BYTES } from '../game/js/net/rtcroom.js';
 import { HostSession, ClientSession } from '../game/js/net/session.js';
 import { decryptBlob } from '../game/js/net/sigcrypto.js';
 import { ICE_SERVERS } from '../game/js/net/netconfig.js';
@@ -187,5 +187,30 @@ await t('een te groot datachannel-frame wordt niet aan de codec gegeven (#589)',
   await waitFor(() => got.length === 1);
   assert.deepEqual([...got[0]], [1, 2]);
   host.cancel(); guest.cancel();
+});
+// #1059: verhuisd-naar. De opvolger zet onder de oude code een versleutelde verwijzing; wie daar zoekt krijgt de nieuwe kamer terug, geen aanbod.
+await t('verhuisd-naar: een gast bij de oude kamer krijgt de nieuwe kamer en geen aanbod', async () => {
+  const h = hub(), pcs = [];
+  const r = await verwijsKamer('OUDEKAMER1', 'NIEUWEKAMER2', { signaler: h.signaler() });
+  const guest = await joinRoom('OUDEKAMER1', { pcFactory: (ice) => makePc(ice, pcs), signaler: h.signaler(), timeouts: TO });
+  const f = await Promise.race([guest.failed, tick(500).then(() => null)]);
+  assert.ok(f && f.verhuisd === 'NIEUWEKAMER2', 'de verwijzing komt terug: ' + JSON.stringify(f));
+  assert.equal(leesVerhuisd('{"type":"moved","kamer":"x y"}'), null, 'een ongeldige kamer wordt genegeerd');
+  assert.equal(leesVerhuisd('geen json'), null);
+  r.stop();
+});
+
+// #1059: een tweede antwoord op hetzelfde aanbod sloopt de lopende verbinding niet
+await t('een tweede gast op hetzelfde aanbod sloopt de eerste verbinding niet', async () => {
+  const h = hub(), pcs = [];
+  const host = await hostRoom('K3J9D8F2MM', { pcFactory: (ice) => makePc(ice, pcs), signaler: h.signaler(), timeouts: TO });
+  const g1 = await joinRoom('K3J9D8F2MM', { pcFactory: (ice) => makePc(ice, pcs), signaler: h.signaler(), timeouts: TO });
+  const t1 = await g1.opened; await waitFor(() => host.transport.isOpen() && t1.isOpen());
+  const antwoord = h.answers.get([...h.offers.keys()][0]);
+  const hostPc = pcs.find((p) => p.channel && p.channel.label === 'gde-coop');
+  await antwoord(h.wire[h.wire.length - 1]); // dezelfde antwoordblob nog eens: een tweede gast op hetzelfde aanbod
+  await tick(30);
+  assert.ok(!hostPc.closed && host.transport.isOpen(), 'de eerste verbinding staat nog');
+  host.cancel(); g1.cancel();
 });
 console.log(`net_rtcroom_test: ${n}/${n} ok`);

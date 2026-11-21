@@ -65,7 +65,7 @@ import { REMEMBRANCE } from './beppe_texts.js';
 import { SERIES, GAME_TITLE } from './logo.js';
 import { registerNarrative, mayStart, narrativeBusy, narrativeState } from './narrative.js';
 import { storyLines, talkLines, radioContacts, appsAt, storyDataReady, readingTime, scene as storyScene } from './storytext.js';
-import { openingBlockers, openingIsNext, openingActEnd, openingFinish, openingReplayBlockers, openingReplayGate } from './openingstart.js';
+import { openingBlockers, groepInSpel, openingIsNext, openingActEnd, openingFinish, openingReplayBlockers, openingReplayGate } from './openingstart.js';
 import { updateStoryTalk, stopTalk, playTalk } from './storytalk.js';
 import { bridgeActive } from './storybridgerun.js';
 import { milestoneFlagsFor, milestoneFlagsForDone } from './storymilestones.js';
@@ -253,7 +253,7 @@ const GOALS = {
         // #986: de opening is de eerste film na het laadscherm; de vlucht-in van de spelstart houdt hem niet tegen
         // (openingstart.js). De reden van het wachten staat in de waarschuwing, zodat een vastloper zegt waarop hij wacht.
         const blockers = openingBlockers({
-          started: document.body.classList.contains('game-started'), client: world.coopRole === 'client', gate: gateOn(),
+          started: document.body.classList.contains('game-started'), client: world.coopRole === 'client', gate: gateOn(), groep: groepInSpel(world),
           missionActive: isMissionActive(), cinematicActive: isCinematicActive(), startActive: isCinematicActive('start'), sinceCinematicS: sinceCinematic(),
           narrativeBusy: narrativeBusy(), pigeon: !!world.pigeonMode, respawn: !!world.pendingRespawn, dataReady: storyDataReady(),
         });
