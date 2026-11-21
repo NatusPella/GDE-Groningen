@@ -1,6 +1,8 @@
 # Voetbalcarrière (ontwerp 21-11, epic #1106)
 
-> **Status: ontwerp, geen code.** Dit document is het plan voor de epic [#1106](https://github.com/NatusPella/GDE-Groningen/issues/1106): de voetbalsim in de Euroborg ([VOETBAL-SIM-21-11.md](VOETBAL-SIM-21-11.md), #981) wordt een carrière. Niets hiervan is gebouwd of in beeld bekeken. Alle cijfers zijn startwaarden die het balanspakket (#1116) met de economie-sim moet bevestigen.
+> **Status (21-11, later): gebouwd, niet in beeld bekeken.** De pure kern, de opslag, het kindscherm en de carrièrewedstrijd staan in de code; wat getest is en wat nog in Electron gecontroleerd moet worden staat in [VOETBAL-CARRIERE-VERIFICATIE-21-11.md](VOETBAL-CARRIERE-VERIFICATIE-21-11.md). Eigenaarsbesluiten 21-11 erbij: per ronde zelf spelen of laten uitrekenen, een kort seizoen (7 rondes, een ronde per 3 speldagen) en ontgrendeling per akte (akte 4). Dit document blijft het ontwerp; bij een verschil wint de code en het verificatiedocument.
+>
+> Oorspronkelijke status: ontwerp, geen code. Dit document is het plan voor de epic [#1106](https://github.com/NatusPella/GDE-Groningen/issues/1106): de voetbalsim in de Euroborg ([VOETBAL-SIM-21-11.md](VOETBAL-SIM-21-11.md), #981) wordt een carrière. Alle cijfers zijn startwaarden die het balanspakket (#1116) met de economie-sim moet bevestigen.
 >
 > **Eigenaarsbesluiten 21-11 verwerkt (zeven vragen, zie hoofdstuk 17):** Tammo en Tessa zijn allebei speelbaar (Tessa de ster), de rollen heten Speler, later Trainer en Manager, alle clubs hebben parodienamen, het spel gebruikt de voetbalvelden uit de hele provincie (lokale clubs in het begin, de top in de Euroborg), sponsors zijn parodiebedrijven die ook als panden in de wereld staan, blessures blijven.
 >

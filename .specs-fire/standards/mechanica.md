@@ -165,6 +165,16 @@ kost niets. De banen komen uit `game/vliegplekken.json`.
 
 **Tests.** `voetbal_test.mjs`, `voetbal_botsim.mjs` (100 wedstrijden computer tegen computer: gemiddeld 2 tot 5 doelpunten, geen vastlopers of NaN), `penalty_test.mjs`.
 
+## Voetbalcarrière (epic #1106)
+
+**Doel.** De voetbalsim wordt een carrière met seizoenen, ontwikkeling, transfers en een managerlaag (ontwerp: docs/VOETBAL-CARRIERE-21-11.md; gebouwd en nog te controleren: docs/VOETBAL-CARRIERE-VERIFICATIE-21-11.md).
+
+**Regels.** Eigen profiel per speler in `gde-voetbalcarriere-v1`, nooit in een savegame (ADR 0042); eigen dagteller op het nachtsignaal van `calendarday.js`, los van de verhaaldatum. Drie klassen van acht clubs (Talentenklasse, Terpklasse, Kroonklasse) met promotie en degradatie, beker en Waddenbeker; alle clubs hebben een parodienaam (ADR 0043). Seizoen: 7 rondes, een ronde per 3 speldagen. Per ronde zelf spelen (contractdeel plus bonus, volle ervaring) of laten uitrekenen (alleen het contractdeel, 60% ervaring). Niet-gespeelde duels zijn deterministisch (Poisson op de ratings, zaad uit seizoen, klasse, ronde en clubs): dezelfde seed geeft voor iedere speler dezelfde uitkomst. Alle geld loopt via `loopbaanVerdien` (vak Buiten); salaris volgt rondes, nooit nachten. Blessures: nooit getoond, hooguit 3 speldagen, uit te zetten. Ontgrendeling via de gedeelde poort (akte 4). Samen spelen: de carrière is van de speler zelf; een gast krijgt geld en ervaring per speler, geen competitiepunten; ratings worden aan de hostkant op het niveau van de klasse geklemd.
+
+**Bestanden.** `voetbalspelers.js`, `voetbalclubs.js`, `voetbalparken.js` met `voetbalparkendata.js` (gebouwd door `scripts/world/build_voetbalparken.mjs`), `voetbalseizoen.js`, `voetbalagenda.js`, `voetbalontwikkeling.js`, `voetbalcarriere.js`, `voetbalcarrierelive.js`, `voetbalcarriereui.js`, `voetbaltransfers.js`, `voetbalbeats.js`, `voetbalpoort.js`, `voetbalsamen.js`, `voetbalsponsors.js`, `voetbalclub_bezit.js`, `voetbalwereld.js`.
+
+**Tests.** `voetbal_spelers_test`, `voetbalparken_test`, `voetbal_seizoen_test`, `voetbal_ontwikkeling_test`, `voetbal_carriere_test`, `voetbal_carrierelive_test`, `voetbal_ui_test`, `voetbal_transfers_test`, `voetbal_beats_test`, `voetbal_samen_test`, `voetbal_sponsors_test`, `voetbal_wereld_test` en de sim-testbank `scripts/voetbal_carriere_sim.mjs`.
+
 ## Gevecht
 
 **Doel.** Melee met gewicht: een reeks slagen die oploopt zolang je raakt.

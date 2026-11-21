@@ -29,6 +29,9 @@ const NEUTRAAL = Object.freeze({ mx: 0, my: 0, buttons: 0 });
 const ROL_VOORKEUR = { aanvaller: 0, middenvelder: 1, verdediger: 2 };
 const controlOrder = (lijst) => lijst.map((x, i) => ({ i, r: x.rol })).filter((x) => x.r !== 'keeper').sort((a, b) => ROL_VOORKEUR[a.r] - ROL_VOORKEUR[b.r] || a.i - b.i).map((x) => x.i);
 
+// De factoren van een speler uit de carrière (voetbalspelers.js simFactors): geklemd op 0,6 tot 1,3; ontbrekende waarden zijn neutraal.
+const NEUTRAAL_FAC = Object.freeze({ sprint: 1, schot: 1, aanname: 1, verd: 1, uit: 1 });
+const ratingFac = (f) => { const o = {}; for (const k of ['sprint', 'schot', 'aanname', 'verd', 'uit']) o[k] = Number.isFinite(f[k]) ? Math.min(1.3, Math.max(0.6, f[k])) : 1; return o; };
 function makePlayer(team, i, name, level, rol, perTeam) {
   const dir = richtingVan(team);
   return {
@@ -38,8 +41,9 @@ function makePlayer(team, i, name, level, rol, perTeam) {
   };
 }
 
+// ratings: [[per plek van team 0], [idem team 1]] met { naam?, f: { sprint, schot, aanname, verd, uit } } (carrière, voetbalspelers.js simFactors); teams: [team0, team1] overschrijft de zes vaste clubs (voetbalclubs.js teamFor).
 // deeln: [{ slot, naam, char, bonus? }] (bonus: { sprint, schot, aanname } van het personage, voetbalkarakter.js; de mensen, de host eerst), opties: { duur 'kort' | 'normaal', stand (moeilijkheid), seed, tegenstander (0..3), aiBeide (voor de botsim: beide teams als tegenstander) }.
-export function makeMatch(deeln = [], { duur = 'normaal', stand: level = 'standaard', seed = 1, tegenstander: tg = 0, aiBeide = false, formaat = 'klein', vorming = null, stijl = 'evenwichtig', vormingTegen = null, stijlTegen = 'evenwichtig' } = {}) {
+export function makeMatch(deeln = [], { duur = 'normaal', stand: level = 'standaard', seed = 1, tegenstander: tg = 0, aiBeide = false, formaat = 'klein', vorming = null, stijl = 'evenwichtig', vormingTegen = null, stijlTegen = 'evenwichtig', teams: teamsOpt = null, ratings = null } = {}) {
   formaat = zetFormaat(formaat);
   const perTeam = FORMATEN[formaat].n;
   const rng = makeRng(seed);
@@ -48,11 +52,16 @@ export function makeMatch(deeln = [], { duur = 'normaal', stand: level = 'standa
   const tac = [{ vorming: vT, stijl: cleanStijl(stijl), lijst: formationList(formaat, vT) }, { vorming: vU, stijl: cleanStijl(stijlTegen), lijst: formationList(formaat, vU) }];
   const order = controlOrder(tac[0].lijst);
   const ai = [aiBeide ? aiLevel(level) : mateLevel(level), aiLevel(level)];
-  const teams = [TEAMS[0], opponent(tg)];
+  const teams = teamsOpt && teamsOpt[0] && teamsOpt[1] ? [teamsOpt[0], teamsOpt[1]] : [TEAMS[0], opponent(tg)];
   const players = [];
-  for (let t = 0; t < 2; t++) for (let i = 0; i < perTeam; i++) players.push(makePlayer(t, i, (t === 0 ? NAMES_HOME : NAMEN_UIT)[i], ai[t], tac[t].lijst[i].rol, perTeam));
+  for (let t = 0; t < 2; t++) for (let i = 0; i < perTeam; i++) {
+    const rt = ratings && ratings[t] && ratings[t][i];
+    const pl = makePlayer(t, i, (rt && rt.naam) || (t === 0 ? NAMES_HOME : NAMEN_UIT)[i], ai[t], tac[t].lijst[i].rol, perTeam);
+    if (rt && rt.f) pl.fac = ratingFac(rt.f); // ratings per speler (carrière, #1107): zonder blijft alles neutraal en de sim gelijk
+    players.push(pl);
+  }
   const humans = (deeln || []).slice(0, MAX_FOOTBALL_PLAYERS).map((d, k) => ({
-    slot: d.slot, naam: d.naam || 'Speler', char: d.char || null, ctl: order[k], weg: false, laad: { schot: 0, lang: 0 }, vorig: 0, vorigW: 0, wisselCd: 0, autoT: 0, doelpunten: 0, schoten: 0, assist: 0, inv: NEUTRAAL, bonus: { ...NEUTRALE_BONUS, ...(d.bonus || null) },
+    slot: d.slot, naam: d.naam || 'Speler', char: d.char || null, ctl: order[k], weg: false, laad: { schot: 0, lang: 0 }, vorig: 0, vorigW: 0, wisselCd: 0, autoT: 0, doelpunten: 0, schoten: 0, assist: 0, inv: NEUTRAAL, bonus: { ...NEUTRAAL_FAC, ...NEUTRALE_BONUS, ...(d.bonus || null) },
   }));
   for (const mm of humans) { players[mm.ctl].slot = mm.slot; players[mm.ctl].laatsteMens = mm.slot; }
   const duurHelft = duurVan(formaat, duur);
@@ -258,7 +267,7 @@ function beweeg(m, p, it, dt) {
   const lv = m.ai[p.team];
   let top = p.rol === 'keeper' ? LOOP.keeper : LOOP.loop;
   const sterkte = Math.min(1, Math.hypot(it.dx, it.dy));
-  if (it.sprint && sterkte > 0.5 && !p.moe && p.rol !== 'keeper' && p.stamina > 0) { top = LOOP.sprint * bonusVan(m, p).sprint; p.stamina = Math.max(0, p.stamina - LOOP.stamina_af * dt); if (p.stamina <= 0.02) p.moe = true; }
+  if (it.sprint && sterkte > 0.5 && !p.moe && p.rol !== 'keeper' && p.stamina > 0) { top = LOOP.sprint * bonusVan(m, p).sprint; p.stamina = Math.max(0, p.stamina - (LOOP.stamina_af * dt) / bonusVan(m, p).uit); if (p.stamina <= 0.02) p.moe = true; }
   else { p.stamina = Math.min(1, p.stamina + LOOP.stamina_bij * dt * (sterkte < 0.1 ? 1.6 : 1)); if (p.moe && p.stamina > 0.3) p.moe = false; }
   if (!human) top *= lv.tempo;
   if (p.stun > 0) { top *= 0.25; p.stun -= dt; }
@@ -292,7 +301,7 @@ function schop(m, p, kick) {
     if (distance > 0.5) { dx = (tx - p.x) / distance; dy = (ty - p.y) / distance; }
   }
   const humanP = p.slot != null;
-  const basis = humanP ? 0.035 / bonusVan(m, p).schot : p.spreiding;
+  const basis = humanP ? 0.035 / bonusVan(m, p).schot : p.spreiding / bonusVan(m, p).schot;
   let spreiding = kick.soort === 'schot' ? basis + Math.abs(k - 0.85) * 0.1 : kick.soort === 'lang' ? basis * 0.6 + 0.02 : basis * 0.35 + 0.01;
   if (p.stun > 0) spreiding += 0.08;
   const a = Math.atan2(dy, dx) + (m.rng() * 2 - 1) * spreiding;
@@ -313,7 +322,7 @@ function schop(m, p, kick) {
   m.ev.push({ type: 'schop', soort: kick.soort, sterkte: k, x: p.x, y: p.y, speler: p.id });
   if (m.fase === 'aftrap' || m.fase === 'hervat') { m.fase = 'spel'; m.hervat = null; }
 }
-const bonusVan = (m, p) => { const mm = p.slot != null ? m.mensen.find((x) => x.slot === p.slot) : null; return mm ? mm.bonus : NEUTRALE_BONUS; };
+const bonusVan = (m, p) => { const mm = p.slot != null ? m.mensen.find((x) => x.slot === p.slot) : null; return mm ? mm.bonus : (p.fac || NEUTRAAL_FAC); };
 const humanOf = (m, p) => (p.laatsteMens != null ? m.mensen.find((x) => x.slot === p.laatsteMens) || null : null);
 
 function voerUit(m, p, it) {
@@ -331,7 +340,7 @@ function tackleControle(m, p) {
   if (!o || o.team === p.team || dist(p, o) > 1.05) return;
   p.tackleGedaan = true;
   const lv = m.ai[p.team];
-  let chance = p.slot != null ? 0.6 : 0.2 + lv.tackle * 0.8;
+  let chance = (p.slot != null ? 0.6 : 0.2 + lv.tackle * 0.8) * bonusVan(m, p).verd;
   const behind = Math.cos(hoek(p.face, o.face)) > 0.4;
   chance -= 0.05 * o.speed;
   if (!behind) chance += 0.1;
