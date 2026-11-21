@@ -109,7 +109,7 @@ try {
     assert.equal(rij.id, host.world.coopNet.hub.id, 'het vaste id van deze sessie');
     assert.deepEqual([rij.anders, rij.vol, rij.kan], [false, false, true], 'aan te sluiten volgens de lijst');
     // de rij heeft precies de velden die de UI leest: er is geen apart veld voor een koploze host nodig
-    assert.deepEqual(Object.keys(rij).sort(), ['anders', 'dim', 'gezien', 'hostKey', 'id', 'kan', 'max', 'naam', 'ouderdom', 'spelers', 'versie', 'vol']);
+    assert.deepEqual(Object.keys(rij).sort(), ['anders', 'dim', 'gezien', 'hostKey', 'id', 'kan', 'max', 'naam', 'niveau', 'ouderdom', 'spelers', 'versie', 'vol']); // niveau: het optionele wereldniveau van #1169 (serverlijst.js), bewust in de rij
     assert.deepEqual([host.publiek().id, host.publiek().naam, host.publiek().spelers, host.publiek().max], [host.world.coopNet.hub.id, 'Zomeravond', 1, 4]);
     assert.equal(host.kamer, ROOM);
     return `${rij.naam}: ${rij.spelers}/${rij.max}, versie ${rij.versie}`;

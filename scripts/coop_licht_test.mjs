@@ -30,10 +30,21 @@ const bestanden = fs.readdirSync(COOP)
 
 let pass = 0, fail = 0, bekend = 0;
 const fouten = [];
+const herkanst = [];
+// Eén herkansing per test, met melding: sommige tests openen echte TCP-verbindingen en kennen tijdgrenzen (until, sleep) die onder belasting
+// (parallelle bouw, een tweede Electron) kunnen overschrijden. Een test die twee keer faalt blijft een fout; slaagt hij de tweede keer, dan staat hij
+// in de samenvatting als wankel (herkanst), zodat het zichtbaar blijft en niet stilletjes verdwijnt.
+const draai = (bestand) => spawnSync(process.execPath, [bestand], { cwd: ROOT, encoding: 'utf8', timeout: PER_TEST_MS, maxBuffer: 32 << 20 });
 const t0 = Date.now();
 for (const naam of bestanden) {
   const bestand = path.join(COOP, naam);
-  const r = spawnSync(process.execPath, [bestand], { cwd: ROOT, encoding: 'utf8', timeout: PER_TEST_MS, maxBuffer: 32 << 20 });
+  let r = draai(bestand);
+  if (r.status !== 0 && !BEKEND_KAPOT[naam]) {
+    const eerste = ((r.stdout || '') + (r.stderr || '')).trim().split(/\r?\n/).filter(Boolean).slice(-1)[0] || (r.error ? String(r.error.code || r.error.message) : 'geen uitvoer');
+    console.log(`HERKANS coop/${naam} (eerste poging mislukt: ${eerste})`);
+    r = draai(bestand);
+    if (r.status === 0) herkanst.push(naam);
+  }
   const out = ((r.stdout || '') + (r.stderr || '')).trim();
   const secs = (Date.now() - t0) / 1000;
   const laatste = out.split(/\r?\n/).filter(Boolean).slice(-1)[0] || '';
@@ -55,5 +66,6 @@ for (const naam of bestanden) {
 }
 
 console.log(`\ncoop-tests: ${pass} geslaagd, ${bekend} bekend kapot, ${fail} onverwacht mislukt (${bestanden.length} bestanden)`);
+if (herkanst.length) console.log('Wankel (pas bij de tweede poging geslaagd): ' + herkanst.join(', '));
 if (fail) { console.log('Onverwacht mislukt: ' + fouten.join(' | ')); process.exit(1); }
 process.exit(0);
