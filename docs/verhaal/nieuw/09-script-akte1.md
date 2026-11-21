@@ -217,24 +217,24 @@ TAMMO (telefoon): ...Ja. [NIEUW]
 (regie: zaterdagmiddag. Sjabbe staat voor Pand & Poen met een kopieermachine op een steekkar. Tessa kijkt naar het prijskaartje, Tammo naar de steekkar.)
 SJABBE: Ik vraag niks. Ik zeg alleen: dit ding moet naar boven. [NIEUW]
 TAMMO: Hoe zwaar? [NIEUW]
-SJABBE: Zwaarder dan jij denkt. Lichter dan ik vertel. [NIEUW]
+SJABBE: Dat hangt af van wie hem tilt. Ik zeg niks. [NIEUW]
 TESSA: Wij doen het voor twintig euro. [NIEUW]
-SJABBE: Dertig. Maar dan draagt hij. [NIEUW]
+SJABBE: Dertig. Hij draagt, jij wijst. Zo is het eerlijk. [NIEUW]
 (regie: Tammo tilt, Tessa wijst de trap, en samen krijgen ze de kopieermachine boven zonder één kras. Sjabbe telt het geld uit in kleine briefjes.)
 SJABBE: Een man in een blauw colbert kocht gisteren al mijn kopieerpapier. Contant. Uit een klomp. [NIEUW]
 TESSA: Wat moet hij met kopieerpapier? [NIEUW]
-SJABBE: Papier is macht. Zegt hij. Ik zeg niks. [NIEUW]
+SJABBE: Hij zei dat het voor een plan was. Ik zeg niks. [NIEUW]
 
 ## [N2] Een duif op de gang – Stad, Paddepoel, elfde verdieping – flat
 (regie: vrijdagavond, laat licht. Op de gang van de elfde verdieping staat een oude man in een vest met zes duiven om zich heen. Een duif zit op de deurmat van de flat.)
 TAMMO: Dat is de buurman. Hij woont hier al sinds de verhuisdag, met zijn duiven. [NIEUW]
 TESSA: Je kent hem? [NIEUW]
-TAMMO: Nee. De duiven kennen mij. [NIEUW]
+TAMMO: Nee. Hij kent mij. Dat is het probleem. [NIEUW]
 VELDKAMP: Die zat hier al. Hij wacht op jou. [NIEUW]
 TAMMO: Duiven wachten op niemand. [NIEUW]
 VELDKAMP: Zes jaar zit ik hier. Dat is de eerste die niet wegvliegt. [NIEUW]
 TESSA: Zal ik soep maken? Voor drie? [NIEUW]
-VELDKAMP: Ik eet liever alleen. Maar kom maar. [NIEUW]
+VELDKAMP: Ik eet alleen. Maar zes duiven eten mee. Dus ja. [NIEUW]
 
 ## [N3] Soep bij Beppe – Stad, Beppe's huis aan de westrand – te voet
 (regie: zondagmiddag. Een klein huis met een tuin en een rij laarzen bij de deur. Beppe staat al in de deuropening, met een pollepel.)
@@ -244,14 +244,14 @@ BEPPE: Ytst dan mar earst, dan prate wy. [NIEUW]
 TESSA: Wat zegt ze? [NIEUW]
 TAMMO: Eerst eten. Dan praten. [NIEUW]
 BEPPE: Hy seit neat, mar hy docht it goed. [NIEUW]
-TESSA: Dat heb ik ook al gezien. [NIEUW]
+TESSA: Dat zag ik. De eerste week al. [NIEUW]
 (regie: Beppe schept nog een keer op. Tammo kijkt naar zijn bord.)
 
 ## [N4] Een eerste ronde – Stad, Station Grunn – te voet
 (regie: maandagochtend. Op het stationsplein staan een taxi, een stapel formulieren en een klusbord. Ze proberen drie dingen na elkaar.)
 TESSA: Taxi. Jij rijdt. [NIEUW]
 TAMMO: Links of rechts? [NIEUW]
-TESSA: Ik zeg het wel als het fout gaat. [NIEUW]
+TESSA: Als het misgaat, hoor je het als eerste. Dat is mijn werk. [NIEUW]
 (regie: de eerste rit gaat soepel. Tammo bedankt de klant; Tessa ziet het in de spiegel.)
 TESSA: Formulieren. Dit doe ik liever alleen. [NIEUW]
 TAMMO: Ik wacht buiten. [NIEUW]
@@ -259,7 +259,7 @@ JELLE (telefoon): Mevrouw Tessa. Uw auto staat op een plek die ik gisteren heb g
 TESSA (telefoon): Het is een stoep. [NIEUW]
 JELLE (telefoon): Een stoep met een overeenkomst. [NIEUW]
 TAMMO: Wie koopt een stoep? [NIEUW]
-TESSA: Iemand die de regels leest. [NIEUW]
+TESSA: Iemand die het kleine lettertje leest. Voor de lol. [NIEUW]
 
 ## [M03.1] Het Loket: intro – Stad, Het Loket bij de Grote Markt – te voet
 (regie: bewijsmoment, relatie-bijbel 3: Tessa leest het naamplaatje van de loketbediende en groet haar bij haar naam. Tammo kijkt even naar zijn schoenen en glimlacht.)

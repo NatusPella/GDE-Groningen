@@ -1,5 +1,5 @@
 {
- "note": "Humorkeuze (#1134), ronde 4: nieuwe stappen N1-N8.",
+ "note": "Humorkeuze (#1134), ronde 4: nieuwe stappen N1-N8. Humorronde 21-11: opnieuw beoordeeld met het volledige paneel (docs/verhaal/HUMOR-PANEEL-21-11.md).",
  "beats": [
   {
    "label": "humor-review",
@@ -7,74 +7,76 @@
    "chosen": 1,
    "panel": {
     "votes": [
+     0,
      1,
-     2,
      1
     ],
-    "reason": "Natuurlijk, warm en droog; Tammo's 'Het is een punaise' landt er direct op, terwijl A/C te zwaar aanzetten.",
+    "reason": "Meest onverwachte pointe die bij het personage past.",
     "certainty": "midden"
    },
    "id": "HN-01",
    "scene": "N8",
    "speaker": "OMA TRIJNTJE",
-   "context": "Oma's logeerkamer, avond. Tessa en Tammo pakken tegelijk dezelfde punaise; een lange stilte. Beneden klinkt Oma's pollepel op een pan en ze roept dat ze niet slapen. Tessa: \"We slapen, Oma.\"",
+   "context": "Oma's logeerkamer, avond. Tessa en Tammo pakken tegelijk dezelfde punaise; een lange stilte. Beneden klinkt Oma's pollepel op een pan en ze roept dat ze niet slapen. Tessa: \"We slapen, Oma.\" Oma antwoordt; daarna zegt Tammo \"Het is een punaise.\"",
    "shot": "twee-shot op hun handen, dan de vloer (het geluid komt van beneden)",
    "variants": [
-    "Dat is geen slaapgeluid, jong.",
-    "Dat klinkt niet als slapen, jong.",
-    "Ik ken slapen. Dit is het niet."
+    "Ik ben tweeënnegentig. Ik weet hoe slapen klinkt.",
+    "Dat is geen slapen. Dat is stilte met een plan.",
+    "Ik ben ook jong geweest, hoor. Slapen klinkt anders."
    ],
-   "neutral": "Ga nou maar slapen, jong."
+   "neutral": "Dat klinkt niet als slapen, jong."
   },
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 1,
+   "chosen": "neutral",
    "panel": {
     "votes": [
-     1,
+     "neutral",
      1,
      0
     ],
-    "reason": "Kort en droog understatement dat Tammo's stilte als vangst erkent, zonder uitleg.",
-    "certainty": "midden"
+    "reason": "Twee woorden, maximaal understatement.",
+    "certainty": "laag",
+    "tiebreak": "neutral"
    },
    "id": "HN-02",
    "scene": "N6",
    "speaker": "KAPITEIN KLAAS",
-   "context": "Noordpolderzijl, rubberboot. Klaas zegt: praat tegen het water, dan vangt hij. Tammo zegt niets (alleen puntjes).",
+   "context": "Noordpolderzijl, rubberboot. Klaas zegt: praat tegen het water, dan vangt hij. Tammo zegt niets (alleen puntjes). Klaas reageert; daarna vraagt Tessa of ze weer aan land mag.",
    "shot": "halve close-up Tammo stil aan de rand; Klaas knikt tevreden",
    "variants": [
-    "Dat is ook praten.",
-    "Dat telt.",
-    "Dat is ook een gesprek."
+    "Hij zegt meer dan sommige mensen.",
+    "Het water vindt het prachtig. Je ziet het aan de rimpels.",
+    "Mooi gesproken, jongen. Zo hoor ik het graag."
    ],
-   "neutral": "Goed zo."
+   "neutral": "Dat telt."
   },
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 2,
+   "chosen": "neutral",
    "panel": {
     "votes": [
-     2,
+     "neutral",
      1,
      2
     ],
-    "reason": "De kicker 'Behalve de leuke' geeft Tessa een droge, eigen pointe op de bureaucratische stoepkoop.",
-    "certainty": "laag"
+    "reason": "Droog en past bij Jelle; 'behalve de leuke' landt.",
+    "certainty": "laag",
+    "tiebreak": "neutral"
    },
    "id": "HN-03",
    "scene": "N4",
    "speaker": "TESSA",
-   "context": "Station Grunn. Jelle belt dat haar auto op een stoep staat die hij gisteren kocht; Tammo vraagt wie een stoep koopt.",
+   "context": "Station Grunn. Jelle belt dat haar auto op een stoep staat die hij gisteren kocht (\"Een stoep met een overeenkomst.\"). Tammo vraagt: \"Wie koopt een stoep?\" Tessa geeft het laatste woord van de scène. Jelle is de bureaucratische, rijke eikel met een zachte kern.",
    "shot": "Tessa met de telefoon, Tammo naast haar; geen reactieshot",
    "variants": [
-    "Iemand die de regels leest.",
-    "Iemand die het kleine lettertje leest.",
-    "Iemand die alle regels kent. Behalve de leuke."
+    "Iemand die het kleine lettertje leest. Voor de lol.",
+    "Iemand met een heel groot bureau en nul vrienden.",
+    "Iemand die vroeger geen stoep had om op te zitten."
    ],
-   "neutral": "Iemand die graag wint."
+   "neutral": "Iemand die alle regels kent. Behalve de leuke."
   },
   {
    "label": "humor-review",
@@ -83,24 +85,302 @@
    "panel": {
     "votes": [
      0,
-     "neutral",
-     2
+     1,
+     0
     ],
-    "reason": "Past bij Sjabbes vaagheid-met-een-wenk en laat de prijs aan Tessa, zodat haar twintig euro erna als tegenzet werkt.",
-    "certainty": "laag",
-    "tiebreak": 0
+    "reason": "Zijn vaste 'ik zeg niks' als ontwijking.",
+    "certainty": "midden"
    },
    "id": "HN-04",
    "scene": "N1",
    "speaker": "SJABBE",
-   "context": "Voor Pand & Poen. Tammo vraagt hoe zwaar de kopieermachine is; Sjabbe (die altijd zegt dat hij niks vraagt) antwoordt vaag.",
-   "shot": "halve close-up Sjabbe met de steekkar; Tammo kijkt naar de machine",
+   "context": "Voor Pand & Poen, zaterdagmiddag. Sjabbe (vaag, zegt altijd dat hij niks vraagt) heeft een kopieermachine op een steekkar. Tammo vraagt \"Hoe zwaar?\" Sjabbe antwoordt; daarna biedt Tessa twintig euro aan.",
+   "shot": "Sjabbe naast de steekkar, Tammo kijkt naar de kopieermachine",
    "variants": [
-    "Zwaarder dan jij denkt. Lichter dan ik vertel.",
-    "Net zwaar genoeg voor dertig euro.",
-    "Zwaar. Ik zeg niks over hoe zwaar."
+    "Dat hangt af van wie hem tilt. Ik zeg niks.",
+    "Een kleine koe. Maar dan van metaal.",
+    "Genoeg voor twee jonge mensen met een goed plan."
    ],
-   "neutral": "Zwaar genoeg. Dertig euro."
+   "neutral": "Zwaarder dan jij denkt. Lichter dan ik vertel."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 1,
+   "panel": {
+    "votes": [
+     "neutral",
+     2,
+     1
+    ],
+    "reason": "Ongezegde liefde verstopt in een punaise.",
+    "certainty": "laag",
+    "tiebreak": 1
+   },
+   "id": "HN-05",
+   "scene": "N8",
+   "speaker": "TESSA",
+   "context": "Oma's logeerkamer, na de punaise-stilte. Oma riep net \"Dat klinkt niet als slapen, jong.\" Tammo zei: \"Het is een punaise.\" Tessa herhaalt of vult aan; dit is de kicker van de scène.",
+   "shot": "close-up op Tessa, een beetje rood; beneden is het stil",
+   "variants": [
+    "Een punaise. Ja.",
+    "Een punaise. We hebben hem al een beetje lief.",
+    "Het is een punaise, Oma. Een heel lieve."
+   ],
+   "neutral": "Het is een punaise."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": "neutral",
+   "panel": {
+    "votes": [
+     "neutral",
+     1,
+     2
+    ],
+    "reason": "Kort, zeeziek, geen verdere uitleg nodig.",
+    "certainty": "laag",
+    "tiebreak": "neutral"
+   },
+   "id": "HN-06",
+   "scene": "N6",
+   "speaker": "TESSA",
+   "context": "Noordpolderzijl, rubberboot. Klaas zegt: \"Jij zit stil en je vangt. Zij praat en zij is groen.\" Tessa (zeeziek, krampachtig aan de reling) reageert; slotzin van de scène.",
+   "shot": "Tessa groen aan de reling, Klaas en Tammo kalm op de achtergrond",
+   "variants": [
+    "Het water is mijn keuze niet. De boot ook niet.",
+    "Ik praat niet tegen water. Water heeft nooit iets voor mij gedaan.",
+    "Ik doe mijn best, Klaas. Mijn maag niet."
+   ],
+   "neutral": "Ik heb het water niet gekozen."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 1,
+   "panel": {
+    "votes": [
+     1,
+     1,
+     2
+    ],
+    "reason": "Schreeuwen heel rustig: kalme paniek, droog.",
+    "certainty": "midden"
+   },
+   "id": "HN-07",
+   "scene": "N4",
+   "speaker": "TESSA",
+   "context": "Station Grunn, maandagochtend. Ze proberen een taxirit; Tessa zegt \"Taxi. Jij rijdt.\" Tammo vraagt \"Links of rechts?\" Tessa antwoordt (ze is blind en navigeert op gehoor en gevoel).",
+   "shot": "taxi, Tessa op de bijrijdersstoel, Tammo grijpt het stuur",
+   "variants": [
+    "Als het misgaat, hoor je het als eerste. Dat is mijn werk.",
+    "Dat merk je vanzelf. Ik schreeuw dan heel rustig.",
+    "Ik zit naast je. Dan gaat het goed."
+   ],
+   "neutral": "Ik zeg het wel als het fout gaat."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 1,
+   "panel": {
+    "votes": [
+     "neutral",
+     1,
+     0
+    ],
+    "reason": "Meest onverwachte pointe die bij het personage past.",
+    "certainty": "laag",
+    "tiebreak": 1
+   },
+   "id": "HN-08",
+   "scene": "N1",
+   "speaker": "SJABBE",
+   "context": "Voor Pand & Poen. Tessa bood twintig euro voor het sjouwen van de kopieermachine de trap op. Sjabbe tegenbod met een wenk naar Tammo (die tilt, Tessa wijst de trap).",
+   "shot": "Sjabbe wijst met zijn kin naar Tammo",
+   "variants": [
+    "Dertig. Hij draagt, jij wijst. Zo is het eerlijk.",
+    "Dertig. Met de trap erbij. De trap is vandaag ook zwaarder.",
+    "Dertig. En een kop koffie erbij. Ik vraag niks terug."
+   ],
+   "neutral": "Dertig. Maar dan draagt hij."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 2,
+   "panel": {
+    "votes": [
+     2,
+     2,
+     2
+    ],
+    "reason": "Vriendelijk als het engste: droge dreiging.",
+    "certainty": "hoog"
+   },
+   "id": "HN-09",
+   "scene": "N1",
+   "speaker": "SJABBE",
+   "context": "Na het sjouwen telt Sjabbe het geld uit. Hij vertelt dat een man in een blauw colbert gisteren al zijn kopieerpapier kocht, contant, uit een klomp. Tessa: \"Wat moet hij met kopieerpapier?\" Sjabbe sluit de scène af. De man is een handlanger van Jelle (onbenoemd). Eerder zei Sjabbe: \"Zwaarder dan jij denkt.\"",
+   "shot": "Sjabbe telt kleine briefjes uit, kijkt schuin",
+   "variants": [
+    "Hij zei dat het voor een plan was. Ik zeg niks.",
+    "Hij zegt dat papier de wereld regeert. Ik heb nog één pak. Ik zeg niks.",
+    "Hij was vriendelijk. Dat vind ik het engste. Pas op, jullie."
+   ],
+   "neutral": "Papier is macht. Zegt hij. Ik zeg niks."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 1,
+   "panel": {
+    "votes": [
+     1,
+     1,
+     "neutral"
+    ],
+    "reason": "De duif heeft mijn adres: absurd en droog.",
+    "certainty": "midden"
+   },
+   "id": "HN-10",
+   "scene": "N2",
+   "speaker": "TAMMO",
+   "context": "Gang op de elfde verdieping van de flat in Paddepoel, vrijdagavond. Een duif zit op de deurmat; de oude buurman Veldkamp staat bij zes duiven. Tessa vraagt: \"Je kent hem?\" Tammo antwoordt. (Canon: duiven volgen en gehoorzamen Tammo; niemand legt het ooit uit.)",
+   "shot": "Tessa kijkt van Tammo naar de duif op de deurmat",
+   "variants": [
+    "Nee. Hij kent mij. Dat is het probleem.",
+    "Nee. Maar de duif heeft mijn adres.",
+    "Nee. Maar ze zijn altijd lief voor me geweest."
+   ],
+   "neutral": "Nee. De duiven kennen mij."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 1,
+   "panel": {
+    "votes": [
+     1,
+     1,
+     1
+    ],
+    "reason": "Norse ja via de duiven; zacht zonder zoetigheid.",
+    "certainty": "hoog"
+   },
+   "id": "HN-11",
+   "scene": "N2",
+   "speaker": "VELDKAMP",
+   "context": "Zelfde gang. Veldkamp (oude man, zes jaar eenzaam met zijn duiven, norse buitenkant, zacht van binnen) hoort Tessa vragen: \"Zal ik soep maken? Voor drie?\" Zijn antwoord is zijn eerste stap naar de gezelligheid.",
+   "shot": "Veldkamp in zijn vest, half afgewend; de duiven bewegen mee",
+   "variants": [
+    "Ik eet alleen. Maar zes duiven eten mee. Dus ja.",
+    "Ik eet liever alleen. Maar de duiven hebben al ja gezegd.",
+    "Zes jaar eet ik alleen. Het is tijd voor een andere stoel."
+   ],
+   "neutral": "Ik eet liever alleen. Maar kom maar."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 1,
+   "panel": {
+    "votes": [
+     "neutral",
+     1,
+     1
+    ],
+    "reason": "Meest onverwachte pointe die bij het personage past.",
+    "certainty": "midden"
+   },
+   "id": "HN-12",
+   "scene": "N3",
+   "speaker": "TESSA",
+   "context": "Beppe's huis aan de westrand, zondagmiddag, soep. Beppe (Friese oma, spreekt Fries) zegt over Tammo: \"Hy seit neat, mar hy docht it goed\" (Hij zegt niets, maar hij doet het goed). Tessa verstaat dat niet meteen, Tammo vertaalt \"Eerst eten, dan praten.\" Tessa reageert in het Nederlands. Tammo is stiekem verliefd; Tessa vindt hem leuk maar weet het nog niet.",
+   "shot": "Tessa kijkt opzij naar Tammo, die in zijn bord kijkt",
+   "variants": [
+    "Dat zag ik. De eerste week al.",
+    "Ik weet het. Hij zegt niets met zijn hele gezicht.",
+    "Dat zie ik elke dag. Al vijf jaar."
+   ],
+   "neutral": "Dat heb ik ook al gezien."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 1,
+   "panel": {
+    "votes": [
+     0,
+     1,
+     2
+    ],
+    "reason": "Meest onverwachte pointe die bij het personage past.",
+    "certainty": "laag",
+    "tiebreak": 1
+   },
+   "id": "HN-13",
+   "scene": "N5",
+   "speaker": "TESSA",
+   "context": "Het erf van Tessa's oom bij Warffum, woensdagochtend. Tessa leerde hier melken. Tammo: \"Dat wist ik niet.\" Tessa antwoordt droog-lief; hij heeft vijf jaar nooit naar haar jeugd op het land gevraagd.",
+   "shot": "Tessa op het erf, Tammo bij het hek; een kip tussen hen in",
+   "variants": [
+    "Je vroeg nooit naar mijn jeugd. Alleen of er internet was.",
+    "Je vroeg ook niet naar de kippen. Er zijn er zeventien. Ze hebben namen.",
+    "Je vroeg niet naar koeien. Je vroeg wel altijd naar mij."
+   ],
+   "neutral": "Je vroeg niet naar de koeien."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 1,
+   "panel": {
+    "votes": [
+     0,
+     1,
+     1
+    ],
+    "reason": "Meest onverwachte pointe die bij het personage past.",
+    "certainty": "midden"
+   },
+   "id": "HN-14",
+   "scene": "N5",
+   "speaker": "TAMMO",
+   "context": "Zelfde erf. Een koe die niet weg wil staat bij het hek en kijkt naar Tammo (bang voor grote dieren, maar de dieren mogen hem altijd). Tessa gaat zo zijn hand naar de koeneus leiden.",
+   "shot": "koe in close-up, Tammo achter het hek, een duif op de paal",
+   "variants": [
+    "De koe kijkt naar mij. Ze weet iets.",
+    "De koe kijkt. Naar mij. Ze kent mijn duiven.",
+    "De koe kijkt naar mij. Ze vindt me aardig."
+   ],
+   "neutral": "De koe kijkt. Naar mij."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 1,
+   "panel": {
+    "votes": [
+     1,
+     1,
+     2
+    ],
+    "reason": "Bus met principes: serieus oordeel, absurd.",
+    "certainty": "midden"
+   },
+   "id": "HN-15",
+   "scene": "N7",
+   "speaker": "TAMMO",
+   "context": "Streekbus naar Winsum, vrijdagochtend. Tammo bedankt altijd de chauffeur. Tessa: \"Het was een bus.\" Tammo sluit de scène af met een serieus oordeel over de bus (zachte romantiek: hij bedankt iedereen).",
+   "shot": "op de halte; Tessa half lachend, Tammo serieus",
+   "variants": [
+    "Hij stond op tijd. Dat is zeldzaam.",
+    "Een bus met principes.",
+    "Een goede bus. Hij nam ons samen mee."
+   ],
+   "neutral": "Een goede bus."
   }
  ]
 }
