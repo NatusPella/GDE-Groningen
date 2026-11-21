@@ -44,7 +44,7 @@ export function voetbalHudModel(g) {
   if (g.eigen != null) cijfers.push({ label: 'Jouw doelpunten', waarde: String(g.eigen), icoon: ICOON.schoten });
   cijfers.push({ label: helftTekst(g.helft || 1), waarde: klokTekst(g.klok == null ? 0 : g.klok), icoon: ICOON.tijd });
   return {
-    id: 'voetbal', titel: 'Voetbal Euroborg', icoon: ICOON.aanval, plek: '5 tegen 5', stappen, meter, cijfers, uitleg: g.uitleg && (g.fase === 'aftrap' || g.fase === 'hervat') ? UITLEG : [],
+    id: 'voetbal', controller: 'voetbal', titel: 'Voetbal Euroborg', icoon: ICOON.aanval, plek: '5 tegen 5', stappen, meter, cijfers, uitleg: g.uitleg && (g.fase === 'aftrap' || g.fase === 'hervat') ? UITLEG : [],
     nu: watNu(g), hulp: HULP, slecht: false,
   };
 }

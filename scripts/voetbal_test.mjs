@@ -15,6 +15,8 @@ import { voetbalHudModel, voetbalBord, watNu, popVan, UITLEG, STAPPEN } from '..
 import { simHudHtml } from '../game/js/simhud.js';
 import { VOETBAL_LINES } from '../game/js/voetbaldata.js';
 import { medailleTeksten } from '../game/js/difficulty_medals.js';
+import { padSlotFor } from '../game/js/controls.js';
+import { uitlegModel } from '../game/js/uitleg.js';
 import { eindEvent, leesWed, startEvent } from '../game/js/multiplayerwedstrijd.js';
 import { zetVoetbalKarakterHaken, wisKarakterHaken, voetbalBonusVan, karakterStart, karakterEind, tessaRegel } from '../game/js/voetbalkarakter.js';
 import { KEYS } from '../game/js/storagekeys.js';
@@ -457,6 +459,11 @@ t('de HUD-strook: één stap actief, één primaire waarde, toetsen als token, a
   assert.ok(UITLEG.length >= 2 && UITLEG.length <= 4); for (const u of UITLEG) assert.ok(u.tekst.split(/\s+/).length <= 8 && !/[{}]/.test(u.tekst) && !/shift|ctrl|spatie|\bQ\b|\bF\b|\bE\b/i.test(u.tekst), `geen ruwe toets in: ${u.tekst}`);
   const html = simHudHtml(voetbalHudModel({ ...g, uitleg: true, fase: 'aftrap' }));
   assert.ok(!/#[0-9a-f]{3,6}\b|rgb\(/i.test(html), 'alleen ds-tokens'); assert.match(html, /role="progressbar"/); assert.ok(!/\{[A-Z]+\}/.test(html), 'toetsplaatjes, geen accolades');
+  // de uitleg toont op een controller de knoppen van de voetbalindeling, niet die van het lopen
+  const um = uitlegModel(UITLEG, { id: 'voetbal', controller: 'voetbal' });
+  assert.deepEqual([padSlotFor('F', 'voetbal'), padSlotFor('E', 'voetbal'), padSlotFor('SPACE', 'voetbal'), padSlotFor('CTRL', 'voetbal'), padSlotFor('Q', 'voetbal'), padSlotFor('SHIFT', 'voetbal'), padSlotFor('WASD', 'voetbal')], ['a', 'b', 'x', 'lb', 'y', 'lt', 'lstick']);
+  assert.ok(um && um.stappen.length === 4 && um.stappen.every((s) => s.varianten.every((v) => v.controller)), 'elke toets heeft een knop op de controller');
+  assert.equal(voetbalHudModel(g).controller, 'voetbal');
   assert.equal(voetbalHudModel(null), null);
   assert.match(watNu({ ...g, laad: 0.5, heeftBal: true }), /50%/); assert.match(watNu({ ...g, rol: 'keeper', heeftBal: false }), /duik/); assert.match(watNu({ ...g, fase: 'rust' }), /Rust/);
   assert.equal(voetbalHudModel({ ...g, moe: true, stamina: 0 }).meter.staat, 'laag');
