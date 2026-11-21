@@ -77,7 +77,7 @@ ok(fin.stages.map((q) => q.kind).join() === 'bake,hold,board,scene,chase,scene,s
 {
   // M23 ally: one remembered choice, read again in M26 (chase time, the street scene, the tag)
   const col = byLabel('De colonne');
-  ok(col.stages[0].kind === 'choice' && col.stages[0].rounds[0].options.map((o) => o.tag).join() === 'bond-bus,bond-trekker,bond-scooter', 'M23: choose the ally next to the Fjord Frituur');
+  ok(col.stages[0].kind === 'choice' && col.stages[0].rounds[0].options.map((o) => o.tag).join() === 'bond-bus,bond-trekker,bond-scooter', 'M23: choose the ally next to the snackwagen');
   ok(col.remember.join() === 'bond-bus,bond-trekker,bond-scooter', 'M23: the ally is remembered for M26');
   ok(col.stages[1].scriptIf.map((q) => q.tag).join() === 'bond-bus,bond-trekker,bond-scooter', 'M23: a scene per ally');
   ok(col.stages.find((q) => q.kind === 'convoy').limoAfterIf['bond-bus'] > 30, 'M23: the bus holds the limo back');
@@ -92,9 +92,9 @@ ok(byLabel('Een luik erin').stages.filter((q) => q.mud).length === 3, 'the mud i
 ok(byLabel('Een luik erin').stages.some((q) => q.kind === 'timing' && q.kicker === 'Los uit de modder' && q.rounds.length === 3), 'stuck in the mud is a rocking rhythm, not a wait (#218)');
 ok(fresh.every((d) => d.heroCar), 'the new defs use the Escapade');
 
-// the finale card (story.js playFinale) is the epilogue and the studio of the script, word for word
-const E = ['E1', 'E2'].flatMap((id) => scene.get(id).lines).map((l) => [l.key === 'rikus' ? 'Rikus' : l.speaker, l.text]);
-ok(JSON.stringify(PARTS.ontzet.card) === JSON.stringify(E), 'PARTS.ontzet.card is E1 + E2 of the script');
+// the finale card (story.js playFinale) is the epilogue and the studio (E1, E2, E3) of the script, word for word
+const E = ['E1', 'E2', 'E3'].flatMap((id) => scene.get(id).lines).map((l) => [l.key === 'rikus' ? 'Rikus' : l.speaker, l.text]);
+ok(JSON.stringify(PARTS.ontzet.card) === JSON.stringify(E), 'PARTS.ontzet.card is E1 + E2 + E3 of the script');
 const lastOfAct5 = STEPS.filter((s) => s.part === 'ontzet').pop();
 ok(PARTS.ontzet.finale === true && lastOfAct5.id === 'E' && lastOfAct5.built, 'the epilogue step is built and the last of act 5 (Deel 4 follows it, see akte6_test)');
 ok(PARTS.ontzet.card[PARTS.ontzet.card.length - 1][0] === 'Rikus', 'the card ends in the studio (Rikus)');

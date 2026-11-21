@@ -326,7 +326,7 @@ export function collect() {
   bubble('Wereld (straat)', lit(fl, 'export const PLANTSOEN_BARKS = '), { tag: ['vrolijk, zonnig', 'lacherig, uitgelaten'] });
   bubble('Wereld (straat)', lit(fl, 'export const PEERD_BARKS = '), { tag: ['verbaasd, fronsend', 'droog, argwanend'] });
   bubble('Wereld (straat)', lit(fl, 'export const SUPPORTER_CHANTS = '), { tag: ['zingend, spreekkoor op de tribune', 'scanderend, luid en trots'] });
-  // --- post-game (postgame.js, pg_lines.js): Jelle's challenges and the Fjord Frituur -> lines manifest
+  // --- post-game (postgame.js, pg_lines.js): Jelle's challenges and the snackwagen -> lines manifest
   const JTAG = {
     greet: 'joviaal, uitdagend', go: 'luid roepend, als een startschot', lead: 'opschepperig, plagend', behind: 'verbaasd, licht in paniek',
     win: 'sportief, een beetje beschaamd', lose: 'triomfantelijk, jolig', jump: 'strijdlustig, roepend', splash: 'proestend, verontwaardigd',
@@ -340,7 +340,7 @@ export function collect() {
   const pgWho = { J: JELLE, T: 'Tammo', A: 'Anita' };
   for (const lines of Object.values(INTROS)) for (const [k, t] of lines) add('Na het verhaal (intro)', 'lines', [pgWho[k]], t, k === 'J' ? { tag: 'uitdagend, charmant' } : {});
   const DTAG = { open: 'enthousiast, druk', rush: 'gehaast, opgewonden', good: 'tevreden, trots', bad: 'zuchtend, berustend' };
-  for (const [kind, by] of Object.entries(FJORD_DUO)) for (const [k, list] of Object.entries(by)) for (const t of list) add('Na het verhaal (Fjord Frituur)', 'lines', [pgWho[k]], t, { tag: DTAG[kind] });
+  for (const [kind, by] of Object.entries(FJORD_DUO)) for (const [k, list] of Object.entries(by)) for (const t of list) add('Na het verhaal (snackwagen)', 'lines', [pgWho[k]], t, { tag: DTAG[kind] });
   const BTAG = { greet: ['hongerig, vrolijk', 'ongeduldig, joviaal'], happy: ['tevreden, blij', 'smakkend, vrolijk'], wrong: ['verontwaardigd, mopperend', 'die boos is, klagend'], leave: ['chagrijnig, zuchtend', 'ongeduldig, mopperend'] };
   for (const [kind, list] of Object.entries(FJORD_BUBBLES)) bubble('Na het verhaal (Fjord-klanten)', list, { tag: BTAG[kind] });
 

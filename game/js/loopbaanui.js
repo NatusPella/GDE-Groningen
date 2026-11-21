@@ -14,6 +14,8 @@ import { cardInfo } from './voetbalcarriereui.js';
 import { getCareer, getClub } from './voetbalcarrierelive.js';
 import { baanDoelen } from './todoui.js';
 import { loopbaanStap, STEP_BY_ID } from './storyarc.js';
+import { storyGateHint } from './storyquery.js';
+import { CAREER_FIT, FIT } from './careertour.js';
 import { controleStand, CONTROLE_MIN_NIVEAU } from './kaartjescontrole.js';
 import { getServiceMapState } from './machinist.js';
 import { sfeerStijl, sfeerBandHtml, SFEER_BAND_CSS } from './carrieresfeer.js';
@@ -208,7 +210,12 @@ function startHtml(profiel, id) {
   const gestart = L.isGestart(profiel, id);
   const stap = loopbaanStap(id);
   const step = stap && STEP_BY_ID.get(stap);
-  const verhaal = step ? `<p class="mut">In het verhaal: ${esc(step.title)}${gestart ? ' · telt als gedaan' : ''}</p>` : '';
+  // de carrière-tour (careertour.js): wie is hier goed en kunnen ze samenwerken; een gesloten vak is een zachte hint van het personage (unlockgate.js)
+  const fit = CAREER_FIT[id];
+  const tour = fit ? `<p class="mut">Wie is hier goed: ${esc(FIT[fit.fit])}. ${fit.together ? 'Samen lukt het.' : 'Samen werken lukt hier niet goed.'} ${esc(fit.why)}</p>` : '';
+  const hint = !gestart ? storyGateHint(id) : null;
+  const poort = hint ? `<p class="mut">${esc(hint)}</p>` : '';
+  const verhaal = (step ? `<p class="mut">In het verhaal: ${esc(step.title)}${gestart ? ' · telt als gedaan' : ''}</p>` : '') + tour + poort;
   if (gestart) return `<div class="lb-start klaar"><p class="m-eb">Begonnen</p>${verhaal}</div>`;
   const baan = s.baan && doelen.has(s.baan)
     ? `<button type="button" class="ds-z-knop ds-z-knop--secundair" data-todo-goal="job:${esc(s.baan)}">Eerste klus als doel</button>` : '';

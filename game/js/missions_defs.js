@@ -365,7 +365,7 @@ export function buildDefsNaMuseum({ walk, drive }) {
     {
       type: 'stages',
       label: 'Ontzet, net als in 1672',
-      intro: ['Gronings Ontzet. De Noordelijke Snackprijs op de Grote Markt, Berend in de jury, en de Escapade met een luik: de eerste Fjord Frituur.', 'Hou de kraam heel tegen het vuurwerk, en laat de Eierbal niet uit het oog.'],
+      intro: ['Gronings Ontzet. De Noordelijke Snackprijs op de Grote Markt, Berend in de jury, en de Escapade met een luik: de eerste snackwagen.', 'Hou de kraam heel tegen het vuurwerk, en laat de Eierbal niet uit het oog.'],
       outro: 'De Snackprijs gaat naar Grunn. De Gouden Eierbal blijft in Stad, met twee namen op het bordje.',
       timeLimit: null,
       reward: 4000,

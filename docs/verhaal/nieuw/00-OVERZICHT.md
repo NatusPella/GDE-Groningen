@@ -25,7 +25,7 @@ Deze versie verwerkt de besluiten na drie reviews door andere taalmodellen (twis
 
 **Logline:** Twee net afgestudeerden zonder werk of geld willen een frietwagen laten staan op de enige standplaats van Grunn, en moeten daarvoor de Noordelijke Snackprijs winnen. Een Friese snackbaron koopt plakje voor plakje de hele markt op om dat te voorkomen, en hij heeft de Gouden Eierbal echt uit het museum gehaald: vóór hen. Over de hele provincie, in twee weken, tegen een jury, een bal en een droge woordenwisseling in, tot zijn eigen moeder hem de bal afneemt en de beste eierbal wint.
 
-**Algemeen doel (één zin, hardop in de opening door Tessa):** *"Wij winnen op 28 augustus de Noordelijke Snackprijs, dan krijgen we de enige vrije standplaats, en dan heeft de Fjord Frituur een thuis."*
+**Algemeen doel (één zin, hardop in de opening door Tessa):** *"Wij winnen op 28 augustus de Noordelijke Snackprijs, dan krijgen we de enige vrije standplaats, en dan heeft de snackwagen een thuis."*
 
 **Motief (één zin):** Tessa heeft nooit langer dan een paar jaar ergens gewoond en wil een thuis met wielen; Tammo wil bij haar blijven maar zegt het niet; ze kunnen de huur niet betalen en de bank zei "uw plan is sympathiek".
 
@@ -148,7 +148,7 @@ Elke reis heeft een vertrek, een bestemming, een reden en een aankomst; dit is d
 
 ## 4. Verhaal en romantiek per onderdeel (de grote tabel)
 
-*Romantiek* en *actie* zijn 1-10. **Functie** = de ene taak van de missie in de keten: **(1)** inschrijving of financiering, **(2)** een plakje van Jelle blokkeren, **(3)** de waarheid over de bal ontdekken, **(4)** de Fjord Frituur en het recept gereedmaken. Een missie zonder functie wordt samengevoegd of een zijmissie (daarom is M23 een reisbeat geworden). **Jelle grijpt in** = het mechanische gevolg van zijn actieve rol. **Romantiek-trap** (volgorde van de eigenaar): handen (M06) → lange blik (M11) → eerste voorzichtige flirt (M14) → eerste kus (M16) → knuffel en openbaring (M22) → stel, vijf woorden (M26).
+*Romantiek* en *actie* zijn 1-10. **Functie** = de ene taak van de missie in de keten: **(1)** inschrijving of financiering, **(2)** een plakje van Jelle blokkeren, **(3)** de waarheid over de bal ontdekken, **(4)** de snackwagen en het recept gereedmaken. Een missie zonder functie wordt samengevoegd of een zijmissie (daarom is M23 een reisbeat geworden). **Jelle grijpt in** = het mechanische gevolg van zijn actieve rol. **Romantiek-trap** (volgorde van de eigenaar): handen (M06) → lange blik (M11) → eerste voorzichtige flirt (M14) → eerste kus (M16) → knuffel en openbaring (M22) → stel, vijf woorden (M26).
 
 | Nr | Akte | Titel | Regio / plaats | Functie | Plotbeat (oorzaak en gevolg) | Jelle grijpt in | Romantiekbeat (R) | A | Voertuig / mechaniek |
 |---|---|---|---|---|---|---|---|---|---|
@@ -390,7 +390,7 @@ De acht open vragen uit het eerste voorstel zijn beantwoord; daarna zijn drie re
 
 Zet een vinkje bij "ja". Een verhaal dat minder dan 8 vinkjes heeft, moet worden herzien voor het wordt gebouwd.
 
-- [ ] Is het doel duidelijk in de eerste 10 minuten (winnen op 28 augustus, een standplaats, de Fjord Frituur)?
+- [ ] Is het doel duidelijk in de eerste 10 minuten (winnen op 28 augustus, een standplaats, de snackwagen)?
 - [ ] Weet je na M03 wie de tegenstander is, wat hij wil en hoe hij het doet (de salamitactiek), en dat hij kil en echt een bedreiging is?
 - [ ] Is er een echt dieptepunt vlak voor de finale (M20-M21), waarin Tammo en Tessa echt ruzie hebben, de bal en de wagen kwijtraken en elk alleen verder gaan?
 - [ ] Is de finale (M26) een climax die alle draden samenbrengt (jury, bal, duiven, wagen, Berends vuurwerk, Durk en Douwe, de bondgenoten, de vijf woorden) en is het een echte, begrijpelijke wedstrijd zonder derde balroof?

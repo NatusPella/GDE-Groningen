@@ -31,7 +31,7 @@ Installeren op een toestel (USB-foutopsporing): `adb install -r android/out/gde-
 
 ## Touch (game/js/touch.js, touchlogic.js)
 
-Linker duim: zwevende stick; rechter helft: camera; knoppen per situatie (te voet, voertuig, boot, helikopter, duif, trein, minigames, carillon, pannenkoeken, Fjord Frituur) met de Nederlandse labels van de gamepad-indeling; "Meer" bevat de overige acties, "II" is de pauzeknop. Tijdens een **cutscene** staat er één knop **Overslaan** (vasthouden); eerder werkte overslaan met aanraking niet. Sturen en gas tegelijk werkte ook niet: `Input.axis()` gaf alleen de stick terug zodra die niet nul was, dus een auto stond stil zodra je stuurde (nu per as; getest in `touch_test.mjs`). De toetsenhints (`hud-ctx`) zijn op touch verborgen. Het geluid ontgrendelt ook op `pointerup`/`touchend` (Chrome telt een aanraking pas bij het loslaten als gebruikersgebaar).
+Linker duim: zwevende stick; rechter helft: camera; knoppen per situatie (te voet, voertuig, boot, helikopter, duif, trein, minigames, carillon, pannenkoeken, snackwagen) met de Nederlandse labels van de gamepad-indeling; "Meer" bevat de overige acties, "II" is de pauzeknop. Tijdens een **cutscene** staat er één knop **Overslaan** (vasthouden); eerder werkte overslaan met aanraking niet. Sturen en gas tegelijk werkte ook niet: `Input.axis()` gaf alleen de stick terug zodra die niet nul was, dus een auto stond stil zodra je stuurde (nu per as; getest in `touch_test.mjs`). De toetsenhints (`hud-ctx`) zijn op touch verborgen. Het geluid ontgrendelt ook op `pointerup`/`touchend` (Chrome telt een aanraking pas bij het loslaten als gebruikersgebaar).
 
 ## Opslag, geluid, kwaliteit
 

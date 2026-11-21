@@ -27,7 +27,7 @@ een treffer in een merkenregister is niet nagegaan (MERKENCHECK.md).
 | Groep | Namen |
 |---|---|
 | Hoofdpersonen en bijrollen | Tammo, Tessa, Jelle Terpstra, Mem Terpstra, Durk & Douwe, Berend Bos, Rikus, Oma Trijntje, Kapitein Klaas, Dokter Dijkstra, Rotor Roelf, Schipper Wiebe, Duivenmelker Bert, Aaltje & Grietje (koeien); volledige lijst: [personages.md](personages.md) |
-| Bedrijven | **Delfstof Noord** (verzonnen delfstofbedrijf; gevoelig onderwerp, zie constitution 6), **Wiebelwerk** (het Wiebelwerk-universum), **Fjord Frituur** (Tessa's frietwagen), **Harm Occasions**, **Poen Express** (waardetransport), **Pakkie Nou** (pakketdienst), **Noord-Nieuws** (verslaggeversbus), **Us Mem Vet** |
+| Bedrijven | **Dorpshuis Noord** (verzonnen stichting van de bijbaan Herstelploeg), **Wiebelwerk** (het Wiebelwerk-universum), **snackwagen** (Tessa's frietwagen), **Harm Occasions**, **Poen Express** (waardetransport), **Pakkie Nou** (pakketdienst), **Noord-Nieuws** (verslaggeversbus), **Us Mem Vet** |
 | Media | **Kiekdoar** (nieuwssite), **Radio Proat** (radio), **G-Music** (muziekzender), **Pompeblêd** (blad) |
 | Automerken en modellen | verzonnen merken naar Groninger streekwoorden: Dollard, Eemsmond, Hunze, Wadden, Reitdiep, Oldambt, Eemshaven, Ommelander, Wierde, Terpstra, Tweetakt, Eigen Maaksel (de gebouwde Knutselwagen); held-auto *Fjord Escapade* (zie `game/js/vehiclenames.js`) |
 | Winkels en horeca | echte ketens uit OpenStreetMap worden herkend (`CHAINS` in `game/js/shopbind.js`, ruim gekozen) en krijgen een verzonnen naam; echte caféeigenaars krijgen een verzonnen café (`CAFE_NAMES` in `game/js/horeca.js`, zie [LICENTIES.md](LICENTIES.md)) |
@@ -131,7 +131,7 @@ met een echt merk; bewuste parodie, op de allowlist, de eigenaar kan kiezen te h
 | Eigen Maaksel | automerk van de gebouwde Knutselwagen | `game/js/vehiclenames.js` | niets | ok |
 | Pakkie Nou | pakketdienst | `game/js/vehiclenames.js` | pakketbezorgers in het algemeen | ok |
 | Noord-Nieuws | verslaggeversbus | `game/js/vehiclenames.js` | niets | ok |
-| Fjord Frituur | frietwagen van Tessa | `game/js/characters.js` | niets | ok |
+| snackwagen | frietwagen van Tessa | `game/js/characters.js` | niets | ok |
 | Escapade | held-auto "Fjord Escapade" (Tammo) | `game/js/vehiclenames.js`; de naam staat bewust ook in de tekst van `game/js/missionrequirements.js`, `game/js/missions_akte4.js`, `game/js/prompts.js`, `game/js/spullen.js` en de personagedossiers (`game/js/characterdossiers_leads.js`, `game/js/characterdossiers_story.js`, `game/js/characterdossiers_minor.js`, `game/js/characterdossiers_relations.js`) | klank van "Fjord"/"Escapade" lijkt op een bekend automerk en model | let op |
 | Dollard | automerk | `game/js/vehiclenames.js` | de Dollard (baai); geen merk | ok |
 | Eemsmond | automerk | `game/js/vehiclenames.js` | gebied; geen merk | ok |
@@ -146,7 +146,7 @@ met een echt merk; bewuste parodie, op de allowlist, de eigenaar kan kiezen te h
 | Grunneger Gokje | kraskaart | `game/js/shops.js` | niets | ok |
 | Duivenkraslot | kraskaart | `game/js/shops.js` | niets | ok |
 | Zomerzoet | ijssalon | `game/js/vrachtmarkt.js` | niets | ok |
-| Delfstof Noord | verzonnen delfstofbedrijf | `game/js/stadmissies.js` | geen echt bedrijf; gevoelig onderwerp, zie constitution 6 | ok |
+| Dorpshuis Noord | verzonnen stichting (Herstelploeg, bijbaan) | `game/js/stadmissies.js` | geen echte instantie; geen gaswinning meer (eigenaar-besluit 21-11) | ok |
 | Wiebelwerk | het Wiebelwerk-universum | `game/js/interieurplan.js` | niets | ok |
 | Us Mem Vet | bedrijf/winkel | `game/js/missions_defs.js` | niets | ok |
 | Kiekdoar | nieuwssite | `game/js/attention.js` | niets | ok |

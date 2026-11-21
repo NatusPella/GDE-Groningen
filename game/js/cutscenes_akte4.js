@@ -19,23 +19,38 @@ S['M17.intro'] = {
     { on: 'Hoe weten we wanneer', actor: 'tammo', anim: 'shrug' },
     { on: 'Elf bruggen', actor: 'wubbo', anim: 'point' },
     { on: 'Mijn brug is op tijd', actor: 'wubbo', anim: 'hips' },
-    { on: 'Welke zaterdag', actor: 'tessa', anim: 'shrug' },
+    // het zaterdag-moment is naar overgangsscène O7 (akte 3); hier alleen een blik: Tammo kijkt naar Tessa, Tessa naar het water
+    { on: 'Mijn brug is op tijd', dt: 2.8, actor: 'tammo', face: 'actor:tessa' },
+    { on: 'Mijn brug is op tijd', dt: 3.0, actor: 'tessa', anim: 'look' },
   ],
   shots: [],
   wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:wubbo,tessa@1'),
 };
 S['M17.outro'] = {
-  cast: { wubbo: { key: 'wubbo', at: [3, 0.2], face: 180, anim: 'idle', gest: ['talk', 'point', 'hips'] } },
+  cast: {
+    wubbo: { key: 'wubbo', at: [3, 0.2], face: 180, anim: 'idle', gest: ['talk', 'point', 'hips'] },
+    // inspiratiepakket: Stien, de frituurhoudster onder brug elf (M17.5)
+    stien: { key: 'stien', at: [4.2, -1.6], face: 185, anim: 'idle', gest: ['talk', 'point', 'hips'] },
+  },
   props: {},
   open: [{ actor: 'tessa', face: 'actor:wubbo' }, { actor: 'tammo', face: 'actor:wubbo' }],
   beats: [
     { on: 0, dt: 0.4, actor: 'wubbo', walk: [[2, 0.2]], speed: 0.8 },
     { on: 'Die brug draait niet', actor: 'wubbo', anim: 'shake' },
+    // Jelle belt vanuit zijn limo aan de overkant; Wubbo antwoordt met zijn werkfilosofie
+    { on: 'Mevrouw Tessa. Mijn schip', actor: 'tessa', anim: 'phone' },
+    { on: 'Open of dicht. Nooit allebei', actor: 'wubbo', anim: 'hips' },
     { on: 'De mosterd is gered', actor: 'tessa', anim: 'nod' },
     { on: 'Er is een webbureau', actor: 'wubbo', anim: 'point' },
     { on: 'Om middernacht. Net als', actor: 'tammo', anim: 'point' },
     { on: 'Dat is toeval', actor: 'tessa', anim: 'shrug' },
     { on: 'Dat moeten we weten', actor: 'tammo', anim: 'nod' },
+    { on: 'Wubbo zei dat jullie kwamen', actor: 'stien', walk: [[2.8, -0.9]], speed: 0.8 },
+    { on: 'Wubbo zei dat jullie kwamen', dt: 0.2, actor: 'stien', face: 'actor:tessa' },
+    { on: 'Ik kijk alleen', actor: 'tessa', anim: 'shrug' },
+    { on: 'Ik kijk alleen', dt: 2.4, actor: 'stien', anim: 'point' },
+    { on: 'Die komen op de geur', actor: 'stien', anim: 'talk' },
+    { on: 'Nee. Maar het is een begin', actor: 'stien', anim: 'nod' },
   ],
   shots: [],
   wide: WIDE([-4.5, 4, 3], [-2.5, 2.8, 2.3], 'mid:wubbo,tammo@1'),
@@ -55,13 +70,15 @@ S['M18.intro'] = {
   beats: [
     { on: 'Wiebelwerk. Websites', actor: 'tammo', anim: 'shrug' },
     { on: 'Wie de camera', actor: 'tammo', anim: 'point' },
-    { on: 'Als in het logboek staat', actor: 'tessa', anim: 'nod' },
+    { on: 'Volgens de chat van Rikus', actor: 'tessa', anim: 'shrug' },
+    { on: 'We waren er wel', actor: 'tammo', anim: 'look' },
+    { on: 'Staat in het logboek', actor: 'tessa', anim: 'nod' },
     { on: 'Welkom bij Wiebelwerk', actor: 'accountmanager', walk: [[3.4, -1.6], [1.5, -1.6], [1.5, -0.4]], speed: 0.9 },
     { on: 'Welkom bij Wiebelwerk', dt: 0.3, actor: 'accountmanager', face: 'actor:tessa' },
     { on: 'Een website voor een frietwagen', actor: 'tessa', anim: 'talk' },
     { on: 'Prachtig. Dan beginnen', actor: 'accountmanager', anim: 'point' },
     // de collega loopt met een map langs de wand, achter de twee langs
-    { on: 'Als in het logboek staat', dt: 0.6, actor: 'collega', walk: [[0.3, 2.45]], speed: 0.7 },
+    { on: 'Staat in het logboek', dt: 0.6, actor: 'collega', walk: [[0.3, 2.45]], speed: 0.7 },
     { on: 'Welkom bij Wiebelwerk', dt: 0.4, actor: 'collega', anim: 'phone' },
   ],
   shots: [
@@ -87,20 +104,34 @@ S['M18.outro'] = {
     { on: 'Dan is het niet Wiebelwerk', actor: 'tammo', anim: 'nod' },
     { on: 'Dan is het Jelle', actor: 'tessa', anim: 'point' },
     { on: 'Een webbureau', dt: 0.2, actor: 'collega', walk: [[2.6, -1.6]], speed: 0.7 },
+    // Mem belt: Tessa draait zich een stap van Tammo weg, Tammo hoort alleen haar kant en de jas
+    { on: 'Famke. Dinsdag', actor: 'tessa', anim: 'phone' },
+    { on: 'Famke. Dinsdag', dt: 0.3, actor: 'tessa', walk: [[0.1, -1.5]], speed: 0.8 },
+    { on: 'Mem weer', actor: 'tammo', face: 'actor:tessa' },
+    { on: 'Dat ik mijn jas', actor: 'tessa', anim: 'shrug' },
+    { on: 'Het is augustus', actor: 'tammo', anim: 'shrug' },
+    { on: 'Dat zei ik ook', actor: 'tessa', anim: 'hips' },
   ],
   shots: [
     { on: 'Een webbureau', dt: 0.2, shot: 'close', target: 'tessa', dist: 1.3, side: 0.2, fov: 28 },
     { on: 'Dan is het Jelle', dt: 0.2, shot: 'ots', from: 'tammo', target: 'tessa', dist: 1.05, side: 0.45, fov: 36 },
+    // sleutelmoment (de speler weet wat Tessa verbergt): Mem belt, Tessa half van Tammo afgekeerd; daarna zijn blik op haar
+    { on: 'Famke. Dinsdag', dt: 0.3, shot: 'close', target: 'tessa', dist: 1.3, side: 0.35, fov: 28 },
+    { on: 'Mem weer', dt: 0.1, shot: 'close', target: 'tammo', dist: 1.3, side: 0.2, fov: 28 },
   ],
   wide: WIDE([-4.5, 4, 3], [-2.5, 2.8, 2.3], 'mid:accountmanager,tessa@1'),
 };
 
 // --- M19 Stoom: the platform at Stadskanaal, the steam train waiting ---
 S['M19.intro'] = {
-  cast: { durk: { key: 'durk', at: [4, 1.6], face: 190, anim: 'idle', bg: true, gest: ['talk', 'shrug'] } },
+  cast: {
+    durk: { key: 'durk', at: [4, 1.6], face: 190, anim: 'idle', bg: true, gest: ['talk', 'shrug'] },
+    douwe: { key: 'douwe', at: [4.4, 0.4], face: 190, anim: 'idle', bg: true, gest: ['shrug', 'look'] },
+  },
   props: { koffer: { kind: 'koffer', at: [1.6, -1.6, 0] } },
   open: [{ actor: 'tessa', face: 'actor:tammo' }, { actor: 'tammo', face: 'actor:tessa' }],
   beats: [
+    { on: 'Wie de jury koopt', actor: 'tessa', anim: 'point' },
     { on: 'Wie rijdt hem dan', actor: 'tammo', anim: 'shrug' },
     { on: 'Jij.', actor: 'tessa', anim: 'point' },
     { on: 'Ik heb nog nooit', actor: 'tammo', anim: 'shake' },
@@ -108,9 +139,11 @@ S['M19.intro'] = {
     { on: 'Vergelijkbaar', actor: 'tammo', anim: 'nod' },
     { on: 'Dan rijd jij hem', actor: 'tessa', walk: [[-1.6, -2.4]], speed: 1 },
     { on: 'Douwe. Er rijdt een nieuwe machinist', actor: 'durk', face: 'actor:tammo' },
+    { on: '…machinist', actor: 'douwe', anim: 'shrug' },
   ],
-  shots: [],
-  wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:tammo,tessa@1'),
+  // Douwe zegt zijn echo in beeld (CS-V01/C05): een eigen close-up op zijn regel
+  shots: [{ on: '…machinist', dt: 0, shot: 'close', target: 'douwe', dist: 1.5, side: 0.25, fov: 30 }],
+  wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:tessa,douwe@1'),
 };
 S['M19.outro'] = {
   cast: {
@@ -125,9 +158,11 @@ S['M19.outro'] = {
     { on: 'Ik niet. Ik heb een contract', actor: 'jurylid', face: 'actor:bewaarder' },
     { on: 'Ik stap niet uit', actor: 'bewaarder', anim: 'hips' },
     { on: 'Eén jurylid gered', actor: 'tessa', anim: 'shrug' },
-    { on: 'Vier van de vijf staan', actor: 'tammo', anim: 'shake' },
     { on: 'Ik heb een trein bestuurd', actor: 'tammo', anim: 'cheer' },
     { on: 'Je hebt hem in een station', actor: 'tessa', anim: 'nod' },
+    { on: 'Berend. Wie zit de jury voor', actor: 'tessa', anim: 'phone' },
+    { on: 'Vier van de vijf zijn', actor: 'tammo', anim: 'shake' },
+    { on: 'Daarom zit mevrouw Hoving', actor: 'tammo', anim: 'point' },
   ],
   shots: [],
   wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:jurylid,bewaarder@1'),
@@ -184,7 +219,13 @@ S['M20.outro'] = {
     { on: 'Ik heb er geen', actor: 'tammo', anim: 'shrug' },
   ],
   // #740: een lage push-in over de klomp met het briefje, met Tammo (die de regel zegt) in beeld.
-  shots: [{ on: '"Tige tank foar de auto', dt: 0.2, shot: 'dolly', from: [0.8, -2.9, 1.0], to: [1.7, -2.2, 1.15], look: 'tammo@1.3', fov: 34 }],
+  shots: [
+    { on: '"Tige tank foar de auto', dt: 0.2, shot: 'dolly', from: [0.8, -2.9, 1.0], to: [1.7, -2.2, 1.15], look: 'tammo@1.3', fov: 34 },
+    // sleutelscène (de ruzie): Tammo's gezicht na "Jij zegt nooit iets!", Tessa na Berends tel, Tammo's lege handen aan het eind (R-21)
+    { on: 'Jij zegt nooit iets!', dt: 1.2, shot: 'close', target: 'tammo', dist: 1.3, side: 0.2, fov: 28, offscreen: 'reaction: Tessa is te horen, Tammo is te zien' },
+    { on: 'Twee keer', dt: 2.2, shot: 'close', target: 'tessa', dist: 1.3, side: 0.2, fov: 28, offscreen: 'reaction: Berend is te horen, Tessa is te zien' },
+    { on: 'Eén zin, jong', dt: 0.2, shot: 'close', target: 'tammo', dist: 1.4, side: 0.2, fov: 28, offscreen: 'reaction: Oma Trijntje is te horen, Tammo is te zien' },
+  ],
   wide: WIDE([-5.5, 4.5, 3.4], [-3.5, 3.2, 2.5], 'mid:tammo,tessa@1'),
 };
 
@@ -218,6 +259,8 @@ S['M23.intro'] = {
     wubbo: { key: 'wubbo', at: [6.2, -2.2], face: 185, anim: 'idle', bg: true, gest: ['point', 'talk'] },
     klaas: { key: 'klaas', at: [7.4, 1], face: 185, anim: 'idle', bg: true, gest: ['talk', 'shrug'] },
     berend: { key: 'berend', at: [8.6, -1], face: 180, anim: 'idle', bg: true, gest: ['hips', 'point'] },
+    // CS-V01: Tinus praat in deze scène, dus hij staat er ook (bij zijn trekker, tussen Wubbo en Klaas)
+    tinus: { key: 'tinus', at: [6.8, -0.2], face: 185, anim: 'idle', bg: true, gest: ['point', 'talk'] },
   },
   props: {},
   open: [{ actor: 'tessa', face: 'actor:mem' }, { actor: 'tammo', face: 'actor:mem' }],
@@ -227,6 +270,7 @@ S['M23.intro'] = {
     { on: 'Jelle huurt morgen de hele Markt', actor: 'tessa', anim: 'point' },
     { on: 'Ik rij op mijn scooter', actor: 'geesje', anim: 'wave' },
     { on: 'Ik rij de bus', actor: 'wubbo', anim: 'point' },
+    { on: 'Ik rij de trekker', actor: 'tinus', anim: 'point' },
     { on: 'Ik heb mijn rubberboot terug', actor: 'klaas', anim: 'talk' },
     { on: 'Ik rij achteraan', actor: 'berend', anim: 'point' },
     { on: 'Rijden. Niet praten', actor: 'tessa', anim: 'point' },
@@ -266,9 +310,13 @@ S['M24.intro'] = {
     { on: 'Dat is eigenlijk best lief', actor: 'tessa', anim: 'shrug' },
     { on: 'Het is vandalisme', actor: 'tammo', anim: 'hips' },
     { on: 'Vijf touwen', actor: 'bert', anim: 'point' },
+    // WP6: de duivenband krijgt een grap en nooit een uitleg
+    { on: 'En waarom luistert die duif', actor: 'tessa', anim: 'shrug' },
+    { on: 'Geen idee', actor: 'tammo', anim: 'shake' },
+    { on: 'Hij weet het niet, jong', actor: 'bert', anim: 'shrug' },
     { on: 'Ik fluit', actor: 'tammo', anim: 'point' },
   ],
-  shots: [],
+  shots: [{ on: 'Hij weet het niet, jong', dt: 0.2, shot: 'close', target: 'bert', dist: 1.3, side: 0.25, fov: 28 }],
   wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:bert,tessa@1'),
 };
 
@@ -299,6 +347,10 @@ S['M25.outro'] = {
     trijntje: { key: 'trijntje', at: [2.4, 0.8], face: 180, anim: 'idle', gest: ['talk', 'point'] },
     mem: { key: 'mem', at: [2.6, -1.3], face: 170, anim: 'idle', gest: ['talk', 'nod'] },
     jelle: { key: 'jelle', at: [3.9, 0], face: 180, anim: 'idle', bg: true, gest: ['talk', 'hips'] },
+    // inspiratiepakket: het familiediner (M25.6); Tessa's vader is een figurant zonder tekst
+    anneke: { key: 'anneke', at: [3.4, 1.4], face: 180, anim: 'idle', gest: ['talk', 'hips', 'point'] },
+    lieke: { key: 'lieke', at: [2.2, 1.9], face: 185, anim: 'idle', gest: ['talk', 'shrug'] },
+    vader: { key: 'boer', at: [4.2, 1.1], face: 185, anim: 'idle', bg: true, gest: ['nod'] },
   },
   props: {},
   open: [{ actor: 'tessa', face: 'actor:trijntje' }, { actor: 'tammo', face: 'actor:trijntje' }],
@@ -310,6 +362,16 @@ S['M25.outro'] = {
     { on: 'Mem. Kom je morgen', actor: 'jelle', walk: [[4, -0.6]], speed: 0.9 },
     { on: 'Mem. Kom je morgen', dt: 0.2, actor: 'jelle', face: 'actor:mem' },
     { on: 'Ik kom, jonge', actor: 'mem', anim: 'nod' },
+    { on: 'We waren in de buurt', actor: 'anneke', anim: 'point' },
+    { on: 'Mam. Het is half twaalf', actor: 'tessa', anim: 'hips' },
+    { on: 'Ga zitten. Eet een eierbal', actor: 'trijntje', anim: 'point' },
+    { on: 'Bij ons gaan eieren niet', actor: 'anneke', anim: 'hips' },
+    { on: 'Bij ons gaan eieren niet', dt: 1.8, actor: 'trijntje', anim: 'shrug' },
+    { on: 'Zijn jullie al samen', actor: 'lieke', anim: 'point' },
+    { on: 'Wij wonen samen', dt: 1.5, actor: 'lieke', anim: 'talk' },
+    { on: 'Wij wonen samen', dt: 3.6, actor: 'trijntje', anim: 'point' },
+    { on: 'Ik zeg liever niks', actor: 'tammo', anim: 'shrug' },
+    { on: 'Dat zag ik al', actor: 'anneke', anim: 'nod' },
   ],
   shots: [],
   wide: WIDE([-3.9, 2.4, 2.8], [-2.4, 1.8, 2.2], 'mid:trijntje,mem@1'),
@@ -321,6 +383,8 @@ S['M26.intro'] = {
     rikus: { key: 'rikus', at: [4, 2.6], face: 190, anim: 'idle', bg: true, gest: ['talk', 'point'] },
     berend: { key: 'berend', at: [3.6, -1], face: 180, anim: 'idle', gest: ['point', 'hips', 'talk', 'point'] },
     kind: { key: 'kind', at: [5, -2.6], face: 180, anim: 'idle', bg: true, gest: ['cheer', 'talk'] },
+    // CS-V01: Jelle praat in M26.2 en staat daarom aan de rand van het beeld, bij zijn limo
+    jelle: { key: 'jelle', at: [5.8, -1.6], face: 175, anim: 'idle', bg: true, gest: ['hips', 'shake'] },
   },
   props: {},
   open: [{ actor: 'tessa', face: 'actor:berend' }, { actor: 'tammo', face: 'actor:berend' }],
@@ -333,12 +397,24 @@ S['M26.intro'] = {
     { on: 'Vandaag winnen we eerlijk', dt: 3, actor: 'tammo', face: 'actor:tessa' },
     { on: 'Ik bak nooit onder druk', actor: 'tammo', anim: 'shake' },
     { on: 'Je doet alles onder druk', actor: 'tessa', anim: 'shrug' },
+    // M26.2: de regels in korte beurten, met Tessa en Rikus als reactie
+    { on: 'Voor iedereen. De beste eierbal', actor: 'berend', anim: 'point' },
+    { on: 'En de Gouden Eierbal', actor: 'tessa', anim: 'look' },
+    { on: 'Die gaat terug naar het museum', actor: 'berend', anim: 'point' },
+    { on: 'Mevrouw Hoving, de bewaarder', actor: 'rikus', anim: 'shrug' },
+    { on: 'Ik heb nog nooit iets gewonnen', actor: 'berend', anim: 'shrug' },
+    { on: 'Een notaris gaat boven', actor: 'jelle', anim: 'point' },
+    { on: 'Een notaris gaat boven', dt: 4, actor: 'jelle', walk: [[9, -3]], speed: 1.2 },
   ],
   shots: [{ on: 'Vandaag winnen we eerlijk', dt: 0.4, shot: 'dolly', from: [-2.2, 2.8, 1.8], to: [-0.6, 2.2, 1.6], look: 'mid:tammo,tessa@1.3', fov: 44 }],
   wide: WIDE([-5.5, 4.5, 3.4], [-3.5, 3.2, 2.5], 'mid:berend,tessa@1'),
 };
 S['M26.outro'] = {
-  cast: { rikus: { key: 'rikus', at: [4.4, 2], face: 190, anim: 'idle', bg: true, gest: ['talk', 'point'] } },
+  cast: {
+    rikus: { key: 'rikus', at: [4.4, 2], face: 190, anim: 'idle', bg: true, gest: ['talk', 'point'] },
+    // WP6: Berend telt de kus hardop in de menigte
+    berend: { key: 'berend', at: [5.8, -2.2], face: 190, anim: 'idle', bg: true, gest: ['point', 'nod'] },
+  },
   props: {},
   open: [{ actor: 'tessa', face: 'actor:tammo' }, { actor: 'tammo', face: 'actor:tessa' }],
   beats: [
@@ -351,8 +427,24 @@ S['M26.outro'] = {
     { on: 'Vijf woorden', actor: 'tessa', anim: 'laugh' },
     { on: 'Mien jong', actor: 'tessa', anim: 'hips' },
     { on: 'Kon veel minder', actor: 'tessa', anim: 'laugh' },
+    // de kus (M26.17): Tessa stapt naar hem toe, trekt hem aan zijn jas en ze leunen in elkaar; de markt klapt pas daarna
+    { on: 'Kon veel minder', dt: 1.0, actor: 'tessa', walk: [[0, 0.15]], speed: 0.9 },
+    { on: 'Kon veel minder', dt: 1.2, actor: 'tammo', face: 'actor:tessa' },
+    { on: 'Kon veel minder', dt: 2.0, actor: 'tessa', anim: 'lean' },
+    { on: 'Kon veel minder', dt: 2.0, actor: 'tammo', anim: 'lean' },
+    { on: '…Ik heb geen woorden meer', actor: 'tammo', anim: 'shake' },
+    { on: 'Dat duurde elf seconden', actor: 'berend', anim: 'point' },
+    { on: 'Dat duurde elf seconden', dt: 0.3, actor: 'rikus', anim: 'cheer' },
   ],
-  shots: [],
+  // sleutelscène (de vijf woorden en de kus): close-ups, een reactieshot op Tessa na de zin die ertoe doet en een trage ronde om de kus
+  shots: [
+    { on: 'Tammo. Iedereen luistert', dt: 0.2, shot: 'close', target: 'tessa', dist: 1.25, side: 0.2, fov: 28 },
+    { on: '…Woist ja wel', dt: 0.2, shot: 'close', target: 'tammo', dist: 1.15, side: 0.2, fov: 26 },
+    { on: 'Ik wil bij jou blijven', dt: 0.1, shot: 'close', target: 'tammo', dist: 1.05, side: 0.2, fov: 24 },
+    { on: 'Dat bedoelde ik ook', dt: 0.15, shot: 'close', target: 'tessa', dist: 1.1, side: 0.2, fov: 24 },
+    { on: 'Kon veel minder', dt: 1.3, shot: 'dolly', from: [-3.0, 1.9, 1.4], to: [-2.0, 0.9, 1.5], look: 'mid:tammo,tessa@1.45', fov: 38 },
+    { on: '…Ik heb geen woorden meer', dt: 0.2, shot: 'close', target: 'tammo', dist: 1.3, side: 0.25, fov: 28 },
+  ],
   wide: WIDE([-4.8, 3.4, 2.8], [-2.8, 2.6, 2.1], 'mid:tammo,tessa@1'),
 };
 
@@ -405,14 +497,17 @@ S['M20.3'] = {
     { on: 'Gerda belde mij', actor: 'trijntje', anim: 'point' },
     { on: 'Nul krassen. Op de heenweg', actor: 'berend', anim: 'shrug' },
     { on: 'Jij kende Mem', actor: 'tammo', anim: 'look' },
+    { on: 'Van de jas', actor: 'tessa', anim: 'shrug' },
     { on: 'Dat heb ik hem geleerd', actor: 'mem', anim: 'nod' },
-    { on: 'Omdat mijn zoon', actor: 'mem', anim: 'shrug' },
+    { on: 'Omdat mijn kleinzoon', actor: 'mem', anim: 'shrug' },
     { on: 'Mem. Dit is nog niet voorbij', actor: 'jelle', anim: 'point' },
     { on: 'Durk. Douwe. Haal', actor: 'jelle', walk: [[7.5, 1.5]], speed: 1.4 },
   ],
   shots: [
     { on: 'Nul krassen. Op de heenweg', dt: 0.1, shot: 'dolly', from: [-2.6, 3.4, 1.7], to: [-0.8, 2.4, 1.6], look: 'mid:berend,mem@1', fov: 44 },
-    { on: 'Omdat mijn zoon', dt: 0.1, shot: 'dolly', from: [-2.2, -2.6, 1.6], to: [-0.8, -1.4, 1.5], look: 'mid:mem,jelle@1', fov: 40 },
+    { on: 'Omdat mijn kleinzoon', dt: 0.1, shot: 'dolly', from: [-2.2, -2.6, 1.6], to: [-0.8, -1.4, 1.5], look: 'mid:mem,jelle@1', fov: 40 },
+    // sleutelscène: reactieshot op Jelle terwijl Mem de zin uitspreekt die ertoe doet (R-21)
+    { on: 'Er is geen overeenkomst', dt: 2.6, shot: 'close', target: 'jelle', dist: 1.3, side: 0.2, fov: 28, offscreen: 'reaction: Mem is te horen, Jelle is te zien' },
   ],
   wide: WIDE([-4.8, 4, 3.2], [-2.8, 2.9, 2.4], 'mid:mem,jelle@1'),
 };
@@ -456,9 +551,12 @@ S['M22.2'] = {
   open: [{ actor: 'tessa', face: 'prop:escapade' }, { actor: 'tammo', face: 'prop:escapade' }, { actor: 'henk', face: 'prop:escapade' }],
   beats: [
     { on: 'Het luik zit aan de zijkant', actor: 'henk', anim: 'point' },
-    { on: 'Dat is een Fjord Frituur', actor: 'tessa', anim: 'shrug' },
+    { on: 'Dat is een snackwagen', actor: 'tessa', anim: 'shrug' },
     { on: 'Een Escapade met een gat', actor: 'tammo', anim: 'point' },
     { on: 'Een karaktergat', actor: 'henk', anim: 'nod' },
+    // WP6: de voordeur die meerijdt (zaadje van "een thuis op wielen" in M22.4)
+    { on: 'Het is een voordeur', actor: 'tessa', anim: 'point' },
+    { on: 'Het is een voordeur', dt: 0.8, actor: 'tammo', face: 'prop:escapade' },
     { on: 'Het is klaar', actor: 'tessa', anim: 'hips' },
     { on: 'Het bovenstuk is blauw', actor: 'tammo', anim: 'shake' },
     { on: 'Het is de kleur van de naam', actor: 'tessa', anim: 'point' },
@@ -494,11 +592,27 @@ S['M22.4'] = {
     { on: 'Dat verklaart waarom', actor: 'tammo', anim: 'point' },
     { on: 'Dat deed ik één keer', actor: 'tessa', anim: 'shrug' },
     { on: 'Twee keer', actor: 'tammo', anim: 'laugh' },
-    { on: 'De Fjord Frituur is een thuis', actor: 'tessa', face: 'prop:escapade' },
-    { on: 'De Fjord Frituur is een thuis', dt: 0.3, actor: 'tessa', anim: 'point' },
+    // WP6: de jas uit O4 komt terug; het enige wat elke zomer hetzelfde bleef
+    { on: 'En die jas in augustus', actor: 'tammo', anim: 'point' },
+    { on: 'Mem zegt elke zomer jas', actor: 'tessa', anim: 'shrug' },
+    { on: 'De snackwagen is een thuis', actor: 'tessa', face: 'prop:escapade' },
+    { on: 'De snackwagen is een thuis', dt: 0.3, actor: 'tessa', anim: 'point' },
     { on: 'Ik ging niet weg', actor: 'tessa', walk: [[2.2, -0.2]], speed: 0.6 },
+    { on: 'Ik ging niet weg', dt: 0.4, actor: 'tessa', face: 'actor:tammo' },
+    // de omhelzing: Tammo loopt naar haar toe, ze leunen in elkaar en de trekker ratelt door
+    { on: 'Ik ben gebleven', actor: 'tessa', face: 'actor:tammo' },
+    { on: 'Ik ben gebleven', dt: 0.9, actor: 'tammo', walk: [[2.2, 0.38]], speed: 0.7 },
+    { on: 'Ik ben gebleven', dt: 2.2, actor: 'tessa', anim: 'lean' },
+    { on: 'Ik ben gebleven', dt: 2.2, actor: 'tammo', anim: 'lean' },
   ],
-  shots: [],
+  // sleutelscène (R-01 e.v.): een close-up op de verontschuldiging, een reactieshot op Tammo na "Je bleef nergens" en een trage push-in op de omhelzing
+  shots: [
+    { on: 'Sorry. Dat ik nooit', dt: 0.2, shot: 'close', target: 'tammo', dist: 1.3, side: 0.25, fov: 28 },
+    { on: 'Ik moet je iets vertellen', dt: 0.2, shot: 'close', target: 'tessa', dist: 1.3, side: 0.2, fov: 28 },
+    { on: 'Mem zegt elke zomer jas', dt: 0.3, shot: 'close', target: 'tessa', dist: 1.2, side: 0.3, fov: 26 },
+    { on: 'Je bleef nergens', dt: 0.2, shot: 'close', target: 'tammo', dist: 1.25, side: 0.2, fov: 28 },
+    { on: 'Ik ben gebleven', dt: 0.3, shot: 'dolly', from: [-3.4, 1.9, 1.3], to: [-2.2, 1.0, 1.45], look: 'mid:tammo,tessa@1.4', fov: 38 },
+  ],
   wide: WIDE([-4.6, 3.6, 3], [-2.6, 2.8, 2.2], 'mid:tammo,tessa@1.2'),
 };
 
@@ -551,25 +665,41 @@ S['M25.3'] = {
   wide: WIDE([-3.8, 2.4, 2.6], [-2.0, 1.8, 2.1], 'mid:jelle,tessa@1'),
 };
 
-// M26.5 the Oude Boteringestraat: Mem takes over from the limo's back seat
+// M26.5 the Oude Boteringestraat: Jelle loses to his own permit and a warm eierbal (Tessa and Tammo), then Mem takes over
 S['M26.5'] = {
   cast: {
-    mem: { key: 'mem', at: [4.0, 1.8], face: 190, anim: 'idle', gest: ['point', 'hips', 'talk'] },
+    // WP6: Mem komt pas aanlopen als Jelle de eierbal proeft: ze begint aan het eind van de straat
+    mem: { key: 'mem', at: [9.4, 3.2], face: 200, anim: 'idle', gest: ['point', 'hips', 'talk'] },
     jelle: { key: 'jelle', at: [3.4, -1.0], face: 160, anim: 'idle', gest: ['shrug', 'hips', 'shake'] },
     ...PASSER('toerist', 'toerist', [7, -6], [-3, -6.5], 1.0, 'phone').cast,
   },
   // #734 (F20): de limo van Jelle is de trekker-limo, net als in M26.4; een gewone auto was de Escapade.
-  props: { limo: { kind: 'trekker', at: [5.6, -3.4, 0], face: 80 } },
-  open: [{ actor: 'tessa', face: 'actor:jelle' }, { actor: 'tammo', face: 'actor:jelle' }, ...PASSER('toerist', 'toerist', [7, -6], [-3, -6.5], 1.0, 'phone').cues],
+  // de vergunning in Tessa's hand (klembord) en het bakje met de eierbal in die van Tammo
+  props: { limo: { kind: 'trekker', at: [5.6, -3.4, 0], face: 80 }, vergunning: { kind: 'klembord', at: [0.4, -0.6, 1] }, bakje: { kind: 'doos', at: [0.4, 0.6, 1] } },
+  open: [{ actor: 'tessa', face: 'actor:jelle' }, { actor: 'tammo', face: 'actor:jelle' }, { actor: 'tessa', carry: 'vergunning' }, { actor: 'tammo', carry: 'bakje' }, ...PASSER('toerist', 'toerist', [7, -6], [-3, -6.5], 1.0, 'phone').cues],
   beats: [
-    { on: 0, dt: 0.3, actor: 'mem', walk: [[2.4, -0.2]], speed: 1.0 },
+    { on: 'Je eigen vergunning', actor: 'tessa', anim: 'point' },
+    { on: 'Voor mijn vlag', actor: 'jelle', anim: 'shake' },
+    { on: 'Op een evenement staat een kraam', actor: 'tessa', anim: 'hips' },
+    { on: '…Jouw duiven hadden geen vergunning', actor: 'jelle', anim: 'point' },
+    { on: 'Ik heb ze niet gevraagd', actor: 'tammo', anim: 'shrug' },
+    { on: 'Eierbal? Hij is warm', actor: 'tammo', anim: 'point' },
+    { on: 'Eierbal? Hij is warm', dt: 1.4, actor: 'jelle', face: 'prop:bakje' },
+    { on: 'Eierbal? Hij is warm', dt: 2.2, actor: 'mem', walk: [[2.4, -0.2]], speed: 1.5 },
     { on: 'Jelle. Geef hem aan mij', actor: 'mem', anim: 'point' },
     { on: 'Mem. De notaris', actor: 'jelle', anim: 'shrug' },
     { on: 'Dat is zijn probleem', actor: 'mem', anim: 'hips' },
     { on: '…Ja, mem', actor: 'jelle', anim: 'shake' },
     { on: 'Het is drie uur geweest', actor: 'tessa', anim: 'look' },
   ],
-  shots: [],
+  // sleutelscène: Jelle verliest in beeld; close-ups op de vergunning, op zijn duivenzin en op de eerste hap
+  shots: [
+    { on: 'Je eigen vergunning', dt: 0.2, shot: 'close', target: 'tessa', dist: 1.25, side: 0.2, fov: 28 },
+    { on: '…Jouw duiven hadden geen vergunning', dt: 0.2, shot: 'close', target: 'jelle', dist: 1.35, side: 0.25, fov: 28 },
+    { on: 'Ik heb ze niet gevraagd', dt: 0, shot: 'close', target: 'tammo', dist: 1.25, side: 0.2, fov: 28 },
+    { on: 'Eierbal? Hij is warm', dt: 0.1, shot: 'close', target: 'tammo', dist: 1.25, side: 0.2, fov: 28 },
+    { on: 'Eierbal? Hij is warm', dt: 1.6, shot: 'close', target: 'jelle', dist: 1.3, side: 0.2, fov: 26 },
+  ],
   wide: WIDE([-4.4, 3.8, 3], [-2.4, 2.8, 2.3], 'mid:mem,jelle@1'),
 };
 
@@ -594,6 +724,9 @@ S['M26.6'] = {
     { on: 'Goud. …Valt mie', actor: 'berend', anim: 'nod' },
     { on: 'Berend zegt niks meer', actor: 'rikus', anim: 'point' },
     { on: 'Eén verschil', actor: 'berend', anim: 'point' },
+    { on: 'En de onze?', actor: 'tessa', anim: 'look' },
+    { on: 'Die heeft een korrel', actor: 'berend', anim: 'point' },
+    { on: 'Dat is een eierbal die ergens', actor: 'berend', anim: 'nod' },
   ],
   shots: [], wide: JURY_WIDE,
 };
@@ -610,21 +743,21 @@ const vote = (extra) => ({
 });
 S['M26.10'] = vote([
   { on: 3, actor: 'jurylid', anim: 'cheer' },
-  { on: 'Fjord Frituur. Vijf van de vijf', actor: 'tessa', anim: 'cheer' },
-  { on: 'Fjord Frituur. Vijf van de vijf', actor: 'tammo', anim: 'cheer' },
-  { on: 'Fjord Frituur. Vijf van de vijf', actor: 'kind', anim: 'cheer' },
+  { on: 'Tam & Tes. Vijf van de vijf', actor: 'tessa', anim: 'cheer' },
+  { on: 'Tam & Tes. Vijf van de vijf', actor: 'tammo', anim: 'cheer' },
+  { on: 'Tam & Tes. Vijf van de vijf', actor: 'kind', anim: 'cheer' },
   { on: 'Vijf van de vijf. Mijn juristen', actor: 'jelle', anim: 'shake' },
 ]);
 S['M26.11'] = vote([
   { on: 3, actor: 'jurylid', anim: 'shake' },
-  { on: 'Fjord Frituur. Vier van de vijf', actor: 'tessa', anim: 'cheer' },
-  { on: 'Fjord Frituur. Vier van de vijf', actor: 'tammo', anim: 'cheer' },
-  { on: 'Fjord Frituur. Vier van de vijf', actor: 'kind', anim: 'cheer' },
+  { on: 'Tam & Tes. Vier van de vijf', actor: 'tessa', anim: 'cheer' },
+  { on: 'Tam & Tes. Vier van de vijf', actor: 'tammo', anim: 'cheer' },
+  { on: 'Tam & Tes. Vier van de vijf', actor: 'kind', anim: 'cheer' },
 ]);
 S['M26.12'] = vote([
   { on: 3, actor: 'jurylid', anim: 'shake' },
-  { on: 'Fjord Frituur. Drie van de vijf', actor: 'tessa', anim: 'nod' },
-  { on: 'Fjord Frituur. Drie van de vijf', actor: 'tammo', anim: 'nod' },
+  { on: 'Tam & Tes. Drie van de vijf', actor: 'tessa', anim: 'nod' },
+  { on: 'Tam & Tes. Drie van de vijf', actor: 'tammo', anim: 'nod' },
   { on: 'Drie tegen twee', actor: 'jelle', anim: 'shrug' },
 ]);
 S['M26.13'] = {
@@ -638,7 +771,7 @@ S['M26.13'] = {
     { on: 'De standplaats op de Vismarkt', actor: 'tessa', anim: 'cheer' },
     { on: 'En na afloop', actor: 'berend', anim: 'point' },
     { on: 'De standplaatsen houd ik', actor: 'jelle', anim: 'hips' },
-    { on: 'Dat is mijn zoon', actor: 'mem', anim: 'nod' },
+    { on: 'Dat is mijn kleinzoon', actor: 'mem', anim: 'nod' },
   ],
   shots: [], wide: JURY_WIDE,
 };
@@ -704,7 +837,7 @@ S['M18.7'] = {
   wide: WIDE([-4.5, 4, 3], [-2.5, 2.8, 2.3], 'mid:accountmanager,tessa@1'),
 };
 
-// --- M23 who rides next to the Fjord Frituur (M23.6 Wubbo, M23.7 Tinus, M23.8 Geesje) and M26 the streets they close (M26.14-16) ---
+// --- M23 who rides next to the snackwagen (M23.6 Wubbo, M23.7 Tinus, M23.8 Geesje) and M26 the streets they close (M26.14-16) ---
 const FRIEND = (key, x, gest) => ({ [key]: { key, at: [x, 0.3], face: 180, anim: 'idle', gest } });
 const friendOpen = (key) => [{ actor: 'tessa', face: `actor:${key}` }, { actor: 'tammo', face: `actor:${key}` }];
 const friendWide = (key) => WIDE([-5, 4, 3.2], [-3, 3, 2.4], `mid:${key},tessa@1`);
@@ -792,7 +925,7 @@ S['M21.intro'] = {
 };
 
 // M26.4 lines 7-13, the blokkade (missions_akte5.js: script M26.4 from 7 to 14, a stage scene after the chase): Durk and Douwe light
-// Berend's fireworks, Tessa sets the Fjord Frituur across the street, Jelle gets out of the limo with a speech and steps back
+// Berend's fireworks, Tessa sets the snackwagen across the street, Jelle gets out of the limo with a speech and steps back
 // over a pigeon into the water. The limo nose to the hatch; Jelle's splash is a world sound, he comes back up on the far side.
 S['M26.4#7-14'] = {
   cast: {
@@ -928,18 +1061,26 @@ S['M21.4'] = {
   props: {},
   open: [{ actor: 'tammo', face: 'actor:tinus' }, { actor: 'tessa', face: 'actor:tammo' }, { t: 0.2, actor: 'tammo', walk: [[0.5, 0.2]], speed: 0.8 }],
   beats: [
-    { on: 'Laat ze gaan', actor: 'tinus', anim: 'shake' },
     { on: 'Mijn kerkvoogdij', actor: 'geesje', anim: 'talk' },
-    { on: 'Mijn rubberboot', actor: 'klaas', anim: 'talk' },
-    { on: 'Mijn kade', actor: 'lammert', anim: 'talk' },
-    { on: 'De brug draait', actor: 'wubbo', anim: 'talk' },
-    { on: 'Ik… zeg het niet goed', actor: 'tammo', anim: 'shrug' },
-    { on: 'Mijn vliegvergunning', actor: 'roelfien', anim: 'talk' },
+    { on: 'Mij hebben ze', actor: 'klaas', anim: 'talk' },
+    { on: 'Mij als eerste', actor: 'geesje', anim: 'point' },
+    { on: 'Ik om half negen', actor: 'klaas', anim: 'point' },
+    { on: 'Het maakt niet uit', actor: 'tammo', anim: 'shrug' },
+    { on: 'Ik zeg het niet goed', actor: 'tammo', anim: 'shake' },
+    { on: 'Laat ze gaan', actor: 'tinus', anim: 'shake' },
+    // de vrienden lopen weg: Geesje en Klaas ruziend, de anderen met hun telefoon aan het oor
+    { on: 'Laat ze gaan', dt: 1.0, actor: 'geesje', walk: [[11, -0.4]], speed: 1.1 },
+    { on: 'Laat ze gaan', dt: 1.2, actor: 'klaas', walk: [[11.5, 2.6]], speed: 1.1 },
+    { on: 'Laat ze gaan', dt: 1.8, actor: 'lammert', walk: [[12, -2.4]], speed: 1.0 },
+    { on: 'Laat ze gaan', dt: 2.0, actor: 'wubbo', walk: [[12, 4.2]], speed: 1.0 },
+    { on: 'Laat ze gaan', dt: 2.2, actor: 'roelfien', walk: [[12.5, -0.2]], speed: 1.0 },
     { on: 'Mijn schuur is leeg', actor: 'tinus', anim: 'nod' },
     { on: 'Voor ons.', actor: 'tammo', anim: 'nod' },
   ],
   shots: [
-    { on: 'Laat ze gaan', dt: 0.2, shot: 'dolly', from: [-2.4, 2.4, 1.7], to: [-0.8, 1.4, 1.6], look: 'mid:tammo,tinus@1.3', fov: 50 },
+    { on: 'Mijn kerkvoogdij', dt: 0.2, shot: 'dolly', from: [-2.4, 2.4, 1.7], to: [-0.8, 1.4, 1.6], look: 'mid:geesje,klaas@1.3', fov: 50 },
+    // Tammo faalt: zijn gezicht als de zin vastloopt (R-21)
+    { on: 'Ik zeg het niet goed', dt: 0.3, shot: 'close', target: 'tammo', dist: 1.3, side: 0.2, fov: 28 },
     { on: 'Mijn schuur is leeg', dt: 0.2, shot: 'cut', at: [-1.2, 2.2, 1.6], look: 'tinus@1.4', fov: 40 },
   ],
   wide: WIDE([-5.2, 4.4, 3.4], [-3.2, 3.2, 2.6], 'mid:tammo,tinus@1'),

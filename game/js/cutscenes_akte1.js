@@ -389,7 +389,7 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Dan winnen wij', actor: 'tessa', anim: 'cheer' },
     ],
     shots: [],
-    wide: { from: [-3.6, 4.2, 3.2], to: [-2, 3.2, 2.6], look: 'mid:tessa,duiventil@1.5', fov: 50, until: 1 },
+    wide: { from: [-3.6, 4.2, 3.2], to: [-2, 3.2, 2.6], look: 'mid:tessa,tammo@1.5', fov: 50, until: 1 },
   };
 }
 
@@ -427,7 +427,7 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Dat is een ja', dt: 1.0, actor: 'tammo', walk: [[-2.4, 2.0]], speed: 2.0 },
     ],
     shots: [],
-    wide: { from: [-4.6, 5.2, 3.6], to: [-2.2, 3.6, 2.8], look: 'mid:sjoerd,eerstejaar2@1.2', fov: 52, until: 1 },
+    wide: { from: [-4.6, 5.2, 3.6], to: [-2.2, 3.6, 2.8], look: 'mid:sjoerd,tammo@1.2', fov: 52, until: 1 },
   };
 
   const cafe = merge(

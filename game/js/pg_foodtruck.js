@@ -12,7 +12,7 @@ import { FJORD_UPGRADE_DAG, fjordDagomzet, fjordPassief } from './fjordcijfers.j
 export { fjordDagomzet, fjordPassief } from './fjordcijfers.js';
 import { isToday } from './calendarday.js';
 
-// The Fjord Frituur, after the story: drive the foodtruck (shops.js
+// The snackwagen, after the story: drive the foodtruck (shops.js
 // 'fjordfrituur') to a busy spot, stop, open the hatch (E) and serve the
 // queue. Each customer orders one to three snacks; tap them onto the tray
 // (1-6), serve with Space, Backspace clears. Right = pay plus a tip for
@@ -245,30 +245,30 @@ function leave(run, q, text) {
 
 export const FJORD = {
   id: 'fjord',
-  name: 'Fjord Frituur',
+  name: 'snackwagen',
   blurb: 'Jullie eigen foodtruck: parkeer bij de drukte en verkoop snacks',
   icon: 'fjord',
   jelle: false,
   reach: 11,
   duringIntro: false,
   vehicle: isTruck,
-  need: 'Kom met de Fjord Frituur (bestel hem via je telefoon)',
+  need: 'Kom met de snackwagen (bestel hem via je telefoon)',
   spots(world) {
     const map = world.map;
     return SPOTS.map((sp) => {
       const rp = map.nearestRoadPoint(sp.at[0], sp.at[1], 120, true);
       const p = rp && Math.hypot(rp.x - sp.at[0], rp.y - sp.at[1]) < 90 ? rp : { x: sp.at[0], y: sp.at[1] };
-      return { x: p.x, y: p.y, name: `Fjord Frituur: ${sp.name}`, sub: 'Parkeer hier en open het luik', spot: sp, busy: (w) => sp.busy(w) };
+      return { x: p.x, y: p.y, name: `snackwagen: ${sp.name}`, sub: 'Parkeer hier en open het luik', spot: sp, busy: (w) => sp.busy(w) };
     });
   },
-  verb: () => 'Luik open: Fjord Frituur',
+  verb: () => 'Luik open: snackwagen',
   promptSub(s, w) {
     const b = s.data.spot.busy(w);
     return `${s.data.spot.name}: ${b.label}`;
   },
   start(run) {
     const w = run.world, v = hoofdspeler(w).inVehicle;
-    if (!isTruck(v)) return 'Kom met de Fjord Frituur';
+    if (!isTruck(v)) return 'Kom met de snackwagen';
     const b = run.spot.data.spot.busy(w);
     Object.assign(run.data, {
       truck: v, x0: v.x, y0: v.y, side: pickHatchSide(w.map, v), throttleT: 0, level: b.level * (has('bel') ? 1.25 : 1), label: b.label, where: run.spot.data.spot.name,
@@ -361,7 +361,7 @@ export const FJORD = {
     run.world.yieldWalkers = null;
   },
   debugVehicle(world, s) {
-    // dev/test only: put the player in a Fjord Frituur at the spot
+    // dev/test only: put the player in a snackwagen at the spot
     const p = hoofdspeler(world);
     if (p.inVehicle) return;
     const v = world.vehicles.find((x) => isTruck(x) && !x.driver) || new Vehicle(s.x, s.y, 0, { name: 'foodtruck', len: 5.4, wid: 2.1, maxSpeed: 34, accel: 6.5, brake: 14, turnRate: 2, color: '#2f6fb0' });

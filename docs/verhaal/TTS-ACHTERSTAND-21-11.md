@@ -439,8 +439,8 @@ node scripts/voice_backlog.mjs --write
 | missions_akte6.js | akte 6: Het proefbeleg | Anita | Blijf op het bolwerk staan tot de laatste vlag staat. |  |
 | missions_akte6.js | akte 6: Het proefbeleg | Tammo | Drie vlaggen. Naar de poort, Berend wil binnenrijden. |  |
 | missions_akte6.js | akte 6: Het proefbeleg | Anita | Drie vlaggen. Naar de poort, Berend wil binnenrijden. |  |
-| missions_akte6.js | akte 6: Het proefbeleg | Tammo | De Fjord Frituur staat open. Iedereen eet eierballen op de wal. |  |
-| missions_akte6.js | akte 6: Het proefbeleg | Anita | De Fjord Frituur staat open. Iedereen eet eierballen op de wal. |  |
+| missions_akte6.js | akte 6: Het proefbeleg | Tammo | De snackwagen staat open. Iedereen eet eierballen op de wal. |  |
+| missions_akte6.js | akte 6: Het proefbeleg | Anita | De snackwagen staat open. Iedereen eet eierballen op de wal. |  |
 | missions_nieuw.js | akte 1-3: Het Loket | Tammo | De rij staat binnen, achter de glazen deuren. Nummer 4117. |  |
 | missions_nieuw.js | akte 1-3: Het Loket | Anita | De rij staat binnen, achter de glazen deuren. Nummer 4117. |  |
 | missions_nieuw.js | akte 1-3: Het Loket | Tammo | Blijf in de rij staan tot 4117 wordt omgeroepen. |  |

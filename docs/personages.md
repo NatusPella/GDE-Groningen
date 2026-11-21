@@ -38,7 +38,7 @@ Regels die voor iedereen gelden:
   - "Ik zeg niks." (en dan zegt hij iets)
 - **Houdt van:**
   - eierballen, en dan wel warm;
-  - zijn rode **Fjord Escapade**, die nauwelijks rijdt. Die wordt aan het eind, met een luik erin, de eerste Fjord Frituur;
+  - zijn rode **Fjord Escapade**, die nauwelijks rijdt. Die wordt aan het eind, met een luik erin, de eerste snackwagen;
   - FC Groningen en Oosterpark-nostalgie;
   - d'Olle Grieze als baken ("dan ben ik thuis");
   - fietsen tegen de wind in, omdat dat karakter bouwt.
@@ -80,7 +80,7 @@ Regels die voor iedereen gelden:
 ## Tessa
 **In één zin:** snel, ad rem en de baas van het duo. Ze lacht om alles behalve om mensen die haar droom kleineren.
 
-**Naamkaart:** *Heeft altijd een plan B. Plan A is ook van haar.* Ze is Nederlandse, niet in Stad geboren: ze woonde als kind op zeven plekken en logeerde elke zomer in Ljouwert, in het huis naast Mem. Sinds 14 augustus woont ze met Tammo in de flat in Paddepoel. Ze heeft geen auto; haar droom, de blauwe frietwagen, komt op Tammo's Escapade ("De Fjord Frituur, op een Fjord. Dan klopt de naam ook.").
+**Naamkaart:** *Heeft altijd een plan B. Plan A is ook van haar.* Ze is Nederlandse, niet in Stad geboren: ze woonde als kind op een boerderij tot haar achtste, verhuisde daarna steeds en logeerde elke zomer in Ljouwert, in het huis naast Mem. Sinds 14 augustus woont ze met Tammo in de flat in Paddepoel. Ze heeft geen auto; haar droom, de blauwe frietwagen, komt op Tammo's Escapade ("De snackwagen, op een Fjord. Dan klopt de naam ook.").
 
 - **Stem:** Callirrhoe. Basistag: *Nederlandse vrouw, lacherig en ad rem*, in standaard Nederlands (#134): geen Gronings accent of dialectspelling, en een Gronings woord zou een grap over haar zijn. De opgenomen regels met een Groninger kleur blijven staan. Emoties: plagend, zelfverzekerd, enthousiast, bazig, warm, grinnikend.
 - **Zo praat ze:**
@@ -94,7 +94,7 @@ Regels die voor iedereen gelden:
   - "Rijden, niet praten."
   - "Dat regel ik wel even."
 - **Houdt van:**
-  - haar droom, de **Fjord Frituur**, een eigen frietwagen;
+  - haar droom, de **snackwagen**, een eigen frietwagen;
   - rijden, en vooral hard;
   - de rondvaart en het water;
   - het Noorderplantsoen bij de eerste zon;
@@ -123,7 +123,7 @@ Regels die voor iedereen gelden:
 ## Jelle Terpstra
 **In één zin:** de ijdele, charmante Friese snackbaron van *Us Mem Snacks*, die vindt dat alles wat lekker is eigenlijk Fries is. Hij is de schurk, maar vooral ijdel en nooit echt gemeen.
 
-**Naamkaart:** *Snackkoning. Fries. Heel tevreden met zichzelf.* Eigenlijk is hij een zoon die zijn moeder gelijk wil geven. Zijn **Operaasje Aaibal** heeft vier stappen: de wisseltrofee van de Noordelijke Snackprijs stelen, al het frituurvet opkopen zodat geen Stadjer kan bakken, Stad vernederen, en op Gronings Ontzet winnen, zodat de bal volgens artikel 4 van het reglement van Friesland is. "Foar mem." Zijn moeder wil dat helemaal niet. Hij belt graag in bij Nachtstreek ("Gezellig programma.") en flirt met "famke in het rood".
+**Naamkaart:** *Snackkoning. Fries. Heel tevreden met zichzelf.* Eigenlijk is hij een kleinzoon die zijn oma gelijk wil geven. Zijn **Operaasje Aaibal** heeft vier stappen: de wisseltrofee van de Noordelijke Snackprijs stelen, al het frituurvet opkopen zodat geen Stadjer kan bakken, Stad vernederen, en op Gronings Ontzet winnen, zodat de bal volgens artikel 4 van het reglement van Friesland is. "Foar mem." Zijn moeder wil dat helemaal niet. Hij belt graag in bij Nachtstreek ("Gezellig programma.") en flirt met "famke in het rood".
 
 - **Stem:** Fenrir. Basistag: *ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden*. Emoties: charmant, opschepperig, zelfvoldaan, plechtig, en betrapt als het misgaat.
 - **Zo praat hij:**
@@ -150,9 +150,9 @@ Regels die voor iedereen gelden:
   - elke ontsnapping is een polsstoksprong, en de laatste gaat mis;
   - hij stuurt kaartjes met "Tige tank! – J.", zo beleefd is hij;
   - hij noemt zijn tweeling-handlangers bij de verkeerde naam;
-  - zijn livestreams hebben altijd drie kijkers, waarvan één zijn moeder;
+  - zijn livestreams hebben altijd drie kijkers, waarvan één zijn oma;
   - hij is jaloers op Tammo's duiven: "Friese meeuwen luisteren naar niemand. Ook niet naar mij.";
-  - tegen zijn moeder zegt hij alleen "Ja, mem." In de finale laat zij hem de eierbal proeven.
+  - tegen zijn oma zegt hij alleen "Ja, mem." In de finale laat zij hem de eierbal proeven.
 - **Nooit:**
   - echt geweld of haat;
   - vloeken;
@@ -241,14 +241,14 @@ Regels die voor iedereen gelden:
   - "De tweede was voor mij. Zelf betaald, natuurlijk. Hier was Rikus, op Nachtstreek. Welterusten, Grunn."
 
 ## Mem Terpstra
-**In één zin:** Jelle's moeder, de "Mem" van *Us Mem Snacks*, een oude vriendin van Oma Trijntje uit 1953 en de enige naar wie Jelle luistert.
+**In één zin:** Jelle's oma, de "Mem" van *Us Mem Snacks*, een oude vriendin van Oma Trijntje uit 1953 en de enige naar wie Jelle luistert.
 
-- **Stem:** Gacrux. Basistag: *warme, stellige oude Friese moeder, spreekt Nederlands met Friese woorden*. Emoties: warm, stellig, samenzweerderig.
-- **Uiterlijk:** marineblauwe jas met een witte kraag, bril, grijze knot en de pompeblêd-rode sjaal die haar zoon van haar afkeek (`MEM_LOOK` in `storycast.js`).
+- **Stem:** Gacrux. Basistag: *warme, stellige oude Friese oma, spreekt Nederlands met Friese woorden*. Emoties: warm, stellig, samenzweerderig.
+- **Uiterlijk:** marineblauwe jas met een witte kraag, bril, grijze knot en de pompeblêd-rode sjaal die haar kleinzoon van haar afkeek (`MEM_LOOK` in `storycast.js`).
 - **Zo praat ze:** kort en stellig, Nederlands met Friese woorden (*famke*, *jonge*, *myn*, *net fertelle*), altijd met een Nederlandse ondertitel.
 - **Naamkaart:** *Iemand uit Friesland.* Voluit **Gerda Terpstra** uit Ljouwert.
-- **Rol:** in 1953 werd ze als jonge bakster tweede bij de Snackprijs, tegen Trijntje, met de betere eierbal. Haar zoon heeft dat nooit losgelaten; zij wel. Ze appt Tessa stiekem ("Pas op dysels, famke. – M."), belt in H16 naar Nachtstreek over de trein naar Ljouwert, en in de finale zegt Trijntje het eindelijk: "Gerda. Jouw eierbal was beter." "Dat duurde lang." Dan laat ze Jelle proeven: "Priuw, jonge." Op het bordje in het museum komt haar naam erbij.
-- **Nooit:** gemeen, of partij kiezen tegen haar zoon (ze wil alleen dat hij eerlijk verliest).
+- **Rol:** in 1953 werd ze als jonge bakster tweede bij de Snackprijs, tegen Trijntje, met de betere eierbal. Haar kleinzoon heeft dat nooit losgelaten; zij wel. Ze appt Tessa stiekem ("Pas op dysels, famke. – M."), belt in H16 naar Nachtstreek over de trein naar Ljouwert, en in de finale zegt Trijntje het eindelijk: "Gerda. Jouw eierbal was beter." "Dat duurde lang." Dan laat ze Jelle proeven: "Priuw, jonge." Op het bordje in het museum komt haar naam erbij.
+- **Nooit:** gemeen, of partij kiezen tegen haar kleinzoon (ze wil alleen dat hij eerlijk verliest).
 
 ---
 
@@ -277,6 +277,12 @@ Regels die voor iedereen gelden:
 | **Tinus** | trekkertrekker en re-enactor uit het Westerkwartier, met een schuur en een trekker | nog geen opname; *joviaal* | "De modder pakt eerst je auto. Je plannen komen daarna." (T4, M22) |
 | **Mevrouw Hoving** | bewaarder van de Gouden Eierbal en voorzitter van de jury (artikel 4); Jelle zet haar met een treinreis aan de kant | nog geen opname; *beleefd, oud, formeel* | "Wie de bal bewaart, tekent de uitslag." (M03) |
 | **Willemien** | familie van Oma Trijntje in Loppersum, woont in een huis dat blijft staan | nog geen opname; *nuchter, droog* | "Het is een huis. Het moet alleen even blijven staan." (M27) |
+| **Meneer Veldkamp** | oude buurman op elf negen in Paddepoel, met een duiventil op de galerij; wijs, zwijgzaam; zijn duiven vliegen naar Tammo en niet naar hem (de onverklaarde duivenband, nooit uitgelegd) | nog geen opname; *oud, zacht, weinig woorden* | "Mijn duiven doen dat bij niemand." (M06.0, O12, aftitelkaarten akte 1 en 4) |
+| **Daan** | kermiszanger en barman in Winschoten, charmant en te zeker van zichzelf; zaait één scène lang twijfel bij Tammo (jaloezie-lite, geen driehoek) | nog geen opname; *gladde zanger, vleiend* | "Eén couplet. Over een meisje met een spandoek." (M15.6) |
+| **Stien** | 70, al veertig jaar frituurhoudster onder brug elf in Veendam; mentor voor Tessa en later een vriendin van de wagen | nog geen opname; *kortaf, warm* | "Eerst het vet warm, dan de mensen." (M17.5) |
+| **Anneke** | Tessa's moeder, praktisch en direct; haar man (stil, nooit een regel) had kippen; komt onaangekondigd met een mand eieren | nog geen opname; *nuchter, plattelands* | "Jij belt nooit. Dan komen wij." (M25.6) |
+| **Lieke** | 10, Tessa's nichtje, gele regenjas; heeft het al lang door en zegt het hardop (alleen kinderhumor, nooit in gevaar) | nog geen opname; *helder, kinderstem* | "Jullie zijn al samen." (M25.6) |
+| **Femke** | keeper van Tessa's dorpsteam, vriendin van Tessa; alleen appjes en Rikus' radio (het tweede stel, Rikus en Femke, groeit langzaam en laag) | geen stem, alleen tekst | "Hij zegt het wel heel mooi." (A4.2) |
 
 Geesje, Lammert, Roelfien, Wubbo, Tinus, mevrouw Hoving en Willemien zijn nieuw in het verhaal (`docs/verhaal/nieuw/00-OVERZICHT.md` §2) en hebben nog geen opgenomen stem; de stemkeuze staat open (`docs/verhaal/nieuw/07-TTS-RAMING.md` §5).
 
@@ -309,5 +315,7 @@ Elke naam staat vet in de eigen kleur voor de zin ("**Tammo:** tekst"), in cutsc
 | Rotor Roelf | `#2a9ab8` hemelsblauw | | Torenwachter | `#9a8f6a` steen |
 | Lammert | `#4c8fa8` petrolblauw | | Roelfien | `#79a23c` bladgroen |
 | Wubbo | `#6f8fb0` grijsblauw | | Tinus | `#b0883a` zandbruin |
-| Willemien | `#9a86b4` heidepaars | | | |
+| Willemien | `#9a86b4` heidepaars | | Meneer Veldkamp | `#7f9a5e` mosgroen |
+| Anneke | `#6aa07a` tuingroen | | Lieke | `#d9a920` regenjasgeel |
+| Daan | `#8d8fd0` kermislila | | Stien | `#c98f6a` frituurbruin |
 | Voorbijgangers, bazen, radio en navigatie | `#8a8a8a` neutraal grijs | | | |

@@ -257,7 +257,7 @@ export const PAD_MAPS = {
   // voetbal in de Euroborg (#981): de stick loopt, A een korte pass (F), B een lange pass (E, houd voor kracht), X schiet (Spatie, houd voor kracht), Y wisselt van speler (Q),
   // LB zet druk met een tackle (Ctrl), LT sprint (Shift), de D-pad omhoog wisselt de speelstijl (1), links de vorming (2), rechts stopt (Backspace). De toetsen zijn dezelfde als op het toetsenbord (voetbalrules.js TOETSEN).
   voetbal: { a: 'f', b: 'e', x: ' ', y: 'q', lb: 'control', rb: null, lt: 'shift', rt: null, ls: null, rs: null, up: '1', down: null, left: '2', right: 'backspace', view: 'm', start: 'escape', stick: 'move' },
-  // the Fjord Frituur: the D-pad and the bumpers pick from the menu
+  // the snackwagen: the D-pad and the bumpers pick from the menu
   foodtruck: { a: ' ', b: 'backspace', x: 'backspace', y: 'e', up: '1', right: '2', down: '3', left: '4', lb: '5', rb: '6', lt: null, rt: '@gas', ls: null, rs: null, view: 'm', start: 'escape', stick: 'move' },
   // de vliegschool (#397): het lesmenu bij de balie; A kiest, B gaat terug, de pijlen (en de stick) bladeren. In de lucht
   // kiest gamepad.js de gewone vliegindeling zodra je in het lesvliegtuig zit.

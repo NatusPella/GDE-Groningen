@@ -14,6 +14,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { withEllipsisAliases } from '../game/js/voicebank.js';
+import { parseForm } from '../game/js/dialogueform.js';
 
 const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = path.join(REPO, 'docs', 'verhaal', 'nieuw');
@@ -63,6 +64,12 @@ export const SPEAKER_TABLE = {
   DEURWAARDER: sp('deurwaarder', 'Deurwaarder'),
   STUDENT: sp('student', 'Student'),
   BOER: sp('boer', 'Boer'),
+  // inspiratiepakket (21-11, VERHAAL-INSPIRATIEPLAN-21-11.md): nieuwe stemmen, nog geen opnames
+  VELDKAMP: sp('veldkamp', 'Meneer Veldkamp'),
+  ANNEKE: sp('anneke', 'Anneke'),
+  LIEKE: sp('lieke', 'Lieke'),
+  DAAN: sp('daan', 'Daan'),
+  STIEN: sp('stien', 'Stien'),
   // Deel 4 (09-script-akte6.md): no recordings
   WILLEMIEN: sp('willemien', 'Willemien'),
   BUURVROUW: sp('buurvrouw', 'Buurvrouw'),
@@ -111,7 +118,7 @@ function kindOf(id, title) {
   return 'key';
 }
 
-// De humorkeuze (#1134 en docs/verhaal/HUMOR-WERKWIJZE.md): een nieuwe of herschreven komische beat heeft drie varianten en een
+// De humorkeuze (#1134 en docs/verhaal/SCHRIJFREGELS-21-11.md): een nieuwe of herschreven komische beat heeft drie varianten en een
 // veilige neutrale terugval in game/storydata/humor.json; `chosen` (0, 1, 2 of 'neutral') is de variant die het spel gebruikt.
 // De bron (de 09-scripts) draagt een van de teksten; de build zet de gekozen tekst in de regel en geeft hem het label 'humor'.
 export function readHumor(dir = HUMOR_DIR) {
@@ -170,7 +177,10 @@ export function parseScripts() {
         continue;
       }
       const c = /^(.*?)(?: \(([^)]*)\))?$/.exec(head);
-      const line = { who: c[1], text: m[2], tag, channel: CHANNEL[c[2]] && c[2] !== 'stil' ? CHANNEL[c[2]] : 'stem' };
+      // dialoogvorm (#1134): {ov=..}, {cut=..} of {pause=..} achter de tekst gaat naar `form`, niet in de tekst
+      const pf = parseForm(m[2]);
+      const line = { who: c[1], text: pf.text, tag, channel: CHANNEL[c[2]] && c[2] !== 'stil' ? CHANNEL[c[2]] : 'stem' };
+      if (pf.form) line.form = pf.form;
       if (c[2] && !CHANNEL[c[2]]) line.manner = c[2];
       scene.lines.push(line);
     }
@@ -231,6 +241,7 @@ export function build() {
       const out = { speaker: spk.name, key: spk.key, text: l.text, tag: l.tag, channel: l.channel, textOnly: !recorded };
       if (l.manner) out.manner = l.manner;
       if (l.humor) out.humor = l.humor;
+      if (l.form) out.form = l.form;
       if (rec) out.rec = rec;
       if (spk.voice !== spk.name) out.voice = spk.voice;
       return out;

@@ -44,7 +44,7 @@ const check = (name, ok, info = '') => { n++; if (!ok) { bad++; console.log('FAI
   check('news has the magnitude with a comma', /2,4/.test(news) && !news.includes('{m}'), news);
   const all = [...E.QUAKE_NEWS, ...E.QUAKE_BARKS].join(' ').toLowerCase();
   check('respectful: no damage jokes, no blame', !/(lol|haha|dood|doden|slachtoffer|ingestort|schuld|crimin|schurk|gasbedrijf)/.test(all), all);
-  check('the company in the news is the fictional one', E.QUAKE_NEWS.some((t) => t.includes('Delfstof Noord')) && E.QUAKE_NEWS.filter((t) => /Delfstof/.test(t)).length === 1);
+  check('the news no longer names gas extraction or earthquakes (owner decision 21-11)', E.QUAKE_NEWS.length >= 2 && !E.QUAKE_NEWS.some((t) => /Delfstof|gaswinning|aardbeving/i.test(t)));
   check('no damage reported', E.QUAKE_NEWS.every((t) => /(geen schade|alles in orde)/i.test(t)));
 }
 

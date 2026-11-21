@@ -2930,7 +2930,7 @@ const LEGEND = [
     { kind: 'perceel-koop', label: 'Te koop', note: 'percelen in de provincie: blauw met streeplijn en prijs is te koop, groen is van jou, een andere kleur van een medespeler, grijs met een slot is niet te koop; klik voor de perceelkaart met Koop', layers: ['tekoop'] },
     { kind: 'perceel-koop', label: 'Standplaatsen', note: 'plekken voor de snackwagen: blauwe cirkel is vrij, groene schijf is van jou, rode ruit is van Usmem Snacks, een vierkant in een andere kleur is van een medespeler; klik voor het kaartje met de vergunning', layers: ['standplaats'] },
     { kind: 'perceel-eigen-rijp', label: 'Je velden', note: 'een letter per stand: B braak, S stoppel, P geploegd, Z zaailing, G groeit, O oogstklaar (groen met een vlag: dat is je doel; geel: het gewas groeit); T is een machine van jou, A een afnemer van je oogst', layers: ['percelen'] },
-    { kind: 'pg-jelle', label: 'Na het verhaal', note: 'Jelle\'s uitdagingen en de Fjord Frituur', layers: ['postgame'] },
+    { kind: 'pg-jelle', label: 'Na het verhaal', note: 'Jelle\'s uitdagingen en de snackwagen', layers: ['postgame'] },
   ] },
   { group: 'Diensten', folded: true, rows: [
     { kind: 'home', label: 'Thuis', note: 'flat, garage, steiger en helidek', layers: ['home', 'homeGarage'] },

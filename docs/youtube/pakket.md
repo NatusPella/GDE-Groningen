@@ -38,7 +38,7 @@ node scripts/youtube_thumbnails.mjs --game-dir=<staged game> --frames=<beelden> 
 
 - **Ontbrekende stemclips in de verhaaltrailer**: `st-bijbaan_1_a_91280b` en `h2-pass-karaat_0_t_739985`
   bestaan niet meer (de regels zijn herschreven); de ondertitel stond er wel, het geluid niet.
-  Vervangen door bestaande clips met dezelfde rol (*Zonder die Eierbal geen Fjord Frituur.* en
+  Vervangen door bestaande clips met dezelfde rol (*Zonder die Eierbal geen snackwagen.* en
   *Het museum. De Gouden Eierbal.*).
 - **Camera achter een brugleuning** in de Jelle-shot (verhaaltrailer en H18 in de gameplaytrailer):
   de camera staat nu boven de leuning.

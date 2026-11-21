@@ -2,25 +2,19 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Waarom nou een frietwagen?",
+  "text": "Dan rijdt hij nauwelijks voor jou. Een snackwagen die nauwelijks rijdt. Dat is een concept.",
   "scene": "C00.2"
  },
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "En ik rijd.",
-  "scene": "C00.2"
- },
- {
-  "reason": "spreektekst",
-  "speaker": "Rikus",
-  "text": "En nu een plaat voor Tammo, mijn vriend sinds groep drie. Hij heeft een grote dag en zegt niks.",
+  "text": "Is dat het plan? Een frietwagen?",
   "scene": "C00.2"
  },
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Rikus draait mijn plaat.",
+  "text": "Dan rijd ik hem. Tot je het weet.",
   "scene": "C00.2"
  },
  {
@@ -44,7 +38,13 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Het hing al aan de koelkast.",
+  "text": "Staat \"thee\" erbij?",
+  "scene": "O1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "…Het was er al.",
   "scene": "O1"
  },
  {
@@ -80,7 +80,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Rikus",
-  "text": "Dat is een duidelijk plan. Ik draai een plaat.",
+  "text": "Dat is een helder plan. Ik zeg niks. Ik draai een plaat.",
   "scene": "R1.1"
  },
  {
@@ -122,7 +122,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Dat zeg je altijd.",
+  "text": "Ik weet het.",
   "scene": "O2"
  },
  {
@@ -130,6 +130,54 @@
   "speaker": "Rikus",
   "text": "Slaap lekker, jongen.",
   "scene": "O2"
+ },
+ {
+  "reason": "stemkeuze",
+  "speaker": "Meneer Veldkamp",
+  "text": "Jullie lamp brandt. Het is bijna twaalf.",
+  "scene": "M06.0"
+ },
+ {
+  "reason": "stemkeuze",
+  "speaker": "Meneer Veldkamp",
+  "text": "Mijn duiven doen dat bij niemand. Hij wil naar Tammo.",
+  "scene": "M06.0"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Wij delen een koelkast.",
+  "scene": "B1.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Het is een hele goede koelkast.",
+  "scene": "B1.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Eigenlijk een ringmus. Hij heeft een vlekje op zijn wang.",
+  "scene": "B1.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Het was het enige.",
+  "scene": "B1.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Dat hangt van de jas af.",
+  "scene": "B1.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Het is een eerlijk antwoord.",
+  "scene": "B1.3"
  },
  {
   "reason": "spreektekst",
@@ -151,6 +199,12 @@
  },
  {
   "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Tessa, eigenlijk—",
+  "scene": "O3"
+ },
+ {
+  "reason": "spreektekst",
   "speaker": "Oma Trijntje",
   "text": "Tammo, met je oma. Kom naar de Noorderhaven. Wil je eerlijk winnen, dan heb je mijn recept nodig.",
   "scene": "M08.1"
@@ -159,6 +213,12 @@
   "reason": "spreektekst",
   "speaker": "Oma Trijntje",
   "text": "1953. Dat ik won, weet je. Tweede werd Gerda Terpstra. Haar eierbal was beter.",
+  "scene": "M08.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Oma Trijntje",
+  "text": "Haar kleinzoon, zeker. Ik heb het nooit gezegd. Zeventig jaar trots. Dat is lang voor iets wat in één zin past.",
   "scene": "M08.3"
  },
  {
@@ -193,6 +253,12 @@
  },
  {
   "reason": "spreektekst",
+  "speaker": "Geesje",
+  "text": "Zijn oma, Gerda, belt Trijntje elk jaar op haar verjaardag. Ze zeggen dan allebei niks.",
+  "scene": "M09.1"
+ },
+ {
+  "reason": "spreektekst",
   "speaker": "Tammo",
   "text": "Ook dit weet je.",
   "scene": "M10.2"
@@ -200,8 +266,44 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
+  "text": "Ik wil dit niet kwijt.",
+  "scene": "M10.5"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Nee. Dit. Alles.",
+  "scene": "M10.5"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Ik bedoel: ik blijf.",
+  "scene": "M10.5"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
   "text": "Wat zei ze?",
   "scene": "O5"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Kijk allemaal. Hij rijdt.",
+  "scene": "T2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Welke kant is de zon?",
+  "scene": "T2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Ik droomde over verkeer.",
+  "scene": "T2"
  },
  {
   "reason": "spreektekst",
@@ -224,13 +326,13 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Een broodtrommel. We hebben een boot gekaapt voor een broodtrommel.",
+  "text": "Een broodtrommel. Geen bal.",
   "scene": "M11.3"
  },
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Zijn moeder pakt nog zijn brood in.",
+  "text": "Zijn oma pakt nog zijn brood in.",
   "scene": "M11.3"
  },
  {
@@ -238,6 +340,30 @@
   "speaker": "Kapitein Klaas",
   "text": "Eerst zit je een uur vast op een zandplaat. Daarna rijdt mijn neef jullie langs de dijk.",
   "scene": "M11.4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Tessa, eigenlijk—",
+  "scene": "B2.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Koe.",
+  "scene": "B2.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Eén.",
+  "scene": "B2.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Eén. En zeventig jaar.",
+  "scene": "B2.2"
  },
  {
   "reason": "spreektekst",
@@ -344,7 +470,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "We hebben nog geen wagen.",
+  "text": "Het is niet eens van ons. Het is van mijn oma.",
   "scene": "O6"
  },
  {
@@ -352,6 +478,18 @@
   "speaker": "Lammert",
   "text": "De overdracht is getekend, om vijf voor acht. Het woonschip is van Trijntje en het vet is veilig.",
   "scene": "M14.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "Mijn verzoekplaat van de week: \"Elfde Verdieping\", van De Fietstunnels. Een nummer over een lift die werkt.",
+  "scene": "R3.4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "Voor twee Stadjers die elk een kant van het refrein zingen. Ik zeg niks.",
+  "scene": "R3.4"
  },
  {
   "reason": "spreektekst",
@@ -402,6 +540,36 @@
   "scene": "M15.5"
  },
  {
+  "reason": "stemkeuze",
+  "speaker": "Daan",
+  "text": "Jij bent van het spandoek. Dat ik dat mocht meemaken.",
+  "scene": "M15.6"
+ },
+ {
+  "reason": "stemkeuze",
+  "speaker": "Daan",
+  "text": "Dan heb je veel ongelukken nodig. Vanavond sta ik achter de bar bij Geert. Mag ik dan een liedje zingen?",
+  "scene": "M15.6"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Ze moet nog eten.",
+  "scene": "M15.6"
+ },
+ {
+  "reason": "stemkeuze",
+  "speaker": "Daan",
+  "text": "Eén couplet. Over een meisje met een spandoek.",
+  "scene": "M15.6"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Ik heb niks gezegd.",
+  "scene": "M15.6"
+ },
+ {
   "reason": "spreektekst",
   "speaker": "Geert",
   "text": "Moi. Geert, van de Poelestraat. Twee Friese reuzen zitten aan mijn bar en ze zingen al een uur.",
@@ -416,7 +584,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Geert",
-  "text": "Hij kijkt al sinds de ingang naar je. Dat zie ik altijd.",
+  "text": "Hij kijkt al sinds de ingang naar je.",
   "scene": "M16.1"
  },
  {
@@ -430,6 +598,48 @@
   "speaker": "Tammo",
   "text": "Over twee dagen.",
   "scene": "M16.5"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Tessa, eigenlijk—",
+  "scene": "B3.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Eigenlijk heet een groep van die dingen een windpark.",
+  "scene": "B3.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Het is ook iets. Een park.",
+  "scene": "B3.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Net zo hoog als zijn frikandel.",
+  "scene": "B3.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Het is een eenheid.",
+  "scene": "B3.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Jij zingt het refrein, ik de bas.",
+  "scene": "B3.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Iemand moet de bodem leggen.",
+  "scene": "B3.3"
  },
  {
   "reason": "spreektekst",
@@ -448,6 +658,114 @@
   "speaker": "Tammo",
   "text": "Ja.",
   "scene": "O7"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "Maandag 24 augustus. In de chat zeggen ze dat twee Stadjers het museum leegroofden. Ik zeg niks.",
+  "scene": "R4.0"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "Dat is een erfstuk, meneer Terpstra.",
+  "scene": "R4.0"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "Een beller van het platteland: Femke, keeper van een dorpsteam. Ze vraagt voor de derde avond een plaat aan. Ik zeg niks.",
+  "scene": "R4.0b"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "\"Elfde Verdieping\", van De Fietstunnels, voor Femke. Ze zegt dat ze Tessa kent. Dat is de enige aanbeveling die ik nodig heb.",
+  "scene": "R4.0b"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Wubbo",
+  "text": "Onder brug elf staat Stien met haar frituur. Haar friet is de beste van Veendam. Kom daarna even langs.",
+  "scene": "M17.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Wubbo",
+  "text": "Op brug acht zit een duif. Hij kijkt naar jou.",
+  "scene": "M17.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Hij kijkt altijd.",
+  "scene": "M17.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Wubbo",
+  "text": "Open of dicht. Nooit allebei. Vandaag dicht.",
+  "scene": "M17.3"
+ },
+ {
+  "reason": "stemkeuze",
+  "speaker": "Stien",
+  "text": "Wubbo zei dat jullie kwamen. Eén friet, op mijn kosten.",
+  "scene": "M17.5"
+ },
+ {
+  "reason": "stemkeuze",
+  "speaker": "Stien",
+  "text": "Eerst het vet warm, dan de mensen.",
+  "scene": "M17.5"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "En de mensen dan?",
+  "scene": "M17.5"
+ },
+ {
+  "reason": "stemkeuze",
+  "speaker": "Stien",
+  "text": "Die komen op de geur. Dat is het hele vak.",
+  "scene": "M17.5"
+ },
+ {
+  "reason": "stemkeuze",
+  "speaker": "Stien",
+  "text": "Nee. Maar het is een begin. Kom terug als je hem hebt.",
+  "scene": "M17.5"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "We waren er wel.",
+  "scene": "M18.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Sjabbe",
+  "text": "Wiebelwerk? Zij beheren ook de camera's van het museum. Hun accountmanager belt me elke week, over een website die nog niet bestaat.",
+  "scene": "M18.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Voor wie?",
+  "scene": "M18.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Mem weer? Wat zei ze?",
+  "scene": "M18.4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Het is augustus.",
+  "scene": "M18.4"
  },
  {
   "reason": "spreektekst",
@@ -475,6 +793,132 @@
  },
  {
   "reason": "spreektekst",
+  "speaker": "Mevrouw Hoving",
+  "text": "Ik stap niet uit. Ik blijf in de trein tot na het Ontzet, dat stond op de uitnodiging.",
+  "scene": "M19.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "Het oudste jurylid. Dat ben ik. Sinds 1982.",
+  "scene": "M19.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Vier van de vijf zijn dan niet van hem.",
+  "scene": "M19.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "Vrijdag om drie uur gaat Jelle naar de notaris.",
+  "scene": "M19.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "Daar schrijft hij zich in als bewaarder. Dan tekent hij de uitslag zelf.",
+  "scene": "M19.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Daarom zit mevrouw Hoving in zijn trein.",
+  "scene": "M19.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "Dinsdag komt de man die mijn bakkie wilde kopen naar het Beleg. Met zijn mannen.",
+  "scene": "M19.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "Ik heb een bus nodig. Kom naar Ter Apel.",
+  "scene": "M19.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Henk",
+  "text": "Moi. Ik rij de Escapade achter jullie aan. Tinus stapt bij jullie in. Hij heeft een schuur.",
+  "scene": "T4.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "\"Tige tank foar de auto. – J.\" Hij bedankt ons voor een auto die hij niet heeft.",
+  "scene": "M20.5"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Geesje",
+  "text": "Mijn kerkvoogdij is gebeld. De kerkkelder is verhuurd. Ik ga, jong.",
+  "scene": "M21.4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Kapitein Klaas",
+  "text": "Mij hebben ze als eerste gebeld. Mijn rubberboot is in beslag genomen.",
+  "scene": "M21.4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Geesje",
+  "text": "Mij als eerste. Om negen uur.",
+  "scene": "M21.4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Kapitein Klaas",
+  "text": "Ik om half negen.",
+  "scene": "M21.4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Het maakt niet uit wie… eh.",
+  "scene": "M21.4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Ik zeg het niet goed.",
+  "scene": "M21.4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Een veldje met doelen. Ik regel een wedstrijd. Jij speelt.",
+  "scene": "B4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Tessa, eigenlijk—",
+  "scene": "B4.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Precies. Dat bedoelde ik.",
+  "scene": "B4.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Nemen ze de koe mee?",
+  "scene": "B4.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Dan weet zij het eerder dan ik.",
+  "scene": "B4.2"
+ },
+ {
+  "reason": "spreektekst",
   "speaker": "Tammo",
   "text": "Niet goed. Ik heb het niet goed gezegd.",
   "scene": "O9"
@@ -482,8 +926,68 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Ik kom naar Tinus.",
+  "text": "Je koos de auto. Niet de bal.",
   "scene": "O9"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "…Dat is waar. Ik kom naar Tinus.",
+  "scene": "O9"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Welke naam?",
+  "scene": "M22.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Henk",
+  "text": "Tam. Tes.",
+  "scene": "M22.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "...Het rijmt.",
+  "scene": "M22.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Henk",
+  "text": "Ik zeg niks. Eén koekje.",
+  "scene": "M22.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "En die jas in augustus.",
+  "scene": "M22.4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Kapitein Klaas",
+  "text": "Ik heb mijn rubberboot terug. De oma van Jelle belde de deurwaarder. De boot ligt op een aanhanger en ik praat tegen hem.",
+  "scene": "M23.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Hij hangt een vlag aan onze toren voor zijn oma.",
+  "scene": "M24.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Geen idee.",
+  "scene": "M24.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Duivenmelker Bert",
+  "text": "Hij weet het niet, jong. Zij ook niet.",
+  "scene": "M24.1"
  },
  {
   "reason": "spreektekst",
@@ -500,8 +1004,332 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
+  "text": "Er zit nog een vel in.",
+  "scene": "O10"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Waarom stuurt hij ons die?",
+  "scene": "O10"
+ },
+ {
+  "reason": "stemkeuze",
+  "speaker": "Anneke",
+  "text": "We waren in de buurt. Met een mand eieren.",
+  "scene": "M25.6"
+ },
+ {
+  "reason": "stemkeuze",
+  "speaker": "Anneke",
+  "text": "Jij belt nooit. Dan komen wij.",
+  "scene": "M25.6"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Oma Trijntje",
+  "text": "Ga zitten. Eet een eierbal. Er zit vet in.",
+  "scene": "M25.6"
+ },
+ {
+  "reason": "stemkeuze",
+  "speaker": "Anneke",
+  "text": "Bij ons gaan eieren niet in het vet.",
+  "scene": "M25.6"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Oma Trijntje",
+  "text": "Dan gaan ze er later in.",
+  "scene": "M25.6"
+ },
+ {
+  "reason": "stemkeuze",
+  "speaker": "Lieke",
+  "text": "Zijn jullie al samen?",
+  "scene": "M25.6"
+ },
+ {
+  "reason": "stemkeuze",
+  "speaker": "Lieke",
+  "text": "Jullie zijn al samen. Jullie weten het alleen niet.",
+  "scene": "M25.6"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Oma Trijntje",
+  "text": "En wanneer trouwen jullie?",
+  "scene": "M25.6"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Ik zeg liever niks.",
+  "scene": "M25.6"
+ },
+ {
+  "reason": "stemkeuze",
+  "speaker": "Anneke",
+  "text": "Dat zag ik al. Dat is een goed teken.",
+  "scene": "M25.6"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "Voor iedereen. De beste eierbal wint de standplaats.",
+  "scene": "M26.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "Die gaat terug naar het museum. Twee aparte dingen.",
+  "scene": "M26.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "Mevrouw Hoving, de bewaarder, zit nog in de trein. Met volpension.",
+  "scene": "M26.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "Regel twee: zonder bewaarder zit het oudste jurylid voor. Dat ben ik.",
+  "scene": "M26.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "Ik heb nog nooit iets gewonnen. Nu moet ik oordelen.",
+  "scene": "M26.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Ik heb ze niet gevraagd.",
+  "scene": "M26.5"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Eierbal? Hij is warm.",
+  "scene": "M26.5"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "Eén verschil, dan stemmen we. De Friese bal is glad, van fijn meel.",
+  "scene": "M26.6"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "Die heeft een korrel, van grof meel. Die proef je.",
+  "scene": "M26.6"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "Dat is een eierbal die ergens vandaan komt.",
+  "scene": "M26.6"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Jurylid",
+  "text": "Tam & Tes.",
+  "scene": "M26.10"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Jurylid",
+  "text": "Tam & Tes.",
+  "scene": "M26.10"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Jurylid",
+  "text": "Tam & Tes.",
+  "scene": "M26.10"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Jurylid",
+  "text": "Tam & Tes.",
+  "scene": "M26.10"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "Tam & Tes. Vijf van de vijf. Mijn stem was niet eens nodig.",
+  "scene": "M26.10"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Jurylid",
+  "text": "Tam & Tes.",
+  "scene": "M26.11"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Jurylid",
+  "text": "Tam & Tes.",
+  "scene": "M26.11"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Jurylid",
+  "text": "Tam & Tes.",
+  "scene": "M26.11"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "Tam & Tes. Vier van de vijf. Ik was de laatste.",
+  "scene": "M26.11"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Jurylid",
+  "text": "Tam & Tes.",
+  "scene": "M26.12"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Jurylid",
+  "text": "Tam & Tes.",
+  "scene": "M26.12"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "Tam & Tes. Drie van de vijf. Het is krap.",
+  "scene": "M26.12"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "De standplaats op de Vismarkt gaat naar Tam & Tes.",
+  "scene": "M26.13"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "…Ik heb geen woorden meer.",
+  "scene": "M26.17"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "Dat duurde elf seconden.",
+  "scene": "M26.17"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "…Ik zeg niks.",
+  "scene": "M26.17"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Derde keer deze week. Uitverkocht voor vieren.",
+  "scene": "E1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Op de achterkant staat: elf seconden.",
+  "scene": "E1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Ik heb niks gezegd.",
+  "scene": "E1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Dat zegt hij heel hard.",
+  "scene": "E2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "Jelle kocht vanochtend een pand aan de Hereweg. Hij noemt het een hobby.",
+  "scene": "E2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Wij bakken door.",
+  "scene": "E2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "De loketbediende van Loket B stond vooraan. Ze zei dat Tessa haar bij haar naam had gegroet. Dat doet niemand.",
+  "scene": "E3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "Een oude vrouw met een rollator kreeg de eerste eierbal. Tammo had op het perron op haar gewacht.",
+  "scene": "E3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "Het jongetje van het bankje stond er ook. Hij deelde zijn snack met een duif.",
+  "scene": "E3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "Durk en Douwe werken nu voor Jelles oma. Ze sturen een kaartje.",
+  "scene": "E3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Willemien",
+  "text": "Ik ken jullie van het luik. Woensdag, de derde in de rij. Eén eierbal, extra mosterd.",
+  "scene": "M27.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Willemien",
+  "text": "De aannemer zet het huis op nieuwe poten. De ploeg is aardig. Het duurt alleen langer dan een kopje koffie.",
+  "scene": "M27.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
   "text": "Wat wilde hij nou?",
   "scene": "O11"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Willemien",
+  "text": "Trijntjes recept. Het is een bal.",
+  "scene": "M29.2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Geesje",
+  "text": "De bieten staan tot aan de weg, Tessa. Ik heb handen nodig.",
+  "scene": "M30.6"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Berend Bos",
+  "text": "In Veendam zoeken ze een aanvalster. Ik heb je naam genoemd.",
+  "scene": "M30.6"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Sjabbe",
+  "text": "Ik heb een pand. Het staat leeg. Jelle heeft het nog niet gezien.",
+  "scene": "M30.6"
  },
  {
   "reason": "spreektekst",
@@ -519,6 +1347,12 @@
   "reason": "spreektekst",
   "speaker": "Tammo",
   "text": "Dan beginnen we overal.",
+  "scene": "O12"
+ },
+ {
+  "reason": "stemkeuze",
+  "speaker": "Meneer Veldkamp",
+  "text": "De duiven vragen of jullie blijven.",
   "scene": "O12"
  }
 ]

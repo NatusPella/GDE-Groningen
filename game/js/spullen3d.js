@@ -80,7 +80,7 @@ export const CARD_SPEC = {
 };
 export const cardSpec = (id) => CARD_SPEC[id] || null;
 
-// Upgrades: groep 'auto' (Escapade en andere auto's), 'tweewieler' (fiets, scooter) of 'fjord' (de Fjord Frituur).
+// Upgrades: groep 'auto' (Escapade en andere auto's), 'tweewieler' (fiets, scooter) of 'fjord' (de snackwagen).
 export const UPGRADE_SPEC = {
   auto: { motor: spul('motor'), remmen: product('schijf'), grip: spul('bredeband'), turbo: product('turbo'), sperdiff: spul('sperdiff') },
   tweewieler: { banden: product('band'), versnelling: product('versnelling'), motor: product('accu'), uitlaat: spul('uitlaat'), schijven: product('schijf'), plakbanden: product('band') },
@@ -90,7 +90,7 @@ export const upgradeSpec = (groep, id) => (UPGRADE_SPEC[groep] && UPGRADE_SPEC[g
 
 // Wat bewust zonder model blijft (het paneel toont dan het icoon): reden per groep, voor het doc en de dekkingsaudit.
 export const TERUGVAL = {
-  'boot-onderdelen': 'Upgrades van boot, kano en zeil staan nog niet in Spullen (alleen auto, fiets, scooter en de Fjord Frituur).',
+  'boot-onderdelen': 'Upgrades van boot, kano en zeil staan nog niet in Spullen (alleen auto, fiets, scooter en de snackwagen).',
 };
 
 // Het eerlijke label van de viewer voor schermlezers.

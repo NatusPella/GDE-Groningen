@@ -49,7 +49,7 @@ export const RELATION_LIST = [
   e('dijkstra', 'trijntje', 'friends', "vriend via Oma", "oude vriendin", "jarenlang", "droog", "dat Oma belt", "dat Dijkstra vliegt", "de heli", { canon: true, from: 'M11' }),
   e('dijkstra', 'anita', 'work', "piloot", "passagier", "M11", "zakelijk", "dat Tessa het koopboek leest", "dat Dijkstra niks uitleent maar meevliegt", "de heli met het koopboek", { canon: true, from: 'M11' }),
   e('lammert', 'trijntje', 'acquaintance', "zoon van haar danspartner", "de vrouw met wie zijn vader danste", "1953", "ironisch", "dat Oma danste", "dat Lammert havenmeester is", "de dans van 1953", { canon: true, from: 'M13' }),
-  e('roelfien', 'trijntje', 'family', "nicht (of oudste klant)", "tante (of de bakster)", "jarenlang", "vrolijk", "dat Oma het recept heeft", "dat Roelfien laag vliegt", "de graanzolder", { from: 'M15' }),
+  e('roelfien', 'trijntje', 'family', "oudste klant", "tante (of de bakster)", "jarenlang", "vrolijk", "dat Oma het recept heeft", "dat Roelfien laag vliegt", "de graanzolder", { from: 'M15' }),
   e('wubbo', 'trijntje', 'friends', "vriend van Oma", "oude vriendin", "jarenlang", "rustig", "dat Oma het recept heeft", "dat de bruggen ritme hebben", "de fanfare", { from: 'M17' }),
   e('willemien', 'trijntje', 'family', "familie", "familie", "jarenlang", "nuchter", "dat Oma van het huis houdt", "dat Willemien niet heldhaftig is", "het huis in Loppersum", { canon: true, from: 'M27' }),
   e('geert', 'durk', 'acquaintance', "kroegbaas", "klant die zingt", "M16", "joviaal", "dat Durk geheimen verklapt", "dat Geert alles weet", "de zingende Friese reuzen", c),
@@ -73,6 +73,7 @@ export const RELATION_LIST = [
   e('buurman', 'anita', 'neighbours', "buurman", "huisgenoot van de gang", "sinds 14 augustus", "vriendelijk", "dat Tessa een plan heeft", "dat Auke weinig zegt", "een kop soep", {}),
   e('lieke', 'anita', 'family', "nichtje", "nicht", "sinds haar geboorte", "dol op haar", "dat Tessa alles regelt", "dat Lieke alles doorheeft", "voetbal in de wei", {}),
   e('frituurmentor', 'anita', 'mentor', "mentor", "leerling", "voor de standplaats", "streng, warm", "dat Tessa het kan", "dat Sietske streng proeft", "de eerste goede friet", {}),
+  e('daan', 'tammo', 'acquaintance', "zanger", "kermisbezoeker", "sinds de kermis in Winschoten", "ijdel, vriendelijk", "dat Tammo naar Tessa kijkt", "dat Daan zingt", "de kermis", {}),
   e('marit', 'anita', 'friends', "teamgenote en vriendin", "teamgenote en vriendin", "sinds het dorpsteam", "droog", "dat Tessa de ster is", "dat Marit keeper is", "de lege mestemmer als doel", {}),
   e('marit', 'rikus', 'romantic', "aanstaande verkering", "aanstaande verkering", "akte 3 (voorstel)", "slap en snel", "n.v.t.", "n.v.t.", "de dubbele date die geen date is", {}),
   // ---- the rest of the cast ----

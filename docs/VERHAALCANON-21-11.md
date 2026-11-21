@@ -75,7 +75,7 @@ Tot de opname er is, tonen de regels alleen tekst (`textOnly` in `game/storydata
 
 ## 4. Canon-kern: waarom het hoofdverhaal bestaat
 
-Wie wil wat en waarom: **Tessa ontdekt dat ze een frietwagen wil** en vindt het superleuk om dat samen met Tammo te doen. Zijn liefde voor autorijden en haar liefde voor vette snacks komen samen in de Fjord Frituur op de Escapade. Ze zijn net afgestudeerd, werkloos en zonder vast inkomen (de bank zei nee), dus de enige weg is de enige vrije standplaats, en die gaat naar de winnaar van de Snackprijs. Tammo wil vooral bij haar blijven (zijn vijf woorden); Tessa wil een thuis met wielen. Ze ontdekken zichzelf in Grunn: het echte leven begint hier. Jelle wil de markt en de bal. Dit is de motivatie voor elke missie; de logline in 00-OVERZICHT en de Steam-blurb volgen dit.
+Wie wil wat en waarom: **Tessa ontdekt dat ze een frietwagen wil** en vindt het superleuk om dat samen met Tammo te doen. Zijn liefde voor autorijden en haar liefde voor vette snacks komen samen in de snackwagen op de Escapade. Ze zijn net afgestudeerd, werkloos en zonder vast inkomen (de bank zei nee), dus de enige weg is de enige vrije standplaats, en die gaat naar de winnaar van de Snackprijs. Tammo wil vooral bij haar blijven (zijn vijf woorden); Tessa wil een thuis met wielen. Ze ontdekken zichzelf in Grunn: het echte leven begint hier. Jelle wil de markt en de bal. Dit is de motivatie voor elke missie; de logline in 00-OVERZICHT en de Steam-blurb volgen dit.
 
 ## 5. Sloganopties (voor de eigenaar)
 

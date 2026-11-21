@@ -67,6 +67,14 @@ ok(bridgeDecide({ via: 'car', blockers: [], calmS: 9, waitedS: 1, inVehicle: fal
 ok(bridgeDecide({ via: 'car', blockers: [], calmS: 9, waitedS: 1, inVehicle: true }) === 'speel', 'in de auto speelt hij');
 ok(bridgeDecide({ via: 'car', blockers: [], calmS: 9, waitedS: BRIDGE_CAR_WAIT_S, inVehicle: false }) === 'speel', 'na de wachttijd speelt hij ook zonder auto');
 
+// --- Samen spelen: een gast speelt hem niet en loopt er niet in vast (regel in storybridge.js en VERHAAL-ANALYSE-21-11.md)
+ok(!bridgeMay({ ...calm, client: true }) && !bridgeMay({ ...calm, session: true }), 'een meespeler en een lopende sessie spelen geen overgangsscène');
+ok(bridgeBlockers({ ...calm, client: true }).includes('meespeler') && bridgeBlockers({ ...calm, session: true }).includes('Samen spelen'), 'de reden wordt genoemd');
+const runSrc0 = read('game/js/storybridgerun.js');
+ok(runSrc0.includes("client: w.coopRole === 'client'") && runSrc0.includes('session: !!(w.coopNet && !w.coopSolo)'),'storybridgerun.js leest coopRole en de sessie uit de wereld');
+ok(!/coopNet.send|broadcast|coopcut|sendExtra|coopw*.(send|emit)/i.test(runSrc0), 'storybridgerun.js stuurt niets over het net: de gast wordt nooit gestopt of gewacht op');
+ok(bridgeDue({ done: new Set(['M02']), flags: new Set(), currentId: 'M03' }).id === 'O1' && !bridgeMay({ ...calm, client: true }), 'een gast heeft zijn eigen stand (eigen done en flags), de blokkade is alleen lokaal');
+
 // --- bedrading en wat hij nooit doet ---------------------------------------------------------------------------------
 const run = read('game/js/storybridgerun.js');
 const main = read('game/js/main.js');

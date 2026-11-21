@@ -1129,7 +1129,7 @@ export class Player {
       return;
     }
     const [ax, ay] = input.axis();
-    // race countdown (world.startLockUntil) or a Fjord Frituur shift (v.shiftParked):
+    // race countdown (world.startLockUntil) or a snackwagen shift (v.shiftParked):
     // engine idles, handbrake on, no creeping over the line
     const held = !!v.shiftParked || (!!world && world.startLockUntil > world.time);
     const throttle = v.disabled || held ? 0 : ay < 0 ? 1 : ay > 0 ? -1 : 0;

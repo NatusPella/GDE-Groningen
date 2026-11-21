@@ -1071,7 +1071,7 @@ function buildLaadmachineMesh(v) {
   return group;
 }
 
-// The Fjord Frituur: Tessa's foodtruck. A blue van with a serving hatch and
+// The snackwagen: Tessa's foodtruck. A blue van with a serving hatch and
 // a striped awning on the right (+z, the kerb side), a roof sign with the
 // seagull and a giant eierbal on top.
 let fjordSignTex = null;
@@ -1087,7 +1087,7 @@ function fjordSignTexture() {
   g.font = 'bold 50px "Arial Black", Arial, sans-serif';
   g.textAlign = 'center'; g.textBaseline = 'middle';
   g.fillStyle = '#1f4f8f';
-  g.fillText('FJORD FRITUUR', 292, 66, 400);
+  g.fillText('TAM & TES', 292, 66, 400);
   // the seagull
   g.strokeStyle = '#1c1d20'; g.lineWidth = 7; g.lineCap = 'round';
   g.beginPath(); g.moveTo(14, 58); g.quadraticCurveTo(30, 34, 44, 58); g.quadraticCurveTo(58, 34, 74, 58); g.stroke();

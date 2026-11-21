@@ -20,13 +20,13 @@
  "B3": [
   "lang-scene"
  ],
- "M19.3": [
-  "lang"
- ],
  "M20.3": [
   "lang"
  ],
  "M20.5": [
+  "lang-scene"
+ ],
+ "M22.2": [
   "lang-scene"
  ],
  "M22.3": [
@@ -38,14 +38,8 @@
  "M25.1": [
   "lang"
  ],
- "M26.2": [
-  "lang"
- ],
  "M26.4": [
   "lang-scene"
- ],
- "M26.6": [
-  "lang"
  ],
  "M26.10": [
   "beurten"
@@ -57,9 +51,6 @@
   "beurten"
  ],
  "M26.13": [
-  "lang-scene"
- ],
- "E2": [
   "lang-scene"
  ]
 }

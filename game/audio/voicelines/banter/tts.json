@@ -600,12 +600,12 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-16:TP=-1.5:LRA=11:linear=true (two-pass),aresample=24000,asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
-"Anita|De Fjord Frituur. Blauw, met een meeuw erop.": {
+"Anita|De snackwagen. Blauw, met een meeuw erop.": {
 "src": "id-fjord-meeuw_0_a_300d42.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Callirrhoe",
-"input": "De Fjord Frituur. Blauw, mit n meeuw der op.",
+"input": "De snackwagen. Blauw, mit n meeuw der op.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: dreamy.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-16:TP=-1.5:LRA=11:linear=true (two-pass),aresample=24000,asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
@@ -720,12 +720,12 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-16:TP=-1.5:LRA=11:linear=true (two-pass),aresample=24000,asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
-"Anita|De rij bij de Fjord Frituur staat tot aan de Korenbeurs.": {
+"Anita|De rij bij de snackwagen staat tot aan de Korenbeurs.": {
 "src": "id-fjordfrituur_0_a_b85cee.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Callirrhoe",
-"input": "De rie bie de Fjord Frituur stait tot aan de Korenbeurs.",
+"input": "De rie bie de snackwagen stait tot aan de Korenbeurs.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: proud.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-16:TP=-1.5:LRA=11:linear=true (two-pass),aresample=24000,asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
@@ -2160,12 +2160,12 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-16:TP=-1.5:LRA=11:linear=true (two-pass),aresample=24000,asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
-"Anita|Ik had hem al voor me gezien, weet je. De Fjord Frituur. Blauw, met een luik.": {
+"Anita|Ik had hem al voor me gezien, weet je. De snackwagen. Blauw, met een luik.": {
 "src": "q-h6-luik_0_a_aaba74.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Callirrhoe",
-"input": "Ik har hom al veur mie zain, wait doe. De Fjord Frituur. Blauw, mit n luik.",
+"input": "Ik har hom al veur mie zain, wait doe. De snackwagen. Blauw, mit n luik.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: quiet, wistful.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-16:TP=-1.5:LRA=11:linear=true (two-pass),aresample=24000,asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
@@ -3434,12 +3434,12 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-16:TP=-1.5:LRA=11:linear=true (two-pass),aresample=24000,asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
-"Anita|Rikus wil de eerste friet uit de Fjord Frituur.": {
+"Anita|Rikus wil de eerste friet uit de snackwagen.": {
 "src": "id-rikus-friet_0_a_76653c.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Callirrhoe",
-"input": "Rikus wil de aarste friet oet de Fjord Frituur.",
+"input": "Rikus wil de aarste friet oet de snackwagen.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: amused.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-16:TP=-1.5:LRA=11:linear=true (two-pass),aresample=24000,asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
@@ -4438,12 +4438,12 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-16:TP=-1.5:LRA=11:linear=true (two-pass),aresample=24000,asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
-"Anita|Zonder die Eierbal geen Fjord Frituur.": {
+"Anita|Zonder die Eierbal geen snackwagen.": {
 "src": "st-end-kop-fjord_0_a_c5a140.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Callirrhoe",
-"input": "Zonder dij Eierbal gain Fjord Frituur.",
+"input": "Zonder dij Eierbal gain snackwagen.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: sad.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-16:TP=-1.5:LRA=11:linear=true (two-pass),aresample=24000,asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
@@ -8791,12 +8791,12 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-16:TP=-1.5:LRA=11:linear=true (two-pass),aresample=24000,asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
-"Tammo|Waarom heet het eigenlijk de Fjord Frituur?": {
+"Tammo|Waarom heet het eigenlijk de snackwagen?": {
 "src": "id-fjord-naam_0_t_6a09e8.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "lang": "gro",
 "voice": "Orus",
-"input": "Woarom hait t aigenlk de Fjord Frituur?",
+"input": "Woarom hait t aigenlk de snackwagen?",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: curious.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-16:TP=-1.5:LRA=11:linear=true (two-pass),aresample=24000,asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"

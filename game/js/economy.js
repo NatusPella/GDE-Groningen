@@ -47,7 +47,7 @@ export const SIDEJOB_ACCIDENT_FINE = 10;
 export const SIDEJOB_PAY_MULT = 1.5;
 export const SIDEJOB_LEVEL_BONUS = 0.15;
 
-// Post-game: challenge prize per medal, and the Fjord Frituur shift bonus on top of the takings.
+// Post-game: challenge prize per medal, and the snackwagen shift bonus on top of the takings.
 // #675: de revanche-uitdagingen betalen in verhouding tot de missies en Veroverd: goud is nu €1.500.
 export const PG_PRIZE = [0, 500, 1000, 1500];
 export const FJORD_SHIFT_BONUS = [0, 120, 250, 450];

@@ -1,6 +1,7 @@
 // De gedeelde ontgrendelpoort (#1131): per akte opent precies wat erbij hoort, een nieuw spel begint dicht,
 // een oude save houdt alles (migratieregel), dev opent alles, en de poort verliest nooit iets.
 // node scripts/unlockgate_test.mjs
+import fs from 'node:fs';
 import {
   worldOpen, gateHint, openWorlds, newGate, stampGate, migrateGate, progressFrom, registerGateWorld, gateWorlds, gateWorld,
   resetGateRegistry, gateProblems, GATE_VERSION, PART_ORDER,
@@ -73,6 +74,19 @@ ok(threw, 'een onbekende akte wordt geweigerd');
 resetGateRegistry();
 ok(!gateWorld('test-wereld'), 'de registratie is te resetten');
 ok(worldOpen('onbekend-id', nieuw), 'een onbekende wereld sluit de poort nooit');
+
+// Samen spelen: de poort leest alleen de eigen voortgang die de aanroeper meegeeft (een gast in andermans wereld heeft zijn eigen akte)
+{
+  const host = progressFrom({ stepId: 'M20', gate: newGate() });
+  const gast = progressFrom({ stepId: 'M03', gate: newGate() });
+  ok(worldOpen('voetbal', host) && !worldOpen('voetbal', gast), 'host in akte 4 heeft voetbal open, de gast in akte 1 niet: elk zijn eigen poort');
+  ok(worldOpen('voetbal', host) && !worldOpen('voetbal', gast) && worldOpen('voetbal', host), 'de volgorde van de aanroepen verandert niets (geen gedeelde staat)');
+  const src = fs.readFileSync(new URL('../game/js/unlockgate.js', import.meta.url), 'utf8');
+  const code = src.split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
+  ok(!/world\.player|coop|localStorage|document\./.test(code), 'unlockgate.js raakt geen wereld, geen net en geen opslag');
+  const stamp = stampGate(gast.gate, { ...gast, gate: gast.gate });
+  ok(!stamp.open.includes('voetbal'), 'een gast die de host volgt, krijgt voetbal niet van de host');
+}
 
 console.log(`unlockgate_test: ${n - fails}/${n} ok`);
 if (fails) process.exit(1);

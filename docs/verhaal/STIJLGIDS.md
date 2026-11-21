@@ -34,7 +34,7 @@ Per hoofdpersoon: drie kenmerken (hoe hij of zij klinkt), drie lievelingswoorden
 | **Tammo** | traag, letterlijk, onverwacht scherp | *Moi*, *Klopt*, *Kon minder* | Hij zegt nooit "liefde" of "ik voel". Hij komt tot *Woist ja wel* en *Ik wil bij jou blijven*, en dat is een heel jaar. |
 | **Tessa** | droog, plannerig, preciezer dan nodig | *Tammo* (als aanspreking), *lijstje*, *Rijden, niet praten* | Ze praat standaard Nederlands en nooit met een Gronings accent (zie hieronder). *Moi* glipt er twee keer per ongeluk uit, en dat is de grap. |
 | **Jelle Terpstra** | juridisch proza, beleefd bedreigend, netjes tot in zijn paniek | *overeenkomst*, *mevrouw*, *juridisch* | Hij zegt nooit "sorry". Alleen tegen zijn moeder: *Ja, mem*. |
-| **Mem (Gerda Terpstra)** | kort, Fries-warm, moederlijk gezag | *jonge*, *famke*, *Tige tank* | Ze praat nooit langer dan twee zinnen en verheft nooit haar stem. |
+| **Mem (Gerda Terpstra)** | kort, Fries-warm, gezag van een oma | *jonge*, *famke*, *Tige tank* | Ze praat nooit langer dan twee zinnen en verheft nooit haar stem. |
 | **Oma Trijntje** | Gronings, onderkoeld, wijs | *jong*, *Eet je krentjebrij*, *Woist ja wel* | Ze legt haar eigen gevoel niet uit. Ze zegt het één keer. Dan is het waar. |
 | **Berend Bos** | telt alles, nors, spaarzaam met lof | *nul krassen*, *Goidag*, *Wat mout, dat mout* | Hij zegt nooit "mooi" of "goed gedaan". Lof komt alleen op de complimentenladder (*Goud, Valt mie nait of, Braid noar de zin, Kon minder*). |
 | **Rikus** (radio) | deadpan, melder, onverstoorbaar | *een luisteraar meldt*, *Ik zeg niks*, *Storingsbericht* | Hij geeft geen mening over de speler. *Ik zeg niks* is zijn mening. |
@@ -106,7 +106,7 @@ Dit zijn de feiten die elke scène moet delen. Wijkt een regel af, dan gaat het 
 | Tammo | 24 jaar (*Ik ben vierentwintig, oma*), net afgestudeerd. Woont op de Escapade. Zie [../VERHAALCANON-21-11.md](../VERHAALCANON-21-11.md). |
 | Tessa en Tammo | kennen elkaar vijf jaar, sinds hun eerste Kiezelweek in de studietijd (21-11). De treinreis naar Delfzijl om naar de zee te kijken was een uitje uit die tijd. Tammo is er al sinds de studie verliefd op en zweeg vijf jaar (M26.7). Ze zijn net afgestudeerd en werkloos; hun eerste klusjes komen uit het spel. Ze wonen sinds 14 augustus samen (Paddepoel, Pleiadenlaan). Rikus blijft Tammo's jeugdvriend uit het Oosterpark; Tessa kwam er tijdens de studie bij. |
 | Oma Trijntje | 92. Won de Snackprijs in 1953. |
-| Mem (Gerda Terpstra) | 91. Werd in 1953 tweede, tegen Trijntje. Moeder van Jelle. "Zeventig jaar" is een afronding. |
+| Mem (Gerda Terpstra) | 91. Werd in 1953 tweede, tegen Trijntje. Oma van Jelle (besluit 21-11; "Mem" blijft haar naam). "Zeventig jaar" is een afronding. |
 | Geesje | kosteres in Warffum, 84. Geen schoolvriendin van Trijntje: ze kent haar van de kerk. |
 | Lammert | havenmeester in de Eemshaven. **Zijn vader** danste in 1953 met Trijntje, niet hij. |
 | Kalender | vrijdag 14 augustus (begin) tot vrijdag 28 augustus (Gronings Ontzet, Snackprijs). Epiloog vrijdag 11 september. |

@@ -129,11 +129,11 @@ APP SJABBE→TESSA (stil): Eerst een bed, dan een pand. Ik vraag niks. [NIEUW]
 (regie: ochtend op de kade. Een onbekend nummer belt Tessa. Ze zet hem op de luidspreker, Tammo komt erbij staan.)
 JELLE (telefoon): Mevrouw Tessa. Jelle Terpstra. U hebt een container leeggehaald die mijn juristen vol wilden hebben. [NIEUW]
 TESSA (telefoon): Dat was een misverstand. [NIEUW]
-JELLE (telefoon): Er zijn geen misverstanden. Er zijn overeenkomsten. Ik bied dertigduizend euro voor de Fjord Frituur. De naam, het luik, alles. [NIEUW]
+JELLE (telefoon): Er zijn geen misverstanden. Er zijn overeenkomsten. Ik bied dertigduizend euro voor het recept van Oma Trijntje. Alles erbij. [NIEUW]
 TESSA (telefoon): Hij is niet te koop. [NIEUW]
 JELLE (telefoon): Alles is te koop, mevrouw. Ik wacht. Foar mem. [NIEUW]
-TAMMO: We hebben nog geen wagen. [NIEUW]
-TESSA: Dat weet hij ook. Daarom biedt hij zoveel. [NIEUW]
+TAMMO: Het is niet eens van ons. Het is van mijn oma. [NIEUW]
+TESSA: Dat weet hij ook. Daarom belt hij mij. [NIEUW]
 
 ## [M14.1] De dijk: intro – Eemsdelta, Bierum, de dijk – auto van Lammert
 (regie: zaterdag 22 augustus, vroege ochtend. Jelles trekker-limo staat naast de auto van Lammert, op de dijk bij Bierum. Jelle is droog en keurig, naast hem staat een deurwaarder met een map. Gameplay: een race over de dijk naar de sluis van Delfzijl, met zijwind en schapen.)
@@ -178,6 +178,10 @@ JELLE: Een rondje meer of minder. Dat neem ik jullie niet kwalijk. [NIEUW]
 ## [R3.1] Nachtstreek na de dijk – Stad – radio
 RIKUS (radio): Wind uit het noordwesten. Op de Eemsdijk zijn zeventien schapen gered van een deurwaarder. Ik weet niet hoe. [NIEUW]
 RIKUS (radio): Kiekdoar meldt dat Oldenhuis Bakt in Delfzijl een bestaande snackbar verbouwt, naast de visboer. De visboer lacht niet. [NIEUW]
+
+## [R3.4] Nachtstreek, vrijdagnacht: een plaat – Stad – radio
+RIKUS (radio): Mijn verzoekplaat van de week: "Elfde Verdieping", van De Fietstunnels. Een nummer over een lift die werkt. [NIEUW]
+RIKUS (radio): Voor twee Stadjers die elk een kant van het refrein zingen. Ik zeg niks. [NIEUW]
 
 ## [T3] De trein naar Winschoten – Eemsdelta, Delfzijl naar Winschoten – trein (meerijden)
 TAMMO: Het koopboek. Plakje zes: bloem en jury. Proeverij, kermis Winschoten. [NIEUW]
@@ -243,6 +247,17 @@ JELLE: Dat staat nergens in het contract. Mijn juristen hebben het gecontroleerd
 TAMMO: Hij laat die koffer niet los. [NIEUW]
 TESSA: Nee. Waar hij heen gaat, gaat de bal heen. Durk en Douwe weten waar. Ze zitten bij Geert. [NIEUW]
 
+## [M15.6] Laag over het graan: de zanger – Oldambt, Winschoten, de kermis – te voet
+(regie: bij de proeverijtent zingt een jonge man in een glimmend jasje met een gitaar voor een groepje mensen. Naamkaart: DAAN. Een duif landt op Tammo's schouder.)
+DAAN: Jij bent van het spandoek. Dat ik dat mocht meemaken. [NIEUW]
+TESSA: Het was een ongeluk. [NIEUW]
+DAAN: Dan heb je veel ongelukken nodig. Vanavond sta ik achter de bar bij Geert. Mag ik dan een liedje zingen? [NIEUW]
+TAMMO: Ze moet nog eten. [NIEUW]
+DAAN: Eén couplet. Over een meisje met een spandoek. [NIEUW]
+(regie: de duif op Tammo's schouder vliegt op, draait een rondje en laat iets vallen op Daans glimmende jasje.)
+TAMMO: Ik heb niks gezegd. [NIEUW]
+TESSA: Kom. Geert wacht. [NIEUW]
+
 ## [M15.4] Laag over het graan: herhaling – Oldambt, Winschoten – klein vliegtuig
 ROELFIEN: Het spandoek is gewassen. Het graan heeft niks gezien. [NIEUW]
 
@@ -261,6 +276,7 @@ TESSA: Drie tenten. Daarna vertellen ze alles, en daarna weten ze het zelf niet 
 TAMMO: Ik drink maar één. [NIEUW]
 
 ## [M16.2] Nog eentje dan: tussen de tenten – Oldambt, Winschoten, de kermis – te voet
+(regie: bewijsmoment, relatie-bijbel 9: in de botsauto zit Tammo naast Tessa en kijkt de andere kant op, zodat zij zelf kan leren sturen. Twee-shot door de voorruit.)
 STUDENT: Proost! Nog eentje dan! [NIEUW]
 TESSA: Wie is dat? [NIEUW]
 TAMMO: Een eerstejaars. Ze zijn overal. [NIEUW]
@@ -332,7 +348,7 @@ GEERT: Drie tenten? Nog eentje dan. [NIEUW]
 
 ## [A3.3] Appjes akte 3: dubbele geheimen (stil, geen stem) – Oldambt – telefoon
 APP TESSA→MEM (stil): Ik zeg het hem niet. Maar het voelt niet fijn, Mem. – T. [NIEUW]
-APP MEM→TESSA (stil): Dat weet ik, famke. Jij bent aardiger dan mijn zoon verdient. – M. [NIEUW]
+APP MEM→TESSA (stil): Dat weet ik, famke. Jij bent aardiger dan mijn kleinzoon verdient. – M. [NIEUW]
 
 ## [R3.3] Overgang naar akte 4: Nachtstreek – studio – radio
 RIKUS (radio): Zondag. Het is stil in Winschoten. Dat is ook een kermis. [NIEUW]
@@ -356,6 +372,35 @@ TAMMO: Een bocht met ambitie. [NIEUW]
 TESSA: Je geeft nooit toe. [NIEUW]
 TAMMO: Jij ook niet. [NIEUW]
 
+## [B3.1] Autogesprekken akte 3: de onvoltooide zin (pool; bijna-moment) – Eemsdelta – Escapade
+TAMMO: Tessa, eigenlijk— [NIEUW]
+TESSA: Wat dan? [NIEUW]
+TAMMO: Eigenlijk heet een groep van die dingen een windpark. [NIEUW]
+TESSA: Ik dacht even dat het iets was. [NIEUW]
+TAMMO: Het is ook iets. Een park. [NIEUW]
+
+## [B3.2] Autogesprekken akte 3: vraag van de dag (pool; lucht en kermis) – Waddenkust – Escapade
+TESSA: Vraag van de dag. Hoe hoog vliegt een meeuw? [NIEUW]
+TAMMO: Net zo hoog als zijn frikandel. [NIEUW]
+TESSA: Dat is geen hoogte. [NIEUW]
+TAMMO: Het is een eenheid. [NIEUW]
+
+## [B3.3] Autogesprekken akte 3: het autoduet (pool; alleen een verzonnen nummer, geen tekst) – Oldambt – Escapade
+(regie: de radio draait "Elfde Verdieping" van De Fietstunnels. Tessa zingt het refrein, Tammo de bas. Geen songtekst op het scherm.)
+TESSA: Dit nummer ken ik. Zet harder. [NIEUW]
+TAMMO: Jij zingt het refrein, ik de bas. [NIEUW]
+TESSA: Jij zingt altijd de bas. [NIEUW]
+TAMMO: Iemand moet de bodem leggen. [NIEUW]
+
+## [A3.4] Appjes akte 3: het kasboekje en de lijst (stil, geen stem) – alle regio's – telefoon
+APP TESSA→TAMMO (stil): Kasboekje. Benzine 38,50. Wie betaalde? [NIEUW]
+APP TAMMO→TESSA (stil): Jij. [NIEUW]
+APP TESSA→TAMMO (stil): Dan staat het bij jou in het rood. [NIEUW]
+APP TAMMO→TESSA (stil): Dan staat het er nog een tijd. [NIEUW]
+APP TESSA→TAMMO (stil): Nieuwe kolom op de koelkast: "wij vinden". Nog leeg. [NIEUW]
+APP TAMMO→TESSA (stil): Wat zet je erin? [NIEUW]
+APP TESSA→TAMMO (stil): Ik wacht op jou. [NIEUW]
+
 ## [A3.1] Appjes akte 3 (stil, geen stem) – alle regio's – telefoon
 APP MEM→TESSA (stil): Nog zeven dagen. Hou Jelle bezig. – M. [NIEUW]
 APP MEM→TESSA (stil): Zeg het hem niet. Hij praat met Rikus. – M. [NIEUW]
@@ -365,7 +410,7 @@ APP TESSA→TAMMO (stil): Ja. Alles goed. [NIEUW]
 
 ## [O7] Over zaterdag – Oldambt, de weg naar Stad – Escapade
 (regie: nacht, terug van de kermis. Tammo stuurt, Tessa kijkt naar buiten. Een tijd lang zegt niemand iets.)
-TAMMO: Over zaterdag. [NIEUW]
+TAMMO: Over zaterdag. {pause=0.9} [NIEUW]
 TESSA: Welke zaterdag? [NIEUW]
 TAMMO: ...Laat maar. [NIEUW]
 (regie: stilte. Tessa kijkt naar buiten, de weg gaat verder.)

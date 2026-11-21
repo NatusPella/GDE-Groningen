@@ -10,7 +10,7 @@ const { VEHICLE_STOCK } = await import('../game/js/shopdata.js');
 let n = 0, fails = 0;
 const t = (naam, fn) => { n++; try { fn(); console.log('ok   ' + naam); } catch (e) { fails++; console.log('FAIL ' + naam + '\n  ' + e.message.split('\n')[0]); } };
 
-t('zonder voertuigen telt alleen de Escapade en de Fjord Frituur mee', () => {
+t('zonder voertuigen telt alleen de Escapade en de snackwagen mee', () => {
   assert.equal(upgradeTotaal({ vehicles: [] }, []), CAR_UPGRADES.length);
   assert.equal(upgradeTotaal({ vehicles: [] }, [{}, {}, {}]), CAR_UPGRADES.length + 3);
   assert.equal(upgradeTotaal(null, []), CAR_UPGRADES.length);

@@ -1,6 +1,6 @@
 # Akte 5: "Ontzet" (Westerkwartier en Stad; wo 26 – vr 28 augustus, epiloog in september)
 
-Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5.md](09-script-akte5.md). Tags: `[BEHOUDEN]` = letterlijk in de repo, `[NIEUW]` = nieuwe of gewijzigde regel. Functies: (1) inschrijving of financiering, (2) een plakje van Jelle blokkeren, (3) de waarheid over de bal ontdekken, (4) de Fjord Frituur en het recept gereedmaken.
+Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5.md](09-script-akte5.md). Tags: `[BEHOUDEN]` = letterlijk in de repo, `[NIEUW]` = nieuwe of gewijzigde regel. Functies: (1) inschrijving of financiering, (2) een plakje van Jelle blokkeren, (3) de waarheid over de bal ontdekken, (4) de snackwagen en het recept gereedmaken.
 
 ## Intro van de akte
 
@@ -11,9 +11,9 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5
 | **Tijd** | ca. 47 minuten (5 missies) plus epiloog en slot |
 | **Dagen** | wo 26 (5.1), do 27 (5.2 's ochtends, 5.3 's avonds, 5.4 's nachts), vr 28 (5.5, de finale), epiloog vr 11 september |
 | **Wat de speler leert** | niets nieuws: alles wat je kunt wordt hier gebruikt (auto, trekker, duif, bakken, bus, scooter, fiets) |
-| **Plot** | Tessa en Tammo herstellen, en Tammo **neemt verantwoordelijkheid** (hij verpandt het horloge van zijn opa voor het luik). De Escapade krijgt een luik: de Fjord Frituur. Alle vrienden van Oma rijden in een colonne mee naar Stad (Jelle probeert hen te splitsen met bruggenvergunningen). Jelles vlag aan de toren valt. Jelle komt naar Oma's keuken voor een bod; zijn moeder is er. Op 28 augustus komen alle draden samen in een **echte wedstrijd**: zes regels gesproken (de twee aparte dingen en drie jury-regels), de Groningse eierbal bakken, Jelles laatste plakje stoppen met de wagen, de jury laten proeven en stemmen. |
+| **Plot** | Tessa en Tammo herstellen, en Tammo **neemt verantwoordelijkheid** (hij verpandt het horloge van zijn opa voor het luik). De Escapade krijgt een luik: de snackwagen. Alle vrienden van Oma rijden in een colonne mee naar Stad (Jelle probeert hen te splitsen met bruggenvergunningen). Jelles vlag aan de toren valt. Jelle komt naar Oma's keuken voor een bod; zijn moeder is er. Op 28 augustus komen alle draden samen in een **echte wedstrijd**: zes regels gesproken (de twee aparte dingen en drie jury-regels), de Groningse eierbal bakken, Jelles laatste plakje stoppen met de wagen, de jury laten proeven en stemmen. |
 | **Romantiek** | **De knuffel en de openbaring** (5.1): Tessa vertelt dat ze op zeven plekken woonde voor haar tiende, en elke zomer naast Mem in Ljouwert; Tammo verontschuldigt zich langer dan ooit (grote Tammo-moment 2) en heeft de horloge verpand. Ze houden handen vast in 5.3: "Voor de grip?" "Nee. Gewoon." **Het slot:** "Ik wil bij jou blijven." "Dat bedoelde ik ook." |
-| **Haak** | epiloog; daarna loopt de open wereld door (de Fjord Frituur-dienst en alle bijbanen) |
+| **Haak** | epiloog; daarna loopt de open wereld door (de snackwagen-dienst en alle bijbanen) |
 
 **Het antwoord op het verhaal:** de vijf woorden "Ik wil bij jou blijven" zijn het antwoord op Tessa's openbaring in 5.1 ("Ik blijf nooit ergens"), en op haar zin in de opening ("Een thuis met wielen"). Tessa's antwoord "Dat bedoelde ik ook" is de uitbetaling van de lopende grap.
 
@@ -38,11 +38,11 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5
 | | |
 |---|---|
 | **Id** | `A5-1` (mechaniek van `r-tuning`, nieuw, step `n-luik`) |
-| **Functie** | **4 · de Fjord Frituur en het recept gereedmaken** |
+| **Functie** | **4 · de snackwagen en het recept gereedmaken** |
 | **Plaats** | Tinus' boerderijschuur bij Zuidhorn, wo 26 |
 | **Voertuig** | Escapade, daarna Tinus' trekker |
 | **Mechaniek / hergebruik** | `garage`-stage (`garages.js`, `garageui.js`): luik inbouwen, Henk monteert; de wagen de modder in rijden om de as te bewijzen en met Tinus' trekker eruit trekken (AANNAME: `racers.js` met een trekkerprofiel); de knuffelscène |
-| **Doel (hardop)** | "Bouw een luik in de Escapade, dan is het de Fjord Frituur; bewijs dat de as het houdt in de modder, en trek hem met Tinus' trekker eruit." |
+| **Doel (hardop)** | "Bouw een luik in de Escapade, dan is het de snackwagen; bewijs dat de as het houdt in de modder, en trek hem met Tinus' trekker eruit." |
 | **Motief** | zonder wagen met een luik kun je niet inschrijven; een friteuse weegt vierhonderd kilo, en als de as het niet houdt, breekt hij op de Grote Markt: Tinus: "De modder pakt eerst de auto. Dan pas je plannen." |
 | **Wat de speler weet** | het dieptepunt; de Escapade is terug, de bal weg, de vrienden weg |
 | **Verloop** | 1) Tinus (naamkaart) en Henk. 2) Luik inbouwen (garage-keuze). 3) **Tammo heeft het horloge van zijn opa verpand bij Sjabbe om het luik te betalen** (zijn concrete daad). 4) De modder in; Tinus trekt ("Aan de trekhaak. Aan Tammo hebben we hier niks."). 5) Avond: scène in de schuur: "Sorry. Dat ik nooit wat zeg." (BEHOUDEN), Tammo's langere verontschuldiging, Tessa's openbaring, de knuffel. **Falen:** geen echt falen; de trekkertrek-proef mag je herhalen. |
@@ -50,7 +50,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5
 | **Reizen** | 3 km |
 | **Romantiek (9/10)** | **De knuffel en de openbaring.** Tammo: "Ik heb vijf jaar niks gezegd. Ik was bang dat je dan wegging." "Ik was boos om iets wat ik zelf deed. Sorry dat ik je alleen liet gaan." Tessa: "Ik heb op zeven plekken gewoond voor ik tien was." Tessa: "Ik ging niet weg." Tammo: "Je bleef nergens." Tessa: "Ik ben gebleven." Hij belooft het te zeggen: "Op het Ontzet. Voor iedereen." |
 | **Plot** | Tessa's verleden: een Nederlandse (geboren in Zwolle, AANNAME), vanaf haar achttiende in Stad voor de studie (sinds 21-11; eerder stond hier: vanaf haar achtste in het Oosterpark), elke zomer in Ljouwert, in het huis naast Mem. Daarom kent ze Friezen. Haar regels zijn standaard Nederlands. Aanvulling 21-11: tot haar achtste woonde ze op een boerderij op het platteland (ergens in Nederland, bewust niet benoemd), voor ze (via de studie) naar Stad kwam; zie OPENING-BIJBEL.md, "Tessa komt van het platteland". |
-| **Gevolg / haak** | de Fjord Frituur is klaar; de vrienden komen naar Stad (Mem en Oma bellen ze terug). |
+| **Gevolg / haak** | de snackwagen is klaar; de vrienden komen naar Stad (Mem en Oma bellen ze terug). |
 | **Behouden / nieuw** | "Hij is van ons. Hij weet het alleen nog niet." en de vier verzoeningsregels BEHOUDEN; de rest NIEUW |
 
 **Sleutelscène (de knuffel):**
@@ -73,9 +73,9 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5
 | | |
 |---|---|
 | **Id** | `A5-2` (nieuw, step `n-colonne`) |
-| **Functie** | **4 · de Fjord Frituur en het recept gereedmaken**: wagen, vrienden en ingrediënten samen naar de Grote Markt |
+| **Functie** | **4 · de snackwagen en het recept gereedmaken**: wagen, vrienden en ingrediënten samen naar de Grote Markt |
 | **Plaats** | Westerkwartier naar Stad: Zuidhorn, Aduard, de ring (Stad), do 27 's ochtends |
-| **Voertuig** | de Fjord Frituur (Escapade met luik), Tinus' trekker, Geesjes scooter, Wubbo's bus, Berends bakkie, Klaas' boot op een aanhanger, Durk en Douwe op één fatbike |
+| **Voertuig** | de snackwagen (Escapade met luik), Tinus' trekker, Geesjes scooter, Wubbo's bus, Berends bakkie, Klaas' boot op een aanhanger, Durk en Douwe op één fatbike |
 | **Mechaniek / hergebruik** | `chase`-stage omgekeerd: volg de leider, en houd de groep bij elkaar; Jelles limo en bruggenvergunningen proberen de colonne te splitsen; `checkpoint`-waypoints; **een van de drie signature-systemen (de finale-colonne)** |
 | **Doel (hardop)** | "Rijd met alle vrienden van Oma in één colonne naar de Grote Markt, zonder dat Jelle ons splitst." |
 | **Motief** | de ingrediënten, de wagen en de mensen moeten samen op de Grote Markt komen; Mem en Oma hebben de vrienden teruggebeld |
@@ -96,11 +96,11 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5
 | | |
 |---|---|
 | **Id** | `A5-3` (`H10`, mission `vlag`, verplaatst) |
-| **Functie** | **4 · de Fjord Frituur en het recept gereedmaken**: de vlag hangt boven de plek waar de wagen morgen moet staan |
+| **Functie** | **4 · de snackwagen en het recept gereedmaken**: de vlag hangt boven de plek waar de wagen morgen moet staan |
 | **Plaats** | Grote Markt, Martinitoren, do 27 's avonds |
 | **Voertuig** | duif (een van de drie signature-systemen) |
 | **Mechaniek / hergebruik** | `pigeon`-stage met `storyprops3d.js` (`showTowerFlag`, `cutFlagRope`, `dropFlag`); bestaande def |
-| **Doel (hardop)** | "Haal Jelles dertig meter lange vlag van d'Olle Grieze met een duif, want hij hangt boven de plek van de Fjord Frituur." |
+| **Doel (hardop)** | "Haal Jelles dertig meter lange vlag van d'Olle Grieze met een duif, want hij hangt boven de plek van de snackwagen." |
 | **Verloop** | 1) Radio (wereld): de torenwachter meldt iets Fries aan zijn toren (tweede van drie keer "Ik meld alleen."). 2) Duivenmodus: vijf touwen doorpikken. 3) De vlag zakt. 4) De Grote Markt klapt. **Falen:** de duif schrikt: opnieuw. |
 | **Romantiek (7/10)** | Tessa pakt zijn hand; hij: "Voor de grip?" Zij: "Nee. Gewoon." |
 | **Plot** | de vlag valt; Tammo is Stads held; Jelle ziet het vanuit de menigte |
@@ -116,9 +116,9 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5
 | | |
 |---|---|
 | **Id** | `A5-4` (`H17`, mission `bod`, aangepast; step `n-keuken`) |
-| **Functie** | **4 · de Fjord Frituur en het recept gereedmaken**: de oefenronde met alle ingrediënten; plus Sjabbes tip over de notaris |
+| **Functie** | **4 · de snackwagen en het recept gereedmaken**: de oefenronde met alle ingrediënten; plus Sjabbes tip over de notaris |
 | **Plaats** | Oma Trijntjes keuken aan de Noorderhaven, do 27 's nachts |
-| **Voertuig** | te voet; de Fjord Frituur-keuken als oefenstation |
+| **Voertuig** | te voet; de snackwagen-keuken als oefenstation |
 | **Mechaniek / hergebruik** | de bakmechaniek uit `pg_foodtruck.js` (bakken, serveren, `FJORD`), met de vijf ingrediënten van de vrienden als voorraad (nu met **grof** meel van Roelfien); de scène van het bod uit `H17` |
 | **Doel (hardop)** | "Bak een oefenronde eierballen met alle vijf ingrediënten, en wijs Jelles bod af." |
 | **Verloop** | 1) Sjabbe belt: morgen om drie uur schrijft Jelle zich in bij de notaris in de Oude Boteringestraat, met de bal. 2) Bakken: ei, zout, grof meel, vet, mosterd. 3) Jelle verschijnt met een koffertje. 4) Het bod: geld voor de wagen en het recept. 5) Tessa wijst het af. 6) Jelle vraagt Mem om morgen bij zijn kraam te staan; ze zegt ja. **Falen:** te veel mislukte eierballen: je mag opnieuw bakken. |
@@ -138,16 +138,16 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5
 | **Id** | `A5-5` (`H18`, mission `ontzet`, aangepast) |
 | **Functie** | **1 en 2 · de inschrijving wordt gewonnen en Jelles laatste plakje (de notaris) wordt geblokkeerd**; één missie met twee kanten, de uitkomst van de keten |
 | **Plaats** | Grote Markt en Oude Boteringestraat, vr 28 augustus, dag en avond |
-| **Voertuig** | te voet, de Fjord Frituur, duiven (de drie signature-systemen komen hier samen) |
+| **Voertuig** | te voet, de snackwagen, duiven (de drie signature-systemen komen hier samen) |
 | **Mechaniek / hergebruik** | bestaande def `ontzet` in delen: **bakken** (`pg_foodtruck.js`, drie rondes met Oma's recept: ei, zout, grof meel, vet), de **kraam heel houden** (`stage: hold`), de **blokkade** (de wagen dwars voor de limo, `chase` omgekeerd, `pigeon` voor het zicht, de colonne sluit de weg), de **jury** (proeven, stemmen); alle bondgenoten verschijnen |
 | **Doel (hardop)** | "Bak de Groningse eierbal, houd de kraam heel, stop Jelles laatste plakje bij de notaris en laat de jury kiezen." |
 | **Motief** | de Snackprijs, de standplaats, Gerda en Trijntje; de Gouden Eierbal gaat terug naar het museum (twee aparte dingen) |
 | **Wat de speler weet** | alles; het logboek van Wiebelwerk ligt op tafel |
-| **Verloop** | 1) De uitzending: Rikus, Berend in de rol, Mem naast Jelle bij zijn kraam. 2) **De regels, gesproken:** Berend zegt dat de beste eierbal de standplaats wint en de bal terug naar het museum gaat (twee aparte dingen); Jelle is geschorst als voorzitter omdat hij de bal nam (het logboek); mevrouw Hoving zit nog in de trein, dus artikel 9: Berend; vijf juryleden, drie van de vijf beslist. 3) Jelle: "Om drie uur schrijf ik mij in als de nieuwe bewaarder." 4) **Bakken** en de kraam heel houden (Durk en Douwe helpen nu). 5) **Blokkade:** kwart voor drie, Tessa zet de Fjord Frituur dwars voor Jelles limo in de Oude Boteringestraat, Tammo fluit Berts duiven voor de voorruit, Wubbo's bus en Tinus' trekker sluiten de straat, Durk en Douwe steken Berends vuurwerk aan (rook). Jelle valt in de gracht (Douwe: "…Plons.", derde keer), houdt de koffer boven water. 6) **Pas daarna** komt Mem: "Jelle. Geef hem aan mij." "…Ja, mem." 7) Jury: Mem stapt publiek uit Jelles kraam en vraagt om eerlijk proeven; Berend proeft, noemt **één concreet verschil** (glad en fijn tegen een korrel van grof meel), stemmen vier tegen één (het gekochte jurylid stemt voor Jelle). 8) "Gerda. Jouw eierbal was beter." 9) De vijf woorden. 10) Jelle houdt de standplaatsen en de molen; hij geeft de rest terug. **Falen:** kraam stuk, bal kwijt of de limo bij de notaris: "Sikkom." |
+| **Verloop** | 1) De uitzending: Rikus, Berend in de rol, Mem naast Jelle bij zijn kraam. 2) **De regels, gesproken:** Berend zegt dat de beste eierbal de standplaats wint en de bal terug naar het museum gaat (twee aparte dingen); Jelle is geschorst als voorzitter omdat hij de bal nam (het logboek); mevrouw Hoving zit nog in de trein, dus artikel 9: Berend; vijf juryleden, drie van de vijf beslist. 3) Jelle: "Om drie uur schrijf ik mij in als de nieuwe bewaarder." 4) **Bakken** en de kraam heel houden (Durk en Douwe helpen nu). 5) **Blokkade:** kwart voor drie, Tessa zet de snackwagen dwars voor Jelles limo in de Oude Boteringestraat, Tammo fluit Berts duiven voor de voorruit, Wubbo's bus en Tinus' trekker sluiten de straat, Durk en Douwe steken Berends vuurwerk aan (rook). Jelle valt in de gracht (Douwe: "…Plons.", derde keer), houdt de koffer boven water. 6) **Pas daarna** komt Mem: "Jelle. Geef hem aan mij." "…Ja, mem." 7) Jury: Mem stapt publiek uit Jelles kraam en vraagt om eerlijk proeven; Berend proeft, noemt **één concreet verschil** (glad en fijn tegen een korrel van grof meel), stemmen vier tegen één (het gekochte jurylid stemt voor Jelle). 8) "Gerda. Jouw eierbal was beter." 9) De vijf woorden. 10) Jelle houdt de standplaatsen en de molen; hij geeft de rest terug. **Falen:** kraam stuk, bal kwijt of de limo bij de notaris: "Sikkom." |
 | **Leuk-element / uitdaging** | alles samen: bakken, kraam, wagen, duif, colonne, publiek; en géén derde balroof: de finale is een wedstrijd, en de actie is het stoppen van Jelles laatste plakje |
 | **Reizen** | 0 |
 | **Romantiek (10/10)** | **"Ik wil bij jou blijven."** "Dat bedoelde ik ook." "Vijf woorden." "Ik had er meer. Die waren minder goed." |
-| **Plot** | de jury: vier tegen één; de standplaats naar de Fjord Frituur; Gerda Terpstra komt op het bordje; Jelle: "Better as ús. Net fertelle." en "Ja, mem." |
+| **Plot** | de jury: vier tegen één; de standplaats naar de snackwagen; Gerda Terpstra komt op het bordje; Jelle: "Better as ús. Net fertelle." en "Ja, mem." |
 | **Gevolg / haak** | epiloog |
 | **Behouden / nieuw** | bijna alles BEHOUDEN uit H18; nieuw: de regels, het bakken, de blokkade, Berends verschil, de stemming, de uitkomst van het plakjesbord. De regel "Ik ben de bewaarder. Ik zit de jury voor." van Jelle is geschrapt. |
 

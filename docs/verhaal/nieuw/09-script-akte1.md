@@ -10,7 +10,7 @@ RIKUS (radio): Vandaag in Grunn: weinig nieuws. Dat komt nog. [NIEUW]
 RIKUS (radio): Er gaat niets boven Grunn. Behalve de Martinitoren. [BEHOUDEN]
 
 ## [C00.2] Opening: de keuken – Stad, Oosterparkwijk – geen voertuig
-(regie: ochtend, vrijdag 14 augustus. De camera zakt langs d'Olle Grieze naar een smalle straat. Een zolderraam, een rode Escapade met een lekke band. Op een oude radio zacht Nachtstreek. Binnen zit Tessa aan de keukentafel met papieren en een tekening van een blauwe frietwagen: FJORD FRITUUR. Op de tafel ligt ook een folder van de Noordelijke Snackprijs, met een foto van een gouden eierbal. Tammo komt binnen met twee bakken koffie.)
+(regie: ochtend, vrijdag 14 augustus. De camera zakt langs d'Olle Grieze naar een smalle straat. Een zolderraam, een rode Escapade met een lekke band. Op een oude radio zacht Nachtstreek. Binnen zit Tessa aan de keukentafel met papieren en een tekening van een blauwe frietwagen: TAM & TES. Op de tafel ligt ook een folder van de Noordelijke Snackprijs, met een foto van een gouden eierbal. Tammo komt binnen met twee bakken koffie.)
 RIKUS (radio): Moi, Nachtstreek, het laatste uur. Het is twijduustern geweest, en nu wordt het licht. Voor wie wakker ligt van de huur: ik ook, jongens. [BEHOUDEN]
 RIKUS (radio): Het is vrijdag 14 augustus. Een luisteraar meldt een Fries in een blauw colbert die Grunn aan het opkopen is. Ik zeg niks. [NIEUW]
 TAMMO: Moi. De bank? [BEHOUDEN]
@@ -18,22 +18,19 @@ TESSA: "Uw plan is sympathiek." Dat betekent nee, met een strikje. [BEHOUDEN]
 TESSA: Een frietwagen is een auto met een luik, Tammo. En ik heb geen auto. [BEHOUDEN]
 TAMMO: Ik wel. De Escapade. [BEHOUDEN]
 TESSA: Die rijdt nauwelijks. [BEHOUDEN]
-TAMMO: Dan rijdt hij nauwelijks voor jou. De Fjord Frituur, op een Fjord. Dan klopt de naam ook. [BEHOUDEN]
-TESSA: Zonder bank blijft er één weg over: een wedstrijd. Wie wint, krijgt de enige vrije standplaats van Grunn, een plek voor een frietwagen. [NIEUW]
+TAMMO: Dan rijdt hij nauwelijks voor jou. Een snackwagen die nauwelijks rijdt. Dat is een concept. [NIEUW]
+TESSA: Zonder bank blijft er één weg over: een wedstrijd. Wie wint, krijgt de enige vrije standplaats van Grunn, een plek voor een wagen. [NIEUW]
 TAMMO: De prijs voor de beste eierbal. [NIEUW]
-TESSA: Wij winnen op 28 augustus, wij krijgen die standplaats, en de Fjord Frituur heeft een thuis. [NIEUW]
-TAMMO: Waarom nou een frietwagen? [NIEUW]
-TESSA: Omdat mensen bij een luik blijven staan en gaan praten. Een thuis met wielen, Tammo. Dat wil ik. [NIEUW]
-TAMMO: En ik rijd. [NIEUW]
-TESSA: Jij rijdt. [NIEUW]
+TESSA: Wij winnen op 28 augustus, wij krijgen die standplaats, en dan zien we wel wat erop komt te staan. [NIEUW]
+TAMMO: Is dat het plan? Een frietwagen? [NIEUW]
+TESSA: Het is een tekening, Tammo. Ik weet nog niet wat ik wil. Dit heb ik tot nu toe. [NIEUW]
+TAMMO: Dan rijd ik hem. Tot je het weet. [NIEUW]
 TAMMO: En tot die tijd? Hier past geen frietwagen. [NIEUW]
 TESSA: Daarom. Paddepoel, elfde verdieping. Twee kamers en een garage, voor de Fjord. [BEHOUDEN]
 TAMMO: Paddepoel? Dat is buitenland. [BEHOUDEN]
-TESSA: Vierentwintig, net afgestudeerd en samen nul banen. [NIEUW]
+TESSA: Vierentwintig, net afgestudeerd en samen nul banen. Na de studie gaat iedereen ergens anders heen. Wij niet. [NIEUW]
 TESSA: Alleen kan ik de huur niet betalen. Jij ook niet. Samen net. [BEHOUDEN]
 TAMMO: …Samen. [BEHOUDEN]
-RIKUS (radio): En nu een plaat voor Tammo, mijn vriend sinds groep drie. Hij heeft een grote dag en zegt niks. [NIEUW]
-TAMMO: Rikus draait mijn plaat. [NIEUW]
 TESSA: Als huisgenoten, Tammo. Teken nou maar. [BEHOUDEN]
 (regie: ze schuift het huurcontract over de tafel. Haar telefoon trilt.)
 TESSA: Kom. Werk. [BEHOUDEN]
@@ -45,7 +42,7 @@ TESSA: Je bent niet rijk, Tammo. Je bent huisgenoot. [BEHOUDEN]
 TESSA: Eerst geld. Meedoen aan die wedstrijd, de Noordelijke Snackprijs, kost honderdvijftig euro, contant, uiterlijk morgen om twaalf uur. [NIEUW]
 TAMMO: Honderdvijftig euro. Vandaag. [NIEUW]
 TESSA: Een streamer betaalt honderdvijftig euro voor stunts. Alleen heeft de Escapade een lekke band. [NIEUW]
-TESSA: Dus we lenen het bakkie van Berend Bos. Rijden, niet praten. [NIEUW]
+TESSA: Dus we lenen een bakkie. Rijden, niet praten. [NIEUW]
 
 ## [M01.1] Nul krassen, vijftienhonderd punten: intro – Stad, Martinikerkhof – Berends bakkie
 (regie: vrijdag 14 augustus, middag. Berend staat bij zijn bakkie, een nors mannetje met zijn arm in het gips en een kladblok. Aan het bakkie hangt een bord: CHAUFFEUR GEZOCHT, VIJFTIG EURO, BEREND BOS. De Escapade staat met een lekke band aan de kant. Gameplay: Berends bakkie door het centrum, nul krassen.)
@@ -203,12 +200,16 @@ TESSA: Het luik moet aan de zijkant, dan staat niemand in de weg. [NIEUW]
 TAMMO: Welke mensen? [NIEUW]
 TESSA: De mensen die gaan komen, Tammo. [NIEUW]
 TAMMO: Dan zet ik hem zo neer dat het past. [NIEUW]
+(regie: op de koelkast hangt ook een nieuwe lijst met twee kolommen: TAMMO VINDT en TESSA VINDT. Links: eerst eten, dan plannen. Rechts: eerst plannen, dan eten.)
+TESSA: Ik heb ook een lijst gemaakt. Op de koelkast: wat jij vindt, wat ik vind. [NIEUW]
+TAMMO: En waar staat "thee"? [NIEUW]
 TESSA: Je hebt dat kaartje nog. Van die eerste week. [NIEUW]
 TAMMO: Het hing al aan de koelkast. [NIEUW]
 TESSA: Ja. Natuurlijk. [NIEUW]
 (regie: ze tekent door. Hij blijft nog even staan met de thee.)
 
 ## [M03.1] Het Loket: intro – Stad, Het Loket bij de Grote Markt – te voet
+(regie: bewijsmoment, relatie-bijbel 3: Tessa leest het naamplaatje van de loketbediende en groet haar bij haar naam. Tammo kijkt even naar zijn schoenen en glimlacht.)
 (regie: zaterdag 15 augustus, tien uur. Een wachtruimte met nummerautomaat, een scherm dat 4093 toont, een bord "Loket B is vandaag Loket C". Gameplay: een wachtrijpuzzel met een klok: nummer trekken, formulier halen, stempel halen, voor twaalf uur.)
 TESSA: Twaalf uur, contant. Hoe moeilijk kan een stempel zijn? [NIEUW]
 LOKETBEDIENDE: Nummer 4117 aan loket A. Op het scherm staat 4093. [NIEUW]
@@ -237,7 +238,7 @@ JELLE: Dat noemen wij ondernemen. Oant sjen. [NIEUW]
 (regie: in de deuropening mompelt hij iets.)
 JELLE: Foar mem. [NIEUW]
 TAMMO: Wat zei hij? [NIEUW]
-TESSA: Voor zijn moeder. Hij doet alles voor zijn moeder. [NIEUW]
+TESSA: Voor zijn oma. Hij doet alles voor zijn oma. [NIEUW]
 (regie: achter Jelle staat een kleine, oude dame met een hoed, een gouden speldje en een stempel. Naamkaart: MEVROUW HOVING.)
 BEWAARDER: Ik bewaar de Gouden Eierbal, de wisselprijs van de Snackprijs, al sinds 1998. Wie de bal heeft, zit de jury voor. [NIEUW]
 LOKETBEDIENDE: Is zij er niet, dan zit Berend Bos voor. Jurylid sinds 1982. [NIEUW]
@@ -394,6 +395,10 @@ TAMMO: Een begrafenis. [BEHOUDEN]
 HENK (telefoon): Om twaalf uur 's nachts. [BEHOUDEN]
 TESSA: Een hele late. [BEHOUDEN]
 HENK (telefoon): Neem er een koekje bij. Eén. Het is geen Ontzet. [BEHOUDEN]
+(regie: er wordt zachtjes geklopt. In de deuropening staat de buurman van elf negen, een oude man in een vest met een duif op zijn schouder. Naamkaart: MENEER VELDKAMP.)
+VELDKAMP: Jullie lamp brandt. Het is bijna twaalf. [NIEUW]
+TESSA: We wachten op iets. [NIEUW]
+VELDKAMP: Mijn duiven doen dat bij niemand. Hij wil naar Tammo. [NIEUW]
 
 ## [R1.2b] Nachtstreek, middernacht – Stad – radio
 RIKUS (radio): Geen beller vanavond. Twee vrienden van me zijn een museum gaan "bekijken". Ik zeg niks. Ik draai drie minuten stilte. [BEHOUDEN]
@@ -468,6 +473,24 @@ TESSA: Daar sta je alleen als je omrijdt. [NIEUW]
 TAMMO: Ik haat omleidingen. [NIEUW]
 TESSA: Je haat alles wat langer duurt dan een koekje. [NIEUW]
 
+## [B1.1] Autogesprekken akte 1: iedereen denkt het (pool; aanname dat ze al samen zijn) – Stad – Escapade
+TESSA: Waarom denkt iedereen dat wij een stel zijn? [NIEUW]
+TAMMO: Wij delen een koelkast. [NIEUW]
+TESSA: Dat is geen argument. [NIEUW]
+TAMMO: Het is een hele goede koelkast. [NIEUW]
+
+## [B1.2] Autogesprekken akte 1: eigenlijk (pool) – Stad – Escapade
+TESSA: Kijk, een mus. [NIEUW]
+TAMMO: Eigenlijk een ringmus. Hij heeft een vlekje op zijn wang. [NIEUW]
+TESSA: Dat is het leukste wat je vandaag zei. [NIEUW]
+TAMMO: Het was het enige. [NIEUW]
+
+## [B1.3] Autogesprekken akte 1: vraag van de dag (pool; taxi en klussen) – Stad – Escapade
+TESSA: Vraag van de dag. Hoe lang kan een duif zonder poepen? [NIEUW]
+TAMMO: Dat hangt van de jas af. [NIEUW]
+TESSA: Dat noem ik geen antwoord. [NIEUW]
+TAMMO: Het is een eerlijk antwoord. [NIEUW]
+
 ## [A1.1] Appjes akte 1 (stil, geen stem) – Stad – telefoon
 APP TESSA→TAMMO (stil): Ik pin de honderdvijftig. Wacht bij de auto. [NIEUW]
 APP TAMMO→TESSA (stil): Ik ben je nog niet kwijt. [NIEUW]
@@ -484,4 +507,9 @@ TAMMO: En daarna? [NIEUW]
 TESSA: Daarna winnen we gewoon eerlijk. Met een eierbal die beter is dan de zijne. [NIEUW]
 TAMMO: Oma Trijntje won in 1953. [NIEUW]
 TESSA: Dan weet zij hoe dat moet. [NIEUW]
+(regie: Tammo draait zich naar haar toe.)
+TAMMO: Tessa, eigenlijk— [NIEUW]
+(regie: een bakfiets toetert, lang.)
+TESSA: Wat zei je? [NIEUW]
+(regie: Tammo kijkt naar de weg. Hij zegt niets meer.)
 

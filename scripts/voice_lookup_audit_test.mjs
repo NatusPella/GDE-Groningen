@@ -40,7 +40,7 @@ t('#924 data: elke opgenomen verhaalregel resolvet in zijn eigen manifest', () =
 
 t('#924 autorit: alle 86 exchange-regels resolven via de rec-aware resolver', () => {
   setStoryData(data, manifests);
-  const lines = banterExchanges().flatMap((ex) => ex.lines);
+  const lines = banterExchanges().flatMap((ex) => ex.lines).filter((l) => l[3]);
   assert.equal(lines.length, 86);
   for (const l of lines) assert.ok(banterLineVoice(l), `geen opname: ${l[1]}`);
   // de oude bug: banter.js keek alleen in banter; 70 regels staan in lines

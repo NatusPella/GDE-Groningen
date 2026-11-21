@@ -24,7 +24,7 @@ nieuwe TTS-regels of eigen muziek gebruikt. De themasong zakt onder de stemmen.
 
 1. **Ontbrekende audio (verhaaltrailer):** twee stemclips bestonden niet meer (`st-bijbaan_1_a_91280b`,
    `h2-pass-karaat_0_t_739985`); de ondertitel stond er wel, het geluid niet. Vervangen door bestaande
-   clips (Tessa: "Zonder die Eierbal geen Fjord Frituur." en "Het museum. De Gouden Eierbal."). Tweede
+   clips (Tessa: "Zonder die Eierbal geen snackwagen." en "Het museum. De Gouden Eierbal."). Tweede
    opname: 13 van 13 clips gevonden.
 2. **Rare camera:** in de Jelle-shot (verhaaltrailer 31-36 s en de trekker-limo in de gameplaytrailer) stond
    de camera 0,6 m hoog achter een brugleuning, met palen die het beeld in sneden. Nu 2,3 m, boven de leuning.

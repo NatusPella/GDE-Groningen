@@ -162,6 +162,7 @@ De bron is [scripts/coop_coverage.json](../scripts/coop_coverage.json); de tabel
 | `boerderijUitleg` | apparaat | Uitleg gezien. |
 | `simUitleg` | apparaat | Uitleg gezien. |
 | `voetbal` | apparaat | Voorkeur voor de duur van een wedstrijd. |
+| `reputatie` | speler | Lichte reputatie per speler (reputation.js, #1135), nooit in een savegame en nooit over het net; een gast heeft zijn eigen. |
 | `voetbalCarriere` | speler | Voetbalcarrière per speler, nooit in een savegame. |
 | `terugkeer` | apparaat | Terugkeerscene gezien. |
 | `recap` | apparaat | Recapkaart: nooit in een savegame. |

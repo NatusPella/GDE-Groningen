@@ -23,7 +23,7 @@ Dit document is actueel (geen verslag van een oude ronde). De canon verandert ni
 | overtredingen van de norm | 7 | 0 |
 | regels waar een nieuwe speler weinig aan heeft | 5 | 0 |
 | verwijzingen zonder uitleg | 6 meldingen (Ontzet drie keer, de ladder twee keer, de Gouden Eierbal) | 0 |
-| keuken (C00.2): nieuwe namen | 3 (Escapade, Fjord Frituur, Snackprijs) | 2 (Escapade, Fjord Frituur) |
+| keuken (C00.2): nieuwe namen | 3 (Escapade, snackwagen, Snackprijs) | 2 (Escapade, snackwagen) |
 | M01.1: het Ontzet | genoemd zonder uitleg | uitgelegd in de regel erna |
 | M02.1: nieuwe namen | 4 (Durk, Douwe, Sjabbe, Pand & Poen) | 2 (Durk, Douwe) |
 
@@ -40,7 +40,7 @@ De dichtheid zelf daalt dus niet: de feiten blijven dezelfde. Wat verandert is d
 
 | Waar | Regel | Probleem |
 |---|---|---|
-| C00.2 | "Ik wel. De Escapade." / "De Fjord Frituur, op een Fjord." / "…de Noordelijke Snackprijs." | drie eigennamen in een scène waarin de speler nog niet weet wat het plan is |
+| C00.2 | "Ik wel. De Escapade." / "De snackwagen, op een Fjord." / "…de Noordelijke Snackprijs." | drie eigennamen in een scène waarin de speler nog niet weet wat het plan is |
 | C00.2 | "Op Gronings Ontzet." en "…in 1672 de bisschop buiten hield." | de naam stond in een regel, de uitleg stond in een regel die was geschrapt (#662); het Ontzet bleef daarna onverklaard hangen |
 | M01.1 | "Jij bent toch Bommen Berend? Van het Ontzet?" | het Ontzet is voor de speler nergens verteld; de grap werkt alleen met voorkennis |
 | M01.1 | "Met de stunts erbij is dat genoeg, Tammo." | zegt niet wat genoeg is, noch voor wat |

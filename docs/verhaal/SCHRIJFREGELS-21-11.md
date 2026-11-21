@@ -6,7 +6,7 @@ Werkafspraken voor wie scènes van een akte herschrijft (mens of agent). Spec: [
 
 - Tammo en Tessa zijn 24, net afgestudeerd en werkloos, vijf jaar vrienden sinds de eerste studieweek; Tammo is vijf jaar stiekem verliefd. Rikus is Tammo's jeugdvriend. Oma Trijntje is Tammo's oma (92).
 - Tammo heeft een onverklaarde band met duiven: ze volgen en gehoorzamen hem; anderen merken het op, er is nooit uitleg. Bestaande duivengrappen ("mijn vriend de duivenkoning") blijven.
-- Kern: Tessa ontdekt dat ze een frietwagen wil (de Fjord Frituur) en doet dat met Tammo (zijn autoliefde, haar snackliefde). De wagen is thuisbasis en bedrijf.
+- Kern: Tessa ontdekt dat ze een frietwagen wil (de snackwagen) en doet dat met Tammo (zijn autoliefde, haar snackliefde). De wagen is thuisbasis en bedrijf.
 - Tegenstander en eindbaas: Jelle Terpstra (snackimperium: rijk, bureaucratisch, lang, arrogant, maar "Foar mem"); vroeg en vaak zichtbaar; hij saboteert, koopt panden op, stuurt handlangers; hij wordt verslagen met bureaucratie en vette snacks, nooit met geweld.
 - Romance is een hoofdlijn, zoet en komisch. Toon: warm, grappig, soms ontroerend.
 - "Grunn", nooit "de Grunn". Tessa spreekt standaard Nederlands. Altijd zomer. Satire, geen leed. Geen echte merken of personen.
@@ -37,3 +37,7 @@ De eigenaar vindt humor moeilijk voor een taalmodel. Daarom:
 ## Toetsen
 
 `node scripts/build_story_data.mjs`, `storydata_test`, `story_spine_test`, `dialogue_rhythm_test` (een nieuwe overtreding faalt; `--write` trekt de lijst gelijk), `introduction_test` (idem), `humor_test`, `storybridge_test`, `storyclarity_test`, `recapcard_test`, de akte-testen van je akte, `voice_coverage --quiet`, `text_audit_test`, `dialect_woorden_test`, `gronings_spoken_test`.
+
+## Dialoogvorm (overlap, onderbreking, stilte)
+
+Achter de tekst van een regel mag, vóór `[NIEUW]`, één tag: `{ov=0.3}` (de volgende regel start 0,3 s eerder: een reactie of "Ja, maar..."), `{cut=1.4}` (de regel wordt na 1,4 s afgekapt en eindigt op drie puntjes; alleen op een regel zonder opname) of `{pause=0.8}` (zoveel stilte na de regel; een stilte telt als beurt). Zonder tag verandert niets. Zet geen tag op een regel van een humorbeat (de build matcht de varianten op de tekst). Code: `game/js/dialogueform.js`, test: `scripts/dialoogvorm_test.mjs`. Samen spelen: het is tekst en timing bij de scène; een gast ziet dezelfde timing mee.

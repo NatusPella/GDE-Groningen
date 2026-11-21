@@ -104,7 +104,7 @@ t('elke kaart van akte 6 is geldig: een doel, hoogstens drie regels, leesbare zi
 t('de kaarten hangen aan loop- en houd-stappen, nooit aan een scene of een keuze; een stap zonder kaart blijft ongewijzigd', () => {
   for (const s of Object.keys(NAMEN)) for (const q of def(NAMEN[s]).stages) if (q.kaart) assert.ok(['goto', 'hold'].includes(q.kind), `${s}: geen kaart op ${q.kind}`);
   assert.ok(kaartVan(stap('M30', 'goto', /gracht van de vesting/)).doel);
-  assert.equal(kaartVan(stap('M30', 'goto', /Fjord Frituur/)).regels.length, 1);
+  assert.equal(kaartVan(stap('M30', 'goto', /snackwagen/)).regels.length, 1);
   assert.equal(kaartVan(stap('M28', 'board', /Stap in/)), null);
   assert.ok(kaartVan(stap('M28', 'goto', /wisselwoning/)).afloop, 'M28 zegt eerst wat er misgaat (de bus afschrijven)');
 });
@@ -226,7 +226,7 @@ t('M30 heeft een slot: het slotfeest bij de frituur en een groot beeld na de poo
   const p = dressingPlan('slotfeest');
   assert.ok(p.people.length >= 5, 'de vrienden van Oma staan er');
   assert.ok(p.props.some((q) => q.kind === 'banner'), 'een spandoek');
-  assert.equal(stap('M30', 'goto', /Fjord Frituur/).dressing, 'slotfeest');
+  assert.equal(stap('M30', 'goto', /snackwagen/).dressing, 'slotfeest');
   assert.equal(stap('M30', 'scene', /^De poort$/).big, 'Gewonnen. Het voelt verkeerd.');
   assert.equal(def(NAMEN.M30).stages.length, 13, 'het aantal stappen blijft (saves)');
   assert.equal(def(NAMEN.M30).slotSting, 'geslaagd_groot');
