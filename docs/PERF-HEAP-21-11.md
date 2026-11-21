@@ -73,3 +73,19 @@ Lezing, eerlijk:
 
 `node --check` op de gewijzigde JS; groen: `sfxsamples_test`, `memwatch_test`, `heapmap_test`, `tilebudget_test`, `lrucache_test`, `tileworld_pinned_test`, `sfx_haken_test`, `stappen_test`,
 `weer_sfx_test`, `import_cycles_test`, `perfscan_test`, `devflags_test`, `docs_index_test`, `lineendings_test`, `spec_check`. `tileworld_test` draait niet zonder `data/cache/province` (**niet gedraaid**).
+
+## Vervolg 21-11 (#1040, zonder Electron): graafbouw laat platte lijsten los
+
+Statische ronde over de caches (`scripts/perf/cachescan.mjs`, 28 kandidaten zonder wis): alle begrensd door een vaste inhoud (stijlen, regio-ankers,
+prijslijst, kleuren) behalve `lampByKey` in `nightlights3d.js` (elke lamp ooit, met `broken` en `prop` als toestand: bewust niet aangeraakt, een
+begrenzing laat gebroken lampen terugkeren). Logs en wachtrijen (`audioLog`, `hitchLog`, `events`, `history`) hebben een bovengrens. Kaarttegels van `mapview.js` hebben een limiet.
+
+Gevonden en aangepast: `game/js/pathgraphbuild.js` hield tijdens de bouw alle elf platte kantenlijsten (`walk`, `bike`, `drive`, `mixed`, vier `*Soft`, `driveAvoid`
+en twee ongerichte kopieen; gewone arrays van getallen, 8 byte per element) tot het eind vast, en de bouw start opnieuw bij elke tegelwissel. Nu gaat elke lijst
+op `null` direct na zijn CSR en `ids` wordt geleegd. Uitkomst byte voor byte gelijk (controlesom in `pathgraphbuild_test`).
+
+Microbenchmark (`node --expose-gc scripts/perf/pathgraph_heap_bench.mjs <pad naar pathgraphbuild.js>`, 60.000 synthetische wegen, GC na elke stap):
+levende piek 308 MB voor, 290 MB na (-6%); het afval per bouw daalt mee. Dit is een aanwijzing, geen eindmeting.
+
+**Meetpunt voor de eindsweep (Electron, nog niet gemeten):** JS-heap (Ctrl+Shift+G, `[Geheugen]`) na 5 minuten rijden: bodem en piek voor/na deze wijziging;
+daarnaast het aantal graafbouwen per minuut (`stats.restarts`) en `geometries` per route (het open lek-vermoeden).

@@ -17,8 +17,9 @@ export function* graphBuildSteps(graphRoads, h) {
   const ids = new Map();
   const xs = [], ys = [];
   const roadNodes = new Map();
-  const drive = [], driveRoad = [], walk = [], walkRoad = [], mixed = [], bike = [], bikeRoad = [], driveAvoid = [];
-  const walkSoft = [], bikeSoft = [], driveSoft = [], driveSoftAvoid = [];
+  // let, niet const: elke platte kantenlijst gaat na zijn CSR op null (#1040), zodat de bouw niet alle elf lijsten tegelijk vasthoudt
+  let drive = [], driveRoad = [], walk = [], walkRoad = [], mixed = [], bike = [], bikeRoad = [], driveAvoid = [];
+  let walkSoft = [], bikeSoft = [], driveSoft = [], driveSoftAvoid = [];
   const nodeOf = (x, y) => {
     const key = (Math.round(x * 2) + 32768) * 65536 + (Math.round(y * 2) + 32768);
     let id = ids.get(key);
@@ -128,24 +129,28 @@ export function* graphBuildSteps(graphRoads, h) {
     }
     return { comp, main: best };
   };
-  const walkAdj = yield* csr(walk, walkRoad); yield 'walk';
+  // Elke platte lijst gaat na zijn laatste gebruik op null (de CSR-resultaten zijn typed arrays): de piek van de bouw is zo een deel van
+  // wat hij was, en een bouw die opnieuw begint (elke tegelwissel) laat minder afval achter. De uitkomst is dezelfde.
+  const walkAdj = yield* csr(walk, walkRoad); walk = walkRoad = null; yield 'walk';
   const bikeAdj = yield* csr(bike, bikeRoad); yield 'bike';
-  const bikeUndirected = [];
+  let bikeUndirected = [];
   for (let i = 0; i < bike.length; i += 3) { bikeUndirected.push(bike[i], bike[i + 1], bike[i + 2], bike[i + 1], bike[i], bike[i + 2]); if (i && i % (EDGES_PER_STEP * 3) === 0) yield 'bike-ongericht'; }
-  const driveUndirected = [];
+  bike = bikeRoad = null;
+  let driveUndirected = [];
   for (let i = 0; i < drive.length; i += 3) { driveUndirected.push(drive[i], drive[i + 1], drive[i + 2], drive[i + 1], drive[i], drive[i + 2]); if (i && i % (EDGES_PER_STEP * 3) === 0) yield 'drive-ongericht'; }
   yield 'undirected';
-  const driveFree = yield* csr(driveUndirected); yield 'free';
+  const driveFree = yield* csr(driveUndirected); driveUndirected = null; yield 'free';
   const walkComp = components(walkAdj); yield 'walkcomp';
   const driveComp = components(driveFree); yield 'drivecomp';
-  const driveAdj = yield* csr(drive, driveRoad); yield 'drive';
-  const driveAvoidAdj = yield* csr(driveAvoid, driveRoad); yield 'avoid';
-  const bikeComp = components(yield* csr(bikeUndirected)); yield 'bikecomp';
-  const mixedAdj = yield* csr(mixed);
-  const walkSoftAdj = yield* csr(walkSoft); yield 'walk-snelste';
-  const bikeSoftAdj = yield* csr(bikeSoft); yield 'bike-snelste';
-  const driveSoftAdj = yield* csr(driveSoft); yield 'drive-snelste';
-  const driveSoftAvoidAdj = yield* csr(driveSoftAvoid);
+  const driveAdj = yield* csr(drive, driveRoad); drive = null; yield 'drive';
+  const driveAvoidAdj = yield* csr(driveAvoid, driveRoad); driveAvoid = driveRoad = null; yield 'avoid';
+  const bikeComp = components(yield* csr(bikeUndirected)); bikeUndirected = null; yield 'bikecomp';
+  const mixedAdj = yield* csr(mixed); mixed = null;
+  const walkSoftAdj = yield* csr(walkSoft); walkSoft = null; yield 'walk-snelste';
+  const bikeSoftAdj = yield* csr(bikeSoft); bikeSoft = null; yield 'bike-snelste';
+  const driveSoftAdj = yield* csr(driveSoft); driveSoft = null; yield 'drive-snelste';
+  const driveSoftAvoidAdj = yield* csr(driveSoftAvoid); driveSoftAvoid = null;
+  ids.clear();
   return {
     walkSoft: walkSoftAdj,
     bikeSoft: bikeSoftAdj,
