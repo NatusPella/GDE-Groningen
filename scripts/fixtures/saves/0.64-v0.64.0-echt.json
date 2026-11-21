@@ -1,0 +1,147 @@
+{
+ "_era": "0.64.0 (save v10): echt gemaakt met savegame.js van tag v0.64.0 (nieuw spel, plek buiten het huis, ctx free). Moet blijven laden op de plek van de save.",
+ "_expect": {
+  "arc": "nieuw",
+  "money": 4321,
+  "radio": "on",
+  "pos": [
+   1204.5,
+   -88
+  ]
+ },
+ "save": {
+  "v": 10,
+  "arc": "nieuw",
+  "savedAt": 1795247192493,
+  "speeltijd": 0,
+  "money": 4321,
+  "moneyBackup": 4321,
+  "health": 80,
+  "armor": 10,
+  "weapon": "fists",
+  "ammo": {},
+  "eten": {},
+  "stats": {
+   "kills": 0,
+   "pedKills": 0,
+   "copKills": 0,
+   "missionsDone": 0,
+   "playerWrecks": 0,
+   "heistsDone": 0,
+   "racesWon": 0
+  },
+  "character": "tammo",
+  "pos": {
+   "x": 1204.5,
+   "y": -88
+  },
+  "plek": "",
+  "ctx": "free",
+  "missions": null,
+  "story": {
+   "v": 2,
+   "done": [],
+   "skipped": [],
+   "fails": {},
+   "waived": [],
+   "voorschot": [],
+   "cards": [],
+   "flags": []
+  },
+  "visitedLandmarks": [],
+  "wijken": [],
+  "shops": {
+   "hero": {},
+   "outfit": {
+    "tammo": "stadjer",
+    "anita": "classic"
+   },
+   "ownedOutfits": [
+    "tammo:stadjer",
+    "anita:classic"
+   ],
+   "storyOutfit": null,
+   "hair": {
+    "tammo": {
+     "color": "naturel",
+     "style": "short"
+    },
+    "anita": {
+     "color": "naturel",
+     "style": "long"
+    }
+   },
+   "heroColor": null,
+   "heroUpgrades": [],
+   "stamps": 0,
+   "vehicles": []
+  },
+  "prestaties": {
+   "eierballen": [],
+   "geheimen": [],
+   "knutselwagen": [],
+   "unlocked": []
+  },
+  "duif": {
+   "best": 0,
+   "total": 0,
+   "ach": [],
+   "home": false
+  },
+  "bijbaan": {
+   "v": 1,
+   "jobs": {},
+   "seen": []
+  },
+  "postgame": {
+   "v": 1,
+   "invited": false,
+   "seen": [],
+   "cleared": [],
+   "fjord": {
+    "upgrades": [],
+    "earned": 0,
+    "shifts": 0,
+    "best": 0
+   },
+   "revealed": false,
+   "guideOff": false,
+   "guideHinted": false
+  },
+  "meubels": {
+   "owned": [],
+   "pending": [],
+   "built": [],
+   "day": 0,
+   "read": -1,
+   "stek": 0,
+   "tips": [],
+   "moment": false,
+   "plekken": {}
+  },
+  "financien": {
+   "day": 0,
+   "total": {
+    "in": {},
+    "out": {}
+   },
+   "days": []
+  },
+  "thuis": {
+   "front": []
+  },
+  "doel": null,
+  "radio": "on",
+  "streken": {
+   "v": 1,
+   "unlocked": [],
+   "on": [],
+   "used": []
+  },
+  "kalender": {
+   "v": 1,
+   "dag": 1,
+   "gezien": []
+  }
+ }
+}
