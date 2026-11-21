@@ -24,7 +24,7 @@ gewone medaille of een persoonlijk record alleen telt hier niet als tweede laag;
 | vliegschool | twintig lessen, per toestel je eigen leerlijn | leerlijn |
 | wandeling | de stempels onderweg: elke etappe een eigen doel | verzameling |
 | regatta | de vaste baan op de Hoornse Plas met een eigen record | eigen baan/record |
-| padel | de vaste tweeling die je steeds sterker terugzet | vaste tegenstander (buiten de 26 startkaart-activiteiten) |
+| padel | de vaste tweeling die je steeds sterker terugzet | vaste tegenstander (buiten de 27 startkaart-activiteiten) |
 | carbid | — | bewuste uitzondering: vijf schoten, één score |
 | kermis | — | bewuste uitzondering: één rit, één score |
 | hoogvlieger | — | bewuste uitzondering: attractie zonder record |
@@ -44,9 +44,10 @@ gewone medaille of een persoonlijk record alleen telt hier niet als tweede laag;
 | vluchtdienst | — | bewuste uitzondering: dienst, geen medaillelaag |
 | vaardienst | — | bewuste uitzondering: dienst, geen medaillelaag |
 | penalty | — | bewuste uitzondering: vijf penalty's, het record telt al als eigen uitdaging (#981) |
+| voetbal | — | bewuste uitzondering: een korte wedstrijd, het record (winst met het meeste doelsaldo) en de medailles zijn al de uitdaging (#981) |
 
-**8 van de 26** hebben een tweede laag; de overige 18 zijn hierboven als bewuste uitzondering
-gedocumenteerd. Padel heeft er ook een, maar valt buiten de 26 startkaart-activiteiten. De eis uit
+**8 van de 27** hebben een tweede laag; de overige 19 zijn hierboven als bewuste uitzondering
+gedocumenteerd. Padel heeft er ook een, maar valt buiten de 27 startkaart-activiteiten. De eis uit
 #800 was minstens acht; dat is gehaald zonder een nieuwe teller.
 
 ## Samen spelen

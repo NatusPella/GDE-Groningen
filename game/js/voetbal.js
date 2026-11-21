@@ -260,7 +260,7 @@ function interact(w) {
   if (!nearGate(w)) return false;
   const why = activityBlock(w);
   if (why) { w.addMessage(why, 2.5); return true; }
-  // een T in de uitnodiging: kort of normaal (de keuze blijft staan op dit apparaat)
+  // met gasten in de sessie is de wedstrijd een uitnodiging aan iedereen (Meedoen? J of N); nog eens E start meteen
   const uit = wedNodigUit(w, 'voetbal');
   if (uit.ok) { if (uit.reden === 'wacht') wedNuStarten(w); return true; }
   start(w);
