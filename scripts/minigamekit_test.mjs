@@ -37,5 +37,13 @@ ok(st.cam.pos.x > 9.9, 'na 1 s staat de camera (bijna) op het doel: ' + st.cam.p
 const first = easeCamera({}, { x: 3, y: 4, z: 5 }, { x: 0, y: 0, z: 0 }, 0.1);
 ok(near(first.position.x, 3) && near(first.position.z, 5), 'de eerste pose staat meteen goed');
 
+// review 21-11: geen tekst onder 13 px in de scorebordkit en de loopbaankaarten (DESIGN_SYSTEM: 13 px-vloer)
+import fs from 'node:fs';
+for (const f of ['minigamekit.js', 'loopbaanui.js']) {
+  const src = fs.readFileSync(new URL('../game/js/' + f, import.meta.url), 'utf8');
+  const laag = src.split(/\r?\n/).filter((l) => /font(-size)?\s*:[^;]*\b12px/.test(l));
+  ok(laag.length === 0, f + ': geen lettergrootte van 12 px (' + laag.length + ')');
+}
+
 console.log(bad ? `${bad} van ${n} mislukt` : `minigamekit_test: ${n}/${n} ok`);
 process.exit(bad ? 1 : 0);
