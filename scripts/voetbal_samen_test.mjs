@@ -1,7 +1,7 @@
 // Test van Samen spelen bij de voetbalcarrière (#1114): scripts/voetbal_samen_test.mjs. Puur; bewaakt ook dat het netwerkprotocol niets over voetbal zegt.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { clampGuestFactors, encodeRatings, decodeRatings, assignFigures, planTeams, dropOut, guestReward, capFactor, LEVEL_CAP, MAX_PER_TEAM, guestXpFactor, deriveTeams, encodeTeams, decodeTeams, teamOfSlot } from '../game/js/voetbalsamen.js';
+import { clampGuestFactors, encodeRatings, decodeRatings, assignFigures, planTeams, dropOut, guestReward, capFactor, LEVEL_CAP, MAX_PER_TEAM, guestXpFactor, deriveTeams, encodeTeams, decodeTeams, teamOfSlot, guestCareerExtra } from '../game/js/voetbalsamen.js';
 import * as V from '../game/js/voetbalmatch.js';
 import { makeProtagonist, simFactors } from '../game/js/voetbalplayers.js';
 
@@ -89,6 +89,20 @@ t('de beloning van een gast: geld en ervaring, nooit competitiepunten of een con
   assert.ok(guestReward({ outcome: 'winst', goals: 99 }, 'talent').geld <= 30 + 15 + 1);
   assert.ok(guestXpFactor <= 0.6);
   assert.ok(LEVEL_CAP.talent < LEVEL_CAP.kroon);
+});
+t('#1157: de eigen carrière van een gast krijgt het verschil en 60% ervaring, nooit competitiepunten', () => {
+  const x = guestCareerExtra({ plek: 1, tijd: 2 }, 'talent', 20);
+  assert.ok(x.geld > 0 && x.xp > 0);
+  assert.deepEqual(guestCareerExtra({ plek: 1, weg: true }, 'terp', 0), { geld: 0, xp: 0 });
+  assert.equal(guestCareerExtra({ plek: 2 }, 'talent', 999).geld, 0, 'nooit negatief');
+  assert.ok(!('competitiepunten' in x));
+});
+t('#1157: de host klemt een gast ook op de klasse van zijn eigen carrière, de beloning komt na het antwoord van de host', () => {
+  const vb = fs.readFileSync(new URL('../game/js/voetbal.js', import.meta.url), 'utf8');
+  for (const stuk of ['LEVEL_CAP[eigenK] < LEVEL_CAP[perStand]', 'decodeRatings(d.r, klem)', "g.online === 'gast' && CL.hasCareer()", 'guestCareerExtra(rij, eigenKlasse()']) assert.ok(vb.includes(stuk), stuk);
+  assert.ok(LEVEL_CAP.talent < LEVEL_CAP.terp, 'een lagere klasse klemt strenger');
+  const hoog = clampGuestFactors({ sprint: 9, schot: 9, aanname: 9, verd: 9, uit: 9 }, 'talent'), laag = clampGuestFactors({ sprint: 9, schot: 9, aanname: 9, verd: 9, uit: 9 }, 'kroon');
+  assert.ok(hoog.sprint < laag.sprint);
 });
 t('het netwerkprotocol blijft ongewijzigd: geen woord voetbal in net/protocol.js en geen nieuwe berichtsoort', () => {
   const p = fs.readFileSync(new URL('../game/js/net/protocol.js', import.meta.url), 'utf8');

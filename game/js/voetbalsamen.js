@@ -81,3 +81,9 @@ export function guestReward({ outcome = 'verlies', goals = 0, weg = false } = {}
 }
 // De ervaring van een gast voor zijn eigen carrière (zijn profiel, niet dat van de host): een vaste, kleine hoeveelheid (60%, zoals een uitgerekende wedstrijd), zodat meespelen nooit sneller groeit dan zelf spelen.
 export const guestXpFactor = 0.6;
+// De beloning die de gast boven de standaard-uitkeringsregel van de wedstrijd uit zijn eigen carrière krijgt: het verschil in geld en de ervaring met de vaste factor (60%); nooit competitiepunten (#1157).
+export function guestCareerExtra(rij, level = 'talent', alBetaald = 0) {
+  const outcome = rij && rij.plek === 1 ? 'winst' : rij && rij.plek === 3 ? 'gelijk' : 'verlies';
+  const r = guestReward({ outcome, goals: (rij && rij.tijd) | 0, weg: !!(rij && rij.weg) }, level);
+  return { geld: Math.max(0, r.geld - (alBetaald | 0)), xp: Math.round(r.xp * guestXpFactor) };
+}

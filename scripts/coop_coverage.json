@@ -439,7 +439,7 @@
     "voetbalcommentarycareer"
    ],
    "eigenaar": "speler",
-   "gast": "Een gast speelt zijn eigen figuur in jouw team; ratings reizen mee in het EXTRA-bericht.",
+   "gast": "Een gast speelt zijn eigen figuur in jouw team; zijn ratings reizen mee als hexblok in zijn wedgast-antwoord J (haak ratings van registreerWedstrijd) en worden aan de hostkant geklemd, ook op de klasse van de eigen carrière van de host.",
    "beloning": "Per speler uit de eigen uitslagsregel (geld en ervaring); nooit competitiepunten van een ander.",
    "wegval": "De computer neemt over; het team wordt nooit leeg; geen instap halverwege.",
    "test": [
@@ -453,7 +453,7 @@
    "status": "gat",
    "prio": "middel",
    "issue": "#1157",
-   "gat": "voetbalsamen.js (regels, ratingblok, beloning) is niet gekoppeld aan coopnet.js en registreerWedstrijd; derby met mensen in team 1 (voetbalmatch.js) is niet gebouwd; sponsorpanden wachten op Bezit; uitwedstrijd als reis is niet gebouwd."
+   "gat": "Gekoppeld (#1157): de ratings van een gast reizen mee met Meedoen J en de host klemt ze (niveau van de wereld en klasse van de eigen carrière); de gast krijgt in zijn eigen carrière het verschil en 60% ervaring (guestCareerExtra). Open: sponsorpanden wachten op Bezit; uitwedstrijd als reis is niet gebouwd; de gastbeloning is niet in een venster bekeken."
   },
   {
    "id": "voetbalwedstrijd",
@@ -579,17 +579,16 @@
    "wegval": "Niets te herstellen; later aansluiten: de code staat in de spelerslijst.",
    "test": [
     "scripts/clothing_test.mjs",
-    "scripts/coopspeler_test.mjs"
+    "scripts/coopspeler_test.mjs",
+    "scripts/coop/uiterlijk_tcp_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
     "zoek": "## Kleding (21-11, epic Kleding)"
    },
-   "wachtOp": "epic-kleding-21-11",
-   "status": "gat",
-   "prio": "middel",
-   "lead": "Kleding",
-   "gat": "Lead Kleding meldt (epic-kleding-21-11, e71573e69): outfit-update midden in een sessie is klaar (bericht k outfit, test in clothing_test.mjs) en NPC-outfits zijn aangesloten op voetgangers, wachters en publiek (deterministisch). Open: de testbankstap outfit in coop.page.js moet na de merge echt controleren dat een medespeler avatar.outfit draagt (nu alleen gelogd); status naar OK na de merge."
+   "status": "OK",
+   "prio": "-",
+   "lead": "Kleding"
   },
   {
    "id": "tuning",
@@ -658,17 +657,16 @@
     "scripts/interior_coop_test.mjs",
     "scripts/interior_crowd_test.mjs",
     "scripts/interior_pandtypes_test.mjs",
-    "scripts/binnenklank_test.mjs"
+    "scripts/binnenklank_test.mjs",
+    "scripts/coop/uiterlijk_tcp_test.mjs"
    ],
    "regel": {
     "doc": "docs/BINNENSETS-21-11.md",
     "zoek": "## Samen spelen"
    },
-   "wachtOp": "epic-interieurs-21-11",
-   "status": "gat",
-   "prio": "hoog",
-   "lead": "Interieurs",
-   "gat": "Lead Interieurs meldt (epic-interieurs-21-11): regels staan in docs/INTERIEURS-21-11.md (kop Samen spelen (regels)) en in COOP-GAST.md; pure test scripts/interior_coop_test.mjs (39 controles: host, gast, late gast en nieuwe host bouwen dezelfde kamer uit het gebouwszaad; kopen per speler; geen netwerkverkeer). Open: testbankstap interieur in de suite alles (interiorSeed/planInterior op twee clients vergelijken) en de status naar OK na de merge."
+   "status": "OK",
+   "prio": "-",
+   "lead": "Interieurs"
   },
   {
    "id": "voertuigen",
