@@ -190,6 +190,9 @@ function main() {
     // De specs tegen de code (#499): regelverwijzingen en de tellers in proza.
     const sc = run(process.execPath, ['scripts/spec_check.mjs'], timeoutMs);
     note('spec_check.mjs', sc, classify(sc));
+    // De cutscene-linter met baseline-ratel (regie-bijbel, docs/CUTSCENE-REGIE-21-11.md): bestaande schuld mag alleen dalen.
+    const cl = run(process.execPath, ['scripts/cutscene_lint.mjs', '--ratchet', '--quiet'], timeoutMs);
+    note('cutscene_lint.mjs (ratel)', cl, classify(cl));
     // De dode-code-poort (#646): de lichte fase van test_all bewaakt dit met de vorige run;
     // CI heeft geen vorige run en gebruikt daarom de gecommitte drempel. Alleen omlaag.
     const dc = deadCodeRun();
