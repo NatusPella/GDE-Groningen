@@ -154,7 +154,7 @@ function economyChecks(check, tl) {
 
 const hold = (k, code) => { for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent('keydown', { key: k, code, bubbles: true })); };
 const release = (k, code) => { for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent('keyup', { key: k, code, bubbles: true })); };
-const boardUp = () => !!document.querySelector('.mg-board:not([hidden])');
+const boardUp = () => !!document.querySelector('.mg-board:not([hidden]), #sh-hud:not([hidden])');
 
 // Minigames batch 1 (discgolf.js, pitchputt.js, skatepark.js, kartbaan.js): each
 // starts through its debug hook, runs a little, shows its HUD board, ends

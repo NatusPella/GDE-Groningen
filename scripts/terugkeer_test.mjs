@@ -61,10 +61,10 @@ ok(kiesVignet([{ id: 'a' }, { id: 'b' }], 'a', () => 5).id === 'b', 'een dobbels
 }
 
 // --- voorwaarden -----------------------------------------------------------------------------------------------------
-const calm = { uit: false, started: true, loading: false, loaded: true, client: false, session: false, openingDue: false, missionActive: false, cinematicActive: false, sinceCinematicS: 1e9, narrativeBusy: false, pigeon: false, respawn: false, inVehicle: false, wanted: 0, sinceDeathS: 1e9, menuOpen: false, dataReady: true };
+const calm = { uit: false, started: true, loading: false, loaded: true, client: false, session: false, openingDue: false, missionActive: false, cinematicActive: false, sinceCinematicS: 1e9, narrativeBusy: false, pigeon: false, activiteit: false, respawn: false, inVehicle: false, wanted: 0, sinceDeathS: 1e9, menuOpen: false, dataReady: true };
 const met = (o) => ({ ...calm, ...o });
 ok(terugkeerKan(calm), 'een rustig geladen spel mag de scène');
-for (const [k, v, naam] of [['uit', true, 'instelling'], ['started', false, 'gestart'], ['loading', true, 'laadscherm'], ['loaded', false, 'geladen'], ['client', true, 'meespeler'], ['session', true, 'Samen spelen'], ['openingDue', true, 'opening'], ['missionActive', true, 'missie'], ['cinematicActive', true, 'film'], ['narrativeBusy', true, 'vertelling'], ['pigeon', true, 'duif'], ['respawn', true, 'terugzetten'], ['inVehicle', true, 'voertuig'], ['wanted', 2, 'politie'], ['sinceDeathS', 5, 'dood'], ['menuOpen', true, 'menu'], ['dataReady', false, 'verhaaldata'], ['sinceCinematicS', 0.5, 'net afgelopen']]) {
+for (const [k, v, naam] of [['uit', true, 'instelling'], ['started', false, 'gestart'], ['loading', true, 'laadscherm'], ['loaded', false, 'geladen'], ['client', true, 'meespeler'], ['session', true, 'Samen spelen'], ['openingDue', true, 'opening'], ['missionActive', true, 'missie'], ['cinematicActive', true, 'film'], ['narrativeBusy', true, 'vertelling'], ['pigeon', true, 'duif'], ['activiteit', true, 'activiteit'], ['respawn', true, 'terugzetten'], ['inVehicle', true, 'voertuig'], ['wanted', 2, 'politie'], ['sinceDeathS', 5, 'dood'], ['menuOpen', true, 'menu'], ['dataReady', false, 'verhaaldata'], ['sinceCinematicS', 0.5, 'net afgelopen']]) {
   const b = terugkeerBlockers(met({ [k]: v }));
   ok(b.length === 1 && b[0].includes(naam), `blokkeerder ${k} wordt bij naam genoemd`, b.join('|'));
 }

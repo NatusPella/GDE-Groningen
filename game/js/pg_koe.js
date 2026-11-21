@@ -320,7 +320,7 @@ function setupHideout(run) {
   getScene().add(prop.group);
   d.hideProp = prop;
   // #969: een bord naast de schuur, zodat je hem van een afstand herkent
-  d.barnSign = buildBarnSign(H);
+  d.barnSign = buildBarnSign(sites);
   const loc = (lx, lz) => [H.x + lx * Math.cos(H.a) - lz * Math.sin(H.a), H.y + lx * Math.sin(H.a) + lz * Math.cos(H.a)];
   // Geertje tied to the barn, the twins on their bales
   const [cx, cy] = loc(-1, -4.2);

@@ -86,6 +86,7 @@ export function terugkeerBlockers(s) {
   if (s.sinceCinematicS != null && s.sinceCinematicS <= 1.5) out.push('film net afgelopen');
   if (s.narrativeBusy) out.push('vertelling bezig');
   if (s.pigeon) out.push('duifstand');
+  if (s.activiteit) out.push('activiteit of minigame bezig');
   if (s.respawn) out.push('terugzetten loopt');
   if (s.inVehicle) out.push('in een voertuig');
   if (s.wanted > 0) out.push('politie op je hielen');

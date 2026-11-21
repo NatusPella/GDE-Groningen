@@ -1644,7 +1644,7 @@
       "veld": "extraSpeakers",
       "bestand": "game/js/missionlanes.js",
       "max": 2,
-      "reden": "missionlanes.js voegt een spreker toe voor de scène (#497)",
+      "reden": "missionlanes.js voegt een spreker toe voor de scène en een voor de tussenbeat van de baan (#497, #955)",
       "issue": "#497"
     },
     {
