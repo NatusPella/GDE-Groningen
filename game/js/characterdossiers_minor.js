@@ -62,7 +62,7 @@ export const MINOR = [
     canon: ['work', 'employer', 'traits', 'tagline', 'habits', 'dialect', 'rhythm', 'phrases', 'voice', 'voiceTag', 'look', 'outfitRole', 'arc', 'firstStep', 'lastStep', 'storyRole', 'mapLink', 'minigames', 'canonNotes'],
   }),
   card({
-    id: 'femke', speakerKey: NA, status: 'canon', tier: 'minor', name: "Femke van der Meer", nick: "Noorderzon-Femke", age: 33, pronoun: 'zij',
+    id: 'femke', speakerKey: 'femke', status: 'canon', tier: 'minor', name: "Femke van der Meer", nick: "Noorderzon-Femke", age: 33, pronoun: 'zij',
     homePlace: "Grunn", homeAddress: "een bovenwoning vlak bij het Noorderplantsoen (verzonnen straat)", household: "met haar partner en een bakfiets", homeByAct: stays("altijd Grunn"),
     origin: "Stad", work: "festivalmaker van Noorderzon; het decor moest gisteren al staan", employer: "Noorderzon (festival)",
     hobbies: ["decors", "deadlines", "alibi's"], traits: ["energiek", "gehaast", "enthousiast", "altijd een dag te laat"], tagline: "Noorderzon. Het decor moest gisteren al staan.",
@@ -155,7 +155,7 @@ export const MINOR = [
   card({ ...ROLE, id: 'deurwaarder', speakerKey: 'deurwaarder', name: "de deurwaarder", age: 49, pronoun: 'neutraal', homePlace: "Grunn", homeAddress: "een kantoorwoning in het centrum (verzonnen)", household: "alleen",
     homeByAct: stays("altijd Grunn"), origin: "Stad", work: "deurwaarder: ambtelijk en formeel, de race om het controlepunt", employer: "een deurwaarderskantoor (verzonnen)", hobbies: ["dossiers"], traits: ["formeel", "ambtelijk", "onherroepelijk"], tagline: "Onherroepelijk, formeel.",
     want: "de deurwaardersplicht", need: "n.v.t.", fear: "een gesloten deur", habits: ["vlak en onherroepelijk"], dialect: "Nederlands", rhythm: "vlak, ambtelijk", phrases: ["n.v.t."],
-    voice: 'Rasalgethi', voiceTag: "deurwaarder, ambtelijk en formeel", look: "pak, aktetas", outfitRole: 'zakenman', outfitByAct: stays("vast: pak"), firstStep: 'M14', lastStep: 'M14', introducedBy: "de dijk (M14)", storyRole: "de race tegen de deurwaarder", mapLink: "de dijk bij de Eems", minigames: ["Handhaving-loopbaan"],
+    voice: 'Rasalgethi', voiceTag: "deurwaarder, ambtelijk en formeel", look: "pak, aktetas", outfitRole: 'zakenman', outfitByAct: stays("vast: pak"), firstStep: 'M14', lastStep: 'J5', introducedBy: "de dijk (M14)", storyRole: "de race tegen de deurwaarder", mapLink: "de dijk bij de Eems", minigames: ["Handhaving-loopbaan"],
     canonNotes: "Bron: deurwaarder in M14. De rest is voorstel.", sensitive: NA, canon: [...ROLE_CANON, 'canonNotes'] }),
   card({ ...ROLE, id: 'student', speakerKey: 'student', name: "de student in de kroeg", age: 20, pronoun: 'neutraal', homePlace: "Grunn", homeAddress: "een kamer in een studentenhuis (verzonnen)", household: "met zes huisgenoten",
     homeByAct: stays("altijd Grunn"), origin: "Nederland", work: "student, aangeschoten in de kroeg", employer: NA, hobbies: ["uitgaan", "lachen"], traits: ["uitbundig", "jong", "luid"], tagline: "Aangeschoten student.",
@@ -180,7 +180,7 @@ export const MINOR = [
   card({ ...ROLE, id: 'terrasgast', speakerKey: 'terras', name: "de terrasgast op de Grote Markt", age: 30, pronoun: 'neutraal', homePlace: "Grunn", homeAddress: "een etage in het centrum (verzonnen)", household: "met huisgenoten",
     homeByAct: stays("altijd Grunn"), origin: "Stad", work: "n.v.t. (zit op het terras)", employer: NA, hobbies: ["terras", "lachen"], traits: ["nat", "vrolijk", "lacherig"], tagline: "Nat en vrolijk.",
     want: "een droge sok", need: "n.v.t.", fear: "regen op het terras", habits: ["juicht"], dialect: "Gronings", rhythm: "juichend, lacherig", phrases: ["n.v.t."],
-    voice: 'Erinome', voiceTag: "natte, vrolijke Groningse terrasgast op de Grote Markt", look: "doorweekt zomerjurkje", outfitRole: 'feestganger', outfitByAct: stays("vast: terraskleding"), firstStep: 'M01', lastStep: 'M01', introducedBy: "het slot van M01", storyRole: "figurant op de Grote Markt", mapLink: "Grote Markt", minigames: ["n.v.t."],
+    voice: 'Erinome', voiceTag: "natte, vrolijke Groningse terrasgast op de Grote Markt", look: "doorweekt zomerjurkje", outfitRole: 'feestganger', outfitByAct: stays("vast: terraskleding"), firstStep: 'M01', lastStep: 'N10', introducedBy: "het slot van M01", storyRole: "figurant op de Grote Markt", mapLink: "Grote Markt", minigames: ["n.v.t."],
     canonNotes: "Bron: terrasgast in M01 (script-key terras). De rest is voorstel.", sensitive: NA, canon: [...ROLE_CANON, 'canonNotes'] }),
   // ---- the Ommeland (ommelandlines.js) ----
   card({ ...OM, id: 'boer_hindrik', name: "Hindrik de Jong", nick: "Boer Hindrik", age: 74, pronoun: 'hij', homePlace: "aan de rand van de provincie", homeAddress: "een boerderij naast het laatste bord (verzonnen)", household: "alleen met een hond", homeByAct: stays("altijd de boerderij"),

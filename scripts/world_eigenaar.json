@@ -1751,6 +1751,13 @@
       "max": 2,
       "reden": "de werkplaats van de tuning (#1150) zet de wereld stil zolang het venster open is en geeft hem weer vrij bij sluiten, net als andere vensters met world.uiPaused",
       "issue": "#1150"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/clothingsfx.js",
+      "max": 1,
+      "reden": "de kleding meldt zijn geluid (passen, aantrekken, kapper) als audio-event in de lijst die audio.js leegt; de lijst heeft geen eigen API (zoals de andere sfx-haken)",
+      "issue": "#1155"
     }
   ]
 }
