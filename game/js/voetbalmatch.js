@@ -12,9 +12,10 @@ import {
 import { makeBall, stepBall, zetBal, ballSpeed } from './voetbalbal.js';
 import { aiIntentie, besteOntvanger, NIETS } from './voetbalai.js';
 import { NEUTRALE_BONUS } from './voetbalkarakter.js';
+import { maakSpelregels, beoordeelFout, pasBeoordelingToe, blessureWissels, rustWissels, buitenspelBijSchop, strafschopPlek, noteer } from './voetbalspelregels.js';
 
 export const FASEN = ['intro', 'aftrap', 'spel', 'hervat', 'goal', 'rust', 'eind', 'klaar'];
-export const HERVAT_KINDEN = ['aftrap', 'inworp', 'hoek', 'doelschop', 'vrij'];
+export const HERVAT_KINDEN = ['aftrap', 'inworp', 'hoek', 'doelschop', 'vrij', 'strafschop'];   // nieuwe soorten komen achteraan: de index zit in de momentopname
 export const SNAPSHOT_HZ = 12;
 export const MAX_FOOTBALL_PLAYERS = 4;
 const INTRO_S = 3.2, GOAL_S = 3.2, SLOMO_S = 1.1, SLOMO = 0.35, RUST_S = 3.4, EIND_S = 4.5, HERVAT_PAUZE = 1.1, AFTRAP_PAUZE = 0.9, HERVAT_MAX = 3.6;
@@ -43,7 +44,7 @@ function makePlayer(team, i, name, level, rol, perTeam) {
 
 // ratings: [[per plek van team 0], [idem team 1]] met { naam?, f: { sprint, schot, aanname, verd, uit } } (carrière, voetbalplayers.js simFactors); teams: [team0, team1] overschrijft de zes vaste clubs (voetbalclubs.js teamFor).
 // deeln: [{ slot, naam, char, bonus? }] (bonus: { sprint, schot, aanname } van het personage, voetbalkarakter.js; de mensen, de host eerst), opties: { duur 'kort' | 'normaal', stand (moeilijkheid), seed, tegenstander (0..3), aiBeide (voor de botsim: beide teams als tegenstander) }.
-export function makeMatch(deeln = [], { duur = 'normaal', stand: level = 'standaard', seed = 1, tegenstander: tg = 0, aiBeide = false, formaat = 'klein', vorming = null, stijl = 'evenwichtig', vormingTegen = null, stijlTegen = 'evenwichtig', teams: teamsOpt = null, ratings = null } = {}) {
+export function makeMatch(deeln = [], { duur = 'normaal', stand: level = 'standaard', seed = 1, tegenstander: tg = 0, aiBeide = false, formaat = 'klein', vorming = null, stijl = 'evenwichtig', vormingTegen = null, stijlTegen = 'evenwichtig', teams: teamsOpt = null, ratings = null, regels = null } = {}) {
   formaat = zetFormaat(formaat);
   const perTeam = FORMATEN[formaat].n;
   const rng = makeRng(seed);
@@ -71,6 +72,7 @@ export function makeMatch(deeln = [], { duur = 'normaal', stand: level = 'standa
     stat: { schoten: [0, 0], overtredingen: [0, 0], bezit: [0, 0], uit: 0, doelpuntenVan: {} }, winnaar: null, spiegel: false, alleenAi: humans.length === 0,
   };
   m.bal.owner = -1;
+  maakSpelregels(m, regels);
   zetOpstelling(m, 0, true);
   return m;
 }
@@ -79,6 +81,7 @@ export function makeMatch(deeln = [], { duur = 'normaal', stand: level = 'standa
 
 function zetOpstelling(m, aftrapTeam, intro = false) {
   for (const p of m.spelers) {
+    if (p.rood) continue;
     const spot = formationSpot(p.team, p.i, { x: 0, y: 0 }, p.team === aftrapTeam, true, m.tac[p.team]);
     p.x = spot.x; p.y = spot.y; p.vx = p.vy = 0; p.speed = 0; p.face = richtingVan(p.team) > 0 ? Math.PI / 2 : -Math.PI / 2;
     p.cool = 0; p.stun = 0; p.tackleT = 0; p.duikT = 0; p.vier = 0; p.balT = 0; p.houdT = 0;
@@ -86,7 +89,7 @@ function zetOpstelling(m, aftrapTeam, intro = false) {
   zetBal(m.bal, 0, 0);
   m.bal.owner = -1; m.bal.laatsteTeam = -1; m.bal.laatsteSpeler = -1;
   if (!intro) {
-    const taker = m.spelers.find((p) => p.team === aftrapTeam && p.rol === 'aanvaller');
+    const taker = m.spelers.find((p) => p.team === aftrapTeam && p.rol === 'aanvaller' && !p.rood) || m.spelers.find((p) => p.team === aftrapTeam && p.rol !== 'keeper' && !p.rood);
     taker.x = 0; taker.y = -richtingVan(aftrapTeam) * 0.5 * 0; taker.face = richtingVan(aftrapTeam) > 0 ? Math.PI / 2 : -Math.PI / 2;
     m.bal.owner = taker.id; taker.balT = 0;
     m.hervat = { kind: 'aftrap', team: aftrapTeam, taker: taker.id, t: 0, pauze: AFTRAP_PAUZE };
@@ -109,13 +112,14 @@ export function setupKickoff(m, team) {
   m.ev.push({ type: 'aftrap', team });
 }
 
-const HERVAT_TEKST = { inworp: 'Inworp', hoek: 'Hoekschop', doelschop: 'Doelschop', vrij: 'Vrije bal' };
+const HERVAT_TEKST = { inworp: 'Inworp', hoek: 'Hoekschop', doelschop: 'Doelschop', vrij: 'Vrije bal', strafschop: 'Strafschop' };
 // Een herstart op (x, y) voor team: de dichtstbijzijnde speler (bij een doelschop de keeper) neemt hem, tegenstanders gaan er een stukje vanaf.
 export function setupResume(m, kind, team, x, y, takerId = null) {
+  if (kind === 'strafschop') { const sp = strafschopPlek(1 - team); x = sp.x; y = sp.y; }
   x = kl(x, -(PITCH.B / 2) + 0.4, (PITCH.B / 2) - 0.4); y = kl(y, -(PITCH.L / 2) + 0.4, (PITCH.L / 2) - 0.4);
   let taker = takerId != null ? m.spelers[takerId] : null;
   if (!taker) {
-    const eigen = m.spelers.filter((p) => p.team === team);
+    const eigen = m.spelers.filter((p) => p.team === team && !p.rood);
     if (kind === 'doelschop') taker = eigen.find((p) => p.rol === 'keeper');
     else {
       let bd = Infinity;
@@ -126,15 +130,31 @@ export function setupResume(m, kind, team, x, y, takerId = null) {
   taker.face = richtingVan(team) > 0 ? Math.PI / 2 : -Math.PI / 2;
   zetBal(m.bal, x, y);
   m.bal.owner = taker.id; m.bal.laatsteTeam = team; m.bal.laatsteSpeler = taker.id;
+  if (kind === 'strafschop') strafschopOpstelling(m, team, taker);
   for (const o of m.spelers) { // tegenstanders op een meter of drie
-    if (o.team === team) continue;
+    if (o.team === team || kind === 'strafschop' || o.rood) continue;
     const d = Math.hypot(o.x - x, o.y - y);
     if (d < 3 && d > 1e-6) { o.x = kl(x + (o.x - x) / d * 3, -(PITCH.B / 2) + 0.3, (PITCH.B / 2) - 0.3); o.y = kl(y + (o.y - y) / d * 3, -(PITCH.L / 2) + 0.3, (PITCH.L / 2) - 0.3); }
   }
-  m.hervat = { kind, team, taker: taker.id, t: 0, pauze: HERVAT_PAUZE };
+  m.hervat = { kind, team, taker: taker.id, t: 0, pauze: kind === 'strafschop' ? 1.8 : HERVAT_PAUZE };
   m.fase = 'hervat';
+  m.bal.bs = -1;
   m.flash = { tekst: `${HERVAT_TEKST[kind]} voor ${m.teams[team].kort}`, t: 1.8 };
+  const sleutel = { hoek: 'hoeken', inworp: 'ingooien', doelschop: 'doelschoppen', vrij: 'vrijeTrappen', strafschop: 'strafschoppen' }[kind];
+  if (sleutel && m.stat[sleutel]) m.stat[sleutel][team]++;
   m.ev.push({ type: 'hervat', kind, team, x, y });
+  for (const e of blessureWissels(m)) m.ev.push(e);    // een gekwetste speler gaat er bij een dode bal uit
+}
+// Bij een strafschop staat alleen de nemer bij de stip en de keeper op zijn lijn; de rest wacht buiten het strafschopgebied.
+function strafschopOpstelling(m, team, taker) {
+  const vt = 1 - team, d = richtingVan(vt), gy = ownGoalY(vt), buiten = gy + d * (PITCH.STRAF_D + 2.2);
+  let k = 0;
+  for (const o of m.spelers) {
+    if (o === taker || o.rood) continue;
+    if (o.team === vt && o.rol === 'keeper') { o.x = 0; o.y = gy + d * 0.7; o.vx = o.vy = 0; continue; }
+    const binnen = Math.abs(o.x) < PITCH.STRAF_B / 2 + 1.2 && (o.y - gy) * d < PITCH.STRAF_D + 1.2 && (o.y - gy) * d > -1;
+    if (binnen) { o.y = buiten + d * 0.3 * (k % 3); o.x = ((k % 7) - 3) * (PITCH.STRAF_B / 9); k++; o.vx = o.vy = 0; }
+  }
 }
 
 // Waar de bal uit ging en wie hem herstart (puur, voor de test): zijlijn = inworp voor de ander; achterlijn = hoekschop voor de aanvaller of doelschop voor de verdediger.
@@ -151,7 +171,7 @@ const NABIJ_KEEPER = 9;
 function beschikbaar(m, genomen, human) {
   const bal = m.bal, uit = [];
   for (const p of m.spelers) {
-    if (p.team !== 0 || genomen.has(p.id)) continue;
+    if (p.team !== 0 || genomen.has(p.id) || p.rood) continue;
     if (p.rol === 'keeper' && Math.hypot(bal.x - p.x, bal.y - p.y) > NABIJ_KEEPER) continue;
     uit.push(p);
   }
@@ -171,7 +191,14 @@ function wijsBesturing(m, dt, invoer) {
     human.vorigW = wisselNu ? KNOP.WISSEL : 0;
     const cur = m.spelers[human.ctl];
     let goal = null;
-    if (wil && human.wisselCd <= 0) {
+    if (cur.rood) { // uitgesloten: de besturing gaat naar de speler die het dichtst bij de bal staat
+      genomen.delete(human.ctl);
+      let best = null, bd = Infinity;
+      for (const q of beschikbaar(m, genomen, human)) { const d = naBal(m, q); if (d < bd) { bd = d; best = q; } }
+      genomen.add(human.ctl);
+      if (best) goal = best;
+    }
+    if (!goal && wil && human.wisselCd <= 0) {
       genomen.delete(human.ctl);
       let best = null, bd = Infinity;
       for (const p of beschikbaar(m, genomen, human)) { if (p === cur) continue; const d = naBal(m, p); if (d < bd) { bd = d; best = p; } }
@@ -270,6 +297,7 @@ function beweeg(m, p, it, dt) {
   if (it.sprint && sterkte > 0.5 && !p.moe && p.rol !== 'keeper' && p.stamina > 0) { top = LOOP.sprint * bonusVan(m, p).sprint; p.stamina = Math.max(0, p.stamina - (LOOP.stamina_af * dt) / bonusVan(m, p).uit); if (p.stamina <= 0.02) p.moe = true; }
   else { p.stamina = Math.min(1, p.stamina + LOOP.stamina_bij * dt * (sterkte < 0.1 ? 1.6 : 1)); if (p.moe && p.stamina > 0.3) p.moe = false; }
   if (!human) top *= lv.tempo;
+  if (p.blessure) top *= 0.6;                                 // een gekwetste speler loopt kreupel tot hij gewisseld wordt
   if (p.stun > 0) { top *= 0.25; p.stun -= dt; }
   let tx = it.dx * top, ty = it.dy * top;
   let acc = sterkte > 0.05 ? 10 : 13;
@@ -318,7 +346,16 @@ function schop(m, p, kick) {
   b.vx = ca * vh; b.vy = sa * vh; b.vz = vz;
   b.laatsteTeam = p.team; b.laatsteSpeler = p.id;
   p.cool = 0.4; p.balT = 0; p.houdT = 0;
-  if (kick.soort === 'schot') { m.stat.schoten[p.team]++; const mm = humanOf(m, p); if (mm) mm.schoten++; }
+  b.bs = -1;
+  if (ontv && kick.soort !== 'schot' && ontv.team === p.team) {
+    p.st.passes++; b.passVan = p.id; b.passNaar = ontv.id; b.passT = m.tijd;
+    if (buitenspelBijSchop(m, p, ontv)) b.bs = ontv.id;
+  }
+  if (kick.soort === 'schot') {
+    m.stat.schoten[p.team]++; p.st.schoten++; const mm = humanOf(m, p); if (mm) mm.schoten++;
+    const gy = opponentGoalY(p.team);
+    if (b.vy * (gy - b.y) > 0) { const t = (gy - b.y) / b.vy, xg = b.x + b.vx * t; if (Math.abs(xg) < PITCH.DOEL_B / 2 + 0.2) m.stat.opDoel[p.team]++; }
+  }
   m.ev.push({ type: 'schop', soort: kick.soort, sterkte: k, x: p.x, y: p.y, speler: p.id });
   if (m.fase === 'aftrap' || m.fase === 'hervat') { m.fase = 'spel'; m.hervat = null; }
 }
@@ -351,19 +388,30 @@ function tackleControle(m, p) {
     const a = p.face + (m.rng() - 0.5) * 0.9;
     b.x = o.x + Math.cos(a) * 0.5; b.y = o.y + Math.sin(a) * 0.5; b.z = 0; b.vx = Math.cos(a) * 4.6; b.vy = Math.sin(a) * 4.6; b.vz = 0;
     o.cool = 0.5; o.stun = 0.35; o.balT = 0;
+    p.st.tackles++;
     m.ev.push({ type: 'tackle', team: p.team, speler: p.id });
   } else {
     p.stun = 0.7; p.tackleT = 0;
-    if ((behind && m.rng() < 0.4) || (p.speed > 7.0 && m.rng() < 0.15)) foul(m, p, o); else m.ev.push({ type: 'duel', speler: p.id });
+    if ((behind && m.rng() < 0.4) || (p.speed > 7.0 && m.rng() < 0.15)) foul(m, p, o, behind || p.speed > 7.0); else m.ev.push({ type: 'duel', speler: p.id });
   }
 }
 
-function foul(m, dader, slachtoffer) {
+function foul(m, dader, slachtoffer, hard = false) {
   if (m.foulCd > 0 || m.fase !== 'spel') return;
   m.foulCd = 1.5;
   m.stat.overtredingen[dader.team]++;
   m.ev.push({ type: 'overtreding', team: dader.team, speler: dader.id, x: slachtoffer.x, y: slachtoffer.y });
-  setupResume(m, 'vrij', slachtoffer.team, slachtoffer.x, slachtoffer.y, slachtoffer.id);
+  const b = beoordeelFout(m, dader, slachtoffer, hard);         // kaart, blessure en strafschop (voetbalspelregels.js; alles uit te zetten)
+  for (const e of pasBeoordelingToe(m, dader, slachtoffer, b)) m.ev.push(e);
+  if (b.strafschop) setupResume(m, 'strafschop', slachtoffer.team, slachtoffer.x, slachtoffer.y, slachtoffer.rol === 'keeper' || b.blessure ? null : slachtoffer.id);
+  else setupResume(m, 'vrij', slachtoffer.team, slachtoffer.x, slachtoffer.y, slachtoffer.id);
+}
+// Buitenspel (optioneel): de ontvanger van een pass stond voor de laatste verdedigers, de ander krijgt een vrije bal.
+function fluitBuitenspel(m, p) {
+  m.stat.buitenspel[p.team]++;
+  m.ev.push({ type: 'buitenspel', team: p.team, speler: p.id });
+  noteer(m, 'buitenspel', p.team, p.id);
+  setupResume(m, 'vrij', 1 - p.team, p.x, p.y);
 }
 
 // ---------------------------------------------------------------- de bal: dragen, oppakken, keeper
@@ -385,7 +433,7 @@ function oppakken(m) {
   if (b.dood || b.netTeam >= 0) return;
   let best = null, bd = Infinity;
   for (const p of m.spelers) {
-    if (p.cool > 0 || p.stun > 0.3) continue;
+    if (p.cool > 0 || p.stun > 0.3 || p.rood) continue;
     const d = Math.hypot(p.x - b.x, p.y - b.y);
     const rel = Math.hypot(b.vx - p.vx * 0.4, b.vy - p.vy * 0.4); // wie naar de bal toe loopt vangt hem iets lastiger, maar niet zo erg als de ruwe verschilsnelheid
     const keeper = p.rol === 'keeper' && inStrafschop(p.team, p.x, p.y) && b.laatsteTeam !== p.team;
@@ -397,13 +445,16 @@ function oppakken(m) {
   }
   if (!best) return;
   const { p, keeper, rel } = best;
+  if (!keeper && b.bs === p.id) { b.bs = -1; fluitBuitenspel(m, p); return; }
+  b.bs = -1;
   if (keeper) {
     const lv = m.ai[p.team], vaardig = (p.slot != null ? 0.8 : lv.keeper) * (PITCH.L > 60 ? 0.78 : 1);
     const sp = ballSpeed(b);
-    if (sp <= 9 + 13 * vaardig && m.rng() < 0.55 + 0.45 * vaardig) { b.owner = p.id; p.houdT = 0; p.balT = 0; p.duikT = 0; m.ev.push({ type: 'redding', soort: 'vangst', speler: p.id }); }
+    if (sp <= 9 + 13 * vaardig && m.rng() < 0.55 + 0.45 * vaardig) { b.owner = p.id; p.houdT = 0; p.balT = 0; p.duikT = 0; p.st.reddingen++; m.ev.push({ type: 'redding', soort: 'vangst', speler: p.id }); }
     else { // weggeslagen: de bal gaat van het doel af, met wat toeval opzij
       b.vy = -b.vy * 0.5 + richtingVan(p.team) * 2; b.vx += (m.rng() - 0.5) * 8; b.vz = 1.6; p.cool = 0.4;
       b.laatsteTeam = p.team; b.laatsteSpeler = p.id;
+      p.st.reddingen++;
       m.ev.push({ type: 'redding', soort: 'weg', speler: p.id });
     }
     return;
@@ -420,6 +471,7 @@ function pushPlayers(m) {
   const S = m.spelers, b = m.bal;
   for (let i = 0; i < S.length; i++) for (let j = i + 1; j < S.length; j++) {
     const a = S[i], c = S[j];
+    if (a.rood || c.rood) continue;
     const dx = c.x - a.x, dy = c.y - a.y, d = Math.hypot(dx, dy);
     if (d >= 0.75 || d < 1e-6) continue;
     // omver lopen: een sprinter botst van achteren op de bal bij een tegenstander
@@ -429,14 +481,14 @@ function pushPlayers(m) {
           const nx = (y.x - x.x) / d, ny = (y.y - x.y) / d;
           const naarHem = (x.vx * nx + x.vy * ny) / (x.speed || 1);
           const behind = Math.cos(hoek(x.face, y.face)) > 0.3;
-          if (naarHem > 0.8 && behind) { foul(m, x, y); return; }
+          if (naarHem > 0.8 && behind) { foul(m, x, y, true); return; }
         }
       }
     }
     const dm = (0.75 - d) / 2, nx = dx / d, ny = dy / d;
     a.x -= nx * dm; a.y -= ny * dm; c.x += nx * dm; c.y += ny * dm;
   }
-  for (const p of S) { p.x = kl(p.x, -(PITCH.B / 2) + 0.15, (PITCH.B / 2) - 0.15); p.y = kl(p.y, -(PITCH.L / 2) + 0.1, (PITCH.L / 2) - 0.1); }
+  for (const p of S) { if (p.rood) continue; p.x = kl(p.x, -(PITCH.B / 2) + 0.15, (PITCH.B / 2) - 0.15); p.y = kl(p.y, -(PITCH.L / 2) + 0.1, (PITCH.L / 2) - 0.1); }
 }
 
 // ---------------------------------------------------------------- de stap
@@ -475,6 +527,7 @@ function fieldStep(m, dt, invoer) {
   if (m.hervat && (m.fase === 'aftrap' || m.fase === 'hervat')) m.hervat.t += dt;
   wijsBesturing(m, dt, invoer);
   for (const p of (m.n % 2 ? m.spelers.slice().reverse() : m.spelers)) { // de volgorde wisselt per stap, zodat geen team voorrang heeft
+    if (p.rood) continue;
     let it;
     if (p.slot != null) { const human = m.mensen.find((x) => x.slot === p.slot && !x.weg); it = human ? humanIntent(m, p, human, dt) : NIETS; }
     else it = aiIntentie(m, p, sdt);
@@ -515,8 +568,11 @@ function goalScored(m, e) {
   m.score[e.team]++;
   const b = m.bal, schutter = b.laatsteSpeler >= 0 ? m.spelers[b.laatsteSpeler] : null;
   const eigen = !schutter || schutter.team !== e.team;
+  let assistId = -1;
   if (!eigen) {
     m.stat.doelpuntenVan[schutter.id] = (m.stat.doelpuntenVan[schutter.id] || 0) + 1;
+    schutter.st.doelpunten++;
+    if (b.passNaar === schutter.id && b.passVan >= 0 && m.tijd - b.passT < 6 && b.passVan !== schutter.id && m.spelers[b.passVan].team === e.team) { m.spelers[b.passVan].st.assists++; assistId = b.passVan; }
     const mm = humanOf(m, schutter); if (mm) mm.doelpunten++;
     schutter.vier = GOAL_S - 0.4;
   }
@@ -525,14 +581,15 @@ function goalScored(m, e) {
   for (const p of m.spelers) if (p.team === e.team && p !== schutter) p.vier = 1.2;
   const name = eigen ? 'eigen doelpunt' : schutter.naam;
   m.flash = { tekst: `GOAL! ${m.teams[e.team].kort} ${scoreTekst(m.score[0], m.score[1])} (${name})`.slice(0, 60), t: GOAL_S };
-  m.ev.push({ type: 'goal', team: e.team, speler: eigen ? -1 : schutter.id, eigen, stand: m.score.slice() });
+  noteer(m, 'goal', e.team, eigen ? -1 : schutter.id, { eigen, assist: assistId });
+  m.ev.push({ type: 'goal', team: e.team, speler: eigen ? -1 : schutter.id, eigen, assist: assistId, stand: m.score.slice() });
 }
 
 function einde_helft(m) {
   const b = m.bal;
   b.owner = -1; b.vx = b.vy = 0;
   m.ev.push({ type: 'fluit', helft: m.helft });
-  if (m.helft < HELFTEN) { m.fase = 'rust'; m.faseT = RUST_S; m.flash = { tekst: `Rust: ${scoreTekst(m.score[0], m.score[1])}`, t: RUST_S }; return; }
+  if (m.helft < HELFTEN) { for (const e of rustWissels(m)) m.ev.push(e); m.fase = 'rust'; m.faseT = RUST_S; m.flash = { tekst: `Rust: ${scoreTekst(m.score[0], m.score[1])}`, t: RUST_S }; return; }
   m.fase = 'eind'; m.faseT = EIND_S;
   m.winnaar = m.score[0] > m.score[1] ? 0 : m.score[1] > m.score[0] ? 1 : -1;
   m.flash = { tekst: `Einde: ${m.teams[0].kort} ${scoreTekst(m.score[0], m.score[1])} ${m.teams[1].kort}`.slice(0, 60), t: EIND_S };
