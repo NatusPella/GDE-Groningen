@@ -2,7 +2,7 @@
 // en de pan- en dakbudgetten van de cutscenes.
 //   node scripts/binnenset_test.mjs
 import './node3d.mjs';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 const THREE = await import('three');
 const B = await import('../game/js/binnenset.js');
 const { OFFICE, SERVER } = await import('../game/js/office3d.js');
@@ -16,6 +16,19 @@ const { roomClamp } = await import('../game/js/roomspec.js');
 
 let n = 0, fails = 0;
 const ok = (c, name, extra = '') => { n++; if (!c) { fails++; console.log('FAIL', name, extra); } };
+
+// elke missiestap met een `set:` noemt een kamer die stagesets.js kent (anders speelt de stap buiten, zonder kamer en camera; #1022)
+{
+  const dir = new URL('../game/js/', import.meta.url);
+  const slecht = [];
+  let aantal = 0;
+  for (const f of readdirSync(dir).filter((x) => /^missions_.*\.js$/.test(x))) {
+    const src = readFileSync(new URL(f, dir), 'utf8');
+    for (const m of src.matchAll(/\bset: *'([a-z]+)'/g)) { aantal++; if (!STAGE_SETS.includes(m[1])) slecht.push(`${f}: ${m[1]}`); }
+  }
+  ok(aantal >= 10, `er zijn missiestappen met een kamer (${aantal})`);
+  ok(slecht.length === 0, 'elke set van een missiestap is een bekende kamer', slecht.join(' | '));
+}
 
 // --- de maten --------------------------------------------------------------------------------------------------------------------
 ok(STAGE_SETS.every((k) => B.isSetKind(k)), 'elke set van stagesets.js heeft maten');
@@ -134,7 +147,7 @@ for (const kind of STAGE_SETS) {
   const script = JSON.parse(readFileSync(new URL('../game/storydata/script.json', import.meta.url), 'utf8'));
   const npcSource = readFileSync(new URL('../game/js/missionstory.js', import.meta.url), 'utf8');
   const cat = buildCatalog({ script, npcSource });
-  let scenes = 0, slecht = [], dak = [], inSet = 0;
+  let scenes = 0, slecht = [], dak = [], inSet = 0, onbekend = [];
   const ANCHOR = { x: 500, y: -300, facing: 1.1, z: 3 };
   for (const e of cat) {
     if (!e.scene || !e.def) continue;
@@ -146,6 +159,8 @@ for (const kind of STAGE_SETS) {
     if (Array.isArray(e.shots) && e.shots.length) { const pc = CS.panStats(e.shots); if (pc.pans > CS.PAN_BUDGET || pc.achter > 0) slecht.push(`${e.id} (gecompileerd): ${JSON.stringify(pc)}`); }
     // het dak: een camera in een kamer blijft onder het plafond en binnen de wanden (de clamp van de host)
     const kind = e.def.set;
+    // een set die niemand kent (typfout) geeft geen kamer en geen camera-clamp: de scène speelt dan zomaar buiten (#1022); 'keuken' is Tessa's keuken van de opening (cutscenehost kitchenEnv)
+    if (kind && !B.isSetKind(kind) && kind !== 'keuken') onbekend.push(`${e.id}: ${kind}`);
     if (kind && B.isSetKind(kind)) {
       inSet++;
       const d = B.SET_DIMS[kind];
@@ -158,6 +173,7 @@ for (const kind of STAGE_SETS) {
   }
   ok(scenes >= 90, `er zijn scènes om te keuren (${scenes})`);
   ok(slecht.length === 0, `elke scène blijft binnen het pan-budget (<= ${CS.PAN_BUDGET} pan, nooit twee achter elkaar, <= 25%)`, slecht.slice(0, 4).join(' | '));
+  ok(onbekend.length === 0, 'elke set van een scène bestaat (kamer of keuken)', onbekend.join(' | '));
   ok(inSet >= 10, `er zijn scènes in een kamer (${inSet})`);
   ok(dak.length === 0, 'in een kamer staat de camera nooit boven het plafond-0,3 m of buiten de wanden (geen dak in beeld)', dak.slice(0, 3).join(' | '));
 }

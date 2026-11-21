@@ -79,7 +79,7 @@ const pts = []; const cum = [];
 for (let i = 0; i <= 60; i++) { pts.push([i * 5, 0]); cum.push(i * 5); }
 let route = { version: 1, mode: 'drive', kind: 'mission', px: 0, py: 0, idx: 0, pts, cum, remaining: 300, target: { x: 300, y: 0, kind: 'mission', name: 'Doel' } };
 const ahead = () => { const out = [[route.px, route.py]]; for (let i = route.idx + 1; i < pts.length && pts[i][0] < 80; i++) out.push(pts[i]); return out; };
-const map = { roadsNear: () => [{ cat: 'normal', width: 6, pts: [[-50, 0], [400, 0]] }], elev: null };
+const map = { buildingsNear: () => [], roadsNear: () => [{ cat: 'normal', width: 6, pts: [[-50, 0], [400, 0]] }], elev: null };
 const plane = { isPlane: true, x: 0, y: 0, z: 100, angle: 0, speed: 40 };
 const world = { map, player: { x: 0, y: 0, gz: 0, inVehicle: null }, mission: null };
 const grond = () => scene.children.find((c) => c.isMesh && c.material && c.material.vertexColors && c.material.polygonOffset);
