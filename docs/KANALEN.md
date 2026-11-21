@@ -22,7 +22,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 
 | Kanaal | Module | Aanroepers | Prioriteit | Zone | Via hudbus | Voorstel #92 |
 |---|---|---|---|---|---|---|
-| kaart | hudcards.js | 193 modules, 789 aanroepen | P0 tot P3 per soort | A | ja: hud, narrative (card), tip | Blijft de ene tekstkaart. Alles wat nu een eigen tekstkaartje is (Opgeslagen, prestatietoast) kan hier als soort in; dat scheelt twee eigen DOM-elementen. |
+| kaart | hudcards.js | 194 modules, 797 aanroepen | P0 tot P3 per soort | A | ja: hud, narrative (card), tip | Blijft de ene tekstkaart. Alles wat nu een eigen tekstkaartje is (Opgeslagen, prestatietoast) kan hier als soort in; dat scheelt twee eigen DOM-elementen. |
 | prestatie | achievements.js | 37 modules, 107 aanroepen | P3 | E | ja: narrative (award), overlay (prestatie) | Samen met kaart: de soort prestatie bestaat al in KINDS (zone E). Een kaart met een medaille-icoon in plaats van een tweede element. |
 | bel | phonefeed.js | 3 modules, 3 aanroepen | P1 | A | ja: narrative (call), speech (call) | Samen met radio: twee telefoonschermen (phonefeed en storycontact) voor hetzelfde gesprek; één telefoonpaneel met een portret en een regel. |
 | bericht | phonefeed.js, sikkomfeed.js | 4 modules, 4 aanroepen | P1 tot P2 per soort | A | ja: narrative (text, phone), voice | Samen met kaart voor wat niet verhaal is (bank, nieuws, app): dezelfde zone, dezelfde rang, nu twee stromen. Voorlezen: alleen verhaal. |
@@ -47,6 +47,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 | vertrekbordtijdlijn | departuretimelineui.js | beslist zelf | n.v.t. | - | nee: de tijdlijn op het vertrekbord van een station (#1085): een element in het bord zelf, geen kaart of melding op de HUD |  |
 | voetbaltv | voetbaltvlayer.js | beslist zelf | n.v.t. | - | nee: de tv-laag van de voetbalwedstrijd (voetbal.js): ondertitel van het commentaar, veldradar, herhalinglabel en de kaarten van de uitzending (opstelling, rust, einde); alleen tijdens de wedstrijd, geen melding en geen klik |  |
 | voetbalcarriere | voetbalcarriereui.js | beslist zelf | n.v.t. | - | nee: het kindscherm Voetbal onder Loopbanen in het pauzemenu: de speler opent het zelf, geen melding en geen HUD-kaart |  |
+| snellezinnen | multiplayerphrasesradial.js | beslist zelf | n.v.t. | - | nee: het wiel met snelle zinnen bij Samen spelen (#1159): de speler opent het zelf met een toets, houdt een korte keuze en het sluit weer; geen melding en geen HUD-kaart |  |
 | binnenset | stagesets.js | beslist zelf | n.v.t. | - | nee: de korte fade en de binnenset (kantoor/serverkamer) die een missie zelf opent en weer opruimt (#955/#956) |  |
 | duikscene | wrakduikenlive.js | beslist zelf | P3 | G | nee: de korte duikscène die de speler zelf start bij een wrak (E) en die vanzelf weer weggaat |  |
 | toetsen | prompts.js, hudtext.js | 33 modules, 33 aanroepen | P2 | H | nee: de toetstips tellen mee in decideHud (keys); gameBusy houdt ze weg | Blijft. Veel modules leveren een toetstip aan; geen planner nodig, de ruimte is vast (twee regels). |
@@ -88,6 +89,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 - **vertrekbordtijdlijn**: 
 - **voetbaltv**: 
 - **voetbalcarriere**: 
+- **snellezinnen**: 
 - **binnenset**: 
 - **duikscene**: 
 - **toetsen**: De toetstips onderaan rechts (zone H, maximaal twee): wat E, Spatie en de rest hier doen.

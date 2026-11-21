@@ -220,6 +220,7 @@ BUITEN.add('recapcardrun.js'); // de recapkaart Waar waren we? bouwt op de ds-ka
 BUITEN.add('departuretimelineui.js'); // de tijdlijn in het vertrekbord: een element van het bord, geen HUD-chroom
 BUITEN.add('voetbalcarriereui.js'); // een paneel in het pauzemenu (Loopbanen), geen HUD-chroom
 BUITEN.add('voetbaltvlayer.js'); // de tv-laag van de voetbalwedstrijd (beeld in de wedstrijd, geen HUD-chroom)
+BUITEN.add('multiplayerphrasesradial.js'); // het wiel met snelle zinnen (eigen ds-wielstijl, geen HUD-chroom)
 for (const [naam, s] of Object.entries(SURFACES)) {
   for (const f of s.files || []) ok(HUD_AUDIT.has(f) || BUITEN.has(f), `surface ${naam}: ${f} is niet geauditeerd en niet als beeld gemarkeerd`);
 }

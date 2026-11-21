@@ -326,6 +326,7 @@ export const SURFACES = {
   vertrekbordtijdlijn: { files: ['departuretimelineui.js'], own: 'de tijdlijn op het vertrekbord van een station (#1085): een element in het bord zelf, geen kaart of melding op de HUD' },
   voetbaltv: { files: ['voetbaltvlayer.js'], own: 'de tv-laag van de voetbalwedstrijd (voetbal.js): ondertitel van het commentaar, veldradar, herhalinglabel en de kaarten van de uitzending (opstelling, rust, einde); alleen tijdens de wedstrijd, geen melding en geen klik' },
   voetbalcarriere: { files: ['voetbalcarriereui.js'], own: 'het kindscherm Voetbal onder Loopbanen in het pauzemenu: de speler opent het zelf, geen melding en geen HUD-kaart' },
+  snellezinnen: { files: ['multiplayerphrasesradial.js'], own: 'het wiel met snelle zinnen bij Samen spelen (#1159): de speler opent het zelf met een toets, houdt een korte keuze en het sluit weer; geen melding en geen HUD-kaart' },
   binnenset: { files: ['stagesets.js'], own: 'de korte fade en de binnenset (kantoor/serverkamer) die een missie zelf opent en weer opruimt (#955/#956)' },
   duikscene: { files: ['wrakduikenlive.js'], zone: 'G', p: P3, own: 'de korte duikscène die de speler zelf start bij een wrak (E) en die vanzelf weer weggaat' },
   toetsen: { files: ['prompts.js', 'hudtext.js'], zone: 'H', p: P2, own: 'de toetstips tellen mee in decideHud (keys); gameBusy houdt ze weg' },
