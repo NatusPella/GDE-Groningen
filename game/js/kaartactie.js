@@ -66,10 +66,10 @@ export function actieModel({ spot, speler, waypoint, opts = [], fmt = (m) => `${
   const acties = [];
   if (staat) acties.push({ id: 'haalweg', icoon: ICONEN.haalweg, label: 'Haal weg', sub: 'Het waypoint verdwijnt van kaart en wereld' });
   else if (verhaal) acties.push({ id: 'story', icoon: ICONEN.verhaal, label: 'Volg het verhaal', sub: 'Je route volgt weer het verhaal' });
-  else acties.push({ id: 'waypoint', icoon: ICONEN.waypoint, label: 'Zet waypoint', sub: waypoint ? 'Vervangt je huidige waypoint (er is er één)' : `Een lijn en ${fmt(afstand)} afstand` });
+  else acties.push({ id: 'waypoint', icoon: ICONEN.waypoint, label: 'Zet waypoint', sub: waypoint ? 'Zelf gaan · vervangt je huidige waypoint (er is er één)' : `Zelf gaan · een lijn en ${fmt(afstand)} afstand` });
   // geen betaalbaar vervoer: de plekkaart zegt waarom (de popup legt het per vervoerswijze uit), en Zet waypoint blijft de weg
   const geen = rit ? '' : (reisKeuzes(opts, afstand).map((r) => r.disabled).find(Boolean) || '');
-  const reis = { id: 'reis', icoon: ICONEN.reis, label: 'Reis erheen', sub: rit ? `${euro(rit.price)} · ${rit.eta || `± ${mins(rit.etaS)} min`}` : (geen || 'Geen vervoer hierheen') };
+  const reis = { id: 'reis', icoon: ICONEN.reis, label: 'Reis erheen', sub: rit ? `Trein, bus, taxi of boot · ${euro(rit.price)} · ${rit.eta || `± ${mins(rit.etaS)} min`}` : (geen || 'Geen vervoer hierheen') };
   if (gast) { reis.disabled = true; reis.reden = GAST_REIS_MELDING; reis.sub = GAST_REIS_KORT; }
   acties.push(reis);
   acties.push({ id: 'info', icoon: ICONEN.info, label: 'Info', sub: `${fmt(afstand)} van je vandaan` });

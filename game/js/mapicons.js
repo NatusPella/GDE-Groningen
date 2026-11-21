@@ -69,6 +69,11 @@ export function mapCategory(kind) {
   return 'other';
 }
 
+// wordt nooit weggedrukt: de speler, zijn maat, het doel en je eigen velden
+export function isKeptKind(kind) {
+  return !!CATS[mapCategory(kind)].keep || kind.startsWith('perceel-eigen');
+}
+
 export function mapPriority(kind) {
   return CATS[mapCategory(kind)].pri;
 }
