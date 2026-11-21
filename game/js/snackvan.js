@@ -15,6 +15,7 @@ import { FIRST_NAMES } from './businessstaff.js';
 import { maintenanceFactor } from './business.js';
 import * as SP from './pitch.js';
 import * as RV from './rival.js';
+import { ACTS as BOSS_ACTS, jelleOffer, trickText } from './jellebaas.js';
 import * as GW from './goodwill.js';
 import { difficultyFactor } from './bezitprijs.js';
 
@@ -61,7 +62,7 @@ export const staffWage = (skill, pct = 0) => Math.round(((90 + 0.6 * clamp(finit
 
 // ---- toestand ----
 export const newSnack = () => ({
-  v: 1, permits: {}, up: [], rep: 50, lastDay: 0,
+  v: 1, permits: {}, up: [], rep: 50, lastDay: 0, offerPart: '',
   own: { spot: null, tier: 'klein', from: 11, hours: 10, pr: 1, menu: [...DEFAULT_OFFERINGS], stockDays: 0 },
   fleet: [], rival: RV.newRival(),
   ev: { pending: null, mods: [], war: null, seq: 0 }, gw: GW.newGw(),
@@ -77,6 +78,7 @@ export function normalizeSnack(raw) {
   S.up = [...new Set((Array.isArray(raw.up) ? raw.up : []).filter((u) => UPGRADES[u]))];
   S.rep = Math.round(clamp(finite(raw.rep, 50), 0, 100) * 10) / 10;
   S.lastDay = Math.round(clamp(finite(raw.lastDay, 0), 0, 1e7));
+  S.offerPart = BOSS_ACTS.includes(raw.offerPart) ? raw.offerPart : '';   // de akte waarvan Jelles offerte al kwam (jellebaas.js, #1139)
   const o = raw.own && typeof raw.own === 'object' ? raw.own : {};
   S.own = { spot: SP.isSpot(o.spot) ? o.spot : null, tier: TIERS[o.tier] ? o.tier : 'klein', from: Math.round(clamp(finite(o.from, 11), 0, 23)), hours: Math.round(clamp(finite(o.hours, 10), 4, 14)),
     pr: Math.round(clamp(finite(o.pr, 1), 0.7, 1.4) * 20) / 20, menu: cleanOfferings(o.menu, S, o.tier), stockDays: Math.round(clamp(finite(o.stockDays, 0), 0, STOCK_MAX)) };
@@ -284,6 +286,8 @@ export function settleDay(S, ctx) {
   const before = S.rival.spots.length;
   S.rival = RV.stepRival(S.rival, day, { taken: (id) => SP.permitHeld(S.permits, id, day) || !!(ctx.taken && ctx.taken(id)) });
   if (S.rival.spots.length > before) rep.lines.push(`Usmem Snacks heeft een nieuwe standplaats: ${SP.spotDef(S.rival.expandedTo).short}.`);
+  // Jelle als eindbaas (jellebaas.js, #1139): aan het begin van elke akte een offerte; ctx.part is de akte (ontbreekt bij een oude save of zonder verhaal)
+  if (ctx.part && BOSS_ACTS.includes(ctx.part) && S.offerPart !== ctx.part) { S.offerPart = ctx.part; rep.lines.push(jelleOffer(ctx.part)); }
   // 3. gebeurtenissen
   const exp = expirePending(S, day, ctx.money); if (exp) { rep.lines.push(exp.text); rep.fixed += exp.cost; }
   S.ev.mods = S.ev.mods.filter((m) => m.until >= day);
@@ -299,7 +303,7 @@ export function settleDay(S, ctx) {
       const share = RV.shareOf(mine.length, S.rival);
       const protect = (S.up.includes('pan') ? 0.5 : 0) * 0.5 + (effRep(S, day) / 100) * 0.2;
       const e = RV.rollEvent(S.rival, day, { wagons: wagonsOnSpots(S), share, protect, hasFleet: S.fleet.some((w) => w.spot), pending: false });
-      if (e) { S.rival = RV.noteEvent(S.rival, day); raiseEvent(S, e, day); rep.lines.push(`${RV.EVENT_KINDS[e.kind].label}: ${e.text}`); }
+      if (e) { e.text = trickText(ctx.part, e.kind, e.text); S.rival = RV.noteEvent(S.rival, day); raiseEvent(S, e, day); rep.lines.push(`${RV.EVENT_KINDS[e.kind].label}: ${e.text}`); }
     }
   }
   // 4. de wagens

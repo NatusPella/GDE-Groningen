@@ -25,7 +25,7 @@ export const BEATS = [
   { id: 'B8', naam: 'Kapitein', when: (c) => c.seasonNr >= 3 && !!c.flags.captain,
     anita: { wie: 'Tammo', tekst: 'De selectie heeft gestemd. Jij draagt de band.' }, tammo: { wie: 'Tessa', tekst: 'De selectie heeft gestemd. Jij draagt de band. Dat meen ik.' } },
   { id: 'B9', naam: 'Trainer', when: (c) => !!c.roles.trainer,
-    anita: { wie: 'Tammo', tekst: 'Ik regel de papieren naast mijn werk. Jij regelt de opstelling.' }, tammo: { wie: 'Tessa', tekst: 'Ik regel de papieren naast mijn werk. Jij regelt de opstelling.' } },
+    anita: { wie: 'Tammo', tekst: 'Ik regel de papieren naast mijn klusjes. Jij regelt de opstelling.' }, tammo: { wie: 'Tessa', tekst: 'Ik regel de papieren naast mijn klusjes. Jij regelt de opstelling.' } },
   { id: 'B10', naam: 'Manager', when: (c) => !!c.roles.manager,
     anita: { wie: 'Tammo', tekst: 'Het eerste aandeel kan. Bezit, tabblad Club. Ik kijk mee.' }, tammo: { wie: 'Tessa', tekst: 'Het eerste aandeel kan. Bezit, tabblad Club. Ik kijk mee.' } },
 ];

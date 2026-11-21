@@ -384,6 +384,7 @@
     "housing",
     "pitch*",
     "rival",
+    "jellebaas",
     "snack*",
     "chaintrucks*",
     "sponsorpanden"
@@ -404,7 +405,8 @@
     "scripts/sponsorpanden_test.mjs",
     "scripts/voetbal_sponsors_test.mjs",
     "scripts/coop/bezitstap_test.mjs",
-    "scripts/snacklive_test.mjs"
+    "scripts/snacklive_test.mjs",
+    "scripts/jellebaas_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
