@@ -48,7 +48,7 @@ export function isShopOpen() {
 export function initShopUi(w) {
   world = w;
   if (root) return;
-  for (const css of ['menu.css', 'ds-tokens.css', 'ds-components.css', 'ds-menu-zeef.css', 'shopui.css']) {
+  for (const css of ['menu.css', 'ds-tokens.css', 'ds-components.css', 'ds-keycap.css', 'ds-menu-zeef.css', 'shopui.css']) {
     if (document.getElementById('style-' + css)) continue;
     const link = document.createElement('link');
     link.id = 'style-' + css;

@@ -57,7 +57,6 @@ const CSS = `
 #uitje-paneel .uitje-regel { font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.86); }
 #uitje-paneel .uitje-hint { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; font: 12px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.72); min-height: 1em; }
 #uitje-paneel .uitje-hint:empty, #uitje-paneel .uitje-regel:empty { display: none; }
-#uitje-paneel .hud-key { margin: 0 2px; vertical-align: middle; }
 @media (prefers-reduced-motion: reduce) { #uitje-paneel { transition: none; } }
 html.reduce-motion #uitje-paneel { transition: none; }
 /* Zomerse zeefdruk (ADR 0040): de uitjekaart als papier met inktrand en harde schaduw; de accentkleur is de dikke linkerrand. */

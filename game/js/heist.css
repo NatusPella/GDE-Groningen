@@ -2,8 +2,7 @@
    alarm (heistui.js). Tokens and keycaps as in DESIGN_SYSTEM.md. */
 #heist-ui { position: fixed; inset: 0; z-index: 16; pointer-events: none; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; color: #f0ede4; }
 #heist-ui .hud-key {
-  display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 6px;
-  background: #fbfaf5; border: 0; border-radius: 5px; color: #0c140e; font-size: 13px; font-weight: bold; letter-spacing: 1px;
+  background: #fbfaf5; border: 0; border-radius: 5px; color: #0c140e; font-weight: bold;
   box-shadow: 0 2px 0 #a9a69b, 0 0 0 1px rgba(0, 0, 0, 0.18); font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
 }
 
@@ -23,7 +22,6 @@
 #heist-ui .hx-keys .sep { opacity: 0.35; }
 #heist-ui .hx-skip { margin-top: 8px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 13px; opacity: 0.55; display: flex; align-items: center; justify-content: center; gap: 5px; }
 #heist-ui .hx-panel:not(.skip-on) .hx-skip { display: none; }
-#heist-ui .hx-skip .hud-key { min-width: 17px; height: 17px; font-size: 11px; padding: 0 4px; }
 
 /* fuse box: a needle over a bar */
 #heist-ui .hx-bar { position: relative; height: 20px; margin-top: 10px; border-radius: 10px; background: #1a241d; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.12); }

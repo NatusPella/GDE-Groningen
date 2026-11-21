@@ -6,29 +6,27 @@
 :root { --keycap-bg: #fbfaf5; --keycap-ink: #0c140e; --keycap-edge: #a9a69b; --keycap-line: rgba(0, 0, 0, 0.18); }
 .pad-g {
   display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;
-  min-width: 20px; height: 20px; padding: 0 5px; vertical-align: middle;
-  font: bold 12px/1 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; text-transform: none;
+  min-width: calc(var(--ds-kc-cap) / var(--ds-kc-letter) * 1em); height: calc(var(--ds-kc-cap) / var(--ds-kc-letter) * 1em); padding: 0 0.4em; vertical-align: calc(var(--ds-kc-lift) * 1em);
+  font: bold max(calc(var(--ds-kc-letter) * 1em), var(--ds-kc-letter-min))/1 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; text-transform: none;
   color: var(--keycap-ink); background: var(--keycap-bg); border: 0; border-radius: 5px;
   box-shadow: 0 2px 0 var(--keycap-edge), 0 0 0 1px var(--keycap-line);
   text-shadow: none;
 }
-.pad-face { width: 20px; padding: 0; border-radius: 50%; font-size: 12px; }
-.pad-face svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linejoin: round; }
+.pad-face { width: calc(var(--ds-kc-cap) / var(--ds-kc-letter) * 1em); padding: 0; border-radius: 50%; }
+.pad-face svg { width: 0.9em; height: 0.9em; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linejoin: round; }
 .pad-sh { border-radius: 7px 7px 4px 4px; }
-.pad-stick { width: 20px; padding: 0; border-radius: 50%; box-shadow: 0 2px 0 var(--keycap-edge), 0 0 0 1px var(--keycap-line), inset 0 0 0 3px rgba(12, 20, 14, 0.14); }
-.pad-stick.press { box-shadow: 0 2px 0 var(--keycap-edge), 0 0 0 1px var(--keycap-line), inset 0 0 0 2px rgba(12, 20, 14, 0.5); width: auto; min-width: 22px; border-radius: 10px; padding: 0 4px; }
+.pad-stick { width: calc(var(--ds-kc-cap) / var(--ds-kc-letter) * 1em); padding: 0; border-radius: 50%; box-shadow: 0 2px 0 var(--keycap-edge), 0 0 0 1px var(--keycap-line), inset 0 0 0 3px rgba(12, 20, 14, 0.14); }
+.pad-stick.press { box-shadow: 0 2px 0 var(--keycap-edge), 0 0 0 1px var(--keycap-line), inset 0 0 0 2px rgba(12, 20, 14, 0.5); width: auto; min-width: 1.25em; border-radius: 0.7em; padding: 0 0.3em; }
 .pad-dp { min-width: 0; padding: 0; background: none; border: 0; box-shadow: none; }
-.pad-dpad { width: 20px; height: 20px; filter: drop-shadow(0 2px 0 var(--keycap-edge)); }
+.pad-dpad { width: calc(var(--ds-kc-cap) / var(--ds-kc-letter) * 1em); height: calc(var(--ds-kc-cap) / var(--ds-kc-letter) * 1em); filter: drop-shadow(0 2px 0 var(--keycap-edge)); }
 .pad-dpad .pd-base { fill: var(--keycap-bg); stroke: var(--keycap-line); stroke-width: 1; }
 .pad-dpad .pd-on { fill: var(--keycap-ink); }
 /* the keycap around a controller glyph steps back */
 .hud-key.is-pad, kbd.is-pad, .hud-wasd.is-pad, .hud-mouse-g.is-pad, .hud-key.is-kbg, .m-kc.is-kbg {
   background: none !important; border: 0 !important; box-shadow: none !important;
-  padding: 0 !important; min-width: 0 !important; width: auto !important; height: auto !important; margin: 0 2px !important;
+  padding: 0 !important; min-width: 0 !important; width: auto !important; height: auto !important; margin: 0 !important;
 }
 .hud-key.is-kbg, .m-kc.is-kbg { color: inherit !important; } /* het toets-icoon tekent zijn eigen rand en leest in de tekstkleur van het vlak (inkt op papier, crème op donker) */
-.hud-wasd.is-pad { display: inline-flex !important; }
-.hud-mouse-g { display: inline-flex; align-items: center; }
 .pad-none { display: none !important; }
 
 /* a controller moves the focus: always show where it is */
@@ -100,13 +98,7 @@ html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-speedo.hurt 
 #pause-menu .pm-bindbtn.pm-changed { border-color: var(--pm-acc, #3fc97a); }
 #pause-menu .pm-bindbtn.pm-waiting { color: #0c140e; background: linear-gradient(180deg, #3fc97a, #1e9e56); }
 #pause-menu .pm-bindmsg:empty { display: none; }
-.pm-pad-g { display: inline-flex; align-items: center; margin: 0 2px; vertical-align: middle; }
-.pm-pad-g .pad-g { height: 22px; min-width: 22px; }
-.pm-pad-g .pad-face, .pm-pad-g .pad-stick { width: 22px; }
-/* in the menu footers the controller keycaps match the size of the keyboard ones (.m-kc is 32 px) */
-.m-hint .pm-pad-g .pad-g { height: 28px; min-width: 28px; font-size: 14px; }
-.m-hint .pm-pad-g .pad-face, .m-hint .pm-pad-g .pad-stick { width: 28px; }
-.m-hint .pm-pad-g .pad-face svg { width: 16px; height: 16px; }
+.pm-pad-g { display: inline; margin: 0 0.05em; white-space: nowrap; }
 
 /* round 2: the revs and the damage meter read by shape too, not by colour alone */
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-speedo.redline .rpm-fill { stroke: var(--mk-danger); stroke-dasharray: 6 4; }
@@ -167,26 +159,16 @@ html.dev-pad, html.dev-pad * { cursor: none !important; }
 /* The glyph characters only exist in the glyph font: font-family and font-size are !important, because HUD cards (#hud .hc-text span) and hint rows set their own font on every span inside. */
 /* The glyph draws its own key outline: no extra plate, edge or shadow around it, so the border is not doubled and the glyph does not disappear inside it. */
 /* Controller glyphs from the glyph font (inputglyphs.js, game/fonts/input): the outline glyph on the white keycap, same size as the cap it replaces. */
-html .pad-g.pad-kn { min-width: 0; width: auto; height: auto; padding: 0; background: transparent; box-shadow: none; border: 0; color: inherit; font-size: 26px !important; line-height: 1; letter-spacing: 0; border-radius: 5px; font-weight: normal; }
-html .pad-g.pad-kn[data-set="keys"] { font-family: var(--ds-font-toetsen, 'GDE Toetsen'), 'Arial Narrow', Arial, sans-serif !important; font-size: 60px !important; line-height: 30px; height: 30px; display: inline-block; vertical-align: middle; overflow: visible; }
+html .pad-g.pad-kn { min-width: 0; width: auto; height: auto; padding: 0; background: transparent; box-shadow: none; border: 0; color: inherit; border-radius: 0.2em; font-weight: normal; }
+html .pad-g.pad-kn[data-set="keys"] { font-family: var(--ds-font-toetsen, 'GDE Toetsen'), 'Arial Narrow', Arial, sans-serif !important; }
 html .pad-g.pad-kn[data-set="xbox"] { font-family: var(--ds-font-knoppen-a, 'GDE Knoppen A'), 'Arial Narrow', Arial, sans-serif !important; }
 html .pad-g.pad-kn[data-set="ps"] { font-family: var(--ds-font-knoppen-b, 'GDE Knoppen B'), 'Arial Narrow', Arial, sans-serif !important; }
 html .pad-g.pad-kn[data-set="deck"] { font-family: var(--ds-font-knoppen-deck, 'GDE Knoppen Deck'), 'Arial Narrow', Arial, sans-serif !important; }
-html .pm-pad-g .pad-g.pad-kn { font-size: 26px !important; }
-html .m-hint .pm-pad-g .pad-g.pad-kn { font-size: 30px !important; }
-/* toetsen uit de glyphfont (Esc, Enter, Spatie): de kap is een tekstglyph, dus een grotere kap geeft ook leesbare letters erin (feedback 20-11: kap 20-26 px, tekst piepklein) */
-html .pm-pad-g .pad-g.pad-kn[data-set="keys"] { font-size: 64px !important; line-height: 32px; height: 32px; }
-html .m-hint .pm-pad-g .pad-g.pad-kn[data-set="keys"] { font-size: 72px !important; line-height: 36px; height: 36px; }
 html .pad-g.pad-kn.pad-dp { background: transparent; box-shadow: none; }
 
 /* #985: op een laag venster hangen de ondertitels boven de locatiekaart (F-kolom), niet erin; het toetsglyph in het stopvenster is 28 px */
 @media (max-height: 720px) { html body :is(#banter-sub, #radio-sub, #story-talk) { bottom: 200px !important; } } /* specificiteit (1,0,2): wint van hud_panel.css (1,0,0) ongeacht de laadvolgorde van de twee stylesheets */
-.mg-stopask .pad-g.pad-kn, html .mg-stopask .pad-g.pad-kn { font-size: 28px !important; }
+/* de maat van het toetsglyph in het stopvenster volgt de tekst (ds-keycap.css, .mg-stopask is een hintrij) */
 
-/* Toets- en muisicoon (Kenney, set keys): de toets zit in het glyph op ongeveer de helft van de lettergrootte, dus 56 px lettergrootte is een toets van 28 px
-   in de HUD (minstens 26) en 60 px een toets van 30 px in menu's (minstens 28), met leesbare tekst erin (DESIGN_SYSTEM.md, Controls and key hints). */
-html .pad-g.pad-kn[data-set="keys"] { font-size: 56px !important; line-height: 28px; height: 28px; }
-html #pause-menu .pad-g.pad-kn[data-set="keys"], html .m-foot .pad-g.pad-kn[data-set="keys"], html .m-acts .pad-g.pad-kn[data-set="keys"], html .mg-stopask .pad-g.pad-kn[data-set="keys"],
-html .gar-hint .pad-g.pad-kn[data-set="keys"], html .pm-ckeys .pad-g.pad-kn[data-set="keys"], html .foto-key .pad-g.pad-kn[data-set="keys"], html .m-kc .pad-g.pad-kn[data-set="keys"] { font-size: 60px !important; line-height: 30px; height: 30px; }
-html .hud-mouse-g .pad-g.pad-kn { margin: 0; }
+/* Toets-, muis- en knopglyphs: de maat staat in ds-keycap.css (een factor van de tekst, tokens --ds-kc-* in ds-tokens.css), niet hier. */
 

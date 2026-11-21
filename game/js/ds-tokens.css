@@ -279,3 +279,17 @@ html.rustig-drukwerk, .ds-rustig {
   --ds-c-ink-roze: #9d1f2a;
   --ds-c-ink-bord: #0b5530;
 }
+
+/* Toetsplaatjes als inline zetwerk (ADR 0041, docs/KEYCAP-MAAT-21-11.md, ds-keycap.css). Alle maten zijn factoren van de omliggende
+   tekst, zonder eenheid (zodat elke eigen em ze zelf oplost); alleen de vloeren zijn px. */
+:root {
+  --ds-kc-cap: 1.25;          /* hoogte van het plaatje in tekst-em; in een hintrij (.ds-kc-rij) 1.5 */
+  --ds-kc-ink: 0.48;          /* inkthoogte van een toetsglyph in glyph-em (Kenney Input Prompts: 983 van 2048, op de basislijn) */
+  --ds-kc-floor: 18px;        /* het plaatje is nooit lager dan dit (in een HUD-hintrij 26 px, #985) */
+  --ds-kc-drop: -0.125;       /* glyph: daling onder de basislijn in glyph-em, zodat het plaatje op de halve letterhoogte van de tekst staat */
+  --ds-kc-letter: 0.8;        /* letter in een tekstplaatje, in tekst-em (nooit onder --ds-kc-letter-min) */
+  --ds-kc-letter-min: 13px;
+  --ds-kc-lift: 0.05;         /* tekstplaatje: stijging boven de basislijn in plaatje-em */
+  --ds-kc-gap: 0.02;          /* glyph: ruimte aan weerszijden in glyph-em, naast de gewone spatie van de zin */
+  --ds-kc-opt: 1;             /* optische correctie per glyphsoort (muis 1.09: 901 tegen 983 hoog) */
+}

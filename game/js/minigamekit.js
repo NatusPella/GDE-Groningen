@@ -185,7 +185,6 @@ html.touch-play #hud .mg-board .mg-cells i[data-k] { pointer-events: auto; touch
 #hud .mg-board .mg-stand tr.on { background: var(--ds-c-sel-vlak); box-shadow: inset var(--ds-status-rand) 0 0 var(--ds-c-ink-bord); color: var(--ds-zeef-tx); font-weight: 700; }
 #hud .mg-board .mg-stand tr.weg { color: var(--ds-c-inkt-zacht); text-decoration: line-through; }
 #hud .mg-board .mg-help { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; font: max(14px, calc(14px / var(--ui, 1))) var(--ds-font-zeef-tekst); color: var(--ds-zeef-tx); }
-#hud .mg-board .hud-key { margin: 0 2px; vertical-align: middle; }
 #hud .mg-board .mg-flash { font-size: max(18px, calc(22px * var(--ui, 1))); letter-spacing: 1.5px; font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-groen-tx); min-height: 1em; }
 #hud .mg-board .mg-flash.bad { color: var(--ds-c-rood-tx); }
 body.mg-on #hud .hud-speedo, body.mg-on #hud .hud-route, body.mg-on #hud .hud-gps, body.mg-on #hud .hud-mission, body.mg-on #hud .hud-place, body.mg-on #hud .hud-nowplaying, body.mg-on #hud .phonefeed .pf-card { display: none !important; }
