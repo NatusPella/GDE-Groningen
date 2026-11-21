@@ -496,3 +496,12 @@ Bezit is per speler (#429, [BEZIT-21-11.md](BEZIT-21-11.md) hoofdstuk 5.5 en 10)
 - **Wegvallen:** valt de gast weg midden in een klus, dan blijft het veld staan zoals het is (de cellen zijn eigenaarstoestand); de eigenaar of een ander maakt het af. Het personeel en de pacht van de eigenaar draaien door op de speldag van de eigenaar en gaan niet over het net.
 - **Later aansluiten:** een gast die later aansluit ziet de velden van de eigenaar via het bestaande `MISC_VELDEN`; hij ziet niets van beheerscherm, personeel of kasboek van een ander.
 - **Test:** pure tests `farmstaff_test` en `holdingsmodel_test` (het beheer is eigen toestand); de verdeling van het loon dekt de bestaande testbankstap van de gast-bestuurderketen (`coopbestuur.js`, #434).
+## Bezit: bedrijven en ketens bij Samen spelen (#1102, #1103, 21-11)
+
+**Winkelomzet gaat naar de eigenaar; een gast die in jouw winkel werkt krijgt loon.** Bezit is per speler (#429): wie het spel opende en wie meedoet houdt zijn eigen
+winkels, ketens en kasboek in zijn eigen opslag (`gde-bezit-v1`); niemand ziet andermans kasboek of beheerscherm, alleen de omtrek en naam van de winkels. De omzet per speldag
+en de keten draaien als cijfers in de eigen opslag van de eigenaar, ook als hij zelf niet speelt. Werkt een gast mee achter de toonbank of in een keten, dan is het loon nieuw geld voor
+de gast (zoals `coopDeel`) en geen aftrek bij de eigenaar. **Valt de gast weg of de eigenaar, dan gaat het dagschema door:** omzet, loon en voorraad zijn per speldag gerekend zonder
+dat iemand erbij is, en een later aansluitende speler pakt zijn eigen bezit gewoon weer op. Het weer en de streekprijzen komen uit dezelfde kalenderdag en dezelfde hash, dus alle
+spelers zien dezelfde droogte en dezelfde marktprijs; de levering van een medespeler in een streek wordt als EXTRA-bericht doorgegeven (`recordRemoteDelivery`) en drukt de prijs voor iedereen.
+

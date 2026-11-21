@@ -22,7 +22,7 @@ export const MODES = ['self', 'leased', 'staff'];  // zelf bewerken, verpacht, d
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
 const num = (x, lo, hi, d = 0) => (Number.isFinite(x) ? clamp(x, lo, hi) : d);
 
-export const newBezit = () => ({ v: BEZIT_VERSION, parcels: {}, buildings: new Set(), bstate: {}, debt: 0, totals: { bought: 0, sold: 0, spent: 0, earned: 0 }, x: {} });
+export const newBezit = () => ({ v: BEZIT_VERSION, parcels: {}, buildings: new Set(), bstate: {}, mobile: {}, debt: 0, totals: { bought: 0, sold: 0, spent: 0, earned: 0 }, x: {} });
 
 // ---- compacte verzameling: gesorteerde delta's als varint, base64 (ontwerp 3: ongeveer 2,7 byte per pand) ----
 export function encodeIdSet(ids) {
@@ -62,6 +62,15 @@ function normParcel(r) {
   if (r.lg) o.lg = 1;
   return o;
 }
+// De beheerknoppen van een bedrijf, grof gezuiverd (de precieze grenzen en het personeel zuivert business.js normalizeCfg bij gebruik).
+function normBizCfg(c) {
+  if (!c || typeof c !== 'object') return null;
+  const o = {};
+  for (const k of ['pr', 'st', 'hr', 'vu']) if (Number.isFinite(c[k])) o[k] = clamp(c[k], 0, 1e6);
+  if (typeof c.spot === 'string' && /^[a-z]{2,12}$/.test(c.spot)) o.spot = c.spot;
+  if (Array.isArray(c.staff)) o.staff = c.staff.slice(0, 12).filter((m) => m && typeof m.id === 'string' && m.id.length <= 40).map((m) => ({ id: m.id, name: String(m.name || '').slice(0, 24), skill: Math.round(num(m.skill, 0, 100, 50)), role: m.role === 'kassier' ? 'kassier' : 'medewerker', ...(m.existing ? { existing: true } : {}) }));
+  return Object.keys(o).length ? o : null;
+}
 export function normalizeBezit(raw) {
   const b = newBezit();
   if (!raw || typeof raw !== 'object' || raw.v !== BEZIT_VERSION) return b;
@@ -81,7 +90,9 @@ export function normalizeBezit(raw) {
       if (Number.isFinite(s.p)) o.p = Math.round(clamp(s.p, 0, 1e9));       // betaalde prijs
       if (Number.isFinite(s.t)) o.t = Math.round(clamp(s.t, 0, 1e6));       // speldag gekocht
       if (s.kind && typeof s.kind === 'string' && s.kind.length < 24) o.kind = s.kind;
-      if (Number.isFinite(s.q)) o.q = Math.round(clamp(s.q, 0, 100));       // onderhoud
+      if (Number.isFinite(s.q)) o.q = Math.round(clamp(s.q, 0, 100) * 10) / 10;   // onderhoud (een decimaal: het zakt per speldag langzaam)
+      if (Number.isFinite(s.bp)) o.bp = Math.round(clamp(s.bp, 0, 1e9));    // basisprijs zonder schaalprijs (business.js)
+      const cfg = normBizCfg(s.cfg); if (cfg) o.cfg = cfg;                   // beheerknoppen en personeel (business.js)
       if (Object.keys(o).length) b.bstate[id] = o;
     }
   }
@@ -94,13 +105,20 @@ export function normalizeBezit(raw) {
       try { if (JSON.stringify(v).length <= EXT_MAX_JSON) b.x[k] = v; } catch (e) { /* kapotte opslag: overslaan */ }
     }
   }
+  if (raw.mobile && typeof raw.mobile === 'object') {                      // mobiele bedrijven, eigen id (business.js: frietwagen)
+    for (const id of Object.keys(raw.mobile).slice(0, 8)) {
+      const s = raw.mobile[id];
+      if (!/^[a-z][a-z0-9-]{1,24}$/.test(id) || !s || typeof s !== 'object') continue;
+      b.mobile[id] = { p: Math.round(num(s.p, 0, 1e9)), t: Math.round(num(s.t, 0, 1e6)), q: Math.round(num(s.q, 0, 100, 100)), cfg: normBizCfg(s.cfg) || {} };
+    }
+  }
   b.debt = Math.round(num(raw.debt, 0, 1e9));
   const t = raw.totals && typeof raw.totals === 'object' ? raw.totals : {};
   for (const k of Object.keys(b.totals)) b.totals[k] = Math.round(num(t[k], 0, 1e12));
   return b;
 }
 export function serializeBezit(b) {
-  return { v: BEZIT_VERSION, parcels: b.parcels, buildings: encodeIdSet([...b.buildings]), bstate: b.bstate, debt: b.debt, totals: b.totals, ...(Object.keys(b.x || {}).length ? { x: b.x } : {}) };
+  return { v: BEZIT_VERSION, parcels: b.parcels, buildings: encodeIdSet([...b.buildings]), bstate: b.bstate, mobile: b.mobile, debt: b.debt, totals: b.totals, ...(Object.keys(b.x || {}).length ? { x: b.x } : {}) };
 }
 
 // ---- opslag (de opslag is een parameter; nooit window.localStorage in tests) ----
