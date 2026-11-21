@@ -8,7 +8,8 @@ let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info !== '' ? ` (${info})` : ''}`); } };
 const idx = (id) => STEPS.findIndex((s) => s.id === id);
 
-ok([...ADDED_STEPS].sort().join() === 'N1,N2,N3,N4,N5,N6,N7,N8', 'acht nieuwe stappen');
+ok(ADDED_STEPS.filter((id) => /^N/.test(id)).sort().join() === 'N1,N2,N3,N4,N5,N6,N7,N8', 'acht nieuwe stappen N1 tot en met N8');
+ok(ADDED_STEPS.filter((id) => /^F/.test(id)).join() === 'F1,F2,F3,F4,F5,F6', 'zes slotstappen F1 tot en met F6 (verhaal-eind)');
 ok(STEPS.filter((s) => s.kind === 'mission').map((s) => s.id).join() === [...Array(30)].map((_, i) => 'M' + String(i + 1).padStart(2, '0')).join(), 'de dertig missies staan nog in dezelfde volgorde');
 ok(idx('M02') < idx('N1') && idx('N4') < idx('M03') && idx('M08') < idx('N8') && idx('N8') < idx('T1') && idx('N5') < idx('M10') && idx('N7') < idx('T2'), 'de stappen staan op hun invoegpunt');
 ok(ADDED_STEPS.every((id) => { const s = STEPS.find((x) => x.id === id); return s.kind === 'activity' && s.built && !s.reward && !s.cost && !s.unlocks; }), 'elke nieuwe stap is een activiteit zonder beloning, kosten of vlag');
@@ -35,7 +36,21 @@ const sA1 = saveTot('A1');
 ok(huidige('A1').id === 'N6', 'na A1 volgen de nieuwe stappen N6 en N7 vóór de bus naar Zoutkamp', huidige('A1').id);
 const sM11 = saveTot('M11');
 ok(['N5', 'N6', 'N7', 'N8'].every((id) => stepDone(idx(id), (x) => sM11.done.has(x), sM11.mp)), 'een save voorbij M11 heeft alle akte-2-stappen als gedaan');
-ok(huidige('M30') && huidige('M30').end !== undefined, 'een uitgespeelde oude save blijft uitgespeeld');
+// F6 (de kaart, overgang naar het eindspel) volgt op M30: een oude, uitgespeelde save heeft hem nog niet gezien en krijgt hem als enige te spelen
+ok(huidige('M30') && huidige('M30').id === 'F6', 'een uitgespeelde oude save krijgt alleen het slot F6 nog te spelen', String(huidige('M30') && huidige('M30').id));
+{
+  const k = idx('F6');
+  const sF = saveTot('M30');
+  const klaar = new Set([...sF.done, 'F6']);
+  ok(!stepDone(k, (x) => sF.done.has(x), sF.mp) && stepDone(k, (x) => klaar.has(x), sF.mp) && nextStoryStep((x) => klaar.has(x), sF.mp, () => false).end !== undefined, 'na F6 is de oude save uitgespeeld');
+}
+// de slotstappen F1 tot en met F5
+ok(idx('M21') < idx('F1') && idx('F1') < idx('M22') && idx('M22') < idx('F2') && idx('F2') < idx('M23') && idx('M26') < idx('F3') && idx('F3') < idx('F4') && idx('F4') < idx('F5') && idx('F5') < idx('E') && idx('M30') < idx('F6'), 'F1 tot en met F6 staan op hun invoegpunt');
+ok(huidige('M21').id === 'F1', 'een oude save vóór M22 krijgt de ontdekking van de wagen (F1) te spelen', huidige('M21').id);
+ok(huidige('M22').id === 'F2' && huidige('M23').id === 'M24', 'voorbij M22 komt F2 nog, voorbij M23 niet meer', `${huidige('M22').id} ${huidige('M23').id}`);
+ok(huidige('M26').id === 'F3', 'een oude save die M26 net haalde krijgt de verzoening en de avond (F3 tot en met F5) nog te spelen', huidige('M26').id);
+ok(!/^F/.test(String(huidige('E').id)), 'voorbij E geen herhaling van F3 tot en met F5', String(huidige('E').id));
+ok(milestoneFlagsForDone(new Set(['M00', 'F1'])).join() === 'wagen:idee,wagen:menu,wagen:stek,wagen:team' && !milestoneFlagsForDone(new Set(['M21', 'F1'])).includes('wagen:naam'), 'F1 geeft geen wagen-vlag: de naam komt pas met het luik (M22)');
 
 // geen dubbele beloning: de mijlpaalvlaggen en het tussenstuk reageren niet op de nieuwe stappen
 ok(milestoneFlagsForDone(new Set(['M00', 'N1', 'N2'])).join() === 'wagen:idee', 'de nieuwe stappen geven geen wagen-vlaggen');

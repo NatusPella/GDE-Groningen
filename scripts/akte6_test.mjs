@@ -28,7 +28,7 @@ const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL $
 const ids = ['M27', 'M28', 'M29', 'T5', 'M30'];
 const at = ids.map((id) => STEPS.findIndex((s) => s.id === id));
 const eAt = STEPS.findIndex((s) => s.id === 'E');
-ok(at[0] === eAt + 1 && at.every((i, k) => i >= 0 && (k === 0 || i === at[k - 1] + 1)) && at[4] === STEPS.length - 1, 'M27, M28, M29, T5, M30 follow E and end the arc', at.join());
+ok(at[0] === eAt + 1 && at.every((i, k) => i >= 0 && (k === 0 || i === at[k - 1] + 1)) && at[4] === STEPS.length - 2 && STEPS[STEPS.length - 1].id === 'F6', 'M27, M28, M29, T5, M30 follow E and end the arc (F6, the closing step, follows)', at.join());
 for (const id of ids) {
   const st = STEPS.find((s) => s.id === id);
   ok(st.part === 'nazomer' && st.built === true && stepAvailable(st), `${id}: part nazomer, built`);

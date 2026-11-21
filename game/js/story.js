@@ -657,6 +657,18 @@ const CREDITS = [
   ...THIRD_PARTY_CARDS,
 ];
 
+// De terugblik vóór de namenkaarten (verhaal-eind, 21-11): korte grappen uit het hele verhaal, in dezelfde kaartvorm (kicker boven, titel groot),
+// zonder uitleg en zonder echte merken of personen. Alleen beeld, geen stem; dezelfde spelregel als CREDITS.
+const TERUGBLIK = [
+  ['Eén bierviltje', 'werd een snackwagen'],
+  ['Een stoep', 'met een overeenkomst'],
+  ['De Krolbrug', 'stond open. Niemand weet waarom'],
+  ['Het horloge van opa', 'liep vijf minuten voor. De goede minuten'],
+  ['Eén koekje', 'Henk zei niks'],
+  ['Elf seconden', 'Berend telde mee'],
+  ['De duiven', 'stonden weer in de rij'],
+];
+
 const FINALE_SPOT = [160.64, 68.15];
 
 // A slow climb around d'Olle Grieze for the ending.
@@ -825,10 +837,13 @@ function playCredits() {
   const q = (spec) => playCinematic({ id: 'story-credits', priority: 2, pause: true, letterbox: true, skippable: true, hideHud: true, queue: true, ...spec });
   const ok = q({ duration: 5, big: 'Alles voor één eierbal', kicker: GAME_TITLE, shot: finaleShot(40) });
   if (!ok) return false;
+  // de terugblik van het verhaal-eind (korte grappen), dan de namen
+  TERUGBLIK.forEach(([big, role], k) => q({ duration: 3.2, kicker: role, title: big, cardFor: 3.2, shot: creditShot(k + 2) }));
+  const lang = (CREDITS.length + TERUGBLIK.length) * 3.2;
   CREDITS.forEach(([name, role], k) => q({ duration: 3.2, kicker: role, title: name, cardFor: 3.2, shot: creditShot(k) }));
-  q({ duration: 4.5, logo: true, shot: finaleShot(46 + CREDITS.length * 3.2) });
-  q({ duration: 4, big: 'Einde', kicker: 'Grunn is van jou', shot: finaleShot(50.5 + CREDITS.length * 3.2) });
-  playDedication(q, 54.5 + CREDITS.length * 3.2);
+  q({ duration: 4.5, logo: true, shot: finaleShot(46 + lang) });
+  q({ duration: 4, big: 'Einde', kicker: 'Grunn is van jou', shot: finaleShot(50.5 + lang) });
+  playDedication(q, 54.5 + lang);
   return true;
 }
 

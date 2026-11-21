@@ -43,6 +43,7 @@ const LOOPBAAN_BY = {
 
 // Werelden die niet uit een stap volgen: de epics van Bezit, boerderij en voetbal sluiten hier op aan.
 const EXTRA = [
+  { id: 'snackwagen', kind: 'wereld', part: 'ontzet', by: 'Tessa', hint: 'De snackwagen komt pas laat: eerst zoeken Tammo en Tessa hun plekje in de wereld. In akte 5 ontdekt Tessa de wagen.' },
   { id: 'farm', kind: 'wereld', part: 'romp', by: 'Tessa', hint: 'Tessa is boerendochter. Na Oma Trijntjes recept staat haar land voor je open.' },
   { id: 'bezit', kind: 'wereld', part: 'staart', by: 'Sjabbe', hint: 'Sjabbe van Pand & Poen: aan de Eems leer je panden beheren. Jelle koopt, wij bouwen.' },
   { id: 'voetbal', kind: 'wereld', part: 'zuid', by: 'Tammo', hint: 'In Veendam speelt Tessa met het dorpsteam. Daar begint de voetbalcarrière.' },

@@ -54,13 +54,15 @@ export function missionIndexOf(id) {
 // Is step k done? Finished or skipped (doneId), a mission the chain counts as
 // passed, or an activity that a later, passed mission has made moot (old
 // saves, missions played ahead). Shared by story.js and the save migration test.
+// Een toegevoegde stap: N1 tot en met N8 (ronde 4) of een stap met `added: true` (de slotstappen F1 tot en met F6, verhaal-eind): zonder beloning, met migratie.
+const isAdded = (s) => s.added === true || /^N\d+$/.test(s.id);
 export function stepDone(k, doneId, missionPassed) {
   const passed = (s) => doneId(s.id) || (s.kind === 'mission' && missionIndexOf(s.mission) >= 0 && missionPassed(missionIndexOf(s.mission)));
   const step = STEPS[k];
   if (doneId(step.id)) return true;
   if (step.kind === 'mission') return passed(step);
   // de nieuwe stappen N1 tot en met N8 (ronde 4): een oude save die verder is, heeft ze nooit gezien en speelt ze niet meer (ADDED_STEPS hieronder)
-  if (/^N\d+$/.test(step.id)) { for (let j = k + 1; j < STEPS.length; j++) if (doneId(STEPS[j].id) || passed(STEPS[j])) return true; return false; }
+  if (isAdded(step)) { for (let j = k + 1; j < STEPS.length; j++) if (doneId(STEPS[j].id) || passed(STEPS[j])) return true; return false; }
   for (let j = k + 1; j < STEPS.length; j++) if (STEPS[j].kind === 'mission' && passed(STEPS[j])) return true;
   return false;
 }
@@ -95,7 +97,7 @@ export function nextStoryStep(doneId, missionPassed, cardSeen, skip = null) {
 // De stappen N1 tot en met N8 (ronde 4, #1121) zijn later toegevoegd dan de eerste save-formaten: een oude save kent ze niet. Het zijn
 // activiteiten zonder beloning: een oude save voorbij het invoegpunt heeft een latere missie gehaald en telt ze dan al als gedaan (stepDone);
 // een oude save ervoor krijgt ze te spelen. Voor het v:1-tussenstuk lezen we die save in de oude volgorde, zonder deze stappen.
-export const ADDED_STEPS = STEPS.filter((s) => /^N\d+$/.test(s.id)).map((s) => s.id);
+export const ADDED_STEPS = STEPS.filter(isAdded).map((s) => s.id);
 export function passedBetweenSteps(done, missionPassed = () => false) {
   const have = (id) => (done instanceof Set ? done.has(id) : done.includes(id));
   const old = nextStoryStep(have, missionPassed, () => false, new Set([...BETWEEN_STEPS, ...ADDED_STEPS]));
