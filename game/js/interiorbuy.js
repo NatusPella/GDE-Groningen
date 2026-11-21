@@ -19,6 +19,8 @@ const PRODUCTS = {
   kroeg: { item: 'Pilsje', price: 4, health: 5 },
   restaurant: { item: 'Dagschotel', price: 16, health: 20 },
   sportschool: { item: 'Dagkaart sportschool', price: 8, health: 6 },
+  museum: { item: 'Museumkaartje', price: 7, health: 0 },
+  bioscoop: { item: 'Filmkaartje met popcorn', price: 12, health: 4 },
   werkplaats: null, gemeente: null, politie: null, apotheek: { item: 'Pleisters', price: 5, health: 6 }, ziekenhuis: null, school: null, hotel: null,
 };
 export const productFor = (kind, sub) => (kind === 'winkel' || kind === 'horeca' || kind === 'publiek' || kind === 'garage' ? PRODUCTS[sub] || null : null);

@@ -44,6 +44,12 @@ export const SCRIPTS = {
   bewoner: [S('tv kijken', 'seat', 'sit', 20, 45, AN), S('koken', 'work', 'vendor', 10, 20, DN), S('lezen', 'seat', 'phone', 15, 30), S('slenteren', 'wander', null, 1, 3)],
   student: [S('studeren', 'seat', 'phone', 25, 55, DN), S('koken', 'work', 'vendor', 8, 16, DN), S('gamen', 'seat', 'sit', 20, 45, AN), S('lezen', 'seat', 'phone', 15, 30), S('slenteren', 'wander', null, 1, 3)],
   sporter: [S('hardlopen', 'machine', null, 20, 40), S('gewichten heffen', 'lift', 'crouch', 8, 14), S('uitrusten', 'seat', 'sit', 8, 16), S('water drinken', 'machine', null, 3, 6), S('slenteren', 'wander', null, 1, 2)],
+  arts: [S('rondgang', 'wander', null, 2, 5), S('dossier', 'shelf', null, 4, 8), S('overleg', 'home', 'phone', 4, 8), S('handen wassen', 'machine', null, 3, 5)],
+  leraar: [S('uitleggen', 'board', null, 8, 16), S('rondlopen', 'wander', null, 2, 5), S('nakijken', 'work', 'sit', 8, 16), S('kastje', 'shelf', null, 3, 6)],
+  leerling: [S('opletten', 'seat', 'sit', 25, 55), S('schrijven', 'seat', 'phone', 12, 24), S('kastje', 'shelf', null, 3, 6), S('slenteren', 'wander', null, 1, 3)],
+  suppoost: [S('rondkijken', 'board', null, 4, 8), S('vitrine', 'shelf', null, 4, 8), S('slenteren', 'wander', null, 2, 5), S('bankje', 'seat', 'sit', 6, 12)],
+  museumbezoeker: [S('vitrine bekijken', 'shelf', null, 6, 12), S('schilderij bekijken', 'board', null, 6, 12), S('bankje', 'seat', 'sit', 8, 16), S('slenteren', 'wander', null, 1, 2)],
+  filmbezoeker: [S('wachten op de film', 'seat', 'sit', 25, 60), S('affiche bekijken', 'board', null, 4, 8), S('popcorn halen', 'counterFront', null, 3, 6), S('slenteren', 'wander', null, 1, 2)],
   trainer: [S('begeleiden', 'machine', null, 6, 12), S('aanwijzen', 'lift', null, 4, 8), S('slenteren', 'wander', null, 1, 3), S('pauze', 'seat', 'sit', 8, 16)],
 };
 const FALLBACK = [S('rondkijken', 'shelf', null, 3, 7), S('slenteren', 'wander', null, 1, 3)];

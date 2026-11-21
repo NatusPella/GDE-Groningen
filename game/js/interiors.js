@@ -325,7 +325,8 @@ export function updateInteriors(dt, w) {
   if ((S.scan -= dt) <= 0) { S.scan = 0.3; scan(w, p); }
   for (const ls of S.live.values()) updateLive(w, ls, dt, p, onFoot);
   w.insideBuilding = !!S.inside || !!w.insideExternal; // read by police.js (the walls are the sight lines) and worldevents.js (indoor sound)
-  w.insideKind = S.inside ? S.inside.plan.kind : w.insideExternal ? 'woning' : null; // read by sfx/ambience.js: the room tone per kind
+  w.insideKind = S.inside ? S.inside.plan.kind : w.insideExternal ? 'woning' : null; // read by sfx/ambience.js and audio.js: the room tone and the muffled music per kind (sfx/binnenklank.js)
+  w.insideSub = S.inside ? S.inside.plan.sub || null : null;
 }
 
 // --- using what is in the room --------------------------------------------------------------------------------------
@@ -400,7 +401,7 @@ function useSpot(w, hit) {
       const gameShop = gameShopOf(ls.b);
       if (gameShop && openShopFromInterior(w, gameShop)) return true; // a garage or workshop of the game: its own menu (tuning, repair, paint)
       // a gym sells its day card at the desk (round 4); price and effect from the product table, money of the player himself (#429)
-      const dayCard = plan.sub === 'sportschool' ? productFor(plan.kind, plan.sub) : null;
+      const dayCard = plan.sub === 'sportschool' || plan.sub === 'museum' || plan.sub === 'bioscoop' ? productFor(plan.kind, plan.sub) : null;
       if (dayCard) {
         noteMoney('Winkels');
         const r = buyProduct(w, dayCard);
@@ -408,7 +409,7 @@ function useSpot(w, hit) {
         else { w.kassaKlik = true; S.sfx(w, 'shop_buy_coins', hit.x, hit.y); say(w, BOUGHT(dayCard.item, dayCard.price) + (r.healed ? ` +${Math.round(r.healed)} gezondheid` : '')); }
         return true;
       }
-      say(w, clerkLine(plan.kind, seed, n));
+      say(w, clerkLine(plan.kind, seed, n, plan.sub));
       return true;
     }
     case 'kaars': say(w, CHURCH_CANDLE[n % CHURCH_CANDLE.length]); return true;
