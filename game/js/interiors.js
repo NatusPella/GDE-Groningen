@@ -124,9 +124,8 @@ function planOf(b) {
     const spot = spotFor(spotIndex(), b.pts, b.entrance || null);
     let style = null;
     try { style = S.hooks.homeStyle(b); } catch (e) { style = null; }
-    rec = planInterior(b, { spot, style });
-    rec.b = b;
-    rec.epoch = hookEpoch();
+    const plan = planInterior(b, { spot, style });
+    rec = { ok: plan.ok, why: plan.why, plan, b, epoch: hookEpoch() }; // scan, build en pinInterior lezen rec.plan (het platte plan van interiorrules.js zat er niet in)
     if (!rec.ok && spot && (rec.why === 'small' || rec.why === 'low')) markNotEnterable(spot.x, spot.y); // the map layer stops promising it
     S.plans.set(b, rec);
   }
