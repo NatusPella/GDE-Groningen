@@ -123,16 +123,16 @@ TAMMO: Deze? [NIEUW]
 (regie: allebei pakken de punaise. Een lange stilte. Beneden klinkt een pollepel op een pan.)
 OMA TRIJNTJE: Jullie slapen niet! Ik hoor het! [NIEUW]
 TESSA: We slapen, Oma. [NIEUW]
-OMA TRIJNTJE: Dat is geen slaapgeluid, jong. [NIEUW]
-TAMMO: Het is een punaise. [NIEUW]
+OMA TRIJNTJE: Ik ben tweeënnegentig. Ik weet hoe slapen klinkt. [NIEUW]
+TAMMO: Een punaise. Ja. [NIEUW]
 TESSA: Het is een punaise. [NIEUW]
 
 ## [N5] De boerderij in Warffum – Hogeland, Warffum – te voet
 (regie: woensdagochtend. Een boerenerf met kippen, een hek en een koe die niet weg wil. Tessa loopt het erf op alsof ze er nooit is weggegaan. Tammo blijft bij het hek.)
 TESSA: Dit is het erf van mijn oom. Hier leerde ik melken. [NIEUW]
 TAMMO: Dat wist ik niet. [NIEUW]
-TESSA: Je vroeg niet naar de koeien. [NIEUW]
-TAMMO: De koe kijkt. Naar mij. [NIEUW]
+TESSA: Je vroeg nooit naar mijn jeugd. Alleen of er internet was. [NIEUW]
+TAMMO: De koe kijkt naar mij. Ze weet iets. [NIEUW]
 TESSA: Geef me je hand. Niet wegtrekken. [NIEUW]
 (regie: ze leidt zijn hand langs de neus van de koe. De koe snuift. Tammo houdt zijn adem in. Een duif landt op het hek.)
 TAMMO: Hij is zacht. [NIEUW]
@@ -142,11 +142,11 @@ TESSA: Ik zei het toch. [NIEUW]
 (regie: donderdagmiddag. Kapitein Klaas heeft twee hengels en een emmer. Tammo zit stil aan de rand; Tessa houdt zich vast aan de reling.)
 KAPITEIN KLAAS: Praat tegen het water. Dan vangt hij. [NIEUW]
 TAMMO: ... [NIEUW]
-KAPITEIN KLAAS: Dat is ook praten. [NIEUW]
+KAPITEIN KLAAS: Hij zegt meer dan sommige mensen. [NIEUW]
 TESSA: Mag ik weer aan land? [NIEUW]
 TAMMO: Ik heb er één. [NIEUW]
 KAPITEIN KLAAS: Jij zit stil en je vangt. Zij praat en zij is groen. [NIEUW]
-TESSA: Ik heb het water niet gekozen. [NIEUW]
+TESSA: Het water is mijn keuze niet. De boot ook niet. [NIEUW]
 
 ## [N7] De streekbus naar Winsum – Hogeland, Winsum – streekbus
 (regie: vrijdagochtend. Ze rijden mee in de streekbus. Tammo wacht tot een oude vrouw met een tas is uitgestapt voor hij zelf van de trede stapt. Tessa ziet het door het raam.)
@@ -155,7 +155,7 @@ TAMMO: Graag gedaan. [NIEUW]
 TESSA: Je bedankt altijd de chauffeur. [NIEUW]
 TAMMO: Hij reed goed. [NIEUW]
 TESSA: Het was een bus. [NIEUW]
-TAMMO: Een goede bus. [NIEUW]
+TAMMO: Hij stond op tijd. Dat is zeldzaam. [NIEUW]
 
 ## [T1] De trein naar Warffum – Stad, Station Grunn naar Warffum – trein (meerijden)
 (regie: bewijsmoment, relatie-bijbel 4: op het perron wacht Tammo tot een oude vrouw met een rollator de trein uit is voor hij zelf instapt. Tessa ziet het in het raam.)

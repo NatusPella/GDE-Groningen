@@ -80,13 +80,13 @@
  {
   "reason": "spreektekst",
   "speaker": "Sjabbe",
-  "text": "Zwaarder dan jij denkt. Lichter dan ik vertel.",
+  "text": "Dat hangt af van wie hem tilt. Ik zeg niks.",
   "scene": "N1"
  },
  {
   "reason": "spreektekst",
   "speaker": "Sjabbe",
-  "text": "Dertig. Maar dan draagt hij.",
+  "text": "Dertig. Met de trap erbij. De trap is vandaag ook zwaarder.",
   "scene": "N1"
  },
  {
@@ -98,7 +98,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Sjabbe",
-  "text": "Papier is macht. Zegt hij. Ik zeg niks.",
+  "text": "Hij was vriendelijk. Dat vind ik het engste. Pas op, jullie.",
   "scene": "N1"
  },
  {
@@ -110,7 +110,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Nee. De duiven kennen mij.",
+  "text": "Nee. Maar de duif heeft mijn adres.",
   "scene": "N2"
  },
  {
@@ -134,7 +134,7 @@
  {
   "reason": "stemkeuze",
   "speaker": "Meneer Veldkamp",
-  "text": "Ik eet liever alleen. Maar kom maar.",
+  "text": "Ik eet liever alleen. Maar de duiven hebben al ja gezegd.",
   "scene": "N2"
  },
  {
@@ -386,13 +386,13 @@
  {
   "reason": "spreektekst",
   "speaker": "Oma Trijntje",
-  "text": "Dat klinkt niet als slapen, jong.",
+  "text": "Dat is geen slapen. Dat is stilte met een plan.",
   "scene": "N8"
  },
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Het is een punaise.",
+  "text": "Een punaise. Ja.",
   "scene": "N8"
  },
  {
@@ -404,7 +404,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "De koe kijkt. Naar mij.",
+  "text": "De koe kijkt. Naar mij. Ze kent mijn duiven.",
   "scene": "N5"
  },
  {
@@ -464,7 +464,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Een goede bus.",
+  "text": "Een bus met principes.",
   "scene": "N7"
  },
  {

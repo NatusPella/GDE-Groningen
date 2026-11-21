@@ -1897,7 +1897,7 @@
     {
      "speaker": "Sjabbe",
      "key": "sjabbe",
-     "text": "Zwaarder dan jij denkt. Lichter dan ik vertel.",
+     "text": "Dat hangt af van wie hem tilt. Ik zeg niks.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -1915,10 +1915,11 @@
     {
      "speaker": "Sjabbe",
      "key": "sjabbe",
-     "text": "Dertig. Maar dan draagt hij.",
+     "text": "Dertig. Met de trap erbij. De trap is vandaag ook zwaarder.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": true,
+     "humor": "HN-08"
     },
     {
      "speaker": "Sjabbe",
@@ -1940,10 +1941,11 @@
     {
      "speaker": "Sjabbe",
      "key": "sjabbe",
-     "text": "Papier is macht. Zegt hij. Ik zeg niks.",
+     "text": "Hij was vriendelijk. Dat vind ik het engste. Pas op, jullie.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": true,
+     "humor": "HN-09"
     }
    ]
   },
@@ -1979,10 +1981,11 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Nee. De duiven kennen mij.",
+     "text": "Nee. Maar de duif heeft mijn adres.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": true,
+     "humor": "HN-10"
     },
     {
      "speaker": "Meneer Veldkamp",
@@ -2020,10 +2023,11 @@
     {
      "speaker": "Meneer Veldkamp",
      "key": "veldkamp",
-     "text": "Ik eet liever alleen. Maar kom maar.",
+     "text": "Ik eet liever alleen. Maar de duiven hebben al ja gezegd.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": true,
+     "humor": "HN-11"
     }
    ]
   },
@@ -2092,10 +2096,11 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Dat heb ik ook al gezien.",
+     "text": "Ik weet het. Hij zegt niets met zijn hele gezicht.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
+     "humor": "HN-12",
      "voice": "Anita"
     }
    ]
@@ -2133,10 +2138,11 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Ik zeg het wel als het fout gaat.",
+     "text": "Dat merk je vanzelf. Ik schreeuw dan heel rustig.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
+     "humor": "HN-07",
      "voice": "Anita"
     },
     {
@@ -5646,7 +5652,7 @@
     {
      "speaker": "Oma Trijntje",
      "key": "trijntje",
-     "text": "Dat klinkt niet als slapen, jong.",
+     "text": "Dat is geen slapen. Dat is stilte met een plan.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -5655,7 +5661,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Het is een punaise.",
+     "text": "Een punaise. Ja.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -5663,10 +5669,11 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Het is een punaise.",
+     "text": "Een punaise. We hebben hem al een beetje lief.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
+     "humor": "HN-05",
      "voice": "Anita"
     }
    ]
@@ -5704,19 +5711,21 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Je vroeg niet naar de koeien.",
+     "text": "Je vroeg ook niet naar de kippen. Er zijn er zeventien. Ze hebben namen.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
+     "humor": "HN-13",
      "voice": "Anita"
     },
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "De koe kijkt. Naar mij.",
+     "text": "De koe kijkt. Naar mij. Ze kent mijn duiven.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": true,
+     "humor": "HN-14"
     },
     {
      "speaker": "Tessa",
@@ -5815,6 +5824,7 @@
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
+     "humor": "HN-06",
      "voice": "Anita"
     }
    ]
@@ -5876,10 +5886,11 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Een goede bus.",
+     "text": "Een bus met principes.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": true,
+     "humor": "HN-15"
     }
    ]
   },

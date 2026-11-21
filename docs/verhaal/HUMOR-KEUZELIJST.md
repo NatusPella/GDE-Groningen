@@ -2,7 +2,7 @@
 
 Je hoeft niets te doen. Voor elke nieuwe of herschreven komische beat heeft de schrijver drie varianten en een veilige neutrale terugval gemaakt; drie onafhankelijke beoordelaars (zonder elkaars oordeel, met de varianten in een andere volgorde) kozen de beste. De winnaar staat in het spel; de andere twee en de terugval staan hieronder als alternatief. Wil je iets anders: zet `chosen` van die beat in het bijbehorende bestand `game/storydata/humor*.json` op 0, 1, 2 of `"neutral"` en draai `node scripts/build_story_data.mjs`. Werkwijze: [SCHRIJFREGELS-21-11.md](SCHRIJFREGELS-21-11.md). Na een wijziging: draai ook de cutscene-tests (`cutscenes_akte*_test`), want de cues van een scène (`on:`) volgen de gekozen tekst. Samen spelen: een beat is gewone scènetekst; een gast ziet de gekozen variant mee in de scène van de host. Gegenereerd door `node scripts/humor_doc.mjs`; kies hier niet met de hand.
 
-Eerlijk over de proef: 70 beats. De beoordelaars lazen de stijlgids en de beats; minstens twee van de drie lazen de ijkregels uit akte 1 ([BEHOUDEN]-grappen) niet. Wees dus kritisch bij beats met lage zekerheid.
+Eerlijk over de proef: 81 beats. De beoordelaars lazen de stijlgids en de beats; minstens twee van de drie lazen de ijkregels uit akte 1 ([BEHOUDEN]-grappen) niet. Wees dus kritisch bij beats met lage zekerheid.
 
 ## Bovenaan: gevoelig of gespleten met lage zekerheid
 
@@ -19,7 +19,12 @@ Eerlijk over de proef: 70 beats. De beoordelaars lazen de stijlgids en de beats;
 - **HI-09** (T2, TAMMO): gekozen "Ik droomde over verkeer."; paneelsplit 1-1-1, zekerheid laag. Droge onverwachte onderwerpskeuze, korte pointe.
 - **HI-16** (M25.6, OMA TRIJNTJE): gekozen "Dan gaan ze er later in."; paneelsplit 1-1-1, zekerheid laag. Sluit exact aan op de herhaling in HI-17.
 - **H06** (M02.5, TESSA): gekozen "Alleen of we een koekje wilden."; paneelsplit 1-1-1, zekerheid laag. Koekje wilden: Tessa's droge understatement.
-- **HN-04** (N1, SJABBE): gekozen "Zwaarder dan jij denkt. Lichter dan ik vertel."; paneelsplit 1-1-1, zekerheid laag. Past bij Sjabbes vaagheid-met-een-wenk en laat de prijs aan Tessa, zodat haar twintig euro erna als tegenzet werkt.
+- **HN-02** (N6, KAPITEIN KLAAS): gekozen "Dat telt."; paneelsplit 1-1-1, zekerheid laag. Twee woorden, maximaal understatement.
+- **HN-03** (N4, TESSA): gekozen "Iemand die alle regels kent. Behalve de leuke."; paneelsplit 1-1-1, zekerheid laag. Droog en past bij Jelle; 'behalve de leuke' landt.
+- **HN-05** (N8, TESSA): gekozen "Een punaise. We hebben hem al een beetje lief."; paneelsplit 1-1-1, zekerheid laag. Ongezegde liefde verstopt in een punaise.
+- **HN-06** (N6, TESSA): gekozen "Ik heb het water niet gekozen."; paneelsplit 1-1-1, zekerheid laag. Kort, zeeziek, geen verdere uitleg nodig.
+- **HN-08** (N1, SJABBE): gekozen "Dertig. Met de trap erbij. De trap is vandaag ook zwaarder."; paneelsplit 1-1-1, zekerheid laag. Meest onverwachte pointe die bij het personage past.
+- **HN-13** (N5, TESSA): gekozen "Je vroeg ook niet naar de kippen. Er zijn er zeventien. Ze hebben namen."; paneelsplit 1-1-1, zekerheid laag. Meest onverwachte pointe die bij het personage past.
 
 ## Lage zekerheid (twee van de drie, of onderling onzeker)
 
@@ -34,7 +39,6 @@ Eerlijk over de proef: 70 beats. De beoordelaars lazen de stijlgids en de beats;
 - **HI-02** (O1): "Staat "thee" erbij?"
 - **HI-15** (B4.2): "Dan weet zij het eerder dan ik."
 - **H04** (O11): "Mijn juristen kijken naar die klomp."
-- **HN-03** (N4): "Iemand die alle regels kent. Behalve de leuke."
 
 ## Alle beats
 
@@ -106,10 +110,21 @@ Eerlijk over de proef: 70 beats. De beoordelaars lazen de stijlgids en de beats;
 | H06 | M02.5 | TESSA | Alleen of we een koekje wilden. | variant 1, variant 3, variant 2 | laag | Koekje wilden: Tessa's droge understatement. |
 | H07 | R1.1 | RIKUS | Dat is een helder plan. Ik zeg niks. Ik draai een plaat. | variant 2, neutraal, variant 2 | midden | Ik zeg niks als mening, dan de plaat: Rikus. |
 | H08 | C00.2 | TESSA | Vierentwintig, net afgestudeerd en samen nul banen. Na de studie gaat iedereen ergens anders heen. Wij niet. | variant 1, variant 1, variant 1 | hoog | Samen nul banen is de pointe, en de rest is kort. |
-| HN-01 | N8 | OMA TRIJNTJE | Dat klinkt niet als slapen, jong. | variant 2, variant 3, variant 2 | midden | Natuurlijk, warm en droog; Tammo's 'Het is een punaise' landt er direct op, terwijl A/C te zwaar aanzetten. |
-| HN-02 | N6 | KAPITEIN KLAAS | Dat telt. | variant 2, variant 2, variant 1 | midden | Kort en droog understatement dat Tammo's stilte als vangst erkent, zonder uitleg. |
-| HN-03 | N4 | TESSA | Iemand die alle regels kent. Behalve de leuke. | variant 3, variant 2, variant 3 | laag | De kicker 'Behalve de leuke' geeft Tessa een droge, eigen pointe op de bureaucratische stoepkoop. |
-| HN-04 | N1 | SJABBE | Zwaarder dan jij denkt. Lichter dan ik vertel. | variant 1, neutraal, variant 3 | laag | Past bij Sjabbes vaagheid-met-een-wenk en laat de prijs aan Tessa, zodat haar twintig euro erna als tegenzet werkt. |
+| HN-01 | N8 | OMA TRIJNTJE | Dat is geen slapen. Dat is stilte met een plan. | variant 1, variant 2, variant 2 | midden | Meest onverwachte pointe die bij het personage past. |
+| HN-02 | N6 | KAPITEIN KLAAS | Dat telt. | neutraal, variant 2, variant 1 | laag | Twee woorden, maximaal understatement. |
+| HN-03 | N4 | TESSA | Iemand die alle regels kent. Behalve de leuke. | neutraal, variant 2, variant 3 | laag | Droog en past bij Jelle; 'behalve de leuke' landt. |
+| HN-04 | N1 | SJABBE | Dat hangt af van wie hem tilt. Ik zeg niks. | variant 1, variant 2, variant 1 | midden | Zijn vaste 'ik zeg niks' als ontwijking. |
+| HN-05 | N8 | TESSA | Een punaise. We hebben hem al een beetje lief. | neutraal, variant 3, variant 2 | laag | Ongezegde liefde verstopt in een punaise. |
+| HN-06 | N6 | TESSA | Ik heb het water niet gekozen. | neutraal, variant 2, variant 3 | laag | Kort, zeeziek, geen verdere uitleg nodig. |
+| HN-07 | N4 | TESSA | Dat merk je vanzelf. Ik schreeuw dan heel rustig. | variant 2, variant 2, variant 3 | midden | Schreeuwen heel rustig: kalme paniek, droog. |
+| HN-08 | N1 | SJABBE | Dertig. Met de trap erbij. De trap is vandaag ook zwaarder. | neutraal, variant 2, variant 1 | laag | Meest onverwachte pointe die bij het personage past. |
+| HN-09 | N1 | SJABBE | Hij was vriendelijk. Dat vind ik het engste. Pas op, jullie. | variant 3, variant 3, variant 3 | hoog | Vriendelijk als het engste: droge dreiging. |
+| HN-10 | N2 | TAMMO | Nee. Maar de duif heeft mijn adres. | variant 2, variant 2, neutraal | midden | De duif heeft mijn adres: absurd en droog. |
+| HN-11 | N2 | VELDKAMP | Ik eet liever alleen. Maar de duiven hebben al ja gezegd. | variant 2, variant 2, variant 2 | hoog | Norse ja via de duiven; zacht zonder zoetigheid. |
+| HN-12 | N3 | TESSA | Ik weet het. Hij zegt niets met zijn hele gezicht. | neutraal, variant 2, variant 2 | midden | Meest onverwachte pointe die bij het personage past. |
+| HN-13 | N5 | TESSA | Je vroeg ook niet naar de kippen. Er zijn er zeventien. Ze hebben namen. | variant 1, variant 2, variant 3 | laag | Meest onverwachte pointe die bij het personage past. |
+| HN-14 | N5 | TAMMO | De koe kijkt. Naar mij. Ze kent mijn duiven. | variant 1, variant 2, variant 2 | midden | Meest onverwachte pointe die bij het personage past. |
+| HN-15 | N7 | TAMMO | Een bus met principes. | variant 2, variant 2, variant 3 | midden | Bus met principes: serieus oordeel, absurd. |
 
 ## De alternatieven per beat
 
@@ -509,26 +524,92 @@ Eerlijk over de proef: 70 beats. De beoordelaars lazen de stijlgids en de beats;
 - variant 3: Wij zijn vierentwintig, afgestudeerd en werkloos. Dat is een begin. Na de studie gaat iedereen ergens anders heen. Wij niet.
 - neutraal: Wij zijn vierentwintig, net afgestudeerd en werkloos. Na de studie gaat iedereen ergens anders heen. Wij niet.
 
-**HN-01** (N8): Oma's logeerkamer, avond. Tessa en Tammo pakken tegelijk dezelfde punaise; een lange stilte. Beneden klinkt Oma's pollepel op een pan en ze roept dat ze niet slapen. Tessa: "We slapen, Oma."
-- variant 1: Dat is geen slaapgeluid, jong.
-- variant 2 (gekozen): Dat klinkt niet als slapen, jong.
-- variant 3: Ik ken slapen. Dit is het niet.
-- neutraal: Ga nou maar slapen, jong.
+**HN-01** (N8): Oma's logeerkamer, avond. Tessa en Tammo pakken tegelijk dezelfde punaise; een lange stilte. Beneden klinkt Oma's pollepel op een pan en ze roept dat ze niet slapen. Tessa: "We slapen, Oma." Oma antwoordt; daarna zegt Tammo "Het is een punaise."
+- variant 1: Ik ben tweeënnegentig. Ik weet hoe slapen klinkt.
+- variant 2 (gekozen): Dat is geen slapen. Dat is stilte met een plan.
+- variant 3: Ik ben ook jong geweest, hoor. Slapen klinkt anders.
+- neutraal: Dat klinkt niet als slapen, jong.
 
-**HN-02** (N6): Noordpolderzijl, rubberboot. Klaas zegt: praat tegen het water, dan vangt hij. Tammo zegt niets (alleen puntjes).
-- variant 1: Dat is ook praten.
-- variant 2 (gekozen): Dat telt.
-- variant 3: Dat is ook een gesprek.
-- neutraal: Goed zo.
+**HN-02** (N6): Noordpolderzijl, rubberboot. Klaas zegt: praat tegen het water, dan vangt hij. Tammo zegt niets (alleen puntjes). Klaas reageert; daarna vraagt Tessa of ze weer aan land mag.
+- variant 1: Hij zegt meer dan sommige mensen.
+- variant 2: Het water vindt het prachtig. Je ziet het aan de rimpels.
+- variant 3: Mooi gesproken, jongen. Zo hoor ik het graag.
+- neutraal (gekozen): Dat telt.
 
-**HN-03** (N4): Station Grunn. Jelle belt dat haar auto op een stoep staat die hij gisteren kocht; Tammo vraagt wie een stoep koopt.
-- variant 1: Iemand die de regels leest.
-- variant 2: Iemand die het kleine lettertje leest.
-- variant 3 (gekozen): Iemand die alle regels kent. Behalve de leuke.
-- neutraal: Iemand die graag wint.
+**HN-03** (N4): Station Grunn. Jelle belt dat haar auto op een stoep staat die hij gisteren kocht ("Een stoep met een overeenkomst."). Tammo vraagt: "Wie koopt een stoep?" Tessa geeft het laatste woord van de scène. Jelle is de bureaucratische, rijke eikel met een zachte kern.
+- variant 1: Iemand die het kleine lettertje leest. Voor de lol.
+- variant 2: Iemand met een heel groot bureau en nul vrienden.
+- variant 3: Iemand die vroeger geen stoep had om op te zitten.
+- neutraal (gekozen): Iemand die alle regels kent. Behalve de leuke.
 
-**HN-04** (N1): Voor Pand & Poen. Tammo vraagt hoe zwaar de kopieermachine is; Sjabbe (die altijd zegt dat hij niks vraagt) antwoordt vaag.
-- variant 1 (gekozen): Zwaarder dan jij denkt. Lichter dan ik vertel.
-- variant 2: Net zwaar genoeg voor dertig euro.
-- variant 3: Zwaar. Ik zeg niks over hoe zwaar.
-- neutraal: Zwaar genoeg. Dertig euro.
+**HN-04** (N1): Voor Pand & Poen, zaterdagmiddag. Sjabbe (vaag, zegt altijd dat hij niks vraagt) heeft een kopieermachine op een steekkar. Tammo vraagt "Hoe zwaar?" Sjabbe antwoordt; daarna biedt Tessa twintig euro aan.
+- variant 1 (gekozen): Dat hangt af van wie hem tilt. Ik zeg niks.
+- variant 2: Een kleine koe. Maar dan van metaal.
+- variant 3: Genoeg voor twee jonge mensen met een goed plan.
+- neutraal: Zwaarder dan jij denkt. Lichter dan ik vertel.
+
+**HN-05** (N8): Oma's logeerkamer, na de punaise-stilte. Oma riep net "Dat klinkt niet als slapen, jong." Tammo zei: "Het is een punaise." Tessa herhaalt of vult aan; dit is de kicker van de scène.
+- variant 1: Een punaise. Ja.
+- variant 2 (gekozen): Een punaise. We hebben hem al een beetje lief.
+- variant 3: Het is een punaise, Oma. Een heel lieve.
+- neutraal: Het is een punaise.
+
+**HN-06** (N6): Noordpolderzijl, rubberboot. Klaas zegt: "Jij zit stil en je vangt. Zij praat en zij is groen." Tessa (zeeziek, krampachtig aan de reling) reageert; slotzin van de scène.
+- variant 1: Het water is mijn keuze niet. De boot ook niet.
+- variant 2: Ik praat niet tegen water. Water heeft nooit iets voor mij gedaan.
+- variant 3: Ik doe mijn best, Klaas. Mijn maag niet.
+- neutraal (gekozen): Ik heb het water niet gekozen.
+
+**HN-07** (N4): Station Grunn, maandagochtend. Ze proberen een taxirit; Tessa zegt "Taxi. Jij rijdt." Tammo vraagt "Links of rechts?" Tessa antwoordt (ze is blind en navigeert op gehoor en gevoel).
+- variant 1: Als het misgaat, hoor je het als eerste. Dat is mijn werk.
+- variant 2 (gekozen): Dat merk je vanzelf. Ik schreeuw dan heel rustig.
+- variant 3: Ik zit naast je. Dan gaat het goed.
+- neutraal: Ik zeg het wel als het fout gaat.
+
+**HN-08** (N1): Voor Pand & Poen. Tessa bood twintig euro voor het sjouwen van de kopieermachine de trap op. Sjabbe tegenbod met een wenk naar Tammo (die tilt, Tessa wijst de trap).
+- variant 1: Dertig. Hij draagt, jij wijst. Zo is het eerlijk.
+- variant 2 (gekozen): Dertig. Met de trap erbij. De trap is vandaag ook zwaarder.
+- variant 3: Dertig. En een kop koffie erbij. Ik vraag niks terug.
+- neutraal: Dertig. Maar dan draagt hij.
+
+**HN-09** (N1): Na het sjouwen telt Sjabbe het geld uit. Hij vertelt dat een man in een blauw colbert gisteren al zijn kopieerpapier kocht, contant, uit een klomp. Tessa: "Wat moet hij met kopieerpapier?" Sjabbe sluit de scène af. De man is een handlanger van Jelle (onbenoemd). Eerder zei Sjabbe: "Zwaarder dan jij denkt."
+- variant 1: Hij zei dat het voor een plan was. Ik zeg niks.
+- variant 2: Hij zegt dat papier de wereld regeert. Ik heb nog één pak. Ik zeg niks.
+- variant 3 (gekozen): Hij was vriendelijk. Dat vind ik het engste. Pas op, jullie.
+- neutraal: Papier is macht. Zegt hij. Ik zeg niks.
+
+**HN-10** (N2): Gang op de elfde verdieping van de flat in Paddepoel, vrijdagavond. Een duif zit op de deurmat; de oude buurman Veldkamp staat bij zes duiven. Tessa vraagt: "Je kent hem?" Tammo antwoordt. (Canon: duiven volgen en gehoorzamen Tammo; niemand legt het ooit uit.)
+- variant 1: Nee. Hij kent mij. Dat is het probleem.
+- variant 2 (gekozen): Nee. Maar de duif heeft mijn adres.
+- variant 3: Nee. Maar ze zijn altijd lief voor me geweest.
+- neutraal: Nee. De duiven kennen mij.
+
+**HN-11** (N2): Zelfde gang. Veldkamp (oude man, zes jaar eenzaam met zijn duiven, norse buitenkant, zacht van binnen) hoort Tessa vragen: "Zal ik soep maken? Voor drie?" Zijn antwoord is zijn eerste stap naar de gezelligheid.
+- variant 1: Ik eet alleen. Maar zes duiven eten mee. Dus ja.
+- variant 2 (gekozen): Ik eet liever alleen. Maar de duiven hebben al ja gezegd.
+- variant 3: Zes jaar eet ik alleen. Het is tijd voor een andere stoel.
+- neutraal: Ik eet liever alleen. Maar kom maar.
+
+**HN-12** (N3): Beppe's huis aan de westrand, zondagmiddag, soep. Beppe (Friese oma, spreekt Fries) zegt over Tammo: "Hy seit neat, mar hy docht it goed" (Hij zegt niets, maar hij doet het goed). Tessa verstaat dat niet meteen, Tammo vertaalt "Eerst eten, dan praten." Tessa reageert in het Nederlands. Tammo is stiekem verliefd; Tessa vindt hem leuk maar weet het nog niet.
+- variant 1: Dat zag ik. De eerste week al.
+- variant 2 (gekozen): Ik weet het. Hij zegt niets met zijn hele gezicht.
+- variant 3: Dat zie ik elke dag. Al vijf jaar.
+- neutraal: Dat heb ik ook al gezien.
+
+**HN-13** (N5): Het erf van Tessa's oom bij Warffum, woensdagochtend. Tessa leerde hier melken. Tammo: "Dat wist ik niet." Tessa antwoordt droog-lief; hij heeft vijf jaar nooit naar haar jeugd op het land gevraagd.
+- variant 1: Je vroeg nooit naar mijn jeugd. Alleen of er internet was.
+- variant 2 (gekozen): Je vroeg ook niet naar de kippen. Er zijn er zeventien. Ze hebben namen.
+- variant 3: Je vroeg niet naar koeien. Je vroeg wel altijd naar mij.
+- neutraal: Je vroeg niet naar de koeien.
+
+**HN-14** (N5): Zelfde erf. Een koe die niet weg wil staat bij het hek en kijkt naar Tammo (bang voor grote dieren, maar de dieren mogen hem altijd). Tessa gaat zo zijn hand naar de koeneus leiden.
+- variant 1: De koe kijkt naar mij. Ze weet iets.
+- variant 2 (gekozen): De koe kijkt. Naar mij. Ze kent mijn duiven.
+- variant 3: De koe kijkt naar mij. Ze vindt me aardig.
+- neutraal: De koe kijkt. Naar mij.
+
+**HN-15** (N7): Streekbus naar Winsum, vrijdagochtend. Tammo bedankt altijd de chauffeur. Tessa: "Het was een bus." Tammo sluit de scène af met een serieus oordeel over de bus (zachte romantiek: hij bedankt iedereen).
+- variant 1: Hij stond op tijd. Dat is zeldzaam.
+- variant 2 (gekozen): Een bus met principes.
+- variant 3: Een goede bus. Hij nam ons samen mee.
+- neutraal: Een goede bus.
