@@ -3,28 +3,25 @@
 // - boven het gebouw zelf zijn naam ("Het Groninger Museum");
 // - bovenin een doelkaart met "Gespot 2 van 6", het dichtstbijzijnde doel, afstand en richting, en een balk terwijl je erboven hangt;
 // - een pijl aan de rand van het scherm naar dat doel (met afstand en richtingswoord: niet alleen kleur);
-// - bij de eerste vlucht een korte uitleg met toetsplaatjes (keycap.js);
+// - de toetsen staan maar op één plek: de balk onderaan (pigeonmode.js); de uitlegkaart "Je bent de duif" is vervallen (#1053);
 // - per gespot ding een ring rond de duif, een flits van de kolom en een belletje.
 // De logica staat in pigeonguidelogic.js (puur). Samen spelen: de spotmissie is van wie het spel opende (de duif is van de eigenaar, #525);
 // de gast ziet de duif vliegen maar heeft deze kolommen en kaart niet.
-import { stapel, stapelRuimte, duivenKaarten } from './hudstapel.js';
+import { stapel, stapelRuimte, duivenKaarten, duivenZones, pijlPlek, plaatSelectie } from './hudstapel.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene, getCamera } from './scene3d.js';
 import { maakSimKolom, KOLOM_HOOGTE } from './simkolom3d.js';
 import { pushAudioEvent } from './pedgeom.js';
-import { glyphHtml } from './keycap.js';
 import { reducedMotion } from './motion.js';
-import { guideModel, edgeIndicator, distText, GUIDE_INTRO } from './pigeonguidelogic.js';
+import { guideModel, edgeIndicator, distText } from './pigeonguidelogic.js';
 
 const COLUMN_SCALE = 8; // 9 m x 8: de kolom reikt tot 72 m, ruim boven de vlieghoogte
 const LABEL_H = 26;
 const PLACE_H = 78;
 const PLAAT_W = 640, PLAAT_H = 144;
-const INTRO_S = 14;
 const FX_S = 1.3;
 
 let G = null;
-let introSeen = false;
 let dom = null;
 
 // Kleuren uit de tokens van het ontwerpsysteem (ds-tokens.css), ook op het canvas en in three: geen losse hex.
@@ -34,27 +31,19 @@ const kleurGeel = () => new THREE.Color(tok('--ds-c-geel', 'gold'));
 const CSS = `
 #pigeon-guide { position: fixed; inset: 0; pointer-events: none; z-index: 6; zoom: var(--ui, 1); font-family: var(--ds-font-zeef-tekst); color: var(--ds-c-ink-inkt, #1d1b17); }
 #pigeon-guide[hidden] { display: none; }
-#pigeon-guide .pg-stack { position: absolute; top: 204px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; }
-#pigeon-guide .pg-card { min-width: 320px; max-width: min(560px, calc(100vw / var(--ui, 1) - 32px)); padding: 8px 18px 10px; background: var(--ds-c-ink-papier, #f3ead3); border: var(--ds-lijn-zeef, 3px) solid var(--ds-c-ink-inkt, #1d1b17); border-left: 8px solid var(--ds-c-geel, #f9c80e); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); text-align: center; }
+#pigeon-guide .pg-stack { position: absolute; top: 204px; left: 50%; width: 480px; max-width: calc(100vw / var(--ui, 1) - 32px); transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+#pigeon-guide .pg-card { box-sizing: border-box; width: 100%; min-width: 0; padding: 8px 18px 10px; background: var(--ds-c-ink-papier, #f3ead3); border: var(--ds-lijn-zeef, 3px) solid var(--ds-c-ink-inkt, #1d1b17); border-left: 8px solid var(--ds-c-geel, #f9c80e); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); text-align: center; }
 #pigeon-guide .pg-card small { display: block; font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
 #pigeon-guide .pg-card b { display: block; font-family: var(--ds-font-zeef-kop); font-size: 28px; font-weight: 800; line-height: 1.1; }
 #pigeon-guide .pg-card i { display: block; font-style: normal; font-size: 16px; font-weight: 700; margin-top: 2px; }
 #pigeon-guide .pg-hold { height: 10px; margin-top: 6px; border: 2px solid var(--ds-c-ink-inkt, #1d1b17); border-radius: 6px; background: var(--ds-c-wit, #fff); overflow: hidden; }
 #pigeon-guide .pg-hold[hidden] { display: none; }
 #pigeon-guide .pg-hold u { display: block; height: 100%; width: 100%; background: var(--ds-c-geel, #f9c80e); transform-origin: left; transform: scaleX(0); text-decoration: none; }
-#pigeon-guide .pg-arrow { position: absolute; left: 50%; top: 50%; width: 120px; margin: -34px 0 0 -60px; text-align: center; }
+#pigeon-guide .pg-arrow { position: absolute; left: 50%; top: 50%; width: 240px; margin: -50px 0 0 -120px; text-align: center; }   /* left/top komen uit pijlPlek (hudstapel.js): altijd binnen de vrije band */
 #pigeon-guide .pg-arrow[hidden] { display: none; }
 #pigeon-guide .pg-arrow svg { display: block; width: 52px; height: 52px; margin: 0 auto; filter: drop-shadow(2px 2px 0 var(--ds-c-ink-inkt, #1d1b17)); }
 #pigeon-guide .pg-arrow svg path { fill: var(--ds-c-geel, #f9c80e); stroke: var(--ds-c-ink-inkt, #1d1b17); stroke-width: 2.5; stroke-linejoin: round; }
-#pigeon-guide .pg-arrow span { display: inline-block; margin-top: 2px; padding: 1px 8px; font-size: 15px; font-weight: 800; background: var(--ds-c-ink-papier, #f3ead3); border: 2px solid var(--ds-c-ink-inkt, #1d1b17); border-radius: 6px; white-space: nowrap; }
-#pigeon-guide .pg-intro { max-width: min(520px, calc(100vw / var(--ui, 1) - 32px)); padding: 10px 18px 12px; background: var(--ds-c-ink-papier, #f3ead3); border: var(--ds-lijn-zeef, 3px) solid var(--ds-c-ink-inkt, #1d1b17); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); text-align: center; }
-#pigeon-guide .pg-intro[hidden] { display: none; }
-#pigeon-guide .pg-intro.pg-compact p { display: none; }
-#pigeon-guide .pg-intro.pg-compact { padding: 6px 18px 8px; }
-#pigeon-guide .pg-intro b { display: block; font-family: var(--ds-font-zeef-kop); font-size: 20px; font-weight: 800; }
-#pigeon-guide .pg-intro p { margin: 4px 0 8px; font-size: 16px; font-weight: 600; line-height: 1.3; }
-#pigeon-guide .pg-keys { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px; font-size: 14px; font-weight: 700; }
-#pigeon-guide .pg-keys span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+#pigeon-guide .pg-arrow span { display: inline-block; max-width: 240px; box-sizing: border-box; white-space: normal; margin-top: 2px; padding: 1px 8px; font-size: 15px; font-weight: 800; background: var(--ds-c-ink-papier, #f3ead3); border: 2px solid var(--ds-c-ink-inkt, #1d1b17); border-radius: 6px; }
 `;
 
 function initDom() {
@@ -66,15 +55,11 @@ function initDom() {
   root.hidden = true;
   root.innerHTML = `
     <div class="pg-stack"><div class="pg-card" role="status"><small>Spotopdracht</small><b data-prog></b><i data-line></i><div class="pg-hold" data-holdbox hidden><u data-hold></u></div></div>
-    <div class="pg-intro" data-intro hidden><b></b><p></p><div class="pg-keys"></div></div></div>
+    </div>
     <div class="pg-arrow" data-arrow hidden><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 L35 34 L20 27 L5 34 Z"/></svg><span data-adist></span></div>`;
   document.body.appendChild(root);
   const q = (s) => root.querySelector(s);
-  dom = { root, prog: q('[data-prog]'), line: q('[data-line]'), holdBox: q('[data-holdbox]'), hold: q('[data-hold]'), arrow: q('[data-arrow]'), adist: q('[data-adist]'), intro: q('[data-intro]'), last: {} };
-  const keys = dom.intro.querySelector('.pg-keys');
-  dom.intro.querySelector('b').textContent = GUIDE_INTRO.title;
-  dom.intro.querySelector('p').textContent = GUIDE_INTRO.goal;
-  keys.innerHTML = GUIDE_INTRO.controls.map(([tok, tekst]) => `<span>${glyphHtml(tok)}${tekst}</span>`).join('');
+  dom = { root, prog: q('[data-prog]'), line: q('[data-line]'), holdBox: q('[data-holdbox]'), hold: q('[data-hold]'), arrow: q('[data-arrow]'), adist: q('[data-adist]'), last: {} };
 }
 
 function setText(key, el, text) {
@@ -163,7 +148,7 @@ function build(world, o) {
     items.place = { plaat, label: o.place.label || 'Doel' };
   }
   scene.add(group);
-  return { group, items, fx: [], t: 0, introT: 0, seen: new Set() };
+  return { group, items, fx: [], t: 0, seen: new Set() };
 }
 
 function dispose() {
@@ -193,7 +178,19 @@ function spotFx(world, it, flight) {
   pushAudioEvent(world, { kind: 'notify', x: flight.x, y: flight.y, strength: 0.8 });
 }
 
-const _v = new THREE.Vector3();
+const _v = new THREE.Vector3(), _r = new THREE.Vector3(), _w = new THREE.Vector3();
+
+// De naamplaat als rechthoek in HUD-px (midden, breedte, hoogte), of null als hij achter de camera staat.
+function plaatRechthoek(sprite, cam, vw, vh) {
+  if (!cam) return null;
+  cam.updateMatrixWorld();
+  _w.copy(sprite.position);
+  if (_w.clone().applyMatrix4(cam.matrixWorldInverse).z > 0) return null;
+  _r.setFromMatrixColumn(cam.matrixWorld, 0).multiplyScalar(sprite.scale.x / 2).add(sprite.position).project(cam);
+  _w.project(cam);
+  const w = Math.abs(_r.x - _w.x) * vw;
+  return { x: (_w.x + 1) / 2 * vw, y: (1 - _w.y) / 2 * vh, w, h: w * (PLAAT_H / PLAAT_W) };
+}
 
 // Elk frame tijdens een spotstage. o: { targets, spotted, holds, spotTime, radius, place, world3d }; flight: getPigeonFlight().
 // Doelen die in de wereld al een eigen teken hebben (de knopen van de vlag) zetten world3d uit: dan komen alleen kaart en pijl.
@@ -204,13 +201,15 @@ export function tickPigeonGuide(dt, world, o, flight) {
   const model = guideModel({ targets: o.targets, spotted: o.spotted, holds: o.holds, spotTime: o.spotTime, flight, radius: o.radius });
   const calm = reducedMotion();
 
+  const platen = [];
   for (const it of model.items) {
     const w = G.items[it.k];
     if (it.spotted && !G.seen.has(it.k)) { G.seen.add(it.k); if (w) { w.spotted = true; w.zone.visible = false; } spotFx(world, w, flight); }
     if (!w) continue;
     const d3 = Math.hypot(it.dist, flight.z - (w.gr + LABEL_H));
-    const breed = Math.min(78, Math.max(9, d3 * 0.3));
+    const breed = Math.min(78, Math.max(9, d3 * 0.3)) * (it.nearest ? 1 : it.spotted ? 0.4 : 0.55);   // #1053: alleen het dichtstbijzijnde doel groot
     w.plaat.scale.set(breed, breed * (PLAAT_H / PLAAT_W), 1);
+    platen.push({ id: 'k' + it.k, sprite: w.plaat, prio: it.nearest ? 0 : it.spotted ? 2000 + it.dist : 1 + it.dist });
     tekenPlaat(w.plaat, { label: it.label, dist: Math.round(it.dist / (it.dist < 100 ? 5 : 10)) * (it.dist < 100 ? 5 : 10), spotted: it.spotted, nearest: it.nearest });
     w.plaat.material.opacity = it.spotted ? 0.75 : 1;
     if (w.flash > 0) {
@@ -225,8 +224,9 @@ export function tickPigeonGuide(dt, world, o, flight) {
     const pl = G.items.place;
     const d = Math.hypot(o.place.x - flight.x, o.place.y - flight.y);
     const breed = Math.min(90, Math.max(12, d * 0.3));
-    pl.plaat.scale.set(breed, breed * (PLAAT_H / PLAAT_W), 1);
+    pl.plaat.scale.set(breed * 0.8, breed * 0.8 * (PLAAT_H / PLAAT_W), 1);
     tekenPlaat(pl.plaat, { label: pl.label, dist: Math.round(d / 10) * 10, place: true });
+    platen.push({ id: 'plek', sprite: pl.plaat, prio: 0.5 });
   }
   for (let i = G.fx.length - 1; i >= 0; i--) {
     const f = G.fx[i];
@@ -246,7 +246,13 @@ export function tickPigeonGuide(dt, world, o, flight) {
   dom.holdBox.hidden = !holdOn;
   if (holdOn) dom.hold.style.transform = `scaleX(${n.hold.toFixed(3)})`;
 
-  // de pijl naar het dichtstbijzijnde doel
+  // één stapel (hudstapel.js): opdracht (en later hoogtekaart) onder elkaar; krap = compact, daarna weg. De toetsen staan alleen in de balk onderaan.
+  const ui = parseFloat(tok('--ui', '1')) || 1;
+  const vw = (typeof innerWidth === 'number' ? innerWidth : 1280) / ui, vh = (typeof innerHeight === 'number' ? innerHeight : 720) / ui;
+  const stap = stapel(duivenKaarten({ introActief: false, holdActief: holdOn }), { ruimte: stapelRuimte(vh) });
+  const { zones, pijl } = duivenZones(vw, vh, stap.onder);
+
+  // de pijl naar het dichtstbijzijnde doel, binnen de vrije band (nooit over paneel, stapel, kaarten of toetsbalk)
   if (n) {
     const cam = getCamera();
     const w = G.items[n.k];
@@ -260,23 +266,16 @@ export function tickPigeonGuide(dt, world, o, flight) {
     }
     const e = edgeIndicator(_v.x, _v.y, behind);
     dom.arrow.hidden = false;
-    // aan de rand: de pijl wijst naar het doel; in beeld: de pijl boven het doel wijst omlaag
-    dom.arrow.style.left = `${(50 + e.x * 50).toFixed(2)}%`;
-    dom.arrow.style.top = `calc(${(50 - e.y * 50).toFixed(2)}% ${e.onScreen ? '- 70px' : '+ 0px'})`;
+    const pos = pijlPlek(e, vw, vh, pijl, { w: 240, h: 100 });
+    dom.arrow.style.left = `${pos.x.toFixed(1)}px`;
+    dom.arrow.style.top = `${pos.y.toFixed(1)}px`;
     dom.arrow.firstElementChild.style.transform = `rotate(${(e.angle * 180 / Math.PI).toFixed(1)}deg)`;
     setText('adist', dom.adist, `${n.label} ${distText(n.dist)}`);
   } else dom.arrow.hidden = true;
 
-  // de uitleg van de eerste vlucht
-  if (!introSeen) {
-    G.introT += dt;
-    if (G.introT > INTRO_S || model.done > 0) introSeen = true;
-  }
-  // één stapel (hudstapel.js): opdracht, uitleg en hoogtekaart schuiven onder elkaar; krap = compact, daarna weg
-  const ui = parseFloat(tok('--ui', '1')) || 1;
-  const kaarten = duivenKaarten({ introActief: !introSeen, holdActief: holdOn });
-  const stap = stapel(kaarten, { ruimte: stapelRuimte(typeof innerHeight === 'number' ? innerHeight / ui : 720) });
-  const uitleg = stap.zichtbaar.find((k) => k.id === 'uitleg');
-  dom.intro.hidden = !uitleg;
-  dom.intro.classList.toggle('pg-compact', !!(uitleg && uitleg.compact));
+  // de naamplaten: alleen wat past (niet over elkaar, niet onder een kaart); het dichtstbijzijnde doel eerst
+  const cam2 = getCamera();
+  const recht = platen.map((q) => { const r = plaatRechthoek(q.sprite, cam2, vw, vh); return r && { id: q.id, prio: q.prio, ...r }; }).filter(Boolean);
+  const blijft = new Set(plaatSelectie(recht, vw, vh, zones, 3));
+  for (const q of platen) q.sprite.visible = blijft.has(q.id);
 }

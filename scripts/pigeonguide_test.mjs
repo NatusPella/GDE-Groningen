@@ -65,7 +65,8 @@ ok(e.x < 0 && e.y < 0 && !e.onScreen, 'achter de camera wordt gespiegeld');
 // 6. de uitleg noemt de besturing met tokens, geen losse toetsnamen; geen verboden woorden
 ok(GUIDE_INTRO.controls.every(([t]) => /^[A-Z]+$/.test(t)), 'toetsen als token');
 const srcGuide = readFileSync(path.join(root, 'pigeonguide.js'), 'utf8');
-ok(/glyphHtml/.test(srcGuide) && /reducedMotion/.test(srcGuide), 'toetsplaatjes via keycap.js en Rustig drukwerk/verminderde beweging gerespecteerd');
+// (#1053: de uitlegkaart met toetsplaatjes is uit de gids gehaald; de toetsen staan in de balk van pigeonmode.js, met keycap.js)
+ok(/reducedMotion/.test(srcGuide) && !/glyphHtml/.test(srcGuide), 'verminderde beweging gerespecteerd; één toetsuitleg (de balk onderaan), niet nog een in de gids');
 ok(!/\b(host|iedereen)\b/i.test(GUIDE_INTRO.goal + GUIDE_INTRO.title), 'geen host of iedereen in spelertekst');
 
 console.log(bad ? `${bad} MISLUKT` : 'pigeonguide: alles ok');

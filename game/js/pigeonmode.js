@@ -507,7 +507,7 @@ body.pigeon-mode #hud .hud-damage { display: none !important; }
 #pigeon-hud .ph-combo:empty, #pigeon-hud .ph-tag:empty { display: none; }
 #pigeon-hud .ph-boost { margin-top: 5px; height: 5px; background: rgba(240,237,228,0.15); border-radius: 3px; overflow: hidden; }
 #pigeon-hud .ph-boost i { display: block; height: 100%; background: linear-gradient(90deg, var(--mk-mission, #f2c744), var(--mk-ok, #3fc97a)); transform-origin: left; }
-#pigeon-hud .ph-hints { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; max-width: min(760px, calc(100vw / var(--ui, 1) - 380px)); padding: 6px 14px; background: linear-gradient(0deg, rgba(10,14,18,0.72), rgba(10,14,18,0.5)); border-radius: 6px; font: 13px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; text-shadow: 0 1px 2px rgba(0,0,0,0.9); }
+#pigeon-hud .ph-hints { position: absolute; left: 560px; right: 46px; bottom: 22px; width: fit-content; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; max-width: min(760px, calc(100vw / var(--ui, 1) - 606px));   /* #1053: vaste zone rechts van de plaatsnaam (hudstapel.js duivenZones) */ padding: 6px 14px; background: linear-gradient(0deg, rgba(10,14,18,0.72), rgba(10,14,18,0.5)); border-radius: 6px; font: 13px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; text-shadow: 0 1px 2px rgba(0,0,0,0.9); }
 #pigeon-hud .ph-hints span { display: inline-flex; align-items: center; white-space: nowrap; color: rgba(240,237,228,0.88); }
 #pigeon-hud .ph-hints .hot { color: var(--mk-mission, #f2c744); }
 #pigeon-hud .ph-hints .ph-gast, #pigeon-hud .ph-hints .ph-touch { color: rgba(240,237,228,0.62); }
@@ -516,7 +516,7 @@ body.pigeon-mode #hud .hud-damage { display: none !important; }
 #pigeon-hud .ph-pop { font-size: 30px; letter-spacing: 2px; color: #f0ede4; text-shadow: 0 2px 8px rgba(0,0,0,0.8); animation: ph-pop 1.4s ease-out forwards; }
 #pigeon-hud .ph-pop em { font-style: normal; color: var(--ph-acc); }
 @keyframes ph-pop { 0% { opacity: 0; transform: translateY(12px) scale(0.8); } 12% { opacity: 1; transform: translateY(0) scale(1.08); } 25% { transform: scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(-26px); } }
-#pigeon-hud .ph-card { position: absolute; top: 150px; left: 14px; max-width: min(calc(44vw / var(--ui, 1)), 470px); padding: 9px 20px 11px 12px; background: linear-gradient(90deg, rgba(12,20,14,0.86), rgba(23,48,31,0.5) 78%, rgba(23,48,31,0)); border-left: 3px solid var(--ph-acc); text-shadow: 0 1px 3px rgba(0,0,0,0.9); opacity: 0; transform: translateX(-24px); transition: opacity 0.4s, transform 0.5s cubic-bezier(0.2,0.7,0.2,1); }
+#pigeon-hud .ph-card { position: absolute; top: 200px; left: 46px; width: min(calc(30vw / var(--ui, 1)), 350px); box-sizing: border-box;   /* #1053: dezelfde zone als de missiekaart en de nieuwsregel (links onder het paneel); wie wint staat in hudcards.css */ padding: 9px 20px 11px 12px; background: linear-gradient(90deg, rgba(12,20,14,0.86), rgba(23,48,31,0.5) 78%, rgba(23,48,31,0)); border-left: 3px solid var(--ph-acc); text-shadow: 0 1px 3px rgba(0,0,0,0.9); opacity: 0; transform: translateX(-24px); transition: opacity 0.4s, transform 0.5s cubic-bezier(0.2,0.7,0.2,1); }
 #pigeon-hud .ph-card.on { opacity: 1; transform: none; }
 #pigeon-hud .ph-card small { display: block; font-size: 14px; letter-spacing: 3px; color: var(--ph-acc); }
 #pigeon-hud .ph-card b { display: block; margin-top: 3px; font-weight: normal; font-size: 32px; letter-spacing: 1px; line-height: 1; }
@@ -537,7 +537,7 @@ body.pigeon-mode #hud .hud-damage { display: none !important; }
 }
 html.reduce-motion #pigeon-hud .ph-pop, html.reduce-motion #pigeon-hud .ph-warn { animation: none; }
 html.reduce-motion #pigeon-hud .ph-card, html.reduce-motion #pigeon-hud .ph-sikkom { transition: none; }
-@media (max-width: 700px) { #pigeon-hud .ph-hints { max-width: calc(100vw / var(--ui, 1) - 32px); bottom: 190px; } #pigeon-hud .ph-sikkom { width: 220px; } }
+@media (max-width: 700px) { #pigeon-hud .ph-hints { left: 16px; right: 16px; max-width: calc(100vw / var(--ui, 1) - 32px); bottom: 190px; } #pigeon-hud .ph-sikkom { width: 220px; } }
 /* Zomerse zeefdruk (ADR 0040): de duivenmodus als papieren plaatjes met inktrand en harde schaduw. */
 #pigeon-hud { font-family: var(--ds-font-zeef-kop); font-weight: 600; color: var(--ds-c-ink-inkt); --ph-acc: var(--ds-c-ink-bord); }
 #pigeon-hud :is(.ph-panel, .ph-card, .ph-sikkom, .ph-hints) { background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); text-shadow: none; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); }
@@ -625,6 +625,7 @@ function card(kicker, title, line = '', secs = 3.5) {
   hud.card.querySelector('b').textContent = title;
   hud.card.querySelector('i').textContent = line;
   hud.card.classList.add('on');
+  document.body.classList.add('pg-melding');   // de prestatiekaart gaat voor op de missiekaart en de nieuwsregel (zelfde zone)
   hud.cardT = secs;
 }
 
@@ -677,7 +678,7 @@ function updateHud(dt) {
     if (world && world.coopNet && world.coopNet.role === 'client') html += '<span class="ph-gast">Je vliegt mee; de eigenaar landt.</span>';
     hud.hints.innerHTML = html;
   }
-  if (hud.cardT > 0 && (hud.cardT -= dt) <= 0) hud.card.classList.remove('on');
+  if (hud.cardT > 0 && (hud.cardT -= dt) <= 0) { hud.card.classList.remove('on'); document.body.classList.remove('pg-melding'); }
   if (hud.sikkomT > 0 && (hud.sikkomT -= dt) <= 0) hud.sikkom.classList.remove('on');
 }
 
@@ -1720,7 +1721,7 @@ export function stopPigeonMode(w = world) {
   intro = null;
   w.pigeonMode = false;
   w.pigeonIntro = false;
-  document.body.classList.remove('pigeon-mode');
+  document.body.classList.remove('pigeon-mode', 'pg-melding');
   clearPigeonGuide();
   hud.root.hidden = true;
   hud.card.classList.remove('on');
