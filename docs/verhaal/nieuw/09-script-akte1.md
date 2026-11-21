@@ -184,7 +184,7 @@ SJABBE: Een klomp is snel leeg. {pause=0.5} [NIEUW]
 SJABBE: Daarom halen ze pinautomaten uit de muur. [NIEUW]
 TAMMO: Wat wil hij? [NIEUW]
 SJABBE: Alles wat met frituren te maken heeft. En hij vroeg waar het museum alarmen heeft. [NIEUW]
-TESSA: Het museum. De Gouden Eierbal. {ov=0.3} [NIEUW]
+TESSA: Het museum. De Gouden Eierbal, de wisselprijs. {ov=0.3} [NIEUW]
 SJABBE: Achttien karaat. Ik vraag niks. Ik zeg alleen: wie hem eerst heeft, heeft hem. [BEHOUDEN]
 (regie: Tessa pint bij de automaat naast de winkel honderdvijftig euro.)
 TESSA: Contant. Het Loket gaat om tien uur open. Nu hoeven we alleen nog in te schrijven. [NIEUW]

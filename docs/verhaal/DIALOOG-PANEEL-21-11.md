@@ -48,7 +48,7 @@ Besluit eigenaar: dialoog is korte beurten met overlappende reacties, meer emoti
 
 | Variant | Tekst |
 | --- | --- |
-| A (in het spel) | TESSA: Het museum. De Gouden Eierbal. {ov=0.3} |
+| A (in het spel) | TESSA: Het museum. De Gouden Eierbal, de wisselprijs. {ov=0.3} |
 | B (alternatief) | TAMMO: Het museum?<br>TESSA: De Gouden Eierbal, Tammo. De wisselprijs. {ov=0.3} |
 
 ### D05 · M03.2
