@@ -99,7 +99,7 @@ Object.assign(SPECS, SPECS_AKTE2);
     beats: [
       // he checks the paintwork while they walk up
       { on: 0, actor: 'berend', walk: [[2.5, 1.3], [2.5, 0.5]], speed: 0.9 },
-      { on: 'Ik heb gisteren', dt: 0.6, actor: 'berend', face: 'prop:bakkie' },
+      { on: 'Ik heb gisteren', dt: 4.1, actor: 'berend', face: 'prop:bakkie' },
       { on: 'Ik heb gisteren', dt: 0.8, actor: 'berend', anim: 'point' },
       { on: 'Jij bent toch', actor: 'berend', face: 'actor:tammo' },
       { on: 'Niet zo hard', actor: 'berend', anim: 'shake' },
@@ -110,6 +110,7 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Nul krassen. Of ik tel', dt: 0.4, actor: 'berend', walk: [[4.0, 1.9]], speed: 1.3 },
       { on: 'Nul krassen. Of ik tel', dt: 0.4, actor: 'berend', drop: 'kladblok' },
       { on: 'Jij rijdt als', actor: 'tessa', anim: 'laugh' },
+      { on: 'Vijftig euro van Berend', dt: 2.5, actor: 'tessa', face: 'actor:tammo' },
       { on: 'En jij als', actor: 'tessa', face: 'actor:berend' },
       { on: 'En jij als', dt: 0.5, actor: 'tessa', anim: 'point' },
       { on: 'En jij als', dt: 1.2, actor: 'berend', anim: 'shrug' },
@@ -196,14 +197,16 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Moi. Wat is er', dt: -0.6, actor: 'tammo', walk: [[0.2, 1.0]], speed: 3 },
       { on: 'Moi. Wat is er', actor: 'tessa', face: 'actor:tammo' },
       { on: 'Mijn pas zit', actor: 'tessa', anim: 'point' },
-      { on: 'Mijn pas zit', dt: 0.4, actor: 'tessa', face: 'prop:automaat' },
-      { on: 'Twee reuzen met', actor: 'tessa', face: 'prop:automaat' },
+      { on: 'Mijn pas zit', dt: 6.2, actor: 'tessa', face: 'prop:automaat' },
+      { on: 'Twee reuzen met', dt: 5.2, actor: 'tessa', face: 'prop:automaat' },
       { on: 'In die pas', actor: 'tessa', face: 'actor:tammo' },
       { on: 'In die pas', dt: 0.2, actor: 'tessa', anim: 'hips' },
       { on: 'Dus we pinnen', actor: 'tammo', face: 'prop:automaat' },
       { on: 'Dus we pinnen', dt: 0.4, actor: 'tammo', walk: [[4.2, 1.9]], speed: 1.6 },
       { on: 'Ik ken iemand', actor: 'tessa', walk: [[3.4, 0.6]], speed: 1.6 },
       { on: 'Ik ken iemand', dt: 1.5, actor: 'tessa', anim: 'point' },
+      { on: 'Ik ken Sjabbe', actor: 'tessa', face: 'actor:tammo' },
+      { on: 'Ze trokken hem', actor: 'tessa', face: 'actor:tammo' },
       // the police car comes round the corner: get in
       { on: 'Er komt een politie', dt: -1.4, prop: 'politie', path: [[-60, -6], [-3, -6], [-3, -6]], speed: 11 },
       { on: 'Er komt een politie', actor: 'tammo', face: 'prop:politie' },
@@ -349,7 +352,7 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Niemand kijkt', dt: 0.2, actor: 'bert', face: 'actor:tammo' },
       { on: 'Hoe stuur je', actor: 'tammo', anim: 'shrug' },
       { on: 'Diep in de ogen', actor: 'bert', anim: 'point' },
-      { on: 'Kiek. Hij', actor: 'bert', face: 'prop:duif' },
+      { on: 'Kiek. Hij', dt: 3.0, actor: 'bert', face: 'prop:duif' },
       { on: 'Kiek. Hij', dt: 0.3, actor: 'bert', anim: 'point' },
       { on: 'Kiek. Hij', dt: 0.4, prop: 'duif', path: [[4.4, 2.6, 2.3], [3.2, 0.9, 1.9], [0.5, 0.6, 1.55]], speed: 2.2 },
       { on: 'Duiven luisteren', actor: 'tammo', anim: 'shake' },
@@ -466,7 +469,7 @@ Object.assign(SPECS, SPECS_AKTE2);
     beats: [
       { on: 0, actor: 'tammo', face: 'actor:tessa' },
       { on: 'Het plan.', actor: 'tessa', anim: 'point' },
-      { on: 'Het plan.', dt: 0.3, actor: 'tessa', face: 'prop:radio' },
+      { on: 'Het plan.', dt: 6.8, actor: 'tessa', face: 'prop:radio' },
       { on: 'En daarna brengen', actor: 'tammo', anim: 'nod' },
       { on: 'Na het Ontzet', actor: 'tessa', anim: 'hips' },
       { on: 'Wat?', actor: 'tammo', anim: 'look' },
@@ -499,9 +502,9 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Ik ben geen content', actor: 'jelmer', gaze: 'actor:tammo' },
       { on: 'Spreek voor jezelf', actor: 'tessa', anim: 'hips' },
       { on: 'En die terrassen', actor: 'tammo', anim: 'point' },
-      { on: 'En die terrassen', dt: 0.2, actor: 'tammo', face: 'actor:gast1' },
+      { on: 'En die terrassen', dt: 2.1, actor: 'tammo', face: 'actor:gast1' },
       { on: 'Die zijn het publiek', actor: 'jelmer', anim: 'point' },
-      { on: 'Die zijn het publiek', dt: 0.1, actor: 'jelmer', face: 'actor:gast1' },
+      { on: 'Die zijn het publiek', dt: 4.0, actor: 'jelmer', face: 'actor:gast1' },
       { on: 'Die zijn het publiek', dt: 2.0, actor: 'jelmer', anim: 'cheer' },
       { on: 'Tammo. Torenwachter', actor: 'tammo', anim: 'phone' },
       { on: 'Tammo. Torenwachter', actor: 'tessa', face: 'actor:tammo' },
@@ -703,14 +706,14 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
     const same = me === lastSpeaker && me != null;
     if (!forced && l.at - lastT < (me != null && me !== lastSpeaker ? 1.0 : 2.0) && i > 0) return; // a new speaker gets a frame at once (cutscenes_audit)
     if (!forced && same && l.dur < 4.5 && i - lastIdx < 3) return;
-    const duoSide = me === 'tammo' ? 1 : me === 'tessa' ? -1 : (i % 2 ? 1 : -1);
+    const duoSide = me === 'tammo' ? 1 : me === 'tessa' ? -1 : 1;
     let shot;
     if (forced) { const { on, dt, ...rest } = forced; shot = { ...rest }; if (dt) shot.dt = dt; }
-    else if (me == null) shot = { shot: 'cut', at: [-2.4, 0.6, 1.7], look: 'mid:tammo,tessa@1.3', fov: 40 };
+    else if (me == null) shot = { shot: 'cut', at: [[3.6, 0.6, 1.7], [3.2, -0.7, 1.6], [4.0, 0.1, 2.0]][i % 3], look: 'mid:tammo,tessa@1.3', fov: 40 };
     else {
       const k = variant++ % 5;
       const farSide = me === 'tammo' || me === 'tessa';
-      shot = k === 0 ? CAMS.cut(duoSide, farSide) : k === 1 ? CAMS.dolly(duoSide, farSide) : k === 2 ? CAMS.orbit(duoSide, farSide, farSide ? 160 + i * 20 : 20 + i * 25) : k === 3 ? CAMS.high(duoSide, farSide) : CAMS.close(duoSide, farSide);
+      shot = k === 0 ? CAMS.cut(duoSide, farSide) : k === 1 ? CAMS.dolly(duoSide, farSide) : k === 2 ? CAMS.orbit(duoSide, farSide, farSide ? -40 + (i % 4) * 25 : 150 + (i % 3) * 30) : k === 3 ? CAMS.high(duoSide, farSide) : CAMS.close(duoSide, farSide);
     }
     let dt = shot.dt || 0;
     delete shot.dt;
@@ -754,11 +757,11 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
     const me = speakerActor(lines[i].speaker);
     const pos = (q) => (q && (q.at || q.from)) || null;
     const apart = (c) => near.every((q) => { const a = pos(q), b = pos(c); return !a || !b || Math.hypot(a[0] - b[0], a[1] - b[1]) > 0.6; });
-    if (me == null) { const offs = [[-2.4, 0.6, 1.7], [-2.2, -1.4, 1.8], [-3.2, 1.8, 2.2], [-1.6, 2.2, 1.6]].map((at) => ({ shot: 'cut', at, look: 'mid:tammo,tessa@1.3', fov: 40 })); return offs.find(apart) || offs[3]; }
-    const duoSide = me === 'tammo' ? 1 : me === 'tessa' ? -1 : (i % 2 ? 1 : -1);
+    if (me == null) { const offs = [[3.6, 0.6, 1.7], [3.2, -0.7, 1.6], [4.0, 0.1, 2.0], [4.4, -1.2, 2.3]].map((at) => ({ shot: 'cut', at, look: 'mid:tammo,tessa@1.3', fov: 40 })); return offs.find(apart) || offs[3]; }
+    const duoSide = me === 'tammo' ? 1 : me === 'tessa' ? -1 : 1;
     const far = me === 'tammo' || me === 'tessa';
     // a pose that differs from the shots around it (no jump cut): the first candidate that stands more than 0.6 m from both
-    const cands = [CAMS.high(duoSide, far), CAMS.cut(duoSide, far), CAMS.high(-duoSide, far), CAMS.cut(-duoSide, far), CAMS.orbit(duoSide, far, far ? 160 + i * 20 : 20 + i * 25)];
+    const cands = [CAMS.high(duoSide, far), CAMS.cut(duoSide, far), CAMS.high(-duoSide, far), CAMS.cut(-duoSide, far), CAMS.orbit(duoSide, far, far ? -40 + (i % 4) * 25 : 150 + (i % 3) * 30)];
     return cands.find(apart) || cands[cands.length - 1];
   });
   drift(shots, lines, endT + 1);
