@@ -1,0 +1,56 @@
+{
+ "note": "Humorbeats van Deel 4 (WP7 #1130, 21-11): per komische beat drie varianten en een veilige neutrale terugval; `chosen` (0, 1, 2 of \"neutral\") gebruikt het spel. Variant 0 staat in docs/verhaal/nieuw/09-script-akte6.md. Schema: humor.json.",
+ "beats": [
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": null,
+   "id": "H6-01",
+   "scene": "M27.1",
+   "speaker": "WILLEMIEN",
+   "context": "Loppersum, ochtend. Willemien blijkt een vaste klant van de Fjord Frituur: zij weet precies hoe ze haar eierbal wil en laat het zonder omhaal weten.",
+   "shot": "halve close Willemien met de koffiekan, Tessa en Tammo kijken elkaar aan",
+   "variants": [
+    "Ik ken jullie van het luik. Woensdag, de derde in de rij. Eén eierbal, extra mosterd.",
+    "Ik ken jullie van het luik. Elke woensdag. Eén eierbal, extra mosterd. Jullie weten het.",
+    "Jullie kennen mij van het luik. Woensdag, extra mosterd. Zeg maar niks."
+   ],
+   "neutral": "Ik ken jullie van het luik. Ik kom elke woensdag."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": null,
+   "id": "H6-02",
+   "scene": "M29.2",
+   "speaker": "TAMMO",
+   "context": "Buurtfeest op het erf in Loppersum. Willemien heeft Trijntjes recept nagebakken en zegt dat het een bal is. Tammo geeft Oma's antwoord uit M25.2 terug.",
+   "shot": "halve close Tammo met een eierbal in zijn hand, Tessa naast hem",
+   "variants": [
+    "Een eierbal. Dat is anders.",
+    "Een eierbal. Dat is nog iets anders.",
+    "Met mosterd is het een eierbal. Dat is anders."
+   ],
+   "neutral": "Hij smaakt goed."
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "chosen": 0,
+   "panel": null,
+   "id": "H6-03",
+   "scene": "M30.6",
+   "speaker": "JELLE",
+   "context": "Bourtange, avond. Jelle zit natgeregend in een deken. Sjabbe belt over een leeg pand; Jelle kent het al en wacht met kopen tot de prijs daalt. Hij blijft de tegenstander van de open wereld.",
+   "shot": "halve close Jelle in de deken, dan Tessa die haar wenkbrauw optrekt",
+   "variants": [
+    "Ik heb het gezien. Ik wacht tot het goedkoper wordt.",
+    "Dat pand ken ik. Ik wacht tot de prijs zakt.",
+    "Ik zag het al. Ik koop het als het regent."
+   ],
+   "neutral": "Dat pand ken ik al."
+  }
+ ]
+}

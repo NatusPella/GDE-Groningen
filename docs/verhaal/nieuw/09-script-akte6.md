@@ -8,6 +8,7 @@ WILLEMIEN: Jullie zijn van Trijntje. Kom binnen. Schoenen mogen aan. Het huis is
 TESSA: Hoe lang? [NIEUW]
 WILLEMIEN: Een paar weken, zeggen ze. Dat zeggen ze al twee jaar. Koffie? [NIEUW]
 TAMMO: Graag. [NIEUW]
+WILLEMIEN: Ik ken jullie van het luik. Woensdag, de derde in de rij. Eén eierbal, extra mosterd. [NIEUW]
 WILLEMIEN: Delfstof Noord zet het huis op nieuwe poten. De ploeg is aardig. Het duurt alleen langer dan een kopje koffie. [NIEUW]
 TESSA: Oma zei: gewoon dozen. [NIEUW]
 WILLEMIEN: Dat zegt Trijntje van alles. Breekbaar in de krant. Boeken in kleine dozen, anders krijg je ze niet getild. En de kat is het moeilijkst. [NIEUW]
@@ -78,10 +79,15 @@ BUURVROUW: Ik ben de buurvrouw. Ik heb gekookt voor twintig. We zijn met twaalf.
 BOER: Ik heb de tafels gebracht. En weer opgehaald. En weer gebracht. Ze wisten niet waar ze moesten. [NIEUW]
 TESSA: Waar hangt de foto? [NIEUW]
 WILLEMIEN: In de gang. Waar je hem ziet als je weggaat. En als je terugkomt. [NIEUW]
+TESSA: En de eierballen? Die staan er mooi. [NIEUW]
+WILLEMIEN: Trijntjes recept. Het is een bal. [NIEUW]
+TAMMO: Een eierbal. Dat is anders. [NIEUW]
 TESSA: Dansen? [NIEUW]
 TAMMO: Nee. [NIEUW]
 TESSA: Tammo. [NIEUW]
+(regie: ze steekt haar hand uit. Hij kijkt ernaar, naar de lampjes en naar het erf.)
 TAMMO: …Voor de grip. [BEHOUDEN]
+(regie: ze dansen tussen de tafels. Tessa legt haar hoofd even tegen zijn schouder. Niemand zegt er iets van.)
 
 ## [M29.3] Terug: outro – Eemsdelta, Loppersum, het erf – te voet
 (regie: lampjes boven het erf, een trage kraan omhoog van de tafels naar het dak en de lucht, het busje van Rikus met zijn antenne. Geen grote muziek, alleen het nummer van Rikus.)
@@ -176,7 +182,11 @@ TESSA: Hij zegt van niet. [NIEUW]
 OMA TRIJNTJE (telefoon): Dan is hij blij. [NIEUW]
 
 ## [M30.6] Het proefbeleg: de kar – Westerwolde, Bourtange, de poort – te voet
-(regie: avond, de zon laag over de heide. De Fjord Frituur staat bij de poort met het luik open, de vrienden eten eierballen op de wal, Jelle zit natgeregend in een deken. Tessa en Tammo staan bij het luik.)
+(regie: avond, de zon laag over de heide. De Fjord Frituur staat bij de poort met het luik open, de vrienden eten eierballen op de wal, Jelle zit natgeregend in een deken. Tessa en Tammo staan bij het luik. Berend telt de lege bakjes.)
+GEESJE: De bieten staan tot aan de weg, Tessa. Ik heb handen nodig. [NIEUW]
+BEREND: In Veendam zoeken ze een aanvalster. Ik heb je naam genoemd. [NIEUW]
+SJABBE (telefoon): Ik heb een pand. Het staat leeg. Jelle heeft het nog niet gezien. [NIEUW]
+JELLE: Ik heb het gezien. Ik wacht tot het goedkoper wordt. [NIEUW]
 TESSA: Elke zomer één ronde langs de plekken waar vrienden wonen. Dan kan ik groeien en jij thuisblijven. [NIEUW]
 TAMMO: Thuis is waar de kar staat. [NIEUW]
 TESSA: Zes. [NIEUW]
@@ -192,7 +202,7 @@ TESSA: Wat nu? [NIEUW]
 TAMMO: Rijden. [NIEUW]
 TESSA: Waarheen? [NIEUW]
 TAMMO: Waar jij wilt. [NIEUW]
-TESSA: Sjabbe heeft een pand. Geesje zegt dat de bieten tot aan de weg staan. En in Veendam zoeken ze nog een aanvalster. [NIEUW]
+TESSA: Een pand, de bieten, Veendam. Een tweede wagen voor Willemien. Jelle koopt ze ook op. [NIEUW]
 TAMMO: Dan beginnen we overal. [NIEUW]
 TESSA: Samen. [NIEUW]
 TAMMO: Samen. [NIEUW]
