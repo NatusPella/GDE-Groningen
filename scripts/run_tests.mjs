@@ -4,6 +4,14 @@
 //   --timeout=<sec>  per test (standaard 120, bij --quick 30)
 //   --only=<tekst>   alleen tests waarvan de naam de tekst bevat
 //   --list           toon wat er zou draaien
+//   --jobs=<n>       tests tegelijk (standaard 2; tests in SERIE en de losse poorten draaien altijd één voor één)
+//   --json=<bestand> schrijf de uitkomst per test als JSON (voor het testrapport en de behoeftenmeting)
+// Een test die langer dan de tijdslimiet duurt, krijgt TIMEOUT met de limiet in de melding; elke 30 s staat er een
+// regel "nog bezig: ..." zodat een lange test geen minuten stilte geeft. Bekende flakes (KNOWN_FLAKES in
+// scripts/lib/testloop.mjs, nu country_vehicles_test #1094) krijgen één herkansing; die staat als FLAKY in de uitvoer
+// en in de samenvatting, nooit stil. Tests die de wereld nodig hebben (scripts/test_behoeften.json) worden zonder
+// game/world met een SKIP "needs-world" overgeslagen. three.js wordt ook in een verse worktree gevonden
+// (scripts/lib/vendorcache.mjs, GDE_VENDOR_CACHE).
 // Tests die game/world of data/cache nodig hebben en die niet hebben, worden
 // overgeslagen met een SKIP-melding. De dode-code-poort meet dezelfde drempel als de
 // lichte fase van test_all (#646): scripts/dead_code_budget.json, dat alleen mag dalen. Provincie- en zware wereldchecks
@@ -15,13 +23,15 @@
 // nooit iets anders meet dan de lichte fase op dezelfde data. Wat hier niet in zit, is de zware
 // en de Electron-fase: die vragen de gestagede wereld en minuten, en draait de coördinator lokaal.
 import { spawnSync } from 'node:child_process';
-import { existsSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import fsMod from 'node:fs';
 import osMod from 'node:os';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkSyntax } from './lib/syntaxcheck.mjs';
 import { foutUittreksel } from './lib/testrapport.mjs';
+import { SERIE, KNOWN_FLAKES, runProces, pool, maakHartslag, runMetHerkansing, flakeMelding, laadBehoeften, skipReden, wereldAanwezig, dataCacheAanwezig } from './lib/testloop.mjs';
+import { heeftVendorCache } from './lib/vendorcache.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
@@ -30,6 +40,8 @@ const opt = (n) => (args.find((a) => a.startsWith('--' + n + '=')) || '').split(
 const quick = flag('quick');
 const timeoutMs = (Number(opt('timeout')) || (quick ? 30 : 120)) * 1000;
 const only = opt('only');
+const jobs = Math.max(1, Number(opt('jobs')) || 2);
+const jsonOut = opt('json');
 
 // Nooit in de standaardrun: hebben de provinciedata of minuten nodig.
 // scripts/perf en scripts/ui en scripts/weer zijn CDP-snippets (top-level await/return): die
@@ -79,10 +91,14 @@ export function run(cmd, cmdArgs, ms) {
   return { code: r.status, timedOut: r.error && r.error.code === 'ETIMEDOUT', out, secs: (Date.now() - t0) / 1000 };
 }
 
+// Zonder gestagede three.js (en zonder GDE_VENDOR_CACHE of een hoofdmap met cache) is een test een SKIP, geen fout.
+export const NIET_NODIG = /Cannot find (package|module)[^\n]*['"]three['"]|vendor[\\/]+three|is not vendored yet/i;
+
 export function classify(res) {
   if (res.timedOut) return 'TIMEOUT';
-  if (res.code === 0) return 'PASS';
-  if (MISSING_DATA.test(res.out)) return 'SKIP';
+  // Een test die zelf meldt dat hij niets kon meten (SKIP-regel, exit 0) telt niet als geslaagd (zoals test_all).
+  if (res.code === 0) return /^SKIP\b/m.test(res.out || '') ? 'SKIP' : 'PASS';
+  if (MISSING_DATA.test(res.out) || NIET_NODIG.test(res.out)) return 'SKIP';
   return 'FAIL';
 }
 
@@ -136,15 +152,35 @@ export function resolveRulesBase(env = process.env, gitRun = (args) => run('git'
   return '';
 }
 
-function main() {
+// Eén test (of poort) asynchroon met tijdslimiet, hartslag en, voor een bekende flake, een herkansing.
+async function draai(naam, cmdArgs, hartslag, ms = timeoutMs) {
+  const r = await runMetHerkansing(naam, async (poging) => {
+    hartslag.start(naam, ms, poging);
+    try { return { ...(await runProces(process.execPath, cmdArgs, { ms, cwd: ROOT })), ms }; } finally { hartslag.stop(naam); }
+  }, { isFout: (x) => classify(x) === 'FAIL' || classify(x) === 'TIMEOUT' });
+  return r;
+}
+
+async function main() {
   const results = [];
-  const note = (name, res, status) => {
-    results.push({ name, status, secs: res.secs, out: res.out });
-    const extra = status === 'SKIP' ? ' (game/world of data/cache ontbreekt)' : '';
-    console.log(`${status.padEnd(7)} ${name} ${res.secs.toFixed(1)}s${extra}`);
+  const hartslag = maakHartslag();
+  const wereld = wereldAanwezig(ROOT);
+  const behoeften = laadBehoeften(ROOT);
+  const omgeving = { wereld, three: heeftVendorCache(ROOT), data: dataCacheAanwezig(ROOT) };
+  const note = (name, res, status, extra = '') => {
+    results.push({ name, status, secs: res.secs, out: res.out, flaky: /^FLAKY/.test(extra) || undefined, detail: extra || undefined });
+    const limiet = status === 'TIMEOUT' ? ` (tijdslimiet van ${Math.round((res.ms || timeoutMs) / 1000)}s overschreden)` : '';
+    const tekst = extra ? (status === 'SKIP' ? ` (${extra})` : ` [${extra}]`) : (status === 'SKIP' ? ' (game/world, data/cache of three.js ontbreekt)' : '');
+    console.log(`${status.padEnd(7)} ${name} ${res.secs.toFixed(1)}s${tekst}${limiet}`);
     // #570: de foutregels en de eerste en laatste regels van de uitvoer, niet alleen de staart. Een
     // FAIL boven regel 25 viel buiten tail(25) en dan leek een rode test in de CI-log groen.
     if (status === 'FAIL' || status === 'TIMEOUT') console.log(foutUittreksel(res.out).replace(/^/gm, '    '));
+  };
+  const losse = async (name, cmdArgs, ms = timeoutMs) => {
+    hartslag.start(name, ms);
+    let r;
+    try { r = await runProces(process.execPath, cmdArgs, { ms, cwd: ROOT }); } finally { hartslag.stop(name); }
+    return r;
   };
 
   const tests = readdirSync(join(ROOT, 'scripts'))
@@ -161,7 +197,10 @@ function main() {
       .sort();
     let bad = 0;
     const t0 = Date.now();
-    for (const f of files) {
+    let laatste = Date.now();
+    for (const [i, f] of files.entries()) {
+      // De syntaxcheck is synchroon (de hartslagtimer komt er niet doorheen): zelf elke 30 s voortgang melden.
+      if (Date.now() - laatste >= 30e3) { laatste = Date.now(); console.log(`...     node --check: ${i}/${files.length} bestanden`); }
       const r = checkSyntax(f);
       if (!r.ok) { bad++; console.log(`FAIL    syntaxcheck ${relative(ROOT, f)}\n` + tail(r.out, 8).replace(/^/gm, '    ')); }
     }
@@ -170,60 +209,74 @@ function main() {
   }
 
   if (!only) {
-    const v = run(process.execPath, ['scripts/voice_coverage.mjs', '--quiet'], timeoutMs);
+    const v = await losse('voice_coverage.mjs --quiet', ['scripts/voice_coverage.mjs', '--quiet']);
     note('voice_coverage.mjs --quiet', v, classify(v));
-    const ic = run(process.execPath, ['scripts/import_check.mjs'], timeoutMs);
+    const ic = await losse('import_check.mjs', ['scripts/import_check.mjs']);
     note('import_check.mjs', ic, classify(ic));
     // De twee statische poorten die een echte fout vingen die deze runner miste (#482):
     // heist.js gebruikte namen die het niet importeerde en CI bleef groen.
-    const uc = run(process.execPath, ['scripts/undef_check.mjs'], timeoutMs);
+    const uc = await losse('undef_check.mjs', ['scripts/undef_check.mjs']);
     note('undef_check.mjs', uc, classify(uc));
-    const ta = run(process.execPath, ['scripts/text_audit.mjs'], timeoutMs);
+    const ta = await losse('text_audit.mjs', ['scripts/text_audit.mjs']);
     note('text_audit.mjs', ta, classify(ta));
     // De poort op de enkelspeler-aanname (#500): directe world.player-lezers mogen niet groeien.
-    const psa = run(process.execPath, ['scripts/player_singleton_audit.mjs'], timeoutMs);
+    const psa = await losse('player_singleton_audit.mjs', ['scripts/player_singleton_audit.mjs']);
     note('player_singleton_audit.mjs', psa, classify(psa));
     // De dekking van Samen spelen (21-11): elk systeem een Samen-regel, nieuwe modules bij een systeem, opslagsleutels per speler of als wereldstaat.
-    const cda = run(process.execPath, ['scripts/coop_coverage_audit.mjs'], timeoutMs);
+    const cda = await losse('coop_coverage_audit.mjs', ['scripts/coop_coverage_audit.mjs']);
     note('coop_coverage_audit.mjs', cda, classify(cda));
     // De veldkeuring op het gedeelde World (#498): dezelfde poort die de lichte fase draait,
     // anders kan een nieuwe schrijver met groene CI naar main (#593).
-    const we = run(process.execPath, ['scripts/world_eigenaar.mjs'], timeoutMs);
+    const we = await losse('world_eigenaar.mjs', ['scripts/world_eigenaar.mjs']);
     note('world_eigenaar.mjs', we, classify(we));
     // De specs tegen de code (#499): regelverwijzingen en de tellers in proza.
-    const sc = run(process.execPath, ['scripts/spec_check.mjs'], timeoutMs);
+    const sc = await losse('spec_check.mjs', ['scripts/spec_check.mjs']);
     note('spec_check.mjs', sc, classify(sc));
     // De cutscene-linter (regie-bijbel, docs/CUTSCENE-REGIE-21-11.md): streng voor alle cutscenes; hier alleen melden, de releasegate blokkeert op blokkerende vondsten.
-    const cl = run(process.execPath, ['scripts/cutscene_lint.mjs', '--meld', '--quiet'], timeoutMs);
+    const cl = await losse('cutscene_lint.mjs (meld)', ['scripts/cutscene_lint.mjs', '--meld', '--quiet']);
     note('cutscene_lint.mjs (meld)', cl, classify(cl));
     // De dode-code-poort (#646): de lichte fase van test_all bewaakt dit met de vorige run;
     // CI heeft geen vorige run en gebruikt daarom de gecommitte drempel. Alleen omlaag.
+    hartslag.start('dead_code.mjs (drempel)', timeoutMs);
     const dc = deadCodeRun();
+    hartslag.stop('dead_code.mjs (drempel)');
     note('dead_code.mjs (drempel)', dc, classify(dc));
     // Regels en design op precies deze diff (releasegate, ADR 0034): dezelfde controle die
     // de gate bij een release doet, nu ook op elke PR en push naar main. De basis komt van
     // de CI (GDE_RULES_BASE); lokaal van de merge-base met origin/main of de laatste tag.
     const rulesBase = resolveRulesBase();
     if (rulesBase) {
-      const rb = run(process.execPath, ['scripts/release/rules_audit.mjs', `--from=${rulesBase}`], timeoutMs);
+      const rb = await losse('rules_audit.mjs', ['scripts/release/rules_audit.mjs', `--from=${rulesBase}`]);
       note(`rules_audit.mjs (sinds ${rulesBase.slice(0, 10)})`, rb, rb.code === 0 ? 'PASS' : rb.code === 3 ? 'SKIP' : 'FAIL');
     } else {
       console.log('SKIP    rules_audit.mjs (geen basis: geen GDE_RULES_BASE, origin/main of tag)');
     }
-    const mr = run(process.execPath, ['scripts/merkenregister_check.mjs'], timeoutMs);
+    const mr = await losse('merkenregister_check.mjs', ['scripts/merkenregister_check.mjs']);
     note('merkenregister_check.mjs', mr, classify(mr));
   }
 
-  for (const t of tests) {
-    const r = run(process.execPath, [join('scripts', t)], timeoutMs);
-    note(t, r, classify(r));
-  }
+  // De tests zelf: parallel (jobs) behalve de tijdgevoelige uit SERIE, die na de pool één voor één draaien (#519).
+  const eenTest = async (t, alleen) => {
+    const reden = skipReden(t, behoeften, omgeving);
+    if (reden) { note(t, { secs: 0, out: '' }, 'SKIP', reden); return; }
+    // trage tests krijgen een veelvoud van de limiet, zoals in test_all (coop_licht_test start alle coop-tests als eigen processen)
+    const r = await draai(t, [join('scripts', t)], hartslag, SLOW.has(t) ? timeoutMs * 4 : timeoutMs);
+    const st = classify(r.res);
+    const melding = flakeMelding(r);
+    note(t + (alleen ? ' (alleen)' : ''), r.res, st, melding);
+  };
+  await pool(tests.filter((t) => !SERIE.has(t)).map((t) => () => eenTest(t, false)), jobs);
+  for (const t of tests.filter((n) => SERIE.has(n))) await eenTest(t, true);
+  hartslag.sluit();
 
   const count = (s) => results.filter((r) => r.status === s).length;
   const skipped = results.filter((r) => r.status === 'SKIP').map((r) => r.name);
+  const flaky = results.filter((r) => r.flaky).map((r) => r.name);
   console.log(`\nSamenvatting${quick ? ' (--quick)' : ''}: ${count('PASS')} geslaagd, ${count('FAIL')} mislukt, ${count('TIMEOUT')} timeout, ${count('SKIP')} overgeslagen`);
+  if (flaky.length) console.log('FLAKY (bij herkansing geslaagd, zie KNOWN_FLAKES in scripts/lib/testloop.mjs): ' + flaky.join(', '));
   if (skipped.length) console.log('SKIP (wereld- of cachedata nodig): ' + skipped.join(', '));
+  if (jsonOut) writeFileSync(jsonOut, JSON.stringify({ wereld, three: omgeving.three, resultaten: results.map((r) => ({ name: r.name, status: r.status, secs: Math.round(r.secs * 10) / 10, flaky: r.flaky, detail: r.detail, out: r.status === 'PASS' ? '' : String(r.out).slice(-1500) })) }, null, 1));
   return count('FAIL') + count('TIMEOUT') ? 1 : 0;
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) process.exit(main());
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) main().then((c) => process.exit(c));

@@ -204,7 +204,9 @@ export function samenvatting(report) {
     if (opgelost.length) regels.push(`Opgelost sinds de vorige run: ${opgelost.length}.`);
   }
   if (niet.length) regels.push(`Fasen niet gedraaid: ${niet.join(', ')}.`);
-  const warns = alle.filter((i) => i.warn).length;
+  const flaky = alle.filter((i) => i.flaky);
+  if (flaky.length) regels.push(`${flaky.length} bekende flake${flaky.length === 1 ? '' : 's'} slaagde pas bij een herkansing: ${flaky.map((i) => i.id).join(', ')} (zie het register KNOWN_FLAKES in scripts/lib/testloop.mjs; losse issue blijft open tot de oorzaak weg is).`);
+  const warns = alle.filter((i) => i.warn && !i.flaky).length;
   if (warns) regels.push(`${warns} beeld${warns === 1 ? '' : 'en'} of meting${warns === 1 ? '' : 'en'} wijkt duidelijk af van de vorige run (geen fout, wel kijken).`);
   regels.push(MENS_ZIN);
   return regels;
@@ -253,7 +255,13 @@ export function renderMarkdown(report) {
       for (const i of overgeslagen) o.push(`- \`${i.id}\`: ${cel(i.detail) || 'reden onbekend'}`);
       o.push('');
     }
-    const warn = p.items.filter((i) => i.warn);
+    const warn = p.items.filter((i) => i.warn && !i.flaky);
+    const flakyItems = p.items.filter((i) => i.flaky);
+    if (flakyItems.length) {
+      o.push('### Flaky (geslaagd na herkansing)', '');
+      for (const i of flakyItems) o.push(`- \`${i.id}\`: ${cel(i.detail)}`);
+      o.push('');
+    }
     if (warn.length) {
       o.push('### Let op (wijkt af, geen fout)', '');
       for (const i of warn) o.push(`- \`${i.id}\`: ${cel(i.detail)}`);
