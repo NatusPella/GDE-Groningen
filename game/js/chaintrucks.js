@@ -9,7 +9,7 @@ import { hashUnit, hashPick, clamp, finite } from './bezithash.js';
 export const MAX_TRUCKS = 4;                   // hoogstens vier tegelijk in beeld (de dichtstbijzijnde)
 export const SPAWN_R = 230, DESPAWN_R = 330;   // een nieuwe wagen binnen 230 m, weg bij 330 m: geen geflikker aan de rand
 export const PLAN_EVERY_S = 0.5;
-export const SHIFT_START_H = 7;                // een chauffeur rijdt zijn dienst van tien uur (SHIFT_S) vanaf zeven uur
+export const SHIFT_OPEN_H = 7;                // een chauffeur rijdt zijn dienst van tien uur (SHIFT_S) vanaf zeven uur
 export const MAX_PER_LINK = 3;                 // hoogstens drie wagens per schakel in beeld
 
 const pt = (p) => (p && Number.isFinite(p.x) && Number.isFinite(p.y) ? { x: p.x, y: p.y } : null);
@@ -33,7 +33,7 @@ export function chainTrips(chains) {
 }
 
 // Een route als lijst punten: begin, het dichtstbijzijnde wegpunt bij het begin, het dichtstbijzijnde wegpunt bij het eind, eind. snap(x, y) -> { x, y } | null.
-export function routeOf(from, to, snap = null) {
+export function pathOf(from, to, snap = null) {
   const pts = [pt(from)];
   if (typeof snap === 'function') { for (const p of [from, to]) { let s = null; try { s = pt(snap(p.x, p.y)); } catch (e) { s = null; } if (s) pts.push(s); } }
   pts.push(pt(to));
@@ -44,34 +44,34 @@ export function routeOf(from, to, snap = null) {
 }
 const lengthOf = (r) => { let n = 0; for (let i = 1; i < r.length; i++) n += Math.hypot(r[i].x - r[i - 1].x, r[i].y - r[i - 1].y); return n; };
 // De plek en richting op een route bij fractie f (0 tot 1 van de lengte).
-export function pointAlong(route, f) {
-  const total = lengthOf(route);
-  if (!(total > 0)) return { x: route[0].x, y: route[0].y, heading: 0 };
+export function pointAlong(path, f) {
+  const total = lengthOf(path);
+  if (!(total > 0)) return { x: path[0].x, y: path[0].y, heading: 0 };
   let want = clamp(f, 0, 1) * total;
-  for (let i = 1; i < route.length; i++) {
-    const seg = Math.hypot(route[i].x - route[i - 1].x, route[i].y - route[i - 1].y);
-    if (want <= seg || i === route.length - 1) {
+  for (let i = 1; i < path.length; i++) {
+    const seg = Math.hypot(path[i].x - path[i - 1].x, path[i].y - path[i - 1].y);
+    if (want <= seg || i === path.length - 1) {
       const u = seg > 0 ? clamp(want / seg, 0, 1) : 0;
-      return { x: route[i - 1].x + (route[i].x - route[i - 1].x) * u, y: route[i - 1].y + (route[i].y - route[i - 1].y) * u, heading: Math.atan2(route[i].y - route[i - 1].y, route[i].x - route[i - 1].x) };
+      return { x: path[i - 1].x + (path[i].x - path[i - 1].x) * u, y: path[i - 1].y + (path[i].y - path[i - 1].y) * u, heading: Math.atan2(path[i].y - path[i - 1].y, path[i].x - path[i - 1].x) };
     }
     want -= seg;
   }
-  return { x: route[route.length - 1].x, y: route[route.length - 1].y, heading: 0 };
+  return { x: path[path.length - 1].x, y: path[path.length - 1].y, heading: 0 };
 }
 
 // Is het diensttijd? timeS: speltijd in seconden sinds dag 0 (of een willekeurige vaste nul); alleen binnen de dienst rijden de wagens.
-export const onShift = (timeS) => { const s = ((finite(timeS, 0) % 86400) + 86400) % 86400, st = SHIFT_START_H * 3600; return s >= st && s < st + SHIFT_S; };
+export const onShift = (timeS) => { const s = ((finite(timeS, 0) % 86400) + 86400) % 86400, st = SHIFT_OPEN_H * 3600; return s >= st && s < st + SHIFT_S; };
 
 // Waar een rit nu is: een cyclus van laden (halve LOAD_S bij het begin), rijden met lading, lossen (halve LOAD_S bij het eind) en leeg terug. Elke wagen van dezelfde schakel start
 // met een vaste, verschillende fase. Geeft { x, y, heading, loaded, phase: 'laden' | 'heen' | 'lossen' | 'terug' }.
-export function tripPose(trip, route, timeS) {
+export function tripPose(trip, path, timeS) {
   const secs = Math.max(1, trip.secs), drive = (secs - LOAD_S) / 2, half = LOAD_S / 2;
   const off = (trip.index / Math.max(1, trip.of) + hashUnit('keten-rit', trip.key) * 0.15) * secs;
   const t = (((finite(timeS, 0) + off) % secs) + secs) % secs;
-  if (t < half) return { ...pointAlong(route, 0), loaded: false, phase: 'laden' };
-  if (t < half + drive) return { ...pointAlong(route, (t - half) / Math.max(1, drive)), loaded: true, phase: 'heen' };
-  if (t < half + drive + LOAD_S) return { ...pointAlong(route, 1), loaded: true, phase: 'lossen' };
-  const back = pointAlong(route.slice().reverse(), (t - half - drive - LOAD_S) / Math.max(1, drive));
+  if (t < half) return { ...pointAlong(path, 0), loaded: false, phase: 'laden' };
+  if (t < half + drive) return { ...pointAlong(path, (t - half) / Math.max(1, drive)), loaded: true, phase: 'heen' };
+  if (t < half + drive + LOAD_S) return { ...pointAlong(path, 1), loaded: true, phase: 'lossen' };
+  const back = pointAlong(path.slice().reverse(), (t - half - drive - LOAD_S) / Math.max(1, drive));
   return { ...back, loaded: false, phase: 'terug' };
 }
 
@@ -84,9 +84,9 @@ export function planChainTrucks(trips, viewer, { timeS = 0, snap = null, current
     // grof filter: de rechte lijn tussen de eindpunten ligt in de buurt; pas dan wordt de route berekend
     const mx = (trip.from.x + trip.to.x) / 2, my = (trip.from.y + trip.to.y) / 2, half = Math.hypot(trip.to.x - trip.from.x, trip.to.y - trip.from.y) / 2;
     if (Math.hypot(mx - viewer.x, my - viewer.y) > half + despawnR + 150) continue;
-    let route = routes && routes.get(trip.key);
-    if (!route) { route = routeOf(trip.from, trip.to, snap); if (routes) { routes.set(trip.key, route); if (routes.size > 64) routes.delete(routes.keys().next().value); } }
-    const pose = tripPose(trip, route, timeS), d = Math.hypot(pose.x - viewer.x, pose.y - viewer.y);
+    let path = routes && routes.get(trip.key);
+    if (!path) { path = pathOf(trip.from, trip.to, snap); if (routes) { routes.set(trip.key, path); if (routes.size > 64) routes.delete(routes.keys().next().value); } }
+    const pose = tripPose(trip, path, timeS), d = Math.hypot(pose.x - viewer.x, pose.y - viewer.y);
     if (d > ((current && current.has(trip.key)) ? despawnR : spawnR)) continue;
     out.push({ actorId: trip.key, key: trip.key, chainId: trip.chainId, linkId: trip.linkId, driver: trip.driver, distance: d, ...pose });
   }

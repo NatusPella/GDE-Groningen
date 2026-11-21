@@ -29,13 +29,13 @@ t('een rit heeft een eigen sleutel, een verzonnen chauffeur en de reistijd van s
   assert.notEqual(a.key, b.key); assert.ok(SC.DRIVER_NAMES.includes(a.driver)); assert.equal(a.secs, SC.tripSeconds(4000));
 });
 t('route: een rechte lijn zonder snap, anders begin, wegpunt bij het begin, wegpunt bij het eind, eind', () => {
-  assert.equal(C.routeOf({ x: 0, y: 0 }, { x: 100, y: 0 }).length, 2);
+  assert.equal(C.pathOf({ x: 0, y: 0 }, { x: 100, y: 0 }).length, 2);
   const snap = (x, y) => ({ x: x + 5, y: y + 5 });
-  const r = C.routeOf({ x: 0, y: 0 }, { x: 100, y: 0 }, snap);
+  const r = C.pathOf({ x: 0, y: 0 }, { x: 100, y: 0 }, snap);
   assert.equal(r.length, 4); assert.deepEqual(r[1], { x: 5, y: 5 }); assert.deepEqual(r[2], { x: 105, y: 5 });
-  assert.equal(C.routeOf({ x: 0, y: 0 }, { x: 100, y: 0 }, () => null).length, 2);
-  assert.equal(C.routeOf({ x: 0, y: 0 }, { x: 100, y: 0 }, () => { throw new Error('geen wegen'); }).length, 2);
-  assert.equal(C.routeOf({ x: 0, y: 0 }, { x: 0.2, y: 0 }).length >= 1, true);
+  assert.equal(C.pathOf({ x: 0, y: 0 }, { x: 100, y: 0 }, () => null).length, 2);
+  assert.equal(C.pathOf({ x: 0, y: 0 }, { x: 100, y: 0 }, () => { throw new Error('geen wegen'); }).length, 2);
+  assert.equal(C.pathOf({ x: 0, y: 0 }, { x: 0.2, y: 0 }).length >= 1, true);
 });
 t('pointAlong volgt de lengte: begin, midden, eind en de richting', () => {
   const r = [{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 100 }];
@@ -45,7 +45,7 @@ t('pointAlong volgt de lengte: begin, midden, eind en de richting', () => {
   assert.deepEqual([C.pointAlong(r, 2).x, C.pointAlong(r, 2).y], [100, 100]);
 });
 t('de pose: laden bij het begin, heen met lading, lossen bij het eind, leeg terug; altijd binnen de route', () => {
-  const [trip] = C.chainTrips([chain(1)]); const route = C.routeOf(trip.from, trip.to);
+  const [trip] = C.chainTrips([chain(1)]); const route = C.pathOf(trip.from, trip.to);
   const seen = new Set();
   for (let s = 0; s < trip.secs; s += 30) {
     const p = C.tripPose({ ...trip, index: 0, of: 1 }, route, s); seen.add(p.phase);

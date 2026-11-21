@@ -427,7 +427,8 @@
     "voetbaltransfers",
     "voetbalworld",
     "voetbalkarakter",
-    "voetbalcompetitie"
+    "voetbalcompetitie",
+    "sponsorpanden"
    ],
    "eigenaar": "speler",
    "gast": "Een gast speelt zijn eigen figuur in jouw team; ratings reizen mee in het EXTRA-bericht.",
@@ -461,7 +462,12 @@
     "voetbalpoort",
     "voetbalparken*",
     "penalty*",
-    "coopwedstrijdpunt"
+    "coopwedstrijdpunt",
+    "voetbalcommentaar*",
+    "voetbalextrarules",
+    "voetbalpresentatie",
+    "voetbalregie",
+    "voetbaltvlayer"
    ],
    "eigenaar": "wedstrijd",
    "gast": "E bij de spelerspoort: Meedoen? J of N; elf tegen elf met twee tot vier mensen; momentopname van 64 getallen.",

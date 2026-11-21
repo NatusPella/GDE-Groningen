@@ -40,9 +40,9 @@ Gegenereerd door `node scripts/tts_opnamelijst.mjs` uit `game/storydata/script.j
 | 21 | N3 | Beppe (Aoede) | `lines/beppe/ytst_dan_mar_earst_dan_prate_wy_069d6532.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #21 |
 | 22 | N3 | Anita (Callirrhoe) | `lines/anita/wat_zegt_ze_81203427.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #22 |
 | 23 | N3 | Beppe (Aoede) | `lines/beppe/hy_seit_neat_mar_hy_docht_it_goe_464c01d8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #23 |
-| 24 | N3 | Anita (Callirrhoe) | `lines/anita/dat_heb_ik_ook_al_gezien_55ca7332.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #24 |
+| 24 | N3 | Anita (Callirrhoe) | `lines/anita/ik_weet_het_hij_zegt_niets_met_z_c709cf67.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #24 |
 | 25 | N4 | Anita (Callirrhoe) | `lines/anita/taxi_jij_rijdt_79dc629f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #25 |
-| 26 | N4 | Anita (Callirrhoe) | `lines/anita/ik_zeg_het_wel_als_het_fout_gaat_debb2858.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #26 |
+| 26 | N4 | Anita (Callirrhoe) | `lines/anita/dat_merk_je_vanzelf_ik_schreeuw__c0a335ac.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #26 |
 | 27 | N4 | Anita (Callirrhoe) | `lines/anita/formulieren_dit_doe_ik_liever_al_09be605b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #27 |
 | 28 | N4 | Jelle Terpstra (Fenrir) | `lines/jelle_terpstra/mevrouw_tessa_uw_auto_staat_op_e_7b5bba8c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #28 |
 | 29 | N4 | Anita (Callirrhoe) | `lines/anita/het_is_een_stoep_e40e96a8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #29 |
@@ -85,9 +85,9 @@ Gegenereerd door `node scripts/tts_opnamelijst.mjs` uit `game/storydata/script.j
 | 66 | N10 | Anita (Callirrhoe) | `lines/anita/jouw_vak_is_stilstaan_als_ik_pra_881d04d0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #66 |
 | 67 | N8 | Anita (Callirrhoe) | `lines/anita/die_7dc29a94.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #67 |
 | 68 | N8 | Anita (Callirrhoe) | `lines/anita/we_slapen_oma_c7e83f58.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #68 |
-| 69 | N8 | Anita (Callirrhoe) | `lines/anita/het_is_een_punaise_29c76599.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #69 |
+| 69 | N8 | Anita (Callirrhoe) | `lines/anita/een_punaise_we_hebben_hem_al_een_c369673a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #69 |
 | 70 | N5 | Anita (Callirrhoe) | `lines/anita/dit_is_het_erf_van_mijn_oom_hier_f5007fcc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #70 |
-| 71 | N5 | Anita (Callirrhoe) | `lines/anita/je_vroeg_niet_naar_de_koeien_a0bbf724.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #71 |
+| 71 | N5 | Anita (Callirrhoe) | `lines/anita/je_vroeg_ook_niet_naar_de_kippen_ef0e98d8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #71 |
 | 72 | N5 | Anita (Callirrhoe) | `lines/anita/geef_me_je_hand_niet_wegtrekken_6d6e960a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #72 |
 | 73 | N5 | Anita (Callirrhoe) | `lines/anita/ik_zei_het_toch_ea5c5fd6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #73 |
 | 74 | N11 | Anita (Callirrhoe) | `lines/anita/links_bij_de_zwarte_koe_8b1c98bf.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #74 |

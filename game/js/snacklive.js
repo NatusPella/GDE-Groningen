@@ -173,6 +173,3 @@ export function receiveWork(msg) {
   return r;
 }
 
-// Namen uit het ontwerp van het bericht (docs/BEZIT-21-11.md 15.6): meewerken en ontvangWerk zijn workAlong en receiveWork.
-export const meewerken = workAlong;
-export const ontvangWerk = receiveWork;
