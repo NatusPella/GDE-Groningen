@@ -675,7 +675,7 @@ Before a new screen, panel, card or toast merges, tick all of these (or write wh
 ## Where this already applies (reference implementations)
 
 - `game/index.html` - boot screen, logo, motion tokens, start screen
-- `game/js/menu.css` and `game/js/pausemenu.js` - the menu set and the pause menu; `game/js/shopui.js` - a shop on the same panel; `game/js/spullen.js` - the Spullen section on the same panel (a list left and a detail pane right, no 3D preview: the Garage owns the one renderer)
+- `game/js/menu.css` and `game/js/pausemenu.js` - the menu set and the pause menu; `game/js/shopui.js` - a shop on the same panel; `game/js/spullen.js` - the Spullen section on the same panel (a list left and a detail pane right; the detail shows a turnable 3D model through the Garage's one shared renderer, `createSharedPreview`, with the arrows as `glyphHtml` keycaps and the icon as fallback, #1086)
 - `game/js/hud_panel.css`, `hudcards.css`, `prompts.css` - in-game HUD, cards, hints, keycap chips, minimap border
 - `game/js/phonefeed.js` - phone-notification card accent bar
 - `game/js/mapview.js` and `game/js/mapstyle.js` - the map's chrome and its one colour table (`INK`)

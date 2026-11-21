@@ -64,7 +64,7 @@ import { isPlayAheadOpen } from './todo.js';
 import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer, selectVerhaalCharacter } from './verhaalui.js';
 import { anyFresh } from './characters.js';
 import { maakRegel, zoekRegels, SOORTEN } from './pausesearch.js';
-import { renderSpullen, spullenClick, spullenFocus, spullenEnter, spullenAnnuleer, zetSpullenZoek, DELEN } from './spullen.js';
+import { renderSpullen, disposeSpullenViewer, turnSpullenViewer, spullenClick, spullenFocus, spullenEnter, spullenAnnuleer, zetSpullenZoek, DELEN } from './spullen.js';
 import { phoneClick, phoneUnread, characterForSender } from './phone.js';
 import { takeNoticeThread } from './phonefeed.js';
 import { getErrorLog, errorReport, clearErrorLog, onErrorLogChange } from './errorlog.js';
@@ -1379,6 +1379,7 @@ function onKey(e) {
   } else if (dir) {
     // de draaitafel van de Garage: links en rechts draaien het model als de
     // focus op het model staat (#610); omhoog/omlaag blijven focus verplaatsen
+    if (tab === 'spullen' && (dir === 'left' || dir === 'right') && t && t.closest && t.closest('[data-spul-stage]') && turnSpullenViewer(dir === 'left' ? -1 : 1)) { consume(e); return; }
     if (tab === 'garage' && (dir === 'left' || dir === 'right') && t && t.closest && t.closest('.gar-stage') && turnGarageViewer(dir === 'left' ? -1 : 1)) { consume(e); return; }
     // the map pans with the arrows (and WASD) unless the rail has focus; staat de focus van een controller op een knop van
     // de kaart zelf (de kaartkaart na A, Lagen, zoomen), dan lopen de pijlen langs die knoppen en pant de kaart niet (#985)
@@ -2714,6 +2715,7 @@ function showTab(name, how) {
   if (world) setMapActive(world, open && name === 'map');
   if (name !== 'garage') disposeGarageViewer();
   if (name !== 'verhaal') disposeVerhaalViewer();
+  if (name !== 'spullen') disposeSpullenViewer();
   syncFooter();
   root.querySelector('#pm-title').textContent = prestart ? 'Menu' : 'Pauze';
   syncNavBadges();
@@ -2843,6 +2845,7 @@ function setOpen(value, name = HOME, how = 'direct') {
     if (world) setMapActive(world, false);
     disposeGarageViewer();
     disposeVerhaalViewer();
+    disposeSpullenViewer();
     if (document.activeElement && root.contains(document.activeElement)) document.activeElement.blur();
     const p = prestart;
     prestart = null;
