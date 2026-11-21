@@ -4,7 +4,7 @@ import { SHOP_KINDS } from '../game/js/winkelkit.js';
 
 export const OSM = { woning: 'house', kantoor: 'office', kerk: 'church', station: 'train_station', bibliotheek: 'library', garage: 'garage', publiek: 'civic', winkel: 'retail', horeca: 'yes' };
 
-export const subsFor = (kind) => (kind === 'winkel' ? SHOP_KINDS.filter((s) => s !== 'kermiskraam') : kind === 'horeca' ? ['cafe', 'kroeg', 'restaurant'] : kind === 'publiek' ? ['gemeente', 'politie', 'apotheek', 'ziekenhuis', 'school', 'hotel'] : kind === 'garage' ? ['werkplaats'] : [null]);
+export const subsFor = (kind) => (kind === 'winkel' ? SHOP_KINDS.filter((s) => s !== 'kermiskraam') : kind === 'horeca' ? ['cafe', 'kroeg', 'restaurant'] : kind === 'publiek' ? ['gemeente', 'politie', 'apotheek', 'ziekenhuis', 'school', 'hotel'] : kind === 'garage' ? ['werkplaats', 'magazijn'] : [null]);
 
 // b + de spot (kindOfFacility-uitkomst) voor planInterior
 export function building(kind, sub, w, d, rnd) {

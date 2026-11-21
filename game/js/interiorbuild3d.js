@@ -233,7 +233,7 @@ const DRAW = {
     const n = Math.max(3, Math.round(w / 0.16));
     for (let i = 0; i < n; i++) x.bx(-a + 0.06 + i * ((w - 0.12) / n), -a + 0.06 + (i + 0.75) * ((w - 0.12) / n), -0.12, 0.12, h - 0.7, h - 0.12, PRODUCTS[Math.floor(x.r(i) * PRODUCTS.length)], G_SOLID, true);
   },
-  booth(x) {
+  cabin(x) {
     const { w, d, h } = x, a = w / 2, c = d / 2;
     x.bx(-a, a, -c, -c + 0.05, 0, h, WOOD_L); x.bx(-a, -a + 0.05, -c, c, 0, h, WOOD_L); x.bx(a - 0.05, a, -c, c, 0, h, WOOD_L);
     x.bx(-a + 0.05, a - 0.05, c - 0.06, c - 0.02, 0.1, h - 0.1, x.color); // the curtain

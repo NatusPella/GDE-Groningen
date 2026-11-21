@@ -5,12 +5,14 @@
 // the whole province), so what the audit counts is what the game does.
 import { hash2 } from './rng.js';
 import { KINDS, kindOfBuilding, isOpen, opensAt, homeOpen, labelOf } from './interiorkinds.js';
-import { frameOf, findHall, WALL_T } from './interiorframe.js';
+import { frameOf, findHall, synthEntrance, WALL_T } from './interiorframe.js';
 import { generateLayout } from './interiorlayout.js';
 import { homeLook } from './interiorlook.js';
 
 export const MIN_CEILING = 2.3;   // lower than this is no room to stand in
 export const DOOR_GAP = 1.2;      // the opening cut in the facade (m): a little wider than the leaf
+// kinds whose door may come from synthEntrance when the facade builder drew none
+export const SYNTH_KINDS = new Set(['kerk', 'publiek', 'garage', 'station']);
 export const WHY = {
   none: 'geen gebouw', nodoor: 'geen voordeur in de gevel', type: 'geen betreedbaar soort gebouw', small: 'hal te klein',
   low: 'te laag', layout: 'geen indeling', landmark: 'eigen interieur',
@@ -35,10 +37,11 @@ export function ceilingOf(kind, entrance) {
 export function planInterior(b, opts = {}) {
   if (!b || !b.pts) return { ok: false, why: 'none' };
   if (b.landmark || b.rooms || b.interior) return { ok: false, why: 'landmark' };
-  const en = b.entrance;
-  if (!en) return { ok: false, why: 'nodoor' };
   const ks = kindOfBuilding(b, opts.spot || null);
   if (!ks) return { ok: false, why: 'type' };
+  // no door from the facade builder (churches, schools, halls with a roller door): the best edge gets one
+  const en = b.entrance || (SYNTH_KINDS.has(ks.kind) ? synthEntrance(b, ks.kind === 'kerk') : null);
+  if (!en) return { ok: false, why: 'nodoor' };
   const K = KINDS[ks.kind];
   const ceiling = ceilingOf(ks.kind, en);
   if (ceiling < MIN_CEILING) return { ok: false, why: 'low', kind: ks.kind };
@@ -67,3 +70,6 @@ export function doorState(plan, hour, owned = false) {
 }
 
 export { WALL_T };
+
+// can this building be planned already? (its facade has been drawn and decided on a door, or a door can be made)
+export const planReady = (b) => b.entrance !== undefined || (!!kindOfBuilding(b) && SYNTH_KINDS.has(kindOfBuilding(b).kind));

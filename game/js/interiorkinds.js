@@ -39,7 +39,7 @@ const BY_TYPE = {
   church: 'kerk', cathedral: 'kerk', chapel: 'kerk',
   train_station: 'station', station: 'station', transportation: 'station',
   library: 'bibliotheek',
-  garage: 'garage', garages: 'garage', service: 'garage',
+  garage: 'garage', garages: 'garage', service: 'garage', industrial: 'garage', warehouse: 'garage', factory: 'garage', workshop: 'garage',
   civic: 'publiek', public: 'publiek', government: 'publiek', hospital: 'publiek', school: 'publiek', hotel: 'publiek',
   university: 'publiek', college: 'publiek', kindergarten: 'publiek', sports_centre: 'publiek',
 };
@@ -75,7 +75,7 @@ export function kindOfBuilding(b, spot = null) {
   if (sf && sf.type && sf.type !== 'kermiskraam' && WINKEL[sf.type]) return { kind: 'winkel', sub: sf.type };
   if (spot) return spot;
   const k = BY_TYPE[t];
-  if (k) return { kind: k, sub: k === 'publiek' ? PUBLIEK_BY_TYPE[t] || 'gemeente' : null };
+  if (k) return { kind: k, sub: k === 'publiek' ? PUBLIEK_BY_TYPE[t] || 'gemeente' : (t === 'industrial' || t === 'warehouse' || t === 'factory') ? 'magazijn' : null };
   if (t === 'yes') return (b.h || 0) >= 5 ? { kind: 'kantoor', sub: null } : { kind: 'woning', sub: null };
   return null;
 }

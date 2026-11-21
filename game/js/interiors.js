@@ -14,7 +14,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { hoofdspeler } from './players.js';
 import { getScene, addCamTargetSource, disposeObject } from './scene3d.js';
 import { registerPortalBoxes, unregisterPortalBoxes, updatePortals } from './portalcut3d.js';
-import { planInterior, doorState } from './interiorrules.js';
+import { planInterior, doorState, planReady } from './interiorrules.js';
 import { makeSpotIndex, spotFor } from './interiorspots.js';
 import { buildInteriorGeometry, buildLeafGeometry, solidMaterial, lampMaterial, glassMaterial, leafMaterial } from './interiorbuild3d.js';
 import { makeWalk } from './interiorwalk.js';
@@ -22,7 +22,7 @@ import { toWorld, frameOf } from './interiorframe.js';
 import { npcLook, yawOfFace } from './interiornpc.js';
 import { buildPersonMesh, animatePersonWalk, seatPerson, seatedY } from './models3d_people.js';
 import { FAC } from './facilities.js';
-import { PROMPT, CLOSED, LOCKED_HOME, clerkLine, HOME_LOOK, CHURCH_CANDLE, TICKET_LINES, LEZEN, BOUGHT, TOO_POOR, NOT_FOR_SALE } from './interiortexts.js';
+import { PROMPT, CLOSED, LOCKED_HOME, clerkLine, HOME_LOOK, FITTING, CHURCH_CANDLE, TICKET_LINES, LEZEN, BOUGHT, TOO_POOR, NOT_FOR_SALE } from './interiortexts.js';
 import { productFor, buyProduct } from './interiorbuy.js';
 import { shopInBuilding, openShopFromInterior } from './shops.js';
 import { noteMoney } from './finance.js';
@@ -56,8 +56,7 @@ function spotIndex() {
 function planOf(b) {
   let rec = S.plans.get(b);
   if (rec === undefined) {
-    const en = b.entrance;
-    const spot = en ? spotFor(spotIndex(), b.pts, en) : null;
+    const spot = spotFor(spotIndex(), b.pts, b.entrance || null);
     rec = planInterior(b, { spot });
     rec.b = b;
     S.plans.set(b, rec);
@@ -142,7 +141,7 @@ function scan(w, p) {
   const want = [];
   let computed = 0;
   for (const b of near) {
-    if (!b.entrance || b.dropped) continue;
+    if (b.dropped || !planReady(b)) continue;
     let rec = S.plans.get(b);
     if (rec === undefined) { if (computed >= 1) continue; computed++; rec = planOf(b); }
     if (!rec.ok) continue;
@@ -207,6 +206,7 @@ export function updateInteriors(dt, w) {
   const onFoot = !p.inVehicle && !p.swimming && !p.dead;
   if ((S.scan -= dt) <= 0) { S.scan = 0.3; scan(w, p); }
   for (const ls of S.live.values()) updateLive(w, ls, dt, p, onFoot);
+  w.insideBuilding = !!S.inside; // read by police.js: inside, the walls are the sight lines
 }
 
 // --- using what is in the room --------------------------------------------------------------------------------------
@@ -249,6 +249,12 @@ function useSpot(w, hit) {
       const r = buyProduct(w, prod);
       if (!r.ok) say(w, TOO_POOR(prod.item, prod.price));
       else { w.kassaKlik = true; say(w, BOUGHT(prod.item, prod.price) + (r.healed ? ` +${Math.round(r.healed)} gezondheid` : '')); }
+      return true;
+    }
+    case 'passen': {
+      const gameShop = shopInBuilding(ls.b);
+      if (gameShop && openShopFromInterior(w, gameShop)) return true;
+      say(w, FITTING[n % FITTING.length]);
       return true;
     }
     case 'balie': say(w, clerkLine(plan.kind, seed, n)); return true;

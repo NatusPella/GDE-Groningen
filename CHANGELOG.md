@@ -11,6 +11,12 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+- Panden zijn echt te betreden: loop te voet door de voordeur naar binnen, zonder menu, laadscherm of teleport. De deur zwaait open, de gevel gaat bij de deur open en je staat in het pand zelf. Winkels (twaalf soorten), cafés, kroegen, restaurants, kantoren, woningen, kerken, stationshallen, bibliotheken, garages, magazijnen, politiebureaus, apotheken, scholen en hotels hebben elk een eigen inrichting, met winkelier, klanten en gasten
+- Bij de kassa of de bar druk je op E: een winkel van het spel opent zijn eigen menu, een andere winkel of een café verkoopt een klein product; in de kledingwinkel pas je in het pashokje, in een kerk steek je een kaarsje aan
+- Winkels sluiten 's nachts en de kroeg na middernacht (de deur blijft dicht met een regel); de meeste woningen zitten op slot, een op de vijf staat open
+- Het interieur komt overeen met het raam: dezelfde wandkleur, vloer en meubelsoort, en bij winkels de kleuren van het winkeltype
+- Binnen in een pand zien alleen agenten vlakbij je nog: een open winkel is een schuilplek voor de politie
+
 - Het naamscherm heet nu "Hoe heet je?" en vraagt alleen een naam, ook voor wie Alleen speelt; het akkoord met de online diensten (STUN en brokers, je IP-adres) komt pas als je Samen spelen kiest, en weigeren brengt je terug naar de keuze zonder iets te verliezen.
 - De keuzekaart en het naamscherm staan onderaan, zodat het GDE-logo zichtbaar blijft, en de laadstatus eronder is verborgen. De knop met focus is de gele hoofdknop (standaard Alleen spelen).
 - Het opstartscherm toont geen "Stap n van m" meer: één doorlopende balk met een statusregel die zegt wat het spel doet.

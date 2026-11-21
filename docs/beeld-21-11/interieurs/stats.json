@@ -13,7 +13,7 @@
   "triangles": 2040,
   "drawCallsView": 4,
   "trianglesView": 2080,
-  "buildMs": 10.2,
+  "buildMs": 8.1,
   "geometryBytes": 159120
  },
  {
@@ -30,7 +30,7 @@
   "triangles": 1196,
   "drawCallsView": 4,
   "trianglesView": 1256,
-  "buildMs": 2.6,
+  "buildMs": 3.1,
   "geometryBytes": 93288
  },
  {
@@ -44,11 +44,11 @@
   ],
   "items": 11,
   "npc": 3,
-  "triangles": 1394,
+  "triangles": 1454,
   "drawCallsView": 2,
-  "trianglesView": 1394,
-  "buildMs": 3.3,
-  "geometryBytes": 108731.99999999999
+  "trianglesView": 1454,
+  "buildMs": 3.5,
+  "geometryBytes": 113411.99999999999
  },
  {
   "spec": "winkel/kapper",
@@ -64,7 +64,7 @@
   "triangles": 1708,
   "drawCallsView": 4,
   "trianglesView": 1738,
-  "buildMs": 4,
+  "buildMs": 3.9,
   "geometryBytes": 133224
  },
  {
@@ -81,7 +81,7 @@
   "triangles": 1088,
   "drawCallsView": 2,
   "trianglesView": 1088,
-  "buildMs": 2.5,
+  "buildMs": 1.7,
   "geometryBytes": 84864
  },
  {
@@ -98,7 +98,7 @@
   "triangles": 1298,
   "drawCallsView": 2,
   "trianglesView": 1298,
-  "buildMs": 1.3,
+  "buildMs": 1.8,
   "geometryBytes": 101244
  },
  {
@@ -115,7 +115,7 @@
   "triangles": 986,
   "drawCallsView": 2,
   "trianglesView": 986,
-  "buildMs": 1.3,
+  "buildMs": 1.5,
   "geometryBytes": 76908
  },
  {
@@ -129,11 +129,11 @@
   ],
   "items": 11,
   "npc": 0,
-  "triangles": 758,
+  "triangles": 676,
   "drawCallsView": 2,
-  "trianglesView": 758,
-  "buildMs": 1.4,
-  "geometryBytes": 59123.99999999999
+  "trianglesView": 676,
+  "buildMs": 2.4,
+  "geometryBytes": 52728
  },
  {
   "spec": "kerk",
@@ -149,7 +149,7 @@
   "triangles": 1468,
   "drawCallsView": 2,
   "trianglesView": 1468,
-  "buildMs": 1.3,
+  "buildMs": 2.2,
   "geometryBytes": 114503.99999999999
  },
  {
@@ -166,7 +166,7 @@
   "triangles": 1074,
   "drawCallsView": 4,
   "trianglesView": 1104,
-  "buildMs": 1.6,
+  "buildMs": 1,
   "geometryBytes": 83772
  },
  {
@@ -183,7 +183,7 @@
   "triangles": 7298,
   "drawCallsView": 2,
   "trianglesView": 7298,
-  "buildMs": 6.6,
+  "buildMs": 7.7,
   "geometryBytes": 569244
  },
  {
@@ -200,7 +200,7 @@
   "triangles": 776,
   "drawCallsView": 4,
   "trianglesView": 786,
-  "buildMs": 1.2,
+  "buildMs": 0.9,
   "geometryBytes": 60527.99999999999
  },
  {
@@ -217,7 +217,7 @@
   "triangles": 894,
   "drawCallsView": 4,
   "trianglesView": 924,
-  "buildMs": 1.4,
+  "buildMs": 1.2,
   "geometryBytes": 69732
  }
 ]

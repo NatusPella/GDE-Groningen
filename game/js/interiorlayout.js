@@ -22,7 +22,7 @@ export const DOOR_CLEAR_D = 1.6; // free depth behind the door
 
 // every item type the generator can place; interiorbuild3d.js draws each of them (the test keeps them equal)
 export const ITEM_TYPES = [
-  'shelf', 'gondola', 'counter', 'fridge', 'rack', 'booth', 'mirror', 'barber_chair', 'sink', 'bench', 'bike', 'workbench', 'bucket',
+  'shelf', 'gondola', 'counter', 'fridge', 'rack', 'cabin', 'mirror', 'barber_chair', 'sink', 'bench', 'bike', 'workbench', 'bucket',
   'tvwall', 'showcase', 'cabinet', 'table', 'chair', 'stool', 'plant', 'crate', 'poster', 'desk', 'sofa', 'tv', 'bed', 'wardrobe',
   'kitchen', 'rug', 'floorlamp', 'pew', 'altar', 'pulpit', 'candle', 'organ', 'board', 'pillar', 'machine', 'bookcase', 'carlift',
   'tyres', 'barrel', 'toolwall', 'taps', 'coatrack', 'cubicle', 'copier', 'locker', 'flag', 'trolley', 'dartboard', 'bar',
@@ -194,7 +194,10 @@ function shopRecipe(p, sub) {
       p.useAt('kopen', sideLeft ? cu + 0.35 + 0.8 : cu - 0.35 - 0.8, cv, 1.4, { face: sideLeft ? FACE.W : FACE.E, target: sub });
     }
     const wareFrom = H.v0 + (counter ? cl + 2.0 : 1.6);
-    if (sub === 'kleding') p.add('booth', sideLeft ? H.u1 - 0.7 : H.u0 + 0.7, H.v1 - 1.2, 1.2, 1.2, sideLeft ? FACE.W : FACE.E, { h: 2.2, color: T.accent, tag: 'paskamer' });
+    if (sub === 'kleding') {
+      const cabin = p.add('cabin', sideLeft ? H.u1 - 0.7 : H.u0 + 0.7, H.v1 - 1.2, 1.2, 1.2, sideLeft ? FACE.W : FACE.E, { h: 2.2, color: T.accent, tag: 'paskamer' });
+      if (cabin) p.useAt('passen', cabin.u + (sideLeft ? -1.1 : 1.1), cabin.v, 1.2, { face: sideLeft ? FACE.E : FACE.W, target: sub });
+    }
     if (sub === 'elektronica') p.run(H, 'back', 'tvwall', 1.4, 0.15, H.u0 + 0.5, H.u1 - 0.5, { h: 1.0, y0: 1.5, solid: false, color: T.accent });
     p.run(H, 'back', 'shelf', 1.0, 0.45, H.u0, H.u1, { h: sub === 'elektronica' ? 1.3 : shelfH, color: T.accent, row: T.row }, 0.04, 0.08);
     p.run(H, sideLeft ? 'right' : 'left', 'shelf', 1.0, 0.45, wareFrom, H.v1 - 0.6, { h: shelfH, color: T.accent, row: T.row }, 0.04, 0.08);
@@ -415,7 +418,22 @@ function libraryRecipe(p) {
   p.palette = { wall: 0xece4d2, floor: 0x7a5a3c, floorPattern: 0, accent: 0x2f6a3a, ceil: 0xf4efe4 };
 }
 
+function warehouseRecipe(p) {
+  const H = p.hall, W = p.W, D = p.D;
+  const rack = 0x2f5aa8;
+  p.run(H, 'back', 'shelf', 1.2, 0.6, H.u0 + 0.3, H.u1 - 0.3, { h: 2.6, color: rack });
+  p.run(H, 'left', 'shelf', 1.2, 0.6, H.v0 + 3, H.v1 - 1, { h: 2.6, color: rack });
+  for (let v = H.v0 + 3.4; v < H.v1 - 2.4; v += 3.2) for (let u = H.u0 + 3.2; u <= H.u1 - 2.4; u += 3.6) p.add('shelf', u, v, 2.4, 0.6, FACE.DOOR, { h: 2.4, color: rack });
+  for (let i = 0; i < 4; i++) p.add('crate', H.u1 - 0.8 - (i % 2) * 0.7, H.v0 + 2.2 + Math.floor(i / 2) * 0.6, 0.6, 0.5, FACE.W, { h: 0.5, color: [0xb8956a, 0xa0825a][i % 2] });
+  p.add('barrel', H.u1 - 0.5, H.v1 - 0.6, 0.6, 0.6, FACE.W, { h: 0.9, color: 0x2f6a8a });
+  const c = p.add('counter', H.u0 + 1.8, H.v0 + 1.6, 1.8, 0.6, FACE.E, { h: 1.05, color: 0x3a3c3e });
+  if (c) { p.npcAt('monteur', H.u0 + 0.7, H.v0 + 1.6, FACE.E, 'stand'); p.useAt('balie', H.u0 + 1.8 + 0.3 + 0.9, H.v0 + 1.6, 1.4, { face: FACE.W, target: 'magazijn' }); }
+  p.palette = { wall: 0xd2d3d0, floor: 0x7a7c7e, floorPattern: 0, accent: 0x2f5aa8, ceil: 0xb8bcc0 };
+  void W; void D;
+}
+
 function garageRecipe(p, sub) {
+  if (sub === 'magazijn') return warehouseRecipe(p);
   const H = p.hall, W = p.W, D = p.D;
   const lu = H.u0 + W * 0.5;
   p.add('carlift', lu, H.v0 + D * 0.55, 2.4, 4.4, FACE.DOOR, { h: 1.6, color: [0x2f6fb8, 0xc2423a, 0xe0e0dc, 0x3a3c3e][Math.floor(p.rnd() * 4)] });

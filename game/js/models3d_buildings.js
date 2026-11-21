@@ -1300,6 +1300,19 @@ function unit(group, geo, mat, sx, sy, sz, x, y, z) {
   return m;
 }
 
+// The door of a church for its interior (epic Interieurs, #1150): in the middle of the gable end on the side of the tower. The
+// church has no door drawn on the facade; the interior cuts the opening and hangs its own leaf there.
+function churchEntrance(box, depth) {
+  const longX = box.w >= box.d;
+  const sw = Math.min(Math.min(box.w, box.d) * 0.55, 6);
+  const tx = longX ? box.minx + sw * 0.7 : box.cx, ty = longX ? box.cz : box.miny + sw * 0.7;
+  const ends = box.edges.filter((e) => e.len >= 4).sort((a, c) => a.len - c.len).slice(0, 2);
+  if (!ends.length) return null;
+  ends.sort((a, c) => Math.hypot((a.ax + a.bx) / 2 - tx, (a.ay + a.by) / 2 - ty) - Math.hypot((c.ax + c.bx) / 2 - tx, (c.ay + c.by) / 2 - ty));
+  const e = ends[0];
+  return { ax: e.ax, ay: e.ay, tx: e.tx, ty: e.ty, nx: e.nx, ny: e.ny, len: e.len, c: e.len / 2, w: 1.6, h: Math.min(3.0, depth - 0.5), shop: false, floorH: depth, floors: 1, depth, look: null, archetype: 'church', doorColor: 0x4a3322, frameColor: 0x3a2a1c, windows: [] };
+}
+
 function addChurchDetail(group, box, parts, depth, wallMat, roofMat, fine2) {
   const longX = box.w >= box.d;
   const shortAxis = Math.min(box.w, box.d);
@@ -1646,6 +1659,7 @@ function buildBuildingMeshRaw(b) {
 
   if (archetype !== 'houseboat') addPassages(group, b, parts, depth);
   if (archetype === 'church') {
+    b.entrance = churchEntrance(box, depth);
     addChurchDetail(group, box, parts, depth, wallMat, roofMat, fine2);
     return group;
   }

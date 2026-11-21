@@ -3,6 +3,7 @@
 export const PROMPT = {
   kopen: { label: 'Kopen', sub: 'Bij de kassa' },
   bestellen: { label: 'Bestellen', sub: 'Aan de bar' },
+  passen: { label: 'Passen', sub: 'Het pashokje' },
   balie: { label: 'Naar de balie', sub: 'Even vragen' },
   kaars: { label: 'Kaarsje aansteken', sub: 'Een rustig momentje' },
   kaartje: { label: 'Naar het loket', sub: 'Kaartje halen' },
@@ -44,6 +45,7 @@ export const TICKET_LINES = ['Het loket zegt: pin maar, kaartjes zijn er vanaf d
 export const LEZEN = ['Je bladert door een boek over de geschiedenis van het veen. Het blijft bij bladeren.', 'Een stripboek over een geit die burgemeester wordt. Je leest de eerste pagina.', 'Een kookboek met alleen aardappelen. Op elke pagina.'];
 
 // what a generic purchase says: {item}, {price}
+export const FITTING = ['Je trekt het gordijn dicht. De spiegel is eerlijk, maar de zomer is mild.', 'Het pashokje ruikt naar nieuwe stof. Staat je goed.'];
 export const BOUGHT = (item, price) => `${item} gekocht voor €${price}.`;
 export const TOO_POOR = (item, price) => `Te weinig geld voor ${item} (€${price}).`;
 export const NOT_FOR_SALE = 'Hier valt niets te kopen.';
