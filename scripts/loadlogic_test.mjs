@@ -148,13 +148,15 @@ ok(bootStepText(plans.nieuw.steps[4], plans.nieuw.total) === 'Stap 5 van 7', 'th
 }
 // the load screen's steps get a counter too (opdracht 21-11)
 ok(loadStepNr(0).nr === 1 && loadStepNr(0.3).nr === 2 && loadStepNr(0.7).nr === 3 && loadStepNr(1).nr === 4 && loadStepNr(1).total === 4 && loadStepNr(0.5, 'snel').total === 1, 'the load screen counts its steps');
-ok(LOAD_STEPS.reduce((t, st, i) => t + ((LOAD_STEPS[i + 1] ? LOAD_STEPS[i + 1].from : 1) - st.from), 0) === 1 && /Stap \$\{nr\.nr\} van \$\{nr\.total\}/.test(src), 'the load steps cover the bar and the screen shows "Stap n van m"');
+ok(LOAD_STEPS.reduce((t, st, i) => t + ((LOAD_STEPS[i + 1] ? LOAD_STEPS[i + 1].from : 1) - st.from), 0) === 1 && !/Stap \$\{nr\.nr\}/.test(src), 'the load steps cover the bar and the screen shows the step as one status line');
 // the boot screen shows the counter and the step ticks, in the screen-print style (tokens, no own colours)
 {
   const ss = fs.readFileSync(new URL('../game/js/startscreen.js', import.meta.url), 'utf8');
   const hh = fs.readFileSync(new URL('../game/index.html', import.meta.url), 'utf8');
-  ok(/class="ld-step"/.test(hh) && /#loading \.ld-tick \{[^}]*var\(--ds-c-ink-inkt\)/.test(hh) && /#loading \.ld-step \{[^}]*var\(--ds-c-ink-inkt\)/.test(hh), 'the boot screen has a step counter and ticks in ink');
-  ok(/export function setBootStep\(/.test(ss) && /className = 'ld-tick'/.test(ss) && /aria-valuetext', stap \+ ': ' \+ phase\.label/.test(ss), 'the bar shows the ticks and tells the step to a screen reader');
+  ok(/class="ld-step"/.test(hh) && /#loading \.ld-step \{[^}]*var\(--ds-c-ink-inkt\)/.test(hh), 'the boot screen has a step counter in ink');
+  ok(!/ld-tick/.test(hh) && !/ld-tick|buildTicks/.test(ss), 'the boot bar is one continuous bar: no ticks or segments');
+  ok(/#loading \.ld-fill \{[^}]*var\(--ds-c-ink-bord\)/.test(hh), 'the boot bar fills in sign green');
+  ok(/export function setBootStep\(/.test(ss) && /aria-valuetext', stap \+ ': ' \+ phase\.label/.test(ss) && /easeBar\(shown, progress/.test(ss), 'the bar eases and tells the step to a screen reader');
   ok(!/setInterval\([^)]*requestAnimationFrame/.test(ss) && /bootCreepCap\(plan, progress\)/.test(ss), 'the creep is a slow approach inside the step, no loop animation');
 }
 ok(!/firstSentence\(recapText/.test(src), 'the load screen keeps the whole recap instead of its first sentence');

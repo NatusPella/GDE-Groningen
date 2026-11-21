@@ -14,8 +14,8 @@ import { streamPending, prewarmStreamAt, prewarmPending } from './scene3d.js';
 import { placeLabel } from './hud_panel.js';
 import { LANDMARK_LINES } from './placelines.js';
 import { pictureHtml, missionPicture } from './loadscene.js';
-import { skipReady, isSkipKey } from './loadskip.js';
-import { JUMP_M as JM, loadKind, stepProgress, startProgress, pickTips, buildLines, LINE_S, loadPending, loadStepAt, loadStepNr } from './loadlogic.js';
+import { createGate, gateTick, fadeMs } from './loadgate.js';
+import { JUMP_M as JM, loadKind, stepProgress, startProgress, pickTips, buildLines, LINE_S, loadPending, loadStepAt, easeBar } from './loadlogic.js';
 
 let tips = [];
 export const setLoadTips = (list) => { tips = [...list]; };
@@ -101,9 +101,8 @@ export function startLoadScreen(world, opts = {}) {
       '</div>' +
       '<div class="ls-bottom">' +
         '<div class="ls-tip" aria-live="polite"><span class="ls-tip-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/></svg></span><div><span></span><p></p></div></div>' +
-        '<div class="ls-prog"><div class="ls-step" aria-hidden="true"></div><div class="ls-bar" role="progressbar" aria-label="Voortgang laden" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div></div>' +
+        '<div class="ls-prog"><div class="ls-bar" role="progressbar" aria-label="Voortgang laden" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div><div class="ls-step" role="status" aria-live="polite"></div></div>' +
       '</div>' +
-      '<button type="button" class="ls-skip" hidden title="Verder zonder te wachten ({ENTER})">Verder {ENTER}</button>' +
     '</div>';
   document.body.appendChild(el);
   // the boot screen may still be fading underneath: one bar at a time
@@ -126,7 +125,7 @@ export function startLoadScreen(world, opts = {}) {
   const lineKick = el.querySelector('.ls-tip div span');
   const lineText = el.querySelector('.ls-tip p');
   const tipBox = el.querySelector('.ls-tip');
-  let lineI = -1, lineAt = -1e9;
+  let lineI = -1, lineAt = -1e9, gateStap = '';
   const lineS = LINE_S[kind];
   const nextLine = (now) => {
     if (!pool.length) { tipBox.hidden = true; lineAt = Infinity; return; }
@@ -143,23 +142,20 @@ export function startLoadScreen(world, opts = {}) {
   let res;
   const done = new Promise((r) => { res = r; });
   let ended = false;
-  const onKey = (e) => {
-    if (skipBtn.hidden || !isSkipKey(e)) return;
-    e.preventDefault(); e.stopPropagation();
-    finish();
-  };
-  const skipBtn = el.querySelector('.ls-skip');
-  skipBtn.addEventListener('click', () => finish());
-  document.addEventListener('keydown', onKey, true);
+  // de laadpoort (loadgate.js): geen prompt; zodra het laden klaar is gaat het scherm zelf door (korte fade, bij reduced motion direct)
+  const gate = createGate();
+  let shownBar = 0, lastT = performance.now();
+  const reduced = () => document.documentElement.classList.contains('reduce-motion') || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
   const finish = () => {
     if (ended) return;
     ended = true;
-    document.removeEventListener('keydown', onKey, true);
     world.uiPaused = wasPaused;
     zachtePauze(world, 'laden', false);
+    const ms = fadeMs(reduced());
+    el.style.transitionDuration = ms + 'ms';
     el.classList.remove('on');
     el.classList.add('out');
-    setTimeout(() => { el.remove(); }, kind === 'snel' ? 450 : 700);
+    setTimeout(() => { el.remove(); }, ms);
     active = null;
     res();
   };
@@ -173,19 +169,21 @@ export function startLoadScreen(world, opts = {}) {
     const st = streamPending();
     const tiles = world.map && world.map.tileQueue ? world.map.tileQueue.size : 0;
     prog = stepProgress(prog, loadPending(st, tiles, prewarmPending()), (now - t0) / 1000, kind);
-    fill.style.transform = `scaleX(${prog.bar.toFixed(3)})`;
-    barEl.setAttribute('aria-valuenow', String(Math.round(prog.bar * 100)));
+    // één doorlopende balk: zacht naar het doel, nooit terug, nooit voorbij 100 % voor het klaar is
+    shownBar = prog.done ? 1 : easeBar(shownBar, prog.bar, now - lastT);
+    lastT = now;
+    fill.style.transform = `scaleX(${shownBar.toFixed(3)})`;
+    barEl.setAttribute('aria-valuenow', String(Math.round(shownBar * 100)));
     const stepNow = loadStepAt(prog.bar, kind);
     if (stepEl.dataset.id !== stepNow.id) {
       stepEl.dataset.id = stepNow.id;
-      const nr = loadStepNr(prog.bar, kind);
-      const tekst = nr.total > 1 ? `Stap ${nr.nr} van ${nr.total}: ${stepNow.label}` : stepNow.label;
-      stepEl.textContent = tekst;
-      barEl.setAttribute('aria-valuetext', tekst);
+      gateStap = stepNow.label;
     }
-    if (skipBtn.hidden && skipReady(kind, (now - t0) / 1000)) skipBtn.hidden = false;
+    // de ene statusregel onder de balk: de echte stap (of de reden van een lange wacht); alleen schrijven bij een wijziging
+    const gv = gateTick(gate, { done: prog.done, elapsedS: (now - t0) / 1000, stap: gateStap, wachtOp: opts.wachtOp ? opts.wachtOp() : '' });
+    if (stepEl.textContent !== gv.status) { stepEl.textContent = gv.status; barEl.setAttribute('aria-valuetext', gv.status); }
+    if (gv.actie === 'door') { finish(); return; }
     if (now - lineAt >= lineS * 1000) nextLine(now);
-    if (prog.done) { finish(); return; }
     requestAnimationFrame(step);
   };
   requestAnimationFrame(step);

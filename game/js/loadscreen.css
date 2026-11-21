@@ -30,11 +30,11 @@
 #load-screen .ls-tip div > span { font: 800 18px var(--ds-font-zeef-kop); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ds-c-ink-bord); }
 #load-screen .ls-tip p { margin: 3px 0 0; font: 400 19px/1.4 var(--ds-font-zeef-tekst); letter-spacing: 0; color: var(--ds-c-ink-inkt); }
 #load-screen .ls-prog { width: 100%; display: flex; flex-direction: column; gap: 10px; }
-#load-screen .ls-step { font: 700 19px/1.3 var(--ds-font-zeef-tekst); color: var(--ds-c-ink-inkt); min-height: 1.3em; }
+#load-screen .ls-step { font: 400 18px/1.3 var(--ds-font-zeef-tekst); color: var(--ds-c-ink-inkt); min-height: 1.3em; }
 #load-screen .ls-tip.swap { animation: ls-line-in 0.5s ease-out; }
 @keyframes ls-line-in { from { opacity: 0; transform: translateY(4px); } }
 #load-screen .ls-bar { width: 100%; height: 22px; box-sizing: border-box; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); background-color: var(--ds-c-ink-papier); background-image: var(--ds-raster); background-size: var(--ds-raster-maat); box-shadow: var(--ds-schaduw-hard); overflow: hidden; }
-#load-screen .ls-bar i { display: block; height: 100%; box-sizing: border-box; border-right: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); transform-origin: left; transform: scaleX(0.04); background: var(--ds-c-ink-geel); transition: transform 0.2s linear; }
+#load-screen .ls-bar i { display: block; height: 100%; box-sizing: border-box; border-right: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); transform-origin: left; transform: scaleX(0.04); background: var(--ds-c-ink-bord); transition: transform 0.1s linear; }
 @media (max-width: 900px) {
   /* keep the tip on screen for narrow windows: only the picture badge and the print go, never the text (#600) */
   #load-screen .ls-bg { display: none; }
@@ -69,10 +69,3 @@ html.rustig-drukwerk #load-screen { background-image: none; }
 html.rustig-drukwerk #load-screen::before { display: none; }
 html.rustig-drukwerk #load-screen .ls-bar { background-image: none; }
 
-/* #985: Verder, zodra het scherm langer dan een paar seconden duurt: the one yellow thing you can do. */
-#load-screen .ls-skip { position: absolute; right: 100px; top: 40px; z-index: 3; padding: 8px 18px; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); background: var(--ds-c-ink-geel); box-shadow: var(--ds-schaduw-hard); color: var(--ds-c-ink-inkt); font: 800 20px var(--ds-font-zeef-kop); letter-spacing: 0.06em; cursor: pointer; }
-#load-screen .ls-skip[hidden] { display: none; }
-#load-screen .ls-skip:active { transform: translate(4px, 4px); box-shadow: none; }
-#load-screen .ls-skip:hover, #load-screen .ls-skip:focus-visible { outline: 3px solid var(--ds-c-ink-bord); outline-offset: 3px; }
-#load-screen .ls-skip kbd { margin-left: 8px; padding: 1px 6px; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); background: var(--ds-c-ink-papier); font: 800 14px var(--ds-font-zeef-kop); }
-@media (max-width: 900px) { #load-screen .ls-skip { right: 40px; top: auto; bottom: 120px; } }

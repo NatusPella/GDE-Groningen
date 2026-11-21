@@ -19,7 +19,7 @@ import { makeMenuGate, GATE } from './menuready.js';
 import { isAdvisorSampling, startGfxAdvisor, classifyGpu, readGpu, presetFromSample, currentPreset, applyPreset, isDefaultGfx, readAdvice, writeAdvice, presetLabel } from './gfxprofile.js';
 import { ABOUT_HTML } from './credits.js';
 import { startLoadScreen, setLoadTips } from './loadscreen.js';
-import { stepDurations, bootPlan, bootProgress, bootPhaseAt, bootCreepCap, bootStepText, BOOT_DONE_LABEL } from './loadlogic.js';
+import { stepDurations, bootPlan, bootProgress, bootPhaseAt, bootCreepCap, bootStepText, BOOT_DONE_LABEL, easeBar } from './loadlogic.js';
 import { padGlyphInner } from './glyphs.js';
 import { onDeviceChange, getDevice } from './inputdevice.js';
 import { MENU_PLEKKEN, stadPlek, leesVerleden, bewaarVerleden, kiesVolgende, noteer, maakBeeld } from './menuplekken.js';
@@ -55,6 +55,7 @@ setLoadTips(TIPS);
 const TIP_MS = 3800;
 
 let fakeTimer = 0;
+let lastPaintAt = 0;
 let progress = 0;
 let shown = 0;
 let bootStatusLocked = false;
@@ -88,37 +89,27 @@ export function initLoading() {
   showVersion();
   // the self-hosted fonts load now, so the logo never swaps typefaces mid-stamp
   try { if (document.fonts && document.fonts.load) { document.fonts.load('800 40px "Barlow Condensed"'); document.fonts.load('400 20px "Atkinson Hyperlegible"'); } } catch (e) { /* ignore */ }
-  buildTicks();
   // between the real moments the bar creeps towards the end of the step it is in, so a long
   // step (the shaders) still shows life; a real report always wins (setBootStep)
+  lastPaintAt = performance.now();
   fakeTimer = setInterval(() => {
-    if (progress > shown) shown += (progress - shown) * 0.25;
+    // one continuous bar: it eases to the real progress (never back, at most ~1% per frame) and between real
+    // reports it creeps asymptotically towards the end of the step, so a long step is a slow move, not a standstill
+    const now = performance.now();
+    const dt = now - lastPaintAt;
+    lastPaintAt = now;
+    if (progress > shown) shown = easeBar(shown, progress, dt);
     else {
       const cap = bootCreepCap(plan, progress);
-      if (shown < cap) shown += (cap - shown) * 0.012;
+      if (shown < cap) shown = Math.min(cap, shown + (cap - shown) * 0.005);
     }
     paint();
-  }, 80);
+  }, 33);
 }
 
 // The boot plan: which steps this start has (main.js knows whether the warm-up runs).
 export function setBootPlan(opts) {
   plan = bootPlan(opts);
-  buildTicks();
-}
-
-// The thin ink lines in the bar at the end of every step but the last: the bar reads as a
-// row of steps (screen print: paper, ink, yellow), the widths follow the weights.
-function buildTicks() {
-  const bar = document.querySelector('#loading .ld-bar');
-  if (!bar) return;
-  bar.querySelectorAll('.ld-tick').forEach((t) => t.remove());
-  for (const st of plan.steps.slice(0, -1)) {
-    const t = document.createElement('i');
-    t.className = 'ld-tick';
-    t.style.left = (st.to * 100).toFixed(2) + '%';
-    bar.appendChild(t);
-  }
 }
 
 function reducedMotion() {
