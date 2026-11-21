@@ -181,6 +181,8 @@ Nog niet gedaan: bij een keuze met een eigen invoerveld (een naam of een bedrag)
 
 ## Filmpjes zonder script: wat een gast ziet (#712)
 
+Camera- en regiewijzigingen aan scènes met een scènebeschrijving (#1146: een tweede hoek in een lange beurt, een inzetshot, draaiende sprekers) zijn scènedata: de gast speelt precies dezelfde shots lokaal na, er is geen aparte gastregel en geen netwerkverkeer bij gekomen.
+
 Alleen scènes met een scènebeschrijving (`playScript`, `cutscenehost.js`) gaan als data naar de gasten; die speelt een gast lokaal na. Alle andere momenten zijn `playCinematic` met een eigen camerabaan, en die zijn **host-only**: de wijkflyover, het eerste-bezoek-kaartje, het landmerk, de Ommelanden, de crash, wanted5, missie-intro's en -outro's, de dood, uitslagen, de heist-ontsnapping, de treinreis, de finale en de aftiteling. De gast speelt ze niet mee, maar ziet ook niet meer alleen twee zwarte balken:
 
 - De gastheer leest zijn titelkaart (`readHostScene` in `coopscene.js`): `kicker`, `title`, `big`, `accent` en `tint` gaan mee in het scènebericht (`schoonScene` in `coopworld.js`) en de gast tekent ze als kaart in de laag over zijn scherm (`updateHostScene`), met de regel eronder als de host die heeft.

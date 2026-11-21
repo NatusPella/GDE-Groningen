@@ -25,7 +25,7 @@ S['M12.intro'] = {
     { on: 'Dan de ballon', dt: 0.4, actor: 'dijkstra', anim: 'point' },
     { on: 'Duiven luisteren naar niemand', actor: 'tammo', anim: 'shrug' },
     { on: 'Behalve naar jou', actor: 'tessa', anim: 'point' },
-    { on: 'Natuurlijk hang', actor: 'tammo', anim: 'shake' },
+    { on: 'Natuurlijk hang', actor: 'tammo', anim: 'shrug' },
     { on: 'Ik vraag het', actor: 'tessa', face: 'actor:tammo' },
     { on: 'Ik vraag het', dt: 0.5, actor: 'tessa', anim: 'nod' },
     { on: '…Ja. Dank je', actor: 'tammo', anim: 'nod' },

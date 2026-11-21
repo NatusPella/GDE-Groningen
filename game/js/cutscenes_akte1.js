@@ -119,7 +119,7 @@ Object.assign(SPECS, SPECS_AKTE2);
     ],
     shots: [],
     // direction templates (cineshots.js, #955)
-    cuts: [{ on: 2, dt: 0.8, tpl: 'trackIn', target: 'berend', angle: -75, hold: 5 }, { on: 3, tpl: 'shotReverse', a: 'tammo', b: 'berend', beats: [0] }, { on: 6, tpl: 'shotReverse', a: 'tammo', b: 'berend', beats: [0] }, { on: 7, tpl: 'shotReverse', a: 'berend', b: 'tammo', beats: [0, 4.2] }, { on: 8, tpl: 'shotReverse', a: 'tessa', b: 'berend', beats: [0] }, { on: 11, tpl: 'langzameZoom', target: 'berend', fov0: 34, fov1: 22, hold: 2 }],
+    cuts: [{ on: 2, tpl: 'trackIn', target: 'berend', angle: -75, hold: 5 }, { on: 3, tpl: 'shotReverse', a: 'tammo', b: 'berend', beats: [0] }, { on: 6, tpl: 'shotReverse', a: 'tammo', b: 'berend', beats: [0] }, { on: 7, tpl: 'shotReverse', a: 'berend', b: 'tammo', beats: [0, 4.2] }, { on: 8, tpl: 'shotReverse', a: 'tessa', b: 'berend', beats: [0] }, { on: 11, tpl: 'langzameZoom', target: 'berend', fov0: 34, fov1: 22, hold: 2 }],
     wide: { from: [-5.5, 4.5, 3.4], to: [-3.2, 3.3, 2.6], look: 'mid:berend,bakkie@1', fov: 48, until: 1 },
   };
 
@@ -626,6 +626,7 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
   };
   const primary = Object.keys(actors).filter((id) => !meta[id].bg && !meta[id].noauto);
   const gi = {};
+  const turned = {};
   const beats = (spec.beats || []).map((b) => ({ ...b, idx: resolveOn(b.on, lines) })).filter((b) => b.idx !== -1);
   const shotAt = new Map();
   for (const s of spec.shots || []) { const i = resolveOn(s.on, lines); if (i != null && i >= 0) shotAt.set(i, s); }
@@ -639,6 +640,9 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
     let anim = g[gi[me]++ % g.length];
     if (l.text.length < 22 && anim !== 'talk') anim = 'talk';
     cues.push({ t: tspec(i), actor: me, anim });
+    // #1146 (R-21): the speaker turns to the one he answers (the last other speaker), so nobody talks with his back to the listener
+    const answers = lines.slice(0, i).reverse().map((q) => speakerActor(q.speaker)).find((a) => a && a !== me) || lines.slice(i + 1).map((q) => speakerActor(q.speaker)).find((a) => a && a !== me);
+    if (answers && turned[me] !== answers) { turned[me] = answers; cues.push({ t: tspec(i, 0.05), actor: me, face: 'actor:' + answers }); }
     for (const o of primary) {
       if (o === me) continue;
       cues.push({ t: tspec(i), actor: o, face: 'actor:' + me });
@@ -708,8 +712,10 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
       const farSide = me === 'tammo' || me === 'tessa';
       shot = k === 0 ? CAMS.cut(duoSide, farSide) : k === 1 ? CAMS.dolly(duoSide, farSide) : k === 2 ? CAMS.orbit(duoSide, farSide, farSide ? 160 + i * 20 : 20 + i * 25) : k === 3 ? CAMS.high(duoSide, farSide) : CAMS.close(duoSide, farSide);
     }
-    const dt = shot.dt || 0;
+    let dt = shot.dt || 0;
     delete shot.dt;
+    // #1146 (R-12): the establishing shot lasts at least 0.9 s: the first frame of the coverage never starts earlier (no flicker)
+    if (i === 0 && l.at + dt > 0.05 && l.at + dt < 0.9) dt = Math.round((0.9 - l.at) * 100) / 100;
     const t = tspec(i, dt);
     shots.push({ t, ...shot });
     lastT = l.at + dt; lastSpeaker = me; lastIdx = i;
@@ -733,10 +739,28 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
     shots.sort((a, b) => num2(a.t) - num2(b.t));
   }
   // the closing frame: back out to the street
-  const wend = spec.wide ? { shot: 'dolly', from: [spec.wide.to[0] + 0.5, spec.wide.to[1], spec.wide.to[2] + 0.3], to: [spec.wide.to[0] + 2.2, spec.wide.to[1] * 0.9, spec.wide.to[2] + 1.2], look: spec.wide.look, fov: spec.wide.fov || 48 } : null;
+  // the closing frame keeps the last speaker in view: the middle of the wide's look moves to the first subject and the last speaker (a mid: look takes two)
+  const lastMe = spec.wide && speakerActor(lines[lines.length - 1].speaker);
+  const wendLook = spec.wide && spec.wide.endLook ? spec.wide.endLook : (() => { const m = spec.wide && typeof spec.wide.look === 'string' ? /^mid:([^@]+)(@.+)?$/.exec(spec.wide.look) : null; return m && lastMe && !m[1].split(',').includes(lastMe) ? `mid:${m[1].split(',')[0]},${lastMe}${m[2] || ''}` : spec.wide && spec.wide.look; })();
+  const wend = spec.wide ? { shot: 'dolly', from: [spec.wide.to[0] + 0.5, spec.wide.to[1], spec.wide.to[2] + 0.3], to: [spec.wide.to[0] + 2.2, spec.wide.to[1] * 0.9, spec.wide.to[2] + 1.2], look: wendLook, fov: spec.wide.fov || 48 } : null;
   const lastLine = lines[lines.length - 1];
-  if (wend && !spec.manual && lastLine.dur > 1.6) shots.push({ t: tspec(lines.length - 1, Math.max(0.6, lastLine.dur - 1.4)), ...wend });
+  if (wend && !spec.manual && lastLine.dur > 1.6) {
+    // the closing frame comes at least a second after the shot before it (#1146: no flicker on the last line)
+    const prevAt = shots.reduce((m, q) => Math.max(m, typeof q.t === 'number' ? q.t : (m2 => (m2 && lines[+m2[1]] ? lines[+m2[1]].at + (m2[2] ? +m2[2] : 0) : 0))(/^L([0-9]+)([+-][0-9.]+)?$/.exec(q.t))), 0);
+    shots.push({ t: tspec(lines.length - 1, Math.max(1.0, lastLine.dur - 1.4, Math.round((prevAt + 1.0 - lastLine.at) * 100) / 100)), ...wend });
+  }
   if (spec.cuts && spec.cuts.length) { const tn = (t) => { if (typeof t === 'number') return t; const m = /^L(\d+)([+-][\d.]+)?$/.exec(t); return m && lines[+m[1]] ? lines[+m[1]].at + (m[2] ? +m[2] : 0) : 0; }; shots.sort((x, y) => tn(x.t) - tn(y.t)); for (let i = shots.length - 1; i > 0; i--) if (tn(shots[i].t) - tn(shots[i - 1].t) < 0.05) shots.splice(i - 1, 1); }
+  splitLongShots(shots, lines, endT, (i, near) => {
+    const me = speakerActor(lines[i].speaker);
+    const pos = (q) => (q && (q.at || q.from)) || null;
+    const apart = (c) => near.every((q) => { const a = pos(q), b = pos(c); return !a || !b || Math.hypot(a[0] - b[0], a[1] - b[1]) > 0.6; });
+    if (me == null) { const offs = [[-2.4, 0.6, 1.7], [-2.2, -1.4, 1.8], [-3.2, 1.8, 2.2], [-1.6, 2.2, 1.6]].map((at) => ({ shot: 'cut', at, look: 'mid:tammo,tessa@1.3', fov: 40 })); return offs.find(apart) || offs[3]; }
+    const duoSide = me === 'tammo' ? 1 : me === 'tessa' ? -1 : (i % 2 ? 1 : -1);
+    const far = me === 'tammo' || me === 'tessa';
+    // a pose that differs from the shots around it (no jump cut): the first candidate that stands more than 0.6 m from both
+    const cands = [CAMS.high(duoSide, far), CAMS.cut(duoSide, far), CAMS.high(-duoSide, far), CAMS.cut(-duoSide, far), CAMS.orbit(duoSide, far, far ? 160 + i * 20 : 20 + i * 25)];
+    return cands.find(apart) || cands[cands.length - 1];
+  });
   drift(shots, lines, endT + 1);
   // OPT-IN direction engine (cutdirector.js): only a spec with `direct` gets its coverage from semantic data (who speaks to whom, emotion, kind
   // of line); no existing scene has it. `direct: { lines: [{ on, emotion, kind, to, humor }], wide? }`; `wide` falls back to the spec's own wide.
@@ -772,6 +796,35 @@ export function quickScene(lines, { npc = null, looks = {}, deck = false } = {})
       : { from: [-3.6, 3.6, 2.9], to: [-1.8, 2.6, 2.2], look: npc ? 'mid:npc,tessa@1.2' : 'mid:tammo,tessa@1.2', fov: 48, until: 1 },
   };
   return missionScene(deck ? 'dek' : 'kort', lines, { looks: npc ? { [npc.key]: look } : looks, spec });
+}
+
+// #1146 (R-12): a shot never runs longer than HOLD_MAX seconds: a long speech or a long establishing dolly gets a second angle in the
+// middle (the lint caps a close at 8 s and a medium at 10 s). `pick(i)` gives the extra shot for line i, the line playing at that moment.
+const HOLD_MAX = 7.2;
+function splitLongShots(shots, lines, total, pick) {
+  const at = (t) => {
+    if (typeof t === 'number') return t;
+    const m = /^L([0-9]+)(?:([+-])([0-9.]+))?$/.exec(t);
+    if (!m || !lines[+m[1]]) return null;
+    return lines[+m[1]].at + (m[2] ? (m[2] === '-' ? -1 : 1) * parseFloat(m[3]) : 0);
+  };
+  const extra = [];
+  shots.forEach((s, k) => {
+    const a = at(s.t);
+    const b = k + 1 < shots.length ? at(shots[k + 1].t) : null;
+    if (a == null || b == null || b - a <= HOLD_MAX) return;
+    const parts = Math.ceil((b - a) / HOLD_MAX);
+    for (let q = 1; q < parts; q++) {
+      const mid = a + ((b - a) * q) / parts;
+      let li = -1;
+      lines.forEach((l, i) => { if (l.at <= mid) li = i; });
+      if (li < 0) continue;
+      extra.push({ t: tspec(li, Math.round((mid - lines[li].at) * 100) / 100), ...pick(li, [s, shots[k + 1]]) });
+    }
+  });
+  if (!extra.length) return;
+  shots.push(...extra);
+  shots.sort((x, y) => at(x.t) - at(y.t));
 }
 
 // Rhythm rule (#136): a camera never holds still longer than ~6 s. A fixed cut that runs long gets a slow push-in

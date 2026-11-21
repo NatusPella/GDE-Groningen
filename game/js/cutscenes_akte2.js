@@ -265,7 +265,7 @@ export const SPECS_AKTE2 = {};
       { on: 'Uithuizen heeft een sloot', dt: 0.3, actor: 'tammo', walk: [[-2.2, 0.8]], speed: 2.8 },
     ],
     shots: [{ on: 'Je hebt hem dus echt', shot: 'cut', at: [-2.0, -1.6, 1.6], look: 'tammo@1.3', fov: 36 }],
-    wide: { from: [-5.6, 4.8, 3.2], to: [-3.0, 3.4, 2.6], look: 'mid:limo,tessa@1.4', fov: 50, until: 1 },
+    wide: { from: [-5.6, 4.8, 3.2], to: [-3.0, 3.4, 2.6], look: 'mid:limo,tessa@1.4', endLook: 'mid:tessa,tammo@1.2', fov: 50, until: 1 },
   };
 }
 

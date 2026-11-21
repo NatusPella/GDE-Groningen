@@ -185,6 +185,7 @@ TAMMO: Dit zijn mijn laatste schone. [NIEUW]
 TESSA: Dan wees er zuinig op. [NIEUW]
 
 ## [N6] Een dag op het water – Hogeland, Noordpolderzijl – rubberboot
+(regie: Naamkaart: KAPITEIN KLAAS bij zijn eerste regel.)
 (regie: donderdagmiddag. Kapitein Klaas heeft twee hengels en een emmer. Tammo zit stil aan de rand; Tessa houdt zich vast aan de reling.)
 KAPITEIN KLAAS: Praat tegen het water. Dan vangt hij. [NIEUW]
 TAMMO: ... [NIEUW]
