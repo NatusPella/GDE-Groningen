@@ -26,6 +26,7 @@ import { legacyDifficultyLevel } from './settings.js';
 import { migrateSave, SAVE_VERSION, savedArc, plausiblePos } from './savemigrate.js';
 import { getCheatSave, applyCheatSave } from './cheats.js';
 import { laadMetTerugval, BEWAREN_UIT_TEKST } from './loadrollback.js'; // #1073
+import { noteRestore } from './placementurgency.js'; // #1052: vensters na een lading zijn urgent
 import { closeShopMenu } from './shopui.js';
 import { quitTrainDrive } from './traindrive.js';
 import { statsFromSave } from './world.js';
@@ -597,7 +598,7 @@ export function applySave(w, d) {
   try { voor = serialize(w); } catch (e) { voor = null; }
   const was = { loadedFromSave: w.loadedFromSave, loadCount: w.loadCount, boundSlot, lastSig, dirtyIn, missionSaveIn, playSeconds, lastMissionsDone };
   const r = laadMetTerugval((x) => applySaveRaw(w, x), d, voor, (t, e) => console.error(t, e));
-  if (r.ok) { bewarenUit = false; return true; }
+  if (r.ok) { bewarenUit = false; noteRestore(); return true; }
   // niet geladen: de schrijfplek blijft die van vóór de poging (de terugval bindt de net gekozen slot
   // anders aan de stand van de oude), en de bewaartimers staan terug of, bij een kapotte wereld, uit
   w.loadedFromSave = was.loadedFromSave;

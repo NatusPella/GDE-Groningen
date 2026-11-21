@@ -101,4 +101,22 @@ async function runWindow(mode, items, { cutscene, frames = 400 }) {
 }
 holdBackground(false);
 
+// ---- #1052: na een lading en bij een lopende activiteit zijn vensters urgent (de bedrading) ----
+{
+  const { noteRestore, restoreActive, resetRestore, RESTORE_MS } = await import('../game/js/placementurgency.js');
+  resetRestore();
+  ok(!restoreActive(1000) && urgencyModeFor([[9000, 0]], { x: 0, y: 0 }).mode === 'background', 'zonder lading: ver weg blijft achtergrond');
+  noteRestore(); // klok = performance.now()
+  ok(urgencyModeFor([[9000, 0]], { x: 0, y: 0 }).mode === 'urgent', 'na een geladen savegame is een ver venster urgent');
+  ok(restoreActive(performance.now() + RESTORE_MS - 1) && !restoreActive(performance.now() + RESTORE_MS + 1), 'het herstelvenster duurt RESTORE_MS');
+  resetRestore();
+  ok(urgencyModeFor([[9000, 0]], { x: 0, y: 0 }).mode === 'background', 'daarna weer achtergrond');
+  const fs = await import('node:fs');
+  const main = fs.readFileSync(new URL('../game/js/main.js', import.meta.url), 'utf8');
+  const sg = fs.readFileSync(new URL('../game/js/savegame.js', import.meta.url), 'utf8');
+  ok(/installActivityProbe\(\(\) => playerBusy\(world, \[[^\]]*'missionPhase'[^\]]*\]\)\.busy\)/.test(main), 'main.js hangt de activiteitssonde aan playerBusy (missie, bijbaan, wedstrijd, minigame)');
+  ok(!/'cinematic'/.test(main.match(/installActivityProbe\(.*/)[0]), 'een cutscene alleen telt niet als activiteit (die houdt achtergrondwerk juist vast)');
+  ok(/if \(r\.ok\) \{ bewarenUit = false; noteRestore\(\); return true; \}/.test(sg), 'savegame.js meldt een geslaagde lading met noteRestore');
+}
+
 console.log(`placementurgency_test: ${n} controles groen`);
