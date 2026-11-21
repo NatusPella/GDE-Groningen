@@ -559,16 +559,16 @@ eerste stuk van 6 en 7: "een perceel kopen, zelf bewerken, de oogst verkopen aan
 
 | # | Werkpakket | Kosten | Mode | Hoofdtests | Na |
 |---|---|---|---|---|---|
-| 1 | **Data en ID's**: `scripts/world/bezit_index.mjs` bouwt `bezit-percelen` (aaneenrijgen, samenvoegen onder 0,5 ha, ID, toegang) en de pand-index; audit in de releasegate | M | confirm | `percelen_audit` (deterministisch, geen botsing), `bezit_index_test` | |
-| 2 | **Bezit-opslag en prijsmodel**: `bezit.js` (compacte verzameling, migratie van De Zonnehoek, prijsmodel, schaalprijs, namen) | M | validate | `bezit_test`, `bezitnamen_test`, savecompatibiliteit | 1 |
-| 3 | **Kaartlaag "Te koop" en perceelkaart**: laag, klik, koopflow met bevestiging, doel (DS3) | L | confirm | pure kaartmodeltest, `perceelkaart_test`, beeldrun | 1, 2 |
-| 4 | **Menu Bezit en start**: Land en bedrijf met subtabs, doorverwijzing, de akte-scène, Mijn bezit | S | autopilot | pausemenutests, `bezitmenu_test` | 2 |
-| 5 | **Wereldmarkering en minimap**: paaltje, bord, grenslijn uit de kaartranden, eigenaarsnaam op panden, streamen | M | confirm | `bezitmarker_test`, geometrie-NaN, perf | 1, 3 |
-| 6 | **Tak Percelen: gebruik en schaal**: perceel uit index werkt als het bestaande veld, werkeenheid, verpachten, **AI-personeel** (zichtbaar), vee, boomgaard, beheerscherm en bulkacties, Tessa-regels | L | validate | `boerderij_test` uitgebreid, `personeel_test`, `vee_test`, `bezitbeheer_test` | 2 |
-| 7 | **Tak Bedrijven: omzet, personeel, beheer, klanten**: pand-model, uitsluitlijst, prijs en omzet, bestaande NPC's als personeel, beheerknop, klanten in beeld, verhuur | L | validate | `bedrijf_test`, `bezituitsluiting_test` | 2, 4 |
-| 8 | **Productieketen en markt**: schakels, voorraad, logistiek (AI-chauffeurs), dynamische prijzen, events, één beheerscherm Ketens | L | validate | `keten_test`, `streekmarkt_test`, `bezitevents_test` | 6, 7 |
-| 9 | **Samen spelen**: claim-bericht, omtrek van medespelers, werken op andermans perceel (loon), aansluiten en wegvallen | M | validate | `bezitcoop_test`, testbankstap, `docs/COOP-GAST.md` | 2, 6 |
-| 10 | **Balans, exploits en prestaties**: arbeid per ha (5.3), economiesim met bezit, prestaties, perf-run met 1.000 percelen | M | validate | `economie_sim_test` uitgebreid, perf, `rules_audit` | 6, 7, 8 |
+| 1 (#1096) | **Data en ID's**: `scripts/world/bezit_index.mjs` bouwt `bezit-percelen` (aaneenrijgen, samenvoegen onder 0,5 ha, ID, toegang) en de pand-index; audit in de releasegate | M | confirm | `percelen_audit` (deterministisch, geen botsing), `bezit_index_test` | |
+| 2 (#1097) | **Bezit-opslag en prijsmodel**: `bezit.js` (compacte verzameling, migratie van De Zonnehoek, prijsmodel, schaalprijs, namen) | M | validate | `bezit_test`, `bezitnamen_test`, savecompatibiliteit | 1 |
+| 3 (#1098) | **Kaartlaag "Te koop" en perceelkaart**: laag, klik, koopflow met bevestiging, doel (DS3) | L | confirm | pure kaartmodeltest, `perceelkaart_test`, beeldrun | 1, 2 |
+| 4 (#1099) | **Menu Bezit en start**: Land en bedrijf met subtabs, doorverwijzing, de akte-scène, Mijn bezit | S | autopilot | pausemenutests, `bezitmenu_test` | 2 |
+| 5 (#1100) | **Wereldmarkering en minimap**: paaltje, bord, grenslijn uit de kaartranden, eigenaarsnaam op panden, streamen | M | confirm | `bezitmarker_test`, geometrie-NaN, perf | 1, 3 |
+| 6 (#1101) | **Tak Percelen: gebruik en schaal**: perceel uit index werkt als het bestaande veld, werkeenheid, verpachten, **AI-personeel** (zichtbaar), vee, boomgaard, beheerscherm en bulkacties, Tessa-regels | L | validate | `boerderij_test` uitgebreid, `personeel_test`, `vee_test`, `bezitbeheer_test` | 2 |
+| 7 (#1102) | **Tak Bedrijven: omzet, personeel, beheer, klanten**: pand-model, uitsluitlijst, prijs en omzet, bestaande NPC's als personeel, beheerknop, klanten in beeld, verhuur | L | validate | `bedrijf_test`, `bezituitsluiting_test` | 2, 4 |
+| 8 (#1103) | **Productieketen en markt**: schakels, voorraad, logistiek (AI-chauffeurs), dynamische prijzen, events, één beheerscherm Ketens | L | validate | `keten_test`, `streekmarkt_test`, `bezitevents_test` | 6, 7 |
+| 9 (#1104) | **Samen spelen**: claim-bericht, omtrek van medespelers, werken op andermans perceel (loon), aansluiten en wegvallen | M | validate | `bezitcoop_test`, testbankstap, `docs/COOP-GAST.md` | 2, 6 |
+| 10 (#1105) | **Balans, exploits en prestaties**: arbeid per ha (5.3), economiesim met bezit, prestaties, perf-run met 1.000 percelen | M | validate | `economie_sim_test` uitgebreid, perf, `rules_audit` | 6, 7, 8 |
 
 Volgorde: 1, 2, dan 3 en 4 (parallel), 5; 6 en 7 (parallel, andere bestanden); 8; 9 (kan na 6); 10 loopt mee met 6 tot 8 en sluit af.
 Tussen 5 en 6 is er een releasepunt: de kaart toont wat er te koop is en je kunt kopen en bewerken, zonder personeel of bedrijven.
