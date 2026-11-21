@@ -200,9 +200,15 @@ t('een v:1-save van voor de tussenstappen springt niet terug en houdt ze open (#
   assert.equal(volgende(na('M18')).id, 'M18');
   // een lege save en een uitgespeelde save
   assert.deepEqual(passedBetweenSteps(new Set()), []);
-  assert.deepEqual(passedBetweenSteps(new Set(STEPS.map((s) => s.id))), ['A1', 'A2']);
+  assert.deepEqual(passedBetweenSteps(new Set(STEPS.map((s) => s.id))), BETWEEN_STEPS);
   // een afgeleide loopbaanstap verderop in een oude save (getStorySave noteert die) sluit A1 niet: de save stond ervoor
   assert.deepEqual(passedBetweenSteps(new Set([...voor('M08'), 'T2'])), []);
+  // de voetbalstappen V1-V3 (#1179) volgen elkaar op: een save die bij T4 stond (na M19) krijgt ze alle drie, een save bij M20 telt ze alle drie als gedaan, bij M19 nog niet
+  assert.deepEqual(passedBetweenSteps(voor('M19')), ['A1', 'A2']);
+  assert.deepEqual(passedBetweenSteps(voor('T4')), ['A1', 'A2']);
+  assert.equal(volgende(na('T4')).id, 'V1');
+  assert.deepEqual(passedBetweenSteps(voor('M20')), ['A1', 'A2', 'V1', 'V2', 'V3']);
+  assert.equal(volgende(na('M20')).id, 'M20', 'geen terugspringen');
 });
 
 console.log(`loopbaanstart_test: ${n - fails}/${n} ok`);
