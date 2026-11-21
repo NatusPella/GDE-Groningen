@@ -7,11 +7,20 @@
 
 // Elke reden waarom de opening nu nog niet kan beginnen (leeg = klaar). De namen staan in de
 // waarschuwing van story.js, zodat een vastloper zegt waar hij op wacht.
+// Zit er een groep in dit spel? Een host met medespelers, of een speler midden in een overname of overdracht (coophostwisselnet.js).
+export function groepInSpel(world) {
+  const n = world && world.coopNet, w = world && world.coopWissel;
+  if (n && n.role === 'host' && n.hub && n.hub.roster && n.hub.roster.spelers.some((x) => x.slot !== 0 && x.verbinding !== 'lost')) return true;
+  return !!(w && (w.val || w.verbindt || w.overname || (w.nieuw && w.nieuw.bezig)));
+}
 export function openingBlockers(s) {
   const out = [];
   if (!s.started) out.push('spel nog niet gestart');
   if (s.client) out.push('meespeler (de opening hoort bij de wereld van wie het spel opende)');
   if (s.gate) out.push('wachtkamer Samen spelen');
+  // #1060: een opening is van wie hem zelf start. Zit er een groep in zijn spel (hij heeft net het spel overgenomen, of er doen medespelers mee),
+  // dan speelt hij niet voor hen: hij wacht tot hij weer alleen is.
+  if (s.groep) out.push('medespelers in jouw spel (de opening is alleen voor wie hem zelf start)');
   if (s.missionActive) out.push('missie actief');
   // een andere film dan de spelstart houdt de opening wel tegen; de spelstart zelf niet
   if (s.cinematicActive && !s.startActive) out.push('andere film bezig');
