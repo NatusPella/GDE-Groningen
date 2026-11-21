@@ -5,6 +5,11 @@
 // met de vrije ruimte onder de camera (een luchtbeeld, de helikopter, een hoge filmcamera) en blijft hij 0,5 m op de grond,
 // in de eerste persoon, in voertuigen, binnen en in elke cutscene-camera: daar zit de lens vlak bij muren, dashboard en wapen
 // (CAM_CLEARANCE 0,9 m in scene3d.js houdt de lens bij 0,5 al van muren af).
+// Eerste persoon (#1024, review 21-11, scripts/cameranear_test.mjs): near 0,08 m maakt de dieptestap 6,25 keer zo groot als bij 0,5 m (50 m: 1,9 mm,
+// 200 m: 30 mm, 500 m: 186 mm; een nudge van 4 mm blijft tot 73 m betrouwbaar in plaats van tot 183 m). De far-plane doet er niets aan: de stap is
+// d^2 / (near * 2^24 * (1 - near/far)), dus voor far >> near is alleen near bepalend; een kortere far per modus helpt niet en knipt alleen het uitzicht.
+// Dit is gemeten in node, niet in beeld: de vraag of wegen, spoor en water op 300 m of meer in eerste persoon flikkeren staat open. Is dat zo, dan is
+// NEAR_FIRST_PERSON 0,15 m (100 m veilig, handen en wapen vallen er nog net binnen) de eerstvolgende stap.
 // Samen spelen: de camera is per speler lokaal; een gast stelt zijn eigen near in, zonder netwerkbericht.
 export const NEAR_MIN = 0.5;
 export const NEAR_MAX = 2.5;
@@ -15,6 +20,9 @@ const NEAR_RISE_PER_S = 3; // near stijgt zacht (1 - e^(-3 dt)); hij zakt direct
 
 // De stap van de dieptebuffer (m) op afstand d bij een near, voor een buffer van `bits` bits (24 in het spel).
 export function depthStep(d, near, bits = 24) { return (d * d) / (near * (2 ** bits - 1)); }
+
+// Dezelfde stap met de far-plane erbij (nauwkeurige vorm): voor far >> near is het verschil met depthStep verwaarloosbaar.
+export function depthStepExact(d, near, far, bits = 24) { return depthStep(d, near, bits) / (1 - near / far); }
 
 // Tot welke afstand (m) een verschil van `offset` meter nog boven de dieptestap uitkomt (daarachter flikkert of verliest het).
 export function maxSafeDistance(offset, near, bits = 24) { return Math.sqrt(offset * near * (2 ** bits - 1)); }
