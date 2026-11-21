@@ -85,7 +85,7 @@ function ensurePanel() {
   panel.className = 'sh-hud bk-paneel ds-z-kaart ds-z-kaart--recht';
   panel.setAttribute('aria-label', "Oma's recept");
   panel.innerHTML = '<header class="sh-kop"><span class="sh-titel ds-t-subkop bk-kop"></span><span class="ds-z-chip bk-ronde"></span></header>' +
-    '<div class="ds-streep bk-balk" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Eierballen klaar"><span class="ds-streep__baan"><span class="ds-streep__vul"></span></span><span class="ds-streep__label bk-balklabel"></span></div>' +
+    '<div class="ds-z-balk ds-z-balk--rij bk-balk" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Eierballen klaar"><span class="ds-z-balk__baan"><span class="ds-z-balk__vul"></span></span><span class="ds-z-balk__label bk-balklabel"></span></div>' +
     '<div class="bk-regel"></div><div class="bk-toetsen"></div><p class="ds-t-hulp sh-nu bk-mis" aria-live="polite"></p>';
   document.body.appendChild(panel);
   // #987: de stappen van het recept (gedaan met icoon, de rest alleen genummerd, zodat Oma's volgorde niet wordt verklapt)
@@ -119,7 +119,7 @@ function render(b, title) {
   set('.bk-balklabel', m.balkLabel);
   const balk = q('.bk-balk');
   balk.setAttribute('aria-valuenow', String(m.pct));
-  balk.style.setProperty('--ds-streep-w', m.pct + '%');
+  balk.style.setProperty('--ds-z-w', m.pct + '%');
   set('.bk-mis', m.melding);
   q('.bk-mis').classList.toggle('sh-nu--slecht', m.fout);
   if (rwStappen) {

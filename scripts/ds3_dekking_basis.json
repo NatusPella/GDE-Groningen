@@ -76,17 +76,6 @@
   "emoji": 0,
   "svg": 0
  },
- "game/js/bakeround.js": {
-  "kleur": 0,
-  "glas": 0,
-  "oud": 1,
-  "font": 0,
-  "klein": 0,
-  "lus": 0,
-  "lang": 0,
-  "emoji": 0,
-  "svg": 0
- },
  "game/js/banter.js": {
   "kleur": 0,
   "glas": 0,
@@ -233,24 +222,13 @@
  "game/js/farmcards.js": {
   "kleur": 0,
   "glas": 0,
-  "oud": 1,
+  "oud": 0,
   "font": 0,
   "klein": 0,
   "lus": 0,
   "lang": 0,
   "emoji": 0,
   "svg": 1
- },
- "game/js/farmhud.js": {
-  "kleur": 0,
-  "glas": 0,
-  "oud": 3,
-  "font": 0,
-  "klein": 0,
-  "lus": 0,
-  "lang": 0,
-  "emoji": 0,
-  "svg": 0
  },
  "game/js/furniture.js": {
   "kleur": 0,
@@ -662,7 +640,7 @@
  "game/js/simhud.js": {
   "kleur": 0,
   "glas": 0,
-  "oud": 1,
+  "oud": 0,
   "font": 0,
   "klein": 0,
   "lus": 0,

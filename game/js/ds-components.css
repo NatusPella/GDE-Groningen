@@ -308,6 +308,8 @@ html.pad-active :is(.ds-z-knop, .ds-z-kaart, .ds-z-tab, .ds-z-rij):focus { outli
 .ds-z-balk__label { font-weight: var(--ds-gewicht-vet); font-variant-numeric: tabular-nums; }
 .ds-z-balk--tijd .ds-z-balk__vul { background: var(--ds-zeef-primair); }
 .ds-z-balk--laag .ds-z-balk__vul { background: var(--ds-c-rood); }
+.ds-z-balk--rij { flex-direction: row; align-items: center; gap: var(--ds-s-3); }  /* label naast de baan, in plaats van eronder (HUD en veldkaarten) */
+.ds-z-balk--rij > .ds-z-balk__baan { flex: 1; }
 
 /* ---- Plaatje voor HUD-waarden: papier met inktrand, zodat de druk boven elke scène leesbaar blijft ---- */
 .ds-z-waarde {

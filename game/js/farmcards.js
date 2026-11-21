@@ -1,5 +1,5 @@
 // De veldkaarten van het boerderijpaneel (#985): wat nu, de lus (ploegen, zaaien, groeien, oogsten, afleveren), elk veld als kaart met status, voortgang en
-// volgende klus, de legenda van de kaartstatussen en de eerste-keer-uitleg. Dun: dit bestand maakt alleen markup (ds-z-kaart, ds-z-chip, ds-streep, ds-z-knop uit
+// volgende klus, de legenda van de kaartstatussen en de eerste-keer-uitleg. Dun: dit bestand maakt alleen markup (ds-z-kaart, ds-z-chip, ds-z-balk, ds-z-knop uit
 // ds-components.css; de indeling staat in farm.css) uit het model van farmstatus.js. Klikken en toetsen regelt boerderijui.js (data-bd-naar,
 // data-bd-uitleg). Geen eigen kleuren: de stand zit in data-status, de betekenis in woorden en een icoon (kleur is nooit de enige betekenis).
 import * as B from './boerderij.js';
@@ -33,7 +33,7 @@ export function lusHtml(s, schuurKg = 0) {
 // Eén veld als kaart: naam, status, gewas, voortgang, wat nu en een knop naar de kaart (secundair: de gele hoofdknop is van het scherm).
 export function groeiHtml(s) {
   const groeit = s.stadium >= 0;
-  return groeit ? `<div class="ds-streep" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(s.groei * 100)}" aria-label="Groei van ${esc(s.naam)}"><span class="ds-streep__baan"><span class="ds-streep__vul" style="--ds-streep-w:${(s.groei * 100).toFixed(1)}%"></span></span><span class="ds-streep__label">${Math.round(s.groei * 100)}%</span></div>` : '';
+  return groeit ? `<div class="ds-z-balk ds-z-balk--rij" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(s.groei * 100)}" aria-label="Groei van ${esc(s.naam)}"><span class="ds-z-balk__baan"><span class="ds-z-balk__vul" style="--ds-z-w:${(s.groei * 100).toFixed(1)}%"></span></span><span class="ds-z-balk__label">${Math.round(s.groei * 100)}%</span></div>` : '';
 }
 
 export const euroTekst = (n) => '€' + Math.round(n).toLocaleString('nl-NL');
