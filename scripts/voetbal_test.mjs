@@ -491,7 +491,7 @@ t('de aansluiting op Tessa is een dunne laag: zonder haak neutraal, met haak bon
   assert.equal(tessaRegel('viering', () => 0), 'Tessa: kijk eens aan.');
   const b = voetbalBonusVan('anita'); assert.equal(b.sprint, 1.06);
   // de bonus werkt in de sim: sprint, schotspreiding en aanname
-  const run = (bonus) => { const m = maakWedstrijd([{ slot: 0, naam: 'T', bonus }], { seed: 61 }); tot(m, 'spel', 30); const p = m.spelers[m.mensen[0].ctl]; m.bal.owner = -1; zetBal(m.bal, 11, 11); p.x = -5; p.y = -10; p.vx = p.vy = 0; p.stamina = 1; stap(m, 1.5, () => ({ mx: 0, my: -1, buttons: KNOP.SPRINT })); return p.y; };
+  const run = (bonus) => { const m = maakWedstrijd([{ slot: 0, naam: 'T', bonus }], { seed: 61 }); tot(m, 'spel', 30); const p = m.spelers[m.mensen[0].ctl]; m.mensen[0].autoT = 1e9; m.bal.owner = -1; zetBal(m.bal, 11, 11); p.x = -5; p.y = -10; p.vx = p.vy = 0; p.stamina = 1; stap(m, 1.5, () => ({ mx: 0, my: -1, buttons: KNOP.SPRINT })); return p.y; };
   assert.ok(run({ sprint: 1.06 }) > run(undefined), 'Tessa sprint harder');
   zetVoetbalKarakterHaken({ bonus: null, voorActiviteit: () => { throw new Error('kapot'); }, regels: null });
   assert.equal(karakterStart({}, 'voetbal'), null, 'een kapotte haak stopt de wedstrijd niet'); wisKarakterHaken();

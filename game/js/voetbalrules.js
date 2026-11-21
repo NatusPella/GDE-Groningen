@@ -64,7 +64,7 @@ const VORMING = [{ u: 0, d: 0.04 }, { u: -0.42, d: 0.26 }, { u: 0.42, d: 0.26 },
 // De moeilijkheid: reactietijd van de computer, zijn snelheid, de afwijking van zijn schot (rad) en de keeper (0..1) en de tackle (kans). Gelezen uit de bestaande stand.
 const AI_STAND = {
   ontspannen: { reactie: 0.46, tempo: 0.88, spreiding: 0.2, keeper: 0.5, tackle: 0.3, durf: 0.75 },
-  standaard: { reactie: 0.28, tempo: 0.97, spreiding: 0.11, keeper: 0.72, tackle: 0.5, durf: 1 },
+  standaard: { reactie: 0.3, tempo: 0.94, spreiding: 0.12, keeper: 0.66, tackle: 0.42, durf: 1 },
   uitdagend: { reactie: 0.16, tempo: 1.05, spreiding: 0.06, keeper: 0.88, tackle: 0.7, durf: 1.2 },
 };
 export const aiStand = (mode) => AI_STAND[cleanDifficulty(mode)];
