@@ -102,7 +102,7 @@ near(lucht().len, 500, 1e-6, 'luchtlijn loopt tot het doel (500 m recht)');
 const lijn = scene.children.find((c) => c.isGroup && c.children.some((m) => m.material && m.material.map)).children.find((m) => m.material && m.material.map);
 const pa = lijn.geometry.attributes.position.array;
 const mid = (s) => [(pa[s * 2 * 3] + pa[(s * 2 + 1) * 3]) / 2, (pa[s * 2 * 3 + 2] + pa[(s * 2 + 1) * 3 + 2]) / 2];
-const [ex, ey] = mid(3);
+const [ex, ey] = mid(pa.length / 12 - 1); // laatste doorsnede van het liggende lint (de lijn heeft om de ~20 m een doorsnede)
 near(ex, 300, 1e-3, 'eind van het lint op het doel (x)'); near(ey, 400, 1e-3, 'eind van het lint op het doel (y)');
 const [mx, my] = mid(1);
 near(my / mx, 4 / 3, 1e-6, 'tussenpunt ligt op dezelfde rechte lijn');

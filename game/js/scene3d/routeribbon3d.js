@@ -270,7 +270,7 @@ export function updateRouteRibbon3D(dt, world) {
   const flying = isAirCraft(world, pl0);
   try {
     const v0 = pl0 && pl0.inVehicle;
-    updateAirLine3D(scene, dt, flying, route, flying && pl0 ? { x: v0 ? v0.x : pl0.x, y: v0 ? v0.y : pl0.y, z: v0 ? v0.z || 0 : pl0.gz || 0, angle: v0 ? v0.angle : pl0.angle, speed: v0 ? v0.speed : 0 } : null);
+    updateAirLine3D(scene, dt, flying, route, flying && pl0 ? { x: v0 ? v0.x : pl0.x, y: v0 ? v0.y : pl0.y, z: v0 ? v0.z || 0 : pl0.gz || 0, angle: v0 ? v0.angle : pl0.angle, speed: v0 ? v0.speed : 0, plane: !!(v0 && v0.isPlane) } : null, world.map);
   } catch (e) { reportRibbonError('luchtlijn', e); }
   if (!routeRibbonMesh) {
     routeRibbonMesh = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({

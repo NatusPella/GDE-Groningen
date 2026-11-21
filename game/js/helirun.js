@@ -519,6 +519,7 @@ export function startHeliRun(opts = {}) {
   const variant = VARIANTS[opts.variant] ? opts.variant : 'ballonjacht';
   const V = { ...VARIANTS[variant] };
   const plan = P.makePlan(variant, pads);
+  P.clearRings(plan, w.map, pads.umcg); // geen ring in een gebouw (#1038)
   const st = P.newRunState();
   let startPad = pads.umcg;
   if (variant === 'rooster') startPad = pads.lauwersoog;

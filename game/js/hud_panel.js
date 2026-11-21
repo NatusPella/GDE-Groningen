@@ -81,6 +81,7 @@ import { decideHud, zones, hudNow, cardYields, vehnameBottom, P3, PLACE_SHOW, DE
 import { vehicleKind, speedoLook, meterLevel, hudEdge, distanceOwner, vehicleLabelOwner } from './hudlook.js';
 import { nextTurn, turnText, etaText, dichtstbijDoel } from './hudgps.js';
 import { airGuide, airSub, airEtaText } from './airguide.js';
+import { getAirNeed } from './airprofile.js';
 import { gastDoelen } from './coopextra.js';
 import { kaartDoelen, KAART_ANDER_ALPHA } from './coopmissie.js';
 import { travelModeOf, roadAllowed, minimapScale, northUp, MINIMAP_MODE } from './roadaccess.js';
@@ -144,7 +145,7 @@ function modeCard(route, mode, me) {
   }
   // in de lucht: een rechte lijn naar het doel; koers, peiling, tijd en hoogteadvies (airguide.js) in plaats van afslagen
   if (mode === 'lucht' && route.mode === 'fly' && route.target && me) {
-    const g = airGuide(me, route.target, { alt: route.alt });
+    const g = airGuide(me, route.target, { alt: route.alt, need: getAirNeed() });
     return { title: g.title, sub: airSub(g), dist: formatDistance(g.dist), eta: airEtaText(g.etaS) };
   }
   if (mode === 'lucht' && route.alt) return { title: `Hoogte ± ${route.alt} m`, sub: route.landing ? `Landen: ${route.landing.name}` : '' };

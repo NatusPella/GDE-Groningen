@@ -11,11 +11,13 @@ import { markerColors } from '../a11y.js';
 import { reducedMotion } from '../motion.js';
 import { airLine, airLineFault, airGuide, AIR_LINE_AHEAD_M, AIR_ALT_BAND } from '../airguide.js';
 import { noteRibbonRepair } from '../pathribbonwatch.js';
+import { airProfileFor, profileAt, profileLateral, airNeed, setAirNeed, getAirNeed, TURBINE_TIP_FACTOR, PYLON_TOP } from '../airprofile.js';
+import { farPropsIn } from '../farprops.js';
 
 const HALF_W = 3.2;
 const NOSE_M = 14;
 const CHEVRON_M = 24;
-const SECTIONS = 4; // 0 (uitfaden in), kort daarna, kort voor het eind, eind (uitfaden uit)
+const SECTIONS = Math.ceil(AIR_LINE_AHEAD_M / 20) + 1; // om de ~20 m een doorsnede: de lijn volgt het hoogteprofiel (airprofile.js)
 const INK = '#1d1b17';
 const WATCH_S = 0.5;
 
@@ -28,6 +30,26 @@ let watchT = 0;
 let hiddenLast = false;
 let sceneRef = null;
 const stat = { shown: false, len: 0, goal: null };
+
+let clock = 0;
+// De hoge dingen van het platteland die niet als gebouw in de tegels staan: windturbines (tip = gondel x factor) en
+// hoogspanningsmasten (farprops.js). Per route en blok van 1 km om je heen één keer opgezocht, niet per bemonstering.
+const far = { key: '', list: [] };
+function farExtra(me, target) {
+  const key = `${Math.round(me.x / 1000)}:${Math.round(me.y / 1000)}:${Math.round(target.x)}:${Math.round(target.y)}`;
+  if (far.key !== key) {
+    far.key = key;
+    const x0 = Math.min(me.x, target.x) - 80, x1 = Math.max(me.x, target.x) + 80, y0 = Math.min(me.y, target.y) - 80, y1 = Math.max(me.y, target.y) + 80;
+    const f = farPropsIn(x0, y0, x1, y1);
+    far.list = [...f.turbines.map((t) => ({ x: t[0], y: t[1], top: (t[2] || 85) * TURBINE_TIP_FACTOR, name: 'windturbine' })), ...f.pylons.map((p) => ({ x: p[0], y: p[1], top: PYLON_TOP, name: 'hoogspanningsmast' }))];
+  }
+  if (!far.list.length) return null;
+  return (x, y, r) => {
+    let best = null;
+    for (const o of far.list) if ((!best || o.top > best.top) && Math.abs(o.x - x) <= r + 6 && Math.abs(o.y - y) <= r + 6) best = o;
+    return best;
+  };
+}
 
 function chevronTexture() {
   const c = document.createElement('canvas');
@@ -110,27 +132,28 @@ export function hideAirLine3D() {
   if (root) root.visible = false;
 }
 
-function writeLine(L, dirx, diry) {
+function writeLine(L, dirx, diry, zAt) {
   const pos = lineMesh.geometry.attributes.position;
   const uv = lineMesh.geometry.attributes.uv;
   const col = lineMesh.geometry.attributes.color;
   const a = pos.array;
   // zijkant van het liggende lint (haaks op de lijn) en de staande (omhoog)
   const nx = -diry * HALF_W, ny = dirx * HALF_W;
-  const at = [0, Math.min(60, L.len * 0.25), Math.max(L.len - 90, L.len * 0.7), L.len];
-  const fade = [0, 1, 1, L.clipped ? 0 : 1];
   for (let r = 0; r < 2; r++) {
     for (let s = 0; s < SECTIONS; s++) {
-      const d = NOSE_M + at[s] * ((L.len - NOSE_M) / L.len);
+      const d = NOSE_M + (s / (SECTIONS - 1)) * (L.len - NOSE_M);
       const t = Math.max(0, Math.min(1, d / L.len));
-      const cx = L.x0 + (L.x1 - L.x0) * t, cy = L.y0 + (L.y1 - L.y0) * t, cz = L.z0 + (L.z1 - L.z0) * t;
+      const fadeS = s === 0 ? 0 : s === SECTIONS - 1 && L.clipped ? 0 : 1;
+      const cx = L.x0 + (L.x1 - L.x0) * t, cy = L.y0 + (L.y1 - L.y0) * t;
+      // de hoogte volgt het profiel boven de gebouwen; zonder profiel de oude rechte helling
+      const cz = zAt ? zAt(d) : L.z0 + (L.z1 - L.z0) * t;
       for (let k = 0; k < 2; k++) {
         const side = k === 0 ? 1 : -1;
         const j = (r * SECTIONS + s) * 2 + k;
         if (r === 0) { a[j * 3] = cx + nx * side; a[j * 3 + 1] = cz; a[j * 3 + 2] = cy + ny * side; }
         else { a[j * 3] = cx; a[j * 3 + 1] = cz + HALF_W * side; a[j * 3 + 2] = cy; }
         uv.array[j * 2 + 1] = d / CHEVRON_M;
-        col.array[j * 4 + 3] = fade[s];
+        col.array[j * 4 + 3] = fadeS;
       }
     }
   }
@@ -152,36 +175,48 @@ function lineState() {
 
 // Elk frame vanuit routeribbon3d.js. flying: de speler zit in een luchtvaartuig; route: de actieve route.
 // me: { x, y, z, angle }. Geeft true als de luchtlijn getekend wordt.
-export function updateAirLine3D(scene, dt, flying, route, me) {
+// map: de wereldkaart voor het hoogteprofiel boven de gebouwen (airprofile.js); me.plane: een vliegtuig (hoger en vlakker).
+export function updateAirLine3D(scene, dt, flying, route, me, map = null) {
   const hiddenNow = hiddenLast;
   hiddenLast = false;
   ensure(scene);
   const wanted = !!(flying && route && route.mode === 'fly' && route.target && me && route.remaining > 10 && !hiddenNow);
   stat.wanted = wanted;
-  if (!wanted) { root.visible = false; stat.shown = false; return false; }
+  if (!wanted) { root.visible = false; stat.shown = false; setAirNeed(null); return false; }
   const alt = route.alt || 80;
   const L = airLine(me, route.target, alt, AIR_LINE_AHEAD_M);
-  if (!L) { root.visible = false; stat.shown = false; return false; }
+  if (!L) { root.visible = false; stat.shown = false; setAirNeed(null); return false; }
   try {
     const dx = L.x1 - L.x0, dy = L.y1 - L.y0, l = Math.hypot(dx, dy) || 1;
-    writeLine(L, dx / l, dy / l);
+    // het hoogteprofiel: één keer per route (opnieuw bij een andere route, afdrijven of een tegelwissel), nooit per frame
+    clock += dt;
+    let prof = null, zAt = null, goalZ = alt;
+    if (map) {
+      prof = airProfileFor(map, me, route.target, { plane: !!me.plane, base: alt, extra: farExtra(me, route.target) }, clock);
+      const s = profileLateral(prof, me.x, me.y).s;
+      zAt = (d) => profileAt(prof, s + d);
+      goalZ = prof.atEnd ? profileAt(prof, prof.total) : alt;
+      L.z1 = zAt(L.len);
+      setAirNeed(airNeed(prof, s, AIR_LINE_AHEAD_M));
+    } else setAirNeed(null);
+    writeLine(L, dx / l, dy / l, zAt);
     const color = new THREE.Color(markerColors().mission);
     lineMesh.material.color.copy(color);
     // doelmarker: kolom van de grond tot boven de ring, ring op vlieghoogte; groter naarmate je er verder van af bent
     const T = route.target;
     const gz = Number.isFinite(T.z) ? T.z : 0;
     const k = Math.max(1, Math.min(4, L.total / 350));
-    const top = alt + 30;
+    const top = goalZ + 30;
     const { col, ring, ringEdge } = marker.userData;
     marker.position.set(T.x, gz, T.y);
     col.scale.set(k, top - gz, k);
     col.position.y = (top - gz) / 2;
     ring.scale.setScalar(14 * k); ringEdge.scale.setScalar(14.5 * k);
-    ring.position.y = ringEdge.position.y = alt - gz;
+    ring.position.y = ringEdge.position.y = goalZ - gz;
     // de ring staat haaks op de aanvliegrichting, zodat je er doorheen kijkt
     ring.rotation.y = ringEdge.rotation.y = Math.atan2(-dy, dx) + Math.PI / 2;
     // hoogte-aanwijzing: een pijl een stuk voor de neus, omhoog bij stijgen, omlaag bij dalen, weg als de hoogte goed is
-    const g = airGuide(me, T, { alt });
+    const g = airGuide(me, T, { alt, need: getAirNeed() });
     const showArrow = Math.abs(g.dz) > AIR_ALT_BAND;
     arrow.visible = showArrow;
     if (showArrow) {
