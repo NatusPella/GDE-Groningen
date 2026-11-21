@@ -97,6 +97,8 @@ export const BASE_KEYS = {
   simUitleg: 'gde-sim-uitleg-v1',
   // de voorkeur voor de duur van een voetbalwedstrijd (kort of normaal; voetbal.js, #981): per apparaat, nooit in een savegame
   voetbal: 'gde-voetbal-v1',
+  // de voetbalcarrière van deze speler (voetbalcarriere.js, #1110, ADR 0042): per speler, nooit in een savegame (iedereen heeft zijn eigen, ook bij Samen spelen); gde-voetbal-v1 blijft voor de voorkeur en de vriendschappelijke competitie
+  voetbalCarriere: 'gde-voetbalcarriere-v1',
   terugkeer: 'gde-terugkeer-v1',
   // what this player did per wijk, plaats and streek (gebieden.js, #414): new, no legacy name, never part of a savegame
   gebieden: 'gde-gebieden-v1',
