@@ -103,7 +103,7 @@ export function buildRaceDecor(world, at, { title = 'FINISH', count = 6, scene: 
   for (const b of plan.barriers) place(barrier(), b.along, b.side);
   // het publiek achter de hekken
   plan.people.forEach((p, i) => {
-    const m = buildPersonMesh(SHIRTS[i % SHIRTS.length], SKINS[i % SKINS.length], { seed: 900 + i, variant: i % 3 === 0 ? 'female' : null });
+    const m = buildPersonMesh(SHIRTS[i % SHIRTS.length], SKINS[i % SKINS.length], { seed: 900 + i, variant: i % 3 === 0 ? 'female' : null, role: 'voetganger' });
     place(m, p.along, p.side);
     m.rotation.y = -a + (p.side > 0 ? 0 : Math.PI);
     m.scale.y = p.height;

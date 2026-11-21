@@ -706,7 +706,7 @@ function ensureDriverFigure(mesh, v, dist, deadline) {
   if (dist >= DRIVER_FIGURE_DIST && (dist >= DRIVER_PREFETCH_DIST || performance.now() > deadline)) return;
   mesh.userData.needsDriver = false;
   const seed = (v.id || 0) * 5.3 + 11;
-  const driver = buildPersonMesh(v.isPolice ? 0x1f3f8f : 0x5a6470, 0xd9aa82, { seed });
+  const driver = buildPersonMesh(v.isPolice ? 0x1f3f8f : 0x5a6470, 0xd9aa82, v.isPolice ? { seed } : { seed, role: 'voetganger' });
   const seat = vehicleSeat(v, true);
   seatPose(driver, seat.pose);
   driver.position.set(seat.x, seatedY(driver, seat.y), seat.z);
@@ -730,7 +730,7 @@ function ensurePassengerFigure(mesh, v, dist, deadline) {
   ud.passengerChecked = true;
   const front = seatedOf(v).passengers.find((p) => p.slot === 'front');
   if (!front) return;
-  const person = buildPersonMesh(0x7a6a8a, 0xd9aa82, { seed: (v.id || 0) * 7.1 + 3 });
+  const person = buildPersonMesh(0x7a6a8a, 0xd9aa82, { seed: (v.id || 0) * 7.1 + 3, role: 'voetganger' });
   const seat = vehicleSeat(v, false);
   seatPose(person, seat.pose);
   person.position.set(seat.x, seatedY(person, seat.y), seat.z);
@@ -3548,7 +3548,7 @@ function queueWarmup(world) {
     return buildVehicleActor(v);
   };
   const ped = () => {
-    const m = buildPersonActor(0x7a8f5a, 0xd9aa82, { seed: 77 });
+    const m = buildPersonActor(0x7a8f5a, 0xd9aa82, { seed: 77, role: 'voetganger' });
     applyPedFade(m, 0.5);
     return m;
   };

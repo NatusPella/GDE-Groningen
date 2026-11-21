@@ -493,7 +493,7 @@ export function syncBoatCrew(mesh, v, ctx) {
     const seed = (v.id || 0) * 7.13 + k * 3.1 + 5;
     const shirt = v.isPolice ? 0x1f3f8f : CREW_SHIRTS[Math.floor(hash(seed, 1.3) * CREW_SHIRTS.length)];
     const skin = CREW_SKINS[Math.floor(hash(seed, 2.9) * CREW_SKINS.length)];
-    const p = buildPersonMesh(shirt, skin, { seed });
+    const p = buildPersonMesh(shirt, skin, v.isPolice ? { seed } : { seed, role: 'voetganger' });
     poseCrew(p, ud.crewSeats[k], 0);
     placeLocal(p, ud.crewSeats[k]);
     mesh.add(p);
