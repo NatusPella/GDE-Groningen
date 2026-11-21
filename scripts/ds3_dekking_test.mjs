@@ -6,7 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { controleerMicroCss, microKlassen, tokenMs, leesCss, MAX_MICRO_MS, MAX_MOMENT_MS } from './lib/ds3_regels.mjs';
+import { controleerMicroCss, microKlassen, tokenMs, leesCss, controleerToetsInKnop, MAX_MICRO_MS, MAX_MOMENT_MS } from './lib/ds3_regels.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const lees = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8').replace(/\r\n/g, '\n');
@@ -90,6 +90,26 @@ ok(/\[unreleased\]/i.test(lees('CHANGELOG.md')) && /Microanimaties/.test(lees('C
 // 6. de lezer van de css zelf
 ok(leesCss('@media (a) { .x { color: red; } } .y { top: 0; } @keyframes k { from { opacity: 0; } }').regels.length === 2, 'de css-lezer leest regels in en buiten @media');
 ok(microKlassen(micro).includes('ds-m-binnen') && microKlassen(micro).includes('ds-moment-stempel'), 'microKlassen vindt de klassen met beweging');
+
+// 7. Toets in de knop (21-11): een knop met data-key heeft zijn glyph IN de knop, en er staat geen losse toetshint naast een knop in een kaartpopup
+const { actiesHtml, reisPopupHtml, uitlegHtml, sluitHtml } = await import('../game/js/kaartactieui.js');
+const K = await import('../game/js/kaartactie.js');
+const { reisOpties } = await import('../game/js/ovopties.js');
+const opts7 = reisOpties({ auto: { length: 3200, etaS: 260 }, trein: { length: 3500, etaS: 420, legs: [{ kind: 'train', length: 3500, line: 'Lijn 1' }] } }, { money: 50 });
+const rijen7 = K.reisKeuzes(opts7, 3200);
+const echt = [
+  actiesHtml(K.actieModel({ spot: { x: 3000, y: 400, name: 'X' }, speler: { x: 0, y: 0 }, waypoint: null, opts: opts7 }), null), sluitHtml(),
+  reisPopupHtml({ naam: 'X', afstand: '3 km', rijen: rijen7, gekozen: rijen7[0].id, kleur: {}, gast: false, melding: '', reis: { label: 'Reis nu', uitgeschakeld: false } }),
+  uitlegHtml(), uitlegHtml({ gast: true }),
+].join('\n');
+const echteFouten = controleerToetsInKnop(echt);
+ok(echteFouten.length === 0, 'de kaartpopups (plekkaart, reispopup, uitleg) zetten elke toets IN de knop', echteFouten.map((x) => `${x.regel}: ${x.bericht}`).join(' | '));
+ok((echt.match(/data-key="/g) || []).length >= 10, 'er zijn knoppen met een toets om te controleren', String((echt.match(/data-key="/g) || []).length));
+ok(controleerToetsInKnop('<button class="ds-z-knop" data-key="ENTER">Ok</button>').length === 1, 'een knop met data-key zonder glyph wordt gemeld');
+ok(controleerToetsInKnop('<button class="x" data-card="a">Ok</button><span class="mv-help-toets ds-toetsregel">x</span>').some((x) => x.regel === 'toetshint'), 'een losse toetshint naast een knop wordt gemeld');
+ok(controleerToetsInKnop('<button class="ds-z-knop" data-key="ENTER"><span class="ds-z-knop__label">Ok</span><span class="ds-z-knop__toets" aria-hidden="true"><span class="hud-key" data-gk="ENTER">E</span></span></button>').length === 0, 'een knop met zijn glyph erin is goed');
+ok(/#{2,3} Key in the button/.test(ds) && /#{2,3} Navigation with controller and keyboard/.test(ds), 'DESIGN_SYSTEM.md heeft "Key in the button" en "Navigation with controller and keyboard"');
+ok(/#{2,3} Toets in de knop/.test(taal) && /#{2,3} Navigatie met controller en toetsenbord/.test(taal), 'ui-taal.md heeft "Toets in de knop" en "Navigatie met controller en toetsenbord"');
 
 console.log(`${n - fails}/${n} DS3-dekkingscontroles groen`);
 process.exit(fails ? 1 : 0);
