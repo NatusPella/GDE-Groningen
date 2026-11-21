@@ -5,10 +5,11 @@
 // bondgenoten op; Jelle probeert het met bureaucratie, omkoping en sabotage.
 //
 // Zuiver: geen DOM, geen wereld; de opslag wordt meegegeven. Lees met `reputationOf(state, scope)`, schrijf met `noteReputation`
-// (een nieuwe stand, de oude blijft heel). Opslag: de eigen sleutel `gde-reputatie-v1` (storagekeys.js `reputatie`), per speler, nooit in
+// (een nieuwe stand, de oude blijft heel). Opslag: de eigen sleutel `reputatie` (storagekeys.js), per speler, nooit in
 // een savegame en nooit over het net: bij Samen spelen heeft elke speler zijn eigen reputatie, een gast ook. Constitution: een ramp is een
 // komische misser (een kar om, een frietpan in brand zonder gewonden), nooit leed. Test: scripts/reputation_test.mjs.
-export const REPUTATION_KEY = 'gde-reputatie-v1';
+import { KEYS } from './storagekeys.js';
+export const REPUTATION_KEY = KEYS.reputatie;
 export const REPUTATION_VERSION = 1;
 export const RANGES = { fame: [0, 100], kind: [-50, 50], buurt: [-20, 20] };
 export const PRICE_SWING = 0.05;

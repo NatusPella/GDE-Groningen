@@ -10,6 +10,8 @@ import { BUILD_ONLY } from './lib/buildonly.mjs';
 
 // bouw-only volgens de grafiek maar bewust niet uitgesloten
 const KEEP = {
+  'homebase.js': 'verhaal-epic (#1121): thuis per verhaalstap; de koppeling aan home.js, slapen, de kast en de interieurs volgt zodra epic-interieurs en epic-kleding gemerged zijn',
+  'reputation.js': 'verhaal-epic (#1135): lichte reputatie; het schrijven (klanten bedienen, helpen) en lezen (NPC-regels, prijzen) volgt',
   'interiorscene.js': 'epic Interieurs (#1150, ronde 2): de koppeling voor missies en cutscenes in een gebouw; de aansluiting op de missies volgt',
   'voetbalclub_bezit.js': 'voetbalcarrière (#1131): de koppeling met Bezit (clubeigendom) volgt in de epic Bezit',
   'voetbalsamen.js': 'voetbalcarrière (#1131): de koppeling met Samen spelen (beloning per speler) volgt',
