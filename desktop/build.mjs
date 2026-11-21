@@ -9,7 +9,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { BUILD_ONLY } from '../scripts/lib/buildonly.mjs';
 import { checkWorld, checkAudio, checkOffline, formatProblems } from '../scripts/lib/stagecheck.mjs';
-import { withModulePreload } from '../web/preload.mjs';
+import { withModulePreload, reachableFromMain } from '../web/preload.mjs';
 import { assertStageOut } from '../scripts/lib/stageout.mjs';
 import { loadLock, lockProblem, serializeLock, sha256, LOCK_FILE } from '../scripts/lib/vendorlock.mjs';
 
@@ -302,7 +302,8 @@ async function main() {
   {
     const html = path.join(OUT, 'index.html');
     const rels = walk(OUT).map((f) => path.relative(OUT, f).split(path.sep).join('/'));
-    fs.writeFileSync(html, withModulePreload(fs.readFileSync(html, 'utf8'), rels));
+    const reachable = reachableFromMain(rels, (f) => fs.readFileSync(path.join(OUT, f), 'utf8')); // review 22-11 N1
+    fs.writeFileSync(html, withModulePreload(fs.readFileSync(html, 'utf8'), rels, null, { reachable }));
   }
 
   // 5b. the map as .gdt tiles (scripts/world/pack_tiles.mjs): a build artifact,

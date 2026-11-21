@@ -13,7 +13,7 @@ import path from 'path';
 import crypto from 'crypto';
 import { execFile, execFileSync } from 'child_process';
 import { shellFiles } from './precache.mjs';
-import { modulePreloadTags, preloadStats } from './preload.mjs';
+import { modulePreloadTags, preloadStats, reachableFromMain } from './preload.mjs';
 import { fileURLToPath } from 'url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -153,8 +153,9 @@ async function main() {
   fs.writeFileSync(path.join(OUT, 'web.js'), stamp(fs.readFileSync(path.join(HERE, 'web.js'), 'utf8')));
   fs.writeFileSync(path.join(OUT, 'sw.js'), stamp(fs.readFileSync(path.join(HERE, 'sw.js'), 'utf8')));
   // #757: modulepreload-hints voor de gewone modules (dev/QA/trailer niet)
-  const tags = modulePreloadTags(files.map(rel)).join('\n');
-  const stats = preloadStats(files.map(rel), (f) => fs.statSync(path.join(OUT, f)).size);
+  const reachable = reachableFromMain(files.map(rel), (f) => fs.readFileSync(path.join(OUT, f), 'utf8')); // review 22-11 N1: alleen wat vanaf main.js bereikbaar is
+  const tags = modulePreloadTags(files.map(rel), { reachable }).join('\n');
+  const stats = preloadStats(files.map(rel), (f) => fs.statSync(path.join(OUT, f)).size, { reachable });
   console.log('modulepreload: ' + stats.files + ' modules, ' + mb(stats.bytes) + ' in één golf');
   const html = path.join(OUT, 'index.html');
   let page = fs.readFileSync(html, 'utf8');
