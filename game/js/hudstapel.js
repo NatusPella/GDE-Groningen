@@ -145,3 +145,12 @@ export function plaatSelectie(platen, vw, vh, blok = [], max = 3) {
   }
   return kept.map((k) => k.id);
 }
+
+// De drift-kaart (driftzone.js, #drift-chip in ds-schermen.css) staat in de onderband, midden, 214 px boven de onderrand: boven de
+// ondertitel (die begint 22 + 100 + 12 + 64 = 198 px boven de rand) en tussen de minikaart en de rechterrand. De CSS gebruikt dezelfde getallen.
+export const DRIFT_BODEM = 214;
+export const DRIFT_BREED = 340;
+export const DRIFT_H = 84;
+export function driftZone(vw, vh) {
+  return rect('drift', vw / 2 - DRIFT_BREED / 2, vh - DRIFT_BODEM - DRIFT_H, DRIFT_BREED, DRIFT_H);
+}

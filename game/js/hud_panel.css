@@ -646,14 +646,7 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
   box-shadow: 0 2px 0 var(--ds-c-toets-rand), 0 0 0 1px color-mix(in srgb, var(--ds-c-ink-inkt) 18%, transparent);
 }
 
-/* drift score chip (driftzone.js) */
-#drift-chip { position: fixed; left: 50%; bottom: 27%; transform: translateX(-50%); z-index: 20; display: flex; align-items: baseline; gap: 10px; padding: 6px 16px; border-radius: 10px; background: color-mix(in srgb, var(--ds-c-glas) 72%, transparent); color: var(--ds-c-creme); font-family: var(--ds-font-kop); letter-spacing: 0.04em; pointer-events: none; border: 1px solid rgba(232, 82, 58, 0.55); }
-#drift-chip[hidden] { display: none; }
-#drift-chip .dc-k { font-size: 15px; color: color-mix(in srgb, var(--ds-c-creme) 70%, transparent); }
-#drift-chip .dc-p { font-size: 34px; font-weight: normal; color: var(--mk-mission, #ffd23f); min-width: 3ch; text-align: right; font-variant-numeric: tabular-nums; }
-#drift-chip .dc-m { font-size: 22px; color: color-mix(in srgb, var(--ds-c-creme) 50%, transparent); }
-#drift-chip .dc-m.on { color: var(--mk-danger, #ff6f61); }
-#drift-chip .dc-t { font-size: 16px; color: color-mix(in srgb, var(--ds-c-creme) 60%, transparent); }
+/* drift-kaart (driftzone.js): zeefdruk, de regels staan in ds-schermen.css */
 
 .hud-chip.hud-mute { pointer-events: auto; position: relative; z-index: 21; min-height: 0; cursor: pointer; color: var(--ds-c-creme); }
 /* #638: de enige klikbare HUD-knop haalt op touch de 44 px-regel */

@@ -98,3 +98,28 @@ html.reduce-motion #trailer-result { animation: none; }
   font: var(--ds-t-hulp) / var(--ds-lh-tekst) ui-monospace, Consolas, monospace;
 }
 @media (max-height: 780px) { #gpudiag .ds-z-knop { min-height: var(--ds-hoogte-chip); padding: var(--ds-s-1) var(--ds-s-4); font-size: var(--ds-t-label); } }
+
+/* ---- Drift-kaart (driftzone.js): de multiplier als groot cijfer, de score met tabelcijfers, een balkje tot de volgende multiplier ----
+   Zone: onderband, midden, 214 px boven de onderrand (hudstapel.js, DRIFT_ZONE; boven de ondertitel, naast de minikaart en de toetsbalk).
+   De rand wordt per niveau zwaarder en vuller (x1 inkt, x2 bordgroen, x3 en x4 met bordgroene schaduw, x5 met selectievlak). */
+#drift-chip {
+  position: fixed; left: 50%; bottom: 214px; transform: translateX(-50%); z-index: 20; width: 340px; box-sizing: border-box;
+  display: flex; flex-direction: column; gap: var(--ds-s-1); padding: var(--ds-s-2) var(--ds-s-4); pointer-events: none;
+}
+#drift-chip[hidden] { display: none; }
+#drift-chip .dc-rij { display: flex; align-items: center; gap: var(--ds-s-3); }
+#drift-chip .dc-k { font-size: var(--ds-t-label); }
+#drift-chip .dc-m { padding: 0 var(--ds-s-2); min-width: 3ch; text-align: center; background: var(--ds-c-ink-papier); }
+#drift-chip .dc-m .ds-z-feit__n { font-size: var(--ds-t-subkop); }
+#drift-chip .dc-p { flex: 1; text-align: right; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-cijfer); line-height: var(--ds-lh-kop); font-variant-numeric: tabular-nums; }
+#drift-chip .dc-t { min-width: 4ch; text-align: right; font-size: var(--ds-t-hulp); font-variant-numeric: tabular-nums; }
+#drift-chip .dc-actief { background: var(--ds-zeef-primair); }
+#drift-chip.dc-niv2, #drift-chip.dc-niv3, #drift-chip.dc-niv4, #drift-chip.dc-niv5 { border-color: var(--ds-c-ink-bord); }
+#drift-chip.dc-niv3, #drift-chip.dc-niv4, #drift-chip.dc-niv5 { box-shadow: var(--ds-schaduw-hard-bord); }
+#drift-chip.dc-niv4, #drift-chip.dc-niv5 { border-width: calc(var(--ds-lijn-zeef) + 1px); }
+#drift-chip.dc-niv5 { background: var(--ds-c-sel-vlak); }
+#drift-chip .dc-pop { animation: ds-z-puls var(--ds-m-max) var(--ds-ease) 1; }
+#drift-chip .ds-z-balk__vul { transition: width var(--ds-m-snel) linear; }
+@media (prefers-reduced-motion: reduce) { #drift-chip .dc-pop { animation: none; } #drift-chip .ds-z-balk__vul { transition: none; } }
+html.reduce-motion #drift-chip .dc-pop, html.rustig-drukwerk #drift-chip .dc-pop { animation: none; }
+html.reduce-motion #drift-chip .ds-z-balk__vul, html.rustig-drukwerk #drift-chip .ds-z-balk__vul { transition: none; }
