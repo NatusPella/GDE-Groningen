@@ -89,3 +89,34 @@ gebouwvoetafdrukken op de rechterbaan. Oude werkwijze (gewone spline door de hel
 Nu: 1 van 150, en dat is een route waarvan de wegpunten zelf door een gebouw lopen (data, ook de wegpunten hebben dan 11 punten binnen).
 Begin of doel in een gebouw: 0 van 150 (de aansluitstukken vallen weg). Dit is de provincie-audit voor de stad; de rest van de provincie
 vraagt tegels die niet in de test passen. De botsing van de taxi met props en voetgangers is niet onderzocht.
+
+## Bisect: `verkeer_wereld_test` faalt op main (22-11)
+
+**Verschijnsel.** Op `ceb5affd4` (zaad 777): 5 AI-auto's met het midden in een gebouw (grens 3) en 10 die lang vastzitten (grens 4).
+
+**Bisect.** Referentie `5a92fa3e0` (waarop de grenzen zijn gemeten), 940 commits tot main, de huidige test als vaste meetlat (apart bestand, oudere commits
+draaiden hem met dezelfde wereld uit de hoofdmap van 16-11). Eerste "slechte" commit op `stuck <= 4`: `cb381a305` (interieurs #1150, alleen openingstijden en
+interieurtekst). Die raakt het verkeer niet; de uitkomst springt tussen 0 en 12 al bij een niet-verkeerscommit. Dat is geen regressie in route-snelste (#1178),
+`pathgraphbuild` of de perf-code, maar een steekproef met te weinig vastigheid. Bewijs, 24 zaden (7 tot 30) per commit:
+
+| meting (gemiddelde per zaad) | `5a92fa3e0` (referentie) | main `ceb5affd4` |
+|---|---|---|
+| vast (grens 4) | 3,0 | 4,2 |
+| in gebouw (grens 3) | 3,2 | 2,8 |
+| schaafjes (grens 75) | 53 | 51 |
+
+Zelfs op de referentiecommit faalde de test op zaad 777 (4 in gebouw, grens 3), en een commit zonder verkeerscode verschoof de stand. Het
+gemiddelde ligt dus op de grens; zaad 777 is een slechte trekking. De wachtrijen van de wijkcentra in `queue` (zie hierboven, #1049) zijn deze zelfde ruis.
+
+**Oorzaken die wel echt zijn (en in de test stonden als fout).**
+
+1. *Stuck = file achter een stoplicht.* De test telde elke auto met `waitFor > 40` die zelf niet `_atLight` was. Een rij achter een licht wacht een hele
+   cyclus (`MAX_CYCLE` 48 s) plus het leegrijden; de achterste auto's staan niet zelf op het licht en haalden de 40 s. De spel-AI zelf laat zo'n rij met rust
+   (`queuedAtLight`) en keert pas na 35 tot 44 s als er geen rij is. De drempel is nu 70 s (`STUCK_WAIT`): een cyclus plus marge. Op 24 zaden is het gemiddelde
+   0,04 (nul tot een enkele auto): echte vastzitters komen nauwelijks voor.
+2. *Inside = garage-inrit.* Twee van de vijf (oostwijk, de winkel met de ondergrondse parkeerinrit) rijden op een `tunnel`-weg die bewust in de voetafdruk
+   eindigt. Die zijn uitgezonderd; de overige blijven (hoekensnijden bij kruispunten in het centrum en op serviceweggetjes naast woningen, #1049).
+
+**Wat niet is aangepast.** Geen spelcode: er is geen regressie in route-, pad- of wereldcode aangetoond. Zaad 777 geeft nu 6/6; 3 van 24 zaden blijven op
+`in gebouw` boven de grens van 3 (echte restpunten, geen test die afgezwakt is). Niet bekeken: een auto-stap-voor-stap-vergelijking op de provincietegels buiten
+deze vier plekken.
