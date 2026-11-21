@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="nl"><head><meta charset="utf-8"><title>Minimap: doelicoon en afstandstag, ronde 4 en 5 (#1078)</title>
+<link rel="stylesheet" href="/game/js/ds-tokens.css"><link rel="stylesheet" href="/game/fonts/fonts.css">
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; padding: 20px 24px 28px; background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); font: 15px/1.4 'Atkinson Hyperlegible', Arial, sans-serif; }
+h1 { font: 800 30px 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif; text-transform: uppercase; margin: 0 0 4px; color: var(--ds-c-ink-bord); }
+p { max-width: 90ch; margin: 4px 0 12px; }
+.raster { display: grid; grid-template-columns: repeat(2, 274px); gap: 18px 20px; }
+.kop { font: 800 18px 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif; text-transform: uppercase; }
+.kader { padding: 6px; background: var(--ds-c-ink-papier); border: 3px solid var(--ds-c-ink-inkt); border-radius: 14px; box-shadow: 3px 3px 0 var(--ds-c-ink-inkt); width: 268px; height: 268px; }
+canvas { display: block; width: 250px; height: 250px; border-radius: 8px; }
+figcaption { font-size: 13px; padding-top: 6px; } figure { margin: 0; }
+#opp { display: none; }
+</style></head><body>
+<h1>Doelicoon en afstandstag: ronde 4 en 5</h1>
+<p>Links (oud) ronde 4: schijf straal 12, tag 17 hoog, 3 px inzet. Rechts (nieuw) ronde 5: schijf straal 10 half op de rand, tag 16 hoog met 2 px opvulling, punten straal 7. Dezelfde kaartuitsnede, dezelfde spelcode, getekend op 250 px.</p>
+<div class="raster" id="raster"></div><pre id="opp"></pre>
+<script type="module">
+import * as NIEUW from '/game/js/navpijl.js';
+import * as OUD from '/oud/navpijl.js';
+import { compactDistance } from '/game/js/navtarget.js';
+const S = 250, rad = (g) => g * Math.PI / 180;
+const KL = { geel: '#f9c80e', paars: '#c068ff', oranje: '#ff9a3c', roze: '#ff5fb4' };
+const N13 = (a) => ({ a: rad(a), nodig: 28 });
+const BG = {
+  binnenstad: { src: '/docs/beeld-21-11/kaart/kaartlagen-na-minikaart-1920x1080.png', x: 57, y: 675, obst: [N13(180)], nieuw: [{ a: rad(180), nodig: 31, r: 13, inset: 17 }] },
+  centrum: { src: '/docs/beeld-21-11/feedback-menus/26-minikaart-hud-1920.png', x: 57, y: 675, obst: [N13(47), N13(-135)], nieuw: [{ a: rad(47), nodig: 31, r: 13, inset: 17 }, { a: rad(-135), nodig: 31, r: 13, inset: 17 }] },
+};
+const plaatje = (src) => new Promise((ok) => { const i = new Image(); i.onload = () => ok(i); i.src = src; });
+const maakItems = (items) => items.map((i) => ({ ...i, a: rad(i.g), tekst: i.m != null ? compactDistance(i.m) : '' }));
+async function teken(canvas, mod, bg, items, obst) {
+  const c = canvas.getContext('2d'); c.scale(2, 2);
+  c.save(); c.beginPath(); c.roundRect(0, 0, S, S, 8); c.clip();
+  c.drawImage(await plaatje(bg.src), bg.x, bg.y, S, S, 0, 0, S, S);
+  mod.drawKompasRand(c, S, maakItems(items), { t: 0.3, beweging: false, obstakels: obst });
+  c.restore();
+}
+// het oppervlak: doel + tag op een leeg canvas, pixels met alfa > 10 (zonder punten)
+function meet(mod, item, obst) {
+  const c = document.createElement('canvas'); c.width = S; c.height = S; const x = c.getContext('2d');
+  mod.drawKompasRand(x, S, maakItems([item]), { t: 0.3, beweging: false, obstakels: obst });
+  const d = x.getImageData(0, 0, S, S).data; let n = 0; for (let p = 3; p < d.length; p += 4) if (d[p] > 10) n++;
+  return n;
+}
+await document.fonts.load("600 13px 'Barlow Condensed'"); await document.fonts.ready;
+const SC = [
+  ['Eigen doel 4,7 km, links onder', 'binnenstad', [{ g: 157, kleur: KL.paars, icoon: 'vlag', actief: true, m: 4730 }, { g: 305, kleur: KL.geel, icoon: 'ster' }]],
+  ['Missie 420 m, rechtsboven', 'binnenstad', [{ g: -45, kleur: KL.geel, icoon: 'ster', actief: true, m: 420 }]],
+  ['Klus en twee wachtenden (rechts)', 'centrum', [{ g: 5, kleur: KL.oranje, icoon: 'tas', actief: true, m: 260 }, { g: -70, kleur: KL.geel, icoon: 'ster' }, { g: 150, kleur: KL.paars, icoon: 'vlag' }]],
+  ['In de hoek rechtsonder, 12 km', 'centrum', [{ g: 40, kleur: KL.paars, icoon: 'vlag', actief: true, m: 12400 }, { g: 125, kleur: '#4363d8', icoon: 'speler' }]],
+  ['Op de N-badge, 980 m', 'binnenstad', [{ g: 180, kleur: KL.geel, icoon: 'ster', actief: true, m: 980 }, { g: 176, kleur: KL.roze, icoon: 'ehbo' }]],
+  ['Samen spelen: twee medespelers', 'binnenstad', [{ g: -20, kleur: KL.paars, icoon: 'ster', actief: true, m: 1500 }, { g: 100, kleur: '#4363d8', icoon: 'speler' }, { g: 135, kleur: '#f58231', icoon: 'speler' }]],
+];
+const raster = document.getElementById('raster'); const opp = {};
+for (const [titel, bg, items] of SC) {
+  const rij = document.createElement('div'); rij.style.display = 'contents'; raster.append(rij);
+  for (const [naam, mod, obst] of [['oud (ronde 4)', OUD, BG[bg].obst], ['nieuw (ronde 5)', NIEUW, BG[bg].nieuw]]) {
+    const f = document.createElement('figure');
+    f.innerHTML = '<div class="kader"><canvas width="' + S * 2 + '" height="' + S * 2 + '"></canvas></div><figcaption><span class="kop">' + titel + '</span><br>' + naam + '</figcaption>';
+    rij.append(f); await teken(f.querySelector('canvas'), mod, BG[bg], items, obst);
+  }
+  const actief = items.find((i) => i.actief);
+  opp[titel] = { oud: meet(OUD, actief, BG[bg].obst), nieuw: meet(NIEUW, actief, BG[bg].nieuw) };
+}
+document.getElementById('opp').textContent = 'OPPERVLAK' + JSON.stringify(opp) + 'EINDE';
+document.title += ' (klaar)';
+</script></body></html>

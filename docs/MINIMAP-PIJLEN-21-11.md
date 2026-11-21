@@ -209,3 +209,20 @@ Bestanden: `mock.html` (`node scripts/minimap_pijlen_mock.mjs`), PNG's met `node
 ## 10. Samen spelen
 
 Het doel is van de speler zelf: elke speler heeft zijn eigen doel (`goal.js`, per speler lokaal), dus de pijlen zijn per speler lokaal en er is geen nieuw netwerkveld of EXTRA-bericht. Een gast ziet het doel van de gastheer en de groepsdoelen als missie van de groep (geel, rang tussen missie en eigen doel; `kaartDoelen`, `gastDoelen`); de gastheer ziet zijn eigen groepen. Wegvallen of later aansluiten: de lijst komt elke frame uit de bestaande bronnen, een doel dat wegvalt heeft geen pijl meer. Medespelers staan als holle pijlen in hun eigen kleur, uit dezelfde lijst als nu. Beloning en voortgang veranderen niet. Test: `navtarget_test` (Samen spelen-blok) en de bestaande `partnerhud_test`.
+
+## 11. Ronde 5: minder ruimte (21-11)
+
+Feedback van de eigenaar op optie C: "dichter tegen de rand, minder ruimte innemen op de minimap". Gemeten met `node scripts/minimap_pijlen_ronde5.mjs` (alfa-telling van doel plus tag op een leeg canvas van 250 px, de echte spelcode van ronde 4 naast de nieuwe): **ronde 4 nam 1.356 tot 1.469 px² in, ronde 5 1.041 tot 1.124 px² (ca. 24 % minder)**. Het budget in `navtarget_test` is 1.000 px² voor schijf plus tag (ontwerpmaat, zonder schaduw).
+
+| | ronde 4 | ronde 5 |
+|---|---|---|
+| doel dat je volgt | straal 12, buitenstraal 13,6, 3 px van de rand | straal 10, buitenstraal 11,8, 0,2 px van de rand (half op de rand: `TRACK_INSET` 12) |
+| tag | 13 px tekst, 17 hoog, 9 px opvulling | 13 px tekst, 16 hoog, 4 px opvulling, hooguit 40 breed |
+| punten (wachtend, medespeler, voertuig) | straal 8,5 | straal 7, op dezelfde lijn; minimale afstand 17 (punten) en 24 (doel) |
+| obstakels | N 28, wind 30 langs de baan | N 31 en wind 34, plus de echte cirkels (N straal 13, wind straal 24) |
+
+**Keuze en afwegingen (DS3).** De afstand in het icoon zelf past niet: bij straal 10 is de binnenruimte 16 px, "420 m" op 13 px (de DS3-vloer) is ca. 28 px breed, en kleiner dan 13 px mag niet. Dus blijft de tag naast het icoon, zo krap mogelijk: inkt op papier (contrast ruim boven 4,5:1, getest) met inktrand, 2 px opvulling, aan de binnenkant tegen de schijf (2 px ertussen) en geklemd binnen de kaart. Geen pijl, lijn of plaat, zoals in ronde 4. Liever dan een kleiner lettertype is het icoon kleiner gemaakt; het type blijft herkenbaar aan kleur plus vorm (nooit alleen kleur).
+
+**Overlap.** `tagPlace` krijgt de hindernissen (N-badge, windschijf, punten, de eigen schijf) en kiest de plek die er het minst raakt: eerst naar binnen, dan langs de rand ernaast, dan een stap verder naar binnen en opzij. `place` zoekt de dichtstbijzijnde vrije plek als twee obstakels (de N naast het windschijfje in een hoek) het uit elkaar schuiven laten vastlopen. Test: elke peiling per 3 graden, met en zonder wind en punten ernaast: geen overlap en binnen de kaart.
+
+Beelden: `docs/beeld-21-11/minimap-pijlen/ronde5/` (`overzicht.png`, `oppervlak.json`). **Nog niet bekeken in Electron**: icoon van 10 px en tag op de echte minikaart bij 1280 en 1920 breed, en de grote kaart (`drawMapTargets` volgt dezelfde maten).
