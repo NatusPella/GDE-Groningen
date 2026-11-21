@@ -55,6 +55,29 @@ t('elke soort in models3d_spullen.js geeft geometrie, en dispose raakt alleen ei
   assert.equal(M3.buildSpulMesh(null), null);
 });
 
+t('ronde 2: de winkelblokjes hebben een eigen rijk model (>= 100 driehoeken, 2 of meer materialen, eindige bounding box, geen NaN)', () => {
+  assert.ok(SP.SPUL_MODEL_VOOR.size >= 12);
+  for (const type of SP.SPUL_MODEL_VOOR) {
+    assert.ok(M3.SPUL_TYPES.includes(type), type + ' mist in models3d_spullen.js');
+    const mesh = M3.buildSpulMesh({ type });
+    assert.ok(M3.driehoeken(mesh) >= 100 && M3.driehoeken(mesh) <= 3000, `${type}: ${M3.driehoeken(mesh)} driehoeken`);
+    const mats = new Set(); let nan = false;
+    mesh.traverse((o) => { if (o.material) mats.add(o.material); const a = o.geometry && o.geometry.attributes.position; if (a && a.array.some((v) => !Number.isFinite(v))) nan = true; });
+    assert.ok(mats.size >= 2, `${type}: te weinig materialen`);
+    assert.ok(!nan, type + ': NaN');
+    mesh.updateMatrixWorld(true);
+    const box = { min: [Infinity, Infinity, Infinity], max: [-Infinity, -Infinity, -Infinity] };
+    mesh.traverse((o) => { if (!o.geometry) return; o.geometry.computeBoundingBox(); const bb = o.geometry.boundingBox.clone().applyMatrix4(o.matrixWorld); for (const [i, k] of ['x', 'y', 'z'].entries()) { box.min[i] = Math.min(box.min[i], bb.min[k]); box.max[i] = Math.max(box.max[i], bb.max[k]); } });
+    for (let i = 0; i < 3; i++) assert.ok(Number.isFinite(box.min[i]) && Number.isFinite(box.max[i]) && box.max[i] - box.min[i] > 0.3, `${type}: bounding box`);
+    mesh.traverse((o) => { if (o.geometry) o.geometry.dispose(); });
+  }
+  // de specs wijzen er ook naar
+  assert.equal(SP.etenSpec('kauwgom').kind, 'spul');
+  assert.equal(SP.meubelSpec('bed').kind, 'spul');
+  assert.equal(SP.upgradeSpec('tweewieler', 'schijven').spul.type, 'schijf');
+  assert.equal(SP.etenSpec('kroket').kind, 'product');
+});
+
 t('materialen zijn gedeeld per kleur: twee modellen bouwen maakt geen nieuwe materialen aan', () => {
   const mats = (g) => { const s = new Set(); g.traverse((o) => { if (o.material) s.add(o.material); }); return s; };
   const a = mats(M3.buildSpulMesh({ type: 'motor' }));

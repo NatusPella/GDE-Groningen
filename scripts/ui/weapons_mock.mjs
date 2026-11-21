@@ -1,6 +1,6 @@
 // Headless beeldblad van de wapenmodellen (Spullen-wensen 21-11). GEEN Electron: een kleine webserver met de echte game/js en de gevendorde
 // three (desktop/vendor-cache), plus headless Chrome voor de PNG. Alle wapens naast elkaar, zoals het voorbeeld in Spullen ze toont.
-//   node scripts/ui/weapons_mock.mjs [--uit=<map>] [--only=<wapen,...>] [--hoek=0.6] [--breedte=1600] [--cols=5] [--wit]
+//   node scripts/ui/weapons_mock.mjs [--bron=spullen] [--uit=<map>] [--only=<wapen,...>] [--hoek=0.6] [--breedte=1600] [--cols=5] [--wit]
 // Schrijft <uit>/wapens-<hoek>.png (standaard in de tijdelijke map: de schijf blijft klein). Zet CHROME=<pad> als Chrome elders staat.
 import fs from 'node:fs';
 import os from 'node:os';
@@ -23,8 +23,10 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 const q = new URLSearchParams(location.search);
 const P = await import('/game/js/models3d_people.js');
 const { WEAPON_KEYS } = await import('/game/js/weapons.js');
+const spullen = q.get('bron') === 'spullen';
+const S3 = spullen ? await import('/game/js/models3d_spullen.js') : null;
 const only = (q.get('only') || '').split(',').filter(Boolean);
-const keys = WEAPON_KEYS.filter((k) => k !== 'fists' && (!only.length || only.includes(k)));
+const keys = (spullen ? S3.SPUL_TYPES : WEAPON_KEYS).filter((k) => k !== 'fists' && (!only.length || only.includes(k)));
 const cols = Number(q.get('cols')) || 5, cw = Math.floor(innerWidth / cols), ch = Math.round(cw * 0.62), rows = Math.ceil(keys.length / cols);
 const hoek = Number(q.get('hoek') || 0.6), zoom = Number(q.get('zoom') || 1);
 const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
@@ -37,7 +39,7 @@ const rim = new THREE.DirectionalLight(0xbfd4ff, 0.9); rim.position.set(-3, 2, -
 const cam = new THREE.PerspectiveCamera(32, cw / ch, 0.01, 50);
 const tri = {};
 keys.forEach((k, i) => {
-  const m = P.buildWeaponMesh(k);
+  const m = spullen ? S3.buildSpulMesh({ type: k }) : P.buildWeaponMesh(k);
   const holder = new THREE.Group(); holder.add(m); holder.rotation.y = hoek; sc.add(holder);
   holder.updateMatrixWorld(true);
   const b = new THREE.Box3().setFromObject(holder), c = b.getCenter(new THREE.Vector3()), s = b.getSize(new THREE.Vector3());
@@ -66,9 +68,10 @@ await new Promise((r) => srv.listen(0, '127.0.0.1', r));
 const port = srv.address().port;
 fs.mkdirSync(UIT, { recursive: true });
 const hoek = arg('hoek', '0.6'), breedte = Number(arg('breedte', '1600')), cols = Number(arg('cols', '5')), only = arg('only');
-const n = only ? only.split(',').length : 13;
+const bron = arg('bron');
+const n = only ? only.split(',').length : bron === 'spullen' ? 23 : 13;
 const hoogte = Math.ceil(n / cols) * Math.round((breedte / cols) * 0.62) + 20;
-const uit = path.join(UIT, `wapens-${only ? only.replace(/,/g, '_') + '-' : ''}${hoek}.png`);
+const uit = path.join(UIT, `${bron === 'spullen' ? 'spullen' : 'wapens'}-${only ? only.replace(/,/g, '_') + '-' : ''}${hoek}.png`);
 const profiel = fs.mkdtempSync(path.join(os.tmpdir(), 'wapens-chrome-'));
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 const kind = spawn(CHROME, ['--headless=new', `--user-data-dir=${profiel}`, '--remote-debugging-port=0', '--hide-scrollbars', '--no-first-run', '--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--ignore-gpu-blocklist', 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
@@ -91,7 +94,7 @@ try {
   const cmd = (method, params = {}) => new Promise((r) => { const i = ++id; open.set(i, r); ws.send(JSON.stringify({ id: i, method, params })); });
   await cmd('Runtime.enable'); await cmd('Page.enable');
   await cmd('Emulation.setDeviceMetricsOverride', { width: breedte, height: hoogte, deviceScaleFactor: 1, mobile: false });
-  await cmd('Page.navigate', { url: `http://127.0.0.1:${port}/mock.html?hoek=${hoek}&cols=${cols}&zoom=${arg('zoom', '1')}${only ? '&only=' + only : ''}` });
+  await cmd('Page.navigate', { url: `http://127.0.0.1:${port}/mock.html?hoek=${hoek}&cols=${cols}&zoom=${arg('zoom', '1')}${bron ? '&bron=' + bron : ''}${only ? '&only=' + only : ''}` });
   let klaar = false;
   for (let i = 0; i < 80 && !klaar; i++) {
     await wacht(500);

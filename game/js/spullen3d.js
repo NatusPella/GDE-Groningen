@@ -8,7 +8,9 @@
 // (#429); de viewer is lokaal en stuurt niets. Test: scripts/spullen3d_test.mjs, dekking: scripts/ui/spullen3d_dekking.mjs.
 
 const spul = (type, extra = {}) => ({ kind: 'spul', spul: { type, ...extra } });
-const product = (key) => ({ kind: 'product', product: key });
+// Ronde 2 (spullen-r2): wat in de winkel een kaal blokje is, heeft hier een eigen, rijker model (models3d_spullen.js) onder dezelfde naam.
+export const SPUL_MODEL_VOOR = new Set(['spaarkaart', 'kauwgom', 'pakket', 'tv', 'ehbo', 'koek', 'drop', 'accu', 'schijf', 'bureau', 'frituur', 'bed']);
+const product = (key) => (SPUL_MODEL_VOOR.has(key) ? spul(key) : { kind: 'product', product: key });
 
 // Geld: hoe dik de stapels zijn, per bedrag (niveau 0 tot 3).
 export const moneyTier = (bedrag) => { const b = Number(bedrag) || 0; return b < 50 ? 0 : b < 500 ? 1 : b < 5000 ? 2 : 3; };
