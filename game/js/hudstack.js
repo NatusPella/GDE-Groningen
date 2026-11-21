@@ -79,7 +79,7 @@ const MM_BODEM = 46;         // px: --mm-bottom
 const PLAATS_BREED = 230;    // px: de plaatsnaam naast de minikaart
 const PLAATS_H = 84;
 export const HINTS_LINKS = 560;     // px: de toetsbalk begint rechts van de plaatsnaam
-export const HINTS_H = 100;
+const HINTS_H = 100;
 const HINTS_BODEM = 22;
 const STAPEL_BREED = 480;
 const RECHTS_KAART_BREED = 280;
@@ -162,7 +162,7 @@ export function plaatSelectie(platen, vw, vh, blok = [], max = 3) {
 // ondertitel (die begint 22 + 100 + 12 + 64 = 198 px boven de rand) en tussen de minikaart en de rechterrand. De CSS gebruikt dezelfde getallen.
 export const DRIFT_BODEM = 214;
 export const DRIFT_BREED = 340;
-export const DRIFT_H = 84;
+const DRIFT_H = 84;
 export function driftZone(vw, vh) {
   return rect('drift', vw / 2 - DRIFT_BREED / 2, vh - DRIFT_BODEM - DRIFT_H, DRIFT_BREED, DRIFT_H);
 }

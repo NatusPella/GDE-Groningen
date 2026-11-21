@@ -1,4 +1,5 @@
 import { icoon } from './icons.js';
+import { toggleChoice } from './difficulty.js'; // #1169
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getCamera } from './scene3d.js';
 import { getGaragesForRender, garagePrompt } from './garages.js';
@@ -35,6 +36,7 @@ import { hengelVrijPrompt } from './hengelen.js';
 import { postgamePrompt, postgameSecondary } from './postgame.js';
 import { ommelandPrompt, ommelandSecondary } from './ommelandfun.js';
 import { beppePrompt } from './beppe_garden.js';
+import { interiorPrompt } from './interiors.js'; // de plekken binnen in een pand (#1150)
 import { renderAimReticle } from './aimassist.js';
 import { WEAPONS, isMeleeWeapon, isRangedWeapon } from './combat.js';
 import { gameBusy } from './busy.js';
@@ -157,7 +159,7 @@ export function initPrompts(hudRoot) {
 }
 
 function hiddenNow(world) {
-  if (!getSettings().showHints) return true;
+  if (!toggleChoice('hints', getSettings().showHints)) return true; // #1169
   const b = document.body.classList;
   if (!b.contains('game-started') || b.contains('cine-hide-hud') || b.contains('pigeon-mode')) return true;
   if (world.pigeonMode) return true;
@@ -383,6 +385,8 @@ function findPrimary(world) {
   // het eerbetoonbankje (#832): de twee bankjes aan de westgrens
   const beppe = beppePrompt(world);
   if (beppe) return beppe;
+  const binnen = interiorPrompt(world);
+  if (binnen) return binnen;
   const knip = kaartjesPrompt(world);
   if (knip) return knip;
   const halte = bushaltePrompt(world);

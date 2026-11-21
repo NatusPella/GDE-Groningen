@@ -1,6 +1,6 @@
 // Test van de ontwikkeling, training, vorm, vermoeidheid en blessures (#1109) en van de agenda (#1108): scripts/voetbal_ontwikkeling_test.mjs. Puur.
 import assert from 'node:assert/strict';
-import { makeProtagonist, ATTRS, attrCap } from '../game/js/voetbalspelers.js';
+import { makeProtagonist, ATTRS, attrCap } from '../game/js/voetbalplayers.js';
 import { matchXp, simulatedXp, applyXp, trainingXp, canTrain, formFactor, formArrow, pushHistory, performance, addFatigue, reduceFatigue, isTired, rollInjury, tickInjury, INJURY_TEXTS, FORBIDDEN_INJURY_WORDS, PHASE_CAP, FATIGUE, MAX_INJURY_DAYS, resetPhase } from '../game/js/voetbalontwikkeling.js';
 import { nightPassed, seasonCalendar, seasonLength, eventStatus, nextEvent, dateRangeOf, dayText, catchUpDays, DAYS_PER_ROUND, MAX_CATCHUP_DAYS } from '../game/js/voetbalagenda.js';
 

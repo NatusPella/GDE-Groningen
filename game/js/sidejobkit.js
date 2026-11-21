@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { gridItems } from './spatialgrid.js';
 // Shared helpers for the bijbaantjes (sidejobs.js and the sidejob_*.js
 // jobs): placing things on streets and at doors, handing the player a job
@@ -169,7 +170,7 @@ export function pointAlongRoad(road, p, offset) {
 // --- job vehicles -------------------------------------------------------------
 
 function riderShirt(world) {
-  const a = world.player.character === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
+  const a = hoofdspeler(world).character === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
   return '#' + a.shirt.toString(16).padStart(6, '0');
 }
 

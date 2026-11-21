@@ -5,6 +5,7 @@
 //           M01 t/m M08 als host, de gasten lopen mee), touch (gast met aanraakbediening), opening (nieuw spel samen via de
 //           gastacties (#291: een gast winkelt met zijn eigen geld, krijgt het stuur, stapt uit en in),
 //           menustroom: tekstveld, wachtkamer, de opening samen bekijken, overslaan alleen door de gastheer)
+//           alles (rooktest 21-11, docs/COOP-SWEEP-21-11.md: host + 2 gasten, ping, waypoint, outfit, tuning, bezit, winkel, bijbaan, cutscene)
 //   --gasten=1|2 (Electron-gasten, host + gasten <= 3 sloten), --mock=N (extra headless gasten in dit proces, voor de 4e speler)
 //   --menu: begin bij het hoofdmenu (ingang Samen spelen), --duration=20, --invuln
 //   GDE_COOP_ELECTRON_ARGS=<vlag,...>: extra Chromium-vlaggen voor de instanties (zie LOCKS)
@@ -94,6 +95,15 @@ const P = {
     [0, 'wacht', { s: 6 }],
     [8, 'gastbijbaan', { s: 120, wie: 'gast', id: 'krantenwijk' }],
     [130, 'wacht', { s: 8 }],
+  ]])),
+  alles: Object.fromEntries(SPELERS_ELECTRON.map((me) => [me, [ // rooktest 21-11 (docs/COOP-SWEEP-21-11.md): host en twee gasten (3 echte vensters) spelen een kort scenario met zoveel mogelijk systemen
+    [0, 'wacht', { s: 6 }],
+    [8, 'allesstap', { stap: 'ping', wie: 'gast', s: 6 }], [18, 'allesstap', { stap: 'waypoint', wie: 'gast', s: 4 }],
+    [28, 'allesstap', { stap: 'outfit', s: 3 }], [34, 'allesstap', { stap: 'tuning', s: 3 }], [40, 'allesstap', { stap: 'bezit', s: 3 }],
+    [48, 'gastwinkel', { s: 50 }],
+    [104, 'gastbijbaan', { s: 50, wie: 'gast', id: 'krantenwijk', beloon: 150 }],
+    [160, 'filmpje', { s: 8 }], [176, 'allesstap', { stap: 'geld', s: 2 }], [182, 'opslagcheck', {}], [184, 'wacht', { s: 4 }],
+    ...(me === 'host' ? [[190, 'stopHost', {}]] : []),
   ]])),
   touch: { host: [[0, 'kijk', { s: 16 }]], gast: [[0, 'touch', { s: 12 }]], gast2: [[0, 'wacht', { s: 16 }]] },
 }[SUITE];
@@ -751,6 +761,20 @@ if (SUITE === 'touch' || SUITE === 'net') {
   note('aanraakbediening: ' + JSON.stringify({ knoppen: tu && tu.speelknoppen, half: th && th.axis, vol: tv && tv.axis }));
 }
 
+// ----- suite 'alles' (rooktest 21-11): per stap wat elk venster zag
+if (SUITE === 'alles') {
+  const e1 = (n, t) => of(E[n], t)[0];
+  const ping = ['host', 'gast', 'gast2'].map((n) => [n, e1(n, 'alles-ping')]);
+  for (const [n, e] of ping) if (n !== 'gast') check(!!e && e.marks >= 1, `alles ping: ${n} zag geen baken van de gast (${JSON.stringify(e)})`);
+  for (const n of NAMES) { const e = e1(n, 'alles-waypoint'); check(!!e && (n === 'gast' ? e.heeftDoel : !e.heeftDoel), `alles waypoint: ${n} ${e && e.heeftDoel ? 'heeft' : 'mist'} het doel van de gast terwijl een waypoint per speler is`); }
+  for (const stap of ['outfit', 'tuning', 'bezit']) for (const n of NAMES) { const e = e1(n, 'alles-' + stap); if (!e) check(false, `alles ${stap}: ${n} logde niets`); else if (e.fout) check(false, `alles ${stap}: ${n} fout ${e.fout}`); else if (e.skip) note(`alles ${stap}: ${n} wacht (${e.reden})`); }
+  for (const n of NAMES) { const o = e1(n, 'opslagcheck'); check(!!o && !o.gde2 && !o.ip, `alles privacy: ${n} bewaart een directe code of IP-adres`); }
+  const eind = e1('gast', 'gastbijbaan-eind'); check(!!eind && eind.deelde, 'alles bijbaan: de gast startte de baan niet');
+  const bel = of(H, 'gastbijbaan-beloning')[0]; check(!!bel && bel.ok, 'alles bijbaan: de host kon de beloning niet verdelen');
+  check(!(e1('host', 'gastbijbaan-eind') || {}).geldWinst, 'alles bijbaan: de host (zonder J) kreeg geld');
+  for (const n of NAMES.filter((x) => x !== 'host')) check(!!e1(n, 'filmpje-gast'), `alles cutscene: ${n} zag het filmpje van de host niet`);
+  for (const n of NAMES) { const g = e1(n, 'alles-geld'); check(!!g && g.na >= g.voor - 1, `alles geld: ${n} verloor geld zonder aankoop (${JSON.stringify(g)})`); }
+}
 // ----- suites 'bijbaan' en 'vier' (#1011): een bijbaan door een gast in echte vensters
 if (SUITE === 'bijbaan') {
   const bh = of(H, 'borden-host')[0];

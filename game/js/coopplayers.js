@@ -3,6 +3,7 @@
 // coöp-activiteiten, zonder een vaste verhaalrol op hun plek.
 // Pure logica: de lijst met spelers (roster), plekken, figuren en kleuren,
 // verwijderen, en wat er gebeurt als iemand wegvalt. Geen DOM, geen netwerk.
+import { cleanOutfitCode } from './clothing.js';
 
 export const MIN_MAX = 4;   // de online modus laat minimaal 4 spelers toe
 export const ABS_MAX = 16;  // bovengrens van het protocol (plekken in de codec); in de praktijk bepaalt de verbinding van de host het
@@ -118,7 +119,8 @@ export function zetAvatar(r, slot, avatar = {}) {
   const char = c && !MAIN_CHARS.some((m) => m.id === c.id) ? c.id : null;
   const naam = typeof avatar.naam === 'string' && avatar.naam.trim() ? avatar.naam.trim().slice(0, 24) : null;
   const kleur = /^#[0-9a-f]{6}$/i.test(avatar.kleur || '') ? avatar.kleur : null;
-  s.avatar = { ...(s.avatar || {}), ...(char ? { char } : {}), ...(naam ? { naam } : {}), ...(kleur ? { kleur } : {}) };
+  const outfit = cleanOutfitCode(avatar.outfit); // de kleding van de speler (clothing.js encodeOutfit): optioneel, een oude client kent hem niet
+  s.avatar = { ...(s.avatar || {}), ...(char ? { char } : {}), ...(naam ? { naam } : {}), ...(kleur ? { kleur } : {}), ...(outfit ? { outfit } : {}) };
   maakUniek(r, s);
   return s.avatar;
 }
@@ -166,7 +168,7 @@ export function leesLijstEvent(b) {
     if (!s || !Number.isInteger(s.slot) || s.slot < 0 || s.slot >= ABS_MAX || seen.has(s.slot) || !charInfo(s.char)) return null;
     if (s.avatar !== undefined && (!s.avatar || typeof s.avatar !== 'object')) return null;
     const av = s.avatar && typeof s.avatar === 'object' ? s.avatar : null;
-    seen.add(s.slot); out.push({ slot: s.slot, char: s.char, rol: s.rol === 'host' ? 'host' : 'gast', verbinding: ['ok', 'lag', 'lost'].includes(s.verbinding) ? s.verbinding : 'ok', ...(av ? { avatar: { ...(charInfo(av.char) && !MAIN_CHARS.some((m) => m.id === av.char) ? { char: av.char } : {}), ...(typeof av.naam === 'string' ? { naam: av.naam.slice(0, 24) } : {}), ...(/^#[0-9a-f]{6}$/i.test(av.kleur || '') ? { kleur: av.kleur } : {}) } } : {}) });
+    seen.add(s.slot); out.push({ slot: s.slot, char: s.char, rol: s.rol === 'host' ? 'host' : 'gast', verbinding: ['ok', 'lag', 'lost'].includes(s.verbinding) ? s.verbinding : 'ok', ...(av ? { avatar: { ...(charInfo(av.char) && !MAIN_CHARS.some((m) => m.id === av.char) ? { char: av.char } : {}), ...(typeof av.naam === 'string' ? { naam: av.naam.slice(0, 24) } : {}), ...(/^#[0-9a-f]{6}$/i.test(av.kleur || '') ? { kleur: av.kleur } : {}), ...(cleanOutfitCode(av.outfit) ? { outfit: av.outfit } : {}) } } : {}) });
   }
   return { max: clampMax(b.max), spelers: out };
 }

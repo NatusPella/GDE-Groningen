@@ -7,7 +7,7 @@
 // h = { isDrivable, isWalkable, isBikeable, oneWayFor(road, mode), throughOf(road, i, ax, ay, bx, by) -> bool, consts }
 // consts = { THROUGH_BUILDING_COST, SERVICE_COST, OFFROAD_COST, STEPS_COST, MOTORWAY_AVOID, BIKE_COST, MOTORWAY_TYPES }
 export const ROADS_PER_STEP = 250;
-export const EDGES_PER_STEP = 40000;
+const EDGES_PER_STEP = 40000;
 
 export function* graphBuildSteps(graphRoads, h) {
   const { THROUGH_BUILDING_COST, SERVICE_COST, OFFROAD_COST, STEPS_COST, MOTORWAY_AVOID, BIKE_COST, MOTORWAY_TYPES } = h.consts;

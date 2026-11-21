@@ -21,7 +21,7 @@ const nieuw = typeof UI.reisPopupHtml === 'function';
 
 const opts = reisOpties({ auto: { length: 3200, etaS: 260 }, trein: { length: 3500, etaS: 420, legs: [{ kind: 'train', length: 3500, line: 'Lijn 1' }] } }, { money: 50 });
 const rijen = K.reisKeuzes(opts, 3200, {});
-const gekozen = rijen.find((r) => r.aanbevolen && r.soort === 'snel').id;
+const gekozen = rijen.find((r) => r.aanbevolen).id;
 const model = K.actieModel({ spot: { x: 3000, y: 400, name: 'Vismarkt' }, speler: { x: 0, y: 0 }, waypoint: null, opts });
 const href = (f) => pathToFileURL(path.join(base, f)).href;
 

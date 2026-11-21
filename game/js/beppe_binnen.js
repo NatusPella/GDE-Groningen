@@ -356,6 +356,7 @@ export function visitInteract(w, ctx) {
 // (invitation, nudges, news, echoes: beppe_boog.js).
 export function visitTick(dt, w, ctx) {
   if (!w) return;
+  w.insideExternal = !!inside; // a room of its own (not a building of the interiors system): police sight and indoor sound still count it (interiors.js, #1150)
   if (!inside) { arcTick(w); return; }
   const site = ctx.site();
   if (!site) { dropInside(w, ctx); return; }

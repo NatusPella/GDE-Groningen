@@ -9,6 +9,7 @@ import { FX_SOORTEN, SWINGS } from './coopextra.js';
 import { EXTRA_CHARS, charInfo } from './coopplayers.js';
 import { schoonNaam } from './net/serverlijst.js';
 import { isVerhaalrol } from './cooproles.js';
+import { cleanOutfitCode, decodeOutfit, outfitToLook } from './clothing.js';
 
 export const KNOP_RENNEN = 1, KNOP_HANDREM = 2, KNOP_SPRING = 4, KNOP_BUK = 8, KNOP_AANVAL = 16, KNOP_ZICHT = 32; // aanval: de aanvalsknop van een gast met een wapen (coopwapen.js); zicht: rechtermuisknop vast met een wapen met een kijker (jachtgeweer): richten door de kijker
 export const SPRONG_SNELHEID = 3.45; // m/s omhoog, zoals player.js (JUMP_SPEED): ongeveer 0,6 m hoog
@@ -39,6 +40,7 @@ export function avatarVan(speler = {}, slot = 0) {
     kleur: /^#[0-9a-f]{6}$/i.test(av.kleur || '') ? av.kleur : basis.kleur,
     kleding: typeof av.kleding === 'string' && av.kleding.trim() ? av.kleding.slice(0, 40) : basis.kleding,
     huid: basis.huid, seed: basis.seed, variant: basis.variant,
+    outfit: cleanOutfitCode(av.outfit), // de kleding van de speler zelf (optioneel; zonder code de kleur van de avatar)
   };
 }
 
@@ -46,6 +48,12 @@ export function avatarVan(speler = {}, slot = 0) {
 // kleur), nooit het model van een verhaalfiguur.
 export function avatarLook(avatar) {
   const a = avatar && avatar.seed != null ? avatar : avatarVan(avatar);
+  // met een outfit-code draagt de medespeler zijn eigen kleding (zelfde modellen en compositie als de speler); zonder code de kleur van zijn avatar
+  const worn = a.outfit ? decodeOutfit(a.outfit) : null;
+  if (worn) {
+    const o = outfitToLook(worn, {});
+    return { karakter: null, shirt: o.shirt, skin: a.huid, opts: { seed: a.seed, variant: a.variant, look: o.look, ...(o.pants != null ? { pants: o.pants } : {}), ...(o.shoes != null ? { shoes: o.shoes } : {}), ...(o.cap != null ? { cap: o.cap } : {}) } };
+  }
   return { karakter: null, shirt: hexInt(a.kleur), skin: a.huid, opts: { seed: a.seed, variant: a.variant } };
 }
 export const avatarLabel = (avatar) => { const a = avatar && avatar.naam ? avatar : avatarVan(avatar); return { tekst: a.naam, kleur: a.kleur }; };

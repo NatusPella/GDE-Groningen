@@ -33,6 +33,7 @@ import { flyHeli, heliExitBlock } from './heliflight.js';
 import { flyPlane } from './planeflight.js';
 import { planeExitBlock } from './planecontrol.js';
 import { MODS } from './cheatmods.js';
+import { toggleChoice } from './difficulty.js'; // #1169: Rij-assist per save
 import { reportCrime } from './crime.js';
 import { shift as shiftGear } from './gearbox.js';
 import { wielInvoer } from './coopgast.js';
@@ -163,6 +164,8 @@ export class Player {
     // kissing has its own key (K): E next to a car used to kiss instead of
     // getting in whenever the companion stood close
     if (input.wasPressed('k') && !this.inVehicle && !this.water) this.tryKiss(world);
+    // other clothes (6): the next outfit from the wardrobe, on foot (shops.js cycleOutfit via world.cycleOutfit; clothing.js presets)
+    if (input.wasPressed('6') && !this.inVehicle && !this.water && world.cycleOutfit) world.cycleOutfit(1);
     if (this.crack) {
       const c = this.crack;
       c.t += dt;
@@ -1165,8 +1168,8 @@ export class Player {
     // #801: Stuurgevoeligheid onder Besturing; geldt voor de speler, niet voor bots of gasten
     const steerS = steerScale(steerIn, st.steerSensitivity);
     v.shiftMode = st.shiftMode;
-    v.driftAssist = st.driftAssist;
-    v.bikeAssist = st.bikeAssist;
+    v.driftAssist = toggleChoice('driveAssist', st.driftAssist);
+    v.bikeAssist = toggleChoice('driveAssist', st.bikeAssist);
     v.clutchIn = st.shiftMode === 'clutch' && input.isDown('j');
     // motorbikes: Shift pops a wheelie on the throttle or a stoppie on the brake
     // (a pedal bike: Ctrl lifts the front wheel, bewegingrules.js)

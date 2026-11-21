@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { clampGuestFactors, encodeRatings, decodeRatings, assignFigures, planTeams, dropOut, guestReward, capFactor, LEVEL_CAP, MAX_PER_TEAM, guestXpFactor } from '../game/js/voetbalsamen.js';
-import { makeProtagonist, simFactors } from '../game/js/voetbalspelers.js';
+import { makeProtagonist, simFactors } from '../game/js/voetbalplayers.js';
 
 let n = 0;
 const t = (naam, f) => { try { f(); n++; } catch (e) { console.error('FAIL', naam); throw e; } };

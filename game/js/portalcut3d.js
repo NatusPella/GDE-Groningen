@@ -64,6 +64,13 @@ export function registerPortalBoxes(owner, list) {
   for (const b of list) boxes.push(b);
 }
 
+// A door cut that only lives while an interior is built (interiors.js, epic Interieurs #1150): the boxes of `owner`
+// go away again and the owner can register anew. The next updatePortals(x, y, true) refreshes the uniforms.
+export function unregisterPortalBoxes(owner, list) {
+  if (!registered.delete(owner)) return;
+  for (const b of list) { const i = boxes.indexOf(b); if (i >= 0) boxes.splice(i, 1); }
+}
+
 // Interiors (museum3d.js) are only drawn while the player is within `radius`.
 const interiors = [];
 export function registerInterior(obj, at, radius, onShow = null) {

@@ -2,10 +2,10 @@
 // Eén profiel per speler in gde-voetbalcarriere-v1 (nooit in een savegame, zoals gde-loopbaan-v1): de speler (Tessa de ster of Tammo), de andere figuur als computerteamgenoot, de club, de divisies,
 // het seizoen, de agenda in speldagen (`day`, opgehoogd per nacht), vorm, vermoeidheid, blessure, beker en Waddenbeker. Alle functies geven een nieuw profiel terug en wijzigen het oude niet.
 // Geld komt hier alleen als `earn`-regels terug; de live-laag (voetbalcarrierelive.js) betaalt ze via loopbaanVerdien. Zelfde seed = zelfde uitkomst voor alle spelers.
-import { makeProtagonist, makeSquad, lineupFor, teamStrength, simFactors, hashSeed, playerRating, readPlayer } from './voetbalspelers.js';
+import { makeProtagonist, makeSquad, lineupFor, teamStrength, simFactors, hashSeed, playerRating, readPlayer } from './voetbalplayers.js';
 import { CLUBS, EUROPE_CLUBS, clubsOf, clubById, teamFor, clubName } from './voetbalclubs.js';
 import { localDivision, fallbackIndex, NEAR_TRIP_M, HOME_FALLBACK } from './voetbalparken.js';
-import * as S from './voetbalseizoen.js';
+import * as S from './voetbalseason.js';
 import * as A from './voetbalagenda.js';
 import * as O from './voetbalontwikkeling.js';
 import * as T from './voetbaltransfers.js';

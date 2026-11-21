@@ -6,7 +6,7 @@ import * as C from '../game/js/voetbalcarriere.js';
 import { runCareer, loadIndex } from './voetbal_carriere_sim.mjs';
 import { formationList } from '../game/js/voetbalrules.js';
 import { makeMatch, tikWedstrijd } from '../game/js/voetbalmatch.js';
-import { ATTRS } from '../game/js/voetbalspelers.js';
+import { ATTRS } from '../game/js/voetbalplayers.js';
 
 let n = 0;
 const t = (naam, f) => { try { f(); n++; } catch (e) { console.error('FAIL', naam); throw e; } };

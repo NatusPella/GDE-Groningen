@@ -1,8 +1,9 @@
 import { glyphHtml } from './keycap.js';
+import { toggleChoice } from './difficulty.js';
 import { probe } from './hitchprobe.js';
 import { iconInner, icoon } from './icons.js';
 import { wantedPhase, wantedStatus, wantedAnnounce } from './wantedstate.js';
-import { levelOf, zoekBalkVulling } from './wantedlevels.js';
+import { levelOf, cooldownOf, zoekBalkVulling } from './wantedlevels.js';
 import { telStap, bewegingUit, MI } from './microinteractions.js';
 import { tikGetal } from './dsmicro.js'; // DS3: het geldgetal tikt even bij geld binnen (ds-micro.css, .ds-m-tik)
 import { moneyLabel, moneyNeedsUpdate } from './hudmoney.js';
@@ -1247,7 +1248,7 @@ function updateWanted(world) {
   if (searching && world.wanted > 0 && pol.searchCenter) {
     const h = hoofdspeler(world);
     const d = Math.hypot(h.x - pol.searchCenter.x, h.y - pol.searchCenter.y);
-    const k = zoekBalkVulling(d, pol.searchRadius, world.wantedDecayTimer, levelOf(Math.max(1, world.wanted | 0)).cooldown);
+    const k = zoekBalkVulling(d, pol.searchRadius, world.wantedDecayTimer, cooldownOf(levelOf(Math.max(1, world.wanted | 0))));
     const w = Math.round(k * 50) * 2 + '%';
     if (els.searchBar.style.width !== w) els.searchBar.style.width = w;
   }
@@ -1522,7 +1523,7 @@ function zoekSub(world) {
   const lvl = levelOf(Math.max(1, world.wanted | 0));
   const h = hoofdspeler(world);
   const buiten = !!(pol.searchCenter && Math.hypot(h.x - pol.searchCenter.x, h.y - pol.searchCenter.y) > pol.searchRadius);
-  const rest = Math.max(0, Math.ceil(lvl.cooldown - (world.wantedDecayTimer || 0)));
+  const rest = Math.max(0, Math.ceil(cooldownOf(lvl) - (world.wantedDecayTimer || 0)));
   return buiten
     ? `Buiten de cirkel: nog ${rest}s, dan een ster minder`
     : `Ze zijn je kwijt · ${rest}s uit het zicht voor een ster minder`;
@@ -1699,7 +1700,7 @@ function updateObjectiveKeys(world, kind) {
   if (!els.objKeys) return;
   // "Toetshints uit" hoort ook deze regel te verbergen: hij stond in de doellijn en niet in
   // .hud-prompts, dus de instelling liet hem tijdens elke missie staan (QoL-review).
-  const hintsOn = getSettings().showHints !== false;
+  const hintsOn = toggleChoice('hints', getSettings().showHints !== false); // #1169: Hints en tips per save
   const hint = hintsOn && (kind === 'mission' || kind === 'job' || kind === 'police' || kind === 'story') ? controlHint(world, hoofdspeler(world), { eerstedoel: kind === 'story' }) : null;
   const sig = hint ? hint.context + '|' + hint.groepen.map((g) => g.keys.join('+') + g.werk).join('|') : '';
   if (sig === els.objKeysSig) return;
@@ -3123,10 +3124,9 @@ function drawMinimap(dt, world) {
     const actief = d.rol === 'actief';
     kompas.push({ a: edgeAngle(d.x, d.y), kleur: navColor(d, palet), icoon: GLYPH[d.glyph] || GLYPH.punt, actief, tekst: actief ? compactDistance(distanceFor(d, actieveRoute)) : '' });
   }
-  // obstakels op of bij de rand waar de markers omheen schuiven: de N-badge, het windschijfje en de hitte-chip (zolang hij er is)
+  // obstakels op of bij de rand waar de markers omheen schuiven: de N-badge en het windschijfje (de hitte-chip is er niet meer, #1141)
   const obstakels = [{ a: mapRotation - Math.PI / 2, nodig: 28 }];
   if (wind) obstakels.push({ a: Math.atan2(MINIMAP_SIZE - WIND_Y - cy, WIND_X - cx), nodig: 30 });
-  if (els.mmHeat && !els.mmHeat.hidden) obstakels.push({ a: -3 * Math.PI / 4, nodig: 40 }, { a: -2.05, nodig: 56 });
   drawKompasRand(ctx, MINIMAP_SIZE, kompas, { t, beweging: !reducedMotion(), obstakels });
 }
 

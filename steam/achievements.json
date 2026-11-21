@@ -218,6 +218,14 @@
       "steamApiNaam": ""
     },
     {
+      "id": "alle_uitdagend",
+      "titel": "Geen genade",
+      "omschrijving": "Speel alle acht missies uit op het niveau Uitdagend",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_ALLE_UITDAGEND",
+      "steamApiNaam": ""
+    },
+    {
       "id": "snel_100",
       "titel": "Honderd op de teller",
       "omschrijving": "Rij 100 km/u",
@@ -1423,6 +1431,38 @@
       "omschrijving": "Geef in winkels in totaal €2.500 uit",
       "verborgen": false,
       "voorstelApiNaam": "ACH_UITGAVEN",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "kleding_nieuw",
+      "titel": "Nieuwe look",
+      "omschrijving": "Koop een kledingstuk en doe het meteen aan",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_KLEDING_NIEUW",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "kleding_set",
+      "titel": "Past als gegoten",
+      "omschrijving": "Heb alle stukken van een kledingset in je kast",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_KLEDING_SET",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "kapsel_nieuw",
+      "titel": "Nieuw kapsel",
+      "omschrijving": "Ga naar de kapper en kom er anders uit",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_KAPSEL_NIEUW",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "kleding_kast",
+      "titel": "Hele kast",
+      "omschrijving": "Heb van alle 63 soorten kledingstukken er minstens één",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_KLEDING_KAST",
       "steamApiNaam": ""
     },
     {

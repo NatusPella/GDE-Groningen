@@ -1,0 +1,1733 @@
+{
+ "version": 1,
+ "note": "Bron van docs/COOP-DEKKING-21-11.md en van scripts/coop_coverage_audit.mjs. Elk systeem krijgt de zes vragen van AGENTS.md (Multiplayer bij ontwerp): a) wereld of speler, b) wat ziet een gast, c) beloning en voortgang, d) wegvallen, later aansluiten en hostwissel, e) enkelspeler-aanname (geteld uit de singleton-basislijn), f) dekking. Status OK, gat of nvt. Een gat heeft een eigenaar (issue of lead) en een prioriteit. wachtOp = epic-branch die nog niet in main staat: de regel en de test worden pas gekeurd als de branch is gemerged.",
+ "statussen": [
+  "OK",
+  "gat",
+  "nvt"
+ ],
+ "prioriteiten": [
+  "hoog",
+  "middel",
+  "laag",
+  "-"
+ ],
+ "eigenaren": [
+  "wereld",
+  "speler",
+  "gesynct",
+  "lokaal",
+  "wedstrijd"
+ ],
+ "wereldSleutels": [
+  "save",
+  "saveBackup",
+  "saveSlots"
+ ],
+ "inSavegameToegestaan": [],
+ "docNvt": {
+  "AUDIO-GLITCHES-21-11.md": "Geluidsdiagnose per apparaat; geen spelregel.",
+  "BENCHMARK-STERKE-PC-21-11.md": "Prestatiemeting; geen spelregel.",
+  "CUTSCENE-AUDIT-21-11.md": "Kwaliteitsaudit van cutscenes; de Samen-regel voor filmpjes staat in COOP-GAST.md (Filmpjes zonder script).",
+  "CUTSCENE-AUDIT-OPUS-21-11.md": "Kwaliteitsaudit van cutscenes; zie COOP-GAST.md (Filmpjes zonder script).",
+  "CUTSCENE-FAALLIJST-21-11.md": "Lijst met faalpunten van de cutscene-linter; zie COOP-GAST.md (Filmpjes zonder script).",
+  "KLEDING-TEKSTEN-21-11.md": "Lijst met scripttekst die kleding noemt (voor de regie); geen spelregel. De Samen-regel voor kleding staat in COOP-GAST.md.",
+  "HUD-TYPO-21-11.md": "Typografie van de HUD: lokaal beeld.",
+  "INEFFICIENTIE-21-11.md": "Prestatieonderzoek; geen spelregel.",
+  "KEYCAP-MAAT-21-11.md": "Maat van toetsafbeeldingen: lokaal beeld.",
+  "PERF-BISECT-21-11.md": "Prestatieonderzoek.",
+  "PERF-GPU-21-11.md": "Prestatieonderzoek.",
+  "PERF-PROFIEL-21-11.md": "Prestatieonderzoek.",
+  "PERF-RENDER-21-11.md": "Prestatieonderzoek.",
+  "PERF-RONDE-21-11.md": "Prestatieonderzoek.",
+  "PERF-START-21-11.md": "Prestatieonderzoek.",
+  "PERF-STIL-21-11.md": "Prestatieonderzoek.",
+  "POPIN-21-11.md": "Prestatieonderzoek naar pop-in; verandert geen spelregel. Streaming met meerdere foci staat bij Achtergrondverkeer en wereldstreaming in de matrix.",
+  "VERHAALCANON-21-11.md": "Verhaaltekst en canon; de Samen-regels van het verhaal staan in COOP-GAST.md (Missies en het verhaal).",
+  "WERELD-AUDIT-21-11.md": "Audit van de wereldkaart; geen spelregel.",
+  "WERELDKLEUREN-21-11.md": "Kleurpalet van de wereld: lokaal beeld.",
+  "WITTE-RUIS-21-11.md": "Geluidsonderzoek; lokaal per apparaat.",
+  "KEYS-AUDIT-20-11.md": "Audit van toetsen; lokaal.",
+  "MUZIEK-GEBRUIK-20-11.md": "Muziekgebruik; lokaal per apparaat (zie Stemmen, geluid en muziek in COOP-GAST.md).",
+  "OPSCHONEN-20-11.md": "Opruimlijst van code; geen spelregel.",
+  "PROEFSPELER-DOORLOOP-20-11.md": "Doorloop van de proefspeler (spelbot); geen spelregel."
+ },
+ "features": [
+  {
+   "id": "verhaalmissies",
+   "naam": "Verhaalmissies en opdrachtstand",
+   "groep": "Verhaal",
+   "modules": [
+    "missions*",
+    "missie*",
+    "mission*",
+    "story*",
+    "akte*",
+    "coopmissie",
+    "coopverhaal",
+    "coopgroep",
+    "samenposten"
+   ],
+   "eigenaar": "wereld",
+   "gast": "Meedoen? (J of N); wie J zegt loopt mee, anderen kijken. Stappen met rekwisieten bij de host zijn deels.",
+   "beloning": "Volledige beloning en eigen verhaalstap per speler (coopbeloning, coopverhaal, #429).",
+   "wegval": "Valt weg: niets verloren, geen beloning. Later aansluiten: geen late instap bij race of timer. Hostwissel laat de opdrachtstand staan (#439).",
+   "test": [
+    "scripts/coopmissie_test.mjs",
+    "scripts/coopverhaal_test.mjs",
+    "scripts/coopmissie_motor_test.mjs",
+    "scripts/coopmissie_audit_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "| Missies en het verhaal |"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "cutscenes",
+   "naam": "Cutscenes en filmpjes",
+   "groep": "Verhaal",
+   "modules": [
+    "cut*",
+    "cinematics",
+    "cine*",
+    "coopcut",
+    "coopscene",
+    "reisbeats"
+   ],
+   "eigenaar": "wereld",
+   "gast": "Scenes met een scriptbeschrijving gaan als data naar de gast en spelen lokaal na; host-only momenten krijgen een regel tekst.",
+   "beloning": "Geen; wel eigen verhaalstap via de opdracht.",
+   "wegval": "Wie later aansluit mist alleen de lopende scene; overslaan door de gast is lokaal.",
+   "test": [
+    "scripts/cutgast_test.mjs",
+    "scripts/coopcut_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "## Filmpjes zonder script"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "overgangsscenes",
+   "naam": "Overgangsscenes, mijlpalen en ontgrendelpoort (epic Verhaal)",
+   "groep": "Verhaal",
+   "modules": [
+    "storybridge*",
+    "storymilestones",
+    "storyromance",
+    "unlockgate"
+   ],
+   "eigenaar": "speler",
+   "gast": "Een overgangsscene is van wie het spel opende; een gast ziet de ondertitels mee. De ontgrendelpoort telt per speler.",
+   "beloning": "Geen; een gast verliest niets.",
+   "wegval": "Niets te herstellen: de poort leest de eigen progress.",
+   "test": [
+    "scripts/unlockgate_test.mjs",
+    "scripts/storybridge_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/VERHAAL-ANALYSE-21-11.md",
+    "zoek": "een gast mag een bijbaan of loopbaan alleen beginnen als hij hem zelf heeft ontgrendeld"
+   },
+   "wachtOp": "epic-verhaal-21-11",
+   "status": "gat",
+   "prio": "middel",
+   "lead": "Verhaal",
+   "gat": "Bewijs met een pure test dat storybridgerun.js niets doet bij coopRole client en dat een gast niet in de overgangsscene van de host vastloopt."
+  },
+  {
+   "id": "recap",
+   "naam": "Recap Waar waren we?",
+   "groep": "Verhaal",
+   "modules": [
+    "recapcard*"
+   ],
+   "eigenaar": "lokaal",
+   "gast": "Bestaat alleen bij Doorgaan in een sessie van een; een gast of lopende sessie slaat hem over.",
+   "beloning": "Geen.",
+   "wegval": "Geen staat om te herstellen (per apparaat, nooit in een savegame).",
+   "test": [
+    "scripts/recapcard_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "**Recap (Waar waren we?)"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "homebase",
+   "naam": "Thuis, safehuis en Beppe's huis",
+   "groep": "Verhaal",
+   "modules": [
+    "home",
+    "home3d",
+    "thuis3d",
+    "safehuis*",
+    "beppe_*"
+   ],
+   "eigenaar": "wereld",
+   "gast": "Het huis en het safehuis staan in de wereld van wie het spel opende; een gast kan er niet slapen of opslaan voor zichzelf, onderduiken is een gezamenlijke keuze (J of N).",
+   "beloning": "Geen.",
+   "wegval": "Slapen en onderduiken tellen alleen wie nog verbonden is.",
+   "test": [
+    "scripts/safehuisplek_test.mjs",
+    "scripts/beppe_visit_test.mjs",
+    "scripts/coop/groep_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "| Slapen en onderduiken |"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "bijbanen",
+   "naam": "Bijbanen (taxi, bezorgen, krantenwijk, vracht, rondvaart, veer, rechtbank)",
+   "groep": "Werk en vermaak",
+   "modules": [
+    "sidejob*",
+    "coopbijbaan",
+    "bijbaan*",
+    "deliveryteam",
+    "krantenrules",
+    "krantenstatus"
+   ],
+   "eigenaar": "wereld",
+   "gast": "Start bij het startpunt: de host draait de baan met het lichaam van de gast (world.lokaalLichaam); de anderen krijgen Meedoen? J of N.",
+   "beloning": "Volledige beloning en loopbaanpunten per deelnemer; fooi wordt gedeeld.",
+   "wegval": "De opvolger neemt de baan over (suites overname en overdracht); wie wegvalt verliest niets.",
+   "test": [
+    "scripts/coop/bijbaan_test.mjs",
+    "scripts/coop/bijbaanrollen_test.mjs",
+    "scripts/coop/bijbaanparallel_test.mjs",
+    "scripts/coop/deliveryteam_test.mjs",
+    "scripts/coopmeedoen_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "| Bijbanen |"
+   },
+   "status": "OK",
+   "prio": "-",
+   "gefixt": "Fix 21-11: krantenwijk, rondvaart, rondvaarttour, sidejobkit en het keuzepaneel lazen world.player (het lichaam van de host) terwijl een gastgroep met world.lokaalLichaam speelt; nu hoofdspeler(world)."
+  },
+  {
+   "id": "verhuizen",
+   "naam": "Verhuizing en andere host-only bijbanen",
+   "groep": "Werk en vermaak",
+   "modules": [
+    "sidejob_verhuizing",
+    "sidejob_boa",
+    "sidejob_fietsdepot",
+    "sidejob_lijn",
+    "sidejob_zeeschip"
+   ],
+   "eigenaar": "wereld",
+   "gast": "nee: alleen in het eigen spel, met een waarschuwing vooraf (coopstatus.js BIJBAAN, DEELS_KEUZE met reden).",
+   "beloning": "Alleen voor wie de baan zelf speelt.",
+   "wegval": "Niets: de baan hoort bij een lokaal spel.",
+   "test": [
+    "scripts/coopstatus_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "**Elke \"deels\" heeft een keuze (#683).**"
+   },
+   "status": "OK",
+   "prio": "laag"
+  },
+  {
+   "id": "minigames",
+   "naam": "Minigames en light sims",
+   "groep": "Werk en vermaak",
+   "modules": [
+    "minigamekit",
+    "kartbaan*",
+    "kartrace",
+    "discgolf*",
+    "golf*",
+    "pitchputt",
+    "padel*",
+    "klimtoren",
+    "skate*",
+    "ringrace",
+    "ringbaan",
+    "regatta*",
+    "pannenkoek*",
+    "carillon*",
+    "hengel*",
+    "visboek*",
+    "visdata",
+    "coopwedstrijd*",
+    "multiplayerwedstrijd",
+    "simhud",
+    "sim*",
+    "reuzenrad*",
+    "kermis*",
+    "wandel*",
+    "penalty*",
+    "pg_*"
+   ],
+   "eigenaar": "wedstrijd",
+   "gast": "Wedstrijden tegen elkaar (E bij het startpunt, Meedoen? J of N) of lokaal op het eigen scherm; de HUD-strook is altijd lokaal.",
+   "beloning": "Per plek (races, golf) of per speler (hengelen, pannenkoeken); record en medaille per speler.",
+   "wegval": "Wie wegvalt telt niet mee; niet halverwege aansluiten (uitnodiging vooraf).",
+   "test": [
+    "scripts/coopwedstrijd_test.mjs",
+    "scripts/coopwedstrijd_padel_test.mjs",
+    "scripts/coopbezig_test.mjs",
+    "scripts/coopstatus_test.mjs",
+    "scripts/simhud_layout_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "| Minigames |"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "loopbanen",
+   "naam": "Loopbanen en gebieden",
+   "groep": "Werk en vermaak",
+   "modules": [
+    "loopbaan*",
+    "careermodel",
+    "gebieden*",
+    "gebiedtoestand",
+    "prestige",
+    "streekuitdaging*"
+   ],
+   "eigenaar": "speler",
+   "gast": "Eigen niveaus en titels op het eigen apparaat; wat je als gast verdient rekent met je eigen niveau.",
+   "beloning": "Loopbaanpunten per speler (gde-loopbaan-v1, gde-gebieden-v1), nooit in een savegame.",
+   "wegval": "Niets te herstellen: de staat is lokaal.",
+   "test": [
+    "scripts/loopbaan_coop_test.mjs",
+    "scripts/loopbaan_test.mjs",
+    "scripts/gebieden_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-OPSLAAN.md",
+    "zoek": "Je loopbaan (niveaus en titels per vak"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "boerderij",
+   "naam": "Boerderij en akkers",
+   "groep": "Bezit en geld",
+   "modules": [
+    "boerderij*",
+    "farm*",
+    "gewasmarkt",
+    "werktuigen*",
+    "bietenhal",
+    "bietenrules",
+    "machines",
+    "landbouw*"
+   ],
+   "eigenaar": "speler",
+   "gast": "Eigen akker in het pauzemenu; de klus op het land speel je als lokale minigame (boerderijgast.js).",
+   "beloning": "Opbrengst en Landbouw-niveau per speler; geld in je eigen opslag.",
+   "wegval": "Het gewas groeit lokaal door; niets te herstellen.",
+   "test": [
+    "scripts/boerderijgast_test.mjs",
+    "scripts/farmfieldguest_test.mjs",
+    "scripts/boerderij_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "## De velden van de boerderij bij een gast"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "bezit",
+   "naam": "Bezit: percelen, panden, productieketen (epic Bezit)",
+   "groep": "Bezit en geld",
+   "modules": [
+    "bezit*",
+    "areamarket",
+    "business*",
+    "farmstaff",
+    "forsale*",
+    "holdingsmodel",
+    "livestock",
+    "parcelfarm",
+    "parcelindex",
+    "supplychain",
+    "tessarules",
+    "perceelmap",
+    "percelen"
+   ],
+   "eigenaar": "speler",
+   "gast": "Eigen bezit in de eigen progress; medespelers zien jouw percelen als gekleurde omtrek met naam (ID-verzameling); een gast kan op andermans perceel meewerken voor loon.",
+   "beloning": "Oogst en voortgang naar de eigenaar; loon (nieuw geld) en eigen Landbouw-punten naar de gast.",
+   "wegval": "Het veld blijft staan zoals het is; de claim leeft in de eigen progress en overleeft een hostwissel.",
+   "test": [
+    "scripts/bezitcoop_test.mjs",
+    "scripts/business_test.mjs",
+    "scripts/bezitnet_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "## Bezit (21-11, epic Bezit)"
+   },
+   "wachtOp": "epic-bezit-21-11",
+   "status": "gat",
+   "prio": "hoog",
+   "lead": "Bezit",
+   "gat": "Lead Bezit meldt (epic-bezit-21-11): de sectie Bezit staat in COOP-GAST.md; scripts/bezitnet_test.mjs (12) bewijst met drie instanties over een nep-netwerk dat claims convergeren, aansluiten en wegvallen werken en dat de dagtik niet dubbel telt bij een terugspringende klok (hostwissel) en niet bij een gast draait; transport bezitnet.js over het JSON-kanaal k bezit. Open: de testbankstap bezit in de suite alles (bezitnet.handleBezit of ensureBezitNet gebruiken), sponsorpanden van het voetbal naar de Bezit-pandindex (parcelindex.createBuildingIndex), en na de merge de opslagsleutel gde-bezit-v1 (scope speler) in dit manifest indelen en de status op OK zetten."
+  },
+  {
+   "id": "voetbalcarriere",
+   "naam": "Voetbalcarrière (team, tegenstanders, rollen)",
+   "groep": "Bezit en geld",
+   "modules": [
+    "voetbalcarriere*",
+    "voetbalagenda",
+    "voetbalbeats",
+    "voetbalclub*",
+    "voetbalontwikkeling",
+    "voetbalparken*",
+    "voetbalpoort",
+    "voetbalsamen",
+    "voetbalseason",
+    "voetbalplayers",
+    "voetbalsponsors",
+    "voetbaltransfers",
+    "voetbalworld",
+    "voetbalkarakter",
+    "voetbalcompetitie"
+   ],
+   "eigenaar": "speler",
+   "gast": "Een gast speelt zijn eigen figuur in jouw team; ratings reizen mee in het EXTRA-bericht.",
+   "beloning": "Per speler uit de eigen uitslagsregel (geld en ervaring); nooit competitiepunten van een ander.",
+   "wegval": "De computer neemt over; het team wordt nooit leeg; geen instap halverwege.",
+   "test": [
+    "scripts/voetbal_samen_test.mjs",
+    "scripts/voetbal_carriere_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "## Voetbalcarrière (#1106"
+   },
+   "status": "gat",
+   "prio": "middel",
+   "issue": "#1157",
+   "gat": "voetbalsamen.js (regels, ratingblok, beloning) is niet gekoppeld aan coopnet.js en registreerWedstrijd; derby met mensen in team 1 (voetbalmatch.js) is niet gebouwd; sponsorpanden wachten op Bezit; uitwedstrijd als reis is niet gebouwd."
+  },
+  {
+   "id": "voetbalwedstrijd",
+   "naam": "Voetbalwedstrijd Euroborg (live, 11 tegen 11, penalty's)",
+   "groep": "Werk en vermaak",
+   "modules": [
+    "voetbal",
+    "voetbalai",
+    "voetbalbal",
+    "voetbaldata",
+    "voetbalmatch",
+    "voetbalrules",
+    "voetbalstatus",
+    "voetbalpoort",
+    "voetbalparken*",
+    "penalty*",
+    "coopwedstrijdpunt"
+   ],
+   "eigenaar": "wedstrijd",
+   "gast": "E bij de spelerspoort: Meedoen? J of N; elf tegen elf met twee tot vier mensen; momentopname van 64 getallen.",
+   "beloning": "Per plek of per speler; medaille en record per speler.",
+   "wegval": "De computer neemt over; wie wegvalt telt niet mee.",
+   "test": [
+    "scripts/coopwedstrijd_voetbal_test.mjs",
+    "scripts/voetbal_rook_test.mjs",
+    "scripts/coop/samenwedstrijd_tcp_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "| Voetbal Euroborg (#981)"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "winkels",
+   "naam": "Winkels, kasboek en geld",
+   "groep": "Bezit en geld",
+   "modules": [
+    "shops",
+    "shop*",
+    "winkelkit",
+    "finance",
+    "economy",
+    "geldtekst",
+    "hudmoney",
+    "coopbeloning",
+    "coopgastlokaal",
+    "snackketen",
+    "snackrules",
+    "snackautomaat",
+    "eten",
+    "horeca",
+    "marktgebouwen",
+    "beleid*",
+    "vrachtmarkt",
+    "vrachtkosten"
+   ],
+   "eigenaar": "speler",
+   "gast": "Winkels met spullen voor jezelf (kleding, kapper, avondwinkel, horeca) draaien op je eigen scherm met je eigen geld; voertuigen en tuning kopen kan alleen in je eigen spel.",
+   "beloning": "Geld per speler in de eigen opslag; dezelfde beloning telt nooit dubbel (coopbeloning, #448).",
+   "wegval": "Niemand verliest geld: beloning per gebeurtenis, checkpoint per speler.",
+   "test": [
+    "scripts/coopgastlokaal_test.mjs",
+    "scripts/coopbeloning_test.mjs",
+    "scripts/shops_test.mjs",
+    "scripts/finance_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "| Winkelen |"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "prestaties",
+   "naam": "Prestaties",
+   "groep": "Bezit en geld",
+   "modules": [
+    "achievements*",
+    "achievementicons",
+    "achievementgeluid",
+    "achievementunlock",
+    "achievementtracker",
+    "medalrules"
+   ],
+   "eigenaar": "speler",
+   "gast": "Eigen prestaties (GAST_VELDEN prestaties); een gast kan er in andermans wereld een verdienen.",
+   "beloning": "Per speler; dezelfde prestatie telt een keer.",
+   "wegval": "Wat een gast verdiende staat in zijn eigen opgeslagen spel (applyGuestAchievements).",
+   "test": [
+    "scripts/coopsave_test.mjs",
+    "scripts/prestaties_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-OPSLAAN.md",
+    "zoek": "applyGuestEarnings"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "kleding",
+   "naam": "Kleding, kapper en NPC-outfits (epic Kleding)",
+   "groep": "Uiterlijk",
+   "modules": [
+    "clothing*",
+    "models3d_clothing",
+    "shopmodels3d",
+    "spullenmodel",
+    "models3d_people"
+   ],
+   "eigenaar": "speler",
+   "gast": "Medespelers zien je outfit via het optionele veld avatar.outfit (code k1) in de hello en de spelerslijst; de winkel is voor iedereen hetzelfde (deterministisch aanbod).",
+   "beloning": "Geen; wel prestaties per speler.",
+   "wegval": "Niets te herstellen; later aansluiten: de code staat in de spelerslijst.",
+   "test": [
+    "scripts/clothing_test.mjs",
+    "scripts/coopspeler_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "## Kleding (21-11, epic Kleding)"
+   },
+   "wachtOp": "epic-kleding-21-11",
+   "status": "gat",
+   "prio": "middel",
+   "lead": "Kleding",
+   "gat": "Lead Kleding meldt (epic-kleding-21-11, e71573e69): outfit-update midden in een sessie is klaar (bericht k outfit, test in clothing_test.mjs) en NPC-outfits zijn aangesloten op voetgangers, wachters en publiek (deterministisch). Open: de testbankstap outfit in coop.page.js moet na de merge echt controleren dat een medespeler avatar.outfit draagt (nu alleen gelogd); status naar OK na de merge."
+  },
+  {
+   "id": "tuning",
+   "naam": "Tuning, onderdelen, lak en gepimpte auto's",
+   "groep": "Uiterlijk",
+   "modules": [
+    "tuningplan",
+    "garage*",
+    "ownedvehicles",
+    "coopbezit",
+    "vehiclepreview",
+    "vehicleregister",
+    "dienstvoertuig",
+    "onderdelen*",
+    "carbid"
+   ],
+   "eigenaar": "speler",
+   "gast": "Eigen voertuigen en panden komen mee in de wereld van een ander (bezorgen en delen, #449): kleur, upgrades, deuken en lekke band reizen mee.",
+   "beloning": "Geen; kosten uit je eigen geld.",
+   "wegval": "Een bezorgde kopie verdwijnt met zijn eigenaar; het origineel blijft in de eigen opslag.",
+   "test": [
+    "scripts/coopbezit_test.mjs",
+    "scripts/tuningplan_test.mjs",
+    "scripts/garage_zone_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "## Eigen voertuigen meenemen en delen (#449)"
+   },
+   "status": "gat",
+   "prio": "middel",
+   "lead": "Tuning",
+   "issue": "#1158",
+   "gat": "De onderdelen van tuningplan.js (banden, uitlaat, stoel, verlichting, geluid; gde-tuning-v1) reizen niet mee in het bezorg-bericht (coopbezit.js kent alleen color, upgrades, health, dents, flat): een bezorgde auto verliest zijn tuning in andermans wereld. Voeg een gesaneerd tuning-veld toe (PROTO blijft) en een test."
+  },
+  {
+   "id": "interieurs",
+   "naam": "Interieurs: binnen elkaar zien, NPC-bezit (epic Interieurs)",
+   "groep": "Uiterlijk",
+   "modules": [
+    "interior*",
+    "interieur*",
+    "autointerieur",
+    "bootinterieur*",
+    "businterieur*",
+    "treininterieur",
+    "binnenset",
+    "roomspec",
+    "rooms3d",
+    "roomclock",
+    "furniture",
+    "inrichting",
+    "cabin3d"
+   ],
+   "eigenaar": "gesynct",
+   "gast": "Voertuiginterieurs zijn beeld en worden door elke client zelf gebouwd; gebouwinterieurs van de epic zijn nog niet in main.",
+   "beloning": "Geen.",
+   "wegval": "Niets te herstellen: het interieur is een deterministische functie van het gebouw.",
+   "test": [
+    "scripts/interieurs_test.mjs",
+    "scripts/binnenset_test.mjs",
+    "scripts/interior_coop_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/BINNENSETS-21-11.md",
+    "zoek": "## Samen spelen"
+   },
+   "wachtOp": "epic-interieurs-21-11",
+   "status": "gat",
+   "prio": "hoog",
+   "lead": "Interieurs",
+   "gat": "Lead Interieurs meldt (epic-interieurs-21-11): regels staan in docs/INTERIEURS-21-11.md (kop Samen spelen (regels)) en in COOP-GAST.md; pure test scripts/interior_coop_test.mjs (39 controles: host, gast, late gast en nieuwe host bouwen dezelfde kamer uit het gebouwszaad; kopen per speler; geen netwerkverkeer). Open: testbankstap interieur in de suite alles (interiorSeed/planInterior op twee clients vergelijken) en de status naar OK na de merge."
+  },
+  {
+   "id": "voertuigen",
+   "naam": "Voertuigen: besturen, passagiers, meerijden, boten en toestellen",
+   "groep": "Verkeer en reizen",
+   "modules": [
+    "vehicle*",
+    "coopbestuur",
+    "coopboot",
+    "coopzitten3d",
+    "meerijden",
+    "seating3d",
+    "seatiles",
+    "voertuigbediening",
+    "heli*",
+    "plane*",
+    "flightrules",
+    "boat*",
+    "ridepath",
+    "passages"
+   ],
+   "eigenaar": "wereld",
+   "gast": "E bij een vrij voertuig: je stapt in als bestuurder of bijrijder; Y geeft het stuur; schade en politie zijn van de bestuurder.",
+   "beloning": "Geen.",
+   "wegval": "De bestuurder valt weg: het voertuig wordt vrij of de bijrijder krijgt het stuur; niets blijft hangen.",
+   "test": [
+    "scripts/coopbestuur_test.mjs",
+    "scripts/coopmeerijden_test.mjs",
+    "scripts/coopboot_test.mjs",
+    "scripts/coopvoertuigen_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "| Bijrijden |"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "pings",
+   "naam": "Kaartping en roepjes (7, 8, 9)",
+   "groep": "Kaart en navigatie",
+   "modules": [
+    "coopping",
+    "cooppings3d",
+    "partnerhud"
+   ],
+   "eigenaar": "gesynct",
+   "gast": "Drie toetsen geven bij iedereen een baken in de wereld, een punt op de minimap en de kaart en een regel.",
+   "beloning": "Geen.",
+   "wegval": "Een ping vervalt vanzelf; niets te herstellen.",
+   "test": [
+    "scripts/coopspelers_test.mjs",
+    "scripts/coophostwisselwereld_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "**Pings en waypoints (21-11)"
+   },
+   "status": "gat",
+   "prio": "middel",
+   "issue": "#1159",
+   "gat": "Een ping kan alleen met 7, 8 of 9 vanaf je eigen plek; geen ping op een gekozen kaartpunt en geen waypoint delen (ook niet voor de bijrijder in een auto). Een eigen test voor coopping.js ontbreekt."
+  },
+  {
+   "id": "kaart",
+   "naam": "Kaart, minimap, navigatiedoel en kijkanker",
+   "groep": "Kaart en navigatie",
+   "modules": [
+    "map*",
+    "minimap*",
+    "kaart*",
+    "navtarget",
+    "navpijl",
+    "viewanchor",
+    "snelwaypoint",
+    "waymarkers3d",
+    "routeribbon",
+    "routing",
+    "gebieden*",
+    "verkenpunten",
+    "explorationlive"
+   ],
+   "eigenaar": "speler",
+   "gast": "Elke speler heeft zijn eigen kaart, doel en ontdekking (gde-verkenning-v1); de kaart toont medespelers en pings; kijkanker en kaartheading lezen hoofdspeler(world).",
+   "beloning": "Geen; ontdekking is per speler.",
+   "wegval": "Niets te herstellen.",
+   "test": [
+    "scripts/viewanchor_test.mjs",
+    "scripts/kaartontdekking_test.mjs",
+    "scripts/minimap_pijlen_test.mjs",
+    "scripts/navtarget_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "| Kaart en ontdekking (#825) |"
+   },
+   "status": "OK",
+   "prio": "-",
+   "gefixt": "Fix 21-11: viewanchor.js las world.lokaalLichaam || world.player; nu hoofdspeler(world)."
+  },
+  {
+   "id": "meldingen",
+   "naam": "HUD-meldingen, ondertitels en melding-timer",
+   "groep": "Kaart en navigatie",
+   "modules": [
+    "hud*",
+    "melding",
+    "noticetiming",
+    "menumelding",
+    "phonefeed",
+    "namecard",
+    "soundcaptions",
+    "subtitles",
+    "fouttoast",
+    "contexthints",
+    "hintkit",
+    "uitleg*",
+    "coophud"
+   ],
+   "eigenaar": "lokaal",
+   "gast": "Meldingen en hints zijn lokaal per speler en per apparaat; meldingen over medespelers komen uit de spelerslijst.",
+   "beloning": "Geen.",
+   "wegval": "Niets te herstellen.",
+   "test": [
+    "scripts/hudmeldingen_test.mjs",
+    "scripts/hudstack_test.mjs",
+    "scripts/uitleg_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "## Uitleg met iconen en quicktime-stand (#989, #962)"
+   },
+   "wachtOp": "meldingen-timer-21-11",
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "wanted",
+   "naam": "Gezocht-niveau en politie",
+   "groep": "Verkeer en reizen",
+   "modules": [
+    "wanted*",
+    "police*",
+    "policemounts",
+    "motorpolice",
+    "coopgezocht",
+    "heatcooldown",
+    "offences",
+    "flitspaal*",
+    "trafficlaw",
+    "signalement",
+    "crime"
+   ],
+   "eigenaar": "wereld",
+   "gast": "Een gezocht-niveau per speler (world.coopWanted); de politie jaagt op de speler met het hoogste niveau.",
+   "beloning": "Geen.",
+   "wegval": "Het niveau van een weggevallen speler vervalt; het heatcooldown-pad blijft werken.",
+   "test": [
+    "scripts/wanted_een_test.mjs",
+    "scripts/wanted_flow_test.mjs",
+    "scripts/coopbestuur_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "## Zelf een voertuig besturen en de politie (#434)"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "ov",
+   "naam": "OV, trein, vertrekbord, taxi en reizen",
+   "groep": "Verkeer en reizen",
+   "modules": [
+    "ov*",
+    "trein*",
+    "train*",
+    "railway*",
+    "station*",
+    "bus*",
+    "bushalte",
+    "dienstregeling",
+    "departuretimeline*",
+    "livetrains",
+    "livebussen",
+    "reis*",
+    "kaartteleport",
+    "stationtravel",
+    "machinist*",
+    "kaartjescontrole",
+    "taxistatus",
+    "reklametaxi*",
+    "perron*",
+    "coopbus",
+    "cooptrein",
+    "buscoop"
+   ],
+   "eigenaar": "wereld",
+   "gast": "Een gast rijdt mee als passagier of conducteur; het vertrekbord is lokaal en leest een openbare feed; een dienst starten is voor wie E drukt.",
+   "beloning": "Loon en voortgang per speler (#429) voor de eigen dienst.",
+   "wegval": "Een machinist die wegvalt: de trein stopt of de opvolger neemt over.",
+   "test": [
+    "scripts/coop/treincoop_test.mjs",
+    "scripts/coop/buscoop_test.mjs",
+    "scripts/gasttrein_test.mjs",
+    "scripts/departuretimeline_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "## Live treinen op het vertrekbord (21-11, #1085)"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "tijd",
+   "naam": "Tijd, slapen, pauzeren en laden",
+   "groep": "Wereld",
+   "modules": [
+    "calendar*",
+    "coopgroep",
+    "coophold",
+    "pausestate",
+    "pausemenu",
+    "timewarn",
+    "daynight",
+    "sunrules",
+    "coopladen",
+    "cooploadrules",
+    "loadgate",
+    "loadscreen",
+    "loadscene"
+   ],
+   "eigenaar": "gesynct",
+   "gast": "Tijd verspringen, slapen, reizen, laden en pauzeren zijn gezamenlijke keuzes (stemming J of N); pauzeren is voor jezelf.",
+   "beloning": "Geen.",
+   "wegval": "Een weggevallen speler telt niet mee in de stemming; hostwissel laat tijd, weer en politie zoals ze waren.",
+   "test": [
+    "scripts/coop/groep_test.mjs",
+    "scripts/coopladen_test.mjs",
+    "scripts/coopduur_test.mjs",
+    "scripts/coophostwissel_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "## Gezamenlijke keuzes (#452)"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "weer",
+   "naam": "Weer",
+   "groep": "Wereld",
+   "modules": [
+    "weather*",
+    "weerdag",
+    "weerlook",
+    "weersmooth",
+    "coopweer",
+    "cloud*",
+    "greenwater"
+   ],
+   "eigenaar": "wereld",
+   "gast": "Het weer is van de wereld: de host meldt de weerstaat, een gast zet hem in zijn eigen machine.",
+   "beloning": "Geen.",
+   "wegval": "Hostwissel neemt de weerstaat mee (herstelmomentopname).",
+   "test": [
+    "scripts/coopweer_test.mjs",
+    "scripts/weatherstate_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "(klok, weer, wanted, opdracht"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "cheats",
+   "naam": "Cheats en testmenu",
+   "groep": "Wereld",
+   "modules": [
+    "cheat*",
+    "testmenu*",
+    "devflags"
+   ],
+   "eigenaar": "lokaal",
+   "gast": "Uit zodra er een tweede speler is: geen cheats, geen teleport, geen testmenu of dev-paneel.",
+   "beloning": "Geen.",
+   "wegval": "Valt de tweede speler weg, dan staan cheats weer aan te zetten voor wie alleen speelt.",
+   "test": [
+    "scripts/cheats_test.mjs",
+    "scripts/cheatsui_test.mjs",
+    "scripts/bot_cheatvrij_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "| Cheats en testmenu |"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "populatie",
+   "naam": "Achtergrondverkeer, voetgangers, dieren en wereldstreaming",
+   "groep": "Wereld",
+   "modules": [
+    "coopfoci",
+    "tilefocus",
+    "tilestore",
+    "tilestream",
+    "tileworld",
+    "streambudget",
+    "streamplanner",
+    "pedestrians",
+    "wildlife",
+    "streetpopulation",
+    "streekverkeer",
+    "trafficfleet",
+    "parkedcars",
+    "crowd*",
+    "swimmers3d"
+   ],
+   "eigenaar": "wereld",
+   "gast": "De wereld wordt geladen en gesimuleerd rond elke groep spelers (foci); een gast ziet dezelfde NPC's uit de snapshots.",
+   "beloning": "Geen.",
+   "wegval": "Een focus verdwijnt met zijn spelers; het totaalbudget blijft begrensd.",
+   "test": [
+    "scripts/coopfoci_test.mjs",
+    "scripts/tilefocus_test.mjs",
+    "scripts/coopgaten_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "## Spelers uit elkaar (#429)"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "wapens",
+   "naam": "Wapens, PvP en passive mode",
+   "groep": "Wereld",
+   "modules": [
+    "weapon*",
+    "combat*",
+    "cooppvp",
+    "coopwapen",
+    "pvparena",
+    "multiplayerpvpwereld",
+    "gunfx3d",
+    "knockfx3d",
+    "gore3d",
+    "aimassist",
+    "scopeaim",
+    "meleecombo"
+   ],
+   "eigenaar": "gesynct",
+   "gast": "Eigen wapen uit je eigen opslag; PvP alleen buiten passive mode; dood door een medespeler kost niets.",
+   "beloning": "Geen.",
+   "wegval": "Niets te herstellen.",
+   "test": [
+    "scripts/coopwapen_test.mjs",
+    "scripts/cooppvp_test.mjs",
+    "scripts/pvpvertraging_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "## Passieve stand en spelers tegen elkaar (#447)"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "muggings",
+   "naam": "Berovingen",
+   "groep": "Wereld",
+   "modules": [
+    "muggings",
+    "muggingrules",
+    "carjackvictim"
+   ],
+   "eigenaar": "wereld",
+   "gast": "De beroving draait bij wie het spel opende en pakt een deel van zijn eigen geld; een gast wordt nooit beroofd.",
+   "beloning": "Geen.",
+   "wegval": "Niets te herstellen.",
+   "test": [
+    "scripts/muggings_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "**Berovingen"
+   },
+   "status": "gat",
+   "prio": "laag",
+   "issue": "#1160",
+   "gat": "muggings.js leest hoofdspeler(w) en w.money van de host: een gast kan niet beroofd worden en alleen de host verliest geld; gelijkwaardigheid vraagt een lokale beroving per speler (kost een deel van zijn eigen geld, geen beeld van geweld)."
+  },
+  {
+   "id": "telefoon",
+   "naam": "Telefoon en apps",
+   "groep": "Spelmenu",
+   "modules": [
+    "phone",
+    "phoneapp",
+    "phonefeed",
+    "smsvoice",
+    "sikkomfeed",
+    "telefoon*"
+   ],
+   "eigenaar": "lokaal",
+   "gast": "De telefoon is lokaal; een gast start een opdracht niet aan de telefoon maar bij het startpunt; delen van een voertuig staat in de telefoon (coopbezit).",
+   "beloning": "Geen.",
+   "wegval": "Niets te herstellen.",
+   "test": [
+    "scripts/telefoon_berichten_test.mjs",
+    "scripts/coopbezit_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "**Telefoon en Te doen"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "spullen",
+   "naam": "Spullen, Te doen en spelmenu",
+   "groep": "Spelmenu",
+   "modules": [
+    "spullen*",
+    "todo*",
+    "pausemenu",
+    "pausesearch",
+    "menu*",
+    "spelersregister",
+    "playerstatus",
+    "samen*",
+    "lobby*"
+   ],
+   "eigenaar": "speler",
+   "gast": "Je eigen spullen, kast en Te doen staan in je eigen opslag; het spelersmenu is een weergave van de spelerslijst.",
+   "beloning": "Geen.",
+   "wegval": "Niets te herstellen; het menu leest de actuele lijst.",
+   "test": [
+    "scripts/spullen_test.mjs",
+    "scripts/todo_ui_test.mjs",
+    "scripts/spelmenu_test.mjs",
+    "scripts/lobby_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "## Boerderij, Spullen en Loopbanen in het menu"
+   },
+   "wachtOp": "spullen-ui-21-11",
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "dieren",
+   "naam": "Dieren, duif en vrijetijd",
+   "groep": "Spelmenu",
+   "modules": [
+    "dieren*",
+    "dierschaal",
+    "aaien",
+    "pigeon*",
+    "dierenbezit",
+    "fotomodus*",
+    "radio*",
+    "picnicpeople",
+    "evenementen*"
+   ],
+   "eigenaar": "speler",
+   "gast": "De duif wordt in de duifmodus door de gast mee bestuurd; dieren, fotomodus en radio zijn lokaal; evenementen zijn van de wereld en worden bij de gast getoond.",
+   "beloning": "Eigen dierenbezit en visboek per speler.",
+   "wegval": "Niets te herstellen.",
+   "test": [
+    "scripts/pigeon_sync_test.mjs",
+    "scripts/dierenregister_test.mjs",
+    "scripts/evenementen_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "**Dieren, duif en vrijetijd"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "stemmen",
+   "naam": "Stemmen (TTS), geluid en muziek",
+   "groep": "Spelmenu",
+   "modules": [
+    "voicebank",
+    "voicetiming",
+    "speech",
+    "linevoice",
+    "audio*",
+    "sfx*",
+    "coopgeluid",
+    "music*",
+    "scenariomusic",
+    "stings",
+    "narration"
+   ],
+   "eigenaar": "lokaal",
+   "gast": "Opgenomen stemmen en geluid worden op elk apparaat zelf afgespeeld; geluidsevents van anderen komen via coopgeluid.",
+   "beloning": "Geen.",
+   "wegval": "Niets te herstellen.",
+   "test": [
+    "scripts/coopgeluid_test.mjs",
+    "scripts/voicebank_retry_test.mjs",
+    "scripts/voice_lookup_audit_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "**Stemmen, geluid en muziek"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "startkeuze",
+   "naam": "Startkeuze, naam en toestemming",
+   "groep": "Sessie en profiel",
+   "modules": [
+    "onlineconsent*",
+    "startscreen",
+    "sessiekeuze",
+    "sessionboot",
+    "coopsolo",
+    "coopidentiteit",
+    "ctxidentiteit",
+    "onboarding",
+    "launchchoice*",
+    "openingstart",
+    "coopmeedoen"
+   ],
+   "eigenaar": "speler",
+   "gast": "Eerste start: naam en de vraag of je met anderen meedoet; een ontbrekende waarde is geen ja; nooit stil openbaar.",
+   "beloning": "Geen.",
+   "wegval": "Niets te herstellen; de keuze staat in gde-settings.",
+   "test": [
+    "scripts/lobbyui_consent_test.mjs",
+    "scripts/sessiekeuze_test.mjs",
+    "scripts/sessionboot_test.mjs",
+    "scripts/coopsolo_test.mjs",
+    "scripts/onlinestart_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "## De startkeuze: Alleen of Samen spelen"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "instellingen",
+   "naam": "Instellingen",
+   "groep": "Sessie en profiel",
+   "modules": [
+    "settings",
+    "a11y*",
+    "controls",
+    "gamepad",
+    "input*",
+    "touch*",
+    "uiscale",
+    "theme",
+    "gfxprofile",
+    "framecap"
+   ],
+   "eigenaar": "lokaal",
+   "gast": "Instellingen zijn per apparaat (gde-settings); niemand beheert de instellingen van een ander.",
+   "beloning": "Geen.",
+   "wegval": "Niets te herstellen.",
+   "test": [
+    "scripts/settings_online_test.mjs",
+    "scripts/instellingen_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "**Instellingen"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "opslaan",
+   "naam": "Opslaan, laden en savegames",
+   "groep": "Sessie en profiel",
+   "modules": [
+    "savegame",
+    "saveslots*",
+    "savemigrate",
+    "savehook",
+    "saveplek",
+    "coopsave",
+    "guestsave",
+    "coopcheckpoint",
+    "oudmigratie",
+    "storagekeys",
+    "coopstate"
+   ],
+   "eigenaar": "gesynct",
+   "gast": "Het spel van wie het opende wordt gespeeld; wat een gast verdient gaat in zijn eigen actieve savegame (GAST_VELDEN).",
+   "beloning": "Checkpoints per speler; beloning per gebeurtenis, nooit pas aan het einde.",
+   "wegval": "Bij een crash of wegvallen verliest niemand geld of voortgang.",
+   "test": [
+    "scripts/coopsave_test.mjs",
+    "scripts/guestsave_test.mjs",
+    "scripts/coopladen_test.mjs",
+    "scripts/compat_saves_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-OPSLAAN.md",
+    "zoek": "## Wat bewaart de gast"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "hostwissel",
+   "naam": "Hostwissel en overname",
+   "groep": "Sessie en profiel",
+   "modules": [
+    "coophostwissel*",
+    "multiplayerhostwisselui",
+    "simhandover",
+    "simhost"
+   ],
+   "eigenaar": "gesynct",
+   "gast": "De langst verbonden speler neemt over uit de herstelmomentopname; tijd, weer, politie, verkeer en opdrachtstand blijven.",
+   "beloning": "Niemand verliest iets.",
+   "wegval": "Een harde crash van de host: de opvolger opent zijn kamer en de anderen sluiten aan.",
+   "test": [
+    "scripts/coophostwissel_test.mjs",
+    "scripts/coophostwisselwereld_test.mjs",
+    "scripts/coop/hostwissel_test.mjs",
+    "scripts/coop/viersp_hostwissel_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "## Vierspelersavond en hostwissel"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "netwerk",
+   "naam": "Netwerk, wachtkamer en openbare lijst",
+   "groep": "Sessie en profiel",
+   "modules": [
+    "net",
+    "coopnet",
+    "coopworld",
+    "coopclient",
+    "coopcore",
+    "coopglue",
+    "coopgast",
+    "coopspeler",
+    "coopspelers*",
+    "coopplayers",
+    "coopdeel",
+    "coopextra*",
+    "coopfigures*",
+    "coopentities3d",
+    "coopbronnen",
+    "coopoverlay",
+    "coopidentiteit",
+    "serverstaat",
+    "lobby*",
+    "samenhub*",
+    "samenkeuze",
+    "samenpanel",
+    "samenplan",
+    "samenspelen"
+   ],
+   "eigenaar": "gesynct",
+   "gast": "Een dunne client: snapshots en invoer; EXTRA-berichten voor wat de snapshot niet draagt; IP-adressen nooit zichtbaar of opgeslagen.",
+   "beloning": "Geen.",
+   "wegval": "Kort wegvallen en opnieuw verbinden (#982, #983); kicken en verbannen door de host.",
+   "test": [
+    "scripts/coopnet_test.mjs",
+    "scripts/coopcore_test.mjs",
+    "scripts/coop_tcp_test.mjs",
+    "scripts/net_lifecycle_test.mjs",
+    "scripts/net_protocol_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "## Hoe het werkt"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "nietvanbelang",
+   "naam": "Beeld, performance, build en tooling zonder spelregel",
+   "groep": "Technisch",
+   "modules": [
+    "models3d_*",
+    "*3d",
+    "terrain*",
+    "world*",
+    "geo*",
+    "gdt",
+    "tile*",
+    "road*",
+    "rail*",
+    "water*",
+    "country*",
+    "ommeland*",
+    "landmark*",
+    "stad*",
+    "street*",
+    "parked3d",
+    "postfx3d",
+    "fx3d",
+    "sky*",
+    "shadow*",
+    "staticbatch3d",
+    "lod*",
+    "frame*",
+    "perf*",
+    "mem*",
+    "leak*",
+    "gpu*",
+    "ds-*",
+    "ds*",
+    "icons",
+    "iconmap",
+    "glyphs",
+    "keycap",
+    "util",
+    "rng",
+    "validity",
+    "version",
+    "credits",
+    "logo",
+    "whatsnew",
+    "errorlog",
+    "trailer*",
+    "beeld*",
+    "ghost*",
+    "decode*",
+    "program*",
+    "terrainaudit",
+    "randaudit",
+    "streekaudit",
+    "cityprops",
+    "wildlife*",
+    "decorrules"
+   ],
+   "eigenaar": "lokaal",
+   "gast": "Beeld en techniek zonder eigen spelregel: elke client bouwt zijn eigen beeld uit dezelfde data.",
+   "beloning": "Geen.",
+   "wegval": "Niets te herstellen.",
+   "test": [],
+   "regel": {
+    "doc": "docs/COOP-DEKKING-21-11.md",
+    "zoek": "Beeld, performance, build en tooling zonder spelregel"
+   },
+   "status": "nvt",
+   "prio": "-"
+  },
+  {
+   "id": "moeilijkheid",
+   "naam": "Moeilijkheid (niveau per speler en voor de wereld)",
+   "groep": "Instellingen",
+   "modules": [
+    "difficulty*",
+    "bezitdifficulty"
+   ],
+   "eigenaar": "gesynct",
+   "gast": "De wereld (politie en verkeer) volgt het niveau van wie het spel opende; een gast kiest zelf hoe pittig zijn eigen deel is (schade, rij-assist, quicktime-events, hints, tijd en medailles, beloning).",
+   "beloning": "Per speler volgens het eigen niveau; niemand krijgt een lagere beloning door het niveau van een ander.",
+   "wegval": "Valt iemand weg of sluit hij later aan: het wereldniveau blijft dat van wie het spel opende; het eigen niveau reist mee met de speler.",
+   "test": [
+    "scripts/difficulty_test.mjs",
+    "scripts/difficulty_integration_test.mjs",
+    "scripts/difficulty_profile_test.mjs",
+    "scripts/difficultycard_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "| Moeilijkheid |"
+   },
+   "status": "OK",
+   "prio": "-"
+  }
+ ],
+ "nietCoopRelevant": [
+  {
+   "glob": "*3d",
+   "reden": "Alleen beeld: elke client bouwt zijn eigen meshes."
+  },
+  {
+   "glob": "models3d_*",
+   "reden": "Alleen beeld."
+  },
+  {
+   "glob": "ds-*",
+   "reden": "Designsysteem: stijl, geen spelstaat."
+  },
+  {
+   "glob": "ds*",
+   "reden": "Designsysteem."
+  },
+  {
+   "glob": "perf*",
+   "reden": "Prestatiemeting."
+  },
+  {
+   "glob": "dsmicro",
+   "reden": "Designsysteem."
+  },
+  {
+   "glob": "listnav",
+   "reden": "Navigatie in een lijst: toetsenbord en pad."
+  },
+  {
+   "glob": "dsbutton",
+   "reden": "Designsysteem."
+  },
+  {
+   "glob": "minimapheat",
+   "reden": "Alleen beeld op de kaart."
+  }
+ ],
+ "opslag": {
+  "serverlijstVerborgen": {
+   "scope": "apparaat",
+   "reden": "Welke openbare sessies je meldde, alleen op dit apparaat."
+  },
+  "serverlijstFavorieten": {
+   "scope": "apparaat",
+   "reden": "Sterren op dit apparaat."
+  },
+  "save": {
+   "scope": "wereld",
+   "reden": "De savegame zelf: het spel van wie het opende; wat een gast verdient gaat in zijn eigen savegame (GAST_VELDEN)."
+  },
+  "settings": {
+   "scope": "apparaat",
+   "reden": "Instellingen per apparaat."
+  },
+  "saveSlots": {
+   "scope": "wereld",
+   "reden": "De lijst met savegames."
+  },
+  "achievements": {
+   "scope": "speler",
+   "reden": "Prestaties van deze speler."
+  },
+  "saveBackup": {
+   "scope": "wereld",
+   "reden": "Herstelkopie van de savegame."
+  },
+  "menu": {
+   "scope": "apparaat",
+   "reden": "Menu-voorkeuren."
+  },
+  "todoFilter": {
+   "scope": "apparaat",
+   "reden": "Filter van Te doen."
+  },
+  "pigeon": {
+   "scope": "speler",
+   "reden": "Duifvoortgang van deze speler."
+  },
+  "flavour": {
+   "scope": "apparaat",
+   "reden": "Welke sfeerregels je zag."
+  },
+  "banter": {
+   "scope": "apparaat",
+   "reden": "Welke ondertitel-banter je zag."
+  },
+  "lastVersion": {
+   "scope": "apparaat",
+   "reden": "Laatst gespeelde versie."
+  },
+  "gfxAdvice": {
+   "scope": "apparaat",
+   "reden": "Grafisch advies."
+  },
+  "audioGlitch": {
+   "scope": "apparaat",
+   "reden": "Diagnose van geluidsonderbrekingen."
+  },
+  "muted": {
+   "scope": "apparaat",
+   "reden": "Geluid uit."
+  },
+  "introSeen": {
+   "scope": "apparaat",
+   "reden": "Intro gezien."
+  },
+  "onboarding": {
+   "scope": "apparaat",
+   "reden": "Uitleg gezien."
+  },
+  "hintUses": {
+   "scope": "apparaat",
+   "reden": "Hoe vaak een hint werd gebruikt."
+  },
+  "mapLayers": {
+   "scope": "apparaat",
+   "reden": "Kaartlagen."
+  },
+  "wijkenSeen": {
+   "scope": "speler",
+   "reden": "Welke wijken deze speler zag."
+  },
+  "wijkLinesRecent": {
+   "scope": "apparaat",
+   "reden": "Recente wijkregels."
+  },
+  "radioHistory": {
+   "scope": "apparaat",
+   "reden": "Radiogeschiedenis."
+  },
+  "radioTalk": {
+   "scope": "apparaat",
+   "reden": "Radiopraat."
+  },
+  "fog": {
+   "scope": "apparaat",
+   "reden": "Mistvoorkeur."
+  },
+  "errorLog": {
+   "scope": "apparaat",
+   "reden": "Foutlog."
+  },
+  "snapshots": {
+   "scope": "apparaat",
+   "reden": "Cache."
+  },
+  "placeshots": {
+   "scope": "apparaat",
+   "reden": "Cache."
+  },
+  "ghosts": {
+   "scope": "speler",
+   "reden": "Eigen spookritten."
+  },
+  "snackChain": {
+   "scope": "speler",
+   "reden": "Eigen snackketen."
+  },
+  "hintsGezien": {
+   "scope": "apparaat",
+   "reden": "Hints gezien."
+  },
+  "uitlegNietMeer": {
+   "scope": "apparaat",
+   "reden": "Uitleg niet meer tonen."
+  },
+  "oefenronde": {
+   "scope": "apparaat",
+   "reden": "Oefenronde klaar."
+  },
+  "gallery": {
+   "scope": "apparaat",
+   "reden": "Fotogalerij."
+  },
+  "eventsSeen": {
+   "scope": "apparaat",
+   "reden": "Evenementen gezien."
+  },
+  "menuPlekken": {
+   "scope": "apparaat",
+   "reden": "Menuachtergronden gezien."
+  },
+  "coopSession": {
+   "scope": "apparaat",
+   "reden": "Laatste modus en verbindingscode; geen verhaal."
+  },
+  "nieuwVerhaal": {
+   "scope": "apparaat",
+   "reden": "Oude sleutel, niets leest hem."
+  },
+  "oudGemigreerd": {
+   "scope": "apparaat",
+   "reden": "Migratievlag."
+  },
+  "benchmarkLast": {
+   "scope": "apparaat",
+   "reden": "Laatste benchmark."
+  },
+  "tuning": {
+   "scope": "speler",
+   "reden": "Onderdelen per voertuig van deze speler; nooit in een savegame."
+  },
+  "dieren": {
+   "scope": "speler",
+   "reden": "Dieren van deze speler."
+  },
+  "hudSeen": {
+   "scope": "apparaat",
+   "reden": "HUD-uitleg gezien."
+  },
+  "ovHint": {
+   "scope": "apparaat",
+   "reden": "OV-hint, nooit in een savegame."
+  },
+  "help": {
+   "scope": "speler",
+   "reden": "Stappen met hulp van deze speler."
+  },
+  "loopbaan": {
+   "scope": "speler",
+   "reden": "Loopbaan per speler."
+  },
+  "beleid": {
+   "scope": "speler",
+   "reden": "Gemeentebeleid per speler."
+  },
+  "visboek": {
+   "scope": "speler",
+   "reden": "Visboek per speler."
+  },
+  "hengeltuig": {
+   "scope": "speler",
+   "reden": "Hengeltuig per speler."
+  },
+  "boerderij": {
+   "scope": "speler",
+   "reden": "Boerderij per speler."
+  },
+  "boerderijUitleg": {
+   "scope": "apparaat",
+   "reden": "Uitleg gezien."
+  },
+  "simUitleg": {
+   "scope": "apparaat",
+   "reden": "Uitleg gezien."
+  },
+  "voetbal": {
+   "scope": "apparaat",
+   "reden": "Voorkeur voor de duur van een wedstrijd."
+  },
+  "voetbalCarriere": {
+   "scope": "speler",
+   "reden": "Voetbalcarrière per speler, nooit in een savegame."
+  },
+  "terugkeer": {
+   "scope": "apparaat",
+   "reden": "Terugkeerscene gezien."
+  },
+  "recap": {
+   "scope": "apparaat",
+   "reden": "Recapkaart: nooit in een savegame."
+  },
+  "gebieden": {
+   "scope": "speler",
+   "reden": "Gebieden per speler."
+  },
+  "exploration": {
+   "scope": "speler",
+   "reden": "Verkenning per speler."
+  }
+ },
+ "sleutelLiteralenBuitenRegister": [
+  "gde-engine",
+  "gde-audioglitch-v1",
+  "gde-beleid-v1",
+  "gde-dev:",
+  "gde-evenementen-v1",
+  "gde-boerderij-uitleg-v1",
+  "gde-galerij-v1",
+  "gde-ghosts-v1",
+  "gde-settings",
+  "gde-logo",
+  "gde-mark",
+  "gde-sign",
+  "gde-sub",
+  "gde-meaning",
+  "gde-serverlijst-verborgen",
+  "gde-serverlijst-favorieten",
+  "gde-menuplekken-v1",
+  "gde-join:",
+  "gde-antwoord:",
+  "gde-coop",
+  "gde-coop-signal-v1",
+  "gde-coop-topic:",
+  "gde-save-v1",
+  "gde-save-v1-nieuw",
+  "gde-prestaties-v1",
+  "gde-oefenronde",
+  "gde-benchmark",
+  "gde-recap-v1",
+  "gde-sim-uitleg-v1",
+  "gde-snackketen-v1",
+  "gde-terugkeer-v1",
+  "gde-ahead"
+ ]
+}

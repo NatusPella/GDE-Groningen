@@ -126,7 +126,9 @@ import { hideWaymarkers3D } from './waymarkers3d.js';
 import { setMarkerCamera, setMarkerEnv, disposeWorldMarker3D } from './worldmarker3d.js'; // #1065
 import { OUTLINE_MAT } from './pixelart3d.js';
 import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpacity, setStarShare, SKY_HORIZON } from './sky3d.js';
-import { computeLighting } from './daynight.js';
+import { computeLighting, dayState } from './daynight.js';
+import { wijkProfileAt } from './trafficfleet.js';
+import { pedRole } from './clothing.js';
 import { createPostFX } from './postfx3d.js';
 import { noteGfxEvent, watchContext, gpuRamp } from './blackframe.js';
 import { spawnExplosionFx, setFxCamera } from './fx3d.js';
@@ -2352,10 +2354,25 @@ function pedInView(x, y) {
 }
 const pedView = { inView: pedInView, camX: 0, camY: 0 };
 
-function buildPedActor(p) {
+// De kleding van een gewone voetganger komt uit het kledingsysteem (clothing.js): een rol per buurt en uur, daarna een outfit uit de
+// rolpool, deterministisch uit zijn zaad. Politie en figuren met een eigen look (p.look) blijven zoals ze waren.
+function pedOutfitOpts(p, world) {
+  if (p.isCop || p.look || !world) return null;
+  if (p._role === undefined) {
+    let area = 'standaard';
+    try { area = wijkProfileAt(world.map, p.x, p.y).key; } catch (e) { /* standaard */ }
+    const hour = dayState(world).hour, rain = !!(world.weather && world.weather.intensity > 0.2);
+    p._role = pedRole(p._lookSeed, { area, hour, rain });
+    p._outfitCtx = { area, rain, hot: !rain && hour >= 11 && hour < 18 && (!world.weather || (world.weather.overcast || 0) < 0.3) };
+  }
+  return { role: p._role, outfitCtx: p._outfitCtx };
+}
+
+function buildPedActor(p, world) {
   // stable per-ped look, so a ped doesn't change clothes when it streams back in
   if (p._lookSeed === undefined) p._lookSeed = Math.random() * 1000;
-  const mesh = buildPersonActor(p.clothing ? colorFromHex(p.clothing) : 0xcaa46a, p.skin ? colorFromHex(p.skin) : 0xe0b48a, p.look ? { seed: p._lookSeed, look: p.look } : { seed: p._lookSeed });
+  const outfit = pedOutfitOpts(p, world);
+  const mesh = buildPersonActor(p.clothing ? colorFromHex(p.clothing) : 0xcaa46a, p.skin ? colorFromHex(p.skin) : 0xe0b48a, p.look ? { seed: p._lookSeed, look: p.look } : outfit ? { seed: p._lookSeed, ...outfit } : { seed: p._lookSeed });
   if (p.carry) attachCarry(mesh, p.carry);
   return enableShadows(mesh, false);
 }
@@ -2413,7 +2430,7 @@ function syncPedestrianMeshes(world, player, animDt) {
     if (pedMeshes.has(p)) continue;
     const over = built > 0 && performance.now() > deadline;
     if (over && (!instant || performance.now() > deadline + PED_INSTANT_EXTRA_MS)) continue;
-    const mesh = buildPedActor(p);
+    const mesh = buildPedActor(p, world);
     mesh.userData.fade = (instant && !over) || p.noFade ? 1 : 0;
     scene.add(mesh);
     pedMeshes.set(p, mesh);
@@ -3140,7 +3157,7 @@ export function update3D(dt, world) {
   syncCabins(world, vehicleMeshes, player.x, player.y);
   syncAutoStuur(world, vehicleMeshes, player.x, player.y, animDt);
   syncVoertuigBediening(world, vehicleMeshes, player.x, player.y, animDt);
-  syncHaltefiguren(world, scene, (shirt, skin) => enableShadows(buildPersonActor(shirt, skin, {}), false), animDt, disposeObject);
+  syncHaltefiguren(world, scene, (shirt, skin) => enableShadows(buildPersonActor(shirt, skin, { role: 'voetganger' }), false), animDt, disposeObject);
   probe.mark('3d:players');
   // a stolen train (traindrive.js) is followed like a very long vehicle
   const camVeh = player.inVehicle || world.trainCam || null;

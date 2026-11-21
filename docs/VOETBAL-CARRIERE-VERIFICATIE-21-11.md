@@ -13,15 +13,15 @@
 
 | Pakket | Bestanden | Test |
 |---|---|---|
-| #1107 spelers, ratings, 24 clubs | `voetbalspelers.js`, `voetbalclubs.js`, `voetbalmatch.js` (opties `ratings`, `teams`) | `voetbal_spelers_test` |
+| #1107 spelers, ratings, 24 clubs | `voetbalplayers.js`, `voetbalclubs.js`, `voetbalmatch.js` (opties `ratings`, `teams`) | `voetbal_spelers_test` |
 | #1117 velden uit de kaart | `scripts/world/build_voetbalparken.mjs`, `voetbalparkendata.js` (281 parken, 139 plaatsen, 27 kB), `voetbalparken.js` | `voetbalparken_test` |
-| #1108 seizoenen en agenda | `voetbalseizoen.js`, `voetbalagenda.js` | `voetbal_seizoen_test`, `voetbal_ontwikkeling_test` |
+| #1108 seizoenen en agenda | `voetbalseason.js`, `voetbalagenda.js` | `voetbal_seizoen_test`, `voetbal_ontwikkeling_test` |
 | #1109 ontwikkeling | `voetbalontwikkeling.js` | `voetbal_ontwikkeling_test` |
 | #1110 opslag, menu, start | `voetbalcarriere.js`, `voetbalcarrierelive.js`, `voetbalcarriereui.js`, sleutel `gde-voetbalcarriere-v1` | `voetbal_carriere_test`, `voetbal_carrierelive_test`, `voetbal_ui_test` |
 | #1111 transfers, managers | `voetbaltransfers.js` | `voetbal_transfers_test` |
 | #1112 beats en poort | `voetbalbeats.js`, `voetbalpoort.js` | `voetbal_beats_test` |
 | #1114 Samen spelen | `voetbalsamen.js` | `voetbal_samen_test` |
-| #1115 wereld, beeld, geluid | `voetbalwereld.js` (regels en gegevens), `voetbal.js` (veld op het park, uitshirt) | `voetbal_wereld_test` |
+| #1115 wereld, beeld, geluid | `voetbalworld.js` (regels en gegevens), `voetbal.js` (veld op het park, uitshirt) | `voetbal_wereld_test` |
 | #1118 sponsors | `voetbalsponsors.js` | `voetbal_sponsors_test` |
 | #1113 clubbezit | `voetbalclub_bezit.js` (interface, eigen profielveld tot Bezit er is) | `voetbal_sponsors_test` |
 | #1116 prestaties en balans | 11 prestaties in `achievements.js` en `steam/achievements.json`, `scripts/voetbal_carriere_sim.mjs` | `voetbal_carrierelive_test`, `steam_test` |
@@ -37,7 +37,7 @@ Alles hieronder is **nog niet bekeken**. Controleer op 1280x720, 1280x800 en 4K.
 3. **Uitslag, banner en geld** na de wedstrijd, en dat een gestopte wedstrijd de ronde laat staan.
 4. **Nachten**: de speldag loopt op het nachtsignaal (de klok die meer dan vier uur terugspringt); controleer slapen, een late trein en middernacht.
 5. **De uitnodiging en beats** als stille appjes (`kind: 'tip'`), niet tijdens een missie, scène of kaart; hooguit een per speldag.
-6. **Shirts en publiek**: patronen (`voetbalwereld.js: shirtRects`, `drawShirt`) en de `InstancedMesh`-menigte zijn gespecificeerd en getest als regels, maar **niet getekend**: alleen het uitshirt bij gelijke teams is gekoppeld. Geluiden (fluit, publiek) zijn gespecificeerd met bijschrift en ruisterugval, maar er zijn geen audiobestanden opgehaald (downloaden vraagt toestemming van de eigenaar, ADR 0039).
+6. **Shirts en publiek**: patronen (`voetbalworld.js: shirtRects`, `drawShirt`) en de `InstancedMesh`-menigte zijn gespecificeerd en getest als regels, maar **niet getekend**: alleen het uitshirt bij gelijke teams is gekoppeld. Geluiden (fluit, publiek) zijn gespecificeerd met bijschrift en ruisterugval, maar er zijn geen audiobestanden opgehaald (downloaden vraagt toestemming van de eigenaar, ADR 0039).
 7. **Kaartlaag Voetbal** en **trainende teams op de velden**: de gegevens en regels staan er (`parkMarkers`, `trainingSquads`), de laag en de poppetjes zijn niet aangesloten.
 8. **Reizen naar een uitwedstrijd**: de wedstrijd start nu vanuit het menu (de speler wordt naar het park gezet); de reis via de kaart met reisopties is niet gebouwd.
 9. **Samen spelen** (`voetbalsamen.js`): de regels (klem op niveau, figuren, ratingblok, derby-indeling, beloning) zijn getest; **niet gekoppeld** aan `coopnet.js` en `registreerWedstrijd`. Mensen in team 1 (derby) vraagt aanpassing van `voetbalmatch.js` (alle mensen zijn nu team 0) en is niet gebouwd. Het protocol is ongewijzigd (test).

@@ -4,7 +4,7 @@
 // bij de merge vervangt `zetPoort({ worldOpen, gateHint })` (of een import) de stub en vervalt de stub. Puur: geen DOM, geen wereld (scripts/voetbal_beats_test.mjs).
 import { STEPS } from './storyarc.js';
 
-export const VOETBAL_WORLD = 'voetbal';
+const VOETBAL_WORLD = 'voetbal';
 export const PART_ORDER = ['kop', 'romp', 'staart', 'zuid', 'ontzet', 'nazomer'];
 const NEEDS_PART = 'zuid';                       // akte 4
 

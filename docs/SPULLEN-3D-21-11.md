@@ -100,6 +100,32 @@ eigen GL-context. Wat de speler ziet en kan:
 Samen spelen: spullen zijn per speler (#429). De viewer is puur lokaal: hij leest alleen wat het eigen menu al toont en stuurt niets over het netwerk;
 een gast ziet zijn eigen spullen. Er is geen EXTRA-bericht, geen snapshot en geen nieuwe testbankstap nodig.
 
+### 3b. De galerij (spullen-ui 21-11, #1147)
+
+Eigenaar-feedback op de eerste viewer: links stonden iconen, rechts een heel groot blok met het model. Nu:
+
+- **Tegels zijn 3D-plaatjes, geen iconen.** Elke tegel (`.sp-tile`) toont een stilstaand beeld (4:3) van zijn model, getekend door `renderSnapshot` van
+  dezelfde ene gedeelde renderer als de Garagekaarten (`vehiclepreview.js`; geen extra WebGL-context). Het pictogram staat er alleen nog als terugval
+  (geen model of geen WebGL, een leeg plaatje) en tot het plaatje er is staat een neutraal stippelvak, zonder lus.
+- **Lui, met budget** (`spullenthumbs.js`, rekenregels in `spullenraster.js`): alleen tegels in of vlak bij het beeld (marge 160 px) vragen een plaatje, de
+  gekozen tegel eerst, hooguit 18 aanvragen per ronde; de rest volgt bij het scrollen. `renderSnapshot` zelf tekent in idle-tijd met een budget van 6 ms per
+  ronde, dus honderd spullen laten het menu niet haperen. Gelijke dingen (vijf keer dezelfde band) delen één plaatje (sleutel = model + kleur + maat);
+  de maat gaat in stappen van 32 px, zodat een klein breedteverschil geen nieuw plaatje geeft.
+- **Opruimen:** sluiten of een ander tabblad roept `releaseSnapshots('spullen')` aan (nieuw in `vehiclepreview.js`): de plaatjes van de galerij gaan uit de cache.
+  Een nieuwe tekening door een actie (opeten, in de hand nemen) houdt ze.
+- **Indeling:** het raster neemt de rest van de breedte, het detail hooguit 30 procent (260 tot 480 px, `--sp-detail`, door `rasterMaat` uit de gemeten
+  breedte van het gebied). Het modelvak in het detail is 140 tot 200 px hoog (was 200 tot 320). Onder de omschrijving staan eerst de knoppen, daarna de cijfers
+  en het kasboek; de knoppenbalk is niet meer plakkerig, zodat hij nooit over de cijfers heen valt.
+- **Bediening:** pijltjes en D-pad lopen over de tegels (`focusStap`: omlaag naar een kortere laatste rij landt op de laatste tegel; aan de rand neemt het menu de
+  toets over: omhoog naar het zoekveld, links naar de rail, rechts naar het detail), Home, End, PageUp en PageDown, Enter doet de actie (of kiest), Q en E wisselen
+  de tabs, Esc gaat terug. Een toets die snel door het raster loopt bouwt niet bij elke tegel een model: het detailmodel volgt als de focus 90 ms rust.
+- **Beweging (DS3):** een tegel beweegt alleen met `transform` (2 px omhoog bij hover of focus) en `opacity` (de selectiering en de vlakvulling zijn pseudo-elementen
+  waarvan alleen de opacity beweegt); het plaatje fadet één keer in; geen lus; met Beweging beperken of `prefers-reduced-motion` staat alles stil.
+- **Niet gedaan:** zeldzaamheid. Het spel kent geen zeldzaamheid voor spullen; een verzonnen rangorde toevoegen is een eigen ontwerpkeuze. De tegel toont wat er
+  is: naam, stand, aantal, toestand en soort.
+- **Mock en tests:** `node scripts/ui/spullen_ui_mock.mjs --shots` (headless Chrome, geen Electron) schrijft oud-tegen-nieuw-beelden naar
+  `docs/beeld-21-11/spullen-ui/`; `node scripts/spullenraster_test.mjs` dekt de rastermaten, de focus, het budget en de cache. De echte Electron-beeldronde volgt.
+
 ## 4. Modellen en bouwregels
 
 - `game/js/models3d_spullen.js`: een bouwer per soort, met parameters (geld: niveau; vis: vorm, lengte, hoogte, rug, buik, vin, strepen, bek, snor;

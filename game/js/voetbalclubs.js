@@ -7,7 +7,7 @@ export const DIVISION_NAMES = { kroon: 'Kroonklasse', terp: 'Terpklasse', talent
 export const PATTERNS = ['effen', 'brede-streep', 'helften', 'smalle-streep'];
 export const PATTERN_NAMES = { effen: 'effen', 'brede-streep': 'brede strepen', helften: 'twee helften', 'smalle-streep': 'smalle strepen' };
 export const CLUBS_PER_DIVISION = 8;
-export const HOME_ARENA = 'euroborg';       // de enige echte stadion: de Kroonklasse en de Waddenbeker spelen daar
+const HOME_ARENA = 'euroborg';       // de enige echte stadion: de Kroonklasse en de Waddenbeker spelen daar
 
 const c = (id, naam, kort, division, sterkte, budget, shirt, broek, keeper, patroon, accent, extra = {}) => ({ id, naam, kort, division, sterkte, budget, shirt, broek, keeper, patroon, accent, ...extra });
 // sterkte: het gemiddelde ratingniveau van de selectie (1 tot 100); budget: de clubkas in euro bij de start.

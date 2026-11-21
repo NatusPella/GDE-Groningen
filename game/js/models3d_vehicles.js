@@ -1150,7 +1150,7 @@ export function buildFordEscortMesh(color) {
 function riderFor(v, shirtHex) {
   const skins = [0xe8b48a, 0xcaa06f, 0x8a5a3c, 0x5c3d28, 0xf0c9a0];
   const seed = (v.id || 0) * 3.7 + 1;
-  return buildPersonMesh(shirtHex, skins[Math.floor(hash2(seed, 2.1) * skins.length)], { seed });
+  return buildPersonMesh(shirtHex, skins[Math.floor(hash2(seed, 2.1) * skins.length)], { seed, role: 'voetganger' });
 }
 
 function poseRider(rider, legBase, armAngle, lean) {

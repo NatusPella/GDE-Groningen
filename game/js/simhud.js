@@ -12,7 +12,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 const svg = (pad, cls = 'ds-icoon') => (typeof pad === 'string' && pad && !pad.includes('<') ? icoon(pad, { cls }) : `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${pad}</svg>`);
 
 // De sleutel voor de eerste-keer-uitleg per sim: een keer gezien blijft weg (alleen dit apparaat, geen savegame).
-export const UITLEG_SLEUTEL = 'gde-sim-uitleg-v1';
+const UITLEG_SLEUTEL = 'gde-sim-uitleg-v1';
 export function uitlegGezien(id) {
   try { return typeof localStorage !== 'undefined' && (JSON.parse(localStorage.getItem(UITLEG_SLEUTEL) || '[]') || []).includes(id); } catch (e) { return false; }
 }

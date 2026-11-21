@@ -94,3 +94,4 @@ deze lijst voordat een andere sessie begint te schrijven:
 | [0042](0042-voetbalcarriere-eigen-profiel-en-dagteller.md) | Voetbalcarrière: eigen profiel, eigen dagteller, geen twintigste vak | voorgesteld |
 | [0043](0043-parodienamen-voor-voetbalclubs.md) | Parodienamen op echte clubs voor alle voetbalclubs | voorgesteld |
 | [0045](0045-autotuning-een-systeem-voor-alle-voertuigen.md) | Autotuning: één uiterlijk-systeem voor alle voertuigen, als overlay | aangenomen |
+| [0044](0044-interieurs-in-het-pand-zelf.md) | Interieurs in het pand zelf, lui gebouwd (geen teleport) | besloten |
