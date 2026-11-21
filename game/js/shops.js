@@ -25,6 +25,7 @@ import { getHorecaForRender } from './horeca.js';
 import { initShopUi, openShopMenu, isShopOpen, closeShopMenu } from './shopui.js';
 import { voegEtenToe } from './eten.js';
 import { isCinematicActive } from './cinematics.js';
+import { bakeBezig } from './bakeround.js';
 import { recordStat, recordUnique, isUnlocked } from './achievements.js';
 import { isMissionCompleted, missionIndexById } from './missionquery.js';
 import { registerShopIcon } from './shopicon.js';
@@ -44,7 +45,7 @@ import {
   effectiveWorn, outfitToLook, getClothingSave, applyClothingSave, forceStoryLook, storyLookKey, ownsAll, ownedPieces, givePiece, setBonus,
   completeSetIds, wornSet, wearPiece, takeOffSlot, setLocalCharProvider, emitLocalOutfitChange, cyclePreset, getHair, setHair, wornPieces,
 } from './clothing.js';
-import { HAIR_COLORS, HAIR_STYLES, hairPrice, parseHair, HAIR_REACTIONS } from './clothinghair.js';
+import { HAIR_COLORS, HAIR_STYLES, hairPrice, parseHair, hairReaction } from './clothinghair.js';
 import { hairGroups, cutLine } from './kapperkeuze.js'; // de kapper aan de stoel: groepen en een regel bij het knippen (epic Autotuning ronde 4)
 import { playHair } from './tuningsfx.js';
 import { SETS, setKeyFor, parsePiece } from './clothingdata.js';
@@ -1308,7 +1309,13 @@ export function clothingLook(ch, worn) {
 }
 // The quick-change key (6, player.js): on to the next saved outfit, on foot, anywhere. The story's outfit wins while it lasts.
 let lastCycleAt = -Infinity;
+// Toets 6 is ook een cijfer in menu's en minigames (winkelmenu, bakronde): dan wisselt hij niets.
+export function outfitKeyBusy(world) {
+  try { if (isShopOpen() || bakeBezig() || isCinematicActive()) return true; } catch (e) { /* zonder DOM */ }
+  return !!(world && (world.activityGame || world.paused || world.uiPaused || world.padelGame || world.pigeonMode));
+}
 function cycleOutfit(world, dir = 1) {
+  if (outfitKeyBusy(world)) return false;
   const now = world.time || 0;
   if (now - lastCycleAt < 0.6) return false;
   lastCycleAt = now;
@@ -1400,17 +1407,14 @@ function hairSections(world) {
     const h = parseHair(`${style}.${color}`);
     return lookWith(world, { hairStyle: style, hair: h.hex != null ? h.hex : naturel }, ch === 'tammo' ? { hat: null } : null);
   };
-  const reaction = () => {
-    const list = HAIR_REACTIONS[ch];
-    return list[Math.floor(Math.random() * list.length)];
-  };
+  const reaction = (style, color) => hairReaction(ch, style, color);
   const change = (style, color, price, text) => {
     if (!pay(world, price)) return null;
     setHair(ch, style, color);
     applyLooks();
     recordUnique(world, 'kapsels', `${ch}:${style}.${color}`);
     playHair(world, style, color !== cur.color); // schaar, tondeuse of föhn
-    return `${cutLine(style, color !== cur.color, Math.floor(world.time || 0))} ${text} ${reaction()}`;
+    return `${cutLine(style, color !== cur.color, Math.floor(world.time || 0))} ${text} ${reaction(style, color)}`;
   };
   const colors = HAIR_COLORS.map((c) => ({
     id: 'h-' + c.id, label: c.label, desc: c.id === 'naturel' ? 'Terug naar je eigen kleur' : 'Verven, föhnen, klaar',
@@ -1988,6 +1992,7 @@ function syncOwnedRiders(world, lookup) {
   }
   if (hoofdspeler(world).character !== lastRiderChar) {
     lastRiderChar = hoofdspeler(world).character;
+    emitLocalOutfitChange(); // een andere hoofdpersoon heeft een andere outfit-code: de medespelers zien hem (coopnet.js, dubbele codes worden daar genegeerd)
     for (const o of state.vehicles) if (o.v) setRider(o.v);
   }
 }

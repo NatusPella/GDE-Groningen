@@ -575,7 +575,7 @@
     "models3d_people"
    ],
    "eigenaar": "speler",
-   "gast": "Medespelers zien je outfit (stukken, kapsel en postuur, code k3) via het optionele veld avatar.outfit in de hello en de spelerslijst; een wissel midden in een sessie gaat als bericht outfit. Het pashokje, de kast en de vijf outfits zijn per speler en lokaal; de winkel is voor iedereen hetzelfde (deterministisch aanbod).",
+   "gast": "Medespelers zien je outfit (stukken, kapsel en postuur, code k3) via het optionele veld avatar.outfit in de hello en de spelerslijst; een wissel midden in een sessie gaat als bericht outfit. Een wissel van hoofdpersoon meldt de nieuwe code ook. De snelwisseltoets 6 (ook in een voertuig), het pashokje, de kapper met zijn reactie, de kast en de vijf outfits zijn per speler en lokaal; de winkel is voor iedereen hetzelfde (deterministisch aanbod).",
    "beloning": "Geen; wel prestaties per speler.",
    "wegval": "Niets te herstellen; later aansluiten: de code staat in de spelerslijst.",
    "test": [

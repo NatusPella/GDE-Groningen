@@ -87,10 +87,18 @@ Prestaties: Nieuwe look, Past als gegoten, Hele kast (228 in totaal).
 - **Samen spelen:** zie `docs/COOP-GAST.md` (Kleding, ronde 4). De testbankstap `outfit` keurt nu echt of de ander de code ziet.
 - **Niet in beeld bekeken:** niets van de menu's, iconen of het pashokje is in Electron of de mock gezien; alleen pure tests en modellen.
 
+## 9c. Ronde 5 (#1152 tot #1156)
+
+- **Rolpools (#1152):** de laatste generieke figuren die nog een vaste kleur droegen, hebben nu een rol: het racepubliek (`racedecor.js`, voetganger), de kermisgasten (`kermis.js`, feestganger), de bestuurder en de bijrijder van een voertuig (`scene3d.js`), de bemanning van een boot of kar (`seating3d.js`) en de opwarmfiguur (zelfde rompgeometrie als de echte). De politie, de loketrij (verhaalstand uit `akte1_plan.js`) en de verhaalfiguren houden hun vaste look. Winkeliers in een interieur kleedden zich al uit hun pool (`interiornpc.js` `clothingRole`: bakker, kok, feestganger).
+- **Wissel in een sessie (#1153):** de wissel van hoofdpersoon (Tammo naar Tessa) gaf een andere outfit-code zonder bericht; `shops.js` meldt hem nu. Test: de host verwerkt `outfit` van een gast, een ongeldige code, het host-slot en een gast niet; dezelfde code twee keer geeft geen nieuwe lijst.
+- **Snelwisseltoets (#1154):** 6 werkt nu ook in een voertuig (de auto is je pashokje), maar niet meer tijdens een menu, een minigame of de bakronde (`outfitKeyBusy` in `shops.js`): in de bakronde zijn 1 tot 6 de ingrediënten en in het winkelmenu zijn de cijfers rijen. Een controller- of aanraakknop is er niet: op de voet zijn alle knoppen van het pad bezet; dat vraagt een besturingsreview (open, zie hieronder).
+- **Kapper (#1156):** de reactie hangt nu af van het model en de kleur (`hairReaction` in `clothinghair.js`: kaal, hanenkam, speelse kleuren hebben een eigen regel, anders de algemene lijst). De rest van het pakket stond er al: haar in outfits, outfit-code en verhaaloutfit, NPC-kapsels en de prestatie Nieuw kapsel.
+- **Niet in beeld bekeken:** niets uit deze ronde is in Electron of een mock gezien; alleen pure tests (`scripts/kleding_r5_test.mjs`).
+
 ## 10. Niet gedaan en open
 
 - Winkeliers en andere beroepsfiguren in interieurs: de interieurs hebben nu personen (`interiornpc.js` kiest een rolpool), maar of het pashokje en de kassa de juiste figuren laten zien is niet in beeld bekeken.
 - Chauffeurs, ambulancepersoneel en brandweer hebben nog geen eigen rolpool (politie blijft de vaste look).
-- Een snelwisseltoets op de controller en op touch (nu toets 6; de controller gebruikt Spullen).
+- Een snelwisseltoets op de controller en op touch (nu toets 6 te voet en in een voertuig; de controller gebruikt Spullen, geen vrije knop zonder besturingsreview).
 - Homebase: zodra `epic-verhaal-21-11` het model heeft, roept elk huis `wardrobeMenu(world)` aan; nu doen flat (`home.js`) en safehuis (`safehuizen.js`) dat al.
 - Alles in beeld: zie [KLEDING-VERIFICATIE-21-11.md](KLEDING-VERIFICATIE-21-11.md).

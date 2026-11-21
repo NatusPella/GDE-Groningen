@@ -399,7 +399,7 @@ t('NPC-kapsels: deterministisch uit zaad, man of vrouw, oud wordt grijs, een eig
 
 t('kapper in de winkel: eigen opties per personage, reactie, prestatie, prijs', () => {
   const bron = src('../game/js/shops.js');
-  assert.ok(/HAIR_REACTIONS\[ch\]/.test(bron) && /recordUnique\(world, 'kapsels'/.test(bron));
+  assert.ok(/hairReaction\(ch/.test(bron) && /recordUnique\(world, 'kapsels'/.test(bron));
   assert.deepEqual(H.HAIR_STYLES.tammo, H.HAIR_STYLES.anita, 'alle kapsels voor alle personages');
   assert.ok(H.HAIR_STYLE_IDS.length >= 14, 'minstens 14 kapsels: ' + H.HAIR_STYLE_IDS.length);
   for (const ch of ['tammo', 'anita']) for (const [id] of H.HAIR_STYLES[ch]) assert.ok(H.HAIR_STYLE_IDS.includes(id), id);

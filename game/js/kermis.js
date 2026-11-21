@@ -356,7 +356,7 @@ function buildCrowd(out = []) {
   CROWD_SPOTS.forEach(([u, v, face], i) => {
     if (i < from || i >= from + 3) return;
     const f = i % 3 === 0;
-    const m = buildPersonMesh([0x3f6ea8, 0xc8261e, 0x2f8a4a, 0xe0a526, 0x6a4a8a, 0x26262a][i % 6], [0xe2b48c, 0xd9a57c, 0x9a6a4a, 0xc89070][i % 4], { variant: f ? 'female' : 'male', seed: 6300 + i });
+    const m = buildPersonMesh([0x3f6ea8, 0xc8261e, 0x2f8a4a, 0xe0a526, 0x6a4a8a, 0x26262a][i % 6], [0xe2b48c, 0xd9a57c, 0x9a6a4a, 0xc89070][i % 4], { variant: f ? 'female' : 'male', seed: 6300 + i, role: 'feestganger' });
     const p = toW(u, v);
     m.position.set(p.x, 0, p.y);
     m.rotation.y = -(K.rot + face);

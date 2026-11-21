@@ -72,3 +72,31 @@ export const HAIR_REACTIONS = {
     'Tessa schudt haar haar los en zegt dat het feitelijk beter zit.',
   ],
 };
+
+// De reactie past bij wat de kapper deed (#1156): een kaal of gewaagd model en een speelse kleur krijgen een eigen regel, de rest de
+// algemene. `r` is de toevalsbron (Math.random in het spel, een vaste waarde in de test). Alleen tekst, geen stem, geen opslag.
+export const HAIR_STYLE_REACTIONS = {
+  bald: {
+    tammo: 'Tammo wrijft over zijn kale kop. Nooit meer kammen.',
+    anita: 'Tessa: "Aerodynamisch." Ze merkt de wind meteen.',
+  },
+  mohawk: {
+    tammo: 'Tammo kijkt lang naar de hanenkam. Een echte Stadjer durft dit.',
+    anita: 'Tessa: "Dit is geen kapsel, dit is een mededeling."',
+  },
+};
+export const HAIR_PLAYFUL_COLORS = ['groen', 'roze', 'blauw', 'zonnegeel', 'platina'];
+export const HAIR_COLOR_REACTIONS = {
+  tammo: 'Tammo: "Dat valt op." Dat was ook de bedoeling.',
+  anita: 'Tessa: "Opvallend. Maar op de goede manier."',
+};
+export function hairReaction(ch, style, color, r = Math.random) {
+  const who = ch === 'anita' ? 'anita' : 'tammo';
+  const own = [];
+  if (HAIR_STYLE_REACTIONS[style]) own.push(HAIR_STYLE_REACTIONS[style][who]);
+  if (HAIR_PLAYFUL_COLORS.includes(color)) own.push(HAIR_COLOR_REACTIONS[who]);
+  // een eigen regel weegt zwaar (twee van drie), anders de algemene lijst
+  if (own.length && r() < 0.67) return own[Math.min(own.length - 1, Math.floor(r() * own.length))];
+  const list = HAIR_REACTIONS[who];
+  return list[Math.min(list.length - 1, Math.floor(r() * list.length))];
+}
