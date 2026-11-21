@@ -5,7 +5,7 @@
 // echt internet geprobeerd (docs/COOP-OVERDRAGEN.md).
 import { handshakeInfo } from './coopnet.js';
 import { zetWisselDeps, antwoordVraag, annuleerOverdracht } from './coophostwisselnet.js';
-import { hostRoom, joinRoom } from './net/rtcroom.js';
+import { hostRoom, joinRoom, verwijsKamer } from './net/rtcroom.js';
 import { MultiSignaler } from './net/brokers.js';
 import * as CONFIG from './net/netconfig.js';
 import { makeRoom } from './net/sigcrypto.js';
@@ -33,11 +33,17 @@ export function wisselRoute(world, opts = {}) {
     opKamer: async ({ aanvaard, kamer }) => {
       const room = kamer || makeRoom(); // een opvolger gebruikt de code die de groep al kent
       let gestopt = false, handle = null;
+      let fouten = 0;
       const open = async () => {
         if (gestopt) return;
         // #983: alleen een aanbod waar niemand op antwoordde; cancel() sluit sinds #589 ook een open kanaal, en dat is een speler die al verbonden is
         if (handle && handle.cancel && !(handle.transport && handle.transport.isOpen())) handle.cancel();
-        handle = await hostRoom(room, { signaler: newSignaler(), timeouts: CONFIG.TIMEOUTS, onstate: (s) => { if (s === 'open') open().catch(() => {}); } });
+        handle = await hostRoom(room, { signaler: newSignaler(), timeouts: CONFIG.TIMEOUTS, onstate: (s) => {
+          if (s === 'open') { fouten = 0; open().catch(() => {}); }
+          // #1059: een mislukte verbinding (ICE 'failed', antwoord dat niet klopte) liet de kamer dood: er kwam nooit een nieuw aanbod. Nu komt er
+          // na een korte, groeiende wachttijd een vers aanbod, tot de kamer sluit.
+          else if (s === 'fout' && !gestopt) { fouten++; setTimeout(() => { if (!gestopt) open().catch(() => {}); }, Math.min(8000, 500 * 2 ** Math.min(fouten, 4))); }
+        } });
         aanvaard(handle.transport);
       };
       await open();
@@ -47,11 +53,17 @@ export function wisselRoute(world, opts = {}) {
     },
     // wie aansluit: een kamer, met de tijden van de wachtkamer
     // (joinRoom beslist nooit als het misgaat: na de verbindtijd geven we het op, anders bleef een poging eeuwig hangen)
-    verbind: async (kamer) => {
-      const h = await joinRoom(kamer, { signaler: newSignaler(), timeouts: CONFIG.TIMEOUTS });
-      let t; const op = new Promise((_, nee) => { t = setTimeout(() => { try { h.cancel(); } catch (e) { /* al weg */ } nee(new Error('time-out')); }, CONFIG.TIMEOUTS.connect + 2000); });
-      try { return await Promise.race([h.opened, op]); } finally { clearTimeout(t); }
+    // opt.tijd (ms): de pogingen bij een overname zijn kort (#1059): na dat aantal ms geeft deze poging het op en doet de zoektocht een nieuwe.
+    // Een ICE-fout (failed) meldt zich meteen en een verhuisde kamer (verhuisd-naar) komt terug als fout met .verhuisd.
+    verbind: async (kamer, opt = {}) => {
+      const tijd = Number.isFinite(opt.tijd) ? opt.tijd : CONFIG.TIMEOUTS.connect + 2000;
+      const h = await joinRoom(kamer, { signaler: newSignaler(), timeouts: { ...CONFIG.TIMEOUTS, connect: Math.min(CONFIG.TIMEOUTS.connect, tijd) } });
+      let t; const op = new Promise((_, nee) => { t = setTimeout(() => { try { h.cancel(); } catch (e) { /* al weg */ } nee(new Error('time-out')); }, tijd + 2000); });
+      const mis = h.failed ? h.failed.then((f) => { throw Object.assign(new Error((f && f.tekst) || 'mislukt'), f && f.verhuisd ? { verhuisd: f.verhuisd } : {}); }) : new Promise(() => {});
+      try { return await Promise.race([h.opened, op, mis]); } finally { clearTimeout(t); }
     },
+    // (#1059) de opvolger kon de afgesproken kamer niet openen: onder de oude code staat een verwijzing naar de nieuwe
+    verwijs: async (oud, nieuw) => { const r = await verwijsKamer(oud, nieuw, { signaler: newSignaler() }); setTimeout(() => r.stop(), KAMER_OPEN_MS); return r; },
     // kan de nieuwe host de anderen bereiken? dezelfde meting als Spel › Samen spelen › Diagnose
     bereikbaar: async () => { try { const b = beoordeel(await meet(maakEnv({ api, ms: 3000 }), { limiet: 9000 })); verbindingslog.add('overdracht', b.kamer ? 'bereikbaar' : 'niet bereikbaar'); return !!b.kamer; } catch (e) { verbindingslog.add('overdracht', 'meting mislukt'); return true; } },
   };
