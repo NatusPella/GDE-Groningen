@@ -13,7 +13,7 @@ export const LIFE_LINES = {
     rol: { toerist: ['Dit zet ik op mijn vakantiefilmpje.'] },
   },
   studentenfeest: {
-    mensen: ['Wie heeft er nog ijs? Voor de cola, hè.', 'Ik heb morgen tentamen. Dat is morgen.', 'Dit is geen feest, dit is netwerken.', 'Iemand nog een oplader? Voor mijn stem, bedoel ik.', 'Kiek, de zon komt er al aan. Of is dat de lamp?'],
+    mensen: ['Wie heeft er nog iets koels? Voor de cola, hè.', 'Ik heb morgen tentamen. Dat is morgen.', 'Dit is geen feest, dit is netwerken.', 'Iemand nog een oplader? Voor mijn stem, bedoel ik.', 'Kiek, de zon komt er al aan. Of is dat de lamp?'],
     rol: { feestganger: ['Nog één rondje, dan ga ik naar huis.'] },
   },
   kermis: {
