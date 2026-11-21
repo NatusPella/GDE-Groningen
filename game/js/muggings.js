@@ -1,4 +1,4 @@
-import { hoofdspeler } from './players.js';
+import { hoofdspeler, isGast } from './players.js';
 import { Pedestrian, isSpawnHidden } from './pedestrians.js';
 import { isInsideBuilding } from './pedgeom.js';
 import { walkPed } from './sidejobkit.js';
@@ -9,7 +9,7 @@ import { isCinematicActive } from './cinematics.js';
 import { isMissionActive } from './missionquery.js';
 import { isActivityActive } from './activities.js';
 import { inHomeFlat } from './home.js';
-import { MUG, MUG_TEXT, mayMug, riskLevel, hazard, warnsOn, riskWhy, stolenAmount, caught, escaped, nightFactor } from './muggingrules.js';
+import { MUG, MUG_TEXT, mayMug, riskLevel, hazard, warnsOn, riskWhy, stolenAmount, caught, escaped, nightFactor, lootReached, lootGone } from './muggingrules.js';
 import { getProfiel, getIndeling } from './gebiedenlive.js';
 import { veroverdOp } from './gebieden.js';
 import { playerBusy } from './busy.js';
@@ -38,6 +38,9 @@ function isConquered(w) {
 // warns when you walk into such a wijk at night. Text only, nothing saved.
 // `window.__muggings` debug.
 const S = { phase: null, ped: null, lost: 0, t: 0, since: 1e9, approach: 0, warned: new Set() };
+// Samen spelen (#1160): a guest does not run the simulation, so he is mugged on his own screen against his own
+// money (w.money is his own wallet): no thief body, the wallet lies at a spot on the map (w.muggerChase).
+const G = { spot: null, lost: 0, t: 0, age: 0 };
 let world = null;
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
@@ -45,11 +48,12 @@ const pick = (a) => a[Math.floor(Math.random() * a.length)];
 export function initMuggings(w) {
   world = w;
   S.phase = null; S.ped = null; S.since = 1e9; S.warned.clear();
+  G.spot = null; G.lost = 0; G.t = 0; G.age = 0;
   conquered = { wijk: null, at: -1e9, val: false };
   window.__muggings = {
-    state: () => ({ phase: S.phase, lost: S.lost, since: S.since, wijk: wijkOf(w), level: levelNow(w), thief: !!S.ped }),
+    state: () => ({ phase: S.phase, guestSpot: G.spot, lost: S.lost, since: S.since, wijk: wijkOf(w), level: levelNow(w), thief: !!S.ped }),
     // forces a mugging right now (tests): returns true when the thief is on the way
-    mug: () => { w.__forceMug = true; return start(w, true); },
+    mug: () => { w.__forceMug = true; return isGast(w) ? snatchGuest(w) : start(w, true); },
     abort: () => abort(w, true),
   };
 }
@@ -129,9 +133,19 @@ function snatch(w) {
   w.addMessage(MUG_TEXT.snatch(lost), 6, { kind: 'gevaar', key: 'beroving' });
 }
 
+// the warning card, once per wijk and night
+function warn(w, wijk, hour, own, level, time) {
+  if (level > 0 && warnsOn(wijk, hour, own) && !S.warned.has(wijk) && !busy(w) && !cardsBusy() && !inHomeFlat() && time > 20) {
+    S.warned.add(wijk);
+    showCard(w, { kind: 'tip', kicker: 'Waarschuwing', title: MUG_TEXT.warnTitle(wijk), body: MUG_TEXT.warnBody(riskWhy(wijk)), key: 'beroving-' + wijk, voice: false });
+  }
+  if (nightFactor(hour) === 0 && S.warned.size) S.warned.clear();
+}
+
 export function updateMuggings(dt, w) {
   if (!dt || w.paused || !hoofdspeler(w) || !w.map) return;
   world = w;
+  if (G.spot) { w.money += G.lost; G.spot = null; w.muggerChase = null; } // a guest who became the opener (host change) gets his wallet back
   S.since += dt;
   const p = hoofdspeler(w);
   const hour = hourOf(w);
@@ -139,12 +153,7 @@ export function updateMuggings(dt, w) {
   const own = isConquered(w);
   const level = riskLevel(wijk, hour, own);
 
-  // the warning card, once per wijk and night
-  if (level > 0 && warnsOn(wijk, hour, own) && !S.warned.has(wijk) && !busy(w) && !cardsBusy() && !inHomeFlat() && (w.time || 0) > 20) {
-    S.warned.add(wijk);
-    showCard(w, { kind: 'tip', kicker: 'Waarschuwing', title: MUG_TEXT.warnTitle(wijk), body: MUG_TEXT.warnBody(riskWhy(wijk)), key: 'beroving-' + wijk, voice: false });
-  }
-  if (nightFactor(hour) === 0 && S.warned.size) S.warned.clear();
+  warn(w, wijk, hour, own, level, w.time || 0);
 
   if (S.phase === 'approach') {
     const ped = S.ped;
@@ -179,3 +188,51 @@ export function updateMuggings(dt, w) {
   if (Math.random() < hazard(level) * dt) start(w);
 }
 
+// A guest's wallet lies at a spot: the loss comes off his own money at once, he gets it back by reaching the spot in time.
+function snatchGuest(w) {
+  const p = hoofdspeler(w), map = w.map;
+  if (!p || !map || G.spot) return false;
+  const lost = stolenAmount(w.money);
+  if (!(lost > 0)) return false;
+  for (let tries = 0; tries < 14; tries++) {
+    const a = Math.random() * Math.PI * 2, r = MUG.guestSpot[0] + Math.random() * (MUG.guestSpot[1] - MUG.guestSpot[0]);
+    const [x, y] = map.escapeBuilding(p.x + Math.cos(a) * r, p.y + Math.sin(a) * r, 0.4);
+    if (isInsideBuilding(map, x, y) || isInWater(map, x, y) || dist({ x, y }, p) < 6) continue;
+    w.money -= lost;
+    G.spot = { x, y }; G.lost = lost; G.t = 0;
+    S.since = 0; w.__forceMug = false;
+    w.addMessage(MUG_TEXT.guestSnatch(lost), 6, { kind: 'gevaar', key: 'beroving' });
+    return true;
+  }
+  return false;
+}
+
+// The guest side of updateMuggings (main.js calls it where a guest runs updateGastLokaal).
+export function updateMuggingsGast(dt, w) {
+  const p = hoofdspeler(w);
+  if (!dt || w.paused || !p || !w.map) return;
+  world = w;
+  S.since += dt;
+  G.age += dt;
+  const hour = hourOf(w);
+  const wijk = wijkOf(w);
+  const own = isConquered(w);
+  const level = riskLevel(wijk, hour, own);
+  warn(w, wijk, hour, own, level, G.age);
+  if (G.spot) {
+    G.t += dt;
+    w.muggerChase = { x: G.spot.x, y: G.spot.y };
+    if (lootReached(dist(p, G.spot))) {
+      w.money += G.lost;
+      w.addMessage(MUG_TEXT.guestBack(G.lost), 5, { kind: 'geld', key: 'beroving-terug' });
+      G.spot = null; w.muggerChase = null; S.since = 0;
+    } else if (lootGone(G.t)) {
+      w.addMessage(MUG_TEXT.guestGone(G.lost), 5);
+      G.spot = null; w.muggerChase = null; S.since = 0;
+    }
+    return;
+  }
+  if (level <= 0) return;
+  if (!mayMug({ onFoot: !p.inVehicle && !p.swimming && !w.pigeonMode && !w.heliRun, busy: busy(w) || inHomeFlat(), dead: p.dead || w.pendingRespawn, wanted: w.wanted || 0, since: S.since, time: G.age, money: w.money })) return;
+  if (Math.random() < hazard(level) * dt) snatchGuest(w);
+}
