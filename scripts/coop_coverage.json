@@ -1079,20 +1079,19 @@
     "carjackvictim"
    ],
    "eigenaar": "wereld",
-   "gast": "De beroving draait bij wie het spel opende en pakt een deel van zijn eigen geld; een gast wordt nooit beroofd.",
-   "beloning": "Geen.",
-   "wegval": "Niets te herstellen.",
+   "gast": "Iedereen wordt lokaal beroofd tegen zijn eigen geld: de host door een dief in de wereld, een gast op zijn eigen scherm met zijn portemonnee op een plek op de kaart (geen lichaam van de dief, geen geweld).",
+   "beloning": "Het geld terug als je de dief of de plek op tijd bereikt; per speler.",
+   "wegval": "Een gast die opener wordt (hostwissel) krijgt zijn portemonnee terug; wie wegvalt verliest niets blijvends.",
    "test": [
-    "scripts/muggings_test.mjs"
+    "scripts/muggings_test.mjs",
+    "scripts/muggings_gast_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
     "zoek": "**Berovingen"
    },
-   "status": "gat",
-   "prio": "laag",
-   "issue": "#1160",
-   "gat": "muggings.js leest hoofdspeler(w) en w.money van de host: een gast kan niet beroofd worden en alleen de host verliest geld; gelijkwaardigheid vraagt een lokale beroving per speler (kost een deel van zijn eigen geld, geen beeld van geweld)."
+   "status": "OK",
+   "prio": "-"
   },
   {
    "id": "telefoon",

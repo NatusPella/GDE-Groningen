@@ -6,6 +6,7 @@
 //           gastacties (#291: een gast winkelt met zijn eigen geld, krijgt het stuur, stapt uit en in),
 //           menustroom: tekstveld, wachtkamer, de opening samen bekijken, overslaan alleen door de gastheer)
 //           alles (rooktest 21-11, docs/COOP-SWEEP-21-11.md: host + 2 gasten, ping, waypoint, outfit, tuning, bezit, winkel, bijbaan, cutscene)
+//           fatbikes, penaltyserie, duivenspot, plaatsbord, filmpjewissel (route kamer), besloten, venster (alles na elkaar) (#1061: vensterstappen_check.mjs)
 //   --gasten=1|2 (Electron-gasten, host + gasten <= 3 sloten), --mock=N (extra headless gasten in dit proces, voor de 4e speler)
 //   --menu: begin bij het hoofdmenu (ingang Samen spelen), --duration=20, --invuln
 //   GDE_COOP_ELECTRON_ARGS=<vlag,...>: extra Chromium-vlaggen voor de instanties (zie LOCKS)
@@ -19,6 +20,7 @@ import net from 'node:net';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { keurBezitStap } from './bezitstap_check.mjs';
+import { keurVenster } from './vensterstappen_check.mjs';
 
 process.env.GDE_COOP_TEST = '1'; // coopcore meldt dan welke verbindingen er komen (alleen 127.0.0.1)
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -36,7 +38,7 @@ const SECOND = GASTEN > 1 ? 'gast2' : 'gast'; // wie in de suite 'net' een slech
 const TEGELIJK = flag('tegelijk'); // alle gasten starten meteen na de host en voeren de code tegelijk in (zoals vrienden in een groepsapp), niet één voor één
 const PUBLIEK = flag('publiek'); // de kamercode-route over de echte openbare brokers en STUN-servers (alleen internet nodig, geen nep-tracker)
 const LIJST = SUITE === 'lijst'; // #983: de gast komt binnen via de openbare sessielijst (nep-MQTT-broker op 127.0.0.1), zonder de kamercode in te typen
-const ROUTE = arg('route', SUITE === 'kamer' || SUITE === 'overdracht' || SUITE === 'overname' || LIJST ? 'kamer' : 'direct');
+const ROUTE = arg('route', SUITE === 'kamer' || SUITE === 'overdracht' || SUITE === 'overname' || SUITE === 'filmpjewissel' || LIJST ? 'kamer' : 'direct');
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-coop', new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19))));
 const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
 // Extra Chromium-vlaggen voor de Electron-instanties (komma-gescheiden). Op een machine waar de
@@ -107,6 +109,17 @@ const P = {
     ...(me === 'host' ? [[200, 'stopHost', {}]] : []),
   ]])),
   touch: { host: [[0, 'kijk', { s: 16 }]], gast: [[0, 'touch', { s: 12 }]], gast2: [[0, 'wacht', { s: 16 }]] },
+  // #1061: wat tot nu toe alleen puur of over TCP bewezen was, in echte vensters (keuring: vensterstappen_check.mjs). Elke suite los, of alles na elkaar in `venster` (host + 1 of 2 gasten, route direct)
+  fatbikes: Object.fromEntries(SPELERS_ELECTRON.map((me) => [me, [[0, 'wacht', { s: 6 }], [8, 'fatbikes', { s: 150 }], ...(me === 'host' ? [[162, 'stopHost', {}]] : [])]])), // Fatbikes ontwijken (M08): de groep loopt de baan, tellers per speler
+  penaltyserie: Object.fromEntries(SPELERS_ELECTRON.map((me) => [me, [[0, 'wacht', { s: 6 }], [8, 'penaltyserie', { s: 100 }], ...(me === 'host' ? [[112, 'stopHost', {}]] : [])]])), // Penaltyserie Euroborg (#981): punt-wedstrijd, ranglijst via de host
+  duivenspot: Object.fromEntries(SPELERS_ELECTRON.map((me) => [me, [[0, 'wacht', { s: 6 }], [8, 'duivenspot', { s: 40 }], ...(me === 'host' ? [[52, 'stopHost', {}]] : [])]])), // alleen de host heeft de gids
+  plaatsbord: Object.fromEntries(SPELERS_ELECTRON.map((me) => [me, [[0, 'wacht', { s: 6 }], [8, 'plaatsbord', { s: 24 }], ...(me === 'host' ? [[36, 'stopHost', {}]] : [])]])), // een echt plaatsbord of wegwijzer omver
+  filmpjewissel: Object.fromEntries(SPELERS_ELECTRON.map((me) => [me, [[0, 'wacht', { s: 6 }], [8, 'filmpjewissel', { s: 12 }], [70, 'wacht', { s: 8 }]]])), // hostwissel tijdens een filmpje (route kamer)
+  besloten: { host: [[0, 'wacht', { s: 6 }], [8, 'stopHost', {}], [20, 'besloten', {}], [34, 'wacht', { s: 2 }]], gast: [[0, 'wacht', { s: 36 }]], gast2: [[0, 'wacht', { s: 36 }]] }, // het keuzescherm Besloten spelen buiten een sessie
+  venster: Object.fromEntries(SPELERS_ELECTRON.map((me) => [me, [
+    [0, 'wacht', { s: 6 }], [8, 'plaatsbord', { s: 24 }], [36, 'duivenspot', { s: 40 }], [80, 'penaltyserie', { s: 100 }], [186, 'fatbikes', { s: 150 }],
+    ...(me === 'host' ? [[342, 'stopHost', {}], [352, 'besloten', {}], [366, 'wacht', { s: 2 }]] : [[342, 'wacht', { s: 28 }]]),
+  ]])),
 }[SUITE];
 if (!P) { console.error('onbekende suite: ' + SUITE); process.exit(2); }
 
@@ -962,6 +975,9 @@ if (SUITE === 'opening') {
     check(na && !na.cine && !na.cam, 'overslaan: de gastheer zit nog in een filmpje: ' + JSON.stringify(na));
   }
 }
+
+// ----- #1061: de venstertests (Fatbikes, penaltyserie, duivenspot, plaatsbord, hostwissel tijdens een filmpje, Besloten spelen)
+if (['fatbikes', 'penaltyserie', 'duivenspot', 'plaatsbord', 'filmpjewissel', 'besloten', 'venster'].includes(SUITE)) for (const m of keurVenster(SUITE, E)) check(false, m);
 
 for (const [n, Ev] of Object.entries(E)) for (const e of Ev.filter((x) => x.type === 'console' && x.level === 'error')) problems.push(`${n} consolefout: ${String(e.msg).slice(0, 160)}`);
 for (const [n, Ev] of Object.entries(E)) for (const e of Ev.filter((x) => x.type === 'jserror')) problems.push(`${n} jserror: ${e.msg} ${e.file}:${e.line}`);

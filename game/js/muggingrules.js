@@ -44,6 +44,10 @@ export const MUG = {
   spawnDist: [10, 15],
   approachMax: 7,
   warnFrom: 0.35,
+  // Samen spelen (#1160): the guest has no thief body (the guest does not run the simulation), so the wallet lies at a spot he must reach in time
+  guestSpot: [18, 34],
+  guestTime: 75,
+  guestGrace: 90,
 };
 
 // 0..1: how dark it is, by the sun of today's date (sunrules.js): quiet streets from dusk, deepest at night.
@@ -88,6 +92,10 @@ export function stolenAmount(money) {
 export const caught = (d, t = Infinity) => t >= MUG.catchGrace && d <= MUG.catchReach;
 export const escaped = (d, t) => d >= MUG.giveUpDist || t >= MUG.giveUpAfter;
 
+// Guest variant: the dropped wallet lies at a spot; reach it in time to get it back.
+export const lootReached = (d) => d <= MUG.catchReach;
+export const lootGone = (t) => t >= MUG.guestTime;
+
 export const MUG_TEXT = {
   warnTitle: (wijk) => `Let op in ${wijk}`,
   warnBody: (why) => `'s Nachts: ${why}. Draag niet te veel geld bij je en blijf in drukke straten.`,
@@ -95,5 +103,8 @@ export const MUG_TEXT = {
   snatch: (lost) => `Iemand botst tegen je op en is met je portemonnee weg: ${euro(lost)} kwijt. Ren hem achterna!`,
   back: (lost) => `Gepakt! Hij liet de portemonnee vallen: ${euro(lost)} terug.`,
   gone: (lost) => `Hij is ontsnapt. Die ${euro(lost)} ben je kwijt. Volgende keer minder bij je dragen.`,
+  guestSnatch: (lost) => `Iemand botst tegen je op en is met je portemonnee weg: ${euro(lost)} kwijt. Hij liet hem verderop vallen: ga naar de markering!`,
+  guestBack: (lost) => `Gevonden! Je portemonnee is terug: ${euro(lost)}.`,
+  guestGone: (lost) => `Iemand anders was je voor: die ${euro(lost)} ben je kwijt. Volgende keer minder bij je dragen.`,
   thiefBark: ['Sorry, sorry!', 'Niks aan de hand!', 'Dat was een vergissing!'],
 };

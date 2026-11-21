@@ -484,6 +484,154 @@ const PHASES = {
     log('borden-gast', { kapot: e ? e.kapot.map((k) => [k.key, B.isPropBroken(k.key)]) : null, voetgangers: e ? e.voetgangers.size : null, dieren: e ? e.dieren.size : null, hostMesh: w.coopHostMeshes || null, extraMeshes: w.coopExtraMeshes || null, lokaalVoertuigen: (w.vehicles || []).length, lokaalPeds: (w.pedestrians || []).length });
     shot('borden-gast'); await sleep(4000);
   },
+  // #1061: Fatbikes ontwijken (M08) samen, in echte vensters. De host springt naar M08 en laat de spelbot de baan lopen (de groep loopt hem samen te voet);
+  // de gasten zeggen J bij "Meedoen?". Elk venster logt elke 3 s zijn eigen ontweek-regel uit het HUD (tellers per speler) en of er een opdracht loopt.
+  async fatbikes({ s = 150 }) {
+    const w = W(); const t0 = performance.now(); let jGestuurd = false;
+    const hudRegel = () => { const m = /Ontweken: (\d+)[^\n]*?Geraakt (\d+)\/(\d+)/.exec(document.body.innerText || ''); return m ? { ontweken: +m[1], geraakt: +m[2], grens: +m[3] } : null; };
+    const opdracht = () => { const m = CFG.role === 'host' ? w.mission : (w.coopMissie || w.coopHostMissie); return m ? { actief: CFG.role === 'host' ? m.phase === 'active' : !!m.actief, label: m.label || null, tekst: String(m.progressText || m.tekst || '').slice(0, 120) } : null; };
+    if (CFG.role === 'host') {
+      window.__botCfg = { part: 'all', from: 'M08', until: 'M09', maxGameS: 3600, maxWallS: Math.max(60, s - 12), stuckS: 45, shots: 12, speed: 1, waitS: 60, invulnerable: !!CFG.invuln };
+      log('fatbikes-bot', {});
+      window.__botMain().then((r) => log('fatbikes-bot-einde', { r }), (e) => log('fatbikes-bot-fout', { msg: String(e && e.message || e) }));
+    }
+    while (performance.now() - t0 < s * 1000) {
+      try {
+        if (CFG.role !== 'host' && !jGestuurd) { const u = w.coopUitnodiging; if (u) { key('j', 'KeyJ'); jGestuurd = true; log('fatbikes-j', { wie: CFG.name, stap: u.stap || null }); } }
+        log('fatbikes-stand', { wie: CFG.name, rol: CFG.role, opdracht: opdracht(), hud: hudRegel(), geld: w.money | 0, gezondheid: Math.round(w.health || 0), speler: w.player ? [Math.round(w.player.x), Math.round(w.player.y)] : null });
+      } catch (e) { log('fatbikes-fout', { msg: String(e && e.message || e) }); }
+      await sleep(3000);
+    }
+    shot('fatbikes-' + CFG.name);
+  },
+  // #1061: de penaltyserie Euroborg (#981) als punt-wedstrijd. De host staat bij de spelerspoort en drukt E (uitnodiging); de gasten zeggen J. Iedereen schiet zijn eigen vijf
+  // penalty's via het debug-handvat window.__penalty op zijn eigen scherm; de host houdt de ranglijst. Gelogd: de eigen reeks (vijf beurten) en de uitslag van de host.
+  async penaltyserie({ s = 90 }) {
+    const w = W(); const B = window.__bot; const t0 = performance.now();
+    const P = () => window.__penalty;
+    const schiet = async (naam) => {
+      const g = { genomen: 0, goals: 0, schoten: [] }; let laatste = null;
+      for (let i = 0; i < 400 && performance.now() - t0 < (s - 4) * 1000; i++) {
+        const st = P() && P().state();
+        if (st) { laatste = st; if (st.fase === 'richten' && st.genomen < 5) { P().aim(0.4 * (st.genomen % 2 ? 1 : -1), 0.9); P().shoot(); await sleep(400); } }
+        else if (laatste) break;
+        await sleep(250);
+      }
+      if (laatste) { g.genomen = laatste.genomen; g.goals = laatste.goals; g.schoten = laatste.schoten || []; }
+      log('pen-reeks', { wie: naam, ...g });
+    };
+    if (CFG.role === 'host') {
+      const p = w.player; const sp = P() && P().spot();
+      if (!sp) { log('pen-geen-poort'); await sleep(s * 1000); return; }
+      p.x = sp.x; p.y = sp.y; p.vx = 0; p.vy = 0;
+      await sleep(7000);
+      for (let i = 0; i < 6 && !(w.coopNet && w.coopNet.wed && w.coopNet.wed.u); i++) { if (B) await B.press('e', 150); else key('e', 'KeyE'); await sleep(1000); }
+      log('pen-uitnodiging', { wed: !!(w.coopNet && w.coopNet.wed && w.coopNet.wed.u), gasten: (w.coopRoster || []).filter((x) => x.slot > 0).length });
+      await sleep(5000);
+      await schiet('host');
+      const w2 = performance.now(); while (performance.now() - w2 < 40000 && !(w.coopNet.wed && w.coopNet.wed.uitslag)) await sleep(500);
+      const wed = w.coopNet.wed || {};
+      log('pen-uitslag', { rijen: wed.uitslag ? wed.uitslag.rijen : null, jij: wed.uitslag ? wed.uitslag.jij : null, geld: w.money | 0 });
+      shot('pen-uitslag-host');
+    } else {
+      await until(() => w.coopWedGast && w.coopWedGast.uitn, 60000, 'uitnodiging penaltyserie');
+      log('pen-uitnodiging-gast', { label: w.coopWedGast.uitn.label });
+      await sleep(700);
+      if (B) await B.press('j', 150); else key('j', 'KeyJ');
+      await until(() => P() && P().state(), 25000, 'eigen penaltyserie');
+      const geld0 = w.money | 0;
+      await schiet(CFG.name);
+      const w3 = performance.now(); while (performance.now() - w3 < 30000 && !w.coopWedGast.uitslag) await sleep(500);
+      log('pen-uitslag-gast', { uitslag: w.coopWedGast.uitslag ? { rijen: (w.coopWedGast.uitslag.rijen || []).length, jij: w.coopWedGast.uitslag.jij || null } : null, geldErbij: (w.money | 0) - geld0 });
+      shot('pen-uitslag-' + CFG.name);
+    }
+  },
+  // #1061: de duifmodus (de duivenspot) van de host: alleen de host heeft de gids (#pigeon-guide, de doelen en de pijl). De host stapt in de duif bij het eerste duivenspot; elke gast
+  // logt of de gids bij hem zichtbaar is (hoort niet), of hij de duif van de host als dier ziet, en of zijn eigen duifmodus uit staat.
+  async duivenspot({ s = 40 }) {
+    const w = W(); const guide = () => { const e = document.getElementById('pigeon-guide'); return !!e && !e.hidden && getComputedStyle(e).display !== 'none'; };
+    if (CFG.role === 'host') {
+      const PS = await imp('pigeonspots'), PM = await imp('pigeonmode');
+      const spot = PS.getPigeonSpotsForRender()[0];
+      if (!spot) { log('duif-geen-spot'); await sleep(s * 1000); return; }
+      w.player.x = spot.x + 0.6; w.player.y = spot.y; w.player.vx = 0; w.player.vy = 0;
+      await sleep(6000);
+      let r = null; try { r = PM.startPigeonMode(w, spot); } catch (e) { r = 'fout ' + e.message; }
+      await sleep(4000);
+      log('duif-host', { gestart: r, actief: PM.isPigeonActive(), gids: guide(), spot: [Math.round(spot.x), Math.round(spot.y)] });
+      shot('duif-host'); await sleep((s - 14) * 1000);
+      try { PM.stopPigeonMode(w); } catch (e) { /* al gestopt */ }
+      await sleep(2000);
+      log('duif-host-na', { actief: PM.isPigeonActive() });
+    } else {
+      await sleep(14000);
+      const e = w.coopExtra; const duiven = e && e.dieren ? [...e.dieren.values()].filter((d) => d && (d.soort === 'pigeon' || d.kind === 'pigeon' || d.s === 'pigeon')).length : null;
+      log('duif-gast', { gids: guide(), pigeonMode: !!w.pigeonMode, duivenZichtbaar: duiven, hostFig: !!(w.coopFigures && w.coopFigures[0]) || !!w.coopHost });
+      shot('duif-gast-' + CFG.name); await sleep((s - 16) * 1000);
+    }
+  },
+  // #1061: een echt plaatsbord of een wegwijzer omver (de testbank brak eerder alleen lampen, die in dezelfde kapot-lijst staan). De host zoekt het dichtstbijzijnde bord, loopt erheen,
+  // breekt het; de gasten melden of dezelfde sleutel bij hen kapot staat.
+  async plaatsbord({ s = 24 }) {
+    const w = W(), B = await import('./js/breakables.js'); const p = w.player;
+    if (CFG.role === 'host') {
+      const lijst = B.propsInRadius(p.x, p.y, 900, ['placesign', 'wegwijzer']).filter((q) => /^[a-z]+@-?\d+,-?\d+$/.test(q.key)).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y));
+      const q = lijst[0];
+      if (!q) { log('bord-geen', { straal: 900 }); await sleep(s * 1000); return; }
+      p.x = q.x + 2; p.y = q.y; p.vx = 0; p.vy = 0;
+      for (const f of Object.values(w.coopFigures || {})) { f.x = q.x + 3; f.y = q.y + 1; f.vx = 0; f.vy = 0; f.verTijd = 0; f.vastTijd = 0; }
+      await sleep(5000);
+      const gebroken = B.breakPropByKey(q.key, q.x, q.y, 1, 0);
+      log('bord-host', { key: q.key, soort: q.key.split('@')[0], gebroken: !!gebroken, nu: B.isPropBroken(q.key) });
+      shot('bord-host'); await sleep((s - 5) * 1000);
+    } else {
+      await sleep(Math.min(16, s - 4) * 1000);
+      const e = w.coopExtra;
+      const borden = e ? e.kapot.filter((k) => /^(placesign|wegwijzer)@/.test(k.key)).map((k) => [k.key, B.isPropBroken(k.key)]) : null;
+      log('bord-gast', { borden, kapot: e ? e.kapot.length : null });
+      shot('bord-gast-' + CFG.name); await sleep(4000);
+    }
+  },
+  // #1061: hostwissel tijdens een filmpje: de host speelt een filmpje en biedt het spel aan plek 1 aan (moet weigeren met "Wacht tot het filmpje voorbij is."); na het filmpje
+  // biedt hij opnieuw aan en de gast zegt J. Gelogd: de weigering, de tekst, en het antwoord na het filmpje.
+  async filmpjewissel({ s = 12 }) {
+    const w = W(); const HW = await imp('coophostwisselnet');
+    if (CFG.role === 'host') {
+      const C = await imp('cinematics');
+      let ok = null; try { ok = C.playCinematic({ id: 'coop-test-wissel', priority: 5, duration: s, letterbox: true, skippable: false, lines: [{ speaker: 'Tammo', text: 'Een proeffilmpje: de overdracht moet even wachten.' }] }); } catch (e) { ok = 'fout ' + e.message; }
+      await sleep(3000);
+      const weiger = HW.biedOver(w, 1);
+      log('wissel-tijdens-filmpje', { ok, actief: C.isCinematicActive(), weiger: { ok: weiger && weiger.ok, tekst: weiger && weiger.tekst } });
+      shot('wissel-filmpje-host');
+      const t1 = performance.now(); while (C.isCinematicActive() && performance.now() - t1 < (s + 8) * 1000) await sleep(250);
+      await sleep(2500);
+      const na = HW.biedOver(w, 1);
+      log('wissel-na-filmpje', { actief: C.isCinematicActive(), ok: na && na.ok, tekst: na && na.tekst, rol: w.coopNet && w.coopNet.role });
+    } else {
+      let j = false; const t0 = performance.now();
+      while (performance.now() - t0 < (s + 40) * 1000) {
+        const u = w.coopWisselUi; if (CFG.name === 'gast' && !j && u && u.vraag) { j = true; key('j', 'KeyJ'); log('wissel-j', { vraag: u.vraag.tekst, filmpjeGast: !!(w.coopScene && w.coopScene.filmpje) }); }
+        await sleep(300);
+      }
+    }
+  },
+  // #1061: het keuzescherm Besloten spelen (pauzemenu, Spel, Samen spelen) buiten een sessie. Alleen na 'stopHost' (de host zit dan niet meer in een sessie): de drie keuzekaarten
+  // moeten binnen het scherm blijven en hun titels mogen niet afgekapt zijn (scrollWidth tegen clientWidth).
+  async besloten() {
+    if (CFG.role !== 'host') { await sleep(8000); return; }
+    if (net()) { log('besloten-in-sessie', {}); return; }
+    await openSamen(); await sleep(1500);
+    const kaarten = [...document.querySelectorAll('#pause-menu .pm-hub-keuze')];
+    const titel = (k) => k.querySelector('.pm-hub-kt');
+    log('besloten-hub', {
+      venster: [innerWidth, innerHeight],
+      kaarten: kaarten.map((k) => { const r = k.getBoundingClientRect(), t = titel(k); return { act: k.dataset.act, label: t ? t.textContent.trim() : '', binnen: r.left >= 0 && r.right <= innerWidth && r.top >= 0 && r.bottom <= innerHeight, titelAfgekapt: !!t && t.scrollWidth > t.clientWidth + 1, kaartAfgekapt: k.scrollWidth > k.clientWidth + 1 || k.scrollHeight > k.clientHeight + 1 }; }),
+    });
+    shot('besloten-hub'); await sleep(600);
+    const b = document.querySelector('#pause-menu .pm-hub-keuze[data-keuze="besloten"]');
+    if (b) { b.click(); await sleep(1200); shot('besloten-na'); log('besloten-klik', { tekst: (document.querySelector('#pause-menu .pm-samen') || { innerText: '' }).innerText.slice(0, 240) }); }
+    await closeMenu();
+  },
   // #1011 (privacy): een directe code (GDE2-...) of een IP-adres mag niet in de opslag van de speler staan
   async opslagcheck() {
     let dump = ''; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); dump += k + '=' + localStorage.getItem(k) + '|'; } } catch (e) { dump = ''; }
