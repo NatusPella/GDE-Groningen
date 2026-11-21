@@ -1,4 +1,4 @@
-// Meedoen? als vraag met twee knoppen waar de toets in zit (#1001, ontwerpsysteem v3); puur plus de bedrading in de bron.
+// Meedoen? als vraag met twee knoppen waar de toets in zit (#1001, ontwerpsysteem); puur plus de bedrading in de bron.
 //   node scripts/meedoenvorm_test.mjs
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

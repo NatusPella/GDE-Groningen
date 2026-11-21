@@ -123,7 +123,7 @@ const zwemst = read('zwemstatus.js');
 ok(/simHudTik\(0, zwemHudModel/.test(zwembad) && !/var\(--mk-/.test(zwembad) && /{SPATIE} als de balk bij het streepje is/.test(zwemst) && /'Moe'/.test(zwemst), 'zwembad: duik- en vermoeidheidsmeter in de strook, staat in een woord');
 const kart = read('kartbaan.js');
 // #985: de strook (simhud.js, kartstatus.js) vervangt het bord; het bord blijft alleen voor de tussenstand bij een race tegen anderen
-ok(/mg-stand/.test(kart) && /simHudTik\(0, kartHudModel/.test(kart) && !/var\(--mk-job/.test(kart), 'kartbaan: tussenstand als tabel, de strook uit simhud.js zonder eigen kleuren');
+ok(/standTabel\(/.test(kart) && /simHudTik\(0, kartHudModel/.test(kart) && !/var\(--mk-job/.test(kart), 'kartbaan: tussenstand als tabel, de strook uit simhud.js zonder eigen kleuren');
 const kartst = read('kartstatus.js');
 ok(/Startlichten: /.test(kartst) && /Driftlading/.test(kartst), 'kartbaan: startlichten en driftmeter in de strook');
 const skate = read('skatepark.js');
