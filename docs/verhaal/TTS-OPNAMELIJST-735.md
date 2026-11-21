@@ -88,8 +88,8 @@ Gegenereerd door `node scripts/tts_opnamelijst.mjs` uit `game/storydata/script.j
 | 69 | Wereld levend | ~f (Pulcherrima) | `lines/bubbles/f/mooi_joh_doe_t_nog_ais_f7899710.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #69 |
 | 70 | Wereld levend | ~m (Puck) | `lines/bubbles/m/dit_zet_ik_op_mijn_vakantiefilmp_aa361b55.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #70 |
 | 71 | Wereld levend | ~f (Sulafat) | `lines/bubbles/f/dit_zet_ik_op_mijn_vakantiefilmp_003f7896.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #71 |
-| 72 | Wereld levend | ~m (Schedar) | `lines/bubbles/m/wie_heeft_er_nog_ijs_voor_de_col_79bd638f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #72 |
-| 73 | Wereld levend | ~f (Erinome) | `lines/bubbles/f/wie_heeft_er_nog_ijs_voor_de_col_43008cfc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #73 |
+| 72 | Wereld levend | ~m (Puck) | `lines/bubbles/m/wie_heeft_er_nog_iets_koels_voor_5ad60b47.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #72 |
+| 73 | Wereld levend | ~f (Despina) | `lines/bubbles/f/wie_heeft_er_nog_iets_koels_voor_94da44a9.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #73 |
 | 74 | Wereld levend | ~m (Charon) | `lines/bubbles/m/ik_heb_morgen_tentamen_dat_is_mo_1c9a740c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #74 |
 | 75 | Wereld levend | ~f (Sulafat) | `lines/bubbles/f/ik_heb_morgen_tentamen_dat_is_mo_b317ffb0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #75 |
 | 76 | Wereld levend | ~m (Puck) | `lines/bubbles/m/dit_is_geen_feest_dit_is_netwerk_ae015399.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #76 |
