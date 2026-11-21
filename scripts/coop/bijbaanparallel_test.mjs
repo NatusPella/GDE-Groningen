@@ -284,4 +284,24 @@ t('de haken in de bron: een register per eigenaar in sidejobs.js, een eigen were
   assert.match(net, /world\.coopBijbaanHelpers = \(owner\) => bijbaanHelpers\(world, owner\)/);
 });
 
+// #1011 (echte vensters): een gast die J zei op de baan van een andere gast bleef daarna "meedoen" en kon zijn eigen baan niet meer starten,
+// omdat het einde alleen naar de eigenaar ging.
+t('het einde van de baan van een gast gaat ook naar wie meedoet; daarna kan die zijn eigen baan starten', () => {
+  const s = opzet(3, [{ id: 'krantenwijk', name: 'Krantenwijk' }, { id: 'krantenwijk', name: 'Krantenwijk' }, { id: 'taxi', name: 'Grunn Taxi' }]);
+  const [a, b, c] = s.gs.map((g) => g.gw);
+  drukE(a, B); s.step(1);
+  assert.ok(b.coopBijbaanGast && b.coopBijbaanGast.uitn, 'de tweede gast kreeg de uitnodiging');
+  B.bijbaanGastStuur(b, 'ja'); B.bijbaanGastStuur(c, 'nee'); s.step(1);
+  assert.equal(b.coopBijbaanGast.deelt, true, 'de tweede gast doet mee');
+  s.host.complete(1, 60, 10); s.step(1);
+  assert.ok(geld(s)[1] > 0 && geld(s)[0] > 0, 'beide spelers kregen het volle bedrag');
+  assert.equal(geld(s)[2], 0, 'wie nee zei kreeg niets');
+  s.host.eind(1, 'ok'); s.step(1);
+  assert.equal(a.coopBijbaanGast.deelt, false, 'de eigenaar is klaar');
+  assert.equal(b.coopBijbaanGast.deelt, false, 'wie meedeed hoort het einde ook');
+  assert.equal(b.coopBijbaanGast.id, null, 'en heeft geen baan meer');
+  drukE(b, B); s.step(1);
+  assert.equal(s.host.ctx(2) ? s.host.ctx(2).id : null, 'krantenwijk', 'de tweede gast kan nu zijn eigen baan starten');
+});
+
 console.log(`bijbaanparallel_test: ${n} tests ok`);
