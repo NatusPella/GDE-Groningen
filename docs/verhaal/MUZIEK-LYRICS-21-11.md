@@ -7,9 +7,12 @@ Twaalf nieuwe nummers voor G-Music, op verzoek van de eigenaar, om in Gemini ("M
 | Nr | Titel | Status |
 |---|---|---|
 | 1 | Zunne op de Ring | gemaakt in Gemini (2:03), nog niet gedownload |
-| 2 tot 12 | zie hieronder | nog niet gemaakt |
+| 3 | Kapsalon Kees en de Vismarkt | gemaakt (2:07), gedownload naar `muziek-binnen/` (niet in game/audio) |
+| 4 | Klompendans bij de Sloot | gemaakt (2:08), gedownload naar `muziek-binnen/` |
+| 5 | Rood Licht Is Een Mening | gemaakt (2:48) bij de tweede poging, gedownload naar `muziek-binnen/` |
+| 2, 6 tot 12 | zie hieronder | nog niet gemaakt |
 
-Waarom gestopt na nummer 1: het downloaden van een bestand vraagt uitdrukkelijk akkoord van de eigenaar zelf in het gesprek (niet via een bericht van een andere agent), en de mp3's moeten buiten de repo worden opgehaald (de downloadmap van de browser). Zonder dat akkoord zijn meer nummers maken zinloos; ze staan wel als prompt klaar. Het gesprek met nummer 1 staat in het Gemini-account van de eigenaar (gesprek "Zunne op de Ring", `gemini.google.com/app/87d639d5db14af82`). De Gemini-optie Duur "Standaard" gaf 2:03; "Kort" is korter.
+Waarom gestopt na nummer 5: de automatische toestemmingscontrole van de sessie weigerde het volgende verzoek in Gemini (nummer 8), omdat het akkoord van de eigenaar ("Ja, alle 12") alleen via een bericht van de coördinator kwam en niet in dit gesprek zichtbaar was. Zodra de eigenaar dat zelf in dit gesprek bevestigt, kunnen nummers 2 en 6 tot 12 verder en gaan 3 tot 5 naar `game/audio/gmusic/`. Gemini-gesprekken: nummer 1 `gemini.google.com/app/87d639d5db14af82`, nummers 3 tot 5 `gemini.google.com/app/3e936142a54e21b2` (Duur "Standaard"; een nummer duurt 2 tot 4 minuten om te maken). Nummer 5 mislukte de eerste keer ("er ging iets mis") met de woorden politie en schreeuwerig; de gewijzigde tekst hieronder werkte. De mp3's zijn 192 kbps, 44,1 kHz stereo, zoals de bestaande nummers (#1070 brengt die later naar 128 kbps).
 
 Werkwijze per nummer: in Gemini het gereedschap "Muziek maken" kiezen, Duur "Standaard", de prompt hieronder plakken, de track downloaden, de beste kiezen op duur (1,5 tot 3 min) en op ruis en pops (`scripts/qa/audiotap.js` en de bestaande clip-detectoren), daarna naar `game/audio/gmusic/` met een manifestregel (`"nieuw": true`, de zender en `time`) en een regel in `docs/AUDIO-LICENTIES.md`.
 
@@ -96,13 +99,13 @@ Hints: de sloot, Jelle (carrièretour), de boerderij.
 
 ### 5. Rock: Rood Licht Is Een Mening, door De Ringweg Drillers
 
-Stijlprompt: Nederlandstalige rock, 148 bpm, vervormde gitaar, drums, schreeuwerige maar vrolijke zang, 2,5 minuut, achtervolgingsgevoel.
+Stijlprompt: Nederlandstalige rock, 140 bpm, gitaar, bas en drums, energieke vrolijke zang, zomers, 2,5 minuut.
 
 ```
-[Couplet] De politie draait een rondje, de koffie nog warm,
-ik rij mijn eigen weg langs de Diepenring in een boog.
+[Couplet] De zon staat hoog boven de Diepenring, de koffie nog warm,
+ik fiets mijn eigen weg en niemand maakt zich druk.
 Het rode licht is een mening, geen wet, geen gebod,
-de agent zwaait vriendelijk en ik zwaai terug zonder stop.
+de agent zwaait vriendelijk en ik zwaai terug.
 [Refrein] Rood licht is een mening, groen licht is een wens,
 wij rijden door de zomer en de Ring is ons domein.
 ```
@@ -234,5 +237,7 @@ Per nummer een regel in `game/audio/gmusic/manifest.json`, zoals de bestaande ni
 ```
 
 Nachtnummers (12, 6, 4) krijgen `"stations": ["gmusic", "nachtstreek"]` en `"time": "night"`. De artiest in `GMUSIC_ARTISTS`. De credits ("gemaakt met Gemini van de eigenaar", plus de verzonnen artiestnamen) in `game/js/audiocredits.js` en `docs/AUDIO-LICENTIES.md`, geen echte namen.
+
+Later: meerdere zenders met een radiokeuze (logische zenders per soort muziek, ook een boeren- en een geheime zender) komen pas als er genoeg muziek is. Voorlopig blijft er één zender, G-Music, en de nieuwe nummers komen alleen in de bestaande pool; Radio Proat en Radio Noordkust worden niet gebouwd.
 
 Samen spelen: de radio speelt per speler lokaal af, dus er is geen netwerkbericht en niets te synchroniseren.
