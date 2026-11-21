@@ -1,0 +1,132 @@
+// De tv-presentatie van de voetbalwedstrijd (epic voetbal-uitzending, 21-11): puur, geen DOM en geen THREE (scripts/voetbal_uitzending_test.mjs). Dit zijn de modellen en de HTML-teksten (alles ontsnapt) van het
+// scorebord met verzonnen clublogo's en kaart- en blessure-icoontjes, de opstelling bij de aftrap, de rustpauze met statistieken, de eindsamenvatting met Man van de match, de veldradar en de ondertitel
+// van het commentaar. voetbaltvlayer.js zet ze op het scherm; de stijl staat in voetbaltv.css (alleen ds-tokens). Kleur is nooit het enige signaal: een kaart heeft een woord, een blessure een kruis.
+// Een gast (Samen spelen) heeft alleen de momentopname: hij krijgt de opstelling, de stand en de klok, en gebeurtenissen uit het verschil tussen twee momentopnamen (guestEvents); de
+// statistieken en Man van de match zijn van wie het spel opende (die rekent ze uit) en staan er bij een gast dus niet.
+import { clockText } from './voetbalrules.js';
+import { statistiekenVan, matchMvp, speelMinuut, cleanRules } from './voetbalextrarules.js';
+import { cleanModus } from './voetbalregie.js';
+
+// De voorkeur voor de uitzending (de camera-regie en de regels kaarten, blessures, strafschoppen, buitenspel, wissels) staat onder `tv` in de eigen sleutel van de voetbalvoorkeur (alleen dit apparaat);
+// alles wat niet klopt wordt de standaard.
+export function leesTvVoorkeur(raw) {
+  let d = null;
+  try { d = JSON.parse(raw || 'null'); } catch (e) { d = null; }
+  const tv = d && typeof d === 'object' && d.tv && typeof d.tv === 'object' ? d.tv : {};
+  return { camera: cleanModus(tv.camera), regels: cleanRules(tv.regels) };
+}
+
+export const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+export const hex = (n) => `#${((Number.isFinite(n) ? n : 0) >>> 0).toString(16).padStart(6, '0').slice(-6)}`;
+const initiaal = (naam) => String(naam || '?').replace(/^De\s+/i, '').charAt(0).toUpperCase();
+
+// Het verzonnen clublogo: een schild in de kleuren van het shirt en de broek, met het patroon van de club en de beginletter. Geen echt embleem, geen echte club.
+export function clubLogo(team, maat = 28) {
+  const a = hex(team.shirt), b = hex(team.broek != null ? team.broek : team.shirt), p = team.patroon || 'effen';
+  const clip = 'M4 3h24v13c0 7-5 11-12 14C9 27 4 23 4 16z';
+  let patroon = '';
+  if (p === 'brede-streep') patroon = `<rect x="11" y="3" width="10" height="28" fill="${b}"/>`;
+  else if (p === 'smalle-streep') patroon = `<rect x="9" y="3" width="3" height="28" fill="${b}"/><rect x="15" y="3" width="3" height="28" fill="${b}"/><rect x="21" y="3" width="3" height="28" fill="${b}"/>`;
+  else if (p === 'helften') patroon = `<rect x="16" y="3" width="14" height="28" fill="${b}"/>`;
+  else patroon = `<rect x="4" y="22" width="24" height="3" fill="${b}"/>`;
+  return `<svg class="vbtv-logo" width="${maat}" height="${maat}" viewBox="0 0 32 34" role="img" aria-label="Clubembleem van ${esc(team.kort || team.naam)}"><defs><clipPath id="vbc-${esc(team.id || initiaal(team.naam))}"><path d="${clip}"/></clipPath></defs><g clip-path="url(#vbc-${esc(team.id || initiaal(team.naam))})"><rect width="32" height="34" fill="${a}"/>${patroon}</g><path d="${clip}" fill="none" stroke="var(--ds-c-ink-inkt)" stroke-width="2"/><text x="16" y="19" text-anchor="middle" font-size="13" font-weight="800" fill="var(--ds-c-wit)" stroke="var(--ds-c-ink-inkt)" stroke-width="2.4" paint-order="stroke">${esc(initiaal(team.kort || team.naam))}</text></svg>`;
+}
+export const cardIcon = (kleur) => `<span class="vbtv-kaart vbtv-kaart--${kleur === 'rood' ? 'rood' : 'geel'}" role="img" aria-label="${kleur === 'rood' ? 'Rode kaart' : 'Gele kaart'}"><i></i><b>${kleur === 'rood' ? 'rood' : 'geel'}</b></span>`;
+export const blessureIcoon = () => '<span class="vbtv-blessure" role="img" aria-label="Blessure"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 1h4v4h4v4H9v4H5V9H1V5h4z" fill="var(--ds-c-wit)" stroke="var(--ds-c-ink-inkt)" stroke-width="1.4"/></svg></span>';
+
+// Per team: kaarten en blessures van het veld (uit de spelers) voor het scorebord.
+export function teamIcoonRij(sim, team) {
+  const sp = sim.spelers.filter((p) => p.team === team);
+  const geel = sp.filter((p) => p.geel === 1 && !p.rood).length, rood = sp.filter((p) => p.rood).length, bles = sp.filter((p) => p.blessure).length;
+  return { geel, rood, blessure: bles };
+}
+const iconenHtml = (r) => `${r.geel ? cardIcon('geel') + (r.geel > 1 ? `<small>${r.geel}</small>` : '') : ''}${r.rood ? cardIcon('rood') + (r.rood > 1 ? `<small>${r.rood}</small>` : '') : ''}${r.blessure ? blessureIcoon() : ''}`;
+
+const helftTekst = (h) => (h === 2 ? 'Tweede helft' : 'Eerste helft');
+// Het scorebord (de rij van het bord bovenin, minigamekit.js createBoard): logo, naam, stand, klok en de icoontjes.
+export function scoreboardRow(sim) {
+  const [a, b] = sim.score, t0 = sim.teams[0], t1 = sim.teams[1];
+  const clockTxt = sim.fase === 'rust' ? 'rust' : sim.fase === 'eind' || sim.fase === 'klaar' ? 'einde' : clockText(sim.klok == null ? 0 : sim.klok);
+  const i0 = sim.spiegel ? { geel: 0, rood: 0, blessure: 0 } : teamIcoonRij(sim, 0), i1 = sim.spiegel ? { geel: 0, rood: 0, blessure: 0 } : teamIcoonRij(sim, 1);
+  return `<span class="vbtv-kant">${clubLogo(t0, 26)} ${esc(t0.kort)} ${iconenHtml(i0)} <b>${a | 0}</b></span><span>-</span><span class="vbtv-kant"><b>${b | 0}</b> ${esc(t1.kort)} ${iconenHtml(i1)} ${clubLogo(t1, 26)}</span><span class="mg-klok">${esc(helftTekst(sim.helft || 1))} · <b>${esc(clockTxt)}</b></span>`;
+}
+
+// ---------------------------------------------------------------- de opstelling bij de aftrap
+
+const ROL_KORT = { keeper: 'Keeper', verdediger: 'Verdediging', middenvelder: 'Middenveld', aanvaller: 'Aanval' };
+export function opstellingModel(sim) {
+  const kant = (t) => ({ team: sim.teams[t], vorming: sim.tac && sim.tac[t] ? sim.tac[t].vorming : '', stijl: sim.tac && sim.tac[t] ? sim.tac[t].stijl : '',
+    spelers: sim.spelers.filter((p) => p.team === t).map((p, k) => ({ nr: k + 1, naam: p.naam, rol: p.rol, rolNaam: ROL_KORT[p.rol] || '', jij: sim.mensen.some((x) => x.ctl === p.id && !x.weg) })) });
+  return { thuis: kant(0), uit: kant(1), formaat: sim.formaat };
+}
+export function opstellingHtml(sim) {
+  const m = opstellingModel(sim);
+  const kolom = (k, uit) => `<section class="vbtv-kolom${uit ? ' vbtv-kolom--uit' : ''}"><h3>${clubLogo(k.team, 34)} <span>${esc(k.team.naam)}</span></h3><p class="vbtv-sub">${esc(k.vorming)} · ${esc(k.stijl)}</p><ol>${k.spelers.map((s) => `<li${s.jij ? ' class="vbtv-jij"' : ''}><span class="vbtv-nr">${s.nr}</span><span>${esc(s.naam)}</span><em>${esc(s.rolNaam)}${s.jij ? ' · jij' : ''}</em></li>`).join('')}</ol></section>`;
+  return `<div class="vbtv-kop"><span class="vbtv-eyebrow">Aftrap in de Euroborg</span><h2>${esc(m.thuis.team.kort)} tegen ${esc(m.uit.team.kort)}</h2></div><div class="vbtv-twee">${kolom(m.thuis, false)}${kolom(m.uit, true)}</div>`;
+}
+
+// ---------------------------------------------------------------- de rustpauze en het eindverslag
+
+export function statRijen(sim) {
+  const s = statistiekenVan(sim);
+  const rij = (label, [a, b], pct = false) => ({ label, a: pct ? `${a}%` : String(a), b: pct ? `${b}%` : String(b), deel: a + b > 0 ? a / (a + b) : 0.5 });
+  const rijen = [rij('Balbezit', s.bezit, true), rij('Schoten', s.schoten), rij('Schoten op doel', s.opDoel), rij('Hoekschoppen', s.hoeken), rij('Overtredingen', s.overtredingen)];
+  if (sim.regels && sim.regels.kaarten) rijen.push(rij('Gele kaarten', s.geel), rij('Rode kaarten', s.rood));
+  if (sim.regels && sim.regels.wissels) rijen.push(rij('Wissels', s.wissels));
+  return rijen;
+}
+const statTabel = (rijen) => `<ul class="vbtv-stats">${rijen.map((r) => `<li><span class="vbtv-sa">${esc(r.a)}</span><span class="vbtv-sl">${esc(r.label)}<i style="--vbtv-deel:${Math.round(r.deel * 100)}%"></i></span><span class="vbtv-sb">${esc(r.b)}</span></li>`).join('')}</ul>`;
+const goalList = (sim, t) => (sim.verloop || []).filter((e) => e.type === 'goal' && e.team === t).map((e) => {
+  const who = e.eigen ? 'eigen doelpunt' : (sim.spelers[e.speler] ? sim.spelers[e.speler].naam : '?');
+  return `${esc(who)} ${e.min}'`;
+});
+export function rustHtml(sim) {
+  const [a, b] = sim.score, thuis = goalList(sim, 0), uit = goalList(sim, 1);
+  return `<div class="vbtv-kop"><span class="vbtv-eyebrow">Rust</span><h2>${clubLogo(sim.teams[0], 34)} ${esc(sim.teams[0].kort)} <b>${a | 0}</b> - <b>${b | 0}</b> ${esc(sim.teams[1].kort)} ${clubLogo(sim.teams[1], 34)}</h2></div>` +
+    `<div class="vbtv-scorers"><p>${thuis.join(', ') || '&nbsp;'}</p><p>${uit.join(', ') || '&nbsp;'}</p></div>${sim.spiegel ? '' : statTabel(statRijen(sim))}`;
+}
+export function eindModel(sim) {
+  const mvp = sim.spiegel ? null : matchMvp(sim);
+  const uitslag = sim.score[0] > sim.score[1] ? 'Gewonnen' : sim.score[0] < sim.score[1] ? 'Verloren' : 'Gelijkspel';
+  return { uitslag, score: sim.score.slice(), mvp, rijen: sim.spiegel ? [] : statRijen(sim), thuis: goalList(sim, 0), uit: goalList(sim, 1), minuut: speelMinuut(sim) };
+}
+export function eindHtml(sim) {
+  const m = eindModel(sim);
+  const mvp = m.mvp ? `<div class="vbtv-mvp"><span class="vbtv-eyebrow">Man van de match</span><b>${esc(m.mvp.naam)}</b><em>${esc(sim.teams[m.mvp.team].kort)} · ${m.mvp.st.doelpunten ? m.mvp.st.doelpunten + (m.mvp.st.doelpunten === 1 ? ' doelpunt' : ' doelpunten') : ''}${m.mvp.st.assists ? ' · ' + m.mvp.st.assists + (m.mvp.st.assists === 1 ? ' assist' : ' assists') : ''}${m.mvp.st.reddingen ? ' · ' + m.mvp.st.reddingen + ' reddingen' : ''}${m.mvp.st.tackles ? ' · ' + m.mvp.st.tackles + ' tackles' : ''}</em></div>` : '';
+  return `<div class="vbtv-kop"><span class="vbtv-eyebrow">Eindsignaal · ${esc(m.uitslag)}</span><h2>${clubLogo(sim.teams[0], 34)} ${esc(sim.teams[0].kort)} <b>${m.score[0]}</b> - <b>${m.score[1]}</b> ${esc(sim.teams[1].kort)} ${clubLogo(sim.teams[1], 34)}</h2></div>` +
+    `<div class="vbtv-scorers"><p>${m.thuis.join(', ') || '&nbsp;'}</p><p>${m.uit.join(', ') || '&nbsp;'}</p></div>${mvp}${m.rijen.length ? statTabel(m.rijen) : ''}`;
+}
+
+// ---------------------------------------------------------------- de veldradar
+
+// De radar: alles op 0 tot 1 over het veld (x dwars, y in de lengte, jouw aanvalsrichting naar boven); alleen de bal, de spelers en de jouwe. Een uitgesloten speler staat er niet op.
+export function radarModel(sim, eigenId = -1) {
+  const W = (sim.perTeam > 6 ? 56 : 26), L = (sim.perTeam > 6 ? 90 : 42);
+  const norm = (p) => ({ x: Math.max(0, Math.min(1, 0.5 + p.x / W)), y: Math.max(0, Math.min(1, 0.5 - p.y / L)) });
+  return { bal: norm(sim.bal), spelers: sim.spelers.filter((p) => !p.rood).map((p) => ({ ...norm(p), team: p.team, jij: p.id === eigenId, keeper: p.rol === 'keeper' })), W, L };
+}
+export function radarHtml(sim, eigenId = -1, hoog = 84, breed = 52) {
+  const r = radarModel(sim, eigenId), X = (v) => (v * breed).toFixed(1), Y = (v) => (v * hoog).toFixed(1);
+  const stip = r.spelers.map((p) => `<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="${p.jij ? 3.6 : 2.4}" class="vbtv-r${p.team}${p.jij ? ' vbtv-rjij' : ''}"/>`).join('');
+  return `<svg viewBox="0 0 ${breed} ${hoog}" width="${breed}" height="${hoog}" role="img" aria-label="Veldradar"><rect x="0.5" y="0.5" width="${breed - 1}" height="${hoog - 1}" class="vbtv-rveld"/><line x1="0" y1="${hoog / 2}" x2="${breed}" y2="${hoog / 2}" class="vbtv-rlijn"/><circle cx="${breed / 2}" cy="${hoog / 2}" r="6" class="vbtv-rlijn vbtv-rleeg"/>${stip}<circle cx="${X(r.bal.x)}" cy="${Y(r.bal.y)}" r="2" class="vbtv-rbal"/></svg>`;
+}
+
+// De ondertitel van het commentaar: wie spreekt en wat (de stem is een extraatje: de tekst staat er altijd).
+export const subtitleHtml = (regel) => (regel ? `<b>${esc(regel.naam)}</b><span>${esc(regel.tekst)}</span>` : '');
+
+// ---------------------------------------------------------------- gebeurtenissen voor een gast (uit het verschil tussen twee momentopnamen)
+
+export function guestEvents(prev, nu) {
+  const ev = [];
+  if (!prev) return ev;
+  if (nu.fase !== prev.fase) {
+    if (nu.fase === 'aftrap' && prev.fase !== 'goal' && prev.fase !== 'rust') ev.push({ type: 'aftrap', team: 0 });
+    if (nu.fase === 'aftrap' && prev.fase === 'rust') ev.push({ type: 'aftrap', team: 1 });
+    if (nu.fase === 'rust') ev.push({ type: 'fluit', helft: 1 });
+    if (nu.fase === 'eind') ev.push({ type: 'einde', winnaar: nu.score[0] > nu.score[1] ? 0 : nu.score[1] > nu.score[0] ? 1 : -1 });
+  }
+  for (const t of [0, 1]) if (nu.score[t] > prev.score[t]) ev.push({ type: 'goal', team: t, speler: -1, eigen: false, stand: nu.score.slice() });
+  if (nu.hervatKind && nu.hervatKind !== prev.hervatKind && nu.fase === 'hervat') ev.push({ type: 'hervat', kind: nu.hervatKind, team: 0 });
+  return ev;
+}
+export const guestState = (sim) => ({ fase: sim.fase, score: sim.score.slice(), hervatKind: sim.hervat ? sim.hervat.kind : null });

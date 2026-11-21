@@ -18,7 +18,7 @@ export const UITLEG = [
   { toets: 'SPACE', animatie: 'houd', tekst: 'Schot: houd vast voor kracht' },
   { toets: ['CTRL', 'Q'], animatie: 'druk', tekst: 'Tackle en wissel van speler' },
 ];
-const HELP_TEXT = '{WASD} lopen · {F} pass · {E} lang · {SPATIE} schot · {CTRL} tackle · {Q} wissel';
+const HELP_TEXT = '{WASD} lopen · {F} pass · {E} lang · {SPATIE} schot · {CTRL} tackle · {Q} wissel · {3} camera';
 
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const PHASE_WORD = { intro: 'Aanstaande', aftrap: 'Aftrap', spel: '', hervat: 'Herstart', goal: 'Doelpunt', rust: 'Rust', eind: 'Einde', klaar: 'Einde' };
@@ -56,6 +56,7 @@ export function watNu(g) {
   if (g.fase === 'eind' || g.fase === 'klaar') return 'Het eindsignaal klinkt';
   if (g.fase === 'goal') return 'Doelpunt!';
   if (g.fase === 'aftrap') return g.heeftBal ? 'Speel de bal aan met {F}' : 'Aftrap: loop naar je plek';
+  if (g.fase === 'hervat' && g.hervat === 'strafschop') return g.heeftBal ? 'Strafschop: houd {SPATIE} vast en richt met de stick' : 'Strafschop: houd je plek';
   if (g.fase === 'hervat') return g.heeftBal ? `${g.hervat === 'doelschop' ? 'Doelschop' : g.hervat === 'hoek' ? 'Hoekschop' : g.hervat === 'inworp' ? 'Inworp' : 'Vrije bal'}: speel aan met {F}` : 'Herstart: houd je plek';
   if (g.rol === 'keeper') return g.heeftBal ? 'Keeper met de bal: speel hem uit met {F}' : 'Keeper: duik met {SPATIE}';
   if (g.laad > 0.02) return g.laadSoort === 'lang' ? `Voorzet: laat {E} los voor kracht ${Math.round(g.laad * 100)}%` : `Schot: laat {SPATIE} los voor kracht ${Math.round(g.laad * 100)}%`;
@@ -84,6 +85,10 @@ export function popVan(e, mijnTeam = 0) {
   if (e.type === 'paal') return { tekst: 'Tegen de paal', geluid: null };
   if (e.type === 'lat') return { tekst: 'Op de lat', geluid: null };
   if (e.type === 'overtreding') return { tekst: 'Overtreding: vrije bal', geluid: null };
+  if (e.type === 'kaart') return { tekst: e.kleur === 'rood' ? (e.tweede ? 'Tweede geel: rood' : 'Rode kaart') : 'Gele kaart', geluid: null };
+  if (e.type === 'blessure') return { tekst: 'Blessure: een wissel volgt', geluid: null };
+  if (e.type === 'wisselspeler') return { tekst: `Wissel: ${e.in} erin`, geluid: null };
+  if (e.type === 'buitenspel') return { tekst: 'Buitenspel', geluid: null };
   if (e.type === 'einde') return { tekst: e.winnaar === mijnTeam ? 'Gewonnen!' : e.winnaar < 0 ? 'Gelijkspel' : 'Verloren', geluid: e.winnaar === mijnTeam ? 'ui_loopbaan' : null };
   return null;
 }

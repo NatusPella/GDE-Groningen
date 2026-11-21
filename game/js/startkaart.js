@@ -62,7 +62,7 @@ export const STARTKAART = {
     kern: '[A] [D] [W] [S] richten · houd {SPACE} en laat los',
   },
   voetbal: {
-    titel: 'Voetbal Euroborg', doel: 'Vijf of elf tegen elf tegen verzonnen teams, ook als competitie met zes clubs',
+    titel: 'Wedstrijd spelen', doel: 'Een echte wedstrijd met commentaar, kaarten en herhalingen, ook als competitie',
     medailles: ['Winst', 'Winst met de nul', 'Winst met een hattrick'], beloning: 'prijzengeld per uitslag en loopbaanpunten',
     kern: '[W] [A] [S] [D] lopen · [F] [E] passen · {SPACE} schot',
   },

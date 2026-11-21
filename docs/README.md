@@ -122,6 +122,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [MINIMAP-PIJLEN-21-11.md](<MINIMAP-PIJLEN-21-11.md>) | Pijlen op de minikaart naar het doel. |
 | [KAART-HEADING-21-11.md](<KAART-HEADING-21-11.md>) | Wie ben jij op de kaart: plek en kijkrichting per besturingsmodus (#1141). |
 | [VOETBAL-SIM-21-11.md](<VOETBAL-SIM-21-11.md>) | Voetbal Sim Light in de Euroborg (#981). |
+| [VOETBAL-UITZENDING-21-11.md](<VOETBAL-UITZENDING-21-11.md>) | Voetbal als uitzending: de hele wedstrijd voorop, tv-regie, herhaling, commentaar, kaarten, blessures, wissels en strafschoppen. |
 | [VERHAAL-SYNOPSIS-21-11.md](<VERHAAL-SYNOPSIS-21-11.md>) | Synopsis van het nieuwe volledige verhaal (pitch, vijf akten en Deel 4), de matrix van alles wat in de game bestaat en waar het in het verhaal terugkomt, en hoe je het samen en solo beleeft; met open punten en voorstellen. |
 | [VERHAAL-ANALYSE-21-11.md](<VERHAAL-ANALYSE-21-11.md>) | Verhaalanalyse: kan een speler met nul context het verhaal volgen? Top-20 problemen, ruggengraat per akte, introductie- en dialoogregels, tussenscènes, recap-kaart, ontgrendeling per akte en uitvoeringsplan.
 | [VOETBAL-CARRIERE-21-11.md](<VOETBAL-CARRIERE-21-11.md>) | Ontwerp van de voetbalcarrière (epic #1106): boog, seizoenen, ontwikkeling, manager, economie, clubbezit, UI, Samen spelen en stappenplan. |
