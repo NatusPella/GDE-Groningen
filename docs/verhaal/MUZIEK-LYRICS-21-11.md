@@ -10,7 +10,8 @@ Twaalf nieuwe nummers voor G-Music, op verzoek van de eigenaar, om in Gemini ("M
 | 3 | Kapsalon Kees en de Vismarkt | gemaakt (2:07), in gmusic gekoppeld |
 | 4 | Klompendans bij de Sloot | gemaakt (2:08), in gmusic gekoppeld |
 | 5 | Rood Licht Is Een Mening | gemaakt (2:48), in gmusic gekoppeld |
-| 2, 6 tot 12 | zie hieronder | nog niet gemaakt: de toestemmingscontrole van de sessie blokkeerde het versturen van de lyrics naar gemini.google.com (data-exfiltratie-regel); de eigenaar moet dat toestaan of de nummers zelf aanmaken |
+| 2 | Elfde Verdieping | gemaakt (2:29), in gmusic gekoppeld (De Fietstunnels) |
+| 6 tot 12 | zie hieronder | nog niet gemaakt: de toestemmingscontrole van de sessie blokkeerde het versturen van de lyrics naar gemini.google.com (data-exfiltratie-regel); de eigenaar moet dat toestaan of de nummers zelf aanmaken |
 
 Waarom gestopt na nummer 5: de automatische toestemmingscontrole van de sessie weigerde het volgende verzoek in Gemini (nummer 8), omdat het akkoord van de eigenaar ("Ja, alle 12") alleen via een bericht van de coördinator kwam en niet in dit gesprek zichtbaar was. Zodra de eigenaar dat zelf in dit gesprek bevestigt, kunnen nummers 2 en 6 tot 12 verder en gaan 3 tot 5 naar `game/audio/gmusic/`. Gemini-gesprekken: nummer 1 `gemini.google.com/app/87d639d5db14af82`, nummers 3 tot 5 `gemini.google.com/app/3e936142a54e21b2` (Duur "Standaard"; een nummer duurt 2 tot 4 minuten om te maken). Nummer 5 mislukte de eerste keer ("er ging iets mis") met de woorden politie en schreeuwerig; de gewijzigde tekst hieronder werkte. De mp3's zijn 192 kbps, 44,1 kHz stereo, zoals de bestaande nummers (#1070 brengt die later naar 128 kbps).
 

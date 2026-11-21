@@ -37,6 +37,7 @@
     { "file": "Zunne_op_de_Ring.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true },
     { "file": "Kapsalon_Kees_en_de_Vismarkt.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true },
     { "file": "Klompendans_bij_de_Sloot.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true },
-    { "file": "Rood_Licht_Is_Een_Mening.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true }
+    { "file": "Rood_Licht_Is_Een_Mening.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true },
+    { "file": "Elfde_Verdieping.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true }
   ]
 }
