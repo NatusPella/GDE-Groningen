@@ -11,7 +11,7 @@ import { roadGap } from './countryedge.js';
 import { baysIn } from './parkinglots.js';
 import { SpatialGrid, gridItems } from './spatialgrid.js';
 import { hash3 as hash } from './rng.js';
-import { tuneParkedBay, tickMeet } from './tuningtraffic.js'; // gepimpte auto's in de wereld (epic Autotuning, #1155)
+import { tuneParkedBay, tickMeet, siteMeetBay } from './tuningtraffic.js'; // gepimpte auto's in de wereld (epic Autotuning, #1155)
 import { isMeetLotId } from './tuningworld.js';
 
 // Kerbside parking along residential streets: half a car length up on the
@@ -102,9 +102,9 @@ export function slotFits(map, road, x, y, angle, m, outX, outY) {
 }
 
 // Een klein deel van de vakken krijgt een gepimpte auto (vast per vak, zie tuningtraffic.js); een treffenplek meer.
-function decorate(world, s, meet = false) {
-  const t = tuneParkedBay(world, s, s.model.name, { meet });
-  if (t) { s.look = t.look; s.model = { ...s.model, color: t.color }; if (meet) s.meet = true; }
+function decorate(world, s, meet = false, site = false) {
+  const t = tuneParkedBay(world, s, s.model.name, { meet: meet || site, site });
+  if (t) { s.look = t.look; s.model = { ...s.model, color: t.color }; if (meet || site) s.meet = true; }
   return s;
 }
 
@@ -152,7 +152,7 @@ function* genCell(world, st, gx, gy) {
     if (m.len > b.len - 0.3 || m.wid > b.wid + 0.1) continue;
     const free = !slotOverlaps(slots, b.x, b.y, b.angle, m, 0.3) && !(map.reservedAt && map.reservedAt(b.x, b.y));
     yield;
-    if (free) { slots.push(decorate(world, { x: b.x, y: b.y, angle: b.angle, model: m, v: null, taken: false, bay: true }, isMeetLotId(b.id))); inBays++; }
+    if (free) { slots.push(decorate(world, { x: b.x, y: b.y, angle: b.angle, model: m, v: null, taken: false, bay: true }, isMeetLotId(b.id), siteMeetBay(world, b.x, b.y))); inBays++; }
   }
   return slots;
 }
