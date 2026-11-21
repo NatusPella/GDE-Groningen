@@ -208,6 +208,8 @@ import { initAchievementTracker, updateAchievementTracker } from './achievementt
 import { initOmverrijden } from './omverrijden.js';
 import { initBoerderij, boerderijTijd, boerderijKlokNul } from './boerderijlive.js';
 import { initBezit, dagTik as bezitDagTik } from './bezitlive.js';
+import { setGateProgress } from './bezitgate.js';
+import { progressFrom } from './unlockgate.js';
 import { updateBezitMarkers } from './bezitmarker3d.js';
 import { BOERDERIJ_WERELD_KIND } from './boerderijwereld.js';
 import { probe } from './hitchprobe.js';
@@ -937,6 +939,8 @@ window.__debug = { player, map, input, world, frameStats };
   initAchievementTracker(world);
   initOmverrijden(world);
   initBezit();
+  // de gedeelde ontgrendelpoort (unlockgate.js): zolang de save geen `gate` heeft (world.gate) staat alles open (migratieregel van de verhaal-epic)
+  setGateProgress(() => { const st = currentStep(); return progressFrom({ stepId: st ? st.id : null, gate: world.gate }); });
   initBoerderij();
   initSafety(world);
   initCheats(world);

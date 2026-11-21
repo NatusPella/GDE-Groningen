@@ -9,6 +9,7 @@ import * as Z from '../game/js/bezit.js';
 import * as P from '../game/js/bezitprijs.js';
 import * as GT from '../game/js/bezitgate.js';
 import * as PI from '../game/js/parcelindex.js';
+import * as U from '../game/js/unlockgate.js';
 import * as PC from '../game/js/percelen.js';
 import * as B from '../game/js/boerderij.js';
 import { KEYS, BASE_KEYS } from '../game/js/storagekeys.js';
@@ -209,6 +210,20 @@ t('poort: standaard open (stub), per akte met makeActGate, een bestaand profiel 
   assert.match(GT.branchClosedText('business'), /akte 3/);
   assert.deepEqual(GT.openBranches(), ['land', 'business']);
   GT.resetUnlockGate();
+});
+
+t('poort van de verhaal-epic: nieuw spel dicht, akte 2 opent Percelen, akte 3 Bedrijven, een oude save houdt alles', () => {
+  const gate = U.newGate();
+  GT.setGateProgress(() => ({ partNow: 'kop', gate }));
+  assert.equal(GT.branchOpen('land'), false); assert.match(GT.branchHint('land'), /Tessa/);
+  GT.setGateProgress(() => ({ partNow: 'romp', gate }));
+  assert.equal(GT.branchOpen('land'), true); assert.equal(GT.branchOpen('business'), false);
+  GT.setGateProgress(() => ({ partNow: 'staart', gate }));
+  assert.equal(GT.branchOpen('business'), true);
+  GT.setGateProgress(() => ({ partNow: 'kop', gate: undefined }));
+  assert.equal(GT.branchOpen('business'), true, 'een oude save is alles open');
+  GT.setGateProgress(null);
+  assert.equal(GT.branchOpen('land'), true);
 });
 
 // ---- de echte index (alleen als die er is) ----

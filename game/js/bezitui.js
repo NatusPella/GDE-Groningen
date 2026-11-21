@@ -9,7 +9,7 @@ import * as Z from './bezit.js';
 import * as P from './bezitprijs.js';
 import { getBoerderij } from './boerderijlive.js';
 import { staffOf, staffCapacity, wageOf, SKILL_NAME } from './farmstaff.js';
-import { branchOpen, branchClosedText } from './bezitgate.js';
+import { branchOpen, branchHint } from './bezitgate.js';
 import { euro } from './geldtekst.js';
 import { noteMoney } from './finance.js';
 import { hoofdspeler } from './players.js';
@@ -22,7 +22,7 @@ const MAX_ROWS = 40;
 export const ui = { sort: 'ripe', filter: { region: '', soort: '', level: '' }, sel: H.newSelection(), confirm: null, msg: '', more: false };
 
 const btn = (act, text, extra = '', uit = false) => `<button type="button" class="m-bt" data-bz="${act}"${extra}${uit ? ' disabled' : ''}>${text}</button>`;
-const locked = (branch) => `<div class="pm-pane-top"><h2 class="m-h2 td-h2">Nog dicht</h2></div><p class="mut">${esc(branchClosedText(branch))}</p>`;
+const locked = (branch) => `<div class="pm-pane-top"><h2 class="m-h2 td-h2">Nog dicht</h2></div><p class="mut">${esc(branchHint(branch))}</p>`;
 const confirmKey = (act, id) => `${act}:${id}`;
 const askOr = (act, id, text, sure, extra = '', uit = false) => (ui.confirm === confirmKey(act, id)
   ? `<span class="bd-zeker">${sure} ${btn(act, 'Ja', ` data-id="${esc(id)}" data-ok="1"${extra}`)} ${btn('annuleer', 'Nee')}</span>`

@@ -37,3 +37,23 @@ export function branchClosedText(branch) {
 
 // Hoeveel takken staan open (het menu laat een dichte tak zien met het slotje en de reden, nooit een leeg scherm).
 export const openBranches = () => BEZIT_BRANCH_IDS.filter(branchOpen);
+
+// ---- aansluiting op de gedeelde ontgrendelpoort van de verhaal-epic (unlockgate.js, #1131) ----
+// Percelen horen bij de wereld 'farm' (akte 2, Tessa), Bedrijven bij 'bezit' (akte 3, panden en ondernemen). De stand (progress) komt van de host:
+// setGateProgress(() => progressFrom({ stepId, ended, gate, begun })). Zonder provider blijft de stubpoort van hierboven (open).
+import { worldOpen, gateHint } from './unlockgate.js';
+export const GATE_WORLD = { land: 'farm', business: 'bezit' };
+let progressProvider = null;
+export function setGateProgress(fn) {
+  progressProvider = typeof fn === 'function' ? fn : null;
+  if (!progressProvider) { resetUnlockGate(); return; }
+  setUnlockGate((feature) => {
+    const b = Object.entries(BEZIT_BRANCHES).find(([, v]) => v.feature === feature);
+    return b ? worldOpen(GATE_WORLD[b[0]], progressProvider()) : true;
+  });
+}
+// De zin van het personage dat de wereld inleidt, voor het menu van een dichte tak; anders de gewone tekst.
+export function branchHint(branch) {
+  const h = progressProvider && GATE_WORLD[branch] ? gateHint(GATE_WORLD[branch], progressProvider()) : null;
+  return h || branchClosedText(branch);
+}
