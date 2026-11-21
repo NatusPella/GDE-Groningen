@@ -441,6 +441,10 @@ Beide zijn instellingen van het apparaat (Instellingen, gde-settings) en doen du
 
 Alle drie zijn per speler (#429): het menu toont de eigen boerderij, de eigen spullen en de eigen loopbaanprofielen van wie het opent; er gaat niets over het net en er is geen snapshot of EXTRA-bericht. Een gast ziet dus zijn eigen velden, voorraad en niveaus, en wat hij daar doet (een veld op de kaart zetten, eten opeten of weggooien, een loopbaan starten) raakt alleen zijn eigen spel. Weggooien haalt eten uit de eigen voorraad en vraagt eerst "Weggooien? Dit kan niet terug."; wapens, kleding, meubels en upgrades zijn niet weg te gooien. Valt iemand weg of sluit hij later aan, dan verandert er niets aan wat een ander in zijn eigen menu ziet. Gedekt door pure tests (`farmmodel_test`, `spullenmodel_test`, `careermodel_test`); een gastbaan is er niet bij nodig omdat er niets gedeeld wordt.
 
+## Bootplekken (21-11, #1083)
+
+Waar een boot ligt of vaart bepaalt de wereld van wie het spel opende, deterministisch (kaart, vaarnet, ankers; zelfde seed, zelfde plekken); een gast ziet de boten via de snapshot en rekent zelf geen spawns uit. Een bijbaan- of missieboot schuift zo nodig naar de dichtstbijzijnde geldige plek (docs/BOOT-SPAWN-21-11.md).
+
 ## Niet gedaan
 
 Een voertuig kopen of laten bezorgen, een helikopter of vliegtuig besturen (als passagier meerijden kan wel, #492), gesprekken met voorbijgangers, minigames die je lichaam of een voertuig verplaatsen en het stuur met een controller (Y heeft geen knop op een pad). Dat blijven aparte wensen.
