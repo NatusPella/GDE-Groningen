@@ -14,3 +14,4 @@ Schermafbeeldingen van een testbank-sessie met host en drie Electron-gasten (`sc
 | `host-na-uitval-gast.png` | de host terwijl een gast wegvalt: bij vier spelers loopt het spel door | suite `net` |
 | `hostwissel-oude-host-als-gast.png` | de oude host na de overdracht, nu als gast bij de nieuwe host | suite `overdracht` |
 | `hostwissel-nieuwe-host.png` | de nieuwe host: zijn eigen verhaal begint met het openingsfilmpje (zie het issue) | suite `overdracht` |
+| `verbinding-weg-na-de-fix.png` | hetzelfde scherm na de fix: geen "Kies" meer op de knop | suite `net` |

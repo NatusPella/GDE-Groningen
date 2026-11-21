@@ -440,7 +440,7 @@ const PHASES = {
     if (CFG.role === 'host') {
       for (const f of Object.values(w.coopFigures || {})) { f.x = p.x + 3; f.y = p.y + 1; f.vx = 0; f.vy = 0; f.verTijd = 0; f.vastTijd = 0; } // de gasten staan na de baan nog bij het startpunt: weer naast de host
       await sleep(3000);
-      const kandidaten = B.propsInRadius(p.x, p.y, 120, ['placesign', 'wegwijzer', 'bench', 'bin', 'lamp']).filter((q) => /^[a-z]+@-?d+,-?d+$/.test(q.key)).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y)).slice(0, 3);
+      const kandidaten = B.propsInRadius(p.x, p.y, 120, ['placesign', 'wegwijzer', 'bench', 'bin', 'lamp']).filter((q) => /^[a-z]+@-?\d+,-?\d+$/.test(q.key)).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y)).slice(0, 3);
       const gebroken = kandidaten.filter((q) => B.breakPropByKey(q.key, q.x, q.y, 1, 0)).map((q) => q.key);
       log('borden-host', { kandidaten: kandidaten.map((q) => q.key), gebroken, voertuigen: (w.vehicles || []).length, peds: (w.pedestrians || []).length });
       await sleep(s * 1000); return;
@@ -452,10 +452,8 @@ const PHASES = {
   },
   // #1011 (privacy): een directe code (GDE2-...) of een IP-adres mag niet in de opslag van de speler staan
   async opslagcheck() {
-    let dump = ''; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); dump += k + '=' + localStorage.getItem(k) + '
-'; } } catch (e) { dump = ''; }
-    log('opslagcheck', { sleutels: dump.split('
-').filter(Boolean).map((l) => l.split('=')[0]), gde2: /GDE2-/.test(dump), ip: /d{1,3}.d{1,3}.d{1,3}.d{1,3}/.test(dump), lengte: dump.length });
+    let dump = ''; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); dump += k + '=' + localStorage.getItem(k) + '|'; } } catch (e) { dump = ''; }
+    log('opslagcheck', { sleutels: dump.split('|').filter(Boolean).map((l) => l.split('=')[0]), gde2: /GDE2-/.test(dump), ip: /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/.test(dump), lengte: dump.length });
     await sleep(500);
   },
   // bij een slecht netwerk spelen: alleen op de aangegeven instanties (args.wie)
