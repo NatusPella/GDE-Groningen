@@ -1,5 +1,5 @@
 // De startkeuze: bij elke start vraagt het spel of je Alleen of Samen speelt (eigenaarsbesluit 21-11, hij komt terug op
-// "direct spelen"). Dit bestand is de pure regel en de Nederlandse tekst; het scherm staat in startchoiceui.js.
+// "direct spelen"). Dit bestand is de pure regel en de Nederlandse tekst; het scherm staat in launchchoiceui.js.
 // Geen netwerk en geen DOM hier: de keuze zelf gebruikt niets buiten het apparaat (constitution 4 en 10).
 //
 // De volgorde (vastgelegd in docs/COOP-GAST.md):

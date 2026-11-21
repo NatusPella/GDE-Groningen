@@ -148,7 +148,7 @@ const BASE_DEFAULTS = {
   // play with others, false = a private session for one. Null must never read as
   // "yes": it means the game still has to ask, and asks before any contact.
   onlineMeedoen: null,
-  // Alleen of Samen bij de start (startchoice.js): alleen de voorselectie van de keuzekaart, nooit een reden om de kaart over te slaan.
+  // Alleen of Samen bij de start (launchchoice.js): alleen de voorselectie van de keuzekaart, nooit een reden om de kaart over te slaan.
   startKeuze: null,
   // Samen spelen (#526): dit apparaat koos "Niet meer vragen" op het
   // toestemmingsscherm. Alleen de keuze van het scherm; zonder dit vinkje komt
