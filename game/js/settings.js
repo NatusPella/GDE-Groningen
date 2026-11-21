@@ -5,7 +5,8 @@ import { KEYS } from './storagekeys.js';
 import { WORLD_COLOR_MODES } from './worldcolormode.js';
 import { FLAGS } from './devflags.js';
 import { RAGE_CHOICES } from './roadragerules.js';
-import { SUBTITLE_CONTRASTS, TEXT_SIZES } from './a11ylogic.js';
+import { SUBTITLE_CONTRASTS, TEXT_SIZES, SHAKE_STANDEN, SUBTITLE_VLAKKEN } from './a11ylogic.js';
+import { TAP_MODES } from './holdlatch.js';
 import { cleanHelpSetting } from './assist.js';
 import { cleanDifficulty, setActiveDifficulty, setActiveLevel, onDifficultyChange, toggleChoice } from './difficulty.js';
 import { READING_TIME_CHOICES } from './cardtime.js';
@@ -134,6 +135,16 @@ const BASE_DEFAULTS = {
   subtitleContrast: 'normaal',
   textSize: 'normaal',
   reduceFlash: false,
+  // 21-11, toegankelijkheid; alles lokaal per speler en nooit over het net (Samen spelen). Een oud bestand zonder deze sleutels valt op de
+  // standaard terug, dus een versiesprong in savemigrate.js is niet nodig (settings_toegankelijk_test.mjs).
+  // schermschudden: 'aan', 'minder' of 'uit' (a11ylogic.js SHAKE_STANDEN); Beweging beperken zet het ook uit
+  screenShake: 'aan',
+  // het vak achter de ondertitels: 'vol', 'zacht' of 'licht' (a11ylogic.js SUBTITLE_VLAKKEN); alleen met "Donker vlak erachter"
+  subtitleVlak: 'vol',
+  // vormen bij kleur: wantedsterren met cijfer en een duidelijker vorm, ook zonder kleurenblindmodus (a11ylogic.js vormenAan)
+  markerVormen: false,
+  // tik in plaats van ingedrukt houden: 'uit', 'rennen', 'richten' of 'beide' (holdlatch.js)
+  tikStand: 'uit',
   // hulp (assist.js, #215): meer tijd, minder voertuigschade, ruimere vliegpoorten, en het aanbod na twee mislukkingen
   helpTime: 'uit',
   helpDamage: 'normaal',
@@ -209,6 +220,9 @@ function load() {
     out.padBinds = normalizePadBinds(out.padBinds);
     if (!SUBTITLE_CONTRASTS.includes(out.subtitleContrast)) out.subtitleContrast = DEFAULTS.subtitleContrast;
     if (!(out.textSize in TEXT_SIZES)) out.textSize = DEFAULTS.textSize;
+    if (!(out.screenShake in SHAKE_STANDEN)) out.screenShake = DEFAULTS.screenShake;
+    if (!(out.subtitleVlak in SUBTITLE_VLAKKEN)) out.subtitleVlak = DEFAULTS.subtitleVlak;
+    if (!TAP_MODES.includes(out.tikStand)) out.tikStand = DEFAULTS.tikStand;
     if (!(out.subtitleSize in SUBTITLE_SIZES)) out.subtitleSize = DEFAULTS.subtitleSize;
     if (typeof out.showSubtitles !== 'boolean') out.showSubtitles = DEFAULTS.showSubtitles;
     if (!['slim', 'alles', 'minimaal'].includes(out.hudMode)) out.hudMode = DEFAULTS.hudMode;

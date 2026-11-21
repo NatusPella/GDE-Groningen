@@ -3365,14 +3365,14 @@ export function update3D(dt, world) {
     // tuning (#196): een zachte stoel (v.tuning.comfort) dempt de schok
     const tv = player.inVehicle && player.inVehicle.tuning;
     const comfort = tv && tv.comfort > 0 ? tv.comfort : 1;
-    const amp = shakeAmount(Math.min(1, imp.strength) * CAM_SHAKE_MAX * Math.exp(-shakeAge * 7), { reduceMotion: reducedMotion() }) / comfort;
+    const amp = shakeAmount(Math.min(1, imp.strength) * CAM_SHAKE_MAX * Math.exp(-shakeAge * 7), { reduceMotion: reducedMotion(), shake: getSettings().screenShake }) / comfort;
     const t = world.time * 47;
     cam.position.x += Math.sin(t) * amp;
     cam.position.y += Math.sin(t * 1.31 + 1.7) * amp * 0.6;
     cam.position.z += Math.cos(t * 0.87 + 0.4) * amp;
   }
   if (world.quake && world.quake.amp > 0.002) {
-    const j = quakeJitter(world.time, shakeAmount(world.quake.amp, { reduceMotion: reducedMotion() }));
+    const j = quakeJitter(world.time, shakeAmount(world.quake.amp, { reduceMotion: reducedMotion(), shake: getSettings().screenShake }));
     cam.position.x += j.x; cam.position.y += j.y; cam.position.z += j.z;
   }
   scopeBlend += ((world.scoped && !camVeh ? 1 : 0) - scopeBlend) * Math.min(1, dt * 14);

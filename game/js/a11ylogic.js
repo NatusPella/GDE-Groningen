@@ -7,6 +7,25 @@
 export const SUBTITLE_CONTRASTS = ['normaal', 'hoog'];
 export const TEXT_SIZES = { normaal: 1, groot: 1.15, extragroot: 1.3 };
 
+// Schermschudden (21-11): de camera schudt bij klappen, crashes, aardbevingen en in scènes. 'aan' is zoals altijd, 'minder' een derde
+// van de uitslag, 'uit' geen schudden (Beweging beperken zet het ook uit). Lokaal per speler.
+export const SHAKE_STANDEN = { aan: 1, minder: 0.35, uit: 0 };
+export const SHAKE_STANDAARD = 'aan';
+export const schoneShake = (v) => (Object.prototype.hasOwnProperty.call(SHAKE_STANDEN, v) ? v : SHAKE_STANDAARD);
+export const shakeFactor = (stand) => SHAKE_STANDEN[schoneShake(stand)];
+
+// De achtergrond achter ondertitels (21-11): hoe dicht het papieren vak is. 'vol' is het vak van altijd; 'zacht' en 'licht' laten de
+// wereld doorschemeren. Het contrast 'Hoog' (subtitleStyle) houdt het vak altijd vol: dat is de hele reden van die stand.
+export const SUBTITLE_VLAKKEN = { vol: 1, zacht: 0.8, licht: 0.55 };
+export const SUBTITLE_VLAK_STANDAARD = 'vol';
+export const schoneVlak = (v) => (Object.prototype.hasOwnProperty.call(SUBTITLE_VLAKKEN, v) ? v : SUBTITLE_VLAK_STANDAARD);
+export const vlakAlpha = (v, contrast = 'normaal') => (contrast === 'hoog' ? 1 : SUBTITLE_VLAKKEN[schoneVlak(v)]);
+
+// Vormen bij kleur (21-11): een kleurenblindmodus verandert de kleuren; "Vormen bij kleur" voegt er vorm bij, ook zonder kleurenmodus.
+// Wantedsterren krijgen een cijfer, een lege ster is een raster en een zoekende ster is gestippeld: nooit alleen kleur.
+export const vormenAan = (s) => !!s && (s.markerVormen === true || (!!s.colorBlind && s.colorBlind !== 'uit'));
+export const sterTeken = (n, { vormen = false } = {}) => (vormen && Number.isFinite(n) && n > 0 ? String(Math.min(5, Math.max(1, Math.floor(n)))) : '');
+
 // '#rrggbb', 0xrrggbb or [r, g, b] -> [r, g, b] 0-255
 export function toRgb(c) {
   if (Array.isArray(c)) return c;
@@ -116,9 +135,9 @@ export function textScale(size) {
 }
 
 // What the two comfort settings turn off. `reduceMotion` also covers the OS setting (passed in by the caller).
-export function effectsFor({ reduceMotion = false, reduceFlash = false } = {}) {
+export function effectsFor({ reduceMotion = false, reduceFlash = false, shake = SHAKE_STANDAARD } = {}) {
   return {
-    cameraShake: reduceMotion ? 0 : 1,
+    cameraShake: reduceMotion ? 0 : shakeFactor(shake),
     cameraSway: reduceMotion ? 0 : 1,
     screenFlash: reduceFlash ? 0 : 1,
     // a flash that cannot go away must at least stay slow and dim (WCAG 2.3.1: no more than three flashes a second)

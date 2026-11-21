@@ -5,6 +5,7 @@ import { playHeartbeat, playHeavyBreath } from './audio.js';
 import { cinematicAllowsDamageFx } from './cinematics.js';
 import { hurtLevel, walkFactor, flashFor } from './lowhealthrules.js';
 import { hoofdspeler } from './players.js';
+import { getSettings } from './settings.js';
 
 let el = null;
 let k = 0;
@@ -67,7 +68,8 @@ export function tickLowHealth(dt, world) {
   // zwaar ademen, langzamer dan de hartslag, vanaf het begin van de lage gezondheid
   breath -= dt;
   if (breath <= 0 && target > 0) { breath = 2.6 - 0.8 * k; playHeavyBreath(k); }
-  const o = Math.min(1, 0.5 + 0.35 * k + (calm ? 0 : 0.3 * pulse * k));
-  el.style.opacity = Math.max(o * Math.min(1, k * 3), flash * (calm ? 0.35 : 0.6)).toFixed(3);
+  const geenFlits = !!getSettings().reduceFlash; // Flitsen beperken: geen rode flits na een klap en geen kloppende rand, wel de vaste rode rand
+  const o = Math.min(1, 0.5 + 0.35 * k + (calm || geenFlits ? 0 : 0.3 * pulse * k));
+  el.style.opacity = Math.max(o * Math.min(1, k * 3), geenFlits ? 0 : flash * (calm ? 0.35 : 0.6)).toFixed(3);
   el.style.setProperty('--lh-sat', (1 - 0.55 * k).toFixed(2));
 }

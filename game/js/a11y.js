@@ -4,7 +4,7 @@
 // a11y.css uses; canvas and 3D code read markerColors() and redraw on
 // onPaletteChange. Node-safe: no DOM at import time.
 import { getSettings, onSettingsChange, SUBTITLE_SIZES } from './settings.js';
-import { TEXT_SIZES, textScale, shakeAmount } from './a11ylogic.js';
+import { TEXT_SIZES, textScale, shakeAmount, SUBTITLE_VLAKKEN, vlakAlpha, vormenAan } from './a11ylogic.js';
 import { setShakeFilter } from './cutscript.js';
 import { reducedMotion } from './motion.js';
 import { NAV_ROL } from './navtarget.js';
@@ -51,6 +51,10 @@ function apply(s, key) {
   for (const size of Object.keys(TEXT_SIZES)) html.classList.toggle('text-' + size, s.textSize === size);
   html.style.setProperty('--text-scale', String(textScale(s.textSize)));
   html.classList.toggle('reduce-flash', !!s.reduceFlash);
+  // 21-11: de dichtheid van het ondertitelvak (--sub-vlak, 0..1; in Hoog altijd vol) en vormen bij kleur (wantedsterren met cijfer)
+  html.style.setProperty('--sub-vlak', String(vlakAlpha(s.subtitleVlak, s.subtitleContrast)));
+  for (const v of Object.keys(SUBTITLE_VLAKKEN)) html.classList.toggle('subv-' + v, s.subtitleVlak === v);
+  html.classList.toggle('vormen-extra', vormenAan(s));
   for (const m of Object.keys(PALETTES)) html.classList.toggle('cb-' + m, s.colorBlind === m && m !== 'uit');
   const p = markerColors();
   for (const [k, v] of Object.entries(p)) html.style.setProperty('--mk-' + k, v);
@@ -64,6 +68,6 @@ function apply(s, key) {
 
 export function initA11y() {
   // camera shake in staged scenes follows "Beweging beperken" (and the system setting)
-  setShakeFilter((a) => shakeAmount(a, { reduceMotion: reducedMotion() }));
+  setShakeFilter((a) => shakeAmount(a, { reduceMotion: reducedMotion(), shake: getSettings().screenShake }));
   onSettingsChange(apply);
 }
