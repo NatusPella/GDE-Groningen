@@ -751,6 +751,7 @@ function settingsHtml() {
         ${toggle('showSubtitles', 'Ondertitels aan', 'Uit verbergt wat er gezegd wordt; geluiden beschrijven hieronder blijft dan gewoon werken')}
         ${picker('subtitleSize', 'Grootte', [['klein', 'Klein'], ['normaal', 'Normaal'], ['groot', 'Groot'], ['extragroot', 'Extra groot']])}
         ${toggle('subtitleBox', 'Donker vlak erachter', 'Een donker vlak maakt ze makkelijker te lezen')}
+        ${picker('subtitleVlak', 'Dichtheid van het vlak', [['vol', 'Vol'], ['zacht', 'Zacht'], ['licht', 'Licht']], 'Hoe goed je er doorheen kijkt; bij Contrast ondertitels Hoog is het vlak altijd vol')}
         ${toggle('soundCaptions', 'Geluiden beschrijven', 'Een korte tekst als [sirene] of [claxon] bij belangrijke geluiden')}`, true)}`, `
       <aside class="m-pane"><div class="pm-pane-top"><span class="m-eb">Zo ziet het eruit</span></div>
         <div class="pm-subprev" data-sub-preview><span class="pm-subtxt"><b>Tammo:</b> Rustig an, rustig an.</span></div>
@@ -833,16 +834,19 @@ ${keyReuseHtml()}
     ${tab('online', `<div class="pm-online" data-online-instelling></div>`, `${pane('Samen spelen', 'Je naam en je akkoord', '<p>Alleen bij Samen spelen gaat er iets naar buiten. Hier pas je je naam aan (andere spelers zien hem) of trek je je akkoord in; bij Samen spelen vraagt het spel er dan opnieuw om.</p>')}`)}
     ${tab('a11y', `
       ${picker('colorBlind', 'Kleurenblind', [['uit', 'Uit'], ['deuteranopie', 'Deuteranopie'], ['protanopie', 'Protanopie'], ['tritanopie', 'Tritanopie']], 'Andere kleuren voor markers, routes, kaart en HUD')}
+      ${toggle('markerVormen', 'Vormen bij kleur', 'Wantedsterren met een cijfer en een zwaardere rand, ook zonder kleurenstand; doelen hebben altijd hun eigen vorm')}
       ${slider('uiScale', 'Grootte interface', 0.8, 1.5, 0.05)}
       ${picker('textSize', 'Tekstgrootte', [['normaal', 'Normaal'], ['groot', 'Groot'], ['extragroot', 'Extra groot']], 'Groter voor meldingen, toetshints en berichten')}
       ${picker('subtitleContrast', 'Contrast ondertitels', [['normaal', 'Normaal'], ['hoog', 'Hoog']], 'Hoog: wit op bijna zwart, met zwaardere letters')}
       ${toggle('reduceMotion', 'Beweging beperken', 'Staat ook aan als je systeem om minder beweging vraagt')}
+      ${picker('screenShake', 'Schermschudden', [['aan', 'Aan'], ['minder', 'Minder'], ['uit', 'Uit']], 'Het schudden van het beeld bij klappen, botsingen en aardbevingen; bij Beweging beperken staat het uit')}
       ${toggle('rustigDrukwerk', 'Rustig drukwerk', 'Geen schuine kaarten, dubbele randen of rasters, en scherper contrast in tekst')}
       ${toggle('stapAnimatie', 'Instap- en uitstapanimatie', 'Uit: je staat meteen op je stoel, zonder deur open en dicht')}
       ${toggle('reduceFlash', 'Flitsen beperken', 'Geen witte schermflitsen in filmpjes en intro')}
       ${toggle('screenNarration', 'Schermnarratie', 'Lees statuswijzigingen voor via de schermlezer: doel, gezondheid, politie en plaatsnaam')}
       <div class="m-gh"><span>Hulp</span></div>
-      ${picker('helpTime', 'Meer tijd', [['uit', 'Uit'], ['ruimer', '+25%'], ['ruim', '+50%'], ['heel ruim', 'Dubbel']], 'Langere tijdslimieten en vensters in missies')}
+      ${picker('tikStand', 'Tikken in plaats van ingedrukt houden', [['uit', 'Uit'], ['rennen', 'Rennen'], ['richten', 'Richten'], ['beide', 'Rennen en richten']], 'Eén tik zet het aan, een tweede tik uit; alleen te voet. Rennen komt ook los als je stilstaat')}
+      ${picker('helpTime', 'Meer tijd', [['uit', 'Uit'], ['ruimer', '+25%'], ['ruim', '+50%'], ['heel ruim', 'Dubbel']], 'Langere tijdslimieten en vensters in missies en timingspelletjes; Quicktime-events stel je in onder Hints & uitleg')}
       ${picker('helpDamage', 'Minder schade', [['normaal', 'Normaal'], ['minder', 'Minder'], ['veel minder', 'Veel minder']], 'Je eigen voertuig houdt meer over na een klap')}
       ${picker('helpGates', 'Ruimere vliegpoorten', [['normaal', 'Normaal'], ['ruimer', 'Ruimer'], ['ruim', 'Ruim']], 'Grotere ringen en een bredere hoogteband')}
       ${toggle('helpOffer', 'Hulp aanbieden', 'Na twee keer mislukken van dezelfde stap vraagt het spel of je hulp wilt')}`, `${pane('Toegankelijkheid', 'Lekker lezen', `<p>Vormen en patronen helpen altijd, ook als je geen kleurenstand kiest. Menu’s, kaarten en tellers springen meteen naar hun nieuwe stand als je beweging beperkt.</p>
