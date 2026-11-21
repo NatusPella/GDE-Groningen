@@ -11,6 +11,7 @@ import { beleidMarktdag } from './beleidswinkel.js'; // #492: 'Altijd marktdag' 
 import { FJORD_UPGRADE_DAG, fjordDagomzet, fjordPassief } from './fjordcijfers.js';
 export { fjordDagomzet, fjordPassief } from './fjordcijfers.js';
 import { isToday } from './calendarday.js';
+import { sfxEvent } from './sfx/haken.js';
 
 // The snackwagen, after the story: drive the foodtruck (shops.js
 // 'fjordfrituur') to a busy spot, stop, open the hatch (E) and serve the
@@ -286,7 +287,7 @@ export const FJORD = {
     const d = run.data;
     for (let i = 0; i < MENU.length; i++) {
       const k = String(i + 1);
-      if (input.wasPressed(k)) { input.consume(k); if (d.tray.length < 3) d.tray.push(MENU[i].id); }
+      if (input.wasPressed(k)) { input.consume(k); if (d.tray.length < 3) { d.tray.push(MENU[i].id); sfxEvent(run.world, 'fryer_sizzle', d.truck && d.truck.x, d.truck && d.truck.y); } }   // SFX ronde 6: het hapje de frituur in
     }
     if (input.wasPressed('backspace') || input.wasPressed('0')) { input.consume('backspace'); input.consume('0'); d.tray = []; }
     if (input.wasPressed(' ') || input.wasPressed('enter')) { input.consume(' '); input.consume('enter'); d.serve = true; }
@@ -338,6 +339,7 @@ export const FJORD = {
           d.earned += pay;
           d.served++;
           d.flash = { text: `+${euro(pay)}`, t: 1.2, ok: true };
+          sfxEvent(w, 'snack_wrap', d.truck && d.truck.x, d.truck && d.truck.y);   // SFX ronde 6: het bakje over de toonbank
           leave(run, q, pick(FJORD_BUBBLES.happy));
         } else {
           d.wrong++;

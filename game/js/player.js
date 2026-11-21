@@ -1288,6 +1288,8 @@ function pushVehicleAudio(world, v, first, second) {
   const auto = heeftAutoPortier(v); // de opname van het portier (sfx/samples.js, #460): auto, bestelwagen, taxi
   if (first && (door || !first.startsWith('door'))) q.push({ kind: first, x: v.x, y: v.y, auto });
   if (second && (door || !second.startsWith('door'))) q.push({ kind: second, x: v.x, y: v.y, auto });
+  // SFX ronde 6: instappen in een auto, bestelwagen of taxi: de gordel klikt (alleen bij starten van de motor, niet bij uitstappen)
+  if (auto && second === 'engine_start' && q.length < 64) q.push({ kind: 'fx', name: 'seatbelt_click', x: v.x, y: v.y });
 }
 
 export function stopVehicle(v) {

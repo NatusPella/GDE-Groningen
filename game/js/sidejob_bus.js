@@ -15,6 +15,7 @@ import { simHudTik, simHudPop, uitlegGezien, zetUitlegGezien } from './simhud.js
 import { busHudModel, haltePop, UITLEG_ID } from './busstatus.js';
 import { maakSimKolom, zetSimKolom } from './simkolom3d.js';
 import { reducedMotion } from './motion.js';
+import { sfxEvent } from './sfx/haken.js';
 
 const STOP_R = 9;
 const STOP_SPEED = 0.8;
@@ -217,6 +218,7 @@ export default {
     const kerb = stop.kerb;
     if (Math.hypot(kerb.x - p.x, kerb.y - p.y) < SHOW_R && !d.spawnedFor) {
       d.spawnedFor = idx + 1;
+      if (inBus) sfxEvent(world, 'bus_stop_button', v.x, v.y);   // SFX ronde 6: een passagier drukt op de stopknop, één keer per halte
       const n = 1 + Math.floor(Math.random() * 3);
       d.waiting = [];
       for (let i = 0; i < n; i++) {

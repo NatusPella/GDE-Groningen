@@ -351,6 +351,7 @@ function doeKoppel(w, c) {
   if (!r.ok) { zeg(w, 'koppel', r.reden, 2, 3.5); return false; }
   const d = WT.WERKTUIG[c.imp.type];
   const hint = d.vervoer ? 'Laad de oogst bij je erf met {E}.' : [d.hef ? `${TOETS.hef} = hef` : null, d.pto ? `${TOETS.pto} = aftakas` : null].filter(Boolean).join(', ');
+  sfxEvent(w, 'gate_latch', c.imp.x, c.imp.y);   // SFX ronde 6: de koppeling klikt vast
   bericht(w, `${r.naam} gekoppeld.${hint ? ' ' + hint + '.' : ''}`, 5);
   return true;
 }

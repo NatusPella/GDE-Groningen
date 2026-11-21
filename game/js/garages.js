@@ -13,6 +13,7 @@ import { wijkProfileAt } from './trafficfleet.js';
 import './tuningworkshopui.js'; // meldt zijn opener aan bij shops.js (epic Autotuning, #1155)
 import { vehicleUpgradeItems, paintItems, getOwnedEntries, spawnOwnedEntry, replacementFee, getHeroLook, vehiclePreviewOf } from './shops.js';
 import { pushAudioEvent } from './pedgeom.js';
+import { sfxEvent } from './sfx/haken.js';
 import { repairCost, platesCost, HERO_REPLACE_FEE, garageKorting } from './economy.js';
 import { spawnHeroCarNear } from './vehicle.js';
 import { markDirty } from './savehook.js';
@@ -389,14 +390,15 @@ function garageMenu(w, site) {
         buy() {
           if (!pay(w, 8)) return null;
           w.health = 100;
+          sfxEvent(w, 'coffee_brew', v.x, v.y);
           return 'Koffie van Henk: sterk genoeg om een deuk uit te drukken';
         },
       });
       out.push({ title: 'Werkplaats', note: isOwn(v) ? '' : 'Let op: niet jouw voertuig, upgrades blijven er niet aan hangen', items });
       const paint = paintItems(w, v);
-      if (paint.length) out.push({ title: 'Spuit & Klaar: nieuwe lak', note: w.wanted > 0 ? (koel > 0 ? `De spuitcabine is nog ${Math.ceil(koel)} s afgekoeld` : 'Een nieuwe kleur en de politie is je kwijt') : '', items: paint.map((it) => ({ ...it, buy() { const r = it.buy(); if (r != null) { pushAudioEvent(w, { kind: 'whoosh', x: v.x, y: v.y, strength: 0.7 }); markDirty('lak'); } return r; } })) });
+      if (paint.length) out.push({ title: 'Spuit & Klaar: nieuwe lak', note: w.wanted > 0 ? (koel > 0 ? `De spuitcabine is nog ${Math.ceil(koel)} s afgekoeld` : 'Een nieuwe kleur en de politie is je kwijt') : '', items: paint.map((it) => ({ ...it, buy() { const r = it.buy(); if (r != null) { pushAudioEvent(w, { kind: 'whoosh', x: v.x, y: v.y, strength: 0.7 }); sfxEvent(w, 'spray_can', v.x, v.y); markDirty('lak'); } return r; } })) });
       const up = vehicleUpgradeItems(w, v);
-      if (up.length) out.push({ title: twoWheel(v) ? 'Opvoeren' : 'Tuning', items: up.map((it) => ({ ...it, buy() { const r = it.buy(); if (r != null) { pushAudioEvent(w, { kind: 'impact', material: 'metal', strength: 0.45, x: v.x, y: v.y }); markDirty('upgrade'); } return r; } })) });
+      if (up.length) out.push({ title: twoWheel(v) ? 'Opvoeren' : 'Tuning', items: up.map((it) => ({ ...it, buy() { const r = it.buy(); if (r != null) { pushAudioEvent(w, { kind: 'impact', material: 'metal', strength: 0.45, x: v.x, y: v.y }); sfxEvent(w, 'wrench_ratchet', v.x, v.y); markDirty('upgrade'); } return r; } })) });
     }
     if (serviceable(v) && isOwn(v)) {
       const pimp = pimpEntryItem(w, v, { id: site.name + '|' + Math.round(site.x) + '|' + Math.round(site.y), name: site.name, kind: site.kind === 'pomp' ? 'pomp' : site.home ? 'thuis' : 'garage', region: site.region });

@@ -5,6 +5,7 @@
 // Samen spelen: bezit is per speler (#429); een koper stuurt een claim (bezitcoop.js) via de haak setClaimLookup/setClaimSend; zonder sessie is er geen claim.
 
 import { KEYS } from './storagekeys.js';
+import { sfxEvent } from './sfx/haken.js';
 import { noteMoney } from './finance.js';
 import { euro } from './geldtekst.js';
 import { getBoerderij } from './boerderijlive.js';
@@ -154,6 +155,7 @@ export function koopPerceel(w, id) {
   if (!r.ok) return { ...r, text: r.why === 'te-weinig-geld' ? `Je mist nog ${euro(r.tekort)}.` : 'Kopen lukt nu niet.' };
   noteMoney('Winkels'); w.money -= o.price;
   B.boek(farm, { kosten: o.price, post: 'aankoop' });
+  sfxEvent(w, 'deed_stamp');   // SFX ronde 6: de akte wordt gestempeld (per speler: lokaal, een gast hoort het niet)
   claimSend({ id, action: 'claim' });
   markeer();
   try { achieve(w); } catch (e) { /* prestaties niet klaar */ }
@@ -240,6 +242,7 @@ export function koopPand(w, osm) {
   const r = BZ.buyBusiness(getBezit(), o.row, o.kind, o.town, Math.floor(farm.uren / 24), Number.isFinite(w && w.money) ? w.money : 0);
   if (!r.ok) return { ...r, text: r.why === 'te-weinig-geld' ? `Je mist nog ${euro(r.tekort)}.` : 'Kopen lukt nu niet.' };
   noteMoney('Winkels'); w.money -= r.cost;
+  sfxEvent(w, 'deed_stamp');   // SFX ronde 6: de akte wordt gestempeld (per speler: lokaal)
   markeer();
   try { unlockAchievement(w, 'bz_winkel'); } catch (e) { /* prestaties niet klaar */ }
   return { ok: true, cost: r.cost, text: `Pand gekocht voor ${euro(r.cost)}.` };

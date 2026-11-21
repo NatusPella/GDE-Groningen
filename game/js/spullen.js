@@ -14,6 +14,7 @@
 import { WEAPONS, hasWeapon, isMeleeWeapon } from './combat.js';
 import { WEAPON_STOCK, clothingLook, wearClothing, takeOffClothing, CAR_UPGRADES, BIKE_UPGRADES, MOTO_UPGRADES, inventoryShopState, upgradeListForStock } from './shops.js';
 import { VEHICLE_STOCK } from './shopdata.js';
+import { sfxEvent } from './sfx/haken.js';
 import { furnitureOwned, FURNITURE_TOTAL } from './furniture.js';
 import { fjordUpgradeOffers } from './pg_foodtruck.js';
 import { getHomeForRender } from './home.js';
@@ -229,7 +230,7 @@ function collect(w) {
       side: held ? 'In de hand' : '', desc: s.desc || (melee ? 'Een slagwapen voor dichtbij.' : ''),
       how: s.gun ? `Pang & Zo, ${euro(s.gun)}` : '',
       rows: [['Toets', String(WEAPONS[k].slot)], ...(WEAPONS[k].damage ? [['Schade', String(WEAPONS[k].damage)]] : [])],
-      act: held ? { label: 'Wegleggen', run: () => { w.weapon = 'fists'; return `${s.label || k} weggelegd`; } } : { label: 'In de hand nemen', run: () => { w.weapon = k; return `${s.label || k} in de hand`; } },
+      act: held ? { label: 'Wegleggen', run: () => { w.weapon = 'fists'; sfxEvent(w, 'ui_item_equip'); return `${s.label || k} weggelegd`; } } : { label: 'In de hand nemen', run: () => { w.weapon = k; sfxEvent(w, 'ui_item_equip'); return `${s.label || k} in de hand`; } },
     };
   };
   const ownGuns = guns.filter((k) => hasWeapon(w, k));

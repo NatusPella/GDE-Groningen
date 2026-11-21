@@ -167,8 +167,7 @@ gesture('buiten een menu: geen tikje en geen keuze', [[T0, 'focus', { info: loss
   const leaf = read('game/js/menusound.js').replace(/\/\/[^\n]*/g, '');
   ok(!/import /.test(leaf), 'menusound.js importeert niets (een blad, zoals pausestate.js)');
   // het volume: dezelfde UI-bus als de rest, geen eigen volume
-  // 21-11 (SFX ronde 5): opgenomen klikjes gaan via uiFx (zelfde UI-bus, eigen clipniveau); alleen de synthese-regels tellen hier
-  ok(!/gain: 0\.[2-9]/.test(ui.slice(ui.indexOf('function play(r)'), ui.indexOf('// --- stingers')).split(String.fromCharCode(10)).filter((l) => !/uiFx\(/.test(l)).join(String.fromCharCode(10))), 'de menugeluiden blijven zacht en gaan over dezelfde UI-bus');
+  ok(!/gain: 0\.[2-9]/.test(ui.slice(ui.indexOf('function play(r)'), ui.indexOf('// --- stingers')).replace(/uiFx\([^)]*\)/g, 'uiFx()')), 'de menugeluiden blijven zacht en gaan over dezelfde UI-bus');
 }
 
 console.log(`${n - fails}/${n} ok`);
