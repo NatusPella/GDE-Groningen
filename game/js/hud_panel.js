@@ -1571,7 +1571,7 @@ function currentObjective(world) {
     const d = r && r.kind === 'user' ? r.remaining : Math.hypot(goal.x - hoofdspeler(world).x, goal.y - hoofdspeler(world).y);
     const wait = storyWaiting(world);
     const first = r && r.kind === 'user' && r.target && /^Eerst: /.test(r.target.name) ? r.target.name : '';
-    const sub = [first || goal.sub, formatDistance(d), wait ? `verhaal wacht: ${wait.label}` : ''].filter(Boolean).join(' · ');
+    const sub = [first || goal.sub, formatDistance(d), wait ? `je verhaalmissie wacht: ${wait.label}` : ''].filter(Boolean).join(' · ');
     // the HUD takes no clicks: say where the goal can be dropped, the first few times
     return { kind: 'goal', title: `Doel: ${goal.name}`, sub, hint: goalHints <= GOAL_HINTS ? `${sub} · wissen via Activiteiten of de kaart` : '', timer: '' };
   }

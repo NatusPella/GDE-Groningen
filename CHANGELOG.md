@@ -11,6 +11,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+- Het naamscherm heet nu "Hoe heet je?" en vraagt alleen een naam, ook voor wie Alleen speelt; het akkoord met de online diensten (STUN en brokers, je IP-adres) komt pas als je Samen spelen kiest, en weigeren brengt je terug naar de keuze zonder iets te verliezen.
+- De keuzekaart en het naamscherm staan onderaan, zodat het GDE-logo zichtbaar blijft, en de laadstatus eronder is verborgen. De knop met focus is de gele hoofdknop (standaard Alleen spelen).
+- Het opstartscherm toont geen "Stap n van m" meer: één doorlopende balk met een statusregel die zegt wat het spel doet.
+- De hint "Houd SPATIE ingedrukt om over te slaan" is groter en beter leesbaar; de regel onder het doel bij je eigen waypoint zegt "je verhaalmissie wacht: ..." en de kaart "Weg uit beeld" toont geen rij lege sterren meer; de uitleg bij Zelf gaan op de kaart is natuurlijker verwoord.
 - De uitleg bij de cheats toont {ENTER} als toetsplaatje in plaats van een tekstkeycap, en de startkaarten van de activiteiten tonen de spatie als toetsplaatje.
 - Het schildje van de eenheden bij de politiechip op de minikaart is een Phosphor-icoon; sessiecodes en het nieuws op het startscherm gebruiken één vast lettertype voor codes.
 - Boten van het omgevingsverkeer: de kanaalscan kan op verzoek eerst af zijn voor er een plek gekozen wordt (alleen voor tests en audits; in het spel blijft het tijdbudget van 3 ms), zodat dezelfde seed altijd dezelfde plekken geeft. De test van de bootplekken is stabiel (20 van 20 keer groen).
