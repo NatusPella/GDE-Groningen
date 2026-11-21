@@ -19,6 +19,9 @@ export const FY = {
   'Dêr bisto, jonge. Kom yn, kom yn. De sop is klear.': 'Daar ben je, jongen. Kom binnen, kom binnen. De soep is klaar.',
   'Ytst dan mar earst, dan prate wy.': 'Eet dan maar eerst, dan praten we.',
   'Hy seit neat, mar hy docht it goed.': 'Hij zegt niets, maar hij doet het goed.',
+  'Ik haw sop meinommen. Jimme ite te min.': 'Ik heb soep meegenomen. Jullie eten te weinig.',
+  'Wannear trouwe jim?': 'Wanneer trouwen jullie?',
+  'Ik freegje mar.': 'Ik vraag het maar.',
   'Ja, beppe.': 'Ja, oma.',
   'Is Tessa der ek? Dan meitsje ik sop.': 'Is Tessa er ook? Dan maak ik soep.',
   // overgangsscènes O4 en O5 (#1125): Tessa zegt Mem tegen de buurvrouw uit Ljouwert

@@ -333,12 +333,15 @@ export const STEPS = [
   M('M12', 'staart', 'Het staat niet in het rooster', 'traumaduif', { built: true, reward: 1500, loopbanen: ['lucht'],
     story: { intro: ['M12.1'], outro: ['M12.4'], replay: ['M12.5'] }, scenes: ['M12.1', 'M12.2', 'M12.3', 'M12.4', 'M12.5'],
     lead: ['A', 'Dokter Dijkstra wacht in Lauwersoog met een heli. Eerst eten voor de nachtdienst, dan naar Jelles ballon boven de Dollard, voor het koopboek.'] }),
+  // ronde 5 (Jelle en de romance, J1 tot en met J6): activiteiten zonder beloning, met migratie zoals N1-N8 (storyarc.js ADDED_STEPS)
+  A('J1', 'staart', 'Post van de gemeente', { type: 'home' }, { built: true, scenes: ['J1'], lead: ['A', 'Er ligt een stapel brieven van de gemeente op de mat in Paddepoel, allemaal over onze auto en allemaal van één afzender. Even naar huis, zien wat Jelle nu heeft ingediend.'], homeScene: { id: 'J1', big: 'Post van de gemeente', clock: 17.5 } }),
   M('M13', 'staart', 'Het containerlabyrint', 'containers', { built: true, reward: 900, loopbanen: ['handhaving'],
     story: { intro: ['M13.1'], outro: ['M13.3'], replay: ['M13.4'] }, scenes: ['M13.1', 'M13.2', 'M13.3', 'M13.4'],
     lead: ['A', 'De Eemshaven, vannacht. Lammert wacht aan de kade: container 4471 moet leeg uitvaren.'] }),
   M('M14', 'staart', 'De dijk', 'dijk', { built: true, reward: 1000,
     story: { intro: ['M14.1'], outro: ['M14.3'], replay: ['M14.4'] }, scenes: ['M14.1', 'M14.2', 'M14.3', 'M14.4'],
     lead: ['T', 'Zonsopgang op de dijk bij Bierum. Om acht uur legt Jelles deurwaarder beslag in Delfzijl. Wij zijn eerder bij de sluis.'] }),
+  A('J2', 'staart', 'Een envelop in Appingedam', { type: 'reis', to: 'Appingedam', at: [53.3200, 6.8580], r: 400, scene: 'J2' }, { built: true, scenes: ['J2'], lead: ['T', 'Lammert belde: er ligt een envelop voor hem klaar, van Jelle. Kom even langs op de brug in Appingedam, onder de hangende balkons.'] }),
   A('T3', 'staart', 'De trein naar Winschoten', { type: 'reis', to: 'Winschoten', at: [53.1444, 7.0356], r: 400, scene: 'T3', from: 4 }, { built: true, scenes: ['T3'],
     lead: ['A', 'Van Delfzijl met de trein naar Winschoten. Jelle geeft de juryleden daar op de kermis een proeverij.'] }),
   M('M15', 'staart', 'Laag over het graan', 'graan', { built: true, reward: 900,
@@ -351,16 +354,21 @@ export const STEPS = [
   A('A2', 'staart', 'De kermisrit', { type: 'kermis' }, { built: true, loopbanen: ['kermis'],
     lead: ['A', "De kermis in Stad staat nog op de Grote Markt. Eén ritje in de botsauto's, dan rijden we door naar het zuiden."] }),
 
+  A('J3', 'staart', "Koffie bij Tessa's ouders", { type: 'reis', to: 'het erf bij Siddeburen', at: [53.2430, 6.8660], r: 500, scene: 'J3' }, { built: true, scenes: ['J3'], lead: ['T', "Tessa's moeder wil mij zien. Zondag, koffie, het erf bij Siddeburen. Tessa zegt dat het meevalt. Haar stem zegt iets anders."] }),
+
   // --- Akte 4: Zuidwaarts (Veenkoloniën en Westerwolde, zo 23 - wo 26 augustus) ----------
   M('M17', 'zuid', 'Open, dicht', 'bruggen', { built: true, reward: 700,
     story: { intro: ['M17.1'], outro: ['M17.3', 'M17.5'], replay: ['M17.4'] }, scenes: ['M17.1', 'M17.2', 'M17.3', 'M17.5', 'M17.4'],
     lead: ['A', 'Eerst de mosterd. Wubbo bedient elf bruggen in Veendam: vaar voor Jelles mosterdschip uit, dan sluit hij de bruggen achter je.'] }),
+  A('J4', 'zuid', 'Een dubbele date in Veendam', { type: 'reis', to: 'het terras aan het Oosterdiep', at: [53.1060, 6.8790], r: 300, scene: 'J4' }, { built: true, scenes: ['J4'], lead: ['A', 'Femke en Rikus willen eten, met ons erbij. Een terras aan het Oosterdiep in Veendam. Zij noemt het een date, wij noemen het avondeten.'] }),
   M('M18', 'zuid', 'Wie draaide de camera\'s uit?', 'wiebelwerk', { built: true, reward: 600,
     story: { intro: ['M18.1'], outro: ['M18.4'], replay: ['M18.5'] }, scenes: ['M18.1', 'M18.2', 'M18.6', 'M18.7', 'M18.3', 'M18.4', 'M18.5'],
     lead: ['T', "Dan het bewijs. Grunn houdt ons voor de dieven; Wiebelwerk in Veendam beheert de museumcamera's. Het logboek van 12 augustus moet laten zien dat Jelle de bal al had."] }),
+  A('J5', 'zuid', 'Een wielklem in Stadskanaal', { type: 'reis', to: 'Stadskanaal', at: [52.9890, 6.9500], r: 400, scene: 'J5' }, { built: true, scenes: ['J5'], lead: ['T', 'De Escapade staat in Stadskanaal en heeft een gele klem om een wiel. Ik wil weten wie dat heeft aangevraagd. Ik denk het te weten.'] }),
   M('M19', 'zuid', 'Stoom', 'stoom', { built: true, reward: 800,
     story: { intro: ['M19.1'], outro: ['M19.3'], replay: ['M19.4'] }, scenes: ['M19.1', 'M19.2', 'M19.3', 'M19.4'],
     lead: ['A', 'Dan de jury: wie de jury koopt, hoeft niet te winnen. In Jelles stilstaande stoomtrein in Veendam zitten de laatste juryleden vast. Rij hem naar Wildervank.'] }),
+  A('J6', 'zuid', 'Beppe aan de deur', { type: 'home' }, { built: true, scenes: ['J6'], lead: ['T', 'Beppe belde dat ze langskomt. Met soep. Het is nog maar dinsdag, maar ik ruim de flat vast op.'], homeScene: { id: 'J6', big: 'Beppe aan de deur', clock: 20 } }),
   // the bus to Bourtange: the goal is the place (storyreis.js, akte 2's travel steps); the trip talk is the beat's (reisbeats.js)
   A('T4', 'zuid', 'De bus naar Bourtange', { type: 'reis', to: 'Vesting Bourtange', at: [53.0069, 7.1914], r: 350, scene: 'T4.3', from: 0 }, { built: true, scenes: ['T4.1', 'T4.2', 'T4.3', 'T4.4'],
     lead: ['T', 'Jelle komt dinsdag met zijn mannen naar het Beleg van Bourtange. Berend heeft veertig man, vijftien kartonnen kanonnen en een bus. Hij wacht in het bos bij Ter Apel.'] }),

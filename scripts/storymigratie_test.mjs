@@ -8,7 +8,7 @@ let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info !== '' ? ` (${info})` : ''}`); } };
 const idx = (id) => STEPS.findIndex((s) => s.id === id);
 
-ok([...ADDED_STEPS].sort().join() === 'N1,N2,N3,N4,N5,N6,N7,N8', 'acht nieuwe stappen');
+ok([...ADDED_STEPS].filter((id) => /^N/.test(id)).sort().join() === 'N1,N2,N3,N4,N5,N6,N7,N8', 'acht nieuwe stappen N1 tot en met N8');
 ok(STEPS.filter((s) => s.kind === 'mission').map((s) => s.id).join() === [...Array(30)].map((_, i) => 'M' + String(i + 1).padStart(2, '0')).join(), 'de dertig missies staan nog in dezelfde volgorde');
 ok(idx('M02') < idx('N1') && idx('N4') < idx('M03') && idx('M08') < idx('N8') && idx('N8') < idx('T1') && idx('N5') < idx('M10') && idx('N7') < idx('T2'), 'de stappen staan op hun invoegpunt');
 ok(ADDED_STEPS.every((id) => { const s = STEPS.find((x) => x.id === id); return s.kind === 'activity' && s.built && !s.reward && !s.cost && !s.unlocks; }), 'elke nieuwe stap is een activiteit zonder beloning, kosten of vlag');
