@@ -1483,6 +1483,10 @@
   {
    "glob": "benchmark*",
    "reden": "Prestatiemeting van dit apparaat (benchmark en advies); lokaal, geen spelstaat."
+  },
+  {
+   "glob": "goaltext",
+   "reden": "Alleen de opmaak van de doeltekst in de HUD; lokaal beeld, de doelen zelf zijn van de speler."
   }
  ],
  "opslag": {
