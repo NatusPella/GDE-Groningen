@@ -43,8 +43,19 @@ const { compileScene } = await import('../game/js/cutscript.js');
 const verhuis = OPENING_ACTS.find((a) => a.id === 'story-opening-verhuisdag');
 ok(!!verhuis, 'C00.3 (verhuisdag) bestaat');
 if (verhuis) {
-  const lines = Array.from({ length: 5 }, (_, i) => ({ speaker: i % 2 ? 'Anita' : 'Tammo', text: 'Regel ' + i, at: i * 6, dur: 5 }));
-  const scene = compileScene(verhuis, { lines, duration: 45 });
+  // Het aantal regels volgt de echte cue-data (hoogste L-verwijzing in cues, shots en fx), niet een vast getal:
+  // de opening kreeg een zesde regel (L5) en de test liep achter. De scene gaat door openingActs, net als in het
+  // spel, zodat de regeltijden en het wegfilteren van niet-oplopende shots hetzelfde zijn als in de film.
+  const refs = [...(verhuis.cues || []), ...(verhuis.shots || []), ...(verhuis.fx || [])]
+    .map((c) => /^L(\d+)/.exec(typeof c.t === 'string' ? c.t : '')).filter(Boolean).map((m) => +m[1]);
+  const lineCount = Math.max(...refs) + 1;
+  ok(lineCount >= 6, 'C00.3 verwijst naar zijn regels met L-tijden', String(lineCount));
+  const { openingActs } = await import('../game/js/cutscenes.js');
+  const OPENING_ACT3_START = 25; // ACT_SPLIT in cutscenes.js: C00.3 begint bij regel 25
+  const lines = Array.from({ length: OPENING_ACT3_START + lineCount }, (_, i) => ({ speaker: i % 2 ? 'Anita' : 'Tammo', text: 'Regel ' + i, at: i * 6, dur: 5 }));
+  const act = openingActs(lines).find((x) => x.def.id === verhuis.id);
+  ok(!!act, 'openingActs levert C00.3');
+  const scene = compileScene(act.def, { lines: act.lines, duration: act.duration });
   const anchor = { x: 500, y: -300, facing: 1.1, z: 0 };
   const voor = scene.sample(1, anchor);
   const na = scene.sample(40, anchor);
