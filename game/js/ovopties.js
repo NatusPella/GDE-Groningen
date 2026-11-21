@@ -12,7 +12,8 @@ export const WALK_V = 1.5;
 export const BUS_WAIT_S = 240;       // gemiddeld wachten op de halte
 export const BUS_CHANGE_S = 180;
 export const BOAT_WAIT_S = 300;
-export const STOP_NEAR_M = 600;      // zo ver lopen we naar een halte
+export const OV_MIN_M = 1500;        // onder deze afstand is trein, bus of boot geen keuze (kaartactie.js geeft de reden)
+export const STOP_NEAR_M = 600;     // zo ver lopen we naar een halte
 export const CHANGE_NEAR_M = 150;    // haltes zo dicht bij elkaar zijn een overstap
 
 // lijnkleuren per soort; bussen krijgen een vaste kleur uit het palet per lijnnummer

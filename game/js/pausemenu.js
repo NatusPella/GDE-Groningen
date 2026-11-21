@@ -13,7 +13,7 @@ import { logoHtml } from './logo.js';
 import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './pausestate.js';
 import { uitlegBlok, zetUitlegGlyph, startUitleg, resetUitlegNietMeer } from './uitleg.js';
 import { PRESET_ORDER, presetLabel, PRESET_HINTS, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
-import { mountMapView, kaartUitlegSluiten, kaartReisPopupSluiten, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
+import { mountMapView, kaartUitlegSluiten, kaartReisPopupSluiten, kaartPlekkaartSluiten, kaartToets, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
 import { mountOnlineInstelling } from './onlineconsentui.js';
 import { renderSamenPanel, requestOpenSamen, samenHubTerug } from './samenpanel.js';
 import { isSoloHost, stopSoloHost } from './coopsolo.js';
@@ -450,7 +450,7 @@ function basisUitlegHtml() {
 const HINTS = {
   overzicht: [[['↑', '↓'], 'kiezen'], [['Enter'], 'ok'], [['Esc'], 'doorgaan', 'resume']],
   todo: [[['↑', '↓'], 'kiezen'], [['Enter'], 'zet als doel'], [['Esc'], BACK, 'back']],
-  map: [[['Klik'], 'plek kiezen'], [['Q', 'E'], 'onderdeel'], [['M'], 'sluiten', 'resume'], [['Esc'], BACK, 'back']],
+  map: [[['Klik'], 'plek kiezen'], [['Q', 'E'], 'andere pagina'], [['M'], 'sluiten', 'resume'], [['Esc'], BACK, 'back']],
   verhaal: [[['↑', '↓'], 'kiezen'], [['Enter'], 'kiezen of bellen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
   spullen: [[['↑', '↓', '←', '→'], 'kiezen'], [['Enter'], 'gebruiken'], [['Q', 'E'], 'soort'], [['Esc'], BACK, 'back']],
   garage: [[['↑', '↓'], 'kiezen'], [['Enter'], 'afleveren of kopen'], [['Q', 'E'], 'soort'], [['Esc'], BACK, 'back']],
@@ -1351,6 +1351,8 @@ function onKey(e) {
   const t = e.target instanceof Element ? e.target : null;
   // text fields (the searches) have their own keys, Escape included
   if (t && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && !['range', 'checkbox'].includes(t.type)))) return;
+  // de kaartvensters (de uitleg, de reispopup) en de plekkaart hebben het toetsenpatroon van alle kaartpopups (mapview.js kaartToets, 21-11)
+  if (tab === 'map' && kaartToets(e)) return;
   const dir = ARROWS[k];
   if (e.repeat && !dir) return;
   // #915: een open vraag houdt alle andere menutoetsen tegen; alleen Esc, Tab, de pijlen
@@ -1552,7 +1554,7 @@ function goBack() {
   // het zoekvenster (21-11) gaat voor alles met Escape dicht
   if (findOpen()) { closeFind(); return; }
   // de eenmalige uitleg op de kaart gaat met Escape (en B) eerst weg; de kaart blijft open
-  if (tab === 'map' && (kaartUitlegSluiten() || kaartReisPopupSluiten())) return; // daarna de reispopup (21-11): terug naar de plekkaart
+  if (tab === 'map' && (kaartUitlegSluiten() || kaartReisPopupSluiten() || kaartPlekkaartSluiten())) return; // daarna de reispopup en de plekkaart (21-11): een laag terug per Esc of B
   // Spullen (#1013): een openstaande vraag "Weggooien?" gaat eerst weg met Escape
   if (tab === 'spullen' && spullenAnnuleer(activePanel())) return;
   // Samen spelen (#527): de hub met drie stappen gaat eerst zelf een stap terug, zodat Escape de sessie nooit

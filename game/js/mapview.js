@@ -35,7 +35,8 @@ import { haltesVoorKaart } from './bushalte.js';
 import { reisOptiesVoor, tekenLijnen, lijnLagen } from './reiskaart.js';
 import { kaartRijen } from './ovkaart.js';
 import { actieModel, reisKeuzes, infoRegels, GAST_REIS_MELDING, UITLEG_ID, klikActie } from './kaartactie.js';
-import { actiesHtml, reisPopupHtml, infoHtml, uitlegHtml, hierHtml, legendaHintHtml, KAART_ACTIE_CSS } from './kaartactieui.js';
+import { navIndex, PAGE_SWITCH_KEYS, rijCijfer } from './listnav.js';
+import { actiesHtml, reisPopupHtml, infoHtml, uitlegHtml, hierHtml, legendaHintHtml, sluitHtml, KAART_ACTIE_CSS } from './kaartactieui.js';
 import { markSeen, parseSeen } from './hudtext.js';
 import { optieRegel } from './ovopties.js';
 import { startMeerijden } from './reisrit.js';
@@ -2480,9 +2481,10 @@ function showCard(world, h, sx, sy) {
   // op jezelf klikken: een hint bij je eigen plek, geen acties naar jezelf (#445)
   if (h.self) {
     const el = state.cardEl;
-    el.innerHTML = `<span class="mv-ico"><img src="${mapIconUrl('player')}" alt=""></span><div>${hierHtml(h.hier || '')}<div class="mv-btns"><button type="button" class="mv-link" data-card="close">Sluiten</button></div></div>`;
+    el.innerHTML = `<span class="mv-ico"><img src="${mapIconUrl('player')}" alt=""></span><div>${hierHtml(h.hier || '')}${sluitHtml()}</div>`;
     el.hidden = false;
     state.card = { h, self: true };
+    focusPlekkaart();
     return;
   }
   const goal = getGoal();
@@ -2504,13 +2506,14 @@ function showCard(world, h, sx, sy) {
   if (stap === 'reis') {
     const rijen = reisKeuzes(opts, d, { gast });
     const keep0 = keep ? keep.gekozen : null;
-    gekozen = (rijen.find((r) => r.id === keep0 && r.soort === 'snel') || rijen.find((r) => r.aanbevolen && r.soort === 'snel') || rijen.find((r) => r.soort === 'snel') || {}).id || null;
+    // de keuze die je had, anders de aanbevolen rij, anders de eerste die een route heeft (een rij zonder route is niet te kiezen)
+    gekozen = (rijen.find((r) => r.id === keep0 && !r.geenRoute) || rijen.find((r) => r.aanbevolen) || rijen.find((r) => !r.geenRoute) || {}).id || null;
     const kleur = Object.fromEntries(kaartRijen(opts, optieRegel, gekozen).map((r) => [r.id, r.color]));
     // 21-11: de reiskeuze is een eigen popup (reisPopupHtml); de plekkaart groeit niet meer
     const sel = opts.find((o) => o.id === gekozen);
     const prijs = sel ? (sel.price > 0 ? `€ ${sel.price}` : 'gratis') : '';
     const melding = gast ? GAST_REIS_MELDING
-      : !opts.length ? 'Er gaat hier geen snelle verbinding heen. Kies Zelf gaan: dat zet een waypoint.'
+      : !gekozen ? 'Er gaat geen vervoer naar deze plek. Zet een waypoint om er zelf heen te gaan.'
       : sel && !sel.afford ? (sel.blokkade || 'Je hebt te weinig geld voor deze rit.') : '';
     popup = { naam: it ? it.title : h.name, afstand: formatDistance(d), rijen, gekozen, kleur, gast, melding,
       reis: gekozen && sel && !gast ? { label: `Reis nu · ${prijs} · ${sel.eta || ''}`.trim(), uitgeschakeld: !sel.afford } : null };
@@ -2521,26 +2524,39 @@ function showCard(world, h, sx, sy) {
   const el = state.cardEl;
   el.innerHTML = `<span class="mv-ico">${h.kind ? `<img src="${mapIconUrl(h.kind)}" alt="">` : ''}</span><div><b>${escHtml(it ? (it.code ? it.code + ' · ' : '') + it.title : h.name || 'Plek op de kaart')}</b>` +
     `<small>${meta}</small>${pips || (it && it.record) ? `<span class="mv-rec">${pips}${escHtml(it ? it.record : '')}</span>` : ''}${h.samen ? `<p class="mv-note" data-samen="${escHtml(h.samen.status)}">${escHtml(h.samen.tekst)}</p>` : ''}${actiesHtml(model, stap)}${stapHtml}` +
-    '<div class="mv-btns"><button type="button" class="mv-link" data-card="close">Sluiten</button></div></div>';
+    `${sluitHtml()}</div>`;
   el.hidden = false;
   state.card = { h, it, gekozen, stap, model };
   syncReisPopup(popup);
+  // eerste focus op de primaire actie (21-11); een popup neemt de focus zelf, en bij een andere keuze in de popup blijft hij waar hij was
+  if (!popup) focusPlekkaart(stap === 'info' ? '[data-card="info"]' : null);
 }
 
-// De reispopup (21-11): een eigen venster over de kaart in plaats van een plekkaart die groeit. Dezelfde logica als eerst (reisKeuzes,
-// kies:, rij, zelf); alleen de plek waar de keuze staat is nieuw. Esc en Terug sluiten naar de plekkaart, Enter bevestigt, Tab blijft binnen.
+// Eerste focus van de plekkaart (21-11): de primaire actie (Zet waypoint, of Haal weg / Volg het verhaal), zodat Enter en de A-knop meteen iets doen
+// en de D-pad en pijltjes er vanaf lopen. Programmatische focus na een muisklik toont geen ring (focus-visible), dus de muis ziet er niets van.
+function focusPlekkaart(sel) {
+  const el = state.cardEl && !state.cardEl.hidden ? state.cardEl : null;
+  const b = el && (el.querySelector(sel || '.mv-actie') || el.querySelector('[data-card="close"]'));
+  if (b) b.focus({ preventScroll: true });
+}
+
+// De reispopup (21-11): een eigen venster over de kaart in plaats van een plekkaart die groeit. Een rij per vervoerswijze (reisKeuzes), elke rij
+// kiest met kies:, Reis nu (rij) bevestigt; Zelf gaan is geen keuze meer (dat is Zet waypoint). Esc en Terug sluiten naar de plekkaart, Enter bevestigt,
+// de focus blijft binnen het venster (kaartToets). Eerste focus: Reis nu, de primaire actie; na een keuze met Enter of een cijfer springt de focus naar Reis nu.
 function syncReisPopup(popup) {
   const body = state.overlay && state.overlay.querySelector('.mapview-body');
   if (!body) return;
   const oud = body.querySelector('.mv-reispop');
   if (!popup) { if (oud) oud.remove(); return; }
   const fc = oud && oud.contains(document.activeElement) && document.activeElement.dataset ? document.activeElement.dataset.card : null;
+  const naarOk = state.reisFocusOk; state.reisFocusOk = false;
   if (oud) oud.remove();
   body.insertAdjacentHTML('beforeend', reisPopupHtml(popup));
   const pop = body.querySelector('.mv-reispop');
   // bij een andere keuze komt het venster niet opnieuw binnen schuiven
   if (oud) pop.style.animation = 'none', pop.firstElementChild.style.animation = 'none';
-  const wens = (fc && [...pop.querySelectorAll('[data-card]')].find((b) => b.dataset.card === fc && !b.disabled)) || pop.querySelector('.mv-reispop-ok:not(:disabled)') || pop.querySelector('.mv-keuze.sel') || pop.querySelector('.mv-reispop-terug');
+  const ok = pop.querySelector('.mv-reispop-ok:not(:disabled)');
+  const wens = (naarOk && ok) || (fc && [...pop.querySelectorAll('[data-card]')].find((b) => b.dataset.card === fc && !b.disabled)) || ok || pop.querySelector('.mv-keuze.sel') || pop.querySelector('.mv-reispop-terug');
   if (wens) wens.focus({ preventScroll: true });
 }
 // Esc en de B-knop (pausemenu.js goBack): eerst de reispopup dicht, terug naar de plekkaart; true als er een openstond.
@@ -2553,33 +2569,92 @@ export function kaartReisPopupSluiten() {
   (terug || state.canvas).focus({ preventScroll: true });
   return true;
 }
-// Toetsen in de popup: Enter bevestigt (behalve op een keuze, daar kiest hij), Tab blijft binnen het venster, pijl omhoog en omlaag lopen langs de keuzes.
+// De laag daaronder (21-11): Esc of B sluit na de uitleg en de popup ook de plekkaart (de kaart blijft open); pas dan gaat de kaart zelf dicht. true als er een plekkaart openstond.
+export function kaartPlekkaartSluiten() {
+  if (!state || !state.open || !state.card || !state.cardEl || state.cardEl.hidden) return false;
+  hideCard();
+  state.canvas.focus({ preventScroll: true });
+  return true;
+}
+// Staat er een venster open dat de toetsen voor zichzelf houdt (de reispopup of de eenmalige uitleg)?
+export function kaartPopupOpen() {
+  return !!(state && state.overlay && state.overlay.querySelector('.mv-reispop, .mv-help'));
+}
+
+// Het toetsenpatroon van alle kaartpopups (21-11; docs/KAART-POPUPS-21-11.md, DESIGN_SYSTEM.md "Navigatie met controller en toetsenbord"):
+//   Enter of A bevestigt (de focus, of in de reispopup Reis nu), Esc of B gaat een laag terug, pijl omhoog/omlaag of D-pad lopen door de knoppen,
+//   links/rechts in de voetknoppen, Home/End naar begin en einde, 1 tot 9 kiest een rij of actie, Tab blijft in een venster, Q/E en [ ] doen
+//   in een venster niets (ze zouden het menu onder de kaart wisselen). Pad en toetsenbord sturen dezelfde toetsen (gamepad.js), dus dit is één pad.
+const NAAR_MENU = PAGE_SWITCH_KEYS;
+function stop(e) { e.preventDefault(); e.stopPropagation(); }
+function lijstFocus(lijst, e, wrap) {
+  const n = navIndex(lijst.length, lijst.indexOf(document.activeElement), e.key, { wrap, shift: e.shiftKey });
+  if (lijst[n]) lijst[n].focus({ preventScroll: true });
+}
+// pop: de reispopup. true als de toets hier is afgehandeld.
 function reisPopupToets(e, pop) {
   const knoppen = [...pop.querySelectorAll('button:not(:disabled)')];
-  if (e.key === 'Enter' && !(e.target && e.target.closest && e.target.closest('.mv-keuze, .mv-reispop-terug'))) {
-    const ok = pop.querySelector('.mv-reispop-ok:not(:disabled)');
-    e.preventDefault();
-    if (ok) ok.click();
+  const doel = e.target && e.target.closest ? e.target.closest('button') : null;
+  const op = (doel && pop.contains(doel)) ? doel : null;
+  if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) {
+    stop(e);
+    const rij = op && op.closest('.mv-keuze');
+    if (rij) {
+      // een rij: kiezen, en de focus gaat naar Reis nu zodat de volgende Enter bevestigt
+      state.reisFocusOk = true;
+      cardAction(state.world, rij.dataset.card);
+    } else (op || pop.querySelector('.mv-reispop-ok:not(:disabled)') || pop.querySelector('.mv-reispop-terug')).click();
     return true;
   }
-  if (e.key === 'Enter') return true; // de focus doet zijn eigen klik; niets onder het venster krijgt de toets
-  if (e.key === 'Tab' && knoppen.length) {
-    const i = knoppen.indexOf(document.activeElement);
-    const n = e.shiftKey ? (i <= 0 ? knoppen.length - 1 : i - 1) : (i < 0 || i === knoppen.length - 1 ? 0 : i + 1);
-    e.preventDefault();
-    knoppen[n].focus({ preventScroll: true });
+  if (e.key === 'Enter' || e.key === ' ') { stop(e); return true; }
+  if (e.key === 'Tab' && knoppen.length) { stop(e); lijstFocus(knoppen, e, true); return true; }
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Home' || e.key === 'End') { stop(e); lijstFocus(knoppen, e, false); return true; }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    stop(e);
+    if (op && op.closest('.mv-help-foot')) lijstFocus([...pop.querySelectorAll('.mv-help-foot button:not(:disabled)')], e, false);
     return true;
   }
-  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-    const keuzes = [...pop.querySelectorAll('.mv-keuze')];
-    const i = keuzes.indexOf(document.activeElement);
-    if (i >= 0 || keuzes.length) {
-      e.preventDefault();
-      keuzes[Math.max(0, Math.min(keuzes.length - 1, i + (e.key === 'ArrowDown' ? 1 : -1)))].focus({ preventScroll: true });
-    }
+  if (rijCijfer(e.key)) {
+    const rij = pop.querySelector(`.mv-keuze[data-key="${e.key}"]`);
+    stop(e);
+    if (rij) { state.reisFocusOk = true; cardAction(state.world, rij.dataset.card); }
     return true;
   }
+  if (NAAR_MENU.test(e.key)) { stop(e); return true; }
   return false;
+}
+// De plekkaart is geen venster (de kaart blijft bedienbaar): de cijfers 1 tot 3 doen de actie, met de focus in de kaart lopen de pijlen langs de knoppen.
+function plekkaartToets(e) {
+  const kaart = state.cardEl;
+  if (!state.card || !kaart || kaart.hidden) return false;
+  if (rijCijfer(e.key) && !e.repeat) {
+    const b = kaart.querySelector(`.mv-actie[data-key="${e.key}"]`);
+    if (!b) return false;
+    stop(e);
+    b.click();
+    return true;
+  }
+  if (!kaart.contains(document.activeElement)) return false;
+  const knoppen = [...kaart.querySelectorAll('button:not(:disabled)')];
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Home' || e.key === 'End') { stop(e); lijstFocus(knoppen, e, false); return true; }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { stop(e); return true; } // de kaart schuift niet terwijl je in de kaartkaart bent; Esc geeft hem terug
+  return false;
+}
+// Eén ingang voor pausemenu.js (dat de toetsen als eerste krijgt) en voor de eigen luisteraar hieronder: true als de toets van een kaartvenster of de plekkaart was.
+export function kaartToets(e) {
+  if (!state || !state.open || !state.overlay) return false;
+  if (e.metaKey || e.ctrlKey || e.altKey) return false;
+  const t = e.target;
+  if (t && (t === state.searchInput || (t.tagName === 'INPUT' && t.type !== 'checkbox'))) return false;
+  const uitleg = state.overlay.querySelector('.mv-help');
+  if (uitleg) {
+    if ((e.key === 'Enter' || e.key === ' ') && kaartUitlegSluiten()) { stop(e); return true; }
+    if (e.key === 'Tab' || NAAR_MENU.test(e.key) || e.key.startsWith('Arrow')) { stop(e); return true; }
+    return false;
+  }
+  const pop = state.overlay.querySelector('.mv-reispop');
+  if (pop) return reisPopupToets(e, pop);
+  return plekkaartToets(e);
 }
 
 // De uitleg bij de kaart (#445; de toetsen en knoppen staan in de voetregel van het pauzemenu): de eerste keer open, te sluiten, terug te vinden bij Besturing, Hulp.
@@ -2599,7 +2674,7 @@ function initKaartUitleg(overlay) {
 // De uitleg past bij je rol (#445): een gast leest er de Samen spelen-regel bij.
 // Bij het openen, want of je gast bent kan na het starten veranderen. De uitleg is een
 // eenmalige popup over de kaart: één keer, met de focus erop, daarna nooit meer vanzelf.
-function syncKaartUitleg(world) {
+function syncKaartUitleg(world, opnieuw = false) {
   if (!state.overlay) return;
   const body = state.overlay.querySelector('.mapview-body');
   if (!body) return;
@@ -2607,7 +2682,7 @@ function syncKaartUitleg(world) {
   const box = state.overlay.querySelector('.mv-help');
   if (box) {
     if ((box.dataset.gast === '1') !== gast) { box.outerHTML = uitlegHtml({ gast }); plaatsWijzers(); }
-  } else if (!kaartGezien()) {
+  } else if (opnieuw || !kaartGezien()) {
     // eenmalige popup over de kaart; hij neemt zelf de focus, dus de kaart eronder is even rustig
     body.insertAdjacentHTML('beforeend', uitlegHtml({ gast }));
     const knop = state.overlay.querySelector('.mv-help .mv-help-ok');
@@ -2659,6 +2734,8 @@ function sluitKaartUitleg(btn) {
   uitlegGezien = true;
   const box = btn && btn.closest ? btn.closest('.mv-help') : state.overlay && state.overlay.querySelector('.mv-help');
   if (box) box.remove();
+  // de focus gaat terug: naar de Hulp-knop als de uitleg daarvan kwam, anders naar het doek (anders valt hij op het niets)
+  if (state && state.open) { const hb = state.hulpTerug && state.overlay.querySelector('[data-act="hulp"]'); (hb || state.canvas).focus({ preventScroll: true }); state.hulpTerug = false; }
   try { localStorage.setItem(KEYS.hudSeen, JSON.stringify(markSeen(parseSeen(localStorage.getItem(KEYS.hudSeen)), UITLEG_ID))); } catch (e) { /* ignore */ }
 }
 
@@ -2699,7 +2776,8 @@ function cardAction(world, act) {
   const c = state.card;
   if (!c) return;
   if (act.startsWith('kies:') && state.reis) {
-    // een andere optie uitlichten: de lijnen op de kaart wisselen mee
+    // een andere optie uitlichten: de lijnen op de kaart wisselen mee; een vervoer zonder route (alleen een reden in de rij) valt niet te kiezen
+    if (!state.reis.opts.some((o) => o.id === act.slice(5) && o.ride)) return;
     c.gekozen = act.slice(5);
     showCard(world, c.h);
     return;
@@ -2712,15 +2790,7 @@ function cardAction(world, act) {
     showCard(world, c.h);
     return;
   }
-  if (act === 'zelf') {
-    // Zelf gaan: een waypoint, en de kaart gaat dicht zodat je zelf kunt gaan
-    const h = c.h;
-    hideCard();
-    zetWaypoint(world, c, h);
-    if (closeHandler) closeHandler();
-    else closeMap();
-    return;
-  }
+  // Zelf gaan bestaat niet meer als reisoptie (21-11): dat is Zet waypoint ('waypoint' hieronder)
   if (act === 'rij' && state.reis) {
     const { opts, gekozen, dest } = state.reis;
     const o = opts.find((x) => x.id === gekozen);
@@ -2758,11 +2828,13 @@ function handleKeys(dt, world) {
   const input = world.input;
   if (document.activeElement === state.searchInput) return;
   if (state.overlay && state.overlay.querySelector('.mv-reispop, .mv-help')) return; // een open popup of uitleg: de pijltjes schuiven de kaart niet
+  // met de focus in de plekkaart lopen de pijlen langs haar knoppen (kaartToets); WASD blijft de kaart schuiven
+  const pijl = !(state.cardEl && !state.cardEl.hidden && state.cardEl.contains(document.activeElement));
   let px = 0, py = 0;
-  if (input.isDown('a') || input.isDown('arrowleft')) px -= 1;
-  if (input.isDown('d') || input.isDown('arrowright')) px += 1;
-  if (input.isDown('w') || input.isDown('arrowup')) py -= 1;
-  if (input.isDown('s') || input.isDown('arrowdown')) py += 1;
+  if (input.isDown('a') || (pijl && input.isDown('arrowleft'))) px -= 1;
+  if (input.isDown('d') || (pijl && input.isDown('arrowright'))) px += 1;
+  if (input.isDown('w') || (pijl && input.isDown('arrowup'))) py -= 1;
+  if (input.isDown('s') || (pijl && input.isDown('arrowdown'))) py += 1;
   if (px || py) {
     const speed = 700 * dt / state.scale;
     state.cx += px * speed;
@@ -3117,7 +3189,7 @@ export function initMapView(world) {
     '<button type="button" class="m-bg mv-layers" data-act="layers" aria-expanded="false" aria-controls="mv-legend" aria-label="Lagen" title="Lagen">' + icoon('lagen', { maat: 'm' }) + ' Lagen <span class="mv-layers-n"></span></button>' +
     '<button type="button" class="m-bg mv-close" data-act="close" style="display:none">Sluiten</button></div></div>' +
     '<div class="mapview-body"><canvas class="mapview-canvas"></canvas>' +
-    '<div class="mapview-zoom"><button type="button" class="m-bg" data-act="in" aria-label="Inzoomen">' + icoon('plus') + '</button><button type="button" class="m-bg" data-act="out" aria-label="Uitzoomen">' + icoon('min') + '</button><button type="button" class="m-bg" data-act="centre" aria-label="Naar jezelf">' + icoon('doel') + '</button></div>' +
+    '<div class="mapview-zoom"><button type="button" class="m-bg" data-act="in" aria-label="Inzoomen">' + icoon('plus') + '</button><button type="button" class="m-bg" data-act="out" aria-label="Uitzoomen">' + icoon('min') + '</button><button type="button" class="m-bg" data-act="centre" aria-label="Naar jezelf">' + icoon('doel') + '</button><button type="button" class="m-bg" data-act="hulp" aria-label="Uitleg bij de kaart" title="Uitleg bij de kaart">' + icoon('vraag') + '</button></div>' +
     '<div class="mv-goal"><span class="m-eb">Je route</span><span class="mapview-route"></span><button type="button" class="m-bt" data-act="clear" hidden>Haal waypoint weg</button><button type="button" class="m-bt" data-act="avoid" aria-pressed="false" hidden>Snelwegen vermijden</button></div>' +
     '<div class="mapview-osm">© OpenStreetMap-bijdragers</div>' +
     '<div class="mapview-tp" hidden>Kies een plek: daar sta je meteen · ' + keyTextHtml('{ESC}') + ' stopt</div><div class="mapview-tooltip"></div><div class="mapview-card" hidden></div><div class="mv-naamkaart" hidden aria-live="polite"></div><aside class="mapview-legend" id="mv-legend" hidden></aside></div>';
@@ -3241,6 +3313,7 @@ export function initMapView(world) {
     else if (act === 'close') { if (closeHandler) closeHandler(); else closeMap(); } // no Esc on a touchscreen
     else if (act === 'clear') clearUserWaypoint();
     else if (act === 'uitleg-sluit') sluitKaartUitleg(btn);
+    else if (act === 'hulp') { hideCard(); state.hulpTerug = true; syncKaartUitleg(world, true); } // de Hulp-knop (21-11): dezelfde uitleg als de eerste keer, op elk moment
     else if (act === 'care-off') dismissCareRoute();
     else if ((act === 'pg-next' || act === 'pg-off' || act === 'pg-on') && world.postgameActions) {
       const g = world.postgameActions.guide;
@@ -3375,11 +3448,8 @@ export function initMapView(world) {
 
   window.addEventListener('keydown', (e) => {
     if (!state.open || e.target === si) return;
-    // de eenmalige uitleg sluit met Enter of spatie, waar de focus ook staat (21-11)
-    if ((e.key === 'Enter' || e.key === ' ') && kaartUitlegSluiten()) { e.preventDefault(); return; }
-    // staat de reispopup open, dan is die van het toetsenbord (21-11): Enter bevestigt, Tab blijft binnen, Esc loopt via pausemenu.js goBack
-    const reisPop = state.overlay.querySelector('.mv-reispop');
-    if (reisPop && reisPopupToets(e, reisPop)) return;
+    // de uitleg en de reispopup zijn van het toetsenbord (21-11): Enter bevestigt, Tab blijft binnen, Esc loopt via pausemenu.js goBack
+    if (kaartToets(e)) return;
     // Enter on the map itself (a controller's A): click under the crosshair
     if (e.key === 'Enter' && !e.defaultPrevented && !(e.target && e.target.closest && e.target.closest('button, input, a, select, .mapview-card'))) {
       e.preventDefault();
