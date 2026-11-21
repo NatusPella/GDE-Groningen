@@ -2,7 +2,7 @@
 // Puur: geen DOM, geen spel. Samen spelen: de doelen zijn per speler lokaal; de groep komt als eigen lijst binnen (net als in coopmissie.js).
 import fs from 'node:fs';
 import { snapshotFromWorld, distanceFor, compactDistance, resolveNavTargets, navColor, navTekst, pathRole, eigenGlyph, lineStyleFor, NAV_ROL, NAV_TYPES, GLYPH, MAX_SECUNDAIR, AANKOMST_M, PATH_KIND } from '../game/js/navtarget.js';
-import { drawMapTargets, track, place, spreid, drawKompasRand, TRACK_INSET, MIN_ACTIEF, MIN_DOT, ACTIVE_R, DOT_R, TAG_GAP, tagPlek } from '../game/js/navpijl.js';
+import { drawMapTargets, track, place, spreid, drawKompasRand, TRACK_INSET, MIN_ACTIEF, MIN_DOT, ACTIVE_R, DOT_R, TAG_GAP, tagPlace } from '../game/js/navpijl.js';
 import { iconBekend } from '../game/js/icons.js';
 import { PALETTES } from '../game/js/a11y.js';
 import { dsKleur, contrast, kaartLand } from '../game/js/kaartkleuren.js';
@@ -234,11 +234,11 @@ const types = (r) => r.alle.map((d) => d.type + ':' + d.rol);
   let binnen = true; for (let q = 0; q < b.lengte; q += 2) { const [x, y] = b.punt(q); if (Math.min(x, y, S - x, S - y) < ACTIVE_R + 2) binnen = false; }
   ok(binnen, 'elke plek op de baan houdt de schijf binnen de kaart');
   // de tag staat tegen de schijf aan, aan de binnenkant, en nooit buiten de kaart
-  const l = tagPlek(TRACK_INSET, 120, S, 38, 17), r = tagPlek(S - TRACK_INSET, 120, S, 38, 17), o = tagPlek(120, TRACK_INSET, S, 38, 17), u = tagPlek(120, S - TRACK_INSET, S, 38, 17);
+  const l = tagPlace(TRACK_INSET, 120, S, 38, 17), r = tagPlace(S - TRACK_INSET, 120, S, 38, 17), o = tagPlace(120, TRACK_INSET, S, 38, 17), u = tagPlace(120, S - TRACK_INSET, S, 38, 17);
   ok(l.kant === 0 && l.cx - 19 >= TRACK_INSET + ACTIVE_R + TAG_GAP - 0.01 && Math.abs(l.cy - 120) < 0.01, 'tag links: rechts naast de schijf, op dezelfde hoogte');
   ok(r.kant === 2 && r.cx + 19 <= S - TRACK_INSET - ACTIVE_R - TAG_GAP + 0.01, 'tag rechts: links naast de schijf');
   ok(o.kant === 1 && o.cy - 8.5 >= TRACK_INSET + ACTIVE_R + TAG_GAP - 0.01 && u.kant === 3 && u.cy + 8.5 <= S - TRACK_INSET - ACTIVE_R - TAG_GAP + 0.01, 'tag boven en onder: aan de binnenkant');
-  const hoek = tagPlek(TRACK_INSET, TRACK_INSET, S, 60, 17);
+  const hoek = tagPlace(TRACK_INSET, TRACK_INSET, S, 60, 17);
   ok(hoek.cx - 30 >= 2 && hoek.cy - 8.5 >= 2 && hoek.cx + 30 <= S - 2, 'tag in de hoek blijft binnen de kaart');
   // obstakels: een marker op de plek van de N-badge schuift opzij en blijft op de baan
   const n = place([{ a: -Math.PI / 2, actief: true }], S, [{ a: -Math.PI / 2, nodig: 28 }]).items[0];

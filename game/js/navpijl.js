@@ -92,7 +92,7 @@ export function place(items, S, obstakels = []) {
 }
 
 // Waar de tag komt: aan de kant van de kaart waar de schijf zit (aan de linkerrand: rechts van de schijf; bovenaan: eronder), tegen de schijf aan en binnen de kaart geklemd.
-export function tagPlek(x, y, S, w, h, r = ACTIVE_R) {
+export function tagPlace(x, y, S, w, h, r = ACTIVE_R) {
   const d = [x, y, S - x, S - y];
   const kant = d.indexOf(Math.min(...d)); // 0 links, 1 boven, 2 rechts, 3 onder
   let cx = x, cy = y;
@@ -156,7 +156,7 @@ export function drawKompasRand(ctx, S, items, opties = {}) {
     const puls = opties.beweging === false ? 0 : 0.6 * (0.5 + 0.5 * Math.sin((opties.t || 0) * 5));
     cirkel(ctx, i.x, i.y, ACTIVE_R + 1.6, k.creme); // een crème randje: de schijf leest ook op donker land
     schijf(ctx, k, i.x, i.y, ACTIVE_R, i.kleur, i.icoon, puls);
-    if (i.tekst) { const g = tagGrootte(ctx, i.tekst); const p = tagPlek(i.x, i.y, S, g.w, g.h); tag(ctx, p.cx, p.cy, g.w, g.h, i.tekst, k); }
+    if (i.tekst) { const g = tagGrootte(ctx, i.tekst); const p = tagPlace(i.x, i.y, S, g.w, g.h); tag(ctx, p.cx, p.cy, g.w, g.h, i.tekst, k); }
   }
   ctx.restore();
   return geplaatst;
