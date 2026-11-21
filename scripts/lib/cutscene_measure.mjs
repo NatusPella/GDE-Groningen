@@ -175,7 +175,9 @@ export function simulateRecords(unit, anchor = { x: 500, y: -300, facing: 1.1, z
       const s = unit.scene.sample(Math.min(t, dur), anchor);
       const regel = (unit.lines || []).find((l) => t >= l.at && t < l.at + l.dur) || null;
       let speaker = null;
-      if (regel && !/^(radio|telefoon|app|voicemail)/.test(regel.channel || '') && regel.key !== 'V') {
+      const defShot = (unit.def && unit.def.shots || [])[s.camera.shotIndex];
+      const bewustOff = !!(defShot && (defShot.offscreen || defShot.shot === 'insert')); // een reactie- of insertshot: de spreker is bewust niet in beeld
+      if (regel && !bewustOff &&!/^(radio|telefoon|app|voicemail)/.test(regel.channel || '') && regel.key !== 'V') {
         const actors = (unit.def && unit.def.actors) || {};
         const id = Object.keys(actors).find((k) => k === regel.speaker || [].concat(actors[k].speaker || []).includes(regel.speaker));
         const a = id && s.actors[id];
