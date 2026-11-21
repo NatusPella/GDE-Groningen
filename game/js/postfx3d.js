@@ -35,6 +35,8 @@ const GradeShader = {
     uFxSat: { value: 1 },
     uFxCon: { value: 1 },
     uFlash: { value: 0 },
+    uRaster: { value: 0 },
+    uKorrel: { value: 0 },
     toneMappingExposure: { value: 1 },
   },
   vertexShader: `
@@ -43,7 +45,7 @@ const GradeShader = {
   fragmentShader: `
     uniform sampler2D tDiffuse;
     uniform sampler2D tBloom;
-    uniform float uSat, uContrast, uLift, uVignette, uAspect, uBright, uLook, uDrunk, uTime, uFxSat, uFxCon, uFlash;
+    uniform float uSat, uContrast, uLift, uVignette, uAspect, uBright, uLook, uDrunk, uTime, uFxSat, uFxCon, uFlash, uRaster, uKorrel;
     uniform vec3 uShadowTint, uHighTint;
     varying vec2 vUv;
     #include <tonemapping_pars_fragment>
@@ -86,6 +88,16 @@ const GradeShader = {
       c = pow(max(c, vec3(0.0)), vec3(1.0 / uBright));
       vec2 q = (vUv - 0.5) * vec2(uAspect, 1.0);
       c *= 1.0 - uVignette * smoothstep(0.35, 1.05, length(q));
+      // wereldkleur (worldgrade.js, alleen Hoog en Ultra): een rasterhint in de schaduw en een lichte papierkorrel; beide staan op 0 bij Uit,
+      // Rustig drukwerk en kleurenblind. Statisch in schermpixels (niets beweegt). Gelijk aan halftonePattern en gradeNoise in worldgrade.js.
+      if (uRaster > 0.0 || uKorrel > 0.0) {
+        float lw = dot(c, vec3(0.2126, 0.7152, 0.0722));
+        vec2 hp = vec2(gl_FragCoord.x + gl_FragCoord.y, gl_FragCoord.x - gl_FragCoord.y) * 0.70710678 * 1.5707963;
+        float dots = 0.5 + 0.5 * sin(hp.x) * sin(hp.y);
+        c *= 1.0 - uRaster * (1.0 - smoothstep(0.05, 0.30, lw)) * dots;
+        float gn = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453);
+        c += (gn - 0.5) * uKorrel * (1.0 - 0.5 * lw);
+      }
       if (uLook > 0.0) c = mix(c, trailerLook(clamp(c, 0.0, 1.0)), uLook);
       c = mix(vec3(dot(c, vec3(0.2126, 0.7152, 0.0722))), c, uFxSat);
       c = (c - 0.5) * uFxCon + 0.5;
@@ -328,6 +340,8 @@ export function createPostFX(renderer, scene, cam) {
       u.uShadowTint.value.copy(L.shadowTint).convertLinearToSRGB().lerp(_grey, storm * 0.5);
       u.uHighTint.value.copy(L.hiTint).convertLinearToSRGB().lerp(_grey, storm * 0.5);
       u.uVignette.value = L.vig + storm * 0.06;
+      u.uRaster.value = L.gradeRaster || 0;
+      u.uKorrel.value = L.gradeKorrel || 0;
       u.uAspect.value = width / Math.max(1, height);
       u.uLook.value = this.look;
       u.uDrunk.value = drunkVisual();
