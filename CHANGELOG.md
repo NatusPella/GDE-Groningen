@@ -84,6 +84,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Nieuws van het land (hoogstens vijf regels): droogte, stortbui, mieren en wespen drukken de oogst van je percelen (ook van personeel en pacht, en bij handwerk met een melding); een machine met veel slijtage kan stilvallen, vee kan ziek worden (de dierenarts kost geld), de Inspectiedienst Noordrand geeft een boete of lof, de koeling van je keten kan uitvallen, en een buurman komt met een keuze. Bij een dorpsfeest of kermis staat de trekkertrek als aanbod in het nieuws (de wedstrijd zelf is nog niet te spelen).
 - Frietwagen als bezit: in Bedrijven kun je de frietwagen kopen (zonder pand), een standplaats kiezen (Grote Markt, station, Noorderplantsoen, dorp, kust of de kermis), renoveren en verkopen; de dagomzet komt elke speldag binnen. Hij kan ook de snackbar van je frietketen zijn.
 - Woningen: het aantal woningen per plaats komt nu uit de wereld (geen schatting van 1.500 meer; de stad Groningen blijft een schatting) en in Bedrijven staan woningen in de buurt te koop. Een gekochte woning wordt verhuurd en kan een paar dagen leeg staan als de huurder verhuist.
+- Snackwagen: vergunningen die tijdens een lange slaap of rit aflopen worden verlengd met het geld dat er op dat moment nog is; eerder werd per dag het hele saldo opnieuw gerekend en verdween het tekort
+- Snackwagen: een bod van Usmem aannemen nadat de vergunning is vervallen telt niet meer als weigeren; het aanbod blijft staan tot het verloopt
+- Frietwagen als verhaalcadeau levert bij verkoop niets op (een gekochte wagen nog steeds driekwart van de prijs)
+- Verhaal: een oude save die bij de reis T4 stond krijgt de voetbalstappen V1 tot en met V3 alle drie nog te spelen
 
 ### Autotuning en kapper
 
