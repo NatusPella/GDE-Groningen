@@ -41,7 +41,8 @@ for (const [id, def] of Object.entries(alle)) {
     ok(ANIMATIES.includes(s.animatie), `${id}: bekende animatie`, s.animatie);
     ok(!!s.toets !== !!s.icoon, `${id}: een stap heeft een toets of een icoon, niet beide`, s.tekst);
     if (s.icoon) ok(iconBekend(s.icoon), `${id}: icoon bestaat in iconmap`, s.icoon);
-    ok(!/\{[A-Z0-9]+\}/.test(s.tekst) && !/\b(druk|houd|tik) (op )?[A-Z]\b/.test(s.tekst), `${id}: geen ruwe toets in de tekst`, s.tekst);
+    // de kaart-uitleg (21-11, rijen) zet zijn toetsen als {TOKEN} in de zin; het toetsplaatje komt uit keycap.js
+    ok((id === 'kaart-actie' || !/\{[A-Z0-9]+\}/.test(s.tekst)) && !/\b(druk|houd|tik) (op )?[A-Z]\b/.test(s.tekst), `${id}: geen ruwe toets in de tekst`, s.tekst);
   }
 }
 ok(Object.values(HINT_UITLEG).every((v) => typeof v !== 'string' || UITLEG_DATA[v]), 'elke verwijzing van een hint bestaat');
@@ -147,7 +148,12 @@ for (const [id, lijst] of Object.entries(sims)) {
   ok(blok.length > 500, 'het uitleg-blok staat in ds-components.css');
   ok(!/#[0-9a-fA-F]{3,8}\b/.test(blok) && !/rgba?\(/.test(blok), 'geen hex of rgb: alleen tokens');
   const maten = [...blok.matchAll(/font-size:\s*([^;]+);/g)].map((m) => m[1]);
-  ok(maten.every((m) => /max\(13px|var\(--ds-t-label\)/.test(m)), 'tekst nooit onder 13 px', maten.join(' | '));
+  ok(maten.every((m) => /max\((13|15)px|var\(--ds-t-(label|hulp)\)/.test(m)), 'tekst nooit onder 13 px', maten.join(' | '));
+  // de rijen-uitleg (21-11): tekst, nummer en uitklapper op 15 px of meer, geen vaste px-maat voor een toets
+  const rij = blok.slice(blok.indexOf('.ds-uitleg--rij .ds-uitleg__lijst'));
+  ok(/\.ds-uitleg--rij \.ds-uitleg__tekst \{[^}]*font-size: max\(15px/.test(rij) && /\.ds-uitleg:not\(\.ds-uitleg--compact\) \.ds-uitleg__meer \{ font-size: max\(15px/.test(rij), 'de rijen-uitleg en Meer uitleg staan op 15 px of meer');
+  ok(/subgrid/.test(rij), 'de rijen delen één kolomindeling (subgrid): icoon en tekst staan onder elkaar op dezelfde plek');
+  ok(!/\.hud-key[^{]*\{[^}]*(width|height|font-size):\s*\d+px/.test(rij), 'geen vaste px-maat voor toetsen in de rijen-uitleg');
   ok(/prefers-reduced-motion[^}]*\.ds-uitleg/.test(blok) && /html\.reduce-motion \.ds-uitleg/.test(blok) && /html\.rustig-drukwerk \.ds-uitleg/.test(blok), 'uit bij verminderde beweging en Rustig drukwerk');
   // de ronde is vier keer --ds-m-max (1 s, en 0 bij Beweging beperken); het designsysteem kent geen lus: de animatie speelt drie keer en stopt
   const duur = [...blok.matchAll(/animation:\s*ds-uitleg-\w+\s+calc\(var\(--ds-m-max\) \* (\d+)\)[^;]*? (\d+);/g)].map((m) => [Number(m[1]), Number(m[2])]);

@@ -1240,9 +1240,10 @@ html.pad-active #pause-menu.gm :is(.ra, .m-li, .m-tab, .m-bp, .m-bg, .m-bt, .m-c
 #pause-menu.gm .mapview-overlay.embedded .mapview-route { font-size: max(20px, var(--menu-min)); }
 #pause-menu.gm .mapview-overlay.embedded .mapview-osm { font-size: max(14px, var(--menu-min)); }
 #pause-menu.gm .mv-layers-n { font-family: var(--ds-font-zeef-tekst); font-size: max(16px, var(--menu-min)); color: var(--ds-tx-zacht); }
-/* de uitleg "Zo werkt de kaart": een papieren kaart op een gedimde kaart, zonder vervaging */
-#pause-menu.gm .mapview-overlay .mv-help { background: color-mix(in srgb, var(--ds-c-ink-inkt) 55%, transparent); -webkit-backdrop-filter: none; backdrop-filter: none; }
-#pause-menu.gm .mapview-overlay .mv-help-box { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); transform: none; font-size: max(16px, var(--menu-min)); }
+/* de uitleg "Zo werkt de kaart" en de reispopup: een compacte papieren kaart op een rustig gedimde kaart (45 %), zonder vervaging; de maten staan in kaartactieui.js */
+#pause-menu.gm .mapview-overlay :is(.mv-help, .mv-reispop) { background: color-mix(in srgb, var(--ds-c-ink-inkt) 45%, transparent); -webkit-backdrop-filter: none; backdrop-filter: none; }
+#pause-menu.gm .mapview-overlay :is(.mv-help-box, .mv-reispop-box) { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); transform: none; font-size: max(15px, var(--menu-min)); }
+#pause-menu.gm .mapview-overlay :is(.mv-help, .mv-reispop) :is(.ds-uitleg__tekst, .ds-uitleg__meer, .mv-help-hulp, .mv-help-toets, .mv-help-regels) { font-size: max(15px, var(--menu-min)); }
 
 /* Zeefdruk-menu: groepskoppen en toetsplaatjes leesbaar op papier (contrastmeting scripts/ui/menucontrast_scenes.js) */
 #pause-menu.gm .m-gh, #pause-menu.gm .m-gh span, #pause-menu.gm .sp-gh { color: var(--ds-tx-zacht); }
@@ -1318,10 +1319,8 @@ html.pad-active #pause-menu.gm :is(.ra, .m-li, .m-tab, .m-bp, .m-bg, .m-bt, .m-c
 #pause-menu .gar-stage { height: 260px; }
 #pause-menu [data-panel="boerderij"] .m-list.pa-list { width: clamp(180px, 24%, 360px); padding-right: 24px; }
 
-/* Ronde 20-11 (laat): garagepreview hoger, kaartuitleg zonder dimlaag over de kaart-UI, lettervloer ook voor alinea's en keycaps */
+/* Ronde 20-11 (laat): garagepreview hoger, lettervloer ook voor alinea's en keycaps */
 #pause-menu .gar-stage { height: clamp(260px, 45vh, 340px); width: 100%; }
-#pause-menu.gm .mapview-overlay .mv-help { background: transparent; }
-#pause-menu.gm .mapview-overlay .mv-help-box { box-shadow: var(--ds-schaduw-hard), 0 0 0 9999px color-mix(in srgb, var(--ds-c-ink-inkt) 0%, transparent); }
 @media (max-height: 900px) { #pause-menu.gm.gm.gm.gm.gm :is(p, .nm span, label span, .pm-progress-parts span) { font-size: max(18px, var(--menu-min)); } }
 #pause-menu.gm.gm .pm-ckeys .m-kc { font-size: max(16px, var(--menu-min)); }
 @media (max-height: 820px) { #pause-menu .pm-spulbar .pm-csearch { margin-left: 16px; } }

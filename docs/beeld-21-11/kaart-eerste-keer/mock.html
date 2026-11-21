@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="nl"><head><meta charset="utf-8"><title>Kaart: eerste keer en Reis erheen (mock nieuw)</title>
+<!-- Statische mock (scripts/ui/kaart_eerste_keer_mock.mjs). Echte tokens en echte opmaak, nagemaakte kaart. Open met ?scene=eerste-keer of ?scene=plekkaart. -->
+<link rel="stylesheet" href="file:///C:/Users/abuis/GIT/GDE-Groningen/.claude/worktrees/agent-ae54bb2877c906f03/game/fonts/fonts.css">
+<link rel="stylesheet" href="file:///C:/Users/abuis/GIT/GDE-Groningen/.claude/worktrees/agent-ae54bb2877c906f03/game/js/ds-tokens.css">
+<link rel="stylesheet" href="file:///C:/Users/abuis/GIT/GDE-Groningen/.claude/worktrees/agent-ae54bb2877c906f03/game/js/ds-components.css">
+<link rel="stylesheet" href="file:///C:/Users/abuis/GIT/GDE-Groningen/.claude/worktrees/agent-ae54bb2877c906f03/game/js/a11y.css">
+<style>
+html, body { margin: 0; background: #0c140e; font-family: var(--ds-font-zeef-tekst, 'Atkinson Hyperlegible', Arial, sans-serif); }
+section[data-scene] { display: none; }
+.scene-eerste-keer section[data-scene="eerste-keer"], .scene-plekkaart section[data-scene="plekkaart"] { display: block; }
+.m-wrap { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
+.mapview-overlay { position: absolute; inset: 0; }
+.mapview-body { position: absolute; inset: 0; }
+.m-kaart { position: absolute; inset: 0; background: radial-gradient(circle at 30% 30%, #1d3a2a, #0e1d15 70%); }
+.m-kaart::after { content: ''; position: absolute; inset: 0; background-image: linear-gradient(120deg, transparent 48%, #2c4a38 49%, #2c4a38 50%, transparent 51%), linear-gradient(35deg, transparent 60%, #2c4a38 61%, #2c4a38 62%, transparent 63%); background-size: 340px 300px, 520px 440px; opacity: 0.7; }
+.m-streek, .m-titel, .m-zoek, .m-lagenknop, .m-lagen-paneel, .m-legenda, .m-zoom span, .m-hints { position: absolute; background: #f3ead3; color: #1b1a17; border: 2px solid #1b1a17; border-radius: 10px; box-shadow: 4px 4px 0 #1b1a17; font-size: 16px; }
+.m-streek { left: 4%; top: 7%; padding: 4px 10px; font-size: 14px; font-weight: 700; color: #0f5b34; }
+.m-titel { left: 4%; top: 12%; padding: 4px 16px; font: 800 44px/1.1 'Bebas Neue', sans-serif; }
+.m-zoek { left: 4%; top: 22%; width: 26%; padding: 12px 16px; }
+.m-lagenknop { right: 4%; top: 7%; padding: 10px 20px; font: 800 24px 'Bebas Neue', sans-serif; }
+.m-lagenknop b { font-size: 16px; margin-left: 10px; }
+.m-lagen-paneel { right: 4%; top: 15%; width: 20%; padding: 14px 18px; }
+.m-lagen-paneel h3 { margin: 0 0 8px; font: 800 22px 'Bebas Neue', sans-serif; color: #0f5b34; }
+.m-lagen-paneel p { margin: 6px 0; } .m-grp { font-weight: 800; display: flex; justify-content: space-between; } .m-lijn { display: flex; justify-content: space-between; padding-left: 20px; }
+.m-sw { width: 40px; height: 20px; border-radius: 10px; background: #0f5b34; }
+.m-legenda { left: 1%; bottom: 6%; padding: 8px 12px; font-size: 14px; } .m-legenda p { margin: 2px 0; }
+.m-zoom span { right: 4%; width: 44px; height: 44px; display: grid; place-items: center; font-size: 26px; } .m-zoom span:first-child { bottom: 22%; } .m-zoom span:last-child { bottom: 16%; }
+.m-hints { right: 4%; bottom: 3%; padding: 8px 16px; }
+.ds-uitleg-wijzer { z-index: 13; }
+.m-wijzer-zoek { left: calc(4% - 6px); top: calc(22% - 6px); width: calc(26% + 12px); height: 52px; }
+.m-wijzer-lagen { right: calc(4% - 6px); top: calc(7% - 6px); width: 190px; height: 52px; }
+/* de plekkaart (nagemaakt; de echte staat in mapview.js) */
+.mapview-card { --ink: #1b1a17; --mut: #4a463d; --g: #0f5b34; --line2: #1b1a17; --redtx: #a01b1b; position: absolute; left: 36%; top: 30%; width: 400px; display: flex; gap: 12px; padding: 14px; background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); font-size: 18px; }
+.mapview-card .mv-ico { width: 52px; height: 52px; flex: none; border: 1px solid #1b1a17; border-radius: 10px; background: #fff7; }
+.mapview-card > div { display: flex; flex-direction: column; gap: 5px; min-width: 0; flex: 1; }
+.mapview-card b { font: 800 26px/1.05 'Bebas Neue', sans-serif; } .mapview-card small { font-size: 16px; color: var(--ds-tx-zacht); }
+.mapview-card .mv-link { font: inherit; font-size: 15px; background: none; border: 0; text-decoration: underline; padding: 4px 2px; color: inherit; width: max-content; }
+.mapview-btn { min-height: 48px; font: 800 20px 'Bebas Neue', sans-serif; background: var(--ds-zeef-primair); border: 2px solid #1b1a17; border-radius: 10px; }
+
+
+.mapview-card .mv-acties { display: flex; flex-direction: column; gap: 6px; margin: 8px 0 2px; }
+.mapview-card .mv-actie { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 6px 14px; text-align: left; color: var(--ink, #f0ede4); background: transparent; border: 0; border-radius: 8px; box-shadow: inset 0 0 0 1px var(--line2, rgba(240,237,228,0.16)); cursor: pointer; font: 18px/1.3 'Arial Narrow', Arial, sans-serif; }
+.mapview-card .mv-actie svg { width: 24px; height: 24px; flex: none; color: var(--g, #3fc97a); }
+.mapview-card .mv-actie[data-card="haalweg"] svg { color: var(--redtx, #f08a8a); }
+.mapview-card .mv-at { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.mapview-card .mv-actie .mv-al { font: normal 26px/1.05 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.04em; }
+.mapview-card .mv-actie small { font: 18px/1.2 'Arial Narrow', Arial, sans-serif; color: var(--mut, rgba(240,237,228,0.7)); }
+.mapview-card .mv-actie:hover, .mapview-card .mv-actie.open { background: rgba(63,201,122,0.16); box-shadow: inset 0 0 0 1px var(--g, #3fc97a); }
+.mapview-card .mv-actie:focus-visible, :is(.mapview-card, .mv-reispop) .mv-keuze:focus-visible { outline: 2px solid var(--ink, #f0ede4); outline-offset: 2px; }
+.mapview-card .mv-actie[aria-disabled] { opacity: 0.55; }
+:is(.mapview-card, .mv-reispop) .mv-reiskeuze { display: flex; flex-direction: column; gap: 6px; margin: 6px 0; }
+:is(.mapview-card, .mv-reispop) .mv-uit, :is(.mapview-card, .mv-reispop) .mv-note { margin: 0; font: 18px/1.4 'Arial Narrow', Arial, sans-serif; color: var(--mut, rgba(240,237,228,0.8)); }
+:is(.mapview-card, .mv-reispop) .mv-keuze { display: flex; flex-direction: column; gap: 2px; min-height: 56px; padding: 8px 12px; text-align: left; color: var(--ink, #f0ede4); background: transparent; border: 0; border-left: 6px solid var(--line2, rgba(240,237,228,0.16)); border-radius: 8px; cursor: pointer; font: 18px/1.35 'Arial Narrow', Arial, sans-serif; }
+:is(.mapview-card, .mv-reispop) .mv-keuze.sel { background: rgba(63,201,122,0.18); border-left-color: var(--g, #3fc97a); }
+:is(.mapview-card, .mv-reispop) .mv-keuze[aria-disabled] { opacity: 0.55; }
+:is(.mapview-card, .mv-reispop) .mv-kk { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+:is(.mapview-card, .mv-reispop) .mv-kk .mv-kl { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 24px; letter-spacing: 0.04em; }
+:is(.mapview-card, .mv-reispop) .mv-aanb { font-style: normal; font-size: max(13px, var(--menu-min, 13px)); letter-spacing: 0.14em; text-transform: uppercase; color: #0c140e; background: var(--g, #3fc97a); border-radius: 4px; padding: 1px 8px; }
+:is(.mapview-card, .mv-reispop) .mv-ku { color: var(--mut, rgba(240,237,228,0.78)); }
+:is(.mapview-card, .mv-reispop) .mv-kd { color: var(--ink, #f0ede4); }
+.mapview-card .mv-infostap p { margin: 2px 0; font: 20px/1.4 'Arial Narrow', Arial, sans-serif; color: var(--ink, #f0ede4); }
+.mapview-card .mv-hier b { display: block; font: normal 26px/1.1 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.04em; }
+.mapview-card .mv-hier .mv-hier-plek { margin: 2px 0 4px; font: 20px/1.35 'Arial Narrow', Arial, sans-serif; color: var(--ink, #f0ede4); }
+/* de uitleg en de reispopup (21-11): een compacte papieren kaart op een rustig gedimde kaart, zonder vervaging; tekst op 15 px of meer */
+.mapview-overlay :is(.mv-help, .mv-reispop) { position: absolute; inset: 0; z-index: 12; pointer-events: auto; display: grid; place-items: center; padding: var(--ds-s-5); background: color-mix(in srgb, var(--ds-c-ink-inkt, #1b1a17) 45%, transparent); animation: mv-help-in var(--ds-m, 200ms) var(--ds-ease, ease-out) both; }
+.mapview-overlay :is(.mv-help-box, .mv-reispop-box) { width: min(460px, 100%); max-height: 100%; overflow-y: auto; box-sizing: border-box; gap: var(--ds-s-3); font-size: max(15px, var(--menu-min, 15px)); animation: mv-help-kaart var(--ds-m, 200ms) var(--ds-ease, ease-out) both; }
+.mapview-overlay .mv-reispop-box { width: min(520px, 100%); }
+.mapview-overlay .mv-help-head .ds-z-kaart__titel, .mapview-overlay .mv-reispop-box .ds-z-kaart__titel { margin: 0; }
+.mapview-overlay .mv-help-regels { margin: var(--ds-s-2) 0 0 var(--ds-s-5); padding: 0; font-size: max(15px, var(--menu-min, 15px)); }
+.mapview-overlay .mv-help-regels li { margin: var(--ds-s-1) 0; }
+.mapview-overlay .mv-help-meer { margin: 0; }
+.mapview-overlay .mv-help-meer > summary { min-height: var(--ds-s-6); display: flex; align-items: center; }
+.mapview-overlay .mv-help-foot { display: flex; align-items: center; flex-wrap: wrap; gap: var(--ds-s-2) var(--ds-s-3); }
+.mapview-overlay .mv-help-toets { display: inline-flex; align-items: center; gap: var(--ds-s-1); color: var(--ds-tx-zacht, inherit); font-size: max(15px, var(--menu-min, 15px)); }
+.mapview-overlay .mv-help-hulp { margin: 0; color: var(--ds-tx-zacht); font-size: max(15px, var(--menu-min, 15px)); line-height: 1.4; }
+.mapview-overlay :is(.mv-help-ok, .mv-reispop-ok, .mv-reispop-terug) { min-height: var(--ds-doel-aanraken); font-size: var(--ds-t-label); }
+.mapview-overlay :is(.mv-help-ok, .mv-reispop-ok, .mv-reispop-terug):focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-focus); outline-offset: var(--ds-focus-afstand); }
+.mapview-overlay .mv-reispop-plek { margin: 0; font-size: max(15px, var(--menu-min, 15px)); }
+.mapview-overlay .mv-reispop-reden { margin: 0; padding: var(--ds-s-2) var(--ds-s-3); border: var(--ds-lijn-dik) dashed var(--ds-c-ink-inkt); border-radius: var(--ds-r); font-size: max(15px, var(--menu-min, 15px)); }
+.mapview-overlay .mv-reispop .mv-reiskeuze { margin: 0; }
+.mapview-overlay .mv-reispop .mv-keuze { min-height: var(--ds-doel-aanraken); font-size: max(15px, var(--menu-min, 15px)); color: var(--ds-zeef-tx); border-left-color: var(--ds-c-ink-inkt); }
+.mapview-overlay .mv-reispop .mv-keuze.sel { background: var(--ds-c-sel-vlak); box-shadow: inset 0 0 0 var(--ds-lijn-dik) var(--ds-c-ink-bord); }
+.mapview-overlay .mv-reispop .mv-keuze:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-focus); outline-offset: var(--ds-focus-afstand); }
+.mapview-overlay .mv-reispop .mv-kk .mv-kl { font-size: max(20px, var(--menu-min, 20px)); }
+.mapview-overlay .mv-reispop .mv-uit, .mapview-overlay .mv-reispop .mv-ku, .mapview-overlay .mv-reispop .mv-kd { color: var(--ds-tx-zacht); font-size: max(15px, var(--menu-min, 15px)); font-family: var(--ds-font-zeef-tekst); }
+.mapview-overlay .mv-reispop .mv-aanb { font-size: max(13px, var(--menu-min, 13px)); }
+@keyframes mv-help-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes mv-help-kaart { from { opacity: 0; translate: 0 var(--ds-s-2); } to { opacity: 1; translate: 0 0; } }
+@media (prefers-reduced-motion: reduce) { .mapview-overlay :is(.mv-help, .mv-reispop, .mv-help-box, .mv-reispop-box) { animation: none; } }
+html.reduce-motion .mapview-overlay :is(.mv-help, .mv-reispop, .mv-help-box, .mv-reispop-box), html.rustig-drukwerk .mapview-overlay :is(.mv-help, .mv-reispop, .mv-help-box, .mv-reispop-box) { animation: none; }
+@media (max-height: 760px) { .mapview-overlay :is(.mv-help-box, .mv-reispop-box) { gap: var(--ds-s-2); } .mapview-overlay :is(.mv-help, .mv-reispop) { padding: var(--ds-s-3); } }
+.mapview-overlay .mv-uitleg small { display: block; margin-top: 8px; font-size: 18px; color: var(--mut, rgba(240,237,228,0.65)); }
+.mapview-legend .mv-leg-hint { margin: 0 2px 8px; }
+.mapview-legend .mv-leg-hint .hint { margin: 0 0 2px; }
+.mapview-legend .mv-leg-hint .hint:last-child { margin-bottom: 0; }
+
+#pause-menu.gm .mapview-overlay :is(.mv-help, .mv-reispop) { background: color-mix(in srgb, var(--ds-c-ink-inkt) 45%, transparent); -webkit-backdrop-filter: none; backdrop-filter: none; }
+#pause-menu.gm .mapview-overlay :is(.mv-help-box, .mv-reispop-box) { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); transform: none; font-size: max(15px, var(--menu-min)); }
+#pause-menu.gm .mapview-overlay :is(.mv-help, .mv-reispop) :is(.ds-uitleg__tekst, .ds-uitleg__meer, .mv-help-hulp, .mv-help-toets, .mv-help-regels) { font-size: max(15px, var(--menu-min)); }</style></head>
+<body class="scene-eerste-keer"><section data-scene="eerste-keer"><div class="m-wrap"><div id="pause-menu" class="gm"><div class="mapview-overlay"><div class="mapview-body">
+  <div class="m-kaart"></div>
+  <div class="m-streek">0 VAN 8 STREKEN ONTDEKT</div>
+  <div class="m-titel">Kaart</div>
+  <div class="m-zoek">Zoek een plek, missie of minigame</div>
+  <div class="m-lagenknop">Lagen <b>26/27</b></div>
+  
+  
+  <div class="m-zoom"><span>+</span><span>-</span></div>
+  <div class="m-hints">plek kiezen &nbsp; Q E onderdeel &nbsp; M sluiten &nbsp; Esc doorgaan</div><span class="ds-uitleg-wijzer m-wijzer-zoek"><span class="ds-uitleg-wijzer__nr">1</span></span><span class="ds-uitleg-wijzer m-wijzer-lagen"><span class="ds-uitleg-wijzer__nr">2</span></span><div class="mv-help" role="dialog" aria-modal="true" aria-labelledby="mv-help-t" data-gast="0"><div class="ds-zeef ds-z-kaart ds-z-kaart--recht mv-help-box"><div class="ds-z-kaart__kop mv-help-head"><h2 id="mv-help-t" class="ds-z-kaart__titel">Zo werkt de kaart</h2></div><div class="ds-uitleg ds-uitleg--rij" role="group" aria-label="Zo werkt de kaart: stap 1, Zoek een plek, missie of minigame; stap 2, Lagen zet kaartonderdelen aan of uit; stap 3, LMB Klik een plek: waypoint of reis erheen; stap 4, Q E wisselt onderdeel, M of ESC sluit"><ol class="ds-uitleg__lijst"><li class="ds-uitleg__stap" data-anim="geen" data-wijs="zoek"><span class="ds-uitleg__nr" aria-hidden="true">1</span><span class="ds-uitleg__beeld" data-n="0"><svg class="ic ds-uitleg__icoon" viewBox="0 0 256 256" fill="currentColor" style="fill:currentColor;stroke:none" aria-hidden="true" focusable="false"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg></span><span class="ds-uitleg__tekst">Zoek een plek, missie of minigame</span></li><li class="ds-uitleg__stap" data-anim="geen" data-wijs="lagen"><span class="ds-uitleg__nr" aria-hidden="true">2</span><span class="ds-uitleg__beeld" data-n="0"><svg class="ic ds-uitleg__icoon" viewBox="0 0 256 256" fill="currentColor" style="fill:currentColor;stroke:none" aria-hidden="true" focusable="false"><path d="M230.91,172A8,8,0,0,1,228,182.91l-96,56a8,8,0,0,1-8.06,0l-96-56A8,8,0,0,1,36,169.09l92,53.65,92-53.65A8,8,0,0,1,230.91,172ZM220,121.09l-92,53.65L36,121.09A8,8,0,0,0,28,134.91l96,56a8,8,0,0,0,8.06,0l96-56A8,8,0,1,0,220,121.09ZM24,80a8,8,0,0,1,4-6.91l96-56a8,8,0,0,1,8.06,0l96,56a8,8,0,0,1,0,13.82l-96,56a8,8,0,0,1-8.06,0l-96-56A8,8,0,0,1,24,80Zm23.88,0L128,126.74,208.12,80,128,33.26Z"/></svg></span><span class="ds-uitleg__tekst">Lagen zet kaartonderdelen aan of uit</span></li><li class="ds-uitleg__stap" data-anim="geen"><span class="ds-uitleg__nr" aria-hidden="true">3</span><span class="ds-uitleg__beeld" data-n="0"><svg class="ic ds-uitleg__icoon" viewBox="0 0 256 256" fill="currentColor" style="fill:currentColor;stroke:none" aria-hidden="true" focusable="false"><path d="M128,64a40,40,0,1,0,40,40A40,40,0,0,0,128,64Zm0,64a24,24,0,1,1,24-24A24,24,0,0,1,128,128Zm0-112a88.1,88.1,0,0,0-88,88c0,31.4,14.51,64.68,42,96.25a254.19,254.19,0,0,0,41.45,38.3,8,8,0,0,0,9.18,0A254.19,254.19,0,0,0,174,200.25c27.45-31.57,42-64.85,42-96.25A88.1,88.1,0,0,0,128,16Zm0,206c-16.53-13-72-60.75-72-118a72,72,0,0,1,144,0C200,161.23,144.53,209,128,222Z"/></svg></span><span class="ds-uitleg__tekst"><span class="hud-key" data-gk="LMB">LMB</span> Klik een plek: waypoint of reis erheen</span></li><li class="ds-uitleg__stap" data-anim="geen"><span class="ds-uitleg__nr" aria-hidden="true">4</span><span class="ds-uitleg__beeld" data-n="0"><svg class="ic ds-uitleg__icoon" viewBox="0 0 256 256" fill="currentColor" style="fill:currentColor;stroke:none" aria-hidden="true" focusable="false"><path d="M228.92,49.69a8,8,0,0,0-6.86-1.45L160.93,63.52,99.58,32.84a8,8,0,0,0-5.52-.6l-64,16A8,8,0,0,0,24,56V200a8,8,0,0,0,9.94,7.76l61.13-15.28,61.35,30.68A8.15,8.15,0,0,0,160,224a8,8,0,0,0,1.94-.24l64-16A8,8,0,0,0,232,200V56A8,8,0,0,0,228.92,49.69ZM104,52.94l48,24V203.06l-48-24ZM40,62.25l48-12v127.5l-48,12Zm176,131.5-48,12V78.25l48-12Z"/></svg></span><span class="ds-uitleg__tekst"><span class="hud-key" data-gk="Q">Q</span> <span class="hud-key" data-gk="E">E</span> wisselt onderdeel, <span class="hud-key" data-gk="M">M</span> of <span class="hud-key" data-gk="ESC">ESC</span> sluit</span></li></ol></div><details class="ds-uitleg__meer mv-help-meer"><summary>Meer uitleg</summary><ul class="ds-z-kaart__tekst mv-help-regels"><li>Klik op een plek of een icoon en kies: Zet waypoint, Reis erheen of Info.</li><li>Er is één waypoint tegelijk. Klik er nog eens op, of kies Haal weg, om hem te wissen.</li><li>Reis erheen is snel reizen: dat kost tijd en geld. Zelf gaan zet een waypoint en je rijdt of loopt zelf.</li><li>De legenda achter Lagen legt elk icoon en elke lijn uit; zet lagen daar aan of uit.</li></ul></details><div class="mv-help-foot"><button type="button" class="ds-z-knop mv-help-ok" data-act="uitleg-sluit">Begrepen</button><span class="mv-help-toets ds-toetsregel" aria-hidden="true"><span class="hud-key is-kbg" data-gk="ENTER"><span class="pad-g pad-kn pad-key" data-set="keys" role="img" aria-label="Enter"></span></span></span></div><p class="mv-help-hulp">Terug te vinden onder Instellingen › Besturing › Hulp.</p></div></div></div></div></div></div></section><section data-scene="plekkaart"><div class="m-wrap"><div id="pause-menu" class="gm"><div class="mapview-overlay"><div class="mapview-body">
+  <div class="m-kaart"></div>
+  <div class="m-streek">0 VAN 8 STREKEN ONTDEKT</div>
+  <div class="m-titel">Kaart</div>
+  <div class="m-zoek">Zoek een plek, missie of minigame</div>
+  <div class="m-lagenknop">Lagen <b>26/27</b></div>
+  
+  
+  <div class="m-zoom"><span>+</span><span>-</span></div>
+  <div class="m-hints">plek kiezen &nbsp; Q E onderdeel &nbsp; M sluiten &nbsp; Esc doorgaan</div><div class="mapview-card"><span class="mv-ico"></span><div><b>Vismarkt</b><small>Binnenstad · 3,2 km</small><div class="mv-acties" role="group" aria-label="Wat wil je met deze plek?"><button type="button" class="mv-actie" data-card="waypoint"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" style="fill:currentColor;stroke:none" width="24" height="24" aria-hidden="true" focusable="false"><path d="M128,64a40,40,0,1,0,40,40A40,40,0,0,0,128,64Zm0,64a24,24,0,1,1,24-24A24,24,0,0,1,128,128Zm0-112a88.1,88.1,0,0,0-88,88c0,31.4,14.51,64.68,42,96.25a254.19,254.19,0,0,0,41.45,38.3,8,8,0,0,0,9.18,0A254.19,254.19,0,0,0,174,200.25c27.45-31.57,42-64.85,42-96.25A88.1,88.1,0,0,0,128,16Zm0,206c-16.53-13-72-60.75-72-118a72,72,0,0,1,144,0C200,161.23,144.53,209,128,222Z"/></svg><span class="mv-at"><span class="mv-al">Zet waypoint</span><small>Een lijn en 3027 m afstand</small></span></button><button type="button" class="mv-actie open" data-card="reis" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" style="fill:currentColor;stroke:none" width="24" height="24" aria-hidden="true" focusable="false"><path d="M240,104H229.2L201.42,41.5A16,16,0,0,0,186.8,32H69.2a16,16,0,0,0-14.62,9.5L26.8,104H16a8,8,0,0,0,0,16h8v80a16,16,0,0,0,16,16H64a16,16,0,0,0,16-16V184h96v16a16,16,0,0,0,16,16h24a16,16,0,0,0,16-16V120h8a8,8,0,0,0,0-16ZM69.2,48H186.8l24.89,56H44.31ZM64,200H40V184H64Zm128,0V184h24v16Zm24-32H40V120H216ZM56,144a8,8,0,0,1,8-8H80a8,8,0,0,1,0,16H64A8,8,0,0,1,56,144Zm112,0a8,8,0,0,1,8-8h16a8,8,0,0,1,0,16H176A8,8,0,0,1,168,144Z"/></svg><span class="mv-at"><span class="mv-al">Reis erheen</span><small>€ 7 · ± 7 min</small></span></button><button type="button" class="mv-actie" data-card="info" aria-expanded="false"><svg class="ic" viewBox="0 0 256 256" fill="currentColor" style="fill:currentColor;stroke:none" width="24" height="24" aria-hidden="true" focusable="false"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm16-40a8,8,0,0,1-8,8,16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40A8,8,0,0,1,144,176ZM112,84a12,12,0,1,1,12,12A12,12,0,0,1,112,84Z"/></svg><span class="mv-at"><span class="mv-al">Info</span><small>3027 m van je vandaan</small></span></button></div><div><button type="button" class="mv-link">Sluiten</button></div></div></div><div class="mv-reispop" role="dialog" aria-modal="true" aria-labelledby="mv-reispop-t"><div class="ds-zeef ds-z-kaart ds-z-kaart--recht mv-reispop-box"><div class="ds-z-kaart__kop"><h2 id="mv-reispop-t" class="ds-z-kaart__titel">Reis erheen</h2></div><p class="ds-z-kaart__tekst mv-reispop-plek"><b>Vismarkt</b> · 3,2 km</p><div class="mv-reiskeuze"><p class="mv-uit">Kies hoe je gaat. Snel reizen kost tijd en geld; Zelf gaan zet een waypoint.</p><button type="button" class="mv-keuze sel" data-card="kies:trein"><span class="mv-kk"><span class="mv-kl">Snel reizen · met de trein</span><i class="mv-aanb">aanbevolen</i></span><span class="mv-ku">Je zit er zo: een korte rit, de tijd loopt gewoon door.</span><span class="mv-kd">€ 7 · ± 7 min</span></button><button type="button" class="mv-keuze" data-card="zelf"><span class="mv-kk"><span class="mv-kl">Zelf gaan</span></span><span class="mv-ku">Je zet een waypoint en rijdt of loopt zelf. Dat kan ook in Samen spelen.</span><span class="mv-kd">gratis · ± 4 min</span></button></div><div class="mv-help-foot"><button type="button" class="ds-z-knop mv-reispop-ok" data-card="rij">Reis nu · € 12 · 4 min</button><span class="mv-help-toets ds-toetsregel" aria-hidden="true"><span class="hud-key is-kbg" data-gk="ENTER"><span class="pad-g pad-kn pad-key" data-set="keys" role="img" aria-label="Enter"></span></span></span><button type="button" class="ds-z-knop ds-z-knop--secundair mv-reispop-terug" data-card="reis-sluit">Terug</button><span class="mv-help-toets ds-toetsregel" aria-hidden="true"><span class="hud-key is-kbg" data-gk="ESC"><span class="pad-g pad-kn pad-key" data-set="keys" role="img" aria-label="Esc"></span></span></span></div></div></div></div></div></div></div></section>
+<script>const sc = new URLSearchParams(location.search).get('scene') || 'eerste-keer'; document.body.className = 'scene-' + sc; if (new URLSearchParams(location.search).get('rustig')) document.documentElement.classList.add('rustig-drukwerk'); const ui = new URLSearchParams(location.search).get('ui'); if (ui) document.body.style.zoom = ui;</script>
+</body></html>

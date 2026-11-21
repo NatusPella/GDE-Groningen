@@ -41,7 +41,8 @@ export function stapModel(s, opts = {}) {
   const bron = s && typeof s === 'object' ? s : {};
   let tekst = String(bron.tekst || '');
   let toetsen = [].concat(bron.toets || []).filter((t) => typeof t === 'string' && t);
-  if (!toetsen.length) {
+  // inline (de kaartuitleg, 21-11): de toetsen blijven als toetskap in de zin staan en het beeld is één icoon, zodat elke rij gelijk uitlijnt
+  if (!toetsen.length && !opts.inline) {
     const inTekst = [...tekst.matchAll(TOKEN)].map((m) => m[1]);
     if (inTekst.length && inTekst.length <= 2) toetsen = inTekst;
     if (inTekst.length && inTekst.length <= 2) tekst = tekst.replace(TOKEN, '').replace(/^[\s:·,]+|[\s:·,]+$/g, '').replace(/\s{2,}/g, ' ').replace(/\s+([,.;:!?])/g, '$1');
@@ -55,7 +56,7 @@ export function stapModel(s, opts = {}) {
     try { kb = keyName(physicalKey(binds, tokenKey(t))) || t; pad = padSlotFor(t, ctx) || ''; } catch (e) { /* onbekende token: het token zelf */ }
     return { token: t, toetsenbord: kb, controller: pad };
   });
-  return { toetsen, varianten, icoon: ic, animatie, tekst: tekst.trim(), woorden: woordenTelling(tekst), alt: tekst.replace(/\{([A-Z0-9]+)\}/g, '$1 ').replace(/\s{2,}/g, ' ').trim() };
+  return { toetsen, varianten, icoon: ic, wijs: typeof bron.wijs === 'string' ? bron.wijs : '', animatie, tekst: tekst.trim(), woorden: woordenTelling(tekst), alt: tekst.replace(/\{([A-Z0-9]+)\}/g, '$1 ').replace(/\s{2,}/g, ' ').trim() };
 }
 // De instellingen die de uitleg-markup bepalen (Uitleg met iconen aan/uit en de toetsindeling): een strook die hierop wacht, tekent opnieuw als ze wijzigen (review 21-11, simhud).
 export function uitlegInstellingSleutel() { try { return (uitlegIconenAan() ? '1' : '0') + JSON.stringify(safeBinds()); } catch (e) { return ''; } }
@@ -80,17 +81,20 @@ export const tekstMetToetsen = (t) => esc(t).replace(/\{([A-Z0-9]+)\}/g, (_, k) 
 // De markup. compact: een kleiner beeld voor een HUD-strook; nietMeer: een knop 'Niet meer tonen' (alleen waar een klik kan).
 export function uitlegHtml(model, opts = {}) {
   if (!model) return '';
-  const rij = (s) => {
+  const rij = (s, i) => {
     const beeld = s.toetsen.length ? s.toetsen.map((t) => glyph(t)).join('') : s.icoon ? icoon(s.icoon, { cls: 'ds-uitleg__icoon' }) : '';
     const balk = s.animatie === 'houd' || s.animatie === 'vul' ? '<span class="ds-uitleg__balk" aria-hidden="true"><i></i></span>' : '';
     const rimpel = s.animatie === 'klik' ? '<span class="ds-uitleg__rimpel" aria-hidden="true"></span>' : '';
     const pijl = s.animatie === 'beweeg' || s.animatie === 'stick' ? '<span class="ds-uitleg__pijl" aria-hidden="true"></span>' : '';
-    return `<li class="ds-uitleg__stap" data-anim="${esc(s.animatie)}"><span class="ds-uitleg__beeld" data-n="${s.toetsen.length}">${beeld}${rimpel}${pijl}${balk}</span>` +
+    // genummerd: het cijfer staat ook bij het onderdeel dat de stap aanwijst (data-wijs; mapview.js plaatst de wijzers)
+    const nr = opts.genummerd ? `<span class="ds-uitleg__nr" aria-hidden="true">${i + 1}</span>` : '';
+    const wijs = s.wijs ? ` data-wijs="${esc(s.wijs)}"` : '';
+    return `<li class="ds-uitleg__stap" data-anim="${esc(s.animatie)}"${wijs}>${nr}<span class="ds-uitleg__beeld" data-n="${s.toetsen.length}">${beeld}${rimpel}${pijl}${balk}</span>` +
       `<span class="ds-uitleg__tekst">${tekstMetToetsen(s.tekst)}</span></li>`;
   };
   const meer = model.meer && !opts.zonderMeer ?`<details class="ds-uitleg__meer"><summary>Meer uitleg</summary><p>${tekstMetToetsen(model.meer)}</p></details>` : '';
   const weg = opts.nietMeer && model.id ? `<button type="button" class="ds-z-knop ds-z-knop--secundair ds-uitleg__weg" data-uitleg-niet-meer="${esc(model.id)}">Niet meer tonen</button>` : '';
-  return `<div class="ds-uitleg${opts.compact ? ' ds-uitleg--compact' : ''}" role="group" aria-label="${esc(model.alt)}">` +
+  return `<div class="ds-uitleg${opts.compact ? ' ds-uitleg--compact' : ''}${opts.inline ? ' ds-uitleg--rij' : ''}" role="group" aria-label="${esc(model.alt)}">` +
     (model.titel && opts.titel !== false ? `<p class="ds-uitleg__titel">${esc(model.titel)}</p>` : '') +
     `<ol class="ds-uitleg__lijst">${model.stappen.map(rij).join('')}</ol>${meer}${weg}</div>`;
 }

@@ -77,10 +77,12 @@ export const UITLEG_DATA = Object.freeze({
   // ---- de kaart-uitleg ----
   'kaart-actie': {
     titel: 'Zo werkt de kaart', controller: 'foot',
+    // 21-11: vier rijen met één icoon en de toetsen als toetskap in de zin; `wijs` is het onderdeel van de kaart dat de stap aanwijst
     stappen: [
-      { toets: 'LMB', animatie: 'klik', tekst: 'Klik een plek aan' },
-      { icoon: 'plek', animatie: 'beweeg', tekst: 'Er komt een waypoint' },
-      { icoon: 'route', animatie: 'vul', tekst: 'Reis of ga zelf' },
+      { icoon: 'zoek', wijs: 'zoek', animatie: 'geen', tekst: 'Zoek een plek, missie of minigame' },
+      { icoon: 'lagen', wijs: 'lagen', animatie: 'geen', tekst: 'Lagen zet kaartonderdelen aan of uit' },
+      { icoon: 'plek', animatie: 'geen', tekst: '{LMB} Klik een plek: waypoint of reis erheen' },
+      { icoon: 'kaart', animatie: 'geen', tekst: '{Q} {E} wisselt onderdeel, {M} of {ESC} sluit' },
     ],
     meer: 'Een tweede klik op het waypoint haalt het weg. Er is er één tegelijk.',
   },

@@ -16,7 +16,7 @@ const svg = (naam) => icoon(naam, { maat: 'l' });
 // de drie knoppen; stap: de actie die nu is uitgeklapt (reis of info)
 export function actiesHtml(model, stap) {
   return '<div class="mv-acties" role="group" aria-label="Wat wil je met deze plek?">' + model.acties.map((a) =>
-    `<button type="button" class="mv-actie${a.id === stap ? ' open' : ''}" data-card="${a.id}"${a.disabled ? ' aria-disabled="true"' : ''}${a.id === 'reis' || a.id === 'info' ? ` aria-expanded="${a.id === stap}"` : ''}>` +
+    `<button type="button" class="mv-actie${a.id === stap ? ' open' : ''}" data-card="${a.id}"${a.disabled ? ' aria-disabled="true"' : ''}${a.id === 'reis' ? ' aria-haspopup="dialog"' : a.id === 'info' ? ` aria-expanded="${a.id === stap}"` : ''}>` +
       `${svg(a.icoon)}<span class="mv-at"><span class="mv-al">${esc(a.label)}</span><small>${esc(a.sub)}</small></span></button>`).join('') + '</div>';
 }
 
@@ -37,20 +37,40 @@ export function infoHtml(regels) {
   return `<div class="mv-infostap">${regels.map((r) => `<p>${esc(r)}</p>`).join('')}</div>`;
 }
 
-// De uitleg bij de kaart, als eenmalige popup over de kaart (#445, herzien): hij verschijnt
-// één keer, dimt de kaart erachter en gaat weg met "Begrepen" (met de Enter-hint erin, of A op een controller), Escape of een klik ernaast; geen kruisje naast de knop.
+// De uitleg bij de kaart, als eenmalige kaart over de kaart (#445, herzien 21-11): compact (420 tot 480 px), vier genummerde rijen met een
+// icoon en de toetsen als toetskap in de zin, één primaire knop 'Begrepen' met de Enter-toets ernaast (geen icoon in de knop), 'Meer uitleg'
+// als uitklapper en de hulplink onderaan. De kaart erachter is gedimd en Lagen staat dicht; rij 1 en 2 wijzen hun onderdeel aan (mapview.js).
+// Gaat weg met Begrepen, Enter, Escape (B op een controller) of een klik ernaast; geen kruisje.
 // mapview.js bepaalt wanneer hij opengaat en onthoudt dat hij gezien is.
 export function uitlegHtml({ gast = false } = {}) {
   const regels = gast ? [...KAART_UITLEG, GAST_UITLEG] : KAART_UITLEG;
-  const iconen = iconenBlok('kaart-actie', { compact: true, titel: false, zonderMeer: true });
-  return '<div class="mv-help" role="dialog" aria-modal="true" aria-labelledby="mv-help-t">' +
+  const iconen = iconenBlok('kaart-actie', { inline: true, genummerd: true, titel: false, zonderMeer: true });
+  const lijst = '<ul class="ds-z-kaart__tekst mv-help-regels">' + regels.map((l) => `<li>${esc(l)}</li>`).join('') + '</ul>';
+  return `<div class="mv-help" role="dialog" aria-modal="true" aria-labelledby="mv-help-t" data-gast="${gast ? 1 : 0}">` +
     '<div class="ds-zeef ds-z-kaart ds-z-kaart--recht mv-help-box"><div class="ds-z-kaart__kop mv-help-head"><h2 id="mv-help-t" class="ds-z-kaart__titel">Zo werkt de kaart</h2></div>' +
-    // #989: eerst drie stappen met icoon en lus; de volledige regels blijven in 'Meer uitleg' staan (uit in Instellingen = alleen de regels)
-    (iconen ? iconen + '<details class="ds-uitleg__meer"><summary>Meer uitleg</summary>' : '') +
-    '<ul class="ds-z-kaart__tekst">' + regels.map((l) => `<li>${esc(l)}</li>`).join('') + '</ul>' +
-    (iconen ? '</details>' : '') +
-    '<div class="mv-help-foot"><button type="button" class="ds-z-knop mv-help-ok" data-act="uitleg-sluit">Begrepen ' + keyTextHtml('{ENTER}') + '</button>' +
-    '<small>Terug te vinden onder Instellingen › Besturing › Hulp.</small></div></div></div>';
+    // #989: eerst de rijen met icoon; de volledige regels blijven in 'Meer uitleg' staan (uit in Instellingen = alleen de regels)
+    (iconen ? iconen + '<details class="ds-uitleg__meer mv-help-meer"><summary>Meer uitleg</summary>' + lijst + '</details>' : lijst) +
+    '<div class="mv-help-foot"><button type="button" class="ds-z-knop mv-help-ok" data-act="uitleg-sluit">Begrepen</button>' +
+    '<span class="mv-help-toets ds-toetsregel" aria-hidden="true">' + keyTextHtml('{ENTER}') + '</span></div>' +
+    '<p class="mv-help-hulp">Terug te vinden onder Instellingen › Besturing › Hulp.</p></div></div>';
+}
+
+// De reiskeuze als eigen popup (21-11): de plekkaart blijft compact, 'Reis erheen' opent dit venster. Dezelfde rijen als reisHtml, de
+// kosten en duur per keuze, de reden als reizen niet kan (gast, te weinig geld, geen verbinding) en onderaan Reis nu (Enter) en Terug (Esc).
+// model: { naam, afstand, rijen, gekozen, kleur, gast, melding, reis: { label, uitgeschakeld, reden } | null }
+export function reisPopupHtml(m) {
+  const rijen = m.rijen && m.rijen.length ? reisHtml(m.rijen, m.gekozen, m.kleur || {}) : '';
+  const reden = m.melding ? `<p class="ds-z-kaart__tekst mv-reispop-reden" role="status">${esc(m.melding)}</p>` : '';
+  const reis = m.reis
+    ? `<button type="button" class="ds-z-knop mv-reispop-ok" data-card="rij"${m.reis.uitgeschakeld ? ' disabled' : ''}>${esc(m.reis.label)}</button>` +
+      (m.reis.uitgeschakeld ? '' : `<span class="mv-help-toets ds-toetsregel" aria-hidden="true">${keyTextHtml('{ENTER}')}</span>`)
+    : '';
+  return '<div class="mv-reispop" role="dialog" aria-modal="true" aria-labelledby="mv-reispop-t">' +
+    '<div class="ds-zeef ds-z-kaart ds-z-kaart--recht mv-reispop-box"><div class="ds-z-kaart__kop"><h2 id="mv-reispop-t" class="ds-z-kaart__titel">Reis erheen</h2></div>' +
+    `<p class="ds-z-kaart__tekst mv-reispop-plek"><b>${esc(m.naam || 'Plek op de kaart')}</b>${m.afstand ? ` · ${esc(m.afstand)}` : ''}</p>` +
+    rijen + reden +
+    `<div class="mv-help-foot">${reis}<button type="button" class="ds-z-knop ds-z-knop--secundair mv-reispop-terug" data-card="reis-sluit">Terug</button>` +
+    `<span class="mv-help-toets ds-toetsregel" aria-hidden="true">${keyTextHtml('{ESC}')}</span></div></div></div>`;
 }
 
 // De legenda bovenaan het luik Lagen (#445): wat een klik doet en, voor een
@@ -76,39 +96,49 @@ export const KAART_ACTIE_CSS = `
 .mapview-card .mv-actie .mv-al { font: normal 26px/1.05 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.04em; }
 .mapview-card .mv-actie small { font: 18px/1.2 'Arial Narrow', Arial, sans-serif; color: var(--mut, rgba(240,237,228,0.7)); }
 .mapview-card .mv-actie:hover, .mapview-card .mv-actie.open { background: rgba(63,201,122,0.16); box-shadow: inset 0 0 0 1px var(--g, #3fc97a); }
-.mapview-card .mv-actie:focus-visible, .mapview-card .mv-keuze:focus-visible { outline: 2px solid var(--ink, #f0ede4); outline-offset: 2px; }
+.mapview-card .mv-actie:focus-visible, :is(.mapview-card, .mv-reispop) .mv-keuze:focus-visible { outline: 2px solid var(--ink, #f0ede4); outline-offset: 2px; }
 .mapview-card .mv-actie[aria-disabled] { opacity: 0.55; }
-.mapview-card .mv-reiskeuze { display: flex; flex-direction: column; gap: 6px; margin: 6px 0; }
-.mapview-card .mv-uit, .mapview-card .mv-note { margin: 0; font: 18px/1.4 'Arial Narrow', Arial, sans-serif; color: var(--mut, rgba(240,237,228,0.8)); }
-.mapview-card .mv-keuze { display: flex; flex-direction: column; gap: 2px; min-height: 56px; padding: 8px 12px; text-align: left; color: var(--ink, #f0ede4); background: transparent; border: 0; border-left: 6px solid var(--line2, rgba(240,237,228,0.16)); border-radius: 8px; cursor: pointer; font: 18px/1.35 'Arial Narrow', Arial, sans-serif; }
-.mapview-card .mv-keuze.sel { background: rgba(63,201,122,0.18); border-left-color: var(--g, #3fc97a); }
-.mapview-card .mv-keuze[aria-disabled] { opacity: 0.55; }
-.mapview-card .mv-kk { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.mapview-card .mv-kk .mv-kl { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 24px; letter-spacing: 0.04em; }
-.mapview-card .mv-aanb { font-style: normal; font-size: max(13px, var(--menu-min, 13px)); letter-spacing: 0.14em; text-transform: uppercase; color: #0c140e; background: var(--g, #3fc97a); border-radius: 4px; padding: 1px 8px; }
-.mapview-card .mv-ku { color: var(--mut, rgba(240,237,228,0.78)); }
-.mapview-card .mv-kd { color: var(--ink, #f0ede4); }
+:is(.mapview-card, .mv-reispop) .mv-reiskeuze { display: flex; flex-direction: column; gap: 6px; margin: 6px 0; }
+:is(.mapview-card, .mv-reispop) .mv-uit, :is(.mapview-card, .mv-reispop) .mv-note { margin: 0; font: 18px/1.4 'Arial Narrow', Arial, sans-serif; color: var(--mut, rgba(240,237,228,0.8)); }
+:is(.mapview-card, .mv-reispop) .mv-keuze { display: flex; flex-direction: column; gap: 2px; min-height: 56px; padding: 8px 12px; text-align: left; color: var(--ink, #f0ede4); background: transparent; border: 0; border-left: 6px solid var(--line2, rgba(240,237,228,0.16)); border-radius: 8px; cursor: pointer; font: 18px/1.35 'Arial Narrow', Arial, sans-serif; }
+:is(.mapview-card, .mv-reispop) .mv-keuze.sel { background: rgba(63,201,122,0.18); border-left-color: var(--g, #3fc97a); }
+:is(.mapview-card, .mv-reispop) .mv-keuze[aria-disabled] { opacity: 0.55; }
+:is(.mapview-card, .mv-reispop) .mv-kk { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+:is(.mapview-card, .mv-reispop) .mv-kk .mv-kl { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 24px; letter-spacing: 0.04em; }
+:is(.mapview-card, .mv-reispop) .mv-aanb { font-style: normal; font-size: max(13px, var(--menu-min, 13px)); letter-spacing: 0.14em; text-transform: uppercase; color: #0c140e; background: var(--g, #3fc97a); border-radius: 4px; padding: 1px 8px; }
+:is(.mapview-card, .mv-reispop) .mv-ku { color: var(--mut, rgba(240,237,228,0.78)); }
+:is(.mapview-card, .mv-reispop) .mv-kd { color: var(--ink, #f0ede4); }
 .mapview-card .mv-infostap p { margin: 2px 0; font: 20px/1.4 'Arial Narrow', Arial, sans-serif; color: var(--ink, #f0ede4); }
 .mapview-card .mv-hier b { display: block; font: normal 26px/1.1 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.04em; }
 .mapview-card .mv-hier .mv-hier-plek { margin: 2px 0 4px; font: 20px/1.35 'Arial Narrow', Arial, sans-serif; color: var(--ink, #f0ede4); }
-/* de uitleg: een blok in de kaartkolom onder het zoekveld, geen los vlak over de titel (#602) */
-.mapview-overlay .mv-help { position: absolute; inset: 0; z-index: 12; pointer-events: auto; display: grid; place-items: center; padding: 40px; background: rgba(12, 20, 14, 0.78); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); animation: mv-help-in 0.18s ease-out; }
-.mapview-overlay .mv-help-box { width: min(600px, 100%); max-height: 100%; overflow-y: auto; box-sizing: border-box; gap: var(--ds-s-4); }
-.mapview-overlay .mv-help-head { align-items: center; }
-.mapview-overlay .mv-help-head .ds-z-kaart__titel { margin: 0; }
-.mapview-overlay .mv-help-x { flex: none; display: grid; place-items: center; width: 40px; height: 40px; margin-left: auto; padding: 0; border: var(--ds-lijn) solid currentColor; border-radius: var(--ds-r); background: transparent; color: inherit; cursor: pointer; }
-.mapview-overlay .mv-help-x svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
-.mapview-overlay .mv-help-x:hover { background: var(--ds-c-wit); color: var(--ds-zeef-kop); }
-.mapview-overlay .mv-help ul { margin: 0 0 18px 20px; padding: 0; }
-.mapview-overlay .mv-help li { margin: 6px 0; }
-.mapview-overlay .mv-help-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 18px; }
-/* Het pad naar Hulp liep buiten de popup af; het mag krimpen en doorlopen (#602). */
-.mapview-overlay .mv-help-foot small { min-width: 0; flex: 1 1 220px; color: var(--ds-tx-zacht); font-size: var(--ds-t-hulp); line-height: var(--ds-lh-tekst); overflow-wrap: anywhere; }
-.mapview-overlay .mv-help .mv-help-ok { display: inline-flex; align-items: center; gap: var(--ds-s-2); min-height: var(--ds-doel-aanraken); font-size: var(--ds-t-label); }
-.mapview-overlay .mv-help .mv-help-ok:focus-visible, .mapview-overlay .mv-help-x:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-kop-tx); outline-offset: var(--ds-focus-afstand); }
-.mapview-overlay .mv-help .mv-help-ok:focus-visible { outline-color: var(--ds-focus); }
+/* de uitleg en de reispopup (21-11): een compacte papieren kaart op een rustig gedimde kaart, zonder vervaging; tekst op 15 px of meer */
+.mapview-overlay :is(.mv-help, .mv-reispop) { position: absolute; inset: 0; z-index: 12; pointer-events: auto; display: grid; place-items: center; padding: var(--ds-s-5); background: color-mix(in srgb, var(--ds-c-ink-inkt, #1b1a17) 45%, transparent); animation: mv-help-in var(--ds-m, 200ms) var(--ds-ease, ease-out) both; }
+.mapview-overlay :is(.mv-help-box, .mv-reispop-box) { width: min(460px, 100%); max-height: 100%; overflow-y: auto; box-sizing: border-box; gap: var(--ds-s-3); font-size: max(15px, var(--menu-min, 15px)); animation: mv-help-kaart var(--ds-m, 200ms) var(--ds-ease, ease-out) both; }
+.mapview-overlay .mv-reispop-box { width: min(520px, 100%); }
+.mapview-overlay .mv-help-head .ds-z-kaart__titel, .mapview-overlay .mv-reispop-box .ds-z-kaart__titel { margin: 0; }
+.mapview-overlay .mv-help-regels { margin: var(--ds-s-2) 0 0 var(--ds-s-5); padding: 0; font-size: max(15px, var(--menu-min, 15px)); }
+.mapview-overlay .mv-help-regels li { margin: var(--ds-s-1) 0; }
+.mapview-overlay .mv-help-meer { margin: 0; }
+.mapview-overlay .mv-help-meer > summary { min-height: var(--ds-s-6); display: flex; align-items: center; }
+.mapview-overlay .mv-help-foot { display: flex; align-items: center; flex-wrap: wrap; gap: var(--ds-s-2) var(--ds-s-3); }
+.mapview-overlay .mv-help-toets { display: inline-flex; align-items: center; gap: var(--ds-s-1); color: var(--ds-tx-zacht, inherit); font-size: max(15px, var(--menu-min, 15px)); }
+.mapview-overlay .mv-help-hulp { margin: 0; color: var(--ds-tx-zacht); font-size: max(15px, var(--menu-min, 15px)); line-height: 1.4; }
+.mapview-overlay :is(.mv-help-ok, .mv-reispop-ok, .mv-reispop-terug) { min-height: var(--ds-doel-aanraken); font-size: var(--ds-t-label); }
+.mapview-overlay :is(.mv-help-ok, .mv-reispop-ok, .mv-reispop-terug):focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-focus); outline-offset: var(--ds-focus-afstand); }
+.mapview-overlay .mv-reispop-plek { margin: 0; font-size: max(15px, var(--menu-min, 15px)); }
+.mapview-overlay .mv-reispop-reden { margin: 0; padding: var(--ds-s-2) var(--ds-s-3); border: var(--ds-lijn-dik) dashed var(--ds-c-ink-inkt); border-radius: var(--ds-r); font-size: max(15px, var(--menu-min, 15px)); }
+.mapview-overlay .mv-reispop .mv-reiskeuze { margin: 0; }
+.mapview-overlay .mv-reispop .mv-keuze { min-height: var(--ds-doel-aanraken); font-size: max(15px, var(--menu-min, 15px)); color: var(--ds-zeef-tx); border-left-color: var(--ds-c-ink-inkt); }
+.mapview-overlay .mv-reispop .mv-keuze.sel { background: var(--ds-c-sel-vlak); box-shadow: inset 0 0 0 var(--ds-lijn-dik) var(--ds-c-ink-bord); }
+.mapview-overlay .mv-reispop .mv-keuze:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-focus); outline-offset: var(--ds-focus-afstand); }
+.mapview-overlay .mv-reispop .mv-kk .mv-kl { font-size: max(20px, var(--menu-min, 20px)); }
+.mapview-overlay .mv-reispop .mv-uit, .mapview-overlay .mv-reispop .mv-ku, .mapview-overlay .mv-reispop .mv-kd { color: var(--ds-tx-zacht); font-size: max(15px, var(--menu-min, 15px)); font-family: var(--ds-font-zeef-tekst); }
+.mapview-overlay .mv-reispop .mv-aanb { font-size: max(13px, var(--menu-min, 13px)); }
 @keyframes mv-help-in { from { opacity: 0; } to { opacity: 1; } }
-@media (max-height: 760px) { .mapview-overlay .mv-help-box { gap: var(--ds-s-3); } }
+@keyframes mv-help-kaart { from { opacity: 0; translate: 0 var(--ds-s-2); } to { opacity: 1; translate: 0 0; } }
+@media (prefers-reduced-motion: reduce) { .mapview-overlay :is(.mv-help, .mv-reispop, .mv-help-box, .mv-reispop-box) { animation: none; } }
+html.reduce-motion .mapview-overlay :is(.mv-help, .mv-reispop, .mv-help-box, .mv-reispop-box), html.rustig-drukwerk .mapview-overlay :is(.mv-help, .mv-reispop, .mv-help-box, .mv-reispop-box) { animation: none; }
+@media (max-height: 760px) { .mapview-overlay :is(.mv-help-box, .mv-reispop-box) { gap: var(--ds-s-2); } .mapview-overlay :is(.mv-help, .mv-reispop) { padding: var(--ds-s-3); } }
 .mapview-overlay .mv-uitleg small { display: block; margin-top: 8px; font-size: 18px; color: var(--mut, rgba(240,237,228,0.65)); }
 .mapview-legend .mv-leg-hint { margin: 0 2px 8px; }
 .mapview-legend .mv-leg-hint .hint { margin: 0 0 2px; }
