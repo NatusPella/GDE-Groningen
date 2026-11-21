@@ -23,8 +23,9 @@ t('een veld is een kaart: stand met woord, gewas, oppervlakte, volgende stap en 
   assert.match(html, /Kaal/);
   assert.match(html, /Volgende stap/);
   assert.match(html, /ca. €900/);
-  assert.match(html, /data-bd-naar="zonnehoek" data-bd-sluit="1">Naar veld</);
-  assert.match(html, /data-goto="map">Markeer op kaart</);
+  assert.match(html, /data-bd-naar="zonnehoek" data-bd-sluit="1" aria-label="Naar veld Akker De Zonnehoek">Naar veld</, 'elke knop noemt zijn veld (schermlezer, controllerhulp)');
+  assert.match(html, /data-goto="map" aria-label="Markeer Akker De Zonnehoek op kaart">Markeer op kaart</);
+  assert.ok(!/role="list"/.test(lees('game/js/farmcards.js')), 'artikelen in een role=list zijn ongeldig: de container is een groep');
 });
 
 t('de bron: eigen rail-item onder Bezit, tabs in het paneel, dynamisch label, actie in Spel en zoekvenster', () => {
