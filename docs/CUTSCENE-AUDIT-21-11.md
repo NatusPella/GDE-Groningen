@@ -115,3 +115,33 @@ node scripts/cutscene_lint.mjs --only=M01.intro      # één cutscene met alle v
 node scripts/cutscene_lint.mjs --strict --quiet     # de releasegate (static): exit 1 bij een blokkerende vondst zonder uitzondering
 node scripts/cutscene_lint.mjs --lijst=docs/CUTSCENE-FAALLIJST-21-11.md   # de faallijst voor de verhaal-lead opnieuw maken
 ```
+
+## Stand na de camera- en regieronde (#1146)
+
+Gemeten met `node scripts/cutscene_lint.mjs` op 21-11 na de ronde (alles pure data, niets in beeld bekeken). De blokkerende vondsten waren al weg (`--strict` geeft 0); deze ronde ging over de belangrijke.
+
+| | Voor | Na |
+|---|---|---|
+| belangrijk | 208 | 114 (+ 10 uitgezonderd met reden) |
+| nit | 89 | 83 |
+| blokkerend | 0 | 0 |
+| globale score | 93 | 96 |
+| cutscenes zonder belangrijke of blokkerende vondst | 153 | 179 |
+
+Per regel (belangrijk, voor naar na):
+
+| Regel | Voor | Na | Hoe |
+|---|---|---|---|
+| CS-C04 shotduur | 50 | 0 | `splitLongShots` in `missionScene` (`cutscenes_akte1.js`): een shot staat nooit langer dan 7,2 s, een lange beurt krijgt een tweede hoek die op een andere plek staat dan de shots ervoor en erna; een eerste shot start niet voor 0,9 s; het slotbeeld komt minstens een seconde na het shot ervoor. De gestapelde sjablonen in de keuken (`L3`, `L3+0.3`, `L3+0.6`, `L10+0.3`, `L10+0.6`) zijn teruggebracht tot één shot per beurt of reactie; M01.intro had een sjabloon met `dt: 0.8` direct na een automatisch shot. |
+| CS-C10 geen variatie | 1 | 0 | M21.intro: een inzetshot op de bakkie (de stemmen zitten verborgen in de cabine). |
+| CS-R03 spreker niet op het scherm | 8 | 0 | Slotbeeld kijkt naar het midden van het eerste personage en de laatste spreker (`wendLook`, in M10.intro een eigen `endLook`); reactieshots (keuken, M26.5) en het voice-overshot van de verhuisdag hebben het veld `offscreen`; M18.3 snijdt niet meer 0,2 s te laat naar Anita. |
+| CS-R04 ondertitel over de spreker | 1 | 0 | Keuken: de orbit van L8 kijkt iets hoger (`@1.0`). |
+| CS-V03 positie | 8 | 0 | De linter telt een verborgen inzittende (`road` of vanaf de eerste seconde `hide`) niet meer als figuur in de scène: Durk en Douwe in de trekker (M02.intro), Tessa en Berend in de bakkie (M21.intro), de passanten op 44 en 60 m. |
+| CS-V04 gebaar tegen de tekst | 3 | 0 | Schudden en knikken zijn schouderophalen geworden (M12.intro, M17.outro, M24.3). |
+| CS-T08 introductie | 18 | 0 | Rikus is bekend in de linter (de radiostem die het verhaal opent); Berend, Durk en Douwe, Veldkamp, Klaas en Tinus staan met een naamkaart in de regie van hun eerste scène (`docs/verhaal/nieuw/09-script-akte*.md`, `script.json` opnieuw gebouwd); tien stemmen en rolfiguren staan met een reden in `scripts/release/cutscene-uitzonderingen.json`. |
+| CS-V05 kijkrichting | 51 | 43 | De spreker draait zich naar wie hij antwoordt (de laatste andere spreker, anders de volgende). De rest is een luisteraar of omstander die dichterbij staat dan de gesprekspartner; daar helpt alleen eigen regie per scène. |
+| CS-C06 as (belangrijk, scènes met drie of meer sprongen) | 23 | 29 | Niet opgelost. Een vaste kant voor de automatische dekking gaf bijna geen verschil (de sprongen komen van sjablonen en handgemaakte shots); het aantal steeg waarschijnlijk doordat er extra shots zijn bijgekomen. Per scène te regisseren. |
+| CS-T02, T03, T04 (tekst) | 4, 7, 30 | 4, 7, 30 | Niet aangeraakt: ze vragen een tekstwijziging (splitsen, een spreker schrappen, korter) en dus het paneel van drie reviewers en nieuwe opnames op `scripts/voice_wacht.json`. Er is in deze ronde geen gesproken regel gewijzigd, dus er staat niets nieuws op de wachtlijst. |
+| CS-T01 leessnelheid | 1 | 1 | M06.intro regel 3 ("En daarna brengen we hem terug."): de opname is 1,27 s lang voor 31 tekens (20,4 tekens per seconde); alleen een nieuwe opname lost dat op. |
+
+Nog niet gedaan en niet bekeken: geen van de nieuwe shots is in beeld gezien (Electron draaide niet); de tweede hoeken, het inzetshot in M21.intro en de draaiende sprekers zijn alleen op de cijfers van de linter en de scenetests (`cutscenes_*_test`, `cutscene_lint_test`) beoordeeld. Hertest in beeld is nodig (label `hertest`).
