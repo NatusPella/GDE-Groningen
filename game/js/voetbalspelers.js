@@ -154,10 +154,14 @@ export function readPlayer(d) {
   };
 }
 // Het ratingblok voor een wedstrijd: per plek in de vorming één factorenset (de volgorde van de selectie op rol). `team` is een lijst spelers, `tac` de rollen per index van de vorming.
-export function lineupFor(squad, roles, { forms = {}, fatigue = {} } = {}) {
+export function lineupFor(squad, roles, { forms = {}, fatigue = {}, must = [] } = {}) {
   const pool = squad.slice().sort((a, b) => playerRating(b) - playerRating(a));
   const taken = new Set();
-  return roles.map((role) => {
+  // `must`: spelers die zeker in de opstelling staan (de speler en zijn teamgenoot): zij krijgen eerst een plek van hun rol
+  const reserved = new Map();
+  for (const id of must) { const p = squad.find((x) => x.id === id); const k = p ? roles.findIndex((r, i) => r === p.role && !reserved.has(i)) : -1; if (k >= 0) reserved.set(k, p); }
+  return roles.map((role, ri) => {
+    if (reserved.has(ri)) { const p = reserved.get(ri); taken.add(p.id); return { player: p, factors: simFactors(p, { form: forms[p.id] || 1, fatigue: fatigue[p.id] || 0, role }) }; }
     let pick = pool.find((p) => !taken.has(p.id) && p.role === role) || pool.find((p) => !taken.has(p.id) && (p.side === role)) || pool.find((p) => !taken.has(p.id)) || null;
     if (pick) taken.add(pick.id);
     return { player: pick, factors: pick ? simFactors(pick, { form: forms[pick.id] || 1, fatigue: fatigue[pick.id] || 0, role }) : { ...NEUTRAL_FACTORS } };

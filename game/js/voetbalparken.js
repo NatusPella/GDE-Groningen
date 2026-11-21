@@ -82,3 +82,11 @@ export function pitchPlacement(park, size = { B: 56, L: 90 }) {
 }
 // Alle clubs die een bestaande eigen club-id kennen (de carrière bewaart alleen ids): van een id naar de club.
 export function resolveClub(index, id) { return index.byId.get(id) || null; }
+
+// Als de parkdata ontbreekt of kapot is: acht vaste plaatsen rond de stad met een eigen verzonnen club (geen echte clubnamen), zodat de carrière altijd kan starten. Het veld is dan een gewoon veld bij de plaats.
+export const HOME_FALLBACK = Object.freeze({ x: -2174, y: -2246 });
+const FALLBACK_PLACES = [['Haren', 1], ['Hoogkerk', 2], ['Eelde', 3], ['Winsum', 4], ['Zuidhorn', 5], ['Bedum', 6], ['Ten Boer', 7], ['Leek', 8]];
+export function fallbackIndex() {
+  const plaatsen = FALLBACK_PLACES.map(([n, k], i) => ({ id: 9000000 + k, n, k: 'village', x: HOME_FALLBACK.x + (i - 3.5) * 900, y: HOME_FALLBACK.y + (i % 2 ? 700 : -700), p: [{ x: HOME_FALLBACK.x + (i - 3.5) * 900, y: HOME_FALLBACK.y + (i % 2 ? 700 : -700), r: 0, f: 1, a: 9000, c: 0, l: 0 }] }));
+  return makeParkIndex({ v: 1, plaatsen });
+}
