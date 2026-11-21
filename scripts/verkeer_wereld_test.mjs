@@ -3,7 +3,7 @@
 //   - geen AI-auto met het lichaam in een gebouw (resolveVehicleBuildingCollision raakt een voetafdruk),
 //   - geen AI-auto in het water (midden of een hoek op open water, behalve op een brug/dek),
 //   - geen AI-auto ver naast zijn weg (verder dan de halve breedte plus een trottoirmarge),
-//   - geen auto die lang vastzit zonder rood licht of file (stuckFor / waitFor),
+//   - geen auto die lang vastzit zonder rood licht of file (stuckFor / waitFor, een rij achter een licht uitgezonderd),
 //   - geen blijvende overlap tussen twee AI-auto's.
 //   node scripts/verkeer_wereld_test.mjs [--verbose] [--secs=240]   (STRICT=1: elke afwijking is een fout)
 // Slaat over zonder game/world (desktop stage).
@@ -37,6 +37,10 @@ const SPOTS = [
   ['zuidring', 300, -2600],
 ];
 const DT = 1 / 30;
+// Een rij achter een stoplicht wacht legitiem een hele cyclus (trafficlights.js MAX_CYCLE 48 s) plus het leegrijden; de auto's
+// achteraan staan dan niet zelf op `_atLight`. Wie langer dan dat zonder licht wacht, zit echt vast (de spel-AI keert zelf na 35 tot 44 s,
+// maar laat een rij achter een licht met rust: queuedAtLight). Een drempel van 40 s telde die rijen mee en schommelde per seed tussen 0 en 12.
+const STUCK_WAIT = 70;
 // waar staat de auto ten opzichte van zijn weg en de dichtstbijzijnde voetafdruk (voor het rapport)
 function wallInfo(v) {
   let lat = 99, bd = 99, bt = '';
@@ -81,7 +85,8 @@ for (const [name, sx, sy] of SPOTS) {
       V.updateTrafficAI(v, DT, map, world, Math.random);
       if (v.road && !v.wrecked && !v.isHeroCar) {
         // het midden van de auto in een voetafdruk (voor het wegduwen): de AI-baan loopt dan door het gebouw
-        if (!(v.z > 3) && map.buildingsNear(v.x, v.y, 3).some((b) => pointInPolygon(v.x, v.y, b.pts) && !inPassage(map, b, v.x, v.y, 0.35, 'car'))) note('inside', v, t, `v ${v.speed.toFixed(1)} cat ${v.road.cat}`);
+        // (behalve op een tunnelweg: de garage-inrit van een winkel of kantoor ligt bewust onder of in de voetafdruk, #1047)
+        if (!(v.z > 3) && !v.road.tunnel && map.buildingsNear(v.x, v.y, 3).some((b) => pointInPolygon(v.x, v.y, b.pts) && !inPassage(map, b, v.x, v.y, 0.35, 'car'))) note('inside', v, t, `v ${v.speed.toFixed(1)} cat ${v.road.cat}`);
         if (V.resolveVehicleBuildingCollision(v, map, DT) && Math.abs(v.speed) > 1.5) note('wall', v, t, `v ${v.speed.toFixed(1)} cat ${v.road.cat} w ${v.road.width} ${wallInfo(v)}`);
       }
     }
@@ -104,7 +109,7 @@ for (const [name, sx, sy] of SPOTS) {
       }
       const rd = 0;
       if (d > rd + 3.5) note('offroad', v, t, `${d.toFixed(1)} m naast het wegdek`);
-      if ((v.stuckFor || 0) > 20 || ((v.waitFor || 0) > 40 && !v._atLight)) note('stuck', v, t, `stuck ${Math.round(v.stuckFor || 0)} wait ${Math.round(v.waitFor || 0)} ${v._why || ''}`);
+      if ((v.stuckFor || 0) > 20 || ((v.waitFor || 0) > STUCK_WAIT && !v._atLight)) note('stuck', v, t, `stuck ${Math.round(v.stuckFor || 0)} wait ${Math.round(v.waitFor || 0)} ${v._why || ''}`);
     }
     for (let i = 0; i < live.length; i++) for (let j = i + 1; j < live.length; j++) {
       const a = live[i], b = live[j], k = a.id * 100000 + b.id;
