@@ -65,7 +65,7 @@ import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, getCareRoute
 import { getClockText } from './clocktext.js';
 export { getClockText };
 import { storyWaiting, missionOnMap, getGoal } from './goal.js';
-import { bepaalNavDoelen, navKleur, NAV_ROL, GLYPH } from './navdoel.js';
+import { bepaalNavDoelen, snapshotUitWereld, afstandVoor, navKleur, NAV_ROL, GLYPH } from './navdoel.js';
 import { drawKompasRand, MAX_ANDEREN } from './navpijl.js';
 import { setGhostBar, ring, pop, reducedMotion } from './motion.js';
 import { renderSnapshot, PORTRAIT_ANGLE } from './vehiclepreview.js';
@@ -2924,19 +2924,12 @@ function drawMinimap(dt, world) {
   const careRoute = getCareRoute();
   const lekGarage = lekkeBandGarage(player.inVehicle, player.x, player.y);
   const goalNu = getGoal();
-  const nav = bepaalNavDoelen({
-    speler: { x: player.x, y: player.y },
-    modus: mmMode,
-    bezig: world.heliRun ? 'heli' : busyGame ? 'minigame' : null,
+  const nav = bepaalNavDoelen(snapshotUitWereld(world, {
+    speler: { x: player.x, y: player.y }, modus: mmMode, busyGame, goal: goalNu, missieOpKaart: missionOnMap(world),
     heli: heliMarks && heliMarks.target ? heliMarks.target : null,
-    klus: job && job.marker ? { x: job.marker.x, y: job.marker.y, name: job.label } : null,
-    uitdaging: !job && world.challengeTarget ? world.challengeTarget : null,
-    missie: m && m.marker ? { x: m.marker.x, y: m.marker.y, name: m.label, fase: m.phase, opKaart: missionOnMap(world) } : null,
-    eigen: goalNu ? { x: goalNu.x, y: goalNu.y, name: goalNu.name, soort: goalNu.kind } : null,
-    verhaal: !world.storyFreePlay && world.storyGuide && Number.isFinite(world.storyGuide.x) ? world.storyGuide : null,
     groep: [dichtstbijDoel(gastDoelLijst, player.x, player.y), dichtstbijDoel(eigenGroepDoelen, player.x, player.y)].filter(Boolean).map((r) => r.doel).concat(gastStart ? [gastStart] : []),
     zorg: lekGarage ? { x: lekGarage.x, y: lekGarage.y, name: 'Garage' } : careRoute && careRoute.target ? { x: careRoute.target.x, y: careRoute.target.y, name: careRoute.target.name } : null,
-  });
+  }));
   // twee doelen op dezelfde plek zijn één doel: het lagere krijgt geen eigen markering (de speler zag eerst een paarse pin onder een gele ring)
   const samen = (id) => nav.verborgen.some((v) => v.id === id && /^zelfde plek/.test(v.reden));
   const missieMarker = showMission && !samen('missie');
@@ -3100,9 +3093,7 @@ function drawMinimap(dt, world) {
   for (const d of [...nav.secundair, ...(nav.actief ? [nav.actief] : [])]) {
     if (inRange(d.x, d.y)) continue; // in beeld staat zijn marker; de markering aan de rand is voor wat buiten de kaart ligt
     const actief = d.rol === 'actief';
-    // langs de route als die er is en naar dit doel loopt, anders hemelsbreed: hetzelfde getal als de doelregel
-    const langs = actieveRoute && actieveRoute.target && Math.hypot(actieveRoute.target.x - d.x, actieveRoute.target.y - d.y) < 40 ? actieveRoute.remaining : d.afstand;
-    kompas.push({ a: edgeAngle(d.x, d.y), kleur: navKleur(d, palet), icoon: GLYPH[d.glyph] || GLYPH.punt, actief, tekst: actief ? formatDistance(langs) : '' });
+    kompas.push({ a: edgeAngle(d.x, d.y), kleur: navKleur(d, palet), icoon: GLYPH[d.glyph] || GLYPH.punt, actief, tekst: actief ? formatDistance(afstandVoor(d, actieveRoute)) : '' });
   }
   drawKompasRand(ctx, MINIMAP_SIZE, kompas, { t, beweging: !reducedMotion() });
 }

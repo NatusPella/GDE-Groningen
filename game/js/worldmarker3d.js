@@ -16,13 +16,13 @@ import { iconScale, iconLift, columnWidth, columnHeight, columnOpacity, discOpac
 const MARKER_SOLID = FLAGS.marker === 'vorm';
 
 const MARKER_KINDS = {
-  start: { color: 'mission' },
-  goal: { color: 'missionActive' },
-  optional: { color: 'care' },
+  start: { color: NAV_ROL.verhaal },
+  goal: { color: NAV_ROL.missie }, // #1078: het doel van de actieve missie is geel (was cyaan); de vorm (driehoek) onderscheidt het van de start (ruit)
+  optional: { color: NAV_ROL.zorg },
   door: { color: 'ok' },
   garage: { color: 'job' }, // de spuitdienst van een opdracht (#434): hetzelfde oranje als de garage op de kaart
   vehicle: { color: 'job' },
-  checkpoint: { color: 'missionActive' },
+  checkpoint: { color: NAV_ROL.uitdaging }, // ring: de uitdaging na het verhaal
   user: { color: NAV_ROL.eigen }, // navdoel.js: jouw eigen doel
   job: { color: NAV_ROL.klus },
 };

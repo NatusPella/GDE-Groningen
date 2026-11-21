@@ -40,7 +40,7 @@ export function hideRouteRibbon3D() {
 const RIBBON_AHEAD_M = 80;
 const RIBBON_HALF_W = 0.8;
 const RIBBON_CHEVRON_M = 3;
-const ROUTE_COLOR_3D = { user: 0xc068ff, mission: 0xe8c93a, job: 0xff9a3c };
+const ROUTE_COLOR_3D = { user: 0xc068ff, mission: 0xf9c80e, job: 0xff9a3c };
 let routeRibbonMesh = null;
 let routeRibbonKey = '';
 let waypointBeacon = null;

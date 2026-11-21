@@ -1,10 +1,11 @@
 // navdoel.js en navpijl.js (#1078): welk doel de pijl volgt, wat wacht, wat dezelfde plek is, wat klaar is; de kleur per type en de pijl zelf.
 // Puur: geen DOM, geen spel. Samen spelen: de doelen zijn per speler lokaal; de groep komt als eigen lijst binnen (net als in coopmissie.js).
 import fs from 'node:fs';
-import { bepaalNavDoelen, navKleur, navTekst, routeRol, eigenGlyph, lijnVoor, NAV_ROL, NAV_TYPES, GLYPH, MAX_SECUNDAIR, AANKOMST_M, ROUTE_TYPE } from '../game/js/navdoel.js';
-import { baan, plaats, spreid, drawKompasRand, BAAN_INSET, MIN_ACTIEF, MIN_PUNT } from '../game/js/navpijl.js';
+import { snapshotUitWereld, afstandVoor, bepaalNavDoelen, navKleur, navTekst, routeRol, eigenGlyph, lijnVoor, NAV_ROL, NAV_TYPES, GLYPH, MAX_SECUNDAIR, AANKOMST_M, ROUTE_TYPE } from '../game/js/navdoel.js';
+import { drawKaartDoelen, baan, plaats, spreid, drawKompasRand, BAAN_INSET, MIN_ACTIEF, MIN_PUNT } from '../game/js/navpijl.js';
 import { iconBekend } from '../game/js/icons.js';
 import { PALETTES } from '../game/js/a11y.js';
+import { dsKleur, contrast, kaartLand } from '../game/js/kaartkleuren.js';
 
 let n = 0, fails = 0;
 const ok = (c, m) => { n++; if (!c) { fails++; console.log('FAIL', m); } };
@@ -187,6 +188,39 @@ const types = (r) => r.alle.map((d) => d.type + ':' + d.rol);
   for (const t of ['--nav-actief', '--nav-eigen', '--nav-secundair']) ok(css.includes(t + ':'), `ds-tokens.css heeft ${t}`);
   const a11y = fs.readFileSync(new URL('../game/js/a11y.js', import.meta.url), 'utf8');
   ok(/--nav-actief/.test(a11y) && /--nav-eigen/.test(a11y), 'a11y.js zet de doelkleuren op de kleurenblindpaletten');
+}
+
+// 18. de momentopname uit de wereld (minikaart en grote kaart delen hem) en de afstand
+{
+  const w = { mission: { marker: { x: 300, y: 0 }, phase: 'idle', label: 'M1' }, sideJob: null, storyGuide: { x: 302, y: 1, name: 'Gids' }, storyFreePlay: false };
+  const r = bepaalNavDoelen(snapshotUitWereld(w, { speler: sp, modus: 'auto', goal: { x: 0, y: 600, name: 'Plek', kind: 'place' }, missieOpKaart: true }));
+  ok(r.actief.type === 'eigen' && r.secundair.length === 1 && r.secundair[0].id === 'missie', 'uit de wereld: eigen doel actief, de missie wacht, de gids valt samen met de missie');
+  const heli = bepaalNavDoelen(snapshotUitWereld({ ...w, heliRun: true }, { speler: sp, heli: { x: 0, y: 50 } }));
+  ok(heli.actief && heli.actief.type === 'heli' && heli.alle.length === 1, 'uit de wereld: een heli-run toont alleen zijn eigen doel');
+  const mini = bepaalNavDoelen(snapshotUitWereld(w, { speler: sp, busyGame: true }));
+  ok(mini.alle.length === 0, 'uit de wereld: een minigame laat de kaart rustig');
+  const route = { target: { x: 0, y: 601 }, remaining: 910 };
+  ok(afstandVoor({ x: 0, y: 600, afstand: 600 }, route) === 910 && afstandVoor({ x: 50, y: 600, afstand: 600 }, route) === 600 && afstandVoor({ x: 0, y: 600, afstand: 600 }, null) === 600, 'de afstand volgt de route, anders hemelsbreed');
+  const maak = () => { const tel = { fill: 0, stroke: 0, text: 0 }; const c = new Proxy({}, { get: (t, k) => (k === 'measureText' ? () => ({ width: 30 }) : k === 'fillText' ? () => { tel.text++; } : k in tel ? () => { tel[k]++; } : () => {}), set: () => true }); return { c, tel }; };
+  const g = maak();
+  drawKaartDoelen(g.c, [{ sx: 50, sy: 60, kleur: '#f9c80e', icoon: 'ster', actief: true, tekst: '420 m' }, { sx: 90, sy: 60, kleur: '#c068ff', icoon: 'vlag', actief: false }, { sx: 120, sy: 60, kleur: '#c068ff', icoon: 'vlag', actief: true, tekst: '90 m', zonderSchijf: true }], { s: 1, beweging: false });
+  ok(g.tel.text === 2 && g.tel.fill > 4, 'grote kaart: afstand bij het actieve doel, ook bij een doel met een eigen pin');
+  const leeg = maak(); drawKaartDoelen(leeg.c, [], {}); ok(leeg.tel.fill === 0, 'grote kaart: zonder doelen niets');
+}
+// 19. één geel (ds-tokens: ink-geel) en de 3D-bakens
+{
+  const geel = dsKleur('ink-geel');
+  ok(PALETTES.uit.mission === geel && geel === '#f9c80e', 'het geel van de missie is het hoofdgeel van de tokens');
+  const mini = kaartLand().mini;
+  ok(contrast(geel, dsKleur('glas')) >= 4.5, 'geel leest op glas (4,5:1)');
+  for (const bg of ['meadow', 'park', 'forest', 'village']) ok(contrast(geel, mini[bg]) >= 3, `geel tegen de minikaart (${bg}) haalt 3:1`);
+  ok(contrast(dsKleur('inkt'), geel) >= 4.5, 'inkt op geel leest (4,5:1); geel tegen papier heeft altijd een inktrand');
+  const wm = fs.readFileSync(new URL('../game/js/worldmarker3d.js', import.meta.url), 'utf8');
+  ok(!/missionActive/.test(wm) && /goal: \{ color: NAV_ROL\.missie/.test(wm) && /checkpoint: \{ color: NAV_ROL\.uitdaging/.test(wm) && /user: \{ color: NAV_ROL\.eigen/.test(wm), '3D-bakens: goal en checkpoint geel, eigen doel paars, via NAV_ROL');
+  const mm = fs.readFileSync(new URL('../game/js/missionmarker3d.js', import.meta.url), 'utf8');
+  ok(/MARKER_COLOR_ACTIVE = 0xf9c80e/.test(mm), 'de ringen van de actieve missie zijn geel, niet cyaan');
+  const mv = fs.readFileSync(new URL('../game/js/mapview.js', import.meta.url), 'utf8');
+  ok(/bepaalNavDoelen\(snapshotUitWereld/.test(mv) && /drawKaartDoelen\(/.test(mv), 'de grote kaart leest navdoel.js');
 }
 
 console.log(`navdoel_test: ${n} controles, ${fails} fouten`);

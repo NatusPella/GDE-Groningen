@@ -152,3 +152,29 @@ export function navTekst(doel, fmt = (m) => `${Math.round(m)} m`) {
   return `${doel.rol === 'actief' ? t.label : t.label + ' (wacht)'}, ${fmt(doel.afstand)}`;
 }
 
+
+// De momentopname uit de wereld (minikaart en grote kaart bouwen hem hier, zodat ze nooit uit elkaar lopen). e: wat de wereld niet zelf weet:
+//  speler {x, y}, modus, busyGame (padel, kermis, heli), heli {x, y} (het doel van de heli-run), goal (goal.js getGoal), missieOpKaart (goal.js missionOnMap),
+//  groep [{x, y}] (Samen spelen), zorg {x, y, name} (lekke-bandgarage of de zorgroute).
+export function snapshotUitWereld(w, e) {
+  const m = w.mission;
+  const job = w.sideJob && w.sideJob.active ? w.sideJob : null;
+  const g = e.goal;
+  return {
+    speler: e.speler, modus: e.modus,
+    bezig: w.heliRun ? 'heli' : e.busyGame ? 'minigame' : null,
+    heli: e.heli || null,
+    klus: job && job.marker ? { x: job.marker.x, y: job.marker.y, name: job.label } : null,
+    uitdaging: !job && w.challengeTarget ? w.challengeTarget : null,
+    missie: m && m.marker ? { x: m.marker.x, y: m.marker.y, name: m.label, fase: m.phase, opKaart: !!e.missieOpKaart } : null,
+    eigen: g ? { x: g.x, y: g.y, name: g.name, soort: g.kind } : null,
+    verhaal: !w.storyFreePlay && w.storyGuide && Number.isFinite(w.storyGuide.x) ? w.storyGuide : null,
+    groep: e.groep || [],
+    zorg: e.zorg || null,
+  };
+}
+
+// De afstand bij het actieve doel: langs de route als die er is en naar dit doel loopt, anders hemelsbreed (dezelfde waarde als de doelregel in de HUD).
+export function afstandVoor(doel, route) {
+  return route && route.target && Math.hypot(route.target.x - doel.x, route.target.y - doel.y) < 40 ? route.remaining : doel.afstand;
+}

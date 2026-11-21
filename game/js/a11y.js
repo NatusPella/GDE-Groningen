@@ -13,7 +13,7 @@ import { NAV_ROL } from './navdoel.js';
 // follow the Okabe-Ito palette, which stays apart for all three kinds of
 // colour blindness. Shapes and patterns tell them apart as well (hud_panel.js).
 export const PALETTES = {
-  uit: { ok: '#3fc97a', danger: '#d93f3f', mission: '#e8c93a', missionActive: '#3fd0ff', user: '#c068ff', job: '#ff9a3c', care: '#ff5fb4', police: '#3f6fd9' },
+  uit: { ok: '#3fc97a', danger: '#d93f3f', mission: '#f9c80e', missionActive: '#3fd0ff', user: '#c068ff', job: '#ff9a3c', care: '#ff5fb4', police: '#3f6fd9' },
   deuteranopie: { ok: '#56b4e9', danger: '#d55e00', mission: '#f0e442', missionActive: '#ffffff', user: '#cc79a7', job: '#009e73', care: '#f0ede4', police: '#0072b2' },
   protanopie: { ok: '#56b4e9', danger: '#ff7f0e', mission: '#f0e442', missionActive: '#ffffff', user: '#cc79a7', job: '#009e73', care: '#f0ede4', police: '#0072b2' },
   tritanopie: { ok: '#009e73', danger: '#d55e00', mission: '#f0ede4', missionActive: '#ff5fb4', user: '#cc79a7', job: '#e69f00', care: '#56b4e9', police: '#0072b2' },

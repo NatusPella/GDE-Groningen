@@ -20,7 +20,7 @@
 export const ALLOWED_COLORS = new Set([
   // Tokens uit ui-taal.md en DESIGN_SYSTEM.md
   '#1e9e56', '#3fc97a', '#0f5c30', '#17301f', '#0c140e', '#f0ede4', '#f2f2f2',
-  '#d93f3f', '#f08a8a', '#e55a5a', '#e8c93a', '#fbfaf5', '#a9a69b',
+  '#d93f3f', '#f08a8a', '#e55a5a', '#e8c93a', '#f9c80e', '#fbfaf5', '#a9a69b', // #f9c80e: zomergeel, het hoofdgeel (ds-tokens.css, #1078)
   // Statuskleuren uit PALETTES (a11y.js) en de Okabe-Ito-modi
   '#3fd0ff', '#c068ff', '#ff9a3c', '#ff5fb4', '#3f6fd9',
   '#56b4e9', '#009e73', '#f0e442', '#0072b2', '#d55e00', '#cc79a7', '#e69f00', '#ff7f0e',

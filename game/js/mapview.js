@@ -62,6 +62,11 @@ import { wantsTeleport, plekNaam } from './kaartteleport.js';
 import { ALLEEN_EIGEN_SPEL } from './coopgast.js';
 import { DEV } from './devflags.js';
 import { getGoal, setGoal, clearGoal, missionOnMap } from './goal.js';
+import { bepaalNavDoelen, snapshotUitWereld, afstandVoor, navKleur, GLYPH } from './navdoel.js';
+import { drawKaartDoelen } from './navpijl.js';
+import { markerColors } from './a11y.js';
+import { gameBusy } from './busy.js';
+import { reducedMotion } from './motion.js';
 import { getMissionLayer } from './missionmaplive.js';
 import { selectMapItems } from './missionmap.js';
 import { drawLayerAreas, drawLayerLines, layerCaption } from './missionmapdraw.js';
@@ -70,7 +75,7 @@ import { getMissionList } from './missionquery.js';
 import { MEDALS } from './achievements.js';
 import { nicknameOf, FLAVOUR_MAP_PLACES } from './flavourlines.js';
 import {
-  updateRouting, getActiveRoute, getRouteAhead, getRoutes, dismissCareRoute, setUserWaypoint, clearUserWaypoint, getUserWaypoint, formatDistance, setRoutePrefs, getRoutePrefs,
+  updateRouting, getActiveRoute, getRouteAhead, getRoutes, getCareRoute, dismissCareRoute, setUserWaypoint, clearUserWaypoint, getUserWaypoint, formatDistance, setRoutePrefs, getRoutePrefs,
   klikDoel, lineHitsBuilding,
 } from './routing.js';
 import { KEYS } from './storagekeys.js';
@@ -1970,6 +1975,20 @@ function drawDynamicMarkers(ctx, world) {
     if (q.samen && q.samen.deels) drawDeelsMarkering(ctx, q.sx + 7 * sc, q.sy - 7 * sc, sc);
     if (q.name) hover.push({ sx: q.sx, sy: q.sy, name: q.name, sub: q.sub, tipSub: q.samen ? q.samen.tekst + (q.sub ? ' · ' + q.sub : '') : undefined, x: q.x, y: q.y, kind: q.kind, ...q.pick });
   }
+  // #1078 navdoel.js: dezelfde taal als de minikaart. Het doel dat je volgt is een rond icoon met de afstand, wachtende doelen zijn kleine iconen;
+  // jouw eigen doel houdt zijn paarse pin en krijgt alleen de afstand. Een klik werkt op de pin eronder (hover blijft bij de pins).
+  {
+    const careRoute = getCareRoute();
+    const nav = bepaalNavDoelen(snapshotUitWereld(world, { speler: { x: ik.x, y: ik.y }, modus: 'auto', busyGame: gameBusy(world), goal: getGoal(), missieOpKaart: missionOnMap(world), heli: world.heliRunTarget || null, zorg: careRoute && careRoute.target ? { x: careRoute.target.x, y: careRoute.target.y, name: careRoute.target.name } : null }));
+    const palet = markerColors(), actieveRoute = getActiveRoute();
+    const lijst = nav.alle.map((d) => {
+      const [sx, sy] = toScreen(d.x, d.y);
+      const actief = d.rol === 'actief';
+      return { sx, sy, kleur: navKleur(d, palet), icoon: GLYPH[d.glyph] || GLYPH.punt, actief, tekst: actief ? formatDistance(afstandVoor(d, actieveRoute)) : '', zonderSchijf: d.type === 'eigen' };
+    }).filter((q) => q.sx > -30 && q.sy > -30 && q.sx < state.cw + 30 && q.sy < state.ch + 30);
+    // een wachtend eigen doel heeft al zijn pin: geen tweede icoon eroverheen
+    drawKaartDoelen(ctx, lijst.filter((q) => q.actief || !q.zonderSchijf), { s: Math.max(0.8, Math.min(1.25, scBasis / ICON)), t, beweging: !reducedMotion() });
+  }
   // het bijschrift van de laag (bv. Treinrit: afstand en richting) boven alle pictogrammen, op een donkere band: de pictogrammen worden hierboven in een rij getekend en lagen er eerst overheen
   if (layerCap) {
     ctx.save();
@@ -2001,9 +2020,17 @@ function tekenVeldLabel(ctx, v, st, a, c, toScreen) {
 
 function drawFullRoute(ctx, world, t, route) {
   if (!route) return;
+  // #1078: de route die je volgt is dik en vol, de andere routes zijn dun en gedempt (één actief doel, zoals de minikaart)
+  const actief = route === getActiveRoute();
+  ctx.save();
+  if (!actief) ctx.globalAlpha = 0.6;
+  drawFullRouteLijn(ctx, world, t, route, actief ? 1.3 : 0.55);
+  ctx.restore();
+}
+function drawFullRouteLijn(ctx, world, t, route, dikte) {
   const ik = hoofdspeler(world);
   const color = ROUTE_COLORS[route.kind] || ROUTE_COLORS.user;
-  const width = Math.max(4, Math.min(9, 3 + state.zoom * 0.7)) * (route === getActiveRoute() ? 1 : 0.8);
+  const width = Math.max(3, Math.min(9, 3 + state.zoom * 0.7)) * dikte;
   const ahead = getRouteAhead(Infinity, route);
   const vaarLuchtlijn = route.noRoute && route.mode === 'boat'; // geen vaarroute: gestippelde luchtlijn
   if (ahead && ahead.length > 1 && !vaarLuchtlijn) {
@@ -2653,7 +2680,8 @@ const LEGEND = [
     { kind: 'player', label: 'Jij', note: 'en wie er met je meerijdt' },
     { kind: 'missionIdle', label: 'Verhaal', dyn: 'story' },
     { kind: 'userWaypoint', label: 'Jouw waypoint', dyn: 'goal', note: 'een klik erop of Haal weg haalt hem weg' },
-    { kind: 'route', label: 'Route', note: 'doorgetrokken: verhaal of missie, streepjes: jouw doel, puntjes: klus, streep-punt: opknappen of repareren' },
+    { kind: 'route', label: 'Route', note: 'dik en geel: wat je volgt (verhaal of missie); paars gestreept: jouw eigen doel; puntjes: klus; streep-punt: opknappen of repareren; dunne lijnen wachten' },
+    { kind: 'navdoel', label: 'Doel dat je volgt', note: 'een rond icoon met de afstand; kleine ronde iconen wachten (geel verhaal, paars jouw doel, oranje klus, roze opknappen)' },
   ] },
   { group: 'Te doen', rows: [
     { kind: 'padel', label: 'Minigames', note: 'padel, carbid, botsauto\'s, driftzones, discgolf, pitch & putt, penalty’s, skatepark, karten, zwemmen, klimmen, waterskiën, vlieglessen, duiven, ballonjacht', layers: ['padel', 'duif', 'heli', ...ACTIVITY_LEGEND.map((l) => l.layer).filter((l) => l !== 'safehuis')] },
@@ -2695,9 +2723,11 @@ const LEGEND = [
 
 function drawLegendIcon(ctx, kind) {
   if (kind === 'route') {
-    drawRoadRoute(ctx, [[3, 16], [11, 10], [21, 12]], ROUTE_COLORS.user, 3.5);
-    drawRoadRoute(ctx, [[3, 21], [21, 19]], ROUTE_COLORS.mission, 3.5);
-    drawRoadRoute(ctx, [[3, 6], [12, 4], [21, 6]], ROUTE_COLORS.care, 3);
+    drawRoadRoute(ctx, [[3, 16], [11, 10], [21, 12]], ROUTE_COLORS.user, 3);
+    drawRoadRoute(ctx, [[3, 21], [21, 19]], ROUTE_COLORS.mission, 5);
+    drawRoadRoute(ctx, [[3, 6], [12, 4], [21, 6]], ROUTE_COLORS.care, 2);
+  } else if (kind === 'navdoel') {
+    drawKaartDoelen(ctx, [{ sx: 12, sy: 11, kleur: ROUTE_COLORS.mission, icoon: GLYPH.ster, actief: true, tekst: '' }], { s: 0.5, beweging: false });
   } else if (kind === 'userWaypoint') {
     drawMapIcon(ctx, 'userWaypoint', 12, 20, ICON, { t: 0 });
   } else if (kind === 'text-street' || kind === 'text-wijk') {

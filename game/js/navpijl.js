@@ -161,3 +161,30 @@ export function drawKompasRand(ctx, S, items, opties = {}) {
   ctx.restore();
   return geplaatst;
 }
+
+// De grote kaart (mapview.js): dezelfde taal op de plek van het doel zelf. Het doel dat je volgt is een rond icoon met de afstand eronder, wachtende doelen
+// zijn kleine iconen. items: [{ sx, sy, kleur, icoon, actief, tekst, zonderSchijf }] in schermpixels; s: kaartschaal (1 = de maat van de minikaart).
+// zonderSchijf: het doel heeft al zijn eigen pin (jouw waypoint): alleen het afstandsplaatje komt eronder.
+export function drawKaartDoelen(ctx, items, opties = {}) {
+  if (!items.length) return;
+  const k = { inkt: dsKleur('ink-inkt'), papier: dsKleur('ink-papier'), creme: dsKleur('creme') };
+  const s = opties.s || 1;
+  ctx.save();
+  for (const i of [...items.filter((q) => !q.actief), ...items.filter((q) => q.actief)]) {
+    if (!i.actief) {
+      cirkel(ctx, i.sx + 1.5 * s, i.sy + 1.5 * s, 10.5 * s, k.inkt);
+      cirkel(ctx, i.sx, i.sy, 10.5 * s, i.kleur, k.inkt, 2.8 * s);
+      icoon(ctx, i.icoon, i.sx, i.sy, 13 * s, k.inkt);
+      continue;
+    }
+    if (!i.zonderSchijf) {
+      const puls = opties.beweging === false ? 0 : 0.5 + 0.5 * Math.sin((opties.t || 0) * 5);
+      cirkel(ctx, i.sx + 2 * s, i.sy + 2 * s, 17 * s, k.inkt);
+      cirkel(ctx, i.sx, i.sy, (17 + puls * 0.8) * s, i.kleur, k.inkt, 3.6 * s);
+      cirkel(ctx, i.sx, i.sy, 12 * s, k.papier, k.inkt, 2.2 * s);
+      icoon(ctx, i.icoon, i.sx, i.sy, 16 * s, k.inkt);
+    }
+    if (i.tekst) plaatje(ctx, i.sx, i.sy + (i.zonderSchijf ? 14 : 30) * s, i.tekst, k);
+  }
+  ctx.restore();
+}
