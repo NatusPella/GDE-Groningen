@@ -11,6 +11,7 @@ import { noteMoney } from './finance.js';
 import { recordStat } from './achievements.js';
 import { markDirty } from './savehook.js';
 import { pushAudioEvent } from './pedgeom.js';
+import { sfxEvent } from './sfx/haken.js';
 
 const FULL_BUILD = 12; // zoveel uiterlijkvelden tegelijk is een hele show
 const store = () => (typeof localStorage !== 'undefined' ? localStorage : null);
@@ -75,6 +76,7 @@ export function installState(w, v, st, ctx) {
   if (st.body && st.body !== (v.model && v.model.color)) repaintVehicle(w, v, st.body); // verandert het id: het beeld wordt opnieuw gebouwd
   else v.meshDirty = true;
   pushAudioEvent(w, { kind: 'impact', material: 'metal', strength: 0.5, x: v.x, y: v.y });
+  sfxEvent(w, 'impact_wrench', v.x, v.y);   // SFX ronde 6: de slagmoersleutel van de werkplaats
   recordStat(w, 'tuneInstalls');
   recordStat(w, 'tuneParts', check.quote.changed);
   if (Object.keys(l).length >= FULL_BUILD) recordStat(w, 'tuneFullBuild'); // 'Hele show'

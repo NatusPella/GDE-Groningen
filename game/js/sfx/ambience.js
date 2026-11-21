@@ -479,7 +479,8 @@ function ambientEvents(dt, world) {
   if (timers.nat <= 0) {
     timers.nat = rnd(9, 24);
     const night = dn.night || 0, roll = Math.random();
-    const ev = rain > 0.6 || world.paused || !K.samples ? null : night > 0.6 && place.waterD < 60 && roll < 0.55 ? 'frog_croak' : night > 0.6 && (place.trees > 0.3 || place.rural > 0.3) && roll < 0.8 ? 'owl_hoot' : night < 0.6 && place.trees > 0.35 && roll < 0.45 ? 'wind_gust' : null;
+    // SFX ronde 6: bij regen soms druppels van een dak of in een plas (rain_drips), dichtbij; bij droog weer de zomerdieren en wind
+    const ev = rain > 0.15 && !world.paused && K.samples && roll < 0.5 ? 'rain_drips' : rain > 0.6 || world.paused || !K.samples ? null : night > 0.6 && place.waterD < 60 && roll < 0.55 ? 'frog_croak' : night > 0.6 && (place.trees > 0.3 || place.rural > 0.3) && roll < 0.8 ? 'owl_hoot' : night < 0.6 && place.trees > 0.35 && roll < 0.45 ? 'wind_gust' : null;
     const rec = ev ? dierOpname(sfxClips(ev), K.samples) : null;
     if (rec) {
       const e = SFX_MAP[ev], a = Math.random() * Math.PI * 2, r = rnd(10, 40);

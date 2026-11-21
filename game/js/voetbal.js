@@ -445,7 +445,7 @@ function handleEvents(w, evs) {
     else if (e.type === 'uit') say(w, 'uit');
     else if (e.type === 'overtreding') say(w, 'overtreding');
     else if (e.type === 'fluit') { if (e.helft === 1) say(w, 'rust', true); ballSfx(w, 'referee_whistle'); }
-    else if (e.type === 'aftrap' || e.type === 'hervat') ballSfx(w, 'referee_whistle');
+    else if (e.type === 'aftrap' || e.type === 'hervat') { ballSfx(w, 'referee_whistle'); if (e.type === 'aftrap') ballSfx(w, 'crowd_chant'); }   // SFX ronde 6: het publiek zingt bij de aftrap
     else if (e.type === 'stuit') ballSfx(w, 'ball_bounce');
     else if (e.type === 'einde') { say(w, e.winnaar === 0 ? 'winst' : e.winnaar < 0 ? 'gelijk' : 'verlies', true); ballSfx(w, 'referee_whistle'); sfxEvent(w, 'sport_stinger'); }
     const pop = popVan(e, 0);
