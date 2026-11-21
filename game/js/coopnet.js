@@ -16,6 +16,7 @@ import { setFixedCharacters, applyHostState, makeClientInput, ensureFigure, remo
 import { bindCoop } from './coopglue.js';
 import { ververs } from './spelersregister.js';
 import { partnersInfo, createPings, addPing, tickPings, pingEvent } from './partnerhud.js';
+import { getDifficultyLevel } from './difficulty.js'; // #1169: het niveau van de wereld in het welkom
 import { holdBeleid, vereistVoor, leesLijstEvent, leesWelkomstLijst, lijst, zetAvatar } from './coopplayers.js';
 import { cameraRelative, stepSlot2, sharedCamera } from './coop.js';
 import { coopStep, missieGastVerzoek } from './coopglue.js';
@@ -333,6 +334,7 @@ export function startHost(world, info, opts = {}) {
   hub = new HostHub({
     info, seed: opts.seed ?? 1, max: opts.max, caps: CAPS, rand: opts.rand, koploos, // het aantal in de lijst telt geen lege plek 0 (#450)
     wachtwoord: schoonWachtwoord(wachtwoord), verboden: new Set(), // de beheerder van deze sessie (#450)
+    niveau: () => getDifficultyLevel(), // #1169: het niveau van de wereld gaat optioneel mee in het welkom
     sim: hostSim(world, () => hub.roster, { koploos }),
     onJoin: (slot, char, avatar = null) => {
       if (world.coopNet && world.coopNet.missie) {

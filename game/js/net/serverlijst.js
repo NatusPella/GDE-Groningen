@@ -159,6 +159,12 @@ const ID_RE = /^[a-z0-9]{8,16}$/;
 const VERSIE_RE = /^[0-9A-Za-z.+-]{1,16}$/;
 // De publieke ECDH-sleutel van de host (#795), dezelfde vorm als in net/joingate.js en net/sigcrypto.js.
 const PUB_RE = /^[A-Za-z0-9_-]{86,88}$/;
+// Het niveau van de wereld (#1169): een OPTIONEEL veld `d` in de aankondiging en in het welkom. Het staat bewust niet in de somcontrole:
+// een oude client rekent die over de oude velden en negeert `d`, een nieuwe client zonder `d` toont niets. Alleen een van deze drie
+// woorden komt door; geen IP-adres, geen naam, geen persoonsgegeven. De labels zijn dezelfde als DIFFICULTY in difficulty.js (test).
+export const NIVEAU_LABEL = Object.freeze({ ontspannen: 'Ontspannen', standaard: 'Standaard', uitdagend: 'Uitdagend' });
+export const schoonNiveau = (x) => (typeof x === 'string' && Object.prototype.hasOwnProperty.call(NIVEAU_LABEL, x) ? x : null);
+export const wereldTekst = (niveau) => (schoonNiveau(niveau) ? `Wereld: ${NIVEAU_LABEL[niveau]}` : '');
 const som = (a) => crc16(`${a.v}|${a.n}|${a.s}|${a.m}|${a.g}|${a.p}|${a.i}|${a.h}|${a.t}`);
 
 export const maakId = (rand = Math.random, n = 10) => { let s = ''; for (let i = 0; i < n; i++) s += 'abcdefghijklmnopqrstuvwxyz0123456789'[Math.floor(rand() * 36)]; return s; };
@@ -173,7 +179,9 @@ export function codeer(info) {
   if (!PUB_RE.test(hostKey)) return null; // zonder hostsleutel geen openbare regel: een antwoord zou niet te controleren zijn
   const a = { v: LIJST.formaat, n: nm.naam, s: spelers, m: max, g: String(info.versie), p: info.proto | 0, i: String(info.id), h: hostKey, t: Math.floor(info.nu) };
   if (!VERSIE_RE.test(a.g) || !ID_RE.test(a.i) || !Number.isFinite(a.t) || a.p < 0 || a.p > 255) return null;
+  const d = schoonNiveau(info.niveau);
   a.c = som(a);
+  if (d) a.d = d;
   const tekst = JSON.stringify(a);
   return tekst.length <= LIJST.maxBytes ? tekst : null;
 }
@@ -193,7 +201,7 @@ export function decodeer(tekst, nu) {
   const nm = schoonNaam(o.n);
   if (!nm.ok || nm.naam !== o.n) return { ok: false, reason: 'naam' }; // ook een lege of niet-gefilterde naam telt niet: een host die zijn eigen filter overslaat, komt er niet mee langs
   if (Number.isFinite(nu) && Math.abs(nu - o.t) > LIJST.scheef) return { ok: false, reason: 'tijd' };
-  return { ok: true, a: { naam: o.n, spelers: o.s, max: o.m, versie: o.g, proto: o.p, id: o.i, hostKey: o.h, t: o.t } };
+  return { ok: true, a: { naam: o.n, spelers: o.s, max: o.m, versie: o.g, proto: o.p, id: o.i, hostKey: o.h, t: o.t, niveau: schoonNiveau(o.d) } };
 }
 
 // ---------------------------------------------------------------- de lijst bij de speler
@@ -240,7 +248,7 @@ export class Serverlijst {
       const anders = (this.proto != null && x.proto !== this.proto) || (this.versie != null && x.versie !== this.versie);
       const vol = x.spelers >= x.max;
       const ouderdom = Math.max(0, nu - x.gezien);
-      uit.push({ id: x.id, naam: x.naam, spelers: x.spelers, max: x.max, versie: x.versie, hostKey: x.hostKey, anders, vol, kan: !anders && !vol, gezien: x.gezien, ouderdom, dim: ouderdom >= this.o.verloop - this.o.dimLaatste });
+      uit.push({ id: x.id, naam: x.naam, spelers: x.spelers, max: x.max, versie: x.versie, hostKey: x.hostKey, niveau: x.niveau || null, anders, vol, kan: !anders && !vol, gezien: x.gezien, ouderdom, dim: ouderdom >= this.o.verloop - this.o.dimLaatste });
     }
     uit.sort(SORTERING.standaard);
     return uit;
@@ -255,10 +263,10 @@ export class Serverlijst {
 
 // De host: een aankondiging maken zolang de sessie openbaar is. Geeft een functie die elke keer de tekst van dat moment maakt (of null).
 // De hostsleutel komt uit de hub (#795, hub.ensureHostKey); zonder sleutel levert codeer() niets en blijft de sessie dus privé.
-export function maakAankondiger({ naam, versie, proto, hub, id, nu = () => Date.now() }) {
+export function maakAankondiger({ naam, versie, proto, hub, id, niveau = null, nu = () => Date.now() }) {
   return () => {
     const sp = hub ? hub() : null;
     if (!sp) return null;
-    return codeer({ naam, spelers: sp.spelers, max: sp.max, versie, proto, id, hostKey: sp.hostKey, nu: nu() });
+    return codeer({ naam, spelers: sp.spelers, max: sp.max, versie, proto, id, hostKey: sp.hostKey, nu: nu(), niveau: typeof niveau === 'function' ? niveau() : niveau });
   };
 }

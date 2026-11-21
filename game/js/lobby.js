@@ -17,7 +17,7 @@
 import { startKnop, foutUitleg } from './playerstatus.js';
 import { parseRoom } from './net/sigcrypto.js';
 import { parseCode } from './net/pairing.js';
-import { schoonNaam, filterEnSorteer, leeftijdTekst, leeftijdLang, LIJST, SORTERINGEN, SORTERING_LABEL } from './net/serverlijst.js';
+import { wereldTekst, schoonNaam, filterEnSorteer, leeftijdTekst, leeftijdLang, LIJST, SORTERINGEN, SORTERING_LABEL } from './net/serverlijst.js';
 import { PROFIEL_KLEUREN, STANDAARD_KLEUR, isProfielKleur } from './coopidentiteit.js';
 import { EXTRA_CHARS, DEFAULT_MAX, MIN_MAX, ABS_MAX, advies, openerNaam } from './coopplayers.js';
 import { SAMEN_KAN_REGEL } from './coopstatus.js'; // (#684) de positieve "samen kan"-lijst in de wachtkamer
@@ -404,7 +404,7 @@ export function verbindenRegels(s) {
 export function view(s) {
   // bij een fout in de stappen waar je verbindt: wijs de weg naar de test
   const hulp = s.error && ['gast-typt', 'host-wacht', 'host-maakt-code', 'methode', 'verbinden'].includes(s.step) && !/gekopieerd/.test(s.error);
-  const V = (o) => { const r = { title: 'Samen spelen', lines: [], buttons: [], input: null, code: null, profiel: null, wachtwoord: null, consent: null, error: s.error, ...o }; if (hulp && r.buttons.some((b) => b.act === 'diag')) r.lines = [...r.lines, 'Lukt het niet? Kies Verbinding testen: daar staat wat er mis is en wat je kunt doen.']; return r; };
+  const V = (o) => { const r = { title: 'Samen spelen', lines: [], buttons: [], input: null, code: null, profiel: null, wachtwoord: null, consent: null, error: s.error, ...o }; if (hulp && r.buttons.some((b) => b.act === 'diag')) r.lines = [...r.lines, 'Lukt het niet? Kies Verbinding testen: daar staat wat er mis is en wat je kunt doen.']; if (s.wereld && ['host-wacht', 'verbonden'].includes(s.step) && wereldTekst(s.wereld)) r.lines = [...r.lines, wereldTekst(s.wereld) + '. Politie en verkeer volgen wie het spel opende.']; return r; }; // #1169: het niveau van de wereld staat in de wachtkamer en na het meedoen
   // het kleine formulier voor je online-avatar (#455): op de schermen waar je kiest om samen te spelen
   const profiel = { ...s.profiel, kleuren: PROFIEL_KLEUREN, maxLength: ONLINE_NAAM_MAX, fout: s.profielFout, tekst: profielTekst(s.profiel) };
   // het wachtwoordveld (#450): de gastheer beheert het, de gast vult het in; leeg betekent open
@@ -572,10 +572,10 @@ export function view(s) {
       });
       const sessies = q.rijen.map((e) => ({
         i: e.i, act: 'sluit-' + e.i, meld: 'meld-' + e.i, ster: 'ster-' + e.i, id: e.id,
-        naam: e.naam, spelers: e.spelers, max: e.max, versie: e.versie,
+        naam: e.naam, spelers: e.spelers, max: e.max, versie: e.versie, niveau: e.niveau || null,
         kan: !!e.kan, anders: !!e.anders, vol: !!e.vol, mijn: !!(s.sessie && s.sessie.id && e.id === s.sessie.id),
         favoriet: !!e.favoriet, leeftijd: leeftijdTekst(e.ouderdom), leeftijdLang: leeftijdLang(e.ouderdom), dim: !!e.dim,
-        tekst: `${e.naam} · ${e.spelers} van ${e.max} spelers · versie ${e.versie}${e.anders ? ' · Andere versie: niet aan te sluiten' : e.vol ? ' · Vol' : ''}${s.sessie && s.sessie.id === e.id ? ' · je was hier' : ''}`,
+        tekst: `${e.naam} · ${e.spelers} van ${e.max} spelers · versie ${e.versie}${e.niveau ? ' · ' + wereldTekst(e.niveau) : ''}${e.anders ? ' · Andere versie: niet aan te sluiten' : e.vol ? ' · Vol' : ''}${s.sessie && s.sessie.id === e.id ? ' · je was hier' : ''}`,
       }));
       const getoond = q.rijen.length, totaal = q.totaal, alles = q.alles;
       const telling = alles === 0 || totaal === 0 ? '' : getoond < totaal ? `${getoond} van ${totaal} sessies` : totaal < alles ? `${totaal} van ${alles} sessies` : `${alles} ${alles === 1 ? 'sessie' : 'sessies'}`;

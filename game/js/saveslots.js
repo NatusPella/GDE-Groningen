@@ -11,6 +11,7 @@
 import { KEYS, MAX_SLOTS, slotKey, slotRecoveryKey, slotThumbKey } from './storagekeys.js';
 import { migrateSave, savedArc, SAVE_VERSION } from './savemigrate.js';
 import { ARC_ID } from './storyarc.js';
+import { cleanProfile, difficultySummary } from './difficulty.js'; // #1169: het niveau van een save als klein label
 
 export const NAME_MAX = 28;
 export const FILE_KIND = 'GDE-save';
@@ -193,6 +194,8 @@ export function summarize(d) {
     plek: typeof d.plek === 'string' ? cleanName(d.plek, '') : '',
     goal: isObj(d.doel) && typeof d.doel.name === 'string' ? cleanName(d.doel.name, '') : '',
     storyDone: isObj(d.story) && Array.isArray(d.story.done) ? d.story.done.length : 0,
+    // #1169: het niveau van deze save ("Uitdagend · aangepast"); een oude save zonder veld toont niets
+    niveau: isObj(d.moeilijkheid) ? difficultySummary(cleanProfile(d.moeilijkheid)) : '',
   };
 }
 
