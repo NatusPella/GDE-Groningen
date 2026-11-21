@@ -303,13 +303,26 @@
   "speaker": "Anita",
   "text": "Dat is geen antwoord.",
   "area": "K2",
-  "out": "banter",
+  "out": "lines",
   "lang": "own",
   "voice": "Callirrhoe",
   "who": "Nederlandse vrouw, lacherig en ad rem",
   "tag": "ongeduldig, bazig",
   "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
-  "file": "h15-pass-schier_4_a_550134.mp3"
+  "file": "anita/dat_is_geen_antwoord_5501349b.mp3"
+ },
+ {
+  "key": "Tammo|Het is een begin.",
+  "speaker": "Tammo",
+  "text": "Het is een begin.",
+  "area": "K2",
+  "out": "lines",
+  "lang": "gro",
+  "voice": "Orus",
+  "who": "dry, deadpan man in his thirties",
+  "tag": "droog, met een stille grijns",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, met een stille grijns.",
+  "file": "tammo/het_is_een_begin_7cd43b40.mp3"
  },
  {
   "key": "Anita|Hij is lauw.",

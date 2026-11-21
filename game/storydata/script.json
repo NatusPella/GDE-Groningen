@@ -9140,8 +9140,7 @@
      "text": "Dat is geen antwoord.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "banter",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -9150,8 +9149,7 @@
      "text": "Het is een begin.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "banter"
+     "textOnly": true
     },
     {
      "speaker": "Tessa",
