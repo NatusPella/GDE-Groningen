@@ -81,6 +81,26 @@ de toestemmingsvraag, alleen de goedgekeurde STUN-servers en brokers (constituti
 van de bezoeker, zoals bij elke website; dat staat in [PRIVACY-EN-CREDITS.md](PRIVACY-EN-CREDITS.md). De credits en licenties zitten in het
 spel zelf (Over) en in `NOTICE.md`; de webbuild neemt dezelfde audio, fonts en three.js mee.
 
+## Gedeelde localStorage-origin op Pages (code-review 22-11, bevinding 5)
+
+`localStorage` hoort bij de origin (schema, host en poort), niet bij de repo of het pad. Het spel staat op
+`https://<eigenaar>.github.io/GDE-Groningen/play/`, de marketingpagina op `https://<eigenaar>.github.io/GDE-Groningen/`: dat is
+dezelfde origin, net als elke andere Pages-site of -pagina onder `<eigenaar>.github.io`. De saves (`gde-save-v1`, `gde-settings`,
+`gde-prestaties-v1`) zijn daardoor leesbaar en overschrijfbaar voor elk script dat op die origin draait.
+
+**Risico:** een script op een andere pagina onder dezelfde `github.io`-naam (een ander project van de eigenaar, of een fout in de
+marketingpagina) kan een spelstand lezen, vervangen of wissen. Er staan geen persoonsgegevens in een save (constitutie 4), dus
+het gaat om verlies of knoeien met een spelstand, niet om lekken van privacygevoelige gegevens.
+
+**Stand en mitigatie:**
+- De marketingpagina laadt alleen eigen code (`website/script.js`, `defer`) en raakt `localStorage` niet aan; er zijn geen scripts van derden.
+- Publiceer geen andere projecten of pagina's onder `<eigenaar>.github.io` zonder dit eerst af te wegen; een tweede Pages-site van de
+  eigenaar deelt direct de saves.
+- Wil de eigenaar dat toch (of wil hij saves volledig scheiden), gebruik dan een eigen domein voor dit project (eigen origin), of
+  laat het spel de saves onder een eigen sleutelvoorvoegsel bewaren (`gde-*` bestaat al; een migratie mag een save nooit breken).
+- Saves blijven op het apparaat van de speler; de speler kan ze via het spel exporteren als reservekopie.
+- Dit is een afweging, geen codefout: er is niets in het spel veranderd.
+
 ## Tests
 
 - `node scripts/pages_deploy_test.mjs`: de workflow (alleen handmatig, owner-guard op beide jobs, rechten, environment, concurrency,

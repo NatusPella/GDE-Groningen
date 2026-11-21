@@ -68,9 +68,11 @@ jobs:
       # audiobouw op 'Cannot find module scripts/pages_site_check.mjs'. Daarom hier meteen, met een duidelijke melding.
       - name: Ref bevat de Pages-bouw
         if: ${{ inputs.speel }}
+        env:
+          REF: ${{ inputs.ref }}
         run: |
           for f in scripts/pages_site_check.mjs scripts/web_shell_test.mjs web/build.mjs website/build.mjs; do
-            test -f "$f" || { echo "$f ontbreekt in ref '${{ inputs.ref }}': die code is ouder dan de Pages-workflow. Gebruik ref=main (of een nieuwere tag) en geef de wereld-release op met -f tag=<release>."; exit 1; }
+            test -f "$f" || { echo "$f ontbreekt in ref '$REF': die code is ouder dan de Pages-workflow. Gebruik ref=main (of een nieuwere tag) en geef de wereld-release op met -f tag=<release>."; exit 1; }
           done
 
       - uses: actions/setup-node@v4
@@ -127,10 +129,12 @@ jobs:
         run: node website/build.mjs
 
       - name: Site samenstellen
+        env:
+          SPEEL: ${{ inputs.speel }}
         run: |
           mkdir -p "$RUNNER_TEMP/site"
           cp -a website/_site/. "$RUNNER_TEMP/site/"
-          if [ "${{ inputs.speel }}" = "true" ]; then
+          if [ "$SPEEL" = "true" ]; then
             mkdir -p "$RUNNER_TEMP/site/play"
             mv web-dist/* "$RUNNER_TEMP/site/play/"
           fi
