@@ -50,14 +50,14 @@ export function dienstenOp(kalender, datum) {
 // De dagsoort van een spelklokdag: weekdag 0 = zondag (calendar.js weekdayOf).
 export const dagsoortVan = (weekdag) => (weekdag === 0 ? 'zo' : weekdag === 6 ? 'za' : 'werk');
 
-// Een stoptijd op een station tot een rij: [vertrek (s na middernacht, binnen 0..86399), nummer, spoor, bestemming-idx, lijn-idx, aankomst-s].
-// Het laatste station van een rit levert geen vertrek. Tijden na middernacht (>= 24:00) vallen terug op de vroege uren.
-export function maakRij({ dep, arr, nummer, spoor, bestIdx, lijnIdx }) {
+// Een stoptijd op een station tot een rij: [vertrek (s na middernacht, binnen 0..86399), nummer, spoor, bestemming-idx, lijn-idx, aankomst-s, soort (0 tussenstation, 1 eindstation: alleen aankomst, 2 beginstation)].
+// Het eindstation van een rit krijgt wel een rij (de aankomst; soort 1) zodat de wereldtrein er kan aankomen, maar staat niet op het bord. Tijden na middernacht (>= 24:00) vallen terug op de vroege uren.
+export function maakRij({ dep, arr, nummer, spoor, bestIdx, lijnIdx, soort = 0 }) {
   const wrap = (s) => ((s % 86400) + 86400) % 86400;
   const d = secVan(dep);
   if (d == null) return null;
   const a = secVan(arr);
-  return [wrap(d), String(nummer || ''), spoor || '', bestIdx, lijnIdx, a == null ? wrap(d) : wrap(a)];
+  return [wrap(d), String(nummer || ''), spoor || '', bestIdx, lijnIdx, a == null ? wrap(d) : wrap(a), soort];
 }
 
 // Het rooster compact opschrijven, gesorteerd op vertrektijd per station.
@@ -76,7 +76,7 @@ export function valideerRooster(r) {
     for (const [si, rijen] of Object.entries(dag)) {
       if (!r.stations[+si]) fouten.push(`station ${si}`);
       for (const x of rijen) {
-        if (x.length !== 6 || !(x[0] >= 0 && x[0] < 86400) || !r.bestemmingen[x[3]] || !r.lijnen[x[4]]) { fouten.push(`rij ${k}/${si}`); break; }
+        if (x.length !== 7 || !(x[0] >= 0 && x[0] < 86400) || !r.bestemmingen[x[3]] || !r.lijnen[x[4]]) { fouten.push(`rij ${k}/${si}`); break; }
       }
     }
   }

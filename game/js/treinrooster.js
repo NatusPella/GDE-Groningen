@@ -35,7 +35,9 @@ export const codesUit = (r) => new Set(geldigRooster(r) ? r.stations.map((s) => 
 // De volgende vertrekken op een station vanaf `nu` (s na middernacht), over middernacht heen (de vroege ochtend van de volgende dag).
 // Rij zoals dienstregeling.vertrekBord: { lijn, richting, dir, k, spoor, plan, tijd, vertraging: 0, reden: '', aankomst } plus
 // nummer, code, vervallen en live (true als er een live melding op zit). `terug`: hoeveel seconden een net vertrokken trein nog blijft staan.
-export function rijenUitRooster(r, spelNaam, dagsoort, nu, { aantal = 8, terug = 30 } = {}) {
+// Met `dienst` (treindienst.js bouwDienst) telt alleen een vertrek waar een wereldtrein bij hoort: de rij krijgt de lijn van die trein (leg.route) en zijn rit-id,
+// zodat bord en trein dezelfde trein zijn en er geen bordregel zonder trein staat.
+export function rijenUitRooster(r, spelNaam, dagsoort, nu, { aantal = 8, terug = 30, dienst = null } = {}) {
   if (!heeftStation(r, spelNaam)) return [];
   const si = indexVan(r, spelNaam);
   const code = r.stations[si].code;
@@ -44,10 +46,13 @@ export function rijenUitRooster(r, spelNaam, dagsoort, nu, { aantal = 8, terug =
   const uit = [];
   for (const dagVerschuiving of [0, 86400]) {
     for (const x of dag) {
+      if (x[6] === 1) continue;                        // eindstation: alleen aankomst, geen vertrek op het bord
       const t = x[0] + dagVerschuiving;
       if (t < nu - terug) continue;
+      const koppel = dienst ? dienst.vindRij(x[1], spelNaam) : null;
+      if (dienst && !koppel) continue;
       const aank = (x[5] > x[0] ? x[5] - 86400 : x[5]) + dagVerschuiving;
-      uit.push({ lijn: r.lijnen[x[4]], richting: r.bestemmingen[x[3]], dir: 1, k: `${x[1]}@${t}`, spoor: x[2], plan: t, tijd: t, vertraging: 0, reden: '', aankomst: aank, nummer: x[1], code, vervallen: false, live: false });
+      uit.push({ lijn: koppel ? koppel.leg.route : r.lijnen[x[4]], rit: koppel ? koppel.leg.id : null, halte: koppel ? koppel.j : null, richting: r.bestemmingen[x[3]], dir: 1, k: `${x[1]}@${t}`, spoor: x[2], plan: t, tijd: t, vertraging: 0, reden: '', aankomst: aank, nummer: x[1], code, vervallen: false, live: false });
       if (uit.length >= aantal) return uit;
     }
   }
@@ -71,15 +76,24 @@ export async function laadRooster(fetchFn = globalThis.fetch, basis = (typeof lo
 }
 
 // De live stand (Map uit livetreinen.maakStand) op de rijen zetten: de vertraging per rit in seconden, en of de rit vervalt.
+// De vertraging van één vertrek (of aankomst) uit de live stand: { vertraging (s, 0 onder een minuut), vervallen, live }; null zonder melding.
+// Bord en wereldtrein gebruiken dezelfde functie, zodat ze dezelfde tijden hebben. plan: seconden na middernacht (ook boven 86400).
+export function vertragingVan(stand, nummer, code, plan) {
+  if (!stand || !stand.size) return null;
+  const m = stand.get(meldSleutel(nummer, code, ((plan % 86400) + 86400) % 86400));
+  if (!m) return null;
+  return { vertraging: m.vertraging >= 60 ? m.vertraging : 0, vervallen: !!m.vervallen, live: true };
+}
+
 // Rijen zonder melding blijven staan zoals ze zijn (rooster). Geeft nieuwe rijen terug, gesorteerd op de verwachte tijd.
 export function pasVertragingToe(rijen, stand) {
   if (!stand || !stand.size) return rijen;
   const uit = rijen.map((rij) => {
     // de plan-tijd kan boven 86400 liggen (volgende dag): de sleutel gebruikt de minuut van de dag
-    const m = stand.get(meldSleutel(rij.nummer, rij.code, rij.plan % 86400));
+    const m = vertragingVan(stand, rij.nummer, rij.code, rij.plan);
     if (!m) return rij;
-    const v = m.vertraging >= 60 ? m.vertraging : 0;     // onder een minuut telt als op tijd
-    return { ...rij, vertraging: v, tijd: rij.plan + v, reden: v ? REDEN_LIVE : '', vervallen: !!m.vervallen, live: true };
+    const v = m.vertraging;     // onder een minuut telt als op tijd
+    return { ...rij, vertraging: v, tijd: rij.plan + v, reden: v ? REDEN_LIVE : '', vervallen: m.vervallen, live: true };
   });
   return uit.sort((a, b) => a.tijd - b.tijd || a.lijn.localeCompare(b.lijn));
 }

@@ -73,8 +73,7 @@ komen uit de zoekresultaten en de openbare voorpagina's, niet uit de volledige v
   Dag 1 (vrijdag 14 augustus) is dus een werkdag-rooster, dag 2 het zaterdagrooster. Er is niets omgerekend voor zomer- of wintertijd: de spelwereld heeft altijd zomer. Vertrekken na 24:00 vallen
   terug op de vroege uren van dezelfde dagsoort (kleine afwijking, alleen voor nachtritten); het bord loopt over middernacht heen naar de eerste treinen van de volgende dag.
 - **Op het bord (`stationlife.js`):** heeft het station een echt rooster, dan volgt het bord dat en niet meer de treinen die toevallig rondrijden of het oude verzonnen rooster. Een station zonder
-  rooster (en elk station als het bestand niet laadt) houdt de eigen dienst van het spel en zegt dat ("Rooster (eigen dienst)"). **Gevolg, eerlijk:** de treinen die zichtbaar rijden (`railway.js`)
-  rijden niet op de echte tijden; het bord en het zichtbare spoor kunnen dus uit elkaar lopen. De omroep volgt het bord. De machinistendienst (`dienstregeling.js`) is niet aangepast.
+  rooster (en elk station als het bestand niet laadt) houdt de eigen dienst van het spel en zegt dat ("Rooster (eigen dienst)"). Het spoor volgt hetzelfde rooster (volgende sectie).
 - Niet aangeraakt: het OV-scherm (`ovopties.js`) en de kaart tonen geen vertrektijden; er viel daar niets te vervangen.
 
 ### Deel 2: live vertragingen
@@ -93,6 +92,35 @@ komen uit de zoekresultaten en de openbare voorpagina's, niet uit de volledige v
   14 s geleden bijgewerkt", of "... rooster, zonder live vertraging"), `+3` bij een vertraagde trein en de omroep noemt de vertraging. De terugval is overal het rooster, nooit een foutcode.
   De label gebruikt het bestaande chip-element van het bord (`.mg-sfeer`), geen nieuw vormvlak.
 - **Wat de speler er niet van merkt:** een rustige HUD-melding zoals bij de eerste live bus is er niet bij gekomen; het label op het bord zegt het al.
+
+### Deel 3: spoor en bord zijn dezelfde trein (eigenaar 21-11: "het spoor en bord moeten overeenkomen")
+
+Eén bron voor bord en spoor: `game/js/treindienst.js` (puur, deterministisch). De treinen in de wereld rijden niet meer als een pendeltrein per lijn, maar zijn de ritten van het bord.
+
+- **Ritten:** de rijen van het rooster met hetzelfde treinnummer in tijdsvolgorde zijn één rit. Het rooster bevat nu ook het **eindstation** van elke rit (alleen aankomst, `soort` 1; het staat niet op het bord) en het
+  beginstation (`soort` 2), zodat een trein in de wereld kan aankomen en klaarstaan. Een rit over het Hoofdstation valt in twee "legs", één per spoorlijn van het spel (de lijnen beginnen allemaal op het Hoofdstation); een
+  leg heeft minstens twee haltes die op de lijn staan. Een rit met minder haltes in de wereld heeft geen trein en staat dus ook **niet** op het bord. De lijn bij een bordrij is de lijn van de trein (bij een doorgaande rit
+  Delfzijl-Veendam is dat op elk station de lijn waar dat station aan ligt).
+- **Plek uit de klok (`legStand`):** tijd van de dag is de spelklok; op elke halte staat de trein stil tussen aankomst en vertrek (minstens 20 s), ertussen rijdt hij met een zachte S-curve over de afstand tot de volgende halte
+  (snelheid en richting daaruit, voor de overwegen). Een beginnende trein staat 2 minuten voor vertrek klaar op het perron; een trein die van buiten de kaart komt rijdt vanaf de oorspronkelijke kant binnen en rijdt na zijn
+  laatste halte weg; op een eindstation blijft hij 60 s staan. Niets wordt gesimuleerd of bijgehouden: dezelfde klok geeft dezelfde plek, ook voor treinen ver weg (ze verschijnen op de juiste plek als je in de buurt komt).
+- **In de wereld (`railway.js planTreinDienst`):** een lijn met ritten krijgt een pool van 8 treinen en verliest zijn pendeltrein; elke frame wordt elke actieve rit aan een poolspoor toegewezen en op zijn plek gezet
+  (`t.rit`). Treinen zonder rit staan niet in `getTrains()`. Lijnen zonder ritten in de data houden hun eigen dienst. Meer dan 8 gelijktijdige ritten op een lijn: de rest rijdt niet (in de proef nooit meer dan 5).
+- **Bord = trein:** een bordrij heeft `rit` (het rit-id, `<treinnummer>@<lijn>`) en dezelfde tijden als de trein (`legTijden` en `vertragingVan` zijn één functie voor beide), ook met live vertraging: de trein staat op
+  de verwachte tijd van het bord op het perron en vertrekt daarna; een vervallen rit is een bordrij "vervalt" zonder trein. Een bordrij zonder trein bestaat niet (rijen zonder leg worden niet getoond) en een trein zonder
+  bordrij ook niet (elke leg heeft op elke halte behalve het eindpunt zijn rij); dat controleert `scripts/treindienst_test.mjs`.
+- **Instappen:** de trein van het bord staat op de vertrektijd (-120 s) op het perron en is te bestijgen zoals altijd (`stationtravel.js`, state `dwell`). De machinist rijdt dan de rit van die trein: haltes, tijden (met
+  live vertraging), richting en eindpunt uit dezelfde leg (`dienstVanLeg`, `machinist.js`); de andere cabine rijdt de oude verzonnen dienst. Een overgenomen trein blijft van de speler (de rit wordt niet dubbel gereden); geeft
+  hij hem terug, dan komt de trein weer op de klokplek van zijn rit (of verdwijnt als die rit voorbij is).
+- **Perron en spoor:** de trein staat op de halte van de lijn (`stop.s`, het perron van het station op die lijn). De echte spoornummers (sp. 3 enz.) zijn tekst op het bord; de wereld heeft per lijn één spoor per
+  richting en geen data die de nummers aan een perrongeometrie koppelt, dus "het juiste perron" is het perron van de lijn, niet het gemeten spoor.
+- **Wat het kost:** de dienst wordt één keer per dagsoort gebouwd (ca. 620 ritten) en elke frame worden alleen de ritten in hun tijdvenster doorgerekend (ca. 20 tot 25 tegelijk).
+
+**Samen spelen (zie ook docs/COOP-GAST.md):** de host bezit de verkeerspopulatie en de gasten zien dezelfde trein. Dat gaat **deterministisch uit de gezamenlijke spelklok**: de gast rekent `planTreinDienst` zelf uit
+en krijgt dezelfde ritten op dezelfde plek (testbank `treindienst_test`: host en gast hebben dezelfde treinen op dezelfde plek). De bestaande snapshot (`hostTreinen`, entiteit SOORT_TREIN) blijft: voor een
+rooster-trein is hij een controle (de gast bewaart het grootste verschil per lijn in `route.afwijking`), voor een door een speler **overgenomen** trein (bit 32 in het entiteit-id) volgt de gast de snapshot, zoals voor
+de gewone bestuurde trein. In Samen spelen rekenen bord en treinen **zonder live vertraging** (alle spelers het rooster): de live vertraging komt uit de eigen opvraag van elke speler en zou de treinen uit elkaar halen;
+het bord zegt dan "Rooster". Alleen voor wie solo speelt zijn de vertragingen op bord en trein live.
 
 ### Eerlijke beperking: de spelklok is niet de echte tijd
 
@@ -114,6 +142,7 @@ op een zwakke machine draait; in Electron is het ook de renderer. Een tweede sta
 | feed lezen, opvraag zonder spelergegevens, zacht falen | `game/js/livetreinen.js` | `livetreinen_test` |
 | ritme, backoff, spreiding, uitzetter, brug | `game/js/treinlive.js`, `desktop/livetreinen.cjs` | `livetreinen_test` |
 | bord (rijen, +N, vervalt, label, bronregel) | `game/js/stationlife.js` | `treinrooster_test`, `stationlife_test` |
+| treinen in de wereld uit het rooster, pool, gast, overgenomen trein, machinistdienst | `game/js/treindienst.js`, `game/js/railway.js`, `game/js/machinist.js`, `game/js/coopnet.js`, `game/js/coopworld.js` | `treindienst_test` (vraagt een gevendorde three, zoals `gasttrein_test`) |
 | Instellingen (`liveTreinen`) | `game/js/settings.js`, `game/js/pausemenu.js` | `spelmenu_test` |
 
 `livetreinen_test` draait ook tegen de echte feed als je `GDE_TRAIN_PB=<pad naar een afgehaalde trainUpdates.pb>` zet (21-11: 590 meldingen voor de drie stations die de test filtert, 16 met vertraging).
@@ -132,9 +161,14 @@ hangt daar niet meer van af. Test: pure tests; niet met twee instanties gezien.
 
 - Niets is in een draaiend spel bekeken (releasegate draait, geen Electron): de label op het bord, de regel "Vertrekt over ...", de kleur van `+N` en het gedrag in `?dev` zijn alleen met pure tests
   en `node --check` gecontroleerd. **Nog niet bekeken.**
-- Het bord is niet getest tegen een draaiende `railway.js` (zichtbare treinen en bord kunnen uit elkaar lopen).
+- Bord en spoor zijn getest op een eigen proefspoor met de echte data (`treindienst_test`, ook met vertraging, een vervallen rit, een gast en een overgenomen trein); niet op de gebouwde wereld en niet in beeld. De echte lijnen
+  en haltes (en afstanden) van de wereld kunnen ritten anders afbakenen dan de proef; ritten zonder twee haltes op een lijn hebben geen trein (en geen bordrij).
+- **In beeld te controleren (nog niet bekeken):** (1) staat de trein op de bordtijd stil op het perron van het station en vertrekt hij de goede kant op; (2) rijden er geen treinen meer zonder bordrij en geen bordrij zonder trein
+  (kijk naar het bord van Haren, Bedum, Sauwerd, Zuidhorn en Kropswolde); (3) komt een trein van buiten de kaart soepel binnen en rijdt hij aan het eind soepel weg, zonder te springen; (4) stap in een trein: melding "Dienst ..."
+  met de haltes en tijden van het bord; (5) Samen spelen met twee vensters: dezelfde trein op dezelfde plek, en een trein die een speler overneemt; (6) de overwegen sluiten voor de rooster-trein (snelheid komt uit de klok);
+  (7) het bord toont Live/Rooster en +N als er vertraging is; (8) na slapen of tijd versnellen springen treinen naar hun nieuwe klokplek (bedoeld).
 - Geen HUD-melding bij de eerste live trein, geen kaartlaag (er zijn geen posities).
-- `dienstregeling_test` kon niet draaien in deze werkmap (geen provinciedata); `dienstregeling.js` is niet aangepast, `stationlife_test` en `spelmenu_test` wel gedraaid.
+- `dienstregeling_test` kon niet draaien in deze werkmap (geen provinciedata); `dienstregeling.js` is niet aangepast (de verzonnen dienst blijft voor de andere cabine en voor lijnen zonder rooster); `stationlife_test`, `spelmenu_test`, `gasttrein_test`, `cooptrein_test` en `machinistdienst_test` wel gedraaid.
 - Het rooster is een momentopname van de feed van 20-11-2026 voor de zomer van 2027; verandert de echte dienstregeling dan moet `treinrooster_bouw.mjs` opnieuw draaien (geen automatische vernieuwing).
 - Twee spelers in Samen spelen: niet gezien.
 

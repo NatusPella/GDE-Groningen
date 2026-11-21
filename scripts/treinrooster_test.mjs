@@ -37,7 +37,7 @@ assert.strictEqual(bronNaam('Groningen Hoofdstation'), 'Groningen');
   assert.strictEqual(secVan('08:17:00'), 8 * 3600 + 17 * 60);
   assert.strictEqual(secVan('25:10:00'), 25 * 3600 + 600, 'GTFS kent tijden boven 24:00');
   assert.strictEqual(secVan('x'), null);
-  assert.deepStrictEqual(maakRij({ dep: '25:10:00', arr: '25:08:00', nummer: 7, spoor: '2', bestIdx: 3, lijnIdx: 1 }), [3600 + 600, '7', '2', 3, 1, 3600 + 480], 'na middernacht valt terug op de vroege uren');
+  assert.deepStrictEqual(maakRij({ dep: '25:10:00', arr: '25:08:00', nummer: 7, spoor: '2', bestIdx: 3, lijnIdx: 1 }), [3600 + 600, '7', '2', 3, 1, 3600 + 480, 0], 'na middernacht valt terug op de vroege uren');
   assert.strictEqual(maakRij({ dep: '', arr: '', nummer: 1, bestIdx: 0, lijnIdx: 0 }), null);
   assert.deepStrictEqual(sorteerRijen([[9, 'b'], [3, 'z'], [3, 'a']]).map((r) => r[1]), ['a', 'z', 'b']);
 }

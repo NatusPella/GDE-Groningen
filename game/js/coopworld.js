@@ -17,7 +17,7 @@ export const VOERTUIG_SOORTEN = ['auto', 'bakkie', 'bus', 'politie', 'motor', 's
 export const SOORT_DOEL = 100;
 export const SOORT_START = 101, ID_START0 = 0xff00, START_RADIUS = 350; // het beginpunt van de volgende opdracht van wie het spel opende (id = ID_START0 + het nummer van de opdracht), voor de gasten (#434)
 export const SOORT_VOETGANGER = 12, SOORT_AGENT = 13;
-export const SOORT_TREIN = 9, ID_TREIN0 = 0x7000; // een trein: id = ID_TREIN0 + het nummer van de route (de gast heeft dezelfde routes uit de wereld)
+export const SOORT_TREIN = 9, ID_TREIN0 = 0x7000; // een trein: id = ID_TREIN0 + het nummer van de route (+ 32 als de trein van het rooster door een speler is overgenomen, #1085) (de gast heeft dezelfde routes uit de wereld)
 export const RADIUS_VOETGANGER = 70; // m rond elke speler: verder weg zijn de voetgangers van de host toch maar stippen
 export const MAX_VOETGANGERS = 20;
 export const ID_DOEL = 0xfffe;
@@ -323,7 +323,7 @@ export function leesEntiteiten(entities) {
   for (const e of entities || []) {
     if (e.kind === SOORT_DOEL) doelen.push({ x: e.x, y: e.z });
     else if (e.kind === SOORT_START) starts.push({ index: e.id - ID_START0, x: e.x, y: e.z });
-    else if (e.kind === SOORT_TREIN) { if (e.id >= ID_TREIN0) treinen.push({ route: e.id - ID_TREIN0, x: e.x, y: e.z, v: e.speed || 0 }); }
+    else if (e.kind === SOORT_TREIN) { if (e.id >= ID_TREIN0) treinen.push({ route: (e.id - ID_TREIN0) & 31, overgenomen: !!((e.id - ID_TREIN0) & 32), x: e.x, y: e.z, v: e.speed || 0 }); }
     else if (e.kind === SOORT_VOETGANGER || e.kind === SOORT_AGENT) voetgangers.push({ id: e.id, x: e.x, y: e.z, angle: e.angle, agent: e.kind === SOORT_AGENT });
     else if (e.kind >= 0 && e.kind < VOERTUIG_SOORTEN.length) {
       const soort = VOERTUIG_SOORTEN[e.kind];

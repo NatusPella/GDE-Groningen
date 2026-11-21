@@ -46,21 +46,24 @@ export function nearestStation(stations, x, y, r = NEAR_R) {
 // tien minuten weg is, is op de spelklok tien uur weg en gaf een bord met willekeurige tijden (#339). Met
 // minder dan BORD_MIN echte treinen vult het rooster het bord aan (dubbelen weggelaten), op volgorde van tijd.
 export const BORD_HORIZON = 90 * 60, BORD_MIN = 4, BORD_N = 5;
-// #1085: met `dienst` ({ rooster, dagsoort, live (Map vertragingen of null) }) volgt het bord de ECHTE dienstregeling van dit station
-// (treinrooster.js, vertrektijden uit open gegevens, verzonnen lijnnamen) met de live vertragingen erop; het is dan niet meer
-// gekoppeld aan de treinen die toevallig rijden. Een station zonder echt rooster houdt zijn eigen dienst (hieronder).
+// #1085: met `dienst` ({ rooster, dagsoort, live (Map vertragingen of null), dienst (treindienst.js bouwDienst) }) volgt het bord de ECHTE dienstregeling
+// van dit station (treinrooster.js, vertrektijden uit open gegevens, verzonnen lijnnamen) met de live vertragingen erop. Elke bordrij is een
+// wereldtrein: dezelfde rit (rij.rit = leg.id) met dezelfde tijden (treindienst.js legTijden); een vertrek zonder trein in de wereld staat er niet.
+// Een station zonder echt rooster (of zonder rij) houdt zijn eigen dienst (hieronder, label 'Rooster (eigen dienst)').
 export function stationView(station, clock, dag, treinen = null, schaal = 60, dienst = null) {
   const nu = ((clock % 24) + 24) % 24 * 3600;
   if (dienst && dienst.rooster && heeftStation(dienst.rooster, station.name)) {
-    const basis = rijenUitRooster(dienst.rooster, station.name, dienst.dagsoort || 'werk', nu, { aantal: BORD_N + 4, terug: 30 });
-    const bord = pasVertragingToe(basis, dienst.live).slice(0, BORD_N);
-    const eerst = bord.find((r) => !r.vervallen) || null;
-    const wacht = eerst ? eerst.tijd - nu : Infinity;
-    return {
-      name: station.name, nu, bord, eerst, echtRooster: true,
-      drukte: perronDrukte(station.lijnen.length, nu / 3600, Number.isFinite(wacht) ? wacht : 900),
-      tekst: eerst ? omroep(eerst, nu) : '',
-    };
+    const basis = rijenUitRooster(dienst.rooster, station.name, dienst.dagsoort || 'werk', nu, { aantal: BORD_N + 4, terug: 30, dienst: dienst.dienst || null });
+    if (basis.length) {
+      const bord = pasVertragingToe(basis, dienst.live).slice(0, BORD_N);
+      const eerst = bord.find((r) => !r.vervallen) || null;
+      const wacht = eerst ? eerst.tijd - nu : Infinity;
+      return {
+        name: station.name, nu, bord, eerst, echtRooster: true,
+        drukte: perronDrukte(station.lijnen.length, nu / 3600, Number.isFinite(wacht) ? wacht : 900),
+        tekst: eerst ? omroep(eerst, nu) : '',
+      };
+    }
   }
   const echt = (treinen ? bordUitTreinen(treinen.filter((t) => station.lijnen.includes(t.route)), station.name, nu, { aantal: 12, schaal }) : [])
     .filter((r) => r.tijd - nu <= BORD_HORIZON).slice(0, BORD_N);
@@ -143,7 +146,7 @@ export function allStations() { return stations || []; }
 
 export function updateStationLife(dt, world, opts) {
   const { routes, point, day, createBoard } = opts;
-  const dienst = opts.rooster ? { rooster: opts.rooster, dagsoort: opts.dagsoort, live: opts.live ? opts.live.vertragingen() : null } : null;
+  const dienst = opts.rooster ? { rooster: opts.rooster, dagsoort: opts.dagsoort, live: opts.live ? opts.live.vertragingen() : null, dienst: opts.dienst || null } : null;
   const sig = routes.length + ':' + routes.map((r) => r.stops.length).join(',');
   if (!stations || sig !== routesSig) { stations = stationsFromRoutes(routes, point); routesSig = sig; }
   const p = hoofdspeler(world);

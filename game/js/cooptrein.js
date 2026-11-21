@@ -83,7 +83,9 @@ export function gastTreinVan(world) {
   const id = c.treinId;
   if (Number.isInteger(id) && bron.routes && bron.routes[id]) {
     const route = bron.routes[id];
-    const t = lijst.find((q) => q && q.route === route && q.state !== 'mission' && q.gastWeg !== true);
+    // op een lijn met rooster rijden meerdere treinen (#1085): de trein die een speler bestuurt gaat voor
+    const kand = lijst.filter((q) => q && q.route === route && q.state !== 'mission' && q.gastWeg !== true);
+    const t = kand.find((q) => q.stolen || q.state === 'player') || kand[0];
     if (t) { world.coopTreinTrein = t; return t; }
   }
   const t = world.coopTreinTrein;

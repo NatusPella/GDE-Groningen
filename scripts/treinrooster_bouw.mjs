@@ -106,9 +106,9 @@ for (const t of trips.values()) {
   const bestemming = t.bestemming || laatsteNaam;
   if (!bestemming) { telling.zonderBestemming++; continue; }
   for (const st of t.stops) {
-    if (st.seq === t.laatste.seq) continue;                    // eindstation: geen vertrek
+    const soortRij = st.seq === t.laatste.seq ? 1 : st.seq === t.eerste.seq ? 2 : 0;   // 1: eindstation (alleen aankomst, geen vertrek op het bord), 2: beginstation
     const lijn = spelLijn({ bestemming, herkomst, soort: t.soort });
-    const r = maakRij({ dep: st.dep, arr: st.arr, nummer: t.nummer, spoor: st.s.spoor, bestIdx: idx(bestemmingen, bIdx, bestemming), lijnIdx: idx(lijnen, lIdx, lijn) });
+    const r = maakRij({ dep: st.dep, arr: st.arr, nummer: t.nummer, spoor: st.s.spoor, soort: soortRij, bestIdx: idx(bestemmingen, bIdx, bestemming), lijnIdx: idx(lijnen, lIdx, lijn) });
     if (!r) continue;
     const si = stationIdx.get(st.s.naam);
     for (const d of t.dagen) (rit[d][si] = rit[d][si] || []).push(r);

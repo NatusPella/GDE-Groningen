@@ -109,7 +109,7 @@ import { updateNarrative } from './narrative.js';
 import { initStoryContact, updateStoryContact } from './storycontact.js';
 import { initTheme } from './theme.js';
 import { initTrafficLights, updateTrafficLights, trafficSignalsNear, trafficLightPhaseFor } from './trafficlights.js';
-import { initRailway, updateRailway, setRailExtraWorld, getTrains, getRoutes, routePoint, zetTreinVanHost, zetTreinenVanHost } from './railway.js';
+import { initRailway, updateRailway, setRailExtraWorld, getTrains, getRoutes, routePoint, zetTreinVanHost, zetTreinenVanHost, setTreinDienst } from './railway.js';
 import { updateZeilvaren } from './zeilvaren.js';
 import { updateEvenementen } from './evenementenlive.js';
 import { updateWerf } from './werflive.js';
@@ -223,6 +223,7 @@ import { loadBusLines } from './busroutes.js';
 import { setBusLines, attachToNearestRoad, getBusLines, setLiveBussen } from './vehicle.js';
 import { maakBusLive } from './buslive.js';
 import { maakTreinLive } from './treinlive.js';
+import { maakDienstBron } from './treindienst.js';
 import { laadRooster as laadTreinRooster, codesUit as treinCodes, dagsoortVan as treinDagsoort } from './treinrooster.js';
 import { weekdayOf } from './calendar.js';
 import { tikBusMelding } from './busmelding.js'; // de rustige melding bij de eerste live bus (#922)
@@ -278,10 +279,17 @@ const busLive = maakBusLive({ zetBron: setLiveBussen, instellingen: getSettings,
 let treinRooster = null;
 laadTreinRooster().then((r) => { treinRooster = r; });
 const treinLive = maakTreinLive({ instellingen: getSettings, toegestaan: () => liveBussenToegestaan });
+// De treinen in de wereld volgen hetzelfde rooster als het bord (treindienst.js, railway.js planTreinDienst): de plek komt uit de spelklok. In Samen
+// spelen rekent iedereen zonder live vertraging, zodat host en gasten dezelfde treinen op dezelfde plek zien (de vertraging komt uit een eigen opvraag).
+const treinDagsoortVan = (w) => treinDagsoort(weekdayOf(calendarToday(w)));
+const treinLiveStand = (w) => (w && w.coopRole ? null : treinLive.bron.vertragingen());
+const treinDienstBron = maakDienstBron({ rooster: () => treinRooster, routes: getRoutes, dagsoort: treinDagsoortVan, klok: (w) => w.clock || 0, stand: treinLiveStand });
+setTreinDienst(treinDienstBron);
 const treinBord = (world) => {
   if (!treinRooster) return {};
   treinLive.tick(treinCodes(treinRooster));
-  return { rooster: treinRooster, dagsoort: treinDagsoort(weekdayOf(calendarToday(world))), live: treinLive.bron, liveInstelling: getSettings().liveTreinen !== false };
+  const b = treinDienstBron(world);
+  return { rooster: treinRooster, dagsoort: treinDagsoortVan(world), live: world.coopRole ? null : treinLive.bron, liveInstelling: getSettings().liveTreinen !== false, dienst: b ? b.dienst : null };
 };
 const boatTarget = () => scaledTarget(getSettings().quality === 'laag' ? 5 : 7);
 
