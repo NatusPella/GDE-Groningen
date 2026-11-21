@@ -3665,7 +3665,7 @@ function updatePigeonStage(dt, world, def, st, S) {
     return;
   }
   if (!f) {
-    if (S.spotted.size < S.targets.length) fail(world, def, 'je werd weer mens voordat alles op de foto stond');
+    if (S.spotted.size < S.targets.filter(Boolean).length) fail(world, def, 'je werd weer mens voordat alles op de foto stond');
     return;
   }
   if (f.intro) return;
@@ -3673,6 +3673,8 @@ function updatePigeonStage(dt, world, def, st, S) {
     S.gullT = st.gulls[0] + Math.random() * (st.gulls[1] - st.gulls[0]);
     summonDiveGull(st.gullText);
   }
+  // geen enkel doel gevonden (een landmark ontbreekt): de stap slaagt niet zonder foto's maar valt netjes om (review 21-11)
+  if (!S.targets.some(Boolean)) { stopPigeonMode(world); fail(world, def, 'de duivenspots konden niet worden gevonden'); return; }
   S.targets.forEach((t, k) => {
     if (!t || S.spotted.has(k)) return;
     const high = Number.isFinite(t.z) ? Math.abs(f.z - t.z) < 8 : f.z - f.ground < 80;
@@ -3682,7 +3684,7 @@ function updatePigeonStage(dt, world, def, st, S) {
       S.spotted.add(k);
       if (st.flag) cutFlagRope(k);
       const text = st.verb ? st.verb.replace('%s', t.label) : `Klik! ${t.label} staat op de foto`;
-      world.addMessage(`${text} (${S.spotted.size}/${S.targets.length})`, 2.6);
+      world.addMessage(`${text} (${S.spotted.size}/${S.targets.filter(Boolean).length})`, 2.6);
       meldRegelkaart('foto' + S.spotted.size); // de regelkaart van M04 telt mee (AAA akte 1)
     }
   });

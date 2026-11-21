@@ -438,7 +438,7 @@ const BASIS_UITLEG = ['basis-lopen', 'basis-pakken', 'basis-rijden', 'basis-vech
 function basisUitlegHtml() {
   zetUitlegGlyph((t) => glyphHtml(t));
   startUitleg();
-  const blokken = BASIS_UITLEG.map((id) => uitlegBlok(id, { nietMeer: true })).filter(Boolean);
+  const blokken = BASIS_UITLEG.map((id) => uitlegBlok(id, {})) /* Hulp is naslag: geen Niet meer tonen (anders is het blok weg tot de reset) */.filter(Boolean);
   return blokken.length ? `<section class="pm-cgroup pm-help" data-help="uitleg"><h3>Zo werkt het</h3>${blokken.join('')}</section>` : '';
 }
 

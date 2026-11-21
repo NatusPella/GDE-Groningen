@@ -69,5 +69,12 @@ const srcGuide = readFileSync(path.join(root, 'pigeonguide.js'), 'utf8');
 ok(/reducedMotion/.test(srcGuide) && !/glyphHtml/.test(srcGuide), 'verminderde beweging gerespecteerd; één toetsuitleg (de balk onderaan), niet nog een in de gids');
 ok(!/\b(host|iedereen)\b/i.test(GUIDE_INTRO.goal + GUIDE_INTRO.title), 'geen host of iedereen in spelertekst');
 
+// review 21-11: de duiventellers delen door dezelfde (gevonden) doelen; zonder doelen faalt de stap in plaats van meteen te slagen
+{
+  const ms = readFileSync(path.join(root, 'missions.js'), 'utf8');
+  ok(!ms.includes('S.spotted.size}/${S.targets.length}') && !ms.includes('S.spotted.size < S.targets.length)'), 'teller en eindcheck gebruiken alleen de gevonden doelen');
+  ok(ms.includes('if (!S.targets.some(Boolean)) { stopPigeonMode(world); fail('), 'zonder een enkel doel: netjes mislukt, niet meteen geslaagd');
+}
+
 console.log(bad ? `${bad} MISLUKT` : 'pigeonguide: alles ok');
 process.exit(bad ? 1 : 0);
