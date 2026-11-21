@@ -56,9 +56,9 @@ export function rimPicture(style, color, size = 'm', tire = 'standard') {
   return url(`r|${style}|${col}|${size}|${tire}`, 96, 96, (g, w, h) => {
     const cx = w / 2, cy = h / 2, R = 42;
     g.fillStyle = INK; g.beginPath(); g.arc(cx, cy, R + 3, 0, Math.PI * 2); g.fill();
-    g.fillStyle = '#2a2b2d'; g.beginPath(); g.arc(cx, cy, R, 0, Math.PI * 2); g.fill();
+    g.fillStyle = shade(INK, 1.6); g.beginPath(); g.arc(cx, cy, R, 0, Math.PI * 2); g.fill();
     if (tire === 'whitewall') { g.strokeStyle = PAPER; g.lineWidth = 4; g.beginPath(); g.arc(cx, cy, R * 0.8, 0, Math.PI * 2); g.stroke(); }
-    if (tire === 'offroad') { g.fillStyle = '#5d584c'; for (let k = 0; k < 18; k++) { const a = k / 18 * Math.PI * 2; g.fillRect(cx + Math.cos(a) * (R - 3) - 2, cy + Math.sin(a) * (R - 3) - 2, 4, 4); } }
+    if (tire === 'offroad') { g.fillStyle = shade(PAPER, 0.35); for (let k = 0; k < 18; k++) { const a = k / 18 * Math.PI * 2; g.fillRect(cx + Math.cos(a) * (R - 3) - 2, cy + Math.sin(a) * (R - 3) - 2, 4, 4); } }
     const ratio = ({ s: 0.56, m: 0.66, l: 0.78 }[size] || 0.66) + (tire === 'lowprofile' ? 0.06 : 0);
     const rr = R * ratio;
     g.fillStyle = style === 'disc' ? col : shade(col, 0.45); g.beginPath(); g.arc(cx, cy, rr, 0, Math.PI * 2); g.fill();
@@ -68,7 +68,7 @@ export function rimPicture(style, color, size = 'm', tire = 'standard') {
     else if (style === 'mesh') { spokes(10, 1.5); g.lineWidth = 1.5; for (const f of [0.55, 0.8]) { g.beginPath(); g.arc(cx, cy, rr * f, 0, Math.PI * 2); g.stroke(); } }
     else if (style === 'star') spokes(5, 7);
     else if (style === 'stock') { g.strokeStyle = shade(col, 0.7); spokes(5, 5); }
-    g.fillStyle = style === 'disc' ? shade(col, 0.6) : '#6a6d70'; g.beginPath(); g.arc(cx, cy, 6, 0, Math.PI * 2); g.fill();
+    g.fillStyle = style === 'disc' ? shade(col, 0.6) : shade(PAPER, 0.45); g.beginPath(); g.arc(cx, cy, 6, 0, Math.PI * 2); g.fill();
   });
 }
 
