@@ -19,7 +19,9 @@ S['M17.intro'] = {
     { on: 'Hoe weten we wanneer', actor: 'tammo', anim: 'shrug' },
     { on: 'Elf bruggen', actor: 'wubbo', anim: 'point' },
     { on: 'Mijn brug is op tijd', actor: 'wubbo', anim: 'hips' },
-    { on: 'Welke zaterdag', actor: 'tessa', anim: 'shrug' },
+    // het zaterdag-moment is naar overgangsscène O7 (akte 3); hier alleen een blik: Tammo kijkt naar Tessa, Tessa naar het water
+    { on: 'Mijn brug is op tijd', dt: 2.8, actor: 'tammo', face: 'actor:tessa' },
+    { on: 'Mijn brug is op tijd', dt: 3.0, actor: 'tessa', anim: 'look' },
   ],
   shots: [],
   wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:wubbo,tessa@1'),
@@ -31,6 +33,9 @@ S['M17.outro'] = {
   beats: [
     { on: 0, dt: 0.4, actor: 'wubbo', walk: [[2, 0.2]], speed: 0.8 },
     { on: 'Die brug draait niet', actor: 'wubbo', anim: 'shake' },
+    // Jelle belt vanuit zijn limo aan de overkant; Wubbo antwoordt met zijn werkfilosofie
+    { on: 'Mevrouw Tessa. Mijn schip', actor: 'tessa', anim: 'phone' },
+    { on: 'Open of dicht. Nooit allebei', actor: 'wubbo', anim: 'hips' },
     { on: 'De mosterd is gered', actor: 'tessa', anim: 'nod' },
     { on: 'Er is een webbureau', actor: 'wubbo', anim: 'point' },
     { on: 'Om middernacht. Net als', actor: 'tammo', anim: 'point' },
@@ -55,13 +60,15 @@ S['M18.intro'] = {
   beats: [
     { on: 'Wiebelwerk. Websites', actor: 'tammo', anim: 'shrug' },
     { on: 'Wie de camera', actor: 'tammo', anim: 'point' },
-    { on: 'Als in het logboek staat', actor: 'tessa', anim: 'nod' },
+    { on: 'Volgens de chat van Rikus', actor: 'tessa', anim: 'shrug' },
+    { on: 'We waren er wel', actor: 'tammo', anim: 'look' },
+    { on: 'Staat in het logboek', actor: 'tessa', anim: 'nod' },
     { on: 'Welkom bij Wiebelwerk', actor: 'accountmanager', walk: [[3.4, -1.6], [1.5, -1.6], [1.5, -0.4]], speed: 0.9 },
     { on: 'Welkom bij Wiebelwerk', dt: 0.3, actor: 'accountmanager', face: 'actor:tessa' },
     { on: 'Een website voor een frietwagen', actor: 'tessa', anim: 'talk' },
     { on: 'Prachtig. Dan beginnen', actor: 'accountmanager', anim: 'point' },
     // de collega loopt met een map langs de wand, achter de twee langs
-    { on: 'Als in het logboek staat', dt: 0.6, actor: 'collega', walk: [[0.3, 2.45]], speed: 0.7 },
+    { on: 'Staat in het logboek', dt: 0.6, actor: 'collega', walk: [[0.3, 2.45]], speed: 0.7 },
     { on: 'Welkom bij Wiebelwerk', dt: 0.4, actor: 'collega', anim: 'phone' },
   ],
   shots: [
@@ -87,20 +94,34 @@ S['M18.outro'] = {
     { on: 'Dan is het niet Wiebelwerk', actor: 'tammo', anim: 'nod' },
     { on: 'Dan is het Jelle', actor: 'tessa', anim: 'point' },
     { on: 'Een webbureau', dt: 0.2, actor: 'collega', walk: [[2.6, -1.6]], speed: 0.7 },
+    // Mem belt: Tessa draait zich een stap van Tammo weg, Tammo hoort alleen haar kant en de jas
+    { on: 'Famke. Dinsdag', actor: 'tessa', anim: 'phone' },
+    { on: 'Famke. Dinsdag', dt: 0.3, actor: 'tessa', walk: [[0.1, -1.5]], speed: 0.8 },
+    { on: 'Mem weer', actor: 'tammo', face: 'actor:tessa' },
+    { on: 'Dat ik mijn jas', actor: 'tessa', anim: 'shrug' },
+    { on: 'Het is augustus', actor: 'tammo', anim: 'shrug' },
+    { on: 'Dat zei ik ook', actor: 'tessa', anim: 'hips' },
   ],
   shots: [
     { on: 'Een webbureau', dt: 0.2, shot: 'close', target: 'tessa', dist: 1.3, side: 0.2, fov: 28 },
     { on: 'Dan is het Jelle', dt: 0.2, shot: 'ots', from: 'tammo', target: 'tessa', dist: 1.05, side: 0.45, fov: 36 },
+    // sleutelmoment (de speler weet wat Tessa verbergt): Mem belt, Tessa half van Tammo afgekeerd; daarna zijn blik op haar
+    { on: 'Famke. Dinsdag', dt: 0.3, shot: 'close', target: 'tessa', dist: 1.3, side: 0.35, fov: 28 },
+    { on: 'Mem weer', dt: 0.1, shot: 'close', target: 'tammo', dist: 1.3, side: 0.2, fov: 28 },
   ],
   wide: WIDE([-4.5, 4, 3], [-2.5, 2.8, 2.3], 'mid:accountmanager,tessa@1'),
 };
 
 // --- M19 Stoom: the platform at Stadskanaal, the steam train waiting ---
 S['M19.intro'] = {
-  cast: { durk: { key: 'durk', at: [4, 1.6], face: 190, anim: 'idle', bg: true, gest: ['talk', 'shrug'] } },
+  cast: {
+    durk: { key: 'durk', at: [4, 1.6], face: 190, anim: 'idle', bg: true, gest: ['talk', 'shrug'] },
+    douwe: { key: 'douwe', at: [4.4, 0.4], face: 190, anim: 'idle', bg: true, gest: ['shrug', 'look'] },
+  },
   props: { koffer: { kind: 'koffer', at: [1.6, -1.6, 0] } },
   open: [{ actor: 'tessa', face: 'actor:tammo' }, { actor: 'tammo', face: 'actor:tessa' }],
   beats: [
+    { on: 'Wie de jury koopt', actor: 'tessa', anim: 'point' },
     { on: 'Wie rijdt hem dan', actor: 'tammo', anim: 'shrug' },
     { on: 'Jij.', actor: 'tessa', anim: 'point' },
     { on: 'Ik heb nog nooit', actor: 'tammo', anim: 'shake' },
@@ -108,9 +129,11 @@ S['M19.intro'] = {
     { on: 'Vergelijkbaar', actor: 'tammo', anim: 'nod' },
     { on: 'Dan rijd jij hem', actor: 'tessa', walk: [[-1.6, -2.4]], speed: 1 },
     { on: 'Douwe. Er rijdt een nieuwe machinist', actor: 'durk', face: 'actor:tammo' },
+    { on: '…machinist', actor: 'douwe', anim: 'shrug' },
   ],
-  shots: [],
-  wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:tammo,tessa@1'),
+  // Douwe zegt zijn echo in beeld (CS-V01/C05): een eigen close-up op zijn regel
+  shots: [{ on: '…machinist', dt: 0, shot: 'close', target: 'douwe', dist: 1.5, side: 0.25, fov: 30 }],
+  wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:tessa,douwe@1'),
 };
 S['M19.outro'] = {
   cast: {
@@ -125,9 +148,11 @@ S['M19.outro'] = {
     { on: 'Ik niet. Ik heb een contract', actor: 'jurylid', face: 'actor:bewaarder' },
     { on: 'Ik stap niet uit', actor: 'bewaarder', anim: 'hips' },
     { on: 'Eén jurylid gered', actor: 'tessa', anim: 'shrug' },
-    { on: 'Vier van de vijf staan', actor: 'tammo', anim: 'shake' },
     { on: 'Ik heb een trein bestuurd', actor: 'tammo', anim: 'cheer' },
     { on: 'Je hebt hem in een station', actor: 'tessa', anim: 'nod' },
+    { on: 'Berend. Wie zit de jury voor', actor: 'tessa', anim: 'phone' },
+    { on: 'Vier van de vijf zijn', actor: 'tammo', anim: 'shake' },
+    { on: 'Daarom zit mevrouw Hoving', actor: 'tammo', anim: 'point' },
   ],
   shots: [],
   wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:jurylid,bewaarder@1'),
@@ -184,7 +209,13 @@ S['M20.outro'] = {
     { on: 'Ik heb er geen', actor: 'tammo', anim: 'shrug' },
   ],
   // #740: een lage push-in over de klomp met het briefje, met Tammo (die de regel zegt) in beeld.
-  shots: [{ on: '"Tige tank foar de auto', dt: 0.2, shot: 'dolly', from: [0.8, -2.9, 1.0], to: [1.7, -2.2, 1.15], look: 'tammo@1.3', fov: 34 }],
+  shots: [
+    { on: '"Tige tank foar de auto', dt: 0.2, shot: 'dolly', from: [0.8, -2.9, 1.0], to: [1.7, -2.2, 1.15], look: 'tammo@1.3', fov: 34 },
+    // sleutelscène (de ruzie): Tammo's gezicht na "Jij zegt nooit iets!", Tessa na Berends tel, Tammo's lege handen aan het eind (R-21)
+    { on: 'Jij zegt nooit iets!', dt: 1.2, shot: 'close', target: 'tammo', dist: 1.3, side: 0.2, fov: 28, offscreen: 'reaction: Tessa is te horen, Tammo is te zien' },
+    { on: 'Twee keer', dt: 2.2, shot: 'close', target: 'tessa', dist: 1.3, side: 0.2, fov: 28, offscreen: 'reaction: Berend is te horen, Tessa is te zien' },
+    { on: 'Eén zin, jong', dt: 0.2, shot: 'close', target: 'tammo', dist: 1.4, side: 0.2, fov: 28, offscreen: 'reaction: Oma Trijntje is te horen, Tammo is te zien' },
+  ],
   wide: WIDE([-5.5, 4.5, 3.4], [-3.5, 3.2, 2.5], 'mid:tammo,tessa@1'),
 };
 
@@ -405,6 +436,7 @@ S['M20.3'] = {
     { on: 'Gerda belde mij', actor: 'trijntje', anim: 'point' },
     { on: 'Nul krassen. Op de heenweg', actor: 'berend', anim: 'shrug' },
     { on: 'Jij kende Mem', actor: 'tammo', anim: 'look' },
+    { on: 'Van de jas', actor: 'tessa', anim: 'shrug' },
     { on: 'Dat heb ik hem geleerd', actor: 'mem', anim: 'nod' },
     { on: 'Omdat mijn zoon', actor: 'mem', anim: 'shrug' },
     { on: 'Mem. Dit is nog niet voorbij', actor: 'jelle', anim: 'point' },
@@ -413,6 +445,8 @@ S['M20.3'] = {
   shots: [
     { on: 'Nul krassen. Op de heenweg', dt: 0.1, shot: 'dolly', from: [-2.6, 3.4, 1.7], to: [-0.8, 2.4, 1.6], look: 'mid:berend,mem@1', fov: 44 },
     { on: 'Omdat mijn zoon', dt: 0.1, shot: 'dolly', from: [-2.2, -2.6, 1.6], to: [-0.8, -1.4, 1.5], look: 'mid:mem,jelle@1', fov: 40 },
+    // sleutelscène: reactieshot op Jelle terwijl Mem de zin uitspreekt die ertoe doet (R-21)
+    { on: 'Er is geen overeenkomst', dt: 2.6, shot: 'close', target: 'jelle', dist: 1.3, side: 0.2, fov: 28, offscreen: 'reaction: Mem is te horen, Jelle is te zien' },
   ],
   wide: WIDE([-4.8, 4, 3.2], [-2.8, 2.9, 2.4], 'mid:mem,jelle@1'),
 };
@@ -928,18 +962,26 @@ S['M21.4'] = {
   props: {},
   open: [{ actor: 'tammo', face: 'actor:tinus' }, { actor: 'tessa', face: 'actor:tammo' }, { t: 0.2, actor: 'tammo', walk: [[0.5, 0.2]], speed: 0.8 }],
   beats: [
-    { on: 'Laat ze gaan', actor: 'tinus', anim: 'shake' },
     { on: 'Mijn kerkvoogdij', actor: 'geesje', anim: 'talk' },
-    { on: 'Mijn rubberboot', actor: 'klaas', anim: 'talk' },
-    { on: 'Mijn kade', actor: 'lammert', anim: 'talk' },
-    { on: 'De brug draait', actor: 'wubbo', anim: 'talk' },
-    { on: 'Ik… zeg het niet goed', actor: 'tammo', anim: 'shrug' },
-    { on: 'Mijn vliegvergunning', actor: 'roelfien', anim: 'talk' },
+    { on: 'Mij hebben ze', actor: 'klaas', anim: 'talk' },
+    { on: 'Mij als eerste', actor: 'geesje', anim: 'point' },
+    { on: 'Ik om half negen', actor: 'klaas', anim: 'point' },
+    { on: 'Het maakt niet uit', actor: 'tammo', anim: 'shrug' },
+    { on: 'Ik zeg het niet goed', actor: 'tammo', anim: 'shake' },
+    { on: 'Laat ze gaan', actor: 'tinus', anim: 'shake' },
+    // de vrienden lopen weg: Geesje en Klaas ruziend, de anderen met hun telefoon aan het oor
+    { on: 'Laat ze gaan', dt: 1.0, actor: 'geesje', walk: [[11, -0.4]], speed: 1.1 },
+    { on: 'Laat ze gaan', dt: 1.2, actor: 'klaas', walk: [[11.5, 2.6]], speed: 1.1 },
+    { on: 'Laat ze gaan', dt: 1.8, actor: 'lammert', walk: [[12, -2.4]], speed: 1.0 },
+    { on: 'Laat ze gaan', dt: 2.0, actor: 'wubbo', walk: [[12, 4.2]], speed: 1.0 },
+    { on: 'Laat ze gaan', dt: 2.2, actor: 'roelfien', walk: [[12.5, -0.2]], speed: 1.0 },
     { on: 'Mijn schuur is leeg', actor: 'tinus', anim: 'nod' },
     { on: 'Voor ons.', actor: 'tammo', anim: 'nod' },
   ],
   shots: [
-    { on: 'Laat ze gaan', dt: 0.2, shot: 'dolly', from: [-2.4, 2.4, 1.7], to: [-0.8, 1.4, 1.6], look: 'mid:tammo,tinus@1.3', fov: 50 },
+    { on: 'Mijn kerkvoogdij', dt: 0.2, shot: 'dolly', from: [-2.4, 2.4, 1.7], to: [-0.8, 1.4, 1.6], look: 'mid:geesje,klaas@1.3', fov: 50 },
+    // Tammo faalt: zijn gezicht als de zin vastloopt (R-21)
+    { on: 'Ik zeg het niet goed', dt: 0.3, shot: 'close', target: 'tammo', dist: 1.3, side: 0.2, fov: 28 },
     { on: 'Mijn schuur is leeg', dt: 0.2, shot: 'cut', at: [-1.2, 2.2, 1.6], look: 'tinus@1.4', fov: 40 },
   ],
   wide: WIDE([-5.2, 4.4, 3.4], [-3.2, 3.2, 2.6], 'mid:tammo,tinus@1'),
