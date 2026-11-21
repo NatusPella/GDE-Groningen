@@ -27,14 +27,6 @@
 "src": "m1/intro_7_tammo.mp3",
 "dur": 0.45
 },
-"Anita|Saai. Zelfs de duiven gaan weg.": {
-"src": "m1/fail_0_anita.mp3",
-"dur": 3.43
-},
-"Tammo|Die zijn gewoon naar de Vismarkt.": {
-"src": "m1/fail_1_tammo.mp3",
-"dur": 1.74
-},
 "Anita|Tammo heeft hier nog gestudeerd. Twee weken.": {
 "src": "m2/intro_2_anita.mp3",
 "dur": 2.82
@@ -59,29 +51,9 @@
 "src": "m2/fail_1_anita.mp3",
 "dur": 2.08
 },
-"Anita|Dan wordt het moderne dans.": {
-"src": "m3/fail_0_anita.mp3",
-"dur": 1.75
-},
-"Tammo|Zonder decor. Daar krijg je hier subsidie voor.": {
-"src": "m3/fail_1_tammo.mp3",
-"dur": 2.77
-},
-"Harm|Eén rondje om de stad, vol gas. Als de weg het houdt, mag ik eindelijk met pensioen.": {
-"src": "m4/intro_1_harm.mp3",
-"dur": 5.41
-},
 "Tammo|Voor de grip.": {
 "src": "m4/outro_3_tammo.mp3",
 "dur": 0.92
-},
-"Tammo|De weg is klaar. Wij nog niet.": {
-"src": "m4/fail_0_tammo.mp3",
-"dur": 2.02
-},
-"Anita|Nog een rondje. Ik let op de pionnen.": {
-"src": "m4/fail_1_anita.mp3",
-"dur": 2.18
 },
 "Tammo|Die barman heeft het druk.": {
 "src": "m5/intro_2_tammo.mp3",
@@ -110,14 +82,6 @@
 "Anita|Kom, ik help je overeind. Weer.": {
 "src": "m6/fail_1_anita.mp3",
 "dur": 2.44
-},
-"Anita|Gids zijn is moeilijker dan het lijkt.": {
-"src": "m7/fail_0_anita.mp3",
-"dur": 1.86
-},
-"Tammo|Links water. Rechts ook. Onder ons: fietsen.": {
-"src": "m7/fail_1_tammo.mp3",
-"dur": 3.31
 },
 "Anita|Ik rij. Geen discussie.": {
 "src": "duo/s0/intro_0_anita.mp3",
@@ -358,14 +322,6 @@
 "Tammo (gids)|De Herebrug verbindt de Herestraat met de Hereweg: eeuwenlang de hoofdroute de stad uit, naar het zuiden en Drenthe. Gaat hij open, dan staat half Grunn te wachten.": {
 "src": "m7/gids_de_herebrug_tammo.mp3",
 "dur": 8.81
-},
-"Tammo (gids)|Links het Groninger Museum, geopend in 1994, op een eiland in het kanaal. Ontworpen door Alessandro Mendini, met paviljoens van onder anderen Philippe Starck en Coop Himmelb(l)au. Ja, het hoort zo scheef.": {
-"src": "m7/gids_het_groninger_museum_tammo.mp3",
-"dur": 13.98
-},
-"Tammo (gids)|Deze brug is vernoemd naar Hendrik Werkman, drukker en kunstenaar van De Ploeg. Hij werd in april 1945 door de bezetter gefusilleerd, een paar dagen voor Groningen werd bevrijd.": {
-"src": "m7/gids_de_werkmanbrug_tammo.mp3",
-"dur": 11.13
 },
 "Tammo (gids)|Links, achter de bomen: het Hoofdstation uit 1896. Van buiten een paleis, van binnen een van de mooiste stationshallen van het land.": {
 "src": "m7/gids_het_hoofdstation_tammo.mp3",

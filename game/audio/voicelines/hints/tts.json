@@ -41,16 +41,6 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-15"
 },
-"Anita|Alarm! Twee sterren. Rij een garage in: Spuit & Klaar spuit hem om en de pliesie is je kwijt.": {
-"src": "anita/alarm_twee_sterren_rij_een_garag_3b185baa.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
-"voice": "Callirrhoe",
-"input": "Alarm! Twij sterren. Rie n garage in: Spuit & Klaar spuit hom om en de pliesie is die kwiet.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: droog, adviserend.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
-},
 "Anita|Alles binnen. Naar de kraam op de Grote Markt, en heel voorzichtig.": {
 "src": "anita/alles_binnen_naar_de_kraam_op_de_0feb8bbb.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -280,16 +270,6 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-21"
 },
-"Anita|De decorauto blijft hier, Femke laadt hem uit. Wij gaan te voet verder.": {
-"src": "anita/de_decorauto_blijft_hier_femke_l_adcd5e7d.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
-"voice": "Callirrhoe",
-"input": "De decorauto bliedt hier, Femke laadt hom oet. Wie goan te voet verder.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: kort, alert, tegen de ander naast je.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
-},
 "Anita|De fanfare is weg: Jelle kocht haar voor zijn optocht. Wubbo fluit: één keer is open, twee keer is dicht.": {
 "src": "anita/de_fanfare_is_weg_jelle_kocht_ha_c8aebe48.mp3",
 "model": "google/gemini-3.8-flash-lite-tts",
@@ -301,16 +281,6 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-21"
 },
-"Anita|De navigatie stuurt je om, via de Diepenring. Sectoren, sinds 1977. Berend heeft er een brief over gestuurd.": {
-"src": "anita/de_navigatie_stuurt_je_om_via_de_db7edfb2.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
-"voice": "Callirrhoe",
-"input": "De navigatie stuurt die om, via de Diepenring. Sectoren, zied 1977. Berend het der n brief over stuurd.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: droog, adviserend.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
-},
 "Anita|De quad van Geesjes neef staat klaar. Springen, Tammo, hij rijdt.": {
 "src": "anita/de_quad_van_geesjes_neef_staat_k_e514661f.mp3",
 "model": "google/gemini-3.8-flash-lite-tts",
@@ -321,27 +291,6 @@
 "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: aanwijzend, gehaast.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-20"
-},
-"Anita|De rondvaartboot blijft aan de kade. Wiebe haalt hem zelf wel op.": {
-"src": "anita/de_rondvaartboot_blijft_aan_de_k_0235f002.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
-"voice": "Callirrhoe",
-"input": "De rondvaartboot bliedt aan de kaai. Wiebe haalt hom zulf wel op.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: kort, alert, tegen de ander naast je.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
-},
-"Anita|De stroomkast. Druk op Spatie als de naald in het groen staat. Drie zekeringen, dan hebben we drie minuten.": {
-"src": "anita/de_stroomkast_druk_op_spatie_als_bc378149.mp3",
-"model": "google/gemini-3.8-flash-lite-tts",
-"via": "litellm",
-"lang": "own",
-"voice": "Callirrhoe",
-"input": "De stroomkast. Druk op Spatie als de naald in het groen staat. Drie zekeringen, dan hebben we drie minuten.",
-"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: aanwijzend, gehaast.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-11-15"
 },
 "Anita|De tankwagen blijft bij de Oosterpoort, voor de frituurpannen. Wij lopen verder.": {
 "src": "anita/de_tankwagen_blijft_bij_de_ooste_04cf0582.mp3",
@@ -374,17 +323,6 @@
 "style": "kort, alert, tegen de ander naast je",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-20"
-},
-"Anita|De vitrine. Draai met A en D, voel de klik en zet hem vast met Spatie.": {
-"src": "anita/de_vitrine_draai_met_a_en_d_voel_2c510bb4.mp3",
-"model": "google/gemini-3.8-flash-lite-tts",
-"via": "litellm",
-"lang": "own",
-"voice": "Callirrhoe",
-"input": "De vitrine. Draai met A en D, voel de klik en zet hem vast met Spatie.",
-"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: aanwijzend, gehaast.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-11-15"
 },
 "Anita|Dit gaat over het water. Pak een boot.": {
 "src": "anita/dit_gaat_over_het_water_pak_een__ff5141fc.mp3",
@@ -528,16 +466,6 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-15"
 },
-"Anita|Eerst even wennen: W/S hoger en lager, muis sturen, Shift sneller. Zweef boven het plein, dan door naar het museum.": {
-"src": "anita/eerst_even_wennen_w_s_hoger_en_l_34da3eb3.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
-"voice": "Callirrhoe",
-"input": "Aarst eefkes wennen: W en S hoger en lager, muus sturen, Shift gaauwer. Zweef boven t plein, dan deur noar t museum.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: aanwijzend, gehaast.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
-},
 "Anita|Eerst mosterd. Echte Groninger, bij Nait Duur.": {
 "src": "anita/eerst_mosterd_echte_groninger_bi_6d335868.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -590,16 +518,6 @@
 "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: droog, adviserend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-15"
-},
-"Anita|Fatbikes tellen niet als fiets. Kom op een gewone fiets.": {
-"src": "anita/fatbikes_tellen_niet_als_fiets_k_ce80d96e.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
-"voice": "Callirrhoe",
-"input": "Fatbikes tellen nait as fiets. Kom op n gewone fiets.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: aanwijzend, gehaast.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
 },
 "Anita|Gas eraf! De toeristen willen het verhaal horen.": {
 "src": "anita/gas_eraf_de_toeristen_willen_het_fdbcd6fe.mp3",
@@ -892,16 +810,6 @@
 "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: aanwijzend, gehaast.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-15"
-},
-"Anita|Instappen bij Roelf. Spatie omhoog, W vooruit, A/D draaien. De rest staat in beeld.": {
-"src": "anita/instappen_bij_roelf_spatie_omhoo_196b8237.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
-"voice": "Callirrhoe",
-"input": "Instappen bie Roelf. Spatie omhoog, W vooruit, A en D draaien. De rest stait in beeld.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: droog, adviserend.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
 },
 "Anita|Instappen met {E} bij de kop. {W} is gas, {S} is rem, {H} is de fluit. Rem op tijd bij het perron.": {
 "src": "anita/instappen_met_e_bij_de_kop_w_is__f07b9037.mp3",
@@ -1331,17 +1239,6 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
-"Anita|Slotje openpeuteren. Spatie als het pinnetje in het groen staat. Ik hou de wacht.": {
-"src": "anita/slotje_openpeuteren_spatie_als_h_ca7aa99a.mp3",
-"model": "google/gemini-3.8-flash-lite-tts",
-"via": "litellm",
-"lang": "own",
-"voice": "Callirrhoe",
-"input": "Slotje openpeuteren. Spatie als het pinnetje in het groen staat. Ik hou de wacht.",
-"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: droog, adviserend.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-11-15"
-},
 "Anita|Snel, naar de overweg aan de Peizerweg! Ga erbij staan, dan moet de machinist wel stoppen.": {
 "src": "anita/snel_naar_de_overweg_aan_de_peiz_4eabeb5a.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -1631,16 +1528,6 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
-"Tammo|Alarm! Twee sterren. Rij een garage in: Spuit & Klaar spuit hem om en de pliesie is je kwijt.": {
-"src": "tammo/alarm_twee_sterren_rij_een_garag_0c131696.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
-"voice": "Orus",
-"input": "Alarm! Twij sterren. Rie n garage in: Spuit & Klaar spuit hom om en de pliesie is die kwiet.",
-"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, adviserend.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
-},
 "Tammo|Alles binnen. Naar de kraam op de Grote Markt, en heel voorzichtig.": {
 "src": "tammo/alles_binnen_naar_de_kraam_op_de_4e91b079.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -1882,16 +1769,6 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-21"
 },
-"Tammo|De decorauto blijft hier, Femke laadt hem uit. Wij gaan te voet verder.": {
-"src": "tammo/de_decorauto_blijft_hier_femke_l_6c9ff5d3.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
-"voice": "Orus",
-"input": "De decorauto bliedt hier, Femke laadt hom oet. Wie goan te voet verder.",
-"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: kort, alert, tegen de ander naast je.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
-},
 "Tammo|De fanfare is weg: Jelle kocht haar voor zijn optocht. Wubbo fluit: één keer is open, twee keer is dicht.": {
 "src": "tammo/de_fanfare_is_weg_jelle_kocht_ha_3dce9f68.mp3",
 "model": "google/gemini-3.8-flash-lite-tts",
@@ -1902,36 +1779,6 @@
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, adviserend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-21"
-},
-"Tammo|De navigatie stuurt je om, via de Diepenring. Sectoren, sinds 1977. Berend heeft er een brief over gestuurd.": {
-"src": "tammo/de_navigatie_stuurt_je_om_via_de_205a960a.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
-"voice": "Orus",
-"input": "De navigatie stuurt die om, via de Diepenring. Sectoren, zied 1977. Berend het der n brief over stuurd.",
-"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: kort, alert, tegen de ander naast je.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
-},
-"Tammo|De rondvaartboot blijft aan de kade. Wiebe haalt hem zelf wel op.": {
-"src": "tammo/de_rondvaartboot_blijft_aan_de_k_b9e632a8.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
-"voice": "Orus",
-"input": "De rondvaartboot bliedt aan de kaai. Wiebe haalt hom zulf wel op.",
-"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: kort, alert, tegen de ander naast je.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
-},
-"Tammo|De stroomkast. Druk op Spatie als de naald in het groen staat. Drie zekeringen, dan hebben we drie minuten.": {
-"src": "tammo/de_stroomkast_druk_op_spatie_als_51c4169c.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
-"voice": "Orus",
-"input": "De stroomkast. Druk op Spatie as de naald in t groen stait. Drij zekeringen, dan hebben wie drij menuten.",
-"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, adviserend.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
 },
 "Tammo|De tankwagen blijft bij de Oosterpoort, voor de frituurpannen. Wij lopen verder.": {
 "src": "tammo/de_tankwagen_blijft_bij_de_ooste_b02dfdd3.mp3",
@@ -1964,16 +1811,6 @@
 "style": "kort, alert, tegen de ander naast je",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-20"
-},
-"Tammo|De vitrine. Draai met A en D, voel de klik en zet hem vast met Spatie.": {
-"src": "tammo/de_vitrine_draai_met_a_en_d_voel_53067312.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
-"voice": "Orus",
-"input": "De vitrine. Draai mit A en D, voel de klik en zet hom vast mit Spatie.",
-"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: kort, alert, tegen de ander naast je.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
 },
 "Tammo|Dit gaat over het water. Pak een boot.": {
 "src": "tammo/dit_gaat_over_het_water_pak_een__43ff9072.mp3",
@@ -2110,16 +1947,6 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
-"Tammo|Eerst even wennen: W/S hoger en lager, muis sturen, Shift sneller. Zweef boven het plein, dan door naar het museum.": {
-"src": "tammo/eerst_even_wennen_w_s_hoger_en_l_70d6bf6d.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
-"voice": "Orus",
-"input": "Aarst eefkes wennen: W en S hoger en lager, muus sturen, Shift gaauwer. Zweef boven t plein, dan deur noar t museum.",
-"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, adviserend.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
-},
 "Tammo|Eerst mosterd. Echte Groninger, bij Nait Duur.": {
 "src": "tammo/eerst_mosterd_echte_groninger_bi_91e13d36.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -2166,16 +1993,6 @@
 "lang": "gro",
 "voice": "Orus",
 "input": "Ain schroefje te weinig. Ach, n kauwgompje holt ook.",
-"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: aanwijzend, gehaast.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
-},
-"Tammo|Fatbikes tellen niet als fiets. Kom op een gewone fiets.": {
-"src": "tammo/fatbikes_tellen_niet_als_fiets_k_64ab62fd.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
-"voice": "Orus",
-"input": "Fatbikes tellen nait as fiets. Kom op n gewone fiets.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: aanwijzend, gehaast.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
@@ -2464,16 +2281,6 @@
 "lang": "gro",
 "voice": "Orus",
 "input": "Ik zie n kastje mit LASER der op. Ik druk gewoon op aals.",
-"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, adviserend.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
-},
-"Tammo|Instappen bij Roelf. Spatie omhoog, W vooruit, A/D draaien. De rest staat in beeld.": {
-"src": "tammo/instappen_bij_roelf_spatie_omhoo_3de27650.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
-"voice": "Orus",
-"input": "Instappen bie Roelf. Spatie omhoog, W vooruit, A en D draaien. De rest stait in beeld.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, adviserend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
@@ -2858,16 +2665,6 @@
 "lang": "gro",
 "voice": "Orus",
 "input": "Rustig rieden, mit platte bannen. Noar de Oosterpoort, doar wachten de frituurpannen.",
-"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, adviserend.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
-},
-"Tammo|Slotje openpeuteren. Spatie als het pinnetje in het groen staat. Ik hou de wacht.": {
-"src": "tammo/slotje_openpeuteren_spatie_als_h_1f24d39f.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
-"voice": "Orus",
-"input": "Slotje openpeuteren. Spatie as t pinnetje in t groen stait. Ik hol de wacht.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, adviserend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"

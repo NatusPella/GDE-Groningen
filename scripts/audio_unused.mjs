@@ -3,6 +3,9 @@
 //   node scripts/audio_unused.mjs           report
 //   node scripts/audio_unused.mjs --delete  also delete them (files, manifest
 //                                           and tts.json entries)
+//   node scripts/audio_unused.mjs --delete --voicelines-only
+//                                           only voicelines/ files (sfx is a
+//                                           dynamic table the scan cannot see)
 // An entry whose text still appears in the game code is kept and reported as
 // "kept (text in code)": the collector may just not know that table yet.
 import fs from 'fs';
@@ -11,6 +14,7 @@ import { collect, manifest, REPO } from './voicelines_collect.mjs';
 import { BANTER, REACTIONS, SPEAKERS } from '../game/js/banterlines.js';
 
 const del = process.argv.includes('--delete');
+const voicelinesOnly = process.argv.includes('--voicelines-only');
 const GAME = path.join(REPO, 'game');
 const AUDIO = path.join(GAME, 'audio');
 const VL = path.join(AUDIO, 'voicelines');
@@ -19,7 +23,9 @@ const MANIFESTS = ['banter', 'lines', 'story', 'hints', 'sms', 'jobs', 'trailer'
 // recursief: de audio-, sfx- en scene3d-submappen noemen ook bestanden en regels
 const jsFiles = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? jsFiles(path.join(d, e.name)) : [path.join(d, e.name)]));
 const code = jsFiles(path.join(GAME, 'js')).filter((f) => /\.(js|mjs)$/.test(f) && path.basename(f) !== 'subtitles.js')
-  .map((f) => fs.readFileSync(f, 'utf8')).join('\n') + fs.readFileSync(path.join(GAME, 'index.html'), 'utf8');
+  .map((f) => fs.readFileSync(f, 'utf8')).join('\n') + fs.readFileSync(path.join(GAME, 'index.html'), 'utf8')
+  // the story data (script.json: recorded lines with rec/voice, humor.*.json) names its clips by spoken text
+  + fs.readdirSync(path.join(GAME, 'storydata')).filter((f) => f.endsWith('.json')).map((f) => fs.readFileSync(path.join(GAME, 'storydata', f), 'utf8')).join('\n');
 // Source text with JS string escapes undone, so a line can be found by its spoken text.
 const codeText = code.replace(/\\(['"\\])/g, '$1');
 
@@ -100,13 +106,19 @@ if (del) {
     for (const name of ['manifest.json', 'tts.json']) {
       const p = path.join(VL, m, name);
       if (!fs.existsSync(p)) continue;
-      const raw = fs.readFileSync(p, 'utf8');
+      // a CRLF working tree (autocrlf) has the same layout: compare on LF, write back in the file's own EOL
+      const rawFile = fs.readFileSync(p, 'utf8');
+      const crlf = rawFile.includes('\r\n');
+      const raw = rawFile.replace(/\r\n/g, '\n');
       const o = JSON.parse(raw);
       if (fmt(o) !== raw) throw new Error(`${p}: layout not reproducible, not touching it`);
       for (const k of gone) delete o[k];
-      fs.writeFileSync(p, fmt(o));
+      fs.writeFileSync(p, crlf ? fmt(o).replace(/\n/g, '\r\n') : fmt(o));
     }
   }
-  for (const f of unusedFiles) fs.unlinkSync(f);
+  for (const f of unusedFiles) {
+    if (voicelinesOnly && !path.relative(AUDIO, f).split(path.sep).join('/').startsWith('voicelines/')) continue;
+    fs.unlinkSync(f);
+  }
   console.log('Deleted.');
 }
