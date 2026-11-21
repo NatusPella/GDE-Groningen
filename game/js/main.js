@@ -200,6 +200,7 @@ import { initStationTravel, tryStationInteract } from './stationtravel.js';
 import { initOmmelandFun, updateOmmelandFun, tryOmmelandInteract } from './ommelandfun.js';
 import { BEPPE_KIND } from './beppe_garden.js';
 import { INTERIOR_KIND, assignInteriorHooks } from './interiors.js'; // echt binnen lopen door de voordeur van panden (#1150)
+import { registerSponsorPanden } from './sponsorpanden.js'; // sponsorpanden van het voetbal in de Bezit-pandindex
 import { installBezitInterior } from './bezitinterior.js'; // het beheer van je eigen pand aan de toonbank (#1102)
 import { tryAaien, updateAaien } from './aaien.js';
 import { tryControle, updateControle } from './kaartjescontrole.js';
@@ -958,6 +959,7 @@ window.__debug = { player, map, input, world, frameStats };
   initOmverrijden(world);
   initBezit();
   installBezitInterior(assignInteriorHooks);
+  try { registerSponsorPanden(); } catch (e) { /* zonder voetbal */ }
   // de gedeelde ontgrendelpoort (unlockgate.js): zolang de save geen `gate` heeft (world.gate) staat alles open (migratieregel van de verhaal-epic)
   setGateProgress(() => storyGateProgress());
   // de snackwagen opent in fasen met de stille verhaalvlaggen wagen:* (snackstory.js); een oude save (geen gate) laat alles open
