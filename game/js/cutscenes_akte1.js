@@ -735,8 +735,19 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
   // the closing frame: back out to the street
   const wend = spec.wide ? { shot: 'dolly', from: [spec.wide.to[0] + 0.5, spec.wide.to[1], spec.wide.to[2] + 0.3], to: [spec.wide.to[0] + 2.2, spec.wide.to[1] * 0.9, spec.wide.to[2] + 1.2], look: spec.wide.look, fov: spec.wide.fov || 48 } : null;
   const lastLine = lines[lines.length - 1];
-  if (wend && !spec.manual && lastLine.dur > 1.6) shots.push({ t: tspec(lines.length - 1, Math.max(0.6, lastLine.dur - 1.4)), ...wend });
+  if (wend && !spec.manual && lastLine.dur > 1.6) shots.push({ t: tspec(lines.length - 1, Math.max(1.0, lastLine.dur - 1.4)), ...wend });
   if (spec.cuts && spec.cuts.length) { const tn = (t) => { if (typeof t === 'number') return t; const m = /^L(\d+)([+-][\d.]+)?$/.exec(t); return m && lines[+m[1]] ? lines[+m[1]].at + (m[2] ? +m[2] : 0) : 0; }; shots.sort((x, y) => tn(x.t) - tn(y.t)); for (let i = shots.length - 1; i > 0; i--) if (tn(shots[i].t) - tn(shots[i - 1].t) < 0.05) shots.splice(i - 1, 1); }
+  splitLongShots(shots, lines, endT, (i, near) => {
+    const me = speakerActor(lines[i].speaker);
+    const pos = (q) => (q && (q.at || q.from)) || null;
+    const apart = (c) => near.every((q) => { const a = pos(q), b = pos(c); return !a || !b || Math.hypot(a[0] - b[0], a[1] - b[1]) > 0.6; });
+    if (me == null) { const offs = [[-2.4, 0.6, 1.7], [-2.2, -1.4, 1.8], [-3.2, 1.8, 2.2], [-1.6, 2.2, 1.6]].map((at) => ({ shot: 'cut', at, look: 'mid:tammo,tessa@1.3', fov: 40 })); return offs.find(apart) || offs[3]; }
+    const duoSide = me === 'tammo' ? 1 : me === 'tessa' ? -1 : (i % 2 ? 1 : -1);
+    const far = me === 'tammo' || me === 'tessa';
+    // a pose that differs from the shots around it (no jump cut): the first candidate that stands more than 0.6 m from both
+    const cands = [CAMS.high(duoSide, far), CAMS.cut(duoSide, far), CAMS.high(-duoSide, far), CAMS.cut(-duoSide, far), CAMS.orbit(duoSide, far, far ? 160 + i * 20 : 20 + i * 25)];
+    return cands.find(apart) || cands[cands.length - 1];
+  });
   drift(shots, lines, endT + 1);
   // OPT-IN direction engine (cutdirector.js): only a spec with `direct` gets its coverage from semantic data (who speaks to whom, emotion, kind
   // of line); no existing scene has it. `direct: { lines: [{ on, emotion, kind, to, humor }], wide? }`; `wide` falls back to the spec's own wide.
@@ -772,6 +783,35 @@ export function quickScene(lines, { npc = null, looks = {}, deck = false } = {})
       : { from: [-3.6, 3.6, 2.9], to: [-1.8, 2.6, 2.2], look: npc ? 'mid:npc,tessa@1.2' : 'mid:tammo,tessa@1.2', fov: 48, until: 1 },
   };
   return missionScene(deck ? 'dek' : 'kort', lines, { looks: npc ? { [npc.key]: look } : looks, spec });
+}
+
+// #1146 (R-12): a shot never runs longer than HOLD_MAX seconds: a long speech or a long establishing dolly gets a second angle in the
+// middle (the lint caps a close at 8 s and a medium at 10 s). `pick(i)` gives the extra shot for line i, the line playing at that moment.
+const HOLD_MAX = 7.2;
+function splitLongShots(shots, lines, total, pick) {
+  const at = (t) => {
+    if (typeof t === 'number') return t;
+    const m = /^L([0-9]+)(?:([+-])([0-9.]+))?$/.exec(t);
+    if (!m || !lines[+m[1]]) return null;
+    return lines[+m[1]].at + (m[2] ? (m[2] === '-' ? -1 : 1) * parseFloat(m[3]) : 0);
+  };
+  const extra = [];
+  shots.forEach((s, k) => {
+    const a = at(s.t);
+    const b = k + 1 < shots.length ? at(shots[k + 1].t) : null;
+    if (a == null || b == null || b - a <= HOLD_MAX) return;
+    const parts = Math.ceil((b - a) / HOLD_MAX);
+    for (let q = 1; q < parts; q++) {
+      const mid = a + ((b - a) * q) / parts;
+      let li = -1;
+      lines.forEach((l, i) => { if (l.at <= mid) li = i; });
+      if (li < 0) continue;
+      extra.push({ t: tspec(li, Math.round((mid - lines[li].at) * 100) / 100), ...pick(li, [s, shots[k + 1]]) });
+    }
+  });
+  if (!extra.length) return;
+  shots.push(...extra);
+  shots.sort((x, y) => at(x.t) - at(y.t));
 }
 
 // Rhythm rule (#136): a camera never holds still longer than ~6 s. A fixed cut that runs long gets a slow push-in
