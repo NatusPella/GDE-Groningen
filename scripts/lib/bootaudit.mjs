@@ -1,5 +1,5 @@
 // De bootaudit (scripts/world/boot_spawn_audit.mjs, scripts/boot_spawn_test.mjs): loopt alle plekken af waar het spel boten
-// plaatst en meet ze met de regel van bootplekken.js. Eén lijst rijen:
+// plaatst en meet ze met de regel van boatspots.js. Eén lijst rijen:
 //   { cat, naam, x, y, klasse, ok, reden, breedte, opNet, kade, afstKade, water }
 // Categorieen: marina (liggers in jachthavens), verhuur (Bootje Huren-steigers), bijbaan (bijbaan- en missieboten),
 // ai (ambient boten van manageBoatPopulation, over meerdere seeds), sier (de decorboten op de maren van countrylife).
@@ -11,7 +11,7 @@ export const seeded = (seed) => () => { seed = (seed * 1664525 + 1013904223) >>>
 export async function maakAudit() {
   const W = await laadBootWereld();
   if (!W) return null;
-  const B = await import('../../game/js/vehicle/bootplekken.js');
+  const B = await import('../../game/js/vehicle/boatspots.js');
   const { waterPolyAt } = await import('../../game/js/waterlevels.js');
   const { BOAT_KINDS } = await import('../../game/js/boattypes.js');
   const V = await import('../../game/js/vehicle.js');

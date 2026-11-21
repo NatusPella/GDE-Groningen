@@ -5,7 +5,7 @@
 // scripts/bootplek_test.mjs.
 
 import { isInWater, boatDryPoints } from './util.js';
-import { isBoatSpotValid } from './vehicle/bootplekken.js';
+import { isBoatSpotValid } from './vehicle/boatspots.js';
 
 export const BOOT_ZOEK = { maxR: 240, stap: 12 };
 
@@ -35,7 +35,7 @@ export function bootPlekOpKaart(map, boot, x, y, hoek = boot && boot.angle, opts
   if (!map || !boot) return null;
   const a0 = Number.isFinite(hoek) ? hoek : 0;
   let best = null;
-  // eerst alleen waar een boot logisch ligt (een kade, steiger of vaarweg, geen sloot: bootplekken.js); lukt dat niet, dan
+  // eerst alleen waar een boot logisch ligt (een kade, steiger of vaarweg, geen sloot: boatspots.js); lukt dat niet, dan
   // telt het water zoals voorheen: de sprong gaat voor
   for (const logisch of [true, false]) {
   for (const h of [a0, a0 + 0.4, a0 - 0.4, a0 + Math.PI / 2, a0 - Math.PI / 2]) {

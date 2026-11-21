@@ -1,6 +1,6 @@
 // Waar plaatst het spel boten, en is dat logisch? (boot-spawn 21-11, docs/BOOT-SPAWN-21-11.md)
 // Loopt alle bootplekken af (liggers in jachthavens, verhuursteigers, bijbaan- en missieboten, AI-boten over meerdere seeds,
-// decorboten op de maren) en meet ze met de regel van game/js/vehicle/bootplekken.js: waterbreedte, soort water (sloot/vijver),
+// decorboten op de maren) en meet ze met de regel van game/js/vehicle/boatspots.js: waterbreedte, soort water (sloot/vijver),
 // vaarnet, afstand tot kade of steiger. Rapporteert de afwijkers per categorie.
 //   node scripts/world/boot_spawn_audit.mjs [--cat=marina,verhuur,bijbaan,ai,sier] [--seeds=3] [--posities=24] [--max=0] [--lijst]
 // Exit 1 bij meer dan --max afwijkers. Zonder game/world (provinciewereld) SKIP.
