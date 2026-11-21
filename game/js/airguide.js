@@ -9,6 +9,8 @@
 //
 // Wereldas: x oost, y zuid; de hoek van een voertuig loopt kloksgewijs (plus is rechts).
 // Samen spelen: de route is lokaal per speler; elke speler ziet zijn eigen luchtlijn.
+// Het hoogteprofiel boven de gebouwen (de lijn klimt en daalt mee) staat in airprofile.js.
+import { airNeedAdvice } from './airprofile.js';
 
 // Zoveel meter vooruit tekent de lijn (de rest van de weg zie je aan het doelmarker).
 export const AIR_LINE_AHEAD_M = 700;
@@ -62,8 +64,13 @@ export function airGuide(me, target, opts = {}) {
   const etaS = dist / v;
   const alt = opts.alt;
   const dz = Number.isFinite(alt) && Number.isFinite(me.z) ? alt - me.z : 0;
-  const altAdvice = !Number.isFinite(alt) ? '' : Math.abs(dz) <= AIR_ALT_BAND ? 'Hoogte goed' : dz > 0 ? `Stijg naar ${alt} m` : `Daal naar ${alt} m`;
-  return { dist, bearing, relDeg, side, title, etaS, dz, altAdvice };
+  let altAdvice = !Number.isFinite(alt) ? '' : Math.abs(dz) <= AIR_ALT_BAND ? 'Hoogte goed' : dz > 0 ? `Stijg naar ${alt} m` : `Daal naar ${alt} m`;
+  // het hoogteprofiel boven de gebouwen (airprofile.js): zit er voor je een obstakel dat hoger is dan je vliegt, dan
+  // gaat dat advies voor ("Stijg naar 120 m: Martinitoren voor je")
+  let dzOut = dz;
+  const need = opts.need && airNeedAdvice(opts.need, me.z);
+  if (need) { altAdvice = need; dzOut = opts.need.z - me.z; }
+  return { dist, bearing, relDeg, side, title, etaS, dz: dzOut, altAdvice };
 }
 
 export function airDistText(m) {

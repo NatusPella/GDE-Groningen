@@ -19,6 +19,7 @@
 
 import { PA } from './worldframe.js';
 import { wgsToWorld } from './rdnew.js';
+import { topAt } from './airprofile.js';
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
@@ -73,6 +74,32 @@ function faceRings(rings, from) {
   let p = from;
   for (const r of rings) { r.yaw = Math.atan2(r.y - p.y, r.x - p.x); p = r; }
   return rings;
+}
+
+// Rings never hang in a building (#1038, owner 21-11): a ring whose hoop would touch the roofs under it is lifted
+// above them (roof + the hoop's radius + a clearance); one that would have to go above RING_MAX_Z is dropped when
+// it is an in-between ring (the last one is lifted anyway). The yaws are set again for the new chain.
+// Tiles that are not loaded yet say nothing: such a ring stays as it is. Idempotent.
+export const RING_CLEAR = 4;
+export const RING_MAX_Z = 140;
+export function clearRings(plan, map, from = null) {
+  const out = { lifted: 0, dropped: 0 };
+  if (!plan || !map) return out;
+  for (const leg of plan.legs) {
+    if (leg.kind !== 'rings') continue;
+    const rr = RING_R * HOOP_SLACK;
+    const keep = [];
+    leg.rings.forEach((q, i) => {
+      const t = topAt(map, q.x, q.y, rr + 2);
+      if (!t.ready || q.z - rr - RING_CLEAR >= t.top) { keep.push(q); return; }
+      const z = Math.ceil(t.top + rr + RING_CLEAR);
+      const last = i === leg.rings.length - 1;
+      if (z <= RING_MAX_Z || last) { q.z = z; q.lifted = true; out.lifted++; keep.push(q); } else out.dropped++;
+    });
+    if (keep.length !== leg.rings.length) leg.rings = keep;
+    if (from) faceRings(leg.rings, from);
+  }
+  return out;
 }
 
 export function makePlan(variant, pads) {
