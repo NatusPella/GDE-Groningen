@@ -109,4 +109,19 @@ t('tribune, bank en de claim bij Samen spelen', () => {
   assert.equal(B.claimWinner({ time: 5, player: 'b' }, { time: 5, player: 'a' }).player, 'a');
   assert.equal(B.ownershipBranch.id, 'club');
 });
+t('koppeling met Bezit: de plaats gaat mee naar de pandindex, een thuiswedstrijd staat vandaag open, de vorm is een getal', () => {
+  const seen = [];
+  Sp.setPandIndex({ find: (type, xy) => { seen.push([type, xy]); return xy ? 4242 : null; } });
+  let c = C.createCareer({ char: 'anita', index });
+  const r = C.acceptSponsor(c, c.sponsors.slots[0].id, null, [100, 200]);
+  assert.ok(r.ok); assert.equal(r.slot.osm, 4242); assert.deepEqual(seen[0][1], [100, 200]);
+  const r2 = C.acceptSponsor(c, c.sponsors.slots[1].id); assert.equal(r2.slot.osm, null);
+  Sp.setPandIndex(null);
+  assert.equal(typeof C.homeMatchToday(c, getClub), 'boolean');
+  assert.equal(C.homeMatchToday(null, getClub), false);
+  const m = C.nextMatch(c, getClub);
+  const open = { ...c, day: c.seasonStart + m.ev.day };
+  assert.equal(C.homeMatchToday(open, getClub), m.isHome);
+  assert.ok(Number.isFinite(C.formOfCareer(c)) && C.formOfCareer(null) === 1);
+});
 console.log(`voetbal_sponsors_test ok (${n} groepen)`);

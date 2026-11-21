@@ -14,6 +14,24 @@ export const MAX_PER_LINK = 3;                 // hoogstens drie wagens per scha
 
 const pt = (p) => (p && Number.isFinite(p.x) && Number.isFinite(p.y) ? { x: p.x, y: p.y } : null);
 
+// Een schakel zonder bekende plek (niet gekoppeld aan een eigen pand of wagen) krijgt een terugvalplek: de dichtstbijzijnde bekende schakel plus de afstand van de rit (hoogstens 1500 m)
+// in een vaste, per keten en schakel afgeleide richting, zodat de wagen toch tussen twee plekken rijdt. Zonder een enkele bekende plek in de keten blijft alles leeg (geen rit).
+// De terugvalplek krijgt approx: true. Puur en deterministisch; de bekende plekken blijven zoals ze zijn.
+export const FALLBACK_MAX_M = 1500;
+export function fillLinkPositions(chainId, links) {
+  const ls = Array.isArray(links) ? links : [];
+  const known = ls.map((l) => pt(l && l.pos));
+  if (!known.some(Boolean)) return ls;
+  return ls.map((l, i) => {
+    if (known[i]) return l;
+    let k = -1;
+    for (let d = 1; d < ls.length && k < 0; d++) { if (known[i - d]) k = i - d; else if (known[i + d]) k = i + d; }
+    const base = known[k], hop = clamp(finite(i > k ? ls[k].distance : l.distance, 0), 200, FALLBACK_MAX_M);
+    const ang = hashUnit('keten-plek', chainId, l.id) * Math.PI * 2;
+    return { ...l, pos: { x: base.x + Math.cos(ang) * hop, y: base.y + Math.sin(ang) * hop, approx: true } };
+  });
+}
+
 // De ritten die vandaag kunnen rijden. chains: [{ id, links: [{ id, trucks, moved, distance, pos }] }] (bezitlive.chainTruckInput); pos van schakel i = waar zijn voorraad ligt.
 // Een rit loopt van schakel i naar i + 1 en bestaat als i wagens heeft, over een afstand reed (> 0) en vandaag iets verplaatste. Zonder bekende plek van beide kanten: geen rit.
 export function chainTrips(chains) {

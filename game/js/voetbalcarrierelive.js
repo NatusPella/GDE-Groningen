@@ -29,6 +29,11 @@ export function useStorage(st) { storageOverride = st; career = null; dirty = fa
 export function useParkData(raw) { index = raw ? makeParkIndex(raw) : null; if (index && index.clubs.length < 8) index = null; }
 export const getIndex = () => index || (index = fallbackIndex());
 export const getClub = (id) => C.clubResolver(getIndex())(id);
+// De wereldplek [x, y] van een club (zijn park of plaats), voor het sponsorpand in de buurt; null als hij niet bekend is.
+export function clubPlace(id) {
+  const cl = getClub(id), p = cl && (cl.park || cl);
+  return p && Number.isFinite(p.x) && Number.isFinite(p.y) ? [p.x, p.y] : null;
+}
 // De parkdata (voetbalparkendata.js, ongeveer 27 kB) laadt lui met import(): geen netwerkaanroep, alleen de eigen module; kapot of weg geeft de terugval van acht vaste plaatsen.
 export async function loadParkData() {
   try { const m = await import('./voetbalparkendata.js'); useParkData(m.default); } catch (e) { useParkData(null); }

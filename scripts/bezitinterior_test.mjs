@@ -70,10 +70,16 @@ t('broncontrole: het contract van interiors.js en de hookregel in main.js', () =
   assert.ok(/export function assignInteriorHooks\(h\)/.test(ints));
   assert.ok(/S\.hooks\.owned\(/.test(ints) && /S\.hooks\.manage\(/.test(ints) && /m\.run === 'function'/.test(ints));
   const main = fs.readFileSync(new URL('../game/js/main.js', import.meta.url), 'utf8');
-  assert.ok(/installBezitInterior\(assignInteriorHooks\)/.test(main));
+  assert.ok(/installBezitInterior\(assignInteriorHooks, \{ openMenu/.test(main));
   const src = fs.readFileSync(new URL('../game/js/bezitinterior.js', import.meta.url), 'utf8');
   assert.ok(!/fetch\(|document\.|THREE|three/.test(src.replace(/\/\/.*$/gm, '')));
   const probe = {}; H.installBezitInterior((h) => Object.assign(probe, h));
-  assert.deepEqual(Object.keys(probe).sort(), ['customers', 'manage', 'owned']);
+  assert.deepEqual(Object.keys(probe).sort(), ['customers', 'homeStyle', 'manage', 'owned']);
+});
+t('homeStyle: een eigen pand krijgt een vast kleurenstel, een vreemd pand niets', () => {
+  assert.equal(hooks.homeStyle({ pts: sq(500, 500) }), null);
+  const a = hooks.homeStyle({ pts: sq(10, 10) });
+  assert.ok(a && Number.isFinite(a.wall) && Number.isFinite(a.floor) && Number.isFinite(a.fabric));
+  assert.deepEqual(a, H.ownStyleOf(111));
 });
 console.log(`bezitinterior_test: ${n} tests groen`);

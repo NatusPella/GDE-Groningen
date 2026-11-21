@@ -23,6 +23,7 @@ import { makeWalk } from './interiorwalk.js';
 import { makeStage, makeActor, stepActor, STAFF_ROLES } from './interioractivity.js';
 import { walkGrid, reachable } from './interiorlayout.js';
 import { mulberry32 } from './rng.js';
+import { missingCustomers, extraCustomers, combineHooks } from './interiorcustomers.js';
 import { toWorld, toLocal, frameOf } from './interiorframe.js';
 import { npcLook, yawOfFace } from './interiornpc.js';
 import { crowdAt, phaseOf, presentAt } from './interiorcrowd.js';
@@ -43,13 +44,15 @@ export const BUILD_R = 24, DROP_R = 34, MAX_LIVE = 2, NPC_R = 24, MAX_NPC = 8;
 const OPEN_TIME = 0.3, OPEN_ANGLE = 1.75, DOOR_REACH = 3.0;
 const BRON = 'interieur';
 
-const S = { world: null, live: new Map(), plans: new WeakMap(), scan: 0, spots: null, spotsN: -1, closedAt: new WeakMap(), inside: null, listeners: [], hooks: { owned: () => false, manage: () => null, homeStyle: () => null }, pinned: new Set(), time: 0 };
+const S = { world: null, live: new Map(), plans: new WeakMap(), scan: 0, spots: null, spotsN: -1, closedAt: new WeakMap(), inside: null, listeners: [], hooks: { owned: () => false, manage: () => null, homeStyle: () => null, customers: () => 0 }, sets: [], pinned: new Set(), time: 0 };
 
 // homeStyle(b) -> { wall, floor, fabric } | null: the colours of a home the player lives in (Homebase: a variant per living place)
 // hooks other systems set: owned(b) -> true for a pand of the player (Bezit, Homebase: the door always opens);
 // manage(b, plan) -> { label, sub, run(w) } | null: the management of an owned pand, at its counter (Bezit: turnover, staff, customers)
 S.sfx = defaultSfx;
-export function assignInteriorHooks(h) { Object.assign(S.hooks, h || {}); }
+// customers(b) -> number (at most 6): the customers an own business is worth today; the figures are added next to the ones the layout has (interiorcustomers.js)
+// Several systems may set hooks (Bezit, Homebase): combineHooks makes one of them, nothing is overwritten.
+export function assignInteriorHooks(h) { if (!h) return; S.sets.push(h); S.hooks = combineHooks(S.sets); }
 // The sound hook (round 4): sfx(w, key, x, y). By default a key becomes an audio event at the place; the central sound map (sfx/haken.js sfxEvent) takes over
 // by assigning it: assignInteriorSfx((w, key, x, y) => sfxEvent(w, key, x, y)). Keys are those of sfx/sfxmap.js (shop_buy_coins, scissors_snip, coffee_brew ...).
 export function assignInteriorSfx(fn) { S.sfx = typeof fn === 'function' ? fn : defaultSfx; }
@@ -203,6 +206,10 @@ function addNpcs(ls) {
   const firstSeen = new Set();
   const all = [...L.npc.map((n) => ({ ...n, level: 1 })), ...(L.upper ? L.upper.npc.map((n) => ({ ...n, level: 2 })) : [])].slice(0, MAX_NPC);
   if (!ls.grid) { ls.grid = walkGrid(L); ls.reach = reachable(L, ls.grid); ls.stage = makeStage(L, ls.grid, ls.reach); }
+  // an own business: the customers of today's turnover (Bezit), on top of the loose ones the layout has
+  let want = 0;
+  try { want = S.hooks.customers(ls.b) | 0; } catch (e) { want = 0; }
+  if (want > 0) all.push(...extraCustomers(ls.grid, ls.reach, all, missingCustomers(want, all), mulberry32((plan.seed ^ 0x9e3779b1) >>> 0)).map((n) => ({ ...n, level: 1 })));
   all.forEach((n, i) => {
     const look = npcLook(n.role, plan.seed, i, accent, plan.sub);
     let fig;

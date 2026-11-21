@@ -89,4 +89,27 @@ t('broncontrole: geen netwerk, geen DOM, geen cyclus naar voetbalsponsors', asyn
   const vs = fs.readFileSync(new URL('../game/js/voetbalsponsors.js', import.meta.url), 'utf8');
   assert.ok(!/sponsorpanden|bezitlive/.test(vs.replace(/\/\/.*$/gm, '')));
 });
+t('linkCareer: sync na laden en na wijziging, thuisdag alleen vandaag, vorm van de carrière', () => {
+  let career = { sponsors: { slots: [{ accepted: true, osm: 777, naam: 'Weidevreugd Zuivel' }] } }, listener = null, today = 10, home = true;
+  const off = SP.linkCareer({ getCareer: () => career, subscribe: (f) => { listener = f; return () => { listener = null; }; }, homeMatchToday: () => home, formOf: () => 1.2, getClub: () => null, today: () => today });
+  assert.equal(SP.sponsorNameOf(777), 'Weidevreugd Zuivel');
+  career = { sponsors: { slots: [{ accepted: true, osm: 778, naam: 'Gouden Bakkerij' }] } }; listener(career);
+  assert.equal(SP.sponsorNameOf(777), null); assert.equal(SP.sponsorNameOf(778), 'Gouden Bakkerij');
+  assert.equal(typeof off, 'function');
+  const mods = { revMult: 1 };
+  assert.ok(SP.eventModsFor(778, mods, 9).revMult === 1);                       // een andere dag: nooit een thuisbonus
+  L.getBezit().buildings.add(778);
+  assert.ok(SP.eventModsFor(778, mods, today).revMult > 1 && SP.eventModsFor(778, mods, today).revMult <= 1 + V.OWNER_BONUS_MAX + 1e-9);
+  home = false; assert.equal(SP.eventModsFor(778, mods, today).revMult, 1);
+  L.getBezit().buildings.delete(778);
+  SP.syncSponsorDeals(null);
+});
+t('accept met plaats: het pand komt uit de index bij de plek van de club, zonder plaats niets', () => {
+  SP.registerSponsorPanden();
+  const sp = V.newSponsors('club-a', 'talent', 1);
+  const slot = sp.slots[0];
+  const a = V.accept(sp, slot.id, null, [100, 0]), b = V.accept(sp, slot.id, null, null);
+  assert.equal(b.slot.osm, null);
+  assert.ok(a.slot.osm === null || Number.isFinite(a.slot.osm));
+});
 console.log(`sponsorpanden_test: ${n} tests groen`);

@@ -179,7 +179,7 @@ function act(a) {
   else if (a === 'train') V.trainNow(wereld, c.focus, 0.8);
   else if (a === 'sim') V.finishMatch(wereld, null);
   else if (a.startsWith('tactic:')) { const [, k, v] = a.split(':'); V.replaceCareer(C.withTactic(c, k === 'formation' ? { formation: v } : { style: v })); }
-  else if (a.startsWith('sponsor:')) { const r = C.acceptSponsor(c, a.slice(8), null); if (r.ok) V.replaceCareer(r.career); }
+  else if (a.startsWith('sponsor:')) { const r = C.acceptSponsor(c, a.slice(8), null, V.clubPlace(c.club)); if (r.ok) V.replaceCareer(r.career); }
   else if (a === 'offer:accept') { const r = C.acceptOffer(c); if (r.ok) V.replaceCareer(r.career); }
   else if (a === 'offer:decline') V.replaceCareer(C.declineOffer(c));
   else if (a.startsWith('buy:')) { const r = C.managerBuy(c, a.slice(4), V.getClub); if (r.ok) V.replaceCareer(r.career); }

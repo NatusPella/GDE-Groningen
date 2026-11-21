@@ -1,13 +1,14 @@
 // Bezit in de interieurs (epic Bezit #1095, #1102; epic Interieurs): vult de haken van interiors.js `assignInteriorHooks({ owned, manage, homeStyle })` met het beheer-in-het-pand van bezitbeheer.js.
 //   owned(b)        -> true voor een pand van de speler (de deur gaat altijd open; een pand is ALTIJD OPEN, eigenaar 21-11)
 //   manage(b, plan) -> { label, sub, run(w), osm, customers, ownerLabel } of null: de toonbank van een eigen pand is het beheer (E), geen winkel
-//   customers(b)    -> aantal klantfiguranten (hoogstens 6) dat de interieur-NPC-code mag laten rondlopen; daarvoor is een haak `customers` bedoeld (nog niet gelezen door interiors.js)
-//   homeStyle       -> hier niet gezet: Object.assign zou de haak van Homebase overschrijven
+//   customers(b)    -> aantal klantfiguranten (hoogstens 6): interiors.js leest de haak en zet ze erbij (interiorcustomers.js)
+//   homeStyle(b)    -> { wall, floor, fabric } voor een eigen pand (een eigen woning of kantoor krijgt een eigen kleurenstel); assignInteriorHooks combineert met Homebase, het overschrijft niets
 // Samen spelen: het beheer is van de eigenaar (canManage is onwaar voor een gast in andermans spel); een medespeler ziet "Van <naam>" (ownerLabel) en geen beheerknop.
 // Het pand van een gebouw uit de wereld: b.osm, anders het dichtstbijzijnde pand van de index binnen 12 m van het midden van de omtrek. Puur op de THREE-loze delen (scripts/bezitinterior_test.mjs).
 import * as L from './bezitlive.js';
 import { ownerOf, manageView, manageAction, customersAt, canManage, MAX_CUSTOMERS } from './bezitbeheer.js';
 import { euro } from './geldtekst.js';
+import { sponsorNameOf } from './sponsorpanden.js';
 
 export const MATCH_R = 12;
 export { MAX_CUSTOMERS };
@@ -23,6 +24,12 @@ export function osmOfBuilding(b, index = L.getIndexNow()) {
   let best = null, bd = MATCH_R;
   for (const c of index.buildings.near(cx, cy, MATCH_R)) { const d = Math.hypot(c.x - cx, c.y - cy); if (d <= bd) { bd = d; best = c; } }
   return best ? best.osm : null;
+}
+
+// De naam op de gevel: de verzonnen sponsornaam van het voetbal als dit pand een sponsorpand is, anders de gewone naam (shopsigns3d.js).
+export function facadeName(b, fallback) {
+  const osm = osmOfBuilding(b);
+  return (osm != null && sponsorNameOf(osm)) || fallback;
 }
 
 // De omzetregel in het interieur: wat het pand vandaag doet, in gewone woorden (altijd Nederlands, nooit een leeg veld).
@@ -45,6 +52,15 @@ export function counterFor(osm, w = null) {
 function claimName(osm) { try { const c = L.claimOfKey(osm); return c && c.name ? c.name : null; } catch (e) { return null; } }
 
 // De haken. opts.openMenu(w, osm) (optioneel) opent het volledige Bezit-menu op dit pand; zonder dat meldt de beheerknop de omzetregel en doet E bij een lage kwaliteit niets duurs.
+// Een eigen pand krijgt een vast kleurenstel naar zijn OSM-id: hetzelfde in elke sessie, en een ander dan het stel dat de ruit liet zien.
+export const OWN_STYLES = [
+  { wall: 0xe8dcc4, floor: 0x8a6a45, fabric: 0x4f7a6a },
+  { wall: 0xdfe6ea, floor: 0x9c8466, fabric: 0x3f6ea8 },
+  { wall: 0xefe2d0, floor: 0x6f5a45, fabric: 0xa8553f },
+  { wall: 0xe3e8d8, floor: 0xa89678, fabric: 0x7a5f8f },
+];
+export const ownStyleOf = (osm) => (Number.isFinite(osm) ? OWN_STYLES[Math.abs(osm) % OWN_STYLES.length] : null);
+
 export function makeInteriorHooks({ index = null, openMenu = null, now = () => Date.now() } = {}) {
   const ix = () => index || L.getIndexNow();
   const osmOf = (b) => osmOfBuilding(b, ix());
@@ -69,6 +85,7 @@ export function makeInteriorHooks({ index = null, openMenu = null, now = () => D
         act: (w, act, value) => manageAction(w, osm, act, value),
       };
     },
+    homeStyle(b) { const osm = osmOf(b); return osm != null && ownerOf(osm).mine ? ownStyleOf(osm) : null; },
     customers(b) { const osm = osmOf(b); return osm != null ? Math.min(MAX_CUSTOMERS, customersAt(osm)) : 0; },
   };
 }
