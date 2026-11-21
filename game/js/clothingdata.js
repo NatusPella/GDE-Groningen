@@ -239,7 +239,7 @@ export const LOOKS = [
 export const LOOK_BY_ID = Object.fromEntries(LOOKS.map((s) => [s.id, s]));
 
 // Winkelregels: hoeveel stukken een winkel tegelijk toont, hoe vaak het aanbod wisselt, welke afdeling in welke soort winkel.
-export const SHOP_STOCK = 28;      // stukken per winkel en dag
+export const SHOP_STOCK = 14;      // soorten stukken per winkel en dag; elke soort ligt er in al zijn kleuren (zelf combineren)
 export const SHOP_RARE_CHANCE = 0.18; // kans dat een zeldzaam stuk vandaag in de etalage ligt
 export const SALE_DISCOUNT = 0.25; // uitverkoop: een dag per week, een afdeling
 export const SET_DISCOUNT = 0;     // sets kosten de oude prijs (naar rato van wat je mist)

@@ -7,9 +7,10 @@
 import { SLOTS, SLOT_IDS, PROFILES, RARITY, SETS, LOOKS, setsFor, parsePiece, pieceLabel, colorHex, colorName } from './clothingdata.js';
 import {
   ownsPiece, ownedPieces, givePiece, effectiveWorn, wornPieces, wearPiece, takeOffSlot, takeOffBlock, wearSet, setPriceFor, missingOf, setBonus,
-  presetsOf, savePreset, wearPreset, shopStock, shopProfiles, shopPrice, saleOn, wornMatches, ownsAll, clothingStats,
+  presetsOf, savePreset, wearPreset, getBody, setBody, shopStock, shopProfiles, shopPrice, saleOn, wornMatches, ownsAll, clothingStats,
 } from './clothing.js';
 import { euro } from './geldtekst.js';
+import { BODY_IDS, BODY_TYPES } from './clothinghair.js';
 
 const GROUPS = [
   { title: 'Hoofd en gezicht', slots: ['hat', 'glasses', 'face', 'neck'] },
@@ -135,6 +136,16 @@ export function wardrobeSections(ctx) {
     }
     if (items.length) sections.push({ title: g.title, note: `${items.filter((it) => it.tag === 'Aan').length} aan`, items });
   }
+  // Postuur: de lichaamsvorm (clothinghair.js). Kleding en haar zijn voor iedereen; alleen de pasvorm hangt van het lichaam af.
+  sections.push({
+    title: 'Postuur', note: 'Alleen de pasvorm: elk kledingstuk en elk kapsel past bij elke vorm',
+    items: BODY_IDS.map((id) => ({
+      id: 'cb-' + id, label: BODY_TYPES[id].label, desc: 'Je lichaamsvorm', price: 0, keepFocus: true, verb: 'Kiezen',
+      tag: getBody(ch) === id ? 'Aan' : '', disabled: getBody(ch) === id ? 'Heb je al' : '',
+      preview: ctx.previewOf({ ...effectiveWorn(ch), body: id }),
+      buy() { if (!setBody(ch, id)) return null; ctx.apply(0); return `Postuur: ${BODY_TYPES[id].label.toLowerCase()}`; },
+    })),
+  });
   return sections;
 }
 
