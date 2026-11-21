@@ -4,7 +4,9 @@
 // hetzelfde ID; de twaalf verzonnen percelen van percelen.js staan als 'legacy' mee (niets in een bestaand profiel verandert).
 //
 // Raw (opslag):  { v: 1, parcels: { <id>: { k, ha, a:[x10,y10], t, p, w, m, lg? } }, buildings: '<delta-varint base64>', bstate: { <osm>: {...} },
-//                  debt, totals: { bought, sold, spent, earned } }
+//                  debt, totals: { bought, sold, spent, earned }, x?: { staff, herds, rules, tessa, lastDay } }
+// x is het beheer van #1101 (personeel, vee, teeltplanregels, Tessa-regels): elk deel wordt door zijn eigen module genormaliseerd (farmstaff.js,
+// livestock.js, holdingsmodel.js, tessarules.js); hier blijft alleen een begrensde, bekende verzameling bewaard.
 // Geheugen:     dezelfde vorm, maar buildings is een Set van OSM-id's.
 
 import { KEYS } from './storagekeys.js';
@@ -14,11 +16,13 @@ import { VERKOOP_FACTOR } from './bezitprijs.js';
 export const BEZIT_VERSION = 1;
 export const MAX_PARCELS = 20000;                 // ruim boven het aanbod (13.664): een bovengrens tegen kapotte opslag
 export const MAX_BUILDINGS = 500000;
+export const EXT_KEYS = ['staff', 'herds', 'rules', 'tessa', 'lastDay'];
+const EXT_MAX_JSON = 400000;                       // een bovengrens tegen kapotte opslag: bij 1000 percelen met vee is dit ruim
 export const MODES = ['self', 'leased', 'staff'];  // zelf bewerken, verpacht, door personeel
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
 const num = (x, lo, hi, d = 0) => (Number.isFinite(x) ? clamp(x, lo, hi) : d);
 
-export const newBezit = () => ({ v: BEZIT_VERSION, parcels: {}, buildings: new Set(), bstate: {}, debt: 0, totals: { bought: 0, sold: 0, spent: 0, earned: 0 } });
+export const newBezit = () => ({ v: BEZIT_VERSION, parcels: {}, buildings: new Set(), bstate: {}, debt: 0, totals: { bought: 0, sold: 0, spent: 0, earned: 0 }, x: {} });
 
 // ---- compacte verzameling: gesorteerde delta's als varint, base64 (ontwerp 3: ongeveer 2,7 byte per pand) ----
 export function encodeIdSet(ids) {
@@ -81,13 +85,22 @@ export function normalizeBezit(raw) {
       if (Object.keys(o).length) b.bstate[id] = o;
     }
   }
+  if (raw.x && typeof raw.x === 'object') {
+    for (const k of EXT_KEYS) {
+      const v = raw.x[k];
+      if (v === undefined || v === null) continue;
+      if (k === 'lastDay') { if (Number.isFinite(v)) b.x.lastDay = Math.round(clamp(v, 0, 1e7)); continue; }
+      if (typeof v !== 'object') continue;
+      try { if (JSON.stringify(v).length <= EXT_MAX_JSON) b.x[k] = v; } catch (e) { /* kapotte opslag: overslaan */ }
+    }
+  }
   b.debt = Math.round(num(raw.debt, 0, 1e9));
   const t = raw.totals && typeof raw.totals === 'object' ? raw.totals : {};
   for (const k of Object.keys(b.totals)) b.totals[k] = Math.round(num(t[k], 0, 1e12));
   return b;
 }
 export function serializeBezit(b) {
-  return { v: BEZIT_VERSION, parcels: b.parcels, buildings: encodeIdSet([...b.buildings]), bstate: b.bstate, debt: b.debt, totals: b.totals };
+  return { v: BEZIT_VERSION, parcels: b.parcels, buildings: encodeIdSet([...b.buildings]), bstate: b.bstate, debt: b.debt, totals: b.totals, ...(Object.keys(b.x || {}).length ? { x: b.x } : {}) };
 }
 
 // ---- opslag (de opslag is een parameter; nooit window.localStorage in tests) ----
