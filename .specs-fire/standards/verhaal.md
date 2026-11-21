@@ -31,8 +31,8 @@ zomer en in de stem van de vaste cast; tekst is data (canon, script, build, spel
 4. **Spel**: `game/js/storytext.js` leest `game/storydata/script.json`;
    `game/js/storyarc.js` is de enige facade voor de rest van het spel (`:7`, `:16`).
 
-De data: 207 scènes, 1.431 regels in act 1 tot en met 6; 37 zijn stille appjes en 37 hebben geen opname (precies die appjes, bewust stil; alle
-1.394 gesproken regels hebben een opname, stand 21-11). Een regel zonder opname toont
+De data: 207 scènes, 1.431 regels in act 1 tot en met 6; 37 zijn stille appjes en 41 hebben geen opname (de 37 appjes zijn bewust stil; 4 regels wachten sinds de verhaalcanon van 21-11 op een nieuwe opname, zie docs/VERHAALCANON-21-11.md; de
+1.390 andere gesproken regels hebben een opname, stand 21-11). Een regel zonder opname toont
 het spel als ondertitel met leestijd (`game/js/storytext.js:53`). Een `[BEHOUDEN]`-regel heeft een opname: één andere
 letter maakt hem stil. Nieuwe opnames komen er in rondes bij op Flash-Lite (ADR 0019,
 #462); wat nog geen opname heeft blijft ondertitel (`docs/verhaal/nieuw/07-TTS-RAMING.md:3`).
@@ -87,7 +87,7 @@ Femke, Harm, Hilly, Hilje en Boer Roelf (`docs/verhaal/nieuw/00-OVERZICHT.md:67`
 - **Verzonnen namen zijn verplicht**: Kiezelweek, Plantsoenfestijn, Us Mem Snacks,
   Delfstof Noord, Wiebelwerk, EIKEA, Pand & Poen, Oldenhuis Bakt, Kiekdoar. Echte
   straten, plekken en gebouwen mogen als decor (`docs/personages.md:7`).
-- **Feitenblad** (`docs/verhaal/STIJLGIDS.md:102-115`): Tammo 34, Oma 92, Mem 91;
+- **Feitenblad** (`docs/verhaal/STIJLGIDS.md:102-115`): Tammo 24 (net afgestudeerd, zie docs/VERHAALCANON-21-11.md), Oma 92, Mem 91;
   vijf juryleden, drie stemmen beslissen; Hoving bewaart de bal sinds 1998, Berend is
   jurylid sinds 1982; Jelle had de bal op 12 augustus, de kraak is op 17 augustus.
   Gevoelige cijfers alleen uit `docs/TESSA-CIJFERS.md`, met bron en jaar.

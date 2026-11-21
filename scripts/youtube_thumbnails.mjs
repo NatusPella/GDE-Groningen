@@ -21,7 +21,7 @@ const opt = (k, d) => { const a = args.find((x) => x.startsWith(`--${k}=`)); ret
 const THUMBS = [
   { name: 'gameplay-a', label: 'Gameplaytrailer', line: 'Rijden, varen en vliegen door Grunn', side: 'left' },
   { name: 'gameplay-b', label: 'Gameplaytrailer', line: 'Een hele stad. Een heel Ommeland.', side: 'left' },
-  { name: 'verhaal-a', label: 'Verhaaltrailer', line: 'Twee Stadjers. Eén Gouden Eierbal.', side: 'left' },
+  { name: 'verhaal-a', label: 'Verhaaltrailer', line: 'Twee afgestudeerden. Eén Gouden Eierbal.', side: 'left' },
   { name: 'verhaal-b', label: 'Verhaaltrailer', line: 'Tammo, Tessa en een frietwagen', side: 'right' },
 ];
 

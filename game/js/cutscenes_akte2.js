@@ -126,7 +126,7 @@ export const SPECS_AKTE2 = {};
   open: [{ actor: 'trijntje', face: 'actor:tammo' }, { actor: 'trijntje', carry: 'lijstje' }, { actor: 'tessa', face: 'actor:trijntje' }],
     beats: [
       { on: 'Eet je krentjebrij', actor: 'trijntje', face: 'prop:brij' },
-      { on: 'Ik ben vierendertig', actor: 'tammo', anim: 'shrug' },
+      { on: 'Ik ben vierentwintig', actor: 'tammo', anim: 'shrug' },
       { on: 'Dan eet je hem', actor: 'trijntje', face: 'actor:tammo' },
       { on: 'Dan eet je hem', dt: 0.3, actor: 'trijntje', anim: 'hips' },
       // 1953: she looks at the photo on the wall

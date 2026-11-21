@@ -118,7 +118,7 @@ export const STEP_ALIAS = {
 const keep = (k, o) => ({ ...OUD_CHARACTERS[k], ...o });
 export const CHARACTERS = {
   anita: keep('anita', { step: 'M00', bio: 'Snel, ad rem en de baas van het duo. Nederlandse, niet in Stad geboren, zomers in Ljouwert naast Mem. Ze droomt van de Fjord Frituur, een eigen frietwagen, en regelt alles zelf. Ook de flat in Paddepoel, met Tammo als huisgenoot.' }),
-  tammo: keep('tammo', { step: 'M00', bio: 'Stadjer uit het Oosterpark, droog, met een rode Fjord Escapade die nauwelijks rijdt. Al twaalf jaar verliefd op zijn beste vriendin, en sinds de verhuisdag van 14 augustus haar huisgenoot in Paddepoel. Hij zegt het nooit.' }),
+  tammo: keep('tammo', { step: 'M00', bio: 'Stadjer uit het Oosterpark, droog, met een rode Fjord Escapade die nauwelijks rijdt. Net afgestudeerd en al sinds de studie verliefd op zijn beste vriendin, en sinds de verhuisdag van 14 augustus haar huisgenoot in Paddepoel. Hij zegt het nooit.' }),
   rikus: keep('rikus', { step: 'M00' }),
   berend: keep('berend', { step: 'M01' }),
   jelmer: keep('jelmer', { step: 'M01' }),
@@ -415,5 +415,5 @@ export const CLUES = [
   { step: 'M29', kind: 'hart', title: 'Voor de grip', text: 'Op het erf in Loppersum vroeg Tessa of Tammo wilde dansen. Hij zei nee. Toen zei hij: "Voor de grip."' },
   { step: 'M30', kind: 'clue', title: 'Dan is winnen verkeerd', text: 'Berend won het proefbeleg van Bourtange, voor het eerst in veertig jaar. Hij zegt dat het verkeerd voelt. Volgend jaar verliest hij weer.' },
   { step: 'M30', kind: 'hart', title: 'Zes woorden', text: '"Thuis is waar de kar staat." Zes woorden, zei Tessa. Kon minder. Elke zomer rijdt de Fjord Frituur één ronde.' },
-  { step: 'M26', kind: 'hart', title: 'Vijf woorden', text: '"Ik wil bij jou blijven." "Dat bedoelde ik ook." Het duurde twaalf jaar. Kon minder.' },
+  { step: 'M26', kind: 'hart', title: 'Vijf woorden', text: '"Ik wil bij jou blijven." "Dat bedoelde ik ook." Het duurde vijf jaar. Kon minder.' },
 ];

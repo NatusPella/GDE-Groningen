@@ -69,7 +69,7 @@ Regels voor elke scène in de opening en de eerste drie missies:
 
 Zie `docs/verhaal/nieuw/09-script-akte1.md` (bron) en de commit. Samengevat:
 
-- **Trailer (C00.1):** de slotkaart noemt de haak ("Twee Stadjers. Eén frietwagen. Geen plek."). De Rikus-regels van C00.1 in het script blijven ongewijzigd: ze zijn de terugvalact en worden normaal niet gespeeld.
+- **Trailer (C00.1):** de slotkaart noemt de haak ("Twee afgestudeerden. Eén frietwagen. Geen plek."). De Rikus-regels van C00.1 in het script blijven ongewijzigd: ze zijn de terugvalact en worden normaal niet gespeeld.
 - **Keuken (C00.2):** de vijf geschrapte regels (#662) zijn uit het script gehaald zodat meting, script en spel gelijk zijn (18 gespeelde regels; `ACT_SPLIT` in `cutscenes.js` volgt). Tessa zegt nu "een wedstrijd" met een standplaats als prijs ("een plek voor een frietwagen"), niet meer meteen de naam.
 - **Verhuisdag (C00.3):** de Noordelijke Snackprijs krijgt hier zijn naam, bij het geld; het Loket noemt Tessa nog niet.
 - **M01.2:** "Dat is precies de inschrijving voor het Loket" wordt "Dat is precies de inschrijving. Die betaal je bij het Loket, het stadsloket." (het Loket krijgt een omschrijving waar het eerst valt).
