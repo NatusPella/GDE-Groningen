@@ -1,7 +1,7 @@
 // Test van de HTML van het kindscherm Voetbal (#1110): scripts/voetbal_ui_test.mjs. Alleen de pure HTML-functies (geen DOM); de DS3-regels: geen losse kleur, geen kleur als enige betekenis, een primaire knop,
 // een ontworpen lege staat, een ontgrendelhint, alles Nederlands, "Grunn" nooit "de Grunn". Niet in beeld bekeken: zie docs/VOETBAL-CARRIERE-VERIFICATIE-21-11.md.
+import PARKDATA from '../game/js/voetbalparkendata.js';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import { wgsToWorld } from '../game/js/rdnew.js';
 import { makeParkIndex, HOME_WGS } from '../game/js/voetbalparken.js';
 import * as C from '../game/js/voetbalcarriere.js';
@@ -10,7 +10,7 @@ import { wordCount } from '../game/js/hudtext.js';
 
 let n = 0;
 const t = (naam, f) => { try { f(); n++; } catch (e) { console.error('FAIL', naam); throw e; } };
-const index = makeParkIndex(JSON.parse(fs.readFileSync(new URL('../game/voetbalparken.json', import.meta.url), 'utf8')));
+const index = makeParkIndex(PARKDATA);
 const [hx, hy] = wgsToWorld(HOME_WGS.lat, HOME_WGS.lon);
 const getClub = C.clubResolver(index);
 const start = (char = 'anita') => C.startCareer({ char, index, home: { x: hx, y: hy } });

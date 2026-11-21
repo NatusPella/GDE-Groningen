@@ -8,6 +8,11 @@ import { makeParkIndex, fallbackIndex, HOME_WGS } from './voetbalparken.js';
 import { wgsToWorld } from './rdnew.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { euro } from './geldtekst.js';
+import { voetbalOpen, progressFrom } from './voetbalpoort.js';
+import { nextBeat, inviteBeat, markBeat, hudLine, beatText } from './voetbalbeats.js';
+import { getStoryView } from './storyquery.js';
+import { playerBusy } from './busy.js';
+import { narrativeBusy } from './narrative.js';
 
 const WRITE_DELAY_MS = 1500;
 let career = null, storageOverride = null, timer = 0, dirty = false, prevClock = null, index = null;
@@ -22,9 +27,9 @@ export function setStorage(st) { storageOverride = st; career = null; dirty = fa
 export function setParkData(raw) { index = raw ? makeParkIndex(raw) : null; if (index && index.clubs.length < 8) index = null; }
 export const getIndex = () => index || (index = fallbackIndex());
 export const getClub = (id) => C.clubResolver(getIndex())(id);
-export async function loadParkData(mapUrl = 'stad.json') {
-  const base = mapUrl.replace(/[^/]*$/, '');
-  try { const r = await fetch(base + 'voetbalparken.json'); setParkData(r.ok ? await r.json() : null); } catch (e) { setParkData(null); }
+// De parkdata (voetbalparkendata.js, ongeveer 27 kB) laadt lui met import(): geen netwerkaanroep, alleen de eigen module; kapot of weg geeft de terugval van acht vaste plaatsen.
+export async function loadParkData() {
+  try { const m = await import('./voetbalparkendata.js'); setParkData(m.default); } catch (e) { setParkData(null); }
   return getIndex().parkCount;
 }
 
@@ -105,3 +110,44 @@ export function trainNow(w, focus, score = 0.8) {
 export function setFocusNow(focus) { career = C.setFocus(getCareer(), focus); mark(); return career; }
 export function setInjuries(on) { const c = getCareer(); if (!C.isStarted(c)) return c; career = { ...c, settings: { ...c.settings, injuries: !!on }, injury: on ? c.injury : null }; mark(); return career; }
 export function flush() { saveNow(); }
+
+// ---- de poort, de uitnodiging en de beats ----
+// De stand voor de poort uit het verhaal en de wereld (w.gate bestaat pas als de verhaal-epic gemerged is: zonder is alles open, de migratieregel van een bestaande save).
+export function progressNow(w) {
+  let sv = { end: false };
+  try { sv = getStoryView() || sv; } catch (e) { sv = { end: false }; }
+  return progressFrom({ stepId: sv.id || null, ended: !!sv.end, gate: w ? w.gate : undefined, dev: !!(w && w.devJump), begun: () => isStarted() });
+}
+export const isUnlockedNow = (w) => voetbalOpen(progressNow(w));
+// Kan er nu een zijpad-beat komen? Niet tijdens een missie of scène, niet in dezelfde minuut als een kaart.
+let extraBusy = null;                                 // main.js zet hier cardsBusy (hudcards.js haalt THREE binnen en hoort niet in een node-test)
+export function zetBezigProbe(fn) { extraBusy = typeof fn === 'function' ? fn : null; }
+export function sidePathBusy(w) {
+  try { return !!(playerBusy(w).busy || narrativeBusy() || (extraBusy && extraBusy())); } catch (e) { return false; }
+}
+let beatCheck = 0;
+const currentDay = () => { const c = getCareer(); return C.isStarted(c) ? c.day : 0; };
+// Elke frame goedkoop; elke twee seconden kijken we of er een uitnodiging of beat te melden is (een stil appje: hooguit 14 woorden). Geeft de beat of null.
+export function updateBeats(dt, w) {
+  if (!w || (beatCheck -= dt) > 0) return null;
+  beatCheck = 2;
+  const c = getCareer();
+  const ctx = { unlocked: isUnlockedNow(w), busy: sidePathBusy(w), day: currentDay() };
+  const char = w.player && w.player.character === 'tammo' ? 'tammo' : 'anita';
+  if (!C.isStarted(c)) {
+    // de uitnodiging: hooguit een keer per speldag en drie keer in totaal (het paneel toont hem altijd); een gemiste uitnodiging vervalt niet maar zeurt niet
+    const nu = Math.floor((w.time || 0) / 1440);
+    if (!ctx.unlocked || ctx.busy || (c.invites | 0) >= 3 || (c.inviteWorld != null && c.inviteWorld === nu)) return null;
+    const inv = inviteBeat(c, { unlocked: true, busy: false, day: -1 }, char);
+    if (!inv) return null;
+    if (w.addMessage) w.addMessage(`${inv.wie}: ${inv.tekst}`, 8, { kind: 'tip', key: 'voetbal-b1' });
+    career = { ...c, invited: true, invites: (c.invites | 0) + 1, inviteWorld: nu }; mark();
+    return inv;
+  }
+  const b = nextBeat(c, ctx);
+  if (!b) return null;
+  if (w.addMessage) w.addMessage(hudLine(b, c.char), 7, { kind: 'tip', key: `voetbal-${b.id}` });
+  career = markBeat(c, b, ctx.day); mark();
+  return b;
+}
+export { beatText };

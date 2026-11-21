@@ -1,6 +1,6 @@
 // Test van de live-laag van de voetbalcarrière (#1110): scripts/voetbal_carrierelive_test.mjs. Eigen opslag (nooit de echte gde-*-sleutels), een nepwereld met een kas.
+import PARKDATA from '../game/js/voetbalparkendata.js';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import { KEYS, BASE_KEYS } from '../game/js/storagekeys.js';
 import * as V from '../game/js/voetbalcarrierelive.js';
 import * as L from '../game/js/loopbaanlive.js';
@@ -11,7 +11,7 @@ const t = (naam, f) => { try { f(); n++; } catch (e) { console.error('FAIL', naa
 const mem = () => { const m = new Map(); const log = []; return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => { m.set(k, String(v)); log.push(k); }, removeItem: (k) => m.delete(k), m, log }; };
 const wereld = () => ({ money: 0, clock: 12, msgs: [], addMessage(t) { this.msgs.push(t); }, coopDeel: null });
 L.zetProfielVoorTest(null, mem()); // het loopbaanprofiel in een eigen opslag
-setParkData(JSON.parse(fs.readFileSync(new URL('../game/voetbalparken.json', import.meta.url), 'utf8')));
+setParkData(PARKDATA);
 
 t('de sleutel: gde-voetbalcarriere-v1, geen verhaallijnachtervoegsel, los van de andere sleutels', () => {
   assert.equal(BASE_KEYS.voetbalCarriere, 'gde-voetbalcarriere-v1'); assert.equal(KEYS.voetbalCarriere, 'gde-voetbalcarriere-v1');
@@ -84,5 +84,28 @@ t('een kapotte opslag geeft geen fout en een leeg profiel', () => {
   assert.equal(V.isStarted(), false);
   const w = wereld(); V.startNew(w, 'anita'); V.flush();
   assert.ok(V.isStarted(), 'de carrière werkt ook als de opslag weigert');
+});
+t('de uitnodiging (B1) komt als een stil appje, hooguit een keer per speldag en drie keer; daarna beats', () => {
+  V.setStorage(mem());
+  const w = wereld(); w.time = 100; w.player = { character: 'anita' };
+  assert.equal(V.updateBeats(0.1, w).beat.id, 'B1');
+  assert.match(w.msgs[0], /^Tammo: /);
+  assert.equal(V.updateBeats(0.1, w), null, 'binnen twee seconden niet nog eens');
+  w.time = 200; assert.equal(V.updateBeats(3, w), null, 'dezelfde speldag niet nog eens');
+  w.time = 1500; assert.ok(V.updateBeats(3, w)); w.time = 3000; assert.ok(V.updateBeats(3, w));
+  w.time = 4500; assert.equal(V.updateBeats(3, w), null, 'na drie keer zeurt hij niet meer');
+  assert.equal(V.getCareer().invites, 3);
+  // aannemen en dan de eerste beats
+  V.startNew(w, 'anita');
+  V.set({ ...V.getCareer(), flags: { ...V.getCareer().flags, trained: true } });
+  const b = V.updateBeats(3, w); assert.equal(b.id, 'B2');
+  assert.equal(V.updateBeats(3, w), null, 'een beat per speldag');
+  // tijdens een missie of scène wacht een beat
+  V.setStorage(mem()); const w2 = wereld(); w2.time = 5000; w2.player = { character: 'tammo' };
+  V.zetBezigProbe(() => true);
+  assert.equal(V.updateBeats(3, w2), null, 'bezig: de uitnodiging wacht');
+  V.zetBezigProbe(null);
+  assert.equal(V.updateBeats(3, w2).beat.id, 'B1');
+  assert.match(w2.msgs[0], /^Tessa: /);
 });
 console.log(`voetbal_carrierelive_test ok (${n} groepen)`);

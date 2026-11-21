@@ -2,7 +2,7 @@
 //   node scripts/voetbal_carriere_sim.mjs [--seizoenen=3] [--char=anita|tammo] [--strategie=speel|reken|mix] [--stil] [--json]
 // `speel` boekt jouw wedstrijden als gespeeld (uitslag uit de sim van de ratings, met kleine statistiek), `reken` laat de club alles uitrekenen, `mix` speelt de helft.
 // De uitvoer is het rapport van docs/VOETBAL-CARRIERE-VERIFICATIE-21-11.md (economie per uur, promotie, stand). Deterministisch: dezelfde seed geeft hetzelfde rapport.
-import fs from 'node:fs';
+import PARKDATA from '../game/js/voetbalparkendata.js';
 import { wgsToWorld } from '../game/js/rdnew.js';
 import { makeParkIndex, HOME_WGS } from '../game/js/voetbalparken.js';
 import * as C from '../game/js/voetbalcarriere.js';
@@ -15,7 +15,7 @@ const WALL_MIN_PER_MATCH = 8;                       // echte minuten per gespeel
 const DAY_MIN = 24;                                 // een speldag is 24 minuten echte tijd
 
 export function loadIndex() {
-  return makeParkIndex(JSON.parse(fs.readFileSync(new URL('../game/voetbalparken.json', import.meta.url), 'utf8')));
+  return makeParkIndex(PARKDATA);
 }
 // Eén carrière van `seizoenen` seizoenen. `strategie`: 'speel' | 'reken' | 'mix'. Geeft een rapport met per seizoen de uitkomst en het totaal aan geld en speeltijd.
 export function runCareer({ char = 'anita', seizoenen = 3, strategie = 'speel', index = loadIndex(), train = true } = {}) {

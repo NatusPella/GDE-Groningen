@@ -12,6 +12,11 @@ import { reducedMotion } from './motion.js';
 import { keyTextHtml } from './keycap.js';
 import { createBoard, mgThema, bubble, clearBubbles, pick, stopPressed, easeCamera, clamp } from './minigamekit.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
+import * as CL from './voetbalcarrierelive.js';
+import { matchSetup } from './voetbalcarriere.js';
+import { pitchPlacement } from './voetbalparken.js';
+import { setLauncher } from './voetbalcarriereui.js';
+import { formationList } from './voetbalrules.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedLiveTik, wedHostLiveEind, wedGastVerlaat, wedGastReset } from './multiplayerwedstrijd.js';
 import { hoofdspeler } from './players.js';
@@ -41,10 +46,15 @@ const GATE = { x: 1797.3, y: 1549.5 };                    // de spelerspoort bui
 const USE_RADIUS = 3.2;
 const DETAIL_M = 420;
 const BAL_VIS = 0.17;
-const toWorld = (fx, fy) => ({ x: CX - fx, y: CY + fy }); // veld (x dwars, y in de lengte) naar wereld; de kijker staat achter het noordelijke doel en kijkt naar het zuiden
+// De plek van het veld: standaard de Euroborg (hoek 0), bij een carrièrewedstrijd het sportpark van de thuisploeg (#1117: het middelpunt en de lengteas van het grootste veld van het park, `a` = r - pi/2).
+let site = { x: CX, y: CY, a: 0 };
+const toWorld = (fx, fy) => { const lx = -fx, ca = Math.cos(site.a), sa = Math.sin(site.a); return { x: site.x + lx * ca - fy * sa, y: site.y + lx * sa + fy * ca }; }; // veld (x dwars, y in de lengte) naar wereld; de kijker staat achter het noordelijke doel en kijkt naar het zuiden
+const toLocal = (fx, fy) => ({ x: -fx, y: fy });          // het veld in de eigen ruimte van de groep (de groep draait en staat op de plek van het veld)
 
 let game = null;
 let built = null;
+let parkBuilt = null;                                       // het tijdelijke veld van een carrièrewedstrijd op een sportpark (#1117)
+const fld = () => parkBuilt || built;
 let board = null;
 let flitsEl = null;
 let lodT = 0;
@@ -103,7 +113,7 @@ function doos(parent, mat, bx, by, bz, x, y, z) {
 }
 
 function buildGoal(root, M, fy, uit) { // fy: de doellijn (-(VELD.L / 2) of (VELD.L / 2)); uit: de richting (-1 of 1) van het net in wereld-z
-  const w = toWorld(0, fy), ph = PITCH.DOEL_H, diep = PITCH.DOEL_DIEPTE;
+  const w = toLocal(0, fy), ph = PITCH.DOEL_H, diep = PITCH.DOEL_DIEPTE;
   for (const s of [-1, 1]) {
     const p = new THREE.Mesh(new THREE.CylinderGeometry(PITCH.PAAL_R, PITCH.PAAL_R, ph, 8), M.paal);
     p.position.set(w.x + s * (PITCH.DOEL_B / 2), ph / 2, w.y); p.castShadow = true; root.add(p);
@@ -133,28 +143,30 @@ function gateSign() {
   return new THREE.MeshBasicMaterial({ map: t });
 }
 
-function bouw(w, formaat = 'klein') {
+function bouw(w, formaat = 'klein', plek = null) {
   zetFormaat(formaat);
   const M = materials();
-  if (w && w.map && typeof w.map.surfaceAt === 'function') { try { const r = w.map.surfaceAt(CX, CY, { z: 0, ribbon: null }); if (r && Number.isFinite(r.z)) ground = r.z; } catch (e) { ground = 0; } }
+  const at = plek || { x: CX, y: CY, a: 0 };
+  if (w && w.map && typeof w.map.surfaceAt === 'function') { try { const r = w.map.surfaceAt(at.x, at.y, { z: 0, ribbon: null }); if (r && Number.isFinite(r.z)) ground = r.z; } catch (e) { ground = 0; } }
   const root = new THREE.Group();
-  root.position.y = ground;
+  root.position.set(at.x, ground, at.y);      // het veld is in eigen ruimte gebouwd (toLocal) en draait mee met de lengteas van het park
+  root.rotation.y = -at.a;
   const gras = new THREE.Mesh(new THREE.PlaneGeometry(PITCH.B + 3, PITCH.L + 6).rotateX(-Math.PI / 2), M.gras);
-  gras.position.set(CX, 0.035, CY);
+  gras.position.set(0, 0.035, 0);
   gras.receiveShadow = true;
   root.add(gras);
-  const line = (bx, bz, fx, fy) => { const q = toWorld(fx, fy); doos(root, M.lijn, bx, 0.02, bz, q.x, 0.06, q.y); };
+  const line = (bx, bz, fx, fy) => { const q = toLocal(fx, fy); doos(root, M.lijn, bx, 0.02, bz, q.x, 0.06, q.y); };
   // de rand, de middenlijn, het middencirkeltje en de twee strafschopgebieden
   line(PITCH.B, 0.12, 0, -(PITCH.L / 2)); line(PITCH.B, 0.12, 0, (PITCH.L / 2)); line(0.12, PITCH.L, -(PITCH.B / 2), 0); line(0.12, PITCH.L, (PITCH.B / 2), 0);
   line(PITCH.B, 0.1, 0, 0);
   const groot = formaat === 'groot', cirkel = groot ? 9.15 : 3;
   const mid = new THREE.Mesh(new THREE.RingGeometry(cirkel - 0.1, cirkel, 48).rotateX(-Math.PI / 2), M.lijn);
-  const mq = toWorld(0, 0); mid.position.set(mq.x, 0.065, mq.y); root.add(mid);
+  const mq = toLocal(0, 0); mid.position.set(mq.x, 0.065, mq.y); root.add(mid);
   for (const s of [-1, 1]) {
     const y0 = s * (PITCH.L / 2), y1 = s * ((PITCH.L / 2) - PITCH.STRAF_D);
     line(PITCH.STRAF_B, 0.1, 0, y1); line(0.1, PITCH.STRAF_D, -PITCH.STRAF_B / 2, (y0 + y1) / 2); line(0.1, PITCH.STRAF_D, PITCH.STRAF_B / 2, (y0 + y1) / 2);
     const stip = new THREE.Mesh(new THREE.CircleGeometry(0.12, 12).rotateX(-Math.PI / 2), M.lijn);
-    const sq = toWorld(0, s * ((PITCH.L / 2) - (groot ? 11 : 4.5))); stip.position.set(sq.x, 0.066, sq.y); root.add(stip);
+    const sq = toLocal(0, s * ((PITCH.L / 2) - (groot ? 11 : 4.5))); stip.position.set(sq.x, 0.066, sq.y); root.add(stip);
   }
   buildGoal(root, M, -(PITCH.L / 2), -1); buildGoal(root, M, (PITCH.L / 2), 1);
   const gateBoard = new THREE.Group();
@@ -162,6 +174,7 @@ function bouw(w, formaat = 'klein') {
   const plaat = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.28), gateSign());
   plaat.position.set(0, 2.1, -0.1); plaat.rotation.y = Math.PI; gateBoard.add(plaat);
   gateBoard.position.set(GATE.x, ground, GATE.y + 1.4);
+  gateBoard.visible = !plek;                  // het bord bij de spelerspoort hoort alleen bij de Euroborg
   const bal = new THREE.Mesh(new THREE.SphereGeometry(BAL_VIS, 14, 10), M.bal);
   bal.castShadow = true; bal.visible = false;
   const schaduw = new THREE.Mesh(new THREE.CircleGeometry(0.2, 14).rotateX(-Math.PI / 2), M.schaduw);
@@ -175,6 +188,17 @@ function ruimBouwOp() {
   const sc = getScene();
   for (const o of [built.root, built.bord, built.bal, built.schaduw]) sc.remove(o);
   built = null;
+}
+
+// Het tijdelijke veld van een carrièrewedstrijd weer weg (en het veld terug naar de Euroborg).
+function zetGround(w, x, y) {
+  if (w && w.map && typeof w.map.surfaceAt === 'function') { try { const r = w.map.surfaceAt(x, y, { z: 0, ribbon: null }); if (r && Number.isFinite(r.z)) ground = r.z; } catch (e) { /* de grond blijft zoals hij was */ } }
+}
+function ruimParkOp() {
+  if (!parkBuilt) return;
+  const sc = getScene();
+  for (const o of [parkBuilt.root, parkBuilt.bord, parkBuilt.bal, parkBuilt.schaduw]) sc.remove(o);
+  parkBuilt = null;
 }
 
 function updateLod(w) {
@@ -338,27 +362,33 @@ function freshOptions(v = leesOpslag()) {
 }
 
 // start: solo (sim = null), de host van een Samen-wedstrijd (online 'host', sim van het kader) of een gast (online 'gast', sim = de spiegel).
-function launch(w, { force = false, online = null, sim = null } = {}) {
+function launch(w, { force = false, online = null, sim = null, career = null } = {}) {
   if (game) return false;
   if (!force && !online && activityBlock(w)) return false;
   const p = hoofdspeler(w);
   if (p.inVehicle && p.exitVehicle) p.exitVehicle(w.map, w);
   runs++;
-  const opt = online === 'gast' ? null : (uitnodiging && online ? uitnodiging : freshOptions());
+  let opt = online === 'gast' ? null : (uitnodiging && online ? uitnodiging : freshOptions());
+  if (career) { const v = leesOpslag(); opt = { duur: 'normaal', stand: cleanDifficulty(getSettings().difficulty), tg: 0, formaat: 'groot', vorming: cleanFormation('groot', v.vorming), stijl: cleanStijl(v.stijl), comp: null, seed: ((Date.now() / 1000) | 0) + runs * 7919 }; }
+  if (career) { site = career.site || { x: CX, y: CY, a: 0 }; }
+  if (!sim && career) sim = makeMatch([{ slot: 0, naam: career.naam || 'Jij', char: career.char, bonus: career.bonus }], { duur: opt.duur, stand: opt.stand, seed: opt.seed, formaat: 'groot', vorming: opt.vorming, stijl: opt.stijl, teams: career.teams, ratings: career.ratings });
   if (!sim) sim = makeMatch([{ slot: 0, naam: 'Jij', char: p.character || null, bonus: voetbalBonusVan() }], { duur: opt.duur, stand: opt.stand, seed: opt.seed || 1, tegenstander: opt.tg, formaat: opt.formaat, vorming: opt.vorming, stijl: opt.stijl });
   const mode = online === 'gast' ? sim.stand : opt.stand;
   if (opt && opt.comp && !online) { const vv = leesOpslag(); vv.comp = opt.comp; schrijfOpslag(vv); }
   zetFormaat(sim.formaat);
+  zetGround(w, site.x, site.y);
   if (built && built.formaat !== sim.formaat) ruimBouwOp();
   if (!built) built = bouw(w, sim.formaat);
-  const bon = characterEnter(w, 'voetbal'); // de speler voetbalt als Tessa (wissel per speler, terug bij het einde); zonder haak gebeurt er niets
-  game = { online, sim, t: 0, dt: 0, cam: null, actors: makeActors(sim), marks: makeMarkings(), mode, said: 0, lastFase: sim.fase, laadG: { schot: 0, lang: 0 }, bon, exitX: GATE.x, exitY: GATE.y, gemeld: false, comp: online || !opt ? null : opt.comp };
-  built.root.visible = true; built.bord.visible = true;
-  built.bal.visible = true; built.schaduw.visible = true;
+  if (career && career.site) { ruimParkOp(); parkBuilt = bouw(w, sim.formaat, career.site); }
+  const bon = career ? null : characterEnter(w, 'voetbal'); // de speler voetbalt als Tessa (wissel per speler, terug bij het einde); zonder haak gebeurt er niets
+  game = { online, sim, t: 0, dt: 0, cam: null, actors: makeActors(sim), marks: makeMarkings(), mode, said: 0, lastFase: sim.fase, laadG: { schot: 0, lang: 0 }, bon, exitX: career && career.site ? toWorld((PITCH.B / 2) + 4, 0).x : GATE.x, exitY: career && career.site ? toWorld((PITCH.B / 2) + 4, 0).y : GATE.y, career, gemeld: false, comp: online || !opt ? null : opt.comp };
+  const fl = fld();
+  fl.root.visible = true; fl.bord.visible = !parkBuilt;
+  fl.bal.visible = true; fl.schaduw.visible = true;
   w.voetbalGame = game;
   w.cinematicHidePlayers = true;
   ensureBoard(); board.show();
-  w.companionHold = { x: GATE.x, y: GATE.y - 4, face: -Math.PI / 2 };
+  w.companionHold = career && career.site ? { x: game.exitX, y: game.exitY, face: -Math.PI / 2 } : { x: GATE.x, y: GATE.y - 4, face: -Math.PI / 2 };
   if (online === 'gast') installeerGastKnoppen(w);
   if (online !== 'gast') toonStartkaart(w, 'voetbal', { record: recText() });
   say(w, 'start', true);
@@ -464,7 +494,7 @@ function teken(w, dt) {
   sim.spelers.forEach((p, i) => {
     const a = g.actors[i], q = toWorld(p.x, p.y);
     a.mesh.position.set(q.x, ground, q.y);
-    a.mesh.rotation.y = p.face - Math.PI;
+    a.mesh.rotation.y = p.face - Math.PI - site.a;
     animatePersonWalk(a.mesh, p.speed || 0, dt);
     const ud = a.mesh.userData;
     a.mesh.rotation.z = p.duikT > 0 ? (p.duikDx || 0) * 1.15 : 0; // de keeper ligt languit (de kantelas is de wereld-z, zoals bij de penaltykeeper)
@@ -473,9 +503,10 @@ function teken(w, dt) {
     if (p.vier > 0 && ud && ud.armL && ud.armR) { const s = Math.sin(g.t * 9 + p.id); ud.armL.rotation.z = 2.4 + s * 0.4; ud.armR.rotation.z = -2.4 - s * 0.4; }
   });
   const bq = toWorld(b.x, b.y);
-  built.bal.position.set(bq.x, ground + (b.z || 0) + BAL_VIS, bq.y);
-  built.schaduw.position.set(bq.x, ground + 0.07, bq.y);
-  built.schaduw.scale.setScalar(clamp(1 - (b.z || 0) / 5, 0.4, 1));
+  const fl = fld();
+  fl.bal.position.set(bq.x, ground + (b.z || 0) + BAL_VIS, bq.y);
+  fl.schaduw.position.set(bq.x, ground + 0.07, bq.y);
+  fl.schaduw.scale.setScalar(clamp(1 - (b.z || 0) / 5, 0.4, 1));
   const id = eigenId(g), m = g.marks;
   if (id >= 0) {
     const p = sim.spelers[id], q = toWorld(p.x, p.y);
@@ -550,13 +581,46 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   for (const mk of [g.marks.eigen, g.marks.pijl, ...g.marks.ander]) { getScene().remove(mk); mk.geometry.dispose(); }
   if (built) { built.bal.visible = false; built.schaduw.visible = false; }
   p.x = g.exitX; p.y = g.exitY; p.angle = -Math.PI / 2;
+  ruimParkOp(); site = { x: CX, y: CY, a: 0 };
   karakterEind(w, g.bon);
   let res = null;
   if (g.online === 'host' && !extern) res = wedHostLiveEind(w, g.sim, { gestopt: quit });
+  if (g.career) { afrondenCarriere(w, g, quit); return; }
   if (quit) { w.addMessage('Voetbal gestopt', 2.5); return; }
   if (g.online === 'gast') { if (uitslag && !uitslag.gestopt) beloonLokaal(w, g, uitslag.rijen.find((r) => r.slot === g.sim.mijnSlot) || null); return; }
   if (g.online === 'host') { if (!res) return; beloonLokaal(w, g, res.rijen.find((r) => r.slot === 0) || null, res.jij); return; }
   beloonLokaal(w, g, uitslagVoetbal(g.sim)[0] || null);
+}
+
+// --- de carrièrewedstrijd (#1110, #1117): de sim met de clubs en ratings van de carrière, op het sportpark van de thuisploeg (of de Euroborg); het resultaat gaat naar het profiel -------------------
+
+// Start de wedstrijd van de volgende ronde van de carrière. Geeft true als hij begon.
+export function startCarriereWedstrijd(w) {
+  if (game || !CL.isStarted()) return false;
+  const c = CL.getCareer(), v = leesOpslag();
+  const setup = matchSetup(c, CL.getClub, formationList('groot', cleanFormation('groot', v.vorming)));
+  if (!setup) return false;
+  const m = setup.match;
+  const venue = m.park ? m.park : null;
+  let plek = null;
+  if (venue) { const pp = pitchPlacement(venue); plek = { x: pp.x, y: pp.y, a: pp.angle - Math.PI / 2 }; }
+  return launch(w, { force: true, career: { teams: setup.teams, ratings: setup.ratings, bonus: setup.bonus, char: c.char, naam: c.me.name, site: plek, match: m } });
+}
+setLauncher((w) => startCarriereWedstrijd(w));
+
+function afrondenCarriere(w, g, quit) {
+  if (quit) { w.addMessage('Wedstrijd gestopt: de ronde blijft staan', 3); return; }
+  const sim = g.sim, mm = ownHuman(g);
+  const gf = sim.score[0], ga = sim.score[1];
+  const stats = { goals: mm ? mm.doelpunten | 0 : 0, assists: mm ? mm.assist | 0 : 0, shots: mm ? mm.schoten | 0 : 0, minutes: Math.round((sim.duurHelft * 2) / 60 * 10) / 10 || 8 };
+  recordStat(w, 'footballMatches');
+  const r = CL.finishMatch(w, { gf, ga, stats });
+  const s = r.summary;
+  if (!s) return;
+  const regels = [['Stand', `${gf}-${ga}`], ['Jouw doelpunten', String(stats.goals)]];
+  if (s.gains && s.gains.length) regels.push(['Groei', `+${s.gains.length}`]);
+  if (s.notes && s.notes.length) regels.push(['Beker', s.notes[0]]);
+  showBanner({ kind: s.outcome === 'winst' ? 'pass' : 'fail', title: s.outcome === 'winst' ? 'GEWONNEN' : s.outcome === 'gelijk' ? 'GELIJKSPEL' : 'VERLOREN', reason: `${sim.teams[0].naam} ${gf}-${ga} ${sim.teams[1].naam}`, reward: 0, stats: regels });
 }
 
 // De beloning van één speler uit zijn eigen uitslagsregel: record, medaille, prestaties, het banner. Het geld van een gast betaalt de host (betaalGast); hier alleen wat bij de eigen speler hoort.

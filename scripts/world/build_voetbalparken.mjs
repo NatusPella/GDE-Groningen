@@ -1,7 +1,7 @@
-// Bouwt game/voetbalparken.json: de sportparken met voetbalvelden uit de kaartdata, gekoppeld aan hun plaats (epic Voetbalcarrière, #1117, docs/VOETBAL-CARRIERE-21-11.md hoofdstuk 3b).
+// Bouwt game/js/voetbalparkendata.js (een gegevensmodule, lui geladen met import(): geen netwerkaanroep): de sportparken met voetbalvelden uit de kaartdata, gekoppeld aan hun plaats (epic Voetbalcarrière, #1117, docs/VOETBAL-CARRIERE-21-11.md hoofdstuk 3b).
 // Alleen geometrie en een plaatsnaam uit de packs (geen namen van echte clubs: de data bevat die niet en we lezen ze niet). Klein (ongeveer 20 kB) en deterministisch: dezelfde packs geven dezelfde index.
 //
-//   node scripts/world/build_voetbalparken.mjs [--packs=data/cache/province] [--uit=game/voetbalparken.json] [--check]
+//   node scripts/world/build_voetbalparken.mjs [--packs=data/cache/province] [--uit=game/js/voetbalparkendata.js] [--check]
 //
 // Per plaats met minstens één park: { id (plaats-id, het ID van de club), n (plaatsnaam), k (soort), x, y (de plaats, wereldmeters), p: [park, ...] } met het thuispark (het grootste park binnen 3 km) eerst.
 // Per park: { x, y (het middelpunt van het grootste veld, wereldmeters), r (de lengteas van dat veld in radialen, 0 is oost, y wijst naar het zuiden), f (aantal velden), a (oppervlakte in m2), c (kunstgras: aantal velden), l (verlicht: aantal) }.
@@ -13,7 +13,7 @@ import { wgsToWorld } from '../../game/js/rdnew.js';
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..', '..');
 const arg = (n, d) => { const a = process.argv.find((x) => x.startsWith(`--${n}=`)); return a ? a.slice(n.length + 3) : d; };
 const PACKS = path.resolve(arg('packs', path.join(ROOT, 'data/cache/province')));
-const UIT = path.resolve(arg('uit', path.join(ROOT, 'game/voetbalparken.json')));
+const UIT = path.resolve(arg('uit', path.join(ROOT, 'game/js/voetbalparkendata.js')));
 const BUNDEL_M = 150, MAX_PLAATS_M = 3000;
 const lees = (f) => JSON.parse(zlib.gunzipSync(fs.readFileSync(f)).toString('utf8'));
 const isVoetbal = (t) => /(^|;)(soccer|football)(;|$)/.test(t.sport || '');
@@ -70,10 +70,12 @@ for (const pk of parken) {
   (perPlaats.get(best.id) || perPlaats.set(best.id, { id: best.id, n: best.n, k: best.k, x: r1(best.xy[0]), y: r1(best.xy[1]), p: [] }).get(best.id)).p.push(pk);
 }
 const uit = [...perPlaats.values()].map((pl) => ({ ...pl, p: pl.p.sort((a, b) => b.a - a.a || a.x - b.x) })).sort((a, b) => a.id - b.id);
-const json = JSON.stringify({ v: 1, plaatsen: uit });
+const json = `// Gebouwd door scripts/world/build_voetbalparken.mjs uit de kaartdata (alleen geometrie en plaatsnamen; niet met de hand bewerken). #1117
+export default ${JSON.stringify({ v: 1, plaatsen: uit })};
+`;
 if (process.argv.includes('--check')) {
   const huidig = fs.existsSync(UIT) ? fs.readFileSync(UIT, 'utf8') : '';
-  console.log(huidig === json ? 'voetbalparken.json is actueel' : 'voetbalparken.json wijkt af van de packs');
+  console.log(huidig === json ? 'voetbalparkendata.js is actueel' : 'voetbalparkendata.js wijkt af van de packs');
   process.exit(huidig === json ? 0 : 1);
 }
 fs.writeFileSync(UIT, json);

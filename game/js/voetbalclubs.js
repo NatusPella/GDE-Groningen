@@ -53,11 +53,3 @@ export const clubsOf = (division) => CLUBS.filter((x) => x.division === division
 // Een club als wedstrijdteam voor makeMatch (dezelfde vorm als TEAMS in voetbalrules.js); onbekend geeft null.
 export const teamFor = (club) => (club ? { id: club.id, naam: club.naam, kort: club.kort, shirt: club.shirt, broek: club.broek, keeperShirt: club.keeper, patroon: club.patroon, accent: club.accent } : null);
 export const clubColor = (v) => `#${(v >>> 0).toString(16).padStart(6, '0')}`;
-
-// Verboden in de spelnamen: de echte voorvoegsels van clubs en de namen waar de parodieën op zijn gebouwd (de test keurt elke club en elke speler hiertegen).
-export const FORBIDDEN_CLUB_WORDS = ['VV', 'SV', 'FC', 'SC', 'RKSV', 'PSV', 'AZ', 'Ajax', 'Feyenoord', 'Heerenveen', 'Emmen', 'Cambuur', 'Twente', 'Zwolle', 'Volendam', 'Almere', 'Sparta', 'Sittard', 'Go Ahead',
-  'Real', 'Barcelona', 'Bayern', 'Juventus', 'Milan', 'Inter', 'Manchester', 'Liverpool', 'Arsenal', 'Chelsea', 'Paris', 'Atletico', 'Atlético', 'Dortmund', 'Benfica', 'Celtic', 'Galatasaray', 'Madrid', 'Eredivisie', 'Champions', 'Europa League'];
-export function hasForbiddenWord(text) {
-  const t = String(text || '');
-  return FORBIDDEN_CLUB_WORDS.some((w) => new RegExp(`(^|[^\\p{L}])${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|[^\\p{L}])`, 'iu').test(t));
-}

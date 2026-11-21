@@ -149,7 +149,12 @@ export function payFor(division, kind, outcome, played) {
 
 // Het eigen duel rekenen we uit met de rng van het event als het niet gespeeld wordt.
 function ownResult(c, m, ctx, played, mine) {
-  if (played && mine) return { gf: mine.gf | 0, ga: mine.ga | 0, pens: mine.pens || null };
+  if (played && mine) {
+    const gf = mine.gf | 0, ga = mine.ga | 0;
+    // een gespeeld gelijkspel in een beker wordt beslist met strafschoppen (de uitslag blijft gelijk; de winnaar komt uit dezelfde reeks als bij uitrekenen)
+    const pens = mine.pens || (gf === ga && m.kind !== 'league' ? S.shootout(c.club, m.opponent, ctx, makeRng(hashSeed('pens', WORLD_SEED, c.seasonNr, c.evDone, c.club))).winner : null);
+    return { gf, ga, pens };
+  }
   const rng = makeRng(hashSeed('own', WORLD_SEED, c.seasonNr, c.evDone, c.club));
   const [a, b] = S.simulateDuel(m.isHome ? c.club : m.opponent, m.isHome ? m.opponent : c.club, ctx, rng);
   const gf = m.isHome ? a : b, ga = m.isHome ? b : a;
@@ -321,7 +326,7 @@ export function normalize(raw) {
   let d = raw;
   if (typeof raw === 'string') { try { d = JSON.parse(raw); } catch (e) { return newCareer(); } }
   if (!d || typeof d !== 'object' || d.v !== VERSION) return newCareer();
-  if (!d.started) return { ...newCareer(), invited: !!d.invited, inviteDay: Number.isInteger(d.inviteDay) ? d.inviteDay : null };   // alleen de uitnodiging blijft bewaard
+  if (!d.started) return { ...newCareer(), invited: !!d.invited, inviteDay: Number.isInteger(d.inviteDay) ? d.inviteDay : null, invites: Math.max(0, Math.min(9, d.invites | 0)), inviteWorld: Number.isInteger(d.inviteWorld) ? d.inviteWorld : null };   // alleen de uitnodiging blijft bewaard
   try {
     const me = readPlayer(d.me), mate = readPlayer(d.mate);
     const strList = (l) => Array.isArray(l) && l.every((x) => typeof x === 'string');

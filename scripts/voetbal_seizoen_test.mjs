@@ -1,6 +1,6 @@
 // Test van de seizoenen, divisies en knock-outs (#1108): scripts/voetbal_seizoen_test.mjs. Puur, geen DOM.
+import PARKDATA from '../game/js/voetbalparkendata.js';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import { schedule, newLeague, playRound, playOut, table, points, myFixture, awayCount, newWorld, endSeason, outcomeFor, divisionOf, newKnockout, playKnockoutRound, playKnockoutOut, myTie, shootout, cupEntrants, europeEntrants, makeCtx, baseStrength, lambdaFor, ROUNDS, knockoutRoundName } from '../game/js/voetbalseizoen.js';
 import { CLUBS, EUROPE_CLUBS, clubById, clubsOf } from '../game/js/voetbalclubs.js';
 import { makeParkIndex, localDivision, HOME_WGS } from '../game/js/voetbalparken.js';
@@ -9,7 +9,7 @@ import { makeRng } from '../game/js/minigamekit.js';
 
 let n = 0;
 const t = (naam, f) => { try { f(); n++; } catch (e) { console.error('FAIL', naam); throw e; } };
-const idx = makeParkIndex(JSON.parse(fs.readFileSync(new URL('../game/voetbalparken.json', import.meta.url), 'utf8')));
+const idx = makeParkIndex(PARKDATA);
 const [hx, hy] = wgsToWorld(HOME_WGS.lat, HOME_WGS.lon);
 const loc = localDivision(idx, { x: hx, y: hy });
 const getClub = (id) => clubById(id) || idx.byId.get(id) || null;

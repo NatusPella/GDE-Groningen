@@ -4,8 +4,9 @@
 import assert from 'node:assert/strict';
 import { makeMatch, tikWedstrijd } from '../game/js/voetbalmatch.js';
 import { ATTRS, ROLES, SQUAD_SIZE, SQUAD_SHAPE, MAX_FACTOR, factorOf, ratingFor, playerRating, simFactors, makeSquad, makeProtagonist, attrCap, readPlayer, isValidPlayer, lineupFor, teamStrength, hashSeed, NAME_POOL, TALENTS } from '../game/js/voetbalspelers.js';
-import { CLUBS, EUROPE_CLUBS, clubsOf, clubById, teamFor, hasForbiddenWord, DIVISIONS, PATTERNS, CLUBS_PER_DIVISION } from '../game/js/voetbalclubs.js';
+import { CLUBS, EUROPE_CLUBS, clubsOf, clubById, teamFor, DIVISIONS, PATTERNS, CLUBS_PER_DIVISION } from '../game/js/voetbalclubs.js';
 import { formationList } from '../game/js/voetbalrules.js';
+import { hasForbiddenWord } from './voetbal_verboden.mjs';
 
 let n = 0;
 const t = (naam, f) => { try { f(); n++; } catch (e) { console.error('FAIL', naam); throw e; } };

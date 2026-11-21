@@ -2,6 +2,8 @@
 // Besluit eigenaar 21-11: ontgrendelen per akte (akte 2 boerderij, 3 panden, 4 voetbal en regio); de voetbalcarrière start dus in akte 4. De bestaande Euroborg-wedstrijd en de
 // penaltyserie blijven altijd los speelbaar; alleen de carrière wacht. Tot unlockgate.js op deze tak is gemerged, geldt hieronder een stub met DEZELFDE vorm (worldOpen(id, progress), gateHint(id, progress)):
 // bij de merge vervangt `zetPoort({ worldOpen, gateHint })` (of een import) de stub en vervalt de stub. Puur: geen DOM, geen wereld (scripts/voetbal_beats_test.mjs).
+import { STEPS } from './storyarc.js';
+
 export const VOETBAL_WORLD = 'voetbal';
 export const PART_ORDER = ['kop', 'romp', 'staart', 'zuid', 'ontzet', 'nazomer'];
 const NEEDS_PART = 'zuid';                       // akte 4
@@ -23,3 +25,9 @@ let gate = { worldOpen: stubOpen, gateHint: stubHint };
 export function zetPoort(p) { gate = p && typeof p.worldOpen === 'function' ? { worldOpen: p.worldOpen, gateHint: p.gateHint || stubHint } : { worldOpen: stubOpen, gateHint: stubHint }; }
 export const voetbalOpen = (progress = {}) => !!gate.worldOpen(VOETBAL_WORLD, progress);
 export const voetbalHint = (progress = {}) => gate.gateHint(VOETBAL_WORLD, progress);
+
+// De stand die de poort nodig heeft (dezelfde vorm als progressFrom in unlockgate.js): de akte van de huidige stap, of het verhaal uit is, en het gate-veld van de wereld (een nieuw spel krijgt hem, een bestaande save niet).
+export function progressFrom({ stepId = null, ended = false, gate = undefined, begun = null, dev = false } = {}) {
+  const st = stepId ? STEPS.find((x) => x.id === stepId) : null;
+  return { partNow: st ? st.part : null, ended, gate, begun, dev };
+}

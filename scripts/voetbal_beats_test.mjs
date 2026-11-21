@@ -1,17 +1,17 @@
 // Test van de verhaalbeats en de ontgrendeling van de voetbalcarrière (#1112): scripts/voetbal_beats_test.mjs. Puur.
+import PARKDATA from '../game/js/voetbalparkendata.js';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import { wgsToWorld } from '../game/js/rdnew.js';
 import { makeParkIndex, HOME_WGS } from '../game/js/voetbalparken.js';
 import * as C from '../game/js/voetbalcarriere.js';
 import { BEATS, beatText, nextBeat, markBeat, beatsDone, inviteBeat, proposal, regelaarVan, hudLine, BEAT_MAX_WORDS, beatMayShow } from '../game/js/voetbalbeats.js';
 import { voetbalOpen, voetbalHint, zetPoort, PART_ORDER } from '../game/js/voetbalpoort.js';
 import { wordCount } from '../game/js/hudtext.js';
-import { hasForbiddenWord } from '../game/js/voetbalclubs.js';
+import { hasForbiddenWord } from './voetbal_verboden.mjs';
 
 let n = 0;
 const t = (naam, f) => { try { f(); n++; } catch (e) { console.error('FAIL', naam); throw e; } };
-const index = makeParkIndex(JSON.parse(fs.readFileSync(new URL('../game/voetbalparken.json', import.meta.url), 'utf8')));
+const index = makeParkIndex(PARKDATA);
 const [hx, hy] = wgsToWorld(HOME_WGS.lat, HOME_WGS.lon);
 const getClub = C.clubResolver(index);
 const start = (char = 'anita') => C.startCareer({ char, index, home: { x: hx, y: hy } });

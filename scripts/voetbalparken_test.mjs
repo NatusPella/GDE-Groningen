@@ -1,14 +1,14 @@
-// Test van de voetbalparken en de lokale clubs (#1117): scripts/voetbalparken_test.mjs. Leest game/voetbalparken.json (gebouwd door scripts/world/build_voetbalparken.mjs), geen packs nodig.
+// Test van de voetbalparken en de lokale clubs (#1117): scripts/voetbalparken_test.mjs. Leest game/js/voetbalparkendata.js (gebouwd door scripts/world/build_voetbalparken.mjs), geen packs nodig.
 // Dekt: de telling (281 parken, 139 plaatsen, klein), de naamregels (acht sjablonen, nooit VV/SV/FC/SC/RKSV of een echte clubnaam), de acht dichtstbijzijnde clubs bij het huis, reizen en het veld op het park.
+import PARKDATA from '../game/js/voetbalparkendata.js';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import { wgsToWorld } from '../game/js/rdnew.js';
 import { makeParkIndex, localDivision, nearestClubs, localClubName, adjective, terpParks, travel, pitchPlacement, HOME_WGS, TEMPLATES, LOCAL_DIVISION_SIZE, clubForPlace } from '../game/js/voetbalparken.js';
-import { hasForbiddenWord } from '../game/js/voetbalclubs.js';
+import { hasForbiddenWord } from './voetbal_verboden.mjs';
 
 let n = 0;
 const t = (naam, f) => { try { f(); n++; } catch (e) { console.error('FAIL', naam); throw e; } };
-const raw = JSON.parse(fs.readFileSync(new URL('../game/voetbalparken.json', import.meta.url), 'utf8'));
+const raw = PARKDATA;
 const idx = makeParkIndex(raw);
 const [hx, hy] = wgsToWorld(HOME_WGS.lat, HOME_WGS.lon);
 const home = { x: hx, y: hy };
@@ -16,7 +16,7 @@ const home = { x: hx, y: hy };
 t('de index: 281 parken bij ongeveer 140 plaatsen, klein en met een thuispark per plaats', () => {
   assert.equal(idx.parkCount, 281);
   assert.ok(idx.plaatsen.length >= 130 && idx.plaatsen.length <= 150, String(idx.plaatsen.length));
-  assert.ok(fs.statSync(new URL('../game/voetbalparken.json', import.meta.url)).size < 40000, 'houd de data klein');
+  assert.ok(JSON.stringify(PARKDATA).length < 40000, 'houd de data klein');
   for (const p of idx.plaatsen) { assert.ok(p.p[0].a >= p.p[p.p.length - 1].a, 'thuispark is het grootste'); assert.ok(p.p.every((k) => k.r >= 0 && k.r <= Math.PI + 0.01 && k.f >= 1)); }
   assert.equal(new Set(idx.plaatsen.map((p) => p.id)).size, idx.plaatsen.length);
 });

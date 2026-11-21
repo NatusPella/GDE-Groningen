@@ -1,5 +1,5 @@
 // Voetbalparken uit de kaart en de lokale clubs (#1117, epic #1106, docs/VOETBAL-CARRIERE-21-11.md hoofdstuk 3b): puur, geen DOM en geen THREE (scripts/voetbalparken_test.mjs).
-// De data is game/voetbalparken.json (scripts/world/build_voetbalparken.mjs: 281 parken bij 139 plaatsen, ongeveer 27 kB). Elke plaats met een park heeft één verzonnen club; het grootste park binnen 3 km
+// De data is game/js/voetbalparkendata.js (scripts/world/build_voetbalparken.mjs: 281 parken bij 139 plaatsen, ongeveer 27 kB). Elke plaats met een park heeft één verzonnen club; het grootste park binnen 3 km
 // is het thuispark, de rest zijn trainingsvelden. De acht dichtstbijzijnde plaatsen bij het huis vormen de Talentenklasse. Geen echte clubnamen: acht sjablonen met een knipoog, nooit VV, SV, FC, SC of RKSV.
 import { hashSeed } from './voetbalspelers.js';
 

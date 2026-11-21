@@ -159,6 +159,8 @@ import { gateOn, setGate } from './coopgate.js';
 import { updateGastLokaal } from './coopgastlokaal.js';
 import { initDayNight, updateDayNight, refreshDayNight, DAY_LENGTH_S } from './daynight.js';
 import { initCalendar, updateCalendar, today as calendarToday } from './calendarday.js';
+import { loadParkData as loadVoetbalParken, updateDay as updateVoetbalDag, updateBeats as updateVoetbalBeats, zetBezigProbe as zetVoetbalBezig } from './voetbalcarrierelive.js';
+import { cardsBusy as voetbalCardsBusy } from './hudcards.js';
 import { updateFx3D } from './fx3d.js';
 import { updateGore3D } from './gore3d.js';
 import { updateKnockFx3D } from './knockfx3d.js';
@@ -782,6 +784,8 @@ async function boot() {
   const landData = corLayer && corLayer.global ? loadLandData('world/', corLayer.global.landFile) : null;
   const facilities = loadFacilities('stad.json');
   const shopPlaces = loadShopPlaces('stad.json');
+  loadVoetbalParken(); // de voetbalparken voor de carrière (#1117, klein, een terugval zonder)
+  zetVoetbalBezig(voetbalCardsBusy);
   const map = tiles ? tiles.world : await withDeadline(loadMap('stad.json', onMapProgress), MAP_LOAD_MS, 'kaart laden');
   tileWorldStats = tiles ? tiles.store : null;
   markLoad('map');
@@ -1469,6 +1473,8 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     updateDayNight(dt, world);
     boerderijTijd(world); // de gewassen groeien in speltijd (#415)
     updateCalendar(dt, world);
+    updateVoetbalDag(dt, world); // de nachten van de voetbalcarrière (#1110): zelfde signaal als de kalender, eigen teller
+    updateVoetbalBeats(dt, world);
     updateCheats(dt, world);
     updateRegioLeven(dt, world);
     updateAchievementTracker(dt, world);
