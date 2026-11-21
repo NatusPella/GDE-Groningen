@@ -29,7 +29,7 @@ De bron is [scripts/coop_coverage.json](../scripts/coop_coverage.json); de tabel
 
 <!-- MATRIX:BEGIN (gegenereerd door scripts/coop_coverage_audit.mjs --write; niet met de hand aanpassen) -->
 
-**Samenvatting:** 42 systemen: 33 OK, 8 gat, 1 niet van toepassing. Directe verwijzingen naar world.player (de ratel in scripts/player_singleton_baseline.json): 80 in totaal; kolom e toont ze per systeem (een bestand kan bij twee systemen horen, een deel hoort bij geen systeem: intromontage, dorpsuitjes, main).
+**Samenvatting:** 42 systemen: 34 OK, 7 gat, 1 niet van toepassing. Directe verwijzingen naar world.player (de ratel in scripts/player_singleton_baseline.json): 80 in totaal; kolom e toont ze per systeem (een bestand kan bij twee systemen horen, een deel hoort bij geen systeem: intromontage, dorpsuitjes, main).
 
 | Systeem | a) Bezit | b) Gast | c) Beloning | d) Wegvallen, aansluiten, hostwissel | e) world.player | f) Dekking | Status |
 |---|---|---|---|---|---|---|---|
@@ -73,7 +73,7 @@ De bron is [scripts/coop_coverage.json](../scripts/coop_coverage.json); de tabel
 | Cheats en testmenu | lokaal per apparaat | Uit zodra er een tweede speler is: geen cheats, geen teleport, geen testmenu of dev-paneel. | Geen. | Valt de tweede speler weg, dan staan cheats weer aan te zetten voor wie alleen speelt. | nee | `cheats_test`, `cheatsui_test`, `bot_cheatvrij_test` | OK |
 | Achtergrondverkeer, voetgangers, dieren en wereldstreaming | wereld (wie het spel opende) | De wereld wordt geladen en gesimuleerd rond elke groep spelers (foci); een gast ziet dezelfde NPC's uit de snapshots. | Geen. | Een focus verdwijnt met zijn spelers; het totaalbudget blijft begrensd. | ja: 10 (pedestrians 4, streetpopulation 1, swimmers3d 1, wildlife 4) | `coopfoci_test`, `tilefocus_test`, `coopgaten_test` | OK |
 | Wapens, PvP en passive mode | gedeeld, gesynct | Eigen wapen uit je eigen opslag; PvP alleen buiten passive mode; dood door een medespeler kost niets. | Geen. | Niets te herstellen. | nee | `coopwapen_test`, `cooppvp_test`, `pvpvertraging_test` | OK |
-| Berovingen | wereld (wie het spel opende) | De beroving draait bij wie het spel opende en pakt een deel van zijn eigen geld; een gast wordt nooit beroofd. | Geen. | Niets te herstellen. | nee | `muggings_test` | **gat**, laag, #1160 |
+| Berovingen | wereld (wie het spel opende) | Iedereen wordt lokaal beroofd tegen zijn eigen geld: de host door een dief in de wereld, een gast op zijn eigen scherm met zijn portemonnee op een plek op de kaart (geen lichaam van de dief, geen geweld). | Het geld terug als je de dief of de plek op tijd bereikt; per speler. | Een gast die opener wordt (hostwissel) krijgt zijn portemonnee terug; wie wegvalt verliest niets blijvends. | nee | `muggings_test`, `muggings_gast_test` | OK |
 | **Spelmenu** | | | | | | | |
 | Telefoon en apps | lokaal per apparaat | De telefoon is lokaal; een gast start een opdracht niet aan de telefoon maar bij het startpunt; delen van een voertuig staat in de telefoon (coopbezit). | Geen. | Niets te herstellen. | ja: 2 (phone 2) | `telefoon_berichten_test`, `coopbezit_test` | OK |
 | Spullen, Te doen en spelmenu (wacht op spullen-ui-21-11) | per speler | Je eigen spullen, kast en Te doen staan in je eigen opslag; het spelersmenu is een weergave van de spelerslijst. | Geen. | Niets te herstellen; het menu leest de actuele lijst. | ja: 6 (spelersregister 5, spullen 1) | `spullen_test`, `todo_ui_test`, `spelmenu_test`, `lobby_test` | OK |
@@ -99,7 +99,6 @@ De bron is [scripts/coop_coverage.json](../scripts/coop_coverage.json); de tabel
 - **Tuning, onderdelen, lak en gepimpte auto's** (middel, #1158): De onderdelen van tuningplan.js (banden, uitlaat, stoel, verlichting, geluid; gde-tuning-v1) reizen niet mee in het bezorg-bericht (coopbezit.js kent alleen color, upgrades, health, dents, flat): een bezorgde auto verliest zijn tuning in andermans wereld. Voeg een gesaneerd tuning-veld toe (PROTO blijft) en een test.
 - **Interieurs: binnen elkaar zien, NPC-bezit (epic Interieurs)** (hoog, lead Interieurs, epic epic-interieurs-21-11): Lead Interieurs meldt (epic-interieurs-21-11): regels staan in docs/INTERIEURS-21-11.md (kop Samen spelen (regels)) en in COOP-GAST.md; pure test scripts/interior_coop_test.mjs (39 controles: host, gast, late gast en nieuwe host bouwen dezelfde kamer uit het gebouwszaad; kopen per speler; geen netwerkverkeer). Open: testbankstap interieur in de suite alles (interiorSeed/planInterior op twee clients vergelijken) en de status naar OK na de merge.
 - **Kaartping en roepjes (7, 8, 9)** (middel, #1159): Een ping kan alleen met 7, 8 of 9 vanaf je eigen plek; geen ping op een gekozen kaartpunt en geen waypoint delen (ook niet voor de bijrijder in een auto). Een eigen test voor coopping.js ontbreekt.
-- **Berovingen** (laag, #1160): muggings.js leest hoofdspeler(w) en w.money van de host: een gast kan niet beroofd worden en alleen de host verliest geld; gelijkwaardigheid vraagt een lokale beroving per speler (kost een deel van zijn eigen geld, geen beeld van geweld).
 
 ### Gefixt in deze ronde
 
