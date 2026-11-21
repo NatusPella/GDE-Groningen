@@ -20,6 +20,7 @@ import { KOPIEER, magStarten, startKnop } from './playerstatus.js';
 import { createLobby, reduce, view, profielNaam, ROLES, ROUTES, PROFIEL_KLEUREN, VERBIND_TIK_MS } from './lobby.js';
 import { consentOnthoudenHtml } from './onlineconsentui.js';
 import { getSettings, setSetting } from './settings.js';
+import { getDifficultyLevel } from './difficulty.js';
 import { ipcTransport, listenForGuests, onlineSupported } from './net/ipctransport.js';
 import { hostRoom, joinRoom, rtcSupported } from './net/rtcroom.js';
 import { MultiSignaler, LijstSignaler } from './net/brokers.js';
@@ -143,6 +144,8 @@ export function mountLobby(root, hooks, opts = {}) {
   const rapportTekst = () => foutrapport({ beoordeling: lastDiag, log: verbindingslog, versie: VERSION, platform: typeof navigator !== 'undefined' ? navigator.platform : '', stand: `${state.rol || '-'} / ${state.route || '-'} / ${state.step}` });
 
   function draw() {
+    // #1169: het niveau van de wereld: de eigen stand als je het spel opende, anders wat het welkom van de host meegaf (een oude host geeft niets)
+    state.wereld = state.rol === ROLES.HOST ? getDifficultyLevel() : (session && session.welcome && session.welcome.niveau) || '';
     const v = view(state);
     // #464/#review 0.63: een nieuwe tekening (de lijst ververst elke 2 s, een statuswissel) mag niet
     // stelen wat je aan het typen bent. Onthoud van het actieve tekstveld de klasse, de waarde en de
@@ -374,7 +377,7 @@ export function mountLobby(root, hooks, opts = {}) {
     aankondiger = sig;
     // De lijst draagt naam, spelers, versie, het sessie-id en de publieke hostsleutel; de kamercode staat er niet
     // in (#583, #795).
-    const maak = maakAankondiger({ naam: p.naam, versie: VERSION, proto: PROTO, id: p.id,
+    const maak = maakAankondiger({ naam: p.naam, versie: VERSION, proto: PROTO, id: p.id, niveau: () => getDifficultyLevel(),
       hub: () => (hub && hub.publiek ? hub.publiek() : null) });
     const topic = await topicFor(LIJST.sleutel);
     if (aankondiger !== sig) return; // intussen weer privé gemaakt: niets plaatsen

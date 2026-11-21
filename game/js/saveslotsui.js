@@ -196,6 +196,7 @@ export function openSaveSlots(opts = {}) {
     if (isCurrent) chips.push('<span class="ssl-chip on">Bewaard vanzelf</span>');
     if (s.state === 'hersteld') chips.push('<span class="ssl-chip warn">Hersteld</span>');
     if (bad) chips.push('<span class="ssl-chip warn">Kan niet laden</span>');
+    if (sm && sm.niveau && !bad) chips.push(`<span class="ssl-chip" title="Moeilijkheid van dit spel">${esc(sm.niveau)}</span>`); // #1169
     const pic = thumb ? `<img src="${thumb}" alt="" draggable="false">` : `<span class="ssl-nopic">${svg(IC.person, 'ssl-nopic-ic')}</span>`;
     const part = bad ? S.stateText(s.state) : story ? (story.ended ? 'Het verhaal is uit' : story.part) : sm ? 'Het begin' : '';
     const ago = sm ? S.agoText(sm.savedAt) || dateText(sm.savedAt) : '';
