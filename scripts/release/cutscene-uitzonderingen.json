@@ -1,4 +1,65 @@
 {
-  "toelichting": "Gedocumenteerde uitzonderingen op de cutscene-regels (scripts/cutscene_lint.mjs, regie-bijbel docs/CUTSCENE-REGIE-21-11.md). De regels gelden voor ALLE cutscenes, ook de bestaande (eigenaar-besluit 21-11); er is geen stille baseline. Een regel die bij een bestaande cutscene bewust niet geldt, staat hier met een reden van minstens 20 tekens: { \"cutscene\": \"<id>\", \"regel\": \"CS-...\", \"regelNr\": <optioneel, regel in de scène>, \"reden\": \"waarom dit hier bewust zo is\", \"akkoord\": \"wie heeft dit goedgekeurd\" }. Een uitzondering die geen vondst meer dekt, wordt als fout gemeld: verwijder hem dan. Op 21-11 staat de lijst leeg: de huidige blokkerende vondsten moeten worden opgelost (WP15 regie #1138, WP11 dialoogvorm #1134), niet uitgezonderd.",
-  "uitzonderingen": []
+  "toelichting": "Gedocumenteerde uitzonderingen op de cutscene-regels (scripts/cutscene_lint.mjs, regie-bijbel docs/CUTSCENE-REGIE-21-11.md). De regels gelden voor ALLE cutscenes, ook de bestaande (eigenaar-besluit 21-11); er is geen stille baseline. Een regel die bij een bestaande cutscene bewust niet geldt, staat hier met een reden van minstens 20 tekens: { \"cutscene\": \"<id>\", \"regel\": \"CS-...\", \"regelNr\": <optioneel, regel in de scène>, \"reden\": \"waarom dit hier bewust zo is\", \"akkoord\": \"wie heeft dit goedgekeurd\" }. Een uitzondering die geen vondst meer dekt, wordt als fout gemeld: verwijder hem dan. Op 21-11 stonden de blokkerende vondsten er niet in (die zijn opgelost, WP15 regie #1138, WP11 dialoogvorm #1134); #1146 voegt alleen introductie-uitzonderingen toe voor stemmen en rolfiguren zonder naam, elk met een reden.",
+  "uitzonderingen": [
+    {
+      "cutscene": "M01.3",
+      "regel": "CS-T08",
+      "reden": "De torenwachter stelt zich aan de telefoon zelf voor in zijn eerste regel (\"Tammo. Torenwachter.\"); hij is een stem met een rol, geen personage met een eigen naamkaart, en komt in het verhaal alleen als stem terug.",
+      "akkoord": "verhaal-lead (voorstel van de agent bij #1146, nog niet door de eigenaar gezien)"
+    },
+    {
+      "cutscene": "M03.outro",
+      "regel": "CS-T08",
+      "reden": "Bert belt aan het eind van M03 om M04 te starten; zijn naamkaart staat bewust bij de eerste ontmoeting in M04.1 (regie van het script), de telefoon kondigt alleen de plek aan. Een kaart nu zou zijn kaart in M04 dubbel tonen.",
+      "akkoord": "verhaal-lead (voorstel van de agent bij #1146, nog niet door de eigenaar gezien)"
+    },
+    {
+      "cutscene": "M11.outro",
+      "regel": "CS-T08",
+      "reden": "Dokter Dijkstra noemt zichzelf met rol en werkgever in haar eerste telefoonregel (\"Dijkstra, van het UMCG\"); de lezer weet direct wie ze is. Haar kaart volgt bij de eerste ontmoeting.",
+      "akkoord": "verhaal-lead (voorstel van de agent bij #1146, nog niet door de eigenaar gezien)"
+    },
+    {
+      "cutscene": "O1",
+      "regel": "CS-T08",
+      "reden": "Beppe is een stem aan de telefoon in een thuisavond-scène; de naamkaart bij haar eerste lijfelijke optreden (N-scène) blijft de officiële introductie. Het telefoontje is een korte kleur, geen introductie.",
+      "akkoord": "verhaal-lead (voorstel van de agent bij #1146, nog niet door de eigenaar gezien)"
+    },
+    {
+      "cutscene": "R2.0",
+      "regel": "CS-T08",
+      "reden": "De snackbarhouder is een rolfiguur die belt naar de radio; zijn rol staat in zijn eerste regel (\"Mijn pannen zijn leeg, ik ben veertig jaar open\"). Hij krijgt geen eigen naamkaart.",
+      "akkoord": "verhaal-lead (voorstel van de agent bij #1146, nog niet door de eigenaar gezien)"
+    },
+    {
+      "cutscene": "M03.intro",
+      "regel": "CS-T08",
+      "reden": "De loketbediende is een rolfiguur (het loket zelf is de aankondiging); een naamkaart voor een functie zonder naam zou een grap zijn die er niet staat.",
+      "akkoord": "verhaal-lead (voorstel van de agent bij #1146, nog niet door de eigenaar gezien)"
+    },
+    {
+      "cutscene": "M18.intro",
+      "regel": "CS-T08",
+      "reden": "De accountmanager is een rolfiguur van Wiebelwerk die zich met het bedrijf en zijn functie voorstelt (\"Welkom bij Wiebelwerk\"); geen eigen naamkaart.",
+      "akkoord": "verhaal-lead (voorstel van de agent bij #1146, nog niet door de eigenaar gezien)"
+    },
+    {
+      "cutscene": "N7",
+      "regel": "CS-T08",
+      "reden": "De buschauffeur is een rolfiguur zonder naam met drie regels in een busrit; een naamkaart voor een functie zou de grap van de anonieme chauffeur breken.",
+      "akkoord": "verhaal-lead (voorstel van de agent bij #1146, nog niet door de eigenaar gezien)"
+    },
+    {
+      "cutscene": "M09.2",
+      "regel": "CS-T08",
+      "reden": "De boer is een rolfiguur zonder naam met twee regels aan de afgesloten weg; de rol staat in de regie van de scène.",
+      "akkoord": "verhaal-lead (voorstel van de agent bij #1146, nog niet door de eigenaar gezien)"
+    },
+    {
+      "cutscene": "M16.2",
+      "regel": "CS-T08",
+      "reden": "De student is een rolfiguur zonder naam met twee regels op de kermis; de rol staat in de regie van de scène.",
+      "akkoord": "verhaal-lead (voorstel van de agent bij #1146, nog niet door de eigenaar gezien)"
+    }
+  ]
 }

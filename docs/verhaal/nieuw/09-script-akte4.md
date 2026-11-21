@@ -211,6 +211,7 @@ BEREND (telefoon): Ik heb een bus nodig. Kom naar Ter Apel. [NIEUW]
 DURK: Douwe. De trein staat weer stil. Net fertelle, hè? [NIEUW]
 
 ## [T4.1] De bus naar Bourtange: instappen – Westerwolde, Ter Apel-bos – bus
+(regie: Naamkaart: TINUS bij zijn eerste regel.)
 (regie: dinsdag 25 augustus, vroege avond, na een dag bussen regelen. Een heideweg, een oude bus, veertig mensen in bisschopsmantels en met kartonnen kanonnen. Reisbeat: meerijden, zelf rijden of skippen.)
 HENK (telefoon): Moi. Ik rij de Escapade achter jullie aan. Tinus stapt bij jullie in. Hij heeft een schuur. [NIEUW]
 BEREND: Goidag. Ik heb veertig man, vijftien kanonnen van karton, en een bus die niet start. Het gips is eraf. Het stuur ook bijna. [NIEUW]

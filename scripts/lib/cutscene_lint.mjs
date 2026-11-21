@@ -147,7 +147,7 @@ export function checkText(unit, ctx = {}) {
 export function checkIntroductions(units, names = {}, opts = {}) {
   const per = new Map();
   const add = (u, v) => { if (!per.has(u.id)) per.set(u.id, []); per.get(u.id).push(v); };
-  const bekend = new Set(['T', 'A', 'V', 'Tammo', 'Tessa', 'Anita', 'Rikus']);
+  const bekend = new Set(['T', 'A', 'V', 'rikus', 'Tammo', 'Tessa', 'Anita', 'Rikus']); // Rikus is de radiostem die het verhaal opent (sleutel én naam)
   const totaal = {};
   for (const u of units) for (const l of u.lines || []) if (l.key) totaal[l.key] = (totaal[l.key] || 0) + 1;
   const eersteNaam = (key) => String(names[key] || key).split(/\s+/)[0];

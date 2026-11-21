@@ -522,6 +522,7 @@
    "kind": "intro",
    "gameplay": "Berends bakkie door het centrum, nul krassen.",
    "regie": [
+    "Naamkaart: BEREND BOS bij zijn eerste regel.",
     "vrijdag 14 augustus, middag. Berend staat bij zijn bakkie, een nors mannetje met zijn arm in het gips en een kladblok. Aan het bakkie hangt een bord: CHAUFFEUR GEZOCHT, VIJFTIG EURO, BEREND BOS. De Escapade staat met een lekke band aan de kant. Gameplay: Berends bakkie door het centrum, nul krassen."
    ],
    "lines": [
@@ -1391,6 +1392,7 @@
    "step": "M02",
    "kind": "intro",
    "regie": [
+    "Naamkaart: DURK, daarna DOUWE, bij hun eerste regels.",
     "zaterdag 15 augustus, half acht 's ochtends. De Escapade heeft een nieuwe band. Tessa staat bij een pinautomaat. Hij slikt haar pas in. Een zwarte trekker met een kabel. Twee reuzen trekken de hele automaat uit de muur en laden hem op een aanhanger.",
     "de trekker rijdt weg, de aanhanger blijft achter een paal haken en schiet los. Ze rijden door zonder hem."
    ],
@@ -2015,6 +2017,7 @@
    "step": "N2",
    "kind": "key",
    "regie": [
+    "Naamkaart: MENEER VELDKAMP bij zijn eerste regel.",
     "vrijdagavond, laat licht. Op de gang van de elfde verdieping staat een oude man in een vest met zes duiven om zich heen. Een duif zit op de deurmat van de flat."
    ],
    "lines": [
@@ -5928,6 +5931,7 @@
    "step": "N6",
    "kind": "key",
    "regie": [
+    "Naamkaart: KAPITEIN KLAAS bij zijn eerste regel.",
     "donderdagmiddag. Kapitein Klaas heeft twee hengels en een emmer. Tammo zit stil aan de rand; Tessa houdt zich vast aan de reling."
    ],
    "lines": [
@@ -13359,6 +13363,7 @@
    "step": "T4",
    "kind": "intro",
    "regie": [
+    "Naamkaart: TINUS bij zijn eerste regel.",
     "dinsdag 25 augustus, vroege avond, na een dag bussen regelen. Een heideweg, een oude bus, veertig mensen in bisschopsmantels en met kartonnen kanonnen. Reisbeat: meerijden, zelf rijden of skippen."
    ],
    "lines": [

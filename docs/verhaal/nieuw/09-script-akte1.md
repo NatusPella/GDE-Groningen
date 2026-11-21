@@ -45,6 +45,7 @@ TESSA: Een streamer betaalt honderdvijftig euro voor stunts. Alleen heeft de Esc
 TESSA: Dus we lenen een bakkie. Rijden, niet praten. [NIEUW]
 
 ## [M01.1] Nul krassen, vijftienhonderd punten: intro – Stad, Martinikerkhof – Berends bakkie
+(regie: Naamkaart: BEREND BOS bij zijn eerste regel.)
 (regie: vrijdag 14 augustus, middag. Berend staat bij zijn bakkie, een nors mannetje met zijn arm in het gips en een kladblok. Aan het bakkie hangt een bord: CHAUFFEUR GEZOCHT, VIJFTIG EURO, BEREND BOS. De Escapade staat met een lekke band aan de kant. Gameplay: Berends bakkie door het centrum, nul krassen.)
 BEREND: Goidag. [BEHOUDEN]
 TESSA: Goidag, Berend. [BEHOUDEN]
@@ -150,6 +151,7 @@ TAMMO: Dan is hij van de vorige klant. [BEHOUDEN]
 RIKUS (radio): Een luisteraar meldt een trekker in de Herestraat, om half acht 's ochtends. Ik zeg niks. Fietsen mag daar overdag ook niet. [BEHOUDEN]
 
 ## [M02.1] Even pinnen: intro – Stad, Herestraat – Escapade
+(regie: Naamkaart: DURK, daarna DOUWE, bij hun eerste regels.)
 (regie: zaterdag 15 augustus, half acht 's ochtends. De Escapade heeft een nieuwe band. Tessa staat bij een pinautomaat. Hij slikt haar pas in. Een zwarte trekker met een kabel. Twee reuzen trekken de hele automaat uit de muur en laden hem op een aanhanger.)
 TESSA: Half acht. Eerst honderdvijftig euro pinnen, dan naar het Loket. [NIEUW]
 TESSA: Hij heeft mijn pas. Hij heeft mijn pas en hij… [BEHOUDEN]
@@ -232,6 +234,7 @@ TESSA: Wat moet hij met kopieerpapier? [NIEUW]
 SJABBE: Papier is macht. Zegt hij. Ik zeg niks. [NIEUW]
 
 ## [N2] Een duif op de gang – Stad, Paddepoel, elfde verdieping – flat
+(regie: Naamkaart: MENEER VELDKAMP bij zijn eerste regel.)
 (regie: vrijdagavond, laat licht. Op de gang van de elfde verdieping staat een oude man in een vest met zes duiven om zich heen. Een duif zit op de deurmat van de flat.)
 TAMMO: Dat is de buurman. Hij woont hier al sinds de verhuisdag, met zijn duiven. [NIEUW]
 TESSA: Je kent hem? [NIEUW]

@@ -143,6 +143,7 @@ TAMMO: Hij is zacht. [NIEUW]
 TESSA: Ik zei het toch. [NIEUW]
 
 ## [N6] Een dag op het water – Hogeland, Noordpolderzijl – rubberboot
+(regie: Naamkaart: KAPITEIN KLAAS bij zijn eerste regel.)
 (regie: donderdagmiddag. Kapitein Klaas heeft twee hengels en een emmer. Tammo zit stil aan de rand; Tessa houdt zich vast aan de reling.)
 KAPITEIN KLAAS: Praat tegen het water. Dan vangt hij. [NIEUW]
 TAMMO: ... [NIEUW]
