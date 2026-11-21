@@ -4,7 +4,7 @@
 import { VELD } from './voetbalrules.js';
 
 const G = 9.8;
-export const MAX_STAP = 1 / 120;
+const MAX_STAP = 1 / 120;
 const HB = VELD.B / 2, HL = VELD.L / 2, HD = VELD.DOEL_B / 2, R = VELD.BAL_R;
 
 export const maakBal = (x = 0, y = 0) => ({ x, y, z: 0, vx: 0, vy: 0, vz: 0, dood: false, netTeam: -1, laatsteTeam: -1, laatsteSpeler: -1 });

@@ -5,8 +5,6 @@ import { cleanDifficulty } from './difficulty.js';
 
 // Het veld in meters, het midden is (0, 0): x is dwars (links/rechts voor het team dat naar voren kijkt), y is in de lengte. Team 0 verdedigt y = -L/2 en valt aan naar +y.
 export const VELD = { B: 26, L: 42, DOEL_B: 4.4, DOEL_H: 1.7, DOEL_DIEPTE: 1.3, STRAF_B: 13, STRAF_D: 6.5, PAAL_R: 0.07, BAL_R: 0.11 };
-export const SPELERS_PER_TEAM = 5;
-export const MAX_MENSEN = 4;              // mensen in één team (de rest is computer, de keeper meestal)
 export const DUREN = { kort: 45, normaal: 90 };     // seconden per helft
 export const DUUR_STANDAARD = 'normaal';
 export const HELFTEN = 2;
@@ -61,10 +59,10 @@ export const ROLLEN = ['keeper', 'verdediger', 'verdediger', 'aanvaller', 'aanva
 export const NAMEN_THUIS = ['Keeper Mans', 'Hinderk', 'Wietske', 'Tammo', 'Grietje'];
 export const NAMEN_UIT = ['Keeper Bouwe', 'Roelof', 'Fenna', 'Jelmer', 'Marrit'];
 // De basisplek per rol, gemeten van het eigen doel: u in -1..1 over de breedte, d in 0..1 over de lengte.
-export const VORMING = [{ u: 0, d: 0.04 }, { u: -0.42, d: 0.26 }, { u: 0.42, d: 0.26 }, { u: -0.4, d: 0.55 }, { u: 0.4, d: 0.62 }];
+const VORMING = [{ u: 0, d: 0.04 }, { u: -0.42, d: 0.26 }, { u: 0.42, d: 0.26 }, { u: -0.4, d: 0.55 }, { u: 0.4, d: 0.62 }];
 
 // De moeilijkheid: reactietijd van de computer, zijn snelheid, de afwijking van zijn schot (rad) en de keeper (0..1) en de tackle (kans). Gelezen uit de bestaande stand.
-export const AI_STAND = {
+const AI_STAND = {
   ontspannen: { reactie: 0.46, tempo: 0.88, spreiding: 0.2, keeper: 0.5, tackle: 0.3, durf: 0.75 },
   standaard: { reactie: 0.28, tempo: 0.97, spreiding: 0.11, keeper: 0.72, tackle: 0.5, durf: 1 },
   uitdagend: { reactie: 0.16, tempo: 1.05, spreiding: 0.06, keeper: 0.88, tackle: 0.7, durf: 1.2 },
@@ -86,8 +84,8 @@ export const MEDAILLE_TEKSTEN = ['Winst', 'Winst met de nul', 'Winst met een hat
 export const recordWaarde = ({ gf = 0, ga = 0 } = {}) => Math.max(0, gf - ga);
 export const recordTekst = (v) => (v > 0 ? `winst met ${Math.round(v)} doelpunt${Math.round(v) === 1 ? '' : 'en'} verschil` : 'nog geen winst');
 // Wat een mens krijgt (euro en loopbaanpunten): klein. De plek is 1 winst, 2 verlies, 3 gelijk (het kader wil een plek); wie wegviel krijgt niets.
-export const PRIJZEN = { 1: 40, 2: 5, 3: 15 };
-export const NUL_BONUS = 10;
+const PRIJZEN = { 1: 40, 2: 5, 3: 15 };
+const NUL_BONUS = 10;
 export function voetbalBeloning({ plek = 2, weg = false, nul = false } = {}) {
   if (weg) return { geld: 0, xp: 0 };
   return { geld: (PRIJZEN[plek] || 0) + (plek === 1 && nul ? NUL_BONUS : 0), xp: plek === 1 ? 26 : plek === 3 ? 18 : 14 };

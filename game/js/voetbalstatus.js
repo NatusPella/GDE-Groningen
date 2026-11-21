@@ -2,9 +2,9 @@
 // jouw doelpunten, de adem als meter, een paar cijfers, één zin "wat nu" en de uitleg met animaties) en het bord bovenin (minigamekit.js createBoard: de stand en de klok, een
 // krachtmeter voor schot en voorzet, en de flits van een doelpunt). Toetsen staan als {TOKEN}: de HUD toont een toetsplaatje dat de echte keymap en de controller volgt.
 import { SIMICOON as I } from './simicoon.js';
-import { klokTekst, LAAD_S } from './voetbalrules.js';
+import { klokTekst } from './voetbalrules.js';
 
-export const ICOON = { aanval: 'worp', verdedig: 'schild', herstart: 'vlag', score: 'plaats', schoten: 'doel', tijd: I.klok, adem: 'rennen', bezit: 'stand' };
+const ICOON = { aanval: 'worp', verdedig: 'schild', herstart: 'vlag', score: 'plaats', schoten: 'doel', tijd: I.klok, adem: 'rennen', bezit: 'stand' };
 export const STAPPEN = [
   { id: 'aanval', label: 'Aanvallen', icoon: ICOON.aanval },
   { id: 'verdedig', label: 'Verdedigen', icoon: ICOON.verdedig },
@@ -18,15 +18,15 @@ export const UITLEG = [
   { toets: 'SPACE', animatie: 'houd', tekst: 'Schot: houd vast voor kracht' },
   { toets: ['CTRL', 'Q'], animatie: 'druk', tekst: 'Tackle en wissel van speler' },
 ];
-export const HULP = '{WASD} lopen · {F} pass · {E} lang · {SPATIE} schot · {CTRL} tackle · {Q} wissel';
+const HULP = '{WASD} lopen · {F} pass · {E} lang · {SPATIE} schot · {CTRL} tackle · {Q} wissel';
 
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const FASE_WOORD = { intro: 'Aanstaande', aftrap: 'Aftrap', spel: '', hervat: 'Herstart', goal: 'Doelpunt', rust: 'Rust', eind: 'Einde', klaar: 'Einde' };
-export const helftTekst = (h) => `${h === 2 ? 'Tweede' : 'Eerste'} helft`;
+const helftTekst = (h) => `${h === 2 ? 'Tweede' : 'Eerste'} helft`;
 
 // g: { fase, helft, klok, score: [a, b], namen: [a, b], bezitTeam (0, 1, of -1 als de bal los is), heeftBal (jij), rol ('keeper' | 'veld'), laad (0..1), laadSoort ('schot' | 'lang' | null),
 //      stamina (0..1), moe, eigen (jouw doelpunten), schoten (jouw), bezit: [a, b] (seconden), hervat ('inworp', ...), tekst (een flits), uitleg (bool), slomo }
-export function stapVan(g) {
+function stapVan(g) {
   if (g.fase === 'aftrap' || g.fase === 'hervat') return 'herstart';
   return g.bezitTeam === 1 ? 'verdedig' : g.bezitTeam === 0 ? 'aanval' : 'verdedig';
 }
@@ -87,4 +87,3 @@ export function popVan(e, mijnTeam = 0) {
   if (e.type === 'einde') return { tekst: e.winnaar === mijnTeam ? 'Gewonnen!' : e.winnaar < 0 ? 'Gelijkspel' : 'Verloren', geluid: e.winnaar === mijnTeam ? 'ui_loopbaan' : null };
   return null;
 }
-export const LAAD_VOL_S = LAAD_S;

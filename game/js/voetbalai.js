@@ -15,8 +15,8 @@ const naar = (p, tx, ty, { sprint = false, stop = 0.35 } = {}) => {
   return { dx: dx / d * v, dy: dy / d * v, sprint, tackle: false, kick: null, duik: null };
 };
 
-export const teamgenoten = (m, p) => m.spelers.filter((q) => q.team === p.team && q !== p);
-export const tegenstanders = (m, p) => m.spelers.filter((q) => q.team !== p.team);
+const teamgenoten = (m, p) => m.spelers.filter((q) => q.team === p.team && q !== p);
+const tegenstanders = (m, p) => m.spelers.filter((q) => q.team !== p.team);
 
 // Hoe vrij is de lijn van a naar b: de kleinste afstand van een tegenstander tot dat lijnstuk.
 function vrijheid(m, a, b, team) {
@@ -54,7 +54,7 @@ export function besteOntvanger(m, p, { richting = null, geenKeeper = true, minSc
 }
 
 // De kracht (0..1) van een grondpass of voorzet naar een afstand, in dezelfde eenheid als het menselijke laden (voetbalmatch.js schopt uit die kracht).
-export const passKracht = (d) => kl((d - 2) / 26 + 0.2, 0.2, 1);
+const passKracht = (d) => kl((d - 2) / 26 + 0.2, 0.2, 1);
 
 function dichtstbij(m, p, lijst) {
   let best = null, bd = Infinity;

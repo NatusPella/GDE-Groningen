@@ -24,7 +24,7 @@ import {
 } from './voetbalmatch.js';
 import { voetbalHudModel, voetbalBord, popVan, UITLEG_ID } from './voetbalstatus.js';
 import { VOETBAL_LINES, PROMPT_SUB } from './voetbaldata.js';
-import { voetbalBonusVan, karakterStart, karakterEind, tessaRegel } from './voetbalkarakter.js';
+import { voetbalBonusVan, karakterStart, karakterEind, tessaRegel, tessaUitleg } from './voetbalkarakter.js';
 
 // Voetbal in de Euroborg (#981, Voetbal Sim Light): vijf tegen vijf op een klein veld binnen de tribunes, twee helften, met verzonnen teams (geen echte clubs, spelers of merken). De regels, de bal en
 // de computerspelers staan in voetbalrules.js, voetbalbal.js, voetbalai.js en voetbalmatch.js (puur, getest zonder beeld); dit bestand is de wereld (veld, doelen, spelers, camera), de invoer en de
@@ -294,6 +294,7 @@ function start(w, { force = false, online = null, sim = null } = {}) {
   if (online === 'gast') installeerGastKnoppen(w);
   if (online !== 'gast') toonStartkaart(w, 'voetbal', { record: recText() });
   say(w, 'start', true);
+  if (online !== 'gast' && tessaUitleg()) w.addMessage(tessaUitleg(), 6); // de regel over het dorpsteam van Tessa (alleen tekst, alleen met de Tessa-haak)
   teken(w, 0);
   return true;
 }
@@ -304,7 +305,7 @@ function say(w, kind, force = false) {
   if (!force && game.t - game.said < 5) return;
   game.said = game.t;
   const q = toWorld(HB + 3, 0);
-  const tessa = (kind === 'goalThuis' && tessaRegel('viering')) || null; // alleen tekst; zonder de Tessa-haak is dit null
+  const tessa = (kind === 'goalThuis' && tessaRegel('viering')) || (kind === 'redding' && tessaRegel('keepersneer')) || (kind === 'overtreding' && tessaRegel('tegenstandersneer')) || null; // alleen tekst; zonder de Tessa-haak is dit null
   bubble(w, { x: q.x, y: q.y, name: tessa ? 'Tessa' : VOETBAL_LINES.who, text: tessa || pick(lijst), h: 3.2, tag: 'voetbal', ttl: 4 });
 }
 

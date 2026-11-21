@@ -6,7 +6,7 @@
 // Puur: geen DOM, geen THREE, geen wereld buiten wat de haken zelf aanraken.
 
 export const NEUTRALE_BONUS = Object.freeze({ sprint: 1, schot: 1, aanname: 1 });
-export const KARAKTER_VOETBAL = 'anita'; // de id van Tessa in world.player.character (de speler ziet "Tessa")
+const KARAKTER_VOETBAL = 'anita'; // de id van Tessa in world.player.character (de speler ziet "Tessa")
 
 const haken = { bonus: null, voorActiviteit: null, regels: null };
 export function zetVoetbalKarakterHaken(h) { Object.assign(haken, h || {}); }
