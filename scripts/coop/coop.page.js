@@ -409,8 +409,8 @@ const PHASES = {
   },
   // #1011: een bijbaan door een gast, in een echte sessie. De gast (args.wie) staat bij het startpunt en drukt E; de anderen
   // krijgen "Meedoen?" en zeggen J. Gelogd: wie meedoet, de stand van de baan en het geld per speler (elke meedoende krijgt het volle bedrag).
-  async gastbijbaan({ s = 45, wie = 'gast', id = 'krantenwijk' }) {
-    const w = W(); const SJ = await import('./js/sidejobs.js');
+  async gastbijbaan({ s = 45, wie = 'gast', id = 'krantenwijk', beloon = 0, bied = 0 }) {
+    const w = W(); const SJ = await import('./js/sidejobs.js'); const CB = await import('./js/coopbijbaan.js'); let beloond = false, wisselBod = false, wisselJ = false;
     const spot = SJ.getSideJobSpotsForRender().find((x) => x.job && x.job.id === id);
     const geld0 = w.money | 0; let jGestuurd = false, deelde = false, verzoek = false; const slotVan = { gast: 1, gast2: 2, gast3: 3 }[wie] || 1;
     log('gastbijbaan-begin', { wie: CFG.name, spot: spot ? [Math.round(spot.x), Math.round(spot.y)] : null, geld: geld0 });
@@ -422,12 +422,41 @@ const PHASES = {
       if (CFG.role === 'host' && performance.now() - t0 < 9000) { const f = (w.coopFigures || {})[slotVan]; if (f) { f.x = spot.x + 0.8; f.y = spot.y; f.vx = 0; f.vy = 0; f.verTijd = 0; f.vastTijd = 0; } }
       if (CFG.name === wie && !verzoek && performance.now() - t0 > 6000) { key('e', 'KeyE'); verzoek = true; log('gastbijbaan-e', { wie: CFG.name, pos: [Math.round(w.player.x), Math.round(w.player.y)], spot: [Math.round(spot.x), Math.round(spot.y)], msg: (w.messages || []).slice(-2).map((m) => m.text || m) }); }
       if (CFG.name !== wie && CFG.role !== 'host' && !jGestuurd && G && G.uitn) { key('j', 'KeyJ'); jGestuurd = true; log('gastbijbaan-j', { wie: CFG.name, uitn: G.uitn.label }); }
+      // #1011: de ronde afronden zoals sidejobs.js completeRound het doet (de plek van de starter is de eigenaar): wie krijgt de beloning, over het echte netwerk?
+      if (beloon && CFG.role === 'host' && !beloond && performance.now() - t0 > 28000) { beloond = true; const st = CB.staatVan(w.coopNet, slotVan); const ja = Object.entries((st && st.keuze) || {}).filter(([, v]) => v === 'ja').map(([k]) => +k); const ok = CB.bijbaanBeloning(w, id, beloon, null, 0, null, slotVan); log('gastbijbaan-beloning', { ok, ja, basis: beloon }); CB.bijbaanEind(w, 'ok', slotVan); }
+      // #1011: hostwissel midden in de baan (route 'kamer'): de host biedt het spel aan plek 1 aan, die zegt J; de rest verbindt opnieuw bij de nieuwe host
+      if (bied && CFG.role === 'host' && !wisselBod && performance.now() - t0 > bied * 1000) { wisselBod = true; const HW = await import('./js/coophostwisselnet.js'); log('overdracht-bod', { r: HW.biedOver(w, 1), rol: w.coopNet && w.coopNet.role }); }
+      if (bied && CFG.name === 'gast' && !wisselJ) { const u = w.coopWisselUi; if (u && u.vraag) { wisselJ = true; key('j', 'KeyJ'); log('overdracht-j', { vraag: u.vraag.tekst }); } }
       if (G && G.deelt) deelde = true;
-      if (performance.now() - laatsteLog > 3000) { laatsteLog = performance.now(); log('gastbijbaan-stand', { wie: CFG.name, deelt: !!(G && G.deelt), uitn: !!(G && G.uitn), baan: G && G.id, sideJob: w.sideJob ? { actief: !!w.sideJob.active, naam: w.sideJob.name || null } : null, geld: w.money | 0 }); }
+      if (performance.now() - laatsteLog > 3000) { laatsteLog = performance.now(); log('gastbijbaan-stand', { wie: CFG.name, rol: w.coopNet ? w.coopNet.role : null, slot: w.coopNet && w.coopNet.session ? w.coopNet.session.slot : (w.coopNet && w.coopNet.role === 'host' ? 0 : null), spelers: (w.coopRoster || []).length, wissel: !!(w.coopWisselUi && (w.coopWisselUi.vraag || w.coopWisselUi.pauze)), deelt: !!(G && G.deelt), uitn: !!(G && G.uitn), baan: G && G.id, sideJob: w.sideJob ? { actief: !!w.sideJob.active, naam: w.sideJob.name || null } : null, geld: w.money | 0 }); }
       await sleep(500);
     }
     shot('gastbijbaan');
     log('gastbijbaan-eind', { wie: CFG.name, deelde, geldWinst: (w.money | 0) - geld0 });
+  },
+  // #1011: plaatsborden omver en de wereld van de host bij de gasten: de host breekt borden en banken om zich heen, de gasten melden de kapot-lijst (EXTRA) en wat ze van verkeer en voetgangers zien
+  async bordenkapot({ s = 20 }) {
+    const w = W(), B = await import('./js/breakables.js'); const p = w.player;
+    if (CFG.role === 'host') {
+      for (const f of Object.values(w.coopFigures || {})) { f.x = p.x + 3; f.y = p.y + 1; f.vx = 0; f.vy = 0; f.verTijd = 0; f.vastTijd = 0; } // de gasten staan na de baan nog bij het startpunt: weer naast de host
+      await sleep(3000);
+      const kandidaten = B.propsInRadius(p.x, p.y, 120, ['placesign', 'wegwijzer', 'bench', 'bin', 'lamp']).filter((q) => /^[a-z]+@-?d+,-?d+$/.test(q.key)).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y)).slice(0, 3);
+      const gebroken = kandidaten.filter((q) => B.breakPropByKey(q.key, q.x, q.y, 1, 0)).map((q) => q.key);
+      log('borden-host', { kandidaten: kandidaten.map((q) => q.key), gebroken, voertuigen: (w.vehicles || []).length, peds: (w.pedestrians || []).length });
+      await sleep(s * 1000); return;
+    }
+    await sleep(Math.min(16, s - 4) * 1000);
+    const e = w.coopExtra;
+    log('borden-gast', { kapot: e ? e.kapot.map((k) => [k.key, B.isPropBroken(k.key)]) : null, voetgangers: e ? e.voetgangers.size : null, dieren: e ? e.dieren.size : null, hostMesh: w.coopHostMeshes || null, extraMeshes: w.coopExtraMeshes || null, lokaalVoertuigen: (w.vehicles || []).length, lokaalPeds: (w.pedestrians || []).length });
+    shot('borden-gast'); await sleep(4000);
+  },
+  // #1011 (privacy): een directe code (GDE2-...) of een IP-adres mag niet in de opslag van de speler staan
+  async opslagcheck() {
+    let dump = ''; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); dump += k + '=' + localStorage.getItem(k) + '
+'; } } catch (e) { dump = ''; }
+    log('opslagcheck', { sleutels: dump.split('
+').filter(Boolean).map((l) => l.split('=')[0]), gde2: /GDE2-/.test(dump), ip: /d{1,3}.d{1,3}.d{1,3}.d{1,3}/.test(dump), lengte: dump.length });
+    await sleep(500);
   },
   // bij een slecht netwerk spelen: alleen op de aangegeven instanties (args.wie)
   async netsim({ s = 20, latency = 0.12, jitter = 0.05, loss = 0.1, wie = null }) {
