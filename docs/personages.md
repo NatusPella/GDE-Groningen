@@ -70,8 +70,9 @@ Regels die voor iedereen gelden:
 ## Beppe (Tammo's beppe)
 **In één zin:** Tammo's Friese oma; haar tuin, haar vogels en haar "Goed ite!" leven voort in het tuintje aan de westgrens.
 
-- **In het spel:** geen levend personage en geen stem. Aan de westgrens staan het laatste bankje van Grunn met haar koperen plaatje, een richtingbordje naar Kollum en haar huis met tuin, vogelhuisje en duiven; het tuinbankje is een rustpunt. De aftiteling eindigt met de in-herinnering-kaarten.
-- **In het verhaal:** Tammo zegt weinig over haar; hij noemt haar "beppe", het enige Friese woord dat hij gebruikt. Na het verhaal wijst de automatische route één keer naar het huis, vóór de uitdagingen; daarna staat de plek in Te doen onder Ommeland.
+- **In het spel:** geen levend personage en geen stem; wat zij zegt komt als briefje (zie hieronder). Aan de westgrens staan het laatste bankje van Grunn met haar koperen plaatje, een richtingbordje naar Kollum en haar huis met tuin, vogelhuisje en duiven; het tuinbankje is een rustpunt. De aftiteling eindigt met de in-herinnering-kaarten.
+- **Het huis (#1063):** het huis opent vroeg, na de eerste missie (M01): Tammo stuurt één bericht en de deur staat open. Binnen: soep op het fornuis (eens per speeldag, klein), een briefje op de keukentafel en een prikbord met tips, afwisselend per bezoek en per akte (zonder spoilers). Alleen tekst. Zie [BEPPE-HUIS-21-11.md](BEPPE-HUIS-21-11.md). **Beppe is niet Oma Trijntje:** Oma Trijntje is de 92-jarige uit Stad (de tweede mentor).
+- **In het verhaal:** Tammo zegt weinig over haar; hij noemt haar "beppe", het enige Friese woord dat hij gebruikt. Na het verhaal wijst de automatische route nog één keer naar het huis, vóór de uitdagingen (alleen als de herinnering nog niet gelezen is); daarna staat de plek in Te doen onder Ommeland.
 - **Let op:** verzonnen personage. Geen echte naam, adres of persoonsgegevens in de game of de repo (constitutie 2 en 4).
 
 ## Tessa
