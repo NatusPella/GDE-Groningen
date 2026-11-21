@@ -20,7 +20,7 @@
 | Groei | Vaardigheden (tempo, schot, pass, uithouding), training via minigames en wedstrijdervaring, rollen en talenten. |
 | Club en geld | Clubbezit mogelijk (aandeel in een club of stadion), als onderdeel van het Bezit-menu. |
 | Samen spelen | Vrienden in je team (11v11) of als rivaliserend team; de carrière blijft per speler (#429). |
-| **Canon (21-11)** | Tammo en Tessa zijn **net student af** en trekken de wijde wereld in. Ze waren tijdens hun studie al vrienden en hebben nu hun eerste volwassen baantjes. Dus: geen jeugd- of leeftijdsfase; Tessa begint als net-afgestudeerde amateur in de laagste klasse en Tammo regelt het naast zijn eerste baan. Alles begint klein. |
+| **Canon (21-11)** | Tammo en Tessa zijn **net student af** en trekken de wijde wereld in. Ze waren tijdens hun studie al vrienden en zijn nu werkloos: hun eerste klusjes komen uit het spel (besluit eigenaar 21-11, zie VERHAALCANON-21-11). Dus: geen jeugd- of leeftijdsfase; Tessa begint als net-afgestudeerde amateur in de laagste klasse en Tammo regelt het naast zijn eerste baan. Alles begint klein. |
 
 ## 1. Stand van zaken
 
@@ -63,7 +63,7 @@
 
 | Fase | Wat de speler doet | Marker |
 |---|---|---|
-| 1 Amateur | Net afgestudeerd, begint als amateur in de laagste klasse (de Talentenklasse, voor aspirant-spelers) bij De Stadjers: trainen in de avonduren naast haar baantjes, eerst invalbeurten | uitnodiging van Tammo |
+| 1 Amateur | Net afgestudeerd, begint als amateur in de laagste klasse (de Talentenklasse, voor aspirant-spelers) bij De Stadjers: trainen in de avonduren naast haar klusjes, eerst invalbeurten | uitnodiging van Tammo |
 | 2 Debuut | Eerste wedstrijd in de basis of als invaller; eerste doelpunt | prestatie, appje |
 | 3 Selectie | Vaste basisspeler, promotie uit de Talentenklasse | promotie-ronde |
 | 4 Doorbraak | Terpklasse en beker; eerste bod van een andere club | bod via Tammo |
@@ -72,7 +72,7 @@
 | 7 Trainer (rol 2) | Vanaf seizoen 3 en kapitein: de sportieve kant (selectie, opstelling, tactiek, training); je mag blijven spelen | beat B9 |
 | 8 Manager (rol 3) | Later, na twee seizoenen als Trainer of bij het eerste clubaandeel: de zakelijke kant (transfers, budget, contracten, opleiding voor aspirant-spelers, sponsors) | beat B10 |
 
-**Canon van de eigenaar (21-11), antwoord op open vraag 1:** er is **geen jeugd- of leeftijdsfase**. Tessa is net afgestudeerd en begint als amateur in de laagste klasse; "Talentenklasse" blijft alleen de naam van die klasse voor aspirant-spelers (geen leeftijd). Een jeugdacademie in de managerlaag is een **opleiding voor aspirant-spelers** (instroom van talenten uit de regio, zonder leeftijd). Het verhaal is "de wijde wereld in": voetbal is een van de dingen die ze naast hun eerste echte baantjes proberen, geen jeugddroom die eindelijk uitkomt. Zie hoofdstuk 2b voor wat in het bestaande verhaal hiermee botst.
+**Canon van de eigenaar (21-11), antwoord op open vraag 1:** er is **geen jeugd- of leeftijdsfase**. Tessa is net afgestudeerd en begint als amateur in de laagste klasse; "Talentenklasse" blijft alleen de naam van die klasse voor aspirant-spelers (geen leeftijd). Een jeugdacademie in de managerlaag is een **opleiding voor aspirant-spelers** (instroom van talenten uit de regio, zonder leeftijd). Het verhaal is "de wijde wereld in": voetbal is een van de dingen die ze naast hun eerste klusjes proberen, geen jeugddroom die eindelijk uitkomt. Zie hoofdstuk 2b voor wat in het bestaande verhaal hiermee botst.
 
 ### Tammo en Tessa, allebei speelbaar (besluit vraag 1)
 
@@ -110,11 +110,11 @@ Alles is een appje (stil, `app-stil`, dus geen TTS-ronde) of een kort gesprek in
 | B9 Trainer | na B8 en een volledig seizoen | Tammo: "Ik regel de papieren naast mijn werk. Jij regelt de opstelling." |
 | B10 Manager | twee seizoenen Trainer, of eerste keer genoeg geld voor een clubaandeel | de regelaar: de kaart naar Bezit > Club en het Manager-scherm |
 
-Regels voor de canon: Tammo regelt het **naast zijn eerste baan** (hij appt tussen werk en sollicitaties; hij is geen volleerd zaakwaarnemer: zijn kantoortje is een app en een koffiebon); Tessa en Tammo zijn vrienden uit hun studietijd, dus geen tekst over "al jaren" of "sinds kinderen" en geen beat die hun beginnende werkende leven tegenspreekt (geld is krap, begin klein). Regels: een beat is hooguit 14 woorden per HUD-bericht (`WORD_BUDGET`), "Grunn" nooit "de Grunn", geen echte clubs of personen, altijd zomer (geen winterstop; een seizoenspauze heet "pauze tussen de seizoenen"). Tessa en Tammo blijven in hun persona's (`PERSONA_POOL`, `karakterbonus.js`); Tammo's rol als zaakwaarnemer is nieuw en vraagt een korte regel in `docs/personages.md`.
+Regels voor de canon: Tammo regelt het **naast zijn eerste klusjes** (hij appt tussen klusjes en sollicitaties; hij is geen volleerd zaakwaarnemer: zijn kantoortje is een app en een koffiebon); Tessa en Tammo zijn vrienden uit hun studietijd, dus geen tekst over "al jaren" of "sinds kinderen" en geen beat die hun beginnende werkende leven tegenspreekt (geld is krap, begin klein). Regels: een beat is hooguit 14 woorden per HUD-bericht (`WORD_BUDGET`), "Grunn" nooit "de Grunn", geen echte clubs of personen, altijd zomer (geen winterstop; een seizoenspauze heet "pauze tussen de seizoenen"). Tessa en Tammo blijven in hun persona's (`PERSONA_POOL`, `karakterbonus.js`); Tammo's rol als zaakwaarnemer is nieuw en vraagt een korte regel in `docs/personages.md`.
 
 ## 2b. Canon 21-11 en wat in het bestaande verhaal botst
 
-Canon van de eigenaar: Tammo en Tessa zijn net student af, trekken de wijde wereld in, waren tijdens hun studie al vrienden en hebben hun eerste volwassen baantjes. Gecontroleerd met grep op Tammo, Tessa, student, kennen, vriend, jeugd, kinderen en jaren in `docs/verhaal/`, `docs/personages.md`, `game/js/storyarc_nieuw.js`, `karakterbonus.js`, `cutscenes_akte*.js` en `banterlines.js`. Dit zijn **voorstellen om te beslissen of aan te passen; in dit plan is niets in het verhaal gewijzigd.**
+Canon van de eigenaar: Tammo en Tessa zijn net student af, trekken de wijde wereld in, waren tijdens hun studie al vrienden en zijn werkloos en doen klusjes uit het spel. Gecontroleerd met grep op Tammo, Tessa, student, kennen, vriend, jeugd, kinderen en jaren in `docs/verhaal/`, `docs/personages.md`, `game/js/storyarc_nieuw.js`, `karakterbonus.js`, `cutscenes_akte*.js` en `banterlines.js`. Dit zijn **voorstellen om te beslissen of aan te passen; in dit plan is niets in het verhaal gewijzigd.**
 
 **Botst met de canon (te beslissen of aan te passen):**
 
@@ -126,11 +126,11 @@ Canon van de eigenaar: Tammo en Tessa zijn net student af, trekken de wijde were
 | `game/js/storyarc_nieuw.js:418` (hint M26) | "Het duurde twaalf jaar. Kon minder." | idem |
 | `docs/personages.md:24` (naamkaart) | "Tammo, Tessa en Rikus zijn het clubje van de stoep in het Oosterpark. Tammo is al twaalf jaar verliefd" | clubje van de stoep suggereert jeugd; twaalf jaar |
 | `docs/personages.md:56, 222, 224` en `docs/verhaal/nieuw/00-OVERZICHT.md:50` | Rikus is Tammo's "jeugdvriend uit het Oosterpark" | jeugdvriend, tegen vrienden sinds de studie |
-| `docs/personages.md` en `storyarc_nieuw.js` (Tammo "Stadjer uit het Oosterpark", woont op de Escapade, verhuisdag 14 augustus naar Paddepoel) | | past, maar "baantjes en net studie af" is nergens genoemd: controleer of Tammo's werkende leven in de opening ergens anders uitgaat van een lange loopbaan |
+| `docs/personages.md` en `storyarc_nieuw.js` (Tammo "Stadjer uit het Oosterpark", woont op de Escapade, verhuisdag 14 augustus naar Paddepoel) | | past, maar "werkloos, klusjes en net studie af" is nergens genoemd: controleer of Tammo's werkende leven in de opening ergens anders uitgaat van een lange loopbaan |
 
 **Botst niet of past juist:** Tessa's dorpsteam sinds haar zesde en koeien melken voor schooltijd (`OPENING-BIJBEL.md:89`, `karakterbonus.js:3,174`): dat is van vóór de studie, dus de dorpsteambonus blijft geldig. `TESSA-NEDERLANDS.md:76` ("Tammo heeft hier nog gestudeerd. Twee weken.") en de scène in `cutscenes_akte1.js:414-419` (mensa, studeren) passen bij de canon; controleer alleen dat "twee weken" een korte episode naast een afgeronde studie blijft. `student` in `storyarc_nieuw.js:101` is een publiekstype. De vrienden van Oma Trijntje (Lammert, Geesje, Klaas, Roelfien, Wubbo) zijn haar vrienden, niet die van Tammo.
 
-**Wat dit voor het voetbalplan betekent:** de voetbalbeats gebruiken alleen "vrienden uit de studietijd", "mijn eerste baan" en "het dorpsteam, weet je nog" (Tessa's verleden vóór de studie); ze noemen nergens een gezamenlijke jeugd, een aantal jaren vriendschap of een leeftijd. Wat de canon voor het hoofdverhaal betekent (de twintig jaar, de twaalf jaar, de 34) beslist de eigenaar; de aanpassing is een verhaalissue en geen onderdeel van deze epic. Er staat dan geen regel in het voetbalplan die mee moet.
+**Wat dit voor het voetbalplan betekent:** de voetbalbeats gebruiken alleen "vrienden uit de studietijd", "mijn klusjes" en "het dorpsteam, weet je nog" (Tessa's verleden vóór de studie); ze noemen nergens een gezamenlijke jeugd, een aantal jaren vriendschap of een leeftijd. Wat de canon voor het hoofdverhaal betekent (de twintig jaar, de twaalf jaar, de 34) beslist de eigenaar; de aanpassing is een verhaalissue en geen onderdeel van deze epic. Er staat dan geen regel in het voetbalplan die mee moet.
 
 ## 3. Seizoensstructuur en agenda
 
@@ -307,7 +307,7 @@ Seizoensbeloningen (eenmalig): promotie €200, bekerwinst €400, kampioen Terp
 - **Het pand is koopbaar** als Bezit (Bedrijven, #1102): wie het sponsorpand koopt, krijgt de omzet van het pand en **een extra klantenstroom op wedstrijddagen** (hoogstens +10% op de omzet van dat pand, bij een thuiswedstrijd van de club, nooit een tweede uitbetaling van de sponsor zelf). Zo is "eigen sponsor" een leuke koppeling zonder een geldlus: de sponsor betaalt de club, het pand betaalt de eigenaar.
 - Sponsors zijn per **speler** (de sponsorsom komt in de eigen kas en loopt via de Bezit-haak en `loopbaanVerdien`); de pandkoppeling gebruikt de Bezit-claim (hoofdstuk 8) als twee spelers hetzelfde pand willen.
 
-**Begin klein (canon 21-11):** Tessa en Tammo hebben net hun eerste baantjes. In de Talentenklasse is voetbal een **bijverdienste** (een onkostenvergoeding, geen salaris): per speelminuut ongeveer de helft van de baantjes, zodat de eerste echte verdienste uit bijbanen en loopbanen blijft komen en voetbal een keuze is om in te groeien. Het loon stijgt pas met de klasse (Terpklasse vanaf €60, Kroonklasse vanaf €90). **Bijbanen en carrière:** de agenda laat ruimte; een speler die elke speldag naar een bijbaan gaat mist training maar geen wedstrijd. Het balansdoel is dat voetbal ongeveer als elke andere loopbaan telt, niet er boven uit.
+**Begin klein (canon 21-11):** Tessa en Tammo hebben net hun eerste klusjes. In de Talentenklasse is voetbal een **bijverdienste** (een onkostenvergoeding, geen salaris): per speelminuut ongeveer de helft van de klusjes, zodat de eerste echte verdienste uit bijbanen en loopbanen blijft komen en voetbal een keuze is om in te groeien. Het loon stijgt pas met de klasse (Terpklasse vanaf €60, Kroonklasse vanaf €90). **Bijbanen en carrière:** de agenda laat ruimte; een speler die elke speldag naar een bijbaan gaat mist training maar geen wedstrijd. Het balansdoel is dat voetbal ongeveer als elke andere loopbaan telt, niet er boven uit.
 
 ### Anti-uitbuiting
 
@@ -337,7 +337,7 @@ Seizoensbeloningen (eenmalig): promotie €200, bekerwinst €400, kampioen Terp
 
 Ontwerp van de tak (alleen het voetbalspecifieke):
 
-- **Aandeel in een club** (10%, 25%, 51%, 100%), eerst een club in de Talentenklasse. Waardestart (voorstel, te tunen in pakket 10): Talentenklasse €30.000, Terpklasse €80.000, Kroonklasse €250.000; een aandeel kost `aandeel x waarde x schaalprijs`. Een eigen club (100%) is een eindspel, geen begin. **Begin klein:** de speler heeft net de eerste baantjes; het eerste aandeel (10% van een Talentenklasse-club, €3.000) hoort bij het tempo van het eerste perceel uit Bezit (na ongeveer twee uur spelen; startgeld €500 plus de Duizendpoot-bonus van €2.000) en wordt pas gemeld (B10) als de speler het kan betalen zonder zijn spaargeld te legen. Het Bezit-startkapitaal is dus niet voor voetbal bedoeld: er is geen voetbalstartgeld en geen gift, en een club kopen is een late stap, na een perceel of een eerste winkeltje.
+- **Aandeel in een club** (10%, 25%, 51%, 100%), eerst een club in de Talentenklasse. Waardestart (voorstel, te tunen in pakket 10): Talentenklasse €30.000, Terpklasse €80.000, Kroonklasse €250.000; een aandeel kost `aandeel x waarde x schaalprijs`. Een eigen club (100%) is een eindspel, geen begin. **Begin klein:** de speler heeft net de eerste klusjes; het eerste aandeel (10% van een Talentenklasse-club, €3.000) hoort bij het tempo van het eerste perceel uit Bezit (na ongeveer twee uur spelen; startgeld €500 plus de Duizendpoot-bonus van €2.000) en wordt pas gemeld (B10) als de speler het kan betalen zonder zijn spaargeld te legen. Het Bezit-startkapitaal is dus niet voor voetbal bedoeld: er is geen voetbalstartgeld en geen gift, en een club kopen is een late stap, na een perceel of een eerste winkeltje.
 - **Omzet per wedstrijdronde:** kaartjes (publiek x prijs; publiek volgt stadiongrootte, plek in de stand, vorm en de klantenpot van de stad), sponsors (per club, eenmalig per seizoen), minus salarissen en onderhoud. Dividend naar de eigenaar = aandeel x winst, 25% van de winst blijft in de clubkas.
 - **Opbrengst (balans):** een rustig passief inkomen **tussen de pacht (ongeveer 44 speeluren terugverdientijd) en de huur van een woning (ongeveer 160 speeluren) uit de Bezit-balans**: startwaarde **0,45% van de aankoopprijs per speldag** (ongeveer 60 speeluren, 1,35% per ronde van drie dagen), met een uitslag van plus of min 40% door vorm en plek. Een aandeel van 10% in een Talentenklasse-club (€3.000) levert dus ongeveer €14 per speldag. Zo is clubbezit **nooit** de snelste geldmachine en blijft het binnen de Bezit-regel dat passief hooguit een kwart van het actieve inkomen is. De getallen worden in pakket 10 met `economie_sim_test` bevestigd.
 - **Sponsorpanden:** zie hoofdstuk 7: een sponsorpand is een gewoon Bedrijven-pand dat een wedstrijddag-klantenbonus (hoogstens +10%) krijgt; de koppeling zit in pakket 12 en gebruikt dezelfde pandindex als Bezit 1 (#1096).
