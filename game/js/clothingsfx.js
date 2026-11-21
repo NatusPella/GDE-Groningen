@@ -5,7 +5,7 @@
 // blijft het stil als de opname niet geladen is. Een fout hier raakt het spel nooit. Leaf (alleen players.js); test: clothing_test.mjs.
 import { hoofdspeler } from './players.js';
 
-export const CLOTHING_SFX = ['clothes_rustle', 'zipper_pull', 'curtain_pull'];
+const CLOTHING_SFX = ['clothes_rustle', 'zipper_pull', 'curtain_pull'];
 const MAX_QUEUE = 64;
 
 // Het geluid dat bij het aantrekken van een stuk hoort: een jas gaat dicht (rits), de rest ritselt.

@@ -15,6 +15,12 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Kaart: de uitleg 'Zo werkt de kaart' houdt de vier genummerde rijen, zonder 'Meer uitleg' en zonder de regel over Instellingen; een nieuwe Hulp-knop (?) bij de zoomknoppen opent hem opnieuw. Q en E staan er niet meer in: ze wisselen alleen de pagina van het menu.
 - Ontwerp: nieuwe DS3-regels 'Toets in de knop' en 'Navigatie met controller en toetsenbord' (menu-patroon), met bewaking in de DS3-dekkingstest. Zie docs/KAART-POPUPS-21-11.md.
 
+Kleding: de mensen op straat zijn meer gemengd: ambtenaren in het centrum en wandelaars komen erbij, elke figuur heeft een eigen kleurstemming (aardetinten, pastel, fel, donker of koel, met af en toe een accent) en een lichaamsvorm die bij zijn beroep past, zonder extra meshes.
+Kleding: het pashokje in een kledingwinkel werkt echt: gordijn dicht, je past wat de winkel vandaag heeft over je eigen outfit, trekt aan wat je al hebt, bewaart de look in een van de vijf outfits en kunt de code ervan delen (outfit-code 3: stukken, kapsel en postuur). Een kledingwinkel zonder eigen menu heeft nu ook een eigen aanbod bij de kassa.
+Kleding: een bewaarde outfit onthoudt ook je postuur; toets 6 wisselt dus ook van vorm. Elk kledingstuk heeft een pictogram per soort (pet, bril, shirt, jas, broek, schoenen, tas, sieraad, horloge, handschoen) en het winkelmenu springt met Home, End en de cijfertoetsen 1 tot 9 naar een rij.
+Kleding: kleding ritselt bij aan- en uittrekken, een jas gaat dicht met een rits en het pashokje heeft een gordijn (alleen jijzelf hoort het; de opnames volgen met de SFX-ronde).
+Samen spelen: wat je in het pashokje kiest (stukken, kapsel, postuur) zien medespelers meteen; kast, geld en codes van andere outfits blijven van jezelf. Valt een speler weg, dan verdwijnt de figuur met de code; wie later aansluit, krijgt de codes uit de spelerslijst.
+
 (De coördinator voegt deze regels bij 0.65.0.)
 
 - Panden zijn echt te betreden: loop te voet door de voordeur naar binnen, zonder menu, laadscherm of teleport. De deur zwaait open, de gevel gaat bij de deur open en je staat in het pand zelf. Winkels (twaalf soorten), cafés, kroegen, restaurants, kantoren, woningen, kerken, stationshallen, bibliotheken, garages, magazijnen, politiebureaus, apotheken, scholen en hotels hebben elk een eigen inrichting, met winkelier, klanten en gasten

@@ -739,6 +739,28 @@ t('pashokje (ronde 4): passen, kast, outfit bewaren met postuur en kapsel, code 
   assert.equal(SH.fittingRoomMenu({ player: { character: 'anita' } }, 'x').tagline.includes('Tessa') && SH.fittingRoomMenu({ player: { character: 'tammo' } }, 'x').name, 'Pashokje');
 });
 
+t('Samen spelen (ronde 4): de outfit van de ander is zichtbaar met kapsel en postuur, per speler bewaard, wegvallen en aansluiten', async () => {
+  const CS = await import('../game/js/coopspeler.js');
+  // de speler bewaart een outfit in het pashokje: de code gaat mee in de spelerslijst en de ander ziet stukken, kapsel en postuur
+  C.givePiece('tammo', 'hoodie.grijs'); C.wearPiece('tammo', 'hoodie.grijs');
+  C.setBody('tammo', 'lang'); C.setHair('tammo', 'afro', 'zwart');
+  C.savePreset('tammo', 2, 'Zomerdag');
+  const code = C.presetCode('tammo', 2);
+  const kijk = CS.avatarLook({ char: 'tammo', outfit: code, seed: 5, huid: 0xd9aa82, variant: 'male', kleur: '#3f6ea8', naam: 'Gast' });
+  assert.equal(kijk.opts.body, 'lang', 'postuur zichtbaar bij de ander');
+  assert.equal(kijk.opts.hairStyle, 'afro', 'kapsel zichtbaar bij de ander');
+  // de ander ziet alleen de code, nooit mijn kast: een speler die aansluit krijgt de code uit de lijst; een onzincode wordt genegeerd
+  assert.equal(CS.avatarVan({ char: 'tammo', outfit: 'onzin' }).outfit, null);
+  assert.ok(C.cleanOutfitCode(code) === code && code.length <= 80);
+  // per speler bewaard: de kast van Tessa is niet die van Tammo, en een save-ronde houdt outfit en postuur
+  assert.equal(C.presetsOf('anita')[2], null);
+  C.applyClothingSave(C.getClothingSave());
+  assert.equal(C.presetCode('tammo', 2), code, 'dezelfde code na een save');
+  // wegvallen: een speler die weggaat staat niet meer in de lijst, zijn code verdwijnt met hem; de eigen kast blijft ongemoeid
+  assert.ok(C.ownsPiece('tammo', 'hoodie.grijs'));
+  assert.ok(src('../game/js/coopnet.js').includes("case 'outfit'") && /outfit/.test(src('../game/js/coopplayers.js')), 'het bericht outfit en de avatar-whitelist bestaan');
+});
+
 for (const [name, fn] of tests) {
   n++;
   try { C.resetClothing(); await fn(); } catch (e) { fails++; console.log('FAIL', name, '|', String(e.stack || e.message).split('\n').slice(0, 3).join(' / ')); }

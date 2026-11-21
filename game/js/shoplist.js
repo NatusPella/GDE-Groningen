@@ -40,7 +40,7 @@ const SHOP_ICON = {
   souvenir: 'cadeau', kiosk: 'drank', kermiskraam: 'kras',
 };
 // De kledingcategorieën (clothingpanel.js geeft ze mee als `icon` op een regel): een pictogram per slot, plus outfit en postuur.
-export const CLOTHING_ICONS = ['kl_hoed', 'kl_bril', 'kl_gezicht', 'kl_hals', 'kl_shirt', 'kl_jas', 'kl_broek', 'schoen', 'kl_tas', 'kl_sieraad', 'kl_horloge', 'kl_hand', 'kl_outfit', 'kl_postuur'];
+const CLOTHING_ICONS = ['kl_hoed', 'kl_bril', 'kl_gezicht', 'kl_hals', 'kl_shirt', 'kl_jas', 'kl_broek', 'schoen', 'kl_tas', 'kl_sieraad', 'kl_horloge', 'kl_hand', 'kl_outfit', 'kl_postuur'];
 export const ICON_IDS = [...new Set([...ICON_RULES.map(([id]) => id), ...Object.values(SHOP_ICON), ...CLOTHING_ICONS, 'standaard'])];
 
 // Icon id for an item: its own `icon` (a clothing category), a rule on its own text, then on its section, then the shop's own icon.
