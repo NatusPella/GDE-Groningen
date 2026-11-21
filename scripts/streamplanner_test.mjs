@@ -29,10 +29,17 @@ ok(budgetFor(NaN) === PLAN.capMs, 'onbekende frametijd geeft geen NaN');
   pl.beginFrame({ frameMs: 10 });
   near(pl.grant('building', 100), PLAN.capMs, 1e-9, 'alleen: alles');
   const pl2 = createFramePlanner();
-  for (let i = 0; i < 3; i++) { pl2.beginFrame({ frameMs: 10 }); for (const k of Object.keys(CLASSES)) pl2.grant(k, 100); }
+  // alle klassen hebben recent hun aandeel gebruikt (de reservering volgt het gebruik, niet het aandeel)
+  for (let i = 0; i < 80; i++) { pl2.beginFrame({ frameMs: 10 }); for (const k of Object.keys(CLASSES)) { const x = pl2.grant(k, 100); pl2.spend(k, x); } }
   pl2.beginFrame({ frameMs: 10 });
   const g = pl2.grant('tile', 100);
-  near(g, PLAN.capMs * CLASSES.tile, 1e-6, 'met anderen met werk: precies zijn aandeel');
+  ok(Math.abs(g - PLAN.capMs * CLASSES.tile) < 0.35, `met anderen die hun aandeel gebruiken: ongeveer zijn aandeel (${g.toFixed(2)} ms)`);
+  // een klasse die weinig gebruikt laat ruimte vrij voor wie meer wil
+  const pl3 = createFramePlanner();
+  for (let i = 0; i < 80; i++) { pl3.beginFrame({ frameMs: 10 }); for (const k of Object.keys(CLASSES)) { const x = pl3.grant(k, k === 'actors' ? 0.2 : 100); pl3.spend(k, k === 'actors' ? Math.min(x, 0.2) : x); } }
+  pl3.beginFrame({ frameMs: 10 });
+  const gt = pl3.grant('tile', 0.8); pl3.spend('tile', gt); const gb = pl3.grant('building', 100);
+  ok(gb > PLAN.capMs * CLASSES.building + 0.1, `de gebouwen krijgen meer dan hun aandeel als de actoren weinig gebruiken (${gb.toFixed(2)} ms)`);
   let sum = g; pl2.spend('tile', g);
   for (const k of Object.keys(CLASSES)) { if (k === 'tile') continue; const x = pl2.grant(k, 100); sum += x; pl2.spend(k, x); }
   ok(sum <= pl2.pool + 1e-9, `som toekenningen ${sum.toFixed(2)} <= pool ${pl2.pool.toFixed(2)}`);
@@ -157,6 +164,24 @@ ok(budgetFor(NaN) === PLAN.capMs, 'onbekende frametijd geeft geen NaN');
   const g = pl.grant('road', 100); pl.spend('road', g + 2);
   const s = pl.stats();
   ok(s.by.road.over === 1 && s.by.road.units === 1, 'overschrijding geteld');
+}
+
+// zonder beginFrame (een los gereedschap) slibt de planner niet dicht: na autoFrameMs begint grant zelf een frame
+{
+  const pl = createFramePlanner({ autoFrameMs: 30 });
+  pl.beginFrame({ frameMs: 10 });
+  let g = pl.grant('building', 100); pl.spend('building', 50);
+  ok(pl.grant('road', 100) <= 4, 'binnen dezelfde frame is het budget op');
+  await new Promise((r) => setTimeout(r, 60));
+  g = pl.grant('building', 100);
+  ok(g > 0, `zonder beginFrame krijgt een systeem na een poos weer tijd (${g.toFixed(2)} ms)`);
+}
+// uitgezet (?perfoff=planner): grant geeft wat het systeem wil
+{
+  const pl = createFramePlanner();
+  pl.setEnabled(false);
+  pl.beginFrame({ frameMs: 100 });
+  ok(pl.grant('building', 9) === 9 && pl.grant('road', 2.5) === 2.5, 'uitgezet: de oude constanten');
 }
 
 console.log(`streamplanner_test: ${n} controles groen`);

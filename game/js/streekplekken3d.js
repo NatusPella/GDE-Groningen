@@ -5,6 +5,8 @@ import { CEL, celVan, partsToWorld, dropOnRoad } from './streekplekken.js';
 import { roadNetReady, snapRoad } from './roadgraph.js';
 import { edgeDistance } from './countryfield.js';
 import { dropStreekParts } from './propfilter.js';
+import { createCalmGate } from './tilestream.js';
+const tilesCalmGate = createCalmGate(); // wacht ook op de achtergrondwachtrij van de tegelwereld, hoogstens twee seconden achter elkaar (#1052)
 
 // Landplekken (#21, #23, #164, #198, scripts/world/streekplekken.mjs -> game/streekplekken.json): perrons,
 // schoorstenen, zendmasten, monumenten en parken, per cel van 512 m als InstancedMesh (een per
@@ -116,7 +118,7 @@ export function updateStreekplekken3D(world) {
     break;   // een cel per tik
   }
   // een cel die voor de laatste tegels is gebouwd, opnieuw (een per tik, alleen binnen bereik)
-  if (world.map && world.map.geoVer !== undefined && (!world.map.tileQueue || !world.map.tileQueue.items || !world.map.tileQueue.items.length)) for (const [k, g] of live) {
+  if (world.map && world.map.geoVer !== undefined && tilesCalmGate(world.map)) for (const [k, g] of live) {
     if (g.userData.ver === world.map.geoVer || dist(k) > STREAM_IN) continue;
     scene.remove(g);
     g.traverse((o) => { if (o.isInstancedMesh) { o.dispose(); o.geometry.dispose(); } });

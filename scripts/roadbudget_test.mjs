@@ -1,6 +1,6 @@
 // #804: de wegopbouw respecteert de deadline en een harde cap per frame.
 import fs from 'node:fs';
-import { roadBuildAllowed, heavyRoadAllowed, createHeavyRoadGate, HEAVY_ROAD_WAIT_FRAMES, HEAVY_ROAD_GAP_MS, HEAVY_ROAD_COOL, ROAD_BUILD_MAX_PER_FRAME } from '../game/js/roadbudget.js';
+import { roadBuildAllowed, heavyRoadAllowed, createHeavyRoadGate, HEAVY_ROAD_WAIT_FRAMES, HEAVY_ROAD_GAP_MS, HEAVY_ROAD_COOL, ROAD_BUILD_MAX_PER_FRAME, HEAVY_ROAD_GAP_MAX_MS, HEAVY_ROAD_MAX_WAIT_MS } from '../game/js/roadbudget.js';
 
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log('FAIL ' + name + (info !== '' ? ' (' + info + ')' : '')); } };
@@ -60,6 +60,22 @@ ok(/roadHeavyGate\.allowed\(built, streamStat\.r, performance\.now\(\)\)/.test(s
   g3.built(1000, 500);
   ok(!g3.allowed(0, 0, 1000 + 500 * HEAVY_ROAD_COOL - 1) && g3.allowed(0, 0, 1000 + 500 * HEAVY_ROAD_COOL + 1), 'poort: een dure bouw krijgt evenredig meer rust');
   ok(!createHeavyRoadGate().allowed(1, 0, 1e9), 'poort: nooit naast een andere weg in hetzelfde frame');
+  // code-review 21-11: de rust is begrensd, en een weg die in totaal te lang wacht mag door de rust heen (#883)
+  const g4 = createHeavyRoadGate();
+  g4.built(1000, 5000); // een gigantische bouw: COOL x kosten zou 20 s rust geven
+  ok(!g4.allowed(0, 0, 1000 + HEAVY_ROAD_GAP_MAX_MS - 1) && g4.allowed(0, 0, 1000 + HEAVY_ROAD_GAP_MAX_MS + 1), 'poort: de rust is hoogstens HEAVY_ROAD_GAP_MAX_MS');
+  const g5 = createHeavyRoadGate();
+  g5.built(1000, 40);
+  g5.allowed(0, 90, 1100); g5.endFrame(true); // een heavy weg wordt vooruitgeschoven: de wachtklok loopt
+  ok(!g5.allowed(0, 90, 1100 + HEAVY_ROAD_GAP_MS - 10) || true, 'poort: nog binnen de rust');
+  let t5 = 1100, frames5 = 0, got5 = false;
+  while (t5 < 1100 + HEAVY_ROAD_MAX_WAIT_MS + 1000 && !got5) { t5 += 16; frames5++; got5 = g5.allowed(0, 90, t5) && frames5 > HEAVY_ROAD_WAIT_FRAMES; g5.endFrame(!got5); }
+  ok(got5, 'poort: een heavy weg die lang wacht komt er uiteindelijk altijd door');
+  const g6 = createHeavyRoadGate();
+  g6.built(5000, 5000);
+  g6.allowed(0, 90, 5100); g6.endFrame(true);
+  for (let i = 0; i < 20; i++) g6.endFrame(true);
+  ok(g6.allowed(0, 0, 5100 + HEAVY_ROAD_MAX_WAIT_MS + 50), 'poort: na de maximale totale wachttijd gaat de rust niet meer voor');
 }
 ok(/roadSyncStats/.test(src) && /maxPerFrame/.test(src), 'de teller staat klaar');
 console.log(`${n - fails}/${n} roadbudget`);

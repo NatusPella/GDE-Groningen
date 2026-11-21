@@ -217,7 +217,9 @@ function syncThroughCache(map) {
   const epoch = map._tbEpoch || 0;
   const d = map._buildingDelta;
   map._buildingDelta = [];
-  if (!d || map._tbMapEpoch !== epoch) { map._tbMapEpoch = epoch; map._tbStamp = (map._tbStamp || 0) + 1; return; } // niets onthouden dat nog klopt: alles opnieuw
+  const overflow = !!map._buildingDeltaOverflow; // de lijst liep over (tileworld.js BUILDING_DELTA_MAX): alles opnieuw toetsen
+  map._buildingDeltaOverflow = false;
+  if (!d || overflow || map._tbMapEpoch !== epoch) { map._tbMapEpoch = epoch; map._tbStamp = (map._tbStamp || 0) + 1; return; } // niets onthouden dat nog klopt: alles opnieuw
   for (const b of d) {
     if (!b.bounds) continue;
     const [x0, y0, x1, y1] = b.bounds;

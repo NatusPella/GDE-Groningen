@@ -7,6 +7,8 @@ import { onSettingsChange, QUALITY_PRESETS } from './settings.js';
 import { pointInPolygon, markInstancesDirty } from './util.js';
 import { dryPavedIndices, pavedTester, waterTester } from './greenwater.js';
 import { dsWereld } from './worldpalette.js';
+import { streamPlanner } from './streamplanner.js';
+import { createCooler } from './lodstable.js';
 
 // Green areas: merged per-chunk lawn surfaces with a procedural world-space
 // grass shader, translucent kerb/path wear strips along their borders, and
@@ -971,6 +973,7 @@ function buildChunk(c) {
 }
 
 function disposeChunk(c) {
+  grassCooler.forget(c);
   scene.remove(c.group);
   for (const m of c.group.children) m.geometry.dispose();
   c.group = null;
@@ -1062,6 +1065,9 @@ function buildGrassChunks() {
   chunksGreenVer = greenVerOf(map);
 }
 
+// Een chunk die uit beeld raakt blijft DISPOSE_DELAY_MS staan (verborgen) en komt terug als de speler omdraait: heen en weer lopen
+// bouwt hem niet opnieuw; het echte vrijgeven gaat met hoogstens twee per frame (lodstable.js createCooler)
+const grassCooler = createCooler();
 const GRASS_PREBUILD = 30;
 function syncChunks(px, py, dist) {
   if (map && chunksGreenVer !== greenVerOf(map) && !holdGrass) buildGrassChunks(); // groenlaag veranderd (#314 C2); tijdens de film wacht de rebuild
@@ -1072,12 +1078,15 @@ function syncChunks(px, py, dist) {
   let gebouwd = 0;
   let opgeruimd = 0;
   const t0 = performance.now();
+  const plan = streamPlanner(), budget = plan.grant('ground', 3);
+  grassCooler.beginFrame();
   for (const c of chunks.values()) {
     const d = rectDist(c.bounds, px, py);
     // #1016: een chunk wordt GRASS_PREBUILD m voor zijn tekenstraal verborgen gebouwd en pas op de straal getoond,
     // zodat het bouwbudget (2 per frame) niet bepaalt wanneer hij verschijnt
     if (d < dist + GRASS_PREBUILD) {
-      if (!c.group && gebouwd < 2 && performance.now() - t0 < 3) {
+      grassCooler.wanted(c);
+      if (!c.group && gebouwd < 2 && budget > 0 && performance.now() - t0 < budget) {
         c.group = buildChunk(c);
         chunkStats.built++;
         c.group.visible = d < dist;
@@ -1086,10 +1095,11 @@ function syncChunks(px, py, dist) {
       }
       if (c.group) c.group.visible = d < dist;
     } else if (c.group && d > dist + GRASS_PREBUILD + 30 && !holdGrass && opgeruimd < 4) {
-      disposeChunk(c);
-      opgeruimd++;
+      c.group.visible = false;
+      if (grassCooler.unwanted(c, t0)) { disposeChunk(c); opgeruimd++; }
     }
   }
+  plan.spend('ground', performance.now() - t0);
 }
 
 // The cells around the camera that may hold tufts, nearest first: { i, j, d, full } with d the distance from the camera to the

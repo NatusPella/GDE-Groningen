@@ -4,6 +4,8 @@ import { WATER_Y } from './util.js';
 import { CEL, celVan, partsToWorld } from './waterplekken.js';
 import { hoofdspeler } from './players.js';
 import { dropWaterParts } from './propfilter.js';
+import { createCalmGate } from './tilestream.js';
+const tilesCalmGate = createCalmGate(); // wacht ook op de achtergrondwachtrij van de tegelwereld, hoogstens twee seconden achter elkaar (#1052)
 
 // Waterplekken (#23, #7, scripts/world/waterplekken.mjs -> game/waterplekken.json): sluizen,
 // brugtorens, havens, vuurtorens en dijk- en zeewerken, per cel van 512 m als
@@ -95,7 +97,7 @@ export function updateWaterplekken3D(world) {
     live.set(k, g);
     break;   // een cel per tik
   }
-  if (world.map && world.map.geoVer !== undefined && (!world.map.tileQueue || !world.map.tileQueue.items || !world.map.tileQueue.items.length)) for (const [k, g] of live) {
+  if (world.map && world.map.geoVer !== undefined && tilesCalmGate(world.map)) for (const [k, g] of live) {
     if (g.userData.ver === world.map.geoVer || dist(k) > STREAM_IN) continue;
     scene.remove(g);
     g.traverse((o) => { if (o.isInstancedMesh) { o.dispose(); o.geometry.dispose(); } });

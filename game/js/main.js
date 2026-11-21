@@ -38,7 +38,8 @@ import { updateHostScene, hasHostScene } from './coopscene.js';
 import { loadMap } from './mapdata.js';
 import { loadTileWorld } from './tileworld.js';
 import { tileFocus } from './tilefocus.js';
-import { createStreamBudget, noteStreamWorldPart, streamFrameMs } from './streambudget.js';
+import { createStreamBudget, noteStreamWorldPart } from './streambudget.js';
+import { streamPlanner } from './streamplanner.js';
 import { setHoldProbe } from './tilestream.js';
 import { setWorldPlaces } from './worldplaces.js';
 import { setRegionData } from './regions.js';
@@ -1086,6 +1087,14 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
       input.blocked = true; m.down = m.rightDown = m.middleDown = false; m.dx = m.dy = m.wheel = 0;
       try { updateGameplay(gameDt); } finally { input.blocked = false; Object.assign(m, bewaard); }
     }
+    // Eén framebudget voor al het streamingwerk (streamplanner.js): hier begint de frame, tegels, gebouwen, wegen, gras, de verre
+    // laag en de actoren vragen hun tijd daarna aan dezelfde emmer. De frametijd bepaalt hoeveel er mag; een sprong, een film en
+    // gebouwen die de speler al ziet maar nog geen detail hebben (pressure) verschuiven het plafond.
+    const planner = streamPlanner();
+    planner.setEnabled(!perfOff('planner'));
+    window.__streamPlanner = planner; // metingen in Electron: planner.stats()
+    const cineNu = document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud') || (world.cineQuiet && performance.now() < world.cineQuiet);
+    planner.beginFrame({ frameMs: laatsteFrameMs, boost: performance.now() < streamBudget.bootUntil, cine: !!cineNu, pressure: Math.min(1, streamPending().buildings / 24) });
     // the tiles follow the camera or the player (speed and heading prefetch)
     if (world.map.follow) {
       const tf = tileFocus(hoofdspeler(world), world.cameraOverride, tileFollow, dt);
@@ -1104,8 +1113,10 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
       // queue itself stays sorted on the driving direction.
       const opts = tf.opts || {};
       if (opts.vx === undefined) noteStreamWorldPart(streamBudget, performance.now());
-      const speed = Math.hypot(opts.vx || 0, opts.vy || 0);
-      world.map.follow(tf.x, tf.y, tf.opts, cine ? 0.4 : streamFrameMs(streamBudget, performance.now(), laatsteFrameMs, speed));
+      const tegelMs = cine ? 0.4 : planner.grant('tile', 3);
+      const tegelT0 = performance.now();
+      world.map.follow(tf.x, tf.y, tf.opts, tegelMs);
+      planner.spend('tile', performance.now() - tegelT0);
     };
       // the open sea as water rows round the player (#233)
       if (tf && world.map.addWaterPatches) ensureSeaRows(world.map, hoofdspeler(world).x, hoofdspeler(world).y);

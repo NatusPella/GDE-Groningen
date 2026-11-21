@@ -7,6 +7,8 @@ import { SpatialGrid } from './spatialgrid.js';
 import { walkPathHook } from './latehooks.js';
 import { markZebraUser, zebraSpeedLimit } from './trafficyield.js';
 import { poiLayerPlaces } from './facilities.js';
+import { createCalmGate } from './tilestream.js';
+const tilesCalmGate = createCalmGate(); // wacht ook op de achtergrondwachtrij van de tegelwereld, hoogstens twee seconden achter elkaar (#1052)
 export { zebraSpeedLimit };
 
 
@@ -737,7 +739,7 @@ export function walkRoute(ped, world, dt, dPlayer) {
       const ver = map._roadVer !== undefined ? map._roadVer : map.geoVer;
       if (!sites || sitesGeo.map !== map || sitesGeo.ver !== ver) {
         const intro = typeof document !== 'undefined' && document.body && (document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud'));
-        const tilesCalm = !map.tileQueue || !map.tileQueue.items || map.tileQueue.items.length === 0;
+        const tilesCalm = tilesCalmGate(map);
         if (tilesCalm && !intro) buildSites(map);
       }
       r.cross.site = siteKind(r.cross);

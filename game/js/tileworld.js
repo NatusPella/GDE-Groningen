@@ -152,6 +152,10 @@ function boundsOfObj(kind, o) {
 // rijen per FrameQueue-stuk van een gestroomde tegel (#650); ruim onder het
 // frame-budget van 1,5 ms (0,6 ms in een traag beeld)
 export const ROW_CHUNK = 300;
+// ... en hoogstens zoveel ms per stuk: 300 rijen met grote vlakken (gebouwen, wegen met veel punten) duurden tot 35 ms (scripts/perf/streamsteps.mjs),
+// een hapering die geen frame-budget kon knippen. De volgorde van de rijen blijft gelijk, alleen de yield komt eerder (de wereld is identiek).
+export const ROW_CHUNK_MS = 1.2;
+export const BUILDING_DELTA_MAX = 20000;
 const residentKey = (i, j, key) => (key && key[0] === 'o' ? 'o' : '') + `${i},${j}`;
 
 // The tiles an object is resident in. Nearly every object lies in one tile: that key sits in `t`, and only an object that
@@ -281,6 +285,14 @@ export class TileWorld extends GameMap {
     return map;
   }
 
+  // De gebouwen van tegelwissels voor de routing-cache (routing.js syncThroughCache). Begrensd: leest niemand hem (de routing draait
+  // niet), dan groeide hij met elke tegel; boven de grens wordt hij leeggemaakt en gemeld als overloop (alles opnieuw toetsen).
+  _noteBuildingDelta(obj) {
+    const d = this._buildingDelta;
+    if (!d) return;
+    if (d.length >= BUILDING_DELTA_MAX) { d.length = 0; this._buildingDeltaOverflow = true; } else d.push(obj);
+  }
+
   attachStore(store) {
     this.store = store;
     this._tileJobs = new Map();
@@ -333,6 +345,13 @@ export class TileWorld extends GameMap {
     return tk;
   }
 
+  // Is the tile (i, j) in the grids with ALL its rows (not only handed to the world: resident is set when the first rows go in)?
+  // The M13 plan decides from this (containerplan.js m13DecisionReady): a guest that loads later must decide as the host did.
+  tileRowsDone(i, j) {
+    const tk = `${i},${j}`;
+    return this.resident.has(tk) && !(this._tileJobs && this._tileJobs.has(tk));
+  }
+
   // Is any of these store keys still being worked into the grids (its rows are queued)? (#1052)
   tilesPending(keys) {
     if (!this._tileJobs || !this.store) return false;
@@ -358,6 +377,8 @@ export class TileWorld extends GameMap {
     this.resident.add(tk);
     const newRoads = [], newWater = [];
     let rows = 0; // rijen sinds de vorige yield (#650)
+    let chunkT = performance.now();
+    const chunkDue = () => { if (++rows >= ROW_CHUNK || ((rows & 7) === 0 && performance.now() - chunkT >= ROW_CHUNK_MS)) { rows = 0; return true; } return false; };
     // (#4) alleen een tegel die echt groen toevoegt hoeft de groschunks te
     // verversen: de graschunks hangen aan greenVer, niet aan elke geoVer-bump
     let greenAdded = false;
@@ -407,7 +428,7 @@ export class TileWorld extends GameMap {
           if (grid) (this[grid] || (this[grid] = new SpatialGrid(64))).insert(obj, boundsOfObj(kind, obj));
           if (kind === 'roads' && this._roadIndex) this._roadIndex.add(obj); // de gedeelde hoekpuntindex (roadindex.js)
           if (kind === 'green' && this._greenDelta) this._greenDelta.push(1, obj); // grass.js werkt de chunks per vlak bij
-          if (kind === 'buildings' && this._buildingDelta) this._buildingDelta.push(obj); // routing.js: wegen onder dit gebouw opnieuw toetsen
+          if (kind === 'buildings' && this._buildingDelta) this._noteBuildingDelta(obj); // routing.js: wegen onder dit gebouw opnieuw toetsen
           // the mapped hedges (OSM barrier=hedge): the countryside draws none of its own beside them (hedgeNear)
           if (kind === 'furniture' && obj.k === 'hedge' && obj.pts) {
             obj.bounds = polygonBounds(obj.pts);
@@ -416,7 +437,7 @@ export class TileWorld extends GameMap {
         }
         holdIn(e, tk);
         held.push(kind, gid);
-        if (++rows >= ROW_CHUNK) { rows = 0; yield; }
+        if (chunkDue()) { yield; chunkT = performance.now(); }
       }
     }
     yield; // de profielen/hoogtes en het droogmaken zijn eigen stukken (#650)
@@ -427,9 +448,9 @@ export class TileWorld extends GameMap {
       if (newRoads.length && tile.sections.some((s) => s.type === SECTION.HEIGHTS)) this.elevAdded = (this.elevAdded || 0) + extendElevation(this, newRoads);
     }
     // a road over water without a bridge tag is a culvert or a dry deck (mapdata.js markDryRoad)
-    for (const r of newRoads) markDryRoad(this, r);
+    for (const r of newRoads) { markDryRoad(this, r); if (chunkDue()) { yield; chunkT = performance.now(); } }
     for (const w of newWater) {
-      if (++rows >= ROW_CHUNK) { rows = 0; yield; }
+      if (chunkDue()) { yield; chunkT = performance.now(); }
       if (!w.bounds) continue;
       const cx = (w.bounds[0] + w.bounds[2]) / 2, cy = (w.bounds[1] + w.bounds[3]) / 2;
       for (const r of this.roadsNear(cx, cy, Math.hypot(w.bounds[2] - w.bounds[0], w.bounds[3] - w.bounds[1]) / 2)) markDryRoad(this, r);
@@ -448,10 +469,11 @@ export class TileWorld extends GameMap {
       }
     }
     for (const b of candidates) {
+      if (chunkDue()) { yield; chunkT = performance.now(); }
       if (b.dropped || !propfilter.misplacedBuilding(this, b)) continue;
       b.dropped = true;
       if (this.buildingGrid) this.buildingGrid.remove(b, b.bounds || boundsOfObj('buildings', b));
-      if (this._buildingDelta) this._buildingDelta.push(b);
+      if (this._buildingDelta) this._noteBuildingDelta(b);
       this.droppedBuildings = (this.droppedBuildings || 0) + 1;
     }
     yield; // de listeners (far-LOD, canopies) hoeven niet in hetzelfde stuk (#650)
@@ -562,7 +584,7 @@ export class TileWorld extends GameMap {
       if (grid && this[grid]) this[grid].remove(e.obj, boundsOfObj(kind, e.obj));
       if (kind === 'roads') { e.obj._tb = null; if (this._roadIndex) this._roadIndex.remove(e.obj); } // _tb: de onthouden gebouwtoetsen (routing.js)
       if (kind === 'green' && this._greenDelta) this._greenDelta.push(-1, e.obj);
-      if (kind === 'buildings' && this._buildingDelta) this._buildingDelta.push(e.obj);
+      if (kind === 'buildings' && this._buildingDelta) this._noteBuildingDelta(e.obj);
       if (kind === 'furniture' && e.obj.k === 'hedge' && e.obj.pts && this.hedgeGrid) this.hedgeGrid.remove(e.obj, e.obj.bounds || polygonBounds(e.obj.pts));
     };
     const held = this._tileRows && this._tileRows.get(tk);

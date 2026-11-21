@@ -102,6 +102,11 @@ import { adaptedShadowLevel } from './shadowlevel.js';
 import { treeSyncDue } from './treesync.js';
 import { roadBuildAllowed, createHeavyRoadGate, ROAD_BUILD_MAX_PER_FRAME } from './roadbudget.js';
 import { applyEdgeFade, edgeFadeClone } from './edgefade3d.js';
+import { streamPlanner } from './streamplanner.js';
+import { selectRing, createRingSmoother, hystVisible, facadeBand, facadeSpeedScale, ringSpeedScale, RING_KEEP_MAX } from './lodstable.js';
+import { glassMaterial } from './interiorglass.js';
+import { detailMaterial } from './models3d_buildings.js';
+import { streamLead } from './streambudget.js';
 import { fadeBand, loadRadius } from './popinrules.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
 import { glanceAt, shareFeet } from './gait.js';
@@ -631,7 +636,8 @@ const VEH_NEAR = 45, VEH_KEEP_EXTRA = 15;
 const _vehSeen = new Set();
 function syncVehicleMeshes(world, player) {
   _vehSeen.clear();
-  const deadline = performance.now() + VEH_BUILD_MS;
+  const vt0 = performance.now();
+  const deadline = vt0 + plan.grant('actors', VEH_BUILD_MS);
   // Tijdens de opening (en de korte nasleep) mogen dichtbij ook maar twee
   // voertuigen per frame gebouwd worden: een filmcut zette de camera boven een
   // nieuwe straat en dan bouwde de oude dichtbij-tak in één keer een hele lading
@@ -661,6 +667,7 @@ function syncVehicleMeshes(world, player) {
     disposeObject(mesh);
     vehicleMeshes.delete(id);
   }
+  plan.spend('actors', performance.now() - vt0);
 }
 
 // A driver figure is a full person mesh (several ms to build), so it is
@@ -1618,7 +1625,8 @@ const _bSeen = new Set(), _bMissing = []; function syncBuildingsPass(world, px, 
   }
   // wat de speler tegemoet rijdt eerst (#247); bij stilstand is de rang de afstand
   missing.sort((a, b) => a[3] - b[3]);
-  const deadline = performance.now() + (performance.now() < streamBoostUntil ? BUILDING_BUILD_BOOST_MS : BUILDING_BUILD_MS);
+  const bt0 = performance.now();
+  const deadline = bt0 + plan.grant('building', bt0 < streamBoostUntil ? BUILDING_BUILD_BOOST_MS : BUILDING_BUILD_MS);
   let built = 0;
   for (const [, b] of missing) {
     let mesh = prefetchedBuildings.get(b);
@@ -1646,17 +1654,36 @@ const _bSeen = new Set(), _bMissing = []; function syncBuildingsPass(world, px, 
     buildingMeshes.set(b, mesh);
     scene.add(mesh);
   }
+  plan.spend('building', performance.now() - bt0);
   // De detailring is een cirkel (farlod.js toetst met dezelfde afstand) en
   // reikt tot het dichtstbijzijnde gebouw dat nog mist, ook als de
   // vooruit-volgorde een verderop gelegen gebouw eerder bouwde (#247).
   buildingDetailR = DRAW_DIST;
   let missingCount = 0;
+  const still = _bStill; still.length = 0;
   for (const m of missing) {
     if (buildingMeshes.has(m[1])) continue;
     missingCount++;
-    if (m[2]) buildingDetailR = Math.min(buildingDetailR, m[0] - 0.01);
+    if (m[2]) still.push(m);
   }
   streamStat.b = missingCount;
+  // #1016: een gebouw dat op zijn bouwbudget of het linken van zijn shaders wacht, trekt de ring niet meer naar zijn afstand: de
+  // eerste RING_KEEP_MAX wachtende gebouwen houden hun verre kopie (farlod.js uLodKeep) en de ring blijft op de tekenafstand. Pas
+  // bij meer dan dat (een sprong) krimpt hij, tot het (K+1)e gebouw. De ring krimpt direct en groeit pas na een stille poos
+  // (lodstable.js createRingSmoother), en bij hoge snelheid iets minder ver (ringSpeedScale).
+  ringKeep.length = 0;
+  if (perfOff('ringuitzondering')) {
+    for (const m of still) buildingDetailR = Math.min(buildingDetailR, m[0] - 0.01);
+  } else {
+    still.sort((a, b) => a[0] - b[0]);
+    const speedR = perfOff('ringsnelheid') ? DRAW_DIST : DRAW_DIST * ringSpeedScale(focusSpeed);
+    buildingDetailR = ringSmoother.update(Math.min(selectRing(still, DRAW_DIST).ring, speedR), performance.now());
+    for (const m of still) {
+      if (m[0] > buildingDetailR || ringKeep.length >= RING_KEEP_MAX) break;
+      const b = m[1];
+      ringKeep.push([(b.bounds[0] + b.bounds[2]) / 2, (b.bounds[1] + b.bounds[3]) / 2]);
+    }
+  }
   // shown only once the far LOD stops drawing them
   if (buildingDetailR < DRAW_DIST) {
     for (const [b, mesh] of buildingMeshes) {
@@ -1669,10 +1696,13 @@ const _bSeen = new Set(), _bMissing = []; function syncBuildingsPass(world, px, 
   }
   buildingsStaged = buildingDetailR < DRAW_DIST;
   // 'laag': window frames, trims and shopfronts only up close
+  // kozijnen: een tweezijdige drempel (aan op de afstand, uit pas ruim erbuiten: geen geknipper bij kleine bewegingen), en de
+  // pixels doven er zacht uit (facadeFade in update3D); bij snelheid hoeven ze minder ver
+  const facadeEff = facadeEffective();
   if (facadeDetailDist < DRAW_DIST || facadeDetailCulled) {
     for (const [b, mesh] of buildingMeshes) {
       const det = mesh.userData.facadeDetail;
-      if (det) det.visible = centreDist(b) <= facadeDetailDist;
+      if (det) det.visible = hystVisible(det.visible, centreDist(b), facadeEff + FACADE_TOGGLE_MARGIN);
     }
     facadeDetailCulled = facadeDetailDist < DRAW_DIST;
   }
@@ -1681,7 +1711,7 @@ const _bSeen = new Set(), _bMissing = []; function syncBuildingsPass(world, px, 
   // to add an already built mesh to the scene.
   for (const [b] of prefetchedBuildings) if (centreDist(b) > DRAW_DIST + BUILDING_PREFETCH + 20 && !nearPrewarm(b)) prefetchedBuildings.delete(b);
   if (missing.length > built) return;
-  const prefetchEnd = performance.now() + BUILDING_PREFETCH_MS;
+  const pft0 = performance.now(), prefetchEnd = pft0 + plan.grant('building', BUILDING_PREFETCH_MS);
   let prefetchDone = true;
   for (const b of world.map.buildingsNear(px, py, DRAW_DIST + BUILDING_PREFETCH)) {
     if (performance.now() > prefetchEnd) { prefetchDone = false; break; }
@@ -1692,12 +1722,15 @@ const _bSeen = new Set(), _bMissing = []; function syncBuildingsPass(world, px, 
     precompile(mesh);
     prefetchedBuildings.set(b, mesh);
   }
+  plan.spend('building', performance.now() - pft0);
   if (prefetchDone && missing.length === 0) {
     syncIdle = { x: px, y: py, frame: syncFrame, dist: DRAW_DIST, view: viewDist, facade: facadeDetailDist, hidden: hiddenBuildings.size, meshes: buildingMeshes.size, landmarks: landmarkBuildings.length, geoVer: world.map.geoVer };
   }
 }
 
 const BUILDING_LINK_WAIT_MS = 2000;
+const ringSmoother = createRingSmoother();
+const ringKeep = [], _bStill = []; // de wachtende gebouwen binnen de ring (hun verre kopie blijft) en een hulplijst
 // Tijdens de openingsfilm worden nieuwe batches (gebouwen, wegen, perrons) anders
 // in één frame gecompileerd en getekend: dat gaf frames van 250-650 ms
 // (hitchprobe). In de film spreiden we het compileren per mesh over frames en
@@ -1753,6 +1786,22 @@ function meshProgramsReady(mesh) {
 
 // Streaming budgets (ms per frame) for buildings and roads; a jump of the
 // player (teleport, train, respawn) raises them for a moment.
+// Elke bouwbeurt hieronder vraagt zijn tijd aan de gedeelde planner (streamplanner.js, main.js begint de frame): de constanten
+// zijn wat een systeem ten hoogste wil, de planner geeft wat de frametijd en de andere systemen toelaten (#1016)
+const plan = streamPlanner();
+// De pixels van kozijnen en glas doven uit in een korte band voor de gevelafstand (edgefade3d.js, schermdeur-dither op
+// camera-afstand, geen extra pass): ze verschijnen dus geleidelijk in plaats van op één afstand. Bij verminderde beweging
+// (Rustig drukwerk) is de band bijna een harde rand. Zonder gevelafstand (Hoog en Ultra) staat de band buiten beeld.
+const FACADE_FADE_MATS = [detailMaterial, glassMaterial];
+for (const m of FACADE_FADE_MATS) applyEdgeFade(m, 1e9, 1e9 + 1);
+let facadeFadeOn = false;
+function updateFacadeFade() {
+  const on = Number.isFinite(facadeDetailDist) && !perfOff('kozijnfade');
+  if (!on && !facadeFadeOn) return;
+  facadeFadeOn = on;
+  const [a, b] = on ? facadeBand(facadeEffective(), reducedMotion() ? 0.5 : 10) : [1e9, 1e9 + 1];
+  for (const m of FACADE_FADE_MATS) m.userData.edgeFade.value.set(a, b);
+}
 const BUILDING_BUILD_MS = 4;
 const BUILDING_BUILD_BOOST_MS = 9;
 const ROAD_BUILD_MS = 2.5;
@@ -1765,6 +1814,9 @@ let streamLastX = null, streamLastY = 0;
 let buildingDetailR = DRAW_DIST;
 const FACADE_DETAIL_DIST = { laag: 80 };
 let facadeDetailDist = Infinity, facadeDetailCulled = false, facadeQualityDist = Infinity;
+// de gevelafstand van dit moment: de ingestelde afstand, bij snelheid korter (kozijnen zijn dan onscherp); Infinity blijft Infinity
+const FACADE_TOGGLE_MARGIN = 12; // m: de laag blijft zoveel voorbij de fadeband aan staan, zodat de fade (en niet de schakelaar) bepaalt wat je ziet
+function facadeEffective() { return Number.isFinite(facadeDetailDist) && !perfOff('ringsnelheid') ? facadeDetailDist * facadeSpeedScale(focusSpeed) : facadeDetailDist; }
 // gfxprofile.js cpuLevel (a busy machine): fewer facade details
 const CPU_FACADE_DIST = [Infinity, 140, 90, 60]; // #1016: was [Infinity, 100, 70, 45]: de raamkozijnen sprongen op een drukke machine al op 100 m aan
 let shadowFrame = 0;
@@ -2020,7 +2072,8 @@ function syncWater(items, cache, y, map, px, py) {
     for (const poly of todo) rank.set(poly, streamRank(streamAhead, (poly.bounds[0] + poly.bounds[2]) / 2, (poly.bounds[1] + poly.bounds[3]) / 2));
     todo.sort((a, b) => rank.get(a) - rank.get(b));
   }
-  const deadline = performance.now() + WATER_BUILD_BUDGET_MS;
+  const wt0 = performance.now();
+  const deadline = wt0 + plan.grant('road', WATER_BUILD_BUDGET_MS);
   for (const poly of todo) {
     if (performance.now() > deadline) {
       const [minx, miny, maxx, maxy] = poly.bounds;
@@ -2033,6 +2086,7 @@ function syncWater(items, cache, y, map, px, py) {
     cache.set(poly, mesh);
     if (cache === waterMeshes && mesh.userData.shore) registerShoreItems(poly, mesh.userData.shore);
   }
+  plan.spend('road', performance.now() - wt0);
   for (const [poly, mesh] of cache) {
     if (seen.has(poly)) continue;
     scene.remove(mesh);
@@ -2100,7 +2154,7 @@ function syncRoads(world, px, py) {
     missing.sort((a, b) => a[0] - b[0]);
     const t0 = performance.now();
     const boosted = t0 < streamBoostUntil;
-    const deadline = t0 + (boosted ? ROAD_BUILD_MS * 2 : ROAD_BUILD_MS);
+    const deadline = t0 + plan.grant('road', boosted ? ROAD_BUILD_MS * 2 : ROAD_BUILD_MS);
     const cap = boosted ? ROAD_BUILD_MAX_PER_FRAME * 2 : ROAD_BUILD_MAX_PER_FRAME;
     let built = 0, waiting = false, deferred = false;
     for (const [, r, , near] of missing) {
@@ -2148,6 +2202,7 @@ function syncRoads(world, px, py) {
     roadSyncStats.built += built;
     roadSyncStats.maxPerFrame = Math.max(roadSyncStats.maxPerFrame, built);
     roadSyncStats.lastMs = performance.now() - t0;
+    plan.spend('road', roadSyncStats.lastMs);
   } else {
     streamStat.r = 0;
     roadDetailR = DRAW_DIST;
@@ -2347,7 +2402,7 @@ function syncPedestrianMeshes(world, player, animDt) {
   // fast travel (a car on the A7, the heli, a train): people beyond ~90 m go by in a second and their meshes (~3 ms
   // each to build) were a turnover of dozens a second; the range closes from 14 m/s on and opens again when it slows
   const pedRange = perfOff('persoonsbereik') ? DRAW_DIST : Math.max(Math.min(DRAW_DIST, PED_RANGE_FAST), DRAW_DIST - Math.max(0, focusSpeed - PED_RANGE_FROM) * PED_RANGE_SLOPE);
-  const seen = _pedSeen; seen.clear(); const deadline = performance.now() + PED_BUILD_BUDGET_MS;
+  const seen = _pedSeen; seen.clear(); const pt0 = performance.now(), deadline = pt0 + plan.grant('actors', PED_BUILD_BUDGET_MS);
   let built = 0;
   for (const p of world.pedestrians) {
     { const dx = p.x - player.x, dy = p.y - player.y; if (dx * dx + dy * dy >= (pedRange > 0 ? pedRange * pedRange : 0)) continue; } // #985: kwadraten, Math.hypot is ~12x trager
@@ -2361,6 +2416,7 @@ function syncPedestrianMeshes(world, player, animDt) {
     pedMeshes.set(p, mesh);
     built++;
   }
+  plan.spend('actors', performance.now() - pt0);
   for (const [p, mesh] of pedMeshes) {
     if (seen.has(p)) continue;
     pedMeshes.delete(p);
@@ -2550,7 +2606,7 @@ export function update3D(dt, world) {
     buildingBatcher.update({ scene, meshes: buildingMeshes, hidden: hiddenBuildings, px: focus.x, py: focus.y, detailR: buildingDetailR, drawDist: DRAW_DIST,
       withDetail: facadeDetailDist >= DRAW_DIST, compile: batchCompile, ready: batchReady, budgetMs: performance.now() < streamBoostUntil ? 1 : 3 });
     if (facadeDetailDist < DRAW_DIST) {
-      facadeBatcher.update({ scene, meshes: buildingMeshes, hidden: hiddenBuildings, px: focus.x, py: focus.y, detailR: Math.min(facadeDetailDist, buildingDetailR), drawDist: DRAW_DIST,
+      facadeBatcher.update({ scene, meshes: buildingMeshes, hidden: hiddenBuildings, px: focus.x, py: focus.y, detailR: Math.min(facadeEffective() + FACADE_TOGGLE_MARGIN, buildingDetailR), drawDist: DRAW_DIST,
         withDetail: true, compile: batchCompile, ready: batchReady, budgetMs: 1 });
     } else facadeBatcher.clear();
   }
@@ -2605,7 +2661,7 @@ export function update3D(dt, world) {
   syncVehicleMeshes(world, player);
   const fireSeenIds = _fireSeen; fireSeenIds.clear();
   const policeChasing = world.wanted > 0;
-  const driverDeadline = performance.now() + DRIVER_BUILD_BUDGET_MS;
+  const driverDeadline = performance.now() + plan.grant('actors', DRIVER_BUILD_BUDGET_MS);
   const pBoat = player.inVehicle && player.inVehicle.isBoat ? player.inVehicle : null;
   if (!world.extraSpeakers) world.extraSpeakers = [];
   crewCtx.deadline = driverDeadline;
@@ -2917,6 +2973,7 @@ export function update3D(dt, world) {
   }
 
   probe.mark('3d:markers+combat');
+  updateFacadeFade();
   applyTimeOfDay(dt, world);
   applyWeatherToScene3D(scene, renderer, world, dt, player.x, player.y, cam);
   probe.mark('3d:tod+weather');
@@ -2924,7 +2981,9 @@ export function update3D(dt, world) {
   probe.mark('3d:env');
   // while streaming catches up after a jump the far LOD stands in closer
   const lodR = viewDist > DRAW_DIST + 20 ? Math.min(DRAW_DIST, buildingDetailR, roadDetailR + 8) : DRAW_DIST;
-  farLod.update(focus.x, focus.y, viewDist, Math.min(viewDist, scene.fog.far) + 20, lodR);
+  const flt0 = performance.now(), fl = streamLead(streamAhead);
+  farLod.update(focus.x, focus.y, viewDist, Math.min(viewDist, scene.fog.far) + 20, lodR, { keep: ringKeep, budgetMs: plan.grant('far', 2.5), lead: fl.lead > 0 ? fl : null });
+  plan.spend('far', performance.now() - flt0);
   probe.mark('3d:farlod');
 
   if (player.character !== playerCharacter) {

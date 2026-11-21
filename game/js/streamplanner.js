@@ -35,6 +35,8 @@ export const PLAN = {
   activeFrames: 30,  // een klasse telt zoveel frames na haar laatste aanvraag mee voor de reservering
   heavyMs: 2,        // een stuk werk waarvan de schatting hierboven ligt is "duur": één per frame
   ageMPerFrame: 3,   // een wachtend ding wordt per frame zoveel "meter" dichterbij (tegen verhongering)
+  autoFrameMs: 250,  // zonder beginFrame zolang begint grant zelf een frame (een los gereedschap mag de planner niet laten dichtslibben)
+  useK: 0.1,         // het gewicht van een frame in het gemiddelde gebruik van een klasse (wat anderen vrij laten)
   emaK: 0.2,         // het gewicht van een nieuwe frametijd in het gemiddelde
 };
 
@@ -69,33 +71,42 @@ export function createFramePlanner(opts = {}) {
   const p = { ...PLAN, ...opts };
   const weights = { ...CLASSES, ...(opts.classes || {}) };
   const st = {};
-  for (const k of [...Object.keys(weights), 'urgent']) st[k] = { spent: 0, granted: 0, ran: false, hungry: 0, wanted: -1e9, total: 0, units: 0, over: 0 };
+  for (const k of [...Object.keys(weights), 'urgent']) st[k] = { spent: 0, granted: 0, ran: false, hungry: 0, wanted: -1e9, use: 0, total: 0, units: 0, over: 0 };
+  let enabled = true; // uit (?perfoff=planner): grant geeft wat het systeem wil, zoals voor de planner (A/B in Electron)
   let frame = 0, pool = p.capMs, allowance = p.capMs, lastTotal = p.capMs, debt = 0, frameEma = 12, spentTotal = 0, heavyThisFrame = false;
   const queue = [];
   let seq = 0;
   const frames = { n: 0, sumMs: 0, maxMs: 0, over: 0, overMs: 0, last: 0 };
 
-  function beginFrame({ frameMs = frameEma, boost = false, loading = false, cine = false, hold = false, pressure = 0 } = {}) {
+  function beginFrame({ frameMs = frameEma, boost = false, loading = false, cine = false, hold = false, pressure = 0, fresh = false } = {}) {
     // sluit de vorige frame af: wat boven de toelage is uitgegeven wordt schuld (begrensd); wat over is, vervalt
-    if (frame > 0) {
+    if (fresh) debt = 0; // een lange stilte (autoFrameMs): oude schuld telt niet meer
+    else if (frame > 0) {
       const left = allowance - spentTotal;
       debt = left < 0 ? Math.max(-p.maxDebtFrames * lastTotal, left) : 0;
       frames.n++; frames.sumMs += spentTotal; frames.maxMs = Math.max(frames.maxMs, spentTotal); frames.last = spentTotal;
       if (spentTotal > p.capMs + 1e-6) { frames.over++; frames.overMs += spentTotal - p.capMs; }
     }
     frame++;
+    lastBegin = clock();
     if (Number.isFinite(frameMs)) frameEma += (Math.min(200, frameMs) - frameEma) * p.emaK;
     const total = hold ? 0 : budgetFor(frameEma, { boost, loading, cine, pressure }, p);
     lastTotal = Math.max(total, p.floorMs);
     // schuld telt niet achter de laadsluier (er wordt niet getekend)
     allowance = loading ? total : total + debt;
     pool = Math.max(0, allowance);
-    for (const k in st) { const c = st[k]; c.spent = 0; c.granted = 0; c.ran = false; }
+    for (const k in st) { const c = st[k]; c.use += (c.spent - c.use) * p.useK; c.spent = 0; c.granted = 0; c.ran = false; }
     spentTotal = 0; heavyThisFrame = false;
     return pool;
   }
 
+  // Een aanroeper die de frame niet via main.js laat beginnen (een los gereedschap, een trailerloop) mag de planner niet laten
+  // dichtslibben: komt er langer dan AUTO_FRAME_MS geen beginFrame, dan begint grant zelf een frame.
+  const clock = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
+  let lastBegin = -Infinity;
   function grant(cls, want = Infinity) {
+    if (!enabled) return want === Infinity ? p.capMs : want;
+    if (clock() - lastBegin > p.autoFrameMs) beginFrame({ fresh: true });
     // URGENT: werk dat nu nodig is (windowmode.js): een eigen budget naast de pool, niet vastgehouden door hold (film,
     // cutscene) en niet onderhevig aan schuld; wel begrensd per frame (urgentMs)
     if (cls === 'urgent') {
@@ -114,7 +125,9 @@ export function createFramePlanner(opts = {}) {
     for (const k in st) {
       if (k === cls || k === 'urgent') continue;
       const o = st[k];
-      if (!o.ran && frame - o.wanted <= p.activeFrames) reserve += Math.max(0, pool * weights[k] - o.spent);
+      // alleen wat een klasse recent echt gebruikte blijft voor haar vrij (met een beetje ruimte), niet haar hele aandeel: een klasse
+      // die altijd werk wil maar weinig kost (de actoren) houdt anders budget vast dat de gebouwen nodig hebben
+      if (!o.ran && frame - o.wanted <= p.activeFrames) reserve += Math.max(0, Math.min(pool * weights[k] - o.spent, o.use * 1.3 + 0.1));
     }
     const share = pool * weights[cls];
     const free = pool - spentTotal - reserve;
@@ -190,7 +203,7 @@ export function createFramePlanner(opts = {}) {
     return { frame, pool, debt, frameEma, queued: queue.length, frames: { ...frames }, by };
   }
 
-  return { beginFrame, grant, spend, remaining, submit, runQueue, cancel, stats, queue, get pool() { return pool; }, get debt() { return debt; }, get frame() { return frame; }, params: p };
+  return { setEnabled(on) { enabled = !!on; }, get enabled() { return enabled; }, beginFrame, grant, spend, remaining, submit, runQueue, cancel, stats, queue, get pool() { return pool; }, get debt() { return debt; }, get frame() { return frame; }, params: p };
 }
 
 // de planner die het spel deelt (scene3d.js, main.js, grass.js, farlod.js lezen hem); tests maken er eigen
