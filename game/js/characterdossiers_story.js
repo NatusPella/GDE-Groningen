@@ -107,7 +107,7 @@ export const STORY = [
     voice: 'Rasalgethi', voiceTag: "sluwe Groningse heler, hees en zakelijk",
     look: "leren jas, hees gezicht, zware ring", outfitRole: NA, outfitByAct: fixed("vast: eigen NPC-look (sjabbe)"),
     arc: { 1: "noemt als eerste het museum", 2: "n.v.t.", 3: "n.v.t.", 4: "n.v.t.", 5: "neemt het horloge in (M22)", 6: "brengt een horloge terug naar de Vismarkt" },
-    firstStep: 'M02', lastStep: 'M25', introducedBy: "Tessa noemt hem in M02", storyRole: "heler en haakje naar Pand & Poen en Bezit", needsFromDuo: "n.v.t.",
+    firstStep: 'M02', lastStep: 'M30', introducedBy: "Tessa noemt hem in M02", storyRole: "heler en haakje naar Pand & Poen en Bezit", needsFromDuo: "n.v.t.",
     mapLink: "Pand & Poen", minigames: ["Bezit (panden)"], canonNotes: "Bron: Pand & Poen, heler. Achternaam en woonplek zijn voorstel.", sensitive: "n.v.t.",
     canon: ['work', 'employer', 'traits', 'tagline', 'habits', 'dialect', 'phrases', 'voice', 'voiceTag', 'arc', 'firstStep', 'lastStep', 'introducedBy', 'storyRole', 'mapLink', 'canonNotes'],
   }),
