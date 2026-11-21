@@ -454,12 +454,15 @@ export function checkVisual(unit) {
     if (unit.scene && actors[id].road === undefined && verborgen(id, l.at + Math.min(0.3, l.dur / 2), unit.scene)) out.push(vondst(unit, 'CS-V01', `${l.speaker} is verborgen terwijl hij praat (regel ${i})`, { regelNr: i, t: l.at }));
   });
   // V03: figuren in elkaar, staand in een voertuig, ver buiten de scène
-  const ids = Object.keys(actors);
+  // een inzittende die met zijn voertuig meerijdt (`road`) of vanaf de eerste seconde verborgen is, staat niet als figuur in de scène (#1146)
+  const zonderFiguur = (id) => actors[id].road !== undefined || (unit.def.cues || []).some((c) => c.actor === id && c.hide === true && (c.t === 0 || c.t === undefined));
+  const ids = Object.keys(actors).filter((id) => !zonderFiguur(id));
   for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) {
     const a = actors[ids[i]], b = actors[ids[j]];
     if (a.at && b.at && dist2(a.at[0], a.at[1], b.at[0], b.at[1]) < 0.3 && !a.sit && !b.sit) out.push(vondst(unit, 'CS-V03', `${ids[i]} en ${ids[j]} staan in elkaar bij het begin (${dist2(a.at[0], a.at[1], b.at[0], b.at[1]).toFixed(2)} m)`));
   }
   for (const [id, a] of Object.entries(actors)) {
+    if (zonderFiguur(id)) continue;
     if (a.at && Math.hypot(a.at[0], a.at[1]) > 40) out.push(vondst(unit, 'CS-V03', `${id} staat ${Math.hypot(a.at[0], a.at[1]).toFixed(0)} m van de plek`));
     for (const [pid, p] of Object.entries(unit.def.props || {})) {
       const foot = unit.footOf && unit.footOf(p.kind);

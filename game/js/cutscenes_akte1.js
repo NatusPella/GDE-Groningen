@@ -626,6 +626,7 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
   };
   const primary = Object.keys(actors).filter((id) => !meta[id].bg && !meta[id].noauto);
   const gi = {};
+  const turned = {};
   const beats = (spec.beats || []).map((b) => ({ ...b, idx: resolveOn(b.on, lines) })).filter((b) => b.idx !== -1);
   const shotAt = new Map();
   for (const s of spec.shots || []) { const i = resolveOn(s.on, lines); if (i != null && i >= 0) shotAt.set(i, s); }
@@ -639,6 +640,9 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
     let anim = g[gi[me]++ % g.length];
     if (l.text.length < 22 && anim !== 'talk') anim = 'talk';
     cues.push({ t: tspec(i), actor: me, anim });
+    // #1146 (R-21): the speaker turns to the one he answers (the last other speaker), so nobody talks with his back to the listener
+    const answers = lines.slice(0, i).reverse().map((q) => speakerActor(q.speaker)).find((a) => a && a !== me) || lines.slice(i + 1).map((q) => speakerActor(q.speaker)).find((a) => a && a !== me);
+    if (answers && turned[me] !== answers) { turned[me] = answers; cues.push({ t: tspec(i, 0.05), actor: me, face: 'actor:' + answers }); }
     for (const o of primary) {
       if (o === me) continue;
       cues.push({ t: tspec(i), actor: o, face: 'actor:' + me });
@@ -735,7 +739,10 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
     shots.sort((a, b) => num2(a.t) - num2(b.t));
   }
   // the closing frame: back out to the street
-  const wend = spec.wide ? { shot: 'dolly', from: [spec.wide.to[0] + 0.5, spec.wide.to[1], spec.wide.to[2] + 0.3], to: [spec.wide.to[0] + 2.2, spec.wide.to[1] * 0.9, spec.wide.to[2] + 1.2], look: spec.wide.look, fov: spec.wide.fov || 48 } : null;
+  // the closing frame keeps the last speaker in view: the middle of the wide's look moves to the first subject and the last speaker (a mid: look takes two)
+  const lastMe = spec.wide && speakerActor(lines[lines.length - 1].speaker);
+  const wendLook = spec.wide && spec.wide.endLook ? spec.wide.endLook : (() => { const m = spec.wide && typeof spec.wide.look === 'string' ? /^mid:([^@]+)(@.+)?$/.exec(spec.wide.look) : null; return m && lastMe && !m[1].split(',').includes(lastMe) ? `mid:${m[1].split(',')[0]},${lastMe}${m[2] || ''}` : spec.wide && spec.wide.look; })();
+  const wend = spec.wide ? { shot: 'dolly', from: [spec.wide.to[0] + 0.5, spec.wide.to[1], spec.wide.to[2] + 0.3], to: [spec.wide.to[0] + 2.2, spec.wide.to[1] * 0.9, spec.wide.to[2] + 1.2], look: wendLook, fov: spec.wide.fov || 48 } : null;
   const lastLine = lines[lines.length - 1];
   if (wend && !spec.manual && lastLine.dur > 1.6) {
     // the closing frame comes at least a second after the shot before it (#1146: no flicker on the last line)
