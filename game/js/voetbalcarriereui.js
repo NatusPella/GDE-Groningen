@@ -4,7 +4,6 @@
 // Niet door een mens in beeld bekeken (zie docs/VOETBAL-CARRIERE-VERIFICATIE-21-11.md).
 import { hoofdspeler } from './players.js';
 import * as C from './voetbalcarriere.js';
-import { hoofdspeler } from './players.js';
 import * as O from './voetbalontwikkeling.js';
 import * as A from './voetbalagenda.js';
 import { ATTRS, ATTR_NAMES, ROLE_NAMES, TALENTS, attrCap, playerRating } from './voetbalspelers.js';

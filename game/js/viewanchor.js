@@ -9,7 +9,6 @@
 //   upYaw    de hoek die op de minimap naar boven staat als de kaart meedraait (zie mapUpRotation)
 //   kind     'voet' | 'zwemmen' | 'duif' | 'heli' | 'vliegtuig' | 'boot' | 'fiets' | 'paard' | 'auto' | 'trein'
 //   camera   true als een scene of fotocamera het beeld heeft (world.cameraOverride): de camerahoek zegt dan niets over jou
-import { hoofdspeler } from './players.js';
 
 import { hoofdspeler } from './spelersregister.js';
 

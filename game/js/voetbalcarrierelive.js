@@ -14,7 +14,6 @@ import { nextBeat, inviteBeat, markBeat, hudLine, beatText } from './voetbalbeat
 import { getStoryView } from './storyquery.js';
 import { unlockAchievement } from './achievements.js';
 import { playerBusy } from './busy.js';
-import { hoofdspeler } from './players.js';
 import { narrativeBusy } from './narrative.js';
 
 const WRITE_DELAY_MS = 1500;
