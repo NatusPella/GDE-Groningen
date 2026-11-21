@@ -97,3 +97,16 @@ export const FIELD_ICON = {
   banden: 'tune_banden', uitlaat: 'tune_uitlaat', stoel: 'tune_stoel', verlichting: 'tune_koplampen', geluid: 'tune_geluid', ophanging: 'tune_ophanging', motor: 'tune_motor',
 };
 export const iconOfField = (f) => FIELD_ICON[f] || 'tune_onderdelen';
+// De kop boven de keuzes van een categorie: wat je hier kiest, in één zin (de showroom van ronde 4: elke categorie heeft zijn icoon en uitleg).
+export const CATEGORY_BLURB = {
+  lak: 'De kleur en de glans van je carrosserie. De spuitbus doet de rest.',
+  strepen: 'Strepen en stickers: kies er één en draai de auto een kwartslag.',
+  velgen: 'Velgen, banden en maat: het eerste wat iemand op het treffen bekijkt.',
+  carrosserie: 'Spoiler, kit, diffuser, dakdrager en uitlaat: de vorm van je auto.',
+  licht: 'Koplampen, lampkleur, underglow en raamfolie. Neon brandt alleen \'s nachts.',
+  details: 'Een nummerbord met verzonnen tekst en een hanger aan de spiegel.',
+  snack: 'De snackwagen: luifel, uitstalling, bakkenlicht, geur en je eigen belettering.',
+  onderdelen: 'Banden, uitlaat, stoel, verlichting en geluid: wat je voelt en hoort.',
+  builds: 'Bewaar je uiterlijk als build en haal het later terug.',
+};
+export const blurbOf = (tabId) => CATEGORY_BLURB[tabId] || '';

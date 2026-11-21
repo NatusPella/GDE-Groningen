@@ -584,9 +584,13 @@
   },
   {
    "id": "tuning",
-   "naam": "Tuning, onderdelen, lak en gepimpte auto's",
+   "naam": "Tuning, onderdelen, lak, gepimpte auto's, autotreffen en kapper",
    "groep": "Uiterlijk",
    "modules": [
+    "tuning*",
+    "vehiclelook*",
+    "showroomplan",
+    "kapperkeuze",
     "garage*",
     "ownedvehicles",
     "coopbezit",
@@ -594,28 +598,28 @@
     "vehicleregister",
     "dienstvoertuig",
     "onderdelen*",
-    "carbid",
-    "tuning*",
-    "showroomplan"
+    "carbid"
    ],
    "eigenaar": "speler",
-   "gast": "Eigen voertuigen en panden komen mee in de wereld van een ander (bezorgen en delen, #449): kleur, upgrades, deuken en lekke band reizen mee.",
-   "beloning": "Geen; kosten uit je eigen geld.",
-   "wegval": "Een bezorgde kopie verdwijnt met zijn eigenaar; het origineel blijft in de eigen opslag.",
+   "gast": "Het uiterlijk van elk voertuig (ook een gepimpte verkeersauto en de auto van een medespeler) gaat als korte code in de snapshot; een bezorgde eigen auto draagt zijn onderdelen mee. Het autotreffen (Haren of het Reitdiep) hangt aan de gezamenlijke kalenderdag: elke speler ziet dezelfde auto's; melding en eigenaarszinnen zijn lokaal. Werkplaats en kapper kunnen alleen in je eigen spel.",
+   "beloning": "Geen; kosten uit je eigen geld; prestaties (Pimp my Ride) per speler.",
+   "wegval": "Een bezorgde kopie verdwijnt met zijn eigenaar; het origineel blijft in de eigen opslag. Wie later aansluit krijgt de tune-code in de eerstvolgende uiterlijkronde; de auto's van de wereld en het treffen volgen de dag en blijven.",
    "test": [
     "scripts/coopbezit_test.mjs",
-    "scripts/tuningplan_test.mjs",
+    "scripts/coopworld_test.mjs",
+    "scripts/tuningworld_test.mjs",
+    "scripts/tuningmeet_test.mjs",
+    "scripts/tuningsfx_test.mjs",
+    "scripts/kapperkeuze_test.mjs",
     "scripts/garage_zone_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
-    "zoek": "## Eigen voertuigen meenemen en delen (#449)"
+    "zoek": "## Autotuning: gepimpte auto's, autotreffen, werkplaats en kapper"
    },
-   "status": "gat",
-   "prio": "middel",
-   "lead": "Tuning",
-   "issue": "#1158",
-   "gat": "De onderdelen van tuningplan.js (banden, uitlaat, stoel, verlichting, geluid; gde-tuning-v1) reizen niet mee in het bezorg-bericht (coopbezit.js kent alleen color, upgrades, health, dents, flat): een bezorgde auto verliest zijn tuning in andermans wereld. Voeg een gesaneerd tuning-veld toe (PROTO blijft) en een test."
+   "status": "OK",
+   "prio": "-",
+   "lead": "Tuning"
   },
   {
    "id": "interieurs",
