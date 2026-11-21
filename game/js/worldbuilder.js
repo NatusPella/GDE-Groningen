@@ -16,6 +16,7 @@ import { heightOf, levelsFor } from './buildingheights.js';
 import { hash2 } from './greenery.js';
 import { segDist } from './util.js';
 import { ACC } from './navgraph.js';
+import { EDGE_CLASSES } from './edgeclasses.js';
 
 export const WB_VERSION = 1;
 export const LEVEL_M = 3.1;
@@ -128,7 +129,7 @@ export function laneFields(hw, tags, defaultWidth, dual = true) {
 export const PARCEL_USE = { farmland: 'akker', meadow: 'weide', orchard: 'boomgaard' };
 
 // the width (m) of an open ditch, drain or brook that OSM gives no width for
-export const DITCH_WIDTH = { ditch: 2.4, drain: 1.6, stream: 3 };
+export const DITCH_WIDTH = EDGE_CLASSES.ditch.width; // de ene tabel van de randen (edgeclasses.js)
 
 // Legal access per mode (the navgraph.js ACC bits); null when the class default holds.
 export function accessMask(hw, cat, tags) {
@@ -429,7 +430,7 @@ function sampleAlong(P, spacing) {
   }
   return out;
 }
-export const TREE_ROW_SPACING = 6;
+export const TREE_ROW_SPACING = EDGE_CLASSES.treerow.spacing;
 
 const project = (g) => g.map(([lat, lon]) => wgsToWorld(lat, lon).map((v) => Math.round(v * 100) / 100));
 const closed = (P) => P.length > 3 && P[0][0] === P[P.length - 1][0] && P[0][1] === P[P.length - 1][1];

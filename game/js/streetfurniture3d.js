@@ -19,6 +19,7 @@ import { makeProp, addProp, removeProp, isPropBroken, addStaticCollider, addProp
 import { TILE_M, GRID_X0, GRID_Y0, tileIndexOf } from './gdt.js';
 import { markInstancesDirty } from './util.js';
 import { gridItems } from './spatialgrid.js';
+import { EDGE_CLASSES, edgeColour, edgeHeight } from './edgeclasses.js';
 
 // the game draws its own lamps and path bollards (see above)
 export const GAME_OPTS = { lamps: false, bollards: false, livingBumps: false };
@@ -51,15 +52,23 @@ function guardrailGeo() {
     tint(new THREE.BoxGeometry(0.08, 0.75, 0.1).translate(0, 0.375, 0.06), 0x8d9296),
   ]);
 }
+// hek en heg: maten en kleuren uit de ene tabel van edgeclasses.js (de collision komt uit dezelfde regel)
 function fenceGeo() {
+  const v = EDGE_CLASSES.fence.visual;
   return mergeGeometries([
-    tint(new THREE.BoxGeometry(1, 1.4, 0.03).translate(0, 0.75, 0), 0x4f5a52),
-    tint(new THREE.BoxGeometry(0.06, 1.6, 0.06).translate(-0.48, 0.8, 0), 0x3d4640),
+    tint(new THREE.BoxGeometry(1, v.panelH, v.thick).translate(0, v.panelY, 0), edgeColour('fence', 'panel')),
+    tint(new THREE.BoxGeometry(v.postW, v.postH, v.postW).translate(-0.48, v.postH / 2, 0), edgeColour('fence', 'post')),
   ]);
 }
 function hedgeGeo() {
-  return mergeGeometries([tint(new THREE.BoxGeometry(1, 1, 0.9).translate(0, 0.5, 0), 0x3f6a30), tint(new THREE.BoxGeometry(1, 0.2, 0.7).translate(0, 1.05, 0), 0x4a7838)]);
+  const v = EDGE_CLASSES.hedge.visual;
+  return mergeGeometries([
+    tint(new THREE.BoxGeometry(1, v.bodyH, v.depth).translate(0, v.bodyH / 2, 0), edgeColour('hedge', 'body')),
+    tint(new THREE.BoxGeometry(1, v.capH, v.capDepth).translate(0, v.bodyH + v.capH / 2 - 0.05, 0), edgeColour('hedge', 'cap')),
+  ]);
 }
+// de top van het hegmodel bij schaal 1 (bodyH + capH - 0,05: de kap overlapt de bak 0,05 m): de y-schaal maakt er de heghoogte van
+const HEDGE_TOP = EDGE_CLASSES.hedge.visual.bodyH + EDGE_CLASSES.hedge.visual.capH - 0.05;
 function noiseGeo() {
   return mergeGeometries([tint(new THREE.BoxGeometry(1, 1, 0.18).translate(0, 0.5, 0), 0x6f7d6a)]);
 }
@@ -362,7 +371,7 @@ export function updateStreetFurniture3D(px, py, force = false) {
       case 'guardrail': put('guardrail', it.x, z, it.y, it.a, it.s, 1, 1); break;
       case 'fence': put('fence', it.x, z, it.y, it.a, it.s, 1, 1); break;
       case 'noise': put('noise', it.x, z, it.y, it.a, it.s, it.h || 4, 1); break;
-      case 'hedge': put('hedge', it.x, z, it.y, it.a, it.s, (it.h || 1.4) / 1.15, 1); break;
+      case 'hedge': put('hedge', it.x, z, it.y, it.a, it.s, edgeHeight('hedge', it.h) / HEDGE_TOP, 1); break;
       case 'hectometer': put('hectometer', it.x, z, it.y, it.a); break;
       case 'speedbump': put('speedbump', it.x, z, it.y, it.a, 1, 1, it.s || 6); break;
       case 'gantry': {
