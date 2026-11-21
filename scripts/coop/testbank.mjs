@@ -770,6 +770,8 @@ if (SUITE === 'alles') {
   for (const n of NAMES) { const e = e1(n, 'alles-waypoint'); check(!!e && (n === 'gast' ? e.heeftDoel : !e.heeftDoel), `alles waypoint: ${n} ${e && e.heeftDoel ? 'heeft' : 'mist'} het doel van de gast terwijl een waypoint per speler is`); }
   for (const stap of ['outfit', 'tuning', 'bezit']) for (const n of NAMES) { const e = e1(n, 'alles-' + stap); if (!e) check(false, `alles ${stap}: ${n} logde niets`); else if (e.fout) check(false, `alles ${stap}: ${n} fout ${e.fout}`); else if (e.skip) note(`alles ${stap}: ${n} wacht (${e.reden})`); }
   { const E3 = {}; for (const n of NAMES) E3[n] = e1(n, 'alles-bezit') || null; for (const m of keurBezitStap(E3)) check(false, 'alles ' + m); }
+  // kleding (ronde 4): de gast koos postuur breed (outfit-code versie 3, vierde teken na het kapsel is 2); host en tweede gast zien die code in hun spelerslijst
+  for (const n of NAMES) { const e = e1(n, 'alles-outfit'); if (n !== 'gast' && e && !e.skip && !e.fout) check((e.codes || []).some((c) => typeof c === 'string' && c[1] >= '3' && c[5] === '2'), `alles outfit: ${n} ziet de outfit-code van de gast (postuur breed) niet in de spelerslijst (${JSON.stringify(e.codes)})`); }
   for (const n of NAMES) { const o = e1(n, 'opslagcheck'); check(!!o && !o.gde2 && !o.ip, `alles privacy: ${n} bewaart een directe code of IP-adres`); }
   const eind = e1('gast', 'gastbijbaan-eind'); check(!!eind && eind.deelde, 'alles bijbaan: de gast startte de baan niet');
   const bel = of(H, 'gastbijbaan-beloning')[0]; check(!!bel && bel.ok, 'alles bijbaan: de host kon de beloning niet verdelen');

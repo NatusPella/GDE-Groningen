@@ -1297,8 +1297,10 @@ const PHASES = {
       } else if (stap === 'outfit') { // kleding: de outfit-code in de spelerslijst (epic Kleding)
         let C = null; try { C = await imp('clothing'); } catch (e) { /* nog niet gemerged */ }
         if (!C) return uit({ skip: true, reden: 'clothing.js ontbreekt' });
+        // ronde 4: de gast kiest een ander postuur (breed) en meldt dat zoals het pashokje doet; de anderen moeten die code in hun spelerslijst zien
+        if (CFG.name === wie) { C.setBody('tammo', 'breed'); C.setBody('anita', 'breed'); C.emitLocalOutfitChange(); }
         await sleep(s * 1000);
-        uit({ codes: (W().coopRoster || []).map((r) => (r.avatar && r.avatar.outfit) || null) });
+        uit({ codes: (W().coopRoster || []).map((r) => (r.avatar && r.avatar.outfit) || null), eigen: C.localOutfitCode ? C.localOutfitCode() : null });
       } else if (stap === 'tuning') { // tuning: onderdelen van een eigen auto komen mee in het bezorg-bericht (#1158)
         const T = await imp('tuningplan');
         await sleep(s * 1000);

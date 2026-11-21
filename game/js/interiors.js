@@ -32,7 +32,7 @@ import { buildPersonMesh, animatePersonWalk, registerPoseSource, unregisterPoseS
 import { FAC } from './facilities.js';
 import { PROMPT, LOCKED_HOME, clerkLine, HOME_LOOK, FITTING, HAIRCUT, CHURCH_CANDLE, TICKET_LINES, LEZEN, BOUGHT, TOO_POOR, NOT_FOR_SALE } from './interiortexts.js';
 import { productFor, buyProduct } from './interiorbuy.js';
-import { getShopsForRender, openShopFromInterior, setShopInteriorCheck } from './shops.js';
+import { getShopsForRender, openShopFromInterior, setShopInteriorCheck, openFittingRoom, openClothingCounter } from './shops.js';
 import { setHorecaInteriorCheck } from './horeca.js';
 import { distToRing } from './shopbind.js';
 import { noteMoney } from './finance.js';
@@ -403,6 +403,8 @@ function useSpot(w, hit) {
     case 'kopen': case 'bestellen': {
       const gameShop = gameShopOf(ls.b);
       if (gameShop && openShopFromInterior(w, gameShop)) return true;
+      // a clothing interior without a shop of the game: the same stock and menu as a clothing shop (epic Kleding, round 4)
+      if (s.id === 'kopen' && plan.sub === 'kleding' && openClothingCounter(w, 'kleding|' + seed, 'Kledingwinkel')) return true;
       const prod = productFor(plan.kind, plan.sub);
       if (!prod) { say(w, NOT_FOR_SALE); return true; }
       noteMoney('Winkels');
@@ -413,9 +415,10 @@ function useSpot(w, hit) {
       return true;
     }
     case 'passen': {
+      // the fitting room (epic Kleding, round 4): try on the stock of this shop, your own wardrobe, save an outfit, the curtain sounds
       const gameShop = gameShopOf(ls.b);
-      if (gameShop && openShopFromInterior(w, gameShop)) return true;
-      sfxEvent(w, 'curtain_pull', hit.x, hit.y);   // SFX ronde 6: het gordijn van het pashokje
+      if (gameShop && gameShop.type !== 'kleding' && openShopFromInterior(w, gameShop)) return true;
+      if (openFittingRoom(w, gameShop && gameShop.type === 'kleding' ? gameShop : 'kleding|' + seed, hit.x, hit.y)) return true;
       say(w, FITTING[n % FITTING.length]);
       return true;
     }

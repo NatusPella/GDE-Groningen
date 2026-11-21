@@ -572,7 +572,7 @@
     "models3d_people"
    ],
    "eigenaar": "speler",
-   "gast": "Medespelers zien je outfit via het optionele veld avatar.outfit (code k1) in de hello en de spelerslijst; de winkel is voor iedereen hetzelfde (deterministisch aanbod).",
+   "gast": "Medespelers zien je outfit (stukken, kapsel en postuur, code k3) via het optionele veld avatar.outfit in de hello en de spelerslijst; een wissel midden in een sessie gaat als bericht outfit. Het pashokje, de kast en de vijf outfits zijn per speler en lokaal; de winkel is voor iedereen hetzelfde (deterministisch aanbod).",
    "beloning": "Geen; wel prestaties per speler.",
    "wegval": "Niets te herstellen; later aansluiten: de code staat in de spelerslijst.",
    "test": [
@@ -587,7 +587,7 @@
    "status": "gat",
    "prio": "middel",
    "lead": "Kleding",
-   "gat": "Lead Kleding meldt (epic-kleding-21-11, e71573e69): outfit-update midden in een sessie is klaar (bericht k outfit, test in clothing_test.mjs) en NPC-outfits zijn aangesloten op voetgangers, wachters en publiek (deterministisch). Open: de testbankstap outfit in coop.page.js moet na de merge echt controleren dat een medespeler avatar.outfit draagt (nu alleen gelogd); status naar OK na de merge."
+   "gat": "Lead Kleding meldt (epic-kleding-21-11, e71573e69): outfit-update midden in een sessie is klaar (bericht k outfit, test in clothing_test.mjs) en NPC-outfits zijn aangesloten op voetgangers, wachters en publiek (deterministisch). Ronde 4 (kleding-r4-21-11): de testbankstap outfit controleert nu echt dat host en tweede gast de code (postuur breed) van de gast in hun spelerslijst zien; die stap is nog niet in Electron gedraaid. Status naar OK na de merge en één groene sweep."
   },
   {
    "id": "tuning",

@@ -70,6 +70,12 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 - Webversie: er komt een handmatige workflow om het spel op GitHub Pages te zetten (onder /play/, naast de marketingpagina), met alleen Opus-geluid (ca. 300 MB kleiner; Safari vóór 18.4 speelt dan zonder geluid), de wereld uit de release en een klein wegklikbaar label "Webversie (preview)". Livebussen en live treinen worden in de webversie niet opgevraagd (geen CORS), het spel rijdt dan het eigen rooster. Geen telemetrie.
 
+Kleding: de mensen op straat zijn meer gemengd: ambtenaren in het centrum en wandelaars komen erbij, elke figuur heeft een eigen kleurstemming (aardetinten, pastel, fel, donker of koel, met af en toe een accent) en een lichaamsvorm die bij zijn beroep past, zonder extra meshes.
+Kleding: het pashokje in een kledingwinkel werkt echt: gordijn dicht, je past wat de winkel vandaag heeft over je eigen outfit, trekt aan wat je al hebt, bewaart de look in een van de vijf outfits en kunt de code ervan delen (outfit-code 3: stukken, kapsel en postuur). Een kledingwinkel zonder eigen menu heeft nu ook een eigen aanbod bij de kassa.
+Kleding: een bewaarde outfit onthoudt ook je postuur; toets 6 wisselt dus ook van vorm. Elk kledingstuk heeft een pictogram per soort (pet, bril, shirt, jas, broek, schoenen, tas, sieraad, horloge, handschoen) en het winkelmenu springt met Home, End en de cijfertoetsen 1 tot 9 naar een rij.
+Kleding: kleding ritselt bij aan- en uittrekken, een jas gaat dicht met een rits en het pashokje heeft een gordijn (alleen jijzelf hoort het; de opnames volgen met de SFX-ronde).
+Samen spelen: wat je in het pashokje kiest (stukken, kapsel, postuur) zien medespelers meteen; kast, geld en codes van andere outfits blijven van jezelf. Valt een speler weg, dan verdwijnt de figuur met de code; wie later aansluit, krijgt de codes uit de spelerslijst.
+
 (De coördinator voegt deze regels bij 0.65.0.)
 
 - **Snackwagen en Usmem Snacks (eindgame van Bezit):** de frietwagen heet nu Snackwagen. Vanaf akte 5 opent in Land en bedrijf het tabblad Snackwagen: zestien standplaatsen (Grote Markt, station, Reitdiephaven, de kust en meer) met een vergunning van 40 speldagen, een menu uit je eigen keten, een grotere wagen, koeling, eigen sauzen en medewerkers-wagens. Het beste plekje van de stad is van Jelle Terpstra's Usmem Snacks: neem het over, ontmoet zijn bod, prijzenoorlog en valse recensies en bouw je Snackimperium (score 0 tot 100).

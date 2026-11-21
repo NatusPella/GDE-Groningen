@@ -333,6 +333,24 @@ export const ROLE_POOLS = {
     hat: [[null, 60], ['pet', 40]],
     wrist: [[null, 50], ['horloge', 50]],
   },
+  ambtenaar: {
+    top: [['overhemd', 40], ['blouse', 28], ['polo', 20], ['trui', 12]],
+    outer: [[null, 65], ['colbert', 25], ['regenjas', 10]],
+    bottom: [['pantalon', 48], ['chino', 40], ['rok', 12]],
+    shoes: [['nette_schoenen', 45], ['instappers', 45], ['gympen', 10]],
+    wrist: [[null, 55], ['horloge', 45]],
+    glasses: [[null, 60], ['leesbril', 40]],
+    back: [[null, 45], ['schoudertas', 55]],
+  },
+  wandelaar: {
+    top: [['lange_mouw', 30], ['tshirt', 30], ['polo', 20], ['trui', 20]],
+    outer: [[null, 45], ['regenjas', 25], ['jack', 20], ['zomerjas', 10]],
+    bottom: [['chino', 40], ['korte_broek', 25], ['jeans', 20], ['bermuda', 15]],
+    shoes: [['wandelschoen', 80], ['laarzen', 10], ['gympen', 10]],
+    hat: [[null, 40], ['pet', 30], ['platpet', 30]],
+    back: [[null, 20], ['rugzak', 80]],
+    glasses: [[null, 70], ['zonnebril', 30]],
+  },
   feestganger: {
     top: [['blouse', 30], ['tshirt', 30], ['jurk', 20], ['clubshirt', 20]],
     outer: [[null, 85], ['zomerjas', 15]],
@@ -343,3 +361,29 @@ export const ROLE_POOLS = {
     jewel: [[null, 50], ['kralen', 50]],
   },
 };
+
+// Kleurstemmingen voor NPC's: één stemming per figuur (uit zijn zaad), zodat shirt, broek en jas bij elkaar passen; elke kleur in de
+// stemming weegt zwaar, de rest weegt 1 en komt af en toe als accent. Een stemming is een lijst paletkleuren (PALETTE).
+export const NPC_MOODS = {
+  aarde: ['bruin', 'donkerbruin', 'cognac', 'zand', 'kaki', 'olijf', 'roest', 'mosterd', 'creme', 'bos'],
+  pastel: ['wit', 'ecru', 'lichtblauw', 'mint', 'roze', 'lichtgrijs', 'zand', 'geel', 'creme'],
+  fel: ['felrood', 'oranje', 'geel', 'knalroze', 'turquoise', 'groen', 'blauw', 'paars', 'wit'],
+  donker: ['zwart', 'diepzwart', 'antraciet', 'nachtblauw', 'marine', 'bordeaux', 'inktzwart', 'grijs', 'espresso'],
+  koel: ['jeans', 'blauw', 'zeeblauw', 'marine', 'grijs', 'lichtgrijs', 'wit', 'saliegroen', 'turquoise'],
+  neutraal: [],
+};
+export const MOOD_IDS = Object.keys(NPC_MOODS);
+// Welke stemmingen bij welke rol passen (gewicht per stemming); een rol zonder regel gebruikt `standaard`.
+export const ROLE_MOODS = {
+  standaard: { neutraal: 30, aarde: 18, pastel: 14, fel: 14, donker: 14, koel: 18 },
+  student: { fel: 30, aarde: 16, pastel: 16, koel: 20, donker: 12, neutraal: 6 },
+  toerist: { fel: 34, pastel: 24, koel: 16, aarde: 14, neutraal: 12 },
+  boer: { aarde: 60, koel: 18, neutraal: 22 },
+  zakenman: { donker: 46, koel: 26, neutraal: 28 },
+  ambtenaar: { koel: 30, donker: 22, neutraal: 28, pastel: 12, aarde: 8 },
+  wandelaar: { aarde: 38, koel: 26, fel: 16, neutraal: 20 },
+  feestganger: { fel: 40, donker: 30, pastel: 12, koel: 10, aarde: 8 },
+  sporter: { fel: 46, koel: 22, donker: 18, neutraal: 14 },
+};
+export const MOOD_WEIGHT = 7;     // gewicht van een kleur uit de stemming ten opzichte van de rest (1)
+export const MOOD_ACCENT = 0.16;  // kans op een kleur buiten de stemming (een accent)

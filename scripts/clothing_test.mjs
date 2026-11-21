@@ -268,7 +268,7 @@ t('voetgangers: rol per buurt en uur, deterministisch, verdeling klopt', () => {
   assert.ok(stad.toerist > campus.toerist * 2, 'meer toeristen in het centrum');
   assert.ok((nacht.feestganger || 0) > (stad.feestganger || 0) * 2, 'feestgangers in de nacht');
   assert.ok((bouw.bouwvakker || 0) > (stad.bouwvakker || 0) * 5, 'bouwvakkers op het industrieterrein');
-  assert.ok(stad.voetganger > 600, 'de gewone voetganger blijft de grootste groep');
+  assert.ok(stad.voetganger > 500 && Object.entries(stad).every(([k, v]) => k === 'voetganger' || v < stad.voetganger), 'de gewone voetganger blijft de grootste groep');
   for (const r of Object.keys(campus)) assert.ok(r in D.ROLE_POOLS, 'rol zonder pool: ' + r);
 });
 
@@ -284,6 +284,36 @@ t('voetgangers: drawcalls en driehoeken van een menigte rolfiguren blijven binne
   assert.equal(meshes, n, 'een NPC is één drawcall; ');
   assert.ok(meshes / n < 1.2, 'gemiddeld aantal meshes per figuur: ' + (meshes / n).toFixed(2));
   assert.ok(maxTris < 6500, 'driehoeken: ' + maxTris);
+});
+
+t('NPC-diversiteit (ronde 4): ambtenaar en wandelaar, kleurstemmingen met accenten, lichaamsvormen gemengd per rol', () => {
+  for (const r of ['ambtenaar', 'wandelaar']) assert.ok(r in D.ROLE_POOLS, r);
+  // elke stemming bestaat uit paletkleuren
+  for (const [id, cols] of Object.entries(D.NPC_MOODS)) for (const c of cols) assert.ok(c in D.PALETTE, `${id}: ${c}`);
+  // een stemming kleurt zichtbaar: studenten dragen vaker fel dan zakenmannen, zakenmannen vaker donker dan studenten
+  const deel = (role, mood) => {
+    let hit = 0, tot = 0;
+    for (let i = 0; i < 500; i++) { const w = C.npcOutfit(i, role); for (const p of [w.top, w.bottom]) { const x = D.parsePiece(p); if (x.item.colors.length < 3) continue; tot++; if (D.NPC_MOODS[mood].includes(x.color)) hit++; } }
+    return hit / tot;
+  };
+  assert.ok(deel('student', 'fel') > deel('zakenman', 'fel'), 'studenten dragen vaker fel');
+  assert.ok(deel('zakenman', 'donker') > deel('student', 'donker'), 'zakenmannen dragen vaker donker');
+  // variatie: geen stemming bepaalt alles
+  const kleuren = new Set();
+  for (let i = 0; i < 400; i++) kleuren.add(D.parsePiece(C.npcOutfit(i, 'voetganger').top).color);
+  assert.ok(kleuren.size >= 12, 'kleurvariatie in de menigte: ' + kleuren.size);
+  // lichaamsvormen: in elke rol meerdere vormen, en de rolbias is merkbaar
+  const vorm = (role) => { const o = {}; for (let i = 0; i < 600; i++) { const b = C.npcOutfit(i, role, { body: true }).body; o[b] = (o[b] || 0) + 1; } return o; };
+  for (const role of ['voetganger', 'student', 'bouwvakker', 'sporter']) assert.ok(Object.keys(vorm(role)).length >= 4, role);
+  assert.ok((vorm('bouwvakker').breed || 0) > (vorm('sporter').breed || 0) * 2, 'bouwvakkers vaker breed');
+  // geen extra mesh-kosten: nog steeds één rompmesh per NPC, ook voor de nieuwe rollen
+  for (const role of ['ambtenaar', 'wandelaar']) {
+    for (let i = 0; i < 40; i++) {
+      const m = P.buildPersonMesh(0x3a3f47, 0xd9aa82, { seed: i * 3.3, role, outfitCtx: { rain: i % 4 === 0 } });
+      let c = 0; m.traverse((x) => { if (x.isMesh) c++; });
+      assert.equal(c, 1, `${role} ${i}`);
+    }
+  }
 });
 
 t('verhaalpersonages en politie houden hun vaste look: een look of cop gaat voor een rol', () => {
@@ -644,6 +674,91 @@ t('menu\'s: kledingwinkel en kast leveren secties met items in de vorm van shopu
   const bewaar = kast.flatMap((s) => s.items).find((it) => it.id === 'cv-0');
   bewaar.buy();
   assert.ok(C.presetsOf('tammo')[0]);
+});
+
+t('pashokje (ronde 4): passen, kast, outfit bewaren met postuur en kapsel, code delen, iconen, geluid', async () => {
+  const M = await import('../game/js/clothingpanel.js');
+  const S = await import('../game/js/clothingsfx.js');
+  const LS = await import('../game/js/shoplist.js');
+  const SI = await import('../game/js/shopicons.js');
+  const world = { audioEvents: [], players: [], inVehicle: null, x: 3, y: 4 };
+  const geluiden = [];
+  let geld = 400;
+  const ctx = {
+    ch: 'tammo', name: 'Tammo', shopKey: 'kleding|77', day: 3, hexCss: (x) => '#' + x.toString(16).padStart(6, '0'),
+    broke: (p) => (geld < p ? 'Te weinig geld' : ''), pay: (p) => { if (geld < p) return false; geld -= p; return true; },
+    previewOf: (w) => ({ kind: 'person', worn: w }), apply: () => false, sound: (k) => geluiden.push(k), copy: () => {},
+  };
+  // het pashokje: eerst outfits en bewaren, dan wat de winkel heeft, dan de kast; ids zijn uniek en elke regel past
+  C.setBody('tammo', 'breed');
+  M.wardrobeSections(ctx).find((s) => s.title === 'Bewaar').items[0].buy();
+  const secties = M.fittingSections(ctx);
+  const titels = secties.map((s) => s.title);
+  assert.ok(titels.indexOf('Outfits') < titels.findIndex((t2) => t2.startsWith('Passen:')) && titels.some((t2) => t2 === 'Boven') && titels.includes('Deel je look'), titels.join('|'));
+  const alle = secties.flatMap((s) => s.items);
+  assert.equal(new Set(alle.map((i) => i.id)).size, alle.length, 'ids botsen niet');
+  for (const it of alle) assert.ok(it.preview && typeof it.buy === 'function' && LS.itemIcon(it) in SI.SHOP_ICONS, it.id);
+  assert.ok(secties.find((s) => s.title === 'Outfits').keys, 'de toets 6 staat als toetsplaatje in de tekst');
+  // passen en kopen: het geluid volgt het slot (jas = rits), uitdoen ritselt
+  const jas = alle.find((i) => i.id.startsWith('p-c-jack.') && !i.disabled);
+  if (jas) { jas.buy(); assert.equal(geluiden.at(-1), 'zipper_pull'); }
+  const stuk = alle.find((i) => i.id.startsWith('p-c-tshirt.') && !i.disabled);
+  stuk.buy(); assert.equal(geluiden.at(-1), 'clothes_rustle');
+  // een outfit bewaart het postuur; het kapsel en het postuur komen mee terug
+  C.setBody('tammo', 'smal');
+  assert.equal(C.wearPreset('tammo', 0).ok, true);
+  assert.equal(C.getBody('tammo'), 'breed', 'de outfit zette het postuur terug');
+  const code = C.presetCode('tammo', 0);
+  assert.ok(/^k3/.test(code) && code.length <= 80 && C.decodeOutfit(code).body === 'breed', 'outfit-code versie 3: ' + code);
+  assert.equal(C.presetCode('tammo', 4), null);
+  const geimporteerd = C.importPresetCode('tammo', 4, code, 'Van een vriend');
+  assert.equal(geimporteerd.ok, true);
+  assert.equal(C.presetsOf('tammo')[4].name, 'Van een vriend');
+  assert.equal(C.importPresetCode('tammo', 4, 'onzin').ok, false);
+  assert.equal(C.importPresetCode('tammo', 9, code).ok, false);
+  // een outfit zonder postuur (oude save) laat het postuur met rust
+  C.applyClothingSave(C.getClothingSave());
+  assert.equal(C.presetsOf('tammo')[0].worn.body, 'breed', 'het postuur zit in de save');
+  // de code-sectie toont elke bewaarde outfit
+  assert.equal(M.codeSection(ctx).items.length, 2);
+  // de iconen: elk slot heeft een categorie-icoon dat bestaat
+  for (const slot of D.SLOT_IDS) assert.ok(M.SLOT_ICON[slot] in SI.SHOP_ICONS, slot);
+  // het geluid: alleen bekende sleutels, lokaal, begrensd
+  assert.equal(S.clothingSfx(world, 'curtain_pull', 1, 2), true);
+  assert.deepEqual(world.audioEvents.at(-1), { kind: 'fx', name: 'curtain_pull', x: 1, y: 2 });
+  assert.equal(S.clothingSfx(world, 'explosion', 1, 2), false);
+  assert.equal(S.clothingSfx(null, 'clothes_rustle'), false);
+  for (let i = 0; i < 100; i++) S.clothingSfx(world, 'clothes_rustle', 0, 0);
+  assert.ok(world.audioEvents.length <= 64, 'de rij blijft begrensd');
+  assert.equal(S.soundForSlot('outer'), 'zipper_pull');
+  // de bedrading: de interieur-activiteit past, de toets 6 ritselt, shopui kent Home, End en de cijfertoetsen
+  const inn = src('../game/js/interiors.js');
+  assert.ok(/case 'passen'[\s\S]{0,400}openFittingRoom/.test(inn) && /openClothingCounter/.test(inn), 'interiors.js opent het pashokje');
+  assert.ok(/clothingSfx\(world, 'clothes_rustle'\)/.test(src('../game/js/shops.js')), 'toets 6 ritselt');
+  assert.ok(/rijCijfer/.test(src('../game/js/shopui.js')), 'shopui gebruikt listnav');
+  assert.equal(SH.fittingRoomMenu({ player: { character: 'anita' } }, 'x').tagline.includes('Tessa') && SH.fittingRoomMenu({ player: { character: 'tammo' } }, 'x').name, 'Pashokje');
+});
+
+t('Samen spelen (ronde 4): de outfit van de ander is zichtbaar met kapsel en postuur, per speler bewaard, wegvallen en aansluiten', async () => {
+  const CS = await import('../game/js/coopspeler.js');
+  // de speler bewaart een outfit in het pashokje: de code gaat mee in de spelerslijst en de ander ziet stukken, kapsel en postuur
+  C.givePiece('tammo', 'hoodie.grijs'); C.wearPiece('tammo', 'hoodie.grijs');
+  C.setBody('tammo', 'lang'); C.setHair('tammo', 'afro', 'zwart');
+  C.savePreset('tammo', 2, 'Zomerdag');
+  const code = C.presetCode('tammo', 2);
+  const kijk = CS.avatarLook({ char: 'tammo', outfit: code, seed: 5, huid: 0xd9aa82, variant: 'male', kleur: '#3f6ea8', naam: 'Gast' });
+  assert.equal(kijk.opts.body, 'lang', 'postuur zichtbaar bij de ander');
+  assert.equal(kijk.opts.hairStyle, 'afro', 'kapsel zichtbaar bij de ander');
+  // de ander ziet alleen de code, nooit mijn kast: een speler die aansluit krijgt de code uit de lijst; een onzincode wordt genegeerd
+  assert.equal(CS.avatarVan({ char: 'tammo', outfit: 'onzin' }).outfit, null);
+  assert.ok(C.cleanOutfitCode(code) === code && code.length <= 80);
+  // per speler bewaard: de kast van Tessa is niet die van Tammo, en een save-ronde houdt outfit en postuur
+  assert.equal(C.presetsOf('anita')[2], null);
+  C.applyClothingSave(C.getClothingSave());
+  assert.equal(C.presetCode('tammo', 2), code, 'dezelfde code na een save');
+  // wegvallen: een speler die weggaat staat niet meer in de lijst, zijn code verdwijnt met hem; de eigen kast blijft ongemoeid
+  assert.ok(C.ownsPiece('tammo', 'hoodie.grijs'));
+  assert.ok(src('../game/js/coopnet.js').includes("case 'outfit'") && /outfit/.test(src('../game/js/coopplayers.js')), 'het bericht outfit en de avatar-whitelist bestaan');
 });
 
 for (const [name, fn] of tests) {

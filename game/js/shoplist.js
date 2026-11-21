@@ -39,10 +39,13 @@ const SHOP_ICON = {
   supermarkt: 'eten', bakker: 'eten', slager: 'eten', snackbar: 'eten', bloemist: 'bloem', elektronica: 'elektronica', tweedehands: 'geld',
   souvenir: 'cadeau', kiosk: 'drank', kermiskraam: 'kras',
 };
-export const ICON_IDS = [...new Set([...ICON_RULES.map(([id]) => id), ...Object.values(SHOP_ICON), 'standaard'])];
+// De kledingcategorieën (clothingpanel.js geeft ze mee als `icon` op een regel): een pictogram per slot, plus outfit en postuur.
+const CLOTHING_ICONS = ['kl_hoed', 'kl_bril', 'kl_gezicht', 'kl_hals', 'kl_shirt', 'kl_jas', 'kl_broek', 'schoen', 'kl_tas', 'kl_sieraad', 'kl_horloge', 'kl_hand', 'kl_outfit', 'kl_postuur'];
+export const ICON_IDS = [...new Set([...ICON_RULES.map(([id]) => id), ...Object.values(SHOP_ICON), ...CLOTHING_ICONS, 'standaard'])];
 
-// Icon id for an item: a rule on its own text first, then on its section, then the shop's own icon.
+// Icon id for an item: its own `icon` (a clothing category), a rule on its own text, then on its section, then the shop's own icon.
 export function itemIcon(it, shopType = '', sectionTitle = '') {
+  if (it.icon && ICON_IDS.includes(it.icon)) return it.icon;
   const own = `${it.id || ''} ${it.label || ''}`.toLowerCase();
   for (const [id, re] of ICON_RULES) if (re.test(own)) return id;
   const sec = String(sectionTitle).toLowerCase();

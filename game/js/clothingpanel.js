@@ -4,10 +4,11 @@
 // De kledingwinkel: een wisselend aanbod per winkel en dag, een uitverkoop op vrijdag, sets en losse stukken, passen in de preview
 // (elk stuk laat zich op je eigen personage zien voor je het koopt; slepen draait). De kast: alles wat je hebt per slot, aan of uit,
 // vijf outfits, en de sets die compleet zijn.
-import { SLOTS, SLOT_IDS, PROFILES, RARITY, SETS, LOOKS, setsFor, parsePiece, pieceLabel, colorHex, colorName } from './clothingdata.js';
+import { SLOTS, SLOT_IDS, PROFILES, RARITY, SETS, LOOKS, setsFor, parsePiece, pieceLabel, pieceSlot, colorHex, colorName } from './clothingdata.js';
+import { soundForSlot } from './clothingsfx.js';
 import {
   ownsPiece, ownedPieces, givePiece, effectiveWorn, wornPieces, wearPiece, takeOffSlot, takeOffBlock, wearSet, setPriceFor, missingOf, setBonus,
-  presetsOf, savePreset, wearPreset, getBody, setBody, shopStock, shopProfiles, shopPrice, saleOn, wornMatches, ownsAll, clothingStats,
+  presetsOf, presetCode, savePreset, wearPreset, getBody, setBody, shopStock, shopProfiles, shopPrice, saleOn, wornMatches, ownsAll, clothingStats,
 } from './clothing.js';
 import { euro } from './geldtekst.js';
 import { BODY_IDS, BODY_TYPES } from './clothinghair.js';
@@ -34,6 +35,19 @@ function describe(piece) {
 // De kleur als swatch; stukken zonder eigen kleur (baard) tonen er geen.
 const swatchOf = (piece, hexCss) => { const x = parsePiece(piece); return x && x.color !== 'natuur' ? [hexCss(x.hex)] : []; };
 
+// De kledingcategorie-iconen (shopicons.js, kl_*): een pictogram per slot, zodat de lijst op één blik leest.
+export const SLOT_ICON = {
+  hat: 'kl_hoed', glasses: 'kl_bril', face: 'kl_gezicht', neck: 'kl_hals', top: 'kl_shirt', outer: 'kl_jas', bottom: 'kl_broek', shoes: 'schoen',
+  back: 'kl_tas', jewel: 'kl_sieraad', wrist: 'kl_horloge', hands: 'kl_hand',
+};
+const iconOf = (piece) => SLOT_ICON[(parsePiece(piece) || { item: {} }).item.slot] || 'kleding';
+
+// Een stuk aan: de winkel krijgt het te horen (prestaties) en het ritselt (clothingsfx.js; een jas gaat dicht met een rits).
+function wore(ctx, piece) {
+  ctx.onWear && ctx.onWear(piece);
+  ctx.sound && ctx.sound(soundForSlot(pieceSlot(piece)));
+}
+
 // Een stuk dat je al hebt: aantrekken, of uitdoen als je het aan hebt.
 function wardrobeItem(ctx, piece) {
   const x = parsePiece(piece);
@@ -42,7 +56,7 @@ function wardrobeItem(ctx, piece) {
   const on = worn[x.item.slot] === piece;
   const block = on ? takeOffBlock(ch, x.item.slot) : '';
   return {
-    id: 'c-' + piece,
+    id: 'c-' + piece, icon: iconOf(piece),
     label: pieceLabel(x),
     desc: describe(piece),
     price: 0,
@@ -57,12 +71,13 @@ function wardrobeItem(ctx, piece) {
         const r = takeOffSlot(ch, x.item.slot);
         if (!r.ok) return null;
         ctx.apply(0);
+        ctx.sound && ctx.sound('clothes_rustle');
         return `${x.item.label} uitgedaan`;
       }
       const r = wearPiece(ch, piece);
       if (!r.ok) return null;
       const lost = ctx.apply(1);
-      ctx.onWear && ctx.onWear(piece);
+      wore(ctx, piece);
       return `${x.item.label} aan${lost ? '. De politie herkent je niet meer zo goed!' : ''}`;
     },
   };
@@ -73,7 +88,7 @@ function setWardrobeItem(ctx, s) {
   const on = wornMatches(ch, s.pieces);
   const bonus = s.bonus && s.bonus.stealth ? 'Politie raakt je sneller kwijt' : '';
   return {
-    id: 'cs-' + s.id,
+    id: 'cs-' + s.id, icon: 'kl_outfit',
     label: s.label,
     desc: s.desc,
     price: 0,
@@ -88,7 +103,7 @@ function setWardrobeItem(ctx, s) {
       const r = wearSet(ch, s);
       if (!r.ok) return null;
       const lost = ctx.apply(s.bonus && s.bonus.stealth ? s.bonus.stealth : 1);
-      ctx.onWear && ctx.onWear(s.pieces[0]);
+      wore(ctx, s.pieces[0]);
       return `${s.label} aan${lost ? '. De politie herkent je niet meer zo goed!' : ''}`;
     },
   };
@@ -109,21 +124,21 @@ export function wardrobeSections(ctx) {
   const worn = wornPieces(ch);
   if (presets.some(Boolean)) {
     sections.push({
-      title: 'Outfits', note: 'Eén druk en je staat er anders bij. Bewaar de nieuwe met "Bewaar" hieronder',
+      title: 'Outfits', keys: true, note: 'Eén druk en je staat er anders bij, ook onderweg met {6}. Bewaar de nieuwe met "Bewaar" hieronder',
       items: presets.map((p, i) => (p ? {
-        id: 'cp-' + i, label: p.name, desc: Object.values(p.worn).map((x) => (parsePiece(x) || { item: { label: '' } }).item.label).filter(Boolean).join(', '),
+        id: 'cp-' + i, icon: 'kl_outfit', label: p.name, desc: Object.values(p.worn).map((x) => (parsePiece(x) || { item: { label: '' } }).item.label).filter(Boolean).join(', '),
         price: 0, keepFocus: true, verb: 'Aantrekken',
         tag: SLOT_IDS.every((s) => (p.worn[s] || null) === (worn[s] || null)) ? 'Aan' : '',
         preview: ctx.previewOf({ ...p.worn }),
         disabled: SLOT_IDS.every((s) => (p.worn[s] || null) === (worn[s] || null)) ? 'Heb je al aan' : '',
-        buy() { const r = wearPreset(ch, i); if (!r.ok) return null; ctx.apply(1); return r.missing.length ? `${p.name} aan, maar ${r.missing.length} stuk${r.missing.length > 1 ? 'ken' : ''} ontbreken` : `${p.name} aan`; },
+        buy() { const r = wearPreset(ch, i); if (!r.ok) return null; ctx.apply(1); ctx.sound && ctx.sound('clothes_rustle'); return r.missing.length ? `${p.name} aan, maar ${r.missing.length} stuk${r.missing.length > 1 ? 'ken' : ''} ontbreken` : `${p.name} aan`; },
       } : null)).filter(Boolean),
     });
   }
   sections.push({
     title: 'Bewaar', note: 'Sla wat je nu aan hebt op in een van de vijf outfits',
     items: presets.map((p, i) => ({
-      id: 'cv-' + i, label: p ? `Overschrijf ${p.name}` : `Bewaar als Outfit ${i + 1}`, desc: p ? 'Vervangt wat daar nu staat' : 'Een lege plek',
+      id: 'cv-' + i, icon: 'kl_outfit', label: p ? `Overschrijf ${p.name}` : `Bewaar als Outfit ${i + 1}`, desc: p ? 'Vervangt wat daar nu staat' : 'Een lege plek',
       price: 0, keepFocus: true, verb: 'Bewaren', preview: ctx.previewOf(effectiveWorn(ch)),
       buy() { savePreset(ch, i, p ? p.name : `Outfit ${i + 1}`); return `Bewaard in outfit ${i + 1}`; },
     })),
@@ -140,7 +155,7 @@ export function wardrobeSections(ctx) {
   sections.push({
     title: 'Postuur', note: 'Alleen de pasvorm: elk kledingstuk en elk kapsel past bij elke vorm',
     items: BODY_IDS.map((id) => ({
-      id: 'cb-' + id, label: BODY_TYPES[id].label, desc: 'Je lichaamsvorm', price: 0, keepFocus: true, verb: 'Kiezen',
+      id: 'cb-' + id, icon: 'kl_postuur', label: BODY_TYPES[id].label, desc: 'Je lichaamsvorm', price: 0, keepFocus: true, verb: 'Kiezen',
       tag: getBody(ch) === id ? 'Aan' : '', disabled: getBody(ch) === id ? 'Heb je al' : '',
       preview: ctx.previewOf({ ...effectiveWorn(ch), body: id }),
       buy() { if (!setBody(ch, id)) return null; ctx.apply(0); return `Postuur: ${BODY_TYPES[id].label.toLowerCase()}`; },
@@ -160,7 +175,7 @@ function shopItem(ctx, piece, shopKey) {
   const sale = saleOn(ctx.day);
   const inSale = !!sale && price < x.item.price;
   return {
-    id: 'c-' + piece,
+    id: 'c-' + piece, icon: iconOf(piece),
     label: pieceLabel(x),
     desc: describe(piece),
     price: owned ? 0 : price,
@@ -178,7 +193,7 @@ function shopItem(ctx, piece, shopKey) {
       const r = wearPiece(ch, piece);
       if (!r.ok) return null;
       const lost = ctx.apply(1);
-      ctx.onWear && ctx.onWear(piece);
+      wore(ctx, piece);
       return (owned ? `${x.item.label} aangetrokken` : `${x.item.label} gekocht en meteen aan`) + (lost ? '. De politie herkent je niet meer zo goed!' : '');
     },
   };
@@ -191,7 +206,7 @@ function shopSetItem(ctx, s) {
   const on = wornMatches(ch, s.pieces);
   const bonus = s.bonus && s.bonus.stealth ? 'Politie raakt je sneller kwijt' : '';
   return {
-    id: 'cs-' + s.id,
+    id: 'cs-' + s.id, icon: 'kl_outfit',
     label: s.label,
     desc: `${s.desc}${miss.length && miss.length < s.pieces.length ? ` (nog ${miss.length} van ${s.pieces.length} stukken)` : ''}`,
     price,
@@ -210,7 +225,7 @@ function shopSetItem(ctx, s) {
       const r = wearSet(ch, s);
       if (!r.ok) return null;
       const lost = ctx.apply(s.bonus && s.bonus.stealth ? s.bonus.stealth : 1);
-      ctx.onWear && ctx.onWear(s.pieces[0]);
+      wore(ctx, s.pieces[0]);
       ctx.onSet && ctx.onSet(s);
       return (miss.length ? `${s.label} gekocht en meteen aan` : `${s.label} aangetrokken`) + (lost ? '. De politie herkent je niet meer zo goed!' : '');
     },
@@ -235,6 +250,41 @@ export function shopSections(ctx) {
     if (items.length) out.push({ title: g.title, note: note(g.slots), items });
   }
   return out;
+}
+
+// ------------------------------------------------------------------------------------------------ het pashokje
+// Het pashokje van een kledingwinkel (interior, epic Interieurs): gordijn dicht en alles in één menu. Je past wat de winkel vandaag heeft (elk
+// stuk over je eigen outfit, slepen draait), je trekt aan wat je al hebt, je bewaart de look in een van de vijf outfits en je kunt de code
+// ervan lezen om te delen (outfit-code versie 3: stukken, kapsel en postuur). Kopen kan hier ook: de kassa is een stap verderop, de
+// pasbon is dezelfde. Ids van winkelstukken krijgen 'p-' voorop, zodat ze niet botsen met dezelfde stukken uit de kast.
+export function fittingSections(ctx) {
+  const ch = ctx.ch;
+  const out = [];
+  const wardrobe = wardrobeSections(ctx);
+  // eerst wat je wilt kiezen en bewaren, dan wat de winkel heeft, dan de rest van de kast
+  const head = wardrobe.filter((s) => s.title === 'Outfits' || s.title === 'Bewaar');
+  const rest = wardrobe.filter((s) => !head.includes(s));
+  out.push(...head);
+  if (ctx.shopKey) {
+    for (const s of shopSections(ctx)) {
+      out.push({ ...s, title: `Passen: ${s.title}`, items: s.items.map((it) => ({ ...it, id: 'p-' + it.id })) });
+    }
+  }
+  out.push(...rest.map((s) => ({ ...s, items: s.items.map((it) => ({ ...it, id: it.id.startsWith('c-') ? 'k-' + it.id : it.id })) })));
+  const code = codeSection(ctx);
+  if (code) out.push(code);
+  return out;
+}
+
+// De outfit-code van elke bewaarde outfit, om te delen: het menu toont hem en zegt hem in de melding (de code zelf is geen persoonsgegeven).
+export function codeSection(ctx) {
+  const ch = ctx.ch;
+  const items = presetsOf(ch).map((p, i) => (p ? {
+    id: 'cc-' + i, icon: 'kl_outfit', label: `Code van ${p.name}`, desc: presetCode(ch, i), price: 0, keepFocus: true, verb: 'Code tonen',
+    preview: ctx.previewOf({ ...p.worn }),
+    buy() { const c = presetCode(ch, i); ctx.copy && ctx.copy(c); return `Code van ${p.name}: ${c}`; },
+  } : null)).filter(Boolean);
+  return items.length ? { title: 'Deel je look', note: 'Een korte code met je stukken, kapsel en postuur. Een ander ziet dezelfde look; wat hij niet heeft, blijft weg', items } : null;
 }
 
 export function clothingSummary(ch) {
