@@ -38,7 +38,7 @@ const KIND_OF = new Map([
 // maar het kruispuntmodel per tegel (junctionRows, junctions.js tileJunctionNodes).
 const SIGNAL_RULE = RULES.indexOf('signal');
 const hasSignalArm = (rows) => rows.some((row) => (row.a || []).some((a) => a[3] === SIGNAL_RULE));
-// #1060: hoe lang de stad na de eerste opbouw vastgepind blijft (de opwarmfase); zie loadTileWorld
+// #1052: hoe lang de stad na de eerste opbouw vastgepind blijft (de opwarmfase); zie loadTileWorld
 export const CITY_HOLD_MS = 60000;
 // the sections whose rows the game keeps without their id (rowsOf)
 const ID_ASIDE = [...KIND_OF.keys()];
@@ -674,7 +674,7 @@ export async function loadTileWorld(base = 'world/', { source = new HttpRangeSou
   await Promise.all(loose.map((k) => store.request(k, { priority: 0 })));
   world.tileQueue.run(1e9);
   // De eerste opbouw is klaar: laat de stad los zodat de store haar kan streamen.
-  // #1060: niet meteen. De eerste minuut na de start (de eerste scenes, de eerste wandeling) laadt en laat de store
+  // #1052: niet meteen. De eerste minuut na de start (de eerste scenes, de eerste wandeling) laadt en laat de store
   // anders tegels in en uit terwijl de speler of de camera door de stad springt; elke herlading kost de hoofdthread
   // een tegelstap (markDryRoad, bomen, luifels, hoogte: 3,6 s per 30 s op Hoog) en geheugenvuil (GC). De stad blijft
   // daarom cityHoldMs (standaard 60 s) vastgepind en wordt daarna alsnog losgelaten (geheugen terug op sparse-niveau).
