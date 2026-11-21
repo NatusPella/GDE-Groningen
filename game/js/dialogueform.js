@@ -11,7 +11,7 @@
 export const FORM_KEYS = ['ov', 'cut', 'pause'];
 export const FORM_LIMITS = { ov: [0.1, 1.2], cut: [0.4, 6], pause: [0.2, 3] };
 export const DEFAULT_GAP = 0.25;
-export const MIN_START = 0.3;
+export const MIN_OPENING = 0.3;
 
 const TAG = /\s*\{((?:ov|cut|pause)=\d+(?:\.\d+)?)\}/g;
 
@@ -48,7 +48,7 @@ export function lineSchedule(line, dur, baseGap = DEFAULT_GAP) {
       text = text.replace(/[.!?…]+$/, '').replace(/\s+$/, '') + '...';
     }
     if (f.pause !== undefined) next = hold + f.pause;
-    if (f.ov !== undefined) next = Math.max(MIN_START, hold - f.ov);
+    if (f.ov !== undefined) next = Math.max(MIN_OPENING, hold - f.ov);
   }
   return { holdS: hold, untilNextS: next, text };
 }

@@ -2,11 +2,11 @@
 // over het vak, de ander antwoordt droog) en bij het eerste niveau omhoog een koppelmoment (twee regels waarin ze samen terugkijken: wie
 // was hier goed, en lukte het samen?). Alles is korte ondertitelpraat (storytalk.js), nooit voortgang, geld of een eis. De inhoud volgt
 // careertour.js (wie is goed, samen of niet). Tekst zonder opname: tot de TTS-ronde leest hij als ondertitel.
-// Zuiver: geen DOM, geen wereld; scripts/careermoments_test.mjs. Samen spelen: lokaal bij de speler die de loopbaan begint of omhoog gaat.
+// Zuiver: geen DOM, geen wereld; scripts/careerbeats_test.mjs. Samen spelen: lokaal bij de speler die de loopbaan begint of omhoog gaat.
 import { CAREER_FIT } from './careertour.js';
 
 // [vak]: { vraag: [[wie, tekst], ...], koppel: [[wie, tekst], ...] }; wie is 'T' (Tammo) of 'A' (Tessa)
-export const CAREER_MOMENTS = {
+export const CAREER_BEATS = {
   klus: { vraag: [['A', 'Hoeveel schroeven heb jij hier?'], ['T', 'Genoeg. Het zijn er altijd te weinig.']], koppel: [['T', 'Dat ging goed.'], ['A', 'Jij bouwt, ik tel. Zo hoort het.']] },
   taxi: { vraag: [['T', 'Links of rechts?'], ['A', 'Jij rijdt. Ik zeg het wel als het fout gaat.']], koppel: [['A', 'Je bedankt elke klant.'], ['T', 'Dat doet iedereen toch?']] },
   kantoor: { vraag: [['A', 'Heb je een pen?'], ['T', 'Ik had er een. Vanochtend.']], koppel: [['A', 'Ik doe dit liever alleen.'], ['T', 'Dat weet ik. Ik wacht buiten.']] },
@@ -29,22 +29,22 @@ export const CAREER_MOMENTS = {
 };
 
 const speaker = { T: 'Tammo', A: 'Anita' };
-export const MOMENT_KINDS = ['vraag', 'koppel'];
+export const BEAT_KINDS = ['vraag', 'koppel'];
 
 // De regels als talk-regels voor storytalk.js playTalk (zonder opname: ondertitel).
 export function careerTalk(vak, kind) {
-  const m = CAREER_MOMENTS[vak];
-  if (!m || !MOMENT_KINDS.includes(kind)) return [];
+  const m = CAREER_BEATS[vak];
+  if (!m || !BEAT_KINDS.includes(kind)) return [];
   return m[kind].map(([w, text]) => ({ speaker: speaker[w], text, voice: null, channel: 'stem', textOnly: true }));
 }
 
 // Controle voor de tests: alle vakken, korte regels, en het koppelmoment past bij de fit (samen of niet).
-export function momentProblems(vakken) {
+export function beatProblems(vakken) {
   const out = [];
   for (const v of vakken) {
-    const m = CAREER_MOMENTS[v];
+    const m = CAREER_BEATS[v];
     if (!m) { out.push(`${v}: geen momenten`); continue; }
-    for (const k of MOMENT_KINDS) {
+    for (const k of BEAT_KINDS) {
       if (!Array.isArray(m[k]) || m[k].length !== 2) out.push(`${v}.${k}: twee regels nodig`);
       for (const [w, t] of m[k] || []) if (!speaker[w] || !t || t.split(/\s+/).length > 12) out.push(`${v}.${k}: een regel is leeg of langer dan twaalf woorden`);
     }

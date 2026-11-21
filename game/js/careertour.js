@@ -40,8 +40,8 @@ export const TOUR_ACHIEVEMENTS = [
 
 // De voortgang van de tour: wat is geprobeerd, wat per fit, en welke prestaties daarbij horen. `vakken` is de lijst vak-id's (VAK_IDS).
 export function tourProgress(profiel, vakken = Object.keys(CAREER_FIT)) {
-  const gestart = new Set(profiel && Array.isArray(profiel.gestart) ? profiel.gestart : []);
-  const tried = vakken.filter((v) => gestart.has(v));
+  const began = new Set(profiel && Array.isArray(profiel.gestart) ? profiel.gestart : []);
+  const tried = vakken.filter((v) => began.has(v));
   const by = { tammo: 0, tessa: 0, samen: 0 };
   let notTogether = 0;
   for (const v of tried) {
@@ -56,6 +56,6 @@ export function tourProgress(profiel, vakken = Object.keys(CAREER_FIT)) {
 
 // Het overzicht voor het menu: per vak naam, wie goed is, of ze samen kunnen werken en of de speler het al probeerde.
 export function tourRows(profiel, naamVan = (v) => v) {
-  const gestart = new Set(profiel && Array.isArray(profiel.gestart) ? profiel.gestart : []);
-  return Object.entries(CAREER_FIT).map(([vak, f]) => ({ vak, naam: naamVan(vak), goed: FIT[f.fit], samen: f.together, waarom: f.why, geprobeerd: gestart.has(vak) }));
+  const began = new Set(profiel && Array.isArray(profiel.gestart) ? profiel.gestart : []);
+  return Object.entries(CAREER_FIT).map(([vak, f]) => ({ vak, naam: naamVan(vak), goed: FIT[f.fit], samen: f.together, waarom: f.why, geprobeerd: began.has(vak) }));
 }
