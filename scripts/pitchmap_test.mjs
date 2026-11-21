@@ -29,7 +29,7 @@ t('elke stand heeft een eigen vorm en lijnpatroon (nooit alleen kleur) en geen g
 t('de markers: stand, subtekst met prijs of overname, wagen en de kleur van een medespeler', () => {
   const v = M.standplaatsView(rows, WIDE, 0.05), by = Object.fromEntries(v.markers.map((m) => [m.id, m]));
   assert.equal(by.markt.state, 'usmem'); assert.match(by.markt.sub, /overnemen €25\.000/);
-  assert.equal(by.park.wagon, 'own'); assert.match(by.park.sub, /jouw wagen/);
+  assert.equal(by.park.wagon, 'own'); assert.match(by.park.sub, /TAM & TES/);
   assert.equal(by.dorp.color, '#c0c'); assert.equal(by.dorp.sub, 'lotte');
   assert.match(by.leek.sub, /vergunning €/);
 });

@@ -247,3 +247,7 @@ In beeld te controleren: een sessie met twee spelers die hetzelfde perceel kopen
 `game/js/bezitbeheer.js` (test `bezitbeheer_test`, 6): `ownerOf`, `canManage`, `manageView`, `manageAction` (prijs, voorraad, uren, renoveer, verkoop), `customersAt` (hoogstens 6) en `OPEN_ALWAYS`.
 De interieurs tekenen toonbank, klanten en paneel; Bezit levert gegevens en voert knoppen uit. Een pand is altijd open: de openingstijd raakt alleen omzet en loon. Een gast beheert nooit.
 Nog te doen: de interieurs-lead roept deze interface aan bij het betreden van een eigen pand.
+
+## Naam van de snackwagen (eigenaar 21-11)
+
+De eigen snackwagen heet **TAM & TES**: de standaardbelettering op de wagen (`snackvanplan.SIGNS.own`, aanpasbaar met `setOwnSign`) en de naam op de kaartlaag Standplaatsen ("TAM & TES staat er"). De naam Fjord Frituur is uit alle Bezit-code, -tests en -docs gehaald (in het verhaal zelf doet de verhaal-epic dat).

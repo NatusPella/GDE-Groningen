@@ -27,7 +27,7 @@ t('hysterese: een wagen die al in beeld is blijft tot 340 m, een nieuwe verschij
 t('de kleur en het bord volgen de soort; Usmem heeft zijn eigen bord, een wagen draagt geen oude verhaalnaam', () => {
   const p = P.planWagons([{ spot: 'markt', kind: 'rival', x: 0, y: 0 }, { spot: 'park', kind: 'own', x: 5, y: 0 }, { spot: 'dorp', kind: 'fleet', x: 9, y: 0, staff: 'Marit' }], { x: 0, y: 0 });
   const by = Object.fromEntries(p.map((q) => [q.kind, q]));
-  assert.equal(by.rival.sign, 'USMEM SNACKS'); assert.equal(by.own.sign, 'SNACKWAGEN'); assert.equal(by.fleet.seller.name, 'Marit'); assert.equal(by.own.seller.name, 'Jij');
+  assert.equal(by.rival.sign, 'USMEM SNACKS'); assert.equal(by.own.sign, 'TAM & TES'); assert.equal(by.fleet.seller.name, 'Marit'); assert.equal(by.own.seller.name, 'Jij');
   assert.notEqual(by.rival.color, by.own.color);
   assert.ok(!/FJORD/i.test(Object.values(P.SIGNS).join(' ')));
 });

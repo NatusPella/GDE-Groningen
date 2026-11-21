@@ -24,7 +24,7 @@ export function standplaatsView(rows, rect, scale) {
   for (const r of rows) {
     if (r.x < x0 - pad || r.x > x1 + pad || r.y < y0 - pad || r.y > y1 + pad) continue;
     const st = STATES[r.status] || STATES.vrij;
-    const sub = r.status === 'jij' ? (r.wagon ? 'jouw wagen staat er' : `nog ${r.daysLeft} dagen`) : r.status === 'usmem' ? `overnemen ${fmt(r.ask)}` : r.status === 'vrij' ? `vergunning ${fmt(r.price)}` : (r.claim ? r.claim.name : 'medespeler');
+    const sub = r.status === 'jij' ? (r.wagon ? 'TAM & TES staat er' : `nog ${r.daysLeft} dagen`) : r.status === 'usmem' ? `overnemen ${fmt(r.ask)}` : r.status === 'vrij' ? `vergunning ${fmt(r.price)}` : (r.claim ? r.claim.name : 'medespeler');
     markers.push({ id: r.id, x: r.x, y: r.y, state: r.status, shape: st.shape, dash: st.dash, ink: st.ink, color: r.claim && r.claim.color ? r.claim.color : null, label: r.short, sub, wagon: r.wagon, showLabel: scale >= LABEL_SCALE });
   }
   return { mode: 'markers', markers };
