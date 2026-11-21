@@ -102,6 +102,51 @@ Alles hieronder is code- en testmatig klaar maar niet gezien. Formaten: 1280x720
 9. Rustig drukwerk op alle bovenstaande schermen; Steam Deck (13 px-vloer) en 4K.
 10. Het hoofdmenu en de laadschermen: de donkere scrim over de vliegende stad blijft een dimlaag; beoordelen.
 
+## Vervolg 21-11 (branch `ds3-vervolg-21-11`): de bevindingen F1 tot F27 uit het compliance-rapport
+
+Bron: `docs/reviews/CODE-REVIEW-21-11-ds3-compliance.md` (branch `review-ds3-21-11`). De ratel heeft vier nieuwe soorten: **lus** (een oneindige animatie), **lang** (een animatie of transitie boven 250 ms), **emoji** (een echte emoji in spelertekst) en **svg** (een eigen `<svg>` buiten `icons.js`). Een regel met `ds3-dwell` (een verblijftijd), `ds3-film` (een scène of cutscene: de speler kijkt), `ds3-lus` (de bel en de live-stip) of `ds3-uitzondering` telt niet mee; de regelaudit (`design_rules.mjs`, `checkDs3Line`) blokkeert elke nieuwe regel in die soorten.
+
+Aantallen (ds3-alles-21-11, daarna dit vervolg): kleur 105 naar 85, glas 140 naar 130, oud 64, font 37, klein 1; **lus 25 naar 0, lang 124 naar 0, emoji 7 naar 0, svg 63 naar 35**. De regelaudit (`rules_audit --from=v0.64.0`): 174 naar 138 blokkerend.
+
+| # | Stand | Wat er is gedaan |
+|---|---|---|
+| F1 | **gefixt** | `game/js/ds-beweging.css`: één regel voor `html.reduce-motion *` én `@media (prefers-reduced-motion)`: geen lus, geen vertraging, transitie 0,01 ms, voor alle UI (ook JS-stijlen). Verblijfsanimaties (kaarttimer, plaatsnaam) lopen door en hebben hun eigen regel. Test: `ds3_dekking_test` (beide takken, link in `index.html`, `motion.js` zet de klasse). |
+| F3 | **gefixt** | Eén scrollbalk voor papier: tokens `--ds-scroll-duim` (inkt), `--ds-scroll-spoor`, `--ds-scroll-breed` (12 px), `--ds-scroll-rond`; alle crème-alfa balken in `pausemenu.css`, `touch.js`, `verhaalui.js`, `veroverdpanel.js`, `shopui.css`, `startscreen.css` en `coopspelersui.js` gebruiken ze. Test: geen crème of alfa als scrollkleur, duim tegen baan en papier minstens 3:1. |
+| F4 | gedaan in de eerste ronde | `fouttoast.js`. |
+| F5 | **gefixt** | Emoji weg: mute-chip (`icoon('geluid_uit')`), bijbaanpaneel (`icon:` op de opties van het keuzepaneel: hart, boot, auto, mail; cabaret: bericht), credits (hart via `icoon('hart_vol')` in `startscreen.js`). Ratel emoji 0. |
+| F6 | **deels** | 12 eigen `<svg>`-constanten naar Phosphor (vinkje, vlag, volgende, slot, camera, speler, plek, opslaan, waarschuwing, afspelen). Meetgeometrie (voortgangsringen, wijzerplaat, kompas- en windpijl, richtkijker, muis- en controllervormen) staat in `SVG_GEOMETRIE` (`ds3_regels.mjs`) met een reden; de iconensets `missionicons`, `achievementicons`, `golficons`, `shopicons`, `ICONEN` in `regelwidget.js`/`loopbaanui.js`, `calendar.js`, `garageui.js`, de wapenicoontjes en de HUD-glyphs blijven schuld (svg 35, ratel). |
+| F7 | niet | tekstsymbolen (`✓`, `★`, `▲`): nit, issue. |
+| F8 | **gefixt** | `verhaalui.js`: de roze tekst is `--ds-c-rood-tx` (7,6:1); Rustig drukwerk-roze is `#8e1a25` (7,54:1, was 6,58:1). Test: geen roze tekst op papier in menu's; Rustig-roze 7:1. |
+| F9 | **gefixt** | `heist.css`: het briefje (`hx-note`) is papier met inkt en `.kick` in `--ds-c-inkt-zacht` (was 3,9:1). |
+| F10 | **deels** | `.pl-kick` is papier met inktschaduw (geen geel tekst meer); `.hud-count[data-go]` (geel cijfer) en wit op `#d93f3f` (`bb-stop.on`) blijven: issue. |
+| F11 | niet | zonebeheer voor de onderband vraagt beeld (`scripts/qa/overlap.mjs`): issue. De drift-kaart krijgt een eigen zone (`driftZone` in `hudstapel.js`, getest tegen de andere zones). |
+| F12 | **gefixt (in code)** | Duivenspot: het basisglas is papier met tokens (de zeeflaag overschreef het al), balk in bordgroen. Heli-run (`helirun.js`), postgame-paneel (`postgame.js`) en padelbord (`padel.js`) zijn omgezet naar papier met inktrand, harde schaduw, Barlow en tokens; geen glas, geen gradient, geen rgba. `heliflight.js`, `instrumenten.js`, `stunthud.js`, `busbestuurhud.js` en `treincabine.js` blijven glas (issue). |
+| F13 | **deels** | `.nl-sub`, scorebordkoppen, `.mg-sfeer`, touch-tekst, `lb-volg` en de bus-HUD naar 13 px. Het toetsplaatje op `prompts.css:161` (8,5 px) hoort bij de keycap-branch. |
+| F14 | niet | ellipsen (nit): issue. |
+| F15 | **gefixt** | Alle 25 lussen weg: bel, live-stip en telefoonschud staan met `ds3-lus` (bewust), de rest speelt hooguit 2 of 3 keer of is statisch (`ach-rays` glans is weg, het hart op de titelkaart klopt 3 keer). |
+| F16 | **gefixt** | Alle beweging boven 250 ms is `var(--ds-m-max)` (250 ms, 0 bij Beweging beperken), of gemarkeerd: `ds3-dwell` (16 regels: kaarttimer, plaatsnaam, bedragen, punten) of `ds3-film` (44 regels: cutscenes, laadscherm, titelkaart, trailer, intromontage). |
+| F17 | niet | `.ds-z-balk__vul` transitie op `width`: vraagt JS (`--ds-z-w` naar schaal): issue. |
+| F18 | **deels** | `carrieresfeer.js` en `activiteitensfeer.js` lezen tokens (`--ds-c-creme`, `--ds-c-licht-groen`, `--ds-c-glas`), geen eigen rgba meer; test. Samenvoegen met `ctxidentiteit.js` (één tabel: accent, stempel, icoon) en de sfeerbanden naar zeefdruk: issue. |
+| F19 | **gefixt** | `design_rules.mjs`: `ALLOWED_FONTS` bevat alleen Barlow, Atkinson, Big Shoulders (logo) en de `GDE`-toetsfonts; Bebas Neue, Arial Narrow en Arial alleen als terugval (`FALLBACK_FONTS`); `TEXT_FLOOR_PX` is 13, `TEXT_KEY_FLOOR_PX` 12. `ui-taal.md`, `DESIGN_SYSTEM.md`, `spec_check` en `release_designrules_test` zijn mee. |
+| F20, F22, F24, F25, F27 | niet | nits: issue. |
+| F21 | gedaan | eerste ronde. |
+| F23 | niet | vals alarm van `rules_audit` op `{TOKEN}`-syntax: de audit moet het leren (issue). |
+| F26 | **gefixt** | de dubbele preload van `input-keys.ttf` en `input-xbox.ttf` is weg (test). |
+
+### Drift-HUD (verzoek van de eigenaar: "de drift multiplier UI mag ook in Design System v3")
+
+`driftzone.js` bouwt de HUD als `.ds-z-kaart` met een groot multipliercijfer (`.ds-z-feit__n`, "x3"), de score met tabelcijfers, een balkje tot de volgende multiplier (`.ds-z-balk`, `driftVoortgang` in `drift.js`), en een rand die per niveau oploopt in bordgroen (x1 inkt, x2 bordgroen, x3 en x4 met bordgroene schaduw, x5 selectievlak; tokens). Een korte pop (`ds-z-puls`, 250 ms) bij een multiplier-sprong, uit bij OS-instelling, Beweging beperken en Rustig drukwerk. Vaste zone `driftZone` in `hudstapel.js` (214 px boven de onderrand, 340 px breed), getest tegen de andere HUD-zones bij 1024x600, 1280x720 en 1920x1080. Geen hint in de kaart (de startkaart van de driftzone legt de toetsen al uit). Test: `scripts/drift_hud_test.mjs` (144 controles). Samen spelen: lokaal per speler, ongewijzigd.
+
+### Nog in beeld te verifiëren (vervolg)
+
+1. Drift-kaart: x1 tot x5, de pop, Rustig drukwerk, naast ondertitel en minikaart (1024x600).
+2. Duivenspot, heli-run, postgame en padel: leesbaarheid van papier op de wereld, tips en berichten in papier met inktschaduw (`hh-msg`, `hh-catch`), de hoogtemeter.
+3. Scrollbalken in pauzemenu, verhaal, Samen spelen: duim zichtbaar, 12 px breed, geen verspringing van de lijst.
+4. De korte animaties (250 ms): meldingen, pop-ups, de HUD-kaarten, het menu-openen; of de pop van het geld en de plaatsnaam nog goed aanvoelen; Beweging beperken aan: niets beweegt behalve de verblijfstimers.
+5. Mute-chip, bijbaanpaneel (hart, boot, auto, mail) en het hart in de credits (Phosphor, 20 px).
+6. Het Rustig-roze (`#8e1a25`) op sterren en misdruk.
+7. Sfeerbanden van Loopbanen, Boerderij en het minigamebord (kleuren nu via `color-mix`).
+
 ## Geen aanpassing in deze ronde
 
 `tilestream`, `roadindex`, audio, netwerkcode (ook `coopnet.js`) en TTS zijn niet aangeraakt. `scene3d.js` is niet aangeraakt (onder 4500 regels).
