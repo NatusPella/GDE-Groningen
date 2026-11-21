@@ -920,7 +920,7 @@ function beloonLokaal(w, g, rij, jij = null) {
   if (rij.plek === 1) unlockAchievement(w, 'voetbal_winst');
   if (r.eigen >= 3) unlockAchievement(w, 'voetbal_hattrick');
   if (g.online === 'gast' && CL.hasCareer()) { // de host betaalt de gast al; zijn eigen carrière krijgt het verschil en de ervaring (60%), nooit competitiepunten (#1157)
-    const x = guestCareerExtra(rij, eigenKlasse() || 'talent', voetbalBeloning({ plek: rij.plek, nul: /-0/.test(rij.tekst || '') }).geld);
+    const x = guestCareerExtra(rij, eigenKlasse() || 'talent', voetbalBeloning({ plek: rij.plek, nul: /-0\b/.test(rij.tekst || '') }).geld);
     if (x.geld > 0 || x.xp > 0) loopbaanVerdien(w, 'buiten', x.geld, { xp: x.xp, n: 0, deel: false });
   }
   if (jij && jij.geld > 0) { loopbaanVerdien(w, 'buiten', jij.geld, { xp: jij.xp, n: 0, uniek: 'voetbal-samen', deel: false }); w.addMessage(`Beloning: €${jij.geld.toLocaleString('nl-NL')}`, 4); }
