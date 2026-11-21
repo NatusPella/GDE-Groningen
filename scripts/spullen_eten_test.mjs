@@ -35,7 +35,7 @@ function wereld(health = 96) {
 // bewaren hun HTML, de knoppen boven de lijst en het zoekveld zijn er niet.
 function paneel() {
   const lijst = { innerHTML: '' };
-  const detail = { innerHTML: '' };
+  const detail = { innerHTML: '', querySelector: () => null };
   const p = {
     lijst, detail,
     contains: () => true,

@@ -41,7 +41,7 @@ ok(!/html\.pad-active #pause-menu canvas:focus/.test(a11yCss) && /\[data-panel="
 ok(B.SURFACES.menu.files.includes('spullen.js'), 'SURFACES.menu noemt spullen.js: het Spullen-scherm woont in het pauzemenu');
 ok(B.SURFACES.menu.files.includes('garageui.js') && B.SURFACES.menu.files.includes('furniture.js'), 'de Garage en de in-wereld TV-overlay staan in dezelfde rij');
 ok(/data-panel="spullen"/.test(pm), 'pausemenu.js heeft een eigen paneel voor Spullen');
-ok(/its own pause-menu section/.test(sp) && /no 3D preview/.test(sp), 'spullen.js zegt zelf waar het scherm woont en dat de preview in de Garage zit');
+ok(/its own pause-menu section/.test(sp) && /createSharedPreview/.test(sp), 'spullen.js zegt zelf waar het scherm woont en dat het model via de gedeelde voorbeeldrenderer van de Garage loopt (#1086)');
 ok(/\.m-\*/.test(sp), 'en dat het de gedeelde menu-set gebruikt');
 
 console.log(`${n - fails}/${n} ok`);

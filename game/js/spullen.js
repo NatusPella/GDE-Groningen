@@ -5,10 +5,12 @@
 // puts home on the GPS; eten eet je hier op (#502). Vehicles stay in Garage,
 // clues and people in Verhaal.
 // It is its own pause-menu section (`markup in pausemenu.js` data-panel="spullen":
-// a list left and a detail pane right, the same `.m-*` set as the Garage) and it
-// has no 3D preview: a preview belongs to the Garage, which owns the one shared
-// renderer; Spullen only links to it. The in-world TV overlay in furniture.js is
-// HUD, not this screen (#610).
+// a list left and a detail pane right, the same `.m-*` set as the Garage). Het detail
+// toont een draaibaar 3D-model van het ding (#1086): dezelfde gedeelde voorbeeldrenderer als
+// de Garage (vehiclepreview.js createSharedPreview, één canvas per detail, geen eigen
+// WebGL-context); welk model staat in spullen3d.js, de nieuwe modellen in models3d_spullen.js.
+// Zonder model of zonder WebGL blijft het icoon staan. The in-world TV overlay in
+// furniture.js is HUD, not this screen (#610).
 import { WEAPONS, hasWeapon, isMeleeWeapon } from './combat.js';
 import { WEAPON_STOCK, OUTFITS, CAR_UPGRADES, BIKE_UPGRADES, MOTO_UPGRADES, inventoryShopState, upgradeListForStock } from './shops.js';
 import { VEHICLE_STOCK } from './shopdata.js';
@@ -24,6 +26,10 @@ import { woordenVan, past } from './zoektekst.js';
 import { icoon } from './icons.js';
 import { deviceText } from './touchui.js';
 import { glyphHtml } from './keycap.js';
+import { createSharedPreview } from './vehiclepreview.js';
+import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { reducedMotion } from './motion.js';
+import { geldSpec, wapenSpec, kledingSpec, etenSpec, meubelSpec, kaartSpec, upgradeSpec, modelLabel } from './spullen3d.js';
 import { CATS, catVan, LEEG, cycleSort, sortLabel, sorteer, badgeTekst, tegelNaam, kanWeggooien, weggooiStap, weggooi, naWeggooien, WEGGOOI_VRAAG } from './spullenmodel.js';
 
 // Phosphor-pictogrammen via icons.js (21-11), per categorie van deze lijst
@@ -161,6 +167,23 @@ const SP_CSS = `<style data-spul-css>
 #pause-menu .sp-lrow > span:first-child{color:var(--mut);flex:none}
 #pause-menu .sp-lv{color:var(--ink);text-align:right;overflow-wrap:anywhere}
 @media (max-width:1440px){#pause-menu .sp-facts{grid-template-columns:1fr}}
+#pause-menu .sp-model{display:flex;flex-direction:column;gap:var(--ds-s-2,8px);min-width:0;animation:sp-in 160ms ease-out}
+#pause-menu .sp-stage{position:relative;height:clamp(200px,34vh,320px);overflow:hidden;border:var(--ds-lijn-zeef,2px) solid var(--ds-c-ink-inkt,var(--ink));background:var(--ds-zeef-bg,transparent);color:var(--ds-zeef-tx,var(--ink));box-shadow:var(--ds-schaduw-hard-klein,none)}
+#pause-menu .sp-stage canvas{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:grab;touch-action:none;transition:opacity 160ms ease-out}
+#pause-menu .sp-stage canvas.on{opacity:1}
+#pause-menu .sp-stage canvas:active{cursor:grabbing}
+#pause-menu .sp-stage canvas:focus-visible{outline:3px solid var(--ds-focus,var(--ink));outline-offset:-5px}
+#pause-menu .sp-stage .sp-ic{position:absolute;inset:0;display:grid;place-items:center;color:var(--g);transition:opacity 160ms ease-out;pointer-events:none}
+#pause-menu .sp-stage .sp-ic svg{width:72px;height:72px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+#pause-menu .sp-stage[data-state="laden"] .sp-ic{animation:sp-puls 900ms ease-in-out infinite alternate}
+#pause-menu .sp-stage[data-state="klaar"] .sp-ic{opacity:0}
+@keyframes sp-puls{from{opacity:.35}to{opacity:.8}}
+#pause-menu .sp-stage-voet{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;min-height:32px;font-size:max(14px,var(--menu-min,14px));color:var(--mut)}
+#pause-menu .sp-stage-voet .sp-melding{flex:1 1 auto;min-width:0}
+#pause-menu .sp-stage-voet [data-spul-reset]{margin-left:auto}
+#pause-menu .sp-stage-voet [hidden]{display:none}
+@media (prefers-reduced-motion:reduce){#pause-menu .sp-model,#pause-menu .sp-stage canvas,#pause-menu .sp-stage .sp-ic{transition:none;animation:none}}
+html.reduce-motion #pause-menu .sp-model,html.reduce-motion #pause-menu .sp-stage canvas,html.reduce-motion #pause-menu .sp-stage .sp-ic,html.reduce-motion #pause-menu .sp-stage[data-state="laden"] .sp-ic{transition:none;animation:none}
 </style>`;
 
 // Items: { key, cat, icon, title, sub, side, desc, how, perk, rows, act: { label, run }, link, ledger }
@@ -175,7 +198,7 @@ function collect(w) {
 
   out.push({ key: 'geld', cat: 'geld', icon: 'geld', title: euro(Math.max(0, Math.floor(w.money))), sub: 'Contant',
     desc: 'Wat je op zak hebt om uit te geven. Waar het vandaan kwam en waar het heen ging, staat eronder in het kasboek.',
-    how: 'Missies, bijbaantjes en verkopen', perk: 'Gepakt worden kost een boete per ster', ledger: true });
+    how: 'Missies, bijbaantjes en verkopen', perk: 'Gepakt worden kost een boete per ster', ledger: true, viewer: geldSpec(w.money) });
 
   const stock = new Map(WEAPON_STOCK.map((s) => [s.key, s]));
   const guns = Object.keys(WEAPONS).filter((k) => k !== 'fists' && !['throw', 'rocket'].includes(WEAPONS[k].kind));
@@ -186,7 +209,7 @@ function collect(w) {
     const ammo = w.ammo[k] || 0;
     const held = w.weapon === k;
     return {
-      key: 'w:' + k, cat, icon: melee ? 'melee' : cat === 'werp' ? 'werp' : 'wapens', title: s.label || k,
+      key: 'w:' + k, cat, viewer: wapenSpec(k), icon: melee ? 'melee' : cat === 'werp' ? 'werp' : 'wapens', title: s.label || k,
       sub: melee ? 'Slaan · altijd bij de hand' : `${s.unit || 'patronen'}${s.cap ? ` (max ${s.cap})` : ''}`,
       aantal: melee ? 0 : ammo, eenheid: s.unit || 'patronen',
       side: held ? 'In de hand' : '', desc: s.desc || (melee ? 'Een slagwapen voor dichtbij.' : ''),
@@ -197,7 +220,7 @@ function collect(w) {
   };
   const ownGuns = guns.filter((k) => hasWeapon(w, k));
   counts.wapens = `${ownGuns.length} van ${guns.length}`;
-  out.push({ key: 'w:fists', cat: 'wapens', icon: 'melee', title: 'Vuisten', sub: 'Altijd bij je', side: w.weapon === 'fists' ? 'In de hand' : '',
+  out.push({ key: 'w:fists', cat: 'wapens', viewer: wapenSpec('fists'), icon: 'melee', title: 'Vuisten', sub: 'Altijd bij je', side: w.weapon === 'fists' ? 'In de hand' : '',
     desc: 'Je eigen vuisten: geen munitie nodig en nooit kapot.',
     rows: [['Toets', '1'], ['Schade', String(WEAPONS.fists.damage)]],
     act: w.weapon === 'fists' ? null : { label: 'In de hand nemen', run: () => { w.weapon = 'fists'; return 'Vuisten'; } } });
@@ -211,7 +234,9 @@ function collect(w) {
   counts.kleding = `${ownOutfits.length} van ${outfits.length}`;
   for (const o of ownOutfits) {
     const wearing = (shop.storyOutfit || shop.outfit[ch]) === o.id;
-    out.push({ key: 'o:' + o.id, cat: 'kleding', icon: 'kleding', title: o.label, sub: wearing ? '' : 'Ligt thuis in de kast', side: wearing ? 'Aan' : '',
+    const app = ch === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
+    const look = { ...app, shirt: o.shirt, pants: o.pants, shoes: o.shoes, ...(o.cap != null ? { cap: o.cap } : {}) };
+    out.push({ key: 'o:' + o.id, cat: 'kleding', viewer: kledingSpec(look), icon: 'kleding', title: o.label, sub: wearing ? '' : 'Ligt thuis in de kast', side: wearing ? 'Aan' : '',
       desc: o.desc,
       how: o.price && o.id !== 'stadjer' && o.id !== 'classic' ? `Stoer & Stads, ${euro(o.price)}` : 'Van jezelf',
       perk: o.stealth ? 'Onopvallend: de politie raakt je sneller kwijt' : 'Omkleden kan thuis bij de kast',
@@ -221,7 +246,7 @@ function collect(w) {
   const furn = furnitureOwned();
   counts.thuis = `${furn.length} van ${FURNITURE_TOTAL}`;
   for (const f of furn) {
-    out.push({ key: 'f:' + f.id, cat: 'thuis', icon: 'thuis', title: f.label,
+    out.push({ key: 'f:' + f.id, cat: 'thuis', viewer: meubelSpec(f.id), icon: 'thuis', title: f.label,
       sub: f.ready ? 'Staat thuis' : f.pending ? 'Wordt bezorgd' : 'Moet nog in elkaar',
       desc: f.perk, how: `EIKEA, ${euro(f.price)}`, rows: f.stat ? [[f.stat[0], f.stat[1]]] : [],
       act: getHomeForRender().length ? { label: 'Route naar huis', run: () => homeRoute(f.short || f.label) } : null });
@@ -233,7 +258,7 @@ function collect(w) {
   const stuks = eten.reduce((n, e) => n + e.aantal, 0);
   counts.eten = stuks ? `${stuks} ${stuks === 1 ? 'stuk' : 'stuks'}` : '';
   for (const e of eten) {
-    out.push({ key: 'e:' + e.id, cat: 'eten', icon: 'eten', title: e.label, sub: e.how, aantal: e.aantal, weg: { id: e.id, aantal: e.aantal },
+    out.push({ key: 'e:' + e.id, cat: 'eten', viewer: etenSpec(e.id), icon: 'eten', title: e.label, sub: e.how, aantal: e.aantal, weg: { id: e.id, aantal: e.aantal },
       desc: e.how === 'Zelf gevangen' ? 'Zelf gevangen aan de waterkant. Opeten kan overal, ook hier in het menu.'
         : `Meegenomen van de ${e.how.toLowerCase()}. Opeten kan overal, ook hier in het menu.`,
       rows: [['Per stuk', `+${e.hp} gezondheid`], ['Jij nu', `${Math.round(w.health)} van 100`]],
@@ -241,30 +266,30 @@ function collect(w) {
   }
 
   const nogStempels = Math.max(0, shop.stampCard - shop.stamps);
-  out.push({ key: 'k:stempels', cat: 'kaart', icon: 'kaart', title: 'Spaarkaart Krant & Kauwgom', sub: `${shop.stamps} van ${shop.stampCard} stempels`,
+  out.push({ key: 'k:stempels', cat: 'kaart', viewer: kaartSpec('stempels'), icon: 'kaart', title: 'Spaarkaart Krant & Kauwgom', sub: `${shop.stamps} van ${shop.stampCard} stempels`,
     desc: 'Elke aankoop bij Krant & Kauwgom levert een stempel. Vol is inleveren voor iets leuks.',
     how: 'Krant & Kauwgom', rows: [['Stand', nogStempels ? `nog ${nogStempels} ${nogStempels === 1 ? 'stempel' : 'stempels'}` : 'vol, inleveren maar']] });
   let jr = null;
   try { jr = getStoryJournal(); } catch (e) { /* story not ready */ }
-  if (jr) out.push({ key: 'k:aanwijzingen', cat: 'kaart', icon: 'kaart', title: 'Aanwijzingen', sub: `${jr.found.length} van ${jr.total} gevonden`,
+  if (jr) out.push({ key: 'k:aanwijzingen', cat: 'kaart', viewer: kaartSpec('aanwijzingen'), icon: 'kaart', title: 'Aanwijzingen', sub: `${jr.found.length} van ${jr.total} gevonden`,
     desc: 'Alles wat je onderweg hoorde en zag over het verhaal. De volledige tekst staat bij Verhaal.', how: 'Verhaal',
     link: ['verhaal', 'Naar Verhaal'] });
   const eieren = getSaveSet('eierballen').size;
-  out.push({ key: 'k:eieren', cat: 'kaart', icon: 'kaart', title: 'Eierballen', sub: `${eieren} van ${EIERBAL_TOTAL} gevonden`,
+  out.push({ key: 'k:eieren', cat: 'kaart', viewer: kaartSpec('eieren'), icon: 'kaart', title: 'Eierballen', sub: `${eieren} van ${EIERBAL_TOTAL} gevonden`,
     desc: 'Verstopt bij de bezienswaardigheden van de provincie. Zoeken maar.',
     link: ['todo', 'Naar Te doen'] });
   const geheimen = getSaveSet('geheimen').size;
-  out.push({ key: 'k:geheim', cat: 'kaart', icon: 'kaart', title: 'Geheimpjes', sub: `${geheimen} van ${SECRETS_TOTAL} gevonden`,
+  out.push({ key: 'k:geheim', cat: 'kaart', viewer: kaartSpec('geheim'), icon: 'kaart', title: 'Geheimpjes', sub: `${geheimen} van ${SECRETS_TOTAL} gevonden`,
     desc: 'Kleine geheimpjes, hier en daar verstopt. We verklappen niks.',
     link: ['todo', 'Naar Te doen'] });
 
   const ups = [];
   const label = (list, id) => (list.find((u) => u.id === id) || {});
-  for (const id of shop.heroUpgrades) { const u = label(CAR_UPGRADES, id); ups.push({ key: 'u:hero:' + id, title: u.label || id, sub: 'Fjord Escapade', desc: u.desc, how: u.price ? `Knal & Kolder, ${euro(u.price)}` : '' }); }
+  for (const id of shop.heroUpgrades) { const u = label(CAR_UPGRADES, id); ups.push({ key: 'u:hero:' + id, viewer: upgradeSpec('auto', id), title: u.label || id, sub: 'Fjord Escapade', desc: u.desc, how: u.price ? `Knal & Kolder, ${euro(u.price)}` : '' }); }
   for (const v of shop.vehicles) {
-    for (const id of v.upgrades) { const u = label(v.kind === 'bike' ? BIKE_UPGRADES : v.kind === 'scooter' ? [...BIKE_UPGRADES, ...MOTO_UPGRADES] : CAR_UPGRADES, id); ups.push({ key: `u:${v.key}:${id}`, title: u.label || id, sub: v.label, desc: u.desc, how: u.price ? euro(u.price) : '' }); }
+    for (const id of v.upgrades) { const u = label(v.kind === 'bike' ? BIKE_UPGRADES : v.kind === 'scooter' ? [...BIKE_UPGRADES, ...MOTO_UPGRADES] : CAR_UPGRADES, id); ups.push({ key: `u:${v.key}:${id}`, viewer: upgradeSpec(v.kind === 'bike' || v.kind === 'scooter' ? 'tweewieler' : 'auto', id), title: u.label || id, sub: v.label, desc: u.desc, how: u.price ? euro(u.price) : '' }); }
   }
-  for (const u of fjordUpgradeOffers(w)) if (u.owned) ups.push({ key: 'u:fjord:' + u.id, title: u.name, sub: 'Fjord Frituur', desc: u.blurb, how: euro(u.price) });
+  for (const u of fjordUpgradeOffers(w)) if (u.owned) ups.push({ key: 'u:fjord:' + u.id, viewer: upgradeSpec('fjord', u.id), title: u.name, sub: 'Fjord Frituur', desc: u.blurb, how: euro(u.price) });
   for (const u of ups) out.push({ ...u, cat: 'upgrade', icon: 'upgrade', link: u.sub === 'Fjord Frituur' ? null : ['garage', 'Naar Garage'] });
   counts.upgrade = `${ups.length} van ${upgradeTotaal(shop, fjordUpgradeOffers(w))}`;
   return { items: out, counts };
@@ -307,6 +332,92 @@ function actiesHtml(it) {
   return (btns ? `<div class="m-acts td-acts">${btns}</div>` : '') + weg;
 }
 
+// --- het 3D-model in het detail (#1086) ---------------------------------------------------------------------------------------
+// Eén gedeelde renderer (vehiclepreview.js): het detail heeft één <canvas> en een bijbehorende createSharedPreview, nooit een eigen
+// WebGL-context. De stage blijft staan als alleen de tekst eromheen verandert (melding, weggooivraag), zodat het model niet
+// opnieuw begint. Tab weg of menu dicht: disposeSpullenViewer(). Buiten beeld (scrollen, ander tabblad): de tekenlus pauzeert.
+const TURN_STEP = 0.35;
+let viewer = null;
+let viewerKey = '';
+let viewerObs = null;
+const stageKey = (it) => (it && it.viewer ? JSON.stringify(it.viewer) : '');
+
+function stageHtml(it) {
+  const label = esc(modelLabel(it.title));
+  return `<div class="sp-model"><div class="sp-stage" data-spul-stage data-key="${esc(stageKey(it))}" data-state="laden">` +
+    `<span class="sp-ic" aria-hidden="true">${svg(it.icon)}</span>` +
+    `<canvas tabindex="0" role="img" aria-label="${label}: sleep of gebruik de pijltjestoetsen om te draaien"></canvas></div>` +
+    `<div class="sp-stage-voet"><span class="sp-melding" data-spul-hint>Sleep of gebruik ${glyphHtml('ARROWLEFT')}${glyphHtml('ARROWRIGHT')} om te draaien</span>` +
+    `<button type="button" class="ds-z-knop ds-z-knop--ghost" data-spul-reset aria-label="Model terugzetten naar de voorkant">Terugzetten</button></div></div>`;
+}
+
+function stopViewer() {
+  if (viewerObs) { viewerObs.disconnect(); viewerObs = null; }
+  if (viewer) { viewer.dispose(); viewer = null; }
+  viewerKey = '';
+}
+
+// Zet het detailpaneel neer en koppelt het model. Dezelfde stage (zelfde model) blijft staan; een ander model krijgt een nieuwe
+// preview op het nieuwe canvas (de gedeelde renderer blijft). Valt WebGL weg of is er geen model, dan blijft het icoon staan.
+function zetDetail(panel) {
+  const detail = panel.querySelector('.td-detail');
+  const it = byKey.get(sel);
+  const nieuwKey = stageKey(it);
+  const oud = viewer && viewerKey === nieuwKey ? detail.querySelector('[data-spul-stage]') : null;
+  const oudModel = oud ? oud.closest('.sp-model') : null;
+  if (oudModel) oudModel.remove(); // uit het oude detail halen voor de innerHTML (blijft als node bestaan)
+  detail.innerHTML = detailHtml();
+  if (oudModel) {
+    const vers = detail.querySelector('.sp-model');
+    if (vers) {
+      const lbl = vers.querySelector('canvas').getAttribute('aria-label'); // andere naam, hetzelfde model
+      oudModel.querySelector('canvas').setAttribute('aria-label', lbl);
+      vers.replaceWith(oudModel);
+    }
+    return;
+  }
+  stopViewer();
+  const stage = detail.querySelector('[data-spul-stage]');
+  if (!stage || !it || !it.viewer) return;
+  const c = stage.querySelector('canvas');
+  let zichtbaar = true;
+  const preview = createSharedPreview(c, {
+    interactive: true,
+    speed: reducedMotion() ? 0 : 0.35,
+    zoom: 1.05,
+    angle: 0.6,
+    active: () => c.isConnected && c.offsetParent !== null && zichtbaar,
+    onFirstFrame: () => { stage.dataset.state = 'klaar'; },
+  });
+  viewer = preview;
+  viewerKey = nieuwKey;
+  preview.show(it.viewer);
+  if (!c.classList.contains('on')) {
+    // geen model of geen WebGL: het icoon blijft, met één eerlijke zin
+    stage.dataset.state = 'terugval';
+    const hint = detail.querySelector('[data-spul-hint]');
+    if (hint) hint.textContent = '3D is hier niet beschikbaar; het icoon blijft staan.';
+    const reset = detail.querySelector('[data-spul-reset]');
+    if (reset) reset.hidden = true;
+    return;
+  }
+  // pauzeren buiten beeld: scrollt het model uit het paneel, dan stopt de lus tot hij weer zichtbaar is
+  if (typeof IntersectionObserver === 'function') {
+    viewerObs = new IntersectionObserver((es) => { for (const e of es) { zichtbaar = e.isIntersecting; if (zichtbaar) preview.wake(); } });
+    viewerObs.observe(c);
+  }
+}
+
+// Het model loslaten: tab gewisseld of menu gesloten (pausemenu.js).
+export function disposeSpullenViewer() { stopViewer(); }
+
+// Draaien met de pijltjes of de D-pad (net als de draaitafel van de Garage); true als er een model draait.
+export function turnSpullenViewer(dir) {
+  if (!viewer || !dir) return false;
+  viewer.turn(dir * TURN_STEP);
+  return true;
+}
+
 // Het detailpaneel (#929, #1013): wat het ding IS, waar het vandaan komt, wat het doet en de acties. De tegel draagt de naam en de
 // stand al; hier staat nooit dezelfde regel nog eens, en is er niets te zeggen dan zegt het paneel dat in één eerlijke zin.
 function detailHtml() {
@@ -324,7 +435,7 @@ function detailHtml() {
   const ledger = it.ledger ? moneyLedgerHtml() : '';
   const cat = (SECTIONS.find(([c]) => c === it.cat) || [, ''])[1];
   const kop = it.cat === 'geld' ? 'Geld' : it.title;
-  return `<div class="sp-dhead"><span class="sp-big">${svg(it.icon)}</span><div class="sp-dmeta">` +
+  return (it.viewer ? stageHtml(it) : '') + `<div class="sp-dhead">${it.viewer ? '' : `<span class="sp-big">${svg(it.icon)}</span>`}<div class="sp-dmeta">` +
     `${cat && cat !== kop ? `<span class="m-eb sp-detail-cat">${esc(cat)}</span>` : ''}<h2 class="m-h2 td-h2">${esc(kop)}</h2></div></div>` +
     `${it.desc ? `<p class="sp-desc">${esc(it.desc)}</p>` : ''}` +
     (ledger || factHtml ? (ledger || '') + factHtml : (!it.desc ? '<p class="sp-eerlijk">Verder valt hier niets over te zeggen.</p>' : '')) +
@@ -367,7 +478,7 @@ export function renderSpullen(panel, w) {
   if (sortKnop) { const t = sortKnop.querySelector('span'); if (t) t.textContent = 'Sorteren: ' + sortLabel(sortering).toLowerCase(); }
   const zoekveld = panel.querySelector('[data-spul-search]');
   if (zoekveld && zoekveld.value !== zoek) zoekveld.value = zoek;
-  panel.querySelector('.td-detail').innerHTML = detailHtml();
+  zetDetail(panel);
   const owned = items.filter((it) => it.cat !== 'geld' && it.cat !== 'kaart').length;
   const kop = zichtbaar.length === items.length ? '' : `${zichtbaar.length} van ${items.length} · `;
   return `${kop}${owned} dingen in bezit · ${euro(Math.max(0, Math.floor(w.money)))} contant`;
@@ -388,7 +499,7 @@ export function spullenFocus(panel, el) {
   note = ''; // een andere tegel: de melding van de vorige actie hoort er niet meer bij
   weggooiVraag = weggooiStap(weggooiVraag, 'ander', sel).state; // en een openstaande vraag Weggooien? ook niet
   for (const b of panel.querySelectorAll('[data-spul]')) b.toggleAttribute('aria-current', b.dataset.spul === sel);
-  panel.querySelector('.td-detail').innerHTML = detailHtml();
+  zetDetail(panel);
 }
 
 // Een kaartselector zonder CSS.escape: de sleutels zijn van ons (geen quotes), en zo
@@ -415,7 +526,7 @@ export function spullenAnnuleer(panel) {
   const key = weggooiVraag.key;
   weggooiVraag = weggooiStap(weggooiVraag, 'annuleer', key).state;
   if (panel) {
-    panel.querySelector('.td-detail').innerHTML = detailHtml();
+    zetDetail(panel);
     const terug = panel.querySelector('[data-spul-weg]');
     if (terug && terug.focus) terug.focus({ preventScroll: true });
   }
@@ -426,10 +537,11 @@ export function spullenClick(e, w, panel, a) {
   const chip = e.target.closest('[data-spul-deel]');
   if (chip) { zetSpullenDeel(chip.dataset.spulDeel); weggooiVraag = null; a.rerender(); return true; }
   if (e.target.closest('[data-spul-sort]')) { sortering = cycleSort(sortering); a.rerender(); return true; }
+  if (e.target.closest('[data-spul-reset]')) { if (viewer) viewer.reset(); return true; }
   const weg = e.target.closest('[data-spul-weg]');
   if (weg) {
     weggooiVraag = weggooiStap(null, 'vraag', weg.dataset.spulWeg, !!weg.dataset.alles).state;
-    panel.querySelector('.td-detail').innerHTML = detailHtml();
+    zetDetail(panel);
     const veilig = panel.querySelector('[data-spul-weg-nee]'); // de veilige keuze krijgt de focus
     if (veilig && veilig.focus) veilig.focus({ preventScroll: true });
     return true;
