@@ -433,7 +433,9 @@
     "voetbalworld",
     "voetbalkarakter",
     "voetbalcompetitie",
-    "sponsorpanden"
+    "sponsorpanden",
+    "voetbalbezit",
+    "voetbalcommentarycareer"
    ],
    "eigenaar": "speler",
    "gast": "Een gast speelt zijn eigen figuur in jouw team; ratings reizen mee in het EXTRA-bericht.",
