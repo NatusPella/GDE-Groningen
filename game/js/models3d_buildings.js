@@ -498,14 +498,17 @@ function edgePaneUV(e, rank, kind, w, h, bay) {
   return paneUV(rank, kind, w, h, e.tx, e.ty, e.nx, e.ny, bay);
 }
 
+const WINDOW_BAR_D = 0.085;
 function addWindow(B, e, c, w, y0, y1, S, seed) {
   const f = 0.07;
   wallQuad(B, e, c - w / 2 - f, c + w / 2 + f, y0 - f, y1 + f, 0.05, S.frame);
   const glass = GLASS_TONES[Math.floor(hash2(seed, y0 * 3.1) * GLASS_TONES.length)];
   wallQuad(B, e, c - w / 2, c + w / 2, y0, y1, 0.06, glass, G_GLASS, edgePaneUV(e, hash2(seed * 1.31, y0 * 7.7 + c), y0 < 2 ? PANE_GROUND : PANE_HOME, w, y1 - y0));
   const tY = y0 + (y1 - y0) * 0.72;
-  wallQuad(B, e, c - w / 2, c + w / 2, tY - 0.03, tY + 0.03, 0.07, S.frame);
-  if (w > 0.85) wallQuad(B, e, c - 0.03, c + 0.03, y0, tY, 0.06, S.frame);
+  // dwarsbalk en middenstijl liggen 2,5 cm voor het glas (0,06): het glas heeft een sterkere polygonOffset dan de details
+  // (interiorglass.js GLASS_OFFSET) en de stijl lag coplanair met het glas; op 170 m is de dieptestap bij near 0,08 m 2 cm
+  wallQuad(B, e, c - w / 2, c + w / 2, tY - 0.03, tY + 0.03, WINDOW_BAR_D, S.frame);
+  if (w > 0.85) wallQuad(B, e, c - 0.03, c + 0.03, y0, tY, WINDOW_BAR_D, S.frame);
   wallBox(B, e, c - w / 2 - f - 0.06, c + w / 2 + f + 0.06, y0 - f - 0.07, y0 - f, 0, 0.13, S.sill, G_DETAIL, FACE_FRONT | FACE_TOP);
   if (S.lintel) wallQuad(B, e, c - w / 2 - f - 0.05, c + w / 2 + f + 0.05, y1 + f, y1 + f + 0.16, 0.06, S.lintel);
 }
