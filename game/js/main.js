@@ -210,7 +210,7 @@ import { initBoerderij, boerderijTijd, boerderijKlokNul } from './boerderijlive.
 import { initBezit, dagTik as bezitDagTik, getBezit } from './bezitlive.js';
 import { onDayReport as bezitOnDayReport, deliverLine as bezitDeliverLine } from './bezitworldhooks.js';
 import { updateFarmWorkers } from './farmworkers3d.js';
-import { updateSnackWagens } from './snackwagens3d.js';
+import { updateSnackWagens } from './snackvans3d.js';
 import { updateHerds } from './herdview3d.js';
 import { setGateProgress } from './bezitgate.js';
 import { progressFrom } from './unlockgate.js';

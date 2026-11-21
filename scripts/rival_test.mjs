@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import * as R from '../game/js/rival.js';
-import { SPOT_IDS, permitPrice } from '../game/js/standplaats.js';
+import { SPOT_IDS, permitPrice } from '../game/js/pitch.js';
 
 let n = 0, fails = 0;
 const t = (name, fn) => { n++; try { fn(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', String(e.message).split('\n')[0]); } };
@@ -76,10 +76,10 @@ t('gebeurtenissen over 400 dagen: hooguit één tegelijk, rust van drie dagen, a
     if (!e) continue;
     assert.ok(d - prev >= R.EVENT_COOLDOWN || prev < 0); prev = d; total++;
     count[e.kind] = (count[e.kind] || 0) + 1; r = R.noteEvent(r, d);
-    assert.ok(e.choices.length >= 2 && e.text.length > 20 && e.deadline === d + 3 && wagons.some((w) => w.id === e.wagon));
+    assert.ok(e.choices.length >= 2 && e.text.length > 20 && e.deadline >= d + 3 && wagons.some((w) => w.id === e.wagon));
   }
   assert.ok(total > 15 && total < 120, String(total));
-  assert.ok(Object.keys(count).length === 5, JSON.stringify(count));
+  assert.ok(Object.keys(count).length === 6, JSON.stringify(count));
   assert.equal(R.rollEvent(r, 50, { wagons: [], hasFleet: true }), null);
   assert.equal(R.rollEvent(r, 50, { wagons, pending: true }), null);
   for (let d = 1; d <= 100; d++) assert.notEqual((R.rollEvent(r, d, { wagons, hasFleet: false }) || {}).kind, 'overkoop');

@@ -108,7 +108,7 @@ t('openingstijd: langer open is meer omzet en meer loon; gesloten is nul', () =>
   assert.ok(avg(hr(14), 30) > avg(hr(10), 30) && avg(hr(10), 30) > avg(hr(5), 30));
   assert.ok(Bz.stepDay(hr(14), ctxOf(3)).report.wages > Bz.stepDay(hr(10), ctxOf(3)).report.wages);
   const c = Bz.stepDay(hr(0), ctxOf(3)).report;
-  assert.equal(c.revenue, 0); assert.equal(c.open, false); assert.match(c.reason, /Gesloten/);
+  assert.equal(c.revenue, 0); assert.equal(c.open, false); assert.match(c.reason, /Geen openingsuren/);
 });
 t('klantendruk: een stad levert meer dan een gehucht', () => {
   const b = fullStaff(mkShop('bakker'));

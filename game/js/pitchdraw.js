@@ -1,7 +1,7 @@
-// Het tekenen van de kaartlaag Standplaatsen (Snackimperium, epic #1095, #1102): canvas-kant van standplaatsmap.js. Alleen tekenen, geen rekenwerk en geen staat.
-// mapview.js roept drawStandplaatsen aan met wat standplaatsView teruggeeft. Kleurtaal en vormen: standplaatsmap.js STATES (DS3; geen geel).
+// Het tekenen van de kaartlaag Standplaatsen (Snackimperium, epic #1095, #1102): canvas-kant van pitchmap.js. Alleen tekenen, geen rekenwerk en geen staat.
+// mapview.js roept drawStandplaatsen aan met wat standplaatsView teruggeeft. Kleurtaal en vormen: pitchmap.js STATES (DS3; geen geel).
 
-import { STATES } from './standplaatsmap.js';
+import { STATES } from './pitchmap.js';
 import { INK, inkA } from './mapstyle.js';
 
 const R = 9;

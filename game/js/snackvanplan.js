@@ -1,6 +1,6 @@
 // De planning van de snackwagens in de wereld (Snackimperium, epic #1095, #1102): welke wagens (de jouwe, die van je medewerkers en die van Usmem Snacks) er nu in beeld zijn,
 // hoogstens MAX_WAGONS (de dichtstbijzijnde) binnen de streamstraal met hysterese, met kleur, bord, richting en verkoper. Puur en deterministisch: geen THREE, geen klok, geen Math.random
-// (snackwagens3d.js tekent wat dit teruggeeft; scripts/snackwagens3d_test.mjs).
+// (snackvans3d.js tekent wat dit teruggeeft; scripts/snackvans3d_test.mjs).
 
 import { hashUnit, hashPick } from './bezithash.js';
 import { FIRST_NAMES } from './businessstaff.js';

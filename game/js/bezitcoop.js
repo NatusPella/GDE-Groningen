@@ -6,7 +6,7 @@
 
 export const CLAIM_MAX = 5000;                     // hoeveel claims van anderen we onthouden (een bovengrens tegen een vol netwerk)
 export const PARCEL_RE = /^p[0-9a-f]{12}$/;
-export const SPOT_RE = /^sp:[a-z]{2,12}$/;                // een standplaats van de snackwagen (standplaats.js claimKey)
+export const SPOT_RE = /^sp:[a-z]{2,12}$/;                // een standplaats van de snackwagen (pitch.js claimKey)
 export const ID_RE = /^(p[0-9a-f]{12}|sp:[a-z]{2,12})$/;
 
 // De ID-verzameling als 6 byte per perceel in base64 (het netwerk stuurt dit, nooit polygonen).

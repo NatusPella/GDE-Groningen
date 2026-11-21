@@ -7,9 +7,11 @@
 import { noteMoney } from './finance.js';
 import { euro } from './geldtekst.js';
 import * as L from './bezitlive.js';
-import * as SN from './snackwagen.js';
-import * as SP from './standplaats.js';
+import * as SN from './snackvan.js';
+import * as SP from './pitch.js';
 import * as RV from './rival.js';
+import * as GW from './goodwill.js';
+import { snackShare } from './bezitcoop.js';
 import { branchOpen, branchHint } from './bezitgate.js';
 
 export const snackOpen = () => branchOpen('snack');
@@ -20,6 +22,7 @@ const earn = (w, n) => { if (n > 0) { noteMoney('Verkoop'); w.money += n; } };
 const WHY = {
   'te-weinig-geld': (r) => `Je mist nog ${euro(r.tekort || 0)}.`, 'al-van-jou': () => 'Dat is al van jou.', bezet: () => 'Die plek is bezet.', onbekend: () => 'Dat bestaat niet.',
   'geen-vergunning': () => 'Daarvoor heb je eerst een vergunning nodig.', vol: () => 'Het is vol.', 'niet-van-hem': () => 'Dat is niet van Usmem Snacks.', 'al-het-grootst': () => 'Groter bestaat niet.',
+  'te-snel': (r) => `Dat heb je net gedaan: over ${r.wait || 1} dagen weer.`, 'geen-bondgenoten': () => 'Je hebt nog geen bondgenoten: help eerst de buurt.', 'geen-wagen': () => 'Daar staat geen wagen.', 'al-gedaan': () => 'Je hebt hier vandaag al meegewerkt.', 'geen-claim': () => 'Dat is niet van een medespeler.',
   leeg: () => 'Er moet minstens één product op het menu.', dicht: () => 'Daarvoor heb je koeling nodig.',
 };
 const fail = (r) => ({ ok: false, why: r.why, text: (WHY[r.why] || (() => 'Dat lukt nu niet.'))(r) });
@@ -48,10 +51,18 @@ export function spotRows() {
   const S = L.snackState(), day = L.calToday(), held = SP.heldIds(S.permits, day);
   return SP.SPOTS.map((s) => {
     const st = spotStatus(S, s.id, day), xy = SP.spotXY(s.id), mine = st === 'jij';
-    return { id: s.id, name: s.name, short: s.short, place: s.place, x: xy.x, y: xy.y, foot: s.foot, status: st, price: SP.permitPrice(s.id, held.length), ask: st === 'usmem' ? RV.askPrice(s.id, S.rep) : 0,
+    return { id: s.id, name: s.name, short: s.short, place: s.place, x: xy.x, y: xy.y, foot: s.foot, status: st, price: SP.permitPrice(s.id, held.length), ask: st === 'usmem' ? RV.askPrice(s.id, S.rep, S.rival.rep) : 0,
       daysLeft: mine ? SP.permitDaysLeft(S.permits, s.id, day) : 0, renew: mine ? SP.renewalCost(s.id, held.length) : 0, claim: st === 'medespeler' ? L.claimOfKey(SP.claimKey(s.id)) : null,
       wagon: S.own.spot === s.id ? 'own' : (S.fleet.find((f) => f.spot === s.id) || {}).id || null };
   });
+}
+// Het blok Buurt en klanten: tevredenheid, goodwill, bondgenoten, vaste klanten per eigen plek met wat er te doen is, en de plekken van medespelers waar je kunt meewerken.
+function neighbourhood(S, day) {
+  const g = S.gw;
+  const spots = SP.heldIds(S.permits, day).map((id) => ({ id, short: SP.spotDef(id).short, loyal: Math.round(g.loyal[id] || 0), cap: GW.loyalCap(g, id), helped: g.helped[id] || 0,
+    help: GW.HELP_IDS.map((k) => ({ id: k, label: GW.HELP[k].label, cost: GW.HELP[k].cost, wait: Math.max(0, Math.ceil(GW.HELP[k].cd - (day - (g.cd[`${k}:${id}`] ?? -1e9)))) })) }));
+  return { sat: Math.round(g.sat), goodwill: Math.round(g.goodwill), allies: g.allies.map((a) => GW.ALLY_NAMES[a]), disputes: g.disputes, spots,
+    helpers: SP.SPOTS.filter((s) => spotStatus(S, s.id, day) === 'medespeler').map((s) => ({ id: s.id, short: s.short, claim: L.claimOfKey(SP.claimKey(s.id)), done: (g.work[s.id] ?? -1) >= day })) };
 }
 export function snackView(w) {
   const S = L.snackState(), day = L.calToday(), held = SP.heldIds(S.permits, day);
@@ -60,12 +71,12 @@ export function snackView(w) {
   const own = { ...S.own, forecast: forecastOwn(), hasWagon: L.myMobile().some((m) => m.id === 'frietwagen'), tierDef: SN.TIERS[S.own.tier], numbers: SN.menuNumbers(S.own.menu, S.up, owner) };
   const sc = SN.empireScore(S, day, { chains: L.chainViews().filter((c) => c.closedDays > 0 || c.margin >= 0.3).length });
   return { open: snackOpen(), hint: snackOpen() ? '' : snackHint(), day, money: money(w), active: SN.isActive(S), rep: S.rep, effRep: SN.effRep(S, day), up: S.up, spots, own, fleet: S.fleet.map((f) => ({ ...f, tierDef: SN.TIERS[f.tier], wage: SN.staffWage(f.staff.skill, f.wageUp), spotName: f.spot ? SP.spotDef(f.spot).short : null })),
-    rival: { name: RV.RIVAL_NAME, owner: RV.RIVAL_OWNER, spots: S.rival.spots.length, pand: S.rival.pand, chain: S.rival.chain, mood: S.rival.mood }, score: sc, goals: SN.goalStatus(S, { day }), pending: SN.pendingEvent(S), war: S.ev.war && S.ev.war.until >= day ? S.ev.war : null,
+    rival: { name: RV.RIVAL_NAME, owner: RV.RIVAL_OWNER, spots: S.rival.spots.length, pand: S.rival.pand, chain: S.rival.chain, mood: S.rival.mood, rep: S.rival.rep }, gw: neighbourhood(S, day), score: sc, goals: SN.goalStatus(S, { day }), pending: SN.pendingEvent(S), war: S.ev.war && S.ev.war.until >= day ? S.ev.war : null,
     menu: SN.ITEM_IDS.map((id) => ({ id, ...SN.ITEMS[id], on: S.own.menu.includes(id), unlocked: SN.menuUnlocked(S, id), chainOwn: SN.ITEMS[id].chain ? owner(SN.ITEMS[id].chain) : 0 })),
     wagonPrice: SN.wagonPrice(S.fleet.length), stats: S.stats };
 }
 
-// De wagens die in de wereld staan (voor snackwagens3d.js; goedkoop, geen voorspelling): de jouwe, die van je medewerkers en die van Usmem Snacks op zijn plekken.
+// De wagens die in de wereld staan (voor snackvans3d.js; goedkoop, geen voorspelling): de jouwe, die van je medewerkers en die van Usmem Snacks op zijn plekken.
 // Alleen als de poort open is.
 export function wagonSites() {
   if (!snackOpen()) return [];
@@ -124,4 +135,36 @@ export function antwoord(w, choice) {
   if (p && p.kind === 'bod' && choice === 'verkoop' && spot) claim(spot, 'release');
   L.markeer();
   return { ok: true, cost: r.cost, text: r.text };
+}
+
+// Hulp aan de buurt (goodwill.js): gratis porties, een schoonmaakdag of een buurtavond op een plek waar je een vergunning hebt. Kost geld, geeft goodwill en vaste klanten.
+export function helpBuurt(w, spot, kind) {
+  const c = closed(); if (c) return c;
+  const r = SN.helpBuurt(L.snackState(), spot, kind, L.calToday(), money(w));
+  if (!r.ok) return fail(r);
+  spend(w, r.cost, 'Overige uitgaven'); L.markeer();
+  return { ok: true, cost: r.cost, text: r.text };
+}
+
+// Meewerken achter het luik van een medespeler (zijn plek staat als claim 'sp:<plek>'): jij krijgt uurloon uit nieuw geld (bezitcoop.snackShare), hij verkoopt die dag 8% meer.
+// Het netwerkbericht regelt de aanroeper met setSnackWorkSend(fn); fn krijgt { type: 'snack-work', spot, hours }. Hoogstens eenmaal per plek per speldag.
+let workSend = () => {};
+export const setSnackWorkSend = (fn) => { workSend = typeof fn === 'function' ? fn : () => {}; };
+export function meewerken(w, spot, hours = 6) {
+  const c = closed(); if (c) return c;
+  const S = L.snackState(), day = L.calToday();
+  if (!SP.isSpot(spot) || !L.claimOfKey(SP.claimKey(spot))) return fail({ why: 'geen-claim' });
+  if ((S.gw.work[spot] ?? -1) >= day) return fail({ why: 'al-gedaan' });
+  const h = Math.max(1, Math.min(10, Math.round(Number(hours) || 6)));
+  const share = snackShare({ net: 0, hours: h, mode: 'loon' });
+  S.gw.work[spot] = day; earn(w, share.guest.wage); L.markeer();
+  workSend({ type: 'snack-work', spot, hours: h });
+  return { ok: true, wage: share.guest.wage, text: `Je hebt ${h} uur meegewerkt bij ${SP.spotDef(spot).short} en verdient ${euro(share.guest.wage)}.` };
+}
+// De eigenaarskant: een medespeler werkte mee in jouw wagen (het ontvangen bericht van meewerken). Geeft { ok } of { ok: false, why }.
+export function ontvangWerk(msg) {
+  if (!msg || msg.type !== 'snack-work' || !SP.isSpot(msg.spot)) return { ok: false, why: 'onbekend' };
+  const r = SN.receiveHelper(L.snackState(), msg.spot, Number(msg.hours) || 0, L.calToday());
+  if (r.ok) L.markeer();
+  return r;
 }

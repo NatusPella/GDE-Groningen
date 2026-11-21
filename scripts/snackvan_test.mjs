@@ -1,8 +1,8 @@
-// De snackwagen (snackwagen.js): toestand en opslag, menu, een dag, voorraad, naam, gebeurtenissen en antwoorden, acties, doelen en de score.   node scripts/snackwagen_test.mjs
+// De snackwagen (snackvan.js): toestand en opslag, menu, een dag, voorraad, naam, gebeurtenissen en antwoorden, acties, doelen en de score.   node scripts/snackvan_test.mjs
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import * as SN from '../game/js/snackwagen.js';
-import * as SP from '../game/js/standplaats.js';
+import * as SN from '../game/js/snackvan.js';
+import * as SP from '../game/js/pitch.js';
 import * as RV from '../game/js/rival.js';
 
 let n = 0, fails = 0;
@@ -159,7 +159,7 @@ t('gebeurtenissen over 300 dagen: een wacht op antwoord, het standaardgevolg tre
     if (p && p.day === d) {
       seen[p.kind] = (seen[p.kind] || 0) + 1;
       assert.ok(p.choices.length >= 2 && p.text);
-      if (d % 2 === 0) { const a = SN.answerEvent(S, p.choices[0].id, d, money); assert.ok(a.ok && a.cost >= 0); money -= a.cost; assert.equal(SN.pendingEvent(S), null); }
+      if (d % 2 === 0) { const a = SN.answerEvent(S, p.kind === 'vergunning' ? 'beroep' : p.choices[0].id, d, money); assert.ok(a.ok && a.cost >= 0); money -= a.cost; assert.equal(SN.pendingEvent(S), null); }
     }
     assert.ok(Number.isFinite(r.ownNet) && Number.isFinite(r.fleetNet));
   }
@@ -263,10 +263,10 @@ t('deterministisch: twee runs met dezelfde invoer geven dezelfde toestand', () =
   assert.equal(run(), run());
 });
 t('bronregels: geen Math.random, geen fetch, geen DOM; geen echte merken in de menu-namen', () => {
-  const src = fs.readFileSync(new URL('../game/js/snackwagen.js', import.meta.url), 'utf8').split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
+  const src = fs.readFileSync(new URL('../game/js/snackvan.js', import.meta.url), 'utf8').split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
   assert.ok(!/Math\.random|fetch\(|document\.|window\.|localStorage/.test(src));
   const names = Object.values(SN.ITEMS).map((i) => i.label).concat(Object.values(SN.TIERS).map((x) => x.label), Object.values(SN.UPGRADES).map((u) => u.label)).join(' ');
   assert.ok(!/(McD|Burger King|Febo|Mora|Van Dobben|Zoom)/i.test(names));
 });
-console.log(`snackwagen_test: ${n - fails}/${n} ok`);
+console.log(`snackvan_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

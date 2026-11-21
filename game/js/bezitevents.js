@@ -139,7 +139,7 @@ export function coolingFailure(id, day, stock, seed = '') {
 export function businessMods(biz, region, day) {
   const out = {};
   const st = activeSpan(EVENT_DEFS.staking, region, day);
-  if (st && (biz.type === 'supermarkt' || biz.type === 'kiosk')) { out.closed = true; out.note = `Staking (${UNION}): een dag dicht.`; }
+  if (st && (biz.type === 'supermarkt' || biz.type === 'kiosk')) { out.closed = true; out.note = `Staking (${UNION}): vandaag geen omzet.`; }
   const fest = festivalOn(region, day);
   if (fest && !out.closed && biz.type !== 'kantoor' && biz.type !== 'hotel') { out.revMult = fest.revMult; out.note = fest.name; }
   const vd = auctionDay(day);

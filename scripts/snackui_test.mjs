@@ -26,7 +26,7 @@ t('open zonder wagen: aanbod van een snackwagen met bevestiging, de zestien plek
   assert.match(h, /Je hebt nog geen snackwagen/); assert.match(h, /data-sn="koop-wagen"/);
   assert.equal((h.match(/data-spot="/g) || []).length, 16);
   assert.match(h, /data-spot="markt" data-status="usmem"/); assert.match(h, /Neem over/); assert.match(h, /Usmem Snacks/);
-  assert.equal((h.match(/data-goal="/g) || []).length, 11);
+  assert.equal((h.match(/data-goal="/g) || []).length, 13);
   assert.match(h, /Snackimperium/); assert.ok(!/Frietwagen/.test(h));
 });
 t('een koop vraagt een tweede druk; na Ja is de vergunning van jou en de plek toont verlengen en Zet mijn wagen hier', () => {
@@ -76,6 +76,26 @@ t('de knoppen: renderSnackPanel bindt een klik en doet de actie (met een nepelem
   click({ sn: 'vul' }); assert.equal(L.snackState().own.stockDays, 5);
   click({ sn: 'menu', id: 'souffle' }); assert.match(U.sui.msg, /vol/);
   U.renderSnackPanel(el, w); assert.match(el.innerHTML, /Snackwagen/);
+});
+t('Buurt en klanten: tevredenheid, goodwill, bondgenoten, vaste klanten met hulpknoppen met bevestiging, meewerken bij een medespeler, het geschil met zijn antwoorden', () => {
+  reset(); const w = wereld(); SL.koopWagen(w); SL.koopVergunning(w, 'park'); SL.zetWagen('park');
+  L.setClaimLookup((id) => (id === 'sp:leek' ? { name: 'lotte', color: '#c0c', playerId: 'B' } : null));
+  let h = U.snackHtml(SL.snackView(w));
+  assert.match(h, /Buurt en klanten/); assert.match(h, /Tevreden klanten/); assert.match(h, /Naam van Usmem/); assert.match(h, /Nog geen bondgenoten/);
+  assert.match(h, /data-buurt="park"/); assert.match(h, /data-sn="help" data-id="park\|buurthuis" data-spot="park" data-kind="buurthuis"/);
+  assert.match(h, /data-helper="leek"/); assert.match(h, /data-sn="meewerken" data-id="leek"/);
+  U.sui.confirm = 'help:park|buurthuis'; h = U.snackHtml(SL.snackView(w)); assert.match(h, /bd-zeker/);
+  U.sui.confirm = null;
+  L.snackState().ev.pending = { kind: 'vergunning', id: 1, wagon: 'own', spot: 'park', depth: 0, price: 0, bribed: true, text: 'Een enveloppe voor de Gemeentelijke Vergunningsdienst Noord.', choices: [{ id: 'bondgenoten', label: 'Bondgenoten om steun vragen', cost: 0 }, { id: 'beroep', label: 'In beroep gaan', cost: 0, def: true }, { id: 'betaal', label: 'De leges betalen en doorgaan', cost: 400 }], day: L.calToday(), deadline: L.calToday() + 5 };
+  h = U.snackHtml(SL.snackView(w));
+  assert.match(h, /data-event="vergunning"/); assert.match(h, /Gedoe met de vergunning/); assert.match(h, /data-choice="bondgenoten"/); assert.match(h, /hoe groter je kans in beroep/);
+  let handler = null; const el = { innerHTML: '', addEventListener(ev, fn) { if (ev === 'click') handler = fn; } };
+  U.renderSnackPanel(el, w); const click = (d) => handler({ target: { closest: () => ({ dataset: d }) } });
+  click({ sn: 'help', id: 'park|buurthuis', spot: 'park', kind: 'buurthuis' }); assert.equal(U.sui.confirm, 'help:park|buurthuis');
+  click({ sn: 'help', id: 'park|buurthuis', spot: 'park', kind: 'buurthuis', ok: '1' }); assert.match(U.sui.msg, /buurthuis/i);
+  click({ sn: 'antwoord', choice: 'bondgenoten' }); assert.match(U.sui.msg, /bondgenoten/);
+  click({ sn: 'meewerken', id: 'leek' }); assert.match(U.sui.msg, /meegewerkt/);
+  L.setClaimLookup(null);
 });
 t('de bron: nederlands, geen merken, geen fetch, geen Math.random', async () => {
   const { readFileSync } = await import('node:fs');

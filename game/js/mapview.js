@@ -48,9 +48,9 @@ import { forSaleView, parcelOffer, koopPerceel, verkoopPerceel, bezitOpen, ensur
 import { pickShape } from './forsalemap.js';
 import { drawForSale } from './forsaledraw.js';
 import { offerCardHtml, hoverSub } from './forsalecard.js';
-import { standplaatsView, pickMarker } from './standplaatsmap.js';
-import { drawStandplaatsen } from './standplaatsdraw.js';
-import { spotCardHtml, hoverSubSpot } from './standplaatscard.js';
+import { standplaatsView, pickMarker } from './pitchmap.js';
+import { drawStandplaatsen } from './pitchdraw.js';
+import { spotCardHtml, hoverSubSpot } from './pitchcard.js';
 import { spotRows, koopVergunning, neemOver, zetWagen, snackOpen } from './snacklive.js';
 import { myMobile } from './bezitlive.js';
 import { getSideJobSpotsForRender } from './sidejobs.js';
@@ -1782,7 +1782,7 @@ function drawDynamicMarkers(ctx, world) {
   state.koopVelden = koopView && koopView.mode === 'shapes' ? koopView.shapes : [];
   if (koopView && koopView.loading) ensureIndex().then(() => { state.dirty = true; }).catch(() => {});
   if (koopView) drawForSale(ctx, koopView, toScreen, state.zoom, state.hoverKoopId, state.card && state.card.h && state.card.h.bezit);
-  // Snackimperium (#1102): de kaartlaag Standplaatsen (standplaatsmap.js): vrij, van jou, van Usmem Snacks, van een medespeler
+  // Snackimperium (#1102): de kaartlaag Standplaatsen (pitchmap.js): vrij, van jou, van Usmem Snacks, van een medespeler
   const standView = layerOn('standplaats') && snackOpen() ? standplaatsView(spotRows(), viewRect(), state.scale) : null;
   state.standMarkers = standView && standView.mode === 'markers' ? standView.markers : [];
   if (standView) drawStandplaatsen(ctx, standView, toScreen, state.zoom, null, state.card && state.card.h && state.card.h.standplaats);

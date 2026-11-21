@@ -1,5 +1,5 @@
 // De kaartlaag "Standplaatsen" (Snackimperium, epic #1095, #1102): welke standplaatsen er in beeld zijn, met stand (van jou, van Usmem Snacks, van een medespeler, vrij), prijs en
-// wagen. Puur: geen DOM, geen canvas, geen klok (scripts/standplaatsmap_test.mjs); mapview.js tekent wat dit teruggeeft (standplaatsdraw.js). Zelfde stijl als de laag Te koop (forsalemap.js).
+// wagen. Puur: geen DOM, geen canvas, geen klok (scripts/pitchmap_test.mjs); mapview.js tekent wat dit teruggeeft (pitchdraw.js). Zelfde stijl als de laag Te koop (forsalemap.js).
 //
 // Kleurtaal (DS3): vrij = policeBlue met een streeplijn en een cirkel, van jou = greenLight vol, van Usmem Snacks = rood met een ruit, medespeler = zijn kleur met een vierkant.
 // Geel blijft gereserveerd voor 'volg dit'-doelen. Nooit alleen kleur: elke stand heeft een eigen vorm en lijnpatroon.

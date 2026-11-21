@@ -1,7 +1,7 @@
 // De snackwagen als eindgame van Bezit (epic #1095, #1102; ontwerp docs/BEZIT-21-11.md, sectie "Snackwagen en Usmem Snacks"): een bedrijf-light-sim met standplaatsen
-// (standplaats.js), een menu uit je eigen keten, upgrades, medewerkers (loon of aandeel), een reputatie, de concurrent Usmem Snacks (rival.js) met sabotage als satire,
+// (pitch.js), een menu uit je eigen keten, upgrades, medewerkers (loon of aandeel), een reputatie, de concurrent Usmem Snacks (rival.js) met sabotage als satire,
 // doelen en een eindscore "Snackimperium". Puur: geen DOM, geen THREE, geen klok, geen opslag en geen Math.random; alles uit de speldag (bezithash.js).
-// scripts/snackwagen_test.mjs en scripts/snackbalans_test.mjs.
+// scripts/snackvan_test.mjs en scripts/snackbalans_test.mjs.
 //
 // Eén toestand per speler (S, opgeslagen in bezit.x.snack): { permits, own, fleet, up, rep, rival, ev, stats, lastDay }.
 //   own    de wagen die je zelf runt (het mobiele bedrijf 'frietwagen' van business.js, in het spel Snackwagen): { spot, tier, from, hours, pr, menu, stockDays }
@@ -13,8 +13,10 @@
 import { hashUnit, hashPick, clamp, finite } from './bezithash.js';
 import { FIRST_NAMES } from './businessstaff.js';
 import { maintenanceFactor } from './business.js';
-import * as SP from './standplaats.js';
+import * as SP from './pitch.js';
 import * as RV from './rival.js';
+import * as GW from './goodwill.js';
+import { difficultyFactor } from './bezitprijs.js';
 
 // ---- wagens, upgrades en menu ----
 export const TIERS = {
@@ -54,7 +56,7 @@ export const STAFF_AUTO = 0.85;                  // een wagen zonder jou erbij d
 export const LOGISTICS = 1.15;
 export const BEST_SPOT = 'markt';                // het beste plekje in de stad: het eerste doel
 
-export const wagonPrice = (fleetCount) => Math.round((FLEET_PRICE * (1 + FLEET_STEP * Math.max(0, fleetCount | 0))) / 50) * 50;
+export const wagonPrice = (fleetCount) => Math.round((FLEET_PRICE * (1 + FLEET_STEP * Math.max(0, fleetCount | 0)) * difficultyFactor('price')) / 50) * 50;
 export const staffWage = (skill, pct = 0) => Math.round(((90 + 0.6 * clamp(finite(skill, 50), 0, 100)) * (1 + clamp(finite(pct, 0), 0, 100) / 100)) / 5) * 5;
 
 // ---- toestand ----
@@ -62,7 +64,7 @@ export const newSnack = () => ({
   v: 1, permits: {}, up: [], rep: 50, lastDay: 0,
   own: { spot: null, tier: 'klein', from: 11, hours: 10, pr: 1, menu: [...DEFAULT_MENU], stockDays: 0 },
   fleet: [], rival: RV.newRival(),
-  ev: { pending: null, mods: [], war: null, seq: 0 },
+  ev: { pending: null, mods: [], war: null, seq: 0 }, gw: GW.newGw(),
   stats: { days: 0, revenue: 0, net: 0, sold: 0, best: 0, takeovers: 0, refused: 0, answered: 0, had: {} },
 });
 export const isActive = (S) => !!S && (Object.keys(S.permits).length > 0 || S.fleet.length > 0);
@@ -84,12 +86,13 @@ export function normalizeSnack(raw) {
     paid: Math.round(clamp(finite(w.paid, FLEET_PRICE), 0, 1e9)), wageUp: Math.round(clamp(finite(w.wageUp, 0), 0, 100)),
   }));
   S.rival = RV.normalizeRival(raw.rival);
+  S.gw = GW.normalizeGw(raw.gw);
   const e = raw.ev && typeof raw.ev === 'object' ? raw.ev : {};
   S.ev.seq = Math.round(clamp(finite(e.seq, 0), 0, 1e7));
   S.ev.mods = (Array.isArray(e.mods) ? e.mods : []).slice(0, 12).filter((m) => m && ['omzet', 'dicht', 'rep'].includes(m.k)).map((m) => ({ k: m.k, wagon: String(m.wagon || 'own').slice(0, 8), until: Math.round(clamp(finite(m.until, 0), 0, 1e7)), mult: clamp(finite(m.mult, 1), 0, 3), d: clamp(finite(m.d, 0), -30, 30), ev: Math.round(finite(m.ev, 0)) }));
   if (e.war && typeof e.war === 'object') S.ev.war = { until: Math.round(clamp(finite(e.war.until, 0), 0, 1e7)), depth: clamp(finite(e.war.depth, 0.15), 0, 0.5), matched: !!e.war.matched, softened: !!e.war.softened, ev: Math.round(finite(e.war.ev, 0)) };
   const p = e.pending;
-  if (p && typeof p === 'object' && RV.CHOICES[p.kind]) S.ev.pending = { kind: p.kind, id: Math.round(finite(p.id, 0)), wagon: String(p.wagon || 'own').slice(0, 8), spot: SP.isSpot(p.spot) ? p.spot : null, depth: clamp(finite(p.depth, 0), 0, 0.5), price: Math.round(clamp(finite(p.price, 0), 0, 1e8)),
+  if (p && typeof p === 'object' && RV.CHOICES[p.kind]) S.ev.pending = { kind: p.kind, id: Math.round(finite(p.id, 0)), wagon: String(p.wagon || 'own').slice(0, 8), spot: SP.isSpot(p.spot) ? p.spot : null, depth: clamp(finite(p.depth, 0), 0, 0.5), price: Math.round(clamp(finite(p.price, 0), 0, 1e8)), bribed: !!p.bribed,
     text: String(p.text || '').slice(0, 300), choices: RV.CHOICES[p.kind], day: Math.round(finite(p.day, 0)), deadline: Math.round(finite(p.deadline, 0)) };
   const s = raw.stats && typeof raw.stats === 'object' ? raw.stats : {};
   for (const k of ['days', 'revenue', 'net', 'sold', 'best', 'takeovers', 'refused', 'answered']) S.stats[k] = Math.round(clamp(finite(s[k], 0), -1e12, 1e12));
@@ -124,11 +127,14 @@ export const effRep = (S, day) => clamp(S.rep + S.ev.mods.filter((m) => m.k === 
 export const repFactor = (rep) => Math.round((0.8 + 0.4 * clamp(finite(rep, 50), 0, 100) / 100) * 1000) / 1000;
 export const priceDemand = (pr) => clamp(1 - 1.3 * (finite(pr, 1) - 1), 0.4, 1.35);
 // Prijzenoorlog: matched (je prijst mee) houdt de klanten maar drukt je prijs met de diepte; anders lopen ze weg (afgezwakt als je reclame maakte).
-export function warEffect(war, day, cluster, pr) {
+// loyal (0 tot 100, de vaste klanten op die plek) schermt af: bij honderd verlies je nog 40% van wat je anders verloor (goodwill.warShield).
+export function warEffect(war, day, cluster, pr, loyal = 0) {
   if (!war || war.until < day || (cluster !== 'stad' && cluster !== 'zuid')) return { demand: 1, pr };
   if (war.matched) return { demand: 1 - 0.1 * war.depth, pr: pr * (1 - war.depth) };
-  return { demand: 1 - (war.softened ? 0.4 : 0.8) * war.depth, pr };
+  return { demand: 1 - (war.softened ? 0.4 : 0.8) * war.depth * GW.warShield(loyal), pr };
 }
+// De prijzenoorlog drukt ook de streekprijs van friet en kaas bij de leveringen van je ketens (areamarket eventMult): zonder oorlog 1, anders tot de helft van de diepte.
+export const warPriceMult = (S, product, day) => (S && S.ev.war && S.ev.war.until >= day && (product === 'friet' || product === 'kaas') ? 1 - 0.5 * S.ev.war.depth : 1);
 
 // ---- eén wagen, één dag ----
 // w: { id, spot, tier, from, hours, pr, menu, stockDays? } ; opt: { own, staff, q }. Geeft de cijfers; verandert niets.
@@ -140,16 +146,17 @@ function wagonDay(S, w, ctx, opt) {
   const T = TIERS[w.tier] || TIERS.klein;
   const mods = S.ev.mods.filter((m) => m.wagon === w.id && m.until >= day);
   out.opex = Math.round(T.opex);
-  if (mods.some((m) => m.k === 'dicht')) { out.closed = true; out.opex = Math.round(T.opex * 0.5); out.net = -out.opex; out.note = 'De wagen is dicht (pech of een verkoper die weg is).'; return out; }
+  if (mods.some((m) => m.k === 'dicht')) { out.closed = true; out.opex = Math.round(T.opex * 0.5); out.net = -out.opex; out.note = 'Een dag zonder verkoop (pech of een verkoper die weg is): de wagen zelf blijft gewoon bereikbaar.'; return out; }
   const rep = effRep(S, day);
   const kermis = !!(ctx.kermisAt && ctx.kermisAt(w.spot));
   const d0 = SP.demandAt(w.spot, { day, weekend: !!ctx.weekend, kermis, matchDay: SP.matchDay(day), from: w.from, hours: w.hours, shops: ctx.shopsAt ? ctx.shopsAt(w.spot) : undefined });
   const mn = menuNumbers(w.menu, S.up, ctx.chainOwn || (() => 0));
-  const war = warEffect(S.ev.war, day, spot.cluster, w.pr);
+  const loyal = finite(S.gw.loyal[w.spot], 0);
+  const war = warEffect(S.ev.war, day, spot.cluster, w.pr, loyal);
   const comp = SP.competitionFactor(w.spot, { rep, rivalSpots: S.rival.spots });
   const mf = opt.own ? maintenanceFactor(finite(opt.q, 100)) : 1;
   const sm = mods.filter((m) => m.k === 'omzet').reduce((a, m) => a * m.mult, 1);
-  const want = d0.demand * comp * repFactor(rep) * priceDemand(war.pr) * war.demand * mn.variety * mn.localAppeal * (S.up.includes('sauzen') ? 1.06 : 1) * mf * sm * (opt.staff || 1);
+  const want = d0.demand * comp * repFactor(rep) * priceDemand(war.pr) * war.demand * mn.variety * mn.localAppeal * (S.up.includes('sauzen') ? 1.06 : 1) * mf * sm * (opt.staff || 1) * GW.satFactor(S.gw.sat) * GW.loyalFactor(loyal);
   const cap = T.cap * (S.up.includes('pan') ? 1.15 : 1) * clamp(w.hours / 10, 0.4, 1.4);
   const stocked = opt.own ? S.own.stockDays >= 1 : true;
   let sold = Math.min(want, cap);
@@ -157,7 +164,8 @@ function wagonDay(S, w, ctx, opt) {
   out.demand = Math.round(want); out.sold = Math.round(sold); out.unserved = Math.max(0, Math.round(want - cap)); out.stocked = stocked;
   out.revenue = Math.round(sold * mn.ticket * war.pr);
   out.cogs = Math.round(sold * mn.cogs * (opt.own ? (stocked ? 1 : 1.5) : LOGISTICS));
-  out.factors = { vraag: Math.round(d0.demand), concurrentie: comp, naam: repFactor(rep), prijs: Math.round(priceDemand(war.pr) * 1000) / 1000, oorlog: war.demand, onderhoud: mf, storing: sm };
+  out.sat = GW.satisfactionOf({ stocked, demand: want, unserved: Math.max(0, want - cap) }, { menuLen: w.menu.length, koeling: S.up.includes('koeling'), localAppeal: mn.localAppeal, pr: w.pr });
+  out.factors = { vraag: Math.round(d0.demand), tevreden: GW.satFactor(S.gw.sat), vast: GW.loyalFactor(loyal), concurrentie: comp, naam: repFactor(rep), prijs: Math.round(priceDemand(war.pr) * 1000) / 1000, oorlog: war.demand, onderhoud: mf, storing: sm };
   out.usage = {};
   for (const id of w.menu) { const it = ITEMS[id]; if (it && it.chain) out.usage[it.chain] = (out.usage[it.chain] || 0) + (sold * ITEMS_PER_CUSTOMER * it.kg) / Math.max(1, w.menu.length); }
   const gross = out.revenue - out.cogs - out.opex;
@@ -200,6 +208,13 @@ export function answerEvent(S, choiceId, day, money) {
   if (!(finite(money, 0) >= price)) return { ok: false, why: 'te-weinig-geld', tekort: Math.round(price - finite(money, 0)) };
   const d = Math.floor(finite(day, 0));
   let gain = 0, text = '';
+  if (p.kind === 'vergunning') {
+    if (choiceId === 'bondgenoten' && !S.gw.allies.length) return { ok: false, why: 'geen-bondgenoten' };
+    dropEvMods(S, p.id);
+    const r = choiceId === 'betaal' ? { text: 'Je betaalt de leges en het formulier is zoek en weer gevonden. Jelle knikt tevreden; de buurt zucht.', cost: 0 } : runDispute(S, p, d, choiceId === 'bondgenoten', finite(money, 0) - price);
+    S.stats.answered++; S.ev.pending = null;
+    return { ok: true, cost: price + r.cost, gain: 0, text: r.text, won: r.win };
+  }
   if (p.kind === 'bod') {
     if (choiceId === 'verkoop' && S.permits[p.spot]) {
       delete S.permits[p.spot]; S.rival = RV.acquire(S.rival, p.spot); gain = p.price;
@@ -217,21 +232,39 @@ export function answerEvent(S, choiceId, day, money) {
   S.ev.pending = null;
   return { ok: true, cost: price, gain, text };
 }
-// Een gebeurtenis die niet beantwoord is (na de deadline) loopt af met het goedkoopste antwoord.
-function expirePending(S, day) {
+// Het vergunningsgeschil uitvoeren (rival.resolveDispute met je goodwill, vaste klanten, bondgenoten en naam): de uitkomst werkt door in goodwill, de naam van Usmem en de verkoop.
+// Verlies kost leges (hoogstens wat er is) en drie dagen halve verkoop op die wagen; de plek blijft van jou: nooit fataal. Geeft { win, text, cost }.
+function runDispute(S, p, day, allyCall, money) {
+  const r = RV.resolveDispute({ spot: p.spot, day, bribed: p.bribed, goodwill: S.gw.goodwill, loyal: S.gw.loyal[p.spot] || 0, allies: S.gw.allies.length, allyCall, rep: S.rep, mood: S.rival.mood, rivalRep: S.rival.rep });
+  S.rival.rep = clamp(S.rival.rep + r.rivalRepDelta, 0, 100);
+  if (r.bribeFailed) S.gw.disputes.bribesFailed++;
+  let cost = 0;
+  if (r.win) { S.gw.disputes.won++; S.gw.goodwill = clamp(S.gw.goodwill + 4, 0, 100); }
+  else {
+    S.gw.disputes.lost++; S.gw.goodwill = clamp(S.gw.goodwill - 2, 0, 100);
+    cost = Math.round(Math.min(RV.LEGES_LOSS, Math.max(0, finite(money, 0))));
+    S.ev.mods.push({ k: 'omzet', wagon: p.wagon, until: day + 2, mult: 0.5, d: 0, ev: p.id });
+  }
+  return { win: r.win, text: r.text, cost, yours: r.yours, his: r.his };
+}
+
+// Een gebeurtenis die niet beantwoord is (na de deadline) loopt af met het goedkoopste antwoord; een vergunningsgeschil wordt beslecht alsof je in beroep ging.
+function expirePending(S, day, money = 0) {
   const p = S.ev.pending;
   if (!p || day <= p.deadline) return null;
   let text = '';
+  if (p.kind === 'vergunning') { dropEvMods(S, p.id); const r = runDispute(S, p, day, false, money); S.ev.pending = null; return { text: r.text, cost: r.cost }; }
   if (p.kind === 'bod') { S.stats.refused++; text = 'Het bod van Jelle Terpstra is verlopen.'; }
   else if (p.kind === 'overkoop') { applyOutcome(S, p, RV.outcome({ kind: p.kind, wagon: p.wagon, day: p.day }, 'laatgaan', day), day, p.id); text = 'Je verkoper is vertrokken: er komt een nieuwe.'; }
   S.ev.pending = null;
-  return text || null;
+  return text ? { text, cost: 0 } : null;
 }
 // Een nieuwe gebeurtenis: het standaardgevolg treedt meteen in werking (storing, pech, recensie, oorlog); de speler kan het nog verbeteren met een antwoord.
 function startEvent(S, e, day) {
   const id = ++S.ev.seq;
-  S.ev.pending = { kind: e.kind, id, wagon: e.wagon, spot: e.spot, depth: e.depth, price: e.price || 0, text: e.text, choices: e.choices, day, deadline: e.deadline };
-  if (e.kind !== 'overkoop' && e.kind !== 'bod') applyOutcome(S, S.ev.pending, RV.outcome({ kind: e.kind, wagon: e.wagon, depth: e.depth, day }, null, day), day, id);
+  S.ev.pending = { kind: e.kind, id, wagon: e.wagon, spot: e.spot, depth: e.depth, price: e.price || 0, bribed: !!e.bribed, text: e.text, choices: e.choices, day, deadline: e.deadline };
+  if (e.kind === 'vergunning') S.ev.mods.push({ k: 'omzet', wagon: e.wagon, until: e.deadline, mult: 0.7, d: 0, ev: id });          // zolang het geschil loopt wacht de klant op de papieren
+  else if (e.kind !== 'overkoop' && e.kind !== 'bod') applyOutcome(S, S.ev.pending, RV.outcome({ kind: e.kind, wagon: e.wagon, depth: e.depth, day }, null, day), day, id);
   return S.ev.pending;
 }
 
@@ -252,7 +285,7 @@ export function settleDay(S, ctx) {
   S.rival = RV.stepRival(S.rival, day, { taken: (id) => SP.permitHeld(S.permits, id, day) || !!(ctx.taken && ctx.taken(id)) });
   if (S.rival.spots.length > before) rep.lines.push(`Usmem Snacks heeft een nieuwe standplaats: ${SP.spotDef(S.rival.expandedTo).short}.`);
   // 3. gebeurtenissen
-  const exp = expirePending(S, day); if (exp) rep.lines.push(exp);
+  const exp = expirePending(S, day, ctx.money); if (exp) { rep.lines.push(exp.text); rep.fixed += exp.cost; }
   S.ev.mods = S.ev.mods.filter((m) => m.until >= day);
   if (S.ev.war && S.ev.war.until < day) S.ev.war = null;
   const mine = SP.heldIds(S.permits, day);
@@ -285,7 +318,8 @@ export function settleDay(S, ctx) {
     if (!r.closed) { served += r.sold; total += r.demand; }
     for (const k of Object.keys(r.usage || {})) rep.usage[k] = (rep.usage[k] || 0) + r.usage[k];
   }
-  // 5. naam en cijfers
+  // 5. naam en cijfers; tevredenheid, vaste klanten en goodwill (goodwill.js)
+  GW.stepGw(S.gw, [...(rep.own ? [{ spot: rep.own.spot, sat: rep.own.sat, closed: rep.own.closed }] : []), ...rep.fleet.map((r) => ({ spot: r.spot, sat: r.sat, closed: r.closed }))]);
   const ratio = total > 0 ? served / total : 1;
   if (rep.own || rep.fleet.length) {
     const hasOwn = !!rep.own;
@@ -425,6 +459,27 @@ export function setFleetMode(S, id, mode) {
   return { ok: true };
 }
 
+// Hulp aan de buurt (goodwill.js): op een plek waar je een vergunning hebt. Geeft { ok, cost, text, ally } of { ok: false, why }.
+export function helpBuurt(S, spot, kind, day, money) {
+  const def = SP.spotDef(spot);
+  if (!def) return { ok: false, why: 'onbekend' };
+  if (!SP.permitHeld(S.permits, spot, day)) return { ok: false, why: 'geen-vergunning' };
+  return GW.helpNeighbourhood(S.gw, spot, def.cluster, kind, day, money);
+}
+// Een medespeler werkt mee achter het luik van jouw wagen op een plek (de eigenaarskant van bezitcoop.snackShare): jouw wagen verkoopt die dag 8% meer, je naam groeit een tikje
+// en de gast krijgt zijn loon uit nieuw geld (niet van jou af). Hoogstens eenmaal per speldag per plek. Geeft { ok } of { ok: false, why }.
+export function receiveHelper(S, spot, hours, day) {
+  const d = Math.floor(finite(day, 0));
+  if (!SP.permitHeld(S.permits, spot, d)) return { ok: false, why: 'geen-vergunning' };
+  const wagon = S.own.spot === spot ? 'own' : (S.fleet.find((w) => w.spot === spot) || {}).id;
+  if (!wagon) return { ok: false, why: 'geen-wagen' };
+  if (finite(S.gw.work[spot], -1) >= d) return { ok: false, why: 'al-gedaan' };
+  S.gw.work[spot] = d;
+  S.ev.mods.push({ k: 'omzet', wagon, until: d, mult: 1 + 0.08 * clamp(finite(hours, 0) / 8, 0, 1), d: 0, ev: 0 });
+  S.rep = Math.round(clamp(S.rep + 0.3, 0, 100) * 10) / 10;
+  return { ok: true };
+}
+
 // ---- doelen, mijlpalen en de eindscore ----
 export const GOALS = [
   { id: 'vergunning', label: 'Je eerste standplaats', test: (S, ctx) => Object.keys(S.stats.had).length >= 1 || SP.heldIds(S.permits, ctx.day).length >= 1 },
@@ -435,6 +490,8 @@ export const GOALS = [
   { id: 'overname', label: 'Een plek van Usmem overgenomen', test: (S) => S.stats.takeovers >= 1 },
   { id: 'vloot', label: 'Vijf wagens op de weg', test: (S) => S.fleet.length >= 4 },
   { id: 'naam', label: 'Een naam van 80 of meer', test: (S) => S.rep >= 80 },
+  { id: 'buurt', label: 'Een goede band met de buurt (goodwill 50)', test: (S) => S.gw.goodwill >= 50 || S.gw.disputes.won >= 1 },
+  { id: 'bondgenoot', label: 'Een bondgenoot in de buurt', test: (S) => S.gw.allies.length >= 1 },
   { id: 'tien', label: 'Tien standplaatsen tegelijk', test: (S, ctx) => SP.heldIds(S.permits, ctx.day).length >= 10 },
   { id: 'helft', label: 'Meer plekken dan Usmem', test: (S, ctx) => RV.shareOf(SP.heldIds(S.permits, ctx.day).length, S.rival) > 0.5 },
   { id: 'usmem', label: 'Usmem is klein gekregen', test: (S, ctx) => SP.heldIds(S.permits, ctx.day).length >= 8 && RV.shareOf(SP.heldIds(S.permits, ctx.day).length, S.rival) >= 0.75 },

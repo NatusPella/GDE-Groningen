@@ -210,10 +210,10 @@ Bekende gaten:
 
 ## #1102 Snackwagen en Usmem Snacks (eindgame, Snackimperium)
 
-Gebouwd: `standplaats.js` (16 plekken, vraag, vergunning), `rival.js` (Usmem Snacks), `snackwagen.js` (toestand, dag, menu, upgrades, vloot, gebeurtenissen, doelen, score), `snacklive.js` (acties en
-view), `snackui.js` (tabblad Snackwagen), `standplaatsmap.js`, `standplaatsdraw.js`, `standplaatscard.js` (kaartlaag), `snackwagenplan.js` en `snackwagens3d.js` (wagens in de wereld, hoogstens vijf),
+Gebouwd: `pitch.js` (16 plekken, vraag, vergunning), `rival.js` (Usmem Snacks), `snackvan.js` (toestand, dag, menu, upgrades, vloot, gebeurtenissen, doelen, score), `snacklive.js` (acties en
+view), `snackui.js` (tabblad Snackwagen), `pitchmap.js`, `pitchdraw.js`, `pitchcard.js` (kaartlaag), `snackvanplan.js` en `snackvans3d.js` (wagens in de wereld, hoogstens vijf),
 `bezitcoop.js` (claims `sp:`, `snackShare`), `bezitgate.js` (poort akte 5), `bezitlive.js` (dagtik), prestaties in `achievements.js`. Ontwerp en balans: `BEZIT-21-11.md` hoofdstuk 15.
-Tests: `standplaats_test` (16), `rival_test` (14), `snackwagen_test` (29), `snackbalans_test` (12), `snacklive_test` (12), `snackui_test` (8), `snackwagens3d_test` (10), `standplaatsmap_test` (7),
+Tests: `pitch_test` (16), `rival_test` (14), `snackvan_test` (29), `snackbalans_test` (12), `snacklive_test` (12), `snackui_test` (8), `snackvans3d_test` (10), `pitchmap_test` (7),
 `bezitcoop_test` (12, was 10); bestaande bezit-, business-, supplychain-, areamarket- en evenementen-tests blijven groen. Niet in Electron bekeken.
 
 In beeld te controleren (nog niet bekeken):
@@ -225,7 +225,15 @@ In beeld te controleren (nog niet bekeken):
   Let op: staat een wagen in een gevel of op een rijbaan (coordinaten komen uit lat/lon), is het bord goed leesbaar en staat de verkoper aan de stoeprand en kijkt hij naar de wagen?
 - Dagtik: de snackregel verschijnt in het dagrapport (`snack`); een sabotagebericht verschijnt als tip.
 - Samen spelen: een plek die een medespeler heeft staat bij jou als "van <naam>" en is niet te koop; een vervallen vergunning geeft de plek vrij.
-Bekende gaten: zie `BEZIT-21-11.md` 15.4 (verbruik niet van de keten, winkeldichtheid niet aangesloten, prijzenoorlog niet in de ketenleveringen, gast-meewerken zonder UI).
+Bekende gaten: zie `BEZIT-21-11.md` 15.4 (winkeldichtheid niet aangesloten, vlees zonder keten, het netwerkbericht voor meewerken is aan de bouwer).
+
+Tweede ronde (strijd om standplaatsen, altijd open, moeilijkheid, gaten): `goodwill.js`, uitbreidingen in `rival.js`, `snackvan.js`, `snacklive.js`, `snackui.js` (blok Buurt en klanten),
+`bezitdifficulty.js` en `bezitprijs.difficultyFactor`. Tests: `goodwill_test` (16), `bezitdifficulty_test` (5), `bezitopen_test` (5), `snacklive_test` (17), `snackui_test` (9), `snackvan_test` (29), `rival_test` (14).
+Bestandsnamen zijn nu Engels (`pitch*.js`, `snackvan*.js`, `snackvans3d.js`). In beeld te controleren (nog niet bekeken):
+- Het blok Buurt en klanten onder Standplaatsen: de vier tegels, bondgenoten, per eigen plek de vaste klanten met drie hulpknoppen (tweede druk, rust per knop zichtbaar), Meewerken bij een medespeler.
+- Een vergunningsgeschil als gebeurtenis (Gedoe met de vergunning) met Bondgenoten om steun vragen, In beroep gaan en De leges betalen; na een enveloppe ("Gemeentelijke Vergunningsdienst Noord") kan
+  de uitslag in jouw voordeel zijn als de omkoping mislukt; de tekst blijft satire en vriendelijk-venijnig.
+- Moeilijkheid: zolang `difficulty.js` niet is gekoppeld verandert er niets (factor 1).
 
 
 ## Ronde 2: transport van de claims, ontgrendeling

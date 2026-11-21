@@ -14,7 +14,7 @@
 //
 // Geld rekent hier in gehele euro's. Winkelomzet gaat naar de eigenaar; een gast die meewerkt krijgt loon (docs/COOP-GAST.md).
 
-import { scaleFactor } from './bezitprijs.js';
+import { scaleFactor, difficultyFactor } from './bezitprijs.js';
 import { buyBuilding } from './bezit.js';
 import { hashUnit, clamp, finite } from './bezithash.js';
 import { staffFactor, staffWages, staffNeed, existingClerk, normalizeStaff, STANDARD_HOURS, visibleCustomers } from './businessstaff.js';
@@ -106,7 +106,7 @@ export function basePrice(b, kind, town = null) {
   return round50(m2 * PRICE_PER_M2.shop * tf);
 }
 // De prijs voor deze speler nu: de basisprijs maal de schaalprijs van bezitprijs.js (wie veel heeft, betaalt tot driemaal zoveel).
-export const businessPrice = (b, kind, town, owned = 0) => { const p = basePrice(b, kind, town); return p ? round50(p * scaleFactor(owned)) : 0; };
+export const businessPrice = (b, kind, town, owned = 0) => { const p = basePrice(b, kind, town); return p ? round50(p * scaleFactor(owned) * difficultyFactor('price')) : 0; };
 
 // Een pand kopen via bezit.js en de bedrijfsgegevens erbij zetten: de basisprijs (zonder schaalprijs) en de beheerknoppen met de kassier die er stond.
 // kind: uit classifyBuilding; bouwt geen UI. Geeft { ok, cost, biz } of de reden van bezit.js.
@@ -256,7 +256,7 @@ export function stepDay(biz, ctx = {}) {
 
   rep.opex = Math.round(basis * OPEX_RATE);
 
-  if (ev.closed) { rep.open = false; rep.reason = ev.note || 'Een dag dicht.'; rep.opex = 0; return fin(); }
+  if (ev.closed) { rep.open = false; rep.reason = ev.note || 'Vandaag geen omzet.'; rep.opex = 0; return fin(); }
 
   if (biz.cls === 'industry') {
     const mf = maintenanceFactor(biz.q);
@@ -283,7 +283,7 @@ export function stepDay(biz, ctx = {}) {
   // winkel
   const T = SHOP_TYPES[biz.type] || SHOP_TYPES.winkel;
   const hours = cfg.hr;
-  if (hours <= 0) { rep.open = false; rep.reason = 'Gesloten: stel een openingstijd in.'; rep.opex = 0; return fin(); }
+  if (hours <= 0) { rep.open = false; rep.reason = 'Geen openingsuren ingesteld: er is geen omzet. Het pand blijft gewoon toegankelijk.'; rep.opex = 0; return fin(); }
   const dm = demandToday(biz.id, day);
   const sEff = cfg.st / dm;
   const f = {

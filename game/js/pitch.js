@@ -1,6 +1,6 @@
 // Standplaatsen voor de snackwagen (epic #1095, #1102; ontwerp docs/BEZIT-21-11.md, sectie "Snackwagen en Usmem Snacks"): de plekken in de provincie waar
 // een snackwagen mag staan, met voetgangersdruk, uur- en weekeffect, een vergunning (kosten en geldigheid) en competitie. Puur: geen DOM, geen THREE, geen klok,
-// geen opslag en geen Math.random (alles uit de speldag en de plek; scripts/standplaats_test.mjs).
+// geen opslag en geen Math.random (alles uit de speldag en de plek; scripts/pitch_test.mjs).
 //
 // De namen van de plekken zijn verzonnen bij echte plaatsen en pleinen (constitution 2): "Hoek van de Grote Markt" bestaat als plek, maar de wagens, de
 // vergunningen en de concurrent zijn verzonnen. De ligging komt als lat en lon (WGS84) en wordt met wgsToWorld naar het spel gebracht (rdnew.js).
@@ -11,6 +11,7 @@
 
 import { wgsToWorld } from './rdnew.js';
 import { hashUnit, clamp, finite } from './bezithash.js';
+import { difficultyFactor } from './bezitprijs.js';
 
 export const SPOTS = [
   { id: 'markt', name: 'Hoek van de Grote Markt', place: 'Groningen', lat: 53.2194, lon: 6.5665, foot: 1.60, week: [0.93, 1.18], profile: 'dag', comp: 0.30, cluster: 'stad', region: 'overig', tier: 5, short: 'Grote Markt' },
@@ -78,7 +79,7 @@ export function bestWindow(profile, hours) {
 }
 
 // ---- de vraag: klanten per dag ----
-export const BASE_DEMAND = 260;                  // klanten per dag als je de héle dagdruk vangt bij druk 1 (een venster van tien uur vangt ruim 80% ervan)
+export const BASE_DEMAND = 250;                  // klanten per dag als je de héle dagdruk vangt bij druk 1 (een venster van tien uur vangt ruim 80% ervan)
 export const weekMult = (spot, weekend) => (spot.week ? spot.week[weekend ? 1 : 0] : 1);
 // Gebeurtenissen: de kermis telt alleen op een kermisdag (ctx.kermis), de wedstrijd op een thuiswedstrijd (ctx.matchDay, zie matchDay); anders weinig.
 export const MATCH_PERIOD = 14;                  // elke veertien speldagen een thuiswedstrijd, altijd op een zaterdag
@@ -136,7 +137,7 @@ export const permitScale = (held) => 1 + Math.min(clamp(Math.floor(finite(held, 
 export function permitPrice(id, held = 0) {
   const s = BY_ID.get(id);
   if (!s) return 0;
-  return Math.round((PERMIT_BASE * Math.pow(s.foot, 1.6) * permitScale(held)) / 50) * 50;
+  return Math.round((PERMIT_BASE * Math.pow(s.foot, 1.6) * permitScale(held) * difficultyFactor('price')) / 50) * 50;
 }
 export const renewalCost = (id, held = 0) => Math.round((permitPrice(id, Math.max(0, held - 1)) * PERMIT_RENEW) / 5) * 5;
 // Opslag: { [id]: { until, paid } } (until = laatste speldag dat hij geldig is).

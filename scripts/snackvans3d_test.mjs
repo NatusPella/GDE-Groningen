@@ -1,9 +1,9 @@
-// De snackwagens in de wereld: de planning (snackwagenplan.js: hoogstens vijf, straal met hysterese, deterministisch, kleuren en borden) en de bronregels van de THREE-kant
-// (snackwagens3d.js wordt als tekst gecontroleerd: pool en dispose, geen Math.random, hergebruik van de foodtruck en de persoonsfiguur).   node scripts/snackwagens3d_test.mjs
+// De snackwagens in de wereld: de planning (snackvanplan.js: hoogstens vijf, straal met hysterese, deterministisch, kleuren en borden) en de bronregels van de THREE-kant
+// (snackvans3d.js wordt als tekst gecontroleerd: pool en dispose, geen Math.random, hergebruik van de foodtruck en de persoonsfiguur).   node scripts/snackvans3d_test.mjs
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import * as P from '../game/js/snackwagenplan.js';
-import * as SP from '../game/js/standplaats.js';
+import * as P from '../game/js/snackvanplan.js';
+import * as SP from '../game/js/pitch.js';
 
 let n = 0, fails = 0;
 const t = (name, fn) => { n++; try { fn(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', String(e.message).split('\n')[0]); } };
@@ -46,7 +46,7 @@ t('rommel in de invoer: geen speler, ongeldige plekken, null', () => {
   assert.deepEqual(P.planWagons(sites, null), []); assert.deepEqual(P.planWagons(null, { x: 0, y: 0 }), []);
   assert.equal(P.planWagons([null, { spot: 'x', kind: 'own', x: NaN, y: 0 }], { x: 0, y: 0 }).length, 0);
 });
-const src = fs.readFileSync(new URL('../game/js/snackwagens3d.js', import.meta.url), 'utf8');
+const src = fs.readFileSync(new URL('../game/js/snackvans3d.js', import.meta.url), 'utf8');
 const code = src.split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
 t('THREE-kant: geen Math.random, geen fetch; wat wegvalt gaat via disposeObject', () => {
   assert.ok(!/Math\.random|fetch\(/.test(code));
@@ -66,5 +66,5 @@ t('main.js roept updateSnackWagens aan naast de werkers', () => {
   const m = fs.readFileSync(new URL('../game/js/main.js', import.meta.url), 'utf8');
   assert.match(m, /updateFarmWorkers\(world, dt\); updateSnackWagens\(world, dt\)/);
 });
-console.log(`snackwagens3d_test: ${n - fails}/${n} ok`);
+console.log(`snackvans3d_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

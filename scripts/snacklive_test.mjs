@@ -7,8 +7,8 @@ import * as L from '../game/js/bezitlive.js';
 import * as BL from '../game/js/boerderijlive.js';
 import * as GT from '../game/js/bezitgate.js';
 import * as SL from '../game/js/snacklive.js';
-import * as SN from '../game/js/snackwagen.js';
-import * as SP from '../game/js/standplaats.js';
+import * as SN from '../game/js/snackvan.js';
+import * as SP from '../game/js/pitch.js';
 import * as P from '../game/js/bezitprijs.js';
 import { worldOpen, progressFrom, newGate, resetGateRegistry } from '../game/js/unlockgate.js';
 import { KEYS } from '../game/js/storagekeys.js';
@@ -64,7 +64,7 @@ t('de view: zestien plekken met stand, prijs en Usmem; de score en de doelen', (
   assert.equal(v.spots.find((s) => s.id === 'park').status, 'jij'); assert.equal(v.spots.find((s) => s.id === 'markt').status, 'usmem');
   assert.ok(v.spots.find((s) => s.id === 'markt').ask > v.spots.find((s) => s.id === 'markt').price);
   assert.equal(v.spots.find((s) => s.id === 'dorp').status, 'vrij');
-  assert.ok(v.score.score >= 0 && v.goals.length === 11 && v.rival.name === 'Usmem Snacks' && v.menu.length === 8);
+  assert.ok(v.score.score >= 0 && v.goals.length === 13 && v.rival.name === 'Usmem Snacks' && v.menu.length === 8);
   assert.equal(v.goals.find((g) => g.id === 'vergunning').done, true);
 });
 t('claims voor Samen spelen: een medespeler houdt de plek vast, jouw koop wordt gemeld en een vervallen vergunning geeft hem vrij', () => {
@@ -151,6 +151,43 @@ t('Samen spelen: een verloren claim op een standplaats geeft de vergunning terug
   assert.equal(L.snackState().own.spot, null); assert.ok(!L.snackState().permits.dorp);
   assert.equal(L.releaseLostSpot(w, 'sp:dorp').ok, false);
   co.stop();
+});
+t('hulp aan de buurt: kost geld, geeft goodwill en vaste klanten, rust per plek, een bondgenoot na drie keer in een gebied; de view toont het', () => {
+  reset(); const w = wereld(100000); SL.koopVergunning(w, 'park'); SL.koopVergunning(w, 'reitdiep');
+  const m = w.money; const r = SL.helpBuurt(w, 'park', 'buurthuis');
+  assert.ok(r.ok && w.money === m - 250);
+  assert.equal(SL.helpBuurt(w, 'park', 'buurthuis').why, 'te-snel'); assert.match(SL.helpBuurt(w, 'park', 'buurthuis').text, /over \d+ dagen/);
+  assert.equal(SL.helpBuurt(w, 'markt', 'buurthuis').why, 'geen-vergunning');
+  assert.ok(SL.helpBuurt(w, 'park', 'schoonmaak').ok); const a = SL.helpBuurt(w, 'reitdiep', 'avond'); assert.ok(a.ok && /Buurtvereniging Binnenstad/.test(a.text));
+  const v = SL.snackView(w);
+  assert.equal(v.gw.allies[0], 'Buurtvereniging Binnenstad'); assert.ok(v.gw.goodwill >= 19 && v.gw.spots.length === 2 && v.gw.spots[0].help.length === 3);
+  assert.equal(SL.helpBuurt(wereld(10), 'reitdiep', 'schoonmaak').why, 'te-weinig-geld');
+});
+t('meewerken bij een medespeler: alleen op zijn claim, uurloon uit nieuw geld, eenmaal per dag, het bericht gaat via de haak; de eigenaar verkoopt 8% meer', () => {
+  reset(); const w = wereld(1000), sent = [];
+  L.setClaimLookup((id) => (id === 'sp:leek' ? { name: 'lotte', color: '#c0c', playerId: 'B' } : null)); SL.setSnackWorkSend((m) => sent.push(m));
+  assert.equal(SL.meewerken(w, 'dorp', 6).why, 'geen-claim');
+  const r = SL.meewerken(w, 'leek', 6); assert.ok(r.ok && r.wage === 84 && w.money === 1084 && sent.length === 1 && sent[0].type === 'snack-work' && sent[0].spot === 'leek');
+  assert.equal(SL.meewerken(w, 'leek', 6).why, 'al-gedaan');
+  assert.equal(SL.snackView(w).gw.helpers[0].done, true);
+  SL.setSnackWorkSend(null); L.setClaimLookup(null);
+  reset(); const own = wereld(100000); SL.koopVergunning(own, 'dorp'); SL.zetWagen('dorp'); SL.koopWagen(own);
+  assert.equal(SL.ontvangWerk({ type: 'snack-work', spot: 'dorp', hours: 6 }).ok, true);
+  assert.equal(SL.ontvangWerk({ type: 'snack-work', spot: 'dorp', hours: 6 }).why, 'al-gedaan'); assert.equal(SL.ontvangWerk({ type: 'x' }).why, 'onbekend');
+});
+t('de keten levert: korting alleen met voorraad in je eigen verwerker, en het menuverbruik gaat van die voorraad af', () => {
+  reset(); const w = wereld(500000, 50); SL.koopWagen(w); SL.koopVergunning(w, 'park'); SL.zetWagen('park');
+  const S = L.snackState(); S.own.stockDays = 5; S.rival.lastEvent = 1e7; S.rival.lastOffer = 1e7;
+  const chains = L.chainViews(), friet = chains.find((c) => c.id === 'friet');
+  const fakeViews = chains.map((c) => (c.id === 'friet' ? { ...c, sourceCount: 0, links: c.links.map((l) => (l.role === 'processor' ? { ...l, owned: true, stock: 0 } : l)) } : c));
+  assert.equal(L.snackChainOwner(fakeViews)('friet'), 0);                      // eigen verwerker maar geen voorraad: geen korting
+  const stocked = chains.map((c) => (c.id === 'friet' ? { ...c, sourceCount: 2, links: c.links.map((l) => (l.role === 'processor' ? { ...l, owned: true, stock: 500 } : l)) } : c));
+  assert.equal(L.snackChainOwner(stocked)('friet'), 1);
+  assert.ok(friet && L.snackChainOwner(chains)('friet') === 0);
+});
+t('een prijzenoorlog drukt de ketenprijs: eventMult friet en kaas in de dagtik', () => {
+  reset(); const S = L.snackState(); S.ev.war = { until: 1e6, depth: 0.2, matched: false, softened: false, ev: 1 };
+  assert.equal(SN.warPriceMult(S, 'friet', 5), 0.9);
 });
 t('bronregels: snacklive heeft geen Math.random of fetch', () => {
   const src = readFileSync(new URL('../game/js/snacklive.js', import.meta.url), 'utf8').split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');

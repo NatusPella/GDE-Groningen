@@ -1,6 +1,6 @@
 // Het kaartje van een standplaats op de kaartlaag Standplaatsen (Snackimperium, epic #1095, #1102): naam, plaats, stand, druk, vergunning, wat het kost en de knoppen
 // (vergunning kopen, overnemen van Usmem Snacks, je wagen erheen, doel) met bevestiging. Puur: geeft HTML als tekst (DS3-klassen van kaartactieui.js: mv-acties, mv-actie,
-// mv-note), geen DOM (scripts/standplaatsmap_test.mjs). De acties zijn data-card-waarden die mapview.js afhandelt: sp-koop, sp-ok, sp-annuleer, sp-zet.
+// mv-note), geen DOM (scripts/pitchmap_test.mjs). De acties zijn data-card-waarden die mapview.js afhandelt: sp-koop, sp-ok, sp-annuleer, sp-zet.
 
 import { euro } from './geldtekst.js';
 

@@ -1,10 +1,10 @@
 // De kaartlaag Standplaatsen: de pure view (standen, prijs, wagen, schaal), het aanklikken, het kaartje met bevestiging en de bronregels van de tekenkant en de koppeling in mapview.js.
-// node scripts/standplaatsmap_test.mjs
+// node scripts/pitchmap_test.mjs
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import * as M from '../game/js/standplaatsmap.js';
-import * as C from '../game/js/standplaatscard.js';
-import * as SP from '../game/js/standplaats.js';
+import * as M from '../game/js/pitchmap.js';
+import * as C from '../game/js/pitchcard.js';
+import * as SP from '../game/js/pitch.js';
 
 let n = 0, fails = 0;
 const t = (name, fn) => { n++; try { fn(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', String(e.message).split('\n')[0]); } };
@@ -58,7 +58,7 @@ t('het kaartje: vrij vraagt een tweede druk met het bedrag, Usmem heeft overneme
   assert.match(C.hoverSubSpot(r('leek')), /^Vrij · vergunning/);
 });
 t('de tekenkant tekent alleen: geen rekenwerk, geen fetch, geen Math.random, en geen geel', () => {
-  const src = fs.readFileSync(new URL('../game/js/standplaatsdraw.js', import.meta.url), 'utf8').split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
+  const src = fs.readFileSync(new URL('../game/js/pitchdraw.js', import.meta.url), 'utf8').split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
   assert.ok(!/Math\.random|fetch\(|localStorage/.test(src)); assert.ok(!/yellow|amber|ringNext/.test(src));
   assert.match(src, /export function drawStandplaatsen/);
 });
@@ -66,5 +66,5 @@ t('mapview.js: minimale koppeling (de laag, de klik, het kaartje, de acties, de 
   const m = fs.readFileSync(new URL('../game/js/mapview.js', import.meta.url), 'utf8');
   for (const s of ["layerOn('standplaats')", 'drawStandplaatsen(', 'pickMarker(state.standMarkers', 'spotCardHtml(', "act.startsWith('sp-')", 'function standActie', "layers: ['standplaats']"]) assert.ok(m.includes(s), s);
 });
-console.log(`standplaatsmap_test: ${n - fails}/${n} ok`);
+console.log(`pitchmap_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

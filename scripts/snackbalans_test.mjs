@@ -2,8 +2,8 @@
 // binnen de remmen (compressOwn voor de eigen wagen, compressPassive voor medewerkers); Usmem en sabotage kosten geld; geen exploit.   node scripts/snackbalans_test.mjs
 import assert from 'node:assert/strict';
 import * as Sim from './bezit_sim.mjs';
-import * as SN from '../game/js/snackwagen.js';
-import * as SP from '../game/js/standplaats.js';
+import * as SN from '../game/js/snackvan.js';
+import * as SP from '../game/js/pitch.js';
 import * as RV from '../game/js/rival.js';
 import * as P from '../game/js/bezitprijs.js';
 
