@@ -14,6 +14,7 @@
 //   wide    a first establishing shot { from, to, look, fov, until: <line index> }
 //   solo    true: Tessa on her own (Tammo is elsewhere): he is hidden and gets no coverage (M21)
 //   manual  true: no automatic coverage after the forced `shots` (a camera that follows a moving car)
+//   direct  { lines: [{ on, emotion, kind, to, humor }], wide? }   OPT-IN: the camera coverage comes from the direction engine (cutdirector.js) instead of the automatic coverage
 //   align   'road': the scene stands on the nearest road, +f along it (a car that drives through the scene, missionstory.js alignToRoad)
 // A key with '#from-to' ('M26.4#7-14') is a slice of a script scene: a stage scene that plays lines 7 to 13 of M26.4.
 // A beat whose line is not found (an edited text) is skipped, so a text edit never breaks a scene.
@@ -25,6 +26,7 @@
 
 import { SPECS_AKTE2 } from './cutscenes_akte2.js';
 import { placeTemplate, expandTemplate } from './cineshots.js';
+import { directDialogue } from './cutdirector.js';
 import { autoClip } from './cuegestures.js';
 import { isHoldClip } from './poseclips.js';
 
@@ -736,8 +738,21 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
   if (wend && !spec.manual && lastLine.dur > 1.6) shots.push({ t: tspec(lines.length - 1, Math.max(0.6, lastLine.dur - 1.4)), ...wend });
   if (spec.cuts && spec.cuts.length) { const tn = (t) => { if (typeof t === 'number') return t; const m = /^L(\d+)([+-][\d.]+)?$/.exec(t); return m && lines[+m[1]] ? lines[+m[1]].at + (m[2] ? +m[2] : 0) : 0; }; shots.sort((x, y) => tn(x.t) - tn(y.t)); for (let i = shots.length - 1; i > 0; i--) if (tn(shots[i].t) - tn(shots[i - 1].t) < 0.05) shots.splice(i - 1, 1); }
   drift(shots, lines, endT + 1);
-  const fx = (spec.fx || []).map((f) => ({ f, idx: resolveOn(f.on, lines) })).filter((q) => q.idx !== -1).map(({ f, idx }) => { const { on, dt, ...rest } = f; return { t: idx == null ? 'end' : tspec(idx, dt || 0), ...rest }; });
-  return { id: 'story-' + key, actors, props, cues, shots, ...(spec.set ? { set: spec.set } : {}), ...(spec.crowd ? { crowd: spec.crowd } : {}), ...(fx.length ? { fx } : {}) };
+  // OPT-IN direction engine (cutdirector.js): only a spec with `direct` gets its coverage from semantic data (who speaks to whom, emotion, kind
+  // of line); no existing scene has it. `direct: { lines: [{ on, emotion, kind, to, humor }], wide? }`; `wide` falls back to the spec's own wide.
+  let humor = null;
+  if (spec.direct) {
+    const dl = lines.map((l) => ({ speaker: speakerActor(l.speaker), to: null, emotion: 'neutral', kind: 'line', at: l.at, dur: l.dur, text: l.text, humor: false }));
+    for (const h of spec.direct.lines || []) {
+      const idx = resolveOn(h.on, lines);
+      if (idx != null && idx >= 0) { const { on, ...rest } = h; Object.assign(dl[idx], rest); }
+    }
+    const d = directDialogue({ lines: dl, actors: primary, wide: spec.direct.wide || spec.wide || null });
+    if (d.shots.length) { shots.length = 0; shots.push(...d.shots); }
+    humor = d.humor;
+  }
+  const fx =(spec.fx || []).map((f) => ({ f, idx: resolveOn(f.on, lines) })).filter((q) => q.idx !== -1).map(({ f, idx }) => { const { on, dt, ...rest } = f; return { t: idx == null ? 'end' : tspec(idx, dt || 0), ...rest }; });
+  return { id: 'story-' + key, actors, props, cues, shots, ...(humor && humor.length ? { humor } : {}), ...(spec.set ? { set: spec.set } : {}), ...(spec.crowd ? { crowd: spec.crowd } : {}), ...(fx.length ? { fx } : {}) };
 }
 
 // A scene for lines that have no spec of their own (#352): the repeat of a mission's question (the `short` intro), the one line of

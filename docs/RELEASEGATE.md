@@ -46,7 +46,7 @@ alles af). Elke fase is een bestaande meting; de gate voegt niets nieuws aan de 
 
 | Fase | Wat het draait | Bewijst | Duur (schatting) |
 |---|---|---|---|
-| **static** | `run_tests.mjs` (module-check, `undef_check`, `text_audit`, `spec_check`, dode code, alle pure tests), `secrets_scan`, `merkenregister_check`, en `release/rules_audit.mjs` op de diff | de code is syntactisch en semantisch in orde; de constitutie en het design system zijn op de *nieuwe regels* toegepast | 12-20 min |
+| **static** | `run_tests.mjs` (module-check, `undef_check`, `text_audit`, `spec_check`, dode code, alle pure tests), `secrets_scan`, `merkenregister_check`, de cutscene-linter (`scripts/cutscene_lint.mjs --strict`: streng voor alle cutscenes, blokkeert op elke blokkerende vondst zonder uitzondering), en `release/rules_audit.mjs` op de diff | de code is syntactisch en semantisch in orde; de constitutie en het design system zijn op de *nieuwe regels* toegepast | 12-20 min |
 | **world** | `test_all.mjs --fase=zwaar` | wereld, tegels, wegen, water, bruggen en plaatsing kloppen nog | 20-60 min, alleen als wereld/tegels geraakt zijn |
 | **perf** | `scripts/perf/run.mjs` (de vaste routes) + `release/perf_gate.mjs` | elke route haalt de absolute norm én is niet fors slechter dan de vastgelegde baseline; een andere machine geeft geen valse regressie | 5-12 min |
 | **visual** | de QA-beeldronde (`sweep`, `ui_shots`, `readme_shots`) + `release/visual_gate.mjs` | geen zwarte/lege/kapotte beelden, geen onbedoelde beeldverandering, en een compact AI-reviewpakket van wat veranderde | 20-40 min |
@@ -109,6 +109,7 @@ Welke aspecten verplicht zijn, hangt van de diff af:
 | `ux` / `gameplay` | missies, verhaal, minigames, menu's | `scripts/release/prompts/code-review.md` |
 | `multiplayer` | netwerk-, coop- of multiplayerbestanden | `scripts/release/prompts/code-review.md` |
 | `vision` | als de beeldfase beelden ter review had | `scripts/release/prompts/vision.md` |
+| `cutscenes` | cutscene-code (`cutscene*`, `cinematics`, `cineshots`, `cutscript`, `cuegestures`, `poseclips`, camera- en intochtbestanden) of `game/storydata/script.json` gewijzigd | `scripts/release/prompts/cutscene-review.md` |
 
 ### Stap 2: reviewers parallel
 
@@ -300,6 +301,7 @@ design system, regels en review, die daarvoor niet structureel werden gecontrole
 | `scripts/release/review_pack.mjs` | het reviewpakket uit de diff |
 | `scripts/release/findings.mjs` | validatie, triage, issue-concepten en de reviewpoort |
 | `scripts/release/prompts/` | de vaste opdrachten voor de AI-reviewers |
+| `scripts/cutscene_lint.mjs`, `cutscene_review_pack.mjs`, `ui/cutscene_render.mjs` | het cutscene-kwaliteitssysteem (zie "Cutscenes" hieronder) |
 | `scripts/release/baselines/` | de gecommitte perf- en beeldbaselines |
 | `scripts/release_gate_test.mjs` e.a. | de tests van deze keten (draaien mee in `run_tests`) |
 
@@ -328,3 +330,30 @@ van de eigenaar. Tot die tijd heet dat deel "niet getest".
 - `--ververs [--only=a,b]` zet de beelden uit de uitvoermap als nieuwe referentie. Alleen met die vlag worden referenties aangemaakt of bijgewerkt, en alleen na een keuring van het beeld.
 - De gastweergave van Samen spelen is een eigen groep (`samen-gast`).
 - Puur getest: `node scripts/beeldregressie_test.mjs`. Referenties zijn er nog niet (eerste Electron-run en keuring volgen); zonder referentie meldt het script alleen "nieuw".
+
+## Cutscenes: vier lagen, de eigenaar hoeft niet per scène te kijken
+
+Het cutscene-kwaliteitssysteem dwingt tekst, camera en visuele logica van cutscenes automatisch af. Regie-bijbel: `docs/CUTSCENE-REGIE-21-11.md`; uitkomsten van de eerste meting: `docs/CUTSCENE-AUDIT-21-11.md`.
+
+| Laag | Wat | Wanneer | Bestanden |
+|---|---|---|---|
+| 1. Bijbel en regels | de vaste shot-taal en de regels voor camera, tekst en visuele logica | altijd, ingebakken in de linter | `docs/CUTSCENE-REGIE-21-11.md`, `scripts/lib/cutscene_lint.mjs` (RULES) |
+| 2. Statische linter | alle cutscenes toetsen zonder game, per cutscene blokkerend, belangrijk of nit en een score; streng voor alle cutscenes (geen baseline): blokkerend blokkeert, belangrijk en nit tellen in de score, een bewuste uitzondering staat met reden in `scripts/release/cutscene-uitzonderingen.json` | in de static-fase van de gate (`--strict`); `test_all` en `run_tests` melden alleen (`cutscene-lint.json` in de runmap) | `scripts/cutscene_lint.mjs`, `scripts/cutscene_lint_basis.json` |
+| 3. Gerenderde controle | elke cutscene in Electron afspelen, drie frames per shot, zwart beeld, camera in geometrie, spreker op het scherm, ondertitel over de spreker, luminantiesprong, bevroren camera | door de coördinator, niet in de lichte fase | `scripts/ui/cutscene_render.mjs`, `scripts/lib/cutscene_measure.mjs` |
+| 4. AI-review | reviewpakket per cutscene, een panel van drie onafhankelijke reviewers | als aspect `cutscenes` (verplicht bij gewijzigde cutscene-code of scripttekst) | `scripts/cutscene_review_pack.mjs`, `scripts/release/prompts/cutscene-review.md` |
+
+**Streng voor alles (eigenaar-besluit 21-11).** De regels gelden voor alle cutscenes, ook de bestaande; er is geen baseline en geen stille schuld. De static-fase faalt bij elke blokkerende vondst. Waar een regel bij een bestaande cutscene bewust niet geldt, staat een uitzondering met reden en akkoord in `scripts/release/cutscene-uitzonderingen.json` (een uitzondering zonder reden, voor een onbekende regel of zonder vondst om te dekken is zelf een fout). Overgang: alleen `blokkerend` blokkeert, `belangrijk` en `nit` tellen mee in de score. De release wordt pas groen als de faallijst (`node scripts/cutscene_lint.mjs --lijst=docs/CUTSCENE-FAALLIJST-21-11.md`) leeg of uitgezonderd is; de verhaal-lead (epic-verhaal-21-11, WP15 #1138 regie en WP11 #1134 dialoogvorm) werkt hem weg. `test_all` en `run_tests` melden de lijst alleen, anders faalt elke PR op de bestaande schuld.
+
+**Laag 3 draaien (coördinator, één Electron-instantie, na `cd desktop && npm run stage`):**
+`node scripts/ui/cutscene_render.mjs [--only=M01,M02.intro]`. De frames, `measure.json` en de contactbladen (rij = shot, kolommen = begin, midden, eind) komen in `docs/beeld-21-11/cutscenes/<id>/`, het totaal in `render-report.json`. Zonder Electron: `--simulate` (alleen de projectiemetingen op de bemonsterde scènes); `--analyse=<runmap>` beoordeelt een eerdere run opnieuw.
+
+**Laag 4 draaien:**
+1. `node scripts/cutscene_review_pack.mjs --changed=<vorige tag> --panel=3` maakt per gewijzigde cutscene `review/<id>/pack.md` (script, shotlijst, lintvondsten, de contactbladen van laag 3 als ze er zijn) en drie opdrachten per cutscene in `review/panel/<id>/reviewer-1..3.md`.
+2. Start per opdracht een vision-reviewer (agent); elke reviewer schrijft één `uitvoer-<id>-r<k>.json` volgens het voorbeeld in het pakket (scores, bevindingen, humoroordelen). Reviewers zien elkaars uitvoer niet.
+3. `node scripts/cutscene_review_pack.mjs --collect=<map met uitvoer> --commit=<sha>` voegt het panel samen: `bevindingen.json` (reviewrapport voor `--stage=review --finalize`, aspect `cutscenes`; een bevinding van één van drie reviewers komt als nit mee), `bevindingen.md` (lijst voor issues) en per akte `humor-veto-akte<N>.md`.
+
+**Humor is smaak.** De linter en het pakket beoordelen een grap nooit als goed of slecht: alleen structuur (grap uitgelegd, geen ruimte na de punch) en een label `humor-review` op komische beats. Het panel kiest per beat `behouden`, `aanpassen` (met een variant) of `schrappen` met een reden en een zekerheid; de meerderheid beslist en bij een gelijke stand blijft de grap zoals hij is. De eigenaar krijgt alleen de vetolijst: gevoelige en onzekere gevallen bovenaan, daarna wat het panel koos; wat hij niet aanvinkt, staat.
+
+**Nieuwe scènes regisseren niet met de hand.** Een spec met `direct: { lines: [{ on, emotion, kind, to, humor }] }` laat de regie-engine (`game/js/cutdirector.js`) de camera kiezen: schouder en tegenschouder, close-up op emotie, een reactie na een belofte of ontboezeming, ruimte na een punch. Het is opt-in; geen bestaande scène gebruikt het.
+
+Samen spelen: alleen data en scripts; een gast speelt dezelfde cutscene-data en wordt niet apart gecontroleerd.

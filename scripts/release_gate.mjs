@@ -100,6 +100,13 @@ function faseStatisch(ctx) {
   const merken = runStep('merkenregister', process.execPath, ['scripts/merkenregister_check.mjs'], { ms: 120e3, logDir: d });
   items.push({ naam: 'merkenregister tegen de code', status: merken.code === 0 ? 'PASS' : 'FAIL', code: merken.code === 0 ? 0 : 1, secs: merken.secs, detail: merken.code === 0 ? '' : MELDING(merken) });
 
+  // De cutscene-linter (regie-bijbel docs/CUTSCENE-REGIE-21-11.md): streng voor alle cutscenes, ook de bestaande (eigenaar-besluit 21-11); faalt bij elke blokkerende vondst zonder gedocumenteerde uitzondering in scripts/release/cutscene-uitzonderingen.json.
+  // Het rapport (per cutscene en de globale score) komt in de map van de run; de blokkerende vondsten zijn ook als lijst te lezen.
+  {
+    const cl = runStep('cutscene_lint', process.execPath, ['scripts/cutscene_lint.mjs', '--strict', `--json=${path.join(d, 'cutscene-lint.json')}`], { ms: 10 * 60e3, logDir: d });
+    items.push({ naam: 'cutscene-linter (streng op de regie-bijbel)', status: cl.code === 0 ? 'PASS' : 'FAIL', code: cl.code === 0 ? 0 : 1, secs: cl.secs, detail: cl.code === 0 ? '' : (cl.out.split(/\r?\n/).filter((l) => /^(FAIL|cutscene_lint strikt)/.test(l)).slice(0, 3).join(' | ') || MELDING(cl)) });
+  }
+
   if (ctx.from) {
     const regels = runStep('rules_audit', process.execPath, ['scripts/release/rules_audit.mjs', `--from=${ctx.from}`, `--out=${path.join(d, 'rules')}`], { ms: 20 * 60e3, logDir: d });
     const status = regels.code === 0 ? 'PASS' : regels.code === 3 ? 'SKIP' : regels.code === 2 ? 'FAIL' : 'FAIL';
