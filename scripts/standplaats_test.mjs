@@ -38,7 +38,7 @@ t('de vraag: een drukke plek in het weekend, een rustig dorp op een doordeweekse
   const markt = S.demandAt('markt', { weekend: true, from: 11, hours: 10, day: 5 }).demand;
   const dorp = S.demandAt('dorp', { weekend: false, from: 11, hours: 10, day: 5 }).demand;
   assert.ok(markt > 2 * dorp && dorp > 20);
-  assert.ok(markt < 400);
+  assert.ok(markt < 600);
   assert.equal(S.demandAt('nergens', {}).demand, 0);
 });
 t('de week gemiddeld rond 1 per plek (week is een verdeling, geen bonus)', () => {
@@ -76,8 +76,8 @@ t('concurrentie: een goede naam drukt hem, de concurrent in hetzelfde cluster ko
 t('de vergunning: prijs naar druk, schaalprijs tot x3, de beste plek is het duurst', () => {
   assert.equal(S.permitPrice('nergens'), 0);
   assert.ok(S.permitPrice('markt') > S.permitPrice('station') && S.permitPrice('station') > S.permitPrice('dorp'));
-  assert.ok(S.permitPrice('dorp') >= 2000 && S.permitPrice('dorp') <= 3000);
-  assert.equal(S.permitPrice('markt', 40), Math.round(8000 * Math.pow(1.3, 1.6) * 3 / 50) * 50);
+  assert.ok(S.permitPrice('dorp') >= 1500 && S.permitPrice('dorp') <= 2500);
+  assert.equal(S.permitPrice('markt', 40), Math.round(6000 * Math.pow(1.6, 1.6) * 3 / 50) * 50);
   for (const s of S.SPOTS) assert.equal(S.permitPrice(s.id) % 50, 0);
 });
 t('een vergunning kopen: geldigheid 40 dagen, te weinig geld, bezet, al van jou', () => {

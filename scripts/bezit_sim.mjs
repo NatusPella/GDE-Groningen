@@ -13,6 +13,8 @@ import { mgmtFactor } from '../game/js/farmstaff.js';
 import { createParcelIndex } from '../game/js/parcelindex.js';
 import { streekAt } from '../game/js/regioleven.js';
 import * as BZ from '../game/js/business.js';
+import * as SN from '../game/js/snackwagen.js';
+import * as SP from '../game/js/standplaats.js';
 
 export const ACTIVE_PER_HOUR = 1100;          // netto per speluur, actief werk (BALANS-21-11)
 export const START_MONEY = 0;                 // de Duizendpoot-bonus komt na ongeveer twee uur en zit in het actieve tempo
@@ -81,6 +83,54 @@ export function exploitChecks() {
   return out;
 }
 
+// ---- de snackwagen (eindgame, docs/BEZIT-21-11.md "Snackwagen en Usmem Snacks") ----
+// Vier profielen over `days` speldagen met een speler die de wagen elke dag van voorraad voorziet (de beste wagenhouder). quiet: zonder dat Usmem ingrijpt;
+// anders mét zijn uitbreiding, zijn bod en sabotage en een speler die elk antwoord gratis geeft (het goedkoopste). Geeft per profiel de winst per speldag
+// (eigen wagen met compressOwn, medewerkers met compressPassive), de investering en het rendement per speldag, tegenover de actieve speler (440 per speldag).
+const wkd = (cd) => { const wd = (cd + 4) % 7; return wd === 6 || wd === 0; };
+const FRIETWAGEN_PRICE = BZ.MOBILE_TYPES.frietwagen.price;
+export function snackProfile({ days = 40, quiet = true } = {}) {
+  const give = (S, ids) => { for (const id of ids) S.permits[id] = { until: 1e7, paid: SP.permitPrice(id, Object.keys(S.permits).length) }; };
+  const full = (S) => { S.up = ['koeling', 'sauzen', 'pan']; S.own.tier = 'groot'; S.own.menu = ['friet', 'frikandel', 'kroket', 'burger', 'milkshake', 'ijs']; };
+  const mk = (id) => {
+    const S = SN.newSnack();
+    let invest = FRIETWAGEN_PRICE;
+    const buyUp = (u) => { S.up.push(u); invest += SN.UPGRADES[u].price; };
+    if (id === 'start') { give(S, ['dorp']); S.own.spot = 'dorp'; invest += SP.permitPrice('dorp', 0); }
+    if (id === 'mid') { give(S, ['park']); S.own.spot = 'park'; S.own.tier = 'groot'; invest += SN.TIERS.groot.up + SP.permitPrice('park', 0); buyUp('koeling'); S.own.menu = ['friet', 'frikandel', 'kroket', 'burger', 'milkshake']; }
+    if (id === 'best' || id === 'imperium') {
+      give(S, ['markt']); S.own.spot = 'markt'; invest += SP.permitPrice('markt', 0) + SN.TIERS.groot.up; full(S);
+      for (const u of SN.UPGRADE_IDS) invest += SN.UPGRADES[u].price;
+    }
+    if (id === 'imperium') {
+      const spots = ['martini', 'park', 'reitdiep', 'haren', 'dorp', 'leek'];
+      give(S, spots);
+      for (const sp of spots) { invest += SP.permitPrice(sp, 0); const b = SN.buyFleetWagon(S, sp, 1, 1e9); invest += b.cost; }
+    }
+    if (quiet) { S.rival.spots = []; S.rival.mood = 5; S.rival.lastEvent = 1e7; S.rival.lastOffer = 1e7; }
+    return { S, invest };
+  };
+  const out = {};
+  for (const id of ['start', 'mid', 'best', 'imperium']) {
+    const { S, invest } = mk(id);
+    let own = 0, fleet = 0, fixed = 0;
+    for (let d = 2; d < 2 + days; d++) {
+      S.own.stockDays = 5;
+      for (const k of Object.keys(S.permits)) S.permits[k].until = 1e7;
+      if (SN.pendingEvent(S)) SN.answerEvent(S, SN.pendingEvent(S).choices.find((c) => c.def).id, d, 1e9);
+      const r = SN.settleDay(S, { day: d, weekend: wkd(d), money: 1e9, ownWagon: true, ownQ: 100, kermisAt: (s) => s === 'kermis' && d % 12 < 3, chainOwn: () => 0 });
+      own += r.ownNet; fleet += r.fleetNet; fixed += r.fixed;
+    }
+    const ownDay = own / days, fleetDay = fleet / days;
+    const ownC = SN.compressOwn(ownDay), passiveC = P.compressPassive(fleetDay);
+    const perDay = ownC + passiveC;
+    out[id] = { ownDay: Math.round(ownDay), ownC, fleetDay: Math.round(fleetDay), passiveC, perDay, invest: Math.round(invest), roiPerDay: Math.round((perDay / invest) * 10000) / 10000, vsActive: Math.round((perDay / P.ACTIVE_PER_DAY) * 100) / 100, ownVsActive: Math.round((ownC / P.ACTIVE_PER_DAY) * 100) / 100, rep: S.rep, wagons: (S.own.spot ? 1 : 0) + S.fleet.length };
+  }
+  return out;
+}
+// Het rendement per speldag van wat er al was, voor de vergelijking: pacht 0,9%, huur 1,2%, een winkel ongeveer 0,5% van de prijs.
+export const BASELINE_ROI = { pacht: P.LEASE_OUT_RATE, huur: 0.012, winkel: 0.0055 };
+
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const a = (n, d) => { const i = process.argv.indexOf(n); return i >= 0 ? process.argv[i + 1] : d; };
   const pl = priceList(a('--index', null));
@@ -90,4 +140,11 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   console.log(`  eerste perceel na ${r.firstParcelHours === null ? 'nooit' : r.firstParcelHours.toFixed(1) + ' uur'}; ${r.owned} percelen, passief ${r.passivePerHour} per uur (actief ${ACTIVE_PER_HOUR})`);
   for (const n of [10, 100, 1000]) console.log(`  schaal ${n} percelen: passief ${passivePerHourAt(n)} per uur`);
   console.log(`  beheeropbrengst: ${exploitChecks().mgmt.map(([n, f]) => `${n}:${f}`).join(' ')}`);
+}
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  for (const quiet of [true, false]) {
+    const sp = snackProfile({ days: 40, quiet });
+    console.log(`  snackwagen (${quiet ? 'zonder Usmem' : 'met Usmem en sabotage'}, 40 speldagen):`);
+    for (const [k, v] of Object.entries(sp)) console.log(`    ${k.padEnd(9)} per dag ${String(v.perDay).padStart(5)} (eigen ${v.ownC}, medewerkers ${v.passiveC}) = ${v.vsActive}x actief, ${v.wagons} wagen(s), investering ${v.invest}, rendement ${(v.roiPerDay * 100).toFixed(2)}% per speldag`);
+  }
 }

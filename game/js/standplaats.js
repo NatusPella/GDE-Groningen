@@ -13,10 +13,10 @@ import { wgsToWorld } from './rdnew.js';
 import { hashUnit, clamp, finite } from './bezithash.js';
 
 export const SPOTS = [
-  { id: 'markt', name: 'Hoek van de Grote Markt', place: 'Groningen', lat: 53.2194, lon: 6.5665, foot: 1.30, week: [0.93, 1.18], profile: 'dag', comp: 0.30, cluster: 'stad', region: 'overig', tier: 5, short: 'Grote Markt' },
-  { id: 'martini', name: 'Martinikerkhof, bij de poort', place: 'Groningen', lat: 53.2190, lon: 6.5685, foot: 1.10, week: [0.90, 1.25], profile: 'dag', comp: 0.25, cluster: 'stad', region: 'overig', tier: 4, short: 'Martinikerkhof' },
-  { id: 'station', name: 'Stationsplein, kant Hoofdstation', place: 'Groningen', lat: 53.2110, lon: 6.5650, foot: 1.20, week: [1.10, 0.75], profile: 'spits', comp: 0.28, cluster: 'stad', region: 'overig', tier: 4, short: 'Bij het station' },
-  { id: 'oosterpoort', name: 'Trap van de Oosterpoort', place: 'Groningen', lat: 53.2160, lon: 6.5745, foot: 0.95, week: [0.95, 1.12], profile: 'avond', comp: 0.15, cluster: 'stad', region: 'overig', tier: 3, short: 'Oosterpoort' },
+  { id: 'markt', name: 'Hoek van de Grote Markt', place: 'Groningen', lat: 53.2194, lon: 6.5665, foot: 1.60, week: [0.93, 1.18], profile: 'dag', comp: 0.30, cluster: 'stad', region: 'overig', tier: 5, short: 'Grote Markt' },
+  { id: 'martini', name: 'Martinikerkhof, bij de poort', place: 'Groningen', lat: 53.2190, lon: 6.5685, foot: 1.30, week: [0.90, 1.25], profile: 'dag', comp: 0.25, cluster: 'stad', region: 'overig', tier: 4, short: 'Martinikerkhof' },
+  { id: 'station', name: 'Stationsplein, kant Hoofdstation', place: 'Groningen', lat: 53.2110, lon: 6.5650, foot: 1.35, week: [1.10, 0.75], profile: 'spits', comp: 0.28, cluster: 'stad', region: 'overig', tier: 4, short: 'Bij het station' },
+  { id: 'oosterpoort', name: 'Trap van de Oosterpoort', place: 'Groningen', lat: 53.2160, lon: 6.5745, foot: 1.00, week: [0.95, 1.12], profile: 'avond', comp: 0.15, cluster: 'stad', region: 'overig', tier: 3, short: 'Oosterpoort' },
   { id: 'reitdiep', name: 'Kade van de Reitdiephaven', place: 'Groningen', lat: 53.2368, lon: 6.5330, foot: 0.90, week: [0.80, 1.50], profile: 'haven', comp: 0.10, cluster: 'stad', region: 'overig', tier: 3, short: 'Reitdiephaven' },
   { id: 'park', name: 'Ingang Noorderplantsoen', place: 'Groningen', lat: 53.2247, lon: 6.5590, foot: 0.85, week: [0.75, 1.70], profile: 'haven', comp: 0.08, cluster: 'stad', region: 'overig', tier: 3, short: 'Noorderplantsoen' },
   { id: 'stadion', name: 'Pleintje bij het voetbalstadion', place: 'Groningen', lat: 53.2063, lon: 6.5880, foot: 1.40, week: [0.40, 2.50], profile: 'club', comp: 0.12, cluster: 'stad', region: 'overig', tier: 4, short: 'Voetbalstadion', event: 'wedstrijd' },
@@ -78,7 +78,7 @@ export function bestWindow(profile, hours) {
 }
 
 // ---- de vraag: klanten per dag ----
-export const BASE_DEMAND = 190;                  // klanten per dag als je de héle dagdruk vangt bij druk 1 (een venster van tien uur vangt ruim 80% ervan)
+export const BASE_DEMAND = 260;                  // klanten per dag als je de héle dagdruk vangt bij druk 1 (een venster van tien uur vangt ruim 80% ervan)
 export const weekMult = (spot, weekend) => (spot.week ? spot.week[weekend ? 1 : 0] : 1);
 // Gebeurtenissen: de kermis telt alleen op een kermisdag (ctx.kermis), de wedstrijd op een thuiswedstrijd (ctx.matchDay, zie matchDay); anders weinig.
 export const MATCH_PERIOD = 14;                  // elke veertien speldagen een thuiswedstrijd, altijd op een zaterdag
@@ -127,7 +127,7 @@ export function competitionFactor(id, { rep = 50, rivalSpots = [] } = {}) {
 }
 
 // ---- de vergunning ----
-export const PERMIT_BASE = 8000;                 // de prijs van een plek met druk 1
+export const PERMIT_BASE = 6000;                 // de prijs van een plek met druk 1
 export const PERMIT_DAYS = 40;                   // zoveel speldagen is een vergunning geldig
 export const PERMIT_RENEW = 0.25;                // verlengen kost een kwart van de prijs
 export const PERMIT_SCALE_STEP = 0.15;           // elke vergunning die je al hebt maakt de volgende 15% duurder (hoogstens x3)

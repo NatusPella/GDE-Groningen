@@ -93,12 +93,12 @@ export const QUOTES = {
 };
 // Het antwoord dat de speler kan kiezen, per soort: { id, label, cost } (cost in euro, 0 is gratis). Het eerste is het antwoord dat het meest kost en het best helpt.
 export const CHOICES = {
-  storing: [{ id: 'repareer', label: 'Direct laten repareren', cost: 350 }, { id: 'wacht', label: 'Wachten tot het weer gaat', cost: 0 }],
-  pech: [{ id: 'sleep', label: 'Sleepdienst bellen', cost: 250 }, { id: 'wacht', label: 'Een dag extra rust', cost: 0 }],
-  recensie: [{ id: 'actie', label: 'Gratis friet-dag', cost: 200 }, { id: 'reageer', label: 'Netjes reageren', cost: 0 }, { id: 'negeer', label: 'Negeren', cost: 0 }],
-  oorlog: [{ id: 'reclame', label: 'Reclame op de markt', cost: 600 }, { id: 'meeprijzen', label: 'Meeprijzen', cost: 0 }, { id: 'negeer', label: 'Negeren', cost: 0 }],
-  overkoop: [{ id: 'loon', label: 'Loonsverhoging geven', cost: 0 }, { id: 'laatgaan', label: 'Laten gaan', cost: 0 }],
-  bod: [{ id: 'verkoop', label: 'Verkopen', cost: 0 }, { id: 'weiger', label: 'Weigeren', cost: 0 }],
+  storing: [{ id: 'repareer', label: 'Direct laten repareren', cost: 350 }, { id: 'wacht', label: 'Wachten tot het weer gaat', cost: 0, def: true }],
+  pech: [{ id: 'sleep', label: 'Sleepdienst bellen', cost: 250 }, { id: 'wacht', label: 'Een dag extra rust', cost: 0, def: true }],
+  recensie: [{ id: 'actie', label: 'Gratis friet-dag', cost: 200 }, { id: 'reageer', label: 'Netjes reageren', cost: 0 }, { id: 'negeer', label: 'Negeren', cost: 0, def: true }],
+  oorlog: [{ id: 'reclame', label: 'Reclame op de markt', cost: 600 }, { id: 'meeprijzen', label: 'Meeprijzen', cost: 0 }, { id: 'negeer', label: 'Negeren', cost: 0, def: true }],
+  overkoop: [{ id: 'loon', label: 'Loonsverhoging geven', cost: 0 }, { id: 'laatgaan', label: 'Laten gaan', cost: 0, def: true }],
+  bod: [{ id: 'verkoop', label: 'Verkopen', cost: 0 }, { id: 'weiger', label: 'Weigeren', cost: 0, def: true }],
 };
 // De gebeurtenis van vandaag, of null. ctx: { wagons: [{ id, spot }] (wagens op een plek), share, protect, hasFleet (is er een verkoper om weg te kopen), pending (er loopt er al een) }.
 // Geeft { kind, wagon (id), spot, depth (oorlog), text, choices, day, deadline } of null. Hoogstens één tegelijk en daarna EVENT_COOLDOWN dagen rust.
@@ -123,7 +123,7 @@ export const noteEvent = (r, day) => ({ ...r, lastEvent: Math.floor(finite(day, 
 // De dagen tellen vanaf de dag van het antwoord (day). choice = null: het antwoord dat de speler niet gaf (na de deadline) is altijd het goedkoopste.
 export function outcome(ev, choiceId, day) {
   const d = Math.floor(finite(day, 0));
-  const c = (CHOICES[ev.kind] || []).find((x) => x.id === choiceId) || (CHOICES[ev.kind] || []).slice().sort((a, b) => a.cost - b.cost)[0];
+  const c = (CHOICES[ev.kind] || []).find((x) => x.id === choiceId) || (CHOICES[ev.kind] || []).find((x) => x.def);
   if (!c) return { cost: 0, mods: [], rep: 0, text: '' };
   const o = { cost: c.cost, choice: c.id, mods: [], rep: 0, text: '' };
   if (ev.kind === 'storing') {
