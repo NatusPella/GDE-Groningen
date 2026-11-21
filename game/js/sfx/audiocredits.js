@@ -107,16 +107,16 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
-    "id": 369053,
-    "beschrijving": "Auto",
-    "auteur": "AndrewAlexander",
+    "id": 411221,
+    "beschrijving": "Plastic tasje ritselt",
+    "auteur": "AndersHolm",
     "licentie": "CC0 1.0",
     "by": false
   },
   {
-    "id": 336580,
-    "beschrijving": "Verkopen",
-    "auteur": "Anthousai",
+    "id": 369053,
+    "beschrijving": "Auto",
+    "auteur": "AndrewAlexander",
     "licentie": "CC0 1.0",
     "by": false
   },
@@ -189,6 +189,13 @@ export const AUDIO_CREDITS = [
     "auteur": "AudioPapkin",
     "licentie": "CC0 1.0",
     "by": false
+  },
+  {
+    "id": 91924,
+    "beschrijving": "Kassalade gaat open",
+    "auteur": "Benboncan",
+    "licentie": "CC BY 4.0",
+    "by": true
   },
   {
     "id": 103632,
@@ -291,6 +298,13 @@ export const AUDIO_CREDITS = [
   {
     "id": 457043,
     "beschrijving": "Gemurmel van een menigte",
+    "auteur": "Breviceps",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 468443,
+    "beschrijving": "Kip kakelt",
     "auteur": "Breviceps",
     "licentie": "CC0 1.0",
     "by": false
@@ -520,13 +534,6 @@ export const AUDIO_CREDITS = [
     "by": true
   },
   {
-    "id": 120582,
-    "beschrijving": "Kip kakelt",
-    "auteur": "dobroide",
-    "licentie": "CC BY 4.0",
-    "by": true
-  },
-  {
     "id": 682871,
     "beschrijving": "Kleding ritselt",
     "auteur": "drewsimko",
@@ -632,6 +639,13 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 836450,
+    "beschrijving": "Bevestigen of akkoord",
+    "auteur": "Feraly_",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 505113,
     "beschrijving": "Onweer",
     "auteur": "Fission9",
@@ -684,13 +698,6 @@ export const AUDIO_CREDITS = [
     "id": 242605,
     "beschrijving": "Venster of popup opent",
     "auteur": "GabrielAraujo",
-    "licentie": "CC0 1.0",
-    "by": false
-  },
-  {
-    "id": 220187,
-    "beschrijving": "Bevestigen of akkoord",
-    "auteur": "GameAudio",
     "licentie": "CC0 1.0",
     "by": false
   },
@@ -786,13 +793,6 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
-    "id": 396448,
-    "beschrijving": "Kip kakelt",
-    "auteur": "hz37",
-    "licentie": "CC0 1.0",
-    "by": false
-  },
-  {
     "id": 463034,
     "beschrijving": "Meeuw die roept",
     "auteur": "iamaviolin",
@@ -810,13 +810,6 @@ export const AUDIO_CREDITS = [
     "id": 633208,
     "beschrijving": "Kerkklok luidt",
     "auteur": "igroglaz",
-    "licentie": "CC0 1.0",
-    "by": false
-  },
-  {
-    "id": 689666,
-    "beschrijving": "Plastic tasje ritselt",
-    "auteur": "ImmergoMedia",
     "licentie": "CC0 1.0",
     "by": false
   },
@@ -973,13 +966,6 @@ export const AUDIO_CREDITS = [
     "auteur": "joedeshon",
     "licentie": "CC BY 4.0",
     "by": true
-  },
-  {
-    "id": 326795,
-    "beschrijving": "Bevestigen of akkoord",
-    "auteur": "JohnBuhr",
-    "licentie": "CC0 1.0",
-    "by": false
   },
   {
     "id": 173941,
@@ -1192,13 +1178,6 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
-    "id": 171575,
-    "beschrijving": "Bladzijde omslaan",
-    "auteur": "Leszek_Szary",
-    "licentie": "CC0 1.0",
-    "by": false
-  },
-  {
     "id": 288911,
     "beschrijving": "Knop ingedrukt in het menu",
     "auteur": "LittleRobotSoundFactory",
@@ -1260,6 +1239,13 @@ export const AUDIO_CREDITS = [
     "auteur": "MattRuthSound",
     "licentie": "CC BY 4.0",
     "by": true
+  },
+  {
+    "id": 667180,
+    "beschrijving": "Bladzijde omslaan",
+    "auteur": "MBPL",
+    "licentie": "CC0 1.0",
+    "by": false
   },
   {
     "id": 789038,
@@ -1682,6 +1668,13 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 878254,
+    "beschrijving": "Bevestigen of akkoord",
+    "auteur": "Qvantor",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
     "id": 878310,
     "beschrijving": "Voorwerp oppakken",
     "auteur": "Qvantor",
@@ -1769,6 +1762,13 @@ export const AUDIO_CREDITS = [
     "id": 678453,
     "beschrijving": "Binnendeur gaat open",
     "auteur": "rubberduck9999",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 316920,
+    "beschrijving": "Kip kakelt",
+    "auteur": "Rudmer_Rotteveel",
     "licentie": "CC0 1.0",
     "by": false
   },
@@ -2039,6 +2039,13 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
+    "id": 435624,
+    "beschrijving": "Verkopen",
+    "auteur": "TheKnave",
+    "licentie": "CC BY 4.0",
+    "by": true
+  },
+  {
     "id": 682771,
     "beschrijving": "Voetstap op asfalt en beton",
     "auteur": "thomasanthony321",
@@ -2091,6 +2098,13 @@ export const AUDIO_CREDITS = [
     "id": 422442,
     "beschrijving": "Trein of bus",
     "auteur": "vacuumfan7072",
+    "licentie": "CC0 1.0",
+    "by": false
+  },
+  {
+    "id": 699337,
+    "beschrijving": "Bladzijde omslaan",
+    "auteur": "Valenspire",
     "licentie": "CC0 1.0",
     "by": false
   },
@@ -2165,13 +2179,6 @@ export const AUDIO_CREDITS = [
     "by": false
   },
   {
-    "id": 346835,
-    "beschrijving": "Bladzijde omslaan",
-    "auteur": "yatoimtop",
-    "licentie": "CC0 1.0",
-    "by": false
-  },
-  {
     "id": 415301,
     "beschrijving": "Voetstap op binnen",
     "auteur": "Yin_Yang_Jake007",
@@ -2215,7 +2222,7 @@ export const AUDIO_CREDITS = [
   },
   {
     "id": 144418,
-    "beschrijving": "Kassalade gaat open",
+    "beschrijving": "Piep van de scanner",
     "auteur": "zerolagtime",
     "licentie": "CC0 1.0",
     "by": false
