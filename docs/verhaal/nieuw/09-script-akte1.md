@@ -206,6 +206,7 @@ TESSA: Ja. Natuurlijk. [NIEUW]
 (regie: ze tekent door. Hij blijft nog even staan met de thee.)
 
 ## [M03.1] Het Loket: intro – Stad, Het Loket bij de Grote Markt – te voet
+(regie: bewijsmoment, relatie-bijbel 3: Tessa leest het naamplaatje van de loketbediende en groet haar bij haar naam. Tammo kijkt even naar zijn schoenen en glimlacht.)
 (regie: zaterdag 15 augustus, tien uur. Een wachtruimte met nummerautomaat, een scherm dat 4093 toont, een bord "Loket B is vandaag Loket C". Gameplay: een wachtrijpuzzel met een klok: nummer trekken, formulier halen, stempel halen, voor twaalf uur.)
 TESSA: Twaalf uur, contant. Hoe moeilijk kan een stempel zijn? [NIEUW]
 LOKETBEDIENDE: Nummer 4117 aan loket A. Op het scherm staat 4093. [NIEUW]

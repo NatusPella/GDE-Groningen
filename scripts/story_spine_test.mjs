@@ -23,7 +23,7 @@ for (const s of STEPS) {
 }
 const heads = { kop: 'Akte 1', romp: 'Akte 2', staart: 'Akte 3', zuid: 'Akte 4', ontzet: 'Akte 5', nazomer: 'Deel 4' };
 for (const [p, h] of Object.entries(heads)) ok(new RegExp(`^## ${h}`, 'm').test(doc), `RUGGENGRAAT.md heeft een blad voor ${p}`);
-ok(/De ene zin boven alles/.test(doc), 'RUGGENGRAAT.md heeft de ene zin');
+ok(/## De kern/.test(doc) && /plekje in de wereld/.test(doc), 'RUGGENGRAAT.md heeft de kern (een plek in de wereld)');
 
 console.log(`story_spine_test: ${n - fails}/${n} ok`);
 if (fails) process.exit(1);

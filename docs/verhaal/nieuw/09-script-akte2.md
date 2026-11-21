@@ -68,6 +68,7 @@ OMA TRIJNTJE (telefoon): Loop jij daar heelhuids doorheen, jong, dan vertel ik j
 OMA TRIJNTJE (telefoon): Zeg dat maar tegen hen. Lopen, jong. [BEHOUDEN]
 
 ## [M08.2] Fatbikes tellen niet als fiets: onderweg – Stad, Oude Ebbingestraat – te voet
+(regie: bewijsmoment, relatie-bijbel 5: Tessa deelt haar snack met een jongen op een bankje, zonder iets te zeggen. Tammo ziet het en kijkt daarna naar zijn eigen snack.)
 TESSA: Links! [NIEUW]
 TAMMO: Een fatbike. [NIEUW]
 TESSA: Twee. Op één. [NIEUW]
@@ -116,6 +117,7 @@ TAMMO: Een jas in augustus? [NIEUW]
 TESSA: Jij weet niet hoe lang ze dat al zegt. [NIEUW]
 
 ## [T1] De trein naar Warffum – Stad, Station Grunn naar Warffum – trein (meerijden)
+(regie: bewijsmoment, relatie-bijbel 4: op het perron wacht Tammo tot een oude vrouw met een rollator de trein uit is voor hij zelf instapt. Tessa ziet het in het raam.)
 (regie: de keuze: trein, zelf rijden of skippen. Bij de trein: een korte scène.)
 TESSA: Een kaartje naar maakt niet uit waar. Jij kijkt te schuldig voor een conducteur. [BEHOUDEN]
 TESSA: Weet je nog? Met de trein naar Delfzijl, om naar de zee te kijken. [BEHOUDEN]

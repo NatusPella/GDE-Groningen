@@ -261,6 +261,7 @@ TESSA: Drie tenten. Daarna vertellen ze alles, en daarna weten ze het zelf niet 
 TAMMO: Ik drink maar één. [NIEUW]
 
 ## [M16.2] Nog eentje dan: tussen de tenten – Oldambt, Winschoten, de kermis – te voet
+(regie: bewijsmoment, relatie-bijbel 9: in de botsauto zit Tammo naast Tessa en kijkt de andere kant op, zodat zij zelf kan leren sturen. Twee-shot door de voorruit.)
 STUDENT: Proost! Nog eentje dan! [NIEUW]
 TESSA: Wie is dat? [NIEUW]
 TAMMO: Een eerstejaars. Ze zijn overal. [NIEUW]
