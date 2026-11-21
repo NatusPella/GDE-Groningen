@@ -14,7 +14,9 @@ from concurrent.futures import ThreadPoolExecutor
 # the dry run prints whole story lines (with ... and accents): keep them readable on a Windows console
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+import array
 import gemini_tts
+import voice_tailfix
 from gemini_tts import usage, speak, tries, check, current, load_log, save_log, logged, say_of, configure, LANG, SAMPLE_RATE
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 VL = os.path.join(REPO, 'game', 'audio', 'voicelines')
@@ -72,6 +74,9 @@ def job(l):
         wav = dst[:-4] + '.tmp.wav'
         pcm = speak(l['voice'], say, style)
         check(pcm, say)
+        # de TTS laat een plof aan het begin en een ruisstoot aan het einde staan (voice_tailfix.py): eraf voor het trimmen en loudnorm
+        raw = array.array('h'); raw.frombytes(pcm[:len(pcm) // 2 * 2])
+        pcm = voice_tailfix.fix_pcm(raw)[0].tobytes()
         with wave.open(wav, 'wb') as w:
             w.setnchannels(1); w.setsampwidth(2); w.setframerate(SAMPLE_RATE); w.writeframes(pcm)
         encode(wav, dst)

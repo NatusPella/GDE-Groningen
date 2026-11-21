@@ -32,6 +32,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-07"
 },
+"Accountmanager|En hoe lang bestaat uw bedrijf?": {
+"src": "accountmanager/en_hoe_lang_bestaat_uw_bedrijf_1d31a83a.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Zubenelgenubi",
+"input": "En hoe lang bestait uw bedrijf?",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gladde verkoper van Wiebelwerk, soepel en gemaakt vriendelijk. Tone: vragend, nieuwsgierig.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-21"
+},
 "Accountmanager|Iedereen is nieuw bij een intake. Ik loop even mee naar de koffieautomaat. In de gang.": {
 "src": "accountmanager/iedereen_is_nieuw_bij_een_intake_2da88382.mp3",
 "model": "google/gemini-3.8-flash-lite-tts",
@@ -109,6 +120,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-07"
 },
+"Accountmanager|Wat is uw merkpersoonlijkheid?": {
+"src": "accountmanager/wat_is_uw_merkpersoonlijkheid_2c829bb8.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Zubenelgenubi",
+"input": "Wat is uw merkpersoonlijkheid?",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gladde verkoper van Wiebelwerk, soepel en gemaakt vriendelijk. Tone: vragend, nieuwsgierig.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-21"
+},
 "Accountmanager|Welkom bij Wiebelwerk. Wij maken websites. Wat is uw behoefte?": {
 "src": "accountmanager/welkom_bij_wiebelwerk_wij_maken__26db633d.mp3",
 "model": "google/gemini-3.8-flash-lite-tts",
@@ -130,6 +152,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gladde verkoper van Wiebelwerk, soepel en gemaakt vriendelijk. Tone: glad, verkoperig.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-07"
+},
+"Accountmanager|Wilt u een chatbot?": {
+"src": "accountmanager/wilt_u_een_chatbot_a0037fb0.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Zubenelgenubi",
+"input": "Wilt u n chatbot?",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gladde verkoper van Wiebelwerk, soepel en gemaakt vriendelijk. Tone: vragend, nieuwsgierig.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-21"
 },
 "Anita|\"De bewaarder.\" Daarbij staat: notaris, 28 augustus, drie uur. Meer niet.": {
 "src": "anita/de_bewaarder_daarbij_staat_notar_b7b1d620.mp3",

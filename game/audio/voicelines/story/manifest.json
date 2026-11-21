@@ -37,7 +37,7 @@
 },
 "Anita|Tammo heeft hier nog gestudeerd. Twee weken.": {
 "src": "m2/intro_2_anita.mp3",
-"dur": 3.34
+"dur": 2.82
 },
 "Tammo|Drie. De derde was ik ziek.": {
 "src": "m2/intro_3_tammo.mp3",
@@ -45,7 +45,7 @@
 },
 "Anita|Van het studeren?": {
 "src": "m2/intro_4_anita.mp3",
-"dur": 1.8
+"dur": 1.36
 },
 "Tammo|Van de mensa.": {
 "src": "m2/intro_5_tammo.mp3",
@@ -65,7 +65,7 @@
 },
 "Tammo|Zonder decor. Daar krijg je hier subsidie voor.": {
 "src": "m3/fail_1_tammo.mp3",
-"dur": 2.93
+"dur": 2.77
 },
 "Harm|Eén rondje om de stad, vol gas. Als de weg het houdt, mag ik eindelijk met pensioen.": {
 "src": "m4/intro_1_harm.mp3",
@@ -265,7 +265,7 @@
 },
 "Schipper Wiebe (megafoon)|Ik ken elke brug in Grunn. Jullie niet!": {
 "src": "m7/wiebe_06.mp3",
-"dur": 2.9
+"dur": 2.8
 },
 "Schipper Wiebe (megafoon)|Ik haal je in, al moet ik tot Delfzijl!": {
 "src": "m7/wiebe_07.mp3",
