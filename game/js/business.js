@@ -210,7 +210,7 @@ export function buyMobile(b, id, day, money) {
 }
 export function sellMobile(b, id) {
   if (!b.mobile || !b.mobile[id]) return { ok: false, why: 'niet-van-jou' };
-  const refund = Math.round((b.mobile[id].p * 0.75) / 5) * 5;       // zelfde verkoopfactor als bezit.js (VERKOOP_FACTOR)
+  const refund = b.mobile[id].gift ? 0 : Math.round((b.mobile[id].p * 0.75) / 5) * 5;      // een cadeau (schenkMobiel) is geen geldbron       // zelfde verkoopfactor als bezit.js (VERKOOP_FACTOR)
   delete b.mobile[id];
   b.totals.sold++; b.totals.earned += refund;
   return { ok: true, refund };
