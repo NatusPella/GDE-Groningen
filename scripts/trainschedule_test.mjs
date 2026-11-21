@@ -1,12 +1,12 @@
 // Treinrooster (#1085): het filter van de bouwstap (lijnen, dagen, tijden), het gebouwde bestand, de tijdafbeelding op de spelklok,
 // de vertraging per rit op het bord en de bron in woorden (Live/Rooster). Geen netwerk, geen THREE.
-// Gebruik: node scripts/treinrooster_test.mjs
+// Gebruik: node scripts/trainschedule_test.mjs
 import assert from 'node:assert';
 import fs from 'node:fs';
-import { spelLijn, dienstenOp, dagsoortVan as dagsoortLib, secVan, maakRij, sorteerRijen, valideerRooster, STATIONS, SPEL_LIJNEN, SPEL_NAAM as SPEL_LIB } from './treinrooster_lib.mjs';
-import { validSchedule, hasStop, codesUit, rijenUitRooster, pasVertragingToe, sourceName, dayTypeOf, laadRooster, GAME_NAMES } from '../game/js/treinrooster.js';
-import { meldSleutel } from '../game/js/livetreinen.js';
-import { sourceState, bronLabel, departureLine, ageText, KIND } from '../game/js/treinbron.js';
+import { spelLijn, dienstenOp, dagsoortVan as dagsoortLib, secVan, maakRij, sorteerRijen, valideerRooster, STATIONS, SPEL_LIJNEN, SPEL_NAAM as SPEL_LIB } from './trainschedule_lib.mjs';
+import { validSchedule, hasStop, codesUit, rijenUitRooster, pasVertragingToe, sourceName, dayTypeOf, laadRooster, GAME_NAMES } from '../game/js/trainschedule.js';
+import { meldSleutel } from '../game/js/livetrains.js';
+import { sourceState, bronLabel, departureLine, ageText, KIND } from '../game/js/trainsource.js';
 import { stationView, bordCellen, bordBron } from '../game/js/stationlife.js';
 import { weekdayOf } from '../game/js/calendar.js';
 
@@ -43,7 +43,7 @@ assert.strictEqual(sourceName('Groningen Hoofdstation'), 'Groningen');
 }
 
 // --- het gebouwde bestand ---
-const bestandUrl = new URL('../game/treinrooster.json', import.meta.url);
+const bestandUrl = new URL('../game/trainschedule.json', import.meta.url);
 const echt = JSON.parse(fs.readFileSync(bestandUrl, 'utf8'));
 {
   assert.ok(validSchedule(echt), 'het bestand is geldig');
@@ -195,8 +195,8 @@ const echt = JSON.parse(fs.readFileSync(bestandUrl, 'utf8'));
   assert.strictEqual(await laadRooster(async () => ({ ok: true, json: async () => ({ v: 2 }) }), 'http://localhost/'), null, 'een ongeldig bestand telt niet');
   let url = '';
   assert.ok(validSchedule(await laadRooster(async (u) => { url = u; return { ok: true, json: async () => echt }; }, 'http://localhost/game/index.html')));
-  assert.strictEqual(url, 'http://localhost/game/treinrooster.json', 'een lokaal bestand naast index.html');
+  assert.strictEqual(url, 'http://localhost/game/trainschedule.json', 'een lokaal bestand naast index.html');
   assert.strictEqual(await laadRooster(null, 'http://localhost/'), null);
 }
 
-console.log('treinrooster_test: ok');
+console.log('trainschedule_test: ok');

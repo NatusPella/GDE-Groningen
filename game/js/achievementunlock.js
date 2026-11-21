@@ -1,7 +1,7 @@
 // De prestatie als moment (wens van de eigenaar 21-11): een stempel die inslaat, een icoon dat ploft, titel en
 // beschrijving die gestaffeld komen, een balkje "x/y prestaties" dat oploopt en een glans die sluit. Dit bestand is
 // alleen de pure planning (geen DOM, geen audio): achievements.js zet er klassen, CSS-variabelen en timers van, en
-// scripts/achievementunlock_test.mjs test het. Het gebruikt de staffel-helper van de eindkaart (eindkaartimpact.js),
+// scripts/achievementunlock_test.mjs test het. Het gebruikt de staffel-helper van de eindkaart (endcardimpact.js),
 // dezelfde maten (120 ms staffel, 250 ms per onderdeel, hooguit 1,6 s) en dezelfde klassen uit ds-micro.css.
 //
 // Regels uit DESIGN_SYSTEM.md "Microanimaties (DS3)": één animatie per gebeurtenis, overslaan kan, bij Beweging beperken
@@ -10,7 +10,7 @@
 // weg is (isOverlayHeld in achievements.js), dus de slag van de eindkaart en deze slag klinken nooit tegelijk.
 // Samen spelen (#429): een prestatie is per speler lokaal; dit plan wordt alleen gemaakt waar de toast getoond wordt.
 
-import { FAST_MS, STEP_MS, MAX_TOTAAL_MS, counterSteps } from './eindkaartimpact.js';
+import { FAST_MS, STEP_MS, MAX_TOTAAL_MS, counterSteps } from './endcardimpact.js';
 
 export const TELLER_MS = STEP_MS;   // de teller en de balk lopen hierover (250 ms: de balk vult in één stap, de teller tikt mee)
 export const MAX_VISIBLE = 3;     // hooguit drie losse prestatiekaarten per reeks; de rest wordt één samenvatting

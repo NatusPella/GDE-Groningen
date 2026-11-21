@@ -1,18 +1,18 @@
-// De treinen van de wereld volgen het rooster van het bord (#1085): één bron voor bord en spoor. Pure delen (treindienst.js) en de wereld
+// De treinen van de wereld volgen het rooster van het bord (#1085): één bron voor bord en spoor. Pure delen (trainservice.js) en de wereld
 // (railway.js met een eigen spoor, zoals gasttrein_test). Nodig: een gevendorde three (cd desktop && npm run stage), net als gasttrein_test.
-//   node scripts/treindienst_test.mjs
+//   node scripts/trainservice_test.mjs
 import './node3d.mjs';
 import fs from 'node:fs';
 
-const { bouwDienst, actieveLegs, legTimes, legState, createServiceSource, dienstVanLeg, DIENST } = await import('../game/js/treindienst.js');
-const { rijenUitRooster, pasVertragingToe, validSchedule } = await import('../game/js/treinrooster.js');
-const { meldSleutel } = await import('../game/js/livetreinen.js');
+const { bouwDienst, actieveLegs, legTimes, legState, createServiceSource, dienstVanLeg, DIENST } = await import('../game/js/trainservice.js');
+const { rijenUitRooster, pasVertragingToe, validSchedule } = await import('../game/js/trainschedule.js');
+const { meldSleutel } = await import('../game/js/livetrains.js');
 const { stationView } = await import('../game/js/stationlife.js');
 
 let fails = 0, n = 0;
 const ok = (c, m, i = '') => { n++; if (!c) { fails++; console.log(`FAIL ${m}${i !== '' ? ' (' + i + ')' : ''}`); } };
 
-const rooster = JSON.parse(fs.readFileSync(new URL('../game/treinrooster.json', import.meta.url), 'utf8'));
+const rooster = JSON.parse(fs.readFileSync(new URL('../game/trainschedule.json', import.meta.url), 'utf8'));
 ok(validSchedule(rooster), 'het rooster is geldig');
 
 // de spoorlijnen van het spel (zoals scripts/world/stad_spoor.mjs en cityroutes_src.json ze kennen; de afstanden zijn een proef)

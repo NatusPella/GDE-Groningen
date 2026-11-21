@@ -1,11 +1,11 @@
 // Live treinen (#1085): protobuf lezen (ook negatieve vertraging en een vervallen rit), de opvraag zonder spelergegevens, terugval
 // bij fouten, het ritme (backoff, spreiding), de uitzetter en de desktop-opvraag. Geen netwerk: een nep-fetch en een nepfeed.
-// Gebruik: node scripts/livetreinen_test.mjs
+// Gebruik: node scripts/livetrains_test.mjs
 import assert from 'node:assert';
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
-import { LIVE_TRAINS, REQUEST_OPTIONS, parseTrainReports, fetchLiveTrains, buildDelayMap, meldSleutel, nlSecOfDay, nlDatum, bridgeAsFetch } from '../game/js/livetreinen.js';
-import { createLiveTrains, createTrainLive, kiesFetch } from '../game/js/treinlive.js';
+import { LIVE_TRAINS, REQUEST_OPTIONS, parseTrainReports, fetchLiveTrains, buildDelayMap, meldSleutel, nlSecOfDay, nlDatum, bridgeAsFetch } from '../game/js/livetrains.js';
+import { createLiveTrains, createTrainLive, kiesFetch } from '../game/js/trainlive.js';
 
 // --- een kleine protobuf-schrijver voor het nepbestand (GTFS-RT TripUpdate met de OVapi-uitbreiding) ---
 const vi = (n) => { const o = []; let b = BigInt(n); if (b < 0n) b += 1n << 64n; while (b > 127n) { o.push(Number(b & 127n) | 128); b >>= 7n; } o.push(Number(b)); return o; };
@@ -84,11 +84,11 @@ const demo = () => feed(
   assert.deepStrictEqual(Object.keys(gezien.o.headers).sort(), ['Accept', 'User-Agent']);
   const alles = JSON.stringify([gezien.url, REQUEST_OPTIONS]);
   assert.ok(!/gde-|player|speler|naam|name|token|key|id=|cookie|authorization/i.test(alles.replace(/Accept|User-Agent|OpenDataLezer/g, '')), 'geen spelergegevens in de opvraag');
-  const src = fs.readFileSync(new URL('../game/js/livetreinen.js', import.meta.url), 'utf8');
-  assert.ok(!/localStorage|sessionStorage|storagekeys|getSettings|document\.cookie|navigator\./.test(src), 'livetreinen.js leest geen opslag of instellingen');
-  const src2 = fs.readFileSync(new URL('../game/js/treinlive.js', import.meta.url), 'utf8');
-  assert.ok(!/localStorage|sessionStorage|storagekeys|document\.cookie|navigator\./.test(src2), 'treinlive.js leest geen opslag');
-  assert.ok(!/https?:\/\//.test(src2.replace(/\/\/.*$/gm, '')), 'treinlive.js heeft geen eigen url');
+  const src = fs.readFileSync(new URL('../game/js/livetrains.js', import.meta.url), 'utf8');
+  assert.ok(!/localStorage|sessionStorage|storagekeys|getSettings|document\.cookie|navigator\./.test(src), 'livetrains.js leest geen opslag of instellingen');
+  const src2 = fs.readFileSync(new URL('../game/js/trainlive.js', import.meta.url), 'utf8');
+  assert.ok(!/localStorage|sessionStorage|storagekeys|document\.cookie|navigator\./.test(src2), 'trainlive.js leest geen opslag');
+  assert.ok(!/https?:\/\//.test(src2.replace(/\/\/.*$/gm, '')), 'trainlive.js heeft geen eigen url');
 }
 
 // --- zacht falen ---
@@ -188,7 +188,7 @@ const demo = () => feed(
 
 // --- de desktop-opvraag (main-proces) heeft dezelfde url en grenzen ---
 {
-  const cjs = createRequire(import.meta.url)('../desktop/livetreinen.cjs');
+  const cjs = createRequire(import.meta.url)('../desktop/livetrains.cjs');
   assert.strictEqual(cjs.LIVE_URL, LIVE_TRAINS.url);
   assert.strictEqual(cjs.TIMEOUT, LIVE_TRAINS.timeout);
   assert.strictEqual(cjs.MAX_BYTES, LIVE_TRAINS.maxBytes);
@@ -204,7 +204,7 @@ const demo = () => feed(
   const groot = async () => ({ ok: true, status: 200, body: { getReader: () => ({ read: async () => ({ done: false, value: new Uint8Array(cjs.MAX_BYTES + 1) }) }) } });
   assert.strictEqual((await cjs.haalLiveTreinen(groot)).ok, false, 'te groot');
   const pkg = fs.readFileSync(new URL('../desktop/package.json', import.meta.url), 'utf8');
-  assert.ok(pkg.includes('livetreinen.cjs'), 'in het pakket');
+  assert.ok(pkg.includes('livetrains.cjs'), 'in het pakket');
   const pre = fs.readFileSync(new URL('../desktop/preload.js', import.meta.url), 'utf8');
   assert.ok(/liveTreinen: \(\) => ipcRenderer\.invoke\('gde:live-treinen'\)/.test(pre), 'de brug neemt geen argumenten aan');
   const main = fs.readFileSync(new URL('../desktop/main.js', import.meta.url), 'utf8');
@@ -219,4 +219,4 @@ if (process.env.GDE_TRAIN_PB) {
   console.log('echte feed:', m.length, 'meldingen,', m.filter((x) => x.delay >= 60).length, 'met vertraging');
 }
 
-console.log('livetreinen_test: ok');
+console.log('livetrains_test: ok');

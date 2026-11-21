@@ -118,7 +118,7 @@ export function openOnlineStart({ naam = getSettings().onlineNaam } = {}) {
 
 
 // What the boot calls: only a player who was never asked gets the screen, once (a saved valid name is the proof).
-// Consent that was withdrawn later is asked when Samen spelen is chosen (startchoiceui.js), not on every start.
+// Consent that was withdrawn later is asked when Samen spelen is chosen (launchchoiceui.js), not on every start.
 export function maybeOpenOnlineStart(opts = {}) {
   const s = opts.settings || getSettings();
   return moetNaamVragen(s) ? openOnlineStart(opts) : Promise.resolve(null);

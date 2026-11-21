@@ -55,7 +55,7 @@ import { provinceMapOn } from './provincemap.js';
 import { edgeDistance } from './countryfield.js';
 import { streetAt as roadStreetAt } from './tileplace.js';
 import { ommelandArea } from './ommelandplace.js';
-import { districtAt } from './wijkat.js';
+import { districtAt } from './districtat.js';
 import { ommelandMapSpots, drawOmmelandMapIcon } from './ommelandmap.js';
 import { beppeMapSpot } from './beppe_garden.js';
 import { perceelMapSpots, drawPerceelMapIcon } from './perceelmap.js';
@@ -68,7 +68,7 @@ import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, getCareRoute
 import { getClockText } from './clocktext.js';
 export { getClockText };
 import { storyWaiting, missionOnMap, getGoal } from './goal.js';
-import { resolveNavTargets, snapshotFromWorld, distanceFor, navColor, NAV_ROL, GLYPH } from './navdoel.js';
+import { resolveNavTargets, snapshotFromWorld, distanceFor, navColor, NAV_ROL, GLYPH } from './navtarget.js';
 import { drawKompasRand, MAX_ANDEREN } from './navpijl.js';
 import { setGhostBar, ring, pop, reducedMotion } from './motion.js';
 import { renderSnapshot, PORTRAIT_ANGLE } from './vehiclepreview.js';
@@ -924,7 +924,7 @@ function currentDistrict(world) {
   const area = ommelandArea(x, y);
   if (area) return areaNameAt(x, y).name;
   // The ~66 named neighbourhood/quarter points give a genre-style district name ("Binnenstad", "Ebbingekwartier", ...), but
-  // only where the player really is in the city (wijkat.js): outside it the nearest point of the city is no wijk (before,
+  // only where the player really is in the city (districtat.js): outside it the nearest point of the city is no wijk (before,
   // a spot in Winsum or on the A7 was "Paddepoel-Noord"). Out of the city and the wijken it is the place or Ommeland.
   const wijk = districtAt(meta.neighbourhoodPoints || [], x, y);
   if (wijk) return wijk.name;
@@ -1069,7 +1069,7 @@ function updateGps(dt, world) {
   const v0 = p.inVehicle;
   const card = turn ? null : modeCard(route, mode, mode === 'lucht' ? { x: v0 ? v0.x : p.x, y: v0 ? v0.y : p.y, z: v0 ? v0.z || 0 : p.gz || 0, angle: v0 ? v0.angle : p.angle, speed: v0 ? v0.speed : 0 } : null);
   gpsState.card = card;
-  // de kaart volgt de kleur van de route die hij uitlegt (geel autoroute, paars eigen doel): dezelfde bron als de boog op de minimap (navdoel.js)
+  // de kaart volgt de kleur van de route die hij uitlegt (geel autoroute, paars eigen doel): dezelfde bron als de boog op de minimap (navtarget.js)
   els.gps.style.setProperty('--nav-doel', route ? ROUTE_COLORS[route.kind] || '' : '');
   if (!turn && !card && !gpsState.timer) return;
   let key = gpsState.timer;
@@ -1823,7 +1823,7 @@ function hexA(hex, a) {
 }
 
 function applyPalette(p = markerColors()) {
-  // navdoel.js NAV_ROL kiest per type de paletrol: de kleur van een route of pijl wijzigen is daar één regel
+  // navtarget.js NAV_ROL kiest per type de paletrol: de kleur van een route of pijl wijzigen is daar één regel
   Object.assign(ROUTE_COLORS, { user: p[NAV_ROL.eigen], mission: p[NAV_ROL.missie], job: p[NAV_ROL.klus], care: p[NAV_ROL.zorg] });
   C.red = p.danger;
   C.yellow = p.mission;
@@ -3000,7 +3000,7 @@ function drawMinimap(dt, world) {
   const groepDoelen = kaartDoelen(world);
   const eigenGroepDoelen = showMission || job ? [] : groepDoelen.filter((gd) => gd.eigen);
   const gastStart = world.coopRole === 'client' && !showMission && !job && !gastDoelLijst[0] && world.coopHost && world.coopHost.starts && world.coopHost.starts[0]; // het beginpunt van de volgende opdracht van de gastheer (#434)
-  // #1078 navdoel.js: welk doel de pijl volgt (gevuld), welke wachten (hol) en welke doelen dezelfde plek zijn
+  // #1078 navtarget.js: welk doel de pijl volgt (gevuld), welke wachten (hol) en welke doelen dezelfde plek zijn
   const careRoute = getCareRoute();
   const lekGarage = lekkeBandGarage(player.inVehicle, player.x, player.y);
   const goalNu = getGoal();

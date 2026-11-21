@@ -19,7 +19,7 @@ export const onlineNaamFout = (naam) => {
 };
 export const onlineNaamOk = (naam) => onlineNaamFout(naam) === '';
 export const moetVragen = (settings = getSettings()) => settings.onlineMeedoen !== true || !onlineNaamOk(settings.onlineNaam);
-// Sinds de startkeuze (Alleen of Samen, startchoice.js) zijn het twee vragen. De naamkaart komt EENMALIG, op de eerste start:
+// Sinds de startkeuze (Alleen of Samen, launchchoice.js) zijn het twee vragen. De naamkaart komt EENMALIG, op de eerste start:
 // wie een geldige naam bewaarde krijgt hem nooit meer vanzelf (de naam past hij later aan in het pauzemenu). De toestemming
 // wordt pas gevraagd als iemand Samen kiest en ze niet (meer) bewaard is: Alleen spelen gebruikt het netwerk niet.
 export const moetNaamVragen = (settings = getSettings()) => !onlineNaamOk(settings.onlineNaam);

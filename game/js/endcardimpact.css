@@ -1,4 +1,4 @@
-/* Eindkaart met impact (eindkaartimpact.js, wens 21-11): het gele vlak slaat in beeld met een kleine overshoot en een
+/* Eindkaart met impact (endcardimpact.js, wens 21-11): het gele vlak slaat in beeld met een kleine overshoot en een
    lichte schok, de onderdelen komen gestaffeld, een glans sluit af. Elke stap is hooguit --ds-m-max (250 ms); elke
    vertraging is een veelvoud van --ds-m-snel (--bm-n). Bij Beweging beperken en Rustig drukwerk zijn die tokens 0 en
    zet de JS de klasse .bm-i niet: dan geldt alleen de snelle fade hierboven. .bm-klaar (toets of klik) toont direct de eindstand. */

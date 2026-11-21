@@ -7,15 +7,15 @@
 //  B  Icoon-in-schild   een bordje (afgerond vierkant met een punt naar het doel) met een groot icoon in een papieren schijf; secundair een rond bordje
 //  C  Kompasboog        een rustige stippellijn langs de rand met één dikke boog op de plek van het doel en het icoon erop; secundair een stip op de lijn
 //
-// Regels die alle drie delen (en die de logica uit game/js/navdoel.js al afdwingt): één actief doel met de afstand erbij (13 px en meer),
+// Regels die alle drie delen (en die de logica uit game/js/navtarget.js al afdwingt): één actief doel met de afstand erbij (13 px en meer),
 // hooguit twee secundaire doelen zonder pijl, niets dat op elkaar stapelt (de markers worden langs de rand uit elkaar geschoven) en een vaste
-// afstand tot de rand van de kaart. Wat actief is komt uit navdoel.js; de mock beslist dat niet zelf.
+// afstand tot de rand van de kaart. Wat actief is komt uit navtarget.js; de mock beslist dat niet zelf.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DS_TERUGVAL } from '../game/js/kaartkleuren.js';
 import { PALETTES } from '../game/js/a11y.js';
-import { resolveNavTargets, NAV_ROL } from '../game/js/navdoel.js';
+import { resolveNavTargets, NAV_ROL } from '../game/js/navtarget.js';
 import { iconInner } from '../game/js/icons.js';
 
 const UIT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'docs', 'beeld-21-11', 'minimap-pijlen', 'mock.html');
@@ -244,7 +244,7 @@ body[data-view="all"] .ontwerp, body[data-view="a"] #oA, body[data-view="b"] #oB
 .zoom { display: grid; grid-template-columns: repeat(3, ${2 * (S + 26) + 8}px); gap: 28px; } .x2 .tegel { zoom: 2; } .x2 figcaption { display: none; }
 </style></head><body data-view="all">
 <h1>Minimap: doelmarkering, drie ontwerpen</h1>
-<p>Tweede ontwerpronde bij docs/MINIMAP-PIJLEN-21-11.md (issue #1078). De kaart is de echte minimap uit de spelbeelden van 21-11, de kleuren staan in de tokens (<code>--nav-actief</code> geel, <code>--nav-eigen</code> paars, <code>--nav-klus</code> oranje, <code>--nav-zorg</code> roze), de iconen zijn Phosphor. Welk doel actief is komt uit game/js/navdoel.js. Er is niets in het spel toegepast.</p>
+<p>Tweede ontwerpronde bij docs/MINIMAP-PIJLEN-21-11.md (issue #1078). De kaart is de echte minimap uit de spelbeelden van 21-11, de kleuren staan in de tokens (<code>--nav-actief</code> geel, <code>--nav-eigen</code> paars, <code>--nav-klus</code> oranje, <code>--nav-zorg</code> roze), de iconen zijn Phosphor. Welk doel actief is komt uit game/js/navtarget.js. Er is niets in het spel toegepast.</p>
 ${sets}${vergelijk}${detail}
 <script>document.body.dataset.view = (location.hash || '#all').slice(1);</script>
 </body></html>

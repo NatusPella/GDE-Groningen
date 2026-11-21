@@ -151,8 +151,8 @@ import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from '.
 import { aandeel, tegelFoci, nietBijFoci } from './coopfoci.js';
 import { wantsOpenSamen, takeOpenSamen, samenGate } from './samenpanel.js';
 import { maybeOpenOnlineStart } from './onlineconsentui.js';
-import { launchPlan, askLaunchChoice, applyLaunchMode, getLaunchMode, bewaarKeuze } from './startchoice.js'; // Alleen of Samen bij elke start (eigenaarsbesluit 21-11)
-import { openLaunchChoice, openToestemming } from './startchoiceui.js';
+import { launchPlan, askLaunchChoice, applyLaunchMode, getLaunchMode, bewaarKeuze } from './launchchoice.js'; // Alleen of Samen bij elke start (eigenaarsbesluit 21-11)
+import { openLaunchChoice, openToestemming } from './launchchoiceui.js';
 import { openSamenKeuze } from './samenkeuze.js';
 import { requestOpenSamen } from './samenpanel.js';
 import { gateOn, setGate } from './coopgate.js';
@@ -228,9 +228,9 @@ import { shopSignKind } from './shopsigns3d.js';
 import { loadBusLines } from './busroutes.js';
 import { setBusLines, attachToNearestRoad, getBusLines, setLiveBussen } from './vehicle.js';
 import { maakBusLive } from './buslive.js';
-import { createTrainLive } from './treinlive.js';
-import { createServiceSource } from './treindienst.js';
-import { laadRooster as laadTreinRooster, codesUit as treinCodes, dayTypeOf as treinDagsoort } from './treinrooster.js';
+import { createTrainLive } from './trainlive.js';
+import { createServiceSource } from './trainservice.js';
+import { laadRooster as laadTreinRooster, codesUit as treinCodes, dayTypeOf as treinDagsoort } from './trainschedule.js';
 import { weekdayOf } from './calendar.js';
 import { tikBusMelding } from './busmelding.js'; // de rustige melding bij de eerste live bus (#922)
 import { stapSlaOver } from './simlagen.js';
@@ -282,12 +282,12 @@ registerActivityKind({ id: 'kaartjes', slot: 'uitje', interact: tryControle, tic
 // direct), houdt de stand bij en respecteert de instelling. Zonder netwerk-opvraag in de testruns.
 const liveBussenToegestaan = !(DEV || FLAGS.trailer);
 const busLive = maakBusLive({ zetBron: setLiveBussen, instellingen: getSettings, toegestaan: () => liveBussenToegestaan });
-// live treinen (#1085): het echte rooster (game/treinrooster.json) op de vertrekborden, met de live vertragingen uit treinlive.js (zelfde opzet
+// live treinen (#1085): het echte rooster (game/trainschedule.json) op de vertrekborden, met de live vertragingen uit trainlive.js (zelfde opzet
 // als de bussen: uitzetter liveTreinen in Instellingen, zonder opvraag in de testruns). Zonder rooster houden de stations hun eigen dienst.
 let treinRooster = null;
 laadTreinRooster().then((r) => { treinRooster = r; });
 const treinLive = createTrainLive({ instellingen: getSettings, toegestaan: () => liveBussenToegestaan });
-// De treinen in de wereld volgen hetzelfde rooster als het bord (treindienst.js, railway.js planTreinDienst): de plek komt uit de spelklok. In Samen
+// De treinen in de wereld volgen hetzelfde rooster als het bord (trainservice.js, railway.js planTreinDienst): de plek komt uit de spelklok. In Samen
 // spelen rekent iedereen zonder live vertraging, zodat host en gasten dezelfde treinen op dezelfde plek zien (de vertraging komt uit een eigen opvraag).
 const treinDagsoortVan = (w) => treinDagsoort(weekdayOf(calendarToday(w)));
 const treinLiveStand = (w) => (w && w.coopRole ? null : treinLive.bron.vertragingen());
@@ -627,7 +627,7 @@ const loadMarks = window.__loadMarks = {};
 const markLoad = (k) => { loadMarks[k] = Math.round(performance.now()); };
 let tileWorldStats = null;
 
-// De startvragen (startchoice.js): de naamkaart EENMALIG op de eerste start (verplicht, geen time-out en geen Escape), daarna bij
+// De startvragen (launchchoice.js): de naamkaart EENMALIG op de eerste start (verplicht, geen time-out en geen Escape), daarna bij
 // elke start de keuzekaart Alleen of Samen. Alleen kiest het enkelspelerpad zonder netwerk; Samen vraagt zo nodig eerst de
 // toestemming en daarna Een spel openen of Meedoen. Een testrun (vlaggen hieronder) en ?startkeuze=alleen slaan de kaart over.
 let onlineVraag = null;
@@ -1081,7 +1081,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     // Wie online meedoet, wacht eerst op de startzoektocht (#528); die host of sluit aan, of
     // geeft na een paar pogingen op. Duurt het te lang of kan hij niet beginnen, dan valt de
     // sessie van één na 12 s in (de zoektocht stopt dan zelf zodra hij een sessie ziet).
-    const onlineNu = magOnline() && getLaunchMode() !== 'alleen'; // Alleen spelen houdt het netwerk dicht (startchoice.js)
+    const onlineNu = magOnline() && getLaunchMode() !== 'alleen'; // Alleen spelen houdt het netwerk dicht (launchchoice.js)
     soloWachtS = onlineNu ? soloWachtS + dt : 0;
     const soloKlaar = !onlineNu || sessionBootDone(world) || (soloWachtS > 12 && !sessionBootBezig(world));
     if (!world.coopNet && !world.coopWissel && !wantsOpenSamen() && !isPauseMenuOpen() && !document.getElementById('load-screen') && document.body.classList.contains('game-started')

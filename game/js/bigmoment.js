@@ -36,7 +36,7 @@ const cut = (s, max) => {
 // At most `max` words, the rest becomes an ellipsis: the same budget as the rest of the UI.
 import { isPauseMenuOpen } from './pausestate.js';
 import { hoofdspeler } from './players.js';
-import { planIntro, isSkipEvent } from './eindkaartimpact.js';
+import { planIntro, isSkipEvent } from './endcardimpact.js';
 
 export function klemWoorden(tekst, max = MAX_WOORDEN) {
   const w = String(tekst == null ? '' : tekst).replace(/\s+/g, ' ').trim().split(' ').filter(Boolean);
@@ -217,7 +217,7 @@ function ensureCss() {
   document.head.appendChild(link);
   const impact = document.createElement('link'); // de eindkaart met impact: eigen animaties, los van de rustige big moments
   impact.rel = 'stylesheet';
-  impact.href = new URL('./eindkaartimpact.css', import.meta.url).href;
+  impact.href = new URL('./endcardimpact.css', import.meta.url).href;
   document.head.appendChild(impact);
 }
 
@@ -252,7 +252,7 @@ function rustigStand() {
   return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 }
 
-// De intro met impact van de band (eindkaartimpact.js): klassen en CSS-variabelen voor de staffeling, timers voor
+// De intro met impact van de band (endcardimpact.js): klassen en CSS-variabelen voor de staffeling, timers voor
 // geluid en teller. Een toets of klik (niet vastgehouden) slaat over en toont direct de eindstand. Geeft een
 // opruimfunctie terug; bij Beweging beperken of Rustig drukwerk blijft het bij de snelle fade en één geluid.
 function startImpact(el, m) {

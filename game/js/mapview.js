@@ -62,7 +62,7 @@ import { wantsTeleport, plekNaam } from './kaartteleport.js';
 import { ALLEEN_EIGEN_SPEL } from './coopgast.js';
 import { DEV } from './devflags.js';
 import { getGoal, setGoal, clearGoal, missionOnMap } from './goal.js';
-import { resolveNavTargets, snapshotFromWorld, distanceFor, navColor, GLYPH } from './navdoel.js';
+import { resolveNavTargets, snapshotFromWorld, distanceFor, navColor, GLYPH } from './navtarget.js';
 import { drawMapTargets } from './navpijl.js';
 import { markerColors } from './a11y.js';
 import { gameBusy } from './busy.js';
@@ -1975,7 +1975,7 @@ function drawDynamicMarkers(ctx, world) {
     if (q.samen && q.samen.deels) drawDeelsMarkering(ctx, q.sx + 7 * sc, q.sy - 7 * sc, sc);
     if (q.name) hover.push({ sx: q.sx, sy: q.sy, name: q.name, sub: q.sub, tipSub: q.samen ? q.samen.tekst + (q.sub ? ' · ' + q.sub : '') : undefined, x: q.x, y: q.y, kind: q.kind, ...q.pick });
   }
-  // #1078 navdoel.js: dezelfde taal als de minikaart. Het doel dat je volgt is een rond icoon met de afstand, wachtende doelen zijn kleine iconen;
+  // #1078 navtarget.js: dezelfde taal als de minikaart. Het doel dat je volgt is een rond icoon met de afstand, wachtende doelen zijn kleine iconen;
   // jouw eigen doel houdt zijn paarse pin en krijgt alleen de afstand. Een klik werkt op de pin eronder (hover blijft bij de pins).
   {
     const careRoute = getCareRoute();

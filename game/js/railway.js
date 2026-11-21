@@ -15,7 +15,7 @@ import { onPerron } from './perrons.js';
 import { duwVanWagen, volgTrein, treinKlap, TREIN_SPRONG_M } from './treincoop.js';
 import { MAP_PALETTE, INK } from './mapstyle.js';
 import { baanvakken, vakPunten } from './blokseinen.js';
-import { actieveLegs } from './treindienst.js';
+import { actieveLegs } from './trainservice.js';
 
 const HALF_WIDTH = 1.45;
 const DWELL = 25;
@@ -83,7 +83,7 @@ let lifts = [];
 let bounds = null;
 let ready = false;
 
-// --- de treinen volgen het echte rooster (#1085, treindienst.js) -------------------------------------------------
+// --- de treinen volgen het echte rooster (#1085, trainservice.js) -------------------------------------------------
 // main.js geeft een bron: (world) => { dienst, nu, stand } | null. Heeft een spoorlijn legs in de dienst, dan is haar kleine
 // "heen en weer"-trein weg en rijdt er een pool treinen die elk een rit (leg) van het bord spelen: de plek, snelheid, het stilstaan
 // op de haltes en de richting komen uit de spelklok (legState), niet uit een simulatie, dus overal gelijk (host, gast, bord).

@@ -1,16 +1,16 @@
 // Live treinen (#1085), de bedrading (model: buslive.js): de stand van de live vertragingen bijhouden, de uitzetter uit
 // Instellingen (liveTreinen) respecteren en de opvraag doen (in Electron via het main-proces, anders direct).
-// De regels zelf (protobuf lezen, de opvraag, de sleutel) staan in livetreinen.js; dit bestand voegt alleen het ritme, de stand
+// De regels zelf (protobuf lezen, de opvraag, de sleutel) staan in livetrains.js; dit bestand voegt alleen het ritme, de stand
 // en de keuze van de fetch toe. Geen THREE en geen DOM, zodat de tests met een nep-fetch en een nep-omgeving kunnen draaien
-// (scripts/livetreinen_test.mjs).
+// (scripts/livetrains_test.mjs).
 //
 // Alles faalt zacht: bij een fout, time-out, te groot of ongeldig bestand, een lege feed, een bron die weg is of de instelling
 // uit, toont het bord het rooster zonder vertraging (stand() geeft dan geen vertragingen).
 
-import { LIVE_TRAINS, fetchLiveTrains, buildDelayMap, bridgeAsFetch } from './livetreinen.js';
+import { LIVE_TRAINS, fetchLiveTrains, buildDelayMap, bridgeAsFetch } from './livetrains.js';
 
 // De opvraag: in Electron doet het main-proces hem (een renderer op gde:// mag zonder CORS-koppen niet lezen); in de
-// webversie direct. Zonder brug en zonder fetch is er geen bron. Alleen de vaste url uit livetreinen.js gaat mee.
+// webversie direct. Zonder brug en zonder fetch is er geen bron. Alleen de vaste url uit livetrains.js gaat mee.
 export function kiesFetch(omgeving = globalThis) {
   const bridge = omgeving && omgeving.gdeDesktop && omgeving.gdeDesktop.liveTreinen;
   if (typeof bridge === 'function') return bridgeAsFetch(bridge);

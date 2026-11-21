@@ -14,7 +14,7 @@ export async function laadBootWereld() {
   const S = await import('../../game/js/tilestore.js');
   const TW = await import('../../game/js/tileworld.js');
   const G = await import('../../game/js/gdt.js');
-  const B = await import('../../game/js/vehicle/bootplekken.js');
+  const B = await import('../../game/js/vehicle/boatspots.js');
   globalThis.requestAnimationFrame = globalThis.requestAnimationFrame || ((f) => setImmediate(f));
   const files = new Proxy({}, { get: (o, f) => (typeof f === 'string' ? (o[f] || (o[f] = new Uint8Array(fs.readFileSync(new URL(f, root))))) : undefined) });
   const T = await TW.loadTileWorld('world/', { source: new S.MemorySource(files), pool: false, extra: ['index-provincie.json'] });

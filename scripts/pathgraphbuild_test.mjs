@@ -1,6 +1,6 @@
-// De hervatbare graafopbouw (#1008):  node scripts/routegraphbuild_test.mjs  [--bench]
+// De hervatbare graafopbouw (#1008):  node scripts/pathgraphbuild_test.mjs  [--bench]
 // Stap voor stap bouwen (met een piepklein budget) geeft exact dezelfde graaf als achter elkaar, en een stap blijft klein.
-import { graphBuildSteps, runSteps, ROADS_PER_STEP } from '../game/js/routegraphbuild.js';
+import { graphBuildSteps, runSteps, ROADS_PER_STEP } from '../game/js/pathgraphbuild.js';
 
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info !== '' ? ` (${info})` : ''}`); } };
