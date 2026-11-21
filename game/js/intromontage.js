@@ -33,6 +33,7 @@ import { BIRDS, makeBirds, scatterBirds, updateBirds } from './birds.js';
 import { setIntroPlaying } from './trailerstate.js';
 import { openBank } from './voicebank.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
+import { TITLE } from './openingfilm.js'; // titelkaart en slogan komen uit de filmdata (docs/verhaal/OPENING-FILMSCRIPT-21-11.md)
 
 // Recorded montage dialogue: the story manifest ("<speaker>|<text>"), then the
 // lines manifest (linevoice.js) for the newer lines.
@@ -844,7 +845,7 @@ function buildShots(w) {
 
   const title = {
     minDur: 3.6, black: true,
-    card: logoHtml() + '<div class="im-tagline">Er gaat niets boven Grunn. Behalve de Martinitoren.</div><div class="im-kicker">Twee afgestudeerden. Eén frietwagen. Geen plek.</div>',
+    card: logoHtml() + `<div class="im-tagline">${TITLE.tagline}</div><div class="im-kicker">${TITLE.sub}</div>`,
   };
 
   // --- opening ---------------------------------------------------------------
