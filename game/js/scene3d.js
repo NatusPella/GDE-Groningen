@@ -117,7 +117,7 @@ const NO_WHEEL_INSTANCES = NO_BATCH;
 const wheelFrustum = new THREE.Frustum(), wheelProj = new THREE.Matrix4();
 import { getUiScale } from './uiscale.js';
 import { hideWaymarkers3D } from './waymarkers3d.js';
-import { setMarkerCamera, setMarkerEnv } from './worldmarker3d.js';
+import { setMarkerCamera, setMarkerEnv, disposeWorldMarker3D } from './worldmarker3d.js'; // #1065
 import { OUTLINE_MAT } from './pixelart3d.js';
 import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpacity, setStarShare, SKY_HORIZON } from './sky3d.js';
 import { computeLighting } from './daynight.js';
@@ -2835,6 +2835,7 @@ export function update3D(dt, world) {
     updateMissionMarker3D(missionMarkerMesh, world.time, world.mission.phase);
   } else if (missionMarkerMesh) {
     scene.remove(missionMarkerMesh);
+    disposeWorldMarker3D(missionMarkerMesh); // #1065
     missionMarkerMesh = null;
   }
   updateRouteRibbon3D(animDt, world);

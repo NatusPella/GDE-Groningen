@@ -94,6 +94,24 @@ ok(last.mat <= warm.mat + 120, 'materialen blijven begrensd', `${warm.mat} naar 
   ok(rows3[2] <= rows3[0], 'politiehelikopter: de geometrieteller groeit niet per helikopter', rows3.join());
   ok(matDisp <= 300 * 3, 'alleen de eigen materialen van de helikopter (lens, straal) gaan weg, de gedeelde niet', String(matDisp));
 }
+
+// --- wereldmarkers (missie- en coopbakens): bouwen en vrijgeven (#1065) ---
+{
+  const W = await import('../game/js/worldmarker3d.js');
+  const kinds = ['start', 'goal', 'job', 'checkpoint'];
+  const rows4 = []; let texDisp = 0;
+  const TP = THREE.Texture.prototype, t0 = TP.dispose; TP.dispose = function () { texDisp++; return t0.call(this); };
+  for (let i = 0; i < 300; i++) {
+    const m = W.buildWorldMarker3D(kinds[i % 4]);
+    m.traverse((o) => { if (o.isMesh && o.geometry) geoAlive.add(o.geometry); });
+    W.disposeWorldMarker3D(m);
+    if (i % 100 === 99) rows4.push(geoAlive.size);
+  }
+  TP.dispose = t0;
+  console.log('wereldmarkers: geometrieen na 100/200/300:', rows4.join(' '), 'labeltexturen vrijgegeven', texDisp);
+  ok(rows4[2] <= rows4[0], 'wereldmarker: de geometrieteller groeit niet per marker', rows4.join());
+  ok(texDisp === 300, 'elke marker geeft zijn labeltextuur terug (de gedeelde glyphtextuur niet)', String(texDisp));
+}
 if (process.argv.includes('--dump')) {
   const by = new Map();
   for (const g of geoAlive) { const k = `${Object.keys(g.userData || {}).join('+') || '-'} pos${g.attributes.position ? g.attributes.position.count : 0} idx${g.index ? 1 : 0}`; by.set(k, (by.get(k) || 0) + 1); }
