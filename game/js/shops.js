@@ -45,6 +45,7 @@ import {
 import { HAIR_COLORS, HAIR_STYLES, hairPrice, parseHair, HAIR_REACTIONS } from './clothinghair.js';
 import { SETS, setKeyFor, parsePiece } from './clothingdata.js';
 import { shopSections, wardrobeSections } from './clothingpanel.js';
+import { sfxEvent } from './sfx/haken.js';
 import { wantedClearCooldownLeft, markWantedCleared } from './heatcooldown.js'; // #838: spuiterij-cooldown
 
 export const SHOP_USE_RADIUS = 2.6;
@@ -709,6 +710,7 @@ function pay(world, price) {
   if (world.money < price) return false;
   noteMoney('Winkels');
   world.money -= price;
+  sfxEvent(world, 'shop_buy_coins');   // SFX ronde 5: munten op de toonbank, naast de kassa van de UI
   world.kassaKlik = true;   // sfx/ui.js: een aankoop klinkt als een kassa, geen muntjes (SFX-GAPS)
   recordStat(world, 'purchases');
   recordStat(world, 'spent', price);

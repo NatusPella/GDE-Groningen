@@ -19,6 +19,7 @@ import { registerLauncher } from './voetbalcarriereui.js';
 import { formationList } from './voetbalrules.js';
 import { awayKit } from './voetbalworld.js';
 import { pushAudioEvent } from './pedgeom.js';
+import { sfxEvent } from './sfx/haken.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedLiveTik, wedHostLiveEind, wedGastVerlaat, wedGastReset } from './multiplayerwedstrijd.js';
 import { hoofdspeler } from './players.js';
 import { KEYS } from './storagekeys.js';
@@ -427,20 +428,26 @@ function updateHost(w, dt) {
   handleEvents(w, wedLiveTik(w, g.sim, dt, () => inv));
 }
 
+// SFX ronde 5: een geluid van de centrale tabel op de plek van de bal (elke machine speelt zijn eigen wedstrijdgebeurtenissen: lokaal)
+function ballSfx(w, key) { const b = game && game.sim && game.sim.bal ? toWorld(game.sim.bal.x, game.sim.bal.y) : null; sfxEvent(w, key, b && b.x, b && b.y); }
+
 function handleEvents(w, evs) {
   const g = game;
   for (const e of evs) {
-    if (e.type === 'schop') { const q = toWorld(e.x, e.y); pushAudioEvent(w, { kind: 'golf', sub: 'slag', strength: 0.25 + 0.5 * (e.sterkte || 0.5), x: q.x, y: q.y }); }
-    else if (e.type === 'paal' || e.type === 'lat') { const b = toWorld(g.sim.bal.x, g.sim.bal.y); pushAudioEvent(w, { kind: 'golf', sub: 'rand', strength: 0.7, x: b.x, y: b.y }); }
+    if (e.type === 'schop') { const q = toWorld(e.x, e.y); pushAudioEvent(w, { kind: 'golf', sub: 'slag', strength: 0.25 + 0.5 * (e.sterkte || 0.5), x: q.x, y: q.y }); sfxEvent(w, 'football_kick', q.x, q.y); }
+    else if (e.type === 'paal' || e.type === 'lat') { const b = toWorld(g.sim.bal.x, g.sim.bal.y); pushAudioEvent(w, { kind: 'golf', sub: 'rand', strength: 0.7, x: b.x, y: b.y }); sfxEvent(w, 'football_post', b.x, b.y); }
     else if (e.type === 'goal') {
       const b = toWorld(g.sim.bal.x, g.sim.bal.y); pushAudioEvent(w, { kind: 'golf', sub: 'hole', strength: 0.9, x: b.x, y: b.y });
+      sfxEvent(w, 'football_net', b.x, b.y); sfxEvent(w, 'crowd_goal_roar', b.x, b.y);   // SFX ronde 5: het net en het publiek
       flits();
       say(w, e.team === 0 ? 'goalThuis' : 'goalUit', true);
-    } else if (e.type === 'redding') say(w, 'redding');
+    } else if (e.type === 'redding') { say(w, 'redding'); ballSfx(w, 'crowd_groan'); }
     else if (e.type === 'uit') say(w, 'uit');
     else if (e.type === 'overtreding') say(w, 'overtreding');
-    else if (e.type === 'fluit' && e.helft === 1) say(w, 'rust', true);
-    else if (e.type === 'einde') say(w, e.winnaar === 0 ? 'winst' : e.winnaar < 0 ? 'gelijk' : 'verlies', true);
+    else if (e.type === 'fluit') { if (e.helft === 1) say(w, 'rust', true); ballSfx(w, 'referee_whistle'); }
+    else if (e.type === 'aftrap' || e.type === 'hervat') ballSfx(w, 'referee_whistle');
+    else if (e.type === 'stuit') ballSfx(w, 'ball_bounce');
+    else if (e.type === 'einde') { say(w, e.winnaar === 0 ? 'winst' : e.winnaar < 0 ? 'gelijk' : 'verlies', true); ballSfx(w, 'referee_whistle'); sfxEvent(w, 'sport_stinger'); }
     const pop = popVan(e, 0);
     if (pop && (e.type === 'goal' || e.type === 'einde' || e.type === 'overtreding')) simHudPop(pop.tekst, pop.geluid);
   }

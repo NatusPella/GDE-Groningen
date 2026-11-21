@@ -8,6 +8,7 @@
 export const SAMPLE_BASE = './audio/sfx/';
 
 import { FILE_STEP_KEYS } from './steps.js';
+import { sfxSampleInfo, sfxOpnameAlleen, isSfxEvent, sfxClips } from './sfxmap.js';
 
 // cat: mixplan.js-categorie; gain: basisniveau; ref en range: afstandsdemping (m); gap: afkoeling in s tegen herhaling
 export const SAMPLE_INFO = {
@@ -83,13 +84,15 @@ const RONDE4_FX = {
   hydrauliek_sis: ['voertuig', 0.8, 6, 100], weegbrug_klik: ['deur', 0.7, 4, 50], brievenbus_klep: ['deur', 0.8, 3, 40], worp_lucht: ['voetstap', 0.7, 3, 40],
 };
 for (const [k, [cat, gain, ref, range]] of Object.entries(RONDE4_FX)) SAMPLE_INFO[k] = { cat, gain, ref, range, gap: 0 };
+// SFX round 5 (21-11): the clips of the central sound map (sfx/sfxmap.js): cat, level, distance fade and the lazy flag come from there
+Object.assign(SAMPLE_INFO, sfxSampleInfo());
 export const SAMPLE_KEYS = Object.keys(SAMPLE_INFO);
 
 // Opnames in de plaats van een synthgeluid: fx-naam van sfx/fxbank.js (met of zonder _n) naar de sleutels die hem vervangen.
 // audio.js playFx en sfx/ui.js uiFx kiezen een geladen sleutel; is er niets geladen, dan blijft de synth de terugval.
 export const FX_VERVANG = {
   winkel_kassa: ['kassa_koop'],
-  shop_bell: ['winkelbel_deur'],
+  shop_bell: ['winkelbel_deur', ...sfxClips('shop_door_chime')],   // round 5: three more door chimes (sfxmap.js)
   door_wood_open: ['deur_hout_open_op'],
   door_wood_close: ['deur_hout_dicht_op'],
   door_house_close: ['deur_huis_dicht_op'],
@@ -102,7 +105,7 @@ export const FX_VERVANG = {
   train_horn: ['trein_hoorn_kort', 'trein_hoorn_lang'],   // een audio-event (audio.js playTrainHorn), geen effect van fxbank.js
   tram_bel: ['tram_bel_op_0', 'tram_bel_op_1'],
   bus_bel: ['bus_halte_ding'],
-  bus_door_hiss: ['bus_deur_sis'],
+  bus_door_hiss: ['bus_deur_sis', ...sfxClips('train_air_brake')],   // round 5: air brake hiss as extra variants
   // ronde 4: opnames voor bestaande synthgeluiden
   ui_weiger: ['ui_fout'],
   ui_uitgave: ['munten_0', 'munten_1'],
@@ -123,19 +126,27 @@ export const FX_OPNAME_ALLEEN = {
   ei_breuk: ['ei_breuk_0', 'ei_breuk_1'],
   weegbrug_klik: ['weegbrug_klik'],
   oplegger_hydrauliek: ['hydrauliek_sis'],
-  perron_ding: ['omroep_ding'],
+  perron_ding: ['omroep_ding', ...sfxClips('station_chime')],   // round 5: two more station chimes
   stoomfluit: ['stoomfluit'],
   bel_uitslag: ['bel_uitslag'],
   brievenbus_klep: ['brievenbus_klep'],
   worp_lucht: ['worp_lucht'],
   dobber_plons: ['dobber_plons'],
 };
+// anti-repeat for the events of sfxmap.js: the clip played last per event is skipped while another is loaded
+const vorigeKeuze = new Map();
+Object.assign(FX_OPNAME_ALLEEN, sfxOpnameAlleen());   // round 5: every event of sfxmap.js
 export function vervangSleutel(name, has, rand = Math.random) {
   const kaal = String(name).replace(/_\d+$/, '');
   const lijst = FX_VERVANG[name] || FX_VERVANG[kaal] || FX_OPNAME_ALLEEN[name] || FX_OPNAME_ALLEEN[kaal];
   if (!lijst || typeof has !== 'function') return null;
-  const klaar = lijst.filter((k) => has(k));
-  return klaar.length ? klaar[Math.floor(rand() * klaar.length) % klaar.length] : null;
+  let klaar = lijst.filter((k) => has(k));
+  if (!klaar.length) return null;
+  const kaalNaam = isSfxEvent(name) || lijst.some((k) => SAMPLE_INFO[k] && SAMPLE_INFO[k].vary) ? name : null;
+  if (kaalNaam && klaar.length > 1 && vorigeKeuze.has(kaalNaam)) klaar = klaar.filter((k) => k !== vorigeKeuze.get(kaalNaam));
+  const keuze = klaar[Math.floor(rand() * klaar.length) % klaar.length];
+  if (kaalNaam) vorigeKeuze.set(kaalNaam, keuze);
+  return keuze;
 }
 
 // kleine willekeurige variatie per keer: toonhoogte ±4% en volume ±1,5 dB
@@ -196,7 +207,7 @@ export const LAZY_IDLE_MS = 5 * 60 * 1000;
 export const LAZY_MAX_BYTES = 48 * 1048576;
 export const TRIM_EVERY_MS = 20000;
 export const bufferBytes = (b) => (b && b.length && b.numberOfChannels ? b.length * b.numberOfChannels * 4 : 0);
-export function eagerKeys(keys = SAMPLE_KEYS) { return keys.filter((k) => SAMPLE_INFO[k] && EAGER_CATS.has(SAMPLE_INFO[k].cat)); }
+export function eagerKeys(keys = SAMPLE_KEYS) { return keys.filter((k) => SAMPLE_INFO[k] && EAGER_CATS.has(SAMPLE_INFO[k].cat) && !SAMPLE_INFO[k].lazy); }
 // fetchFn en ctx komen mee (testbaar); een mislukking is stil: buffer() blijft null en de synth neemt het over.
 export function createSamples(ctx, { fetchFn = typeof fetch === 'function' ? fetch : null, base = SAMPLE_BASE, keys = SAMPLE_KEYS, eager = eagerKeys(keys), gapMs = DECODE_GAP_MS, clock = () => Date.now(), idleMs = LAZY_IDLE_MS, maxBytes = LAZY_MAX_BYTES } = {}) {
   const buffers = new Map();

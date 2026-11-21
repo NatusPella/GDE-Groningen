@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { sfxEvent } from './sfx/haken.js';
 // The phone: Tammo and Tessa's foldable, the Pixie Vouw 11. Unfolded it IS
 // the pause menu (pausemenu.js draws the frame); this module fills its
 // Telefoon section: Contacten (calls with an action or two) and Berichten
@@ -327,6 +328,7 @@ export function phoneClick(e, w, panel, a) {
     note = '';
     callIdx = i;
     call = { contact: c, phase: 'ringing', t: 0, line: '', actions: [] };
+    sfxEvent(w, 'phone_ringtone');   // SFX ronde 5: het rinkelen (UI-bus, alleen op je eigen scherm)
     renderDetail();
     for (const b of panel.querySelectorAll('[data-ph-contact]')) b.toggleAttribute('aria-current', b === ct);
     return true;

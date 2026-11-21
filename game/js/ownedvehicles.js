@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { sfxEvent } from './sfx/haken.js';
 // Owned vehicles ("Mijn voertuigen"): the red Fjord Escapade plus everything
 // bought at Ome Harm Occasions / Trap & Toeter (the bought collection itself
 // lives in shops.js and is saved with it). Rentals and side-job/mission
@@ -523,6 +524,7 @@ export function verkoopVoertuig(world, id) {
   if (!o) return { ok: false, text: `Je ${e.model} kun je nu niet verkopen` };
   noteMoney('Verkoop');
   world.money += e.sellValue;
+  sfxEvent(world, 'shop_sell_bills');   // SFX ronde 5: biljetten geteld
   const text = e.sellScrap ? `${e.model} gesloopt voor ${euro(e.sellValue)}` : `${e.model} verkocht voor ${euro(e.sellValue)}`;
   world.addMessage(text, 4);
   return { ok: true, text, bedrag: e.sellValue };

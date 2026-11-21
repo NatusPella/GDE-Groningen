@@ -6,12 +6,17 @@
 // De bestaande reacties van ui.js (kassa bij + EUR, munitie, spuitbus, mislukte missie, gezondheid, pantser)
 // gaan voor: deze regels krijgen alleen wat daar niet onder valt.
 
+import { sfxUiGaps } from './sfxmap.js';
+
 // minimale tijd (s) tussen twee keer hetzelfde geluid; de lange en betekenisvolle zijn ruimer dan de tikjes
 export const UI_COOLDOWN = {
   ui_tab: 0.08, ui_weiger: 0.6, ui_toast: 1.2, ui_kaart_open: 0.4, ui_kaart_dicht: 0.4, ui_ontdek: 2.5,
   ui_uitkijk: 4, ui_verzameld: 0.5, ui_loopbaan: 4, ui_uitgave: 1.0, ui_gevaar: 3, winkel_kassa: 0.5,
   ui_speler_binnen: 1.5, ui_speler_weg: 1.5, ui_uitnodiging: 3,
 };
+
+// de UI-events van de centrale geluidstabel (sfxmap.js, SFX ronde 5): hun afkoeltijd per event
+for (const [k, g] of Object.entries(sfxUiGaps())) if (!(k in UI_COOLDOWN)) UI_COOLDOWN[k] = g;
 
 // het geluid dat zachter moet zijn dan het niveau van de categorie (1 = gelijk); de lange, vrolijke zijn al vol
 export const UI_NIVEAU = {
