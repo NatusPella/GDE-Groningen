@@ -11,6 +11,7 @@ const C = await import('../game/js/clothing.js');
 const P = await import('../game/js/models3d_people.js');
 const A = await import('../game/js/models3d_clothing.js');
 const SH = await import('../game/js/shops.js');
+const H = await import('../game/js/clothinghair.js');
 
 let n = 0, fails = 0;
 const tests = [];
@@ -165,7 +166,7 @@ t('verhaaloutfit: komt over wat je aan hebt en gaat weg zonder iets te kosten', 
   assert.deepEqual(C.wornPieces('tammo'), eigen, 'je eigen kleding blijft');
   assert.equal(C.forceStoryLook('incognito'), false, 'dezelfde twee keer is geen wijziging');
   assert.equal(C.forceStoryLook(null), true);
-  assert.deepEqual(C.effectiveWorn('tammo'), eigen);
+  assert.deepEqual(C.effectiveWorn('tammo'), { ...eigen, hair: C.getHair('tammo') });
   assert.equal(C.forceStoryLook('bestaatniet'), false);
   assert.equal(C.forceStoryLook({ tammo: { top: 'tshirt.groen', bottom: 'jeans.zwart', shoes: 'gympen.wit' } }), true, 'een eigen kaart per personage');
   assert.equal(C.effectiveWorn('tammo').top, 'tshirt.groen');
@@ -221,7 +222,7 @@ t('outfit-code: rondreis voor spelers en NPC\'s, korte code, een onbekend nummer
   assert.equal(C.decodeOutfit('k1' + 'zz09'), null, 'onbekend item');
   assert.equal(C.decodeOutfit('k1'.padEnd(200, 'a')), null, 'te lang');
   const alles = {}; for (const s of D.SLOT_IDS) { const it = D.ITEMS.find((i) => i.slot === s); alles[s] = `${it.id}.${it.colors[0]}`; }
-  assert.ok(C.encodeOutfit(alles).length <= 2 + 4 * D.SLOT_IDS.length);
+  assert.ok(C.encodeOutfit(alles).length <= 4 + 4 * D.SLOT_IDS.length);
 });
 
 t('NPC-outfits: deterministisch, rol bepaalt de kleding, altijd een geldige outfit', () => {
@@ -255,6 +256,154 @@ t('NPC-model: buildPersonMesh met een rol geeft een persoon met de kleding van d
   assert.equal(kok.userData.body.geometry, zelfde.userData.body.geometry, 'dezelfde NPC deelt zijn geometrie (cache)');
   const bouw = P.buildPersonMesh(0x888888, 0xd9aa82, { seed: 3, role: 'bouwvakker' });
   assert.notEqual(kok.userData.body.geometry, bouw.userData.body.geometry);
+});
+
+t('voetgangers: rol per buurt en uur, deterministisch, verdeling klopt', () => {
+  assert.equal(C.pedRole(12.5, { area: 'student', hour: 14 }), C.pedRole(12.5, { area: 'student', hour: 14 }));
+  const tel = (ctx) => { const o = {}; for (let i = 0; i < 1500; i++) { const r = C.pedRole(i * 1.37, ctx); o[r] = (o[r] || 0) + 1; } return o; };
+  const campus = tel({ area: 'student', hour: 12 }), stad = tel({ area: 'centrum', hour: 12 }), nacht = tel({ area: 'centrum', hour: 23 }), bouw = tel({ area: 'industrie', hour: 10 });
+  assert.ok(campus.student > stad.student * 2, 'meer studenten op de campus');
+  assert.ok(stad.toerist > campus.toerist * 2, 'meer toeristen in het centrum');
+  assert.ok((nacht.feestganger || 0) > (stad.feestganger || 0) * 2, 'feestgangers in de nacht');
+  assert.ok((bouw.bouwvakker || 0) > (stad.bouwvakker || 0) * 5, 'bouwvakkers op het industrieterrein');
+  assert.ok(stad.voetganger > 600, 'de gewone voetganger blijft de grootste groep');
+  for (const r of Object.keys(campus)) assert.ok(r in D.ROLE_POOLS, 'rol zonder pool: ' + r);
+});
+
+t('voetgangers: drawcalls en driehoeken van een menigte rolfiguren blijven binnen budget', () => {
+  let meshes = 0, maxTris = 0, n = 0;
+  for (let i = 0; i < 300; i++) {
+    const role = C.pedRole(i * 2.1, { area: 'centrum', hour: 13 });
+    const m = P.buildPersonMesh(0x3a3f47, 0xd9aa82, { seed: i * 2.1, role, outfitCtx: { rain: i % 4 === 0 } });
+    let c = 0, tris = 0;
+    m.traverse((x) => { if (x.isMesh) { c++; tris += x.geometry.attributes.position.count / 3; } });
+    meshes += c; n++; maxTris = Math.max(maxTris, tris);
+  }
+  assert.equal(meshes, n, 'een NPC is één drawcall; ');
+  assert.ok(meshes / n < 1.2, 'gemiddeld aantal meshes per figuur: ' + (meshes / n).toFixed(2));
+  assert.ok(maxTris < 6500, 'driehoeken: ' + maxTris);
+});
+
+t('verhaalpersonages en politie houden hun vaste look: een look of cop gaat voor een rol', () => {
+  const jelle = src('../game/js/storycast.js');
+  assert.ok(/JELLE_LOOK/.test(jelle));
+  const SC = null; void SC;
+  const a = P.buildPersonMesh(0x1d4f9c, 0xe9c29c, { seed: 1581, look: { top: 'blazer' }, role: 'kok' });
+  const b = P.buildPersonMesh(0x1d4f9c, 0xe9c29c, { seed: 1581, look: { top: 'blazer' } });
+  assert.equal(a.userData.body.geometry, b.userData.body.geometry, 'een eigen look negeert de rol');
+  const cop = P.buildPersonMesh(0x1c3fae, 0xe9c29c, { seed: 5, role: 'kok' });
+  const cop2 = P.buildPersonMesh(0x1c3fae, 0xe9c29c, { seed: 5 });
+  assert.equal(cop.userData.body.geometry, cop2.userData.body.geometry, 'politie blijft politie');
+  const bron = src('../game/js/scene3d.js');
+  assert.ok(/pedOutfitOpts/.test(bron) && /p\.isCop \|\| p\.look/.test(bron), 'de voetgangerbouw gebruikt de rol');
+});
+
+t('kapper: haar is deel van de outfit, per personage, in presets, code, save en verhaaloutfit', () => {
+  assert.equal(C.getHair('tammo'), 'short.naturel');
+  assert.equal(C.getHair('anita'), 'long.naturel');
+  assert.equal(C.setHair('tammo', 'bob', 'zwart'), false, 'een stijl van Tessa kan Tammo niet (zijn eigen lijst)');
+  assert.equal(C.setHair('tammo', 'bald', 'zwart'), true);
+  assert.equal(C.setHair('tammo', 'bald', 'zwart'), false, 'dezelfde twee keer');
+  assert.equal(C.setHair('anita', 'bob', 'nietbestaand'), false);
+  assert.equal(C.setHair('anita', 'bob', 'roze'), true);
+  assert.equal(C.getHair('tammo'), 'bald.zwart');
+  assert.equal(C.getHair('anita'), 'bob.roze', 'elk personage zijn eigen kapsel');
+  // het model: stijl en kleur komen in de appearance
+  const o = C.outfitToLook(C.effectiveWorn('anita'), { hair: 0x1b1716 });
+  assert.equal(o.hairStyle, 'bob'); assert.equal(o.hair, 0xd0457a);
+  const naturel = C.outfitToLook({ ...C.effectiveWorn('anita'), hair: 'bob.naturel' }, { hair: 0x1b1716 });
+  assert.equal(naturel.hair, undefined, 'naturel laat de eigen haarkleur van het personage staan');
+  const bold = P.buildPersonMesh(0x888888, 0xd9aa82, { ...P.TAMMO_APPEARANCE, ...C.outfitToLook(C.effectiveWorn('tammo'), P.TAMMO_APPEARANCE) });
+  const kort = P.buildPersonMesh(0x888888, 0xd9aa82, { ...P.TAMMO_APPEARANCE, ...C.outfitToLook({ ...C.effectiveWorn('tammo'), hair: 'short.naturel' }, P.TAMMO_APPEARANCE) });
+  assert.notEqual(bold.userData.body.geometry, kort.userData.body.geometry);
+  let m = 0; bold.traverse((x) => { if (x.isMesh) m++; }); assert.equal(m, 1, 'haar is geen extra mesh');
+  // presets nemen het haar mee
+  C.savePreset('tammo', 1, 'Kaal');
+  C.setHair('tammo', 'curly', 'ros');
+  assert.equal(C.wearPreset('tammo', 1).ok, true);
+  assert.equal(C.getHair('tammo'), 'bald.zwart');
+  // outfit-code: haar zit erin, een oude k1-code (zonder haar) blijft leesbaar
+  const code = C.encodeOutfit(C.effectiveWorn('anita'));
+  assert.ok(code.startsWith('k2'));
+  assert.equal(C.decodeOutfit(code).hair, 'bob.roze');
+  const oud = 'k1' + code.slice(4); // een code van versie 1: zonder kapsel
+  assert.ok(C.decodeOutfit(oud), 'k1 blijft werken');
+  assert.equal(C.decodeOutfit(oud).hair, undefined);
+  assert.equal(C.decodeOutfit(oud).outer, C.effectiveWorn('anita').outer);
+  // save en oude save
+  const save = JSON.parse(JSON.stringify(C.getClothingSave()));
+  C.resetClothing(); C.applyClothingSave(save);
+  assert.equal(C.getHair('anita'), 'bob.roze');
+  C.resetClothing(); C.applyClothingSave(undefined, { ownedOutfits: [], outfit: {}, hair: { tammo: { color: 'groen', style: 'buzz' }, anita: { color: 'naturel', style: 'ponytail' } } });
+  assert.equal(C.getHair('tammo'), 'buzz.groen', 'het kapsel van een oude save blijft');
+  assert.equal(C.getHair('anita'), 'ponytail.naturel');
+  C.applyClothingSave({ v: 1, tammo: { h: 'bob.roze' } });
+  assert.equal(C.getHair('tammo'), 'short.naturel', 'een kapsel dat Tammo niet kent wordt genegeerd');
+  // verhaalscène forceert alleen een kapsel: de eigen kleding blijft, het eigen kapsel komt terug
+  C.resetClothing();
+  assert.equal(C.forceStoryLook({ tammo: { hair: 'bald.naturel' } }), true);
+  assert.equal(C.effectiveWorn('tammo').hair, 'bald.naturel');
+  assert.equal(C.effectiveWorn('tammo').outer, 'jack.blauw');
+  assert.equal(C.getHair('tammo'), 'short.naturel');
+  C.forceStoryLook(null);
+  assert.equal(C.effectiveWorn('tammo').hair, 'short.naturel');
+});
+
+t('NPC-kapsels: deterministisch uit zaad, man of vrouw, oud wordt grijs, een eigen kapsel zit in de code', () => {
+  const w1 = C.npcOutfit(5, 'voetganger', { female: true }), w2 = C.npcOutfit(5, 'voetganger', { female: true });
+  assert.deepEqual(w1, w2);
+  assert.ok(w1.hair && H.parseHair(w1.hair));
+  assert.equal(C.npcOutfit(5, 'voetganger').hair, undefined, 'zonder geslacht geen kapsel (het model kiest zelf)');
+  let kaal = 0, bob = 0;
+  for (let i = 0; i < 600; i++) { if (C.npcOutfit(i, 'voetganger', { female: false }).hair.startsWith('bald')) kaal++; if (C.npcOutfit(i, 'voetganger', { female: false }).hair.startsWith('bob')) bob++; }
+  assert.ok(kaal > 10 && bob === 0, `mannen: kaal ${kaal} bob ${bob}`);
+  for (let i = 0; i < 60; i++) assert.match(C.npcOutfit(i, 'voetganger', { female: i % 2 === 0, old: true }).hair, /\.(grijs|platina)$/);
+  const w = C.npcOutfit(9, 'student', { female: true });
+  assert.deepEqual(C.decodeOutfit(C.encodeOutfit(w)), w);
+  const a = P.buildPersonMesh(0x888888, 0xd9aa82, { seed: 9, role: 'student' });
+  assert.ok(a.userData.body);
+});
+
+t('kapper in de winkel: eigen opties per personage, reactie, prestatie, prijs', () => {
+  const bron = src('../game/js/shops.js');
+  assert.ok(/HAIR_REACTIONS\[ch\]/.test(bron) && /recordUnique\(world, 'kapsels'/.test(bron));
+  assert.ok(H.HAIR_STYLES.tammo.some(([id]) => id === 'bald') && !H.HAIR_STYLES.tammo.some(([id]) => id === 'bob'));
+  assert.ok(H.HAIR_STYLES.anita.some(([id]) => id === 'bob'));
+  for (const ch of ['tammo', 'anita']) for (const [id] of H.HAIR_STYLES[ch]) assert.ok(H.HAIR_STYLE_IDS.includes(id), id);
+  for (const list of Object.values(H.HAIR_REACTIONS)) for (const l of list) assert.ok(l.length > 20 && !/(nike|adidas)/i.test(l));
+  assert.ok(H.hairPrice('bald') < H.hairPrice('short'));
+  assert.ok(src('../game/js/achievements.js').includes("id: 'kapsel_nieuw'"));
+});
+
+t('Samen spelen: outfit-update midden in een sessie (avatar-event), validatie en weergave', async () => {
+  const PL = await import('../game/js/coopplayers.js');
+  const SP = await import('../game/js/coopspeler.js');
+  const r = PL.createRoster ? PL.createRoster(4) : null;
+  assert.ok(r, 'createRoster');
+  const slot = PL.wijsPlekToe ? (PL.wijsPlekToe(r, 'anita') || {}).slot : 1;
+  const code = C.encodeOutfit(C.effectiveWorn('anita'));
+  const av = PL.zetAvatar(r, slot == null ? 1 : slot, { naam: 'Sanne', outfit: code });
+  assert.ok(av && av.outfit === code, 'een geldige code komt in de lijst');
+  assert.equal(PL.zetAvatar(r, slot == null ? 1 : slot, { outfit: 'rommel<script>' }).outfit, code, 'een ongeldige code vervangt niets');
+  const ev = PL.lijstEvent(r);
+  const terug = PL.leesLijstEvent(JSON.parse(JSON.stringify(ev)));
+  assert.ok(terug && terug.spelers.some((x) => x.avatar && x.avatar.outfit === code), 'de code gaat mee in de spelerslijst');
+  const look = SP.avatarLook({ ...SP.avatarVan({ avatar: { naam: 'Sanne', outfit: code } }, 1) });
+  assert.ok(look.opts.look && look.opts.look.top, 'de medespeler draagt zijn eigen kleding');
+  const zonder = SP.avatarLook(SP.avatarVan({ avatar: { naam: 'Sanne' } }, 1));
+  assert.ok(!zonder.opts.look, 'zonder code de avatarkleur zoals voorheen');
+  const net = src('../game/js/coopnet.js');
+  assert.ok(/case 'outfit':/.test(net) && /export function stuurOutfit/.test(net) && /onLocalOutfitChange/.test(net), 'het bericht en de koppeling bestaan');
+  assert.ok(/emitLocalOutfitChange\(\)/.test(src('../game/js/shops.js')), 'elke wissel meldt zich');
+  assert.ok(/e\.outfit/.test(src('../game/js/coopfigures3d.js')), 'de figuur wordt opnieuw gebouwd bij andere kleding');
+  let verstuurd = [];
+  const world = { coopNet: { role: 'client', session: { sendEvent: (b) => { verstuurd.push(b); return true; } } } };
+  const NET = await import('../game/js/coopnet.js');
+  assert.equal(NET.stuurOutfit(world), true);
+  assert.equal(verstuurd[0].k, 'outfit');
+  assert.ok(C.decodeOutfit(verstuurd[0].o));
+  assert.equal(NET.stuurOutfit(world), false, 'dezelfde code twee keer is geen nieuw bericht');
+  assert.equal(NET.stuurOutfit({}), false, 'zonder sessie niets');
 });
 
 t('winkel: aanbod deterministisch per winkel en dag, wisselt per dag, uitverkoop op vrijdag', () => {

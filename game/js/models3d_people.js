@@ -961,8 +961,12 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
   }
   // NPC-rol (clothing.js, ROLE_POOLS): kleding uit dezelfde stukken als die van de speler, deterministisch uit zaad en rol
   if (opts.role && !L.character && !L.cop && !opts.look) {
-    const n = npcLook(L.seed, opts.role, opts.outfitCtx || {}, {});
+    const n = npcLook(L.seed, opts.role, { ...(opts.outfitCtx || {}), female: L.female, old: L.age === 'old' }, {});
     Object.assign(L, n.look);
+    // sieraden, horloge en handschoenen zijn losse meshes: een NPC in de menigte krijgt ze niet (geen extra drawcalls, ze zijn op afstand niet te zien)
+    if (!(opts.outfitCtx && opts.outfitCtx.detail)) L.acc = null;
+    // het kapsel uit de outfit (clothinghair.js); een hoofddoek blijft een hoofddoek
+    if (L.hairStyle !== 'hijab') { if (n.hairStyle) L.hairStyle = n.hairStyle; if (n.hair != null) L.hair = n.hair; }
     L.topColor = n.shirt;
     if (n.pants != null) { L.pants = n.pants; L.skirtColor = n.pants; }
     if (n.shoes != null) L.shoes = n.shoes;

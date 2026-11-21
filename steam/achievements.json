@@ -1418,6 +1418,14 @@
       "steamApiNaam": ""
     },
     {
+      "id": "kapsel_nieuw",
+      "titel": "Nieuw kapsel",
+      "omschrijving": "Ga naar de kapper en kom er anders uit",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_KAPSEL_NIEUW",
+      "steamApiNaam": ""
+    },
+    {
       "id": "kleding_kast",
       "titel": "Hele kast",
       "omschrijving": "Heb van alle 63 soorten kledingstukken er minstens één",

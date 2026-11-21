@@ -68,7 +68,7 @@ import { lichaamVan, startPlek, isKoploos } from './net/koploos.js'; // een gast
 import { heistRolGebruik, heistGastTik } from './heistrollen.js'; // de rolstap van de inbraak in Samen spelen (#438)
 import { activeStage, getMissionDefs } from './missionquery.js'; // de lopende stap van de opdracht (#438)
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
-import { localOutfitCode } from './clothing.js';
+import { localOutfitCode, cleanOutfitCode, onLocalOutfitChange } from './clothing.js';
 
 // (#684) De positieve "samen kan"-kaart naast de eerste "Meedoen?" is HUD-werk (samenplan.js →
 // hudcards.js) en dat laadt niet in elke Node-test. main.js zet de haak, net als bij de bestuurhaken;
@@ -419,6 +419,7 @@ export function startHost(world, info, opts = {}) {
   world.coopWantedMeld = (slot, na, voor) => gezochtMelden(world, slot, na, voor);
   world.coopGepakt = (slot, level) => gastGepakt(world, slot, level);
   world.coopNet = { role: 'host', hub, fade, route, removing: {}, info, koploos, solo, sessieId: maakSessieId(), tKlok: 0, tHash: 0, tWeer: 0, tSpelers: 1, hashN: 0, scene, tScene: 0, filmpjeT: 0, sceneNu: null, meedoen: maakMeedoen(), foci: maakRegister(), groepen: maakGroepen(), groepId: null };
+  koppelOutfit(world); // wie later andere kleding aandoet, meldt het aan de rest
   world.coopGroepen = world.coopNet.groepen; // de opdrachtstand per groep (#452), ook voor de tests en de kaart
   // Een groep kan ook buiten de missie bestaan: iedereen mag een activiteit starten en is dan de leider van die groep.
   // De host blijft de wereld simuleren; dit is alleen de groepsboekhouding en de per-slot doelen (#492).
@@ -493,6 +494,7 @@ export function startClient(world, transport, info, opts = {}) {
   world.coopRole = 'client';
   world.coopBezit = nieuweDeelStaat(); // de rechten van je eigen voertuigen in deze sessie (#449)
   world.coopNet = { role: 'client', wens, code, session, stash, fade, joined: false, fixed: false, route, info, klok: new KlokVolger(), desync: new DesyncMonitor(), lokaal: 0, tSpelers: 1 };
+  koppelOutfit(world); // wie later andere kleding aandoet, meldt het aan de rest
   world.coopBijbaanStop = () => bijbaanGastStop(world); // Stoppen in het pausemenu stopt je eigen baan bij de host (#492)
   // de looppositie van de conducteur gaat met het bestaande trein-bericht naar de gastheer (#492): geen nieuw bericht
   world.coopTreinWalkMeld = (w, walk) => {
@@ -1590,6 +1592,15 @@ export function handleEvent(world, body, van = 0) {
       if (r.alarm) n.session.requestResync();
       return true;
     }
+    case 'outfit': { // een speler heeft andere kleding aangedaan (clothing.js): de host zet de code in de spelerslijst voor iedereen; een oudere host kent het bericht niet en negeert het
+      const code = cleanOutfitCode(body.o);
+      if (!code || !n || n.role !== 'host' || van < 1) return false;
+      const sp = n.hub.roster.spelers.find((x) => x.slot === van);
+      if (!sp || (sp.avatar && sp.avatar.outfit === code)) return false;
+      zetAvatar(n.hub.roster, van, { outfit: code });
+      n.hub._announceList();
+      return true;
+    }
     case 'weg': // de host heeft deze speler verwijderd
       if (!n || n.role !== 'client') return false;
       // geen code mee: de host rouleert de kamer meteen bij het eruit zetten (removeGuest), dus de oude code is al ongeldig
@@ -1781,6 +1792,27 @@ export function coopWereldDoorloop(world, menuOpen = true) {
   return !!((menuOpen && !world.uiPaused) || zachtAlleen(world));
 }
 
+// Andere kleding midden in een sessie (clothing.js): een gast meldt de nieuwe outfit-code aan de host, de host zet hem zelf in de lijst.
+// Zonder sessie of zonder veranderde code gebeurt er niets. Geeft true als er iets verstuurd of gezet is.
+export function stuurOutfit(world) {
+  const n = world && world.coopNet;
+  if (!n) return false;
+  const code = localOutfitCode();
+  if (n.outfitVerstuurd === code) return false;
+  n.outfitVerstuurd = code;
+  if (n.role === 'host') {
+    zetAvatar(n.hub.roster, 0, { outfit: code });
+    n.hub._announceList();
+    return true;
+  }
+  try { return !!n.session.sendEvent({ k: 'outfit', o: code }); } catch (e) { return false; }
+}
+let outfitKoppeling = null;
+function koppelOutfit(world) {
+  if (outfitKoppeling) outfitKoppeling();
+  outfitKoppeling = onLocalOutfitChange(() => stuurOutfit(world));
+}
+
 export function stopCoopNet(world) {
   const n = world.coopNet; if (!n) return;
   if (n.stem) { const f = n.stem.nee; n.stem = null; if (f) { try { f(); } catch (e) { /* de vraag vervalt met de sessie */ } } } // een lopende stemming over een tijdsprong vervalt (#452)
@@ -1796,6 +1828,7 @@ export function stopCoopNet(world) {
   if (n.role === 'host') bezorgAllesWeg(world, (s) => bestuurLos(world, s)); // de eigen voertuigen van de gasten gaan mee terug (#449)
   if (n.role === 'host') { try { n.hub.announce({ k: 'weg', reden: 'spel gestopt' }); n.hub.closeAll(); } catch (e) { /* al weg */ } } else { try { if (n.session.status !== 'geweigerd' && n.session.status !== 'verbroken') n.session.leave(); } catch (e) { /* al weg */ } }
   world.coopNet = null;
+  if (outfitKoppeling) { outfitKoppeling(); outfitKoppeling = null; }
   zetEigenVoertuigenTerug(world, n); // de eigen voertuigen van de gast komen terug (ook na een overdracht: de volgende startHost of startClient ziet de eigen lijst)
   if (n.role === 'client') { wedGastReset(world); bijbaanGastReset(world); heistGastTik(world, 0, null); world.coopHeistRol = null; world.coopHeistGast = null; } // een race tegen elkaar op zijn scherm houdt op (#443); de rolstap van de inbraak ook (#438)
   if (n.role === 'client') gastVerhaalHerlaad(world); // een meegesprongen verhaal staat ook in het lopende spel, anders overschrijft de volgende save het (#429)

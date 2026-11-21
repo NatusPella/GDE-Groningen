@@ -40,8 +40,9 @@ import { winkelMagVoorGast, MELDING_WINKEL } from './coopgast.js';
 import { hoofdspeler } from './spelersregister.js';
 import {
   effectiveWorn, outfitToLook, getClothingSave, applyClothingSave, forceStoryLook, storyLookKey, ownsAll, ownedPieces, givePiece, setBonus,
-  completeSetIds, wornSet, wearPiece, takeOffSlot, setLocalCharProvider,
+  completeSetIds, wornSet, wearPiece, takeOffSlot, setLocalCharProvider, emitLocalOutfitChange, getHair, setHair, wornPieces,
 } from './clothing.js';
+import { HAIR_COLORS, HAIR_STYLES, hairPrice, parseHair, HAIR_REACTIONS } from './clothinghair.js';
 import { SETS, setKeyFor, parsePiece } from './clothingdata.js';
 import { shopSections, wardrobeSections } from './clothingpanel.js';
 import { wantedClearCooldownLeft, markWantedCleared } from './heatcooldown.js'; // #838: spuiterij-cooldown
@@ -104,21 +105,6 @@ export const OUTFITS = {
 };
 const DEFAULT_OUTFIT = { tammo: 'stadjer', anita: 'classic' };
 
-const HAIR_COLORS = [
-  { id: 'naturel', label: 'Naturel', price: 30 },
-  { id: 'zwart', label: 'Ravenzwart', price: 30, hair: 0x1b1716 },
-  { id: 'bruin', label: 'Kastanjebruin', price: 30, hair: 0x5a3d26 },
-  { id: 'blond', label: 'Strandblond', price: 35, hair: 0xcdb485 },
-  { id: 'ros', label: 'Rossig', price: 35, hair: 0x93462a },
-  { id: 'grijs', label: 'Grijs-chic', price: 35, hair: 0xb4afa6 },
-  { id: 'groen', label: 'Stadjersgroen', price: 55, hair: 0x1e9e56 },
-  { id: 'roze', label: 'Knalroze', price: 55, hair: 0xd0457a },
-];
-const HAIR_STYLES = {
-  tammo: [['short', 'Kort en netjes'], ['buzz', 'Tondeuse op 3'], ['curly', 'Krullenbol']],
-  anita: [['long', 'Lang en los'], ['ponytail', 'Paardenstaart'], ['bun', 'Knotje'], ['bob', 'Bob'], ['curly', 'Krullen']],
-};
-const STYLE_PRICE = 40;
 
 
 const missionDone = (id) => isMissionCompleted(missionIndexById(id));
@@ -224,7 +210,6 @@ const RESALE = { bike: 15, scooter: 60, hatch: 150, sedan: 200, wagon: 180, van:
 let shops = [];
 const state = {
   // outfits and the wardrobe live in clothing.js (epic Kleding); the story's temporary outfit too (setStoryOutfit)
-  hair: { tammo: { color: 'naturel', style: 'short' }, anita: { color: 'naturel', style: 'long' } },
   vehicles: [], // one per stock key: { key, spec, color, upgrades, v, x, y, angle, lost }
   heroColor: null,
   heroUpgrades: [],
@@ -774,7 +759,7 @@ export function vehiclePreviewOf(v, color) {
 // The current character with outfit/hair overrides, for the clothing previews.
 function lookWith(world, over, look = null) {
   const app = hoofdspeler(world).character === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
-  return { kind: 'person', look: { ...app, ...over, look }, frame: look ? 'head' : null };
+  return { kind: 'person', look: { ...app, ...over, look: look ? { ...(app.look || {}), ...look } : app.look }, frame: look ? 'head' : null };
 }
 
 function shopMenu(world, s, werf = false) {
@@ -1295,31 +1280,37 @@ function shakeWanted(world, stars) {
 
 function hairSections(world) {
   const ch = currentChar(world);
-  const cur = state.hair[ch];
+  const cur = parseHair(getHair(ch));
   const naturel = baseLook[ch].hair;
+  // the new hair as the mirror shows it: your own outfit and hat off, so the hair is seen
+  const mirror = (style, color) => {
+    const h = parseHair(`${style}.${color}`);
+    return lookWith(world, { hairStyle: style, hair: h.hex != null ? h.hex : naturel }, ch === 'tammo' ? { hat: null } : null);
+  };
+  const reaction = () => {
+    const list = HAIR_REACTIONS[ch];
+    return list[Math.floor(Math.random() * list.length)];
+  };
+  const change = (style, color, price, text) => {
+    if (!pay(world, price)) return null;
+    setHair(ch, style, color);
+    applyLooks();
+    recordUnique(world, 'kapsels', `${ch}:${style}.${color}`);
+    return `${text} ${reaction()}`;
+  };
   const colors = HAIR_COLORS.map((c) => ({
     id: 'h-' + c.id, label: c.label, desc: c.id === 'naturel' ? 'Terug naar je eigen kleur' : 'Verven, föhnen, klaar',
     price: c.price, tag: cur.color === c.id ? 'Nu' : '', swatch: [hexCss(c.hair ?? naturel)],
-    preview: lookWith(world, { hair: c.hair ?? naturel }, ch === 'tammo' ? { hat: null } : null),
+    preview: mirror(cur.style, c.id),
     disabled: cur.color === c.id ? 'Heb je al' : broke(world, c.price),
-    buy() {
-      if (!pay(world, c.price)) return null;
-      cur.color = c.id;
-      applyLooks();
-      return `Haar ${c.label.toLowerCase()}. Staat je goed!`;
-    },
+    buy: () => change(cur.style, c.id, c.price, `Haar ${c.label.toLowerCase()}.`),
   }));
   const styles = HAIR_STYLES[ch].map(([id, label]) => ({
     id: 'hs-' + id, label, desc: ch === 'tammo' ? 'Onder de pet, maar jij weet het' : 'Knippen en stylen',
-    price: STYLE_PRICE, tag: cur.style === id ? 'Nu' : '',
-    preview: lookWith(world, { hairStyle: id }, ch === 'tammo' ? { hat: null } : null),
-    disabled: cur.style === id ? 'Heb je al' : broke(world, STYLE_PRICE),
-    buy() {
-      if (!pay(world, STYLE_PRICE)) return null;
-      cur.style = id;
-      applyLooks();
-      return `${label}: de kapper is tevreden`;
-    },
+    price: hairPrice(id), tag: cur.style === id ? 'Nu' : '',
+    preview: mirror(id, cur.color),
+    disabled: cur.style === id ? 'Heb je al' : broke(world, hairPrice(id)),
+    buy: () => change(id, cur.color, hairPrice(id), `${label}: de kapper is tevreden.`),
   }));
   return [{ title: 'Haarkleur', items: colors }, { title: 'Model', items: styles }];
 }
@@ -1579,15 +1570,13 @@ function applyLooks() {
   if (!baseLook) return;
   for (const ch of ['tammo', 'anita']) {
     const app = ch === 'tammo' ? TAMMO_APPEARANCE : ANITA_APPEARANCE;
-    const h = state.hair[ch];
-    const hc = HAIR_COLORS.find((c) => c.id === h.color);
     // the worn pieces (or the story's outfit) over the character's own colours; look carries what the model needs (top, shoes, hat ...)
+    // and the hair (a part of the outfit, clothinghair.js: style and colour, or the character's own colour)
     Object.assign(app, baseLook[ch], outfitToLook(effectiveWorn(ch), baseLook[ch]));
-    if (hc && hc.hair != null) app.hair = hc.hair;
-    if (HAIR_STYLES[ch].some(([id]) => id === h.style)) app.hairStyle = h.style;
   }
   refreshCharacterMeshes();
   for (const o of state.vehicles) if (o.v) setRider(o.v);
+  emitLocalOutfitChange(); // Samen spelen: de anderen zien de nieuwe kleding (coopnet.js)
 }
 
 function riderShirt() {
@@ -1986,7 +1975,8 @@ export function getShopSave() {
     ownedOutfits: ownedSetIds(),
     storyOutfit: storyLookKey(),
     kleding: getClothingSave(),
-    hair: { tammo: { ...state.hair.tammo }, anita: { ...state.hair.anita } },
+    // the old field stays (derived) for an older build; clothing.js's block holds the real hair
+    hair: Object.fromEntries(['tammo', 'anita'].map((c) => { const h = parseHair(getHair(c)); return [c, { color: h.color, style: h.style }]; })),
     heroColor: state.heroColor,
     heroUpgrades: [...state.heroUpgrades],
     stamps: state.stamps,
@@ -2007,11 +1997,6 @@ export function applyShopSave(world, d) {
   // the new block (clothing.js) or, in an older save, the old sets (outfit and ownedOutfits) turned into pieces
   applyClothingSave(d.kleding, d);
   if (typeof d.storyOutfit === 'string') forceStoryLook(d.storyOutfit);
-  for (const ch of ['tammo', 'anita']) {
-    const h = d.hair && d.hair[ch];
-    if (h && HAIR_COLORS.some((c) => c.id === h.color)) state.hair[ch].color = h.color;
-    if (h && HAIR_STYLES[ch].some(([id]) => id === h.style)) state.hair[ch].style = h.style;
-  }
   state.heroColor = isColor(d.heroColor) ? d.heroColor : null;
   state.heroUpgrades = Array.isArray(d.heroUpgrades) ? d.heroUpgrades.filter((id) => CAR_UPGRADES.some((u) => u.id === id)) : [];
   state.stamps = Number.isFinite(d.stamps) ? Math.max(0, Math.min(STAMP_CARD, Math.floor(d.stamps))) : 0;

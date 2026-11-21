@@ -246,6 +246,7 @@ export const ACHIEVEMENTS = [
   { id: 'uitgaven', cat: 'sociaal', title: 'Geld moet rollen', desc: 'Geef in winkels in totaal €2.500 uit', stat: 'spent', goal: 2500, unit: '€' },
   { id: 'kleding_nieuw', cat: 'sociaal', title: 'Nieuwe look', desc: 'Koop een kledingstuk en doe het meteen aan', set: 'kledingStukken', goal: 1 },
   { id: 'kleding_set', cat: 'sociaal', title: 'Past als gegoten', desc: 'Heb alle stukken van een kledingset in je kast', set: 'kledingSets', goal: 1 },
+  { id: 'kapsel_nieuw', cat: 'sociaal', title: 'Nieuw kapsel', desc: 'Ga naar de kapper en kom er anders uit', set: 'kapsels', goal: 1 },
   { id: 'kleding_kast', cat: 'sociaal', title: 'Hele kast', desc: `Heb van alle ${KLEDING_SOORTEN} soorten kledingstukken er minstens één`, set: 'kledingItems', goal: KLEDING_SOORTEN },
 
   { id: 'eierbal_1', cat: 'verzamelen', title: 'Eerste eierbal', desc: 'Vind een verstopte eierbal', save: 'eierballen', goal: 1 },
