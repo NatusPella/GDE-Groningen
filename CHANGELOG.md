@@ -15,6 +15,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Kaart: de uitleg 'Zo werkt de kaart' houdt de vier genummerde rijen, zonder 'Meer uitleg' en zonder de regel over Instellingen; een nieuwe Hulp-knop (?) bij de zoomknoppen opent hem opnieuw. Q en E staan er niet meer in: ze wisselen alleen de pagina van het menu.
 - Ontwerp: nieuwe DS3-regels 'Toets in de knop' en 'Navigatie met controller en toetsenbord' (menu-patroon), met bewaking in de DS3-dekkingstest. Zie docs/KAART-POPUPS-21-11.md.
 
+- Webversie: er komt een handmatige workflow om het spel op GitHub Pages te zetten (onder /play/, naast de marketingpagina), met alleen Opus-geluid (ca. 300 MB kleiner; Safari vóór 18.4 speelt dan zonder geluid), de wereld uit de release en een klein wegklikbaar label "Webversie (preview)". Livebussen en live treinen worden in de webversie niet opgevraagd (geen CORS), het spel rijdt dan het eigen rooster. Geen telemetrie.
+
 (De coördinator voegt deze regels bij 0.65.0.)
 
 - Panden zijn echt te betreden: loop te voet door de voordeur naar binnen, zonder menu, laadscherm of teleport. De deur zwaait open, de gevel gaat bij de deur open en je staat in het pand zelf. Winkels (twaalf soorten), cafés, kroegen, restaurants, kantoren, woningen, kerken, stationshallen, bibliotheken, garages, magazijnen, politiebureaus, apotheken, scholen en hotels hebben elk een eigen inrichting, met winkelier, klanten en gasten

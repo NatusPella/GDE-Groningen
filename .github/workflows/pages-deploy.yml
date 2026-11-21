@@ -1,0 +1,146 @@
+# De game-webversie op GitHub Pages zetten (#1090, #57), samen met de marketingpagina in een site:
+#   https://<eigenaar>.github.io/GDE-Groningen/        de marketingpagina (website/build.mjs)
+#   https://<eigenaar>.github.io/GDE-Groningen/play/   het spel (web/build.mjs, relatieve paden)
+# Een Pages-site per repo, dus deze workflow bouwt beide delen en uploadt ze in een artifact; de
+# oudere workflow "Pages (marketing)" (pages.yml) zet alleen de marketingpagina en zou /play/ weghalen.
+# Gebruik daarna dus deze workflow ook voor een nieuwe marketingpagina (zet 'speel' dan op false
+# alleen als /play/ bewust weg moet).
+#
+# Alleen met de hand te starten (workflow_dispatch) en alleen door de repository-eigenaar (constitutie 8):
+#   gh workflow run pages-deploy.yml -f ref=main            (tag leeg = de nieuwste release)
+# De deploy-job wacht bovendien op het environment github-pages (verplichte beoordelaar: de eigenaar).
+#
+# De wereld (game/world) staat niet in git en wordt niet op de runner gebouwd (zware provinciebouw,
+# data/cache is niet beschikbaar). Net als de dmg-, Linux- en APK-workflows haalt deze workflow hem uit
+# het release-asset gde-world.tgz (GDE_PREBUILT_WORLD; 64 MB). Zie docs/PAGES-WORKFLOW-21-11.md.
+# Opus-clips maakt ffmpeg (eerste bouw ca. 8 minuten, daarna uit actions/cache). Geen geheimen nodig.
+name: Pages (spel en marketing)
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch of tag van de code om te bouwen (de tag van de wereld-release past het best)'
+        required: true
+        default: main
+        type: string
+      tag:
+        description: 'Release-tag met gde-world.tgz (leeg = de nieuwste release)'
+        required: false
+        default: ''
+        type: string
+      opus_only:
+        description: 'Alleen Opus-audio publiceren (ca. 300 MB minder; Safari vóór 18.4 krijgt geen geluid)'
+        required: false
+        default: true
+        type: boolean
+      speel:
+        description: 'Het spel onder /play/ meepubliceren (uit = alleen de marketingpagina)'
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # Publicatieregel (constitutie 8, #558): een collaborator met push kan de workflow starten,
+    # maar de taak slaat dan over en er komt niets op Pages.
+    if: github.actor == github.repository_owner
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GDE_WEB_OPUS_ONLY: ${{ inputs.opus_only && '1' || '0' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: De gestagede wereld van de release
+        if: ${{ inputs.speel }}
+        env:
+          WORLD_TAG: ${{ inputs.tag }}
+        run: |
+          TAG="$WORLD_TAG"
+          if [ -z "$TAG" ]; then TAG="$(gh release list --limit 1 --json tagName -q '.[0].tagName')"; fi
+          test -n "$TAG" || { echo "Geen release gevonden voor gde-world.tgz."; exit 1; }
+          echo "wereld uit $TAG"
+          mkdir -p "$RUNNER_TEMP/gde-world"
+          gh release download "$TAG" --pattern gde-world.tgz --dir "$RUNNER_TEMP/gde-world" \
+            || { echo "Geen gde-world.tgz bij $TAG: maak hem met 'npm run release -- ... --world' of upload hem met gh release upload."; exit 1; }
+          tar xzf "$RUNNER_TEMP/gde-world/gde-world.tgz" -C "$RUNNER_TEMP/gde-world"
+          test -f "$RUNNER_TEMP/gde-world/world/index.json"
+
+      # three.js en de lettertypen haalt desktop/build.mjs zelf op (vastgezet in de vendor-lock); er is
+      # geen npm ci nodig, want de webbuild gebruikt geen node_modules.
+      - name: ffmpeg (Opus)
+        if: ${{ inputs.speel }}
+        run: |
+          command -v ffmpeg >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg; }
+          ffmpeg -hide_banner -encoders 2>/dev/null | grep -q libopus
+
+      - name: Opus-cache
+        if: ${{ inputs.speel }}
+        uses: actions/cache@v4
+        with:
+          path: |
+            web/.cache/opus
+            desktop/vendor-cache
+          key: opus-${{ hashFiles('game/audio/**', 'web/build.mjs') }}
+          restore-keys: |
+            opus-
+
+      - name: Webversie bouwen
+        if: ${{ inputs.speel }}
+        env:
+          GDE_PREBUILT_WORLD: ${{ runner.temp }}/gde-world/world
+        run: node web/build.mjs
+
+      - name: Webversie controleren
+        if: ${{ inputs.speel }}
+        run: |
+          if [ "$GDE_WEB_OPUS_ONLY" = "1" ]; then node scripts/pages_site_check.mjs web-dist --opus-only; else node scripts/pages_site_check.mjs web-dist; fi
+          node scripts/web_shell_test.mjs
+
+      - name: Marketingpagina bouwen
+        run: node website/build.mjs
+
+      - name: Site samenstellen
+        run: |
+          mkdir -p "$RUNNER_TEMP/site"
+          cp -a website/_site/. "$RUNNER_TEMP/site/"
+          if [ "${{ inputs.speel }}" = "true" ]; then
+            mkdir -p "$RUNNER_TEMP/site/play"
+            mv web-dist/* "$RUNNER_TEMP/site/play/"
+          fi
+          du -sh "$RUNNER_TEMP/site"
+          find "$RUNNER_TEMP/site" -type f | wc -l
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/site
+
+  deploy:
+    needs: build
+    if: github.actor == github.repository_owner
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deployen
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -196,7 +196,7 @@
     const b = document.createElement('div');
     b.textContent = 'Webversie (preview)';
     b.title = 'Dit is de webversie in preview. Geen telemetrie: alleen openbaar gehoste bestanden. Klik om te sluiten.';
-    b.style.cssText = 'position:fixed;right:8px;bottom:8px;z-index:99999;padding:3px 8px;font:12px sans-serif;color:#fff;background:rgba(0,0,0,.55);border-radius:4px;cursor:pointer;opacity:.8';
+    b.style.cssText = 'position:fixed;right:8px;bottom:8px;z-index:99999;padding:3px 8px;font:13px var(--ds-font-zeef-tekst);color:var(--ds-c-ink-inkt);background:var(--ds-c-ink-papier);border:2px solid var(--ds-c-ink-inkt);cursor:pointer';
     b.addEventListener('click', () => b.remove());
     setTimeout(() => b.remove(), 20000);
     (document.body || document.documentElement).appendChild(b);

@@ -1,7 +1,9 @@
 # GitHub Pages voor de marketingpagina (#37). Publiceert niets vanzelf: alleen met de hand te
 # starten (workflow_dispatch), alleen door de repository-eigenaar (owner-guard op beide jobs) en
 # de deploy wacht op het environment github-pages. Dit is de MARKETINGPAGINA, niet de
-# game-webversie (#57, die komt hier niet op). Zie website/README.md voor de stappen.
+# game-webversie (#57). Let op: een Pages-site per repo; deze workflow zet ALLEEN de marketingpagina en haalt
+# een eerder gedeployde /play/ weg. Wil je het spel erbij, gebruik dan pages-deploy.yml (#1090).
+# Zie website/README.md voor de stappen.
 name: Pages (marketing)
 
 on:
@@ -13,7 +15,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages-marketing
+  group: pages
   cancel-in-progress: false
 
 jobs:
