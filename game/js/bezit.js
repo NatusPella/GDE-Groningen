@@ -59,6 +59,7 @@ function normParcel(r) {
   const k = r.k === 'w' || r.k === 'b' ? r.k : 'a';
   const o = { k, ha: Math.round(num(r.ha, 0, 5000) * 100) / 100, t: Math.round(num(r.t, 0, 1e6)), p: Math.round(num(r.p, 0, 1e9)), w: Math.round(num(r.w, 0, 3)), m: MODES.includes(r.m) ? r.m : 'self' };
   if (Array.isArray(r.a) && r.a.length === 2 && r.a.every(Number.isFinite)) o.a = [Math.round(r.a[0]), Math.round(r.a[1])];
+  if (Array.isArray(r.c) && r.c.length === 2 && r.c.every(Number.isFinite)) o.c = [Math.round(r.c[0]), Math.round(r.c[1])];   // binnenpunt (10 m): waar het veld gezocht en de paal gezet wordt
   if (r.lg) o.lg = 1;
   return o;
 }
@@ -146,7 +147,7 @@ export function buyParcel(b, def, price, day, money) {
   if (!(price > 0)) return { ok: false, why: 'niet-te-koop' };
   if (!(money >= price)) return { ok: false, why: 'te-weinig-geld', tekort: Math.round(price - money) };
   if (parcelCount(b) >= MAX_PARCELS) return { ok: false, why: 'vol' };
-  b.parcels[def.id] = normParcel({ k: def.kind, ha: def.ha, a: [Math.round(def.ax / 10) * 10, Math.round(def.ay / 10) * 10], t: day, p: price, w: 0, m: 'self' });
+  b.parcels[def.id] = normParcel({ k: def.kind, ha: def.ha, a: [Math.round(def.ax / 10) * 10, Math.round(def.ay / 10) * 10], c: [Math.round(def.x / 10) * 10, Math.round(def.y / 10) * 10], t: day, p: price, w: 0, m: 'self' });
   b.totals.bought++; b.totals.spent += price;
   return { ok: true, cost: price };
 }
@@ -208,7 +209,7 @@ export function reconcileWithIndex(b, index) {
     if (p.lg || index.has(id)) { res.kept++; continue; }
     const m = p.a ? index.rematch(p.a, p.k, p.ha) : null;
     if (m && !b.parcels[m.id]) {
-      b.parcels[m.id] = { ...p, a: [Math.round(m.ax / 10) * 10, Math.round(m.ay / 10) * 10] };
+      b.parcels[m.id] = { ...p, a: [Math.round(m.ax / 10) * 10, Math.round(m.ay / 10) * 10], c: [Math.round(m.x / 10) * 10, Math.round(m.y / 10) * 10] };
       delete b.parcels[id];
       res.rematched.push([id, m.id]);
     } else {

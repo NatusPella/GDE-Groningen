@@ -41,6 +41,13 @@ t('kopen: geld eraf, perceel in bezit, register en boerderij, kasboek', () => {
   assert.equal(L.parcelOffer('paaaaaaaaaaa1').mine, true);
   assert.equal(L.koopPerceel(w, 'paaaaaaaaaaa1').why, 'al-van-jou');
 });
+t('het gekochte perceel heeft een ligging (lat en lon) zodat het veld in de wereld gezocht kan worden', () => {
+  reset();
+  L.koopPerceel(wereld(), 'pbbbbbbbbbbb2');
+  const d = PC.perceelDef('pbbbbbbbbbbb2');
+  assert.ok(Number.isFinite(d.lat) && Number.isFinite(d.lon) && Number.isFinite(d.x));
+  assert.deepEqual(L.getBezit().parcels.pbbbbbbbbbbb2.c, [220900, 590500]);
+});
 t('kopen: te weinig geld en geen toegang veranderen niets', () => {
   reset();
   const w = wereld(100);

@@ -113,3 +113,17 @@ In beeld te controleren:
 - Bedrijven: een winkelpand dichtbij kopen (kerken en monumenten staan er met de reden bij), renoveren, verkopen; omzet verschijnt per speldag in je geld (dagtik).
 - Het uitzicht van de nieuwe tegels en knoppen op 1080p en bij de kleinste venstergrootte (nog niet bekeken).
 Bekende gaten: de beheerknoppen (prijs, voorraad, uren) en klanten in de winkel zelf staan nog niet in de wereld; het aantal woningen per plaats is een schatting (1.500).
+
+## #1100 Wereldmarkering, minikaart en streamen
+
+Gebouwd: `game/js/bezitmarker.js` (planning: straal 600 m, hoogstens 200 palen, dichtstbijzijnde eerst, verschillen tussen twee plannen, opnieuw plannen
+pas bij 25 m verplaatsing of nieuw bezit), `bezitmarker3d.js` (paal met bord in zeefdrukstijl op het binnenpunt van je percelen, "Van jou" op je panden, een medespeler
+met zijn kleur en naam; gedeelde geometrie en materialen, borden-cache van 120, elke 0,5 s getikt vanuit `main.js`, nooit voor een gast), `perceelmap.js` (je gekochte percelen
+als pin met stand op de kaart en de minikaart, hoogstens 300, twee keer per seconde herberekend). `parcelfarm.js` geeft een gekocht perceel nu een ligging (lat, lon, x, y):
+zonder dat kon de boerderij het veld in de wereld niet zoeken. Test `bezitmarker_test` (9; de THREE-kant als broncontrole).
+
+In beeld te controleren:
+- Na een koop: bij het perceel staat een paal met bord (naam, Van jou); op de kaart en de minikaart een groene pin met stand; het veld wordt gezocht zodra je dichtbij bent (bestaande boerderijcode).
+- Bij 200 palen geen merkbare fps-daling (perf-run met 1.000 percelen is nog niet gedaan); borden zijn goed leesbaar op 20 m en niet te groot.
+- Geen getekende grenslijn: de index bevat geen vorm en de kaartranden van PERCEELRANDEN-21-11 zijn nog niet aangesloten (bekend gat); alleen de paal staat in het perceel.
+- Een bord boven op een pand staat op de gevel-hoogte van het pand (gok: 3,4 m); controleer bij hoge panden.

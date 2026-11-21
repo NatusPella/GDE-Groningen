@@ -8,23 +8,26 @@ import * as B from './boerderij.js';
 import * as PC from './percelen.js';
 import { soilQuality, parcelName, regionId } from './bezitprijs.js';
 import { buyParcel } from './bezit.js';
+import { worldToWgs } from './rdnew.js';
 
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
 const SOORT = { w: 'weiland', a: 'akker', b: 'boomgaard' };
 
 // ---- adapters: index- of bezitregel -> perceeldefinitie ----
 // kind: 'w' | 'a' | 'b' (anders akker). region: een streek-id of { id } van bezitprijs.js. place: de dichtstbijzijnde woonplaats.
-export function parcelDefOf(id, kind, ha, { region = 'overig', place = 'het Hogeland', name = null } = {}) {
+export function parcelDefOf(id, kind, ha, { region = 'overig', place = 'het Hogeland', name = null, at = null } = {}) {
   const k = kind === 'w' || kind === 'b' ? kind : 'a';
   const r = regionId(region);
+  // de ligging in graden voor de plekken die perceelDef lezen (veld zoeken, kaart): uit het binnenpunt in wereldmeters als dat bekend is
+  const wgs = at && Number.isFinite(at[0]) && Number.isFinite(at[1]) ? worldToWgs(at[0], at[1]) : null;
   return {
     id, naam: name || parcelName({ id, kind: k }, place), soort: SOORT[k], plaats: place, ha: Math.max(0.1, Number(ha) || 0.1),
-    bodem: soilQuality(id, r), region: r, kind: k, koop: 0, huurDag: 0, eigenaar: 'Jijzelf', aanbod: 'eigen', extra: true,
+    bodem: soilQuality(id, r), region: r, kind: k, koop: 0, huurDag: 0, eigenaar: 'Jijzelf', aanbod: 'eigen', extra: true, ...(wgs ? { lat: wgs[0], lon: wgs[1], x: at[0], y: at[1] } : {}),
   };
 }
 // Uit een perceel van de index ({ id, kind, ha, ... }) of uit een bezitregel ({ k, ha }) met het id erbij.
-export const parcelDefFromIndex = (p, ctx = {}) => parcelDefOf(p.id, p.kind, p.ha, ctx);
-export const parcelDefFromRecord = (id, rec, ctx = {}) => parcelDefOf(id, rec.k, rec.ha, ctx);
+export const parcelDefFromIndex = (p, ctx = {}) => parcelDefOf(p.id, p.kind, p.ha, { at: [p.x, p.y], ...ctx });
+export const parcelDefFromRecord = (id, rec, ctx = {}) => parcelDefOf(id, rec.k, rec.ha, { at: rec.c || rec.a || null, ...ctx });
 
 // ---- het register en het bedrijf ----
 // ctx.region(id) en ctx.place(id) (beide optioneel) geven de streek en de woonplaats van een perceel; zonder gelden 'overig' en het Hogeland.
