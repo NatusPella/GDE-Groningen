@@ -9854,18 +9854,18 @@
   "style": "spoken in clear standard Dutch with a light, warm northern lilt; Hilbrand, verslaggever bij een voetbalwedstrijd in de Euroborg, warm, snel en vol vuur. Tone: enthousiast, warm."
  },
  {
-  "key": "Hilbrand|Er wordt geduldig gespeeld. Een tikkie hier, een tikkie daar.",
+  "key": "Hilbrand|Er wordt geduldig gespeeld. Een korte pass hier, een korte pass daar.",
   "speaker": "Hilbrand",
-  "text": "Er wordt geduldig gespeeld. Een tikkie hier, een tikkie daar.",
+  "text": "Er wordt geduldig gespeeld. Een korte pass hier, een korte pass daar.",
   "area": "Voetbalcommentaar",
   "out": "lines",
   "lang": "own",
-  "say": "Er wordt geduldig gespeeld. Een tikkie hier, een tikkie daar.",
-  "file": "hilbrand/er_wordt_geduldig_gespeeld_een_t_9ab3575d.mp3",
+  "say": "Er wordt geduldig gespeeld. Een korte pass hier, een korte pass daar.",
+  "file": "hilbrand/er_wordt_geduldig_gespeeld_een_k_f2a0ebd3.mp3",
   "voice": "Sadachbia",
   "who": "Hilbrand, verslaggever bij een voetbalwedstrijd in de Euroborg, warm, snel en vol vuur",
-  "tag": "opgewonden, snel",
-  "style": "spoken in clear standard Dutch with a light, warm northern lilt; Hilbrand, verslaggever bij een voetbalwedstrijd in de Euroborg, warm, snel en vol vuur. Tone: opgewonden, snel."
+  "tag": "verbaasd, juichend",
+  "style": "spoken in clear standard Dutch with a light, warm northern lilt; Hilbrand, verslaggever bij een voetbalwedstrijd in de Euroborg, warm, snel en vol vuur. Tone: verbaasd, juichend."
  },
  {
   "key": "Hilbrand|De middenvelders voeren de strijd.",
