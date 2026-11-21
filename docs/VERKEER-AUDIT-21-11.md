@@ -64,3 +64,28 @@ standaardgrenzen zijn de gemeten stand zodat een verslechtering de test laat fal
 NPC's en verkeer zijn van wie het spel opende en gaan mee in de snapshot; er is geen nieuw protocol. `roadfit` en `trafficstuck`
 draaien alleen aan de kant die de wereld simuleert. Gasten simuleren geen AI. De dichtheid volgt `world.weather.wet` van de host. Test:
 de pure tests hierboven (geen testbankstap).
+
+## Vervolg verkeer-ai-21-11 (#1049, #1020)
+
+**Bochten snijden (#1049): geprobeerd, niet ingevoerd.** Proef: het stuurdoel van `updateTrafficAI` (pure pursuit, `lookahead`) werd bij
+een bocht in het pad teruggetrokken naar de auto toe (`bendLookahead`: draaiing over de kijkafstand, ondergrens 2,6 m). Gemeten met
+`STRICT=1 node scripts/verkeer_wereld_test.mjs` op zes zaden (777, 11, 22, 33, 44, 55), voor en na:
+
+| | gevelschaafjes (som) | naast het wegdek (som) | vast zonder reden (som) |
+|---|---|---|---|
+| zonder wijziging | 326 | 66 | 9 |
+| kijkafstand omlaag in bochten | 277 (-15%) | 61 | 29 |
+| idem, alleen vanaf 2,5 m/s | 301 | 63 | 44 |
+| sterkere varianten | 41 tot 62 per zaad, geen betere stand | gelijk | 20+ |
+
+De schaafjes gaan iets omlaag maar de wachtrijen bij kruispunten (`waitFor` 40 s, reden `queue`) verdrievoudigen. Spelers merken een file
+eerder dan een schaafje, dus de wijziging is niet ingevoerd. De tellingen zijn ruis van ruim 15% per zaad. De volgende stap is geen
+tweak aan de kijkafstand maar een bochtpad: het kruispuntpad (`buildPathInto`) per voertuiglengte met een ruimere boog afronden, en de
+`stuck`-teller toetsen op vaste (niet zaadafhankelijke) plekken. #1049 blijft open.
+
+**Taxipad op de echte tegels (#1020): `scripts/taxirit_wereld_audit.mjs`.** Echte autoroutes (`planDriveRoute`) tussen 150 willekeurige
+paren in de stad (straal 1,8 km, vast zaad), daaruit het ritpad (`ridepath.js`), getoetst op het gereden begin en eind tegen de
+gebouwvoetafdrukken op de rechterbaan. Oude werkwijze (gewone spline door de hele route): 42 van 150 routes met punten in een gebouw.
+Nu: 1 van 150, en dat is een route waarvan de wegpunten zelf door een gebouw lopen (data, ook de wegpunten hebben dan 11 punten binnen).
+Begin of doel in een gebouw: 0 van 150 (de aansluitstukken vallen weg). Dit is de provincie-audit voor de stad; de rest van de provincie
+vraagt tegels die niet in de test passen. De botsing van de taxi met props en voetgangers is niet onderzocht.
