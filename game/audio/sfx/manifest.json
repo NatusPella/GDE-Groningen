@@ -4971,24 +4971,24 @@
       "bestand": "shop_drawer_1.ogg",
       "gebruik": "Kassalade gaat open",
       "loop": false,
-      "duur_s": 1.2,
-      "grootte_kb": 10.6,
+      "duur_s": 0.71,
+      "grootte_kb": 9,
       "herkomst": {
-        "titel": "Till With Bell.wav",
-        "auteur": "Benboncan",
-        "freesound_id": 91924,
-        "url": "https://freesound.org/people/Benboncan/sounds/91924/",
-        "licentie": "Creative Commons Attribution 4.0",
-        "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
+        "titel": "Open Drawer",
+        "auteur": "Rocotilos",
+        "freesound_id": 245782,
+        "url": "https://freesound.org/people/Rocotilos/sounds/245782/",
+        "licentie": "Creative Commons 0 (CC0 1.0)",
+        "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
         "datum": "2026-11-21",
-        "bron_sha256": "66e9a9c623980d91c228d826289683ca7c777f84f5918546f09ad05244ea976f"
+        "bron_sha256": "1ab157e0b88ce6b3645728e41edf4ad47b6c99449483b514d6c4ef6adcbf385f"
       },
       "knip_s": null,
       "niveau": {
         "rms_db": -22,
-        "piek_db": -2.9
+        "piek_db": -4
       },
-      "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 150 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, ingekort, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
+      "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 150 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
     },
     "shop_scanner_beep_0": {
       "bestand": "shop_scanner_beep_0.ogg",
@@ -5040,24 +5040,24 @@
       "bestand": "shop_sell_bills_0.ogg",
       "gebruik": "Verkopen: biljetten geteld",
       "loop": false,
-      "duur_s": 0.59,
-      "grootte_kb": 8.1,
+      "duur_s": 1.15,
+      "grootte_kb": 12.1,
       "herkomst": {
-        "titel": "Taking Bill From Stack 6",
-        "auteur": "TheKnave",
-        "freesound_id": 435624,
-        "url": "https://freesound.org/people/TheKnave/sounds/435624/",
+        "titel": "bills.wav",
+        "auteur": "tim.kahn",
+        "freesound_id": 93915,
+        "url": "https://freesound.org/people/tim.kahn/sounds/93915/",
         "licentie": "Creative Commons Attribution 4.0",
         "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
         "datum": "2026-11-21",
-        "bron_sha256": "26fdfc23828976ccb98b04a070a085fadfc3901c47a60070cfad65fba84f1574"
+        "bron_sha256": "7274ea427b14ffd9af453f90a5cc94d41b176ff68c021119189bf3bfdb1552ce"
       },
       "knip_s": null,
       "niveau": {
-        "rms_db": -24.1,
-        "piek_db": -1.5
+        "rms_db": -24,
+        "piek_db": -10.8
       },
-      "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 250 Hz, laagdoorlaat 13 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -24 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
+      "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 250 Hz, laagdoorlaat 13 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -24 dB, ogg (Vorbis q2)"
     },
     "snack_wrap_0": {
       "bestand": "snack_wrap_0.ogg",

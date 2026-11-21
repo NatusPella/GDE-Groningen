@@ -1,84 +1,4 @@
 {
- "ui_confirm": [
-  {
-   "kand": "ui_confirm_k1.ogg",
-   "entry": {
-    "bestand": "ui_confirm_0.ogg",
-    "gebruik": "Bevestigen of akkoord",
-    "loop": false,
-    "duur_s": 0.45,
-    "grootte_kb": 6.5,
-    "herkomst": {
-     "titel": "UI Toast Notification",
-     "auteur": "Qvantor",
-     "freesound_id": 878254,
-     "url": "https://freesound.org/people/Qvantor/sounds/878254/",
-     "licentie": "Creative Commons 0 (CC0 1.0)",
-     "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
-     "datum": "2026-11-21",
-     "bron_sha256": "00b8522f9f842b15b9999d8af8366b6f44e13eaf38e29f13f6bab4920e451219"
-    },
-    "knip_s": null,
-    "niveau": {
-     "rms_db": -24,
-     "piek_db": -3.9
-    },
-    "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 250 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -24 dB, ogg (Vorbis q2)"
-   }
-  },
-  {
-   "kand": "ui_confirm_k2.ogg",
-   "entry": {
-    "bestand": "ui_confirm_0.ogg",
-    "gebruik": "Bevestigen of akkoord",
-    "loop": false,
-    "duur_s": 0.26,
-    "grootte_kb": 5.6,
-    "herkomst": {
-     "titel": "UI Confirm",
-     "auteur": "unfa",
-     "freesound_id": 584184,
-     "url": "https://freesound.org/people/unfa/sounds/584184/",
-     "licentie": "Creative Commons 0 (CC0 1.0)",
-     "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
-     "datum": "2026-11-21",
-     "bron_sha256": "0ae9541a8bee100ccee919fe6bfb1bf5a449d1c39b4b6582eff9249bc6dd579b"
-    },
-    "knip_s": null,
-    "niveau": {
-     "rms_db": -24,
-     "piek_db": -5.8
-    },
-    "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 250 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -24 dB, ogg (Vorbis q2)"
-   }
-  },
-  {
-   "kand": "ui_confirm_k3.ogg",
-   "entry": {
-    "bestand": "ui_confirm_0.ogg",
-    "gebruik": "Bevestigen of akkoord",
-    "loop": false,
-    "duur_s": 0.53,
-    "grootte_kb": 6.4,
-    "herkomst": {
-     "titel": "Task Complete Pop",
-     "auteur": "Qvantor",
-     "freesound_id": 878606,
-     "url": "https://freesound.org/people/Qvantor/sounds/878606/",
-     "licentie": "Creative Commons 0 (CC0 1.0)",
-     "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
-     "datum": "2026-11-21",
-     "bron_sha256": "d6d3a0045ef7e39f9fbac19168117ab266e29b033bbcb950169bb6383d0b681f"
-    },
-    "knip_s": null,
-    "niveau": {
-     "rms_db": -24,
-     "piek_db": -8.7
-    },
-    "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 250 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -24 dB, ogg (Vorbis q2)"
-   }
-  }
- ],
  "shop_sell_bills": [
   {
    "kand": "shop_sell_bills_k1.ogg",
@@ -86,24 +6,24 @@
     "bestand": "shop_sell_bills_0.ogg",
     "gebruik": "Verkopen: biljetten geteld",
     "loop": false,
-    "duur_s": 0.59,
-    "grootte_kb": 8.1,
+    "duur_s": 1.15,
+    "grootte_kb": 12.1,
     "herkomst": {
-     "titel": "Taking Bill From Stack 6",
-     "auteur": "TheKnave",
-     "freesound_id": 435624,
-     "url": "https://freesound.org/people/TheKnave/sounds/435624/",
+     "titel": "bills.wav",
+     "auteur": "tim.kahn",
+     "freesound_id": 93915,
+     "url": "https://freesound.org/people/tim.kahn/sounds/93915/",
      "licentie": "Creative Commons Attribution 4.0",
      "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
      "datum": "2026-11-21",
-     "bron_sha256": "26fdfc23828976ccb98b04a070a085fadfc3901c47a60070cfad65fba84f1574"
+     "bron_sha256": "7274ea427b14ffd9af453f90a5cc94d41b176ff68c021119189bf3bfdb1552ce"
     },
     "knip_s": null,
     "niveau": {
-     "rms_db": -24.1,
-     "piek_db": -1.5
+     "rms_db": -24,
+     "piek_db": -10.8
     },
-    "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 250 Hz, laagdoorlaat 13 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -24 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
+    "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 250 Hz, laagdoorlaat 13 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -24 dB, ogg (Vorbis q2)"
    }
   },
   {
@@ -112,24 +32,24 @@
     "bestand": "shop_sell_bills_0.ogg",
     "gebruik": "Verkopen: biljetten geteld",
     "loop": false,
-    "duur_s": 0.31,
-    "grootte_kb": 5.9,
+    "duur_s": 1.17,
+    "grootte_kb": 15.6,
     "herkomst": {
-     "titel": "Snatching Dollar.wav",
-     "auteur": "MTJohnson",
-     "freesound_id": 444432,
-     "url": "https://freesound.org/people/MTJohnson/sounds/444432/",
-     "licentie": "Creative Commons 0 (CC0 1.0)",
-     "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+     "titel": "Money Collect 1.wav",
+     "auteur": "mitchanary",
+     "freesound_id": 522711,
+     "url": "https://freesound.org/people/mitchanary/sounds/522711/",
+     "licentie": "Creative Commons Attribution 4.0",
+     "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
      "datum": "2026-11-21",
-     "bron_sha256": "bd19dde31116f91126088c3fe7606038e84f58701c9041937ae31b102d53bfe9"
+     "bron_sha256": "781f956d220b34a0089665d0f615fd03fbc94d2019a4b7559aef9a267f9c55cb"
     },
     "knip_s": null,
     "niveau": {
-     "rms_db": -24.9,
-     "piek_db": -1.5
+     "rms_db": -24,
+     "piek_db": -2
     },
-    "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 250 Hz, laagdoorlaat 13 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -24 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
+    "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 250 Hz, laagdoorlaat 13 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -24 dB, ogg (Vorbis q2)"
    }
   },
   {
@@ -139,23 +59,23 @@
     "gebruik": "Verkopen: biljetten geteld",
     "loop": false,
     "duur_s": 1.6,
-    "grootte_kb": 16.4,
+    "grootte_kb": 15.9,
     "herkomst": {
-     "titel": "banknote-counter.wav",
-     "auteur": "madvedj",
-     "freesound_id": 178097,
-     "url": "https://freesound.org/people/madvedj/sounds/178097/",
-     "licentie": "Creative Commons 0 (CC0 1.0)",
-     "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+     "titel": "Bill In-Out of Slot.wav",
+     "auteur": "tweeterdj",
+     "freesound_id": 29638,
+     "url": "https://freesound.org/people/tweeterdj/sounds/29638/",
+     "licentie": "Creative Commons Attribution 3.0",
+     "licentie_url": "https://creativecommons.org/licenses/by/3.0/",
      "datum": "2026-11-21",
-     "bron_sha256": "861b509d50b003bd007d17fbec1416df17086b4a8672400b9c849fc6648348b8"
+     "bron_sha256": "d2bb69fd82353b6863ca8c59a68733a7ccc7ee6a530120c9dcaaef8a4b5a5157"
     },
     "knip_s": null,
     "niveau": {
-     "rms_db": -24,
-     "piek_db": -1.6
+     "rms_db": -28.3,
+     "piek_db": -1.5
     },
-    "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 250 Hz, laagdoorlaat 13 kHz, mono 44,1 kHz, stilte aan begin en eind weg, ingekort, fade-in en cosinus-fade-uit, niveau RMS -24 dB, ogg (Vorbis q2)"
+    "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 250 Hz, laagdoorlaat 13 kHz, mono 44,1 kHz, stilte aan begin en eind weg, ingekort, fade-in en cosinus-fade-uit, niveau RMS -24 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
    }
   }
  ],
@@ -166,24 +86,24 @@
     "bestand": "shop_drawer_1.ogg",
     "gebruik": "Kassalade gaat open",
     "loop": false,
-    "duur_s": 1.2,
-    "grootte_kb": 10.6,
+    "duur_s": 0.71,
+    "grootte_kb": 9,
     "herkomst": {
-     "titel": "Till With Bell.wav",
-     "auteur": "Benboncan",
-     "freesound_id": 91924,
-     "url": "https://freesound.org/people/Benboncan/sounds/91924/",
-     "licentie": "Creative Commons Attribution 4.0",
-     "licentie_url": "https://creativecommons.org/licenses/by/4.0/",
+     "titel": "Open Drawer",
+     "auteur": "Rocotilos",
+     "freesound_id": 245782,
+     "url": "https://freesound.org/people/Rocotilos/sounds/245782/",
+     "licentie": "Creative Commons 0 (CC0 1.0)",
+     "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
      "datum": "2026-11-21",
-     "bron_sha256": "66e9a9c623980d91c228d826289683ca7c777f84f5918546f09ad05244ea976f"
+     "bron_sha256": "1ab157e0b88ce6b3645728e41edf4ad47b6c99449483b514d6c4ef6adcbf385f"
     },
     "knip_s": null,
     "niveau": {
      "rms_db": -22,
-     "piek_db": -2.9
+     "piek_db": -4
     },
-    "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 150 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, ingekort, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
+    "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 150 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
    }
   },
   {
@@ -192,24 +112,24 @@
     "bestand": "shop_drawer_1.ogg",
     "gebruik": "Kassalade gaat open",
     "loop": false,
-    "duur_s": 0.67,
-    "grootte_kb": 8.7,
+    "duur_s": 0.41,
+    "grootte_kb": 6.5,
     "herkomst": {
-     "titel": "Drawer",
-     "auteur": "marcusgar",
-     "freesound_id": 360949,
-     "url": "https://freesound.org/people/marcusgar/sounds/360949/",
+     "titel": "Kitchen Drawer Close 1.wav",
+     "auteur": "RutgerMuller",
+     "freesound_id": 50733,
+     "url": "https://freesound.org/people/RutgerMuller/sounds/50733/",
      "licentie": "Creative Commons 0 (CC0 1.0)",
      "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
      "datum": "2026-11-21",
-     "bron_sha256": "43e53c5257d90df0d8167797e4328c729a510e874382f61ee5b42ecad6cfeb2c"
+     "bron_sha256": "9db6eef3d470aac8250b9bfba76a9d43340631668b6d1f039d7afb65b7e55de1"
     },
     "knip_s": null,
     "niveau": {
-     "rms_db": -22,
-     "piek_db": -3.7
+     "rms_db": -26.6,
+     "piek_db": -1.5
     },
-    "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 150 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
+    "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 150 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
    }
   },
   {
@@ -218,24 +138,24 @@
     "bestand": "shop_drawer_1.ogg",
     "gebruik": "Kassalade gaat open",
     "loop": false,
-    "duur_s": 1.01,
-    "grootte_kb": 11.1,
+    "duur_s": 0.84,
+    "grootte_kb": 10.3,
     "herkomst": {
-     "titel": "Foley_Furniture_Drawer_Wood_Open.wav",
-     "auteur": "Nox_Sound",
-     "freesound_id": 486081,
-     "url": "https://freesound.org/people/Nox_Sound/sounds/486081/",
+     "titel": "Drawer open Mid.wav",
+     "auteur": "HonorHunter",
+     "freesound_id": 271659,
+     "url": "https://freesound.org/people/HonorHunter/sounds/271659/",
      "licentie": "Creative Commons 0 (CC0 1.0)",
      "licentie_url": "https://creativecommons.org/publicdomain/zero/1.0/",
      "datum": "2026-11-21",
-     "bron_sha256": "5bf6bb9a3b2599c075d626862d39eec920401da683fb42db4eef9a94b8a13511"
+     "bron_sha256": "38aa0c18d9470a619528a4362eca84aa11a2b2822e89bca535a5f2b12efcc11d"
     },
     "knip_s": null,
     "niveau": {
-     "rms_db": -22,
-     "piek_db": -6
+     "rms_db": -24.7,
+     "piek_db": -1.5
     },
-    "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 150 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB, ogg (Vorbis q2)"
+    "bewerking": "ffmpeg en eigen script: DC-offset weg, hoogdoorlaat 150 Hz, laagdoorlaat 12 kHz, mono 44,1 kHz, stilte aan begin en eind weg, fade-in en cosinus-fade-uit, niveau RMS -22 dB (piekbegrenzing -1,5 dB), ogg (Vorbis q2)"
    }
   }
  ]

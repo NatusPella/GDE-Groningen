@@ -9,13 +9,13 @@ import { pathToFileURL, fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const KAND = path.join(ROOT, 'docs', 'sfx-oordeel-kandidaten');
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const WIE = { ui_confirm: 'ui_confirm_0: korte, droge bevestigingsping', shop_sell_bills: 'shop_sell_bills_0: echt briefgeld (papier)', shop_drawer: 'shop_drawer_1: echt laadgeluid (kassalade of lade)' };
+const WIE = { shop_sell_bills: 'shop_sell_bills_0: echt briefgeld (papier)', shop_drawer: 'shop_drawer_1: echt laadgeluid (kassalade of lade)' };
 
 export function build(abs = false) {
   const lijst = JSON.parse(fs.readFileSync(path.join(KAND, 'kandidaten.json'), 'utf8'));
   const out = ['<!doctype html><html lang="nl"><head><meta charset="utf-8"><title>SFX-oordeel: kies per geluid</title>',
     '<style>body{font:15px system-ui,sans-serif;margin:24px;max-width:900px}h2{margin-top:28px;border-bottom:1px solid #ccc}table{border-collapse:collapse;width:100%}td,th{padding:5px 8px;border-bottom:1px solid #eee;text-align:left;vertical-align:middle}audio{height:32px}.kort{color:#666;font-size:12px}.nu{background:#eef7ee}</style></head><body>',
-    '<h1>SFX-oordeel: nog drie keuzes</h1><p>Per geluid drie kandidaten. Kandidaat 1 staat nu in het spel (groen). Zeg welke het moet worden. Gekozen op titel en meting, niet op gehoor. Bronnen: <code>docs/AUDIO-LICENTIES.md</code>.</p>'];
+    '<h1>SFX-oordeel: nog twee keuzes (tweede ronde)</h1><p>Per geluid drie nieuwe kandidaten, andere dan de vorige ronde. Kandidaat 1 staat nu in het spel (groen). Zeg welke het moet worden. Gekozen op titel en meting, niet op gehoor. Bronnen: <code>docs/AUDIO-LICENTIES.md</code>.</p>'];
   for (const [key, l] of Object.entries(lijst)) {
     out.push(`<h2>${esc(WIE[key] || key)}</h2><table><tr><th>Label</th><th>Luister</th><th>Duur</th><th>Bron</th></tr>`);
     l.forEach((c, i) => {

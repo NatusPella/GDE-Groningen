@@ -14,8 +14,8 @@ import { schrijfOgg } from './stap_knip.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const arg = (n, d) => (process.argv.find((a) => a.startsWith(`--${n}=`)) || '').slice(n.length + 3) || d;
-export const TARGETS = [['ui_confirm', 0], ['shop_sell_bills', 0], ['shop_drawer', 1]];
-const VOORKEUR = { shop_sell_bills: 435624, shop_drawer: 91924 };   // Taking Bill From Stack; Till With Bell (a cash drawer with a ring, unlike the wooden drawer_0)
+export const TARGETS = [['shop_sell_bills', 0], ['shop_drawer', 1]];   // ui_confirm_0 is settled (Qvantor Toast Notification, owner verdict 21-11)
+const VOORKEUR = {};   // best by measurement
 const SFX =path.join(ROOT, 'game', 'audio', 'sfx');
 export const KAND = path.join(ROOT, 'docs', 'sfx-oordeel-kandidaten');
 
