@@ -695,17 +695,25 @@ export function releaseLostSpot(w, key) {
 
 // Samen spelen aanzetten voor deze sessie: claims bijhouden en doorsturen via send(msg) (het transport staat in de netlaag, nog te koppelen aan een EXTRA-bericht).
 // Geeft { receive(w, msg), snapshot(), drop(id), stop() }; zonder sessie blijft alles in je eigen spel.
-import { createClaims } from './bezitcoop.js';
+import { createClaims, PARCEL_RE } from './bezitcoop.js';
 export function attachCoop(w, selfId, name, color, send) {
   const claims = createClaims(selfId);
+  // Wat je al bezat vóór de sessie telt als eigen claim (review 22-11, B5): in de snapshot voor het hello, en zodat een medespeler het niet in deze sessie van je koopt.
+  // Tijd 0: wat je al had gaat voor op alles wat tijdens de sessie wordt gekocht. Het blijft van jou in je eigen spel: een medespeler die hetzelfde perceel ook al had,
+  // laat je het niet verliezen en je krijgt er niets voor terug (preowned).
+  const preowned = new Set();
+  try {
+    for (const id of Z.parcelIds(getBezit())) { const p = getBezit().parcels[id]; if (p && !p.lg && PARCEL_RE.test(id)) { claims.apply({ id, action: 'claim', from: selfId, name, color, t: 0 }); preowned.add(id); } }
+    for (const spot of SPT.heldIds(snackState().permits, calToday())) { const key = SPT.claimKey(spot); claims.apply({ id: key, action: 'claim', from: selfId, name, color, t: 0 }); preowned.add(key); }
+  } catch (e) { /* de opslag is er nog niet: dan zijn er geen eigen claims om te melden */ }
   setClaimLookup((id) => claims.lookup(id));
-  const announce = (m, t = Date.now()) => { const full = { ...m, from: selfId, name, color, t }; claims.apply(full); if (typeof send === 'function') send(full); return full; };
+  const announce = (m, t = Date.now()) => { const full = { ...m, from: selfId, name, color, t }; claims.apply(full); if (m.action === 'release') preowned.delete(m.id); if (typeof send === 'function') send(full); return full; };
   setClaimSend((m) => announce(m));
   if (w) w.bezitClaims = () => claims.list();
   return {
     claims,
     announce,                                                              // een claim of loslating van deze speler melden (met een eigen tijd voor tests)
-    receive(world, msg) { const r = claims.apply(msg); if (r.lost) { const b = SPT.spotOfClaim(msg.id) ? releaseLostSpot(world, msg.id) : releaseLostClaim(world, msg.id); if (b.ok && world.addMessage) world.addMessage(b.text, 4); } return r; },
+    receive(world, msg) { const r = claims.apply(msg); if (r.lost && preowned.has(msg.id)) r.lost = false; if (r.lost) { const b = SPT.spotOfClaim(msg.id) ? releaseLostSpot(world, msg.id) : releaseLostClaim(world, msg.id); if (b.ok && world.addMessage) world.addMessage(b.text, 4); } return r; },
     snapshot: () => claims.snapshot(),
     drop: (id) => claims.drop(id),
     stop() { setClaimLookup(null); setClaimSend(null); claims.clear(); if (w) w.bezitClaims = null; },

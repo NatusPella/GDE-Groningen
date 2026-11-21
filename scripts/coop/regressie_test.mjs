@@ -142,7 +142,7 @@ for (const spelers of AANTALLEN) {
     s.step(2);
     const erin = figs().filter((f) => f.inVeh === auto).length, plekken = Math.min(figs().length, 3);
     eq(erin, plekken, `${spelers}: een auto heeft drie plekken voor extra spelers (${erin} van ${figs().length})`);
-    if (figs().length > 3) ok(gw.slice(1).filter((w) => /Er is geen plek meer/.test(tekst(w))).length === figs().length - 3, `${spelers}: wie geen plek krijgt leest waarom`);
+    if (figs().length > 3) ok(gw.filter((w) => /Er is geen plek meer/.test(tekst(w))).length === figs().length - 3, `${spelers}: wie geen plek krijgt leest waarom`);
     auto.speed = 20; s.step(1, () => { auto.x += 20 / 60; s.hw.player.x = auto.x; });
     ok(figs().filter((f) => f.inVeh === auto).every((f) => Math.abs(f.x - auto.x) < 0.5), `${spelers}: wie meerijdt rijdt mee`);
     auto.speed = 0; for (const w of gw) w.coopNet.session.sendEvent({ k: 'gebruik' }); s.step(2);

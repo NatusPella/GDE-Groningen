@@ -5,7 +5,9 @@
 // Meewerken (5.5): de eigenaar krijgt oogst en voortgang, de gast krijgt loon. Puur: geen netwerk, geen DOM, geen klok (scripts/bezitcoop_test.mjs); het verzenden is een haak.
 
 export const CLAIM_MAX = 5000;                     // hoeveel claims van anderen we onthouden (een bovengrens tegen een vol netwerk)
-export const PARCEL_RE = /^p[0-9a-f]{12}$/;
+export const PER_PLAYER_PARCELS = 500;             // hoeveel percelen één andere speler in de map mag claimen (review 22-11, B3): één gast vult de laag niet voor iedereen
+export const PER_PLAYER_SPOTS = 16;                // en hoeveel standplaatsen (dezelfde 16 als snapshotSpots)
+export const PARCEL_RE =/^p[0-9a-f]{12}$/;
 export const SPOT_RE = /^sp:[a-z]{2,12}$/;                // een standplaats van de snackwagen (pitch.js claimKey)
 export const ID_RE = /^(p[0-9a-f]{12}|sp:[a-z]{2,12})$/;
 
@@ -33,6 +35,13 @@ export function decodeIds(str, max = CLAIM_MAX) {
 export function createClaims(selfId) {
   const claims = new Map();
   const wins = (a, b) => (a.t < b.t || (a.t === b.t && String(a.from) < String(b.from)));   // a wint van b
+  // het aantal claims per andere speler, bijgehouden bij elke wijziging (adopt doet er tot 5000 achter elkaar): { p: percelen, s: standplaatsen }
+  const counts = new Map();
+  const kindOf = (id) => (SPOT_RE.test(id) ? 's' : 'p');
+  const bump = (from, id, d) => { let c = counts.get(from); if (!c) counts.set(from, (c = { p: 0, s: 0 })); c[kindOf(id)] += d; };
+  const exceedsQuota = (from, id) => { if (from === selfId) return false; const c = counts.get(from); return !!c && c[kindOf(id)] >= (kindOf(id) === 's' ? PER_PLAYER_SPOTS : PER_PLAYER_PARCELS); };
+  const put = (id, c) => { const oud = claims.get(id); if (oud) bump(oud.from, id, -1); claims.set(id, c); bump(c.from, id, 1); };
+  const del = (id) => { const oud = claims.get(id); if (oud) { bump(oud.from, id, -1); claims.delete(id); } };
   const api = {
     selfId,
     // Een claim of loslating uit het netwerk (of van onszelf). msg: { id, action: 'claim' | 'release', from, name, color, t }.
@@ -41,7 +50,7 @@ export function createClaims(selfId) {
       if (!msg || !ID_RE.test(msg.id) || msg.from === undefined || msg.from === null) return { ok: false, ignored: 'ongeldig' };
       if (msg.action === 'release') {
         const c = claims.get(msg.id);
-        if (c && c.from === msg.from) { claims.delete(msg.id); return { ok: true }; }
+        if (c && c.from === msg.from) { del(msg.id); return { ok: true }; }
         return { ok: false, ignored: 'niet-van-hem' };
       }
       if (msg.action !== 'claim') return { ok: false, ignored: 'onbekend' };
@@ -50,21 +59,24 @@ export function createClaims(selfId) {
       const oud = claims.get(msg.id);
       if (!oud) {
         if (claims.size >= CLAIM_MAX) return { ok: false, ignored: 'vol' };
-        claims.set(msg.id, incoming); return { ok: true };
+        if (exceedsQuota(incoming.from, msg.id)) return { ok: false, ignored: 'quotum' };
+        put(msg.id, incoming); return { ok: true };
       }
-      if (oud.from === incoming.from) { claims.set(msg.id, incoming); return { ok: true }; }
+      if (oud.from === incoming.from) { put(msg.id, incoming); return { ok: true }; }
       if (wins(incoming, oud)) {
-        claims.set(msg.id, incoming);
+        if (exceedsQuota(incoming.from, msg.id)) return { ok: false, ignored: 'quotum' };
+        put(msg.id, incoming);
         return { ok: true, lost: oud.from === selfId, replaced: oud.from };
       }
       return { ok: false, ignored: 'verloren', took: incoming.from !== selfId ? false : true, lost: incoming.from === selfId };
     },
     // Wegvallen: de claims van deze speler verdwijnen (zijn eigen bezit blijft van hem, in zijn eigen spel).
-    drop(playerId) { let n = 0; for (const [id, c] of claims) if (c.from === playerId) { claims.delete(id); n++; } return n; },
+    drop(playerId) { let n = 0; for (const [id, c] of [...claims]) if (c.from === playerId) { del(id); n++; } return n; },
     // De claim van een ander op dit perceel (voor de kaartlaag en de koopknop), of null. Onze eigen claim telt hier niet: dat is gewoon van jou.
     lookup(id) { const c = claims.get(id); return c && c.from !== selfId ? { name: c.name, color: c.color, playerId: c.from } : null; },
     // alle claims (ook de eigen) met de afzender, voor het doorgeven aan een gast die aansluit
-    listAll() { const out = []; for (const [id, c] of claims) out.push({ id, from: c.from, name: c.name, color: c.color }); return out; },
+    listAll() { const out = []; for (const [id, c] of claims) out.push({ id, from: c.from, name: c.name, color: c.color, t: c.t }); return out; },
+    ownerOf: (id) => { const c = claims.get(id); return c ? c.from : undefined; },
     has: (id) => claims.has(id),
     // Voor de palen in de wereld: de claims van anderen als { id, name, color }.
     list() { const out = []; for (const [id, c] of claims) if (c.from !== selfId && PARCEL_RE.test(id)) out.push({ id, name: c.name, color: c.color }); return out; },
@@ -78,7 +90,7 @@ export function createClaims(selfId) {
     adoptSpots(playerId, name, color, str, t = 0) { let k = 0; for (const s of String(str || '').split(',').slice(0, 16)) if (api.apply({ id: 'sp:' + s, action: 'claim', from: playerId, name, color, t }).ok) k++; return k; },
     adopt(playerId, name, color, str, t = 0) { let n = 0; for (const id of decodeIds(str)) if (api.apply({ id, action: 'claim', from: playerId, name, color, t }).ok) n++; return n; },
     size: () => claims.size,
-    clear() { claims.clear(); },
+    clear() { claims.clear(); counts.clear(); },
   };
   return api;
 }

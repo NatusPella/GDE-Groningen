@@ -1,0 +1,295 @@
+// Reviewbevindingen 22-11 voor Samen spelen (docs/reviews/CODE-REVIEW-22-11-multiplayer.md): B1 (lijst en welkom boven MAX_JSON), B2 (tijd van een claim),
+// B3 (quotum en snelheidsgrens), B4 (opruimen bij het einde van de sessie), B5 (eigen percelen als claim), N1 tot en met N4.
+//   node scripts/multiplayerreview_22_11_test.mjs
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import * as P from '../game/js/coopplayers.js';
+import * as K from '../game/js/net/codec.js';
+const MAX_JSON = K.MAX_JSON;
+import { pingRegel } from '../game/js/coopping.js';
+import { encodeOutfit, cleanOutfitCode } from '../game/js/clothing.js';
+import { ITEMS, SLOT_IDS } from '../game/js/clothingdata.js';
+
+let n = 0, fails = 0;
+const t = (name, fn) => { n++; try { fn(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', String(e.message).split('\n')[0]); } };
+
+// een geldige outfitcode met in elk slot een stuk (de langste die het spel maakt)
+const volleKast = (v = 0) => { const worn = {}; for (const s of SLOT_IDS) { const it = ITEMS.find((i) => i.slot === s && !i.npc); if (it) worn[s] = `${it.id}.${it.colors[v % it.colors.length]}`; } return encodeOutfit(worn); };
+
+function volleRoster(aantal = 16, naamLen = 24) {
+  const r = P.createRoster(16);
+  for (let i = 1; i < aantal; i++) {
+    const p = P.wijsPlekToe(r); if (!p) break;
+    P.zetAvatar(r, p.slot, { naam: String.fromCharCode(65 + i).repeat(naamLen - 2) + String(i).padStart(2, '0'), kleur: '#aabbcc', outfit: volleKast() });
+  }
+  return r;
+}
+
+// ---- B1
+t('B1: de testkast is een geldige outfitcode', () => { assert.ok(cleanOutfitCode(volleKast())); });
+t('B1: elk lijstbericht (16 spelers, lange namen, volle kast) past in MAX_JSON', () => {
+  const r = volleRoster();
+  const ev = P.lijstBerichten(r);
+  assert.ok(ev.length >= 1);
+  for (const e of ev) assert.doesNotThrow(() => K.encodeJson(0, 0, 0, 0, e), 'bericht te groot');
+  assert.ok(ev.every((e) => new TextEncoder().encode(JSON.stringify(e)).length <= MAX_JSON));
+});
+t('B1: lijstEvent zelf blijft onder MAX_JSON, ook met 16 spelers met een volle kast', () => {
+  assert.doesNotThrow(() => K.encodeJson(0, 0, 0, 0, P.lijstEvent(volleRoster())));
+});
+t('B1: de outfits gaan in eigen berichten mee en komen na het samenvoegen bij de ontvanger aan', () => {
+  const r = volleRoster();
+  const ev = P.lijstBerichten(r);
+  const l = P.leesLijstEvent(ev[0]);
+  let roster = l.spelers.map((s) => ({ ...s }));
+  for (const e of ev.slice(1)) roster = P.voegOutfitsSamen(roster, P.leesOutfitsEvent(e));
+  const bron = P.lijst(r);
+  for (const s of bron) { const g = roster.find((x) => x.slot === s.slot); assert.equal((g.avatar && g.avatar.outfit) || null, (s.avatar && s.avatar.outfit) || null, 'slot ' + s.slot); }
+});
+t('B1: met weinig spelers blijft de lijst één bericht met de outfit erin (ongewijzigd gedrag)', () => {
+  const r = volleRoster(4, 10);
+  const ev = P.lijstBerichten(r);
+  assert.equal(ev.length, 1);
+  assert.ok(P.lijstEvent(r).lijst.every((s) => s.slot === 0 || s.avatar.outfit));
+});
+t('B1: het welkom met 16 spelers past ook (de korte lijst)', () => {
+  const r = volleRoster();
+  const extra = { char: 'rik', naam: 'Rik', kleur: '#aabbcc', max: 16, lijst: P.lijstEvent(r, P.WELKOM_BUDGET).lijst };
+  assert.doesNotThrow(() => K.encodeJson(0, 0, 0, 0, { ...extra, niveau: { a: 'x'.repeat(200) } }));
+});
+t('B1: leesOutfitsEvent weigert rommel en kapt af op geldige codes', () => {
+  assert.equal(P.leesOutfitsEvent({ k: 'spelers' }), null);
+  assert.deepEqual(P.leesOutfitsEvent({ k: 'outfits', lijst: [{ slot: 2, o: 'rommel' }, { slot: -1, o: volleKast() }, { slot: 3, o: volleKast() }] }), [{ slot: 3, o: volleKast() }]);
+});
+
+// ---- B1 met de echte hub: 16 spelers met lange namen en een volle kast sluiten aan zonder dat het welkom of de lijst gooit
+import { createLink, makeRng } from '../game/js/net/memtransport.js';
+import { HostHub } from '../game/js/net/hub.js';
+import { ClientSession } from '../game/js/net/session.js';
+t('B1: hub met 16 spelers met lange namen en volle kast: iedereen sluit aan, de lijst en de outfits komen aan', () => {
+  const INFO = { game: 'gde', proto: 1, version: 'x', tiles: '-', story: 'oud' };
+  const sim = { applyInput() {}, snapshot: () => ({ players: [{ slot: 0, x: 0, y: 0, z: 0, angle: 0, alive: true, health: 100 }], shared: { money: 0, wanted: 0, clock: 0 }, mission: { stage: 0, state: 'none', present: 3 }, entities: [] }), fullState: () => ({}) };
+  const hub = new HostHub({ info: INFO, seed: 1, sim, max: 16, caps: ['scene'], rand: makeRng(5) });
+  const clients = [], links = [], seen = [];
+  for (let i = 1; i < 16; i++) {
+    const l = createLink({ latency: 0.03, jitter: 0.01, loss: 0, seed: 100 + i });
+    hub.accept(l.a);
+    const c = new ClientSession(l.b, { info: { ...INFO, avatar: { naam: String.fromCharCode(64 + i).repeat(22) + String(i).padStart(2, '0'), kleur: '#aabbcc', outfit: volleKast() } }, caps: ['scene'] }, makeRng(100 + i));
+    clients.push(c); links.push(l);
+    if (i === 15) c.onevent = (b) => { if (b && (b.k === 'spelers' || b.k === 'outfits')) seen.push(b); };
+  }
+  const dt = 1 / 60;
+  for (let k = 0; k < 6 * 60; k++) { hub.tick(dt); for (const c of clients) c.tick(dt); for (const l of links) l.advance(dt); }
+  assert.deepEqual([...new Set(clients.map((c) => c.status))], ['ok'], 'alle 15 gasten zijn binnen');
+  assert.equal(hub.roster.spelers.length, 16);
+  const laatste = seen.map((b, i) => [b, i]).filter(([b]) => b.k === 'spelers').at(-1);
+  assert.ok(laatste, 'de laatste gast kreeg een lijst');
+  let roster = P.leesLijstEvent(laatste[0]).spelers.map((s) => ({ ...s }));
+  for (const b of seen.slice(laatste[1] + 1)) if (b.k === 'outfits') roster = P.voegOutfitsSamen(roster, P.leesOutfitsEvent(b));
+  assert.equal(roster.length, 16);
+  assert.ok(roster.filter((s) => s.slot > 0).every((s) => s.avatar && s.avatar.outfit), 'elke gast heeft zijn outfit in de lijst');
+});
+t('B1: _announceList gooit nooit, ook niet als een bericht niet past (try/catch)', () => {
+  const hub = new HostHub({ info: { game: 'gde', proto: 1, version: 'x', tiles: '-', story: 'oud' }, seed: 1, sim: { applyInput() {}, snapshot: () => ({}), fullState: () => ({}) }, max: 4, caps: [], rand: makeRng(1) });
+  hub.sessions.set(1, { guest: true, tick() {}, announce() { throw new Error('bericht te groot'); } });
+  hub._announceList(); assert.doesNotThrow(() => hub.tick(0.02));
+});
+
+// ---- N1, N2, N3 en de outfit
+const NET = await import('../game/js/coopnet.js');
+const { maakPings } = { maakPings: () => ({ lijst: [], laatste: {} }) };
+t('N1: een ping met soort "constructor" of "__proto__" laat geen prototype-tekst zien', () => {
+  for (const soort of ['constructor', '__proto__', 'toString', 'hasOwnProperty']) {
+    const msgs = [];
+    const world = { time: 10, coopPings: maakPings(), coopRoster: [{ slot: 0, naam: 'Host', char: 'tammo' }, { slot: 1, naam: 'Kwaad', char: 'rik' }], addMessage: (m) => msgs.push(m), coopNet: { role: 'host', hub: { roster: { spelers: [] } } } };
+    NET.handleEvent(world, { k: 'ping', x: 5, y: 5, soort }, 1);
+    assert.ok(msgs.length === 1 && /Kom hier/.test(msgs[0]) && !/native code|object/i.test(msgs[0]), `${soort}: ${msgs[0]}`);
+  }
+});
+t('N1: pingRegel kent alleen eigen soorten', () => {
+  const r = [{ slot: 1, naam: 'Kwaad' }];
+  assert.equal(pingRegel(1, 'constructor', r, 0), 'Kwaad: Kom hier');
+  assert.equal(pingRegel(1, '__proto__', r, 0), 'Kwaad: Kom hier');
+});
+t('N2: de host geeft een ping alleen door met de bekende velden en niet sneller dan de afkoeling', () => {
+  const stuur = [];
+  const world = { time: 10, coopRoster: [], addMessage() {} };
+  const hub = { roster: { spelers: [{ slot: 0 }, { slot: 1 }, { slot: 2 }] }, announce: (b, s) => stuur.push([s, b]) };
+  // de relay zit in startHost (onEvent); hier de geëxporteerde proef
+  assert.equal(typeof NET.relayPing, 'function');
+  NET.relayPing(world, hub, 1, { k: 'ping', x: 3, y: 4, soort: 'gevaar', troep: 'x'.repeat(1500) });
+  assert.deepEqual(stuur, [[2, { k: 'ping', x: 3, y: 4, soort: 'gevaar', van: 1 }]]);
+  NET.relayPing(world, hub, 1, { k: 'ping', x: 3, y: 4, soort: 'hier' });
+  assert.equal(stuur.length, 1, 'te snel na de vorige: niet doorgegeven');
+  world.time = 20; NET.relayPing(world, hub, 1, { k: 'ping', x: NaN, y: 4 });
+  assert.equal(stuur.length, 1, 'een ongeldige ping gaat nergens heen');
+});
+t('N2: een gast die steeds van outfit wisselt, laat de host de lijst hoogstens een keer per seconde sturen; de laatste outfit komt altijd aan', () => {
+  const r = P.createRoster(8); P.wijsPlekToe(r);
+  let aantal = 0;
+  const n = { role: 'host', hub: { roster: r, _announceList: () => { aantal++; } } };
+  const world = { time: 100, coopNet: n };
+  const codes = [0, 1, 2].map((v) => volleKast(v));
+  assert.equal(new Set(codes).size, 3);
+  for (let i = 0; i < 3; i++) { NET.handleEvent(world, { k: 'outfit', o: codes[i] }, 1); world.time += 0.1; }
+  assert.equal(aantal, 1, 'binnen een seconde maar een lijst');
+  assert.equal(r.spelers.find((s) => s.slot === 1).avatar.outfit, codes[2], 'maar de laatste outfit staat in de lijst');
+  world.time += 1;
+  NET.outfitLijstTik(world);
+  assert.equal(aantal, 2, 'daarna gaat de open wijziging alsnog mee');
+});
+t('N3: readLook weigert onleesbare tekens in de tuning-code', () => {
+  const snap = { players: [{ slot: 0, x: 1, y: 2, z: 0, angle: 0, alive: true, health: 100 }], shared: { money: 0, wanted: 0, clock: 0 }, mission: { stage: 0, state: 'none', present: 3 }, entities: [], looks: [{ id: 7, model: 2, fl: 1, len: 4.4, wid: 1.8, color: 0x7a1f1f, color2: 0x12294f, extra: 5, dents: [], tune: 'QWERTY' }] };
+  const buf = K.encodeSnapshot(1, 1, 0, snap);
+  assert.equal(K.decodeSnapshot(buf, new Map()).looks[0].tune, 'QWERTY');
+  const at = buf.findIndex((_, i) => String.fromCharCode(...buf.slice(i, i + 6)) === 'QWERTY');
+  buf[at + 2] = 0x07; buf[at + 3] = 0x80;
+  const d = K.decodeSnapshot(buf, new Map());
+  assert.ok(d && d.looks[0].tune === undefined, 'geen onleesbare tuning');
+});
+
+
+// ---- Bezit (B2 tot en met B5): drie instanties over een nep-netwerk
+import * as N from '../game/js/bezitnet.js';
+import * as L from '../game/js/bezitlive.js';
+import * as BL from '../game/js/boerderijlive.js';
+import * as BC from '../game/js/bezitcoop.js';
+const ID = (i) => 'p' + i.toString(16).padStart(12, '0');
+function netwerk() {
+  const queue = [], worlds = new Map(), tr = new Map(); let klok = 1000;
+  const add = (slot, role) => {
+    const w = { coopRoster: [{ slot: 0, naam: 'Host' }, { slot: 1, naam: 'Lotte' }, { slot: 2, naam: 'Zoe' }], money: 0, msgs: [], addMessage(x) { this.msgs.push(x); } };
+    worlds.set(slot, w);
+    tr.set(slot, role === 'host'
+      ? { role: 'host', now: () => klok, toGuest: (s, body) => queue.push({ to: s, from: 0, body }), guests: () => [...worlds.keys()].filter((k) => k !== 0) }
+      : { role: 'client', toHost: (body) => queue.push({ to: 0, from: slot, body }), guests: () => [] });
+    return w;
+  };
+  const flush = () => { let g = 0; while (queue.length && g++ < 5000) for (const m of queue.splice(0, queue.length)) N.handleBezit(worlds.get(m.to), m.body, m.from, tr.get(m.to)); };
+  return { worlds, tr, add, flush, ensure: (s) => N.ensureBezitNet(worlds.get(s), tr.get(s)), queue, tijd: (ms) => { klok += ms; } };
+}
+const claimsOf = (w) => w.bezitNet.net.claims;
+const opslag = () => ({ m: new Map(), getItem(k) { return this.m.has(k) ? this.m.get(k) : null; }, setItem(k, v) { this.m.set(k, String(v)); }, removeItem(k) { this.m.delete(k); } });
+const INDEX = { v: 1, kinds: ['w', 'a', 'b'], access: ['weg', 'pad', 'wegNabij', 'padNabij', 'geen'], places: [['Winsum', 0, 0, 800]], rows: [['paaaaaaaaaaa1', 100, 100, 300, 0, 0, 90, 90]] };
+
+t('B2: een gast kan met een t ver in het verleden geen claim van de host afpakken', () => {
+  const net = netwerk(); net.add(0, 'host'); net.add(1, 'client');
+  const o0 = net.ensure(0); net.ensure(1); net.flush();
+  o0.net.announce({ id: ID(0x123456789ab), action: 'claim' }, 1000);
+  net.flush();
+  net.queue.push({ to: 0, from: 1, body: { k: 'bezit', a: 'claim', id: ID(0x123456789ab), t: -1e12 } });
+  net.flush();
+  assert.equal(claimsOf(net.worlds.get(0)).lookup(ID(0x123456789ab)), null, 'het perceel blijft van de host (geen claim van een ander)');
+  assert.ok(claimsOf(net.worlds.get(1)).lookup(ID(0x123456789ab)), 'de gast ziet het als van de host');
+});
+t('B2: wie het eerst bij de host aankomt wint; de tijd van de gast telt niet', () => {
+  const net = netwerk(); net.add(0, 'host'); net.add(1, 'client'); net.add(2, 'client');
+  net.ensure(0); net.ensure(1); net.ensure(2); net.flush();
+  net.queue.push({ to: 0, from: 2, body: { k: 'bezit', a: 'claim', id: ID(77), t: 999999 } });
+  net.queue.push({ to: 0, from: 1, body: { k: 'bezit', a: 'claim', id: ID(77), t: -5 } });
+  net.flush();
+  assert.equal(claimsOf(net.worlds.get(0)).lookup(ID(77)).name, 'Zoe');
+});
+t('B2: de hello neemt de t van de gast ook niet over', () => {
+  const net = netwerk(); net.add(0, 'host'); net.add(1, 'client');
+  const o0 = net.ensure(0); net.ensure(1); net.flush();
+  o0.net.announce({ id: ID(31), action: 'claim' }, 1000);
+  net.queue.push({ to: 0, from: 1, body: { k: 'bezit', a: 'hello', ids: BC.encodeIds([ID(31)]), t: -1e12 } });
+  net.flush();
+  assert.equal(claimsOf(net.worlds.get(0)).lookup(ID(31)), null, 'de claim van de host blijft');
+});
+
+t('B3: een gast die hello blijft sturen vult de claimlaag niet (een hello per verbinding en een quotum per speler)', () => {
+  const net = netwerk(); net.add(0, 'host'); net.add(1, 'client'); net.add(2, 'client');
+  net.ensure(0); net.ensure(1); net.ensure(2); net.flush();
+  for (let i = 0; i < 30; i++) net.queue.push({ to: 0, from: 1, body: { k: 'bezit', a: 'hello', ids: BC.encodeIds(Array.from({ length: 190 }, (_, k) => ID(i * 190 + k + 1))) } });
+  net.flush();
+  const host = claimsOf(net.worlds.get(0));
+  assert.ok(host.size() <= BC.PER_PLAYER_PARCELS, 'hoogstens het quotum, was ' + host.size());
+  net.queue.push({ to: 0, from: 2, body: { k: 'bezit', a: 'claim', id: ID(0xfffff) } }); net.flush();
+  assert.ok(host.lookup(ID(0xfffff)), 'een eerlijke claim van een ander komt er nog in');
+});
+t('B3: het quotum per speler geldt ook voor claim-berichten, en voor standplaatsen (16)', () => {
+  const c = BC.createClaims('s0');
+  for (let i = 0; i < BC.PER_PLAYER_PARCELS + 20; i++) c.apply({ id: ID(i + 1), action: 'claim', from: 's1', name: 'A', t: i });
+  assert.equal(c.list().length, BC.PER_PLAYER_PARCELS);
+  assert.equal(c.apply({ id: ID(999999), action: 'claim', from: 's2', name: 'B', t: 1 }).ok, true, 'een andere speler heeft een eigen quotum');
+  const spots = ['aa', 'ab', 'ac', 'ad', 'ae', 'af', 'ag', 'ah', 'ai', 'aj', 'ak', 'al', 'am', 'an', 'ao', 'ap', 'aq', 'ar'];
+  const r = spots.map((s) => c.apply({ id: 'sp:' + s, action: 'claim', from: 's3', name: 'C', t: 1 }).ok);
+  assert.equal(r.filter(Boolean).length, BC.PER_PLAYER_SPOTS);
+  c.apply({ id: ID(1), action: 'release', from: 's1' });
+  assert.equal(c.apply({ id: ID(555555), action: 'claim', from: 's1', name: 'A', t: 5 }).ok, true, 'na een loslating is er weer ruimte');
+});
+t('B3: een gast mag niet vaker dan de snelheidsgrens bezit-berichten sturen', () => {
+  const net = netwerk(); net.add(0, 'host'); net.add(1, 'client'); net.ensure(0); net.ensure(1); net.flush();
+  for (let i = 0; i < 200; i++) net.queue.push({ to: 0, from: 1, body: { k: 'bezit', a: 'claim', id: ID(i + 1) } });
+  net.flush();
+  const n1 = claimsOf(net.worlds.get(0)).size();
+  assert.ok(n1 > 0 && n1 <= N.RATE_BURST, 'de burst is begrensd: ' + n1);
+  net.tijd(30000);
+  for (let i = 0; i < 5; i++) net.queue.push({ to: 0, from: 1, body: { k: 'bezit', a: 'claim', id: ID(1000 + i) } });
+  net.flush();
+  assert.equal(claimsOf(net.worlds.get(0)).size(), n1 + 5, 'na een pauze mag het weer');
+});
+t('B3: na een vertrek mag dezelfde plek (een nieuwe gast) weer een hello sturen', () => {
+  const net = netwerk(); net.add(0, 'host'); net.add(1, 'client'); net.ensure(0); net.ensure(1); net.flush();
+  net.queue.push({ to: 0, from: 1, body: { k: 'bezit', a: 'hello', ids: BC.encodeIds([ID(41)]) } }); net.flush();
+  assert.equal(claimsOf(net.worlds.get(0)).lookup(ID(41)), null, 'de tweede hello van dezelfde verbinding telt niet');
+  N.dropSlot(net.worlds.get(0), 1, net.tr.get(0));
+  assert.equal(claimsOf(net.worlds.get(0)).lookup(ID(41)), null);
+  net.queue.push({ to: 0, from: 1, body: { k: 'bezit', a: 'hello', ids: BC.encodeIds([ID(42)]) } }); net.flush();
+  assert.ok(claimsOf(net.worlds.get(0)).lookup(ID(42)));
+});
+
+t('B4: stopBezitNet ruimt claims, opzoeking en kaartlaag op', () => {
+  const net = netwerk(); net.add(0, 'host'); net.add(1, 'client');
+  net.ensure(0); const o1 = net.ensure(1); net.flush();
+  o1.net.announce({ id: ID(51), action: 'claim' }, 1); net.flush();
+  const w0 = net.worlds.get(0);
+  assert.ok(L.claimOfKey(ID(51)) !== undefined);
+  N.stopBezitNet(w0);
+  assert.equal(w0.bezitNet, null);
+  assert.equal(L.claimOfKey(ID(51)), null, 'na de sessie is er geen claim meer');
+  assert.equal(w0.bezitClaims, null);
+});
+t('B4: een nieuwe sessie (ander transport) begint met een schone map', () => {
+  const net = netwerk(); net.add(0, 'host'); net.add(1, 'client');
+  net.ensure(0); const o1 = net.ensure(1); net.flush();
+  o1.net.announce({ id: ID(52), action: 'claim' }, 1); net.flush();
+  const w0 = net.worlds.get(0);
+  assert.ok(claimsOf(w0).has(ID(52)));
+  const nieuw = { ...net.tr.get(0) };
+  const o = N.ensureBezitNet(w0, nieuw);
+  assert.equal(o.net.claims.has(ID(52)), false, 'de oude claims zijn weg');
+});
+t('B4: stopCoopNet en de start van een sessie roepen stopBezitNet aan (broncontrole)', () => {
+  const src = fs.readFileSync(new URL('../game/js/coopnet.js', import.meta.url), 'utf8');
+  const i = src.indexOf('export function stopCoopNet');
+  assert.ok(i > 0 && /stopBezitNet\(world\)/.test(src.slice(i, i + 4000)));
+});
+
+t('B5: eigen percelen uit de save staan in de claim-map en in het hello van de gast', () => {
+  const st = opslag(); L.initBezit({ opslag: st }); BL.initBoerderij({ opslag: st }); L.setIndexForTest(INDEX);
+  const net = netwerk(); net.add(1, 'client'); net.add(0, 'host');
+  net.ensure(0);                                                           // de host heeft zelf nog niets (de opslag is gedeeld in deze proef)
+  const w = { money: 1e6, addMessage() {}, calendar: { day: 5 } };
+  assert.ok(L.koopPerceel(w, 'paaaaaaaaaaa1').ok, 'perceel gekocht buiten een sessie');
+  const o1 = net.ensure(1);
+  assert.equal(BC.decodeIds(o1.net.snapshot()).join(','), 'paaaaaaaaaaa1', 'het eigen perceel staat in de snapshot');
+  assert.ok(net.queue.some((m) => m.body.a === 'hello' && BC.decodeIds(m.body.ids).includes('paaaaaaaaaaa1')), 'het hello bevat het eigen perceel');
+  net.flush();
+  assert.equal(claimsOf(net.worlds.get(0)).lookup('paaaaaaaaaaa1').name, 'Lotte', 'de host ziet het als van de gast');
+});
+t('B5: een eigen perceel dat een medespeler ook al had, wordt niet terugbetaald of afgenomen', () => {
+  const st = opslag(); L.initBezit({ opslag: st }); BL.initBoerderij({ opslag: st }); L.setIndexForTest(INDEX);
+  const w = { money: 1e6, addMessage() {}, calendar: { day: 5 } };
+  L.koopPerceel(w, 'paaaaaaaaaaa1');
+  const net = netwerk(); net.add(0, 'host'); const gast = net.add(1, 'client');
+  gast.money = 0; net.ensure(1);
+  N.handleBezit(gast, { k: 'bezit', a: 'claim', id: 'paaaaaaaaaaa1', from: 's0', name: 'Host', t: -1 }, 0, net.tr.get(1));
+  assert.ok(L.getBezit().parcels['paaaaaaaaaaa1'], 'het perceel van de gast blijft van de gast');
+  assert.equal(gast.money, 0, 'geen terugbetaling');
+});
+
+console.log(`multiplayerreview_22_11_test: ${n - fails}/${n} gelukt`);
+process.exit(fails ? 1 : 0);

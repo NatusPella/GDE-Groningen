@@ -160,7 +160,43 @@ export function lijst(r) {
   });
 }
 // Kort bericht met de lijst voor alle spelers (reliable event); de ontvanger controleert het.
-export const lijstEvent = (r) => ({ k: 'spelers', max: r.max, lijst: lijst(r).map(({ slot, char, rol, verbinding, avatar }) => ({ slot, char, rol, verbinding, ...(avatar ? { avatar } : {}) })) });
+// Het budget (bytes JSON) bewaakt MAX_JSON van de codec (2048): met 16 spelers, lange namen en een volle kast past de volle lijst niet (review 22-11, B1).
+// Past de lijst niet, dan gaan eerst de outfits eruit (die komen in eigen 'outfits'-berichten, zie lijstBerichten) en daarna de hele avatar (de ontvanger valt terug op de figuur).
+export const LIJST_BUDGET = 1900;
+export const WELKOM_BUDGET = 1400;   // het welkom heeft er zelf ook nog velden bij (figuur, kleur, niveau)
+const jsonBytes = (o) => new TextEncoder().encode(JSON.stringify(o)).length;
+const lijstBericht = (r, mode) => ({ k: 'spelers', max: r.max, lijst: lijst(r).map(({ slot, char, rol, verbinding, avatar }) => {
+  let av = avatar;
+  if (av && mode === 1) { const { outfit, ...rest } = av; av = Object.keys(rest).length ? rest : null; }
+  if (mode === 2) av = null;
+  return { slot, char, rol, verbinding, ...(av ? { avatar: av } : {}) };
+}) });
+export function lijstEvent(r, budget = LIJST_BUDGET) {
+  for (let mode = 0; mode < 2; mode++) { const ev = lijstBericht(r, mode); if (jsonBytes(ev) <= budget) return ev; }
+  return lijstBericht(r, 2);
+}
+// De outfits die niet in het lijstbericht pasten, in berichten { k: 'outfits', lijst: [{ slot, o }] } die elk binnen het budget blijven.
+export function outfitBerichten(r, ev = lijstEvent(r), budget = LIJST_BUDGET) {
+  const heeft = new Set((ev.lijst || []).filter((s) => s.avatar && s.avatar.outfit).map((s) => s.slot));
+  const open = lijst(r).filter((s) => s.avatar && s.avatar.outfit && !heeft.has(s.slot)).map((s) => ({ slot: s.slot, o: s.avatar.outfit }));
+  const uit = []; let rij = [];
+  for (const o of open) {
+    if (rij.length && jsonBytes({ k: 'outfits', lijst: [...rij, o] }) > budget) { uit.push({ k: 'outfits', lijst: rij }); rij = []; }
+    rij.push(o);
+  }
+  if (rij.length) uit.push({ k: 'outfits', lijst: rij });
+  return uit;
+}
+// Alles wat de host bij een verandering van de lijst stuurt: het lijstbericht, gevolgd door de outfits die er niet in pasten.
+export function lijstBerichten(r, budget = LIJST_BUDGET) { const ev = lijstEvent(r, budget); return [ev, ...outfitBerichten(r, ev, budget)]; }
+export function leesOutfitsEvent(b) {
+  if (!b || b.k !== 'outfits' || !Array.isArray(b.lijst) || b.lijst.length > ABS_MAX) return null;
+  const out = [];
+  for (const x of b.lijst) if (x && Number.isInteger(x.slot) && x.slot >= 0 && x.slot < ABS_MAX && cleanOutfitCode(x.o)) out.push({ slot: x.slot, o: x.o });
+  return out;
+}
+// De ontvanger zet de outfits in zijn lijst (een nieuwe lijst; slots die er niet zijn worden overgeslagen).
+export const voegOutfitsSamen = (roster, outfits) => (roster || []).map((s) => { const o = (outfits || []).find((x) => x.slot === s.slot); return o ? { ...s, avatar: { ...(s.avatar || {}), outfit: o.o } } : s; });
 export function leesLijstEvent(b) {
   if (!b || b.k !== 'spelers' || !Array.isArray(b.lijst) || b.lijst.length > ABS_MAX) return null;
   const seen = new Set(); const out = [];

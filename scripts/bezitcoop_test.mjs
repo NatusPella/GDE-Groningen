@@ -76,7 +76,7 @@ t('kapotte invoer: nooit een fout, nooit een claim', () => {
 });
 t('begrensd: niet meer claims dan CLAIM_MAX', () => {
   const c = C.createClaims('ik');
-  for (let i = 0; i < C.CLAIM_MAX + 50; i++) c.apply(claim(ID(i + 1), 'x', 1));
+  for (let i = 0; i < C.CLAIM_MAX + 50; i++) c.apply(claim(ID(i + 1), 'x' + (i % 20), 1)); // over 20 spelers verdeeld: elk blijft onder het quotum per speler
   assert.equal(c.size(), C.CLAIM_MAX);
 });
 t('meewerken: de eigenaar krijgt oogst en voortgang, de gast loon, punten en gewerkte hectares', () => {

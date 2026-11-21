@@ -9,7 +9,7 @@ import { T, encodeJson, readHeader, decodeJson } from './codec.js';
 import { checkHandshake } from './protocol.js';
 import { schoonNaam, maakId, schoonNiveau } from './serverlijst.js';
 import { maakSleutelpaar, sleutelTekst } from './sigcrypto.js';
-import { createRoster, wijsPlekToe, verwijder, zetMax, zetVerbinding, zetAvatar, lijst, lijstEvent, charInfo, heeftPlek } from '../coopplayers.js';
+import { createRoster, wijsPlekToe, verwijder, zetMax, zetVerbinding, zetAvatar, lijst, lijstEvent, lijstBerichten, WELKOM_BUDGET, charInfo, heeftPlek } from '../coopplayers.js';
 
 export const PENDING_MAX = 20; // s: een verbinding die in zo lang geen geldige hello stuurde (of geweigerd is), wordt gesloten en vergeten
 
@@ -108,7 +108,7 @@ export class HostHub {
         hub.pending.delete(ses); hub.sessions.set(p.slot, ses);
         if (hello && hello.avatar) zetAvatar(hub.roster, p.slot, hello.avatar); // de online-avatar van de gast (#455)
         const c = charInfo(p.char);
-        return { slot: p.slot, extra: { char: p.char, naam: c.naam, kleur: c.kleur, max: hub.roster.max, lijst: lijstEvent(hub.roster).lijst, ...(typeof hub.cfg.niveau === 'function' ? { niveau: schoonNiveau(hub.cfg.niveau()) } : null) } }; // #1169: het niveau van de wereld (optioneel; een oude gast negeert het) // de korte lijst (zonder naam en kleur): met 16 spelers past de volle lijst niet in een welkomstbericht (MAX_JSON)
+        return { slot: p.slot, extra: { char: p.char, naam: c.naam, kleur: c.kleur, max: hub.roster.max, lijst: lijstEvent(hub.roster, WELKOM_BUDGET).lijst, ...(typeof hub.cfg.niveau === 'function' ? { niveau: schoonNiveau(hub.cfg.niveau()) } : null) } }; // #1169: het niveau van de wereld (optioneel; een oude gast negeert het) // de korte lijst (zonder naam en kleur): met 16 spelers past de volle lijst niet in een welkomstbericht (MAX_JSON)
       },
       onRelease(slot, why) {
         // De naam moet vóór het verwijderen gelezen worden: daarna staat de plek leeg en zegt een
@@ -146,14 +146,18 @@ export class HostHub {
     if (this.snapTick !== this.tickN || !this.snapCache) { this.snapCache = this.cfg.sim.snapshot(); this.snapTick = this.tickN; }
     return this.snapCache;
   }
-  _announceList() {
-    const ev = lijstEvent(this.roster);
-    for (const s of this.sessions.values()) if (s.guest) s.announce(ev);
-    if (this.onchange) this.onchange(this.roster);
+  // De lijst gaat hoogstens één keer per tick naar de gasten: 15 aansluitingen vlak na elkaar zouden anders 15 keer lijst en outfits in de betrouwbare wachtrij (32) zetten.
+  _announceList() { this._lijstOpen = true; if (this.onchange) this.onchange(this.roster); }
+  _stuurLijst() {
+    // Een bericht dat niet past mag de sessie-afhandeling van de host nooit breken (review 22-11, B1): lijstBerichten houdt elk bericht binnen MAX_JSON, de try/catch vangt de rest.
+    let evs = [];
+    try { evs = lijstBerichten(this.roster); } catch (e) { evs = []; }
+    for (const s of this.sessions.values()) if (s.guest) for (const ev of evs) { try { s.announce(ev); } catch (e) { /* te groot of gast weg: de volgende lijst herstelt het */ } }
   }
 
   tick(dt) {
     this.tickN++;
+    if (this._lijstOpen) { this._lijstOpen = false; this._stuurLijst(); }
     for (const s of [...this.pending, ...this.sessions.values()]) s.tick(dt);
     for (const s of [...this.pending]) { // een geweigerde of stille verbinding blijft niet eeuwig staan (elke nieuwe poging was er een erbij)
       s.pendingSinds += dt;

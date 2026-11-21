@@ -128,7 +128,7 @@ function readLook(buf, v, o) {
   for (let i = 0; i < nd; i++) { l.dents.push([v.getInt8(o) * 0.1, v.getInt8(o + 1) * 0.05, v.getUint8(o + 2) / 255]); o += 3; }
   if (o < end) { // de tuning-code (een oudere host stuurt hem niet; een ouder spel leest er niet naar en slaat hem via de lengte over)
     const nt = v.getUint8(o++);
-    if (nt <= LOOK_TUNE && o + nt <= end) { let t = ''; for (let i = 0; i < nt; i++) t += String.fromCharCode(v.getUint8(o + i)); l.tune = t; }
+    if (nt <= LOOK_TUNE && o + nt <= end) { let t = ''; for (let i = 0; i < nt; i++) t += String.fromCharCode(v.getUint8(o + i)); if (/^[!-~]+$/.test(t)) l.tune = t; } // dezelfde tekenset als writeLook: een afwijkende host levert geen onleesbare tekens (review 22-11, N3)
   }
   return { look: l, o: end }; // een nieuwere host mag er in dezelfde versie velden achter zetten: de lengte bepaalt het einde
 }
