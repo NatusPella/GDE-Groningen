@@ -10,6 +10,8 @@ import { getCamera } from './scene3d.js';
 import { propsInRadius } from './breakables.js';
 import { wallOnPath } from './wallpath.js';
 import { hoofdspeler } from './spelersregister.js';
+import { hitMarkActive, hitMarkOpacity, hitMarkScale } from './combatfeel.js';
+import { reducedMotion } from './motion.js';
 
 const LOCK_CONE = 0.45; // rad either side of the camera heading
 const KEEP_CONE = 0.8; // a held lock survives this far off-centre
@@ -226,10 +228,40 @@ function renderScope(world, hide) {
   scopeEl.style.opacity = on ? '1' : '0';
 }
 
+// Hit confirmation: four short diagonal ticks over what your bullet touched (world.hitMark, set by combat.js).
+// Abstract HUD only; the element is made on the first hit and only touched while a mark is on screen.
+let hitEl = null, hitShown = false;
+function renderHitMark(world, hide) {
+  const m = world.hitMark;
+  const cam = getCamera();
+  const on = !hide && !!cam && hitMarkActive(m, world.time);
+  if (!on) {
+    if (hitShown) { hitEl.style.opacity = '0'; hitShown = false; }
+    return;
+  }
+  if (!hitEl) {
+    hitEl = document.createElement('div');
+    hitEl.className = 'aim-hit';
+    hitEl.setAttribute('aria-hidden', 'true');
+    hitEl.style.cssText = 'position:fixed;left:0;top:0;width:26px;height:26px;margin:-13px 0 0 -13px;pointer-events:none;z-index:40;opacity:0;';
+    hitEl.innerHTML = '<svg viewBox="0 0 26 26" width="26" height="26" fill="none" stroke-linecap="round">'
+      + '<path d="M4 4l5 5M22 4l-5 5M4 22l5-5M22 22l-5-5" stroke="rgba(0,0,0,.45)" stroke-width="4"/>'
+      + '<path d="M4 4l5 5M22 4l-5 5M4 22l5-5M22 22l-5-5" stroke="#ffffff" stroke-width="2.2"/></svg>';
+    document.body.appendChild(hitEl);
+  }
+  tmp.set(m.x, m.z, m.y).project(cam);
+  if (tmp.z > 1 || tmp.z < -1) { hitEl.style.opacity = '0'; hitShown = false; return; }
+  const sx = (tmp.x + 1) * 0.5 * innerWidth, sy = (1 - tmp.y) * 0.5 * innerHeight;
+  hitEl.style.opacity = hitMarkOpacity(m, world.time).toFixed(2);
+  hitEl.style.transform = `translate(${sx.toFixed(1)}px, ${sy.toFixed(1)}px) scale(${hitMarkScale(m, world.time, reducedMotion()).toFixed(2)})`;
+  hitShown = true;
+}
+
 export function renderAimReticle(world) {
   const lock = state.target && state.time === world.time && !world.paused;
   const b = document.body.classList;
   renderScope(world, !b.contains('game-started') || b.contains('cine-hide-hud') || world.paused);
+  renderHitMark(world, !b.contains('game-started') || b.contains('cine-hide-hud') || world.paused);
   const hide = !lock || !b.contains('game-started') || b.contains('cine-hide-hud') || b.contains('pigeon-mode');
   if (!el) {
     if (hide) return;

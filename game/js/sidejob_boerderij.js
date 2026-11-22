@@ -334,7 +334,7 @@ function klaar(c) {
   if (taak === 'afleveren') {
     const g = B.GEWASSEN[b.schuur.gewas];
     const uit = leverAf(w, r.kwaliteit);
-    c.skip(`${g ? g.afnemer : 'De afnemer'}: ${uit.kg} kg afgeleverd, +${euro(uit.betaald)}.`);
+    c.skip(`${g ? g.afnemer : 'De afnemer'}: ${uit.kg} kg afgeleverd, +${euro(uit.betaald)}.`, 'pech'); // paid by the buyer, not by the round: the streak stays
     return;
   }
   const uit = rondAf(w, taak, r.fractie);
@@ -345,6 +345,6 @@ function klaar(c) {
     bemesten: `Bemest: ${pct(r.fractie)}. Dat geeft meer opbrengst.`,
     oogsten: `Geoogst: ${uit.kg} kg. Breng het naar de afnemer.`,
   }[taak];
-  c.skip(tekst);
+  c.skip(tekst, 'pech'); // a finished field task is no setback
 }
 

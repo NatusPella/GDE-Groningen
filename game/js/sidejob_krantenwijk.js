@@ -210,7 +210,7 @@ export default {
       route = bouwRoute(map, wijk, n);
       if (!route) d.laatsteWijken.push(wijk.name);
     }
-    if (!route) { c.skip('Geen wijk om de krant te bezorgen. We proberen het zo opnieuw.'); return; }
+    if (!route) { c.skip('Geen wijk om de krant te bezorgen. We proberen het zo opnieuw.', 'pech'); return; }
     d.wijk = wijk;
     d.laatsteWijken.push(wijk.name);
     d.straat = route.straat;

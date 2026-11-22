@@ -18,9 +18,24 @@ const parse = (raw) => { try { return JSON.parse(raw); } catch (e) { return null
 // The lifetime record of prestaties (achievements.js blankLife shape) of two keys folded into one: unlocks and
 // sets joined, counters and medals at their best, times at their best.
 export function mergeLife(a, b) {
-  const out = { v: 1, unlocked: {}, stats: {}, sets: {}, missions: {}, challenges: {}, fresh: [] };
+  const out = { v: 1, unlocked: {}, stats: {}, sets: {}, missions: {}, missionModes: {}, challenges: {}, fresh: [] };
   for (const d of [a, b]) {
     if (!isObj(d)) continue;
+    // the mission records of the other difficulty levels (achievements.js missionModes): same rule as missions, per level
+    if (isObj(d.missionModes)) {
+      for (const [mode, map] of Object.entries(d.missionModes)) {
+        if (!isObj(map) || mode === '__proto__') continue;
+        const cur = own(out.missionModes, mode) ? out.missionModes[mode] : (out.missionModes[mode] = {});
+        for (const [i, r] of Object.entries(map)) {
+          if (!isObj(r) || i === '__proto__') continue;
+          const old = own(cur, i) ? cur[i] : null;
+          if (!old) { cur[i] = { ...r }; continue; }
+          if (Number.isFinite(r.best) && (!Number.isFinite(old.best) || r.best < old.best)) old.best = r.best;
+          old.medal = Math.max(old.medal | 0, r.medal | 0);
+          old.runs = Math.max(old.runs | 0, r.runs | 0);
+        }
+      }
+    }
     if (isObj(d.unlocked)) for (const [id, t] of Object.entries(d.unlocked)) if (id !== '__proto__' && (!out.unlocked[id] || (Number(t) || 1) < out.unlocked[id])) out.unlocked[id] = Number(t) || 1;
     if (isObj(d.stats)) for (const [k, v] of Object.entries(d.stats)) if (k !== '__proto__' && Number.isFinite(v) && !(out.stats[k] >= v)) out.stats[k] = v;
     if (isObj(d.sets)) {

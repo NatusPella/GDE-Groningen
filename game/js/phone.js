@@ -15,6 +15,7 @@ import { getMissionList } from './missionquery.js';
 import { playMission, isPlayAheadOpen } from './todo.js';
 import { isHelpOfferOpen } from './assistlive.js';
 import { isRecapOpen } from './recapstate.js';
+import { loadHeld } from './loadlogic.js';
 import { zachtePauze } from './coopgroep.js';
 import { checkPhoneWhileMoving } from './trafficlaw.js';
 import { isPauseMenuOpen, isPhoneOpen, openPauseMenu, closePauseMenu } from './pausestate.js';
@@ -364,7 +365,7 @@ function refreshPause() {
   world.uiHard = hard;
   zachtePauze(world, 'afspeelvooruit', isPlayAheadOpen());
   zachtePauze(world, 'hulpaanbod', isHelpOfferOpen());
-  world.uiPaused = hard || isPlayAheadOpen() || isHelpOfferOpen() || isRecapOpen();
+  world.uiPaused = hard || isPlayAheadOpen() || isHelpOfferOpen() || isRecapOpen() || loadHeld(world); // loadHeld: the load screen and the travel scene (loadlogic.js)
 }
 
 let phoneWasOpen = false;

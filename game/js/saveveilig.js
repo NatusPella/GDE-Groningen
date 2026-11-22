@@ -24,3 +24,12 @@ export function makeSafe({ log = () => {}, terugval = () => undefined } = {}) {
     }
   };
 }
+
+// The health a save stores. A save made while the player is down (dead or arrested, waiting for the
+// respawn: closing the game or F5 on that screen) used to store 1, so the next session started with one
+// hit left. The respawn that was about to happen gives full health, so the save stores that.
+export function healthForSave(health, down = false) {
+  const h = typeof health === 'number' && Number.isFinite(health) ? health : 100;
+  if (down || h <= 0) return 100;
+  return Math.max(1, Math.min(100, h));
+}

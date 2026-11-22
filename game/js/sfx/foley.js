@@ -6,6 +6,7 @@ import { surfaceUnder } from '../vehicle.js';
 import { getPlace } from './ambience.js';
 import { contactGain } from '../gait.js';
 import { stepNames, stepSurface, tickFoot, STEP_SURFACES, STEP_VARIANTS, fileStepNames, footSide, gainJitter, npcStep, grounded, PROC_STAND_IN, stepContext } from './steps.js';
+import { wetStepLevel, stepSpeechGain } from './sfxfeel.js';
 import { countryWeight } from '../countryfield.js';
 import { onFarmPaving } from '../countryplan.js';
 import { rand as rnd } from '../rng.js';
@@ -116,7 +117,8 @@ function stepVoice(surface, out, gain, rate, prio, lp, run, rec) {
 const FILE_GAIN = 0.8; // the recordings are levelled to RMS -23 dB, a little hotter than the procedural steps
 // o: { run, side (0 or 1: left or right foot), vx, vy (walking direction, for the sideways offset), lp, crouch }
 function playStep(surface, x, y, gain, rate, prio, rain, o = {}) {
-  let px = x, py = y, r = rate * rnd(0.95, 1.05), g = gain * gainJitter(Math.random());
+  // under a spoken line the feet step back (prio 1, the player and the companion, less than a passer-by)
+  let px = x, py = y, r = rate * rnd(0.95, 1.05), g = gain * gainJitter(Math.random()) * stepSpeechGain(prio > 0, K.speech ? K.speech() : 0);
   if (o.side != null) {
     const f = footSide(o.side), l = Math.hypot(o.vx || 0, o.vy || 0);
     if (l > 0.05) { px = x - ((o.vy || 0) / l) * f.offset; py = y + ((o.vx || 0) / l) * f.offset; }
@@ -125,14 +127,18 @@ function playStep(surface, x, y, gain, rate, prio, rain, o = {}) {
   const out = K.spatial(px, py, { h: 0.05, ref: 3, rolloff: 1.5, range: 30, model: 'equalpower', prio });
   if (!out) return;
   stepVoice(surface, out, g, r, prio, o.lp || (o.crouch ? 3200 : 0), !!o.run, true);
-  if (rain > 0.35 && surface !== 'gras' && surface !== 'wet') stepVoice('wet', out, g * rain * 0.5, rate, prio, 0, false, false);
+  // the splash: in the rain and on ground that is still wet after it; never on a floor indoors
+  const splash = wetStepLevel(rain, groundWet, surface);
+  if (splash > 0) stepVoice('wet', out, g * splash, rate, prio, 0, false, false);
 }
 
+let groundWet = 0; // weather.wet of this frame (the ground dries slower than the rain stops)
 const footSide_ = { side: 0 }; // which foot comes down next (the player's, then the companion's own below)
 const compSide = { side: 0 };
 function footsteps(dt, world) {
   const p = hoofdspeler(world);
   const rain = world.weather ? world.weather.intensity : 0;
+  groundWet = world.weather ? world.weather.wet || 0 : 0;
   // the player's own feet are never dropped for ambience (prio 1, not 0)
   if (!p.inVehicle && !world.paused && !p.ragdoll) {
     // the steps follow the heel contacts of the figure's own walk cycle (gait.js, set by scene3d.js on the player); without that feed (no mesh drawn,

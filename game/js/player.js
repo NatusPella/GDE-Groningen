@@ -18,6 +18,7 @@ import { getSettings } from './settings.js';
 import { firstPersonOn } from './firstperson.js';
 import { makeJumpAssist, jumpStep } from './gamefeel.js';
 import { steerScale } from './steerscale.js';
+import { pedalThrottle } from './pedalfeel.js';
 import { assistDamage } from './assistlive.js';
 import { ALGAE } from './eventrules.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
@@ -46,6 +47,7 @@ import { ejectPassenger } from './pedestrians.js';
 import { isPassief } from './cooppvp.js';
 import { noteSeated } from './garageknown.js'; // instappen telt als ontdekt voor de garage (22-11)
 import { makeSputter, sputterStep } from './enginesputter.js'; // een beschadigde motor sputtert (22-11)
+import { stepWalkVelocity } from './footfeel.js'; // on-foot weight: ease into and out of the pace
 export { resolveBuildingCollisions };
 
 const BIKE_SPRINT_S = 2.5;
@@ -255,13 +257,9 @@ export class Player {
     this.moving = !!dir;
     if (aiming || firstPerson) this.angle = world.camYaw;
     else if (dir) this.angle = turnToward(this.angle, dir.angle, FACE_TURN_RATE * dt);
-    if (dir) {
-      this.vx = Math.cos(dir.angle) * speed;
-      this.vy = Math.sin(dir.angle) * speed;
-    } else {
-      this.vx = 0;
-      this.vy = 0;
-    }
+    // weight (footfeel.js): the body eases toward its pace and comes to a stop over a short step
+    if (dir) stepWalkVelocity(this, Math.cos(dir.angle) * speed, Math.sin(dir.angle) * speed, dt);
+    else stepWalkVelocity(this, 0, 0, dt);
 
     // a single step longer than the radius can tunnel past a thin wall edge
     const steps = Math.max(1, Math.ceil(Math.hypot(this.vx, this.vy) * dt / (this.radius * 0.9)));
@@ -1135,7 +1133,8 @@ export class Player {
     // race countdown (world.startLockUntil) or a snackwagen shift (v.shiftParked):
     // engine idles, handbrake on, no creeping over the line
     const held = !!v.shiftParked || (!!world && world.startLockUntil > world.time);
-    const throttle = v.disabled || held ? 0 : ay < 0 ? 1 : ay > 0 ? -1 : 0;
+    // a key gives 1 or -1 as before; an analog trigger feathers the gas and the brake (pedalfeel.js)
+    const throttle = v.disabled || held ? 0 : pedalThrottle(ay, v.speed, speedCap(v));
     const brake = held || input.isDown(' ');
     if (held) { v.speed = 0; v.driftX = 0; v.driftY = 0; }
     v.handbrake = brake;

@@ -266,6 +266,7 @@
     "scripts/coop/bijbaanrollen_test.mjs",
     "scripts/coop/bijbaanparallel_test.mjs",
     "scripts/sidejobpack_test.mjs",
+    "scripts/sidejobfeel_test.mjs",
     "scripts/coop/deliveryteam_test.mjs",
     "scripts/coopmeedoen_test.mjs"
    ],
@@ -275,7 +276,7 @@
    },
    "status": "OK",
    "prio": "-",
-   "gefixt": "22-11: het bijbanenpakket (studentenfeest, marktkraam, toeristengids: helper-rol met E; vismarktkoerier in het eigen spel) staat in docs/COOP-GAST.md. Fix 21-11: krantenwijk, rondvaart, rondvaarttour, sidejobkit en het keuzepaneel lazen world.player (het lichaam van de host) terwijl een gastgroep met world.lokaalLichaam speelt; nu hoofdspeler(world)."
+   "gefixt": "22-11 game feel: tempobonus (telt als fooi, per deelnemer) en reeks na tegenslag per dienst (sidejobfeel.js, scripts/sidejobfeel_test.mjs), regel in docs/COOP-GAST.md. 22-11: het bijbanenpakket (studentenfeest, marktkraam, toeristengids: helper-rol met E; vismarktkoerier in het eigen spel) staat in docs/COOP-GAST.md. Fix 21-11: krantenwijk, rondvaart, rondvaarttour, sidejobkit en het keuzepaneel lazen world.player (het lichaam van de host) terwijl een gastgroep met world.lokaalLichaam speelt; nu hoofdspeler(world)."
   },
   {
    "id": "verhuizen",
@@ -940,7 +941,8 @@
    "test": [
     "scripts/wanted_een_test.mjs",
     "scripts/wanted_flow_test.mjs",
-    "scripts/coopbestuur_test.mjs"
+    "scripts/coopbestuur_test.mjs",
+    "scripts/cashvan_dader_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
@@ -1060,6 +1062,29 @@
    "prio": "-"
   },
   {
+   "id": "streeksfeer",
+   "naam": "Streeksfeer en vloeiend daglicht",
+   "groep": "Wereld",
+   "modules": [
+    "areamood",
+    "lightcurve"
+   ],
+   "eigenaar": "lokaal",
+   "gast": "Alleen beeld: elke speler ziet de lucht van de plek van het eigen beeld, afgeleid van de gedeelde klok en het gedeelde weer; er gaat niets over het net.",
+   "beloning": "Geen.",
+   "wegval": "Niets te synchroniseren: de sfeer volgt uit plek en klok.",
+   "test": [
+    "scripts/areamood_test.mjs",
+    "scripts/lightcurve_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "Streeksfeer en vloeiend daglicht (22-11)"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
    "id": "wereldleven",
    "naam": "Wereld levend (dagelijkse evenementen en dieren)",
    "groep": "Wereld",
@@ -1145,6 +1170,27 @@
    "prio": "-"
   },
   {
+   "id": "straatreactie",
+   "naam": "Straat reageert op toeter en rijgedrag",
+   "groep": "Verkeer en reizen",
+   "modules": [
+    "hornreact"
+   ],
+   "eigenaar": "wereld",
+   "gast": "Verkeer dat opzij gaat of terugtoetert en voetgangers die opzij stappen of een auto nakijken horen bij de wereld: de gastheer rekent het uit voor elk voertuig dat een mens bestuurt (ook dat van een gast), een gast ziet het via het gewone snapshot (plek, toetervlag) en hoort de toeter met zijn eigen geluid.",
+   "beloning": "Geen: het is gedrag van de straat, geen voortgang of beloning.",
+   "wegval": "Er is geen toestand om over te nemen: valt iemand weg of wisselt de gastheer, dan reageert de straat gewoon op wie er daarna toetert.",
+   "test": [
+    "scripts/hornreact_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "**De straat reageert op toeter en rijgedrag (22-11"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
    "id": "wapens",
    "naam": "Wapens, PvP en passive mode",
    "groep": "Wereld",
@@ -1174,6 +1220,28 @@
    "regel": {
     "doc": "docs/COOP-GAST.md",
     "zoek": "## Passieve stand en spelers tegen elkaar (#447)"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
+   "id": "voetgevoel",
+   "naam": "Gewicht te voet en schietgevoel",
+   "groep": "Wereld",
+   "modules": [
+    "footfeel"
+   ],
+   "eigenaar": "lokaal",
+   "gast": "Aanzetten en uitlopen gelden voor elk lichaam dat de loopregel van player.js draait; de vaste hand (gebukt, stil, sprint) geldt ook voor het schot van een gast, want de host rekent het uit vanuit zijn lichaam. De raakbevestiging is alleen te zien bij wie de kogels uitrekent: een gast ziet hem nog niet.",
+   "beloning": "Geen.",
+   "wegval": "Niets te herstellen: geen netwerkbericht, geen opslag.",
+   "test": [
+    "scripts/footfeel_test.mjs",
+    "scripts/combatfeel_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "**Gewicht te voet en schietgevoel"
    },
    "status": "OK",
    "prio": "-"
@@ -1321,7 +1389,8 @@
    "test": [
     "scripts/coopgeluid_test.mjs",
     "scripts/voicebank_retry_test.mjs",
-    "scripts/voice_lookup_audit_test.mjs"
+    "scripts/voice_lookup_audit_test.mjs",
+    "scripts/sfxfeel_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
@@ -1502,6 +1571,7 @@
     "scripts/coop_tcp_test.mjs",
     "scripts/net_lifecycle_test.mjs",
     "scripts/net_protocol_test.mjs",
+    "scripts/net_rejoin_test.mjs",
     "scripts/samen_sweep_test.mjs"
    ],
    "regel": {
@@ -1579,6 +1649,28 @@
     "zoek": "Beeld, performance, build en tooling zonder spelregel"
    },
    "status": "nvt",
+   "prio": "-"
+  },
+  {
+   "id": "analoge-pedalen",
+   "naam": "Analoog gas, analoge rem en stuurcurve met een controller",
+   "groep": "Instellingen",
+   "modules": [
+    "pedalfeel"
+   ],
+   "eigenaar": "lokaal",
+   "gast": "Invoer per speler en per apparaat: elke speler doseert zijn eigen voertuig. Een gast aan het stuur stuurt zijn pedaal-as als gewone invoer mee en de host past dezelfde regel toe; anderen zien alleen het voertuig rijden (bestaande snapshot, geen nieuw bericht).",
+   "beloning": "Geen beloning of voortgang.",
+   "wegval": "Niets te synchroniseren bij wegvallen, later aansluiten of een hostwissel: de regel is een pure functie van de invoer van dat moment.",
+   "test": [
+    "scripts/pedalfeel_test.mjs",
+    "scripts/gamepad_live_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "**Analoog gas en rem met een controller (22-11)"
+   },
+   "status": "OK",
    "prio": "-"
   },
   {
@@ -1797,6 +1889,10 @@
   {
    "glob": "footballmusic",
    "reden": "Fasemuziek tijdens voetbal; een lokale instelling en lokaal geluid per speler."
+  },
+  {
+   "glob": "firststeps",
+   "reden": "Zuivere regels van de eerste tien minuten (toetsregel wijkt na oefenen, herinnering bij afdwalen) voor de eigen speler; per apparaat en per sessie, niets om te delen."
   },
   {
    "glob": "savediag",

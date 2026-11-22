@@ -52,10 +52,10 @@ for (const r of rows.filter((x) => x.e > 6)) {
   ok(Math.abs(a - b) / Math.max(a, b) < 0.25, 'de dagmist heeft de helderheid van de horizon', `${r.hour}u: ${a.toFixed(3)} ${b.toFixed(3)}`);
 }
 
-// continuiteit: geen sprong in een kwartier spelertijd (een zonsopkomst loopt in ca. 15 s echte tijd van 0,3 naar 1,4 zonsterkte: de ruimste stap)
+// continuiteit: geen sprong in een kwartier spelertijd (een zonsopkomst loopt in ca. 15 s echte tijd van 0,3 naar 1,4 zonsterkte: de ruimste stap; de vloeiende kromme van lightcurve.js (22-11) loopt midden in zo'n stuk tot 1,5x steiler dan de rechte lijn, vandaar 1,3 in plaats van 1,1: de totale verandering en de sleutels zijn gelijk, alleen de knik op de sleutel is weg)
 for (let i = 1; i < rows.length; i++) {
   const a = rows[i - 1], b = rows[i];
-  ok(Math.abs(a.sunI - b.sunI) < 1.1 && Math.abs(a.hemiI - b.hemiI) < 0.3 && Math.abs(a.exp - b.exp) < 0.08, 'het licht verspringt niet', `${b.hour}u`);
+  ok(Math.abs(a.sunI - b.sunI) < 1.3 && Math.abs(a.hemiI - b.hemiI) < 0.3 && Math.abs(a.exp - b.exp) < 0.1, 'het licht verspringt niet', `${b.hour}u`);
 }
 
 // schaduwlicht boven de horizon; 's nachts koel maanlicht

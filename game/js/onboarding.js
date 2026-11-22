@@ -23,6 +23,8 @@ import { hintUses, glyphHtml } from './prompts.js';
 import { KEYS } from './storagekeys.js';
 import { playerBusy } from './busy.js';
 import { lessonsAllSeen, goalHandled } from './onboardinglogic.js';
+import { createCourse, trackCourse, courseNudged, pauseCourse, NUDGE_CARD } from './firststeps.js';
+import { hoofdspeler } from './players.js';
 
 const STORE_KEY = KEYS.onboarding;
 const FIRST_AFTER = 12;
@@ -86,6 +88,18 @@ let lastAt = -Infinity;
 let missionEndT = -Infinity;
 let wasMission = false;
 let startDone = -1;
+// the reminder for a new player who drifts away from the first goal (firststeps.js): per session, never saved
+const course = createCourse();
+let courseDist = NaN;
+
+// The distance to the first story goal while the player is simply on his way to it, NaN otherwise: an own goal, a
+// mission, a job or game, or a later point in the story means he is not lost.
+function firstGoalDistance(w) {
+  const g = w.storyGuide;
+  if (!g || w.storyFreePlay || w.stats.missionsDone !== 0 || busy(w) || w.goal) return NaN;
+  const p = hoofdspeler(w);
+  return p ? Math.hypot(g.x - p.x, g.y - p.y) : NaN;
+}
 
 function load() {
   try {
@@ -123,8 +137,18 @@ export function updateOnboarding(dt, w) {
   wasMission = on;
   if (isCinematicActive() || sinceCinematic() < AFTER_SCENE) return;
   playT += dt;
+  courseDist = firstGoalDistance(w);
+  const lost = Number.isFinite(courseDist) ? trackCourse(course, w.storyGuide.step || 'doel', courseDist, dt) : (pauseCourse(course), '');
   if (playT < FIRST_AFTER || playT - lastAt < GAP || playT - missionEndT < AFTER_MISSION) return;
   if (w.health <= 0 || w.pendingRespawn || w.wanted > 0) return;
+  // after the goal card, and only when nothing else speaks: the same one-at-a-time rule as the lessons
+  if (lost && seen.has('doel')) {
+    if (!quiet() || cardsBusy() || !mayStart('card')) return;
+    showCard(w, { kind: 'tip', kicker: 'Uitleg', title: NUDGE_CARD.title, body: NUDGE_CARD.body, key: 'uitleg-route', important: true, voice: false, duration: 8 });
+    courseNudged(course, courseDist);
+    lastAt = playT;
+    return;
+  }
   for (const l of LESSONS) {
     if (seen.has(l.id)) continue;
     if (l.known && l.known()) { markSeen(l.id); continue; }

@@ -144,7 +144,7 @@ export function omroepStap(st, view, tijd) {
 // ---- glue -------------------------------------------------------------------------------------
 
 let stations = null;
-let routesSig = '';
+const routesSig = []; // the stop count per route the stations were built from
 let board = null;
 let timeline = null;  // de tijdlijn in het bord (departuretimelineui.js)
 let shown = false;
@@ -158,8 +158,14 @@ export function allStations() { return stations || []; }
 export function updateStationLife(dt, world, opts) {
   const { routes, point, day, createBoard } = opts;
   const dienst = opts.rooster ? { rooster: opts.rooster, dagsoort: opts.dagsoort, live: opts.live ? opts.live.vertragingen() : null, dienst: opts.dienst || null } : null;
-  const sig = routes.length + ':' + routes.map((r) => r.stops.length).join(',');
-  if (!stations || sig !== routesSig) { stations = stationsFromRoutes(routes, point); routesSig = sig; }
+  // same check as the old joined string, without building an array and a string every frame
+  let same = !!stations && routesSig.length === routes.length;
+  for (let i = 0; same && i < routes.length; i++) same = routesSig[i] === routes[i].stops.length;
+  if (!same) {
+    stations = stationsFromRoutes(routes, point);
+    routesSig.length = routes.length;
+    for (let i = 0; i < routes.length; i++) routesSig[i] = routes[i].stops.length;
+  }
   const p = hoofdspeler(world);
   const hit = nearestStation(stations, p.x, p.y, CROWD_R);
   cur = hit ? { station: hit.station, d: hit.d, view: stationView(hit.station, world.clock || 0, day, opts.trains ? opts.trains.map((t) => ({ route: t.route, c: t.c, dir: t.dir, v: t.v, state: t.state, target: t.target, timer: t.timer, vmax: t.cfg && t.cfg.vmax })) : null, opts.schaal || 60, dienst) } : null;

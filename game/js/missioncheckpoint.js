@@ -31,12 +31,15 @@ export function isCheckpointStage(def, k) {
 }
 
 // De velden van de missiestand (chain) die een hervatting terugzet.
-const PROGRESS_KEYS = ['eggs', 'eggWarn', 'clockRate', 'windowT', 'windowExtended', 'hijacked', 'stopIndex'];
+// bakeTier and heistSkip: what the run before the checkpoint earned or gave up (startMission clears them on every attempt).
+const PROGRESS_KEYS = ['eggs', 'eggWarn', 'clockRate', 'windowT', 'windowExtended', 'hijacked', 'stopIndex', 'bakeTier', 'heistSkip'];
 
 // snap: { missionIndex, stageIndex, timeLeft, chain, player: {x, y, angle}, vehicle: {x, y, angle, inside} | null }
 export function makeCheckpoint(snap) {
   const progress = {};
   for (const key of PROGRESS_KEYS) if (snap.chain && snap.chain[key] !== undefined) progress[key] = snap.chain[key];
+  // the choices made before this stage (a copy: tags of later stages must not leak back into the checkpoint)
+  if (snap.chain && snap.chain.tags) progress.tags = new Set(snap.chain.tags);
   return {
     missionIndex: snap.missionIndex,
     stageIndex: snap.stageIndex,
@@ -51,6 +54,7 @@ export function makeCheckpoint(snap) {
 // zodat een checkpoint vlak voor de klok nul nooit meteen weer faalt.
 export function applyCheckpointProgress(cp, chain, minTime = 45) {
   Object.assign(chain, cp.progress);
+  if (cp.progress && cp.progress.tags) chain.tags = new Set(cp.progress.tags);
   if (cp.timeLeft != null && Number.isFinite(chain.timeLeft)) chain.timeLeft = Math.max(cp.timeLeft, minTime);
   return chain;
 }

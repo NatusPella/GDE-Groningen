@@ -168,7 +168,8 @@ const fullyIn = (lock, v) => {
 // Eén stap van één sluis met de boten van de wereld.
 export function stepSluis(lock, dt, world = null) {
   lock.clock += dt;
-  const boats = world && world.vehicles ? world.vehicles.filter((v) => v.isBoat && alive(v, world)) : [];
+  // a boat taken from world.vehicles is in world.vehicles: alive() would search the whole list again for each boat
+  const boats = world && world.vehicles ? world.vehicles.filter((v) => v && v.isBoat && !v.wrecked && !v.sinking) : [];
 
   // aanvragen: wie voor de deur ligt of aanvaart
   for (const v of lock.leaving) if (!alive(v, world) || !inChamber(lock, v.x, v.y, 2)) lock.leaving.delete(v);

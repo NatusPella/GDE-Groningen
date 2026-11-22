@@ -155,18 +155,24 @@ export function encodeSnapshot(seq, tick, ackInput, snap) {
   const sh = snap.shared || {};
   v.setUint32(o, clamp(Math.floor(sh.money || 0), 0, 0xffffffff)); o += 4;
   v.setUint8(o++, clamp(sh.wanted | 0, 0, 5));
-  v.setFloat32(o, sh.clock || 0); o += 4;
+  // a non-finite clock (also after the float32 rounding) would make the receiver reject the whole snapshot (#1293)
+  v.setFloat32(o, Number.isFinite(Math.fround(sh.clock)) ? sh.clock : 0); o += 4;
   const m = snap.mission || {};
   v.setUint8(o++, clamp(m.stage | 0, 0, 255));
   v.setUint8(o++, Math.max(0, MISSION_STATE.indexOf(m.state || 'none')));
   v.setUint8(o++, m.present == null ? 3 : m.present & 0xf);
-  v.setUint8(o++, ents.length);
+  // one entity with a non-finite or out-of-world position must not cost the receiver the whole snapshot (#1293):
+  // skip it here and write the real count afterwards; the wire format stays the same
+  const countAt = o++; let sent = 0;
   for (const e of ents) {
+    if (!inWorld(Math.fround(e.x)) || !inWorld(Math.fround(e.z))) continue;
+    sent++;
     v.setUint16(o, e.id & 0xffff); o += 2; v.setUint8(o++, e.kind & 0xff);
     v.setFloat32(o, e.x); o += 4; v.setFloat32(o, e.z); o += 4;
     v.setUint16(o, quantAngle(e.angle || 0)); o += 2;
     if (e.kind < VEH_KINDS) o = writeVehicleDyn(v, o, e);
   }
+  v.setUint8(countAt, sent);
   v.setUint8(o++, looks.length);
   for (const l of looks) o = writeLook(b, v, o, l);
   return b.subarray(0, o);

@@ -59,5 +59,31 @@ check('andere stations andere plekken', S.reizigerPlekken(st[0], 1)[0].x !== sp[
   check('geen dubbelen tussen echte trein en rooster', new Set(w.bord.map((r) => r.lijn + r.richting + Math.round(r.tijd / 600))).size === w.bord.length);
   check('bordCellen: vier cellen met oplopende tijden', (() => { const c = S.bordCellen(w); const ts = c.map((x) => x.t.slice(0, 5)); return c.length === 4 && ts.every((t, i) => i === 0 || t >= ts[i - 1]); })());
 }
+// Efficiëntie: de stationslijst hangt aan het aantal haltes per lijn; die toets bouwt niet elk beeld een array en een tekst op.
+{
+  const lijnen = [A, B];
+  let maps = 0, bouw = 0;
+  lijnen.map = (...a) => { maps++; return Array.prototype.map.apply(lijnen, a); };
+  const tel = (r, s) => { bouw++; return point(r, s); };
+  const ver = { player: { x: 9e6, y: 9e6 }, clock: 12 };
+  const opts = { routes: lijnen, point: tel, day: 1, createBoard: () => { throw new Error('geen bord ver van een station'); } };
+  S.updateStationLife(0.016, ver, opts);
+  const eersteBouw = bouw;
+  check('eerste beeld bouwt de stations', eersteBouw > 0 && S.allStations().length === st.length, eersteBouw);
+  for (let i = 0; i < 100; i++) S.updateStationLife(0.016, ver, opts);
+  check('honderd beelden zonder wijziging bouwen niets opnieuw', bouw === eersteBouw, bouw - eersteBouw);
+  check('en maken geen array of tekst per beeld', maps === 0, maps + ' keer routes.map');
+  const extra = { ...A.stops[0], name: 'Proefhalte Extra' };
+  A.stops.push(extra);
+  S.updateStationLife(0.016, ver, opts);
+  check('een halte erbij bouwt de stations opnieuw', bouw > eersteBouw && S.allStations().some((s) => s.name === 'Proefhalte Extra'));
+  A.stops.pop();
+  S.updateStationLife(0.016, ver, opts);
+  check('een halte eraf ook', !S.allStations().some((s) => s.name === 'Proefhalte Extra'));
+  const na = bouw;
+  S.updateStationLife(0.016, ver, { ...opts, routes: [A] });
+  check('een lijn minder ook', bouw > na && S.allStations().length <= st.length);
+}
+
 console.log(bad ? `${bad} van ${n} mislukt` : `stationlife_test: ${n} controles ok`);
 process.exit(bad ? 1 : 0);

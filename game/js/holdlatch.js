@@ -24,12 +24,14 @@ export function makeLatch() {
     clear() { this.on = false; this.idle = 0; },
     // eens per beeld; geeft true als de stand zojuist is gewist. `allowed` false (menu, voertuig, pauze) wist hem;
     // `moving` telt de stilstand, die alleen telt als `idleReleases` (rennen) aanstaat
-    step({ allowed = true, moving = true, idleReleases = false } = {}) {
+    // `dt` (seconds since the last step): the standstill then counts time (IDLE_FRAMES at 60 Hz = 0.75 s) instead of
+    // frames, so a 144 Hz screen does not drop the run after 0.3 s. Without dt it counts one per step.
+    step({ allowed = true, moving = true, idleReleases = false, dt } = {}) {
       if (!this.on) return false;
       if (!allowed) { this.clear(); return true; }
       if (idleReleases) {
-        this.idle = moving ? 0 : this.idle + 1;
-        if (this.idle >= IDLE_FRAMES) { this.clear(); return true; }
+        this.idle = moving ? 0 : this.idle + (Number.isFinite(dt) && dt >= 0 ? dt * 60 : 1);
+        if (this.idle >= IDLE_FRAMES - 1e-6) { this.clear(); return true; }
       }
       return false;
     },

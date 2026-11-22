@@ -264,7 +264,7 @@ wachten van de zuinige modus telt daarbij niet mee (`capIdleMs` in `game/js/fram
 **Bestanden.** `weatherstate.js`, `weerdag.js`, `sunrules.js`, `daynight.js`, `sky3d.js`,
 `scene3d.js`.
 
-**Tests.** `weerdag_test.mjs`, `weernacht_test.mjs`, `weerlook_test.mjs`, `coopweer_test.mjs`, `summerday_test.mjs` (zomervariatie per kalenderdag, docs/ZOMERVARIATIE-21-11.md);
+**Tests.** `weerdag_test.mjs`, `weernacht_test.mjs`, `weerlook_test.mjs`, `coopweer_test.mjs`, `lightcurve_test.mjs` (vloeiende dag-nachtsleutels), `areamood_test.mjs` (streeksfeer: Waddenkust, Lauwersmeer, Veenkoloniën), `summerday_test.mjs` (zomervariatie per kalenderdag, docs/ZOMERVARIATIE-21-11.md);
 beeldcontrole met `scripts/qa/weer_nacht.mjs`.
 
 ## Uitleg en onboarding
@@ -278,7 +278,13 @@ er niets speelt en de speler niet in een missie, bijbaan of minigame zit; 12 s n
 ertussen. Uit te zetten met `onboardingTips`; de toetshints (`prompts.js`) dekken alleen wat niet
 vanzelf spreekt.
 
-**Bestanden.** `onboarding.js`, `prompts.js`, `hudcards.js`, `narrative.js`.
+Eerste doel (22-11, `firststeps.js`, puur): de toetsregel onder het eerste verhaaldoel wijkt per context
+zodra de speler daar genoeg meters heeft afgelegd (te voet 60 m, voertuig en boot 250 m, lucht 600 m); bij
+een missie, bijbaan of achtervolging blijft hij staan (#824). Wie 200 m van het eerste doel afdwaalt of
+90 s niet opschiet krijgt de kaart "De weg kwijt?", hooguit twee keer per sessie, onder dezelfde
+één-tegelijk-regel. Niets daarvan wordt opgeslagen.
+
+**Bestanden.** `onboarding.js`, `firststeps.js`, `prompts.js`, `hudcards.js`, `narrative.js`.
 
 **Tests.** `onboarding_test.mjs` dekt de regel en de bedrading van de kaarten (welke kaart wanneer, en
 dat de kaart "Samen spelen" ook in een sessie van één komt, #568); de schakelaar `onboardingTips` dekt

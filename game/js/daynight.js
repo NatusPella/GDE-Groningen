@@ -71,6 +71,12 @@ const keyColor = (k, c) => {
   return new THREE.Color(role ? dsWereld(k[c], role) : k[c]);
 };
 const KEY_COLORS = KEYS.map((k) => Object.fromEntries(COLOR_KEYS.map((c) => [c, keyColor(k, c)])));
+import { monotoneTangents, hermite } from './lightcurve.js';
+// 22-11 (lightcurve.js): a monotone cubic through the keys instead of a straight line, so dawn and dusk glide across a key
+// instead of changing pace there. Tangents per key, computed once; the keys themselves are unchanged.
+const KEY_E = KEYS.map((k) => k.e);
+const NUM_TAN = Object.fromEntries(NUM_KEYS.map((n) => [n, monotoneTangents(KEY_E, KEYS.map((k) => k[n]))]));
+const COLOR_TAN = Object.fromEntries(COLOR_KEYS.map((c) => [c, ['r', 'g', 'b'].map((ch) => monotoneTangents(KEY_E, KEY_COLORS.map((kc) => kc[c][ch])))]));
 
 // Fills `out` (reused between frames) with the full lighting mood for a
 // clock hour. Colours are linear THREE.Colors.
@@ -84,8 +90,12 @@ export function computeLighting(hour, out = {}) {
   while (i < KEYS.length - 2 && elev < KEYS[i + 1].e) i++;
   const a = KEYS[i], b = KEYS[i + 1];
   const t = Math.max(0, Math.min(1, (elev - a.e) / (b.e - a.e)));
-  for (const c of COLOR_KEYS) out[c].copy(KEY_COLORS[i][c]).lerp(KEY_COLORS[i + 1][c], t);
-  for (const n of NUM_KEYS) out[n] = a[n] + (b[n] - a[n]) * t;
+  const h = b.e - a.e;
+  for (const c of COLOR_KEYS) {
+    const A = KEY_COLORS[i][c], B = KEY_COLORS[i + 1][c], M = COLOR_TAN[c];
+    out[c].setRGB(hermite(A.r, B.r, M[0][i], M[0][i + 1], h, t), hermite(A.g, B.g, M[1][i], M[1][i + 1], h, t), hermite(A.b, B.b, M[2][i], M[2][i + 1], h, t));
+  }
+  for (const n of NUM_KEYS) out[n] = hermite(a[n], b[n], NUM_TAN[n][i], NUM_TAN[n][i + 1], h, t);
 
   // #946: the bearing follows the same solar hour as the height, otherwise the
   // setting sun stands in the wrong place on the horizon.

@@ -180,3 +180,19 @@ export function loadStepAt(bar, kind = 'travel') {
   for (const s of LOAD_STEPS) if (p >= s.from) step = s;
   return step;
 }
+
+// Who holds the world still for a load (the load screen, the travel scene). phone.js refreshPause recomputes
+// world.uiPaused every frame from the dialogs it knows; without this the pause a load screen set lasted exactly one
+// frame and the world (clock, traffic, police, the player's own input) ran on behind the screen. A named source per
+// holder, so two holders never release each other. Pure: it only touches world.loadHolds.
+export function setLoadHold(world, source, on) {
+  if (!world || !source) return;
+  const holds = world.loadHolds || (world.loadHolds = {});
+  if (on) holds[source] = true; else delete holds[source];
+}
+export const loadHeld = (world) => !!(world && world.loadHolds && Object.keys(world.loadHolds).length);
+
+// A second jump while the screen is already up (a respawn or a mission start right after fast travel, a save loaded
+// twice): the wait starts again for the new place. The bar keeps what it showed (it never goes back); the calm
+// counter and the three blind frames start over, so the screen cannot close on the old place's "nothing pending".
+export const retargetProgress = (state) => ({ total: 0, shown: state && Number.isFinite(state.shown) ? state.shown : 0, calm: 0, frames: 0 });
