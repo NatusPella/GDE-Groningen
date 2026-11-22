@@ -58,8 +58,8 @@ for (const k of Object.keys(B.KINDS)) ok(B.cardPrio(k) !== undefined && 'AE'.inc
 // --- 2. the source -------------------------------------------------------------
 // who may draw its own overlay: every module that injects a <style> or writes position: fixed
 const ownsOverlay = (s) => /position:\s*'?fixed/.test(s) || /createElement\(['"]style['"]\)/.test(s);
-// the planner modules and the DOM side of the overlay rules are not surfaces themselves
-const PLANNERS = ['hudbus.js', 'hudrules.js', 'overlayrules.js', 'overlayhold.js', 'narrative.js', 'attention.js'];
+// the planner modules and the DOM side of the overlay rules are not surfaces themselves // clipwrite.js: een onzichtbaar tekstveld (position: fixed, buiten beeld) voor het klembord, geen overlay
+const PLANNERS = ['hudbus.js', 'hudrules.js', 'overlayrules.js', 'overlayhold.js', 'narrative.js', 'attention.js', 'clipwrite.js'];
 const unlisted = files.filter((f) => ownsOverlay(src[f]) && !owners.has(f) && !PLANNERS.includes(f));
 ok(unlisted.length === 0, `own overlay without a row in SURFACES (hudbus.js): ${unlisted.join(', ')} -- add the module to the surface it belongs to, or give it a row with gates or own`);
 

@@ -423,7 +423,8 @@ t('de sleutel is eigen en nieuw: gde-gebieden-v1, buiten elke savegame en verhaa
   assert.equal(BASE_KEYS.gebieden, 'gde-gebieden-v1');
   assert.equal(KEYS.gebieden, 'gde-gebieden-v1');
   for (const [k, v] of Object.entries(KEYS)) if (k !== 'gebieden') assert.notEqual(v, KEYS.gebieden);
-  assert.ok(!/gebieden/i.test(bron('savegame.js') + bron('coopsave.js')), 'de voortgang staat niet in een savegame');
+  // 22-11 (savescope.js): de voortgang hoort bij een save en wisselt mee, maar staat niet IN de savegame-payload: geen veld en geen directe sleutel (savegame.js noemt het woord alleen in commentaar)
+  assert.ok(!/gebieden\s*:|KEYS\.gebieden|gde-gebieden/.test(bron('savegame.js') + bron('coopsave.js')), 'de voortgang staat niet in een savegame');
 });
 t('opSleutel: de taak bij de speler is gedaan, de voortgang komt als kaartje voor het kleinste gebied, een tweede keer niets', () => {
   const st = nepOpslag(); begin(st);

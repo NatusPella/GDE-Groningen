@@ -79,7 +79,8 @@ await loadArea(T, [Math.min(wx, sx) - 900, Math.min(wy, sy) - 900, Math.max(wx, 
   ok('M18 staat bij een echt pand, niet in het open veld', best < 12, `${best.toFixed(1)} m van een ${type || '?'}-pand`);
   ok('M18 staat op begaanbare, droge grond', map.isOpenSpot(wx, wy) && !map.inWaterRaw(wx, wy), `${map.isOpenSpot(wx, wy)}/${map.inWaterRaw(wx, wy)}`);
   const [dx, dy] = wgsToWorld(PLACES.wiebelwerkServers[0], PLACES.wiebelwerkServers[1]);
-  ok('de serverkamer is bereikbaar vanaf de ingang', map.isOpenSpot(dx, dy) && Math.hypot(dx - wx, dy - wy) > 10 && Math.hypot(dx - wx, dy - wy) < 60, `${Math.hypot(dx - wx, dy - wy).toFixed(0)} m`);
+  // 22-11 (9604c7b22): de serverkamer ligt bewust aan de ingangskant (7 m), niet 23 m achter de glasgevel
+  ok('de serverkamer is bereikbaar vanaf de ingang', map.isOpenSpot(dx, dy) && Math.hypot(dx - wx, dy - wy) > 3 && Math.hypot(dx - wx, dy - wy) < 60, `${Math.hypot(dx - wx, dy - wy).toFixed(0)} m`);
   const [ux, uy] = wgsToWorld(PLACES.wiebelwerkUit[0], PLACES.wiebelwerkUit[1]);
   ok('de uitgang ligt op loopafstand van de serverkamer', map.isOpenSpot(ux, uy) && Math.hypot(ux - dx, uy - dy) < 45, `${Math.hypot(ux - dx, uy - dy).toFixed(0)} m`);
 }

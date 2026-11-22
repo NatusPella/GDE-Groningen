@@ -1781,6 +1781,14 @@
    "reden": "Prestatiemeting van dit apparaat (benchmark en advies); lokaal, geen spelstaat."
   },
   {
+   "glob": "benchsettle",
+   "reden": "Wacht na een benchmark tot het spel weer rustig staat (eigen save terug); lokaal, geen spelstaat."
+  },
+  {
+   "glob": "clipwrite",
+   "reden": "Tekst naar het klembord van dit apparaat; lokaal, niets over het net."
+  },
+  {
    "glob": "goaltext",
    "reden": "Alleen de opmaak van de doeltekst in de HUD; lokaal beeld, de doelen zelf zijn van de speler."
   },

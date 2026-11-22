@@ -65,7 +65,7 @@ const guards = [
   ['werf3d.js', /releaseVehicleGeometries\(obj\.schip\)/, 'werf geeft de scheepsref terug'],
   ['coopentities3d.js', /disposeObject\(m\)/, 'gastvoertuigen gaan via disposeObject'],
   ['dorpsuitjes.js', /disposeObject\(a\.boat\)/, 'dorpsuitjes geeft de bootref terug'],
-  ['trailer.js', /import \{ getScene, prewarmStreamAt, disposeObject \}/, 'trailer haalt de opruimer van scene3d binnen'],
+  ['trailer.js', /import \{ getScene, prewarmStreamAt[^}]*disposeObject[^}]*\}/, 'trailer haalt de opruimer van scene3d binnen'],
   ['trailer.js', /function disposeTrailerProps\(\)[\s\S]{0,300}disposeTrailerProp\(o\)[\s\S]{0,200}trailerProps\.clear\(\)/, 'trailer maakt de props-map leeg bij het opruimen'],
   ['trailer.js', /function disposeTrailerProp\(o\)[\s\S]{0,400}disposeObject\(o\)/, 'trailer-props gaan via disposeObject'],
   ['trailer.js', /clearShot\(r\);\s*\n\s*group\.removeFromParent\(\);\s*\n\s*r\.light\.removeFromParent\(\);\s*\n\s*disposeTrailerProps\(\); \/\/ #797/, 'het einde van het traject ruimt de props op'],

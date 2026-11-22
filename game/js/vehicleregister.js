@@ -39,7 +39,7 @@ export const VOERTUIGEN = {
   midibus: { klasse: 'auto', spawn: [beheer('trafficfleet.js', 'MIDIBUS_MODEL')], winkel: ['midibus'], tuning: 'auto', cutscene: true },
   trekkerlimo: { klasse: 'auto', spawn: [beheer('missions_defs.js', 'trekkerlimo')], winkel: ['trekkerlimo'], tuning: 'auto', cutscene: true },
   // Jelles limo uit het verhaal: de speler wint zijn trekker-limo, dat is de verzamelbare versie
-  limo: { klasse: 'auto', alias: 'trekkerlimo', spawn: [beheer('convoy.js', "name: 'limo'")], winkel: ['trekkerlimo'], tuning: 'auto', cutscene: true },
+  limo: { klasse: 'auto', alias: 'trekkerlimo', spawn: [beheer('chaserlook.js', "name: 'trekkerlimo'")], winkel: ['trekkerlimo'], tuning: 'auto', cutscene: true },
   tractor: { klasse: 'auto', spawn: [beheer('countrylife.js', 'TRACTOR_MODEL'), beheer('parkedcars.js', 'TRACTOR_MODEL')], winkel: ['trekker'], tuning: 'auto', cutscene: true },
   quad: { klasse: 'auto', spawn: [beheer('countrylife.js', 'QUAD_MODEL')], winkel: ['quad'], tuning: 'auto', cutscene: true },
   bike: { klasse: 'tweewieler', spawn: [beheer('vehicle.js', 'manageBikePopulation')], winkel: ['omafiets', 'stadsfiets', 'fatbike', 'transportfiets', 'barrel', 'bakfiets'], tuning: 'tweewieler', cutscene: true },

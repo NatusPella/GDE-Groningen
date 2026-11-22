@@ -85,7 +85,7 @@ ok(L.codeer({ ...basis, niveau: 'zwaar' }) && !('d' in JSON.parse(L.codeer({ ...
     { id: 'zzzzzzzzzz', naam: 'Oud', spelers: 1, max: 4, versie: '0.65.0', anders: false, vol: false, kan: true, ouderdom: 1000, niveau: null, hostKey: KEY },
   ] });
   const t = (lijstView.sessies || []).map((x) => x.tekst);
-  ok(t.some((x) => /Zomerrit · 2 van 4 spelers · versie 0\.65\.0 · Wereld: Uitdagend/.test(x)), 'de sessielijst toont "Wereld: Uitdagend"', t);
+  ok(t.some((x) => /^Zomerrit · 2 van 4 spelers · versie 0\.65\.0$/.test(x)), 'de openbare sessielijst toont het niveau niet (constitution 4: alleen naam, aantal spelers en versie)', t);
   ok(t.some((x) => /^Oud · 1 van 4 spelers · versie 0\.65\.0$/.test(x)), 'een rij zonder niveau blijft zoals ze was', t);
 }
 
@@ -94,7 +94,7 @@ ok(L.codeer({ ...basis, niveau: 'zwaar' }) && !('d' in JSON.parse(L.codeer({ ...
   const hub = read('game/js/net/hub.js'), net = read('game/js/coopnet.js'), ui = read('game/js/lobbyui.js');
   ok(/lijst: lijstEvent\(hub\.roster, WELKOM_BUDGET\)\.lijst, \.\.\.\(typeof hub\.cfg\.niveau === 'function' \? \{ niveau: schoonNiveau\(hub\.cfg\.niveau\(\)\) \} : null\)/.test(hub), 'het welkom van de hub draagt het niveau, alleen als de hub het kent');
   ok(/niveau: \(\) => getDifficultyLevel\(\)/.test(net), 'coopnet.js geeft de hub het niveau van de wereld');
-  ok(/niveau: \(\) => getDifficultyLevel\(\)/.test(ui) && /session\.welcome\.niveau/.test(ui), 'lobbyui.js geeft het niveau mee in de aankondiging en leest het welkom');
+  ok(!/maakAankondiger\(\{[^\n]*\n?[^\n]*niveau: \(\) => getDifficultyLevel\(\)/.test(ui) && /session\.welcome\.niveau/.test(ui), 'lobbyui.js geeft het niveau niet mee in de openbare aankondiging (constitution 4) en leest het welkom');
   ok(!/niveau/.test(read('game/js/net/protocol.js')) && /export const PROTO = 2;/.test(read('game/js/net/protocol.js')), 'PROTO blijft 2: een oude en nieuwe client blijven elkaar accepteren');
 }
 
