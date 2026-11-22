@@ -3,6 +3,7 @@
 // succes. Dun gehouden: semantische markup, alle stijl in sim.css met alleen ds-tokens. De gegevens komen van een puur model per sim (hengelstatus.js, enz.);
 // dit bestand is alleen DOM en bepaalt niets over het spel. Kleur is nooit de enige betekenis: elke stand heeft een woord en een icoon.
 import { sfxLinks } from './latehooks.js';
+import { readList } from './opslaglezen.js';
 import { reducedMotion } from './motion.js';
 import { icoon } from './icons.js';
 import { uitlegModel, uitlegHtml, uitlegIconenAan, uitlegInstellingSleutel, zetUitlegGlyph, startUitleg } from './uitleg.js';
@@ -14,11 +15,11 @@ const svg = (pad, cls = 'ds-icoon') => (typeof pad === 'string' && pad && !pad.i
 // De sleutel voor de eerste-keer-uitleg per sim: een keer gezien blijft weg (alleen dit apparaat, geen savegame).
 const UITLEG_SLEUTEL = 'gde-sim-uitleg-v1';
 export function uitlegGezien(id) {
-  try { return typeof localStorage !== 'undefined' && (JSON.parse(localStorage.getItem(UITLEG_SLEUTEL) || '[]') || []).includes(id); } catch (e) { return false; }
+  try { return typeof localStorage !== 'undefined' && readList(localStorage.getItem(UITLEG_SLEUTEL)).includes(id); } catch (e) { return false; }
 }
 export function zetUitlegGezien(id) {
   try {
-    const lijst = JSON.parse(localStorage.getItem(UITLEG_SLEUTEL) || '[]') || [];
+    const lijst = readList(localStorage.getItem(UITLEG_SLEUTEL)); // een kapot bewaard object herstelt zich zo, in plaats van de uitleg elke keer terug te laten komen
     if (!lijst.includes(id)) { lijst.push(id); localStorage.setItem(UITLEG_SLEUTEL, JSON.stringify(lijst)); }
   } catch (e) { /* geen opslag is geen ramp */ }
 }

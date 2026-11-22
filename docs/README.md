@@ -127,6 +127,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [PERF-STREAM-SOEPEL-21-11.md](<PERF-STREAM-SOEPEL-21-11.md>) | Soepeler streamen: één framebudget, bewegingsgericht vooruitladen en stabiele LOD-overgangen (#1016, #1052, #1008). |
 | [PERF-MEETPUNTEN-21-11.md](<PERF-MEETPUNTEN-21-11.md>) | Meetpunten voor de eindsweep over laden, opwarmen, pop-in en haperingen (#1008, #1016, #1046, #1052): commando, A-schakelaar, maat en voorgestelde grens, met een test die de verwijzingen bewaakt. |
 | [VERFIJNING-22-11-UI-DS3.md](<VERFIJNING-22-11-UI-DS3.md>) | Verfijnronde UI en DS3: wrijving, oplossing en bewijs per verbetering, wat bewust niet en wat nog in beeld bekeken moet worden. |
+| [VERFIJNING-22-11-STABILITEIT.md](<VERFIJNING-22-11-STABILITEIT.md>) | Verfijnronde 22-11 over stabiliteit, opslag en QA: 20 verbeteringen met wrijving, oplossing en bewijs, wat bewust niet is gedaan en wat nog in beeld bekeken moet worden. |
 | [PROPS-STAND-22-11.md](<PROPS-STAND-22-11.md>) | Props, sets en figuranten van het verhaal (#1121): per model driehoeken, materialen en afmetingen, gegenereerd door `scripts/verhaal_props_audit.mjs`. |
 | [VERFIJNING-22-11-LOOPBAAN-PRESTATIES.md](<VERFIJNING-22-11-LOOPBAAN-PRESTATIES.md>) | Verfijnronde 22-11 voor Loopbaan, Prestaties, Veroverd en Foto's: wrijving, oplossing en bewijs per verbetering, wat bewust niet is gedaan en wat nog in beeld bekeken moet worden. |
 | [HUD-LINKS-21-11.md](<HUD-LINKS-21-11.md>) | De locatiekaart en de politiechip links in de HUD (#1079): regel, meting en chip. |

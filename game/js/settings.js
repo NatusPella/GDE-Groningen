@@ -209,6 +209,9 @@ const TOUCH_CONTROLS_CHOICES = ['auto', 'aan', 'uit'];
 let storedVersion = SETTINGS_VERSION;
 const newerExtras = {};
 
+// 22-11: de naam die anderen van je zien: geen stuurtekens of haakjes, spaties samengevoegd, hoogstens 16 tekens
+export const cleanOnlineNaam = (v) => String(v || '').replace(/[\u0000-\u001f\u007f<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 16).trim();
+
 function load() {
   if (typeof localStorage === 'undefined') return { ...DEFAULTS };
   try {
@@ -260,7 +263,7 @@ function load() {
     }
     // de online-avatar (#455): een kleur blijft een kleur, anders de standaard
     if (!/^#[0-9a-f]{6}$/i.test(out.onlineKleur)) out.onlineKleur = DEFAULTS.onlineKleur;
-    out.onlineNaam = String(out.onlineNaam || '').slice(0, 16);
+    out.onlineNaam = cleanOnlineNaam(out.onlineNaam);
     // toestemming voor Samen spelen (#528, ADR 0022): alleen een echte ja of nee telt.
     // De lus hierboven kopieert geen null (typeof null is 'object'), dus dit moet apart:
     // ontbrekend, null, "true", 1 of wat dan ook wordt null en dus "nog nooit gevraagd".
@@ -268,6 +271,9 @@ function load() {
     out.samenZinnen = raw.samenZinnen === true;
     out.startKeuze = raw.startKeuze === 'alleen' || raw.startKeuze === 'samen' ? raw.startKeuze : null; // alleen de voorselectie van de startkaart
     if (!(out.padLookSensitivity >= 0.3 && out.padLookSensitivity <= 2.5)) out.padLookSensitivity = DEFAULTS.padLookSensitivity;
+    // 22-11: ook de trilsterkte en het dronken effect blijven binnen hun bereik, anders valt een handmatig aangepast bestand terug
+    if (!(out.rumbleStrength >= 0.25 && out.rumbleStrength <= 1.5)) out.rumbleStrength = DEFAULTS.rumbleStrength;
+    if (!['aan', 'mild', 'uit'].includes(out.drunkFx)) out.drunkFx = DEFAULTS.drunkFx;
     if (stored && mig && mig.from < SETTINGS_VERSION) {
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...out, v: SETTINGS_VERSION })); } catch (e) { /* ignore */ }
     }
@@ -306,6 +312,7 @@ function urlOverrides(out) {
     if (!hasKey(DEFAULTS, k) || v === undefined) continue;
     const t = typeof DEFAULTS[k];
     if (t === 'object') continue;
+    if (t === 'number' && !Number.isFinite(Number(v))) continue; // 22-11: "resolution:abc" is geen getal
     out[k] = t === 'number' ? Number(v) : t === 'boolean' ? v === 'true' : v;
   }
   return out;
@@ -330,10 +337,14 @@ export function getSettings() {
 const SETTINGS_WRITE_DELAY_MS = 200;
 let writeTimer = null;
 let writePending = false;
+let schrijfFoutGemeld = false;
 function writeSettingsNow() {
   if (writeTimer) { clearTimeout(writeTimer); writeTimer = null; }
   writePending = false;
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...settings, ...newerExtras, v: Math.max(storedVersion, SETTINGS_VERSION) })); } catch (e) { /* ignore */ }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...settings, ...newerExtras, v: Math.max(storedVersion, SETTINGS_VERSION) })); schrijfFoutGemeld = false; } catch (e) {
+    // 22-11: een volle of geblokkeerde opslag mag niet stil zijn: één waarschuwing in het Foutrapport, de stand blijft in het geheugen
+    if (!schrijfFoutGemeld) { schrijfFoutGemeld = true; console.warn("Instellingen: bewaren mislukt (" + ((e && e.name) || "fout") + ")"); }
+  }
 }
 function scheduleSettingsWrite() {
   writePending = true;
@@ -350,10 +361,21 @@ if (typeof document !== 'undefined' && document.addEventListener) {
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushSettings(); });
 }
 
+// 22-11: één luisteraar die struikelt mag de rest en de aanroeper niet meenemen: de andere luisteraars krijgen de
+// wijziging gewoon, de fout gaat naar het Foutrapport.
+function notify(key) {
+  for (const cb of [...listeners]) {
+    try { cb(settings, key); } catch (e) { console.error('Instellingen: luisteraar faalde bij ' + key + ': ' + (e && e.message ? e.message : e)); }
+  }
+}
+
 export function setSetting(key, value) {
   if (typeof DEFAULTS[key] === 'number' && typeof value === 'string') value = Number(value);
+  // 22-11: een getalinstelling krijgt nooit NaN of oneindig (een lege invoer of een kapotte schuif)
+  if (typeof DEFAULTS[key] === 'number' && !Number.isFinite(value)) return;
   // a volume always stays in 0..1, whatever a caller or a keyboard shortcut sends
   if (VOLUME_KEYS.includes(key)) value = volumeValue(value, DEFAULTS[key]);
+  if (key === 'onlineNaam') value = cleanOnlineNaam(value);
   if (!hasKey(DEFAULTS, key) || settings[key] === value) return;
   settings[key] = value;
   // #781: de speler koos in deze build zelf deze stand; een bewaarde waarde van een toekomstige
@@ -368,7 +390,7 @@ export function setSetting(key, value) {
   if (typeof value === 'number') scheduleSettingsWrite(); else writeSettingsNow();
   if (key === 'difficulty') setActiveLevel(value); // #1169: een niveau kiezen wist de eigen aanpassingen van de save
   applyHudClasses();
-  for (const cb of listeners) cb(settings, key);
+  notify(key);
 }
 
 // Values for a moment (the benchmark tries the presets), not saved; the
@@ -379,7 +401,7 @@ export function withTempSettings(values) {
     for (const [k, v] of Object.entries(vals)) {
       if (!hasKey(DEFAULTS, k) || settings[k] === v) continue;
       settings[k] = v;
-      for (const cb of listeners) cb(settings, k);
+      notify(k);
     }
   };
   for (const k of Object.keys(values)) prev[k] = settings[k];
@@ -401,7 +423,7 @@ export function magOnline() {
 
 export function onSettingsChange(cb) {
   listeners.add(cb);
-  cb(settings, null);
+  try { cb(settings, null); } catch (e) { console.error('Instellingen: luisteraar faalde bij aanmelden: ' + (e && e.message ? e.message : e)); }
   return () => listeners.delete(cb);
 }
 

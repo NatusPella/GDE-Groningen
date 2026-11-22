@@ -73,6 +73,7 @@ export function frameStats(ms) {
 export function categoryStats(shots) {
   const by = {};
   for (const s of shots || []) {
+    if (!s) continue; // 22-11: een lege plek in de lijst van shots breekt de rapportkaart niet
     const c = benchCategoryOf(s.id);
     if (c && s.ms && s.ms.length) (by[c] = by[c] || []).push(...s.ms);
   }

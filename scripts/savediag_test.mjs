@@ -1,0 +1,24 @@
+// Opslagregels in het foutrapport: tellingen, geen namen. node scripts/savediag_test.mjs
+import { saveDiagLines } from '../game/js/savediag.js';
+import { readSlot } from '../game/js/saveslots.js';
+import { slotKey, slotRecoveryKey } from '../game/js/storagekeys.js';
+const maak = (o) => { const m = new Map(Object.entries(o)); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), key: (i) => [...m.keys()][i] ?? null, get length() { return m.size; } }; };
+let n = 0, fails = 0;
+const ok = (c, m, i = '') => { n++; if (!c) { fails++; console.log('FAIL', m, i); } };
+let l = saveDiagLines(maak({}), readSlot);
+ok(l[0].includes('0 van 8') && !l[0].includes('('), 'lege opslag', l[0]);
+const goed = JSON.stringify({ v: 1, money: 5, arc: 'nieuw' });
+const ls = maak({ [slotKey(1)]: goed, [slotKey(2)]: '{kapot', [slotRecoveryKey(3)]: '{kapot', 'gde-x': 'abc'.repeat(100) });
+l = saveDiagLines(ls, readSlot, { failText: 'de opslag van je browser is vol' });
+ok(/3 van 8 plekken bezet/.test(l[0]), 'drie bezet', l[0]);
+ok(/kapot/.test(l[0]), 'kapotte plek genoemd', l[0]);
+ok(l.some((x) => x.startsWith('Spelopslag: ongeveer')), 'ruimteregel');
+ok(l.some((x) => x.includes('Laatste opslagfout: de opslag van je browser is vol')), 'laatste fout erin');
+const stuk = { getItem() { throw new Error('geblokkeerd'); }, key() { throw new Error('x'); }, get length() { throw new Error('x'); } };
+l = saveDiagLines(stuk, readSlot);
+ok(l.length >= 1 && l[0].startsWith('Opslag:'), 'geblokkeerde opslag breekt het rapport niet', l.join('|'));
+const l2 = saveDiagLines(ls, () => { throw new Error('boem'); });
+ok(/onleesbaar/.test(l2[0]), 'falende lezer telt als onleesbaar', l2[0]);
+ok(!/Tammo|Spel van|Opgeslagen spel/.test(l.join('') + saveDiagLines(ls, readSlot).join('')), 'geen namen in het rapport');
+console.log(`savediag_test: ${n - fails}/${n}`);
+process.exit(fails ? 1 : 0);

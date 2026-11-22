@@ -27,7 +27,18 @@ export const saveStats = { parse: 0, stringify: 0, migrate: 0, cacheHit: 0 };
 export function resetSaveStats() { saveStats.parse = 0; saveStats.stringify = 0; saveStats.migrate = 0; saveStats.cacheHit = 0; }
 let slotCache = new Map();
 export function resetReadCache() { slotCache = new Map(); }
+// 22-11: elke lezer krijgt een eigen kopie van de data: een lezer die zijn lijsten aanpast (de wereld neemt ze over en speelt erop
+// door) vervuilde anders de cache en dus de samenvatting, de export en de kopie van dat slot. Een kopie is veel goedkoper dan opnieuw
+// parsen en migreren.
+const kopie = (res) => {
+  if (!res.data) return { ...res };
+  try { return { ...res, data: structuredClone(res.data) }; } catch (e) { return { ...res, data: JSON.parse(JSON.stringify(res.data)) }; }
+};
 const dropSlotCache = (n) => { slotCache.delete(n); };
+
+// 22-11: een plek is een geheel getal van 1 tot MAX_SLOTS; een ongeldig nummer (0, 99, undefined) schreef anders stil een
+// actieve plek die de lezer weer wegfilterde, waardoor het spel "vanzelf" naar plek 1 sprong.
+const validSlot = (n) => Number.isInteger(n) && n >= 1 && n <= MAX_SLOTS;
 
 const isObj = (o) => !!o && typeof o === 'object' && !Array.isArray(o);
 const num = (v, d = 0) => (typeof v === 'number' && Number.isFinite(v) ? v : d);
@@ -126,7 +137,7 @@ export function readSlot(ls, n) {
   const raw = getRaw(ls, slotKey(n));
   const rec = getRaw(ls, slotRecoveryKey(n));
   const cached = slotCache.get(n);
-  if (cached && cached.raw === raw && cached.rec === rec) { saveStats.cacheHit++; return { ...cached.res }; }
+  if (cached && cached.raw === raw && cached.rec === rec) { saveStats.cacheHit++; return kopie(cached.res); }
   const main = inspectRaw(raw);
   let res;
   if (main.ok) res = { n, state: 'ok', data: main.data, from: main.from, raw };
@@ -139,7 +150,7 @@ export function readSlot(ls, n) {
     res = hersteld || { n, state: main.why, data: null, raw, why: main.why };
   }
   slotCache.set(n, { raw, rec, res });
-  return { ...res };
+  return kopie(res);
 }
 
 // The data recovered from the recovery copy goes back to the slot itself, so the next boot and the
@@ -278,12 +289,14 @@ export function pickLatest(ls) {
 }
 
 export function setActive(ls, n) {
+  if (!validSlot(n)) return false;
   const idx = readIndex(ls);
   idx.active = n;
   return writeIndex(ls, idx);
 }
 
 export function renameSlot(ls, n, name) {
+  if (!validSlot(n)) return false;
   const idx = readIndex(ls);
   const nm = cleanName(name);
   if (nm && nm !== defaultName(n)) idx.names[n] = nm; else delete idx.names[n];
@@ -328,6 +341,8 @@ export function writeSlotRaw(ls, n, text) {
   } catch (e) {
     // full: the recovery copy takes as much room as the save, so give it up before giving up the save
     if (!e.torn) { try { s.removeItem(slotRecoveryKey(n)); put(); lastWritten.set(key, { s, text }); return true; } catch (e1) { /* still no room */ } }
+    // 22-11: nog geen ruimte? De miniaturen zijn alleen versiering en kosten tot 40 kB per plek: die gaan als laatste uitweg weg, de save zelf gaat voor
+    if (!e.torn) { try { for (let i = 1; i <= MAX_SLOTS; i++) s.removeItem(slotThumbKey(i)); put(); lastWritten.set(key, { s, text }); return true; } catch (e1b) { /* echt vol */ } }
     lastWritten.delete(key);
     try { if (prev != null) s.setItem(key, prev); } catch (e2) { /* nothing more to do */ }
     dropSlotCache(n);
@@ -374,6 +389,7 @@ export function createSlot(ls, name, want = 0, fresh = false) {
 // Deletes a slot and its recovery copy. When it was the active one, the first slot left
 // (or 1) becomes the active one.
 export function deleteSlot(ls, n) {
+  if (!validSlot(n)) return false;
   const s = ls0(ls);
   try { s.removeItem(slotKey(n)); s.removeItem(slotRecoveryKey(n)); s.removeItem(slotThumbKey(n)); } catch (e) { return false; }
   dropSlotCache(n);
@@ -437,12 +453,14 @@ export function agoText(ms, now = Date.now()) {
 // --- export / import --------------------------------------------------------------------
 
 export function exportFileName(name, now = new Date()) {
+  if (!(now instanceof Date) || Number.isNaN(now.getTime())) now = new Date(); // een ongeldige datum gooide een RangeError bij het exporteren
   const slug = cleanName(name, 'save').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'save';
   return `gde-save-${slug}-${now.toISOString().slice(0, 10)}.json`;
 }
 
 // The file for a slot: { ok, filename, text } or { ok: false, why }.
 export function exportSlot(ls, n, now = new Date()) {
+  if (!(now instanceof Date) || Number.isNaN(now.getTime())) now = new Date();
   const r = readSlot(ls, n);
   if (!r.data) return { ok: false, why: r.state };
   const name = nameOf(ls, n);

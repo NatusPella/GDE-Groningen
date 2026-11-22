@@ -1,0 +1,24 @@
+// De flaky-herkenner geeft het goede oordeel. node scripts/flaky_herhaal_test.mjs
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { oordeel, herhaal } from './flaky_herhaal.mjs';
+let n = 0, fails = 0;
+const ok = (c, m, i = '') => { n++; if (!c) { fails++; console.log('FAIL', m, i); } };
+ok(oordeel([{ code: 0 }, { code: 0 }]) === 'STABIEL', 'alles groen is stabiel');
+ok(oordeel([{ code: 0 }, { code: 1 }]) === 'FLAKY', 'gemengd is flaky');
+ok(oordeel([{ code: 1 }, { code: 124 }]) === 'KAPOT', 'alles rood is kapot');
+ok(oordeel([]) === 'LEEG', 'niets gedraaid');
+const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gde-flaky-'));
+const teller = path.join(dir, 'teller.txt');
+const wissel = path.join(dir, 'wissel.mjs');
+fs.writeFileSync(wissel, `import fs from 'node:fs';const p=${JSON.stringify(teller)};const n=fs.existsSync(p)?Number(fs.readFileSync(p,'utf8')):0;fs.writeFileSync(p,String(n+1));console.log('run '+n);process.exit(n%2);`);
+const u = herhaal(wissel, { n: 4, timeoutS: 20 });
+ok(oordeel(u) === 'FLAKY' && u.filter((x) => x.code === 0).length === 2, 'een echte wisselende test wordt FLAKY', JSON.stringify(u.map((x) => x.code)));
+const trage = path.join(dir, 'traag.mjs');
+fs.writeFileSync(trage, 'setTimeout(()=>{},60000)');
+const t = herhaal(trage, { n: 1, timeoutS: 1 });
+ok(t[0].code === 124, 'een time-out geeft 124', t[0].code);
+fs.rmSync(dir, { recursive: true, force: true });
+console.log(`flaky_herhaal_test: ${n - fails}/${n}`);
+process.exit(fails ? 1 : 0);

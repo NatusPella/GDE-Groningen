@@ -47,13 +47,24 @@ function scrub(text) {
     .replace(/([/\\](?:Users|home|Documents and Settings)[/\\])[^/\\\s]+/gi, '$1~');
 }
 
+// 22-11: dezelfde fout met een ander getal erin (een frame, een positie, een id) is één melding: een fout die elk beeld
+// opnieuw komt vulde anders de hele lijst met bijna gelijke regels en verdrong de echte oorzaak.
+const sleutel = (msg) => msg.replace(/-?\d+(?:[.,]\d+)?/g, '#');
+
 const clip = (s, n) => (s.length > n ? s.slice(0, n) + '…' : s);
 
 // One argument of console.error/warn as text.
 function argText(a) {
   if (a instanceof Error) return a.message || String(a);
   if (typeof a === 'string') return a;
-  try { return JSON.stringify(a); } catch (e) { return String(a); }
+  // 22-11: een grote structuur (de wereld, een scène) als console.error-argument zou megabytes tekst maken in één beeld; na
+  // 300 knopen stopt het en blijft er een korte aanduiding over
+  let knopen = 0;
+  try {
+    return JSON.stringify(a, (k, v) => { if (++knopen > 300) throw new RangeError('te groot'); return v; });
+  } catch (e) {
+    try { return knopen > 300 ? '[groot object]' : String(a); } catch (e2) { return '[object]'; }
+  }
 }
 
 export function logError(level, message, stack = '') {
@@ -62,7 +73,8 @@ export function logError(level, message, stack = '') {
   try {
     const msg = clip(scrub(message).trim() || '(geen melding)', MAX_MSG);
     const now = new Date().toISOString();
-    const same = entries.find((e) => e.msg === msg && e.level === level);
+    const sig = sleutel(msg);
+    const same = entries.find((e) => e.level === level && (e.msg === msg || sleutel(e.msg) === sig));
     if (same) {
       same.count = (same.count || 1) + 1;
       same.last = now;
@@ -74,7 +86,7 @@ export function logError(level, message, stack = '') {
       if (entries.length > MAX) entries = entries.slice(-MAX);
     }
     if (!writeTimer) writeTimer = setTimeout(persist, WRITE_MS);
-    for (const fn of listeners) fn();
+    for (const fn of listeners) { try { fn(); } catch (e) { /* een kapotte weergave van het rapport mag het loggen niet breken */ } }
   } finally {
     busy = false;
   }
@@ -87,8 +99,13 @@ export function setErrorContext(fn) {
 
 // fn() -> regels die onder de kop van het rapport komen (gpudiag.js: beeldcontext).
 let reportExtra = () => [];
+const extraMeer = [];
 export function setReportExtra(fn) {
   reportExtra = fn;
+}
+// 22-11: meer dan één bron voor regels onder de kop (beeldcontext, opslag); een falende bron slaat de rest niet over
+export function addReportExtra(fn) {
+  extraMeer.push(fn);
 }
 
 export const getErrorLog = () => entries.slice();
@@ -110,7 +127,7 @@ export function errorReport() {
     ctx.step ? `Verhaal: ${ctx.step}` : '',
     ctx.settings ? `Instellingen: ${ctx.settings}` : '',
     ctx.gpu ? `GPU-klasse: ${ctx.gpu}` : '',
-    ...(() => { try { return reportExtra() || []; } catch (e) { return []; } })(),
+    ...[reportExtra, ...extraMeer].flatMap((fn) => { try { return fn() || []; } catch (e) { return []; } }),
     `${entries.length} meldingen`,
   ].filter(Boolean);
   const body = entries.slice().reverse().map((e) => [

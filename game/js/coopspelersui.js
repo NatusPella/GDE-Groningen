@@ -1,5 +1,6 @@
 import { hoofdspeler } from './players.js';
 import { keepFocus } from './focusbehoud.js';
+import { setVisibleInterval } from './visibletimer.js';
 import { icoon } from './icons.js';
 import { statusVan, tabRegel, versieRegel, MUTE_ACTIONS, hintStand, hintTekst, volgHint } from './playerstatus.js';
 import { gateOn } from './coopgate.js';
@@ -356,6 +357,6 @@ export function renderSpelersPanel(root, world, sluit = () => {}, opts = {}) {
   }
   root.dataset.klaar = ''; teken();
   if (timer) clearInterval(timer);
-  timer = setInterval(teken, 500);
+  timer = setVisibleInterval(teken, 500); // 22-11: niet tekenen terwijl het venster verborgen is
 }
 

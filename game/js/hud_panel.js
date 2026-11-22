@@ -1,4 +1,5 @@
 import { glyphHtml } from './keycap.js';
+import { setVisibleInterval } from './visibletimer.js';
 import { toggleChoice } from './difficulty.js';
 import { probe } from './hitchprobe.js';
 import { iconInner, icoon } from './icons.js';
@@ -475,7 +476,7 @@ function watchLocatie(root, fcol, location, topLeft) {
   if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => requestAnimationFrame(meet)).observe(topLeft);
   if (typeof MutationObserver !== 'undefined') new MutationObserver(stap).observe(topLeft, { attributes: true, attributeFilter: ['class'] });
   // ondertitels komen en gaan zonder maatwijziging van de kolom: een lichte controle van hun stijl (geen layout), meten bij een wissel
-  setInterval(() => {
+  setVisibleInterval(() => { // 22-11: niet tikken terwijl het venster verborgen is
     const s2 = LOCATIE_HINDERNIS.map((q) => { const el = document.querySelector(q); return el ? el.style.opacity + el.textContent.length : ''; }).join('|');
     if (s2 !== sig) { sig = s2; stap(); }
   }, 250);
