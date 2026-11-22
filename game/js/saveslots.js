@@ -341,6 +341,8 @@ export function writeSlotRaw(ls, n, text) {
   } catch (e) {
     // full: the recovery copy takes as much room as the save, so give it up before giving up the save
     if (!e.torn) { try { s.removeItem(slotRecoveryKey(n)); put(); lastWritten.set(key, { s, text }); return true; } catch (e1) { /* still no room */ } }
+    // 22-11: nog geen ruimte? De miniaturen zijn alleen versiering en kosten tot 40 kB per plek: die gaan als laatste uitweg weg, de save zelf gaat voor
+    if (!e.torn) { try { for (let i = 1; i <= MAX_SLOTS; i++) s.removeItem(slotThumbKey(i)); put(); lastWritten.set(key, { s, text }); return true; } catch (e1b) { /* echt vol */ } }
     lastWritten.delete(key);
     try { if (prev != null) s.setItem(key, prev); } catch (e2) { /* nothing more to do */ }
     dropSlotCache(n);
