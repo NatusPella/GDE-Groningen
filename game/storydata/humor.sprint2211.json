@@ -1,0 +1,703 @@
+{
+ "note": "Humorkeuze (#1134), sprint verhaal-kwaliteit 22-11: de 25 zwakste beats van akte 1 tot en met 5 (docs/verhaal/SPRINT-HUMOR-22-11.md). Vier varianten (0 = het bestaande, 1 droog, 2 absurd, 3 warm) en een neutrale terugval; chosen is de winnaar.",
+ "beats": [
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 1,
+   "id": "HS-01",
+   "scene": "M03.1",
+   "speaker": "TAMMO",
+   "context": "Het Loket. Op het scherm staat 4093, hun nummer is 4117. Tammo telt de wachtenden hardop; Tessa gaat daarna meteen het formulier halen.",
+   "shot": "halve close-up op Tammo bij het nummerscherm; Tessa links in beeld, al op weg",
+   "variants": [
+    "Vierentwintig mensen voor ons.",
+    "Vierentwintig mensen. Dat is een rij met een eigen postcode.",
+    "Vierentwintig voor ons. Sommigen staan hier sinds het vorige formulier.",
+    "Vierentwintig. Gelukkig sta ik hier niet alleen."
+   ],
+   "neutral": "Er staan nog vierentwintig mensen voor ons.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Postcode: de wachtrij als dorp, in drie woorden.",
+    "certainty": "laag",
+    "tiebreak": 1
+   }
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 2,
+   "id": "HS-02",
+   "scene": "M14.2",
+   "speaker": "TAMMO",
+   "context": "De dijkweg langs de Eems. Tessa roept \"Schaap links.\" Tammo bevestigt; Sjoerds les over oogcontact uit akte 1 kan hier terugkomen.",
+   "shot": "achter de schouder van Tammo: een schaap midden op de dijk, de limo ver achter",
+   "variants": [
+    "Ik zie het.",
+    "Ik zie het. Hij ziet mij ook.",
+    "Oogcontact gemaakt. Hij gaf voorrang.",
+    "Ik zie het. Met jou erbij zie ik alles."
+   ],
+   "neutral": "Ik zie hem. Ik rem niet.",
+   "panel": {
+    "votes": [
+     2,
+     2,
+     2
+    ],
+    "reason": "Oogcontact: de running gag van het kruispunt (M05) komt terug op een dijk, bij een schaap.",
+    "certainty": "hoog"
+   }
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 1,
+   "id": "HS-03",
+   "scene": "M15.2",
+   "speaker": "JELLE",
+   "context": "Boven de kermis in Winschoten. Het spandoek \"Jelle koopt de jury. Levenslang eierballen.\" hangt recht en iedereen leest het. Jelle belt, ziet het en moet iets zeggen.",
+   "shot": "geen beeld van Jelle: zijn stem op de telefoon, het spandoek wappert over de kermistenten",
+   "variants": [
+    "Dat is… eerlijk.",
+    "Dat is waar. Dat is hinderlijk.",
+    "Mijn juristen vragen of u ook voor ons wilt vliegen.",
+    "Dat is… netjes. Mem zou het mooi vinden."
+   ],
+   "neutral": "Dat is… verrassend eerlijk.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Hinderlijk: hij kan niets tegen een waarheid doen, en dat zegt hij zonder te knipperen.",
+    "certainty": "laag",
+    "tiebreak": 1
+   }
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 3,
+   "id": "HS-04",
+   "scene": "M10.4",
+   "speaker": "TAMMO",
+   "context": "Bushalte Uithuizen. Tessa zegt dat Jelle eerst controleert of de koffer droog is en dan of hij zelf nat is: \"liefde of een contract\". Tammo vult aan.",
+   "shot": "twee-shot op de bank bij de halte, Tammo kijkt voor zich uit",
+   "variants": [
+    "Of hij is dom.",
+    "Of allebei. Dat scheelt hem een formulier.",
+    "Of hij is een klomp met een colbert.",
+    "Of hij mist haar. Dat is ook een soort dom."
+   ],
+   "neutral": "Of hij is gewoon bezorgd.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Warm: een tweede zaadje voor Jelles redemption, en Tessa gaat er terecht aan voorbij.",
+    "certainty": "laag",
+    "tiebreak": 3
+   }
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 1,
+   "id": "HS-05",
+   "scene": "M05.3",
+   "speaker": "TAMMO",
+   "context": "Café na de fietsrace. Sjoerd noemt de drie minuten dat de museumcamera's uit zijn. Tessa: vannacht om twaalf uur. Tammo sluit af.",
+   "shot": "twee-shot aan het tafeltje, Tammo kijkt naar het bierviltje",
+   "variants": [
+    "Eerst wachten.",
+    "Eerst wachten. Daar ben ik in opgeleid.",
+    "Eerst wachten. Ik heb een koekje van Henk in reserve.",
+    "Eerst wachten. Samen duurt dat korter."
+   ],
+   "neutral": "Eerst wachten tot het twaalf uur is.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Opgeleid: understatement over een hele werkloze jeugd.",
+    "certainty": "laag",
+    "tiebreak": 1
+   }
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 1,
+   "id": "HS-06",
+   "scene": "N4",
+   "speaker": "TAMMO",
+   "context": "Station Grunn. Tessa regelt een eerste taxiritje en zegt dat Tammo rijdt. Tessa antwoordt daarna: \"Als het misgaat, hoor je het als eerste. Dat is mijn werk.\"",
+   "shot": "halve close-up Tammo achter het stuur, Tessa naast hem met de planning",
+   "variants": [
+    "Links of rechts?",
+    "En als ik de verkeerde kant op rijd?",
+    "En als ik fout rijd? Mag ik zeggen dat het een sluiproute was?",
+    "En als ik fout rijd? Blijf je dan zitten?"
+   ],
+   "neutral": "Welke kant op?",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "De vraag past nu bij Tessa's antwoord; \"links of rechts\" paste daar niet bij.",
+    "certainty": "laag",
+    "tiebreak": 1
+   }
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 2,
+   "id": "HS-07",
+   "scene": "M08.2",
+   "speaker": "TESSA",
+   "context": "Oude Ebbingestraat. Jelle belt dat een fatbike juridisch geen fiets is en voetgangers hier geen voorrang hebben. Durk en Douwe naderen op één fatbike.",
+   "shot": "rennende Tammo en Tessa in totaal, twee reuzen op een fiets in de verte",
+   "variants": [
+    "Dan rennen we.",
+    "Dan zijn wij vandaag even geen voetgangers. Rennen.",
+    "Dan zijn wij een fatbike. Tammo, op mijn rug.",
+    "Dan rennen we. Samen is dat voorrang van twee."
+   ],
+   "neutral": "Dan lopen we snel door.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Bureaucratisch terugpakken: als zij geen voetgangers zijn, geldt de regel niet.",
+    "certainty": "laag",
+    "tiebreak": 2
+   }
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 1,
+   "id": "HS-08",
+   "scene": "M23.4",
+   "speaker": "TAMMO",
+   "context": "Grote Markt. De colonne is aangekomen: bus, trekker, scooter, bakkie en meer. Tammo kijkt achterom. Tessa antwoordt dat Rikus alle woorden al heeft gebruikt.",
+   "shot": "brede opname van het plein, de snackwagen voorop, alle voertuigen erachter",
+   "variants": [
+    "De grootste stoet die Grunn ooit zag.",
+    "De grootste stoet van Grunn. Met een scooter voorop.",
+    "Een bus, een trekker, een scooter en een bisschop. Dat noem ik een stoet.",
+    "De mooiste stoet die Grunn ooit zag. Niemand viel weg."
+   ],
+   "neutral": "Een prachtige stoet voor Grunn.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Warm: de emotionele ankerzin van de finale, niemand viel weg, en Tessa's grap erna werkt nog.",
+    "certainty": "laag",
+    "tiebreak": 1
+   }
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 0,
+   "id": "HS-09",
+   "scene": "M26.16",
+   "speaker": "TAMMO",
+   "context": "Steeg bij de notaris. Geesje zit met haar scooter dwars en breit. \"Wie blijft staan, mag breien.\"",
+   "shot": "twee-shot: Tammo in de steeg, Geesje op de scooter met breiwerk",
+   "variants": [
+    "Klopt.",
+    "Dat is geldig. Ik ga erbij staan.",
+    "Dan sta ik hier een trui lang.",
+    "Dan blijf ik staan. Voor Geesje en voor de trui."
+   ],
+   "neutral": "Dat is eerlijk.",
+   "panel": {
+    "votes": [
+     0,
+     2,
+     3
+    ],
+    "reason": "Het bestaande \"Klopt.\" is al een goede Groningse schouderophaal; de anderen winnen niet met voldoende voorsprong.",
+    "certainty": "laag",
+    "tiebreak": 0
+   }
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 2,
+   "id": "HS-10",
+   "scene": "M26.15",
+   "speaker": "TAMMO",
+   "context": "Gelkingestraat. Tinus zet zijn trekker dwars en belooft de limo weg te trekken. Tessa zei net dat de trekker er net in past.",
+   "shot": "de trekker tussen de gevels, Tammo in het raam van de snackwagen",
+   "variants": [
+    "In de stad ziet hij er nog groter uit.",
+    "Een trekker in de stad. Die kijkt nergens van op.",
+    "De trekker en de Martinitoren kijken elkaar aan. Gelijkspel.",
+    "Hij zit er trots in, Tessa. Net een kind in zijn eerste pak."
+   ],
+   "neutral": "Hij staat er stevig in.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Gelijkspel tussen trekker en toren: absurd en visueel, past bij de Grote Markt-finale.",
+    "certainty": "laag",
+    "tiebreak": 2
+   }
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 1,
+   "id": "HS-11",
+   "scene": "M02.1",
+   "speaker": "TAMMO",
+   "context": "Herestraat, half acht. De pinautomaat wordt op een aanhanger weggereden. Tessa: \"Er komt een politieauto aan. Instappen.\"",
+   "shot": "twee-shot bij de Escapade, aan de achtergrond de aanhanger met de automaat",
+   "variants": [
+    "Ik rij.",
+    "Ik rij. Rustig. Met alle richtingaanwijzers.",
+    "Ik rij. De automaat mag voorop, dan zijn wij de escorte.",
+    "Ik rij. Jij hoeft nergens bang voor te zijn."
+   ],
+   "neutral": "Instappen, ik rij.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Escorte: eerste echte Tammo-grap in het spel, bij een achtervolging die hij niet doorziet.",
+    "certainty": "laag",
+    "tiebreak": 1
+   }
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 1,
+   "id": "HS-12",
+   "scene": "C00.3",
+   "speaker": "TAMMO",
+   "context": "Verhuisdag in Paddepoel. Tessa zegt dat meedoen aan de Snackprijs honderdvijftig euro kost, contant, uiterlijk morgen om twaalf.",
+   "shot": "halve close-up Tammo met een doos in zijn armen, kijkt naar Tessa",
+   "variants": [
+    "Honderdvijftig euro. Vandaag.",
+    "Honderdvijftig euro. Ik heb er acht.",
+    "Honderdvijftig euro. Ik kan hooguit mijn zonnebril verkopen.",
+    "Honderdvijftig euro. Samen lukt dat, toch?"
+   ],
+   "neutral": "Honderdvijftig euro. Vandaag nog.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Acht euro: de armoede in één getal, drie woorden eerder dan elke uitleg.",
+    "certainty": "laag",
+    "tiebreak": 1
+   }
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 2,
+   "id": "HS-13",
+   "scene": "M14.3",
+   "speaker": "JELLE",
+   "context": "De sluis bij Delfzijl. Lammerts overdracht is om vijf voor acht getekend; de deurwaarder kan niets meer doen. Jelle moet zijn nederlaag verwoorden.",
+   "shot": "halve close-up Jelle bij zijn limo, Durk en Douwe achter hem",
+   "variants": [
+    "Durk, Douwe, hoe vaak moet ik het zeggen? Contract is contract. Wij komen terug.",
+    "Een nederlaag is een bijlage. Contract is contract. Wij komen terug.",
+    "Durk, Douwe, schrijf op: de sluis was vooraf verloren. Mijn juristen noemen dat winst.",
+    "Contract is contract. Durk, Douwe: de limo. En niemand vertelt dit aan Mem."
+   ],
+   "neutral": "Durk, Douwe, de limo. Wij komen terug.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Een nederlaag is een bijlage: verliezen als papierwerk.",
+    "certainty": "laag",
+    "tiebreak": 2
+   }
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 3,
+   "id": "HS-14",
+   "scene": "M16.3",
+   "speaker": "JELLE",
+   "context": "De kermis in Winschoten. Jelle belt Durk voor een rapport. Durk zegt \"Op een kermis, baas.\" Jelle hoort botsauto's op de achtergrond. Daarna zegt Durk: \"Nee, baas. Douwe, hang op.\"",
+   "shot": "geen beeld van Jelle: telefoon op luidspreker, Durk en Douwe naast een botsautootje",
+   "variants": [
+    "Ik hoor botsauto's. Ik betaal jullie niet voor botsauto's.",
+    "Ik hoor botsauto's. In het contract staat rapporteren, niet botsen.",
+    "Ik hoor botsauto's. Zijn dat mijn botsauto's? Dan wil ik een factuur.",
+    "Botsauto's. Dat was Mems favoriet. Ik betaal jullie daar niet voor."
+   ],
+   "neutral": "Ik hoor botsauto's. Dat staat niet in het rapport.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Rapporteren, niet botsen: de bureaucraat die zijn handlangers nakijkt.",
+    "certainty": "laag",
+    "tiebreak": 3
+   }
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 0,
+   "id": "HS-15",
+   "scene": "O6",
+   "speaker": "JELLE",
+   "context": "Telefoongesprek bij de Eemshaven. Jelle biedt dertigduizend euro voor Oma's recept en sluit af met een wachtopdracht.",
+   "shot": "geen beeld van Jelle: Tessa met de telefoon, Tammo ernaast, de kade bij schemer",
+   "variants": [
+    "Ik wacht. Foar mem.",
+    "Ik wacht. Mijn juristen wachten mee, tegen uurtarief. Foar mem.",
+    "Ik wacht. Ik heb er een stoel voor gekocht. Foar mem.",
+    "Ik wacht. Denk er goed over na, mevrouw. Het is voor mem."
+   ],
+   "neutral": "Ik wacht op uw antwoord. Foar mem.",
+   "panel": {
+    "votes": [
+     0,
+     2,
+     0
+    ],
+    "reason": "De korte vorm is het sterkst: \"Foar mem\" als ankerzin blijft, de uitleg ervoor is onnodig.",
+    "certainty": "midden"
+   }
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 1,
+   "id": "HS-16",
+   "scene": "M15.3",
+   "speaker": "JELLE",
+   "context": "De kermis in Winschoten. Het spandoek heeft de jury doen opschrikken: \"Is dit waar? Jelle koopt de jury?\" Jelle verdedigt zich.",
+   "shot": "twee-shot Jelle en een jurylid bij de proeftafel, het spandoek boven hen",
+   "variants": [
+    "Het is een proeverij. Er wordt alleen geproefd.",
+    "Het is een proeverij. Wat u proeft, is geen omkoping, maar smaak.",
+    "Het is een proeverij. De jury proeft, ik betaal, de eierbal blijft neutraal.",
+    "Het is een proeverij. Mem noemt het gastvrijheid."
+   ],
+   "neutral": "Het is een proeverij. Er wordt niets gekocht.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Smaak in plaats van omkoping: juridische woordkeus als redding in de nood.",
+    "certainty": "laag",
+    "tiebreak": 1
+   }
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 1,
+   "id": "HS-17",
+   "scene": "M12.3",
+   "speaker": "JELLE",
+   "context": "Boven de Dollard. De heli nadert Jelles ballon. Jelle roept het eerste wat zijn contract hem zegt.",
+   "shot": "halve close-up Jelle met zijn hand op de rand van de mand, de heli boven hem in beeld",
+   "variants": [
+    "Goedemiddag. U nadert privé-luchtruim, mevrouw. Mijn ballon heeft voorrang. Dat staat in het contract.",
+    "U nadert privé-luchtruim, mevrouw. Mijn ballon heeft voorrang. Het staat in het contract, onder \"wind\".",
+    "U nadert privé-luchtruim, mevrouw. Wolken hebben voorrang en ik heb de wolken. Dat staat in het contract.",
+    "Goedemiddag. Voorzichtig, mevrouw, u nadert mijn ballon. Mem vindt hem prachtig."
+   ],
+   "neutral": "Goedemiddag. U nadert mijn ballon, mevrouw. Dat is niet toegestaan.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Onder \"wind\": het contract kent het weer als bijlage.",
+    "certainty": "laag",
+    "tiebreak": 1
+   }
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 1,
+   "id": "HS-18",
+   "scene": "M14.2",
+   "speaker": "JELLE",
+   "context": "De dijkweg bij de Eems. Jelle belt in de race naar de sluis. Tessa antwoordt daarna: \"Rij, Tammo.\"",
+   "shot": "geen beeld van Jelle: telefoon op het dashboard, de dijk en een schaap achter de voorruit",
+   "variants": [
+    "Mevrouw, u rijdt te hard. In mijn limo is plek.",
+    "Mevrouw, u rijdt te hard. In mijn limo is plek, en er zit een vergunning bij.",
+    "Mevrouw, u rijdt te hard voor een schaap. Mijn limo past zich aan.",
+    "Mevrouw, u rijdt te hard. Kom in mijn limo, dan komt u veilig aan."
+   ],
+   "neutral": "Mevrouw, u rijdt te hard. Mijn limo is sneller.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Er zit een vergunning bij: zelfs de uitnodiging heeft papierwerk.",
+    "certainty": "laag",
+    "tiebreak": 1
+   }
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 1,
+   "id": "HS-19",
+   "scene": "R3.0",
+   "speaker": "RIKUS",
+   "context": "Nachtstreek, vrijdagochtend. Jelle zei net dat het luchtruim sinds vanochtend wel van iemand is. Rikus sluit af voordat hij de plaat opzet.",
+   "shot": "geen beeld: radio over de stad, de Martinitoren bij ochtendlicht",
+   "variants": [
+    "Ik draai een plaat.",
+    "Ik draai een plaat. Een lange.",
+    "Ik draai een plaat. Voor het luchtruim, dat vanochtend is verhuisd.",
+    "Ik draai een plaat. Voor wie nog vliegt zonder contract."
+   ],
+   "neutral": "Ik draai eerst een plaat.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Een lange: de zwijgzaamheid van Rikus als pointe, zonder uitleg.",
+    "certainty": "laag",
+    "tiebreak": 1
+   }
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 2,
+   "id": "HS-20",
+   "scene": "M02.5",
+   "speaker": "TAMMO",
+   "context": "Escapade, na Sjabbe. Tammo vroeg waarom Jelle naar alarmen vraagt; Tessa: \"Dat weten we na het Loket.\" Tammo sluit de scène af.",
+   "shot": "twee-shot in de auto, Tammo kijkt naar het stuur",
+   "variants": [
+    "Dan eerst het Loket.",
+    "Dan eerst het Loket. Daar begint alles met wachten.",
+    "Dan eerst het Loket. Nummer 4140 wacht op niemand.",
+    "Dan eerst het Loket. En daarna samen verder."
+   ],
+   "neutral": "Dan gaan we eerst naar het Loket.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Nummer 4140: de grap van het Loket (M03) alvast aangekondigd.",
+    "certainty": "laag",
+    "tiebreak": 2
+   }
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 1,
+   "id": "HS-21",
+   "scene": "M07.1",
+   "speaker": "TAMMO",
+   "context": "Bornholmstraat. Jelle belt dat al het vet van Grunn van hem is, voor één klomp; zijn juristen vonden het veel. Tammo reageert daarop.",
+   "shot": "close-up Tammo naast de tankwagen, de telefoon op de motorkap",
+   "variants": [
+    "Regels, vergunningen, trucs.",
+    "Eén klomp voor een stad vol vet. Dat is vrijwel gratis.",
+    "Eén klomp. De klomp vroeg of dat genoeg was.",
+    "Eerst de bank, nu het vet. Hij maakt het ons niet makkelijk."
+   ],
+   "neutral": "Hij kan dit niet zomaar doen.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Vrijwel gratis: Tammo ziet de prijs, niet het gif, en Tessa schakelt over op het echte probleem.",
+    "certainty": "laag",
+    "tiebreak": 1
+   }
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 1,
+   "id": "HS-22",
+   "scene": "M04.1",
+   "speaker": "TAMMO",
+   "context": "Stationsplein, bij Bert. Tessa legt het plan uit: het museum fotograferen. Tammo voegt iets toe aan haar lijst.",
+   "shot": "twee-shot met Bert en een duif op Tammo's schouder",
+   "variants": [
+    "En wat Jelle daar doet.",
+    "En waarom Jelle in augustus een colbert draagt.",
+    "En of de duif een colbert krijgt als hij meewerkt.",
+    "En dat jij meekijkt. Dat is het fijnste."
+   ],
+   "neutral": "En wat Jelle daar komt doen.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Colbert in augustus: de eerste beeldgrap over Jelle wordt het begin van een gag die bleef lopen (M04.2).",
+    "certainty": "laag",
+    "tiebreak": 1
+   }
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 2,
+   "id": "HS-23",
+   "scene": "M17.3",
+   "speaker": "TAMMO",
+   "context": "Brug elf, Veendam. Tammo merkt op dat het webbureau net als de museumcamera's om middernacht bijwerkt; Tessa zegt dat het toeval is.",
+   "shot": "halve close-up Tammo, de brug achter hem dicht",
+   "variants": [
+    "Dat moeten we weten.",
+    "Zeg niet toeval. Zeg: nog niet bewezen.",
+    "Toeval heeft ook een server. En een update.",
+    "Dan is het toeval. Ik wil het toch weten. Met jou."
+   ],
+   "neutral": "Dat moeten we uitzoeken.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Nog niet bewezen: Tammo wordt een keer slimmer dan Tessa en dat is grappig.",
+    "certainty": "laag",
+    "tiebreak": 2
+   }
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 3,
+   "id": "HS-24",
+   "scene": "M12.4",
+   "speaker": "TESSA",
+   "context": "Helidek Eemshaven. Tessa heeft plakje vijf en zes van het koopboek voorgelezen (container 4471, notaris 28 augustus). Ze sluit af.",
+   "shot": "twee-shot op het helidek, Tessa wijst naar de kade",
+   "variants": [
+    "Dan weten we waar we vannacht moeten zijn. Hier.",
+    "Dan weten we waar we vannacht zijn. Hier. Zonder lier.",
+    "Dus vannacht Eemshaven. Ik neem een lamp mee en een container-expert.",
+    "Dan weten we waar we vannacht moeten zijn. Hier. Samen."
+   ],
+   "neutral": "Dan weten we waar we vannacht heen moeten.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Samen: kort, zacht, en het geeft de romance een stap zonder dat iemand het uitspreekt.",
+    "certainty": "laag",
+    "tiebreak": 3
+   }
+  },
+  {
+   "label": "humor-review",
+   "sensitive": false,
+   "voorstel": true,
+   "chosen": 0,
+   "id": "HS-25",
+   "scene": "M25.3",
+   "speaker": "JELLE",
+   "context": "Oma's keuken, de avond voor het Ontzet. Tessa zei dat Jelles oma iets anders wil dan geld. Jelle vraagt wat. Dit is het scharnier van zijn bekering.",
+   "shot": "close-up Jelle bij de keukentafel, voor het eerst geen colbert dichtgeknoopt",
+   "variants": [
+    "Wat dan?",
+    "Wat dan? Ik heb alles geboden.",
+    "Wat dan? Een klomp? Twee klompen?",
+    "…Wat dan? Zeg het maar. Ik schrijf het niet op."
+   ],
+   "neutral": "Wat wil ze dan?",
+   "panel": {
+    "votes": [
+     0,
+     2,
+     3
+    ],
+    "reason": "Warm: Jelle die zegt dat hij het niet opschrijft is de eerste keer dat hij zonder juristen praat.",
+    "certainty": "laag",
+    "tiebreak": 0
+   }
+  }
+ ]
+}

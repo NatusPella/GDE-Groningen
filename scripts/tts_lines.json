@@ -429,19 +429,6 @@
   "file": "tammo/eerst_eten_dan_praten_eb62f702.mp3"
  },
  {
-  "key": "Tammo|Links of rechts?",
-  "speaker": "Tammo",
-  "text": "Links of rechts?",
-  "area": "N4",
-  "out": "lines",
-  "lang": "gro",
-  "voice": "Orus",
-  "who": "dry, deadpan man in his thirties",
-  "tag": "verbaasd, vragend",
-  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: verbaasd, vragend.",
-  "file": "tammo/links_of_rechts_660d10ad.mp3"
- },
- {
   "key": "Tammo|Ik wacht buiten.",
   "speaker": "Tammo",
   "text": "Ik wacht buiten.",
@@ -1014,19 +1001,6 @@
   "file": "anita/en_waar_naartoe_1e490075.mp3"
  },
  {
-  "key": "Tammo|Regels, vergunningen, trucs.",
-  "speaker": "Tammo",
-  "text": "Regels, vergunningen, trucs.",
-  "area": "M07.1",
-  "out": "lines",
-  "lang": "gro",
-  "voice": "Orus",
-  "who": "dry, deadpan man in his thirties",
-  "tag": "deadpan, licht verbaasd",
-  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: deadpan, licht verbaasd.",
-  "file": "tammo/regels_vergunningen_trucs_c439de34.mp3"
- },
- {
   "key": "Oma Trijntje|Tammo, met je oma. Kom naar de Noorderhaven. Wil je eerlijk winnen, dan heb je mijn recept nodig.",
   "speaker": "Oma Trijntje",
   "text": "Tammo, met je oma. Kom naar de Noorderhaven. Wil je eerlijk winnen, dan heb je mijn recept nodig.",
@@ -1038,6 +1012,19 @@
   "tag": "warm, ontroerd",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse oma, warm en stellig. Tone: warm, ontroerd.",
   "file": "oma_trijntje/tammo_met_je_oma_kom_naar_de_noo_58285932.mp3"
+ },
+ {
+  "key": "Anita|Dan zijn wij een fatbike. Tammo, op mijn rug.",
+  "speaker": "Anita",
+  "text": "Dan zijn wij een fatbike. Tammo, op mijn rug.",
+  "area": "M08.2",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "enthousiast, snel",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+  "file": "anita/dan_zijn_wij_een_fatbike_tammo_o_971d9387.mp3"
  },
  {
   "key": "Oma Trijntje|1953. Dat ik won, weet je.",
@@ -2223,19 +2210,6 @@
   "file": "rikus/het_luchtruim_is_van_niemand_men_8d9b6434.mp3"
  },
  {
-  "key": "Rikus|Ik draai een plaat.",
-  "speaker": "Rikus",
-  "text": "Ik draai een plaat.",
-  "area": "R3.0",
-  "out": "lines",
-  "lang": "gro",
-  "voice": "Schedar",
-  "who": "Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog",
-  "tag": "plagend, laconiek",
-  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog. Tone: plagend, laconiek.",
-  "file": "rikus/ik_draai_een_plaat_6088abd3.mp3"
- },
- {
   "key": "Oma Trijntje|Dijkstra komt jullie halen, jong. Van het ziekenhuis. Ik kookte voor zijn afdeling.",
   "speaker": "Oma Trijntje",
   "text": "Dijkstra komt jullie halen, jong. Van het ziekenhuis. Ik kookte voor zijn afdeling.",
@@ -2314,6 +2288,19 @@
   "file": "rotor_roelf/zeg_maar_misschien_dan_is_het_ee_04d768a7.mp3"
  },
  {
+  "key": "Jelle Terpstra|U nadert privé-luchtruim, mevrouw. Mijn ballon heeft voorrang. Het staat in het contract, onder \"wind\".",
+  "speaker": "Jelle Terpstra",
+  "text": "U nadert privé-luchtruim, mevrouw. Mijn ballon heeft voorrang. Het staat in het contract, onder \"wind\".",
+  "area": "M12.3",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Fenrir",
+  "who": "ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden",
+  "tag": "plechtig, overdreven trots",
+  "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: plechtig, overdreven trots.",
+  "file": "jelle_terpstra/u_nadert_prive_luchtruim_mevrouw_da692130.mp3"
+ },
+ {
   "key": "Tammo|Wat zit erin?",
   "speaker": "Tammo",
   "text": "Wat zit erin?",
@@ -2325,6 +2312,19 @@
   "tag": "verbaasd, vragend",
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: verbaasd, vragend.",
   "file": "tammo/wat_zit_erin_51510fd5.mp3"
+ },
+ {
+  "key": "Anita|Dan weten we waar we vannacht moeten zijn. Hier. Samen.",
+  "speaker": "Anita",
+  "text": "Dan weten we waar we vannacht moeten zijn. Hier. Samen.",
+  "area": "M12.4",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "warm, grinnikend",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+  "file": "anita/dan_weten_we_waar_we_vannacht_mo_3c8a35bc.mp3"
  },
  {
   "key": "Tammo|Dat is veel aandacht.",
@@ -2522,9 +2522,9 @@
   "file": "tammo/het_is_niet_eens_van_ons_het_is__c766d926.mp3"
  },
  {
-  "key": "Jelle Terpstra|Mevrouw, u rijdt te hard. In mijn limo is plek.",
+  "key": "Jelle Terpstra|Mevrouw, u rijdt te hard. In mijn limo is plek, en er zit een vergunning bij.",
   "speaker": "Jelle Terpstra",
-  "text": "Mevrouw, u rijdt te hard. In mijn limo is plek.",
+  "text": "Mevrouw, u rijdt te hard. In mijn limo is plek, en er zit een vergunning bij.",
   "area": "M14.2",
   "out": "lines",
   "lang": "own",
@@ -2532,7 +2532,7 @@
   "who": "ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden",
   "tag": "charmant, opschepperig",
   "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: charmant, opschepperig.",
-  "file": "jelle_terpstra/mevrouw_u_rijdt_te_hard_in_mijn__2a2d05c4.mp3"
+  "file": "jelle_terpstra/mevrouw_u_rijdt_te_hard_in_mijn__8f3aea30.mp3"
  },
  {
   "key": "Lammert|De overdracht is getekend, om vijf voor acht. Het woonschip is van Trijntje en het vet is veilig.",
@@ -2546,6 +2546,19 @@
   "tag": "kalm, precies",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; havenmeester van Delfzijl, op leeftijd, vertelt graag. Tone: kalm, precies.",
   "file": "lammert/de_overdracht_is_getekend_om_vij_fd2a995b.mp3"
+ },
+ {
+  "key": "Jelle Terpstra|Durk, Douwe, schrijf op: de sluis was vooraf verloren. Mijn juristen noemen dat winst.",
+  "speaker": "Jelle Terpstra",
+  "text": "Durk, Douwe, schrijf op: de sluis was vooraf verloren. Mijn juristen noemen dat winst.",
+  "area": "M14.3",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Fenrir",
+  "who": "ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden",
+  "tag": "zelfvoldaan, grinnikend",
+  "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: zelfvoldaan, grinnikend.",
+  "file": "jelle_terpstra/durk_douwe_schrijf_op_de_sluis_w_89313b41.mp3"
  },
  {
   "key": "Rikus|Mijn verzoekplaat van de week: \"Elfde Verdieping\", van De Fietstunnels. Een nummer over een lift die werkt.",
@@ -2704,6 +2717,32 @@
   "file": "roelfien/mijn_vliegtuigje_sleept_al_twint_b87f0ccd.mp3"
  },
  {
+  "key": "Jelle Terpstra|Dat is waar. Dat is hinderlijk.",
+  "speaker": "Jelle Terpstra",
+  "text": "Dat is waar. Dat is hinderlijk.",
+  "area": "M15.2",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Fenrir",
+  "who": "ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden",
+  "tag": "zelfvoldaan, grinnikend",
+  "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: zelfvoldaan, grinnikend.",
+  "file": "jelle_terpstra/dat_is_waar_dat_is_hinderlijk_b535869b.mp3"
+ },
+ {
+  "key": "Jelle Terpstra|Het is een proeverij. Wat u proeft, is geen omkoping, maar smaak.",
+  "speaker": "Jelle Terpstra",
+  "text": "Het is een proeverij. Wat u proeft, is geen omkoping, maar smaak.",
+  "area": "M15.3",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Fenrir",
+  "who": "ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden",
+  "tag": "charmant, opschepperig",
+  "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: charmant, opschepperig.",
+  "file": "jelle_terpstra/het_is_een_proeverij_wat_u_proef_a8749e71.mp3"
+ },
+ {
   "key": "Roelfien|Doe de groeten aan Trijntje. Vanavond is Geert, van de Poelestraat, hier met drie tenten. Wie daar drinkt, vertelt alles.",
   "speaker": "Roelfien",
   "text": "Doe de groeten aan Trijntje. Vanavond is Geert, van de Poelestraat, hier met drie tenten. Wie daar drinkt, vertelt alles.",
@@ -2845,6 +2884,19 @@
   "tag": "joviaal, roddelend",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse kroegbaas, joviaal. Tone: joviaal, roddelend.",
   "file": "geert/hij_kijkt_al_sinds_de_ingang_naa_e4f421e6.mp3"
+ },
+ {
+  "key": "Jelle Terpstra|Botsauto's. Dat was Mems favoriet. Ik betaal jullie daar niet voor.",
+  "speaker": "Jelle Terpstra",
+  "text": "Botsauto's. Dat was Mems favoriet. Ik betaal jullie daar niet voor.",
+  "area": "M16.3",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Fenrir",
+  "who": "ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden",
+  "tag": "plechtig, overdreven trots",
+  "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: plechtig, overdreven trots.",
+  "file": "jelle_terpstra/botsauto_s_dat_was_mems_favoriet_e83eabf2.mp3"
  },
  {
   "key": "Tammo|Heeft hij de bal bij zich?",

@@ -2,7 +2,7 @@
 
 Je hoeft niets te doen. Voor elke nieuwe of herschreven komische beat heeft de schrijver drie varianten en een veilige neutrale terugval gemaakt; drie onafhankelijke beoordelaars (zonder elkaars oordeel, met de varianten in een andere volgorde) kozen de beste. De winnaar staat in het spel; de andere twee en de terugval staan hieronder als alternatief. Wil je iets anders: zet `chosen` van die beat in het bijbehorende bestand `game/storydata/humor*.json` op 0, 1, 2, 3 (alleen de beats van 22-11 hebben variant 4) of `"neutral"` en draai `node scripts/build_story_data.mjs`. Werkwijze: [SCHRIJFREGELS-21-11.md](SCHRIJFREGELS-21-11.md). Na een wijziging: draai ook de cutscene-tests (`cutscenes_akte*_test`), want de cues van een scène (`on:`) volgen de gekozen tekst. Samen spelen: een beat is gewone scènetekst; een gast ziet de gekozen variant mee in de scène van de host. Gegenereerd door `node scripts/humor_doc.mjs`; kies hier niet met de hand.
 
-Eerlijk over de proef: 106 beats. De beoordelaars lazen de stijlgids en de beats; minstens twee van de drie lazen de ijkregels uit akte 1 ([BEHOUDEN]-grappen) niet. Wees dus kritisch bij beats met lage zekerheid.
+Eerlijk over de proef: 131 beats. De beoordelaars lazen de stijlgids en de beats; minstens twee van de drie lazen de ijkregels uit akte 1 ([BEHOUDEN]-grappen) niet. Wees dus kritisch bij beats met lage zekerheid.
 
 ## Bovenaan: gevoelig of gespleten met lage zekerheid
 
@@ -48,6 +48,29 @@ Eerlijk over de proef: 106 beats. De beoordelaars lazen de stijlgids en de beats
 - **HN-17** (N12, TAMMO): gekozen "Daar kan ik geen bezwaar tegen maken."; paneelsplit 1-1-1, zekerheid laag. Geen bezwaar: bureaucratisch tederheid.
 - **HN-18** (N9, TESSA): gekozen "Het schaap heeft nu een sok en een mening."; paneelsplit 1-1-1, zekerheid laag. Het schaap met een mening.
 - **HN-19** (N9, TAMMO): gekozen "Ik kijk naar de beer. Hij kijkt terug."; paneelsplit 1-1-1, zekerheid laag. De beer kijkt terug: de nacht wordt even levend.
+- **HS-01** (M03.1, TAMMO): gekozen "Vierentwintig mensen. Dat is een rij met een eigen postcode."; paneelsplit 1-1-1, zekerheid laag. Postcode: de wachtrij als dorp, in drie woorden.
+- **HS-03** (M15.2, JELLE): gekozen "Dat is waar. Dat is hinderlijk."; paneelsplit 1-1-1, zekerheid laag. Hinderlijk: hij kan niets tegen een waarheid doen, en dat zegt hij zonder te knipperen.
+- **HS-04** (M10.4, TAMMO): gekozen "Of hij mist haar. Dat is ook een soort dom."; paneelsplit 1-1-1, zekerheid laag. Warm: een tweede zaadje voor Jelles redemption, en Tessa gaat er terecht aan voorbij.
+- **HS-05** (M05.3, TAMMO): gekozen "Eerst wachten. Daar ben ik in opgeleid."; paneelsplit 1-1-1, zekerheid laag. Opgeleid: understatement over een hele werkloze jeugd.
+- **HS-06** (N4, TAMMO): gekozen "En als ik de verkeerde kant op rijd?"; paneelsplit 1-1-1, zekerheid laag. De vraag past nu bij Tessa's antwoord; "links of rechts" paste daar niet bij.
+- **HS-07** (M08.2, TESSA): gekozen "Dan zijn wij een fatbike. Tammo, op mijn rug."; paneelsplit 1-1-1, zekerheid laag. Bureaucratisch terugpakken: als zij geen voetgangers zijn, geldt de regel niet.
+- **HS-08** (M23.4, TAMMO): gekozen "De grootste stoet van Grunn. Met een scooter voorop."; paneelsplit 1-1-1, zekerheid laag. Warm: de emotionele ankerzin van de finale, niemand viel weg, en Tessa's grap erna werkt nog.
+- **HS-09** (M26.16, TAMMO): gekozen "Klopt."; paneelsplit 1-1-1, zekerheid laag. Het bestaande "Klopt." is al een goede Groningse schouderophaal; de anderen winnen niet met voldoende voorsprong.
+- **HS-10** (M26.15, TAMMO): gekozen "De trekker en de Martinitoren kijken elkaar aan. Gelijkspel."; paneelsplit 1-1-1, zekerheid laag. Gelijkspel tussen trekker en toren: absurd en visueel, past bij de Grote Markt-finale.
+- **HS-11** (M02.1, TAMMO): gekozen "Ik rij. Rustig. Met alle richtingaanwijzers."; paneelsplit 1-1-1, zekerheid laag. Escorte: eerste echte Tammo-grap in het spel, bij een achtervolging die hij niet doorziet.
+- **HS-12** (C00.3, TAMMO): gekozen "Honderdvijftig euro. Ik heb er acht."; paneelsplit 1-1-1, zekerheid laag. Acht euro: de armoede in één getal, drie woorden eerder dan elke uitleg.
+- **HS-13** (M14.3, JELLE): gekozen "Durk, Douwe, schrijf op: de sluis was vooraf verloren. Mijn juristen noemen dat winst."; paneelsplit 1-1-1, zekerheid laag. Een nederlaag is een bijlage: verliezen als papierwerk.
+- **HS-14** (M16.3, JELLE): gekozen "Botsauto's. Dat was Mems favoriet. Ik betaal jullie daar niet voor."; paneelsplit 1-1-1, zekerheid laag. Rapporteren, niet botsen: de bureaucraat die zijn handlangers nakijkt.
+- **HS-16** (M15.3, JELLE): gekozen "Het is een proeverij. Wat u proeft, is geen omkoping, maar smaak."; paneelsplit 1-1-1, zekerheid laag. Smaak in plaats van omkoping: juridische woordkeus als redding in de nood.
+- **HS-17** (M12.3, JELLE): gekozen "U nadert privé-luchtruim, mevrouw. Mijn ballon heeft voorrang. Het staat in het contract, onder "wind"."; paneelsplit 1-1-1, zekerheid laag. Onder "wind": het contract kent het weer als bijlage.
+- **HS-18** (M14.2, JELLE): gekozen "Mevrouw, u rijdt te hard. In mijn limo is plek, en er zit een vergunning bij."; paneelsplit 1-1-1, zekerheid laag. Er zit een vergunning bij: zelfs de uitnodiging heeft papierwerk.
+- **HS-19** (R3.0, RIKUS): gekozen "Ik draai een plaat. Een lange."; paneelsplit 1-1-1, zekerheid laag. Een lange: de zwijgzaamheid van Rikus als pointe, zonder uitleg.
+- **HS-20** (M02.5, TAMMO): gekozen "Dan eerst het Loket. Nummer 4140 wacht op niemand."; paneelsplit 1-1-1, zekerheid laag. Nummer 4140: de grap van het Loket (M03) alvast aangekondigd.
+- **HS-21** (M07.1, TAMMO): gekozen "Eén klomp voor een stad vol vet. Dat is vrijwel gratis."; paneelsplit 1-1-1, zekerheid laag. Vrijwel gratis: Tammo ziet de prijs, niet het gif, en Tessa schakelt over op het echte probleem.
+- **HS-22** (M04.1, TAMMO): gekozen "En waarom Jelle in augustus een colbert draagt."; paneelsplit 1-1-1, zekerheid laag. Colbert in augustus: de eerste beeldgrap over Jelle wordt het begin van een gag die bleef lopen (M04.2).
+- **HS-23** (M17.3, TAMMO): gekozen "Toeval heeft ook een server. En een update."; paneelsplit 1-1-1, zekerheid laag. Nog niet bewezen: Tammo wordt een keer slimmer dan Tessa en dat is grappig.
+- **HS-24** (M12.4, TESSA): gekozen "Dan weten we waar we vannacht moeten zijn. Hier. Samen."; paneelsplit 1-1-1, zekerheid laag. Samen: kort, zacht, en het geeft de romance een stap zonder dat iemand het uitspreekt.
+- **HS-25** (M25.3, JELLE): gekozen "Wat dan?"; paneelsplit 1-1-1, zekerheid laag. Warm: Jelle die zegt dat hij het niet opschrijft is de eerste keer dat hij zonder juristen praat.
 
 ## Lage zekerheid (twee van de drie, of onderling onzeker)
 
@@ -173,6 +196,31 @@ Eerlijk over de proef: 106 beats. De beoordelaars lazen de stijlgids en de beats
 | HN-17 | N12 | TAMMO | Daar kan ik geen bezwaar tegen maken. | variant 2, variant 3, variant 4 | laag | Geen bezwaar: bureaucratisch tederheid. |
 | HN-18 | N9 | TESSA | Het schaap heeft nu een sok en een mening. | variant 2, variant 3, variant 4 | laag | Het schaap met een mening. |
 | HN-19 | N9 | TAMMO | Ik kijk naar de beer. Hij kijkt terug. | variant 2, variant 3, variant 4 | laag | De beer kijkt terug: de nacht wordt even levend. |
+| HS-01 | M03.1 | TAMMO | Vierentwintig mensen. Dat is een rij met een eigen postcode. | variant 2, variant 3, variant 4 | laag | Postcode: de wachtrij als dorp, in drie woorden. |
+| HS-02 | M14.2 | TAMMO | Oogcontact gemaakt. Hij gaf voorrang. | variant 3, variant 3, variant 3 | hoog | Oogcontact: de running gag van het kruispunt (M05) komt terug op een dijk, bij een schaap. |
+| HS-03 | M15.2 | JELLE | Dat is waar. Dat is hinderlijk. | variant 2, variant 3, variant 4 | laag | Hinderlijk: hij kan niets tegen een waarheid doen, en dat zegt hij zonder te knipperen. |
+| HS-04 | M10.4 | TAMMO | Of hij mist haar. Dat is ook een soort dom. | variant 2, variant 3, variant 4 | laag | Warm: een tweede zaadje voor Jelles redemption, en Tessa gaat er terecht aan voorbij. |
+| HS-05 | M05.3 | TAMMO | Eerst wachten. Daar ben ik in opgeleid. | variant 2, variant 3, variant 4 | laag | Opgeleid: understatement over een hele werkloze jeugd. |
+| HS-06 | N4 | TAMMO | En als ik de verkeerde kant op rijd? | variant 2, variant 3, variant 4 | laag | De vraag past nu bij Tessa's antwoord; "links of rechts" paste daar niet bij. |
+| HS-07 | M08.2 | TESSA | Dan zijn wij een fatbike. Tammo, op mijn rug. | variant 2, variant 3, variant 4 | laag | Bureaucratisch terugpakken: als zij geen voetgangers zijn, geldt de regel niet. |
+| HS-08 | M23.4 | TAMMO | De grootste stoet van Grunn. Met een scooter voorop. | variant 2, variant 3, variant 4 | laag | Warm: de emotionele ankerzin van de finale, niemand viel weg, en Tessa's grap erna werkt nog. |
+| HS-09 | M26.16 | TAMMO | Klopt. | variant 1, variant 3, variant 4 | laag | Het bestaande "Klopt." is al een goede Groningse schouderophaal; de anderen winnen niet met voldoende voorsprong. |
+| HS-10 | M26.15 | TAMMO | De trekker en de Martinitoren kijken elkaar aan. Gelijkspel. | variant 2, variant 3, variant 4 | laag | Gelijkspel tussen trekker en toren: absurd en visueel, past bij de Grote Markt-finale. |
+| HS-11 | M02.1 | TAMMO | Ik rij. Rustig. Met alle richtingaanwijzers. | variant 2, variant 3, variant 4 | laag | Escorte: eerste echte Tammo-grap in het spel, bij een achtervolging die hij niet doorziet. |
+| HS-12 | C00.3 | TAMMO | Honderdvijftig euro. Ik heb er acht. | variant 2, variant 3, variant 4 | laag | Acht euro: de armoede in één getal, drie woorden eerder dan elke uitleg. |
+| HS-13 | M14.3 | JELLE | Durk, Douwe, schrijf op: de sluis was vooraf verloren. Mijn juristen noemen dat winst. | variant 2, variant 3, variant 4 | laag | Een nederlaag is een bijlage: verliezen als papierwerk. |
+| HS-14 | M16.3 | JELLE | Botsauto's. Dat was Mems favoriet. Ik betaal jullie daar niet voor. | variant 2, variant 3, variant 4 | laag | Rapporteren, niet botsen: de bureaucraat die zijn handlangers nakijkt. |
+| HS-15 | O6 | JELLE | Ik wacht. Foar mem. | variant 1, variant 3, variant 1 | midden | De korte vorm is het sterkst: "Foar mem" als ankerzin blijft, de uitleg ervoor is onnodig. |
+| HS-16 | M15.3 | JELLE | Het is een proeverij. Wat u proeft, is geen omkoping, maar smaak. | variant 2, variant 3, variant 4 | laag | Smaak in plaats van omkoping: juridische woordkeus als redding in de nood. |
+| HS-17 | M12.3 | JELLE | U nadert privé-luchtruim, mevrouw. Mijn ballon heeft voorrang. Het staat in het contract, onder "wind". | variant 2, variant 3, variant 4 | laag | Onder "wind": het contract kent het weer als bijlage. |
+| HS-18 | M14.2 | JELLE | Mevrouw, u rijdt te hard. In mijn limo is plek, en er zit een vergunning bij. | variant 2, variant 3, variant 4 | laag | Er zit een vergunning bij: zelfs de uitnodiging heeft papierwerk. |
+| HS-19 | R3.0 | RIKUS | Ik draai een plaat. Een lange. | variant 2, variant 3, variant 4 | laag | Een lange: de zwijgzaamheid van Rikus als pointe, zonder uitleg. |
+| HS-20 | M02.5 | TAMMO | Dan eerst het Loket. Nummer 4140 wacht op niemand. | variant 2, variant 3, variant 4 | laag | Nummer 4140: de grap van het Loket (M03) alvast aangekondigd. |
+| HS-21 | M07.1 | TAMMO | Eén klomp voor een stad vol vet. Dat is vrijwel gratis. | variant 2, variant 3, variant 4 | laag | Vrijwel gratis: Tammo ziet de prijs, niet het gif, en Tessa schakelt over op het echte probleem. |
+| HS-22 | M04.1 | TAMMO | En waarom Jelle in augustus een colbert draagt. | variant 2, variant 3, variant 4 | laag | Colbert in augustus: de eerste beeldgrap over Jelle wordt het begin van een gag die bleef lopen (M04.2). |
+| HS-23 | M17.3 | TAMMO | Toeval heeft ook een server. En een update. | variant 2, variant 3, variant 4 | laag | Nog niet bewezen: Tammo wordt een keer slimmer dan Tessa en dat is grappig. |
+| HS-24 | M12.4 | TESSA | Dan weten we waar we vannacht moeten zijn. Hier. Samen. | variant 2, variant 3, variant 4 | laag | Samen: kort, zacht, en het geeft de romance een stap zonder dat iemand het uitspreekt. |
+| HS-25 | M25.3 | JELLE | Wat dan? | variant 1, variant 3, variant 4 | laag | Warm: Jelle die zegt dat hij het niet opschrijft is de eerste keer dat hij zonder juristen praat. |
 
 ## De alternatieven per beat
 
@@ -835,3 +883,178 @@ Eerlijk over de proef: 106 beats. De beoordelaars lazen de stijlgids en de beats
 - variant 3 (gekozen): Ik kijk naar de beer. Hij kijkt terug.
 - variant 4: Ik kijk naar iets moois. Ik noem het de beer.
 - neutraal: Ik kijk wel.
+
+**HS-01** (M03.1): Het Loket. Op het scherm staat 4093, hun nummer is 4117. Tammo telt de wachtenden hardop; Tessa gaat daarna meteen het formulier halen.
+- variant 1: Vierentwintig mensen voor ons.
+- variant 2 (gekozen): Vierentwintig mensen. Dat is een rij met een eigen postcode.
+- variant 3: Vierentwintig voor ons. Sommigen staan hier sinds het vorige formulier.
+- variant 4: Vierentwintig. Gelukkig sta ik hier niet alleen.
+- neutraal: Er staan nog vierentwintig mensen voor ons.
+
+**HS-02** (M14.2): De dijkweg langs de Eems. Tessa roept "Schaap links." Tammo bevestigt; Sjoerds les over oogcontact uit akte 1 kan hier terugkomen.
+- variant 1: Ik zie het.
+- variant 2: Ik zie het. Hij ziet mij ook.
+- variant 3 (gekozen): Oogcontact gemaakt. Hij gaf voorrang.
+- variant 4: Ik zie het. Met jou erbij zie ik alles.
+- neutraal: Ik zie hem. Ik rem niet.
+
+**HS-03** (M15.2): Boven de kermis in Winschoten. Het spandoek "Jelle koopt de jury. Levenslang eierballen." hangt recht en iedereen leest het. Jelle belt, ziet het en moet iets zeggen.
+- variant 1: Dat is… eerlijk.
+- variant 2 (gekozen): Dat is waar. Dat is hinderlijk.
+- variant 3: Mijn juristen vragen of u ook voor ons wilt vliegen.
+- variant 4: Dat is… netjes. Mem zou het mooi vinden.
+- neutraal: Dat is… verrassend eerlijk.
+
+**HS-04** (M10.4): Bushalte Uithuizen. Tessa zegt dat Jelle eerst controleert of de koffer droog is en dan of hij zelf nat is: "liefde of een contract". Tammo vult aan.
+- variant 1: Of hij is dom.
+- variant 2: Of allebei. Dat scheelt hem een formulier.
+- variant 3: Of hij is een klomp met een colbert.
+- variant 4 (gekozen): Of hij mist haar. Dat is ook een soort dom.
+- neutraal: Of hij is gewoon bezorgd.
+
+**HS-05** (M05.3): Café na de fietsrace. Sjoerd noemt de drie minuten dat de museumcamera's uit zijn. Tessa: vannacht om twaalf uur. Tammo sluit af.
+- variant 1: Eerst wachten.
+- variant 2 (gekozen): Eerst wachten. Daar ben ik in opgeleid.
+- variant 3: Eerst wachten. Ik heb een koekje van Henk in reserve.
+- variant 4: Eerst wachten. Samen duurt dat korter.
+- neutraal: Eerst wachten tot het twaalf uur is.
+
+**HS-06** (N4): Station Grunn. Tessa regelt een eerste taxiritje en zegt dat Tammo rijdt. Tessa antwoordt daarna: "Als het misgaat, hoor je het als eerste. Dat is mijn werk."
+- variant 1: Links of rechts?
+- variant 2 (gekozen): En als ik de verkeerde kant op rijd?
+- variant 3: En als ik fout rijd? Mag ik zeggen dat het een sluiproute was?
+- variant 4: En als ik fout rijd? Blijf je dan zitten?
+- neutraal: Welke kant op?
+
+**HS-07** (M08.2): Oude Ebbingestraat. Jelle belt dat een fatbike juridisch geen fiets is en voetgangers hier geen voorrang hebben. Durk en Douwe naderen op één fatbike.
+- variant 1: Dan rennen we.
+- variant 2: Dan zijn wij vandaag even geen voetgangers. Rennen.
+- variant 3 (gekozen): Dan zijn wij een fatbike. Tammo, op mijn rug.
+- variant 4: Dan rennen we. Samen is dat voorrang van twee.
+- neutraal: Dan lopen we snel door.
+
+**HS-08** (M23.4): Grote Markt. De colonne is aangekomen: bus, trekker, scooter, bakkie en meer. Tammo kijkt achterom. Tessa antwoordt dat Rikus alle woorden al heeft gebruikt.
+- variant 1: De grootste stoet die Grunn ooit zag.
+- variant 2 (gekozen): De grootste stoet van Grunn. Met een scooter voorop.
+- variant 3: Een bus, een trekker, een scooter en een bisschop. Dat noem ik een stoet.
+- variant 4: De mooiste stoet die Grunn ooit zag. Niemand viel weg.
+- neutraal: Een prachtige stoet voor Grunn.
+
+**HS-09** (M26.16): Steeg bij de notaris. Geesje zit met haar scooter dwars en breit. "Wie blijft staan, mag breien."
+- variant 1 (gekozen): Klopt.
+- variant 2: Dat is geldig. Ik ga erbij staan.
+- variant 3: Dan sta ik hier een trui lang.
+- variant 4: Dan blijf ik staan. Voor Geesje en voor de trui.
+- neutraal: Dat is eerlijk.
+
+**HS-10** (M26.15): Gelkingestraat. Tinus zet zijn trekker dwars en belooft de limo weg te trekken. Tessa zei net dat de trekker er net in past.
+- variant 1: In de stad ziet hij er nog groter uit.
+- variant 2: Een trekker in de stad. Die kijkt nergens van op.
+- variant 3 (gekozen): De trekker en de Martinitoren kijken elkaar aan. Gelijkspel.
+- variant 4: Hij zit er trots in, Tessa. Net een kind in zijn eerste pak.
+- neutraal: Hij staat er stevig in.
+
+**HS-11** (M02.1): Herestraat, half acht. De pinautomaat wordt op een aanhanger weggereden. Tessa: "Er komt een politieauto aan. Instappen."
+- variant 1: Ik rij.
+- variant 2 (gekozen): Ik rij. Rustig. Met alle richtingaanwijzers.
+- variant 3: Ik rij. De automaat mag voorop, dan zijn wij de escorte.
+- variant 4: Ik rij. Jij hoeft nergens bang voor te zijn.
+- neutraal: Instappen, ik rij.
+
+**HS-12** (C00.3): Verhuisdag in Paddepoel. Tessa zegt dat meedoen aan de Snackprijs honderdvijftig euro kost, contant, uiterlijk morgen om twaalf.
+- variant 1: Honderdvijftig euro. Vandaag.
+- variant 2 (gekozen): Honderdvijftig euro. Ik heb er acht.
+- variant 3: Honderdvijftig euro. Ik kan hooguit mijn zonnebril verkopen.
+- variant 4: Honderdvijftig euro. Samen lukt dat, toch?
+- neutraal: Honderdvijftig euro. Vandaag nog.
+
+**HS-13** (M14.3): De sluis bij Delfzijl. Lammerts overdracht is om vijf voor acht getekend; de deurwaarder kan niets meer doen. Jelle moet zijn nederlaag verwoorden.
+- variant 1: Durk, Douwe, hoe vaak moet ik het zeggen? Contract is contract. Wij komen terug.
+- variant 2: Een nederlaag is een bijlage. Contract is contract. Wij komen terug.
+- variant 3 (gekozen): Durk, Douwe, schrijf op: de sluis was vooraf verloren. Mijn juristen noemen dat winst.
+- variant 4: Contract is contract. Durk, Douwe: de limo. En niemand vertelt dit aan Mem.
+- neutraal: Durk, Douwe, de limo. Wij komen terug.
+
+**HS-14** (M16.3): De kermis in Winschoten. Jelle belt Durk voor een rapport. Durk zegt "Op een kermis, baas." Jelle hoort botsauto's op de achtergrond. Daarna zegt Durk: "Nee, baas. Douwe, hang op."
+- variant 1: Ik hoor botsauto's. Ik betaal jullie niet voor botsauto's.
+- variant 2: Ik hoor botsauto's. In het contract staat rapporteren, niet botsen.
+- variant 3: Ik hoor botsauto's. Zijn dat mijn botsauto's? Dan wil ik een factuur.
+- variant 4 (gekozen): Botsauto's. Dat was Mems favoriet. Ik betaal jullie daar niet voor.
+- neutraal: Ik hoor botsauto's. Dat staat niet in het rapport.
+
+**HS-15** (O6): Telefoongesprek bij de Eemshaven. Jelle biedt dertigduizend euro voor Oma's recept en sluit af met een wachtopdracht.
+- variant 1 (gekozen): Ik wacht. Foar mem.
+- variant 2: Ik wacht. Mijn juristen wachten mee, tegen uurtarief. Foar mem.
+- variant 3: Ik wacht. Ik heb er een stoel voor gekocht. Foar mem.
+- variant 4: Ik wacht. Denk er goed over na, mevrouw. Het is voor mem.
+- neutraal: Ik wacht op uw antwoord. Foar mem.
+
+**HS-16** (M15.3): De kermis in Winschoten. Het spandoek heeft de jury doen opschrikken: "Is dit waar? Jelle koopt de jury?" Jelle verdedigt zich.
+- variant 1: Het is een proeverij. Er wordt alleen geproefd.
+- variant 2 (gekozen): Het is een proeverij. Wat u proeft, is geen omkoping, maar smaak.
+- variant 3: Het is een proeverij. De jury proeft, ik betaal, de eierbal blijft neutraal.
+- variant 4: Het is een proeverij. Mem noemt het gastvrijheid.
+- neutraal: Het is een proeverij. Er wordt niets gekocht.
+
+**HS-17** (M12.3): Boven de Dollard. De heli nadert Jelles ballon. Jelle roept het eerste wat zijn contract hem zegt.
+- variant 1: Goedemiddag. U nadert privé-luchtruim, mevrouw. Mijn ballon heeft voorrang. Dat staat in het contract.
+- variant 2 (gekozen): U nadert privé-luchtruim, mevrouw. Mijn ballon heeft voorrang. Het staat in het contract, onder "wind".
+- variant 3: U nadert privé-luchtruim, mevrouw. Wolken hebben voorrang en ik heb de wolken. Dat staat in het contract.
+- variant 4: Goedemiddag. Voorzichtig, mevrouw, u nadert mijn ballon. Mem vindt hem prachtig.
+- neutraal: Goedemiddag. U nadert mijn ballon, mevrouw. Dat is niet toegestaan.
+
+**HS-18** (M14.2): De dijkweg bij de Eems. Jelle belt in de race naar de sluis. Tessa antwoordt daarna: "Rij, Tammo."
+- variant 1: Mevrouw, u rijdt te hard. In mijn limo is plek.
+- variant 2 (gekozen): Mevrouw, u rijdt te hard. In mijn limo is plek, en er zit een vergunning bij.
+- variant 3: Mevrouw, u rijdt te hard voor een schaap. Mijn limo past zich aan.
+- variant 4: Mevrouw, u rijdt te hard. Kom in mijn limo, dan komt u veilig aan.
+- neutraal: Mevrouw, u rijdt te hard. Mijn limo is sneller.
+
+**HS-19** (R3.0): Nachtstreek, vrijdagochtend. Jelle zei net dat het luchtruim sinds vanochtend wel van iemand is. Rikus sluit af voordat hij de plaat opzet.
+- variant 1: Ik draai een plaat.
+- variant 2 (gekozen): Ik draai een plaat. Een lange.
+- variant 3: Ik draai een plaat. Voor het luchtruim, dat vanochtend is verhuisd.
+- variant 4: Ik draai een plaat. Voor wie nog vliegt zonder contract.
+- neutraal: Ik draai eerst een plaat.
+
+**HS-20** (M02.5): Escapade, na Sjabbe. Tammo vroeg waarom Jelle naar alarmen vraagt; Tessa: "Dat weten we na het Loket." Tammo sluit de scène af.
+- variant 1: Dan eerst het Loket.
+- variant 2: Dan eerst het Loket. Daar begint alles met wachten.
+- variant 3 (gekozen): Dan eerst het Loket. Nummer 4140 wacht op niemand.
+- variant 4: Dan eerst het Loket. En daarna samen verder.
+- neutraal: Dan gaan we eerst naar het Loket.
+
+**HS-21** (M07.1): Bornholmstraat. Jelle belt dat al het vet van Grunn van hem is, voor één klomp; zijn juristen vonden het veel. Tammo reageert daarop.
+- variant 1: Regels, vergunningen, trucs.
+- variant 2 (gekozen): Eén klomp voor een stad vol vet. Dat is vrijwel gratis.
+- variant 3: Eén klomp. De klomp vroeg of dat genoeg was.
+- variant 4: Eerst de bank, nu het vet. Hij maakt het ons niet makkelijk.
+- neutraal: Hij kan dit niet zomaar doen.
+
+**HS-22** (M04.1): Stationsplein, bij Bert. Tessa legt het plan uit: het museum fotograferen. Tammo voegt iets toe aan haar lijst.
+- variant 1: En wat Jelle daar doet.
+- variant 2 (gekozen): En waarom Jelle in augustus een colbert draagt.
+- variant 3: En of de duif een colbert krijgt als hij meewerkt.
+- variant 4: En dat jij meekijkt. Dat is het fijnste.
+- neutraal: En wat Jelle daar komt doen.
+
+**HS-23** (M17.3): Brug elf, Veendam. Tammo merkt op dat het webbureau net als de museumcamera's om middernacht bijwerkt; Tessa zegt dat het toeval is.
+- variant 1: Dat moeten we weten.
+- variant 2: Zeg niet toeval. Zeg: nog niet bewezen.
+- variant 3 (gekozen): Toeval heeft ook een server. En een update.
+- variant 4: Dan is het toeval. Ik wil het toch weten. Met jou.
+- neutraal: Dat moeten we uitzoeken.
+
+**HS-24** (M12.4): Helidek Eemshaven. Tessa heeft plakje vijf en zes van het koopboek voorgelezen (container 4471, notaris 28 augustus). Ze sluit af.
+- variant 1: Dan weten we waar we vannacht moeten zijn. Hier.
+- variant 2: Dan weten we waar we vannacht zijn. Hier. Zonder lier.
+- variant 3: Dus vannacht Eemshaven. Ik neem een lamp mee en een container-expert.
+- variant 4 (gekozen): Dan weten we waar we vannacht moeten zijn. Hier. Samen.
+- neutraal: Dan weten we waar we vannacht heen moeten.
+
+**HS-25** (M25.3): Oma's keuken, de avond voor het Ontzet. Tessa zei dat Jelles oma iets anders wil dan geld. Jelle vraagt wat. Dit is het scharnier van zijn bekering.
+- variant 1 (gekozen): Wat dan?
+- variant 2: Wat dan? Ik heb alles geboden.
+- variant 3: Wat dan? Een klomp? Twee klompen?
+- variant 4: …Wat dan? Zeg het maar. Ik schrijf het niet op.
+- neutraal: Wat wil ze dan?

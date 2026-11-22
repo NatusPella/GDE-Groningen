@@ -2,6 +2,18 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
+  "text": "Honderdvijftig euro. Ik heb er acht.",
+  "scene": "C00.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Ik rij. Rustig. Met alle richtingaanwijzers.",
+  "scene": "M02.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
   "text": "Fijn, die nieuwe band van Henk van de garage. Hij vroeg niks.",
   "scene": "M02.5"
  },
@@ -14,8 +26,38 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
+  "text": "Dan eerst het Loket. Nummer 4140 wacht op niemand.",
+  "scene": "M02.5"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
   "text": "Dat is de buurman. Hij woont hier met zijn duiven.",
   "scene": "N2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "En als ik de verkeerde kant op rijd?",
+  "scene": "N4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Vierentwintig mensen. Dat is een rij met een eigen postcode.",
+  "scene": "M03.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "En waarom Jelle in augustus een colbert draagt.",
+  "scene": "M04.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Eerst wachten. Daar ben ik in opgeleid.",
+  "scene": "M05.3"
  },
  {
   "reason": "spreektekst",
@@ -49,6 +91,12 @@
  },
  {
   "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Eén klomp voor een stad vol vet. Dat is vrijwel gratis.",
+  "scene": "M07.1"
+ },
+ {
+  "reason": "spreektekst",
   "speaker": "Terrasgast",
   "text": "Ik bedoelde de rekening. Samen of apart?",
   "scene": "N10"
@@ -64,6 +112,12 @@
   "speaker": "Tammo",
   "text": "Daar kan ik geen bezwaar tegen maken.",
   "scene": "N12"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Of hij mist haar. Dat is ook een soort dom.",
+  "scene": "M10.4"
  },
  {
   "reason": "spreektekst",
@@ -85,6 +139,12 @@
  },
  {
   "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "Ik draai een plaat. Een lange.",
+  "scene": "R3.0"
+ },
+ {
+  "reason": "spreektekst",
   "speaker": "Dokter Dijkstra",
   "text": "Jelle is geland in een weiland bij Winschoten. Tussen de koeien. Hij was niet blij. De koeien ook niet.",
   "scene": "M12.4"
@@ -94,6 +154,12 @@
   "speaker": "Tammo",
   "text": "Dan maken wij eerst bezwaar tegen zijn bezwaar.",
   "scene": "J1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Oogcontact gemaakt. Hij gaf voorrang.",
+  "scene": "M14.2"
  },
  {
   "reason": "spreektekst",
@@ -118,6 +184,12 @@
   "speaker": "Tammo",
   "text": "Waarom een foto?",
   "scene": "W2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Toeval heeft ook een server. En een update.",
+  "scene": "M17.3"
  },
  {
   "reason": "spreektekst",
@@ -148,6 +220,18 @@
   "speaker": "Tammo",
   "text": "\"Tige tank foar de auto. – J.\" Hij bedankt ons voor onze eigen auto.",
   "scene": "M20.5"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "De grootste stoet van Grunn. Met een scooter voorop.",
+  "scene": "M23.4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "De trekker en de Martinitoren kijken elkaar aan. Gelijkspel.",
+  "scene": "M26.15"
  },
  {
   "reason": "spreektekst",
