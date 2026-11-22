@@ -1455,6 +1455,8 @@
     "coopidentiteit",
     "serverstaat",
     "lobby*",
+    "multiplayerwizard*",
+    "playercards",
     "samenhub*",
     "samenkeuze",
     "samenpanel",
@@ -1737,6 +1739,18 @@
   {
    "glob": "personagedossier",
    "reden": "Personagekaart in het verhaalmenu (tekst); lokaal per speler."
+  },
+  {
+   "glob": "heritagearea",
+   "reden": "Vaste gebiedsgegevens (monumentzone) uit de wereld; elke client rekent hetzelfde, geen eigen toestand."
+  },
+  {
+   "glob": "monumentdecor",
+   "reden": "Alleen beeld: elke client bouwt zijn eigen decor."
+  },
+  {
+   "glob": "onboardinglogic",
+   "reden": "Zuivere regels voor de eerste-keerhints van de eigen speler; lokaal, niets om te delen."
   },
   {
    "glob": "savediag",
