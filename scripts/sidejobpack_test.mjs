@@ -48,7 +48,7 @@ t('vier banen, uniek, met een eigen vak, bedrijf en baas (verzonnen)', () => {
 t('constitution: Nederlands, verzonnen namen, geen echte merken, geen winter en geen alcohol', () => {
   const alles = JSON.stringify([PACK_JOBS, DRINKS, GUESTS, PRODUCTS, TOURISTS, STORIES, HUMOR_PROPOSALS]);
   assert.ok(!/mcdonald|burger king|febo|kfc|albert heijn|jumbo|heineken|grolsch|coca|pepsi|red bull|starbucks|uber|google|facebook/i.test(alles), 'geen echte merken');
-  assert.ok(!/winter|sneeuw|ijsbaan|schaatsen|natuurijs/i.test(alles.replace(/ijskoud|ijs\b|ijsthee/gi, '')), 'altijd zomer');
+  assert.ok(!/winter|sneeuw|schaatsen|natuurijs|\bijs/i.test(alles), 'altijd zomer');
   assert.ok(!/\b(bier|wijn|whisky|jenever|cocktail|wodka|shot|dronken)\b/i.test(JSON.stringify(DRINKS) + JSON.stringify(GUESTS)), 'drankjes zonder alcohol');
   assert.ok(!/\bde Grunn\b/.test(alles), 'Grunn, nooit "de Grunn"');
   assert.ok(!/dood|bloed|gewond|wapen|schiet|steek/i.test(alles.replace(/steekproef/g, '')), 'geen leed');
@@ -70,7 +70,7 @@ t('vak, familie, profiel en kaart: elke baan hoort bij een bestaand vak en heeft
   }
 });
 
-t('vismarktkoerier: rustig fietsen levert de volle beloning, het ijs smelt en schudden kost ijs', () => {
+t('vismarktkoerier: rustig fietsen levert de volle beloning, de koeling loopt op en schudden kost koeling', () => {
   const r = newRound('vismarktkoerier', 1, seeded(4));
   assert.equal(goalCount(r), 3);
   let leg = 0;
@@ -80,20 +80,20 @@ t('vismarktkoerier: rustig fietsen levert de volle beloning, het ijs smelt en sc
   assert.ok(ok(res) && !res.failed && res.base === FISH.base + 3 * FISH.perStop, JSON.stringify(res));
   assert.ok(res.tip > 0 && res.flawless, 'rustig: fooi en foutloos');
   assert.equal(goalIndex(r), 3);
-  // nooit afleveren: het ijs smelt
+  // nooit afleveren: de koeling raakt op
   const smelt = newRound('vismarktkoerier', 1, seeded(4));
   const e2 = run(smelt, () => ({ dist: 99 }), { dt: 1 });
-  assert.ok(e2.some((e) => e.type === 'fail' && /gesmolten/.test(e.why)));
+  assert.ok(e2.some((e) => e.type === 'fail' && /koeling is op/.test(e.why)));
   assert.equal(roundResult(smelt).failed, true);
   // keihard remmen: de kist schudt
   const schud = newRound('vismarktkoerier', 1, seeded(4));
   const e3 = run(schud, () => ({ decel: 6, lat: 7, dist: 99 }), { dt: 0.2 });
   assert.ok(e3.some((e) => e.type === 'fail' && /geschud/.test(e.why)));
-  // een schep ijs terug bij elk adres, nooit boven vol
+  // een vers koelelement bij elk adres, nooit boven vol
   const v = newRound('vismarktkoerier', 1, seeded(4));
-  v.s.ice = 0.95;
+  v.s.cool = 0.95;
   stepRound(v, { dist: 1 }, 0.1);
-  assert.ok(v.s.ice <= 1 && v.s.ice > 0.95);
+  assert.ok(v.s.cool <= 1 && v.s.cool > 0.95);
   assert.ok(newRound('vismarktkoerier', 5).s.stops > newRound('vismarktkoerier', 1).s.stops, 'hoger niveau, meer adressen');
 });
 

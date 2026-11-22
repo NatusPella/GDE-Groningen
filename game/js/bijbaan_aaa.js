@@ -40,7 +40,7 @@ export const BIJBAAN_KAARTEN = {
     regels: [stappen('Een fiets', [stap('hand', 'Oranje label'), stap('pijl', 'Naar het depot'), stap('hart', 'Eigenaar sussen')], { na: 6, duur: 9 })] },
   snackoverlast: { doel: 'Stuur de fatbikers weg bij de snackbar', afloop: 'overslaan mag altijd',
     regels: [stappen('Een grap', [stap('pijl', 'Naar de fatbikers'), stap('hand', 'Kies een actie'), stap('hart', 'Ze fietsen weg')], { na: 6, duur: 9 })] },
-  vismarktkoerier: { doel: 'Breng de verse vis van de Vismarkt naar de restaurants', afloop: 'rustig rijden: het ijs smelt en schudden kost ijs',
+  vismarktkoerier: { doel: 'Breng de verse vis van de Vismarkt naar de restaurants', afloop: 'rustig rijden: de kist wordt warm en schudden kost koeling',
     regels: [stappen('Een bestelling', [stap('pakje', 'Kist laden'), stap('hart', 'Rustig fietsen'), stap('hand', 'Afleveren')], { na: 6, duur: 9 })] },
   studentenfeest: { doel: 'Schenk het juiste drankje voor elke gast op het studentenfeest', afloop: 'te veel klachten en je gaat naar de afwas',
     regels: [stappen('Een gast', [stap('pijl', 'Naar de bar'), stap('hand', 'Kies een drankje'), stap('hart', 'Blije gast')], { na: 6, duur: 9 })] },

@@ -149,7 +149,7 @@ const fishJob = (() => {
           if (d.melT < world.time) { c.msg(PACK_MESSAGE.shake, 2.2); d.melT = world.time + 3; }
         } else if (e.type === 'delivered') {
           c.msg(PACK_MESSAGE.delivered, 2.4);
-          sfxEvent(world, 'bucket_water', v.x, v.y);   // het ijs wordt bijgevuld
+          sfxEvent(world, 'bucket_water', v.x, v.y);   // een vers koelelement in de kist
           sfxEvent(world, 'door_bell_ring', goal.x, goal.y);
         } else if (e.type === 'fail') { c.fail(e.why); return; }
         else if (e.type === 'done') { finish(c, 'koerier'); return; }
@@ -161,7 +161,7 @@ const fishJob = (() => {
       const i = Math.min(goalIndex(d.round), d.goals.length - 1), goal = d.goals[i], s = d.round.s;
       return {
         marker: { x: goal.x, y: goal.y },
-        progress: `${job.firm} · ${Math.min(i + 1, d.goals.length)}/${d.goals.length} · ijs ${Math.round(s.ice * 100)}%`,
+        progress: `${job.firm} · ${Math.min(i + 1, d.goals.length)}/${d.goals.length} · koeling ${Math.round(s.cool * 100)}%`,
         goal: { label: `Restaurant ${Math.min(i + 1, d.goals.length)}`, desc: job.blurb },
       };
     },

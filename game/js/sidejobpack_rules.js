@@ -2,12 +2,12 @@
 // geen THREE, geen Math.random: de regels krijgen een rng en een abstracte invoer), zodat de regels getest en herhaald kunnen worden.
 // sidejob_pack.js is de dunne adapter op het sidejob-contract van sidejobs.js; scripts/sidejobpack_test.mjs dekt dit bestand.
 //
-//   vismarktkoerier  fiets, de Vismarkt: de vis moet koud en heel aankomen (ijs smelt, schudden kost ijs)   - vak Bezorging
+//   vismarktkoerier  fiets, de Vismarkt: de vis moet koud en heel aankomen (de koeling loopt op, schudden kost koeling)   - vak Bezorging
 //   studentenfeest   te voet, bar: de gast zegt wat hij wil, jij kiest het juiste drankje op tijd (1, 2, 3)  - vak Horeca
 //   marktkraam       te voet, de kraam: weeg de bestelling af op gewicht (1 minder, 3 meer, 2 afrekenen)      - vak Landbouw
 //   toeristengids    te voet, de Martinitoren: loop naar de stops en kies het verhaal dat de groep wil horen - vak Podium
 //
-// Geen leed en geen echte merken of personen: een misser is een klacht, een smeltend ijsblok of een kip op de weegschaal. Alle bedrijven
+// Geen leed en geen echte merken of personen: een misser is een klacht, een lege koelkist of een kip op de weegschaal. Alle bedrijven
 // en namen zijn verzonnen (constitution 2). De uitkomst van een ronde is { base, tip, flawless, text, failed } in euro's; sidejobs.js
 // past SIDEJOB_PAY_MULT, het niveau en de loopbaanfactor er zelf op toe en de beloning is per speler (#429).
 //
@@ -31,23 +31,23 @@ function shuffle(list, rng) {
 }
 
 // --- de vier banen: gegevens voor de adapter, de banen-app, de gate en de docs ------------------------------------------------
-// vak: het loopbaanvak (loopbaan.js BAAN_VAK); family: 'dienst' of 'kantoorklus' (sidejobprofiel.js); glyph: een bestaand kaartpictogram.
+// vak: het loopbaanvak (loopbaan.js BAAN_VAK); family: 'dienst' of 'kantoorklus' (sidejobprofiel.js); glyph: een bestaand kaartpictogram; het accent komt van het vak (accentVan), nooit een eigen kleur.
 // place: waar de baan begint (een landmark uit de kaart of een straat); fallback: een open plek als de kaart die niet kent.
 export const PACK_JOBS = {
   vismarktkoerier: {
-    id: 'vismarktkoerier', name: 'Vismarktkoerier', firm: 'Vishandel De Zilveren Brasem', boss: 'Visboer Dobbe', vak: 'bezorg', family: 'dienst', glyph: 'fietsdepot', color: '#3b8ad0',
+    id: 'vismarktkoerier', name: 'Vismarktkoerier', firm: 'Vishandel De Zilveren Brasem', boss: 'Visboer Dobbe', vak: 'bezorg', family: 'dienst', glyph: 'fietsdepot',
     place: { landmark: 'Vismarkt', fallback: [213.81, 9.9] },
-    blurb: 'Breng verse vis per fiets van de Vismarkt naar de restaurants, met het ijs nog heel',
-    tagline: 'Vishandel De Zilveren Brasem: rij rustig, het ijs smelt in de zon.',
+    blurb: 'Breng verse vis per fiets van de Vismarkt naar de restaurants, met de koeling nog goed',
+    tagline: 'Vishandel De Zilveren Brasem: rij rustig, de kist wordt warm in de zon.',
     intro: [
-      'Visboer Dobbe vult een kist met ijs en verse vis: die moet naar de terrassen rond de Vismarkt, per fiets.',
-      'Rem zacht en neem bochten rustig. Elke schok kost ijs en elke minuut in de zon ook, maar de koks geven bij elk adres een schep ijs terug.',
+      'Visboer Dobbe vult een koelkist met koelelementen en verse vis: die moet naar de terrassen rond de Vismarkt, per fiets.',
+      'Rem zacht en neem bochten rustig. Elke schok kost koeling en elke minuut in de zon ook, maar de koks leggen bij elk adres een vers koelelement in de kist.',
     ],
     boss1: 'Visboer Dobbe: "Tessa zei dat jij snel kon trappen. Tammo zei dat je ook kunt remmen. Ik hoop op allebei."',
-    bossStop: 'Visboer Dobbe: "De kist is leeg, het ijs is op. Ik doe wel net alsof ik het niet zie."',
+    bossStop: 'Visboer Dobbe: "De kist is warm, de koeling is op. Ik doe wel net alsof ik het niet zie."',
   },
   studentenfeest: {
-    id: 'studentenfeest', name: 'Bediening op het studentenfeest', firm: 'Studentenhuis De Slapeloze Slak', boss: 'Feestcommissaris Lotte', vak: 'horeca', family: 'kantoorklus', glyph: 'snackbar', color: '#a05ab0',
+    id: 'studentenfeest', name: 'Bediening op het studentenfeest', firm: 'Studentenhuis De Slapeloze Slak', boss: 'Feestcommissaris Lotte', vak: 'horeca', family: 'kantoorklus', glyph: 'snackbar',
     place: { street: 'Poelestraat', fallback: [213.81, 9.9] },
     blurb: 'Schenk de juiste drankjes op het studentenfeest, voor de gast je ongeduldig aankijkt',
     tagline: 'Studentenhuis De Slapeloze Slak: de gast zegt wat hij wil, jij kiest het juiste drankje. Alles zonder alcohol.',
@@ -59,7 +59,7 @@ export const PACK_JOBS = {
     bossStop: 'Feestcommissaris Lotte: "Het feest gaat door, ook zonder jou. Dat was ook het plan."',
   },
   marktkraam: {
-    id: 'marktkraam', name: 'Boerenmarktkraam', firm: 'Boerderij De Blije Bonk', boss: 'Boerin Aaltje', vak: 'landbouw', family: 'kantoorklus', glyph: 'suikerbieten', color: '#7a8a3a',
+    id: 'marktkraam', name: 'Boerenmarktkraam', firm: 'Boerderij De Blije Bonk', boss: 'Boerin Aaltje', vak: 'landbouw', family: 'kantoorklus', glyph: 'suikerbieten',
     place: { landmark: 'Grote Markt', fallback: [213.81, 9.9] },
     blurb: 'Weeg kaas, aardappelen en bessen af op de boerenmarkt, op de gram nauwkeurig',
     tagline: 'Boerderij De Blije Bonk: weeg af wat de klant vraagt: niet te veel en niet te weinig. Pas op voor de kip.',
@@ -71,7 +71,7 @@ export const PACK_JOBS = {
     bossStop: 'Boerin Aaltje: "Geen punt. De kaas wacht wel, die is gewend aan wachten."',
   },
   toeristengids: {
-    id: 'toeristengids', name: 'Toeristengids bij de Martinitoren', firm: 'Gidsenbureau De Verdwaalde Toerist', boss: 'Gids Hindrik', vak: 'podium', family: 'kantoorklus', glyph: 'vigilantia', color: '#d8a31c',
+    id: 'toeristengids', name: 'Toeristengids bij de Martinitoren', firm: 'Gidsenbureau De Verdwaalde Toerist', boss: 'Gids Hindrik', vak: 'podium', family: 'kantoorklus', glyph: 'vigilantia',
     place: { landmark: 'Martinitoren', fallback: [213.81, 9.9] },
     blurb: 'Loop met een groep toeristen langs drie stops en vertel het verhaal dat ze willen horen',
     tagline: 'Gidsenbureau De Verdwaalde Toerist: elke groep wil iets anders horen: vraag, luister en vertel.',
@@ -100,26 +100,26 @@ export function gateReason(id, gate) {
 }
 
 // --- 1. Vismarktkoerier ------------------------------------------------------------------------------------------------------
-export const FISH = { melt: 0.0036, refill: 0.12, shakeDecel: 3.4, shakeLat: 4.4, shakeLoss: 0.01, base: 12, perStop: 8, tipMax: 16 };
+export const FISH = { warm: 0.0036, refill: 0.12, shakeDecel: 3.4, shakeLat: 4.4, shakeLoss: 0.01, base: 12, perStop: 8, tipMax: 16 };
 
 function initFish(level) {
   const k = lvlK(level);
-  return { stops: 3 + Math.round(k * 2), done: 0, ice: 1, shake: 0, maxShake: level >= 4 ? 3 : 4, t: 0 };
+  return { stops: 3 + Math.round(k * 2), done: 0, cool: 1, shake: 0, maxShake: level >= 4 ? 3 : 4, t: 0 };
 }
 function stepFish(s, i, dt) {
   const ev = [];
   s.t += dt;
-  s.ice = clamp(s.ice - dt * FISH.melt, 0, 1);
+  s.cool = clamp(s.cool - dt * FISH.warm, 0, 1);
   if ((i.decel || 0) > FISH.shakeDecel || (i.lat || 0) > FISH.shakeLat) {
     s.shake = Math.min(s.maxShake, s.shake + dt * 1.2);
-    s.ice = clamp(s.ice - dt * FISH.shakeLoss, 0, 1);
+    s.cool = clamp(s.cool - dt * FISH.shakeLoss, 0, 1);
     ev.push({ type: 'shake' });
   }
-  if (s.ice <= 0) { ev.push({ type: 'fail', why: 'het ijs is gesmolten en de vis is niet meer fris' }); return ev; }
+  if (s.cool <= 0) { ev.push({ type: 'fail', why: 'de koeling is op en de vis is niet meer fris' }); return ev; }
   if (s.shake >= s.maxShake) { ev.push({ type: 'fail', why: 'de kist is te veel door elkaar geschud' }); return ev; }
   if ((i.dist ?? 99) < 3) {
     s.done++;
-    s.ice = clamp(s.ice + FISH.refill, 0, 1);
+    s.cool = clamp(s.cool + FISH.refill, 0, 1);
     ev.push({ type: 'delivered', n: s.done });
     if (s.done >= s.stops) ev.push({ type: 'done' });
   }
@@ -127,15 +127,15 @@ function stepFish(s, i, dt) {
 }
 function resultFish(s) {
   if (s.done < s.stops) return payout(0, 0, false, 'De vis ligt nog in de zon.', true);
-  const fresh = s.ice > 0.5 && s.shake < 0.5;
-  return payout(FISH.base + s.stops * FISH.perStop, s.ice * FISH.tipMax, fresh,
-    fresh ? 'Ijskoud afgeleverd: de koks willen alleen nog jou.' : 'Afgeleverd, de vis lag een beetje warm.');
+  const fresh = s.cool > 0.5 && s.shake < 0.5;
+  return payout(FISH.base + s.stops * FISH.perStop, s.cool * FISH.tipMax, fresh,
+    fresh ? 'Fris en koud afgeleverd: de koks willen alleen nog jou.' : 'Afgeleverd, de vis lag een beetje warm.');
 }
 
 // --- 2. Studentenfeest -------------------------------------------------------------------------------------------------------
 // De drankjes zijn alle vier zonder alcohol (soort: fris, wakker, warm, zuivel); elke gast zegt in gewone woorden welke soort hij wil.
 export const DRINKS = [
-  { id: 'ranja', label: 'Een glas ranja met ijs', kind: 'fris' },
+  { id: 'ranja', label: 'Een groot glas koude ranja', kind: 'fris' },
   { id: 'spuitwater', label: 'Spuitwater met een schijfje citroen', kind: 'fris' },
   { id: 'koffie', label: 'Een sterke koffie', kind: 'wakker' },
   { id: 'thee', label: 'Zwarte thee, extra sterk', kind: 'wakker' },
@@ -392,8 +392,8 @@ export const goalIndex = (round) => (round.id === 'vismarktkoerier' ? round.s.do
 
 // De meldingen bij een gebeurtenis (alleen tekst; sfx staat in de adapter).
 export const PACK_MESSAGE = {
-  shake: 'Pas op, de kist schudt: er gaat ijs verloren.',
-  delivered: 'Afgeleverd! De kok geeft een schep ijs terug.',
+  shake: 'Pas op, de kist schudt: er gaat koeling verloren.',
+  delivered: 'Afgeleverd! De kok legt een vers koelelement in de kist.',
   hen: null, // de tekst zit in de gebeurtenis zelf
   arrive: 'Je bent bij de stop: vertel de groep iets.',
 };
