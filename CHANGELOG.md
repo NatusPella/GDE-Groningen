@@ -347,6 +347,13 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Credits: bij een geluid met naamsvermelding verdwijnt de naam van de opnameapparatuur uit de titel.
 - Stabiliteit: de helikopterronde, de duivenmodus en de plekken van de nabeschouwing geven hun geheugen terug; een geheugentelling per gebouwde duif of patatje gaat niet meer omhoog.
 
+### Minigames en bijbanen verfijnd (22-11)
+- Een tijd net onder de minuut staat niet meer als 0:60.00 op het bord, de uitslag of bij de kart.
+- Een ace bij discgolf springt op als ace, en een baan die twee keer wordt afgerond telt niet dubbel.
+- Een gestopt padelpotje meldt dat, in plaats van een punt voor de tegenstander.
+- Duivenspot, klimtoren, kart, padel en de bijbanen blijven leesbaar en lopen niet vast bij een haperende beeldsnelheid of een late stand van een medespeler.
+- De tussenstand bij Samen spelen zegt Nog niemand zolang er geen deelnemers zijn.
+
 ## [0.65.0] - 2026-11-21
 
 Samen spelen met vier echte vensters getest, een ronde zeefdruk-menu's (Spullen, Loopbanen, Boerderij, zoeken), echte voetstappen en weergeluid, AAA-aankleding van de missies van akte 1 tot en met 4 en een snellere start. Pre-release voor de speeltest.
