@@ -23,6 +23,7 @@ naslag: de bron, de scripts, de opnames en de verslagen. Bij verschil wint de sp
 | 5f. De muzieklijst (verzonnen nummers, richting per akte en het autoduet) | [MUZIEKLIJST-21-11.md](MUZIEKLIJST-21-11.md) | voor een latere muziekronde |
 | 5g. Twaalf radionummers met lyrics over Groningen (prompts voor Gemini, stand) | [MUZIEK-LYRICS-21-11.md](MUZIEK-LYRICS-21-11.md) | eigenaar wil ze; wacht op akkoord voor downloaden |
 | 5h. Stand van de werkpakketten WP3, WP4 en WP5 (21-11): per eis uit #1126, #1127 en #1128 gedaan of ontbrak, met de bijgebouwde stappen K1 tot en met K3 | [WP-STAND-21-11.md](WP-STAND-21-11.md) | verslag; de toets is `scripts/verhaal_wp345_test.mjs` |
+| 5i. Oude saves en het nieuwe verhaal (22-11): de kaart 'Nieuw verhaal', de tag 'Oude versie', wat telt als oud en wat nog open staat | [PERFECT-STAND-22-11-oude-saves.md](PERFECT-STAND-22-11-oude-saves.md) | verslag; de toets is `scripts/legacysave_test.mjs` |
 | 6. Presentatie: trailer | [E-trailer.md](E-trailer.md) (leidend), [nieuw/TRAILER-SCRIPT.md](nieuw/TRAILER-SCRIPT.md) (concept voor #63) | concept, niet leidend |
 
 ## Personages en stem

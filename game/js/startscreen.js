@@ -1,7 +1,8 @@
 import { icoon } from './icons.js';
 import { hoofdspeler } from './players.js';
 import { FLAGS, reseedAutoplay } from './devflags.js';
-import { hasSave, loadBootSave, startNewSlot, getSaveSummary, ensureActiveSlot, ensureLatestSlot, isFreshStart, finishFreshStart, currentSlot } from './savegame.js';
+import { hasSave, loadBootSave, startNewSlot, getSaveSummary, ensureActiveSlot, ensureLatestSlot, isFreshStart, finishFreshStart, currentSlot, markLegacyCardSeen } from './savegame.js';
+import { askLegacyCard } from './legacysavecardui.js';
 import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { listSlots } from './saveslots.js';
 import { VERSION } from './version.js';
@@ -176,6 +177,18 @@ function afterPaint(fn) {
 // the benchmark) starts the game like a player does; AUTO only skips the
 // first-run graphics measurement and the boot animations.
 const AUTO = FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly;
+
+// 22-11: een oude save (zonder poort, of van een eerdere verhaalversie) toont eenmaal de kaart "Nieuw verhaal" voordat hij laadt: Doorgaan laadt hem
+// zoals hij is, Nieuw spel begint een nieuwe plek en wist niets. De vlag komt in de save (markLegacyCardSeen), dus de kaart komt niet terug.
+// Een testrun (dezelfde vlaggen als de moeilijkheidskaart) slaat hem over. Lokaal: geen netwerk, ook niet bij Samen spelen.
+function legacyCardFirst(doorgaan, nieuw) {
+  let sm = null;
+  try { sm = hasSave() ? getSaveSummary() : null; } catch (e) { sm = null; }
+  const testmodus = !!(AUTO || FLAGS.autoplay || FLAGS.menutest);
+  if (!sm || !sm.legacyCard || testmodus) { doorgaan(); return; }
+  const af = (verder) => () => { try { markLegacyCardSeen(sm.slot); } catch (e) { console.warn('oude kaart', e); } verder(); };
+  if (!askLegacyCard({ onDoorgaan: af(doorgaan), onNieuw: af(nieuw) })) doorgaan();
+}
 
 // #1169: een NIEUW spel (een verse plek of de allereerste start) vraagt eerst "Hoe pittig moet het zijn?", na de keuzekaart Alleen of Samen en
 // vóór het spel begint. Een testrun (dezelfde vlaggen als de startkeuze) slaat de kaart over en speelt op Standaard; ?moeilijkheid=vraag toont hem toch.
@@ -577,7 +590,7 @@ function runBootScreen(world, opts, pending = null) {
       if (fresh) finishFreshStart(); else startNewSlot();
       warmBeforeFinish(opts, finish);
     };
-    const continueGame = () => {
+    const continueNow = () => {
       if (!hasSave()) { startNew(); return; }
       startTheme();
       // #590: a save read from its recovery copy says so and is written back by loadBootSave
@@ -586,6 +599,7 @@ function runBootScreen(world, opts, pending = null) {
       // screen until the city round it has streamed in
       warmBeforeFinish(opts, () => { startLoadScreen(world, { kind: 'save' }); finish(); });
     };
+    const continueGame = () => legacyCardFirst(continueNow, startNew);
     // #581: testruns start like the player: no menu, straight on to the world. A fresh profile
     // first gets a short graphics measurement; everything else starts at once. A benchmark that was
     // asked for (--benchmark, or Instellingen > Beeld via a reload) runs first, on this same world.
@@ -630,12 +644,13 @@ function runBootSaveScreen(world, opts) {
       await chooseDifficulty(); // #1169
       warmBeforeFinish(opts, finish);
     };
-    const continueGame = () => {
+    const continueNow = () => {
       if (!hasSave()) { startNew(); return; }
       startTheme();
       loadBootSave(world);
       warmBeforeFinish(opts, () => { startLoadScreen(world, { kind: 'save' }); finish(); });
     };
+    const continueGame = () => legacyCardFirst(continueNow, startNew);
     const open = () => openSaveSlots({
       mode: 'start', solo: true, noBack: true, eyebrow: 'Spel', titel: 'Opgeslagen spellen', hint: BOOT_SAVE_TEKST,
       onLoad: continueGame, onNew: startNew,
@@ -794,7 +809,7 @@ function runMenuScreen(world, { render, relocate, tick, ready }, pending = null)
       startNewSlot();
       finish('game');
     };
-    const continueGame = () => {
+    const continueNow = () => {
       startTheme();
       restoreWorld();
       loadBootSave(world);
@@ -802,6 +817,7 @@ function runMenuScreen(world, { render, relocate, tick, ready }, pending = null)
       startLoadScreen(world, { kind: 'save' });
       finish('game');
     };
+    const continueGame = () => legacyCardFirst(continueNow, startNew);
     const activate = (i) => {
       const it = items[i];
       if (it.act !== 'about') news.hidden = true;

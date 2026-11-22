@@ -40,7 +40,8 @@ import { getRenderer, afterNextFrame } from './scene3d.js';
 import { plekNaam } from './saveplek.js';
 import { ommelandArea } from './ommelandplace.js';
 import { areaNameAt } from './regions.js';
-import { saveFailText, newSlotName, takenNames, readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive, pickLatest, repairSlot, writeBackupOnce, isFresh, clearFresh, newerVersionOf } from './saveslots.js';
+import { saveFailText, newSlotName, takenNames, readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive, pickLatest, repairSlot, writeBackupOnce, isFresh, clearFresh, newerVersionOf, markLegacyCardSeen as markSlotLegacyCardSeen } from './saveslots.js';
+import { isLegacyStorySave, legacyCardNeeded } from './legacysave.js'; // 22-11: de kaart "Nieuw verhaal" bij een oude save
 import { logError } from './errorlog.js';
 import { maakCheckpoint } from './coopcheckpoint.js';
 import { registerSaveGame, registerSaveTimers, registerGastVerhaal, registerGastBoek } from './savehook.js';
@@ -91,6 +92,8 @@ let saveBroken = false;
 let restoredMoney = -1;
 // seconds played in this save; counted while the game runs, stored in the save
 let playSeconds = 0;
+// 22-11: de kaart "Nieuw verhaal" is bij deze save al getoond (legacysave.js); de vlag reist mee in elke volgende save
+let legacyCardSeen = false;
 
 const num = (v, d) => (typeof v === 'number' && Number.isFinite(v) ? v : d);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -189,7 +192,12 @@ export function getSaveSummary() {
   const d = readSave();
   if (!d) return null;
   const done = d.missions && Array.isArray(d.missions.completed) ? d.missions.completed.length : 0;
-  return { slot: activeSlot(), name: nameOf(null, activeSlot()), playSeconds: Math.max(0, num(d.speeltijd, 0)), arc: savedArc(d), money: num(d.money, 0), missionsDone: done, savedAt: num(d.savedAt, 0), character: d.character === 'anita' ? 'Tessa' : 'Tammo', story: storySummary(d), goal: d.doel && typeof d.doel.name === 'string' ? d.doel.name : '' };
+  return { slot: activeSlot(), name: nameOf(null, activeSlot()), playSeconds: Math.max(0, num(d.speeltijd, 0)), arc: savedArc(d), money: num(d.money, 0), missionsDone: done, savedAt: num(d.savedAt, 0), character: d.character === 'anita' ? 'Tessa' : 'Tammo', story: storySummary(d), goal: d.doel && typeof d.doel.name === 'string' ? d.doel.name : '', legacyStory: isLegacyStorySave(d), legacyCard: legacyCardNeeded(d) };
+}
+
+// 22-11: de kaart "Nieuw verhaal" is getoond bij de save in deze plek (standaard de actieve): de vlag komt in de save zelf, eenmaal per save.
+export function markLegacyCardSeen(n = activeSlot()) {
+  return markSlotLegacyCardSeen(null, n);
 }
 
 // "Nieuw spel": de oude savegames blijven staan. Er komt een lege plek bij en die wordt de actieve; de
@@ -197,6 +205,7 @@ export function getSaveSummary() {
 // niets en zegt de aanroeper het: de save van het spel dat je speelt wordt niet stil gewist.
 export function startNewSlot(name) {
   if (!createSlot(null, name || newSlotName(takenNames(null)), 0, true)) return false;
+  legacyCardSeen = false;
   bindSlot();
   return true;
 }
@@ -301,6 +310,7 @@ function serialize(w) {
     // de moeilijkheid van dit spel (#1169): het niveau en de opties die ervan afwijken; een save zonder veld is Standaard
     moeilijkheid: getDifficultyProfile(),
     ...(coopIds.length ? { coopGebeurtenissen: coopIds } : {}),
+    ...(legacyCardSeen ? { legacyCardSeen: true } : {}),
   };
 }
 
@@ -683,6 +693,7 @@ function applySaveRaw(w, d) {
     const coopIds = gebeurtenissenVan(d);
     w.coopBoek = coopIds.length ? maakBoekhouding(coopIds) : null;
     playSeconds = Math.max(0, num(d.speeltijd, 0));
+    legacyCardSeen = d.legacyCardSeen === true;
     w.loadedFromSave = true;
     w.loadCount = (w.loadCount || 0) + 1;
     // a save of the first version of the story (savemigrate.js, migration 9): say what stayed and what starts over

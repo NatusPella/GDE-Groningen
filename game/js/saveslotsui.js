@@ -15,7 +15,9 @@
 //     (the host of Samen spelen picks the game to play with); an empty card calls onNew() as usual.
 import * as S from './saveslots.js';
 import { MAX_SLOTS } from './storagekeys.js';
-import { saveGame, loadSlot, readSave, bindSlot, onThumbKept, coopSessieLoopt, currentSlot, GAST_BEWAARD_TEKST } from './savegame.js';
+import { saveGame, loadSlot, readSave, bindSlot, onThumbKept, coopSessieLoopt, currentSlot, GAST_BEWAARD_TEKST, markLegacyCardSeen } from './savegame.js';
+import { LEGACY_CARD } from './legacysave.js'; // 22-11: de kaart "Nieuw verhaal" bij een oude save
+import { keyLabelHtml } from './keycap.js';
 import { saveProgress } from './progress.js';
 import { stopCoopNet } from './coopnet.js';
 import { coopLoadTekst, coopActieTekst, COOP_LOAD_FAIL, COOP_ACTIE_FAIL, runCoopLoad, runCoopStop } from './cooploadrules.js';
@@ -180,6 +182,17 @@ export function openSaveSlots(opts = {}) {
       `<div class="ssl-qacts"><button type="button" class="m-bp" data-grp="menu" data-do="back">Nee</button><button type="button" class="m-bg danger" data-grp="menu" data-do="${okDo}">${esc(okLabel)}</button></div></div></div>`;
   };
 
+  // 22-11: de kaart "Nieuw verhaal": een save van een eerdere versie, eenmaal per save, vóór het laden. Doorgaan laadt hem zoals hij is
+  // (alles open); Nieuw spel begint een nieuwe plek en wist niets. In het pauzemenu (geen Nieuw spel) is de tweede knop Terug.
+  const legacyAsk = () => {
+    if (!over || over.kind !== 'legacy') return '';
+    const tweede = mode === 'start' ? `<button type="button" class="m-bg" data-grp="menu" data-do="legacy-new">${esc(LEGACY_CARD.nieuw)}</button>` : `<button type="button" class="m-bg" data-grp="menu" data-do="back">Terug</button>`;
+    return `<div class="ssl-over ssl-modal" role="alertdialog" aria-labelledby="ssl-legacy-title" aria-describedby="ssl-legacy-text"><div class="ssl-box"><h2 class="m-h2" id="ssl-legacy-title">${esc(LEGACY_CARD.titel)}</h2><p id="ssl-legacy-text">${esc(LEGACY_CARD.tekst)}</p>` +
+      `<div class="ssl-qacts"><button type="button" class="m-bp" data-grp="menu" data-do="legacy-continue">${esc(LEGACY_CARD.doorgaan)} <span class="sk-toets-in">${keyLabelHtml('Enter')}</span></button>${tweede}</div></div></div>`;
+  };
+  // de kaart is voor deze plek afgehandeld (ook als het bewaren van de vlag mislukte: dan vraagt hij niet nog eens in deze opening)
+  const cardDone = new Set();
+
   const card = (s) => {
     const sm = s.summary;
     const thumb = S.readThumb(null, s.n);
@@ -194,12 +207,13 @@ export function openSaveSlots(opts = {}) {
     if (isCurrent) chips.push('<span class="ssl-chip on">Bewaard vanzelf</span>');
     if (s.state === 'hersteld') chips.push('<span class="ssl-chip warn">Hersteld</span>');
     if (bad) chips.push('<span class="ssl-chip warn">Kan niet laden</span>');
+    if (sm && sm.legacyStory && !bad) chips.push(`<span class="ssl-chip" title="Dit spel komt van een eerdere versie">${esc(LEGACY_CARD.tag)}</span>`); // 22-11
     if (sm && sm.niveau && !bad) chips.push(`<span class="ssl-chip" title="Moeilijkheid van dit spel">${esc(sm.niveau)}</span>`); // #1169
     const pic = thumb ? `<img src="${thumb}" alt="" draggable="false">` : `<span class="ssl-nopic">${svg(IC.person, 'ssl-nopic-ic')}</span>`;
     const ago = sm ? S.agoText(sm.savedAt) || dateText(sm.savedAt) : '';
     // Tekstdieet 21-11: per rij alleen de naam, één regel (speeltijd, plek, datum) en kleine tags; geen verhaaldeel, geen balk, geen tip.
     const meta = bad ? S.stateText(s.state) : sm ? [S.formatPlaytime(sm.playSeconds), sm.plek, ago].filter(Boolean).join(' · ') : '';
-    const open = over && over.n === s.n && over.kind !== 'coop-load' && over.kind !== 'coop-actie';
+    const open = over && over.n === s.n && over.kind !== 'coop-load' && over.kind !== 'coop-actie' && over.kind !== 'legacy';
     return `<div class="ssl-card${s.n === sel ? ' sel' : ''}${bad ? ' bad' : ''}${open ? ' open' : ''}" role="listitem" data-slot="${s.n}">` +
       `<button type="button" class="ssl-main" data-grp="list" data-slot="${s.n}" data-do="load"${bad || !sm || currentBlocked ? ' disabled' : ''} aria-label="${esc(s.name)}: ${label}">` +
       `<span class="ssl-pic">${pic}</span>` +
@@ -274,7 +288,7 @@ export function openSaveSlots(opts = {}) {
       <footer class="ssl-foot"><button type="button" class="ssl-fb" data-grp="foot" data-do="import"${full ? ' disabled title="Alle plekken zijn in gebruik"' : ''}>${svg(IC.import)}<span>Spel importeren</span></button>
         ${backup ? `<button type="button" class="ssl-fb" data-grp="foot" data-do="restore-backup"${full ? ' disabled title="Alle plekken zijn in gebruik"' : ''}>${svg(IC.save)}<span>Reservekopie herstellen</span></button>` : ''}
         <span class="ssl-fgrow"></span>${noBack ? '' : `<button type="button" class="ssl-fb" data-grp="foot" data-do="close">${svg(IC.back)}<span>Terug</span></button>`}</footer>
-      ${coopQuestion()}
+      ${coopQuestion()}${legacyAsk()}
     </section>`;
     rootEl.insertBefore(stage, file);
     const q = (s) => stage.querySelector(s);
@@ -353,6 +367,8 @@ export function openSaveSlots(opts = {}) {
       if (mode === 'game' && !opts.pick && cur.n === currentSlot() && (!inSessie || isHost)) { say('Dit is het spel dat je nu speelt.'); return; }
       if (inSessie) { sel = cur.n; over = { n: cur.n, kind: 'coop-load' }; render(); return; }
       sel = cur.n;
+      // 22-11: een oude save vraagt eenmaal naar het nieuwe verhaal (lokaal; ook de plek kiezen voor Samen spelen blijft zoals hij was)
+      if (!opts.pick && cur.summary && cur.summary.legacyCard && !cardDone.has(cur.n)) { over = { n: cur.n, kind: 'legacy' }; render(); return; }
       if (opts.pick) {
         if (!readSave(cur.n)) { say('Dit opgeslagen spel kan niet geladen worden.'); return; }
         S.setActive(null, cur.n);
@@ -367,6 +383,23 @@ export function openSaveSlots(opts = {}) {
         if (loadSlot(world, cur.n)) close(() => { if (opts.onLoad) opts.onLoad(cur.n); });
         else say('Dit opgeslagen spel kan niet geladen worden.');
       }
+      return;
+    }
+    if (act === 'legacy-continue' && cur) {
+      cardDone.add(cur.n);
+      markLegacyCardSeen(cur.n);
+      over = null;
+      doAction('load', 0, cur.n);
+      return;
+    }
+    if (act === 'legacy-new' && cur) {
+      // Nieuw spel wist niets: zonder vrije plek zegt het dat, het neemt de plek van deze oude save niet in
+      const vrij = S.freeSlot(null);
+      over = null;
+      if (!vrij) { message = 'Alle plekken zijn in gebruik. Verwijder eerst een ander spel.'; render({ slot: cur.n }); return; }
+      cardDone.add(cur.n);
+      markLegacyCardSeen(cur.n);
+      doAction('new', vrij, 0);
       return;
     }
     if (act === 'more' && cur) { sel = cur.n; over = { n: cur.n, kind: 'menu' }; message = ''; render(); return; }
