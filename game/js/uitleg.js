@@ -11,6 +11,9 @@ import { ANIMATIES, MAX_WOORDEN, uitlegDef } from './uitlegdata.js';
 
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const TOKEN = /\{([A-Z0-9]+)\}/g;
+// #1212: de leestekst (aria-label) zegt "linkermuisknop", niet het Engelse "LMB"; de andere toetsen houden hun naam.
+export const MUIS_NAMEN = Object.freeze({ LMB: 'linkermuisknop', RMB: 'rechtermuisknop', MMB: 'middelste muisknop', WHEEL: 'muiswiel', MOUSE: 'muis', DRAG: 'muis slepen' });
+export const leesTekst = (t) => String(t || '').replace(/\{([A-Z0-9]+)\}/g, (m, k) => (MUIS_NAMEN[k] || k) + ' ').replace(/\s{2,}/g, ' ').trim();
 export const woordenTelling = (t) => String(t || '').replace(TOKEN, '').split(/\s+/).filter(Boolean).length;
 
 // ---- 'niet meer tonen' per uitleg (gde-uitleg-niet-meer, alleen dit apparaat, geen savegame) ----
@@ -56,7 +59,7 @@ export function stapModel(s, opts = {}) {
     try { kb = keyName(physicalKey(binds, tokenKey(t))) || t; pad = padSlotFor(t, ctx) || ''; } catch (e) { /* onbekende token: het token zelf */ }
     return { token: t, toetsenbord: kb, controller: pad };
   });
-  return { toetsen, varianten, icoon: ic, wijs: typeof bron.wijs === 'string' ? bron.wijs : '', animatie, tekst: tekst.trim(), woorden: woordenTelling(tekst), alt: tekst.replace(/\{([A-Z0-9]+)\}/g, '$1 ').replace(/\s{2,}/g, ' ').trim() };
+  return { toetsen, varianten, icoon: ic, wijs: typeof bron.wijs === 'string' ? bron.wijs : '', animatie, tekst: tekst.trim(), woorden: woordenTelling(tekst), alt: leesTekst(tekst) };
 }
 // De instellingen die de uitleg-markup bepalen (Uitleg met iconen aan/uit en de toetsindeling): een strook die hierop wacht, tekent opnieuw als ze wijzigen (review 21-11, simhud).
 export function uitlegInstellingSleutel() { try { return (uitlegIconenAan() ? '1' : '0') + JSON.stringify(safeBinds()); } catch (e) { return ''; } }
@@ -70,7 +73,7 @@ export function uitlegModel(def, opts = {}) {
   const meer = def && !Array.isArray(def) ? String(def.meer || '') : '';
   const titel = def && !Array.isArray(def) ? String(def.titel || '') : String(opts.titel || '');
   const id = def && !Array.isArray(def) ? String(def.id || '') : String(opts.id || '');
-  return { id, titel, stappen, meer, alt: `${titel ? titel + ': ' : ''}${stappen.map((s, i) => `stap ${i + 1}, ${[...s.varianten.map((v) => v.toetsenbord), s.alt].filter(Boolean).join(' ')}`).join('; ')}` };
+  return { id, titel, stappen, meer, alt: `${titel ? titel + ': ' : ''}${stappen.map((s, i) => `stap ${i + 1}, ${[...s.varianten.map((v) => MUIS_NAMEN[v.token] || v.toetsenbord), s.alt].filter(Boolean).join(' ')}`).join('; ')}` };
 }
 
 let glyph = (token) => `<span class="hud-key" data-gk="${esc(token)}">${esc(token)}</span>`;

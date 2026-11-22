@@ -161,5 +161,15 @@ for (const [id, lijst] of Object.entries(sims)) {
   ok(!/animation:[^;]*(infinite|forwards|both)/.test(blok), 'geen eindeloze lus en geen eindstand');
 }
 
+// #1212: de leestekst van een stap zegt "linkermuisknop" en nooit het Engelse "LMB" (alle uitleggen, ook de kaartuitleg)
+{
+  ok(U.leesTekst('{LMB} Klik een plek') === 'linkermuisknop Klik een plek', 'LMB heet in de leestekst linkermuisknop');
+  ok(U.leesTekst('{M} of {ESC} sluit') === 'M of ESC sluit', 'andere toetsen houden hun naam');
+  for (const [id, d] of Object.entries(UITLEG_DATA)) {
+    const m = U.uitlegModel({ id, ...d }, {});
+    ok(!/\b(LMB|RMB|MMB)\b/.test(m.alt), `${id}: de leestekst heeft geen LMB, RMB of MMB`, m.alt);
+  }
+}
+
 console.log(`uitleg_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
