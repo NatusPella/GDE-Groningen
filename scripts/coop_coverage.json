@@ -707,6 +707,7 @@
     "scripts/interior_pandtypes_test.mjs",
     "scripts/binnenklank_test.mjs",
     "scripts/interieur_matrix_test.mjs",
+    "scripts/interieur_r8_test.mjs",
     "scripts/coop/uiterlijk_tcp_test.mjs"
    ],
    "regel": {

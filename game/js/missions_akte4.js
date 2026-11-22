@@ -27,13 +27,13 @@ export const PLACES = {
   veendamB: [53.07327, 6.85951],        // voorbij brug 5, 6 en 7
   veendamC: [53.07975, 6.86144],        // voorbij brug 8, 9 en 10
   veendamD: [53.07910, 6.86306],        // brug elf (Poststraat)
-  // #950: gemeten op de tegels (53.10417, 6.87794 is de ingang van het grote
-  // kantoorglaspand aan het Julianapark); het weiland van de oude schatting lag
-  // 100 m verderop, waar het gesprek met de accountmanager buiten bleef hangen.
-  wiebelwerk: [53.10417, 6.87794],      // the invented web agency in the office building on the Julianapark
+  // 22-11 (besluit eigenaar): het verzonnen Wiebelwerk zit op het echte adres Laan Corpus den Hoorn 200 in de Stad (OSM-pand 268636009, gid 20095387,
+  // interiorkinds.js STORY_BUILDINGS). Eerder (#950) stond het in het glaspand aan het Julianapark in Veendam. De punten hieronder liggen op de stoep voor de deur van
+  // dat pand, gemeten op de tegels (docs/CUTSCENE-INTERIEURS-22-11.md, "Wiebelwerk op een echt adres").
+  wiebelwerk: [53.19208, 6.56244],      // the invented web agency, 3 m outside the door of the office building at Laan Corpus den Hoorn 200
   // #955: de serverkamer lag 23 m achter de glasgevel (147 m omlopen): de stap 'Naar de serverkamer' hing 25 m voor het doel; nu een vrij punt 11 m van de ingang (8 m lopen), de gang speelt in het binnenset
-  wiebelwerkServers: [53.10407, 6.87793],
-  wiebelwerkUit: [53.10415, 6.87756],   // #955: aan dezelfde kant als de ingang (25 m west), niet achter het pand
+  wiebelwerkServers: [53.19214, 6.56240],
+  wiebelwerkUit: [53.19199, 6.56249],   // #955: aan dezelfde kant als de ingang (10 m langs de gevel), niet achter het pand
   // #951: gemeten op de tegels: de halte Veendam van de Stoptrein Veendam, en
   // een loopbaar punt 3 m naast het spoor (het oude punt lag 295 m van de lijn,
   // waardoor er geen trein in de buurt was en de rit zichzelf afspeelde).
@@ -88,7 +88,7 @@ export function buildAkte4Defs() {
       // M18 Wie draaide de camera's uit?: an intake at Wiebelwerk (a conversation puzzle), the server room, the logbook of 12 August
       type: 'stages',
       label: 'Wie draaide de camera\'s uit?',
-      intro: ['Wiebelwerk in Veendam werkt elke nacht om middernacht de camera\'s van het museum bij.', 'Doel: ga naar binnen als klant en beantwoord de vragen van de accountmanager. Lees daarna in de serverkamer het logboek van 12 augustus.'],
+      intro: ['Wiebelwerk in de Stad werkt elke nacht om middernacht de camera\'s van het museum bij.', 'Doel: ga naar binnen als klant en beantwoord de vragen van de accountmanager. Lees daarna in de serverkamer het logboek van 12 augustus.'],
       outro: 'Het logboek bewijst het: Jelle had de bal op 12 augustus al. Tessa print het. Mem vraagt ons dinsdag naar Bourtange.',
       reward: 600,
       onFoot: true,

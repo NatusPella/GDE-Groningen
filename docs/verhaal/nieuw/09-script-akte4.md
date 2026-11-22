@@ -100,7 +100,7 @@ TESSA: Het is geen date. [NIEUW]
 FEMKE: Dat zegt hij ook. [NIEUW]
 RIKUS: Ik zeg niks. Dat is ook een antwoord. [NIEUW]
 
-## [M18.1] Wie draaide de camera's uit?: intro – Veenkoloniën, Veendam, Wiebelwerk – te voet
+## [M18.1] Wie draaide de camera's uit?: intro – De Stad, Hoornse Meer, Wiebelwerk – te voet
 (regie: maandag 24 augustus, middag. Een kantoorpand bij een rotonde. Een bord: Wiebelwerk, websites met karakter. Een e-step staat voor de deur. Gameplay: een kantoor als speelveld; de juiste antwoorden kiezen, de serverkamer in en het logboek van 12 augustus bekijken.)
 (regie: naamkaart voor de accountmanager in beeld: Accountmanager, Wiebelwerk.)
 TAMMO: Wiebelwerk. Websites met karakter. [NIEUW]
@@ -115,7 +115,7 @@ TESSA: Een website voor een frietwagen. [NIEUW]
 ACCOUNTMANAGER: Prachtig. Dan beginnen we met een intake. [NIEUW]
 TESSA: Antwoord alsof je de frietwagen zelf bent: warm, droog en eerlijk. [NIEUW]
 
-## [M18.2] Wie draaide de camera's uit?: de intake gehaald – Veenkoloniën, Veendam, Wiebelwerk – te voet
+## [M18.2] Wie draaide de camera's uit?: de intake gehaald – De Stad, Hoornse Meer, Wiebelwerk – te voet
 (regie: de speler beantwoordt de intake met drie antwoorden; dit is de afloop als alles klopt. De accountmanager knikt tevreden en tikt op een tablet.)
 ACCOUNTMANAGER: Warm, droog en een beetje Gronings. Sinds deze zomer, jong maar eerlijk. Ik zie het voor me. [NIEUW]
 ACCOUNTMANAGER: Ik maak een offerte. Dat duurt een uur. Ik haal koffie. [NIEUW]
@@ -124,7 +124,7 @@ ACCOUNTMANAGER: De serverkamer is niet voor klanten. De koffieautomaat staat in 
 TAMMO: Dat ging makkelijk. [NIEUW]
 TESSA: Wacht tot we binnen zijn. [NIEUW]
 
-## [M18.6] Wie draaide de camera's uit?: de accountmanager twijfelt – Veenkoloniën, Veendam, Wiebelwerk – te voet
+## [M18.6] Wie draaide de camera's uit?: de accountmanager twijfelt – De Stad, Hoornse Meer, Wiebelwerk – te voet
 (regie: afloop bij één fout antwoord. De accountmanager kijkt van zijn tablet naar hen en blijft staan.)
 ACCOUNTMANAGER: Interessant. Bijna alle antwoorden klopten. Eén niet. [NIEUW]
 TESSA: Wij zijn nieuw. [NIEUW]
@@ -132,14 +132,14 @@ ACCOUNTMANAGER: Iedereen is nieuw bij een intake. Ik loop even mee naar de koffi
 TAMMO: Die staat bij de serverdeur. [NIEUW]
 ACCOUNTMANAGER: Dan is dat uw route. [NIEUW]
 
-## [M18.7] Wie draaide de camera's uit?: de beveiliging loopt mee – Veenkoloniën, Veendam, Wiebelwerk – te voet
+## [M18.7] Wie draaide de camera's uit?: de beveiliging loopt mee – De Stad, Hoornse Meer, Wiebelwerk – te voet
 (regie: afloop bij twee foute antwoorden. De accountmanager pakt zijn telefoon. Achter hem komt een beveiliger in de deuropening staan, met zijn armen over elkaar.)
 ACCOUNTMANAGER: Twee antwoorden die geen klant geeft. Ik nodig u uit voor een rondleiding. Met de beveiliging. [NIEUW]
 TAMMO: Is dat gratis? [NIEUW]
 ACCOUNTMANAGER: Bij Wiebelwerk is alles gratis, behalve de website. [NIEUW]
 TESSA: Loop maar voor. Wij volgen. [NIEUW]
 
-## [M18.3] Wie draaide de camera's uit?: de servers – Veenkoloniën, Veendam, Wiebelwerk – te voet
+## [M18.3] Wie draaide de camera's uit?: de servers – De Stad, Hoornse Meer, Wiebelwerk – te voet
 TAMMO: De update. Altijd om middernacht, drie minuten. [NIEUW]
 TESSA: Behalve twaalf augustus. Dan stond hij op elf minuten. Aangevraagd door: Us Mem Snacks. [NIEUW]
 TAMMO: Jelle. [NIEUW]

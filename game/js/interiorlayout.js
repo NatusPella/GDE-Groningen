@@ -13,6 +13,7 @@
 import { mulberry32 } from './rng.js';
 import { WINKEL } from './winkelkit.js';
 import { KINDS } from './interiorkinds.js';
+import { fillBigHall } from './interiorfill.js';
 
 export const FACE = { DOOR: 0, E: 1, BACK: 2, W: 3 }; // the way the front of an item looks: toward the door wall, +u, the back wall, -u
 export const CELL = 0.25;
@@ -209,11 +210,12 @@ function shopRecipe(p, sub) {
       if (cabin) p.useAt('passen', cabin.u + (sideLeft ? -1.1 : 1.1), cabin.v, 1.2, { face: sideLeft ? FACE.E : FACE.W, target: sub });
     }
     if (sub === 'elektronica') p.run(H, 'back', 'tvwall', 1.4, 0.15, H.u0 + 0.5, H.u1 - 0.5, { h: 1.0, y0: 1.5, solid: false, color: T.accent });
-    p.run(H, 'back', 'shelf', 1.0, 0.45, H.u0, H.u1, { h: sub === 'elektronica' ? 1.3 : shelfH, color: T.accent, row: T.row }, 0.04, 0.08);
-    p.run(H, sideLeft ? 'right' : 'left', 'shelf', 1.0, 0.45, wareFrom, H.v1 - 0.6, { h: shelfH, color: T.accent, row: T.row }, 0.04, 0.08);
+    const skipS = p.W * p.D > 300 ? 0.5 : 0.08; // r8: a shop hall of 20 m and more keeps within the triangle budget (12.000): a few gaps in the shelf runs
+    p.run(H, 'back', 'shelf', 1.0, 0.45, H.u0, H.u1, { h: sub === 'elektronica' ? 1.3 : shelfH, color: T.accent, row: T.row }, 0.04, skipS);
+    p.run(H, sideLeft ? 'right' : 'left', 'shelf', 1.0, 0.45, wareFrom, H.v1 - 0.6, { h: shelfH, color: T.accent, row: T.row }, 0.04, skipS);
     if (sub === 'supermarkt' || sub === 'souvenir') for (let i = 0; i < 2; i++) p.add('crate', H.u0 + W * (0.3 + 0.4 * p.rnd()), H.v0 + 1.8 + p.rnd() * 0.6, 0.6, 0.4, FACE.DOOR, { h: 0.45, color: [0xf0a030, 0x5fa040, 0xd03a30][Math.floor(p.rnd() * 3)] });
     if (sub === 'supermarkt') {
-      p.run(H, sideLeft ? 'left' : 'right', 'fridge', 1.1, 0.7, H.v0 + 4.2, H.v1 - 0.6, { h: 2.0, color: 0xcfd8de });
+      p.run(H, sideLeft ? 'left' : 'right', 'fridge', 1.1, 0.7, H.v0 + 4.2, H.v1 - 0.6, { h: 2.0, color: 0xcfd8de }, 0.04, p.W * p.D > 300 ? 0.4 : 0);
       for (let i = 0; i < 3; i++) p.add('trolley', (sideLeft ? H.u1 - 0.7 : H.u0 + 0.7), H.v0 + 0.9 + i * 0.1, 0.5, 0.9, FACE.DOOR, { h: 1.0, solid: true });
     }
     if (sub === 'kleding') {
@@ -227,7 +229,7 @@ function shopRecipe(p, sub) {
     const iw = (T.island[0] || 0) * (0.85 + p.rnd() * 0.3), ih = T.island[1] || 0;
     if (iw > 0.2) {
       const mu = H.u0 + W / 2 + (p.rnd() - 0.5) * Math.max(0, W - 6) * 0.4;
-      for (let v = wareFrom + 0.3 + p.rnd() * 0.6; v < H.v1 - 1.9; v += 2.5 + p.rnd() * 0.4) {
+      for (let v = wareFrom + 0.3 + p.rnd() * 0.6; v < H.v1 - 1.9; v += (p.W * p.D > 300 ? 3.4 : 2.5) + p.rnd() * 0.4) {
         const n = W >= 7.5 && iw < 2.2 ? 2 : 1;
         for (let k = 0; k < n; k++) {
           if (sub === 'kleding') p.add('rack', mu + (n === 1 ? 0 : (k - 0.5) * 2.8), v, Math.min(iw, 1.6), 0.5, FACE.DOOR, { h: 1.6, color: T.accent });
@@ -950,6 +952,7 @@ export function generateLayout(spec) {
     p.pickFabric = spec.look && spec.look.fabric != null ? spec.look.fabric : FABRIC[Math.floor(p.rnd() * FABRIC.length)];
     p.pickFabric2 = FABRIC[Math.floor(p.rnd() * FABRIC.length)];
     recipe(p, spec.sub);
+    if (!spec.noFill) fillBigHall(p, spec.kind, spec.sub); // r8: a hall of 20 m and more gets furniture and figurants that fit its function
     decorate(p, spec.kind);
     if (p.palette && p.palette.lamp && (spec.kind === 'winkel' || spec.kind === 'woning') && p.rnd() < 0.5) p.palette.lamp = { ...p.palette.lamp, pendant: !p.palette.lamp.pendant }; // varied from the seed
     lampGrid(p);
@@ -962,7 +965,9 @@ export function generateLayout(spec) {
     L.removed = 0;
     // a person who stands inside a solid or a partition wall is dropped
     const body = (n) => ({ u0: n.u - 0.25, u1: n.u + 0.25, v0: n.v - 0.25, v1: n.v + 0.25 });
-    L.npc = L.npc.filter((n) => (n.pose === 'sit' || !L.items.some((it) => it.solid && boxesMeet(body(n), rectOf(it)))) && !L.walls.some((w) => boxesMeet(body(n), w)));
+    // (a seated one may sit in a seat; r8: a loose seated person that ended up in a plant or a cabinet is dropped too)
+    const SIT_ON = new Set(['chair', 'stool', 'bench', 'sofa', 'pew', 'barber_chair', 'bed']);
+    L.npc = L.npc.filter((n) => !L.items.some((it) => it.solid && !(n.pose === 'sit' && SIT_ON.has(it.type)) && boxesMeet(body(n), rectOf(it))) && !L.walls.some((w) => boxesMeet(body(n), w)));
     repairLayout(L);
     const bads = validateLayout(L);
     if (!bads.length) return L;

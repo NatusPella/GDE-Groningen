@@ -20,7 +20,7 @@ export const SYNTH_KINDS = new Set(['kerk', 'publiek', 'garage', 'station']);
 // r7: the facade builder drew no door (b.entrance === null, not undefined): every kind gets a made door on the best edge instead of 'nodoor'. A
 // bijgebouw may have a short front (a 2.2 m edge), a garage box has its door in the short gable.
 export const WHY = {
-  none: 'geen gebouw', nodoor: 'geen voordeur in de gevel', type: 'geen betreedbaar soort gebouw', small: 'hal te klein',
+  none: 'geen gebouw', nodoor: 'geen voordeur in de gevel', type: 'geen betreedbaar soort gebouw', small: 'hal te klein (binnenmaat onder 3 x 3 m)',
   low: 'te laag', layout: 'geen indeling', landmark: 'eigen interieur',
 };
 

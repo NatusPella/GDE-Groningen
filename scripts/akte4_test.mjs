@@ -91,9 +91,9 @@ ok(fj.intro.some((t) => /goederentrein|wagen/.test(t)) && mine[3].costRow && /Es
 void applyNieuw;
 
 // --- places: near the real town, inside the province
-const TOWN = { veendam: [53.1058, 6.8756], stadskanaal: [52.9889, 6.95], bourtange: [53.0069, 7.1914], zuidhorn: [53.2481, 6.405] };
+const TOWN = { wiebelwerk: [53.19198, 6.56263], veendam: [53.1058, 6.8756], stadskanaal: [52.9889, 6.95], bourtange: [53.0069, 7.1914], zuidhorn: [53.2481, 6.405] };
 const km = (a, b) => { const [ax, ay] = wgsToWorld(a[0], a[1]); const [bx, by] = wgsToWorld(b[0], b[1]); return Math.hypot(ax - bx, ay - by) / 1000; };
-const town = (key) => (key.startsWith('veendam') || key.startsWith('wiebelwerk') ? 'veendam' : key.startsWith('stadskanaal') ? 'stadskanaal' : key.startsWith('bourtange') ? 'bourtange' : 'zuidhorn');
+const town = (key) => (key.startsWith('wiebelwerk') ? 'wiebelwerk' : key.startsWith('veendam') ? 'veendam' : key.startsWith('stadskanaal') ? 'stadskanaal' : key.startsWith('bourtange') ? 'bourtange' : 'zuidhorn');
 const inside = (poly, x, y) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const [xi, yi] = poly[i], [xj, yj] = poly[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c; } return c; };
 for (const [key, p] of Object.entries(PLACES)) {
   const t = key === 'tinusSchuur' ? 'zuidhorn' : town(key);
