@@ -103,6 +103,28 @@ export function needsConfirm(it, money = 0) {
     || (it.price >= 300 && it.price > money * CONFIRM_SHARE);
 }
 
+// De regel die de eerste druk op een duur ding in de statusbalk zet. Een verkoop zegt verkopen en het bedrag dat je krijgt (stond:
+// "€0. Druk nog een keer om te kopen"), een gratis keuze zegt kiezen. Een eigen confirmText van de winkel wint.
+export function bevestigRegel(it) {
+  if (it.confirmText) return it.confirmText;
+  if (it.income > 0) return `${it.label}: +${euro(it.income)}. Druk nog een keer om te verkopen`;
+  if (it.price > 0) return `${it.label}: ${euro(it.price)}. Druk nog een keer om te kopen`;
+  return `${it.label}. Druk nog een keer om te kiezen`;
+}
+
+// Een tweede druk telt pas als bevestiging na een korte pauze: een dubbelklik of een dubbele Enter op een duur ding kocht het
+// anders in één beweging, terwijl de bevestiging juist een tweede, bewuste druk vraagt. Geeft true als de druk de aankoop mag doen.
+export const DUBBELKLIK_MS = 350;
+export function bevestigGeldig(armed, id, nu = Date.now()) {
+  return !!armed && armed.id === id && Number.isFinite(armed.until) && nu < armed.until && !(Number.isFinite(armed.at) && nu - armed.at < DUBBELKLIK_MS);
+}
+
+// Esc, Backspace en Q: staat er een bevestiging open (op een duur ding gedrukt), dan trekt de eerste druk die in en blijft de winkel
+// open; anders gaat de winkel dicht. Zo sluit een slordige Esc niet het hele scherm halverwege een aankoop.
+export function escActie(armed, nu = Date.now()) {
+  return armed && Number.isFinite(armed.until) && nu < armed.until ? 'annuleer' : 'sluit';
+}
+
 // Label of the one buy button.
 export function buyLabel(it, shopType, armed = false) {
   if (it.disabled) return it.disabled;

@@ -58,6 +58,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Wereldleven: mensen op de markt en het plantsoen herhalen hun zin niet meer direct, twee mensen naast elkaar roepen nooit hetzelfde en bij een aardbeving roept iedereen iets anders.
 - Kaart: de pijl springt niet meer heen en weer tussen twee doelen van de groep die even ver weg liggen. Enter of spatie vasthouden op de minikaart opent hem maar één keer.
 - Stabiliteit: weer, busdeuren, camerabeeld en de "Zit je vast?"-hint raken niet meer verstoord door een enkele ongeldige waarde of een korte hapering.
+### Spullen, wapens en winkels
+- Spullen: de gekozen tegel blijft staan als je iets opeet of zoekt (hij sprong terug naar het geld), en na het laatste stuk eten kies je de tegel ernaast. Een wapen zonder patronen heet nu Leeg, op de tegel, in het detail en in de HUD. De EHBO-doos gebruik je, die eet je niet op. Eten klinkt nu ook in het menu.
+- Wapens: het muiswiel slaat lege wapens over, een cijfertoets op een leeg slot zegt dat, en een wissel klikt even. Gooi je het laatste stuk, dan pak je automatisch het volgende wapen. Samen spelen: wapen en munitie blijven per speler.
+- Winkels: een pak patronen dat nog maar deels past kost een evenredig deel en zegt wat het echt toevoegt. Een dubbelklik bevestigt een duur ding niet meer, Esc trekt eerst de bevestiging in, en bij het verkopen staat het bedrag dat je krijgt. Het wapen in je hand verkopen in het pandjeshuis vraagt een tweede druk, en elke verkoop klinkt als biljetten.
 ### Prestaties
 - Prestaties: bovenaan staat een zoekveld. Typ een woord en je ziet alleen de prestaties waar het in voorkomt; geheime prestaties blijven geheim. Esc wist je zoekopdracht.
 - Prestaties, Loopbaan en Veroverd: een percentage staat niet meer op 100% zolang er nog iets ontbreekt (99,6% werd afgerond tot 100%). Een prestatie van meer dan een jaar geleden toont het jaartal.

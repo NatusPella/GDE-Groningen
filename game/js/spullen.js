@@ -54,7 +54,7 @@ export const DELEN = CATS;
 // gebruiken dezelfde voorraad en mogen daarvoor niet van dit menu afhangen. Hier zowel
 // importeren (dit bestand gebruikt eetVoorraad en eet zelf) als doorgeven, zodat het menu en
 // de tests dezelfde namen houden.
-import { eetVoorraad, eet } from './eten.js';
+import { eetVoorraad, eet, etenWerkwoord } from './eten.js';
 export { eetWaar, eetVoorraad, etenSave, applyEtenSave, voegEtenToe, eet } from './eten.js';
 
 // Wat er in een kaartje staat, als één lap tekst om in te zoeken. De beschrijving en
@@ -81,6 +81,8 @@ let deel = 'alles';
 let sortering = 'soort';
 // De openstaande vraag "Weggooien?" (spullenmodel.weggooiStap): hoort bij één tegel en vervalt zodra je een andere kiest.
 let weggooiVraag = null;
+// De sleutels van de tegels in de volgorde van de laatste tekening: weet het raster welke tegel naast een verdwenen ding stond.
+let laatsteVolgorde = [];
 // De melding van de laatste actie (#502): die hoort in het detailpaneel, want de HUD zit
 // achter het pauzemenu en w.addMessage zou je nooit zien.
 let note = '';
@@ -226,11 +228,11 @@ function collect(w) {
     return {
       key: 'w:' + k, cat, viewer: wapenSpec(k), icon: melee ? 'melee' : cat === 'werp' ? 'werp' : 'wapens', title: s.label || k,
       sub: melee ? 'Slaan · altijd bij de hand' : `${s.unit || 'patronen'}${s.cap ? ` (max ${s.cap})` : ''}`,
-      aantal: melee ? 0 : ammo, eenheid: s.unit || 'patronen',
+      aantal: melee ? 0 : ammo, eenheid: s.unit || 'patronen', leeg: !melee && ammo <= 0,
       side: held ? 'In de hand' : '', desc: s.desc || (melee ? 'Een slagwapen voor dichtbij.' : ''),
       how: s.gun ? `Pang & Zo, ${euro(s.gun)}` : '',
       rows: [['Toets', String(WEAPONS[k].slot)], ...(WEAPONS[k].damage ? [['Schade', String(WEAPONS[k].damage)]] : [])],
-      act: held ? { label: 'Wegleggen', run: () => { w.weapon = 'fists'; return `${s.label || k} weggelegd`; } } : { label: 'In de hand nemen', run: () => { w.weapon = k; sfxEvent(w, 'ui_item_equip'); return `${s.label || k} in de hand`; } },
+      act: held ? { label: 'Wegleggen', run: () => { w.weapon = 'fists'; return `${s.label || k} weggelegd`; } } : { label: 'In de hand nemen', run: () => { w.weapon = k; sfxEvent(w, 'ui_item_equip'); return !melee && ammo <= 0 ? `${s.label || k} in de hand, maar leeg. ${s.unit ? 'Nieuwe voorraad' : 'Munitie'} koop je bij Pang & Zo` : `${s.label || k} in de hand`; } },
     };
   };
   const ownGuns = guns.filter((k) => hasWeapon(w, k));
@@ -280,9 +282,10 @@ function collect(w) {
   for (const e of eten) {
     out.push({ key: 'e:' + e.id, cat: 'eten', viewer: etenSpec(e.id), icon: e.id.startsWith('vis:') ? 'vis' : 'eten', title: e.label, sub: e.how, aantal: e.aantal, weg: { id: e.id, aantal: e.aantal },
       desc: e.how === 'Zelf gevangen' ? 'Zelf gevangen aan de waterkant. Opeten kan overal, ook hier in het menu.'
-        : `Meegenomen van de ${e.how.toLowerCase()}. Opeten kan overal, ook hier in het menu.`,
+        : etenWerkwoord(e.id) === 'Gebruiken' ? `Meegenomen van de ${e.how.toLowerCase()}. Gebruiken kan overal, ook hier in het menu.`
+          : `Meegenomen van de ${e.how.toLowerCase()}. Opeten kan overal, ook hier in het menu.`,
       rows: [['Per stuk', `+${e.hp} gezondheid`], ['Jij nu', `${Math.round(w.health)} van 100`]],
-      act: { label: 'Opeten', run: () => eet(w, e.id) } });
+      act: { label: etenWerkwoord(e.id), run: () => { const voor = Number(w.eten && w.eten[e.id]) || 0; const r = eet(w, e.id); if ((Number(w.eten && w.eten[e.id]) || 0) < voor) sfxEvent(w, e.id === 'ehbo' ? 'shop_bag_rustle' : 'snack_wrap'); return r; } } });
   }
 
   const nogStempels = Math.max(0, shop.stampCard - shop.stamps);
@@ -507,6 +510,7 @@ function detailHtml() {
     ...(it.rows || []),
   ].filter(Boolean);
   if (it.aantal > 0) facts.unshift(['Bij je', `${it.aantal} ${it.eenheid || (it.aantal === 1 ? 'stuk' : 'stuks')}`]);
+  else if (it.leeg) facts.unshift(['Bij je', `geen ${it.eenheid || 'patronen'} meer`]);
   const factHtml = facts.length
     ? `<div class="sp-facts">${facts.map(([k, v]) => `<div class="sp-fact"><span>${esc(k)}</span><span>${esc(v)}</span></div>`).join('')}</div>`
     : '';
@@ -540,8 +544,15 @@ export function renderSpullen(panel, w) {
   const { items } = collect(w);
   byKey = new Map(items.map((it) => [it.key, it]));
   const zichtbaar = sorteer(zoekSpullen(items, zoek, deel), sortering);
-  const zichtbaarSet = new Set(zichtbaar);
-  if (!sel || !zichtbaarSet.has(sel)) sel = zichtbaar[0] ? zichtbaar[0].key : null;
+  // een ding dat net op is (het laatste stuk gegeten) laat de keuze naar de buurtegel gaan in plaats van naar de eerste tegel van de lijst
+  const zichtbaarKeys = new Set(zichtbaar.map((it) => it.key));
+  if (sel && !byKey.has(sel) && laatsteVolgorde.includes(sel)) {
+    const buur = naWeggooien(laatsteVolgorde.filter((k) => k === sel || zichtbaarKeys.has(k)), sel);
+    if (buur && zichtbaarKeys.has(buur)) sel = buur;
+  }
+  // (stond: zichtbaarSet.has(sel) op een Set van objecten, dus altijd onwaar: elke tekening zette de keuze terug op de eerste tegel)
+  if (!sel || !zichtbaarKeys.has(sel)) sel = zichtbaar[0] ? zichtbaar[0].key : null;
+  laatsteVolgorde = zichtbaar.map((it) => it.key);
   if (weggooiVraag && (weggooiVraag.key !== sel || !kanWeggooien(byKey.get(sel)))) weggooiVraag = null;
   const list = panel.querySelector('.td-list');
   const zoekt = zoek.trim();

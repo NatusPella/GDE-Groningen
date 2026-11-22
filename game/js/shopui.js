@@ -13,7 +13,7 @@ import { deviceText } from './touchui.js';
 import { bonRegels, probleemVan, risicoVan } from './shopbon.js';
 import {
   itemIcon, itemStatus, refusalMessage, needsConfirm as needsConfirmFor, buyLabel as buyLabelFor, shopTabs, tabSections, stepTab, keepTab,
-  flatItems, keepItem, shortPerk,
+  flatItems, keepItem, shortPerk, bevestigRegel, escActie, bevestigGeldig,
 } from './shoplist.js';
 
 let root = null;
@@ -378,11 +378,14 @@ function activate(id) {
     else setStatus(refusalMessage(it, world.money), 'no');
     return;
   }
-  if (needsConfirm(it) && !(armed && armed.id === id && Date.now() < armed.until)) {
-    armed = { id, until: Date.now() + ARM_TIME };
-    setStatus(it.confirmText || `${it.label}: ${euro(it.price)}. Druk nog een keer om te kopen`, it.confirmText ? 'no' : 'win');
+  if (needsConfirm(it) && armed && armed.id === id && Date.now() < armed.until && !bevestigGeldig(armed, id)) return; // een dubbelklik telt niet als bevestiging
+  if (needsConfirm(it) && !bevestigGeldig(armed, id)) {
+    armed = { id, at: Date.now(), until: Date.now() + ARM_TIME };
+    const vraag = bevestigRegel(it);
+    setStatus(vraag, it.confirmText ? 'no' : 'win');
     renderDetail();
-    setTimeout(() => { if (open && armed && armed.id === id && Date.now() >= armed.until) { armed = null; renderDetail(); } }, ARM_TIME + 50);
+    // verlopen: de knop valt terug en de vraag verdwijnt ook uit de statusbalk (die bleef anders staan alsof hij nog gold)
+    setTimeout(() => { if (open && armed && armed.id === id && Date.now() >= armed.until) { armed = null; if (root.querySelector('.sm-status').textContent === vraag) setStatus('', ''); renderDetail(); } }, ARM_TIME + 50);
     return;
   }
   armed = null;
@@ -599,7 +602,9 @@ function onKey(e) {
   if (k === 'Tab') return;
   e.preventDefault();
   if (e.repeat && !k.startsWith('Arrow') && lower !== 'w' && lower !== 's') return;
-  if (k === 'Escape' || k === 'Backspace' || lower === 'q') closeShopMenu();
+  if (k === 'Escape' || k === 'Backspace' || lower === 'q') {
+    if (escActie(armed) === 'annuleer') { armed = null; setStatus('Niets gedaan', ''); renderDetail(); } else closeShopMenu();
+  }
   else if (k === 'ArrowLeft' || k === '[') stepTabs(-1);
   else if (k === 'ArrowRight' || k === ']') stepTabs(1);
   else if (k === 'Home' || k === 'End' || rijCijfer(k)) jump(k);

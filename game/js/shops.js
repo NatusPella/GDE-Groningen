@@ -53,6 +53,7 @@ import { shopSections, wardrobeSections, fittingSections, outfitMessageFor } fro
 import { clothingSfx } from './clothingsfx.js';
 import { sfxEvent } from './sfx/haken.js';
 import { wantedClearCooldownLeft, markWantedCleared } from './heatcooldown.js'; // #838: spuiterij-cooldown
+import { munitieWinst, munitiePrijs } from './ammorules.js'; // een bijna vol magazijn kost evenredig
 
 export const SHOP_USE_RADIUS = 2.6;
 const OUTFIT_WANTED_COOLDOWN = 60;
@@ -734,6 +735,9 @@ function pay(world, price) {
   return true;
 }
 
+// Een verkoop klinkt als biljetten tellen (alleen bij jou); onder de 40 euro deed het geld-geluid van de UI niets, dus de kleine verkopen bleven stil.
+function verkoopGeluid(world) { sfxEvent(world, 'shop_sell_bills'); }
+
 const hexCss = (n) => '#' + n.toString(16).padStart(6, '0');
 const broke = (world, price) => world.money < price ? 'Te weinig geld' : '';
 
@@ -1082,19 +1086,22 @@ function resaleValue(v) {
   return Math.round(base * Math.max(0.3, Math.min(1, (v.health ?? 100) / 100)));
 }
 
-function pandSections(world, shop) {
+export function pandSections(world, shop) {
   const sell = [];
   for (const w of WEAPON_STOCK) {
     const n = world.ammo[w.key] || 0;
     if (!Number.isFinite(world.ammo[w.key]) || (w.melee && n <= 0)) continue;
     const income = Math.round(w.melee ? w.gun * 0.4 : w.gun * 0.3 + n * 0.4);
     sell.push({
-      id: 's-' + w.key, preview: { kind: 'weapon', weapon: w.key }, label: `${w.label.split(' ')[0]} verkopen`, desc: w.melee ? 'Nauwelijks gebruikt, zegt de verkoper' : `Met ${n} ${w.unit || 'patronen'}, geen vragen`, price: 0, income,
+      id: 's-' + w.key, preview: { kind: 'weapon', weapon: w.key }, label: `${w.label.split(' ')[0]} verkopen`, desc: (w.melee ? 'Nauwelijks gebruikt, zegt de verkoper' : `Met ${n} ${w.unit || 'patronen'}, geen vragen`) + (world.weapon === w.key ? ' · nu in je hand' : ''), price: 0, income,
+      // verkopen kan niet terug (kopen kost meer): het wapen in je hand of een grote voorraad vraagt om een tweede druk
+      confirmText: world.weapon === w.key || (!w.melee && n >= 100) ? `${w.label.split(' ')[0]}${w.melee ? '' : ` met ${n} ${w.unit || 'patronen'}`} verkopen? Druk nog een keer, dit krijg je niet terug` : undefined,
       buy() {
         delete world.ammo[w.key];
         if (world.weapon === w.key) world.weapon = 'fists';
         noteMoney('Verkoop');
         world.money += income;
+        verkoopGeluid(world);
         return `+${euro(income)}. Nooit gezien, dat ding`;
       },
     });
@@ -1102,7 +1109,7 @@ function pandSections(world, shop) {
   if (world.armor >= 10) {
     const income = Math.round(world.armor * 0.6);
     sell.push({ id: 's-armor', preview: productPreview('vest'), stats: [barStat('Pantser', world.armor, 0, 100)], label: 'Vest verkopen', desc: `Pantser ${Math.round(world.armor)}, bijna niet gebruikt`, price: 0, income,
-      buy() { world.armor = 0; noteMoney('Verkoop'); world.money += income; return `+${euro(income)} voor je vest`; } });
+      buy() { world.armor = 0; noteMoney('Verkoop'); world.money += income; verkoopGeluid(world); return `+${euro(income)} voor je vest`; } });
   }
   for (const v of world.vehicles) {
     if (!v.stolenByPlayer || v.playerOwned || v.isHeroCar || v.missionCar || v.wrecked || v.isBoat || v.driver) continue;
@@ -1113,6 +1120,7 @@ function pandSections(world, shop) {
       buy() {
         removeFromWorld(world, v);
         world.money += income;
+        verkoopGeluid(world);
         if (v.isPolice) world.wanted = Math.max(world.wanted, 2);
         return `+${euro(income)}. Die zie je nooit meer terug`;
       },
@@ -1220,13 +1228,15 @@ function weaponItem(world, w) {
     };
   }
   const unit = w.unit || 'patronen';
-  const price = owned ? w.ammoPrice : w.gun;
+  // een pak dat niet meer past kost een evenredig deel: je betaalt niet de volle prijs voor een paar patronen (ammorules.js)
+  const winst = munitieWinst(have, w.ammo, w.cap);
+  const price = owned ? munitiePrijs(w.ammoPrice, w.ammo, winst) : w.gun;
   return {
     id: 'w-' + w.key,
     label: owned ? `${w.label.split(' ')[0]}: ${unit} erbij` : w.label,
-    desc: owned ? `+${w.ammo} ${unit} · nu ${have}` : `${w.desc} · met ${w.ammo} ${unit}`,
+    desc: owned ? `+${winst} ${unit}${winst < w.ammo ? ' (past nog)' : ''} · nu ${have}` : `${w.desc} · met ${w.ammo} ${unit}`,
     price, preview: { kind: 'weapon', weapon: w.key }, stats: weaponStats(w.key, w),
-    effect: owned ? `${have} → ${Math.min(w.cap, have + w.ammo)} ${unit}` : '',
+    effect: owned ? `${have} → ${have + winst} ${unit}` : '',
     disabled: have >= w.cap ? 'Zak zit vol' : broke(world, price),
     buy() {
       if (!pay(world, price)) return null;
@@ -1240,7 +1250,7 @@ function weaponItem(world, w) {
 
 const KNALLERS = new Set(['carbidbus', 'vuurwerk', 'waterpistool']);
 
-function weaponSections(world) {
+export function weaponSections(world) {
   const guns = WEAPON_STOCK.filter((w) => !w.melee && !KNALLERS.has(w.key)).map((w) => weaponItem(world, w));
   const knallers = WEAPON_STOCK.filter((w) => KNALLERS.has(w.key)).map((w) => weaponItem(world, w));
   const melee = WEAPON_STOCK.filter((w) => w.melee).map((w) => weaponItem(world, w));

@@ -2,7 +2,7 @@
 //   node scripts/shoplist_test.mjs
 import {
   itemIcon, itemStatus, shortfall, brokeMessage, refusalMessage, needsConfirm, buyLabel, shopTabs, tabSections, stepTab, keepTab,
-  flatItems, keepItem, shortPerk, ICON_IDS,
+  flatItems, keepItem, shortPerk, ICON_IDS, bevestigRegel, escActie, bevestigGeldig, DUBBELKLIK_MS,
 } from '../game/js/shoplist.js';
 import { SHOP_ICONS, shopIconSvg } from '../game/js/shopicons.js';
 import { SHOP_KINDS } from '../game/js/winkelkit.js';
@@ -131,6 +131,31 @@ is(keepItem([items[0]], null), 'a', 'only disabled'); is(keepItem([], 'a'), null
 is(shortPerk({ desc: 'Betrouwbaar, handzaam. Luid genoeg' }), 'Betrouwbaar, handzaam', 'first sentence');
 is(shortPerk({ desc: 'x', effect: '+50 pantser' }), '+50 pantser', 'effect first');
 ok(shortPerk({ desc: 'a'.repeat(80) }).length <= 54, 'truncated');
+
+// verfijnronde 22-11: de bevestigingsregel kent verkopen en kiezen, Esc trekt eerst de bevestiging in
+is(bevestigRegel({ label: 'Geweer', price: 650 }), 'Geweer: €650. Druk nog een keer om te kopen', 'kopen');
+ok(bevestigRegel({ label: 'Geweer', price: 0, income: 300 }).includes('+€300. Druk nog een keer om te verkopen'), 'verkopen zegt verkopen en het bedrag, geen €0');
+ok(!/€0/.test(bevestigRegel({ label: 'Geweer', price: 0, income: 300 })), 'nooit €0');
+ok(/kiezen/.test(bevestigRegel({ label: 'Rit', price: 0 })), 'gratis keuze');
+is(bevestigRegel({ label: 'x', price: 5, confirmText: 'Eigen tekst' }), 'Eigen tekst', 'confirmText wint');
+is(escActie({ id: 'a', until: 2000 }, 1000), 'annuleer', 'open bevestiging: Esc annuleert');
+is(escActie({ id: 'a', until: 2000 }, 2000), 'sluit', 'verlopen bevestiging: Esc sluit');
+is(escActie(null, 1), 'sluit', 'geen bevestiging: Esc sluit');
+is(escActie({ id: 'a' }, 1), 'sluit', 'kapot armed-object sluit gewoon');
+// een dubbelklik telt niet als bevestiging van een duur ding
+const arm = { id: 'a', at: 1000, until: 5000 };
+is(bevestigGeldig(arm, 'a', 1000 + DUBBELKLIK_MS - 1), false, 'te snel na de eerste druk');
+is(bevestigGeldig(arm, 'a', 1000 + DUBBELKLIK_MS), true, 'na de pauze');
+is(bevestigGeldig(arm, 'a', 5000), false, 'verlopen');
+is(bevestigGeldig(arm, 'b', 2000), false, 'ander ding');
+is(bevestigGeldig(null, 'a', 2000), false, 'niets open');
+is(bevestigGeldig({ id: 'a', until: 5000 }, 'a', 1001), true, 'zonder tijdstip (oude aanroeper) werkt het zoals voorheen');
+{
+  const src = (await import('node:fs')).readFileSync(new URL('../game/js/shopui.js', import.meta.url), 'utf8');
+  ok(src.includes('!bevestigGeldig(armed, id)) return;'), 'shopui negeert de te snelle tweede druk');
+  ok(src.includes("textContent === vraag) setStatus('', '')"), 'een verlopen vraag verdwijnt uit de statusbalk');
+  ok(src.includes("escActie(armed) === 'annuleer'"), 'Esc trekt eerst de bevestiging in');
+}
 
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

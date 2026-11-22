@@ -12,5 +12,6 @@ export function moneyNeedsUpdate(rounded, last) {
 export function weaponAmmoText(weapon, ammo, noCount) {
   if (weapon === 'fists') return 'geen wapen';
   if (ammo === undefined || noCount.has(weapon)) return 'slaan';
+  if (ammo === 0) return 'leeg'; // een leeg wapen zegt het in woorden, niet met een 0 die je mist
   return ammo === Infinity ? '∞' : String(ammo);
 }

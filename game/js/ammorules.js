@@ -1,0 +1,46 @@
+// Pure regels rond munitie en wapenwissel (verfijnronde 22-11, spullen en wapens): hoeveel een pak echt bijvult, wat een bijna
+// vol magazijn kost, en welke wapens het muiswiel en de terugval na het laatste stuk meenemen. Geen DOM, geen wereld:
+// combat.js en shops.js geven de feiten mee. Test: scripts/ammorules_test.mjs.
+// Samen spelen: het wapen in je hand en je munitie zijn per speler; dit raakt alleen de eigen voorraad van wie de winkel of het wiel gebruikt.
+
+// Hoeveel patronen een pak werkelijk toevoegt: nooit meer dan er in de zak past, nooit negatief.
+export function munitieWinst(have, pack, cap) {
+  const h = Math.max(0, Number.isFinite(have) ? have : 0);
+  const p = Math.max(0, Math.floor(Number(pack) || 0));
+  const c = Number.isFinite(cap) ? cap : h + p;
+  return Math.max(0, Math.min(p, Math.floor(c - h)));
+}
+
+// De prijs van een bijna-vol pak: een heel pak kost de volle prijs, een deel een evenredig deel (minstens 1 euro, nooit meer
+// dan de volle prijs). Zo betaal je niet 25 euro voor 3 patronen die er nog bij passen.
+export function munitiePrijs(price, pack, winst) {
+  const pr = Math.max(0, Math.floor(Number(price) || 0));
+  const p = Math.max(1, Math.floor(Number(pack) || 1));
+  if (winst >= p || pr === 0) return pr;
+  if (winst <= 0) return pr;
+  return Math.min(pr, Math.max(1, Math.ceil((pr * winst) / p)));
+}
+
+// De wapens die het muiswiel doorloopt: alles wat van jou is en nog iets heeft om mee te schieten of te slaan. Een leeg
+// wapen blijft van jou (#437) en kies je met het cijfer, maar het wiel stopt er niet meer. Is er niets met patronen, dan
+// blijven de vuisten over (die zitten altijd in de lijst).
+export function wielWapens(keys, hasWeapon, hasAmmo, huidig) {
+  const pool = keys.filter((k) => hasWeapon(k) && (hasAmmo(k) || k === huidig));
+  return pool;
+}
+
+// Na het laatste stuk van een werpding of de laatste druppel water: het wapen dat je daarna in de hand krijgt. Het
+// laatst gebruikte slagwapen of anders het eerste wapen met patronen, anders de vuisten.
+export function terugvalWapen(keys, hasWeapon, hasAmmo, huidig, voorkeur = []) {
+  for (const k of voorkeur) if (k !== huidig && hasWeapon(k) && hasAmmo(k)) return k;
+  const rest = keys.filter((k) => k !== huidig && k !== 'fists' && hasWeapon(k) && hasAmmo(k));
+  return rest[0] || 'fists';
+}
+
+// De melding bij een cijfertoets: niets in dat slot (de toets deed stil niets), of het gekozen wapen is leeg. Een gewone wissel zegt
+// niets (het wapen in de HUD verandert al). '' = geen melding.
+export function slotMessage(slot, gelukt, leeg) {
+  if (!gelukt) return `Niets in slot ${slot}`;
+  if (leeg) return 'Dit wapen is leeg. Munitie koop je bij Pang & Zo';
+  return '';
+}

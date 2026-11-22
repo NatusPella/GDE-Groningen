@@ -86,14 +86,18 @@ export function voegEtenToe(w, id, n = 1) {
   return aantal;
 }
 
+// Wat je met een ding doet: een EHBO-doos eet je niet op, die gebruik je (de knop, de zin en de melding zeggen dat ook).
+const GEBRUIK = new Set(['ehbo']);
+export const etenWerkwoord = (id) => (GEBRUIK.has(id) ? 'Gebruiken' : 'Opeten');
+
 // Opeten: dezelfde regel als de toonbank (shops.js foodItem). Op volle gezondheid blijft
 // het eten liggen, net als daar ("om mee te nemen"). Geeft de melding voor het paneel.
 export function eet(w, id) {
   const waar = eetWaar(id);
   const hebben = w && w.eten ? Math.floor(Number(w.eten[id]) || 0) : 0;
   if (!waar || hebben <= 0) return 'Dat heb je niet bij je.';
-  if (w.health >= 100) return `${waar.label}: je zit vol, die bewaar je voor straks.`;
+  if (w.health >= 100) return GEBRUIK.has(id) ? `${waar.label}: je mankeert niks, die bewaar je voor straks.` : `${waar.label}: je zit vol, die bewaar je voor straks.`;
   w.health = Math.min(100, w.health + waar.hp);
   voegEtenToe(w, id, -1);
-  return `${waar.label}: lekker! Gezondheid ${Math.round(w.health)}`;
+  return `${waar.label}: ${GEBRUIK.has(id) ? 'netjes verbonden' : 'lekker'}! Gezondheid ${Math.round(w.health)}`;
 }
