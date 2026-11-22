@@ -2,7 +2,8 @@ import { hoofdspeler } from './players.js';
 import { keepFocus } from './focusbehoud.js';
 import { setVisibleInterval } from './visibletimer.js';
 import { icoon } from './icons.js';
-import { statusVan, tabRegel, versieRegel, MUTE_ACTIONS, hintStand, hintTekst, volgHint } from './playerstatus.js';
+import { tabRegel, versieRegel, hintStand, hintTekst, volgHint } from './playerstatus.js';
+import { esc, cardHtml, kopHtml, pvpHtml as pvpKaartHtml, roepHtml, CARD_KEYS } from './playercards.js';
 import { gateOn } from './coopgate.js';
 import { VERSION } from './version.js';
 import { keyTextHtml } from './keycap.js';
@@ -12,7 +13,6 @@ import { keyTextHtml } from './keycap.js';
 // De gegevens komen uit world.coopSpelers (coopnet.js, gebouwd met coopspelers.js, getest); dit bestand is alleen DOM.
 // Niet door een mens in beeld bekeken.
 import { pingGebaar, zetPassiefGebaar, kanPassiefKiezen, passiefStandVan, setPlayerMuteState, playerMuteState } from './coopnet.js';
-import { muteButtonText } from './multiplayerphrases.js';
 import { isSoloHost } from './coopsolo.js';
 import { PVP_TEKST } from './cooppvp.js';
 import { PING_TOETSEN } from './coopping.js';
@@ -24,40 +24,16 @@ import { getSettings, setSetting } from './settings.js';
 import { PROFIEL_KLEUREN, ONLINE_NAAM_MAX, profielNaam, profielKleur, profielTekst } from './lobby.js';
 import { meedoenSchakelaarHtml } from './onlineconsentui.js';
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const netStand = (v) => (v === 'lag' || v === 'lost' ? v : 'ok');
 // Een sessie van één (#554, coopsolo.js) is geen samen-sessie: geen spelerslijst, geen "1 speler"-badge
 // en geen avatar-hint alsof je meedoet. In een echte sessie verandert er niets.
 const echteSessie = (world) => !!(world && world.coopNet && !isSoloHost(world));
 
-const chipHtml = (c) => `<span class="cs-chip cs-chip--${c.soort}" data-chip="${c.id}">${icoon(c.icoon, { maat: 's' })}<span>${esc(c.tekst)}</span></span>`;
 // dempen en blokkeren (#1159): per speler, alleen in het geheugen en op naam; de wereld waarvoor de lijst getekend wordt staat in muteWorld
 let muteWorld = null;
-const muteHtml = (slot) => MUTE_ACTIONS.map((a) => {
-  const aan = !!muteWorld && playerMuteState(muteWorld, slot) === a.id, t = muteButtonText(a.id, aan ? a.id : 'gewoon');
-  return `<button type="button" class="cs-stand" data-stand="${a.id}" data-slot="${slot}" aria-pressed="${aan ? 'true' : 'false'}" title="${esc(a.uitleg)}" aria-label="${esc(t + ': ' + a.uitleg)}">${icoon(a.icoon, { maat: 's' })}<span>${esc(t)}</span></button>`;
-}).join('');
 const muteWord = (slot) => { const st = muteWorld ? playerMuteState(muteWorld, slot) : 'gewoon'; return st === 'gewoon' ? '' : `<small class="cs-tab-actief">${esc(st)}</small>`; };
-
-function rijHtml(r, acties, rol = null, bevestig = null, ctx = {}) {
-  const vraagt = acties && bevestig === r.slot && kanEruitZetten(rol, r);
-  const eruit = acties && kanEruitZetten(rol, r)
-    ? (vraagt ? `<span class="cs-vraag">${esc(r.naam)} eruit zetten?</span><button type="button" class="cs-eruit" data-eruit="${r.slot}">Ja, eruit zetten</button><button type="button" class="cs-naar" data-eruit-nee="1">Annuleren</button>`
-      : `<button type="button" class="cs-eruit" data-eruit="${r.slot}">${eruitKnopTekst(false)}</button>`) : '';
-  const geef = acties && !vraagt && kanOverdragen(rol, r) ? `<button type="button" class="cs-naar" data-geef="${r.slot}">${overdragenKnopTekst}</button>` : '';
-  const naar = acties && !vraagt && !r.jij && r.x != null ? `<button type="button" class="cs-naar" data-naar="${r.slot}">Ga erheen</button>` : '';
-  // de groep (#492): "leidt <label>" bij de leider, de groepsnaam bij de andere deelnemers, niets bij wie niet meedoet
-  const groep = r.groep ? ` <small class="cs-groep${r.leidt ? ' cs-leidt' : ''}">${esc(r.groep)}</small>` : '';
-  const later = acties && !r.jij && !vraagt ? `<span class="cs-laterrij">${muteHtml(r.slot)}</span>` : '';
-  const actiesHtml = naar || geef || eruit || later ? `<span class="cs-acties">${naar}${geef}${eruit}${later}</span>` : '';
-  // #903: de speler is een kaart met een avatar in zijn eigen kleur en vorm; de status staat als woorden met een icoon (playerstatus.js statusVan).
-  // Kleur is nooit het enige signaal: de vorm en het woord staan ernaast.
-  const afstand = !r.jij && r.afstandTekst ? `${r.afstandTekst}${r.richting ? ` ${r.richting.pijl} ${r.richting.woord}` : ''}` : '';
-  return `<li class="cs-rij${r.verbinding === 'lost' ? ' cs-rij-weg' : ''}" data-slot="${r.slot}"><span class="cs-avatar" aria-hidden="true"><span class="cs-vorm" style="color:${esc(veiligeKleur(r.kleur))}">${VORM_TEKEN[r.vorm] || '●'}</span></span>` +
-    `<span class="cs-naam">${esc(r.naam)}${r.jij ? ' <small class="cs-jij">(jij)</small>' : ''}${groep}</span>` +
-    `<span class="cs-status">${statusVan(r, ctx).map(chipHtml).join('')}</span>` +
-    `<span class="cs-doet">${esc(r.doet)}${afstand ? `<small>${esc(afstand)}</small>` : ''}</span>${actiesHtml}</li>`;
-}
+// #1011: het kaartje van een speler komt uit playercards.js (puur, gemeten in scripts/ui/multiplayerflow_meet.mjs)
+const rijHtml = (r, acties, rol = null, bevestig = null, ctx = {}) => cardHtml(r, { acties, rol, bevestig, ctx, muteStaat: (slot) => (muteWorld ? playerMuteState(muteWorld, slot) : 'gewoon') });
 // De compacte regel van de Tab-lijst in het spel: naam, kleur, ping, afstand en richting, klaar (playerstatus.js tabRegel)
 function tabRijHtml(r, ctx = {}) {
   const t = tabRegel(r, ctx);
@@ -71,8 +47,7 @@ function tabRijHtml(r, ctx = {}) {
 // De passieve stand (#447): een knop met uitleg, alleen als de host het kent
 function pvpHtml(world) {
   if (!kanPassiefKiezen(world)) return '';
-  const passief = passiefStandVan(world);
-  return `<div class="cs-pvp"><button type="button" class="cs-pvp-knop" data-passief="${passief ? '0' : '1'}" aria-pressed="${passief ? 'true' : 'false'}">${passief ? PVP_TEKST.knopAan : PVP_TEKST.knopUit}</button><p>${esc(PVP_TEKST.uitleg)}</p></div>`;
+  return pvpKaartHtml({ passief: passiefStandVan(world), tekst: PVP_TEKST });
 }
 const roepHint =() => PING_TOETSEN.map((k) => `<b>${k.toets}</b> ${esc(k.tekst)}`).join(' · ');
 
@@ -193,6 +168,17 @@ const CSS = `
 #coop-spelers .cs-tab-afstand { min-width: 5.5em; text-align: right; white-space: nowrap; }
 #coop-spelers .cs-tab-later { display: inline-flex; gap: var(--ds-s-1); }
 #coop-spelers .cs-later { width: var(--ds-s-6); min-height: var(--ds-s-6); }
+/* #1011: dempen en blokkeren als pictogrammen (tooltip en toets), de uitleg achter Meer info, kaartjes met focus */
+.cs-stand--icoon { width: var(--ds-doel-aanraken); padding: 0; justify-content: center; }
+.cs-rij:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx); outline-offset: var(--ds-focus-afstand); }
+.pm-spelers .cs-kop:not(.cs-kop-leeg) { flex-direction: row; flex-wrap: wrap; align-items: center; gap: var(--ds-s-1) var(--ds-s-4); }
+.pm-spelers .cs-kop:not(.cs-kop-leeg) .cs-kop-t { font-size: var(--ds-t-subkop); }
+.pm-spelers .cs-kop-regel { font-size: var(--ds-t-body); }
+.pm-spelers .cs-kop .cs-info { flex: none; }
+.cs-info { display: block; }
+.cs-info > summary { cursor: pointer; min-height: var(--ds-doel-aanraken); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); }
+.cs-info > summary:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx); outline-offset: var(--ds-focus-afstand); }
+.cs-info > p { font-size: var(--ds-t-hulp); }
 `;
 let stijl = false;
 function zorgVoorStijl() {
@@ -269,12 +255,12 @@ let timer = null, bevestig = null, profielFout = '';
 function profielHtml(world) {
   const s = getSettings();
   const kleur = profielKleur(s.onlineKleur);
-  return `<div class="cs-profiel"><h4>Je online-avatar</h4><p>${esc(profielTekst({ naam: s.onlineNaam, kleur }))} Je speelt lokaal je eigen verhaal (Tammo of Tessa); zo zien de anderen je, ook in deze lijst.</p>` +
+  return `<div class="cs-profiel"><h4>Je online-avatar</h4><p>${esc(profielTekst({ naam: s.onlineNaam, kleur }))}</p>` +
     `<label class="cs-profiel-label">Online naam <input type="text" class="cs-profiel-naam" maxlength="${ONLINE_NAAM_MAX}" spellcheck="false" autocomplete="off" placeholder="Je figuur" value="${esc(s.onlineNaam)}"></label>` +
     `<div class="cs-kleuren" role="group" aria-label="Kleur">${PROFIEL_KLEUREN.map((c) => `<button type="button" data-kleur="${c.hex}" aria-pressed="${c.hex === kleur}"><span style="color:${c.hex}" aria-hidden="true">●</span> ${esc(c.naam)}</button>`).join('')}</div>` +
     meedoenSchakelaarHtml(s) +
     (profielFout ? `<p class="cs-profiel-fout" role="alert">${esc(profielFout)}</p>` : '') +
-    `<p class="cs-profiel-hint">Je staat standaard op passief: medespelers kunnen je geen schade doen, en alleen als jij en de ander die stand allebei uitzetten, kunnen jullie elkaar raken. ${echteSessie(world) ? 'Je nieuwe naam en kleur gelden zodra je opnieuw meedoet.' : 'Het spel bewaart je naam en kleur op dit apparaat.'}</p></div>`;
+    `<details class="cs-info"><summary>Meer info</summary><p>Je speelt lokaal je eigen verhaal (Tammo of Tessa); zo zien de anderen je, ook in deze lijst.</p><p class="cs-profiel-hint">Je staat standaard op passief: medespelers kunnen je geen schade doen, en alleen als jij en de ander die stand allebei uitzetten, kunnen jullie elkaar raken. ${echteSessie(world) ? 'Je nieuwe naam en kleur gelden zodra je opnieuw meedoet.' : 'Het spel bewaart je naam en kleur op dit apparaat.'}</p></details></div>`;
 }
 export function renderSpelersPanel(root, world, sluit = () => {}, opts = {}) {
   if (!root) return;
@@ -302,17 +288,12 @@ export function renderSpelersPanel(root, world, sluit = () => {}, opts = {}) {
     root.dataset.key = key; root.dataset.klaar = '1';
     const ctx = { wachtkamer: gateOn() };
     const opener = (rijen.find((r) => r.slot === 0) || {}).naam || 'De ander';
-    const kop = rijen.length
-      ? `<div class="cs-kop"><span class="ds-z-chip ds-z-chip--selectie">Samen in Grunn</span><b class="cs-kop-t">${rijen.length} ${rijen.length === 1 ? 'speler' : 'spelers'} in deze sessie</b>` +
-        `<p>${rol === 'host' ? 'Jij opende het spel: jij kunt spelers eruit zetten of het spel overdragen.' : `${esc(opener)} opende het spel. Valt je verbinding weg, dan kun je opnieuw verbinden of stoppen; je komt terug waar je was.`}</p>` +
-        `<p class="cs-kop-klein">${esc(versieRegel(VERSION))} De wereld en de tijd zijn samen van de groep; je geld, spullen en voortgang blijven van jou. Alleen de speler bij wie de sessie draait, kan iemand eruit zetten.</p></div>`
-      : `<div class="cs-kop cs-kop-leeg"><b class="cs-kop-t">Je speelt nu alleen</b><p>Nodig iemand uit op het tabblad Sessie. Je eigen verhaal en je spullen blijven van jou.</p></div>`;
+    const kop = kopHtml({ aantal: rijen.length, rol, opener, versie: versieRegel(VERSION) });
     const restore = keepFocus(root); // dempen, blokkeren en de rest tekenen de lijst opnieuw: de focus blijft op dezelfde knop (22-11)
     root.innerHTML = kop + (rijen.length
       ? `<ul class="cs-lijst">${rijen.map((r) => rijHtml(r, true, rol, bevestig, ctx)).join('')}</ul>` +
         pvpHtml(world) +
-        `<div class="cs-sectie"><h4>Roepen</h4><p>${roepHint()}</p>` +
-        `<div class="cs-roep">${PING_TOETSEN.map((k) => `<button type="button" class="cs-roep-knop" data-ping="${k.soort}">${esc(k.tekst)} <small>(${k.toets})</small></button>`).join('')}</div></div>`
+        roepHtml(PING_TOETSEN)
       : '') +
       profielHtml(world);
     const veld = root.querySelector('.cs-profiel-naam'); if (veld && veld.value !== naamInvoer) veld.value = naamInvoer;
@@ -327,6 +308,14 @@ export function renderSpelersPanel(root, world, sluit = () => {}, opts = {}) {
         if (r.ok) setSetting('onlineNaam', r.naam);
         root.dataset.klaar = ''; teken();
       }
+    });
+    root.addEventListener('keydown', (e) => { // #1011: met de focus op een kaartje: M dempt, B blokkeert, X zet eruit (met bevestiging)
+      const rij = e.target && e.target.closest ? e.target.closest('.cs-rij[data-slot]') : null;
+      if (!rij || e.ctrlKey || e.metaKey || e.altKey || (e.target.matches && e.target.matches('input, textarea, select'))) return;
+      const k = String(e.key || '').toUpperCase();
+      const sel = k === CARD_KEYS.gedempt ? '[data-stand="gedempt"]' : k === CARD_KEYS.geblokkeerd ? '[data-stand="geblokkeerd"]' : k === CARD_KEYS.eruit ? '[data-eruit]' : '';
+      const knop = sel ? rij.querySelector(sel) : null;
+      if (knop) { e.preventDefault(); knop.click(); }
     });
     root.addEventListener('click', (e) => {
       const kk = e.target.closest('[data-kleur]');

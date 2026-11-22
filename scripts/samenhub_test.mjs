@@ -417,13 +417,12 @@ await t('het pauzemenu geeft Escape eerst aan de hub, vóór de gewone stap teru
   assert.match(pm, /import \{[^}]*samenHubTerug[^}]*\} from '\.\/samenpanel\.js'/, 'de hub komt via samenpanel.js binnen');
 });
 
-await t('Samen spelen toont de hub zolang er geen sessie is; de bestaande routes blijven bestaan', () => {
+await t('Samen spelen opent de wizard van de lobby zolang er geen sessie is (#1011); de bestaande routes blijven bestaan', () => {
+  // #1011: de hub (#527) is vervangen door de wizard in de lobby zelf (multiplayerwizard.js); samenhub.js en samenhubui.js blijven voor hun eigen regels en test.
   const sp = lees('samenpanel.js');
-  assert.match(sp, /mountHub\(root, world, sluit\)/, 'het paneel tekent de hub');
-  assert.match(sp, /if \(!nu && !startOpts\.rol && !startOpts\.lijst && !view\)/, 'alleen zonder sessie, zonder gekozen rol en met de hub als enige scherm');
-  assert.match(sp, /const route = actieVan\(act\);/, 'de keuze komt uit de hub-regels (samenhub.js actieVan)');
-  assert.match(sp, /naarLobby\(route\.rol, route\.lijst\)/, 'de hub geeft de lobby rol en lijst: dezelfde beginsituatie als het oude beginscherm');
-  assert.match(sp, /if \(route\.sluit\) \{ setGate\(false\); sluit\(\);/, 'alleen spelen begint geen sessie');
+  assert.doesNotMatch(sp, /mountHub|mountSamenHub|samenhubui/, 'het paneel tekent de hub niet meer');
+  assert.match(sp, /if \(!nu && !startOpts\.rol && !startOpts\.lijst && !view\)/, 'alleen zonder sessie, zonder gekozen rol: eerst de eerste-keer-kaart (naam en akkoord)');
+  assert.match(sp, /\{ wizard: true, keuze, startGate: gate, spelNaam, lijst/, 'de lobby krijgt de wizard mee');
 });
 
 await t('stap 2 knoppen (Alleen spelen, kamercode) komen bij dezelfde afhandeling aan als de keuzes van stap 1', () => {
@@ -436,21 +435,11 @@ await t('stap 2 knoppen (Alleen spelen, kamercode) komen bij dezelfde afhandelin
   assert.deepEqual(geroepen, [ACT.ALLEEN, ACT.CODE], 'geen knop van stap 2 valt weg');
   closeSamenHub();
 });
-await t('Terug in de lobby gaat naar de hub, niet naar het oude beginscherm met vier knoppen', () => {
+await t('Escape en B gaan via de wizard een stap terug (view.wizTerug), nooit de sessie uit', () => {
   const sp = lees('samenpanel.js');
-  assert.match(sp, /\[data-act="terug"\]/, 'de Terug-knop van de lobby wordt herkend');
-  assert.match(sp, /if \(!b \|\| !vanHub \|\| !view \|\| !view\.state\) return;/, 'alleen als de lobby uit de hub kwam en er echt een scherm staat');
-  assert.match(sp, /HUB_TERUG_STAPPEN\.includes\(view\.state\(\)\.step\)/, 'en alleen op de schermen waar de hub ze neerzette');
-  assert.match(sp, /e\.stopPropagation\(\)/, 'de lobby zelf ziet de klik niet: anders tekent hij zijn eigen beginscherm');
-  assert.match(sp, /\}, true\);/, 'in de capture-fase, dus vóór de luisteraar van de lobby');
-});
-await t('een hub op een vak waar een oude lobby nog aan luistert, houdt die lobby buiten (verse knoop)', () => {
-  // lobbyui.js ruimt bij close() de inhoud op, niet zijn luisteraars. De hub tekent in hetzelfde vak en gebruikt
-  // dezelfde data-act-namen, dus mountHub moet een luistervrije knoop op dezelfde plek zetten.
-  const sp = lees('samenpanel.js');
-  assert.match(sp, /cloneNode\(false\)/, 'mountHub kloont het vak leeg in plaats van erin te hergebruiken');
-  assert.match(sp, /replaceChild\(vak, eerste\)/, 'en zet de kloon op dezelfde plek in het menu');
-  assert.match(sp, /let vak = eerste;/, 'zonder DOM-API (tests) blijft het vak zoals het is');
+  assert.match(sp, /export function samenHubTerug\(\) \{\s*return !!\(view && view\.wizTerug && view\.wizTerug\(\)\);\s*\}/, 'samenHubTerug vraagt de wizard');
+  const ui = lees('lobbyui.js');
+  assert.match(ui, /wizTerug: \(\) => \{[\s\S]*?WSTEP.CONNECT\) return false;/, 'wachten en verbinden (stap 3) laten het menu sluiten zoals altijd');
 });
 await t('een sessie van één (#554) wordt niet geadopteerd: geen kamercode en geen wachtrij', () => {
   // Alleen spelen is een gastheer-sessie van één (#554, coopsolo.js). Zo'n hub heeft geen transport en dus
@@ -462,7 +451,7 @@ await t('een sessie van één (#554) wordt niet geadopteerd: geen kamercode en g
     'een solo-hub telt voor dit paneel niet als sessie');
   const hs = sp.slice(sp.indexOf('function huidigeSessie'), sp.indexOf('function huidigeSessie') + 500);
   assert.match(hs, /const n = samenNet\(world\);/, 'huidigeSessie leest via samenNet: een solo-hub geeft null (dus geen rol, route of code)');
-  assert.match(sp, /const nu = samenNet\(world\);/, 'ook de hub-keuze in renderSamenPanel negeert de solo-hub en opent "nog geen sessie"');
+  assert.match(sp, /const nu = samenNet\(world\);/, 'ook renderSamenPanel negeert de solo-hub en opent "nog geen sessie"');
   assert.match(sp, /\.\.\.\(loopt \? \{ adopt: \{ code: loopt\.code, route: loopt\.route \}/,
     'de lobby krijgt alleen bij een echte sessie een kamercode/route (adopt) mee; zonder loopt blijft die weg');
   assert.doesNotMatch(sp, /Wacht op een medespeler/, 'dit paneel schrijft zelf geen wachtrijtekst');

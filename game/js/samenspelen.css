@@ -143,3 +143,132 @@
 :is(#pause-menu .pm-samen, .coop-hold) .coop-toets { display: inline-flex; margin-left: var(--ds-s-2); vertical-align: middle; }
 html.touch-device :is(#pause-menu .pm-samen, .coop-hold, .cp-overlay) .coop-toets { display: none; } /* #1011: op aanraking heet de Enter-toets "Kies" en stond als tekst achter de knop; het wachtscherm (coophold.js) is een .cp-overlay, geen .coop-hold */
 :is(#pause-menu .pm-samen, .coop-hold) .coop-btn[aria-busy="true"] { cursor: progress; }
+
+/* ---- #1011: de Samen-spelen-wizard (samenwizardui.js): stappen, kaarten, één vaste voetzone, geen scrollende formulieren ----
+   Elk scherm is een kolom: indicator, titel, één korte regel, de inhoud (.sw-body), Meer info en de voet. De voet staat onderaan in
+   het vak (geen sticky over de inhoud heen) en heeft nooit overlap met wat erboven staat: de inhoud krimpt (min-height 0, overflow
+   verborgen), de voet niet. Alleen de lijst met openbare sessies en de uitslag van de test mogen binnen de inhoud scrollen. */
+#pause-menu .pm-samen .pm-samen-inner:has(> .sw) { overflow: hidden; container: swvak / size; } /* de maat van het vak (niet van het venster) bepaalt hoe compact de stap wordt: de menustage wordt met --mz ingezoomd */
+#pause-menu .pm-samen .sw { display: flex; flex: 1; flex-direction: column; gap: var(--ds-s-3); min-height: 0; position: relative; }
+#pause-menu .pm-samen .sw > * { min-width: 0; }
+/* de wizard heeft zijn eigen kop (indicator, titel en regel): de bladkop "Spel" en de ruime opvulling maken plaats, zodat elke stap op 1280x720 past */
+#pause-menu .pm-sheet:has([data-panel="spel"]:not([hidden]) .pm-samen:not([hidden]) .sw) .pm-sheet-head { display: none; }
+#pause-menu .pm-samen:has(.sw) { padding-top: var(--ds-s-2); padding-bottom: var(--ds-s-4); }
+#pause-menu .pm-samen .sw .sw-kop { flex: none; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--ds-s-4); }
+#pause-menu .pm-samen .sw .sw-titel { flex: none; font-size: var(--ds-t-subkop); }
+#pause-menu .pm-samen .sw .sw-uitleg { flex: 1 1 12em; font-size: var(--ds-t-hulp); color: var(--ds-tx-zacht); }
+#pause-menu .pm-samen .sw .sw-body { flex: 1 1 auto; display: flex; flex-direction: column; gap: var(--ds-s-3); min-height: 0; overflow: hidden; padding: 0 var(--ds-s-2) var(--ds-s-2) 0; } /* ruimte voor de harde schaduw rechts en onder */
+#pause-menu .pm-samen .sw .sw-body--rol { overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: var(--ds-scroll-duim) var(--ds-scroll-spoor); }
+#pause-menu .pm-samen .sw .sw-fout { flex: none; font-size: var(--ds-t-hulp); font-weight: 700; }
+
+/* de stappenindicator */
+#pause-menu .pm-samen .sw-stappen { flex: none; display: flex; flex-wrap: nowrap; gap: var(--ds-s-2); margin: 0; padding: 0; list-style: none; }
+#pause-menu .pm-samen .sw-stap {
+  display: inline-flex; align-items: center; gap: var(--ds-s-2); min-height: var(--ds-hoogte-chip); padding: var(--ds-s-1) var(--ds-s-3) var(--ds-s-1) var(--ds-s-1);
+  border: var(--ds-lijn-dik) dashed var(--ds-c-ink-inkt); border-radius: var(--ds-r-pil); background: var(--ds-zeef-bg); color: var(--ds-tx-zacht);
+  font: 800 var(--ds-t-hulp) / var(--ds-lh-kop) var(--ds-font-zeef-kop); letter-spacing: var(--ds-ls-label); white-space: nowrap;
+}
+#pause-menu .pm-samen .sw-stap[data-staat="klaar"] { border-style: solid; background: var(--ds-c-groen-vlak); color: var(--ds-c-groen-tx); }
+#pause-menu .pm-samen .sw-stap[data-staat="nu"] { border-style: solid; border-color: var(--ds-c-ink-bord); background: var(--ds-c-sel-vlak); color: var(--ds-zeef-tx); box-shadow: var(--ds-schaduw-hard-bord); }
+#pause-menu .pm-samen .sw-nr {
+  display: inline-grid; place-items: center; flex: none; width: var(--ds-s-5); height: var(--ds-s-5); border-radius: var(--ds-r-pil);
+  border: var(--ds-lijn) solid var(--ds-c-ink-inkt); background: var(--ds-c-papier-2); color: var(--ds-zeef-tx); font-size: var(--ds-t-hulp); line-height: 1;
+}
+
+/* grote keuzekaarten naast elkaar */
+#pause-menu .pm-samen .sw-kaarten { flex: none; display: grid; grid-template-columns: repeat(var(--sw-kolommen, 2), minmax(0, 1fr)); gap: var(--ds-s-3); }
+#pause-menu .pm-samen .sw-kaarten--3 { --sw-kolommen: 3; }
+#pause-menu .pm-samen .sw-kaarten--1 { --sw-kolommen: 1; }
+#pause-menu .pm-samen .sw-kaart {
+  display: flex; flex-direction: row; align-items: center; gap: var(--ds-s-3); padding: var(--ds-s-2) var(--ds-s-4); text-align: left; font: inherit; cursor: pointer;
+}
+#pause-menu .pm-samen .sw-kaart-ico { display: inline-flex; flex: none; }
+#pause-menu .pm-samen .sw-kaart-kol { display: flex; flex-direction: column; min-width: 0; }
+#pause-menu .pm-samen .sw-kaart-t { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-body); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-label); }
+#pause-menu .pm-samen .sw-kaart-tekst { font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-hulp); line-height: var(--ds-lh-tekst); color: var(--ds-tx-zacht); }
+#pause-menu .pm-samen .sw-kaart[aria-pressed="true"] { background: var(--ds-c-sel-vlak); border-color: var(--ds-c-ink-bord); box-shadow: var(--ds-schaduw-hard-bord); }
+#pause-menu .pm-samen .sw-kaart:hover:not([aria-pressed="true"]) { background: var(--ds-c-wit); }
+#pause-menu .pm-samen .sw-kaart:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx); outline-offset: var(--ds-focus-afstand); }
+
+/* velden onder de kaarten */
+#pause-menu .pm-samen .sw-paneel { flex: none; display: flex; flex-direction: column; gap: var(--ds-s-2); }
+#pause-menu .pm-samen .sw-veld { display: flex; flex-direction: column; gap: var(--ds-s-1); }
+#pause-menu .pm-samen .sw-label { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-hulp); letter-spacing: var(--ds-ls-label); }
+#pause-menu .pm-samen .sw-veld input[type="text"], #pause-menu .pm-samen .sw-veld input[type="password"] {
+  box-sizing: border-box; width: 100%; min-height: var(--ds-doel-aanraken); padding: 0 var(--ds-s-3); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r);
+  background: var(--ds-c-papier); color: var(--ds-zeef-tx); font: 400 var(--ds-t-body) / var(--ds-lh-tekst) var(--ds-font-zeef-tekst);
+}
+#pause-menu .pm-samen .sw-veld input[type="text"], #pause-menu .pm-samen .sw-veld input[type="password"] { flex: 0 0 auto; min-width: 0; height: var(--ds-doel-aanraken); }
+#pause-menu .pm-samen .sw-veld input:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx); outline-offset: var(--ds-focus-afstand); }
+#pause-menu .pm-samen .sw-vink { display: flex; align-items: center; gap: var(--ds-s-2); font-size: var(--ds-t-hulp); cursor: pointer; }
+#pause-menu .pm-samen .sw-vink input { width: var(--ds-s-5); height: var(--ds-s-5); flex: none; }
+#pause-menu .pm-samen .sw-link {
+  align-self: flex-start; min-height: var(--ds-hoogte-chip); padding: 0; border: 0; background: none; color: var(--ds-zeef-tx); cursor: pointer;
+  font: 400 var(--ds-t-hulp) / var(--ds-lh-tekst) var(--ds-font-zeef-tekst); text-decoration: underline;
+}
+
+/* stap 1: voorbeeld, naam, kleur, figuur */
+#pause-menu .pm-samen .sw-wie { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--ds-s-4); align-items: center; }
+#pause-menu .pm-samen .sw-voorbeeld {
+  display: flex; flex-direction: column; align-items: center; gap: var(--ds-s-2); padding: var(--ds-s-3) var(--ds-s-4); min-width: var(--ds-s-8);
+  border: var(--ds-lijn-dik) dashed var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-c-papier-2);
+}
+#pause-menu .pm-samen .sw-schijf { width: var(--ds-s-8); height: var(--ds-s-8); font-size: var(--ds-t-kop); }
+#pause-menu .pm-samen .sw-voorbeeld-naam { max-width: 9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 800 var(--ds-t-body) / var(--ds-lh-kop) var(--ds-font-zeef-kop); }
+#pause-menu .pm-samen .sw-velden { display: flex; flex-direction: column; gap: var(--ds-s-2); min-width: 0; }
+#pause-menu .pm-samen .sw-kleurrij, #pause-menu .pm-samen .sw-veld.sw-figuren { flex-direction: row; align-items: center; gap: var(--ds-s-3); }
+#pause-menu .pm-samen .sw-kleurrij { display: flex; }
+#pause-menu .pm-samen .sw-kleurrij .sw-label, #pause-menu .pm-samen .sw-veld.sw-figuren .sw-label { flex: none; min-width: 4em; }
+#pause-menu .pm-samen .sw-kleuren { display: flex; flex-wrap: nowrap; gap: var(--ds-s-1); }
+#pause-menu .pm-samen .sw-kleur {
+  position: relative; display: inline-grid; place-items: center; width: var(--ds-doel-aanraken); height: var(--ds-doel-aanraken); padding: 0; flex: none;
+  border: var(--ds-lijn-dik) solid transparent; border-radius: var(--ds-r-pil); background: none; cursor: pointer;
+}
+#pause-menu .pm-samen .sw-kleur-bol { width: var(--ds-s-5); height: var(--ds-s-5); border-radius: var(--ds-r-pil); background: currentColor; border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); }
+#pause-menu .pm-samen .sw-kleur[aria-pressed="true"] { border-color: var(--ds-c-ink-bord); background: var(--ds-c-sel-vlak); box-shadow: var(--ds-schaduw-hard-bord); }
+#pause-menu .pm-samen .sw-kleur:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx); outline-offset: var(--ds-focus-afstand); }
+#pause-menu .pm-samen .sw-kleur-naam {
+  position: absolute; bottom: 100%; left: 50%; translate: -50% 0; z-index: 4; padding: 0 var(--ds-s-2); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r);
+  background: var(--ds-c-papier); color: var(--ds-zeef-tx); font: 800 var(--ds-t-hulp) / var(--ds-lh-kop) var(--ds-font-zeef-kop); white-space: nowrap; opacity: 0; pointer-events: none;
+}
+#pause-menu .pm-samen .sw-kleur:is(:hover, :focus-visible) .sw-kleur-naam { opacity: 1; }
+#pause-menu .pm-samen .sw-figuur-kies {
+  box-sizing: border-box; width: 100%; min-height: var(--ds-doel-aanraken); padding: 0 var(--ds-s-3); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r);
+  background: var(--ds-c-papier); color: var(--ds-zeef-tx); font: 400 var(--ds-t-body) / var(--ds-lh-tekst) var(--ds-font-zeef-tekst);
+}
+#pause-menu .pm-samen .sw-figuur-kies:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx); outline-offset: var(--ds-focus-afstand); }
+
+/* stap 3: één voortgangsregel */
+#pause-menu .pm-samen .sw-voortgang { display: flex; align-items: center; gap: var(--ds-s-2); font-size: var(--ds-t-subkop); }
+#pause-menu .pm-samen .sw-regel { font-size: var(--ds-t-body); }
+#pause-menu .pm-samen .sw .coop-code { position: static; box-shadow: var(--ds-schaduw-hard); margin: 0; font-size: var(--ds-t-subkop); padding: var(--ds-s-2) var(--ds-s-4); }
+#pause-menu .pm-samen .sw .sw-staat { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); margin: 0; }
+#pause-menu .pm-samen .sw .sw-codebon { display: flex; align-items: center; gap: var(--ds-s-3); flex-wrap: wrap; }
+
+/* Meer info (uitklapper boven de voet, over de inhoud heen: de inhoud verschuift niet) en Meer acties */
+#pause-menu .pm-samen .sw-info { flex: none; } /* het uitklapvak hangt aan de voet (die is position: relative), zo past het over de hele breedte */
+#pause-menu .pm-samen .sw-acties { position: relative; flex: none; }
+#pause-menu .pm-samen .sw-info-knop { display: inline-flex; align-items: center; gap: var(--ds-s-2); min-height: var(--ds-doel-aanraken); cursor: pointer; font: 800 var(--ds-t-hulp) / var(--ds-lh-kop) var(--ds-font-zeef-kop); letter-spacing: var(--ds-ls-label); }
+#pause-menu .pm-samen .sw-info-knop:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx); outline-offset: var(--ds-focus-afstand); }
+#pause-menu .pm-samen .sw-info-tekst, #pause-menu .pm-samen .sw-acties-lijst {
+  position: absolute; left: 0; right: 0; bottom: 100%; margin-bottom: var(--ds-s-2); z-index: 5; display: flex; flex-direction: column; gap: var(--ds-s-2); max-height: 60vh; overflow-y: auto; padding: var(--ds-s-3) var(--ds-s-4);
+  border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-c-papier); box-shadow: var(--ds-schaduw-hard);
+}
+#pause-menu .pm-samen .sw-acties-lijst { right: auto; min-width: 16em; align-items: stretch; }
+#pause-menu .pm-samen .sw-info-tekst p { font-size: var(--ds-t-hulp); }
+
+/* de vaste voetzone: Terug en andere secundaire knoppen links, de hoofdactie (geel, met Enter) rechts */
+#pause-menu .pm-samen .sw .sw-voet {
+  position: relative; flex: none; display: flex; flex-wrap: nowrap; align-items: center; gap: var(--ds-s-2); margin: 0; padding: var(--ds-s-3) 0 0;
+  border-top: var(--ds-lijn-dik) dashed var(--ds-c-ink-inkt); background: none; box-shadow: none; border-radius: 0;
+}
+#pause-menu .pm-samen .sw .sw-voet .sw-knop { flex: none; max-width: none; min-height: var(--ds-hoogte-knop); padding: var(--ds-s-2) var(--ds-s-4); font-size: var(--ds-t-body); white-space: nowrap; }
+#pause-menu .pm-samen .sw .sw-voet .sw-voet-ruimte { flex: 1 1 0; min-width: 0; }
+#pause-menu .pm-samen .sw .sw-voet .sw-acties > summary { list-style: none; }
+
+/* een laag vak (de menustage op 1280x720): de regel onder de kaartnaam valt weg en de knoppen worden compact */
+@container swvak (max-height: 640px) {
+  .sw-kaart-tekst { display: none; }
+  .sw .sw-voet .sw-knop { min-height: var(--ds-doel-aanraken); padding-block: var(--ds-s-1); }
+  .sw .sw-voet { padding-top: var(--ds-s-2); }
+}
