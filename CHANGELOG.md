@@ -11,6 +11,12 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Cutscenes
+- Ondertitels knipperen niet meer tussen twee regels en vervagen met de tekst erin, zonder leeg vakje.
+- Houd je de spatie vast om een scène over te slaan, dan zie je de ring meteen, ook vlak na het begin van de scène.
+- Een scène die niet goed kan starten (of een kapotte camerastand heeft) laat je niet meer vastzitten in een leeg beeld: het spel gaat door.
+- "Opening opnieuw bekijken" zegt in gewone woorden waarom het nu niet kan.
+
 ### Prestaties
 - Prestaties (#1074, #1067): als het spelvenster verborgen of op de achtergrond is, doen de vaste controles van de overlays, het Samen-paneel en het aanraakscherm niets meer; de kartmotor wordt bij het verlaten van de baan echt stopgezet. Samen spelen: lokaal per speler, geen netwerkwijziging; testsessies met `?stil` blijven gewoon tikken. Voor de metingen staan er twee A-schakelaars (`?perfoff=boomfade`, `?perfoff=gevelfade`).
 ### Kaart en HUD

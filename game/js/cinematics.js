@@ -670,8 +670,8 @@ export function updateCinematics(dt, w) {
   else if (!active && camMode && lichaam.inVehicle) pose = cinemaCamPose(w);
   // een pose met een geen-getal telt niet: houd de laatste goede stand vast in plaats van de wereld op zwart te zetten
   if (pose && active) {
-    if (poseIsFinite(pose)) active._goedePose = pose;
-    else { notePose(active.id, pose); pose = active._goedePose || null; }
+    if (poseIsFinite(pose)) active._lastGoodPose = pose;
+    else { notePose(active.id, pose); pose = active._lastGoodPose || null; }
   }
   if (pose && active) notePose(active.id, pose);
   w.cameraOverride = pose;

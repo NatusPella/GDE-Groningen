@@ -505,7 +505,7 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
       useDef = def; useScene = scene;
     }
   }
-  let run = null, lastT = 0, bouwFout = false, bouwFoutGemeld = false;
+  let run = null, lastT = 0, buildFailed = false, buildFailSkipped = false;
   // name cards (fx 'naam' { text, dur }): a character is introduced at the lower left (#159); a line's own `card`
   // (missionstory.js, #711) counts too, so a guest's replay shows the same name card as the host.
   const cards = [
@@ -537,13 +537,13 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
       } catch (e) {
         console.error('cutscript', useDef.id, e);
         run = null;
-        bouwFout = true;
+        buildFailed = true;
       }
     },
     shot(u, t) {
       if (!run) {
         // de set kon niet gebouwd worden: geen lege scène van minuten met alleen ondertitels, maar meteen terug naar het spel (als overgeslagen)
-        if (bouwFout && !bouwFoutGemeld) { bouwFoutGemeld = true; queueMicrotask(() => { if (isCinematicActive(cine.id || useDef.id)) skipCinematic(); }); }
+        if (buildFailed && !buildFailSkipped) { buildFailSkipped = true; queueMicrotask(() => { if (isCinematicActive(cine.id || useDef.id)) skipCinematic(); }); }
         return null;
       }
       const dt = Math.min(0.1, Math.max(0, t - lastT));

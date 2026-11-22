@@ -20,7 +20,7 @@ ok(!poseIsFinite(P({ fov: NaN })) && !poseIsFinite(P({ position: { x: 1, y: 2, z
 ok(!poseIsFinite(null) && !poseIsFinite({}) && !poseIsFinite({ position: { x: 1, y: 2 } }), 'lege staten geven false');
 
 const cine = lees('game/js/cinematics.js');
-ok(/if \(poseIsFinite\(pose\)\) active\._goedePose = pose;\s*else \{ notePose\(active\.id, pose\); pose = active\._goedePose \|\| null; \}/.test(cine), 'cinematics.js houdt bij een kapotte pose de laatste goede stand vast');
+ok(/if \(poseIsFinite\(pose\)\) active\._lastGoodPose = pose;\s*else \{ notePose\(active\.id, pose\); pose = active\._lastGoodPose \|\| null; \}/.test(cine), 'cinematics.js houdt bij een kapotte pose de laatste goede stand vast');
 
 // 2. de skip-ring is er meteen als de spatie wordt vastgehouden (de hint komt anders pas na 0,8 s)
 const css = lees('game/js/hud_panel.css');
@@ -29,7 +29,7 @@ ok(css.indexOf('.cine-skip.holding { opacity: 1;') > css.indexOf('#cine.show-ski
 
 // 3. een scène waarvan de set niet gebouwd kon worden eindigt meteen (geen lege scène met alleen ondertitels)
 const host = lees('game/js/cutscenehost.js');
-ok(/bouwFout = true;/.test(host) && /if \(bouwFout && !bouwFoutGemeld\)/.test(host) && /isCinematicActive\(cine\.id \|\| useDef\.id\)\) skipCinematic\(\)/.test(host), 'een mislukte setbouw slaat de scène over');
+ok(/buildFailed = true;/.test(host) && /if \(buildFailed && !buildFailSkipped\)/.test(host) && /isCinematicActive\(cine\.id \|\| useDef\.id\)\) skipCinematic\(\)/.test(host), 'een mislukte setbouw slaat de scène over');
 ok(/import \{[^}]*skipCinematic[^}]*isCinematicActive[^}]*\} from '\.\/cinematics\.js'/.test(host), 'cutscenehost importeert skipCinematic en isCinematicActive');
 
 console.log(`cine_verfijn_test: ${n} controles, ${fails} fouten`);
