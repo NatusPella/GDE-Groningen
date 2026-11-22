@@ -14,7 +14,8 @@ try {
         const best = listSlots(null).filter((x) => x.summary).sort((a, b) => b.summary.savedAt - a.summary.savedAt)[0];
         legacy = best ? best.n : want; // geen save: het nieuwe spel neemt de gedeelde inhoud over (niets blijft onder 0 liggen)
       }
-      activateScope(localStorage, want, legacy);
+      const wissel = activateScope(localStorage, want, legacy);
+      if (wissel && wissel.failed) console.warn('save-voortgang: wisselen is niet gelukt (opslag vol of geblokkeerd); de bewaarde voortgang blijft zoals hij was');
     }
   }
 } catch (e) { console.warn('save-voortgang: wisselen mislukt', e); }

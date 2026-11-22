@@ -330,5 +330,14 @@ await t('#464: een lege lijst zegt dat er gezocht wordt; een lege uitslag heeft 
   lobby.close();
 });
 
+t('constitution 4: het wereldniveau gaat niet in de openbare aankondiging en staat niet in de lijsttekst', async () => {
+  const fs = await import('node:fs');
+  const ui = fs.readFileSync(new URL('../game/js/lobbyui.js', import.meta.url), 'utf8');
+  const m = ui.match(/maakAankondiger\(\{[^\n]*\n[^\n]*\n/);
+  assert.ok(m && !/niveau\s*:\s*\(/.test(m[0]), 'maakAankondiger krijgt geen niveau');
+  const lb = fs.readFileSync(new URL('../game/js/lobby.js', import.meta.url), 'utf8');
+  assert.ok(!/e\.niveau \? ' · '/.test(lb), 'de lijstregel toont geen wereldniveau');
+});
+
 console.log(`lobbyui_serverlijst_test: ${n}/${n} ok`);
 process.exit(0);

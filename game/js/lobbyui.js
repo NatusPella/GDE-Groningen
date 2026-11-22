@@ -408,7 +408,7 @@ export function mountLobby(root, hooks, opts = {}) {
     aankondiger = sig;
     // De lijst draagt naam, spelers, versie, het sessie-id en de publieke hostsleutel; de kamercode staat er niet
     // in (#583, #795).
-    const maak = maakAankondiger({ naam: p.naam, versie: VERSION, proto: PROTO, id: p.id, niveau: () => getDifficultyLevel(),
+    const maak = maakAankondiger({ naam: p.naam, versie: VERSION, proto: PROTO, id: p.id, // niveau: niet in de openbare aankondiging (constitution 4: alleen naam, aantal spelers en versie)
       hub: () => (hub && hub.publiek ? hub.publiek() : null) });
     const topic = await topicFor(LIJST.sleutel);
     if (aankondiger !== sig) return; // intussen weer privé gemaakt: niets plaatsen

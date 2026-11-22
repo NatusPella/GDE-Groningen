@@ -44,7 +44,7 @@ export function wizardHtml(ctx) {
     titel = WIZ_TEKST.host.titel; kort = wz.openbaar ? 'Zet de sessie in de lijst, met een naam.' : WIZ_TEKST.host.kort;
     body = hostKiezenHtml(ctx);
     voet = [{ act: 'wie-terug', label: 'Terug' }, ...(s.caps.direct && !wz.openbaar ? [{ act: 'route-direct', label: 'IP-adres (direct)' }] : []), { act: 'host-open', label: 'Open je spel', primary: true }];
-    info = ['Een privé sessie staat nergens in een lijst: alleen wie de kamercode kent, komt erbij. Een wachtwoord is niet verplicht.', 'Openbaar: de naam van je sessie, het aantal spelers, de versie, het wereldniveau en een sessie-id staan in de lijst. Je IP-adres, wachtwoord en kamercode staan er nooit in.'];
+    info = ['Een privé sessie staat nergens in een lijst: alleen wie de kamercode kent, komt erbij. Een wachtwoord is niet verplicht.', 'Openbaar: de naam van je sessie, het aantal spelers, de versie en een sessie-id staan in de lijst. Je IP-adres, wachtwoord en kamercode staan er nooit in.'];
   } else {
     // stap 2 (lijst, toestemming, ...) en stap 3 (verbinden, wachten, verbonden, fouten) en de statuskaart: de lobby levert de inhoud
     const { kort: k1, meer } = splitHint(v.lines.slice(0, Number.isInteger(v.kern) ? v.kern : v.lines.length));
