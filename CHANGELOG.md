@@ -56,6 +56,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - **Voetbalcarrière (nieuw, nog niet in beeld bekeken, #1106):** na akte 4 kun je als Tessa of Tammo een carrière beginnen bij een lokale club bij jou in de buurt, met de ander als teamgenoot. Elk seizoen heeft zeven rondes, een ronde per drie speldagen: speel een ronde zelf (meer geld en ervaring) of laat hem uitrekenen. Je traint per speldag, groeit in tempo, schot, pass, uithouding en verdedigen en stijgt via Talentenklasse en Terpklasse naar de Kroonklasse, met de Dijkbeker en de Waddenbeker. Later word je kapitein, trainer en manager (transfers en clubkas). Alle clubs en spelers zijn verzonnen. Je vindt het onder Loopbanen bij het vak Buiten.
 - Voetbalcarrière: een wedstrijd speel je op het echte sportpark van de thuisploeg (281 parken in de provincie), sponsors zijn verzonnen bedrijven en blessures zijn zonder beeld, uit te zetten en nooit blijvend.
 - Er zijn elf nieuwe prestaties voor de voetbalcarrière (Debuut op het sportpark tot en met Manager).
+- Voetbal: clubs met een streep of in twee helften spelen nu echt in dat shirt (de tweede kleur als laag op het shirt, nooit een logo); de keeper blijft effen. Samen spelen: lokaal beeld, iedereen ziet de shirts van het team op zijn eigen scherm (nog niet in beeld bekeken).
+- Voetbal: langs de zijlijnen staan reclameborden met de verzonnen namen van je sponsors (hooguit drie), op het sportpark en in de Euroborg; zonder sponsor geen borden. Samen spelen: de sponsors zijn van jouw carrière, dus alleen in je eigen spel (nog niet in beeld bekeken).
+- Voetbal: de trainende teams op de velden trappen hoorbaar tegen de bal, zacht en alleen binnen 60 meter, met het bijschrift van de bal (Bal trappen). Samen spelen: lokaal decor, geen netwerk (nog niet beluisterd).
+- Land en bedrijf heeft een tabblad Club: je clubaandelen, het dividend per ronde, een nieuw aandeel in je eigen club (je geld blijft voor een kwart over, verkopen levert 75% op) en je sponsors. Samen spelen: een aandeel is van jouw profiel en komt mee in andermans wereld; elke speler kijkt naar zijn eigen aandelen (nog niet in beeld bekeken).
 
 ### Bezit en snackwagen
 
