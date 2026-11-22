@@ -188,7 +188,7 @@ export function openSaveSlots(opts = {}) {
   const legacyAsk = () => {
     if (!over || over.kind !== 'legacy') return '';
     const tweede = mode === 'start' ? `<button type="button" class="m-bg" data-grp="menu" data-do="legacy-new">${esc(LEGACY_CARD.nieuw)}</button>` : `<button type="button" class="m-bg" data-grp="menu" data-do="back">Terug</button>`;
-    return `<div class="ssl-over ssl-modal" role="alertdialog" aria-labelledby="ssl-legacy-title" aria-describedby="ssl-legacy-text"><div class="ssl-box"><h2 class="m-h2" id="ssl-legacy-title">${esc(LEGACY_CARD.titel)}</h2><p id="ssl-legacy-text">${esc(LEGACY_CARD.tekst)}</p>` +
+    return `<div class="ssl-over ssl-modal" role="alertdialog" aria-labelledby="ssl-legacy-title" aria-describedby="ssl-legacy-text"><div class="ssl-box"><h2 class="m-h2" id="ssl-legacy-title">${esc(LEGACY_CARD.titel)}</h2><p id="ssl-legacy-text">${esc(LEGACY_CARD.tekst)} ${esc(LEGACY_CARD.gevolg)}</p>` +
       `<div class="ssl-qacts"><button type="button" class="m-bp" data-grp="menu" data-do="legacy-continue">${esc(LEGACY_CARD.doorgaan)} <span class="sk-toets-in">${keyLabelHtml(CONFIRM_KEY)}</span></button>${tweede}</div></div></div>`;
   };
   // de kaart is voor deze plek afgehandeld (ook als het bewaren van de vlag mislukte: dan vraagt hij niet nog eens in deze opening)
