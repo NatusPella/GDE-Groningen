@@ -206,6 +206,8 @@ import { initPostgame, updatePostgame, tryPostgameInteract } from './postgame.js
 import { initStationTravel, tryStationInteract } from './stationtravel.js';
 import { initOmmelandFun, updateOmmelandFun, tryOmmelandInteract } from './ommelandfun.js';
 import { BEPPE_KIND } from './beppe_garden.js';
+import { assignRealSetResolver } from './cutscenehost.js';
+import { resolveRealSet } from './realsetrun.js'; // cutscenes en binnenmissies spelen in een echt pand (docs/CUTSCENE-INTERIEURS-22-11.md)
 import { INTERIOR_KIND, assignInteriorHooks } from './interiors.js'; // echt binnen lopen door de voordeur van panden (#1150)
 import { registerSponsorPanden, linkCareer } from './sponsorpanden.js'; // sponsorpanden van het voetbal in de Bezit-pandindex
 import { installBezitInterior } from './bezitinterior.js'; // het beheer van je eigen pand aan de toonbank (#1102)
@@ -974,6 +976,7 @@ window.__debug = { player, map, input, world, frameStats };
   initAchievementTracker(world);
   initOmverrijden(world);
   initBezit();
+  assignRealSetResolver(resolveRealSet);
   installBezitInterior(assignInteriorHooks, { openMenu: () => openPauseMenu('boerderij', { sub: 'bedrijven' }) }); // E bij de toonbank van je eigen pand: het volledige Bezit-menu (Land en bedrijf > Bedrijven)
   try { registerSponsorPanden(); linkCareer({ getCareer: getVoetbalCarriere, subscribe: volgVoetbalCarriere, homeMatchToday: voetbalThuisVandaag, formOf: voetbalVorm, getClub: getVoetbalClub, replaceCareer: vervangVoetbalCarriere, clubPlace: voetbalClubPlek }); } catch (e) { /* zonder voetbal */ }
   // de gedeelde ontgrendelpoort (unlockgate.js): zolang de save geen `gate` heeft (world.gate) staat alles open (migratieregel van de verhaal-epic)

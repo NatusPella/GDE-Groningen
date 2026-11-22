@@ -81,7 +81,7 @@ function speel(w) {
   const { def, lines, duration } = bouwTerugkeerScene(v);
   const p = hoofdspeler(w);
   const ok = playScript(w, def, {
-    lines, duration,
+    lines, duration, realSet: false, // de flat van Tammo en Tessa, nooit het huis van een vreemde: de kamer blijft de kit
     anchor: { x: p.x, y: p.y, facing: 0, z: KAMER_Z },
     cine: {
       id: 'terugkeer', priority: 2, pause: true, letterbox: true, skippable: true, hideHud: true,
@@ -100,5 +100,5 @@ export function terugkeerTest(w, id) {
   if (!v) return false;
   const { def, lines, duration } = bouwTerugkeerScene(v);
   const p = hoofdspeler(w);
-  return playScript(w, def, { lines, duration, anchor: { x: p.x, y: p.y, facing: 0, z: KAMER_Z }, cine: { id: 'terugkeer', priority: 2, pause: true, letterbox: true, skippable: true, hideHud: true } });
+  return playScript(w, def, { lines, duration, anchor: { x: p.x, y: p.y, facing: 0, z: KAMER_Z }, realSet: false, cine: { id: 'terugkeer', priority: 2, pause: true, letterbox: true, skippable: true, hideHud: true } });
 }
