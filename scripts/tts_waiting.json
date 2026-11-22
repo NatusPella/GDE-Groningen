@@ -68,7 +68,13 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Fijn, die nieuwe band. Henk vroeg niks.",
+  "text": "Fijn, die nieuwe band van Henk van de garage. Hij vroeg niks.",
+  "scene": "M02.5"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Waarom vraagt Jelle naar alarmen?",
   "scene": "M02.5"
  },
  {
@@ -152,7 +158,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Dat is de buurman. Hij woont hier al sinds de verhuisdag, met zijn duiven.",
+  "text": "Dat is de buurman. Hij woont hier met zijn duiven.",
   "scene": "N2"
  },
  {

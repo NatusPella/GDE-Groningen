@@ -71,7 +71,6 @@ STREAMER (telefoon): Haal vijftienhonderd stuntpunten, dan betaal ik honderdvijf
 TESSA: Honderdvijftig euro. Dat is precies de inschrijving. Die betaal je bij het Loket, het stadsloket. [NIEUW]
 TESSA: Zonder krassen, want het is Berends bakkie. [NIEUW]
 STREAMER (telefoon): Niemand raken! Alleen spullen. Spullen zijn content. [BEHOUDEN]
-TESSA: Eerst de stunts op de Grote Markt, dan brengen we het bakkie naar Berends zus. [NIEUW]
 
 ## [M01.3] Nul krassen, vijftienhonderd punten: de Grote Markt – Stad, Grote Markt – Berends bakkie
 (regie: avond. Een hijskraan, zoals altijd. Een terras vol mensen in de avondzon. De streamer staat met zijn telefoon op een statief.)
@@ -197,9 +196,9 @@ SJABBE: Weer een automaat? Dit wordt een gewoonte. Een goede. [BEHOUDEN]
 
 ## [M02.5] Slot: naar het Loket – Stad, Pand & Poen – Escapade
 (regie: ze zitten in de Escapade voor de winkel, de motor tikt af.)
-TAMMO: Fijn, die nieuwe band. Henk vroeg niks. [NIEUW]
+TAMMO: Fijn, die nieuwe band van Henk van de garage. Hij vroeg niks. [NIEUW]
 TESSA: Alleen of we een koekje wilden. [NIEUW]
-TAMMO: Waarom vraagt een snackbaron naar alarmen? [NIEUW]
+TAMMO: Waarom vraagt Jelle naar alarmen? [NIEUW]
 TESSA: Dat weten we na het Loket. Hij heeft het vast over meer dan een museum. [NIEUW]
 TAMMO: Dan eerst het Loket. [NIEUW]
 
@@ -237,7 +236,7 @@ SJABBE: Hij zei dat het voor een plan was. Ik zeg niks. [NIEUW]
 ## [N2] Een duif op de gang – Stad, Paddepoel, elfde verdieping – flat
 (regie: Naamkaart: MENEER VELDKAMP bij zijn eerste regel.)
 (regie: vrijdagavond, laat licht. Op de gang van de elfde verdieping staat een oude man in een vest met zes duiven om zich heen. Een duif zit op de deurmat van de flat.)
-TAMMO: Dat is de buurman. Hij woont hier al sinds de verhuisdag, met zijn duiven. [NIEUW]
+TAMMO: Dat is de buurman. Hij woont hier met zijn duiven. [NIEUW]
 TESSA: Je kent hem? [NIEUW]
 TAMMO: Nee. Hij kent mij. Dat is het probleem. [NIEUW]
 VELDKAMP: Die zat hier al. Hij wacht op jou. [NIEUW]
