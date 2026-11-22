@@ -14,6 +14,7 @@
 //   pick + onPick(n): choosing a card only makes it the active game and calls onPick(n), without loading
 //     (the host of Samen spelen picks the game to play with); an empty card calls onNew() as usual.
 import * as S from './saveslots.js';
+import { oskKnop } from './oskview.js';
 import { MAX_SLOTS } from './storagekeys.js';
 import { saveGame, loadSlot, readSave, bindSlot, onThumbKept, coopSessieLoopt, currentSlot, GAST_BEWAARD_TEKST, markLegacyCardSeen } from './savegame.js';
 import { LEGACY_CARD } from './legacysave.js'; // 22-11: de kaart "Nieuw verhaal" bij een oude save
@@ -150,7 +151,7 @@ export function openSaveSlots(opts = {}) {
   const overHtml = (s) => {
     const bad = !s.summary;
     if (over.kind === 'rename') {
-      return `<div class="ssl-over" role="group" aria-label="Hernoemen"><label class="ssl-lbl">Nieuwe naam<input class="ssl-input" data-grp="menu" data-input maxlength="${S.NAME_MAX}" value="${esc(s.name)}" autocomplete="off"></label>` +
+      return `<div class="ssl-over" role="group" aria-label="Hernoemen"><label class="ssl-lbl">Nieuwe naam<input class="ssl-input" data-grp="menu" data-input data-osk="tekst" data-osk-label="Nieuwe naam" data-osk-chips="@datum|Hoofdspel|Proefrit|Veilig" maxlength="${S.NAME_MAX}" value="${esc(s.name)}" autocomplete="off">${oskKnop('de naam')}</label>` +
         `<div class="ssl-presets" aria-label="Snelle namen (ook met de controller)">${NAME_PRESETS.map((nm) => `<button type="button" class="ssl-chipbtn" data-grp="menu" data-do="preset" data-name="${esc(nm)}">${esc(nm)}</button>`).join('')}</div>` +
         '<div class="ssl-qacts"><button type="button" class="m-bt" data-grp="menu" data-do="back">Annuleren</button><button type="button" class="m-bp" data-grp="menu" data-do="rename-ok">Bewaren</button></div></div>';
     }

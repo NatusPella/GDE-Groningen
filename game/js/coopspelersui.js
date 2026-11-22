@@ -21,6 +21,7 @@ import { setUserWaypoint } from './routing.js';
 import { getSettings, setSetting } from './settings.js';
 import { PROFIEL_KLEUREN, ONLINE_NAAM_MAX, profielNaam, profielKleur, profielTekst } from './lobby.js';
 import { meedoenSchakelaarHtml } from './onlineconsentui.js';
+import { oskKnop } from './oskview.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const netStand = (v) => (v === 'lag' || v === 'lost' ? v : 'ok');
@@ -268,7 +269,7 @@ function profielHtml(world) {
   const s = getSettings();
   const kleur = profielKleur(s.onlineKleur);
   return `<div class="cs-profiel"><h4>Je online-avatar</h4><p>${esc(profielTekst({ naam: s.onlineNaam, kleur }))} Je speelt lokaal je eigen verhaal (Tammo of Tessa); zo zien de anderen je, ook in deze lijst.</p>` +
-    `<label class="cs-profiel-label">Online naam <input type="text" class="cs-profiel-naam" maxlength="${ONLINE_NAAM_MAX}" spellcheck="false" autocomplete="off" placeholder="Je figuur" value="${esc(s.onlineNaam)}"></label>` +
+    `<label class="cs-profiel-label">Online naam <input type="text" class="cs-profiel-naam" data-osk="naam" data-osk-check="online-naam" data-osk-label="Online naam" maxlength="${ONLINE_NAAM_MAX}" spellcheck="false" autocomplete="off" placeholder="Je figuur" value="${esc(s.onlineNaam)}">${oskKnop('online naam')}</label>` +
     `<div class="cs-kleuren" role="group" aria-label="Kleur">${PROFIEL_KLEUREN.map((c) => `<button type="button" data-kleur="${c.hex}" aria-pressed="${c.hex === kleur}"><span style="color:${c.hex}" aria-hidden="true">●</span> ${esc(c.naam)}</button>`).join('')}</div>` +
     meedoenSchakelaarHtml(s) +
     (profielFout ? `<p class="cs-profiel-fout" role="alert">${esc(profielFout)}</p>` : '') +

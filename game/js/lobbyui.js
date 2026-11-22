@@ -15,6 +15,7 @@
 // opts:  { start: 'verbroken', rol, route, session (gast), hub (host), holdSlot, holdNaam }  (hervatten in het spel)
 //        { adopt: { code, route }, rol, session | hub }  (de sessie loopt al: na het overdragen van het spel kent het paneel rol, kamercode en spelers)
 import { icoon } from './icons.js';
+import { oskKnop } from './oskview.js';
 import { keyTextHtml } from './keycap.js';
 import { KOPIEER, magStarten, startKnop } from './playerstatus.js';
 import { createLobby, reduce, view, profielNaam, ROLES, ROUTES, PROFIEL_KLEUREN, VERBIND_TIK_MS } from './lobby.js';
@@ -165,7 +166,7 @@ export function mountLobby(root, hooks, opts = {}) {
     const li = v.lijstInfo;
     const sessies = li ? `<div class="coop-lijst" role="region" aria-label="Openbare sessies">
       <div class="coop-lijst-balk">
-        <label class="m-inp coop-lijst-zoek-veld"><span class="ss-label">Zoeken</span><input class="coop-lijst-zoek" type="search" placeholder="Zoek op naam" aria-label="Zoek in openbare sessies" autocomplete="off" spellcheck="false" maxlength="60" value="${esc(li.zoek)}"></label>
+        <label class="m-inp coop-lijst-zoek-veld"><span class="ss-label">Zoeken</span><input class="coop-lijst-zoek" type="search" data-osk="zoek" placeholder="Zoek op naam" aria-label="Zoek in openbare sessies" autocomplete="off" spellcheck="false" maxlength="60" value="${esc(li.zoek)}">${oskKnop('openbare sessies')}</label>
       </div>
       <div class="coop-lijst-filters" role="group" aria-label="Filters">
         ${chip('lijst-filter-alleenAansluitbaar', 'Aansluitbaar', li.filters.alleenAansluitbaar)}
@@ -183,12 +184,12 @@ export function mountLobby(root, hooks, opts = {}) {
       ${li.meer ? `<div class="coop-meer"><button type="button" class="ds-z-knop ds-z-knop--secundair coop-btn" data-act="lijst-meer"><span class="ss-label">Meer laden</span></button></div>` : ''}
     </div>` : '';
     // het kleine formulier voor je online-avatar (#455): naam (hoogstens 16 tekens) en een kleur uit de vaste set
-    const prof = v.profiel ? `<div class="coop-profiel"><label class="coop-profiel-label"><span>Online naam</span><input class="coop-profiel-naam" type="text" spellcheck="false" autocomplete="off" maxlength="${v.profiel.maxLength}" placeholder="Je figuur" value="${esc(v.profiel.naam)}"></label><div class="coop-kleuren" role="group" aria-label="Kleur">${v.profiel.kleuren.map((c, i) => `<button type="button" class="ds-z-knop ds-z-knop--secundair coop-kleur" data-kleur="${c.hex}" aria-pressed="${c.hex === v.profiel.kleur}" title="${esc(c.naam)}"><span class="ss-label"><span class="coop-id coop-kleur-stip coop-kleur-${i}" aria-hidden="true">●</span> ${esc(c.naam)}</span></button>`).join('')}</div><p class="coop-profiel-hint">${esc(v.profiel.tekst)} Laat je de naam leeg, dan zien de anderen de naam van je figuur. Je staat standaard op passief: medespelers kunnen je geen schade doen.</p>${v.profiel.fout ? `<p class="coop-error" role="alert">${esc(v.profiel.fout)}</p>` : ''}</div>` : '';
+    const prof = v.profiel ? `<div class="coop-profiel"><label class="coop-profiel-label"><span>Online naam</span><input class="coop-profiel-naam" type="text" data-osk="naam" data-osk-check="online-naam" data-osk-label="Online naam" spellcheck="false" autocomplete="off" maxlength="${v.profiel.maxLength}" placeholder="Je figuur" value="${esc(v.profiel.naam)}">${oskKnop('online naam')}</label><div class="coop-kleuren" role="group" aria-label="Kleur">${v.profiel.kleuren.map((c, i) => `<button type="button" class="ds-z-knop ds-z-knop--secundair coop-kleur" data-kleur="${c.hex}" aria-pressed="${c.hex === v.profiel.kleur}" title="${esc(c.naam)}"><span class="ss-label"><span class="coop-id coop-kleur-stip coop-kleur-${i}" aria-hidden="true">●</span> ${esc(c.naam)}</span></button>`).join('')}</div><p class="coop-profiel-hint">${esc(v.profiel.tekst)} Laat je de naam leeg, dan zien de anderen de naam van je figuur. Je staat standaard op passief: medespelers kunnen je geen schade doen.</p>${v.profiel.fout ? `<p class="coop-error" role="alert">${esc(v.profiel.fout)}</p>` : ''}</div>` : '';
     // het vinkje op het toestemmingsscherm (#526): "Niet meer vragen" geldt per apparaat en wordt pas bewaard
     // als de speler daarna akkoord gaat (settings.js: multiplayerConsentRemembered)
     const toestemming = v.consent ? consentOnthoudenHtml(v.consent) : '';
     // het wachtwoordveld (#450): dezelfde stijl als het zoekveld (m-inp + ss-label), met de uitleg eronder
-    const ww = v.wachtwoord ? `<div class="coop-wachtwoord-veld"><label class="m-inp coop-wachtwoord-label"><span class="ss-label">${esc(v.wachtwoord.label)}</span><input class="coop-wachtwoord" type="password" spellcheck="false" autocomplete="off" maxlength="${v.wachtwoord.maxLength}" placeholder="${esc(v.wachtwoord.placeholder)}" value="${esc(v.wachtwoord.value)}"></label><p class="coop-wachtwoord-hint mut">${esc(v.wachtwoord.hint)}</p></div>` : '';
+    const ww = v.wachtwoord ? `<div class="coop-wachtwoord-veld"><label class="m-inp coop-wachtwoord-label"><span class="ss-label">${esc(v.wachtwoord.label)}</span><input class="coop-wachtwoord" type="password" data-osk="wachtwoord" spellcheck="false" autocomplete="off" maxlength="${v.wachtwoord.maxLength}" placeholder="${esc(v.wachtwoord.placeholder)}" value="${esc(v.wachtwoord.value)}">${oskKnop('wachtwoord')}</label><p class="coop-wachtwoord-hint mut">${esc(v.wachtwoord.hint)}</p></div>` : '';
     // (#871) op een telefoon (portrait) of een laag scherm is de hoogte het schaarse goed: het
     // avatarblok klapt in, het kamercodeveld staat meteen bovenaan en de figuurkeuzes komen na
     // de knoppen. Zo blijven de eerste actie en "Verder" in beeld.
@@ -228,7 +229,7 @@ export function mountLobby(root, hooks, opts = {}) {
     const vouwOpen = !!(root.querySelector && root.querySelector('.coop-profiel-vouw[open]'));
     const profielBlok = klein && prof ? `<details class="coop-profiel-vouw"${vouwOpen ? ' open' : ''}><summary>Je online-avatar</summary>${prof}</details>` : prof;
     const code = v.code ? `<pre class="coop-code" tabindex="0" aria-label="Jouw code">${esc(v.code)}</pre>` : '';
-    const invoer = v.input ? `<input class="coop-input" type="text" spellcheck="false" autocomplete="off" aria-label="${esc(v.input.label || v.input.placeholder)}" placeholder="${esc(v.input.placeholder)}"${v.input.maxLength ? ` maxlength="${v.input.maxLength}"` : ''} value="${esc(v.input.value || '')}">` : '';
+    const invoer = v.input ? `<input class="coop-input" type="text" data-osk="${esc(v.input.osk || 'tekst')}"${v.input.oskCheck ? ` data-osk-check="${esc(v.input.oskCheck)}"` : ''} spellcheck="false" autocomplete="off" aria-label="${esc(v.input.label || v.input.placeholder)}" placeholder="${esc(v.input.placeholder)}"${v.input.maxLength ? ` maxlength="${v.input.maxLength}"` : ''} value="${esc(v.input.value || '')}">${oskKnop(v.input.label || '')}` : '';
     root.innerHTML =
       `<h3 class="coop-title">${esc(v.title)}</h3>` +
       (klein ? invoer : '') +
