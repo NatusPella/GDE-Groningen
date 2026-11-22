@@ -209,6 +209,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Menu's en schermen
 
+- Oude spelstanden: een spel van een eerdere versie (zonder het nieuwe verhaal) toont eenmaal de kaart 'Nieuw verhaal': "Dit spel komt van een eerdere versie. Voor het nieuwe verhaal werkt een nieuw spel het best." Doorgaan laadt het spel zoals het was (alles blijft open, niets gaat verloren); Nieuw spel begint een nieuwe plek en wist niets. De kaart werkt met toetsenbord en controller en komt per spel maar één keer. In Opgeslagen spellen staat bij zo'n spel een kleine tag 'Oude versie'. Alles gebeurt lokaal; bij Samen spelen verandert er niets.
 - Tekstdieet: de keuzekaart 'Hoe wil je spelen?' houdt zijn uiterlijk maar heeft geen inleiding meer en een korte ondertitel per knop. De naamkaart 'Je naam voor Samen spelen' heeft nog een titel, het naamveld, een vinkje met één zin en Doorgaan; de uitleg over je IP-adres staat achter 'Meer info' (een uitklapper). Het akkoord vóór het netwerk blijft verplicht. De toestemmingskaart en de moeilijkheidskaart zijn op dezelfde manier ingekort.
 - Laadscherm: nog maar één statusregel onder de balk (geen tipregel en geen verhaalterugblik meer, geen 'Stap n van m').
 - Opgeslagen spellen: ruimere rijen in twee brede kolommen met naam, speeltijd, plek en datum, een kleine niveau-tag en een Laden-knop die altijd zichtbaar is; geen verhaaldeel, balkje of tip meer per rij.

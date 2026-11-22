@@ -12,6 +12,7 @@ import { KEYS, MAX_SLOTS, slotKey, slotRecoveryKey, slotThumbKey } from './stora
 import { migrateSave, savedArc, SAVE_VERSION } from './savemigrate.js';
 import { ARC_ID } from './storyarc.js';
 import { cleanProfile, difficultySummary } from './difficulty.js'; // #1169: het niveau van een save als klein label
+import { isLegacyStorySave, legacyCardNeeded, textWithCardSeen } from './legacysave.js'; // 22-11: de kaart "Nieuw verhaal" bij een oude save
 
 export const NAME_MAX = 28;
 export const FILE_KIND = 'GDE-save';
@@ -196,7 +197,20 @@ export function summarize(d) {
     storyDone: isObj(d.story) && Array.isArray(d.story.done) ? d.story.done.length : 0,
     // #1169: het niveau van deze save ("Uitdagend · aangepast"); een oude save zonder veld toont niets
     niveau: isObj(d.moeilijkheid) ? difficultySummary(cleanProfile(d.moeilijkheid)) : '',
+    // 22-11: een save van een eerdere versie van het verhaal (tag "Oude versie") en of de kaart nog moet komen
+    legacyStory: isLegacyStorySave(d),
+    legacyCard: legacyCardNeeded(d),
   };
+}
+
+// 22-11: de kaart "Nieuw verhaal" is getoond: de vlag gaat in de save zelf, zodat hij eenmaal per save komt en meeverhuist bij
+// kopiëren en exporteren. Alleen een gewone (niet herstelde) plek; de rest van de save blijft zoals hij is. Geeft true als de vlag staat.
+export function markLegacyCardSeen(ls, n) {
+  const r = readSlot(ls, n);
+  if (r.state !== 'ok' || !r.raw) return false;
+  const text = textWithCardSeen(r.raw);
+  if (text == null) return false;
+  return text === r.raw ? true : writeSlotRaw(ls, n, text);
 }
 
 // All slots that hold something (or have a name), in slot order.
