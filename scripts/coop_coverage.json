@@ -1582,6 +1582,14 @@
   {
    "glob": "quitconfirmui",
    "reden": "Bevestiging bij afsluiten in het eigen venster van de speler; lokaal beeld, geen spelstaat."
+  },
+  {
+   "glob": "airguidecard",
+   "reden": "De luchtroute-kaart in de HUD van de eigen speler (beeld); de route is lokaal."
+  },
+  {
+   "glob": "visibletimer",
+   "reden": "Zuivere timer voor zichtbaarheid van een element op dit apparaat; geen spelstaat."
   }
  ],
  "opslag": {

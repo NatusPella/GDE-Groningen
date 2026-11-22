@@ -1,7 +1,7 @@
 {
  "version": 1,
  "note": "Aantal schrijvende bestanden per world-veld (#498), gemeten met scripts/world_eigenaar.mjs. Alleen omlaag; nieuwe velden worden op hun huidige stand opgenomen.",
- "veldTotaal": 348,
+ "veldTotaal": 351,
  "velden": {
   "__knutselwagenChecked": 1,
   "__openingWarm": 1,
@@ -30,9 +30,11 @@
   "challengeHoldPlayer": 3,
   "challengeHud": 1,
   "challengeTarget": 1,
+  "cineJumpLoading": 1,
   "cinematicHideNav": 4,
   "cinematicHidePlayers": 2,
   "cinematicPause": 1,
+  "cineWarming": 1,
   "clock": 12,
   "companion": 1,
   "companionHold": 2,
