@@ -31,6 +31,7 @@ import { lineVoiceFor } from './linevoice.js';
 import { playContactVoice as playBanterVoice, stopContactVoice as stopBanterVoice } from './audio.js';
 import { HERO_REPLACE_FEE as GARAGE_PRICE } from './economy.js';
 import { senderOf, bodyOf, appNaam, LEEG } from './phoneapp.js';
+import { dsButtonKey, KNOP_TOETSEN } from './dsbutton.js';
 
 const RING_TIME = 0.9;
 const MAX_DELIVER = 3;
@@ -308,7 +309,7 @@ export function renderCharacterPhone(block, w, id) {
   block.dataset.phChar = id;
   markReadFor(id);
   const bel = contacts(w).map((c, i) => ({ c, i })).filter(({ c }) => characterForSender(c.speaker || c.name) === id)
-    .map(({ c, i }) => `<button type="button" class="ds-z-knop ds-z-knop--secundair pt-bel" data-ph-contact="${i}"${callIdx === i && call ? ' aria-current="true"' : ''}>Bel ${esc(c.name)}</button>`).join('');
+    .map(({ c, i }) => dsButtonKey({ label: id === OVERIG ? `Praat met ${c.name}` : 'Praat', toets: KNOP_TOETSEN.bevestig, klasse: 'ds-z-knop ds-z-knop--secundair pt-bel', attrs: `data-ph-contact="${i}" aria-label="Bel ${esc(c.name)}"${callIdx === i && call ? ' aria-current="true"' : ''}` })).join('');
   block.innerHTML = `<h3 class="pt-titel">${id === OVERIG ? 'Kletsmaar en contacten' : 'Kletsmaar'}</h3>${bel ? `<div class="pt-acts ds-zeef">${bel}</div>` : ''}<div class="td-detail ph-detail" aria-live="polite"></div>${messagesHtml(id) || (id === OVERIG && !bel ? leegHtml(LEEG.berichten) : '')}`;
   renderDetail();
 }

@@ -36,7 +36,7 @@ ok(VOOR.length === 58, 'de lijst van vóór de wijziging heeft 58 opties (53 + #
 ok(VOOR.filter((k) => k !== 'preset').every((k) => NU.includes(k)), 'geen optie verloren', VOOR.filter((k) => k !== 'preset' && !NU.includes(k)).join(', '));
 // #985: nieuwe opties staan hier met hun issuenummer. VOOR blijft de bevroren lijst van main,
 // zodat een optie die zonder uitleg verdwijnt of verschijnt nog steeds opvalt.
-const NIEUW = ['showSubtitles', 'rustigDrukwerk', 'rumbleStrength', 'terugkeerScene', 'uitlegIconen', 'qteStand', 'liveTreinen', 'worldColor', 'subtitleVlak', 'screenShake', 'markerVormen', 'tikStand'];   // #985 punt 4: ondertitels uit; #992: Rustig drukwerk; 21-11: Wereldkleur
+const NIEUW = ['showSubtitles', 'rustigDrukwerk', 'rumbleStrength', 'terugkeerScene', 'uitlegIconen', 'qteStand', 'liveTreinen', 'worldColor', 'subtitleVlak', 'screenShake', 'markerVormen', 'tikStand', 'toonCheats'];   // #985 punt 4: ondertitels uit; #992: Rustig drukwerk; 21-11: Wereldkleur
 ok(NU.every((k) => VOOR.includes(k) || NIEUW.includes(k)), 'geen optie erbij die geen instelling is', NU.filter((k) => !VOOR.includes(k) && !NIEUW.includes(k)).join(', '));
 ok(new Set(NU).size === NU.length, 'elke optie staat op één plek', NU.filter((k, i) => NU.indexOf(k) !== i).join(', '));
 
@@ -188,7 +188,7 @@ ok(secties.find((x) => x[0] === 'loopbaan')[1] === 'Loopbanen' && secties.find((
 // de telefoon: contacten en berichten staan onder Verhaal, met dezelfde weergave en dezelfde klikken
 const ph = read('game/js/phone.js'), vui = read('game/js/verhaalui.js');
 ok(vui.includes('renderCharacterPhone(') && vui.includes('data-vh-phone') && ph.includes('export function renderCharacterPhone') && pm.includes("phoneClick(e, world, root.querySelector('[data-vh-phone]'), phoneApi)"), 'berichten en bellen staan bij het personage (Verhaal > Personages), met dezelfde klikken');
-ok(ph.includes('Bel ${esc(c.name)}') && ph.includes('data-ph-contact="${i}"') && ph.includes('messagesHtml(id)') && ph.includes('phoneHistory'), 'per personage: bellen als contact, en de berichten nieuwste eerst');
+ok(ph.includes('Praat met ${c.name}') && ph.includes('data-ph-contact="${i}"') && ph.includes('messagesHtml(id)') && ph.includes('phoneHistory'), 'per personage: bellen als contact, en de berichten nieuwste eerst');
 // geen verloren categorie: elke afzender valt onder een personage of onder Overig, elk contact bij een personage of Overig
 ok(ph.includes("export const characterForSender = (name) => characterOf(name) || OVERIG;") && vui.includes('overigCard()') && ph.includes("'Nieuws (Kiekdoar)'"), 'wat van geen personage is (nieuws, meldingen, contacten zonder personage) staat onder Overig');
 ok(!ph.includes('data-ph-thread="') || true, 'de oude lijst Berichten is niet meer nodig');

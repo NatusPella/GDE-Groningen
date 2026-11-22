@@ -14,7 +14,7 @@ Dit document is de index en de werkwijze. De bron van waarheid is de data zelf: 
 | Kleine rollen, rolfiguren uit het script, het Ommeland, radio en media, groepen, familie buiten beeld, kandidaten uit de inspiratielijst | `game/js/characterdossiers_minor.js` |
 | Relaties (één keer verklaard, per kant afgeleid) | `game/js/characterdossiers_relations.js` |
 | Samengevoegd met opzoekfuncties en `cardFacts()` voor de kaart | `game/js/characterdossiers.js` |
-| De kaart in het spel ("Wie is dit?") | `game/js/verhaalui.js` (Verhaal › Personages) |
+| Het dossier in het spel (Verhaal › Personages) | `game/js/verhaalui.js` (gegevens) en `game/js/personagedossier.js` (opmaak: kop, feiten, Samen in, Meer) |
 | Consistentietest | `scripts/characterdossiers_test.mjs` |
 | Castingboekje (markdown en HTML) | `scripts/characterdossiers_export.mjs` |
 
@@ -48,7 +48,7 @@ De matrix (personage × akte) en het scènebord (per stap: wie praat, wie is nie
 
 ## 3. De kaart in het spel (Verhaal › Personages)
 
-De bestaande personagekaart (naam, rol, citaat, korte bio, "Voor het duo", "Samen in") krijgt eronder **Wie is dit?**: leeftijd, woonplaats, werk, herkomst en wat iemand voor Tammo en voor Tessa is. Alles via `cardFacts(id, { met, done })`:
+De bestaande personagekaart (naam, rol, citaat, korte bio, "Voor het duo", "Samen in") is sinds 22-11 een dossier met een vaste kop (portret, naam, rol, status) en korte feiten met een icoon (`personagedossier.js`; wat te lang is staat achter **Meer**): leeftijd, woonplaats, werk, herkomst en wat iemand voor Tammo en voor Tessa is. Alles via `cardFacts(id, { met, done })`:
 
 - wie je niet ontmoette toont niets (de tegel bestaat dan ook niet);
 - standaard komt een veld zodra je het personage ontmoette (`reveal` ontbreekt of zegt `met`);
