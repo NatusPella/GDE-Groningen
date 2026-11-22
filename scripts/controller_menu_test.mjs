@@ -22,6 +22,7 @@ const UITZONDERINGEN = [
   ['tuning', 'onbereikbaar-sjabloon', 'tuningworkshopui.js', 'Eigen kleur: een OS-kleurkiezer; de werkplaats loopt met eigen rijen (moveRow) en het palet is het alternatief met de D-pad'],
   ['tuning', 'tekstveld-type', 'tuningworkshopui.js', 'type=color: de OS-kleurkiezer is niet met een controller te bedienen; de palet-knoppen in dezelfde rij doen hetzelfde'],
   ['tuning', 'geen-focus-terug', 'tuningworkshopui.js', 'de werkplaats is een eigen volledig scherm uit de winkel of garage; bij sluiten gaat hij terug naar het spel (geen menu eronder), de focus wordt gewist'],
+  ['samen', 'onbereikbaar-sjabloon', 'coopspelersui.js', 'tabRijHtml (Tab-lijst in het spel, 22-11): een leesregel; data-slot is alleen het adres voor de dempknop erin, de rij zelf is niet klikbaar'],
   ['samen', 'herrender-zonder-focus', 'samenpanel.js', 'samenpanel.js tekent alleen de eenmalige profielkaart; de herrenders van de hub en de spelerslijst gebruiken keepFocus (samenhubui.js, coopspelersui.js)'],
   ['uitleg', 'onbereikbaar-js', 'recapcardrun.js', 'de recap is een kaart die alleen sluit: Enter, spatie, Escape en Backspace (dus A en B) sluiten hem via een venster-keydown; een focusbaar element is niet nodig'],
   ['overig', 'herrender-zonder-focus', 'visboekui.js', 'alleen het detailvlak wordt vervangen; de lijstknoppen blijven staan en houden de focus (kies() zet alleen klassen)'],
@@ -120,8 +121,8 @@ const pad = lees('game/js/gamepad.js');
 ok(/tagName === 'SELECT'/.test(pad) && /nextSelectIndex\(/.test(pad) && /dispatchEvent\(new Event\('change'/.test(pad), 'gamepad.js: A stapt door een keuzelijst en meldt de wijziging (change)');
 ok(/a === 'escape' && isPadTextField\(el\)/.test(pad) && /function leaveTextField/.test(pad), 'gamepad.js: B verlaat een tekstveld (anders was B er dood)');
 ok(/stepFocus\(/.test(pad) && /function stepFocus/.test(pad), 'gamepad.js: de pijlen lopen via stepFocus (spatialNext, daarna de lijst)');
-const pk = lees('game/js/padkeyboard.js');
-ok(/isPadTextField/.test(pk) && /password/.test(pk), 'padkeyboard.js: opent op een wachtwoordveld en schermt het af');
+const pk = lees('game/js/onscreenkeyboard.js') + lees('game/js/oskmodel.js');
+ok(/isPadTextField/.test(pad) && /wachtwoord/.test(pk), 'onscreenkeyboard.js: het schermtoetsenbord kent een wachtwoordveld (bolletjes, Toon); gamepad.js opent het op een tekstveld')
 const lobby = lees('game/js/lobbyui.js');
 ok(lobby.includes("contains('coop-lijst-zoek') && state.lijstZoek)"),'lobbyui.js: Escape wist het zoekveld alleen als er tekst staat (daarna gaat B terug)');
 const pm = lees('game/js/pausemenu.js');
@@ -129,7 +130,7 @@ ok(/T: null, F8: null/.test(pm), 'pausemenu.js: de hints T en F8 tonen geen toet
 ok(hintsZonderPadToets(pm).length === 0, 'elke footerhint van het pauzemenu heeft een controllerknop of verdwijnt bij een controller', hintsZonderPadToets(pm));
 for (const f of ['bezitui.js', 'coopspelersui.js', 'samenhubui.js', 'veroverdpanel.js']) ok(/keepFocus\(/.test(lees('game/js/' + f)) && /restore\(\)/.test(lees('game/js/' + f)), `${f}: tekent de lijst opnieuw met focusbehoud`);
 // de keuzelijsten van Bezit zijn er nog en worden dus door gamepad.js bediend
-ok(selectElementen(lees('game/js/bezitui.js'), 'bezitui.js').length >= 4, 'Bezit heeft nog zijn vier keuzelijsten (filter, sorteren, product, pand): de A-stap blijft nodig');
+ok(selectElementen(lees('game/js/bezitui.js'), 'bezitui.js').length >= 1, 'Bezit heeft nog een keuzelijst (de koppeling per product, data-bz-bind; filter, sorteren, product en pand zijn sinds de Bezit-herziening chips): de A-stap blijft nodig');
 
 // ---------- 6. B, Start en de bumpers: een niveau terug en tabs, in elk scherm hetzelfde ----------
 ok(/k === 'Escape' \|\| k === 'Backspace'\) \{\s*consume\(e\);\s*goBack\(\)/.test(pm), 'pausemenu.js: Escape en Backspace (B) gaan een niveau terug via goBack');

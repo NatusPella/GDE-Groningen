@@ -153,7 +153,7 @@ ok(['chase', 'boatchase', 'timing'].every((k) => CHECKPOINT_KINDS.includes(k)), 
   ok(skipReward(400) === 200 && skipReward(0) === 0, 'skipReward: gewone waarden ongewijzigd');
   const g = { stil: 0, houd: 0, hint: false };
   let hint = false;
-  for (let i = 0; i < 20; i++) { stapVast(g, i === 3 ? NaN : 1, { inVoertuig: true, gas: true, snelheid: 0 }); }
+  for (let i = 0; i < 40; i++) { stapVast(g, i === 3 ? NaN : 0.2, { inVoertuig: true, gas: true, snelheid: 0 }); }
   hint = g.hint;
   ok(hint, 'een NaN-frame tussendoor houdt de vastzit-hint niet tegen');
 }

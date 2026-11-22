@@ -118,7 +118,8 @@ ok(SPECS_AKTE2['M08.outro'].props.prikbord && SPECS_AKTE2['M08.outro'].props.pri
 // --- 6. stemmen: een gewijzigde regel zonder opname staat op de wachtlijst (de TTS-ronde volgt) ---
 const wacht = JSON.parse(fs.readFileSync(new URL('scripts/voice_wacht.json', root), 'utf8')).keys;
 const nieuw = scene('N5').lines.find((l) => /jeugd/.test(l.text));
-ok(nieuw && (nieuw.textOnly || wacht.includes('Anita|' + nieuw.text)), 'N5: de nieuwe Tessa-regel is alleen tekst of wacht op opname');
+const opgenomen = JSON.parse(fs.readFileSync(new URL('game/audio/voicelines/lines/manifest.json', root), 'utf8'));
+ok(nieuw && (nieuw.textOnly || wacht.includes('Anita|' + nieuw.text) || ('Anita|' + nieuw.text) in opgenomen), 'N5: de nieuwe Tessa-regel is alleen tekst, wacht op opname of is al opgenomen (TTS-ronde 3)');
 
 console.log(`verhaal_akte2_perfect_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

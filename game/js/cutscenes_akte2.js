@@ -46,7 +46,7 @@ export const SPECS_AKTE2 = {};
     beats: [
       { on: 'Mevrouw. Al het vet', actor: 'tessa', anim: 'phone' },
       { on: 'Mevrouw. Al het vet', dt: 1.6, actor: 'pan2', anim: 'shrug' },
-      { on: 'Regels, vergunningen', actor: 'tammo', face: 'actor:tessa' },
+      { on: 'Eén klomp voor een stad', actor: 'tammo', face: 'actor:tessa' },
       { on: 'Zonder vet bakt', actor: 'tessa', anim: 'point' },
       { on: 'En de bal?', actor: 'tammo', face: 'actor:tessa' },
       { on: 'Die zijn we kwijt', actor: 'tessa', face: 'actor:tammo' },

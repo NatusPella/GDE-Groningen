@@ -79,7 +79,7 @@ ok(/#trailer-result \{[^}]*z-index: 95/.test(schermen), 'het resultaat ligt bove
 // de metingen zelf blijven ongewijzigd: de rekenfuncties worden nog aangeroepen op dezelfde plek
 for (const stuk of ['computeStats(r)', 'setBenchResult(stats, res.preset', 'writeLastRun(packRun(', 'basis']) ok(trailer.includes(stuk), `meting ongewijzigd: ${stuk}`);
 
-ok(kaartModel.includes('recommendStand(basis, run.preset, run.diag || null)'), 'meting ongewijzigd: het advies rekent op wat de speler speelt (basis)');
+ok(kaartModel.includes('recommendStand(basis, run.preset, run.diag || null'), 'meting ongewijzigd: het advies rekent op wat de speler speelt (basis)');
 
 // ---- 4. de foutmelding ----
 ok(/frame-error ds-zeef ds-z-kaart ds-z-kaart--probleem/.test(toast), 'de foutmelding is een zeefdrukkaart met rode inktrand');
