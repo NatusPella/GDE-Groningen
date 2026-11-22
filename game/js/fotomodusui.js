@@ -349,7 +349,7 @@ function heroHtml(n) {
     ? 'Zet de wereld stil, loop met een vrije camera rond, kies een filter en het weer, en maak een foto. Hij komt als bestand op je eigen schijf; er gaat niets het internet op.'
     : 'Elke foto die je maakte, nieuwste eerst. Wijs er een aan om hem weg te halen; het bestand op je eigen schijf blijft staan.';
   const stand = `<span class="ds-z-chip${leeg ? '' : ' ds-z-chip--succes'}">${icoon('vinkje', { cls: 'ds-z-chip__icoon' })}${n} van ${F.GALLERY.max} foto's</span>`;
-  return '<section class="ds-zeef ds-z-kaart foto-hero" aria-label="Foto\'s">' +
+  return '<section class="ds-zeef ds-z-kaart ds-z-kaart--recht foto-hero" aria-label="Foto\'s">' +
     `<div class="ds-z-kaart__kop"><span class="ds-z-kaart__titel">${titel}</span>${stand}</div>` +
     `<p class="ds-z-kaart__tekst">${lead}</p></section>`;
 }

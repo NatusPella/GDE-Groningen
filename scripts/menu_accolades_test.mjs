@@ -26,4 +26,10 @@ t('Overzicht: geen "Stap 0 van n" en geen tegel "0/0 Missies klaar"', () => {
   assert.match(td, /const stapNu = Math\.min\(done \+ 1, steps\.length\)/);
   assert.match(td, /\(ms\.length \? tile\(ICON\.flag, 'Missies klaar'/);
 });
+t('#1263: de brede kopkaarten (Prestaties, Fotos, Voetbal) staan recht en schuiven niet over tabs of titel', () => {
+  for (const [f, k] of [['achievementsui.js', 'pa-hero'], ['fotomodusui.js', 'foto-hero'], ['voetbalcarriereui.js', 'ds-z-kaart--recht ds-m-binnen']]) {
+    const src = fs.readFileSync(new URL('../game/js/' + f, import.meta.url), 'utf8');
+    assert.ok(src.includes('ds-z-kaart ds-z-kaart--recht ' + k) || src.includes('ds-z-kaart--recht ds-m-binnen'), f + ' mist ds-z-kaart--recht');
+  }
+});
 console.log(`menu_accolades_test: ${n}/${n} ok`);
