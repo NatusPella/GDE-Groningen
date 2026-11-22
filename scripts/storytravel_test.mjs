@@ -142,5 +142,17 @@ const { STEPS } = await import('../game/js/storyarc_nieuw.js');
   const g = { x: 1, y: 2 };
   ok(S.destOf({ goal: { type: 'goto' } }, g) === g, 'other goals keep the guide');
 }
+// verfijnronde 22-11: een rit die faalt (fout in de scène) laat de speler niet hangen: hij komt direct aan
+{
+  const w = mkWorld(0), flags = new Set();
+  startTick({ on: true, step, flags, world: w, busy: false, script: lookup });
+  drive(w);
+  S.tickStoryTravel({ on: true, step, flags, world: w, busy: false, script: lookup, ask: async () => 'meerijden', ride: () => Promise.reject(new Error('scène stuk')) });
+  await tick(); await tick(); await tick();
+  ok(w.player.x === 17000 && w.msgs.some((m) => m === 'Aangekomen in Warffum') && flags.has('reis:T1'), 'een falende rit: direct aangekomen, geen vastloper', JSON.stringify(w.msgs));
+  let asked = 0;
+  S.tickStoryTravel({ on: true, step, flags, world: w, busy: false, script: lookup, ask: async () => { asked++; return 'zelf'; } });
+  ok(asked === 0, 'na een falende rit wordt er niet opnieuw gevraagd');
+}
 console.log(`${n - fails}/${n} storytravel`);
 process.exit(fails ? 1 : 0);

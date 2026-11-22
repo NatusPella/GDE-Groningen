@@ -4,7 +4,7 @@
 // De kaart (ovkaart.js) tekent ze, het keuzepaneel (reispanel.js) toont ze.
 // Alle lijnnamen en vervoerders zijn verzonnen; echte namen uit data komen
 // nooit in beeld (zie busroutes.lineName).
-import { CRUISE, travelSeconds, needsBeat } from './reistijd.js';
+import { CRUISE, travelSeconds, needsBeat, duurTekst } from './reistijd.js';
 import { lineName } from './busroutes.js';
 import { stopName } from './busservice.js';
 
@@ -58,6 +58,7 @@ function slice(line, s0, s1) {
 // lijn (hooguit één overstap), lopen naar het doel. a, b: [x, y]. opts.walk(a, b)
 // geeft een looproute of null (anders een rechte lijn). null als er geen bus gaat.
 export function busTrip(lines, a, b, opts = {}) {
+  if (!Array.isArray(lines) || !lines.length) return null;
   const walk = opts.walk || ((p, q) => [p, q]);
   const near = (p) => {
     const r = [];
@@ -181,21 +182,24 @@ export function reisOpties(routes, { directM = 0, money = Infinity, wanted = 0, 
   // veel trager is dan zelf rijden (of als het een sprong is)
   const rides = out.filter((x) => x.ride && x.afford).sort((p, q) => p.etaS - q.etaS);
   const self = out.find((x) => x.id === 'auto');
-  const rec = rides[0];
+  let rec = rides[0];
+  // een taxi is bijna altijd de snelste, maar ook de duurste: is een goedkopere rit hooguit een kwart (of 3 minuten) trager, dan raden we die aan
+  if (rec && rec.id === 'taxi') {
+    const goedkoper = rides.filter((x) => x.id !== 'taxi' && x.price < rec.price && x.etaS <= Math.max(rec.etaS * 1.25, rec.etaS + 180))[0];
+    if (goedkoper) rec = goedkoper;
+  }
   if (rec && (!self || rec.etaS <= self.etaS * 1.5 || needsBeat(rec.length))) rec.aanbevolen = true;
   return out;
 }
 
 export function etaText(s) {
-  const min = Math.max(1, Math.round(s / 60));
-  if (min < 60) return `± ${min} min`;
-  return `± ${Math.floor(min / 60)} u ${min % 60 ? `${min % 60} min` : ''}`.trim();
+  return `± ${duurTekst(s)}`;
 }
 
 // één regel per optie: "Met de bus · Lijn 12 De Wadloper · 1 overstap · € 6 · ± 24 min"
 export function optieRegel(o) {
   const parts = [o.label];
-  if (o.lines.length) parts.push([...new Set(o.lines.map((l) => l.name))].join(' + '));
+  if (o.lines && o.lines.length) parts.push([...new Set(o.lines.map((l) => l.name))].join(' + '));
   if (o.transfers) parts.push(o.transfers === 1 ? '1 overstap' : `${o.transfers} overstappen`);
   if (o.price) parts.push(`€ ${o.price}`);
   parts.push(o.eta || etaText(o.etaS));

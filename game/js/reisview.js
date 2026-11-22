@@ -2,17 +2,18 @@
 // panel, the HUD line while travelling and the messages. No DOM; reispanel.js
 // draws them, hudbus.js (kind 'reis') decides when they may show.
 import { travelOptions, RIDES } from './reiskeuze.js';
-import { travelSeconds, classOf } from './reistijd.js';
+import { travelSeconds, classOf, duurTekst } from './reistijd.js';
 import { wantsExplain } from './hudtext.js';
 
-const km = (m) => (m < 10000 ? (m / 1000).toFixed(1).replace('.', ',') : String(Math.round(m / 1000)));
-const mins = (s) => Math.max(1, Math.round(s / 60));
+const km = (m0) => { const m = Number.isFinite(+m0) ? Math.max(0, +m0) : 0; return m < 10000 ? (m / 1000).toFixed(1).replace('.', ',') : String(Math.round(m / 1000)); };
+// hoe je zelf gaat, in de woorden van de briefing (de trekker heet geen auto)
+const SELF_WOORD = { auto: 'met de auto', trekker: 'met de trekker', fiets: 'met de fiets', lopen: 'lopend', boot: 'met de boot', bus: 'met de bus', trein: 'met de trein' };
 
 // "Naar Zoutkamp · 30 km · ± 23 min met de auto · ± 10 min met de bus"
 export function briefingLine(beat) {
-  const parts = [`Naar ${beat.to}`, `${km(beat.length)} km`, `± ${mins(travelSeconds(beat.length, beat.selfMode || 'auto'))} min met de auto`];
+  const parts = [`Naar ${beat.to}`, `${km(beat.length)} km`, `± ${duurTekst(travelSeconds(beat.length, beat.selfMode || 'auto'))} ${SELF_WOORD[beat.selfMode || 'auto'] || 'met de auto'}`];
   const ride = RIDES[beat.ride];
-  if (ride && beat.ride !== 'lift') parts.push(`± ${mins(travelSeconds(beat.length, ride.mode))} min ${ride.label.toLowerCase()}`);
+  if (ride && beat.ride !== 'lift') parts.push(`± ${duurTekst(travelSeconds(beat.length, ride.mode))} ${ride.label.toLowerCase()}`);
   return parts.join(' · ');
 }
 
@@ -50,7 +51,7 @@ export function cyclePick(beat, pick, dir) {
 // the HUD line while driving: remaining distance and ETA
 export function hudLine(remaining, mode = 'auto') {
   if (!(remaining > 0)) return '';
-  return `${km(remaining)} km · ± ${mins(travelSeconds(remaining, mode))} min`;
+  return `${km(remaining)} km · ± ${duurTekst(travelSeconds(remaining, mode))}`;
 }
 
 // should the travel prompt show? (the next step is a jump, or the player is a

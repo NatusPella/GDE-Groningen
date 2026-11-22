@@ -107,6 +107,13 @@ export function buildTimeline(view, { max = MAX_TRAINS } = {}) {
     .sort((a, b) => a.r.tijd - b.r.tijd || a.i - b.i).slice(0, n).map(({ r }) => r) : [];
   const horizon = horizonFor(rows.map((r) => r.tijd - now));
   const items = rows.map((r) => trainPoint(r, now, horizon)).filter(Boolean);
+  // twee rijen met dezelfde sleutel (zelfde trein, lijn en plantijd) zouden in het bord één rij delen en er één laten verdwijnen
+  const gezien = new Map();
+  for (const x of items) {
+    const n = (gezien.get(x.id) || 0) + 1;
+    gezien.set(x.id, n);
+    if (n > 1) x.id = `${x.id}#${n}`;
+  }
   const first = items.find((x) => !x.cancelled) || null;
   if (first) { first.first = true; first.tone = first.high ? TONE.red : TONE.board; }
   const empty = items.length === 0;

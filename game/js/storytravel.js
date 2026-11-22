@@ -116,7 +116,8 @@ export function tickStoryTravel(ctx) {
     flags.add(REIS_FLAG(step.id));
     tripStart.delete(step.id);
     if (choice === 'meerijden' && ctx.ride) {
-      return Promise.resolve(ctx.ride(rideOption(beat), { x: g.x, y: g.y, name: beat.to })).then((r) => {
+      // een rit die faalt (fout in de scène) is geen vastloper: dan komt de speler direct aan, zoals zonder scène
+      return Promise.resolve().then(() => ctx.ride(rideOption(beat), { x: g.x, y: g.y, name: beat.to })).catch(() => null).then((r) => {
         if (r && r.aangekomen) return;
         applyTravel(w, beat, choice, g); // no scene possible: arrive directly
         w.addMessage(`Aangekomen in ${beat.to}`, 4, { kind: 'reis' });

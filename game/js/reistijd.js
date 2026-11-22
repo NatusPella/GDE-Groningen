@@ -30,6 +30,16 @@ export function needsBeat(length) {
   return classOf(length).beat;
 }
 
+// Duur in gewone woorden (verfijning 22-11): "3 min", "1 u 18 min". Seconden in, tekst uit; nooit "NaN" of "0 min"
+// (minimaal 1 min) en uren vanaf 60 minuten, zodat een rit van 80 km niet "± 78 min" heet.
+export function duurTekst(s) {
+  const t = Number.isFinite(+s) ? Math.max(0, +s) : 0;
+  const min = Math.max(1, Math.round(t / 60));
+  if (min < 60) return `${min} min`;
+  const u = Math.floor(min / 60), rest = min % 60;
+  return rest ? `${u} u ${rest} min` : `${u} u`;
+}
+
 // seconds for `length` metres by `mode` ('auto', 'trein', 'bus', ...)
 export function travelSeconds(length, mode = 'auto') {
   const v = CRUISE[mode] || CRUISE.auto;
