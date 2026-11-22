@@ -2750,7 +2750,7 @@ export function update3D(dt, world) {
       const driverDist = Math.abs(v.x - player.x) + Math.abs(v.y - player.y);
       ensureDriverFigure(mesh, v, driverDist, driverDeadline);
       const df = mesh.userData.driverFigure;
-      if (df) df.visible = hasAiDriver(v) && driverDist < DRIVER_FIGURE_DIST;
+      if (df) df.visible = hasAiDriver(v) && hystVisible(df.visible, driverDist, DRIVER_FIGURE_DIST);   // met hysterese: een auto die rond 70 m rijdt laat zijn bestuurder niet aan en uit knipperen
       ensurePassengerFigure(mesh, v, driverDist, driverDeadline);
       const pf = mesh.userData.passengerFigure;
       if (pf) pf.visible = df ? df.visible && seatedOf(v).passengers.length > 0 : false;
