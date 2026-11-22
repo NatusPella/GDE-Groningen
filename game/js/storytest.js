@@ -609,6 +609,12 @@ export async function runStoryTest(world) {
     check('game started', await waitFor(() => document.body.classList.contains('game-started'), 180000));
     await drain(world, 1500);
     world.devInvuln = true;
+    // ?ketentest: alleen de doorspeeltest van de hele keten (storyketentest.js), niet de minigames en de rest van de verhaaltest
+    if (FLAGS.ketentest) {
+      const { runKetenTest } = await import('./storyketentest.js');
+      await runKetenTest(world, { report, check, capture });
+      throw Object.assign(new Error('ketentest klaar'), { ketenKlaar: true });
+    }
     // De eerste seconden bouwt de wereld nog (51k gebouwen, tegels, borden). even laten
     // zakken voordat de minigames beginnen; geen rAF-wachtlus, want in een verborgen
     // testvenster staat requestAnimationFrame soms stil.
@@ -1136,7 +1142,7 @@ export async function runStoryTest(world) {
       }
     }
   } catch (e) {
-    errors.push('test: ' + (e && e.stack || e));
+    if (!(e && e.ketenKlaar)) errors.push('test: ' + (e && e.stack || e));
   }
   report.result = report.checks.every((c) => c.ok) && !errors.length ? 'PASS' : 'FAIL';
   report.finishedAt = new Date().toISOString();

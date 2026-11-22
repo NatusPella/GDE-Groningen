@@ -115,6 +115,12 @@ function faseStatisch(ctx) {
     items.push({ naam: 'cutscene-linter (streng op de regie-bijbel)', status: cl.code === 0 ? 'PASS' : 'FAIL', code: cl.code === 0 ? 0 : 1, secs: cl.secs, detail: cl.code === 0 ? '' : (cl.out.split(/\r?\n/).filter((l) => /^(FAIL|cutscene_lint strikt)/.test(l)).slice(0, 3).join(' | ') || MELDING(cl)) });
   }
 
+  // De ketenaudit van het verhaal (#1121): elke stap bereikbaar vanaf een nieuw spel, een uitgang, vlaggen eerder gezet, scenes aanwezig; de wereldcontrole slaat over zonder wereld.
+  {
+    const ka = runStep('verhaal_keten_audit', process.execPath, ['scripts/verhaal_keten_audit.mjs', `--json=${path.join(d, 'verhaal-keten.json')}`], { ms: 10 * 60e3, logDir: d });
+    items.push({ naam: 'ketenaudit van het verhaal (opening tot aftitels)', status: ka.code === 0 ? 'PASS' : 'FAIL', code: ka.code === 0 ? 0 : 1, secs: ka.secs, detail: ka.code === 0 ? '' : (ka.out.split(/\r?\n/).filter((l) => /^FAIL/.test(l)).slice(0, 3).join(' | ') || MELDING(ka)) });
+  }
+
   if (ctx.from) {
     const regels = runStep('rules_audit', process.execPath, ['scripts/release/rules_audit.mjs', `--from=${ctx.from}`, `--out=${path.join(d, 'rules')}`], { ms: 20 * 60e3, logDir: d });
     const status = regels.code === 0 ? 'PASS' : regels.code === 3 ? 'SKIP' : regels.code === 2 ? 'FAIL' : 'FAIL';
