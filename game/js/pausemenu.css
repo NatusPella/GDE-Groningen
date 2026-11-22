@@ -17,6 +17,7 @@ body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidd
 #pause-menu .pm-inner.pm-game { display: flex; flex-direction: column; height: 100%; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--ds-scroll-duim) var(--ds-scroll-spoor); }
 #pause-menu .pm-game > * { flex-shrink: 0; }
 #pause-menu .pm-game [hidden] { display: none; }
+#pause-menu .pm-row[hidden] { display: none; }
 #pause-menu.prestart .pm-ingame { display: none; }
 #pause-menu .pm-q-head { display: flex; flex-direction: column; gap: 4px; padding: 0 0 26px 24px; }
 #pause-menu .pm-logo { font-size: 66px; align-self: flex-start; text-align: left; margin: 0; }

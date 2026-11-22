@@ -149,15 +149,17 @@ export function recentVersions(versions, { maxVersions = OVER_MAX_VERSIONS, maxW
 // The visible part of the Over screen: version line, the newest version(s), "Alles" (filled in
 // when opened) and the two folded reference blocks. The fold bodies are left empty here, so the
 // word budget of what the player sees can be measured on this HTML alone.
+// #1271: `versions` is null when the changelog could not be read: version, credits and licences stay, the news says so calmly.
 export function overBodyHtml(versions) {
-  const fresh = freshFn(versions);
-  const shown = recentVersions(versions);
+  const lijst = Array.isArray(versions) ? versions : [];
+  const fresh = freshFn(lijst);
+  const shown = recentVersions(lijst);
   let news = shown.map((v) => versionHead(v, fresh(v.version)) + v.html).join('');
-  if (!shown.length) news = '<p class="mut">Nog geen wijzigingen.</p>';
-  const rest = versions.length - shown.length;
+  if (!shown.length) news = versions ? '<p class="mut">Nog geen wijzigingen.</p>' : '<p class="mut">De wijzigingen zijn nu niet te lezen. Sluit het menu en open het later opnieuw.</p>';
+  const rest = lijst.length - shown.length;
   return `<p class="mut">Versie ${esc(VERSION)} · NatusPella</p>` +
     '<h3>Wat is er nieuw</h3>' + news +
-    (rest > 0 ? `<button type="button" class="m-disc" data-over-alles aria-expanded="false">${CHEV}<b>Alles</b><span class="mut">Alle ${versions.length} versies</span></button>` +
+    (rest > 0 ? `<button type="button" class="m-disc" data-over-alles aria-expanded="false">${CHEV}<b>Alles</b><span class="mut">Alle ${lijst.length} versies</span></button>` +
       '<div class="m-fold" data-over-alles-body hidden></div>' : '') +
     `<button type="button" class="m-disc" data-fold="over-credits" aria-expanded="false">${CHEV}<b>Credits</b><span class="mut">Kaart, muziek, stemmen en software</span></button>` +
     '<div class="m-fold" data-fold-body="over-credits" hidden></div>' +

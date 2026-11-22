@@ -891,7 +891,7 @@ function saveFactsInner() {
   const naam = s && s.name ? s.name : 'deze speelsessie';
   return '<div class="m-fact"><span>Deze sessie</span><b>' + esc(tijd) + '</b></div>' +
     '<div class="m-fact"><span>Laatst opgeslagen</span><b>' + esc(wanneer) + '</b></div>' +
-    '<div class="m-fact"><span>Savegame</span><b>' + esc(naam) + '</b></div>';
+    '<div class="m-fact"><span>Opslagplek</span><b>' + esc(naam) + '</b></div>';
 }
 function saveFactsHtml() {
   // Leeg bij het bouwen: syncSaveButtons vult de feiten zodra het menu opengaat, zodat het bouwen
@@ -901,6 +901,9 @@ function saveFactsHtml() {
 function syncSaveFacts() {
   const box = root && root.querySelector('[data-save-now]');
   if (box) box.innerHTML = saveFactsInner();
+  // #1281: "Missie stoppen" staat alleen in de lijst als er een missie is om te stoppen
+  const stopRij = root && root.querySelector('[data-stop-rij]');
+  if (stopRij) stopRij.hidden = !stopInfo();
 }
 
 // Spel (#416): how the game itself plays, apart from the system settings of Instellingen. The same keys in the same settings (settings.js):
@@ -923,13 +926,13 @@ function spelHtml() {
       <div class="m-li pm-row">${rowName('Opgeslagen spellen', 'Kiezen, laden, hernoemen, exporteren en verwijderen')}<button type="button" class="m-bg" data-action="saves" title="Opgeslagen spellen kiezen, laden, hernoemen, exporteren en verwijderen">Opgeslagen spellen</button></div>
       <p class="pm-status" data-game-status role="status"></p>
       <div class="m-gh"><span>Stoppen</span></div>
-<div class="m-li pm-row">${rowName('Missie stoppen', 'Staat bij Overzicht zodra er een missie loopt, met een vraag erbij')}<button type="button" class="m-bg" data-goto-sub="spel:overzicht">Naar Overzicht</button></div>
+<div class="m-li pm-row" data-stop-rij hidden>${rowName('Missie stoppen', 'Je stopt hem in Overzicht, met een vraag erbij')}<button type="button" class="m-bg" data-goto-sub="spel:overzicht">Naar Overzicht</button></div>
       <div class="m-li pm-row">${rowName('Spel herstarten', 'Slaat op en start het spel opnieuw')}<button type="button" class="m-bg" data-action="menu" title="Opslaan en het spel opnieuw starten">Herstarten</button></div>
       ${DESKTOP ? `<div class="m-li pm-row">${rowName('Spel sluiten', 'Vraagt eerst of je het zeker weet en slaat je voortgang op')}<button type="button" class="m-bg" data-action="exit" title="Opslaan en het spel sluiten">Afsluiten</button></div>` : ''}
       <div class="m-gh"><span>Opnieuw beginnen</span></div>
-      <div class="m-li pm-row">${rowName('Opnieuw beginnen', 'Alles sinds je laatste savegame gaat verloren')}<button type="button" class="m-bg danger" data-action="restart">Opnieuw beginnen</button></div>
+      <div class="m-li pm-row">${rowName('Opnieuw beginnen', 'Alles sinds je laatste opslag gaat verloren')}<button type="button" class="m-bg danger" data-action="restart">Opnieuw beginnen</button></div>
       <div class="pm-confirm" data-restart-confirm hidden>
-        <p>Opnieuw beginnen? Alles sinds je laatste savegame gaat verloren. Je andere savegames blijven staan.</p>
+        <p>Opnieuw beginnen? Alles sinds je laatste opslag gaat verloren. Je andere opgeslagen spellen blijven staan.</p>
         <button type="button" class="m-bg" data-action="load">Laatste spel laden</button>
         <button type="button" class="m-bg danger" data-action="new">Nieuw spel (nieuwe plek)</button>
         <button type="button" class="m-bt" data-action="cancel">Annuleren</button>
@@ -956,7 +959,7 @@ function problemsHtml() {
         <button type="button" class="m-bt" data-action="errlog-clear">Wissen</button>
       </div>
       <p class="pm-status" data-errlog-status role="status"></p>
-      <details class="pm-errfold"><summary>Technische details <span class="mut">(in het Engels)</span></summary><ol class="pm-errlog" data-errlog></ol></details>
+      <details class="pm-errfold"><summary>Ruwe meldingen <span class="mut">voor wie wil meelezen</span></summary><ol class="pm-errlog" data-errlog></ol></details>
     </div>`;
 }
 
@@ -1303,7 +1306,6 @@ function renderOverPanel(el) {
   const box = el.querySelector('.pm-over-news');
   loadChangelogVersions().then((versions) => {
     if (!box || !box.isConnected) return;
-    if (!versions) { box.innerHTML = '<p class="mut">De lijst met wijzigingen kon niet worden geladen.</p>'; return; }
     box.innerHTML = overBodyHtml(versions);
     const credits = box.querySelector('[data-fold-body="over-credits"]');
     if (credits) credits.innerHTML = CREDITS_HTML;
@@ -2254,6 +2256,10 @@ function runAction(a) {
     DESKTOP.saveTextFile(`GDE-foutrapport-${new Date().toISOString().slice(0, 10)}.txt`, errorReport())
       .then((saved) => errlogStatus(saved ? 'Opgeslagen.' : ''), () => errlogStatus('Opslaan lukte niet.'));
   } else if (a === 'errlog-clear') {
+    // #1271: Wissen vraagt eerst om een tweede klik; het rapport is weg als je het niet gekopieerd hebt
+    const knop = root.querySelector('[data-action="errlog-clear"]');
+    if (knop && knop.dataset.zeker !== '1') { knop.dataset.zeker = '1'; knop.textContent = 'Zeker wissen?'; errlogStatus('Het rapport is daarna weg. Druk nog een keer op Wissen om het zeker te weten.'); return; }
+    if (knop) { delete knop.dataset.zeker; knop.textContent = 'Wissen'; }
     clearErrorLog();
     errlogStatus('Gewist.');
   } else if (a === 'reset') {
