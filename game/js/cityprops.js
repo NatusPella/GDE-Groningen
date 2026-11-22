@@ -18,6 +18,7 @@ import { crateGeometry, cartGeometry } from './streetlife3d.js';
 import { decorateScenePed } from './streetlife.js';
 import { pannenkoekenschipGeometry } from './pannenkoekenschip.js';
 import { dayState } from './daynight.js';
+import { applyInteriorCut } from './interiorcut3d.js';
 
 // Ambient city life: benches, bins, bike racks, café terraces, market stalls,
 // canal anglers. Streamed per CELL around the player; each cell merges all its
@@ -902,7 +903,7 @@ export function initCityProps(w) {
   world = w;
   const atlas = initClutter();
   initProtos();
-  material = vcMaterial({ roughness: 0.9, map: atlas });
+  material = applyInteriorCut(vcMaterial({ roughness: 0.9, map: atlas })); // geen stadsprops in een binnenruimte (interiorisolation.js)
   hauler = findHaulerSpot(w.map);
   pancakeBoat = findPancakeBoatSpot(w.map);
   bernard = w.map.centreDist ? null : findBernardSpot(w.map);

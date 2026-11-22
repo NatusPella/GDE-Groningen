@@ -41,10 +41,13 @@ import { playerBusy } from './busy.js';
 import { isCinematicActive } from './cinematics.js';
 import { streamPlanner } from './streamplanner.js';
 import { chooseHomePropertySpawn, pandSpawnOk } from './spawnbinnen.js';
+import { volumeOfPlan } from './interiorvolume.js';
+import { openInteriorVolume, closeInteriorVolume } from './interiorisolation.js';
 
 export const BUILD_R = 24, DROP_R = 34, MAX_LIVE = 2, NPC_R = 24, MAX_NPC = 8;
 const OPEN_TIME = 0.3, OPEN_ANGLE = 1.75, DOOR_REACH = 3.0;
 const BRON = 'interieur';
+let volumeSeq = 0;
 
 const S = { world: null, live: new Map(), plans: new WeakMap(), scan: 0, spots: null, spotsN: -1, closedAt: new WeakMap(), inside: null, listeners: [], hooks: { owned: () => false, manage: () => null, homeStyle: () => null, customers: () => 0, epoch: () => 0 }, sets: [], pinned: new Set(), time: 0 };
 
@@ -173,6 +176,9 @@ function build(w, rec) {
   winBoxes.sort((p, q) => q.hw - p.hw);
   const ls = { b, plan, group, mesh, pivot, leaf, ground, box, boxes: [box, ...winBoxes.slice(0, 7)], open: 0, target: 0, npcs: [], npcsOn: false, triangles, side: Math.sign(fr.tx * -fr.ny + fr.ty * fr.nx) || 1, bellAt: 0, walk: null };
   registerPortalBoxes(ls, ls.boxes);
+  // the world keeps out of the hall: the fixed world layers do not draw in it, walkers and loose props are swept out (interiorisolation.js)
+  ls.volumeId = `pand:${++volumeSeq}`;
+  openInteriorVolume(ls.volumeId, volumeOfPlan(plan, ground));
   ls.walk = makeWalk(plan, b.pts, () => ls.open > 0.55, ground);
   b.walk = ls.walk;
   const p = hoofdspeler(w);
@@ -201,6 +207,7 @@ function drop(w, ls) {
   if (ls.b.walk === ls.walk) ls.b.walk = null;
   if (S.inside === ls) { S.inside = null; emit({ type: 'leave', plan: ls.plan, b: ls.b }); }
   unregisterPortalBoxes(ls, ls.boxes);
+  if (ls.volumeId) closeInteriorVolume(ls.volumeId);
   if (scene) scene.remove(ls.group);
   disposeObject(ls.group);
   for (const o of ls.npcs) unregisterPoseSource(o.seed);

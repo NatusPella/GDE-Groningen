@@ -103,6 +103,7 @@ import { adaptedShadowLevel } from './shadowlevel.js';
 import { treeSyncDue } from './treesync.js';
 import { roadBuildAllowed, createHeavyRoadGate, ROAD_BUILD_MAX_PER_FRAME } from './roadbudget.js';
 import { applyEdgeFade, edgeFadeClone } from './edgefade3d.js';
+import { applyInteriorCut } from './interiorcut3d.js';
 import { streamPlanner } from './streamplanner.js';
 import { selectRing, createRingSmoother, hystVisible, facadeBand, facadeSpeedScale, ringSpeedScale, RING_KEEP_MAX, boundsDist, facadeFloor, buildRank, nearUrgent, ringFloor } from './lodstable.js';
 import { glassMaterial } from './interiorglass.js';
@@ -1473,6 +1474,7 @@ const TREE_NEAR_R = loadRadius(TREE_DIST);
 // #1016: bomen doven uit in een band vóór hun tekenstraal en de lijst wordt een herbouwstap verder geladen (popinrules.js)
 for (const m of [TREE_TRUNK_MAT, TREE_CANOPY_MAT]) applyEdgeFade(m, ...fadeBand(TREE_DIST), perfOff('boomfade')); // ?perfoff=boomfade: bomen zonder discard (#1067)
 const TREE_FAR_MAT = edgeFadeClone(TREE_CANOPY_MAT, ...fadeBand(TREE_FAR, 24), perfOff('boomfade'));
+for (const m of [TREE_TRUNK_MAT, TREE_CANOPY_MAT]) applyInteriorCut(m); // geen stam of kroon in een binnenruimte (interiorisolation.js)
 for (const m of [TREE_TRUNK_MAT, TREE_CANOPY_MAT, TREE_FAR_MAT]) SHARED_MATERIALS.add(m);
 const _leaf = new THREE.Color(), _bark = new THREE.Color();
 const tumbleMats = new Map();

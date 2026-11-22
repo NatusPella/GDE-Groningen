@@ -8,6 +8,7 @@ import { hash2 as hash } from './rng.js';
 import { SpatialGrid, gridItems } from './spatialgrid.js';
 import { koplampenFactor } from './weerlook.js';
 import { syncSetLights } from './setlights.js';
+import { applyInteriorCut } from './interiorcut3d.js';
 
 // Night lighting: instanced street lamps along road edges with additive
 // light-pool decals, a small pool of real PointLights handed to the lamps
@@ -99,11 +100,11 @@ function coneTexture() {
   return new THREE.CanvasTexture(c);
 }
 
-function decalMaterial(map) {
-  return new THREE.MeshBasicMaterial({
+function decalMaterial(map) { // (de lichtvlekken en kegels liggen op de grond: ook die vallen niet in een binnenruimte)
+  return applyInteriorCut(new THREE.MeshBasicMaterial({
     map, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false,
     polygonOffset: true, polygonOffsetFactor: -9, polygonOffsetUnits: -36,
-  });
+  }));
 }
 
 function buildPoleGeometry() {
@@ -133,12 +134,12 @@ function mergeGeometries(list) {
 
 export function initNightLights(targetScene) {
   scene = targetScene;
-  poleMesh = new THREE.InstancedMesh(buildPoleGeometry(), new THREE.MeshStandardMaterial({ color: 0x2c3230, roughness: 0.55, metalness: 0.35, flatShading: true }), LAMP_MAX);
+  poleMesh = new THREE.InstancedMesh(buildPoleGeometry(), applyInteriorCut(new THREE.MeshStandardMaterial({ color: 0x2c3230, roughness: 0.55, metalness: 0.35, flatShading: true })), LAMP_MAX);
   poleMesh.castShadow = true;
   poleMesh.userData.kind = 'streetlamp';
   poleMesh.receiveShadow = true;
   const headGeo = new THREE.PlaneGeometry(0.52, 0.22).rotateX(Math.PI / 2).translate(ARM, HEAD_Y - 0.05, 0);
-  headMesh = new THREE.InstancedMesh(headGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false }), LAMP_MAX);
+  headMesh = new THREE.InstancedMesh(headGeo, applyInteriorCut(new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false })), LAMP_MAX);
   const poolGeo = new THREE.PlaneGeometry(POOL_SIZE, POOL_SIZE).rotateX(-Math.PI / 2).translate(ARM, 0.05, 0);
   poolMesh = new THREE.InstancedMesh(poolGeo, decalMaterial(radialTexture([[0, 0.9], [0.35, 0.45], [0.7, 0.12], [1, 0]])), LAMP_MAX);
   poolMesh.renderOrder = 2;

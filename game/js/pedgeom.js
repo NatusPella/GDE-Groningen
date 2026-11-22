@@ -3,10 +3,13 @@
 // systems do not import the whole pedestrian simulation (#108). pedestrians.js re-exports them.
 import { closestPointOnSegment } from './util.js';
 import { buildingAt } from './tileplace.js';
+import { inInteriorVolume } from './interiorvolume.js';
 import { registerPoseSource, unregisterPoseSource } from './models3d_people.js';
 
+// Ook de hal van een levend interieur (met zijn muurrand) telt als binnen: de spawners en plaatsers die dit vragen zetten er niets neer
+// (interiorisolation.js).
 export function isInsideBuilding(map, x, y) {
-  return !!buildingAt(map, x, y);
+  return !!buildingAt(map, x, y) || inInteriorVolume(x, y);
 }
 
 // The road categories a walker keeps off: their asphalt is for cars. A footway or
