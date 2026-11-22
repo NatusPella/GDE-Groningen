@@ -16,6 +16,7 @@ import { HOUSE_ARRIVAL } from './beppe_texts.js';
 import { KEYS } from './storagekeys.js';
 import { iconSvg } from './achievementicons.js';
 import { isOverlayHeld } from './overlayhold.js';
+import { notifyHeld } from './notifygate.js'; // een prestatie wacht tot het laadscherm weg is, en gaat niet verloren (22-11)
 import { zones, P3 } from './hudrules.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 import { getSettings } from './settings.js';
@@ -828,6 +829,7 @@ function toastBlocked() {
   const b = document.body;
   if (!b.classList.contains('game-started') || b.classList.contains('cine-hide-hud')) return true;
   // narrative.js: held during cutscenes and story calls, a beat apart from other toasts
+  if (notifyHeld()) return true;
   if (!mayStart('award')) return true;
   // de resultaatkaart, een keuzepaneel of een duelbalk gaat voor (#239): de prestatie staat in de wachtrij
   if (isOverlayHeld('prestatie')) return true;

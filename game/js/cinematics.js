@@ -24,6 +24,7 @@ import { cinematicLinks as links } from './latehooks.js';
 export function setCinematicLinks(l) { Object.assign(links, l); }
 import { KEYS } from './storagekeys.js';
 import { registerBusyProbe } from './busy.js';
+import { registerNotifyHold } from './notifygate.js';
 import { interiorEyePose } from './carinterior.js';
 import { toggleFirstPerson, setFirstPerson } from './firstperson.js';
 import { playerBusy } from './busy.js';
@@ -197,6 +198,7 @@ export function isCinematicActive(id) {
   return !!active && (id == null || active.id === id);
 }
 registerBusyProbe('cinematic', () => isCinematicActive());
+registerNotifyHold('cutscene', () => isCinematicActive()); // meldingenpoort (22-11): geen melding tijdens een cutscene
 
 // The red damage vignette stays off during cutscenes unless the scene asks
 // for it (spec.blood) or it is the death scene itself.

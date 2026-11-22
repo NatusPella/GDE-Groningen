@@ -26,6 +26,7 @@ import { CARD_LINES } from './cardlines.js';
 import { cardSpoken, hintVoiceFor } from './smsvoice.js';
 import { CARD_PRIORITY, mayShowTip, noteTip } from './attention.js';
 import { mayStart, noteToast, heldBack } from './narrative.js';
+import { notifyHeld } from './notifygate.js'; // niets in beeld terwijl het laadscherm of een cutscene het scherm heeft (22-11)
 import { missionIconInner } from './missionicons.js';
 import { zones, mayShow, cardPrio, cardZone, hudNow } from './hudrules.js';
 import { enqueueCard, leftColumnFits, LINE_PX, throttledRead, COLUMN_OPTS_MS } from './hudbus.js';
@@ -385,7 +386,7 @@ export function updateCards(dt, w) {
   // and a card that is up steps aside while a story call or a subtitle shows (not a danger or a mission's own card)
   const held = heldBack() && !visible.some((c) => !c.leaving && pressing(c, w)) && !(queue.length && pressing(queue[0], w));
   stackEl.classList.toggle('hc-held', held);
-  const frozen = hudHidden() || w.paused || w.uiPaused || held || !mayStart('card', { urgent: true });
+  const frozen = hudHidden() || w.paused || w.uiPaused || held || notifyHeld(['scherm', 'cutscene']) || !mayStart('card', { urgent: true });
   stackEl.classList.toggle('paused', !!frozen);
   if (stackE) stackE.classList.toggle('paused', !!frozen); // het balkje van een E-kaart staat dan ook stil
   document.body.classList.toggle('hud-card-on', visible.some((c) => !c.leaving));

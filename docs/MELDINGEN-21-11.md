@@ -60,3 +60,7 @@ Meldingen zijn lokaal per speler. Elke speler ziet zijn eigen kaarten, toasts en
 
 - Stuntuitleg (`stunthud.js`) en een eventuele hover-houdt-vast voor HUD-kaarten (nu doorklikbaar naar de wereld, dus zonder hover).
 - De sweep in Electron: kijken of het balkje op elke kaart past (breedte, hoeken) en of de rode variant op gevaar en politie goed leesbaar is.
+
+## Meldingenpoort (22-11)
+
+`game/js/notifygate.js` houdt meldingen vast zolang het laadscherm, het opstartscherm, een cutscene of een schermvullend menu het scherm heeft, en geeft ze daarna een voor een vrij met de duur van `noticetiming.js`. Soorten: wanted, missie, prestatie, doel, hint, gebied, ontdekking, kaart. Ontdekkingen smelten samen, wat 20 s wacht vervalt (prestaties nooit), een savegame laden laat oude ontdekkingen vallen. Lokaal per speler; er gaat niets over het net. Test: `scripts/notifygate_test.mjs`.
