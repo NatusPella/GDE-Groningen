@@ -27,6 +27,14 @@ export function trapTabInCard(fieldList, active, shift = false) {
   return fields[navIndex(fields.length, fields.indexOf(active), 'Tab', { wrap: true, shift })];
 }
 
+// De focus terug naar waar hij was toen de kaart openging (aria-modal: een gesloten kaart laat de focus niet in het niets achter, zodat de
+// D-pad of Tab niet opnieuw bij het eerste element van de pagina begint). Aanroepen VOOR de kaart de focus pakt; de teruggegeven functie bij het sluiten.
+// Een element dat intussen weg is of niet meer focusbaar is, wordt overgeslagen. doc: de pagina (standaard document).
+export function bewaarFocus(doc = typeof document !== 'undefined' ? document : null) {
+  const voor = doc && doc.activeElement && doc.activeElement !== doc.body ? doc.activeElement : null;
+  return () => { if (voor && voor.isConnected !== false && typeof voor.focus === 'function') voor.focus(); };
+}
+
 // De toetsen die een kaartvenster voor zichzelf houdt, zodat ze het menu onder de kaart niet wisselen: Q, E, [ ], M en Tab.
 export const PAGE_SWITCH_KEYS = /^(q|e|\[|\]|m)$/i;
 // De cijfertoets van een rij: '1' tot '9' (nooit '0': de lijst telt tot 9).

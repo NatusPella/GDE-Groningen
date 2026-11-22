@@ -142,6 +142,9 @@ function say(w, kind, force = false, after = false) {
   bubble(w, { x: COACH.x, y: COACH.y, name: CLIMB_LINES.who, text: pick(list), h: 2.1, tag: 'klimtoren', ttl: after ? 4.5 : 0 });
 }
 
+// Tikstand aan (rennen, richten of beide): de handen klikken vast met een tik.
+const tikHanden = () => getSettings().tikStand !== 'uit';
+
 function updateGame(w, dt) {
   const g = game, s = g.s, input = w.input;
   g.t += dt;
@@ -157,6 +160,12 @@ function updateGame(w, dt) {
   }
   const down = (a, b) => input.isDown(a) || input.isDown(b);
   const inp = { a: down('a', 'arrowleft'), d: down('d', 'arrowright'), chalk: false };
+  // Tikken in plaats van ingedrukt houden (instelling tikStand, 21-11): een tik klikt die hand vast of los, zodat A en D niet tegelijk
+  // vast hoeven. Uit (standaard): niets verandert. Lokaal per speler.
+  if (tikHanden()) {
+    for (const h of ['a', 'd']) if (input.wasPressed(h) || input.wasPressed(h === 'a' ? 'arrowleft' : 'arrowright')) g.tikHand[h] = !g.tikHand[h];
+    inp.a = g.tikHand.a; inp.d = g.tikHand.d;
+  }
   if (input.wasPressed(' ')) { input.consume(' '); inp.chalk = true; }
   const ev = stepClimb(s, inp, dt);
   for (const e of ev) onEvent(w, e);
@@ -178,6 +187,7 @@ function onEvent(w, e) {
   // #460: de hand op de greep, magnesium, de mat
   pushFoley(w, climbFx(e));
   if (e.type === 'fall') {
+    g.tikHand = { a: false, d: false }; // na een val begint elke hand weer los
     g.flash = { text: `Gevallen! +${WALL.penalty} s (${s.falls}/${WALL.tries})`, t: 2, bad: true };
     say(w, 'fall', true);
   } else if (e.type === 'chalk') { g.flash = { text: 'Magnesium: je armen zijn weer fris', t: 1.6 }; if (!g.online) { const pp = magnesiumPop(); simHudPop(pp.tekst, pp.geluid); } }
@@ -292,7 +302,8 @@ function updateHud(w) {
   if (uitleg && !g.rwAan) { g.rwAan = true; rwKlim.ververs(); }
   else if (!uitleg && g.rwAan) { g.rwAan = false; rwKlim.verberg(); }
   if (g.rwAan && !s.ground) { if (g.klimVan == null) g.klimVan = g.t; else if (g.t - g.klimVan > 4) widgetUitlegKlaar(KLIM_UITLEG); }
-  const help = g.rwAan ? `${key('SPATIE')} magnesium · ${key('BACKSPACE')} stoppen` : `${key('A')} + ${key('D')} vasthouden · ${key('SPATIE')} magnesium · ${key('BACKSPACE')} stoppen`;
+  const hand = tikHanden() ? `${key('A')} of ${key('D')} tikken: hand vast of los` : `${key('A')} + ${key('D')} vasthouden`;
+  const help = g.rwAan ? `${key('SPATIE')} magnesium · ${key('BACKSPACE')} stoppen` : `${hand} · ${key('SPATIE')} magnesium · ${key('BACKSPACE')} stoppen`;
   board.set({ row, extra: stand, meter, flash, bad: !!(g.flash && g.flash.bad), help });
 }
 
@@ -344,7 +355,7 @@ function start(w, { online = null, revealed = false } = {}) {
   if (online) { ensureBoard(); board.show(); } // #985: solo staat de strook (simhud.js) in beeld; het bord blijft voor de stand van de anderen in de wedstrijd
   runs++;
   if (rwKlim) rwKlim.verberg();
-  game = { t: 0, phase: 'intro', phaseT: INTRO_S, s: createClimb(holds), flash: null, cam: null, said: 0, online };
+  game = { t: 0, phase: 'intro', phaseT: INTRO_S, s: createClimb(holds), flash: null, cam: null, said: 0, online, tikHand: { a: false, d: false } };
   ensureHolds(game.s.holds);
   const side = FR.toW(7, 3);
   w.companionHold = { x: side.x, y: side.y, face: Math.PI };

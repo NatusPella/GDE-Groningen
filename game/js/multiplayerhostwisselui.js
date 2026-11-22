@@ -124,7 +124,7 @@ function teken(world) {
   if (u.vraag) houder.render({
     title: 'Het spel overnemen?',
     text: `${u.vraag.tekst} Nog ${u.vraag.rest} seconden. Zonder antwoord is het nee.`,
-    buttons: [{ action: 'ja', label: 'Ja (J)', primary: true }, { action: 'nee', label: 'Nee (N)' }],
+    buttons: [{ action: 'ja', label: 'Ja', toets: 'J', primary: true }, { action: 'nee', label: 'Nee', toets: 'N' }],
   });
   else if (u.pauze) houder.render({
     title: 'Even wachten', text: u.pauze.tekst,

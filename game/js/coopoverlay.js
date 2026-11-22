@@ -2,12 +2,15 @@
 // wachten op een speler, wegvallen en het spel overdragen. Eén surface met de menu-set
 // (.gm, .m-bp/.m-bg, tokens), één primaire knop en aria-modal; de aanroeper levert de
 // titel, de tekst en de knoppen. De HTML-functie is puur (testbaar zonder DOM).
+import { knopToets, shortcutName } from './dsbutton.js';
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 export function overlayHtml({ title = '', text = '', buttons = [], label = '' } = {}) {
   const knoppen = (Array.isArray(buttons) ? buttons : []).map((b) => {
     if (!b || !b.action || !b.label) return '';
-    return `<button type="button" class="m-bg cp-btn${b.primary ? ' m-bp cp-primary' : ''}" data-cp-action="${esc(b.action)}">${esc(b.label)}</button>`;
+    // toets: de sneltoets (J, N) als toetsplaatje IN de knop (DS3); het plaatje wisselt zelf naar de knop van de controller
+    const kap = b.toets ? ` ${knopToets(b.toets)}` : '';
+    return `<button type="button" class="m-bg cp-btn${b.primary ? ' m-bp cp-primary' : ''}" data-cp-action="${esc(b.action)}"${b.toets ? ` aria-keyshortcuts="${esc(shortcutName(b.toets))}"` : ''}>${esc(b.label)}${kap}</button>`;
   }).join('');
   return `<section class="gm cp-overlay" role="dialog" aria-modal="true" aria-label="${esc(label || title || 'Samen spelen')}" data-cp-overlay>
   <div class="cp-pane">${title ? `<h2 class="cp-title">${esc(title)}</h2>` : ''}${text ? `<p class="cp-text">${esc(text)}</p>` : ''}${knoppen ? `<div class="cp-actions">${knoppen}</div>` : ''}</div>
