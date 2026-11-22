@@ -11,7 +11,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
-- Opslaan: sluit je het spel (of druk je op F5) terwijl je dood of opgepakt bent, dan begin je de volgende keer met volle gezondheid in plaats van met 1. Bij het eenmalig overzetten van oude prestaties blijven je missierecords op de andere moeilijkheidsniveaus bewaard. Samen spelen: geen verschil, ieder bewaart zijn eigen gezondheid. Nog niet in beeld bekeken.
+- Opslaan: sluit je het spel (of druk je op F5) terwijl je dood of opgepakt bent, dan begin je de volgende keer met volle gezondheid in plaats van met 1. Bij het eenmalig overzetten van oude prestaties blijven je missierecords op de andere moeilijkheidsniveaus bewaard. Samen spelen: geen verschil, elke speler bewaart de eigen gezondheid. Nog niet in beeld bekeken.
 
 - Voetbalcarrière: als Trainer of Manager kies je zelf de opstelling. Bij Trainer en Manager staat bij elke speler een knop om hem vast in de basis te zetten of op de bank te houden (hooguit acht per lijst); "Los" of "Laat het spel de beste elf kiezen" zet het terug. De keuze telt voor je eigen wedstrijd en de coachwedstrijd. Samen spelen: de keuze is van je eigen carrière, een medespeler ziet haar niet. Nog niet in beeld bekeken.
 
