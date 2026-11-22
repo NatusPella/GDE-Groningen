@@ -107,6 +107,9 @@ const CAST = {
   Accountmanager: { voice: 'Zubenelgenubi', who: 'gladde verkoper van Wiebelwerk, soepel en gemaakt vriendelijk', pool: ['glad, verkoperig', 'vriendelijk, gemaakt', 'soepel, zakelijk'], accent: GRO_ACCENT },
   Tinus: { voice: 'Enceladus', who: 'oude boer met een trekker uit het Westerkwartier, schor en joviaal', pool: ['joviaal, boers', 'schor, droog', 'gemoedelijk, praktisch'], accent: GRO_ACCENT },
   'Kind in het publiek': { voice: 'Leda', who: 'kind in het publiek op de Grote Markt, roept luid en dapper', pool: ['kind, luid', 'dapper, roepend'], accent: GRO_ACCENT },
+  // de begincutscenes van de carrières (careerdebut.js, 22-11): de trainer van de Talentenklasse en de buurman van het eerste perceel
+  'Trainer Eppo': { voice: 'Alnilam', who: 'scherpe, droge Groningse voetbaltrainer van een dorpsclub, geeft bevelen en grapt zonder te lachen', pool: ['droog, bazig', 'scherp, geamuseerd', 'nuchter, laconiek'] },
+  'Buurman Aldert': { voice: 'Enceladus', who: 'oude Groningse boer en buurman, nuchter en hartelijk, weinig woorden', pool: ['nuchter, vriendelijk', 'droog, met een knipoog', 'warm, rustig'] },
   Willemien: { voice: 'Aoede', who: 'gastvrouw in een huis dat op nieuwe poten staat, nuchter en hartelijk', pool: ['hartelijk, nuchter', 'gastvrij, droog', 'warm, berustend'], accent: GRO_ACCENT },
   // TTS-ronde 3 (22-11): de vijf sprekers die op een stemkeuze wachtten kregen een bestaande stem; keuze en reden in docs/TTS-ROND3-22-11.md
   'Meneer Veldkamp': { voice: 'Alnilam', who: 'oude buurman met duiven op de elfde verdieping, droog en kortaf, stiekem vriendelijk', pool: ['droog, kortaf', 'stil, stiekem vriendelijk', 'rustig, een tikje verlegen'], accent: GRO_ACCENT },

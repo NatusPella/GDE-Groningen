@@ -106,6 +106,9 @@ export const NPC = {
   lieke: { name: 'Lieke', shirt: 0xe8c030, skin: SKIN.woodLight, variant: 'female', seed: 6120, hairStyle: 'curly', look: { age: 'child' } },
   daan: { name: 'Daan', shirt: 0xb8b8d8, skin: SKIN.woodMid, variant: 'male', seed: 6121 },
   stien: { name: 'Stien', shirt: 0xd8d4c8, skin: SKIN.woodLight, variant: 'female', seed: 6122, hairStyle: 'bun', look: { age: 'old' } },
+  // de begincutscenes van de carrières (careerdebut.js, 22-11): de trainer van de Talentenklasse en de buurman van het eerste perceel
+  trainer: { name: 'Trainer Eppo', shirt: 0x24324e, skin: SKIN.woodMid, variant: 'male', seed: 6130 },
+  buurman: { name: 'Buurman Aldert', shirt: 0x6a7a3a, skin: SKIN.woodLight, variant: 'male', seed: 6131, look: { age: 'old' } },
 };
 
 // Display name for a story speaker key (T, A, V or an NPC key); missions.js
@@ -745,7 +748,8 @@ function timeline(lines, npc, lead = 0.5) {
     // a line without a recording (the new story) stays up for its reading time, nothing waits for audio
     const d = voice ? Math.max(lineDur(text), voice.dur + 0.25) : readingTime(text, getSettings().readingTime);
     const l = { who, speaker, text, at: t, dur: d, voice, radio: !!(o && o.radio), clue: !!(o && o.clue), look: (o && o.look) || null, cam: (o && o.cam) || null, card: (o && o.card) || null, kiss: !!(o && o.kiss) };
-    t += d + 0.1;
+    // ov (dialoogvorm.js): de volgende regel begint zoveel seconden voor het einde van deze (een reactie die erdoorheen valt)
+    t += d + 0.1 - (o && Number.isFinite(o.ov) ? Math.max(0, Math.min(1.2, o.ov, d - 0.5)) : 0);
     return l;
   });
   return { lines: out, total: t + 0.3 };
@@ -1279,12 +1283,12 @@ function alignToRoad(w, anchor, facing) {
 
 // opts.def: a scene that is not a spec of missionScene (quickScene); opts.update(t, dt) runs every frame; opts.shotOverride(t) is a hand-made
 // camera for a stretch of the scene (a pose, or null for the script's own); opts.z is the floor height (the deck of a boat)
-function playStaged(w, key, tl, { anchor, facing, kicker = '', title = '', cardFor = 3, banner, bannerAfter, def: given = null, update = null, shotOverride = null, z = 0, queue = false, onStart = null }) {
+function playStaged(w, key, tl, { anchor, facing, kicker = '', title = '', cardFor = 3, banner, bannerAfter, def: given = null, spec: specGiven = null, update = null, shotOverride = null, z = 0, queue = false, onStart = null, onEnd: onEndGiven = null }) {
   if (run || (!key && !given)) return false;
   const sceneLines = tl.lines.map((l) => ({ speaker: l.speaker, text: l.text, at: l.at, dur: l.dur }));
   const def = given ? given(sceneLines) : missionScene(key, sceneLines, { looks: NPC });
   if (!def) return false;
-  const spec = key ? sceneSpec(key) : null;
+  const spec = specGiven || (key ? sceneSpec(key) : null);
   if (spec && spec.align === 'road') {
     const at = alignToRoad(w, anchor, facing);
     if (at) { anchor = { x: at.x, y: at.y }; facing = at.facing; }
@@ -1310,7 +1314,8 @@ function playStaged(w, key, tl, { anchor, facing, kicker = '', title = '', cardF
     cine: {
       id: 'mission-scene', priority: 3, kicker, title, cardFor, shotOverride, ...(queue ? { queue: true } : {}),
       frame: (t, dt) => {
-        const cur = lines.find((l) => t >= l.at && t < l.at + l.dur);
+        // bij overlappende regels (ov) telt de laatst begonnen regel
+        const cur = lines.filter((l) => t >= l.at && t < l.at + l.dur).pop();
         if (update) update(t, dt, cur);
         if (!cur || cur === voiced) return;
         voiced = cur;
@@ -1332,6 +1337,7 @@ function playStaged(w, key, tl, { anchor, facing, kicker = '', title = '', cardF
         setStoryScene(false);
         if (peds.length) w.pedestrians.push(...peds);
         if (bannerAfter) showBanner(bannerAfter);
+        if (onEndGiven) onEndGiven();
       },
     },
   });
@@ -1408,6 +1414,17 @@ function entryFor(i) {
   if (s.introNpc !== false && !hasN(e.intro)) e.introNpc = false;
   e.outroNpc = hasN(e.outro);
   return e;
+}
+
+// De begincutscenes van de carrières (careerdebut.js, 22-11): een eigen spec en eigen regels [wie, tekst, { ov }], gespeeld als een gewone
+// geregisseerde scène (de stem als er een opname is, anders leestijd) op een eigen plek (`at`: het veld of het perceel). looks: de extra
+// uiterlijken bovenop de NPC-tabel (het clubtenue). `lookTo`: waar de scène naartoe kijkt (het midden van het veld of het perceel).
+export function playSpecScene(w, { spec, lines = [], looks = {}, at = null, lookTo = null, kicker = '', title = '', onStart = null, onEnd = null } = {}) {
+  if (run || !spec || !lines.length || !at) return false;
+  const anchor = freeSpot(w, at.x, at.y);
+  const tl = timeline(lines, null, 0.8);
+  const L = { ...NPC, ...looks };
+  return playStaged(w, null, tl, { anchor, facing: facingTowards(w, anchor, lookTo), kicker, title, cardFor: 3, spec, onStart, onEnd, def: (ls) => missionScene(null, ls, { looks: L, spec }) });
 }
 
 export function playStoryIntro(w, i, { stage = i, short = false, kicker = '', title = '', target = null } = {}) {

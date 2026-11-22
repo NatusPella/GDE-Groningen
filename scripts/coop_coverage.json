@@ -152,6 +152,27 @@
    "gefixt": "22-11: het bewijs dat een meespeler en een lopende sessie geen overgangsscene spelen en dat een gast zijn eigen done en flags houdt staat in scripts/storybridge_test.mjs (bridgeBlockers: client en session); de scene speelt lokaal bij wie het spel opende en een gast kan er niet in vastlopen."
   },
   {
+   "id": "careerdebut",
+   "naam": "Begincutscenes van de voetbalcarrière en van Bezit",
+   "groep": "Verhaal",
+   "modules": [
+    "careerdebut*"
+   ],
+   "eigenaar": "speler",
+   "gast": "Wie de carrière start of het eerste perceel koopt ziet de scène; een gastheer stuurt hem als geregisseerde scène (data) naar de gasten, die hem lokaal nakijken en overslaan kunnen. Een gast die zelf begint speelt hem alleen voor zichzelf.",
+   "beloning": "Geen: een scène heeft geen geld of voortgang; alleen de eigen vlag per speler (carriere:voetbal-start, carriere:bezit-start) zodat hij eenmaal te zien is.",
+   "wegval": "Wie wegvalt mist de rest van de scène; wie later aansluit ziet hem niet. Niets te herstellen: de vlag staat bij wie hem startte.",
+   "test": [
+    "scripts/careerdebut_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "## Begincutscenes van de carrières"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
    "id": "recap",
    "naam": "Recap Waar waren we?",
    "groep": "Verhaal",
@@ -520,7 +541,7 @@
     "voetbalpubliek"
    ],
    "eigenaar": "wedstrijd",
-   "gast": "E bij de spelerspoort: Meedoen? J of N; elf tegen elf met twee tot vier mensen; momentopname van 64 getallen.",
+   "gast": "E bij de spelerspoort: Meedoen? J of N; elf tegen elf met twee tot vier mensen; snapshot van 64 getallen.",
    "beloning": "Per plek of per speler; medaille en record per speler.",
    "wegval": "De computer neemt over; wie wegvalt telt niet mee.",
    "test": [
@@ -1026,7 +1047,7 @@
    "eigenaar": "wereld",
    "gast": "Het weer is van de wereld: de host meldt de weerstaat, een gast zet hem in zijn eigen machine.",
    "beloning": "Geen.",
-   "wegval": "Hostwissel neemt de weerstaat mee (herstelmomentopname).",
+   "wegval": "Hostwissel neemt de weerstaat mee (herstelsnapshot).",
    "test": [
     "scripts/coopweer_test.mjs",
     "scripts/weatherstate_test.mjs"
@@ -1421,7 +1442,7 @@
     "simhost"
    ],
    "eigenaar": "gesynct",
-   "gast": "De langst verbonden speler neemt over uit de herstelmomentopname; tijd, weer, politie, verkeer en opdrachtstand blijven.",
+   "gast": "De langst verbonden speler neemt over uit de herstelsnapshot; tijd, weer, politie, verkeer en opdrachtstand blijven.",
    "beloning": "Niemand verliest iets.",
    "wegval": "Een harde crash van de host: de opvolger opent zijn kamer en de anderen sluiten aan.",
    "test": [

@@ -8,6 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { withEllipsisAliases, voiceSpeaker } from '../game/js/voicebank.js';
 import { VIGNETTEN } from '../game/js/terugkeerscenes.js';
+import { DEBUT_LINES } from '../game/js/careerdebut.js';
 import { JELLE, JELLE_LINES, INTROS, FJORD_BUBBLES, FJORD_DUO } from '../game/js/pg_lines.js';
 import { CARD_LINES, COMPANION_CARDS } from '../game/js/cardlines.js';
 import { OV_HINT_LINES } from '../game/js/ovhintlines.js';
@@ -440,6 +441,9 @@ export function collect() {
   // --- de terugkeerscène (terugkeerscenes.js): de flatvignetten van Tammo en Tessa; de scène zegt 'Tessa', de bank
   // heeft haar opnames onder 'Anita' (SPEAKER_ALIAS)
   for (const v of VIGNETTEN) for (const [who, t] of v.regels) add('Terugkeer (vignetten)', 'lines', [who === 'tammo' ? 'Tammo' : 'Anita'], t);
+
+  // --- de begincutscenes van de carrières (careerdebut.js, 22-11): voetbal en Bezit; Tessa heet in de bank 'Anita'
+  for (const r of DEBUT_LINES) add('Carrièrescènes (begin voetbal en Bezit)', 'lines', [r.speaker], r.text);
 
   // --- het voetbalcommentaar (epic voetbal-uitzending, game/js/voetbalcommentaardata.js): Hilbrand (h) en Roelie (r); een regel met een accolade is een sjabloon en blijft ondertitel
   const vc = src('voetbalcommentaardata.js');
