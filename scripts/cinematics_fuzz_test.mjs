@@ -48,8 +48,9 @@ const tel = { natuurlijk: 0, overgeslagen: 0, vervangen: 0 };
 let seq = 0;
 function spec(rng) {
   const id = 'f' + (seq++);
-  const dur = 0.4 + rng() * 14;
-  const lines = rng() < 0.7 ? Array.from({ length: 1 + Math.floor(rng() * 4) }, (_, i) => ({ speaker: 'tammo', text: 'Regel ' + i, at: i * (dur / 5), dur: dur / 6 })) : null;
+  const dur = rng() < 0.06 ? (rng() < 0.5 ? undefined : NaN) : 0.4 + rng() * 14;
+  const d0 = Number.isFinite(dur) ? dur : 3;
+  const lines = rng() < 0.7 ? Array.from({ length: 1 + Math.floor(rng() * 4) }, (_, i) => ({ speaker: 'tammo', text: 'Regel ' + i, at: i * (d0 / 5), dur: d0 / 6 })) : null;
   const s = {
     id, priority: 1 + Math.floor(rng() * 5), duration: dur, pause: rng() < 0.6, hideHud: rng() < 0.6, skippable: rng() < 0.85, letterbox: rng() < 0.7,
     timeScale: rng() < 0.2 ? 0.3 : 1, hidePlayers: rng() < 0.3, queue: rng() < 0.4, lines,
@@ -118,6 +119,14 @@ for (let seed = 1; seed <= 60; seed++) {
   ok(eindes.get('hold-a') === 1, 'een vastgehouden spatie slaat de eerste scène over');
   ok(!eindes.get('hold-b') && C.isCinematicActive('hold-b'), 'dezelfde hold slaat de tweede scène niet over');
   key('keyup');
+}
+
+// een scène zonder geldige duur eindigt vanzelf (geen eeuwige pauze)
+{
+  C.skipAllCinematics(); eindes.clear(); w.paused = false;
+  C.playCinematic({ id: 'zonder-duur', priority: 2, duration: undefined, pause: true, onEnd: () => { eindes.set('zonder-duur', 1); } });
+  for (let i = 0; i < 80; i++) { nu += 100; C.updateCinematics(0.1, w); }
+  ok(!C.isCinematicActive('zonder-duur') && eindes.get('zonder-duur') === 1 && w.uiPaused === false, 'een scène zonder duur loopt na de standaardduur af en geeft de wereld terug');
 }
 
 console.error = origErr; console.warn = origWarn;

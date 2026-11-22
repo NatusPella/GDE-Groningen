@@ -415,6 +415,8 @@ function begin(spec) {
     priority: 1, duration: 3, letterbox: true, skippable: true, hideHud: true, pause: false, timeScale: 1,
     ...spec, t: 0,
   };
+  // een scène zonder geldige duur (undefined of NaN overschrijft de standaard) liep eindeloos met de wereld op pauze: val terug op de standaard
+  if (!Number.isFinite(active.duration)) active.duration = 3;
   resetSkip();
   const tiles = holdShotTiles(spec.prewarm);
   active._jumps = Array.isArray(spec.jumps) && spec.jumps.length ? createJumpRunner(spec.jumps, jumpEnv(), { skipGate: spec.cutId != null }) : null;
