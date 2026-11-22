@@ -231,7 +231,7 @@ async function binnenStop(S) {
   fixOn = true; skipCine = true; cur = { stop: S.id, camera: 'derde', scherm: 'interieur' }; setEnv(14, 'helder');
   if (!SHm || !INT || !IFR) { log({ type: 'stopfout', stop: S.id, fout: 'shops/interiors/interiorframe ontbreekt' }); return; }
   const shops = SHm.getShopsForRender().filter((s) => !/wapens|heli|boot/.test(s.type));
-  const volgorde = shops.map((s, i) => [S.r[i % S.r.length] + i * 1e-6, s]).sort((a, b) => a[0] - b[0]).map((x) => x[1]);
+  const volgorde = shops.map((s, i) => [S.r[i % S.r.length] + i * 1e-6, s]).sort((a, b) => a[0] - b[0]).map((x) => x[1]).filter((_, i) => i % (S.delen || 1) === (S.deel || 0));
   let gedaan = 0; const geprobeerd = [];
   for (const s of volgorde) {
     if (gedaan >= S.aantal) break;

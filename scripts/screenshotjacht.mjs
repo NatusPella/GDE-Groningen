@@ -77,7 +77,9 @@ async function bouwPlan() {
   const CAMS = ['derde', 'eerste', 'hoog'];
   plekken.forEach((pl, i) => stops.push({ id: `vrij-${String(i + 1).padStart(2, '0')}-${pl.naam}`, soort: 'vrij', plek: pl, tijden: CLOCKS[i % CLOCKS.length], camera: shuffled(rnd, CAMS), weer: Array.from({ length: 3 }, () => pickFrom(rnd, ['helder', 'helder', 'helder', 'motregen', 'regenbui', 'mist'])) }));
   // (c) interieurs
-  stops.push({ id: 'binnen-1', soort: 'binnen', aantal: 15, r: Array.from({ length: 80 }, () => rnd()) });
+  // drie stops van elk 5 panden uit een eigen derde van de winkellijst: loopt Electron vast, dan gaat alleen dat derde verloren
+  const rBinnen = Array.from({ length: 80 }, () => rnd());
+  for (let k = 0; k < 3; k++) stops.push({ id: `binnen-${k + 1}`, soort: 'binnen', aantal: 5, deel: k, delen: 3, r: rBinnen });
   // (d) menu's en schermen
   stops.push({ id: 'menu-1', soort: 'menu' });
   return stops;
