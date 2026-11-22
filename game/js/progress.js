@@ -17,6 +17,16 @@ export const PROGRESS_PARTS = [
   ['gebieden', 'Gebieden', 15],
 ];
 
+// Een percentage dat niet liegt: 100% alleen als alles klaar is (399 van 400 is 99%, niet "100% klaar") en minstens 1%
+// zodra er iets is gedaan (1 van 400 is 1%, niet "0% klaar"). Zonder dit las een bijna volle of net begonnen voortgang verkeerd.
+export function honestPercentage(done, total) {
+  const t = Number(total) || 0;
+  if (!(t > 0)) return 0;
+  const d = Math.max(0, Math.min(Number(done) || 0, t));
+  if (d >= t) return 100;
+  return Math.max(d > 0 ? 1 : 0, Math.min(99, Math.round((d / t) * 100)));
+}
+
 // Puur: de tellingen naar één percentage. Ontbreekt een onderdeel (0 of geen totaal), dan
 // verdelen de andere hun gewicht, zodat een vroege save geen kunstmatig laag cijfer geeft.
 // Geeft het percentage en de onderdelen met hun eigen percentage erbij.
@@ -28,12 +38,16 @@ export function combineProgress(counts = {}) {
     const total = Number(c && c.total) || 0;
     if (!(total > 0)) continue;
     const done = Math.max(0, Math.min(Number(c && c.done) || 0, total));
-    const pct = Math.round((done / total) * 100);
+    const pct = honestPercentage(done, total);
     parts.push({ id, label, weight: w, done, total, pct });
     gewogen += pct * w;
     gewicht += w;
   }
-  const pct = gewicht ? Math.round(gewogen / gewicht) : 0;
+  let pct = gewicht ? Math.round(gewogen / gewicht) : 0;
+  // het totaal is pas 100% als elk onderdeel klaar is, en pas 0% als niets is gedaan
+  if (parts.length && parts.every((p) => p.pct === 100)) pct = 100;
+  else if (pct >= 100) pct = 99;
+  else if (pct < 1 && parts.some((p) => p.done > 0)) pct = 1;
   return { pct: Math.max(0, Math.min(100, pct)), parts };
 }
 
@@ -59,7 +73,7 @@ export function storyCounts(data) {
 // per save eerlijk te geven is.
 export function saveProgress(data) {
   const c = storyCounts(data);
-  return c.total ? Math.round((c.done / c.total) * 100) : 0;
+  return honestPercentage(c.done, c.total);
 }
 
 // De regel die overal hetzelfde klinkt: "42% klaar".
