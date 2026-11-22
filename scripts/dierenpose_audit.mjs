@@ -9,11 +9,11 @@ export const GEVALLEN = [
   ['sheep', {}, [['loop', { speed: 0.45 }], ['graas', { speed: 0 }], ['ren', { speed: 3.2 }]]],
   ['cat', { variant: 1 }, [['sta', { speed: 0 }], ['loop', { speed: 1 }], ['ren', { speed: 4, state: 'flee' }], ['zit', { speed: 0, state: 'sit' }], ['poets', { speed: 0, state: 'groom' }], ['aai', { speed: 0, state: 'sit', aaiT: 1 }]]],
   ['dog', { breed: 1, color: 0.4 }, [['sta', { speed: 0 }], ['loop', { speed: 1.2 }], ['ren', { speed: 4.5 }], ['snuf', { speed: 0, sniff: 1 }], ['aai', { speed: 0, aaiT: 1 }]]],
-  ['duck', { variant: 'drake' }, [['sta', { speed: 0, state: 'sit' }], ['loop', { speed: 0.5 }]]],
+  ['duck', { variant: 'drake' }, [['sta', { speed: 0, state: 'swim' }], ['loop', { speed: 0.5, state: 'swim' }]]],
   ['gans', {}, [['sta', { speed: 0 }], ['loop', { speed: 0.6 }]]],
   ['reiger', {}, [['sta', { speed: 0, state: 'stand' }], ['loop', { speed: 0.4 }]]],
-  ['pigeon', { bobSeed: 0.2 }, [['sta', { speed: 0 }], ['loop', { speed: 0.8 }]]],
-  ['seagull', {}, [['sta', { speed: 0, state: 'stand' }]]],
+  ['pigeon', { bobSeed: 0.2, state: 'ground', z: 0.1 }, [['sta', { speed: 0 }], ['loop', { speed: 0.8 }]]],
+  ['seagull', { state: 'ground', z: 0 }, [['sta', { speed: 0 }], ['loop', { speed: 0.5 }]]],
 ];
 export function meet(kind, base, extra, t) {
   const a = { kind, ...base, ...extra, stride: t * (extra.speed || 0) * 1.7, z: 0 };
