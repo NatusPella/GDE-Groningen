@@ -560,7 +560,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "De koe kijkt. Naar mij. Ze kent mijn duiven.",
+  "text": "De koe kijkt weer. Ze kent mijn duiven.",
   "scene": "N5"
  },
  {
@@ -788,6 +788,12 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
+  "text": "Wie appt je nou weer?",
+  "scene": "M11.6"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
   "text": "Tessa, eigenlijk—",
   "scene": "B2.1"
  },
@@ -813,12 +819,6 @@
   "reason": "spreektekst",
   "speaker": "Geesje",
   "text": "Ze sorteert zonder te kijken.",
-  "scene": "K1"
- },
- {
-  "reason": "spreektekst",
-  "speaker": "Tammo",
-  "text": "Dat kon ze al voor ze kon lezen.",
   "scene": "K1"
  },
  {

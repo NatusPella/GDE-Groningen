@@ -298,7 +298,7 @@ export const STEPS = [
     lead: ['T', 'Jelle koopt al het vet van Grunn, en zonder vet geen eerlijke eierbal, ook niet voor Oma. Banden stuk, tankwagen pakken, naar de Oosterpoort.'] }),
   M('M08', 'romp', 'Fatbikes tellen niet als fiets', 'fatbike', { built: true, reward: 500, unlocks: 'zitmoi', loopbanen: ['bezorg', 'buiten'],
     story: { intro: ['M08.1'], outro: ['M08.3'], replay: ['M08.5'] }, scenes: ['M08.1', 'M08.2', 'M08.3', 'M08.4', 'M08.5'],
-    lead: ['T', 'Oma Trijntje belde: wie eerlijk wil winnen, heeft haar recept van 1953 nodig. Loop te voet heelhuids door de fatbikes in de Oude Ebbingestraat naar de Noorderhaven.'] }),
+    lead: ['T', 'Oma Trijntje belde: eerlijk winnen kan alleen met haar recept van 1953. Loop te voet door de fatbikes in de Oude Ebbingestraat naar de Noorderhaven.'] }),
   // travel steps: the goal is the place (storyreis.js); the lines of the trip itself are the travel beat's (reisbeats.js)
   A('N10', 'romp', 'Een middag op het terras', { type: 'reis', to: 'de Grote Markt', at: [53.21920, 6.56692], r: 250, scene: 'N10' }, { built: true, scenes: ['N10'], lead: ['A', 'Een terras aan de Grote Markt zoekt hulp voor één middag. Ik neem de bestellingen op, jij draagt. Niet kantelen.'] }),
   A('N8', 'romp', 'Een avond bij Oma', { type: 'reis', to: 'de Noorderhaven', at: [53.2250, 6.5610], r: 250, scene: 'N8' }, { built: true, scenes: ['N8'], lead: ['T', 'Oma Trijntje heeft een logeerkamer voor ons en een prikbord vol namen. Terug naar de Noorderhaven.'] }),
@@ -306,7 +306,7 @@ export const STEPS = [
     lead: ['A', 'Met de trein naar Warffum. Daar begint het Hogeland, en Geesje woont in de pastorie.'] }),
   M('M09', 'romp', 'Heel aankomen is ook een kunst', 'eieren', { built: true, reward: 700, loopbanen: ['horeca'],
     story: { intro: ['M09.1'], outro: ['M09.4'], replay: ['M09.5'] }, scenes: ['M09.1', 'M09.2', 'M09.3', 'M09.4', 'M09.5'],
-    lead: ['A', 'Geesje woont in de pastorie in Warffum en heeft de laatste eieren van het Hogeland. Eieren ken ik van thuis: jij rijdt, ik zeg hoe.'] }),
+    lead: ['A', 'Geesje in Warffum heeft de laatste eieren van het Hogeland. Eieren ken ik van thuis: jij rijdt, ik zeg hoe.'] }),
   A('N5', 'romp', 'De boerderij in Warffum', { type: 'reis', to: 'het erf bij Warffum', at: [53.39508, 6.54032], r: 500, scene: 'N5' }, { built: true, scenes: ['N5'], lead: ['A', 'Ik wil je iets laten zien: het erf waar ik melken leerde, bij Warffum. Neem je hand mee, en geen angst.'] }),
   // WP-pakket-aanvulling (21-11, #1126 #1127): K1 tot en met K3, activiteiten zonder beloning met migratie voor oude saves (added: true, zie storyarc.js ADDED_STEPS)
   A('K1', 'romp', 'Het land achter de pastorie', { type: 'reis', to: 'de pastorie in Warffum', at: [53.39185, 6.56013], r: 300, scene: 'K1' }, { built: true, added: true, scenes: ['K1'], lead: ['A', 'Geesje belde: er ligt iets achter de pastorie dat ze mij wil laten zien. Het ruikt naar kippen. Naar Warffum, dus.'] }),

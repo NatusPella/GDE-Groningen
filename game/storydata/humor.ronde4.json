@@ -309,16 +309,16 @@
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 1,
+   "chosen": 0,
    "panel": {
     "votes": [
      0,
      1,
      2
     ],
-    "reason": "Meest onverwachte pointe die bij het personage past.",
+    "reason": "Herzien 22-11 (verhaal-perfect akte 2): variant 1 herhaalde de kippengrap van M09.1 (H2-03); variant 0 is een nieuwe grap en geeft Tammo een eigen reactie.",
     "certainty": "laag",
-    "tiebreak": 1
+    "tiebreak": 0
    },
    "id": "HN-13",
    "scene": "N5",
@@ -342,7 +342,7 @@
      1,
      1
     ],
-    "reason": "Meest onverwachte pointe die bij het personage past.",
+    "reason": "Herzien 22-11: de koe die kijkt komt al voor in M09.3; \"weer\" maakt er een terugkomer van met een nieuwe pointe.",
     "certainty": "midden"
    },
    "id": "HN-14",
@@ -352,7 +352,7 @@
    "shot": "koe in close-up, Tammo achter het hek, een duif op de paal",
    "variants": [
     "De koe kijkt naar mij. Ze weet iets.",
-    "De koe kijkt. Naar mij. Ze kent mijn duiven.",
+    "De koe kijkt weer. Ze kent mijn duiven.",
     "De koe kijkt naar mij. Ze vindt me aardig."
    ],
    "neutral": "De koe kijkt. Naar mij."
