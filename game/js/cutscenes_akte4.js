@@ -44,7 +44,7 @@ S['M17.outro'] = {
     { on: 'Er is een webbureau', actor: 'wubbo', anim: 'point' },
     { on: 'Om middernacht. Net als', actor: 'tammo', anim: 'point' },
     { on: 'Dat is toeval', actor: 'tessa', anim: 'shrug' },
-    { on: 'Dat moeten we weten', actor: 'tammo', anim: 'nod' },
+    { on: 'Toeval heeft ook een server', actor: 'tammo', anim: 'nod' },
     { on: 'Wubbo zei dat jullie kwamen', actor: 'stien', walk: [[2.8, -0.9]], speed: 0.8 },
     { on: 'Wubbo zei dat jullie kwamen', dt: 0.2, actor: 'stien', face: 'actor:tessa' },
     { on: 'Ik kijk alleen', actor: 'tessa', anim: 'shrug' },
@@ -891,7 +891,7 @@ S['M26.15'] = streets('tinus', 5.0, [
   { on: 'Gelkingestraat dicht', actor: 'tinus', anim: 'point' },
   { on: 'Je trekker past er net in', actor: 'tessa', anim: 'look' },
   { on: 'Ik trek hem weg', actor: 'tinus', anim: 'hips' },
-  { on: 'In de stad ziet hij', actor: 'tammo', anim: 'shrug' },
+  { on: 'De trekker en de Martinitoren', actor: 'tammo', anim: 'shrug' },
 ]);
 S['M26.16'] = streets('geesje', 5.0, [
   { on: 'De steeg bij de notaris', actor: 'geesje', anim: 'point' },
