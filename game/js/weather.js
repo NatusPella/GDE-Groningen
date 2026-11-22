@@ -10,7 +10,7 @@ import { updateSummerFlies } from './summerflies3d.js';
 import { updateWorldLife } from './worldlife3d.js'; // wereld levend (21-11): dagelijkse evenementen en dieren, 3 instanced meshes
 import { summerLayer, combineSummer, rainbowStrength } from './summerday.js'; // zomervariatie per kalenderdag (21-11)
 import { createWeatherState, stepWeather, regionWeather, regionAt } from './weatherstate.js';
-import { qualityLook, regionHaze, sunGlow, createStormPlanner, stepStorm, flashAt, mistAtHeight, MIST_NEAR, MIST_FAR } from './weatherlook.js';
+import { qualityLook, regionHaze, sunGlow, createStormPlanner, stepStorm, flashAt, mistAtHeight, MIST_NEAR, MIST_FAR, SKYLINE_FOG, skylineFogCaps } from './weatherlook.js';
 
 const STORM_FOG_COLOR = new THREE.Color(0.35, 0.38, 0.42);
 const LIGHTNING_COLOR = new THREE.Color(0.85, 0.88, 0.95);
@@ -21,6 +21,7 @@ const RAIN_COLOR = new THREE.Color(0x9fb0bf);
 const _stormZenith = new THREE.Color();
 const MIST_COLOR = new THREE.Color(0.66, 0.69, 0.72);
 const _mist = new THREE.Color();
+const _skyCaps = {};
 const _glow = new THREE.Color();
 
 // Rain: a fixed box of streaks centred on the player every frame rather than
@@ -377,6 +378,9 @@ export function applyWeatherToScene3D(scene, renderer, world, dt, px, py, cam = 
   _stormZenith.copy(STORM_ZENITH_COLOR).multiplyScalar(dayK);
   _mist.copy(MIST_COLOR).multiplyScalar(0.08 + 0.92 * base.daylight);
 
+  const caps = skylineFogCaps(mist, _skyCaps);
+  SKYLINE_FOG.capNear.value = caps.capNear;
+  SKYLINE_FOG.capFar.value = caps.capFar;
   if (scene.fog) {
     // #866: mist 0,7 zette het zicht op ~50 m en maakte een hoog beeld helemaal
     // wit. De mist blijft (kleur en sfeer ongewijzigd), maar met een zichtbodem:

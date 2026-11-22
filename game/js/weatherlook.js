@@ -55,6 +55,23 @@ export function mistFog(mist, quality = 'hoog', region = 'stad', base = { near: 
   return { near: Math.max(MIST_NEAR, base.near + (nearAt - base.near) * m), far: Math.max(MIST_FAR, base.far + (farAt - base.far) * m) };
 }
 
+// #1202: herkenbare torens (de Martinitoren) blijven op de skyline leesbaar. Hun mist is begrensd: tot fog.far hoogstens `capNear`
+// (standaard 55 %) en pas op 3x fog.far tot `capFar` (95 %). In dichte mist kromp fog.far naar 150 m en stond de toren op 400 m op
+// 87 %: een spookachtig silhouet. De grenzen zakken met de mist (0,55 naar 0,40 en 0,95 naar 0,78), zodat de toren zichtbaar blijft.
+// De skyline-materialen van scene3d.js delen deze uniform-objecten; weather.js zet ze per beeld.
+export const SKYLINE_FOG = { capNear: { value: 0.55 }, capFar: { value: 0.95 } };
+export function skylineFogCaps(mist = 0, out = {}) {
+  const m = Math.min(1, Math.max(0, mist));
+  out.capNear = 0.55 - 0.15 * m;
+  out.capFar = 0.95 - 0.17 * m;
+  return out;
+}
+// Dezelfde som als de fragmentshader van skylineMaterial (voor de test): de mistfactor op `depth` meter.
+export function skylineFogFactor(depth, near, far, caps) {
+  const ss = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+  return Math.min(ss(near, far, depth), caps.capNear + (caps.capFar - caps.capNear) * ss(far, far * 3, depth));
+}
+
 // Sunrise and sunset glow 0..1 from the sun's height: strongest when the sun
 // stands just above the horizon, weak under cloud. The colour runs from gold
 // to rose to dusk blue as the sun sinks.

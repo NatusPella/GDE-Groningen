@@ -134,7 +134,7 @@ import { createPostFX } from './postfx3d.js';
 import { noteGfxEvent, watchContext, gpuRamp } from './blackframe.js';
 import { spawnExplosionFx, setFxCamera } from './fx3d.js';
 import { litFraction, moonPhase, STAR_SHARE, foliageGlow } from './nightrules.js';
-import { qualityLook } from './weatherlook.js';
+import { qualityLook, SKYLINE_FOG } from './weatherlook.js';
 import { buildCloudLayer, updateCloudLayer } from './cloud3d.js';
 import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn, nightPoolSize } from './nightlights3d.js';
 import { createFarLOD } from './farlod.js';
@@ -1991,8 +1991,10 @@ function skylineMaterial(m) {
     const prev = m.onBeforeCompile;
     s.onBeforeCompile = (shader, r) => {
       if (prev) prev.call(s, shader, r);
-      shader.fragmentShader = shader.fragmentShader.replace('#include <fog_fragment>', `#ifdef USE_FOG
-  float skyFog = min(smoothstep(fogNear, fogFar, vFogDepth), 0.55 + 0.4 * smoothstep(fogFar, fogFar * 3.0, vFogDepth));
+      shader.uniforms.skyCapNear = SKYLINE_FOG.capNear;
+      shader.uniforms.skyCapFar = SKYLINE_FOG.capFar;
+      shader.fragmentShader = 'uniform float skyCapNear;\nuniform float skyCapFar;\n' + shader.fragmentShader.replace('#include <fog_fragment>', `#ifdef USE_FOG
+  float skyFog = min(smoothstep(fogNear, fogFar, vFogDepth), skyCapNear + (skyCapFar - skyCapNear) * smoothstep(fogFar, fogFar * 3.0, vFogDepth));
   gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, skyFog);
 #endif`);
     };
