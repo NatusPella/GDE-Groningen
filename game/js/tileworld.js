@@ -307,7 +307,8 @@ export class TileWorld extends GameMap {
       // ook als het eerste stuk nog in de wachtrij staat (#650)
       const job = this._tileJobs && this._tileJobs.get(tk);
       if (job) { job.cancelled = true; this._tileJobs.delete(tk); }
-      this.tileQueue.add(() => this.dropTile(tk), 0, `drop:${tk}`);
+      // a reload that arrives before this queued drop runs has a job of its own: the drop removes the old rows and leaves that job alone
+      this.tileQueue.add(() => this.dropTile(tk, true), 0, `drop:${tk}`);
       // #762: de overlay-resident van deze stadstegel ('o' + plaats) is bij het laden
       // met de stad meegekomen en heeft geen eigen store-entry; hij valt dus nooit
       // via de store. Zonder deze drop blijven zijn gebouwen, wegen en bomen de hele
@@ -340,9 +341,10 @@ export class TileWorld extends GameMap {
     if (bg) bgTiles.add(tk); else bgTiles.delete(tk);
     const steps = this.addTileSteps(tile, key);
     const step = () => {
-      if (job.cancelled) { this._tileJobs.delete(tk); return; }
+      // (a cancelled job is already out of the books; the entry under this key may be the reload's job)
+      if (job.cancelled) { if (this._tileJobs.get(tk) === job) this._tileJobs.delete(tk); return; }
       const r = steps.next();
-      if (r.done) { this._tileJobs.delete(tk); return; }
+      if (r.done) { if (this._tileJobs.get(tk) === job) this._tileJobs.delete(tk); return; }
       job.queue.add(step, job.prio, `add:${tk}`); // volgende stuk, volgende frame
     };
     job.queue.add(step, prio, `add:${tk}`);
@@ -619,9 +621,11 @@ export class TileWorld extends GameMap {
     return rows.length;
   }
 
-  dropTile(tk) {
+  // keepJob: the store's own queued drop (attachStore) already cancelled the job of the load it drops; a job under this key now
+  // belongs to a reload that came in since and must go on after the old rows are out
+  dropTile(tk, keepJob = false) {
     const job = this._tileJobs && this._tileJobs.get(tk);
-    if (job) { job.cancelled = true; this._tileJobs.delete(tk); }
+    if (job && !keepJob) { job.cancelled = true; this._tileJobs.delete(tk); }
     if (!this.resident.delete(tk)) return false;
     const farBg = this._farBgTile(tk);
     for (const fn of this._tileListeners || []) fn('drop', null, tk);
