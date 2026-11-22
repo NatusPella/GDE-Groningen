@@ -104,24 +104,6 @@ export function provinceBlock(bx, by) {
 export function rectOutside(x, y) {
   return Math.max(Math.abs(x - rect.cx) - rect.hx, Math.abs(y - rect.cy) - rect.hy);
 }
-// Near the city the thin ditches thin out: a ditch only runs if its hash
-// is under this ramp, so the ditch grid fades in instead of starting on a line.
-export function ditchRamp(x, y) {
-  const d = edgeDistance(x, y);
-  return d >= 450 ? 1 : smooth(20, 450, d);
-}
-export function thinDitchOn(p) {
-  const r = ditchRamp(p.x, p.y);
-  if (r >= 1) return true;
-  const dA = Math.min(p.a - p.a0, p.a1 - p.a), dB = Math.min(p.b - p.b0, p.b1 - p.b);
-  if (dA < dB) {
-    const ci = p.a - p.a0 < p.a1 - p.a ? p.col : p.col + 1;
-    return chash(ci + p.bx * 131 + 5, p.by * 977 + 61) < r;
-  }
-  const ri = p.b - p.b0 < p.b1 - p.b ? p.row : p.row + 1;
-  return chash(p.col * 31 + p.bx * 7 + ri * 131, p.by * 977 + 71) < r;
-}
-
 export function chash(x, y) {
   let h = Math.imul(x | 0, 1597334677) ^ Math.imul(y | 0, 3812015801 | 0);
   h ^= h >>> 16; h = Math.imul(h, 2246822519 | 0);
@@ -258,8 +240,10 @@ export function parcelAt(x, y) {
   P.x = x; P.y = y;
   P.bx = bx; P.by = by; P.rot = rot; P.col = col; P.row = row; P.a = a; P.b = b;
   P.a0 = a0; P.a1 = a1; P.b0 = b0; P.b1 = b1;
-  P.dDitch = Math.min(a - a0, a1 - a, b - b0, b1 - b);
-  P.dMain = Math.min(lx, BLOCK - lx, ly, BLOCK - ly);
+  // #1092: geen verzonnen slootrooster. De afstanden tot een strook-, hoofd- of maarsloot bestaan niet meer (1e3 = nergens in de buurt):
+  // alleen water uit de tegels (OSM waterway) en de wegen van de tegels tellen als rand.
+  P.dDitch = 1e3;
+  P.dMain = 1e3;
   const rv = edgeRoad(bx, by, 0) && lx > ROAD_IN && lx < ROAD_IN + ROAD_W;
   const rh = edgeRoad(bx, by, 1) && ly > ROAD_IN && ly < ROAD_IN + ROAD_W;
   P.road = rv || rh;
@@ -267,7 +251,7 @@ export function parcelAt(x, y) {
   // culvert (or a bridge over a maar)
   P.cont = (rv && edgeRoad(bx, ly < BLOCK / 2 ? by - 1 : by + 1, 0))
     || (rh && edgeRoad(lx < BLOCK / 2 ? bx - 1 : bx + 1, by, 1));
-  P.dMaar = provinceBlock(bx, by) ? 1e3 : Math.min(maarX(bx) ? lx : 1e3, maarX(bx + 1) ? BLOCK - lx : 1e3, maarY(by) ? ly : 1e3, maarY(by + 1) ? BLOCK - ly : 1e3);
+  P.dMaar = 1e3;
   P.seed = chash(col * 7 + bx * 1009, row * 13 + by * 2003 + 1);
   return P;
 }
@@ -296,14 +280,8 @@ export function countrySurface(x, y) {
     return p.road ? 'weg' : 'gras';
   }
   const p = parcelAt(x, y);
-  const wet = w > 0.92;
-  if (wet && p.dMaar < MAAR_WATER) return p.road && p.cont ? 'weg' : 'sloot';
-  const real = osmDitchesAt(p.bx, p.by); // the tiles' ditches are the real ones
-  if (wet && !real && p.dMain < MAIN_HW * 0.8 && !(p.road && p.cont)) return 'sloot';
+  // #1092: de polderslootjes, hoofdsloten en maaren zijn weg (geen kaartdata): hier is alleen een weg of gras.
   if (p.road) return 'weg';
-  if (wet && !real && p.dDitch < DITCH_HW * 0.72) {
-    if (thinDitchOn(p)) return 'sloot';
-  }
   return 'gras';
 }
 
@@ -461,16 +439,10 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip, inout
   float seed = cHash(col * 7 + bx * 1009, row * 13 + by * 2003 + 1);
   float seed2 = fract(seed * 7.31);
   bool inReal = cReal(bx, by);
-  // the tiles hold the real ditches: no painted ones, banks or lips in those blocks
-  if (inReal && uProvDitch > 0.5) { dD = 1e3; dM = 1e3; }
-  // thin ditches fade in over the first few hundred metres past the city
-  float edD = cEdD;
+  // #1092: geen geschilderd slotenrooster (strooksloten, hoofdsloten, maaren, oevers): dat komt niet uit de kaartdata.
+  // Water is alleen wat de tegels hebben (OSM waterway, cTileWater). dD, dM en dQ staan op 'nergens'.
+  dD = 1e3; dM = 1e3;
   float keepD = 1.0;
-  float ramp = smoothstep(20.0, 450.0, edD);
-  if (ramp < 1.0) {
-    if (dA < dB) { int ci = (a - a0 < a0 + C_PW - a) ? col : col + 1; keepD = step(cHash(ci + bx * 131 + 5, by * 977 + 61), ramp); }
-    else { int ri = (b - b0 < b1 - b) ? row : row + 1; keepD = step(cHash(col * 31 + bx * 7 + ri * 131, by * 977 + 71), ramp); }
-  }
 
   float n1 = cNoise(p * 0.03), n2 = cNoise(p * 0.13 + 5.0), n3 = cNoise(p * 0.55 + 9.0);
   vec3 grassA = cLin(88.0, 122.0, 54.0), grassB = cLin(79.0, 114.0, 52.0), grassC = cLin(104.0, 138.0, 62.0);
@@ -574,12 +546,6 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip, inout
   float culvert = 1.0 - smoothstep(C_ROAD_W * 0.5 + 0.8, C_ROAD_W * 0.5 + 1.6, dr);
   float culvM = 1.0 - smoothstep(C_ROAD_W * 0.5 + 0.2, C_ROAD_W * 0.5 + 0.9, dCont);
   float dQ = 1e3;
-  if (!inReal) {
-    if (cMaarX(bx)) dQ = min(dQ, l.x);
-    if (cMaarX(bx + 1)) dQ = min(dQ, C_BLOCK - l.x);
-    if (cMaarY(by)) dQ = min(dQ, l.y);
-    if (cMaarY(by + 1)) dQ = min(dQ, C_BLOCK - l.y);
-  }
   // past the near window the tiles' water comes from the coarser, wider mask
   float tf = tiled ? -1.0 : cTileWaterFar(p);
   float wR = tf >= 0.0 ? smoothstep(0.35, 0.6, tf) * (1.0 - roadM) : 0.0;

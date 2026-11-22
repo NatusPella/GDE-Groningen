@@ -62,6 +62,18 @@ export const edgeColour = (cls, part) => {
   return dsWereld(v[part], v.rol || 'auto');
 };
 
+// Herkomst van een tegelrij (#1092, de eigenaar: "dit moet volledig uit de game als het niet uit de kaartdata komt"): een rand-rij van een tegel
+// (een heg-, hek- of muurlijn in FURNITURE, een slootlint in WATER, een landgebruikvlak in PARCELS) hoort bij een kaartobject en heeft een
+// bron-id (de kolom gid van het .gdt-formaat, of het osm-nummer van de rij). Een zulke rij zonder bron-id is door een bouwer of runtime
+// verzonnen: de laadkant slaat hem over, zodat ook een oude wereld schoon is. Zuiver; het resultaat is true voor 'procedureel'.
+export function isProceduralEdgeRow(kind, row, gid) {
+  if (!row || Number.isFinite(gid) || Number.isFinite(row.osm)) return false;
+  if (kind === 'furniture') return (row.k === 'hedge' || row.k === 'fence' || row.k === 'wall') && !!row.pts;
+  if (kind === 'water') return row.kind === 'sloot';
+  if (kind === 'parcels') return true;
+  return false;
+}
+
 // De samenhangcontrole (scripts/edgeclasses_test.mjs): elke klasse met een zichtbaar deel heeft een collision, elke collision
 // hoort bij een zichtbaar deel, en de klassen met een stuk uit de FURNITURE-sectie hebben een hoogte.
 export function edgeClassProblems(classes = EDGE_CLASSES) {

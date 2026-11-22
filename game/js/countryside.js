@@ -3,15 +3,15 @@ import { markInstancesDirty } from './util.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { createTerrainMaterial } from './terrain3d.js';
 import {
-  BLOCK, PW, PL, MAIN_HW, MAAR_HW, MAAR_WATER, ROAD_IN, ROAD_W,
-  chash, countryWeight, countryRect, edgeDistance, parcelAt, parcelUse, blockToWorld, edgeRoad, maarX, maarY, villageOf,
+  BLOCK, PW, PL, ROAD_IN, ROAD_W,
+  chash, countryWeight, countryRect, edgeDistance, parcelAt, parcelUse, blockToWorld, edgeRoad, villageOf,
 } from './countryfield.js';
 import { SkinBuilder, vcMaterial, tubeGeometry, loftGeometry, markShared, composeMatrix } from './pixelart3d.js';
 import { buildCowMesh3D, buildSheepMesh3D, buildDuckMesh3D, animateWildlifeMesh3D, runOverAnimal, poseDeadAnimal } from './wildlife.js';
 import { distToVehicleBody } from './vehicle.js';
 import * as M3 from './countrymodels.js';
 import {
-  ROAD_C, FARM_TYPES, ROAD_ROW,
+  ROAD_C, FARM_TYPES,
   openLand, blockPlan, farmDetail, villagePlan, blockSigns, farmAt, inVillage, pushOutOfPlan,
 } from './countryplan.js';
 import { updateFarProps, farPropsStats } from './farprops.js';
@@ -21,7 +21,7 @@ import { EDGE, edgeBlocked, roadGap, landUseAt } from './countryedge.js';
 import { propVrij } from './propclear.js';
 import { baleSolid } from './bales.js';
 import { ensureCountryEdge } from './countryplan.js';
-import { ditchRamp, provinceBlock } from './countryfield.js';
+import { provinceBlock } from './countryfield.js';
 import { urbanWeight } from './provinceworld.js';
 import { setTileTrunks, clearTileTrunks, pushOutOfTrunks, setTileSolids, clearTileSolids } from './countrywalls.js';
 import { glowMaterial, poolGeometry } from './countryglow.js';
@@ -43,7 +43,6 @@ const GROUND_Y = -0.05;
 const GROUND_HALF = 4000;
 const GROUND_SNAP = 500;
 const GEN_BUDGET_MS = 1.2;
-const REED_R = 230;
 const SIM_R = 170;
 const SKIN_R = 90;
 const SKIN_MAX = 28;
@@ -281,7 +280,7 @@ function push(tile, type, x, y, rotY, sx, sy, sz, color = 0xffffff, jitter = 0.0
 function okSpot(x, y, clearDitch = 0) {
   if (!openLand(x, y) || farmAt(x, y, 1) || inVillage(x, y, 3) || edgeBlocked(x, y, 2)) return false;
   const p = parcelAt(x, y);
-  if (p.road || p.dMain < MAIN_HW + 0.6 || p.dMaar < MAAR_HW + 0.8) return false;
+  if (p.road) return false;
   return p.dDitch >= clearDitch && clearOfRoad(x, y, 1.5);
 }
 
@@ -309,25 +308,6 @@ function* genTileSteps(tx, ty) {
   // streetfurniture3d.js with the one rule table of edgeclasses.js), so no parcel strip of the hash grid gets a
   // row of trees, a hedge, barbed wire, a bank or a gate any more (docs/PERCEELRANDEN-21-11.md).
   yield;
-
-  // polder-road verges: tree lanes of oaks / poplars
-  for (const s of [0, 1]) {
-    if (!edgeRoad(bx, by, s)) continue;
-    const onEdge = s === 0 ? lx0 === 0 : ly0 === 0;
-    if (!onEdge) continue;
-    const kind = ROAD_ROW(bx, by, s);
-    if (!kind) continue;
-    const step = kind === 'poplar' ? 8 : 10;
-    for (let t = step / 2; t < TILE; t += step) {
-      for (const off of [ROAD_IN - 1.4, ROAD_IN + ROAD_W + 1.6]) {
-        const x = s === 0 ? x0 + off : x0 + t, y = s === 0 ? y0 + t : y0 + off;
-        if (!openLand(x, y) || farmAt(x, y, 2) || inVillage(x, y, 2) || edgeBlocked(x, y, 2) || !fadeKeep(x, y)) continue;
-        const p = parcelAt(x, y);
-        if (p.dDitch < 1.4 || p.dMaar < MAAR_HW + 0.5) continue;
-        push(tile, kind, x, y, R() * 6.28, 0.9 + R() * 0.2, 0.9 + R() * 0.25, 0.9 + R() * 0.2, 0xffffff, 0.1);
-      }
-    }
-  }
 
   yield;
   // parcels whose centre lies in this tile
@@ -359,7 +339,6 @@ function* genTileSteps(tx, ty) {
     if (!v || v.x + v.r < x0 || v.x - v.r > x0 + TILE || v.y + v.r < y0 || v.y - v.r > y0 + TILE) continue;
     genVillage(tile, v);
   }
-  genBridges(tile, bx, by);
   yield;
   for (const sg of blockSigns(bx, by)) if (inTile(tile, sg.x, sg.y)) tile.signs.push(sg);
 
@@ -419,21 +398,6 @@ function genVillage(tile, v) {
   }
   for (const g of V.graves) if (here(g.x, g.y)) push(tile, 'grave', g.x, g.y, g.rot, g.s, g.s, g.s, 0xffffff, 0.12, M3.TERP_H - 0.1);
 }
-
-// Bridges where a polder road carries on over a maar.
-function genBridges(tile, bx, by) {
-  const X = bx * BLOCK, Y = by * BLOCK;
-  if (maarY(by) && edgeRoad(bx, by, 0) && edgeRoad(bx, by - 1, 0) && inTile(tile, X + ROAD_C, Y)) push(tile, 'bridge', X + ROAD_C, Y, -Math.PI / 2, 1, 1, 1, 0xffffff, 0);
-  if (maarX(bx) && edgeRoad(bx, by, 1) && edgeRoad(bx - 1, by, 1) && inTile(tile, X, Y + ROAD_C)) push(tile, 'bridge', X, Y + ROAD_C, 0, 1, 1, 1, 0xffffff, 0);
-}
-
-// Rows of trees thin out towards the city in 25 m
-// pieces, so the countryside fades in rather than starting on a line.
-function fadeKeep(x, y) {
-  const r = ditchRamp(x, y);
-  return r >= 1 || chash(Math.floor(x / 25) + 71, Math.floor(y / 25) - 13) < r * 1.1 - 0.05;
-}
-
 
 const parcelRng = (seed) => mulberry(chash(Math.floor(seed * 1e7), 91));
 const HERD_STEP = 8;
@@ -656,7 +620,6 @@ function syncChunks(px, py, budgetEnd) {
     const d = Math.hypot(t.cx - px, t.cy - py);
     const mid = d > MID_R + (t.mid ? -30 : 30);
     if (mid !== t.mid) { t.mid = mid; chunkFor(t).dirty = true; }
-    if (t.reedMesh) t.reedMesh.visible = d < REED_R;
   }
   const list = [];
   for (const ch of S.chunks.values()) if (ch.dirty) list.push([Math.hypot(ch.cx - px, ch.cy - py), ch]);
@@ -849,7 +812,6 @@ function unloadTile(t) {
   const ch = chunkFor(t);
   ch.tiles.delete(t);
   ch.dirty = true;
-  if (t.reedMesh) { S.group.remove(t.reedMesh); t.reedMesh.dispose(); t.reedMesh = null; }
   if (t.animals.length) {
     const gone = new Set(t.animals);
     S.animals = S.animals.filter((a) => !gone.has(a));
@@ -867,46 +829,6 @@ function unloadTile(t) {
   }
 }
 
-// Reed clumps along the banks of the polder's maaren (#1092: no longer along the parcel grid's ditches), only for tiles near the player.
-function addReeds(t) {
-  t.reeds = true;
-  const it = reedItems(t);
-  if (!it || !it.c.length) return;
-  // the tile's own mesh, shown only while the tile is near
-  const n = it.c.length / 3;
-  const mesh = chunkMesh({ sphere: new THREE.Sphere(new THREE.Vector3(t.cx, 1, t.cy), TILE * 0.72) }, 'reed', n);
-  mesh.instanceMatrix.array.set(it.m);
-  mesh.instanceColor.array.set(it.c);
-  mesh.count = n;
-  markInstancesDirty(mesh.instanceMatrix, n);
-  markInstancesDirty(mesh.instanceColor, n);
-  t.reedMesh = mesh;
-  S.group.add(mesh);
-}
-
-function reedItems(t) {
-  const x0 = t.tx * TILE, y0 = t.ty * TILE;
-  const bx = Math.floor(x0 / BLOCK), by = Math.floor(y0 / BLOCK);
-  const tmp = { items: {} };
-  // maar banks
-  for (const [on, vert, c] of [[maarX(bx), true, bx * BLOCK], [maarX(bx + 1), true, (bx + 1) * BLOCK], [maarY(by), false, by * BLOCK], [maarY(by + 1), false, (by + 1) * BLOCK]]) {
-    if (!on) continue;
-    const lo = vert ? x0 : y0;
-    if (c < lo - 6 || c > lo + TILE + 6) continue;
-    for (let q = 0.6; q < TILE; q += 1.1) {
-      for (const sd of [-1, 1]) {
-        const o = sd * (MAAR_WATER + 0.25 + chash(Math.round(q * 4), sd + 7) * 0.4);
-        const x = vert ? c + o : x0 + q, y = vert ? y0 + q : c + o;
-        const clump = chash(Math.floor(x / 7) + 5, Math.floor(y / 7) - 3);
-        if (clump > 0.5 || !openLand(x, y) || parcelAt(x, y).road || farmAt(x, y, 0) || edgeBlocked(x, y, 1)) continue;
-        const h = chash(Math.round(x * 3), Math.round(y * 3));
-        push(tmp, 'reed', x, y, h * 6.28, 1 + h * 0.3, 0.8 + clump * 1.2, 1 + h * 0.3, 0xffffff, 0.12);
-      }
-    }
-  }
-  return tmp.items.reed || null;
-}
-
 // the scene (for audits and tests).
 // the scene (scripts/country_props_audit.mjs).
 export function countryTileItems(tx, ty) {
@@ -914,8 +836,6 @@ export function countryTileItems(tx, ty) {
   let r = g.next();
   while (!r.done) r = g.next();
   const tile = r.value;
-  const reed = reedItems(tile);
-  if (reed) tile.items.reed = reed;
   return tile;
 }
 
@@ -1290,13 +1210,6 @@ export function updateCountryside(dt, world, scene, cam, viewDist) {
   S.px = p.x; S.py = p.y;
   if (near || S.tiles.size) {
     syncTiles(p.x, p.y, viewDist, t0 + GEN_BUDGET_MS * (S.queue.length > 6 ? 2 : 1));
-    if (!S.queue.length && !S.gen && performance.now() < t0 + GEN_BUDGET_MS) {
-      for (const t of S.tiles.values()) {
-        if (t.reeds || (t.cx - p.x) ** 2 + (t.cy - p.y) ** 2 > REED_R * REED_R) continue;
-        addReeds(t);
-        break;
-      }
-    }
     // make one missing prop geometry per frame, before tiles need it
     if (S.poolWarm.length) typeGeo(S.poolWarm.shift());
     syncChunks(p.x, p.y, Math.max(performance.now(), t0 + GEN_BUDGET_MS) + CHUNK_MS);

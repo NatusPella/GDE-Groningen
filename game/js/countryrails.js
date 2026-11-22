@@ -1,35 +1,14 @@
-import { BLOCK, ROAD_IN, ROAD_W, edgeRoad, maarX, maarY } from './countryfield.js';
+// #1092: de leuningen van de polderbruggen over een maar zijn weg: de maaren waren een verzonnen slotenrooster, geen kaartdata, en er staat
+// dus geen brug meer. countryRailsNear en de rest van de API blijven (spelers en voertuigen vragen er nog naar), maar geven niets terug.
+// De bruggen van de tegels hebben hun eigen leuningen (de wegmeshes). Zuiver: geen DOM, geen three.js.
 
-// The railings of the polder bridges as lines, matching the decks
-// countryside.js draws: a polder road over a maar (an 11 m deck, railings
-// 2.95 m off the road's centre). Solid for vehicles (vehicle.js corner
-// probes) and for walkers unless they jump over (collision.js). The bridges
-// of the tiles have their own railings (the road meshes). Pure: no DOM, no
-// three.js.
-
-const ROAD_C = ROAD_IN + ROAD_W / 2;
-const POLDER_RAIL = 2.95;
-const POLDER_SPAN = 5.5;
 export const COUNTRY_RAIL_H = 1.15;
 
 const _lines = [];
 
-function polderLines(bx, by, out) {
-  const X = bx * BLOCK, Y = by * BLOCK;
-  if (maarY(by) && edgeRoad(bx, by, 0) && edgeRoad(bx, by - 1, 0)) {
-    for (const s of [1, -1]) out.push(X + ROAD_C + POLDER_RAIL * s, Y - POLDER_SPAN, X + ROAD_C + POLDER_RAIL * s, Y + POLDER_SPAN);
-  }
-  if (maarX(bx) && edgeRoad(bx, by, 1) && edgeRoad(bx - 1, by, 1)) {
-    for (const s of [1, -1]) out.push(X - POLDER_SPAN, Y + ROAD_C + POLDER_RAIL * s, X + POLDER_SPAN, Y + ROAD_C + POLDER_RAIL * s);
-  }
-}
-
 // Railing lines within about R of (x, y), flat [ax, ay, bx, by, ...] (shared array).
 export function countryRailsNear(x, y, R = 4) {
   _lines.length = 0;
-  for (let bx = Math.floor((x - R - POLDER_SPAN) / BLOCK); bx <= Math.floor((x + R + POLDER_SPAN) / BLOCK); bx++) {
-    for (let by = Math.floor((y - R - POLDER_SPAN) / BLOCK); by <= Math.floor((y + R + POLDER_SPAN) / BLOCK); by++) polderLines(bx, by, _lines);
-  }
   return _lines;
 }
 

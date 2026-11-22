@@ -59,28 +59,8 @@ export const extraPerceelIds = () => [...EXTRA_PERCELEN.keys()];
 export const isPerceelId = (id) => PERCEEL_IDS.includes(id) || EXTRA_PERCELEN.has(id);
 export const perceelDef = (id) => PERCELEN.find((p) => p.id === id) || EXTRA_PERCELEN.get(id) || null;
 
-// #972: een vast, rechthoekig vlak per perceel voor de kaart, afgeleid van de hectares en
-// een vaste hoek per id (geen landgebruikskaart nodig). De omtrek is een leesbare schets op
-// kaalschaal, geen kadastrale maat: MAP_SCALE houdt hem zo groot als het veld in het spel.
-export const PERCEEL_MAP_SCALE = 0.45;
-export function perceelVlak(def, center, hoek = null) {
-  if (!def || !center || !Number.isFinite(center.x) || !Number.isFinite(center.y)) return [];
-  const opp = Math.max(0.2, Number(def.ha) || 1) * 10000 * PERCEEL_MAP_SCALE * PERCEEL_MAP_SCALE;
-  const lengte = Math.sqrt(opp * 1.6), breedte = opp / lengte;
-  const a = Number.isFinite(hoek) ? hoek : ((String(def.id || '').length * 0.37) % 3) * 0.42;
-  const ux = Math.cos(a), uy = Math.sin(a), vx = -uy, vy = ux;
-  return [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([u, v]) => [
-    Math.round((center.x + ux * (u * lengte / 2) + vx * (v * breedte / 2)) * 10) / 10,
-    Math.round((center.y + uy * (u * lengte / 2) + vy * (v * breedte / 2)) * 10) / 10,
-  ]);
-}
-
-// Ligt (x, y) in een van deze veldvlakken? Voor de hover en de klik op de kaart (#972).
-export function veldBij(vlakken, x, y) {
-  if (!Array.isArray(vlakken)) return null;
-  for (const v of vlakken) if (v && Array.isArray(v.punten) && pointInPolygon(x, y, v.punten)) return v;
-  return null;
-}
+// #1092: er is geen verzonnen rechthoek meer als perceelvlak (de schets-rechthoek, de klik erop en zijn schaal zijn weg): een perceelrand komt alleen uit
+// echte kaartdata (bezit-vormen.json, de omtrek van de echte percelen), nooit uit hectares en een hoek per id.
 
 // Een erf: huis, schuur, silo's en plekken voor machines. De Zonnehoek is de eerste en van jou; opslagKg is de ruimte voor gewassen.
 const E = (id, naam, plaats, lat, lon, opslagKg, machinePlekken, prijs, eigenaar, aanbod = 'beide') => ({ id, naam, plaats, lat, lon, huis: true, schuur: true, silo: opslagKg >= 6000, opslagKg, machinePlekken, koop: prijs, huurDag: rond5(prijs * 0.0045), eigenaar, aanbod });

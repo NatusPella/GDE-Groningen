@@ -19,6 +19,7 @@ export function drawForSale(ctx, view, toScreen, zoomScale, hoverId = null, sele
   for (const s of view.shapes) {
     const st = STATES[s.state];
     const hot = hoverId === s.id || selectedId === s.id;
+    if (!s.punten.length) { drawPointOnly(ctx, s, st, toScreen, hot); continue; }   // geen echte omtrek: geen verzonnen vlak, alleen het kaartje (#1092)
     ctx.save();
     ctx.beginPath();
     s.punten.forEach(([x, y], i) => { const [sx, sy] = toScreen(x, y); if (i) ctx.lineTo(sx, sy); else ctx.moveTo(sx, sy); });
@@ -46,9 +47,18 @@ export function drawForSale(ctx, view, toScreen, zoomScale, hoverId = null, sele
   }
 }
 
+// Een perceel zonder echte omtrek: een kaartje op het binnenpunt, geen vlak en geen rand.
+function drawPointOnly(ctx, s, st, toScreen, hot) {
+  const [cx, cy] = toScreen(s.x, s.y);
+  ctx.save();
+  drawTag(ctx, cx, cy, s, st, inkOf(s.state, s));
+  ctx.restore();
+}
+
 // Waar het kaartje komt en hoe breed het vlak op het scherm is: de echte omtrek (real) heeft het kaartje op het binnenpunt en de breedte van zijn omhullende;
 // de schets (vier hoeken) heeft het midden van zijn diagonaal en de lengte van zijn eerste zijde.
 export function labelSpot(s, toScreen) {
+  if (!s.punten.length) { const [bx, by] = toScreen(s.x, s.y); return [LABEL_MIN_PX, bx, by]; }
   const P = s.punten.map(([x, y]) => toScreen(x, y));
   if (s.real) {
     const xs = P.map((q) => q[0]), [bx, by] = toScreen(s.x, s.y);

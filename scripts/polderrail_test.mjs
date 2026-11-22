@@ -1,3 +1,5 @@
+// #1092: de polderbruggen over een maar bestaan niet meer (de maaren waren een verzonnen slotenrooster), dus ook hun leuningen niet.
+// De regel voor leuningen die er wel zijn (#959) blijft getest met een eigen lijn.
 // #959: de leuningen van de polderbruggen (countryrails.js) hielden een voetganger
 // tegen, maar waren niet om overheen te springen: ze staan op 1,15 m en een gewone
 // sprong haalt 0,6 m. Nu zijn ze, net als de leuningen van de stadsbruggen, met
@@ -14,36 +16,13 @@ import { vaultDecision } from '../game/js/vaultkit.js';
 let n = 0, bad = 0;
 const ok = (c, m, info = '') => { n++; if (!c) { bad++; console.log(`FAIL ${m}${info ? ' (' + info + ')' : ''}`); } };
 
-// zoek een polderblok met een brugleuning (de lijnen komen uit het echte veldraster)
-let line = null;
-for (let bx = -40; bx <= 40 && !line; bx++) {
-  for (let by = -40; by <= 40 && !line; by++) {
-    const L = countryRailsNear(bx * 400, by * 400, 400);
-    if (L.length) line = L.slice(0, 4);
-  }
-}
-ok(!!line, 'er is een polderleuning in het veld');
-if (!line) { console.log(`${bad} van ${n} mislukt`); process.exit(1); }
-
-const [ax, ay, bx, by] = line;
-const ex = bx - ax, ey = by - ay, len = Math.hypot(ex, ey) || 1;
-const ux = ex / len, uy = ey / len;          // langs de leuning
-const nx = -uy, ny = ux;                      // dwars erop
-const mx = (ax + bx) / 2, my = (ay + by) / 2;
-
-const close = 2;                              // 2 m van de leuning
-const px = mx + nx * close, py = my + ny * close;
-const hit = countryRailAhead(px, py, -nx, -ny, 3);
-ok(!!hit, 'de leuning recht vooruit wordt gevonden');
-if (hit) {
-  ok(Math.abs(hit.dist - close) < 0.01, 'op de echte afstand', hit.dist.toFixed(2));
-  ok(hit.h === COUNTRY_RAIL_H, 'de hoogte is die van de polderleuning', String(hit.h));
-  ok(vaultDecision(hit.h) === 'vault', '1,15 m is over te stappen, geen block', vaultDecision(hit.h));
-}
-ok(countryRailAhead(px, py, -nx, -ny, 1) === null, 'buiten bereik geen treffer');
-ok(countryRailAhead(px, py, ux, uy, 3) === null, 'langs de leuning geen treffer');
-ok(countryRailAhead(mx + nx * 9, my + ny * 9, -nx, -ny, 3) === null, '9 m ervandaan geen treffer');
-ok(countryRailAhead(1e6, 1e6, 1, 0, 3) === null, 'zonder leuning in de buurt niets');
+// nergens in het veldraster is er nog een polderleuning (geen maaren, geen bruggen)
+let aantal = 0;
+for (let bx = -40; bx <= 40; bx++) for (let by = -40; by <= 40; by++) aantal += countryRailsNear(bx * 400, by * 400, 400).length;
+ok(aantal === 0, 'er is geen polderleuning meer in het veld', String(aantal));
+ok(countryRailAhead(0, 0, 1, 0, 50) === null && countryRailAhead(12345, 6789, 0, 1, 50) === null, 'en niets om tegenaan te lopen');
+// de regel zelf: 1,15 m is over te stappen
+ok(vaultDecision(COUNTRY_RAIL_H) === 'vault', '1,15 m is over te stappen, geen block', vaultDecision(COUNTRY_RAIL_H));
 
 // bron: tryVault neemt de polderleuning mee
 const src = fs.readFileSync(new URL('../game/js/player.js', import.meta.url), 'utf8');

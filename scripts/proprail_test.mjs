@@ -53,24 +53,25 @@ CE.EDGE.ready = false;
   ok(Object.values(count).every((v) => v === 0), 'no post, wire, gate, bank or rush from the hash grid', JSON.stringify(count));
 }
 
-// the painted ditches are off where the tiles hold the real ones (#124): only after the world is built with them
+// #1092: the hash grid's painted ditches (strip, main and maar) are gone for good: no ground kind 'sloot' anywhere on the polder grid, with or
+// without the tiles' ditches (the tiles' water is the rule where a tile is in: waterlevels.js)
 {
   const CF = await import('../game/js/countryfield.js');
   CF.setCountryBounds([-2000, -2000, 2000, 2000]);
   const B = { x0: 20, y0: 20, w: 6, h: 6, data: new Uint8Array(36).fill(1) }; // blocks 20..25 (the point 21000, 21000 and on)
   CF.setProvinceBlocks(B);
-  const scan = () => { let ditch = 0, total = 0; for (let x = 21500; x < 22500; x += 2.5) for (let y = 21500; y < 21700; y += 2.5) { total++; if (CF.countrySurface(x, y) === 'sloot') ditch++; } return { ditch, total }; };
+  const scan = (x0, y0) => { let ditch = 0, total = 0; for (let x = x0; x < x0 + 1000; x += 2.5) for (let y = y0; y < y0 + 200; y += 2.5) { total++; if (CF.countrySurface(x, y) === 'sloot') ditch++; } return { ditch, total }; };
+  for (const on of [false, true]) {
+    CF.setProvinceDitches(on);
+    const inside = scan(21500, 21500), outside = scan(4500, 4500);
+    ok(inside.ditch === 0 && outside.ditch === 0, 'no painted ditch is ground kind sloot (ditches of the tiles ' + (on ? 'on' : 'off') + ')', JSON.stringify({ inside, outside }));
+  }
   CF.setProvinceDitches(false);
-  const off = scan();
-  ok(off.ditch > 20, 'by default the painted ditches are ground kind sloot in a province block', JSON.stringify(off));
+  ok(CF.osmDitchesAt(21, 21) === false, 'the flag is off by default');
   CF.setProvinceDitches(true);
-  const on = scan();
-  ok(on.ditch === 0, 'with the real ditches in the tiles none are left', JSON.stringify(on));
   ok(CF.osmDitchesAt(21, 21) && !CF.osmDitchesAt(5, 5), 'only in the blocks the tiles cover');
-  // outside the province blocks the painted ditches stay
-  let outside = 0;
-  for (let x = 4500; x < 5500; x += 2.5) for (let y = 4500; y < 4700; y += 2.5) if (CF.countrySurface(x, y) === 'sloot') outside++;
-  ok(outside > 20, 'and outside them', String(outside));
+  const p = CF.parcelAt(21700, 21600);
+  ok(p.dDitch > 100 && p.dMain > 100 && p.dMaar > 100, 'the parcel lookup knows no ditch distance');
   CF.setProvinceDitches(false);
   CF.setProvinceBlocks(null);
 }

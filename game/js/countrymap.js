@@ -1,10 +1,10 @@
 import {
-  BLOCK, PW, PL, ROAD_IN, ROAD_W, MAIN_HW, MAAR_WATER,
-  chash, countryRect, countryMask, edgeDistance, edgeRoad, maarX, maarY, villageOf, ditchRamp, provinceBlock,
+  BLOCK, ROAD_IN, ROAD_W,
+  countryRect, countryMask, edgeDistance, edgeRoad, villageOf,
 } from './countryfield.js';
 import { provinceMapBounds } from './provincemap.js';
 import { provinceLandAt } from './regions.js';
-import { FARM_TYPES, blockPlanCached, blockPlan, villagePlan, ROAD_ROW } from './countryplan.js';
+import { FARM_TYPES, blockPlanCached, blockPlan, villagePlan } from './countryplan.js';
 import { farPropsIn } from './farprops.js';
 import { MAP_PALETTE, MINI_PALETTE, mapPhase, applyMapPhase, currentMapPhase } from './mapstyle.js';
 
@@ -171,95 +171,21 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st, opts = null) 
     ctx.lineTo(bx, by);
   };
   // long grid lines in pieces, only out in the country (and never through a village)
-  const segOut = (ax, ay, bx, by, step = 120, notReal = false) => {
+  const segOut = (ax, ay, bx, by, step = 120) => {
     const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / step));
     for (let i = 0; i < n; i++) {
       const t0 = i / n, t1 = (i + 1) / n;
       const qx = ax + (bx - ax) * t0, qy = ay + (by - ay) * t0, rx = ax + (bx - ax) * t1, ry = ay + (by - ay) * t1;
       const mx = (qx + rx) / 2, my = (qy + ry) / 2;
       if (edgeDistance(mx, my) < 5 || !provinceLandAt(mx, my)) continue; // none over the sea or beyond the border (#233)
-      if (!notReal && built && built(mx, my)) continue; // geen kavelgrens door de bebouwde kom (#977; een maar is water en blijft)
-      if (notReal && provinceBlock(Math.floor(mx / BLOCK), Math.floor(my / BLOCK))) continue;
+      if (built && built(mx, my)) continue; // geen polderweg door de bebouwde kom (#977)
       seg(qx, qy, rx, ry);
     }
   };
 
-  // thin ditches (fading in near the city like the real ones)
-  if (pxPerM > 0.3) {
-    ctx.strokeStyle = st.ditch;
-    ctx.lineWidth = Math.max(px(0.7), 1.5);
-    ctx.globalAlpha = Math.min(1, (pxPerM - 0.3) * 2);
-    ctx.beginPath();
-    for (let bx = bx0; bx <= bx1; bx++) {
-      for (let by = by0; by <= by1; by++) {
-        const rot = chash(bx * 7 + 3, by * 13 + 1) < 0.5;
-        const W = (a, b) => (rot ? [bx * BLOCK + b, by * BLOCK + a] : [bx * BLOCK + a, by * BLOCK + b]);
-        for (let col = 1; col < BLOCK / PW; col++) {
-          const hS = chash(col + bx * 131 + 5, by * 977 + 61);
-          for (let b = 0; b < BLOCK; b += 80) {
-            const [mx, my] = W(col * PW, b + 40);
-            if (hS >= ditchRamp(mx, my) || edgeDistance(mx, my) < 0 || !provinceLandAt(mx, my) || (built && built(mx, my))) continue;
-            const [ax, ay] = W(col * PW, b), [cx, cy] = W(col * PW, b + 80);
-            seg(ax, ay, cx, cy);
-          }
-          const c0 = col - 1;
-          const off = chash(c0 + bx * 131 + by * 977, rot ? 18 : 17) * PL;
-          for (let row = 1; row * PL - off < BLOCK; row++) {
-            const b = row * PL - off;
-            if (b <= 0) continue;
-            const [mx, my] = W(c0 * PW + PW / 2, b);
-            if (chash(c0 * 31 + bx * 7 + row * 131, by * 977 + 71) >= ditchRamp(mx, my) || edgeDistance(mx, my) < 0 || !provinceLandAt(mx, my) || (built && built(mx, my))) continue;
-            const [ax, ay] = W(c0 * PW, b), [cx, cy] = W(col * PW, b);
-            seg(ax, ay, cx, cy);
-          }
-        }
-      }
-    }
-    ctx.stroke();
-    ctx.globalAlpha = 1;
-  }
-
-  // main ditches and maaren; faint when zoomed far out, so the polder grid
-  // doesn't turn the Ommelanden into a blue pattern next to the city
-  ctx.globalAlpha = Math.min(1, Math.max(0.5, pxPerM * 1.6));
-  ctx.strokeStyle = st.ditch;
-  ctx.lineWidth = Math.max(px(0.9), MAIN_HW * 1.6);
-  ctx.beginPath();
-  // met een dorp in beeld in korte stukken, zodat de lijn bij de bebouwde kom ophoudt (#977)
-  const mainStep = built ? 30 : 120;
-  for (let bx = bx0; bx <= bx1 + 1; bx++) segOut(bx * BLOCK, y0, bx * BLOCK, y1, mainStep);
-  for (let by = by0; by <= by1 + 1; by++) segOut(x0, by * BLOCK, x1, by * BLOCK, mainStep);
-  ctx.stroke();
-  // open water (maaren) as solid as the city's water; only the ditch grid fades
-  ctx.globalAlpha = 1;
-  ctx.strokeStyle = st.water;
-  ctx.lineWidth = Math.max(px(1.6), MAAR_WATER * 2);
-  ctx.beginPath();
-  for (let bx = bx0; bx <= bx1 + 1; bx++) if (maarX(bx)) segOut(bx * BLOCK, y0, bx * BLOCK, y1, 120, true);
-  for (let by = by0; by <= by1 + 1; by++) if (maarY(by)) segOut(x0, by * BLOCK, x1, by * BLOCK, 120, true);
-  ctx.stroke();
-  ctx.globalAlpha = 1;
-
-  // tree rows along polder roads (the strip boundaries have none any more, #1092)
-  if (pxPerM > 0.55) {
-    ctx.strokeStyle = st.tree;
-    ctx.lineWidth = Math.max(px(1.2), 4);
-    ctx.setLineDash([5, 4]);
-    ctx.beginPath();
-    for (let bx = bx0; bx <= bx1; bx++) {
-      for (let by = by0; by <= by1; by++) {
-        for (const s of [0, 1]) {
-          if (!edgeRoad(bx, by, s) || !ROAD_ROW(bx, by, s)) continue;
-          for (const o of [ROAD_IN - 1.4, ROAD_IN + ROAD_W + 1.6]) {
-            if (s === 0) segOut(bx * BLOCK + o, by * BLOCK, bx * BLOCK + o, (by + 1) * BLOCK, 60);
-            else segOut(bx * BLOCK, by * BLOCK + o, (bx + 1) * BLOCK, by * BLOCK + o, 60);
-          }
-        }
-      }
-    }
-    ctx.stroke();
-    ctx.setLineDash([]);
-  }
+  // #1092: geen verzonnen randen op de kaart. Het slotenrooster (strooksloten, hoofdsloten, maaren) en de bomenrijen langs de polderwegen
+  // komen niet uit de kaartdata en worden niet meer getekend: sloten, heggen, hekken en boomrijen op de kaart zijn alleen de lijnen van
+  // de tegels (mapdata.js, met een bron). Hier blijven de polderwegen, de boerderijen en de dorpen van het platteland.
 
   // villages: the ground of the wierde first
   const villages = [];

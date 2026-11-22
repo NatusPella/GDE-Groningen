@@ -2,7 +2,7 @@ import { hoofdspeler } from './players.js';
 import { markInstancesDirty, WATER_Y } from './util.js';
 import { waterAt } from './waterlevels.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { BLOCK, MAAR_WATER, chash, edgeDistance, edgeRoad, maarX, maarY, provinceBlock, rectOutside } from './countryfield.js';
+import { BLOCK, MAAR_WATER, chash, edgeDistance, edgeRoad, provinceBlock, rectOutside } from './countryfield.js';
 import { roadKind } from './tileplace.js';
 import { ROAD_C, openLand } from './countryplan.js';
 import { GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
@@ -577,32 +577,7 @@ function placeTraffic(a, dt) {
 
 // ------------------------------------------------------------------ boats
 
-function spawnBoat(px, py, dist, map = null) {
-  const lines = [];
-  const i0 = Math.floor((px - dist) / BLOCK), i1 = Math.floor((px + dist) / BLOCK) + 1;
-  const j0 = Math.floor((py - dist) / BLOCK), j1 = Math.floor((py + dist) / BLOCK) + 1;
-  for (let i = i0; i <= i1; i++) if (maarX(i)) lines.push({ vert: true, c: i * BLOCK });
-  for (let j = j0; j <= j1; j++) if (maarY(j)) lines.push({ vert: false, c: j * BLOCK });
-  if (!lines.length) return;
-  const ln = lines[Math.floor(Math.random() * lines.length)];
-  const along = (ln.vert ? py : px) + (Math.random() - 0.5) * dist * 1.6;
-  const k = Math.floor(along / BLOCK);
-  const lo = k * BLOCK + 40, hi = (k + 1) * BLOCK - 40;
-  const t = Math.min(hi, Math.max(lo, along));
-  const dir = Math.random() < 0.5 ? 1 : -1;
-  const b = { ln, lo, hi, t, dir, lat: -dir * 1.3, speed: 1.8 + Math.random() * 1.8, bob: Math.random() * 6, kind: Math.floor(Math.random() * 3) };
-  const [x, y] = boatPos(b);
-  // (the maaren are the polder grid's: not in the blocks the tiles cover, where their water is)
-  if (!openLand(x, y) || provinceBlock(Math.floor(x / BLOCK), Math.floor(y / BLOCK)) || edgeDistance(x, y) < 30 || Math.hypot(x - px, y - py) < 120) return;
-  // een maar is een polderslootje van 7 m: daar vaart geen boot, alleen op water waar een boot logisch is (boatspots.js)
-  if (map && !isBoatSpotValid(map, x, y, 'kano')) return;
-  b.g = new THREE.Mesh(cachedGeo('boat' + b.kind, () => boatGeometry(b.kind)), MAT);
-  b.g.castShadow = true;
-  b.yaw = boatYaw(b);
-  L.group.add(b.g);
-  L.boats.push(b);
-}
-
+// #1092: geen boten op de maaren: een maar is een verzonnen slotenrooster, geen kaartdata (de boten van de wereld leven in vehicle/boatwater.js).
 function boatPos(b) {
   return b.ln.vert ? [b.ln.c + b.lat, b.t] : [b.t, b.ln.c - b.lat];
 }
@@ -760,13 +735,6 @@ export function updateCountryLife(dt, world, scene, flocks, fogFar) {
       if (L.traffic.length < MAX_TRAFFIC) {
         // on the tiles' roads, and on the polder grid where there are no tiles
         if (!spawnRealTraffic(p.x, p.y, spawnD)) spawnTraffic(p.x, p.y, spawnD);
-      }
-    }
-    L.boatT -= dt;
-    if (active && L.boatT <= 0) {
-      L.boatT = 3 + Math.random() * 4;
-      if (L.boats.length < MAX_BOATS) {
-        spawnBoat(p.x, p.y, spawnD, world.map);
       }
     }
   }

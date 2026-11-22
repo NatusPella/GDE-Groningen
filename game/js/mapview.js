@@ -48,7 +48,6 @@ import { VILLAGES } from './ommelandlines.js';
 import { ommelandMapSpots } from './ommelandmap.js';
 import { beppeMapSpot } from './beppe_garden.js';
 import { perceelMapSpots, eigenPerceelVlakken, tekenVeldBadge } from './perceelmap.js';
-import { veldBij } from './percelen.js';
 import { forSaleView, parcelOffer, koopPerceel, verkoopPerceel, bezitOpen, ensureIndex } from './bezitlive.js';
 import { pickShape } from './forsalemap.js';
 import { drawForSale } from './forsaledraw.js';
@@ -1783,37 +1782,16 @@ function drawDynamicMarkers(ctx, world) {
   };
 
   for (const r of getRoutes()) drawFullRoute(ctx, world, t, r);
-  // #972: je eigen akkers en weilanden als vlak met een duidelijke omtrek (en akkerstrepen).
-  // De hover licht het veld op; de rest van de kaart blijft rustig.
+  // #972 en #1092: je eigen akkers en weilanden als label met statusicoon op het veld, zonder getekend vlak: de catalogusvelden hebben geen
+  // echte perceelvorm (kaartdata), en een verzonnen rechthoek als perceelrand hoort niet op de kaart.
   const eigenVelden = layerOn('percelen') ? eigenPerceelVlakken() : [];
   state.eigenVelden = eigenVelden;
   for (const v of eigenVelden) {
-    const hoverVeld = state.hoverVeldId === v.id;
-    ctx.save();
-    ctx.beginPath();
-    v.punten.forEach(([x, y], i) => { const [sx, sy] = toScreen(x, y); if (i) ctx.lineTo(sx, sy); else ctx.moveTo(sx, sy); });
-    ctx.closePath();
-    // #985: de kleur, het lijnpatroon en de letter volgen de status van het veld (perceelmap.js: veldStijl); zonder stijl blijft het groen
     const st = v.stijl || { vul: 'greenLight', rand: 'greenLight', dash: [], letter: '' };
-    ctx.fillStyle = inkA(st.vul, hoverVeld ? 0.3 : (v.alpha || 0.18));
-    ctx.fill();
-    ctx.lineWidth = (hoverVeld ? 3.4 : 2.2) * Math.min(2, Math.max(1, state.zoom || 1));
-    ctx.strokeStyle = inkA(st.rand, hoverVeld ? 1 : 0.85);
-    ctx.setLineDash(st.dash);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    // akkerstrepen, zodat het vlak als land leest en niet als een gekleurd blok
-    const [a, b, c, d] = v.punten.map(([x, y]) => toScreen(x, y));
-    ctx.beginPath();
-    for (let k = 1; k < 4; k++) {
-      const f = k / 4;
-      ctx.moveTo(a[0] + (b[0] - a[0]) * f + (d[0] - a[0]) * 0.08, a[1] + (b[1] - a[1]) * f + (d[1] - a[1]) * 0.08);
-      ctx.lineTo(d[0] + (c[0] - d[0]) * f - (a[0] - d[0]) * 0.08, d[1] + (c[1] - d[1]) * f - (a[1] - d[1]) * 0.08);
-    }
-    ctx.lineWidth = 1 * Math.min(2, Math.max(1, state.zoom || 1));
-    ctx.strokeStyle = inkA(st.rand, hoverVeld ? 0.75 : 0.45);
-    ctx.stroke();
-    if (st.letter) tekenVeldLabel(ctx, v, st, a, c, toScreen);
+    if (!st.letter) continue;
+    const p = toScreen(v.x, v.y);
+    ctx.save();
+    tekenVeldLabel(ctx, v, st, p, p, toScreen);
     ctx.restore();
   }
   // epic Bezit (#1098): de kaartlaag Te koop (forsalemap.js): vlakken met prijs, van jou, van een medespeler, niet te koop
@@ -2417,7 +2395,7 @@ function updateTooltip(sx, sy) {
   const [wx, wy] = toWorld(sx, sy);
   // #972: een eigen veld heeft geen pin maar wel een hover: de omtrek licht op en de
   // tip noemt het gewas, de grootte en de grond.
-  const veld = !nearestHover(sx, sy) ? veldBij(state.eigenVelden, wx, wy) : null;
+  const veld = null;   // een eigen veld heeft geen getekend vlak meer (#1092): de pin is de hover
   const koop = !nearestHover(sx, sy) && !veld ? pickShape(state.koopVelden, wx, wy, 8) : null;
   const koopOffer = koop ? parcelOffer(koop.id) : null;
   const h = nearestHover(sx, sy) || (veld ? { name: veld.naam, sub: veld.sub, x: veld.x, y: veld.y, veld: true } : koopOffer ? { name: koopOffer.name, sub: pointerSub(koopOffer), x: koop.x, y: koop.y, veld: true } : null);
@@ -2497,7 +2475,7 @@ function handleClick(world, sx, sy, shift = false) {
   if (h && h.clusterN) { zoomAt(1.8, h.sx, h.sy); return; } // een groep horeca (mapdeclutter.js): inzoomen op die groep, geen plekkaart
   const [wx, wy] = toWorld(sx, sy);
   // #972: een klik op je eigen akker opent hetzelfde kaartje als een plek, met de naam van het veld
-  const veld = !h ? veldBij(state.eigenVelden, wx, wy) : null;
+  const veld = null;   // idem (#1092)
   const koop = !h && !veld ? pickShape(state.koopVelden, wx, wy, 8) : null;
   // de cheat Overal en nergens, of shift+klik (instelling mapShiftTeleport, kaartteleport.js)
   if (wantsTeleport({ shift, enabled: getSettings().mapShiftTeleport, teleportMode: state.teleport })) {

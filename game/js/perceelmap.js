@@ -1,7 +1,7 @@
 // De kaartlaag 'Percelen' (#415): akkers en weilanden te koop, te huur en van jou, elk met een doel (waypoint) bij het aanklikken.
 // Te koop is geel, te huur blauw, van jou groen; een blokje met akkerstrepen. De Zonnehoek ligt waar je eigen perceel gevonden is.
 import { getBoerderij } from './boerderijlive.js';
-import { PERCELEN, START_PERCEEL, stand, kaartSoort, kaartOnderschrift, perceelVlak, perceelDef } from './percelen.js';
+import { PERCELEN, START_PERCEEL, stand, kaartSoort, kaartOnderschrift, perceelDef } from './percelen.js';
 import { wgsToWorld } from './rdnew.js';
 import { INK, inkA } from './mapstyle.js';
 import { veldStatus, KAART_STIJL, GROEI_STANDEN, watNu, machinePlekken, afnemerPlekken } from './farmstatus.js';
@@ -81,7 +81,7 @@ export function tekenVeldBadge(ctx, x, y, r, v) {
   ctx.restore();
 }
 
-// #972: de percelen die van jou zijn, als vlak met een duidelijke omtrek op de grote kaart.
+// #972, #1092: de percelen die van jou zijn, met stand en label op de grote kaart; er is geen getekend vlak of omtrek (die hebben de catalogusvelden niet uit kaartdata).
 // Alleen eigen grond: aangeboden akkers blijven een pictogram, anders wordt de kaart vol.
 export function eigenPerceelVlakken() {
   const b = getBoerderij();
@@ -91,10 +91,8 @@ export function eigenPerceelVlakken() {
     if (s.van !== 'jou') continue;
     const [x, y] = p.id === START_PERCEEL && b.perceel ? [b.perceel.x, b.perceel.y] : wereld(p);
     const st = veldStatus(b, p.id);
-    const punten = perceelVlak(p, { x, y }, p.id === START_PERCEEL && b.perceel && Number.isFinite(b.perceel.a) ? b.perceel.a : null);
-    if (punten.length < 4) continue;
     out.push({
-      id: p.id, naam: p.naam, soort: p.soort, ha: p.ha, bodem: p.bodem, punten, x, y,
+      id: p.id, naam: p.naam, soort: p.soort, ha: p.ha, bodem: p.bodem, x, y,
       stijl: KAART_STIJL[st.statusId], statusNaam: st.klaar ? 'Oogstklaar' : st.status, statusId: st.statusId,
       // de vulling groeit met het gewas mee (zoals bij een gebied dat je aan het veroveren bent); ring en icoon staan in tekenVeldBadge
       icoon: st.icoon, groei: GROEI_STANDEN.includes(st.statusId) ? st.groei : null, alpha: vulAlpha(st),
