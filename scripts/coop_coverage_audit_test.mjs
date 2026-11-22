@@ -9,7 +9,7 @@ let failed = 0;
 const ok = (c, m) => { if (!c) { failed++; console.log('FAIL ' + m); } };
 
 const basis = () => ({
-  statussen: ['OK', 'gat', 'nvt'], prioriteiten: ['hoog', 'middel', 'laag', '-'], eigenaren: ['wereld', 'speler', 'gesynct', 'lokaal', 'wedstrijd'],
+  statussen: ['OK', 'gat', 'deels', 'nvt'], prioriteiten: ['hoog', 'middel', 'laag', '-'], eigenaren: ['wereld', 'speler', 'gesynct', 'lokaal', 'wedstrijd'],
   wereldSleutels: ['save'], inSavegameToegestaan: [], docNvt: {}, nietCoopRelevant: [{ glob: '*3d', reden: 'beeld' }],
   sleutelLiteralenBuitenRegister: [],
   opslag: { save: { scope: 'wereld', reden: 'de savegame' }, boerderij: { scope: 'speler', reden: 'eigen boerderij' } },

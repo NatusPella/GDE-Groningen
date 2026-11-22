@@ -10,7 +10,7 @@
 //   2. Elk systeem heeft een Samen-regel: het genoemde doc bestaat en bevat de zoektekst. Systemen met wachtOp
 //      (een epic-branch die nog niet in main staat) mogen die regel nog missen; zodra hij er staat, wordt hij gekeurd.
 //   3. Elk systeem (behalve nvt) noemt minstens een test die bestaat.
-//   4. Een gat heeft een eigenaar (issue als #nummer, of een lead) en een prioriteit.
+//   4. Een gat of deels (alleen met echte vensters te bewijzen) heeft een eigenaar (issue als #nummer, of een lead) en een prioriteit.
 //   5. Opslagsleutels: elke sleutel in game/js/storagekeys.js is ingedeeld als speler, apparaat of wereld; wereld mag
 //      alleen voor de savegame zelf; een speler-sleutel staat niet in savegame.js; een nieuwe 'gde-...'-literal buiten
 //      het register is een fout (nieuwe sleutels horen in storagekeys.js).
@@ -112,8 +112,8 @@ export function auditSources(opt = {}) {
     const tests = f.test || [];
     if (f.status !== 'nvt' && !tests.length) fouten.push(`${f.id}: geen test genoemd`);
     for (const t of tests) if (!exists(t)) { if (wacht) info.push(`${f.id}: test ${t} wacht op ${wacht}`); else fouten.push(`${f.id}: test ${t} bestaat niet`); }
-    if (f.status === 'gat') {
-      if (!(f.issue && /^#\d+$/.test(f.issue)) && !(f.lead && LEADS.includes(f.lead))) fouten.push(`${f.id}: een gat heeft een issue (#nummer) of een lead (${LEADS.join(', ')})`);
+    if (f.status === 'gat' || f.status === 'deels') {
+      if (!(f.issue && /^#\d+$/.test(f.issue)) && !(f.lead && LEADS.includes(f.lead))) fouten.push(`${f.id}: een gat heeft een issue (#nummer) of een lead (${LEADS.join(', ')}); dat geldt ook voor status deels`);
       if (f.prio === '-') fouten.push(`${f.id}: een gat heeft een prioriteit (hoog, middel of laag)`);
       if (!String(f.gat || '').trim()) fouten.push(`${f.id}: een gat beschrijft het gat (veld gat)`);
     }
@@ -195,7 +195,7 @@ export function maakMatrix(manifest, singleton, totaal = 0) {
   const f = manifest.features;
   const tel = (s) => f.filter((x) => x.status === s).length;
   const regels = [];
-  regels.push(`**Samenvatting:** ${f.length} systemen: ${tel('OK')} OK, ${tel('gat')} gat, ${tel('nvt')} niet van toepassing. Directe verwijzingen naar world.player (de ratel in scripts/player_singleton_baseline.json): ${totaal} in totaal; kolom e toont ze per systeem (een bestand kan bij twee systemen horen, een deel hoort bij geen systeem: intromontage, dorpsuitjes, main).`);
+  regels.push(`**Samenvatting:** ${f.length} systemen: ${tel('OK')} OK, ${tel('gat')} gat, ${tel('deels')} deels, ${tel('nvt')} niet van toepassing. Directe verwijzingen naar world.player (de ratel in scripts/player_singleton_baseline.json): ${totaal} in totaal; kolom e toont ze per systeem (een bestand kan bij twee systemen horen, een deel hoort bij geen systeem: intromontage, dorpsuitjes, main).`);
   regels.push('');
   regels.push('| Systeem | a) Bezit | b) Gast | c) Beloning | d) Wegvallen, aansluiten, hostwissel | e) world.player | f) Dekking | Status |');
   regels.push('|---|---|---|---|---|---|---|---|');
@@ -207,13 +207,13 @@ export function maakMatrix(manifest, singleton, totaal = 0) {
     const tests = (x.test || []).map((t) => '`' + path.basename(t).replace(/\.mjs$/, '') + '`').join(', ') || 'nvt';
     const wacht = x.wachtOp ? ` (wacht op ${x.wachtOp})` : '';
     const eig = ({ wereld: 'wereld (wie het spel opende)', speler: 'per speler', gesynct: 'gedeeld, gesynct', lokaal: 'lokaal per apparaat', wedstrijd: 'wedstrijd' })[x.eigenaar];
-    const st = x.status === 'gat' ? `**gat**, ${x.prio}, ${x.issue || 'lead ' + x.lead}` : `${x.status}${x.prio && x.prio !== '-' ? ', ' + x.prio : ''}`;
+    const st = x.status === 'gat' || x.status === 'deels' ? `**${x.status}**, ${x.prio}, ${x.issue || 'lead ' + x.lead}` : `${x.status}${x.prio && x.prio !== '-' ? ', ' + x.prio : ''}`;
     regels.push(`| ${esc(x.naam)}${wacht} | ${esc(eig)} | ${esc(x.gast)} | ${esc(x.beloning)} | ${esc(x.wegval)} | ${aanname} | ${tests} | ${st} |`);
   }
   regels.push('');
   regels.push('### Gaten');
   regels.push('');
-  const gaten = f.filter((x) => x.status === 'gat');
+  const gaten = f.filter((x) => x.status === 'gat' || x.status === 'deels');
   for (const x of gaten) regels.push(`- **${esc(x.naam)}** (${x.prio}, ${x.issue ? x.issue : 'lead ' + x.lead}${x.wachtOp ? ', epic ' + x.wachtOp : ''}): ${esc(x.gat)}`);
   const gefixt = f.filter((x) => x.gefixt);
   if (gefixt.length) {
@@ -270,9 +270,9 @@ function main() {
     else if (d.slice(a + BEGIN.length, b).trim() !== matrix.trim()) fouten.push('de matrix in docs/COOP-DEKKING-21-11.md is niet gelijk aan de bron: draai node scripts/coop_coverage_audit.mjs --write');
   }
   const tel = (s) => manifest.features.filter((x) => x.status === s).length;
-  if (json) console.log(JSON.stringify({ systemen: manifest.features.length, ok: tel('OK'), gat: tel('gat'), nvt: tel('nvt'), blokkerend: fouten.length, fouten, info }, null, 1));
+  if (json) console.log(JSON.stringify({ systemen: manifest.features.length, ok: tel('OK'), gat: tel('gat'), deels: tel('deels'), nvt: tel('nvt'), blokkerend: fouten.length, fouten, info }, null, 1));
   else {
-    console.log(`coop-dekking-audit: ${manifest.features.length} systemen (${tel('OK')} OK, ${tel('gat')} gat, ${tel('nvt')} nvt), ${fouten.length} blokkerend, ${info.length} wacht op een epic`);
+    console.log(`coop-dekking-audit: ${manifest.features.length} systemen (${tel('OK')} OK, ${tel('gat')} gat, ${tel('deels')} deels, ${tel('nvt')} nvt), ${fouten.length} blokkerend, ${info.length} wacht op een epic`);
     for (const i of info) console.log(`INFO  ${i}`);
     for (const f of fouten) console.log(`FOUT  ${f}`);
   }
