@@ -1041,7 +1041,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   setNieuwsBronnen({ bridges: getMovableBridges });
   setAudioCamera(getCamera);
   setRouteLinks({ getActiveRoute, getRouteAhead, getUserWaypoint });
-  setCinematicLinks({ getFollowPose, prewarmStreamAt, getGrenzen });
+  setCinematicLinks({ getFollowPose, prewarmStreamAt, getGrenzen, prewarmPending, streamPending });
   // #1052: een lopende missie, bijbaan, wedstrijd of minigame heeft zijn plaatsingsvensters nu nodig (placementurgency.js)
   installActivityProbe(() => playerBusy(world, ['sideJob', 'challenge', 'race', 'padel', 'activityGame', 'heliRun', 'missionPhase', 'mission', 'activity', 'activeRace']).busy);
   // #1052: the placement windows (tiles all over the province) wait while a film or cutscene plays, like the stream's own low budget (frameBody)
@@ -1188,7 +1188,8 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     planner.setEnabled(!perfOff('planner'));
     window.__streamPlanner = planner; // metingen in Electron: planner.stats()
     const cineNu = document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud') || (world.cineQuiet && performance.now() < world.cineQuiet);
-    planner.openFrame({ frameMs: laatsteFrameMs, boost: performance.now() < streamBudget.bootUntil, cine: !!cineNu, pressure: Math.min(1, streamPending().buildings / 24) });
+    // een cutscene die van plek springt (cutscenewarm.js): vooruit-warm krijgt iets meer, en onder het zwart van de wachtpoort mag alles (laadbudget)
+    planner.openFrame({ frameMs: laatsteFrameMs, boost: performance.now() < streamBudget.bootUntil, loading: !!world.cineJumpLoading, cine: !!cineNu, cineWarm: !!world.cineWarming, pressure: Math.min(1, streamPending().buildings / 24) });
     // the tiles follow the camera or the player (speed and heading prefetch)
     if (world.map.follow) {
       const tf = tileFocus(hoofdspeler(world), world.cameraOverride, tileFollow, dt);

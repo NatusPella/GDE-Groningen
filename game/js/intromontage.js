@@ -27,6 +27,7 @@ import { KITCHEN, buildKitchen, buildAtmTrailer, buildWetBike, buildFrikandel, b
 import { logoHtml } from './logo.js';
 import { PARTS, partNumber } from './storyarc.js';
 import { homeSpawnPoint } from './home.js';
+import { jumpsFromStops } from './cutscenewarm.js';
 import { KEYS } from './storagekeys.js';
 import { TABLE_SIT } from './cutscenemodels.js';
 import { BIRDS, makeBirds, scatterBirds, updateBirds } from './birds.js';
@@ -1779,8 +1780,11 @@ export function playIntroMontage(w, { startAt = 0, flyShot, onDone, maxShots = I
   // the film opens in silence (street sound, Rikus): its theme falls in on the first crane shot (MUSIC cue thema-in, see enterShot)
   if (!r.offset && !film) cueTheme(0);
   ui.root.classList.add('on');
+  // de plekken wisselen in de film (de Grote Markt, de Oosterparkwijk, Paddepoel): de volgende plek warmt vooruit en een harde sprong
+  // wacht onder zwart tot de buurt er staat (cutscenewarm.js, #1016). Tijd t van de cinematic = montagetijd min het beginpunt.
+  const jumps = jumpsFromStops(shots.map((s, i) => (s.focus && Number.isFinite(s.focus.x) && Number.isFinite(s.focus.y) ? { t: starts[i] - r.offset, x: s.focus.x, y: s.focus.y } : null)).filter((q) => q && q.t > 0));
   const ok = playCinematic({
-    id: 'intro', priority: 6, duration: total - r.offset, pause: true, letterbox: true, skippable: true, hideHud: true, realtime: true,
+    id: 'intro', priority: 6, jumps, duration: total - r.offset, pause: true, letterbox: true, skippable: true, hideHud: true, realtime: true,
     shot: (u, t) => {
       if (!r.film) return frame(r, t);
       // the film must never take the game down: an error stops it and the old opening takes over

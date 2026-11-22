@@ -10,8 +10,9 @@ import { hoofdspeler } from './players.js';
 import { isCinematicActive, isBannerUp, sinceCinematic, playCinematic, cinematicWorld } from './cinematics.js';
 import { playerBusy } from './busy.js';
 import { isMapOpen } from './pausestate.js';
-import { veroverTourShot } from './camerapath.js';
-import { magIntocht, isRustig, neemIntocht, wachtrij, maakIntocht, thuiskomstVoor, tourPrewarm } from './wijkintocht.js';
+import { veroverTourShot, easeInOut } from './camerapath.js';
+import { warmStopsFromKeys } from './cutscenewarm.js';
+import { magIntocht, isRustig, neemIntocht, wachtrij, maakIntocht, thuiskomstVoor, tourPrewarm, tourKeys } from './wijkintocht.js';
 import { getOverzicht, noteerIntocht, intochtGezien } from './gebiedenlive.js';
 
 const TIK_S = 0.5;
@@ -60,6 +61,8 @@ function speel(w, film) {
     lines: filmLijnen(film),
     shot,
     prewarm: tourPrewarm({ x: film.x, y: film.y }, film.stops, achter),
+    // de baan passeert de stops snel (tot ca. 190 m/s): elke volgende stop warmt vooruit (zacht, nooit een poort, #1016)
+    jumps: warmStopsFromKeys(tourKeys({ x: film.x, y: film.y }, film.stops, achter), film.seconden, easeInOut),
   });
   if (ok) noteerIntocht(film.gebied);
   return ok;

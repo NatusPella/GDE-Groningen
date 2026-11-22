@@ -24,6 +24,7 @@ export const PLAN = {
   capMs: 4,          // nooit meer streamingwerk dan dit per frame (gemiddeld), buiten een sprong en de laadsluier
   pressureMs: 6,     // het plafond als er dichtbij werk te laat is (gebouwen die de speler al ziet, nog zonder detail) en de frames het toelaten
   urgentMs: 6,       // werk dat een nabije speler, een activiteit of een herstel nu nodig heeft: eigen budget, nooit vastgehouden
+  cineWarmFrac: 0.7, // een cutscene die de volgende plek vooruit-warmt (cutscenewarm.js): 70 % van het plafond in plaats van 40 %
   boostMs: 8,        // de eerste seconden na een sprong (teleport, trein, respawn), als de frames het toelaten
   loadingMs: 20,     // achter de laadsluier of een zwart scherm: er wordt niet getekend, dus alles mag
   floorMs: 0.5,      // een trage frame: toch even doorwerken
@@ -54,7 +55,7 @@ export const CLASSES = {
 // Het totale budget (ms) van een frame uit de frametijd: veel ruimte = capMs, trage frame = floorMs, ertussen
 // lineair. Een sprong (boost) tilt het plafond naar boostMs, maar alleen zolang de frames niet echt traag zijn;
 // de laadsluier (loading) laat alles toe.
-export function budgetFor(frameMs, { boost = false, loading = false, cine = false, pressure = 0 } = {}, p = PLAN) {
+export function budgetFor(frameMs, { boost = false, loading = false, cine = false, cineWarm = false, pressure = 0 } = {}, p = PLAN) {
   if (loading) return p.loadingMs;
   const pr = Math.min(1, Math.max(0, Number.isFinite(pressure) ? pressure : 0));
   const ceiling = boost ? p.boostMs : p.capMs + (p.pressureMs - p.capMs) * pr;
@@ -63,7 +64,7 @@ export function budgetFor(frameMs, { boost = false, loading = false, cine = fals
   if (f <= p.goodFrameMs) t = ceiling;
   else if (f >= p.badFrameMs) t = p.floorMs;
   else t = p.floorMs + (ceiling - p.floorMs) * (p.badFrameMs - f) / (p.badFrameMs - p.goodFrameMs);
-  if (cine) t = Math.min(t, p.capMs * 0.4); // een film of cutscene: weinig, en gelijkmatig
+  if (cine) t = Math.min(t, p.capMs * (cineWarm ? p.cineWarmFrac : 0.4)); // een film of cutscene: weinig, en gelijkmatig (iets meer zolang de volgende plek warmt)
   return t;
 }
 
@@ -78,7 +79,7 @@ export function createFramePlanner(opts = {}) {
   let seq = 0;
   const frames = { n: 0, sumMs: 0, maxMs: 0, over: 0, overMs: 0, last: 0 };
 
-  function openFrame({ frameMs = frameEma, boost = false, loading = false, cine = false, hold = false, pressure = 0, fresh = false } = {}) {
+  function openFrame({ frameMs = frameEma, boost = false, loading = false, cine = false, cineWarm = false, hold = false, pressure = 0, fresh = false } = {}) {
     // sluit de vorige frame af: wat boven de toelage is uitgegeven wordt schuld (begrensd); wat over is, vervalt
     if (fresh) debt = 0; // een lange stilte (autoFrameMs): oude schuld telt niet meer
     else if (frame > 0) {
@@ -90,7 +91,7 @@ export function createFramePlanner(opts = {}) {
     frame++;
     lastOpen = clock();
     if (Number.isFinite(frameMs)) frameEma += (Math.min(200, frameMs) - frameEma) * p.emaK;
-    const total = hold ? 0 : budgetFor(frameEma, { boost, loading, cine, pressure }, p);
+    const total = hold ? 0 : budgetFor(frameEma, { boost, loading, cine, cineWarm, pressure }, p);
     lastTotal = Math.max(total, p.floorMs);
     // schuld telt niet achter de laadsluier (er wordt niet getekend)
     allowance = loading ? total : total + debt;

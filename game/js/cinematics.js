@@ -34,6 +34,7 @@ import { gebiedIn, puntInGebied } from './grenzen.js';
 import { cinematicHang } from './cinelimit.js';
 import { reducedMotion } from './motion.js';
 import { fitCamera } from './cutscript.js';
+import { WARM, createJumpRunner } from './cutscenewarm.js';
 import { markVehiclesInShot, clearVehicleHiding } from './cinehide.js';
 
 // world.cameraOverride poses use map coordinates: x/y on the map, z = height in metres.
@@ -369,6 +370,45 @@ export function attachVoices(a) {
 // the internal codes of playTextMumble (audio.js): A = Tessa, T = Tammo, V = Rikus; anyone else keeps the default pitch
 const MUMBLE_WHO = (speaker) => (/^(anita|tessa)$/i.test(speaker) ? 'A' : /^tammo$/i.test(speaker) ? 'T' : /^rikus$/i.test(speaker) ? 'V' : '');
 
+// Vooruit-warm en wachtpoort voor een scène die van plek springt (cutscenewarm.js, #1016): spec.jumps = [{ idx, t, to: { x, y }, kind }].
+// Alles lokaal per speler; een gast (cutId) warmt wel maar houdt zijn klok nooit vast, die volgt de gastheer.
+const jumpKeys = new Map();
+function jumpEnv() {
+  const map = () => (world && world.map && world.map.store ? world.map : null);
+  return {
+    now: () => performance.now(),
+    warm(j) {
+      const m = map();
+      try { links.prewarmStreamAt(j.to.x, j.to.y, WARM.lifeS, WARM.radiusM); } catch (e) { /* vooruitladen is een hulpmiddel */ }
+      try { if (m && m.warmPoint) m.warmPoint(j.to.x, j.to.y, { radius: WARM.tileRadiusM }); } catch (e) { /* idem */ }
+    },
+    ready(j, deep) {
+      const m = map();
+      if (!m) return null;
+      let keys = jumpKeys.get(j);
+      if (!keys) { keys = m.store.keysAround(j.to.x, j.to.y, WARM.tileRadiusM); jumpKeys.set(j, keys); }
+      const q = { tilesMissing: m.store.missing(keys).length, prewarmPending: links.prewarmPending ? links.prewarmPending() : 0 };
+      if (deep) {
+        q.tilesMissing += (m.tileQueue && m.tileQueue.items ? m.tileQueue.items.length : 0);
+        const sp = links.streamPending ? links.streamPending() : null;
+        if (sp) { q.buildings = sp.buildings; q.roads = sp.roads; }
+      }
+      return q;
+    },
+    fade: (k, ms) => { try { links.respawnFade(k, ms); } catch (e) { /* geen DOM */ } },
+    // meetpunten voor de Electron-run: window.__cineJumps (hoogstens 60 gebeurtenissen), zie docs/CUTSCENE-POPIN-22-11.md
+    note: (e) => { try { const l = (window.__cineJumps || (window.__cineJumps = [])); l.push({ scene: active && active.id, at: Math.round(performance.now()), ...e }); if (l.length > 60) l.shift(); } catch (err) { /* geen window */ } },
+    voice: () => {}, // de stem pauzeert in tick() mee met de wachtpoort (voicePaused)
+    flags: (f) => { if (world) { world.cineWarming = !!f.warming; world.cineJumpLoading = !!f.loading; } },
+  };
+}
+function endJumps(a) {
+  if (!a || !a._jumps) return;
+  try { a._jumps.dispose(); } catch (e) { /* niet erg */ }
+  a._jumps = null;
+  try { if (world && world.map && world.map.releaseWarm) world.map.releaseWarm(); } catch (e) { /* niet erg */ }
+}
+
 function begin(spec) {
   active = {
     priority: 1, duration: 3, letterbox: true, skippable: true, hideHud: true, pause: false, timeScale: 1,
@@ -376,6 +416,7 @@ function begin(spec) {
   };
   resetSkip();
   const tiles = holdShotTiles(spec.prewarm);
+  active._jumps = Array.isArray(spec.jumps) && spec.jumps.length ? createJumpRunner(spec.jumps, jumpEnv(), { skipGate: spec.cutId != null }) : null;
   active._tilesDone = !tiles;
   voicePaused = false;
   const tilesScene = active; // de scène kan intussen vervangen of gestopt zijn
@@ -422,6 +463,7 @@ function begin(spec) {
 function finish(skipped, replaced = false) {
   const a = active;
   active = null;
+  endJumps(a);
   pauseOff(); // (#729) de wereld loopt weer door (de volgende scène zet hem zo nodig weer stil)
   releaseShotTiles();
   resetSkip();
@@ -548,9 +590,10 @@ export function updateCinematics(dt, w) {
   // cinematicPause (#729) telt niet: die zet de scène zelf.
   const wereldPauze = !!(w && w.paused && !w.cinematicPause);
   const frozen = menuOpen || hold || wereldPauze;
+  const jumpHeld = !!(active && active._jumps && active._jumps.holding); // de wachtpoort van een sprong houdt ook de stem vast (#1016)
   if (active && (active.voiced || active.mumble)) {
-    if (frozen && !voicePaused) { if (pauseStoryVoice()) voicePaused = true; }
-    else if (!frozen && voicePaused) { resumeStoryVoice(); voicePaused = false; }
+    if ((frozen || jumpHeld) && !voicePaused) { if (pauseStoryVoice()) voicePaused = true; }
+    else if (!frozen && !jumpHeld && voicePaused) { resumeStoryVoice(); voicePaused = false; }
   }
   if (!frozen) {
     if (active) {
@@ -560,7 +603,9 @@ export function updateCinematics(dt, w) {
       if (cinematicHang({ startedAt: active._wStart, now, worldTime: w && w.time, sceneT: active.t, waitsForInput: !!active.pause }) === 'frozen') { finish(true); return; }
       // #734 (F12): de eerste frames pas laten lopen als de shottegels klaar zijn (met time-out)
       if (active._tilesDone) {
-        active.t += (active.realtime ? Math.max(dt, wallDt) : dt) * (active.rate ?? 1);
+        let nextT = active.t + (active.realtime ? Math.max(dt, wallDt) : dt) * (active.rate ?? 1);
+        if (active._jumps) nextT = Math.max(active.t, active._jumps.step(active.t, nextT).t); // een harde sprong wacht onder zwart tot de plek klaar is (hoogstens 1,2 s)
+        active.t = nextT;
         updateSubtitles();
         if (active.t >= active.duration) finish(false);
       }
