@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Verhaal > Personages (mock)</title>
+<!--
+  Headless beeldmock van Verhaal > Personages (personages-ui 22-11). GEEN Electron: de echte verhaalui.js, phone.js en de
+  menustijlen in een nagemaakt pauzemenu (rail, kop, tabbalk), met nepdata voor de verhaalstappen en berichten.
+  Starten: node scripts/ui/personages_render.mjs --serve  daarna  /mock.html?sel=tammo|anita|overig|rikus&ui=1&m=3
+  Query: sel = gekozen personage  ui = interfacegrootte  m = hoeveel extra personages ontmoet (0 tot 4)
+-->
+<style>html,body{margin:0;height:100%;background:#2a2d26;overflow:hidden}body{background:linear-gradient(135deg,#3b3f34,#1f2a24)}</style>
+</head>
+<body>
+<script type="importmap">
+{ "imports": {
+  "https://cdn.jsdelivr.net/npm/": "/vendor/npm/",
+  "three": "/vendor/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "/vendor/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+const q = new URLSearchParams(location.search);
+const ui = Number(q.get('ui')) || 1;
+const sel = q.get('sel') || 'tammo';
+const vw = innerWidth, vh = innerHeight;
+const log = [];
+addEventListener('error', (e) => log.push('fout: ' + e.message));
+addEventListener('unhandledrejection', (e) => log.push('belofte: ' + (e.reason && e.reason.message || e.reason)));
+window.__log = log;
+
+for (const f of ['fonts/fonts.css', 'js/menu.css', 'js/ds-tokens.css', 'js/ds-components.css', 'js/ds-keycap.css', 'js/ds-motion.css', 'js/ds-micro.css', 'js/ds-beweging.css', 'js/ds-menu-zeef.css', 'js/ds-schermen.css', 'js/pausemenu.css']) {
+  const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = `/${f}`; document.head.appendChild(l);
+}
+// uiscale.js: de menukaart is 1920x1080 ontwerp-px, ingezoomd met --mz
+const mz = Math.max(0.5, Math.min(4, Math.min(vh / 1080, vw / 1920) * ui));
+document.documentElement.style.setProperty('--mz-fit', mz.toFixed(3));
+document.documentElement.style.setProperty('--ui', String(ui));
+
+// de verhaalstappen: de echte lijst, met de eerste tien klaar en de elfde als "nu"
+globalThis.__stepsPost = (list) => list.map((s, k) => ({ ...s, done: k < 10, current: k === 10, available: true }));
+
+const A = await import('/js/achievements.js');
+const w = { money: 2750, health: 82, player: { character: 'tammo', x: 0, y: 0 }, addMessage() {}, stats: {},
+  phoneHistory: [
+    { from: 'Rikus', app: 'bericht', at: '21:14', body: 'Nachtstreek draait vannacht een uur stilte. Kom je langs?', read: false },
+    { from: 'Kiekdoar', app: 'sikkom', at: '18:02', body: 'Drukte op de Ring Zuid. Neem de fiets.', read: false },
+  ] };
+const MET = ['rikus', 'berend', 'jelle', 'roelf'].slice(0, Math.max(0, Number(q.get('m') ?? 2)));
+for (const id of MET) A.recordUnique(w, 'personages', id);
+
+const V = await import('/js/verhaalui.js');
+document.body.insertAdjacentHTML('beforeend', `
+<div id="pause-menu" class="visible gm"><div class="pm-fold gm-stage">
+  <nav class="pm-rail"><div class="pm-inner pm-game">
+    <div class="pm-rail-group"><span class="pm-rail-h"><span>Doen</span></span>
+      <button type="button" class="ra" aria-current="true"><span class="ra-t">Verhaal</span></button><button type="button" class="ra"><span class="ra-t">Te doen</span></button></div>
+    <div class="pm-rail-group"><span class="pm-rail-h"><span>Systeem</span></span>
+      <button type="button" class="ra"><span class="ra-t">Instellingen</span></button></div>
+  </div></nav>
+  <section class="pm-sheet m-panel"><header class="pm-sheet-head m-head">
+    <div class="pm-sheet-titles"><span class="m-eb pm-sheet-eb">Wie je kent en wat je speelt</span><h1 class="m-h1 pm-sheet-title">Verhaal</h1></div>
+    <div class="m-hr pm-sheet-r"><span class="mut pm-sheet-pos">Doen</span></div></header>
+    <div class="pm-sheet-body"><section data-panel="verhaal" class="pm-panel pm-col pm-tabbed"><div class="pm-inner pm-verhaal">
+      <div class="m-tabs"><nav class="m-tablist ds-m-tabs" role="tablist" aria-label="Verhaal">
+        <button type="button" role="tab" class="m-tab ds-m-nieuw" data-of="verhaal" data-subtab="opdrachten" aria-selected="false">Opdrachten<small data-count="opdrachten"></small></button>
+        <button type="button" role="tab" class="m-tab ds-m-nieuw" data-of="verhaal" data-subtab="personages" aria-selected="true">Personages<small data-count="personages"></small></button>
+        <span class="ds-m-tabs__lijn" aria-hidden="true"></span></nav></div>
+      <div class="m-main pm-vbody"><div data-of="verhaal" data-sub="opdrachten" data-keep class="pm-vsub pm-vopd" hidden></div><div data-of="verhaal" data-sub="personages" class="pm-vsub"></div></div>
+    </div></section></div></section>
+</div></div>`);
+V.selectVerhaalCharacter(sel);
+V.renderVerhaal(document.querySelector('[data-panel="verhaal"]'), 'personages', w);
+try { const G = await import('/js/glyphs.js'); G.refreshGlyphs(document); } catch (e) { log.push('glyphs: ' + e.message); }
+document.addEventListener('click', (e) => V.verhaalClick(e, document.querySelector('[data-panel="verhaal"]')));
+if (q.get('meer')) document.querySelector('[data-vh-meer]')?.click();
+if (q.get('scroll')) { const v = document.querySelector('.vh-viewer'); v.scrollTop = v.scrollHeight; }
+window.__mock = { V, w };
+setTimeout(() => { window.__klaar = true; }, 1200);
+</script>
+</body>
+</html>

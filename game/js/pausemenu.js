@@ -538,7 +538,9 @@ export function pauseMenuCover() {
 const started = () => document.body.classList.contains('game-started');
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // De rail zelf heeft geen knop Spelers (#377): het aantal spelers staat bij Spel, de lijst onder Samen spelen (#434).
-const sectionIds = () => (prestart ? PRESTART_SECTIONS : SECTIONS.map(([id]) => id));
+// Cheats staat alleen in de rail in een dev- of testrun, of na de keuze in Instellingen > Spelregels (22-11): een gewone speler ziet het onderdeel niet.
+export const cheatsInMenu = (st = getSettings()) => DEV || !!(st && st.toonCheats);
+const sectionIds = () => (prestart ? PRESTART_SECTIONS : SECTIONS.map(([id]) => id).filter((id) => id !== 'streken' || cheatsInMenu()));
 const sectionOf = (id) => SECTIONS.find(([s]) => s === id);
 const key = (k) => `<span class="hud-key">${k}</span>`;
 
@@ -769,6 +771,8 @@ function settingsHtml() {
       ${picker('ruzie', 'Verkeersruzie', [['uit', 'Uit'], ['weinig', 'Weinig'], ['normaal', 'Normaal'], ['veel', 'Veel']], 'Hoe vaak een boze bestuurder uitstapt na een botsing of getoeter. Zonder bloed; sommigen hebben iets in de hand')}
       ${picker('drunkFx', 'Dronken effecten', [['aan', 'Aan'], ['mild', 'Mild'], ['uit', 'Uit']], 'Het wiebelende beeld en de dubbele tong als je gedronken hebt')}
       ${toggle('gore', 'Bloed en ledematen', 'Uit: mensen vallen gewoon om, zonder bloed of rondvliegende ledematen')}
+      <div class="m-gh"><span>Cheats</span></div>
+      ${toggle('toonCheats', 'Cheats in het menu', 'Toont Cheats onder Systeem. Een beetje vals spelen kan; sommige cheats zetten prestaties uit zolang ze aan staan')}
       <div class="m-gh"><span>Rijden</span></div>
       ${picker('shiftMode', 'Schakelen', [['auto', 'Automaat'], ['manual', 'Handmatig'], ['clutch', 'Handmatig + koppeling']], 'Automaat is de standaard; handmatig schakel je met . en , (of de bumpers), met koppeling houd je ook {J} ingedrukt')}
       ${toggle('speedFeel', 'Snelheidsgevoel', 'Beeld wordt wijder bij hoge snelheid en een zware klap vertraagt even; uit is rustiger')}

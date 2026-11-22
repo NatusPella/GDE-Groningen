@@ -367,7 +367,7 @@ html.sub-box #pause-menu .pm-subtxt { background: color-mix(in srgb, var(--ds-c-
 #pause-menu .m-pane .m-h2, #pause-menu .td-h2 { overflow-wrap: break-word; }
 #pause-menu .m-list, #pause-menu .m-pane, #pause-menu .td-list, #pause-menu .pm-samen-inner, #pause-menu .pm-spelers {
   scrollbar-width: auto;
-  scrollbar-color: var(--ds-scroll-duim) var(--ds-scroll-spoor);
+  scrollbar-color: auto; /* 22-11: elke andere waarde dan auto schakelt de ::-webkit-scrollbar-opmaak hieronder uit in Chromium en geeft de standaardbalk met eindknoppen */
 }
 #pause-menu .m-list::-webkit-scrollbar, #pause-menu .m-pane::-webkit-scrollbar, #pause-menu .td-list::-webkit-scrollbar,
 #pause-menu .pm-samen-inner::-webkit-scrollbar, #pause-menu .pm-spelers::-webkit-scrollbar { width: var(--ds-scroll-breed); height: var(--ds-scroll-breed); }
@@ -375,6 +375,8 @@ html.sub-box #pause-menu .pm-subtxt { background: color-mix(in srgb, var(--ds-c-
 #pause-menu .pm-samen-inner::-webkit-scrollbar-thumb, #pause-menu .pm-spelers::-webkit-scrollbar-thumb { background: var(--ds-scroll-duim); border: 2px solid var(--ds-scroll-spoor); border-radius: var(--ds-scroll-rond); }
 #pause-menu .m-list::-webkit-scrollbar-track, #pause-menu .m-pane::-webkit-scrollbar-track, #pause-menu .td-list::-webkit-scrollbar-track,
 #pause-menu .pm-samen-inner::-webkit-scrollbar-track, #pause-menu .pm-spelers::-webkit-scrollbar-track { background: var(--ds-scroll-spoor); }
+#pause-menu .m-list::-webkit-scrollbar-button, #pause-menu .m-pane::-webkit-scrollbar-button, #pause-menu .td-list::-webkit-scrollbar-button,
+#pause-menu .pm-samen-inner::-webkit-scrollbar-button, #pause-menu .pm-spelers::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
 
 /* Op een korte viewport (1280x720, 1280x800) is de verticale ruimte het schaarse goed: de
    opening wordt compacter, zodat de eerste kaart en de lijst volledig in beeld blijven. */

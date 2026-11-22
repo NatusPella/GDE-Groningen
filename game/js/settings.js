@@ -88,6 +88,8 @@ const BASE_DEFAULTS = {
   // terugkeerscène (#986 #987): na Doorgaan een korte flatscène van Tammo en Tessa (terugkeerrun.js); standaard aan
   terugkeerScene: true,
   gore: true,
+  // Cheats in het pauzemenu (22-11): standaard verborgen in een gewone build; aan via Instellingen > Spelregels. Een dev- of testrun (devflags DEV) toont ze altijd.
+  toonCheats: false,
   // Zichtafstand (viewdist.js): 'kort' hoort bij de voorinstelling die de speler als Hoog ziet
   // (de sleutel heet nog 'vlot': de look van de zwaarste stand met de afstand van Laag, #893).
   // Op een iGPU-laptop als de M1 is dat de speelbare stand; de speler kan in de instellingen

@@ -217,7 +217,7 @@ t('de kaart is aangesloten op Verhaal > Personages (broncheck)', () => {
   const vu = read('game/js/verhaalui.js');
   assert.match(vu, /from '\.\/characterdossiers\.js'/, 'verhaalui importeert de dossiers');
   assert.match(vu, /cardFacts\(c\.id/, 'de kaart leest de feiten per personage');
-  assert.match(vu, /Wie is dit\?/, 'de kaart heet Wie is dit?');
+  assert.match(vu, /from '\.\/personagedossier\.js'/, 'de opmaak van het dossier staat in personagedossier.js (kop, feiten, Samen in, Meer)');
 });
 
 if (!process.exitCode) {

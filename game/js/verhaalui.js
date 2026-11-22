@@ -11,6 +11,8 @@ import { NPC } from './missionstory.js';
 import { getStorySteps, replayOpening } from './story.js';
 import { speakerColor } from './speakers.js';
 import { cardFacts } from './characterdossiers.js';
+import { partNumber } from './storyarc.js';
+import { dossierHtml as dossierMarkup, unknownHtml, otherHtml, otherCardHtml, actGroups } from './personagedossier.js';
 import { dutchFor } from './subtitles.js';
 import { fillBars, pop } from './motion.js';
 import { renderCharacterPhone, phoneUnreadFor, unreadInbox, OVERIG } from './phone.js';
@@ -58,25 +60,54 @@ const CSS = `
 #pause-menu .vh-stage[data-locked] canvas { filter: brightness(0); opacity: 0.8; cursor: default; }
 #pause-menu .vh-stage .vh-mono { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--ds-font-zeef-kop); font-size: 120px; color: var(--ds-zeef-tx); opacity: 0.7; }
 #pause-menu .vh-stage .vh-hint { position: absolute; left: 0; bottom: 0; font-size: 18px; color: var(--mut); pointer-events: none; }
-#pause-menu .vh-quote { padding-left: 16px; border-left: 3px solid var(--spk); font-style: italic; font-size: 20px; line-height: 1.35; }
+/* 22-11 (personages-ui): het dossier rechts heeft een vaste kop (portret, naam, rol, status), korte feiten met een icoon, "Samen in" als chips per akte en
+   de rest achter "Meer". Alles in .vh-viewer is flex:none: de oude kaart kromp tot een lege balk met een los groen vlak omdat een kolom van .m-pane zijn kinderen mocht indrukken. */
+#pause-menu .vh-viewer > *, #pause-menu .vh-dossier > * { flex: none; }
+#pause-menu .vh-viewer { gap: var(--ds-s-3); }
+#pause-menu .vh-dossier { display: flex; flex-direction: column; gap: var(--ds-s-3); min-width: 0; }
+#pause-menu .vh-kop { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: var(--ds-s-4); align-items: center; padding: var(--ds-s-3); border-left-color: var(--spk); }
+#pause-menu .vh-kop .vh-stage { width: 112px; height: 140px; max-width: none; border-radius: var(--ds-r); background: var(--ds-zeef-kop); box-shadow: none; }
+#pause-menu .vh-kop .vh-stage .vh-hint { display: none; }
+#pause-menu .vh-kop .vh-stage .vh-mono { font-size: 64px; }
+#pause-menu .vh-kop .vh-stage-icoon { display: grid; place-items: center; background: var(--ds-c-sel-vlak); }
+#pause-menu .vh-kop .vh-kop-ic { width: 56px; height: 56px; fill: currentColor; color: var(--ds-c-ink-inkt); }
+#pause-menu .vh-pic-icoon { background: var(--ds-c-sel-vlak); }
+#pause-menu .vh-pic-icoon .vh-kop-ic { width: 40px; height: 40px; fill: currentColor; color: var(--ds-c-ink-inkt); }
+#pause-menu .vh-kop-tekst { display: flex; flex-direction: column; gap: var(--ds-s-2); min-width: 0; }
+#pause-menu .vh-kop-tekst h3 { margin: 0; font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: var(--ds-t-kop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; overflow-wrap: anywhere; }
+#pause-menu .vh-rol { margin: 0; font-size: var(--ds-t-body); line-height: 1.3; color: var(--ds-c-inkt-zacht); }
+#pause-menu .vh-status { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); }
+#pause-menu .vh-bio { margin: 0; font-size: 20px; line-height: 1.45; }
+#pause-menu .vh-quote { margin: 0; padding-left: 16px; border-left: 3px solid var(--spk); font-style: italic; font-size: 20px; line-height: 1.35; }
 #pause-menu .vh-quote small { display: block; margin-top: 3px; font-style: normal; font-size: 18px; color: var(--mut); }
-#pause-menu .vh-bio { font-size: 20px; line-height: 1.45; }
-#pause-menu .vh-facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 20px; font-size: 20px; }
-#pause-menu .vh-facts dt { color: var(--mut); }
-/* #980 fase 3: de personagekaart is de hero van het scherm: een papieren kaart met het draaiende portret links in een omlijnd vlak
-   en rol (chip), naam en citaat rechts; de uitleg en de berichten staan eronder op het glas. */
-#pause-menu .vh-held { display: grid; grid-template-columns: minmax(140px, 200px) minmax(0, 1fr); gap: var(--ds-s-4); align-items: stretch; padding: var(--ds-s-3) var(--ds-s-4) var(--ds-s-3) var(--ds-s-3); border-left-color: var(--spk); }
-#pause-menu .vh-held .vh-stage { height: auto; min-height: 250px; max-width: none; border-radius: var(--ds-r); background: var(--ds-zeef-kop); }
-#pause-menu .vh-held .vh-stage .vh-hint { left: var(--ds-s-2); bottom: var(--ds-s-1); font-size: var(--ds-t-hulp); color: var(--ds-c-wit); }
-#pause-menu .vh-held-tekst { display: flex; flex-direction: column; justify-content: center; gap: var(--ds-s-2); min-width: 0; }
-#pause-menu .vh-held-tekst h3 { margin: 0; font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: var(--ds-t-kop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
-#pause-menu .vh-held .vh-quote { padding-left: var(--ds-s-3); font-size: var(--ds-t-body); color: var(--ds-zeef-tx); }
-#pause-menu .vh-held .vh-quote small { color: var(--ds-c-inkt-zacht); font-size: var(--ds-t-hulp); }
-#pause-menu .vh-held .ds-z-chip { align-self: flex-start; }
-#pause-menu .vh-miss { display: flex; flex-wrap: wrap; gap: 8px; }
-#pause-menu .vh-miss span { font-family: var(--ds-font-zeef-kop); font-size: 20px; letter-spacing: 0.05em; color: var(--mut); }
-#pause-menu .vh-miss span[data-st="klaar"] { color: var(--g); }
-#pause-menu .vh-miss span[data-st="nu"] { color: var(--ink); text-decoration: underline; text-decoration-color: var(--g); text-underline-offset: 4px; }
+#pause-menu .vh-feiten { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--ds-s-2); margin: 0; padding: 0; list-style: none; }
+#pause-menu .vh-feit { display: grid; grid-template-columns: 24px auto minmax(0, 1fr); align-items: center; gap: var(--ds-s-2); padding: var(--ds-s-2) var(--ds-s-3); border: 2px solid color-mix(in srgb, var(--ink) 22%, transparent); border-radius: var(--ds-r); font-size: 18px; line-height: 1.25; }
+#pause-menu .vh-feit-ic { width: 20px; height: 20px; fill: currentColor; color: var(--g); }
+#pause-menu .vh-feit-k { color: var(--mut); }
+#pause-menu .vh-feit-t { min-width: 0; overflow-wrap: anywhere; }
+#pause-menu .vh-feit-duo, #pause-menu .vh-feiten-lang .vh-feit { grid-column: 1 / -1; }
+#pause-menu .vh-feiten-lang { grid-template-columns: minmax(0, 1fr); }
+#pause-menu .vh-kopje { margin: 0 0 var(--ds-s-2); font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: 20px; letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--g); }
+#pause-menu .vh-akte { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: var(--ds-s-2) var(--ds-s-3); align-items: start; padding: var(--ds-s-1) 0; }
+#pause-menu .vh-akte-n { padding-top: 6px; font-family: var(--ds-font-zeef-kop); font-size: 18px; letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--mut); }
+#pause-menu .vh-miss { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); margin: 0; padding: 0; list-style: none; }
+#pause-menu .vh-stap { max-width: 100%; }
+#pause-menu .vh-stap-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#pause-menu .vh-stap-nu { margin-left: 4px; font-family: var(--ds-font-zeef-kop); font-size: 16px; letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
+#pause-menu .vh-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+#pause-menu .vh-meerblok { display: flex; flex-direction: column; gap: var(--ds-s-3); align-items: flex-start; }
+#pause-menu .vh-meer { display: flex; flex-direction: column; gap: var(--ds-s-3); animation: m-up var(--ds-m-kort, 200ms) ease-out both; }
+#pause-menu .vh-meer[hidden] { display: none; }
+#pause-menu .vh-klets[hidden] { display: none; }
+#pause-menu .vh-klets { padding: var(--ds-s-3) var(--ds-s-4); }
+#pause-menu .vh-klets .pt-titel { margin: 0 0 var(--ds-s-2); font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: 22px; letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
+#pause-menu .vh-name-lang b { white-space: normal; font-size: 20px; line-height: 1.1; }
+/* DS3-scrollbalk: smal en zeefdruk. scrollbar-width en scrollbar-color staan hier op auto: in Chromium (Electron) schakelt elke andere waarde de ::-webkit-scrollbar-opmaak uit en tekent de browser zijn eigen balk met eindknoppen. */
+#pause-menu .vh-viewer, #pause-menu .vh-left { scrollbar-width: auto; scrollbar-color: auto; }
+#pause-menu .vh-viewer::-webkit-scrollbar, #pause-menu .vh-left::-webkit-scrollbar { width: var(--ds-scroll-breed); }
+#pause-menu .vh-viewer::-webkit-scrollbar-thumb, #pause-menu .vh-left::-webkit-scrollbar-thumb { background: var(--ds-scroll-duim); border: 2px solid var(--ds-scroll-spoor); border-radius: var(--ds-scroll-rond); }
+#pause-menu .vh-viewer::-webkit-scrollbar-track, #pause-menu .vh-left::-webkit-scrollbar-track { background: var(--ds-scroll-spoor); }
+#pause-menu .vh-viewer::-webkit-scrollbar-button, #pause-menu .vh-left::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
 /* #904: de kop van Personages is één rustige strook met de stand erin; de
    geschiedenis krijgt daardoor een begin in plaats van een lijst die maar loopt. */
 #pause-menu .vh-hero { display: flex; flex-direction: column; gap: 6px; margin: 0 0 14px; padding: 14px 18px; background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard); }
@@ -87,7 +118,6 @@ const CSS = `
 #pause-menu .vh-hero-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 16px; color: var(--mut); }
 #pause-menu .vh-party { display: flex; align-items: center; gap: 10px; font-size: 18px; }
 #pause-menu .vh-party b { font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: 26px; line-height: 1; letter-spacing: 0.02em; color: var(--ink); }
-#pause-menu .vh-facts { grid-template-columns: auto minmax(0, 1fr); }
 `;
 
 let styled = false;
@@ -122,47 +152,23 @@ function charCard(c) {
     `<span class="vh-name"><b>${esc(c.name)}</b><small>${esc(c.role)}</small></span></button>`;
 }
 
-function missionChips(c) {
-  const steps = new Map(getStorySteps().map((s) => [s.id, s]));
-  const list = c.missions.map((id) => steps.get(id)).filter(Boolean);
-  if (!list.length) return '';
-  return '<div class="vh-miss">' + list.map((s) => {
-    const st = s.done ? 'klaar' : s.current ? 'nu' : 'later';
-    const staat = st === 'klaar' ? ' ✓' : st === 'nu' ? ' · nu' : '';
-    return `<span data-st="${st}">${esc(s.title)}${staat}</span>`;
-  }).join('') + '</div>';
-}
-
-// "Wie is dit?": the dossier facts this player may see now (age, home, work, what they are to the duo). Each fact has a
-// known-from mark (characterdossiers: met, or a story step that must be done), so the card never spoils; per player, local.
-function dossierHtml(c) {
-  const done = new Set(getStorySteps().filter((s) => s.done).map((s) => s.id));
-  const facts = cardFacts(c.id, { met: hasMet(c.id), done });
-  if (!facts.length) return '';
-  return `<span class="m-eb">Wie is dit?</span><dl class="vh-facts">${facts.map((f) => `<dt>${esc(f.label)}</dt><dd>${esc(f.text)}</dd>`).join('')}</dl>`;
-}
-
+// Het dossier: de feiten die deze speler nu mag zien (leeftijd, woonplaats, werk, wat ze voor het duo zijn; characterdossiers.js: elk feit heeft een
+// "bekend vanaf", dus de kaart verklapt niets), en de missies per akte (alleen je eigen lokale voortgang). De opmaak zelf is puur: personagedossier.js.
+let meerOpen = false; // de uitklapper "Meer" staat per personage dicht tot je hem opent
 function viewerHtml(c) {
   const met = hasMet(c.id);
   const look = lookOf(c);
   const stageInner = (look ? '<canvas aria-hidden="true"></canvas>' : `<span class="vh-mono">${met ? initial(c.name) : '?'}</span>`) +
     (look && met ? '<span class="vh-hint">Sleep om te draaien</span>' : '');
-  if (!met) {
-    // Eén mededeling, niet drie keer hetzelfde (#608): het luik zegt alleen nog dat je
-    // deze persoon later ontmoet.
-    return `<div class="vh-stage" data-locked style="--spk:${speakerColor(c.speakers[0])}">${stageInner}</div><p class="vh-bio">Deze persoon ontmoet je nog in het verhaal.</p>`;
-  }
-  const steps = missionChips(c);
   const spk = speakerColor(c.speakers[0]);
-  // De hero: de papieren personagekaart met het portret in een omlijnd vlak links (designsysteem, #980).
-  const held = `<section class="vh-held ds-zeef ds-z-kaart" style="--spk:${spk}" aria-label="${esc(c.name)}"><div class="vh-stage" style="--spk:${spk}">${stageInner}</div>` +
-    `<div class="vh-held-tekst"><span class="ds-z-chip">${esc(c.role)}</span><h3>${esc(c.name)}</h3>` +
-    `<p class="vh-quote" style="--spk:${spk}">“${esc(c.quote)}”${dutchFor(c.quote) ? `<small>${esc(dutchFor(c.quote))}</small>` : ''}</p></div></section>`;
-  return held +
-    `<p class="vh-bio">${esc(c.bio)}</p>` +
-    `<dl class="vh-facts"><dt>${c.always ? 'In het duo' : 'Voor het duo'}</dt><dd>${esc(c.relation)}</dd>${steps ? `<dt>Samen in</dt><dd>${steps}</dd>` : ''}</dl>` +
-    dossierHtml(c) +
-    '<div class="vh-phone" data-vh-phone></div>';
+  // Eén mededeling, niet drie keer hetzelfde (#608): het luik zegt alleen nog dat je deze persoon later ontmoet.
+  if (!met) return unknownHtml(stageInner, spk);
+  const steps = getStorySteps();
+  const done = new Set(steps.filter((x) => x.done).map((x) => x.id));
+  return dossierMarkup(c, {
+    feiten: cardFacts(c.id, { met, done }), groups: actGroups(steps, c.missions, partNumber), stage: stageInner, spk,
+    nieuw: isFresh(c.id), quoteNl: dutchFor(c.quote) || '', meerOpen,
+  });
 }
 
 function loadPics(el) {
@@ -189,22 +195,30 @@ function selectCharacter(panel, id) {
   const c = CHARACTER_BY_ID.get(id);
   const box = panel.querySelector('.vh-viewer');
   if (!box || (!c && id !== OVERIG)) return;
+  if (selected !== id) meerOpen = false;
   selected = id;
   for (const b of panel.querySelectorAll('[data-char]')) { b.classList.toggle('sel', b.dataset.char === id); if (b.dataset.char === id) { b.removeAttribute('data-msg'); if (markCharacterSeen(id)) { b.removeAttribute('data-new'); document.dispatchEvent(new Event('nieuwgezien')); } } }
   disposeVerhaalViewer();
   if (id === OVERIG) {
-    box.innerHTML = '<div><span class="vh-kicker">Berichten en contacten</span><h3>Overig</h3></div><p class="vh-bio">Nieuws, meldingen en contacten die geen personage zijn.</p><div class="vh-phone" data-vh-phone></div>';
+    box.innerHTML = otherHtml();
     renderCharacterPhone(box.querySelector('[data-vh-phone]'), worldRef, OVERIG);
+    verbergLegeKlets(box);
     refreshInbox(panel, id);
     return;
   }
   box.innerHTML = viewerHtml(c);
   const met = hasMet(id);
-  if (met) { renderCharacterPhone(box.querySelector('[data-vh-phone]'), worldRef, id); refreshInbox(panel, id); }
+  if (met) { renderCharacterPhone(box.querySelector('[data-vh-phone]'), worldRef, id); verbergLegeKlets(box); refreshInbox(panel, id); }
   const canvas = box.querySelector('canvas');
   if (!canvas) return;
   viewer = createSharedPreview(canvas, { interactive: met, active: () => canvas.isConnected && canvas.offsetParent !== null, angle: PORTRAIT_ANGLE });
   viewer.show({ kind: 'person', look: lookOf(c) });
+}
+
+// De kaart "Kletsmaar" is er alleen als er iets in staat: een knop om te praten of een bericht. Een kaart met alleen een kop was een lege doos.
+function verbergLegeKlets(box) {
+  const kl = box.querySelector('.vh-klets');
+  if (kl) kl.hidden = !kl.querySelector('.pt-acts, .pt-draad');
 }
 
 export function disposeVerhaalViewer() {
@@ -213,7 +227,7 @@ export function disposeVerhaalViewer() {
 
 function overigCard() {
   const n = worldRef ? phoneUnreadFor(worldRef, OVERIG) : 0;
-  return `<button type="button" class="vh-card${selected === OVERIG ? ' sel' : ''}" data-char="${OVERIG}"${n ? ' data-new' : ''}><span class="vh-pic"><b>…</b></span><span class="vh-name"><b>Overig</b><small>Nieuws en meldingen</small></span></button>`;
+  return otherCardHtml({ selected: selected === OVERIG, nieuw: !!n, id: OVERIG });
 }
 
 // Een silhouet voor de regel met de mensen die je nog kunt tegenkomen (#608).
@@ -259,6 +273,17 @@ export function verhaalClick(e, panel, hooks = {}) {
   if (e.target.closest('[data-replay-opening]') && panel.contains(e.target)) {
     const reden = replayOpening(hooks.close); // het menu sluit alleen als de opening echt kan starten
     if (reden && worldRef) worldRef.addMessage(reden, 4);
+    return true;
+  }
+  // "Meer" in het dossier: de rest van de tekst klapt open of dicht
+  const meer = e.target.closest('[data-vh-meer]');
+  if (meer && panel.contains(meer)) {
+    meerOpen = meer.getAttribute('aria-expanded') !== 'true';
+    meer.setAttribute('aria-expanded', String(meerOpen));
+    const lab = meer.querySelector('.ds-z-knop__label');
+    if (lab) lab.textContent = meerOpen ? 'Minder' : 'Meer';
+    const blok = meer.parentElement && meer.parentElement.querySelector('.vh-meer');
+    if (blok) blok.hidden = !meerOpen;
     return true;
   }
   const card = e.target.closest('[data-char]');
