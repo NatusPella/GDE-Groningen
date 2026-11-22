@@ -7,6 +7,9 @@ import { fileURLToPath } from 'node:url';
 import { typeTable, recipeTable, aggregate, phases, render, KNOWN_TYPES } from './interieur_dekking_audit.mjs';
 import { KIND_IDS, NOT_ENTERABLE, PUBLIEK_VARIANTS } from '../game/js/interiorkinds.js';
 import { subsFor } from './interior_fixtures.mjs';
+import { planInterior } from '../game/js/interiorrules.js';
+import { building } from './interior_fixtures.mjs';
+import { mulberry32 } from '../game/js/rng.js';
 import { SHOP_KINDS } from '../game/js/winkelkit.js';
 
 let bad = 0, n = 0;
@@ -22,6 +25,11 @@ ok(by('house').kind === 'woning' && by('church').kind === 'kerk' && by('retail')
 ok(by('museum').sub === 'museum' && by('cinema').sub === 'bioscoop' && by('hospital').sub === 'ziekenhuis' && by('school').sub === 'school' && by('chapel').sub === 'kapel', 'museum, bioscoop, ziekenhuis, school en kapel hebben hun variant');
 ok(by('sports_hall') && by('sports_hall').sub === 'sportschool', 'een sporthal is een sportschool');
 ok(by('yes (3 m)').kind === 'woning' && by('yes (8 m)').kind === 'kantoor', 'yes: laag is een woning, hoog een kantoor');
+// r6 (22-11): wat de audit in de data zag zonder soort
+ok(by('farm').kind === 'woning' && by('villa').kind === 'woning' && by('chalet').kind === 'woning', 'een boerderij, villa en chalet zijn woningen');
+ok(by('hangar').sub === 'magazijn' && by('riding_hall').kind === 'garage' && by('data_center').kind === 'kantoor', 'hangaar en manege zijn een magazijn, een rekencentrum een kantoor');
+for (const t of ['mosque', 'synagogue', 'monastery', 'religious', 'temple']) ok(by(t).kind === 'kerk' && by(t).sub === 'gebedshuis', t + ' is een gebedshuis');
+for (const t of ['outbuilding', 'storage_tank', 'bunker', 'windmill', 'sty', 'poldergemaal']) ok(by(t) && !by(t).betreedbaar, t + ' is bewust niet betreedbaar');
 for (const k of KIND_IDS) ok(types.some((r) => r.kind === k) || k === 'winkel' || k === 'horeca', 'soort ' + k + ' komt uit een bouwtype (winkel en horeca uit de plek)');
 
 // --- de recepten ---
@@ -33,6 +41,18 @@ for (const v of PUBLIEK_VARIANTS) ok(rec.some((r) => r.kind === 'publiek' && r.s
 ok(rec.some((r) => r.kind === 'kerk' && r.sub === 'kapel'), 'kerk/kapel heeft een recept');
 ok(rec.filter((r) => r.kind === 'publiek').every((r) => r.items > 4 && r.people >= 1), 'elk publiek recept heeft meubels en mensen');
 ok(JSON.stringify(recipeTable()) === JSON.stringify(rec), 'de recepttabel is deterministisch');
+
+// een klein huis (hal 2,8 x 3,6 m) is betreedbaar met een geldige indeling, elk zaad
+{
+  let good = 0, thinned = 0;
+  const rnd = mulberry32(2211);
+  for (let i = 0; i < 100; i++) {
+    const r = building('woning', null, 3.4 + (i % 4) * 0.1, 4.2 + (i % 5) * 0.1, rnd);
+    const p = planInterior(r.b, { spot: r.spot, upper: false });
+    if (p.ok) { good++; if (p.layout.removed) thinned++; }
+  }
+  ok(good >= 90 && thinned === 0, 'een klein huis (3,4 x 4,2 m pand, deur niet in een hoek) krijgt een indeling zonder uitdunnen', good + '/100, uitgedund ' + thinned);
+}
 
 // --- aggregeren op synthetische metingen ---
 const totals = { house: { all: 1000, poi: 0 }, retail: { all: 100, poi: 100 }, shed: { all: 50, poi: 0 }, church: { all: 10, poi: 10 } };

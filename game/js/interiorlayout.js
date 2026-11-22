@@ -379,6 +379,7 @@ function churchRecipe(p, sub) {
   const H = p.hall, W = p.W, D = p.D;
   const mid = H.u0 + W / 2, aisle = 1.4;
   if (sub === 'kapel') return chapelRecipe(p);
+  if (sub === 'gebedshuis') return prayerHallRecipe(p);
   // altar and pulpit at the far end
   p.add('altar', mid, H.v1 - 1.0, 1.8, 0.9, FACE.DOOR, { h: 1.1 });
   p.add('pulpit', H.u0 + 1.0, H.v1 - 3.0, 0.9, 0.9, FACE.E, { h: 1.0 });
@@ -623,6 +624,23 @@ function chapelRecipe(p) {
   if (pews.length) p.npcAt('bezoeker', pews[Math.floor(p.rnd() * pews.length)].u, pews[0].v, FACE.BACK, 'sit');
   p.useAt('kaars', H.u0 + 1.0, H.v0 + 3, 1.2, { face: FACE.W });
   p.palette = { wall: 0xe6dcc8, floor: 0x8e8a82, floorPattern: 2, accent: 0xc9a04a, ceil: 0xdcd2be };
+}
+
+// A house of prayer (round 6: a mosque, a synagogue, a monastery chapel, a temple): no pews and no altar, an open hall with a carpet, low benches along
+// the walls, a bookcase with books, a coat rack and plants; a caretaker and a visitor who sits. Calm and without symbols of one faith.
+function prayerHallRecipe(p) {
+  const H = p.hall, W = p.W, D = p.D;
+  const mid = H.u0 + W / 2;
+  p.add('rug', mid, H.v0 + D * 0.55, Math.max(2.4, W - 2.4), Math.max(3, D - 5.2), FACE.BACK, { h: 0.02, solid: false, color: [0x2f5a7a, 0x7a2f3a, 0x3a6a4a][Math.floor(p.rnd() * 3)] });
+  p.run(H, 'left', 'bench', 2.0, 0.4, H.v0 + 2.4, H.v1 - 1.2, { h: 0.45 }, 0.4);
+  p.run(H, 'right', 'bench', 2.0, 0.4, H.v0 + 2.4, H.v1 - 1.2, { h: 0.45 }, 0.4);
+  p.run(H, 'back', 'bookcase', 1.0, 0.35, H.u0 + 0.6, H.u1 - 0.6, { h: 2.0 }, 0.3, 0.6);
+  p.add('coatrack', H.u1 - 0.4, H.v0 + 0.6, 0.4, 0.3, FACE.W, { h: 1.7, solid: true });
+  p.add('plant', H.u0 + 0.6, H.v0 + 0.9, 0.6, 0.6, FACE.DOOR, { h: 1.2 });
+  p.npcAt('koster', mid + 0.8, H.v1 - 2.0, FACE.DOOR, 'stand');
+  scatterPeople(p, 'bezoeker', Math.min(2, Math.floor(W * D / 60)), 'sit');
+  p.useAt('rondkijken', mid, H.v0 + 2.2, 1.4, { face: FACE.BACK });
+  p.palette = { wall: 0xe8e2d2, floor: 0x9a948a, floorPattern: 2, accent: 0x3a6a6a, ceil: 0xdcd6c6 };
 }
 
 // A student house or room (round 4): a bed in the corner, a desk with a chair, a kitchenette, a table with chairs, books and posters. The student is

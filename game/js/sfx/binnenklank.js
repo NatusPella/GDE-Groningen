@@ -27,6 +27,7 @@ const SUB_TONES = {
   sportschool: { crowd: 0.12, room: 0.22, machine: 0.05, musicHz: 4200 },
   hotel: { crowd: 0.04, room: 0.2 },
   kapel: { crowd: 0, room: 0.1, musicHz: 800 },
+  gebedshuis: { crowd: 0, room: 0.12, musicHz: 1000 },
   magazijn: { crowd: 0, room: 0.28, machine: 0.12 },
 };
 

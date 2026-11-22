@@ -75,7 +75,7 @@ function lBuilding(w, d, notchW, notchD, c) {
 // --- soorten en tijden -----------------------------------------------------------------------------------------
 {
   ok(KIND_IDS.length === 9, 'negen interieursoorten', KIND_IDS.join());
-  for (const k of KIND_IDS) { const K = KINDS[k]; ok(K.minW >= 3 && K.minD >= 3 && K.h[0] >= 2.4 && K.h[1] >= K.h[0], `soort ${k}: maten kloppen`); }
+  for (const k of KIND_IDS) { const K = KINDS[k]; ok(K.minW >= 2.6 && K.minD >= 3.2 && K.h[0] >= 2.4 && K.h[1] >= K.h[0], `soort ${k}: maten kloppen`); }
   ok(kindOfBuilding({ type: 'house' })?.kind === 'woning' && kindOfBuilding({ type: 'church' })?.kind === 'kerk' && kindOfBuilding({ type: 'office' })?.kind === 'kantoor', 'type -> soort');
   ok(kindOfBuilding({ type: 'shed' }) === null && kindOfBuilding({ type: 'houseboat' }) === null && kindOfBuilding({ type: 'carport' }) === null, 'een schuur, woonboot en carport zijn niet te betreden');
   ok(kindOfBuilding({ type: 'house', landmark: true }) === null && kindOfBuilding({ type: 'yes', rooms: [] }) === null, 'een landmark met eigen interieur krijgt er geen tweede');

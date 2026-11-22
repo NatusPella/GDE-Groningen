@@ -58,7 +58,12 @@ export function findHall(ring, f, opts = {}) {
     let u0 = 0, u1 = 0;
     while (u0 - HALL_STEP >= -maxW / 2 && colFree(u0 - HALL_STEP, d)) u0 -= HALL_STEP;
     while (u1 + HALL_STEP <= maxW / 2 && colFree(u1 + HALL_STEP, d)) u1 += HALL_STEP;
-    if (u1 - u0 < minW || u0 > -doorClear || u1 < doorClear) continue;
+    // r6: the coarse 0.5 m step can lose up to 0.5 m of free width per side; a hall that is only just too narrow gets its edges grown by 10 cm first
+    if (u1 - u0 < minW && u1 - u0 > minW - 2 * HALL_STEP) {
+      for (let k = 0; k < 5 && u0 - 0.1 >= -maxW / 2 && colFree(u0 - 0.1, d); k++) u0 -= 0.1;
+      for (let k = 0; k < 5 && u1 + 0.1 <= maxW / 2 && colFree(u1 + 0.1, d); k++) u1 += 0.1;
+    }
+    if (u1 - u0 < minW - 1e-6 || u0 > -doorClear || u1 < doorClear) continue;
     const area = (u1 - u0) * (d - WALL_T);
     if (!best || area > best.area) best = { u0, u1, v0: WALL_T, v1: d, area };
   }

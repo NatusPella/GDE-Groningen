@@ -27,6 +27,7 @@ export const KNOWN_TYPES = [
   'retail', 'commercial', 'office', 'church', 'cathedral', 'chapel', 'train_station', 'station', 'transportation', 'library',
   'garage', 'garages', 'service', 'industrial', 'warehouse', 'factory', 'workshop',
   'civic', 'public', 'government', 'hospital', 'school', 'hotel', 'university', 'college', 'kindergarten', 'sports_centre', 'sports_hall', 'fitness_centre', 'museum', 'cinema',
+  'farm', 'villa', 'chalet', 'hangar', 'riding_hall', 'data_center', 'religious', 'monastery', 'mosque', 'synagogue', 'temple',
   'yes', ...NOT_ENTERABLE,
 ];
 
