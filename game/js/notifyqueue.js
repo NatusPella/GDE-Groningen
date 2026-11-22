@@ -3,7 +3,12 @@
 //   - hooguit EEN melding tegelijk zichtbaar (een slot); de rest wacht met prioriteit;
 //   - nooit tijdens een laadscherm, opstart, cutscene, dialoog, missiestart of -einde of een schermvullende kaart (de holds);
 //   - wacht er te veel (MAX_WAITING), dan vouwt het laagste samen tot "en N meer" op de volgende melding;
-//   - wat te lang wacht (MAX_AGE_S) vervalt, behalve prestaties en wat `keep` zegt: die gaan nooit verloren;
+//   - wat te lang wacht (MAX_AGE_S) vervalt, behalve prestaties en wat `keep` zegt: die gaan nooit verloren. Tips en hints
+//     (soft) vervallen altijd, ook als hun kaart `keep` zegt: een tip die te laat komt is geen uitleg meer;
+//   - prestaties vervallen niet, maar meer dan MAX_COLLAPSE wachtende van een soort met `collapse` worden een kaart "N nieuwe
+//     prestaties" (de prestatie zelf blijft geregistreerd en staat in het menu): geen eindeloze rij;
+//   - een harde bovengrens (MAX_TOTAL): de oudste van de laagste prioriteit valt af, nooit gevaar, politie, wanted of missie;
+//   - nooit meer dan een melding per MIN_GAP_S (4 s), behalve gevaar, politie, wanted en missie; na een hold loopt de rij zo rustig leeg;
 //   - de speler kan de lopende melding wegdrukken (dismissNotice: toets Delete, op de controller LB+RB);
 //   - Samen spelen: lokaal per speler, geen netwerkverkeer; een gast en de opener houden elk hun eigen wachtrij.
 // Puur: geen DOM; de tellers en probes komen van buiten. De DOM-kant en de bronnen staan in hudcards.js, achievements.js,
@@ -14,9 +19,15 @@ import { noticeDuration, makeTimer, precedence } from './noticetiming.js';
 export const MAX_AGE_S = 20;
 export const MAX_WAITING = 4;      // meer dan dit wacht niet: het laagste vouwt samen tot "en N meer"
 export const SLOT_GRACE_S = 15;    // een slot met `until` valt na de duur plus dit vrij, ook als de bron nooit klaar meldt
+export const MAX_TOTAL = 12;       // harde bovengrens op de rij; boven dit valt het oudste van het laagste af (niet gevaar, politie, wanted, missie)
+export const MAX_COLLAPSE = 2;     // meer wachtende prestaties dan dit vouwen samen tot een samenvattingskaart
+export const MIN_GAP_S = 4;        // tussen twee meldingen zit minstens dit (gevaar, politie, wanted en missie slaan het over)
+export const PROTECT_PRIO = 7;     // vanaf deze prio valt een melding nooit af en wacht hij niet op de rust
 export const PREEMPT_PRIO = 8;     // een melding met deze prio of hoger kapt een lopende lagere af (gevaar, politie)
 
 // prio: hoger gaat eerst. merge: wachtende meldingen van deze soort smelten samen. expires: valt weg na MAX_AGE_S.
+// collapse: meer dan MAX_COLLAPSE wachtende van deze soort (met `summary`) smelten samen tot een samenvattingskaart.
+// soft: `keep` van de bron telt niet: deze soort vervalt altijd en vouwt altijd.
 // urgent: negeert de hold 'dialogue' (gevaar en politie spreken door een gesprek heen). mission: negeert de hold 'mission'.
 export const KINDS = Object.freeze({
   danger: { prio: 9, merge: false, expires: true, urgent: true },
@@ -24,8 +35,8 @@ export const KINDS = Object.freeze({
   wanted: { prio: 8, merge: false, expires: true, urgent: true },
   mission: { prio: 7, merge: false, expires: true, mission: true },
   sidejob: { prio: 6, merge: false, expires: true, mission: true },
-  achievement: { prio: 4, merge: false, expires: false },
-  unlock: { prio: 4, merge: false, expires: false },
+  achievement: { prio: 4, merge: false, expires: false, collapse: true },
+  unlock: { prio: 4, merge: false, expires: false, collapse: true },
   outfit: { prio: 4, merge: false, expires: true },
   vehicle: { prio: 3, merge: true, expires: true },
   goal: { prio: 3, merge: false, expires: true },
@@ -37,8 +48,8 @@ export const KINDS = Object.freeze({
   reveal: { prio: 2, merge: false, expires: true }, // de onthulling op de kaart: elke streek apart
   radio: { prio: 1, merge: true, expires: true },
   menu: { prio: 1, merge: false, expires: true },
-  hint: { prio: 1, merge: true, expires: true },
-  tip: { prio: 1, merge: false, expires: true },
+  hint: { prio: 1, merge: true, expires: true, soft: true },
+  tip: { prio: 1, merge: false, expires: true, soft: true },
 });
 
 // De kaartsoorten van hudcards.js (Nederlandse sleutels in de kaartdata) op de soorten van de wachtrij.
@@ -79,17 +90,22 @@ export function ignoreFor(kind, extra = []) {
 export const moreLabel = (n) => `en ${n} meer`;
 
 // opties: held(ignore) => namen die vasthouden (standaard het register), maxAge (s), maxWaiting.
-export function createNoticeQueue({ held = noticeHeldBy, maxAge = MAX_AGE_S, maxWaiting = MAX_WAITING } = {}) {
+export function createNoticeQueue({ held = noticeHeldBy, maxAge = MAX_AGE_S, maxWaiting = MAX_WAITING, maxTotal = MAX_TOTAL, minGap = MIN_GAP_S, maxCollapse = MAX_COLLAPSE } = {}) {
   let waiting = [];
   let active = null; // { item, timer, held (s) }
   let counter = 0;
   let folded = 0;    // hoeveel meldingen er samengevouwen zijn sinds de laatste die getoond werd
-  const stat = { shown: 0, merged: 0, expired: 0, dropped: 0, folded: 0, dismissed: 0, preempted: 0 };
+  let sinceShow = Infinity; // seconden sinds de laatste melding in beeld kwam (de rust tussen twee meldingen)
+  const stat = { shown: 0, merged: 0, expired: 0, dropped: 0, folded: 0, dismissed: 0, preempted: 0, collapsed: 0, capped: 0 };
 
   const isHeld = (it) => held(it.ignore).length > 0;
   // ready: de bron zegt zelf of hij nu kan (kaarten volgen de aandachtsregels van hudcards.js); een falende ready telt als klaar
   const notReady = (it) => { if (typeof it.ready !== 'function') return false; try { return !it.ready(it); } catch (e) { return false; } };
   const rankOf = (it) => (Number.isFinite(it.prio) ? it.prio : (KINDS[it.kind] || { prio: 0 }).prio);
+  const kindDef = (it) => KINDS[it.kind] || { prio: 0 };
+  // nooit verloren: prestaties en wat `keep` zegt, behalve soorten die `soft` zijn (tips: een late tip is geen uitleg meer)
+  const neverLost = (it) => { const d = kindDef(it); return d.expires === false || (!!it.keep && !d.soft); };
+  const gapOk = (it) => rankOf(it) >= PROTECT_PRIO || sinceShow >= minGap;
   const order = (a, b) => precedence({ prio: rankOf(a), at: a.at }, { prio: rankOf(b), at: b.at });
 
   function release() { active = null; }
@@ -98,6 +114,7 @@ export function createNoticeQueue({ held = noticeHeldBy, maxAge = MAX_AGE_S, max
 
   function show(it) {
     stat.shown++;
+    sinceShow = 0;
     const more = folded; folded = 0;
     it.more = more;
     const slot = it.duration > 0 || typeof it.until === 'function';
@@ -110,7 +127,7 @@ export function createNoticeQueue({ held = noticeHeldBy, maxAge = MAX_AGE_S, max
 
   // Het volgende dat mag: de hoogste precedence (prio, dan de oudste) van wat niet vastgehouden wordt.
   function nextFree() {
-    return waiting.filter((it) => !isHeld(it) && !notReady(it)).sort(order)[0] || null;
+    return waiting.filter((it) => !isHeld(it) && !notReady(it) && gapOk(it)).sort(order)[0] || null;
   }
 
   function advance() {
@@ -125,7 +142,7 @@ export function createNoticeQueue({ held = noticeHeldBy, maxAge = MAX_AGE_S, max
   // Te veel wachtend: het laagste (dan het nieuwste) vouwt samen, behalve wat nooit verloren mag gaan.
   function fold() {
     while (waiting.length > maxWaiting) {
-      const cand = waiting.filter((w) => (KINDS[w.kind] || {}).expires !== false && !w.keep).sort(order).pop();
+      const cand = waiting.filter((w) => !neverLost(w)).sort(order).pop();
       if (!cand) return;
       waiting = waiting.filter((w) => w !== cand);
       folded += cand.count; stat.folded += cand.count;
@@ -133,8 +150,42 @@ export function createNoticeQueue({ held = noticeHeldBy, maxAge = MAX_AGE_S, max
     }
   }
 
+  // De harde bovengrens: boven maxTotal valt het oudste van de laagste prioriteit af. Gevaar, politie, wanted en missie (prio 7+)
+  // en wat nooit verloren mag gaan blijven; zijn dat er zelf te veel, dan blijft de rij langer (die gaan voor).
+  function cap() {
+    while (waiting.length > maxTotal) {
+      const cand = waiting.filter((w) => rankOf(w) < PROTECT_PRIO && !neverLost(w))
+        .sort((a, b) => rankOf(a) - rankOf(b) || a.at - b.at)[0];
+      if (!cand) return;
+      waiting = waiting.filter((w) => w !== cand);
+      stat.capped++;
+      folded += cand.count; stat.folded += cand.count;
+      dropped(cand);
+    }
+  }
+
+  // Een stroom prestaties: meer dan maxCollapse wachtende van een soort met `collapse` en een `summary` worden een samenvattingskaart.
+  // summary(n, items) geeft de velden van de samenvatting terug (text, show, until, ...); n is het totaal. De prestaties zelf blijven geregistreerd.
+  function collapse(kind) {
+    if (!(KINDS[kind] || {}).collapse) return;
+    const group = waiting.filter((w) => w.kind === kind && typeof w.summary === 'function');
+    if (group.length <= maxCollapse) return;
+    const total = group.reduce((a, w) => a + w.count, 0);
+    const last = group[group.length - 1];
+    let spec = null;
+    try { spec = last.summary(total, group); } catch (e) { spec = null; }
+    if (!spec) return;
+    const at = Math.min(...group.map((w) => w.at));
+    waiting = waiting.filter((w) => !group.includes(w));
+    for (const w of group) dropped(w);
+    const sum = { ...spec, kind, key: spec.key || kind + '-samen', ignore: last.ignore, at, age: 0, count: total, prio: last.prio, summary: last.summary };
+    sum.duration = Number.isFinite(spec.duration) ? spec.duration : noticeDuration({ tekst: spec.text || '' });
+    waiting.push(sum);
+    stat.collapsed += group.length;
+  }
+
   return {
-    // kind: sleutel van KINDS. m: { key, text, duration?, show(item, handle), until?(), cut?(), ready?(), ignore?: [holdnamen], prio?, keep?, maxAge?, maxHold?, surface?, onDrop? }
+    // kind: sleutel van KINDS. m: { key, text, duration?, show(item, handle), until?(), cut?(), ready?(), ignore?: [holdnamen], prio?, keep?, maxAge?, maxHold?, surface?, onDrop?, summary?(n, items) }
     // duration 0 zonder until neemt geen slot (de onthulling op de kaart). until: de bron meldt zelf wanneer hij klaar is.
     // cut: de bron kan zijn melding afbreken (wegdrukken of een urgentere melding). Geeft 'shown', 'waiting' of 'merged'.
     push(kind, m = {}) {
@@ -150,7 +201,7 @@ export function createNoticeQueue({ held = noticeHeldBy, maxAge = MAX_AGE_S, max
         stat.preempted++;
         release();
       }
-      if (!active && !waiting.length && !isHeld(it) && !notReady(it)) { show(it); return 'shown'; }
+      if (!active && !waiting.length && !isHeld(it) && !notReady(it) && gapOk(it)) { show(it); return 'shown'; }
       if (def.merge) {
         const i = waiting.findIndex((w) => w.kind === kind);
         if (i >= 0) {
@@ -164,7 +215,9 @@ export function createNoticeQueue({ held = noticeHeldBy, maxAge = MAX_AGE_S, max
         }
       }
       waiting.push(it);
+      collapse(kind);
       fold();
+      cap();
       advance();
       return waiting.includes(it) ? 'waiting' : 'shown';
     },
@@ -173,8 +226,9 @@ export function createNoticeQueue({ held = noticeHeldBy, maxAge = MAX_AGE_S, max
     tick(dtS) {
       const dt = Number.isFinite(dtS) && dtS > 0 ? dtS : 0;
       for (const it of waiting) it.age += dt;
+      sinceShow += dt;
       const before = waiting.length;
-      const gone = waiting.filter((it) => (KINDS[it.kind] || {}).expires !== false && !it.keep && it.age > (Number.isFinite(it.maxAge) ? it.maxAge : maxAge));
+      const gone = waiting.filter((it) => !neverLost(it) && it.age > (Number.isFinite(it.maxAge) ? it.maxAge : maxAge));
       if (gone.length) { waiting = waiting.filter((it) => !gone.includes(it)); for (const it of gone) dropped(it); }
       stat.expired += before - waiting.length;
       if (active) {
@@ -206,7 +260,7 @@ export function createNoticeQueue({ held = noticeHeldBy, maxAge = MAX_AGE_S, max
     // Laat wachtende meldingen vallen (na een savegame of een laadpoort): alleen de genoemde soorten, anders alles behalve wat nooit verloren mag gaan.
     drop(kinds = null) {
       const before = waiting.length;
-      const gone = waiting.filter((it) => !(kinds ? !kinds.includes(it.kind) : (KINDS[it.kind] || {}).expires === false || it.keep));
+      const gone = waiting.filter((it) => !(kinds ? !kinds.includes(it.kind) : neverLost(it)));
       waiting = waiting.filter((it) => !gone.includes(it));
       for (const it of gone) dropped(it);
       stat.dropped += before - waiting.length;
@@ -218,7 +272,7 @@ export function createNoticeQueue({ held = noticeHeldBy, maxAge = MAX_AGE_S, max
     shown() { return !!active; },
     has(kind) { return (!!active && (!kind || active.item.kind === kind)) || waiting.some((w) => !kind || w.kind === kind); },
     busy() { return !!active || waiting.length > 0; },
-    reset() { waiting = []; active = null; counter = 0; folded = 0; },
+    reset() { waiting = []; active = null; counter = 0; folded = 0; sinceShow = Infinity; },
     state() {
       return {
         waiting: waiting.map((w) => ({ kind: w.kind, key: w.key, count: w.count, age: w.age })),

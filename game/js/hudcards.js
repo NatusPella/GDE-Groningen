@@ -49,6 +49,8 @@ const MAX_QUEUE = 5;
 const OUT_TIME = 0.45;
 const TIP_STALE = 35;
 const TIP_KEEP = 120;
+const TIP_WAIT = 20;      // een tip die al zo lang op een vrij slot in de meldingenwachtrij wacht, is geen uitleg meer
+const TIP_WAIT_KEEP = 45; // een tip die een toets leert mag wat langer wachten
 const VOICE_GAP = 6;
 const VOICE_REPEAT = 60;
 const HINT_REPEAT = 20;
@@ -208,15 +210,28 @@ export function showCard(w, spec) {
   const card = buildCard(spec);
   const up = visible.find((c) => c.key === card.key && !c.leaving);
   if (up) { refresh(up, card); return; }
+  enqueueNotice(kindForCard(card.spec.kind), cardNotice(card));
+}
+
+// Een stroom prestatiekaarten (notifyqueue.js, collapse): meer dan twee wachtend worden een kaart "N nieuwe prestaties".
+// De prestaties zelf staan al geregistreerd; het menu Prestaties toont ze.
+function achievementSummary(n) {
+  const aantal = Number.isFinite(n) ? Math.max(2, Math.floor(n)) : 2;
+  return cardNotice(buildCard({ kind: 'prestatie', kicker: 'Prestaties', title: `${aantal} nieuwe prestaties`, body: 'Alles staat in het menu onder Prestaties.', duration: 5, key: 'prestaties-samen', voice: false }));
+}
+
+function cardNotice(card) {
   const key = card.key;
   const alive = () => visible.some((c) => c.key === key) || queue.some((q) => q.key === key);
-  enqueueNotice(kindForCard(card.spec.kind), {
+  return {
     key,
     surface: 'card',
     text: card.text,
     duration: card.secs,
-    maxAge: card.spec.kind !== 'tip' ? undefined : card.important ? TIP_KEEP : TIP_STALE,
+    // tips vervallen na TIP_WAIT s wachten (ook de belangrijke: TIP_WAIT_KEEP); `keep` telt voor een tip niet (notifyqueue: soft)
+    maxAge: card.spec.kind !== 'tip' ? undefined : card.important ? TIP_WAIT_KEEP : TIP_WAIT,
     keep: card.important,
+    summary: kindForCard(card.spec.kind) === 'achievement' ? achievementSummary : undefined,
     ready: () => cardReady(card),
     show: (it) => {
       if (it.more > 0) card.spec = { ...card.spec, body: [card.spec.body, moreLabel(it.more)].filter(Boolean).join(' \u00b7 ') };
@@ -228,7 +243,7 @@ export function showCard(w, spec) {
       if (c) leave(c);
       queue = queue.filter((q) => q.key !== key);
     },
-  });
+  };
 }
 
 function buildCard(spec) {

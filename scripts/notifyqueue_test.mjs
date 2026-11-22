@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  createNoticeQueue, KINDS, MAX_AGE_S, MAX_WAITING, PREEMPT_PRIO, registerNoticeHold, noticeHeld, noticeHeldBy, unregisterNoticeHold,
+  createNoticeQueue, KINDS, MIN_GAP_S, MAX_TOTAL, MAX_COLLAPSE, MAX_AGE_S, MAX_WAITING, PREEMPT_PRIO, registerNoticeHold, noticeHeld, noticeHeldBy, unregisterNoticeHold,
   kindForCard, ignoreFor, moreLabel,
 } from '../game/js/notifyqueue.js';
 import { noticeDuration } from '../game/js/noticetiming.js';
@@ -173,7 +173,7 @@ ok(KINDS.achievement.expires === false && KINDS.discovery.merge === true, 'soort
   ok(q.push('reveal', item('Onthulling', { duration: 0, ignore: ['screen'] })) === 'shown', 'kaartonthulling speelt bij een open kaart');
   st.loading = true;
   ok(q.push('reveal', item('Onthulling 2', { duration: 0, ignore: ['screen'] })) === 'waiting', 'maar niet tijdens het laadscherm');
-  st.loading = false; q.tick(0.1);
+  st.loading = false; q.tick(MIN_GAP_S);
   ok(log.length === 2, 'en daarna wel');
 }
 
@@ -235,7 +235,7 @@ ok(KINDS.achievement.expires === false && KINDS.discovery.merge === true, 'soort
   q.push('tip', item('Tip', { cut: () => cut.push('tip') }));
   q.push('goal', item('Doel'));
   ok(q.dismiss() === true && cut.join() === 'tip', 'wegdrukken breekt de lopende melding af');
-  ok(log.join() === 'Tip,Doel', 'en de volgende komt meteen', log);
+  ok(log.join() === 'Tip' && (q.tick(MIN_GAP_S), log.join() === 'Tip,Doel'), 'en de volgende komt na de rust van MIN_GAP_S', log);
   ok(make().q.dismiss() === false, 'zonder melding is er niets weg te drukken');
 }
 {
@@ -287,6 +287,58 @@ ok(/onStreekOntdekt\(\(\) => \{\s*enqueueNotice\('discovery'/.test(hud) && hud.i
 ok(/enqueueNotice\('radio'/.test(hud), 'de radiokaart loopt via de wachtrij');
 const mv = read('game/js/mapview.js');
 ok(/enqueueNotice\('reveal'/.test(mv) && /ignore: \['screen'\]/.test(mv), 'de kaartonthulling loopt via de wachtrij (negeert alleen het kaartscherm)');
+// ---- een stroom tijdens een hold: geen 60 meldingen achter elkaar ----
+{
+  const { st, q, log } = make();
+  const it = (text, extra = {}) => ({ key: text, text, show: (m) => log.push(m.text || text), ...extra });
+  const summary = (nn) => it(`${nn} nieuwe prestaties`, { text: `${nn} nieuwe prestaties`, key: 'samen' });
+  st.cutscene = true;
+  for (let i = 0; i < 40; i++) q.push('tip', it(`tip${i}`, { keep: i % 2 === 0 }));
+  for (let i = 0; i < 20; i++) q.push('achievement', it(`prest${i}`, { summary }));
+  const w = q.state();
+  ok(w.waiting.length <= MAX_TOTAL, 'de rij blijft onder de harde bovengrens', w.waiting.length);
+  const ach = w.waiting.filter((x) => x.kind === 'achievement');
+  ok(ach.length <= MAX_COLLAPSE && ach.reduce((a, x) => a + x.count, 0) === 20, 'de prestaties zijn samengevouwen en het totaal klopt (geen verlies)', ach);
+  run(q, 3); // de hold houdt alles vast
+  ok(log.length === 0, 'tijdens de hold komt er niets');
+  st.cutscene = false;
+  run(q, 120, 0.5);
+  ok(log.length >= 1 && log.length <= 6, 'na de hold hooguit een paar kaarten, geen 60 achter elkaar', log);
+  ok(log.some((t) => /^[0-9]+ nieuwe prestaties$/.test(t)) && log.filter((t) => /prest|nieuwe/.test(t)).length <= 2, 'de prestaties kwamen als hooguit twee kaarten', log);
+  ok(q.state().waiting.length === 0, 'daarna is de rij leeg');
+}
+// tips vervallen na MAX_AGE_S, ook als ze keep zeggen; prestaties vervallen niet
+{
+  const { st, q, log, item } = make();
+  st.cutscene = true;
+  q.push('tip', item('Belangrijk', { keep: true }));
+  q.push('achievement', item('Eierbal'));
+  run(q, MAX_AGE_S + 2);
+  ok(q.state().waiting.length === 1 && q.state().waiting[0].kind === 'achievement', 'een tip met keep vervalt, een prestatie niet');
+  st.cutscene = false; run(q, 5);
+  ok(log.join() === 'Eierbal', 'de prestatie komt na de hold alsnog', log);
+}
+// gevaar, politie, missie gaan altijd door: niet afgekapt door de bovengrens, niet gewacht op de rust
+{
+  const { st, q, log, item } = make();
+  st.cutscene = true;
+  for (let i = 0; i < 30; i++) q.push('hint', item(`h${i}`));
+  q.push('mission', item('Missie', { ignore: ['cutscene'] }));
+  for (let i = 0; i < 20; i++) q.push('goal', item(`g${i}`));
+  ok(q.state().waiting.length <= MAX_TOTAL, 'ook met een stroom blijft de rij begrensd', q.state().waiting.length);
+  ok(log.includes('Missie'), 'een missiemelding valt niet af', log);
+  const g = make();
+  g.q.push('tip', g.item('Tip', { cut: () => {} }));
+  g.q.push('police', g.item('Politie!'));
+  ok(g.log.join() === 'Tip,Politie!', 'politie slaat de rust over en kapt de tip af', g.log);
+}
+// de rust: nooit meer dan een melding per MIN_GAP_S bij een stroom
+{
+  const { q, log, item } = make();
+  for (let i = 0; i < 6; i++) q.push('goal', item(`d${i}`, { duration: 1 }));
+  run(q, MIN_GAP_S * 2 - 0.5, 0.25);
+  ok(log.length <= 2, 'hooguit een melding per MIN_GAP_S, ook bij korte duur', log);
+}
 const hc = read('game/js/hudcards.js');
 ok(/enqueueNotice\(kindForCard\(/.test(hc) && /placeCard\(card\)/.test(hc), 'HUD-kaarten lopen via de wachtrij');
 ok(/noticeHeld\(\['screen', 'cutscene', 'dialogue', 'mission'\]\)/.test(hc), 'HUD-kaarten wachten op laadscherm en opstart (de interne bevriezing)');

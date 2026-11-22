@@ -112,12 +112,15 @@ function ownRange(src, name) {
 export function sinkViolations(src, sinks) {
   const out = [];
   const ranges = callRanges(src);
+  const builder = ownRange(src, 'cardNotice');
   for (const sink of sinks) {
     const own = ownRange(src, sink);
     for (const site of callSites(src, sink)) {
       const inside = ranges.some(([a, b]) => site.index > a && site.index < b);
       const inOwn = own && site.index > own[0] && site.index < own[1];
-      if (!inside && !inOwn) out.push({ line: site.line, sink });
+      // cardNotice (hudcards.js) bouwt het enqueueNotice-object van een kaart, ook dat van de prestatie-samenvatting
+      const inBuilder = builder && site.index > builder[0] && site.index < builder[1];
+      if (!inside && !inOwn && !inBuilder) out.push({ line: site.line, sink });
     }
   }
   return out;
