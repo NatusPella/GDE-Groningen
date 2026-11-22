@@ -258,6 +258,24 @@ if (mat && mat.onBeforeCompile) {
     'de incrementele basisindex verliest geen celhelft bij het budget', `${JSON.stringify(metBudget)} van ${JSON.stringify(zonderBudget)}`);
 }
 
+// #1203, #1193: het verre gras heeft variatie in de wereldruimte (geen effen vlak): de shader en een rekenspiegel van de ruis
+{
+  const FRm = await import('../game/js/farlod.js');
+  const g = FRm.GRASS_VARIATION_GLSL;
+  ok(/vec3 grassVariation\(vec2 p\)/.test(g) && /gvNoise\(p \* 0\.025\)/.test(g) && /gvNoise\(p \* 0\.11/.test(g), 'de grasvariatie heeft een brede en een middenschaal');
+  const hash = (x, y) => { let a = [x * 0.1031 % 1, y * 0.1031 % 1, x * 0.1031 % 1].map((v) => v - Math.floor(v)); const d = a[0] * (a[1] + 33.33) + a[1] * (a[2] + 33.33) + a[2] * (a[0] + 33.33); a = a.map((v) => v + d); const r = (a[0] + a[1]) * a[2]; return r - Math.floor(r); };
+  const noise = (px, py) => { const ix = Math.floor(px), iy = Math.floor(py), fx = px - ix, fy = py - iy, ux = fx * fx * (3 - 2 * fx), uy = fy * fy * (3 - 2 * fy); const m = (a, b, t) => a + (b - a) * t; return m(m(hash(ix, iy), hash(ix + 1, iy), ux), m(hash(ix, iy + 1), hash(ix + 1, iy + 1), ux), uy); };
+  let sum = 0, lo = 9, hi = 0, count = 0;
+  for (let x = 0; x < 3000; x += 17) for (let y = 0; y < 3000; y += 17) {
+    const v = noise(x * 0.025, y * 0.025) * 0.65 + noise(x * 0.11 + 7, y * 0.11 + 7) * 0.35 - 0.5;
+    const f = [1 + v * 0.36, 1 + v * 0.26, 1 + v * 0.14];
+    for (const c of f) { lo = Math.min(lo, c); hi = Math.max(hi, c); }
+    sum += f[1]; count++;
+  }
+  ok(Math.abs(sum / count - 1) < 0.03, 'de variatie is gemiddeld neutraal (geen naad met het gedetailleerde gras)', String(sum / count));
+  ok(lo > 0.82 && hi < 1.18 && hi - lo > 0.12, "zichtbaar maar rustig: tussen -18% en +18%, spreiding boven 12%", `${lo} ${hi}`);
+}
+
 console.log(fails ? `${fails} of ${n} FAILED` : `ok: ${n} checks`);
 process.exit(fails ? 1 : 0);
 
