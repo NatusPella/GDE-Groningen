@@ -870,6 +870,9 @@ registerCoachLauncher((w) => launchCoachMatch(w));
 // de overige 281 parken zijn geen markers (te druk), die staan in de index voor de wedstrijden. Zonder carrière alleen de Euroborg. Het resultaat staat in een kleine cache per carrièrestand.
 // Trainende teams (#1115): met een carrière en een speler binnen 150 m van een veld van zijn club lopen er een paar figuren rondjes; elke halve seconde bijgewerkt, nooit tijdens een wedstrijd.
 let trainers = null, trainT = 0;
+// Een trap van een trainende ploeg: zacht en alleen binnen 60 m van de speler (SFX via sfxEvent, zelfde sleutel en bijschrift als de wedstrijd; lokaal decor, geen netwerk).
+const TRAIN_HOORBAAR = 60;
+function trainerKick(w, x, y) { const p = hoofdspeler(w); if (p && Math.hypot(p.x - x, p.y - y) <= TRAIN_HOORBAAR) sfxEvent(w, 'football_kick', x, y, { gain: 0.35 }); }
 function updateTrainers(w) {
   try {
     if (game || !CL.hasCareer() || reducedMotion()) { if (trainers) { trainers.dispose(); trainers = null; } return; }
@@ -1026,7 +1029,7 @@ export const VOETBAL = {
   },
   tick(dt, w) {
     if ((lodT -= dt) <= 0) { lodT = 0.5; updateLod(w); updateTrainers(w); }
-    if (trainers) { trainT += dt; trainers.tik(trainT); }
+    if (trainers) { trainT += dt; trainers.tik(trainT, (sq, x, y) => trainerKick(w, x, y)); }
   },
   camera,
   icon: drawIcon,

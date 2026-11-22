@@ -36,6 +36,7 @@ export function buildCrowd(root, { count, seed, B, L, toLocal, uit = false }) {
 
 // ---- trainende teams op de velden binnen 150 m van de speler (voetbalworld.js trainingSquads): geen sim, alleen jogfiguren en een bal; niet in beeld bekeken ----
 // Per ploeg één InstancedMesh (6 tot 10 figuren in het clubshirt, zonder logo) die rondjes lopen, en een bal in het midden. `sync` zet ze neer of ruimt ze op als de speler weg is, `tik(t)` beweegt ze.
+export const kickPeriod = (sq) => 2.4 + 1.2 * ((Math.abs(Math.round(sq.x * 7 + sq.y * 13)) % 10) / 10);
 export function makeTrainers(scene) {
   const groups = new Map();
   const geo = new THREE.CylinderGeometry(0.2, 0.26, FIG_H, 6).translate(0, FIG_H / 2, 0);
@@ -60,7 +61,8 @@ export function makeTrainers(scene) {
       }
       for (const [k, g] of groups) if (!keep.has(k)) { weg(g); groups.delete(k); }
     },
-    tik(t) {
+    // kick(sq, x, y): een trap van de ploeg (elke 2,4 tot 3,6 s per veld, op een vaste maat); de aanroeper kiest het geluid (voetbal.js: sfxEvent) en let op de afstand tot de speler.
+    tik(t, kick) {
       for (const g of groups.values()) {
         const { sq } = g, ruim = Math.max(4, Math.min(sq.r || 12, 18)) * 0.5;
         for (let i = 0; i < sq.n; i++) {
@@ -70,6 +72,9 @@ export function makeTrainers(scene) {
         }
         g.mesh.instanceMatrix.needsUpdate = true;
         g.ball.position.set(sq.x + Math.cos(t * 0.9) * ruim * 0.3, g.y + 0.2, sq.y + Math.sin(t * 0.7) * ruim * 0.3);
+        const maat = Math.floor(t / kickPeriod(sq));
+        if (g.maat === undefined) g.maat = maat;       // het eerste meetmoment zet alleen de maat: geen trap bij het neerzetten
+        else if (maat !== g.maat) { g.maat = maat; if (kick) kick(sq, sq.x, sq.y); }
       }
     },
     dispose() { for (const g of groups.values()) weg(g); groups.clear(); geo.dispose(); ballGeo.dispose(); ballMat.dispose(); },
