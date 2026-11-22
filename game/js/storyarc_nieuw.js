@@ -344,7 +344,7 @@ export const STEPS = [
   M('M13', 'staart', 'Het containerlabyrint', 'containers', { built: true, reward: 900, loopbanen: ['handhaving'],
     story: { intro: ['M13.1'], outro: ['M13.3'], replay: ['M13.4'] }, scenes: ['M13.1', 'M13.2', 'M13.3', 'M13.4'],
     lead: ['A', 'De Eemshaven, vannacht. Lammert wacht aan de kade: container 4471 moet leeg uitvaren.'] }),
-  A('K3', 'staart', 'Het havenkantoor in de nacht', { type: 'reis', to: 'Lammerts havenkantoor', at: [53.4395, 6.8350], r: 400, scene: 'K3' }, { built: true, added: true, scenes: ['K3'], lead: ['T', "Sjabbe zegt dat hij in de buurt is. Om drie uur 's nachts. In Lammerts havenkantoor, in de Eemshaven."] }),
+  A('K3', 'staart', 'Het havenkantoor in de nacht', { type: 'reis', to: 'Lammerts havenkantoor', at: [53.4424, 6.8572], r: 400, scene: 'K3' }, { built: true, added: true, scenes: ['K3'], lead: ['T', "Sjabbe zegt dat hij in de buurt is. Om drie uur 's nachts. In Lammerts havenkantoor, in de Eemshaven."] }),
   M('M14', 'staart', 'De dijk', 'dijk', { built: true, reward: 1000,
     story: { intro: ['M14.1'], outro: ['M14.3'], replay: ['M14.4'] }, scenes: ['M14.1', 'M14.2', 'M14.3', 'M14.4'],
     lead: ['T', 'Zonsopgang op de dijk bij Bierum. Om acht uur legt Jelles deurwaarder beslag in Delfzijl. Wij zijn eerder bij de sluis.'] }),

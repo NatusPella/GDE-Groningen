@@ -145,7 +145,7 @@ APP TESSA→SJABBE (stil): Beheren? Wij hebben nog niet eens een wagen. [NIEUW]
 APP SJABBE→TESSA (stil): Eerst een bed, dan een pand. Ik vraag niks. [NIEUW]
 
 ## [O6] Een bod – Eemshaven, de kade – Escapade
-(regie: ochtend op de kade. Een onbekend nummer belt Tessa. Ze zet hem op de luidspreker, Tammo komt erbij staan.)
+(regie: nog in de nacht, op de kade, kort na de container. Een onbekend nummer belt Tessa. Ze zet hem op de luidspreker, Tammo komt erbij staan.)
 JELLE (telefoon): Mevrouw Tessa. Jelle Terpstra. U hebt een container leeggehaald die mijn juristen vol wilden hebben. [NIEUW]
 TESSA (telefoon): Dat was een misverstand. [NIEUW]
 JELLE (telefoon): Er zijn geen misverstanden. Er zijn overeenkomsten. Ik bied dertigduizend euro voor het recept van Oma Trijntje. Alles erbij. [NIEUW]
