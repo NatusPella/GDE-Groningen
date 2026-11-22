@@ -515,7 +515,7 @@ function beginCard(it, i) {
     `<span class="td-card-nm"><b>${esc(it.title)}</b></span>` +
     `<span class="td-card-dist">${it.dist != null ? formatDistance(it.dist) : ''}</span></button>` +
     `<div class="td-card-chips">${chips.join('')}</div>${tijdStreepHtml(it.tijd)}` +
-    `<div class="td-card-acts">${doel}<button type="button" class="ds-z-knop ds-z-knop--secundair" data-todo-map="${esc(it.key)}" aria-label="${esc(`Op de kaart: ${it.title}`)}${why ? ` · ${esc(why)}` : ''}">${svg(ICON.pin)}Kaart</button></div></div>`;
+    `<div class="td-card-acts">${doel}<button type="button" class="ds-z-knop ds-z-knop--secundair" data-todo-map="${esc(it.key)}" aria-label="${esc(`Op de kaart: ${it.title}`)}${why ? ` · ${esc(why)}` : ''}">${svg(ICON.pin)}Op de kaart</button></div></div>`;
 }
 
 function beginHierHtml() {
@@ -650,7 +650,7 @@ function detailHtml(world) {
   // molens, borgen) pas als je erom vraagt, in plaats van als muur van getallen bovenaan
   const detailRows = usedRest.length + counts.length;
   const facts = detailRows
-    ? disc('td-feiten-' + id, 'Alle cijfers', `${detailRows} ${detailRows === 1 ? 'regel' : 'regels'}`,
+    ? disc('td-feiten-' + id, 'Meer details', '', // #1267: geen telling van regels (leek een debugregel)
       `<div class="td-numgrid">${usedRest.map(([k, v]) => factHtml(k, v)).join('')}${counts.map(([k, v]) => factHtml(k, v)).join('')}</div>`)
     : '';
   return `<div class="pm-pane-top td-dtop"><span class="m-eb">${esc(kick)}</span><div class="td-dhead"><h2 class="m-h2 td-h2">${esc(it.title)}</h2>${stand ? standChip : ''}</div></div>` +
