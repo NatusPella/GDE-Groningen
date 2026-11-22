@@ -85,7 +85,6 @@ export function tilesKnown(map, x, y, tileIndexOf, tileKey) {
 // ongemoeid en volgt de fix elke def die op dezelfde plek begint (kleine verschuivingen, 1 tot 8 m).
 export const PLEK_FIX = [
   { van: [19360, 17801], naar: [19368, 17801.5], missie: 'Open, dicht (de speler stond in het water)' },
-  { van: [21165, 12446], naar: [21165, 12447], missie: 'Wie draaide de camera\'s uit? (in de gevel van het kantoor)' },
   { van: [21724, 12339], naar: [21721.1, 12338.3], missie: 'Stoom (op de weg bij het perron)' },
   { van: [12039, -12622], naar: [12041.4, -12618.8], missie: 'Inpakken (op de weg voor het huis)' },
   { van: [12071, -12647], naar: [12073.4, -12643.8], missie: 'Terug (op de weg voor het erf)' },

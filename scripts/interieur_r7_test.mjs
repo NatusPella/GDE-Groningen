@@ -45,12 +45,17 @@ function rect(type, w, d, over = {}) {
 // --- kleine panden: wat past waar ---
 {
   const p = (type, w, d, over) => planInterior(rect(type, w, d, over), { upper: false });
+  // r8 (22-11): betreedbaar vanaf ca. 3 x 3 m binnenmaat; kleiner blijft dicht
   const tiny = p('yes', 2.9, 3.1);
-  ok(tiny.ok && tiny.kind === 'garage' && tiny.sub === 'schuur', 'een pand zonder type van 2,9 x 3,1 m is een schuur', JSON.stringify({ ok: tiny.ok, why: tiny.why, kind: tiny.kind }));
+  ok(!tiny.ok && tiny.why === 'small', 'een pand zonder type van 2,9 x 3,1 m is geen kamer om in te staan (blijft dicht)', JSON.stringify({ ok: tiny.ok, why: tiny.why, kind: tiny.kind }));
+  const small = p('yes', 3.8, 3.8);
+  ok(small.ok && small.kind === 'garage' && small.sub === 'schuur', 'een pand zonder type van 3,8 x 3,8 m is een schuur', JSON.stringify({ ok: small.ok, why: small.why, kind: small.kind }));
+  for (const t of ['shed', 'garage']) { const q = p(t, 2.6, 2.8); ok(!q.ok, t + ' van 2,6 x 2,8 m blijft dicht (kleiner dan 3 x 3 m binnen)', JSON.stringify(q.why)); }
+  for (const [kind, sub] of [['garage', 'schuur'], ['garage', 'box'], ['garage', 'kas'], ]) { const mn = hallMinOf(kind, sub); ok(mn.w >= 3 && mn.d >= 3, 'de kleinste hal van ' + kind + '/' + sub + ' is minstens 3 x 3 m', JSON.stringify(mn)); }
   ok(!p('yes', 2.2, 5).ok, 'een pand van 2,2 m breed is te smal');
   ok(p('yes', 3.4, 4.5 + 1).kind === 'woning' || p('yes', 4.6, 5.6).kind === 'woning', 'een gewoon pand zonder type blijft een woning (geen verlies)');
-  ok(p('garage', 3.4, 6.4).ok && p('garage', 3.4, 6.4).sub === 'box', 'een garagebox van 3,4 x 6,4 m is betreedbaar');
-  ok(p('shed', 3, 3).ok, 'een schuur van 3 x 3 m is betreedbaar');
+  ok(p('garage', 3.8, 6.4).ok && p('garage', 3.8, 6.4).sub === 'box', 'een garagebox van 3,8 x 6,4 m is betreedbaar');
+  ok(p('shed', 3.6, 3.6).ok, 'een schuur van 3,6 x 3,6 m is betreedbaar');
   const ceil = p('shed', 4, 4).height;
   ok(ceil >= 2.3 && ceil <= 2.6, 'een schuur heeft een laag plafond', String(ceil));
   // een gevel zonder deur: een gemaakte deur in plaats van niets

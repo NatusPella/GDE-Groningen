@@ -35,11 +35,11 @@ const hall = (k) => ({ w: Math.round(SET_DIMS[k].w * 0.7 * 10) / 10, d: Math.rou
 export const REAL_SETS = {
   kantoor: {
     label: 'Kantoor van Wiebelwerk (M18)', status: 'echt', kinds: [{ kind: 'kantoor' }, { kind: 'publiek', sub: 'gemeente' }], r: 90, minHall: hall('kantoor'),
-    fixed: [{ place: 'wiebelwerk', at: [21165.3, 12446.0], gid: 20271552, c: [21164.8, 12446.7] }],
+    fixed: [{ place: 'wiebelwerk', at: [-121.7, 3054.3], gid: 20095387, c: [-109, 3059.5] }],
   },
   serverkamer: {
     label: 'Serverkamer van Wiebelwerk (M18.3)', status: 'echt', kinds: [{ kind: 'kantoor' }, { kind: 'publiek', sub: 'gemeente' }], r: 90, minHall: hall('serverkamer'),
-    fixed: [{ place: 'wiebelwerkServers', at: [21165.3, 12434.9], gid: 20271552, c: [21164.8, 12446.7] }],
+    fixed: [{ place: 'wiebelwerkServers', at: [-124.9, 3048.0], gid: 20095387, c: [-109, 3059.5] }],
   },
   loket: {
     label: 'Het Loket in het Stadhuis (M03)', status: 'echt', kinds: [{ kind: 'publiek', sub: 'gemeente' }, { kind: 'kantoor' }], r: 90, minHall: hall('loket'),

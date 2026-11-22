@@ -176,3 +176,12 @@ Alles hierboven: geen enkel nieuw interieur is in het spel gezien. Voor de herte
 6. Een gevel waar de deur gemaakt is (`b.entrance === null`): staat de deurvleugel er niet raar bij?
 7. Het plafond van 2,1 m in een laag huis: raakt de camera het plafond?
 8. Een pand van 700 m2 en meer zonder type: is een magazijn daar een goede gok?
+
+## Ronde 8 (22-11): Wiebelwerk, grote hallen en een drempel van 3 x 3 m
+
+- **Dekking na de drempel (volledige provincie, steekproef 1 op 15, `scripts/interieur_dekking_audit.mjs`):** 250.996 van 370.144 panden betreedbaar = **67,8 %** (was 302.539 = 81,7 %). Bijgebouwen 42.040 (schuur 31.231, box 10.502, stal 205, kas 103; was 91.575 schuren en boxen), woningen 198.777, winkels 2.447, magazijnen en bedrijfshallen in 'garage' 48.801 inclusief bijgebouwen. Zonder bijgebouwen 56,5 % (was 56,9 %): de drempel raakt alleen de kleinste schuurtjes en boxen. Per type: `shed` 13,2 % (was 37,8), `garage` 22,4 % (was 84,1), `yes` 47,6 %, `house` 91,5 %.
+- **De drempel:** `SUB_HALL` schuur, box en kas vragen een hal van 3,0 x 3,0 m (was 2,0 x 2,2, 2,4 x 2,6 en 2,4 x 3,0); de woning blijft op 2,6 x 3,2 m (8,3 m2). `WHY.small` zegt het in gewone woorden, `SMALL_WHY` staat bij `NOT_ENTERABLE_WHY`. Het derde punt van de wens ("of krijgen geen deur") is bewust niet gedaan: de deur in de gevel is een plaatje van de gevelbouwer en blijft staan; het pand zelf is dicht.
+- **Grote hallen vullen:** `game/js/interiorfill.js`, zie docs/CUTSCENE-INTERIEURS-22-11.md sectie 7. Gemeentehal 22 x 15 m: 7 naar 11 % vloer onder meubels, 30 naar 50 items, 5 naar 8 figuranten.
+- **Wiebelwerk:** zie docs/CUTSCENE-INTERIEURS-22-11.md sectie 6 (gid 20095387, Laan Corpus den Hoorn 200).
+- **Tests:** `scripts/interieur_r8_test.mjs` (1.159 controles, met game/world ook het echte pand), bijgewerkt: `interieur_r7_test.mjs`, `realsets_test.mjs` (ongewijzigd groen), `akte4_test.mjs`.
+- **Nog niet in beeld bekeken:** alle nieuwe vulling, de hal van Wiebelwerk, schuren net boven de drempel (3,6 x 3,6 m: is dat prettig?).

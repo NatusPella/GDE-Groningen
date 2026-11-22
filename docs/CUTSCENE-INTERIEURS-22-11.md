@@ -17,8 +17,8 @@ missies en de terugkeervignetten en vergelijkt ze met de tabel `REAL_SETS` (`gam
 
 | Set | Scènes en stappen | Waar (wijk) | Soort ruimte | Tijdstip | Nu |
 |---|---|---|---|---|---|
-| `kantoor` | cutscenes M18.intro, M18.2, M18.6, M18.7, M18.outro; keuzestap "Intake bij Wiebelwerk" (`missions_akte4.js`) | het glazen kantoor aan het Julianapark, Veendam | kantoor of gemeentepand | dag | **echt pand** (vast: pand 20271552) |
-| `serverkamer` | cutscene M18.3; holdstap "De serverkamer" | dezelfde plek, 11 m zuidelijk | kantoor of gemeentepand | nacht (00:00) | **echt pand** (hetzelfde pand; de stap heeft geen hold: blijft kit) |
+| `kantoor` | cutscenes M18.intro, M18.2, M18.6, M18.7, M18.outro; keuzestap "Intake bij Wiebelwerk" (`missions_akte4.js`) | het kantoor van Wiebelwerk, Laan Corpus den Hoorn 200, de Stad (r8, was het glaspand aan het Julianapark in Veendam) | kantoor of gemeentepand | dag | **echt pand** (vast: pand 20095387) |
+| `serverkamer` | cutscene M18.3; holdstap "De serverkamer" | dezelfde plek, 7 m langs de gevel | kantoor of gemeentepand | nacht (00:00) | **echt pand** (hetzelfde pand; de stap heeft geen hold: blijft kit) |
 | `loket` | M03.intro, M03.2, M03.outro; vier stappen (rij, formulier A, stempel C, inschrijven) | het Stadhuis, Grote Markt (stad) | gemeentepand met balie | dag | **echt pand** (vast: 26523) |
 | `omakeuken` | F3, M25.intro, M25.3, M25.outro; bakstap (`missions_akte5.js`) | Oma Trijntjes keuken, Noorderhaven | woning | avond | **echt pand** (vast: 13255) |
 | `kroeg` | de toast van M16 (`toastSet`, stap) | de kroeg waar de speler staat | horeca (kroeg, café) | avond | **echt pand**, nabijste |
@@ -90,7 +90,7 @@ Gemeten met de wereld uit de hoofdmap (`game/world`, stads- en provinciehoofdteg
 
 | Set | Plek | Gekozen pand | Hal (m) | Afstand tot het anker |
 |---|---|---|---|---|
-| kantoor, serverkamer | Wiebelwerk, Veendam | 20271552 (gemeentepand, glazen gevel) | 21,8 x 15,4 | 0,8 en 11,8 m |
+| kantoor, serverkamer | Wiebelwerk, Laan Corpus den Hoorn 200 (r8) | 20095387 (kantoor, via `STORY_BUILDINGS`) | 26 x 12,6 | 13,7 en 19,6 m |
 | loket | Stadhuis, Grote Markt | 26523 (gemeentepand naast het Stadhuis; het Stadhuis zelf is een bezienswaardigheid zonder interieur) | 15,1 x 18 | 24 m |
 | omakeuken | Noorderhaven | 13255 (woning; de nabijste woning, 13433, is 8,1 x 5,5 m en past M25.3 niet) | 16,6 x 6 | 21 m |
 | woonkamer | Loppersum, Hofstraat | 20175680 (woning) | 16 x 5,8 | 26 m |
@@ -99,7 +99,7 @@ Gemeten met de wereld uit de hoofdmap (`game/world`, stads- en provinciehoofdteg
 
 Alle 13 cutscenes met een echte set vinden een plek in hun vaste pand (de audit meldt het per scène). De vaste plekken (gid, middelpunt) staan in `REAL_SETS.<set>.fixed`;
 `--strict` met `--world` faalt als een vaste plek niet meer uit de wereld komt (bijvoorbeeld na een herbouw van de tegels met nieuwe gid's).
-Het Wiebelwerk-pand is gemeentepand-soort: het krijgt de balie-hal van `publiek/gemeente` en geen kantoorindeling; de scène speelt daar aan een balie in een hal van 22 m.
+Het Wiebelwerk-pand is sinds r8 een kantoor (zie "Wiebelwerk op een echt adres"): receptie, bureaus, servers en een kopieerhoek in een hal van 26 m, geen balie-hal van een gemeentepand meer.
 
 ## 4. Samen spelen
 
@@ -133,7 +133,7 @@ Hertest en screenshotjacht (nog niet opgenomen in `scripts/ui/hertest_scenes.js`
 
 1. **Loket (M03):** staan de klerk, de rij en de speler in een gemeentehal van 15 x 18 m zonder in een meubel of balie te staan? Zie je door de ramen het plein? Komt de speler
    na de stap buiten het gemeentepand uit?
-2. **Wiebelwerk (M18):** de intake in een hal van 22 m is ruim; staat de accountmanager achter iets dat op een balie lijkt? Is de camera niet in beeld "boven" iets?
+2. **Wiebelwerk (M18):** de intake in een kantoorhal van 26 m, nu met bureaus, servers en figuranten; staat de accountmanager vrij van een bureau? Is de camera niet in beeld "boven" iets? Zie je door de ramen de Laan Corpus den Hoorn?
 3. **Oma's keuken (M25) en Willemiens huis (M27):** een woning van 16 m breed en 6 m diep: staat Oma niet in de hal met haar rug naar een muur? Past de keuken-sfeer? Valt het op
    dat er geen kit (kopjes, fornuis) is?
 4. **De overgang:** het pand wordt gebouwd bij het begin van de scène (een paar ms tot tientallen ms); is er een zichtbare hapering of pop-in? Bij een stap: komt de speler niet
@@ -160,3 +160,64 @@ Hertest en screenshotjacht (nog niet opgenomen in `scripts/ui/hertest_scenes.js`
 - **Prestatie.** Het bouwen van een hal bij het begin van een scène (10 tot 60 ms in node) en de pandkeuze voor sets zonder vaste plek (hoogstens 40 kandidaten, planmaken per pand
   een paar ms) zijn niet in het spel gemeten.
 - Het `import()`-pad voor `realsetrun.js` in `main.js` is een nieuwe statische import; de bundelgrootte is niet gemeten.
+
+## 6. Wiebelwerk op een echt adres (r8, 22-11, besluit eigenaar)
+
+**Besluit.** Het verzonnen bedrijf Wiebelwerk zit in de wereld op het echte adres **Laan Corpus den Hoorn 200** in de Stad Groningen (echte plaatsen en gebouwen
+mogen; alleen de bedrijfsnaam is verzonnen). Eerder stond het in een glaspand aan het Julianapark in Veendam (#950, #955).
+
+**Bron en controle.** De tegels hebben geen adresvelden (`addr:*` zit niet in de gebouwrijen: alleen `gid`, `osm`, `type`, `name`, `h`, `hm`). Het adres is daarom
+opgezocht in de openbare OSM-data (Nominatim, een eenmalige leesopvraag tijdens de ontwikkeling zonder spelergegevens): huisnummer 200 van de Laan Corpus den Hoorn ligt
+op 53,19198 N, 6,56263 E (Hoornse Meer, wijk Zuid). In spelcoördinaten is dat (-108,9; 3065,7). Het pand dat daar ligt is OSM-gebouw 268636009 (**gid 20095387**,
+`type=commercial`, 31 x 50 m, 6 m van het adresknooppunt); het eerstvolgende pand ligt 66 m verderop (een kleine opstal). Controle op de kaart: de straat staat
+in `facilities.json` en in de wegnamen van de tegels (de horecavoorziening op 53,18719 6,5635 heeft `Laan Corpus den Hoorn` als straat), de wijk Corpus den Hoorn
+staat in `grenzen.json`. **Let op:** de wijk ligt ten *zuiden* van het centrum (ca. 3,3 km van de Grote Markt, y positief is zuid), niet noordoost of oost zoals in de
+opdracht stond; het adres klopt, de windrichting in de opdracht niet.
+
+**Wat de data van dat pand zegt.** De gevelbouwer geeft het een winkelpui van een slager op de begane grond (`shopFront`), vier bouwlagen en een deur op 14,4 m van de
+hoek. Voor het verhaal is het een kantoor: `interiorkinds.js STORY_BUILDINGS` zegt dat gid 20095387 binnen altijd een kantoor is, ook voor wie zo het pand binnenloopt
+(één bron voor de wandeling en voor de scène). Het kantoor heeft een hal van 26 x 12,6 m en 2,56 m plafond, met de kantoorindeling van het recept (receptie, bureaus met medewerkers) plus de vulling van
+r8 (servers aan de zijmuur, kopieerhoek, planten): 74 items, 4 figuranten, ca. 8.900 driehoeken.
+
+**Wat er nog meer verhuisde.** `REAL_SETS.kantoor` en `.serverkamer` (`fixed`: gid 20095387, middelpunt -109, 3059,5; ankers op de stoep voor de deur), de missieplekken
+`wiebelwerk` (3 m voor de deur: 53,19208 6,56244), `wiebelwerkServers` (7 m langs de gevel: 53,19214 6,56240) en `wiebelwerkUit` (10 m de andere kant op: 53,19199 6,56249) in
+`missions_akte4.js`, de uitzondering voor de missieprop-audit (`PLEK_FIX`, was een gok in de gevel in Veendam), de intro ("Wiebelwerk in de Stad") en de spreekregel van Tessa in
+`storyarc_nieuw.js` (stemclip wacht op een nieuwe opname), en `akte4_test.mjs` (de plek moet binnen 3 km van het adres liggen). Alle zes scènes van M18 vinden een plek in
+het pand (`node scripts/cutscene_sets_audit.mjs --world`). Gevolg voor het verhaal: M17 (bruggen) en M19 (stoom) blijven in Veendam; tussen M17 en M18 en tussen M18 en M19
+reist de speler nu ca. 24 km. Dat is een verhaalkeuze die de coördinator moet bekijken (reisstappen, taxi of trein).
+
+## 7. Grote hallen vullen (r8)
+
+`interiorfill.js` (puur) vult na het recept elke hal van 110 m2 en meer (en minstens 10 m op één zijde) met blokken (stempels) die bij de functie passen, op een raster
+in de vrije vloer: 0,7 m van de muren, nooit in de toegangszone (3 m), nooit op een tussenmuur, trap of ander meubel (gang van 0,55 m), een looppad elke derde kolom. Kantoor:
+bureau met stoel en een typende medewerker, servers aan de muur, printer en koffiehoek, kasten, planten. Gemeente, politie en apotheek: bureaus, wachthoeken met bank en
+tafel, kasten, kopieerhoek. Hotel, ziekenhuis, museum, sportschool: bank en tafel, bedden, vitrines, toestellen. Woning: zithoek met tv en tapijt, eettafel met vier stoelen,
+boekenkasten. Garage: extra liften, werkbanken, opslag; bijgebouwen: opslag. Hooguit 56 extra items en 8 figuranten in totaal (de figuranten doen wat hun rol doet:
+typen, overleggen, koffie halen, kopiëren, zitten). Winkels houden hun eigen recept (hun schappen kosten in een grote hal al 5.000 tot 7.000 driehoeken); een winkelhal boven
+300 m2 laat wat meer gaten in de schaprijen en rijen eilanden voor het budget. Alles komt uit het zaad van het pand: host en gast bouwen dezelfde hal. Een zittende figurant
+die in een plant of kast terechtkomt valt weg (een latente fout die de vulling aan het licht bracht). Een scène in zo'n hal past er met `fitSceneInHall` omheen (figuren 25 cm
+van meubels, zittende figuren bij een stoel of bank). Meting (`scripts/interieur_r8_test.mjs`): in een hal van 22 x 15 m is 7 % van de vloer onder meubels geworden: 11 tot
+12 % voor gemeente, politie en apotheek; kantoren zaten al op 16 %. Hallen van 28 x 20 m blijven onder 12.000 driehoeken (grootste in de steekproef 11.856). Lui bouwen blijft:
+bouwen binnen 24 m, weggooien op 34 m, hooguit 2 interieurs tegelijk.
+
+## 8. Betreedbaar vanaf ca. 3 x 3 m
+
+Een schuur, garagebox of kas is pas betreedbaar met een hal van minstens 3 x 3 m binnen (`SUB_HALL`, was 2,0 x 2,2 en 2,4 x 2,6); kleiner blijft dicht, de deur in de
+gevel blijft een plaatje en het plan zegt `small` (`WHY.small`: "hal te klein (binnenmaat onder 3 x 3 m)"). Een woning houdt haar minimum van 2,6 x 3,2 m (8,3 m2): een smal
+rijtjeshuis is een woning, geen kast. Dekkingsaudit (`scripts/interieur_dekking_audit.mjs`, volledige provincie, steekproef 1 op 15): **67,8 % betreedbaar** (250.996 van 370.144
+panden) tegen 81,7 % na ronde 7; de 13,9 punten verlies zijn bijna alleen schuurtjes en garageboxen (bijgebouwen 42.040 tegen 91.575 geschat). Zonder bijgebouwen blijft het
+56,5 % (208.956), dus de woningen en bedrijven zijn niet geraakt. Per type: shed 13,2 % (was 37,8), garage 22,4 % (was 84,1), `yes` 47,6 %.
+
+## 9. Samen spelen (r8)
+
+Dezelfde regel als de rest van dit doc: iedereen lokaal, de wereld is voor iedereen gelijk. De vulling is een pure functie van het pand (zaad uit zijn middelpunt), dus host en
+gast bouwen dezelfde hal met dezelfde bureaus en figuranten; de figuranten zijn decor per speler (net als de andere interieurmensen) en doen niets over het net. De vaste
+verhaalplek Wiebelwerk is één pand voor iedereen; de scène en de stap blijven lokaal, beloning en voortgang per speler (#429); wie wegvalt of later aansluit verliest niets.
+Wie in Samen spelen het pand binnenloopt, ziet in zijn eigen hal alleen zijn eigen figuranten. Tests: `scripts/interieur_r8_test.mjs`, `scripts/interior_coop_test.mjs`,
+`scripts/realsets_test.mjs`.
+
+## 10. Nog niet in beeld bekeken (r8)
+
+De hal van Wiebelwerk met de vulling (bureaus, servers, typende figuranten), de scène erin, de camera door de ramen naar de Laan Corpus den Hoorn, de grote hallen van een
+gemeente en een woning, de stoep voor de deur als startplek van M18 en de reis van Veendam naar de Stad. Alles hierboven is met pure tests en de CPU-geometrie van de echte
+tegels bewezen; er is geen Electron gestart.

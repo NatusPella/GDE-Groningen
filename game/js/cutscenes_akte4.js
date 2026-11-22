@@ -56,7 +56,7 @@ S['M17.outro'] = {
   wide: WIDE([-4.5, 4, 3], [-2.5, 2.8, 2.3], 'mid:wubbo,tammo@1'),
 };
 
-// --- M18 Wiebelwerk: the glass office in Veendam, a desk with a screen ---
+// --- M18 Wiebelwerk: the office on Laan Corpus den Hoorn in the Stad, a desk with a screen ---
 // #955: de intake is een kantoorscène, geen praatje in de open lucht: een collega werkt
 // mee op de achtergrond en de camera gaat van een over-de-schouder naar de spreker.
 S['M18.intro'] = {

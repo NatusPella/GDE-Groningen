@@ -16,17 +16,20 @@ export const KINDS = {
   station:     { label: 'Stationshal', minW: 6, minD: 6, h: [4, 6], open: null, ambience: 'station', roles: ['loketmedewerker', 'reiziger'] },
   bibliotheek: { label: 'Bibliotheek', minW: 6, minD: 6, h: [3, 4], open: null, ambience: 'bibliotheek', roles: ['bibliothecaris', 'lezer'] },
   garage:      { label: 'Garage', minW: 5, minD: 6, h: [3.2, 4.5], open: null, ambience: 'garage', roles: ['monteur', 'boer'] },
-  publiek:     { label: 'Publiek gebouw', minW: 5, minD: 5, h: [2.8, 3.6], open: null, ambience: 'kantoor', roles: ['baliemedewerker', 'bezoeker', 'sporter', 'trainer', 'arts', 'leraar', 'leerling', 'suppoost', 'museumbezoeker', 'filmbezoeker', 'agent', 'apotheker', 'hotelgast'] },
+  publiek:     { label: 'Publiek gebouw', minW: 5, minD: 5, h: [2.8, 3.6], open: null, ambience: 'kantoor', roles: ['baliemedewerker', 'medewerker', 'bezoeker', 'sporter', 'trainer', 'arts', 'leraar', 'leerling', 'suppoost', 'museumbezoeker', 'filmbezoeker', 'agent', 'apotheker', 'hotelgast'] },
 };
 export const KIND_IDS = Object.keys(KINDS);
 
 // r7 (22-11): kleine bijgebouwen als varianten van de soort garage en de portiek van een appartementencomplex als variant van de soort woning.
 // Eigen minimale hal en plafond (m): een schuur van 2 bij 2,2 m is nog een kamer, een garagebox is smal en diep. `ceil`: vast plafond (de hal van een schuur is geen kerk).
+// r8 (owner decision 22-11): usable from about 3 x 3 m inside. A smaller hall is no room to stand in (a shed of 2 x 2.2 m is a cupboard): it stays shut.
+// A home keeps its r6 minimum of 2.6 x 3.2 m (8.3 m2, as much floor as 3 x 2.8 m: a narrow terraced house is a home, not a cupboard).
+export const MIN_USABLE = 3.0;
 export const SUB_HALL = {
-  'garage:schuur': { minW: 2.0, minD: 2.2, ceil: 2.4 },
-  'garage:box': { minW: 2.4, minD: 2.6, ceil: 2.5 }, // the door of a garage box sits in the gable (3 m wide) or in the long side (3 m deep): both work
+  'garage:schuur': { minW: 3.0, minD: 3.0, ceil: 2.4 },
+  'garage:box': { minW: 3.0, minD: 3.0, ceil: 2.5 }, // the door of a garage box sits in the gable (3 m wide) or in the long side (3 m deep): both work
   'garage:stal': { minW: 3.6, minD: 5, ceil: 3.2 },
-  'garage:kas': { minW: 2.4, minD: 3.0, ceil: 2.6 },
+  'garage:kas': { minW: 3.0, minD: 3.0, ceil: 2.6 },
   'woning:appartement': { minW: 4, minD: 6 },
 };
 // the smallest hall of a kind (and its variant)
@@ -70,7 +73,9 @@ const PUBLIEK_BY_TYPE = { civic: 'gemeente', public: 'gemeente', government: 'ge
 export const NOT_ENTERABLE = new Set(['roof', 'carport', 'ruins', 'construction', 'silo', 'water_tower', 'guardhouse', 'static_caravan', 'houseboat', 'tent', 'toilets', 'kiosk',
   'storage_tank', 'dugout', 'dovecote', 'bunker', 'windmill', 'bell_tower', 'tower', 'tech_cab', 'transformer_tower',
   'gazebo', 'railway_car', 'grandstand', 'dock', 'poldergemaal', 'pumping_station', 'pavilion']);
-// the reason a type stays shut (audit and docs)
+// the reason a type stays shut (audit and docs). SMALL_WHY: a type that is enterable but whose hall in this building is below MIN_USABLE (a shed, a box,
+// a greenhouse, a narrow house) stays shut with the 'small' reason of interiorrules.js (WHY.small); there is no separate door logic: the door stays a picture.
+export const SMALL_WHY = 'binnenmaat kleiner dan 3 x 3 m: geen kamer om in te staan';
 export const NOT_ENTERABLE_WHY = {
   roof: 'alleen een dak', carport: 'open, geen wanden', ruins: 'ruine', construction: 'bouwplaats', silo: 'opslag zonder kamer', water_tower: 'toren zonder kamer', guardhouse: 'wachthuisje van een paar vierkante meter',
   static_caravan: 'caravan', houseboat: 'woonboot: ligt op het water', tent: 'tent', toilets: 'toiletgebouwtje', kiosk: 'kiosk te klein voor een hal', storage_tank: 'tank', dugout: 'dug-out', dovecote: 'duiventil', bunker: 'bunker, dicht',
@@ -98,11 +103,18 @@ export function kindOfFacility(f) {
   }
 }
 
+// r8 (owner decision 22-11): story places in the real world. The invented web agency Wiebelwerk sits at the real address Laan Corpus den Hoorn 200 in the Stad
+// (OSM building 268636009, gid 20095387: a 31 x 50 m commercial building with a shop front on the ground floor in the data). The building is an office inside,
+// so the intake, the server room and the cutscenes of M18 play in it (realsets.js REAL_SETS.kantoor, docs/CUTSCENE-INTERIEURS-22-11.md).
+export const STORY_BUILDINGS = { 20095387: { kind: 'kantoor', sub: null, place: 'wiebelwerk' } };
+
 // What a building becomes: the shop window type first (the shopfront of that building is of this type),
 // then the facility in it, then the OSM building type. { kind, sub } or null.
 // `spot`: the kindOfFacility result for the facility inside it, if any.
 export function kindOfBuilding(b, spot = null) {
   if (!b || b.landmark || b.rooms || b.interior) return null;
+  const story = STORY_BUILDINGS[b.gid]; // r8: a building the story put a place in is that kind, whatever its shop front or type says
+  if (story) return { kind: story.kind, sub: story.sub };
   const t = b.type || 'yes';
   if (NOT_ENTERABLE.has(t)) return null;
   const sf = b.shopFront;

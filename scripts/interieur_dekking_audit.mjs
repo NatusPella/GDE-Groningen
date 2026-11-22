@@ -155,7 +155,7 @@ export function phases(records, agg, recipes = recipeTable()) {
     fase1: { naam: 'Winkels en voorzieningen', betreedbaar: sum((r) => r.ok && r.kind !== 'woning'), poiBetreedbaar: records.filter((r) => r.poi && r.ok).length, poiNiet: records.filter((r) => r.poi && !r.ok).length, perSoort: Object.fromEntries(Object.entries(kinds).map(([k, v]) => [k, Math.round(v)])) },
     fase2: { naam: 'Variatie per soort', varianten: recipes.filter((r) => r.sub).length, metRecept: subsWithRecipe.size, gezien: subsSeen.size, zonderRecept: recipes.filter((r) => r.ok === 0).map((r) => r.kind + '/' + r.sub) },
     fase3: { naam: 'Woningen', betreedbaar: homes, openHuis: Math.round(homes * HOME_OPEN_SHARE), metEtage: sum((r) => r.ok && r.kind === 'woning' && r.levels === 2) },
-    fase5: { naam: 'Bijgebouwen en portieken (r7)', bijgebouwen: sum((r) => r.ok && r.kind === 'garage' && BIJGEBOUW_SUBS.includes(r.sub)), perSoort: Object.fromEntries(BIJGEBOUW_SUBS.map((s) => [s, sum((r) => r.ok && r.kind === 'garage' && r.sub === s)])), portieken: sum((r) => r.ok && r.kind === 'woning' && r.sub === 'appartement') },
+    fase5: { naam: 'Bijgebouwen en portieken (r7; betreedbaar vanaf 3 x 3 m binnen, r8)', bijgebouwen: sum((r) => r.ok && r.kind === 'garage' && BIJGEBOUW_SUBS.includes(r.sub)), perSoort: Object.fromEntries(BIJGEBOUW_SUBS.map((s) => [s, sum((r) => r.ok && r.kind === 'garage' && r.sub === s)])), portieken: sum((r) => r.ok && r.kind === 'woning' && r.sub === 'appartement') },
     fase4: { naam: 'Dorpen en de Ommelanden', stadBetreedbaar: cityOk, buitenBetreedbaar: ruralOk, stadPanden: cityAll, buitenPanden: ruralAll, buitenAandeel: ruralAll ? Math.round(ruralOk / ruralAll * 1000) / 10 : 0 },
   };
 }

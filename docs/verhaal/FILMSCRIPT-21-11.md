@@ -575,19 +575,19 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 
 **Sequentie M18: Wie draaide de camera's uit?** (missie wiebelwerk; speler-protagonist Tammo)
 
-- **M18.1** BINNEN – VEENKOLONIËN, VEENDAM, WIEBELWERK – MIDDAG · Wie draaide de camera's uit?: intro · cutscene of gespeeld in de missie
+- **M18.1** BINNEN – DE STAD, HOORNSE MEER, WIEBELWERK – MIDDAG · Wie draaide de camera's uit?: intro · cutscene of gespeeld in de missie
   - maandag 24 augustus, middag. Een kantoorpand bij een rotonde. Een bord: Wiebelwerk, websites met karakter. Een e-step staat voor de deur. Gameplay: een kantoor als speelveld; de juiste antwoorden kiezen, de serverkamer i
   - praat: Tammo, Tessa, Sjabbe, Accountmanager
-- **M18.2** BUITEN – VEENKOLONIËN, VEENDAM, WIEBELWERK – DAG · Wie draaide de camera's uit?: de intake gehaald · cutscene of gespeeld in de missie
+- **M18.2** BUITEN – DE STAD, HOORNSE MEER, WIEBELWERK – DAG · Wie draaide de camera's uit?: de intake gehaald · cutscene of gespeeld in de missie
   - de speler beantwoordt de intake met drie antwoorden; dit is de afloop als alles klopt. De accountmanager knikt tevreden en tikt op een tablet.
   - praat: Accountmanager, Tessa, Tammo
-- **M18.6** BUITEN – VEENKOLONIËN, VEENDAM, WIEBELWERK – DAG · Wie draaide de camera's uit?: de accountmanager twijfelt · cutscene of gespeeld in de missie
+- **M18.6** BUITEN – DE STAD, HOORNSE MEER, WIEBELWERK – DAG · Wie draaide de camera's uit?: de accountmanager twijfelt · cutscene of gespeeld in de missie
   - afloop bij één fout antwoord. De accountmanager kijkt van zijn tablet naar hen en blijft staan.
   - praat: Accountmanager, Tessa, Tammo
-- **M18.7** BUITEN – VEENKOLONIËN, VEENDAM, WIEBELWERK – DAG · Wie draaide de camera's uit?: de beveiliging loopt mee · cutscene of gespeeld in de missie
+- **M18.7** BUITEN – DE STAD, HOORNSE MEER, WIEBELWERK – DAG · Wie draaide de camera's uit?: de beveiliging loopt mee · cutscene of gespeeld in de missie
   - afloop bij twee foute antwoorden. De accountmanager pakt zijn telefoon. Achter hem komt een beveiliger in de deuropening staan, met zijn armen over elkaar.
   - praat: Accountmanager, Tammo, Tessa
-- **M18.3** BUITEN – VEENKOLONIËN, VEENDAM, WIEBELWERK – DAG · Wie draaide de camera's uit?: de servers · cutscene of gespeeld in de missie
+- **M18.3** BUITEN – DE STAD, HOORNSE MEER, WIEBELWERK – DAG · Wie draaide de camera's uit?: de servers · cutscene of gespeeld in de missie
   - praat: Tammo, Tessa
 - **M18.4** BUITEN – VEENKOLONIËN, VEENDAM – DAG · Wie draaide de camera's uit?: outro · cutscene of gespeeld in de missie
   - Tessa's telefoon gaat. Ze kijkt wie het is en draait zich een stap van Tammo weg.

@@ -22,8 +22,8 @@ const arg = (k, d = null) => { const a = args.find((x) => x === '--' + k || x.st
 // Waar een missie-set in het verhaal hoort (voor de inventaris; de bron van de stappen staat in missions_*.js)
 const MISSIE = {
   loket: { id: 'M03', waar: 'het Stadhuis aan de Grote Markt (stad)', wijk: 'Binnenstad' },
-  kantoor: { id: 'M18', waar: 'het glazen kantoor aan het Julianapark in Veendam', wijk: 'Veendam' },
-  serverkamer: { id: 'M18.3', waar: 'de serverkamer bij het kantoor van Wiebelwerk in Veendam', wijk: 'Veendam' },
+  kantoor: { id: 'M18', waar: 'het kantoor van Wiebelwerk aan de Laan Corpus den Hoorn 200 in de Stad', wijk: 'Hoornse Meer' },
+  serverkamer: { id: 'M18.3', waar: 'de serverkamer bij het kantoor van Wiebelwerk aan de Laan Corpus den Hoorn', wijk: 'Hoornse Meer' },
   omakeuken: { id: 'M25', waar: 'Oma Trijntjes keuken aan de Noorderhaven', wijk: 'Noorderhaven' },
   kroeg: { id: 'M16', waar: 'de kroeg waar de toast valt (bij de speler)', wijk: 'wisselt' },
   woonkamer: { id: 'M27', waar: 'Willemiens huis aan de Hofstraat in Loppersum', wijk: 'Loppersum' },

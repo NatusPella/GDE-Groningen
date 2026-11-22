@@ -374,7 +374,7 @@ export const STEPS = [
   A('J4', 'zuid', 'Een dubbele date in Veendam', { type: 'reis', to: 'het terras aan het Oosterdiep', at: [53.1060, 6.8790], r: 300, scene: 'J4' }, { built: true, scenes: ['J4'], lead: ['A', 'Femke en Rikus willen eten, met ons erbij. Een terras aan het Oosterdiep in Veendam. Zij noemt het een date, wij noemen het lunch.'] }),
   M('M18', 'zuid', 'Wie draaide de camera\'s uit?', 'wiebelwerk', { built: true, reward: 600,
     story: { intro: ['M18.1'], outro: ['M18.4'], replay: ['M18.5'] }, scenes: ['M18.1', 'M18.2', 'M18.6', 'M18.7', 'M18.3', 'M18.4', 'M18.5'],
-    lead: ['T', "Dan het bewijs. Grunn houdt ons voor de dieven; Wiebelwerk in Veendam beheert de museumcamera's. Het logboek van 12 augustus moet laten zien dat Jelle de bal al had."] }),
+    lead: ['T', "Dan het bewijs. Grunn houdt ons voor de dieven; Wiebelwerk in de Stad beheert de museumcamera's. Het logboek van 12 augustus moet laten zien dat Jelle de bal al had."] }),
   A('N9', 'zuid', 'Nacht op een dijk', { type: 'reis', to: 'de dijk bij de Dollard', at: [53.2600, 7.0600], r: 600, scene: 'N9' }, { built: true, scenes: ['N9'], lead: ['T', 'Rikus belde: de politie zoekt twee Stadjers in het zwart. Hij leent ons zijn oude busje en kent een dijk waar niemand komt. Neem een deken mee.'] }),
   A('J5', 'zuid', 'Een wielklem in Stadskanaal', { type: 'reis', to: 'Stadskanaal', at: [52.9890, 6.9500], r: 400, scene: 'J5' }, { built: true, scenes: ['J5'], lead: ['T', 'De Escapade staat in Stadskanaal en heeft een gele klem om een wiel. Ik wil weten wie dat heeft aangevraagd. Ik denk het te weten.'] }),
   M('M19', 'zuid', 'Stoom', 'stoom', { built: true, reward: 800,
