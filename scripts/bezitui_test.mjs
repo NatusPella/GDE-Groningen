@@ -67,7 +67,7 @@ t('dichte takken: uitleg in plaats van een leeg scherm', () => {
   reset();
   let act = 1;
   GT.setUnlockGate(GT.makeActGate(() => act));
-  assert.match(U.forSaleHtml({ money: 1, offers: [] }), /akte 2/);
+  assert.match(U.forSaleHtml({ money: 1, offers: [] }), /Het Noorden is groot/);
   assert.match(U.businessesHtml({ money: 1 }), /akte 3/);
   act = 3;
   assert.ok(!/Nog dicht/.test(U.businessesHtml({ money: 1, mine: [], near: [] })));

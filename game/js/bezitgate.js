@@ -10,6 +10,8 @@ export const BEZIT_BRANCHES = {
   business: { feature: 'bezit-bedrijven', act: 3, label: 'Bedrijven' },
   snack: { feature: 'bezit-snack', act: 5, label: 'Snackwagen' },       // de eindgame: Snackimperium (#1102), pas in de late akte
 };
+// de akte (storyarc PARTS-sleutel) van elke tak: de speler leest de naam van het hoofdstuk, nooit een aktenummer (#912)
+const BRANCH_PART = Object.fromEntries(Object.entries(BEZIT_BRANCHES).map(([k, v]) => [k, PART_ORDER[v.act - 1]]));
 export const BEZIT_BRANCH_IDS = Object.keys(BEZIT_BRANCHES);
 
 // Een poort is een functie (featureId) => boolean. De standaard (stub) zegt: open.
@@ -33,7 +35,7 @@ export const branchOpen = (branch) => { if (branch === 'snack') ensureSnackGate(
 export function branchClosedText(branch) {
   const b = BEZIT_BRANCHES[branch];
   if (!b) return '';
-  return `${b.label} gaat open in akte ${b.act} van het verhaal.`;
+  return `${b.label} gaat open bij "${partName(BRANCH_PART[branch])}" in het verhaal.`;
 }
 
 // Hoeveel takken staan open (het menu laat een dichte tak zien met het slotje en de reden, nooit een leeg scherm).
@@ -42,7 +44,8 @@ export const openBranches = () => BEZIT_BRANCH_IDS.filter(branchOpen);
 // ---- aansluiting op de gedeelde ontgrendelpoort van de verhaal-epic (unlockgate.js, #1131) ----
 // Percelen horen bij de wereld 'farm' (akte 2, Tessa), Bedrijven bij 'bezit' (akte 3, panden en ondernemen). De stand (progress) komt van de host:
 // setGateProgress(() => progressFrom({ stepId, ended, gate, begun })). Zonder provider blijft de stubpoort van hierboven (open).
-import { worldOpen, gateHint, registerGateWorld, gateWorld } from './unlockgate.js';
+import { worldOpen, gateHint, registerGateWorld, gateWorld, PART_ORDER } from './unlockgate.js';
+import { partName } from './storyarc.js';
 export const GATE_WORLD = { land: 'farm', business: 'bezit', snack: 'snackwagen' };
 // Tessa leidt de snackwagen in; akte 5 ('ontzet'). Bij elke vraag opnieuw gemeld als de registratie door een reset weg is (unlockgate.js resetGateRegistry).
 const SNACK_GATE = { id: 'snackwagen', part: 'ontzet', by: 'Tessa', hint: 'Tessa wil nu écht een eigen snackwagen: eerst het verhaal af, dan staat de eerste standplaats voor je open.' };

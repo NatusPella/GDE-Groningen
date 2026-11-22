@@ -23,7 +23,7 @@ import { onParcelBought, onWorkerHired, deliverLine } from './bezitworldhooks.js
 import * as BZ from './business.js';
 import * as SN from './snackvan.js';
 import { currentStep } from './storyquery.js';
-import { STEPS } from './storyarc.js';
+import { STEPS, PARTS } from './storyarc.js';
 import * as SPT from './pitch.js';
 import * as FX from './businessexclusion.js';
 import * as EV from './bezitevents.js';
@@ -554,8 +554,8 @@ export function snackChainOwner(views = null) {
 export const weekendOf = (cd) => weekendDay(cd);
 export const kermisAtOn = (cd) => snackCal(cd).kermisAt;
 const snackCal = (cd) => ({ weekend: weekendDay(cd), kermisAt: (s) => { const d = SPT.spotDef(s), f = d ? EV.festivalOn(d.region, cd) : null; return !!(f && f.kermis); } });
-// De akte van de huidige verhaalstap (jellebaas.js); null zonder verhaal of na het einde.
-const storyPartNow = () => { const c = currentStep(); const st = c && !c.end ? STEPS.find((x) => x.id === c.id) : null; return st ? st.part : null; };
+// De akte van de huidige verhaalstap (jellebaas.js); na het einde de laatste akte (Jelle trok zijn offerte terug); null zonder verhaal.
+const storyPartNow = () => { const c = currentStep(); if (c && c.end) return PARTS[c.end] ? c.end : null; const st = c ? STEPS.find((x) => x.id === c.id) : null; return st ? st.part : null; };
 // Een of meer dagen: geeft { own, passive, fixed, lines } (eigen wagen na compressOwn, medewerkers ruw voor de rem, vergunningen als min) en schrijft het onderhoud van de wagen terug.
 function tickSnack(w, S, from, last, money) {
   const b = getBezit(), ownBiz = mobileBiz('frietwagen'), chainOwn = snackChainOwner(), had = Object.keys(S.permits);
