@@ -28,6 +28,7 @@ import { reportCrime } from './crime.js';
 import { npcBudget, bystanderReaction } from './wantedlevels.js';
 import { hash2 } from './rng.js';
 import { seatedOf, clearSeated, reactSeated, exitOrder } from './occupants.js';
+import { hornSources, drivenVehicles, hornPedDodge, skimsPast, HORN_PED_SPEED, HORN_PED_SAY, HORN_PED_COOLDOWN, SKIM_LOOK } from './hornreact.js';
 import { dayState } from './daynight.js';
 import { FLAGS } from './devflags.js';
 import { voetgangerOpties, stapSlaOver, AbstractPool } from './simlagen.js';
@@ -1277,6 +1278,8 @@ export function updatePedestrians(dt, world) {
   let filming = 0;
   const pv = player.inVehicle;
   const dodgeVehicle = pv && !pv.isBoat && pv.speed > -0.5 ? pv : null;
+  // horns and near misses of every human driver, host and guests alike (hornreact.js)
+  const honkers = hornSources(world), drivers = drivenVehicles(world);
   const frameDt = dt;
   const farAI = farAIDist();
   // ver weg lopende wandelaars worden door de simulatieworker gestuurd (simbridge.js, #58)
@@ -1494,6 +1497,36 @@ export function updatePedestrians(dt, world) {
       ped.angle = dodge;
       ped.speed = Math.max(ped.speed || 0, 3.2);
       moving = true;
+    }
+    if (dodge === null && !ped.isCop && !ped.scene && (ped.state === 'wander' || ped.state === 'gawk' || ped.state === 'angry')) {
+      // a horn or bell coming up behind: off the carriageway, sometimes with a remark
+      for (let k = 0; k < honkers.length; k++) {
+        const hv = honkers[k];
+        if (Math.abs(hv.x - ped.x) > 24 || Math.abs(hv.y - ped.y) > 24 || Math.abs((hv.z || 0) - (ped.gz || 0)) > 2) continue;
+        const away = hornPedDodge(ped.x, ped.y, hv);
+        if (away === null) continue;
+        ped.angle = away;
+        ped.speed = Math.max(ped.speed || 0, HORN_PED_SPEED);
+        moving = true;
+        if (t > (ped._bumpCd || 0)) {
+          ped._bumpCd = t + HORN_PED_COOLDOWN;
+          if (Math.random() < HORN_PED_SAY) say(ped, world, pick(CAR_BUMP_LINES));
+        }
+        break;
+      }
+      // a car that skims past at speed: stop, turn and shake a fist after it
+      if (ped.state === 'wander' && t > (ped._bumpCd || 0)) {
+        for (let k = 0; k < drivers.length; k++) {
+          const dv = drivers[k];
+          if (Math.abs((dv.z || 0) - (ped.gz || 0)) > 2 || !skimsPast(ped.x, ped.y, dv)) continue;
+          ped._bumpCd = t + HORN_PED_COOLDOWN;
+          setState(ped, 'gawk', t + SKIM_LOOK, 'angry');
+          ped.fleeFrom = dv;
+          if (Math.random() < 0.6) say(ped, world, pick(CAR_BUMP_LINES));
+          moving = false;
+          break;
+        }
+      }
     }
     if (!moving) {
       ped.speed = 0;
