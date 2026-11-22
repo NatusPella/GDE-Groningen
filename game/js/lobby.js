@@ -347,8 +347,8 @@ export function reduce(s, ev) {
     case 'bron-mislukt': // dat lukte niet: terug naar het wachtscherm voor een volgende poging
       if (s.step !== 'verbinden' || !s.bron) return s;
       n.step = 'verbroken'; n.error = ev.msg || 'Opnieuw verbinden lukte niet.'; return n;
-    case 'probeer': // een gast met een verkeerd of ontbrekend wachtwoord probeert het opnieuw, met dezelfde code en hetzelfde woord
-      if (s.rol !== ROLES.GAST || s.step !== 'geweigerd' || s.reason !== 'wachtwoord') return s;
+    case 'probeer': // een gast met een verkeerd of ontbrekend wachtwoord, of zonder antwoord, probeert het opnieuw, met dezelfde code en hetzelfde woord
+      if (s.rol !== ROLES.GAST || s.step !== 'geweigerd' || !OPNIEUW_REDENEN.includes(s.reason)) return s;
       n.step = 'gast-typt'; n.status = null; n.reason = null;
       if (s.caps.laatsteCode) { const c = classifyInput(s.caps.laatsteCode); if (c.ok) n.invoer = c; }
       return n;
@@ -372,6 +372,9 @@ export function reduce(s, ev) {
     case 'start-bezig': if (s.step !== 'verbonden' || s.startBezig) return s; n.startBezig = true; n.startS = 0; return n; // Spel starten ingedrukt: de knop blokkeert en toont voortgang (playerstatus.js startKnop)
     case 'start-tik': if (!s.startBezig) return s; n.startS = ev.s | 0; return n;
     case 'start-klaar': n.startBezig = false; n.startS = 0; return n;
+    case 'start-mislukt': // het starten gaf een fout: de knop blokkeert niet voorgoed op 'Spel wordt gestart…'
+      if (!s.startBezig) return { ...n, error: ev.msg || 'Er ging iets mis.' };
+      n.startBezig = false; n.startS = 0; n.error = ev.msg || 'Het spel starten lukte niet. Probeer het nog eens.'; return n;
     case 'start-gevraagd': n.startGevraagd = true; return n; // een gast vroeg de start aan wie het spel opende
     case 'verbreek': return fresh(s);
     case 'terug': return s.step === 'verbonden' ? s : fresh(s);
@@ -381,6 +384,8 @@ export function reduce(s, ev) {
 
 // Het spel begint pas met minstens twee spelers in de wachtkamer (de eigenaar, 20-10): wie het spel opende plus een gast
 export const MIN_SPELERS = 2;
+// Weigeringen waarbij een gast zinvol opnieuw kan proberen met dezelfde code (een andere versie of een volle sessie lost een tweede poging niet op)
+export const OPNIEUW_REDENEN = ['wachtwoord', 'time-out', 'gesloten'];
 
 // Wie het spel kan overnemen (#439): iedere andere speler die nu bereikbaar is, en alleen met een kamercode (bij een IP-adres
 // zou de nieuwe speler zijn eigen poort moeten openen en een koppelcode doorgeven; dat kan het spel niet).
@@ -566,11 +571,12 @@ export function view(s) {
     }
     case 'geweigerd': {
       const ww = s.reason === 'wachtwoord'; // het woord klopte niet (of ontbrak): de gast kan het hier opnieuw invullen
+      const opnieuw = s.rol === ROLES.GAST && OPNIEUW_REDENEN.includes(s.reason); // geen antwoord of gesloten: de code staat nog klaar, een tweede poging kost één klik
       return V({
         title: foutUitleg(s.reason).titel,
         lines: (({ tekst, doe }) => [tekst, doe])(foutUitleg(s.reason, { versie: s.caps.versie, andereVersie: s.andereVersie })),
         ...(ww ? { wachtwoord: wachtwoordVeld() } : null),
-        buttons: ww ? [{ act: 'probeer', label: 'Opnieuw proberen', primary: true }, { act: 'terug', label: 'Terug' }, { act: 'diag', label: 'Verbinding testen' }] : [{ act: 'terug', label: 'Terug', primary: true }, { act: 'diag', label: 'Verbinding testen' }],
+        buttons: ww || opnieuw ? [{ act: 'probeer', label: 'Opnieuw proberen', primary: true }, { act: 'terug', label: 'Terug' }, { act: 'diag', label: 'Verbinding testen' }] : [{ act: 'terug', label: 'Terug', primary: true }, { act: 'diag', label: 'Verbinding testen' }],
       });
     }
     case 'openbaar-vraag':

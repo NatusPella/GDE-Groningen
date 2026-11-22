@@ -93,4 +93,37 @@ t('meedoen: een leeg label wordt "de opdracht"; begin zonder sleutel doet niets'
   assert.equal(Object.keys(st.standen).length, 0);
 });
 
+// 10. na een time-out kan de gast met één klik opnieuw, met dezelfde code
+t('weigering: bij geen antwoord of een gesloten verbinding staat Opnieuw proberen klaar', () => {
+  let s = run(WEB, { t: 'kies', rol: 'gast' }, { t: 'invoer', text: 'K3J9D-8F2MN' }, { t: 'akkoord' });
+  for (const reden of ['time-out', 'gesloten']) {
+    const g = L.reduce(s, { t: 'status', status: 'geweigerd', reason: reden });
+    assert.equal(g.step, 'geweigerd');
+    assert.deepEqual(L.view(g).buttons.map((b) => b.act), ['probeer', 'terug', 'diag'], reden);
+    const weer = L.reduce(g, { t: 'probeer' });
+    assert.equal(weer.step, 'gast-typt', reden); assert.equal(weer.invoerDraft, 'K3J9D-8F2MN', 'de code staat nog in het veld');
+  }
+  // een andere versie of een volle sessie lost een tweede poging niet op
+  for (const reden of ['versie', 'vol', 'verbod']) {
+    const g = L.reduce(s, { t: 'status', status: 'geweigerd', reason: reden });
+    assert.deepEqual(L.view(g).buttons.map((b) => b.act), ['terug', 'diag'], reden);
+    assert.equal(L.reduce(g, { t: 'probeer' }).step, 'geweigerd', reden);
+  }
+  // wie het spel opende krijgt hem niet
+  const h = L.reduce(run(WEB, { t: 'kies', rol: 'host' }), { t: 'status', status: 'geweigerd', reason: 'time-out' });
+  assert.deepEqual(L.view(h).buttons.map((b) => b.act), ['terug', 'diag']);
+});
+
+// 11. een mislukte start laat de knop niet voorgoed op "wordt gestart" staan
+t('Spel starten: een fout tijdens het starten geeft de knop terug en zegt wat er is', () => {
+  let s = { ...run({ ...WEB, startGate: true }, { t: 'kies', rol: 'host' }), step: 'verbonden', spelers: [{ slot: 0, naam: 'A' }, { slot: 1, naam: 'B' }], partner: null };
+  s = L.reduce(s, { t: 'start-bezig' });
+  assert.equal(L.view(s).buttons.find((b) => b.act === 'start-spel').disabled, true);
+  const na = L.reduce(s, { t: 'start-mislukt', msg: 'De wereld laadde niet.' });
+  assert.equal(na.startBezig, false); assert.equal(na.error, 'De wereld laadde niet.');
+  assert.equal(L.view(na).buttons.find((b) => b.act === 'start-spel').disabled, false, 'opnieuw proberen kan');
+  assert.match(L.reduce(s, { t: 'start-mislukt' }).error, /starten lukte niet/);
+  assert.equal(L.reduce(na, { t: 'start-mislukt', msg: 'x' }).startBezig, false, 'zonder lopende start verandert alleen de melding');
+});
+
 console.log(`verfijn_samen_22_11_test: ${n}/${n} ok`);

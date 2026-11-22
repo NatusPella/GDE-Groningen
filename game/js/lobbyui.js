@@ -788,7 +788,8 @@ export function mountLobby(root, hooks, opts = {}) {
         if (state.step === 'host-maakt-code') await hostStart();
       }
     } catch (e) {
-      set({ t: 'fout', msg: e && e.message ? e.message : 'Er ging iets mis.' });
+      if (state.startBezig) set({ t: 'start-mislukt', msg: e && e.message ? e.message : '' }); // anders bleef Spel starten voorgoed grijs
+      else set({ t: 'fout', msg: e && e.message ? e.message : 'Er ging iets mis.' });
     }
   }
 
