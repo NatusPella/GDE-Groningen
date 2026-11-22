@@ -96,6 +96,7 @@ function startJob(B, c, list, withDetail) {
 
 const _v = new THREE.Vector3();
 const _n = new THREE.Matrix3();
+const NORMAL_SCALE = { Int8Array: 127, Int16Array: 32767 };
 let remap = new Int32Array(1024);
 
 // Materials that differ only in colour share one batch material: the colour
@@ -165,6 +166,10 @@ function addPiece(job, pc) {
   const M = part.matrixWorld;
   const ident = M.equals(IDENTITY);
   if (!ident) _n.getNormalMatrix(M);
+  // alleen een verschuiving (de nudge van #917, een woonboot op zijn waterhoogte) laat de normalen zoals ze zijn: ze worden dan
+  // ongewijzigd gekopieerd, zonder opnieuw te kwantiseren
+  const me = M.elements;
+  const turns = !ident && !(me[0] === 1 && me[1] === 0 && me[2] === 0 && me[4] === 0 && me[5] === 1 && me[6] === 0 && me[8] === 0 && me[9] === 0 && me[10] === 1);
   const data = {};
   for (const name of bk.names) {
     if (bk.bake && name === 'color') {
@@ -177,12 +182,16 @@ function addPiece(job, pc) {
     const n = a.itemSize;
     const out = new a.array.constructor(verts.length * n);
     const inter = a.isInterleavedBufferAttribute;
+    // een genormaliseerde gehele normaal (Int8, zie GeoBuilder.build) terugschrijven als round(n * 127): een zwevende waarde in
+    // een Int8Array wordt afgekapt tot 0 en de glasshader (interiorglass.js) kreeg een nulnormaal (#1076)
+    const q = a.normalized ? NORMAL_SCALE[a.array.constructor.name] || 1 : 1;
     for (let j = 0; j < verts.length; j++) {
       const v = verts[j];
-      if (!ident && (name === 'position' || name === 'normal')) {
+      if (!ident && (name === 'position' || (name === 'normal' && turns))) {
         _v.fromBufferAttribute(a, v);
         if (name === 'position') _v.applyMatrix4(M); else _v.applyMatrix3(_n).normalize();
-        out[j * 3] = _v.x; out[j * 3 + 1] = _v.y; out[j * 3 + 2] = _v.z;
+        if (q === 1) { out[j * 3] = _v.x; out[j * 3 + 1] = _v.y; out[j * 3 + 2] = _v.z; }
+        else { out[j * 3] = Math.round(_v.x * q); out[j * 3 + 1] = Math.round(_v.y * q); out[j * 3 + 2] = Math.round(_v.z * q); }
       } else if (inter) {
         for (let k = 0; k < n; k++) out[j * n + k] = a.getComponent(v, k);
       } else {
