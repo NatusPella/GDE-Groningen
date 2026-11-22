@@ -166,7 +166,7 @@ groep en de plek ("Spelen · 2 van 5"). De tabs uit `SUBTABS`:
   **Samen spelen**, nooit co-op, coöp of multiplayer; wachtkamer of kamer, nooit
   lobby. Geen rolnaam als gastheer of host: de naam van de speler of "de ander".
 - `scripts/text_audit.mjs` faalt op de Engelse vorm (`ANGLICISMEN`, `:223`) en op "de
-  Grunn" (`:254`). Het is "Grunn".
+  Grunn" (`:254`). Het is "Grunn". Stad = de stad Groningen, Ommeland = de rest, Grunn = het geheel: een plek in de stad is "de Stad", de rest "Ommeland"; de gebiedslabels zeggen "wijk · Stad" en "dorp · Ommeland" (docs/TAALREGEL-STAD-OMMELAND-22-11.md, bewaakt door `scripts/stad_grunn_test.mjs`).
 - Gronings en Fries alleen met zorg. Een dialectregel staat zoals hij is, met de
   Nederlandse vertaling eronder in cursief op 0,8 em (`.nl-sub`,
   `hud_panel.css:393`); de stem spreekt Gronings, de ondertitel blijft Nederlands. Een

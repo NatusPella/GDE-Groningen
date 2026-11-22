@@ -31,7 +31,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 - **TESSA:** "Uw plan is sympathiek." Dat betekent nee, met een strikje. [BEHOUDEN]
 - **TESSA:** Een frietwagen is een auto met een luik, Tammo. En ik heb geen auto. [BEHOUDEN]
 - **TAMMO:** Ik wel. De Escapade. [BEHOUDEN]
-- **TESSA:** Zonder bank blijft er één weg over: een wedstrijd. Wie wint, krijgt de enige vrije standplaats van Grunn, een plek voor een frietwagen. [NIEUW]
+- **TESSA:** Zonder bank blijft er één weg over: een wedstrijd. Wie wint, krijgt de enige vrije standplaats van de Stad, een plek voor een frietwagen. [NIEUW]
 - **TAMMO:** De prijs voor de beste eierbal. [NIEUW]
 - **TESSA:** Wij winnen op 28 augustus, wij krijgen die standplaats, en de snackwagen heeft een thuis. [NIEUW]
 - **TAMMO:** En tot die tijd? Hier past geen frietwagen. [NIEUW]

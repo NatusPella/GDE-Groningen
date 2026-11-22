@@ -31,22 +31,22 @@ const keyOf = (l) => (l.voice || l.speaker) + '|' + l.text;
 
 t('#924 data: elke opgenomen verhaalregel resolvet in zijn eigen manifest', () => {
   const recorded = data.scenes.flatMap((s) => s.lines).filter((l) => l.channel !== 'app-stil' && !l.textOnly);
-  assert.equal(recorded.length, 1568); // 21-11 epic Verhaal: veel regels herschreven, die wachten nu op een nieuwe opname; eerder 1390. 4 regels minder sinds de verhaalcanon van 21-11 (vierentwintig, vijf jaar): wachten op een nieuwe opname
+  assert.equal(recorded.length, 1560); // 21-11 epic Verhaal: veel regels herschreven, die wachten nu op een nieuwe opname; eerder 1390. 4 regels minder sinds de verhaalcanon van 21-11 (vierentwintig, vijf jaar): wachten op een nieuwe opname; 22-11: 8 regels minder door de Stad-regel (docs/TAALREGEL-STAD-OMMELAND-22-11.md)
   for (const l of recorded) {
     assert.ok(['story', 'lines', 'banter'].includes(l.rec), `${l.text.slice(0, 40)}: rec`);
     assert.ok(manifests[l.rec][keyOf(l)], `${l.text.slice(0, 40)}: opname in ${l.rec}`);
   }
 });
 
-t('#924 autorit: alle 109 exchange-regels resolven via de rec-aware resolver', () => {
+t('#924 autorit: alle 106 exchange-regels resolven via de rec-aware resolver', () => {
   setStoryData(data, manifests);
   const lines = banterExchanges().flatMap((ex) => ex.lines).filter((l) => l[3]);
-  assert.equal(lines.length, 109);
+  assert.equal(lines.length, 106);
   for (const l of lines) assert.ok(banterLineVoice(l), `geen opname: ${l[1]}`);
   // de oude bug: banter.js keek alleen in banter; 70 regels staan in lines
   const fromLines = lines.filter((l) => l[3] === 'lines').length;
   const fromBanter = lines.filter((l) => l[3] === 'banter').length;
-  assert.equal(fromLines, 93);
+  assert.equal(fromLines, 90);
   assert.equal(fromBanter, 16);
 });
 

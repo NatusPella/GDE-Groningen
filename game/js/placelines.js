@@ -4,7 +4,7 @@
 export const LANDMARK_LINES = {
   Martinitoren: 'd’Olle Grieze. Zeshonderd jaar oud en nog steeds de langste van Stad.',
   Martinikerk: 'Achthonderd jaar kerk. De klokken lopen een minuut voor, voor de zekerheid.',
-  'Grote Markt': 'Het grootste plein van Grunn. Hier wordt gevierd, gedemonstreerd en geparkeerd.',
+  'Grote Markt': 'Het grootste plein van de Stad. Hier wordt gevierd, gedemonstreerd en geparkeerd.',
   Vismarkt: 'Hier wordt al sinds de middeleeuwen vis verkocht. En gezeurd.',
   'Der Aa-kerk': 'De kerk van de schippers. De toren is drie keer omgevallen, ze bouwen gewoon door.',
   'Forum Groningen': 'Boeken, films en een dakterras. Het gebouw staat een beetje scheef. Expres.',
@@ -14,7 +14,7 @@ export const LANDMARK_LINES = {
   Academiegebouw: 'Hier studeerde half Nederland. De andere helft kwam voor de kroegen.',
   Goudkantoor: 'Vroeger werd hier goud gewogen. Nu koffie. Het blijft kostbaar.',
   Noorderplantsoen: 'Bij de eerste zon ligt hier half Stad in het gras.',
-  'Winkelcentrum Paddepoel': 'Winkelen onder een afdak. In Grunn is dat geen luxe.',
+  'Winkelcentrum Paddepoel': 'Winkelen onder een afdak. In de Stad is dat geen luxe.',
   Euroborg: 'Als de club scoort, hoor je het tot in Haren.',
   EIKEA: 'Een woonwarenhuis met een doolhof. De uitgang vindt niemand in één keer.',
 };

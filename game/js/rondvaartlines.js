@@ -9,7 +9,7 @@
 
 
 export const TOUR_WELCOME = [
-  ['T', 'Welkom aan boord! We varen een rondje over de Diepenring, de gracht rond de binnenstad, grotendeels gegraven in de zeventiende eeuw toen Grunn werd uitgebreid en een nieuwe vestinggordel kreeg.'],
+  ['T', 'Welkom aan boord! We varen een rondje over de Diepenring, de gracht rond de binnenstad, grotendeels gegraven in de zeventiende eeuw toen de Stad werd uitgebreid en een nieuwe vestinggordel kreeg.'],
   ['A', 'Tammo vertelt, ik stuur. Vragen over de geschiedenis mag u gerust aan mij stellen.'],
   ['T', 'Vragen over de kroegen aan mij.'],
 ];
@@ -38,8 +38,8 @@ export const TOUR_STOPS = [
     ['T', 'Te veel.'],
   ] },
   { at: [506.7, 83.61], name: 'het Schuitendiep', lines: [
-    ['T', 'Dit is het Schuitendiep. Hier legden de schuiten aan, platte vrachtschepen die de stad bevoorraadden. Rechts de Poelestraat: overdag stil, om vier uur \'s nachts het drukste stukje Grunn.'],
-    ['A', 'Grunn staat erom bekend dat de kroegen hier geen vaste sluitingstijd hebben. Geen grap.'],
+    ['T', 'Dit is het Schuitendiep. Hier legden de schuiten aan, platte vrachtschepen die de stad bevoorraadden. Rechts de Poelestraat: overdag stil, om vier uur \'s nachts het drukste stukje Stad.'],
+    ['A', 'De Stad staat erom bekend dat de kroegen hier geen vaste sluitingstijd hebben. Geen grap.'],
     ['E', 'Four in the morning? I\'m in!'],
   ] },
   { at: [563.88, 208.5], name: 'het Gedempte Kattendiep', lines: [
@@ -66,7 +66,7 @@ export const TOUR_STOPS = [
   ] },
   { at: [601.14, 644.77], name: 'Gronings Ontzet', lines: [
     ['T', 'In 1672 lag Bommen Berend voor de stad. Niet onze Berend met z\'n bakkie, hè: de bisschop van Münster, met een leger en heel veel kanonskogels.'],
-    ['A', 'Hij kreeg Grunn niet. Op 28 augustus trok hij af, en dat vieren we nog elk jaar: Gronings Ontzet.'],
+    ['A', 'Hij kreeg de Stad niet. Op 28 augustus trok hij af, en dat vieren we nog elk jaar: Gronings Ontzet.'],
     ['D', 'Münster? Oh. Entschuldigung.'],
     ['T', 'Geeft niks. Is al even geleden.'],
   ] },
@@ -94,14 +94,14 @@ export const TOUR_STOPS = [
     ['A', 'Hij wel.'],
   ] },
   { at: [-365.2, 522.69], name: 'de Praediniussingel', lines: [
-    ['A', 'Rechts de Praediniussingel, vernoemd naar Regnerus Praedinius. Hij was in de zestiende eeuw rector van de Latijnse school in Grunn.'],
+    ['A', 'Rechts de Praediniussingel, vernoemd naar Regnerus Praedinius. Hij was in de zestiende eeuw rector van de Latijnse school in de Stad.'],
     ['T', 'Ik had geen Latijn. Wel een fiets.'],
   ] },
   { at: [-195.36, 364.9], name: 'de Der Aa-kerk', lines: [
     ['T', 'Rechts de Der Aa-kerk, voluit de Onze Lieve Vrouwe der A-kerk, vernoemd naar datzelfde riviertje. De toren is een paar keer ingestort; de huidige staat er sinds het begin van de achttiende eeuw.'],
   ] },
   { at: [-380.42, 326.64], name: 'de A', lines: [
-    ['T', 'Het riviertje heet de A, omdat ze in Grunn geen tijd hebben voor lange namen.'],
+    ['T', 'Het riviertje heet de A, omdat ze in de Stad geen tijd hebben voor lange namen.'],
     ['A', 'Aa is gewoon een oud woord voor water, Tammo. Half Nederland heeft wel een Aa.'],
     ['T', 'Dus ik had half gelijk.'],
   ] },
@@ -112,10 +112,10 @@ export const TOUR_STOPS = [
   ] },
   { at: [-460.12, 110.5], name: 'de Visserbrug', lines: [
     ['T', 'De Visserbrug. Of eigenlijk, volgens de kaart: de tijdelijke Visserbrug.'],
-    ['A', 'In Grunn is tijdelijk een rekbaar begrip.'],
+    ['A', 'In de Stad is tijdelijk een rekbaar begrip.'],
   ] },
   { at: [-534.14, 58.35], name: 'het Reitdiep', lines: [
-    ['A', 'Daar gaat het Reitdiep naar het noorden, via Zoutkamp naar het Lauwersmeer. Eeuwenlang de weg van Grunn naar zee.'],
+    ['A', 'Daar gaat het Reitdiep naar het noorden, via Zoutkamp naar het Lauwersmeer. Eeuwenlang de weg van de Stad naar zee.'],
     ['T', 'Nu vooral de weg naar een visje in Zoutkamp.'],
   ] },
   { at: [-410.86, -65.46], name: 'de Noorderhaven', lines: [

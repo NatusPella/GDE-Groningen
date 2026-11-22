@@ -14,7 +14,7 @@ export const PARTS = ['ochtend', 'middag', 'avond', 'nacht'];
 export const WETS = ['droog', 'regen', 'mist', 'onweer'];
 
 export const AREA_NAMES = {
-  stad: 'Grunn', hogeland: 'Hogeland', eemsdelta: 'Eemsdelta', wadden: 'Waddenkust',
+  stad: 'de Stad', hogeland: 'Hogeland', eemsdelta: 'Eemsdelta', wadden: 'Waddenkust',
   westerkwartier: 'Westerkwartier', oldambt: 'Oldambt', veenkolonien: 'Veenkoloniën',
 };
 

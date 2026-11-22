@@ -40,7 +40,7 @@ const DURATION = {
 const CITY_RADIUS = 4000;
 
 const REGIONS = {
-  stad: { naam: 'Grunn', wet: 1 },
+  stad: { naam: 'de Stad', wet: 1 },
   noord: { naam: 'het Hogeland en de kust', wet: 1.15 },
   oost: { naam: 'de Veenkoloniën', wet: 0.9 },
   zuid: { naam: 'Westerkwartier-zuid en Drenthe-rand', wet: 0.95 },

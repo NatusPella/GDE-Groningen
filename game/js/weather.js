@@ -239,7 +239,7 @@ function followRegionWeather(dt, world, w) {
   w.windAngle = r.windAngle;
   w.windStrength = r.windStrength;
   w.timer = 60;
-  if (r.kind === 'onweer' && was !== 'onweer' && region === 'stad') world.addMessage('Onweer boven Grunn', 3);
+  if (r.kind === 'onweer' && was !== 'onweer' && region === 'stad') world.addMessage('Onweer boven de Stad', 3);
 }
 
 // --- wet roads for the driving model -----------------------------------------

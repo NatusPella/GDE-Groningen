@@ -291,6 +291,8 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [VERHAALCANON-21-11.md](<VERHAALCANON-21-11.md>) | Canonblad en audit: Tammo en Tessa zijn net afgestudeerd (24), kennen elkaar uit de studie; wat er in docs en speltekst veranderde en welke 4 gesproken regels opnieuw moeten. |
 | [TESSA-CIJFERS.md](<TESSA-CIJFERS.md>) | Gecontroleerd op 17 oktober 2026 met publieke CBS-pagina's. Het feitenblok |
 | [TAAL-VAN-DOCUMENTATIE.md](<TAAL-VAN-DOCUMENTATIE.md>) | Besluit voor de eigenaar: Nederlands of Engels in de docs, met de meting en twee opties. |
+| [TAALREGEL-STAD-OMMELAND-22-11.md](<TAALREGEL-STAD-OMMELAND-22-11.md>) | De Stad, het Ommeland en Grunn: wanneer zeg je welk woord, de gebiedslabels en wat er is aangepast. |
+| [STAD-GRUNN-AUDIT-22-11.md](<STAD-GRUNN-AUDIT-22-11.md>) | Gegenereerde audit (`scripts/stad_grunn_audit.mjs`): per voorkomen van Grunn A (Stad), B (blijft) of C (twijfel). |
 | [TUNING-21-11.md](<TUNING-21-11.md>) | Autotuning (Pimp my Ride, #1155): besluiten, bestanden, grenzen voor de wereld (hoogstens 5%), snackwagen, koppelingen. |
 | [TUNING-VERIFICATIE-21-11.md](<TUNING-VERIFICATIE-21-11.md>) | Autotuning: wat getest en gezien is (headless) en wat de sweep nog moet bekijken. |
 | [TUNING-KLEDING-STAND-22-11.md](<TUNING-KLEDING-STAND-22-11.md>) | Tuning en kleding: matrix per wens (gedaan, ontbreekt) voor de epics #1155 en #1151. |

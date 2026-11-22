@@ -19,7 +19,7 @@ TESSA: Een frietwagen is een auto met een luik, Tammo. En ik heb geen auto. [BEH
 TAMMO: Ik wel. De Escapade. [BEHOUDEN]
 TESSA: Die rijdt nauwelijks. [BEHOUDEN]
 TAMMO: Dan rijdt hij nauwelijks voor jou. Een snackwagen die nauwelijks rijdt. Dat is een concept. [NIEUW]
-TESSA: Zonder bank blijft er één weg over: een wedstrijd. Wie wint, krijgt de enige vrije standplaats van Grunn, een plek voor een wagen. [NIEUW]
+TESSA: Zonder bank blijft er één weg over: een wedstrijd. Wie wint, krijgt de enige vrije standplaats van de Stad, een plek voor een wagen. [NIEUW]
 TAMMO: De prijs voor de beste eierbal. [NIEUW]
 TESSA: Wij winnen op 28 augustus, wij krijgen die standplaats, en dan zien we wel wat erop komt te staan. [NIEUW]
 TAMMO: Is dat het plan? Een frietwagen? [NIEUW]
@@ -56,7 +56,7 @@ BEREND: Gips. {pause=0.6} [NIEUW]
 BEREND: Ik heb gisteren alle krassen geteld. Nul. Zo blijft het. [BEHOUDEN]
 TAMMO: Jij bent toch Bommen Berend? Van het Ontzet? [BEHOUDEN]
 BEREND: Niet zo hard. Veertig jaar speel ik hem. Elk jaar val ik de stad aan, en elk jaar verlies ik. Dat doet wat met een mens. [BEHOUDEN]
-TESSA: Hij is de bisschop die Grunn in 1672 niet innam. {ov=0.4} [NIEUW]
+TESSA: Hij is de bisschop die de Stad in 1672 niet innam. {ov=0.4} [NIEUW]
 BEREND: Niet erbij vertellen. [NIEUW]
 TESSA: Wij brengen hem. Eerst even een klus op de Grote Markt, dan naar uw zus. [NIEUW]
 BEREND: Nul krassen. Of ik tel ze. [NIEUW]
@@ -256,7 +256,7 @@ BEPPE: Hy seit neat, mar hy docht it goed. [NIEUW]
 TESSA: Dat zag ik. De eerste week al. [NIEUW]
 (regie: Beppe schept nog een keer op. Tammo kijkt naar zijn bord.)
 
-## [N4] Een eerste ronde – Stad, Station Grunn – te voet
+## [N4] Een eerste ronde – Stad, Station Groningen – te voet
 (regie: maandagochtend. Op het stationsplein staan een taxi, een stapel formulieren en een klusbord. Ze proberen drie dingen na elkaar.)
 TESSA: Taxi. Jij rijdt. [NIEUW]
 TAMMO: Links of rechts? [NIEUW]
@@ -293,7 +293,7 @@ JELLE: Goedemorgen. Jelle Terpstra, Us Mem Snacks. Mijn juristen hebben dit loke
 TESSA: Jelle Terpstra. Meneer Klomp. [NIEUW]
 JELLE: Ik heb de rij gekocht. U staat nu helemaal achteraan, nummer 4140. Dat staat in de overeenkomst. [NIEUW]
 TAMMO: Hij kocht onze plek. [NIEUW]
-JELLE: Verder koop ik alle standplaatsen van Grunn die vrijkomen. Contant, uit een klomp, definitief. [NIEUW]
+JELLE: Verder koop ik alle standplaatsen van de Stad die vrijkomen. Contant, uit een klomp, definitief. [NIEUW]
 TESSA: Alle? De standplaats van de winnaar is niet te koop. [NIEUW]
 JELLE: Nee. Die win ik. {pause=0.5} [NIEUW]
 TESSA: Hoe dan? [NIEUW]

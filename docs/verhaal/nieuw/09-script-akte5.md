@@ -139,7 +139,7 @@ GEESJE: Een limo past niet in een steegje, jong. [NIEUW]
 ## [M23.4] De colonne: outro – Stad, Grote Markt – snackwagen
 (regie: de colonne rijdt de Grote Markt op. Het publiek klapt.)
 TESSA: We zijn er. Allemaal. [NIEUW]
-TAMMO: De grootste stoet die Grunn ooit zag. [NIEUW]
+TAMMO: De grootste stoet die de Stad ooit zag. [NIEUW]
 TESSA: Dat gaat Rikus niet meer zeggen. Hij heeft alle woorden al gebruikt. [NIEUW]
 RIKUS (radio): De colonne is aangekomen. Het is te groot om te beschrijven. [NIEUW]
 JELLE (telefoon): Mevrouw. De colonne is een evenement zonder vergunning. Ik stuur een rekening. [NIEUW]
