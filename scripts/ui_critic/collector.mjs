@@ -56,8 +56,10 @@ export function collect(rootSelector) {
     const ownText = [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join(' ').replace(/\s+/g, ' ').trim();
     const media = ['IMG', 'SVG', 'CANVAS', 'VIDEO', 'svg'].includes(tag);
     const role = (el.getAttribute('role') || '').toLowerCase();
-    const interactive = NATIEF.has(tag) && !(tag === 'INPUT' && el.type === 'hidden') || RONDE.has(role) || (cs.cursor === 'pointer' && !el.closest('a,button'));
+    const interactive = NATIEF.has(tag) && !(tag === 'INPUT' && el.type === 'hidden') || RONDE.has(role) || (cs.cursor === 'pointer' && !el.closest('a,button') && !['LABEL', 'OUTPUT'].includes(tag) && !(el.parentElement && getComputedStyle(el.parentElement).cursor === 'pointer'));
     const overflowScroll = /(auto|scroll)/.test(cs.overflowY) || /(auto|scroll)/.test(cs.overflowX);
+    // een voorouder die afknipt (hidden/clip/auto/scroll) houdt zijn inhoud binnen zijn eigen rand: dat is geen ontsnapping uit het kader
+    const knipt = el !== document.body && el !== document.documentElement && (cs.overflowX !== 'visible' || cs.overflowY !== 'visible');
     const posLayer = cs.position === 'fixed' || cs.position === 'absolute' || cs.position === 'sticky';
     const layer = (cs.zIndex !== 'auto' && posLayer) ? layerKey + '/' + cs.zIndex + selOf(el) : (posLayer ? layerKey + '/p' + recs.length : layerKey);
     const kleur = pc(cs.color);
@@ -72,14 +74,14 @@ export function collect(rootSelector) {
       customScrollbar: overflowScroll ? eigenScrollbar(el, cs) : true, inScroller: inScroller,
       hasBorder: ['Top', 'Right', 'Bottom', 'Left'].some((s) => parseFloat(cs['border' + s + 'Width']) > 0 && cs['border' + s + 'Style'] !== 'none'),
       hasBg: (pc(cs.backgroundColor) || [0, 0, 0, 0])[3] > 0.05, childCount: el.children.length, media: media,
-      interactive: !!interactive, focusable: el.tabIndex >= 0, disabled: !!el.disabled || el.getAttribute('aria-disabled') === 'true',
+      interactive: !!interactive, focusable: el.tabIndex >= 0 || el.hasAttribute('tabindex'), // tabindex=-1 is een rollende focus (listnav), geen gat disabled: !!el.disabled || el.getAttribute('aria-disabled') === 'true',
       decor: el.getAttribute('aria-hidden') === 'true' || (el.className && /(^|\s)(ds-)?(deco|decor|spacer|sep|rule|dot|bar|fill|track|pip|swatch)/.test(String(el.className))) || el.tagName === 'HR',
       layer: layer,
     };
     const me = recs.length;
     if (r.width > 0 && r.height > 0) { recs.push(rec); idx.set(el, me); }
     const next = r.width > 0 && r.height > 0 ? me : parent;
-    for (const c of el.children) walk(c, next, inScroller || overflowScroll, layer);
+    for (const c of el.children) walk(c, next, inScroller || knipt, layer);
   };
   walk(root, -1, false, 'root');
   return { records: recs, vw: window.innerWidth, vh: window.innerHeight, ui: getComputedStyle(document.documentElement).getPropertyValue('--ui').trim() };
