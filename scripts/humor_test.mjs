@@ -31,8 +31,8 @@ const doc = fs.existsSync(new URL('../docs/verhaal/HUMOR-KEUZELIJST.md', import.
 let beoordeeld = 0;
 for (const b of humor.beats) {
   ok(/^H[0-9A-Z-]+$/.test(b.id) && b.label === 'humor-review', `${b.id}: id en label humor-review`);
-  ok(b.variants.length === 3 && new Set([...b.variants, b.neutral]).size === 4 && [...b.variants, b.neutral].every((t) => t && words(t) <= 30), `${b.id}: drie verschillende varianten en een neutrale terugval`);
-  ok([0, 1, 2, 'neutral'].includes(b.chosen), `${b.id}: chosen is 0, 1, 2 of neutral`);
+  ok([3, 4].includes(b.variants.length) && new Set([...b.variants, b.neutral]).size === b.variants.length + 1 && [...b.variants, b.neutral].every((t) => t && words(t) <= 30), `${b.id}: drie of vier (22-11: bestaand, droog, absurd, warm) verschillende varianten en een neutrale terugval`);
+  ok([0, 1, 2, 3, 'neutral'].includes(b.chosen) && (b.chosen === 'neutral' || b.chosen < b.variants.length), `${b.id}: chosen is een variant of neutral`);
   ok(b.context && b.context.length > 30 && b.shot && b.speaker, `${b.id}: context, shotpatroon en spreker`);
   const sc = scenes.get(b.scene);
   const l = sc && sc.lines.find((x) => x.humor === b.id);
@@ -40,7 +40,7 @@ for (const b of humor.beats) {
   if (l) ok(l.text === textOf(b), `${b.id}: het spel gebruikt de gekozen variant`, l.text);
   if (b.panel) {
     beoordeeld++;
-    ok(Array.isArray(b.panel.votes) && b.panel.votes.length === 3 && b.panel.votes.every((v) => [0, 1, 2, 'neutral'].includes(v)), `${b.id}: drie stemmen`);
+    ok(Array.isArray(b.panel.votes) && b.panel.votes.length === 3 && b.panel.votes.every((v) => [0, 1, 2, 3, 'neutral'].includes(v)), `${b.id}: drie stemmen`);
     ok(b.panel.reason && b.panel.reason.length > 10 && ['hoog', 'midden', 'laag'].includes(b.panel.certainty), `${b.id}: reden en zekerheid`);
     const w = panelWinner(b.panel.votes, b.panel.tiebreak);
     ok(w === b.chosen, `${b.id}: de gekozen variant is de winnaar van het paneel`, `${w} tegenover ${b.chosen}`);

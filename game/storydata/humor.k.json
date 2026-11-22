@@ -1,10 +1,10 @@
 {
- "note": "Humorvoorstellen (#1126 #1127), WP-aanvulling K1-K3. Nog niet door het paneel beoordeeld (geen panel); chosen 0 is het voorstel van de schrijver.",
+ "note": "Humorvoorstellen (#1126 #1127), WP-aanvulling K1-K3. Paneel 22-11 (docs/verhaal/HUMOR-PANEEL-22-11.md): vier varianten (0 = het bestaande, 1 droog, 2 absurd, 3 warm) en een neutrale terugval; chosen is de winnaar.",
  "beats": [
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
+   "chosen": 1,
    "id": "HK-01",
    "scene": "K1",
    "speaker": "GEESJE",
@@ -12,15 +12,26 @@
    "shot": "halve close-up Geesje op haar emmer, Tessa met één handschoen aan bij het hek",
    "variants": [
     "Dat hoeft ook niet.",
-    "Dat hoefde ook niet.",
-    "Dat doet de kip voor je."
+    "Nee. Hij hangt er al veertig jaar. Hij wacht wel.",
+    "Dat hoeft ook niet. De spijker hoort alles.",
+    "Dat hoeft ook niet. Ik zie het aan je."
    ],
-   "neutral": "Je hoeft niets te zeggen."
+   "neutral": "Je hoeft niets te zeggen.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Veertig jaar wachten: Gronings.",
+    "certainty": "hoog",
+    "tiebreak": 1
+   }
   },
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
+   "chosen": 1,
    "id": "HK-02",
    "scene": "K2",
    "speaker": "TAMMO",
@@ -28,15 +39,26 @@
    "shot": "twee-shot op de bolder, Tessa kijkt hem aan, Tammo kijkt in zijn beker",
    "variants": [
     "Dat je je koffie met melk drinkt.",
-    "Hoe je je koffie drinkt.",
-    "Dat je koffie met melk hoort."
+    "Hoeveel melk je in je koffie doet. Twee scheuten.",
+    "Dat je koffie met melk drinkt. Ik heb er al een thermoskan voor.",
+    "Dat je je koffie met melk drinkt. Ik denk er elke ochtend aan."
    ],
-   "neutral": "Dat je koffie met melk neemt."
+   "neutral": "Dat je koffie met melk neemt.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Twee scheuten: heel kleine waarheid.",
+    "certainty": "laag",
+    "tiebreak": 1
+   }
   },
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
+   "chosen": 1,
    "id": "HK-03",
    "scene": "K2",
    "speaker": "TESSA",
@@ -44,15 +66,26 @@
    "shot": "close-up Tessa met de beker, Tammo vaag op de achtergrond",
    "variants": [
     "Hij is lauw.",
-    "Hij is al uren koud.",
-    "Dit is geen koffie meer."
+    "Hij is lauw. Dat is alles wat hier gebeurd is.",
+    "Hij is lauw. De koffie. Niet ik.",
+    "Hij is lauw. Hij is precies goed."
    ],
-   "neutral": "De koffie is lauw."
+   "neutral": "De koffie is lauw.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Ontkenning die zichzelf verraadt.",
+    "certainty": "laag",
+    "tiebreak": 1
+   }
   },
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
+   "chosen": 2,
    "id": "HK-04",
    "scene": "K3",
    "speaker": "SJABBE",
@@ -60,10 +93,21 @@
    "shot": "halve close-up Sjabbe op het bureau, Tessa met de sleutel in de voorgrond",
    "variants": [
     "Dat is mijn zin.",
-    "Die zin is van mij.",
-    "Die staat op mijn naam."
+    "Dat is mijn zin. Hij is niet te koop.",
+    "Dat is mijn zin. Hij ligt hier al sinds 1974.",
+    "Dat is mijn zin. Maar jij mag hem hebben."
    ],
-   "neutral": "Dat zeg ik meestal."
+   "neutral": "Dat zeg ik meestal.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "De zin ligt er sinds 1974.",
+    "certainty": "laag",
+    "tiebreak": 2
+   }
   }
  ]
 }

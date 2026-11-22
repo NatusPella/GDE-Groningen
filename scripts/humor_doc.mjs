@@ -17,7 +17,7 @@ const low = beats.filter((b) => !risk.includes(b) && b.panel && b.panel.certaint
 const L = [];
 L.push('# Humorkeuze: de veto-lijst (21-11)');
 L.push('');
-L.push('Je hoeft niets te doen. Voor elke nieuwe of herschreven komische beat heeft de schrijver drie varianten en een veilige neutrale terugval gemaakt; drie onafhankelijke beoordelaars (zonder elkaars oordeel, met de varianten in een andere volgorde) kozen de beste. De winnaar staat in het spel; de andere twee en de terugval staan hieronder als alternatief. Wil je iets anders: zet `chosen` van die beat in het bijbehorende bestand `game/storydata/humor*.json` op 0, 1, 2 of `"neutral"` en draai `node scripts/build_story_data.mjs`. Werkwijze: [SCHRIJFREGELS-21-11.md](SCHRIJFREGELS-21-11.md). Na een wijziging: draai ook de cutscene-tests (`cutscenes_akte*_test`), want de cues van een scène (`on:`) volgen de gekozen tekst. Samen spelen: een beat is gewone scènetekst; een gast ziet de gekozen variant mee in de scène van de host. Gegenereerd door `node scripts/humor_doc.mjs`; kies hier niet met de hand.');
+L.push('Je hoeft niets te doen. Voor elke nieuwe of herschreven komische beat heeft de schrijver drie varianten en een veilige neutrale terugval gemaakt; drie onafhankelijke beoordelaars (zonder elkaars oordeel, met de varianten in een andere volgorde) kozen de beste. De winnaar staat in het spel; de andere twee en de terugval staan hieronder als alternatief. Wil je iets anders: zet `chosen` van die beat in het bijbehorende bestand `game/storydata/humor*.json` op 0, 1, 2, 3 (alleen de beats van 22-11 hebben variant 4) of `"neutral"` en draai `node scripts/build_story_data.mjs`. Werkwijze: [SCHRIJFREGELS-21-11.md](SCHRIJFREGELS-21-11.md). Na een wijziging: draai ook de cutscene-tests (`cutscenes_akte*_test`), want de cues van een scène (`on:`) volgen de gekozen tekst. Samen spelen: een beat is gewone scènetekst; een gast ziet de gekozen variant mee in de scène van de host. Gegenereerd door `node scripts/humor_doc.mjs`; kies hier niet met de hand.');
 L.push('');
 L.push(`Eerlijk over de proef: ${beats.length} beats. De beoordelaars lazen de stijlgids en de beats; minstens twee van de drie lazen de ijkregels uit akte 1 ([BEHOUDEN]-grappen) niet. Wees dus kritisch bij beats met lage zekerheid.`);
 L.push('');
@@ -41,7 +41,7 @@ L.push('## De alternatieven per beat');
 L.push('');
 for (const b of beats) {
   L.push(`**${b.id}** (${b.scene}): ${b.context}`);
-  [0, 1, 2, 'neutral'].forEach((k) => L.push(`- ${naam(k)}${k === b.chosen ? ' (gekozen)' : ''}: ${text(b, k)}`));
+  [...b.variants.keys(), 'neutral'].forEach((k) => L.push(`- ${naam(k)}${k === b.chosen ? ' (gekozen)' : ''}: ${text(b, k)}`));
   L.push('');
 }
 const out = L.join('\n');

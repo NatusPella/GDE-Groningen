@@ -1,11 +1,11 @@
 {
- "note": "Humorkeuze (#1134), ronde 5: nieuwe stappen N9-N12. Voorstel: het paneel heeft deze beats nog niet beoordeeld; de schrijver koos variant 1 (index 0).",
+ "note": "Humorkeuze (#1134), ronde 5: nieuwe stappen N9-N12. Paneel 22-11 (docs/verhaal/HUMOR-PANEEL-22-11.md): vier varianten (0 = het bestaande, 1 droog, 2 absurd, 3 warm) en een neutrale terugval; chosen is de winnaar.",
  "beats": [
   {
    "label": "humor-review",
    "sensitive": false,
    "voorstel": true,
-   "chosen": 0,
+   "chosen": 1,
    "id": "HN-16",
    "scene": "N10",
    "speaker": "TERRASGAST",
@@ -13,16 +13,27 @@
    "shot": "halve close-up op de gast met het menu; twee-shot Tammo en Tessa, geen reactieshot erna",
    "variants": [
     "Ik bedoelde de rekening.",
-    "Ik vroeg naar de rekening.",
-    "Ik wilde alleen betalen."
+    "Ik bedoelde de rekening. Samen of apart?",
+    "Ik bedoelde de rekening, maar nu moet ik ook de rest weten.",
+    "Ik bedoelde de rekening. Maar ik wens jullie het beste."
    ],
-   "neutral": "Ik wilde graag afrekenen."
+   "neutral": "Ik wilde graag afrekenen.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Samen of apart? sluit op Ah. Ja. Samen.",
+    "certainty": "laag",
+    "tiebreak": 1
+   }
   },
   {
    "label": "humor-review",
    "sensitive": false,
    "voorstel": true,
-   "chosen": 0,
+   "chosen": 1,
    "id": "HN-17",
    "scene": "N12",
    "speaker": "TAMMO",
@@ -30,16 +41,27 @@
    "shot": "twee-shot bij de koelkast, dan een lange blik van Tammo op de lege regel",
    "variants": [
     "Dat wordt een mooie regel.",
-    "Ik hoop dat die regel lang wordt.",
-    "Die regel wil ik zelf invullen."
+    "Daar kan ik geen bezwaar tegen maken.",
+    "Zet er maar een duif bij. Voor de zekerheid.",
+    "Ik hoop dat die regel nooit af is."
    ],
-   "neutral": "Dat komt nog wel."
+   "neutral": "Dat komt nog wel.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Geen bezwaar: bureaucratisch tederheid.",
+    "certainty": "laag",
+    "tiebreak": 1
+   }
   },
   {
    "label": "humor-review",
    "sensitive": false,
    "voorstel": true,
-   "chosen": 0,
+   "chosen": 2,
    "id": "HN-18",
    "scene": "N9",
    "speaker": "TESSA",
@@ -47,16 +69,27 @@
    "shot": "twee-shot, dan het schaap in de deuropening, dan Tammo's voet zonder sok",
    "variants": [
     "Het eet je sok.",
-    "Het schaap eet je sok.",
-    "Hij heeft je sok."
+    "Het schaap eet je sok. Het kauwt zorgvuldig.",
+    "Het schaap heeft nu een sok en een mening.",
+    "Het schaap heeft je lief. Het eet je sok."
    ],
-   "neutral": "Het pakt je sok."
+   "neutral": "Het pakt je sok.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Het schaap met een mening.",
+    "certainty": "laag",
+    "tiebreak": 2
+   }
   },
   {
    "label": "humor-review",
    "sensitive": false,
    "voorstel": true,
-   "chosen": 0,
+   "chosen": 2,
    "id": "HN-19",
    "scene": "N9",
    "speaker": "TAMMO",
@@ -64,10 +97,21 @@
    "shot": "halve close-up Tammo, zijn blik gaat langs haar vinger naar haar gezicht",
    "variants": [
     "Ik kijk naar de beer.",
-    "Ik kijk naar het sterrenbeeld.",
-    "Ik kijk wel degelijk."
+    "Ik kijk naar de beer. Hij staat laag.",
+    "Ik kijk naar de beer. Hij kijkt terug.",
+    "Ik kijk naar iets moois. Ik noem het de beer."
    ],
-   "neutral": "Ik kijk wel."
+   "neutral": "Ik kijk wel.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "De beer kijkt terug: de nacht wordt even levend.",
+    "certainty": "laag",
+    "tiebreak": 2
+   }
   }
  ]
 }
