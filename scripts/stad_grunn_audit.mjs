@@ -58,11 +58,17 @@ export const DECISIONS = [
   ['Tip: in Grunn neemt een fietser', 'Tip: in de Stad neemt een fietser'],
   ['De toren van Grunn', 'De toren van de Stad'],
   ['gooien in een wijk van Grunn', 'gooien in een wijk van de Stad'],
+  // C-ronde 22-11 (twijfelgevallen beslist): de verhuizer, de reklametaxi en de slugregel van de openingsfilm gaan over de stad zelf
+  ['half Nederland zoekt een kamer in Grunn', 'half Nederland zoekt een kamer in de Stad'],
+  ['Rinkelbel kent elke omweg van Grunn', 'Rinkelbel kent elke omweg van de Stad'],
+  ['EXT. GRUNN, VAN D’OLLE GRIEZE', 'EXT. DE STAD, VAN D’OLLE GRIEZE'],
 ];
 // Gekozen om B te blijven, ook al lijkt de zin een stadsplek te noemen (slogan, provincie of eigennaam).
 const KEEP_B = ['Even getril in Grunn', 'Groeten uit Grunn', 'De bal van Grunn'];
-// Nog te doen: A, maar de stem heeft een eigen opnameketen (bijbaanteksten, tts_sidejobs.py) zonder cast in tts_lines_list.
-export const OPEN_A = ['zoekt een kamer in Grunn'];
+// Besluit over de twijfelgevallen (eigenaar, 22-11: "pas de regel zelf toe"): regel 5 van de taalregel (twijfel is Grunn), met drie uitzonderingen.
+export const C_BESLUIT = 'Beslist op 22-11 door de regel zelf toe te passen (Stad = de stad Groningen zelf, Ommeland = de rest, Grunn = het geheel, een slogan of het gevoel; bij twijfel Grunn). Alle regels hieronder blijven Grunn: ze gaan over het geheel, de provincie, het gevoel of de naam van het spel (zomer, regen, eten, "Is Grunn ooit af?", "Grunn laden…"). Uitzonderingen die Stad werden: de verhuizer ("een kamer in de Stad", sidejob_verhuizing.js), de reklametaxi ("elke omweg van de Stad") en de slugregel van de openingsfilm ("EXT. DE STAD, VAN D’OLLE GRIEZE …"). Bewust Grunn gelaten, al lijkt het op een stadsplek: de toeristen bij de toren ("Is dit nou Grunn?"), de blauwalg in de plassen rond Grunn, het uitzicht van boven ("Van boven lijkt Grunn op een kaart") en de stadsbus ("in Grunn erger dan te laat"): daar spreekt de speler over het geheel, niet over de wijken.';
+// Geen open A-regels meer (de verhuizer is beslist op 22-11; de bijbaanstem volgt in de volgende TTS-ronde via tts_sidejobs.py).
+export const OPEN_A = [];
 
 // Bestanden met speltekst. bron = hier schrijven mensen; afgeleid = gegenereerd (niet met de hand wijzigen).
 const SOURCE = [
@@ -154,7 +160,8 @@ function report(res) {
   for (const s of ['bron', 'afgeleid']) { const x = t[s] || { A: 0, B: 0, C: 0 }; L.push(`| ${s} | ${x.A} | ${x.B} | ${x.C} |`); }
   L.push('', 'bron = speltekst waar mensen in schrijven (game/js, docs/verhaal/nieuw, steam, website, humorbestanden). afgeleid = gegenereerd of bewaard (script.json, gronings_spoken.json met de oude invoer van al opgenomen clips, tts-lijsten, voice_wacht, tts.json per map); die volgen de bron. In gronings_spoken.json staat elke regel twee keer (Nederlands en gesproken vorm).', '');
   for (const cat of ['A', 'C']) {
-    L.push(`## ${cat === 'A' ? 'A: hoort Stad (nog open)' : 'C: twijfel (blijft Grunn tot een mens beslist)'}`, '');
+    L.push(`## ${cat === 'A' ? 'A: hoort Stad (nog open)' : 'C: twijfel, beslist op 22-11 (blijft Grunn)'}`, '');
+    if (cat === 'C') L.push(C_BESLUIT, '');
     const list = res.filter((r) => r.cat === cat && r.kind === 'bron');
     if (!list.length) L.push('Geen.', '');
     for (const r of list) L.push(`- \`${r.f}:${r.n}\` ${r.sentence.replace(/\|/g, '/')}`);

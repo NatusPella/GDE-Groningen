@@ -28,6 +28,7 @@ const CAST = {
   'Berend Bos': { voice: 'Charon', who: 'Berend Bos, chagrijnige oude Stadjer uit de Schildersbuurt die al veertig jaar Bommen Berend speelt, nors en droog', pool: ['nors, stiekem trots', 'mopperend, droog', 'plechtig, nors'] },
   Torenwachter: { voice: 'Iapetus', who: 'de torenwachter, een hele oude man boven in de Martinitoren, onverstoorbaar en droog, meldt alleen', pool: ['oud, droog, onverstoorbaar, door de telefoon', 'traag, zakelijk, door de telefoon'] },
   Terrasgast: { voice: 'Erinome', who: 'natte, vrolijke Groningse terrasgast op de Grote Markt', pool: ['juichend, lacherig'] },
+'Verhuisbedrijf Van Kamer naar Kamer': { voice: 'Sadachbia', who: 'gehaaste Groningse verhuizer, joviaal', pool: ['harried, dramatic', 'fast, instructive', 'sighing, joking'], accent: GRO_ACCENT }, // as in tts_sidejobs_lines.mjs; the KEI-week line says "de Stad" since 22-11 and waits for a take
   Snackbarhouder: { voice: 'Rasalgethi', who: 'oude Groningse snackbarhouder uit de Oosterpoort', pool: ['wanhopig, ontdaan', 'opgetogen, juichend'] },
   Toerist: { voice: 'Pulcherrima', who: 'nieuwsgierige toeriste uit de Randstad op een rondvaartboot', pool: ['nieuwsgierig, vragend'], accent: 'spoken in standard Dutch with an Amsterdam accent' },
   Kind: { voice: 'Leda', who: 'een klein Gronings kind in het publiek op de Grote Markt, roept luid en dapper', pool: ['luid, dapper roepend'] },

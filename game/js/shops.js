@@ -1289,6 +1289,8 @@ function clothingCtx(world, shopKey = null) {
     // een los stuk of een set zonder personage (clothingpreview.js): wat een lijst toont is het stuk zelf, niet Tammo (eigenaar 22-11)
     pieceOf: (piece) => stukSpec(piece),
     setOf: (pieces) => setSpec(pieces),
+    // de winkel: het stuk (of de set) links, het personage met het stuk aan rechts (clothingpreview.js, soort 'piecefig')
+    duoOf: (what, worn) => ({ kind: 'piecefig', ...what, look: { ...app(), ...outfitToLook(worn, baseLook ? baseLook[ch] : app()) } }),
     apply: (stars) => {
       if (!syncHeistOutfit()) applyLooks();
       clothesRustle(world);

@@ -123,8 +123,8 @@ t('validatie van stap 2 voor de gast: een code, of de lijst; nooit een IP-adres 
   assert.deepEqual(kanVerder(m.lobby, m.wz, 'K3J9D-8F2MN'), { ok: true, route: 'kamer' });
   assert.equal(kanVerder(m.lobby, reduceWizard(m.wz, { t: 'wijze', wijze: 'lijst' }), '').ok, true, 'de lijst vraagt geen code');
   assert.equal(reduceWizard(createWizard({ rtc: false }), { t: 'wijze', wijze: 'lijst' }).wijze, null, 'zonder WebRTC geen lijst');
-  assert.equal(reduceWizard(createWizard({ favorieten: 0 }), { t: 'wijze', wijze: 'vrienden' }).wijze, null, 'zonder favorieten geen Vrienden');
-  assert.equal(reduceWizard(createWizard({ favorieten: 2 }), { t: 'wijze', wijze: 'vrienden' }).wijze, 'vrienden');
+  assert.equal(reduceWizard(createWizard({ favorieten: 0 }), { t: 'wijze', wijze: 'favorieten' }).wijze, null, 'zonder favorieten geen Favorieten');
+  assert.equal(reduceWizard(createWizard({ favorieten: 2 }), { t: 'wijze', wijze: 'favorieten' }).wijze, 'favorieten');
   assert.equal(reduceWizard(createWizard(), { t: 'wijze', wijze: 'onzin' }).fout, 'Onbekende keuze.');
 });
 
@@ -271,15 +271,15 @@ t('HTML: stap 0 heeft twee kaarten, stap 1 een voorbeeld, stap 2 drie opties, en
   assert.match(h, /data-sw-stap="1"/); assert.match(h, /sw-voorbeeld/); assert.match(h, /data-act="wie-verder" data-primary="1"/);
   wiz(m, { t: 'wie-klaar', naam: 'Sem' });
   h = render(m);
-  assert.match(h, /data-sw-stap="2"/); assert.equal((h.match(/class="ds-z-kaart[^"]*sw-kaart"/g) || []).length, 3, 'Kamercode, Openbare sessies en Vrienden');
+  assert.match(h, /data-sw-stap="2"/); assert.equal((h.match(/class="ds-z-kaart[^"]*sw-kaart"/g) || []).length, 3, 'Kamercode, Openbare sessies en Favorieten');
   assert.match(h, /data-act="koppel" data-primary="1"/);
   const voet = h.slice(h.indexOf('sw-voet'));
   assert.ok(voet.lastIndexOf('data-primary="1"') > voet.lastIndexOf('data-act="wie-terug"'), 'de hoofdactie staat na Terug');
   assert.match(h, /coop-toets/, 'met de toets in de knop');
-  const zonderFav = render(nieuw()); // geen favorieten: geen Vrienden
+  const zonderFav = render(nieuw()); // geen favorieten: geen Favorieten
   lob(m, {}); void zonderFav;
   const m2 = nieuw(); lob(m2, { t: 'kies', rol: ROLES.GAST }); wiz(m2, { t: 'wie-klaar', naam: 'Sem' });
-  assert.equal((render(m2).match(/class="ds-z-kaart[^"]*sw-kaart"/g) || []).length, 2, 'zonder favorieten geen Vrienden');
+  assert.equal((render(m2).match(/class="ds-z-kaart[^"]*sw-kaart"/g) || []).length, 2, 'zonder favorieten geen Favorieten');
 });
 t('HTML: stap 2 voor wie het spel opent toont Privé gekozen; Openbaar vraagt naam en vinkje', () => {
   const m = nieuw(); lob(m, { t: 'kies', rol: ROLES.HOST }); wiz(m, { t: 'wie-klaar', naam: '' });

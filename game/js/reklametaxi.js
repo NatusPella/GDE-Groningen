@@ -16,7 +16,7 @@ export const REKLAME = {
     'Staat u in de regen? Bel Rinkelbel, dan staat u straks in de taxi!',
     'Station, kroeg, tandarts: Rinkelbel rijdt u overal heen. Bel nu!',
     'Geen taxi nodig? Bel toch maar. De koffie is gratis (op dinsdag).',
-    'Rinkelbel kent elke omweg van Grunn persoonlijk! Bel 050-555 01 23!',
+    'Rinkelbel kent elke omweg van de Stad persoonlijk! Bel 050-555 01 23!',
     'Pakketjes, tantes, studenten! Alles kan mee, behalve de fiets van de buurman!',
   ],
   // de lopende tekstband op het dakbord

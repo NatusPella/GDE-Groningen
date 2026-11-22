@@ -34,7 +34,7 @@ Gemeten op 1280x720 met ui-schaal 1,5 (de menustage is dan 1280x720 ontwerp-px):
                  │ (één keer per sessie van de pagina; de naam staat al in Instellingen)
                  ▼                                      ▼
  Stap 2   KIEZEN                                        KIEZEN
-          [Kamercode] [Openbare sessies] [Vrienden]     [Privé (standaard)] [Openbaar maken]
+          [Kamercode] [Openbare sessies] [Favorieten]     [Privé (standaard)] [Openbaar maken]
           code (+ wachtwoord alleen op verzoek)         wachtwoord (niet verplicht)
           [Terug] [Verbinden  ⏎]                        openbaar: sessienaam + vinkje
                  │      └─ lijst: rijen met naam, spelers, versie, niveau     [Terug] [Open je spel ⏎]
@@ -55,7 +55,7 @@ Boven elke stap 1 tot 3 staat de indicator `1 Wie ben jij · 2 Kiezen · 3 Verbi
 | --- | --- | --- | --- |
 | 0 Keuze | twee grote kaarten met icoon en één regel; statuskaart bij een lopende sessie | de kaarten zelf; de focus begint op Meedoen | het menu (Esc sluit het onderdeel) |
 | 1 Wie ben jij | live voorbeeld (vorm in jouw kleur plus naam), naam, één rij kleurbolletjes (de naam alleen bij focus of aanwijzen), figuur als keuzelijst (alleen bij meedoen) | Verder | naar stap 0 |
-| 2 Kiezen (gast) | Kamercode, Openbare sessies, Vrienden (alleen met favorieten) naast elkaar; bij Kamercode het codeveld en de link Vraagt de sessie een wachtwoord? | Verbinden | naar stap 1 |
+| 2 Kiezen (gast) | Kamercode, Openbare sessies, Favorieten (alleen met favorieten) naast elkaar; bij Kamercode het codeveld en de link Vraagt de sessie een wachtwoord? | Verbinden | naar stap 1 |
 | 2 Kiezen (opener) | Privé of Openbaar maken; wachtwoord (niet verplicht); bij Openbaar de sessienaam en het vinkje | Open je spel | naar stap 1 |
 | 2 de lijst | rijen met naam, spelers, versie en niveau; zoeken en filters; alleen deze lijst en de testuitslag mogen scrollen | geen (de rijen zijn de actie) | naar stap 2 |
 | 3 Verbinden | één voortgangsregel; de kamercode groot met Kopieer de code; spelerschips | Spel starten (met minstens twee spelers) | Annuleren of Stoppen (Esc sluit hier alleen het menu) |
@@ -127,7 +127,7 @@ Niet veranderd: `net/*`, `coopnet.js`, het protocol, de toestemming (`onlinecons
 Dit is de Samen-UI zelf; het is een weergave en er is geen voortgang, beloning of netwerkbericht aan toegevoegd.
 
 - Wie het spel opent (de wereld is van hem): ziet de wizard met Open je spel, de wachtkamer met de kamercode, Privé of Openbaar, wachtwoord en Spel starten, en op het tabblad Spelers Eruit zetten en Spel overdragen bij de anderen.
-- Een gast: ziet Meedoen, Kamercode, Openbare sessies en Vrienden, daarna de wachtkamer met de spelers en Spel starten (dat vraagt de start aan wie het spel opende). Een gast ziet geen Eruit zetten en geen Spel overdragen.
+- Een gast: ziet Meedoen, Kamercode, Openbare sessies en Favorieten, daarna de wachtkamer met de spelers en Spel starten (dat vraagt de start aan wie het spel opende). Een gast ziet geen Eruit zetten en geen Spel overdragen.
 - Iedereen: dezelfde lijst spelers (naam, kleur, status); Dempen en Blokkeren werken lokaal.
 - Valt iemand weg: het kaartje staat gestippeld met Verbinding weg; de wachtkamer blokkeert Spel starten zoals voorheen. Sluit iemand later aan: de lijst ververst zich zoals voorheen.
 - Wie een sessie heeft: de wizard toont stap 0 niet meer, maar de statuskaart "Je speelt samen".
@@ -137,7 +137,7 @@ Dit is de Samen-UI zelf; het is een weergave en er is geen voortgang, beloning o
 
 - `game/js/multiplayerwizard.js`: de stapmachine (puur): stappen, indicator, Terug, validatie, voortgangsregel, voetvolgorde, kaartregels.
 - `game/js/multiplayerwizardui.js`: de HTML van elk scherm (zonder DOM, dus meetbaar).
-- `game/js/lobbyui.js`: `mountLobby(..., { wizard: true })` tekent de wizard; zonder die optie (wachtscherm in het spel, tests) blijft alles zoals het was. Nieuwe acties: `wie-verder`, `wie-terug`, `wijze-*`, `ww-open`, `vrienden`, `host-open`; `view.wizTerug()` voor Esc en B.
+- `game/js/lobbyui.js`: `mountLobby(..., { wizard: true })` tekent de wizard; zonder die optie (wachtscherm in het spel, tests) blijft alles zoals het was. Nieuwe acties: `wie-verder`, `wie-terug`, `wijze-*`, `ww-open`, `favorieten`, `host-open`; `view.wizTerug()` voor Esc en B.
 - `game/js/samenpanel.js`: het paneel opent de wizard in plaats van de hub (#527). `samenhub.js` en `samenhubui.js` blijven staan voor hun eigen test.
 - `game/js/playercards.js` en `game/js/coopspelersui.js`: de kaartjes van het tabblad Spelers.
 - `game/js/samenspelen.css`: de stijl (alleen DS3-tokens).
@@ -147,7 +147,7 @@ Dit is de Samen-UI zelf; het is een weergave en er is geen voortgang, beloning o
 
 - Niet in het echte spel bekeken: de beelden komen uit een nagebouwd menuvak met de echte code en CSS. Zichtbaar anders kan: de lettergrootte van de menutekst op een echt scherm, de focusring met een controller, de animatie bij het wisselen van stap.
 - Niet met meerdere instanties gespeeld: de echte verbinding (kamercode, de lijst, wachtwoord, openbaar maken, Spel starten) is hier alleen via gebeurtenissen en nephooks doorlopen, niet met twee echte spelers.
-- Vrienden is een snelkoppeling naar de lijst met het filter Favorieten (de sterren van #464); er is geen echte vriendenlijst.
+- Favorieten is een snelkoppeling naar de lijst met het filter Favorieten (de sterren van #464); er is geen echte vriendenlijst.
 - De oude hub (`samenhubui.js`) wordt door het paneel niet meer gebruikt; opruimen kan na een besluit.
 - Het tabblad Spelers scrolt bij vijf of meer spelers (het is een lijst); de kaartjes zijn niet verder ingekrompen.
 - `lobbyui_serverlijst_test` is wisselvallig (ook op `main`): hij faalt soms op de stap `host-maakt-code` in plaats van `host-wacht`. Niet door deze wijziging.
