@@ -23,7 +23,7 @@ node scripts/screenshotjacht.mjs --game=<gestagede game-map> [--seed=1] [--out=<
 |---|---|---|---|
 | `verhaal` | alle 71 stappen van `storyarc_nieuw` (30 missies, 41 overige) | 3 (begin, midden, doel); missies 4 (eind) | `__story.jump(id)`, begin na 3,8 s, midden 7 s later (cutscenes lopen vanzelf), dan `__story.teleport()` naar het doel; bij missies `objective()` en `win()` voor de eindkaart |
 | `vrij` | 41 plekken: 6 wijken, 11 dorpen, 6 gehuchten (boerderij), kust (Eemshaven, Lauwersoog, Zoutkamp, Termunterzijl, Delfzijl, Pieterburen), Bourtange, 3 plekken in het centrum, 3 bruggen, 3 stations | 6: drie tijdstippen (ochtend, middag, avond of nacht) x lopen en een voertuig | willekeurige camera (eerste persoon, derde persoon, hoog), weer helder, motregen, regenbui of mist; voertuig: auto, fiets, trekker (gehucht) of boot (als er water is); het voertuig rijdt 1,4 s met de echte W-toets |
-| `binnen` | 1 stop, tot 15 betreedbare panden | 2 (derde en eerste persoon) | panden rond de winkels uit `getShopsForRender()`: `pinInterior` geeft het plan, de speler gaat naar de voordeur, wacht tot het interieur live is en zet zich bij de balie |
+| `binnen` | 3 stops van elk 5 betreedbare panden (winkels en woningen rond de winkelmarkers) | 2 (derde en eerste persoon) | panden rond de winkels uit `getShopsForRender()`: `pinInterior` geeft het plan, de speler gaat naar de voordeur, wacht tot het interieur live is en zet zich bij de balie |
 | `menu` | 1 stop | ca. 35 | radiomelding bij instappen (2 beelden), alle pauzemenu-onderdelen (Spel, Verhaal, Activiteiten, Loopbanen, Kaart, Spullen, Garage, Boerderij/Bezit, Veroverd, Prestaties, Foto's, Instellingen, Cheats) met hun tabbladen via de E-toets, kaart op drie zoomniveaus |
 
 Niet gedaan: **Samen-situaties** (vereisen een tweede instantie), tram en trein (geen bestuurbare trein in de verkenner; stations zijn wel als plek opgenomen), kleding en tuning als eigen scherm (alleen als ze een tabblad in Spullen of Garage zijn).
@@ -50,9 +50,27 @@ De pure kant heeft een test: `node scripts/screenshotjacht_test.mjs` (nepdata: s
 
 Elke Electron draait een blok stops (16 verhaalstappen, 8 plekken). Stopt Electron zonder resultaat, of komt er 150 s geen gebeurtenis, dan doodt het script alleen dat PID (`taskkill /PID <pid> /T`), schrijft de stop en de staart van het log in `crashes.md` en `events-*.jsonl` (`type: crash`), slaat die stop over en start een nieuw blok. Proef van het crashpad: `JACHT_TEST_CRASH=<stop-id>` herlaadt de pagina bij die stop.
 
-## Resultaten van de eerste run
+## Resultaten van de eerste run (seed 1, 22-11)
 
-Zie het eind van dit bestand (door de uitvoerder ingevuld na de run).
+Uitvoermap: `desktop/build/jacht/seed-1` in de worktree `screenshotjacht-22-11` (60 MB; `galerij.html` openen voor de beelden). Gestaged met de wereld van een build van 19-11 (`GDE_PREBUILT_WORLD`) en de JS van `origin/main` (22-11): een afwijking tussen die wereld en de code kan een deel van de bevindingen verklaren. Run: 90 minuten, daarna 8 minuten hervat voor de stops die nog niet klaar waren (samen ca. 98 minuten). Een tweede Electron (de hertest-run van een andere agent) draaide ernaast.
+
+| Soort | Beelden |
+|---|---|
+| verhaal (alle 71 stappen; 30 missies met 4, de rest met 3) | 243 |
+| vrij (alle 41 plekken x 3 tijdstippen x lopen en voertuig; 6 boten niet gelukt) | 240 |
+| binnen (15 panden, 2 beelden) | 30 |
+| menu (radiomelding, 13 pauzemenu-onderdelen met tabbladen, kaart op 3 zoomniveaus) | 36 |
+| **totaal** | **549** |
+
+Tripwires: 17 beelden verdacht (3%): `fps-laag` 9 (0,9 tot 2,6 fps, steeds direct na een teleport of een scènestart: laden, geen meting), `gelijk` 7, `console` 1. Geen enkel beeld was zwart, transparant of magenta. De consolefout is een bevinding van het spel: een tegel van de wereld laadt niet (`tegel laden mislukt: v-1_0-...gdp ... timed out after 30000 ms`, ook `country placement TimeoutError` en `landmark kits not loaded`), bij Coendersborg, beeld 0307. De hele run had maar 13 console-regels, waarvan 5 keer `[route] de 3D-routelijn was weg (verborgen); hersteld` en 4 keer `simulation worker unavailable, running on the main thread`.
+
+De zeven `gelijk`-vlaggen zijn deels een **stilstaand of verouderd capture**: beeld 0450 (Bourtange, fiets, 01:00) is pixelgelijk aan 0449 (lopen), terwijl de schermtekst 01:00 en een fiets meldt en de afbeelding daglicht en twee lopende figuren toont. Hetzelfde bij het Hoofdstation (0548 tot 0550). Eerst bekijken of het spel of de capture stilstond voordat er een issue komt; de tripwire zelf werkt. In een proefrun (niet in de hoofdrun) toonde het spel een rode foutkaart `Er ging iets mis` bij Coendersborg met `TypeError: Cannot read properties of null (reading 'main')` in `buildBuildingMeshRaw` (models3d_buildings.js:1641, via `stepPrewarm`); de vlag `foutmelding` vangt zo'n kaart nu.
+
+Crashes en vastlopers: de hoofdrun had er twee in `crashes.md`. (1) `c005-verhaal`, stop M00: het spel kwam in dit blok in 159 s niet tot de eerste stop (opstartprobleem, geen schuld van M00; bij de hervatting liep M00 wel). (2) `c015-vrij`, stop brug-2: de tijdslimiet van de run, dus geen echte crash (het script telt dit sinds de laatste wijziging niet meer als crash en een opstartprobleem start het blok opnieuw). In de proefruns vóór de hoofdrun liep de pagina drie keer vast (150 s zonder gebeurtenis, de timers van de pagina stonden stil) tijdens een teleport naar een winkel (onder meer 3171,-1709 en 148,154), met alleen `simulation worker unavailable` in de console; dat is in de hoofdrun niet opnieuw gezien.
+
+Niet gelukt of niet gedekt: boten (`spawnBoatOnWater` gaf bij Delfzijl en de bruggen acht keer `null`: geen geldige bootplek; de ligplaatsregels van `boatspots.js` laten de verkenner niet toe, `opts.plek === false` zou dat omzeilen), tram en trein, Samen-situaties, een eigen scherm voor kleding en tuning. Alle 71 verhaalstappen sprongen goed (`stopFouten` is leeg).
+
+Beoordeling van de beelden: nog niet bekeken door een mens of een agent.
 
 ## Wat dit niet is
 

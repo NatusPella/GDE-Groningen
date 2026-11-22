@@ -22,7 +22,7 @@ export function beeldNaam(nr, soort, plaats) {
 // ---- tripwires ----
 export const TRIP = { zwart: 0.55, transparant: 0.02, magenta: 0.004, vlak: 4, overbelicht: 250, gelijk: 0.99, gelijkScherm: 0.9995, fpsMin: 3, fpsMax: 190, fpsMaxScherm: 400 };
 // console-regels die een bevinding zijn; de rest (gewone waarschuwingen) telt alleen mee als regel in index.json
-export const CONSOLE_RE = /NaN|undefined|Failed to load resource|404|shader|WebGL|THREE\.|is not defined|is not a function|Cannot read|Uncaught|TypeError|ReferenceError|Unhandled|geen textuur|texture/i;
+export const CONSOLE_RE = /NaN|undefined|Failed to load resource|404|shader|WebGL|THREE\.|is not defined|is not a function|Cannot read|Uncaught|TypeError|ReferenceError|Unhandled|geen textuur|texture|mislukt|timed out|TimeoutError|not loaded/i;
 // bekende, onschuldige regels van Electron zelf
 export const CONSOLE_RUIS_RE = /Autofill|Electron Security Warning|GPU stall|Permissions-Policy|devtools|ResizeObserver loop|ERR_BLOCKED_BY_CLIENT|Third-party cookie|GL Driver Message \(OpenGL, Performance/i;
 export const isRuis = (m) => CONSOLE_RUIS_RE.test(String(m));
@@ -107,7 +107,7 @@ export function tellingen(beelden) {
 
 // index.json: zonder de vingerafdruk (te lang om te lezen) en met een leesbare samenvatting.
 export function indexVan(samen, meta = {}) {
-  const beelden = samen.beelden.map((b) => { const c = { ...b }; if (c.pixel) c.pixel = { ...c.pixel, sig: undefined }; c.verdacht = !!(c.vlaggen && c.vlaggen.length); return c; });
+  const beelden = samen.beelden.slice().sort((a, b) => (a.nr || 0) - (b.nr || 0)).map((b) => { const c = { ...b }; if (c.pixel) c.pixel = { ...c.pixel, sig: undefined }; c.verdacht = !!(c.vlaggen && c.vlaggen.length); return c; });
   return { ...meta, bijgewerkt: new Date().toISOString(), tellingen: tellingen(samen.beelden), crashes: samen.crashes, stopFouten: samen.stopFouten, beelden };
 }
 

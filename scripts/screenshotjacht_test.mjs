@@ -50,6 +50,7 @@ const vlag = (rec, prev) => tripwires(rec, prev).map((f) => f.vlag);
   ok(vlag({ pixel: px(), console: [{ level: 'error', msg: 'THREE.BufferGeometry: Computed radius is NaN' }] }).includes('console'), 'consolefout met NaN');
   ok(vlag({ pixel: px(), console: [{ level: 'error', msg: 'Failed to load resource: 404 /models/x.glb' }] }).includes('console'), 'consolefout met 404');
   ok(vlag({ pixel: px(), console: [{ level: 'error', msg: 'THREE.WebGLProgram: Shader Error 0' }] }).includes('console'), 'shaderfout');
+  ok(vlag({ pixel: px(), console: [{ level: 'warning', msg: 'tegel laden mislukt: v-1_0.gdp: tile read timed out after 30000 ms' }] }).includes('console'), 'tegel laden mislukt (timeout)');
   ok(!vlag({ pixel: px(), console: [{ level: 'warning', msg: 'Electron Security Warning (Insecure Content-Security-Policy)' }] }).includes('console'), 'bekende Electron-ruis telt niet');
   ok(!vlag({ pixel: px(), console: [{ level: 'warning', msg: 'iets onschuldigs' }] }).includes('console'), 'een gewone waarschuwing is geen bevinding');
   ok(vlag({ pixel: px(), fps: 1.5 }).includes('fps-laag'), 'extreem lage fps');

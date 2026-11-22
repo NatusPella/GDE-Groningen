@@ -152,7 +152,8 @@ if (arg('page', '')) {
 // ---- de jacht ----
 const crashes = [];
 const crashLog = path.join(OUT, 'crashes.md');
-let chunkNr = 0; let startFouten = 0;
+// bij een hervatting gaat de nummering van de blokken door, zodat geen events-bestand van een eerdere run wordt overschreven
+let chunkNr = fs.readdirSync(OUT).filter((n) => /^events-c\d+-.*\.jsonl$/.test(n)).length; let startFouten = 0;
 // volgorde van uitvoeren: de korte, kwetsbare delen eerst (menu, binnen), dan het verhaal, als laatste het vrije verkennen (dat is bij tijdsnood het eerst te missen)
 const VOLGORDE = { menu: 0, binnen: 1, verhaal: 2, vrij: 3 };
 const teDoen = plan.slice().sort((a, b) => VOLGORDE[a.soort] - VOLGORDE[b.soort]).filter((s) => DELEN.includes(s.soort) && (!IDS.length || IDS.some((i) => s.id.startsWith(i)))).slice(0, MAX_STOPS);
@@ -179,6 +180,7 @@ while (Date.now() < deadline) {
   for (const id of r.klaar) gedaan.add(id);
   const gehaald = chunk.filter((s) => r.klaar.has(s.id)).length;
   logLijn(`chunk ${naam}: exit ${r.code}${r.gedood ? ' (' + r.gedood + ')' : ''}, ${gehaald}/${chunk.length} stops klaar, beelden nu ${hoogsteNr()}`);
+  if (r.gedood && /^tijdslimiet/.test(r.gedood)) { logLijn(`${naam}: tijdslimiet bereikt, blok afgebroken (geen crash)`); fs.appendFileSync(r.events, JSON.stringify({ type: 'tijdslimiet', chunk: naam, stop: r.bezig }) + '\n'); break; }
   if (!r.eindeNetjes || r.gedood) {
     // crash of hang: de stop waarop het misging is de bevinding; een tweede keer faalt hij niet nog eens, hij wordt overgeslagen
     // geen enkele stop begonnen: het spel kwam niet eens op (opstartprobleem), geen schuld van een stop; maximaal twee keer opnieuw
