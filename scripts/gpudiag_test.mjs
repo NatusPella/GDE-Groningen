@@ -67,7 +67,7 @@ ok('blok met niets erin blijft heel', typeof formatReport({}) === 'string' && fo
 
 // desktop/gpuinfo.cjs: de vorm van de gegevens uit het hoofdproces
 const { shapeGpuInfo } = createRequire(import.meta.url)('../desktop/gpuinfo.cjs');
-const shaped = shapeGpuInfo({ features: { webgl: 'enabled' }, info: { gpuDevice: [{ vendorId: 4098, deviceId: 1, driverVersion: '1', active: true, extra: 'x' }], auxAttributes: { glRenderer: 'ANGLE', geheim: 'x', optimus: false } }, versions: { electron: '45', chrome: '142', node: '24', v8: 'x' }, argv: ['app.exe', '--use-angle=d3d11', '--user-data-dir=C:\\Users\\naam\\data', '--no-sandbox'], displays: [{ size: { width: 1920, height: 1080 }, scaleFactor: 1, displayFrequency: 60, primary: true }] });
+const shaped = shapeGpuInfo({ features: { webgl: 'enabled' }, info: { gpuDevice: [{ vendorId: 4098, deviceId: 1, driverVersion: '1', active: true, extra: 'x' }], auxAttributes: { glRenderer: 'ANGLE', geheim: 'x', optimus: false } }, versions: { electron: '45', chrome: '142', node: '24', v8: 'x' }, argv: ['app.exe', '--use-angle=d3d11', '--user-data-dir=C:\\Users\\<naam>\\data', '--no-sandbox'], displays: [{ size: { width: 1920, height: 1080 }, scaleFactor: 1, displayFrequency: 60, primary: true }] });
 ok('gpuinfo: alleen bekende velden', shaped.aux.glRenderer === 'ANGLE' && shaped.aux.optimus === 'false' && !('geheim' in shaped.aux) && !('extra' in shaped.devices[0]) && !('v8' in shaped.versions));
 ok('gpuinfo: geen paden van de speler in de vlaggen', shaped.switches.join(' ') === '--use-angle=d3d11 --no-sandbox', shaped.switches.join(' '));
 ok('gpuinfo: schermen', shaped.displays[0].hz === 60 && shaped.displays[0].width === 1920);

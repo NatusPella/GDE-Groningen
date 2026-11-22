@@ -3,14 +3,14 @@
 //   - docs/witte-ruis-scan.json  (veld `bronnen`)
 //   - docs/WITTE-RUIS-LUISTER-VERDACHT.html  (audio-tags met file:///-paden naar de map van de eigenaar, gerangschikt: ruis-einde eerst)
 //   - de sectie tussen <!-- RAPPORT-BEGIN --> en <!-- RAPPORT-EINDE --> in docs/WITTE-RUIS-21-11.md
-//   node scripts/audio/witte_ruis_rapport.mjs [--wortel=C:/Users/abuis/GIT/GDE-Groningen]
+//   node scripts/audio/witte_ruis_rapport.mjs [--wortel=<pad naar de repo>]
 // Vervangen doet de TTS-agent (niet dit script).
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-const WORTEL = ((process.argv.find((a) => a.startsWith('--wortel=')) || '').slice(9) || 'C:/Users/abuis/GIT/GDE-Groningen').replace(/\\/g, '/');
+const WORTEL = ((process.argv.find((a) => a.startsWith('--wortel=')) || '').slice(9) || ROOT).replace(/\\/g, '/');
 const AUDIO = path.join(ROOT, 'game', 'audio');
 
 function* jsons(dir) {
