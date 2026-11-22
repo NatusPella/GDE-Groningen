@@ -283,9 +283,9 @@ S['M30.outro'] = {
     geesje: { key: 'geesje', at: [6.8, 2.4], face: 190, anim: 'idle', gest: ['hips', 'talk'] },
     // WP7: de uitnodiging naar de open wereld komt van Berend, Geesje en Jelle (natgeregend in een deken)
     berend: { key: 'berend', at: [5.4, -3.2], face: 170, anim: 'idle', gest: ['point', 'nod'] },
-    jelle: { key: 'jelle', at: [5.8, 1.6], face: 190, anim: 'idle', gest: ['shrug', 'hips'] },
+    jelle: { key: 'jelle', at: [6.7, 1.5], face: 190, anim: 'idle', gest: ['shrug', 'hips'] },
   },
-  props: { bus: { kind: 'bestelbus', at: [4.8, 0, 0], face: 90 } },
+  props: { bus: { kind: 'snackwagen', at: [4.8, 0, 0], face: 90 } },
   open: [{ actor: 'tessa', face: 'actor:tammo' }, { actor: 'tammo', face: 'actor:tessa' }],
   beats: [
     { on: 0, dt: 0.4, actor: 'tinus', walk: [[4.6, -1.8]], speed: 0.8 },

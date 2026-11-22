@@ -201,7 +201,7 @@ S['M20.outro'] = {
   // #740: het briefje op de klomp ("Tige tank foar de auto. – J.") staat naast de twee, zodat de
   // eerste regel een beeld heeft; het is dezelfde klomp-prop als in de marktkraam (cutscenes_akte1.js).
   props: {
-    klomp: { kind: 'tas', at: [2.4, -1.7, 1] },
+    klomp: { kind: 'klomp', at: [2.4, -1.7, 1] },
     briefje: { kind: 'briefje', at: [2.4, -1.7, 1.16], face: 20 },
   },
   open: [{ actor: 'tessa', face: 'actor:tammo' }, { actor: 'tammo', face: 'actor:tessa' }],
@@ -526,7 +526,7 @@ S['M21.3'] = {
   // ("Tige tank foar de bal. – J."), zoals de regie en de tekst zeggen.
   props: {
     escapade: { kind: 'auto', at: [4.6, 3.6, 0], face: 250 },
-    klomp: { kind: 'tas', at: [4.6, 3.6, 1.05], face: 250 },
+    klomp: { kind: 'klomp', at: [4.6, 3.6, 1.05], face: 250 },
     briefje: { kind: 'briefje', at: [4.6, 3.6, 1.36], face: 250 },
   },
   open: [{ actor: 'tessa', face: 'actor:berend' }, { actor: 'tammo', face: 'actor:berend' }, { t: 0, actor: 'henk', walk: [[3.8, -1.6]], speed: 1.4 }],
@@ -627,7 +627,7 @@ S['M23.3'] = {
     douwe: { key: 'douwe', at: [3.6, -1.4], face: 170, anim: 'idle', gest: ['nod', 'shrug'], carry: 'jas' },
   },
   // #734 (F20): Tammo's jas was een kartonnen doos; een tas leest als kledingstuk met een rits en een handvat.
-  props: { jas: { kind: 'tas', at: [3.6, -1.4, 1] } },
+  props: { jas: { kind: 'jas', at: [3.6, -1.4, 1] } },
   open: [{ actor: 'tessa', face: 'actor:durk' }, { actor: 'tammo', face: 'actor:durk' }],
   beats: [
     { on: 'Douwe. Jelle is niet onze baas', actor: 'durk', anim: 'point' },
@@ -679,7 +679,7 @@ S['M26.5'] = {
   },
   // #734 (F20): de limo van Jelle is de trekker-limo, net als in M26.4; een gewone auto was de Escapade.
   // de vergunning in Tessa's hand (klembord) en het bakje met de eierbal in die van Tammo
-  props: { limo: { kind: 'trekker', at: [5.6, -3.4, 0], face: 80 }, vergunning: { kind: 'klembord', at: [0.4, -0.6, 1] }, bakje: { kind: 'doos', at: [0.4, 0.6, 1] } },
+  props: { limo: { kind: 'limo', at: [5.6, -3.4, 0], face: 80 }, vergunning: { kind: 'klembord', at: [0.4, -0.6, 1] }, bakje: { kind: 'doos', at: [0.4, 0.6, 1] } },
   open: [{ actor: 'tessa', face: 'actor:jelle' }, { actor: 'tammo', face: 'actor:jelle' }, { actor: 'tessa', carry: 'vergunning' }, { actor: 'tammo', carry: 'bakje' }, ...PASSER('toerist', 'toerist', [7, -6], [-3, -6.5], 1.0, 'phone').cues],
   beats: [
     { on: 'Je eigen vergunning', actor: 'tessa', anim: 'point' },
@@ -943,8 +943,8 @@ S['M26.4#7-14'] = {
   },
   props: {
     fjord: { kind: 'bestelbus', at: [3.4, 4.8, 0], face: 90 },
-    limo: { kind: 'trekker', at: [7.8, -1.6, 0], face: 195 },
-    vuurwerk: { kind: 'doos', at: [-3.4, 2.4, 0] },
+    limo: { kind: 'limo', at: [7.8, -1.6, 0], face: 195 },
+    vuurwerk: { kind: 'vuurwerk', at: [-3.4, 2.4, 0] },
     duif: { kind: 'duif', at: [6.2, -0.7, 0], face: 20 },
     koffer: { kind: 'koffer', at: [5.4, -0.4, 1] },
   },
@@ -1036,7 +1036,7 @@ S['M06.3#0-4'] = {
 S['M18.3'] = {
   set: 'serverkamer',
   cast: {},
-  props: { scherm: { kind: 'bord', at: [4.6, -1.0, 1], face: 175 }, klembord: { kind: 'klembord', at: [4.1, 0.6, 0.82], face: 175 } },
+  props: { scherm: { kind: 'scherm', at: [4.6, -1.0, 1], face: 175 }, klembord: { kind: 'klembord', at: [4.1, 0.6, 0.82], face: 175 } },
   open: [{ actor: 'tessa', face: 'prop:scherm' }, { actor: 'tammo', face: 'prop:scherm' }, { t: 0.2, actor: 'tessa', walk: [[1.4, -0.5]], speed: 0.7 }],
   beats: [
     { on: 'De update. Altijd om middernacht', actor: 'tessa', anim: 'point' },

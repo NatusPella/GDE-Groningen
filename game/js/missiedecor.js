@@ -12,6 +12,7 @@ import { buildPersonMesh, releasePersonGeometry } from './models3d_people.js';
 import { animateActor } from './actoranim.js';
 import { canvasTex, signBothSides } from './canvastex.js';
 import { hoofdspeler } from './players.js';
+import { buildProp as buildWachtProp } from './wachtprops.js';
 import { isInWater, pointInPolygon } from './util.js';
 import { crowdSpecToWorld, seedFromKey } from './crowdplan.js';
 import { buildCrowd, updateCrowd, disposeCrowd } from './crowd.js';
@@ -298,7 +299,8 @@ function perronbord() {
   return g;
 }
 
-function simpleProp(kind) {
+const WACHT_SPULLEN = ['bank', 'kist', 'baal', 'ton'];
+export function simpleProp(kind) {
   if (kind === 'hek') return hek();
   if (kind === 'jurytafel') return jurytafel();
   if (kind === 'kraam') return kraam();
@@ -307,32 +309,8 @@ function simpleProp(kind) {
   if (kind === 'kanon') return kanon();
   if (kind === 'vaandel') return vaandel();
   if (kind === 'tractor') return tractor();
-  if (kind === 'baal') {
-    const g = new THREE.Group();
-    g.add(cyl(0.62, 1.1, 0xd8c060, 0, 0.55, 0, 10));
-    g.add(cyl(0.63, 0.06, 0xb89c40, 0, 1.1, 0, 10));
-    return g;
-  }
-  if (kind === 'kist') {
-    const g = new THREE.Group();
-    g.add(box(1.1, 0.7, 0.75, 0x9a7a4a, 0, 0.35, 0));
-    g.add(box(1.14, 0.08, 0.8, 0x6f4d2a, 0, 0.72, 0));
-    return g;
-  }
-  if (kind === 'ton') {
-    const g = new THREE.Group();
-    g.add(cyl(0.42, 0.95, 0x6b4a2a, 0, 0.48, 0, 8));
-    g.add(cyl(0.44, 0.06, 0x777d88, 0, 0.2, 0, 8));
-    g.add(cyl(0.44, 0.06, 0x777d88, 0, 0.75, 0, 8));
-    return g;
-  }
-  if (kind === 'bank') {
-    const g = new THREE.Group();
-    g.add(box(2.2, 0.12, 0.6, 0x8a6238, 0, 0.48, 0));
-    g.add(box(2.2, 0.55, 0.1, 0x6f4d2a, 0, 0.82, -0.25));
-    for (const x of [-0.9, 0.9]) g.add(box(0.12, 0.48, 0.5, 0x6f4d2a, x, 0.24, 0));
-    return g;
-  }
+  // bank, kist, baal en ton zijn dezelfde spullen als bij een wachtstap (wachtprops.js): één bouwer, geen kopie
+  if (WACHT_SPULLEN.includes(kind)) return buildWachtProp(kind);
   return null;
 }
 

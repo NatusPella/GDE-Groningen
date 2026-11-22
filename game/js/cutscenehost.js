@@ -20,7 +20,8 @@ import { treeBlocksPoint } from './greenery.js';
 import { buildWildlifeMesh3D } from './wildlife.js';
 import { HERO_CAR_MODEL, TRACTOR_MODEL, POLICE_MODEL, TRAFFIC_MODELS } from './vehicle.js';
 import { carModel } from './trafficfleet.js';
-import { propSource, TABLE_SIT } from './cutscenemodels.js';
+import { propSource, TABLE_SIT, CARRY_LOW } from './cutscenemodels.js';
+import { DECOR_MAKERS } from './storyprops.js';
 import { compileScene, fitAnchor, resolveTime, shotPoints, roadPathDef } from './cutscript.js';
 import { jumpsFromScene } from './cutscenewarm.js';
 import { roofAt } from './camerapath.js';
@@ -54,8 +55,6 @@ const STEL = { tempo: setCinematicRate, tijd: setCinematicTime };
 //   def.fx: host effects on the set: buzz { dur } (the phone), door { open: 0-1, dur }, cups { actor, on, hands }, tablecups { on },
 //   sfx { kind } (a world sound), pulse { dur } (the radio), naam { text, dur } (a name card, any set)
 
-const MATS = {};
-const mat = (c, o = {}) => (MATS[c + JSON.stringify(o)] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.8, ...o }));
 
 // #864: an actor's hand (wrist/palm) in world coordinates: the end of the forearm on the
 // elbow bone. The mesh matrices are updated first (the animation was just set). Returns null
@@ -85,17 +84,11 @@ function makeActor(spec) {
   return m;
 }
 
-const box = (w, h, d, c, y = h / 2, x = 0, z = 0) => {
-  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(c));
-  m.position.set(x, y, z);
-  m.castShadow = true;
-  return m;
-};
-
 // Vehicles and animals are the world's own (cutscenemodels.js lists which); only loose objects are built here.
 // Props have their origin on the ground, +x is "forward".
 let propVehicleN = 0;
 function vehicleModel(src) {
+  if (src.model) return { ...src.model };
   const base = src.vehicle === 'escort' ? HERO_CAR_MODEL
     : src.vehicle === 'tractor' ? TRACTOR_MODEL
       : src.vehicle === 'police' ? POLICE_MODEL
@@ -113,35 +106,6 @@ function worldProp(src) {
   g.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.userData.shared = true; } }); // geometries are the world's cache: never disposed here
   return g;
 }
-const PROP_MAKERS = {
-  matras: () => { const g = new THREE.Group(); g.add(box(1.9, 0.2, 1.0, 0x6b8fb8, 0.1), box(1.9, 0.02, 0.05, 0xe8e3d6, 0.21)); return g; },
-  doos: () => { const g = new THREE.Group(); g.add(box(0.5, 0.38, 0.4, 0xb98d56), box(0.52, 0.04, 0.12, 0xe8d3a8, 0.38)); return g; },
-  koffer: () => { const g = new THREE.Group(); g.add(box(0.55, 0.38, 0.2, 0x3b4a6b), box(0.2, 0.04, 0.05, 0x222222, 0.4)); return g; },
-  // a bag with a flap, a buckle and a handle (a plain red block read as a placeholder up close, M03.2)
-  tas: () => { const g = new THREE.Group(); g.add(box(0.4, 0.3, 0.2, 0x9e3027), box(0.42, 0.1, 0.22, 0x7a231c, 0.27), box(0.06, 0.06, 0.02, 0xd8b45a, 0.2, 0.0, 0.11), box(0.22, 0.03, 0.03, 0x3a2a20, 0.34)); return g; },
-  bal: () => { const g = new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 8), mat(0xf2d34f)); g.position.y = 0.15; return g; },
-  bord: () => { const g = new THREE.Group(); g.add(box(0.05, 1.2, 0.05, 0x666666), box(0.7, 0.45, 0.04, 0xf2f0ea, 1.3)); return g; },
-  radio: () => { const g = new THREE.Group(); g.add(box(0.4, 0.22, 0.14, 0x6b4a2e), box(0.12, 0.12, 0.02, 0xd8c88a, 0.12, 0.08, 0.08)); return g; },
-  automaat: () => { const g = new THREE.Group(); g.add(box(0.8, 1.5, 0.6, 0x7a808a, 0.75), box(0.5, 0.3, 0.02, 0xaee0d8, 1.15, 0.0, 0.31), box(0.4, 0.04, 0.02, 0x15181c, 0.8, 0.0, 0.31)); return g; },
-  duiventil: () => {
-    // a loft on legs: planks, a pitched roof, small doorways
-    const g = new THREE.Group();
-    for (const x of [-0.55, 0.55]) for (const z of [-0.3, 0.3]) g.add(box(0.08, 1.0, 0.08, 0x5b4630, 0.5, x, z));
-    g.add(box(1.4, 0.9, 0.8, 0x8a6a46, 1.45), box(1.6, 0.08, 1.0, 0x3c3f45, 1.95), box(1.2, 0.08, 0.9, 0x3c3f45, 2.08), box(0.02, 0.2, 0.2, 0x15181c, 1.5, 0.71, -0.2), box(0.02, 0.2, 0.2, 0x15181c, 1.5, 0.71, 0.2));
-    return g;
-  },
-  zuil: () => { const g = new THREE.Group(); g.add(box(0.4, 1.25, 0.4, 0xb23a3a, 0.62), box(0.3, 0.2, 0.02, 0xe8d98a, 1.2, 0.0, 0.21), box(0.1, 0.06, 0.02, 0xf2f0ea, 0.9, 0.0, 0.21)); return g; },
-  klembord: () => { const g = new THREE.Group(); g.add(box(0.3, 0.02, 0.4, 0x8a6a46, 0.01), box(0.26, 0.012, 0.34, 0xf2f0ea, 0.026)); return g; },
-  // a bumper car for the fair (#864): a small cart with a rubber rim, not a full Escapade
-  botsauto: () => {
-    const g = new THREE.Group();
-    g.add(box(1.7, 0.26, 1.0, 0x222831, 0.17), box(1.35, 0.4, 0.85, 0xc4402c, 0.5), box(1.0, 0.34, 0.6, 0xe8e2d2, 0.82, -0.2), box(1.74, 0.14, 1.04, 0x2f5d9e, 0.3));
-    return g;
-  },
-  // een los briefje (#740: het dankbriefje op de klomp): een vel papier met één geschreven regel
-  briefje: () => { const g = new THREE.Group(); g.add(box(0.21, 0.012, 0.15, 0xf7f4e8, 0.01), box(0.15, 0.006, 0.014, 0x5b4a36, 0.017)); return g; },
-};
-
 function disposeTree(o) {
   o.traverse((c) => {
     // #796: gedeelde voertuig- en persoonsgeometrie gaat terug naar de teller in plaats van
@@ -180,7 +144,7 @@ function buildScriptRun(def, scene, anchor, env = null, w = null) {
   beginSceneActors();
   for (const [id, p] of Object.entries(def.props || {})) {
     const src = propSource(p.kind);
-    const m = src ? worldProp(src) : PROP_MAKERS[p.kind]();
+    const m = src ? worldProp(src) : DECOR_MAKERS[p.kind]();
     group.add(m);
     props[id] = m;
     if (src && src.vehicle) propVehicleNames.push(vehicleModel(src).name);
@@ -314,7 +278,7 @@ function buildScriptRun(def, scene, anchor, env = null, w = null) {
         const hand = handOf(am);
         if (!hand) continue;
         const kind = def.props[sa.carrying] && def.props[sa.carrying].kind;
-        const laag = kind === 'koffer' || kind === 'tas' || kind === 'doos';
+        const laag = CARRY_LOW.includes(kind);
         pm.position.set(hand.x, hand.y + (laag ? -0.08 : 0.03), hand.z);
       }
       return s.camera;

@@ -37,10 +37,10 @@ export const SPECS_AKTE2 = {};
       pan3: { key: 'student', at: [-2.0, 8.4], face: 260, anim: 'idle', bg: true, gest: ['shake', 'idle'] },
     },
     props: {
-      tank: { kind: 'bestelbus', at: [16, 0.5, 0], face: 0 },
+      tank: { kind: 'tankwagen', at: [16, 0.5, 0], face: 0 },
       wacht1: { kind: 'auto', at: [14, 4.2, 0], face: 20 },
       wacht2: { kind: 'auto', at: [18.5, -3.2, 0], face: -20 },
-      pannen: { kind: 'doos', at: [-3.4, 7.0, 0], face: 0 },
+      pannen: { kind: 'pan', at: [-3.4, 7.0, 0], face: 0 },
     },
     open: [{ actor: 'tessa', face: 'prop:tank' }, { actor: 'tammo', face: 'prop:tank' }, { actor: 'pan1', walk: [[-3.2, 4.5]], speed: 0.3 }],
     beats: [
@@ -72,7 +72,7 @@ export const SPECS_AKTE2 = {};
       bar2: { key: 'harm', at: [4.2, 2.4], face: 200, anim: 'cheer', bg: true, gest: ['cheer', 'wave'] },
       bar3: { key: 'toerist', at: [4.6, -2.0], face: 160, anim: 'cheer', bg: true, gest: ['cheer', 'laugh'] },
     },
-    props: { tank: { kind: 'bestelbus', at: [9, 0.4, 0], face: 180 }, pannen: { kind: 'doos', at: [3.0, 1.4, 0], face: 0 } },
+    props: { tank: { kind: 'tankwagen', at: [9, 0.4, 0], face: 180 }, pannen: { kind: 'pan', at: [3.0, 1.4, 0], face: 0 } },
     open: [{ actor: 'tessa', face: 'actor:snackbar' }, { actor: 'tammo', face: 'actor:snackbar' }, { actor: 'bar2', walk: [[2.6, 1.6]], speed: 1.4 }, { actor: 'bar3', walk: [[2.8, -1.4]], speed: 1.4 }],
     beats: [
       { on: 'Vet! Valt mie nait of', actor: 'snackbar', anim: 'cheer' },
@@ -118,9 +118,9 @@ export const SPECS_AKTE2 = {};
   SPECS_AKTE2['M08.outro'] = {
     cast: { trijntje: { key: 'trijntje', at: [2.7, 0.2], face: 185, anim: 'idle', gest: ['talk', 'hips', 'point', 'shrug'] } },
     props: {
-      foto: { kind: 'bord', at: [4.8, -2.8, 1.2], face: 180 },
+      foto: { kind: 'fotolijst', at: [4.8, -2.8, 0], face: 180 },
       lijstje: { kind: 'klembord', at: [2.7, 0.2, 1.0] },
-      brij: { kind: 'doos', at: [1.6, 0.5, 0.85] },
+      brij: { kind: 'pan', at: [1.6, 0.5, 0.85] },
     },
     // #741: Oma's naamkaart hoort bij haar eerste zichtbare scène (haar kamer, M08.3); de regie van de
   // telefoonscène (M08.1) noemde hem al, maar daar is ze alleen aan de lijn.
@@ -160,9 +160,9 @@ export const SPECS_AKTE2 = {};
 // --- M09 Heel aankomen is ook een kunst -------------------------------------------------------
 {
   const kratten = {
-    kratten1: { kind: 'doos', at: [5.4, -3.2, 0], face: 10 },
-    kratten2: { kind: 'doos', at: [5.4, -3.9, 0], face: 350 },
-    kratten3: { kind: 'doos', at: [5.4, -3.55, 0.45], face: 0 },
+    kratten1: { kind: 'krat', at: [5.4, -3.2, 0], face: 10 },
+    kratten2: { kind: 'krat', at: [5.4, -3.9, 0], face: 350 },
+    kratten3: { kind: 'krat', at: [5.4, -3.55, 0.45], face: 0 },
   };
   SPECS_AKTE2['M09.intro'] = {
     cast: { geesje: { key: 'geesje', at: [2.7, 0.4], face: 185, anim: 'idle', gest: ['talk', 'hips', 'point', 'shrug'] } },
@@ -199,7 +199,7 @@ export const SPECS_AKTE2 = {};
     },
     props: {
       ...kratten,
-      klomp: { kind: 'tas', at: [16, 7.5, 1], face: 0 },
+      klomp: { kind: 'klomp', at: [16, 7.5, 1], face: 0 },
     },
     open: [
       { actor: 'geesje', face: 'prop:kratten3' },
@@ -237,7 +237,7 @@ export const SPECS_AKTE2 = {};
       douwe: { key: 'douwe', at: [7.4, 3.2], face: 200, anim: 'walk', gest: ['idle', 'shrug'] },
     },
     props: {
-      limo: { kind: 'trekker', at: [8.6, 4.0, 0], face: 180 },
+      limo: { kind: 'limo', at: [8.6, 4.0, 0], face: 180 },
       koffer: { kind: 'koffer', at: [7.4, 4.0, 0.9], face: 0 },
     },
     // #741: Durk en Douwe zaten in M02 achter de kast; hun eerste zichtbare optreden is hier (M10.1).
@@ -275,7 +275,7 @@ export const SPECS_AKTE2 = {};
     cast: { klaas: { key: 'klaas', at: [2.8, 0.7], face: 185, anim: 'idle', gest: ['talk', 'hips', 'point', 'shrug'] } },
     props: {
       fiets: { kind: 'fiets', at: [4.4, 3.4, 0], face: 250 },
-      vesten: { kind: 'doos', at: [3.6, -2.6, 0], face: 30 },
+      vesten: { kind: 'hesjes', at: [3.6, -2.6, 0], face: 30 },
     },
     open: [{ actor: 'klaas', face: 'actor:tessa' }, { actor: 'tessa', face: 'actor:klaas' }],
     beats: [

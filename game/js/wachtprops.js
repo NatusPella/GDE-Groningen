@@ -51,7 +51,8 @@ function mat(color) { return new THREE.MeshLambertMaterial({ color }); }
 function box(w, h, d, color, x, y, z) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(color)); m.position.set(x, y, z); return m; }
 function cyl(r, h, color, x, y, z, seg = 8) { const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, seg), mat(color)); m.position.set(x, y, z); return m; }
 
-function buildProp(kind) {
+// (#1121: ook voor de aankleding van missiedecor.js: bank, kist, baal en ton stonden daar een tweede keer)
+export function buildProp(kind) {
   const g = new THREE.Group();
   if (kind === 'bank') {
     g.add(box(2.2, 0.12, 0.6, COL.hout, 0, 0.48, 0), box(2.2, 0.55, 0.1, COL.hout2, 0, 0.82, -0.25));

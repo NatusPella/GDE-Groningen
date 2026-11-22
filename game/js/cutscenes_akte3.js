@@ -4,14 +4,14 @@
 // not found (an edited text) is skipped. Coordinates are local to the player's spot: f forward, s left (m).
 import { MORE_SPECS as S } from './cutscenes_akte1.js';
 
-// a stack of containers (the Noorderterminal) from boxes
-const stack = (id, at, face = 0) => ({ [id]: { kind: 'doos', at: [at[0], at[1], 0], face } });
+// a container of the Noorderterminal (storyprops.js: a 10-foot sea container)
+const stack = (id, at, face = 0) => ({ [id]: { kind: 'container', at: [at[0], at[1], 0], face } });
 
 // --- M12 Het staat niet in het rooster: Dijkstra lands on the platform at Lauwersoog, the case at the Eemshaven ---
 S['M12.intro'] = {
   // Oma belt eerst (haar stem op de luidspreker), dan landt Dijkstra: hij loopt binnen op zijn eerste regel
   cast: { dijkstra: { key: 'dijkstra', at: [6.4, 2.2], face: 200, anim: 'hips', gest: ['hips', 'point', 'talk', 'shrug', 'point'] } },
-  props: { koeltas: { kind: 'tas', at: [4.6, -1.2, 0] } },
+  props: { koeltas: { kind: 'koelbox', at: [4.6, -1.2, 0] } },
   open: [{ actor: 'tessa', face: 'prop:koeltas' }, { actor: 'tammo', face: 'prop:koeltas' }],
   beats: [
     { on: 'Een dokter met een heli', actor: 'tammo', anim: 'shrug' },
@@ -37,7 +37,7 @@ S['M12.intro'] = {
 // AAA akte 3: de heli landt in een weiland, dus er staan koeien, en de camera komt van hoog naar beneden (de landing)
 S['M12.outro'] = {
   cast: { dijkstra: { key: 'dijkstra', at: [3.4, -0.6], face: 175, anim: 'idle', gest: ['talk', 'shrug', 'hips'] } },
-  props: { aktetas: { kind: 'koffer', at: [0.9, 0.2, 0] }, koe1: { kind: 'koe', at: [9, 6, 0], face: 215 }, koe2: { kind: 'koe', at: [11.5, -3.5, 0], face: 150 }, koe3: { kind: 'koe', at: [7.5, -8, 0], face: 190 } },
+  props: { aktetas: { kind: 'aktetas', at: [0.9, 0.2, 0] }, koe1: { kind: 'koe', at: [9, 6, 0], face: 215 }, koe2: { kind: 'koe', at: [11.5, -3.5, 0], face: 150 }, koe3: { kind: 'koe', at: [7.5, -8, 0], face: 190 } },
   open: [{ actor: 'tessa', carry: 'aktetas' }, { actor: 'tammo', face: 'actor:tessa' }],
   beats: [
     { on: 0, dt: 0.4, actor: 'dijkstra', walk: [[2.0, -0.4]], speed: 0.8 },
@@ -100,7 +100,7 @@ S['M14.intro'] = {
     jelle: { key: 'jelle', at: [4.6, 1.2], face: 185, anim: 'hips', gest: ['hips', 'talk', 'point', 'shrug'] },
     deurwaarder: { key: 'deurwaarder', at: [5.4, -1.6], face: 175, anim: 'idle', noauto: true },
   },
-  props: { map: { kind: 'klembord', at: [5.4, -1.6, 1] }, limo: { kind: 'trekker', at: [8, 3.4, 0], face: 200 }, escapade: { kind: 'auto', at: [-3.8, -4, 0], face: 70 } },
+  props: { map: { kind: 'map', at: [5.4, -1.6, 1] }, limo: { kind: 'limo', at: [8, 3.4, 0], face: 200 }, escapade: { kind: 'auto', at: [-3.8, -4, 0], face: 70 } },
   open: [{ actor: 'tessa', face: 'actor:jelle' }, { actor: 'tammo', face: 'actor:jelle' }, { actor: 'deurwaarder', carry: 'map' }],
   beats: [
     { on: 'Goedemorgen', actor: 'jelle', anim: 'point' },
@@ -123,9 +123,9 @@ S['M14.outro'] = {
   cast: {
     lammert: { key: 'lammert', at: [3, 1], face: 185, anim: 'idle', gest: ['talk', 'shrug', 'hips'] },
     deurwaarder: { key: 'deurwaarder', at: [4.4, -2.2], face: 175, anim: 'idle', gest: ['shrug', 'talk'] },
-    jelle: { key: 'jelle', at: [7.5, 2.6], face: 200, anim: 'hips', gest: ['hips', 'point', 'shake'] },
+    jelle: { key: 'jelle', at: [7.0, 2.0], face: 200, anim: 'hips', gest: ['hips', 'point', 'shake'] },
   },
-  props: { map: { kind: 'klembord', at: [4.4, -2.2, 1] }, limo: { kind: 'trekker', at: [9.5, 4.8, 0], face: 205 } },
+  props: { map: { kind: 'map', at: [4.4, -2.2, 1] }, limo: { kind: 'limo', at: [9.5, 4.8, 0], face: 205 } },
   open: [{ actor: 'tessa', face: 'actor:lammert' }, { actor: 'tammo', face: 'actor:lammert' }, { actor: 'deurwaarder', carry: 'map' }],
   beats: [
     { on: 'De overdracht is getekend', actor: 'lammert', anim: 'point' },
@@ -173,7 +173,7 @@ S['M15.outro'] = {
     // inspiratiepakket: Daan, de kermiszanger van M15.6, komt aanlopen als Jelle weg is
     daan: { key: 'daan', at: [9.4, 3.2], face: 190, anim: 'idle', gest: ['talk', 'hips', 'point'] },
   },
-  props: { bord: { kind: 'bord', at: [8, 0.6, 0], face: 180 }, limo: { kind: 'trekker', at: [9.5, -5, 0], face: 160 } },
+  props: { bord: { kind: 'bord', at: [8, 0.6, 0], face: 180 }, limo: { kind: 'limo', at: [9.5, -5, 0], face: 160 } },
   open: [{ actor: 'tessa', face: 'actor:roelfien' }, { actor: 'tammo', face: 'actor:roelfien' }],
   beats: [
     { on: 'Is dit waar', actor: 'jurylid1', face: 'actor:tessa' },
