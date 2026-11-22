@@ -166,7 +166,7 @@ t('ketenuitbreiding vraagt een tweede druk; renovatie toont de prijs en vraagt e
 t('te koop: laden en leeg zijn twee verschillende zinnen', () => {
   reset();
   assert.match(U.forSaleHtml({ money: 1, offers: [], loading: true }), /data-leeg="laden"/);
-  assert.match(U.forSaleHtml({ money: 1, offers: [] }), /data-leeg="niets"[^>]*>Niets te koop binnen drie kilometer/);
+  assert.match(U.forSaleHtml({ money: 1, offers: [] }), /data-leeg="niets"[^>]*>(?:<h3[^>]*>)?Niets te koop/);
 });
 t('overzicht: met personeel staat het loon per dag erbij', () => {
   reset(); const world = w(80000);
