@@ -88,7 +88,7 @@ export function mountLobby(root, hooks, opts = {}) {
   // #1011: de wizard (stappen, kaarten, vaste voet) zit alleen in het paneel Samen spelen (opts.wizard); het wachtscherm in het spel en de tests tekenen zoals voorheen
   const wizard = !!opts.wizard && !opts.start;
   let wz = createWizard({ rtc: rtcSupported(), favorieten: leesFavorieten().length, direct, wieKlaar: wieBevestigd || !!opts.adopt });
-  let openbaarTodo = null, vriendenTodo = false, swSleutel = '';
+  let openbaarTodo = null, favorietenTodo = false, swSleutel = '';
   let hub = opts.hub || null, session = opts.session || null, handle = null, room = null, stopListen = null, joinedOnce = !!opts.adopt, wacht = false;
   // #779: elke aanvraag voor een nieuw aanbod krijgt een nummer. Een kick of "weer privé" tijdens het
   // vluchtaanbod verhoogt het nummer, zodat een laat antwoord van het oude aanbod geen gast meer toelaat.
@@ -142,9 +142,9 @@ export function mountLobby(root, hooks, opts = {}) {
     if (LOGT[ev.t]) verbindingslog.add(LOGT[ev.t], ev.t === 'fout' ? ev.msg : ev.t === 'status' ? `${ev.status}${ev.reason ? ' (' + ev.reason + ')' : ''}` : ev.t === 'route' || ev.t === 'kies' ? String(ev.route || ev.rol) : ev.t === 'spelers' ? `${(ev.lijst || []).length} spelers` : '');
     if (wizard && wz.fout && was !== state.step) wz = { ...wz, fout: '' }; // een melding van de wizard hoort bij zijn eigen scherm
     draw();
-    if (wizard) { // #1011: wat de wizard op een bepaald moment nog moet doen (de sessie openbaar zetten, de vriendenlijst filteren)
+    if (wizard) { // #1011: wat de wizard op een bepaald moment nog moet doen (de sessie openbaar zetten, de lijst op favorieten filteren)
       if (openbaarTodo && ev.t === 'code' && state.step === 'host-wacht') { const naam = openbaarTodo; openbaarTodo = null; Promise.resolve().then(() => maakOpenbaar(naam)); }
-      if (vriendenTodo && state.step === 'lijst') { vriendenTodo = false; if (!state.lijstFilters.alleenFavorieten) set({ t: 'lijst-filter', filter: 'alleenFavorieten' }); }
+      if (favorietenTodo && state.step === 'lijst') { favorietenTodo = false; if (!state.lijstFilters.alleenFavorieten) set({ t: 'lijst-filter', filter: 'alleenFavorieten' }); }
     }
   };
   async function diagnose() {
@@ -764,7 +764,7 @@ export function mountLobby(root, hooks, opts = {}) {
       else if (a === 'wijze-prive') { wz = reduceWizard(wz, { t: 'wijze', wijze: 'prive' }); draw(); }
       else if (a === 'wijze-openbaar') { wz = reduceWizard(wz, { t: 'wijze', wijze: 'openbaar' }); draw(); }
       else if (a === 'ww-open') { wz = reduceWizard(wz, { t: 'ww', open: true }); draw(); const v = root.querySelector && root.querySelector('.coop-wachtwoord'); if (v && v.focus) v.focus(); }
-      else if (a === 'vrienden') { wz = reduceWizard(wz, { t: 'wijze', wijze: 'vrienden' }); if (wz.fout) return draw(); vriendenTodo = true; await act('lijst'); }
+      else if (a === 'favorieten') { wz = reduceWizard(wz, { t: 'wijze', wijze: 'favorieten' }); if (wz.fout) return draw(); favorietenTodo = true; await act('lijst'); }
       else if (a === 'host-open') {
         const r = kanVerder(state, wz);
         if (!r.ok) { wz = reduceWizard(wz, { t: 'fout', msg: r.fout }); return draw(); }

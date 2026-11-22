@@ -130,7 +130,7 @@ function gastKiezenHtml(ctx) {
   const cards = [
     choiceCard(icoon, 'slot_open', 'Kamercode', 'Van een vriend gekregen.', 'wijze-code', { gekozen: wijze === 'code' }),
     wz.rtc ? choiceCard(icoon, 'wifi', 'Openbare sessies', 'Kies uit de lijst.', 'lijst', { gekozen: false }) : '',
-    heeftFav ? choiceCard(icoon, 'ster', 'Vrienden', 'Je favoriete sessies.', 'vrienden', { gekozen: false }) : '',
+    heeftFav ? choiceCard(icoon, 'ster', 'Favorieten', 'Je favoriete sessies.', 'favorieten', { gekozen: false }) : '',
   ].filter(Boolean);
   const inv = v.input || { placeholder: 'Kamercode', value: '', maxLength: 64, label: 'Kamercode' };
   const wwOpen = wz.wwOpen || !!s.wachtwoord;

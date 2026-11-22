@@ -33,7 +33,7 @@ const WHO_SCREENS = ['gast-typt', 'methode']; // eerst de kaart "Wie ben jij", d
 export function createWizard(caps = {}) {
   return {
     wieKlaar: !!caps.wieKlaar,      // de kaart "Wie ben jij" is bevestigd
-    wijze: caps.wijze || null,      // gast: 'code' | 'lijst' | 'vrienden'; host: 'prive' | 'openbaar'
+    wijze: caps.wijze || null,      // gast: 'code' | 'lijst' | 'favorieten'; host: 'prive' | 'openbaar'
     openbaar: false,                // host: openbaar gekozen (de sessie blijft privé tot alles klopt)
     bevestigd: false,               // host: het vinkje "ik begrijp wat er openbaar wordt"
     sessienaam: '',                 // host: de naam in de openbare lijst
@@ -97,9 +97,9 @@ export function reduceWizard(wz, ev) {
     case 'wie-terug': n.wieKlaar = false; n.wijze = null; return n;
     case 'wijze': {
       const w = ev.wijze;
-      if (['code', 'lijst', 'vrienden'].includes(w)) {
+      if (['code', 'lijst', 'favorieten'].includes(w)) {
         if (w === 'lijst' && !wz.rtc) return { ...n, fout: 'Openbare sessies werken hier niet.' };
-        if (w === 'vrienden' && !(wz.rtc && wz.favorieten > 0)) return { ...n, fout: 'Je hebt nog geen vrienden of favorieten.' };
+        if (w === 'favorieten' && !(wz.rtc && wz.favorieten > 0)) return { ...n, fout: 'Je hebt nog geen favorieten.' };
         n.wijze = w; return n;
       }
       if (w === 'prive') { n.wijze = 'prive'; n.openbaar = false; n.bevestigd = false; return n; } // terug naar privé wist het vinkje
@@ -122,7 +122,7 @@ export function reduceWizard(wz, ev) {
 export function kanVerder(lobby, wz, invoer = '') {
   if (!lobby) return { ok: false, fout: 'Er is nog geen sessie.' };
   if (lobby.rol === ROLES.GAST || lobby.step === 'gast-typt') {
-    if (wz.wijze === 'lijst' || wz.wijze === 'vrienden') return { ok: true };
+    if (wz.wijze === 'lijst' || wz.wijze === 'favorieten') return { ok: true };
     const c = classifyInput(invoer);
     if (!c.ok) return { ok: false, fout: c.reason };
     return { ok: true, route: c.route };
