@@ -14,7 +14,7 @@ import { crowdSpecToWorld, seedFromKey } from './crowdplan.js';
 import { duplicateOfProps } from './cinehide.js';
 import { buildCrowd, updateCrowd, disposeCrowd } from './crowd.js';
 import { roadPropPaths, pathClearCircles } from './cinetemplates.js';
-import { playCinematic, setNameCard, setCinematicRate, setCinematicTime } from './cinematics.js';
+import { playCinematic, setNameCard, setCinematicRate, setCinematicTime, skipCinematic, isCinematicActive } from './cinematics.js';
 import { buildVehicleMesh, releaseVehicleGeometries } from './models3d_vehicles.js';
 import { treeBlocksPoint } from './greenery.js';
 import { buildWildlifeMesh3D } from './wildlife.js';
@@ -505,7 +505,7 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
       useDef = def; useScene = scene;
     }
   }
-  let run = null, lastT = 0;
+  let run = null, lastT = 0, bouwFout = false, bouwFoutGemeld = false;
   // name cards (fx 'naam' { text, dur }): a character is introduced at the lower left (#159); a line's own `card`
   // (missionstory.js, #711) counts too, so a guest's replay shows the same name card as the host.
   const cards = [
@@ -537,10 +537,15 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
       } catch (e) {
         console.error('cutscript', useDef.id, e);
         run = null;
+        bouwFout = true;
       }
     },
     shot(u, t) {
-      if (!run) return null;
+      if (!run) {
+        // de set kon niet gebouwd worden: geen lege scène van minuten met alleen ondertitels, maar meteen terug naar het spel (als overgeslagen)
+        if (bouwFout && !bouwFoutGemeld) { bouwFoutGemeld = true; queueMicrotask(() => { if (isCinematicActive(cine.id || useDef.id)) skipCinematic(); }); }
+        return null;
+      }
       const dt = Math.min(0.1, Math.max(0, t - lastT));
       lastT = t;
       if (cine.frame) cine.frame(t, dt);

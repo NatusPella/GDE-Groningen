@@ -31,3 +31,11 @@ export function cinematicLimit(c) {
   const declared = (c && Number.isFinite(c.duration) ? c.duration : 10) + CINE_MARGIN_S;
   return c && c.long ? declared : Math.min(declared, CINE_MAX_S);
 }
+
+// Een camerapose met een geen-getal zet de hele wereld op zwart (de camera verdwijnt): zo'n pose telt niet, de scène houdt
+// dan de laatste goede stand vast tot de shot weer klopt (cinematics.js).
+export function poseIsFinite(pose) {
+  if (!pose || !pose.position || !pose.lookAt) return false;
+  const f = (q) => q && Number.isFinite(q.x) && Number.isFinite(q.y) && (q.z === undefined || Number.isFinite(q.z));
+  return !!(f(pose.position) && f(pose.lookAt) && (pose.fov === undefined || Number.isFinite(pose.fov)));
+}
