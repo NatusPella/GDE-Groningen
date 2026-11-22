@@ -36,6 +36,10 @@ const kopie = (res) => {
 };
 const dropSlotCache = (n) => { slotCache.delete(n); };
 
+// 22-11: een plek is een geheel getal van 1 tot MAX_SLOTS; een ongeldig nummer (0, 99, undefined) schreef anders stil een
+// actieve plek die de lezer weer wegfilterde, waardoor het spel "vanzelf" naar plek 1 sprong.
+const validSlot = (n) => Number.isInteger(n) && n >= 1 && n <= MAX_SLOTS;
+
 const isObj = (o) => !!o && typeof o === 'object' && !Array.isArray(o);
 const num = (v, d = 0) => (typeof v === 'number' && Number.isFinite(v) ? v : d);
 
@@ -285,12 +289,14 @@ export function pickLatest(ls) {
 }
 
 export function setActive(ls, n) {
+  if (!validSlot(n)) return false;
   const idx = readIndex(ls);
   idx.active = n;
   return writeIndex(ls, idx);
 }
 
 export function renameSlot(ls, n, name) {
+  if (!validSlot(n)) return false;
   const idx = readIndex(ls);
   const nm = cleanName(name);
   if (nm && nm !== defaultName(n)) idx.names[n] = nm; else delete idx.names[n];
@@ -381,6 +387,7 @@ export function createSlot(ls, name, want = 0, fresh = false) {
 // Deletes a slot and its recovery copy. When it was the active one, the first slot left
 // (or 1) becomes the active one.
 export function deleteSlot(ls, n) {
+  if (!validSlot(n)) return false;
   const s = ls0(ls);
   try { s.removeItem(slotKey(n)); s.removeItem(slotRecoveryKey(n)); s.removeItem(slotThumbKey(n)); } catch (e) { return false; }
   dropSlotCache(n);
@@ -444,12 +451,14 @@ export function agoText(ms, now = Date.now()) {
 // --- export / import --------------------------------------------------------------------
 
 export function exportFileName(name, now = new Date()) {
+  if (!(now instanceof Date) || Number.isNaN(now.getTime())) now = new Date(); // een ongeldige datum gooide een RangeError bij het exporteren
   const slug = cleanName(name, 'save').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'save';
   return `gde-save-${slug}-${now.toISOString().slice(0, 10)}.json`;
 }
 
 // The file for a slot: { ok, filename, text } or { ok: false, why }.
 export function exportSlot(ls, n, now = new Date()) {
+  if (!(now instanceof Date) || Number.isNaN(now.getTime())) now = new Date();
   const r = readSlot(ls, n);
   if (!r.data) return { ok: false, why: r.state };
   const name = nameOf(ls, n);
