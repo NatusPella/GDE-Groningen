@@ -120,3 +120,43 @@ gemiddelde ligt dus op de grens; zaad 777 is een slechte trekking. De wachtrijen
 **Wat niet is aangepast.** Geen spelcode: er is geen regressie in route-, pad- of wereldcode aangetoond. Zaad 777 geeft nu 6/6; 3 van 24 zaden blijven op
 `in gebouw` boven de grens van 3 (echte restpunten, geen test die afgezwakt is). Niet bekeken: een auto-stap-voor-stap-vergelijking op de provincietegels buiten
 deze vier plekken.
+
+## Bochtbogen in plaats van een kortere kijkafstand (#1049, #1047, 22-11)
+
+**Aanpak.** De vorige poging stuurde bij: een kortere kijkafstand in bochten. Die gaf minder schaafjes maar meer vastzitters. Nu is het de
+meetkunde van het pad zelf (`game/js/vehicle/turnarcs.js`, pure module, `scripts/turnarcs_test.mjs`, 16 controles). Het AI-pad was een
+polyline van rijstrookpunten; bij een afslag sprong het van het knooppunt op de oude weg naar het knooppunt op de nieuwe weg en pure
+pursuit sneed die hoek. Nu vervangt een cirkelboog die raakt aan beide rijstrooklijnen die hoek:
+
+- straal minstens de draaicirkel van het voertuig (`1,2 / maxCurvature`, ondergrens 4,5 m), de raaklengte is hoogstens 85% van het korte stuk;
+- een gevelcontrole op negen punten van de boog; is de afstand kleiner dan de halve autobreedte plus 0,3 m (plus 0,35 m per meter halve
+  lengte boven 2,3 m: een vrachtwagen heeft meer uithaal nodig), dan wordt de straal ruimer (1,5x, 2,2x, 3,2x, 4,5x) en geldt de ruimste vrije boog;
+- de boog wordt een keer per afslag berekend en bewaard bij de afslag in `v.plan` (kruispunten) of op de weg (`road._varc`, per voertuigklasse
+  en wegpunt, ook gewone wegknikken boven 0,2 rad), niet elk frame; het pad krijgt 5 punten per boog, het middelste is het kruispuntpunt
+  (vlaggen `j`, `node`, `from` blijven kloppen voor voorrang en kruispuntruimte);
+- een auto die al op de boog rijdt, begint zijn pad op de boog (`nearestOnArc`), ook na het wisselen naar de nieuwe weg (`v._arc`);
+- bochtsnelheid: `curveSpeedLimit` leest de kromming van het pad, dus de snelheid volgt nu uit de boogstraal in plaats van uit een scherpe hoek;
+- fietsen en scooters, keren, en voertuigen met een bijzondere rijstrook (`laneMode`) bij wegknikken houden het oude pad.
+
+**Meting.** `node scripts/verkeer_zaden_meting.mjs` draait `verkeer_wereld_test` (`STRICT=1`, 180 s, vier plekken) over 24 zaden (7 tot 30) en telt op.
+Zelfde wereld, zelfde zaden, alleen de code verschilt:
+
+| 24 zaden x 4 plekken x 180 s | voor (main) | alleen kruispuntbogen | + wegknikken (ingevoerd) |
+|---|---|---|---|
+| gevelschaafjes (som) | 1053 (44 per zaad) | 911 (-13%) | 700 (29 per zaad, -34%) |
+| auto met het midden in een gebouw (som) | 21 | 9 | 4 |
+| meer dan 3,5 m naast het wegdek (som) | 212 | 219 | 184 (-13%) |
+| vast zonder reden (som) | 1 | 0 | 1 |
+| in het water, blijvende overlap | 0, 0 | 0, 0 | 0, 0 |
+
+De vastzitters gaan dus niet omhoog (de vorige poging: 9 naar 29). Zaad 777 (de standaardrun van de test): 41 schaafjes, alles binnen de grenzen; de
+grens voor schaafjes is van 75 naar 50 gezet. De tabel is een som over 24 zaden; de ruis per zaad is groot, het verschil van 1053 naar 700 ligt er ruim boven.
+
+**Wat blijft.** In 3 zaden (steekproef) valt de helft van de resterende schaafjes ver van een kruispunt (jAhead > 25 m): straten waar de gevel
+binnen de wegbreedte staat (Stalstraat bij 71,21, 6,5 m breed, gevel 2,9 m van de hartlijn): dat is wegdata (de gevel in het wegdek), geen
+boogprobleem, en komt op dezelfde plek in elk zaad terug. Een rijstrookklem per wegpunt (zoals `roadHalfWidths`) is de volgende stap. Op
+tegelgrenzen en in de buurt van de provincie buiten deze vier plekken is niet gemeten. De breedste boog (4,5x) werd in de trafficpath-run
+niet gekozen (`ARC_STATS.wide` 0): de gevelcontrole grijpt zelden in. Niets is in beeld bekeken: alleen node op echte tegels.
+
+**Samen spelen.** Verkeer is van wie het spel opende en gaat mee in de snapshot; de bogen zijn lokale padmeetkunde in `updateTrafficAI`, die alleen
+de kant draait die de wereld simuleert (gasten niet). Geen nieuw bericht, geen voortgang of beloning per speler; test: de pure tests hierboven.

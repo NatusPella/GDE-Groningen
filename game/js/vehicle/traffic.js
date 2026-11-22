@@ -3,6 +3,7 @@
 // verkeerslichten) en het voertuig als staatje daarop; de voertuigfysica blijft in vehicle.js.
 
 import { normalizeAngle, clamp, lerp, closestPointOnSegment } from '../util.js';
+import { turnArc, facadeClearance, nearestOnArc, ARC_PTS } from './turnarcs.js';
 import { roadIndexOf } from '../roadindex.js';
 import { busMagWeg, stepRunner, pointAt as linePointAt } from '../busroutes.js';
 import { trafficSignalsNear, trafficLightPhaseMove } from '../trafficlights.js';
@@ -470,6 +471,83 @@ function bpPush(junction) {
   p.node = undefined; p.from = undefined; p.fromDir = undefined;
   return p;
 }
+// #1049: bochtbogen. De boog van een afslag wordt een keer berekend (bewaard bij de afslag in v.plan) uit de rijstrookpunten
+// rond het knooppunt, ruimer als een gevel te dichtbij komt (turnarcs.js); het pad volgt dan de boog in plaats van de hoek te snijden.
+const _ta = [0, 0], _tb = [0, 0], _tc = [0, 0], _td = [0, 0];
+const _arcAt = { i: 0, t: 0, d: 0, x: 0, y: 0 };
+const ARC_HOLD = 2.2;     // m: zo dichtbij de boog volgt de auto hem vanaf zijn eigen plek
+export const ARC_STATS = { made: 0, null: 0, wide: 0, verts: 0 };
+function turnArcFor(v, map, t, road, idx, dir) {
+  if (v.isBike || v.isScooter || t.uturn || !t.road) return null;
+  const key = v.laneMode || '';
+  if (t._arcKey === key && t._arc !== undefined) return t._arc;
+  t._arcKey = key; t._arc = null;
+  const pi = idx - dir, ni = t.idx + t.dir;
+  if (pi < 0 || pi >= road.pts.length || ni < 0 || ni >= t.road.pts.length) return null;
+  const A = lanePoint(map, road, pi, dir, v, [0, 0]), J = lanePoint(map, road, idx, dir, v, [0, 0]);
+  const O = lanePoint(map, t.road, t.idx, t.dir, v, [0, 0]), B = lanePoint(map, t.road, ni, t.dir, v, [0, 0]);
+  arcClass(v);
+  const R0 = v._arcR0;
+  const near = map.buildingsNear(J[0], J[1], 40);
+  const arc = turnArc(A, J, O, B, {
+    R0, margin: v._arcMargin,
+    clearance: (x, y) => facadeClearance(near, x, y),
+  });
+  if (arc) { arc.toRoad = t.road; arc.toIdx = t.idx; ARC_STATS.made++; if (arc.R > R0 * 1.01) ARC_STATS.wide++; } else ARC_STATS.null++;
+  t._arc = arc;
+  return arc;
+}
+// de bochtstraal en de gevelmarge hangen alleen van het voertuig af: een keer per voertuig uitrekenen
+function arcClass(v) {
+  if (v._arcKeyN === undefined) {
+    const mc = maxCurvature({ speed: 0, model: v.model, driver: v.driver, tightTurn: false });
+    v._arcR0 = Math.max(4.5, 1.2 / Math.max(mc, 0.02));
+    v._arcMargin = v.halfWid + 0.3 + Math.max(0, v.halfLen - 2.3) * 0.35;
+    v._arcKeyN = Math.round(v._arcR0 * 10) * 1000 + Math.round(v._arcMargin * 100);
+  }
+  return v._arcKeyN;
+}
+// bochten in een gewone wegknik (geen kruispunt): zelfde boog, bewaard op de weg per klasse en positie (alleen zonder bijzondere rijstrook)
+function vertexArcFor(v, map, road, idx, dir) {
+  if (v.isBike || v.isScooter || v.laneMode) return null;
+  const pi = idx - dir, ni = idx + dir, n = road.pts.length;
+  if (pi < 0 || pi >= n || ni < 0 || ni >= n) return null;
+  const ck = arcClass(v);
+  const cache = road._varc || (road._varc = new Map());
+  const key = ck * 100000 + idx * 2 + (dir > 0 ? 1 : 0);
+  let a = cache.get(key);
+  if (a !== undefined) return a;
+  const A = lanePoint(map, road, pi, dir, v, [0, 0]), J = lanePoint(map, road, idx, dir, v, [0, 0]), B = lanePoint(map, road, ni, dir, v, [0, 0]);
+  const near = map.buildingsNear(J[0], J[1], 40);
+  a = turnArc(A, J, J, B, { R0: v._arcR0, margin: v._arcMargin, clearance: (x, y) => facadeClearance(near, x, y) });
+  if (a) ARC_STATS.verts++;
+  cache.set(key, a);
+  return a;
+}
+function bpEmitVertexArc(arc, from, road, idx) {
+  for (let k = from; k < ARC_PTS; k++) {
+    const mid = k === (ARC_PTS - 1) / 2;
+    bpPushXY(arc.pts[2 * k], arc.pts[2 * k + 1], false, mid ? road : undefined, mid ? idx : undefined);
+  }
+}
+function bpPushXY(x, y, junction, r, i) {
+  const p = bpPoint();
+  _bp.s += Math.hypot(x - _bp.px, y - _bp.py);
+  _bp.px = x; _bp.py = y;
+  p.x = x; p.y = y; p.s = _bp.s; p.j = junction; p.r = r; p.i = i;
+  p.node = undefined; p.from = undefined; p.fromDir = undefined;
+  return p;
+}
+// de bogenpunten vanaf index `from`; het middelste punt is het kruispunt (j), het laatste het knooppunt op de nieuwe weg
+function bpEmitArc(arc, from, road, idx) {
+  let jp = null;
+  for (let k = from; k < ARC_PTS; k++) {
+    const mid = k === (ARC_PTS - 1) / 2, last = k === ARC_PTS - 1;
+    const p = bpPushXY(arc.pts[2 * k], arc.pts[2 * k + 1], mid, mid ? road : last ? arc.toRoad : undefined, mid ? idx : last ? arc.toIdx : undefined);
+    if (mid) jp = p;
+  }
+  return jp;
+}
 function buildPathInto(v, map, rng, goal) {
   let road = v.road, dir = v.dir, idx = v.segIdx + dir;
   const A = lanePoint(map, road, v.segIdx, dir, v, _la), B = lanePoint(map, road, idx, dir, v, _lb);
@@ -480,19 +558,54 @@ function buildPathInto(v, map, rng, goal) {
   const p0 = bpPoint();
   p0.x = start.x; p0.y = start.y; p0.s = 0; p0.j = false; p0.r = undefined; p0.i = undefined; p0.node = undefined; p0.from = undefined; p0.fromDir = undefined;
   _bp.px = start.x; _bp.py = start.y; _bp.s = 0;
+  const arcOn = v._arc;
+  if (arcOn) {
+    if (road === arcOn.toRoad && v.segIdx === arcOn.toIdx && nearestOnArc(arcOn.pts, v.x, v.y, _arcAt).d <= ARC_HOLD && (_arcAt.i < ARC_PTS - 2 || _arcAt.t < 1)) {
+      p0.x = _arcAt.x; p0.y = _arcAt.y; _bp.px = p0.x; _bp.py = p0.y;
+      bpEmitArc(arcOn, _arcAt.i + 1, null, 0);
+    } else v._arc = null;
+  }
+  let vArc = null;
   for (let guard = 0; guard < 120 && _bp.s < PATH_LEN; guard++) {
     const junction = isJunction(map, road, idx);
     _bp.road = road; _bp.idx = idx; _bp.dir = dir;
-    const jp = bpPush(junction);
-    if (junction) {
-      jp.node = roadNode(map, road, idx);
-      jp.from = road;
-      jp.fromDir = dir;
-      if (k >= PLAN_DEPTH) break;
+    if (junction && k < PLAN_DEPTH) {
       const t = nextTurn(v, map, rng, goal, k++, road, idx, dir);
+      const arc = turnArcFor(v, map, t, road, idx, dir);
+      let jp = null;
+      if (arc) {
+        let from = 0;
+        if (_bp.n === 1 && k === 1 && nearestOnArc(arc.pts, v.x, v.y, _arcAt).d <= ARC_HOLD && (_arcAt.i > 0 || _arcAt.t > 0)) {
+          const p0a = _bp.path[0];
+          p0a.x = _arcAt.x; p0a.y = _arcAt.y; _bp.px = p0a.x; _bp.py = p0a.y;
+          from = _arcAt.i + 1;
+        }
+        if (k === 1) v._arc = arc;
+        jp = bpEmitArc(arc, from, road, idx);
+      } else {
+        jp = bpPush(true);
+        _bp.road = t.road; _bp.idx = t.idx; _bp.dir = t.dir;
+        bpPush(false);
+      }
+      if (jp) { jp.node = roadNode(map, road, idx); jp.from = road; jp.fromDir = dir; }
       road = t.road; dir = t.dir; idx = t.idx;
       _bp.road = road; _bp.idx = idx; _bp.dir = dir;
-      bpPush(false);
+    } else if (!junction && (vArc = vertexArcFor(v, map, road, idx, dir))) {
+      let from = 0;
+      if (_bp.n === 1 && nearestOnArc(vArc.pts, v.x, v.y, _arcAt).d <= ARC_HOLD && (_arcAt.i > 0 || _arcAt.t > 0)) {
+        const p0a = _bp.path[0];
+        p0a.x = _arcAt.x; p0a.y = _arcAt.y; _bp.px = p0a.x; _bp.py = p0a.y;
+        from = _arcAt.i + 1;
+      }
+      bpEmitVertexArc(vArc, from, road, idx);
+    } else {
+      const jp = bpPush(junction);
+      if (junction) {
+        jp.node = roadNode(map, road, idx);
+        jp.from = road;
+        jp.fromDir = dir;
+        break;
+      }
     }
     idx += dir;
   }

@@ -31,6 +31,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 ### Verhaalsystemen
 - Een dichte Bezit-tak noemt het hoofdstuk waarin hij opengaat (bijvoorbeeld "Aan de Eems") in plaats van een aktenummer.
 - Na het einde van het verhaal ziet de snackwagen Jelles teruggetrokken offerte (zijn oma had gelijk) in plaats van niets.
+### Verkeer
+- **Verkeer: auto's nemen bochten in een boog (#1049, #1047):** op kruispunten en bij knikken in de weg rijdt een AI-auto langs een afgeronde bocht in plaats van de hoek te snijden; een lange auto haalt ruimer uit als er een gevel dichtbij staat. Gemeten over 24 verkeersrondes: een derde minder schaafjes langs gevels (1053 naar 700), minder auto's in een gebouw (21 naar 4), geen extra files. Samen spelen: het verkeer is van wie het spel opende (ongewijzigd), de bogen zijn lokaal rijgedrag.
 
 ### Luchtroute
 

@@ -11,7 +11,7 @@ await import('../game/js/player.js');
 const { loadGameWorld } = await import('./worldload.mjs');
 const V = await import('../game/js/vehicle.js');
 const TL = await import('../game/js/trafficlights.js');
-const { trafficPathStats } = await import('../game/js/vehicle/traffic.js');
+const { trafficPathStats, ARC_STATS } = await import('../game/js/vehicle/traffic.js');
 
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info !== '' ? ` (${info})` : ''}`); } };
@@ -80,6 +80,25 @@ ok(moved >= 5, 'de paden zijn geldig', moved);
   ok(hits > 0, 'de lane-cache wordt gebruikt', `${hits} hits`);
   ok(hits > computed * 4, 'de lane-uitkomst komt bijna altijd uit de cache', `${hits} hits, ${computed} berekend`);
   console.log(`#652-restpunt meting: ${hits} lane-cache-hits, ${computed} berekeningen in 15 frames (was: een filter-array per aanroep, ~${hits + computed} per 15 frames)`);
+}
+
+// #1049: bochtbogen bij afslagen; een pad blijft ook met bogen netjes oplopend en eindig, en er worden bogen gemaakt
+{
+  for (let f = 0; f < 900; f++) {
+    frame();
+    if (f % 150 === 0) V.manageTrafficPopulation(world, { target: 24, spawnMin: 20, spawnMax: 160, despawnDist: 400 });
+  }
+  ok(ARC_STATS.made + ARC_STATS.verts > 0, 'er worden bochtbogen gebouwd (kruispunt of wegknik)', JSON.stringify(ARC_STATS));
+  let monotone = 0, total = 0;
+  for (const v of live()) {
+    if (!v._path || v._path.length < 2) continue;
+    total++;
+    let good = true;
+    for (let i = 1; i < v._path.length; i++) if (!(v._path[i].s >= v._path[i - 1].s - 1e-9) || !Number.isFinite(v._path[i].x)) good = false;
+    if (good) monotone++;
+  }
+  ok(total > 0 && monotone === total, 'de afstand langs het pad loopt altijd op, ook langs bogen', monotone + '/' + total);
+  console.log('#1049 meting: bogen', JSON.stringify(ARC_STATS));
 }
 
 console.log(`#652 meting: ${builds} padbuilds -> ${created} nieuwe puntobjecten (${(created / builds).toFixed(2)} per build; oud ±6-12 per build), ${same}/${cars.length} buffers hergebruikt`);
