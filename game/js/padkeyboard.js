@@ -3,6 +3,7 @@
 // stuurt pijlen/Enter/Escape (gamepad.js); hier worden die, alleen als ze van
 // het pad komen (e.__gde === 'pad'), onderschept zolang het toetsenbord open is.
 import { layout, moveCursor, applyKey } from './padkeyslogic.js';
+import { isPadTextField } from './padlogic.js';
 
 let root = null;
 let field = null;
@@ -11,10 +12,12 @@ let cur = { r: 0, c: 0 };
 let shift = false;
 let before = '';
 
-const isText = (t) => !!(t && ((t.tagName === 'INPUT' && ['text', 'search', 'tel', 'url', 'email', ''].includes(t.type)) || t.tagName === 'TEXTAREA'));
+// Ook een wachtwoordveld (de sessie met een wachtwoord, #450): zonder dit kon een controller het niet invullen (padlogic.js).
+const isText = isPadTextField;
 
 function draw() {
-  root.querySelector('.pk-val').textContent = field.value || ' ';
+  // een wachtwoord blijft afgeschermd in het toetsenbord: puntjes
+  root.querySelector('.pk-val').textContent = field.type === 'password' ? '•'.repeat(field.value.length) || ' ' : field.value || ' ';
   root.querySelectorAll('.pk-row').forEach((rowEl, r) => {
     rowEl.querySelectorAll('button').forEach((b, c) => {
       b.classList.toggle('on', r === cur.r && c === cur.c);

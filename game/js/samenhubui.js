@@ -6,6 +6,7 @@
 // #903: de hub heeft een eigen kop, genummerde stappen met een verbindingslijn en keuzekaarten met een duidelijke
 // stand. De gegevens blijven die van samenhub.js; dit bestand voegt geen regel toe aan het netwerk of de opslag.
 import { icoon } from './icons.js';
+import { bewaarFocus } from './focusbehoud.js';
 import { STAP, STAPPEN, hubView, escapeStap, isStap, volgendeStap, vorigeStap, ACT } from './samenhub.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -77,9 +78,11 @@ export function mountSamenHub(root, opts = {}, stap = STAP.WAAR) {
     if (hint) hint.textContent = stap.hint || '';
     const inhoud = tree.querySelector('.pm-hub-inhoud');
     if (inhoud) {
+      const herstel = bewaarFocus(inhoud); // de knop die je net koos wordt vervangen: de focus gaat naar dezelfde plek (22-11)
       inhoud.innerHTML = `${nu === STAP.WAAR ? keuzes(v) : nu === STAP.METWIE ? rijen(v) : ''}
       <p class="pm-hub-uitleg">${esc(v.uitleg || '')}</p>
       <div class="pm-hub-knoppen">${knoppen(v)}</div>`;
+      herstel();
     }
   };
 

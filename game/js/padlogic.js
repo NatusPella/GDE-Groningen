@@ -57,3 +57,19 @@ export function spatialNext(rects, from, dir) {
   });
   return best;
 }
+
+// Het schermtoetsenbord (padkeyboard.js) opent op deze velden; ook het wachtwoord van een sessie (#450). Een nagebootste toets typt niet zelf.
+export const PAD_TEXT_TYPES = ['text', 'search', 'tel', 'url', 'email', 'password', ''];
+export const isPadTextField = (t) => !!(t && ((t.tagName === 'INPUT' && PAD_TEXT_TYPES.includes(t.type)) || t.tagName === 'TEXTAREA'));
+
+// Een <select> opent niet met een nagebootste toets (controller-review 22-11): A stapt naar de volgende optie, X naar de vorige, rond aan de randen.
+// enabled: per optie of hij te kiezen is; geeft de nieuwe index, of -1 als er niets te kiezen is.
+export function nextSelectIndex(enabled, current, step = 1) {
+  const n = enabled.length;
+  if (!n) return -1;
+  for (let k = 1; k <= n; k++) {
+    const j = (((current < 0 ? (step > 0 ? -1 : 0) : current) + step * k) % n + n) % n;
+    if (enabled[j]) return j;
+  }
+  return -1;
+}

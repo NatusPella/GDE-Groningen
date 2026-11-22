@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { bewaarFocus } from './focusbehoud.js';
 import { icoon } from './icons.js';
 import { statusVan, tabRegel, versieRegel, MUTE_ACTIONS, hintStand, hintTekst, volgHint } from './playerstatus.js';
 import { gateOn } from './coopgate.js';
@@ -305,6 +306,7 @@ export function renderSpelersPanel(root, world, sluit = () => {}, opts = {}) {
         `<p>${rol === 'host' ? 'Jij opende het spel: jij kunt spelers eruit zetten of het spel overdragen.' : `${esc(opener)} opende het spel. Valt je verbinding weg, dan kun je opnieuw verbinden of stoppen; je komt terug waar je was.`}</p>` +
         `<p class="cs-kop-klein">${esc(versieRegel(VERSION))} De wereld en de tijd zijn samen van de groep; je geld, spullen en voortgang blijven van jou. Alleen de speler bij wie de sessie draait, kan iemand eruit zetten.</p></div>`
       : `<div class="cs-kop cs-kop-leeg"><b class="cs-kop-t">Je speelt nu alleen</b><p>Nodig iemand uit op het tabblad Sessie. Je eigen verhaal en je spullen blijven van jou.</p></div>`;
+    const herstel = bewaarFocus(root); // dempen, blokkeren en de rest tekenen de lijst opnieuw: de focus blijft op dezelfde knop (22-11)
     root.innerHTML = kop + (rijen.length
       ? `<ul class="cs-lijst">${rijen.map((r) => rijHtml(r, true, rol, bevestig, ctx)).join('')}</ul>` +
         pvpHtml(world) +
@@ -313,6 +315,7 @@ export function renderSpelersPanel(root, world, sluit = () => {}, opts = {}) {
       : '') +
       profielHtml(world);
     const veld = root.querySelector('.cs-profiel-naam'); if (veld && veld.value !== naamInvoer) veld.value = naamInvoer;
+    herstel();
   };
   if (!root.dataset.gebonden) {
     root.dataset.gebonden = '1';
