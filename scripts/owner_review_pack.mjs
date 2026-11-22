@@ -24,7 +24,7 @@ export const VRAGEN = {
   'pauzemenu-spel': ['Pauzemenu', 'Staat Doorgaan bovenaan en is het menu compact en rustig?'],
   loopbaan: ['Loopbanen', 'Is te zien wat je vakken en bijbanen zijn en wat je hierna kunt doen?'],
   spullen: ['Spullen', 'Zijn de plaatjes van wat je hebt duidelijk, zonder vraagtekens?'],
-  kaart: ['Kaart', 'Zijn de popups, de knop Reis erheen en Zet waypoint duidelijk, en overspoelt horeca de kaart niet?'],
+  kaart: ['Kaart', 'Zijn de popups, de knop Reis erheen en Zet routepunt duidelijk, en overspoelt horeca de kaart niet?'],
   'bezit-overzicht': ['Bezit: Land en bedrijf, overzicht', 'Is in één oogopslag te zien wat je bezit en wat het oplevert?'],
   'bezit-tekoop': ['Bezit: Te koop', 'Zijn prijs en soort pand duidelijk, en is de lijst niet te lang?'],
   'voetbal-carriere': ['Voetbalcarrière', 'Zijn selectie, kalender en stand goed te lezen? (De kaarten staan een beetje scheef en overlappen elkaar licht: is dat de bedoeling?)'],

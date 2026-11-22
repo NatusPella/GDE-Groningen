@@ -35,7 +35,7 @@ Gegenereerd met `node scripts/controller_ingame_doc.mjs --schrijf` uit `game/js/
 | D-pad ← | Verhaalstap overslaan | O | Roepen: Kom hier (7) |
 | D-pad → | Lak of garagemenu | R | Wijzen: Kijk daar (9) |
 
-Wiel, Spelen: Kaart (M), Radio aan of uit (N), Volgende zender (Shift + N), Andere kleren (6), Filmcamera (V), Eerste persoon (C), Waypoint naar je doel (5), Verhaalstap overslaan (O), Lak of garagemenu (R), Kusje (K).
+Wiel, Spelen: Kaart (M), Radio aan of uit (N), Volgende zender (Shift + N), Andere kleren (6), Filmcamera (V), Eerste persoon (C), Routepunt naar je doel (5), Verhaalstap overslaan (O), Lak of garagemenu (R), Kusje (K).
 Wiel, Wapens: Slaan (1), Pistool (2), Geweer (3), Gooien (4).
 
 ### Aan de waterkant (hengelen) (`hengelen`)
@@ -60,7 +60,7 @@ Wiel, Wapens: Slaan (1), Pistool (2), Geweer (3), Gooien (4).
 | D-pad ← | Verhaalstap overslaan | O | Roepen: Kom hier (7) |
 | D-pad → | Lak of garagemenu | R | Wijzen: Kijk daar (9) |
 
-Wiel, Spelen: Kaart (M), Radio aan of uit (N), Volgende zender (Shift + N), Andere kleren (6), Filmcamera (V), Eerste persoon (C), Waypoint naar je doel (5), Verhaalstap overslaan (O), Lak of garagemenu (R), Kusje (K).
+Wiel, Spelen: Kaart (M), Radio aan of uit (N), Volgende zender (Shift + N), Andere kleren (6), Filmcamera (V), Eerste persoon (C), Routepunt naar je doel (5), Verhaalstap overslaan (O), Lak of garagemenu (R), Kusje (K).
 Wiel, Wapens: Slaan (1), Pistool (2), Geweer (3), Gooien (4).
 Wiel, Samen spelen: Snelle zinnen (T, alleen Samen spelen).
 
@@ -86,7 +86,7 @@ Wiel, Samen spelen: Snelle zinnen (T, alleen Samen spelen).
 | D-pad ← | Richtingaanwijzer links | [ |  |
 | D-pad → | Richtingaanwijzer rechts | ] |  |
 
-Wiel, Spelen: Kaart (M), Radio aan of uit (N), Volgende zender (Shift + N), Andere kleren (6), Filmcamera (V), Eerste persoon (C), Waypoint naar je doel (5), Alarmlichten (P), Verhaalstap overslaan (O), Lak of garagemenu (R).
+Wiel, Spelen: Kaart (M), Radio aan of uit (N), Volgende zender (Shift + N), Andere kleren (6), Filmcamera (V), Eerste persoon (C), Routepunt naar je doel (5), Alarmlichten (P), Verhaalstap overslaan (O), Lak of garagemenu (R).
 Wiel, Samen spelen: Kom hier (7, alleen Samen spelen), Help! (8, alleen Samen spelen), Kijk daar (9, alleen Samen spelen).
 
 ### Auto, handmatig schakelen (`vehicleManual`)
@@ -111,7 +111,7 @@ Wiel, Samen spelen: Kom hier (7, alleen Samen spelen), Help! (8, alleen Samen sp
 | D-pad ← | Richtingaanwijzer links | [ |  |
 | D-pad → | Richtingaanwijzer rechts | ] |  |
 
-Wiel, Spelen: Kaart (M), Radio aan of uit (N), Volgende zender (Shift + N), Andere kleren (6), Filmcamera (V), Eerste persoon (C), Waypoint naar je doel (5), Alarmlichten (P), Verhaalstap overslaan (O), Lak of garagemenu (R).
+Wiel, Spelen: Kaart (M), Radio aan of uit (N), Volgende zender (Shift + N), Andere kleren (6), Filmcamera (V), Eerste persoon (C), Routepunt naar je doel (5), Alarmlichten (P), Verhaalstap overslaan (O), Lak of garagemenu (R).
 Wiel, Samen spelen: Kom hier (7, alleen Samen spelen), Help! (8, alleen Samen spelen), Kijk daar (9, alleen Samen spelen), Snelle zinnen (T, alleen Samen spelen).
 
 ### Bus (`bus`)
@@ -136,7 +136,7 @@ Wiel, Samen spelen: Kom hier (7, alleen Samen spelen), Help! (8, alleen Samen sp
 | D-pad ← | Richtingaanwijzer links | [ |  |
 | D-pad → | Richtingaanwijzer rechts | ] |  |
 
-Wiel, Spelen: Kaart (M), Radio aan of uit (N), Volgende zender (Shift + N), Andere kleren (6), Eerste persoon (C), Waypoint naar je doel (5), Alarmlichten (P), Busdienst overnemen (G).
+Wiel, Spelen: Kaart (M), Radio aan of uit (N), Volgende zender (Shift + N), Andere kleren (6), Eerste persoon (C), Routepunt naar je doel (5), Alarmlichten (P), Busdienst overnemen (G).
 Wiel, Samen spelen: Kom hier (7, alleen Samen spelen), Help! (8, alleen Samen spelen), Kijk daar (9, alleen Samen spelen), Snelle zinnen (T, alleen Samen spelen).
 
 ### Boot (zeilen) (`skutsje`)
@@ -161,7 +161,7 @@ Wiel, Samen spelen: Kom hier (7, alleen Samen spelen), Help! (8, alleen Samen sp
 | D-pad ← | Verhaalstap overslaan | O |  |
 | D-pad → | Lak of garagemenu | R |  |
 
-Wiel, Spelen: Kaart (M), Radio aan of uit (N), Volgende zender (Shift + N), Andere kleren (6), Filmcamera (V), Eerste persoon (C), Waypoint naar je doel (5).
+Wiel, Spelen: Kaart (M), Radio aan of uit (N), Volgende zender (Shift + N), Andere kleren (6), Filmcamera (V), Eerste persoon (C), Routepunt naar je doel (5).
 Wiel, Samen spelen: Kom hier (7, alleen Samen spelen), Help! (8, alleen Samen spelen), Kijk daar (9, alleen Samen spelen), Snelle zinnen (T, alleen Samen spelen).
 
 ### Trekker op het erf (`trekker`)
@@ -186,7 +186,7 @@ Wiel, Samen spelen: Kom hier (7, alleen Samen spelen), Help! (8, alleen Samen sp
 | D-pad ← | Richtingaanwijzer links | [ |  |
 | D-pad → | Richtingaanwijzer rechts | ] |  |
 
-Wiel, Spelen: Kaart (M), Radio aan of uit (N), Volgende zender (Shift + N), Andere kleren (6), Filmcamera (V), Eerste persoon (C), Waypoint naar je doel (5), Alarmlichten (P), Verhaalstap overslaan (O).
+Wiel, Spelen: Kaart (M), Radio aan of uit (N), Volgende zender (Shift + N), Andere kleren (6), Filmcamera (V), Eerste persoon (C), Routepunt naar je doel (5), Alarmlichten (P), Verhaalstap overslaan (O).
 Wiel, Samen spelen: Kom hier (7, alleen Samen spelen), Help! (8, alleen Samen spelen), Kijk daar (9, alleen Samen spelen).
 
 ### Helikopter (`heli`)
@@ -207,7 +207,7 @@ Wiel, Samen spelen: Kom hier (7, alleen Samen spelen), Help! (8, alleen Samen sp
 | D-pad ← | Verhaalstap overslaan | O |  |
 | D-pad → | Minigame of vluchtdienst stoppen | BACKSPACE |  |
 
-Wiel, Spelen: Kaart (M), Radio aan of uit (N), Volgende zender (Shift + N), Eerste persoon (C), Waypoint naar je doel (5).
+Wiel, Spelen: Kaart (M), Radio aan of uit (N), Volgende zender (Shift + N), Eerste persoon (C), Routepunt naar je doel (5).
 Wiel, Samen spelen: Kom hier (7, alleen Samen spelen), Help! (8, alleen Samen spelen), Kijk daar (9, alleen Samen spelen), Snelle zinnen (T, alleen Samen spelen).
 
 ### Vliegtuig (`plane`)
@@ -230,7 +230,7 @@ Wiel, Samen spelen: Kom hier (7, alleen Samen spelen), Help! (8, alleen Samen sp
 | D-pad ← | Vliegtuig: roer links | Q |  |
 | D-pad → | Vliegtuig: roer rechts | E |  |
 
-Wiel, Spelen: Kaart (M), Radio aan of uit (N), Volgende zender (Shift + N), Eerste persoon (C), Waypoint naar je doel (5).
+Wiel, Spelen: Kaart (M), Radio aan of uit (N), Volgende zender (Shift + N), Eerste persoon (C), Routepunt naar je doel (5).
 Wiel, Samen spelen: Kom hier (7, alleen Samen spelen), Help! (8, alleen Samen spelen), Kijk daar (9, alleen Samen spelen), Snelle zinnen (T, alleen Samen spelen).
 
 ### Duif (`pigeon`)
@@ -398,7 +398,7 @@ Wiel, Samen spelen: Kom hier (7, alleen Samen spelen), Help! (8, alleen Samen sp
 | B | Minigame stoppen | BACKSPACE |  |
 | X | Minigame stoppen | BACKSPACE |  |
 | Y | Instappen, gebruiken | E |  |
-| LB | Waypoint naar je eigen doel (nog eens: weg) | 5 |  |
+| LB | Routepunt naar je eigen doel (nog eens: weg) | 5 |  |
 | RB | Andere kleren | 6 |  |
 | RT | Gas | W |  |
 | Overzicht | Kaart | M |  |

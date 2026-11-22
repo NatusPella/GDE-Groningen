@@ -89,13 +89,13 @@ Deze lijst komt uit dezelfde telling als de ratel en `node scripts/ds3_dekkingli
 
 <!-- ds3-dekkinglijst:begin -->
 
-Totaal nog te doen: kleur 66, glas 117, oud 51, font 33, klein 1, lus 0, lang 1, emoji 0, svg 31 in 70 bestanden (bewust buiten de telling: 19).
+Totaal nog te doen: kleur 66, glas 117, oud 51, font 33, klein 1, lus 0, lang 0, emoji 0, svg 31 in 70 bestanden (bewust buiten de telling: 19).
 
 | bestand | kleur | glas | oud | font | klein | lus | lang | emoji | svg |
 |---|---|---|---|---|---|---|---|---|---|
 | `game/js/menu.css` | 15 | 39 |  |  |  |  |  |  |  |
 | `game/js/ds-components.css` |  |  | 49 |  |  |  |  |  |  |
-| `game/js/hud_panel.css` | 11 | 11 |  |  |  |  | 1 |  |  |
+| `game/js/hud_panel.css` | 11 | 11 |  |  |  |  |  |  |  |
 | `game/js/pausemenu.css` | 1 | 18 |  |  |  |  |  |  |  |
 | `game/js/storycontact.js` | 14 | 2 |  | 1 |  |  |  |  |  |
 | `desktop/vendor-fonts.css` |  |  |  | 11 |  |  |  |  |  |

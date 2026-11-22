@@ -1,5 +1,5 @@
 // Controller op de kaart (#985): op het kaartdoek panen de pijlen, dus de knoppen op de kaart zelf (zoeken, lagen, zoom,
-// Naar jezelf, de kaartkaart met Zet waypoint en Reis erheen) waren met een controller niet te bereiken. L3 (menu: Tab)
+// Naar jezelf, de kaartkaart met Zet routepunt en Reis erheen) waren met een controller niet te bereiken. L3 (menu: Tab)
 // gaat van het doek naar die knoppen en weer terug, en met de focus op een knop loopt de D-pad er van knop naar knop doorheen
 // (spatialNext, padlogic.js); omhoog of naar links voorbij de eerste knop geeft de kaart terug aan de D-pad.
 // pausemenu.js roept dit alleen aan voor invoer van het pad (e.__gde === 'pad'): muis en toetsenbord gedragen zich zoals eerst.

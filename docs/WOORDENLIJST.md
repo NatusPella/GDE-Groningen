@@ -15,6 +15,7 @@ Code-identifiers, bestandsnamen en opslagsleutels (`gde-save-v1`, `saveslots.js`
 | save slot, slot (voor een savegame) | **opslagplek** | "slot" als deursluiting is gewoon Nederlands en blijft |
 | backup | **herstelkopie** | |
 | load, loaden | **laden** | "Laatste savegame laden" |
+| waypoint | **routepunt** | het punt dat je op de kaart zet (Zet routepunt, Haal routepunt weg); een het-woord: "haalt het weg". De code blijft `waypoint` heten. `scripts/tekst_kwaliteit_audit.mjs` keurt het |
 | (vroeger) single player, solo | **Spelen** | geen aparte knop meer: het spel start in de save die je het laatst hebt opgeslagen; zonder save begint het verhaal meteen. Een andere save of een nieuw spel staat in het pauzemenu onder **Spel** |
 | continue, resume, hervatten (pauzemenu) | **Verder spelen** | terug naar het spel (Esc); het spel start zelf al in de laatst opgeslagen save. "Hervatten" is voor het hervatpunt na een mislukking |
 | main menu, titelscherm (in beeld) | **Spel herstarten** | de knop in het pauzemenu; het spel slaat op en start opnieuw in die save. Er is geen hoofdmenu meer |

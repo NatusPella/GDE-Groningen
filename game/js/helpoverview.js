@@ -10,23 +10,23 @@ export const HELP_TOPICS = [
     'Open de kaart met {M}, kies een plek of missie en de route gaat erheen. Het verhaal wacht zolang.',
     '{SHIFT} + {LMB} op de kaart zet je meteen op die plek (uit te zetten bij {ESC} › Instellingen › Spelregels).',
   ] },
-  { id: 'kaart', title: 'De kaart: waypoint en reizen', lines: [
-    'Klik op een plek of een icoon op de kaart en kies uit drie dingen: Zet waypoint, Reis erheen (met de kosten en de duur) of Info. Met een controller kies je een plek met {ENTER} onder het kruisje.',
-    'Er is één waypoint tegelijk, met een lijn en de afstand op de kaart en een baken in de wereld. Klik er nog eens op of kies Haal weg om hem te wissen ({DELETE}).',
+  { id: 'kaart', title: 'De kaart: routepunt en reizen', lines: [
+    'Klik op een plek of een icoon op de kaart en kies uit drie dingen: Zet routepunt, Reis erheen (met de kosten en de duur) of Info. Met een controller kies je een plek met {ENTER} onder het kruisje.',
+    'Er is één routepunt tegelijk, met een lijn en de afstand op de kaart en een baken in de wereld. Klik er nog eens op of kies Haal weg om het te wissen ({DELETE}).',
     'De knop Lagen rechtsboven opent de legenda; elk icoon staat er met zijn naam en je zet lagen daar aan of uit.',
-    'Reis erheen laat je met de trein, de bus, de taxi of de boot reizen: dat kost tijd en geld en je staat er na een korte rit. Zet waypoint is zelf gaan: je rijdt of loopt zelf langs de lijn. Bij het station kies je zelf de trein besturen of als passagier meegaan.',
-    'In Samen spelen kan een gast een waypoint zetten. Reizen kan alleen in je eigen spel.',
+    'Reis erheen laat je met de trein, de bus, de taxi of de boot reizen: dat kost tijd en geld en je staat er na een korte rit. Zet routepunt is zelf gaan: je rijdt of loopt zelf langs de lijn. Bij het station kies je zelf de trein besturen of als passagier meegaan.',
+    'In Samen spelen kan een gast een routepunt zetten. Reizen kan alleen in je eigen spel.',
   ] },
   { id: 'eerstedag', title: 'Je eerste dag in Grunn', lines: [
     'Onderin staat je eerste klus; volg de gele route. Daarna kun je zelf kiezen wat je doet.',
     'Kleding wisselen kan in je thuis of in een kledingwinkel; met de politie op je hielen kan een andere outfit of de spuiterij je uit de nest helpen.',
     'Je garage repareert, spuit en levert je eigen voertuigen af; op de kaart zie je welke garage bij je in de buurt is.',
-    'Met {5} zet je een waypoint naar je eigen doel en met de kaart kun je ook een taxi nemen of met bus en trein reizen.',
+    'Met {5} zet je een routepunt naar je eigen doel en met de kaart kun je ook een taxi nemen of met bus en trein reizen.',
     'Uitkijkpunten in de provincie onthullen een streek; kom je er zelf, dan gaat dat ook.',
   ] },
   { id: 'streekuitdaging', title: 'Streekuitdaging: de Hogelandrit', lines: [
     'Rij met een voertuig naar Warffum (Pastorieweg) en druk daar in de buurt op {E}.',
-    'De rit gaat via Usquert naar Uithuizen; de volgende etappe staat als waypoint. De klok loopt, dus snelheid loont.',
+    'De rit gaat via Usquert naar Uithuizen; de volgende etappe staat als routepunt. De klok loopt, dus snelheid loont.',
     'Onderweg stoppen om uit te stappen beëindigt de rit; je kunt hem daarna opnieuw starten.',
   ] },
   { id: 'todo', title: 'Wat kan ik nog meer?', lines: [

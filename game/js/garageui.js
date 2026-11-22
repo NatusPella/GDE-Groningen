@@ -213,7 +213,7 @@ function detailsHtml(e, msg) {
     (e.owned && e.kind !== 'boat' && e.kind !== 'heli'
       ? `<span class="mut">${e.upgrades.length ? esc(e.upgrades.join(', ')) : `Nog niks: ${e.kind === 'bike' || e.kind === 'scooter' ? 'Spaak & Band' : 'Knal & Kolder Tuning'} helpt je graag`}</span>`
       : '') + '</div>';
-  // te koop: "Kopen" zet een waypoint naar de winkel waar hij staat (#435)
+  // te koop: "Kopen" zet een routepunt naar de winkel waar hij staat (#435)
   const koop = garageSaleShop(e);
   // De knoppenrij is een eigen blok onder de gegevens (gar-acts), geen plakkerige voetregel:
   // anders schoof hij over de laatste regel van WAAR (review 0.62). Eén gele hoofdknop; wat je niet

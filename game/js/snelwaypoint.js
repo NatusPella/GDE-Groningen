@@ -1,4 +1,4 @@
-// #836: één toets voor het waypoint. Staat er al een eigen waypoint, dan haalt 5 het weg;
+// #836: één toets voor het routepunt. Staat er al een eigen routepunt, dan haalt 5 het weg;
 // anders zet T het op je huidige eigen doel (een plek, klus of activiteit). Een verhaalmissie
 // heeft al een route van de missieketen: die laten we met rust.
 import { getGoal, getUserWaypoint } from './goal.js';
@@ -10,7 +10,7 @@ export function tryQuickWaypoint(world) {
   const inp = world && world.input;
   if (!inp || !inp.wasPressed || !inp.wasPressed('5')) return false;
   if (isCinematicActive() || playerBusy(world, ['missionPhase', 'cinematic']).busy) {
-    world.addMessage('Nu even geen waypoint.', 2);
+    world.addMessage('Nu even geen routepunt.', 2);
     return false;
   }
   const g = getGoal();
@@ -20,12 +20,12 @@ export function tryQuickWaypoint(world) {
     return false;
   }
   if (g.kind === 'mission') {
-    world.addMessage('Een verhaalmissie heeft al een route; een eigen waypoint is nu niet nodig.', 2.6);
+    world.addMessage('Een verhaalmissie heeft al een route; een eigen routepunt is nu niet nodig.', 2.6);
     return false;
   }
   if (getUserWaypoint()) {
     clearUserWaypoint();
-    world.addMessage('Waypoint weg.', 2);
+    world.addMessage('Routepunt weg.', 2);
     return true;
   }
   setUserWaypoint(g.x, g.y, g.name);

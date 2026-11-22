@@ -39,8 +39,8 @@ const gast = reisPopupHtml({ ...basis, gast: true, melding: K.GAST_REIS_MELDING,
 ok(gast.includes(K.GAST_REIS_MELDING) && /role="status"/.test(gast) && !/data-card="rij"/.test(gast) && /data-card="reis-sluit"/.test(gast), 'een gast leest waarom snel reizen niet kan, kan alleen Zelf gaan of terug');
 const arm = reisPopupHtml({ ...basis, melding: 'Je hebt te weinig geld voor deze rit.', reis: { label: 'Reis nu · € 400 · 4 min', uitgeschakeld: true } });
 ok(/mv-reispop-ok[^>]*data-card="rij" disabled/.test(arm) && /te weinig geld/.test(arm) && !/mv-reispop-ok[^>]*data-key/.test(arm), 'te weinig geld: Reis nu is uit, de reden staat er en er is geen Enter-toets in de knop');
-const kaal = reisPopupHtml({ ...basis, rijen: K.reisKeuzes([], 3200, {}), gekozen: null, melding: 'Er gaat geen vervoer naar deze plek. Zet een waypoint om er zelf heen te gaan.', reis: null });
-ok(!/data-card="zelf"/.test(kaal) && /geen vervoer/.test(kaal) && /Geen treinverbinding hierheen/.test(kaal) && !/data-card="rij"/.test(kaal), 'geen verbinding: elke rij zegt waarom, de melding wijst naar Zet waypoint');
+const kaal = reisPopupHtml({ ...basis, rijen: K.reisKeuzes([], 3200, {}), gekozen: null, melding: 'Er gaat geen vervoer naar deze plek. Zet een routepunt om er zelf heen te gaan.', reis: null });
+ok(!/data-card="zelf"/.test(kaal) && /geen vervoer/.test(kaal) && /Geen treinverbinding hierheen/.test(kaal) && !/data-card="rij"/.test(kaal), 'geen verbinding: elke rij zegt waarom, de melding wijst naar Zet routepunt');
 
 // 3. de plekkaart verandert niet van grootte: de reiskeuze staat niet meer in de kaart
 ok(!/reisHtml/.test(mv.split('\n').filter((l) => /^import/.test(l)).join('\n')), 'mapview.js haalt reisHtml niet meer binnen: de plekkaart bouwt de keuze niet');

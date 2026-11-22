@@ -224,7 +224,7 @@ export function drawKompasRand(ctx, S, items, opties = {}) {
 
 // De grote kaart (mapview.js): dezelfde taal op de plek van het doel zelf. Het doel dat je volgt is een rond icoon met de afstandstag eronder, wachtende doelen
 // zijn kleine iconen. items: [{ sx, sy, kleur, icoon, actief, tekst, zonderSchijf }] in schermpixels; s: kaartschaal (1 = de maat van de minikaart).
-// zonderSchijf: het doel heeft al zijn eigen pin (jouw waypoint): alleen de tag komt eronder.
+// zonderSchijf: het doel heeft al zijn eigen pin (jouw routepunt): alleen de tag komt eronder.
 export function drawMapTargets(ctx, items, opties = {}) {
   if (!items.length) return;
   const k = { inkt: dsKleur('ink-inkt'), papier: dsKleur('ink-papier'), creme: dsKleur('creme') };
