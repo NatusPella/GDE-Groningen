@@ -44,4 +44,8 @@ t('#1277: Binnenkort in de zenderlijst is een chip, geen waarde in kopformaat', 
   assert.match(h, /<span class="ds-z-chip">Binnenkort<\/span>/);
   assert.ok(!/ds-z-rij__waarde">Binnenkort/.test(h));
 });
+t('#1275: de uitleg bij Moeilijkheid staat op dezelfde linkerrand als de rijen', () => {
+  const css = fs.readFileSync(new URL('../game/js/pausemenu.css', import.meta.url), 'utf8');
+  assert.match(css, /.pm-diff-intro, #pause-menu .pm-diff-note {[^}]*margin: 0 24px/);
+});
 console.log(`menu_accolades_test: ${n}/${n} ok`);
