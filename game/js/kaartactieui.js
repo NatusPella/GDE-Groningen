@@ -7,11 +7,15 @@
 // --redtx, --line2, --mk-*), en er staat geen tekst meer onder 13 px in.
 import { icoon } from './icons.js';
 import { dsButtonKey, knopToets, KNOP_TOETSEN } from './dsbutton.js';
-import { KAART_UITLEG, GAST_UITLEG, HIER_TITEL, HIER_HINT, legendaRegels } from './kaartactie.js';
+import { KAART_UITLEG, GAST_UITLEG, HIER_TITEL, HIER_HINT, legendaRegels, REIS_MODI } from './kaartactie.js';
 import { uitlegBlok as iconenBlok } from './uitleg.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const svg = (naam) => icoon(naam, { maat: 'l' });
+
+// #1215: een rij zonder icoonnaam of met een kaal getal als kosten wordt niet een vraagteken of "Trein12": het icoon volgt de vervoerswijze, een getal wordt een bedrag.
+const MODUS_ICOON = Object.fromEntries(REIS_MODI.map((m) => [m.id, m.icoon]));
+const feit = (x) => (typeof x === 'number' ? (x > 0 ? `€ ${x}` : '') : x);
 
 // de drie knoppen; stap: de actie die nu is uitgeklapt (reis of info)
 export function actiesHtml(model, stap) {
@@ -32,11 +36,11 @@ export function reisHtml(rijen, gekozen, kleur = {}) {
     const sel = r.id === gekozen && !r.geenRoute;
     const st = kleur[r.id] ? ` style="border-left-color:${esc(kleur[r.id])}"` : '';
     const toets = r.toets ? ` data-key="${esc(r.toets)}" aria-keyshortcuts="${esc(r.toets)}"` : '';
-    const feiten = [r.kosten, r.duur, r.disabled].filter(Boolean).map(esc).join(' · ');
+    const feiten = [feit(r.kosten), feit(r.duur), r.disabled].filter(Boolean).map(esc).join(' · ');
     return `<button type="button" class="mv-keuze${sel ? ' sel' : ''}${r.disabled ? ' uit' : ''}" data-card="kies:${esc(r.id)}"${toets}${r.disabled ? ' aria-disabled="true"' : ''}${sel ? ' aria-pressed="true"' : ''}${st}>` +
-      `<span class="mv-ki" aria-hidden="true">${icoon(r.icoon, { maat: 'l' })}</span>` +
-      `<span class="mv-kt"><span class="mv-kk"><span class="mv-kl">${esc(r.label)}</span>${r.aanbevolen ? '<i class="mv-aanb">aanbevolen</i>' : ''}</span>` +
-      `${r.uitleg ? `<span class="mv-ku">${esc(r.uitleg)}</span>` : ''}<span class="mv-kd">${feiten}</span></span>${knopToets(r.toets, { rechts: true })}</button>`;
+      `<span class="mv-ki" aria-hidden="true">${icoon(r.icoon || MODUS_ICOON[r.id] || 'auto', { maat: 'l' })}</span>` +
+      `<span class="mv-kt"><span class="mv-kk"><span class="mv-kl">${esc(r.label)}</span> ${r.aanbevolen ? '<i class="mv-aanb">aanbevolen</i>' : ''}</span> ` +
+      `${r.uitleg ? `<span class="mv-ku">${esc(r.uitleg)}</span> ` : ''}<span class="mv-kd">${feiten}</span></span>${knopToets(r.toets, { rechts: true })}</button>`;
   };
   return `<div class="mv-reiskeuze" role="group" aria-label="Hoe wil je reizen?"><p class="mv-uit">Kies hoe je reist. Liever zelf gaan? Zet dan een waypoint.</p>${rijen.map(rij).join('')}</div>`;
 }
