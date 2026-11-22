@@ -44,6 +44,7 @@ import { seatedOf } from './occupants.js';
 import { bijInstapdeur, uitstapPunt, deurBijSpeler, deurNaam, openDeurVoor, openDeurVoorRol, trekPunt, TREK_BEREIK, TREK_SPEED } from './vehicledoors.js';
 import { ejectPassenger } from './pedestrians.js';
 import { isPassief } from './cooppvp.js';
+import { stepWalkVelocity } from './footfeel.js'; // on-foot weight: ease into and out of the pace
 export { resolveBuildingCollisions };
 
 const BIKE_SPRINT_S = 2.5;
@@ -253,13 +254,9 @@ export class Player {
     this.moving = !!dir;
     if (aiming || firstPerson) this.angle = world.camYaw;
     else if (dir) this.angle = turnToward(this.angle, dir.angle, FACE_TURN_RATE * dt);
-    if (dir) {
-      this.vx = Math.cos(dir.angle) * speed;
-      this.vy = Math.sin(dir.angle) * speed;
-    } else {
-      this.vx = 0;
-      this.vy = 0;
-    }
+    // weight (footfeel.js): the body eases toward its pace and comes to a stop over a short step
+    if (dir) stepWalkVelocity(this, Math.cos(dir.angle) * speed, Math.sin(dir.angle) * speed, dt);
+    else stepWalkVelocity(this, 0, 0, dt);
 
     // a single step longer than the radius can tunnel past a thin wall edge
     const steps = Math.max(1, Math.ceil(Math.hypot(this.vx, this.vy) * dt / (this.radius * 0.9)));
