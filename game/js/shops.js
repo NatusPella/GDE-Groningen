@@ -735,6 +735,9 @@ function pay(world, price) {
   return true;
 }
 
+// Een verkoop klinkt als biljetten tellen (alleen bij jou); onder de 40 euro deed het geld-geluid van de UI niets, dus de kleine verkopen bleven stil.
+function verkoopGeluid(world) { sfxEvent(world, 'shop_sell_bills'); }
+
 const hexCss = (n) => '#' + n.toString(16).padStart(6, '0');
 const broke = (world, price) => world.money < price ? 'Te weinig geld' : '';
 
@@ -1083,7 +1086,7 @@ function resaleValue(v) {
   return Math.round(base * Math.max(0.3, Math.min(1, (v.health ?? 100) / 100)));
 }
 
-function pandSections(world, shop) {
+export function pandSections(world, shop) {
   const sell = [];
   for (const w of WEAPON_STOCK) {
     const n = world.ammo[w.key] || 0;
@@ -1098,6 +1101,7 @@ function pandSections(world, shop) {
         if (world.weapon === w.key) world.weapon = 'fists';
         noteMoney('Verkoop');
         world.money += income;
+        verkoopGeluid(world);
         return `+${euro(income)}. Nooit gezien, dat ding`;
       },
     });
@@ -1105,7 +1109,7 @@ function pandSections(world, shop) {
   if (world.armor >= 10) {
     const income = Math.round(world.armor * 0.6);
     sell.push({ id: 's-armor', preview: productPreview('vest'), stats: [barStat('Pantser', world.armor, 0, 100)], label: 'Vest verkopen', desc: `Pantser ${Math.round(world.armor)}, bijna niet gebruikt`, price: 0, income,
-      buy() { world.armor = 0; noteMoney('Verkoop'); world.money += income; return `+${euro(income)} voor je vest`; } });
+      buy() { world.armor = 0; noteMoney('Verkoop'); world.money += income; verkoopGeluid(world); return `+${euro(income)} voor je vest`; } });
   }
   for (const v of world.vehicles) {
     if (!v.stolenByPlayer || v.playerOwned || v.isHeroCar || v.missionCar || v.wrecked || v.isBoat || v.driver) continue;
@@ -1116,6 +1120,7 @@ function pandSections(world, shop) {
       buy() {
         removeFromWorld(world, v);
         world.money += income;
+        verkoopGeluid(world);
         if (v.isPolice) world.wanted = Math.max(world.wanted, 2);
         return `+${euro(income)}. Die zie je nooit meer terug`;
       },
@@ -1245,7 +1250,7 @@ function weaponItem(world, w) {
 
 const KNALLERS = new Set(['carbidbus', 'vuurwerk', 'waterpistool']);
 
-function weaponSections(world) {
+export function weaponSections(world) {
   const guns = WEAPON_STOCK.filter((w) => !w.melee && !KNALLERS.has(w.key)).map((w) => weaponItem(world, w));
   const knallers = WEAPON_STOCK.filter((w) => KNALLERS.has(w.key)).map((w) => weaponItem(world, w));
   const melee = WEAPON_STOCK.filter((w) => w.melee).map((w) => weaponItem(world, w));

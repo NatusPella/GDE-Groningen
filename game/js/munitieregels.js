@@ -36,3 +36,11 @@ export function terugvalWapen(keys, hasWeapon, hasAmmo, huidig, voorkeur = []) {
   const rest = keys.filter((k) => k !== huidig && k !== 'fists' && hasWeapon(k) && hasAmmo(k));
   return rest[0] || 'fists';
 }
+
+// De melding bij een cijfertoets: niets in dat slot (de toets deed stil niets), of het gekozen wapen is leeg. Een gewone wissel zegt
+// niets (het wapen in de HUD verandert al). '' = geen melding.
+export function slotMelding(slot, gelukt, leeg) {
+  if (!gelukt) return `Niets in slot ${slot}`;
+  if (leeg) return 'Dit wapen is leeg. Munitie koop je bij Pang & Zo';
+  return '';
+}

@@ -28,7 +28,8 @@ import { hoofdspeler } from './spelersregister.js'; // de speler achter dit sche
 import { nieuweCombo, comboSlag, comboUitslag } from './meleecombo.js'; // de melee-reeks (#492)
 import { nieuweBlok, blokkeer, herstel, blokActief, schadeNaBlok } from './blockregels.js'; // blokkeren met een slagwapen (#492)
 import { requestRiderOff } from './bikerider.js'; // een fietser van de fiets slaan (#944)
-import { wielWapens, terugvalWapen } from './munitieregels.js'; // het wiel slaat lege wapens over; na het laatste stuk een ander wapen
+import { sfxEvent } from './sfx/haken.js'; // het wapen wisselt: een kort klikje op de eigen UI-bus
+import { wielWapens, terugvalWapen, slotMelding } from './munitieregels.js'; // het wiel slaat lege wapens over; na het laatste stuk een ander wapen
 
 export { WEAPONS, WEAPON_KEYS, isMeleeWeapon, isRangedWeapon, isGunWeapon };
 
@@ -80,7 +81,9 @@ function cycleWeaponByWheel(dt, world, input) {
   const usable = wielWapens(WEAPON_KEYS, (k) => hasWeapon(world, k), (k) => hasAmmo(world, k), world.weapon);
   if (usable.length < 2) return;
   const i = Math.max(0, usable.indexOf(world.weapon));
-  world.weapon = usable[(i + dir + usable.length) % usable.length];
+  const volgende = usable[(i + dir + usable.length) % usable.length];
+  if (volgende !== world.weapon) sfxEvent(world, 'ui_item_equip');
+  world.weapon = volgende;
 }
 
 // De blokstand van de speler achter dit scherm (#492). Hij staat in de wereld zodat een geblokkeerde slag ook bij een gast
@@ -97,7 +100,14 @@ export function updateCombat(dt, world) {
   if (world.padelGame || world.minigameUntil > world.time) { world.scoped = false; pendingSwing = null; if (world.blok) herstel(world.blok, world.time || 0); return; }
   if (!hasWeapon(world, world.weapon)) world.weapon = 'fists';
   for (let i = 1; i <= SLOTS; i++) {
-    if (input.wasPressed(String(i))) selectWeaponSlot(world, i);
+    if (input.wasPressed(String(i))) {
+      const vorig = world.weapon;
+      const gelukt = selectWeaponSlot(world, i);
+      const leeg = gelukt && !hasAmmo(world, world.weapon);
+      if (gelukt && world.weapon !== vorig) sfxEvent(world, 'ui_item_equip');
+      const tekst = slotMelding(i, gelukt, leeg && world.weapon !== vorig);
+      if (tekst && world.addMessage) world.addMessage(tekst, 2);
+    }
   }
   cycleWeaponByWheel(dt, world, input);
   const p = hoofdspeler(world);
