@@ -149,7 +149,7 @@ const SAVE = JSON.stringify({ v: 9, money: 1234, story: 'h7' });
     for (const m of src.matchAll(/(?:local|session)Storage\.(?:get|set|remove)Item\(\s*'([^']+)'/g)) if (!known.has(m[1])) stray.push(`${f}: ${m[1]}`);
     for (const m of src.matchAll(/'(g[td]e[6-]?[-.:][\w.:-]*)'/g)) {
       const k = m[1];
-      if (/^gde-(ahead|benchmark|engine|dev:)$/.test(k) || k.startsWith('gde:')) continue;
+      if (k === 'gde-' /* prefix voor het tellen van eigen sleutels (savediag.js) */ || /^gde-(ahead|benchmark|engine|dev:)$/.test(k) || k.startsWith('gde:')) continue;
       if (!known.has(k) && k !== 'gte-minimap-layers') stray.push(`${f}: ${k}`);
     }
   }
