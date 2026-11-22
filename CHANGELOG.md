@@ -13,6 +13,12 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Prestaties
 - Prestaties (#1074, #1067): als het spelvenster verborgen of op de achtergrond is, doen de vaste controles van de overlays, het Samen-paneel en het aanraakscherm niets meer; de kartmotor wordt bij het verlaten van de baan echt stopgezet. Samen spelen: lokaal per speler, geen netwerkwijziging; testsessies met `?stil` blijven gewoon tikken. Voor de metingen staan er twee A-schakelaars (`?perfoff=boomfade`, `?perfoff=gevelfade`).
+### Controller en bediening
+- Controllerreview van kaarten en popups (#1011, #495): de uitleg-uitklapper op de toestemmings- en naamkaart en tekstvakken zijn nu met de D-pad te bereiken, en na het sluiten van die kaarten gaat de focus terug naar de knop waar je vandaan kwam.
+- Winkel en tuningwerkplaats: LB en RB wisselen de afdeling (eerder deden ze niets). Lokaal per speler.
+- Samen spelen, spel overnemen: de knoppen Ja en Nee hebben de toets IN de knop (J en N, op de controller A en B) in plaats van "(J)" in de tekst.
+- Voetbal, keuzescherm: met E (Y op de controller) kom je op een tweede pagina waar de D-pad de opties stijl, duur, kaarten en blessures, camera en derby kiest; die vier waren alleen met het toetsenbord te kiezen.
+- Klimtoren: met Tikken in plaats van ingedrukt houden (Instellingen) klikt een tik op A of D die hand vast of los, zodat je niet beide toetsen tegelijk vast hoeft te houden. Standaard uit.
 ### Kaart en HUD
 - Kaart: een nieuwe streek ontdekt, ook onderweg met de kaart dicht? Dan gloeit de rand van de minimap even zomers geel op (zonder beweging blijft de gele rand even staan). Ontdekking is per speler; wie meespeelt ziet alleen de eigen gloed (#990).
 - Gebiedsnaam: de prestatie voor wijken, de telefoonpraatjes en de duif noemen alleen nog een stadswijk als je er echt in staat, niet meer vanaf een weg net buiten de stad. Lokaal per speler (#1077).
