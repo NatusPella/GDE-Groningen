@@ -138,8 +138,7 @@ const radioSrc = src('radio.js');
 ok(/if \(!auto && isPassenger\(\)\)/.test(radioSrc), 'selectChannel weigert een passagier (menu, Shift+N en het wiel lopen er allemaal langs)');
 ok(/export function openRadioWheel\(\) \{\s*if \(!world\) return false;\s*if \(isPassenger\(\)\)/.test(radioSrc), 'het wiel opent niet voor een passagier');
 ok(/setRadialAction\('radiowiel'/.test(radioSrc), 'het acties-wiel opent het zenderwiel via de actie radiowiel');
-ok(/auto \? |auto = false/.test(radioSrc) && /if \(!auto\) \{\s*if \(vehState\.kind\) rememberVehicle\(id\)/.test(radioSrc), 'een gekozen zender in een voertuig wordt per voertuigsoort onthouden (radioVehicle, #988)');
-ok(/channelNotice\(world, z, true\)/.test(radioSrc), 'na het wisselen komt de radiomelding (zender, DJ, titel en artiest) zoals bij het instappen');
+ok(/auto \? |auto = false/.test(radioSrc) && /if \(!auto && !groep\) \{.*\s*if \(vehState\.kind\) rememberVehicle\(id\)/.test(radioSrc), 'een gekozen zender in een voertuig wordt per voertuigsoort onthouden (radioVehicle, #988)');ok(/channelNotice\(world, z, true\)/.test(radioSrc), 'na het wisselen komt de radiomelding (zender, DJ, titel en artiest) zoals bij het instappen');
 
 // --- 5. de routes per situatie: elke radioactie is op elk voertuigtype met alleen het pad te bereiken ---------------------------------
 const SOORTEN = ['foot', 'hengelen', 'vehicle', 'vehicleManual', 'bus', 'skutsje', 'trekker', 'heli', 'plane', 'pigeon', 'train'];

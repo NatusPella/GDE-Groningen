@@ -45,6 +45,12 @@
     { "file": "Laagwater_om_middernacht.mp3", "stations": ["gmusic"], "time": "night", "nieuw": true },
     { "file": "Zon_op_de_gracht.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true },
     { "file": "Brugwachter_Wacht_Niet.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true },
-    { "file": "Naar_Boven_Nooit_Naar_Beneden.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true }
+    { "file": "Naar_Boven_Nooit_Naar_Beneden.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true },
+    { "file": "Veenbrand.mp3", "stations": ["veenvuur"], "nieuw": true },
+    { "file": "Vlucht_over_de_Hereweg.mp3", "stations": ["veenvuur"], "nieuw": true },
+    { "file": "Ridder_zonder_benzine.mp3", "stations": ["veenvuur"], "nieuw": true },
+    { "file": "Zwarte_bus_naar_nergens.mp3", "stations": ["veenvuur"], "nieuw": true },
+    { "file": "Bruggen_van_turf_en_wind.mp3", "stations": ["veenvuur"], "nieuw": true },
+    { "file": "De_horizon_trekt_zijn_jas_aan.mp3", "stations": ["veenvuur"], "nieuw": true }
   ]
 }

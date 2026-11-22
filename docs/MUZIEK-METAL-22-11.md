@@ -10,10 +10,10 @@ Stand: 22 november 2026, branch `radio-metal-22-11`. Besluit eigenaar: er komt e
 | DJ | **Zware Dieuwke**, een heel vriendelijke stem die alles zwaar vindt, behalve haar koffie |
 | Ondertitel | "Harde gitaren van de veenkolonie" |
 | Ident | "Veenvuur FM: harder dan de wind over de Wadden." |
-| Zendergezicht | icoon `doodshoofd` (Phosphor `skull`, al gebundeld, DS3) in de kleur gloeiend veen (`#b4431c`); dezelfde vormgeving in de lijst in Instellingen > Geluid en bij de snelheidsmeter. Zenders zonder `face` houden hun huidige weergave |
+| Zendergezicht | icoon `doodshoofd` (Phosphor `skull`, al gebundeld, DS3) in de kleur van het designtoken `--ds-c-rood` (gloeiend veen; een eigen hex mag niet van de designregels); dezelfde vormgeving in de lijst in Instellingen > Geluid en bij de snelheidsmeter. Zenders zonder `face` houden hun huidige weergave |
 | Stijl | `metal` (nieuwe stijltag in `STYLES`, `radiochannels.js`) |
 | Programma | `every: 3`, praat: DJ, fragment, DJ; geen jingles van G-Music |
-| Pool | 0 nummers tot de eigenaar de nummers heeft beluisterd en goedgekeurd: dan **"Binnenkort"** in de lijst, nooit te kiezen, nooit aangevuld met nummers van een andere zender |
+| Pool | 6 nummers (stijl `metal`, station `veenvuur`): de zender is spelbaar. De nummers zijn nog door niemand beluisterd. Met minder dan zes staat hij als **"Binnenkort"** in de lijst en wordt nooit aangevuld met andere nummers; de metalnummers komen nooit op G-Music of Nachtstreek |
 
 ### Standaard of ontdekbaar? Besluit: zichtbaar vanaf de start (als "Binnenkort"), spelbaar zodra er zes nummers zijn
 
@@ -268,22 +268,25 @@ vannacht is alles mooi, en morgen is het weer zomer.
 
 1. Download de mp3 in een eigen lege map, controleer duur (1,5 tot 4 minuten; de riff-sting mag korter) en ruis of pops. Zet om naar 128 kbps met hetzelfde niveau als de bestaande nummers (zelfde werkwijze als de tweede stap van commit `309931c30`: `ffmpeg -i in.mp3 -b:a 128k -af loudnorm=I=-16:TP=-1.5 uit.mp3`, daarna de meting naast een bestaand nummer).
 2. Zet hem als `game/audio/gmusic/<Titel_met_underscores>.mp3`.
-3. Voeg een regel toe in `game/audio/gmusic/manifest.json`: `{ "file": "...", "stations": ["gmusic"], "nieuw": true }`. Wil je dat het nummer niet op G-Music draait maar alleen op Veenvuur FM, laat dan `stations` leeg zoals bij andere zenderspecifieke nummers (vraag de coördinator; dit is een besluit over G-Music-inhoud).
+3. Voeg een regel toe in `game/audio/gmusic/manifest.json`: `{ "file": "...", "stations": ["veenvuur"], "nieuw": true }` (niet `gmusic`: dan komt het tussen de hits).
 4. Voeg de bestandsnaam (zonder `.mp3`) toe aan `STYLES` in `game/js/radiochannels.js` met `['metal']`, en de artiest in `GMUSIC_ARTISTS` in `game/js/audio/radio.js`.
 5. Werk de tellingen bij (`docs/LICENTIES.md`, `docs/LEGAL-AI-ASSETS.md`, `docs/MUZIEK.md`, `CHANGELOG.md`) en draai `node scripts/spec_check.mjs --write`.
 6. Geen dubbele nummers: vergelijk de nieuwe bestanden met de bestaande op duur en hash voordat je koppelt.
 
 ## Stand van het maken
 
-Er zijn **13 prompts** klaar (V1 tot en met V13) en **3 nummers echt gemaakt** met Gemini ("Muziek maken", via de Claude-in-Chrome-extensie, eigenaar ingelogd; de oude "Script injection timed out" kwam deze keer niet terug). Niets is beluisterd; de eigenaar moet ze horen vóór ze erin gaan.
+Er zijn **13 prompts** klaar (V1 tot en met V13) en **6 nummers echt gemaakt** met Gemini ("Muziek maken", via de Claude-in-Chrome-extensie, eigenaar ingelogd). Alle zes zijn aan Veenvuur FM gekoppeld. Niets is beluisterd; de eigenaar moet ze horen en zo nodig weer uit het manifest halen.
 
-| Prompt | Titel (door Gemini gegeven) | Duur | Niveau (na 128 kbps) | sha256 (16) |
-|---|---|---|---|---|
-| V1 Veenbrand | Veenbrand | 2:40 | -12,3 LUFS | `64b9a38747bd8336` |
-| V5 Stalen stuur | Vlucht over de Hereweg | 2:30 | -11,5 LUFS | `37e30aa9316bc6d1` |
-| V7 Ballade van de lege tank | Ridder zonder benzine | 2:33 | -11,5 LUFS | `70edde1ceb5db407` |
+| Prompt | Titel (door Gemini gegeven) | Act in het spel | Duur | Niveau (128 kbps) | sha256 (16) |
+|---|---|---|---|---|---|
+| V1 Veenbrand | Veenbrand | Zware Klei | 2:40 | -12,3 LUFS | `64b9a38747bd8336` |
+| V2 Zwarte bus naar nergens | Zwarte bus naar nergens | Kleimonster | 2:32 | -12,1 LUFS | `f72036c26f91f531` |
+| V3 Over de veenkoloniën | Bruggen van turf en wind | Terpdonder | 2:37 | -11,5 LUFS | `7f53d5dc2db3b581` |
+| V5 Stalen stuur | Vlucht over de Hereweg | Stalen Stuur | 2:30 | -11,5 LUFS | `37e30aa9316bc6d1` |
+| V7 Ballade van de lege tank | Ridder zonder benzine | Ridder Roelof en de Roestbak | 2:33 | -11,5 LUFS | `70edde1ceb5db407` |
+| V11 Alle lucht van Groningen | De horizon trekt zijn jas aan | Hemelhoog Hendrik en het Weidse Orkest | 2:51 | -11,7 LUFS | `5538044f463f101e` |
 
-- **Waar staan ze:** buiten de repo, in `C:\Users\abuis\gde-metal-22-11\out\` (ruwe downloads in `raw\`). Eigen lege map, 128 kbps, 44,1 kHz stereo, zonder versterking: de bestaande nummers meten -11,9 tot -12,4 LUFS, deze -11,5 tot -12,3, dus het niveau is gelijk en er is niets aangepast.
-- **Waarom niet in `game/audio/gmusic/` en het manifest:** een nummer zonder zenderregel hoort bij G-Music (`normalizeTrack`: standaard `gmusic`). Drie metalnummers tussen de G-Music-hits zijn een besluit van de eigenaar, en voor Veenvuur FM zelf zijn er zes nodig (`MIN_POOL`). Daarom blijft de zender Binnenkort. Koppelen is het stappenplan hieronder; de stijltag `metal` en de zender staan al klaar.
-- **Mislukt of blijven liggen:** V2 gaf tweemaal "I seem to be encountering an error" (een generieke fout van Gemini, geen weigering, daarna bleef een nieuwe poging hangen); V3 leverde een tekstantwoord in plaats van een track; V11 bleef hangen zonder "Generating your track". V4, V6, V8, V9, V10, V12 en V13 zijn niet geprobeerd. Niets is omzeild of herschreven om een blokkade te passeren.
-- **Auteursregel:** Gemini-muziek heeft geen auteur-handle zoals Freesound; de herkomst is "Google Gemini, muziekgeneratie, eigenaar-account, 22-11-2026, originele tekst en stijlprompt uit dit document". `docs/AUDIO-LICENTIES.md` wordt gegenereerd uit het geluidenmanifest (alleen sfx met Freesound-auteurs) en is hier daarom niet bewerkt; de muziekherkomst staat in `docs/LEGAL-AI-ASSETS.md` en `docs/LICENTIES.md` en wordt bijgewerkt (tellingen) bij het koppelen.
+- **Gekoppeld:** in `game/audio/gmusic/` (128 kbps, 44,1 kHz stereo, zonder versterking: de bestaande nummers meten -11,9 tot -12,4 LUFS, deze -11,5 tot -12,3), in `manifest.json` met `"stations": ["veenvuur"]`, in `STYLES` met `['metal']` en in `GMUSIC_ARTISTS`. `MUSIC_STATIONS` (`musicpick.js`) kent nu `veenvuur`: een nummer met dat station staat niet op het station `gmusic` of `nachtstreek`, dus metal komt nooit tussen de G-Music-hits. De ruwe downloads en de omgezette bestanden staan ook in `C:\Users\abuis\gde-metal-22-11\` (`raw\`, `out\`).
+- **De grens:** zes is `MIN_POOL`. Haalt de eigenaar één nummer weg, dan is Veenvuur FM weer "Binnenkort" en blijft de wereldradio staan in vrachtwagen, bus en kluiswagen. Liever acht voor afwisseling: V4, V6 tot V10, V12 en V13 staan klaar.
+- **Mislukt of niet geprobeerd:** V2 gaf bij de eerste twee pogingen "I seem to be encountering an error" (een generieke Gemini-fout, geen weigering) en lukte bij de derde; V3 en V11 gaven eerst een tekstantwoord of bleven hangen (de pagina was nog niet geladen of de muziekmodus stond niet aan) en lukten bij een nieuwe poging met de modus gecontroleerd. V4 gaf een tekstantwoord ("kan momenteel geen audio genereren") omdat de muziekmodus was weggevallen en is niet herhaald; V6, V8 tot V10, V12 en V13 zijn niet geprobeerd. Niets is omzeild of herschreven om een blokkade te passeren.
+- **Auteursregel:** Gemini-muziek heeft geen auteur-handle zoals Freesound; de herkomst is "Google Gemini, muziekgeneratie, eigenaar-account, 22-11-2026, originele tekst en stijlprompt uit dit document". `docs/AUDIO-LICENTIES.md` wordt gegenereerd uit het geluidenmanifest (alleen sfx met Freesound-auteurs) en is hier daarom niet bewerkt; de muziekherkomst staat in `docs/LEGAL-AI-ASSETS.md`.

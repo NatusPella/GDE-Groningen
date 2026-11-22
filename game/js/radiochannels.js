@@ -61,6 +61,13 @@ export const STYLES = {
   Schaduwen_bij_de_steiger: ['ballad', 'spook'],
   De_Zwaan_sluut: ['ballad', 'spook'],
   Hooge_Lucht: ['ballad', 'spook', 'kust'],
+  // metal (22-11, Veenvuur FM; docs/MUZIEK-METAL-22-11.md): alleen op de eigen zender, het manifest zet ze op station 'veenvuur'
+  Veenbrand: ['metal'],
+  Vlucht_over_de_Hereweg: ['metal'],
+  Ridder_zonder_benzine: ['metal'],
+  Zwarte_bus_naar_nergens: ['metal'],
+  Bruggen_van_turf_en_wind: ['metal'],
+  De_horizon_trekt_zijn_jas_aan: ['metal'],
 };
 
 // De zenders. `schedule`: volgt het dagprogramma van G-Music (musicpick.js PROGRAMMES); anders heeft de zender één eigen `programme`.
@@ -141,10 +148,10 @@ export const CHANNELS = [
     id: 'veenvuur', name: 'Veenvuur FM', dj: 'Zware Dieuwke', frequency: '106,6', sub: 'Harde gitaren van de veenkolonie',
     ident: 'Veenvuur FM: harder dan de wind over de Wadden.',
     // het zendergezicht (22-11): icoon (betekenisnaam uit iconmap.js) en kleur voor de lijst en de chip bij de snelheidsmeter
-    face: { icon: 'doodshoofd', color: '#b4431c' },
+    face: { icon: 'doodshoofd', color: 'var(--ds-c-rood)' },
     pool: { styles: ['metal'] }, minPool: MIN_POOL, minMinutes: 15,
     programme: { id: 'veenvuur', every: 3, jingles: false, talk: ['dj', 'clip', 'dj'], music: 'gmusic' },
-    // Nog geen metalnummers beluisterd en goedgekeurd: dan staat de zender als Binnenkort in de lijst (docs/MUZIEK-METAL-22-11.md).
+    // Met minder dan zes metalnummers staat de zender als Binnenkort in de lijst (docs/MUZIEK-METAL-22-11.md).
     lines: [
       'Veenvuur FM. Zware Dieuwke achter de knoppen, de zomer op tien en de bas op elf.',
       'Een groet aan de vrachtwagen op de dijk. Ja, we hoorden je al. Het hele Hogeland hoorde je al.',

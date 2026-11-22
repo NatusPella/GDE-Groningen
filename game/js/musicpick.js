@@ -24,7 +24,8 @@ import { isNightAtHour } from './sunrules.js';
 
 // The one place to tune how hard new records are pushed (#238).
 export const NIEUW = { plays: 3, boost: 8, firstOnFreshStart: true };
-export const MUSIC_STATIONS = ['gmusic', 'nachtstreek'];
+// 'veenvuur' (22-11): de metalnummers draaien alleen op Veenvuur FM en komen nooit tussen de G-Music-hits
+export const MUSIC_STATIONS = ['gmusic', 'nachtstreek', 'veenvuur'];
 // below this many own records a pool borrows the rest, at a lower weight
 export const MIN_POOL = 6;
 const BORROWED = 0.35;
