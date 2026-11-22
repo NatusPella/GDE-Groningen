@@ -50,6 +50,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [VERFIJNING-22-11-BEZIT.md](<VERFIJNING-22-11-BEZIT.md>) | Verfijnronde Bezit, boerderij, snackwagen en economie: tabel wrijving, oplossing en bewijs, wat bewust niet, wat nog in beeld bekeken moet worden. |
 | [COOP-GAST.md](<COOP-GAST.md>) | Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). Dit docu… |
 | [COOP-DEKKING-21-11.md](<COOP-DEKKING-21-11.md>) | Werkdocument. Audit-matrix: per systeem van de hele game de zes vragen over Samen spelen (bezit, gast, beloning, wegvallen en hostwissel, enkelspeler-aanname, dekking), gegenereerd uit scripts/coop_coverage.json. |
+| [SAMEN-SWEEP-22-11.md](<SAMEN-SWEEP-22-11.md>) | Werkdocument. Samen-sweep van alles sinds v0.64.0: wat de sweep vond en herstelde, de controles en het draaiboek voor de 3-instantie-run (testbank-stappen en verwachte uitkomst), bron: sectie sweep22 in scripts/coop_coverage.json. |
 | [COOP-SWEEP-21-11.md](<COOP-SWEEP-21-11.md>) | Werkdocument. Draaiboek voor de sweep: welke testbank-suites, hoeveel Electron-instanties, hoe lang. |
 | [COOP-OPSLAAN.md](<COOP-OPSLAAN.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/multiplayer.md`](../.specs-fire/standa… |
 | [COOP-OVERDRAGEN.md](<COOP-OVERDRAGEN.md>) | Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). Dit docu… |

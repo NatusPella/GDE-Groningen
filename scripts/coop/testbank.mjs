@@ -105,7 +105,7 @@ const P = {
     [28, 'allesstap', { stap: 'outfit', s: 3 }], [34, 'allesstap', { stap: 'tuning', s: 3 }], [40, 'allesstap', { stap: 'bezit', s: 14 }],
     [58, 'gastwinkel', { s: 50 }],
     [114, 'gastbijbaan', { s: 50, wie: 'gast', id: 'krantenwijk', beloon: 150 }],
-    [170, 'filmpje', { s: 8 }], [178, 'allesstap', { stap: 'zinnen', wie: 'gast', s: 3 }], [182, 'allesstap', { stap: 'doel', wie: 'gast', s: 3 }], [186, 'allesstap', { stap: 'geld', s: 2 }], [192, 'opslagcheck', {}], [194, 'wacht', { s: 4 }],
+    [170, 'filmpje', { s: 8 }], [178, 'allesstap', { stap: 'zinnen', wie: 'gast', s: 3 }], [182, 'allesstap', { stap: 'doel', wie: 'gast', s: 3 }], [186, 'allesstap', { stap: 'geld', s: 2 }], [188, 'allesstap', { stap: 'radio', wie: 'host', s: 2 }], [192, 'opslagcheck', {}], [194, 'wacht', { s: 4 }],
     ...(me === 'host' ? [[200, 'stopHost', {}]] : []),
   ]])),
   touch: { host: [[0, 'kijk', { s: 16 }]], gast: [[0, 'touch', { s: 12 }]], gast2: [[0, 'wacht', { s: 16 }]] },
@@ -793,6 +793,7 @@ if (SUITE === 'alles') {
   const bel = of(H, 'gastbijbaan-beloning')[0]; check(!!bel && bel.ok, 'alles bijbaan: de host kon de beloning niet verdelen');
   check(!(e1('host', 'gastbijbaan-eind') || {}).geldWinst, 'alles bijbaan: de host (zonder J) kreeg geld');
   for (const n of NAMES.filter((x) => x !== 'host')) check(!!e1(n, 'filmpje-gast'), `alles cutscene: ${n} zag het filmpje van de host niet`);
+  for (const n of NAMES) { const e = e1(n, 'alles-radio'); check(!!e && !e.fout, `alles radio: ${n} logde ${e ? (e.fout || 'ok') : 'niets'}`); if (e && e.zit && n !== 'host') check(e.groep === 'wierde' || e.bestuurder === 'wierde', `alles radio: ${n} zit mee maar kreeg de zender van de bestuurder niet (${JSON.stringify(e)})`); }
   for (const n of NAMES) { const g = e1(n, 'alles-geld'); check(!!g && g.na >= g.voor - 1, `alles geld: ${n} verloor geld zonder aankoop (${JSON.stringify(g)})`); }
 }
 // ----- suites 'bijbaan' en 'vier' (#1011): een bijbaan door een gast in echte vensters

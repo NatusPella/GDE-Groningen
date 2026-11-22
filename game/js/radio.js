@@ -118,18 +118,18 @@ function announceChannel(z) {
 // whoever picks a channel wants to hear it. In a vehicle the choice is remembered for that kind of vehicle (radiovehicle.js, #988) and
 // is not the world choice; `auto` is the radio switching by itself on getting in or out: nothing is remembered or saved then, and the
 // radio stays off if it was off.
-export function selectChannel(id, { announce: show = true, auto = false } = {}) {
+export function selectChannel(id, { announce: show = true, auto = false, groep = false } = {}) {
   if (!openChannelIds().includes(id)) return false;
   // Samen spelen: de bestuurder kiest, een passagier volgt (radiocontrol.js radioPassenger)
   if (!auto && isPassenger()) { if (world && world.addMessage) world.addMessage(PASSENGER_TEXT, 3); return false; }
   const z = channelById(id);
   const was = channelId;
   channelId = id;
-  if (!auto) {
+  if (!auto && !groep) { // de zender van het voertuig (Samen spelen) en de automatische wissel overschrijven je eigen keuze niet
     if (vehState.kind) rememberVehicle(id);
     else { wanted = id; saveChannel(); }
   }
-  if (!on && !auto) setRadio(true, { announce: false });
+  if (!on && !auto && !groep) setRadio(true, { announce: false });
   if (was !== id) {
     R.done = null; R.queue = []; hideSub();
     setRadioChannel(id);
@@ -137,6 +137,7 @@ export function selectChannel(id, { announce: show = true, auto = false } = {}) 
     if (world) { prog = programmeFor(z, world.clock); setRadioProgramme(prog); }
     if (show) { if (world) channelNotice(world, z, true); announceChannel(z); }
   }
+  if (!groep && groupHook.deel) { try { groupHook.deel(id); } catch (e) { /* de zender delen is een extraatje */ } }
   return true;
 }
 
@@ -185,6 +186,25 @@ export function updateRadioVehicle(w) {
     channelNotice(w, channelById(channelId), switched);
   }
   vehSeen = v;
+}
+
+// Samen spelen (radiogroup.js): in een gedeeld voertuig kiest de bestuurder en volgt een passagier hem; coopnet.js levert de bron
+// (welke zender hoort nu bij dit voertuig, of null) en de haak om je eigen keuze te delen (bestuurder) of te stemmen (passagier).
+const groupHook = { bron: null, deel: null };
+export function setRadioGroup(h) { groupHook.bron = h && typeof h.bron === 'function' ? h.bron : null; groupHook.deel = h && typeof h.deel === 'function' ? h.deel : null; }
+let groupActive = false, groupAt = 0;
+function checkGroupChannel(w) {
+  if (!groupHook.bron || w.time < groupAt) return;
+  groupAt = w.time + 1;
+  const open = openChannelIds();
+  const g = groupHook.bron(open);
+  if (g && open.includes(g)) {
+    if (g !== channelId && on) { groupActive = true; selectChannel(g, { announce: false, groep: true }); }
+  } else if (groupActive) {
+    groupActive = false;
+    const eigen = validChannel(wanted, open);
+    if (eigen !== channelId) selectChannel(eigen, { announce: false, groep: true });
+  }
 }
 export function stepChannel(dir = 1) {
   return selectChannel(nextChannel(channelId, openChannelIds(), dir));
@@ -308,6 +328,7 @@ export function updateRadio(dt, w) {
   else if (nk === 'prev') stepChannel(-1);
   else if (nk === 'wheel') openRadioWheel();
   checkNewChannels(w);
+  checkGroupChannel(w);
   // Alleen de speler zet de radio aan. Vroeger stond hier `on || playerBusy(...)`,
   // waardoor een minigame, de helirun en de duifmodus hem zelf weer aanzetten en
   // de keuze van de speler overschreven (#502).

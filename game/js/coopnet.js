@@ -34,6 +34,7 @@ import { KLOK_EVERY, klokEvent, leesKlokEvent, KlokVolger } from './net/speelklo
 import { HASH_EVERY, viewOf, hashEvent, leesHashEvent, DesyncMonitor } from './net/desync.js';
 import { PING_TOETSEN, PING_TEKST, pingPlek, pingMarkers, pingRegel, afzender as pingSender } from './coopping.js';
 import { receivePhrase, readPhrase, phraseEvent, createPhraseState, allowPhrase as zinNeemOp, mayReceive as zinMag, toggleMuteState as zinWisselStand, muteStateOf as zinStandVan, PHRASE_TTL } from './multiplayerphrases.js';
+import { readTune, tuneEvent, tuneRecipients, createRadioGroup, tunePace, receiveTune, groupLeave, groupChannel, groupFootReset, tuneAfterBoarding } from './radiogroup.js';
 import { goalEvent, readGoal, receiveGoal, answerGoal, openGoal, createGoalState, recipients as doelOntvangers, defaultReach, roleInVehicle, occupancyOf, goalPace } from './multiplayergoal.js';
 import { spelersRijen, groepenVoor, wegMelding } from './coopspelers.js';
 import { maakMeedoen, opdrachtSleutel, standVan, begin as meedoenBegin, einde as meedoenEinde, antwoord as meedoenAntwoord, tik as meedoenTik, loopVrij, krijgtDeel, maakUitnodiging, uitnodigingTekst, toeschouwerTekst, LATE_GRENS, laat as meedoenLaat, bevestig as meedoenBevestig, meespelers } from './coopmeedoen.js';
@@ -272,7 +273,7 @@ function endCoop(world) {
   world.coopWanted = null; world.coopHeat = null; world.coopDoelwit = 0; world.coopWantedMeld = null; world.coopGepakt = null; world.coopStil = false; // (#434)
   if (world.companion) world.companion.coopWacht = false;
   world.coopOpdrachtDoor = null; world.coopMeespelers = null; // (#452)
-  world.coopMeld = null; world.coopDeel = null; world.coopBijbaanStart = null; world.coopBijbaanBeloning = null; world.coopBijbaanEind = null; world.coopBijbaanHostMee = null; world.coopHelpers = null; world.coopBijbaanHelpers = null; world.coopSideJobs = null; world.coopBijbaanStop = null; world.coopUitslag = null; world.coopPingMarks = []; world.coopSpelers = []; world.coopGebruik = false; world.coopWielSlot = null; world.coopWielVraag = null; world.coopWiel = false; world.coopInVoertuig = false; world.coopBestuurder = false; // (#291, #434)
+  world.coopMeld = null; world.coopDeel = null; world.coopBijbaanStart = null; world.coopBijbaanBeloning = null; world.coopBijbaanEind = null; world.coopBijbaanHostMee = null; world.coopHelpers = null; world.coopBijbaanHelpers = null; world.coopSideJobs = null; world.coopBijbaanStop = null; world.coopUitslag = null; world.coopPingMarks = []; world.coopSpelers = []; world.coopGebruik = false; world.coopWielSlot = null; world.coopWielVraag = null; world.coopWiel = false; world.coopInVoertuig = false; world.coopBestuurder = false; world.coopRadioGroep = null; // (#291, #434)
   world.coopTreinMeld = null; world.coopTrein = null; world.coopTreinDeur = false; world.coopTreinWaak = false; world.coopTreinWalk = null; world.coopTreinWalkMeld = null; // de treinpassagier-haak, -stand, de deuren/waak en de looppositie van de conducteur horen bij de sessie (#492)
   world.coopVraag = null; world.coopStem = null; world.coopStemBeantwoord = null; world.coopKeuze = null; // gezamenlijke keuzes (#452, #686)
   world.coopBezit = null; world.coopBezitVraag = null; // eigen voertuigen meenemen en delen (#449)
@@ -368,12 +369,14 @@ export function startHost(world, info, opts = {}) {
       // De naam komt van de hub: die is al uit de lijst weg als dit draait.
       if (slot >= 1 && world.addMessage) world.addMessage(`${naam || gastNaam(world, slot)} heeft het spel verlaten.`, 3.5);
       bestuurLos(world, slot); treinUit(world, slot); bezigWeg(world, slot); wapenWeg(world, slot); passiefWeg(world, slot); bijbaanWeg(world, slot);
+      tuneLeft(world, slot); // zijn radiostem en keuze gaan mee; het voertuig houdt zijn zender
       try { bezitLeave(world, slot); } catch (e) { /* geen bezit */ } // zijn claims verdwijnen
       bezorgWeg(world, slot, (s) => bestuurLos(world, s)); // zijn eigen voertuig gaat mee terug (#449)
       if (world.coopWanted) delete world.coopWanted[slot]; // een gast die weggaat neemt zijn sterren mee (#434) // het voertuig van een gast die weggaat staat stil en de stoel is vrij (#434)
       if (slot >= 1) removeFigure(world, slot); // elke gast is een figuur (#502): ook plek 1 verdwijnt uit de wereld
     },
     onLost: (slot) => {
+      tuneLeft(world, slot);
       bestuurLos(world, slot); treinUit(world, slot); bezigWeg(world, slot); bijbaanWeg(world, slot);
       const f = slot >= 1 ? lichaamVan(world, slot, true) : null; if (f) f.input = null;
       // pauze per speler (#452): de rest speelt door; alleen als de lopende opdracht deze speler echt nodig heeft pauzeert het spel
@@ -1107,6 +1110,7 @@ export function tickCoopNet(world, dt) {
     world.coopDoelVraag = false;
   }
   outfitLijstTik(world);
+  if (n.role === 'host') { n.tZender = (n.tZender || 0) + dt; if (n.tZender >= 1) { n.tZender = 0; tuneBoardTick(world, n); } }
   n.tSpelers += dt;
   if (n.tSpelers >= 0.25) { n.tSpelers = 0; bouwSpelers(world, n); }
   if (n.role === 'host') { wedHostTik(world, dt); bijbaanHostTik(world, dt); } // een uitnodiging voor een race, minigame of bijbaan loopt af (#443, #452)
@@ -1160,6 +1164,7 @@ export function tickCoopNet(world, dt) {
       applyHostState(world, s.slot, sample, world.coopRoster, dt);
       const ik = sample && sample.players.find((q) => q.slot === s.slot);
       world.coopInVoertuig = !!(ik && ik.inVeh);
+      world.coopZitId = ik && ik.inVeh ? (ik.vehicle != null ? ik.vehicle : 'gast') : null; // welk voertuig (radiogroup.js: elk voertuig houdt zijn eigen zender)
       world.coopBestuurder = !!(ik && ik.inVeh && ik.driver); // je zit zelf achter het stuur van een voertuig bij de host (#434): Spatie is de handrem
       if (!world.coopInVoertuig) world.coopWiel = false;
       world.coopHost = sample ? leesEntiteiten(sample.entities) : { voertuigen: [], doelen: [], voetgangers: [], treinen: [] };
@@ -1329,6 +1334,13 @@ export function handleEvent(world, body, van = 0) {
       if (n.role === 'host') return van >= 1 ? routeGoal(world, n, van, d) : false;
       if (!n.joined || !Number.isInteger(body.van)) return false;
       return receiveGoalLocally(world, d, body.van, body.rol === 'bestuurder' || body.rol === 'navigator' ? body.rol : null);
+    }
+    case 'zender': { // de radiozender in een gedeeld voertuig (radiogroup.js): de bestuurder kiest, een passagier stemt; de host stuurt door
+      if (!n) return false;
+      const z = readTune(body); if (!z) return false;
+      if (n.role === 'host') return van >= 1 ? routeTune(world, n, van, z) : false;
+      if (!n.joined || !Number.isInteger(body.van)) return false;
+      return receiveTuneLocally(world, z, body.van);
     }
     case 'missie': { // wat de host speelt; de gast ziet het als melding, extra spelers lopen mee in de open wereld
       if (!n || n.role !== 'client') return false;
@@ -1730,6 +1742,73 @@ function receiveGoalLocally(world, d, van, rol) {
   if (!r.toon) return false;
   if (world.addMessage) world.addMessage(r.regel, 8);
   return true;
+}
+// De radiozender in een gedeeld voertuig (radiogroup.js, ADR 0046). De zender zelf blijft lokaal; alleen de keuze van de bestuurder gaat
+// naar wie meerijdt, en een stem van een passagier naar de bestuurder. De host begrenst per afzender en stuurt door naar wie in
+// hetzelfde voertuig zit; wie later instapt hoort de keuze bij de eerstvolgende tik (tuneBoardTick).
+const radioGroupStateOf = (world) => world.coopRadioGroep || (world.coopRadioGroep = createRadioGroup());
+function myOccupancy(world, n) {
+  const ik = mijnSlot(n);
+  if (n.role === 'host') return occupancyOf(world);
+  const zit = !!world.coopInVoertuig;
+  return [{ slot: ik, voertuig: zit ? (world.coopZitId != null ? world.coopZitId : 'gast') : null, bestuurder: zit && !!(world.coopBestuurder || world.coopWiel) }];
+}
+function routeTune(world, n, van, z) {
+  const st = n.zenderRelay || (n.zenderRelay = { laatste: {}, keuze: {}, gemeld: {} });
+  if (!tunePace(st, van, now(world))) return false;
+  const bez = occupancyOf(world);
+  if (!z.stem) st.keuze[van] = z.id;
+  let gelukt = false;
+  for (const s of tuneRecipients(van, z.stem, bez)) {
+    if (!z.stem) { const p = bez.find((b) => b.slot === s); if (p) st.gemeld[s] = { van, id: z.id, voertuig: p.voertuig }; }
+    if (s === 0) gelukt = receiveTuneLocally(world, z, van) || gelukt;
+    else if (n.hub.announce({ k: 'zender', id: z.id, van, ...(z.stem ? { stem: true } : {}) }, s) !== false) gelukt = true;
+  }
+  return gelukt;
+}
+function receiveTuneLocally(world, z, van) {
+  const n = world.coopNet;
+  const a = pingSender(van, world.coopRoster, mijnSlot(n));
+  const mij = myOccupancy(world, n).find((b) => b.slot === mijnSlot(n));
+  const r = receiveTune(radioGroupStateOf(world), { k: 'zender', id: z.id, stem: z.stem }, a, now(world), { mag: zinMag(phraseStateOf(world), a, 'zender'), aan: phrasesEnabled(), voertuig: mij ? mij.voertuig : null });
+  if (!r.toon) return false;
+  if (world.addMessage) world.addMessage(r.regel, 3);
+  return true;
+}
+// De bestuurder zet een zender op en deelt hem met wie meerijdt; een passagier kiest voor zichzelf (hij volgt de bestuurder niet meer)
+// en stemt zo ook op die zender; te voet gaat er niets over het net. Geeft false als er niets is verstuurd.
+export function shareTune(world, id) {
+  const n = world.coopNet;
+  if (!n || (n.role === 'client' && !n.joined) || !readTune({ k: 'zender', id })) return false;
+  const ik = mijnSlot(n), mij = myOccupancy(world, n).find((b) => b.slot === ik);
+  if (!mij || mij.voertuig == null) return false;
+  const stem = !mij.bestuurder;
+  if (stem) { const st = radioGroupStateOf(world); st.volgt = false; st.eigen = id; }
+  if (n.role === 'client') return n.session.sendEvent(tuneEvent(id, stem)) !== false; // de host kiest de ontvangers
+  return routeTune(world, n, 0, { id, stem });
+}
+// Wat de radio nu hoort te spelen (radio.js vraagt het): de zender van het voertuig voor een passagier, anders null.
+export function groupTune(world, open) {
+  const n = world.coopNet;
+  if (!n || (n.role === 'client' && !n.joined) || !world.coopRadioGroep) return null;
+  const ik = mijnSlot(n), bez = myOccupancy(world, n);
+  groupFootReset(world.coopRadioGroep, ik, bez, now(world));
+  return groupChannel(world.coopRadioGroep, ik, bez, open);
+}
+// Host: wie na de keuze van de bestuurder instapt, hoort hem alsnog.
+function tuneBoardTick(world, n) {
+  const st = n.zenderRelay; if (!st) return;
+  for (const m of tuneAfterBoarding(occupancyOf(world), st.keuze, st.gemeld)) {
+    const p = occupancyOf(world).find((b) => b.slot === m.naar);
+    if (m.naar === 0) receiveTuneLocally(world, { id: m.id, stem: false }, m.van);
+    else n.hub.announce({ k: 'zender', id: m.id, van: m.van }, m.naar);
+    if (p) st.gemeld[m.naar] = { van: m.van, id: m.id, voertuig: p.voertuig };
+  }
+}
+function tuneLeft(world, slot) {
+  if (world.coopRadioGroep) groupLeave(world.coopRadioGroep, slot);
+  const n = world.coopNet;
+  if (n && n.zenderRelay) { delete n.zenderRelay.gemeld[slot]; delete n.zenderRelay.laatste[String(slot)]; }
 }
 // J of N op een gedeeld doel; bij "volg" geeft dit { actie: 'volg', x, y, naam } terug en zet de aanroeper het op zijn eigen kaart.
 export function answerSharedGoal(world, volg) { return answerGoal(goalStateOf(world), volg, now(world)); }

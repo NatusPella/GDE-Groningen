@@ -11,8 +11,6 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 ### Besturing met een controller
 - Acties-wiel (controller-review 22-11, #495, #1011): houd Overzicht een halve seconde ingedrukt en een wiel toont alles wat in die situatie geen eigen knop heeft: de radio in een auto (sinds #495 weg van het pad), de volgende zender, andere kleren, de filmcamera, eerste persoon, het waypoint naar je doel, de directe wapenkeuze, de alarmlichten, het lakmenu, het kusje, de busdienst overnemen (G) en in Samen spelen de roepjes en snelle zinnen in een voertuig. Kies met de linkerstick of de D-pad, A bevestigt, B sluit, LB en RB bladeren. Een korte tik op Overzicht is nog steeds de kaart (die gaat nu bij het loslaten open). Wie niet kan houden zet de tikstand aan: dan opent een tik het wiel. Herbinden werkt gewoon door. Een toets die alleen in het wiel zit, toont in de hints de knop Overzicht met "houd". Invoer is lokaal; er gaat niets over het net.
 - Samen spelen aan de waterkant: de roepjes (Kom hier, Help!, Kijk daar) en "bij de groep komen" staan op de D-pad zoals te voet; X blijft hengelen. Het wiel met snelle zinnen opent niet meer in de trein en op de trekker, waar T al het lopen door de trein en de hef is.
@@ -29,7 +27,6 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Radio met alleen een controller (#988, #495): een zender kiezen kan nu zonder het menu, in elk voertuig en te voet. In het acties-wiel (houd Overzicht) staat een pagina Radio met aan of uit, volgende zender, vorige zender en Zenders kiezen; dat laatste opent een lijst met elke zender met een icoontje en zijn naam, de huidige gemarkeerd, geheime zenders die je nog niet vond verborgen en Binnenkort grijs en niet te kiezen. De D-pad of de stick kiest, A bevestigt, B sluit; het voertuig blijft rijden (de stick stuurt dan even niet). Te voet is D-pad omhoog nog steeds de radio aan of uit en houd je hem ingedrukt, dan opent het zenderwiel. Op het toetsenbord blijft N de radio aan of uit (nu bij het loslaten), Shift+N de volgende zender, nieuw is Alt+N de vorige zender en N vasthouden het zenderwiel (pijlen kiezen, Enter bevestigt, Esc sluit). Na een wissel komt dezelfde melding als bij het instappen (zender en DJ, titel en artiest) en de keuze wordt per voertuigsoort onthouden. Samen spelen: de bestuurder kiest de zender van het voertuig, een passagier volgt en kan niet wisselen; aan of uit blijft ieders eigen keuze. Alle knoppen volgen de herbinding van Besturing (docs/RADIO-BEDIENING-22-11.md). Niet met een echte controller bekeken.
 ### Geluid
 - Geluid: een klank met een onbekende afstand, een voetstap met een rare snelheid of een melding zonder tijd valt niet meer stil of blijft niet voorgoed hangen; het volume uit een tekst als 50% wordt gelezen; de radio herhaalt zich op lange duur niet.
-=======
 ### Bezit en economie
 - Dagrapport: elke speldag zie je in één korte melding wat er binnenkwam en uitging (percelen, bedrijven, snackwagen, ketens, verzekering) en of je personeel heeft gewerkt; het laatste rapport blijft in Overzicht staan. Is je geld op, dan zegt de melding dat. Lokaal per speler.
 - Een perceel met vee verkopen betaalt de kudde nu uit (net als Vee verkopen); voorheen ging die gratis mee. De kaart noemt het bedrag.
@@ -37,11 +34,15 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Grijze koopknoppen zeggen waarom ("Je mist nog ..."), een mislukte koop geeft een eigen reden, en de lijst Te koop onderscheidt "nog aan het laden" van "niets in de buurt".
 - Meer velden tegelijk oogstklaar? Eén melding in plaats van een stoet. In Overzicht staat het loon per dag naast de opbrengst.
 - Snackwagen: een wagen die nog thuis staat krijgt uitleg over de eerste vergunning, en een leeg menu een waarschuwing.
->>>>>>> verfijn-bezit-22-11
-=======
 ### Thuis
 - Thuis beginnen in de woning (#1022, #1161): laad je een spel dat bij je huis stond, of kies je Naar huis, dan sta je binnen in de flat in Paddepoel, in de woonkamer en kijkend naar het raam, in plaats van beneden voor de deur; de lift en de voordeur zijn je uitweg. Het laadscherm wacht tot de flat staat (na hooguit 6 seconden sta je alsnog voor de deur). Een save die buiten stond blijft buiten, een save midden in een missie houdt zijn plek, en een oud spel begint boven. Een nieuw spel en de openingsfilm beginnen nog voor de deur. In Instellingen > Spel staat Start binnen (thuis), standaard aan. Lokaal per speler: een gast die aansluit komt naast de host, en staat de host boven, dan wordt niemand in het torengebouw gezet. Niets hiervan is in beeld bekeken.
->>>>>>> spawn-binnen-22-11
+### Samen spelen (sweep 22-11)
+
+- De radiozender in een gedeeld voertuig: de bestuurder kiest, wie meerijdt volgt hem (of kiest zelf en stemt), wie later instapt hoort de zender van het voertuig; te voet is het weer je eigen zender.
+- Spel overdragen wacht nu ook op een lopende wedstrijd of race; de eigen bijbaan van wie het spel overdraagt stopt met een melding.
+- De melding van een nieuw gebied of een nieuwe streek komt pas nadat het laadscherm weg is.
+
+
 ### Prestaties
 - Prestaties (#1074, #1067): als het spelvenster verborgen of op de achtergrond is, doen de vaste controles van de overlays, het Samen-paneel en het aanraakscherm niets meer; de kartmotor wordt bij het verlaten van de baan echt stopgezet. Samen spelen: lokaal per speler, geen netwerkwijziging; testsessies met `?stil` blijven gewoon tikken. Voor de metingen staan er twee A-schakelaars (`?perfoff=boomfade`, `?perfoff=gevelfade`).
 ### Controller en bediening
@@ -51,15 +52,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Voetbal, keuzescherm: met E (Y op de controller) kom je op een tweede pagina waar de D-pad de opties stijl, duur, kaarten en blessures, camera en derby kiest; die vier waren alleen met het toetsenbord te kiezen.
 - Klimtoren: met Tikken in plaats van ingedrukt houden (Instellingen) klikt een tik op A of D die hand vast of los, zodat je niet beide toetsen tegelijk vast hoeft te houden. Standaard uit.
 ### Kaart en HUD
-<<<<<<< HEAD
-<<<<<<< HEAD
 - Meldingen (#990, #1069): een nieuwe streek ontdekken (de gele gloed om de minimap, de onthulling op de kaart), de wijkkaart, prestaties en HUD-kaarten wachten tot het laadscherm weg is, en ook tijdens het opstartscherm of een cutscene komt er niets bij. Daarna komen ze een voor een met dezelfde duur en het aflopende balkje; meerdere ontdekkingen worden één melding, oude (na 20 s) vallen weg, prestaties gaan nooit verloren. Een savegame laden geeft geen "nieuw"-melding voor een streek die je al kende. Samen spelen: lokaal per speler, geen netwerkverkeer.
-=======
 - Laadscherm (#1069, #1002): "Naar" lag over de tagline onder het logo en de bestemming, de tag en het logo zaten op elkaar, vooral bij een grotere interface of een lage hoogte. Nu staan het logo, de bestemming (één bord: de groene strook "Naar", de plaats, de tag) en het gekantelde plaatje in vaste kolommen met ademruimte en een vaste zone onderaan voor de balk en de ene statusregel. Een lange plaatsnaam krimpt en eindigt in een ellips. Het bootscherm schaalt mee met de hoogte. Gemeten in een echte browser op 720p tot 1440p en interfacegrootte 1 tot 1,5 (docs/LAADSCHERM-LAYOUT-22-11.md); nog niet in het spel zelf bekeken.
->>>>>>> laadscherm-layout-22-11
-=======
 - Verfijning: HUD-balken en kaartjes schuiven in 250 ms in plaats van 300 ms; een lange melding in het pauzemenu blijft langer staan zodat je hem kunt lezen; Enter op de afsluitvraag doet altijd iets veiligs; een kapotte instelling of een heel klein venster geeft geen vreemde HUD-maten meer. Lokaal per speler.
->>>>>>> verfijn-ui-ds3-22-11
 - Kaart: een nieuwe streek ontdekt, ook onderweg met de kaart dicht? Dan gloeit de rand van de minimap even zomers geel op (zonder beweging blijft de gele rand even staan). Ontdekking is per speler; wie meespeelt ziet alleen de eigen gloed (#990).
 - Gebiedsnaam: de prestatie voor wijken, de telefoonpraatjes en de duif noemen alleen nog een stadswijk als je er echt in staat, niet meer vanaf een weg net buiten de stad. Lokaal per speler (#1077).
 - Hulp: het aanbod na twee mislukkingen laat met drie icoontjes zien wat de hulp verandert (tijd, schade, poorten) in plaats van een lap tekst. De schermlezer hoort nog steeds de hele tekst. Elke speler ziet het eigen aanbod (#989).

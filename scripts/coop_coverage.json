@@ -75,7 +75,8 @@
     "homebase*",
     "reputation*",
     "unlockgate*",
-    "storymultiplayer"
+    "storymultiplayer",
+    "fatbikedodge"
    ],
    "eigenaar": "wereld",
    "gast": "Meedoen? (J of N); wie J zegt loopt mee, anderen kijken. Stappen met rekwisieten bij de host zijn deels.",
@@ -138,24 +139,24 @@
    "wegval": "Niets te herstellen: de poort leest de eigen progress.",
    "test": [
     "scripts/unlockgate_test.mjs",
-    "scripts/storybridge_test.mjs"
+    "scripts/storybridge_test.mjs",
+    "scripts/samen_sweep_test.mjs"
    ],
    "regel": {
     "doc": "docs/VERHAAL-ANALYSE-21-11.md",
     "zoek": "een gast mag een bijbaan of loopbaan alleen beginnen als hij hem zelf heeft ontgrendeld"
    },
-   "wachtOp": "epic-verhaal-21-11",
-   "status": "gat",
-   "prio": "middel",
-   "lead": "Verhaal",
-   "gat": "Bewijs met een pure test dat storybridgerun.js niets doet bij coopRole client en dat een gast niet in de overgangsscene van de host vastloopt."
+   "status": "OK",
+   "prio": "-",
+   "gefixt": "22-11: het bewijs dat een meespeler en een lopende sessie geen overgangsscene spelen en dat een gast zijn eigen done en flags houdt staat in scripts/storybridge_test.mjs (bridgeBlockers: client en session); de scene speelt lokaal bij wie het spel opende en een gast kan er niet in vastlopen."
   },
   {
    "id": "recap",
    "naam": "Recap Waar waren we?",
    "groep": "Verhaal",
    "modules": [
-    "recapcard*"
+    "recapcard*",
+    "recapstate"
    ],
    "eigenaar": "lokaal",
    "gast": "Bestaat alleen bij Doorgaan in een sessie van een; een gast of lopende sessie slaat hem over.",
@@ -372,7 +373,8 @@
     "bietenhal",
     "bietenrules",
     "machines",
-    "landbouw*"
+    "landbouw*",
+    "karakterbonus"
    ],
    "eigenaar": "speler",
    "gast": "Eigen akker in het pauzemenu; de klus op het land speel je als lokale minigame (boerderijgast.js).",
@@ -435,11 +437,14 @@
     "doc": "docs/COOP-GAST.md",
     "zoek": "## Bezit (21-11, epic Bezit)"
    },
-   "wachtOp": "epic-bezit-21-11",
-   "status": "gat",
+   "status": "deels",
    "prio": "hoog",
    "lead": "Bezit",
-   "gat": "Bezit 22-11: de testbankstap bezit (coop.page.js bezitAlles, bezitstap_check.mjs), de claims over het JSON-kanaal (bezitnet.js, 20 controles) en de sponsorpanden zijn er; nieuw: verzekering en bestrijding per perceel en het Notariaat-bericht zijn eigen toestand per speler (geen netwerkverkeer). Open: de Electron-run van de testbank met drie instanties, het meewerken van een gast op andermans perceel met een echte trekker en wat een gast ziet bij een hostwissel in beeld (nog niet bekeken)."
+   "gat": "Pure en geheugentests zijn groen (claims, aansluiten, wegvallen, hostwissel, rate limit in bezitnet_test, verzekering en bestrijding per speler). Alleen met echte vensters te bewijzen: een gast die op andermans perceel meewerkt met een echte trekker, wat een gast na een hostwissel in beeld ziet, en een late aansluiter die de bestaande percelen op de kaart ziet (nog niet bekeken).",
+   "venster": [
+    "alles/bezit",
+    "alles/latejoin"
+   ]
   },
   {
    "id": "voetbalcarriere",
@@ -482,10 +487,13 @@
     "doc": "docs/COOP-GAST.md",
     "zoek": "## Voetbalcarrière (#1106"
    },
-   "status": "gat",
+   "status": "deels",
    "prio": "middel",
    "issue": "#1157",
-   "gat": "Gekoppeld (#1157): de ratings van een gast reizen mee met Meedoen J en de host klemt ze (niveau van de wereld en klasse van de eigen carrière); de gast krijgt in zijn eigen carrière het verschil en 60% ervaring (guestCareerExtra). Open: sponsorpanden wachten op Bezit; uitwedstrijd als reis is niet gebouwd; de gastbeloning is niet in een venster bekeken."
+   "gat": "Ratings van een gast reizen mee en worden geklemd, de gastbeloning is per speler (voetbal_samen_test, samenwedstrijd_tcp_test). Open: sponsorpanden wachten op Bezit, uitwedstrijd als reis is niet gebouwd (geen Samen-regel nodig tot dan) en de gastbeloning is niet in een venster bekeken.",
+   "venster": [
+    "wedstrijd/voetbal-gast"
+   ]
   },
   {
    "id": "voetbalwedstrijd",
@@ -614,7 +622,8 @@
    "test": [
     "scripts/clothing_test.mjs",
     "scripts/coopspeler_test.mjs",
-    "scripts/coop/uiterlijk_tcp_test.mjs"
+    "scripts/coop/uiterlijk_tcp_test.mjs",
+    "scripts/samen_sweep_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
@@ -656,11 +665,10 @@
     "doc": "docs/COOP-GAST.md",
     "zoek": "## Eigen voertuigen meenemen en delen (#449)"
    },
-   "status": "gat",
-   "prio": "middel",
-   "lead": "Tuning",
+   "status": "OK",
+   "prio": "-",
    "issue": "#1158",
-   "gat": "De onderdelen van tuningplan.js (banden, uitlaat, stoel, verlichting, geluid; gde-tuning-v1) reizen niet mee in het bezorg-bericht (coopbezit.js kent alleen color, upgrades, health, dents, flat): een bezorgde auto verliest zijn tuning in andermans wereld. Voeg een gesaneerd tuning-veld toe (PROTO blijft) en een test."
+   "gefixt": "22-11: de tuning van een bezorgd voertuig (onderdelen en look-code) reist mee in het bezorgbericht (coopbezit.js TUNING_VELD, leesTuning, bezorgHost geeft hem aan de host-kopie); scripts/coopbezit_test.mjs keurt het veld, ook een ouder bericht zonder."
   },
   {
    "id": "interieurs",
@@ -721,24 +729,31 @@
     "flightrules",
     "boat*",
     "ridepath",
-    "passages"
+    "passages",
+    "radiogroup",
+    "airguide",
+    "airguide*",
+    "airprofile",
+    "sailline"
    ],
    "eigenaar": "wereld",
-   "gast": "E bij een vrij voertuig: je stapt in als bestuurder of bijrijder; Y geeft het stuur; schade en politie zijn van de bestuurder.",
+   "gast": "E bij een vrij voertuig: je stapt in als bestuurder of bijrijder; Y geeft het stuur; schade en politie zijn van de bestuurder. De luchtroute-HUD (airguide, airguidecard) en de vaarlijn zijn lokaal per speler: elke speler ziet zijn eigen route, er gaat niets over het net. De radiozender in een gedeeld voertuig kiest de bestuurder (radiogroup.js).",
    "beloning": "Geen.",
    "wegval": "De bestuurder valt weg: het voertuig wordt vrij of de bijrijder krijgt het stuur; niets blijft hangen.",
    "test": [
     "scripts/coopbestuur_test.mjs",
     "scripts/coopmeerijden_test.mjs",
     "scripts/coopboot_test.mjs",
-    "scripts/coopvoertuigen_test.mjs"
+    "scripts/coopvoertuigen_test.mjs",
+    "scripts/radiogroup_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
     "zoek": "| Bijrijden |"
    },
    "status": "OK",
-   "prio": "-"
+   "prio": "-",
+   "gefixt": "22-11: de radiozender in een gedeeld voertuig (bestuurder kiest, passagier volgt of stemt, late instapper volgt) is gebouwd: radiogroup.js, bericht zender, radio.js-haak; scripts/radiogroup_test.mjs."
   },
   {
    "id": "pings",
@@ -756,16 +771,18 @@
    "wegval": "Een ping vervalt vanzelf; niets te herstellen.",
    "test": [
     "scripts/coopspelers_test.mjs",
-    "scripts/coophostwisselwereld_test.mjs"
+    "scripts/coophostwisselwereld_test.mjs",
+    "scripts/multiplayerping_test.mjs",
+    "scripts/multiplayergoal_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
     "zoek": "**Pings, snelle zinnen en een doel delen (21-11"
    },
-   "status": "gat",
-   "prio": "middel",
+   "status": "OK",
+   "prio": "-",
    "issue": "#1159",
-   "gat": "Een ping kan alleen met 7, 8 of 9 vanaf je eigen plek; geen ping op een gekozen kaartpunt en geen waypoint delen (ook niet voor de bijrijder in een auto). Een eigen test voor coopping.js ontbreekt."
+   "gefixt": "22-11: een ping op een gekozen kaartpunt (pingGoal) en een waypoint delen (shareGoal, bestuurder met bijrijder of iedereen) bestaan; coopping.js heeft een eigen test (multiplayerping_test.mjs) en het delen een geheugenverbindingstest (multiplayergoal_test.mjs)."
   },
   {
    "id": "zinnen",
@@ -781,7 +798,8 @@
    "wegval": "Geen staat: wat gemist is blijft gemist. Dempen en blokkeren staan op naam in het geheugen en blijven na een hostwissel gelden; niets wordt opgeslagen.",
    "test": [
     "scripts/multiplayerphrases_test.mjs",
-    "scripts/playerstatus_test.mjs"
+    "scripts/playerstatus_test.mjs",
+    "scripts/samen_sweep_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
@@ -807,7 +825,11 @@
     "routing",
     "gebieden*",
     "verkenpunten",
-    "explorationlive"
+    "explorationlive",
+    "loadwait",
+    "districtat",
+    "pathribbonwatch",
+    "pathgraphbuild"
    ],
    "eigenaar": "speler",
    "gast": "Elke speler heeft zijn eigen kaart, doel en ontdekking (gde-verkenning-v1); de kaart toont medespelers en pings; kijkanker en kaartheading lezen hoofdspeler(world).",
@@ -817,7 +839,8 @@
     "scripts/viewanchor_test.mjs",
     "scripts/kaartontdekking_test.mjs",
     "scripts/minimap_pijlen_test.mjs",
-    "scripts/navtarget_test.mjs"
+    "scripts/navtarget_test.mjs",
+    "scripts/loadwait_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
@@ -825,7 +848,7 @@
    },
    "status": "OK",
    "prio": "-",
-   "gefixt": "Fix 21-11: viewanchor.js las world.lokaalLichaam || world.player; nu hoofdspeler(world)."
+   "gefixt": "Fix 21-11: viewanchor.js las world.lokaalLichaam || world.player; nu hoofdspeler(world). 22-11: de melding van een nieuw gebied of een nieuwe streek wacht tot het laadscherm weg is (loadwait.js, per speler)."
   },
   {
    "id": "meldingen",
@@ -1325,7 +1348,8 @@
     "uiscale",
     "theme",
     "gfxprofile",
-    "framecap"
+    "framecap",
+    "qte"
    ],
    "eigenaar": "lokaal",
    "gast": "Instellingen zijn per apparaat (gde-settings); niemand beheert de instellingen van een ander.",
@@ -1401,7 +1425,8 @@
     "zoek": "## Vierspelersavond en hostwissel"
    },
    "status": "OK",
-   "prio": "-"
+   "prio": "-",
+   "gefixt": "22-11: overdragen wacht op een lopende race, wedstrijd of score en de eigen bijbaan van de oude host stopt met melding (coophostwisselnet.js kanOverdragen, oudeBaanStop; scripts/coop/hostwissel_test.mjs)."
   },
   {
    "id": "netwerk",
@@ -1431,7 +1456,8 @@
     "samenkeuze",
     "samenpanel",
     "samenplan",
-    "samenspelen"
+    "samenspelen",
+    "multiplayerlaunchtiming"
    ],
    "eigenaar": "gesynct",
    "gast": "Een dunne client: snapshots en invoer; EXTRA-berichten voor wat de snapshot niet draagt; IP-adressen nooit zichtbaar of opgeslagen.",
@@ -1442,7 +1468,8 @@
     "scripts/coopcore_test.mjs",
     "scripts/coop_tcp_test.mjs",
     "scripts/net_lifecycle_test.mjs",
-    "scripts/net_protocol_test.mjs"
+    "scripts/net_protocol_test.mjs",
+    "scripts/samen_sweep_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
@@ -1643,6 +1670,42 @@
   {
    "glob": "paneuv",
    "reden": "Berekening voor de weergave van een paneel; lokaal beeld."
+  },
+  {
+   "glob": "birdbake",
+   "reden": "Alleen beeld: gebakken vogelmeshes, elke client bouwt ze zelf."
+  },
+  {
+   "glob": "compileplanner",
+   "reden": "Laadscherm-compilatie van shaders op dit apparaat; geen spelstaat."
+  },
+  {
+   "glob": "launchcompile",
+   "reden": "Laadscherm-compilatie op dit apparaat; geen spelstaat."
+  },
+  {
+   "glob": "edgeclasses",
+   "reden": "Wereldgeometrie uit de kaartdata (randen rond percelen); bij elke speler identiek en niet te veranderen."
+  },
+  {
+   "glob": "endcardimpact",
+   "reden": "Alleen de planning van het beeld van de eindkaart; lokaal beeld en geluid."
+  },
+  {
+   "glob": "finitesweep",
+   "reden": "Veiligheidsopruiming van niet-eindige posities in de wereld van wie het spel opende; gasten simuleren geen verkeer."
+  },
+  {
+   "glob": "placementurgency",
+   "reden": "Prestatieregel voor het plaatsen van tegels op dit apparaat; geen spelstaat."
+  },
+  {
+   "glob": "popinrules",
+   "reden": "Prestatieregel tegen pop-in op dit apparaat; geen spelstaat."
+  },
+  {
+   "glob": "propfilter",
+   "reden": "Wegcheck van kit-props uit de kaartdata; wereldgeometrie, bij elke speler identiek."
   }
  ],
  "opslag": {
