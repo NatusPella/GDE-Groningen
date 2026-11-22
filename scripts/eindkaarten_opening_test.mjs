@@ -8,7 +8,8 @@ import { kaartRegel, momentVanBanner, bouwMoment, MAX_WOORDEN } from '../game/js
 import { recapContent, RECAP_MAX_WORDS } from '../game/js/recapcard.js';
 import { STEPS, WHY, partName } from '../game/js/storyarc.js';
 import { BOOT_STEPS, BOOT_DONE_LABEL } from '../game/js/loadlogic.js';
-import { TITLE, LINES, SEQUENCE, NAME_CARDS, validateOpening } from '../game/js/openingfilm.js';
+import { TITLE, LINES, SEQUENCE, NAME_CARDS, SFX_KOPPELING, SFX_OPEN, validateOpening } from '../game/js/openingfilm.js';
+import { SFX_MAP } from '../game/js/sfx/sfxmap.js';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const lees = (f) => fs.readFileSync(path.join(ROOT, f), 'utf8');
@@ -129,6 +130,19 @@ const woorden = (t) => String(t || '').trim().split(/\s+/).filter(Boolean).lengt
   const namen = SEQUENCE.filter((s) => s.tag).map((s) => s.tag.who);
   ok(Object.keys(NAME_CARDS).every((k) => namen.includes(k)), 'beide hoofdpersonen krijgen een naamkaart in een shot');
   ok(LINES.filter((l) => l.k !== 'V').every((l) => !/Rikus|Jelle/.test(l.text)), 'in de opening noemt niemand een naam die nog niet is voorgesteld (Rikus is een stem, Jelle een silhouet)');
+}
+
+// --- 7. geluidshaken van de opening ---------------------------------------------------------------------------------------------------
+{
+  for (const [shot, key] of Object.entries(SFX_KOPPELING)) {
+    ok(SEQUENCE.some((x) => x.id === shot), `geluidshaak: shot ${shot} bestaat`);
+    ok(!!SFX_MAP[key], `geluidshaak ${shot}: ${key} staat in de centrale geluidskaart`);
+  }
+  // elk geluidswoord van de reeks is gekoppeld, ontbreekt met reden (SFX_OPEN), of speelt al in de montage (meeuw, notify)
+  const gespeeld = ['meeuw-frikandel', 'notify'];
+  for (const s of SEQUENCE.filter((x) => x.sfx)) ok(SFX_KOPPELING[s.id] || SFX_OPEN[s.id] || gespeeld.includes(s.sfx), `shot ${s.id}: geluid "${s.sfx}" is gekoppeld of bewust open`);
+  const montage = lees('game/js/intromontage.js');
+  ok(montage.includes("sfxEvent(r.w, SFX_KOPPELING['c1-schouder']") && montage.includes("sfxEvent(r.w, SFX_KOPPELING['c2-raam']"), 'intromontage speelt de gekoppelde geluiden met sfxEvent');
 }
 
 console.log(`eindkaarten_opening_test: ${n - fails}/${n} ok`);
