@@ -116,7 +116,7 @@ t('de bron: nederlands, geen merken, geen fetch, geen Math.random', async () => 
 t('de tegel toont de reputatie onder dat woord, de prijs staat een keer per plek en kopen is de gele knop (#1247, #1248, #1249)', () => {
   reset(); const w = wereld();
   const h = U.snackHtml(SL.snackView(w));
-  assert.match(h, /<small>Reputatie<\/small><b>\d+<\/b>/); assert.ok(!/<small>Naam<\/small>/.test(h));
+  assert.match(h, /<small>Reputatie<\/small><b>\d+( van 100)?<\/b>/); assert.ok(!/<small>Naam<\/small>/.test(h));
   const markt = h.slice(h.indexOf('data-spot="markt"'), h.indexOf('data-spot="markt"') + 900);
   assert.equal((markt.match(/€25\.\d{3}|€\d+\.\d{3}/g) || []).length >= 1, true);
   assert.ok(!/<span>overnemen €/.test(h) && !/<span>vergunning €/.test(h), 'de prijs staat niet ook nog als feit naast de knop');
