@@ -127,6 +127,7 @@ import { setMarkerCamera, setMarkerEnv, disposeWorldMarker3D } from './worldmark
 import { OUTLINE_MAT } from './pixelart3d.js';
 import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpacity, setStarShare, SKY_HORIZON } from './sky3d.js';
 import { computeLighting, dayState } from './daynight.js';
+import { shadowSoftness } from './sunrules.js';
 import { wijkProfileAt } from './trafficfleet.js';
 import { pedRole } from './clothing.js';
 import { applyWorldGrade } from './worldgrade3d.js'; // wereldkleur (21-11): saturatie, tinten en mist van de dag
@@ -1151,7 +1152,8 @@ function applyShadowLevel(level, force = false) {
     Object.assign(c, { left: -s.half, right: s.half, top: s.half, bottom: -s.half });
     c.updateProjectionMatrix();
   }
-  sun.shadow.radius = s.radius;
+  shadowBaseRadius = s.radius;
+  sun.shadow.radius = s.radius * shadowSoftness(lastLight ? lastLight.elevation : 45);
   sun.shadow.normalBias = s.normalBias;
   if (sun.shadow.mapSize.x !== s.size) {
     sun.shadow.mapSize.set(s.size, s.size);
@@ -3778,6 +3780,7 @@ const lightBase = {
 const MOON_COLOR = new THREE.Color(0xdfe6f5);
 const BED_COLOR = new THREE.Color(0x1e2a2c);
 let wetness = 0;
+let shadowBaseRadius = 1.5; // de straal van het schaduwniveau; applyTimeOfDay maakt hem zachter bij een lage zon
 let lastLight = null; // the clock's lighting of the last frame, read by the cloud layer
 let envTimer = 0;
 const _envGround = new THREE.Color();
@@ -3786,6 +3789,7 @@ const _envSun = new THREE.Color();
 function applyTimeOfDay(dt, world) {
   const L = computeLighting(typeof world.clock === 'number' ? world.clock : 12, lightState);
   lastLight = L;
+  sun.shadow.radius = shadowBaseRadius * shadowSoftness(L.elevation);
   applyWorldGrade(L, postfx ? postfx.level : 'laag', world.weather);
   // a cutscene's own grade on top of the clock's (intromontage.js: the dawn shot)
   if (world.lightMood) world.lightMood(L);

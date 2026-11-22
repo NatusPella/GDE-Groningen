@@ -53,6 +53,14 @@ export function nightFactor(elevDeg) {
   return smoothstep(4, -8, elevDeg);
 }
 
+// Zachtere schaduwen bij een lage zon (gouden uur): de rand van een schaduw wordt breder naarmate de zon zakt (langere, zachtere
+// schaduwen), 1 bij een hoge zon, 1,35 bij zonsopgang en -ondergang, en blijft daar in de maanschaduw van de nacht (zacht, geen nieuwe
+// kaart). Een vermenigvuldiger op de basisstraal van de schaduwkaart (scene3d.js SHADOW_LEVELS); geen extra kosten.
+export function shadowSoftness(elevDeg) {
+  const e = Number.isFinite(elevDeg) ? elevDeg : 45;
+  return 1 + 0.35 * smoothstep(35, 6, e);
+}
+
 const wrap = (h) => ((h % 24) + 24) % 24;
 
 // An hour that is always usable. A NaN or infinite clock never becomes finite
