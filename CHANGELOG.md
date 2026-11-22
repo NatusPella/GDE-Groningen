@@ -22,6 +22,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Parken in de streek (#1030): ook zonder geladen wegennet (de webversie) vallen bomen en heggen van een parkkit op het wegdek weg; de kit kijkt dan naar de wegen van de tegelkaart. Wereldregel van wie het spel opende, voor iedereen gelijk (Samen spelen).
 ### Uitleg
 - Uitleg: de hulppagina's op de website hebben een nieuwe pagina "Wat kun je doen?" en bij Spelen en besturing staan nu Schermschudden, Vormen bij kleur, Tikken in plaats van ingedrukt houden, de Dichtheid van het vlak, de moeilijkheid en de radiozenders; in de repo staat een korte spelersgids (docs/SPELERSGIDS.md). Het foutrapport staat onder Over › Problemen. Samen spelen: geen nieuwe regel, het is alleen uitleg.
+### Verhaalsystemen
+- Een dichte Bezit-tak noemt het hoofdstuk waarin hij opengaat (bijvoorbeeld "Aan de Eems") in plaats van een aktenummer.
+- Na het einde van het verhaal ziet de snackwagen Jelles teruggetrokken offerte (zijn oma had gelijk) in plaats van niets.
 
 ### Luchtroute
 

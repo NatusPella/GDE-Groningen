@@ -207,7 +207,7 @@ t('poort: standaard open (stub), per akte met makeActGate, een bestaand profiel 
   act = 2; assert.equal(GT.branchOpen('land'), true); assert.equal(GT.branchOpen('business'), false);
   act = 3; assert.equal(GT.branchOpen('business'), true);
   act = 1; legacy = true; assert.equal(GT.branchOpen('business'), true);
-  assert.match(GT.branchClosedText('business'), /akte 3/);
+  assert.match(GT.branchClosedText('business'), /Aan de Eems/);
   assert.deepEqual(GT.openBranches(), ['land', 'business']);
   GT.resetUnlockGate();
 });
