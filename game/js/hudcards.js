@@ -246,7 +246,7 @@ function cardHtml(c) {
     : '';
   return `<div class="hc-icon">${svg(s.icon || s.kind)}</div>` +
     `<div class="hc-text"><small>${esc(kicker)}</small>${band}${s.title ? `<b>${keycaps(dualHtml(s.title))}</b>` : ''}${s.body ? `<span${s.title ? '' : ' class="solo"'}>${s.bodyHtml || keycaps(dualHtml(s.body))}</span>` : ''}</div>` +
-    (c.sticky ? '<i class="ds-melding__tijd hc-timer" aria-hidden="true"></i><i class="hc-close">Klik of druk op Enter</i>' : '<i class="ds-melding__tijd hc-timer" aria-hidden="true"></i>');
+    (c.sticky ? '<i class="ds-melding__tijd hc-timer" aria-hidden="true"></i><i class="hc-close">' + keycaps('Klik of druk op {ENTER}') + '</i>' : '<i class="ds-melding__tijd hc-timer" aria-hidden="true"></i>');
 }
 
 const zoneOf = (c) => cardZone(c.spec.kind);

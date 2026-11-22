@@ -48,7 +48,7 @@ export function angleBackend(renderer) {
 export function gpuWarning(renderer, { windows = true, softwareProbe = false } = {}) {
   const kind = softwareProbe ? 'software' : gpuKind(renderer);
   if (kind === 'software') return { kind, text: 'Je spel tekent met de processor in plaats van met een videokaart. Daardoor is het erg traag. Controleer je videokaartstuurprogramma.', help: false };
-  if (kind === 'integrated' && windows && !/apple/i.test(String(renderer))) return { kind, text: 'Je spel draait op de ingebouwde videokaart. Kies de snelle in Windows: Instellingen > Beeldscherm > Graphics.', help: true };
+  if (kind === 'integrated' && windows && !/apple/i.test(String(renderer))) return { kind, text: 'Je spel draait op de ingebouwde videokaart. Kies de snelle in de grafische instellingen van je besturingssysteem.', help: true };
   return null;
 }
 
