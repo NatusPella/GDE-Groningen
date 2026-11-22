@@ -10,6 +10,7 @@ import { showCard } from './hudcards.js';
 import { createNieuwsLink, tikNieuws } from './nieuwslink.js';
 import { areaOf, partOf, wetOf, rollGebabbel, AREA_NAMES } from './gebabbel.js';
 import { tikStraatpraat } from './straatpraat.js';
+import { tickWeatherReaction } from './weatherreaction.js';
 
 const recent = [];
 const recentTalk = [];
@@ -41,7 +42,7 @@ export function updateRegioLeven(dt, w) {
   // passers-by talk to each other in bubbles (straatpraat.js, #190): also during a mission or a job (it is
   // ambient), not in a cutscene, a minigame or a respawn, and not from a fast vehicle
   const pv = hoofdspeler(w).inVehicle;
-  if ((!pv || Math.abs(pv.speed || 0) < 6) && !playerBusy(w, ['cinematic', 'respawn', 'heliRun', 'pigeon', 'train', 'padel', 'activityGame']).busy) tikStraatpraat(dt, w);
+  if ((!pv || Math.abs(pv.speed || 0) < 6) && !playerBusy(w, ['cinematic', 'respawn', 'heliRun', 'pigeon', 'train', 'padel', 'activityGame']).busy) { tikStraatpraat(dt, w); tickWeatherReaction(dt, w); }
   // (#954) Het uitkijkpunt gaat vóór de algemene "ben je ergens mee bezig"-poort: een
   // missie in de buurt (Bourtange) zette die poort dicht, waardoor de speler bij het
   // uitkijkpunt niets kon doen. Alleen een filmpje, een minigame of een rit houdt hem
