@@ -8,7 +8,7 @@
 // scherptediepte, Enter/klik foto, Esc of F8 terug.
 import { icoon } from './icons.js';
 import * as F from './fotomodus.js';
-import { glyphHtml, keyLabelHtml } from './keycap.js';
+import { glyphHtml, keyLabelHtml, braceKeysHtml } from './keycap.js';
 import { getRenderer } from './scene3d.js';
 import { storyDate } from './calendarday.js';
 import { wijkProfileAt } from './trafficfleet.js';
@@ -349,11 +349,12 @@ function zetFotoCss() {
 }
 
 // De drie toetsen die je in de fotomodus meteen nodig hebt: in de lege staat en in de strook.
-const FOTO_TIPS = '<div class="foto-tips">' +
+// #1257: the tips are keycaps, not raw {TOKEN}s.
+const FOTO_TIPS = braceKeysHtml('<div class="foto-tips">' +
   '<span class="foto-tip">{F8} fotomodus</span>' +
   '<span class="foto-tip">{ENTER} foto maken</span>' +
   '<span class="foto-tip">{F} filter · {T} weer</span>' +
-  '</div>';
+  '</div>');
 
 // #980: dezelfde hero-taal als de andere schermen: een kop met de stand als badge en één zin
 // die zegt wat je hier doet. Leeg heet de kop "Nog geen foto's"; gevuld "Je galerij".
@@ -364,7 +365,7 @@ function heroHtml(n) {
     ? 'Zet de wereld stil, loop met een vrije camera rond, kies een filter en het weer, en maak een foto. Hij komt als bestand op je eigen schijf; er gaat niets het internet op.'
     : 'Elke foto die je maakte, nieuwste eerst. Weghalen kan per foto en is terug te draaien; het bestand op je eigen schijf blijft staan.';
   const stand = `<span class="ds-z-chip${leeg ? '' : ' ds-z-chip--succes'}">${icoon('vinkje', { cls: 'ds-z-chip__icoon' })}${n} van ${F.GALLERY.max} foto's</span>`;
-  return '<section class="ds-zeef ds-z-kaart foto-hero" aria-label="Foto\'s">' +
+  return '<section class="ds-zeef ds-z-kaart ds-z-kaart--recht foto-hero" aria-label="Foto\'s">' +
     `<div class="ds-z-kaart__kop"><span class="ds-z-kaart__titel">${titel}</span>${stand}</div>` +
     `<p class="ds-z-kaart__tekst">${lead}</p></section>`;
 }

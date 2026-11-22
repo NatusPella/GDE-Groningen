@@ -4,7 +4,7 @@
 // pausemenu.css (ov-*, td-*).
 import { icoon } from './icons.js';
 import { hoofdspeler } from './players.js';
-import { keyTextHtml } from './keycap.js';
+import { keyTextHtml, braceKeysHtml } from './keycap.js';
 import { wasHelped } from './assistlive.js';
 import { getTodoItems, chooseTodo, mapIconUrl, placeName, GROUPS, STATUS_LABEL, buyFjordUpgrade, paspoortOverzicht, beginHierItems, beginHierCount } from './todo.js';
 import { activityTodoItems } from './activities.js';
@@ -236,7 +236,7 @@ function heroHtml(world) {
       ? `Nog te doen voor de aftiteling: ${open.join(', ')}. Een overgeslagen missie telt pas als je hem alsnog haalt.`
       : 'Speel missies opnieuw als klus voor een betere medaille, verdien bij met een bijbaantje of zoek wat er nog verstopt ligt.';
     return `<article class="ov-hero"><div class="ov-main"><span class="m-eb">Het verhaal</span><h1 class="ov-title">${esc(sv.title)}</h1><p class="ov-lead">${esc(text)}</p></div>` +
-      `<div class="m-acts">${deviceText('<button type="button" class="m-bp" data-action="resume">Doorgaan <span class="m-kc dark">{ESC}</span></button>', '<button type="button" class="m-bp" data-action="resume">Doorgaan</button>')}<button type="button" class="m-bg" data-todo-view="alles">Alles te doen</button>` +
+      `<div class="m-acts">${doorgaanKnop()}<button type="button" class="m-bg" data-todo-view="alles">Alles te doen</button>` +
       `${e && e.credits ? '<button type="button" class="m-bg" data-story-credits>Aftiteling bekijken</button>' : ''}</div>${goalLine(world)}</article>`;
   }
   const steps = getStorySteps().filter((s) => s.part === sv.part && s.available);
@@ -248,14 +248,15 @@ function heroHtml(world) {
   const where = it && it.x != null ? placeName(world, it.x, it.y) : '';
   const shot = it && it.x != null ? placeShot(world, it.key, it.x, it.y, (url) => showHeroShot(it.key, url)) : null;
   const pct = steps.length ? Math.round((done / steps.length) * 100) : 0;
+  const stapNu = Math.min(done + 1, steps.length); // #1259: "Stap 0 van 12" bestaat niet: je bent bezig met stap 1
   return `<article class="ov-hero"${it ? ` data-todo-hero="${esc(it.key)}"` : ''}>${shot ? heroShotHtml(shot) : ''}` +
     `<div class="ov-main"><span class="m-eb">Het verhaal · ${esc(partName(sv.part))}</span>` +
     `<h1 class="ov-title${title.length > 20 ? " long" : ""}">${esc(title)}</h1>${cur && cur.lead ? `<p class="ov-lead">${esc(cur.lead)}</p>` : ''}` +
-    `<div class="ov-prog"><span class="m-bar"><i data-bar="ov-part" data-w="${pct}"></i></span><span class="mut">Stap <span data-num="ov-part" data-to="${done}">${done}</span> van ${steps.length}${where ? ` · ${esc(where)}` : ''}</span></div></div>` +
-    `<div class="m-acts ov-acts">${deviceText('<button type="button" class="m-bp" data-action="resume">Doorgaan <span class="m-kc dark">{ESC}</span></button>', '<button type="button" class="m-bp" data-action="resume">Doorgaan</button>')}` +
+    `<div class="ov-prog"><span class="m-bar"><i data-bar="ov-part" data-w="${pct}"></i></span><span class="mut">Stap <span data-num="ov-part" data-to="${stapNu}">${stapNu}</span> van ${steps.length}${where ? ` · ${esc(where)}` : ''}</span></div></div>` +
+    `<div class="m-acts ov-acts">${doorgaanKnop()}` +
     `${it && !goal ? `<button type="button" class="m-bg" data-todo-goal="${esc(it.key)}">Zet als doel</button>` : ''}` +
     `${it && goal ? `<button type="button" class="m-bg" data-todo-goal="${esc(it.key)}">Terug naar het verhaal</button>` : ''}` +
-    `<button type="button" class="m-bg" data-goto="map">${svg(ICON.pin)}Kaart</button>` +
+    `<button type="button" class="m-bg" data-goto="map">${svg(ICON.pin)}Op de kaart</button>` +
     `<button type="button" class="m-bg" data-todo-view="verhaal">Alle opdrachten</button>` +
     `<button type="button" class="m-bt" data-action="save" title="Bewaart je voortgang">Opslaan</button>` +
     `${sv.canSkip ? `<button type="button" class="m-bt" data-story-skip>${esc(sv.skipLabel)}</button>` : ''}</div>${goalLine(world)}</article>`;
@@ -307,6 +308,9 @@ function disc(id, title, hint, inner) {
     `<div class="m-fold" id="pm-f-${id}" data-fold-body="${id}"${open ? '' : ' hidden'}>${inner}</div>`;
 }
 
+// #1259: the Doorgaan button with its key as a keycap (never raw {ESC}); no key on a touch device.
+const doorgaanKnop = () => deviceText(braceKeysHtml('<button type="button" class="m-bp" data-action="resume">Doorgaan <span class="m-kc dark">{ESC}</span></button>'), '<button type="button" class="m-bp" data-action="resume">Doorgaan</button>');
+
 // The state of the game in four tiles: a quick look, no text to read (#34, #92)
 function tilesHtml(world, extra) {
   const ms = items.filter((it) => it.group === 'missies');
@@ -319,7 +323,8 @@ function tilesHtml(world, extra) {
   return '<div class="ov-tiles">' +
     tile(ICON.coin, 'Geld', `€${Math.floor(world.money || 0).toLocaleString('nl-NL')}`, null, 'spullen') +
     tile(ICON.clock, 'Speeltijd', play, null, '') +
-    tile(ICON.flag, 'Missies klaar', `${mDone}/${ms.length}`, ms.length ? Math.round((mDone / ms.length) * 100) : 0, 'todo') +
+    // #1259: "0/0 Missies klaar" zegt niets: de tegel komt er pas als er missies zijn
+    (ms.length ? tile(ICON.flag, 'Missies klaar', `${mDone}/${ms.length}`, Math.round((mDone / ms.length) * 100), 'todo') : '') +
     tile(ICON.cup, 'Prestaties', `${ach.done}/${ach.total}`, ach.pct, 'prestaties') +
     tile(ICON.pin, 'Gevonden', `${found}/${all}`, all ? Math.round((found / all) * 100) : 0, 'todo') + '</div>';
 }
@@ -510,7 +515,7 @@ function beginCard(it, i) {
     `<span class="td-card-nm"><b>${esc(it.title)}</b></span>` +
     `<span class="td-card-dist">${it.dist != null ? formatDistance(it.dist) : ''}</span></button>` +
     `<div class="td-card-chips">${chips.join('')}</div>${tijdStreepHtml(it.tijd)}` +
-    `<div class="td-card-acts">${doel}<button type="button" class="ds-z-knop ds-z-knop--secundair" data-todo-map="${esc(it.key)}" aria-label="${esc(`Op de kaart: ${it.title}`)}${why ? ` · ${esc(why)}` : ''}">${svg(ICON.pin)}Kaart</button></div></div>`;
+    `<div class="td-card-acts">${doel}<button type="button" class="ds-z-knop ds-z-knop--secundair" data-todo-map="${esc(it.key)}" aria-label="${esc(`Op de kaart: ${it.title}`)}${why ? ` · ${esc(why)}` : ''}">${svg(ICON.pin)}Op de kaart</button></div></div>`;
 }
 
 function beginHierHtml() {
@@ -645,7 +650,7 @@ function detailHtml(world) {
   // molens, borgen) pas als je erom vraagt, in plaats van als muur van getallen bovenaan
   const detailRows = usedRest.length + counts.length;
   const facts = detailRows
-    ? disc('td-feiten-' + id, 'Alle cijfers', `${detailRows} ${detailRows === 1 ? 'regel' : 'regels'}`,
+    ? disc('td-feiten-' + id, 'Meer details', '', // #1267: geen telling van regels (leek een debugregel)
       `<div class="td-numgrid">${usedRest.map(([k, v]) => factHtml(k, v)).join('')}${counts.map(([k, v]) => factHtml(k, v)).join('')}</div>`)
     : '';
   return `<div class="pm-pane-top td-dtop"><span class="m-eb">${esc(kick)}</span><div class="td-dhead"><h2 class="m-h2 td-h2">${esc(it.title)}</h2>${stand ? standChip : ''}</div></div>` +
@@ -685,7 +690,9 @@ export function renderTodoStory(el, world) {
   ensureCss();
   refresh(world);
   if (!ui.sel || !byKey.has(ui.sel) || isActiviteit(byKey.get(ui.sel))) { // een uitgekozen activiteit hoort niet in het detail van Opdrachten
-    const cur = items.find((it) => it.status === 'nu' && (it.goal === 'story' || it.group === 'missies')) || items.find((it) => !isActiviteit(it)) || items[0];
+    // #1265: bij een leeg beginstuk (nog geen open missie) kiest het detail eerst het huidige verhaalitem, nooit zomaar een minigame (Padel)
+    const verhaal = (it) => it.goal === 'story' || it.group === 'missies';
+    const cur = items.find((it) => it.status === 'nu' && verhaal(it)) || items.find(verhaal) || items.find((it) => !isActiviteit(it)) || items[0];
     ui.sel = cur ? cur.key : null;
   }
   el.querySelector('.td-list').innerHTML = storyHtml();

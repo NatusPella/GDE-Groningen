@@ -630,7 +630,7 @@ t('de haken staan op hun plek: loopbaanTel, loopbaanOpStat, de vondsten, het tik
   for (const s of ['initGebieden({ gate: achievementsGated', 'setUniekListener(gebiedenOpVondst)', 'updateGebieden(dt, w,']) assert.ok(tr.includes(s), s);
   assert.ok(bron('mapview.js').includes("layerOn('veroverd')"));
   assert.ok(bron('veroverdpanel.js').includes('gebiedenHtml'));
-  assert.match(bron('veroverdpanel.js'), /Wat telt mee:[\s\S]*39 van de 47 bijbanen[\s\S]*tellen bewust niet mee/, 'de catalogusregel staat in het Veroverd-scherm (#676)');
+  assert.match(bron('veroverdpanel.js'), /Dit telt mee:[\s\S]*39 van de 47 bijbanen[\s\S]*tellen bewust niet mee/, 'de catalogusregel staat in het Veroverd-scherm (#676)');
   assert.match(bron('gebiedenui.js'), /export function volgendeTaken/, 'de eerstvolgende taken komen uit de gebieden (#676)');
   assert.match(bron('veroverdpanel.js'), /volgendeTaken\(3\)/, 'het paneel toont de eerstvolgende drie taken');
   assert.match(bron('veroverdpanel.js'), /Je volgende taak staat ook in <b>Te doen<\/b>/, 'Veroverd verwijst naar Te doen (wederzijds)');

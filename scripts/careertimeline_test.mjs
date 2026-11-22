@@ -65,6 +65,7 @@ ok(JSON.stringify(tourStops(null)) === JSON.stringify(tourStops(nieuw)), 'zonder
 
 // 7. tekstdieet: elke regel hooguit 40 tekens
 for (const s of [...s1, ...sd, ...sa]) ok(stopLine(s).length <= 40, 'regel hooguit 40 tekens', stopLine(s));
+for (const s of [...s1, ...sd, ...sa]) ok(stopLine(s) !== 'Open voor je', '#1264: geen herhaalde "Open voor je" op elke stop', stopLine(s));
 
 // 8. listnav: de tijdlijn loopt stop voor stop, aan de rand blijft de index staan
 ok(navIndex(5, 0, 'ArrowDown') === 1 && navIndex(5, 4, 'ArrowDown') === 4 && navIndex(5, 0, 'ArrowUp') === 0, 'listnav: omlaag, omhoog en de randen');

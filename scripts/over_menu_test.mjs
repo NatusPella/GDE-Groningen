@@ -84,6 +84,12 @@ ok((await mislukt.loadChangelogVersions()) === null, 'een mislukte lading geeft 
 ok((await mislukt.loadChangelog()).includes('kon niet worden geladen'), 'en het oude pad zegt het gewoon in tekst');
 globalThis.fetch = echtFetch;
 
+// --- #1271: zonder lijst (geen netwerk, geen bestand) blijven versie, credits en licenties staan, zonder foutzin
+const leeg = overBodyHtml(null);
+ok(/Versie /.test(leeg) && /over-credits/.test(leeg) && /over-licenses/.test(leeg), 'zonder changelog staan versie, credits en licenties er nog');
+ok(!/kon niet worden geladen/.test(leeg) && /niet te lezen/.test(leeg), 'zonder changelog staat een rustige zin, geen foutmelding');
+ok(!/data-over-alles/.test(leeg), 'zonder changelog geen Alles-knop');
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
 

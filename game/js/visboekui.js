@@ -16,7 +16,17 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 const nl = (n) => Math.round(n).toLocaleString('nl-NL');
 const kg = (v) => v.toFixed(v < 1 ? 2 : 1).replace('.', ',') + ' kg';
 const VIS = '<path d="M3 12c3-4 8-5 12-3l4-3v12l-4-3c-4 2-9 1-12-3zM16.5 11h.01"/>';
-const icoon = (cls = 'pa-ico') => `<span class="${cls}"><svg viewBox="0 0 24 24" aria-hidden="true">${VIS}</svg></span>`;
+// #1270: elk watertype een eigen pictogram (een brug, een plas, golven, een bocht, een sloot met riet, een getij); "Alle vis" houdt de vis.
+const WATER_ICOON = {
+  gracht: '<path d="M3 15a9 8 0 0 1 18 0M3 15h18M3 19c2 0 2-1.5 4.5-1.5S10 19 12 19s2-1.5 4.5-1.5S19 19 21 19"/>',
+  plas: '<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="6.5"/><path d="M12 3v0M3 12h0"/>',
+  meer: '<path d="M2 9c2.5-2 4.5-2 7 0s4.5 2 7 0 3.5-1.5 6 0M2 14c2.5-2 4.5-2 7 0s4.5 2 7 0 3.5-1.5 6 0M2 19c2.5-2 4.5-2 7 0s4.5 2 7 0 3.5-1.5 6 0"/>',
+  kanaal: '<path d="M3 6h18M3 18h18M3 12h3M9 12h3M15 12h3"/>',
+  rivier: '<path d="M16 3c-6 2-6 5-3 7s3 5-3 8M18 8c-3 1-3 3-1 5s1 4-3 7"/>',
+  sloot: '<path d="M3 19h18M6 19V8M6 12l-2-2M6 14l2-2M12 19V5M12 10l-2-2M12 13l2-2M18 19v-9M18 14l-2-2"/>',
+  wad: '<path d="M2 11c2.5-2 4.5-2 7 0s4.5 2 7 0 3.5-1.5 6 0M2 17c2.5-2 4.5-2 7 0s4.5 2 7 0 3.5-1.5 6 0M7 5.5h.01M12 4h.01M17 5.5h.01"/>',
+};
+const icoon = (cls = 'pa-ico', water) => `<span class="${cls}"><svg viewBox="0 0 24 24" aria-hidden="true">${WATER_ICOON[water] || VIS}</svg></span>`;
 
 // Het Visboek hoort bij het vak Hengelen en draagt daarom dezelfde sfeerband als Loopbanen (#492, #609).
 const SFEER = 'hengelen';
@@ -56,7 +66,7 @@ const typeRegel = (boek, t) => {
 
 function rij(id, naam, p) {
   return `<button type="button" class="m-li lb-li vb-li${p.gevangen ? '' : ' nul'}${gekozen === id ? ' sel' : ''}" data-vt="${id}"${gekozen === id ? ' aria-current="true"' : ''}>` +
-    `${icoon()}<span class="nm"><span class="one">${esc(naam)}</span><span class="mut one">${p.gevangen} van ${p.totaal} soorten</span></span>` +
+    `${icoon('pa-ico', id)}<span class="nm"><span class="one">${esc(naam)}</span><span class="mut one">${p.gevangen} van ${p.totaal} soorten</span></span>` +
     `<span class="lb-niv">${p.gevangen === p.totaal && p.totaal ? 'compleet' : ''}</span><span class="m-bar${p.deel > 0 ? ' on' : ''}"><i data-bar="vb-${id}" data-w="${(p.deel * 100).toFixed(1)}"></i></span></button>`;
 }
 
@@ -95,7 +105,7 @@ function detailHtml(boek, id) {
   if (!t) return '<p class="mut">Kies een water om te zien welke vis erin zit.</p>';
   const p = typeRegel(boek, id);
   const soorten = soortenVan(id).map((x) => soort(x.id)).sort((a, b) => a.zeldzaam - b.zeldzaam || a.naam.localeCompare(b.naam, 'nl'));
-  return band() + `<div class="pm-pane-top"><span class="m-eb">Water</span><h2 class="m-h2 td-h2">${icoon('pa-ico big')}${esc(t.naam)}</h2></div>` +
+  return band() + `<div class="pm-pane-top"><span class="m-eb">Water</span><h2 class="m-h2 td-h2">${icoon('pa-ico big', t.id)}${esc(t.naam)}</h2></div>` +
     `<div class="lb-kop"><p class="lb-titel"><b>${p.gevangen} van ${p.totaal}</b> <span class="mut">soorten ${p.gevangen === p.totaal ? '· compleet' : 'gevangen'}</span></p><p class="mut">${esc(t.wat)}</p>${kopLoopbaan}</div>` +
     `<ul class="vb-soorten">${soorten.map((s) => soortRij(boek, s)).join('')}</ul>`;
 }
@@ -106,7 +116,7 @@ export function renderVisboekPanel(el) {
   const boek = getBoek();
   const sam = voortgang(boek);
   const lijst = rij('alles', 'Alle vis', { gevangen: sam.gevangen, totaal: sam.totaal, deel: sam.gevangen / sam.totaal }) +
-    '<div class="lb-groep">Per water</div>' + WATERTYPEN.map((t) => rij(t.id, t.naam, typeRegel(boek, t.id))).join('');
+    '<div class="lb-groep"><span>Per water</span></div>' + WATERTYPEN.map((t) => rij(t.id, t.naam, typeRegel(boek, t.id))).join('');
   el.innerHTML = `<div class="m-tabs"><span class="m-grow"></span><span class="pa-total"><span class="lb-sfeer-chip" style="${sfeerStijl(SFEER)}" aria-hidden="true"></span><span class="mut">${esc(sfeerVan(SFEER).naam)}</span><span class="m-num">${sam.gevangen}</span><span class="mut">van ${sam.totaal} soorten</span></span></div>` +
     `<div class="m-main"><div class="m-list pa-list lb-list">${lijst}</div><aside class="m-pane pa-pane lb-pane vb-pane" aria-live="polite">${detailHtml(boek, gekozen)}</aside></div>`;
   fillBars(el, bars);

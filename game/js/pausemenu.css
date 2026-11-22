@@ -17,6 +17,8 @@ body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidd
 #pause-menu .pm-inner.pm-game { display: flex; flex-direction: column; height: 100%; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--ds-scroll-duim) var(--ds-scroll-spoor); }
 #pause-menu .pm-game > * { flex-shrink: 0; }
 #pause-menu .pm-game [hidden] { display: none; }
+#pause-menu .pm-row[hidden] { display: none; }
+#pause-menu .m-tab.is-leeg:not([aria-selected="true"]) { opacity: 0.72; }
 #pause-menu.prestart .pm-ingame { display: none; }
 #pause-menu .pm-q-head { display: flex; flex-direction: column; gap: 4px; padding: 0 0 26px 24px; }
 #pause-menu .pm-logo { font-size: 66px; align-self: flex-start; text-align: left; margin: 0; }
@@ -445,6 +447,7 @@ html.sub-box #pause-menu .pm-subtxt { background: color-mix(in srgb, var(--ds-c-
 
 /* #891: de drie moeilijkheidsstanden naast elkaar, met de gevolgen erbij; de gekozen stand licht op */
 #pause-menu .pm-diff { flex: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin: 0 24px 18px; }
+#pause-menu .pm-diff-intro, #pause-menu .pm-diff-note { flex: none; margin: 0 24px 12px; max-width: 62ch; font-size: 16px; line-height: 1.4; color: var(--mut); } /* #1275: op dezelfde linkerrand (24 px) als de rijen */
 #pause-menu .pm-diff-row { display: flex; flex-direction: column; gap: 4px; padding: 10px 14px; border-radius: 10px; background: color-mix(in srgb, var(--ds-c-creme) 4%, transparent); box-shadow: inset 0 0 0 1px var(--line); }
 #pause-menu .pm-diff-row b { font-family: var(--ds-font-kop); font-weight: normal; font-size: 26px; line-height: 1; letter-spacing: 0.04em; }
 #pause-menu .pm-diff-row span { font-size: 15px; line-height: 1.3; color: var(--mut); }

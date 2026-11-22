@@ -260,7 +260,7 @@ function heroHtml(sum, near, verborgen) {
     ? 'Alles gehaald. Grunn is van jou.'
     : `${teGaan} ${teGaan === 1 ? 'prestatie' : 'prestaties'} te gaan${near.length ? `, ${near.length} ${near.length === 1 ? 'is' : 'zijn'} dichtbij` : ''}. Prestaties blijven bewaard, ook bij een nieuw spel.`;
   const cijfer = (n, woord) => `<span class="ds-z-waarde"><span class="ds-z-waarde__getal">${n}</span><span class="ds-z-waarde__eenheid">${woord}</span></span>`;
-  return '<section class="ds-zeef ds-z-kaart pa-hero" aria-label="Prestaties">' +
+  return '<section class="ds-zeef ds-z-kaart ds-z-kaart--recht pa-hero" aria-label="Prestaties">' +
     `<div class="ds-z-kaart__kop"><span class="ds-z-kaart__titel">Prestaties</span>${chip(klaar ? 'succes' : 'selectie', klaar ? 'ok' : 'ster', `${pctTekst}%`)}</div>` +
     '<div class="pa-hero-rij">' + `<p class="ds-z-kaart__tekst">${esc(lead)}</p>` +
     '<div class="pa-hero-cijfers">' + cijfer(sum.done, 'behaald') + cijfer(teGaan, 'nog te gaan') + cijfer(near.length, 'bijna binnen') + cijfer(verborgen, 'nog geheim') + '</div></div>' +

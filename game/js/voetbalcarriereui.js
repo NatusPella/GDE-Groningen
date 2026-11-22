@@ -55,7 +55,7 @@ function viewVandaag(c, env) {
     const venue = m.isHome ? 'thuis' : 'uit';
     const wanneer = m.status === 'open' ? 'Nu te spelen' : m.status === 'missed' ? 'Voorbij: de club rekent hem uit' : DAGEN_NL(m.in).replace(/^./, (x) => x.toUpperCase());
     const winPay = C.payFor(ov.division, m.kind, 'winst', true).reduce((a, x) => a + x.amount, 0), vast = C.payFor(ov.division, m.kind, 'verlies', false).reduce((a, x) => a + x.amount, 0);
-    card = `<article class="ds-z-kaart ds-m-binnen on"><h3 class="ds-z-kaart__kop ds-z-kaart__titel">${esc(matchTitle(m))}</h3>` +
+    card = `<article class="ds-z-kaart ds-z-kaart--recht ds-m-binnen on"><h3 class="ds-z-kaart__kop ds-z-kaart__titel">${esc(matchTitle(m))}</h3>` +
       `<p class="ds-z-kaart__tekst"><strong>${esc(m.opponentName)}</strong> (${venue})${m.travelDays > 1 ? ' · verre rit: twee speldagen' : ''}</p>` +
       `<p>${chip(wanneer, m.status === 'open' ? 'primair' : '')} ${chip(vast ? `uitrekenen ${euro(vast)}` : 'uitrekenen niets')} ${chip(winPay ? `winnen ${euro(winPay)}` : 'winnen geen bonus')}</p>` +
       `<p class="ds-z-kaart__voet">${esc(m.isHome ? 'Thuis spelen is gratis.' : 'Uit spelen is een korte reis.')}</p></article>`;

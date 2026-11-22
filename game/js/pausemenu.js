@@ -5,7 +5,7 @@
 // then close. Sections: Overzicht, Te doen (todoui.js), Verhaal
 // (verhaalui.js), Kaart, Garage, Prestaties, Cheats (cheatsui.js),
 // Instellingen, Besturing.
-import { keyLabelGlyph, keyLabelHtml } from './keycap.js';
+import { keyLabelGlyph, keyLabelHtml, braceKeysHtml } from './keycap.js';
 import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './settings.js';
 import { retryBeschikbaar, herstartMissie, herstartBlokkade } from './missions.js';   // #985 punt 16
 import { difficultyTabHtml, difficultyPaneText, syncDifficultyTab, stepDifficultyPicker, handleDifficultyClick } from './difficultypanel.js'; // #1169: Instellingen > Moeilijkheid, per save
@@ -563,7 +563,8 @@ function subtabsHtml(of, label) {
     (of === 'controls' ? '<span class="m-grow"></span><button type="button" class="m-bt" data-goto-sub="settings:besturing">Terug naar Instellingen</button>' : '') + '</div>';
 }
 
-const rowName = (label, note) => `<span class="nm">${label}${note ? `<span class="mut">${note}</span>` : ''}</span>`;
+// #1257: a label or note may carry {TOKEN}s ({N}, {SHIFT}+{N}); they are keycaps here, never raw braces.
+const rowName = (label, note) => `<span class="nm">${braceKeysHtml(label)}${note ? `<span class="mut">${braceKeysHtml(note)}</span>` : ''}</span>`;
 
 // `weergave`: 'procent' (volumes, helderheid) of 'keer' (afstand, gevoeligheid). Een
 // percentage bij "Camera-afstand 1,2x" of "Stuurgevoeligheid" zegt niets; 120% van wat?
@@ -579,14 +580,14 @@ function toggle(k, label, note = '') {
 // a picker: previous, the chosen value, next (the mockups' replacement for a segmented row)
 function picker(k, label, options, note = '', attrs = `data-setting="${k}"`) {
   const name = plain(label);
-  return `<div class="m-li pm-row"><span class="nm" id="pm-l-${k}">${label}${note ? `<span class="mut">${note}</span>` : ''}</span>` +
+  return `<div class="m-li pm-row"><span class="nm" id="pm-l-${k}">${braceKeysHtml(label)}${note ? `<span class="mut">${braceKeysHtml(note)}</span>` : ''}</span>` +
     `<span class="m-pk" role="group" aria-labelledby="pm-l-${k}" ${attrs} data-options="${esc(JSON.stringify(options))}">` +
     `<button type="button" data-pick="-1" aria-label="${esc(name)}: vorige">${CHEV_L}</button><output aria-live="polite"></output>` +
     `<button type="button" data-pick="1" aria-label="${esc(name)}: volgende">${CHEV_R}</button></span></div>`;
 }
 
 function disclosure(id, title, hint, inner, open = false) {
-  return `<div class="m-rule"></div><button type="button" class="m-disc" data-fold="${id}" aria-expanded="${open}" aria-controls="pm-f-${id}">${CHEV_R}<b>${title}</b><span class="mut">${hint}</span></button>` +
+  return `<div class="m-rule"></div><button type="button" class="m-disc" data-fold="${id}" aria-expanded="${open}" aria-controls="pm-f-${id}">${CHEV_R}<b>${braceKeysHtml(title)}</b><span class="mut">${braceKeysHtml(hint)}</span></button>` +
     `<div class="m-fold" id="pm-f-${id}" data-fold-body="${id}"${open ? '' : ' hidden'}>${inner}</div>`;
 }
 
@@ -728,7 +729,7 @@ function settingsHtml() {
       ${toggle('zuinig', 'Zuinige modus', '30 beelden per seconde, spaart batterij en warmte')}
       ${toggle('shadows', 'Schaduwen', 'Schaduwen geven de wereld diepte; uit is soepeler op een lichte computer')}
       ${picker('drawDistance', 'Zichtafstand', [['kort', 'Kort'], ['normaal', 'Normaal'], ['ver', 'Ver'], ['heelver', 'Heel ver']])}
-      ${DESKTOP ? '<label class="m-li pm-row"><span class="nm">Volledig scherm<span class="mut">{F11} of {ALT}+{ENTER}</span></span><input type="checkbox" class="m-sw" data-desktop="fullscreen"></label>' : ''}
+      ${DESKTOP ? `<label class="m-li pm-row">${rowName('Volledig scherm', '{F11} of {ALT}+{ENTER}')}<input type="checkbox" class="m-sw" data-desktop="fullscreen"></label>` : ''}
       ${slider('brightness', 'Helderheid', 0.6, 1.6, 0.05)}
       ${picker('worldColor', 'Wereldkleur', [['uit', 'Uit'], ['subtiel', 'Subtiel'], ['drukwerk', 'Drukwerk']], 'De kleuren van de wereld sluiten aan op het drukwerk van het spel; gevels, gras en straat na een herstart, licht en korrel meteen')}
       <!-- De benchmark hoort bij de beeldinstellingen, niet verstopt onder "Meer opties": hij
@@ -772,7 +773,7 @@ function settingsHtml() {
       <div class="m-gh"><span>Verkeer en geweld</span></div>
       ${picker('ruzie', 'Verkeersruzie', [['uit', 'Uit'], ['weinig', 'Weinig'], ['normaal', 'Normaal'], ['veel', 'Veel']], 'Hoe vaak een boze bestuurder uitstapt na een botsing of getoeter. Zonder bloed; sommigen hebben iets in de hand')}
       ${picker('drunkFx', 'Dronken effecten', [['aan', 'Aan'], ['mild', 'Mild'], ['uit', 'Uit']], 'Het wiebelende beeld en de dubbele tong als je gedronken hebt')}
-      ${toggle('gore', 'Bloed en ledematen', 'Uit: mensen vallen gewoon om, zonder bloed of rondvliegende ledematen')}
+      ${toggle('gore', 'Bloed en ledematen', 'Aan: bloed en ledematen in een gevecht met een medespeler. Uit: mensen vallen gewoon om')}
       <div class="m-gh"><span>Cheats</span></div>
       ${toggle('toonCheats', 'Cheats in het menu', 'Toont Cheats onder Systeem. Een beetje vals spelen kan; sommige cheats zetten prestaties uit zolang ze aan staan')}
       <div class="m-gh"><span>Rijden</span></div>
@@ -829,7 +830,7 @@ ${keyReuseHtml()}
       ${picker('hudMode', 'HUD', [['slim', 'Slim'], ['alles', 'Altijd tonen'], ['minimaal', 'Minimaal']], 'Slim toont geld, gezondheid, wapen en sterren alleen als het telt')}
       ${toggle('showMinimap', 'Minimap')}
       ${slider('minimapZoom', 'Inzoomen op het kaartje', 0.6, 1.6, 0.05)}
-      ${picker('minimapNorth', 'Minimap met noord boven', [['nooit', 'Nooit'], ['lucht', 'In de lucht'], ['altijd', 'Altijd']], 'Standaard draait de kaart mee')}
+      ${picker('minimapNorth', 'Minimap met noord boven', [['nooit', 'Nooit'], ['lucht', 'In de lucht'], ['altijd', 'Altijd']], 'Op de grond draait de kaart mee. Bij "In de lucht" staat noord boven in een vliegtuig of helikopter')}
       ${toggle('showFog', 'Verkende gebieden op de kaart')}
       <div class="m-gh"><span>Over het spel</span></div>
       <div class="m-li pm-row">${rowName('Over GDE', 'Versie, wat er nieuw is, credits en licenties')}<button type="button" class="m-bg" data-goto="over">Openen</button></div>`, `${pane('Interface', 'Wat je ziet', '<p>Slim toont alleen wat nu telt; Altijd alles houdt alles in beeld; Minimaal laat alleen sterren, doel, ondertitels, de kaart en de snelheidsmeter over.</p><p class="mut">Over GDE met de versie, de wijzigingen en de credits staat onderaan dit tabblad.</p>')}`)}
@@ -898,7 +899,7 @@ function saveFactsInner() {
   const naam = s && s.name ? s.name : 'deze speelsessie';
   return '<div class="m-fact"><span>Deze sessie</span><b>' + esc(tijd) + '</b></div>' +
     '<div class="m-fact"><span>Laatst opgeslagen</span><b>' + esc(wanneer) + '</b></div>' +
-    '<div class="m-fact"><span>Savegame</span><b>' + esc(naam) + '</b></div>';
+    '<div class="m-fact"><span>Opslagplek</span><b>' + esc(naam) + '</b></div>';
 }
 function saveFactsHtml() {
   // Leeg bij het bouwen: syncSaveButtons vult de feiten zodra het menu opengaat, zodat het bouwen
@@ -908,6 +909,9 @@ function saveFactsHtml() {
 function syncSaveFacts() {
   const box = root && root.querySelector('[data-save-now]');
   if (box) box.innerHTML = saveFactsInner();
+  // #1281: "Missie stoppen" staat alleen in de lijst als er een missie is om te stoppen
+  const stopRij = root && root.querySelector('[data-stop-rij]');
+  if (stopRij) stopRij.hidden = !stopInfo();
 }
 
 // Spel (#416): how the game itself plays, apart from the system settings of Instellingen. The same keys in the same settings (settings.js):
@@ -930,13 +934,13 @@ function spelHtml() {
       <div class="m-li pm-row">${rowName('Opgeslagen spellen', 'Kiezen, laden, hernoemen, exporteren en verwijderen')}<button type="button" class="m-bg" data-action="saves" title="Opgeslagen spellen kiezen, laden, hernoemen, exporteren en verwijderen">Opgeslagen spellen</button></div>
       <p class="pm-status" data-game-status role="status"></p>
       <div class="m-gh"><span>Stoppen</span></div>
-<div class="m-li pm-row">${rowName('Missie stoppen', 'Staat bij Overzicht zodra er een missie loopt, met een vraag erbij')}<button type="button" class="m-bg" data-goto-sub="spel:overzicht">Naar Overzicht</button></div>
+<div class="m-li pm-row" data-stop-rij hidden>${rowName('Missie stoppen', 'Je stopt hem in Overzicht, met een vraag erbij')}<button type="button" class="m-bg" data-goto-sub="spel:overzicht">Naar Overzicht</button></div>
       <div class="m-li pm-row">${rowName('Spel herstarten', 'Slaat op en start het spel opnieuw')}<button type="button" class="m-bg" data-action="menu" title="Opslaan en het spel opnieuw starten">Herstarten</button></div>
       ${DESKTOP ? `<div class="m-li pm-row">${rowName('Spel sluiten', 'Vraagt eerst of je het zeker weet en slaat je voortgang op')}<button type="button" class="m-bg" data-action="exit" title="Opslaan en het spel sluiten">Afsluiten</button></div>` : ''}
       <div class="m-gh"><span>Opnieuw beginnen</span></div>
-      <div class="m-li pm-row">${rowName('Opnieuw beginnen', 'Alles sinds je laatste savegame gaat verloren')}<button type="button" class="m-bg danger" data-action="restart">Opnieuw beginnen</button></div>
+      <div class="m-li pm-row">${rowName('Opnieuw beginnen', 'Alles sinds je laatste opslag gaat verloren')}<button type="button" class="m-bg danger" data-action="restart">Opnieuw beginnen</button></div>
       <div class="pm-confirm" data-restart-confirm hidden>
-        <p>Opnieuw beginnen? Alles sinds je laatste savegame gaat verloren. Je andere savegames blijven staan.</p>
+        <p>Opnieuw beginnen? Alles sinds je laatste opslag gaat verloren. Je andere opgeslagen spellen blijven staan.</p>
         <button type="button" class="m-bg" data-action="load">Laatste spel laden</button>
         <button type="button" class="m-bg danger" data-action="new">Nieuw spel (nieuwe plek)</button>
         <button type="button" class="m-bt" data-action="cancel">Annuleren</button>
@@ -963,7 +967,7 @@ function problemsHtml() {
         <button type="button" class="m-bt" data-action="errlog-clear">Wissen</button>
       </div>
       <p class="pm-status" data-errlog-status role="status"></p>
-      <details class="pm-errfold"><summary>Technische details <span class="mut">(in het Engels)</span></summary><ol class="pm-errlog" data-errlog></ol></details>
+      <details class="pm-errfold"><summary>Ruwe meldingen <span class="mut">voor wie wil meelezen</span></summary><ol class="pm-errlog" data-errlog></ol></details>
     </div>`;
 }
 
@@ -1311,7 +1315,6 @@ function renderOverPanel(el) {
   const box = el.querySelector('.pm-over-news');
   loadChangelogVersions().then((versions) => {
     if (!box || !box.isConnected) return;
-    if (!versions) { box.innerHTML = '<p class="mut">De lijst met wijzigingen kon niet worden geladen.</p>'; return; }
     box.innerHTML = overBodyHtml(versions);
     const credits = box.querySelector('[data-fold-body="over-credits"]');
     if (credits) credits.innerHTML = CREDITS_HTML;
@@ -1745,7 +1748,7 @@ function bindPane(kind, note, extra = '') {
   const titel = kind === 'keys' ? 'Toets wijzigen' : 'Knop wijzigen';
   const kop = kind === 'keys' ? 'Toetsenbord en muis' : 'Controller';
   return `<aside class="m-pane"><div class="pm-pane-top"><span class="m-eb">${kop}</span><h2 class="m-h2 td-h2">${titel}</h2></div>` +
-    `<p>${note}</p><p class="pm-status pm-bindmsg g" role="status">${esc(bindMsg)}</p><span class="m-grow"></span>` +
+    `<p>${braceKeysHtml(note)}</p><p class="pm-status pm-bindmsg g" role="status">${braceKeysHtml(esc(bindMsg))}</p><span class="m-grow"></span>` +
     `<div class="m-acts td-acts"><button type="button" class="m-bg" data-action="binds-reset-${kind === 'keys' ? 'keys' : 'pad'}">${icon('restart')}Standaard herstellen</button></div>${extra}</aside>`;
 }
 
@@ -1811,7 +1814,7 @@ function renderBinds() {
 
 function setBindMsg(text) {
   bindMsg = text;
-  for (const el of root.querySelectorAll('.pm-bindmsg')) el.textContent = text;
+  for (const el of root.querySelectorAll('.pm-bindmsg')) el.innerHTML = braceKeysHtml(esc(text));
 }
 
 const actionWords = (c) => (KEY_ACTIONS.find(([k]) => k === c) || [c, c])[1];
@@ -2239,9 +2242,9 @@ function runAction(a) {
   } else if (a === 'bench' || a === 'bench-cancel') {
     const box = root.querySelector('[data-bench-confirm]');
     box.hidden = a === 'bench-cancel';
-    box.querySelector('[data-bench-text]').textContent = prestart
+    box.querySelector('[data-bench-text]').innerHTML = braceKeysHtml(prestart
       ? 'Benchmark starten? Duurt ongeveer een minuut. {ESC} stopt.'
-      : 'Benchmark starten? Je spel wordt eerst opgeslagen. {ESC} stopt.';
+      : 'Benchmark starten? Je spel wordt eerst opgeslagen. {ESC} stopt.');
     if (!box.hidden) box.querySelector('[data-action="bench-go"]').focus();
     else root.querySelector('[data-action="bench"]').focus();
   } else if (a === 'bench-go') {
@@ -2262,6 +2265,10 @@ function runAction(a) {
     DESKTOP.saveTextFile(`GDE-foutrapport-${new Date().toISOString().slice(0, 10)}.txt`, errorReport())
       .then((saved) => errlogStatus(saved ? 'Opgeslagen.' : ''), () => errlogStatus('Opslaan lukte niet.'));
   } else if (a === 'errlog-clear') {
+    // #1271: Wissen vraagt eerst om een tweede klik; het rapport is weg als je het niet gekopieerd hebt
+    const knop = root.querySelector('[data-action="errlog-clear"]');
+    if (knop && knop.dataset.zeker !== '1') { knop.dataset.zeker = '1'; knop.textContent = 'Zeker wissen?'; errlogStatus('Het rapport is daarna weg. Druk nog een keer op Wissen om het zeker te weten.'); return; }
+    if (knop) { delete knop.dataset.zeker; knop.textContent = 'Wissen'; }
     clearErrorLog();
     errlogStatus('Gewist.');
   } else if (a === 'reset') {

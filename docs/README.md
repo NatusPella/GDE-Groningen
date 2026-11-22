@@ -113,6 +113,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [LAAD-STREAMING-LOD.md](<LAAD-STREAMING-LOD.md>) | Wat er tijdens laadschermen en daarbuiten gebeurt: fasen, streaming, LOD-ringen, vergelijking met 0.54.0 en bevindingen. |
 | [LAADSCHERM-LAYOUT-22-11.md](<LAADSCHERM-LAYOUT-22-11.md>) | Het laadscherm en bootscherm zonder overlap: oorzaak, de vaste kolomstructuur, voor-en-nametingen in een echte browser en de tests. |
 | [PERF-TREND-0.54-NAAR-NU.md](<PERF-TREND-0.54-NAAR-NU.md>) | Prestatietrend sinds 0.54.0: tijdlijn per tag, statische maten en vaste opwarmbudgetten. |
+| [UI-FIXES-22-11-GEBIED.md](<UI-FIXES-22-11-GEBIED.md>) | Uitvoering van de UI-kritiek op het pauzemenu en de instellingen (#1257 tot #1282): per issue de oplossing en het bewijs, en wat bewust is overgeslagen. |
 | [UI-INVENTARIS-OUD-20-11.md](<UI-INVENTARIS-OUD-20-11.md>) | Naslag (#985, 20-11). Welke schermen buiten het menu nog donker glas en oude lettertypen droegen, wat is omgezet naar de zeefdruk en wat bewust blijft. |
 | [UI-KRITIEK-HARNAS-22-11.md](<UI-KRITIEK-HARNAS-22-11.md>) | Het UI-kritiekharnas: alle spelersschermen met nepdata renderen op 720p, 1080p en ui-schaal 1,5, met automatische tripwires (overlap, afkapping, contrast, focus) in index.json. |
 | [UI-KRITIEK-22-11-menu.md](<UI-KRITIEK-22-11-menu.md>) | UI-kritiek op het pauzemenu (Spel, Verhaal, Loopbanen, Spullen, Garage, Boerderij, Prestaties, Instellingen, Besturing, Cheats): bevindingen per patroon P1 tot P12, top-10 en de aangemaakte issues. |

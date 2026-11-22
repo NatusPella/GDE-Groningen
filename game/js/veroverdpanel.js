@@ -119,10 +119,11 @@ export function renderVeroverdPanel(el, sluit = null, world = null) {
       `<h2 class="pm-hero-t">${esc(titel)}</h2>` +
       `<p class="pm-hero-lead">Doe alles wat er in een gebied te doen is, dan is het van jou: een titel, geld en een vlag op de kaart. Je hoeft niemand kwaad te doen.</p>` +
       `<div class="pm-hero-meta vo-kop">${g.totaal}</div></section>`;
-    const stats = `<div class="pm-stats vo-stats">` +
+    // #1269: zonder gebieden (nog niet geladen) zijn "0 van 0"-tegels leeg gepraat: ze komen er niet
+    const stats = `<div class="pm-stats vo-stats">` + (!s.totaal ? '' :
       `<span class="pm-stat" data-tone="accent"><b>${s.klaar}</b><span>van ${s.totaal} gebieden veroverd</span><span class="m-bar${s.klaar ? ' on' : ''}"><i data-bar="vo-gebieden" data-w="${s.pct}"></i></span></span>` +
-      `<span class="pm-stat"><b>${s.kaartGedaan}</b><span>van ${s.kaartTotaal} buurten op de kaart verkend (${s.kaartPct}%)</span><span class="m-bar${s.kaartGedaan ? ' on' : ''}"><i data-bar="vo-kaart" data-w="${s.kaartPct}"></i></span></span>` +
-      volgendeStats(taken) + `</div>`;
+      `<span class="pm-stat"><b>${s.kaartGedaan}</b><span>van ${s.kaartTotaal} buurten op de kaart verkend (${s.kaartPct}%)</span><span class="m-bar${s.kaartGedaan ? ' on' : ''}"><i data-bar="vo-kaart" data-w="${s.kaartPct}"></i></span></span>`) +
+      (s.totaal || taken.length ? volgendeStats(taken) : '') + `</div>`;
     // #906: de eerstvolgende taken staan direct in beeld als kaarten, met per kaart één actie:
     // een doel op de kaart zetten. De gegevens komen uit volgendeTaken(), dezelfde bron als "Te doen".
     const nogTitel = taken.length && Number.isFinite(taken[0].totaal)
@@ -130,14 +131,14 @@ export function renderVeroverdPanel(el, sluit = null, world = null) {
     const voetnoot = `<p class="vo-regel">${nogTitel}Je volgende taak staat ook in <b>Te doen</b>; daar zie je hem met de afstand vanaf hier.</p>`;
     const volgende = taken.length
       ? '<section class="vo-volgende" aria-label="Eerstvolgende taken"><b>Eerstvolgende taken</b><ol>' + taken.map((t, i) => taakKaart(t, world, i === 0)).join('') + '</ol>' + voetnoot + '</section>'
-      : '<section class="vo-volgende" aria-label="Eerstvolgende taken"><b>Eerstvolgende taken</b><p class="vo-regel">Alles wat meetelt is gedaan. De titels staan hierboven.</p></section>';
+      : '<section class="vo-volgende" aria-label="Eerstvolgende taken"><b>Eerstvolgende taken</b><p class="vo-regel">' + (s.totaal ? 'Alles wat meetelt is gedaan. De titels staan hierboven.' : 'Zodra de gebieden geladen zijn, staat hier je eerstvolgende taak.') + '</p></section>';
     // #676/#906: wat er meetelt met de echte aantallen erbij, en wat bewust niet (de catalogusregel).
     const stand = soortenStand();
     const soortRijen = stand.length
       ? '<ul class="vo-soorten">' + stand.map((r) => `<li><span class="one">${esc(r.naam)}</span><span class="vo-soort-tel">${r.klaar} van ${r.totaal}</span></li>`).join('') + '</ul>' : '';
     const regel = '<section class="vo-uitleg" aria-label="Wat telt mee"><b>Wat telt mee</b>' +
       (soortRijen ? '<p class="vo-regel vo-soort-kop">Per soort, met wat je al deed:</p>' : '') + soortRijen +
-      '<p class="vo-regel"><b>Wat telt mee:</b> missies, 39 van de 47 bijbanen, 50 minigame-plekken, vondsten en geheimen. ' +
+      '<p class="vo-regel">Dit telt mee: missies, 39 van de 47 bijbanen, 50 minigame-plekken, vondsten en geheimen. ' +
       'Eierballen, losse geheimen, postgame, lucht en dorpsuitjes tellen bewust niet mee; die staan in hun eigen lijst.</p></section>';
     // #906: de kop, de stand, de taken en de uitleg staan samen in één scrolvlak boven de lijst,
     // zodat de taken altijd in beeld beginnen (en op 720p niet onder de vouw verdwijnen).

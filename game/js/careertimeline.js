@@ -61,6 +61,6 @@ export function tourCount(stops) {
 export function stopLine(s) {
   if (s.staat === STATE.closed) return 'Later in het verhaal';
   if (s.staat === STATE.now) return 'Hier ga je nu verder';
-  if (s.staat === STATE.next) return 'Open voor je';
+  if (s.staat === STATE.next) return ''; // #1264: negen keer "Open voor je" is ruis; de staat zegt het al (stip en kleur)
   return s.goed ? `Gedaan · goed: ${s.goed}` : 'Gedaan';
 }

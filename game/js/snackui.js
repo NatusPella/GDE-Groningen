@@ -66,7 +66,7 @@ function spotsHtml(v) {
   const hasEmpty = (id) => !v.spots.find((s) => s.id === id).wagon;
   const rows = v.spots.slice().sort((a, b) => b.foot - a.foot).map((s) => {
     const feiten = [esc(s.place), STATUS_TEXT[s.status] + (s.claim ? ` (${esc(s.claim.name)})` : ''), s.status === 'jij' ? `nog ${s.daysLeft} dagen, verlengen ${euro(s.renew)}` : s.status === 'usmem' ? `overnemen ${euro(s.ask)}` : s.status === 'vrij' ? `vergunning ${euro(s.price)}` : '', s.wagon ? (s.wagon === 'own' ? 'jouw wagen staat er' : `wagen ${esc(s.wagon)} staat er`) : ''].filter(Boolean).map((x) => `<span>${x}</span>`).join('');
-    let acts = btn('doel-plek', 'Doel', ` data-id="${esc(s.id)}"`);
+    let acts = btn('doel-plek', 'Op de kaart', ` data-id="${esc(s.id)}"`);
     if (s.status === 'vrij') acts += ' ' + askOr('vergunning', s.id, `Vergunning ${euro(s.price)}`, `Voor ${euro(s.price)}?`, miss(v.money, s.price), v.money < s.price || st(v, 'stek'));
     else if (s.status === 'usmem') acts += ' ' + askOr('neem-over', s.id, `Neem over ${euro(s.ask)}`, `Voor ${euro(s.ask)}?`, miss(v.money, s.ask), v.money < s.ask || st(v, 'keten'));
     else if (s.status === 'jij' && hasEmpty(s.id)) {
@@ -104,7 +104,8 @@ export function neighbourhoodHtml(v) {
 
 export function snackHtml(v) {
   if (!v.open) return closedHtml(v.hint);
-  const tiles = [['Naam', `${Math.round(v.effRep)}`], ['Snackimperium', `${v.score.score} van 100`], ['Standplaatsen', `${v.score.held} tegen ${v.rival.spots} van Usmem`], ['Wagens', v.score.wagons]].map(([k, x]) => `<span class="bz-tegel"><small>${k}</small><b>${x}</b></span>`).join('');
+  // #1273: the tile is the reputation (0 to 100), not a name: it says what it is and "van 100", like the Snackimperium tile.
+  const tiles = [['Reputatie', `${Math.round(v.effRep)} van 100`], ['Snackimperium', `${v.score.score} van 100`], ['Standplaatsen', `${v.score.held} tegen ${v.rival.spots} van Usmem`], ['Wagens', v.score.wagons]].map(([k, x]) => `<span class="bz-tegel"><small>${k}</small><b>${x}</b></span>`).join('');
   const goals = `<ul class="bz-lijst">${v.goals.map((g) => `<li data-goal="${g.id}" data-done="${g.done ? 1 : 0}">${g.done ? 'Klaar: ' : 'Nog niet: '}${esc(g.label)}</li>`).join('')}</ul>`;
   const war = v.war ? `<p class="bz-zwak" data-kind="oorlog">Prijzenoorlog tot dag ${v.war.until}: Usmem Snacks verlaagt zijn prijzen met ${Math.round(v.war.depth * 100)}%${v.war.matched ? '; jij prijst mee.' : '.'}</p>` : '';
   return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Snackwagen</h2></div><div class="bz-tegels">${tiles}</div>` +

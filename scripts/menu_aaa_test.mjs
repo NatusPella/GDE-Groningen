@@ -68,7 +68,7 @@ const ok = (c, name) => { n++; if (!c) { bad++; console.log('FAIL ' + name); } }
   const td = read('todoui.js');
   ok(/td-begin-cards|td-card/.test(td), 'Activiteiten: Begin hier bestaat uit kaarten');
   ok(/Eerstvolgende/.test(td), 'Activiteiten: de eerstvolgende kaart is gemarkeerd');
-  ok(/Alle cijfers/.test(td), 'Activiteiten: de volledige tellers zitten achter een vouw');
+  ok(/Meer details/.test(td), 'Activiteiten: de volledige tellers zitten achter een vouw (#1267: "Meer details", geen debugregel "Alle cijfers 13 regels")');
 }
 
 // --- Garage: kaarten heel, feiten voor de actie ------------------------------------------
