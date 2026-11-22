@@ -1597,6 +1597,10 @@
   {
    "glob": "visibletimer",
    "reden": "Zuivere timer voor zichtbaarheid van een element op dit apparaat; geen spelstaat."
+  },
+  {
+   "glob": "legacysave*",
+   "reden": "De keuze bij een spel uit een oude versie (doorgaan of opnieuw) op dit apparaat; eigen opslag van de speler, niet gedeeld."
   }
  ],
  "opslag": {
