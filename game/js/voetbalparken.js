@@ -5,7 +5,6 @@ import { hashSeed } from './voetbalplayers.js';
 
 export const HOME_WGS = Object.freeze({ lat: 53.2405, lon: 6.5335 });   // het huis in Paddepoel (Pleiadenlaan)
 export const LOCAL_DIVISION_SIZE = 8;
-export const MAX_AWAY_PER_SEASON = 4;                                    // hooguit vier uitritten van de zeven rondes
 export const NEAR_TRIP_M = 15000;                                        // ritten tot 15 km kosten één speldag, ver weg twee
 
 // De acht sjablonen (A.4 van het ontwerp); `%` is de plaats. Het eerste sjabloon gebruikt een dorpsbijnaam.
@@ -53,7 +52,7 @@ export function makeParkIndex(raw) {
   const byId = new Map(clubs.map((c) => [c.id, c]));
   return { plaatsen: places, clubs, byPlace, byId, parkCount: places.reduce((s, p) => s + p.p.length, 0) };
 }
-export const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 // De dichtstbijzijnde clubs bij een punt (afstand tot het thuispark, dan het plaats-id): stabiel en deterministisch.
 export function nearestClubs(index, pt, n = LOCAL_DIVISION_SIZE, exclude = null) {
   return index.clubs.filter((c) => !exclude || !exclude.has(c.id)).map((c) => ({ c, d: distance(c.park, pt) })).sort((a, b) => a.d - b.d || a.c.placeId - b.c.placeId).slice(0, n).map((x) => x.c);
@@ -80,8 +79,6 @@ export function pitchPlacement(park, size = { B: 56, L: 90 }) {
   const biggest = park.a / Math.max(1, park.f);
   return { x: park.x, y: park.y, angle: r, fits: biggest >= size.B * size.L * 0.8, over: biggest < size.B * size.L * 0.8 };
 }
-// Alle clubs die een bestaande eigen club-id kennen (de carrière bewaart alleen ids): van een id naar de club.
-export function resolveClub(index, id) { return index.byId.get(id) || null; }
 
 // Als de parkdata ontbreekt of kapot is: acht vaste plaatsen rond de stad met een eigen verzonnen club (geen echte clubnamen), zodat de carrière altijd kan starten. Het veld is dan een gewoon veld bij de plaats.
 export const HOME_FALLBACK = Object.freeze({ x: -2174, y: -2246 });

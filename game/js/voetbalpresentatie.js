@@ -16,7 +16,7 @@ export function leesTvVoorkeur(raw) {
   return { camera: cleanModus(tv.camera), regels: cleanRules(tv.regels) };
 }
 
-export const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 export const hex = (n) => `#${((Number.isFinite(n) ? n : 0) >>> 0).toString(16).padStart(6, '0').slice(-6)}`;
 const initiaal = (naam) => String(naam || '?').replace(/^De\s+/i, '').charAt(0).toUpperCase();
 

@@ -63,7 +63,6 @@ const NEUTRAL = '#8a8a8a';
 const DISPLAY_NAME = { Anita: 'Tessa' };
 // character key ('tammo' / 'anita', as in saves) -> the name on screen
 const CHARACTER_NAME = { tammo: 'Tammo', anita: 'Tessa' };
-export const charName = (key) => CHARACTER_NAME[key] || CHARACTER_NAME.tammo;
 
 // "Tammo (gids)" and "Schipper Wiebe (megafoon)" are still Tammo and Wiebe.
 export const baseSpeaker = (name) => String(name || '').replace(/\s*\(.*\)$/, '');

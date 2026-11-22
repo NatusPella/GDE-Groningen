@@ -81,7 +81,7 @@ export function simFactors(p, { form = 1, fatigue = 0, role = null } = {}) {
   for (const k of Object.keys(out)) out[k] = Math.round(klem(out[k] * f * offRole, 0.6, MAX_FACTOR) * 1000) / 1000;
   return out;
 }
-export const NEUTRAL_FACTORS = Object.freeze({ sprint: 1, schot: 1, aanname: 1, verd: 1, uit: 1 });
+const NEUTRAL_FACTORS = Object.freeze({ sprint: 1, schot: 1, aanname: 1, verd: 1, uit: 1 });
 
 const jitter = (rng, spread) => Math.round((rng() * 2 - 1) * spread);
 // Een speler met een rol rond een niveau (1 tot 100). De hoofdvaardigheden van de rol liggen iets hoger, de rest iets lager.
@@ -130,7 +130,6 @@ const PROTAGONISTS = {
   anita: { id: 'tessa', name: 'Tessa', char: 'anita', role: 'aanvaller', pot: 90, attrs: { pace: 46, shot: 49, pass: 46, stamina: 38, defend: 28 }, talents: ['dribbler'] },
   tammo: { id: 'tammo', name: 'Tammo', char: 'tammo', role: 'middenvelder', pot: 72, attrs: { pace: 34, shot: 30, pass: 38, stamina: 36, defend: 36 }, talents: [] },
 };
-export const protagonistChars = () => Object.keys(PROTAGONISTS);
 export function makeProtagonist(char, club = null, num = 0) {
   const base = PROTAGONISTS[char] || PROTAGONISTS.tammo;
   return { id: base.id, name: base.name, num, role: base.role, side: base.role, club, attrs: { ...base.attrs }, pot: base.pot, talents: base.talents.slice(), char: base.char };

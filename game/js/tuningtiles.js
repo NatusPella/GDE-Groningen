@@ -91,4 +91,3 @@ export function stripePicture(stripe, color, body = '#2e5f9e') {
     else if (stripe === 'hood') g.fillRect(80, 22, 38, 12);
   });
 }
-export const tileCacheSize = () => cache.size;

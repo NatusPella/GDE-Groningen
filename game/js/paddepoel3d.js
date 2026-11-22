@@ -38,8 +38,6 @@ import { P } from './worldframe.js';
 // over the streets (canopies3d.js). Signs use parody names in the game's
 // style; nothing of a real brand.
 
-export const PADDEPOEL = 'Winkelcentrum Paddepoel';
-
 const G_PLAIN = 0, G_BRICK = 1, G_GLASS = 2, G_METAL = 3;
 
 const EAVE = 6.6; // parapet of the shop blocks, foot of the glass roof

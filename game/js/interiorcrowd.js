@@ -5,8 +5,6 @@
 // and i against the crowd level of the hour, so every client that has the same game clock sees the same people in the same room.
 import { hash2 } from './rng.js';
 
-// part of the day: 'dag' 6 to 18, 'avond' 18 to 23, 'nacht' 23 to 6 (scripts in interioractivity.js can limit an activity to some)
-export const PHASES = ['dag', 'avond', 'nacht'];
 export const phaseOf = (hour) => { const h = ((hour % 24) + 24) % 24; return h >= 6 && h < 18 ? 'dag' : h >= 18 && h < 23 ? 'avond' : 'nacht'; };
 
 // Key points [hour, level 0..1] per kind (or 'kind:sub' for a refinement), linear in between, from hour 0 to 24.

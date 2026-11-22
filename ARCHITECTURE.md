@@ -1792,7 +1792,7 @@ the speaker id `Anita` (the `"Anita|<text>"` manifest and `tts.json` keys,
 `SPEAKER_COLORS`, the TTS cast, `characters.js` `speakers`). `speakers.js`
 is the one mapping: `DISPLAY_NAME` (speaker id to shown name, applied by
 `speakerHtml`, `paintSpeaker` and `displayName()`; `speakerColor` accepts
-both) and `CHARACTER_NAME` / `charName()` (character key to shown name).
+both) and `CHARACTER_NAME` (character key to shown name).
 Text she or others speak says "Tessa"; never put `Anita` in shown text.
 
 ## Trailer (`js/trailer.js`)

@@ -27,7 +27,7 @@ const heldKeys = (input) => {
 };
 const toWorld = (g, x, z) => { const c = Math.cos(g.heading), s = Math.sin(g.heading); return { x: g.origin.x + c * x - s * z, y: g.origin.y + s * x + c * z }; };
 
-export function launchExercise(w, focus) {
+function launchExercise(w, focus) {
   if (game || !w) return false;
   const c = V.getCareer();
   const drill = drillFor(focus);

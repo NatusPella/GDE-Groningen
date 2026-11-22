@@ -128,8 +128,8 @@ export const PLAN = {
 export const planDuration = (cut) => PLAN[cut].beats.reduce((a, b) => a + b.dur, 0);
 
 // Words that must not be on screen or in sound (script: spoilers) and brands.
-export const FORBIDDEN = ['vitrine', 'Tige tank', 'briefje', 'kus', 'Bourtange', 'Ik wil bij jou blijven', 'finale', 'wint', 'uitslag', 'Fjord Frituur', 'frietwagen', 'snackwagen', 'standplaats', 'TAM & TES'];
-export const BRANDS = ['Albert Heijn', 'McDonald', 'Coca', 'Google', 'Facebook', 'Instagram', 'Netflix', 'Shell', 'Spotify', 'YouTube'];
+const FORBIDDEN = ['vitrine', 'Tige tank', 'briefje', 'kus', 'Bourtange', 'Ik wil bij jou blijven', 'finale', 'wint', 'uitslag', 'Fjord Frituur', 'frietwagen', 'snackwagen', 'standplaats', 'TAM & TES'];
+const BRANDS = ['Albert Heijn', 'McDonald', 'Coca', 'Google', 'Facebook', 'Instagram', 'Netflix', 'Shell', 'Spotify', 'YouTube'];
 const BAD_SHOTS = ['vitrine'];
 
 // Developer messages; empty = fine. opts: shotIds (the ids trailer.js knows),

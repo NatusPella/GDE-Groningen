@@ -5,7 +5,7 @@ import { SIMICOON as I } from './simicoon.js';
 import { LAPS } from './reuzenradrules.js';
 
 // Icoonpaden voor de chips (24x24, lijn): pijl omhoog, uitzicht (oog), pijl omlaag, uitstappen (deur).
-export const ICOON = {
+const ICOON = {
   omhoog: 'pijl_omhoog',
   top: 'oog',
   omlaag: 'pijl_omlaag',

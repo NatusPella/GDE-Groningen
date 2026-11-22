@@ -42,4 +42,3 @@ export function duikStand(gezien) {
   const rijen = PLEKKEN.map((p) => ({ ...p, gezien: s.has(p.vondst.id) }));
   return { totaal: PLEKKEN.length, gevonden: rijen.filter((r) => r.gezien).length, klaar: rijen.every((r) => r.gezien), rijen };
 }
-export const duikAlbum = (gezien) => duikStand(gezien);

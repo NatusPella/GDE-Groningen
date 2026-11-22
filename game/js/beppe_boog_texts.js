@@ -77,7 +77,6 @@ export const GOODBYE = [
   'Rij voorzichtig. De koeien staan overal.',
   'Neem wat koek mee. Nee, neem het.',
 ];
-export const REPLY = { stay: 'Even blijven zitten', thanks: 'Dank je, beppe', go: 'Ik ga weer' };
 
 // The news, once, when it happens during play (a save that is already past it
 // never sees it: the house is simply a memory there). A phone text, not a scene.

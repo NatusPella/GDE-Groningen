@@ -5,7 +5,7 @@ import { WORP_BEREIK, WORP_LOON } from './krantenrules.js';
 import { IC } from './simicons.js';
 
 // Icoonpaden voor de chips (24x24, lijn): wijk (huisjes), krant (rol), brievenbus, vinkje.
-export const ICOON = {
+const ICOON = {
   wijk: '<path d="M3 20V11l5-4 5 4v9"/><path d="M13 20v-7l4-3 4 3v7"/><path d="M2 20h20"/>',
   krant: '<rect x="4" y="9" width="16" height="7" rx="3.5"/><path d="M9 9v7"/>',
   bus: '<rect x="5" y="6" width="14" height="9" rx="2"/><path d="M9 11h6"/><path d="M12 15v5"/>',

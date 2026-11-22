@@ -8,7 +8,6 @@
 //   cut    onderbreking: deze regel wordt na zoveel seconden afgekapt (de tekst eindigt op "...") en de volgende begint meteen
 //   pause  stilte: zoveel seconden stilte na deze regel in plaats van de standaardpauze (een stilte telt als beurt)
 // Samen spelen: de vorm is tekst en timing bij de scène; een gast ziet dezelfde timing mee; niets over het net.
-export const FORM_KEYS = ['ov', 'cut', 'pause'];
 export const FORM_LIMITS = { ov: [0.1, 1.2], cut: [0.4, 6], pause: [0.2, 3] };
 export const DEFAULT_GAP = 0.25;
 export const MIN_OPENING = 0.3;

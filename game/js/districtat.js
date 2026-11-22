@@ -21,7 +21,7 @@ let sharedBounds = null;
 export const applyDistrictBounds = (g) => { sharedBounds = g || null; };
 
 // Het dichtstbijzijnde wijkpunt, of null. points: [{ name, x, y }]; opts: { grenzen, maxAfstand, hoogte }.
-export function dichtstbijzijnde(points, x, y) {
+function dichtstbijzijnde(points, x, y) {
   let best = null, bd = Infinity;
   if (!Array.isArray(points)) return { punt: null, afstand: Infinity };
   for (const p of points) {

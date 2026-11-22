@@ -33,7 +33,7 @@ export function garageLevel(site) {
 export const areaFromProfile = (profileKey, country = false) => (country ? 'platteland' : ['centrum', 'student', 'chic'].includes(profileKey) ? 'stad' : 'dorp');
 
 // De streek van een garage voor de kleur van het aanbod: 'stad' | 'dorp' | 'platteland'.
-export function areaOf(site) {
+function areaOf(site) {
   const r = site && site.region;
   return r === 'stad' || r === 'platteland' ? r : 'dorp';
 }

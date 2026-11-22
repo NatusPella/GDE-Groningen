@@ -4,7 +4,7 @@
 import { SIMICOON as I } from './simicoon.js';
 
 // Icoonpaden voor de chips (24x24, lijn): lopende voeten (lopen), stempel, vlag (klaar).
-export const ICOON = {
+const ICOON = {
   lopen: 'wandeling',
   stempel: 'stempel',
   klaar: 'vlag',

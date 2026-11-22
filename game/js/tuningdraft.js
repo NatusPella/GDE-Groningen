@@ -9,7 +9,7 @@
 // De 'installed'-stand is wat er nu op de auto zit; het concept begint als kopie en wijzigt tot de speler kiest.
 import {
   OPTIONS, FIELD_LABELS, PALETTES, ACCENT_COLORS, CATEGORIES, categoriesFor, fieldsFor, sanitizeLook, withField, parseLook, lookCode,
-  fieldPrice, cleanColor, cleanPlate, defaultOf, optionOf, looksEqual, isStock, flashiness,
+  fieldPrice, cleanColor, defaultOf, optionOf, looksEqual, flashiness,
 } from './vehiclelook.js';
 import { PARTS, PART_LABELS, optionsFor, optionById, withOption, withoutPart, sanitizeTuning, installPrice, tuningEffects } from './tuningplan.js';
 import { offerPrice, offerState, orderedOptions, garageLevel } from './tuningoffer.js';
@@ -160,5 +160,4 @@ export const levelText = (site) => `Niveau ${garageLevel(site)} van 3`;
 
 // De code van het concept (voor builds en Samen spelen).
 export const stateCode = (st, kind) => lookCode(st.look, kind);
-export { isStock, cleanPlate };
 export const CATEGORY_IDS = CATEGORIES.map((c) => c.id);

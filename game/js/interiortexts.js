@@ -13,7 +13,6 @@ export const PROMPT = {
 };
 
 export const LOCKED_HOME = ['De deur zit op slot.', 'Niemand thuis. De deur blijft dicht.', 'Aanbellen helpt niet: er is niemand.', 'Op slot, en de gordijnen zijn dicht.'];
-export const hourText = (h) => { const hh = Math.floor(h % 24), mm = Math.round((h - Math.floor(h)) * 60); return `${hh}:${String(mm).padStart(2, '0')}`; };
 
 // the line of the person at the counter, by kind (a counter, a bar, a desk)
 const CLERK = {
@@ -46,4 +45,3 @@ export const HAIRCUT = ['De kapper pakt de schaar: "Zoals altijd?" Je hebt nog n
 export const BOUGHT = (item, price) => `${item} gekocht voor €${price}.`;
 export const TOO_POOR = (item, price) => `Te weinig geld voor ${item} (€${price}).`;
 export const NOT_FOR_SALE = 'Hier valt niets te kopen.';
-export const POLICE_OUTSIDE = 'De politie staat voor de deur. Binnen houd je je koest.';

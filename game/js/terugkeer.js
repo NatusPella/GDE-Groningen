@@ -16,7 +16,6 @@ import { STEPS } from './storyarc.js';
 //   4 na het slot  vanaf M27 (nazomer) en na het einde: samen thuis, de zomer is nog lang niet op
 export const FASE_VANAF = { 1: 'M00', 2: 'M12', 3: 'M23', 4: 'M27' };
 export const FASES = [1, 2, 3, 4];
-export const FASE_NAAM = { 1: 'huisgenoten', 2: 'vrienden', 3: 'relatie', 4: 'na het slot' };
 
 const stapIndex = (id) => STEPS.findIndex((s) => s.id === id);
 

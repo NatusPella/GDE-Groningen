@@ -34,18 +34,6 @@ export function readState(v) {
 }
 export function readBuilds(v) { return buildsOf(loadLooks(store(), KEYS.tuningLook), tuneId(v)); }
 
-// Past de bewaarde look en onderdelen op een (nieuw) voertuig toe; aangeroepen waar het voertuig verschijnt.
-export function applyStored(v) {
-  const id = tuneId(v);
-  if (!id) return;
-  const kind = tuneKind(v);
-  if (!kind) return;
-  const l = lookOf(loadLooks(store(), KEYS.tuningLook), id, kind);
-  if (Object.keys(l).length) v.look = l; else delete v.look;
-  const p = loadTuning(store(), KEYS.tuning)[id];
-  v.tuning = p ? tuningEffects(p) : v.tuning;
-}
-
 function pay(w, price) {
   if (price <= 0) return true;
   if (w.money < price) return false;

@@ -4,7 +4,7 @@
 // De bron staat nooit alleen in een kleur: er staat altijd een woord (Live of Rooster) en een bronregel.
 
 export const KIND = { live: 'live', rooster: 'rooster', uit: 'uit' };
-export const VEROUDERD_MS = 180000;   // zoals LIVE_TRAINS.verouderd (livetrains.js)
+const VEROUDERD_MS = 180000;   // zoals LIVE_TRAINS.verouderd (livetrains.js)
 const SOURCE_LINE = 'Bron: open OV-gegevens';
 
 const REDEN = {

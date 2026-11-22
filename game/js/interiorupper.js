@@ -29,7 +29,6 @@ export function makeStairs(hall, door, rnd, rise) {
   return { side, u0, u1: u0 + STAIR_W, vBot, vRamp, vTop, rise, n: Math.ceil(rise / STEP_H), inner: side === 'left' ? u0 + STAIR_W : u0 };
 }
 
-export const stairsRect = (st) => ({ u0: st.u0, u1: st.u1, v0: st.vBot, v1: st.vTop });
 export const holeRect = (st) => ({ u0: st.u0, u1: st.u1, v0: st.vBot, v1: st.vRamp });
 
 // height above the ground-floor floor at (u, v) when on the stair or its landing, else null

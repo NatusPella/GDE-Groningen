@@ -34,8 +34,6 @@ let root = null, world = null, veh = null, site = null;
 let open = false, installed = null, draft = null, tabId = 'lak', ctx = null, compare = false, armed = null, closeArmed = 0, showroom = null;
 let dayIndex = 0;
 
-export const isTuningOpen = () => open;
-
 function css() {
   for (const f of ['menu.css', 'ds-tokens.css', 'ds-components.css', 'ds-keycap.css', 'ds-menu-zeef.css', 'tuningui.css']) {
     if (document.getElementById('style-' + f)) continue;

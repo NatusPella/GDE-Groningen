@@ -165,13 +165,3 @@ function show(w) {
   return true;
 }
 
-// For the test bench: show the card without waiting and without reading or writing storage. Not used by the game itself.
-export function recapDebugShow(w) {
-  const card = recapContent(contentInput());
-  if (!card) return false;
-  if (!dlg) dlg = build();
-  dlg.world = w;
-  fill(card, false);
-  dlg.el.hidden = false;
-  return true;
-}

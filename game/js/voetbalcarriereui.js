@@ -26,7 +26,7 @@ const rij = (i) => `style="--ds-m-i:${Math.min(8, i)}"`;
 const chip = (tekst, soort = '') => `<span class="ds-z-chip${soort ? ` ds-z-chip--${soort}` : ''}">${esc(tekst)}</span>`;
 const bar = (label, deel) => `<span class="ds-z-balk" style="--ds-z-w:${Math.round(Math.max(0, Math.min(1, deel)) * 100)}%"><span class="ds-z-balk__baan"><span class="ds-z-balk__vul"></span></span><span class="ds-z-balk__label">${esc(label)}</span></span>`;
 const knop = (act, tekst, { primair = false, ghost = false, uit = '' } = {}) => `<button type="button" class="ds-z-knop ds-m-knop${primair ? '' : ghost ? ' ds-z-knop--ghost' : ' ds-z-knop--secundair'}" data-vb="${act}"${uit ? ` aria-disabled="true" title="${esc(uit)}"` : ''}>${esc(tekst)}</button>`;
-export const DIV = DIVISION_NAMES;
+const DIV = DIVISION_NAMES;
 
 const DAGEN_NL = (d) => A.dayText(d);
 const KIND = { league: 'Competitie', cup: 'Dijkbeker', europe: 'Waddenbeker' };
@@ -214,7 +214,6 @@ function act(a) {
   else if (a === 'coach') { if (coachLauncher && coachLauncher(wereld)) { if (sluit) sluit(); return; } }
   renderVoetbalPanel(host);
 }
-export const voetbalBegonnen = () => C.hasCareer(V.getCareer());
 export const cardInfo = (c, getClub) => {
   if (!C.hasCareer(c)) return { gestart: false, stand: 'Nog niet begonnen', niveau: 'Talent' };
   const ov = C.summary(c, getClub);

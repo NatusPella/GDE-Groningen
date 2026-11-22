@@ -5,7 +5,7 @@
 const GUIDE_MARGIN = 0.86; // hoe dicht bij de rand van het scherm de pijl blijft (genormaliseerd -1..1)
 
 const TAU = Math.PI * 2;
-export const wrapAngle = (a) => { a %= TAU; return a > Math.PI ? a - TAU : a < -Math.PI ? a + TAU : a; };
+const wrapAngle = (a) => { a %= TAU; return a > Math.PI ? a - TAU : a < -Math.PI ? a + TAU : a; };
 
 // De hoek tot het doel ten opzichte van de kijkrichting van de duif: 0 = recht vooruit, positief = rechts (de duif vliegt langs (cos yaw, sin yaw), rechts is yaw + 90 graden).
 export function relBearing(yaw, fx, fy, tx, ty) {

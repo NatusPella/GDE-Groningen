@@ -4,7 +4,7 @@
 import { SIMICOON as I } from './simicoon.js';
 
 // Icoonpaden voor de chips (24x24, lijn): duiker (pijl omlaag in golf), zwemmer (golven), finish (vlag), keerpunt (U-bocht), arm.
-export const ICOON = {
+const ICOON = {
   duik: 'pijl_omlaag',
   zwem: 'zwemmen',
   vlag: 'vlag',
