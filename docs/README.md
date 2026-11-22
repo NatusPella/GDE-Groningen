@@ -80,6 +80,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [INCLUSIEVE-TAAL.md](<INCLUSIEVE-TAAL.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/ui-taal.md`](../.specs-fire/standards/… |
 | [INVULBLAD-EIGENAAR.md](<INVULBLAD-EIGENAAR.md>) | Stand: 19 oktober 2026. Niets is verstuurd, geüpload of ingesteld. Dit blad |
 | [INTOCHT.md](<INTOCHT.md>) | De intocht na een verovering: wachtrij, acht scènes, terugkijken en de host-only-regel (#704). |
+| [ISSUES-STAND-22-11.md](<ISSUES-STAND-22-11.md>) | Werkdocument. Stand van de issues op 22-11: aantallen per label en bordkolom, de 12 milestones, de epics en wat op de eigenaar wacht. |
 | [ISSUES-OPSCHONING-21-11.md](<ISSUES-OPSCHONING-21-11.md>) | Werkdocument. Wat de issue-opschoning van 21-11 sloot, labelde en open liet, met sluitkandidaten, top-10 bugs en wensen en de eigenaar-lijst. |
 | [ISSUES-SLUITEN-21-11.md](<ISSUES-SLUITEN-21-11.md>) | Werkdocument. Per issue het besluit en het bewijs van de controle van de 105 sluitkandidaten van 21-11: gesloten, hertest, wacht-beeld of nog niet af. |
 | [KAART-GEBIEDEN-20-11.md](<KAART-GEBIEDEN-20-11.md>) | Kaart en minikaart: kleuren uit de ds-tokens (`kaartkleuren.js`) en de vier gebiedstoestanden (onzichtbaar, zichtbaar, bezig, veroverd). Naslag; de kaartregels staan in de specs wereld en ui-taal. |
