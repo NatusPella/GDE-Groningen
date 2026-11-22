@@ -3,6 +3,7 @@ export class SpatialGrid {
   constructor(cellSize) {
     this.cell = cellSize;
     this.map = new Map();
+    this.ver = 0; // loopt op bij elke wijziging van de cellen; gridItems bewaart zijn uitkomst per ver
   }
   key(cx, cy) { return (cx + 32768) * 65536 + cy + 32768; }
   cellRange(minx, miny, maxx, maxy) {
@@ -12,6 +13,7 @@ export class SpatialGrid {
     };
   }
   insert(item, bounds) {
+    this.ver++;
     const { cx0, cy0, cx1, cy1 } = this.cellRange(...bounds);
     for (let cx = cx0; cx <= cx1; cx++) {
       for (let cy = cy0; cy <= cy1; cy++) {
@@ -23,6 +25,7 @@ export class SpatialGrid {
     }
   }
   remove(item, bounds) {
+    this.ver++;
     const { cx0, cy0, cx1, cy1 } = this.cellRange(...bounds);
     for (let cx = cx0; cx <= cx1; cx++) {
       for (let cy = cy0; cy <= cy1; cy++) {
@@ -97,7 +100,9 @@ export class SpatialGrid {
   }
   // The raw item list of one cell (not a copy), or undefined.
   cellItems(cx, cy) { return this.map.get(this.key(cx, cy)); }
-  clear() { this.map.clear(); }
+  clear() { this.map.clear(); this.ver++; }
+  // Voor code die de cellijsten rechtstreeks wijzigt (home.js regrid).
+  touch() { this.ver++; }
 }
 
 // Elk object één keer, uit alle cellen van het raster (#524): de lezers van de hele
@@ -105,7 +110,11 @@ export class SpatialGrid {
 // weghalen zonder dat de array de waarheid hoeft te zijn. De volgorde is cel-voor-cel.
 export function gridItems(grid) {
   if (!grid || !grid.map) return [];
+  // Vijf modules lezen na elke tegelwissel alle wegen/gebouwen: de uitkomst (met de Set-dedupe) wordt per
+  // rasterversie bewaard en als kopie teruggegeven, zodat een beller hem mag sorteren of aanvullen.
+  if (typeof grid.ver === 'number' && grid._itemsVer === grid.ver && grid._items) return grid._items.slice();
   const out = [], seen = new Set();
   for (const arr of grid.map.values()) for (const it of arr) if (!seen.has(it)) { seen.add(it); out.push(it); }
-  return out;
+  if (typeof grid.ver === 'number') { grid._items = out; grid._itemsVer = grid.ver; }
+  return out.slice();
 }

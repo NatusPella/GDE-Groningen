@@ -29,16 +29,29 @@ export function normalizeAngle(a) {
 // scan under tileplace.nearestOnRoads and the tile generator's nearestRoad (#102). -> { road, i (segment),
 // t, x, y, d2, d, dx, dy (the segment's direction), ux, uy (unit) } or null.
 export function nearestOnRoadList(roads, x, y, ok = null) {
-  let best = null;
+  // Scalaire rekenkunde in plaats van closestPointOnSegment per segment: dat gaf per segment een object
+  // (en een clamp- en dist2-aanroep) en dit is een van de heetste lussen van de tegelplaatsing; dezelfde
+  // uitkomst, het object ontstaat alleen voor de beste treffer.
+  let bi = -1, bRoad = null, bt = 0, bx = 0, by = 0, bd2 = Infinity, bdx = 0, bdy = 0;
   for (const road of roads) {
     if (ok && !ok(road)) continue;
     const P = road.pts;
+    let ax = P.length ? P[0][0] : 0, ay = P.length ? P[0][1] : 0;
     for (let i = 0; i < P.length - 1; i++) {
-      const cp = closestPointOnSegment(x, y, P[i][0], P[i][1], P[i + 1][0], P[i + 1][1]);
-      if (!best || cp.dist2 < best.d2) best = { road, i, t: cp.t, x: cp.x, y: cp.y, d2: cp.dist2, dx: P[i + 1][0] - P[i][0], dy: P[i + 1][1] - P[i][1] };
+      const b = P[i + 1], bxx = b[0], byy = b[1];
+      const abx = bxx - ax, aby = byy - ay;
+      const len2 = abx * abx + aby * aby;
+      let t = len2 > 1e-9 ? ((x - ax) * abx + (y - ay) * aby) / len2 : 0;
+      t = t < 0 ? 0 : t > 1 ? 1 : t;
+      const cx = ax + abx * t, cy = ay + aby * t;
+      const ex = x - cx, ey = y - cy, d2 = ex * ex + ey * ey;
+      if (bi < 0 || d2 < bd2) { bi = i; bRoad = road; bt = t; bx = cx; by = cy; bd2 = d2; bdx = abx; bdy = aby; }
+      ax = bxx; ay = byy;
     }
   }
-  if (best) { best.d = Math.sqrt(best.d2); const L = Math.hypot(best.dx, best.dy) || 1e-9; best.ux = best.dx / L; best.uy = best.dy / L; }
+  if (bi < 0) return null;
+  const best = { road: bRoad, i: bi, t: bt, x: bx, y: by, d2: bd2, dx: bdx, dy: bdy };
+  best.d = Math.sqrt(best.d2); const L = Math.hypot(best.dx, best.dy) || 1e-9; best.ux = best.dx / L; best.uy = best.dy / L;
   return best;
 }
 

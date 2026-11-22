@@ -1,6 +1,6 @@
 // SpatialGrid: insert, remove, query by box and radius, update, clear.
 import assert from 'node:assert/strict';
-import { SpatialGrid } from '../game/js/spatialgrid.js';
+import { SpatialGrid, gridItems } from '../game/js/spatialgrid.js';
 
 const g = new SpatialGrid(10);
 const a = { n: 'a' }, b = { n: 'b' }, c = { n: 'c' };
@@ -28,6 +28,21 @@ g.removePoint(c, -15, -15);
 assert.deepEqual(g.query(-20, -20, -11, -11), []);
 g.remove(b, [5, 5, 35, 5]); // removing twice is harmless
 
+// gridItems bewaart zijn uitkomst per rasterversie (perf-60-normaal) en geeft elke keer een eigen kopie
+const q1 = gridItems(g), q2 = gridItems(g);
+assert.notEqual(q1, q2);
+assert.deepEqual(q1, q2);
+q1.length = 0; // een beller mag zijn kopie slopen
+assert.deepEqual(gridItems(g), q2);
+const d = { n: 'd' };
+g.insert(d, [100, 100, 101, 101]);
+assert.ok(gridItems(g).includes(d), 'insert maakt de bewaarde lijst ongeldig');
+g.remove(d, [100, 100, 101, 101]);
+assert.ok(!gridItems(g).includes(d), 'remove maakt de bewaarde lijst ongeldig');
+g.map.values().next().value.pop(); g.touch(); // rechtstreekse celwijziging (home.js regrid) plus touch
+assert.deepEqual(gridItems(g), (() => { const o = [], z = new Set(); for (const arr of g.map.values()) for (const it of arr) if (!z.has(it)) { z.add(it); o.push(it); } return o; })());
+
 g.clear();
+assert.equal(gridItems(g).length, 0);
 assert.equal(g.map.size, 0);
 console.log('spatialgrid_test: ok');
