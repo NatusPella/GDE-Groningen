@@ -13,6 +13,7 @@ import { SpatialGrid, gridItems } from './spatialgrid.js';
 import { hash3 as hash } from './rng.js';
 import { tuneParkedBay, tickMeet, siteMeetBay } from './tuningtraffic.js'; // gepimpte auto's in de wereld (epic Autotuning, #1155)
 import { isMeetLotId } from './tuningworld.js';
+import { monumentTrafficAllowed } from './monumentzone.js';
 
 // Kerbside parking along residential streets: half a car length up on the
 // stoep, clear of the traffic lane. Slots are deterministic per road segment
@@ -84,6 +85,7 @@ function onOtherRoad(map, own, x, y) {
 export function slotFits(map, road, x, y, angle, m, outX, outY) {
   // kept free by home.js (garage, bike rack, the kerb for their long vehicles)
   if (map.reservedAt && map.reservedAt(x, y)) return false;
+  if (!monumentTrafficAllowed('cars', x, y)) return false; // een monumentgebied (monumentzone.js) is autovrij: ook geen geparkeerde auto
   const c = Math.cos(angle), s = Math.sin(angle);
   const hl = m.len / 2 + 0.3, hw = m.wid / 2 + 0.2;
   for (const [lx, ly] of [[hl, hw], [hl, -hw], [-hl, hw], [-hl, -hw], [0, 0]]) {

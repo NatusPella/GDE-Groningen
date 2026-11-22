@@ -442,6 +442,8 @@ const AREA_ROLES = {
   chic: { voetganger: 52, student: 3, toerist: 5, sporter: 8, zakenman: 12, bouwvakker: 1, winkelier: 6, feestganger: 5, ambtenaar: 5, wandelaar: 3 },
   bakfiets: { voetganger: 68, student: 6, toerist: 2, sporter: 8, zakenman: 3, bouwvakker: 2, winkelier: 3, feestganger: 2, ambtenaar: 3, wandelaar: 3 },
   industrie: { voetganger: 38, student: 1, toerist: 0, sporter: 2, zakenman: 8, bouwvakker: 42, winkelier: 1, feestganger: 0, boer: 6, ambtenaar: 2 },
+  // een monumentgebied (monumentzone.js, Vesting Bourtange): wandelaars en toeristen in zomerkleding, een paar figuranten in historische kleding
+  monument: { voetganger: 38, toerist: 26, wandelaar: 16, historisch: 8, student: 2, sporter: 2, winkelier: 2 },
   centrum: { voetganger: 42, student: 8, toerist: 14, sporter: 2, zakenman: 8, bouwvakker: 1, winkelier: 7, feestganger: 8, ambtenaar: 12, wandelaar: 3 },
 };
 export function pedRole(seed, ctx = {}) {
@@ -456,6 +458,7 @@ export function pedRole(seed, ctx = {}) {
     if (role === 'bouwvakker') w *= h >= 6 && h < 17 ? 1.4 : 0.1;
     if (role === 'feestganger') w *= evening ? 4 : 0.3;
     if (role === 'boer') w *= h >= 6 && h < 19 ? 1.3 : 0.2;
+    if (role === 'historisch') w *= h >= 10 && h < 18 ? 1.5 : 0.1; // de figuranten lopen overdag rond
     if (role === 'wandelaar') w *= (day ? 1.2 : 0.3) * (ctx.rain ? 0.5 : 1);
     if (role === 'toerist' || role === 'sporter') w *= h >= 22 || h < 6 ? 0.2 : 1;
     if (role === 'student' && ctx.rain) w *= 0.9;
