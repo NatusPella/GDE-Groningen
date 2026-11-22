@@ -70,12 +70,49 @@ export function stepSelection(shown, selectedId, step) {
 // --- Prestaties ---
 export const achPct = (it) => (it.progress && it.progress.goal ? Math.max(0, Math.min(100, (it.progress.cur / it.progress.goal) * 100)) : 0);
 // "Bijna binnen": started and not done, the furthest along first
-export const achNear = (all) => all.filter((a) => !a.unlocked && !a.hidden && a.progress && a.progress.cur > 0).sort((a, b) => achPct(b) - achPct(a));
+// Gelijke stand: op titel, zodat de volgorde niet verspringt als je het scherm opnieuw opent (verfijnronde 22-11).
+const opTitel = (a, b) => String(a.title || '').localeCompare(String(b.title || ''), 'nl');
+export const achNear = (all) => all.filter((a) => !a.unlocked && !a.hidden && a.progress && a.progress.cur > 0).sort((a, b) => achPct(b) - achPct(a) || opTitel(a, b));
 // "Behaald": newest first
-export const achDone = (all) => all.filter((a) => a.unlocked).sort((a, b) => (b.at || 0) - (a.at || 0));
+export const achDone = (all) => all.filter((a) => a.unlocked).sort((a, b) => (b.at || 0) - (a.at || 0) || opTitel(a, b));
 // inside a category: done ones first, then by progress
 export const achCategoryOrder = (items) => [...items].sort((a, b) => Number(b.unlocked) - Number(a.unlocked) || achPct(b) - achPct(a));
-export const achCategoryPct = (c) => (c.items.length ? Math.round((c.done / c.items.length) * 100) : 0);
+
+// Zoeken in Prestaties (verfijnronde 22-11): alle woorden moeten in titel, omschrijving of categorie staan. Een nog geheime
+// prestatie is nooit te vinden (zijn titel is voor de speler "???"), zodat zoeken niets verklapt.
+export const ACH_ZOEK_MAX = 40;
+export const achZoekTekst = (q) => String(q == null ? '' : q).replace(/[\u0000-\u001f]/g, ' ').slice(0, ACH_ZOEK_MAX);
+export function achZoek(all, q) {
+  const woorden = String(achZoekTekst(q)).toLowerCase().trim().split(/\s+/).filter(Boolean);
+  if (!woorden.length) return all;
+  return all.filter((a) => {
+    if (a.hidden) return false;
+    const t = `${a.title || ''} ${a.desc || ''} ${a.catLabel || ''}`.toLowerCase();
+    return woorden.every((w) => t.includes(w));
+  });
+}
+// De regel als er niets past: zegt het ook waarom een geheime er niet tussen staat.
+export const achZoekLeeg = (q, nGeheim) => `Niets gevonden voor "${achZoekTekst(q).trim()}".${nGeheim > 0 ? ` Nog ${nGeheim} geheime prestaties zoek je niet op: die laten zich pas zien als je ze haalt.` : ''}`;
+
+// Een hoeveelheid in gewone taal (meters, euro's, seconden, km/u). Alles wat geen getal is of onder nul valt wordt nul,
+// zodat een kapotte stand nooit "NaN" of "-3" op het scherm zet. fmtTijd: de tijdopmaak van de aanroeper.
+const nlGetal = (n, d = 0) => n.toLocaleString('nl-NL', { minimumFractionDigits: d, maximumFractionDigits: d });
+export function achFmt(v, unit, fmtTijd = (s) => `${Math.floor(s / 60)}:${String(Math.round(s) % 60).padStart(2, '0')}`) {
+  const x = Number.isFinite(v) && v > 0 ? v : 0;
+  if (unit === 'm') return x >= 1000 ? `${nlGetal(x / 1000, x >= 100000 ? 0 : 1)} km` : `${nlGetal(Math.floor(x))} m`;
+  if (unit === '€') return `€${nlGetal(Math.floor(x))}`;
+  if (unit === 's') return fmtTijd(x);
+  if (unit === 'km/u') return `${nlGetal(Math.floor(x))} km/u`;
+  return nlGetal(Math.floor(x));
+}
+// Een percentage dat niet liegt: naar beneden afgerond, en pas 100 als alles echt klaar is (99,6% werd "100%" terwijl er nog
+// één ontbrak; verfijnronde 22-11). Gebruikt door Prestaties, Loopbaan en Veroverd.
+export function eerlijkPct(deel, klaar = deel >= 1) {
+  if (!Number.isFinite(deel) || deel <= 0) return 0;
+  if (klaar) return 100;
+  return Math.min(99, Math.floor(deel * 100));
+}
+export const achCategoryPct = (c) => (c.items.length ? eerlijkPct(c.done / c.items.length, c.done >= c.items.length) : 0);
 // #985: prestaties staan stil zolang een cheat aan staat die niet veilig is (cheats.js). Het paneel zei daar
 // niets over, dus een speler zag zijn voortgang vastlopen zonder reden. Leeg als alles meetelt.
 export const achStilNoot = (stil) => (stil
@@ -88,7 +125,7 @@ export function achWhen(at, now, tzOffsetMin, fmtDate) {
   if (d <= 0) return 'vandaag';
   if (d === 1) return 'gisteren';
   if (d < 7) return `${d} dagen geleden`;
-  return fmtDate(at);
+  return fmtDate(at, d >= 300); // na bijna een jaar staat het jaartal erbij, anders is "12 nov." dubbelzinnig
 }
 
 // The version line of the menu: shown once, in the pause menu. A development build has no number.

@@ -15,7 +15,7 @@ import { iconSvg, ICON_PATHS } from './achievementicons.js';
 import { fillBars, countTo } from './motion.js';
 import { rijAttr, rijPlan, afterFrame, rijenKlaar, staffelDuur, calmState, tikGetal } from './dsmicro.js';
 import { listPlan } from './achievementunlock.js'; // DS3: staffel van de rijen, eenmalige glans, teller en balken (ds-micro.css)
-import { achStilNoot, achPct as pctOf, achNear, achDone, achCategoryOrder, achCategoryPct, achWhen } from './menumodels.js';
+import { achStilNoot, achPct as pctOf, achNear, achDone, achCategoryOrder, achCategoryPct, achWhen, achFmt, achZoek, achZoekLeeg, achZoekTekst, eerlijkPct } from './menumodels.js';
 
 const CHEV = icoon('volgende');
 const LOCK = icoon('slot');
@@ -55,6 +55,10 @@ const CSS = `
 #pause-menu .pa-empty-pane { display: flex; flex-direction: column; gap: 16px; }
 #pause-menu .pa-next-acts { align-self: flex-start; }
 #pause-menu .pa-next-acts .ds-z-knop { min-height: var(--ds-doel-aanraken); font-size: var(--ds-t-label); }
+#pause-menu .pa-zoekrij { display: flex; align-items: center; flex-wrap: wrap; gap: var(--ds-s-2) var(--ds-s-4); margin: 0 24px 12px; flex: none; }
+#pause-menu .pa-zoek-veld { flex: 0 1 360px; height: var(--ds-doel-aanraken, 48px); }
+#pause-menu .pa-zoek-veld input { font-size: var(--ds-t-body); }
+#pause-menu .pa-zoek-tel { margin: 0; }
 #pause-menu .pa-hero { margin: 0 24px 14px; flex: none; }
 #pause-menu .pa-hero { gap: var(--ds-s-2); }
 #pause-menu .pa-hero-rij { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--ds-s-2) var(--ds-s-6); }
@@ -73,6 +77,7 @@ function zetCss() {
 }
 
 let tabView = 'alles';
+let zoek = '';                       // de zoekopdracht (verfijnronde 22-11); leeg = geen filter
 let sel = null;
 const openCats = new Set();
 const openExtra = new Set();
@@ -87,16 +92,11 @@ const balkMem = new Map();           // de vorige breedte per balk, zodat een ba
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const nl = (n, d = 0) => n.toLocaleString('nl-NL', { minimumFractionDigits: d, maximumFractionDigits: d });
 
-function fmtAmount(v, unit) {
-  if (unit === 'm') return v >= 1000 ? `${nl(v / 1000, v >= 100000 ? 0 : 1)} km` : `${nl(Math.floor(v))} m`;
-  if (unit === '€') return `€${nl(Math.floor(v))}`;
-  if (unit === 's') return formatMissionTime(v);
-  if (unit === 'km/u') return `${nl(Math.floor(v))} km/u`;
-  return nl(Math.floor(v));
-}
+// een kapotte stand (NaN, min) wordt nul in plaats van "NaN" op het scherm (menumodels.js achFmt)
+const fmtAmount = (v, unit) => achFmt(v, unit, formatMissionTime);
 
 
-const whenText = (at) => achWhen(at, Date.now(), new Date(at).getTimezoneOffset(), (t) => new Date(t).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }));
+const whenText = (at) => achWhen(at, Date.now(), new Date(at).getTimezoneOffset(), (t, jaar) => new Date(t).toLocaleDateString('nl-NL', jaar ? { day: 'numeric', month: 'short', year: 'numeric' } : { day: 'numeric', month: 'short' }));
 
 function row(it, catLabel, i = 0) {
   const title = it.hidden ? '???' : dualHtml(it.title);
@@ -107,9 +107,9 @@ function row(it, catLabel, i = 0) {
   let end = '';
   if (it.unlocked) end = freshIds.has(it.id) ? '<span class="t g">nieuw</span>' + CHECK : CHECK;
   else if (it.hidden) end = LOCK;
-  else if (bijna) end = `<span class="pa-row-end"><span class="v">${fmtAmount(it.progress.cur, it.progress.unit)}/${fmtAmount(it.progress.goal, it.progress.unit)}</span><span class="pa-row-pct">${Math.round(pctOf(it))}%</span></span>`;
+  else if (bijna) end = `<span class="pa-row-end"><span class="v">${fmtAmount(it.progress.cur, it.progress.unit)}/${fmtAmount(it.progress.goal, it.progress.unit)}</span><span class="pa-row-pct">${eerlijkPct(pctOf(it) / 100)}%</span></span>`;
   const ra = rijAttr(i, glansIds.has(it.id) ? 'ds-m-glans ds-m-glanst' : '', { rustig: !staffelAan || calmState() }); // DS3: gestaffeld binnenkomen, een net-ontgrendelde rij glanst één keer
-  return `<button type="button" class="m-li${it.unlocked ? '' : ' off'}${bijna ? ' near' : ''}${sel === it.id ? ' sel' : ''}${ra.klasse ? ' ' + ra.klasse : ''}"${ra.stijl ? ` style="${ra.stijl}"` : ''} data-ach="${esc(it.id)}" data-cat-label="${esc(catLabel)}"${sel === it.id ? ' aria-current="true"' : ''}>` +
+  return `<button type="button"${it.hidden ? ' aria-label="Geheime prestatie"' : ''} class="m-li${it.unlocked ? '' : ' off'}${bijna ? ' near' : ''}${sel === it.id ? ' sel' : ''}${ra.klasse ? ' ' + ra.klasse : ''}"${ra.stijl ? ` style="${ra.stijl}"` : ''} data-ach="${esc(it.id)}" data-cat-label="${esc(catLabel)}"${sel === it.id ? ' aria-current="true"' : ''}>` +
     `<span class="pa-ico">${iconSvg(it)}</span><span class="nm"><span class="one">${title}</span>${it.unlocked && it.at ? `<span class="mut one">${whenText(it.at)}</span>` : ''}${rowbar}</span>${end}</button>`;
 }
 
@@ -253,6 +253,7 @@ function nogNietTekst(catLabel) {
 // getAchievementSummary en dezelfde view als de lijst eronder.
 function heroHtml(sum, near, verborgen) {
   const pct = sum.total ? (sum.done / sum.total) * 100 : 0;
+  const pctTekst = eerlijkPct(sum.total ? sum.done / sum.total : 0, sum.total > 0 && sum.done >= sum.total);
   const teGaan = Math.max(0, sum.total - sum.done);
   const klaar = sum.total > 0 && sum.done >= sum.total;
   const lead = klaar
@@ -260,7 +261,7 @@ function heroHtml(sum, near, verborgen) {
     : `${teGaan} ${teGaan === 1 ? 'prestatie' : 'prestaties'} te gaan${near.length ? `, ${near.length} ${near.length === 1 ? 'is' : 'zijn'} dichtbij` : ''}. Prestaties blijven bewaard, ook bij een nieuw spel.`;
   const cijfer = (n, woord) => `<span class="ds-z-waarde"><span class="ds-z-waarde__getal">${n}</span><span class="ds-z-waarde__eenheid">${woord}</span></span>`;
   return '<section class="ds-zeef ds-z-kaart pa-hero" aria-label="Prestaties">' +
-    `<div class="ds-z-kaart__kop"><span class="ds-z-kaart__titel">Prestaties</span>${chip(klaar ? 'succes' : 'selectie', klaar ? 'ok' : 'ster', `${Math.round(pct)}%`)}</div>` +
+    `<div class="ds-z-kaart__kop"><span class="ds-z-kaart__titel">Prestaties</span>${chip(klaar ? 'succes' : 'selectie', klaar ? 'ok' : 'ster', `${pctTekst}%`)}</div>` +
     '<div class="pa-hero-rij">' + `<p class="ds-z-kaart__tekst">${esc(lead)}</p>` +
     '<div class="pa-hero-cijfers">' + cijfer(sum.done, 'behaald') + cijfer(teGaan, 'nog te gaan') + cijfer(near.length, 'bijna binnen') + cijfer(verborgen, 'nog geheim') + '</div></div>' +
     streep(pct, `${sum.done} van ${sum.total} behaald`, true) + '</section>';
@@ -308,6 +309,8 @@ export function renderAchievementsPanel(el, { keepFresh = false, animeer } = {})
   const all = view.flatMap((c) => c.items.map((a) => ({ ...a, catLabel: c.label })));
   const near = achNear(all);
   const done = achDone(all);
+  const zoekt = achZoekTekst(zoek).trim() !== '';
+  const nGeheim = all.filter((a) => a.hidden).length;
   if (sel && !all.some((a) => a.id === sel)) sel = null;
   const selItem = all.find((a) => a.id === sel);
   // de eerstvolgende over alle categorieën heen, voor het lege detailpaneel
@@ -315,7 +318,14 @@ export function renderAchievementsPanel(el, { keepFresh = false, animeer } = {})
   const tab = (id, label, n) => `<button type="button" role="tab" class="m-tab" data-achview="${id}" aria-selected="${tabView === id}">${label}${n != null ? `<small>${n}</small>` : ''}</button>`;
   const extras = [['gebieden', 'Gebieden', 'buurt tot provincie', gebiedenBlock()], ['cijfers', 'Cijfers', 'sinds je eerste spel', figuresBlock(st)], ['medailles', 'Medailles', 'per missie', medalsBlock()], ['records', 'Records', 'per bijbaantje', jobRecordsBlock()]];
   let list;
-  if (tabView === 'bijna') list = near.length ? near.map((a, i) => row(a, a.catLabel, i)).join('')
+  const zoekLeeg = () => `<div class="pa-leeg"><b>Niets gevonden</b><p class="m-note">${esc(achZoekLeeg(zoek, nGeheim))}</p></div>`;
+  if (zoekt) {
+    // met een zoekopdracht staat er één platte lijst: de treffers in het tabblad dat open staat, zonder te vouwen
+    const bron = tabView === 'bijna' ? near : tabView === 'behaald' ? done : all;
+    const hits = achZoek(bron, zoek);
+    list = hits.length ? hits.map((a, i) => row(a, a.catLabel, i)).join('') : zoekLeeg();
+  }
+  else if (tabView === 'bijna') list = near.length ? near.map((a, i) => row(a, a.catLabel, i)).join('')
     : '<div class="pa-leeg"><b>Nog niks dichtbij</b><p class="m-note">Speel wat rond: bijna elke prestatie laat vanzelf een balk zien zodra je begint.</p></div>';
   else if (tabView === 'behaald') list = done.length ? done.map((a, i) => row(a, a.catLabel, i)).join('')
     : '<div class="pa-leeg"><b>Nog niks behaald</b><p class="m-note">De eerste komt vanzelf: een missie, een ritje of een bezoekje aan de markt.</p></div>';
@@ -329,6 +339,7 @@ export function renderAchievementsPanel(el, { keepFresh = false, animeer } = {})
   el.dataset.sub = `${all.some((a) => a.hidden) ? `${all.filter((a) => a.hidden).length} verborgen · ` : ''}blijven bewaard`;
   el.innerHTML = `<div class="m-tabs"><nav class="m-tablist" role="tablist" aria-label="Weergave">${tab('alles', 'Alles')}${tab('bijna', 'Bijna binnen', near.length)}${tab('behaald', 'Behaald', done.length)}</nav>` +
     `<span class="m-grow"></span><span class="pa-total">${bar('total', sum.total ? (sum.done / sum.total) * 100 : 0)}<span class="m-num" data-pa-pct>${sum.done}</span><span class="mut">van ${sum.total} behaald</span></span></div>` +
+    `<div class="pa-zoekrij"><label class="m-inp pa-zoek-veld"><span class="ss-label">Zoeken</span><input class="pa-zoek" type="search" placeholder="Zoek een prestatie" aria-label="Zoek in prestaties" autocomplete="off" spellcheck="false" maxlength="${40}" value="${esc(achZoekTekst(zoek))}"></label>${zoekt ? `<span class="m-note pa-zoek-tel" role="status">${achZoek(tabView === 'bijna' ? near : tabView === 'behaald' ? done : all, zoek).length} gevonden</span>` : ''}</div>` +
     (achStilNoot(achievementsGated()) ? `<p class="m-note pa-stil" role="status">${achStilNoot(true)}</p>` : '') +
     heroHtml(sum, near, all.filter((a) => a.hidden).length) +
     `<div class="m-main"><div class="m-list pa-list">${list}</div><aside class="m-pane pa-pane" aria-live="polite">${detailHtml(selItem, selItem && selItem.catLabel, nextOverall)}</aside></div>`;
@@ -361,6 +372,23 @@ export function renderAchievementsPanel(el, { keepFresh = false, animeer } = {})
         keepFocus(`[data-ach="${id}"]`);
       }
       else if (a) { sel = a.dataset.ach; for (const b of el.querySelectorAll('[data-ach]')) { const on = b.dataset.ach === sel; b.classList.toggle('sel', on); b.toggleAttribute('aria-current', on); } const it = all2(el, sel); el.querySelector('.pa-pane').innerHTML = it; }
+    });
+    // zoeken: de lijst tekent opnieuw, het veld houdt zijn focus en zijn cursor (Esc wist eerst de opdracht, sluit pas daarna het menu)
+    el.addEventListener('input', (e) => {
+      if (!e.target.classList || !e.target.classList.contains('pa-zoek') || e.isComposing) return;
+      zoek = achZoekTekst(e.target.value);
+      const pos = e.target.selectionStart;
+      renderAchievementsPanel(el, { keepFresh: true, animeer: false });
+      const veld = el.querySelector('.pa-zoek');
+      if (veld) { veld.focus({ preventScroll: true }); try { veld.setSelectionRange(pos, pos); } catch (err) { /* zoekveld zonder cursor */ } }
+    });
+    el.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape' || !e.target.classList || !e.target.classList.contains('pa-zoek') || !zoek) return;
+      e.preventDefault(); e.stopPropagation();
+      zoek = '';
+      renderAchievementsPanel(el, { keepFresh: true, animeer: false });
+      const veld = el.querySelector('.pa-zoek');
+      if (veld) veld.focus({ preventScroll: true });
     });
     el.addEventListener('focusin', (e) => {
       const a = e.target.closest && e.target.closest('[data-ach]');
