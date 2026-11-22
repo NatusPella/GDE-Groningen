@@ -2,7 +2,8 @@
 // plaatst en meet ze met de regel van boatspots.js. Eén lijst rijen:
 //   { cat, naam, x, y, klasse, ok, reden, breedte, opNet, kade, afstKade, water }
 // Categorieen: marina (liggers in jachthavens), verhuur (Bootje Huren-steigers), bijbaan (bijbaan- en missieboten),
-// ai (ambient boten van manageBoatPopulation, over meerdere seeds), sier (de decorboten op de maren van countrylife).
+// ai (ambient boten van manageBoatPopulation, over meerdere seeds), sier (de decorboten op de maren van countrylife),
+// race (de vaste wedstrijdplekken: Hoornse-Plas-regatta met startlijn, skutsjerace-starts, bruggenrace-grid; #1083).
 import fs from 'node:fs';
 import { laadBootWereld } from './bootwereld.mjs';
 
@@ -141,6 +142,41 @@ export async function maakAudit() {
       if (!rw.ok) { rw.vervallen = true; rw.ok = true; }
       out.push(rw);
     }
+    return out;
+  };
+
+  // 6. wedstrijdboten (#1083): de vaste plekken van de zeilregatta op de Hoornse Plas (tonnen en startlijn voor vier deelnemers,
+  // zoals regatta.js startLijn ze legt), de skutsjerace (start en doel naast de rondvaartroute) en het startgrid van de bruggenrace
+  alle.race = async () => {
+    const out = [];
+    const { PLAS, plasBaan } = await import('../../game/js/regattaplas.js');
+    await W.laadRond(PLAS.x, PLAS.y, 500);
+    const tonnen = plasBaan();
+    for (let i = 0; i < tonnen.length; i++) out.push(await rij('race', 'regatta plas ton ' + (i + 1), tonnen[i].x, tonnen[i].y, 'dinghy', {}));
+    const b0 = tonnen[0], b1 = tonnen[1];
+    const a = Math.atan2(b1.y - b0.y, b1.x - b0.x), nx = -Math.sin(a), ny = Math.cos(a), n = 4;
+    for (let k = 0; k < n; k++) {
+      const cx = b0.x - Math.cos(a) * 36 + nx * (k - (n - 1) / 2) * 7, cy = b0.y - Math.sin(a) * 36 + ny * (k - (n - 1) / 2) * 7;
+      out.push(await rij('race', 'regatta plas startlijn ' + (k + 1), cx, cy, 'dinghy', {}));
+    }
+    try {
+      const R = await import('../../game/js/rondvaartchase.js');
+      await W.laadRond(751, 380, 500);
+      R.prepareDiepenringRoute(map);
+      for (const [naam, p] of [['skutsje start', [751.16, 380.57]], ['skutsje doel', [-373.03, 288.27]]]) {
+        await W.laadRond(p[0], p[1], 500);
+        const s = R.diepenringProgress(p[0], p[1]).s, q = R.routeAt(s);
+        out.push(await rij('race', naam + ' (route)', q.x, q.y, 'skutsje', {}));
+      }
+      await W.laadRond(-39, -262, 500);
+      const berth = R.rondvaartBerth(map), s0 = R.diepenringProgress(berth.boat.x, berth.boat.y).s;
+      B.voegAnkersToe([{ x: berth.boat.x, y: berth.boat.y, soort: 'rondvaartsteiger' }]);
+      out.push(await rij('race', 'bruggenrace start (steiger)', berth.boat.x, berth.boat.y, 'rondvaart', {}));
+      for (let k = 1; k < 6; k++) {   // het grid achter de steiger, zoals pg_bruggenrace.maakBoot (rij 8 m, baan 2,6 m)
+        const q = R.routeAt(s0 - (Math.floor(k / 2) + 1) * 8), side = k % 2 ? 1 : -1;
+        out.push(await rij('race', 'bruggenrace grid ' + k, q.x - Math.sin(q.a) * side * 2.6, q.y + Math.cos(q.a) * side * 2.6, 'rondvaart', {}));
+      }
+    } catch (e) { out.push({ cat: 'race', naam: 'skutsje/bruggenrace (kon niet laden: ' + e.message + ')', ok: true, reden: 'overgeslagen', x: 0, y: 0, klasse: '', breedte: 0 }); }
     return out;
   };
   return { W, B, map, alle };

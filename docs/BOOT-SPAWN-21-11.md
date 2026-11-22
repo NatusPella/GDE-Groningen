@@ -70,7 +70,7 @@ Noot: de verhuursteigers (Hoge der A, Noorderhaven) lagen 108 en 149 m van een b
 
 ## Niet gemeten of niet gedaan
 
-- Race- en minigameboten (regatta, bruggenrace, skutsje) volgen een vaste route; die staan niet in de audit.
+- Race- en minigameboten: de vaste plekken van de regatta op de Hoornse Plas (tonnen en startlijn), de skutsjerace (start en doel) en het bruggenrace-grid staan sinds 22-11 in de audit (categorie race, 17 plekken, 0 afwijkers, #1083). De dorpsuitjes-boot (decor aan een steiger, geen vaarboot) en de missieboten akte 2 en 4 (jagen een route af) zijn niet apart gemeten.
 - De decorboot bij dorpsuitjes (`dorpsuitjes.js`) staat op een dorpsvijver of waterkant van het uitje zelf; niet gemeten.
 - De missieboten van akte 2 (M11 rubberboot) en akte 4 (Veendam) zijn alleen via `ensureBoatValid` afgedekt, niet in de audit gemeten (de coördinaten staan als lengte en breedtegraad).
 - Beeldcheck gevraagd: een jachthaven of verhuursteiger op het scherm (boten evenwijdig of neus naar de steiger), en een wandeling langs een polderkanaal zonder boten op de maren.
