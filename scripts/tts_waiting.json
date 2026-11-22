@@ -542,7 +542,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Terrasgast",
-  "text": "Ik bedoelde de rekening. Samen of apart?",
+  "text": "Ik bedoelde de rekening.",
   "scene": "N10"
  },
  {
@@ -632,7 +632,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Daar kan ik geen bezwaar tegen maken.",
+  "text": "Dat wordt een mooie regel.",
   "scene": "N12"
  },
  {
@@ -890,7 +890,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Geesje",
-  "text": "Nee. Hij hangt er al veertig jaar. Hij wacht wel.",
+  "text": "Dat hoeft ook niet.",
   "scene": "K1"
  },
  {
@@ -914,7 +914,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Hoeveel melk je in je koffie doet. Twee scheuten.",
+  "text": "Dat je je koffie met melk drinkt.",
   "scene": "K2"
  },
  {
@@ -986,7 +986,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Dan maken wij eerst bezwaar tegen zijn bezwaar.",
+  "text": "Wij hebben nog geen bezwaar.",
   "scene": "J1"
  },
  {
@@ -1334,7 +1334,7 @@
  {
   "reason": "stemkeuze",
   "speaker": "Anneke",
-  "text": "Dat was niet de zin waar je mee begon.",
+  "text": "Dat dacht ik al.",
   "scene": "J3"
  },
  {
@@ -1371,12 +1371,6 @@
   "reason": "spreektekst",
   "speaker": "Sjabbe",
   "text": "Twee bedden.",
-  "scene": "K3"
- },
- {
-  "reason": "spreektekst",
-  "speaker": "Sjabbe",
-  "text": "Dat is mijn zin. Hij ligt hier al sinds 1974.",
   "scene": "K3"
  },
  {
@@ -1550,7 +1544,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Femke",
-  "text": "Jullie zijn al een koor. Dat is een begin.",
+  "text": "Dat zegt hij ook.",
   "scene": "J4"
  },
  {
@@ -1622,7 +1616,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Ik kijk naar de beer. Hij kijkt terug.",
+  "text": "Ik kijk naar de beer.",
   "scene": "N9"
  },
  {
@@ -1718,7 +1712,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Een man mag naar soep lachen.",
+  "text": "Het is goede soep.",
   "scene": "J6"
  },
  {
@@ -2234,7 +2228,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Naar de motor. Die ik er in gedachten al in heb gezet.",
+  "text": "Naar de motor.",
   "scene": "F1"
  },
  {
@@ -2312,7 +2306,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Ik ben het niemandsland. Met soep.",
+  "text": "Ik ben het compromis.",
   "scene": "F3"
  },
  {
@@ -2360,7 +2354,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Berend telde elf seconden en een duif telde mee. Dat is officieel.",
+  "text": "Berend telde elf seconden. Dat is officieel.",
   "scene": "F5"
  },
  {
@@ -2492,7 +2486,7 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
-  "text": "Eén stip. Maar wel de onze.",
+  "text": "Dat is een goede verhouding. Voor Jelle.",
   "scene": "F6"
  },
  {
