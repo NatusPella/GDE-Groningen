@@ -8,19 +8,19 @@ import { PH_SHOP, PH_JOB, PH_GLYPHS, PH_KIND } from './mapglyphs.js';
 export const MARKER_ICOON = {
   hospital: 'ehbo', politiebureau: 'politie', garage: 'gereedschap', horeca: 'eten', flitspaal: 'camera', eierbalTip: 'ei', cash: 'geld',
   landmark: 'ster', uitkijkpunt: 'verrekijker', beppe: 'stoel', companion: 'speler',
-  home: 'thuis', homeGarage: 'garage', homeMooring: 'anker', homeHelipad: 'helikopter',
+  dorpKlaar: 'vlag', home: 'thuis', homeGarage: 'garage', homeMooring: 'anker', homeHelipad: 'helikopter',
 };
 
 // De bijbanen en activiteiten die mapglyphs.js nog geen Phosphor-naam gaf (22-11): de kaart tekende ze met een eigen getekend glyph.
 const PH_JOB_EXTRA = {
   krantenwijk: 'krant', rondvaarttour: 'boot', lijn: 'bus', fietssoep: 'kookpot', taxinacht: 'taxi', balenrit: 'tractor', berging: 'auto', schoolrit: 'bus',
-  melkrit: 'koe', veerdienst: 'boot', zeeschipwad: 'boot', zeeschipeems: 'boot', strandpost: 'pakket', kermisdraai: 'reuzenrad', brugdienst: 'anker',
+  melkrit: 'koe', veerdienst: 'boot', zeeschipwad: 'boot', zeeschipeems: 'boot', strandpost: 'tent', kermisdraai: 'reuzenrad', brugdienst: 'anker',
   vismarktkoerier: 'vis', studentenfeest: 'bier', marktkraam: 'mand', toeristengids: 'kaart', bietenoogst: 'gewas', boerderij: 'boerderij', snackoverlast: 'burger',
 };
 const PH_ACT_EXTRA = {
   'act-kermis': 'reuzenrad', 'act-hoogvlieger': 'parachute', 'act-drift': 'stuur', 'act-discgolf': 'golf', 'act-pitchputt': 'par', 'act-penalty': 'doel',
   'act-voetbal': 'rennen', 'act-skatepark': 'skate', 'act-zwembad': 'zwembad', 'act-carillon': 'bel', 'act-wandeling': 'wandeling', 'act-regatta': 'zeilboot',
-  'act-ringrace': 'ronde', 'act-safehuis': 'sleutel', 'act-vluchtdienst': 'vliegtuig', 'act-vaardienst': 'anker',
+  'act-ringrace': 'ronde', 'act-safehuis': 'sleutel', 'act-vluchtdienst': 'wereldbol', 'act-vaardienst': 'boot',
 };
 
 // De voorvoegsels waarvan de soort uit een eigen tabel komt (winkels, bijbanen, activiteiten, het Ommeland).
@@ -45,11 +45,11 @@ export const EIGEN_SYMBOOL = {
   missionIdle: 'de gele ring van een missie die wacht: een doelmarkering, geen plek',
   missionActive: 'de gele ring met stip van je actieve doel; pulseert 250 ms, stil bij Minder beweging',
   waypoint: 'het kleine gele punt van een verhaalstap',
-  police: 'de blauwe politie-eenheid die beweegt (te voet, fiets, paard, auto); geen plek',
+  'police*': 'de blauwe politie-eenheid die beweegt (te voet, fiets, paard, auto); geen plek',
+  'sj-target': 'het doel van een bijbaan: een doelmarkering in de kleur van het routedoel, geen plek',
+  'sj-dot': 'de stip van een bijbaan onderweg: een doelmarkering, geen plek',
   own: 'je eigen voertuig in de kleur van je voertuig, met het voertuigtype als glyph',
   'perceel-*': 'een perceel is een vlak met een letter voor zijn stand (B, S, P, Z, G, O); de letter is het teken',
   'mi-* / ma-* / mm-*': 'missie- en doelmarkers: ringen, pijlen en nummers uit navtarget.js (GLYPH), al Phosphor waar een glyph past',
 };
 
-// De voertuigsoort van je eigen voertuig naar zijn betekenisnaam (hud_panel.js tekent hem in de ring).
-export const EIGEN_VOERTUIG = { car: 'auto', bike: 'fiets', scooter: 'scooter', boat: 'boot', heli: 'helikopter' };

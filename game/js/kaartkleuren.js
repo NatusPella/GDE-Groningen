@@ -125,7 +125,7 @@ export function kaartLabel() {
 // Te koop is inktblauw (de rol van vervoer en water), van jou bordgroen, van een medespeler donkeramber, niet te koop een zacht inktgrijs.
 export function kaartLaag() {
   const k = dsKleur, P = k('papier');
-  return { laagTekoop: markerRollen().blauw, laagEigen: k('ink-bord'), laagMedespeler: k('amber-tx'), laagSlot: meng(k('inkt-zacht'), P, 0.4) };
+  return { laagTekoop: markerRollen().blauw, laagEigen: k('ink-bord'), laagMedespeler: k('amber-tx'), laagSlot: meng(k('inkt-zacht'), P, 0.2) };
 }
 
 // De kleuren van de oude provinciepiramide (de PNG's die vóór 21-11 zijn gebakken: de oude MAP_PALETTE) en waar ze in de nieuwe
