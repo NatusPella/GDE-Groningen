@@ -27,6 +27,13 @@ export const saveStats = { parse: 0, stringify: 0, migrate: 0, cacheHit: 0 };
 export function resetSaveStats() { saveStats.parse = 0; saveStats.stringify = 0; saveStats.migrate = 0; saveStats.cacheHit = 0; }
 let slotCache = new Map();
 export function resetReadCache() { slotCache = new Map(); }
+// 22-11: elke lezer krijgt een eigen kopie van de data: een lezer die zijn lijsten aanpast (de wereld neemt ze over en speelt erop
+// door) vervuilde anders de cache en dus de samenvatting, de export en de kopie van dat slot. Een kopie is veel goedkoper dan opnieuw
+// parsen en migreren.
+const kopie = (res) => {
+  if (!res.data) return { ...res };
+  try { return { ...res, data: structuredClone(res.data) }; } catch (e) { return { ...res, data: JSON.parse(JSON.stringify(res.data)) }; }
+};
 const dropSlotCache = (n) => { slotCache.delete(n); };
 
 const isObj = (o) => !!o && typeof o === 'object' && !Array.isArray(o);
@@ -126,7 +133,7 @@ export function readSlot(ls, n) {
   const raw = getRaw(ls, slotKey(n));
   const rec = getRaw(ls, slotRecoveryKey(n));
   const cached = slotCache.get(n);
-  if (cached && cached.raw === raw && cached.rec === rec) { saveStats.cacheHit++; return { ...cached.res }; }
+  if (cached && cached.raw === raw && cached.rec === rec) { saveStats.cacheHit++; return kopie(cached.res); }
   const main = inspectRaw(raw);
   let res;
   if (main.ok) res = { n, state: 'ok', data: main.data, from: main.from, raw };
@@ -139,7 +146,7 @@ export function readSlot(ls, n) {
     res = hersteld || { n, state: main.why, data: null, raw, why: main.why };
   }
   slotCache.set(n, { raw, rec, res });
-  return { ...res };
+  return kopie(res);
 }
 
 // The data recovered from the recovery copy goes back to the slot itself, so the next boot and the
