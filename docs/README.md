@@ -147,6 +147,9 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [MINIMAP-PIJLEN-21-11.md](<MINIMAP-PIJLEN-21-11.md>) | Pijlen op de minikaart naar het doel. |
 | [KAART-HEADING-21-11.md](<KAART-HEADING-21-11.md>) | Wie ben jij op de kaart: plek en kijkrichting per besturingsmodus (#1141). |
 | [VERFIJNING-22-11-MINIGAMES.md](<VERFIJNING-22-11-MINIGAMES.md>) | Verfijnronde 22-11 voor minigames en bijbanen: wrijving, oplossing en bewijs per punt, Samen-regel en wat bewust niet of alleen in beeld. |
+| [KAART-DS3-AUDIT-22-11.md](<KAART-DS3-AUDIT-22-11.md>) | Audit van alle kaartmarkers en lagen: icoon, vorm, kleurtoken, legenda (#1009). |
+| [KAART-PALETTEN-22-11.md](<KAART-PALETTEN-22-11.md>) | Drie kandidaatpaletten voor de zeefdruk-kaart en de keuze (#1009). |
+| [KAART-MARKERSTIJL-22-11.md](<KAART-MARKERSTIJL-22-11.md>) | Markerstijlgids: badge, vormen, maten, regels (#1009). |
 | [VOETBAL-SIM-21-11.md](<VOETBAL-SIM-21-11.md>) | Voetbal Sim Light in de Euroborg (#981). |
 | [VERFIJNING-22-11-VOETBAL.md](<VERFIJNING-22-11-VOETBAL.md>) | Verfijnronde voetbal: wrijving, oplossing en bewijs. |
 | [VOETBAL-UITZENDING-21-11.md](<VOETBAL-UITZENDING-21-11.md>) | Voetbal als uitzending: de hele wedstrijd voorop, tv-regie, herhaling, commentaar, kaarten, blessures, wissels en strafschoppen. |

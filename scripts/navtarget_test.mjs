@@ -164,7 +164,8 @@ const types = (r) => r.alle.map((d) => d.type + ':' + d.rol);
   };
   const items = [{ a: -0.8, kleur: '#f9c80e', icoon: 'ster', actief: true, tekst: '420 m' }, { a: 0.4, kleur: '#c068ff', icoon: 'vlag' }, { a: 2.5, kleur: '#4363d8', icoon: 'speler' }];
   const m1 = maak(), m2 = maak(), leeg = maak();
-  const r1 = drawKompasRand(m1.c, S, items, { t: 0.3, beweging: true });
+  drawKompasRand(maak().c, S, items, { t: 0.3, beweging: true }); // het doel verschijnt: de puls van 250 ms begint (22-11)
+  const r1 = drawKompasRand(m1.c, S, items, { t: 0.375, beweging: true }); // 75 ms later zwelt hij
   drawKompasRand(m2.c, S, items, { t: 0.3, beweging: false });
   ok(drawKompasRand(leeg.c, S, [], {}).length === 0 && leeg.tel.fill === 0 && leeg.tel.stroke === 0, 'zonder doelen tekent de kaart niets (rustige kaart)');
   ok(r1.length === 3 && m1.tel.save === m1.tel.restore, 'drie markers, save en restore in evenwicht');
@@ -212,7 +213,8 @@ const types = (r) => r.alle.map((d) => d.type + ':' + d.rol);
   ok(PALETTES.uit.mission === geel && geel === '#f9c80e', 'het geel van de missie is het hoofdgeel van de tokens');
   const mini = kaartLand().mini;
   ok(contrast(geel, dsKleur('glas')) >= 4.5, 'geel leest op glas (4,5:1)');
-  for (const bg of ['meadow', 'park', 'forest', 'village']) ok(contrast(geel, mini[bg]) >= 3, `geel tegen de minikaart (${bg}) haalt 3:1`);
+  // 22-11: op het crèmepapier haalt geel maar ~1,4:1; het doel staat daarom altijd met een inktrand (de schijf heeft k.inkt, 2,2 px): de inkt haalt 3:1
+  for (const bg of ['meadow', 'park', 'forest', 'village']) ok(contrast(dsKleur('ink-inkt'), mini[bg]) >= 3, `de inktrand van het geel tegen de minikaart (${bg}) haalt 3:1`);
   ok(contrast(dsKleur('inkt'), geel) >= 4.5, 'inkt op geel leest (4,5:1); geel tegen papier heeft altijd een inktrand');
   const wm = fs.readFileSync(new URL('../game/js/worldmarker3d.js', import.meta.url), 'utf8');
   ok(!/missionActive/.test(wm) && /goal: \{ color: NAV_ROL\.missie/.test(wm) && /checkpoint: \{ color: NAV_ROL\.uitdaging/.test(wm) && /user: \{ color: NAV_ROL\.eigen/.test(wm), '3D-bakens: goal en checkpoint geel, eigen doel paars, via NAV_ROL');

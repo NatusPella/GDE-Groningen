@@ -3,7 +3,8 @@
 // the map promises is what the door does). A place whose building turned out to be too small is struck off the list as soon as the
 // interior of that building was planned (interiors.js calls markNotEnterable). Pure data and one canvas drawing; mapview.js draws it.
 import { kindOfFacility, labelOf } from './interiorkinds.js';
-import { INK } from './mapstyle.js';
+import { INK, ICON_FILL } from './mapstyle.js';
+import { phosphorPaden } from './mapglyphs.js';
 
 let cache = null, cacheN = -1;
 const gone = new Set();
@@ -26,20 +27,35 @@ export function enterablePlaces(rows) {
   return (cache = out);
 }
 
-// a rounded door badge: green fill, cream rim, a door with a knob. s = scale (1 = the 11-unit badge of the map icons)
+// a rounded door badge (22-11: de bordgroene vulling van de winkels, een donkere buitenlijn en een crème rand, en de Phosphor-deur 'uitgang'
+// gespiegeld, dus een pijl die naar binnen gaat). Zonder Path2D (node) blijft de oude getekende deur. s = scale (1 = the 11-unit badge of the map icons)
 export function drawDoorBadge(ctx, x, y, s = 1, open = true) {
+  const vul = open ? ICON_FILL.shop : INK.locked;
   ctx.save();
   ctx.translate(x, y);
   ctx.beginPath();
   ctx.roundRect(-5 * s, -5 * s, 10 * s, 10 * s, 2.4 * s);
-  ctx.fillStyle = open ? INK.green : INK.locked;
+  ctx.fillStyle = vul;
   ctx.fill();
+  ctx.lineWidth = 2.6 * s;
+  ctx.strokeStyle = INK.dark;
+  ctx.stroke();
   ctx.lineWidth = 1.2 * s;
   ctx.strokeStyle = INK.cream;
   ctx.stroke();
+  const paden = phosphorPaden('uitgang');
+  if (paden) {
+    const box = 7.2 * s;
+    ctx.translate(box / 2, -box / 2);
+    ctx.scale(-box / 256, box / 256);
+    ctx.fillStyle = INK.cream;
+    for (const q of paden) ctx.fill(q);
+    ctx.restore();
+    return;
+  }
   ctx.fillStyle = INK.cream;
   ctx.fillRect(-2.2 * s, -3.4 * s, 4.4 * s, 6.8 * s);
-  ctx.fillStyle = open ? INK.green : INK.locked;
+  ctx.fillStyle = vul;
   ctx.fillRect(-1.5 * s, -2.7 * s, 3 * s, 5.4 * s);
   ctx.fillStyle = INK.cream;
   ctx.beginPath();

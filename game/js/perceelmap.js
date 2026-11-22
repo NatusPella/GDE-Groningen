@@ -39,7 +39,7 @@ export function perceelMapSpots() {
   return alleenOogstklaar(out, layerOn('oogstklaarAlleen'));
 }
 
-const KLEUR = { 'perceel-koop': INK.yellow, 'perceel-huur': INK.policeBlue, 'perceel-eigen': INK.greenLight };
+const KLEUR = { 'perceel-koop': INK.yellow, 'perceel-huur': INK.laagTekoop, 'perceel-eigen': INK.laagEigen };
 const STATUS_KIND = /^perceel-eigen-([a-z]+)$/;
 const MACHINE_KIND = 'perceel-machine';
 const AFNEMER_KIND = 'perceel-afnemer';

@@ -181,10 +181,22 @@ export const FLAT_FILL = ICON_FILL;
 // The badge: one shape per category next to its colour (so colour is never the only cue),
 // a light glyph on a saturated fill, a darker rim, a soft shadow (hud_panel.js flatSprite).
 export const BADGE_SHAPE = {
-  zorg: 'circle', politiebureau: 'shield', garage: 'hex', station: 'squircle', job: 'diamond',
-  shop: 'tile', fun: 'circle', horeca: 'squircle', ommeland: 'circle', flitspaal: 'tile', tip: 'circle', other: 'circle',
+  zorg: 'circle', politiebureau: 'shield', garage: 'hex', station: 'pill', job: 'diamond',
+  shop: 'tile', fun: 'circle', horeca: 'squircle', ommeland: 'pin', flitspaal: 'octagon', tip: 'circle', other: 'circle',
 };
+// 22-11: station, ommeland en flitspaal kregen een eigen vorm: tegen de groene winkels, horeca en zorg liggen hun blauw en rood bij
+// tritanopie en deuteranopie te dicht (kaart_ds3_test meet het per paar), dus daar moet de vorm het verschil dragen.
 export const BADGE_UNITS = 11; // the badge's width in base units (the glyph is about 10)
+// Het Phosphor-icoon in de badge, per vorm: de doos (deel van de badgebreedte; het icoon vult ongeveer 84 % van zijn doos) en een
+// verschuiving omlaag (deel van de breedte), zodat het glyph optisch in het midden van het vlak staat (een schild is boven breed en
+// onder smal, een pin heeft zijn middelpunt boven de punt). Gemeten in het icoonblad (scripts/kaart_ds3_beeld.mjs).
+export const BADGE_GLYPH = {
+  circle: { box: 0.66, dy: 0 }, tile: { box: 0.68, dy: 0 }, squircle: { box: 0.62, dy: 0 }, pill: { box: 0.6, dy: 0 }, hex: { box: 0.6, dy: 0 },
+  diamond: { box: 0.52, dy: 0 }, shield: { box: 0.54, dy: 0.04 }, octagon: { box: 0.62, dy: 0 }, pin: { box: 0.52, dy: -0.07 },
+};
+// Onder deze badgemaat (px) is een glyph niet meer te herkennen: dan draagt de vorm (met de kleur) de betekenis. De minikaart en de
+// grote kaart komen er nooit onder (MIN_ICON_PX), alleen een verre uitzoom van een andere laag.
+export const MIN_GLYPH_PX = 16;
 export const GLYPH_LIGHT = ICON_GLYPH_LIGHT;
 export function badgeShape(kind) { return BADGE_SHAPE[mapCategory(kind)] || 'circle'; }
 // the glyph colour on a fill: cream where it reaches 3:1 (blue, red, purple), else dark ink (yellow, lime)

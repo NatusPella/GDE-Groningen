@@ -120,7 +120,7 @@ try {
   const { SHOP_TYPES } = await import('/js/shopdata.js');
   const { SIDE_JOBS } = await import('/js/sidejobs.js');
   const { ACTIVITY_LEGEND } = await import('/js/activities.js');
-  const q = new URLSearchParams(location.search), cvd = q.get('cvd'), dpr = +q.get('dpr') || 1, from = +q.get('from') || 0, count = +q.get('n') || 60;
+  const q = new URLSearchParams(location.search), cvd = q.get('cvd'), dpr = +q.get('dpr') || 1, from = +q.get('from') || 0, count = +q.get('n') || 400;
   const items = [];
   for (const k of ['player', 'partner', 'companion', 'cash', 'userWaypoint', 'missionIdle', 'missionActive', 'waypoint', 'eierbalTip', 'own', 'home', 'homeGarage', 'garage', 'hospital', 'politiebureau', 'station', 'ov-halte', 'livebus', 'horeca', 'flitspaal', 'landmark', 'uitkijkpunt', 'beppe', 'police', 'dorp', 'perceel-koop', 'perceel-eigen-rijp', 'pigeon', 'heli', 'padel', 'onderdeel', 'wrakduik', 'streekuitdaging', 'pg-jelle', 'pg-fjord']) items.push(k);
   for (const k of Object.keys(SHOP_TYPES)) items.push('shop-' + k);
@@ -148,14 +148,52 @@ try {
 document.getElementById('out').textContent = JSON.stringify(out);
 </script>`;
 
+// De legenda zoals mapview.js hem opbouwt (de iconen en de DS3-zeefdrukkaart met chips per groep), met de rijen uit scripts/lib/kaart_audit.mjs.
+const LEG_ROWS = MODE === 'legenda' ? (await import('./node3d.mjs').then(() => import('./lib/kaart_audit.mjs'))).LEGENDA : [];
+const LEG_PAGE = `${HEAD}<link rel="stylesheet" href="/js/ds-tokens.css"><style>
+body{background:var(--ds-c-papier-2);font-family:'Arial Narrow',Arial,sans-serif}
+#l{width:760px;padding:8px;columns:2;column-gap:10px}
+.g{break-inside:avoid;background:var(--ds-c-papier);border:2px solid var(--ds-c-inkt);border-radius:8px;box-shadow:3px 3px 0 var(--ds-c-inkt);margin:0 0 10px;color:var(--ds-c-inkt)}
+.g h3{margin:0;padding:5px 10px;background:var(--ds-c-bord);color:#fff;font:800 15px Arial;letter-spacing:.06em;text-transform:uppercase;border-radius:6px 6px 0 0}
+.r{display:flex;align-items:center;gap:8px;padding:3px 10px;font-size:15px}
+canvas{width:30px;height:30px;flex:none}
+.r span{color:var(--ds-c-inkt)}
+</style><div id="l"></div><pre id="out" style="display:none">running</pre>
+<script type="module">
+const out = { ok: false, errors: [] };
+try {
+  const hud = await import('/js/hud_panel.js');
+  const rows = ${JSON.stringify(LEG_ROWS)};
+  const dpr = 2, root = document.getElementById('l');
+  const groepen = [...new Set(rows.map((r) => r.groep))];
+  for (const gr of groepen) {
+    const d = document.createElement('div'); d.className = 'g'; d.innerHTML = '<h3>' + gr + '</h3>';
+    for (const r of rows.filter((x) => x.groep === gr)) {
+      const row = document.createElement('div'); row.className = 'r';
+      const cv = document.createElement('canvas'); cv.width = cv.height = 30 * dpr;
+      const c = cv.getContext('2d'); c.scale(dpr, dpr);
+      const ms = await import('/js/mapstyle.js'); c.fillStyle = ms.MAP_PALETTE.meadow; c.fillRect(0, 0, 30, 30);
+      if (!['route', 'navdoel', 'veroverd', 'text-street', 'text-wijk', 'buildings', 'betreedbaar'].includes(r.kind)) { hud.drawMapIconHalo(c, r.kind, 15, 15, 2.4); hud.drawMapIcon(c, r.kind, 15, 15, 2.4, { t: 0 }); }
+      else if (r.kind === 'betreedbaar') (await import('/js/interiormap.js')).drawDoorBadge(c, 15, 15, 2.2);
+      else if (r.kind === 'buildings') { c.fillStyle = ms.MAP_PALETTE.building; c.fillRect(6, 8, 9, 8); c.fillRect(15, 12, 8, 11); }
+      else { c.fillStyle = ms.LABEL.tekst; c.font = '12px Arial'; c.textAlign = 'center'; c.fillText(r.kind === 'text-street' ? 'Abc' : r.kind === 'text-wijk' ? 'WIJK' : '...', 15, 19); }
+      const t = document.createElement('span'); t.textContent = r.label; row.append(cv, t); d.appendChild(row);
+    }
+    root.appendChild(d);
+  }
+  out.ok = true;
+} catch (e) { out.errors.push('exception: ' + (e && e.stack || e)); }
+document.getElementById('out').textContent = JSON.stringify(out);
+</script>`;
+
 const server = http.createServer((req, res) => {
   const u = decodeURIComponent(req.url.split('?')[0]);
-  const pages = { '/pal.html': PAL_PAGE, '/ico.html': ICON_PAGE };
+  const pages = { '/pal.html': PAL_PAGE, '/ico.html': ICON_PAGE, '/leg.html': LEG_PAGE };
   if (pages[u]) { res.setHeader('content-type', 'text/html'); res.end(pages[u]); return; }
   const f = u === '/vendor/three.module.js' ? THREE : u.startsWith('/vendor/addons/') ? path.join(path.dirname(THREE), '../examples/jsm', u.slice(15)) : u.startsWith('/scripts/') ? path.join(ROOT, u) : u.startsWith('/game/') ? path.join(ROOT, u) : path.join(ROOT, 'game', u);
   fs.readFile(f, (e, b) => {
     if (e) { console.log('404', u); res.statusCode = 404; res.end(); return; }
-    res.setHeader('content-type', f.endsWith('.js') || f.endsWith('.mjs') ? 'text/javascript' : f.endsWith('.json') ? 'application/json' : 'application/octet-stream');
+    res.setHeader('content-type', f.endsWith('.js') || f.endsWith('.mjs') ? 'text/javascript' : f.endsWith('.css') ? 'text/css' : f.endsWith('.json') ? 'application/json' : 'application/octet-stream');
     res.end(b);
   });
 });
@@ -190,10 +228,15 @@ if (MODE === 'paletten') {
   const base = `http://127.0.0.1:${port}/ico.html?dpr=${dpr}${cvd ? '&cvd=' + cvd : ''}`;
   const info = await meld(base);
   if (!info.ok) { console.log('FAIL', info.errors.join('\n')); code = 1; } else {
-    const per = 60, pages = Math.ceil(info.total / per);
+    const per = 400, pages = Math.ceil(info.total / per);
     console.log(info.total + ' soorten, ' + pages + ' bladen');
-    for (let p = 0; p < pages; p++) await shot(path.join(OUT, `iconen${cvd ? '-' + cvd : ''}${dpr > 1 ? '-2x' : ''}-${p + 1}.png`), base + `&from=${p * per}&n=${per}`, 1330, 15 * 78 + 8);
+    for (let p = 0; p < pages; p++) await shot(path.join(OUT, `iconen${cvd ? '-' + cvd : ''}${dpr > 1 ? '-2x' : ''}-${p + 1}.png`), base + `&from=${p * per}&n=${per}`, 1330, Math.ceil(Math.min(per, info.total) / 4) * 78 + 8);
   }
+}
+if (MODE === 'legenda') {
+  const url = `http://127.0.0.1:${port}/leg.html`;
+  const info = await meld(url);
+  if (!info.ok) { console.log('FAIL', info.errors.join('\n')); code = 1; } else await shot(path.join(OUT, 'legenda.png'), url, 780, 780);
 }
 server.close();
 try { fs.rmSync(profile, { recursive: true, force: true }); } catch { /* een vergrendeld bestand in het tijdelijke profiel */ }

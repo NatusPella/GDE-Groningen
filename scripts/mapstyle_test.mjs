@@ -4,7 +4,7 @@ import './node3d.mjs';
 import fs from 'node:fs';
 import { mapPhase, applyMapPhase, currentMapPhase, nightPalette, shade, miniRoadStyle, MAP_PALETTE, MINI_PALETTE, ROAD_ORDER, ROAD_WIDTH_PX, ZOOM, layersAtZoom, roadWidthPx, roadColor, seaStyle, toRgba, baseFilter, baseDimOverlay, INK, inkA, inkCss, ICON_RIM, ICON_FILL, ICON_GLYPH_LIGHT, ICON_MIN_ZOOM, modeLook, MINI_RANGE_M } from '../game/js/mapstyle.js';
 import * as mapicons from '../game/js/mapicons.js';
-import { markerKleuren, dsKleur, contrast as kleurContrast } from '../game/js/kaartkleuren.js';
+import { markerKleuren, dsKleur, kaartLaag, contrast as kleurContrast } from '../game/js/kaartkleuren.js';
 import * as mapstyle from '../game/js/mapstyle.js';
 
 let n = 0, fails = 0;
@@ -59,12 +59,13 @@ const INK_WAS = {
   seaLabel: 'rgb(190,225,245)', flavour: 'rgb(245,226,170)', amber: '#ffbe46', amberInk: '#1d1b17',
   panelTop: '#17301f', panelCard: '#10261a', panelDeep: 'rgb(10,19,13)', selected: 'rgb(95,180,217)',
   medalBronze: '#c8834a', medalSilver: '#cfd6dc',
-  homeBlue: '#2f6fb0', eierbal: '#b06a28', locked: '#8d9489', passiefGrijs: '#9a9a9a',
+  homeBlue: markerKleuren().vul.station, eierbal: '#b06a28', locked: '#8d9489', passiefGrijs: '#9a9a9a',
   ringNext: '#ffc21a', ringLater: 'rgb(255,233,160)', heliDone: '#5dff7a', heliMiss: '#ff5a3c', balloon: '#ff7ab6',
   routeUser: '#c068ff', routeJob: '#ff9a3c', routeCare: '#ff5fb4',
   tintMini: 'rgb(6,12,9)', tintMap: 'rgb(4,8,12)',
   borderFriesland: '#e8b04a', borderDrenthe: '#c9a0e0', borderDuitsland: '#e86a5a', borderOther: '#e8e4d8', railBed: '#1b1d22',
   routeLine: '#f9c80e', missionArea: '#ffd84a', worldEnd: '#1f2a3a', discovery: '#5b625c',
+  ...kaartLaag(), // 22-11: de lijnen van Te koop en percelen op het papier (kaartkleuren.js)
 };
 const rgbOf = (c) => toRgba(c).slice(0, 3).join();
 const rgbWas = (c) => (c[0] === '#' ? toRgba(c) : c.match(/\d+/g).map(Number)).slice(0, 3).join();

@@ -117,7 +117,7 @@ for (const [cat, fill] of Object.entries(FLAT_FILL)) {
   ok(g === GLYPH_LIGHT || g === FLAT_INK, 'glyph colour of ' + cat + ' is cream or ink');
   ok(hexContrast(g, fill) >= GRAPHIC_CONTRAST, 'glyph of ' + cat + ' on its fill ' + hexContrast(g, fill).toFixed(2));
 }
-ok(badgeShape('hospital') === 'circle' && badgeShape('politiebureau') === 'shield' && badgeShape('shop-snack') === 'tile' && badgeShape('garage') === 'hex' && badgeShape('station') === 'squircle', 'shape follows the category');
+ok(badgeShape('hospital') === 'circle' && badgeShape('politiebureau') === 'shield' && badgeShape('shop-snack') === 'tile' && badgeShape('garage') === 'hex' && badgeShape('station') === 'pill', 'shape follows the category');
 ok(shadeHex('#808080', 0) === '#808080' && shadeHex('#808080', 1) === '#ffffff' && shadeHex('#808080', -1) === '#000000', 'shadeHex ends');
 ok(stateLook('vergrendeld').gray && stateLook('vergrendeld').alpha < stateLook('ontdekt').alpha && stateLook('ontdekt').alpha < stateLook('aanwezig').alpha && !stateLook().gray, 'states: locked < discovered < present');
 ok(mapIconAlpha('player', 0.1) === 1 && mapIconAlpha('hospital', 0.9) < 1 && mapIconAlpha('hospital', 5) === 1 && mapIconAlpha('shop-a', 2) >= 0.8, 'important icons are solid, the rest fade in to 1 and never below 0.8');
