@@ -1,0 +1,74 @@
+{
+ "onderwerp": "gameplay",
+ "reviewer": "agent-delta-B",
+ "commit": "f962b77edd035d31ace2dbf31b5e0a345641a9ad",
+ "dekking": {
+  "bestanden": [
+   "game/js/snackvan.js (settleDays, answerEvent)",
+   "game/js/business.js (sellMobile)",
+   "game/js/bezit.js (normalizeBezit gift)",
+   "game/js/bezitlive.js (schenkMobiel, attachCoop, tickSnack)",
+   "game/js/storyarc.js (passedBetweenSteps)",
+   "game/js/story.js (regel 309, 1350)",
+   "game/js/unlockgate.js (migrateGate, worldOpen)",
+   "game/js/muggings.js, muggingrules.js (gastberoving)",
+   "game/js/voetbal.js, voetbalsamen.js (delta)",
+   "game/js/interiors.js (NPC-spreiding, planOf)",
+   "game/js/worldlife.js, worldlife3d.js, worldlifelines.js",
+   "game/js/clothingpanel.js (outfitMessage)",
+   "game/js/benchstats.js, benchmarkmodel.js (runDiagnosis, pickChoice, choiceKey)",
+   "game/js/vehicle/traffic.js, tuningworld.js (hot-path delta, alleen op gedrag gelezen)"
+  ],
+  "aspecten": [
+   "gameplay",
+   "savemigratie",
+   "beloningen en economie",
+   "Bezit en snackwagen",
+   "voetbalcarrière"
+  ],
+  "opmerking": "Basisreview van 22-11 is gedaan op 3a1fa5b61; dit is de verificatie plus delta-review tot HEAD 98aa3c4c3. Gameplay 1 (vergunningen verlengen met vast saldo) opgelost in snackvan.js:351 (ctx.money minus sum.fixed; de ctxFor-sluiting in bezitlive.js:562 geeft per dag een nieuw object, dus geen dubbel aftrekken); gameplay 4 (schenkMobiel als geldbron) opgelost via gift:true in bezitlive.js:444, bezit.js:113 en business.js:213; gameplay 5 (bod van Usmem na vervallen vergunning) opgelost in snackvan.js:221; de V1/V2-bijwerking van passedBetweenSteps (ds3-ui 3) opgelost in storyarc.js:110. Gameplay 2 en 3 (oude save opent snackwagen en voetbal, state.legacy bij M00) zijn NIET gewijzigd en staan als eigenaarsbesluit open: zie bevindingen. Pure tests gedraaid en groen: snackreviewfix_test, loopbaanstart_test (13), unlockgate_test (41), muggings_gast_test, muggings_test, voetbal_samen_test, worldlife_test (83), worldlife3d_test (9), interior_core_test, interior_budget_test, interior_coop_test, ds3_dekkinglijst_test, hud_kleuren_test, outfitmelding_test. NIET gedaan: niets in Electron of in beeld bekeken; de nieuwe wereld-levenlaag (plekken, poppetjes), de gastberoving en de NPC-spreiding zijn alleen uit code en pure tests beoordeeld. Niet gelezen: voetbalmatch.js en voetbalai.js, bezitevents.js, bezitnews.js, geometrie van interiorlayout en interiorbuild3d. | Gate-run 22-11: de delta-review is gedaan op 98aa3c4c3; daarna zijn drie gerichte commits en de scripts voor de eigenaar-review gekomen (bf23c1f1b build_province, 6fe9ffa5e bezitui, voetbalcarriereui, f962b77ed scripts); die zijn door de coordinator-agent gelezen, niet door deze reviewer."
+ },
+ "bevindingen": [
+  {
+   "bron": "code-review",
+   "aspect": "gameplay",
+   "ernst": "belangrijk",
+   "categorie": "save",
+   "titel": "Oude save opent snackwagen en voetbalcarrière meteen (eigenaarsbesluit open)",
+   "beschrijving": "Eerder gemeld (review 22-11, gameplay nit 2) en niet gewijzigd: migrateGate geeft een save zonder nieuwe poort legacy:true met alle werelden in gateWorlds() open, dus ook snackwagen (akte 5) en voetbal (akte 4), werelden die in een v0.64.0-save niet bestonden. worldOpen laat dan alles open. Een speler met een oude save in akte 1 heeft na laden het Snackimperium en de voetbalcarrière beschikbaar, tegen de verhaalopzet (snackwagen pas laat): een spoiler- en balansprobleem, geen dataverlies en geen vastloper. In docs/reviews/FIXES-22-11-gameplay.md staat het als eigenaarsbesluit nodig. Meenemen als issue met label eigenaar; nu geen blokkade.",
+   "bestanden": [
+    "game/js/unlockgate.js",
+    "game/js/bezitgate.js"
+   ],
+   "fix": "migrateGate alleen werelden laten openstaan die vóór de poort bestonden (loopbanen, farm, bezit) en snackwagen en voetbal aan het verhaal overlaten; leg het besluit vast in unlockgate.js en unlockgate_test.mjs.",
+   "reviewer": "agent-delta-B"
+  },
+  {
+   "bron": "code-review",
+   "aspect": "gameplay",
+   "ernst": "nit",
+   "categorie": "save",
+   "titel": "Oude save voor de eerste stap krijgt alsnog een dichte poort (eigenaarsbesluit open)",
+   "beschrijving": "Eerder gemeld (gameplay nit 3) en niet gewijzigd: story.js:309 zet bij step.id M00 en state.done.size === 0 en geen state.gate een nieuwe, dichte poort; een pre-poort-save die nog niets afrondde is daar niet van te onderscheiden. De loader (story.js:1350) kent wel een legacy-vlag op een opgeslagen poort, maar zet hem niet voor saves zonder poort. Raakt geld en voortgang niet.",
+   "bestanden": [
+    "game/js/story.js"
+   ],
+   "fix": "In applyStorySave een vlag zetten zodra er een opgeslagen story-object is en de newGate()-regel alleen voor een echt nieuw spel laten gelden.",
+   "reviewer": "agent-delta-B"
+  },
+  {
+   "bron": "code-review",
+   "aspect": "gameplay",
+   "ernst": "nit",
+   "categorie": "gameplay",
+   "titel": "Tekst bij verlopen gastportemonnee zegt dat iemand anders hem pakte",
+   "beschrijving": "muggingrules.js MUG_TEXT.guestGone luidt 'Iemand anders was je voor', maar in muggings.js verloopt de gastportemonnee gewoon na MUG.guestTime (75 s) zonder dat iemand anders hem kan pakken (het geld is per speler en lokaal). De tekst klopt dus niet met wat er gebeurt en kan bij een gast verwarring wekken, ook in een sessie met een medespeler die er niets mee te maken had.",
+   "bestanden": [
+    "game/js/muggingrules.js",
+    "game/js/muggings.js"
+   ],
+   "fix": "Tekst neutraal maken: 'Te laat: je portemonnee is weg. Die {bedrag} ben je kwijt.'",
+   "reviewer": "agent-delta-B"
+  }
+ ]
+}

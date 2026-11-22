@@ -1,0 +1,37 @@
+{
+ "onderwerp": "cutscenes",
+ "reviewer": "agent-delta-B",
+ "commit": "f962b77edd035d31ace2dbf31b5e0a345641a9ad",
+ "dekking": {
+  "bestanden": [
+   "game/storydata/script.json (volledige diff tegen 3a1fa5b61 vergeleken met een eigen leesscript buiten de repo)",
+   "game/js/openingfilm.js (themeEntryShot)",
+   "game/js/intromontage.js (filmId, thema-in, stille start)",
+   "game/js/missionstory.js (handheld-zwaai)",
+   "scripts/openingfilm_test.mjs (alleen gedraaid)"
+  ],
+  "aspecten": [
+   "cutscenes",
+   "volgbaarheid van de data",
+   "stem- en opnameverwijzingen",
+   "toegankelijkheid van camerabeweging"
+  ],
+  "opmerking": "Basisreview van 22-11 is gedaan op 3a1fa5b61; dit is de delta tot HEAD 98aa3c4c3. Cutscene-bestanden in de delta: game/js/intromontage.js, game/js/openingfilm.js, game/storydata/script.json en scripts/openingfilm_test.mjs. script.json: 2105 regels voor en na, geen enkele wijziging in text of speaker; alleen 352 regels met textOnly true naar false en een veld rec 'lines' erbij (opnames uit de TTS-ronde). Na de wijziging blijven 518 regels bewust alleen tekst; node scripts/voice_coverage.mjs --quiet geeft 3494/3494 en 'Nieuw verhaal 1587/1587 ok, 518 alleen tekst (vrijgesteld)'. node scripts/openingfilm_test.mjs: ok (geschat 171,0 s, 19 geënsceneerde shots). missionstory.js: de handheld-zwaai volgt nu Schermschudden en Beweging beperken (handheldOffset, a11y_test groen). NIET gedaan: geen scène in beeld gezien of afgespeeld (geen Electron, geen contactbladen), dus de regie-bijbel (R-01, R-13, R-14), shot-timing, het muzikale intreden van het thema en de lipsync zijn niet beoordeeld; of de 352 nieuwe opnames inhoudelijk bij hun regel passen is alleen op bestaan, niet op inhoud gecontroleerd. cutscenes_akte*.js en cutscript.js zijn niet gewijzigd in de delta en niet gelezen. | Gate-run 22-11: de delta-review is gedaan op 98aa3c4c3; daarna zijn drie gerichte commits en de scripts voor de eigenaar-review gekomen (bf23c1f1b build_province, 6fe9ffa5e bezitui, voetbalcarriereui, f962b77ed scripts); die zijn door de coordinator-agent gelezen, niet door deze reviewer."
+ },
+ "bevindingen": [
+  {
+   "bron": "code-review",
+   "aspect": "cutscenes",
+   "ernst": "nit",
+   "categorie": "cutscenes",
+   "titel": "Opening-film: thema valt niet in bij een start na de eerste kraanshot",
+   "beschrijving": "intromontage.js:1780 start het thema niet meer bij het begin van de film (!r.offset && !film) en vertrouwt op enterShot (regel 1568), dat cueTheme(0) aanroept zodra de shot met filmId gelijk aan themeEntryShot() ('c1-markt') binnenkomt. Wordt de film met startAt groter dan nul gestart op of na een latere shot (testscripts, trailer, hervatten), dan wordt c1-markt nooit 'binnengekomen' en blijft de hele film zonder thema. Een gewone start (startAt 0) is niet geraakt, en bij maxShots blijft de eerste shot c1-markt.",
+   "bestanden": [
+    "game/js/intromontage.js",
+    "game/js/openingfilm.js"
+   ],
+   "fix": "Bij r.film en r.offset > 0 het thema direct cueTheme(offsetInTheme) starten als de startshot na c1-markt ligt, of themeOn op true zetten en het thema vanaf het huidige punt laten lopen.",
+   "reviewer": "agent-delta-B"
+  }
+ ]
+}

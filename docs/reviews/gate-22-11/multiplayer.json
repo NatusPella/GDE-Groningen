@@ -1,0 +1,108 @@
+{
+ "onderwerp": "multiplayer",
+ "reviewer": "agent-delta-B",
+ "commit": "f962b77edd035d31ace2dbf31b5e0a345641a9ad",
+ "dekking": {
+  "bestanden": [
+   "game/js/bezitcoop.js",
+   "game/js/bezitnet.js",
+   "game/js/bezitlive.js (attachCoop, schenkMobiel)",
+   "game/js/coopnet.js (delta: relayPing, outfitLijstTik, lijstAankondigen, openBezitNet, stopBezitNet)",
+   "game/js/coopping.js",
+   "game/js/coopplayers.js (lijstEvent, lijstBerichten, outfitBerichten, leesOutfitsEvent)",
+   "game/js/net/hub.js",
+   "game/js/net/codec.js (readLook)",
+   "game/js/muggings.js (updateMuggingsGast, snatchGuest)",
+   "game/js/muggingrules.js",
+   "game/js/voetbal.js (beloonLokaal, gastBonus, eigenKlasse)",
+   "game/js/voetbalsamen.js (guestCareerExtra)",
+   "game/js/worldlife.js, worldlife3d.js (kalenderdag en klok voor gasten)",
+   "game/js/main.js (gastpad updateGameplay, treinBord)",
+   "game/js/stationlife.js (shouldPollLiveTrains)",
+   "game/js/interiors.js (planOf, NPC-spreiding)",
+   "scripts/coop/coop.page.js, testbank.mjs (alleen globaal: testinfrastructuur)"
+  ],
+  "aspecten": [
+   "multiplayer",
+   "gast zonder host-aanname",
+   "beloning per speler",
+   "wegvallen en later aansluiten"
+  ],
+  "opmerking": "Basisreview van 22-11 is gedaan op 3a1fa5b61; dit is de verificatie plus delta-review tot HEAD 98aa3c4c3 (89 commits). Gelezen: de volledige delta van de genoemde bestanden en de relevante omliggende code. Controle van de eerdere bevindingen: B1 (lijst boven MAX_JSON) opgelost in coopplayers.js lijstEvent/lijstBerichten en hub.js _stuurLijst met try/catch; B2 (gast bepaalt t) opgelost: bezitnet.js stamp() en handleBezit negeert body.t van gasten; B3 (quotum en snelheidsgrens) opgelost: bezitcoop.js PER_PLAYER_PARCELS/SPOTS, bezitnet.js rateOk en helloVan; B4 opgelost: coopnet.js stopCoopNet roept stopBezitNet aan en ensureBezitNet stopt een oud net; B5 opgelost: bezitlive.js attachCoop zet eigen percelen en standplaatsen met t=0 in de map en openBezitNet wordt bij start/aansluiten aangeroepen; N1, N2 en N3 opgelost (Object.hasOwn, relayPing, outfit-limiet, tekenset in readLook). N4 en N5 staan bewust open (zie FIXES-22-11-multiplayer.md en bevindingen hieronder). Pure tests gedraaid en groen: multiplayerreview_22_11_test (26), bezitnet_test (20), bezitcoop_test (12), muggings_gast_test (13), muggings_test (41), voetbal_samen_test, interior_coop_test (39), interior_core_test. coop_licht_test is gestart maar niet afgewacht. NIET gedaan: geen Electron, geen echte verbinding met twee of meer vensters, geen beeld; hostwissel- en latere-aansluiting-gedrag alleen uit code en pure tests afgeleid. NIET gelezen: coophostwisselnet.js buiten de eerdere regel, serverlijst/rtcroom, alles in scripts/coop behalve een globale blik op de delta. | Gate-run 22-11: de delta-review is gedaan op 98aa3c4c3; daarna zijn drie gerichte commits en de scripts voor de eigenaar-review gekomen (bf23c1f1b build_province, 6fe9ffa5e bezitui, voetbalcarriereui, f962b77ed scripts); die zijn door de coordinator-agent gelezen, niet door deze reviewer."
+ },
+ "bevindingen": [
+  {
+   "bron": "code-review",
+   "aspect": "multiplayer",
+   "ernst": "belangrijk",
+   "categorie": "multiplayer",
+   "titel": "Wereld levend: gast gebruikt eigen kalenderdag, niet die van de host",
+   "beschrijving": "worldlife3d.js leest de dag uit world.calendar.day (regel 65). Een gast simuleert de kalender niet: de dag van de host komt binnen als world.coopDag (coopnet.js:1617, 'klok'-gebeurtenis) en main.js gebruikt hem daarom expliciet in het gastpad (Number.isInteger(world.coopDag) ? world.coopDag : calendarToday(world)). world.calendar.day van de gast blijft die van zijn eigen save (alleen de hostwissel zet hem, coophostwisselnet.js:83). De klok (world.clock) volgt de host wel. Gevolg: host en gast zien op dezelfde speelklok andere evenementen (markt, kermis, studentenfeest, aantallen), terwijl docs/WERELD-LEVEN-21-11.md (sectie Samen spelen), de kop van worldlife.js en de CHANGELOG-regel beloven dat iedereen dezelfde evenementen op dezelfde plekken ziet. De test (worldlife3d_test, worldlife_test) dekt de gastdag niet. Geen dataverlies, alleen decor, daarom geen blokkade.",
+   "bewijs": [
+    "game/js/worldlife3d.js:65 gebruikt world.calendar.day",
+    "game/js/main.js:1311 gebruikt world.coopDag voor evenementen van de gast",
+    "game/js/coopnet.js:1617 zet world.coopDag uit de klok-gebeurtenis"
+   ],
+   "bestanden": [
+    "game/js/worldlife3d.js",
+    "game/js/main.js",
+    "game/js/coopnet.js",
+    "docs/WERELD-LEVEN-21-11.md"
+   ],
+   "fix": "In updateWorldLife de dag nemen als Number.isInteger(world.coopDag) && world.coopRole === 'client' ? world.coopDag : world.calendar.day (zelfde regel als main.js) en een test met twee werelden toevoegen waarin de gast een andere calendar.day heeft dan coopDag.",
+   "reviewer": "agent-delta-B"
+  },
+  {
+   "bron": "code-review",
+   "aspect": "multiplayer",
+   "ernst": "nit",
+   "categorie": "multiplayer",
+   "titel": "Vervolg N4: hw-aangesloten wordt van elke gast aangenomen",
+   "beschrijving": "Eerder gemeld (review 22-11, N4) en bewust niet opgelost (docs/reviews/FIXES-22-11-multiplayer.md): coophostwisselnet.js controleert alleen body.id === w.aansluit.id en van > 0, niet wie de bedoelde gast is. Een andere gast kent de id en kan melden dat wie het spel opende is aangesloten, waardoor de nieuwe host de terugval niet start. Beperkte schade, geen dataverlies. Open als issue of eigenaarsbesluit; geen nieuwe regressie in de delta.",
+   "bestanden": [
+    "game/js/coophostwisselnet.js"
+   ],
+   "fix": "Het slot van de bedoelde gast onthouden zodra hw-verbind wordt verstuurd en van daarmee vergelijken, of de terugval pas stoppen als de verbinding zelf bevestigt.",
+   "reviewer": "agent-delta-B"
+  },
+  {
+   "bron": "code-review",
+   "aspect": "multiplayer",
+   "ernst": "nit",
+   "categorie": "multiplayer",
+   "titel": "Vervolg N5: dempen werkt op naam, niet op stabiel id",
+   "beschrijving": "Eerder gemeld (N5) en bewust niet gewijzigd: multiplayerphrases.js keyOf dempt op naam omdat de spelerslijst geen stabiel id heeft (plekken worden na een hostwissel opnieuw verdeeld). Wie op dezelfde naam terugkomt erft de demping. Dat is een ontwerpkeuze met commentaar; een stabiel id vraagt een protocolwijziging. Alleen bijhouden.",
+   "bestanden": [
+    "game/js/multiplayerphrases.js"
+   ],
+   "reviewer": "agent-delta-B"
+  },
+  {
+   "bron": "code-review",
+   "aspect": "multiplayer",
+   "ernst": "nit",
+   "categorie": "multiplayer",
+   "titel": "Carrière-extra van de gast rekent met een proxy voor wat de host betaalde",
+   "beschrijving": "voetbal.js:923 geeft guestCareerExtra het bedrag van voetbalBeloning (de uitkering voor een solowedstrijd) als alBetaald, terwijl de gast zijn geld via de gedeelde wedstrijdbeloning van de host krijgt (coopnet.js zetWedHaken betaalGast). Het verschil in geld dat de gast in zijn eigen carrière bijgeschreven krijgt, klopt dus alleen als die twee bedragen gelijk zijn; wijken ze af, dan is er een kleine dubbele of ontbrekende uitkering. Ervaring (60 procent) is wel per speler en klopt. Niet gemeten in een echte Samen-wedstrijd; zekerheid middel.",
+   "bestanden": [
+    "game/js/voetbal.js",
+    "game/js/voetbalsamen.js"
+   ],
+   "fix": "De werkelijk uitgekeerde som van de host (uitslag.jij.geld bij de gast, of een veld in de uitslag) gebruiken in plaats van voetbalBeloning, en een test in voetbal_samen_test toevoegen voor een gast met carrière.",
+   "reviewer": "agent-delta-B"
+  },
+  {
+   "bron": "code-review",
+   "aspect": "multiplayer",
+   "ernst": "nit",
+   "categorie": "stijl",
+   "titel": "Opmaakslordigheid in bezitcoop.js en business.js",
+   "beschrijving": "bezitcoop.js:10 heeft 'export const PARCEL_RE =/^p...' (spatie ontbreekt) en business.js sellMobile heeft twee opeenvolgende commentaren achter elkaar op dezelfde regel. Geen gedragsverschil; meenemen als het bestand toch wordt aangeraakt.",
+   "bestanden": [
+    "game/js/bezitcoop.js",
+    "game/js/business.js"
+   ],
+   "reviewer": "agent-delta-B"
+  }
+ ]
+}

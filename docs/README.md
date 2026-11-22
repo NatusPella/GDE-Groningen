@@ -136,6 +136,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [BOOT-SPAWN-21-11.md](<BOOT-SPAWN-21-11.md>) | Boten alleen waar dat logisch is: regel, audit en meting (boot-spawn). |
 | [TTS-ACHTERSTAND-21-11.md](<TTS-ACHTERSTAND-21-11.md>) | TTS-achterstand: stand van de opnameronde. |
 | [GATE-VOORBEREIDING-21-11.md](<GATE-VOORBEREIDING-21-11.md>) | Gate-voorbereiding 0.65.0: afvinklijst, testlijst en plan voor de eigenaar-review. |
+| [GATE-RAPPORT-22-11.md](<GATE-RAPPORT-22-11.md>) | Gate-rapport 0.65.0 (22-11): uitslag per stap, perf-regressie, fixes, open punten en de eigenaar-reviewpagina. |
 | [PERF-METING-2026-11-05.md](<PERF-METING-2026-11-05.md>) | Dit is een nieuwe, gedateerde meetbron naast `docs/PERF-METING-2026-10-19.md`. |
 | [PERF-METING-2026-11-09.md](<PERF-METING-2026-11-09.md>) | Prestatiemeting 9-11-2026: verificatie na de merge (#804/#806), top-5 hitchbronnen en de eerlijke norm-uitslag. |
 | [PERF-RONDE-20-11.md](<PERF-RONDE-20-11.md>) | Prestatieronde 20-11 (#985, #937, #921): statische audit van de per-frame-paden, microbenchmarks, kleine fixes, Samen-spelen-kosten per speler en wat open staat. |
