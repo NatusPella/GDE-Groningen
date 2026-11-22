@@ -48,4 +48,9 @@ t('#1275: de uitleg bij Moeilijkheid staat op dezelfde linkerrand als de rijen',
   const css = fs.readFileSync(new URL('../game/js/pausemenu.css', import.meta.url), 'utf8');
   assert.match(css, /.pm-diff-intro, #pause-menu .pm-diff-note {[^}]*margin: 0 24px/);
 });
+t('#1265: Verhaal > Opdrachten kiest zonder open missie het verhaalitem, geen minigame; Activiteiten zonder debugvouw en met een werkwoord', () => {
+  const td = fs.readFileSync(new URL('../game/js/todoui.js', import.meta.url), 'utf8');
+  assert.match(td, /items.find(verhaal) || items.find((it) => !isActiviteit(it))/);
+  assert.ok(!/Alle cijfers/.test(td) && !/\)\}Kaart<\/button>/.test(td));
+});
 console.log(`menu_accolades_test: ${n}/${n} ok`);

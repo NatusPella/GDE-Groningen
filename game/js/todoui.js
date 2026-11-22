@@ -256,7 +256,7 @@ function heroHtml(world) {
     `<div class="m-acts ov-acts">${doorgaanKnop()}` +
     `${it && !goal ? `<button type="button" class="m-bg" data-todo-goal="${esc(it.key)}">Zet als doel</button>` : ''}` +
     `${it && goal ? `<button type="button" class="m-bg" data-todo-goal="${esc(it.key)}">Terug naar het verhaal</button>` : ''}` +
-    `<button type="button" class="m-bg" data-goto="map">${svg(ICON.pin)}Kaart</button>` +
+    `<button type="button" class="m-bg" data-goto="map">${svg(ICON.pin)}Op de kaart</button>` +
     `<button type="button" class="m-bg" data-todo-view="verhaal">Alle opdrachten</button>` +
     `<button type="button" class="m-bt" data-action="save" title="Bewaart je voortgang">Opslaan</button>` +
     `${sv.canSkip ? `<button type="button" class="m-bt" data-story-skip>${esc(sv.skipLabel)}</button>` : ''}</div>${goalLine(world)}</article>`;
@@ -690,7 +690,9 @@ export function renderTodoStory(el, world) {
   ensureCss();
   refresh(world);
   if (!ui.sel || !byKey.has(ui.sel) || isActiviteit(byKey.get(ui.sel))) { // een uitgekozen activiteit hoort niet in het detail van Opdrachten
-    const cur = items.find((it) => it.status === 'nu' && (it.goal === 'story' || it.group === 'missies')) || items.find((it) => !isActiviteit(it)) || items[0];
+    // #1265: bij een leeg beginstuk (nog geen open missie) kiest het detail eerst het huidige verhaalitem, nooit zomaar een minigame (Padel)
+    const verhaal = (it) => it.goal === 'story' || it.group === 'missies';
+    const cur = items.find((it) => it.status === 'nu' && verhaal(it)) || items.find(verhaal) || items.find((it) => !isActiviteit(it)) || items[0];
     ui.sel = cur ? cur.key : null;
   }
   el.querySelector('.td-list').innerHTML = storyHtml();
