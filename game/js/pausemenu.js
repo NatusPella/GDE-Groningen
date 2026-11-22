@@ -62,6 +62,7 @@ import { openPadTest } from './padtest.js';
 import { isHelpOfferOpen } from './assistlive.js';
 import { isRecapOpen } from './recapstate.js';
 import { resetOnboarding } from './onboarding.js';
+import { explanationResetMessage } from './onboardinglogic.js';
 import { resetContextHints } from './contexthints.js';
 import { menuMelding } from './menumelding.js';
 import { getUiScale } from './uiscale.js';
@@ -1095,7 +1096,7 @@ export function initPauseMenu(w) {
     // geleerde toetsen), zodat een speler die de kaarten wegklikte ze terug kan krijgen
     if (e.target.closest('[data-hints-reset]')) {
       resetOnboarding(); resetContextHints(); resetHintUses(); resetUitlegNietMeer();
-      menuMelding('De uitleg begint opnieuw; de eerstvolgende kaarten en hints komen vanzelf.');
+      menuMelding(explanationResetMessage(getSettings().onboardingTips));
       return;
     }
     if (e.target.closest('[data-practice-start]')) { setOpen(false); window.dispatchEvent(new CustomEvent('gde-oefenronde')); return; }

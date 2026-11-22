@@ -24,10 +24,26 @@ export const RECAP_KEY = 'gde-recap-v1';
 const countWords = (t) => String(t || '').trim().split(/\s+/).filter(Boolean).length;
 // Perfect-ronde (22-11): as many whole sentences from the front as fit the budget (at least the first one). The first sentence alone
 // often is not the goal ("Eerst de mosterd." without "vaar voor het schip uit"), so more sentences stay while there is room.
+// A full stop after an abbreviation (Dr., St., mevr., bijv.) or an initial (J.) is not a sentence end.
+const ABBREVIATION = /(?:^|[\s(])(?:dr|drs|mr|ir|prof|st|mevr|mw|dhr|bijv|nr|ca|enz|[a-z])$/i;
+const splitSentences = (t) => {
+  const text = String(t || '').trim();
+  const re = /[.!?](?=\s|$)/g;
+  const parts = [];
+  let from = 0;
+  let m;
+  while ((m = re.exec(text))) {
+    if (text[m.index] === '.' && ABBREVIATION.test(text.slice(from, m.index))) continue;
+    parts.push(text.slice(from, m.index + 1).trim());
+    from = m.index + 1;
+  }
+  if (text.slice(from).trim()) parts.push(text.slice(from).trim());
+  return parts.length ? parts : [text];
+};
 const sentencesWithin = (t, budget) => {
-  const parts = String(t || '').trim().match(/[^.!?]+[.!?]*(?=\s|$)/g) || [String(t || '').trim()];
-  let out = parts[0].trim();
-  for (const z of parts.slice(1)) { const next = out + ' ' + z.trim(); if (countWords(next) > budget) break; out = next; }
+  const parts = splitSentences(t);
+  let out = parts[0];
+  for (const z of parts.slice(1)) { const next = out + ' ' + z; if (countWords(next) > budget) break; out = next; }
   return out;
 };
 

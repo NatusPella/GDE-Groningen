@@ -180,7 +180,7 @@ export function deliverFurniture(w) {
   // one card: tips are rationed (attention.js), a second one would be dropped
   const next = [];
   if (state.owned.has('kast') && !state.built.has('kast')) next.push('De Buukenkaas staat nog in de doos: loop erheen en druk E.');
-  if (momentDue()) next.push('Ga even zitten op de Zitmoi (E).');
+  if (momentDue()) next.push('Ga even zitten op de Zitmoi ({E}).');
   const head = selfCarried ? `Naar boven gesjouwd: ${list}.` : `EIKEA heeft bezorgd: ${list}. Tussen 8 en 18 uur, dus om 17:59.`;
   w.addMessage(`${head} ${next.join(' ')}`.trim(), 6, { kind: next.length ? 'missie' : 'tip' });
   checkComplete(w);

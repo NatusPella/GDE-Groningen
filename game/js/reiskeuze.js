@@ -62,6 +62,7 @@ export function defaultChoice(length, opts) {
 // Small reward for driving yourself; never a punishment for the others.
 export const SELF_REWARD = { perKm: 4, max: 120 };
 export function selfReward(length) {
+  // a broken or negative length (NaN, minus) never gives a negative or empty reward
   const m = Math.max(0, Number.isFinite(+length) ? +length : 0);
   return Math.min(SELF_REWARD.max, Math.round((m / 1000) * SELF_REWARD.perKm));
 }

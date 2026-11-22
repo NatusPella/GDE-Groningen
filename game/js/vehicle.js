@@ -1247,7 +1247,7 @@ export function tickBurningVehicles(world, dt) {
     if (v.sinking) { v.disabled = false; continue; }
     if (v.driver === 'player' && !v.fireWarned) {
       v.fireWarned = true;
-      world.addMessage('Je auto staat in brand! Stap uit (E) voor hij ontploft', 3.5);
+      world.addMessage('Je auto staat in brand! Stap uit ({E}) voor hij ontploft', 3.5);
     }
     v.burnLeft -= dt;
     if (v.burnLeft <= 0) explodeVehicle(v, world);

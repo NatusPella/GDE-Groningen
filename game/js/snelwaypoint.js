@@ -16,7 +16,8 @@ export function tryQuickWaypoint(world) {
   const g = getGoal();
   if (!g) {
     // zonder eigen doel liep hier de missietekst, ook als er geen missie was: zeg wat er echt aan de hand is
-    world.addMessage('Je hebt nog geen eigen doel. Kies er een op de kaart (M).', 3);
+    // {M} is een toetsteken: de melding toont de toets die de speler nu voor de kaart heeft (22-11), ook na herbinden of met een controller
+    world.addMessage(`Je hebt nog geen eigen doel. Kies er een op de kaart ({M}).`, 3);
     return false;
   }
   if (g.kind === 'mission') {

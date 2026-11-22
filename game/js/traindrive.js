@@ -161,7 +161,7 @@ export function board(world, { t, cab: cab_ }) {
     world.wanted = Math.max(world.wanted, STEAL_STARS);
     world.wantedDecayTimer = 0;
     world.trainSteal = STEAL_STARS; // G (de dienst rijden) maakt van de dief een machinist (machinist.js, #424)
-    world.addMessage('Trein gekaapt! Druk G: dan rijd je de dienst en is het geregeld', 4);
+    world.addMessage('Trein gekaapt! Druk {G}: dan rijd je de dienst en is het geregeld', 4);
   } else world.addMessage('Weer aan de knoppen', 2);
 }
 
@@ -362,7 +362,7 @@ export function updateTrainDriving(dt, world) {
   if (input.wasPressed('k')) input.consume('k');
   for (const e of evs) {
     if (e.kind === 'hendel') cab.since = 1;
-    else if (e.kind === 'waak-vraag') world.addMessage('Waakzaamheid: druk K', 3);
+    else if (e.kind === 'waak-vraag') world.addMessage('Waakzaamheid: druk {K}', 3);
     else if (e.kind === 'waak-rem') { world.addMessage('Waakzaamheidsrem: de trein remt vanzelf', 3.5); deadmanHit(world); }
   }
   Object.assign(t.ctl, cabCtl(cab, input.isDown(' ')));

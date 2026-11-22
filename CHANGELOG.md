@@ -70,6 +70,15 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Besturing
 - Controller (#1011, #495): een schermtoetsenbord voor elk tekstveld, zodat je ook alleen met een controller je naam, een sessienaam, een kamercode, een wachtwoord, een zoekterm of de naam van een opgeslagen spel invult. A op een veld of de knop Toetsenbord ernaast opent het; D-pad en stick lopen over de toetsen, A typt, B wist, X is spatie, Y is hoofdletter, LB en RB zetten de cursor, LT en RT wisselen tussen letters, cijfers en accenten, Start is Klaar en Overzicht annuleert. Bij een naam kies je een verzonnen Groningse bijnaam of Willekeurig, bij een kamercode Plakken of een van de laatste drie, bij een zoekveld een vast woord en bij opslaan een naam als Spel van 22 nov. Een afgekeurde naam krijgt meteen een reden. Met toetsenbord, muis of aanraking blijft het gewone veld. Lokaal; er gaat niets naar het netwerk. Samen spelen: elke speler vult het eigen veld in op het eigen scherm.
+### Onboarding en voortgang
+- Voortgang: bijna klaar staat niet meer als "100% klaar" en net begonnen niet meer als "0% klaar"; 100% krijg je pas als alles echt gedaan is.
+- Hulp: het doel staat bovenin beeld en dat zeggen de hulppagina's nu ook.
+- Uitleg: de kaarten van trekker en vliegtuig zijn korter; fatbike, vrachtwagen, discgolf, pitch & putt en de kartbaan krijgen uitleg met plaatjes.
+- Uitleg: wie een bestaand spel laadt krijgt de tip over de kaart ook; "Uitleg opnieuw tonen" zegt eerlijk dat je de uitleg eerst aan moet zetten als die uit staat.
+- Toetsen in meldingen (kaart, Zitmoi, brandende auto, trein kapen) volgen nu je eigen toets of controllerknop.
+- Reiskeuze: met pijl omhoog en omlaag kies je ook met het toetsenbord, net als met een controller.
+- Terugblik "Waar waren we?" knipt niet meer midden in een afkorting; de moeilijkheidskaart zegt waar je Toegankelijkheid vindt.
+
 ### Prestaties
 - Prestaties: bovenaan staat een zoekveld. Typ een woord en je ziet alleen de prestaties waar het in voorkomt; geheime prestaties blijven geheim. Esc wist je zoekopdracht.
 - Prestaties, Loopbaan en Veroverd: een percentage staat niet meer op 100% zolang er nog iets ontbreekt (99,6% werd afgerond tot 100%). Een prestatie van meer dan een jaar geleden toont het jaartal.

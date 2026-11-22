@@ -22,6 +22,7 @@ import { physicalKey, keyName, tokenKey, isSamenSessie } from './controls.js';
 import { hintUses, glyphHtml } from './prompts.js';
 import { KEYS } from './storagekeys.js';
 import { playerBusy } from './busy.js';
+import { lessonsAllSeen, goalHandled } from './onboardinglogic.js';
 
 const STORE_KEY = KEYS.onboarding;
 const FIRST_AFTER = 12;
@@ -56,7 +57,7 @@ const LESSONS = [
   {
     id: 'kaart',
     known: () => hintUses('map') > 0,
-    when: (w, s) => s.has('doel') && !busy(w),
+    when: (w, s) => goalHandled(s, w.stats.missionsDone) && !busy(w),
     card: () => ({ title: 'Zelf kiezen', body: `Liever iets anders? Kies op de kaart ({M}). ${SKIP_NOTE}` }),
   },
   {
@@ -115,7 +116,7 @@ export function resetOnboarding() {
 
 export function updateOnboarding(dt, w) {
   if (!document.body.classList.contains('game-started') || w.paused || isPauseMenuOpen()) return;
-  if (getSettings().onboardingTips === false || seen.size >= LESSONS.length) return;
+  if (getSettings().onboardingTips === false || lessonsAllSeen(seen)) return;
   if (startDone < 0) startDone = w.stats.missionsDone;
   const on = missionOn(w);
   if (wasMission && !on) missionEndT = playT;
