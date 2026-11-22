@@ -208,7 +208,7 @@ export function drawKompasRand(ctx, S, items, opties = {}) {
   ctx.save();
   for (const i of geplaatst.filter((q) => !q.actief)) schijf(ctx, k, i.x, i.y, DOT_R, i.kleur, i.icoon);
   for (const i of geplaatst.filter((q) => q.actief)) {
-    const puls = opties.beweging === false ? 0 : 0.6 * (0.5 + 0.5 * Math.sin((opties.t || 0) * 5));
+    const puls = pulsWaarde(i.icoon + '|' + i.kleur, opties.t, opties.beweging);
     cirkel(ctx, i.x, i.y, ACTIEF_UIT, k.creme); // een crème randje: de schijf leest ook op donker land
     schijf(ctx, k, i.x, i.y, ACTIVE_R, i.kleur, i.icoon, puls);
     if (i.tekst) {
@@ -225,6 +225,17 @@ export function drawKompasRand(ctx, S, items, opties = {}) {
 // De grote kaart (mapview.js): dezelfde taal op de plek van het doel zelf. Het doel dat je volgt is een rond icoon met de afstandstag eronder, wachtende doelen
 // zijn kleine iconen. items: [{ sx, sy, kleur, icoon, actief, tekst, zonderSchijf }] in schermpixels; s: kaartschaal (1 = de maat van de minikaart).
 // zonderSchijf: het doel heeft al zijn eigen pin (jouw waypoint): alleen de tag komt eronder.
+// De puls van het actieve doel (22-11): één zwelling van 250 ms zodra het doel verschijnt of wisselt, daarna stil, en altijd stil bij
+// Minder beweging (opties.beweging === false). Zo blijft het doel opvallen zonder te blijven trillen.
+export const PULS_MS = 250;
+let pulsSleutel = null, pulsStart = 0;
+export function pulsWaarde(sleutel, t, beweging = true) {
+  if (beweging === false) { pulsSleutel = sleutel; return 0; }
+  const nu = (t === undefined ? performance.now() / 1000 : t) * 1000;
+  if (sleutel !== pulsSleutel || nu < pulsStart) { pulsSleutel = sleutel; pulsStart = nu; }
+  const x = (nu - pulsStart) / PULS_MS;
+  return x >= 1 ? 0 : 0.6 * Math.sin(Math.PI * x);
+}
 export function drawMapTargets(ctx, items, opties = {}) {
   if (!items.length) return;
   const k = { inkt: dsKleur('ink-inkt'), papier: dsKleur('ink-papier'), creme: dsKleur('creme') };
@@ -232,7 +243,7 @@ export function drawMapTargets(ctx, items, opties = {}) {
   ctx.save();
   for (const i of [...items.filter((q) => !q.actief), ...items.filter((q) => q.actief)]) {
     if (!i.actief) { schijf(ctx, k, i.sx, i.sy, DOT_R * s, i.kleur, i.icoon); continue; }
-    const puls = opties.beweging === false ? 0 : 0.6 * (0.5 + 0.5 * Math.sin((opties.t || 0) * 5));
+    const puls = pulsWaarde(i.icoon + '|' + i.kleur, opties.t, opties.beweging);
     if (!i.zonderSchijf) { cirkel(ctx, i.sx, i.sy, ACTIEF_UIT * s, k.creme); schijf(ctx, k, i.sx, i.sy, ACTIVE_R * s, i.kleur, i.icoon, puls); }
     if (i.tekst) {
       const g = tagGrootte(ctx, i.tekst);

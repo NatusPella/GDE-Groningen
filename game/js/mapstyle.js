@@ -5,7 +5,7 @@
 // Node scripts can load it. Two palettes: "map" (the full map and the
 // pyramid, a dark calm land) and "mini" (the minimap, lighter so it reads
 // at 150 px). Both share the same keys.
-import { kaartInk, kaartLand, kaartLabel, markerKleuren, meng } from './kaartkleuren.js';
+import { kaartInk, kaartLand, kaartLabel, kaartLaag, markerKleuren, meng } from './kaartkleuren.js';
 
 // 21-11: het land komt uit de ds-tokens (kaartkleuren.js kaartLand, het glasoppervlak van het designsysteem); hier alleen de maten.
 const LAND = kaartLand();
@@ -72,6 +72,9 @@ const MARKERS = markerKleuren();
 export const ICON_RIM = MARKERS.rim;
 export const ICON_FILL = MARKERS.vul;
 export const ICON_GLYPH_LIGHT = MARKERS.glyph;
+// Bezit (thuis, steiger, helidek, garage van jou) heeft het inktblauw van vervoer en water uit de tokens, niet het oude blauw van v1.
+INK.homeBlue = MARKERS.vul.station;
+Object.assign(INK, kaartLaag()); // laagTekoop, laagEigen, laagMedespeler, laagSlot: de lijnen van Te koop en percelen op het papier
 
 // De teksten op het land (22-11, de gedrukte kaart): inkt met een papieren halo. De code vraagt nog om crème (INK.cream) voor een naam;
 // kaartTekst() geeft daar de inkt voor terug, met dezelfde alfa. Een tekst op een donkere band (de voortgangsstrook, het bijschrift)

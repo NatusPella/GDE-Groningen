@@ -135,14 +135,14 @@ export const MAP_GLYPH_KINDS = Object.keys(GLYPHS);
 
 // Phosphor (icons.js, ADR 0041): waar de browser Path2D kent tekent de schijf de betekenis uit de iconenset
 // (bold, in crème); anders (node, tests) blijft de eigen tekening hierboven. Betekenisnamen, geen bestanden.
-const PH_GLYPHS = {
+export const PH_GLYPHS = {
   'act-carbid': 'water', 'act-kartbaan': 'vlag', 'act-klimtoren': 'hoogte', 'act-waterski': 'zwemmen', 'act-vliegschool': 'vliegtuig',
   'act-pannenkoek': 'kookpot', 'act-hengelen': 'vis', 'act-snackketen': 'kroon', 'act-evenementen': 'tent',
   'pg-jelle': 'hart_vol', 'pg-fjord': 'eten', dorp: 'veroverd', onderdeel: 'tandwiel', wrakduik: 'anker', streekuitdaging: 'route',
 };
 // De rest van de markers (20-11): winkels, bijbanen, haltes en andere plekken tekenen hun betekenis ook uit Phosphor, zodat kaart
 // en minikaart één iconenstijl hebben. De sleutels zijn de soorten die de eigen tekenfuncties kennen (shops.js, sidejobs.js, ...).
-const PH_KIND = {
+export const PH_KIND = {
   station: 'trein', livebus: 'bus', roosterbus: 'bus', 'ov-halte': 'bus', pigeon: 'duif', heli: 'helikopter', padel: 'padel', wereldeinde: 'wereldbol',
 };
 export const PH_SHOP = {
@@ -182,6 +182,13 @@ export function phosphorInBox(g, naam, box) {
   for (const p of lijst) g.fill(p);
   g.restore();
   return true;
+}
+// De Path2D-paden van een Phosphor-betekenis (bold, viewBox 256), of null zonder Path2D (node) of voor een onbekende naam.
+export function phosphorPaden(naam) {
+  if (typeof Path2D === 'undefined' || !naam) return null;
+  let lijst = phPaths.get(naam);
+  if (!lijst) { lijst = [...iconInner(naam, true).matchAll(/ d="([^"]+)"/g)].map((m) => new Path2D(m[1])); phPaths.set(naam, lijst); }
+  return lijst.length ? lijst : null;
 }
 // De Phosphor-naam van een marker die geen eigen glyph heeft, of null.
 function phosphorNaamVan(kind) {

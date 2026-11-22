@@ -19,7 +19,7 @@ import { minimapShows } from './mapfilters.js';
 import { borderSegments, BORDER_CELL } from './mapborders.js'; // #885: stabiele buurtgrenzen op de minikaart
 import { tekenVeroverdMini, plekOnbezocht } from './gebiedenkaart.js';
 import { pinBlijftInMist } from './kaartontdekking.js';
-import { GLYPH_LIGHT as GLYPH_CREAM, mapCategory, mapFillColor, FLAT_INK, haloRim, HALO_DARK, HALO_LIGHT, mapPriority, miniIconScale, iconGapPx, badgeShape, badgeGlyphColor, shadeHex, stateLook, BADGE_UNITS } from './mapicons.js';
+import { GLYPH_LIGHT as GLYPH_CREAM, mapCategory, mapFillColor, FLAT_INK, haloRim, HALO_DARK, HALO_LIGHT, mapPriority, miniIconScale, iconGapPx, badgeShape, badgeGlyphColor, shadeHex, stateLook, BADGE_UNITS, BADGE_GLYPH } from './mapicons.js';
 import { facilitiesOf } from './facilities.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, drawShopMapIcon, drawShopGlyph, storyTargetShop, drawStoryShopRing } from './shops.js';
@@ -48,6 +48,7 @@ import { dempMelding } from './coopgeluid.js';
 import { gearboxReadout } from './gearbox.js';
 import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
 import { drawCountryMinimap, villageLabels, syncMapPhase } from './countrymap.js';
+import { markerIcoon } from './mapmarkers.js';
 import { MINI_PALETTE as MINI_STYLE, EMPHASIS, INK, inkA, seaStyle, miniRoadStyle, MINI_RANGE_M, kaartTekst, labelHalo } from './mapstyle.js';
 import { drawSea, drawOutside, regionLabels, regionEdgeLabels, areaNameAt, REGIONS } from './regions.js';
 import { borderPlaceLabels } from './borderplaces.js';
@@ -80,7 +81,7 @@ import { initCards, updateCards } from './hudcards.js';
 import { markerColors, onPaletteChange } from './a11y.js';
 import { sterTeken } from './a11ylogic.js';
 import { drawMissionGlyph } from './missionicons.js';
-import { drawMapGlyph } from './mapglyphs.js';
+import { drawMapGlyph, phosphorPaden } from './mapglyphs.js';
 import { miniWind, windSterkte, windPijlHoek, windTekst } from './windmini.js';
 import { decideHud, zones, hudNow, cardYields, vehnameBottom, P3, PLACE_SHOW, DEFER_MAX, GPS_NEAR, nowPlayingSeconds } from './hudrules.js';
 import { goalTitle, travelMode } from './goaltext.js';
@@ -1868,6 +1869,25 @@ function outline(ctx, s, color = C.dark, w = 1.2) {
   ctx.stroke();
 }
 
+// Een ronde markerschijf met een Phosphor-glyph in crème (22-11): vulling, donkere buitenlijn, een gekleurde ring (crème of 'van jou').
+function phDisc(ctx, s, fill, naam, r = 5, ring = C.cream) {
+  ctx.beginPath();
+  ctx.arc(0, 0, r * s, 0, Math.PI * 2);
+  ctx.fillStyle = fill;
+  ctx.fill();
+  outline(ctx, s, C.dark, 3.2);
+  outline(ctx, s, ring, 1.6);
+  const paden = phosphorPaden(naam);
+  if (!paden) return;
+  const box = r * 1.34 * s;
+  ctx.save();
+  ctx.translate(-box / 2, -box / 2);
+  ctx.scale(box / 256, box / 256);
+  ctx.fillStyle = badgeGlyphColor(fill);
+  for (const p of paden) ctx.fill(p);
+  ctx.restore();
+}
+
 function pulseAt(t, speed = 5) {
   return 0.5 + 0.5 * Math.sin(t * speed);
 }
@@ -1961,16 +1981,8 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       break;
     }
     case 'cash': {
-      ctx.beginPath();
-      ctx.arc(0, 0, 5 * s, 0, Math.PI * 2);
-      ctx.fillStyle = C.yellow;
-      ctx.fill();
-      outline(ctx, s, C.dark, 1.4);
-      ctx.fillStyle = C.dark;
-      ctx.font = `bold ${7.5 * s}px sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('\u20ac', 0, 0.4 * s);
+      // het geld van een beroving (22-11): munten (Phosphor 'geld') op een gele schijf, inkt op geel
+      phDisc(ctx, s, C.yellow, 'geld', 5, C.dark);
       break;
     }
     case 'car': {
@@ -2045,62 +2057,16 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       break;
     }
     case 'own': {
-      // owned vehicle: badge in its own paint with a green 'yours' ring
-      const glyph = { car: 'auto', bike: 'fietsen', scooter: 'fietsen', boat: 'boot', heli: 'heli' }[opts.vkind] || 'auto';
-      const paint = opts.color || C.greenDark;
-      ctx.beginPath();
-      ctx.arc(0, 0, 5 * s, 0, Math.PI * 2);
-      ctx.fillStyle = paint;
-      ctx.fill();
-      outline(ctx, s, C.dark, 3.2);
-      outline(ctx, s, C.greenLight, 1.6);
-      drawShopGlyph(ctx, glyph, 3.3 * s, paint);
+      // owned vehicle: a disc in its own paint with a green 'yours' ring and the vehicle's Phosphor glyph (22-11)
+      phDisc(ctx, s, opts.color || C.greenDark, { auto: 'auto', car: 'auto', bike: 'fiets', scooter: 'scooter', boat: 'boot', heli: 'helikopter' }[opts.vkind] || 'auto', 5, C.greenLight);
       break;
     }
-    case 'home': {
-      // Thuis: a cream house on a blue badge
-      ctx.beginPath();
-      ctx.arc(0, 0, 5.4 * s, 0, Math.PI * 2);
-      ctx.fillStyle = INK.homeBlue;
-      ctx.fill();
-      outline(ctx, s, C.dark, 1.4);
-      ctx.beginPath();
-      ctx.moveTo(0, -3.4 * s);
-      ctx.lineTo(3.3 * s, -0.4 * s);
-      ctx.lineTo(2.3 * s, -0.4 * s);
-      ctx.lineTo(2.3 * s, 2.9 * s);
-      ctx.lineTo(-2.3 * s, 2.9 * s);
-      ctx.lineTo(-2.3 * s, -0.4 * s);
-      ctx.lineTo(-3.3 * s, -0.4 * s);
-      ctx.closePath();
-      ctx.fillStyle = C.cream;
-      ctx.fill();
-      ctx.fillStyle = INK.homeBlue;
-      ctx.fillRect(-0.7 * s, 0.9 * s, 1.4 * s, 2 * s);
-      break;
-    }
+    case 'home':
     case 'homeMooring':
-    case 'homeHelipad': {
-      // your own jetty / helidek: a cream boat or helicopter on the blue home badge
-      ctx.beginPath();
-      ctx.arc(0, 0, 5.4 * s, 0, Math.PI * 2);
-      ctx.fillStyle = INK.homeBlue;
-      ctx.fill();
-      outline(ctx, s, C.dark, 1.4);
-      drawShopGlyph(ctx, kind === 'homeMooring' ? 'boot' : 'heli', 3.5 * s, INK.homeBlue);
-      break;
-    }
+    case 'homeHelipad':
     case 'homeGarage': {
-      // your own garage: a cream roller door on the same blue badge as home
-      ctx.beginPath();
-      ctx.arc(0, 0, 5.4 * s, 0, Math.PI * 2);
-      ctx.fillStyle = INK.homeBlue;
-      ctx.fill();
-      outline(ctx, s, C.dark, 1.4);
-      ctx.fillStyle = C.cream;
-      ctx.fillRect(-3.2 * s, -2.8 * s, 6.4 * s, 5.8 * s);
-      ctx.fillStyle = INK.homeBlue;
-      for (let i = 0; i < 4; i++) ctx.fillRect(-2.6 * s, (-1.9 + i * 1.3) * s, 5.2 * s, 0.45 * s);
+      // Thuis (22-11): een Phosphor-icoon op de blauwe schijf van Bezit: huis, steiger (anker), helidek of garage
+      phDisc(ctx, s, INK.homeBlue, { home: 'thuis', homeMooring: 'anker', homeHelipad: 'helikopter', homeGarage: 'garage' }[kind], 5.4, C.cream);
       break;
     }
     case 'garage': {
@@ -2370,14 +2336,70 @@ function badgePath(g, shape, w) {
   else if (shape === 'squircle') g.roundRect(-h * 1.05, -h * 0.88, w * 1.05, w * 0.88, w * 0.36);
   else if (shape === 'hex') { for (let i = 0; i < 6; i++) { const an = -Math.PI / 2 + i * Math.PI / 3; g[i ? 'lineTo' : 'moveTo'](Math.cos(an) * h * 1.06, Math.sin(an) * h * 1.06); } g.closePath(); }
   else if (shape === 'diamond') { g.save(); g.rotate(Math.PI / 4); g.roundRect(-h * 0.76, -h * 0.76, w * 0.76, w * 0.76, w * 0.14); g.restore(); }
+  else if (shape === 'octagon') { for (let i = 0; i < 8; i++) { const an = Math.PI / 8 + i * Math.PI / 4; g[i ? 'lineTo' : 'moveTo'](Math.cos(an) * h * 1.08, Math.sin(an) * h * 1.08); } g.closePath(); }
+  else if (shape === 'pill') g.roundRect(-h * 1.16, -h * 0.82, w * 1.16, w * 0.82, w * 0.41);
+  else if (shape === 'pin') { g.arc(0, -h * 0.12, h * 0.96, Math.PI * 0.78, Math.PI * 0.22, false); g.lineTo(0, h * 1.08); g.closePath(); }
   else if (shape === 'shield') { g.moveTo(0, -h * 1.08); g.lineTo(h * 0.96, -h * 0.74); g.quadraticCurveTo(h * 0.94, h * 0.62, 0, h * 1.1); g.quadraticCurveTo(-h * 0.94, h * 0.62, -h * 0.96, -h * 0.74); g.closePath(); }
   else g.arc(0, 0, h, 0, Math.PI * 2);
+}
+// De badge zelf (22-11, DS3: een harde buitenlijn, de categoriekleur met een lichte bovenkant en een zachte schaduw): één plek voor de
+// badge met een uitgesneden glyph (flatSprite) en de badge met een Phosphor-glyph (phBadgeSprite).
+function paintBadgeBody(oc, shape, W, fill, s, a) {
+  // soft shadow under the whole badge
+  oc.save();
+  oc.shadowColor = inkA('black', 0.55); oc.shadowBlur = 2.4 * s * a; oc.shadowOffsetY = 0.7 * s * a;
+  badgePath(oc, shape, W);
+  oc.fillStyle = INK.black; oc.fill();
+  oc.restore();
+  // a thin light line, a dark outline, the fill with a light top, the rim
+  badgePath(oc, shape, W);
+  oc.lineWidth = (1.0 + 2.5) * 0.5 * s * a * 1.4 + 0.6 * s * a; oc.strokeStyle = HALO_LIGHT; oc.stroke();
+  oc.lineWidth = 1.5 * 0.5 * s * a * 1.4; oc.strokeStyle = HALO_DARK; oc.stroke();
+  const grad = oc.createLinearGradient(0, -W / 2, 0, W / 2);
+  grad.addColorStop(0, shadeHex(fill, 0.22)); grad.addColorStop(0.55, fill); grad.addColorStop(1, shadeHex(fill, -0.14));
+  oc.fillStyle = grad; oc.fill();
+  oc.save();
+  badgePath(oc, shape, W * 0.9);
+  oc.lineWidth = Math.max(1, 0.45 * s * a); oc.strokeStyle = shadeHex(fill, 0.38); oc.globalAlpha = 0.55; oc.stroke();
+  oc.restore();
+}
+
+// De badge met zijn Phosphor-glyph (mapmarkers.js): vet, in crème of inkt, optisch gecentreerd per vorm (mapicons.js BADGE_GLYPH).
+function phBadgeSprite(kind, s, a, opts, naam) {
+  const paden = phosphorPaden(naam);
+  if (!paden) return null;
+  const look = stateLook(opts.state);
+  const fill = look.gray ? INK.locked : mapFillColor(kind);
+  const glyphCol = badgeGlyphColor(fill);
+  const half = Math.ceil(13 * s + 6), n = Math.ceil(half * 2 * a);
+  const out = document.createElement('canvas');
+  out.width = out.height = n;
+  const oc = out.getContext('2d');
+  const W = BADGE_UNITS * s * a, shape = badgeShape(kind);
+  oc.translate(n / 2, n / 2);
+  oc.lineJoin = 'round';
+  paintBadgeBody(oc, shape, W, fill, s, a);
+  const G = BADGE_GLYPH[shape] || BADGE_GLYPH.circle, box = W * G.box;
+  oc.save();
+  oc.translate(-box / 2, -box / 2 + W * G.dy);
+  oc.scale(box / 256, box / 256);
+  if (glyphCol === GLYPH_CREAM) { oc.shadowColor = inkA('black', 0.3); oc.shadowOffsetY = 0.5 * s * a * 256 / box; oc.shadowBlur = 0; }
+  oc.fillStyle = glyphCol;
+  for (const p of paden) oc.fill(p);
+  oc.restore();
+  return { canvas: out, size: n / a };
 }
 function flatSprite(kind, s, a, opts) {
   const { t: _t, angle: _a, raw: _r, alpha: _al, ...rest } = opts;
   const key = 'badge|' + kind + '|' + s + '|' + a + '|' + JSON.stringify(rest);
   if (flatCache.has(key)) return flatCache.get(key);
   let sprite = null;
+  // 22-11: een soort met een Phosphor-icoon (mapmarkers.js) tekent dat direct; de oude uitgesneden tekening blijft de terugval zonder Path2D
+  const phNaam = typeof Path2D !== 'undefined' && mapFillColor(kind) ? markerIcoon(kind) : null;
+  if (phNaam) {
+    try { sprite = phBadgeSprite(kind, s, a, opts, phNaam); } catch (e) { sprite = null; }
+    if (sprite) { flatCache.set(key, sprite); return sprite; }
+  }
   try {
     const K = 1.5;
     const half2 = Math.ceil(13 * s * K + 6), n2 = Math.ceil(half2 * 2 * a);
@@ -2441,23 +2463,7 @@ function flatSprite(kind, s, a, opts) {
       const W = BADGE_UNITS * s * a, shape = badgeShape(kind);
       oc.translate(n / 2, n / 2);
       oc.lineJoin = 'round';
-      // soft shadow under the whole badge
-      oc.save();
-      oc.shadowColor = inkA('black', 0.55); oc.shadowBlur = 2.4 * s * a; oc.shadowOffsetY = 0.7 * s * a;
-      badgePath(oc, shape, W);
-      oc.fillStyle = INK.black; oc.fill();
-      oc.restore();
-      // a thin light line, a dark outline, the fill with a light top, the rim
-      badgePath(oc, shape, W);
-      oc.lineWidth = (1.0 + 2.5) * 0.5 * s * a * 1.4 + 0.6 * s * a; oc.strokeStyle = HALO_LIGHT; oc.stroke();
-      oc.lineWidth = 1.5 * 0.5 * s * a * 1.4; oc.strokeStyle = HALO_DARK; oc.stroke();
-      const grad = oc.createLinearGradient(0, -W / 2, 0, W / 2);
-      grad.addColorStop(0, shadeHex(fill, 0.22)); grad.addColorStop(0.55, fill); grad.addColorStop(1, shadeHex(fill, -0.14));
-      oc.fillStyle = grad; oc.fill();
-      oc.save();
-      badgePath(oc, shape, W * 0.9);
-      oc.lineWidth = Math.max(1, 0.45 * s * a); oc.strokeStyle = shadeHex(fill, 0.38); oc.globalAlpha = 0.55; oc.stroke();
-      oc.restore();
+      paintBadgeBody(oc, shape, W, fill, s, a);
       // the glyph, enlarged to about 60 % of the badge
       const gw = x1 - x0 + 1, gh = y1 - y0 + 1;
       const g = document.createElement('canvas');

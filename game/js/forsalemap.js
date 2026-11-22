@@ -2,7 +2,7 @@
 // Puur: geen DOM, geen canvas, geen klok (scripts/forsalemap_test.mjs); mapview.js tekent wat dit teruggeeft. De vorm is een schets op
 // kaalschaal (perceelVlak van percelen.js) zolang bezit-vormen.json niet geladen is, daarna de echte omtrek (parcelindex shapeOf); alleen wat in beeld is wordt berekend, nooit alle 13.664 tegelijk.
 //
-// Kleurtaal (DS3): te koop = policeBlue-streeplijn met een prijskaartje, van jou = greenLight, medespeler = zijn spelerkleur, niet te koop = grijs
+// Kleurtaal (DS3): te koop = inktblauwe streeplijn (laagTekoop) met een prijskaartje, van jou = greenLight, medespeler = zijn spelerkleur, niet te koop = grijs
 // met een slotje. Geel blijft gereserveerd voor 'volg dit'-doelen. Nooit alleen kleur: elke stand heeft een lijnpatroon (dash) en een vorm.
 
 import { perceelVlak } from './percelen.js';
@@ -15,10 +15,10 @@ export const PRICE_PER_HA_STEPS = [1500, 3000, 6000];   // vier prijsstappen: to
 
 // Standen: id, lijnpatroon (px), kleurnaam uit mapstyle INK, vulling (alpha), icoon-id voor het label (Phosphor via icons.js)
 export const STATES = {
-  forSale: { dash: [8, 4], ink: 'policeBlue', alpha: 0.16, icon: 'geld', label: 'Te koop' },
-  own: { dash: [], ink: 'greenLight', alpha: 0.26, icon: 'thuis', label: 'Van jou' },
-  claimed: { dash: [3, 3], ink: 'amber', alpha: 0.14, icon: 'spelers', label: 'Van een medespeler' },
-  locked: { dash: [2, 5], ink: 'locked', alpha: 0.08, icon: 'slot', label: 'Niet te koop' },
+  forSale: { dash: [8, 4], ink: 'laagTekoop', alpha: 0.16, icon: 'geld', label: 'Te koop' },
+  own: { dash: [], ink: 'laagEigen', alpha: 0.26, icon: 'thuis', label: 'Van jou' },
+  claimed: { dash: [3, 3], ink: 'laagMedespeler', alpha: 0.14, icon: 'spelers', label: 'Van een medespeler' },
+  locked: { dash: [2, 5], ink: 'laagSlot', alpha: 0.08, icon: 'slot', label: 'Niet te koop' },
 };
 export const priceStep = (price, ha) => { const pha = price / Math.max(0.1, ha); return PRICE_PER_HA_STEPS.filter((s) => pha > s).length; };
 
