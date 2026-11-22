@@ -297,5 +297,28 @@ for (const [side, label] of [[0, 'zijde 0 naar zijde 1'], [1, 'zijde 1 naar zijd
   ok(q2.i >= 0 && q2.d < 1.5, 'de echte kolkwand telt wel als oever', q2.d);
 }
 
+// Efficiëntie: een boot uit world.vehicles hoeft niet nog eens in world.vehicles gezocht te worden.
+// Eén stap met twintig boten ver van de sluis zoekt de lijst niet per boot af; wrakken en zinkers vragen de sluis nog steeds niet.
+{
+  const lock = S.makeSluis(row());
+  const vehicles = [];
+  for (let i = 0; i < 20; i++) vehicles.push(boat(400 + i * 20));
+  const wrak = boat(-30, 1, { wrecked: true }), zinker = boat(-34, 1, { sinking: true }), auto = { x: -30, y: 0, angle: 0, speed: 0 };
+  vehicles.push(wrak, zinker, auto);
+  let zoek = 0;
+  const echt = vehicles.includes.bind(vehicles);
+  vehicles.includes = (v) => { zoek++; return echt(v); };
+  S.stepSluis(lock, 0.1, { vehicles, player: null });
+  ok(zoek === 0, 'een stap zonder wachtrij zoekt world.vehicles niet per boot af', zoek + ' keer includes');
+  ok(lock.queue.length === 0, 'een wrak, een zinkende boot en een auto vragen de sluis niet', lock.queue.length);
+  const vrager = boat(-30);
+  vehicles.push(vrager);
+  S.stepSluis(lock, 0.1, { vehicles, player: null });
+  ok(lock.queue.some((q) => q.who === vrager), 'een boot voor de deur vraagt de sluis nog steeds');
+  vehicles.splice(vehicles.indexOf(vrager), 1);
+  S.stepSluis(lock, 0.1, { vehicles, player: null });
+  ok(!lock.queue.some((q) => q.who === vrager), 'een boot die uit de wereld is verdwijnt uit de wachtrij');
+}
+
 console.log(`sluizen_test ${fails ? 'FAIL' : 'ok'} (${n} controles)`);
 process.exit(fails ? 1 : 0);
