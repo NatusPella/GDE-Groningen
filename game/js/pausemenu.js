@@ -38,7 +38,7 @@ import { trackTabLine } from './dsmicro.js'; // DS3: de glijdende onderstreping 
 import { renderLoopbaanPanel } from './loopbaanui.js';
 import { navIndex } from './listnav.js';
 import { renderVisboekPanel } from './visboekui.js';
-import { renderBoerderijPanel, boerderijBegonnen } from './boerderijui.js';
+import { renderBoerderijPanel, boerderijBegonnen, ruimBoerderijPlaatjes } from './boerderijui.js';
 import { renderVoetbalPanel } from './voetbalcarriereui.js';
 import { renderBezitPanels } from './bezitui.js';
 import { getBoerderij } from './boerderijlive.js';
@@ -2772,6 +2772,7 @@ function showTab(name, how) {
   for (const p of root.querySelectorAll('[data-panel]')) p.hidden = p.dataset.panel !== name;
   if (world) setMapActive(world, open && name === 'map');
   if (name !== 'garage') disposeGarageViewer();
+  if (name !== 'boerderij') ruimBoerderijPlaatjes();
   if (name !== 'verhaal') disposeVerhaalViewer();
   if (name !== 'spullen') disposeSpullenViewer();
   syncFooter();
@@ -2906,6 +2907,7 @@ function setOpen(value, name = HOME, how = 'direct') {
   } else {
     if (world) setMapActive(world, false);
     disposeGarageViewer();
+    ruimBoerderijPlaatjes();
     disposeVerhaalViewer();
     disposeSpullenViewer();
     if (document.activeElement && root.contains(document.activeElement)) document.activeElement.blur();
