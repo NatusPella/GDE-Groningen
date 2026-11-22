@@ -18,7 +18,8 @@ export function neighboursText(nb) {
 }
 export const crops = (kind) => (kind === 'w' ? 'gras en vee (weide)' : kind === 'b' ? 'boomgaardfruit' : 'gewassen (akker)');
 
-// De bodem als woord en een balk van tien blokjes (ook voor schermlezers: de tekst staat erbij).
+// De bodem als woord en een balk van tien blokjes (ook voor schermlezers: de tekst staat erbij); de kaart toont de DS3-balk.
+export const soilMeter = (q) => `<span class="ds-z-balk mv-bodem" style="--ds-z-w:${Math.round(Math.max(0, Math.min(1, q)) * 100)}%" aria-hidden="true"><span class="ds-z-balk__baan"><span class="ds-z-balk__vul"></span></span></span>`;
 export const soilBar = (q) => { const n = Math.max(0, Math.min(10, Math.round(q * 10))); return '█'.repeat(n) + '░'.repeat(10 - n); };
 
 // Verwachte opbrengst per oogst bij het standaardgewas van de soort, met de bodem en de grootte (zoals boerderij.opbrengstKg bij een perfecte oogst).
@@ -37,7 +38,7 @@ export function offerCardHtml(offer, { stap = null, melding = '', money = 0 } = 
   const rows = [
     ['Soort', `${offer.kindName} · ${crops(offer.parcel.kind)}`],
     ['Oppervlakte', `${String(offer.ha.toFixed(1)).replace('.', ',')} ha`],
-    ['Bodem', `${offer.soilWord} <span class="mv-bar" aria-hidden="true">${soilBar(offer.soil)}</span>`],
+    ['Bodem', `${offer.soilWord} ${soilMeter(offer.soil)}`],
     ['Ligging', `${accessText(offer.access)}, bij ${esc(offer.place)}`],
     ...(offer.neighbours ? [['Buren', neighboursText(offer.neighbours)]] : []),
     ...(offer.mine && offer.mode ? [['Beheer', `${MODE_TEXT[offer.mode] || 'Zelf'}${offer.insured ? ' · verzekerd tegen stortbui' : ''}`]] : []),
@@ -55,15 +56,15 @@ export function offerCardHtml(offer, { stap = null, melding = '', money = 0 } = 
     if (stap === 'koop') {
       const kan = money >= offer.price;
       buttons = `<div class="mv-acties" role="group" aria-label="Koop bevestigen"><p class="mv-note">${kan ? `Kopen voor ${euro(offer.price)}? Je houdt ${euro(money - offer.price)} over.` : `Je mist nog ${euro(offer.price - money)}.`}</p>` +
-        `<button type="button" class="mv-actie" data-card="bezit-ok"${kan ? '' : ' aria-disabled="true"'}><span class="mv-at"><span class="mv-al">Ja, koop</span><small>${euro(offer.price)}</small></span></button>` +
-        '<button type="button" class="mv-actie" data-card="bezit-annuleer"><span class="mv-at"><span class="mv-al">Nee, laat maar</span><small>terug</small></span></button></div>';
-    } else buttons = `<div class="mv-acties" role="group" aria-label="Perceel kopen"><button type="button" class="mv-actie" data-card="bezit-koop"><span class="mv-at"><span class="mv-al">Koop</span><small>${euro(offer.price)}</small></span></button></div>`;
+        `<button type="button" class="mv-actie" data-card="bezit-ok"${kan ? '' : ' aria-disabled="true"'}><span class="mv-at"><span class="mv-al">Ja, koop</span> <small>${euro(offer.price)}</small></span></button>` +
+        '<button type="button" class="mv-actie" data-card="bezit-annuleer"><span class="mv-at"><span class="mv-al">Nee, laat maar</span> <small>terug</small></span></button></div>';
+    } else buttons = `<div class="mv-acties" role="group" aria-label="Perceel kopen"><button type="button" class="mv-actie" data-card="bezit-koop"><span class="mv-at"><span class="mv-al">Koop</span> <small>${euro(offer.price)}</small></span></button></div>`;
   } else if (offer.mine && !offer.parcel.legacy) {
     if (stap === 'verkoop') {
       buttons = `<div class="mv-acties" role="group" aria-label="Verkoop bevestigen"><p class="mv-note">Verkopen voor ${euro(offer.sellValue)}? Het veld en wat erop staat gaan mee.</p>` +
-        '<button type="button" class="mv-actie" data-card="bezit-verkoop-ok"><span class="mv-at"><span class="mv-al">Ja, verkoop</span><small>onomkeerbaar</small></span></button>' +
-        '<button type="button" class="mv-actie" data-card="bezit-annuleer"><span class="mv-at"><span class="mv-al">Nee, houd het</span><small>terug</small></span></button></div>';
-    } else buttons = `<div class="mv-acties" role="group" aria-label="Perceel beheren"><button type="button" class="mv-actie" data-card="bezit-verkoop"><span class="mv-at"><span class="mv-al">Verkoop</span><small>${euro(offer.sellValue)}</small></span></button></div>`;
+        '<button type="button" class="mv-actie" data-card="bezit-verkoop-ok"><span class="mv-at"><span class="mv-al">Ja, verkoop</span> <small>onomkeerbaar</small></span></button>' +
+        '<button type="button" class="mv-actie" data-card="bezit-annuleer"><span class="mv-at"><span class="mv-al">Nee, houd het</span> <small>terug</small></span></button></div>';
+    } else buttons = `<div class="mv-acties" role="group" aria-label="Perceel beheren"><button type="button" class="mv-actie" data-card="bezit-verkoop"><span class="mv-at"><span class="mv-al">Verkoop</span> <small>${euro(offer.sellValue)}</small></span></button></div>`;
   }
   return `<div class="mv-bezit-kaart">${top}${dl}${melding ? `<p class="mv-note" role="status">${esc(melding)}</p>` : ''}${buttons}</div>`;
 }

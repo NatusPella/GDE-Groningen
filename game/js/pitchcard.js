@@ -6,12 +6,15 @@ import { euro } from './geldtekst.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const STATUS_LABEL = { jij: 'Van jou', usmem: 'Van Usmem Snacks', medespeler: 'Van een medespeler', vrij: 'Vrij' };
-const act = (card, label, small) => `<button type="button" class="mv-actie" data-card="${card}"><span class="mv-at"><span class="mv-al">${label}</span><small>${small}</small></span></button>`;
+// een spatie tussen label en prijs: zonder staat er "Vergunning€450" in de tekst en voor een schermlezer (#1234)
+const act = (card, label, small) => `<button type="button" class="mv-actie" data-card="${card}"><span class="mv-at"><span class="mv-al">${label}</span> <small>${small}</small></span></button>`;
+// Drukte als woord: een getal met uitleg tussen haakjes was jargon (#1256)
+export const drukWoord = (foot) => (foot < 0.8 ? 'Rustig' : foot < 1.15 ? 'Gewoon druk' : foot < 1.5 ? 'Druk' : 'Erg druk');
 
 // row: een rij van snacklive.spotRows(); stap: null | 'koop'; melding: tekst na een actie; money: het geld; hasWagon: je hebt een snackwagen.
 export function spotCardHtml(row, { stap = null, melding = '', money = 0, hasWagon = false } = {}) {
   if (!row) return '';
-  const feiten = [['Plaats', esc(row.place)], ['Stand', `${STATUS_LABEL[row.status] || STATUS_LABEL.vrij}${row.claim ? ` (${esc(row.claim.name)})` : ''}`], ['Drukte', `${String(row.foot.toFixed(2)).replace('.', ',')} (1 is een gewone drukke plek)`]];
+  const feiten = [['Plaats', esc(row.place)], ['Stand', `${STATUS_LABEL[row.status] || STATUS_LABEL.vrij}${row.claim ? ` (${esc(row.claim.name)})` : ''}`], ['Drukte', drukWoord(row.foot)]];
   if (row.status === 'jij') feiten.push(['Vergunning', `nog ${row.daysLeft} speldagen, verlengen ${euro(row.renew)}`]);
   const dl = '<dl class="mv-bezit">' + feiten.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('') + '</dl>';
   let top = '', buttons = '';
@@ -20,7 +23,7 @@ export function spotCardHtml(row, { stap = null, melding = '', money = 0, hasWag
     if (stap === 'koop') {
       const kan = money >= row.price;
       buttons = `<div class="mv-acties" role="group" aria-label="Vergunning bevestigen"><p class="mv-note">${kan ? `Een vergunning voor ${euro(row.price)}? Je houdt ${euro(money - row.price)} over.` : `Je mist nog ${euro(row.price - money)}.`}</p>${act('sp-ok', 'Ja, koop', euro(row.price))}${act('sp-annuleer', 'Nee, laat maar', 'terug')}</div>`;
-    } else buttons = `<div class="mv-acties" role="group" aria-label="Vergunning kopen">${act('sp-koop', 'Vergunning', euro(row.price))}</div>`;
+    } else buttons = `<div class="mv-acties" role="group" aria-label="Vergunning kopen">${act('sp-koop', 'Vergunning kopen', euro(row.price))}</div>`;
   } else if (row.status === 'usmem') {
     top = `<p class="mv-note" data-spot="usmem">Usmem Snacks staat hier. Overnemen kost <b>${euro(row.ask)}</b>; Jelle Terpstra zal het niet leuk vinden.</p>`;
     if (stap === 'koop') {

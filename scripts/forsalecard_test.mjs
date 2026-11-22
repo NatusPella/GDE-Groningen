@@ -61,5 +61,14 @@ t('hoverregel: Nederlands en met prijs', () => {
   assert.match(C.pointerSub(L.parcelOffer('paaaaaaaaaaa1')), /van jou/);
 });
 t('de bodembalk heeft altijd tien tekens', () => { for (const q of [0, 0.3, 0.75, 1]) assert.equal(C.soilBar(q).length, 10); });
+t('de bodem is een DS3-balk met breedte, geen tekenblokken (#1233)', () => {
+  const h = C.offerCardHtml(L.parcelOffer('pbbbbbbbbbbb2'), { money: w.money });
+  assert.ok(h.includes('ds-z-balk__vul') && !/[█░]/.test(h));
+  assert.match(C.soilMeter(0.75), /--ds-z-w:75%/);
+});
+t('de knoptekst heeft een spatie tussen label en prijs (#1256)', () => {
+  const h = C.offerCardHtml(L.parcelOffer('pbbbbbbbbbbb2'), { money: w.money });
+  assert.ok(!/<\/span><small>/.test(h), 'geen span direct tegen small');
+});
 console.log(`forsalecard_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

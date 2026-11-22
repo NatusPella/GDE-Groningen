@@ -85,6 +85,7 @@
 .mv-bezit div { display: flex; gap: var(--ds-s-3); }
 .mv-bezit dt { min-width: calc(var(--ds-s-8) * 1.4); color: var(--ds-tx-2); }
 .mv-bezit dd { margin: 0; }
+.mv-bodem { display: inline-flex; width: calc(var(--ds-s-8) * 2); vertical-align: middle; margin-left: var(--ds-s-2); }
 
 /* ---- Bezit: ketens, streekprijzen en nieuws (#1103) ---- */
 .bz-keten { margin: var(--ds-s-3) 0; padding: var(--ds-s-3) var(--ds-s-4); background: var(--ds-bg-2); border-radius: var(--ds-r-m); font-family: var(--ds-font-tekst); }
