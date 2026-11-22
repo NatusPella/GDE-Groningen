@@ -136,7 +136,7 @@ export const PIRAMIDE_OUD = {
   building: [160, 156, 146], minor: [0x8f, 0x90, 0x95], normal: [0xc7, 0xc7, 0xc2], major: [0xf0, 0xed, 0xe4], cycle: [0xb8, 0x70, 0x3a], rail: [0x55, 0x52, 0x4c],
 };
 // De piramide van 21-11 (palet 'zeef-1', het donkere glas): dezelfde sleutels, bij het laden herkleurd naar het crèmepapier van 'zeef-2'.
-const PIRAMIDE_ZEEF1 = {
+export const PIRAMIDE_ZEEF1 = {
   green: [28, 100, 62], forest: [20, 69, 43], water: [44, 119, 144], waterEdge: [142, 178, 186],
   building: [243, 234, 211], minor: [138, 142, 129], normal: [186, 183, 171], major: [240, 237, 228], cycle: [239, 180, 169], rail: [134, 134, 124],
 };
