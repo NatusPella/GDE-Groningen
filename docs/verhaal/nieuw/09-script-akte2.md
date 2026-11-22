@@ -121,7 +121,7 @@ TAMMO: Een jas in augustus? [NIEUW]
 TESSA: Jij weet niet hoe lang ze dat al zegt. [NIEUW]
 
 ## [N10] Een middag op het terras – Stad, Grote Markt – terras
-(regie: dinsdagmiddag. Ze proberen horeca: een terras aan de Grote Markt zoekt hulp voor één middag. Tessa neemt de bestellingen op alsof ze het al jaren doet. Tammo draagt een dienblad met vier glazen en kijkt er zeer ernstig naar.)
+(regie: dinsdag, laat in de middag. Ze proberen horeca: een terras aan de Grote Markt zoekt hulp voor één middag. Tessa neemt de bestellingen op alsof ze het al jaren doet. Tammo draagt een dienblad met vier glazen en kijkt er zeer ernstig naar.)
 TESSA: Twee koffie, een thee, een tosti. Alles op één blad. Niet kantelen. [NIEUW]
 TAMMO: Ik kantel niet. Ik rijd. [NIEUW]
 (regie: hij loopt met het blad als met een Escapade over een drempel. Alles komt aan, op één glas na.)
@@ -186,7 +186,7 @@ TESSA: Dan wees er zuinig op. [NIEUW]
 
 ## [N6] Een dag op het water – Hogeland, Noordpolderzijl – rubberboot
 (regie: Naamkaart: KAPITEIN KLAAS bij zijn eerste regel.)
-(regie: donderdagmiddag. Kapitein Klaas heeft twee hengels en een emmer. Tammo zit stil aan de rand; Tessa houdt zich vast aan de reling.)
+(regie: donderdag, vroeg in de ochtend. Kapitein Klaas heeft twee hengels en een emmer. Tammo zit stil aan de rand; Tessa houdt zich vast aan de reling.)
 KAPITEIN KLAAS: Praat tegen het water. Dan vangt hij. [NIEUW]
 TAMMO: ... [NIEUW]
 KAPITEIN KLAAS: Hij zegt meer dan sommige mensen. [NIEUW]
@@ -196,7 +196,7 @@ KAPITEIN KLAAS: Jij zit stil en je vangt. Zij praat en zij is groen. [NIEUW]
 TESSA: Het water is mijn keuze niet. De boot ook niet. [NIEUW]
 
 ## [N7] De streekbus naar Winsum – Hogeland, Winsum – streekbus
-(regie: vrijdagochtend. Ze rijden mee in de streekbus. Tammo wacht tot een oude vrouw met een tas is uitgestapt voor hij zelf van de trede stapt. Tessa ziet het door het raam.)
+(regie: donderdag, laat in de ochtend. Ze rijden mee in de streekbus. Tammo wacht tot een oude vrouw met een tas is uitgestapt voor hij zelf van de trede stapt. Tessa ziet het door het raam.)
 BUSCHAUFFEUR: Dankjewel, jongen. Dat doet bijna niemand meer. [NIEUW]
 TAMMO: Graag gedaan. [NIEUW]
 TESSA: Je bedankt altijd de chauffeur. [NIEUW]
@@ -415,9 +415,8 @@ TAMMO: Met een zakje friet. Dat telt. [BEHOUDEN]
 TESSA: Je kijkt naar mij, Tammo. De sterren zijn daar. [NIEUW]
 TAMMO: Die gaan toch niet onder. [NIEUW]
 (regie: haar telefoon trilt.)
+TAMMO: Wie appt je nou weer? [NIEUW]
 TESSA: Niks. Iemand uit Friesland. [BEHOUDEN]
-TAMMO: Is hij lang? [BEHOUDEN]
-TESSA: Tammo. [BEHOUDEN]
 TAMMO: Nog steeds lang? [NIEUW]
 TESSA: Kijk naar de sterren. [NIEUW]
 APP MEM→TESSA (stil): Nog acht dagen. Hou Jelle bezig. – M. [NIEUW]
@@ -501,7 +500,6 @@ APP MEM→TESSA (stil): Dat zei ik tegen mijn vriendin ook. [NIEUW]
 ## [K1] Het land achter de pastorie – Hogeland, Warffum, de pastorie – te voet
 (regie: woensdag, laat in de ochtend. Achter de pastorie een kippenren, een moestuin en een leeg stuk land met een hekje en een bordje: TE HUUR. Geesje zit op een omgekeerde emmer. Tessa sorteert eieren in een krat zonder te kijken.)
 GEESJE: Ze sorteert zonder te kijken. [NIEUW]
-TAMMO: Dat kon ze al voor ze kon lezen. [NIEUW]
 TESSA: Grote links, kleine rechts, gebarsten in de pan. [NIEUW]
 GEESJE: Een boerendochter. Trijntje zei het al. [NIEUW]
 (regie: Geesje wijst met haar kin naar het bordje.)
@@ -516,7 +514,7 @@ TESSA: Dat zeg ik niet. [NIEUW]
 GEESJE: Dat hoeft ook niet. [NIEUW]
 
 ## [K2] De kade in de ochtend – Hogeland, Zoutkamp, de haven – te voet
-(regie: donderdag, bij zonsopgang. Mist boven het water van de haven van Zoutkamp. Tammo zit op een bolder met twee bekers koffie uit de bus, al sinds half zes. Tessa komt aanlopen in haar jas, haar haren nog nat.)
+(regie: vrijdag, bij zonsopgang. Mist boven het water van de haven van Zoutkamp. Tammo zit op een bolder met twee bekers koffie uit de bus, al sinds half zes. Tessa komt aanlopen in haar jas, haar haren nog nat.)
 TESSA: Gisteren op de zandplaat zei je niks. [NIEUW]
 TAMMO: Ik zei: groter dan een vlek. [NIEUW]
 TESSA: Dat is niks. [NIEUW]

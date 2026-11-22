@@ -44,14 +44,14 @@ export const SPECS_AKTE2 = {};
     },
     open: [{ actor: 'tessa', face: 'prop:tank' }, { actor: 'tammo', face: 'prop:tank' }, { actor: 'pan1', walk: [[-3.2, 4.5]], speed: 0.3 }],
     beats: [
-      { on: 'Mevrouw. Het vet', actor: 'tessa', anim: 'phone' },
-      { on: 'Mevrouw. Het vet', dt: 1.6, actor: 'pan2', anim: 'shrug' },
-      { on: 'Salamitactiek', actor: 'tammo', face: 'actor:tessa' },
+      { on: 'Mevrouw. Al het vet', actor: 'tessa', anim: 'phone' },
+      { on: 'Mevrouw. Al het vet', dt: 1.6, actor: 'pan2', anim: 'shrug' },
+      { on: 'Regels, vergunningen', actor: 'tammo', face: 'actor:tessa' },
       { on: 'Zonder vet bakt', actor: 'tessa', anim: 'point' },
-      { on: 'Plakje twee.', actor: 'tammo', face: 'actor:tessa' },
-      { on: 'Plakje één kregen', actor: 'tessa', face: 'actor:tammo' },
-      { on: 'Plakje één kregen', dt: 0.3, actor: 'tessa', anim: 'shrug' },
-      { on: 'Plakje één kregen', dt: 1.8, actor: 'pan3', anim: 'shake' },
+      { on: 'En de bal?', actor: 'tammo', face: 'actor:tessa' },
+      { on: 'Die zijn we kwijt', actor: 'tessa', face: 'actor:tammo' },
+      { on: 'Die zijn we kwijt', dt: 0.3, actor: 'tessa', anim: 'shrug' },
+      { on: 'Die zijn we kwijt', dt: 1.8, actor: 'pan3', anim: 'shake' },
       // the plan: peek round the wall, then creep towards the tyres
       { on: 'Banden stuk', actor: 'tessa', anim: 'point' },
       { on: 'Banden stuk', dt: 0.3, actor: 'tessa', face: 'prop:wacht1' },
@@ -102,8 +102,8 @@ export const SPECS_AKTE2 = {};
     props: { ...life.props },
     open: [{ actor: 'tessa', face: 'actor:tammo' }, ...life.cues],
     beats: [
-      { on: 'We lopen naar Oma', actor: 'tessa', anim: 'point' },
-      { on: 'We lopen naar Oma', dt: 0.3, actor: 'tessa', face: 'prop:fb1f' },
+      { on: 'Tammo, met je oma', actor: 'tessa', anim: 'point' },
+      { on: 'Tammo, met je oma', dt: 0.3, actor: 'tessa', face: 'prop:fb1f' },
       { on: 'Fatbikes tellen niet', actor: 'tammo', anim: 'shrug' },
       { on: 'Loop jij daar', actor: 'tammo', anim: 'phone' },
       { on: 'Loop jij daar', dt: 0.4, actor: 'tessa', anim: 'laugh' },
@@ -121,6 +121,9 @@ export const SPECS_AKTE2 = {};
       foto: { kind: 'fotolijst', at: [4.8, -2.8, 0], face: 180 },
       lijstje: { kind: 'klembord', at: [2.7, 0.2, 1.0] },
       brij: { kind: 'pan', at: [1.6, 0.5, 0.85] },
+      // het prikbord waar de vijf namen aan komen (Tessa: "Vijf namen aan ons prikbord"); hangt naast de foto van 1953
+      prikbord: { kind: 'prikbord', at: [4.8, 1.7, 0], face: 180 },
+      brij: { kind: 'doos', at: [1.6, 0.5, 0.85] },
     },
     // #741: Oma's naamkaart hoort bij haar eerste zichtbare scène (haar kamer, M08.3); de regie van de
   // telefoonscène (M08.1) noemde hem al, maar daar is ze alleen aan de lijn.
@@ -136,8 +139,8 @@ export const SPECS_AKTE2 = {};
       { on: '1953. Dat ik won', dt: 0.6, actor: 'trijntje', anim: 'point' },
       { on: '1953. Dat ik won', dt: 5.5, actor: 'trijntje', face: 'actor:tessa' },
       { on: 'Terpstra? Van Jelle', actor: 'tessa', anim: 'look' },
-      { on: 'Haar zoon, zeker', actor: 'trijntje', anim: 'shrug' },
-      { on: 'Haar zoon, zeker', dt: 3.0, actor: 'trijntje', anim: 'hips' },
+      { on: 'Haar kleinzoon, zeker', actor: 'trijntje', anim: 'shrug' },
+      { on: 'Haar kleinzoon, zeker', dt: 3.0, actor: 'trijntje', anim: 'hips' },
       // the list of the five friends goes to Tessa
       { on: 'Het recept van 1953', dt: 0.2, actor: 'trijntje', walk: [[1.3, -0.3]], speed: 0.9 },
       { on: 'Het recept van 1953', dt: 4.4, actor: 'trijntje', drop: 'lijstje' },
@@ -145,7 +148,7 @@ export const SPECS_AKTE2 = {};
       { on: 'Vijf vrienden, vijf', actor: 'tessa', anim: 'nod' },
       { on: 'Eerst Geesje', actor: 'trijntje', anim: 'point' },
       { on: 'Klaas in Zoutkamp', actor: 'trijntje', anim: 'shrug' },
-      { on: 'Die vijf namen', actor: 'tessa', anim: 'nod' },
+      { on: 'Vijf namen aan ons prikbord', actor: 'tessa', anim: 'nod' },
       { on: 'Die bal is gien geld', actor: 'trijntje', walk: [[1.5, 0.6]], speed: 0.9 },
       { on: 'Die bal is gien geld', dt: 0.5, actor: 'trijntje', face: 'actor:tammo' },
       { on: 'Ik zeg wel wat', actor: 'tammo', anim: 'nod' },
@@ -177,7 +180,7 @@ export const SPECS_AKTE2 = {};
       { on: 'Jullie brengen ze heel', dt: 0.3, actor: 'geesje', anim: 'point' },
       { on: 'Mijn vader had kippen', actor: 'tessa', anim: 'shrug' },
       { on: 'Vijf jaar. En dat', actor: 'tammo', face: 'actor:tessa' },
-      { on: 'Je vroeg niet naar', actor: 'tessa', anim: 'laugh' },
+      { on: 'Je vroeg nooit naar', actor: 'tessa', anim: 'laugh' },
       { on: 'Heel, Tammo', actor: 'tessa', face: 'actor:tammo' },
       { on: 'Heel, Tammo', dt: 0.3, actor: 'tessa', anim: 'point' },
       { on: 'Ik rij nooit rap', actor: 'tammo', anim: 'shrug' },
@@ -283,9 +286,9 @@ export const SPECS_AKTE2 = {};
       { on: 'Twee.', actor: 'tammo', anim: 'shrug' },
       { on: 'Dertig jaar viste', actor: 'klaas', face: 'prop:fiets' },
       { on: 'Dertig jaar viste', dt: 2.8, actor: 'klaas', anim: 'point' },
-      { on: 'Het havenkantoor meldt', actor: 'klaas', face: 'actor:tammo' },
-      { on: 'Dat klinkt als een val', actor: 'tessa', anim: 'hips' },
-      { on: 'Het is een val', actor: 'klaas', anim: 'shrug' },
+      { on: 'Jelle vaart met een skûtsje', actor: 'klaas', face: 'actor:tammo' },
+      { on: 'Dat is een val', actor: 'tessa', anim: 'hips' },
+      { on: 'Natuurlijk.', actor: 'klaas', anim: 'shrug' },
       { on: 'Hier. Een snelle boot', actor: 'klaas', anim: 'point' },
       { on: 'Hier. Een snelle boot', dt: 0.3, actor: 'klaas', face: 'prop:vesten' },
       { on: 'Hier. Een snelle boot', dt: 0.9, actor: 'klaas', walk: [[3.7, -1.9]], speed: 0.9 },
@@ -309,18 +312,42 @@ export const SPECS_AKTE2 = {};
     beats: [
       { on: 'Dat zout is van Oma', actor: 'klaas', anim: 'hips' },
       { on: 'Dat zout is van Oma', dt: 2.4, actor: 'tessa', anim: 'cheer' },
-      { on: 'Dijkstra, UMCG', actor: 'tammo', anim: 'phone' },
-      { on: 'Dijkstra, UMCG', dt: 0.4, actor: 'tessa', face: 'actor:tammo' },
-      { on: 'Naar de Eemshaven', actor: 'tessa', anim: 'look' },
-      { on: 'Dat is Lammerts haven', actor: 'klaas', anim: 'point' },
-      { on: 'Dat is Lammerts haven', dt: 1.6, actor: 'klaas', anim: 'shrug' },
+      { on: 'Dijkstra, van het UMCG', actor: 'tammo', anim: 'phone' },
+      { on: 'Dijkstra, van het UMCG', dt: 0.4, actor: 'tessa', face: 'actor:tammo' },
+      { on: 'Een koopboek met alles', actor: 'tessa', anim: 'look' },
+      { on: 'En daarna naar de Eemshaven', actor: 'klaas', anim: 'point' },
+      { on: 'En daarna naar de Eemshaven', dt: 1.6, actor: 'klaas', anim: 'shrug' },
       { on: 'Dat zout is van Oma', dt: 0.4, actor: 'klaas', walk: [[2.2, 0.2]], speed: 0.8 },
-      { on: 'Naar de Eemshaven', dt: 0.3, actor: 'tessa', walk: [[1.2, -0.9]], speed: 1.4 },
+      { on: 'Een koopboek met alles', dt: 0.3, actor: 'tessa', walk: [[1.2, -0.9]], speed: 1.4 },
     ],
     shots: [],
     wide: { from: [-3.4, 3.8, 2.9], to: [-1.8, 2.8, 2.3], look: 'mid:klaas,tessa@1.2', fov: 50, until: 1 },
   };
 }
+
+// --- M11.3: aan boord van het skûtsje, geen bal maar een broodtrommel met een briefje van Mem ----------------------------
+SPECS_AKTE2['M11.3'] = {
+  cast: {},
+  props: {
+    trommel: { kind: 'broodtrommel', at: [1.4, 0.2, 0.55], face: 0 },
+    briefje: { kind: 'briefje', at: [1.4, -0.12, 0.6], face: 20 },
+  },
+  open: [{ actor: 'tessa', face: 'prop:trommel' }, { actor: 'tammo', face: 'prop:trommel' }],
+  beats: [
+    { on: 'Een broodtrommel. Geen bal', actor: 'tammo', anim: 'look' },
+    { on: 'Er zit een briefje bij', actor: 'tessa', carry: 'briefje' },
+    { on: 'Zijn oma pakt nog', actor: 'tammo', anim: 'shrug' },
+    { on: '…Dat doen oma', actor: 'tessa', anim: 'look' },
+    { on: 'Je kijkt raar', actor: 'tammo', face: 'actor:tessa' },
+    { on: 'Het schommelt', actor: 'tessa', anim: 'shrug' },
+    { on: 'Geen bal. Dan halen', actor: 'tessa', anim: 'point' },
+  ],
+  shots: [
+    // sleutelmoment: Tessa kijkt te lang naar het briefje; de camera blijft bij haar gezicht
+    { on: '…Dat doen oma', dt: 0.1, shot: 'close', target: 'tessa', dist: 1.3, side: -0.2, fov: 28 },
+  ],
+  wide: { from: [-4.2, 3.6, 3.0], to: [-2.4, 2.8, 2.2], look: 'mid:tammo,tessa@1.1', fov: 50, until: 1 },
+};
 
 // --- #742: de nacht op de zandplaat (M11.5 de Melkweg, M11.6 de lange blik) ----------------------
 // De camera blijft laag, zodat de sterrenhemel boven de twee staat; geen generieke deckCam-drift meer.

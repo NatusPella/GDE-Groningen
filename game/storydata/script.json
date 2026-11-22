@@ -5933,7 +5933,7 @@
    "step": "N10",
    "kind": "key",
    "regie": [
-    "dinsdagmiddag. Ze proberen horeca: een terras aan de Grote Markt zoekt hulp voor één middag. Tessa neemt de bestellingen op alsof ze het al jaren doet. Tammo draagt een dienblad met vier glazen en kijkt er zeer ernstig naar.",
+    "dinsdag, laat in de middag. Ze proberen horeca: een terras aan de Grote Markt zoekt hulp voor één middag. Tessa neemt de bestellingen op alsof ze het al jaren doet. Tammo draagt een dienblad met vier glazen en kijkt er zeer ernstig naar.",
     "hij loopt met het blad als met een Escapade over een drempel. Alles komt aan, op één glas na.",
     "aan het eind van de middag is Tessa's fooienpot vol. Tammo heeft er twee glazen en een stoel op zijn naam."
    ],
@@ -6150,18 +6150,17 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Je vroeg ook niet naar de kippen. Er zijn er zeventien. Ze hebben namen.",
+     "text": "Je vroeg nooit naar mijn jeugd. Alleen of er internet was.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
+     "textOnly": true,
      "humor": "HN-13",
-     "rec": "lines",
      "voice": "Anita"
     },
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "De koe kijkt. Naar mij. Ze kent mijn duiven.",
+     "text": "De koe kijkt weer. Ze kent mijn duiven.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -6404,7 +6403,7 @@
    "kind": "key",
    "regie": [
     "Naamkaart: KAPITEIN KLAAS bij zijn eerste regel.",
-    "donderdagmiddag. Kapitein Klaas heeft twee hengels en een emmer. Tammo zit stil aan de rand; Tessa houdt zich vast aan de reling."
+    "donderdag, vroeg in de ochtend. Kapitein Klaas heeft twee hengels en een emmer. Tammo zit stil aan de rand; Tessa houdt zich vast aan de reling."
    ],
    "lines": [
     {
@@ -6480,7 +6479,7 @@
    "step": "N7",
    "kind": "key",
    "regie": [
-    "vrijdagochtend. Ze rijden mee in de streekbus. Tammo wacht tot een oude vrouw met een tas is uitgestapt voor hij zelf van de trede stapt. Tessa ziet het door het raam."
+    "donderdag, laat in de ochtend. Ze rijden mee in de streekbus. Tammo wacht tot een oude vrouw met een tas is uitgestapt voor hij zelf van de trede stapt. Tessa ziet het door het raam."
    ],
    "lines": [
     {
@@ -8288,28 +8287,17 @@
      "rec": "lines"
     },
     {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Wie appt je nou weer?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
      "speaker": "Tessa",
      "key": "A",
      "text": "Niks. Iemand uit Friesland.",
-     "tag": "BEHOUDEN",
-     "channel": "stem",
-     "textOnly": false,
-     "rec": "banter",
-     "voice": "Anita"
-    },
-    {
-     "speaker": "Tammo",
-     "key": "T",
-     "text": "Is hij lang?",
-     "tag": "BEHOUDEN",
-     "channel": "stem",
-     "textOnly": false,
-     "rec": "banter"
-    },
-    {
-     "speaker": "Tessa",
-     "key": "A",
-     "text": "Tammo.",
      "tag": "BEHOUDEN",
      "channel": "stem",
      "textOnly": false,
@@ -9038,14 +9026,6 @@
      "textOnly": true
     },
     {
-     "speaker": "Tammo",
-     "key": "T",
-     "text": "Dat kon ze al voor ze kon lezen.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true
-    },
-    {
      "speaker": "Tessa",
      "key": "A",
      "text": "Grote links, kleine rechts, gebarsten in de pan.",
@@ -9141,7 +9121,7 @@
    "step": "K2",
    "kind": "key",
    "regie": [
-    "donderdag, bij zonsopgang. Mist boven het water van de haven van Zoutkamp. Tammo zit op een bolder met twee bekers koffie uit de bus, al sinds half zes. Tessa komt aanlopen in haar jas, haar haren nog nat.",
+    "vrijdag, bij zonsopgang. Mist boven het water van de haven van Zoutkamp. Tammo zit op een bolder met twee bekers koffie uit de bus, al sinds half zes. Tessa komt aanlopen in haar jas, haar haren nog nat.",
     "ze gaat naast hem zitten. Hun schouders raken bijna. Ze neemt een beker."
    ],
    "lines": [

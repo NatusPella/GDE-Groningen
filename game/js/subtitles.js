@@ -409,6 +409,21 @@ export const INTL = {
   'Wer ist dieser Mann?': 'Wie is die man?',
 };
 
+// Grove uitspraakhulp bij de Friese regels van Beppe (22-11, verhaal-perfect akte 2): voor wie het Fries leest of beluistert,
+// geschreven met Nederlandse klanken; hoofdletters zijn de klemtoon. Geen fonetiek en geen taalkundig oordeel: een Friese
+// moedertaalspreker moet dit nog controleren (docs/verhaal/PERFECT-STAND-22-11-akte2.md, open punt). Sleutel: de exacte regel.
+export const FY_UITSPRAAK = {
+  'Jonge, hast al iten?': 'JON-ge, hast al IE-ten?',
+  'Is Tessa der ek? Dan meitsje ik sop.': 'Is TES-sa der EK? Dan MEIT-sje ik SOP.',
+  'Dêr bisto, jonge. Kom yn, kom yn. De sop is klear.': 'DÈR BIS-to, JON-ge. Kom IN, kom IN. De sop is KLIE-er.',
+  'Ytst dan mar earst, dan prate wy.': 'IETST dan mar IE-est, dan PRAA-te wie.',
+  'Hy seit neat, mar hy docht it goed.': 'Hie seit NIE-et, mar hie DOCHT et goed.',
+  'Ik haw sop meinommen. Jimme ite te min.': 'Ik HAW sop MEI-nom-me. JIM-me IE-te te MIN.',
+  'Wannear trouwe jim?': 'Wan-NIE-er TROU-we jim?',
+  'Ik freegje mar.': 'Ik FRIE-gje mar.',
+};
+export const uitspraakFor = (text) => (text && FY_UITSPRAAK[String(text)]) || null;
+
 const ALL = { ...GRO, ...FY, ...INTL };
 const KEYS = Object.keys(ALL).sort((a, b) => b.length - a.length);
 const cache = new Map();
@@ -459,7 +474,8 @@ export function dualHtml(text, { gloss = false } = {}) {
   const nl = dutchFor(text);
   const g = gloss && glossOf(text, nl);
   if (g) return `${escHtml(g.pre + g.word)} <span class="nl-gloss" lang="nl">(${escHtml(g.nl)})</span>${escHtml(g.post)}`;
-  return escHtml(spokenKeyTokens((MODS.gronings ? grunnify(text) : text) ?? '')) + (nl ? `<span class="nl-sub" lang="nl">${escHtml(nl)}</span>` : '');
+  const ui = uitspraakFor(text);
+  return escHtml(spokenKeyTokens((MODS.gronings ? grunnify(text) : text) ?? '')) + (nl ? `<span class="nl-sub" lang="nl">${escHtml(nl)}</span>` : '') + (ui ? `<span class="fy-uitspraak" lang="nl">${escHtml(ui)}</span>` : '');
 }
 
 // Sets an element to a line plus its Dutch subtitle.
@@ -483,6 +499,14 @@ export function setDualText(el, text, { gloss = false } = {}) {
   sub.lang = 'nl';
   sub.textContent = nl;
   el.appendChild(sub);
+  const ui = uitspraakFor(text);
+  if (ui) {
+    const u = document.createElement('span');
+    u.className = 'fy-uitspraak';
+    u.lang = 'nl';
+    u.textContent = ui;
+    el.appendChild(u);
+  }
 }
 
 // Frisian words that Dutch and Gronings don't use (skûtsje and Fryslân as

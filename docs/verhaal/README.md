@@ -29,6 +29,7 @@ naslag: de bron, de scripts, de opnames en de verslagen. Bij verschil wint de sp
 | 5i. Perfect-stand props, sets en figuranten (22-11): wat de audit controleert, de aantallen en de open punten | [PERFECT-STAND-22-11-props.md](PERFECT-STAND-22-11-props.md) | verslag; de toets is `scripts/verhaal_props_test.mjs` |
 | 5i. Perfect-stand akte 4 (22-11): per stap gedaan, gefixt en open voor Zuidwaarts (J4 tot en met J6, N9, M17 tot en met M21, voetbal), met de nieuwe plekken- en tijdlijntest | [PERFECT-STAND-22-11-akte4.md](PERFECT-STAND-22-11-akte4.md) | verslag; de toetsen zijn `scripts/akte4_plekken_test.mjs` en `scripts/akte4_tijdlijn_test.mjs` |
 | 5i. Perfect-stand 22-11, spreektekst: Groningse spreekvormen voor 375 verhaalregels en de stemkeuze voor 26 regels | [PERFECT-STAND-22-11-spreektekst.md](PERFECT-STAND-22-11-spreektekst.md) | verslag; aantallen en open punten |
+| 5i. Perfect-ronde 22-11, akte 2: per stap wat is gedaan, gefixt en open (reisdoelen op de tegels, regiebeats, kalender, dubbele grappen, Beppe-uitspraak, props) | [PERFECT-STAND-22-11-akte2.md](PERFECT-STAND-22-11-akte2.md) | verslag; de toetsen zijn `scripts/verhaal_akte2_perfect_test.mjs`, `akte2_beats_audit.mjs` en `akte2_bereik_audit.mjs` |
 | 6. Presentatie: trailer | [E-trailer.md](E-trailer.md) (leidend), [nieuw/TRAILER-SCRIPT.md](nieuw/TRAILER-SCRIPT.md) (concept voor #63) | concept, niet leidend |
 
 ## Personages en stem
