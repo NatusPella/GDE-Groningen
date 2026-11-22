@@ -3,8 +3,10 @@
 // het maakt de norm wel herhaalbaar.   node scripts/perf/norm_check.mjs <json...>
 import fs from 'node:fs';
 import path from 'node:path';
-import { routeMap, routeStats, routeHasFrames, normViolations, machineBusy, MACHINE_BUSY_PCT, NORM } from './normrules.mjs';
-const files = process.argv.slice(2);
+import { routeMap, routeStats, routeHasFrames, normViolations, normForRoute, machineBusy, MACHINE_BUSY_PCT, NORM } from './normrules.mjs';
+const setArg = process.argv.slice(2).find((a) => a.startsWith('--set='));
+const setNaam = setArg ? setArg.slice(6) : null; // --set=release: tijdelijke normen (ring, spoor) toepassen
+const files = process.argv.slice(2).filter((a) => !a.startsWith('--set='));
 if (!files.length) {
   console.log('gebruik: node scripts/perf/norm_check.mjs <perf-json...>');
   process.exit(2);
@@ -39,10 +41,13 @@ for (const file of files) {
       console.log(`skip ${path.basename(file)}:${name} - geen frameroute`);
       continue;
     }
-    const bad = normViolations(route);
+    const { norm: routeNorm, tijdelijk } = normForRoute(name, setNaam);
+    const bad = normViolations(route, routeNorm);
     if (bad.length) {
       fails++;
       console.log(`FAIL ${path.basename(file)}:${name} frames=${s.frames} p95=${s.p95 ?? '?'} max=${s.max ?? '?'} over50=${s.over50 ?? '?'} over100=${s.over100 ?? '?'} - ${bad.map((b) => b.rule).join('; ')}`);
+    } else if (tijdelijk && normViolations(route).length) {
+      console.log(`GEEL ${path.basename(file)}:${name} frames=${s.frames} p95=${s.p95 ?? '?'} max=${s.max ?? '?'} - tijdelijk herijkt (p95 <= ${tijdelijk.maxP95Ms} ms, ${tijdelijk.issue}, sinds ${tijdelijk.sinds})`);
     } else {
       console.log(`ok ${path.basename(file)}:${name} frames=${s.frames} p95=${s.p95 ?? '?'} max=${s.max ?? '?'}`);
     }

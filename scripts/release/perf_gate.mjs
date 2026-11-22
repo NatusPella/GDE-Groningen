@@ -12,7 +12,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { NORM, routeMap, routeStats, routeHasFrames, routeMeasured, normViolations } from '../perf/normrules.mjs';
+import { NORM, TIJDELIJKE_NORMEN, normForRoute, routeMap, routeStats, routeHasFrames, routeMeasured, normViolations } from '../perf/normrules.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const DEFAULT_BASELINE = path.join(HERE, 'baselines', 'perf-baseline.json');
@@ -24,6 +24,7 @@ export const EXIT = Object.freeze({ GROEN: 0, ROOD: 1, FOUT: 2, NIETS_GEMETEN: 3
 export const STATUS = Object.freeze({
   OK: 'ok',
   ROOD: 'rood',
+  HERIJKT: 'herijkt', // geel: binnen de tijdelijke norm, boven de gewone (zie TIJDELIJKE_NORMEN)
   ONBESLIST: 'onbeslist',
   NIEUW: 'nieuw',
   ONTBREEKT: 'ontbreekt',
@@ -125,7 +126,7 @@ export function measuredRoutes(routes) {
 }
 
 export function routeCounts(routes) {
-  const telling = { totaal: 0, ok: 0, rood: 0, onbeslist: 0, nieuw: 0, ontbreekt: 0, overgeslagen: 0 };
+  const telling = { totaal: 0, ok: 0, rood: 0, herijkt: 0, onbeslist: 0, nieuw: 0, ontbreekt: 0, overgeslagen: 0 };
   for (const route of Object.values(isObject(routes) ? routes : {})) {
     telling.totaal++;
     const status = route && typeof route.status === 'string' ? route.status : '';
@@ -202,7 +203,9 @@ function makeFinding({ bron, ernst, categorie, titel, beschrijving, bewijs, best
 export function compareRoute(naam, huidigeRoute, baselineRoute, context = {}) {
   const ctx = isObject(context) ? context : {};
   const thresholds = normalizeThresholds(ctx.thresholds);
-  const norm = isObject(ctx.norm) ? { ...NORM, ...ctx.norm } : NORM;
+  const gewoneNorm = isObject(ctx.norm) ? { ...NORM, ...ctx.norm } : NORM;
+  // Tijdelijke herijking (alleen ring en spoor, alleen in de opgegeven gate-set).
+  const { norm, tijdelijk } = normForRoute(naam, ctx.set, gewoneNorm);
   const vergelijkBaseline = ctx.vergelijkBaseline !== false;
   const machine = isObject(ctx.machine) ? ctx.machine : { vergelijkbaar: true, reden: null };
   const bron = ctx.bron || null;
@@ -277,6 +280,26 @@ export function compareRoute(naam, huidigeRoute, baselineRoute, context = {}) {
     }));
   }
 
+  // Binnen de tijdelijke norm maar boven de gewone: geel, nooit stilzwijgend groen.
+  let herijkt = false;
+  if (tijdelijk && !overtredingen.length) {
+    const boven = normViolations(huidigeRoute, gewoneNorm);
+    if (boven.length) {
+      herijkt = true;
+      status = STATUS.HERIJKT;
+      regels.push(`tijdelijk herijkt: ${boven.map((v) => v.rule).join('; ')}; tijdelijke norm p95 <= ${tijdelijk.maxP95Ms} ms (${tijdelijk.issue}, sinds ${tijdelijk.sinds}, gate-set ${tijdelijk.set})`);
+      bevindingen.push(makeFinding({
+        bron: 'perf',
+        ernst: 'belangrijk',
+        categorie: 'performance',
+        titel: `Route ${naam} is tijdelijk herijkt (${tijdelijk.issue})`,
+        beschrijving: `Route ${naam} haalt de gewone norm niet (${boven.map((v) => v.rule).join('; ')}) maar wel de tijdelijke norm p95 <= ${tijdelijk.maxP95Ms} ms voor de gate-set ${tijdelijk.set}. Reden: ${tijdelijk.reden} Opheffen: ${tijdelijk.opheffing} Zie ${tijdelijk.doc}.`,
+        bewijs: boven.map((v) => `${naam}: ${v.rule}${bron ? ` (${bron})` : ''}`),
+        bestanden: ['scripts/perf/normrules.mjs', tijdelijk.doc],
+      }));
+    }
+  }
+
   if (!vergelijkBaseline) return resultaat();
 
   const baselineLeeg = ctx.baselineLeeg === true;
@@ -299,7 +322,8 @@ export function compareRoute(naam, huidigeRoute, baselineRoute, context = {}) {
     return resultaat();
   }
 
-  const regressies = regressionViolations(huidigeRoute, baselineRoute, thresholds);
+  // Een herijkte route is bewust boven zijn p95-baseline; avg en max blijven bewaakt.
+  const regressies = regressionViolations(huidigeRoute, baselineRoute, thresholds).filter((r) => !(herijkt && r.metric === 'p95'));
   if (regressies.length) {
     status = STATUS.ROOD;
     for (const r of regressies) regels.push(`${r.metric} ${r.huidig} ms > baseline ${r.baseline} ms (+${r.toenamePct}%, drempel +${Math.round(r.factor * 100)}%)`);
@@ -331,6 +355,7 @@ export function compareRoutes(huidigeRoutes, baselineRoutes, options = {}) {
   const context = (naam) => ({
     thresholds,
     norm,
+    set: opties.set || null,
     machine,
     vergelijkBaseline,
     baselineLeeg: opties.baselineLeeg === true,
@@ -403,6 +428,8 @@ export function buildReport(input = {}) {
     gegenereerd: b.gegenereerd || null,
     baseline: b.baseline || null,
     drempels: normalizeThresholds(b.thresholds),
+    set: b.set || null,
+    tijdelijkeNormen: Object.fromEntries(Object.entries(TIJDELIJKE_NORMEN).filter(([, t]) => b.set && t.set === b.set)),
     norm: { maxP95Ms: NORM.maxP95Ms, maxCpuP95Ms: NORM.maxCpuP95Ms, maxMaxMs: NORM.maxMaxMs, maxOver50: NORM.maxOver50, maxOver100: NORM.maxOver100 },
     bestanden: Array.isArray(b.bestanden) ? b.bestanden : [],
     routes,
@@ -418,7 +445,7 @@ export function renderSummary(report) {
   const r = isObject(report) ? report : {};
   const s = isObject(r.statistiek) ? r.statistiek : {};
   const regels = [];
-  regels.push(`Perf-gate (${r.modus === 'update' ? 'baseline bijwerken' : 'controle'}): ${s.ok || 0} ok, ${s.rood || 0} rood, ${s.onbeslist || 0} onbeslist, ${s.nieuw || 0} nieuw, ${s.ontbreekt || 0} ontbrekend, ${s.overgeslagen || 0} overgeslagen van ${s.totaal || 0} routes`);
+  regels.push(`Perf-gate (${r.modus === 'update' ? 'baseline bijwerken' : 'controle'}): ${s.ok || 0} ok, ${s.rood || 0} rood, ${s.herijkt || 0} tijdelijk herijkt (geel), ${s.onbeslist || 0} onbeslist, ${s.nieuw || 0} nieuw, ${s.ontbreekt || 0} ontbrekend, ${s.overgeslagen || 0} overgeslagen van ${s.totaal || 0} routes`);
   const b = isObject(r.baseline) ? r.baseline : null;
   if (b && b.pad) {
     regels.push(`baseline: ${b.pad}${b.datum ? ` (${String(b.datum).slice(0, 10)})` : ''}, ${b.routes || 0} route(s)${b.vergelijkbaar === false ? ' - niet vergelijkbaar (andere machine of geen machine-id)' : ''}`);
@@ -467,7 +494,8 @@ export function loadRunFiles(files) {
 // ---------------------------------------------------------------------------
 
 const USAGE = `gebruik: node scripts/release/perf_gate.mjs --json=<file[,file...]> [--baseline=<pad>] [--out=<map>]
-       [--update [--reden=<tekst>]] [--tolerantie=0.15] [--avg-tolerantie=0.10] [--max-tolerantie=0.25] [--machine=<id>]
+       [--update [--reden=<tekst>]] [--tolerantie=0.15] [--avg-tolerantie=0.10] [--max-tolerantie=0.25] [--machine=<id>] [--set=release]
+       --set=release past de tijdelijke normen toe (ring en spoor, zie TIJDELIJKE_NORMEN); zonder --set geldt overal de gewone norm.
        --update leest de reden ook uit GDE_BASELINE_REDEN (leeg: "handmatige update"); zonder reden wordt niets geschreven.`;
 
 // De commit ophalen mag alleen in de CLI: de pure functies blijven vrij van git.
@@ -492,7 +520,7 @@ function parseArgs(argv) {
       for (const stuk of String(waarde || '').split(',')) { const f = stuk.trim(); if (f) opts.json.push(f); }
     } else if (key === 'update') {
       opts.update = waarde === undefined ? true : waarde !== 'false';
-    } else if (['baseline', 'out', 'reden', 'machine', 'tolerantie', 'avg-tolerantie', 'max-tolerantie'].includes(key)) {
+    } else if (['baseline', 'out', 'set', 'reden', 'machine', 'tolerantie', 'avg-tolerantie', 'max-tolerantie'].includes(key)) {
       opts[key] = waarde;
     } else {
       onbekend.push(arg);
@@ -576,10 +604,12 @@ function main() {
     baselineLeeg: leeg,
     bronnen: geladen.bronnen,
     baselinePad,
+    set: opts.set || null,
   });
   const nietsGemeten = measuredRoutes(geladen.routes).length === 0;
   const rapport = buildReport({
     modus: 'controle',
+    set: opts.set || null,
     commit,
     machine,
     gegenereerd,
