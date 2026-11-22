@@ -1,7 +1,7 @@
 // #986: de openingsscène van een nieuw spel speelt als eerste film na het laadscherm.
 // node scripts/openingstart_test.mjs
 import fs from 'node:fs';
-import { openingBlockers, openingReady, openingIsNext, openingActEnd, openingFinish, openingReplayBlockers, openingReplayGate, OPENING_END_HOUR } from '../game/js/openingstart.js';
+import { OPENING_REDEN, openingBlockers, openingReady, openingIsNext, openingActEnd, openingFinish, openingReplayBlockers, openingReplayGate, OPENING_END_HOUR } from '../game/js/openingstart.js';
 import { STEPS } from '../game/js/storyarc_nieuw.js';
 
 let n = 0, fails = 0;
@@ -75,6 +75,18 @@ ok(/<span>Houd<\/span> ?<span class="hud-key">SPATIE<\/span> ?<span>ingedrukt om
   ok(dicht === 0 && /in een voertuig/.test(reden), 'geblokkeerd: het menu blijft open en de reden komt terug', reden);
   ok(openingReplayGate([], sluit) === '' && dicht === 1, 'vrij: het menu sluit en er is geen reden');
   ok(openingReplayGate([], undefined) === '', 'zonder sluit-haak geen fout');
+}
+
+// de reden is gewoon Nederlands: elke blokkade van het herbekijken heeft een speler-tekst
+{
+  const alle = ['started', 'client', 'session', 'openingDue', 'missionActive', 'cinematicActive', 'narrativeBusy', 'pigeon', 'respawn', 'inVehicle', 'dataReady'];
+  for (const k of alle) {
+    const v = k === 'started' || k === 'dataReady' ? false : true;
+    const [b] = openingReplayBlockers({ ...rustig, [k]: v });
+    ok(!!OPENING_REDEN[b] && !/^[A-Z]/.test(OPENING_REDEN[b]), 'speler-tekst voor blokkade ' + k, b);
+    ok(openingReplayGate([b], null).startsWith('De opening kan nu niet: ' + OPENING_REDEN[b]), 'de gate gebruikt de speler-tekst voor ' + k);
+  }
+  ok(openingReplayGate(['onbekend'], null) === 'De opening kan nu niet: onbekend.', 'een onbekende reden blijft staan');
 }
 
 console.log(`${n - fails}/${n} ok`);

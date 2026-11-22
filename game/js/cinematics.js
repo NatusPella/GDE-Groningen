@@ -4,6 +4,7 @@ import { gridItems } from './spatialgrid.js';
 import { isOverlayHeld } from './overlayhold.js';
 import { cutsceneTakesSpace } from './spacegate.js';
 import { setDualText } from './subtitles.js';
+import { subtitleIndex } from './cinesub.js';
 import { paintSpeaker } from './speakers.js';
 import { noteSpoken } from './characters.js';
 import { getSettings } from './settings.js';
@@ -32,7 +33,7 @@ import { hoofdspeler, isGast } from './players.js';
 import { districtAt } from './districtat.js';
 import { setEindkaartGeluid, showBigMoment, momentVanBanner, momentVanWanted, momentVanOpgepakt, momentVanGebied, rijdendVan } from './bigmoment.js';
 import { gebiedIn, puntInGebied } from './grenzen.js';
-import { cinematicHang } from './cinelimit.js';
+import { cinematicHang, poseIsFinite } from './cinelimit.js';
 import { reducedMotion } from './motion.js';
 import { fitCamera } from './cutscript.js';
 import { WARM, createJumpRunner } from './cutscenewarm.js';
@@ -309,8 +310,9 @@ export function playCinematic(spec) {
 }
 
 // samen spelen (coopcut.js): de gast loopt mee met de tijd van de gastheer
-export const setCinematicRate = (r) => { if (active) active.rate = r; };
-export const setCinematicTime = (t) => { if (active) active.t = Math.max(0, Math.min(active.duration - 0.05, t)); };
+// een geen-getal uit een kapot net-bericht (NaN) liet de scène van de gast eeuwig staan: zo'n waarde telt niet
+export const setCinematicRate = (r) => { if (active && Number.isFinite(r)) active.rate = Math.max(0, Math.min(3, r)); };
+export const setCinematicTime = (t) => { if (active && Number.isFinite(t)) active.t = Math.max(0, Math.min(active.duration - 0.05, t)); };
 
 export function skipCinematic() {
   if (active) finish(true);
@@ -416,6 +418,12 @@ function begin(spec) {
     priority: 1, duration: 3, letterbox: true, skippable: true, hideHud: true, pause: false, timeScale: 1,
     ...spec, t: 0,
   };
+  // een scène zonder geldige duur (undefined of NaN overschrijft de standaard) liep eindeloos met de wereld op pauze: val terug op de standaard
+  if (!Number.isFinite(active.duration)) active.duration = 3;
+  // timeScale is een slowmotion tussen 0,05 en 1; een geen-getal (NaN) liet de hele spelklok vastlopen (main.js knipt alleen NaN-loos)
+  active.timeScale = Number.isFinite(active.timeScale) ? Math.max(0.05, Math.min(1, active.timeScale)) : 1;
+  // lege of kapotte regels (null) lieten begin() halverwege falen met een scène die half bestond: weg ermee
+  if (Array.isArray(active.lines)) active.lines = active.lines.filter((l) => l && typeof l === 'object');
   resetSkip();
   const tiles = holdShotTiles(spec.prewarm);
   active._jumps = Array.isArray(spec.jumps) && spec.jumps.length ? createJumpRunner(spec.jumps, jumpEnv(), { skipGate: spec.cutId != null }) : null;
@@ -541,18 +549,17 @@ function updateSubtitles() {
   const lines = active.lines;
   if (active.cardFor != null && active.t > active.cardFor) els.root.classList.remove('has-card');
   if (!lines || !lines.length) return;
-  const start = 0.5, span = Math.max(0.5, active.duration - start - 0.2);
-  const idx = lines[0].at != null
-    ? lines.findIndex((l) => active.t >= l.at && active.t < l.at + l.dur)
-    : active.t < start ? -1 : Math.min(lines.length - 1, Math.floor(((active.t - start) / span) * lines.length));
+  const idx = subtitleIndex(lines, active.t, active.duration, els.lineIndex);
   if (idx === els.lineIndex) return;
   els.lineIndex = idx;
   const l = lines[idx];
   els.root.classList.toggle('has-sub', !!l);
-  paintSpeaker(els.speaker, l && l.speaker);
-  if (l && l.speaker) noteSpoken(world, l.speaker);
-  setDualText(els.line, l ? l.text : '', { gloss: true });
-  els.root.classList.toggle('sub-clue', !!(l && l.clue));
+  // het vak vervaagt met de laatste tekst erin: een direct gewist vak was een leeg randje dat even bleef staan
+  if (!l) return;
+  paintSpeaker(els.speaker, l.speaker);
+  if (l.speaker) noteSpoken(world, l.speaker);
+  setDualText(els.line, l.text, { gloss: true });
+  els.root.classList.toggle('sub-clue', !!l.clue);
   if (l && l.voice) playStoryVoice(l.voice, { radio: !!l.radio });
   else if (l && active.mumble && l.speaker && !l.own) playTextMumble(MUMBLE_WHO(l.speaker), l.text, l.dur ?? 2.5); // geen opname: een zacht gemurmel onder de ondertitel (#326)
 }
@@ -663,6 +670,11 @@ export function updateCinematics(dt, w) {
     try { pose = take.shot(take.t, w); } catch (err) { console.error('camera take', take && take.id, err); stopCameraTake(); }
   }
   else if (!active && camMode && lichaam.inVehicle) pose = cinemaCamPose(w);
+  // een pose met een geen-getal telt niet: houd de laatste goede stand vast in plaats van de wereld op zwart te zetten
+  if (pose && active) {
+    if (poseIsFinite(pose)) active._lastGoodPose = pose;
+    else { notePose(active.id, pose); pose = active._lastGoodPose || null; }
+  }
   if (pose && active) notePose(active.id, pose);
   w.cameraOverride = pose;
   // #964: laat geen gewoon verkeer door de opname rijden. Alleen rijdende

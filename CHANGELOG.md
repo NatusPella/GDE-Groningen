@@ -78,6 +78,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Toetsen in meldingen (kaart, Zitmoi, brandende auto, trein kapen) volgen nu je eigen toets of controllerknop.
 - Reiskeuze: met pijl omhoog en omlaag kies je ook met het toetsenbord, net als met een controller.
 - Terugblik "Waar waren we?" knipt niet meer midden in een afkorting; de moeilijkheidskaart zegt waar je Toegankelijkheid vindt.
+### Cutscenes
+- Ondertitels knipperen niet meer tussen twee regels en vervagen met de tekst erin, zonder leeg vakje.
+- Houd je de spatie vast om een scène over te slaan, dan zie je de ring meteen, ook vlak na het begin van de scène.
+- Een scène die niet goed kan starten (of een kapotte camerastand heeft) laat je niet meer vastzitten in een leeg beeld: het spel gaat door.
+- "Opening opnieuw bekijken" zegt in gewone woorden waarom het nu niet kan.
 
 ### Prestaties
 - Prestaties: bovenaan staat een zoekveld. Typ een woord en je ziet alleen de prestaties waar het in voorkomt; geheime prestaties blijven geheim. Esc wist je zoekopdracht.
