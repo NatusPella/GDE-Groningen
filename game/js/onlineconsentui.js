@@ -7,6 +7,7 @@ import { ONLINE_NAAM_MAX } from './lobby.js';
 import { getSettings } from './settings.js';
 import { EERSTE_START, SCHAKELAAR, ONLINE_INSTELLING, kiesNaam, wijzigNaam, zetMeedoen } from './onlineconsent.js';
 import { magOnline } from './settings.js';
+import { bewaarFocus } from './listnav.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -109,12 +110,14 @@ export function openOnlineStart({ naam = getSettings().onlineNaam, terug = false
   const el = document.createElement('div');
   el.id = 'online-start';
   el.className = 'os-overlay';
+  const terugFocus = bewaarFocus(); // de knop die de kaart opende (Samen spelen in het menu) krijgt de focus terug
   document.body.appendChild(el);
   let klaar = () => {};
   const promise = new Promise((r) => { klaar = r; });
   const sluit = (res) => {
     if (bezig && bezig.el === el) bezig = null;
     try { el.remove(); } catch (e) { if (el.parentNode) el.parentNode.removeChild(el); }
+    terugFocus();
     klaar(res);
   };
   mountOnlineStart(el, { naam, onKies: sluit, onTerug: terug ? () => sluit(null) : null });

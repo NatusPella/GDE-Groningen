@@ -219,11 +219,14 @@ function menuKey(slot, a) {
   if (slot === 'b' && open) return 'backspace';
   if (slot === 'a' && !started()) return ' ';
   if ((slot === 'lt' || slot === 'rt') && hooks.mapOpen && hooks.mapOpen()) return slot === 'lt' ? '-' : '+';
+  // een open winkel heeft tabbladen (Afdeling): LB en RB wisselen ze net als in het pauzemenu (shopui.js leest [ en ])
+  if ((slot === 'lb' || slot === 'rb') && document.body.classList.contains('shop-open')) return slot === 'lb' ? '[' : ']';
   if ((slot === 'lb' || slot === 'rb') && !(hooks.pauseOpen && hooks.pauseOpen())) return null;
   return a;
 }
 
-const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select, [tabindex]:not([tabindex="-1"])';
+// summary (uitklapper) en textarea horen erbij: zonder die twee sloeg de D-pad ze over (de uitleg bij een toestemmingsvinkje, een tekstvak)
+const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select, textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])';
 
 // A dialog that has no key handling of its own still works: arrows walk its
 // buttons, A clicks the focused one.

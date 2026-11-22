@@ -8,7 +8,7 @@ import { KEUZES, LAUNCH_TEXT, TOESTEMMING_TEKST, toetsActie } from './launchchoi
 import { geefToestemming, moetNaamVragen, moetToestemmingVragen } from './onlineconsent.js';
 import { openOnlineStart, meerInfoHtml } from './onlineconsentui.js';
 import { getSettings } from './settings.js';
-import { trapTabInCard } from './listnav.js';
+import { trapTabInCard, bewaarFocus } from './listnav.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -99,6 +99,7 @@ export function openLaunchChoice({ index = 0 } = {}) {
 export function openToestemming({ zet = undefined } = {}) {
   if (open) return open.promise;
   if (typeof document === 'undefined' || !document.body) return Promise.resolve(false);
+  const terugFocus = bewaarFocus(); // de knop die de kaart opende krijgt de focus terug
   const el = backdrop();
   el.innerHTML = toestemmingHtml();
   let klaar = () => {};
@@ -107,6 +108,7 @@ export function openToestemming({ zet = undefined } = {}) {
     window.removeEventListener('keydown', onKey, true);
     open = null;
     try { el.remove(); } catch (e) { /* al weg */ }
+    terugFocus();
     klaar(ok);
   };
   const vink = el.querySelector('.os-consent-vink');
