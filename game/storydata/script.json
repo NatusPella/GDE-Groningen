@@ -19933,11 +19933,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Rook! Links! De Fjord blijft staan.",
+     "text": "Rook! Links! De wagen blijft staan.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -21334,7 +21333,7 @@
    "regie": [
     "woensdag 26 augustus, vroeg. Langs een zandweg staat een verroeste frituuraanhanger aan een hek, met een bordje: TE KOOP, AFHALEN. Tessa stapt uit zonder iets te zeggen. Tammo blijft achter het stuur zitten, dan stapt hij ook uit.",
     "ze veegt het stof van het luik. Uit haar jaszak komt een opgevouwen bierviltje met een tekening, van twaalf dagen geleden.",
-    "Tessa lacht, voor het eerst sinds Bourtange. Ze legt het viltje op het luik. Tammo kijkt naar de Escapade en dan naar de trekhaak."
+    "Tessa lacht, voor het eerst sinds Bourtange. Ze legt het viltje op het luik. Tammo kijkt naar de trekhaak en dan naar de Escapade."
    ],
    "lines": [
     {
@@ -21431,17 +21430,16 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Een snackwagen. Geen frietwagen die je koopt: een wagen die wij maken.",
+     "text": "Een snackwagen. Geen wagen die je koopt: een wagen die wij maken.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "De Escapade kan trekken.",
+     "text": "Met deze aanhanger?",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -21449,11 +21447,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Bel Henk. Hij had een luik.",
+     "text": "Met zo'n luik. In de Escapade. Bel Henk, hij had een luik.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     }
    ]
@@ -21991,12 +21988,11 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Dat waren er drie. Kon meer.",
+     "text": "Dat waren er vier. Eén te weinig.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
+     "textOnly": true,
      "humor": "HE-06",
-     "rec": "lines",
      "voice": "Anita"
     }
    ]
@@ -23707,7 +23703,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "En een Escapade die trekt.",
+     "text": "En een Escapade met karakter.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true

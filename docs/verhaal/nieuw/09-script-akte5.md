@@ -331,7 +331,7 @@ TESSA: Hij fluit. [NIEUW]
 DURK: Douwe. Niet aanraken. [NIEUW]
 (regie: Durk en Douwe steken per ongeluk Berends vuurwerk aan. Rook, knallen, een regen van papieren sterren.)
 DOUWE: …Hè. [BEHOUDEN]
-TESSA: Rook! Links! De Fjord blijft staan. [NIEUW]
+TESSA: Rook! Links! De wagen blijft staan. [NIEUW]
 (regie: Tessa zet de snackwagen dwars voor de limo. De limo komt tot stilstand met zijn neus tegen het luik.)
 JELLE: Mevrouw. U staat op de openbare weg. Dat is een overtreding. Het is drie minuten voor drie. Ik moet… [NIEUW]
 (regie: hij stapt achteruit uit de limo, struikelt over een duif en valt in het water langs de weg. De gouden koffer houdt hij boven water.)
@@ -528,10 +528,10 @@ TESSA: Zoals jij naar wat? [NIEUW]
 TAMMO: Naar de motor. [NIEUW]
 TESSA: Er zit geen motor in. Het is een aanhanger. [NIEUW]
 TAMMO: Dan naar de trekhaak. [NIEUW]
-(regie: Tessa lacht, voor het eerst sinds Bourtange. Ze legt het viltje op het luik. Tammo kijkt naar de Escapade en dan naar de trekhaak.)
-TESSA: Een snackwagen. Geen frietwagen die je koopt: een wagen die wij maken. [NIEUW]
-TAMMO: De Escapade kan trekken. [NIEUW]
-TESSA: Bel Henk. Hij had een luik. [NIEUW]
+(regie: Tessa lacht, voor het eerst sinds Bourtange. Ze legt het viltje op het luik. Tammo kijkt naar de trekhaak en dan naar de Escapade.)
+TESSA: Een snackwagen. Geen wagen die je koopt: een wagen die wij maken. [NIEUW]
+TAMMO: Met deze aanhanger? [NIEUW]
+TESSA: Met zo'n luik. In de Escapade. Bel Henk, hij had een luik. [NIEUW]
 
 ## [F2] De eerste bak – Stad, Hoogkerk, een loods – snackwagen
 (regie: donderdag 27 augustus, vroeg. Een loods in Hoogkerk, buiten ruikt het naar suiker. De wagen staat op blokken. Tammo ligt eronder met een zaklamp, Tessa staat bij de friteuse met Oma's schort.)
@@ -601,4 +601,4 @@ TESSA: Zijn we nu een stel? [NIEUW]
 TAMMO: Berend telde elf seconden. Dat is officieel. [NIEUW]
 TESSA: Wat wil jij eigenlijk? [NIEUW]
 TAMMO: Hier. Met jou erbij. [NIEUW]
-TESSA: Dat waren er drie. Kon meer. [NIEUW]
+TESSA: Dat waren er vier. Eén te weinig. [NIEUW]
