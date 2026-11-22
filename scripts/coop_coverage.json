@@ -1480,6 +1480,7 @@
     "scripts/coop_tcp_test.mjs",
     "scripts/net_lifecycle_test.mjs",
     "scripts/net_protocol_test.mjs",
+    "scripts/net_rejoin_test.mjs",
     "scripts/samen_sweep_test.mjs"
    ],
    "regel": {

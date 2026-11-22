@@ -337,8 +337,12 @@ export class ClientSession extends Base {
     this.lastRecv = this.now;
     if (this._common(h, buf)) { if (this.status === 'lag') this._setStatus('ok'); return; }
     if (h.type === T.WELCOME) {
-      const m = decodeJson(buf); if (!m) return;
+      const m = decodeJson(buf); if (!m || !m.body || typeof m.body !== 'object') return; // a welcome without a body (null, a number) is noise, not a crash
       if (!m.body.ok) { this.rejected = m.body.reason; this.remoteVersion = typeof m.body.version === 'string' ? m.body.version.slice(0, 20) : ''; this._setStatus('geweigerd'); return; }
+      // A new session at the host counts from zero again (snapshot seq, host clock, reliable seq) and may reuse our last epoch:
+      // forget the receive counters too, otherwise its snapshots look 'old' and its events 'duplicate' (acked, then dropped by the host).
+      // Epoch 0 is never sent, so the first message (seq 1) of the new stream always switches.
+      if (this.token && m.body.token !== this.token) { this.rel.recvEpoch = 0; this.rel.expected = 1; this.rel.ahead.clear(); this.lastSnapSeq = null; this.buf.clear(); }
       if (this.token && m.body.token !== this.token) this.rel.reset(); // een nieuwe sessie (te lang weg geweest): onze eigen stroom naar de host begint ook opnieuw; de stroom van de host volgt vanzelf (tijdperk)
       this.welcome = m.body; // inclusief wat de hub meegaf: personage, lijst van spelers
       if (m.body.sessie && typeof m.body.sessie.id === 'string') this.sessie = { id: m.body.sessie.id.slice(0, 16), naam: typeof m.body.sessie.naam === 'string' ? m.body.sessie.naam.slice(0, 24) : '' }; // bij welke sessie je hoort (#450)
@@ -361,7 +365,7 @@ export class ClientSession extends Base {
     } else if (h.type === T.BYE) { this.joined = false; this._setStatus('verbroken'); this._sluitLink(); }
   }
   _onEvent(b) {
-    if (b.k === 'resync' && this.onresync) this.onresync(b.state);
+    if (b && b.k === 'resync' && this.onresync) this.onresync(b.state);
     else if (this.onevent) this.onevent(b);
   }
   // voor de weergave: invoer van deze frame; wordt met INPUT_HZ verstuurd
