@@ -1324,9 +1324,10 @@ function endInFailure(world, text) {
   // an aborted or skipped H15 must not leave the heli run flying on
   if (isHeliRunActive()) abortHeliRun();
   dropPursuer(world);
+  // release before the stage goes: releaseMissionVehicle reads stage.target to hand a chased vehicle back to traffic
+  releaseMissionVehicle(world);
   disposeStageDressing(); // #963: ook de wachtkring gaat mee
   chainState().stage = null;
-  releaseMissionVehicle(world);
   chainState().phase = 'cooldown';
   chainState().armed = false;
   chainState().cooldownTimer = RETRY_COOLDOWN;
