@@ -107,5 +107,41 @@ ok(F.frameErrorModel(null).details === 'Onbekende fout' && F.frameErrorModel('')
   ok(!!regel && /ds3-dwell/.test(regel), 'hud_panel.css: de minimaprand voor een nieuwe streek is als verblijf (2,2 s) gemarkeerd');
 }
 
+// 21: simulatie over lange speelduur (2 uur spel): een meldingenrij met willekeurige aanvoer loopt nooit vast en overlapt nooit
+{
+  let seed = 22;
+  const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+  const MAX = 1, DT = 0.25;
+  let zichtbaar = [], wachtend = [], id = 0, getoond = 0, aangeboden = 0, maxTegelijk = 0, langste = 0, klasFout = 0;
+  for (let t = 0; t < 7200; t += DT) {
+    if (rnd() < 0.18) { // een nieuwe melding, soms kritiek-loos, soms met een prioriteit
+      const tekst = 'x'.repeat(Math.floor(rnd() * 200));
+      wachtend.push({ id: ++id, prio: Math.floor(rnd() * 3), at: t, tekst, duur: N.noticeDuration({ tekst, klas: rnd() < 0.3 ? 'lang' : null }) });
+      aangeboden++;
+    }
+    const plan = N.queuePlan({ zichtbaar, wachtend, max: MAX });
+    for (const i of plan.toon) {
+      const m = wachtend.find((w) => w.id === i);
+      wachtend = wachtend.filter((w) => w.id !== i);
+      const d = N.queueDuration(m.duur, wachtend.length);
+      if (![4, 6, 9, 10].includes(d)) klasFout++;
+      zichtbaar.push({ id: i, timer: N.makeTimer(d), t0: t });
+      getoond++;
+    }
+    for (const z of zichtbaar) {
+      z.timer.tik(DT, {});
+      const rest = N.shortening(z.timer.rest, t - z.t0, wachtend.length);
+      if (rest < z.timer.rest) z.timer.ververs(rest);
+    }
+    zichtbaar = zichtbaar.filter((z) => !z.timer.klaar);
+    maxTegelijk = Math.max(maxTegelijk, zichtbaar.length);
+    langste = Math.max(langste, wachtend.length);
+    wachtend = wachtend.filter((w) => t - w.at < 30); // een melding die te oud is vervalt (hudcards.js, 30 s)
+  }
+  ok(maxTegelijk <= MAX, 'simulatie: nooit meer dan één melding tegelijk in beeld (max ' + maxTegelijk + ')');
+  ok(klasFout === 0, 'simulatie: elke duur is een van de vier gedeelde klassen');
+  ok(getoond > 100 && getoond <= aangeboden && wachtend.length < 400, 'simulatie: er wordt getoond (' + getoond + ' van ' + aangeboden + ') en de rij loopt niet vol (' + wachtend.length + ')');
+}
+
 console.log(`verfijn_ui_ds3_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

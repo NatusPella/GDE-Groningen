@@ -120,6 +120,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [PERF-BESLUITEN.md](<PERF-BESLUITEN.md>) | Bewuste prestatiebesluiten en de onderbouwing per punt. |
 | [PERF-STREAM-SOEPEL-21-11.md](<PERF-STREAM-SOEPEL-21-11.md>) | Soepeler streamen: één framebudget, bewegingsgericht vooruitladen en stabiele LOD-overgangen (#1016, #1052, #1008). |
 | [PERF-MEETPUNTEN-21-11.md](<PERF-MEETPUNTEN-21-11.md>) | Meetpunten voor de eindsweep over laden, opwarmen, pop-in en haperingen (#1008, #1016, #1046, #1052): commando, A-schakelaar, maat en voorgestelde grens, met een test die de verwijzingen bewaakt. |
+| [VERFIJNING-22-11-UI-DS3.md](<VERFIJNING-22-11-UI-DS3.md>) | Verfijnronde UI en DS3: wrijving, oplossing en bewijs per verbetering, wat bewust niet en wat nog in beeld bekeken moet worden. |
 | [PROPS-STAND-22-11.md](<PROPS-STAND-22-11.md>) | Props, sets en figuranten van het verhaal (#1121): per model driehoeken, materialen en afmetingen, gegenereerd door `scripts/verhaal_props_audit.mjs`. |
 | [HUD-LINKS-21-11.md](<HUD-LINKS-21-11.md>) | De locatiekaart en de politiechip links in de HUD (#1079): regel, meting en chip. |
 | [WITTE-RUIS-21-11.md](<WITTE-RUIS-21-11.md>) | Witte ruis in het spel: bronnen, oorzaken en maatregelen (#1084). |
