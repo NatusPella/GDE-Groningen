@@ -19,5 +19,9 @@ ok(/inSignKeepOut\(x, y\)\) return true/.test(src('game/js/nightlights3d.js')) &
 const ps = src('game/js/pigeonspots.js');
 ok(/const padGeo = new THREE\.RingGeometry/.test(ps) && !/padMat = new THREE\.MeshLambertMaterial\([^)]*transparent/.test(ps), 'duivenspot: ring, geen doorzichtige schijf');
 
+// #1192: de onderkant van dek en viaduct heeft eigen licht en is dus geen zwart vlak
+const rs = src('game/js/roadstructures3d.js');
+ok(/concrete: \{[^}]*emissive: 0x2a2825/.test(rs) && /wall: \{[^}]*emissive: 0x2a2825/.test(rs), 'beton en wand van civiele werken hebben eigen licht');
+
 console.log(`${n - fails}/${n} ui_fix_bugs_22_11`);
 process.exit(fails ? 1 : 0);

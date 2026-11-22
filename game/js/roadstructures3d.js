@@ -21,8 +21,9 @@ const mats = {};
 function mat(name) {
   if (mats[name]) return mats[name];
   const spec = {
-    concrete: { color: 0xa39f96, roughness: 0.92 },
-    wall: { color: 0x8f8b82, roughness: 0.95 },
+    // #1192: de onderkant van een dek of viaduct ligt uit het zonlicht en las als een egaal zwart vlak: een beetje eigen licht, zoals de tunnel
+    concrete: { color: 0xa39f96, roughness: 0.92, emissive: 0x2a2825, emissiveIntensity: 1 },
+    wall: { color: 0x8f8b82, roughness: 0.95, emissive: 0x2a2825, emissiveIntensity: 1 },
     // the roof underside only gets the tunnel lights: a little self-light, or it reads as a black hole
     tunnel: { color: 0x8a867e, roughness: 0.9, emissive: 0x3b3934, emissiveIntensity: 1 },
     grass: { color: 0x5c8a4d, roughness: 1 },
