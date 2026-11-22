@@ -135,7 +135,7 @@ import { createPostFX } from './postfx3d.js';
 import { noteGfxEvent, watchContext, gpuRamp } from './blackframe.js';
 import { spawnExplosionFx, setFxCamera } from './fx3d.js';
 import { litFraction, moonPhase, STAR_SHARE, foliageGlow } from './nightrules.js';
-import { qualityLook, SKYLINE_FOG } from './weatherlook.js';
+import { qualityLook, SKYLINE_FOG, sunGlow } from './weatherlook.js';
 import { buildCloudLayer, updateCloudLayer } from './cloud3d.js';
 import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn, nightPoolSize } from './nightlights3d.js';
 import { createFarLOD } from './farlod.js';
@@ -3879,7 +3879,7 @@ function updateSunAndSky(player, dt, world) {
   sun.target.position.copy(_shadowCenter);
   sun.position.copy(_shadowCenter).addScaledVector(sunDir, SUN_DIST);
   skyDome.position.copy(cam.position);
-  if (lastLight) updateCloudLayer(cloudLayer, cam.position, cam.far, world.weather, lastLight.daylight, lastLight.night, dt);
+  if (lastLight) updateCloudLayer(cloudLayer, cam.position, cam.far, world.weather, lastLight.daylight, lastLight.night, dt, sunGlow(lastLight.elevation, world.weather ? Math.max(world.weather.overcast || 0, world.weather.intensity || 0) : 0));
 }
 
 function buildWildlifeActor(a) {

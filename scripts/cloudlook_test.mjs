@@ -18,5 +18,18 @@ check('waarden binnen 0..1', [...onweer.tint, onweer.opacity, nacht.opacity].eve
 const a = cloudSpots(), b = cloudSpots();
 check('plekken zijn vast', JSON.stringify(a) === JSON.stringify(b) && a.length === CLOUD_COUNT);
 check('elke wolk heeft een blob', a.every((c) => c.blobs >= 3 && c.size > 0));
+// gouden uur: wolken vangen het warme licht (rood blijft, blauw zakt), overdag en 's nachts niet
+{
+  const { sunGlow } = await import('../game/js/weatherlook.js');
+  const zon = cloudState({ intensity: 0, overcast: 0, mist: 0 }, 0.9, 0, sunGlow(3, 0));
+  const middag = cloudState({ intensity: 0, overcast: 0, mist: 0 }, 1, 0, sunGlow(60, 0));
+  const zonder = cloudState({ intensity: 0, overcast: 0, mist: 0 }, 0.9, 0);
+  check(zon.tint[2] < zon.tint[0] - 0.08, 'bij zonsondergang zijn de wolken warm (blauw lager dan rood)', JSON.stringify(zon.tint));
+  check(zon.tint[2] < zonder.tint[2], 'de gloed maakt de wolken warmer dan zonder gloed');
+  check(Math.abs(middag.tint[0] - middag.tint[2]) < 0.02, 'om twaalf uur blijven de wolken wit');
+  check(zon.tint.every((v) => v >= 0 && v <= 1), 'tint blijft 0..1');
+  const dicht = cloudState({ intensity: 0, overcast: 1, mist: 0 }, 0.9, 0, sunGlow(3, 1));
+  check(dicht.tint[0] - dicht.tint[2] < zon.tint[0] - zon.tint[2], 'een dicht wolkendek vangt minder goud');
+}
 console.log(fail ? `cloudlook_test: ${fail} fout` : 'cloudlook_test ok');
 process.exit(fail ? 1 : 0);

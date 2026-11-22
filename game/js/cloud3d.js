@@ -36,9 +36,9 @@ export function buildCloudLayer() {
 }
 
 // Elke frame: volgt de camera, kiest hoeveel wolken zichtbaar zijn en hun kleur.
-export function updateCloudLayer(layer, camPos, radius, weather, daylight, night, dt) {
+export function updateCloudLayer(layer, camPos, radius, weather, daylight, night, dt, glow = null) {
   if (!layer) return;
-  const u = layer.userData, st = cloudState(weather, daylight, night);
+  const u = layer.userData, st = cloudState(weather, daylight, night, glow);
   u.angle = (u.angle + st.speed * dt) % (Math.PI * 2);
   layer.position.copy(camPos);
   layer.rotation.y = u.angle;
