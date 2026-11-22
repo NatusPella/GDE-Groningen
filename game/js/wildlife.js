@@ -1141,6 +1141,17 @@ export function buildCowMesh3D(seed = 0, red = false) {
 
 const SHEEP_WOOL = 0xdcd6c6;
 const SHEEP_DARK = 0x2a2624;
+// Vier soorten schaap, zodat een kudde niet uit klonen bestaat: de wit-met-zwart-gezicht van altijd, een crèmekleurige met een witte kop en poten (Texelaar),
+// een grijsbruine (Drents heideschaap) en een donkere met licht gezicht. wol: [vlak, rand, onderkant]; kop en poten: donker.
+export const SHEEP_LOOKS = [
+  { wol: [0xdcd6c6, 0xcfc8b6, 0xc9c1ae], donker: 0x2a2624, hoef: 0x151312 },
+  { wol: [0xece4cc, 0xdfd6bb, 0xd4cab0], donker: 0xe6ded0, hoef: 0x4a4038 },
+  { wol: [0x9c8f7c, 0x8a7d6a, 0x7d715f], donker: 0x4a3f36, hoef: 0x1c1816 },
+  { wol: [0x6e655b, 0x5f574e, 0x544d45], donker: 0xcfc6b6, hoef: 0x2a2624 },
+];
+export const SHEEP_VARIANTEN = SHEEP_LOOKS.length;
+// Het soort schaap uit een zaad (0..1); een ongeldig zaad geeft de eerste soort.
+export const sheepVariantOf = (seed) => (Number.isFinite(seed) ? Math.floor(Math.abs(seed) * 1000) % SHEEP_VARIANTEN : 0);
 
 const SHEEP_SPEC = [
   ['body', null, 0, 0.62, 0],
@@ -1152,7 +1163,7 @@ const SHEEP_SPEC = [
   ['legBR', 'body', -0.3, 0.46, -0.13],
 ];
 
-function woolBlob(B, x, y, z, sx, sy, sz, seed, detail = 1) {
+function woolBlob(B, x, y, z, sx, sy, sz, seed, detail = 1, wol = SHEEP_LOOKS[0].wol) {
   const g = new THREE.IcosahedronGeometry(1, detail);
   const p = g.attributes.position;
   for (let i = 0; i < p.count; i++) {
@@ -1160,21 +1171,22 @@ function woolBlob(B, x, y, z, sx, sy, sz, seed, detail = 1) {
     const j = 1 + (Math.sin(Math.round(vx * 40) * 12.9898 + Math.round(vy * 40) * 78.233 + Math.round(vz * 40) * 37.719 + seed) * 43758.5453 % 1) * 0.12;
     p.setXYZ(i, vx * sx * j + x, vy * sy * j + y, vz * sz * j + z);
   }
-  B.geo(g, null, (cx, cy, cz) => ((Math.round(cx * 17 + cy * 23 + cz * 29) & 3) === 0 ? 0xcfc8b6 : cy < 0.5 ? 0xc9c1ae : SHEEP_WOOL));
+  B.geo(g, null, (cx, cy, cz) => ((Math.round(cx * 17 + cy * 23 + cz * 29) & 3) === 0 ? wol[1] : cy < 0.5 ? wol[2] : wol[0]));
 }
 
-function sheepGeometry() {
+function sheepGeometry(variant = 0) {
+  const L = SHEEP_LOOKS[variant] || SHEEP_LOOKS[0], wol = L.wol, SHEEP_DARK = L.donker;
   const I = boneIndex(SHEEP_SPEC);
   const B = new SkinBuilder(1);
   B.bone = I.body;
-  woolBlob(B, 0, 0.66, 0, 0.5, 0.26, 0.29, 1);
+  woolBlob(B, 0, 0.66, 0, 0.5, 0.26, 0.29, 1, 1, wol);
   for (const [x, y, z, s] of [[0.22, 0.8, 0.1, 0.14], [0.2, 0.8, -0.1, 0.13], [-0.18, 0.84, 0.08, 0.15], [-0.2, 0.82, -0.1, 0.14], [0.02, 0.9, 0, 0.16], [-0.38, 0.72, 0, 0.15]]) {
-    woolBlob(B, x, y, z, s, s * 0.85, s, x * 7 + z * 3, 0);
+    woolBlob(B, x, y, z, s, s * 0.85, s, x * 7 + z * 3, 0, wol);
   }
   for (const [name, x, z] of [['legFL', 0.3, 0.13], ['legFR', 0.3, -0.13], ['legBL', -0.3, 0.13], ['legBR', -0.3, -0.13]]) {
     B.bone = I[name];
     B.geo(loftGeometry([{ y: 0.05, d: 0.026, w: 0.026 }, { y: 0.25, d: 0.03, w: 0.028 }, { y: 0.5, d: 0.045, w: 0.04 }], 5), composeMatrix(x, 0, z), SHEEP_DARK);
-    B.box(x + 0.008, 0.028, z, 0.06, 0.055, 0.055, 0x151312);
+    B.box(x + 0.008, 0.028, z, 0.06, 0.055, 0.055, L.hoef);
   }
   B.bone = I.head;
   const H = composeMatrix(0.36, 0.66, 0, 0, 0, -0.35).multiply(composeMatrix(0.1, 0, 0));
@@ -1185,18 +1197,20 @@ function sheepGeometry() {
     { u: 0.28, cy: -0.015, hh: 0.045, hw: 0.045 },
   ], 7), H, SHEEP_DARK);
   const hm = (x, y, z, rx = 0, ry = 0, rz = 0) => H.clone().multiply(composeMatrix(x, y, z, rx, ry, rz));
-  B.geo(new THREE.IcosahedronGeometry(1, 0).scale(0.08, 0.06, 0.08), hm(0.03, 0.08, 0), SHEEP_WOOL);
+  B.geo(new THREE.IcosahedronGeometry(1, 0).scale(0.08, 0.06, 0.08), hm(0.03, 0.08, 0), wol[0]);
   for (const s of [1, -1]) {
     B.geo(new THREE.BoxGeometry(0.08, 0.025, 0.1), hm(0.06, 0.05, s * 0.1, 0, s * 0.3, 0), SHEEP_DARK);
     B.geo(new THREE.BoxGeometry(0.02, 0.018, 0.015), hm(0.15, 0.035, s * 0.07), 0xb89a5a);
   }
   B.bone = I.tail;
-  woolBlob(B, -0.52, 0.62, 0, 0.06, 0.09, 0.06, 5, 0);
+  woolBlob(B, -0.52, 0.62, 0, 0.06, 0.09, 0.06, 5, 0, wol);
   return B.build();
 }
 
-export function buildSheepMesh3D() {
-  const group = assemble(cachedGeo('sheep', sheepGeometry), SHEEP_SPEC, 0.9, 0.5);
+// variant: 0 tot en met SHEEP_VARIANTEN - 1 (ongeldig: de eerste soort); geometrie per soort gedeeld.
+export function buildSheepMesh3D(variant = 0) {
+  const v = Number.isInteger(variant) && variant >= 0 && variant < SHEEP_VARIANTEN ? variant : 0;
+  const group = assemble(cachedGeo('sheep' + (v ? v : ''), () => sheepGeometry(v)), SHEEP_SPEC, 0.9, 0.5);
   const b = group.userData.bones;
   group.userData.head = b.head;
   group.userData.headBaseRotZ = 0;
@@ -1324,6 +1338,87 @@ export function buildPigeonMesh3D(tone = 0, lod = 'mid') {
   group.userData.foldZ = -0.3;
   group.userData.head = b.head;
   return group;
+}
+
+// --- kip (#1101, de kippen van Bezit): een echte kip in plaats van een eend ---
+// Romp met borst, een opgeheven staart van drie veren, kam en lellen, een gele snavel en gele poten met tenen. Vier looks (wit, bruin, roodbruin,
+// gespikkeld) en een haan met grotere kam en een sikkelstaart. Kijkt naar +x, voeten op y = 0, ongeveer 0,4 m hoog.
+const KIP_SPEC = [
+  ['body', null, 0, 0.17, 0],
+  ['head', 'body', 0.02, 0.2, 0],
+  ['tail', 'body', -0.11, 0.22, 0],
+];
+export const KIP_LOOKS = [
+  { naam: 'wit', body: 0xefece2, wing: 0xdcd8cb, tail: 0xe6e2d6, spot: null },
+  { naam: 'bruin', body: 0x9a6a3e, wing: 0x7c5230, tail: 0x3a2a1c, spot: null },
+  { naam: 'roodbruin', body: 0xb4572c, wing: 0x8e4220, tail: 0x2a1f18, spot: null },
+  { naam: 'gespikkeld', body: 0x8c8176, wing: 0x6c6258, tail: 0x2c2a28, spot: 0xe8e2d4 },
+];
+export const KIP_VARIANTEN = KIP_LOOKS.length * 2;   // vier looks, elk als hen en als haan
+
+function kipGeometry(variant) {
+  const L = KIP_LOOKS[variant % KIP_LOOKS.length], haan = variant >= KIP_LOOKS.length;
+  const I = boneIndex(KIP_SPEC);
+  const B = new SkinBuilder(1);
+  const kam = 0xc4302a, snavel = 0xe0a52b, poot = 0xd9a63a;
+  B.bone = I.body;
+  B.geo(ellipsoid(8, 6, 0.135, 0.095, 0.08), composeMatrix(0, 0, 0, 0, 0, 0.1), L.body);                  // romp
+  B.geo(ellipsoid(6, 5, 0.07, 0.075, 0.07), composeMatrix(0.075, 0.015, 0), L.body);                      // borst
+  for (const s of [1, -1]) B.geo(ellipsoid(6, 4, 0.085, 0.05, 0.016), composeMatrix(-0.015, 0.012, s * 0.074, s * -0.08, 0, 0.12), L.wing);   // vleugels tegen de romp
+  if (L.spot) for (const [x, y, z] of [[0.02, 0.07, 0.04], [-0.05, 0.06, -0.04], [0.06, 0.03, -0.055], [-0.02, 0.0, 0.07]]) B.geo(ellipsoid(4, 3, 0.02, 0.012, 0.02), composeMatrix(x, y, z), L.spot);
+  for (const s of [1, -1]) {   // poten met drie tenen
+    const z = s * 0.032;
+    B.geo(tubeGeometry([0.01, -0.07, z], [0.012, -0.165, z], 0.008, 0.006, 4), null, poot);
+    for (const t of [-0.3, 0, 0.3]) B.geo(new THREE.BoxGeometry(0.05, 0.007, 0.01), composeMatrix(0.038, -0.169, z + t * 0.04, 0, t, 0), poot);
+  }
+  B.bone = I.tail;
+  const staartLen = haan ? 0.2 : 0.13, staartHoog = haan ? 0.17 : 0.1;
+  for (const [dz, ry, kleur] of [[0, 0, L.tail], [-0.022, 0.3, L.body], [0.022, -0.3, L.body]]) {   // drie veren als staande platen, naar achteren en omhoog
+    B.geo(ellipsoid(5, 3, staartLen * 0.6, 0.045, 0.007), composeMatrix(-0.13 - staartLen * 0.35, staartHoog * 0.5, dz, 0, ry, -0.6), kleur);
+  }
+  if (haan) B.geo(tubeGeometry([-0.14, 0.1, 0], [-0.25, 0.1, 0], 0.012, 0.004, 4), null, 0x1f5a3a);   // sikkelveer
+  B.bone = I.head;
+  B.geo(tubeGeometry([0.03, 0.02, 0], [0.055, 0.1, 0], 0.032, 0.022, 6), null, L.body);                   // hals
+  B.geo(ellipsoid(6, 5, 0.034, 0.036, 0.03), composeMatrix(0.07, 0.122, 0), L.body);                       // kop
+  B.geo(new THREE.ConeGeometry(0.012, 0.04, 4).rotateZ(-Math.PI / 2), composeMatrix(0.108, 0.116, 0), snavel);   // snavel
+  B.box(0.064, haan ? 0.172 : 0.16, 0, 0.035, haan ? 0.045 : 0.026, 0.01, kam);                             // kam
+  B.box(0.094, 0.088, 0, 0.012, haan ? 0.05 : 0.032, 0.016, kam);                                            // lellen
+  for (const s of [1, -1]) B.box(0.092, 0.13, s * 0.026, 0.008, 0.008, 0.006, 0x14110e);                     // ogen
+  const g = B.build();
+  g.translate(0, 0.17, 0);   // de bouw staat rond de romp; de poten komen zo op y = 0
+  return g;
+}
+
+// variant: 0 tot en met KIP_VARIANTEN - 1 (een onbekende waarde valt terug op de witte hen); geometrie per variant gedeeld.
+export function buildChickenMesh3D(variant = 0) {
+  const v = Number.isInteger(variant) && variant >= 0 && variant < KIP_VARIANTEN ? variant : 0;
+  const group = assemble(cachedGeo('kip' + v, () => kipGeometry(v)), KIP_SPEC, 0.4, 0.15);
+  group.userData.head = group.userData.bones.head;
+  group.userData.kipVariant = v;
+  return group;
+}
+
+// Een vaste pose voor een dier van de kudde dat niet geanimeerd wordt (herdview3d.js): per zaad staat het dier rechtop, graast het of kijkt het opzij,
+// zodat een weide er niet uitziet als een rij standbeelden. Deterministisch (zelfde zaad, zelfde pose); model: 'cow' | 'sheep' | 'hen'. Geeft de gekozen pose terug.
+export const KUDDE_POSES = ['staan', 'kijken', 'grazen', 'grazen-diep'];
+export function poseHerdAnimal(mesh, model, seed = 0) {
+  const s = Number.isFinite(seed) ? ((seed % 1) + 1) % 1 : 0;
+  const pose = KUDDE_POSES[Math.min(KUDDE_POSES.length - 1, Math.floor(s * KUDDE_POSES.length))];
+  const b = mesh && mesh.userData && mesh.userData.bones;
+  if (!b || !b.head) return pose;
+  const draai = ((s * 7.31) % 1 - 0.5) * 1.1;
+  if (model === 'hen') {
+    const pik = pose === 'grazen-diep' ? 1 : pose === 'grazen' ? 0.7 : 0;
+    b.head.rotation.set(0, pose === 'kijken' ? draai : 0, -pik * 0.95);
+    if (b.body) b.body.rotation.z = -pik * 0.32;
+    if (b.tail) b.tail.rotation.z = pik * 0.25;
+  } else {
+    const dip = mesh.userData.grazeDip || 0.6;
+    const k = pose === 'grazen-diep' ? 1 : pose === 'grazen' ? 0.65 : 0;
+    b.head.rotation.set(0, pose === 'kijken' ? draai : 0, -dip * k);
+    if (b.body) b.body.rotation.z = -0.06 * k;
+  }
+  return pose;
 }
 
 // --- cat / dog (shared quadruped) ---
@@ -1497,7 +1592,7 @@ function buildGansMesh3D() {
 function bouwWildlifeMesh3D(a) {
   switch (a.kind) {
     case 'seagull': return buildSeagullMesh3D(a.lod);
-    case 'sheep': return buildSheepMesh3D();
+    case 'sheep': return buildSheepMesh3D(sheepVariantOf(a.bobSeed));
     case 'duck': return buildDuckMesh3D(a.variant);
     case 'gans': return buildGansMesh3D();
     case 'reiger': return buildDuckMesh3D('reiger');

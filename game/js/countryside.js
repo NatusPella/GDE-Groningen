@@ -7,7 +7,7 @@ import {
   chash, countryWeight, countryRect, edgeDistance, countryFiction, parcelAt, parcelUse, blockToWorld, edgeRoad, villageOf,
 } from './countryfield.js';
 import { SkinBuilder, vcMaterial, tubeGeometry, loftGeometry, markShared, composeMatrix } from './pixelart3d.js';
-import { buildCowMesh3D, buildSheepMesh3D, buildDuckMesh3D, animateWildlifeMesh3D, runOverAnimal, poseDeadAnimal } from './wildlife.js';
+import { buildCowMesh3D, buildSheepMesh3D, sheepVariantOf, buildDuckMesh3D, animateWildlifeMesh3D, runOverAnimal, poseDeadAnimal } from './wildlife.js';
 import { distToVehicleBody } from './vehicle.js';
 import * as M3 from './countrymodels.js';
 import {
@@ -173,6 +173,7 @@ const KINDS = {
 function animalKey(a) {
   if (a.kind === 'cow') return (a.variant === 'red' ? 'cowred' : 'cow') + (Math.floor(a.bobSeed * 1000) % 4);
   if (a.kind === 'horse') return 'horse' + a.variant;
+  if (a.kind === 'sheep') return 'sheep' + sheepVariantOf(a.bobSeed);   // vier soorten schaap: een sleutel per soort, dus per soort een gedeelde geometrie
   return a.kind;
 }
 
@@ -182,7 +183,7 @@ const GOOSE_LEG_GEO = new THREE.BoxGeometry(0.02, 0.1, 0.02).translate(0, -0.05,
 function buildAnimalMesh(a) {
   switch (a.kind) {
     case 'cow': return buildCowMesh3D(a.bobSeed, a.variant === 'red');
-    case 'sheep': return buildSheepMesh3D();
+    case 'sheep': return buildSheepMesh3D(sheepVariantOf(a.bobSeed));
     case 'horse': return buildHorseMesh(a.variant);
     case 'goose': {
       const g = buildDuckMesh3D('goose');
@@ -202,6 +203,7 @@ function templateGeometry(key) {
   if (key.startsWith('cowred')) Object.assign(probe, { variant: 'red', bobSeed: (+key.slice(6)) / 1000 });
   else if (key.startsWith('cow')) probe.bobSeed = (+key.slice(3)) / 1000;
   else if (key.startsWith('horse')) Object.assign(probe, { kind: 'horse', variant: +key.slice(5) });
+  else if (key.startsWith('sheep')) Object.assign(probe, { kind: 'sheep', bobSeed: (+key.slice(5)) / 1000 });
   else probe.kind = key;
   const m = buildAnimalMesh(probe);
   let geo = null, mat = null;

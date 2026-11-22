@@ -31,7 +31,8 @@ const CAR = {
 
 export const MIDIBUS_MODEL = { name: 'midibus', len: 8.4, wid: 2.3, maxSpeed: 20, accel: 5, brake: 12, turnRate: 1.3, color: '#132a44' };
 
-const GREYS = ['#c7c9cc', '#23262a', '#e8e6e0', '#4a4d52', '#2f3a52', '#7a1f1f', '#2e4a34', '#8a8d91', '#1b1c1f', '#c7c9cc', '#e8e6e0'];
+// Grijs, zwart en wit blijven de meerderheid (zoals op straat), maar een straat is geen grijze rij meer: blauw, rood, champagne, grasgroen en zilverblauw erbij (22-11).
+const GREYS = ['#c7c9cc', '#23262a', '#e8e6e0', '#4a4d52', '#2f3a52', '#7a1f1f', '#2e4a34', '#8a8d91', '#1b1c1f', '#c7c9cc', '#e8e6e0', '#3f6fa0', '#b8322a', '#c9b896', '#3f8a5a', '#a9b4bf'];
 const FADED = ['#8a6a4a', '#6b7a5a', '#9a9a8a', '#7a4a3a', '#5a6a7a', '#b0a080', '#c9c2a8', '#7a2f2a', '#3f5a7a'];
 const EV_COLORS = ['#e8e6e0', '#c7c9cc', '#2f6b8f', '#3d7a5a', '#23262a', '#e8e6e0'];
 const TOKKIE_COLORS = ['#e8c93a', '#1f6fd0', '#b01c1c', '#23262a', '#7a2fa0', '#e0701e'];
