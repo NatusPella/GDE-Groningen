@@ -821,7 +821,7 @@ export function mountLobby(root, hooks, opts = {}) {
   });
   root.addEventListener('keydown', (e) => { // Escape wist het zoekveld; pijltjes gaan langs de sessies
     if (!e || !e.target) return;
-    if (e.key === 'Escape' && e.target.classList && e.target.classList.contains('coop-lijst-zoek')) {
+    if (e.key === 'Escape' && e.target.classList && e.target.classList.contains('coop-lijst-zoek') && state.lijstZoek) { // B: eerst de tekst weg, daarna gaat B terug (22-11)
       e.preventDefault(); state = reduce(state, { t: 'lijst-zoek', tekst: '' }); draw(); return;
     }
     if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && e.target.classList && e.target.classList.contains('coop-sessie-knop')) {

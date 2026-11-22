@@ -12,7 +12,7 @@ import { PAD_BUTTONS, PAD_MAPS, PAD_COOP, GAME_PAD_CTX, buttonSlots, nintendoSwa
 import { getSettings, onSettingsChange } from './settings.js';
 import { sendKey } from './input.js';
 import { playerBusy } from './busy.js';
-import { radialDeadzone, pickPad, spatialNext, DEAD } from './padlogic.js';
+import { radialDeadzone, pickPad, spatialNext, nextSelectIndex, isPadTextField, DEAD } from './padlogic.js';
 import { noteDevice, onDeviceChange } from './inputdevice.js';
 import { hapticScale, hapticFrame, makeHapticState, eventProfile, drainHapticEvents, playHaptic } from './haptics.js';
 import { reducedMotion } from './motion.js';
@@ -283,11 +283,29 @@ const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select
 function menuFallback(a, ev) {
   if (ev.defaultPrevented) return;
   const el = document.activeElement;
+  // een keuzelijst (<select>) opent niet met een nagebootste toets: A stapt naar de volgende optie, X naar de vorige (controller-review 22-11)
+  if ((a === 'enter' || a === ' ' || a === 'delete') && el && el.tagName === 'SELECT') {
+    const j = nextSelectIndex([...el.options].map((o) => !o.disabled), el.selectedIndex, a === 'delete' ? -1 : 1);
+    if (j >= 0 && j !== el.selectedIndex) {
+      el.selectedIndex = j;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    return;
+  }
+  // B in een tekstveld gaat eerst uit het veld (een niveau terug), anders bleef B er dood: het veld houdt zijn eigen toetsen
+  if (a === 'escape' && isPadTextField(el)) { leaveTextField(el); return; }
   if ((a === 'enter' || a === ' ') && el && el !== document.body) {
     if (el.matches('button, a, [role="button"], [role="tab"], [role="radio"], summary, input[type="checkbox"]')) el.click();
     return;
   }
   if (!a.startsWith('arrow')) return;
+  stepFocus(a);
+}
+
+// de focus een stap in een richting: eerst de buur op het scherm, anders door de lijst heen
+function stepFocus(a) {
+  const el = document.activeElement;
   const scope = (el && el.closest && el.closest('[role="dialog"], [role="alertdialog"]')) || document.querySelector('[role="dialog"]:not([hidden]), [role="alertdialog"]:not([hidden])') || document.body;
   const list = [...scope.querySelectorAll(FOCUSABLE)].filter((b) => b.getClientRects().length && !b.closest('[hidden]'));
   if (!list.length) return;
@@ -299,6 +317,12 @@ function menuFallback(a, ev) {
   const next = list[j];
   next.focus({ preventScroll: true });
   next.scrollIntoView({ block: 'nearest' });
+}
+
+function leaveTextField(el) {
+  stepFocus('arrowup');
+  if (document.activeElement === el) stepFocus('arrowdown');
+  if (document.activeElement === el) el.blur();
 }
 
 const dz = (x, y) => radialDeadzone(x, y, DEAD);

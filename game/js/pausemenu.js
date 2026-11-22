@@ -484,7 +484,8 @@ const HINTS = {
 const SHEET_NOTE = {};
 // a fixed controller glyph (the menu's own buttons)
 const pg =(slot) => `<span class="pm-pad-g" data-g-raw>${padGlyphInner(slot)}</span>`;
-const PAD_KEYS = { '↑': 'dpad', '↓': null, '←': 'dpad', '→': null, Enter: 'a', Esc: 'b', Q: 'lb', E: 'rb', Klik: 'a', Scroll: 'rt', M: 'view' };
+// T (Tour of Vakken) en F8 (fotomodus) hebben geen controllerknop: de knoppen zelf staan in het scherm; de hint verdwijnt bij een controller (22-11)
+const PAD_KEYS = { '↑': 'dpad', '↓': null, '←': 'dpad', '→': null, Enter: 'a', Esc: 'b', Q: 'lb', E: 'rb', Klik: 'a', Scroll: 'rt', M: 'view', T: null, F8: null };
 const PAD_LABEL = { 'zet als doel': 'zet als doel', 'toets wijzigen': 'indelen' };
 
 // HOME is Spel > Overzicht: de plek waar het menu opent en waar Esc naartoe leidt
@@ -1677,9 +1678,8 @@ function enterSection(id) {
 
 const FOCUSABLE = 'button, input, select, [tabindex]';
 function visibleFocusables(scope) {
-  // a controller can't type: it skips the search fields
-  const pad = isPadActive();
-  return [...scope.querySelectorAll(FOCUSABLE)].filter((el) => !el.disabled && el.tabIndex >= 0 && el.getClientRects().length && !el.closest('[hidden]') && !(pad && el.type === 'search'));
+  // een controller bereikt de zoekvelden ook (22-11): A opent het schermtoetsenbord (padkeyboard.js) en B verlaat het veld weer (gamepad.js)
+  return [...scope.querySelectorAll(FOCUSABLE)].filter((el) => !el.disabled && el.tabIndex >= 0 && el.getClientRects().length && !el.closest('[hidden]'));
 }
 
 // Q/E and [ ] switch the visible tab row of the section; Spel > Samen spelen has a
