@@ -263,6 +263,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [HERKENNINGSPUNTEN.md](<HERKENNINGSPUNTEN.md>) | Album van de kerken, molens en borgen in de provincie: data, telling en de route naar het dichtstbijzijnde open punt (#820). |
 | [BUGS-OPEN-20-11.md](<BUGS-OPEN-20-11.md>) | Stand van de open bugs en wensen op 20-11 voor 0.64.0 (Samen spelen, Bourtange, bruggen, missies): wat in code zit, wat niemand zag en wat te groot is, met schatting. |
 | [HERTEST-TRIAGE.md](<HERTEST-TRIAGE.md>) | Triage van de 485 issues met label hertest: per categorie wat in code bewezen is, wat beeldbewijs nodig heeft en een werklijst van 30. |
+| [HERTEST-22-11.md](<HERTEST-22-11.md>) | Draaiboek van de hertest-ronde van 22-11: scenes per issue, de ene bewijspagina met Opgelost / Nog niet / Nieuw punt en het sluiten met gh (dry-run standaard). |
 | [ONDERZOEK-REFERENTIEGAMES.md](<ONDERZOEK-REFERENTIEGAMES.md>) | Onderzoek naar wat bekende open-wereldgames leuk maakt, en wat GDE daarvan heeft overgenomen (#811–#821). |
 | [VERKENNING-PROVINCIE.md](<VERKENNING-PROVINCIE.md>) | Klein plan voor de verkenlaag buiten de stad (A15-A20) op bestaande infrastructuur. |
 | [WERELDKLEUREN-21-11.md](<WERELDKLEUREN-21-11.md>) | Werkdocument bij de vraag van de eigenaar: inventaris van de kleurbronnen van de 3D-wereld, de subtiele stap naar het designsysteem (`worldpalette.js`, `WERELD_DS_MENG`, `?dswereld`), kleurplaat, voor-en-na en wat niet is gezien. 
