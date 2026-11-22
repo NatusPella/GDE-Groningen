@@ -48,7 +48,7 @@ const BLADE_NAMES = ['Centrum', 'Hoofdstation', 'Zernike', 'Haren', 'Noorderplan
 const CHALK_LINES = [
   ['Koffie &', 'appeltaart', '€ 4,50'],
   ['Vandaag:', 'verse', 'snert!'],
-  ['Borrel', 'vanaf', '16.00 uur'],
+  ['Borrel', 'vanaf', '16:00 uur'],
 ];
 BLADE_NAMES.forEach((_, i) => {
   R['bladeR' + i] = [384, i * 40, 256, 40];

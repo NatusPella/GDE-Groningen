@@ -1,13 +1,13 @@
 // De actiebalk bij een klik op de kaart (#445). Puur: geen DOM, geen wereld.
-// Precies drie hoofdacties met een icoon en een korte tekst: Zet waypoint,
-// Reis erheen (met kosten en duur) en Info. Een waypoint dat er al staat wordt
-// 'Haal weg'. Zet waypoint is de enige 'zelf gaan'-route (een lijn op de kaart en een baken in de wereld);
+// Precies drie hoofdacties met een icoon en een korte tekst: Zet routepunt,
+// Reis erheen (met kosten en duur) en Info. Een routepunt dat er al staat wordt
+// 'Haal weg'. Zet routepunt is de enige 'zelf gaan'-route (een lijn op de kaart en een baken in de wereld);
 // Reis erheen gaat alleen over HOE je reist: trein, bus, taxi, boot (21-11, docs/KAART-POPUPS-21-11.md).
 import { MODE_LABEL, OV_MIN_M, WALK_V } from './ovopties.js';
 import { duurTekst } from './reistijd.js';
 
 export const ACTIE_IDS = ['waypoint', 'reis', 'info'];
-// een klik zo dicht bij het waypoint telt als een klik op het waypoint zelf
+// een klik zo dicht bij het routepunt telt als een klik op het routepunt zelf
 export const WAYPOINT_NEAR_M = 30;
 export const UITLEG_ID = 'kaart:uitleg';
 
@@ -18,7 +18,7 @@ export const ICONEN = { waypoint: 'plek', haalweg: 'kruis', reis: 'auto', info: 
 // De cijfertoets van een actie op de plekkaart (1 tot 3): een snelkeuze, in de knop zelf getoond. In de reispopup krijgt elke vervoersrij zijn cijfer (1 tot 9).
 export const ACTIE_TOETSEN = Object.freeze({ waypoint: '1', haalweg: '1', story: '1', reis: '2', info: '3' });
 
-export const GAST_REIS_MELDING = 'Reizen kan alleen in je eigen spel: je gaat niet mee naar de plek van wie het spel opende. Zet wel een waypoint en ga zelf.';
+export const GAST_REIS_MELDING = 'Reizen kan alleen in je eigen spel: je gaat niet mee naar de plek van wie het spel opende. Zet wel een routepunt en ga zelf.';
 export const GAST_REIS_KORT = 'Alleen in je eigen spel';
 
 // De vervoerswijzen van Reis erheen, in vaste volgorde. status 'actief': het spel kan dit echt (ovopties.js rekent de route, reisrit.js speelt de rit).
@@ -42,13 +42,13 @@ export function besteRit(opts) {
   return ritten.find((o) => o.aanbevolen) || ritten.filter((o) => o.afford).sort((a, b) => a.etaS - b.etaS)[0] || null;
 }
 
-// Staat het waypoint op de plek waar je klikte?
+// Staat het routepunt op de plek waar je klikte?
 export function opWaypoint(waypoint, spot) {
   return !!(waypoint && spot && Math.hypot(waypoint.x - spot.x, waypoint.y - spot.y) < WAYPOINT_NEAR_M);
 }
 
 // De vijf-seconden-check (#445) als pure functie: wat doet een klik op deze plek?
-// Een klik zet het waypoint; een tweede klik erop (of dichtbij) haalt hem weg;
+// Een klik zet het routepunt; een tweede klik erop (of dichtbij) haalt het weg;
 // een klik elders vervangt hem, want er is er één tegelijk.
 export function klikActie(waypoint, spot) {
   if (opWaypoint(waypoint, spot)) return 'weg';
@@ -64,10 +64,10 @@ export function actieModel({ spot, speler, waypoint, opts = [], fmt = (m) => `${
   const staat = opWaypoint(waypoint, spot);
   const rit = besteRit(opts);
   const acties = [];
-  if (staat) acties.push({ id: 'haalweg', icoon: ICONEN.haalweg, label: 'Haal weg', sub: 'Het waypoint verdwijnt van kaart en wereld' });
+  if (staat) acties.push({ id: 'haalweg', icoon: ICONEN.haalweg, label: 'Haal weg', sub: 'Het routepunt verdwijnt van kaart en wereld' });
   else if (verhaal) acties.push({ id: 'story', icoon: ICONEN.verhaal, label: 'Volg het verhaal', sub: 'Je route volgt weer het verhaal' });
-  else acties.push({ id: 'waypoint', icoon: ICONEN.waypoint, label: 'Zet waypoint', sub: waypoint ? 'Zelf gaan · vervangt je huidige waypoint (er is er één)' : `Zelf gaan · een lijn en ${fmt(afstand)} afstand` });
-  // geen betaalbaar vervoer: de plekkaart zegt waarom (de popup legt het per vervoerswijze uit), en Zet waypoint blijft de weg
+  else acties.push({ id: 'waypoint', icoon: ICONEN.waypoint, label: 'Zet routepunt', sub: waypoint ? 'Zelf gaan · vervangt je huidige routepunt (er is er één)' : `Zelf gaan · een lijn en ${fmt(afstand)} afstand` });
+  // geen betaalbaar vervoer: de plekkaart zegt waarom (de popup legt het per vervoerswijze uit), en Zet routepunt blijft de weg
   const geen = rit ? '' : (reisKeuzes(opts, afstand).map((r) => r.disabled).find(Boolean) || '');
   const reis = { id: 'reis', icoon: ICONEN.reis, label: 'Reis erheen', sub: rit ? `Trein, bus, taxi of boot · ${euro(rit.price)} · ${rit.eta || `± ${duurTekst(rit.etaS)}`}` : (geen || 'Geen vervoer hierheen') };
   if (gast) { reis.disabled = true; reis.reden = GAST_REIS_MELDING; reis.sub = GAST_REIS_KORT; }
@@ -99,7 +99,7 @@ function ritUitleg(o) {
 
 // De reiskeuze: een rij per ACTIEF vervoer (trein, bus, taxi, boot), met een zin, de kosten, de duur, aanbevolen en, als het niet kan, de reden.
 // Beschikbaar eerst (aanbevolen bovenaan, dan de snelste), daarna wat te duur of geblokkeerd is, daarna wat er niet is, elk in vaste volgorde.
-// Zelf gaan is geen rij: dat is Zet waypoint. Een gast ziet dezelfde rijen, uitgeschakeld. De cijfertoets (1 tot 9) volgt de volgorde van de rijen.
+// Zelf gaan is geen rij: dat is Zet routepunt. Een gast ziet dezelfde rijen, uitgeschakeld. De cijfertoets (1 tot 9) volgt de volgorde van de rijen.
 export function reisKeuzes(opts, afstandM, { gast = false } = {}) {
   const rit = besteRit(opts);
   const lijst = REIS_MODI.filter((m) => m.status === 'actief').map((m, i) => {
@@ -124,26 +124,26 @@ export function infoRegels({ spot, sub = '', afstand, fmt = (m) => `${Math.round
 
 // Eerste keer bij de kaart: korte uitleg, te sluiten en terug te vinden met de Hulp-knop op de kaart (21-11) en bij Besturing, Hulp (helpoverview.js).
 export const KAART_UITLEG = [
-  'Klik op een plek of een icoon en kies: Zet waypoint, Reis erheen of Info.',
-  'Er is één waypoint tegelijk. Klik er nog eens op, of kies Haal weg, om hem te wissen.',
-  'Reis erheen laat je met de trein, de bus, de taxi of de boot reizen: dat kost tijd en geld. Zet waypoint is zelf gaan: een lijn op de kaart en een baken in de wereld.',
+  'Klik op een plek of een icoon en kies: Zet routepunt, Reis erheen of Info.',
+  'Er is één routepunt tegelijk. Klik er nog eens op, of kies Haal weg, om het te wissen.',
+  'Reis erheen laat je met de trein, de bus, de taxi of de boot reizen: dat kost tijd en geld. Zet routepunt is zelf gaan: een lijn op de kaart en een baken in de wereld.',
   'De legenda achter Lagen legt elk icoon en elke lijn uit; zet lagen daar aan of uit.',
   'Op de minikaart staat het doel dat je volgt als rond icoon tegen de rand, met de afstand erbij: geel is de route van het verhaal, paars is jouw eigen doel. Een klein rond icoon wacht even.',
 ];
 // Alleen voor een gast in Samen spelen: waypoint kan, reizen niet.
-export const GAST_UITLEG = 'In Samen spelen kun je wel een waypoint zetten en zelf gaan, maar niet reizen met trein, bus, taxi of boot: dat kan alleen in je eigen spel.';
+export const GAST_UITLEG = 'In Samen spelen kun je wel een routepunt zetten en zelf gaan, maar niet reizen met trein, bus, taxi of boot: dat kan alleen in je eigen spel.';
 
 // De legenda bovenaan het luik Lagen (#445): wat een klik doet, en dat er één
 // waypoint met een lijn en de afstand is. Een gast leest erbij wat wel kan.
 export const LEGENDA_UITLEG = [
-  'Klik op een icoon of een plek: Zet waypoint, Reis erheen (met kosten en duur) of Info.',
-  'Eén waypoint tegelijk, met een lijn en de afstand; nog een klik erop haalt hem weg.',
+  'Klik op een icoon of een plek: Zet routepunt, Reis erheen (met kosten en duur) of Info.',
+  'Eén routepunt tegelijk, met een lijn en de afstand; nog een klik erop haalt het weg.',
 ];
-export const GAST_LEGENDA = 'Als gast kun je een waypoint zetten en zelf gaan; reizen met trein, bus, taxi of boot kan alleen in je eigen spel.';
+export const GAST_LEGENDA = 'Als gast kun je een routepunt zetten en zelf gaan; reizen met trein, bus, taxi of boot kan alleen in je eigen spel.';
 export function legendaRegels({ gast = false } = {}) {
   return gast ? [...LEGENDA_UITLEG, GAST_LEGENDA] : LEGENDA_UITLEG.slice();
 }
 
 // De hint bij je eigen plek op de kaart (#445), en de kaart als je op jezelf klikt.
 export const HIER_TITEL = 'Je staat hier';
-export const HIER_HINT = 'Kies een andere plek of een icoon om een waypoint te zetten of te reizen.';
+export const HIER_HINT = 'Kies een andere plek of een icoon om een routepunt te zetten of te reizen.';

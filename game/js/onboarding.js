@@ -68,7 +68,7 @@ const LESSONS = [
   {
     id: 'eerstedag',
     when: (w, s) => s.has('tedoen') && !busy(w),
-    card: () => ({ title: 'Je eerste dag', body: 'Kleding en spuiterij helpen tegen de politie. {5} zet een waypoint.' }),
+    card: () => ({ title: 'Je eerste dag', body: 'Kleding en spuiterij helpen tegen de politie. {5} zet een routepunt.' }),
   },
   {
     id: 'samen',

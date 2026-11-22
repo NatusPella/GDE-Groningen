@@ -740,7 +740,7 @@ function settingsHtml() {
         <p data-bench-text></p>
         <div class="m-acts"><button type="button" class="m-bp" data-action="bench-go">Starten</button><button type="button" class="m-bt" data-action="bench-cancel">Annuleren</button></div>
       </div>
-      <div class="m-li pm-row">${rowName('Diagnose', keyText('Videokaart, schermverversing en snelheid in één blok om te kopiëren of door te sturen ({CTRL}+{SHIFT}+{G})'))}<button type="button" class="m-bg" data-action="gpuinfo">Kopieer technische info</button></div>
+      <div class="m-li pm-row">${rowName('Diagnose', keyText('Videokaart, schermverversing en snelheid in één blok om te kopiëren of door te sturen ({CTRL}+{SHIFT}+{G})'))}<button type="button" class="m-bg" data-action="gpuinfo">Technische info kopiëren</button></div>
       <div class="pm-confirm" data-gpu-warn hidden>
         <p data-gpu-warn-text></p>
         <p data-gpu-help hidden>Zo kies je de snelle videokaart in Windows: open Instellingen › Systeem › Beeldscherm › Graphics, kies GDE Groningen in de lijst (of voeg de app toe met Bladeren), klik op Opties en kies Hoge prestaties. Start het spel daarna opnieuw. Zit je beeldscherm aan het moederbord in plaats van aan de videokaart, steek de kabel dan in de videokaart.</p>

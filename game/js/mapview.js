@@ -1453,7 +1453,7 @@ function drawStaticOverlay(ctx) {
     }
   }
   // #807 A15: één uitkijkpunt per streek (verkenpunten.js), uit de bestaande punten;
-  // klikken zet er een waypoint, zoals bij een bezienswaardigheid. #902: de hover noemt
+  // klikken zet er een routepunt, zoals bij een bezienswaardigheid. #902: de hover noemt
   // het gebied dat je ermee opent en waarom je erheen gaat; het punt zelf blijft altijd
   // staan (het is juist hoe je een onbekende streek ontdekt).
   if (layerOn('uitkijkpunt')) {
@@ -2500,7 +2500,7 @@ function handleClick(world, sx, sy, shift = false) {
     else teleportTo(world, { x: wx, y: wy, name: plekNaam(veld && veld.naam, streetAt(wx, wy, 60), wijkAt(wx, wy)) });
     return;
   }
-  // een klik op het waypoint zelf haalt het weg (#445): de tweede klik wist hem
+  // een klik op het routepunt zelf haalt het weg (#445): de tweede klik wist het
   if (h && h.isGoal && klikActie(getUserWaypoint(), { x: h.x, y: h.y }) === 'weg') { hideCard(); clearUserWaypoint(); return; }
   const stand = !h && !veld && !koop ? pickMarker(state.standMarkers, wx, wy, state.scale) : null;       // Snackimperium (#1102): een standplaats
   if (state.card) { hideCard(); if (!h && !veld && !koop && !stand) return; }
@@ -2509,7 +2509,7 @@ function handleClick(world, sx, sy, shift = false) {
   // epic Bezit (#1098): een perceel op de kaartlaag Te koop: de perceelkaart met Koop, Doel en Info
   if (koop) { const o = parcelOffer(koop.id); if (o) { showCard(world, { name: o.name, sub: pointerSub(o), x: koop.x, y: koop.y, spot: true, bezit: koop.id }, sx, sy); return; } }
   if (stand) { const r = spotRows().find((q) => q.id === stand.id); if (r) { showCard(world, { name: r.name, sub: pitchTipLine(r), x: r.x, y: r.y, spot: true, standplaats: r.id }, sx, sy); return; } }
-  // je eigen plek: een hint waar je staat, geen waypoint naar jezelf
+  // je eigen plek: een hint waar je staat, geen routepunt naar jezelf
   if (h && h.self) { showCard(world, h, sx, sy); return; }
   // een marker: een kaartje met wat het is en "Zet als doel"
   if (h) { showCard(world, h, sx, sy); return; }
@@ -2521,11 +2521,11 @@ function handleClick(world, sx, sy, shift = false) {
   }
   // Een klik op een plek: het doel is precies die plek (#502). Tot nu toe schoof
   // de kaart de klik naar de dichtstbijzijnde weg zodra die binnen 30 m lag, en
-  // stond je waypoint dus naast waar je klikte. Alleen een klik in een gebouw
+  // stond je routepunt dus naast waar je klikte. Alleen een klik in een gebouw
   // schuift naar de gevel: daar kan niemand staan en de route komt er niet.
   const [x, y] = klikDoel(state.map, wx, wy);
   const name = streetAt(x, y, 40) || wijkAt(x, y) || '';
-  // een klik op een plek: eerst kiezen wat je wilt (#445), niet meteen een waypoint
+  // een klik op een plek: eerst kiezen wat je wilt (#445), niet meteen een routepunt
   showCard(world, { name: name || 'Plek op de kaart', sub: wijkAt(x, y) && name !== wijkAt(x, y) ? wijkAt(x, y) : '', x, y, spot: true }, sx, sy);
 }
 
@@ -2558,8 +2558,8 @@ function showCard(world, h, sx, sy) {
   const ik = jijVan(world);
   const d = Math.hypot(h.x - ik.x, h.y - ik.y);
   const pips = it && it.medal != null ? `<span class="mv-pips">${[1, 2, 3].map((m) => `<span class="mv-pip" data-m="${m}"${it.medal >= m ? ' data-on' : ''} title="${MEDALS[m]}">${'BZG'[m - 1]}</span>`).join('')}</span>` : '';
-  const meta = [it ? it.meta : h.sub, formatDistance(d), h.isGoal ? 'jouw waypoint' : ''].filter(Boolean).map(escHtml).join(' · ');
-  // de actiebalk (#445): Zet waypoint / Reis erheen / Info, met reizen als eigen uitgelegde stap
+  const meta = [it ? it.meta : h.sub, formatDistance(d), h.isGoal ? 'jouw routepunt' : ''].filter(Boolean).map(escHtml).join(' · ');
+  // de actiebalk (#445): Zet routepunt / Reis erheen / Info, met reizen als eigen uitgelegde stap
   const keep = state.card && state.card.h === h ? state.card : null;
   const stap = keep ? keep.stap || null : null;
   const gast = world.coopRole === 'client' && !!world.coopNet;
@@ -2580,7 +2580,7 @@ function showCard(world, h, sx, sy) {
     const sel = opts.find((o) => o.id === gekozen);
     const prijs = sel ? (sel.price > 0 ? `€ ${sel.price}` : 'gratis') : '';
     const melding = gast ? GAST_REIS_MELDING
-      : !gekozen ? 'Er gaat geen vervoer naar deze plek. Zet een waypoint om er zelf heen te gaan.'
+      : !gekozen ? 'Er gaat geen vervoer naar deze plek. Zet een routepunt om er zelf heen te gaan.'
       : sel && !sel.afford ? (sel.blokkade || 'Je hebt te weinig geld voor deze rit.') : '';
     popup = { naam: it ? it.title : h.name, afstand: formatDistance(d), rijen, gekozen, kleur, gast, melding,
       reis: gekozen && sel && !gast ? { label: `Reis nu · ${prijs} · ${sel.eta || ''}`.trim(), uitgeschakeld: !sel.afford } : null };
@@ -2599,7 +2599,7 @@ function showCard(world, h, sx, sy) {
   if (!popup) focusPlekkaart(stap === 'info' ? '[data-card="info"]' : null);
 }
 
-// Eerste focus van de plekkaart (21-11): de primaire actie (Zet waypoint, of Haal weg / Volg het verhaal), zodat Enter en de A-knop meteen iets doen
+// Eerste focus van de plekkaart (21-11): de primaire actie (Zet routepunt, of Haal weg / Volg het verhaal), zodat Enter en de A-knop meteen iets doen
 // en de D-pad en pijltjes er vanaf lopen. Programmatische focus na een muisklik toont geen ring (focus-visible), dus de muis ziet er niets van.
 function focusPlekkaart(sel) {
   const el = state.cardEl && !state.cardEl.hidden ? state.cardEl : null;
@@ -2608,7 +2608,7 @@ function focusPlekkaart(sel) {
 }
 
 // De reispopup (21-11): een eigen venster over de kaart in plaats van een plekkaart die groeit. Een rij per vervoerswijze (reisKeuzes), elke rij
-// kiest met kies:, Reis nu (rij) bevestigt; Zelf gaan is geen keuze meer (dat is Zet waypoint). Esc en Terug sluiten naar de plekkaart, Enter bevestigt,
+// kiest met kies:, Reis nu (rij) bevestigt; Zelf gaan is geen keuze meer (dat is Zet routepunt). Esc en Terug sluiten naar de plekkaart, Enter bevestigt,
 // de focus blijft binnen het venster (kaartToets). Eerste focus: Reis nu, de primaire actie; na een keuze met Enter of een cijfer springt de focus naar Reis nu.
 function syncReisPopup(popup) {
   const body = state.overlay && state.overlay.querySelector('.mapview-body');
@@ -2859,7 +2859,7 @@ function cardAction(world, act) {
     showCard(world, c.h);
     return;
   }
-  // Zelf gaan bestaat niet meer als reisoptie (21-11): dat is Zet waypoint ('waypoint' hieronder)
+  // Zelf gaan bestaat niet meer als reisoptie (21-11): dat is Zet routepunt ('waypoint' hieronder)
   if (act === 'rij' && state.reis) {
     const { opts, gekozen, dest } = state.reis;
     const o = opts.find((x) => x.id === gekozen);
@@ -2902,10 +2902,10 @@ function standActie(world, c, act) {
   showCard(world, c.h);
 }
 
-// Zet waypoint: een missie of klus wordt jouw doel, een plek wordt het ene waypoint.
+// Zet routepunt: een missie of klus wordt jouw doel, een plek wordt het ene routepunt.
 function zetWaypoint(world, c, h) {
   const missie = c.it && c.it.goal && (c.it.goal === 'story' || c.it.goal.kind === 'mission');
-  if (h.samen && !missie && world.addMessage) world.addMessage(h.samen.tekst, 3); // samen spelen: dit onderdeel werkt nog niet (helemaal) samen; het waypoint wordt wel gezet (bij een missie meldt playMission het)
+  if (h.samen && !missie && world.addMessage) world.addMessage(h.samen.tekst, 3); // samen spelen: dit onderdeel werkt nog niet (helemaal) samen; het routepunt wordt wel gezet (bij een missie meldt playMission het)
   if (missie) chooseTodo(world, c.it);
   else if (h.goal) setGoal(h.goal);
   else if (h.spot) setUserWaypoint(h.x, h.y, h.name || '');
@@ -2946,7 +2946,7 @@ const LEGEND = [
   { group: 'Altijd', folded: true, rows: [
     { kind: 'player', label: 'Jij', note: 'en wie er met je meerijdt' },
     { kind: 'missionIdle', label: 'Verhaal', dyn: 'story' },
-    { kind: 'userWaypoint', label: 'Jouw waypoint', dyn: 'goal', note: 'een klik erop of Haal weg haalt hem weg' },
+    { kind: 'userWaypoint', label: 'Jouw routepunt', dyn: 'goal', note: 'een klik erop of Haal weg haalt het weg' },
     { kind: 'route', label: 'Route', note: 'dik en geel: wat je volgt (verhaal of missie); paars gestreept: jouw eigen doel; puntjes: klus; streep-punt: opknappen of repareren; dunne lijnen wachten' },
     { kind: 'navdoel', label: 'Doel dat je volgt', note: 'een rond icoon met de afstand; kleine ronde iconen wachten (geel verhaal, paars jouw doel, oranje klus, roze opknappen)' },
   ] },
@@ -3289,7 +3289,7 @@ export function initMapView(world) {
     '<button type="button" class="m-bg mv-close" data-act="close" style="display:none">Sluiten</button></div></div>' +
     '<div class="mapview-body"><canvas class="mapview-canvas"></canvas>' +
     '<div class="mapview-zoom"><button type="button" class="m-bg" data-act="in" aria-label="Inzoomen">' + icoon('plus') + '</button><button type="button" class="m-bg" data-act="out" aria-label="Uitzoomen">' + icoon('min') + '</button><button type="button" class="m-bg" data-act="centre" aria-label="Naar jezelf">' + icoon('doel') + '</button><button type="button" class="m-bg" data-act="hulp" aria-label="Uitleg bij de kaart" title="Uitleg bij de kaart">' + icoon('vraag') + '</button></div>' +
-    '<div class="mv-goal"><span class="m-eb">Je route</span><span class="mapview-route"></span><button type="button" class="m-bt" data-act="clear" hidden>Haal waypoint weg</button><button type="button" class="m-bt" data-act="avoid" aria-pressed="false" hidden>Snelwegen vermijden</button></div>' +
+    '<div class="mv-goal"><span class="m-eb">Je route</span><span class="mapview-route"></span><button type="button" class="m-bt" data-act="clear" hidden>Haal routepunt weg</button><button type="button" class="m-bt" data-act="avoid" aria-pressed="false" hidden>Snelwegen vermijden</button></div>' +
     '<div class="mapview-osm">© OpenStreetMap-bijdragers</div>' +
     '<div class="mapview-tp" hidden>Kies een plek: daar sta je meteen · ' + keyTextHtml('{ESC}') + ' stopt</div><div class="mapview-tooltip"></div><div class="mapview-card" hidden></div><div class="mv-naamkaart" hidden aria-live="polite"></div><aside class="mapview-legend" id="mv-legend" hidden></aside></div>';
   document.body.appendChild(overlay);

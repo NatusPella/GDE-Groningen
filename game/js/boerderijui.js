@@ -107,7 +107,7 @@ function perceel(b, geld) {
     begin + blok +
     `<div>${blok ? '' : `<p>${volgende ? `Volgende klus op het actieve perceel: <b>${esc(volgende)}</b>${k && k.totaal ? ` (kost ${euro(k.totaal)})` : ''}.` : wacht ? 'Nu is er niets te doen: het gewas groeit.' : 'Nu is er niets te doen.'}</p>` + (s.schuurKg ? `<p>In de schuur: ${nl(s.schuurKg)} kg ${esc(B.GEWASSEN[s.schuurGewas].naam.toLowerCase())}, klaar om af te leveren.</p>` : '')}` +
     '</div>' +
-    (gast ? `<p class="mut">Je speelt mee: de klussen doe je in je eigen spel.</p><p><button type="button" class="m-bt" data-bd-weg="1">Zet de akker op je kaart</button></p>`
+    (gast ? `<p class="mut">Je speelt mee: de klussen doe je in je eigen spel.</p><p><button type="button" class="m-bt" data-bd-weg="1">Zet de akker op de kaart</button></p>`
       : meerHtml('Werk zelf op het land met je eigen trekker en werktuigen, of start de bijbaan Eigen boerderij bij Hoogkerk voor loonwerk met een gehuurde machine.', 'Hoe werk ik?')) +
     loonwerkBlok(b, geld, gast);
 }

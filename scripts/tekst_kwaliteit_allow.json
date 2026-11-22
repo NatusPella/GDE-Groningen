@@ -1,0 +1,113 @@
+{
+  "note": "Bewust toegestane gevallen voor scripts/tekst_kwaliteit_audit.mjs. Elke regel heeft een reden (why). rule = de regel, file = deel van het pad, ctx = deel van de tekst, term = het gevonden woord (optioneel).",
+  "allow": [
+    {
+      "rule": "placeholder",
+      "file": "audio.js",
+      "ctx": "NaN in de mix",
+      "why": "diagnosemelding voor ontwikkelaars (audiodiag, het geluidsrapport); komt niet als speltekst in beeld"
+    },
+    {
+      "rule": "placeholder",
+      "file": "audiodiag.js",
+      "ctx": "NaN in de mix",
+      "why": "diagnosemelding voor ontwikkelaars (audiodiag, het geluidsrapport); komt niet als speltekst in beeld"
+    },
+    {
+      "rule": "dubbele-spatie",
+      "file": "countrybuilding.js",
+      "ctx": "vec3(",
+      "why": "shadercode, geen tekst"
+    },
+    {
+      "rule": "eenheid",
+      "file": "cutscript.js",
+      "ctx": "'foot'",
+      "why": "foutmelding voor scenarioschrijvers met de waarde van een parameter (cutscript), geen speltekst"
+    },
+    {
+      "rule": "leesteken",
+      "file": "devflags.js",
+      "ctx": "quality:",
+      "why": "ontwikkelaarsvlaggen met een voorbeeld van de syntaxis; geen speltekst"
+    },
+    {
+      "rule": "dubbele-spatie",
+      "file": "loket3d.js",
+      "ctx": "STADHUIS",
+      "why": "bordtekst op een canvas, de dubbele spatie spreidt de woorden rond het scheidingsteken"
+    },
+    {
+      "rule": "dubbele-spatie",
+      "file": "serverlijst.js",
+      "ctx": "spaties en .",
+      "why": "opsomming van de toegestane tekens, de leestekens staan er zelf in"
+    },
+    {
+      "rule": "dubbele-spatie",
+      "file": "office3d.js",
+      "ctx": "12 aug",
+      "why": "schermlog met uitgelijnde kolommen op het kantoorscherm"
+    },
+    {
+      "rule": "dubbele-spatie",
+      "file": "pausemenu.js",
+      "ctx": "met . en ,",
+      "why": "de toetsen punt en komma staan er zelf als teken"
+    },
+    {
+      "rule": "dubbele-spatie",
+      "file": "profileoverlay.js",
+      "ctx": "street level",
+      "why": "technische naamgeving van de profielkaart (niet in de speltekst), geen zin"
+    },
+    {
+      "rule": "dubbele-spatie",
+      "file": "profileoverlay.js",
+      "ctx": "grade",
+      "why": "technische naamgeving van de profielkaart (niet in de speltekst), geen zin"
+    },
+    {
+      "rule": "datumtijd",
+      "file": "audiocredits.js",
+      "ctx": "city birds",
+      "why": "bestandsnaam van een opname in de geluidslicentielijst: de naam van de bron, niet vertaalbaar"
+    },
+    {
+      "rule": "dubbele-spatie",
+      "file": "shopui.js",
+      "ctx": "KRAS HIER",
+      "why": "kraskaart: de dubbele spatie spreidt de herhaalde tekst"
+    },
+    {
+      "rule": "engels-restant",
+      "file": "sidejob_taxi.js",
+      "ctx": "please",
+      "why": "bewust: een buitenlandse toerist in de taxi spreekt Engels met de speler (de vertaling volgt direct)"
+    },
+    {
+      "rule": "dubbele-spatie",
+      "file": "stationtravel.js",
+      "ctx": "ingedrukt houden",
+      "why": "rijbord met spatie rond de scheidingspunten voor de leesbaarheid op het bord"
+    },
+    {
+      "rule": "engels-restant",
+      "file": "tilestore.js",
+      "ctx": "tile worker",
+      "why": "technische foutmelding voor de ontwikkelaar (bijdrage aan console), geen speltekst"
+    },
+    {
+      "rule": "hoofdletter",
+      "file": "CHANGELOG.md",
+      "ctx": "vraag Meedoen?",
+      "why": "de vraag staat tussen woorden als titel van een scherm; geen zinseinde"
+    },
+    {
+      "rule": "dubbele-spatie",
+      "file": "CHANGELOG.md",
+      "ctx": "Houd , laat",
+      "why": "citaat van de oude tekst, met de komma-toets als teken"
+    }
+  ]
+}

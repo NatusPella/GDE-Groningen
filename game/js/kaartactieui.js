@@ -30,7 +30,7 @@ export function sluitHtml() {
 }
 
 // de reiskeuze: een rij per vervoerswijze met icoon, een zin, de kosten, de duur, 'aanbevolen', de reden als het niet kan en de cijfertoets in de rij zelf.
-// Zelf gaan is geen rij meer: dat is Zet waypoint (21-11).
+// Zelf gaan is geen rij meer: dat is Zet routepunt (21-11).
 export function reisHtml(rijen, gekozen, kleur = {}) {
   const rij = (r) => {
     const sel = r.id === gekozen && !r.geenRoute;
@@ -42,7 +42,7 @@ export function reisHtml(rijen, gekozen, kleur = {}) {
       `<span class="mv-kt"><span class="mv-kk"><span class="mv-kl">${esc(r.label)}</span> ${r.aanbevolen ? '<i class="mv-aanb">aanbevolen</i>' : ''}</span> ` +
       `${r.uitleg ? `<span class="mv-ku">${esc(r.uitleg)}</span> ` : ''}<span class="mv-kd">${feiten}</span></span>${knopToets(r.toets, { rechts: true })}</button>`;
   };
-  return `<div class="mv-reiskeuze" role="group" aria-label="Hoe wil je reizen?"><p class="mv-uit">Kies hoe je reist. Liever zelf gaan? Zet dan een waypoint.</p>${rijen.map(rij).join('')}</div>`;
+  return `<div class="mv-reiskeuze" role="group" aria-label="Hoe wil je reizen?"><p class="mv-uit">Kies hoe je reist. Liever zelf gaan? Zet dan een routepunt.</p>${rijen.map(rij).join('')}</div>`;
 }
 
 export function infoHtml(regels) {
@@ -67,7 +67,7 @@ export function uitlegHtml({ gast = false } = {}) {
 
 // De reiskeuze als eigen popup (21-11): de plekkaart blijft compact, 'Reis erheen' opent dit venster. Een rij per vervoerswijze (trein, bus,
 // taxi, boot) met kosten, duur en de reden als het niet kan (gast, te weinig geld, geen verbinding); onderaan Reis nu (Enter, A) en Terug (Esc, B)
-// met de toets IN de knop, en elke rij draagt zijn cijfertoets. Zelf gaan is er niet: dat is Zet waypoint op de plekkaart.
+// met de toets IN de knop, en elke rij draagt zijn cijfertoets. Zelf gaan is er niet: dat is Zet routepunt op de plekkaart.
 // model: { naam, afstand, rijen, gekozen, kleur, gast, melding, reis: { label, uitgeschakeld, reden } | null }
 export function reisPopupHtml(m) {
   const rijen = m.rijen && m.rijen.length ? reisHtml(m.rijen, m.gekozen, m.kleur || {}) : '';
@@ -87,7 +87,7 @@ export function legendaHintHtml({ gast = false } = {}) {
   return `<div class="mv-leg-hint" data-gast="${gast ? 1 : 0}">` + legendaRegels({ gast }).map((l) => `<p class="hint">${esc(l)}</p>`).join('') + '</div>';
 }
 
-// de kaart als je op jezelf klikt: geen waypoint naar je eigen plek, wel waar je staat
+// de kaart als je op jezelf klikt: geen routepunt naar je eigen plek, wel waar je staat
 export function hierHtml(plek = '') {
   return `<div class="mv-hier"><b>${esc(HIER_TITEL)}</b>${plek ? `<p class="mv-hier-plek">${esc(plek)}</p>` : ''}<p class="mv-note">${esc(HIER_HINT)}</p></div>`;
 }

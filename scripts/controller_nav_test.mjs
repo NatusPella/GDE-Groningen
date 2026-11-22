@@ -66,7 +66,7 @@ ok(pm.includes("e.__gde === 'pad' && mapControlList(root).includes(t)"), 'alleen
 ok(pm.includes("tab === 'map' && !inRail && e.__gde === 'pad') toggleMapControls"), 'Tab van de controller op de kaart wisselt tussen doek en knoppen; die van het toetsenbord wisselt van onderdeel');
 // de kaartkaart: een kolom knoppen onder elkaar, de D-pad loopt er van boven naar beneden doorheen en niet eruit
 const kaartkaart = [0, 1, 2, 3].map((i) => ({ x: 600, y: 300 + i * 44, w: 220, h: 36 }));
-ok([0, 1, 2].every((i) => spatialNext(kaartkaart, i, 'down') === i + 1) && spatialNext(kaartkaart, 3, 'down') === -1, 'de kaartkaart: omlaag door Zet waypoint, Reis erheen, Info en Sluiten');
+ok([0, 1, 2].every((i) => spatialNext(kaartkaart, i, 'down') === i + 1) && spatialNext(kaartkaart, 3, 'down') === -1, 'de kaartkaart: omlaag door Zet routepunt, Reis erheen, Info en Sluiten');
 
 // ---------- 5. de beoordeling van een sweepresultaat ----------
 ok(bevindingen({ onbereikbaar: [], aKlik: 'ok', bTerug: 'sluit', kbHint: [], woordHint: [] }).length === 0, 'een gaaf scherm heeft geen bevindingen');

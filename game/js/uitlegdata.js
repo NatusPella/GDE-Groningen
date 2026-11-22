@@ -84,7 +84,7 @@ export const UITLEG_DATA = Object.freeze({
       { icoon: 'plek', animatie: 'geen', tekst: '{LMB} Klik een plek: waypoint of reis erheen' },
       { icoon: 'kaart', animatie: 'geen', tekst: '{M} of {ESC} sluit de kaart' },
     ],
-    meer: 'Een tweede klik op het waypoint haalt het weg. Er is er één tegelijk.',
+    meer: 'Een tweede klik op het routepunt haalt het weg. Er is er één tegelijk.',
   },
   // ---- de light sims krijgen hun stappen uit hun eigen status-bestand (hengelstatus.js enz.); de animatie volgt uit de tekst ----
 });

@@ -224,7 +224,7 @@ export function drawKompasRand(ctx, S, items, opties = {}) {
 
 // De grote kaart (mapview.js): dezelfde taal op de plek van het doel zelf. Het doel dat je volgt is een rond icoon met de afstandstag eronder, wachtende doelen
 // zijn kleine iconen. items: [{ sx, sy, kleur, icoon, actief, tekst, zonderSchijf }] in schermpixels; s: kaartschaal (1 = de maat van de minikaart).
-// zonderSchijf: het doel heeft al zijn eigen pin (jouw waypoint): alleen de tag komt eronder.
+// zonderSchijf: het doel heeft al zijn eigen pin (jouw routepunt): alleen de tag komt eronder.
 // De puls van het actieve doel (22-11): één zwelling van 250 ms zodra het doel verschijnt of wisselt, daarna stil, en altijd stil bij
 // Minder beweging (opties.beweging === false). Zo blijft het doel opvallen zonder te blijven trillen.
 export const PULS_MS = 250;
