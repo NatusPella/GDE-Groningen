@@ -102,7 +102,7 @@ await t('lobby: Verbinding testen vraagt eerst toestemming, meet, toont de uitsl
   assert.ok(!L.view(s).buttons.some((b) => b.act === 'logbestand'), 'zonder de app geen logbestand');
 });
 await t('versiecontrole: de gast ziet welke versies er zijn en wat te doen', () => {
-  let s = L.createLobby({ direct: false, rtc: true, versie: '0.38.0' });
+  let s = L.reduce(L.createLobby({ direct: false, rtc: true, versie: '0.38.0' }), { t: 'kies', rol: 'gast' }); // een weigering komt altijd bij een gast met een rol (een late melding zonder rol doet niets)
   s = L.reduce(s, { t: 'status', status: 'geweigerd', reason: 'versie', ander: '0.37.1' });
   const v = L.view(s); const tekst = v.lines.join(' '); // playerstatus.js: de titel is "Andere versie", de uitleg en wat te doen staan in de regels
   assert.equal(v.title, 'Andere versie'); assert.match(tekst, /0\.37\.1/); assert.match(tekst, /0\.38\.0/); assert.match(tekst, /Installeer allebei de nieuwste versie/);

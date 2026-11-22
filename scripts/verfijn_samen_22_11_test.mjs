@@ -1,9 +1,12 @@
 // Verfijnronde Samen spelen (22-11): regressietests voor wat de ronde vond (docs/VERFIJNING-22-11-SAMEN.md).
 //   node scripts/verfijn_samen_22_11_test.mjs
 import assert from 'node:assert/strict';
+import { samenStatus } from '../game/js/coopstatus.js';
+import fs from 'node:fs';
 import * as L from '../game/js/lobby.js';
 import { foutUitleg, KOPIEER } from '../game/js/playerstatus.js';
 import * as M from '../game/js/coopmeedoen.js';
+import { afstandTekst } from '../game/js/coopspelers.js';
 
 let n = 0;
 const t = (naam, f) => { f(); n++; };
@@ -124,6 +127,22 @@ t('Spel starten: een fout tijdens het starten geeft de knop terug en zegt wat er
   assert.equal(L.view(na).buttons.find((b) => b.act === 'start-spel').disabled, false, 'opnieuw proberen kan');
   assert.match(L.reduce(s, { t: 'start-mislukt' }).error, /starten lukte niet/);
   assert.equal(L.reduce(na, { t: 'start-mislukt', msg: 'x' }).startBezig, false, 'zonder lopende start verandert alleen de melding');
+});
+
+// 12. afstand: nooit "1000 m"
+t('afstand in de spelerslijst: de grens tussen meters en kilometers klopt', () => {
+  assert.equal(afstandTekst(996), '1,0 km'); assert.equal(afstandTekst(994), '990 m'); assert.equal(afstandTekst(1004), '1,0 km');
+  assert.equal(afstandTekst(14.9), 'bij je'); assert.equal(afstandTekst(15), '20 m'); assert.equal(afstandTekst(1550), '1,6 km');
+  for (let d = 0; d < 5000; d += 7) assert.doesNotMatch(afstandTekst(d), /^1000 m$/, String(d));
+  assert.equal(afstandTekst(NaN), ''); assert.equal(afstandTekst(Infinity), '');
+});
+
+// 13. het register: de convoy-stap staat op werkt (de dubbele sleutel is weg) en het commentaar is leesbaar
+t('coopstatus: convoy werkt samen en het commentaar bevat geen losse tekens', () => {
+  assert.equal(samenStatus('stap', 'convoy'), 'werkt');
+  const src = fs.readFileSync(new URL('../game/js/coopstatus.js', import.meta.url), 'utf8');
+  assert.equal((src.match(/convoy: (WERKT|DEELS|NEE)/g) || []).length, 1, 'één sleutel convoy in STAP');
+  assert.ok(!src.includes('`n  //'), 'geen losse backtick-n in het commentaar');
 });
 
 console.log(`verfijn_samen_22_11_test: ${n}/${n} ok`);

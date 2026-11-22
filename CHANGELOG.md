@@ -13,6 +13,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Prestaties
 - Prestaties (#1074, #1067): als het spelvenster verborgen of op de achtergrond is, doen de vaste controles van de overlays, het Samen-paneel en het aanraakscherm niets meer; de kartmotor wordt bij het verlaten van de baan echt stopgezet. Samen spelen: lokaal per speler, geen netwerkwijziging; testsessies met `?stil` blijven gewoon tikken. Voor de metingen staan er twee A-schakelaars (`?perfoff=boomfade`, `?perfoff=gevelfade`).
+### Samen spelen
+- Aansluiten: plak de hele regel uit je chat ("Kamercode: K3J9D-8F2MN.") en het spel vindt de code zelf. Na geen antwoord of een gesloten verbinding staat Opnieuw proberen klaar, met de code nog in het veld.
+- Wachtkamer: je ziet nu de naam en kleur die je koos, niet steeds "je figuur". Een mislukte start laat Spel starten niet meer grijs staan, en Annuleren laat geen spookscherm achter.
+- Spelerslijst: nooit twee dezelfde namen of figuren, ook niet voor een gast zonder eigen naam. Een nieuwe gast op een vrijgekomen plek erft het Meedoen-antwoord, de pings en de zinnen van zijn voorganger niet meer.
+- Foutrapport: het spel zegt eerlijk of het kopiëren lukte. De afstand in de spelerslijst springt niet meer van "1000 m" naar "1,0 km".
 ### Kaart en HUD
 - Kaart: een nieuwe streek ontdekt, ook onderweg met de kaart dicht? Dan gloeit de rand van de minimap even zomers geel op (zonder beweging blijft de gele rand even staan). Ontdekking is per speler; wie meespeelt ziet alleen de eigen gloed (#990).
 - Gebiedsnaam: de prestatie voor wijken, de telefoonpraatjes en de duif noemen alleen nog een stadswijk als je er echt in staat, niet meer vanaf een weg net buiten de stad. Lokaal per speler (#1077).
