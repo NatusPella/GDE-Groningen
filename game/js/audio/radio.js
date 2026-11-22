@@ -172,11 +172,14 @@ const GMUSIC_ARTISTS = {
   'Grunn is nooit klaar': 'Wierde Wind en de Bietenbende',
   'Laagwater om middernacht': 'Wad en Wolk',
   'Zon op de gracht': 'Lil Polder',
+  'Brugwachter Wacht Niet': 'Orgel Oosterhaven',
+  'Naar Boven, Nooit Naar Beneden': 'De Martinitoren Ensemble',
 };
 // file names can't carry every character of a title
 const GMUSIC_TITLES = {
   'De Geest Van Oosterpark': 'De Geest van Oosterpark',
   'Oosterpark is m n droom': "Oosterpark is m'n droom",
+  'Naar Boven Nooit Naar Beneden': 'Naar Boven, Nooit Naar Beneden',
 };
 const GMUSIC_SPARE_ARTISTS = ['Oma Trijntje & de Stadjers', 'Grunn Gang', 'Lord Stoepkrijt', 'De Diepenring Boys', 'Tante Tjoedie', 'Big Bommen Berend'];
 

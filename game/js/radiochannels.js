@@ -44,6 +44,8 @@ export const STYLES = {
   Net_te_dichtbij: ['ballad'],
   Laagwater_om_middernacht: ['ballad', 'kust'],
   Zon_op_de_gracht: ['hiphop'],
+  Brugwachter_Wacht_Niet: ['pop', 'volks'],
+  Naar_Boven_Nooit_Naar_Beneden: ['pop'],
   Zunneschien_op_t_wad: ['volks', 'kust'],
   Letste_bus_noar_nargens: ['ballad', 'volks'],
   Suikerbuiken_in_de_nacht: ['ballad'],
