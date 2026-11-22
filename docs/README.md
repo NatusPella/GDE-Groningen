@@ -114,6 +114,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [PERF-PLEISTERS.md](<PERF-PLEISTERS.md>) | Inventaris van prestatie-pleisters sinds 0.54.0 (schadelijk, maskerend, legitiem) met oorzaken en een schrapvolgorde. |
 | [PERF-CODE-21-11.md](<PERF-CODE-21-11.md>) | Code-ronde prestaties (#1015 benchmarkadvies, #1016 vooruitkijken, #1039 losse meshes): wijzigingen en meetpunten voor de eindsweep. |
 | [PERF-CODE2-22-11.md](<PERF-CODE2-22-11.md>) | Code-ronde prestaties 22-11 (#1039, #1046, #1067, #1074): wat er is gedaan, wat al op main stond en de meetpunten voor de Electron-run. |
+| [SPRINT-22-11-GEBIED.md](<SPRINT-22-11-GEBIED.md>) | Sprint 22-11, snelheid van de spellogica: buslijnen, minimapsporen en wegroutes sneller met microbenchmarks, en wat in beeld bekeken moet worden. |
 | [BENCHMARK-STERKE-PC-21-11.md](<BENCHMARK-STERKE-PC-21-11.md>) | Waarom de benchmark op een sterke pc (RX 9070 XT) laag uitkomt: hypotheses, wat bewezen is, wat niet, en een checklist voor de speler. |
 | [OPENING-TRAILER-BENCHMARK-21-11.md](<OPENING-TRAILER-BENCHMARK-21-11.md>) | Herbouw van de opening, de verhaaltrailer (cut ontdek) en de benchmark voor DS3 en het nieuwe verhaal: besluiten, wat er is, wat niet is bekeken. |
 | [OPENING-TRAILER-BENCHMARK-VERIFICATIE-21-11.md](<OPENING-TRAILER-BENCHMARK-VERIFICATIE-21-11.md>) | Draaiboek voor de Electron-sweep: wat in beeld en gehoor te controleren bij opening, trailer en benchmark. |
