@@ -8,13 +8,15 @@ import * as H from './holdingsmodel.js';
 import * as Z from './bezit.js';
 import * as P from './bezitprijs.js';
 import { getBoerderij } from './boerderijlive.js';
-import { staffOf, staffCapacity, wageOf, SKILL_NAME } from './farmstaff.js';
+import { staffOf, staffCapacity, wageOf, staffWages, SKILL_NAME } from './farmstaff.js';
+import { treatCost } from './parcelcare.js';
 import { branchOpen, branchHint } from './bezitgate.js';
 import { euro } from './geldtekst.js';
 import { noteMoney } from './finance.js';
 import { hoofdspeler } from './players.js';
 import { districtName } from './bezitnews.js';
-import { MOBILE_SPOTS } from './business.js';
+import { MOBILE_SPOTS, renovationCost } from './business.js';
+import { lastReportLine } from './bezitrapport.js';
 import { renderSnackPanel } from './snackui.js';
 import { renderClubPanel } from './clubui.js';   // het tabblad Club: clubaandelen en sponsors van de voetbalcarrière (#1113)
 import { SPECIES, herdOffers, herdSellValue, herdsOf } from './livestock.js';
@@ -30,10 +32,35 @@ const ROLE_NAME = { source: 'grondstof', processor: 'verwerking', outlet: 'verko
 
 const btn = (act, text, extra = '', uit = false) => `<button type="button" class="m-bt" data-bz="${act}"${extra}${uit ? ' disabled' : ''}>${text}</button>`;
 const locked = (branch) => `<div class="pm-pane-top"><h2 class="m-h2 td-h2">Nog dicht</h2></div><p class="mut">${esc(branchHint(branch))}</p>`;
-const confirmKey = (act, id) => `${act}:${id}`;
+const confirmKey = (act, id = '') => `${act}:${id}`;
+// Een koop met de reden achter een uitgeschakelde knop ("Je mist nog ...") en wat je na de koop overhoudt (verfijnronde bezit: de knop was grijs zonder uitleg).
+const buyAsk = (act, id, text, price, money, extra = '') => askOr(act, id, text, `Voor ${euro(price)}? Je houdt ${euro(money - price)} over.`, money < price ? ` title="Je mist nog ${euro(price - money)}"${extra}` : extra, money < price);
 const askOr = (act, id, text, sure, extra = '', uit = false) => (ui.confirm === confirmKey(act, id)
   ? `<span class="bd-zeker">${sure} ${btn(act, 'Ja', ` data-id="${esc(id)}" data-ok="1"${extra}`)} ${btn('annuleer', 'Nee')}</span>`
   : btn(act, text, ` data-id="${esc(id)}"${extra}`, uit));
+
+// Een bulkknop die geld kost vraagt een tweede druk met een schatting van de kosten (de rest van het scherm doet dat ook bij elke koop).
+export function bulkCost(a, bezit, ids) {
+  const what = a === 'bulk-mieren' ? 'mieren' : a === 'bulk-wespen' ? 'wespen' : null;
+  return what ? ids.reduce((s, id) => s + treatCost(bezit.parcels[id], what), 0) : 0;
+}
+function bulkBtn(act, text, extra = '', uit = false) {
+  if (ui.confirm !== confirmKey(act) || uit) return btn(act, text, extra, uit);
+  const cost = bulkCost(act, L.getBezit(), H.selectedIds(ui.sel, H.holdingRows(L.getBezit(), getBoerderij(), {})));
+  return `<span class="bd-zeker">${cost > 0 ? `Ongeveer ${euro(cost)}. Zeker?` : 'Dit kost zaaigoed en loonwerk. Zeker?'} ${btn(act, 'Ja', ' data-ok="1"')} ${btn('annuleer', 'Nee')}</span>`;
+}
+
+// Het laatste dagrapport (bezitrapport.js) blijft in het overzicht staan: de melding verdwijnt na een paar seconden.
+function rapportHtml() {
+  const t = lastReportLine();
+  return t ? `<p class="mut" data-rapport="1">${esc(t)}</p>` : '';
+}
+
+// Renovatie met de prijs op de knop (voorheen pas na de druk te zien) en een tweede druk; bij een pand in orde staat de knop uit.
+function renoBtn(act, id, biz, money) {
+  const cost = renovationCost(biz);
+  return cost > 0 ? buyAsk(act, id, `Renovatie ${euro(cost)}`, cost, money) : btn(act, 'In orde', ` data-id="${esc(id)}"`, true);
+}
 
 // ---- Overzicht ----
 export function summaryHtml({ bezit, farm, money = 0, day = 0, news = null, chains = null, board = null, products = [] } = {}) {
@@ -45,21 +72,21 @@ export function summaryHtml({ bezit, farm, money = 0, day = 0, news = null, chai
   const shown = H.sortRows(H.filterRows(rows, { region: ui.filter.region || undefined, soort: ui.filter.soort || undefined, level: ui.filter.level || undefined }), ui.sort);
   const opt = H.filterOptions(rows);
   const sel = (key, label, items) => `<label class="bz-sel">${label}<select data-bz-filter="${key}"><option value="">Alles</option>${items.map((v) => `<option value="${esc(v)}"${ui.filter[key] === v ? ' selected' : ''}>${esc(v)}</option>`).join('')}</select></label>`;
-  const tiles = [['Percelen', own.length], ['Hectare', ha(sum.ha)], ['Panden', bezit.buildings.size], ['Opbrengst per dag', euro(sum.incomeDay)]].map(([k, v]) => `<span class="bz-tegel"><small>${k}</small><b>${v}</b></span>`).join('');
+  const tiles = [['Percelen', own.length], ['Hectare', ha(sum.ha)], ['Panden', bezit.buildings.size], ['Opbrengst per dag', euro(sum.incomeDay)], ...(staff.workers.length ? [['Loon per dag', euro(staffWages(staff))]] : [])].map(([k, v]) => `<span class="bz-tegel"><small>${k}</small><b>${v}</b></span>`).join('');
   const attention = points.length ? `<ul class="bz-lijst">${points.map((p) => `<li data-code="${p.code}">${esc(p.tekst)}</li>`).join('')}</ul>` : '<p class="mut">Niets dringends: alles loopt.</p>';
   const body = shown.slice(0, ui.more ? 200 : MAX_ROWS).map((r) => `<div class="bd-rij" data-row="${esc(r.id)}"><label class="bz-chk"><input type="checkbox" data-bz-sel="${esc(r.id)}"${ui.sel.has(r.id) ? ' checked' : ''} aria-label="Kies ${esc(r.name)}"></label>` +
     `<span class="bd-naam"><b>${esc(r.name)}</b><span class="bd-feiten"><span>${esc(r.soort)}</span><span>${ha(r.ha)} ha</span><span>${esc(r.stand)}</span><span>${H.LEVEL_NAME[r.level]}</span>${r.herd ? `<span>${r.herd.n} dieren</span>` : ''}${r.incomeDay ? `<span>${euro(r.incomeDay)} per dag</span>` : ''}</span></span>` +
     `<span class="bd-acties">${btn('doel', 'Doel', ` data-id="${esc(r.id)}"`)}</span></div>`).join('');
   const selN = H.selectedIds(ui.sel, rows).length;
-  const bulk = own.length ? `<div class="bz-bulk" role="group" aria-label="Voor de gekozen percelen"><span class="mut">${selN} gekozen</span> ${btn('kies-alles', 'Kies alles in de lijst')} ${btn('kies-niets', 'Kies niets')} ` +
-    `${btn('bulk-zaai', 'Zaai alles', '', !selN)} ${btn('bulk-oogst', 'Oogst alles', '', !selN)} ${btn('bulk-zelf', 'Zelf werken', '', !selN)} ${btn('bulk-verpacht', 'Verpachten', '', !selN)} ${btn('bulk-personeel', 'Personeel', '', !selN)}` +
+  const bulk = own.length ? `<div class="bz-bulk" role="group" aria-label="Voor de gekozen percelen"><span class="mut">${selN ? `${selN} gekozen` : 'Vink eerst percelen aan; dan werken de knoppen.'}</span> ${btn('kies-alles', 'Kies alles in de lijst')} ${btn('kies-niets', 'Kies niets')} ` +
+    `${bulkBtn('bulk-zaai', 'Zaai alles', '', !selN)} ${btn('bulk-oogst', 'Oogst alles', '', !selN)} ${btn('bulk-zelf', 'Zelf werken', '', !selN)} ${btn('bulk-verpacht', 'Verpachten', '', !selN)} ${btn('bulk-personeel', 'Personeel', '', !selN)}` +
     ` ${btn('bulk-verzeker', 'Verzeker tegen stortbui', ' title="3 euro per ha per speldag; dekt 80% van het verlies, geldt vanaf morgen"', !selN)} ${btn('bulk-onverzeker', 'Zeg verzekering op', '', !selN)}` +
-    ` ${btn('bulk-mieren', 'Bestrijd mieren', ' title="15 euro per ha, houdt tien speldagen stand"', !selN)} ${btn('bulk-wespen', 'Haal wespennest weg', ' title="40 euro per boomgaard, houdt tien speldagen stand"', !selN)}</div>` : '';
+    ` ${bulkBtn('bulk-mieren', 'Bestrijd mieren', ' title="15 euro per ha, houdt tien speldagen stand"', !selN)} ${bulkBtn('bulk-wespen', 'Haal wespennest weg', ' title="40 euro per boomgaard, houdt tien speldagen stand"', !selN)}</div>` : '';
   const staffHtml = `<h3 class="m-h3">Personeel</h3><p class="mut">${staff.workers.length} ${staff.workers.length === 1 ? 'medewerker' : 'medewerkers'} · ${staffCapacity(staff)} ha per speldag. Een arbeider haalt hooguit 80% van wat je zelf op het veld haalt: handwerk levert per handeling het meeste.</p>` +
     staff.workers.map((w) => `<div class="bd-rij"><span class="bd-naam"><b>${esc(w.name)}</b><span class="bd-feiten"><span>${SKILL_NAME[w.skill]}</span><span>${euro(wageOf(w))} per dag</span></span></span><span class="bd-acties">${askOr('ontsla', w.id, 'Ontslaan', 'Zeker?')}</span></div>`).join('') +
     `<div class="bz-bulk">${[1, 2, 3].map((k) => btn('huur', `Stel ${SKILL_NAME[k]} aan · ${euro(wageOf({ skill: k }))}`, ` data-skill="${k}"`, money < wageOf({ skill: k }))).join(' ')}</div>`;
   const empty = !own.length && !rows.length ? `<p class="mut">Je hebt nog geen percelen. Open de kaart en kies de laag Te koop, of kijk bij Te koop hier. Een eerste perceel kost ongeveer twee uur werk.</p>` : '';
-  return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Overzicht</h2></div><div class="bz-tegels">${tiles}</div>${attention}${newsHtml(news)}${empty}` +
+  return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Overzicht</h2></div><div class="bz-tegels">${tiles}</div>${attention}${rapportHtml()}${newsHtml(news)}${empty}` +
     `<div class="bz-filters" role="group" aria-label="Sorteren en filteren"><label class="bz-sel">Sorteren<select data-bz-sort>${H.SORTS.map((s) => `<option value="${s}"${ui.sort === s ? ' selected' : ''}>${SORT_NAME[s]}</option>`).join('')}</select></label>` +
     `${sel('region', 'Streek', opt.regions || [])}${sel('soort', 'Soort', opt.soorten || [])}${sel('level', 'Beheer', H.LEVELS)}</div>` + bulk + `<div class="bz-rijen">${body}</div>` +
     (shown.length > MAX_ROWS && !ui.more ? `<p>${btn('meer', `Toon alle ${shown.length}`)}</p>` : '') + staffHtml + veeHtml(bezit, rows, money) + chainsHtml(chains, money) + marketHtml(board, products) + `<p class="bd-melding" aria-live="polite">${esc(ui.msg)}</p>`;
@@ -75,7 +102,7 @@ export function veeHtml(bezit, rows, money = 0) {
   const kudde = kuddes.map((r) => `<div class="bd-rij" data-vee="${esc(r.id)}"><span class="bd-naam"><b>${esc(r.name)}</b><span class="bd-feiten"><span>${SPECIES[r.herd.sp].naam}</span><span>${r.herd.n} ${r.herd.n === 1 ? 'dier' : 'dieren'}</span>${r.herd.sick > 0 ? '<span class="bz-zwak">Ziek: dierenarts nodig</span>' : '<span>Gezond</span>'}</span></span>` +
     `<span class="bd-acties">${askOr('verkoop-vee', r.id, `Verkopen · ${euro(herdSellValue(herds[r.id]))}`, 'Zeker?')}</span></div>`).join('');
   const aanbod = vrij.slice(0, MAX_VEE_ROWS).map((r) => `<div class="bd-rij" data-vee-vrij="${esc(r.id)}"><span class="bd-naam"><b>${esc(r.name)}</b><span class="bd-feiten"><span>${ha(r.ha)} ha weiland</span><span>nog geen vee</span></span></span><span class="bd-acties">` +
-    herdOffers(bezit, r.id, money).map((o) => btn('koop-vee', `${o.naam} · ${o.n} · ${euro(o.cost)}`, ` data-id="${esc(r.id)}" data-sp="${o.sp}"`, !o.kan)).join(' ') + '</span></div>').join('');
+    herdOffers(bezit, r.id, money).map((o) => buyAsk('koop-vee', `${r.id}|${o.sp}`, `${o.naam} · ${o.n} · ${euro(o.cost)}`, o.cost, money, ` data-sp="${o.sp}"`)).join(' ') + '</span></div>').join('');
   const leeg = !weiden.length ? '<p class="mut">Je hebt nog geen weiland. Vee loopt op een weiland van jou: koop er een bij Te koop.</p>'
     : !kuddes.length && !vrij.length ? '<p class="mut">Je weilanden zijn te klein voor vee.</p>' : '';
   const meer = vrij.length > MAX_VEE_ROWS ? `<p class="mut">En nog ${vrij.length - MAX_VEE_ROWS} weilanden zonder vee.</p>` : '';
@@ -103,7 +130,7 @@ export function chainsHtml(chains, money = 0) {
       const bound = l.ref !== null && l.ref !== undefined;
       const pick = l.ownable ? `<label class="bz-sel">Van jou<select data-bz-bind="${esc(c.id)}|${esc(l.id)}"><option value="">${l.options.length ? 'Kies een pand' : 'Geen passend pand'}</option>${l.options.map((o) => `<option value="${esc(o.ref)}"${String(l.ref) === String(o.ref) ? ' selected' : ''}>${esc(o.label)}</option>`).join('')}</select></label>${bound ? ' ' + btn('keten-los', 'Los', ` data-chain="${esc(c.id)}" data-link="${esc(l.id)}"`) : ''}` : '';
       const trucks = !last ? `${btn('wagen-plus', 'Wagen erbij', ` data-chain="${esc(c.id)}" data-link="${esc(l.id)}"`)} ${l.trucks ? btn('wagen-min', 'Wagen weg', ` data-chain="${esc(c.id)}" data-link="${esc(l.id)}"`) : ''}` : '';
-      const up = l.owned ? btn('keten-uit', 'Uitbreiden', ` data-chain="${esc(c.id)}" data-link="${esc(l.id)}"`, money < 800) : '';
+      const up = l.owned ? askOr('keten-uit', `${c.id}|${l.id}`, `Uitbreiden ${euro(800)}`, `Voor ${euro(800)}? Doorvoer en buffer +25%.`, ` data-chain="${esc(c.id)}" data-link="${esc(l.id)}"`, money < 800) : '';
       const src = i === 0 && c.sources && c.sources.length ? `<details><summary>Bronnen kiezen (${c.picked ? `${c.picked} gekozen` : 'alles wat past'})</summary>${c.sources.map((s) => `<div>${btn('keten-bron', `${s.picked ? 'Uit: ' : 'Kies: '}${esc(s.name)} (${nl(s.kg)} kg)`, ` data-chain="${esc(c.id)}" data-id="${esc(s.id)}"`)}</div>`).join('')}</details>` : '';
       return `<div class="bz-schakel" data-link="${esc(l.id)}" data-own="${l.owned ? 1 : 0}"><b>${esc(l.label)}</b><small>${ROLE_NAME[l.role]} · ${l.owned ? 'van jou' : l.ownable ? 'niet van jou' : 'vast'}${l.trucks ? ` · ${l.trucks} ${l.trucks === 1 ? 'wagen' : 'wagens'} (${euro(l.wage)} per dag)` : ''}</small>` +
         `<div class="bz-balk" role="img" aria-label="Voorraad ${Math.round(l.fill * 100)}%"${l.fill >= 0.9 ? ' data-vol="1"' : ''}><i style="width:${Math.round(l.fill * 100)}%"></i></div>` +
@@ -130,10 +157,10 @@ export function businessesHtml({ money = 0, mine = [], near = [], day = 0, mobil
   const mineHtml = mine.length ? mine.map((m) => {
     const b = m.biz;
     return `<div class="bd-rij" data-osm="${m.osm}"><span class="bd-naam"><b>${esc(m.kind.type)} bij ${esc(m.place)}</b><span class="bd-feiten"><span>onderhoud ${Math.round(b.q)}%</span><span>waarde ${euro(Math.round(b.p))}</span>${b.cls === 'rent' && b.type === 'woning' ? `<span>${esc((L.rentView(b, day) || {}).text || '')}</span>` : ''}</span></span>` +
-      `<span class="bd-acties">${btn('reno', 'Renovatie', ` data-id="${m.osm}"`)} ${askOr('verkoop-pand', m.osm, `Verkoop ${euro(P.sellValue(b.p))}`, 'Zeker?')}</span></div>`;
+      `<span class="bd-acties">${renoBtn('reno', m.osm, b, money)} ${askOr('verkoop-pand', m.osm, `Verkoop ${euro(P.sellValue(b.p))}`, 'Zeker?')}</span></div>`;
   }).join('') : '<p class="mut">Je hebt nog geen bedrijf. Koop hieronder een pand in de buurt: een winkel levert elke speldag omzet, ook als je er niet bent.</p>';
   const nearHtml = near.length ? near.map((o) => `<div class="bd-rij" data-osm="${o.osm}"><span class="bd-naam"><b>${esc(o.kind.type)} bij ${esc(o.town.name)}</b><span class="bd-feiten"><span>${Math.round(o.row.m2)} m2</span><span>${o.dist} m</span>${o.forSale ? `<span>${euro(o.price)}</span>` : `<span>${esc(o.reason)}</span>`}</span></span>` +
-    `<span class="bd-acties">${o.mine ? '' : o.forSale ? askOr('koop-pand', o.osm, `Koop ${euro(o.price)}`, `Voor ${euro(o.price)}?`, '', money < o.price) : ''}</span></div>`).join('') : '<p class="mut">Er staan geen koopbare bedrijfspanden binnen 250 meter van je.</p>';
+    `<span class="bd-acties">${o.mine ? '' : o.forSale ? buyAsk('koop-pand', o.osm, `Koop ${euro(o.price)}`, o.price, money) : ''}</span></div>`).join('') : '<p class="mut">Er staan geen koopbare bedrijfspanden binnen 250 meter van je.</p>';
   return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Bedrijven</h2></div><p class="mut">Monumenten, ziekenhuizen, politie en verhaalgebouwen blijven van de wereld.</p>` +
     `<h3 class="m-h3">Jouw bedrijven</h3>${mineHtml}${mobileHtml(mobile, mobileOffers, money, day)}<h3 class="m-h3">In de buurt</h3>${nearHtml}${homesHtml(homes, money)}<p class="bd-melding" aria-live="polite">${esc(ui.msg)}</p>`;
 }
@@ -141,7 +168,7 @@ export function businessesHtml({ money = 0, mine = [], near = [], day = 0, mobil
 // ---- de snackwagen (id frietwagen; business.js, mobiel bedrijf): kopen, standplaats kiezen, verkopen ----
 export function mobileHtml(mobile = [], offers = [], money = 0, day = 0) {
   const own = mobile.map((m) => `<div class="bd-rij" data-mobile="${esc(m.id)}"><span class="bd-naam"><b>${esc(m.def.label)}</b><span class="bd-feiten"><span>${esc(m.spotLabel)}</span><span>onderhoud ${Math.round(m.biz.q)}%</span><span>waarde ${euro(m.value)}</span>${m.forecast ? `<span>ongeveer ${euro(m.forecast.revenue)} omzet per dag</span>` : ''}</span><small class="mut">${esc(m.def.story)}</small></span>` +
-    `<span class="bd-acties">${Object.keys(MOBILE_SPOTS).map((k) => btn('plek', esc(MOBILE_SPOTS[k].label), ` data-id="${esc(m.id)}" data-spot="${esc(k)}"`, k === m.spot)).join(' ')} ${btn('reno-mobiel', 'Renovatie', ` data-id="${esc(m.id)}"`)} ${askOr('verkoop-mobiel', m.id, `Verkoop ${euro(Math.round((m.biz.p * 0.75) / 5) * 5)}`, 'Zeker?')}</span></div>`).join('');
+    `<span class="bd-acties">${Object.keys(MOBILE_SPOTS).map((k) => btn('plek', esc(MOBILE_SPOTS[k].label), ` data-id="${esc(m.id)}" data-spot="${esc(k)}"`, k === m.spot)).join(' ')} ${renoBtn('reno-mobiel', m.id, m.biz, money)} ${askOr('verkoop-mobiel', m.id, `Verkoop ${euro(Math.round((m.biz.p * 0.75) / 5) * 5)}`, 'Zeker?')}</span></div>`).join('');
   const shop = offers.map((o) => `<div class="bd-rij" data-offer="${esc(o.id)}"><span class="bd-naam"><b>${esc(o.label)} te koop</b><span class="bd-feiten"><span>${euro(o.price)}</span><span>geen pand nodig: je kiest zelf de standplaats</span></span><small class="mut">${esc(o.story)}</small></span><span class="bd-acties">${askOr('koop-mobiel', o.id, `Koop ${euro(o.price)}`, `Voor ${euro(o.price)}?`, '', money < o.price)}</span></div>`).join('');
   return `<h3 class="m-h3">Snackwagen</h3>${own}${shop}`;
 }
@@ -150,15 +177,15 @@ export function mobileHtml(mobile = [], offers = [], money = 0, day = 0) {
 export function homesHtml(homes = [], money = 0) {
   if (!homes.length) return '';
   const rows = homes.map((o) => `<div class="bd-rij" data-osm="${o.osm}" data-home="1"><span class="bd-naam"><b>Woning bij ${esc(o.town.name)}</b><span class="bd-feiten"><span>${Math.round(o.row.m2)} m2 grondvlak</span><span>${o.dist} m</span><span>${o.forSale ? euro(o.price) : esc(o.reason)}</span></span></span>` +
-    `<span class="bd-acties">${o.forSale ? askOr('koop-pand', o.osm, `Koop ${euro(o.price)}`, `Voor ${euro(o.price)}?`, '', money < o.price) : ''}</span></div>`).join('');
+    `<span class="bd-acties">${o.forSale ? buyAsk('koop-pand', o.osm, `Koop ${euro(o.price)}`, o.price, money) : ''}</span></div>`).join('');
   return `<h3 class="m-h3">Woningen in de buurt</h3><p class="mut">Een gekochte woning wordt verhuurd: elke speldag huur, tenzij de huurder verhuist (dan staat hij even leeg).</p>${rows}`;
 }
 
 // ---- Te koop ----
-export function forSaleHtml({ money = 0, offers = [] } = {}) {
+export function forSaleHtml({ money = 0, offers = [], loading = false } = {}) {
   if (!branchOpen('land')) return locked('land');
   const rows = offers.length ? offers.map((o) => `<div class="bd-rij" data-id="${esc(o.id)}"><span class="bd-naam"><b>${esc(o.name)}</b><span class="bd-feiten"><span>${esc(o.kindName)}</span><span>${ha(o.ha)} ha</span><span>bodem ${esc(o.soilWord)}</span><span>${o.dist} m</span><span>${euro(o.price)}</span></span></span>` +
-    `<span class="bd-acties">${btn('doel-perceel', 'Doel', ` data-id="${esc(o.id)}"`)} ${askOr('koop-perceel', o.id, `Koop ${euro(o.price)}`, `Voor ${euro(o.price)}?`, '', money < o.price)}</span></div>`).join('') : '<p class="mut">De index van percelen wordt geladen, of er is niets te koop in de buurt. Verklein de kaart voor meer.</p>';
+    `<span class="bd-acties">${btn('doel-perceel', 'Doel', ` data-id="${esc(o.id)}"`)} ${buyAsk('koop-perceel', o.id, `Koop ${euro(o.price)}`, o.price, money)}</span></div>`).join('') : (loading ? '<p class="mut" data-leeg="laden">De percelen worden nog geladen. Kom zo terug.</p>' : '<p class="mut" data-leeg="niets">Niets te koop binnen drie kilometer. Reis verder of kijk op de kaart met de laag Te koop.</p>');
   return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Te koop</h2></div><p class="mut">De dichtstbijzijnde percelen. Op de kaart zie je ze allemaal met de laag Te koop. Wie veel land heeft, betaalt meer voor het volgende perceel.</p>${rows}<p class="bd-melding" aria-live="polite">${esc(ui.msg)}</p>`;
 }
 
@@ -181,7 +208,7 @@ export function renderBezitPanels(els, world) {
   if (!L.getIndexNow()) L.ensureIndex().then(() => { if (els.rerender) els.rerender(); }).catch(() => {});
   if (els.overzicht) els.overzicht.innerHTML = summaryHtml({ bezit, farm, money, day, news: L.newsView(world), chains: L.chainViews(), board: L.priceBoard(ui.product), products: L.marketProducts() });
   if (els.bedrijven) { const p = playerPos(world); els.bedrijven.innerHTML = businessesHtml({ money, mine: L.myBusinesses(), near: L.buildingsNear(p.x, p.y), day, mobile: L.myMobile(), mobileOffers: L.mobileOffers(), homes: L.homesNear(p.x, p.y) }); }
-  if (els.tekoop) els.tekoop.innerHTML = forSaleHtml({ money, offers: nearbyOffers(world) });
+  if (els.tekoop) els.tekoop.innerHTML = forSaleHtml({ money, offers: nearbyOffers(world), loading: !L.getIndexNow() });
   if (els.snack) renderSnackPanel(els.snack, world);
   if (els.club) renderClubPanel(els.club, world);
   const redo = () => renderBezitPanels(els, world);
@@ -208,6 +235,7 @@ export function renderBezitPanels(els, world) {
   }
 }
 
+const BULK_PAID = ['bulk-zaai', 'bulk-mieren', 'bulk-wespen'];
 // Eén knop. Een koop of verkoop vraagt een tweede druk (data-ok), zoals de rest van de boerderij.
 function act(world, d, els) {
   const a = d.bz, id = d.id, ok = d.ok === '1';
@@ -222,22 +250,24 @@ function act(world, d, els) {
   else if (a === 'koop-perceel') { if (!ask(a)) { const r = L.koopPerceel(world, id); ui.msg = r.text; if (r.ok && world.addMessage) world.addMessage(r.text, 3); } }
   else if (a === 'koop-pand') { if (!ask(a)) { const r = L.koopPand(world, Number(id)); ui.msg = r.text; if (r.ok && world.addMessage) world.addMessage(r.text, 3); } }
   else if (a === 'verkoop-pand') { if (!ask(a)) ui.msg = L.verkoopPand(world, Number(id)).text; }
-  else if (a === 'reno') ui.msg = L.renovatePand(world, Number(id)).text;
+  else if (a === 'reno') { if (!ask(a)) ui.msg = L.renovatePand(world, Number(id)).text; }
   else if (a === 'buur') ui.msg = L.kiesBuur(world, d.choice).text;
   else if (a === 'keten-los') ui.msg = L.ontkoppelSchakel(d.chain, d.link).text;
   else if (a === 'keten-bron') ui.msg = L.kiesBron(d.chain, id).text;
   else if (a === 'wagen-plus') ui.msg = L.adjustWagons(d.chain, d.link, 1).text;
   else if (a === 'wagen-min') ui.msg = L.adjustWagons(d.chain, d.link, -1).text;
-  else if (a === 'keten-uit') ui.msg = L.schakelUitbreiden(world, d.chain, d.link).text;
+  else if (a === 'keten-uit') { if (!ask(a)) ui.msg = L.schakelUitbreiden(world, d.chain, d.link).text; }
   else if (a === 'koop-mobiel') { if (!ask(a)) { const r = L.koopMobiel(world, id); ui.msg = r.text; if (r.ok && world.addMessage) world.addMessage(r.text, 3); } }
   else if (a === 'verkoop-mobiel') { if (!ask(a)) ui.msg = L.verkoopMobiel(world, id).text; }
   else if (a === 'plek') ui.msg = L.setPitch(id, d.spot).text;
-  else if (a === 'reno-mobiel') ui.msg = L.renoveerMobiel(world, id).text;
+  else if (a === 'reno-mobiel') { if (!ask(a)) ui.msg = L.renoveerMobiel(world, id).text; }
   else if (a === 'huur') ui.msg = L.huurArbeider(world, Number(d.skill)).text;
-  else if (a === 'koop-vee') ui.msg = L.koopVee(world, id, d.sp).text;
+  else if (a === 'koop-vee') { if (!ask(a)) { const r = L.koopVee(world, String(id).split('|')[0], d.sp); ui.msg = r.text; if (r.ok && world.addMessage) world.addMessage(r.text, 3); } }
   else if (a === 'verkoop-vee') { if (!ask(a)) ui.msg = L.verkoopVee(world, id).text; }
   else if (a === 'ontsla') { if (!ask(a)) { L.ontslaArbeider(id); ui.msg = 'Ontslagen. De percelen van die arbeider staan weer op Zelf.'; } }
+  else if (a.startsWith('bulk-') && BULK_PAID.includes(a) && !ok) { ui.confirm = confirmKey(a); ui.msg = ''; }
   else if (a.startsWith('bulk-')) {
+    ui.confirm = null;
     const ids = H.selectedIds(ui.sel, rows);
     let r = null;
     if (a === 'bulk-zaai') r = H.bulkWork(bezit, farm, ids, 'zaaien', { money: world.money || 0, day: Math.floor(farm.uren / 24) });

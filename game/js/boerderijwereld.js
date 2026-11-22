@@ -18,6 +18,7 @@ import { RIJEN, RIJ_LEN } from './werkgang.js';
 import { DAY_LENGTH_S } from './daynight.js';
 import { isInWater } from './util.js';
 import { euro } from './geldtekst.js';
+import { oogstklaarLine } from './oogstmelding.js';
 import * as B from './boerderij.js';
 import * as PC from './percelen.js';
 import * as M from './machines.js';
@@ -806,15 +807,18 @@ export function updateBoerderijWereld(dt, w) {
 export const MELD_OOGST_S = 0.5;
 const vorigeStand = new Map();
 function meldOogstklaar(w, b) {
+  const nieuw = [];
   for (const id of Object.keys(b.bedrijf.percelen)) {
     const nu = statusIdVan(B.veldStand(b, id), b.uren), was = vorigeStand.get(id);
     vorigeStand.set(id, nu);
     if (nu === 'rijp' && was && was !== 'rijp') {
       const v = B.veldStand(b, id), g = B.GEWASSEN[v.gewas];
-      bericht(w, `${g ? g.naam : 'Je gewas'} op ${PC.perceelDef(id).naam} is oogstklaar. Zoek de lichtkolom en oogst met de maaidorser.`, 6);
-      try { sfxLinks.uiFx('ui_verzameld'); } catch (e) { /* geen geluid is geen ramp */ }
+      nieuw.push({ gewas: g ? g.naam : '', plek: PC.perceelDef(id).naam });
     }
   }
+  if (!nieuw.length) return;
+  bericht(w, oogstklaarLine(nieuw), 6);              // meer velden tegelijk: één samenvatting en één geluid
+  try { sfxLinks.uiFx('ui_verzameld'); } catch (e) { /* geen geluid is geen ramp */ }
 }
 
 // Een gast kan alleen sturen en remmen (zijn toetsen gaan niet naar jouw wereld): koppelen, de hef en de aftakas gaan voor hem vanzelf. Een werktuig dat

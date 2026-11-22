@@ -60,10 +60,10 @@ export function offerCardHtml(offer, { stap = null, melding = '', money = 0 } = 
     } else buttons = `<div class="mv-acties" role="group" aria-label="Perceel kopen"><button type="button" class="mv-actie" data-card="bezit-koop"><span class="mv-at"><span class="mv-al">Koop</span><small>${euro(offer.price)}</small></span></button></div>`;
   } else if (offer.mine && !offer.parcel.legacy) {
     if (stap === 'verkoop') {
-      buttons = `<div class="mv-acties" role="group" aria-label="Verkoop bevestigen"><p class="mv-note">Verkopen voor ${euro(offer.sellValue)}? Het veld en wat erop staat gaan mee.</p>` +
+      buttons = `<div class="mv-acties" role="group" aria-label="Verkoop bevestigen"><p class="mv-note">Verkopen voor ${euro(offer.sellValue + (offer.herdValue || 0))}? Het veld en wat erop staat gaan mee${offer.herdValue > 0 ? `; je kudde levert ${euro(offer.herdValue)} op` : ''}.</p>` +
         '<button type="button" class="mv-actie" data-card="bezit-verkoop-ok"><span class="mv-at"><span class="mv-al">Ja, verkoop</span><small>onomkeerbaar</small></span></button>' +
         '<button type="button" class="mv-actie" data-card="bezit-annuleer"><span class="mv-at"><span class="mv-al">Nee, houd het</span><small>terug</small></span></button></div>';
-    } else buttons = `<div class="mv-acties" role="group" aria-label="Perceel beheren"><button type="button" class="mv-actie" data-card="bezit-verkoop"><span class="mv-at"><span class="mv-al">Verkoop</span><small>${euro(offer.sellValue)}</small></span></button></div>`;
+    } else buttons = `<div class="mv-acties" role="group" aria-label="Perceel beheren"><button type="button" class="mv-actie" data-card="bezit-verkoop"><span class="mv-at"><span class="mv-al">Verkoop</span><small>${euro(offer.sellValue + (offer.herdValue || 0))}</small></span></button></div>`;
   }
   return `<div class="mv-bezit-kaart">${top}${dl}${melding ? `<p class="mv-note" role="status">${esc(melding)}</p>` : ''}${buttons}</div>`;
 }

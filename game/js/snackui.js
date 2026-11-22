@@ -16,6 +16,8 @@ const askOr = (act, id, text, sure, extra = '', uit = false) => (sui.confirm ===
   ? `<span class="bd-zeker">${sure} ${btn(act, 'Ja', ` data-id="${esc(id)}" data-ok="1"${extra}`)} ${btn('annuleer', 'Nee')}</span>`
   : btn(act, text, ` data-id="${esc(id)}"${extra}`, uit));
 // Een fase van het verhaal die nog dicht is (snackstory.js): de knop staat uit en er staat een hint van een personage (nooit een leeg scherm).
+// De reden achter een uitgeschakelde koopknop (verfijnronde bezit: grijs zonder uitleg).
+const miss = (money, price) => (money < price ? ` title="Je mist nog ${euro(price - money)}"` : '');
 const st = (v, k) => !!(v.stages && v.stages[k] && !v.stages[k].open);
 const stNote = (v, ...ks) => ks.filter((k) => st(v, k)).map((k) => `<p class="mut" data-stage="${k}">${esc(v.stages[k].hint)}</p>`).join('');
 const hh = (h) => `${String(h % 24).padStart(2, '0')}:00`;
@@ -38,11 +40,15 @@ function eventHtml(v) {
 
 function ownHtml(v) {
   const o = v.own;
-  if (!o.hasWagon) return `<h3 class="m-h3">Jouw snackwagen</h3><p class="mut">Je hebt nog geen snackwagen. Een kleine wagen kost ${euro(7500)} en draait zelf zodra hij op een standplaats staat.</p>${askOr('koop-wagen', 'snack', `Koop een snackwagen ${euro(7500)}`, `Voor ${euro(7500)}?`, '', v.money < 7500)}`;
+  if (!o.hasWagon) return `<h3 class="m-h3">Jouw snackwagen</h3><p class="mut">Je hebt nog geen snackwagen. Een kleine wagen kost ${euro(7500)} en draait zelf zodra hij op een standplaats staat.</p>${askOr('koop-wagen', 'snack', `Koop een snackwagen ${euro(7500)}`, `Voor ${euro(7500)}?`, miss(v.money, 7500), v.money < 7500)}`;
   const spot = o.spot ? v.spots.find((s) => s.id === o.spot) : null;
   const f = o.forecast;
   const next = SN.TIER_IDS[SN.TIER_IDS.indexOf(o.tier) + 1];
-  const knobs = `<div class="bz-bulk" role="group" aria-label="Openingstijd en prijs">` +
+  // Eerste winstlus: een wagen die thuis staat verdient niets. Zeg wat de volgende stap is en wat die minstens kost (verfijnronde bezit).
+  const frees = v.spots.filter((s) => s.status === 'vrij' && Number.isFinite(s.price)).map((s) => s.price);
+  const homeHint = !spot ? `<p class="mut" data-hint="thuis">Je wagen staat nog thuis en verdient niets. Koop hieronder een vergunning voor een standplaats${frees.length ? ` (vanaf ${euro(Math.min(...frees))})` : ''} en zet je wagen erheen.</p>` : '';
+  const menuHint = !o.menu.length ? '<p class="bz-zwak" data-hint="menu">Je menu is leeg: zonder product verkoop je niets. Zet hieronder iets op het menu.</p>' : '';
+  const knobs = homeHint + menuHint + `<div class="bz-bulk" role="group" aria-label="Openingstijd en prijs">` +
     `<span class="mut">Open vanaf ${hh(o.from)}</span> ${btn('open', '-1 uur', ` data-patch="from:${(o.from + 23) % 24}"`)} ${btn('open', '+1 uur', ` data-patch="from:${(o.from + 1) % 24}"`)} ` +
     `<span class="mut">${o.hours} uur open</span> ${btn('open', 'Korter', ` data-patch="hours:${o.hours - 1}"`, o.hours <= 4)} ${btn('open', 'Langer', ` data-patch="hours:${o.hours + 1}"`, o.hours >= 14)} ` +
     `<span class="mut">Prijs ${Math.round(o.pr * 100)}%</span> ${btn('open', 'Lager', ` data-patch="pr:${Math.round((o.pr - 0.05) * 100) / 100}"`, o.pr <= 0.7)} ${btn('open', 'Hoger', ` data-patch="pr:${Math.round((o.pr + 0.05) * 100) / 100}"`, o.pr >= 1.4)}</div>`;
@@ -50,10 +56,10 @@ function ownHtml(v) {
     const own = m.chainOwn >= 0.5 ? ' (uit je eigen keten)' : '';
     return btn('menu', `${m.on ? 'Af: ' : 'Op: '}${esc(m.label)} €${eur2(m.price)}${own}`, ` data-id="${esc(m.id)}" data-on="${m.on ? 1 : 0}"`, !m.unlocked || st(v, 'menu'));
   }).join(' ')}</div>${stNote(v, 'menu')}<p class="mut">Menu: ${o.menu.length} van ${o.tierDef.slots} plekken. Per klant ongeveer €${eur2(o.numbers.ticket)} omzet en €${eur2(o.numbers.cogs)} inkoop.${v.menu.some((m) => !m.unlocked) ? ' Burger, milkshake en softy vragen koeling.' : ''}</p>`;
-  const up = SN.UPGRADE_IDS.map((id) => (v.up.includes(id) ? `<span class="mut">${esc(SN.UPGRADES[id].label)}: aanwezig</span>` : askOr('upgrade', id, `${esc(SN.UPGRADES[id].label)} ${euro(SN.UPGRADES[id].price)}`, `Voor ${euro(SN.UPGRADES[id].price)}?`, '', v.money < SN.UPGRADES[id].price))).join(' ');
+  const up = SN.UPGRADE_IDS.map((id) => (v.up.includes(id) ? `<span class="mut">${esc(SN.UPGRADES[id].label)}: aanwezig</span>` : askOr('upgrade', id, `${esc(SN.UPGRADES[id].label)} ${euro(SN.UPGRADES[id].price)}`, `Voor ${euro(SN.UPGRADES[id].price)}?`, miss(v.money, SN.UPGRADES[id].price), v.money < SN.UPGRADES[id].price))).join(' ');
   return `<h3 class="m-h3">Jouw snackwagen</h3><div class="bd-rij" data-own="1"><span class="bd-naam"><b>${esc(o.tierDef.label)}</b><span class="bd-feiten"><span>${spot ? esc(spot.short) : 'nog thuis'}</span><span>voorraad voor ${o.stockDays} ${o.stockDays === 1 ? 'dag' : 'dagen'}</span>` +
     `${f ? `<span>vandaag ongeveer ${euro(f.net)} winst (${f.sold} klanten${f.unserved ? `, ${f.unserved} gemist` : ''})</span>` : ''}</span>${f ? `<small class="mut">${esc(f.note)}</small>` : ''}</span>` +
-    `<span class="bd-acties">${btn('vul', `Vul aan (${euro(SN.RESTOCK_FEE)})`, '', o.stockDays >= SN.STOCK_MAX)} ${next ? askOr('tier', 'own', `Grotere wagen ${euro(SN.TIERS[next].up)}`, `Voor ${euro(SN.TIERS[next].up)}?`, '', v.money < SN.TIERS[next].up) : ''}</span></div>${knobs}${offeringsBlock}<div class="bz-bulk">${up}</div>`;
+    `<span class="bd-acties">${btn('vul', `Vul aan (${euro(SN.RESTOCK_FEE)})`, '', o.stockDays >= SN.STOCK_MAX)} ${next ? askOr('tier', 'own', `Grotere wagen ${euro(SN.TIERS[next].up)}`, `Voor ${euro(SN.TIERS[next].up)}?`, miss(v.money, SN.TIERS[next].up), v.money < SN.TIERS[next].up) : ''}</span></div>${knobs}${offeringsBlock}<div class="bz-bulk">${up}</div>`;
 }
 
 function spotsHtml(v) {
@@ -61,8 +67,8 @@ function spotsHtml(v) {
   const rows = v.spots.slice().sort((a, b) => b.foot - a.foot).map((s) => {
     const feiten = [esc(s.place), STATUS_TEXT[s.status] + (s.claim ? ` (${esc(s.claim.name)})` : ''), s.status === 'jij' ? `nog ${s.daysLeft} dagen, verlengen ${euro(s.renew)}` : s.status === 'usmem' ? `overnemen ${euro(s.ask)}` : s.status === 'vrij' ? `vergunning ${euro(s.price)}` : '', s.wagon ? (s.wagon === 'own' ? 'jouw wagen staat er' : `wagen ${esc(s.wagon)} staat er`) : ''].filter(Boolean).map((x) => `<span>${x}</span>`).join('');
     let acts = btn('doel-plek', 'Doel', ` data-id="${esc(s.id)}"`);
-    if (s.status === 'vrij') acts += ' ' + askOr('vergunning', s.id, `Vergunning ${euro(s.price)}`, `Voor ${euro(s.price)}?`, '', v.money < s.price || st(v, 'stek'));
-    else if (s.status === 'usmem') acts += ' ' + askOr('neem-over', s.id, `Neem over ${euro(s.ask)}`, `Voor ${euro(s.ask)}?`, '', v.money < s.ask || st(v, 'keten'));
+    if (s.status === 'vrij') acts += ' ' + askOr('vergunning', s.id, `Vergunning ${euro(s.price)}`, `Voor ${euro(s.price)}?`, miss(v.money, s.price), v.money < s.price || st(v, 'stek'));
+    else if (s.status === 'usmem') acts += ' ' + askOr('neem-over', s.id, `Neem over ${euro(s.ask)}`, `Voor ${euro(s.ask)}?`, miss(v.money, s.ask), v.money < s.ask || st(v, 'keten'));
     else if (s.status === 'jij' && hasEmpty(s.id)) {
       if (v.own.hasWagon) acts += ' ' + btn('zet-wagen', 'Zet mijn wagen hier', ` data-id="${esc(s.id)}"`, st(v, 'standplaats'));
       acts += ' ' + askOr('vloot', s.id, `Extra wagen ${euro(v.wagonPrice)}`, `Voor ${euro(v.wagonPrice)} met een medewerker?`, '', v.money < v.wagonPrice || v.fleet.length >= SN.MAX_FLEET || st(v, 'team') || (v.fleet.length >= 1 && st(v, 'keten')));
@@ -126,7 +132,7 @@ function act(world, d) {
   const ask = (name) => { if (!ok) { sui.confirm = key(name, id); sui.msg = ''; return true; } sui.confirm = null; return false; };
   const say = (r) => { sui.msg = r.text || ''; if (r.ok && world.addMessage && r.cost) world.addMessage(r.text, 3); };
   if (a === 'annuleer') sui.confirm = null;
-  else if (a === 'koop-wagen') { if (!ask(a)) say(SL.buyVan(world)); }
+  else if (a === 'koop-wagen') { if (!ask(a)) { const r = SL.buyVan(world); say(r); if (r.ok) sui.msg += ' Koop nu een vergunning bij Standplaatsen en zet je wagen erheen.'; } }
   else if (a === 'vergunning') { if (!ask(a)) say(SL.koopVergunning(world, id)); }
   else if (a === 'neem-over') { if (!ask(a)) say(SL.acquireRivalSpot(world, id)); }
   else if (a === 'upgrade') { if (!ask(a)) say(SL.koopUpgrade(world, id)); }
