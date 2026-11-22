@@ -3,24 +3,34 @@
 // pull in the intro montage (a big, rarely used module) for a few birds.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getCamera } from './scene3d.js';
+import { duifMerged, duifWingGeometry, DUIF_PIVOT } from './duifmodel.js';
 
 const clamp01 = (t) => (t < 0 ? 0 : t > 1 ? 1 : t);
-const BIRD_GEO = new THREE.BoxGeometry(0.26, 0.11, 0.12);
-const WING_GEO = new THREE.PlaneGeometry(0.13, 0.26).rotateX(-Math.PI / 2).translate(0, 0, 0.13);
-const BIRD_MAT = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, side: THREE.DoubleSide });
-// one flock's geometry and material serve every bird: the scene's cleaner
-// (disposeObject) must not throw them away when a single flock is removed
-BIRD_GEO.userData.shared = true;
-WING_GEO.userData.shared = true;
-BIRD_MAT.userData.shared = true;
+// De zwerm gebruikt het middelniveau van het ene duivenmodel (duifmodel.js): een gladde romp met kop, staart en poten, en een
+// vleugel met veren die per vogel klapt. Geen doos met een plaatje meer. Romp en vleugel zijn gedeeld door alle zwermen.
+const FLOCK_SCALE = 0.9; // de duif van het model is 0,38 m lang; een stadsduif is ca. 0,33 m
+let BIRD_GEO = null, WING_GEO = null, BIRD_MAT = null;
+function sharedParts() {
+  if (BIRD_GEO) return;
+  BIRD_GEO = duifMerged('mid', {}, { wings: 'none', scale: FLOCK_SCALE });
+  WING_GEO = duifWingGeometry('mid').scale(FLOCK_SCALE, FLOCK_SCALE, FLOCK_SCALE);
+  BIRD_MAT = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, side: THREE.DoubleSide });
+  // one flock's geometry and material serve every bird: the scene's cleaner
+  // (disposeObject) must not throw them away when a single flock is removed
+  BIRD_GEO.userData.shared = true;
+  WING_GEO.userData.shared = true;
+  BIRD_MAT.userData.shared = true;
+}
 export const BIRDS = 64;
 
 // A pigeon flock as two instanced meshes (bodies, wings): a few dozen birds
 // in two draw calls. Scattered, they burst up and wheel round the square.
 // avoid (m): a bubble round the camera the flock keeps out of, so no bird
-// passes the lens as a huge low-poly shape; birds deep inside it are hidden.
-const TONES = [0x7c8088, 0x6a6e76, 0x8e9198, 0x5c5f66, 0xa3a6ab].map((c) => new THREE.Color(c));
+// passes the lens as a huge shape; birds deep inside it are hidden.
+// De tinten vermenigvuldigen de kleuren van het model: lichter en donkerder grijs, een witte en een bruine duif ertussen.
+const TONES = [0xffffff, 0xd9dbe2, 0xb9bcc6, 0xefe6dc, 0xc9b49e].map((c) => new THREE.Color(c));
 export function makeBirds(group, cx, cy, r, n = BIRDS, { avoid = 0 } = {}) {
+  sharedParts();
   const body = new THREE.InstancedMesh(BIRD_GEO, BIRD_MAT, n);
   const wings = new THREE.InstancedMesh(WING_GEO, BIRD_MAT, n * 2);
   body.frustumCulled = wings.frustumCulled = false;
@@ -44,6 +54,8 @@ export function scatterBirds(b, fromX, fromY) {
     p.h = a; p.fly = true;
   }
 }
+
+const _w = new THREE.Matrix4(), _r = new THREE.Matrix4(), _e = new THREE.Euler();
 
 export function updateBirds(b, dt, t) {
   const d = b.dummy;
@@ -87,16 +99,22 @@ export function updateBirds(b, dt, t) {
       size = clamp01((dl - b.avoid * 0.5) / 0.6);
     }
     const peck = p.fly ? 0 : Math.max(0, Math.sin(t * 2.2 + p.ph * 3)) * 0.5;
-    d.position.set(p.x, p.z + 0.07, p.y);
+    d.position.set(p.x, p.z + 0.147 * FLOCK_SCALE * size, p.y);
     d.rotation.set(0, -p.h, -peck);
     d.scale.set(size, size, size);
     d.updateMatrix();
     b.body.setMatrixAt(i, d.matrix);
     for (const side of [1, -1]) {
-      d.rotation.set(flap * side, -p.h, 0);
-      d.scale.set(size, size, size * side);
-      d.updateMatrix();
-      b.wings.setMatrixAt(i * 2 + (side > 0 ? 0 : 1), d.matrix);
+      // schouder van de vleugel op de romp; in de lucht slaat hij op en neer, op de grond ligt hij gevouwen langs de flank
+      _w.makeTranslation(DUIF_PIVOT.wing[0] * FLOCK_SCALE, DUIF_PIVOT.wing[1] * FLOCK_SCALE, DUIF_PIVOT.wing[2] * FLOCK_SCALE * side);
+      if (p.fly) _w.multiply(_r.makeRotationX(flap * side));
+      else {
+        _w.multiply(_r.makeRotationFromEuler(_e.set(0.95 * side, -1.55 * side, 0, 'XYZ')));
+        _w.multiply(_r.makeScale(1, 1, 0.62));
+      }
+      if (side < 0) _w.multiply(_r.makeScale(1, 1, -1));
+      _w.premultiply(d.matrix);
+      b.wings.setMatrixAt(i * 2 + (side > 0 ? 0 : 1), _w);
     }
   });
   b.body.instanceMatrix.needsUpdate = true;
