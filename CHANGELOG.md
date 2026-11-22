@@ -12,6 +12,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 (De coördinator voegt deze regels bij 0.65.0.)
 
 ### Mensen, voertuigen en dieren (sprint 22-11)
+- Meer kleur in het verkeer: tussen al het grijs, zwart en wit rijden nu ook blauwe, rode, champagnekleurige, groene en zilverblauwe auto's (grijs blijft de meerderheid, zoals op straat).
 - De bestuurder van een rijdende auto knippert niet meer aan en uit als de auto rond 70 meter van je rijdt: aan en uit lopen nu met een marge (hysterese), zoals de gevels. Alleen beeld; Samen spelen is niet geraakt.
 - Kippen op je weide zijn nu echte kippen (vier kleuren, hennen en hanen met kam, lellen en staart) in plaats van eenden. Het vee op een weide staat niet meer als een rij standbeelden: elk dier krijgt een vaste houding (rechtop, opzij kijkend of grazend). Samen spelen: het vee is per speler (#429); een gast ziet het niet, er verandert niets aan het net.
 
