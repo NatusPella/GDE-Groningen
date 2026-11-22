@@ -13,9 +13,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Kaart en HUD
 
-- Kaart: een nieuwe streek ontdekt, ook onderweg met de kaart dicht? Dan gloeit de rand van de minimap even zomers geel op (zonder beweging blijft de gele rand even staan). Ontdekking is per speler; wie meespeelt ziet alleen zijn eigen gloed (#990).
+- Kaart: een nieuwe streek ontdekt, ook onderweg met de kaart dicht? Dan gloeit de rand van de minimap even zomers geel op (zonder beweging blijft de gele rand even staan). Ontdekking is per speler; wie meespeelt ziet alleen de eigen gloed (#990).
 - Gebiedsnaam: de prestatie voor wijken, de telefoonpraatjes en de duif noemen alleen nog een stadswijk als je er echt in staat, niet meer vanaf een weg net buiten de stad. Lokaal per speler (#1077).
-- Hulp: het aanbod na twee mislukkingen laat met drie icoontjes zien wat de hulp verandert (tijd, schade, poorten) in plaats van een lap tekst. De schermlezer hoort nog steeds de hele tekst. Elke speler ziet zijn eigen aanbod (#989).
+- Hulp: het aanbod na twee mislukkingen laat met drie icoontjes zien wat de hulp verandert (tijd, schade, poorten) in plaats van een lap tekst. De schermlezer hoort nog steeds de hele tekst. Elke speler ziet het eigen aanbod (#989).
 
 ### Luchtroute
 
