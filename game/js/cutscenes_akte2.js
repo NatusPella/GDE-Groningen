@@ -120,6 +120,8 @@ export const SPECS_AKTE2 = {};
     props: {
       foto: { kind: 'bord', at: [4.8, -2.8, 1.2], face: 180 },
       lijstje: { kind: 'klembord', at: [2.7, 0.2, 1.0] },
+      // het prikbord waar de vijf namen aan komen (Tessa: "Vijf namen aan ons prikbord"); hangt naast de foto van 1953
+      prikbord: { kind: 'prikbord', at: [4.8, 1.7, 0], face: 180 },
       brij: { kind: 'doos', at: [1.6, 0.5, 0.85] },
     },
     // #741: Oma's naamkaart hoort bij haar eerste zichtbare scène (haar kamer, M08.3); de regie van de
@@ -321,6 +323,30 @@ export const SPECS_AKTE2 = {};
     wide: { from: [-3.4, 3.8, 2.9], to: [-1.8, 2.8, 2.3], look: 'mid:klaas,tessa@1.2', fov: 50, until: 1 },
   };
 }
+
+// --- M11.3: aan boord van het skûtsje, geen bal maar een broodtrommel met een briefje van Mem ----------------------------
+SPECS_AKTE2['M11.3'] = {
+  cast: {},
+  props: {
+    trommel: { kind: 'broodtrommel', at: [1.4, 0.2, 0.55], face: 0 },
+    briefje: { kind: 'briefje', at: [1.4, -0.12, 0.6], face: 20 },
+  },
+  open: [{ actor: 'tessa', face: 'prop:trommel' }, { actor: 'tammo', face: 'prop:trommel' }],
+  beats: [
+    { on: 'Een broodtrommel. Geen bal', actor: 'tammo', anim: 'look' },
+    { on: 'Er zit een briefje bij', actor: 'tessa', carry: 'briefje' },
+    { on: 'Zijn oma pakt nog', actor: 'tammo', anim: 'shrug' },
+    { on: '…Dat doen oma', actor: 'tessa', anim: 'look' },
+    { on: 'Je kijkt raar', actor: 'tammo', face: 'actor:tessa' },
+    { on: 'Het schommelt', actor: 'tessa', anim: 'shrug' },
+    { on: 'Geen bal. Dan halen', actor: 'tessa', anim: 'point' },
+  ],
+  shots: [
+    // sleutelmoment: Tessa kijkt te lang naar het briefje; de camera blijft bij haar gezicht
+    { on: '…Dat doen oma', dt: 0.1, shot: 'close', target: 'tessa', dist: 1.3, side: -0.2, fov: 28 },
+  ],
+  wide: { from: [-4.2, 3.6, 3.0], to: [-2.4, 2.8, 2.2], look: 'mid:tammo,tessa@1.1', fov: 50, until: 1 },
+};
 
 // --- #742: de nacht op de zandplaat (M11.5 de Melkweg, M11.6 de lange blik) ----------------------
 // De camera blijft laag, zodat de sterrenhemel boven de twee staat; geen generieke deckCam-drift meer.

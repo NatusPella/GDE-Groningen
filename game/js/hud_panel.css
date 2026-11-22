@@ -447,6 +447,9 @@ body.cine-tint-bust:not(.gpu-screenfx) #game3d { filter: grayscale(1) brightness
 /* Dutch translation under a Frisian or Gronings line (subtitles.js) */
 .nl-sub { display: block; margin-top: 2px; font-size: max(13px, 0.85em); font-style: italic; font-weight: normal; letter-spacing: 0; opacity: 0.82; }
 .nl-gloss { font-size: max(13px, 0.85em); font-style: italic; font-weight: normal; letter-spacing: 0; opacity: 0.82; }
+/* grove uitspraakhulp onder een Friese regel (subtitles.js FY_UITSPRAAK): geen fonetiek, hoofdletters zijn de klemtoon */
+.fy-uitspraak { display: block; margin-top: 1px; font-size: max(12px, 0.78em); font-style: normal; font-weight: normal; letter-spacing: 0.02em; opacity: 0.7; }
+#cine .cine-big .fy-uitspraak { font-size: 0.36em; margin-top: 0.25em; }
 #cine .cine-big .nl-sub { font-size: 0.42em; margin-top: 0.3em; }
 #cine .cine-skip {
   position: absolute;

@@ -138,6 +138,16 @@ const PROP_MAKERS = {
     return g;
   },
   // een los briefje (#740: het dankbriefje op de klomp): een vel papier met één geschreven regel
+  // het prikbord met de vijf namen (akte 2, M08.3 en N8): kurk in een houten lijst, vijf papieren stroken met een punaise; ca. 160 driehoeken
+  prikbord: () => {
+    const g = new THREE.Group();
+    g.add(box(1.0, 0.7, 0.04, 0x6b4a2e, 1.2), box(0.92, 0.62, 0.02, 0xb98d56, 1.2, 0, 0.02));
+    const slips = [[-0.3, 1.34], [0.0, 1.38], [0.3, 1.33], [-0.15, 1.1], [0.2, 1.1]];
+    for (const [x, y] of slips) g.add(box(0.2, 0.12, 0.004, 0xf7f4e8, y, x, 0.032), box(0.025, 0.025, 0.012, 0xc4402c, y + 0.04, x, 0.038));
+    return g;
+  },
+  // de broodtrommel van Mem (akte 2, M11.3): een blikken trommel met een klepdeksel; 36 driehoeken
+  broodtrommel: () => { const g = new THREE.Group(); g.add(box(0.28, 0.12, 0.18, 0x3b6aa0), box(0.29, 0.025, 0.19, 0xd9d4c4, 0.1325), box(0.04, 0.03, 0.01, 0xd8b45a, 0.09, 0.0, 0.095)); return g; },
   briefje: () => { const g = new THREE.Group(); g.add(box(0.21, 0.012, 0.15, 0xf7f4e8, 0.01), box(0.15, 0.006, 0.014, 0x5b4a36, 0.017)); return g; },
 };
 
