@@ -31,7 +31,7 @@ import { sightSpans, seenThrough } from './interiorsight.js';
 import { buildPersonMesh, animatePersonWalk, registerPoseSource, unregisterPoseSource } from './models3d_people.js';
 import { FAC } from './facilities.js';
 import { PROMPT, LOCKED_HOME, clerkLine, HOME_LOOK, FITTING, HAIRCUT, CHURCH_CANDLE, TICKET_LINES, LEZEN, BOUGHT, TOO_POOR, NOT_FOR_SALE } from './interiortexts.js';
-import { productFor, buyProduct } from './interiorbuy.js';
+import { productFor, buyProduct, DESK_SUBS } from './interiorbuy.js';
 import { getShopsForRender, openShopFromInterior, setShopInteriorCheck, openFittingRoom, openClothingCounter } from './shops.js';
 import { setHorecaInteriorCheck } from './horeca.js';
 import { distToRing } from './shopbind.js';
@@ -459,7 +459,8 @@ function useSpot(w, hit) {
       const gameShop = gameShopOf(ls.b);
       if (gameShop && openShopFromInterior(w, gameShop)) return true; // a garage or workshop of the game: its own menu (tuning, repair, paint)
       // a gym sells its day card at the desk (round 4); price and effect from the product table, money of the player himself (#429)
-      const dayCard = plan.sub === 'sportschool' || plan.sub === 'museum' || plan.sub === 'bioscoop' ? productFor(plan.kind, plan.sub) : null;
+      const deskSub = plan.sub || (plan.kind === 'garage' ? 'werkplaats' : null); // a garage without a variant is a workshop
+      const dayCard = DESK_SUBS.has(deskSub) ? productFor(plan.kind, deskSub) : null;
       if (dayCard) {
         noteMoney('Winkels');
         const r = buyProduct(w, dayCard);

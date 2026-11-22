@@ -171,7 +171,7 @@ ok(crowdAt('onbekend', null, 12) === crowdAt('winkel', null, 12), 'onbekende soo
 
 // --- kleding: elke rol gebruikt een bestaande rolpool van epic Kleding ---
 {
-  const POOLS = new Set(['voetganger', 'student', 'toerist', 'bouwvakker', 'boer', 'kok', 'bakker', 'winkelier', 'zakenman', 'sporter', 'feestganger']);
+  const POOLS = new Set(['voetganger', 'student', 'toerist', 'bouwvakker', 'boer', 'kok', 'bakker', 'winkelier', 'zakenman', 'sporter', 'feestganger', 'ambtenaar']);
   for (const role of Object.keys(ROLES)) {
     for (const sub of [null, 'bakker', 'snackbar', 'restaurant', 'kroeg', 'kapper']) {
       const look = npcLook(role, 4242, 1, 0x3f6ea8, sub);

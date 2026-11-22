@@ -32,6 +32,14 @@ const CLERK_SUB = {
   school: ['De les is bezig. Zachtjes lopen, graag.', 'Ouders melden zich hier. Leerlingen liever niet.', 'Het schoolplein is van iedereen. De fietsenstalling alleen van de leraren.'],
   ziekenhuis: ['Neemt u plaats. Het duurt even, maar het wordt vast niet erg.', 'Heeft u een afspraak? Dan wacht u hier. Zonder afspraak ook.', 'De koffieautomaat is stuk. Dit is geen grap.'],
 };
+// r6 (22-11): ook de balies die iets verkopen of vooral wachten hebben eigen regels
+CLERK_SUB.hotel = ['Welkom. Uw kamer is klaar. Of bijna. Of een andere kamer.', 'Ontbijt is van zeven tot tien. Meestal tot half elf.', 'Het ontbijtbuffet is gratis als u het niet opeet.'];
+CLERK_SUB.politie = ['Zegt u het maar. Is het een aangifte of een klacht over de fietsenstalling?', 'Pak een nummertje. Misdaad is druk deze zomer.', 'Koffie is voor onze eigen mensen. Maar vooruit.'];
+CLERK_SUB.apotheek = ['Heeft u een recept? Een pleister kan ook zonder.', 'Even wachten, graag. We tellen de pillen nog een keer.', 'Het medicijn is op, maar de goede raad is gratis.'];
+CLERK_SUB.sportschool = ['Een dagkaart? Dan mag u alles, behalve de gewichten die te zwaar zijn.', 'Kluisje zoekt u zelf. De sleutel zoekt u ook zelf.', 'De douche is warm. Meestal.'];
+CLERK_SUB.gemeente = ['Heeft u een nummertje? Nee? Dan wordt het er een.', 'Het loket sluit zo. Het sluit altijd zo.', 'Een vergunning? Daarvoor moet u een formulier invullen dat u nog moet aanvragen.'];
+CLERK_SUB.werkplaats = ['Het kan, maar het kost wat.', 'Ruitenvloeistof zit in de aanbieding. De rest van de auto niet.', 'Dat geluid? Dat hoort zo, zeg ik altijd.'];
+CLERK_SUB.magazijn = ['Alleen voor leveranciers. Maar een rolletje tape kan er nog wel af.', 'De pallets staan waar ze staan. Vraag niet waarom.'];
 export const clerkLine = (kind, seed, n = 0, sub = null) => { const l = CLERK_SUB[sub] || CLERK[kind] || CLERK.winkel; return l[Math.floor(((seed >>> 0) + n * 7) % l.length)]; };
 
 // walking around in a home: one line per look, by the seed

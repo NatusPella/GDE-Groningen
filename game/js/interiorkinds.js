@@ -16,7 +16,7 @@ export const KINDS = {
   station:     { label: 'Stationshal', minW: 6, minD: 6, h: [4, 6], open: null, ambience: 'station', roles: ['loketmedewerker', 'reiziger'] },
   bibliotheek: { label: 'Bibliotheek', minW: 6, minD: 6, h: [3, 4], open: null, ambience: 'bibliotheek', roles: ['bibliothecaris', 'lezer'] },
   garage:      { label: 'Garage', minW: 5, minD: 6, h: [3.2, 4.5], open: null, ambience: 'garage', roles: ['monteur'] },
-  publiek:     { label: 'Publiek gebouw', minW: 5, minD: 5, h: [2.8, 3.6], open: null, ambience: 'kantoor', roles: ['baliemedewerker', 'bezoeker', 'sporter', 'trainer', 'arts', 'leraar', 'leerling', 'suppoost', 'museumbezoeker', 'filmbezoeker'] },
+  publiek:     { label: 'Publiek gebouw', minW: 5, minD: 5, h: [2.8, 3.6], open: null, ambience: 'kantoor', roles: ['baliemedewerker', 'bezoeker', 'sporter', 'trainer', 'arts', 'leraar', 'leerling', 'suppoost', 'museumbezoeker', 'filmbezoeker', 'agent', 'apotheker', 'hotelgast'] },
 };
 export const KIND_IDS = Object.keys(KINDS);
 

@@ -50,11 +50,14 @@ export const SCRIPTS = {
   suppoost: [S('rondkijken', 'board', null, 4, 8), S('vitrine', 'shelf', null, 4, 8), S('slenteren', 'wander', null, 2, 5), S('bankje', 'seat', 'sit', 6, 12)],
   museumbezoeker: [S('vitrine bekijken', 'shelf', null, 6, 12), S('schilderij bekijken', 'board', null, 6, 12), S('bankje', 'seat', 'sit', 8, 16), S('slenteren', 'wander', null, 1, 2)],
   filmbezoeker: [S('wachten op de film', 'seat', 'sit', 25, 60), S('affiche bekijken', 'board', null, 4, 8), S('popcorn halen', 'counterFront', null, 3, 6), S('slenteren', 'wander', null, 1, 2)],
+  agent: [S('dossier typen', 'seat', 'sit', 10, 20), S('rondkijken', 'board', null, 4, 8), S('overleg', 'home', 'phone', 4, 8), S('rondgang', 'wander', null, 2, 5)],
+  apotheker: [S('recept klaarmaken', 'home', 'vendor', 6, 12), S('schap aanvullen', 'shelf', 'crouch', 4, 8), S('wachten', 'home', null, 3, 6), S('bellen', 'home', 'phone', 4, 7)],
+  hotelgast: [S('zitten', 'seat', 'sit', 20, 45), S('lezen', 'seat', 'phone', 15, 30), S('folders bekijken', 'board', null, 4, 8), S('slenteren', 'wander', null, 1, 3)],
   trainer: [S('begeleiden', 'machine', null, 6, 12), S('aanwijzen', 'lift', null, 4, 8), S('slenteren', 'wander', null, 1, 3), S('pauze', 'seat', 'sit', 8, 16)],
 };
 const FALLBACK = [S('rondkijken', 'shelf', null, 3, 7), S('slenteren', 'wander', null, 1, 3)];
 export const scriptOf = (role) => SCRIPTS[role] || FALLBACK;
-export const STAFF_ROLES = new Set(['winkelier', 'barman', 'receptionist', 'loketmedewerker', 'baliemedewerker', 'bibliothecaris', 'kapper', 'bakker', 'knipklant']);
+export const STAFF_ROLES = new Set(['winkelier', 'barman', 'receptionist', 'loketmedewerker', 'baliemedewerker', 'bibliothecaris', 'kapper', 'bakker', 'knipklant', 'agent', 'apotheker']);
 
 // --- anchors: where a kind of activity happens, from the layout --------------------------------------------
 

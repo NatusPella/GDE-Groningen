@@ -6,6 +6,7 @@
 //   fase 4  dorpen en de Ommelanden (betreedbaar buiten de stad)
 // Twee standen:
 //   node scripts/interieur_dekking_audit.mjs --typen [--json]      de typetabel: elk OSM-bouwtype en wat het wordt (zonder wereld)
+//   node scripts/interieur_dekking_audit.mjs --matrix [--json]     de matrix gedaan/ontbreekt per variant (zonder wereld)
 //   node scripts/interieur_dekking_audit.mjs [--world=<map met index-provincie.json>] [--sample=15] [--tiles=<max>] [--json] [--out=<bestand>]
 // De wereldstand gebruikt dezelfde gevelbouwer en planInterior als het spel; alle panden met een winkel of voorziening worden volledig
 // gemeten, de rest steekproefsgewijs (elk N-de pand) en opgeschaald per bouwtype. Zonder game/world: SKIP (uitgang 0).
@@ -18,6 +19,14 @@ import { planInterior } from '../game/js/interiorrules.js';
 import { SHOP_KINDS } from '../game/js/winkelkit.js';
 import { mulberry32 } from '../game/js/rng.js';
 import { building, subsFor } from './interior_fixtures.mjs';
+import { generateLayout } from '../game/js/interiorlayout.js';
+import { scriptOf, SCRIPTS } from '../game/js/interioractivity.js';
+import { hasUpper } from '../game/js/interiorupper.js';
+import { crowdCurves } from '../game/js/interiorcrowd.js';
+import { roomTone } from '../game/js/sfx/binnenklank.js';
+import { productFor, DESK_SUBS } from '../game/js/interiorbuy.js';
+import { clerkLine } from '../game/js/interiortexts.js';
+import { CLOTHING_ROLE, ROLES } from '../game/js/interiornpc.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -49,6 +58,49 @@ export function recipeTable(w = 14, d = 16, seed = 1165) {
     }
   }
   return rows;
+}
+
+// De matrix gedaan/ontbreekt (docs/INTERIEURS-STAND-22-11.md): per variant wat er al is en wat nog de standaard van de soort deelt.
+// Pure, zonder wereld en zonder THREE. Een rij: recept (slagers van 6), items en mensen, rollen met eigen schema en kledingpool, de use-id's die
+// de layouts plaatsen, wat er aan de balie te koop is, of de kamertoon, de drukte en de balieregels eigen zijn, en of er een etage kan zijn.
+export function variantMatrix(seed = 2211) {
+  const rows = [], rec = recipeTable();
+  const fallbackScript = scriptOf('__geen__');
+  for (const r of rec) {
+    const roles = new Set(), uses = new Set();
+    for (let i = 0; i < 6; i++) {
+      const rnd = mulberry32(seed + i);
+      const x = building(r.kind, r.sub, 14 + i * 0.7, 16 + i * 0.9, rnd);
+      const p = planInterior(x.b, { spot: x.spot, upper: false });
+      if (!p.ok) continue;
+      for (const n of p.layout.npc) roles.add(n.role);
+      for (const u of p.layout.use) uses.add(u.id);
+    }
+    const key = r.kind + (r.sub ? ':' + r.sub : '');
+    const sub = r.sub || (r.kind === 'garage' ? 'werkplaats' : null);
+    const base = roomTone(r.kind), own = roomTone(r.kind, r.sub);
+    const prod = productFor(r.kind, sub);
+    const lines = (k, s) => Array.from({ length: 6 }, (_, n) => clerkLine(k, 0, n, s)).join('|');
+    rows.push({
+      kind: r.kind, sub: r.sub, ok: r.ok, tries: r.tries, items: r.items, people: r.people,
+      rollen: [...roles].sort(), zonderSchema: [...roles].filter((x) => scriptOf(x) === fallbackScript && !SCRIPTS[x]).sort(),
+      zonderKleding: [...roles].filter((x) => !CLOTHING_ROLE[x] && !(ROLES[x] && ROLES[x].pool)).sort(),
+      use: [...uses].sort(),
+      koop: prod ? prod.item : null, balieKoop: !!prod && (DESK_SUBS.has(sub) || r.kind === 'winkel' || r.kind === 'horeca'),
+      eigenToon: JSON.stringify(own) !== JSON.stringify(base) || !r.sub,
+      eigenDrukte: !!crowdCurves()[key],
+      eigenBalieregels: r.sub ? lines(r.kind, r.sub) !== lines(r.kind, null) : true,
+      etage: hasUpper(r.kind, r.sub),
+    });
+  }
+  return rows;
+}
+
+export function renderMatrix(rows) {
+  const jn = (b) => (b ? 'ja' : 'nee');
+  const out = ['| Variant | Recept | Items | Mensen | Rollen | Koop aan de balie | Eigen toon | Eigen drukte | Etage |', '| --- | --- | --- | --- | --- | --- | --- | --- | --- |'];
+  for (const r of rows) out.push('| ' + r.kind + (r.sub ? '/' + r.sub : '') + ' | ' + r.ok + '/' + r.tries + ' | ' + r.items + ' | ' + r.people + ' | ' + (r.rollen.join(', ') || '-') + ' | ' + (r.koop || '-') + ' | ' + jn(r.eigenToon) + ' | ' + jn(r.eigenDrukte) + ' | ' + jn(r.etage) + ' |');
+  return out.join(String.fromCharCode(10));
 }
 
 // Elk OSM-type: wat wordt het (soort en variant, of niet betreedbaar). 'yes' zonder hoogte is een woning, met hoogte (5 m of meer) een kantoor.
@@ -194,6 +246,7 @@ async function main() {
     console.log(recipes.map((r) => r.kind + (r.sub ? '/' + r.sub : '') + ' ' + r.ok + '/' + r.tries).join(', '));
     return;
   }
+  if (has('matrix')) { const m = variantMatrix(); console.log(json ? JSON.stringify(m, null, 1) : renderMatrix(m)); return; }
   const world = path.resolve(arg('world', path.join(ROOT, 'game/world')));
   if (!fs.existsSync(path.join(world, 'index-provincie.json'))) { console.log('SKIP geen game/world met de provinciegegevens (--world=<map>); --typen draait zonder wereld'); return; }
   const res = await runWorld({ world, sample: Math.max(1, Number(arg('sample', 15))), tiles: Number(arg('tiles', 1e9)) });

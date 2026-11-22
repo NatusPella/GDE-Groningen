@@ -425,8 +425,10 @@ function libraryRecipe(p) {
   p.run(H, 'back', 'bookcase', 1.0, 0.4, H.u0, H.u1, { h: 2.3 });
   p.run(H, 'left', 'bookcase', 1.0, 0.4, H.v0 + 4, H.v1 - 0.4, { h: 2.3 });
   p.run(H, 'right', 'bookcase', 1.0, 0.4, H.v0 + 4, H.v1 - 0.4, { h: 2.3 });
+  // r6: at most 9 free-standing cases, so a hall of 26 x 18 m stays under the triangle budget (the audit test found 12.042; the walls of books are the rest)
+  let free = 0;
   for (let v = H.v0 + 4.8; v < H.v1 - 2.2; v += 2.8) {
-    for (let u = H.u0 + 2.4; u <= H.u1 - 2.4; u += 3.4) p.add('bookcase', u, v, 2.2, 0.7, FACE.DOOR, { h: 1.9, double: true });
+    for (let u = H.u0 + 2.4; u <= H.u1 - 2.4 && free < 9; u += 3.4) if (p.add('bookcase', u, v, 2.2, 0.7, FACE.DOOR, { h: 1.9, double: true })) free++;
   }
   const seats = [];
   for (let u = H.u0 + 3.4; u < H.u1 - 1.2; u += 2.4) {
@@ -475,10 +477,11 @@ function publicRecipe(p, sub) {
   if (sub === 'bioscoop') return cinemaRecipe(p, sub);
   const H = p.hall, W = p.W, D = p.D;
   const n = Math.max(1, Math.min(3, Math.floor((W - 1) / 2.6)));
+  const clerk = sub === 'apotheek' ? 'apotheker' : 'baliemedewerker';
   for (let i = 0; i < n; i++) {
     const u = H.u0 + (i + 0.5) * W / n;
     const c = p.add('counter', u, H.v1 - 2.0, Math.min(2.2, W / n - 0.5), 0.7, FACE.DOOR, { h: 1.1, glass: sub === 'politie', color: sub === 'politie' ? 0x2a3f6a : sub === 'apotheek' ? 0x2e9a5a : 0x6a5a48 }, H);
-    if (c) { p.npcAt('baliemedewerker', u, H.v1 - 2.0 + 0.35 + 0.45, FACE.DOOR, 'stand'); if (i === 0) p.useAt('balie', u, H.v1 - 2.0 - 0.35 - 0.8, 1.4, { face: FACE.BACK, target: sub }); }
+    if (c) { p.npcAt(i === 0 ? clerk : 'baliemedewerker', u, H.v1 - 2.0 + 0.35 + 0.45, FACE.DOOR, 'stand'); if (i === 0) p.useAt('balie', u, H.v1 - 2.0 - 0.35 - 0.8, 1.4, { face: FACE.BACK, target: sub }); }
   }
   p.run(H, 'back', sub === 'apotheek' ? 'shelf' : 'cabinet', 1.0, 0.45, H.u0, H.u1, { h: 2.0, color: 0x2e9a5a });
   const bw = Math.min(2.0, W * 0.28);
@@ -487,8 +490,8 @@ function publicRecipe(p, sub) {
     p.add('bench', H.u0 + W * 0.75, v, bw, 0.5, FACE.BACK, { h: 0.45 });
   }
   if (sub === 'school') p.run(H, 'left', 'locker', 0.5, 0.5, H.v0 + 2, H.v1 - 3, { h: 1.9 }, 0.02);
-  if (sub === 'hotel') { p.add('sofa', H.u0 + 1.4, H.v0 + 3.4, 1.8, 0.9, FACE.E, { h: 0.85 }); p.add('plant', H.u1 - 0.5, H.v0 + 1.4, 0.6, 0.6, FACE.W, { h: 1.2 }); }
-  if (sub === 'politie') p.add('flag', H.u1 - 0.4, H.v1 - 0.5, 0.2, 0.2, FACE.W, { h: 2.4 });
+  if (sub === 'hotel') { const sf = p.add('sofa', H.u0 + 1.4, H.v0 + 3.4, 1.8, 0.9, FACE.E, { h: 0.85 }); p.add('plant', H.u1 - 0.5, H.v0 + 1.4, 0.6, 0.6, FACE.W, { h: 1.2 }); if (sf) p.npcAt('hotelgast', H.u0 + 1.4, H.v0 + 3.4, FACE.E, 'sit'); }
+  if (sub === 'politie') { p.add('flag', H.u1 - 0.4, H.v1 - 0.5, 0.2, 0.2, FACE.W, { h: 2.4 }); p.npcAt('agent', H.u0 + 0.9, H.v1 - 1.0, FACE.DOOR, 'stand'); }
   p.add('plant', H.u0 + 0.5, H.v0 + 0.8, 0.6, 0.6, FACE.DOOR, { h: 1.2 });
   scatterPeople(p, 'bezoeker', Math.min(2, Math.floor(W * D / 40)), 'sit');
   p.palette = { wall: sub === 'politie' ? 0xdfe6ee : 0xe8e4da, floor: 0x8a8e92, floorPattern: 1, accent: sub === 'politie' ? 0x2a3f6a : 0x6a5a48, ceil: 0xf4f4f2 };
@@ -765,7 +768,7 @@ export function reachableAt(res, u, v, r = 0.8) {
 }
 
 // people behind a counter: nobody has to reach them
-export const STAFF = new Set(['winkelier', 'barman', 'receptionist', 'loketmedewerker', 'baliemedewerker', 'bibliothecaris', 'monteur', 'kapper', 'bakker', 'knipklant']);
+export const STAFF = new Set(['winkelier', 'barman', 'receptionist', 'loketmedewerker', 'baliemedewerker', 'bibliothecaris', 'monteur', 'kapper', 'bakker', 'knipklant', 'agent', 'apotheker']);
 
 // --- decoration: what makes a room look lived in --------------------------------------------------------------
 // Wall hangings (posters, paintings, clocks, notice boards), plants in the corners and a doormat, chosen per kind and varied from the
