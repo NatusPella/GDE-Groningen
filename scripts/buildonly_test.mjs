@@ -10,6 +10,8 @@ import { BUILD_ONLY } from './lib/buildonly.mjs';
 
 // bouw-only volgens de grafiek maar bewust niet uitgesloten
 const KEEP = {
+  'samenhub.js': 'oude Samen-hub (stappen en overzicht): de nieuwe wizard (multiplayerwizard.js, samen-flow-ux 22-11) neemt zijn plaats in; opruimen volgt zodra de hub nergens meer naar verwijst',
+  'samenhubui.js': 'oude Samen-hub (scherm): zie samenhub.js; opruimen volgt met de wizard',
   'storymultiplayer.js': 'Samen-regels per verhaaltussenstap (samen-verdiepen, #1159): data voor docs en tests; de koppeling met het Meedoen-venster volgt',
   'bezitbeheer.js': 'epic Bezit (#1095): het beheerscherm voor bedrijven; de aansluiting op het pauzemenu volgt',
   'homebase.js': 'verhaal-epic (#1121): thuis per verhaalstap; de koppeling aan home.js, slapen, de kast en de interieurs volgt zodra epic-interieurs en epic-kleding gemerged zijn',

@@ -5,6 +5,7 @@ export class SpatialGrid {
     this.map = new Map();
     this._items = null; // de lijst van gridItems, bewaard tot de inhoud verandert (#1184)
   }
+  touch() { this._items = null; } // na een rechtstreekse wijziging van map (home.js regrid)
   key(cx, cy) { return (cx + 32768) * 65536 + cy + 32768; }
   cellRange(minx, miny, maxx, maxy) {
     return {
