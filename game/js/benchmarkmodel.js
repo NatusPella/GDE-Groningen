@@ -175,7 +175,7 @@ export function reportCard(run) {
   const same = run.prev && (run.prev.course || 'classic') === course;
   const diff = same ? compareRuns(run.prev, { avg: rep.avg, low1: rep.low1, p95: rep.p95 }) : null;
   const basis = run.basis || { avg: rep.avg, low1: rep.low1, p95: rep.p95 };
-  const rec = recommendStand(basis, run.preset, run.diag || null);
+  const rec = recommendStand(basis, run.preset, run.diag || null, run.presetFps || null);
   const hitches = (st.hitches || []).filter((h) => h.slow33 > 0).slice(0, 3).map((h) => ({ id: h.id, frames: h.slow33, share: h.share }));
   return {
     title: 'Rapportkaart',

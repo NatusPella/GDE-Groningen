@@ -31,3 +31,29 @@ g.remove(b, [5, 5, 35, 5]); // removing twice is harmless
 g.clear();
 assert.equal(g.map.size, 0);
 console.log('spatialgrid_test: ok');
+
+// #1184: gridItems bewaart zijn lijst tot het raster verandert; de beller krijgt steeds een eigen kopie
+{
+  const { SpatialGrid, gridItems } = await import('../game/js/spatialgrid.js');
+  const g = new SpatialGrid(10);
+  const a = { n: 'a' }, b = { n: 'b' }, c = { n: 'c' };
+  g.insert(a, [0, 0, 35, 5]); g.insert(b, [50, 50, 51, 51]);
+  const l1 = gridItems(g);
+  let okc = l1.length === 2 && l1[0] === a && l1[1] === b;
+  l1.length = 0; l1.push('vuil'); // een beller die sorteert of knipt mag de bewaarde lijst niet raken
+  const l2 = gridItems(g);
+  okc = okc && l2.length === 2 && l2[0] === a && l2 !== l1;
+  g.insert(c, [100, 100, 101, 101]);
+  okc = okc && gridItems(g).length === 3;
+  g.remove(a, [0, 0, 35, 5]);
+  const l4 = gridItems(g);
+  okc = okc && l4.length === 2 && !l4.includes(a);
+  g.update(b, [50, 50, 51, 51], [200, 200, 201, 201]);
+  okc = okc && gridItems(g).includes(b) && gridItems(g).length === 2;
+  g.clear();
+  okc = okc && gridItems(g).length === 0;
+  const nep = { map: new Map([[1, [a, a]]]) }; // nagemaakt raster zonder klasse: geen bewaring, wel dedupe
+  okc = okc && gridItems(nep).length === 1 && gridItems(nep).length === 1 && nep._items === undefined;
+  console.log(okc ? 'ok   gridItems: bewaarde lijst, eigen kopie, ongeldig na insert/remove/update/clear' : 'FAIL gridItems-cache');
+  if (!okc) process.exitCode = 1;
+}

@@ -234,7 +234,12 @@ export const DIAG_TEXT = {
   uneven: 'Een paar scènes haperen (laden of shaders), de meeste lopen gewoon soepel. Een lagere stand lost dat niet op; start het spel opnieuw en meet nog een keer.',
 };
 
-export function recommendStand(stats, current, diag = null) {
+// #1184: de metingen per stand (presetFps: de proefshots op elke stand) sturen het advies bij. Een stap omhoog mag alleen als de
+// volgende stand in de proef zelf ook soepel haalt (UP_MIN_FPS); een stap omlaag gaat door naar de stand die in de proef wel
+// draait (ROUGH_FPS), zodat de speler niet eerst "Hoog" en dan nog eens "Midden" krijgt. Zonder metingen blijft alles zoals het was.
+export const UP_MIN_FPS = 55;
+export const ROUGH_FPS = 40;
+export function recommendStand(stats, current, diag = null, presetFps = null) {
   if (!stats) return { stand: current || 'vlot', change: 'same', text: 'Er is niets gemeten. Probeer het nog een keer.' };
   const i = STAND_ORDER.indexOf(current);
   const base = i < 0 ? 2 : i;
@@ -248,10 +253,17 @@ export function recommendStand(stats, current, diag = null) {
   const blamed = rough && diag && DIAG_TEXT[diag.kind] ? diag.kind : null; // the settings are not the cause: do not lower them
   if (rough && !blamed) to = Math.max(0, base - 1);
   else if (roomy && (base + 1 < 3 || roomyUltra)) to = Math.min(STAND_ORDER.length - 1, base + 1);
+  let upBlockedFps = 0;
+  if (presetFps) {
+    const at = (k) => (presetFps[STAND_ORDER[k]] > 0 ? presetFps[STAND_ORDER[k]] : 0);
+    if (to > base && at(to) > 0 && at(to) < UP_MIN_FPS) { upBlockedFps = at(to); to = base; }
+    else if (to < base) while (to > 0 && at(to) > 0 && at(to) < ROUGH_FPS) to--;
+  }
   const stand = STAND_ORDER[to];
   const change = to > base ? 'up' : to < base ? 'down' : 'same';
   let text = STAND_EXPLAIN[stand];
-  if (blamed) text = DIAG_TEXT[blamed];
+  if (upBlockedFps) text = `${STAND_LABEL[stand]} draait prima. Een stand hoger haalt hier maar ongeveer ${Math.round(upBlockedFps)} fps: blijf bij ${STAND_LABEL[stand]}.`;
+  else if (blamed) text = DIAG_TEXT[blamed];
   else if (rough && change === 'same') text = 'Alles staat al zo licht mogelijk. Sluit andere programma’s en tabbladen voor wat extra lucht.';
   else if (change === 'same' && i >= 0) text = `${STAND_LABEL[stand]} draait prima. ${STAND_EXPLAIN[stand]}`;
   return { stand, change, text, ...(blamed ? { diag: blamed } : {}) };
