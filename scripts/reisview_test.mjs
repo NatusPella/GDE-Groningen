@@ -19,5 +19,10 @@ ok(V.hudLine(0) === '' && V.hudLine(1500) === '1,5 km · ± 1 min', 'hud line', 
 ok(V.shouldPrompt(8000) && !V.shouldPrompt(2000), 'prompt only on a jump');
 ok(V.arrivalMessage(beat).kind === 'reis' && B.KINDS.reis.p === B.P1, 'reis is a P1 story kind');
 ok(V.cyclePick(beat, 'meerijden', 1) === 'zelf' && V.cyclePick(beat, 'meerijden', -1) !== 'meerijden', 'gamepad cycles the pick');
+// #1214: geen NaN km, geen 'gratis', geen € 0, een getal per keuze
+const kaal = V.panelState({ to: 'Zoutkamp', ride: 'bus', lines: ['x'] });
+const tekst = JSON.stringify(kaal) + V.briefingLine({ to: 'Zoutkamp' });
+ok(!/NaN|gratis|€ 0|undefined/.test(tekst) && kaal.rule === '', 'zonder afstand geen NaN, gratis of € 0', tekst);
+ok(!/gratis|€ 0/.test(JSON.stringify(st)) && /\+ € 120/.test(st.options[1].label), 'met afstand: verdienste bij zelf gaan, nooit gratis', st.options[1].label);
 console.log(`${n - fails}/${n} reisview`);
 process.exit(fails ? 1 : 0);

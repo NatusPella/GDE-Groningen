@@ -1,18 +1,21 @@
 // Travel beat views (#97): pure text and state for the briefing line, the choice
 // panel, the HUD line while travelling and the messages. No DOM; reispanel.js
 // draws them, hudbus.js (kind 'reis') decides when they may show.
-import { travelOptions, RIDES } from './reiskeuze.js';
+import { travelOptions, RIDES, selfReward } from './reiskeuze.js';
 import { travelSeconds, classOf } from './reistijd.js';
 import { wantsExplain } from './hudtext.js';
 
-const km = (m) => (m < 10000 ? (m / 1000).toFixed(1).replace('.', ',') : String(Math.round(m / 1000)));
+// Een ontbrekende of ongeldige afstand geeft een lege tekst, nooit 'NaN km' (#1214).
+const heeftAfstand = (m) => Number.isFinite(m) && m > 0;
+const km = (m) => (!heeftAfstand(m) ? '' : m < 10000 ? (m / 1000).toFixed(1).replace('.', ',') : String(Math.round(m / 1000)));
 const mins = (s) => Math.max(1, Math.round(s / 60));
 
 // "Naar Zoutkamp · 30 km · ± 23 min met de auto · ± 10 min met de bus"
 export function briefingLine(beat) {
-  const parts = [`Naar ${beat.to}`, `${km(beat.length)} km`, `± ${mins(travelSeconds(beat.length, beat.selfMode || 'auto'))} min met de auto`];
+  const parts = [`Naar ${beat.to}`];
+  if (heeftAfstand(beat.length)) parts.push(`${km(beat.length)} km`, `± ${mins(travelSeconds(beat.length, beat.selfMode || 'auto'))} min met de auto`);
   const ride = RIDES[beat.ride];
-  if (ride && beat.ride !== 'lift') parts.push(`± ${mins(travelSeconds(beat.length, ride.mode))} min ${ride.label.toLowerCase()}`);
+  if (heeftAfstand(beat.length) && ride && beat.ride !== 'lift') parts.push(`± ${mins(travelSeconds(beat.length, ride.mode))} min ${ride.label.toLowerCase()}`);
   return parts.join(' · ');
 }
 
@@ -22,15 +25,17 @@ export const TRAVEL_HELP_ID = 'reis:help';
 export function panelState(beat, pick, seen = {}) {
   const r = travelOptions(beat);
   const keys = { meerijden: '1', zelf: '2', overslaan: '3' };
+  // Een getal per keuze (#1214): de duur, en bij zelf gaan wat het oplevert; geen 'gratis' en geen € 0.
+  const bekend = heeftAfstand(beat.length);
   const options = r.options.map((o) => ({
-    key: keys[o.id], label: `${o.label} · ${o.kosten} · ${o.eta}`, note: o.uitleg, badge: o.id === r.def ? 'aanbevolen' : '', cls: o.id === (pick || r.def) ? 'pick' : '',
+    key: keys[o.id], label: [o.label, o.reward && bekend && selfReward(beat.length) > 0 ? `+ € ${selfReward(beat.length)}` : '', bekend ? o.eta : ''].filter(Boolean).join(' · '), note: o.uitleg, badge: o.id === r.def ? 'aanbevolen' : '', cls: o.id === (pick || r.def) ? 'pick' : '',
   }));
   return {
     kicker: 'REIZEN',
     text: `Naar ${beat.to}`,
-    rule: `${km(beat.length)} km`,
+    rule: bekend ? `${km(beat.length)} km` : '',
     options,
-    help: wantsExplain(seen, TRAVEL_HELP_ID) ? 'Snel reizen kost tijd, zelf gaan niet' : '',
+    help: wantsExplain(seen, TRAVEL_HELP_ID) ? 'De klok loopt altijd door' : '',
   };
 }
 
