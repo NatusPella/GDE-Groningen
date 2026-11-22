@@ -3,6 +3,7 @@ export class SpatialGrid {
   constructor(cellSize) {
     this.cell = cellSize;
     this.map = new Map();
+    this._items = null; // de lijst van gridItems, bewaard tot de inhoud verandert (#1184)
   }
   key(cx, cy) { return (cx + 32768) * 65536 + cy + 32768; }
   cellRange(minx, miny, maxx, maxy) {
@@ -12,6 +13,7 @@ export class SpatialGrid {
     };
   }
   insert(item, bounds) {
+    this._items = null;
     const { cx0, cy0, cx1, cy1 } = this.cellRange(...bounds);
     for (let cx = cx0; cx <= cx1; cx++) {
       for (let cy = cy0; cy <= cy1; cy++) {
@@ -23,6 +25,7 @@ export class SpatialGrid {
     }
   }
   remove(item, bounds) {
+    this._items = null;
     const { cx0, cy0, cx1, cy1 } = this.cellRange(...bounds);
     for (let cx = cx0; cx <= cx1; cx++) {
       for (let cy = cy0; cy <= cy1; cy++) {
@@ -97,7 +100,7 @@ export class SpatialGrid {
   }
   // The raw item list of one cell (not a copy), or undefined.
   cellItems(cx, cy) { return this.map.get(this.key(cx, cy)); }
-  clear() { this.map.clear(); }
+  clear() { this._items = null; this.map.clear(); }
 }
 
 // Elk object één keer, uit alle cellen van het raster (#524): de lezers van de hele
@@ -105,7 +108,12 @@ export class SpatialGrid {
 // weghalen zonder dat de array de waarheid hoeft te zijn. De volgorde is cel-voor-cel.
 export function gridItems(grid) {
   if (!grid || !grid.map) return [];
+  // #1184: de lijst blijft staan zolang het raster niet verandert (de dedupe over alle cellen was 3 tot 6% van de hoofdthread bij
+  // het streamen: elke module die "alle wegen" wil vroeg hem opnieuw). De beller krijgt altijd een eigen kopie, want sort en splice komen voor.
+  const cacheable = grid._items !== undefined; // een SpatialGrid (een nagemaakt raster met alleen .map telt elke keer opnieuw)
+  if (grid._items) return grid._items.slice();
   const out = [], seen = new Set();
   for (const arr of grid.map.values()) for (const it of arr) if (!seen.has(it)) { seen.add(it); out.push(it); }
+  if (cacheable) { grid._items = out; return out.slice(); }
   return out;
 }

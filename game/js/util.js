@@ -29,17 +29,27 @@ export function normalizeAngle(a) {
 // scan under tileplace.nearestOnRoads and the tile generator's nearestRoad (#102). -> { road, i (segment),
 // t, x, y, d2, d, dx, dy (the segment's direction), ux, uy (unit) } or null.
 export function nearestOnRoadList(roads, x, y, ok = null) {
-  let best = null;
+  // #1184: inline, zonder object per segment (closestPointOnSegment gaf er een per segment, de plek waar de
+  // tegelbouw het meeste afval maakte); dezelfde rekenvolgorde, dus bitgelijke uitkomsten en dezelfde gelijkspel-regel (strikt kleiner wint).
+  let bd2 = Infinity, bRoad = null, bi = 0, bt = 0, bx = 0, by = 0, bdx = 0, bdy = 0;
   for (const road of roads) {
     if (ok && !ok(road)) continue;
     const P = road.pts;
+    let a = P[0];
     for (let i = 0; i < P.length - 1; i++) {
-      const cp = closestPointOnSegment(x, y, P[i][0], P[i][1], P[i + 1][0], P[i + 1][1]);
-      if (!best || cp.dist2 < best.d2) best = { road, i, t: cp.t, x: cp.x, y: cp.y, d2: cp.dist2, dx: P[i + 1][0] - P[i][0], dy: P[i + 1][1] - P[i][1] };
+      const b = P[i + 1], ax = a[0], ay = a[1];
+      const abx = b[0] - ax, aby = b[1] - ay, len2 = abx * abx + aby * aby;
+      let t = len2 > 1e-9 ? ((x - ax) * abx + (y - ay) * aby) / len2 : 0;
+      t = t < 0 ? 0 : t > 1 ? 1 : t;
+      const cx = ax + abx * t, cy = ay + aby * t;
+      const ex = x - cx, ey = y - cy, d2 = ex * ex + ey * ey;
+      if (bRoad === null || d2 < bd2) { bd2 = d2; bRoad = road; bi = i; bt = t; bx = cx; by = cy; bdx = abx; bdy = aby; }
+      a = b;
     }
   }
-  if (best) { best.d = Math.sqrt(best.d2); const L = Math.hypot(best.dx, best.dy) || 1e-9; best.ux = best.dx / L; best.uy = best.dy / L; }
-  return best;
+  if (bRoad === null) return null;
+  const L = Math.hypot(bdx, bdy) || 1e-9;
+  return { road: bRoad, i: bi, t: bt, x: bx, y: by, d2: bd2, dx: bdx, dy: bdy, d: Math.sqrt(bd2), ux: bdx / L, uy: bdy / L };
 }
 
 export function closestPointOnSegment(px, py, ax, ay, bx, by, out = null) {
