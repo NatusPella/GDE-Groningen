@@ -1158,7 +1158,8 @@ function setVelocity(v, vx, vy) {
 // Rigid-body impulse at contact point (cx, cy) with normal n pointing from a
 // into b (b null: an immovable wall). Restitution + Coulomb friction, and
 // off-centre hits spin the vehicle. Returns the closing speed resolved.
-function contactImpulse(a, b, cx, cy, nx, ny, friction) {
+// wallVx/wallVy: the velocity of a wall that moves (a bus's trailer); only read when b is null.
+function contactImpulse(a, b, cx, cy, nx, ny, friction, wallVx = 0, wallVy = 0) {
   const [vax, vay] = velocityOf(a);
   const rax = cx - a.x, ray = cy - a.y;
   let vbx = 0, vby = 0, rbx = 0, rby = 0, pbx = 0, pby = 0;
@@ -1166,7 +1167,7 @@ function contactImpulse(a, b, cx, cy, nx, ny, friction) {
     [vbx, vby] = velocityOf(b);
     rbx = cx - b.x; rby = cy - b.y;
     pbx = vbx - b.yawVel * rby; pby = vby + b.yawVel * rbx;
-  }
+  } else { pbx = wallVx; pby = wallVy; }
   const rvx = vax - a.yawVel * ray - pbx, rvy = vay + a.yawVel * rax - pby;
   const vn = rvx * nx + rvy * ny;
   if (vn <= 0) return 0;
@@ -1384,6 +1385,9 @@ function resolveTrailerContacts(a, vehicles, world) {
   const t = busTrailerPose(a);
   const cap = t.cap;
   const mx = (cap.ax + cap.bx) / 2, my = (cap.ay + cap.by) / 2, reach0 = Math.hypot(cap.bx - cap.ax, cap.by - cap.ay) / 2 + cap.r;
+  // the trailer rides along with its bus: the closing speed is the speed relative to the bus, not
+  // to a wall that stands still (a tap on the tail of a moving bus was a head-on crash at road speed)
+  const [tvx, tvy] = velocityOf(a);
   for (const b of vehicles) {
     if (b === a || b.sinking || b.isBoat || (b.isHeli && !b.onGround) || Math.abs((a.z || 0) - (b.z || 0)) > 2.5) continue;
     const reach = reach0 + b.halfLen + 0.2;
@@ -1399,7 +1403,7 @@ function resolveTrailerContacts(a, vehicles, world) {
     const corr = Math.max(0, minDist - dist - 0.01);
     b.x += nx * corr; b.y += ny * corr;
     const hx = (p1x + p2x) / 2, hy = (p1y + p2y) / 2;
-    const relN = contactImpulse(b, null, hx, hy, -nx, -ny, CONTACT_FRICTION);
+    const relN = contactImpulse(b, null, hx, hy, -nx, -ny, CONTACT_FRICTION, tvx, tvy);
     // een wrak is een dood voorwerp: de duw van de aanhanger zet hem niet in beweging (#436)
     if (b.wrecked) restWreck(b);
     if (relN < IMPACT_EVENT_SPEED) continue;
