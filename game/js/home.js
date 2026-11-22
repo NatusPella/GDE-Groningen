@@ -124,6 +124,7 @@ let cutaway = 0;
 let introShown = false;
 let fadeGen = 0;
 let camLocal = null; // the follow camera in the flat's frame (homeCamera)
+let verhaalThuisBron = null; // story.js: does the next story step play at home? (a hook, no import: story.js imports this file)
 let binnenWacht = null; // the wait for the flat when a game starts at home (spawnbinnen.js); null when nothing is pending
 
 // --- layout ---------------------------------------------------------------------
@@ -1159,7 +1160,9 @@ export function applyHomeOnLoad(w, d) {
   // missie; een save bij het huis, een oude save zonder context en een save in een boot beginnen thuis.
   // Binnenspawn (spawnbinnen.js): thuis is boven in de flat, behalve voor een save die buiten stond (thuis.binnen is false), een
   // gast bij de host en een speler die Start binnen (thuis) uit heeft; dan staat hij bij de lobby.
-  const keuze = chooseSpawn({ situatie: 'laden', instelling: startBinnen(), thuis: huidigThuis(), rol: coopRol(w), saveCtx: laadtOpOpslagplek(d) ? 'busy' : 'home', binnenSave: readIndoorSave(d) });
+  let verhaalThuis = false;
+  try { verhaalThuis = !!(verhaalThuisBron && verhaalThuisBron()); } catch (e) { /* no story yet */ }
+  const keuze = chooseSpawn({ situatie: 'laden', verhaalThuis, instelling: startBinnen(), thuis: huidigThuis(), rol: coopRol(w), saveCtx: laadtOpOpslagplek(d) ? 'busy' : 'home', binnenSave: readIndoorSave(d) });
   if (keuze.plek === 'houd') {
     // a mid-mission save made upstairs: back on the street, not inside the tower
     if (inPoly(TOWER, hoofdspeler(w).x, hoofdspeler(w).y, 1)) placeAtLobby(w);
@@ -1172,6 +1175,22 @@ export function applyHomeOnLoad(w, d) {
   binnenWacht = makeIndoorWait();
   if (r === 'klaar') binnenWacht.staat = 'klaar';
   else if (r === 'mislukt') { binnenWacht.staat = 'terugval'; binnenWacht.reden = 'mislukt'; }
+}
+
+export function setVerhaalThuisBron(fn) { verhaalThuisBron = typeof fn === 'function' ? fn : null; }
+
+// The opening (story.js playOpening) is staged at the lobby and in a closed set: someone who loaded a save and stands upstairs steps
+// out first (so the state is not "upstairs" while the player stands at the lobby), and after the film a loaded game goes back up.
+export function stepOutForCutscene(w) {
+  if (!inside) return false;
+  exitFlatNow(w);
+  placeAtLobby(w);
+  return true;
+}
+export function backUpAfterCutscene(w) {
+  if (!home || inside) return false;
+  if (chooseSpawn({ situatie: 'opening-na-laden', instelling: startBinnen(), thuis: huidigThuis(), rol: coopRol(w) }).plek !== 'binnen') return false;
+  return spawnInFlat(w) === 'klaar';
 }
 
 export function homeSaveContext(w) {

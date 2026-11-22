@@ -3,7 +3,7 @@
 // time-out en terugval, de save en de oude saves, en de bedrading in home.js, de instelling en de Samen-regel. Pure test, geen Electron.
 // node scripts/spawnbinnen_test.mjs
 import fs from 'node:fs';
-import { SITUATIES, interieurType, chooseSpawn, binnenOpslag, readIndoorSave, makeIndoorWait, tickBinnenWacht, binnenPending, BINNEN_MAX_S, flatSpotOk, flatBereikbaar, chooseFlatSpawn, chooseHomePropertySpawn, pandSpawnOk } from '../game/js/spawnbinnen.js';
+import { SITUATIES, interieurType, chooseSpawn, binnenOpslag, readIndoorSave, makeIndoorWait, tickBinnenWacht, binnenPending, BINNEN_MAX_S, stepPlaysAtHome, playRule, flatSpotOk, flatBereikbaar, chooseFlatSpawn, chooseHomePropertySpawn, pandSpawnOk } from '../game/js/spawnbinnen.js';
 import { makeFlatPlan } from '../game/js/flatplan.js';
 import { homes, homeOf, registerHome, resetHomes, DEFAULT_HOME } from '../game/js/homebase.js';
 import { planInterior } from '../game/js/interiorrules.js';
@@ -18,7 +18,7 @@ const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL $
 const flat = homeOf(DEFAULT_HOME);
 
 // --- 1. de spawnmatrix: elke situatie -----------------------------------------------------------------------------------
-ok(SITUATIES.length === 10, 'tien situaties in de matrix', SITUATIES.length);
+ok(SITUATIES.length === 11, 'elf situaties in de matrix', SITUATIES.length);
 const k = (o) => chooseSpawn({ thuis: flat, ...o });
 // laden: save bij het huis (oud, zonder veld) en een save die binnen stond komen binnen
 ok(k({ situatie: 'laden', saveCtx: 'home' }).plek === 'binnen', 'laden: een oude save bij het huis (geen binnen-veld) begint boven');
@@ -182,7 +182,29 @@ ok(k({ situatie: 'naar-huis', interieurKlaar: false }).plek === 'buiten', 'een i
   ok(/world\.homeLaad/.test(ls) && /loadPending\(st, tiles, prewarmPending\(\), binnen\)/.test(ls), 'het laadscherm wacht op het interieur');
   // de openingsfilm blijft zoals hij was: hij eindigt bij de deur (homeSpawnPoint) en raakt de binnenspawn niet
   const story = fs.readFileSync(new URL('../game/js/story.js', import.meta.url), 'utf8');
-  ok(/homeSpawnPoint\(\)/.test(story) && !/spawnbinnen|spawnInFlat/.test(story), 'de opening speelt voor de deur en blijft ongewijzigd');
+  ok(/homeSpawnPoint\(\)/.test(story) && !/spawnInFlat/.test(story), 'de opening speelt voor de deur en raakt de flatbouw niet');
+}
+
+// --- 8. Doorgaan bij een verhaalstap die thuis speelt, en de cutscene-startvoorwaarde -----------------------------------------
+ok(k({ situatie: 'laden', saveCtx: 'home', binnenSave: false, verhaalThuis: true }).plek === 'binnen', 'Doorgaan: een save van buiten komt boven uit als de volgende stap thuis speelt');
+ok(k({ situatie: 'laden', saveCtx: 'home', binnenSave: false, verhaalThuis: false }).plek === 'buiten', 'Doorgaan: zonder thuisstap blijft een save van buiten buiten');
+ok(k({ situatie: 'laden', saveCtx: 'busy', binnenSave: false, verhaalThuis: true }).plek === 'houd', 'Doorgaan: een missie gaat voor de thuisstap');
+ok(k({ situatie: 'laden', saveCtx: 'home', binnenSave: false, verhaalThuis: true, instelling: false }).plek === 'buiten', 'Doorgaan: Start binnen uit blijft buiten (de scene wacht dan)');
+ok(k({ situatie: 'laden', saveCtx: 'home', binnenSave: false, verhaalThuis: true, rol: 'gast' }).plek === 'buiten', 'Doorgaan als gast: lokaal buiten bij de host');
+ok(k({ situatie: 'opening-na-laden' }).plek === 'binnen' && k({ situatie: 'opening-na-laden', instelling: false }).plek === 'buiten', 'na de opening van een geladen spel ga je weer naar boven (instelling aan)');
+ok(stepPlaysAtHome({ goal: { type: 'home' } }) && stepPlaysAtHome({ goal: { type: 'night' }, homeScene: { id: 'M06.0' } }), 'een home-stap en een stap met homeScene spelen thuis');
+ok(!stepPlaysAtHome({ goal: { type: 'opening' } }) && !stepPlaysAtHome({ goal: { type: 'train' } }) && !stepPlaysAtHome(null), 'de opening en andere stappen spelen niet thuis');
+ok(playRule({ speeltThuis: true, binnen: true }).actie === 'start', 'cutscene thuis, speler binnen: start');
+ok(playRule({ speeltThuis: false, binnen: false }).actie === 'start', 'cutscene op straat: start');
+ok(playRule({ speeltThuis: true, binnen: false, thuis: flat }).actie === 'breng-binnen', 'cutscene thuis, speler buiten: eerst naar binnen brengen');
+ok(playRule({ speeltThuis: true, binnen: false, thuis: flat, instelling: false }).actie === 'wacht', 'cutscene thuis, instelling uit: wachten, nooit stil starten');
+ok(playRule({ speeltThuis: true, binnen: false, thuis: flat, rol: 'gast' }).actie === 'wacht', 'cutscene thuis, gast buiten: wachten');
+ok(playRule({ speeltThuis: true, binnen: false, thuis: null }).actie === 'wacht', 'cutscene thuis zonder interieur: wachten');
+{
+  const home = fs.readFileSync(new URL('../game/js/home.js', import.meta.url), 'utf8');
+  const story = fs.readFileSync(new URL('../game/js/story.js', import.meta.url), 'utf8');
+  ok(/verhaalThuis/.test(home) && /setVerhaalThuisBron\(\(\) => stepPlaysAtHome\(currentStep\(\)\)\)/.test(story), 'applyHomeOnLoad leest de thuisstap via de hook van story.js');
+  ok(/inHomeFlat\(\)\) stepOutForCutscene/.test(story) && /!flatStage\(\)/.test(story), 'de opening verlaat de flat eerst en een flatscene speelt nooit zonder flatstage');
 }
 
 console.log(fails ? `spawnbinnen_test: ${fails} van ${n} mislukt` : `spawnbinnen_test: ${n} controles ok`);

@@ -15,7 +15,7 @@ import { toWorld, dirToWorld } from './interiorframe.js';
 import { FLAT_W, FLAT_D } from './flatplan.js';
 
 // Alle situaties waarin de speler bij een thuisplek kan verschijnen (de rijen van de spawnmatrix in het doc).
-export const SITUATIES = ['nieuw-spel', 'opening', 'laden', 'slapen', 'naar-huis', 'reis-thuis', 'missie-thuis', 'ziekenhuis', 'hostwissel', 'gast-aansluit'];
+export const SITUATIES = ['nieuw-spel', 'opening', 'laden', 'slapen', 'naar-huis', 'reis-thuis', 'missie-thuis', 'ziekenhuis', 'hostwissel', 'gast-aansluit', 'opening-na-laden'];
 
 export const BINNEN_MAX_S = 6; // zo lang wacht het laadscherm op het interieur; daarna valt de speler terug op buiten
 
@@ -30,9 +30,9 @@ export function interieurType(home) {
 
 // inv: { situatie, instelling (startBinnen, standaard aan), thuis (een homebase-thuis of null), rol ('solo' | 'host' | 'gast'),
 //        saveCtx ('home' | 'busy' | 'free' | undefined, uit de save), binnenSave (true | false | undefined: stond de speler binnen
-//        toen hij opsloeg?), interieurKlaar (false: het pand kon niet worden gebouwd) }
+//        toen hij opsloeg?), verhaalThuis (true: de volgende verhaalstap speelt thuis, zie stepPlaysAtHome), interieurKlaar (false: het pand kon niet worden gebouwd) }
 export function chooseSpawn(inv = {}) {
-  const { situatie, instelling = true, thuis = null, rol = 'solo', saveCtx, binnenSave, interieurKlaar = true } = inv;
+  const { situatie, instelling = true, thuis = null, rol = 'solo', saveCtx, binnenSave, verhaalThuis = false, interieurKlaar = true } = inv;
   const type = interieurType(thuis);
   const uit = (plek, reden) => ({ plek, type, reden });
   switch (situatie) {
@@ -42,9 +42,11 @@ export function chooseSpawn(inv = {}) {
     case 'laden':
       if (saveCtx === 'busy' || saveCtx === 'free') return uit('houd', 'Een spel midden in een missie of ergens anders in de provincie houdt zijn plek.');
       if (rol === 'gast') return uit('buiten', 'Een gast staat bij wie het spel opende (de Samen-regel), niet in zijn eigen woning.');
-      if (binnenSave === false) return uit('buiten', 'Dit spel stond buiten bij het huis en blijft buiten.');
+      // Doorgaan terwijl de volgende stap thuis speelt (een avond in de flat): de scene hoort boven, dus ook een save van buiten komt binnen
+      if (binnenSave === false && !verhaalThuis) return uit('buiten', 'Dit spel stond buiten bij het huis en blijft buiten.');
       return homeIndoors(type, instelling, interieurKlaar, uit);
     case 'naar-huis':
+    case 'opening-na-laden':
       return homeIndoors(type, instelling, interieurKlaar, uit);
     case 'slapen':
       return uit('houd', 'Je slaapt al in de woning en blijft er na het slapen.');
@@ -67,6 +69,24 @@ function homeIndoors(type, instelling, interieurKlaar, uit) {
   if (type === 'geen') return uit('buiten', 'Dit huis heeft nog geen interieur: je staat voor de deur.');
   if (!interieurKlaar) return uit('buiten', 'Het interieur kon niet worden gebouwd: terugval op voor de deur.');
   return uit('binnen', 'Je staat in de woning, met de deur of de lift als uitweg.');
+}
+
+// Speelt deze verhaalstap thuis (in de flat)? Dan hoort de speler bij Doorgaan boven en wacht de scene tot hij daar staat. De opening
+// (goal 'opening') telt niet: die is op de straat en in een gesloten set geregisseerd en laat de speler voor de deur achter.
+export function stepPlaysAtHome(step) {
+  if (!step || typeof step !== 'object') return false;
+  const t = step.goal && step.goal.type;
+  if (t === 'opening') return false;
+  return t === 'home' || !!step.homeScene;
+}
+
+// Mag een cutscene nu starten? `speeltThuis`: hij speelt in de woning (flat of pand). `binnen`: de speler staat daar nu.
+// Een cutscene in een pand terwijl de speler buiten staat start nooit stil: de speler wordt eerst naar binnen gebracht
+// ('breng-binnen', als dat mag en kan) of de scene wacht tot hij zelf binnen is ('wacht').
+export function playRule({ speeltThuis = false, binnen = false, instelling = true, thuis = null, rol = 'solo', interieurKlaar = true } = {}) {
+  if (!speeltThuis || binnen) return { actie: 'start', reden: speeltThuis ? 'De speler staat al in de woning.' : 'Deze scene speelt op straat of in een eigen set.' };
+  if (rol !== 'gast' && instelling && interieurType(thuis) !== 'geen' && interieurKlaar) return { actie: 'breng-binnen', reden: 'De scene speelt thuis; de speler staat buiten en wordt eerst naar binnen gebracht.' };
+  return { actie: 'wacht', reden: 'De scene speelt thuis; de speler staat buiten en loopt zelf naar boven.' };
 }
 
 // De save: stond de speler binnen toen hij opsloeg? Een oude save heeft het veld niet (undefined: het was altijd "naar huis", dus

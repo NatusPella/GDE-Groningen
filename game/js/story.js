@@ -44,7 +44,8 @@ import { getSideJobList } from './sidejobs.js';
 import { sideJobPlek } from './bijbaananker.js';
 import { applySwitchHook } from './karakterbonus.js';
 import { getGaragesForRender } from './garages.js';
-import { inHomeFlat, getHomeForRender, flatStage, homeSpawnPoint } from './home.js';
+import { inHomeFlat, getHomeForRender, flatStage, homeSpawnPoint, setVerhaalThuisBron, stepOutForCutscene, backUpAfterCutscene } from './home.js';
+import { stepPlaysAtHome } from './spawnbinnen.js';
 import { isShopOpen } from './shopui.js';
 import { maybeOfferHelp, noteStepCleared } from './assistlive.js';
 import { playCinematic, isCinematicActive, skipCinematic, sinceCinematic, isBannerUp, setOpeningDueProbe } from './cinematics.js';
@@ -479,7 +480,7 @@ function updateHomeWait(step) {
   const night = step.kind === 'mission' || step.goal.type === 'night';
   if (rt.nightWait || world.pigeonMode || isCinematicActive() || isShopOpen()) return;
   if (night && !scene && isNight(world)) return;
-  if (!inHomeFlat()) { rt.flatSince = -1; return; }
+  if (!inHomeFlat() || !flatStage()) { rt.flatSince = -1; return; } // never a flat scene while the player stands outside
   if (rt.flatSince < 0) rt.flatSince = world.time;
   if (world.time - rt.flatSince < HOME_SCENE_AFTER) return;
   rt.nightWait = true;
@@ -536,6 +537,8 @@ function playOpening(b) {
     at += 0.9;
   }
   const p = hoofdspeler(world);
+  const geladen = !!world.loadedFromSave; // Doorgaan: the player stood upstairs; the opening is staged outside, so step out and go back up afterwards
+  if (inHomeFlat()) stepOutForCutscene(world);
   const kop = PARTS.kop;
   // #718: de opening speelt bij het nieuwe thuis (homeSpawnPoint, net als intromontage.js), niet waar de speler
   // toevallig staat: de straat van de Oosterparkwijk en de keuken hingen anders boven een willekeurige plek.
@@ -560,6 +563,7 @@ function playOpening(b) {
   const openingKlaar = () => {
     const fin = openingFinish(b);
     if (!fin.changed) return;
+    if (geladen) { try { backUpAfterCutscene(world); } catch (e) { /* stays at the door */ } }
     zetKlok(fin.hour);
     if (b.onKlaar) b.onKlaar();
   };
@@ -1176,6 +1180,7 @@ function validityNow() {
 
 export function initStory(w) {
   world = w;
+  setVerhaalThuisBron(() => stepPlaysAtHome(currentStep())); // spawnbinnen.js: Doorgaan bij een stap die thuis speelt komt boven uit
   setValidityContext(validityNow);
   setMissionHooks({ waived: (key) => state.waived.has(key), skipped: (i) => STEPS.some((s) => s.kind === 'mission' && missionIdx(s) === i && state.skipped.has(s.id)), passed: onPassed, failed: onFailed, gated: onGated, canStart: swapDone });
   // travel steps (storyreis.js): at the place the trip goes to, however you got there
