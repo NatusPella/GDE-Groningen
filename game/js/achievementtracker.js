@@ -20,7 +20,7 @@ import { getMissionList, payMedalBonus } from './missionquery.js';
 import { getSettings } from './settings.js';
 import { cleanDifficulty, scaleTarget, difficultyFactors } from './difficulty.js'; // #800: medailledrempels per stand
 import { getScene } from './scene3d.js';
-import { makeNearMiss, nearMissBonus } from './gamefeel.js';
+import { makeNearMiss, nearMissBonus, nearMissStreak, breakNearStreak } from './gamefeel.js';
 import { chipPopup } from './stunthud.js';
 import { noteMoney } from './finance.js';
 import { initVisboek } from './visboeklive.js';
@@ -188,6 +188,7 @@ function processContacts(w, pv) {
     if (pv && (c.a === pv || c.b === pv)) {
       const o = c.a === pv ? c.b : c.a;
       if (o) lastHitWith.set(o.id, w.time);
+      breakNearStreak(nearMiss); // een botsing breekt de rakelings-reeks
       if (run && o) {
         run.carTouches++;
         if (o.isRacer || o.racer || o.rival) run.rivalTouches++;
@@ -256,7 +257,12 @@ function trackVehicle(dt, w, pv) {
       recordStat(w, 'nearMiss');
       // kleine bonus met een chip (#216); geen beloning tegen het verkeer in, afkoeling per paar
       const bonus = nearMissBonus(nearMiss, w.time, { pair: pv.id + '-' + id, speed: pv.speed, gap: cand.gap, sameDir: cand.sameDir });
-      if (bonus > 0) { noteMoney('Rijden'); w.money += bonus; chipPopup(`+€${bonus} Rakelings`); }
+      if (bonus > 0) {
+        // reeks: elke volgende rakelings binnen 9 s telt zwaarder (x1,5, x2 ... tot x3)
+        const st = nearMissStreak(nearMiss, w.time, bonus);
+        noteMoney('Rijden'); w.money += st.bonus;
+        chipPopup(st.n > 1 ? `+€${st.bonus} Rakelings x${st.n}` : `+€${st.bonus} Rakelings`);
+      }
     }
   }
 }

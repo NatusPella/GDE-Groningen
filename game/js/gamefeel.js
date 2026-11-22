@@ -77,7 +77,7 @@ const NEAR_MAX_GAP = 1.2;         // m tussen de carrosserieen (strenger dan de 
 export const NEAR_COOLDOWN_S = 12;       // per voertuigpaar
 const NEAR_BONUS_MIN = 5, NEAR_BONUS_MAX = 15;
 
-export function makeNearMiss() { return { at: new Map() }; }
+export function makeNearMiss() { return { at: new Map(), streak: 0, streakAt: -99 }; }
 
 // Een geslaagde rakelings: je rijdt snel, het andere voertuig rijdt dezelfde kant op (geen
 // tegenliggers: dat is te misbruiken) en de ruimte ertussen is klein. Geeft het bonusbedrag of 0.
@@ -93,3 +93,22 @@ export function nearMissBonus(n, now, { pair, speed, gap, sameDir }) {
   const k = clamp((Math.abs(speed) - NEAR_MIN_SPEED) / 30, 0, 1);
   return Math.round(NEAR_BONUS_MIN + (NEAR_BONUS_MAX - NEAR_BONUS_MIN) * k);
 }
+
+// --- Rakelings-reeks ---------------------------------------------------------------------
+// Meerdere echte rakelings kort na elkaar vormen een reeks: elke volgende telt zwaarder mee
+// (kleine winst vaak, een lange reeks af en toe een flinke). De reeks breekt als er te lang
+// niets tussen zit; een botsing breekt hem ook (breakNearStreak).
+export const STREAK_WINDOW_S = 9;        // seconden tussen twee rakelings om de reeks te houden
+export const STREAK_STEP = 0.5;          // elke extra rakelings telt 50% van de basis zwaarder
+export const STREAK_MAX_MULT = 3;        // plafond: een reeks wordt nooit meer dan x3
+
+// Roep aan na een rakelings met bonus > 0. Geeft { n, mult, bonus }: de plaats in de reeks, de
+// vermenigvuldiger en het bedrag na de vermenigvuldiger.
+export function nearMissStreak(n, now, base) {
+  n.streak = (now - (n.streakAt ?? -99) <= STREAK_WINDOW_S) ? (n.streak || 0) + 1 : 1;
+  n.streakAt = now;
+  const mult = Math.min(STREAK_MAX_MULT, 1 + STREAK_STEP * (n.streak - 1));
+  return { n: n.streak, mult, bonus: Math.round(base * mult) };
+}
+
+export function breakNearStreak(n) { n.streak = 0; n.streakAt = -99; }
