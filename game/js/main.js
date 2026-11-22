@@ -182,6 +182,7 @@ import { initWorldEvents, updateWorldEvents } from './worldevents.js';
 import { initMuggings, updateMuggings, updateMuggingsGast } from './muggings.js';
 import { initRoadRage, updateRoadRage } from './roadrage.js';
 import { updateClearZones } from './clearzonesweep.js';
+import { updateInteriorIsolation } from './interiorisolation.js';
 import { updateSpikeStrips3D } from './spikestrips3d.js';
 import { tryWeaponDropInteract, updateWeaponDrops3D } from './weapondrops.js';
 import { initFlitspaal, updateFlitspaal } from './flitspaal.js';
@@ -1528,6 +1529,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     updateMuggings(dt, world);
     updateRoadRage(dt, world);
     updateClearZones(dt, world);
+    updateInteriorIsolation(dt, world); // de wereld blijft buiten de binnenruimten (voetgangers, verkeer, props; de vaste lagen snijden zichzelf weg)
     updateDayNight(dt, world);
     boerderijTijd(world); // de gewassen groeien in speltijd (#415)
     try { const dr = bezitDagTik(world); if (dr) { bezitDeliverLine(world, bezitOnDayReport(getBezit(), dr)); bezitDeliverRapport(world, dr); } updateBezitMarkers(world, dt); updateFarmWorkers(world, dt); updateSnackVans(world, dt); updateChainTrucks(world, dt); updateHerds(world, dt); } catch (e) { /* zonder bezit */ } // personeel, pacht, vee en bedrijven per speldag; de palen in de wereld (epic Bezit)

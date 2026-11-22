@@ -29,6 +29,8 @@ import { playerBusy } from './busy.js';
 import { isCinematicActive } from './cinematics.js';
 import { respawnFade } from './respawn.js';
 import { housePoint } from './beppe_rules.js';
+import { volumeOfRoom, CUT_FLOOR } from './interiorvolume.js';
+import { openInteriorVolume, closeInteriorVolume } from './interiorisolation.js';
 import {
   VISIT, ROOM, SPOTS, SOLID_BEPPE, soupKey, soupState, timeOfDay, isRaining,
   pickTip, nearestSpot, nearDoorOutside, keepInRoom, insideRoom, roomCamera, canEnter,
@@ -158,7 +160,7 @@ function fade(fn) {
   return true;
 }
 
-function applyRoom(ctx, on) {
+function applyRoom(ctx, on, w = null) {
   const r = ctx.room;
   if (r) {
     r.visible = on;
@@ -168,6 +170,12 @@ function applyRoom(ctx, on) {
     if (r.userData.memory) r.userData.memory.visible = on && phase === 'herinnering';
   }
   if (ctx.house) ctx.house.visible = !on;
+  // de wereld blijft buiten de kamer: de vaste lagen snijden zich weg, voetgangers en props wijken (interiorisolation.js)
+  const site = ctx.site && ctx.site();
+  if (on && site && site.house) {
+    const a = site.house.a, base = (w && w.map && w.map.groundHeightAt ? w.map.groundHeightAt(site.house.x, site.house.y, 60) : 0) || 0;
+    openInteriorVolume('beppe-huis', volumeOfRoom(site.house.x, site.house.y, ROOM.hw, ROOM.hd, a, base + CUT_FLOOR, base + ROOM.h + 0.4));
+  } else closeInteriorVolume('beppe-huis');
 }
 
 function clearCamera(w) {
@@ -179,7 +187,7 @@ function enter(w, ctx) {
   if (!site || inside) return false;
   return fade(() => {
     inside = { t: 0, last: { note: '', tip: '' }, pin: null };
-    applyRoom(ctx, true);
+    applyRoom(ctx, true, w);
     putPlayer(w, site, SPOTS.enter, true);
     cameraNow(w, site);
     const vm = nextVisitMark(marks());
@@ -212,7 +220,7 @@ export function leave(w, ctx, silent = false) {
   const out = () => {
     stopGesprek(w);
     inside = null;
-    applyRoom(ctx, false);
+    applyRoom(ctx, false, w);
     clearCamera(w);
     if (site) putPlayer(w, site, SPOTS.out, false);
   };
@@ -225,7 +233,7 @@ export function dropInside(w, ctx) {
   if (!inside) return;
   stopGesprek(w);
   inside = null;
-  applyRoom(ctx, false);
+  applyRoom(ctx, false, w);
   if (w) clearCamera(w);
 }
 

@@ -28,10 +28,12 @@ import { ROOMS, ROOM_KINDS, isRoomKind, roomLayout, roomBaseHeight } from './roo
 import { isInsideBuilding } from './pedgeom.js';
 import { isInWater } from './util.js';
 import { addClearZone, removeClearZone } from './clearzone.js';
-import { findSetSpot, setClearZone, roomCameraPose, hasRoomCamera, binnenStaat } from './binnenset.js';
+import { findSetSpot, setClearZone, roomCameraPose, hasRoomCamera, binnenStaat, setFootprint, SET_DIMS } from './binnenset.js';
 import { resolveRealSet } from './realsetrun.js';
 import { isRealSet, hallCameraPose, restorePlace, localToWorld } from './realsets.js';
 import { hoofdspeler } from './players.js';
+import { volumeOfRoom, CUT_FLOOR } from './interiorvolume.js';
+import { openInteriorVolume, closeInteriorVolume } from './interiorisolation.js';
 
 // kantoor, serverkamer, Loket en Oma's keuken, plus de kamers uit roomspec.js (kroeg, woonkamer, garage)
 export const STAGE_SETS = ['kantoor', 'serverkamer', 'loket', 'omakeuken', ...ROOM_KINDS];
@@ -175,6 +177,9 @@ export function buildStageSet(world, kind, player, targetScene = null, opts = {}
   // echt binnen: de wereld blijft buiten de kamer (voetgangers, verkeer en losse props wijken; de sweep ruimt ze op)
   const zone = setClearZone(kind, layout);
   if (zone) addClearZone(zone.id, zone.pts, zone.r, zone.closed);
+  // en de vaste wereldlagen (meubilair, bomen, stadsprops, lantaarns) tekenen niets binnen de kamer (interiorisolation.js)
+  const fp = setFootprint(kind, layout), dim = SET_DIMS[kind];
+  if (fp) openInteriorVolume('binnenset', volumeOfRoom(fp.cx, fp.cy, fp.hw, fp.hd, 0, base + CUT_FLOOR, base + dim.h + 0.4));
   return { kind, layout, base, variant: opts.variant || null, group, kit, people, t: 0, hold: layout.hold, shift, zone: !!zone };
 }
 
@@ -217,6 +222,7 @@ export function disposeStageSet(set) {
     h.release();
     set.real = null;
   }
+  closeInteriorVolume('binnenset');
   if (set.kit && typeof set.kit.dispose === 'function') set.kit.dispose();
   for (const p of set.people) disposePerson(p.mesh);
   set.group.removeFromParent();

@@ -22,6 +22,7 @@ import { gridItems } from './spatialgrid.js';
 import { createCalmGate } from './tilestream.js';
 const tilesCalmGate = createCalmGate(); // wacht ook op de achtergrondwachtrij van de tegelwereld, hoogstens twee seconden achter elkaar (#1052)
 import { EDGE_CLASSES, edgeColour, edgeHeight } from './edgeclasses.js';
+import { applyInteriorCut } from './interiorcut3d.js';
 
 // the game draws its own lamps and path bollards (see above)
 export const GAME_OPTS = { lamps: false, bollards: false, livingBumps: false };
@@ -130,7 +131,7 @@ function bollardGeo() { return mergeGeometries([tint(new THREE.CylinderGeometry(
 const GEOS = { guardrail: guardrailGeo, fence: fenceGeo, hedge: hedgeGeo, noise: noiseGeo, hectometer: hectometerGeo, speedbump: speedbumpGeo, gantry: gantryGeo, beam: beamGeo, bench: benchGeo, bin: binGeo, bikerack: rackGeo, shelter: shelterGeo, bollard: bollardGeo, placesign: postGeo, wegwijzer: postGeo };
 // kinds whose instance is hidden once the collider is knocked out (breakables.js owns the tumbling copy)
 const BREAKABLE_DRAWN = new Set(['guardrail', 'fence', 'bench', 'bin', 'bikerack', 'placesign', 'wegwijzer']);
-const MAT = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75, metalness: 0.15 });
+const MAT = applyInteriorCut(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75, metalness: 0.15 })); // geen meubilair in een binnenruimte (interiorisolation.js)
 
 function meshOf(kind) {
   let m = meshes.get(kind);
@@ -175,7 +176,7 @@ function rebuildSigns(gantries) {
     atlas.width = SIGN_W * ATLAS_COLS; atlas.height = SIGN_H * ATLAS_ROWS;
     atlasTex = new THREE.CanvasTexture(atlas);
     atlasTex.colorSpace = THREE.SRGBColorSpace;
-    signMat = new THREE.MeshBasicMaterial({ map: atlasTex, side: THREE.DoubleSide });
+    signMat = applyInteriorCut(new THREE.MeshBasicMaterial({ map: atlasTex, side: THREE.DoubleSide }));
   }
   const ctx = atlas.getContext('2d');
   ctx.clearRect(0, 0, atlas.width, atlas.height);
@@ -257,7 +258,7 @@ function rebuildBoards(boards) {
     boardAtlas.width = BOARD_W * BOARD_COLS; boardAtlas.height = BOARD_H * BOARD_ROWS;
     boardTex = new THREE.CanvasTexture(boardAtlas);
     boardTex.colorSpace = THREE.SRGBColorSpace;
-    boardMat = new THREE.MeshBasicMaterial({ map: boardTex, side: THREE.FrontSide });
+    boardMat = applyInteriorCut(new THREE.MeshBasicMaterial({ map: boardTex, side: THREE.FrontSide }));
   }
   const ctx = boardAtlas.getContext('2d');
   ctx.clearRect(0, 0, boardAtlas.width, boardAtlas.height);
