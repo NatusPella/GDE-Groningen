@@ -13,7 +13,7 @@ import { deviceText } from './touchui.js';
 import { bonRegels, probleemVan, risicoVan } from './shopbon.js';
 import {
   itemIcon, itemStatus, refusalMessage, needsConfirm as needsConfirmFor, buyLabel as buyLabelFor, shopTabs, tabSections, stepTab, keepTab,
-  flatItems, keepItem, shortPerk,
+  flatItems, keepItem, shortPerk, toonStatus,
 } from './shoplist.js';
 
 let root = null;
@@ -40,7 +40,6 @@ const CHIP_KLASSE = { ok: 'ds-z-chip--succes', no: 'ds-z-chip--probleem', mut: '
 const chipHtml = (st, extra = '') => `<span class="ds-z-chip ${CHIP_KLASSE[st.tone] || ''} sm-st ${st.tone}${extra}" data-st="${st.id}">${CHIP_ICOON[st.tone] || CHIP_ICOON.mut}${esc(st.label)}</span>`;
 // De status staat alleen op een regel als er iets te zeggen valt (te duur, heb ik al, op slot): "Kan ik kopen" is de
 // standaard en de prijs en de knop zeggen dat al (#1252).
-const toonStatus = (st) => !['koop', 'gratis', 'verkoop', 'kies'].includes(st.id);
 const rijChip = (it, st) => (it.plain || !toonStatus(st) ? '' : chipHtml(st));
 const euroHeel = (n) => euro(Math.max(0, Math.floor(Number(n) || 0)));
 
@@ -310,7 +309,7 @@ function renderDetail() {
   const probleem = probleemVan(it, flatItems(tabSections(viewSections(), tab)), world.money);
   const risico = isArmed ? null : risicoVan(it, world.money);
   // de kop van de kaart is de afdeling van het gekozen ding, niet nog eens de winkelnaam (die staat al boven)
-  const sec = viewSections().find((x) => (x.items || []).includes(it));
+  const sec = viewSections().find((x) => (x.items || []).some((y) => y.id === it.id));
   bar.querySelector('.sm-ceb').textContent = [sec && sec.title, it.tag].filter(Boolean).join(' · ') || shop.name;
   bar.querySelector('.sm-dchips').innerHTML = it.plain ? '' : rijChip(it, st);
   bar.querySelector('.sm-dname').textContent = it.label;

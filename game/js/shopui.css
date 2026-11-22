@@ -30,7 +30,7 @@
 #shop-menu .sm-story b { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); }
 #shop-menu .sm-story small { flex-basis: 100%; font-size: var(--ds-t-hulp); }
 #shop-menu .sm-story.done { background: var(--ds-c-groen-vlak); color: var(--ds-c-groen-tx); }
-#shop-menu .sm-stage { display: none; position: relative; flex: none; height: clamp(100px, 14vh, 200px); background-image: var(--ds-raster); background-size: var(--ds-raster-maat); border: var(--ds-lijn-dik) dashed var(--ds-c-ink-inkt); }
+#shop-menu .sm-stage { display: none; position: relative; flex: 1 1 0; min-height: 96px; max-height: 260px; background-image: var(--ds-raster); background-size: var(--ds-raster-maat); border: var(--ds-lijn-dik) dashed var(--ds-c-ink-inkt); }
 #shop-menu .sm-stage.on { display: block; }
 #shop-menu .sm-preview, #shop-menu .sm-scratch { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; opacity: 0; transition: opacity 0.25s; }
 #shop-menu .sm-preview.on { opacity: 1; }
@@ -39,7 +39,7 @@
 #shop-menu .sm-scratch.on { opacity: 1; pointer-events: auto; cursor: pointer; }
 /* de gekozen regel: een zeefdrukkaart met een bordgroene kop, de misdruk draagt de naam */
 #shop-menu .sm-detail { flex: none; gap: var(--ds-s-3); margin-bottom: var(--ds-s-2); }
-#shop-menu .sm-stage.compact { height: clamp(80px, 10vh, 110px); }
+#shop-menu .sm-stage.compact { flex: none; height: clamp(80px, 10vh, 110px); }
 #shop-menu .sm-detail[hidden], #shop-menu .sm-callout[hidden], #shop-menu .sm-risico[hidden] { display: none; }
 #shop-menu .sm-detail .mut { color: var(--ds-c-inkt-zacht); }
 #shop-menu .sm-dname { overflow-wrap: anywhere; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-kop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); }

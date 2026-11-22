@@ -73,6 +73,9 @@ export function itemStatus(it, money = 0) {
   return { id: 'gratis', label: 'Gratis', tone: 'ok', buyable: true };
 }
 
+// Een statuschip hoort alleen bij een uitzondering (te duur, heb ik al, op slot); "Kan ik kopen" is de standaard (#1252).
+export const toonStatus = (st) => !['koop', 'gratis', 'verkoop', 'kies'].includes(st.id);
+
 // How much money is missing for an item (0 when nothing, or when it is no purchase).
 export function shortfall(it, money = 0) {
   if (it.plain || it.income > 0 || !(it.price > 0)) return 0;
