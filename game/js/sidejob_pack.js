@@ -326,8 +326,7 @@ const stallJob = (() => {
         else if (e.type === 'perfect') { d.flash = `Precies ${e.grams} gram: de klant is blij`; d.bad = false; sfxEvent(world, 'shop_sell_bills', p.x, p.y); }
         else if (e.type === 'close') { d.flash = `${e.grams} gram: dichtbij genoeg`; d.bad = false; sfxEvent(world, 'shop_drawer', p.x, p.y); }
         else if (e.type === 'over') { d.flash = `${e.grams} gram: te veel weggegeven`; d.bad = true; sfxEvent(world, 'shop_bag_rustle', p.x, p.y); }
-        else if (e.type === 'under') { d.flash = `${e.grams} gram: dat is te weinig, een klacht`; d.bad = true; sfxEvent(world, 'npc_sigh', p.x, p.y); }
-        else if (e.type === 'gone') { d.flash = e.text; d.bad = true; sfxEvent(world, 'npc_sigh', p.x, p.y); }
+        else if (e.type === 'under' || e.type === 'gone') { d.flash = e.type === 'gone' ? e.text : `${e.grams} gram: dat is te weinig, een klacht`; d.bad = true; sfxEvent(world, 'npc_sigh', p.x, p.y); }
         else if (e.type === 'fail') { closePanel(c); for (const q of crowd) freePed(q); c.fail(e.why); return; }
         else if (e.type === 'done') { finish(c, 'kraam'); return; }
       }
