@@ -11,6 +11,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Stabiliteit
+- Het spel toonde de rode kaart "Er ging iets mis" (TypeError bij het opbouwen van een gebouw) als het geheugen voor gebouwonderdelen vol zat met gebouwen die nog in beeld waren: het gebouw dat net gebouwd werd, raakte dan zijn eigen onderdelen kwijt. Dat gebouw blijft nu altijd staan (#1283).
+
 ### Taal
 - Stad, Ommeland en Grunn: wat de stad Groningen zelf is heet nu "de Stad" (de Martinitoren, bruggen en grachten, de wijken, de rondvaart), de rest van de provincie "Ommeland", en "Grunn" blijft voor het geheel, de slogans en het gevoel, zonder lidwoord. De locatieregel toont "wijk · Stad", het straatpraatkaartje "Opgevangen in de Stad" en het onweerbericht in de stad "Onweer boven de Stad". Het station heet overal Station Groningen. 20 gesproken regels (Tammo, Tessa, Rikus, Berend, Jelle en de rondvaartgids) zijn aangepast en wachten op een nieuwe opname (scripts/voice_wacht.json). De regel staat in docs/TAALREGEL-STAD-OMMELAND-22-11.md en wordt bewaakt door scripts/stad_grunn_test.mjs.
 ### Besturing met een controller

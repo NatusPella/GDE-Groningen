@@ -1453,7 +1453,9 @@ function touchParts(b) {
   while (partLRU.size > PART_CACHE_MAX && guard-- > 0) {
     const old = partLRU.keys().next().value;
     partLRU.delete(old);
-    if (partsInUse && partsInUse(old)) { partLRU.set(old, true); partsSpared++; continue; }
+    // the building being built right now is never evicted: when all others are spared, the sweep reaches it and
+    // its parts would be null before buildBuildingMeshRaw reads parts.main (TypeError, red "Er ging iets mis" card)
+    if (old === b || (partsInUse && partsInUse(old))) { partLRU.set(old, true); if (old !== b) partsSpared++; continue; }
     const parts = old._geo3dParts;
     if (parts) for (const k of Object.keys(parts)) if (parts[k] && parts[k].dispose) parts[k].dispose();
     old._geo3dParts = null;
