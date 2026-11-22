@@ -15,7 +15,7 @@ export const RIDES = {
   lift: { label: 'Meerijden', mode: 'auto' },
 };
 
-const mins = (s) => Math.max(1, Math.round(s / 60));
+const mins = (s) => Math.max(1, Math.round((Number.isFinite(s) ? s : 0) / 60));
 const label = (s) => `± ${mins(s)} min`;
 
 // De keuze in gewone woorden (#445): een korte zin per keuze, voor het keuzevenster en de kaart.
@@ -63,7 +63,9 @@ export function defaultChoice(length, opts) {
 // Small reward for driving yourself; never a punishment for the others.
 export const SELF_REWARD = { perKm: 4, max: 120 };
 export function selfReward(length) {
-  return Math.min(SELF_REWARD.max, Math.round((length / 1000) * SELF_REWARD.perKm));
+  // een kapotte of negatieve lengte (NaN, min) geeft nooit een negatieve of lege beloning
+  const m = Number.isFinite(length) ? Math.max(0, length) : 0;
+  return Math.min(SELF_REWARD.max, Math.round((m / 1000) * SELF_REWARD.perKm));
 }
 
 // What happens on arrival, the same for every choice (nothing story is skipped):

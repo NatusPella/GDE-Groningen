@@ -2,7 +2,7 @@
 // ways of getting to the next step. Thin DOM layer; the text and the keys come
 // from reisview.js. askTravel(beat) resolves with 'meerijden' | 'zelf' | 'overslaan'.
 import { createChoicePanel } from './choicepanel.js';
-import { panelState, pickFromKey, cyclePick, TRAVEL_HELP_ID } from './reisview.js';
+import { panelState, pickFromKey, pickDirFromKey, cyclePick, TRAVEL_HELP_ID } from './reisview.js';
 import { markSeen, parseSeen } from './hudtext.js';
 import { KEYS } from './storagekeys.js';
 import { travelOptions } from './reiskeuze.js';
@@ -50,6 +50,7 @@ export function askTravel(beat) {
       if (e.repeat) return;
       const id = pickFromKey(beat, e.key);
       if (id) { e.preventDefault(); e.stopPropagation(); finish(id); }
+      else if (pickDirFromKey(e.key) !== null) { e.preventDefault(); e.stopPropagation(); pick = cyclePick(beat, pick, pickDirFromKey(e.key)); p.set(panelState(beat, pick, loadSeen())); }
       else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); finish(pick); }
       else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish(null); } // sluit: de standaardkeuze (#92)
     };

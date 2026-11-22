@@ -47,6 +47,15 @@ export function cyclePick(beat, pick, dir) {
   return ids[(i + (dir < 0 ? -1 : 1) + ids.length) % ids.length];
 }
 
+// Pijl omhoog of omlaag (en W of S) verplaatst de keuze, net als D-pad omhoog en omlaag op een controller: -1, 1 of null.
+// Eerst kon een toetsenbordspeler alleen 1, 2 of 3 of Enter op de standaard drukken en dus niet door de lijst lopen (22-11).
+export function pickDirFromKey(key) {
+  const k = String(key);
+  if (k === 'ArrowUp' || k === 'w' || k === 'W') return -1;
+  if (k === 'ArrowDown' || k === 's' || k === 'S') return 1;
+  return null;
+}
+
 // the HUD line while driving: remaining distance and ETA
 export function hudLine(remaining, mode = 'auto') {
   if (!(remaining > 0)) return '';

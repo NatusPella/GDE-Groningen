@@ -22,7 +22,18 @@ export const RECAP_WAIT_MAX_S = 20;
 export const RECAP_KEY = 'gde-recap-v1';
 
 const countWords = (t) => String(t || '').trim().split(/\s+/).filter(Boolean).length;
-const firstSentence = (t) => { const m = /^[\s\S]*?[.!?](?=\s|$)/.exec(String(t || '').trim()); return m ? m[0] : String(t || '').trim(); };
+// Het einde van de eerste zin: een punt na een afkorting (Dr., St., mevr., bijv.) of een voorletter (J.) is geen zinseinde.
+const AFKORTING = /(?:^|[\s(])(?:dr|drs|mr|ir|prof|st|mevr|mw|dhr|bijv|nr|ca|enz|[a-z])$/i;
+const firstSentence = (t) => {
+  const tekst = String(t || '').trim();
+  const re = /[.!?](?=\s|$)/g;
+  let m;
+  while ((m = re.exec(tekst))) {
+    if (tekst[m.index] === '.' && AFKORTING.test(tekst.slice(0, m.index))) continue;
+    return tekst.slice(0, m.index + 1);
+  }
+  return tekst;
+};
 
 // The content. `input` is flat, so the test needs no world:
 //   { step: { id, part, title, lead: 'Name: text' } | null, ended: bool, last: 'title of the last finished step' | '',
