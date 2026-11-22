@@ -85,13 +85,13 @@ const FOUTEN = {
 };
 const FOUT_ONBEKEND = { titel: 'Verbinden mislukt', tekst: 'Het koppelen is niet gelukt.', doe: 'Probeer het opnieuw, of kies Verbinding testen om te zien wat er mis is.', knop: 'Terug' };
 export function foutUitleg(reden, { versie = '', andereVersie = '' } = {}) {
-  const f = { ...(FOUTEN[reden] || FOUT_ONBEKEND) };
+  const f = { ...(typeof reden === 'string' && Object.hasOwn(FOUTEN, reden) ? FOUTEN[reden] : FOUT_ONBEKEND) }; // een reden van het net is tekst van een ander: geen prototype-sleutels als 'constructor'
   if ((reden === 'versie' || reden === 'protocol') && andereVersie) f.tekst = `Jij speelt versie ${versie || '?'}, de ander versie ${andereVersie}.`;
   return f;
 }
 
 // ---- de kamercode groot en kopieerbaar
-export const KOPIEER = { knop: 'Kopieer de code', klaar: 'Gekopieerd', mislukt: 'Kopiëren lukte niet: selecteer de code en kopieer hem zelf.' };
+export const KOPIEER = { knop: 'Kopieer de code', klaar: 'Gekopieerd', mislukt: 'Kopiëren lukte niet: selecteer de code en kopieer hem zelf.', rapportKlaar: 'Het rapport is gekopieerd. Plak het in een bericht.', rapportMislukt: 'Kopiëren lukte niet. Maak een schermafbeelding van deze uitslag en stuur die mee.' };
 
 // ---- de compacte regel van de Tab-lijst: naam, kleur, ping, afstand en richting, klaar
 // r: een rij uit spelersRijen; ctx: { wachtkamer }

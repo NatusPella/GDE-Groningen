@@ -59,6 +59,7 @@ export const DIAG_TEXT = 'De test gebruikt die servers om te kijken of het lukt:
 // (net/session.js) en staat nooit in de openbare lijst; leeg betekent open, zoals altijd. Spaties aan de randen tellen niet
 // mee, regeleinden vallen weg en er passen hoogstens 32 tekens, net als in coopnet.js (WACHTWOORD_MAX).
 export const WACHTWOORD_MAX = 32;
+export const INVOER_MAX = 200; // ruimte voor een geplakte chatregel met de code erin (kamercodeUitTekst)
 export function schoonWachtwoord(tekst) {
   return String(tekst == null ? '' : tekst).replace(/[\r\n\t]/g, '').trim().slice(0, WACHTWOORD_MAX);
 }
@@ -114,6 +115,17 @@ export function versieTekst(lokaal, ander) {
   return ander ? `Andere versie: de ander speelt versie ${ander}${l}. Installeer allebei dezelfde versie, het liefst de nieuwste, en probeer het opnieuw.` : `Andere versie van het spel${l}. Installeer allebei dezelfde versie, het liefst de nieuwste, en probeer het opnieuw.`;
 }
 
+// Een kamercode in een geplakte regel (WhatsApp, Discord): "Kamercode: K3J9D–8F2MN!" of tussen aanhalingstekens. Typografische streepjes
+// en een underscore tellen als streepje; de eerste twee blokken van vijf die samen een geldige code zijn, winnen. Anders null.
+export function kamercodeUitTekst(tekst) {
+  const t = String(tekst == null ? '' : tekst).slice(0, 400).replace(/[\u2010-\u2015\u2212_]/g, '-');
+  for (const m of t.matchAll(/(?<![A-Za-z0-9])([A-Za-z0-9]{5})[\s-]?([A-Za-z0-9]{5})(?![A-Za-z0-9])/g)) {
+    const r = parseRoom(m[1] + m[2]);
+    if (r.ok) return r;
+  }
+  return null;
+}
+
 // Wat voor invoer is dit? Een kamercode of een adres/code voor de directe route.
 export function classifyInput(text) {
   const t = String(text || '').trim();
@@ -122,7 +134,8 @@ export function classifyInput(text) {
     const c = parseCode(t);
     return c.ok ? { ok: true, route: ROUTES.DIRECT, code: t.replace(/\s+/g, '') } : c;
   }
-  const r = parseRoom(t);
+  let r = parseRoom(t);
+  if (!r.ok) { const g = kamercodeUitTekst(t); if (g) r = g; } // een geplakte regel ("Kamercode: K3J9D-8F2MN.") of een streepje uit een chat telt ook
   // parseRoom zegt precies wat er mis is ("10 tekens, zoals K3J9D-8F2MN"); die uitleg is nuttiger
   // dan één algemene regel, zeker bij een typefout van de juiste lengte.
   return r.ok ? { ok: true, route: ROUTES.KAMER, room: r.room } : { ok: false, reason: r.reason || 'Dit is geen kamercode en geen koppelcode van dit spel.' };
@@ -199,7 +212,7 @@ export function reduce(s, ev) {
     // #review 0.63: het kamercodeveld bewaart wat je typt ook als het scherm opnieuw tekent
     // (de lijst ververst elke paar seconden). Geen keuring: pas bij "Verder" telt de code.
     case 'invoer-typ':
-      n.invoerDraft = String(ev.tekst ?? '').slice(0, 64);
+      n.invoerDraft = String(ev.tekst ?? '').slice(0, INVOER_MAX);
       if (s.step === 'gast-typt' && s.error) n.error = ''; // een nieuwe poging wist de oude melding
       return n;
     case 'consent-vink': // "Niet meer vragen" op het toestemmingsscherm (#526): alleen de keuze van dit scherm, akkoord bewaart hem
@@ -301,6 +314,7 @@ export function reduce(s, ev) {
     case 'hold': n.holdSlot = ev.slot ?? null; n.holdNaam = ev.naam || ''; return n;
     case 'spelers': { // de lijst met spelers is veranderd (host: uit de hub; gast: van de host)
       n.spelers = Array.isArray(ev.lijst) ? ev.lijst : []; n.max = Math.min(ABS_MAX, Math.max(MIN_MAX, ev.max | 0 || DEFAULT_MAX));
+      if (n.spelers.length !== (s.spelers || []).length) n.startGevraagd = false; // er kwam of ging iemand: een gast mag opnieuw vragen om te starten (de knop bleef anders voorgoed op 'Start gevraagd')
       // de gekozen speler is weg of niet meer bereikbaar: dan kies je opnieuw in de lijst (#439)
       if (s.step === 'overdragen-kies' && !overdrachtKandidaten(n.rol, n.route, n.spelers).length) n.step = n.spelers.length > 1 ? 'verbonden' : 'host-wacht';
       if (s.rol === ROLES.HOST) {
@@ -309,11 +323,13 @@ export function reduce(s, ev) {
       }
       return n;
     }
-    case 'verbinden': n.step = 'verbinden'; return n;
+    case 'verbinden': n.step = 'verbinden'; n.wachtTik = 0; return n; // een nieuwe poging telt weer vanaf nul, anders staat meteen de 'geen antwoord'-tekst
     case 'verbind-tik': // de tijd die het verbinden al duurt, in tikken van een paar seconden (lobbyui.js): de tekst zegt dan wat er aan de hand kan zijn (#985)
       if (s.step !== 'verbinden') return s;
       n.wachtTik = Math.max(0, ev.n | 0); return n;
     case 'status': {
+      // een late melding na Annuleren (rol weg, beginscherm) maakt geen spookwachtkamer en geen 'Verbinding weg' zonder verbinding
+      if (!s.rol && s.step === 'start' && !['verbroken', 'weg'].includes(ev.status)) return s;
       n.status = ev.status; n.reason = ev.reason || null; if (ev.ander) n.andereVersie = String(ev.ander); if (ev.partner) n.partner = ev.partner;
       if (ev.status === 'ok' || ev.status === 'lag') n.step = 'verbonden';
       else if (ev.status === 'lost') n.step = 'verbroken';
@@ -326,7 +342,7 @@ export function reduce(s, ev) {
       n.step = s.rol === ROLES.HOST ? 'host-maakt-code' : 'gast-typt'; return n;
     case 'bron-hervat': // een lijstgast verbindt opnieuw via zijn rij in de lijst (#983): geen code om in te voeren
       if (s.step !== 'verbroken' || s.rol !== ROLES.GAST || !s.bron) return s;
-      n.route = ROUTES.KAMER; n.step = 'verbinden'; return n;
+      n.route = ROUTES.KAMER; n.step = 'verbinden'; n.wachtTik = 0; return n;
     case 'bron-mislukt': // dat lukte niet: terug naar het wachtscherm voor een volgende poging
       if (s.step !== 'verbinden' || !s.bron) return s;
       n.step = 'verbroken'; n.error = ev.msg || 'Opnieuw verbinden lukte niet.'; return n;
@@ -467,7 +483,7 @@ export function view(s) {
         title: 'Aansluiten', lines: ['Voer de kamercode of de koppelcode in die je kreeg. Je speelt lokaal je eigen verhaal (Tammo of Tessa, wat jouw opdracht vraagt) en de anderen zien je als je online-avatar. Kies hieronder je naam, kleur en figuur: je naam en kleur zijn wat de anderen bij je figuur zien.', GAST_BEWAREN(s.caps.spelNaam)],
         profiel,
         wachtwoord: wachtwoordVeld(),
-        input: { placeholder: 'Kamercode of GDE2-…', value: invoerWaarde(s), maxLength: 64, label: 'Kamercode of koppelcode' },
+        input: { placeholder: 'Kamercode of GDE2-…', value: invoerWaarde(s), maxLength: INVOER_MAX, label: 'Kamercode of koppelcode' },
         wensen: EXTRA_CHARS.map((c) => ({ act: 'wens-' + c.id, id: c.id, naam: c.naam, kleur: c.kleur, gekozen: s.wens === c.id })),
         buttons: [{ act: 'koppel', label: 'Verder', primary: true }, ...(s.caps.rtc ? [{ act: 'lijst', label: 'Openbare sessies' }] : []), { act: 'diag', label: 'Verbinding testen' }, { act: 'terug', label: 'Terug' }],
       });
@@ -484,7 +500,7 @@ export function view(s) {
       const lines = [lijst.length ? `Spelers (${lijst.length} van ${s.max}).` : 'Je speelt met je medespeler.'];
       if (lag) lines.push('De verbinding haperde even; we wachten op de ander.');
       const tip = advies(lijst.length, host ? 'host' : 'gast'); if (tip) lines.push(tip);
-      lines.push(profielTekst(s.profil), PASSIEF_REGEL);
+      lines.push(profielTekst(s.profiel), PASSIEF_REGEL);
       lines.push(SAMEN_KAN_REGEL); // (#684) de positieve lijst staat ook op het scherm waar je samen speelt
       lines.push(GROEPSBONUS_KORT); // (#811) dezelfde 1+1=3-uitleg, één keer per scherm
       const buttons = []; let startInfo = null;
@@ -590,7 +606,7 @@ export function view(s) {
         // #973: de serverbrowser en de kamercode staan nu op één scherm: de speler hoeft niet
         // vooraf te weten welke van de twee hij wil. De lijst is de route om iemand te vinden,
         // het veld is de route als je al een code van een vriend hebt.
-        input: { placeholder: 'Kamercode of GDE2-… (van een vriend)', value: invoerWaarde(s), maxLength: 64, label: 'Kamercode of koppelcode van een vriend' },
+        input: { placeholder: 'Kamercode of GDE2-… (van een vriend)', value: invoerWaarde(s), maxLength: INVOER_MAX, label: 'Kamercode of koppelcode van een vriend' },
         lijstInfo: {
           zoek: s.lijstZoek || '', sortering: s.lijstSortering, aantal: s.lijstAantal, filters: { ...f },
           getoond, totaal, alles, meer: getoond < totaal, telling, ververst: s.lijstVervers || 0,

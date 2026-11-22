@@ -59,7 +59,7 @@ export function verplichtVoor(slot, regel) {
 // Een nieuwe opdracht begint (of een groep die nog loopt komt terug): nodig de gasten uit. Geeft de uitnodigingen [{ slot, verplicht, sec }] terug.
 // De stand van een andere groep die nog loopt, blijft bewaard; dezelfde sleutel houdt zijn antwoorden (#452).
 export function begin(st, sleutel, slots, regel = null, stap = null) {
-  if (!st) return [];
+  if (!st || !sleutel) return []; // zonder sleutel geen opdracht: anders staat er een standaard-opdracht 'undefined' in de stand
   if (sleutel === st.opdracht) { if (stap !== undefined && stap !== null) st.stap = stap; return []; }
   bewaar(st);
   laad(st, sleutel, stap);
@@ -166,10 +166,11 @@ export function meespelers(st, id = st && st.opdracht) {
 // status = wat de gast zelf weet van zijn eigen verhaal bij deze stap (coopverhaal.js verhaalStatus): 'gedaan', 'normaal', 'vooruit' of null
 export function maakUitnodiging(b, status = null) {
   if (!b || b.k !== 'meedoen' || typeof b.label !== 'string') return null;
+  const label = b.label.trim().slice(0, 80) || 'de opdracht'; // een leeg label gaf "Meedoen met ?"
   const stap = geldigeStap(b.stap);
   const st = stap && (status === 'gedaan' || status === 'vooruit') ? status : null;
   const sec = st === 'vooruit' ? BEVESTIG_GAST : Number.isFinite(b.sec) ? Math.min(30, Math.max(1, b.sec)) : MEEDOEN_WACHT;
-  return { label: b.label.slice(0, 80), verplicht: !!b.verplicht, start: !!b.start, rest: sec, stap, status: st };
+  return { label, verplicht: !!b.verplicht, start: !!b.start, rest: sec, stap, status: st };
 }
 // De melding voor een laatkomer bij een opdracht zonder late instap.
 export const toeschouwerTekst = (label) => `${String(label || 'De opdracht').slice(0, 60)} loopt al, de volgende doe je mee.`;

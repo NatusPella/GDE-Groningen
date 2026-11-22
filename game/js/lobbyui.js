@@ -735,7 +735,11 @@ export function mountLobby(root, hooks, opts = {}) {
       else if (a === 'diag') { set({ t: 'diag' }); await startAlsKlaar(); } // (#526) met toestemming meteen meten, anders eerst de vraag
       else if (a === 'diag-go') { const vraag = state.step === 'diag-vraag'; set({ t: 'diag-go' }); if (vraag) bewaarToestemming(); await diagnose(); } // (#526) wie de test start, is akkoord: de rest van de sessie vraagt het niet meer
       else if (a === 'diag-terug') set({ t: 'diag-terug' });
-      else if (a === 'rapport') { if (navigator.clipboard) await navigator.clipboard.writeText(rapportTekst()); verbindingslog.add('rapport', 'gekopieerd'); set({ t: 'fout', msg: 'Het rapport is gekopieerd. Plak het in een bericht.' }); }
+      else if (a === 'rapport') { // eerlijk melden of het kopiëren lukte: zonder klembord of toestemming stond er eerst toch "gekopieerd"
+        let gelukt = false;
+        try { if (navigator.clipboard) { await navigator.clipboard.writeText(rapportTekst()); gelukt = true; } } catch (e) { /* geen toegang tot het klembord */ }
+        verbindingslog.add('rapport', gelukt ? 'gekopieerd' : 'kopiëren mislukt'); set({ t: 'fout', msg: gelukt ? KOPIEER.rapportKlaar : KOPIEER.rapportMislukt });
+      }
       else if (a === 'logbestand') { const d = window.gdeDesktop; if (d && d.saveTextFile) await d.saveTextFile('GDE-verbindingsrapport.txt', rapportTekst()); }
       else if (a === 'kies-host') set({ t: 'kies', rol: ROLES.HOST });
       else if (a === 'kies-gast') set({ t: 'kies', rol: ROLES.GAST });
