@@ -17,11 +17,7 @@ import { baleRadius, BALE_HEIGHT } from './bales.js';
 export const ROAD_C = ROAD_IN + ROAD_W / 2;
 const EDGE_CLEAR = 4;
 
-// Polder-road tree lanes; shared by the near props and the maps. (The strip-boundary rows of
-// trees, hedges and wire are gone: no edge without a line of the map, #1092.)
-export function ROAD_ROW(bx, by, s) {
-  return chash(bx * 5 + s, by * 9) < 0.5 ? 'poplar' : chash(bx + s, by) < 0.8 ? 'tree' : null;
-}
+// #1092: geen bomenlanen langs de polderwegen en geen rijen langs perceelgrenzen: een rand staat alleen waar de kaart er een heeft.
 
 export function openLand(x, y) {
   return edgeDistance(x, y) > EDGE_CLEAR && countryWeight(x, y) >= 0.92 && landOk(x, y);
