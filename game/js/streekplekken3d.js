@@ -1,7 +1,7 @@
 import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
-import { CEL, celVan, partsToWorld, dropOnRoad } from './streekplekken.js';
+import { CEL, celVan, partsToWorld, dropOnRoad, roadOnMap } from './streekplekken.js';
 import { roadNetReady, snapRoad } from './roadgraph.js';
 import { edgeDistance } from './countryfield.js';
 import { dropStreekParts } from './propfilter.js';
@@ -62,7 +62,7 @@ function celGroup(lijst, map) {
   const per = { box: [], cyl: [], cone: [] };
   for (const p of lijst) {
     if (inStad(p)) continue;
-    const parts = p.t === 'park' && roadNetReady() ? dropOnRoad(partsToWorld(p), opWeg) : partsToWorld(p);
+    const parts = p.t === 'park' ? dropOnRoad(partsToWorld(p), roadNetReady() ? opWeg : (x, y) => roadOnMap(map, x, y, BERM)) : partsToWorld(p);
     for (const q of dropStreekParts(parts, map, p.t)) per[q.s].push(q);
   }
   const g = new THREE.Group();

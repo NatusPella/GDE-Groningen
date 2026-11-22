@@ -29,4 +29,19 @@ assert.ok(k3.length > 0 && k3.every((q) => q.h < 0.1), 'bij een weg overal blijv
 const k4 = SP.dropOnRoad(parts, () => false);
 assert.equal(k4.filter((q) => !SP.isHedgePart(q)).length, parts.length - hedges.length, 'zonder weg blijft alles behalve de heg-opdeling');
 assert.ok(Math.abs(k4.filter(SP.isHedgePart).reduce((s, q) => s + q.w, 0) - hedges.reduce((s, q) => s + q.w, 0)) < 1e-6, 'de hegenlengte blijft gelijk');
+// de terugval zonder wegennet: de tegelkaart (#1030)
+{
+  const bm = bomen[0];
+  const map = { roadsNear: (x, y, r) => [{ cat: 'minor', width: 6, pts: [[bm.x - 40, bm.z], [bm.x + 40, bm.z]] }, { cat: 'foot', width: 2, pts: [[0, 0], [1, 1]] }].filter(() => true) };
+  assert.ok(SP.roadOnMap(map, bm.x, bm.z), 'punt op de rijbaan');
+  assert.ok(SP.roadOnMap(map, bm.x, bm.z + 3.5), 'punt in de berm (3 m halve breedte + 1,2)');
+  assert.ok(!SP.roadOnMap(map, bm.x, bm.z + 5), 'punt naast de berm');
+  const brug = { roadsNear: () => [{ cat: 'minor', width: 6, bridge: true, pts: [[bm.x - 40, bm.z], [bm.x + 40, bm.z]] }] };
+  assert.ok(!SP.roadOnMap(brug, bm.x, bm.z), 'een brug telt niet');
+  const voet = { roadsNear: () => [{ cat: 'foot', width: 2, pts: [[bm.x - 40, bm.z], [bm.x + 40, bm.z]] }] };
+  assert.ok(!SP.roadOnMap(voet, bm.x, bm.z), 'een voetpad telt niet');
+  assert.ok(!SP.roadOnMap(null, 0, 0), 'zonder kaart niets');
+  const k5 = SP.dropOnRoad(parts, (x, y) => SP.roadOnMap(map, x, y));
+  assert.ok(!k5.some((q) => q.h >= 0.1 && !SP.isHedgePart(q) && SP.roadOnMap(map, q.x, q.z)), 'geen boom op een kaartweg');
+}
 console.log('streekplekken_park_weg_test ok');
