@@ -3,6 +3,8 @@ import { hoofdspeler, naasteSpeler, voorElkeSpeler } from './spelersregister.js'
 import { dist, angleLerp, pointInPolygon, SeededRng, isInWater, WATER_Y } from './util.js';
 import { waterPolyAt, waterNearby, BRIDGE_DRY } from './waterlevels.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { duifBoneParts, mergeDuifGeometries } from './duifmodel.js';
+import { dsWereld } from './worldpalette.js';
 import { SkinBuilder, vcMaterial, composeMatrix, tubeGeometry, loftGeometry, markShared } from './pixelart3d.js';
 import { setLeashHolder, setPeopleWeather } from './models3d_people.js';
 import { resolveWalker } from './collision.js';
@@ -885,6 +887,7 @@ function scareOff(a, world, fromX, fromY) {
 // kind/variant and one material shared by all of them.
 
 const MAT = markShared(vcMaterial({ roughness: 0.92 }));
+const PIGEON_MAT = markShared(vcMaterial({ roughness: 0.9, flatShading: false })); // de duif is glad, de andere dieren zijn gefacetteerd
 const geoCache = new Map();
 function cachedGeo(key, build) {
   let g = geoCache.get(key);
@@ -917,11 +920,11 @@ function boneIndex(spec) {
   return out;
 }
 
-function assemble(geometry, spec, radius, cy) {
+function assemble(geometry, spec, radius, cy, material = MAT) {
   const group = new THREE.Group();
   const rig = makeRig(spec);
   group.add(rig.bones[0]);
-  const mesh = new THREE.SkinnedMesh(geometry, MAT);
+  const mesh = new THREE.SkinnedMesh(geometry, material);
   mesh.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, cy, 0), radius);
   group.add(mesh);
   group.updateMatrixWorld(true);
@@ -1302,49 +1305,42 @@ export function buildFishMesh3D() {
 
 // --- pigeon ---
 
+// De stadsduif is het middelniveau van het ene duivenmodel (duifmodel.js) op een skelet: romp, kop en per vleugel een binnen- en buitenbot.
+const PIGEON_K = 0.64; // het model is 0,6 m van snavel tot staart; een stadsduif ca. 0,38 m
+const PIGEON_VARIANTS = ['grijs', 'gevlekt', 'bruin', 0x5a5e66];
 const PIGEON_SPEC = [
   ['body', null, 0, 0, 0],
-  ['head', 'body', 0.055, 0.04, 0],
-  ['wingL', 'body', 0.01, 0.03, 0.035],
-  ['wingR', 'body', 0.01, 0.03, -0.035],
+  ['head', 'body', 0.19 * PIGEON_K, 0.115 * PIGEON_K, 0],
+  ['wingL', 'body', 0.035 * PIGEON_K, 0.055 * PIGEON_K, 0.055 * PIGEON_K],
+  ['wingOutL', 'wingL', 0.035 * PIGEON_K, 0.055 * PIGEON_K, 0.245 * PIGEON_K],
+  ['wingR', 'body', 0.035 * PIGEON_K, 0.055 * PIGEON_K, -0.055 * PIGEON_K],
+  ['wingOutR', 'wingR', 0.035 * PIGEON_K, 0.055 * PIGEON_K, -0.245 * PIGEON_K],
 ];
 
 function pigeonGeometry(tone) {
   const I = boneIndex(PIGEON_SPEC);
-  const body = [0x8a8f99, 0x6e727a, 0x9a8e84, 0x5a5e66][tone];
-  const B = new SkinBuilder(1);
-  B.bone = I.body;
-  B.geo(ellipsoid(7, 5, 0.085, 0.05, 0.048), composeMatrix(0, 0, 0, 0, 0, 0.2), body);
-  slab(B, [[-0.06, 0.02], [-0.15, 0.03], [-0.155, -0.03], [-0.06, -0.02]], 0.0, 0.01, shadeHex(body, 0.8));
-  B.box(-0.145, 0.006, 0, 0.02, 0.011, 0.06, 0x2a2a2e);
-  for (const s of [1, -1]) {
-    B.geo(tubeGeometry([0.0, -0.035, s * 0.015], [0.0, -0.095, s * 0.015], 0.005, 0.004, 4), null, 0xc86a6a);
-    B.box(0.012, -0.097, s * 0.015, 0.03, 0.005, 0.02, 0xc86a6a);
-  }
-  B.bone = I.head;
-  B.geo(ellipsoid(6, 4, 0.035, 0.04, 0.032), composeMatrix(0.058, 0.035, 0), 0x4a5a58);
-  B.geo(ellipsoid(6, 4, 0.03, 0.03, 0.027), composeMatrix(0.075, 0.07, 0), shadeHex(body, 0.85));
-  B.geo(new THREE.ConeGeometry(0.008, 0.025, 4).rotateZ(-Math.PI / 2), composeMatrix(0.112, 0.066, 0), 0x2a2a2a);
-  B.box(0.1, 0.073, 0, 0.01, 0.008, 0.012, 0xe6e1d6);
-  for (const s of [1, -1]) B.box(0.088, 0.078, s * 0.02, 0.008, 0.008, 0.006, 0xc86a2a);
-  for (const s of [1, -1]) {
-    const m = (pts) => (s === 1 ? pts : mirrorZ(pts));
-    B.bone = s === 1 ? I.wingL : I.wingR;
-    slab(B, m([[0.05, 0.035], [0.03, 0.2], [-0.04, 0.26], [-0.07, 0.2], [-0.06, 0.035]]), 0.025, 0.035, body, shadeHex(body, 1.1));
-    B.box(-0.02, 0.036, s * 0.07, 0.015, 0.003, 0.06, 0x2a2a2e);
-    B.box(-0.045, 0.036, s * 0.07, 0.015, 0.003, 0.06, 0x2a2a2e);
-    slab(B, m([[0.03, 0.2], [-0.04, 0.26], [-0.07, 0.2]]), 0.026, 0.034, 0x2a2a2e);
-  }
-  return B.build();
+  const parts = duifBoneParts('mid', { variant: PIGEON_VARIANTS[tone % PIGEON_VARIANTS.length], map: dsWereld }, PIGEON_K);
+  const list = parts.map(({ bone, geo }) => {
+    const n = geo.attributes.position.count, si = new Uint16Array(n * 4), sw = new Float32Array(n * 4);
+    for (let i = 0; i < n; i++) { si[i * 4] = I[bone]; sw[i * 4] = 1; }
+    geo.setAttribute('skinIndex', new THREE.BufferAttribute(si, 4));
+    geo.setAttribute('skinWeight', new THREE.BufferAttribute(sw, 4));
+    return geo;
+  });
+  const g = mergeDuifGeometries(list);
+  for (const x of list) x.dispose();
+  return g;
 }
 
 export function buildPigeonMesh3D(tone = 0) {
-  const group = assemble(cachedGeo('pigeon' + tone, () => pigeonGeometry(tone)), PIGEON_SPEC, 0.4, 0);
+  const group = assemble(cachedGeo('pigeon' + tone, () => pigeonGeometry(tone)), PIGEON_SPEC, 0.4, 0, PIGEON_MAT);
   const b = group.userData.bones;
   b.wingL.userData.sign = 1;
   b.wingR.userData.sign = -1;
   group.userData.wings = [b.wingL, b.wingR];
-  group.userData.foldShift = 0.03;
+  group.userData.foldShift = 0.01;
+  group.userData.foldLift = 0.01;
+  group.userData.foldZ = -0.1;
   group.userData.head = b.head;
   return group;
 }
@@ -1560,7 +1556,7 @@ function setWings(ud, sign, inner, outer, fold = 0) {
   for (const w of ud.wings) {
     const s = w.userData.sign;
     w.rotation.set(-s * inner, -s * fold * 1.45, 0);
-    w.position.set(w.userData.rest.x + fold * (ud.foldShift || 0), w.userData.rest.y, w.userData.rest.z * (1 - fold * 0.3));
+    w.position.set(w.userData.rest.x + fold * (ud.foldShift || 0), w.userData.rest.y + fold * (ud.foldLift || 0), w.userData.rest.z * (1 - fold * (ud.foldZ ?? 0.3)));
     const o = w.children[0];
     if (o) o.rotation.set(-s * outer, -s * fold * 0.15, 0);
   }
@@ -1606,7 +1602,7 @@ function animatePigeon(mesh, a, time) {
   const ud = mesh.userData, b = ud.bones;
   mesh.position.y = a.z ?? PIGEON_STAND_Y;
   if (a.state === 'ground') {
-    setWings(ud, 1, -0.12, 0, 1);
+    setWings(ud, 1, -0.95, 0, 1); // gevouwen: de vleugel ligt langs de flank
     const walking = a.speed > 0.05;
     const s = (a.stride || 0) * 22;
     b.head.position.x = b.head.userData.rest.x + (walking ? Math.max(0, Math.sin(s)) * 0.025 : 0);
