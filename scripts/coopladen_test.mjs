@@ -150,7 +150,7 @@ ok(() => assert.match(pm, /a === 'coop-load-go'\) \{[\s\S]{0,300}runCoopLoad\(wo
 ok(() => assert.match(pm, /a === 'coop-load-cancel'\) \{[^}]*hidden = true;[^}]*confirmEl\.hidden = false/), 'pauzemenu: annuleren gaat terug naar de vraag');
 ok(() => assert.match(pm, /a === 'new'\) \{\s*if \(coopSessieLoopt\(world\)\) \{[\s\S]{0,400}data-coop-new-confirm/), 'pauzemenu: nieuw spel vraagt tijdens een sessie eerst om bevestiging');
 ok(() => assert.match(pm, /coopActieTekst\(world, 'Een nieuw spel beginnen'\)/), 'pauzemenu: de uitleg past bij een nieuw spel');
-ok(() => assert.match(pm, /a === 'coop-new-go'\) \{[\s\S]{0,400}runCoopStop\(world, \{[\s\S]{0,200}stop: stopCoopNet,[\s\S]{0,200}save: \(\) => saveGame\(world\)/), 'pauzemenu: bevestigen stopt de sessie en bewaart daarna');
+ok(() => assert.match(pm, /a === 'coop-new-go'\) \{[\s\S]{0,400}runCoopStop\(world, \{[\s\S]{0,200}stop: stopCoopNet,[\s\S]{0,200}save: \(\) => saveGame(?:EchtBewaard)?\(world\)/), 'pauzemenu: bevestigen stopt de sessie en bewaart daarna');
 ok(() => assert.match(pm, /go: \(\) => \{[\s\S]{0,320}startNewSlot\(\)[\s\S]{0,160}preventCloseSave\(\)[\s\S]{0,120}location\.reload\(\)/), 'pauzemenu: daarna pas een nieuw spel en herladen');
 ok(() => assert.match(pm, /a === 'coop-new-cancel'\) \{[^}]*hidden = true;[^}]*confirmEl\.hidden = false/), 'pauzemenu: annuleren gaat terug naar de vraag');
 ok(() => assert.match(pm, /coopLoadTekst\(world, 'Het laatste opgeslagen spel'\)/), 'pauzemenu: de uitleg past bij het laatste spel');
