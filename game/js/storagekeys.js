@@ -116,6 +116,8 @@ export const BASE_KEYS = {
   // what this player has discovered of the province (verkenpunten.js/explorationlive.js, #825): per player,
   // never part of a savegame, no network message; a guest has his own
   exploration: 'gde-verkenning-v1',
+  // which save the kept progress belongs to (savescope.js, 22-11): per player and per device, never part of a savegame, no network message
+  saveScope: 'gde-save-scope',
 };
 
 export const KEYS = Object.fromEntries(Object.entries(BASE_KEYS).map(([k, v]) => [k, ARC_KEYS.includes(k) ? v + ARC_SUFFIX : v]));

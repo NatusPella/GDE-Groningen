@@ -1505,7 +1505,9 @@
     "coopcheckpoint",
     "oudmigratie",
     "storagekeys",
-    "coopstate"
+    "coopstate",
+    "savescope*",
+    "unlockbase"
    ],
    "eigenaar": "gesynct",
    "gast": "Het spel van wie het opende wordt gespeeld; wat een gast verdient gaat in zijn eigen actieve savegame (GAST_VELDEN).",
@@ -2183,6 +2185,10 @@
   "garageOntdekt": {
    "scope": "speler",
    "reden": "Welke voertuigen deze speler kent voor de garage (22-11); per speler (#429), nooit in een savegame, niet gedeeld."
+  },
+  "saveScope": {
+   "scope": "speler",
+   "reden": "Welke save de bewaarde voortgang (prestaties, kaart, gebieden, garage, bezit) nu hoort; per speler en per apparaat, nooit over het net (savescope.js)."
   }
  },
  "sleutelLiteralenBuitenRegister": [

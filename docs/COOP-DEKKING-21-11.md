@@ -182,6 +182,7 @@ De bron is [scripts/coop_coverage.json](../scripts/coop_coverage.json); de tabel
 | `tuningLook` | speler | Het uiterlijk dat deze speler aan een eigen voertuig gaf; per speler (#429), nooit in een savegame, niet gedeeld. |
 | `bezit` | speler | Percelen en panden van deze speler (#1097); per speler (#429), nooit in een savegame. |
 | `garageOntdekt` | speler | Welke voertuigen deze speler kent voor de garage (22-11); per speler (#429), nooit in een savegame, niet gedeeld. |
+| `saveScope` | speler | Welke save de bewaarde voortgang (prestaties, kaart, gebieden, garage, bezit) nu hoort; per speler en per apparaat, nooit over het net (savescope.js). |
 
 <!-- MATRIX:END -->
 
