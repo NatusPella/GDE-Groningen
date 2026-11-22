@@ -29,7 +29,9 @@ ${css}
 const params = new URLSearchParams(location.search);
 const uiScale = Number(params.get('uiScale')) || ${uiScale};
 window.__scherm = (async () => {
+  window.__stap = 'hudlook';
   const { uiScaleFor } = await import('/js/hudlook.js');
+  window.__stap = 'setup';
   const ui = uiScaleFor(innerWidth, innerHeight, uiScale, false);
   document.documentElement.style.setProperty('--ui', String(ui));
   document.documentElement.style.setProperty('--ui-fit', '1');

@@ -31,7 +31,7 @@ function startServer() {
     }
     const p = normalize(join(gameDir, decodeURIComponent(url.pathname)));
     if (!p.startsWith(gameDir) || !existsSync(p) || !statSync(p).isFile()) { res.writeHead(404); return res.end(); }
-    res.writeHead(200, { 'content-type': MIME[extname(p)] || 'application/octet-stream', 'cache-control': 'no-store' });
+    res.writeHead(200, { 'content-type': MIME[extname(p)] || 'application/octet-stream', 'cache-control': 'max-age=600' });
     res.end(readFileSync(p));
   });
   return new Promise((ok) => server.listen(0, '127.0.0.1', () => ok(server)));
@@ -55,9 +55,8 @@ async function main() {
           browser.logs.length = 0;
           await browser.metrics(r.w, r.h);
           await browser.goto(`http://127.0.0.1:${port}/__critic/${s.id}.html?uiScale=${r.uiScale}`);
-          const until = Date.now() + 40000; let res = null;
-          while (Date.now() < until) { res = await browser.eval('window.__scherm', { awaitPromise: true }).catch(() => null); if (res) break; }
-          if (!res || !res.ok) throw new Error(res ? res.fout : 'scherm bouwde niet binnen de tijd');
+          const res = await browser.eval('Promise.race([window.__scherm, new Promise((r) => setTimeout(() => r({ ok: false, fout: "time-out: scherm klaar na 60 s niet" }), 60000))])');
+          if (!res || !res.ok) throw new Error((res ? res.fout : 'scherm bouwde niet binnen de tijd') + ' [stap: ' + await browser.eval('window.__stap').catch(() => '?') + ']');
           const data = await browser.eval(`(${collectSrc})(${JSON.stringify(s.root || null)})`);
           const name = `${s.id}_${r.id}.jpg`;
           writeFileSync(join(outDir, name), await browser.jpeg(80));

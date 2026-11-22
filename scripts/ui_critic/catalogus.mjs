@@ -38,13 +38,36 @@ export const PRELUDE = `
 `;
 
 const pm = (tab, opts = '{}') => `
+  window.__stap = 'import pausemenu';
   const PM = await ctx.imp('pausemenu');
+  window.__stap = 'initPauseMenu';
   const w = makeWorld();
   PM.initPauseMenu(w);
+  window.__stap = 'openPauseMenu';
   PM.openPauseMenu(${JSON.stringify(tab)}, ${opts});
+  window.__stap = 'wacht';
   await ctx.wait(900);
 `;
 
+const TITLES = {
+  spel: 'Spel', verhaal: 'Verhaal', todo: 'Activiteiten', loopbaan: 'Loopbanen', map: 'Kaart', spullen: 'Spullen', garage: 'Garage', veroverd: 'Veroverd',
+  prestaties: 'Prestaties', fotos: "Foto's", settings: 'Instellingen', over: 'Over', visboek: 'Visboek', boerderij: 'Land en bedrijf', voetbal: 'Voetbal',
+  controls: 'Besturing', streken: 'Cheats', samen: 'Samen spelen',
+};
+// [tab, sub of null]: elk blad van het pauzemenu, met de subtabbladen die er echt zijn (SUBTABS in pausemenu.js).
+const PAUSE_TABS = [
+  ['spel', null], ['spel', 'samen'], ['spel', 'acties'], ['samen', 'spelers'],
+  ['verhaal', null], ['verhaal', 'personages'], ['todo', null], ['loopbaan', null], ['map', null], ['spullen', null], ['garage', null],
+  ['veroverd', null], ['prestaties', null], ['fotos', null], ['over', null], ['visboek', null], ['voetbal', null], ['streken', null],
+  ...['video', 'sound', 'spel', 'moeilijkheid', 'besturing', 'camera', 'display', 'hints', 'online'].map((s) => ['settings', s]),
+  ...['overzicht', 'boerderij', 'bedrijven', 'tekoop', 'snack', 'club'].map((s) => ['boerderij', s]),
+  ...['toetsen', 'knoppen', 'overzicht', 'aanraken', 'hulp'].map((s) => ['controls', s]),
+];
+const pauseScreens = PAUSE_TABS.map(([tab, sub]) => ({
+  id: 'pauze-' + tab + (sub ? '-' + sub : ''), module: 'pausemenu.js', categorie: 'menu', titel: 'Pauzemenu: ' + (TITLES[tab] || tab) + (sub ? ' > ' + sub : ''),
+  root: '#pause-menu', wait: 1200, setup: pm(tab, sub ? JSON.stringify({ sub }) : '{}'),
+}));
+
 export const SCREENS = [
-  { id: 'pauze-spel', module: 'pausemenu.js', categorie: 'menu', titel: 'Pauzemenu: Spel (overzicht)', root: '#pause-menu', setup: pm('spel') },
+  ...pauseScreens,
 ];

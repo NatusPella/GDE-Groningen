@@ -28,7 +28,9 @@ export async function startBrowser({ timeoutMs = 20000 } = {}) {
   let poort = 0, pad = '';
   while (Date.now() < einde) {
     const f = join(profiel, 'DevToolsActivePort');
-    if (existsSync(f)) { const [p, ws] = readFileSync(f, 'utf8').trim().split('\n'); poort = +p; pad = ws; if (poort) break; }
+    if (existsSync(f)) {
+      try { const [p, ws] = readFileSync(f, 'utf8').trim().split('\n'); poort = +p; pad = ws; if (poort) break; } catch (e) { /* nog in gebruik door de browser */ }
+    }
     await wacht(100);
   }
   if (!poort) { proc.kill(); throw new Error('browser startte niet binnen de tijd'); }
