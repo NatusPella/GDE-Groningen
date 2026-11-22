@@ -15,7 +15,7 @@ import { getWaterIndex, waterClearance } from './waterindex.js';
 import { roadZAt } from './elevation.js';
 import { isInWater, WATER_Y } from './util.js';
 import { getHelipads } from './heliflight.js';
-import { roadNetReady, roadGraphBuilt, roadGraphVersion, snapRoad, roadCosts, roadPath, roadPathToNode, roadPathFromNode, nodeXY, gatewayCandidates } from './roadgraph.js';
+import { roadNetReady, roadGraphBuilt, roadGraphVersion, snapRoad, roadCostsFor, roadPath, roadPathToNode, roadPathFromNode, nodeXY, gatewayCandidates } from './roadgraph.js';
 import { playerBusy } from './busy.js';
 import { walkPathHook } from './latehooks.js';
 import { poiLayerPlace, poiLayerPlaces } from './facilities.js';
@@ -678,7 +678,7 @@ function countryRoute(world, target, from, to, graphMode, kind, p = hoofdspeler(
       return cp ? [...lead(ps, p.x, p.y), ...cp, ...lead(ts, target.x, target.y, true)] : null;
     }
     // towards the outer end for a trip into the country, from it for a trip back (one-ways)
-    const { dist } = roadCosts(outer, pIn, free);
+    const { dist } = roadCostsFor(outer, pIn, free, gws.map((g) => g.n));
     // the best gateways first; a one-way or a dead end at the map's edge can
     // leave the city part without a way, then the next one
     const ranked = [];

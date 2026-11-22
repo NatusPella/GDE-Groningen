@@ -1043,7 +1043,15 @@ export function crossingSpeedLimit(v, path, project) {
 // 2D map layers (minimap + full map): track lines, and the trains on top.
 // The colours come from the map's palette (mapstyle.js), so the night palette reaches the rails too.
 export function drawRailsOnMap(ctx, map, x0, y0, x1, y1, widthM, palette = MAP_PALETTE) {
-  const rails = gridItems(map.railGrid);
+  // snelheid: de minimap tekent dit 20 tot 30 keer per seconde. Alleen de rasterbakjes onder het beeld
+  // (een bovenverzameling van de sporen met een punt in beeld) en het zichtbaarheidsonderzoek één keer,
+  // niet meer elk spoor van de hele kaart in beide lagen.
+  const grid = map.railGrid;
+  const kandidaten = grid && typeof grid.query === 'function' ? grid.query(x0, y0, x1, y1) : gridItems(grid);
+  const rails = [];
+  for (const r of kandidaten) {
+    for (const q of r.pts) if (q[0] > x0 && q[0] < x1 && q[1] > y0 && q[1] < y1) { rails.push(r); break; }
+  }
   ctx.save();
   ctx.lineCap = 'butt';
   ctx.lineJoin = 'round';
@@ -1053,9 +1061,6 @@ export function drawRailsOnMap(ctx, map, x0, y0, x1, y1, widthM, palette = MAP_P
     ctx.setLineDash(pass ? [widthM * 1.4, widthM * 1.4] : []);
     for (const r of rails) {
       const P = r.pts;
-      let inView = false;
-      for (const q of P) if (q[0] > x0 && q[0] < x1 && q[1] > y0 && q[1] < y1) { inView = true; break; }
-      if (!inView) continue;
       ctx.beginPath();
       ctx.moveTo(P[0][0], P[0][1]);
       for (let i = 1; i < P.length; i++) ctx.lineTo(P[i][0], P[i][1]);

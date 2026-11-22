@@ -15,6 +15,7 @@
 //   roadNetReady()                             true once set
 //   snapRoad(x, y, maxD, foot)                 the nearest point on the main network within maxD, or null
 //   roadCosts(snap, toward, free)              Dijkstra costs/predecessors from a snap to every node (cached)
+//   roadCostsFor(snap, toward, free, nodes)    the same but only as far as `nodes` need (resumable, cached)
 //   roadPath(from, to, free)                   [[x, y], ...] from snap `from` to snap `to`, or null
 //   roadPathNear(from, to, maxNodes)           a short A* way for a chase
 //   roadPathToNode / roadPathFromNode          the same, ending / starting at a node
@@ -285,58 +286,92 @@ const snapKey = (s, rev, free) => `${free === 'foot' ? 'w' : free ? 'u' : rev ? 
 // the one-ways ignored ('foot': and the motorways closed, for walkers and cyclists), the last resort when a one-way dead end (a ramp cut at
 // the data's edge) leaves no way.
 export function roadCosts(from, toward = false, free = false) {
+  return roadCostsFor(from, toward, free, null);
+}
+
+// Snelheid (22-11): hervatbare Dijkstra. Een route van dorp naar dorp had voorheen de kosten over het hele net
+// nodig (honderdduizenden knopen, tientallen ms) om twee knopen af te lezen. `need` (een lijst knopen) rekent
+// alleen tot al die knopen vaststaan en bewaart de stand (heap, kosten, voorgangers) in de cache; een latere
+// vraag naar andere knopen, of de hele kaart (need null), rekent op dezelfde stand door. De volgorde van de
+// heap is dezelfde als voorheen (ouder-kind-vergelijkingen ongewijzigd), dus dezelfde kosten en voorgangers.
+export function roadCostsFor(from, toward, free, need) {
   const key = snapKey(from, toward, free);
   let c = G.cache.get(key);
-  if (c) return c;
-  const adj = free === 'foot' ? G.foot : free ? G.und : toward ? G.rev : G.fwd;
-  const one = free ? 0 : from.one;
-  const dist = new Float64Array(G.N).fill(Infinity), prev = new Int32Array(G.N).fill(-1);
-  const heap = [];
-  const push = (d, v) => {
-    heap.push([d, v]);
-    for (let i = heap.length - 1; i > 0;) {
-      const p = (i - 1) >> 1;
-      if (heap[p][0] <= heap[i][0]) break;
-      [heap[i], heap[p]] = [heap[p], heap[i]];
-      i = p;
+  if (!c) {
+    const adj = free === 'foot' ? G.foot : free ? G.und : toward ? G.rev : G.fwd;
+    const one = free ? 0 : from.one;
+    c = { dist: new Float64Array(G.N).fill(Infinity), prev: new Int32Array(G.N).fill(-1), adj, hd: new Float64Array(256), hv: new Int32Array(256), size: 0, done: false };
+    // on a one-way edge a to b only: leaving the snap runs on to b; arriving at it comes in from a
+    if (toward) {
+      heapSeed(c, from.a, from.da);
+      if (!one) heapSeed(c, from.b, from.db);
+    } else {
+      heapSeed(c, from.b, from.db);
+      if (!one) heapSeed(c, from.a, from.da);
     }
-  };
-  // on a one-way edge a to b only: leaving the snap runs on to b; arriving at it comes in from a
-  const seed = (n, d) => { if (d < dist[n]) { dist[n] = d; push(d, n); } };
-  if (toward) {
-    seed(from.a, from.da);
-    if (!one) seed(from.b, from.db);
-  } else {
-    seed(from.b, from.db);
-    if (!one) seed(from.a, from.da);
+    if (G.cache.size > 6) G.cache.delete(G.cache.keys().next().value);
+    G.cache.set(key, c);
   }
-  while (heap.length) {
-    const top = heap[0], last = heap.pop();
-    if (heap.length) {
-      heap[0] = last;
-      for (let i = 0; ;) {
+  if (!c.done) heapRun(c, need);
+  return c;
+}
+
+function heapPush(c, d, v) {
+  if (c.size === c.hd.length) {
+    const hd = new Float64Array(c.size * 2), hv = new Int32Array(c.size * 2);
+    hd.set(c.hd); hv.set(c.hv); c.hd = hd; c.hv = hv;
+  }
+  const hd = c.hd, hv = c.hv;
+  let i = c.size++;
+  while (i > 0) {
+    const p = (i - 1) >> 1;
+    if (hd[p] <= d) break;
+    hd[i] = hd[p]; hv[i] = hv[p];
+    i = p;
+  }
+  hd[i] = d; hv[i] = v;
+}
+function heapSeed(c, n, d) { if (d < c.dist[n]) { c.dist[n] = d; heapPush(c, d, n); } }
+
+// n staat vast als zijn kosten niet meer dalen kunnen: niet groter dan de kleinste sleutel in de heap
+// (of de heap is leeg).
+const heapFinal = (c, n) => c.size === 0 || c.dist[n] <= c.hd[0];
+function needDone(c, need) {
+  for (let i = 0; i < need.length; i++) if (!heapFinal(c, need[i])) return false;
+  return true;
+}
+
+function heapRun(c, need) {
+  const { dist, prev, adj } = c;
+  let tick = 0;
+  while (c.size > 0) {
+    if (need && (++tick & 63) === 1 && needDone(c, need)) return;
+    const hd = c.hd, hv = c.hv;
+    const d = hd[0], u = hv[0];
+    const n = --c.size;
+    if (n > 0) {
+      const ld = hd[n], lv = hv[n];
+      let i = 0;
+      for (;;) {
         let k = 2 * i + 1;
-        if (k >= heap.length) break;
-        if (k + 1 < heap.length && heap[k + 1][0] < heap[k][0]) k++;
-        if (heap[k][0] >= heap[i][0]) break;
-        [heap[i], heap[k]] = [heap[k], heap[i]];
+        if (k >= n) break;
+        if (k + 1 < n && hd[k + 1] < hd[k]) k++;
+        if (hd[k] >= ld) break;
+        hd[i] = hd[k]; hv[i] = hv[k];
         i = k;
       }
+      hd[i] = ld; hv[i] = lv;
     }
-    const [d, u] = top;
     if (d > dist[u]) continue;
     for (let e = adj.start[u]; e < adj.start[u + 1]; e++) {
       const v = adj.to[e], nd = d + adj.len[e];
       if (nd >= dist[v]) continue;
       dist[v] = nd;
       prev[v] = u;
-      push(nd, v);
+      heapPush(c, nd, v);
     }
   }
-  c = { dist, prev };
-  if (G.cache.size > 6) G.cache.delete(G.cache.keys().next().value);
-  G.cache.set(key, c);
-  return c;
+  c.done = true; c.hd = c.hv = null;
 }
 
 function chain(n, prev, pts) {
@@ -353,7 +388,7 @@ export function roadPath(from, to, free = false) {
     const dir = to.da - from.da;
     if (free || !from.one || dir >= 0) return [[from.x, from.y], [to.x, to.y]];
   }
-  const { dist, prev } = roadCosts(to, true, free);
+  const { dist, prev } = roadCostsFor(to, true, free, from.one && !free ? [from.b] : [from.a, from.b]);
   // out of from along its edge: on to b, or back to a unless it is a one-way
   const cb = dist[from.b] + from.db, ca = from.one && !free ? Infinity : dist[from.a] + from.da;
   if (!Number.isFinite(Math.min(ca, cb))) return null;
@@ -431,7 +466,7 @@ export function roadPathNear(from, to, maxNodes = 2500) {
 
 // From snap `from` to node n.
 export function roadPathToNode(from, n, free = false) {
-  const { dist, prev } = roadCosts(from, false, free);
+  const { dist, prev } = roadCostsFor(from, false, free, [n]);
   if (!Number.isFinite(dist[n])) return null;
   const pts = chain(n, prev, []).reverse();
   pts.unshift([from.x, from.y]);
@@ -440,7 +475,7 @@ export function roadPathToNode(from, n, free = false) {
 
 // From node n to snap `to`.
 export function roadPathFromNode(n, to, free = false) {
-  const { dist, prev } = roadCosts(to, true, free);
+  const { dist, prev } = roadCostsFor(to, true, free, [n]);
   if (!Number.isFinite(dist[n])) return null;
   const pts = chain(n, prev, []);
   pts.push([to.x, to.y]);
