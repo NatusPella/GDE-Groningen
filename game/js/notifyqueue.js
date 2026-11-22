@@ -22,7 +22,7 @@ export const SLOT_GRACE_S = 15;    // een slot met `until` valt na de duur plus 
 export const MAX_TOTAL = 12;       // harde bovengrens op de rij; boven dit valt het oudste van het laagste af (niet gevaar, politie, wanted, missie)
 export const MAX_COLLAPSE = 2;     // meer wachtende prestaties dan dit vouwen samen tot een samenvattingskaart
 export const MIN_GAP_S = 4;        // tussen twee meldingen zit minstens dit (gevaar, politie, wanted en missie slaan het over)
-export const PROTECT_PRIO = 7;     // vanaf deze prio valt een melding nooit af en wacht hij niet op de rust
+const PROTECT_PRIO = 7;     // vanaf deze prio valt een melding nooit af en wacht hij niet op de rust
 export const PREEMPT_PRIO = 8;     // een melding met deze prio of hoger kapt een lopende lagere af (gevaar, politie)
 
 // prio: hoger gaat eerst. merge: wachtende meldingen van deze soort smelten samen. expires: valt weg na MAX_AGE_S.
