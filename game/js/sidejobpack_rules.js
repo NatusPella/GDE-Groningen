@@ -148,7 +148,7 @@ export const DRINK_KINDS = ['fris', 'wakker', 'warm', 'zuivel'];
 export const GUESTS = [
   { id: 'tentamen', kind: 'wakker', ask: 'Ik heb morgen om negen uur tentamen. Geef mij iets waar ik wakker van word.', right: 'Mijn hart klopt sneller. Voor de wetenschap, hoor.', wrong: 'Hier word ik alleen maar slaperiger van. Maar bedankt.' },
   { id: 'hitte', kind: 'fris', ask: 'Het is snikheet in deze zaal. Iets kouds en fris, graag!', right: 'Koud! Ik hou van je. Niet op een enge manier.', wrong: 'Dit is lauw. Mijn dorst is er niet blijer door.' },
-  { id: 'airco', kind: 'warm', ask: 'De airco blaast mij in mijn nek. Heb je iets warms om vast te houden?', right: 'Heerlijk. Nu voel ik mijn vingers weer.', wrong: 'Mijn handen zijn nog steeds ijsblokjes.' },
+  { id: 'airco', kind: 'warm', ask: 'De airco blaast mij in mijn nek. Heb je iets warms om vast te houden?', right: 'Heerlijk. Nu voel ik mijn vingers weer.', wrong: 'Mijn handen zijn nog steeds koud als stenen.' },
   { id: 'koe', kind: 'zuivel', ask: 'Ik ben een echte Groninger. Geef mij maar iets uit de koe.', right: 'Zo hoort het. Mijn oma zou trots zijn.', wrong: 'Dit komt niet uit een koe. Ik voel het.' },
   { id: 'dans', kind: 'fris', ask: 'Ik heb net drie uur gedanst. Alles mag, als het maar koud en fris is.', right: 'Ah. Mijn voeten leven weer.', wrong: 'Ik ben nog steeds dorstig, en nu ook teleurgesteld.' },
   { id: 'verliefd', kind: 'warm', ask: 'Ik ben verliefd en mijn handen zijn koud. Geef mij iets warms, dan durf ik hem aan te spreken.', right: 'Het werkt! Hij kijkt al.', wrong: 'Nu zijn mijn handen koud en zit ik alleen.' },
