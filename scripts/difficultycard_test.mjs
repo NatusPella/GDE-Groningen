@@ -218,5 +218,12 @@ const next = () => new Promise((r) => setTimeout(r, 0));
   ok(/data-goto-sub="settings:moeilijkheid"/.test(pm), 'Instellingen > Spelregels verwijst naar het tabblad');
 }
 
+// #1227: de hulpregel zegt wat Esc doet: Standaard kiezen (de kaart heeft geen stap terug)
+{
+  const esc = C.CARD_TEXT.hulp.find((h) => /ESC/.test(h));
+  ok(/Standaard/.test(esc) && !/starten/.test(C.CARD_TEXT.hulp.join(' ')), 'Esc op de moeilijkheidskaart heet Standaard kiezen', esc);
+  ok(C.levelKeyAction("Escape").kies === "standaard", 'en doet dat ook');
+}
+
 console.log(fails ? `${fails}/${n} FAIL` : `difficultycard_test: ${n}/${n} ok`);
 process.exitCode = fails ? 1 : 0;

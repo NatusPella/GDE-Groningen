@@ -142,5 +142,32 @@ ok(RIJDEN_MS === 3, 'de drempel is 3 m/s');
 }
 ok(/\.bm-gebied\.bm-compact \{ bottom: auto; top: 15vh; \}/.test(code) && /\.bm-compact \.bm-kaart \{ min-width: min\(384px/.test(code), 'de compacte kaart staat boven in beeld en is 40% smaller (384 tegen 640 px)');
 
+// #1204, #1205: de glans ligt onder de tekst (anders wordt de donkere titel dof) en het label raakt de titel niet
+ok(/\.bm-band > :not\(\.bm-glans\) \{ position: relative; z-index: 1; \}/.test(css) && /\.bm-band > \.bm-glans \{ z-index: 0; \}/.test(css), 'de glans ligt onder de tekst van de band');
+ok(/\.bm-band > \.bm-klein \{ margin-bottom: var\(--ds-s-2\); \}/.test(css), 'het label heeft lucht onder zich');
+
+// #1208, #1218: op de bon staat het woord boete een keer (het label bij het bedrag) en het bedrag is groot, de stempel blijft binnen de kaart
+{
+  const bust = bouwMoment(momentVanOpgepakt({ busted: true, geld: 250 }));
+  const zichtbaar = [bust.klein, bust.kop, bust.regelNl, bust.beloningLabel].join(' ');
+  ok((zichtbaar.match(/boete/gi) || []).length === 1, 'boete staat een keer op de kaart', zichtbaar);
+  ok(/\.bm-slip \.bm-i-beloning \.bm-teller \{ display: block; font-family: var\(--ds-font-zeef-kop\); font-weight: 800; font-size: clamp\(48px/.test(css), 'het bedrag van de bon is het grootste getal');
+  ok(/\.bm-stempel \{[^}]*max-width: calc\(100% - 56px\)/.test(css), 'de stempel blijft binnen de kaart');
+}
+// #1206: een titel die alleen de uitkomst zegt komt niet nog eens als titel of in de regel, welk woord ervoor ook staat
+{
+  for (const [kind, titel] of [['pass', 'Opdracht geslaagd'], ['pass', 'MISSIE GESLAAGD'], ['fail', 'Taak mislukt.'], ['fail', 'missie mislukt']]) {
+    const k = bouwMoment(momentVanBanner({ kind, title: titel, reason: 'Boer Roelf knikt.', reward: 100 }));
+    ok(k.kop === STANDAARD[k.soort].kop && k.regelNl === 'Boer Roelf knikt.', `"${titel}" is het label al, niet nog eens titel of regel`, `${k.kop} / ${k.regelNl}`);
+  }
+  const eigen = bouwMoment(momentVanBanner({ kind: 'pass', title: 'Opdracht geslaagd: de Zilvervloot', reason: 'Netjes.' }));
+  ok(/Zilvervloot/.test(eigen.regelNl), 'een echte missienaam blijft staan');
+}
+// #1219: het zegel van de gebiedskaart toont een plekicoon in plaats van een leeg stippelvierkant
+{
+  const bron = fs.readFileSync(new URL('../game/js/bigmoment.js', import.meta.url), 'utf8');
+  ok(/class="bm-zegel" aria-hidden="true">\$\{icoon\('plek'/.test(bron), 'het zegel bevat een plekicoon');
+  ok(!/\.bm-zegel \{[^}]*background-image/.test(css), 'het zegel heeft geen stippelpatroon meer');
+}
 console.log(`${n - fails}/${n} bigmoment`);
 process.exit(fails ? 1 : 0);

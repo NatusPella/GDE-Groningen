@@ -36,15 +36,12 @@
 .gm .m-li:focus-visible, .gm .m-disc:focus-visible, .gm .m-tab:focus-visible, .gm .ra:focus-visible { outline-offset: -2px; }
 .gm .mut, .gm .m-mut { color: var(--mut); }
 /* Samen spelen (#636): één overlaycomponent voor wachten, wegvallen en overdragen */
-.cp-overlay { position: fixed; inset: 0; z-index: 9000; display: grid; place-items: center; background: rgba(8, 16, 10, 0.82); }
-.gm .cp-pane { box-sizing: border-box; width: min(640px, 92vw); max-height: 90vh; overflow-y: auto; padding: 32px; border-radius: 16px;
-  background: rgba(15, 40, 26, 0.96); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 16%, transparent); color: var(--ink); font: 20px/1.45 var(--ds-font-tekst); }
-.gm .cp-title { margin: 0 0 8px; font-family: var(--ds-font-kop); font-weight: normal; font-size: 32px; letter-spacing: 0.05em; }
-.gm .cp-text { margin: 0; color: var(--mut); max-width: 56ch; }
-.gm .cp-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
-.gm .cp-btn { min-height: 44px; padding: 0 24px; border: 0; border-radius: 8px; font-family: var(--ds-font-kop); font-size: 24px; letter-spacing: 0.06em; cursor: pointer; }
-.gm .cp-btn.m-bp { background: var(--g); color: var(--ds-c-glas); box-shadow: none; }
-.gm .cp-btn.m-bg { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 24%, transparent); }
+.cp-overlay { position: fixed; inset: 0; z-index: 9000; display: grid; place-items: center; background: color-mix(in srgb, var(--ds-c-ink-inkt) 55%, transparent); }
+/* #1220: de kaart is een DS3-zeefdrukkaart (ds-z-kaart) met DS3-knoppen; hier alleen de maat en de plek van de knoppen */
+.gm .cp-pane { box-sizing: border-box; width: min(640px, 92vw); max-height: 90vh; overflow-y: auto; gap: var(--ds-s-3); font-size: var(--ds-t-body); }
+.gm .cp-title { margin: 0; }
+.gm .cp-text { margin: 0; max-width: 56ch; }
+.gm .cp-actions { display: flex; flex-wrap: wrap; gap: var(--ds-s-3); margin-top: var(--ds-s-2); }
 /* #636: de "Meedoen?"-chip op de HUD-kaart, dezelfde tokens als de overlay */
 .cp-meedoen { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); z-index: 7000; max-width: min(560px, 92vw);
   padding: 8px 14px; border-radius: 10px; background: rgba(20, 24, 32, 0.88); color: var(--hud-fg, #f0ede4);

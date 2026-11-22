@@ -23,7 +23,8 @@ export const RIJDEN_MS = 3;       // vanaf deze snelheid (m/s) of in een voertui
 export const STANDAARD = {
   geslaagd: { vorm: 'band', schermvullend: true, klein: 'Missie geslaagd', kop: 'Mooi, dat gaait!', regelNl: 'Dat is gelukt. Netjes gedaan.', ms: 4200 },
   mislukt: { vorm: 'band', schermvullend: true, klein: 'Missie mislukt', kop: 'Nou, nait best.', regelNl: 'Dat ging mis. Probeer het nog eens.', ms: 4200 },
-  opgepakt: { vorm: 'stempel', schermvullend: true, klein: 'Boete', kop: 'Opgepakt', regelNl: 'Je bent staande gehouden en er is een boete.', ms: 4200 },
+  // #1208, #1218: het woord boete staat een keer (het label bij het bedrag); chip en zin zeggen iets anders
+  opgepakt: { vorm: 'stempel', schermvullend: true, klein: 'Staande gehouden', kop: 'Opgepakt', regelNl: 'De agent schrijft een bon uit.', ms: 4200 },
   gebied: { vorm: 'plaats', schermvullend: false, klein: 'Moi!', kop: 'Grunn', regelNl: 'Je bent hier voor het eerst.', ms: 3600 },
   wanted: { vorm: 'rand', schermvullend: false, klein: 'Gezocht', kop: 'Pas op!', regelNl: 'De politie let op je.', ms: 1800 },
 };
@@ -37,6 +38,7 @@ const cut = (s, max) => {
 import { isPauseMenuOpen } from './pausestate.js';
 import { hoofdspeler } from './players.js';
 import { planIntro, isSkipEvent } from './endcardimpact.js';
+import { icoon } from './icons.js';
 
 export function klemWoorden(tekst, max = MAX_WOORDEN) {
   const w = String(tekst == null ? '' : tekst).replace(/\s+/g, ' ').trim().split(' ').filter(Boolean);
@@ -126,6 +128,8 @@ export function mayMomentTonen({ gast = false, eigen = false, gezamenlijk = fals
 // Perfect-ronde (22-11): (1) the standard title "MISSIE GESLAAGD" is the small label already, so it is not printed a second time as the
 // big print (the card then shows the Gronings default); (2) a line longer than the 14-word budget is cut at a SENTENCE, never in the
 // middle of one, and the "Nieuw doel: ..." sentence (the hint of what comes next) is kept.
+// titels die alleen de uitkomst zeggen
+const UITKOMST_TITEL = /^(missie|opdracht|taak|klus)\s+(geslaagd|mislukt|gehaald|volbracht)[.!]*$/i;
 export function kaartRegel(tekst, max = MAX_WOORDEN) {
   const t = String(tekst == null ? '' : tekst).replace(/\s+/g, ' ').trim();
   const aantal = (s) => s.split(' ').filter(Boolean).length;
@@ -142,11 +146,13 @@ export function kaartRegel(tekst, max = MAX_WOORDEN) {
 
 export function momentVanBanner({ kind = 'pass', title = '', reason = '', reward = 0 } = {}) {
   const soort = kind === 'fail' ? 'mislukt' : 'geslaagd';
-  const t = String(title || '').replace(/\s+/g, ' ').trim();
+  const ruw = String(title || '').replace(/\s+/g, ' ').trim();
+  // #1206: een titel die alleen de uitkomst zegt ("Missie geslaagd", "Opdracht geslaagd", "Taak mislukt.") is het label al: hij staat niet nog eens als titel of in de regel
+  const alLabel = ruw.length > 0 && (ruw.toLocaleLowerCase('nl') === STANDAARD[soort].klein.toLocaleLowerCase('nl') || UITKOMST_TITEL.test(ruw));
+  const t = alLabel ? '' : ruw;
   const kort = t.length > 0 && t.length <= 16;
-  const regel = kort ? reason : [t, reason].filter(Boolean).join('. ');
-  const alLabel = kort && t.toLocaleLowerCase('nl') === STANDAARD[soort].klein.toLocaleLowerCase('nl');
-  return { soort, titel: kort && !alLabel ? t : '', regelNl: kaartRegel(regel) || undefined, beloning: reward };
+  const regel = kort || !t ? reason : [t, reason].filter(Boolean).join('. ');
+  return { soort, titel: kort ? t : '', regelNl: kaartRegel(regel) || undefined, beloning: reward };
 }
 
 // Wanted went up or down (prev and nu are star counts 0..5): null when nothing changed, else the
@@ -257,7 +263,7 @@ function binnenHtml(m) {
   const regel = `<p class="bm-regel">${esc(m.regelNl)}</p>`;
   if (m.vorm === 'band') return `<div class="bm-dim"></div><div class="bm-band ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${kop}${regel}${metaHtml}${m.sterren != null && m.soort === 'geslaagd' ? sterrenHtml(m.sterren) : ''}<span class="bm-glans" aria-hidden="true"></span></div>`;
   if (m.vorm === 'stempel') return `<div class="bm-dim"></div><div class="bm-slip ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${regel}${metaHtml}<div class="bm-stempel ds-mi-in ds-mi-landing ds-mi-na" aria-hidden="true">${esc(m.kop)}</div></div>`;
-  if (m.vorm === 'plaats') return `<div class="bm-kaart ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${kop}${regel}<div class="bm-zegel" aria-hidden="true"></div></div>`;
+  if (m.vorm === 'plaats') return `<div class="bm-kaart ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${kop}${regel}<div class="bm-zegel" aria-hidden="true">${icoon('plek', { maat: 'xl' })}</div></div>`; // #1219: een plekicoon in het zegel, geen leeg stippelvierkant
   return `<div class="bm-tag ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span><span class="bm-kop">${esc(m.kop)}</span><span class="bm-regel">${esc(m.regelNl)}</span></div>`;
 }
 

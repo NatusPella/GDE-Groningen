@@ -15,13 +15,15 @@
 .frame-error .ds-z-kaart__titel { display: inline-flex; align-items: center; gap: var(--ds-s-2); }
 .frame-error .ds-z-kaart__titel .ic { width: var(--ds-s-5); height: var(--ds-s-5); flex: none; }
 .frame-error__tekst { margin: 0; color: var(--ds-c-rood-tx); }
-.frame-error__details > summary { cursor: pointer; font-size: var(--ds-t-hulp); font-weight: var(--ds-gewicht-vet); color: var(--ds-c-rood-tx); padding: var(--ds-s-1) 0; }
+.frame-error__details > summary { list-style: none; cursor: pointer; font-size: var(--ds-t-hulp); font-weight: var(--ds-gewicht-vet); color: var(--ds-c-rood-tx); padding: var(--ds-s-1) 0; }
 .frame-error__details > pre {
   margin: var(--ds-s-1) 0 0; padding: var(--ds-s-2) var(--ds-s-3); max-height: calc(var(--ds-s-8) * 2); overflow: auto;
   background: var(--ds-c-wit); color: var(--ds-c-ink-inkt); border: var(--ds-lijn-dik) solid var(--ds-c-rood); border-radius: var(--ds-r);
   font: var(--ds-t-hulp) / var(--ds-lh-tekst) ui-monospace, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere;
 }
 .frame-error .ds-z-knop { min-height: var(--ds-hoogte-chip); padding: var(--ds-s-1) var(--ds-s-4); font-size: var(--ds-t-label); }
+.frame-error__details > summary::-webkit-details-marker { display: none; }
+.frame-error .ds-z-kaart__voet { flex-wrap: wrap; } /* #1210: de knoppen blijven onder de tekst, ook als de details openstaan */
 .frame-error .ds-z-knop--gevaar { background: var(--ds-zeef-bg); }
 
 /* ---- Benchmark, lopend: de stopknop en de fps als papieren plaatjes, boven de beelden en onder de balken ---- */
@@ -133,6 +135,8 @@ html.reduce-motion #drift-chip .ds-z-balk__vul, html.rustig-drukwerk #drift-chip
 #bench-choice[hidden] { display: none; }
 #bench-choice .bm-paneel { width: min(calc(var(--ds-s-8) * 9), 100%); max-height: calc(100vh - var(--ds-s-6)); overflow: auto; gap: var(--ds-s-3); font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-body); }
 #bench-choice .bm-paneel .ds-z-kaart__kop { margin-top: calc(var(--ds-s-4) * -1); }
+#bench-choice .bm-groepkop { margin: 0; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--ds-c-ink-bord); } /* elke keuzegroep heeft een kop */
+#bench-choice .bm-meta, #bench-choice .bm-duur { white-space: nowrap; } /* "30 s" breekt niet over twee regels */
 #bench-choice .bm-lead, #bench-choice .bm-hulp { margin: 0; line-height: var(--ds-lh-tekst); }
 #bench-choice .bm-hulp, #trailer-result .bm-hulp { font-size: var(--ds-t-hulp); color: var(--ds-c-inkt-zacht); margin: 0; }
 #bench-choice .bm-hulp[hidden] { display: none; }

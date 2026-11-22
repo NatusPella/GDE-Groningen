@@ -11,7 +11,8 @@ const js = lees('heistui.js'), css = lees('heist.css'), heist = lees('heist.js')
 
 // Alleen de twee systeemfonts; geen handgeschreven stack en geen system-ui.
 ok(!/Segoe Print|Bradley Hand|Comic Sans MS|system-ui/.test(js + css), 'geen font buiten Bebas Neue en Arial Narrow');
-ok(/font-style: italic/.test(css) && /Arial Narrow/.test(css), 'de notitie is cursief Arial Narrow');
+ok(/#heist-ui \.hx-note \{[^}]*font-family: var\(--ds-font-zeef-tekst\)/.test(css) && !/#heist-ui \.hx-note \{[^}]*font-style: italic/.test(css), 'de notitie staat in het DS3-lettertype (#1209), niet in Arial cursief');
+ok(/export function noteKick/.test(js) && /kop \? `<div class="kick">/.test(js), 'het kopje van de notitie komt alleen als het iets toevoegt (#1209)');
 
 // Goud en canvasdonker uit de tokens/chroom, geen eigen hexen.
 ok(!/#f2c14e|#0f1c13/.test(js), 'geen eigen goud of canvasdonker meer');

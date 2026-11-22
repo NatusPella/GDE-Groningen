@@ -45,7 +45,7 @@ const leeg = bewaarFocus({ body: 1, activeElement: 1 });
 ok(typeof leeg === 'function' && leeg() === undefined, 'bewaarFocus zonder focus op de pagina doet niets');
 const ov = await import('../game/js/coopoverlay.js');
 const h = ov.overlayHtml({ title: 't', buttons: [{ action: 'ja', label: 'Ja', toets: 'J', primary: true }, { action: 'nee', label: 'Nee' }] });
-ok(/<button[^>]*data-cp-action="ja"[^>]*aria-keyshortcuts="J"[^>]*>Ja <span class="ds-z-knop__toets"[^>]*>.*data-gk="J"/.test(h.replace(/\n/g, ' ')), 'de Samen-overlay zet de toets IN de knop (data-gk), geen "(J)" in het label');
+ok(/<button[^>]*data-cp-action="ja"[^>]*aria-keyshortcuts="J"[^>]*><span class="ds-z-knop__label">Ja<\/span><span class="ds-z-knop__toets"[^>]*>.*data-gk="J"/.test(h.replace(/\n/g, ' ')), 'de Samen-overlay zet de toets IN de knop (data-gk), geen "(J)" in het label');
 ok(!/aria-keyshortcuts[^>]*data-cp-action="nee"|data-cp-action="nee"[^>]*aria-keyshortcuts/.test(h), 'een knop zonder toets krijgt geen sneltoetskenmerk');
 ok(!/\((J|N)\)/.test(read('game/js/multiplayerhostwisselui.js')), 'het overnemen-scherm heeft geen platte "(J)" en "(N)" meer');
 const vb = read('game/js/voetbal.js');

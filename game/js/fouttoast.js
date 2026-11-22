@@ -2,6 +2,7 @@
 // de wereld (three) kan laden.
 import { icoon } from './icons.js';
 import { errorReport } from './errorlog.js';
+import { DEV } from './devflags.js';
 
 let errorShown = false;
 
@@ -10,7 +11,7 @@ export function frameErrorModel(err) {
   const raw = err && err.message ? String(err.message) : err == null || err === '' ? 'Onbekende fout' : String(err);
   return {
     titel: 'Er ging iets mis',
-    tekst: 'Het spel loopt zo veel mogelijk door. Meld je het? Kopieer dan het foutrapport.',
+    tekst: 'Het spel loopt door. Kopieer het foutrapport en stuur het ons.',
     details: raw.slice(0, 400),
   };
 }
@@ -50,11 +51,12 @@ export function showFrameError(err) {
   const pre = document.createElement('pre');
   pre.textContent = m.details;
   det.append(sm, pre);
+  // #1210: de technische tekst is voor de ontwikkelaar: een speler ziet hem niet (hij zit wel in het foutrapport dat Kopieer meeneemt)
   const voet = document.createElement('div');
   voet.className = 'ds-z-kaart__voet';
   const kopieer = document.createElement('button');
   kopieer.type = 'button';
-  kopieer.className = 'ds-z-knop ds-z-knop--secundair';
+  kopieer.className = 'ds-z-knop'; // de hoofdactie
   kopieer.textContent = 'Kopieer foutrapport';
   kopieer.addEventListener('click', async () => {
     let rapport = m.details;
@@ -67,6 +69,6 @@ export function showFrameError(err) {
   sluit.textContent = 'Sluiten';
   sluit.addEventListener('click', () => el.remove());
   voet.append(sluit, kopieer);
-  el.append(kop, tekst, det, voet);
+  el.append(kop, tekst, ...(DEV ? [det] : []), voet);
   document.body.appendChild(el);
 }

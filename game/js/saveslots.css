@@ -2,6 +2,8 @@
    cards; the same icon + text buttons as the pause menu's rail. Fixed margins: 56px left and right. */
 #saveslots { position: fixed; inset: 0; z-index: 10000; background: color-mix(in srgb, var(--ds-c-glas) 72%, transparent); }
 #saveslots .ssl-panel { left: 6%; right: 6%; top: 4%; bottom: 4%; }
+/* #1229: weinig kaarten: het paneel is zo hoog als zijn inhoud en staat in het midden, niet vol met leegte */
+#saveslots .ssl-panel.ssl-weinig { top: 50%; bottom: auto; translate: 0 -50%; max-height: 92%; }
 #saveslots .m-head { padding: 28px 56px 0; }
 #saveslots .one { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #saveslots button:disabled { opacity: 0.45; }

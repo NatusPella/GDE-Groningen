@@ -189,7 +189,7 @@ export function openSaveSlots(opts = {}) {
   const legacyAsk = () => {
     if (!over || over.kind !== 'legacy') return '';
     const tweede = mode === 'start' ? `<button type="button" class="m-bg" data-grp="menu" data-do="legacy-new">${esc(LEGACY_CARD.nieuw)}</button>` : `<button type="button" class="m-bg" data-grp="menu" data-do="back">Terug</button>`;
-    return `<div class="ssl-over ssl-modal" role="alertdialog" aria-labelledby="ssl-legacy-title" aria-describedby="ssl-legacy-text"><div class="ssl-box"><h2 class="m-h2" id="ssl-legacy-title">${esc(LEGACY_CARD.titel)}</h2><p id="ssl-legacy-text">${esc(LEGACY_CARD.tekst)}</p>` +
+    return `<div class="ssl-over ssl-modal" role="alertdialog" aria-labelledby="ssl-legacy-title" aria-describedby="ssl-legacy-text"><div class="ssl-box"><h2 class="m-h2" id="ssl-legacy-title">${esc(LEGACY_CARD.titel)}</h2><p id="ssl-legacy-text">${esc(LEGACY_CARD.tekst)} ${esc(LEGACY_CARD.gevolg)}</p>` +
       `<div class="ssl-qacts"><button type="button" class="m-bp" data-grp="menu" data-do="legacy-continue">${esc(LEGACY_CARD.doorgaan)} <span class="sk-toets-in">${keyLabelHtml(CONFIRM_KEY)}</span></button>${tweede}</div></div></div>`;
   };
   // de kaart is voor deze plek afgehandeld (ook als het bewaren van de vlag mislukte: dan vraagt hij niet nog eens in deze opening)
@@ -281,7 +281,8 @@ export function openSaveSlots(opts = {}) {
     rootEl.querySelector('.gm-stage')?.remove();
     const stage = document.createElement('div');
     stage.className = 'gm-stage';
-    stage.innerHTML = `<section class="m-panel ssl-panel">
+    // #1229: met een of twee kaarten krimpt het paneel om zijn inhoud in plaats van voor 80% leeg te staan
+    stage.innerHTML = `<section class="m-panel ssl-panel${tiles.length <= 2 ? ' ssl-weinig' : ''}">
       <header class="m-head"><div><span class="m-eb">${esc(opts.eyebrow || (mode === 'start' ? 'Spel' : 'Pauze'))}</span><h1 class="m-h1" id="ssl-title">${esc(opts.titel || 'Opgeslagen spellen')}</h1>${opts.hint ? `<p class="mut ssl-intro">${esc(opts.hint)}</p>` : ''}</div><div class="m-hr"><span class="mut">${slots.length} van ${MAX_SLOTS}</span></div></header>
       ${last ? `<div class="ssl-hero-wrap">${heroHtml(last)}</div>` : ''}
       <div class="ssl-scroll"><div class="ssl-grid" role="list" aria-label="Opgeslagen spellen">${tiles.join('')}</div></div>

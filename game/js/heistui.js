@@ -321,6 +321,14 @@ function drawPlan() {
 
 // --- the card on the cushion -----------------------------------------------------------------
 
+// #1209: het kopje komt alleen als het iets toevoegt: staan zijn woorden al in de tekst, dan is het alleen de tekst.
+export function noteKick(text, kick) {
+  const norm = (x) => String(x == null ? '' : x).toLocaleLowerCase('nl').replace(/[^a-z0-9 ]/g, ' ').split(' ').filter((w) => w.length > 3);
+  const t = new Set(norm(text));
+  const k = norm(kick);
+  return k.length && k.every((w) => t.has(w)) ? '' : String(kick || '');
+}
+
 export function showNote(text, kick = 'Op het lege kussen') {
   ensureRoot();
   if (!note) {
@@ -328,7 +336,8 @@ export function showNote(text, kick = 'Op het lege kussen') {
     note.className = 'hx-note';
     root.appendChild(note);
   }
-  note.innerHTML = `<div class="kick">${kick}</div><div class="txt">${dualHtml(text)}</div>`;
+  const kop = noteKick(text, kick);
+  note.innerHTML = `${kop ? `<div class="kick">${kop}</div>` : ''}<div class="txt">${dualHtml(text)}</div>`;
   void note.offsetWidth;
   note.classList.add('on');
 }

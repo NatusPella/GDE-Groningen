@@ -74,5 +74,16 @@ ok(/mv-reispop \.mv-keuze \{ min-height: var\(--ds-doel-aanraken\)/.test(css), '
 ok(!/mv-reispop[^{]*hud-key[^{]*\{/.test(css), 'geen eigen toetsmaten in de popup: het keycap-systeem bepaalt');
 ok(/html\.rustig-drukwerk \.mapview-overlay :is\(\.mv-help, \.mv-reispop/.test(css), 'Rustig drukwerk en Beweging beperken zetten de binnenkomst uit');
 
+// #1215: een rij zonder icoonnaam krijgt het icoon van haar vervoerswijze (geen vraagteken), een kaal getal als kosten is een bedrag en
+// label, kosten en duur plakken in de leestekst niet aan elkaar ("Trein 12", niet "Trein12")
+{
+  const kaal = reisHtml([{ id: 'trein', label: 'Trein', kosten: 12, duur: '6 min', toets: '1' }, { id: 'bus', label: 'Bus', kosten: 4, duur: '14 min', toets: '2' }], 'trein');
+  const vraag = reisHtml([{ id: 'trein', icoon: 'bestaatniet', label: 'Trein', kosten: '', duur: '' }], null);
+  ok((kaal.match(/<svg/g) || []).length === 2 && kaal.match(/<svg[^>]*>(.*?)<\/svg>/g)[0] !== vraag.match(/<svg[^>]*>(.*?)<\/svg>/g)[0], 'elke rij heeft zonder icoonnaam het icoon van zijn vervoerswijze, niet het vraagteken');
+  ok(kaal.includes('€ 12') && kaal.includes('€ 4'), 'een getal als kosten staat als bedrag');
+  ok(/<\/span> <i class="mv-aanb">/.test(reisHtml([{ id: 'trein', label: 'Trein', aanbevolen: true, kosten: '€ 12', duur: '6 min' }], 'trein')) && /<\/span> <span class="mv-kd">/.test(kaal), 'spaties tussen label, aanbeveling en feiten');
+  ok(!/gratis|NaN|undefined/.test(reisHtml([{ id: 'boot', label: 'Boot', kosten: 0, duur: '', toets: '4' }], null)), 'een rij zonder gegevens toont geen rommel');
+}
+
 console.log(fails ? `kaartreispopup_test: ${fails} van ${n} mislukt` : `kaartreispopup_test: ${n}/${n} ok`);
 process.exit(fails ? 1 : 0);

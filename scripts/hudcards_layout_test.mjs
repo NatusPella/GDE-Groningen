@@ -16,5 +16,9 @@ ok(reads === 3, 'een terugspringende klok leest opnieuw', String(reads));
 const src = fs.readFileSync(new URL('../game/js/hudcards.js', import.meta.url), 'utf8');
 ok(/throttledRead\(\(\) => columnOptsRead\(\), COLUMN_OPTS_MS\)/.test(src), 'hudcards: columnOpts loopt via throttledRead');
 ok(!/const col = columnOpts\(\)/.test(src), 'hudcards: columnOpts wordt niet meer elk frame gelezen');
+// #1211: een Phosphor-icoon (inline stroke:none) krijgt op de kaart toch een inktrand, anders verdwijnt een geel icoon op papier
+const kaartCss = fs.readFileSync(new URL('../game/js/hudcards.css', import.meta.url), 'utf8');
+ok(/#hud \.hc-icon svg\[viewBox="0 0 256 256"\] \{[^}]*stroke: var\(--ds-c-ink-inkt\) !important;[^}]*stroke-width: 1\.5px !important/.test(kaartCss), 'de meldingsiconen hebben een inktrand, ook met inline stroke:none');
+ok(/svg\[viewBox="0 0 256 256"\] \* \{ vector-effect: non-scaling-stroke/.test(kaartCss), 'de rand is op elke schaal even dik');
 console.log(fails ? `hudcards_layout_test: ${fails} FAIL` : `hudcards_layout_test: ok (${n} controles)`);
 process.exit(fails ? 1 : 0);

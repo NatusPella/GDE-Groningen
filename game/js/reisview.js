@@ -1,7 +1,7 @@
 // Travel beat views (#97): pure text and state for the briefing line, the choice
 // panel, the HUD line while travelling and the messages. No DOM; reispanel.js
 // draws them, hudbus.js (kind 'reis') decides when they may show.
-import { travelOptions, RIDES } from './reiskeuze.js';
+import { travelOptions, RIDES, selfReward } from './reiskeuze.js';
 import { travelSeconds, classOf, duurTekst } from './reistijd.js';
 import { wantsExplain } from './hudtext.js';
 
@@ -23,13 +23,15 @@ export const TRAVEL_HELP_ID = 'reis:help';
 export function panelState(beat, pick, seen = {}) {
   const r = travelOptions(beat);
   const keys = { meerijden: '1', zelf: '2', overslaan: '3' };
+  // #1214: een getal per optie (de duur), "gratis" zeggen we niet bij elke regel; de winst staat alleen bij zelf gaan en alleen als die er is
+  const lengte = Number.isFinite(+beat.length) ? +beat.length : 0;
   const options = r.options.map((o) => ({
-    key: keys[o.id], label: `${o.label} · ${o.kosten} · ${o.eta}`, note: o.uitleg, badge: o.id === r.def ? 'aanbevolen' : '', cls: o.id === (pick || r.def) ? 'pick' : '',
+    key: keys[o.id], label: [o.label, o.eta, o.id === 'zelf' && selfReward(lengte) > 0 ? `+ € ${selfReward(lengte)}` : ''].filter(Boolean).join(' · '), note: o.uitleg, badge: o.id === r.def ? 'aanbevolen' : '', cls: o.id === (pick || r.def) ? 'pick' : '',
   }));
   return {
     kicker: 'REIZEN',
     text: `Naar ${beat.to}`,
-    rule: `${km(beat.length)} km`,
+    rule: lengte > 0 ? `${km(lengte)} km` : '', // geen lengte bekend: geen regel in plaats van "0,0 km"
     options,
     help: wantsExplain(seen, TRAVEL_HELP_ID) ? 'Snel reizen kost tijd, zelf gaan niet' : '',
   };

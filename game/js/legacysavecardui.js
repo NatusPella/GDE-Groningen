@@ -16,8 +16,8 @@ const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<
 export function legacyCardHtml() {
   return `<section class="os-kaart" role="alertdialog" aria-modal="true" aria-labelledby="ok-titel" aria-describedby="ok-tekst">
     <h2 id="ok-titel">${esc(LEGACY_CARD.titel)}</h2>
-    <p class="os-uitleg" id="ok-tekst">${esc(LEGACY_CARD.tekst)}</p>
-    <div class="os-knoppen"><button type="button" class="os-knop os-doorgaan" data-ok="door" aria-keyshortcuts="${ARIA_ENTER}">${esc(LEGACY_CARD.doorgaan)} <span class="sk-toets-in">${keyLabelHtml('Enter')}</span></button><button type="button" class="os-knop os-alleen" data-ok="nieuw">${esc(LEGACY_CARD.nieuw)}</button></div>
+    <p class="os-uitleg" id="ok-tekst">${esc(LEGACY_CARD.tekst)} <span class="os-gevolg">${esc(LEGACY_CARD.gevolg)}</span></p>
+    <div class="os-knoppen"><button type="button" class="os-knop os-doorgaan" data-ok="door" aria-keyshortcuts="${ARIA_ENTER}">${esc(LEGACY_CARD.doorgaan)} <span class="sk-toets-in">${keyLabelHtml('Enter')}</span></button><button type="button" class="os-knop os-alleen" data-ok="nieuw" aria-keyshortcuts="N">${esc(LEGACY_CARD.nieuw)} <span class="sk-toets-in">${keyLabelHtml('N')}</span></button></div>
   </section>`;
 }
 
@@ -41,6 +41,7 @@ export function askLegacyCard({ onDoorgaan = () => {}, onNieuw = () => {} } = {}
     const list = knoppen();
     const i = list.indexOf(document.activeElement);
     if (e.key === 'Escape' || e.key === 'Backspace') { e.preventDefault(); e.stopPropagation(); return; }
+    if ((e.key === 'n' || e.key === 'N') && !e.shiftKey) { e.preventDefault(); e.stopPropagation(); if (!e.repeat) finish(false); return; } // #1226: ook Nieuw spel heeft zijn toets
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault(); e.stopPropagation();
       if (!e.repeat && i >= 0) finish(list[i].dataset.ok === 'door');

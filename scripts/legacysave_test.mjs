@@ -126,8 +126,17 @@ askLegacyCard({ onDoorgaan: () => door++, onNieuw: () => nieuw++ });
 klikken[0]({ target: knoppen[1] });
 ok(nieuw === 2, 'klik op Nieuw spel');
 
+// #1226: het gevolg staat op de kaart en beide knoppen hebben hun toets (Doorgaan Enter, Nieuw spel N)
+ok(LEGACY_CARD.gevolg === 'Je oude spel blijft bewaard.' && html.includes(LEGACY_CARD.gevolg), 'de kaart zegt dat het oude spel bewaard blijft');
+ok(/data-ok="nieuw"[^>]*>Nieuw spel <span class="sk-toets-in">/.test(html), 'Nieuw spel heeft ook een toets in de knop');
+askLegacyCard({ onDoorgaan: () => door++, onNieuw: () => nieuw++ });
+key('n', { repeat: true });
+ok(nieuw === 2, 'een vastgehouden N kiest niet');
+key('n');
+ok(nieuw > 2 && !isLegacyCardOpen() && listeners.length === basis, 'N kiest Nieuw spel en ruimt op');
+
 // de bedrading in de bron
-const ui = src('game/js/saveslotsui.js'), ss = src('game/js/startscreen.js'), sg = src('game/js/savegame.js'), sl = src('game/js/saveslots.js');
+const ui =src('game/js/saveslotsui.js'), ss = src('game/js/startscreen.js'), sg = src('game/js/savegame.js'), sl = src('game/js/saveslots.js');
 ok(/chips\.push\(`<span class="ssl-chip" title="[^"]*">\$\{esc\(LEGACY_CARD\.tag\)\}<\/span>`\)/.test(ui) && /sm\.legacyStory/.test(ui), 'het opgeslagen-spellenscherm toont de tag Oude versie');
 ok(/summary\.legacyCard && !cardDone\.has\(cur\.n\)\) \{ over = \{ n: cur\.n, kind: 'legacy' \}/.test(ui), 'laden van een oude save vraagt eerst');
 ok(/act === 'legacy-continue'[\s\S]{0,200}markLegacyCardSeen\(cur\.n\)[\s\S]{0,120}doAction\('load'/.test(ui), 'Doorgaan zet de vlag en laadt zoals nu');

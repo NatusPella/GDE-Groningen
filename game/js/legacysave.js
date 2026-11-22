@@ -10,6 +10,7 @@ import { GATE_VERSION } from './unlockgate.js';
 export const LEGACY_CARD = {
   titel: 'Nieuw verhaal',
   tekst: 'Dit spel komt van een eerdere versie. Voor het nieuwe verhaal werkt een nieuw spel het best.',
+  gevolg: 'Je oude spel blijft bewaard.', // #1226: het gevolg van beide keuzes in een regel
   doorgaan: 'Doorgaan',
   nieuw: 'Nieuw spel',
   tag: 'Oude versie',

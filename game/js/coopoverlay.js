@@ -3,17 +3,22 @@
 // (.gm, .m-bp/.m-bg, tokens), één primaire knop en aria-modal; de aanroeper levert de
 // titel, de tekst en de knoppen. De HTML-functie is puur (testbaar zonder DOM).
 import { knopToets, shortcutName } from './dsbutton.js';
+
+// #1220: de actienaam is `action`; een knop met alleen `id` werd stil weggelaten (een vraag zonder knoppen). Nu geldt `id` als terugval.
+const actieVan = (b) => (b && (b.action || b.id)) || '';
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 export function overlayHtml({ title = '', text = '', buttons = [], label = '' } = {}) {
   const knoppen = (Array.isArray(buttons) ? buttons : []).map((b) => {
-    if (!b || !b.action || !b.label) return '';
+    const actie = actieVan(b);
+    if (!actie || !b.label) return '';
     // toets: de sneltoets (J, N) als toetsplaatje IN de knop (DS3); het plaatje wisselt zelf naar de knop van de controller
-    const kap = b.toets ? ` ${knopToets(b.toets)}` : '';
-    return `<button type="button" class="m-bg cp-btn${b.primary ? ' m-bp cp-primary' : ''}" data-cp-action="${esc(b.action)}"${b.toets ? ` aria-keyshortcuts="${esc(shortcutName(b.toets))}"` : ''}>${esc(b.label)}${kap}</button>`;
+    const kap = b.toets ? knopToets(b.toets) : '';
+    // #1220: een DS3-kaart met DS3-knoppen (zeefdruk, toets in de knop); de menuklassen blijven staan voor de focus en de tests
+    return `<button type="button" class="cp-btn${b.primary ? ' cp-primary' : ' ds-z-knop--secundair'} ds-z-knop${kap ? ' ds-z-knop--toets' : ''}" data-cp-action="${esc(actie)}"${b.toets ? ` aria-keyshortcuts="${esc(shortcutName(b.toets))}"` : ''}><span class="ds-z-knop__label">${esc(b.label)}</span>${kap}</button>`;
   }).join('');
   return `<section class="gm cp-overlay" role="dialog" aria-modal="true" aria-label="${esc(label || title || 'Samen spelen')}" data-cp-overlay>
-  <div class="cp-pane">${title ? `<h2 class="cp-title">${esc(title)}</h2>` : ''}${text ? `<p class="cp-text">${esc(text)}</p>` : ''}${knoppen ? `<div class="cp-actions">${knoppen}</div>` : ''}</div>
+  <div class="cp-pane ds-zeef ds-z-kaart ds-z-kaart--recht">${title ? `<div class="ds-z-kaart__kop"><h2 class="cp-title ds-z-kaart__titel">${esc(title)}</h2></div>` : ''}${text ? `<p class="cp-text ds-z-kaart__tekst">${esc(text)}</p>` : ''}${knoppen ? `<div class="cp-actions">${knoppen}</div>` : ''}</div>
 </section>`;
 }
 
