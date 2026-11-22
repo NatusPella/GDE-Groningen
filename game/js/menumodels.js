@@ -43,12 +43,14 @@ export function garageShown(list, view) {
 export function garageSections(shown) {
   return GARAGE_GROUPS.map((group) => ({ group, items: shown.filter((e) => garageGroup(e) === group) })).filter((s) => s.items.length);
 }
-// per category tab: how many of them, how many are yours; empty categories get no tab
+// per category tab: how many of them, how many are yours; empty categories get no tab, and "Alles" only
+// when there is more than one category to add up (#1282: with one category it repeated that tab)
 export function garageTabCounts(list) {
-  return GARAGE_CATS.map(([id, label]) => {
+  const tabs = GARAGE_CATS.map(([id, label]) => {
     const all = list.filter((e) => id === 'all' || garageCategory(e) === id);
     return { id, label, total: all.length, owned: all.filter((e) => e.owned).length };
   }).filter((t) => t.total);
+  return tabs.filter((t) => t.id !== 'all').length > 1 ? tabs : tabs.filter((t) => t.id !== 'all');
 }
 // the next entry of an [[id, label]] option list after `id`, wrapping round
 export function cycleOption(options, id) {

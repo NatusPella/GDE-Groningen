@@ -44,6 +44,10 @@ const tabs = garageTabCounts(V);
 same(tabs.map((t) => t.id), ['autos', 'bussen', 'fietsen', 'luchtvaart', 'speciaal', 'all'], 'tabs without empty categories');
 ok(tabs.at(-1).total === 7 && tabs.at(-1).owned === 2, 'all tab counts');
 
+// #1282: met één categorie herhaalt "Alles" die tab, dus die komt er niet
+const een = garageTabCounts(V.filter((e) => garageCategory(e) === 'autos'));
+same(een.map((t) => t.id), ['autos'], 'one category: no Alles tab');
+
 ok(cycleOption(GARAGE_SORTS, 'naam') === 'prijs' && cycleOption(GARAGE_SORTS, 'snelheid') === 'naam', 'sort cycles and wraps');
 ok(cycleOption(GARAGE_FILTERS, 'locked') === 'all' && cycleOption(GARAGE_FILTERS, 'zzz') === 'all', 'filter wraps, unknown starts over');
 
