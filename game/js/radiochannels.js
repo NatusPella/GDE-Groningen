@@ -137,6 +137,25 @@ export const CHANNELS = [
     programme: { id: 'noordkust', every: 3, jingles: false, talk: ['dj', 'weather'], music: 'gmusic' },
     lines: ['Radio Noordkust, met de wind mee. Binnenkort meer platen.'],
   },
+  {
+    id: 'veenvuur', name: 'Veenvuur FM', dj: 'Zware Dieuwke', frequency: '106,6', sub: 'Harde gitaren van de veenkolonie',
+    ident: 'Veenvuur FM: harder dan de wind over de Wadden.',
+    // het zendergezicht (22-11): icoon (betekenisnaam uit iconmap.js) en kleur voor de lijst en de chip bij de snelheidsmeter
+    face: { icon: 'doodshoofd', color: '#b4431c' },
+    pool: { styles: ['metal'] }, minPool: MIN_POOL, minMinutes: 15,
+    programme: { id: 'veenvuur', every: 3, jingles: false, talk: ['dj', 'clip', 'dj'], music: 'gmusic' },
+    // Nog geen metalnummers beluisterd en goedgekeurd: dan staat de zender als Binnenkort in de lijst (docs/MUZIEK-METAL-22-11.md).
+    lines: [
+      'Veenvuur FM. Zware Dieuwke achter de knoppen, de zomer op tien en de bas op elf.',
+      'Een groet aan de vrachtwagen op de dijk. Ja, we hoorden je al. Het hele Hogeland hoorde je al.',
+      'Dit is de zwaarste plaat van de provincie. De koeien keken even op en aten daarna gewoon door.',
+      'Zwart shirt in de zon? Dat heet hier gewoon zomermode. Zet de ramen open.',
+      'Een nachtrit en een volle tank. Veenvuur houdt je wakker, de koffie doet de rest.',
+      'Nog een plaat met meer gitaren dan de provincie aankan. Zet je pet vast.',
+      'Veenvuur. Het brandt niet, het klinkt zo.',
+      '106,6, waar de klei trilt.',
+    ],
+  },
 ];
 
 export const channelById = (id) => CHANNELS.find((c) => c.id === id) || null;
@@ -162,7 +181,7 @@ export function channelStatus(tracks, ctx = {}) {
   return CHANNELS.map((c) => {
     const n = channelTracks(c, tracks).length;
     const status = !isUnlocked(c, ctx) ? 'hidden' : n >= c.minPool ? 'open' : 'soon';
-    return { id: c.id, name: c.name, sub: c.sub, dj: c.dj, tracks: n, status };
+    return { id: c.id, name: c.name, sub: c.sub, dj: c.dj, tracks: n, status, ...(c.face ? { icon: c.face.icon, color: c.face.color } : {}) };
   });
 }
 export const openChannels = (tracks, ctx) => channelStatus(tracks, ctx).filter((s) => s.status === 'open').map((s) => s.id);

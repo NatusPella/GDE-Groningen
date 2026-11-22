@@ -72,7 +72,7 @@ for (const { id, v } of catalog) {
   ok(RADIO_KINDS[kind], `${id}: een geldige soort (${kind})`);
   for (const [naam, open] of Object.entries(stands)) {
     const d = vehicleChannel(kind, open, {});
-    ok(d.channel === null ? RADIO_KINDS[kind].follow : open.includes(d.channel), `${id} (${naam}): een zender die te kiezen is, of de wereldradio blijft`);
+    ok(d.channel === null ? (RADIO_KINDS[kind].follow || RADIO_KINDS[kind].soft) : open.includes(d.channel), `${id} (${naam}): een zender die te kiezen is, of de wereldradio blijft`);
   }
 }
 ok(radioKindOf(null) === null, 'geen voertuig, geen soort');
@@ -85,7 +85,13 @@ ok(['fatbike', 'scooter', 'brommer', 'motor', 'tokkie-auto', 'gokart'].every((id
 ok(['bus', 'midibus', 'trein'].every((id) => pick(id) === 'gmusic'), 'bus en trein: G-Music');
 ok(['heli', 'plane'].every((id) => pick(id) === 'gmusic'), 'helikopter en vliegtuig: G-Music');
 ok(['police', 'ambulance', 'politiepaard'].every((id) => pick(id) === null), 'politie en ambulance: de wereldradio blijft (de bestaande regels)');
-ok(['hatch', 'sedan', 'van', 'truck', 'heldenauto', 'onbekend'].every((id) => pick(id) === null), 'een gewone auto: de wereldradio blijft');
+ok(['hatch', 'sedan', 'heldenauto', 'onbekend'].every((id) => pick(id) === null), 'een gewone auto: de wereldradio blijft');
+// Veenvuur FM (22-11): vrachtwagen, bestelbus en kluiswagen kiezen hem zodra hij open is, en laten de wereldradio staan zolang hij Binnenkort is
+ok(['van', 'truck', 'cashvan'].every((id) => radioKindOf({ model: { name: id } }) === 'zwaar'), 'vrachtwagen, bestelbus en kluiswagen: soort zwaar');
+ok(['van', 'truck', 'cashvan'].every((id) => pick(id, open0) === null || open0.includes('veenvuur')), 'zwaar: zolang Veenvuur FM Binnenkort is blijft de wereldradio staan (geen G-Music als terugval)');
+ok(['van', 'truck', 'cashvan'].every((id) => pick(id, [...open0, 'veenvuur']) === 'veenvuur'), 'zwaar: Veenvuur FM zodra hij open is');
+ok(vehicleChannel('zwaar', ['gmusic'], { zwaar: 'gmusic' }).channel === 'gmusic', 'zwaar: een eigen keuze wint');
+ok(vehicleChannel('zwaar', ['gmusic'], { zwaar: 'veenvuur' }).channel === null, 'zwaar: een onthouden zender die niet open is, telt niet');
 ok(pick('boot:rondvaart') === 'nachtstreek' && pick('boot:kano') === 'nachtstreek', 'boten: Nachtstreek zolang Radio Noordkust op Binnenkort staat');
 ok(status0.find((s) => s.id === 'noordkust').status === 'soon', 'Radio Noordkust staat nog op Binnenkort');
 const withKust = [...open0, 'noordkust'];

@@ -14,6 +14,7 @@ Tot nu toe was er één zender, G-Music. De speler kan nu kiezen uit zenders met
 | Wierde Radio | Boer Harm | volks (11): de streek, het erf, de klompen | één programma: DJ, weer, koeien | altijd |
 | Tokkie Beats | DJ Bonkie | hiphop en dance (11) | één programma: DJ, nieuwsfragment | altijd |
 | Ruisradio 108,7 | Meneer Ruis | spook (6): de nachtelijke nummers | één programma: DJ-regels in de ruis | pas na het geheimpje `ufo` (de lichtjes boven Zernike) |
+| Veenvuur FM | Zware Dieuwke | metal (0 van de 6 nodig) | één programma: DJ, fragment, DJ | "Binnenkort" tot er zes metalnummers zijn goedgekeurd; zichtbaar vanaf de start, zie [MUZIEK-METAL-22-11.md](MUZIEK-METAL-22-11.md) |
 | Radio Noordkust | Wadwind Wil | kust (2 van de 6 nodig) | gepland | "Binnenkort" tot er zes kustnummers zijn (C68 in de muzieklijst) |
 
 Alle namen zijn verzonnen. De DJ-regels (`lines` in `radiochannels.js`) zijn tekst met de zachte mompelstem en een ondertitel, zoals de reclames; er is geen nieuwe opname bij. De praatsoorten van G-Music (nieuws, verkeer, weer, koeien) blijven bij G-Music; een andere zender gebruikt alleen de soorten die in zijn programma staan.
@@ -43,6 +44,7 @@ De radio bestaat ook buiten het voertuig (de wereldradio: de laatste keuze in de
 | Sportwagen, suv, taxi (`luxe`) | Nachtjazz Radio, dan Nachtstreek | G-Music | Nachtjazz Radio |
 | Fatbike, step, brommer, motor, opgevoerde auto, go-kart (`tokkie`) | Tokkie Beats | G-Music | Tokkie Beats |
 | Bus, midibus, trein, tram (`ov`) | G-Music | G-Music | G-Music |
+| Vrachtwagen, bestelbus, kluiswagen (`zwaar`) | Veenvuur FM | de wereldradio blijft (geen G-Music) | de wereldradio zolang Veenvuur FM Binnenkort is |
 | Boot, zeilboot, rondvaartboot (`boot`) | Radio Noordkust, dan Nachtstreek | G-Music | Nachtstreek (Noordkust is Binnenkort: te weinig kustnummers) |
 | Helikopter, vliegtuig (`lucht`) | G-Music | G-Music | G-Music |
 | Politie, ambulance, politiepaard (`dienst`) | geen eigen zender: de wereldradio blijft | n.v.t. | de wereldradio, zoals voorheen |
