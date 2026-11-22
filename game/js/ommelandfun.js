@@ -67,7 +67,7 @@ export function updateOmmelandFun(dt, w) {
   world = w;
   if (!w.map.store) return;
   ensureWorldEnds();
-  if (((koeTick += dt) > 2) && w.player) { koeTick = 0; koeNear(w.map, w.player.x, w.player.y); }
+  if (((koeTick += dt) > 2) && hoofdspeler(w)) { koeTick = 0; const hp = hoofdspeler(w); koeNear(w.map, hp.x, hp.y); }
   updateWorldEnds(dt, w);
   updateVillages(dt, w);
   updateTalk(w);
