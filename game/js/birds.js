@@ -3,17 +3,17 @@
 // pull in the intro montage (a big, rarely used module) for a few birds.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getCamera } from './scene3d.js';
-import { duifMerged, duifWingGeometry, DUIF_PIVOT } from './duifmodel.js';
+import { pigeonMerged, pigeonWingGeometry, PIGEON_PIVOT } from './pigeonmodel.js';
 
 const clamp01 = (t) => (t < 0 ? 0 : t > 1 ? 1 : t);
-// De zwerm gebruikt het middelniveau van het ene duivenmodel (duifmodel.js): een gladde romp met kop, staart en poten, en een
+// De zwerm gebruikt het middelniveau van het ene duivenmodel (pigeonmodel.js): een gladde romp met kop, staart en poten, en een
 // vleugel met veren die per vogel klapt. Geen doos met een plaatje meer. Romp en vleugel zijn gedeeld door alle zwermen.
 const FLOCK_SCALE = 0.9; // de duif van het model is 0,38 m lang; een stadsduif is ca. 0,33 m
 let BIRD_GEO = null, WING_GEO = null, BIRD_MAT = null;
 function sharedParts() {
   if (BIRD_GEO) return;
-  BIRD_GEO = duifMerged('mid', {}, { wings: 'none', scale: FLOCK_SCALE });
-  WING_GEO = duifWingGeometry('mid').scale(FLOCK_SCALE, FLOCK_SCALE, FLOCK_SCALE);
+  BIRD_GEO = pigeonMerged('mid', {}, { wings: 'none', scale: FLOCK_SCALE });
+  WING_GEO = pigeonWingGeometry('mid').scale(FLOCK_SCALE, FLOCK_SCALE, FLOCK_SCALE);
   BIRD_MAT = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, side: THREE.DoubleSide });
   // one flock's geometry and material serve every bird: the scene's cleaner
   // (disposeObject) must not throw them away when a single flock is removed
@@ -106,10 +106,10 @@ export function updateBirds(b, dt, t) {
     b.body.setMatrixAt(i, d.matrix);
     for (const side of [1, -1]) {
       // schouder van de vleugel op de romp; in de lucht slaat hij op en neer, op de grond ligt hij gevouwen langs de flank
-      _w.makeTranslation(DUIF_PIVOT.wing[0] * FLOCK_SCALE, DUIF_PIVOT.wing[1] * FLOCK_SCALE, DUIF_PIVOT.wing[2] * FLOCK_SCALE * side);
-      if (p.fly) _w.multiply(_r.makeRotationX(flap * side));
+      if (p.fly) _w.makeTranslation(PIGEON_PIVOT.wing[0] * FLOCK_SCALE, PIGEON_PIVOT.wing[1] * FLOCK_SCALE, PIGEON_PIVOT.wing[2] * FLOCK_SCALE * side).multiply(_r.makeRotationX(flap * side));
       else {
-        _w.multiply(_r.makeRotationFromEuler(_e.set(0.95 * side, -1.55 * side, 0, 'XYZ')));
+        _w.makeTranslation((PIGEON_PIVOT.wing[0] + 0.015) * FLOCK_SCALE, (PIGEON_PIVOT.wing[1] - 0.02) * FLOCK_SCALE, PIGEON_PIVOT.wing[2] * FLOCK_SCALE * side * 1.3);
+        _w.multiply(_r.makeRotationFromEuler(_e.set(0.5 * side, -1.55 * side, 0, 'XYZ')));
         _w.multiply(_r.makeScale(1, 1, 0.62));
       }
       if (side < 0) _w.multiply(_r.makeScale(1, 1, -1));

@@ -5,7 +5,7 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 import { LIFE_LIMITS, lifeRoster, lifePose, lifeSpeakers } from './worldlife.js';
 import { npcOutfit, parsePiece } from './clothing.js';
-import { duifMerged } from './duifmodel.js';
+import { pigeonMerged } from './pigeonmodel.js';
 
 const SKIN = [0xf0c9a4, 0xd9a577, 0xb07c54, 0x7d5336, 0xe8b894];
 const SPECIES_COLOR = { eend: 0x7a5a2a, schaap: 0xf0ece0, duif: 0x8a8f9a, zwaluw: 0x23262e };
@@ -29,9 +29,9 @@ function build(scene) {
   const mat = () => new THREE.MeshLambertMaterial({ color: 0xffffff });
   const bodyGeo = new THREE.CylinderGeometry(0.27, 0.23, 1.1, 6); bodyGeo.translate(0, 0.75, 0);
   const headGeo = new THREE.SphereGeometry(0.17, 6, 5); headGeo.translate(0, 1.5, 0);
-  // een dier is het verste niveau van het duivenmodel (duifmodel.js: afgeronde romp, kop, vleugels en staart, ca. 100 driehoeken) op eenheidsmaat:
+  // een dier is het verste niveau van het duivenmodel (pigeonmodel.js: afgeronde romp, kop, vleugels en staart, ca. 100 driehoeken) op eenheidsmaat:
   // geen bol meer. De kleur komt van de instantie, dus de hoekpuntkleuren gaan eraf.
-  const beastGeo = duifMerged('far', {}, { wings: 'folded' });
+  const beastGeo = pigeonMerged('far', {}, { wings: 'folded' });
   beastGeo.deleteAttribute('color');
   beastGeo.translate(0, 0.105, 0).scale(1 / 0.3, 1 / 0.3, 1 / 0.3);
   bodies = new THREE.InstancedMesh(bodyGeo, mat(), LIFE_LIMITS.maxPeople);

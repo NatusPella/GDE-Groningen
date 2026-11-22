@@ -4,31 +4,31 @@
 // ronde ringen, de vleugels bestaan uit veren die licht doorbuigen en de poten hebben tenen.
 //
 // Alles staat in het lichaamsframe van pigeonmode.js (x vooruit, y omhoog, z opzij, romp rond de oorsprong, snavel op
-// ca. x = 0,29). duifParts() geeft de onderdelen per groep (romp, nek, kop, staart, vleugel, handpennen, poot) in de
+// ca. x = 0,29). pigeonParts() geeft de onderdelen per groep (romp, nek, kop, staart, vleugel, handpennen, poot) in de
 // lokale ruimte van die groep, zodat poseBird (pigeonmode.js) en het skelet van wildlife.js ze kunnen bewegen;
-// duifMerged() en duifWingGeometry() geven dezelfde duif als één stuk voor instancing. Elke geometrie heeft position,
+// pigeonMerged() en pigeonWingGeometry() geven dezelfde duif als één stuk voor instancing. Elke geometrie heeft position,
 // normal, color (hoekpuntkleur) en index; niets hier raakt de scène, dus alles is in node te testen.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 // Driehoekenbudget per niveau: de ondergrens houdt het model af van een doos met vleugels, de bovengrens van een duurder model.
-export const DUIF_LOD = Object.freeze({
+export const PIGEON_LOD = Object.freeze({
   hi: Object.freeze({ min: 600, max: 1200 }), // speler, cutscenes, hokken (dichtbij)
   mid: Object.freeze({ min: 200, max: 400 }), // zwermen en stadsduiven (middel)
   far: Object.freeze({ min: 80, max: 120 }), // ver weg: nog steeds een vogel, geen blok
 });
 
 // Draaipunten van de groepen (lichaamsframe); de vleugel- en pootwaarden gelden voor zijde +1, zijde -1 spiegelt z.
-export const DUIF_PIVOT = Object.freeze({
+export const PIGEON_PIVOT = Object.freeze({
   head: [0.19, 0.115, 0], tail: [-0.15, 0.012, 0], wing: [0.035, 0.055, 0.055], wingOut: [0, 0, 0.19], legs: [0.02, -0.075, 0], leg: [0, 0, 0.03],
 });
 
-export const DUIF_KLEUREN = Object.freeze({
+export const PIGEON_COLORS = Object.freeze({
   pigeon: { body: 0x8a93a6, breast: 0x949db0, head: 0x7b8497, wing: 0x9ea7ba, bar: 0x2f323a, tip: 0x4f5564, tail: 0x7d8699, band: 0x2b2e36, neck: 0x2f8a64, neck2: 0x7b4a93, beak: 0x2b2b2b, eye: 0xff8c1a, leg: 0xe0663a, cere: 0xe8e6de },
   gull: { body: 0xf4f4f0, breast: 0xf7f7f4, head: 0xf8f8f5, wing: 0xb9bec6, bar: 0xb9bec6, tip: 0x1f1f22, tail: 0xf0f0ec, band: 0xe6e6e2, neck: 0xf4f4f0, neck2: 0xf4f4f0, beak: 0xf2c230, eye: 0xf5e26a, leg: 0xe8b04a, cere: 0xf2c230 },
 });
 
 // De kleurvarianten van de stadsduif. 'gevlekt' kleurt er donkere vlekken over; de rest is een andere kleurset.
-export const DUIF_VARIANTEN = Object.freeze({
+export const PIGEON_VARIANT_COLORS = Object.freeze({
   grijs: {},
   wit: { body: 0xefeee8, breast: 0xf4f2ec, head: 0xeceae3, wing: 0xf2f1ea, bar: 0xd9d6cb, tip: 0xcfcdc3, tail: 0xe9e7df, band: 0xd4d2c8, neck: 0xe0ddd2, neck2: 0xe6e3da, eye: 0xd9552a, leg: 0xd9776a },
   bruin: { body: 0x8c6a4e, breast: 0x9a7556, head: 0x7a5a42, wing: 0x9a7656, bar: 0x4a3326, tip: 0x3a2a20, tail: 0x6e5240, band: 0x2e2420, neck: 0x3f7a58, neck2: 0x7a4a8a },
@@ -37,11 +37,11 @@ export const DUIF_VARIANTEN = Object.freeze({
 
 // Kleurset: een variantnaam (grijs, wit, bruin, gevlekt), een object met kleuren die erover heen gaan, of een getal (de oude "tint": romp, borst en vleugels in die kleur).
 // map (optioneel): een functie hex -> hex die elke kleur van de set omzet (de wereldpalet van de wildlife-dieren).
-export function duifPalet(kind = 'pigeon', variant = null, map = null) {
-  const c = { ...(DUIF_KLEUREN[kind] || DUIF_KLEUREN.pigeon) };
+export function pigeonPalette(kind = 'pigeon', variant = null, map = null) {
+  const c = { ...(PIGEON_COLORS[kind] || PIGEON_COLORS.pigeon) };
   if (typeof variant === 'number') { c.body = variant; c.wing = variant; c.breast = variant; }
   else if (variant && typeof variant === 'object') Object.assign(c, variant); // een eigen kleurset (vogels van het weidegebied)
-  else if (variant && kind === 'pigeon' && DUIF_VARIANTEN[variant]) Object.assign(c, DUIF_VARIANTEN[variant]);
+  else if (variant && kind === 'pigeon' && PIGEON_VARIANT_COLORS[variant]) Object.assign(c, PIGEON_VARIANT_COLORS[variant]);
   if (map) for (const k of Object.keys(c)) if (typeof c[k] === 'number') c[k] = map(c[k]);
   return c;
 }
@@ -83,9 +83,9 @@ function gradient(geo, hexA, hexB, axis, lo, hi) {
 // Gelofte vorm langs x: ringen {x, cy, ry, rz}; een ring met straal 0 is een punt (de uiteinden), dus gesloten en glad.
 function loft(rings, sides) {
   const pos = [], idx = [];
-  const rowStart = [];
+  const vertexBase = [];
   for (const r of rings) {
-    rowStart.push(pos.length / 3);
+    vertexBase.push(pos.length / 3);
     if (r.ry <= 1e-6 && r.rz <= 1e-6) { pos.push(r.x, r.cy, 0); continue; }
     for (let j = 0; j < sides; j++) {
       const a = (j / sides) * Math.PI * 2;
@@ -93,7 +93,7 @@ function loft(rings, sides) {
     }
   }
   for (let i = 0; i < rings.length - 1; i++) {
-    const a = rowStart[i], b = rowStart[i + 1];
+    const a = vertexBase[i], b = vertexBase[i + 1];
     const pa = rings[i].ry <= 1e-6 && rings[i].rz <= 1e-6, pb = rings[i + 1].ry <= 1e-6 && rings[i + 1].rz <= 1e-6;
     for (let j = 0; j < sides; j++) {
       const j2 = (j + 1) % sides;
@@ -255,10 +255,10 @@ function addWingParts(out, D, c, side, kind, sp) {
 }
 
 // De onderdelen van één duif per groep, in de lokale ruimte van die groep. Zie de kop van dit bestand.
-export function duifParts(lod = 'hi', { kind = 'pigeon', variant = null, map = null } = {}) {
+export function pigeonParts(lod = 'hi', { kind = 'pigeon', variant = null, map = null, legScale = 1 } = {}) {
   const D = DETAIL[lod];
-  if (!D) throw new Error(`duifParts: onbekend niveau ${lod}`);
-  const c = duifPalet(kind, variant, map), sp = !!c.spots;
+  if (!D) throw new Error(`pigeonParts: onbekend niveau ${lod}`);
+  const c = pigeonPalette(kind, variant, map), sp = !!c.spots;
   const out = [];
   const iri = kind === 'pigeon';
   // romp (een stuk) en nek (glanzend bij een stadsduif)
@@ -299,12 +299,12 @@ export function duifParts(lod = 'hi', { kind = 'pigeon', variant = null, map = n
   // poten met tenen; bij 'mid' alleen de poot zelf
   if (D.legSides) {
     for (const side of [1, -1]) {
-      out.push({ g: 'leg', side, geo: setColors(tube([0, 0, 0], [0, -0.07, 0], 0.009, 0.006, D.legSides), c.leg) });
+      out.push({ g: 'leg', side, geo: setColors(tube([0, 0, 0], [0, -0.07 * legScale, 0], 0.009, 0.006, D.legSides), c.leg) });
       if (D.toes) {
         const angles = D.hindToe ? [-0.55, 0, 0.55, Math.PI] : [-0.55, 0, 0.55];
         for (const a of angles) {
           const l = a === Math.PI ? 0.025 : 0.042;
-          out.push({ g: 'leg', side, geo: setColors(tube([0, -0.07, 0], [Math.cos(a) * l, -0.073, Math.sin(a) * l], 0.0055, 0.0035, 4), c.leg) });
+          out.push({ g: 'leg', side, geo: setColors(tube([0, -0.07 * legScale, 0], [Math.cos(a) * l, -0.073 * legScale, Math.sin(a) * l], 0.0055, 0.0035, 4), c.leg) });
         }
       }
     }
@@ -314,11 +314,11 @@ export function duifParts(lod = 'hi', { kind = 'pigeon', variant = null, map = n
 
 // De gedeelde materialen: glad (geen flatShading), de kleur zit in de hoekpunten. Eén stel voor alle duiven.
 let _mat = null, _shiny = null;
-export function duifMaterial() {
+export function pigeonMaterial() {
   if (!_mat) { _mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85, metalness: 0 }); _mat.userData.shared = true; }
   return _mat;
 }
-export function duifShinyMaterial() {
+export function pigeonShinyMaterial() {
   if (!_shiny) { _shiny = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.35, metalness: 0.2, emissive: 0x120a1c }); _shiny.userData.shared = true; }
   return _shiny;
 }
@@ -328,7 +328,7 @@ export function duifShinyMaterial() {
 function groupMatrix(p, side) {
   const g = p.g;
   const M = new THREE.Matrix4();
-  const pv = DUIF_PIVOT;
+  const pv = PIGEON_PIVOT;
   const sd = side || 1;
   if (g === 'head') return M.makeTranslation(...pv.head);
   if (g === 'tail') return M.makeTranslation(...pv.tail);
@@ -338,7 +338,7 @@ function groupMatrix(p, side) {
   return M;
 }
 
-export function mergeDuifGeometries(geos) {
+export function mergePigeonGeometries(geos) {
   const names = Object.keys(geos[0].attributes);
   let nv = 0, ni = 0;
   for (const g of geos) { nv += g.attributes.position.count; ni += g.index.count; }
@@ -358,10 +358,10 @@ export function mergeDuifGeometries(geos) {
 }
 
 // De onderdelen in het absolute lichaamsframe (verschaald met k), gegroepeerd per bot voor een skelet (wildlife.js):
-// body (romp, staart, poten), head, wingL/wingR (zijde +1/-1, dekveren en armpennen) en wingOutL/wingOutR (handpennen).
-export function duifBoneParts(lod = 'mid', opts = {}, k = 1) {
-  return duifParts(lod, opts).map((p) => {
-    const bone = p.g === 'wing' ? (p.side > 0 ? 'wingL' : 'wingR') : p.g === 'wingOut' ? (p.side > 0 ? 'wingOutL' : 'wingOutR') : p.g === 'head' ? 'head' : 'body';
+// body (romp, staart), leg (poten), head, wingL/wingR (zijde +1/-1, dekveren en armpennen) en wingOutL/wingOutR (handpennen).
+export function pigeonBoneParts(lod = 'mid', opts = {}, k = 1) {
+  return pigeonParts(lod, opts).map((p) => {
+    const bone = p.g === 'leg' ? 'leg' : p.g === 'wing' ? (p.side > 0 ? 'wingL' : 'wingR') : p.g === 'wingOut' ? (p.side > 0 ? 'wingOutL' : 'wingOutR') : p.g === 'head' ? 'head' : 'body';
     p.geo.applyMatrix4(groupMatrix(p, p.side));
     if (k !== 1) p.geo.scale(k, k, k);
     return { bone, geo: p.geo };
@@ -371,8 +371,8 @@ export function duifBoneParts(lod = 'mid', opts = {}, k = 1) {
 // Eén geometrie van de hele duif in het lichaamsframe. wings: 'none' (de vleugels apart, voor instancing), 'folded' (aan de
 // flank, zoals zittend) of een getal: de opslaghoek in radialen (0 = recht naar buiten, positief omhoog).
 // De geometrie is een nieuw object (de aanroeper bewaart en ruimt op).
-export function duifMerged(lod = 'mid', opts = {}, { wings = 'none', legs = true, scale = 1 } = {}) {
-  const parts = duifParts(lod, opts);
+export function pigeonMerged(lod = 'mid', opts = {}, { wings = 'none', legs = true, scale = 1 } = {}) {
+  const parts = pigeonParts(lod, opts);
   const list = [];
   for (const p of parts) {
     if (p.g === 'leg' && !legs) continue;
@@ -381,31 +381,31 @@ export function duifMerged(lod = 'mid', opts = {}, { wings = 'none', legs = true
     const m = groupMatrix(p, p.side);
     if (wing) {
       const s = p.side;
-      const inner = new THREE.Matrix4().makeTranslation(DUIF_PIVOT.wing[0], DUIF_PIVOT.wing[1], DUIF_PIVOT.wing[2] * s);
+      const inner = new THREE.Matrix4().makeTranslation(PIGEON_PIVOT.wing[0], PIGEON_PIVOT.wing[1], PIGEON_PIVOT.wing[2] * s);
       if (wings === 'folded') {
         // gevouwen, zoals poseBird (pigeonmode.js) hem zet: de vleugel klapt naar achteren en kantelt langs de flank
-        inner.multiply(new THREE.Matrix4().makeRotationFromEuler(_E.set(1.2 * s, -1.55 * s, 0, 'XYZ')));
-        if (p.g === 'wingOut') inner.multiply(new THREE.Matrix4().makeTranslation(0, 0, DUIF_PIVOT.wingOut[2] * s)).multiply(new THREE.Matrix4().makeRotationY(2.9 * s));
+        inner.copy(new THREE.Matrix4().makeTranslation(PIGEON_PIVOT.wing[0] + 0.015, PIGEON_PIVOT.wing[1] - 0.02, PIGEON_PIVOT.wing[2] * s * 1.3)).multiply(new THREE.Matrix4().makeRotationFromEuler(_E.set(0.5 * s, -1.55 * s, 0, 'XYZ')));
+        if (p.g === 'wingOut') inner.multiply(new THREE.Matrix4().makeTranslation(0, 0, PIGEON_PIVOT.wingOut[2] * s)).multiply(new THREE.Matrix4().makeRotationY(2.9 * s));
       } else {
         inner.multiply(new THREE.Matrix4().makeRotationX(-s * wings));
-        if (p.g === 'wingOut') inner.multiply(new THREE.Matrix4().makeTranslation(0, 0, DUIF_PIVOT.wingOut[2] * s)).multiply(new THREE.Matrix4().makeRotationX(s * wings * 0.4));
+        if (p.g === 'wingOut') inner.multiply(new THREE.Matrix4().makeTranslation(0, 0, PIGEON_PIVOT.wingOut[2] * s)).multiply(new THREE.Matrix4().makeRotationX(s * wings * 0.4));
       }
       p.geo.applyMatrix4(inner);
     } else p.geo.applyMatrix4(m);
     list.push(p.geo);
   }
-  const g = mergeDuifGeometries(list);
+  const g = mergePigeonGeometries(list);
   for (const x of list) x.dispose();
   if (scale !== 1) g.scale(scale, scale, scale);
   return g;
 }
 
 // Eén vleugel (zijde +1) in de schoudervorm: dekveren, armpennen en handpennen, gespreid langs +z. Voor een InstancedMesh:
-// de aanroeper zet de schouder op DUIF_PIVOT.wing en spiegelt met z-schaal -1 voor de andere kant.
-export function duifWingGeometry(lod = 'mid', opts = {}) {
-  const parts = duifParts(lod, opts).filter((p) => (p.g === 'wing' || p.g === 'wingOut') && p.side === 1);
-  const list = parts.map((p) => (p.g === 'wingOut' ? p.geo.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, DUIF_PIVOT.wingOut[2])) : p.geo));
-  const g = mergeDuifGeometries(list);
+// de aanroeper zet de schouder op PIGEON_PIVOT.wing en spiegelt met z-schaal -1 voor de andere kant.
+export function pigeonWingGeometry(lod = 'mid', opts = {}) {
+  const parts = pigeonParts(lod, opts).filter((p) => (p.g === 'wing' || p.g === 'wingOut') && p.side === 1);
+  const list = parts.map((p) => (p.g === 'wingOut' ? p.geo.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, PIGEON_PIVOT.wingOut[2])) : p.geo));
+  const g = mergePigeonGeometries(list);
   for (const x of list) x.dispose();
   return g;
 }

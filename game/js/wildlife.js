@@ -3,7 +3,7 @@ import { hoofdspeler, naasteSpeler, voorElkeSpeler } from './spelersregister.js'
 import { dist, angleLerp, pointInPolygon, SeededRng, isInWater, WATER_Y } from './util.js';
 import { waterPolyAt, waterNearby, BRIDGE_DRY } from './waterlevels.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { duifBoneParts, mergeDuifGeometries } from './duifmodel.js';
+import { pigeonBoneParts, mergePigeonGeometries } from './pigeonmodel.js';
 import { dsWereld } from './worldpalette.js';
 import { SkinBuilder, vcMaterial, composeMatrix, tubeGeometry, loftGeometry, markShared } from './pixelart3d.js';
 import { setLeashHolder, setPeopleWeather } from './models3d_people.js';
@@ -982,57 +982,49 @@ function mirrorZ(pts) {
 
 // --- seagull ---
 
-const GULL_WHITE = 0xeeeeea;
-const GULL_GREY = 0xa9b1b6;
-const GULL_TIP = 0x1e1f21;
-const GULL_BEAK = 0xe0b331;
-const GULL_LEG = 0xd9a07a;
-
+// De meeuw is het middelniveau van het duivenmodel in zijn meeuwkleuren (wit, grijze vleugels met zwarte toppen, gele snavel) met lange poten en
+// vleugels (pigeonmodel.js, kind 'gull') op een skelet met een binnen- en buitenbot per vleugel.
+const GULL_K = 1.05;
 const GULL_SPEC = [
   ['body', null, 0, 0, 0],
-  ['head', 'body', 0.15, 0.04, 0],
-  ['wingLi', 'body', 0.03, 0.035, 0.045],
-  ['wingLo', 'wingLi', 0.03, 0.035, 0.33],
-  ['wingRi', 'body', 0.03, 0.035, -0.045],
-  ['wingRo', 'wingRi', 0.03, 0.035, -0.33],
-  ['legs', 'body', -0.02, -0.045, 0],
+  ['head', 'body', 0.19 * GULL_K, 0.115 * GULL_K, 0],
+  ['wingLi', 'body', 0.035 * GULL_K, 0.055 * GULL_K, 0.055 * GULL_K],
+  ['wingLo', 'wingLi', 0.035 * GULL_K, 0.055 * GULL_K, 0.245 * GULL_K],
+  ['wingRi', 'body', 0.035 * GULL_K, 0.055 * GULL_K, -0.055 * GULL_K],
+  ['wingRo', 'wingRi', 0.035 * GULL_K, 0.055 * GULL_K, -0.245 * GULL_K],
+  ['legs', 'body', 0.02 * GULL_K, -0.075 * GULL_K, 0],
 ];
 
-function seagullGeometry() {
-  const I = boneIndex(GULL_SPEC);
-  const B = new SkinBuilder(1);
-  B.bone = I.body;
-  B.geo(ellipsoid(8, 6, 0.2, 0.068, 0.07), composeMatrix(0, 0, 0, 0, 0, 0.04), GULL_WHITE);
-  B.geo(ellipsoid(8, 3, 0.17, 0.072, 0.072, 0, Math.PI * 0.38), composeMatrix(-0.02, 0.004, 0), GULL_GREY);
-  slab(B, [[-0.14, 0.03], [-0.27, 0.06], [-0.28, -0.06], [-0.14, -0.03]], -0.004, 0.008, GULL_WHITE);
-  B.bone = I.head;
-  B.geo(ellipsoid(7, 5, 0.062, 0.055, 0.05), composeMatrix(0.19, 0.055, 0), GULL_WHITE);
-  B.geo(new THREE.ConeGeometry(0.017, 0.075, 4).rotateZ(-Math.PI / 2), composeMatrix(0.285, 0.045, 0, 0, 0, -0.08), GULL_BEAK);
-  B.box(0.275, 0.034, 0, 0.012, 0.012, 0.018, 0xb8322a);
-  for (const s of [1, -1]) B.box(0.22, 0.068, s * 0.035, 0.012, 0.012, 0.01, 0x111111);
-  for (const s of [1, -1]) {
-    const k = s === 1 ? 'L' : 'R';
-    const m = (pts) => (s === 1 ? pts : mirrorZ(pts));
-    B.bone = I['wing' + k + 'i'];
-    slab(B, m([[0.075, 0.045], [0.065, 0.33], [-0.085, 0.33], [-0.12, 0.045]]), 0.028, 0.045, GULL_GREY, GULL_WHITE, GULL_GREY);
-    B.bone = I['wing' + k + 'o'];
-    slab(B, m([[0.065, 0.33], [0.035, 0.45], [-0.095, 0.45], [-0.085, 0.33]]), 0.03, 0.043, GULL_GREY, GULL_WHITE, GULL_GREY);
-    slab(B, m([[0.035, 0.45], [-0.06, 0.63], [-0.1, 0.6], [-0.095, 0.45]]), 0.031, 0.042, GULL_TIP, GULL_TIP, GULL_TIP);
-    B.box(-0.07, 0.043, s * 0.575, 0.03, 0.004, 0.035, GULL_WHITE);
-    B.bone = I.legs;
-    B.geo(tubeGeometry([-0.02, -0.04, s * 0.025], [-0.02, -0.19, s * 0.025], 0.008, 0.007, 4), null, GULL_LEG);
-    B.box(0.005, -0.195, s * 0.025, 0.055, 0.008, 0.035, GULL_LEG);
-  }
-  return B.build();
+// het skelet van een duiventype: de botnamen van de delen van pigeonBoneParts vertaald naar de botten van de spec
+function pigeonSkinGeometry(spec, opts, k, names, lod = 'mid') {
+  const I = boneIndex(spec);
+  const list = pigeonBoneParts(lod, { ...opts, map: dsWereld }, k).map(({ bone, geo }) => {
+    const bi = I[names[bone] || bone] ?? I.body;
+    const n = geo.attributes.position.count, si = new Uint16Array(n * 4), sw = new Float32Array(n * 4);
+    for (let i = 0; i < n; i++) { si[i * 4] = bi; sw[i * 4] = 1; }
+    geo.setAttribute('skinIndex', new THREE.BufferAttribute(si, 4));
+    geo.setAttribute('skinWeight', new THREE.BufferAttribute(sw, 4));
+    return geo;
+  });
+  const g = mergePigeonGeometries(list);
+  for (const x of list) x.dispose();
+  return g;
 }
 
-export function buildSeagullMesh3D() {
-  const group = assemble(cachedGeo('gull', seagullGeometry), GULL_SPEC, 0.8, 0);
+function seagullGeometry(lod) {
+  return pigeonSkinGeometry(GULL_SPEC, { kind: 'gull', legScale: 1.7 }, GULL_K, { wingL: 'wingLi', wingOutL: 'wingLo', wingR: 'wingRi', wingOutR: 'wingRo', leg: 'legs' }, lod);
+}
+
+// lod: 'mid' voor de wereld, 'hi' voor een filmpje of een voorbeeldweergave van dichtbij (pigeonmodel.js)
+export function buildSeagullMesh3D(lod = 'mid') {
+  const group = assemble(cachedGeo('gull' + lod, () => seagullGeometry(lod)), GULL_SPEC, 0.8, 0, PIGEON_MAT);
   const b = group.userData.bones;
   b.wingLi.userData.sign = 1;
   b.wingRi.userData.sign = -1;
   group.userData.wings = [b.wingLi, b.wingRi];
-  group.userData.foldShift = 0.13;
+  group.userData.foldShift = 0.06;
+  group.userData.foldLift = -0.02;
+  group.userData.foldZ = -0.3;
   group.userData.head = b.head;
   return group;
 }
@@ -1305,7 +1297,7 @@ export function buildFishMesh3D() {
 
 // --- pigeon ---
 
-// De stadsduif is het middelniveau van het ene duivenmodel (duifmodel.js) op een skelet: romp, kop en per vleugel een binnen- en buitenbot.
+// De stadsduif is het middelniveau van het ene duivenmodel (pigeonmodel.js) op een skelet: romp, kop en per vleugel een binnen- en buitenbot.
 const PIGEON_K = 0.64; // het model is 0,6 m van snavel tot staart; een stadsduif ca. 0,38 m
 const PIGEON_VARIANTS = ['grijs', 'gevlekt', 'bruin', 0x5a5e66];
 const PIGEON_SPEC = [
@@ -1317,30 +1309,19 @@ const PIGEON_SPEC = [
   ['wingOutR', 'wingR', 0.035 * PIGEON_K, 0.055 * PIGEON_K, -0.245 * PIGEON_K],
 ];
 
-function pigeonGeometry(tone) {
-  const I = boneIndex(PIGEON_SPEC);
-  const parts = duifBoneParts('mid', { variant: PIGEON_VARIANTS[tone % PIGEON_VARIANTS.length], map: dsWereld }, PIGEON_K);
-  const list = parts.map(({ bone, geo }) => {
-    const n = geo.attributes.position.count, si = new Uint16Array(n * 4), sw = new Float32Array(n * 4);
-    for (let i = 0; i < n; i++) { si[i * 4] = I[bone]; sw[i * 4] = 1; }
-    geo.setAttribute('skinIndex', new THREE.BufferAttribute(si, 4));
-    geo.setAttribute('skinWeight', new THREE.BufferAttribute(sw, 4));
-    return geo;
-  });
-  const g = mergeDuifGeometries(list);
-  for (const x of list) x.dispose();
-  return g;
+function pigeonGeometry(tone, lod) {
+  return pigeonSkinGeometry(PIGEON_SPEC, { variant: PIGEON_VARIANTS[tone % PIGEON_VARIANTS.length] }, PIGEON_K, { wingL: 'wingL', wingOutL: 'wingOutL', wingR: 'wingR', wingOutR: 'wingOutR' }, lod);
 }
 
-export function buildPigeonMesh3D(tone = 0) {
-  const group = assemble(cachedGeo('pigeon' + tone, () => pigeonGeometry(tone)), PIGEON_SPEC, 0.4, 0, PIGEON_MAT);
+export function buildPigeonMesh3D(tone = 0, lod = 'mid') {
+  const group = assemble(cachedGeo('pigeon' + tone + lod, () => pigeonGeometry(tone, lod)), PIGEON_SPEC, 0.4, 0, PIGEON_MAT);
   const b = group.userData.bones;
   b.wingL.userData.sign = 1;
   b.wingR.userData.sign = -1;
   group.userData.wings = [b.wingL, b.wingR];
   group.userData.foldShift = 0.01;
-  group.userData.foldLift = 0.01;
-  group.userData.foldZ = -0.1;
+  group.userData.foldLift = -0.013;
+  group.userData.foldZ = -0.3;
   group.userData.head = b.head;
   return group;
 }
@@ -1515,14 +1496,14 @@ function buildGansMesh3D() {
 
 function bouwWildlifeMesh3D(a) {
   switch (a.kind) {
-    case 'seagull': return buildSeagullMesh3D();
+    case 'seagull': return buildSeagullMesh3D(a.lod);
     case 'sheep': return buildSheepMesh3D();
     case 'duck': return buildDuckMesh3D(a.variant);
     case 'gans': return buildGansMesh3D();
     case 'reiger': return buildDuckMesh3D('reiger');
     case 'zeehond': return buildSealMesh3D();
     case 'vis': return buildFishMesh3D();
-    case 'pigeon': return buildPigeonMesh3D(Math.floor((a.bobSeed || 0) * 10) % 4);
+    case 'pigeon': return buildPigeonMesh3D(Math.floor((a.bobSeed || 0) * 10) % 4, a.lod);
     case 'cat': return buildCatMesh3D(a.variant || 0);
     case 'dog': return buildDogMesh3D(a.breed || 0, a.color || 0);
     default: return buildCowMesh3D(a.bobSeed, a.variant === 'red');
@@ -1576,7 +1557,7 @@ function animateSeagull(mesh, a, time) {
   const standing = a.state === 'ground';
   mesh.position.y = a.z ?? 6 + Math.sin(time * 2 + seed) * 1.2;
   if (standing) {
-    setWings(ud, 1, -0.25, 0.05, 1);
+    setWings(ud, 1, -0.5, 0.05, 1);
     b.legs.rotation.z = 0;
     b.body.rotation.set(0, 0, 0.15);
     const step = a.speed > 0.05 ? Math.sin((a.stride || 0) * 14) : 0;
@@ -1602,7 +1583,7 @@ function animatePigeon(mesh, a, time) {
   const ud = mesh.userData, b = ud.bones;
   mesh.position.y = a.z ?? PIGEON_STAND_Y;
   if (a.state === 'ground') {
-    setWings(ud, 1, -0.95, 0, 1); // gevouwen: de vleugel ligt langs de flank
+    setWings(ud, 1, -0.5, 0, 1); // gevouwen: de vleugel ligt langs de flank
     const walking = a.speed > 0.05;
     const s = (a.stride || 0) * 22;
     b.head.position.x = b.head.userData.rest.x + (walking ? Math.max(0, Math.sin(s)) * 0.025 : 0);

@@ -18,7 +18,7 @@ import { poiLayerPlace } from './facilities.js';
 import { clearPigeonGuide } from './pigeonguide.js';
 import { glyphHtml } from './keycap.js';
 import { hideFirstPersonHands } from './firstpersonhands.js';
-import { duifParts, duifMaterial, duifShinyMaterial, mergeDuifGeometries, DUIF_PIVOT } from './duifmodel.js';
+import { pigeonParts, pigeonMaterial, pigeonShinyMaterial, mergePigeonGeometries, PIGEON_PIVOT } from './pigeonmodel.js';
 
 const LEVEL_H = 3.1;
 const G = 9.8;
@@ -309,7 +309,7 @@ function cmat(color, opts) {
   return matCache.get(k);
 }
 
-// De duif (duifmodel.js, hoogste niveau): per bewegende groep een samengevoegde, gladde geometrie met hoekpuntkleuren, dus
+// De duif (pigeonmodel.js, hoogste niveau): per bewegende groep een samengevoegde, gladde geometrie met hoekpuntkleuren, dus
 // 11 draw calls per vogel (romp, glanzende nek, kop, staart, elke vleugel en handpennen, elke poot) en geen eigen geometrie
 // per exemplaar: elke kind+kleur-combinatie wordt een keer gebouwd en gedeeld (SHARED_GEO).
 const birdGeoCache = new Map();
@@ -319,13 +319,13 @@ function birdGroupGeos(kind, variant) {
   if (m) return m;
   m = new Map();
   const lists = new Map();
-  for (const p of duifParts('hi', { kind, variant })) {
+  for (const p of pigeonParts('hi', { kind, variant })) {
     const k = p.g + (p.side ? (p.side > 0 ? '+' : '-') : '') + (p.shiny ? '*' : '');
     if (!lists.has(k)) lists.set(k, []);
     lists.get(k).push(p.geo);
   }
   for (const [k, list] of lists) {
-    const g = mergeDuifGeometries(list);
+    const g = mergePigeonGeometries(list);
     for (const x of list) x.dispose();
     SHARED_GEO.add(g);
     m.set(k, g);
@@ -340,7 +340,7 @@ function buildBird(kind = 'pigeon', tint = null) {
   const mk = (group, key, shiny = false) => {
     const g = geos.get(key);
     if (!g) return null;
-    const mesh = new THREE.Mesh(g, shiny ? duifShinyMaterial() : duifMaterial());
+    const mesh = new THREE.Mesh(g, shiny ? pigeonShinyMaterial() : pigeonMaterial());
     mesh.castShadow = true;
     group.add(mesh);
     return mesh;
@@ -351,17 +351,17 @@ function buildBird(kind = 'pigeon', tint = null) {
   root.add(body);
   mk(body, 'body');
   mk(body, 'body*', true);
-  const head = at(new THREE.Group(), DUIF_PIVOT.head);
+  const head = at(new THREE.Group(), PIGEON_PIVOT.head);
   mk(head, 'head');
   body.add(head);
-  const tail = at(new THREE.Group(), DUIF_PIVOT.tail);
+  const tail = at(new THREE.Group(), PIGEON_PIVOT.tail);
   mk(tail, 'tail');
   body.add(tail);
   const wing = (side) => {
-    const w = at(new THREE.Group(), DUIF_PIVOT.wing, side);
+    const w = at(new THREE.Group(), PIGEON_PIVOT.wing, side);
     const sgn = side > 0 ? '+' : '-';
     mk(w, 'wing' + sgn);
-    const outer = at(new THREE.Group(), DUIF_PIVOT.wingOut, side);
+    const outer = at(new THREE.Group(), PIGEON_PIVOT.wingOut, side);
     mk(outer, 'wingOut' + sgn);
     w.add(outer);
     w.userData.outer = outer;
@@ -370,10 +370,10 @@ function buildBird(kind = 'pigeon', tint = null) {
   };
   const wingL = wing(-1), wingR = wing(1);
   body.add(wingL, wingR);
-  const legs = at(new THREE.Group(), DUIF_PIVOT.legs);
+  const legs = at(new THREE.Group(), PIGEON_PIVOT.legs);
   const legParts = [];
   for (const s of [1, -1]) {
-    const leg = at(new THREE.Group(), DUIF_PIVOT.leg, s);
+    const leg = at(new THREE.Group(), PIGEON_PIVOT.leg, s);
     mk(leg, 'leg' + (s > 0 ? '+' : '-'));
     legs.add(leg);
     legParts.push(leg);
@@ -388,12 +388,12 @@ function buildBird(kind = 'pigeon', tint = null) {
 function poseBird(bird, { flapPhase, amp, fold, grounded, walkPhase = 0, peck = 0 }) {
   const u = bird.userData;
   const f = Math.sin(flapPhase);
-  const lift = amp * f + 0.12 * (1 - fold) - 0.95 * fold;
+  const lift = amp * f + 0.12 * (1 - fold) - 0.5 * fold;
   const outerBend = grounded ? 0 : -amp * 0.5 * Math.cos(flapPhase);
   for (const w of [u.wingL, u.wingR]) {
     const s = w.userData.side;
     // gevouwen ligt de vleugel op de flank in plaats van op de schouder: iets naar buiten en omhoog zodat hij om de romp sluit
-    w.position.set(DUIF_PIVOT.wing[0] + 0.015 * fold, DUIF_PIVOT.wing[1] + 0.015 * fold, DUIF_PIVOT.wing[2] * s * (1 + 0.1 * fold));
+    w.position.set(PIGEON_PIVOT.wing[0] + 0.015 * fold, PIGEON_PIVOT.wing[1] - 0.02 * fold, PIGEON_PIVOT.wing[2] * s * (1 + 0.3 * fold));
     w.rotation.set(-s * lift, -s * fold * 1.55, 0, 'XYZ');
     w.userData.outer.rotation.set(-s * outerBend, s * fold * 2.9, 0);
   }

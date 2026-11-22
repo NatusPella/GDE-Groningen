@@ -5,7 +5,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { BLOCK, MAAR_WATER, chash, edgeDistance, edgeRoad, maarX, maarY, provinceBlock, rectOutside } from './countryfield.js';
 import { roadKind } from './tileplace.js';
 import { ROAD_C, openLand } from './countryplan.js';
-import { duifMerged } from './duifmodel.js';
+import { pigeonMerged } from './pigeonmodel.js';
 import { dsWereld } from './worldpalette.js';
 import { GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
 import { tractorBodyGeometry, tractorBaseGeometry, trailerBodyGeometry, trailerBaseGeometry } from './countrymodels.js';
@@ -110,18 +110,18 @@ function boatGeometry(kind) {
   return B.build();
 }
 
-// birds: frame 0 folded (sitting), 1 wings up, 2 wings down. Het middelniveau van het ene duivenmodel (duifmodel.js) in de kleuren van
+// birds: frame 0 folded (sitting), 1 wings up, 2 wings down. Het middelniveau van het ene duivenmodel (pigeonmodel.js) in de kleuren van
 // de soort: een gladde romp met kop, staart en vleugels met veren, geen doos met twee vlakken. De gans is een grotere vogel van hetzelfde model.
 const BIRDS = {
-  lapwing: { scale: 1, flap: 4.2, kleur: { body: 0x1e2a22, wing: 0x1e2a22, head: 0x1e2a22, tail: 0xe6e6e0, band: 0x1e2a22, breast: 0xeeeeea, neck: 0x1e2a22, neck2: 0xeeeeea, bar: 0x1e2a22, tip: 0x1e2a22, beak: 0x2b2b2b, eye: 0x111111, leg: 0x8a6a5a, cere: 0x2b2b2b } },
-  starling: { scale: 0.8, flap: 7, kleur: { body: 0x1f1d22, wing: 0x1f1d22, head: 0x1f1d22, tail: 0x1f1d22, band: 0x1f1d22, breast: 0x3a3440, neck: 0x3a3440, neck2: 0x2a2630, bar: 0x1f1d22, tip: 0x1f1d22, beak: 0xd8b030, eye: 0x111111, leg: 0x8a5a4a, cere: 0xd8b030 } },
-  goose: { scale: 2.6, flap: 2.3, kleur: { body: 0x6e6a60, wing: 0x6e6a60, head: 0x6e6a60, tail: 0xc8c2b4, band: 0x6e6a60, breast: 0xc8c2b4, neck: 0x8a8678, neck2: 0xc8c2b4, bar: 0x6e6a60, tip: 0x3a3832, beak: 0xe08a2a, eye: 0x111111, leg: 0xe08a2a, cere: 0xe08a2a } },
+  lapwing: { scale: 1, flap: 4.2, colors: { body: 0x1e2a22, wing: 0x1e2a22, head: 0x1e2a22, tail: 0xe6e6e0, band: 0x1e2a22, breast: 0xeeeeea, neck: 0x1e2a22, neck2: 0xeeeeea, bar: 0x1e2a22, tip: 0x1e2a22, beak: 0x2b2b2b, eye: 0x111111, leg: 0x8a6a5a, cere: 0x2b2b2b } },
+  starling: { scale: 0.8, flap: 7, colors: { body: 0x1f1d22, wing: 0x1f1d22, head: 0x1f1d22, tail: 0x1f1d22, band: 0x1f1d22, breast: 0x3a3440, neck: 0x3a3440, neck2: 0x2a2630, bar: 0x1f1d22, tip: 0x1f1d22, beak: 0xd8b030, eye: 0x111111, leg: 0x8a5a4a, cere: 0xd8b030 } },
+  goose: { scale: 2.6, flap: 2.3, colors: { body: 0x6e6a60, wing: 0x6e6a60, head: 0x6e6a60, tail: 0xc8c2b4, band: 0x6e6a60, breast: 0xc8c2b4, neck: 0x8a8678, neck2: 0xc8c2b4, bar: 0x6e6a60, tip: 0x3a3832, beak: 0xe08a2a, eye: 0x111111, leg: 0xe08a2a, cere: 0xe08a2a } },
 };
 const BIRD_MAT = markShared(vcMaterial({ roughness: 0.85, flatShading: false }));
 const BIRD_WINGS = ['folded', 0.7, -0.6];
 function birdGeometry(sp, frame) {
   // 0,5: het model is 0,6 m van snavel tot staart, de oude vogel was 0,3 m
-  return duifMerged('mid', { variant: BIRDS[sp].kleur, map: dsWereld }, { wings: BIRD_WINGS[frame], scale: 0.5 });
+  return pigeonMerged('mid', { variant: BIRDS[sp].colors, map: dsWereld }, { wings: BIRD_WINGS[frame], scale: 0.5 });
 }
 
 function init(scene) {

@@ -11,6 +11,12 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Duiven
+- Duiven: de hokkerige duiven zijn weg. Eén gladde duif met een ronde romp, een borst die vooruitsteekt, een kleine kop met snavel en oog, een iriserende hals, een waaier als staart, vleugels van losse veren en poten met tenen, in drie niveaus (dichtbij, middel, ver). De duif die je speelt, de duiven op de pleinen, de zwermen in de opening, de trailer en de duivenmissie, de duiven in de filmpjes, de meeuwen, de dieren van het wereldleven en de vogels boven de weilanden zijn nu allemaal dat model: geen dozen met vleugels meer, ook niet in screenshots.
+- Duiven: stadsduiven komen in vier kleuren (grijs, wit, bruin, gevlekt) en een zittende duif legt zijn vleugels langs de flank. Een duif in een filmpje is het hoogste niveau.
+- Samen spelen: de duif van een medespeler is hetzelfde model; het is lokaal en er is niets aan het netwerk veranderd.
+- Eerste persoon: als duif (of in een andere niet-menselijke stand) zie je geen handen of wapen; word je weer mens, dan zijn ze terug.
+
 ### Prestaties
 - Prestaties (#1074, #1067): als het spelvenster verborgen of op de achtergrond is, doen de vaste controles van de overlays, het Samen-paneel en het aanraakscherm niets meer; de kartmotor wordt bij het verlaten van de baan echt stopgezet. Samen spelen: lokaal per speler, geen netwerkwijziging; testsessies met `?stil` blijven gewoon tikken. Voor de metingen staan er twee A-schakelaars (`?perfoff=boomfade`, `?perfoff=gevelfade`).
 ### Kaart en HUD
