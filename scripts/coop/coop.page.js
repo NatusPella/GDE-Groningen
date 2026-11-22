@@ -1469,11 +1469,19 @@ const PHASES = {
       } else if (stap === 'tuning') { // tuning: onderdelen van een eigen auto komen mee in het bezorg-bericht (#1158)
         const T = await imp('tuningplan');
         await sleep(s * 1000);
-        uit({ onderdelen: Array.isArray(T.PARTS) ? T.PARTS.length : 0, bezorgVeld: !!(await imp('coopbezit')).TUNING_VELD, skip: !(await imp('coopbezit')).TUNING_VELD, reden: 'wacht op #1158' });
+        uit({ onderdelen: Array.isArray(T.PARTS) ? T.PARTS.length : 0, bezorgVeld: !!(await imp('coopbezit')).TUNING_VELD, skip: !(await imp('coopbezit')).TUNING_VELD, reden: 'coopbezit.js kent het tuning-veld niet' });
       } else if (stap === 'bezit') { // bezit: host en gast kopen verschillend, zien elkaars plekken, gast2 werkt mee in de wagen van de host (epic Bezit)
         let B = null; try { B = await imp('bezitnet'); } catch (e) { /* nog niet gemerged */ }
         if (!B) return uit({ skip: true, reden: 'bezitnet.js ontbreekt' });
         uit(await bezitAlles({ me: CFG.name, imp, sleep, W, wait: Math.max(2000, s * 1000 / 2) }));
+      } else if (stap === 'radio') { // de zender in een gedeeld voertuig (radiogroep.js, 22-11): alleen zinvol als iemand meerijdt; anders logt hij zit false
+        const N4 = await imp('coopnet'), RC = await imp('radiochannels');
+        const open = RC.CHANNELS.filter((c) => !c.unlock).map((c) => c.id);
+        let gedeeld = null;
+        if (CFG.name === wie) gedeeld = N4.deelZender(W(), 'wierde');
+        await sleep(s * 1000);
+        const R4 = W().coopRadioGroep || null;
+        uit({ gedeeld, groep: N4.groepZender(W(), open), bestuurder: R4 && R4.bestuurder ? R4.bestuurder.id : null, zit: !!W().coopInVoertuig || !!(W().player && W().player.inVehicle) });
       } else if (stap === 'geld') { // geld per speler: elk venster houdt zijn eigen saldo
         const g0 = w.money | 0; await sleep(s * 1000);
         uit({ voor: g0, na: W().money | 0 });
