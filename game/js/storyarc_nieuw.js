@@ -277,6 +277,8 @@ export const STEPS = [
   A('N2', 'kop', 'Een duif op de gang', { type: 'home' }, { built: true, scenes: ['N2'], lead: ['T', 'Er zit een duif op de deurmat en een oude man op de gang. Terug naar de flat, even kijken.'], homeScene: { id: 'N2', big: 'Een duif op de gang', clock: 18.5 } }),
   A('N3', 'kop', 'Soep bij Beppe', { type: 'reis', to: "Beppe's huis", at: [53.2340, 6.4900], r: 350, scene: 'N3' }, { built: true, scenes: ['N3'], lead: ['T', 'Beppe belde: of Tessa meekomt voor soep. Naar haar huis aan de westrand van de stad. Eerst eten, dan praten.'] }),
   A('N4', 'kop', 'Een eerste ronde', { type: 'reis', to: 'Station Grunn', at: [53.2108, 6.5658], r: 250, scene: 'N4' }, { built: true, scenes: ['N4'], lead: ['A', 'Wat kunnen wij eigenlijk? Een taxi, een formulier, een klus: we proberen het bij het station. Maandagochtend.'] }),
+  // W1 (#1124): het frietmoment om half drie dat de opening mist
+  A('W1', 'kop', 'Half drie', { type: 'home' }, { built: true, added: true, scenes: ['W1'], lead: ['A', "Het ruikt naar olie in de flat, midden in de nacht. Even naar huis: ik wil je iets laten proeven."], homeScene: { id: 'W1', big: 'Half drie', clock: 2.5 } }),
   M('M03', 'kop', 'Het Loket', 'loket', { built: true, reward: 0, cost: 150, loopbanen: ['kantoor'],
     story: { intro: ['M03.1'], outro: ['M03.4'], replay: ['M03.5'] }, scenes: ['M03.1', 'M03.2', 'M03.3', 'M03.4', 'M03.5'],
     lead: ['A', 'Het Loket bij de Grote Markt. Open tot twaalf uur, contant.'] }),
@@ -349,6 +351,8 @@ export const STEPS = [
     story: { intro: ['M14.1'], outro: ['M14.3'], replay: ['M14.4'] }, scenes: ['M14.1', 'M14.2', 'M14.3', 'M14.4'],
     lead: ['T', 'Zonsopgang op de dijk bij Bierum. Om acht uur legt Jelles deurwaarder beslag in Delfzijl. Wij zijn eerder bij de sluis.'] }),
   A('J2', 'staart', 'Een envelop in Appingedam', { type: 'reis', to: 'Appingedam', at: [53.3200, 6.8580], r: 400, scene: 'J2' }, { built: true, scenes: ['J2'], lead: ['T', 'Lammert belde: er ligt een envelop voor hem klaar, van Jelle. Kom even langs op de brug in Appingedam, onder de hangende balkons.'] }),
+  // verhaalwerkpakketten-gaten (22-11, #1124 #1139): W1 en W2, activiteiten zonder beloning met migratie voor oude saves (added: true, zie storyarc.js ADDED_STEPS)
+  A('W2', 'staart', 'Verkocht, zegt het bord', { type: 'reis', to: 'het havenhuis in Delfzijl', at: [53.3330, 6.9180], r: 400, scene: 'W2' }, { built: true, added: true, scenes: ['W2'], lead: ['A', 'Aan de kade in Delfzijl staat een havenhuis te koop. Durk hangt er een nieuw bord op. Wie een pand wil beheren, moet eerst lezen wat er op het papier staat.'] }),
   A('T3', 'staart', 'De trein naar Winschoten', { type: 'reis', to: 'Winschoten', at: [53.1444, 7.0356], r: 400, scene: 'T3', from: 4 }, { built: true, scenes: ['T3'],
     lead: ['A', 'Van Delfzijl met de trein naar Winschoten. Jelle geeft de juryleden daar op de kermis een proeverij.'] }),
   M('M15', 'staart', 'Laag over het graan', 'graan', { built: true, reward: 900,

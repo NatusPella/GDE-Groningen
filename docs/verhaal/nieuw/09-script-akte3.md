@@ -485,3 +485,17 @@ TESSA: Ik vroeg niks. [NIEUW]
 SJABBE: Dat is mijn zin. [NIEUW]
 TESSA: Dit is onze eerste sleutel. [NIEUW]
 SJABBE: Jullie eerste pand. Jelle koopt, jullie beheren. [NIEUW]
+
+## [W2] Verkocht, zegt het bord – Eemsdelta, Delfzijl, het havenhuis aan de kade – te voet
+(regie: vrijdagmiddag. Aan een vervallen havenhuis hangt een bord TE KOOP. Durk staat op een ladder met een nieuw bord, Douwe houdt de ladder vast.)
+DURK: Verkocht. Dat zegt baas. [NIEUW]
+TESSA: Het oude bord hing er vanochtend nog. Er is niks verkocht. [NIEUW]
+DOUWE: …Vanochtend. [NIEUW]
+DURK: Baas koopt eerst. Daarna klopt het bord. [NIEUW]
+TAMMO: Zo werkt verkopen niet. [NIEUW]
+TESSA: Heeft u het formulier in drievoud? Zonder drie handtekeningen is het een schenking. [NIEUW]
+DOUWE: …Drie. [NIEUW]
+DURK: Dat zoeken we uit. Houd de ladder vast, Douwe. [NIEUW]
+(regie: Tessa maakt een foto van het bord, met het datumvakje nog leeg.)
+TAMMO: Waarom een foto? [NIEUW]
+TESSA: Sjabbe zei: Jelle koopt, wij beheren. Dan beheren we eerst het papier. [NIEUW]

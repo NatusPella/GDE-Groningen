@@ -17,6 +17,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Verhaal en personages
 
+- Twee nieuwe verhaalmomenten (#1124, #1139): Half drie, een nacht in de flat waarin Tessa friet bakt en Tammo zegt dat hij rijdt, en Verkocht, zegt het bord, waarin Durk en Douwe in Delfzijl een bord ophangen voor het pand echt verkocht is. Wie al verder is, mist ze niet en verliest niets. Samen spelen: van de speler die ze speelt, een gast speelt ze lokaal en er gaat niets over het net.
 - Verhaal: humorronde met een paneel van drie beoordelaars voor de nieuwe stappen N1-N8 (Sjabbe, Veldkamp, Oma Trijntje, Klaas en anderen kregen een andere pointe); ook de winnaars voor de eerste 40 voetbalregels.
 - Verhaal: het slot krijgt zes extra scènes. Tessa ontdekt de snackwagen langs een zandweg, Tammo en Tessa bouwen hem samen, Beppe en Oma Trijntje delen een keuken (Grunn en Fryslân verzoend), Jelle sluit achteraan de rij aan voor een eierbal van zijn oma en ze worden een stel op de kade. Na het proefbeleg legt Tessa de kaart op het luik: wedstrijd met Jelle, de wereld blijft open. De aftiteling begint met korte terugblikgrappen. Oude spelstanden spelen de nieuwe stappen niet opnieuw.
 - Verhaal: de dialoog van 15 bestaande scènes (onder meer Berend en het bakkie, Sjabbe, het Loket, Oma Trijntjes kamer, Klaas, Wubbo, Mem en de bal, de jurytafel, het krijgsberaad) is herschreven naar korte beurten met reacties die door elkaar heen praten, stiltes na de pointe en meer emotie op de sleutelmomenten; de nieuwe regels worden opnieuw ingesproken.

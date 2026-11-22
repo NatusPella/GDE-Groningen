@@ -4890,16 +4890,107 @@
    ]
   },
   {
+   "id": "W1",
+   "title": "Half drie",
+   "act": 1,
+   "region": "Stad, Paddepoel, elfde verdieping",
+   "vehicle": "flat",
+   "step": "W1",
+   "kind": "key",
+   "regie": [
+    "half drie 's nachts. Alleen het licht van de afzuigkap brandt. Tessa staat in een oud T-shirt bij een pannetje olie, met een schaaltje aardappelstaafjes. Tammo komt binnen met de autosleutels in zijn hand, na een late rit.",
+    "ze eten uit hetzelfde schaaltje. De radio zegt zacht dat Grunn slaapt. Dat klopt niet."
+   ],
+   "lines": [
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Het is half drie.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dat weet de olie ook. Proef. Kijk niet naar de kleur.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Te bleek. Te zout. …Goed.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dit wil ik. Elke nacht, voor mensen die nog wakker zijn.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "In een pannetje?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "In een auto met een luik. Een thuis met wielen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dan rijd ik. Jij bakt.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "En waar naartoe?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Naar waar ze wakker zijn.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
    "id": "R2.0",
    "title": "Nachtstreek, dinsdagochtend",
    "act": 2,
    "region": "Stad",
    "vehicle": "radio",
-   "step": "M06",
+   "step": "W1",
    "kind": "radio",
    "anchor": {
     "at": "after",
-    "step": "M06"
+    "step": "W1"
    },
    "regie": [],
    "lines": [
@@ -12987,16 +13078,114 @@
    ]
   },
   {
+   "id": "W2",
+   "title": "Verkocht, zegt het bord",
+   "act": 3,
+   "region": "Eemsdelta, Delfzijl, het havenhuis aan de kade",
+   "vehicle": "te voet",
+   "step": "W2",
+   "kind": "key",
+   "regie": [
+    "vrijdagmiddag. Aan een vervallen havenhuis hangt een bord TE KOOP. Durk staat op een ladder met een nieuw bord, Douwe houdt de ladder vast.",
+    "Tessa maakt een foto van het bord, met het datumvakje nog leeg."
+   ],
+   "lines": [
+    {
+     "speaker": "Durk",
+     "key": "durk",
+     "text": "Verkocht. Dat zegt baas.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Het oude bord hing er vanochtend nog. Er is niks verkocht.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Douwe",
+     "key": "douwe",
+     "text": "…Vanochtend.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Durk",
+     "key": "durk",
+     "text": "Baas koopt eerst. Daarna klopt het bord.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Zo werkt verkopen niet.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Heeft u het formulier in drievoud? Zonder drie handtekeningen is het een schenking.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Douwe",
+     "key": "douwe",
+     "text": "…Drie.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Durk",
+     "key": "durk",
+     "text": "Dat zoeken we uit. Houd de ladder vast, Douwe.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Waarom een foto?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Sjabbe zei: Jelle koopt, wij beheren. Dan beheren we eerst het papier.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    }
+   ]
+  },
+  {
    "id": "R4.0",
    "title": "Nachtstreek, maandagochtend",
    "act": 4,
    "region": "Stad",
    "vehicle": "radio",
-   "step": "K3",
+   "step": "W2",
    "kind": "radio",
    "anchor": {
     "at": "after",
-    "step": "K3"
+    "step": "W2"
    },
    "regie": [
     "maandag 24 augustus, ochtend. Rikus in de studio; Jelle belt in met zijn offerte."
@@ -13045,11 +13234,11 @@
    "act": 4,
    "region": "Stad",
    "vehicle": "radio",
-   "step": "K3",
+   "step": "W2",
    "kind": "radio",
    "anchor": {
     "at": "after",
-    "step": "K3"
+    "step": "W2"
    },
    "regie": [],
    "lines": [

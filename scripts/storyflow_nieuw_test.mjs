@@ -172,7 +172,7 @@ for (const st of STEPS.filter((s) => s.goal && s.goal.type === 'reis')) {
   const [x, y] = wgsToWorld(st.goal.at[0], st.goal.at[1]);
   ok(insideOutline(FALLBACK.outline, x, y), `${st.id}: the travel goal is inside the province`);
   ok(st.goal.r >= 200 && st.goal.r <= 800, `${st.id}: a sensible arrival radius`, st.goal.r);
-  if (/^[NJFK][0-9]+$/.test(st.id)) ok(!!st.goal.scene, `${st.id}: a new step plays its scene on arrival`); else if (/^V[0-9]+$/.test(st.id)) ok(!!st.lead && !!st.done, `${st.id}: a between-step has its lead and done lines (phone, silent)`); else ok(!!REISBEATS[st.id], `${st.id}: a travel step has its beat`);
+  if (/^[NJFKW][0-9]+$/.test(st.id)) ok(!!st.goal.scene, `${st.id}: a new step plays its scene on arrival`); else if (/^V[0-9]+$/.test(st.id)) ok(!!st.lead && !!st.done, `${st.id}: a between-step has its lead and done lines (phone, silent)`); else ok(!!REISBEATS[st.id], `${st.id}: a travel step has its beat`);
 }
 for (const [id, b] of Object.entries(REISBEATS)) {
   const st = STEPS.find((s) => s.id === id);
