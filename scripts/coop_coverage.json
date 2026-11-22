@@ -1204,6 +1204,28 @@
    "prio": "-"
   },
   {
+   "id": "voetgevoel",
+   "naam": "Gewicht te voet en schietgevoel",
+   "groep": "Wereld",
+   "modules": [
+    "footfeel"
+   ],
+   "eigenaar": "lokaal",
+   "gast": "Aanzetten en uitlopen gelden voor elk lichaam dat de loopregel van player.js draait; de vaste hand (gebukt, stil, sprint) geldt ook voor het schot van een gast, want de host rekent het uit vanuit zijn lichaam. De raakbevestiging is alleen te zien bij wie de kogels uitrekent: een gast ziet hem nog niet.",
+   "beloning": "Geen.",
+   "wegval": "Niets te herstellen: geen netwerkbericht, geen opslag.",
+   "test": [
+    "scripts/footfeel_test.mjs",
+    "scripts/combatfeel_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "**Gewicht te voet en schietgevoel"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
    "id": "muggings",
    "naam": "Berovingen",
    "groep": "Wereld",
