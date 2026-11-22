@@ -11,6 +11,13 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Samen spelen (sweep 22-11)
+
+- De radiozender in een gedeeld voertuig: de bestuurder kiest, wie meerijdt volgt hem (of kiest zelf en stemt), wie later instapt hoort de zender van het voertuig; te voet is het weer je eigen zender.
+- Spel overdragen wacht nu ook op een lopende wedstrijd of race; de eigen bijbaan van wie het spel overdraagt stopt met een melding.
+- De melding van een nieuw gebied of een nieuwe streek komt pas nadat het laadscherm weg is.
+
+
 ### Prestaties
 - Prestaties (#1074, #1067): als het spelvenster verborgen of op de achtergrond is, doen de vaste controles van de overlays, het Samen-paneel en het aanraakscherm niets meer; de kartmotor wordt bij het verlaten van de baan echt stopgezet. Samen spelen: lokaal per speler, geen netwerkwijziging; testsessies met `?stil` blijven gewoon tikken. Voor de metingen staan er twee A-schakelaars (`?perfoff=boomfade`, `?perfoff=gevelfade`).
 ### Kaart en HUD
