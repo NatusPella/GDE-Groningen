@@ -129,7 +129,8 @@ export function startLoadScreen(world, opts = {}) {
     const tiles = world.map && world.map.tileQueue ? world.map.tileQueue.size : 0;
     // spawnbinnen.js: a game that starts at home waits until the flat upstairs stands (home.js hook; none outside a home start)
     const hl = world.homeLaad;
-    const binnen = hl ? hl.tick(Math.max(0, Math.min(0.25, (now - lastT) / 1000))) : 0;
+    let binnen = 0;
+    try { binnen = hl ? hl.tick(Math.max(0, Math.min(0.25, (now - lastT) / 1000))) : 0; } catch (e) { binnen = 0; console.warn('loadscreen: homeLaad.tick gooide, het scherm wacht er niet op', e); } // review 22-11: een gooiende tick houdt de laadpauze niet vast
     prog = stepProgress(prog, loadPending(st, tiles, prewarmPending(), binnen), (now - t0) / 1000, kind);
     // één doorlopende balk: zacht naar het doel, nooit terug, nooit voorbij 100 % voor het klaar is
     shownBar = prog.done ? 1 : easeBar(shownBar, prog.bar, now - lastT);
