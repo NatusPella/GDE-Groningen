@@ -145,8 +145,13 @@ export function pointAt(line, s) {
 export function project(line, x, y, from = 0, to = Infinity, dir = 0) {
   const { pts, cum } = line;
   let best = { d: Infinity, s: 0, x: pts[0][0], y: pts[0][1] };
-  for (let i = 0; i < pts.length - 1; i++) {
-    if (cum[i + 1] < from || cum[i] > to) continue;
+  // snelheid: cum stijgt, dus het venster begint met een binaire zoektocht en stopt bij de eerste lagere grens
+  // (voorheen liep elke stepRunner-tik per bus langs alle punten van de lijn)
+  let i = 0;
+  if (from > 0) { let lo = 0, hi = pts.length - 1; while (lo < hi) { const m = (lo + hi) >> 1; if (cum[m + 1] < from) lo = m + 1; else hi = m; } i = lo; }
+  for (; i < pts.length - 1; i++) {
+    if (cum[i] > to) break;
+    if (cum[i + 1] < from) continue;
     const a = pts[i], b = pts[i + 1];
     const vx = b[0] - a[0], vy = b[1] - a[1], l2 = vx * vx + vy * vy || 1;
     const t = Math.max(0, Math.min(1, ((x - a[0]) * vx + (y - a[1]) * vy) / l2));
@@ -174,9 +179,23 @@ export function narrowSpans(line, roadWidthAt, busWidth = 2.6, step = 10) {
 }
 
 // De lijn die het dichtst bij (x, y) komt, binnen maxD m.
+// Een lijn waarvan het omhullende vak al verder weg ligt dan de grens hoeft niet langs al zijn punten (de
+// bord-kaart vroeg dit elk beeld van alle lijnen): afstand tot het vak is een ondergrens van de afstand tot de lijn.
+const bboxen = new WeakMap(); // buiten het lijnobject, zodat een lijn die ergens als JSON of vergelijking dient onveranderd blijft
+function bboxDist(l, x, y) {
+  let bb = bboxen.get(l);
+  if (!bb) {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const p of l.pts) { if (p[0] < x0) x0 = p[0]; if (p[0] > x1) x1 = p[0]; if (p[1] < y0) y0 = p[1]; if (p[1] > y1) y1 = p[1]; }
+    bb = [x0, y0, x1, y1]; bboxen.set(l, bb);
+  }
+  const dx = Math.max(bb[0] - x, 0, x - bb[2]), dy = Math.max(bb[1] - y, 0, y - bb[3]);
+  return Math.hypot(dx, dy);
+}
 export function nearestLine(lines, x, y, maxD = 400) {
   let best = null, bd = maxD;
   for (const l of lines || []) {
+    if (bboxDist(l, x, y) > bd) continue;
     const d = project(l, x, y).d;
     if (d < bd) { bd = d; best = l; }
   }
@@ -187,6 +206,7 @@ export function nearestLine(lines, x, y, maxD = 400) {
 export function linesNear(lines, x, y, maxD = 400) {
   const out = [];
   for (const l of lines || []) {
+    if (bboxDist(l, x, y) > maxD) continue;
     const d = project(l, x, y).d;
     if (d < maxD) out.push({ l, d });
   }
