@@ -43,5 +43,20 @@ for (const a of AREAS) for (const w of WETS) for (const p of PARTS) {
 const seen = new Set(); const r2 = mulberry32(3);
 for (let i = 0; i < 60; i++) seen.add(rollGebabbel('stad', 'middag', 'regen', r2, []).id);
 ok(seen.size >= 3, 'variatie', [...seen].join());
+// zon (22-11): een helder zomeruur krijgt terras-, zwem- en picknickpraat; de zon-gesprekken horen nergens anders
+ok(wetOf('helder', 14) === 'zon' && wetOf('helder', 11) === 'zon' && wetOf('helder', 18.9) === 'zon', 'helder overdag is zon');
+ok(wetOf('helder', 22) === 'droog' && wetOf('helder', 6) === 'droog' && wetOf('helder', 19) === 'droog' && wetOf('helder') === 'droog', 'helder buiten 11 tot 19 en zonder uur is droog');
+ok(wetOf('bewolkt', 14) === 'droog' && wetOf('regenbui', 14) === 'regen' && wetOf('mist', 14) === 'mist' && wetOf('onweer', 14) === 'onweer', 'andere weersoorten blijven zoals ze zijn');
+for (const a of AREAS) {
+  ok(GEBABBEL.filter((g) => g.area === a && g.wet === 'zon').length >= 2, 'zon-gesprekken per streek', a);
+  for (const p of PARTS) {
+    ok(!gebabbelFor(a, p, 'droog').some((g) => g.wet === 'zon') && !gebabbelFor(a, p, 'regen').some((g) => g.wet === 'zon'), 'zon-gesprek niet bij droog of regen', a + ' ' + p);
+    ok(gebabbelFor(a, p, 'zon').length >= gebabbelFor(a, p, 'droog').length, 'zon hoort ook de droog-gesprekken', a + ' ' + p);
+  }
+  ok(GEBABBEL.filter((g) => g.area === a && g.wet === 'zon').every((g) => g.part === 'middag' || g.part === 'avond'), 'zon alleen middag of avond', a);
+}
+const zonSeen = new Set(); const r3 = mulberry32(8);
+for (let i = 0; i < 80; i++) zonSeen.add(rollGebabbel('stad', 'middag', 'zon', r3, []).id);
+ok([...zonSeen].some((id) => /^s-z/.test(id)) && zonSeen.size >= 5, 'zon in de stad: variatie, ook zon-gesprekken', [...zonSeen].join());
 console.log(`gebabbel_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

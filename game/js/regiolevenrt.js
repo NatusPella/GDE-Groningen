@@ -67,7 +67,7 @@ export function updateRegioLeven(dt, w) {
   if (talkNext) {
     const area = areaOf(s ? s.id : null, p.y);
     const kind = w.weather && w.weather.kind;
-    const g = rollGebabbel(area, partOf(hour), wetOf(kind), Math.random, recentTalk);
+    const g = rollGebabbel(area, partOf(hour), wetOf(kind, hour), Math.random, recentTalk);
     if (g) {
       recentTalk.push(g.id);
       if (recentTalk.length > 6) recentTalk.shift();

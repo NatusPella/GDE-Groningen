@@ -92,7 +92,7 @@ export function tikStraatpraat(dt, w, rng = Math.random) {
   const s = streekAt(p.x, p.y);
   const area = areaOf(s ? s.id : null, p.y);
   const hour = Number.isFinite(w.clock) ? w.clock : 12;
-  const g = rollGebabbel(area, partOf(hour), wetOf(w.weather && w.weather.kind), rng, recent, talkers.length > 1 ? 2 : 1);
+  const g = rollGebabbel(area, partOf(hour), wetOf(w.weather && w.weather.kind, hour), rng, recent, talkers.length > 1 ? 2 : 1);
   if (!g) return;
   recent.push(g.id);
   if (recent.length > 8) recent.shift();
