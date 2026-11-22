@@ -24,6 +24,9 @@ function mat(name) {
     // #1192: de onderkant van een dek of viaduct ligt uit het zonlicht en las als een egaal zwart vlak: een beetje eigen licht, zoals de tunnel
     concrete: { color: 0xa39f96, roughness: 0.92, emissive: 0x2a2825, emissiveIntensity: 1 },
     wall: { color: 0x8f8b82, roughness: 0.95, emissive: 0x2a2825, emissiveIntensity: 1 },
+    // the underside of a deck or bridge gets no sun: a little self-light and a lighter tone, so it reads as
+    // concrete in shade and not as a black slab (#1192, #919)
+    soffit: { color: 0xa8a49b, roughness: 0.95, emissive: 0x3a3833, emissiveIntensity: 1 },
     // the roof underside only gets the tunnel lights: a little self-light, or it reads as a black hole
     tunnel: { color: 0x8a867e, roughness: 0.9, emissive: 0x3b3934, emissiveIntensity: 1 },
     grass: { color: 0x5c8a4d, roughness: 1 },
@@ -308,7 +311,7 @@ export function structureArrays(r, map) {
     }
     const l0 = lerp2(edge(i, 1, hs), edge(i + 1, 1, hs), t0), r0 = lerp2(edge(i, -1, hs), edge(i + 1, -1, hs), t0);
     const l1 = lerp2(edge(i, 1, hs), edge(i + 1, 1, hs), t1), r1 = lerp2(edge(i, -1, hs), edge(i + 1, -1, hs), t1);
-    B.quad('concrete', [l0[0], a0 - DECK_T, l0[1]], [l1[0], b0 - DECK_T, l1[1]], [r1[0], b0 - DECK_T, r1[1]], [r0[0], a0 - DECK_T, r0[1]]);
+    B.quad('soffit', [l0[0], a0 - DECK_T, l0[1]], [l1[0], b0 - DECK_T, l1[1]], [r1[0], b0 - DECK_T, r1[1]], [r0[0], a0 - DECK_T, r0[1]]);
   };
   const segOf = new Map();
   // (a streamed road has its segments listed: no walk over all of the province's)
@@ -374,7 +377,7 @@ export function structureArrays(r, map) {
       const ex = ux / ul * ext, ey = uy / ul * ext;
       const l0 = edge(i, 1, hs), r0 = edge(i, -1, hs), l1 = edge(i + 1, 1, hs), r1 = edge(i + 1, -1, hs);
       const fa = Math.max(za, 0) - 0.06, fb = Math.max(zb, 0) - 0.06;
-      B.quad('concrete', [l0[0] - ex, fa, l0[1] - ey], [l1[0] + ex, fb, l1[1] + ey], [r1[0] + ex, fb, r1[1] + ey], [r0[0] - ex, fa, r0[1] - ey]);
+      B.quad('soffit', [l0[0] - ex, fa, l0[1] - ey], [l1[0] + ex, fb, l1[1] + ey], [r1[0] + ex, fb, r1[1] + ey], [r0[0] - ex, fa, r0[1] - ey]);
     }
     if (za < -RAISED || zb < -RAISED) {
       // a floor under the sunken carriageway: where two ways' ribbons meet
