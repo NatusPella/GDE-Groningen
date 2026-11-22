@@ -8,7 +8,7 @@ import { hoofdspeler } from './players.js';
 // steering, the camera, the mouse buttons). The last input used decides
 // which glyphs the hints show: `pad-active` on <html> plus `data-pad` with
 // the controller family; any real key or mouse use switches back.
-import { PAD_BUTTONS, PAD_MAPS, PAD_COOP, GAME_PAD_CTX, buttonSlots, nintendoSwap, padFamily, coopVraag, HENGEL_HINT, isSamenSessie } from './controls.js';
+import { PAD_BUTTONS, PAD_MAPS, PAD_COOP, GAME_PAD_CTX, buttonSlots, nintendoSwap, padFamily, coopVraag, HENGEL_HINT, isSamenSessie, WHEEL_CTX, WHEEL_HOLD_MS } from './controls.js';
 import { getSettings, onSettingsChange } from './settings.js';
 import { sendKey } from './input.js';
 import { playerBusy } from './busy.js';
@@ -16,6 +16,8 @@ import { radialDeadzone, pickPad, spatialNext, DEAD } from './padlogic.js';
 import { noteDevice, onDeviceChange } from './inputdevice.js';
 import { hapticScale, hapticFrame, makeHapticState, eventProfile, drainHapticEvents, playHaptic } from './haptics.js';
 import { reducedMotion } from './motion.js';
+import { openRadial, closeRadial, radialIsOpen, radialAim, radialStep, radialPage, radialChoose, setRadialRunner, itemKeys } from './actionradial.js';
+import { initActionRadialUi } from './actionradialui.js';
 
 const TRIGGER_ON = 0.35;
 const TRIGGER_OFF = 0.2;
@@ -47,6 +49,13 @@ let captureBlock = new Set();
 let slotMap = buttonSlots({});
 const listeners = new Set();
 let sprintLatch = false;
+// Het acties-wiel (controls.js wheelItemsFor, actionradial.js): Overzicht (view) kort is de kaart, lang (of een tik in de tikstand) is het wiel.
+// idle: los; down: ingedrukt, nog geen keuze; wheel: het wiel is door deze druk geopend of gesloten, loslaten doet niets meer.
+let viewState = 'idle';
+let viewAt = 0;
+// toetsen die het wiel indrukte en die over een paar beelden weer loskomen (Shift+N moet minstens een beeld Shift houden)
+const pendingUp = [];
+const WHEEL_KEY_MS = 90;
 
 
 let rumbleUntil = 0;
@@ -93,7 +102,7 @@ function setActive(on, id) {
   const html = document.documentElement;
   html.classList.toggle('pad-active', on);
   html.dataset.pad = family;
-  if (!on) releaseAll();
+  if (!on) { releaseAll(); closeRadial(); viewState = 'idle'; }
   emit();
 }
 
@@ -176,6 +185,50 @@ function context() {
   return 'foot';
 }
 
+
+const tapMode = () => { const t = getSettings().tikStand; return !!t && t !== 'uit'; };
+const wheelCtx = () => WHEEL_CTX.includes(ctx) && started() && !(hooks.menuOpen && hooks.menuOpen());
+const wheelOpts = () => ({ samen: !!(world && isSamenSessie(world)), tap: tapMode() });
+
+// Een gekozen onderdeel van het wiel: dezelfde toetsen als het toetsenbord, even vastgehouden.
+function playWheelItem(it) {
+  const k = itemKeys(it);
+  for (const key of k.down) sendKey('keydown', key, 'pad');
+  pendingUp.push({ at: lastT + WHEEL_KEY_MS, keys: k.up }); // de klok van de pollronde (lastT), dezelfde als die van flushUp
+}
+function flushUp(now) {
+  while (pendingUp.length && pendingUp[0].at <= now) for (const key of pendingUp.shift().keys) sendKey('keyup', key, 'pad');
+}
+
+// Overzicht in het spel: tik is de kaart (bij het loslaten), houden of (tikstand) een tik opent het wiel.
+function viewButton(on, was, now) {
+  if (on && !was) {
+    viewState = 'down'; viewAt = now;
+    if (tapMode() && openRadial(ctx, wheelOpts())) { viewState = 'wheel'; releaseAll(); }
+  } else if (on && viewState === 'down' && now - viewAt >= WHEEL_HOLD_MS) {
+    if (openRadial(ctx, wheelOpts())) { viewState = 'wheel'; releaseAll(); } else viewState = 'nowheel';
+  } else if (!on && was) {
+    const tik = viewState === 'down' || viewState === 'nowheel';
+    viewState = 'idle';
+    if (tik) { sendKey('keydown', 'm', 'pad'); sendKey('keyup', 'm', 'pad'); }
+  }
+}
+
+// Zolang het wiel open staat gaat geen enkele knop of stick naar het spel: A kiest, B sluit, LB en RB bladeren, de D-pad en de stick kiezen.
+function wheelFrame(slots, pad) {
+  const edge = (s) => slots[s] && !prevSlots[s];
+  if (edge('b') || edge('start')) closeRadial();
+  else if (edge('view')) { closeRadial(); viewState = 'wheel'; }
+  else if (edge('a')) radialChoose();
+  else if (edge('lb')) radialPage(-1);
+  else if (edge('rb')) radialPage(1);
+  else for (const d of ['up', 'down', 'left', 'right']) if (edge(d)) radialStep(d);
+  if (!slots.view && viewState === 'wheel') viewState = 'idle';
+  const ax = pad.axes || [];
+  const [lx, ly] = dz(ax[0] || 0, ax[1] || 0);
+  if (radialIsOpen()) radialAim(lx, ly);
+  for (const s of Object.keys(slots)) prevSlots[s] = slots[s];
+}
 
 function press(slot) {
   const map = PAD_MAPS[ctx] || PAD_MAPS.foot;
@@ -397,6 +450,7 @@ function poll(now) {
   requestAnimationFrame(poll);
   const dt = Math.min(0.05, Math.max(0, (now - (lastT || now)) / 1000));
   lastT = now;
+  flushUp(now);
   const pads = navigator.getGamepads ? navigator.getGamepads() : [];
   // coop: speler 1 houdt zijn pad, ook als speler 2 op de andere drukt
   padIndex = pickPad([...pads].filter(Boolean).map((p) => ({ index: p.index, connected: p.connected, active: anyInput(p) })), padIndex, { sticky: !!(world && world.coop) });
@@ -409,6 +463,7 @@ function poll(now) {
   const nctx = context();
   if (nctx !== ctx) {
     releaseAll();
+    closeRadial();
     ctx = nctx;
     document.documentElement.dataset.padCtx = ctx;
     emit();
@@ -442,8 +497,13 @@ function poll(now) {
     if (stop) { const cb = benchStop; benchStop = null; cb(); }
     return;
   }
+  if (radialIsOpen()) {
+    if (wheelCtx()) { wheelFrame(slots, pad); return; }
+    closeRadial();
+  }
   for (const s of PAD_BUTTONS) {
     const on = !!slots[s];
+    if (s === 'view' && wheelCtx()) { viewButton(on, !!prevSlots[s], now); prevSlots[s] = on; continue; }
     if (on && !prevSlots[s]) press(s);
     else if (!on && prevSlots[s]) release(s);
     else if (on && repeatAt[s] && now >= repeatAt[s] && heldAction[s]) {
@@ -480,6 +540,8 @@ export function initGamepad(inp, w, h = {}) {
   inp.onRealKey = () => noteDevice('kb');
   window.addEventListener('gamepaddisconnected', () => { if (!currentPad()) setActive(false); });
   document.documentElement.dataset.padCtx = ctx;
+  setRadialRunner(playWheelItem);
+  initActionRadialUi();
   requestAnimationFrame(poll);
 }
 

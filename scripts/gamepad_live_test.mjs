@@ -31,7 +31,7 @@ Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { ge
 
 const { Input } = await import('../game/js/input.js');
 const { initGamepad, padState, activePadIndex, onBenchmarkStop } = await import('../game/js/gamepad.js');
-const { PAD_MAPS, PAD_BUTTONS, GAME_PAD_CTX } = await import('../game/js/controls.js');
+const { PAD_MAPS, PAD_BUTTONS, GAME_PAD_CTX, WHEEL_CTX } = await import('../game/js/controls.js');
 const { setSetting } = await import('../game/js/settings.js');
 
 const input = new Input(win);
@@ -97,6 +97,14 @@ for (const naam of Object.keys(situaties)) {
     const a = map[slot];
     if (a == null) continue;
     reset();
+    // Overzicht in het spel: een tik is de kaart (bij het loslaten), houden opent het acties-wiel (controller_ingame_test.mjs)
+    if (slot === 'view' && WHEEL_CTX.includes(naam)) {
+      press(slot); frame(2);
+      ok(!seen.some((e) => e[0] === 'down' && e[1] === 'm'), `${naam}: view stuurt de kaart pas bij het loslaten`, seen);
+      press(slot, false); frame(2);
+      ok(seen.some((e) => e[0] === 'down' && e[1] === 'm') && seen.some((e) => e[0] === 'up' && e[1] === 'm'), `${naam}: een tik op view stuurt de kaart (m)`, seen);
+      continue;
+    }
     // L3 vergrendelt het rennen alleen terwijl de stick helt (los is het weer lopen)
     if (slot === 'ls' && a === 'shift' && map.stick === 'move') { pad.axes = [0, -1, 0, 0]; frame(2); }
     press(slot); frame(2);
