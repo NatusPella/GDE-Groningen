@@ -18,6 +18,8 @@ const { countryRayHit } = await import('../game/js/countrycam.js');
 const { setTileTrunks, pushOutOfTrunks } = await import('../game/js/countrywalls.js');
 const C = await import('../game/js/controls.js');
 F.setCountryBounds(map.meta.bounds);
+// #1092: erven komen alleen met de generator aan (het spel zet hem uit); de camerabotsing tegen erf-solids blijft hier getoetst
+F.setCountryFiction(true);
 ensureCountryEdge(map);
 
 let fails = 0;

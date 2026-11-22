@@ -17,6 +17,8 @@ const CF = await import('../game/js/countryfield.js');
 const CE = await import('../game/js/countryedge.js');
 const CM = await import('../game/js/countrymap.js');
 
+// #1092: het spel tekent geen verzonnen platteland meer; de generator staat hier aan om te toetsen dat hij alleen op land tekent
+CF.setCountryFiction(true);
 A.setup(index, { mask: true });
 // the mask: land where the province is, none at sea or beyond the border
 ok(R.provinceLandAt(201, 45), 'the city is land');
@@ -40,6 +42,8 @@ A.setup(index, { mask: false });
 let off2 = 0;
 for (const [id, list] of Object.entries(per)) if (id !== 'groningen') for (const [x, y] of list) off2 += A.total(A.countWindow(x, y));
 ok(off2 > off * 20 && off2 > 1000, 'and without the mask there would be plenty', `${Math.round(off2)}`);
+// #1092: het spel tekent geen verzonnen platteland meer; de generator staat hier aan om te toetsen dat hij alleen op land tekent
+CF.setCountryFiction(true);
 A.setup(index, { mask: true });
 
 // the map: the drawing calls over a window of sea are nil, over land there are some

@@ -87,6 +87,15 @@ export function setProvinceBlocks(p) {
   villageCache.clear();
   COUNTRY_UNIFORMS.uProvRect.value = p ? [p.x0, p.y0, p.w, p.h] : [0, 0, 0, 0];
 }
+// #1092 (eigenaar, 22-11): alleen echte kaartdata. Buiten wat de tegels dekken staat neutraal gras: geen polderwegen, erven, dorpen, kavels
+// met vee of kleurvlakken per perceel. Het hash-rooster hieronder (wegen, dorpen, erven) is alleen nog aan te zetten voor de eenheidstests
+// van die generatoren; het spel zet het nooit aan en de grondshader kent het niet meer.
+let fiction = false;
+export function setCountryFiction(on) {
+  fiction = !!on;
+  villageCache.clear();
+}
+export const countryFiction = () => fiction;
 // The tiles hold the real ditches, drains and brooks (OSM waterway=ditch|drain|stream, worldbuilder.js, #124): the polder's
 // hash-grid ditches, their banks and their ground kind are off in the blocks the tiles cover. Off by default: a world built
 // before that has no ditches in its tiles and keeps the painted ones.
@@ -165,7 +174,7 @@ export function countryWeight(x, y) {
 // Whether the edge of block (bx, by) on side s carries a polder road
 // (s: 0 = low-x edge, 1 = low-y edge; roads run just inside that edge).
 export function edgeRoad(bx, by, s) {
-  if (provinceBlock(bx, by)) return false;
+  if (!fiction || provinceBlock(bx, by)) return false;
   return chash(bx * 3 + s * 7919, by * 5 + 101) < ROAD_P;
 }
 
@@ -193,7 +202,7 @@ export function villageOf(bx, by) {
   let v = villageCache.get(key);
   if (v !== undefined) return v;
   v = null;
-  if (!provinceBlock(bx, by) && !provinceBlock(bx - 1, by) && chash(bx * 29 + 7, by * 31 + 3) < VILLAGE_P && edgeRoad(bx, by, 0) && !maarX(bx)) {
+  if (fiction && !provinceBlock(bx, by) && !provinceBlock(bx - 1, by) && chash(bx * 29 + 7, by * 31 + 3) < VILLAGE_P && edgeRoad(bx, by, 0) && !maarX(bx)) {
     const x = bx * BLOCK + VILLAGE_X, y = by * BLOCK + 250 + chash(bx + 71, by - 13) * 460;
     const r = 100 + chash(bx - 9, by + 17) * 30;
     if (edgeDistance(x, y) >= r + 260 && landOk(x, y) && landOk(x - r, y) && landOk(x + r, y) && landOk(x, y - r) && landOk(x, y + r)) v = { x, y, r, bx, by };
@@ -362,17 +371,11 @@ float cTileWaterFar(vec2 p) {
   if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) return -1.0;
   return texture(uTileWaterFar, uv).r;
 }
-bool cRoad(int bx, int by, int s) { if (cReal(bx, by)) return false; return cHash(bx * 3 + s * 7919, by * 5 + 101) < C_ROAD_P; }
+// #1092: geen polderwegen en geen dorpen: buiten de tegels staat neutraal gras (alleen wat de kaartdata heeft)
+bool cRoad(int bx, int by, int s) { return false; }
 bool cMaarX(int i) { return cHash(i * 37 + 11, 4441) < 0.18; }
 bool cMaarY(int j) { return cHash(j * 41 + 17, 5557) < 0.18; }
-vec3 cVillage(int bx, int by) {
-  if (cReal(bx, by) || cReal(bx - 1, by) || cHash(bx * 29 + 7, by * 31 + 3) >= ${VILLAGE_P.toFixed(3)} || !cRoad(bx, by, 0) || cMaarX(bx)) return vec3(0.0);
-  float x = float(bx) * C_BLOCK + ${VILLAGE_X.toFixed(2)};
-  float y = float(by) * C_BLOCK + 250.0 + cHash(bx + 71, by - 13) * 460.0;
-  float r = 100.0 + cHash(bx - 9, by + 17) * 30.0;
-  if (cEdgeDist(vec2(x, y)) < r + 260.0) return vec3(0.0);
-  return vec3(x, y, r);
-}
+vec3 cVillage(int bx, int by) { return vec3(0.0); }
 
 // The city's asphalt (roadsurface.js SURF_ASPHALT) for the painted roads:
 // same base colour, macro/fine/aggregate noise and worn wheel tracks. e =
@@ -425,64 +428,15 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip, inout
   vec2 bf = floor(p / C_BLOCK);
   int bx = int(bf.x), by = int(bf.y);
   vec2 l = p - bf * C_BLOCK;
-  bool rot = cHash(bx * 7 + 3, by * 13 + 1) < 0.5;
-  float a = rot ? l.y : l.x, b = rot ? l.x : l.y;
-  int col = int(floor(a / C_PW));
-  float off = cHash(col + bx * 131 + by * 977, rot ? 18 : 17) * C_PL;
-  int row = int(floor((b + off) / C_PL));
-  float b0 = max(0.0, float(row) * C_PL - off), b1 = min(C_BLOCK, float(row + 1) * C_PL - off);
-  float a0 = float(col) * C_PW;
-  float dA = min(a - a0, a0 + C_PW - a);
-  float dB = min(b - b0, b1 - b);
-  float dD = min(dA, dB);
-  float dM = min(min(l.x, C_BLOCK - l.x), min(l.y, C_BLOCK - l.y));
-  float seed = cHash(col * 7 + bx * 1009, row * 13 + by * 2003 + 1);
-  float seed2 = fract(seed * 7.31);
-  bool inReal = cReal(bx, by);
   // #1092: geen geschilderd slotenrooster (strooksloten, hoofdsloten, maaren, oevers): dat komt niet uit de kaartdata.
   // Water is alleen wat de tegels hebben (OSM waterway, cTileWater). dD, dM en dQ staan op 'nergens'.
-  dD = 1e3; dM = 1e3;
+  float dD = 1e3, dM = 1e3;
   float keepD = 1.0;
 
-  float n1 = cNoise(p * 0.03), n2 = cNoise(p * 0.13 + 5.0), n3 = cNoise(p * 0.55 + 9.0);
-  vec3 grassA = cLin(88.0, 122.0, 54.0), grassB = cLin(79.0, 114.0, 52.0), grassC = cLin(104.0, 138.0, 62.0);
-  vec3 c = seed < 0.35 ? grassA : (seed < 0.7 ? grassB : grassC);
-  c *= 0.86 + 0.26 * (n1 * 0.6 + n2 * 0.4);
-  if (seed2 < 0.3) {
-    // freshly mown: light/dark stripes along the strip
-    float st = smoothstep(-0.25, 0.25, sin(a / 3.2 * 3.14159)) - 0.5;
-    c *= 1.0 + st * 0.12 * (1.0 - smoothstep(0.3, 2.5, px));
-  } else if (seed2 < 0.37) {
-    // hay drying in windrows
-    c = mix(c, cLin(156.0, 145.0, 83.0), 0.45 + 0.2 * n2);
-    float wr = 1.0 - smoothstep(0.3, 0.9, abs(fract(a / 5.0) - 0.5) * 5.0);
-    c = mix(c, cLin(176.0, 160.0, 92.0), wr * 0.55 * (1.0 - smoothstep(0.3, 2.0, px)));
-  } else if (seed2 < 0.405) {
-    // ploughed arable strip: furrows along b
-    vec3 soil = mix(cLin(107.0, 90.0, 68.0), cLin(86.0, 71.0, 56.0), n2);
-    float fu = abs(fract(a / 0.8) - 0.5) * 2.0;
-    soil *= 1.0 - (1.0 - smoothstep(0.2, 0.7, fu)) * 0.18 * (1.0 - smoothstep(0.1, 0.6, px));
-    c = soil;
-    sRough += 0.03;
-  } else if (seed2 < 0.44) {
-    // young crop rows
-    float fu = abs(fract(a / 0.75) - 0.5) * 2.0;
-    vec3 soil = cLin(100.0, 86.0, 64.0);
-    vec3 crop = cLin(96.0, 136.0, 58.0) * (0.9 + 0.2 * n3);
-    float rowMask = smoothstep(0.35, 0.65, fu);
-    c = mix(mix(soil, crop, 0.55), mix(soil, crop, rowMask), 1.0 - smoothstep(0.1, 0.8, px));
-  } else {
-    // pasture: tussocks, clover, the odd molehill
-    float tus = smoothstep(0.55, 0.8, cNoise(p * 0.9 + seed * 50.0));
-    c = mix(c, c * vec3(0.82, 0.9, 0.78), tus * 0.5 * detail);
-    c = mix(c, cLin(150.0, 146.0, 88.0), smoothstep(0.7, 0.9, n2 * 0.7 + n3 * 0.3) * 0.25);
-    vec2 mc = floor(p / 6.0);
-    float mh = cHash(int(mc.x) + 3001, int(mc.y) - 77);
-    vec2 mo = (vec2(cHash(int(mc.x), int(mc.y) + 5), cHash(int(mc.x) + 9, int(mc.y))) - 0.5) * 4.0;
-    float md = length(p - (mc + 0.5) * 6.0 - mo);
-    float mole = step(mh, 0.035) * (1.0 - smoothstep(0.25, 0.45, md));
-    c = mix(c, cLin(92.0, 74.0, 56.0), mole * detail);
-  }
+  float n2 = cNoise(p * 0.13 + 5.0), n3 = cNoise(p * 0.55 + 9.0);
+  // #1092: neutraal gras, geen kleurvlak per perceel (maaien, hooi, ploegen, gewas, weide) en geen rand tussen kavels: dat komt niet
+  // uit de kaartdata. Alleen fijne korrel, geen patroon.
+  vec3 c = cLin(79.0, 114.0, 52.0);
   c *= 1.0 + (n3 - 0.5) * 0.1 * detail;
 
   // wierde village: tidy lawns and gardens instead of parcels
