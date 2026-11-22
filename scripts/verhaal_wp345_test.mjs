@@ -61,7 +61,7 @@ ok(said('M18.1', 'Tessa', /dieven/) && said('M26.2', 'Tessa', /logboek/), 'WP5: 
 ok(lines('M18.4').some((l) => l.speaker === 'Mem Terpstra' && l.channel === 'telefoon' && /Bourtange/.test(l.text)), 'WP5: de uitnodiging voor Bourtange is een telefoontje van Mem, geen stil appje (M18.4)');
 ok(lines('M21.2').some((l) => l.speaker === 'Mem Terpstra' && l.channel === 'telefoon' && /Zuidhorn/.test(l.text)), 'WP5: de trein bij Zuidhorn is een telefoontje van Mem (M21.2)');
 ok(lines('A4.1').some((l) => l.speaker === 'Mem' && /Nog vier dagen/.test(l.text)) && lines('O5').some((l) => l.speaker === 'Mem Terpstra'), 'WP5: de lijn van Mem is vooraf duidelijk (O5, A4.1)');
-ok(said('M19.3', 'Berend Bos', /Dinsdag/) && said('M19.3', 'Berend Bos', /notaris/) && said('M19.3', 'Tessa', /Berend/), 'WP5: de juryregel komt in beurten met Berend (M19.3)');
+ok(said('M19.3', 'Berend Bos', /Vanavond/) && said('M19.3', 'Berend Bos', /notaris/) && said('M19.3', 'Tessa', /Berend/), 'WP5: de juryregel komt in beurten met Berend (M19.3)');
 ok(said('M21.4', 'Geesje', /./) && said('M21.4', 'Kapitein Klaas', /./) && said('M21.4', 'Tammo', /niet goed/), 'WP5: M21.4 is een ruzie tussen twee vrienden (Geesje en Klaas) en Tammo faalt, geen rollenlijst');
 ok(['V1', 'V2', 'V3'].every((id) => idx(id) > idx('M19') && idx(id) < idx('M20')) && lines('R4.0b').some((l) => /keeper/.test(l.text)), 'WP5: de voetbal-aanloop is een beat (Femke belt Rikus, V1 tot en met V3)');
 ok(/dorpsteam/.test(text('B4')) && /Veendam/.test(text('B4')), 'WP5: een autogesprek over Veendam en het dorpsteam (B4)');

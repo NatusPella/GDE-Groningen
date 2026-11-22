@@ -85,13 +85,12 @@ STIEN: Nee. Maar het is een begin. Kom terug als je hem hebt. [NIEUW]
 WUBBO: Weer elf bruggen? Open. Dicht. Ik heb het al geleerd. [NIEUW]
 
 ## [J4] Een dubbele date in Veendam – Veenkoloniën, Veendam, een terras aan het Oosterdiep – te voet
-(regie: maandagavond. Een terras aan het Oosterdiep met een kaars in een glas. Femke zit al, haar keeperstas onder de stoel. Naamkaart FEMKE. Rikus komt aanlopen met zijn koptelefoon om zijn nek.)
+(regie: maandag, lunchtijd. Een terras aan het Oosterdiep met een kaars in een glas. Femke zit al, haar keeperstas onder de stoel. Naamkaart FEMKE. Rikus komt aanlopen met zijn koptelefoon om zijn nek.)
 TESSA: Femke is mijn keeper. Ze weet bijna alles van mij. [NIEUW]
 FEMKE: Wat leuk, een dubbele date. [NIEUW]
 TAMMO: Het is geen date. [NIEUW]
 FEMKE: Een kaars, een terras, twee stellen. [NIEUW]
 RIKUS: Ik zeg niks. [NIEUW]
-FEMKE: Hij zegt het wel heel mooi. [NIEUW]
 (regie: onder de kaars ligt een bonnetje: "Tafel voldaan. Met vriendelijke groet, Us Mem Snacks.")
 TAMMO: Hij betaalde onze tafel. En de kaars. [NIEUW]
 TESSA: Een voorschot. Daar komt een rekening achteraan. [NIEUW]
@@ -100,8 +99,6 @@ FEMKE: Neem je een kasboekje mee naar een date? [NIEUW]
 TESSA: Het is geen date. [NIEUW]
 FEMKE: Dat zegt hij ook. [NIEUW]
 RIKUS: Ik zeg niks. Dat is ook een antwoord. [NIEUW]
-TAMMO: Dat is van mij. [NIEUW]
-RIKUS: Dan leen ik hem. [NIEUW]
 
 ## [M18.1] Wie draaide de camera's uit?: intro – Veenkoloniën, Veendam, Wiebelwerk – te voet
 (regie: maandag 24 augustus, middag. Een kantoorpand bij een rotonde. Een bord: Wiebelwerk, websites met karakter. Een e-step staat voor de deur. Gameplay: een kantoor als speelveld; de juiste antwoorden kiezen, de serverkamer in en het logboek van 12 augustus bekijken.)
@@ -184,7 +181,7 @@ TESSA: Geprint. [NIEUW]
 RIKUS (telefoon): Bewaar het. Ik heb dit niet gezegd. [NIEUW]
 
 ## [N9] Nacht op een dijk – Oldambt, de dijk bij de Dollard – Rikus' busje
-(regie: nacht, de dag na de kraak in Veendam. De politie zoekt twee Stadjers in het zwart, dus Rikus leende hun zijn oude busje en wees een dijk aan waar niemand komt. De achterdeuren staan open naar het wad. Geen lichtje in de verte, alleen sterren. Tessa ligt achterin op een matras, Tammo naast haar met zijn handen onder zijn hoofd. De radio staat zacht.)
+(regie: maandagnacht, na de dag van de camera's in Veendam. De politie zoekt twee Stadjers in het zwart, dus Rikus leende hun zijn oude busje en wees een dijk aan waar niemand komt. De achterdeuren staan open naar het wad. Geen lichtje in de verte, alleen sterren. Tessa ligt achterin op een matras, Tammo naast haar met zijn handen onder zijn hoofd. De radio staat zacht.)
 RIKUS (radio): Moi, Nachtstreek. Voor wie vannacht niet thuis slaapt: de sterren zijn gratis. Ik zeg niks. [NIEUW]
 TESSA: Dat daar is de Grote Beer. [NIEUW]
 TAMMO: Dat is een vliegtuig. [NIEUW]
@@ -202,7 +199,7 @@ TESSA: Welterusten, Tammo. [NIEUW]
 TAMMO: Welterusten. [NIEUW]
 
 ## [J5] Een wielklem in Stadskanaal – Veenkoloniën, Stadskanaal, een parkeerplaats achter de markt – te voet
-(regie: dinsdagmiddag. Om het linkerwiel van de Escapade zit een gele klem. Jelle staat ernaast met een deurwaarder en een map; Durk en Douwe staan bij de limo. Tammo hurkt bij het wiel en praat zacht tegen de auto.)
+(regie: dinsdagochtend. Om het linkerwiel van de Escapade zit een gele klem. Jelle staat ernaast met een deurwaarder en een map; Durk en Douwe staan bij de limo. Tammo hurkt bij het wiel en praat zacht tegen de auto.)
 JELLE: Mevrouw. De klem zit er legaal. Artikel 4a. [NIEUW]
 TESSA: Artikel 4 gaat over stoepen. [NIEUW]
 JELLE: Artikel 4a gaat over wielen. Sinds vanochtend. [NIEUW]
@@ -220,7 +217,7 @@ JELLE: Dit is niet gebeurd. Durk, de limo. [NIEUW]
 DOUWE: ...Eet wat. [NIEUW]
 
 ## [M19.1] Stoom: intro – Veenkoloniën, Veendam, het perron – trein
-(regie: maandag 24 augustus, late middag. Een museumstoomtrein onder stoom, maar hij staat stil. Op een bank bij het perron zit de machinist met een bordje eierballen. In het salonrijtuig zitten twee juryleden en mevrouw Hoving, de bewaarder, met een bordje eierballen. Gameplay: Tammo is machinist en rijdt de trein naar het volgende perron, terwijl Tessa door de wagons naar de juryleden loopt.)
+(regie: dinsdag 25 augustus, begin van de middag. Een museumstoomtrein onder stoom, maar hij staat stil. Op een bank bij het perron zit de machinist met een bordje eierballen. In het salonrijtuig zitten twee juryleden en mevrouw Hoving, de bewaarder, met een bordje eierballen. Gameplay: Tammo is machinist en rijdt de trein naar het volgende perron, terwijl Tessa door de wagons naar de juryleden loopt.)
 TESSA: De machinist is omgekocht. Hij eet al een uur een eierbal. [NIEUW]
 TESSA: In Jelles salonrijtuig zitten de laatste twee juryleden en de bewaarder. Al vier uur vast. [NIEUW]
 TESSA: Wie de jury koopt, hoeft niet te winnen. [NIEUW]
@@ -260,14 +257,14 @@ TAMMO: Vier van de vijf zijn dan niet van hem. [NIEUW]
 BEREND (telefoon): Vrijdag om drie uur gaat Jelle naar de notaris. [NIEUW]
 BEREND (telefoon): Daar schrijft hij zich in als bewaarder. Dan tekent hij de uitslag zelf. [NIEUW]
 TAMMO: Daarom zit mevrouw Hoving in zijn trein. [NIEUW]
-BEREND (telefoon): Dinsdag komt de man die mijn bakkie wilde kopen naar het Beleg. Met zijn mannen. [NIEUW]
+BEREND (telefoon): Vanavond komt de man die mijn bakkie wilde kopen naar het Beleg. Met zijn mannen. [NIEUW]
 BEREND (telefoon): Ik heb een bus nodig. Kom naar Ter Apel. [NIEUW]
 
 ## [M19.4] Stoom: herhaling – Veenkoloniën, Veendam – trein
 DURK: Douwe. De trein staat weer stil. Net fertelle, hè? [NIEUW]
 
 ## [J6] Beppe aan de deur – Stad, Paddepoel, de flat – te voet
-(regie: dinsdagavond, de flat. Er wordt aangebeld. Beppe staat in de deur met een pan soep in een handdoek, haar jas aan, in augustus.)
+(regie: dinsdagmiddag, de flat. Er wordt aangebeld. Beppe staat in de deur met een pan soep in een handdoek, haar jas aan, in augustus.)
 BEPPE: Ik haw sop meinommen. Jimme ite te min. [NIEUW]
 (regie: ze zet de pan op het fornuis en kijkt naar het kaartje op de koelkast en naar het kasboekje op tafel. Eén boekje, twee namen.)
 BEPPE: Wannear trouwe jim? [NIEUW]
@@ -388,7 +385,7 @@ OMA TRIJNTJE: Dat zeg jij nu. [NIEUW]
 
 ## [M20.5] Het beleg van Bourtange: de klomp – Westerwolde, Bourtange, de parkeerplaats – te voet
 (regie: waar de Escapade stond ligt een klomp met een briefje.)
-TAMMO: "Tige tank foar de auto. – J." Hij bedankt ons voor een auto die hij niet heeft. [NIEUW]
+TAMMO: "Tige tank foar de auto. – J." Hij bedankt ons voor onze eigen auto. [NIEUW]
 TAMMO: Wie heb je verteld waar we waren? [NIEUW]
 TESSA: Niemand. [BEHOUDEN]
 TAMMO: Je appt al de hele week met Friesland. [BEHOUDEN]
