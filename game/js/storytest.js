@@ -38,6 +38,8 @@ import { nearestFacility } from './facilities.js';
 import { roadNear, withTiles } from './tileplace.js';
 import { refreshDayNight } from './daynight.js';
 import { hudNow, zones } from './hudrules.js';
+import { noticeQueue, noticeHeldBy } from './notifyqueue.js';
+import { loadHeld } from './loadlogic.js';
 
 // the story (storyarc_nieuw.js); the old arc is gone (#187), so the checks of the old arc below never run
 const NEW = true;
@@ -49,6 +51,16 @@ function key(k, code) {
     t.dispatchEvent(new KeyboardEvent('keydown', { key: k, code, bubbles: true }));
     t.dispatchEvent(new KeyboardEvent('keyup', { key: k, code, bubbles: true }));
   }
+}
+
+// A long jump of the player (the test moves him by hand) starts a load screen that really holds the world still
+// (laadsysteem 22-11: loadHolds, no clock, no thief, no minigame update, no notices behind it). A check that needs the
+// world to run waits for that screen to close first.
+async function loadSettled(world, ms = 60000) {
+  const gone = () => !document.getElementById('load-screen') && !loadHeld(world);
+  const ok = await waitFor(gone, ms, 100);
+  await sleep(300);
+  return ok;
 }
 
 // presses a key again every second until `fn` holds: under load the game's clock lags and an early press is not yet taken
@@ -306,6 +318,8 @@ async function minigames2Smoke(world, check, capture) {
   for (let p = 0; p < 3 && !zwStart; p++) { if (!zw.state()) zw.start(); zwStart = await waitFor(() => zw.state() && zw.state().swim && ['block', 'run'].includes(zw.state().swim.phase), 20000); if (!zwStart) await sleep(1500); }
   check('zwembad: starts', zwStart, JSON.stringify(zw.state()));
   await sleep(800);
+  await loadSettled(world); // zw.start() moves the player to the pool: the load screen holds the world until it closes
+  await sleep(800);
   check('zwembad: board shows and the hub claims the input', boardUp() && world.activityGame === 'zwembad');
   capture('mg-zwembad-block');
   check('zwembad: the intro gives way to the block', await waitFor(() => ['block', 'run'].includes(zw.state().phase), 15000));
@@ -398,6 +412,7 @@ async function batch2Smoke(world, check, capture) {
 
   // a mugging: the wallet is snatched, nobody is hurt, and running the thief down gives it back
   const MG = window.__muggings;
+  await loadSettled(world); // the jump back from the market starts a load screen: the thief only walks once it has closed
   world.money = 300;
   check('muggings: a thief shows up', MG && MG.mug() && MG.state().phase === 'approach');
   check('muggings: the wallet is snatched (a share is lost)', await waitFor(() => MG.state().phase === 'chase', 9000) && world.money < 300 && world.money >= 200, JSON.stringify({ money: world.money, st: MG.state() }));
@@ -555,6 +570,7 @@ async function newArcRuntimeChecks(world, check, capture) {
   // silent app texts: a card on the phone, never read aloud
   const pf = window.__phonefeed;
   if (pf) {
+    await loadSettled(world);
     await quietDown(world);
     // #425: the world first goes to a quiet moment (no chase, no race, no fight in the last 5 s, no skipped
     // mission's left-over wanted level, nothing holding the cards back); the check below says so when it cannot.
@@ -575,7 +591,7 @@ async function newArcRuntimeChecks(world, check, capture) {
       card = pf.state().cards > before || !!document.querySelector('.pf-card');
       if (!card) { keepQuiet(world); await sleep(200); }
     }
-    check('new arc: a silent app text shows as a phone card', card, JSON.stringify({ ...phoneReady(world), pf: pf.state(), narrative: window.__narrative && window.__narrative.state(), pending: world.phoneNotifications.length }));
+    check('new arc: a silent app text shows as a phone card', card, JSON.stringify({ ...phoneReady(world), pf: pf.state(), narrative: window.__narrative && window.__narrative.state(), pending: world.phoneNotifications.length, queue: noticeQueue.state(), held: noticeHeldBy() }));
     check('new arc: the silent app text is not read aloud', window.__phonefeed.voicing ? !window.__phonefeed.voicing() : true);
   }
   // the radio keeps to the world: ducked while a mission runs
