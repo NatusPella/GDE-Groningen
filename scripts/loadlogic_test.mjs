@@ -48,7 +48,7 @@ ok(z.done && z.bar === 1, 'timeout finishes');
 
 for (const ph of BAR_PHASES) ok(barsFor(ph) === 1, 'one bar in phase ' + ph);
 {
-  const ls = fs.readFileSync(new URL('../game/js/loadscreen.js', import.meta.url), 'utf8');
+  const ls = fs.readFileSync(new URL('../game/js/loadscreen.js', import.meta.url), 'utf8') + fs.readFileSync(new URL('../game/js/loadscene.js', import.meta.url), 'utf8');
   const css = fs.readFileSync(new URL('../game/js/loadscreen.css', import.meta.url), 'utf8');
   const html = fs.readFileSync(new URL('../game/index.html', import.meta.url), 'utf8');
   ok((ls.match(/class="ls-bar"/g) || []).length === 1, 'load screen draws one bar element');
@@ -161,7 +161,7 @@ ok(LOAD_STEPS.reduce((t, st, i) => t + ((LOAD_STEPS[i + 1] ? LOAD_STEPS[i + 1].f
 }
 ok(!/firstSentence\(recapText/.test(src), 'the load screen keeps the whole recap instead of its first sentence');
 // #600: one progressbar on the bar, not on the whole screen, so the place, the story and the tip stay readable
-const ldHtml = src.slice(src.indexOf('el.innerHTML ='), src.indexOf('document.body.appendChild(el)'));
+const ldHtml = fs.readFileSync(new URL('../game/js/loadscene.js', import.meta.url), 'utf8');
 ok(/class="ls-bar" role="progressbar"/.test(ldHtml) && !/el\.setAttribute\('role', 'progressbar'\)/.test(src), 'the load screen has one progressbar, on the bar');
 ok(/aria-valuenow/.test(src) && /aria-live="polite"/.test(ldHtml), 'the bar reports progress and the tip line is announced');
 // the first load screen (index.html #loading): only the age sign, no words, and a sharp picture
@@ -179,7 +179,8 @@ ok(LOAD_STEPS.every((s, i) => s.label.length > 8 && (i === 0 || s.from > LOAD_ST
 // tekstdieet 21-11: het laadscherm heeft precies één statusregel; geen tipregel, geen verhaalterugblik, geen "Stap n van m"
 {
   const css = fs.readFileSync(new URL('../game/js/loadscreen.css', import.meta.url), 'utf8');
-  ok(!/ls-tip/.test(src + css) && (src.match(/class="ls-step"/g) || []).length === 1, 'het laadscherm heeft één statusregel en geen tipregel');
+  const sceneSrc = fs.readFileSync(new URL('../game/js/loadscene.js', import.meta.url), 'utf8');
+  ok(!/ls-tip/.test(src + sceneSrc + css) && ((src + sceneSrc).match(/class="ls-step"/g) || []).length === 1, 'het laadscherm heeft één statusregel en geen tipregel');
 }
 console.log(`${n - fails}/${n} loadlogic`);
 process.exit(fails ? 1 : 0);

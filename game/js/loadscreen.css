@@ -1,52 +1,75 @@
 /* The load screen (loadscreen.js) in summer screen print (ADR 0040, #1002): paper and ink, the
    render as a framed print with a hard shadow, a yellow progress bar with the step in words.
-   Laid out for 1440x900 like the HUD and zoomed with --ui; no backdrop-filter. */
+   Laid out for 1440x900 like the HUD and zoomed with --ui; no backdrop-filter.
+
+   Layout (#1069, 22-11): one flow, no absolute corners that can run into each other. The stage is a column:
+     .ls-main   a grid of two columns: left .ls-left (the logo on top, the destination card at the bottom, never closer
+                than --ls-gap), right .ls-pic (the render, tilted, with room round it for the tilt and the shadow);
+     .ls-bottom a fixed zone: the bar and ONE status line (two lines of room, so the bar never jumps).
+   Everything scales from one number, the stage height (--ls-h): the text size of the stage (--ls-fs), the logo and the
+   destination follow it, and a long place name shrinks to a floor and then ends in an ellipsis. scripts/laadscherm_layout_test.mjs
+   measures the boxes in a real browser at 720p to 1440p and ui 1 to 1.5 and fails on any overlap. */
 #load-screen { position: fixed; inset: 0; z-index: 50; overflow: hidden; color: var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-tekst); background-color: var(--ds-c-ink-papier); background-image: var(--ds-raster); background-size: 14px 14px; opacity: 0; transition: opacity 0.45s ease; } /* ds3-film: scene */
 #load-screen::before { content: ''; position: absolute; inset: 0; background: var(--ds-c-ink-papier); -webkit-mask-image: radial-gradient(ellipse at 40% 50%, var(--ds-c-ink-inkt) 40%, transparent 98%); mask-image: radial-gradient(ellipse at 40% 50%, var(--ds-c-ink-inkt) 40%, transparent 98%); pointer-events: none; }
 #load-screen.on { opacity: 1; }
 #load-screen.instant { opacity: 1; transition: none; }
 #load-screen.instant.out { transition: opacity 0.7s ease; } /* ds3-film: scene */
 #load-screen.out { opacity: 0; pointer-events: none; }
-/* the render: a framed print, tilted a little like a pulled poster */
-#load-screen .ls-bg { position: absolute; right: 5vw; top: 12vh; width: 42vw; height: 58vh; box-sizing: border-box; object-fit: cover; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard-roze); background: var(--ds-c-ink-papier); transform: rotate(calc(var(--ds-schuin) * -1)); }
-#load-screen .ls-shade, #load-screen .ls-foot-shade { display: none; }
-#load-screen .ls-stage { position: absolute; left: 0; top: 0; width: calc(100vw / var(--ui, 1)); height: calc(100vh / var(--ui, 1)); zoom: var(--ui, 1); }
-#load-screen .ls-brand { position: absolute; top: 90px; left: 100px; transform: rotate(var(--ds-schuin)); transform-origin: left top; }
-#load-screen .gde-logo { font-size: 167px; align-items: flex-start; font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-inkt); }
+/* the stage: the HUD box (the window divided by --ui, zoomed back); a column of the main grid and the bottom zone */
+#load-screen .ls-stage {
+  --ls-h: calc(100vh / var(--ui, 1)); --ls-w: calc(100vw / var(--ui, 1));
+  --ls-fs: clamp(14px, calc(var(--ls-h) * 0.025), 20px);
+  --ls-px: clamp(32px, calc(var(--ls-w) * 0.078), 100px); --ls-py: clamp(28px, calc(var(--ls-h) * 0.07), 64px);
+  --ls-gap: clamp(24px, calc(var(--ls-h) * 0.045), 40px);
+  position: absolute; left: 0; top: 0; width: calc(100vw / var(--ui, 1)); height: calc(100vh / var(--ui, 1)); zoom: var(--ui, 1);
+  box-sizing: border-box; padding: var(--ls-py) var(--ls-px); display: flex; flex-direction: column; gap: var(--ls-gap); font-size: var(--ls-fs);
+}
+#load-screen .ls-main { flex: 1 1 0; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); column-gap: 5%; }
+#load-screen .ls-left { min-width: 0; min-height: 0; container-type: inline-size; display: flex; flex-direction: column; justify-content: space-between; gap: var(--ls-gap); padding-bottom: 20px; box-sizing: border-box; }
+/* the logo lockup: tilted, its tilt and shadow get margin below so the box round it touches nothing */
+#load-screen .ls-brand { flex: 0 0 auto; margin: 0 0 0.5em; transform: rotate(var(--ds-schuin)); transform-origin: left top; }
+#load-screen .gde-logo { font-size: clamp(5em, min(calc(var(--ls-h) * 0.2), calc(100cqw / 2.7)), 9.2em); align-items: flex-start; font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-inkt); }
 #load-screen .gde-logo .gde-mark { background: none; -webkit-background-clip: border-box; background-clip: border-box; color: var(--ds-c-ink-inkt); filter: none; text-shadow: var(--ds-misdruk); }
 #load-screen .gde-logo .gde-sign { font-size: max(13px, 0.32em); align-self: flex-start; font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-papier); background: var(--ds-c-ink-bord); border-radius: 0; box-shadow: var(--ds-schaduw-hard); }
 /* the static copy matches the real logo lockup (DESIGN_SYSTEM.md, "Logo"): the subtitle in print caps (#600, #1002) */
 #load-screen .gde-logo .gde-sub { margin: 0.6em 0 0; font: 600 max(13px, 0.14em)/1.1 var(--ds-font-zeef-kop); letter-spacing: 0.08em; text-transform: uppercase; text-align: left; color: var(--ds-c-ink-inkt); text-shadow: none; }
-#load-screen .ls-card { position: absolute; left: 100px; bottom: 200px; max-width: 560px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
-#load-screen .ls-kick { margin-bottom: 4px; padding: 2px 10px; font: 800 18px var(--ds-font-zeef-kop); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ds-c-ink-papier); background: var(--ds-c-ink-bord); box-shadow: var(--ds-schaduw-hard); }
-#load-screen .ls-place { font: 800 84px/0.95 var(--ds-font-zeef-kop); color: var(--ds-c-ink-inkt); text-shadow: var(--ds-misdruk); }
-#load-screen .ls-when { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-#load-screen .ls-when > span { font-size: 18px; color: var(--ds-c-ink-inkt); }
-#load-screen .ls-when .ls-badge { font: 800 18px var(--ds-font-zeef-kop); letter-spacing: 0.06em; padding: 2px 10px; color: var(--ds-c-ink-inkt); background: var(--ds-c-ink-geel); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); }
-#load-screen .ls-bottom { position: absolute; left: 100px; right: 100px; bottom: 70px; display: flex; flex-direction: column-reverse; gap: 22px; align-items: stretch; }
-#load-screen .ls-prog { width: 100%; display: flex; flex-direction: column; gap: 10px; }
-#load-screen .ls-step { font: 400 18px/1.3 var(--ds-font-zeef-tekst); color: var(--ds-c-ink-inkt); min-height: 1.3em; }
+/* "Naar <plaats>": ONE sign. The word Naar is the green strip on top of the card, not a label floating on its own;
+   the place name sits under it, the special day (the tag) under that. The card is as wide as its content, never wider than the column. */
+#load-screen .ls-card { flex: 0 0 auto; width: fit-content; max-width: 100%; box-sizing: border-box; display: flex; flex-direction: column; align-items: stretch; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard); }
+#load-screen .ls-kick { padding: 0.2em 0.9em; font: 800 1em/1.3 var(--ds-font-zeef-kop); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ds-c-ink-papier); background: var(--ds-c-ink-bord); }
+/* the size follows the column and the name length (--n, set by loadscene.js): 0.5 em per letter is wider than the real letters, so a
+   long name shrinks first; below the floor it ends in an ellipsis (the full name stays in the title and for a screen reader) */
+#load-screen .ls-place { min-width: 0; padding: calc(var(--ls-fs) * 0.35) calc(var(--ls-fs) * 0.9) calc(var(--ls-fs) * 0.1) calc(var(--ls-fs) * 0.9); font: 800 clamp(2.5em, min(calc((100cqw - 2 * var(--ls-fs) * 0.9 - 8px) / (var(--n, 8) * 0.5)), calc(var(--ls-h) * 0.115)), 4.7em)/0.95 var(--ds-font-zeef-kop); color: var(--ds-c-ink-inkt); text-shadow: var(--ds-misdruk); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#load-screen .ls-when { display: flex; gap: 0.5em; align-items: center; flex-wrap: wrap; padding: 0.1em 0.9em 0.75em 0.9em; }
+#load-screen .ls-when > span { font-size: 1em; color: var(--ds-c-ink-inkt); }
+#load-screen .ls-when .ls-badge { font: 800 1em/1.3 var(--ds-font-zeef-kop); letter-spacing: 0.06em; padding: 0.1em 0.6em; max-width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ds-c-ink-inkt); background: var(--ds-c-ink-geel); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); }
+/* the render: a framed print, tilted a little like a pulled poster; the room round it (tilt + shadow) belongs to it */
+#load-screen .ls-pic { position: relative; min-width: 0; min-height: 0; }
+#load-screen .ls-bg { position: absolute; left: 14px; top: 18px; width: calc(100% - 38px); height: calc(100% - 42px); box-sizing: border-box; object-fit: cover; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard-roze); background: var(--ds-c-ink-papier); transform: rotate(calc(var(--ds-schuin) * -1)); }
+/* the fixed bottom zone: the bar and the one status line (room for two lines so the zone never changes height) */
+#load-screen .ls-bottom { flex: 0 0 auto; box-sizing: border-box; padding-right: 6px; }
+#load-screen .ls-prog { width: 100%; display: flex; flex-direction: column; gap: 0.55em; }
+#load-screen .ls-step { font: 400 max(13px, 1em)/1.3 var(--ds-font-zeef-tekst); color: var(--ds-c-ink-inkt); min-height: 2.6em; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
 @keyframes ls-line-in { from { opacity: 0; transform: translateY(4px); } }
-#load-screen .ls-bar { width: 100%; height: 22px; box-sizing: border-box; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); background-color: var(--ds-c-ink-papier); background-image: var(--ds-raster); background-size: var(--ds-raster-maat); box-shadow: var(--ds-schaduw-hard); overflow: hidden; }
+#load-screen .ls-bar { width: 100%; height: 1.2em; min-height: 18px; box-sizing: border-box; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); background-color: var(--ds-c-ink-papier); background-image: var(--ds-raster); background-size: var(--ds-raster-maat); box-shadow: var(--ds-schaduw-hard); overflow: hidden; }
 #load-screen .ls-bar i { display: block; height: 100%; box-sizing: border-box; border-right: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); transform-origin: left; transform: scaleX(0.04); background: var(--ds-c-ink-bord); transition: transform 0.1s linear; }
 @media (max-width: 900px) {
-  /* narrow windows: only the picture badge goes, never the status line (#600) */
-  #load-screen .ls-bg { display: none; }
-  #load-screen .ls-card { right: 40px; top: 40px; bottom: auto; }
-  #load-screen .ls-brand { left: 40px; top: 40px; }
-  #load-screen .ls-bottom { left: 40px; right: 40px; }
-  #load-screen .ls-prog { width: 100%; }
+  /* narrow windows (a phone): the render goes, one column, never the status line (#600) */
+  #load-screen .ls-pic { display: none; }
+  #load-screen .ls-main { grid-template-columns: minmax(0, 1fr); }
+  #load-screen .ls-stage { --ls-px: 28px; }
 }
 
 /* Calm entrance: the cover is opaque at once (no glimpse of the new place
    popping in), the content stamps in over it. */
 #load-screen .ls-stage { animation: ls-stage-in 0.5s ease-out both; } /* ds3-film: scene */
 @keyframes ls-stage-in { from { opacity: 0; } }
-/* Fast travel (snel): only the place and the tiles, no logo, no tips, no print. */
-#load-screen.ls-snel .ls-brand, #load-screen.ls-snel .ls-bg { display: none; }
-#load-screen.ls-snel .ls-card { left: 0; right: 0; bottom: auto; top: 38%; max-width: none; align-items: center; text-align: center; }
-#load-screen.ls-snel .ls-place { font-size: 72px; }
-#load-screen.ls-snel .ls-bottom { left: 30%; right: 30%; bottom: 30%; }
+/* Fast travel (snel): only the place and the tiles, no logo, no tips, no print. The card sits in the middle, the bar in the bottom zone. */
+#load-screen.ls-snel .ls-brand, #load-screen.ls-snel .ls-pic { display: none; }
+#load-screen.ls-snel .ls-main { grid-template-columns: minmax(0, 1fr); }
+#load-screen.ls-snel .ls-left { justify-content: center; align-items: center; }
+#load-screen.ls-snel .ls-card { align-self: center; }
+#load-screen.ls-snel .ls-bottom { width: min(100%, 40em); align-self: center; }
 #load-screen.ls-snel.out { transition-duration: 0.4s; } /* ds3-film: scene */
 
 /* "Beweging beperken" (the in-game setting) and the OS preference stop the entrance; Rustig
@@ -60,4 +83,3 @@ html.reduce-motion #load-screen .ls-stage, html.rustig-drukwerk #load-screen .ls
 html.rustig-drukwerk #load-screen { background-image: none; }
 html.rustig-drukwerk #load-screen::before { display: none; }
 html.rustig-drukwerk #load-screen .ls-bar { background-image: none; }
-

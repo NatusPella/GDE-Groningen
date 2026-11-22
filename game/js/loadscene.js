@@ -35,3 +35,29 @@ export function pictureHtml(name, cls = 'ls-bg') {
   const n = pictureOk(name) ? name : 'vismarkt';
   return `<img class="${cls}" src="img/laad/${n}.jpg" alt="${PICTURES[n]}" decoding="async">`;
 }
+
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// The whole markup of a load screen (loadscreen.js puts it in #load-screen; scripts/ui/laadscherm_render.html
+// renders the same string for the layout measurement, #1069). { kind: 'save' | 'travel' | 'snel', name, special, img }.
+// Two columns in one flow (loadscreen.css): left the logo and the destination card ("Naar <plaats>" as one sign), right the render;
+// below them the bar and the one status line. --n (the length of the name) lets the CSS size a long name down.
+export function loadScreenHtml({ kind = 'travel', name = '', special = '', img = 'vismarkt' } = {}) {
+  const plaats = String(name || 'Grunn');
+  return '<div class="ls-stage">' +
+    '<div class="ls-main">' +
+      '<div class="ls-left">' +
+        '<div class="ls-brand"><div class="gde-logo" aria-hidden="true"><span class="gde-mark">GDE</span><span class="gde-sign">Groningen</span><span class="gde-sub">Zomer vol misdaad</span></div></div>' +
+        '<div class="ls-card">' +
+          `<span class="ls-kick">${kind === 'save' ? 'Verder in' : 'Naar'}</span>` +
+          `<b class="ls-place" style="--n:${Math.max(1, plaats.length)}" title="${esc(plaats)}">${esc(plaats)}</b>` +
+          (special ? `<div class="ls-when"><span class="ls-badge">${esc(special)}</span></div>` : '') +
+        '</div>' +
+      '</div>' +
+      '<div class="ls-pic">' + pictureHtml(img) + '</div>' +
+    '</div>' +
+    '<div class="ls-bottom">' +
+      '<div class="ls-prog"><div class="ls-bar" role="progressbar" aria-label="Voortgang laden" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div><div class="ls-step" role="status" aria-live="polite"></div></div>' +
+    '</div>' +
+  '</div>';
+}

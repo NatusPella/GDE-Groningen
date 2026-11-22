@@ -21,9 +21,9 @@ fs.mkdirSync(out, { recursive: true });
 
 const base = pathToFileURL(path.join(root, 'game') + path.sep).href;
 const html = fs.readFileSync(path.join(root, 'game', 'index.html'), 'utf8');
-const lsSrc = fs.readFileSync(path.join(root, 'game', 'js', 'loadscreen.js'), 'utf8');
-// the real load-screen markup, taken from loadscreen.js (the template string)
-const tpl = lsSrc.slice(lsSrc.indexOf('el.innerHTML ='), lsSrc.indexOf("document.body.appendChild(el)"));
+const { loadScreenHtml } = await import(pathToFileURL(path.join(root, 'game', 'js', 'loadscene.js')).href);
+// the real load-screen markup: loadScreenHtml in loadscene.js (the same string loadscreen.js uses, #1069)
+const markup = loadScreenHtml({ kind: 'travel', name: 'Vismarkt', special: '', img: 'vismarkt' });
 const phases = ['boot', 'wereld', 'overgang'];
 let fails = 0;
 for (const phase of phases) {
@@ -34,7 +34,7 @@ const link = document.createElement('link'); link.rel = 'stylesheet'; link.href 
 document.querySelector('#loading .ld-fill').style.transform = 'scaleX(0.6)';
 if (phase !== 'boot') {
   const el = document.createElement('div'); el.id = 'load-screen'; el.className = 'ls ls-travel on instant';
-  ${tpl.replace(/el\.innerHTML =/, 'el.innerHTML =')}
+  el.innerHTML = ${JSON.stringify(markup)};
   document.body.appendChild(el);
   el.querySelector('.ls-bar i').style.transform = 'scaleX(0.45)';
   document.getElementById('loading').classList.add('ls-over');
