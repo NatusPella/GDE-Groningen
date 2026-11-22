@@ -1388,3 +1388,22 @@ html.pad-active #pause-menu.gm :is(.ra, .m-li, .m-tab, .m-bp, .m-bg, .m-bt, .m-c
 #pause-menu .pm-channels { display: flex; flex-direction: column; margin: var(--ds-s-2) 0; }
 #pause-menu .pm-channel { text-align: left; cursor: pointer; }
 #pause-menu .pm-channel-actie { display: flex; justify-content: flex-end; margin-bottom: var(--ds-s-3); }
+/* verfijnronde 22-11, toegankelijkheid en instellingen: reden bij een instelling die nu niets doet, teller op een tabblad, stiltewaarschuwing, schudproef */
+#pause-menu .ra[hidden] { display: none; }
+#pause-menu .pm-afhankelijk :is(.m-pk, .m-sl, .m-sw) { opacity: 0.55; }
+#pause-menu .pm-why { display: block; font-size: 13px; color: var(--ds-c-ink-inkt, inherit); }
+#pause-menu .pm-why[hidden] { display: none; }
+#pause-menu .pm-silence { margin: var(--ds-s-2) 0; padding: var(--ds-s-2) var(--ds-s-3); border-radius: var(--ds-r); box-shadow: inset 0 0 0 var(--ds-lijn-zeef, 1px) currentColor; }
+#pause-menu .pm-silence[hidden] { display: none; }
+#pause-menu .m-tab small:not(:empty) { margin-left: 6px; padding: 0 6px; border-radius: 9px; font-size: 13px; box-shadow: inset 0 0 0 1px currentColor; }
+#pause-menu .pm-a11y-shake { display: flex; align-items: center; flex-wrap: wrap; gap: var(--ds-s-3); }
+#pause-menu .pm-shake-box { display: inline-block; padding: 6px 14px; border-radius: var(--ds-r); box-shadow: inset 0 0 0 1px currentColor; }
+#pause-menu .pm-shake-box.is-schud { animation: pm-schud var(--ds-m-lang) linear 1; }
+@keyframes pm-schud {
+  0%, 100% { transform: translate(0, 0); }
+  15% { transform: translate(var(--shake-px), calc(var(--shake-px) * -0.6)); }
+  30% { transform: translate(calc(var(--shake-px) * -1), calc(var(--shake-px) * 0.5)); }
+  45% { transform: translate(calc(var(--shake-px) * 0.7), calc(var(--shake-px) * 0.7)); }
+  60% { transform: translate(calc(var(--shake-px) * -0.5), calc(var(--shake-px) * -0.4)); }
+  80% { transform: translate(calc(var(--shake-px) * 0.2), 0); }
+}

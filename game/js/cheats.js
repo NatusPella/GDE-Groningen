@@ -69,6 +69,8 @@ function resetState(d) {
 
 export const isAvailable = (id) => unlocked.has(id) || hasUnique('streken', id);
 export const isCheatOn = (id) => on.has(id);
+// is er nu een cheat aan? Dan blijft het onderdeel Cheats in het menu staan, ook zonder de keuze in Spelregels (settingsrules.js cheatsVisible)
+export const anyCheatOn = () => on.size > 0;
 
 // A gameplay streek is on (paused or not).
 export function achievementsBlocked() {

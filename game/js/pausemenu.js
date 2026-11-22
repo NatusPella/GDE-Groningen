@@ -6,7 +6,10 @@
 // (verhaalui.js), Kaart, Garage, Prestaties, Cheats (cheatsui.js),
 // Instellingen, Besturing.
 import { keyLabelGlyph, keyLabelHtml } from './keycap.js';
-import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './settings.js';
+import { getSettings, setSetting, resetSettings, resetSettingsKeys, defaultSettings, QUALITY_PRESETS } from './settings.js';
+import { TAB_KEYS, changedPerTab, changedKeys, resetMessage, dependencies, silenceWarning, synonymsFor, cheatsVisible, COLOR_BLIND_LABELS, shakePreviewPx } from './settingsrules.js';
+import { effectsFor } from './a11ylogic.js';
+import { reducedMotion } from './motion.js';
 import { retryBeschikbaar, herstartMissie, herstartBlokkade } from './missions.js';   // #985 punt 16
 import { difficultyTabHtml, difficultyPaneText, syncDifficultyTab, stepDifficultyPicker, handleDifficultyClick } from './difficultypanel.js'; // #1169: Instellingen > Moeilijkheid, per save
 import { logoHtml } from './logo.js';
@@ -20,6 +23,7 @@ import { isSoloHost, stopSoloHost } from './coopsolo.js';
 import { renderVeroverdPanel } from './veroverdpanel.js';
 import { renderSpelersPanel } from './coopspelersui.js';
 import { renderCheatsPanel, cheatsClick, resetCheatsPanel, cheatsFocus } from './cheatsui.js';
+import { anyCheatOn } from './cheats.js';
 import { skipCurrent } from './story.js';
 import { saveGame, hasSave, loadLatestSave, startNewSlot, coopSessieLoopt, GAST_BEWAARD_TEKST, getSaveSummary, getPlaySeconds, loadSlot, currentSlot, preventCloseSave, saveFailReason } from './savegame.js';
 import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
@@ -537,7 +541,9 @@ export function pauseMenuCover() {
 const started = () => document.body.classList.contains('game-started');
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // De rail zelf heeft geen knop Spelers (#377): het aantal spelers staat bij Spel, de lijst onder Samen spelen (#434).
-const sectionIds = () => (prestart ? PRESTART_SECTIONS : SECTIONS.map(([id]) => id));
+// Cheats staat alleen in het menu in dev, na een eigen keuze (Spelregels > Cheats in het menu) of zolang er een cheat aan staat (settingsrules.js)
+const cheatsShown = () => cheatsVisible({ dev: !!FLAGS.dev, tonen: getSettings().cheatsTonen, actief: anyCheatOn() });
+const sectionIds = () => (prestart ? PRESTART_SECTIONS : SECTIONS.map(([id]) => id).filter((id) => id !== 'streken' || cheatsShown()));
 const sectionOf = (id) => SECTIONS.find(([s]) => s === id);
 const key = (k) => `<span class="hud-key">${k}</span>`;
 
@@ -707,7 +713,8 @@ function settingsHtml() {
   return `${subtabsHtml('settings', 'Onderdeel')}
     <div class="pm-confirm pm-resetbox" data-reset-confirm hidden>
       <p><b>Alles terug naar de standaard?</b> Beeld, geluid, camera, hints, ondertitels, beweging, tekstgrootte en de hulpinstellingen gaan terug naar hoe het spel begon. Je toetsen en knoppen, je naam en de keuze voor Samen spelen blijven staan.</p>
-      <div class="m-acts"><button type="button" class="m-bp" data-action="reset-go">Ja, herstellen</button><button type="button" class="m-bt" data-action="reset-cancel">Annuleren</button></div>
+      <p class="mut" data-reset-count></p>
+      <div class="m-acts"><button type="button" class="m-bg" data-action="reset-tab-go" hidden>Alleen dit tabblad</button><button type="button" class="m-bp" data-action="reset-go">Alles herstellen</button><button type="button" class="m-bt" data-action="reset-cancel">Annuleren</button></div>
     </div>
     <div class="pm-confirm pm-resetbox" data-reset-undo hidden>
       <p data-reset-undo-text>Alles staat weer op de standaard.</p>
@@ -750,6 +757,7 @@ function settingsHtml() {
       ${slider('musicVolume', 'Muziek')}
       ${slider('sfxVolume', 'Effecten')}
       ${slider('voiceVolume', 'Stemmen')}
+      <p class="pm-note pm-silence" data-silence role="status" hidden></p>
       <label class="m-li pm-row pm-mute">${rowName('Geluid in één keer uit', 'Zet alle geluid uit; de luidspreker linksboven zet het weer aan')}<input type="checkbox" class="m-sw" data-mute-switch><span class="pm-mutehint">${icon('mute')}<span class="m-kc">U</span></span></label>
       <label class="m-li pm-row">${rowName('Radio', 'Aan of uit met {N}, te voet en in elk voertuig. {SHIFT}+{N} is de volgende zender')}<input type="checkbox" class="m-sw" data-radio-switch></label>
       <div class="pm-channels-wrap" data-channels-wrap></div>
@@ -776,7 +784,9 @@ function settingsHtml() {
       ${toggle('liveBussen', 'Live bussen', 'Bussen rijden waar ze in het echt rijden. Het spel haalt alleen publieke buslocaties op; er gaat geen account, naam of speelgegeven mee; de bron ziet alleen dat er een verzoek komt, zoals bij elke website. Uit, of als de bron niet bereikbaar is: de bussen rijden het rooster van het spel, op de kaart gemarkeerd als Rooster')}
       ${toggle('liveTreinen', 'Live treinen', 'De vertrekborden tonen de vertragingen van de echte treinen. Het spel haalt eens per minuut alleen openbare gegevens op (ongeveer 1 MB); er gaat geen account, naam of speelgegeven mee; de bron ziet alleen dat er een verzoek komt, zoals bij elke website. Uit, of als de bron niet bereikbaar is: het bord toont het rooster zonder vertraging, met het woord Rooster')}
       <div class="m-gh"><span>Kaart</span></div>
-      ${toggle('mapShiftTeleport','{SHIFT}+{LMB} op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}`,
+      ${toggle('mapShiftTeleport','{SHIFT}+{LMB} op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}
+      <div class="m-gh"><span>Vals spelen</span></div>
+      ${toggle('cheatsTonen', 'Cheats in het menu', 'Toont het onderdeel Cheats naast Instellingen. Sommige cheats zetten prestaties uit zolang ze aan staan; dat staat er dan bij')}`,
       `${pane('Spelregels', 'Zo speelt het', '<p>Hoe moeilijk het is, hoe het verkeer en het geweld zich gedragen en hoe het rijden aanvoelt. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan op de andere tabbladen. Camera-afstand, beeldhoek en eerste persoon staan onder Instellingen &gt; Camera; toetshints en uitleg onder Instellingen &gt; Hints &amp; uitleg.</p>')}`)}
     ${tab('moeilijkheid', difficultyTabHtml(), pane('Moeilijkheid', 'Hoe pittig', `<p>${difficultyPaneText}</p>`))}
     ${tab('besturing', `
@@ -839,7 +849,7 @@ ${keyReuseHtml()}
       <div class="m-li pm-row">${rowName('Uitleg opnieuw tonen', 'Alle uitlegkaarten, contexthints en geleerde toetshints beginnen weer als nieuw')}<button type="button" class="m-bg" data-hints-reset>Opnieuw</button></div>`, `${pane('Hints & uitleg', 'Hulp in beeld', '<p>Toetshints en korte tips voor nieuwe spelers. Je kunt ze altijd uitzetten.</p>')}`)}
     ${tab('online', `<div class="pm-online" data-online-instelling></div>`, `${pane('Samen spelen', 'Je naam en je akkoord', '<p>Alleen bij Samen spelen gaat er iets naar buiten. Hier pas je je naam aan (andere spelers zien hem) of trek je je akkoord in; bij Samen spelen vraagt het spel er dan opnieuw om.</p>')}`)}
     ${tab('a11y', `
-      ${picker('colorBlind', 'Kleurenblind', [['uit', 'Uit'], ['deuteranopie', 'Deuteranopie'], ['protanopie', 'Protanopie'], ['tritanopie', 'Tritanopie']], 'Andere kleuren voor markers, routes, kaart en HUD')}
+      ${picker('colorBlind', 'Kleurenblind', [['uit', 'Uit'], ['deuteranopie', COLOR_BLIND_LABELS.deuteranopie], ['protanopie', COLOR_BLIND_LABELS.protanopie], ['tritanopie', COLOR_BLIND_LABELS.tritanopie]], 'Andere kleuren voor markers, routes, kaart en HUD; rechts zie je meteen hoe ze eruitzien')}
       ${toggle('markerVormen', 'Vormen bij kleur', 'Wantedsterren met een cijfer en een zwaardere rand, ook zonder kleurenstand; doelen hebben altijd hun eigen vorm')}
       ${slider('uiScale', 'Grootte interface', 0.8, 1.5, 0.05)}
       ${picker('textSize', 'Tekstgrootte', [['normaal', 'Normaal'], ['groot', 'Groot'], ['extragroot', 'Extra groot']], 'Groter voor meldingen, toetshints en berichten')}
@@ -859,6 +869,7 @@ ${keyReuseHtml()}
 <div class="pm-a11yprev" role="img" aria-label="Proef: markerkleuren, routelijnen en tekst op deze stand">
   <div class="pm-a11y-marks">${['ok', 'danger', 'mission', 'user', 'job', 'care', 'police'].map((r) => `<span class="pm-a11y-mk" data-mk="${r}">${({ ok: 'goed', danger: 'gevaar', mission: 'missie', user: 'doel', job: 'baan', care: 'zorg', police: 'politie' })[r]}</span>`).join('')}</div>
   <div class="pm-a11y-routes"><span class="pm-a11y-route" data-route="verhaal"></span><span class="pm-a11y-route" data-route="doel"></span><span class="pm-a11y-route" data-route="klus"></span></div>
+  <div class="pm-a11y-shake"><button type="button" class="m-bg" data-shake-proef>Proef het schudden</button><span class="pm-shake-box" data-shake-box aria-hidden="true">klap</span><span class="mut" data-shake-msg role="status"></span></div>
   <div class="pm-a11y-text"><span class="pm-a11y-13">13 px: een bericht op het scherm</span><span class="pm-a11y-20">20 px: een regel in het menu</span></div>
 </div>
 <p class="mut">Zo zie je de kleuren, lijnen en letters nu. Ondertitels stel je in onder Geluid &amp; ondertitels.</p>`)}`)}`;
@@ -1107,6 +1118,7 @@ export function initPauseMenu(w) {
     const pick = e.target.closest('[data-pick]');
     if (pick) { stepPicker(pick.closest('.m-pk'), Number(pick.dataset.pick)); return; }
     if (e.target.closest('[data-pad-test]')) { openPadTest(); return; }
+    if (e.target.closest('[data-shake-proef]')) { proefSchudden(); return; }
     const gsub = e.target.closest('[data-goto-sub]');
     if (gsub) { const [sec, sub] = gsub.dataset.gotoSub.split(':'); pref.sub[sec] = sub; enterSection(sec); return; }
     const rk = e.target.closest('[data-rebind-key]');
@@ -1518,7 +1530,7 @@ function bouwFindRegels() {
     const sub = (SUBTABS[holder.dataset.of].find(([id]) => id === holder.dataset.sub) || [])[1] || '';
     row.dataset.findId = String(n++);
     const mut = row.querySelector('.nm .mut');
-    regels.push(maakRegel({ id: 'i-' + row.dataset.findId, soort: 'instelling', label, plek: sub ? sl + ' > ' + sub : sl, zoek: mut ? mut.textContent : '', ic: holder.dataset.of, sec: holder.dataset.of, sub: holder.dataset.sub, rij: row.dataset.findId }));
+    regels.push(maakRegel({ id: 'i-' + row.dataset.findId, soort: 'instelling', label, plek: sub ? sl + ' > ' + sub : sl, zoek: `${mut ? mut.textContent : ''} ${synonymsFor((row.querySelector('[data-setting]') || { dataset: {} }).dataset.setting)}`, ic: holder.dataset.of, sec: holder.dataset.of, sub: holder.dataset.sub, rij: row.dataset.findId }));
   }
   return regels;
 }
@@ -2259,19 +2271,42 @@ function runAction(a) {
     // #604: eerst vragen en noemen wat er teruggezet wordt; Annuleren laat alles staan
     const box = root.querySelector('[data-reset-confirm]');
     root.querySelector('[data-reset-undo]').hidden = true;
+    // 22-11: ook alleen het open tabblad terugzetten, met erbij hoeveel er afwijkt (settingsrules.js)
+    const st = getSettings(), def = defaultSettings();
+    const alles = changedKeys(Object.values(TAB_KEYS).flat(), st, def).length;
+    const sub = pref.sub.settings || 'video';
+    const tabKeys = TAB_KEYS[sub];
+    const tabBtn = box.querySelector('[data-action="reset-tab-go"]');
+    const naamTab = (SUBTABS.settings.find(([id]) => id === sub) || [])[1] || '';
+    const nTab = tabKeys ? changedKeys(tabKeys, st, def).length : 0;
+    tabBtn.hidden = !tabKeys;
+    tabBtn.disabled = !nTab;
+    tabBtn.textContent = tabKeys ? `Alleen ${naamTab} herstellen (${nTab})` : '';
+    box.querySelector('[data-reset-count]').textContent = alles ? `${alles} ${alles === 1 ? 'instelling wijkt' : 'instellingen wijken'} nu af van de standaard.` : 'Alles staat al op de standaard.';
     box.hidden = false;
-    box.querySelector('[data-action="reset-cancel"]').focus();
+    box.querySelector(tabKeys && nTab ? '[data-action="reset-tab-go"]' : '[data-action="reset-cancel"]').focus();
   } else if (a === 'reset-cancel') {
     root.querySelector('[data-reset-confirm]').hidden = true;
     root.querySelector('[data-action="reset"]').focus();
+  } else if (a === 'reset-tab-go') {
+    const sub = pref.sub.settings || 'video';
+    const oud = resetSettingsKeys(TAB_KEYS[sub] || []);
+    resetBackup = Object.keys(oud).length ? oud : null;
+    syncControls();
+    root.querySelector('[data-reset-confirm]').hidden = true;
+    const undo = root.querySelector('[data-reset-undo]');
+    undo.hidden = false;
+    undo.querySelector('[data-reset-undo-text]').textContent = resetMessage(Object.keys(oud).length, 'Dit tabblad');
+    undo.querySelector('[data-action="reset-undo"]').focus();
   } else if (a === 'reset-go') {
+    const voor = changedKeys(Object.values(TAB_KEYS).flat(), getSettings(), defaultSettings()).length;
     resetBackup = { ...getSettings() };
     resetSettings();
     syncControls();
     root.querySelector('[data-reset-confirm]').hidden = true;
     const undo = root.querySelector('[data-reset-undo]');
     undo.hidden = false;
-    undo.querySelector('[data-reset-undo-text]').textContent = 'Alles staat weer op de standaard.';
+    undo.querySelector('[data-reset-undo-text]').textContent = resetMessage(voor);
     undo.querySelector('[data-action="reset-undo"]').focus();
   } else if (a === 'reset-undo') {
     if (resetBackup) for (const [k, v] of Object.entries(resetBackup)) setSetting(k, v);
@@ -2449,6 +2484,52 @@ function syncControls() {
   syncDifficultyTab(root); // #891, #1169: het niveau licht op in de uitleg en de opties tonen hun waarde
   syncKeyChanged();
   syncNowFacts(st);
+  syncSettingsExtras(st);
+}
+
+// Proef het schudden (22-11): het voorbeeldvak schudt zoals de stand van Schermschudden en Beweging beperken nu is; bij uit blijft het stil en zegt de regel dat.
+function proefSchudden() {
+  const st = getSettings();
+  const factor = effectsFor({ reduceMotion: st.reduceMotion || reducedMotion(), reduceFlash: st.reduceFlash, shake: st.screenShake }).cameraShake;
+  const px = shakePreviewPx(factor);
+  const box = root.querySelector('[data-shake-box]');
+  const msg = root.querySelector('[data-shake-msg]');
+  if (msg) msg.textContent = px > 0 ? (factor < 1 ? 'Zo schudt het beeld nu: zacht.' : 'Zo schudt het beeld nu.') : 'Het beeld blijft stil.';
+  if (!box || !(px > 0)) return;
+  box.style.setProperty('--shake-px', px + 'px');
+  box.classList.remove('is-schud');
+  void box.offsetWidth;
+  box.classList.add('is-schud');
+}
+
+// 22-11 (toegankelijkheid en instellingen): de tellers op de tabbladen, wat een andere instelling nutteloos maakt (met de reden erbij), de stiltewaarschuwing
+// en het Cheats-onderdeel in de rail. Alles volgt elke wijziging meteen.
+function syncSettingsExtras(st) {
+  if (!root) return;
+  const aantal = changedPerTab(st, defaultSettings());
+  for (const [id, n] of Object.entries(aantal)) {
+    const el = root.querySelector(`[data-of="settings"][data-subtab="${id}"] [data-count]`);
+    if (!el) continue;
+    const tekst = n ? String(n) : '';
+    if (el.textContent !== tekst) el.textContent = tekst;
+    el.title = n ? `${n} ${n === 1 ? 'instelling wijkt' : 'instellingen wijken'} af van de standaard` : '';
+  }
+  const dep = dependencies(st);
+  for (const key of ['subtitleVlak', 'screenShake', 'rumbleStrength', 'minimapZoom', 'minimapNorth', 'hintSource', 'markerVormen']) {
+    const el = root.querySelector(`[data-setting="${key}"]`);
+    const rij = el && el.closest('.pm-row');
+    if (!rij) continue;
+    const why = dep[key] || '';
+    rij.classList.toggle('pm-afhankelijk', !!why);
+    const nm = rij.querySelector('.nm');
+    let span = nm && nm.querySelector('.pm-why');
+    if (why && nm && !span) { span = document.createElement('span'); span.className = 'pm-why'; nm.appendChild(span); }
+    if (span) { if (span.textContent !== why) span.textContent = why; span.hidden = !why; }
+  }
+  const stil = root.querySelector('[data-silence]');
+  if (stil) { const w = silenceWarning(st); stil.hidden = !w; if (stil.textContent !== w) stil.textContent = w; }
+  const cheatsBtn = root.querySelector('.ra[data-goto="streken"]');
+  if (cheatsBtn) cheatsBtn.hidden = !cheatsShown();
 }
 
 // 0.64.1: a line under the diagnose row when the game draws in software or on the integrated GPU
@@ -2737,6 +2818,7 @@ function showTab(name, how) {
   if (name === 'telefoon') { pref.sub.verhaal = 'personages'; name = 'verhaal'; }
   if (name === 'missions') name = 'todo';
   if (name === 'cheats') name = 'streken';
+  if (name === 'streken' && !ids.includes('streken')) { pref.sub.settings = 'spel'; name = 'settings'; } // 22-11: Cheats is uit het menu; de schakelaar staat bij Spelregels
   // #676: Veroverd is een eigen railrij; de oude plek (Verhaal > Veroverd) verwijst door.
   if (name === 'verhaal' && pref.sub.verhaal === 'veroverd') { pref.sub.verhaal = 'opdrachten'; name = 'veroverd'; }
   if (name === 'samen' || name === 'samenspelen' || name === 'spelers') { pref.sub.spel = 'samen'; pref.sub.samen = name === 'spelers' && world && world.coopNet && !isSoloHost(world) ? 'spelers' : 'samen'; name = 'spel'; }
@@ -2831,6 +2913,7 @@ function showTab(name, how) {
   // Elke opening van een onderdeel begint bovenaan: het blad zelf (dat bij een lange inhoud
   // door focus kan zijn meegescrold), de paneelinhoud en de lijst/het detail erin (#906).
   resetScrolls();
+  syncSettingsExtras(getSettings());
 }
 
 // Zet elke scrollstand van het open onderdeel terug naar boven, zonder de focus te verplaatsen.

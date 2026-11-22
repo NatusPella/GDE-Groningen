@@ -36,7 +36,7 @@ ok(VOOR.length === 58, 'de lijst van vóór de wijziging heeft 58 opties (53 + #
 ok(VOOR.filter((k) => k !== 'preset').every((k) => NU.includes(k)), 'geen optie verloren', VOOR.filter((k) => k !== 'preset' && !NU.includes(k)).join(', '));
 // #985: nieuwe opties staan hier met hun issuenummer. VOOR blijft de bevroren lijst van main,
 // zodat een optie die zonder uitleg verdwijnt of verschijnt nog steeds opvalt.
-const NIEUW = ['showSubtitles', 'rustigDrukwerk', 'rumbleStrength', 'terugkeerScene', 'uitlegIconen', 'qteStand', 'liveTreinen', 'worldColor', 'subtitleVlak', 'screenShake', 'markerVormen', 'tikStand'];   // #985 punt 4: ondertitels uit; #992: Rustig drukwerk; 21-11: Wereldkleur
+const NIEUW = ['showSubtitles', 'rustigDrukwerk', 'rumbleStrength', 'terugkeerScene', 'uitlegIconen', 'qteStand', 'liveTreinen', 'worldColor', 'subtitleVlak', 'screenShake', 'markerVormen', 'tikStand', 'cheatsTonen'];   // #985 punt 4: ondertitels uit; #992: Rustig drukwerk; 21-11: Wereldkleur
 ok(NU.every((k) => VOOR.includes(k) || NIEUW.includes(k)), 'geen optie erbij die geen instelling is', NU.filter((k) => !VOOR.includes(k) && !NIEUW.includes(k)).join(', '));
 ok(new Set(NU).size === NU.length, 'elke optie staat op één plek', NU.filter((k, i) => NU.indexOf(k) !== i).join(', '));
 
