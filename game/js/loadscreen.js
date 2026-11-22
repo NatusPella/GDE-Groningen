@@ -118,6 +118,7 @@ export function startLoadScreen(world, opts = {}) {
     if (kind === 'save') noticeQueue.drop(['discovery', 'area', 'reveal', 'hint']);
     res();
   };
+  let tickGemeld = false;
   const step = () => {
     // #770: is het scherm van de pagina gehaald, dan rondt de lus af: alleen stoppen liet de
     // done-promise hangen en de wereld (en de wachters erop) voor altijd wachten.
@@ -130,7 +131,7 @@ export function startLoadScreen(world, opts = {}) {
     // spawnbinnen.js: a game that starts at home waits until the flat upstairs stands (home.js hook; none outside a home start)
     const hl = world.homeLaad;
     let binnen = 0;
-    try { binnen = hl ? hl.tick(Math.max(0, Math.min(0.25, (now - lastT) / 1000))) : 0; } catch (e) { binnen = 0; console.warn('loadscreen: homeLaad.tick gooide, het scherm wacht er niet op', e); } // review 22-11: een gooiende tick houdt de laadpauze niet vast
+    try { binnen = hl ? hl.tick(Math.max(0, Math.min(0.25, (now - lastT) / 1000))) : 0; } catch (e) { binnen = 0; if (!tickGemeld) { tickGemeld = true; console.warn('loadscreen: homeLaad.tick gooide, het scherm wacht er niet op', e); } } // review 22-11: een gooiende tick houdt de laadpauze niet vast
     prog = stepProgress(prog, loadPending(st, tiles, prewarmPending(), binnen), (now - t0) / 1000, kind);
     // één doorlopende balk: zacht naar het doel, nooit terug, nooit voorbij 100 % voor het klaar is
     shownBar = prog.done ? 1 : easeBar(shownBar, prog.bar, now - lastT);

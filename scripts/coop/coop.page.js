@@ -199,6 +199,17 @@ async function toLobby() {
     }
     it.click();
     // de menustroom (#95): Samen spelen -> Gastheer worden / Meedoen -> (gastheer) kies een opgeslagen spel of Nieuw spel
+    // 22-11 (#1120): bij het eerste Samen spelen komt eerst de kaart met naam en akkoord (onlineconsentui.js); de testbank vult hem zoals een speler
+    const eerst = await until(() => document.querySelector('.os-kaart') || document.querySelector('#samenkeuze .sk-item'), 8000, 'de naamkaart of het scherm Samen spelen (keuze)');
+    if (eerst.closest && eerst.closest('.os-kaart') || eerst.classList.contains('os-kaart')) {
+      const veld = document.querySelector('.os-naam');
+      veld.value = CFG.role === 'host' ? 'Bouwer' : 'Gastspeler';
+      veld.dispatchEvent(new Event('input', { bubbles: true }));
+      const vink = document.querySelector('.os-consent-vink'); if (vink && !vink.checked) vink.click();
+      await sleep(300);
+      log('naamkaart', { naam: veld.value, vink: !!(vink && vink.checked) });
+      document.querySelector('.os-kaart [data-doorgaan]').click();
+    }
     const keuze = await until(() => document.querySelector('#samenkeuze .sk-item'), 8000, 'het scherm Samen spelen (keuze)');
     log('samenkeuze', { knoppen: [...document.querySelectorAll('#samenkeuze .sk-item')].map((b) => b.dataset.act).join(','), tekst: document.querySelector('#samenkeuze').innerText.slice(0, 300) });
     await sleep(1200); // het menu en zijn stijlen laden eerst; dan pas de schermafbeelding
