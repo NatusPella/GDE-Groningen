@@ -13,6 +13,12 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Prestaties
 - Prestaties (#1074, #1067): als het spelvenster verborgen of op de achtergrond is, doen de vaste controles van de overlays, het Samen-paneel en het aanraakscherm niets meer; de kartmotor wordt bij het verlaten van de baan echt stopgezet. Samen spelen: lokaal per speler, geen netwerkwijziging; testsessies met `?stil` blijven gewoon tikken. Voor de metingen staan er twee A-schakelaars (`?perfoff=boomfade`, `?perfoff=gevelfade`).
+### Stabiliteit en opslag
+- Opslaan: als je opslag bijna vol zit, maakt het spel eerst de kleine plaatjes bij je opgeslagen spellen vrij zodat je voortgang zelf altijd past.
+- Opslaan: als één onderdeel van het spel niet bewaard kan worden, worden de andere onderdelen gewoon bewaard en blijft de oude stand van dat onderdeel staan.
+- Foutrapport: dezelfde fout met een ander getal erin komt nog maar één keer in de lijst, en het rapport vertelt nu ook hoeveel opgeslagen spellen er zijn, hoe ze ervoor staan en waarom opslaan eventueel mislukte (zonder namen).
+- Instellingen: een kapotte of met de hand aangepaste instellingenfile levert altijd werkende instellingen op; de naam die anderen van je zien kan geen vreemde tekens meer bevatten, en een volle opslag meldt zich in het Foutrapport.
+- Opgeslagen spellen: een kapot bewaarde lijst met gelezen uitleg of toetshints herstelt zichzelf, en een verkeerd plekkennummer verspringt niet meer stilletjes naar plek 1.
 ### Kaart en HUD
 - Kaart: een nieuwe streek ontdekt, ook onderweg met de kaart dicht? Dan gloeit de rand van de minimap even zomers geel op (zonder beweging blijft de gele rand even staan). Ontdekking is per speler; wie meespeelt ziet alleen de eigen gloed (#990).
 - Gebiedsnaam: de prestatie voor wijken, de telefoonpraatjes en de duif noemen alleen nog een stadswijk als je er echt in staat, niet meer vanaf een weg net buiten de stad. Lokaal per speler (#1077).

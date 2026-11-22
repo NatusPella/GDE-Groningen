@@ -1,13 +1,13 @@
 // Kleine, pure lezers voor bewaarde teksten uit localStorage (22-11). Een met de hand bewerkt of half geschreven bestand
-// geeft nooit het verkeerde type terug: leesLijst een array van teksten, leesTellers een object met eindige getallen.
+// geeft nooit het verkeerde type terug: readList een array van teksten, readCounters een object met eindige getallen.
 // scripts/opslaglezen_test.mjs draait ze.
-export function leesLijst(text, max = 500) {
+export function readList(text, max = 500) {
   let d;
   try { d = JSON.parse(text || '[]'); } catch (e) { return []; }
   return Array.isArray(d) ? d.filter((x) => typeof x === 'string').slice(0, max) : [];
 }
 
-export function leesTellers(text, max = 500) {
+export function readCounters(text, max = 500) {
   let d;
   try { d = JSON.parse(text || '{}'); } catch (e) { return {}; }
   const out = {};

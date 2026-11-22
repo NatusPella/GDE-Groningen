@@ -43,7 +43,7 @@ import { areaNameAt } from './regions.js';
 import { saveFailText, newSlotName, takenNames, readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive, pickLatest, repairSlot, writeBackupOnce, isFresh, clearFresh, newerVersionOf, markLegacyCardSeen as markSlotLegacyCardSeen } from './saveslots.js';
 import { isLegacyStorySave, legacyCardNeeded } from './legacysave.js'; // 22-11: de kaart "Nieuw verhaal" bij een oude save
 import { logError } from './errorlog.js';
-import { maakVeilig } from './saveveilig.js';
+import { makeSafe } from './saveveilig.js';
 import { maakCheckpoint } from './coopcheckpoint.js';
 import { registerSaveGame, registerSaveTimers, registerGastVerhaal, registerGastBoek } from './savehook.js';
 import { karakterVoorSave, clearActivity } from './karakterbonus.js';
@@ -259,7 +259,7 @@ export function currentSlot() {
 
 // 22-11: een module waarvan de save-functie struikelt blokkeert niet meer de hele save (saveveilig.js): dat veld valt terug op
 // de laatste goede waarde of het veld uit de vorige save op deze plek; de fout komt één keer per veld in het Foutrapport.
-const veilig = maakVeilig({
+const veilig = makeSafe({
   log: (t) => logError('error', t),
   terugval: (naam) => { const r = readSlot(null, saveTarget()); return r.data ? r.data[naam] : undefined; },
 });
