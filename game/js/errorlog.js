@@ -47,6 +47,10 @@ function scrub(text) {
     .replace(/([/\\](?:Users|home|Documents and Settings)[/\\])[^/\\\s]+/gi, '$1~');
 }
 
+// 22-11: dezelfde fout met een ander getal erin (een frame, een positie, een id) is één melding: een fout die elk beeld
+// opnieuw komt vulde anders de hele lijst met bijna gelijke regels en verdrong de echte oorzaak.
+const sleutel = (msg) => msg.replace(/-?\d+(?:[.,]\d+)?/g, '#');
+
 const clip = (s, n) => (s.length > n ? s.slice(0, n) + '…' : s);
 
 // One argument of console.error/warn as text.
@@ -62,7 +66,8 @@ export function logError(level, message, stack = '') {
   try {
     const msg = clip(scrub(message).trim() || '(geen melding)', MAX_MSG);
     const now = new Date().toISOString();
-    const same = entries.find((e) => e.msg === msg && e.level === level);
+    const sig = sleutel(msg);
+    const same = entries.find((e) => e.level === level && (e.msg === msg || sleutel(e.msg) === sig));
     if (same) {
       same.count = (same.count || 1) + 1;
       same.last = now;
