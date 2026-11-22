@@ -42,6 +42,7 @@
     { "file": "Net_te_dichtbij.mp3", "stations": ["gmusic"], "time": "night", "nieuw": true },
     { "file": "Kroket_in_de_zon.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true },
     { "file": "Grunn_is_nooit_klaar.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true },
-    { "file": "Laagwater_om_middernacht.mp3", "stations": ["gmusic"], "time": "night", "nieuw": true }
+    { "file": "Laagwater_om_middernacht.mp3", "stations": ["gmusic"], "time": "night", "nieuw": true },
+    { "file": "Zon_op_de_gracht.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true }
   ]
 }

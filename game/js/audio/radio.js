@@ -171,6 +171,7 @@ const GMUSIC_ARTISTS = {
   'Kroket in de zon': 'DJ Frituurpan',
   'Grunn is nooit klaar': 'Wierde Wind en de Bietenbende',
   'Laagwater om middernacht': 'Wad en Wolk',
+  'Zon op de gracht': 'Lil Polder',
 };
 // file names can't carry every character of a title
 const GMUSIC_TITLES = {
