@@ -31,7 +31,10 @@ export function askTravel(beat) {
   noteHelp();
   p.show();
   return new Promise((resolve) => {
+    let klaar = false;
     const finish = (id) => {
+      if (klaar) return;   // dubbelklik of toets en tik tegelijk: één keuze
+      klaar = true;
       document.removeEventListener('keydown', onKey, true);
       cancelAnimationFrame(raf);
       p.root.removeEventListener('pointerdown', onTap);

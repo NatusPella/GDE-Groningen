@@ -3,6 +3,7 @@
 // (stand()), de instelling uit Instellingen. Dit bestand beslist alleen wat de speler te zien krijgt; het haalt niets op.
 // De bron staat nooit alleen in een kleur: er staat altijd een woord (Live of Rooster) en een bronregel.
 
+import { duurTekst } from './reistijd.js';
 export const KIND = { live: 'live', rooster: 'rooster', uit: 'uit' };
 const VEROUDERD_MS = 180000;   // zoals LIVE_TRAINS.verouderd (livetrains.js)
 const SOURCE_LINE = 'Bron: open OV-gegevens';
@@ -33,7 +34,7 @@ export function sourceState({ instelling = true, stand = null, nu = Date.now(), 
 }
 
 export function ageText(sec) {
-  const s = Math.max(0, Math.round(sec));
+  const s = Math.max(0, Math.round(Number.isFinite(+sec) ? +sec : 0));
   if (s < 5) return 'zojuist';
   if (s < 90) return `${s} s geleden`;
   return `${Math.round(s / 60)} min geleden`;
@@ -47,8 +48,9 @@ export function departureLine(rij, nu) {
   if (!rij) return '';
   if (rij.vervallen) return 'Deze trein rijdt niet';
   const wacht = rij.tijd - nu;
-  const basis = wacht <= 30 ? 'Vertrekt nu' : wacht < 90 ? 'Vertrekt over 1 min' : `Vertrekt over ${minuten(wacht)} min`;
-  return rij.vertraging >= 60 ? `${basis} · ${minuten(rij.vertraging)} min vertraagd` : basis;
+  if (!Number.isFinite(wacht)) return '';   // een rij zonder tijd zegt niets in plaats van "over NaN min"
+  const basis = wacht <= 30 ? 'Vertrekt nu' : wacht < 90 ? 'Vertrekt over 1 min' : `Vertrekt over ${duurTekst(wacht)}`;
+  return rij.vertraging >= 60 ? `${basis} · ${duurTekst(rij.vertraging)} vertraagd` : basis;
 }
 
 // Het label op het bord: het woord Live of Rooster plus, bij Live, hoe vers. Eigen dienst (station zonder echt rooster): "Rooster (eigen dienst)".

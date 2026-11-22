@@ -2,7 +2,7 @@
 // opbouw van de scène (shots in de regietaal van de cutscenes), de tijd, het
 // skippen met spatie en wat er bij aankomst gebeurt. De wereld-laag (camera,
 // fade, laadscherm) roept dit per beeld aan.
-import { CAP } from './reistijd.js';
+import { CAP, duurTekst } from './reistijd.js';
 
 export const SKIP_KEY = ' ';            // spatie
 export const SKIP_GUARD_S = 0.6;        // eerste momenten niet skippen: per ongeluk ingedrukt
@@ -37,13 +37,15 @@ export function bootHaven(optie) {
 // ingekort tot CAP.meerijden; de klok loopt de echte tijd door (clockS).
 export function ritPlan(optie) {
   const mode = SHOT_NAMES[optie.id] ? optie.id : 'auto';
-  const playS = Math.max(6, Math.min(optie.etaS, CAP.meerijden));
+  // een kapotte duur (NaN, ontbreekt) mag de scène niet eindeloos laten duren: dan geldt de ondergrens
+  const eta = Number.isFinite(+optie.etaS) ? Math.max(0, +optie.etaS) : 0;
+  const playS = Math.max(6, Math.min(eta, CAP.meerijden));
   const names = SHOT_NAMES[mode];
   // eerste en laatste shot kort, het middenstuk neemt de rest
   const first = Math.min(5, playS * 0.2), last = Math.min(4, playS * 0.15);
   const dur = [first, playS - first - last, last];
   return {
-    mode, playS, clockS: optie.etaS, price: optie.price || 0,
+    mode, playS, clockS: eta, price: Number.isFinite(+optie.price) ? Math.max(0, +optie.price) : 0,
     shots: names.map((name, i) => ({ name, duur: dur[i], from: dur.slice(0, i).reduce((a, b) => a + b, 0) })),
     lines: (optie.lines || []).map((l) => l.name),
     stops: optie.stops || [],
@@ -88,7 +90,7 @@ export function aankomst(rit, dest, geld) {
     x: haven ? haven.x : dest.x, y: haven ? haven.y : dest.y, naam: dest.name || '',
     prijs: p.price, klokMinuten: min,
     skipped: rit.skipped, aankomstS: rit.skipped ? SKIPPED_S : PLAYED_ARRIVAL_S,
-    bericht: `Aangekomen${dest.name ? ` in ${dest.name}` : ''}. Reistijd ${min} minuten${p.price ? `, € ${p.price} armer` : ''}.`,
+    bericht: `Aangekomen${dest.name ? ` in ${dest.name}` : ''}. Reistijd ${duurTekst(min * 60)}${p.price ? `, € ${p.price} armer` : ''}.`,
   };
 }
 
@@ -100,7 +102,7 @@ export function aankomstNaRit(rit, dest, geld) {
   if (a) return a;
   const rest = Math.max(0, Math.floor(Number.isFinite(geld) ? geld : 0));
   const vol = aankomst(rit, dest, Infinity);
-  return { ...vol, prijs: rest, bericht: `Aangekomen${dest.name ? ` in ${dest.name}` : ''}. Reistijd ${vol.klokMinuten} minuten, je betaalde € ${rest} van € ${vol.prijs}.` };
+  return { ...vol, prijs: rest, bericht: `Aangekomen${dest.name ? ` in ${dest.name}` : ''}. Reistijd ${duurTekst(vol.klokMinuten * 60)}, je betaalde € ${rest} van € ${vol.prijs}.` };
 }
 
 // De witte toetsknop-hint voor de HUD (alleen als skippen kan)

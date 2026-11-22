@@ -31,7 +31,10 @@ export function loadPending(st, tiles = 0, prewarm = 0, binnen = 0) {
 // have not looked at the new place yet, so they report nothing useful.
 // state: { total, shown, calm, frames }, returns the next state plus bar (0..1)
 // and done. Pure: pass the old state in, get a new one out.
-export function stepProgress(state, pending, elapsedS, kind) {
+export function stepProgress(state, pending0, elapsed0, kind) {
+  // een kapotte tijd of teller (NaN) mag het laadscherm niet laten hangen: de tijd telt dan als verlopen, de teller als leeg
+  const elapsedS = Number.isFinite(elapsed0) ? elapsed0 : MAX_S + 1;
+  const pending = Number.isFinite(pending0) && pending0 > 0 ? pending0 : 0;
   const frames = state.frames + 1;
   let total = state.total;
   if (frames > 3) total = Math.max(total, pending);

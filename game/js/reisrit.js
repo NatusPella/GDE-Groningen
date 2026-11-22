@@ -304,7 +304,7 @@ export function startMeerijden(world, optie, dest) {
     try { echt = start3dRit(world, optie, plan, dest); } catch (e) { console.warn('reisrit: echte rit', e); }
     if (echt) {
       active = rit;
-      return echt.then((res) => {
+      return Promise.resolve(echt).then((res) => {
         active = null;
         // een save laden tijdens de rit (applySave stopt de film) mag de geladen wereld niet nog naar de bestemming zetten en laten betalen
         if ((world.loadCount || 0) !== laadTeller) return { aangekomen: false };
@@ -314,6 +314,12 @@ export function startMeerijden(world, optie, dest) {
         const a = aankomstNaRit(rit, dest, world.money);
         landNaRit(world, rit, a, res.landing || null);
         return { aangekomen: true, skipped: rit.skipped };
+      }, (e) => {
+        // een mislukte echte rit hield `active` voor altijd vast: dan speelt de korte scène, nooit een vastloper
+        console.warn('reisrit: echte rit mislukt', e);
+        active = null;
+        if ((world.loadCount || 0) !== laadTeller) return { aangekomen: false };
+        return oudeScene(world, optie, dest, plan);
       });
     }
   }
@@ -328,6 +334,7 @@ function oudeScene(world, optie, dest, plan) {
   const q = (s) => el.querySelector(s);
   // zoals het laadscherm: de wereld staat stil tijdens de scène
   const wasPaused = !!world.uiPaused;
+  const laadTeller = world.loadCount || 0;
   world.uiPaused = true;
   zachtePauze(world, 'reisrit', true); // met meer spelers loopt de wereld door; jij reist alleen zelf (#452)
   let skipKey = false;
@@ -350,11 +357,16 @@ function oudeScene(world, optie, dest, plan) {
       zachtePauze(world, 'reisrit', false);
       const a = aankomst(rit, dest, world.money);
       el.remove();
-      if (!a) return resolve({ aangekomen: false });
+      // een save laden tijdens de scène: de geladen wereld wordt niet nog naar de bestemming gezet
+      if ((world.loadCount || 0) !== laadTeller) return resolve({ aangekomen: false });
+      if (!a) { world.addMessage('Te weinig geld voor dit kaartje', 2.5); return resolve({ aangekomen: false }); }
       landNaRit(world, rit, a);
       resolve({ aangekomen: true, skipped: rit.skipped });
     };
     const tick = (now) => {
+      try { stap(now); } catch (e) { console.warn('reisrit: scène', e); rit.done = true; finish(); }
+    };
+    const stap = (now) => {
       const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
       let padA = false;

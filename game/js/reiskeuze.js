@@ -2,7 +2,7 @@
 // Pure: a beat comes in ({ length, ride, vehicle, lines, ... }), the options with
 // their ETA, the default, and what each option does on arrival go out. The panel
 // (reispanel.js) draws it; the story runner applies `arrival`.
-import { travelSeconds, needsBeat, classOf, CAP, MAX_DRIVE_S, piecesFor } from './reistijd.js';
+import { travelSeconds, needsBeat, classOf, CAP, MAX_DRIVE_S, piecesFor, duurTekst } from './reistijd.js';
 
 export const CHOICES = ['meerijden', 'zelf', 'overslaan'];
 
@@ -15,8 +15,7 @@ export const RIDES = {
   lift: { label: 'Meerijden', mode: 'auto' },
 };
 
-const mins = (s) => Math.max(1, Math.round(s / 60));
-const label = (s) => `± ${mins(s)} min`;
+const label = (s) => `± ${duurTekst(s)}`;
 
 // De keuze in gewone woorden (#445): een korte zin per keuze, voor het keuzevenster en de kaart.
 export const UITLEG = {
@@ -63,7 +62,8 @@ export function defaultChoice(length, opts) {
 // Small reward for driving yourself; never a punishment for the others.
 export const SELF_REWARD = { perKm: 4, max: 120 };
 export function selfReward(length) {
-  return Math.min(SELF_REWARD.max, Math.round((length / 1000) * SELF_REWARD.perKm));
+  const m = Math.max(0, Number.isFinite(+length) ? +length : 0);
+  return Math.min(SELF_REWARD.max, Math.round((m / 1000) * SELF_REWARD.perKm));
 }
 
 // What happens on arrival, the same for every choice (nothing story is skipped):
