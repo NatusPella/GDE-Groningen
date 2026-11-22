@@ -5,6 +5,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { BLOCK, MAAR_WATER, chash, edgeDistance, edgeRoad, provinceBlock, rectOutside } from './countryfield.js';
 import { roadKind } from './tileplace.js';
 import { ROAD_C, openLand } from './countryplan.js';
+import { pigeonMerged } from './pigeonmodel.js';
+import { dsWereld } from './worldpalette.js';
 import { GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
 import { tractorBodyGeometry, tractorBaseGeometry, trailerBodyGeometry, trailerBaseGeometry } from './countrymodels.js';
 import { glowMaterial, headlightGeometry } from './countryglow.js';
@@ -108,27 +110,18 @@ function boatGeometry(kind) {
   return B.build();
 }
 
-// birds: frame 0 folded (sitting), 1 wings up, 2 wings down
+// birds: frame 0 folded (sitting), 1 wings up, 2 wings down. Het middelniveau van het ene duivenmodel (pigeonmodel.js) in de kleuren van
+// de soort: een gladde romp met kop, staart en vleugels met veren, geen doos met twee vlakken. De gans is een grotere vogel van hetzelfde model.
 const BIRDS = {
-  lapwing: { back: 0x1e2a22, belly: 0xeeeeea, scale: 1, flap: 4.2 },
-  starling: { back: 0x1f1d22, belly: 0x3a3440, scale: 0.8, flap: 7 },
-  goose: { back: 0x6e6a60, belly: 0xc8c2b4, scale: 2.6, flap: 2.3 },
+  lapwing: { scale: 1, flap: 4.2, colors: { body: 0x1e2a22, wing: 0x1e2a22, head: 0x1e2a22, tail: 0xe6e6e0, band: 0x1e2a22, breast: 0xeeeeea, neck: 0x1e2a22, neck2: 0xeeeeea, bar: 0x1e2a22, tip: 0x1e2a22, beak: 0x2b2b2b, eye: 0x111111, leg: 0x8a6a5a, cere: 0x2b2b2b } },
+  starling: { scale: 0.8, flap: 7, colors: { body: 0x1f1d22, wing: 0x1f1d22, head: 0x1f1d22, tail: 0x1f1d22, band: 0x1f1d22, breast: 0x3a3440, neck: 0x3a3440, neck2: 0x2a2630, bar: 0x1f1d22, tip: 0x1f1d22, beak: 0xd8b030, eye: 0x111111, leg: 0x8a5a4a, cere: 0xd8b030 } },
+  goose: { scale: 2.6, flap: 2.3, colors: { body: 0x6e6a60, wing: 0x6e6a60, head: 0x6e6a60, tail: 0xc8c2b4, band: 0x6e6a60, breast: 0xc8c2b4, neck: 0x8a8678, neck2: 0xc8c2b4, bar: 0x6e6a60, tip: 0x3a3832, beak: 0xe08a2a, eye: 0x111111, leg: 0xe08a2a, cere: 0xe08a2a } },
 };
+const BIRD_MAT = markShared(vcMaterial({ roughness: 0.85, flatShading: false }));
+const BIRD_WINGS = ['folded', 0.7, -0.6];
 function birdGeometry(sp, frame) {
-  const C = BIRDS[sp];
-  const B = new GeoBuilder();
-  B.box(0, 0.1, 0, 0.3, 0.1, 0.11, C.back);
-  B.box(0, 0.06, 0, 0.26, 0.04, 0.1, C.belly);
-  B.box(0.18, 0.14, 0, 0.09, 0.08, 0.08, C.back);
-  B.tri([-0.15, 0.11, 0.03], [-0.15, 0.11, -0.03], [-0.25, 0.1, 0], C.back);
-  if (sp === 'goose') B.box(0.28, 0.15, 0, 0.14, 0.035, 0.035, C.back);
-  const tip = frame === 0 ? [[-0.06, 0.15, 0.07], [-0.14, 0.14, 0.06]] : frame === 1 ? [[0.0, 0.3, 0.32], [-0.06, 0.28, 0.3]] : [[0.0, -0.08, 0.3], [-0.06, -0.06, 0.28]];
-  for (const s of [1, -1]) {
-    const [t0, t1] = tip;
-    B.quadOut([0.08, 0.12, s * 0.05], [-0.07, 0.12, s * 0.05], [t1[0], t1[1], s * t1[2]], [t0[0], t0[1], s * t0[2]], [0, 1, 0], C.back);
-    B.quadOut([0.08, 0.12, s * 0.05], [t0[0], t0[1], s * t0[2]], [t1[0], t1[1], s * t1[2]], [-0.07, 0.12, s * 0.05], [0, -1, 0], C.belly);
-  }
-  return B.build();
+  // 0,5: het model is 0,6 m van snavel tot staart, de oude vogel was 0,3 m
+  return pigeonMerged('mid', { variant: BIRDS[sp].colors, map: dsWereld }, { wings: BIRD_WINGS[frame], scale: 0.5 });
 }
 
 function init(scene) {
@@ -138,7 +131,7 @@ function init(scene) {
   const birdPools = {};
   for (const sp of Object.keys(BIRDS)) {
     birdPools[sp] = [0, 1, 2].map((f) => {
-      const m = new THREE.InstancedMesh(markShared(birdGeometry(sp, f)), MAT, 500);
+      const m = new THREE.InstancedMesh(markShared(birdGeometry(sp, f)), BIRD_MAT, 500);
       m.count = 0;
       m.frustumCulled = false;
       m.userData.shared = true;

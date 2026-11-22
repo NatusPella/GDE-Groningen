@@ -108,7 +108,7 @@ function vehicleModel(src) {
 }
 function worldProp(src) {
   if (src.animal) {
-    const g = buildWildlifeMesh3D({ kind: src.animal, variant: 0, bobSeed: 0 });
+    const g = buildWildlifeMesh3D({ kind: src.animal, variant: 0, bobSeed: 0, lod: 'hi' }); // een filmpje komt dichtbij: de duif en de meeuw in het hoogste niveau (duifmodel.js)
     g.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.userData.shared = true; } }); // geometries are the world's cache: never disposed here
     return g;
   }

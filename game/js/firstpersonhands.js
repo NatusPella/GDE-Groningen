@@ -314,6 +314,16 @@ export function firstPersonWeaponKey(world, inVehicle = false) {
   return hasWeaponModel(key) ? key : null;
 }
 
+// Wanneer de speler geen handen heeft of de camera niet van hem is: geen viewmodel (geen meshes, schaduw of hand-hud). Een duif (of een andere
+// niet-menselijke gedaante: player.vorm of player.nonHuman) heeft vleugels, geen handen; een voertuig, het water, een filmpje, de treincamera, het
+// menu en de scope laten de handen ook weg. Eén plek, zodat een nieuwe niet-menselijke stand maar op één lijst hoeft.
+export const HANDS_HIDE_FLAGS = ['pigeonMode', 'pigeonIntro', 'scoped', 'menuCam', 'cinematicHidePlayers', 'cameraOverride', 'trainCam', 'trainDriving'];
+export function firstPersonHandsHidden(world, player) {
+  if (!player || player.inVehicle || player.swimming || player.carrying || player.ragdoll || player.nonHuman || player.vorm === 'duif') return true;
+  if (world) for (const f of HANDS_HIDE_FLAGS) if (world[f]) return true;
+  return false;
+}
+
 let hands = null;
 const _pose = { r: {}, l: {}, w: {} };
 let wasE = false, reachAt = -9;
@@ -340,7 +350,7 @@ export function syncFirstPersonHands(scene, cam, world, player) {
     if (scene && cam.parent !== scene) scene.add(cam);
   }
   const inVehicle = !!(player && player.inVehicle);
-  const hidden = !player || inVehicle || !!player.swimming || !!player.carrying || !!player.ragdoll || !!(world && (world.pigeonMode || world.scoped || world.menuCam || world.cinematicHidePlayers || world.cameraOverride || world.trainCam || world.trainDriving));
+  const hidden = firstPersonHandsHidden(world, player);
   hands.visible = !hidden;
   if (hidden) return hands;
   const key = firstPersonWeaponKey(world, inVehicle);
@@ -411,4 +421,18 @@ export function currentFirstPersonHands() { return hands; }
 // blijven hangen. fpSync roept dit elk beeld dat de camera niet in eerste persoon staat.
 export function hideFirstPersonHands() {
   if (hands) hands.visible = false;
+}
+
+// Haalt het viewmodel helemaal weg (uit de camera, geometrieën en materialen vrij); de volgende sync bouwt het opnieuw. Voor een wissel van
+// personage of een opruimronde; de handen komen daarna vanzelf terug als de speler weer een mens in eerste persoon is.
+export function disposeFirstPersonHands() {
+  if (!hands) return;
+  if (hands.parent) hands.parent.remove(hands);
+  const seen = new Set();
+  hands.traverse((o) => {
+    if (o.geometry && !seen.has(o.geometry)) { seen.add(o.geometry); o.geometry.dispose(); }
+    const ms = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
+    for (const m of ms) if (!seen.has(m)) { seen.add(m); m.dispose(); }
+  });
+  hands = null;
 }

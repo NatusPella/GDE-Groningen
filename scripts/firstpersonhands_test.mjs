@@ -9,7 +9,7 @@ const {
   HANDS_REST, HANDS_MIN_DIST, AIM_Z, SWING_S,
   swingAmount, gunKick, handsPose, showFirstPersonWeapon, firstPersonWeaponKey,
   syncFirstPersonHands, hideFirstPersonHands, currentFirstPersonHands,
-  weaponClass, HAND_CLASSES, muzzleFlash,
+  weaponClass, HAND_CLASSES, muzzleFlash, firstPersonHandsHidden, HANDS_HIDE_FLAGS, disposeFirstPersonHands,
 } = await import('../game/js/firstpersonhands.js');
 const { buildWeaponMesh } = await import('../game/js/models3d_people.js');
 const { WEAPON_KEYS } = await import('../game/js/weapons.js');
@@ -338,6 +338,84 @@ t('verborgen in cutscene, filmcamera, treincamera, duif en menucamera', () => {
   }
   syncFirstPersonHands(scene, cam, world, player);
   assert.equal(currentFirstPersonHands().visible, true);
+});
+
+
+// --- een duif heeft vleugels, geen handen (22-11) ------------------------------------------
+// Geen mesh van het viewmodel (ook het wapen en de muzzle flash niet) staat in beeld zolang de speler een duif is, in elke toestand.
+const zichtbaar = (o) => { for (let p = o; p; p = p.parent) { if (p.visible === false) return false; if (p === cam) return true; } return true; };
+const meshesIn = (root) => { const l = []; root.traverse((o) => { if (o.isMesh) l.push(o); }); return l; };
+
+t('duif: de handen en het wapen zijn verborgen bij stilstaan, vliegen, landen, pikken en wisselen van modus', () => {
+  setCombatEffect(null);
+  world.weapon = 'knuppel';
+  for (const f of HANDS_HIDE_FLAGS) world[f] = false;
+  player.inVehicle = null; player.swimming = false; player.carrying = false;
+  const hands = syncFirstPersonHands(scene, cam, world, player);
+  assert.ok(meshesIn(hands).some(zichtbaar), 'te voet zijn de handen er wel');
+  const toestanden = [
+    ['stilstaan op de grond', { vx: 0, vy: 0, z: 0 }], ['vliegen', { vx: 9, vy: 2, z: 12, vz: 3 }], ['landen', { vx: 2, vy: 0, z: 0.3, vz: -2 }],
+    ['pikken', { vx: 0, vy: 0, z: 0 }], ['rijden op een voertuig', { vx: 5, vy: 0, z: 1 }],
+  ];
+  world.pigeonMode = true;
+  for (const [naam, st] of toestanden) {
+    Object.assign(player, { vx: 0, vy: 0, z: 0, vz: 0 }, st);
+    syncFirstPersonHands(scene, cam, world, player);
+    assert.equal(meshesIn(hands).filter(zichtbaar).length, 0, `geen enkele hand-mesh in beeld bij ${naam}`);
+  }
+  // de intro (de speler sluit zijn ogen, de duif nog niet in de lucht) en een gedaante-vlag zonder pigeonMode
+  world.pigeonMode = false; world.pigeonIntro = true;
+  syncFirstPersonHands(scene, cam, world, player);
+  assert.equal(meshesIn(hands).filter(zichtbaar).length, 0, 'ook in de intro');
+  world.pigeonIntro = false; player.vorm = 'duif';
+  syncFirstPersonHands(scene, cam, world, player);
+  assert.equal(meshesIn(hands).filter(zichtbaar).length, 0, 'ook met een duif als gedaante');
+  player.vorm = null; player.nonHuman = true;
+  assert.equal(firstPersonHandsHidden(world, player), true);
+  player.nonHuman = false;
+  // wisselen van modus: duif -> voertuig -> uitstappen -> duif -> mens
+  world.pigeonMode = true; syncFirstPersonHands(scene, cam, world, player);
+  player.inVehicle = {}; syncFirstPersonHands(scene, cam, world, player);
+  assert.equal(meshesIn(hands).filter(zichtbaar).length, 0, 'duif in een voertuig');
+  player.inVehicle = null; syncFirstPersonHands(scene, cam, world, player);
+  assert.equal(meshesIn(hands).filter(zichtbaar).length, 0, 'uitgestapt, nog duif');
+  // terug naar de mens: de handen en het wapen komen terug
+  world.pigeonMode = false;
+  syncFirstPersonHands(scene, cam, world, player);
+  assert.ok(meshesIn(hands).some(zichtbaar), 'weer een mens: de handen zijn terug');
+  assert.ok(hands.userData.weapons.knuppel && zichtbaar(hands.userData.weapons.knuppel), 'en de knuppel ook');
+  world.weapon = 'fists';
+  syncFirstPersonHands(scene, cam, world, player);
+});
+
+t('duif: de lijst van niet-menselijke standen bevat de duif, de intro en de filmstanden', () => {
+  for (const f of ['pigeonMode', 'pigeonIntro', 'cameraOverride', 'trainCam', 'menuCam', 'scoped']) assert.ok(HANDS_HIDE_FLAGS.includes(f), f);
+  assert.equal(firstPersonHandsHidden(null, null), true, 'zonder speler geen handen');
+  assert.equal(firstPersonHandsHidden({}, { character: 'tammo' }), false, 'een gewone speler te voet heeft ze');
+});
+
+t('geen lek: steeds wisselen tussen duif en mens bouwt niets bij, opruimen geeft alles vrij', () => {
+  const hands = currentFirstPersonHands();
+  const tel = () => { let n = 0; hands.traverse(() => n++); return n; };
+  const voor = tel();
+  for (let i = 0; i < 40; i++) {
+    world.pigeonMode = i % 2 === 0;
+    syncFirstPersonHands(scene, cam, world, player);
+  }
+  world.pigeonMode = false;
+  syncFirstPersonHands(scene, cam, world, player);
+  assert.equal(tel(), voor, 'het aantal objecten blijft gelijk');
+  assert.equal(cam.children.filter((c) => c.name === 'eerstepersoonhanden').length, 1, 'één viewmodel aan de camera');
+  const geos = new Set(), mats = new Set();
+  hands.traverse((o) => { if (o.geometry) geos.add(o.geometry); if (o.material) mats.add(o.material); });
+  let vrij = 0;
+  for (const x of [...geos, ...mats]) x.addEventListener('dispose', () => vrij++);
+  disposeFirstPersonHands();
+  assert.equal(vrij, geos.size + mats.size, 'alle geometrieën en materialen zijn vrijgegeven');
+  assert.equal(currentFirstPersonHands(), null);
+  assert.equal(cam.children.some((c) => c.name === 'eerstepersoonhanden'), false, 'de camera heeft geen handen meer');
+  const nieuw = syncFirstPersonHands(scene, cam, world, player);
+  assert.equal(nieuw.visible, true, 'als mens bouwt de volgende sync ze weer op');
 });
 
 console.log(`firstpersonhands_test: ${n}/${n} ok`);

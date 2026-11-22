@@ -17,7 +17,8 @@ import { waterNearby } from './waterlevels.js';
 import { poiLayerPlace } from './facilities.js';
 import { clearPigeonGuide } from './pigeonguide.js';
 import { glyphHtml } from './keycap.js';
-import { bakeBird } from './birdbake.js';
+import { hideFirstPersonHands } from './firstpersonhands.js';
+import { pigeonParts, pigeonMaterial, pigeonShinyMaterial, mergePigeonGeometries, PIGEON_PIVOT } from './pigeonmodel.js';
 
 const LEVEL_H = 3.1;
 const G = 9.8;
@@ -182,13 +183,6 @@ function freeMesh(obj) {
   obj.traverse((o) => { const g = o.geometry; if (g && !SHARED_GEO.has(g)) g.dispose(); });
 }
 
-function blob(r, sx, sy, sz, material, x, y, z, detail = 1) {
-  const m = new THREE.Mesh(new THREE.IcosahedronGeometry(r, detail), material);
-  m.scale.set(sx, sy, sz);
-  m.position.set(x, y, z);
-  return m;
-}
-
 function box(w, h, d, material, x, y, z) {
   const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
   m.position.set(x, y, z);
@@ -307,10 +301,6 @@ function rayHitDistance(fx, fy, fz, tx, ty, tz) {
 
 // --- models ----------------------------------------------------------------
 
-const BIRD_COLORS = {
-  pigeon: { body: 0x8a93a6, breast: 0x949db0, head: 0x7b8497, wing: 0x9ea7ba, bar: 0x2f323a, tip: 0x4f5564, tail: 0x7d8699, band: 0x2b2e36, neck: 0x2f8a64, neck2: 0x7b4a93, beak: 0x2b2b2b, eye: 0xff8c1a, leg: 0xe0663a },
-  gull: { body: 0xf4f4f0, breast: 0xf7f7f4, head: 0xf8f8f5, wing: 0xb9bec6, bar: 0xb9bec6, tip: 0x1f1f22, tail: 0xf0f0ec, band: 0xe6e6e2, neck: 0xf4f4f0, neck2: 0xf4f4f0, beak: 0xf2c230, eye: 0xf5e26a, leg: 0xe8b04a },
-};
 const FLOCK_TINTS = [0x8a93a6, 0x6f7584, 0xa79f94, 0x9aa3b8, 0x5d6270, 0xc9c6bf, 0x857a70];
 const matCache = new Map();
 function cmat(color, opts) {
@@ -319,89 +309,91 @@ function cmat(color, opts) {
   return matCache.get(k);
 }
 
-function buildWing(c, side) {
-  const g = new THREE.Group();
-  g.position.set(0.035, 0.055, 0.055 * side);
-  const inner = box(0.16, 0.016, 0.19, cmat(c.wing), -0.025, 0, 0.095 * side);
-  g.add(inner);
-  g.add(box(0.022, 0.018, 0.17, cmat(c.bar), -0.055, 0.002, 0.1 * side));
-  g.add(box(0.022, 0.018, 0.17, cmat(c.bar), -0.09, 0.002, 0.1 * side));
-  const outer = new THREE.Group();
-  outer.position.set(0, 0, 0.19 * side);
-  outer.add(box(0.13, 0.013, 0.15, cmat(c.wing), -0.035, 0, 0.075 * side));
-  outer.add(box(0.1, 0.014, 0.07, cmat(c.tip), -0.05, 0, 0.13 * side));
-  g.add(outer);
-  g.userData.outer = outer;
-  g.userData.side = side;
-  return g;
+// De duif (pigeonmodel.js, hoogste niveau): per bewegende groep een samengevoegde, gladde geometrie met hoekpuntkleuren, dus
+// 11 draw calls per vogel (romp, glanzende nek, kop, staart, elke vleugel en handpennen, elke poot) en geen eigen geometrie
+// per exemplaar: elke kind+kleur-combinatie wordt een keer gebouwd en gedeeld (SHARED_GEO).
+const birdGeoCache = new Map();
+function birdGroupGeos(kind, variant) {
+  const key = kind + '|' + variant;
+  let m = birdGeoCache.get(key);
+  if (m) return m;
+  m = new Map();
+  const lists = new Map();
+  for (const p of pigeonParts('hi', { kind, variant })) {
+    const k = p.g + (p.side ? (p.side > 0 ? '+' : '-') : '') + (p.shiny ? '*' : '');
+    if (!lists.has(k)) lists.set(k, []);
+    lists.get(k).push(p.geo);
+  }
+  for (const [k, list] of lists) {
+    const g = mergePigeonGeometries(list);
+    for (const x of list) x.dispose();
+    SHARED_GEO.add(g);
+    m.set(k, g);
+  }
+  birdGeoCache.set(key, m);
+  return m;
 }
 
 function buildBird(kind = 'pigeon', tint = null) {
-  const c = { ...BIRD_COLORS[kind] };
-  if (tint) { c.body = tint; c.wing = tint; c.breast = tint; }
+  const geos = birdGroupGeos(kind, tint);
   const root = new THREE.Group();
+  const mk = (group, key, shiny = false) => {
+    const g = geos.get(key);
+    if (!g) return null;
+    const mesh = new THREE.Mesh(g, shiny ? pigeonShinyMaterial() : pigeonMaterial());
+    mesh.castShadow = true;
+    group.add(mesh);
+    return mesh;
+  };
+  const at = (g, v, s = 1) => { g.position.set(v[0], v[1], v[2] * s); return g; };
   const body = new THREE.Group();
   body.position.y = 0.15;
   root.add(body);
-  body.add(blob(1, 0.17, 0.1, 0.1, cmat(c.body), -0.01, 0, 0));
-  body.add(blob(1, 0.09, 0.09, 0.085, cmat(c.breast), 0.08, -0.005, 0));
-  const irid = { roughness: 0.35, metalness: 0.2 };
-  body.add(blob(1, 0.06, 0.05, 0.07, cmat(c.neck2, kind === 'pigeon' ? irid : null), 0.12, 0.025, 0));
-  body.add(blob(1, 0.062, 0.072, 0.062, cmat(c.neck, kind === 'pigeon' ? { ...irid, emissive: 0x120a1c } : null), 0.145, 0.07, 0));
-  const head = new THREE.Group();
-  head.position.set(0.19, 0.115, 0);
-  head.add(blob(0.05, 1, 0.95, 0.9, cmat(c.head), 0, 0, 0));
-  const beak = new THREE.Mesh(new THREE.ConeGeometry(0.013, 0.05, 5), cmat(c.beak));
-  beak.rotation.z = -Math.PI / 2;
-  beak.position.set(0.058, -0.006, 0);
-  head.add(beak);
-  if (kind === 'pigeon') head.add(blob(0.013, 1.2, 0.8, 1, cmat(0xe8e6de), 0.036, 0.009, 0, 0));
-  for (const s of [1, -1]) {
-    head.add(blob(0.012, 1, 1, 1, cmat(c.eye, { roughness: 0.4 }), 0.022, 0.013, 0.037 * s, 0));
-    head.add(blob(0.006, 1, 1, 1, cmat(0x0c0c0c, { roughness: 0.3 }), 0.028, 0.014, 0.046 * s, 0));
-  }
+  mk(body, 'body');
+  mk(body, 'body*', true);
+  const head = at(new THREE.Group(), PIGEON_PIVOT.head);
+  mk(head, 'head');
   body.add(head);
-  const tail = new THREE.Group();
-  tail.position.set(-0.15, 0.012, 0);
-  tail.add(box(0.13, 0.012, 0.085, cmat(c.tail), -0.06, 0, 0));
-  tail.add(box(0.03, 0.013, 0.087, cmat(c.band), -0.115, 0, 0));
+  const tail = at(new THREE.Group(), PIGEON_PIVOT.tail);
+  mk(tail, 'tail');
   body.add(tail);
-  const wingL = buildWing(c, -1), wingR = buildWing(c, 1);
+  const wing = (side) => {
+    const w = at(new THREE.Group(), PIGEON_PIVOT.wing, side);
+    const sgn = side > 0 ? '+' : '-';
+    mk(w, 'wing' + sgn);
+    const outer = at(new THREE.Group(), PIGEON_PIVOT.wingOut, side);
+    mk(outer, 'wingOut' + sgn);
+    w.add(outer);
+    w.userData.outer = outer;
+    w.userData.side = side;
+    return w;
+  };
+  const wingL = wing(-1), wingR = wing(1);
   body.add(wingL, wingR);
-  const legs = new THREE.Group();
-  legs.position.set(0.02, -0.075, 0);
-  const legMat = cmat(c.leg);
+  const legs = at(new THREE.Group(), PIGEON_PIVOT.legs);
   const legParts = [];
   for (const s of [1, -1]) {
-    const leg = new THREE.Group();
-    leg.position.z = 0.03 * s;
-    leg.add(box(0.014, 0.07, 0.014, legMat, 0, -0.035, 0));
-    for (const a of [-0.5, 0, 0.5]) {
-      const toe = box(0.04, 0.008, 0.009, legMat, 0.018, -0.072, 0);
-      toe.rotation.y = a;
-      leg.add(toe);
-    }
+    const leg = at(new THREE.Group(), PIGEON_PIVOT.leg, s);
+    mk(leg, 'leg' + (s > 0 ? '+' : '-'));
     legs.add(leg);
     legParts.push(leg);
   }
   body.add(legs);
-  const scale = kind === 'gull' ? 2.1 : PIGEON_SCALE;
-  root.scale.setScalar(scale);
+  root.scale.setScalar(kind === 'gull' ? 2.1 : PIGEON_SCALE);
   root.rotation.order = 'YZX';
   root.userData = { body, head, tail, wingL, wingR, legs, legParts, flap: Math.random() * 6 };
-  // #1039: ~28 meshes become 11 (one per moving group); the groups stay for poseBird
-  bakeBird(root);
-  root.traverse((o) => { if (o.isMesh) o.castShadow = true; });
   return root;
 }
 
 function poseBird(bird, { flapPhase, amp, fold, grounded, walkPhase = 0, peck = 0 }) {
   const u = bird.userData;
   const f = Math.sin(flapPhase);
-  const lift = amp * f + 0.12 * (1 - fold) - 1.2 * fold;
+  const lift = amp * f + 0.12 * (1 - fold) - 0.5 * fold;
   const outerBend = grounded ? 0 : -amp * 0.5 * Math.cos(flapPhase);
   for (const w of [u.wingL, u.wingR]) {
     const s = w.userData.side;
+    // gevouwen ligt de vleugel op de flank in plaats van op de schouder: iets naar buiten en omhoog zodat hij om de romp sluit
+    w.position.set(PIGEON_PIVOT.wing[0] + 0.015 * fold, PIGEON_PIVOT.wing[1] - 0.02 * fold, PIGEON_PIVOT.wing[2] * s * (1 + 0.3 * fold));
     w.rotation.set(-s * lift, -s * fold * 1.55, 0, 'XYZ');
     w.userData.outer.rotation.set(-s * outerBend, s * fold * 2.9, 0);
   }
@@ -1869,6 +1861,7 @@ export function startPigeonMode(w, spot = null) {
   quitRunningActivities(w); // een lopende wandeling of minigame stopt met zijn HUD (#241)
   active = true;
   w.pigeonMode = true;
+  hideFirstPersonHands(); // een duif heeft vleugels, geen handen: het viewmodel verdwijnt meteen, niet pas bij de volgende eerstepersoonssync
   w.pigeonIntro = !!spot;
   document.body.classList.add('pigeon-mode');
   score = 0; combo = 0; comboUntil = 0; milestoneIdx = 0;
