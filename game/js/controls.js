@@ -26,9 +26,9 @@ export const KEY_ACTIONS = [
   ['7', 'Samen spelen: roepen "Kom hier" (een baken voor iedereen)', 'actie'],
   ['8', 'Samen spelen: roepen "Help!"', 'actie'],
   ['9', 'Samen spelen: wijzen "Kijk daar" (een stuk voor je uit)', 'actie'],
-  ['t', 'Samen spelen: het wiel met snelle zinnen, emotes en doel delen (controller: X)', 'actie'],
+  ['t', 'Samen spelen: het wiel met snelle zinnen, emotes en doel delen (controller: X); trekker: hef omhoog of omlaag', 'actie'],
   ['q', 'Achterom kijken; skûtsje: zeil aanhalen; vliegtuig: roer links', 'actie'],
-  ['z', 'Skûtsje: zeil vieren; trekker: ploeg aankoppelen, omhoog of omlaag', 'actie'],
+  ['z', 'Skûtsje: zeil vieren', 'actie'],
   ['h', 'Toeteren', 'actie'],
   ['l', 'Zwaailicht en sirene', 'actie'],
   ['[', 'Richtingaanwijzer links (nog eens: uit)', 'actie'],
@@ -37,7 +37,7 @@ export const KEY_ACTIONS = [
   ['v', 'Filmcamera', 'actie'],
   ['r', 'Lak of garagemenu', 'actie'],
   ['c', 'Eerste persoon aan of uit (in de browser {G}); duif: koeren', 'actie'],
-  ['x', 'Duif: weer mens worden; trekker: aftakas aan of uit', 'actie'],
+  ['x', 'Duif: weer mens worden; trekker: werktuig ontkoppelen (stilstaand)', 'actie'],
   ['tab', 'Volgend doelwit tijdens het richten; in een sessie: de spelerslijst (controller: rechterstick indrukken)', 'wapens'],
   ['1', 'Slaan', 'wapens'],
   ['2', 'Pistool', 'wapens'],
@@ -271,7 +271,7 @@ export const PAD_MAPS = {
 // Te voet: D-pad links, omlaag en rechts zijn de roepjes Kom hier (7), Help! (8) en Kijk daar (9, #367); D-pad omhoog
 // brengt je bij de groep (B, #429): de radio staat dan alleen op het toetsenbord. Het kusje, het overslaan van een
 // verhaalstap en het lakmenu staan dan ook alleen op het toetsenbord.
-export const PAD_COOP = { vehicle: { up: 'y', rs: 'tab' }, bus: { up: 'y', rs: 'tab' }, vehicleManual: { up: 'y', rs: 'tab' }, skutsje: { up: 'y', rs: 'tab' }, foot: { up: 'b', left: '7', down: '8', right: '9', x: 't' } }; // #636: rs opent de spelerslijst ook in een voertuig
+export const PAD_COOP = { vehicle: { up: 'y', rs: 'tab' }, bus: { up: 'y', rs: 'tab' }, vehicleManual: { up: 'y', rs: 'tab' }, skutsje: { up: 'y', rs: 'tab' }, foot: { up: 'b', left: '7', down: '8', right: '9', x: 't' }, hengelen: { up: 'b', left: '7', down: '8', right: '9' } }; // #636: rs opent de spelerslijst ook in een voertuig
 
 // Is er een echte samen-sessie? Een sessie van één (Alleen spelen, #554) telt niet mee: de speler is alleen
 // en houdt de gewone indeling en uitleg (#560, #568). De hub is er wel, maar er is niemand om iets mee te delen.
@@ -437,4 +437,68 @@ export function inputOverview() {
     out[ctx] = { stick: map.stick, rows, duplicates: Object.entries(byAction).filter(([, v]) => v.length > 1).map(([action, slots]) => ({ action, slots })) };
   }
   return out;
+}
+
+// --- het acties-wiel (22-11, controller-review in het spel) ------------------
+// Acties die in een situatie geen eigen knop hebben (de radio in een auto sinds #495, de filmcamera, andere kleren op 6, het
+// waypoint op 5, de roepjes van Samen spelen in een voertuig, ...) staan in een wiel: houd Overzicht (View) 0,4 s ingedrukt, kies met
+// de linkerstick of de D-pad, A bevestigt, B sluit, LB en RB bladeren. Een korte tik op Overzicht blijft de kaart. Met de tikstand
+// (instelling tikStand, rennen/richten/beide) is geen houden nodig: dan opent een tik het wiel en staat de kaart er als eerste
+// onderdeel in. Het wiel stuurt dezelfde toetsen als het toetsenbord (het spel kent alleen die), dus herbinden en opslaan veranderen
+// niets. Een actie die in een situatie wel een eigen knop heeft (PAD_MAPS, PAD_COOP) komt daar niet in het wiel: elke actie heeft
+// op elk moment precies één plek op het pad.
+export const WHEEL_HOLD_MS = 400;
+const WV = ['foot', 'hengelen'];
+const WRIJ = ['vehicle', 'vehicleManual', 'bus', 'skutsje', 'trekker'];
+const WLUCHT = ['heli', 'plane'];
+// WHEEL_CTX: de situaties waarin het wiel opent (niet in menu's en minigames: daar is de kaartknop een gewone knop)
+export const WHEEL_CTX = Object.freeze([...WV, ...WRIJ, ...WLUCHT, 'pigeon', 'train']);
+export const WHEEL_GROUPS = Object.freeze({ spelen: 'Spelen', wapens: 'Wapens', samen: 'Samen spelen' });
+// id, de toets die het spel kent (shift: Shift erbij), het label, de groep, de situaties; samen: alleen in een echte Samen-spelen-sessie
+export const WHEEL_ITEMS = Object.freeze([
+  { id: 'kaart', key: 'm', label: 'Kaart', group: 'spelen', ctx: [], tapOnly: true },
+  { id: 'radio', key: 'n', label: 'Radio aan of uit', group: 'spelen', ctx: [...WV, ...WRIJ, ...WLUCHT, 'pigeon', 'train'] },
+  { id: 'zender', key: 'n', shift: true, label: 'Volgende zender', group: 'spelen', ctx: [...WV, ...WRIJ, ...WLUCHT, 'pigeon', 'train'] },
+  { id: 'kleren', key: '6', label: 'Andere kleren', group: 'spelen', ctx: [...WV, ...WRIJ] },
+  { id: 'film', key: 'v', label: 'Filmcamera', group: 'spelen', ctx: [...WV, ...WRIJ, 'heli'] },
+  { id: 'eerstepersoon', key: 'c', label: 'Eerste persoon', group: 'spelen', ctx: [...WV, ...WRIJ, ...WLUCHT] },
+  { id: 'waypoint', key: '5', label: 'Waypoint naar je doel', group: 'spelen', ctx: [...WV, ...WRIJ, ...WLUCHT] },
+  { id: 'alarm', key: 'p', label: 'Alarmlichten', group: 'spelen', ctx: ['vehicle', 'vehicleManual', 'bus', 'trekker'] },
+  { id: 'overslaan', key: 'o', label: 'Verhaalstap overslaan', group: 'spelen', ctx: [...WV, 'vehicle', 'vehicleManual', 'trekker'] },
+  { id: 'garage', key: 'r', label: 'Lak of garagemenu', group: 'spelen', ctx: [...WV, 'vehicle', 'vehicleManual'] },
+  { id: 'kusje', key: 'k', label: 'Kusje', group: 'spelen', ctx: WV },
+  { id: 'busdienst', key: 'g', label: 'Busdienst overnemen', group: 'spelen', ctx: ['bus'] },
+  { id: 'cabinecamera', key: 'c', label: 'Cabinecamera', group: 'spelen', ctx: ['train'] },
+  { id: 'slaan', key: '1', label: 'Slaan', group: 'wapens', ctx: WV },
+  { id: 'pistool', key: '2', label: 'Pistool', group: 'wapens', ctx: WV },
+  { id: 'geweer', key: '3', label: 'Geweer', group: 'wapens', ctx: WV },
+  { id: 'gooien', key: '4', label: 'Gooien', group: 'wapens', ctx: WV },
+  { id: 'kom-hier', key: '7', label: 'Kom hier', group: 'samen', ctx: [...WRIJ, ...WLUCHT, 'pigeon', 'train'], samen: true },
+  { id: 'help', key: '8', label: 'Help!', group: 'samen', ctx: [...WRIJ, ...WLUCHT, 'pigeon', 'train'], samen: true },
+  { id: 'kijk-daar', key: '9', label: 'Kijk daar', group: 'samen', ctx: [...WRIJ, ...WLUCHT, 'pigeon', 'train'], samen: true },
+  { id: 'zinnen', key: 't', label: 'Snelle zinnen', group: 'samen', ctx: ['hengelen', 'vehicleManual', 'bus', 'skutsje', 'heli', 'plane', 'pigeon'], samen: true },
+]);
+
+// Heeft de situatie al een eigen knop voor deze toets (zonder Shift)? Dan hoort hij niet ook in het wiel.
+function directKey(ctx, key, samen) {
+  const map = PAD_MAPS[ctx] || FOOT;
+  const co = (samen && PAD_COOP[ctx]) || {};
+  return PAD_BUTTONS.some((s) => (Object.hasOwn(co, s) ? co[s] : map[s]) === key);
+}
+
+// De onderdelen van het wiel in een situatie, per groep (pagina): [{ id, title, items: [...] }]. tap: de tikstand, dan staat de kaart erin.
+export function wheelItemsFor(ctx, { samen = false, tap = false } = {}) {
+  if (!WHEEL_CTX.includes(ctx)) return [];
+  const pages = [];
+  for (const [g, title] of Object.entries(WHEEL_GROUPS)) {
+    const items = WHEEL_ITEMS.filter((it) => it.group === g && (it.tapOnly ? tap : it.ctx.includes(ctx)) && (!it.samen || samen) && (it.shift || it.tapOnly || !directKey(ctx, it.key, samen)));
+    if (items.length) pages.push({ id: g, title, items });
+  }
+  return pages;
+}
+// Welk onderdeel staat voor deze toets (token zoals het in een hint staat) in het wiel van deze situatie? Voor de hints: "houd Overzicht".
+export function padWheelFor(token, ctx) {
+  const k = tokenKey(token);
+  for (const p of wheelItemsFor(ctx, { samen: true })) for (const it of p.items) if (it.key === k && !it.shift) return it;
+  return null;
 }

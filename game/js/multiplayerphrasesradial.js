@@ -11,6 +11,7 @@ import { makeRadial, radialFromKey, radialFromStick, nextPage, PAGE_TITLE, RADIA
 import { sayPhrase, phrasesEnabled, shareGoal, pingGoal } from './coopnet.js';
 import { getUserWaypoint, setUserWaypoint } from './routing.js';
 import { isSamenSessie } from './controls.js';
+import { hoofdspeler } from './players.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -29,7 +30,9 @@ const CSS = `
 
 let worldRef = null, el = null, styled = false, open = false, pagina = 'zinnen', chosen = null, lastHtml = '', padPrev = { a: false, b: false, lb: false, rb: false };
 
-const canOpen = (w) => !!(w && isSamenSessie(w) && w.coopNet && !w.paused && !w.coopHold && !w.activityGame && !w.padelGame);
+// T is in de trein (door de trein lopen, traindrive.js) en op de trekker (de hef, boerderijwereld.js) al van het voertuig: daar opent het wiel niet (controller-review 22-11)
+const opTrekker = (w) => { const v = hoofdspeler(w) && hoofdspeler(w).inVehicle; return !!(v && v.farm); };
+const canOpen = (w) => !!(w && isSamenSessie(w) && w.coopNet && !w.paused && !w.coopHold && !w.activityGame && !w.padelGame && !w.trainDriving && !opTrekker(w));
 
 function ensureStyle() {
   if (styled || typeof document === 'undefined') return;

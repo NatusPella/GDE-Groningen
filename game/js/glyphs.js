@@ -6,7 +6,7 @@
 // so modules that write hints need to know nothing about this. Inside an
 // element with `data-pad-ctx` (the Besturing table) that situation is used
 // instead of the current one; `data-g-raw` opts a keycap out.
-import { PAD_BUTTONS, PAD_LAYOUTS, PAD_MAPS, glyphFaceSlot, padSlotFor, physicalKey, physicalButton, nintendoSwap, tokenKey, keyName } from './controls.js';
+import { PAD_BUTTONS, PAD_LAYOUTS, PAD_MAPS, glyphFaceSlot, padSlotFor, padWheelFor, physicalKey, physicalButton, nintendoSwap, tokenKey, keyName } from './controls.js';
 import { getSettings, onSettingsChange } from './settings.js';
 import { onPadChange, padState, activePadIndex } from './gamepad.js';
 import { touchLabelForToken } from './touchlogic.js';
@@ -103,6 +103,7 @@ function render(el) {
   let hide = false;
   let slot = '';
   let glyphed = false;
+  let wheel = false;
   if (token && document.documentElement.classList.contains('touch-play') && !pad.active && getDevice() !== 'kb') {
     // touch: say which on-screen button does it (no label: no button, hide)
     const label = touchLabelForToken(token, document.documentElement.dataset.touchCtx || 'foot');
@@ -113,7 +114,11 @@ function render(el) {
     // de knop die de speler moet indrukken: na het omwisselen van A en B ligt de actie
     // van 'a' op de andere knop, en de hint wijst die aan (#151)
     if (slot) html = padGlyphInner(physicalButton(getSettings().padBinds, slot), pad.family);
-    else hide = true;
+    else if (padWheelFor(token, ctx)) {
+      // geen eigen knop in deze situatie, wel een plek in het acties-wiel: de glyph van Overzicht met "houd" erbij (ds-keycap.css .is-wiel)
+      slot = 'view'; wheel = true;
+      html = padGlyphInner(physicalButton(getSettings().padBinds, 'view'), pad.family);
+    } else hide = true;
     // driving: WASD is the triggers plus the stick
     if (token === 'WASD' && PAD_MAPS[ctx] && PAD_MAPS[ctx].stick === 'steer') html = ['rt', 'lt', 'lstick'].map((s) => padGlyphInner(physicalButton(getSettings().padBinds, s), pad.family)).join('');
   } else if (token) {
@@ -134,10 +139,11 @@ function render(el) {
   if (glyphed) el.classList.add('is-kbg'); else if (el.__kbg) el.classList.remove('is-kbg');
   el.__kbg = glyphed;
   el.classList.toggle('is-pad', !!slot);
+  el.classList.toggle('is-wiel', wheel);
   el.classList.toggle('pad-none', hide);
-  el.dataset.gslot = slot;
+  el.dataset.gslot = wheel ? 'wiel' : slot;
   const prev = el.previousElementSibling && el.previousElementSibling.matches('.pm-k-sep') ? el.previousElementSibling.previousElementSibling : el.previousElementSibling;
-  if (slot && prev && prev.dataset && prev.dataset.gslot === slot) el.classList.add('pad-none');
+  if (slot && prev && prev.dataset && prev.dataset.gslot === (wheel ? 'wiel' : slot)) el.classList.add('pad-none');
 }
 
 function stripTags(s) {
