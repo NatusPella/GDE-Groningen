@@ -387,7 +387,7 @@ function buildAtlas() {
 
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
-  tex.anisotropy = 4;
+  tex.anisotropy = 8; // wegmarkering ligt plat en wordt schuin gezien: scherp tot ver weg
   return tex;
 }
 

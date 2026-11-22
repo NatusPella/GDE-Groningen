@@ -14,7 +14,10 @@ export function signBothSides(w, h, material) {
   return g;
 }
 
-export function canvasTex(w, h, draw, { anisotropy = 0, repeat = null } = {}) {
+// Zonder opgave krijgt elke canvastextuur anisotropie 4: een vlak textuur (grond, gevel, bord) die schuin
+// in beeld staat blijft zo scherp in plaats van te vervagen (1 zet het uit).
+export const DEFAULT_ANISOTROPY = 4;
+export function canvasTex(w, h, draw, { anisotropy = DEFAULT_ANISOTROPY, repeat = null } = {}) {
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
   draw(c.getContext('2d'), w, h);
