@@ -8,14 +8,17 @@ import { clamp } from './util.js';
 // The mission stays playable; only the payout is honest about the part that was skipped.
 export const HEIST_SKIP_SHARE = 0.5;
 export function skipReward(reward) {
-  return Math.round(((Number(reward) || 0) * HEIST_SKIP_SHARE) / 5) * 5;
+  const r = Number(reward);
+  return Math.round(((Number.isFinite(r) ? r : 0) * HEIST_SKIP_SHARE) / 5) * 5; // verfijning 22-11: Infinity of NaN geeft 0, geen oneindige beloning
 }
 
 // seconds a parked chase target waits for the player to come close before it flees by itself
 export const CHASE_WAIT_MAX = 6;
 // the wait for a parked target: CHASE_WAIT_MAX s, plus the metres to its `parked` ring at an easy 10 m/s (the bot measured 13 m/s through the city, with a flat tyre on the way)
 export function chaseWaitMax(d0, st) {
-  return CHASE_WAIT_MAX + Math.max(0, (d0 || 0) - (st.parked || 0)) / 10;
+  // verfijning 22-11: een NaN of oneindige afstand maakte de wachttijd NaN, en dan liep de achtervolging nooit af (vaste stand)
+  const d = Number.isFinite(d0) ? d0 : 0, p = Number.isFinite(st && st.parked) ? st.parked : 0;
+  return CHASE_WAIT_MAX + Math.max(0, d - p) / 10;
 }
 
 // #955: a fleeing vehicle that does not get anywhere (M07's tanker ended up in a dead-end side street by the Eemskanaal and sat
@@ -53,7 +56,7 @@ export const DIJK_CP = 6;             // etappes: de voortgang is de afstand tot
 
 // De etappe bij een afstand tot de sluis: puur, voor de tussenstand en de test (akte3_test.mjs).
 export function dijkEtappe(af, len, cps = DIJK_CP, reach = 16) {
-  if (!(len > 0)) return { cp: 0, s: 0, klaar: false };
+  if (!(len > 0) || !Number.isFinite(len) || !Number.isFinite(af)) return { cp: 0, s: 0, klaar: false }; // verfijning 22-11: NaN en oneindig geven geen NaN-etappe
   const deel = clamp(1 - af / len, 0, 1);
   const klaar = af <= reach;
   const cp = klaar ? cps : Math.min(cps - 1, Math.floor(deel * cps));

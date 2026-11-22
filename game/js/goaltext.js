@@ -13,7 +13,7 @@ export const travelVerb = (modus) => TRAVEL_VERB[modus] || TRAVEL_VERB.voet;
 
 // Een titel die al met een opdracht begint ("Ga naar het museum", "Eerst naar de auto, dan: ...", "Onderduiken: ...",
 // "Breng de pakketjes weg") krijgt geen tweede werkwoord erbij.
-const HAS_VERB = /^(ga|rij|rijd|fiets|vaar|vlieg|loop|breng|haal|pak|neem|stap|eerst|volg|wacht|koop|spreek|praat|zoek|bak|bouw|onderduiken|blijf|ontsnap|kies|klim|duik|ren|spring|schiet|stuur)\b/i;
+const HAS_VERB = /^(ga|rij|rijd|fiets|vaar|vlieg|loop|breng|haal|pak|neem|stap|eerst|volg|wacht|koop|spreek|praat|zoek|bak|bouw|onderduiken|blijf|ontsnap|kies|klim|duik|ren|spring|schiet|stuur|naar|terug|houd|hou|zet|stop|ren|luister|glip|draag|zweef|zit|kijk|plant|beantwoord|blokkeer|hoor|kies|klik|laat|lees|overtuig|pik|schrijf|schud|sluip|spot|stempel|trek|verdedig|verwissel|wees|geef|duw|bel|laad|lever|sla|gooi|jaag|til|vang|raak|vul|leg|plaats|kom|doe|maak|trap|schuif|wip|steek|ontwijk|verlaat|probeer|begin)\b/i;
 // Een titel met al een voorvoegsel ("Bezig: ...", "Eerst: koop een fiets", "Geschept: 3/10", "Onderduiken: ...") blijft ook staan.
 const HAS_PREFIX = /^[^:]{1,24}:/;
 

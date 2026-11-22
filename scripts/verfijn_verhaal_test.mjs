@@ -5,6 +5,10 @@ import { readingTime, READING_CAP_S, READING_RUIM } from '../game/js/storytext.j
 import { failSceneMode, FAIL_SCENE_MAX, CHECKPOINT_KINDS, isCheckpointStage, recordCheckpoint, makeCheckpoint, applyCheckpointProgress, createGrace, stepGrace, GRACE_S } from '../game/js/missioncheckpoint.js';
 import { STEPS, nextStoryStep, stepDone, MISSION_STORY_ORDER, missionIndexOf, PARTS } from '../game/js/storyarc.js';
 import { recapContent, RECAP_MAX_WORDS } from '../game/js/recapcard.js';
+import { REMIND_AT_S, remindDue, remindText } from '../game/js/storyremind.js';
+import { chaseWaitMax, dijkEtappe, skipReward, CHASE_WAIT_MAX } from '../game/js/missionrules.js';
+import { stapVast } from '../game/js/vastlopen.js';
+import { busyTitle, destinationTitle } from '../game/js/goaltext.js';
 
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name} ${info}`); } };
@@ -116,6 +120,60 @@ ok(['chase', 'boatchase', 'timing'].every((k) => CHECKPOINT_KINDS.includes(k)), 
   const tijd = { timeLeft: 3 };
   applyCheckpointProgress(makeCheckpoint({ missionIndex: 1, stageIndex: 1, timeLeft: 1, chain: {} }), tijd);
   ok(tijd.timeLeft >= 45, 'een hervatpunt vlak voor de klok geeft minstens 45 s');
+}
+
+// --- 7. herinnering aan het verhaaldoel: drie keer, nooit vaker, nooit te vroeg
+{
+  ok(REMIND_AT_S.length === 3 && REMIND_AT_S.every((t, i) => i === 0 || t > REMIND_AT_S[i - 1]), 'drie oplopende herinneringen');
+  ok(!remindDue(299, 0) && remindDue(301, 0), 'de eerste na 5 minuten (zoals voorheen)');
+  ok(!remindDue(301, 1) && remindDue(901, 1) && !remindDue(901, 2) && remindDue(1801, 2) && !remindDue(99999, 3), 'tweede na 15, derde na 30 minuten, daarna stil');
+  ok(!remindDue(NaN, 0) && !remindDue(undefined, 0) && !remindDue(Infinity, 3) && remindDue(1e9, -4) === true, 'rommel geeft geen herinnering of crash');
+  ok(remindText(0, 'Het Loket') === 'Nog even dit: Het Loket. Staat op je kaart, als je zin hebt.', 'eerste tekst is ongewijzigd');
+  const teksten = [0, 1, 2].map((k) => remindText(k, 'Het Loket'));
+  ok(new Set(teksten).size === 3 && teksten.every((t) => t.includes('Het Loket') && !/[{}]/.test(t) && t.length < 90), 'drie verschillende korte teksten met de titel, zonder toetscodes');
+  // een simulatie van twee uur zonder het doel te raken: precies drie berichten
+  let gedaan = 0;
+  for (let t = 0; t < 7200; t += 1) if (remindDue(t, gedaan)) gedaan++;
+  ok(gedaan === 3, 'twee uur wachten geeft precies drie herinneringen', String(gedaan));
+}
+
+// --- 8. rotte getallen (NaN, oneindig) maken geen vaste stand meer
+{
+  const rare = [NaN, Infinity, -Infinity, undefined, null, 'abc'];
+  for (const a of rare) for (const b of rare) {
+    ok(Number.isFinite(chaseWaitMax(a, { parked: b })), 'chaseWaitMax is altijd eindig', `${a}/${b}`);
+    const e = dijkEtappe(a, b);
+    ok(Number.isInteger(e.cp) && Number.isFinite(e.s), 'dijkEtappe geeft nooit NaN', `${a}/${b}`);
+    const S = { stil: 0, houd: 0, hint: false };
+    stapVast(S, a, { inVoertuig: true, gas: true, snelheid: b });
+    ok(Number.isFinite(S.stil), 'stapVast: een rotte frame maakt de teller geen NaN', `${a}/${b}`);
+  }
+  for (const a of rare) ok(Number.isFinite(skipReward(a)) && skipReward(a) >= 0, 'skipReward blijft eindig', String(a));
+  ok(chaseWaitMax(300, { parked: 20 }) === CHASE_WAIT_MAX + 28 && chaseWaitMax(10, { parked: 20 }) === CHASE_WAIT_MAX, 'chaseWaitMax: gewone waarden ongewijzigd');
+  ok(skipReward(400) === 200 && skipReward(0) === 0, 'skipReward: gewone waarden ongewijzigd');
+  const g = { stil: 0, houd: 0, hint: false };
+  let hint = false;
+  for (let i = 0; i < 20; i++) { stapVast(g, i === 3 ? NaN : 1, { inVoertuig: true, gas: true, snelheid: 0 }); }
+  hint = g.hint;
+  ok(hint, 'een NaN-frame tussendoor houdt de vastzit-hint niet tegen');
+}
+
+// --- 9. doelbalk: een opdracht die al met een werkwoord begint krijgt geen "Bezig:" of "Ga naar:" ervoor
+{
+  const echt = ['Naar de serverkamer', 'Terug naar de steiger, voor het water komt', 'Houd de tweede deur tegen', 'Spring op de quad', 'Plant de vlag op het eerste bolwerk',
+    'Zet de kat in de mand', 'Ren naar de derde deur: de laatste', 'Luister naar Mem in de kruitkelder', 'Glip langs de camera', 'Draag de bal naar het bakkie bij de poort',
+    'Kijk naar de naspeling: het publiek klapt', 'Zit vast: wip de wagen los terwijl Tinus trekt', 'Stop even op de wierde: de kratten schuiven', 'Sluip naar de kluis', 'Trek de toren omver'];
+  for (const t of echt) ok(busyTitle(t) === t && destinationTitle(t) === t, 'geen dubbel werkwoord in de doelbalk', t);
+  ok(destinationTitle('Haven Delfzijl') === 'Ga naar: Haven Delfzijl' && destinationTitle('Tilburg') === 'Ga naar: Tilburg' && destinationTitle('Houtenstraat') === 'Ga naar: Houtenstraat', 'een plaatsnaam krijgt nog steeds zijn werkwoord');
+  ok(busyTitle('Het Loket') === 'Bezig: Het Loket' && busyTitle('Plantsoenfestijn') === 'Bezig: Plantsoenfestijn', 'een naam krijgt nog steeds Bezig');
+  // elke stagelabel in de missiebestanden die met een gewoon bevelswoord begint, blijft onaangeroerd
+  const bevel = /^(Naar|Terug|Houd|Spring|Plant|Zet|Stop|Ren|Luister|Glip|Draag|Zweef|Zit|Kijk|Sluip|Trek|Kies|Lees|Neem|Pak|Breng|Haal|Ga|Rij|Vaar|Vlieg) /;
+  let gezien = 0;
+  for (const f of fs.readdirSync(new URL('../game/js/', import.meta.url)).filter((x) => /^missions_.*\.js$/.test(x))) {
+    const src = fs.readFileSync(new URL('../game/js/' + f, import.meta.url), 'utf8');
+    for (const m of src.matchAll(/\blabel: '([^'\\]{3,80})'/g)) if (bevel.test(m[1])) { gezien++; ok(busyTitle(m[1]) === m[1], 'stagelabel zonder Bezig-voorvoegsel', m[1]); }
+  }
+  ok(gezien > 40, 'de scan vond de stagelabels', String(gezien));
 }
 
 console.log(`${n - fails}/${n} verfijn_verhaal_test`);

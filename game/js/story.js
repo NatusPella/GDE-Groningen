@@ -32,6 +32,7 @@ import { getShopVisits, getShopsForRender, grantStoryItem } from './shops.js';
 import { getPigeonFlight, stopPigeonMode } from './pigeonmode.js';
 import { isHeliRunActive, abortHeliRun } from './helirun.js';
 import { jumpPrep, jumpSpot, openRond } from './storyjump.js';
+import { remindDue, remindText } from './storyremind.js';
 import { isLoopbaanGestart } from './loopbaanlive.js';
 import { maybeCareerCards } from './loopbaankaarten.js';
 import { JUMP_M } from './loadlogic.js';
@@ -290,6 +291,7 @@ function enter(step) {
   rt.cur = step;
   rt.enteredAt = world.time;
   rt.reminded = false;
+  rt.remindN = 0;
   rt.base = {};
   rt.guideT = 0;
   rt.nightWait = false;
@@ -1304,12 +1306,14 @@ export function updateStory(dt, w) {
     if (g && g.met(step, rt.base)) { markDone(step); rt.cur = undefined; return; }
   } else if (rt.gate === 'night' && !isMissionActive()) updateHomeWait(step);
   if ((rt.guideT -= dt) <= 0) { rt.guideT = GUIDE_EVERY; refreshGuide(); }
-  if (!rt.reminded && w.time - rt.enteredAt > REMIND_AFTER && !isMissionActive()) {
+  if (remindDue(w.time - rt.enteredAt, rt.remindN || 0) && !isMissionActive() && !isCinematicActive()) {
+    const k = rt.remindN || 0;
+    rt.remindN = k + 1;
     rt.reminded = true;
-    if (step.kind === 'activity') rt.skipUntil = w.time + 60;
+    if (step.kind === 'activity' && k === 0) rt.skipUntil = w.time + 60;
     const from = step.lead ? who(step.lead[0]) : 'Anita';
     const remind = from === 'Tammo' ? SMS_SAY.remindT : from === 'Anita' ? SMS_SAY.remindA : null;
-    phone(from, `Nog even dit: ${step.title}. Staat op je kaart, als je zin hebt.`, 6, remind ? remind.lines[0] : undefined, !!step.silent);
+    phone(from, remindText(k, step.title), 6, k === 0 && remind ? remind.lines[0] : undefined, !!step.silent); // alleen de eerste heeft een opname
   }
 }
 
