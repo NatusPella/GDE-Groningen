@@ -163,5 +163,11 @@ ok(/\.bm-band > \.bm-klein \{ margin-bottom: var\(--ds-s-2\); \}/.test(css), 'he
   const eigen = bouwMoment(momentVanBanner({ kind: 'pass', title: 'Opdracht geslaagd: de Zilvervloot', reason: 'Netjes.' }));
   ok(/Zilvervloot/.test(eigen.regelNl), 'een echte missienaam blijft staan');
 }
+// #1219: het zegel van de gebiedskaart toont een plekicoon in plaats van een leeg stippelvierkant
+{
+  const bron = fs.readFileSync(new URL('../game/js/bigmoment.js', import.meta.url), 'utf8');
+  ok(/class="bm-zegel" aria-hidden="true">\$\{icoon\('plek'/.test(bron), 'het zegel bevat een plekicoon');
+  ok(!/\.bm-zegel \{[^}]*background-image/.test(css), 'het zegel heeft geen stippelpatroon meer');
+}
 console.log(`${n - fails}/${n} bigmoment`);
 process.exit(fails ? 1 : 0);

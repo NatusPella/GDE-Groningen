@@ -38,6 +38,7 @@ const cut = (s, max) => {
 import { isPauseMenuOpen } from './pausestate.js';
 import { hoofdspeler } from './players.js';
 import { planIntro, isSkipEvent } from './endcardimpact.js';
+import { icoon } from './icons.js';
 
 export function klemWoorden(tekst, max = MAX_WOORDEN) {
   const w = String(tekst == null ? '' : tekst).replace(/\s+/g, ' ').trim().split(' ').filter(Boolean);
@@ -261,7 +262,7 @@ function binnenHtml(m) {
   const regel = `<p class="bm-regel">${esc(m.regelNl)}</p>`;
   if (m.vorm === 'band') return `<div class="bm-dim"></div><div class="bm-band ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${kop}${regel}${metaHtml}${m.sterren != null && m.soort === 'geslaagd' ? sterrenHtml(m.sterren) : ''}<span class="bm-glans" aria-hidden="true"></span></div>`;
   if (m.vorm === 'stempel') return `<div class="bm-dim"></div><div class="bm-slip ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${regel}${metaHtml}<div class="bm-stempel ds-mi-in ds-mi-landing ds-mi-na" aria-hidden="true">${esc(m.kop)}</div></div>`;
-  if (m.vorm === 'plaats') return `<div class="bm-kaart ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${kop}${regel}<div class="bm-zegel" aria-hidden="true"></div></div>`;
+  if (m.vorm === 'plaats') return `<div class="bm-kaart ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${kop}${regel}<div class="bm-zegel" aria-hidden="true">${icoon('plek', { maat: 'xl' })}</div></div>`; // #1219: een plekicoon in het zegel, geen leeg stippelvierkant
   return `<div class="bm-tag ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span><span class="bm-kop">${esc(m.kop)}</span><span class="bm-regel">${esc(m.regelNl)}</span></div>`;
 }
 

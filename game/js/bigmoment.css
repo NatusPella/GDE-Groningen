@@ -44,7 +44,8 @@
 .bm-gebied { left: 50%; top: 24vh; transform: translateX(-50%); } /* #985: in de vrije middenzone D, niet over de doelkaart en de minikaart onderin */
 .bm-kaart { position: relative; box-sizing: border-box; min-width: min(640px, max(340px, calc(100vw - 820px))); max-width: min(92vw, max(340px, calc(100vw - 820px))); display: flex; flex-direction: column; gap: 10px; padding: 22px 34px 26px; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard-bord); transform: rotate(calc(var(--ds-schuin) * -1)); }
 .bm-kaart .bm-kop { font-size: clamp(48px, 7vw, 110px); color: var(--ds-c-ink-bord); }
-.bm-zegel { position: absolute; top: 16px; right: 18px; width: 64px; height: 76px; border: 3px solid var(--ds-c-ink-inkt); background-color: var(--ds-c-ink-papier); background-image: var(--ds-raster); background-size: var(--ds-raster-maat); }
+.bm-zegel { position: absolute; top: 16px; right: 18px; width: 64px; height: 76px; display: grid; place-items: center; border: 3px solid var(--ds-c-ink-inkt); background-color: var(--ds-c-ink-papier); color: var(--ds-c-ink-bord); }
+.bm-zegel svg { width: 40px; height: 40px; }
 
 /* wanted up or down: a short tag at the right edge next to the stars, never full screen */
 .bm-wanted { right: var(--ds-rand-hud); top: 30vh; }
@@ -64,6 +65,7 @@
 .bm-compact .bm-klein { font-size: clamp(13px, 1vw, 16px); padding: 1px 8px; }
 .bm-compact .bm-regel { font-size: clamp(13px, 1.4vw, 24px); }
 .bm-compact .bm-zegel { top: 10px; right: 12px; width: 38px; height: 46px; }
+.bm-compact .bm-zegel svg { width: 24px; height: 24px; }
 .bm-wanted.bm-compact { top: 20vh; }
 .bm-compact .bm-tag { max-width: min(250px, 42vw); padding: 6px 12px 8px 14px; gap: 2px; }
 .bm-compact .bm-tag .bm-kop { font-size: 26px; }
@@ -74,7 +76,7 @@
 html.rustig-drukwerk .bm.aan .bm-band, html.rustig-drukwerk .bm.aan .bm-stempel, html.rustig-drukwerk .bm.aan .bm-kaart, html.rustig-drukwerk .bm.aan .bm-tag, html.reduce-motion .bm.aan .bm-band, html.reduce-motion .bm.aan .bm-stempel, html.reduce-motion .bm.aan .bm-kaart, html.reduce-motion .bm.aan .bm-tag { animation: none; }
 html.rustig-drukwerk .bm { transition: none; }
 html.rustig-drukwerk .bm-band { transform: rotate(var(--ds-schuin)); }
-html.rustig-drukwerk .bm-mislukt .bm-band, html.rustig-drukwerk .bm-zegel { background-image: none; }
+html.rustig-drukwerk .bm-mislukt .bm-band { background-image: none; }
 html.rustig-drukwerk .bm-ster { background-image: none; }
 html.rustig-drukwerk .bm-ster:not(.aan) { background-color: var(--ds-c-ink-papier); }
 @media (prefers-reduced-motion: reduce) { .bm.aan .bm-band, .bm.aan .bm-stempel, .bm.aan .bm-kaart, .bm.aan .bm-tag { animation: none; } .bm { transition: none; } }
