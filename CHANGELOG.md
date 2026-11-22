@@ -71,7 +71,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Samen spelen: alles is lokale weergave per speler; niets wordt gesynchroniseerd.
 
 ### Graphics: materialen en detail (sprint 22-11)
-- De onderkant van bruggen en viaducten is geen egaal zwart vlak meer: een lichter betonmateriaal met een beetje eigenlicht leest als beton in de schaduw (#1192, #919). Alleen lokaal beeld: bij Samen spelen ziet elke speler het in zijn eigen spel, er gaat niets over het net.
+- De onderkant van bruggen en viaducten is geen egaal zwart vlak meer: een lichter betonmateriaal met een beetje eigenlicht leest als beton in de schaduw (#1192, #919). Alleen lokaal beeld: bij Samen spelen zien alle spelers het in het eigen spel, er gaat niets over het net.
 - Schuin geziene teksturen blijven scherper: elke canvastextuur krijgt standaard anisotropie 4 (borden, gevelversiering, grondtekens) en de wegmarkering 8, zodat zebrapaden, fietssymbolen en putten ver weg niet vervagen. Alleen lokaal beeld.
 ### Mensen, voertuigen en dieren (sprint 22-11)
 - Vier soorten schaap (witte met zwart gezicht, crème met witte kop, grijsbruin, donker met licht gezicht) in de weilanden en op je eigen weide, zodat een kudde niet uit klonen bestaat. Het zaad van elk dier bepaalt zijn soort; geen wijziging in Samen spelen of in opslag.
@@ -100,7 +100,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Bezit-uitleg: een kapotte opslag heet "een waarde die geen getal is", niet met een codeterm.
 - Nieuwe bewaking (`scripts/tekst_kwaliteit_audit.mjs`, test `tekst_kwaliteit_audit_test.mjs`): speltekst op dubbele spaties, ruwe placeholders, afgekapte zinnen, Engelse restanten (kaartpunt, muisknop en laden in het Engels), Engelse eenheden (het is km/u en meter), Engelse getalnotatie (1.000 en 3,5 km), 12-uursklok en tijden met een punt, kleine letters na een punt, en CSS: tekst onder 12 px en HUD-tekst zonder halo of vlak. Uitzonderingen staan met reden in `scripts/tekst_kwaliteit_allow.json`. Voor Samen spelen verandert er niets: alleen tekst en stijl, per speler lokaal.
 ### Een levende wereld
-- Zonnige dagen klinken anders (sprint 22-11): op een helder uur tussen 11 en 19 uur praten voorbijgangers over volle terrassen, zwemmen in de Hoornseplas, picknicken in het Noorderplantsoen en het warme zand op de Wadden, in elke streek. Bij regen, mist of onweer blijft het bij de weerpraat van die dag. Samen spelen: decor per speler, zonder voortgang of beloning; de tekst hangt aan het eigen weer en de klok van de gastheer.
+- Zonnige dagen klinken anders (sprint 22-11): op een helder uur tussen 11 en 19 uur praten voorbijgangers over volle terrassen, zwemmen in de Hoornseplas, picknicken in het Noorderplantsoen en het warme zand op de Wadden, in elke streek. Bij regen, mist of onweer blijft het bij de weerpraat van die dag. Samen spelen: decor per speler, zonder voortgang of beloning; de tekst hangt aan het eigen weer en de klok van wie het spel opende.
 
 ### Spelplezier (sprint 22-11)
 - Rakelings-reeks: meerdere echte rakelings binnen 9 seconden tellen steeds zwaarder mee (x1,5, x2 tot x3 van de gewone bonus) en de melding toont de stand ("Rakelings x3"). Een botsing breekt de reeks. Samen spelen: de reeks is per speler, lokaal, net als de rakelings-bonus zelf (geen nieuw bericht).
