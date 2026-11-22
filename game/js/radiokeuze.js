@@ -15,7 +15,8 @@ function channelRowHtml(row) {
   return `<button type="button" role="option" class="ds-z-rij pm-channel${row.active ? ' ds-z-rij--selectie' : ''}${soon ? ' ds-z-rij--uit' : ''}" data-channel="${esc(row.id)}" aria-selected="${row.active ? 'true' : 'false'}"${soon ? ' aria-disabled="true"' : ''}>`
     + `<span class="ds-z-rij__naam">${esc(row.name)}</span>`
     + `<span><span class="ds-z-rij__sub">${esc(row.sub)}</span><span class="ds-z-rij__sub">DJ ${esc(row.dj)}</span></span>`
-    + `<span class="ds-z-rij__waarde">${esc(value)}</span></button>`;
+    // #1277: "Binnenkort" is een klein etiket, geen waarde in kopformaat naast een "Aan"
+    + `<span class="ds-z-rij__waarde">${soon ? `<span class="ds-z-chip">${esc(value)}</span>` : esc(value)}</span></button>`;
 }
 
 // The "Volgende zender" button with Shift+N inside (two glyphs in one button; data-gk sits on each of them).

@@ -32,4 +32,16 @@ t('#1263: de brede kopkaarten (Prestaties, Fotos, Voetbal) staan recht en schuiv
     assert.ok(src.includes('ds-z-kaart ds-z-kaart--recht ' + k) || src.includes('ds-z-kaart--recht ds-m-binnen'), f + ' mist ds-z-kaart--recht');
   }
 });
+t('#1276: de omschrijving past bij de schakelaar of waarde (bloed: beide standen, kaartrichting: standaard in de lucht)', () => {
+  const pm = fs.readFileSync(new URL('../game/js/pausemenu.js', import.meta.url), 'utf8');
+  assert.match(pm, /toggle\('gore', 'Bloed en ledematen', 'Aan: [^']*Uit: /);
+  assert.ok(!/Standaard draait de kaart mee/.test(pm));
+  assert.match(pm, /Op de grond draait de kaart mee/);
+});
+t('#1277: Binnenkort in de zenderlijst is een chip, geen waarde in kopformaat', async () => {
+  const { channelPickerHtml } = await import('../game/js/radiokeuze.js');
+  const h = channelPickerHtml([{ id: 'a', name: 'A', sub: 's', dj: 'd', tracks: 9, status: 'open', active: true }, { id: 'b', name: 'B', sub: 's', dj: 'd', tracks: 0, status: 'soon', active: false }]);
+  assert.match(h, /<span class="ds-z-chip">Binnenkort<\/span>/);
+  assert.ok(!/ds-z-rij__waarde">Binnenkort/.test(h));
+});
 console.log(`menu_accolades_test: ${n}/${n} ok`);
