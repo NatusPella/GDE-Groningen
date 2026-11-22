@@ -57,7 +57,14 @@ const clip = (s, n) => (s.length > n ? s.slice(0, n) + '…' : s);
 function argText(a) {
   if (a instanceof Error) return a.message || String(a);
   if (typeof a === 'string') return a;
-  try { return JSON.stringify(a); } catch (e) { return String(a); }
+  // 22-11: een grote structuur (de wereld, een scène) als console.error-argument zou megabytes tekst maken in één beeld; na
+  // 300 knopen stopt het en blijft er een korte aanduiding over
+  let knopen = 0;
+  try {
+    return JSON.stringify(a, (k, v) => { if (++knopen > 300) throw new RangeError('te groot'); return v; });
+  } catch (e) {
+    try { return knopen > 300 ? '[groot object]' : String(a); } catch (e2) { return '[object]'; }
+  }
 }
 
 export function logError(level, message, stack = '') {
@@ -79,7 +86,7 @@ export function logError(level, message, stack = '') {
       if (entries.length > MAX) entries = entries.slice(-MAX);
     }
     if (!writeTimer) writeTimer = setTimeout(persist, WRITE_MS);
-    for (const fn of listeners) fn();
+    for (const fn of listeners) { try { fn(); } catch (e) { /* een kapotte weergave van het rapport mag het loggen niet breken */ } }
   } finally {
     busy = false;
   }

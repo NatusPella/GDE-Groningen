@@ -2,6 +2,10 @@
 import assert from 'node:assert/strict';
 const store = new Map();
 globalThis.localStorage = { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k) };
+globalThis.window = { addEventListener() {} }; // zo hangt errorlog zijn console-haak op
+const origLog = { e: console.error, w: console.warn };
+console.error = () => {}; console.warn = () => {}; // de haak van errorlog roept deze stille versies aan
+globalThis.__el = await import("../game/js/errorlog.js");
 const { getErrorLog, logError, clearErrorLog, addReportExtra, errorReport } = await import('../game/js/errorlog.js');
 let n = 0;
 const t = (name, f) => { f(); n++; console.log('ok ' + name); };
@@ -31,5 +35,20 @@ t('meerdere rapportbronnen, een falende bron slaat de rest niet over', () => {
   addReportExtra(() => ['Opslag: proef']);
   assert.ok(errorReport().includes('Opslag: proef'));
 });
-console.log(`errorlog_vloed_test: ${n}/5`);
+t("een kapotte luisteraar breekt het loggen niet", () => {
+  const { onErrorLogChange } = globalThis.__el;
+  onErrorLogChange(() => { throw new Error("weergave stuk"); });
+  logError("error", "na de kapotte luisteraar");
+  assert.ok(getErrorLog().some((e) => e.msg === "na de kapotte luisteraar"));
+});
+t("een enorm object als console.error-argument blijft klein en snel", () => {
+  const groot = {}; for (let i = 0; i < 100000; i++) groot["k" + i] = { a: i, b: [i, i] };
+  const t0 = Date.now();
+  console.error("wereld:", groot);
+  assert.ok(Date.now() - t0 < 500, "duurde " + (Date.now() - t0) + " ms");
+  assert.ok(getErrorLog().some((e) => /groot object/.test(e.msg)));
+  console.error = origLog.e; console.warn = origLog.w;
+  const cyc = {}; cyc.zelf = cyc; console.warn("cyclisch", cyc);
+});
+console.log(`errorlog_vloed_test: ${n}/7`);
 setTimeout(() => process.exit(0), 10);
