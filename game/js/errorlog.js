@@ -92,8 +92,13 @@ export function setErrorContext(fn) {
 
 // fn() -> regels die onder de kop van het rapport komen (gpudiag.js: beeldcontext).
 let reportExtra = () => [];
+const extraMeer = [];
 export function setReportExtra(fn) {
   reportExtra = fn;
+}
+// 22-11: meer dan één bron voor regels onder de kop (beeldcontext, opslag); een falende bron slaat de rest niet over
+export function addReportExtra(fn) {
+  extraMeer.push(fn);
 }
 
 export const getErrorLog = () => entries.slice();
@@ -115,7 +120,7 @@ export function errorReport() {
     ctx.step ? `Verhaal: ${ctx.step}` : '',
     ctx.settings ? `Instellingen: ${ctx.settings}` : '',
     ctx.gpu ? `GPU-klasse: ${ctx.gpu}` : '',
-    ...(() => { try { return reportExtra() || []; } catch (e) { return []; } })(),
+    ...[reportExtra, ...extraMeer].flatMap((fn) => { try { return fn() || []; } catch (e) { return []; } }),
     `${entries.length} meldingen`,
   ].filter(Boolean);
   const body = entries.slice().reverse().map((e) => [

@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 const store = new Map();
 globalThis.localStorage = { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k) };
-const { getErrorLog, logError, clearErrorLog } = await import('../game/js/errorlog.js');
+const { getErrorLog, logError, clearErrorLog, addReportExtra, errorReport } = await import('../game/js/errorlog.js');
 let n = 0;
 const t = (name, f) => { f(); n++; console.log('ok ' + name); };
 t('3000 keer dezelfde fout met een ander getal blijft één regel', () => {
@@ -26,5 +26,10 @@ t('een vloed van 500 verschillende meldingen houdt de lijst op 40', () => {
   for (let i = 0; i < 500; i++) logError('warn', `melding-${String.fromCharCode(97 + (i % 26))}${String.fromCharCode(97 + ((i / 26) | 0) % 26)}`);
   assert.ok(getErrorLog().length <= 40);
 });
-console.log(`errorlog_vloed_test: ${n}/4`);
+t('meerdere rapportbronnen, een falende bron slaat de rest niet over', () => {
+  addReportExtra(() => { throw new Error('stuk'); });
+  addReportExtra(() => ['Opslag: proef']);
+  assert.ok(errorReport().includes('Opslag: proef'));
+});
+console.log(`errorlog_vloed_test: ${n}/5`);
 setTimeout(() => process.exit(0), 10);

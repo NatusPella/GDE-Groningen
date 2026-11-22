@@ -9,7 +9,9 @@ import { streamTrafficLightProps, getTrafficControllers } from './trafficlights.
 import { streamFlitspaalProps } from './flitspaal.js';
 import { addPropStreamer, brokenKeysNear } from './breakables.js';
 import './geokernels.js'; // registers the geometry kernels with geojobs.js
-import { setErrorContext } from './errorlog.js';
+import { setErrorContext, addReportExtra } from './errorlog.js';
+import { saveDiagLines } from './savediag.js';
+import { readSlot } from './saveslots.js';
 import { initGpuHerstelInfo } from './gpuherstelinfo.js';
 import { DEV, STORY_TEST, FLAGS, perfOff } from './devflags.js';
 import { bindCoop } from './coopglue.js';
@@ -172,7 +174,7 @@ import { updateKnockFx3D } from './knockfx3d.js';
 import { updateGunFx3D } from './gunfx3d.js';
 import { initCityProps, updateCityProps } from './cityprops.js';
 import { initPhone, updatePhone, isPhoneOpen } from './phone.js';
-import { initSaveGame, updateSaveGame, readSaveInfo, ensureLatestSlot } from './savegame.js';
+import { initSaveGame, updateSaveGame, readSaveInfo, ensureLatestSlot, saveFailReason } from './savegame.js';
 import { START_MONEY } from './economy.js';
 import { initWeather, updateWeather } from './weather.js';
 import { initWorldEvents, updateWorldEvents } from './worldevents.js';
@@ -919,6 +921,7 @@ async function boot() {
   setBootStep('systemen', 0.5);
   initStory(world);
   let gpuClass = '';
+  addReportExtra(() => saveDiagLines(localStorage, readSlot, { failText: saveFailReason() })); // opslagstand in het foutrapport (22-11)
   initGpuHerstelInfo(); // beeldcontext-teller en laatste herbouw (foutrapport en Technische info)
   setErrorContext(() => {
     const st = getSettings();
