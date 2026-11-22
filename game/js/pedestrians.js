@@ -40,6 +40,7 @@ import { centreOf } from './evenementen.js';
 import { noteWantedWhy, noteWitnessHint, witnessCallStands } from './wantedwhy.js';
 import { isMissieVoertuig } from './missievoertuig.js';
 import { takeRiderOff } from './bikerider.js'; // een fietser van de fiets slaan (#944)
+import { makeHornState, hornTarget, hornLine, markHorned, HORN_SCAN_S, HORN_ANGRY_S } from './pedhorn.js'; // passanten mopperen terug op de claxon (22-11)
 import { makeGreetState, canGreet, greetOutcome, markGreeted, GREET_SCAN_S } from './pedgreet.js'; // passanten groeten de speler te voet (22-11)
 
 const WANDER_SPEED = 1.3;
@@ -928,6 +929,21 @@ function greetWalkingPlayer(world) {
   }
 }
 
+// Someone walking in front of the player's car when it honks turns and grumbles back (pedhorn.js has the rules).
+const hornState = makeHornState();
+function grumbleAtHorn(world) {
+  const pv = hoofdspeler(world).inVehicle;
+  if (!pv || !pv.horn || world.time < hornState.nextScanAt) return;
+  hornState.nextScanAt = world.time + HORN_SCAN_S;
+  for (const p of world.pedestrians) {
+    if (!hornTarget(hornState, world.time, pv, p, Math.random())) continue;
+    markHorned(hornState, p, world.time);
+    say(p, world, hornLine(Math.random()), 2.2, null);
+    setState(p, 'angry', world.time + HORN_ANGRY_S, 'angry');
+    break;
+  }
+}
+
 // --- cyclists' bells ----------------------------------------------------
 
 function updateBikeBells(world) {
@@ -1222,6 +1238,7 @@ export function updatePedestrians(dt, world) {
   updateBikeBells(world);
   greetPassingBoat(world);
   greetWalkingPlayer(world);
+  grumbleAtHorn(world);
   knockOffRiders(world);
   processPedPlanQueue(world);
   // #653: de avoid-grid om de twee frames i.p.v. elke frame
