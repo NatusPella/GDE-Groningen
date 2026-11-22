@@ -95,6 +95,16 @@ async function act(name, ms = 8000) {
   panel().querySelector(`[data-act="${name}"]`).click();
   await sleep(250);
 }
+// 22-11 (#1011): de Samen-wizard heeft eerst 'Wie ben jij?' (wie-verder) en dan de keuze van de wijze (host: wijze-prive, gast: wijze-code); de testbank neemt ze zoals een speler
+async function wizard(wijze) {
+  for (let i = 0; i < 6; i++) {
+    const b = buttons();
+    if (b.includes('wie-verder')) { await act('wie-verder'); continue; }
+    if (b.includes('wijze-' + wijze)) { await act('wijze-' + wijze); return; }
+    if (b.includes('route-direct') || b.includes('route-kamer') || (title() !== 'Wie ben jij?' && panel() && panel().querySelector('.coop-input'))) return;
+    await sleep(400);
+  }
+}
 const shot = (name) => { console.log('[capture] ' + name); };
 // Escape zoals een speler (één toets via het invoercontract van de spelbot; key() zou window én document raken en dubbel tellen)
 const esc = async () => { if (window.__bot) await window.__bot.press('escape', 120); else key('Escape', 'Escape'); };
@@ -262,6 +272,7 @@ async function connect() {
   if (CFG.role === 'host') {
     if (buttons().includes('kies-host')) await act('kies-host');
     log('scherm', { titel: title(), knoppen: buttons(), tekst: panel().innerText.slice(0, 400) });
+    await wizard('prive');
     await act(CFG.route === 'kamer' ? 'route-kamer' : 'route-direct');
     // toestemming: vóór akkoord is er niets verstuurd
     const voor = netNow();
@@ -273,6 +284,7 @@ async function connect() {
     const code = await until(() => { const c = panel().querySelector('.coop-code'); return c && c.textContent.trim(); }, 40000, 'code van de host');
     log('code', { code, net: netNow() });
     shot('host-code');
+    await wizard(CFG.lijst ? 'lijst' : 'code');
     if (CFG.lijst) { // #983: de sessie openbaar maken (alleen de naam, geen kamercode); gasten komen via de lijst
       await act('openbaar'); const inv = await until(() => panel().querySelector('.coop-input'), 5000, 'naamveld van de openbare sessie');
       inv.value = 'Testspel'; inv.dispatchEvent(new Event('input', { bubbles: true }));
