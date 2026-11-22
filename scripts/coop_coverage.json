@@ -1562,14 +1562,16 @@
     "bezitdifficulty"
    ],
    "eigenaar": "gesynct",
-   "gast": "De wereld (politie en verkeer) volgt het niveau van wie het spel opende; een gast kiest zelf hoe pittig zijn eigen deel is (schade, rij-assist, quicktime-events, hints, tijd en medailles, beloning).",
+   "gast": "De wereld (politie en verkeer) is een gezamenlijke keuze, geen hostrecht: een wijziging vraagt akkoord van de groep (J of N, geen antwoord is nee); een gast kan geen stemming starten en vraagt het wie het spel opende. Een gast kiest zelf hoe pittig zijn eigen deel is (schade, rij-assist, quicktime-events, hints, tijd en medailles, beloning, boete).",
    "beloning": "Per speler volgens het eigen niveau; niemand krijgt een lagere beloning door het niveau van een ander.",
    "wegval": "Valt iemand weg of sluit hij later aan: het wereldniveau blijft dat van wie het spel opende; het eigen niveau reist mee met de speler.",
    "test": [
     "scripts/difficulty_test.mjs",
     "scripts/difficulty_integration_test.mjs",
     "scripts/difficulty_profile_test.mjs",
-    "scripts/difficultycard_test.mjs"
+    "scripts/difficultycard_test.mjs",
+    "scripts/difficultyvote_test.mjs",
+    "scripts/missie_haalbaarheid_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",

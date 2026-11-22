@@ -201,7 +201,7 @@ const next = () => new Promise((r) => setTimeout(r, 0));
   ok(D.OPTION_DEFS.every((d) => html.includes(`data-diffopt="${d.key}"`)), 'het tabblad toont elke optie als kiezer');
   ok(D.OPTION_GROUPS.every(([, naam]) => html.includes(`<span>${naam}</span>`)), 'met een kop per groep');
   ok(/data-setting="difficulty"/.test(html) && /data-diff-reset/.test(html), 'het niveau en "Terug naar het niveau" staan erbij');
-  ok(/pas in bij de volgende missie/.test(html) && /volgt wie het spel opende/.test(html) && /Nooit weg uit het verhaal/.test(html), 'uitleg: later ingaan, de Samen-regel en dat het verhaal nooit blokkeert');
+  ok(/pas in bij de volgende missie/.test(html) && /kies je samen/.test(html) && /Nooit weg uit het verhaal/.test(html), 'uitleg: later ingaan, de Samen-regel en dat het verhaal nooit blokkeert');
   ok(/Gaat in bij de volgende start/.test(html), 'opties die later ingaan zeggen dat');
   ok(/aria-label="Politie kwijtraken: vorige"/.test(html) && /aria-label="Politie kwijtraken: volgende"/.test(html), 'elke kiezer heeft toegankelijke knoppen');
   // een kiezer bedienen zoals het pauzemenu dat doet
@@ -214,7 +214,7 @@ const next = () => new Promise((r) => setTimeout(r, 0));
   ok(M.handleDifficultyClick({ closest: (s) => (s === '[data-diff-reset]' ? {} : null) }) && !D.getDifficulty().aangepast, '"Terug naar het niveau" zet de aanpassingen terug');
   ok(!M.handleDifficultyClick({ closest: () => null }), 'een andere klik wordt niet afgehandeld');
   const pm = read('game/js/pausemenu.js');
-  ok(/if \(pk\.dataset\.diffopt\) \{ stepDifficultyPicker\(pk, dir\)/.test(pm) && /syncDifficultyTab\(root\)/.test(pm) && /handleDifficultyClick\(e\.target\)/.test(pm), 'pausemenu.js bedient de kiezers, de reset en de weergave');
+  ok(/pk\.dataset\.diffopt\) \{ changeWithGroup\(world, \{ type: 'option'.*stepDifficultyPicker\(pk, dir\)/.test(pm) && /syncDifficultyTab\(root\)/.test(pm) && /handleDifficultyClick\(t\)/.test(pm), 'pausemenu.js bedient de kiezers, de reset en de weergave');
   ok(/data-goto-sub="settings:moeilijkheid"/.test(pm), 'Instellingen > Spelregels verwijst naar het tabblad');
 }
 

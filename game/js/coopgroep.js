@@ -8,7 +8,7 @@
 // - Stemming: een tijdsprong vraagt akkoord van alle andere spelers (J of N, STEM_SEC seconden, geen antwoord is nee). Wie alleen is, beslist zelf.
 
 export const STEM_SEC = 10;
-export const STEM_SOORTEN = ['slapen', 'onderduiken', 'stoppen', 'keuze'];
+export const STEM_SOORTEN = ['slapen', 'onderduiken', 'stoppen', 'keuze', 'moeilijkheid'];
 
 // ---- wie speelt er mee
 // Host: minstens een verbonden gast. Gast: altijd (hij zit in iemands sessie). Zonder sessie: nee.
@@ -78,6 +78,8 @@ export const STEM_TEKST = {
   onderduiken: (naam) => `${naam} wil onderduiken. De tijd springt dan voor iedereen vooruit.`,
   // #642: iedereen stoppen is ook een gezamenlijke keuze, net als de tijd
   stoppen: (naam) => `${naam} wil het spel voor iedereen stoppen.`,
+  // moeilijkheid van de wereld (politie en verkeer) is een gezamenlijke keuze, geen hostrecht
+  moeilijkheid: (naam) => `${naam} wil de moeilijkheid van de wereld aanpassen: politie en verkeer.`,
 };
 export const stemVraagTekst = (tekst) => `${tekst} Akkoord? J = ja, N = nee (geen antwoord is nee).`;
 export const STEM_HOST = {
@@ -90,6 +92,7 @@ export const STEM_HOST = {
 };
 export const stemUitslagTekst = (ok, reden = '', soort = '') => {
   if (soort === 'stoppen') return ok ? 'Iedereen is akkoord: het spel stopt.' : (reden === 'geen antwoord' ? 'Niet iedereen antwoordde; het spel gaat door.' : 'Niet iedereen is akkoord; het spel gaat door.');
+  if (soort === 'moeilijkheid') return ok ? 'De groep is akkoord: de moeilijkheid van de wereld is aangepast.' : (reden === 'geen antwoord' ? 'Er kwam te weinig antwoord; de moeilijkheid van de wereld blijft zoals hij was.' : 'De groep is het niet eens; de moeilijkheid van de wereld blijft zoals hij was.');
   return ok ? STEM_HOST.ja : reden === 'geen antwoord' ? STEM_HOST.geenAntwoord : STEM_HOST.nee;
 };
 

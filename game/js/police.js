@@ -5,6 +5,7 @@ import { spawnVehicleOnRoad, updateTrafficAI, resolveVehicleBuildingCollision, s
 import { requestRespawn } from './world.js';
 import { mulberry32 } from './rng.js';
 import { bustFineIn } from './economy.js';
+import { scaleFine } from './difficulty.js'; // boete volgt het niveau (besluit eigenaar 22-11)
 import { spawnCopPedestriansNear, isSpawnHidden } from './pedestrians.js';
 import { isInsideBuilding } from './pedgeom.js';
 import { edgeDistance } from './countryfield.js';
@@ -512,7 +513,7 @@ function updateBust(dt, world) {
     bust.mode = null;
     // samen spelen (#434): is het doelwit een gast, dan wordt hij gepakt (coopnet.js) en niet de host
     if (p.coopSlot != null && world.coopGepakt) world.coopGepakt(p.coopSlot, world.wanted);
-    else requestRespawn(world, { busted: true, moneyPenalty: bustFineIn(world.wanted, world.money, p.inVehicle) });
+    else requestRespawn(world, { busted: true, moneyPenalty: scaleFine(bustFineIn(world.wanted, world.money, p.inVehicle)) });
   }
 }
 
