@@ -1,5 +1,6 @@
 // All player-facing text of the interiors (epic Interieurs, #1150): prompts at the spots of use, what the people behind the
 // counter say, the closed-door lines. Text only, Dutch, invented names; nothing is voiced. Code in interiors.js reads these.
+import { euro } from './geldtekst.js';
 export const PROMPT = {
   kopen: { label: 'Kopen', sub: 'Bij de kassa' },
   bestellen: { label: 'Bestellen', sub: 'Aan de bar' },
@@ -50,6 +51,10 @@ export const LEZEN = ['Je bladert door een boek over de geschiedenis van het vee
 // what a generic purchase says: {item}, {price}
 export const FITTING = ['Je trekt het gordijn dicht. De spiegel is eerlijk, maar de zomer is mild.', 'Het pashokje ruikt naar nieuwe stof. Staat je goed.'];
 export const HAIRCUT = ['De kapper pakt de schaar: "Zoals altijd?" Je hebt nog nooit eerder gezeten.', 'Een kwartier later heb je een kapsel dat bij de zomer past.'];
-export const BOUGHT = (item, price) => `${item} gekocht voor €${price}.`;
-export const TOO_POOR = (item, price) => `Te weinig geld voor ${item} (€${price}).`;
+export const BOUGHT = (item, price) => `${item} gekocht voor ${euro(price)}.`;
+// Met `money` erbij zegt de melding ook hoeveel je tekortkomt (verfijnronde 22-11), zodat je weet of een extra klusje genoeg is.
+export const TOO_POOR = (item, price, money) => {
+  const k = Number.isFinite(money) ? Math.ceil(price - money) : 0;
+  return `Te weinig geld voor ${item} (${euro(price)})${k > 0 ? `: je mist nog ${euro(k)}` : ''}.`;
+};
 export const NOT_FOR_SALE = 'Hier valt niets te kopen.';

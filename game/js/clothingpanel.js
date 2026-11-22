@@ -9,6 +9,7 @@ import { soundForSlot } from './clothingsfx.js';
 import {
   ownsPiece, ownedPieces, givePiece, effectiveWorn, wornPieces, wearPiece, takeOffSlot, takeOffBlock, wearSet, setPriceFor, missingOf, setBonus,
   presetsOf, presetCode, savePreset, wearPreset, getBody, setBody, shopStock, shopProfiles, shopPrice, saleOn, wornMatches, ownsAll, clothingStats,
+  presetIsWorn, presetHolding, suggestPresetName, canUndoPreset, undoPreset,
 } from './clothing.js';
 import { euro } from './geldtekst.js';
 import { BODY_IDS, BODY_TYPES } from './clothinghair.js';
@@ -30,6 +31,16 @@ function describe(piece) {
   if (!x) return '';
   const r = RARITY[x.item.rarity];
   return `${x.item.desc}. ${slotLabel(x.item.slot)}${r && x.item.rarity !== 'g' ? ' · ' + r.label : ''}`;
+}
+
+// Vergelijken in de winkel (verfijnronde 22-11): wat gaat eruit als je dit aantrekt, en bij uitverkoop de gewone prijs. Eén korte regel erachter.
+export function compareNote(worn, piece, x, normalPrice = 0) {
+  const cur = worn[x.item.slot];
+  const was = cur && cur !== piece ? parsePiece(cur) : null;
+  const parts = [];
+  if (was) parts.push(`Vervangt ${lower(pieceLabel(was))}`);
+  if (normalPrice > 0) parts.push(`Gewoon ${euro(normalPrice)}`);
+  return parts.length ? ` · ${parts.join(' · ')}` : '';
 }
 
 // De kleur als swatch; stukken zonder eigen kleur (baard) tonen er geen.
@@ -131,21 +142,36 @@ export function wardrobeSections(ctx) {
       items: presets.map((p, i) => (p ? {
         id: 'cp-' + i, icon: 'kl_outfit', label: p.name, desc: Object.values(p.worn).map((x) => (parsePiece(x) || { item: { label: '' } }).item.label).filter(Boolean).join(', '),
         price: 0, keepFocus: true, verb: 'Aantrekken',
-        tag: SLOT_IDS.every((s) => (p.worn[s] || null) === (worn[s] || null)) ? 'Aan' : '',
+        tag: presetIsWorn(ch, i) ? 'Aan' : '',
         preview: ctx.previewOf({ ...p.worn }),
-        disabled: SLOT_IDS.every((s) => (p.worn[s] || null) === (worn[s] || null)) ? 'Heb je al aan' : '',
+        disabled: presetIsWorn(ch, i) ? 'Heb je al aan' : '',
         buy() { const r = wearPreset(ch, i); if (!r.ok) return null; ctx.apply(1); ctx.sound && ctx.sound('clothes_rustle'); return outfitMessage(p.name, r.missing.length); },
       } : null)).filter(Boolean),
     });
   }
-  sections.push({
-    title: 'Bewaar', note: 'Sla wat je nu aan hebt op in een van de vijf outfits',
-    items: presets.map((p, i) => ({
-      id: 'cv-' + i, icon: 'kl_outfit', label: p ? `Overschrijf ${p.name}` : `Bewaar als Outfit ${i + 1}`, desc: p ? 'Vervangt wat daar nu staat' : 'Een lege plek',
+  // Bewaren: een look die al ergens staat bewaar je niet nog eens, een overschrijving kan met één keuze terug (verfijnronde 22-11)
+  const holding = presetHolding(ch);
+  const saveItems = presets.map((p, i) => {
+    const same = holding >= 0 && holding !== i ? presets[holding] : null;
+    const here = holding === i;
+    return {
+      id: 'cv-' + i, icon: 'kl_outfit', label: p ? `Overschrijf ${p.name}` : `Bewaar als ${suggestPresetName(ch, i)}`, desc: p ? 'Vervangt wat daar nu staat. Terugzetten kan' : 'Een lege plek',
       price: 0, keepFocus: true, verb: 'Bewaren', preview: ctx.previewOf(effectiveWorn(ch)),
-      buy() { savePreset(ch, i, p ? p.name : `Outfit ${i + 1}`); return `Bewaard in outfit ${i + 1}`; },
-    })),
+      disabled: here ? 'Staat hier al' : same ? `Staat al in ${same.name}` : '',
+      buy() {
+        const name = p ? p.name : suggestPresetName(ch, i);
+        savePreset(ch, i, name);
+        return p ? `${name} overschreven. De vorige zet je hieronder terug` : `Bewaard als ${name}. Wissel onderweg met toets 6`;
+      },
+    };
   });
+  if (canUndoPreset(ch)) {
+    saveItems.push({
+      id: 'cu', icon: 'kl_outfit', label: 'Zet de vorige outfit terug', desc: 'Je laatste overschrijving ongedaan maken', price: 0, keepFocus: true, verb: 'Terugzetten',
+      buy() { const r = undoPreset(ch); return r.ok ? `${r.name} staat weer op plek ${r.index + 1}` : null; },
+    });
+  }
+  sections.push({ title: 'Bewaar', note: presets.some(Boolean) ? 'Sla wat je nu aan hebt op in een van de vijf outfits' : 'Nog geen outfits: bewaar je eerste, dan wissel je onderweg met {6}', items: saveItems });
   if (completeSets.length) sections.push({ title: 'Sets', note: 'Alle stukken erbij? Dan zit er een set in je kast', items: completeSets.map((s) => setWardrobeItem(ctx, s)) });
   for (const g of GROUPS) {
     const items = [];
@@ -180,7 +206,7 @@ function shopItem(ctx, piece, shopKey) {
   return {
     id: 'c-' + piece, icon: iconOf(piece),
     label: pieceLabel(x),
-    desc: describe(piece),
+    desc: describe(piece) + compareNote(worn, piece, x, owned ? 0 : inSale ? x.item.price : 0),
     price: owned ? 0 : price,
     keepFocus: true,
     verb: owned && !on ? 'Aantrekken' : undefined,
@@ -202,6 +228,12 @@ function shopItem(ctx, piece, shopKey) {
   };
 }
 
+// Wat een set scheelt tegenover dezelfde stukken los (verfijnronde 22-11): alleen als het echt iets scheelt.
+export function setSaving(missing, price) {
+  const loose = missing.reduce((n, p) => { const x = parsePiece(p); return n + (x ? x.item.price : 0); }, 0);
+  return missing.length > 1 && loose - price >= 1 ? `. Los ${euro(loose)}, scheelt ${euro(loose - price)}` : '';
+}
+
 function shopSetItem(ctx, s) {
   const ch = ctx.ch;
   const price = setPriceFor(ch, s);
@@ -211,7 +243,7 @@ function shopSetItem(ctx, s) {
   return {
     id: 'cs-' + s.id, icon: 'kl_outfit',
     label: s.label,
-    desc: `${s.desc}${miss.length && miss.length < s.pieces.length ? ` (nog ${miss.length} van ${s.pieces.length} stukken)` : ''}`,
+    desc: `${s.desc}${miss.length && miss.length < s.pieces.length ? ` (nog ${miss.length} van ${s.pieces.length} stukken)` : ''}${setSaving(miss, price)}`,
     price,
     keepFocus: true,
     verb: !miss.length && !on ? 'Aantrekken' : undefined,

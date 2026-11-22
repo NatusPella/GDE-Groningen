@@ -28,6 +28,10 @@ export function hairGroups(styles) {
   return out;
 }
 
+// Haar verven heeft geen zin zonder haar: bij een kaal hoofd blijft de kleurlijst dicht met een reden (verfijnronde 22-11, geen betaling voor niets).
+// '' = het mag.
+export const colorBlock = (style) => (style === 'bald' ? 'Kaal: geen haar om te verven' : '');
+
 // Wat de kapper zegt als hij begint, per soort ingreep (geen stem, alleen een regel in beeld). Geen merken, Nederlands.
 export const CUT_LINES = {
   knippen: ['De kapper pakt de schaar en tikt hem twee keer tegen de kam.', 'Knip, knip. De kapper neuriet iets zonder melodie.'],

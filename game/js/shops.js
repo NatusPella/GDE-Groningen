@@ -46,10 +46,10 @@ import {
   completeSetIds, wornSet, wearPiece, takeOffSlot, setLocalCharProvider, emitLocalOutfitChange, cyclePreset, getHair, setHair, wornPieces,
 } from './clothing.js';
 import { HAIR_COLORS, HAIR_STYLES, hairPrice, parseHair, hairReaction } from './clothinghair.js';
-import { hairGroups, cutLine } from './kapperkeuze.js'; // de kapper aan de stoel: groepen en een regel bij het knippen (epic Autotuning ronde 4)
+import { hairGroups, cutLine, colorBlock } from './kapperkeuze.js'; // de kapper aan de stoel: groepen en een regel bij het knippen (epic Autotuning ronde 4)
 import { playHair } from './tuningsfx.js';
 import { SETS, setKeyFor, parsePiece } from './clothingdata.js';
-import { shopSections, wardrobeSections, fittingSections } from './clothingpanel.js';
+import { shopSections, wardrobeSections, fittingSections, outfitMessage } from './clothingpanel.js';
 import { clothingSfx } from './clothingsfx.js';
 import { sfxEvent } from './sfx/haken.js';
 import { wantedClearCooldownLeft, markWantedCleared } from './heatcooldown.js'; // #838: spuiterij-cooldown
@@ -1327,7 +1327,7 @@ function cycleOutfit(world, dir = 1) {
   clothesRustle(world);
   shakeWanted(world, 1);
   clothingSfx(world, 'clothes_rustle');
-  world.addMessage(`${r.name} aan${r.missing && r.missing.length ? ` (${r.missing.length} stuk${r.missing.length > 1 ? 'ken' : ''} ontbreken)` : ''}`, 2.5);
+  world.addMessage(outfitMessage(r.name, r.missing ? r.missing.length : 0), 2.5);
   return true;
 }
 
@@ -1420,7 +1420,7 @@ function hairSections(world) {
     id: 'h-' + c.id, label: c.label, desc: c.id === 'naturel' ? 'Terug naar je eigen kleur' : 'Verven, föhnen, klaar',
     price: c.price, tag: cur.color === c.id ? 'Nu' : '', swatch: [hexCss(c.hair ?? naturel)],
     preview: mirror(cur.style, c.id),
-    disabled: cur.color === c.id ? 'Heb je al' : broke(world, c.price),
+    disabled: cur.color === c.id ? 'Heb je al' : colorBlock(cur.style) || broke(world, c.price),
     buy: () => change(cur.style, c.id, c.price, `Haar ${c.label.toLowerCase()}.`),
   }));
   const styleItem = ([id, label]) => ({
