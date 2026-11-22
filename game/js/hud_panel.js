@@ -51,7 +51,7 @@ import { drawCountryMinimap, villageLabels, syncMapPhase } from './countrymap.js
 import { MINI_PALETTE as MINI_STYLE, EMPHASIS, INK, inkA, seaStyle, miniRoadStyle, MINI_RANGE_M } from './mapstyle.js';
 import { drawSea, drawOutside, regionLabels, regionEdgeLabels, areaNameAt, REGIONS } from './regions.js';
 import { borderPlaceLabels } from './borderplaces.js';
-import { worldPlaceLabels, worldPlacesReady } from './worldplaces.js';
+import { worldPlaceLabels, worldPlacesReady, worldPlaceAt } from './worldplaces.js';
 import { provinceMapOn } from './provincemap.js';
 import { edgeDistance } from './countryfield.js';
 import { streetAt as roadStreetAt } from './tileplace.js';
@@ -64,7 +64,7 @@ import { singleEntryCache } from './hudcache.js';
 import { minimapMoved, minimapRedrawDue } from './minimapcadence.js';
 import { locatieLift, locatieHysterese, locatieVerschuiving, LOCATIE_GAP } from './hudlinks.js'; // #1141: de locatiekaart staat onderin en gaat alleen omhoog voor wat eronder komt
 import { VILLAGES } from './ommelandlines.js';
-import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, getCareRoute, formatDistance } from './routing.js';
+import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, getCareRoute, formatDistance, landingSpots } from './routing.js';
 import { getClockText } from './clocktext.js';
 export { getClockText };
 import { storyWaiting, missionOnMap, getGoal } from './goal.js';
@@ -85,7 +85,8 @@ import { decideHud, zones, hudNow, cardYields, vehnameBottom, P3, PLACE_SHOW, DE
 import { goalTitle, travelMode } from './goaltext.js';
 import { vehicleKind, speedoLook, meterLevel, hudEdge, distanceOwner, vehicleLabelOwner } from './hudlook.js';
 import { nextTurn, turnText, etaText, dichtstbijDoel } from './hudgps.js';
-import { airGuide, airSub, airEtaText } from './airguide.js';
+import { airEtaText } from './airguide.js';
+import { airCard, cutTitle } from './airguidecard.js'; // #1038: één kaart in de lucht, plaatsnaam en handeling
 import { getAirNeed } from './airprofile.js';
 import { gastDoelen } from './coopextra.js';
 import { kaartDoelen, KAART_ANDER_ALPHA } from './coopmissie.js';
@@ -144,7 +145,7 @@ const TURN_ICON = { rechts: 'afslag_rechts', links: 'afslag_links', recht: 'pijl
 
 // The GPS card where there is no turn to give: the train (where to get off,
 // where to change) and the air (altitude advice, the landing spot).
-function modeCard(route, mode, me) {
+function modeCard(route, mode, me, map) {
   if (!route || route.remaining <= 30) return null;
   if (mode === 'ov' && route.uitstappen) {
     const change = route.changes && route.changes[0];
@@ -152,8 +153,8 @@ function modeCard(route, mode, me) {
   }
   // in de lucht: een rechte lijn naar het doel; koers, peiling, tijd en hoogteadvies (airguide.js) in plaats van afslagen
   if (mode === 'lucht' && route.mode === 'fly' && route.target && me) {
-    const g = airGuide(me, route.target, { alt: route.alt, need: getAirNeed() });
-    return { title: g.title, sub: airSub(g), dist: formatDistance(g.dist), eta: airEtaText(g.etaS) };
+    const c = airCard(me, route.target, { alt: route.alt, need: getAirNeed(), pads: map ? landingSpots(map) : [], placeAt: worldPlaceAt });
+    return { title: c.title, sub: c.sub, dist: formatDistance(c.dist), eta: airEtaText(c.etaS), air: c };
   }
   if (mode === 'lucht' && route.alt) return { title: `Hoogte ± ${route.alt} m`, sub: route.landing ? `Landen: ${route.landing.name}` : '' };
   return null;
@@ -1066,8 +1067,9 @@ function updateGps(dt, world) {
   }
   gpsState.turn = turn;
   const v0 = p.inVehicle;
-  const card = turn ? null : modeCard(route, mode, mode === 'lucht' ? { x: v0 ? v0.x : p.x, y: v0 ? v0.y : p.y, z: v0 ? v0.z || 0 : p.gz || 0, angle: v0 ? v0.angle : p.angle, speed: v0 ? v0.speed : 0 } : null);
+  const card = turn ? null : modeCard(route, mode, mode === 'lucht' ? { x: v0 ? v0.x : p.x, y: v0 ? v0.y : p.y, z: v0 ? v0.z || 0 : p.gz || 0, angle: v0 ? v0.angle : p.angle, speed: v0 ? v0.speed : 0 } : null, world.map);
   gpsState.card = card;
+  els.gps.classList.toggle('is-air', !!(card && card.air));
   // de kaart volgt de kleur van de route die hij uitlegt (geel autoroute, paars eigen doel): dezelfde bron als de boog op de minimap (navtarget.js)
   els.gps.style.setProperty('--nav-doel', route ? ROUTE_COLORS[route.kind] || '' : '');
   if (!turn && !card && !gpsState.timer) return;
@@ -1084,14 +1086,23 @@ function updateGps(dt, world) {
     key += '|' + title + '|' + sub + '|' + formatDistance(route.remaining);
     if (key === els.gpsKey) return;
     setIc(els.gpsArrow, TURN_ICON[turn.side]);
+    els.gpsIcon = '';
     setText(els.gpsTitle, title);
     setText(els.gpsSub, sub);
     setText(els.gpsDist, formatDistance(route.remaining));
     setText(els.gpsEta, etaText(route.remaining, v ? v.speed : 0, route.mode || (mode === 'fiets' ? 'bike' : 'drive'), route));
   } else if (card) {
     key += `|${card.title}|${card.sub}|${card.dist || formatDistance(route.remaining)}|${card.eta || ''}`;
+    // in de lucht draait de pijl mee met je koers (0 = recht vooruit); bij een U-bocht staat er een omdraai-icoon.
+    // De hoek volgt elk tikje, ook als de tekst gelijk blijft; een andere handeling laat de kaart even oplichten (<= 250 ms).
+    const air = card.air;
+    if (air) {
+      if (air.icon !== els.gpsIcon) { setIc(els.gpsArrow, air.icon); els.gpsIcon = air.icon; }
+      els.gpsArrow.style.setProperty('--gps-hoek', `${Math.round(air.deg)}deg`);
+      if (air.key !== els.gpsAirKey) { els.gpsAirKey = air.key; els.gps.classList.remove('wissel'); void els.gps.offsetWidth; els.gps.classList.add('wissel'); }
+    }
     if (key === els.gpsKey) return;
-    setIc(els.gpsArrow, TURN_ICON.recht);
+    if (!air) { setIc(els.gpsArrow, TURN_ICON.recht); els.gpsIcon = ''; }
     setText(els.gpsTitle, card.title);
     setText(els.gpsSub, card.sub);
     setText(els.gpsDist, card.dist || formatDistance(route.remaining));
@@ -1593,7 +1604,9 @@ function currentObjective(world) {
       : g.buy ? (near ? 'Voor het verhaal: loop naar binnen (E)' : 'Volg de gele route naar de winkel')
       : inside ? 'Stap even uit de marker en weer terug'
       : atMarker ? (near ? 'Loop of rij de gele marker in' : 'Volg de gele route naar de marker') : 'Volg de gele route';
-    return { kind: 'story', raw: g.name, title: goalTitle('story', g.name, modus), sub, timer: '' };
+    // in de lucht staat de bestemming op de routekaart (plaatsnaam, #1038): de balk toont alleen de naam van de opdracht, zonder "Vlieg naar:"
+    const lucht = travelModeOf(world) === 'lucht';
+    return { kind: 'story', raw: g.name, title: lucht ? cutTitle(g.name) : goalTitle('story', g.name, modus), sub, timer: '' };
   }
   return null;
 }

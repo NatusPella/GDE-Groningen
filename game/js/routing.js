@@ -527,7 +527,7 @@ function invalidateRoutes() { for (const k of Object.keys(slots)) { slots[k].key
 function busyTarget(world) {
   // a heli run (helirun.js) points at its next ring, pad or the balloon
   const hr = world.heliRunTarget;
-  if (world.heliRun) return hr ? { x: hr.x, y: hr.y, kind: 'mission', name: hr.name || 'Heli' } : null;
+  if (world.heliRun) return hr ? { x: hr.x, y: hr.y, kind: 'mission', name: hr.name || 'Heli', plek: true } : null;
   // a minigame on the spot (padel, carbid, the kermis): no route to anything else meanwhile
   if (playerBusy(world, ['padel', 'activityGame']).busy) return null;
   const job = world.sideJob;
