@@ -66,6 +66,14 @@ await t('maskeren: IP-adressen (v4 en v6), poorten, koppelcodes en kamercodes ve
   assert.ok(!/\d+\.\d+\.\d+\.\d+/.test(m)); assert.ok(!/fe80/.test(m)); assert.ok(!/GDE2-ABCD/.test(m)); assert.ok(!/K7Q2M/.test(m));
   assert.match(m, /\[ip-adres\]/); assert.match(m, /\[koppelcode\]/); assert.match(m, /\[kamercode\]/);
 });
+await t('maskeren: samengeperste IPv6-adressen (met ::), maar geen tijden of gewone tekst', async () => {
+  for (const a of ['2001:db8::1', 'fe80::a1b2:c3d4:e5f6:1234', '::1', 'fd00:1234::', '2001:db8:0:1::5']) {
+    const m = maskeer('fout bij ' + a + ' daarna');
+    assert.ok(!/[0-9a-f]*:[0-9a-f]*:/i.test(m), a + ' -> ' + m); assert.match(m, /\[ip-adres\]/);
+  }
+  assert.equal(maskeer('om 12:30:45 klaar'), 'om 12:30:45 klaar');
+  assert.equal(maskeer('std::vector en Foo::bar'), 'std::vector en Foo::bar');
+});
 await t('foutrapport: versie, apparaat, uitslag en log; geen adressen, ook niet als ze per ongeluk in het log kwamen', async () => {
   let klok = 1000; const log = new VerbindingsLog(5, () => (klok += 500));
   log.add('route', 'kamer'); log.add('fout', 'geen antwoord van 10.0.0.5:41000'); log.add('status', 'lost');

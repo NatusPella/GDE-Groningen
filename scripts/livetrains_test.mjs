@@ -211,6 +211,12 @@ const demo = () => feed(
   assert.strictEqual((await cjs.haalLiveTreinen(async () => ({ ok: false, status: 404 }))).ok, false);
   const groot = async () => ({ ok: true, status: 200, body: { getReader: () => ({ read: async () => ({ done: false, value: new Uint8Array(cjs.MAX_BYTES + 1) }) }) } });
   assert.strictEqual((await cjs.haalLiveTreinen(groot)).ok, false, 'te groot');
+  // een omleiding naar een andere host wordt niet gevolgd (constitutie 4, review 22-11)
+  let opties = null;
+  await cjs.haalLiveTreinen(async (u, o) => { opties = o; return { ok: false, status: 404 }; });
+  assert.strictEqual(opties.redirect, 'error', 'livetrains.cjs volgt geen omleiding');
+  const busSrc = (await import('node:fs')).readFileSync(new URL('../desktop/livebussen.cjs', import.meta.url), 'utf8');
+  assert.ok(/redirect: 'error'/.test(busSrc) && !/redirect: 'follow'/.test(busSrc), 'livebussen.cjs volgt geen omleiding');
   const pkg = fs.readFileSync(new URL('../desktop/package.json', import.meta.url), 'utf8');
   assert.ok(pkg.includes('livetrains.cjs'), 'in het pakket');
   const pre = fs.readFileSync(new URL('../desktop/preload.js', import.meta.url), 'utf8');

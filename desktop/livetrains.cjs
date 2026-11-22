@@ -13,7 +13,7 @@ async function haalLiveTreinen(fetchImpl = globalThis.fetch) {
   const timer = setTimeout(() => ac.abort(), TIMEOUT);
   try {
     const res = await fetchImpl(LIVE_URL, {
-      method: 'GET', credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer', redirect: 'follow', signal: ac.signal,
+      method: 'GET', credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer', redirect: 'error', signal: ac.signal,
       headers: { Accept: 'application/x-protobuf', 'User-Agent': 'OpenDataLezer/1' },
     });
     if (!res.ok) return { ok: false, status: res.status, bytes: new Uint8Array(0) };
