@@ -75,7 +75,11 @@ export function beslis(i, s, sessie, opties = {}) {
   if (!(d >= FAR_M)) return null;
   if (s.gebruikt >= GENOEG_GEBRUIKT) return null;
   if (s.gebruikt === 0 && s.getoond >= MAX_UNUSED_SHOWS) return null;
-  if (s.gebruiktOp && i.nuMs - s.gebruiktOp < STIL_NA_GEBRUIK_MS) return null;
+  // een tijd in de toekomst (systeemklok teruggezet) telt als verlopen, anders zweeg de hint voor altijd
+  const sindsGebruik = i.nuMs - s.gebruiktOp;
+  if (s.gebruiktOp && sindsGebruik >= 0 && sindsGebruik < STIL_NA_GEBRUIK_MS) return null;
+  // na het laden van een oudere save loopt de spelklok terug: dan begint de wachttijd opnieuw
+  if (i.nu < sessie.laatsteAt) sessie.laatsteAt = -Infinity;
   if (i.nu - sessie.laatsteAt < GAP_S) return null;
   const sleutel = goalKey(i.goal);
   if (sessie.doelen.has(sleutel)) return null;

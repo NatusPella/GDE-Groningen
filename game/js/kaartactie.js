@@ -4,6 +4,7 @@
 // 'Haal weg'. Zet waypoint is de enige 'zelf gaan'-route (een lijn op de kaart en een baken in de wereld);
 // Reis erheen gaat alleen over HOE je reist: trein, bus, taxi, boot (21-11, docs/KAART-POPUPS-21-11.md).
 import { MODE_LABEL, OV_MIN_M, WALK_V } from './ovopties.js';
+import { duurTekst } from './reistijd.js';
 
 export const ACTIE_IDS = ['waypoint', 'reis', 'info'];
 // een klik zo dicht bij het waypoint telt als een klik op het waypoint zelf
@@ -33,7 +34,6 @@ export const REIS_MODI = Object.freeze([
   { id: 'fiets', icoon: 'fiets', status: 'gepland' },
 ]);
 
-const mins = (s) => Math.max(1, Math.round(s / 60));
 const euro = (n) => (n > 0 ? `€ ${n}` : 'gratis');
 
 // De aanbevolen meerijden-optie, anders de snelste die je kunt betalen.
@@ -69,7 +69,7 @@ export function actieModel({ spot, speler, waypoint, opts = [], fmt = (m) => `${
   else acties.push({ id: 'waypoint', icoon: ICONEN.waypoint, label: 'Zet waypoint', sub: waypoint ? 'Zelf gaan · vervangt je huidige waypoint (er is er één)' : `Zelf gaan · een lijn en ${fmt(afstand)} afstand` });
   // geen betaalbaar vervoer: de plekkaart zegt waarom (de popup legt het per vervoerswijze uit), en Zet waypoint blijft de weg
   const geen = rit ? '' : (reisKeuzes(opts, afstand).map((r) => r.disabled).find(Boolean) || '');
-  const reis = { id: 'reis', icoon: ICONEN.reis, label: 'Reis erheen', sub: rit ? `Trein, bus, taxi of boot · ${euro(rit.price)} · ${rit.eta || `± ${mins(rit.etaS)} min`}` : (geen || 'Geen vervoer hierheen') };
+  const reis = { id: 'reis', icoon: ICONEN.reis, label: 'Reis erheen', sub: rit ? `Trein, bus, taxi of boot · ${euro(rit.price)} · ${rit.eta || `± ${duurTekst(rit.etaS)}`}` : (geen || 'Geen vervoer hierheen') };
   if (gast) { reis.disabled = true; reis.reden = GAST_REIS_MELDING; reis.sub = GAST_REIS_KORT; }
   acties.push(reis);
   acties.push({ id: 'info', icoon: ICONEN.info, label: 'Info', sub: `${fmt(afstand)} van je vandaan` });
@@ -107,7 +107,7 @@ export function reisKeuzes(opts, afstandM, { gast = false } = {}) {
     const basis = { id: m.id, icoon: m.icoon, label: MODE_LABEL[m.id] || m.id, order: i };
     if (!o) return { ...basis, uitleg: '', kosten: '', duur: '', etaS: 0, aanbevolen: false, beschikbaar: false, disabled: gast ? GAST_REIS_KORT : geenRoute(m.id, afstandM), geenRoute: true };
     const reden = gast ? GAST_REIS_KORT : (o.afford ? null : (o.blokkade || 'Te weinig geld'));
-    return { ...basis, uitleg: ritUitleg(o), kosten: euro(o.price), duur: o.eta || `± ${mins(o.etaS)} min`, etaS: o.etaS, aanbevolen: !gast && !!rit && rit.id === o.id, beschikbaar: !reden, disabled: reden, geenRoute: false };
+    return { ...basis, uitleg: ritUitleg(o), kosten: euro(o.price), duur: o.eta || `± ${duurTekst(o.etaS)}`, etaS: o.etaS, aanbevolen: !gast && !!rit && rit.id === o.id, beschikbaar: !reden, disabled: reden, geenRoute: false };
   });
   const rang = (r) => (r.beschikbaar ? (r.aanbevolen ? 0 : 1) : r.geenRoute ? 3 : 2);
   lijst.sort((p, q) => rang(p) - rang(q) || p.etaS - q.etaS || p.order - q.order);
@@ -118,7 +118,7 @@ export function reisKeuzes(opts, afstandM, { gast = false } = {}) {
 export function infoRegels({ spot, sub = '', afstand, fmt = (m) => `${Math.round(m)} m` }) {
   return [
     [spot.name, sub].filter(Boolean).join(' · '),
-    `${fmt(afstand)} · lopen ± ${mins(afstand / WALK_V)} min · rijden ± ${mins(afstand / 12)} min`,
+    `${fmt(afstand)} · lopen ± ${duurTekst(afstand / WALK_V)} · rijden ± ${duurTekst(afstand / 12)}`,
   ].filter(Boolean);
 }
 

@@ -13,6 +13,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Prestaties
 - Prestaties (#1074, #1067): als het spelvenster verborgen of op de achtergrond is, doen de vaste controles van de overlays, het Samen-paneel en het aanraakscherm niets meer; de kartmotor wordt bij het verlaten van de baan echt stopgezet. Samen spelen: lokaal per speler, geen netwerkwijziging; testsessies met `?stil` blijven gewoon tikken. Voor de metingen staan er twee A-schakelaars (`?perfoff=boomfade`, `?perfoff=gevelfade`).
+### OV en reizen
+- Reizen: lange ritten staan nu in uren en minuten ("1 u 18 min") in het keuzevenster, de briefing, de kaart en het aankomstbericht, en het vertrekbord noemt een lange wachttijd ook zo. De briefing noemt een trekkerrit geen autorit meer.
+- Reis erheen: een taxi die niet kan, noemt zijn eigen reden (te dichtbij, achtervolging). Is een goedkopere rit bijna even snel als de taxi, dan raadt het spel die aan.
+- Reisscène: geen vastlopers meer bij een kapotte rit, een mislukte rit in het verhaal laat je direct aankomen, en een geladen spel wordt niet meer naar de bestemming gezet. De hint voor taxi en OV zwijgt niet meer voor altijd na een teruggezette klok of een ouder spel, en het vertrekbord laat geen trein meer verdwijnen als twee rijen op elkaar lijken.
 ### Kaart en HUD
 - Kaart: een nieuwe streek ontdekt, ook onderweg met de kaart dicht? Dan gloeit de rand van de minimap even zomers geel op (zonder beweging blijft de gele rand even staan). Ontdekking is per speler; wie meespeelt ziet alleen de eigen gloed (#990).
 - Gebiedsnaam: de prestatie voor wijken, de telefoonpraatjes en de duif noemen alleen nog een stadswijk als je er echt in staat, niet meer vanaf een weg net buiten de stad. Lokaal per speler (#1077).
