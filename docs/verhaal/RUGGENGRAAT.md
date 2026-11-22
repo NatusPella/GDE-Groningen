@@ -128,7 +128,7 @@ Zes extra stappen (activiteiten zonder beloning, `added: true`, ID's F1 tot en m
 | F5 Een avond voor twee | kade aan de Noorderhaven, zo 30 aug, avond | Zoet en komisch: het lijstje in Tammo's zak, waar zet ik mijn hand, "Berend telde elf seconden. Dat is officieel." Ze zijn een stel. | B | idem |
 | F6 De kaart op het luik | Vismarkt, za 19 sept, na M30 en O12 | Eenenveertig rode stippen tegen één blauwe; Jelle belt: wedstrijd. De overgang naar het eindspel: het snackimperium van Jelle overnemen en de sandbox van de Bezit-epic; niets stopt. | D | idem |
 
-De aftitelkaart (`story.js` `TERUGBLIK`) toont voor de namen zeven korte terugblikgrappen (bierviltje, stoep met overeenkomst, Krolbrug, opa's horloge, één koekje, elf seconden, de duiven in de rij). De humorbeats van de F-stappen staan als voorstel (niet door het paneel beoordeeld) in `game/storydata/humor.eind.json` en `HUMOR-KEUZELIJST.md` (HE-01 tot en met HE-08). Een oude save voorbij het invoegpunt speelt F1 tot en met F5 niet; alleen F6 volgt voor wie M30 al haalde (de overgang naar het eindspel, zonder beloning).
+De aftitelkaart (`story.js` `TERUGBLIK`) toont voor de namen acht korte terugblikgrappen (bierviltje, stoep met overeenkomst, Krolbrug, opa's horloge, één koekje, elf seconden, soep met een eierbal voor de verzoening, de duiven in de rij); in de namenkaarten staat ook Beppe. De humorbeats van de F-stappen staan als voorstel (niet door het paneel beoordeeld) in `game/storydata/humor.eind.json` en `HUMOR-KEUZELIJST.md` (HE-01 tot en met HE-08). Een oude save voorbij het invoegpunt speelt F1 tot en met F5 niet; alleen F6 volgt voor wie M30 al haalde (de overgang naar het eindspel, zonder beloning).
 
 ## Deel 4: Nazomer (14 tot 19 september) en daarna
 

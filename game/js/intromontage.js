@@ -17,6 +17,7 @@ import { speakerHtml } from './speakers.js';
 import { playStoryVoice, stopStoryVoice, setStoryScene } from './audio.js';
 import { buildRadioStudio } from './radiostudio.js';
 import { setThemeDuck, cueTheme } from './theme.js';
+import { sfxEvent } from './sfx/haken.js';
 import { scriptHeli } from './skyprops.js';
 import { buildPigeonBird, posePigeonBird } from './pigeonmode.js';
 import { routeAt as canalAt, ROUTE_LENGTH as CANAL_LENGTH } from './rondvaartchase.js';
@@ -34,7 +35,7 @@ import { BIRDS, makeBirds, scatterBirds, updateBirds } from './birds.js';
 import { setIntroPlaying } from './trailerstate.js';
 import { openBank } from './voicebank.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
-import { TITLE, SEQUENCE, NAME_CARDS, FILM_VOICES, engineLines, themeEntryShot } from './openingfilm.js'; // titelkaart en slogan komen uit de filmdata (docs/verhaal/OPENING-FILMSCRIPT-21-11.md)
+import { TITLE, SEQUENCE, NAME_CARDS, FILM_VOICES, SFX_KOPPELING, engineLines, themeEntryShot } from './openingfilm.js'; // titelkaart en slogan komen uit de filmdata (docs/verhaal/OPENING-FILMSCRIPT-21-11.md)
 
 // Recorded montage dialogue: the story manifest ("<speaker>|<text>"), then the
 // lines manifest (linevoice.js) for the newer lines.
@@ -1249,6 +1250,8 @@ function buildShots(w, film = false) {
       s.bird.position.set(lerp(from.x, sh.x, k), lerp(from.z, z + 1.55, k), lerp(from.y, sh.y, k));
       s.bird.rotation.set(0, -home.a, 0);
       posePigeonBird(s.bird, { flapPhase: t * 20, amp: k < 1 ? 0.9 : 0.1, fold: k < 1 ? 0 : 1, grounded: k >= 1 });
+      // the sigh of the script, when the pigeon has landed (openingfilm.js SFX_KOPPELING)
+      if (k >= 1 && !s.sighed) { s.sighed = true; sfxEvent(r.w, SFX_KOPPELING['c1-schouder'], q.x, q.y); }
     },
     // in front of him, looking back at him and the pigeon on his shoulder
     cams: [[0, (u, t) => {
@@ -1418,6 +1421,8 @@ function buildShots(w, film = false) {
       const m = { x: s.o.x + hn.x * 2.0, y: s.o.y + hn.y * 2.0 };
       stage(s.man, m.x, m.y, Math.atan2(-hn.y, -hn.x), { h: zAt(m.x, m.y), speed: 0, pose: 'hips', dt, t });
       s.sticker.scale.setScalar(clamp01((t - 2.2) / 1.0) * 0.999 + 0.001);
+      // the slap of the sticker (openingfilm.js SFX_KOPPELING)
+      if (t >= 2.2 && !s.slapped) { s.slapped = true; sfxEvent(r.w, SFX_KOPPELING['c2-raam'], s.o.x, s.o.y); }
       s.bird.position.set(s.o.x, s.gz + 2.5, s.o.y);
       s.bird.rotation.set(0, -(home.a + 0.4), 0);
       posePigeonBird(s.bird, { flapPhase: 0, amp: 0, fold: 1, grounded: true, walkPhase: 0, peck: t % 3 > 2.7 ? 1 : 0 });

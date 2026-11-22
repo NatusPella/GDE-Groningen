@@ -116,6 +116,11 @@ export const SEQUENCE = [
   S('c3-zweef', 'C00.3', 'swoop', 'wide', 50, { kind: 'crane', dist: 3.6 }, { minDur: 4.6, at: 'Paddepoel', cam: 'de zweefvlucht naar de startplek van de speler (flyShot); "Welkom in Grunn"', cue: 'thema-groot' }),
 ];
 
+// Sound hooks (22-11): the film's own sound hints (SEQUENCE sfx) that fit a sound of the central map (sfx/sfxmap.js, played with sfxEvent in
+// intromontage.js). Keyed by shot id. The hints without a fitting sound stay open (SFX_OPEN) until the sound round: no new audio in this round.
+export const SFX_KOPPELING = { 'c1-schouder': 'npc_sigh', 'c2-raam': 'deed_stamp' };
+export const SFX_OPEN = { 'c1-duiven': 'duivenvleugels (een zwerm die opstijgt)', 'c3-geld': 'band-sissen (lucht uit een lekke band)' };
+
 // The camera setups per staged shot (the cuts inside it, intromontage.js cams): R-02 and R-03 are judged per camera segment, not per staged shot.
 const CAMS = { 'c2-bank': 3, 'c2-wagen': 5, 'c2-plan': 9, 'c2-thuis': 4, 'c2-huur': 5, 'c2-kom': 2, 'c3-geld': 6 };
 for (const s of SEQUENCE) s.cams = CAMS[s.id] || 1;
