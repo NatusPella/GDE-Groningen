@@ -13,6 +13,7 @@ import { getSettings, onSettingsChange } from './settings.js';
 import { sendKey } from './input.js';
 import { playerBusy } from './busy.js';
 import { radialDeadzone, pickPad, spatialNext, nextSelectIndex, isPadTextField, DEAD } from './padlogic.js';
+import { stickSteerCurve, pedalAxis } from './pedalfeel.js';
 import { noteDevice, onDeviceChange } from './inputdevice.js';
 import { hapticScale, hapticFrame, makeHapticState, eventProfile, drainHapticEvents, playHaptic } from './haptics.js';
 import { reducedMotion } from './motion.js';
@@ -366,8 +367,8 @@ function sticks(pad, dt) {
   } else if (mode === 'steer') {
     const gas = map.rt === '@gas' ? rt : 0;
     const brake = map.lt === '@brake' ? lt : 0;
-    const y = (brake > 0.12 ? brake : 0) - (gas > 0.12 ? gas : 0);
-    axis = [lx, Math.abs(y) > 0.05 ? y : 0];
+    // analog pedals and an expo curve on the steering stick (pedalfeel.js); the keys below keep the raw values
+    axis = [stickSteerCurve(lx), pedalAxis(gas, brake)];
     holdStick('w', past(gas, 'w')); holdStick('s', past(brake, 's'));
     holdStick('a', past(-lx, 'a')); holdStick('d', past(lx, 'd'));
   } else if (mode === 'arrows') {

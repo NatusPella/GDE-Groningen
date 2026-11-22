@@ -18,6 +18,7 @@ import { getSettings } from './settings.js';
 import { firstPersonOn } from './firstperson.js';
 import { makeJumpAssist, jumpStep } from './gamefeel.js';
 import { steerScale } from './steerscale.js';
+import { pedalThrottle } from './pedalfeel.js';
 import { assistDamage } from './assistlive.js';
 import { ALGAE } from './eventrules.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
@@ -1135,7 +1136,8 @@ export class Player {
     // race countdown (world.startLockUntil) or a snackwagen shift (v.shiftParked):
     // engine idles, handbrake on, no creeping over the line
     const held = !!v.shiftParked || (!!world && world.startLockUntil > world.time);
-    const throttle = v.disabled || held ? 0 : ay < 0 ? 1 : ay > 0 ? -1 : 0;
+    // a key gives 1 or -1 as before; an analog trigger feathers the gas and the brake (pedalfeel.js)
+    const throttle = v.disabled || held ? 0 : pedalThrottle(ay, v.speed, speedCap(v));
     const brake = held || input.isDown(' ');
     if (held) { v.speed = 0; v.driftX = 0; v.driftY = 0; }
     v.handbrake = brake;

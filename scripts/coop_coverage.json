@@ -1609,6 +1609,28 @@
    "prio": "-"
   },
   {
+   "id": "analoge-pedalen",
+   "naam": "Analoog gas, analoge rem en stuurcurve met een controller",
+   "groep": "Instellingen",
+   "modules": [
+    "pedalfeel"
+   ],
+   "eigenaar": "lokaal",
+   "gast": "Invoer per speler en per apparaat: elke speler doseert zijn eigen voertuig. Een gast aan het stuur stuurt zijn pedaal-as als gewone invoer mee en de host past dezelfde regel toe; anderen zien alleen het voertuig rijden (bestaande snapshot, geen nieuw bericht).",
+   "beloning": "Geen beloning of voortgang.",
+   "wegval": "Niets te synchroniseren bij wegvallen, later aansluiten of een hostwissel: de regel is een pure functie van de invoer van dat moment.",
+   "test": [
+    "scripts/pedalfeel_test.mjs",
+    "scripts/gamepad_live_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "**Analoog gas en rem met een controller (22-11)"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
    "id": "moeilijkheid",
    "naam": "Moeilijkheid (niveau per speler en voor de wereld)",
    "groep": "Instellingen",
