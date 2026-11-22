@@ -123,6 +123,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [PERF-MEETPUNTEN-21-11.md](<PERF-MEETPUNTEN-21-11.md>) | Meetpunten voor de eindsweep over laden, opwarmen, pop-in en haperingen (#1008, #1016, #1046, #1052): commando, A-schakelaar, maat en voorgestelde grens, met een test die de verwijzingen bewaakt. |
 | [PROPS-STAND-22-11.md](<PROPS-STAND-22-11.md>) | Props, sets en figuranten van het verhaal (#1121): per model driehoeken, materialen en afmetingen, gegenereerd door `scripts/verhaal_props_audit.mjs`. |
 | [HUD-LINKS-21-11.md](<HUD-LINKS-21-11.md>) | De locatiekaart en de politiechip links in de HUD (#1079): regel, meting en chip. |
+| [SPRINT-22-11-GEBIED.md](<SPRINT-22-11-GEBIED.md>) | Sprint beleving en juice 22-11: passanten die groeten, mopperen en schrikken, en een sputterende motor; voor en na en wat nog in beeld bekeken moet worden. |
 | [WITTE-RUIS-21-11.md](<WITTE-RUIS-21-11.md>) | Witte ruis in het spel: bronnen, oorzaken en maatregelen (#1084). |
 | [PERCEELRANDEN-21-11.md](<PERCEELRANDEN-21-11.md>) | Perceelranden: klassen en hoogten van randen rond percelen. |
 | [TREINEN-LIVE-21-11.md](<TREINEN-LIVE-21-11.md>) | Live treinvertragingen op de vertrekborden (#1085). |

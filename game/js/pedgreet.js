@@ -44,7 +44,7 @@ export const SPRINT_PASS_COOLDOWN_S = 14;
 export const SPRINT_PASS_LINES = ['Hé, kijk uit!', 'Rustig aan, joh!', 'Waar ren jij naartoe?', 'Hé! Niet zo snel!'];
 
 // gap = afstand tussen de middens min beide stralen; geen aanraking (gap > 0) en geen wanted (dan is rennen logisch).
-export function sprintPassStartles(now, p, player, { gap, wanted = 0, roll = 1 }) {
+export function runPastShock(now, p, player, { gap, wanted = 0, roll = 1 }) {
   if (!player || player.inVehicle || wanted > 0) return false;
   if (Math.abs(player.speed || 0) < SPRINT_PASS_MIN_SPEED) return false;
   if (!(gap > 0 && gap <= SPRINT_PASS_MAX_GAP)) return false;
