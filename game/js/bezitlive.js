@@ -134,6 +134,17 @@ export function takeReconcileReport() { const r = lastReconcile; lastReconcile =
 // ---- het aanbod ----
 export const ownedCountLive = () => Z.ownedCount(getBezit());
 
+// De buren van een perceel: andere percelen binnen 300 m (hoogstens 40 geteld), hoeveel van jou en hoeveel van een medespeler (claim).
+export const NEIGHBOUR_RADIUS = 300;
+export function neighboursOf(parcels, p, b) {
+  let n = 0, mine = 0, others = 0;
+  for (const q of parcels.inRect(p.x - NEIGHBOUR_RADIUS, p.y - NEIGHBOUR_RADIUS, p.x + NEIGHBOUR_RADIUS, p.y + NEIGHBOUR_RADIUS, 41)) {
+    if (q.id === p.id || Math.hypot(q.x - p.x, q.y - p.y) > NEIGHBOUR_RADIUS) continue;
+    if (++n > 40) { n = 40; break; }
+    if (Z.ownsParcel(b, q.id)) mine++; else if (claimLookup(q.id)) others++;
+  }
+  return { n, mine, others };
+}
 // Alles wat de perceelkaart nodig heeft over één perceel uit de index. null zonder index of onbekend ID.
 export function parcelOffer(id) {
   if (!index) return null;
@@ -146,7 +157,10 @@ export function parcelOffer(id) {
   const claim = mine ? null : claimLookup(id);
   const price = P.parcelPrice(p, district, Z.ownedCount(b));
   const soil = P.soilQuality(id, district);
+  const neigh = neighboursOf(index.parcels, p, b);
+  const rec = mine ? b.parcels[id] : null;
   return {
+    neighbours: neigh, mode: rec ? rec.m : null, insured: !!(rec && Number.isFinite(rec.ins)),
     id, parcel: p, region: district, place, name: P.parcelName(p, place), seller: P.sellerName(p), kindName: P.KIND_NAME[p.kind],
     ha: p.ha, soil, soilWord: P.soilWord(soil), access: p.access, price, basePrice: P.basePrice(p, district),
     scaleNote: P.scaleFactor(Z.ownedCount(b)) > 1 ? `Schaalprijs x${P.scaleFactor(Z.ownedCount(b)).toFixed(2).replace('.', ',')}: wie veel land heeft, betaalt meer voor het volgende perceel.` : '',
