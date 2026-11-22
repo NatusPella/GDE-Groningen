@@ -238,6 +238,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [TAAL-VAN-DOCUMENTATIE.md](<TAAL-VAN-DOCUMENTATIE.md>) | Besluit voor de eigenaar: Nederlands of Engels in de docs, met de meting en twee opties. |
 | [TUNING-21-11.md](<TUNING-21-11.md>) | Autotuning (Pimp my Ride, #1155): besluiten, bestanden, grenzen voor de wereld (hoogstens 5%), snackwagen, koppelingen. |
 | [TUNING-VERIFICATIE-21-11.md](<TUNING-VERIFICATIE-21-11.md>) | Autotuning: wat getest en gezien is (headless) en wat de sweep nog moet bekijken. |
+| [TUNING-KLEDING-STAND-22-11.md](<TUNING-KLEDING-STAND-22-11.md>) | Tuning en kleding: matrix per wens (gedaan, ontbreekt) voor de epics #1155 en #1151. |
 | [UITLEG-MET-ICONEN.md](<UITLEG-MET-ICONEN.md>) | De regelwidget: uitleg met iconen en animaties in plaats van tekst, naar het voorbeeld van de eierrit, en de lijst van plekken waar de speler nu iets moet raden. |
 | [TESTEN.md](<TESTEN.md>) | `node scripts/test_all.mjs` draait de tests in fasen en schrijft een rapport met een korte Nederlandse same… |
 | [TRAILER-CONTROLE.md](<TRAILER-CONTROLE.md>) | Drie trailers uit het echte spel (geen nagebouwde beelden): een gameplaytrailer (78,0 s), een verhaaltraile… |
