@@ -674,6 +674,7 @@
     "businterieur*",
     "treininterieur",
     "binnenset",
+    "realset*",
     "roomspec",
     "rooms3d",
     "roomclock",
@@ -682,12 +683,14 @@
     "cabin3d"
    ],
    "eigenaar": "gesynct",
-   "gast": "Voertuiginterieurs zijn beeld en worden door elke client zelf gebouwd; gebouwinterieurs van de epic zijn nog niet in main.",
+   "gast": "Voertuiginterieurs zijn beeld en worden door elke client zelf gebouwd; gebouwinterieurs van de epic zijn nog niet in main. Echte-wereld-sets (realsets.js): een cutscene of binnenmissie speelt in een echt pand bij het anker; de keuze hangt alleen van de wereld af (nabijste pand van het soort, of een vaste pand-id voor een verhaalplek), dus de gast kiest hetzelfde pand; de scène is lokaal per speler en je ziet niemand in andermans scène-interieur.",
    "beloning": "Geen.",
    "wegval": "Niets te herstellen: het interieur is een deterministische functie van het gebouw.",
    "test": [
     "scripts/interieurs_test.mjs",
     "scripts/binnenset_test.mjs",
+    "scripts/realsets_test.mjs",
+    "scripts/cutscene_sets_audit_test.mjs",
     "scripts/interior_coop_test.mjs",
     "scripts/interior_crowd_test.mjs",
     "scripts/interior_pandtypes_test.mjs",

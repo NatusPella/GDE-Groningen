@@ -24,7 +24,6 @@ import { propSource, TABLE_SIT, CARRY_LOW } from './cutscenemodels.js';
 import { DECOR_MAKERS } from './storyprops.js';
 import { compileScene, fitAnchor, resolveTime, shotPoints, roadPathDef } from './cutscript.js';
 import { jumpsFromScene } from './cutscenewarm.js';
-import { resolveRealSet } from './realsetrun.js';
 import { sceneSamples, isRealSet } from './realsets.js';
 import { roofAt } from './camerapath.js';
 import { animateActor, beginSceneActors } from './actoranim.js';
@@ -534,6 +533,11 @@ export function cutHostEinde(w, id, { skipped = false, replaced = false } = {}) 
 // replay: een gast speelt de scène van de gastheer na (coopcut.js); die stuurt niets door en slaat niets over
 // voices: de opnames die de scène zelf afspeelt (missionstory.js), op volgorde van lines; ze gaan alleen mee in het
 // pakket voor de gasten (#711), zodat die dezelfde stem horen en dezelfde ondertiteltijden houden.
+// De echte-wereld-sets (realsetrun.js) hangen aan het interieursysteem, dat weer aan de winkels en bijbanen hangt: main.js geeft de resolver mee
+// (assignRealSetResolver) zodat dit bestand er niet in een importcirkel aan vastzit. Zonder resolver speelt elke scène in zijn kit zoals voorheen.
+let realSetResolver = null;
+export function assignRealSetResolver(fn) { realSetResolver = typeof fn === 'function' ? fn : null; }
+
 export function playScript(w, def, { lines, duration, anchor, cine = {}, env: envIn = null, fit = null, replay = false, voices = null, realSet = true } = {}) {
   if (current) return false;
   const root = getScene();
@@ -574,9 +578,9 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
   // echte-wereld-set (realsets.js): speelt de scène in een kamer, dan in een ECHT pand bij het anker (met zijn gevel en ramen naar de straat)
   // en niet in een decor in de lucht; geen geschikt pand, geen interieur of de wereld is er niet: de bestaande kit, met een logregel
   let real = null;
-  if (realSet && isRealSet(def.set) && w && !w.noRealSets) {
+  if (realSet && realSetResolver && isRealSet(def.set) && w && !w.noRealSets) {
     const smp = sceneSamples(scene);
-    const r = resolveRealSet(w, def.set, { x: anchor0.x, y: anchor0.y }, smp.actors, smp.cams);
+    const r = realSetResolver(w, def.set, { x: anchor0.x, y: anchor0.y }, smp.actors, smp.cams);
     if (r.ok) real = r;
   }
   if (real) a = real.anchor;

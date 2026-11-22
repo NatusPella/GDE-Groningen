@@ -285,7 +285,8 @@ const planOfFor = (list) => {
     ok(log.length >= 3 && log.every((x) => x.key && (x.ok ? Number.isFinite(x.gid) : typeof x.why === 'string')) && log.filter((x) => !x.ok).length >= 3, 'elke beslissing (pand of terugval met reden) laat een regel achter in window.__realSets', String(log.length));
   }
   const host = src('cutscenehost.js'), stage = src('stagesets.js'), scene3d = src('scene3d.js'), ints = src('interiors.js');
-  ok(/resolveRealSet\(w, def\.set/.test(host) && /buildScriptRun\(useDef, useScene, at, env, w, !!real\)/.test(host), 'cutscenehost: de scène vraagt een echt pand en bouwt dan geen kit');
+  ok(host.includes('realSetResolver(w, def.set') && host.includes('buildScriptRun(useDef, useScene, at, env, w, !!real)') && !host.includes("from './realsetrun.js'"), 'cutscenehost: de scène vraagt een echt pand via de resolver (geen importcirkel) en bouwt dan geen kit');
+  ok(src('main.js').includes('assignRealSetResolver(resolveRealSet)'), 'main.js hangt de resolver aan de cutscene-host');
   ok(/anchor: real \? anchor0 : at/.test(host), 'cutscenehost: de gastheer stuurt het oorspronkelijke anker mee, zodat de gast dezelfde keuze maakt');
   ok(/real\.release\(\)/.test(host) && /out\.interior = true/.test(host), 'cutscenehost: het pand gaat los bij het einde en de camera krijgt interior');
   ok(/cameraOverride\.interior/.test(scene3d), 'scene3d: een camera in een hal wordt niet over het dak getild');

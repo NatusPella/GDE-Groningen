@@ -1,0 +1,16 @@
+import fs from 'node:fs';
+let f = new URL('../docs/README.md', import.meta.url);
+let s = fs.readFileSync(f, 'utf8');
+const anchor = "| [CUTSCENE-POPIN-22-11.md](<CUTSCENE-POPIN-22-11.md>)";
+const i = s.indexOf(anchor);
+const lineEnd = s.indexOf('\n', i);
+s = s.slice(0, lineEnd + 1) + "| [CUTSCENE-INTERIEURS-22-11.md](<CUTSCENE-INTERIEURS-22-11.md>) | Cutscenes en binnenmissies in echte panden (#1022, #1161, #1150): inventaris van alle binnensets (`scripts/cutscene_sets_audit.mjs`), de tabel `REAL_SETS`, deterministische pandkeuze met vaste verhaalplekken, de scène in de hal met camera- en acteursgrenzen, terugval op de kit, Samen spelen, tests en wat nog in beeld bekeken moet worden. |\n" + s.slice(lineEnd + 1);
+fs.writeFileSync(f, s);
+f = new URL('../docs/COOP-GAST.md', import.meta.url);
+s = fs.readFileSync(f, 'utf8');
+s = s.replace(/\s*$/, '\n') + "\n**Echte-wereld-sets: cutscenes en binnenmissies in echte panden (22-11, #1022, #1161, #1150).** Is het van de host, doet een gast mee of doet iedereen het lokaal? Iedereen lokaal: een scène met een binnenset (`set:` in een cutscene, `set` of `toastSet` in een missiestap) speelt in het eigen spel van elke speler, nu in een echt pand van de wereld in plaats van in een losse kamer in de lucht (`realsets.js`, `realsetrun.js`, `docs/CUTSCENE-INTERIEURS-22-11.md`). De keuze van het pand hangt alleen van de wereld af (een vaste pand-id voor een verhaalplek zoals Wiebelwerk, het Loket, Oma's keuken en Loppersum, anders het nabijste pand van het juiste soort met de laagste gid): host en gast kiezen dezelfde pand-id. De gastheer stuurt het oorspronkelijke anker mee in het scènepakket (niet het anker in de hal), zodat de gast zelf dezelfde keuze maakt; lukt dat bij de gast niet (geen pand gebouwd, geen kaart), dan speelt hij de scène in de bestaande kit. Het pand houdt voor de scène geen eigen mensen; wat een speler in zijn scène ziet is lokaal en een andere speler verstoort hem niet en ziet niemand in andermans scène-interieur. Een stap in een echt pand zet alleen de speler die de stap speelt in de hal en weer terug op zijn beginplek (of buiten de deur); een gast die later aansluit of niet meedoet wordt nergens naartoe gezet. Beloning en voortgang blijven per speler (#429); er is niets over het net te herstellen en een hostwissel verandert niets. De terugkeervignetten van Tammo en Tessa spelen bewust nooit in een echt pand (`realSet: false`). Tests: `scripts/realsets_test.mjs` (de pandkeuze bij elke volgorde, het anker in het pakket) en `scripts/cutscene_sets_audit_test.mjs`.\n";
+fs.writeFileSync(f, s);
+f = new URL('../docs/BINNENSETS-21-11.md', import.meta.url);
+s = fs.readFileSync(f, 'utf8');
+s = s.replace("(Echte panden betreden is een ander mechanisme: zie docs/INTERIEURS-21-11.md. Daar is het interieur deterministisch uit de gebouwsleutel en lokaal bij iedere speler.)", "(Echte panden betreden is een ander mechanisme: zie docs/INTERIEURS-21-11.md. Daar is het interieur deterministisch uit de gebouwsleutel en lokaal bij iedere speler. Sinds 22-11 spelen de binnensets zelf ook in een echt pand als er een geschikt pand bij het anker staat: docs/CUTSCENE-INTERIEURS-22-11.md; de losse kamers hieronder zijn de terugval.)");
+fs.writeFileSync(f, s);
