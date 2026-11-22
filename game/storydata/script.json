@@ -20989,17 +20989,16 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Willemien staat weer vooraan. Haar oma kende Oma Trijntje.",
+     "text": "De mevrouw uit Loppersum staat weer vooraan. Haar oma kende Oma Trijntje.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Derde keer deze week. Uitverkocht voor vieren.",
+     "text": "Vaste klant. Uitverkocht voor vieren.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -21609,11 +21608,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Jij bent van beide. Jij bent de verzoening.",
+     "text": "Hij is Gronings, ik ben Fries. Wij zijn de verzoening.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -21655,11 +21653,10 @@
     {
      "speaker": "Beppe",
      "key": "beppe",
-     "text": "Hy seit neat, mar hy docht it goed.",
+     "text": "It smakket.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Oma Trijntje",
@@ -21754,11 +21751,10 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Ik heb ook geen vergunning.",
+     "text": "Ik heb erover nagedacht.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HE-04"
+     "textOnly": true
     },
     {
      "speaker": "Jelle Terpstra",
@@ -21775,7 +21771,8 @@
      "text": "Ik heb ook geen vergunning.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": true,
+     "humor": "HE-04"
     },
     {
      "speaker": "Jelle Terpstra",
@@ -21826,8 +21823,9 @@
    "step": "F5",
    "kind": "key",
    "regie": [
-    "zondag 30 augustus, avond. De wagen staat gesloten aan de kade. Tammo heeft een opgevouwen briefje bij zich, een deken en twee eierballen in een zak. Tessa zit op de rand van het luik. Boven hen draait een duif rondjes. Het is windstil.",
-    "ze zitten naast elkaar op het luik. Zij legt haar hand op de zijne en haalt hem weg. Dan legt ze hem er weer op, met een beetje meer overtuiging."
+    "zondag 30 augustus, avond. De wagen staat gesloten aan de kade. Tammo heeft een opgevouwen briefje bij zich, een deken en twee eierballen in een zak. Tessa zit op een krat naast hem, met de deken eronder. Boven hen draait een duif rondjes. Het is windstil.",
+    "ze zitten naast elkaar op twee kratten, voor het gesloten luik. Zij legt haar hand op de zijne en haalt hem weg. Dan legt ze hem er weer op, met een beetje meer overtuiging.",
+    "Tammo telt op zijn vingers, begint opnieuw, geeft het op. Ze pakt zijn hand. Boven hen draait de duif nog een rondje."
    ],
    "lines": [
     {

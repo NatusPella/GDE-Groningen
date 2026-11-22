@@ -97,6 +97,7 @@
     "Mijn vuist wacht op goedkeuring.",
     "Laat maar. Ik heb ook geen vergunning."
    ],
+<<<<<<< ours
    "neutral": "Ik heb erover nagedacht.",
    "panel": {
     "votes": [
@@ -108,6 +109,11 @@
     "certainty": "laag",
     "tiebreak": 0
    }
+||||||| base
+   "neutral": "Ik heb erover nagedacht."
+=======
+   "neutral": "Ik heb er niets aan toe te voegen."
+>>>>>>> theirs
   },
   {
    "label": "humor-review",

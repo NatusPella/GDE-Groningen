@@ -713,3 +713,5 @@ Bij de dekkingsaudit ([COOP-DEKKING-21-11.md](COOP-DEKKING-21-11.md), `scripts/c
 - **Bericht van het Notariaat:** per speler en per tak eenmaal, bewaard in `bezit.x.told`; een speler die later aansluit krijgt zijn eigen bericht zodra zijn tak opengaat.
 - **Wegvallen en hostwissel:** niets te synchroniseren; de dagtik van het eigen bezit draait door op de eigen speldag.
 - **Test:** `scripts/parcelcare_test.mjs`, `scripts/bezitzorg_test.mjs` (pure tests; een testbankstap is niet nodig omdat er geen bericht over het net gaat).
+
+**Slotscènes F1 tot en met F6 geregisseerd (22-11, #1121).** Een reisstap met een regie (`cutscenes_akte5.js`, `storyfun.js` `playStepScene`) speelt lokaal bij elke speler die de plek haalt, net als de praatscène die hij vervangt: de wereld is van wie het spel opende, een gast speelt de stap lokaal mee (J of N bij Meedoen), voortgang en beloning zijn per speler (er is geen beloning), er gaat niets over het netwerk. Wie wegvalt of later aansluit, speelt de stap zodra hij de plek haalt. Dekking: `multiplayerstorysteps_test` en `akte5_slot_test`.

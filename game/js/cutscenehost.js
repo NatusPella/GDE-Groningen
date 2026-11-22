@@ -18,7 +18,7 @@ import { playCinematic, setNameCard, setCinematicRate, setCinematicTime } from '
 import { buildVehicleMesh, releaseVehicleGeometries } from './models3d_vehicles.js';
 import { treeBlocksPoint } from './greenery.js';
 import { buildWildlifeMesh3D } from './wildlife.js';
-import { HERO_CAR_MODEL, TRACTOR_MODEL, POLICE_MODEL, TRAFFIC_MODELS } from './vehicle.js';
+import { HERO_CAR_MODEL, TRACTOR_MODEL, POLICE_MODEL, FOODTRUCK_MODEL, TRAFFIC_MODELS } from './vehicle.js';
 import { carModel } from './trafficfleet.js';
 import { propSource, TABLE_SIT, CARRY_LOW } from './cutscenemodels.js';
 import { DECOR_MAKERS } from './storyprops.js';
@@ -89,6 +89,7 @@ function makeActor(spec) {
 let propVehicleN = 0;
 function vehicleModel(src) {
   if (src.model) return { ...src.model };
+  if (src.vehicle === 'foodtruck') return { ...FOODTRUCK_MODEL };
   const base = src.vehicle === 'escort' ? HERO_CAR_MODEL
     : src.vehicle === 'tractor' ? TRACTOR_MODEL
       : src.vehicle === 'police' ? POLICE_MODEL
@@ -157,6 +158,36 @@ const PROP_MAKERS = {
   // de broodtrommel van Mem (akte 2, M11.3): een blikken trommel met een klepdeksel; 36 driehoeken
   broodtrommel: () => { const g = new THREE.Group(); g.add(box(0.28, 0.12, 0.18, 0x3b6aa0), box(0.29, 0.025, 0.19, 0xd9d4c4, 0.1325), box(0.04, 0.03, 0.01, 0xd8b45a, 0.09, 0.0, 0.095)); return g; },
   briefje: () => { const g = new THREE.Group(); g.add(box(0.21, 0.012, 0.15, 0xf7f4e8, 0.01), box(0.15, 0.006, 0.014, 0x5b4a36, 0.017)); return g; },
+  // F1: de verroeste frituuraanhanger aan het hek: romp, luik met klep, TE KOOP-bord, dissel en twee wielen (laag-poly, ca. 60 driehoeken per doos)
+  frituuraanhanger: () => {
+    const g = new THREE.Group();
+    g.add(box(2.6, 1.3, 1.6, 0x9a6b4a, 0.95), box(2.7, 0.08, 1.7, 0x6f4b33, 1.64), box(1.3, 0.62, 0.05, 0x2b2622, 1.1, 0.1, 0.82), box(1.4, 0.05, 0.5, 0xb88a64, 1.45, 0.1, 1.05),
+      box(0.05, 0.4, 0.05, 0x5a5048, 1.25, -0.5, 1.28), box(0.05, 0.4, 0.05, 0x5a5048, 1.25, 0.7, 1.28), box(1.5, 0.06, 0.08, 0x4a4540, 0.4, -2.0, 0), box(0.4, 0.3, 0.04, 0xf2efe4, 1.1, -0.85, 0.82));
+    for (const z of [-0.95, 0.95]) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.14, 10), mat(0x222428)); w.rotation.x = Math.PI / 2; w.position.set(0, 0.34, z); w.castShadow = true; g.add(w); }
+    return g;
+  },
+  // F2: de friteuse: een rvs-kast met twee manden en een bedieningspaneel
+  friteuse: () => { const g = new THREE.Group(); g.add(box(0.8, 0.9, 0.6, 0x9aa1a8, 0.45), box(0.3, 0.12, 0.4, 0x2a2d31, 0.95, -0.18, 0), box(0.3, 0.12, 0.4, 0x2a2d31, 0.95, 0.18, 0), box(0.5, 0.1, 0.02, 0xd8d2c0, 0.7, 0, 0.31), box(0.06, 0.06, 0.02, 0xc4402c, 0.7, 0.18, 0.32)); return g; },
+  // F1: het bierviltje: een ronde kartonnen onderzetter met de tekening van een luik
+  bierviltje: () => { const g = new THREE.Group(); const d = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.008, 14), mat(0xe9dcb8)); d.position.y = 0.006; g.add(d, box(0.09, 0.006, 0.05, 0x3a3128, 0.012)); return g; },
+  // F5: een deken om op de rand van het luik te zitten
+  deken: () => { const g = new THREE.Group(); g.add(box(1.3, 0.03, 0.9, 0xc4402c, 0.02), box(1.3, 0.032, 0.12, 0xf2efe4, 0.021, 0, 0.2), box(1.3, 0.032, 0.12, 0xf2efe4, 0.021, 0, -0.2), box(0.12, 0.032, 0.9, 0xf2efe4, 0.021, 0.3, 0)); return g; },
+  // F3: de soepketel van Beppe
+  soepketel: () => { const g = new THREE.Group(); const p = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.2, 0.3, 12), mat(0x9aa1a8)); p.position.y = 0.15; p.castShadow = true; const l = new THREE.Mesh(new THREE.CylinderGeometry(0.23, 0.23, 0.03, 12), mat(0x7e858c)); l.position.y = 0.32; g.add(p, l, box(0.1, 0.03, 0.03, 0x3a3128, 0.34), box(0.12, 0.04, 0.04, 0x3a3128, 0.2, 0.27, 0)); return g; },
+  // F4: de pot mosterd van 1953, met een lap eromheen
+  mosterdpot: () => { const g = new THREE.Group(); const p = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.14, 10), mat(0xe2b93b)); p.position.y = 0.07; p.castShadow = true; const l = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.03, 10), mat(0x7a5a2a)); l.position.y = 0.155; g.add(p, l, box(0.2, 0.01, 0.2, 0xe8e2d0, 0.17)); return g; },
+  // F6: de kaart van de provincie op het luik: eenenveertig rode stippen (Us Mem Snacks) en één blauwe (de Vismarkt)
+  kaart: () => {
+    const g = new THREE.Group();
+    g.add(box(0.9, 0.012, 0.65, 0xe8e0c4, 0.006));
+    let s = 41;
+    const rnd = () => { s = (s * 1103515245 + 12345) % 2147483648; return s / 2147483648; };
+    for (let i = 0; i < 41; i++) g.add(box(0.025, 0.012, 0.025, 0xc4302a, 0.016, (rnd() - 0.5) * 0.78, (rnd() - 0.5) * 0.54));
+    g.add(box(0.04, 0.014, 0.04, 0x2f5d9e, 0.018, 0.04, 0.02));
+    return g;
+  },
+  // F1: het hek waar de aanhanger aan staat: twee palen en twee latten
+  hek: () => { const g = new THREE.Group(); for (const x of [-1.2, 1.2]) g.add(box(0.1, 1.1, 0.1, 0x6b5a3e, 0.55, x, 0)); g.add(box(2.5, 0.08, 0.05, 0x7e6a48, 0.9), box(2.5, 0.08, 0.05, 0x7e6a48, 0.5)); return g; },
 };
 
 function disposeTree(o) {

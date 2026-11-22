@@ -23,6 +23,7 @@ import { playerBusy } from './busy.js';
 import { isCinematicActive } from './cinematics.js';
 import { showCard } from './hudcards.js';
 import { buildPersonMesh } from './models3d_people.js';
+import { BEPPE_LOOK } from './storycast.js';
 import { visitUnlocked, reachedAct } from './beppe_visit_rules.js';
 import { MARK, arcPhase, nudgeDue, echoDue } from './beppe_boog_rules.js';
 import { NEWS } from './beppe_boog_texts.js';
@@ -98,10 +99,7 @@ export function arcTick(w, now = (typeof performance !== 'undefined' ? performan
 
 // --- Beppe herself: a small old woman in a cardigan, at the stove or by the table ------
 
-const BEPPE_LOOK = {
-  shirt: 0x7a8f6a, skin: 0xecc8a8, hair: 0xd8d4cc, variant: 'female', pants: 0x3a3a42, shoes: 0x4a3426, hairStyle: 'bun', seed: 1311,
-  look: { top: 'cardigan', topColor: 0x7a8f6a, under: 0xf4f1ea, glasses: true, shades: false, scarf: false, bottom: 'skirt', shoeType: 'leather', age: 'old', build: 'avg', heightScale: 0.93, hat: null, bag: null, umbrella: null },
-};
+// BEPPE_LOOK staat in storycast.js: de cutscenes (F3, de soep) laten haar ook spelen
 
 export function buildBeppeFigure() {
   try {

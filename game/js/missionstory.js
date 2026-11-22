@@ -9,7 +9,7 @@ import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { makeBirds, updateBirds } from './birds.js';
 import { playStoryVoice, stopStoryVoice, setStoryScene, playClueSting, playGlassClink, playTextMumble } from './audio.js';
 import { buildVehicleMesh, updateVehicleWheelSpin, releaseVehicleGeometries } from './models3d_vehicles.js';
-import { JELLE_LOOK, DURK_LOOK, DOUWE_LOOK, RIKUS_LOOK, MEM_LOOK, ROTOR_LOOK, ROELF_LOOK, HILJE_LOOK } from './storycast.js';
+import { JELLE_LOOK, DURK_LOOK, DOUWE_LOOK, RIKUS_LOOK, MEM_LOOK, BEPPE_LOOK, ROTOR_LOOK, ROELF_LOOK, HILJE_LOOK } from './storycast.js';
 import { showLiveFrame } from './storycontact.js';
 import { storyLineVoice } from './linevoice.js';
 import { showNameCard } from './namecard.js';
@@ -26,6 +26,7 @@ import { STORY_AKTE2 } from './missionstory_akte2.js';
 import { STORY_AKTE6 } from './missionstory_akte6.js';
 import './cutscenes_akte3.js';
 import './cutscenes_akte4.js';
+import './cutscenes_akte5.js';
 import './cutscenes_akte6.js';
 import { hoofdspeler } from './players.js';
 import { handheldOffset } from './a11ylogic.js';
@@ -73,6 +74,7 @@ export const NPC = {
   douwe: { ...DOUWE_LOOK, name: 'Douwe' },
   rikus: { ...RIKUS_LOOK, name: 'Rikus' },
   mem: { ...MEM_LOOK, name: 'Mem Terpstra' },
+  beppe: { ...BEPPE_LOOK, name: 'Beppe' },
   hilly: { name: 'Hilly', shirt: 0xc2549a, skin: SKIN.woodLight, variant: 'female', seed: 4410, hairStyle: 'bob' },
   dijkstra: { name: 'Dokter Dijkstra', shirt: 0xe8641c, skin: SKIN.woodLight, variant: 'male', seed: 77 },
   rotor: { ...ROTOR_LOOK, name: 'Rotor Roelf' },

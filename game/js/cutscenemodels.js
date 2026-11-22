@@ -20,6 +20,7 @@ export const PROP_SOURCES = {
   snackwagen: { vehicle: 'foodtruck', model: { name: 'foodtruck', len: 5.4, wid: 2.1, color: 0x2f6fb0 } },
   tankwagen: { vehicle: 'truck', model: { name: 'truck', tank: true, livery: 'usmemvet', len: 8.5, wid: 2.5, color: 0xe6c21a } },
   limo: { vehicle: 'trekkerlimo', model: { name: 'trekkerlimo', len: 5.6, wid: 2.0, color: 0x141414 } },
+  snackwagen: { vehicle: 'foodtruck' },             // de snackwagen Tam & Tes (models3d_vehicles.js buildFoodtruckMesh, blauw)
   // dieren komen uit het dierenregister (#193): elk dier met een cutscene-soort
   ...Object.fromEntries(DIEREN.filter((d) => d.cutscene).map((d) => [d.cutscene, { animal: d.kind, dier: d.id }])),
 };
@@ -32,6 +33,9 @@ export const DECOR_KINDS = ['doos', 'tas', 'radio', 'bord', 'koffer', 'bal', 'ma
 export const CARRY_LOW = ['tas', 'koffer', 'doos', 'bal', 'krat', 'pan', 'vuurwerk', 'koelbox', 'jas', 'aktetas', 'hesjes', 'klomp'];
 export const DECOR_KINDS = ['doos', 'tas', 'radio', 'bord', 'koffer', 'bal', 'matras', 'automaat', 'duiventil', 'zuil', 'klembord', 'briefje', 'botsauto', 'prikbord', 'broodtrommel'];
 export const DECOR_KINDS = ['doos', 'tas', 'radio', 'bord', 'koffer', 'bal', 'matras', 'automaat', 'duiventil', 'zuil', 'klembord', 'briefje', 'botsauto', 'kantoorwagen'];
+export const DECOR_KINDS = ['doos', 'tas', 'radio', 'bord', 'koffer', 'bal', 'matras', 'automaat', 'duiventil', 'zuil', 'klembord', 'briefje', 'botsauto',
+  // het slot (akte 5, F1-F6): de aanhanger van het bierviltje, de eerste bak, de soep, de mosterd van 1953, de kaart op het luik
+  'frituuraanhanger', 'friteuse', 'bierviltje', 'deken', 'soepketel', 'mosterdpot', 'kaart', 'hek'];
 
 // geen spelobject: er is geen register voor, dus niet in een cutscene
 export const PLACEHOLDER_KINDS = ['aanhanger'];
@@ -42,6 +46,7 @@ export const PLACEHOLDER_KINDS = ['aanhanger'];
 export const TABLE_SIT = { recline: 0.02, footX: 0.42, footY: -0.44, arms: 'lap' };
 
 export const VEHICLE_MODEL_NAMES = ['escort', 'van', 'tractor', 'police', 'bike', 'foodtruck', 'truck', 'trekkerlimo'];
+export const VEHICLE_MODEL_NAMES = ['escort', 'van', 'tractor', 'police', 'bike', 'foodtruck'];
 export const ANIMAL_KINDS = DIEREN.filter((d) => d.cutscene).map((d) => d.kind);
 
 // De grondafmetingen van een voertuig-prop [lengte, breedte, hoogte] in m, met +x naar voren: een camera blijft eruit (cutscript.js,
@@ -53,6 +58,8 @@ export const PROP_FOOT = {
   trekker: [4.5, 2.4, 3.0],
   politie: [4.8, 1.95, 1.75],
   fiets: [1.9, 0.7, 1.15],
+  snackwagen: [5.4, 2.1, 2.9],
+  frituuraanhanger: [3.9, 1.8, 2.0],
   // hoge losse voorwerpen: op ooghoogte vult een bord of automaat anders het beeld (M01.3: het witte bord vlak voor de lens, #136)
   bord: [0.9, 0.9, 1.7],
   automaat: [0.9, 0.8, 1.6],
