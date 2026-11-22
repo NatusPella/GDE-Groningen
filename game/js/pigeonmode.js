@@ -172,6 +172,15 @@ function mat(color, opts = {}) {
   return new THREE.MeshStandardMaterial({ color, roughness: 0.85, metalness: 0, flatShading: true, ...opts });
 }
 
+// Vogels, eten en de meeuw bouwen hun geometrieen per exemplaar (de materialen komen uit matCache en zijn gedeeld): bij het weghalen
+// gaan de geometrieen terug, behalve de gedeelde (druppel en splat). Zonder dit groeit de GPU-lijst per kudde en per patatje (#1065).
+const SHARED_GEO = new Set();
+function freeMesh(obj) {
+  if (!obj) return;
+  if (scene) scene.remove(obj);
+  obj.traverse((o) => { const g = o.geometry; if (g && !SHARED_GEO.has(g)) g.dispose(); });
+}
+
 function blob(r, sx, sy, sz, material, x, y, z, detail = 1) {
   const m = new THREE.Mesh(new THREE.IcosahedronGeometry(r, detail), material);
   m.scale.set(sx, sy, sz);
@@ -440,6 +449,8 @@ const splatGeos = [0, 1, 2].map((seed) => {
 const splatMat = mat(0xf2f0e6, { roughness: 0.5, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 });
 const splatCoreMat = mat(0x7d7a6c, { roughness: 0.6, polygonOffset: true, polygonOffsetFactor: -5, polygonOffsetUnits: -5 });
 const dropGeo = new THREE.IcosahedronGeometry(0.06, 0);
+SHARED_GEO.add(dropGeo);
+for (const g of splatGeos) SHARED_GEO.add(g);
 const dropMat = mat(0xf4f2ea, { roughness: 0.5 });
 
 function buildSplat() {
@@ -1122,7 +1133,7 @@ function peck() {
   }
   const f = nearestFood(1.4);
   if (!f) { sfx('peck', P.x, P.y, 0.3); return; }
-  scene.remove(f.mesh);
+  freeMesh(f.mesh);
   foods.splice(foods.indexOf(f), 1);
   const held = buildFood(f.kind);
   held.scale.setScalar(0.55);
@@ -1154,6 +1165,7 @@ function peck() {
 function eatCarry() {
   if (!P.carry) return;
   pigeon.userData.head.remove(P.carry.mesh);
+  freeMesh(P.carry.mesh);
   P.carry = null;
   P.boostT = BOOST_S;
   popup('Njam!', 'frietkracht');
@@ -1179,7 +1191,7 @@ function updateFood(dt) {
   for (let i = foods.length - 1; i >= 0; i--) {
     const f = foods[i];
     f.age += dt;
-    if (f.age > 150 || Math.hypot(f.x - P.x, f.y - P.y) > 230) { scene.remove(f.mesh); foods.splice(i, 1); }
+    if (f.age > 150 || Math.hypot(f.x - P.x, f.y - P.y) > 230) { freeMesh(f.mesh); foods.splice(i, 1); }
   }
   if (P.carry) {
     P.carry.t += dt;
@@ -1269,7 +1281,7 @@ function updateGull(dt) {
     ty = g.y + g.vy * 3 + 1;
     tz = g.z + 20;
     spd = 16;
-    if (g.t > 7) { scene.remove(g.mesh); gull = null; return; }
+    if (g.t > 7) { freeMesh(g.mesh); gull = null; return; }
   }
   const dx = tx - g.x, dy = ty - g.y, dz = tz - g.z, dl = Math.hypot(dx, dy, dz) || 1;
   const k = Math.min(1, dt * 2.2);
@@ -1329,7 +1341,7 @@ function updateFlock(dt) {
     if (b.leaving) {
       b.t += dt;
       tx = b.x + (b.x - P.x) * 2 + 10; ty = b.y + (b.y - P.y) * 2; tz = b.z + 15;
-      if (b.t > 5) { scene.remove(b.mesh); flock.splice(j, 1); continue; }
+      if (b.t > 5) { freeMesh(b.mesh); flock.splice(j, 1); continue; }
     } else if (flockScatterT > 0 && b.scatter) {
       tx = P.x + b.scatter.x; ty = P.y + b.scatter.y; tz = P.z + b.scatter.z;
     } else if (P.mode === 'fly') {
@@ -1697,11 +1709,11 @@ function placeCompanion(w, x, y, angle) {
 function clearFlightProps() {
   for (const d of drops) scene.remove(d.mesh);
   drops.length = 0;
-  for (const f of foods) scene.remove(f.mesh);
+  for (const f of foods) freeMesh(f.mesh);
   foods.length = 0;
-  for (const b of flock) scene.remove(b.mesh);
+  for (const b of flock) freeMesh(b.mesh);
   flock.length = 0;
-  if (gull) { scene.remove(gull.mesh); gull = null; }
+  if (gull) { freeMesh(gull.mesh); gull = null; }
   if (P.carry) dropCarry();
   P.ride = null;
   P.boostT = 0;
