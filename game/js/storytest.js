@@ -997,6 +997,8 @@ export async function runStoryTest(world) {
       const pg = window.__postgame;
       if (PARTS[FINALE_PART] && PARTS[FINALE_PART].finale) {
         check('post-game opens after the ending', await waitFor(() => pg && pg.open() && pg.spots().length >= 4, 8000), JSON.stringify(pg && pg.spots().map((q) => q.id)));
+        // the koe sites are only prepared near Ten Boer (#1052); without the world checks nothing has asked for them yet
+        if (window.__ommeland) await window.__ommeland.prepare();
         for (const id of ['bruggen', 'fierljep', 'skutsje', 'fjord', 'koe']) {
           const p = hoofdspeler(world);
           if (p.inVehicle && id !== 'fjord') p.exitVehicle(world.map, world);

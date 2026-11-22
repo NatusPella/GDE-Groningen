@@ -485,7 +485,10 @@ export const KOE = {
   reach: 3,
   spots(world) {
     const S = ensureSites(world.map);
-    return S ? [{ x: S.farm.x, y: S.farm.y, name: 'De Koe van Ome Jan', sub: 'Ome Jan bij Ten Boer mist zijn prijskoe' }] : [];
+    if (S) return [{ x: S.farm.x, y: S.farm.y, name: 'De Koe van Ome Jan', sub: 'Ome Jan bij Ten Boer mist zijn prijskoe' }];
+    // the exact farm is only found once the tiles round Ten Boer are in (koeNear, within 6 km): until then the challenge stands at the village, so a player can find it
+    const tb = placeNamed('Ten Boer');
+    return tb ? [{ x: tb.x, y: tb.y, name: 'De Koe van Ome Jan', sub: 'Ome Jan bij Ten Boer mist zijn prijskoe' }] : [];
   },
   verb: () => 'De Koe van Ome Jan',
   promptSub: () => 'Ome Jan mist zijn prijskoe Geertje',

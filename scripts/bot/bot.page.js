@@ -1033,6 +1033,15 @@ while (true) {
       continue;
     }
   }
+  // a home step (N2, W1, J1, J6): the guide stands at the lobby door of the tower; out of the car, then E ("Naar binnen") and the lift takes you up
+  if (!s.mission.active && guide && guide.name === 'Thuis' && s.target && s.target.distance < 4 && !s.blocking.cinematic && !s.blocking.banner && !s.blocking.talk && !s.blocking.pauseMenu && !s.blocking.paused && !s.blocking.respawn && !s.blocking.loading && !s.blocking.shop && (s.t - (mem.thuisT ?? -9)) > 2.5) {
+    mem.thuisT = s.t;
+    B.log('thuis', { stap: s.story.id, afstand: s.target.distance, voertuig: !!s.player.vehicle });
+    B.stick(0, 0);
+    await keyTap('e', 240);
+    await sleep(900);
+    continue;
+  }
   // M17 (Open, dicht): in de sloep toetert een speler bij een gesloten brug (H, de prompt zegt het); de bot toetert om de drie seconden
   if (s.story.id === 'M17' && s.mission.active && s.player.vehicle && s.player.vehicle.boat && s.t - (mem.hoornT ?? -9) > 3) { mem.hoornT = s.t; await keyTap('h', 160); }
   const act = L.decide(s, mem);

@@ -143,6 +143,17 @@ Groen in deze sessie (gewoon `node`):
 
 Niet gelukt: `node scripts/coop/testbank.mjs --suite=verhaal --gasten=1` (host en een Electron-gast, M01 tot en met N1). De host-instantie schreef niets (leeg `events.jsonl`) en gaf geen kamercode; oorzaak niet uitgezocht (waarschijnlijk de wegwerpprofiel-map of de zichtbaarheid van het venster in deze omgeving). Akte 1 en een later blok in Samen spelen met echte Electron-instanties zijn dus **nog niet bekeken**.
 
+## Vervolgronde (zelfde dag)
+
+| Punt | Oorzaak | Fix | Status |
+|---|---|---|---|
+| Thuisstappen N2 en W1 (de bot zat 7 tot 8 keer vast op 1 tot 20 m) | de bot had geen regel voor een thuisstap: hij drukte nooit E bij de lobbydeur. Het spel zelf wijst de gids op de lobbydeur (`home.icon` is `lobby.use`) en toont "Naar binnen" op 1,8 m; per auto verscheen er niets (`homePrompt` gaf null in een voertuig) | `home.js`: per auto binnen 14 m van de lobbydeur de hint "Stap uit" met "Dan naar binnen met de lift naar jullie flat" (de E blijft de gewone uitstaptoets, `tryHomeInteract` slikt hem niet in); `bot.page.js`: bij een gids "Thuis" op minder dan 4 m drukt de bot E | gerepareerd; **nog niet in beeld bekeken** en de bot is er niet opnieuw mee gelopen |
+| Reisstappen N3 en N4 (bot bleef bij de flat) | geen defect gevonden in het spel: de reisbeat biedt Meerijden of Zelf rijden; de bot pakt het voertuig niet vanzelf en loopt 3,7 km | niets aan het spel veranderd | **nog niet bekeken** met een mens |
+| M05 (lead noemt de fiets niet) | de race eist een eigen fiets (`requires: 'bike'`) | leadtekst: "Sjoerd wacht bij het Academiegebouw. Het is een fietsrace: een eigen fiets heb je nodig, de fietsenwinkel staat op je kaart." | gerepareerd; story_spine, storyclarity, storydata en voice_coverage groen |
+| Gewone verhaaltest faalde op `post-game koe` en daarmee "all challenges count as done" (aftitels) | sinds #1052 worden de koe-plekken pas voorbereid binnen 6 km van Ten Boer; de test bereidde ze alleen voor met de zware wereldcontroles (`GDE_STORY_WERELDCONTROLES=0` slaat die over, ook in `test_all`), en voor een speler stond de uitdaging pas op de kaart na het naderen | `storytest.js` bereidt de plekken voor (`__ommeland.prepare`); `pg_koe.js` zet de uitdaging op Ten Boer zolang de exacte plek onbekend is | gerepareerd: de gewone verhaaltest is PASS (34 stappen, 0 mislukte controles) |
+
+Niet gedaan in deze ronde (tijdsbesteding voor de release): de testbank-run met host en gast (oorzaak niet uitgezocht), `storyflow_nieuw_test` met een harde tijdslimiet en de bot-blokken voor akte 3 en akte 5. Die staan open.
+
 ## Hoe de doorspeeltest werkt (en een valkuil)
 
 - `GDE_STORY_KETEN=1` bij `--story-test=<map>` (vlag `?ketentest`, `game/js/storyketentest.js`): na de start speelt hij elke stap in volgorde. Activiteiten: teleport naar de gids en wachten op het eigen doel (thuisscenes via `__home`, kermis en padel via hun haak); missies: teleport naar de start en de objectives een voor een. Elke stap krijgt een rij in `report.keten` (bereikt, afgerond, via, duur, scenes, fouten); console-, script- en bestandsfouten (`fetch`, afbeelding, geluid) worden per stap opgevangen; een afgebroken tegel-fetch na een teleport telt niet.
@@ -154,7 +165,7 @@ Niet gelukt: `node scripts/coop/testbank.mjs --suite=verhaal --gasten=1` (host e
 
 - Een mens of de proefspeler die de blokken 2 en 3 echt speelt (akte 2 of 3 en akte 5 of Deel 4), en de thuis- en reisstappen van akte 1 zonder bot (deur, lift, reiskeuze): **nog niet bekeken**.
 - Samen spelen met echte Electron-instanties: de testbank liep niet; **nog niet bekeken**.
-- Wat de gewone verhaaltest nog laat falen op deze machine (niet door deze wijziging): `post-game koe` (de uitdaging "De Koe van Ome Jan" registreert geen medaille met de testhaak, waardoor "all challenges count as done" faalt en de aftitels (`credits`) niet vanzelf starten) en wat timinggevoelige minigame- en eventchecks (waterski, aardbeving) onder belasting. De Koe-uitdaging is niet uitgezocht en hangt aan de aftiteling; zie het commentaar op #1121.
+- De gewone verhaaltest is na de koe-fix groen op deze machine (bewijs: `story-test-na-fix`).
 - Beeld en gehoor: niets in beeld of gehoor gezien (alleen de test en de screenshots van de testrun in `keten-eindrun`).
 
 ## Bewijs

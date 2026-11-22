@@ -287,7 +287,7 @@ export const STEPS = [
     lead: ['T', 'Naar Bert op het Stationsplein: een duif fotografeert het museum.'] }),
   M('M05', 'kop', 'Wind tegen, beide kanten op', 'kei', { built: true, reward: 550, loopbanen: ['padel'],
     story: { intro: ['M05.1'], outro: ['M05.3'], replay: ['M05.4'] }, scenes: ['M05.1', 'M05.2', 'M05.3', 'M05.4'],
-    lead: ['A', 'Sjoerd wacht bij het Academiegebouw. Haal het podium, dan praat hij.'] }),
+    lead: ['A', 'Sjoerd wacht bij het Academiegebouw. Het is een fietsrace: een eigen fiets heb je nodig, de fietsenwinkel staat op je kaart.'] }),
   M('M06', 'kop', 'Het museum stond er al zo', 'museumkraak', { built: true, reward: 400, loopbanen: ['taxi'],
     // Henk's call while they wait (M06.0) plays at home; the escape and the radio are stage scenes of the mission (missions.js)
     homeScene: { id: 'M06.0', big: 'Wachten tot middernacht…' },
