@@ -671,7 +671,7 @@ t('de bronnen zijn alleen de bronnen: gebieden.js en gebiedenlive.js importeren 
   const imports = (f) => [...bron(f).matchAll(/^import .* from '(.+?)';/gm)].map((m) => m[1]);
   assert.deepEqual(imports('gebieden.js'), ['./grenzen.js', './ankerpunten.js']);
   assert.deepEqual(imports('grenzen.js'), []);
-  assert.deepEqual(imports('gebiedenlive.js').sort(), ['./attention.js', './finance.js', './gebieden.js', './storagekeys.js', './wijkintocht.js']);
+  assert.deepEqual(imports('gebiedenlive.js').sort(), ['./attention.js', './finance.js', './gebieden.js', './laadwacht.js', './storagekeys.js', './wijkintocht.js']);
   assert.ok(!/document\.|window\./.test(bron('gebieden.js').replace(/\/\/.*$/gm, '')));
 });
 
