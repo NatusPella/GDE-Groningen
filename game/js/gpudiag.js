@@ -13,6 +13,7 @@ import { gpuState, describeGpu } from './gpuherstel.js';
 import { createHeapTracker, memSources, formatMemBlock } from './memwatch.js';
 import { createLeakWatch, formatLeakBlock, collectLeakCounts, installLeakProbes, LEAK_EVERY_MS } from './leakwatch.js'; // #1065
 import { programWatch } from './programwatch.js';
+import { getRouteRibbonStats, formatRibbonStats } from './pathribbonwatch.js'; // #1036
 
 const SOFTWARE_RE = /swiftshader|llvmpipe|softpipe|software|basic render|microsoft basic|warp\b/i;
 // A GPU that shares the processor's memory: Intel UHD/Iris/HD, the AMD "Radeon(TM) Graphics" and the 3-digit-M Radeons
@@ -114,6 +115,7 @@ export function formatReport(info) {
   }
   if (i.render) add('De stad per beeld', `${f1(i.render.calls)} drawcalls, ${Math.round(i.render.triangles || 0)} driehoeken, ${i.render.geometries || '-'} geometrieën, ${i.render.textures || '-'} texturen, ${i.render.programs || '-'} shaders`);
   if (i.programmas && i.programmas.length) out.push('', '[Shaderprogramma\'s na de start]', ...i.programmas);
+  if (i.routeStrook !== undefined) add('Routestrook (waakhond)', i.routeStrook);
   if (i.bench) add('Laatste benchmark', `${i.bench.avg} fps gemiddeld, p95 ${i.bench.p95} ms, laagste 1% ${i.bench.low1} fps, stand ${i.bench.preset || 'eigen'}${i.bench.cats ? '; per categorie ' + Object.entries(i.bench.cats).map(([c, v]) => `${c} ${v}`).join(', ') : ''}`);
   if (i.mem) out.push('', formatMemBlock(i.mem));
   if (i.leak) out.push('', i.leak);
@@ -282,6 +284,7 @@ export async function collectTechInfo({ nowMs = 3000 } = {}) {
   info.render = await sampleRender(20);
   info.hitches = hitchEntries().filter((x) => x.t >= 0);
   try { info.programmas = programWatch.lines(); } catch (e) { /* geen programmateller */ }
+  try { info.routeStrook = formatRibbonStats(getRouteRibbonStats()); } catch (e) { /* geen waakhond */ }
   const last = readLastRun();
   if (last) info.bench = { avg: last.avg, p95: last.p95, low1: last.low1, preset: last.preset, cats: last.cats };
   try { info.herstel = describeGpu(gpuState, performance.now()); } catch (e) { /* geen beeldherstel */ }

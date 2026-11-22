@@ -159,6 +159,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Kaart, HUD en route
 
+- Wegen rond de speler (#1007): een wegtaak bij de geometriewerker die nooit antwoordt hield zijn plek in de rij vast, waardoor weg en fietspad rond de auto bleven ontbreken. Na 8 seconden geldt de taak als verloren en bouwt het spel de weg zelf. Samen spelen: lokaal per speler, de wereld wordt per speler gestreamd; geen netwerkbericht.
+- Technische info (Ctrl+Shift+G, #1036): een regel Routestrook toont hoe vaak de waakhond de gele routelijn moest herstellen en waarom. Samen spelen: lokaal per speler.
 - Kaart: op zoom 6 overspoelen de restaurants in het centrum de kaart niet meer: horeca staat nu in groepen met een aantal (klik om in te zoomen), met een maximum per beeld dat vloeiend meegroeit met de zoom; winkels, diensten en doelen gaan voor, en er staan nooit meer dan 80 iconen tegelijk.
 - Kaart: bij Zet waypoint en Reis erheen staat nu in de ondertitel wat het verschil is: zelf gaan, of met trein, bus, taxi of boot.
 - HUD: de snelheidsmeter blijft in beeld zolang je een voertuig bestuurt (hij verdween in de rustige stand van Slim-HUD als je een tijd geen toets raakte, bijvoorbeeld stilstaand of bij het cruisen) en is groter (52 px). Te voet staat er geen meter (#1175).

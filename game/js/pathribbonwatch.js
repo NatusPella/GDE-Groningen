@@ -57,3 +57,10 @@ export function getRouteRibbonStats() {
 export function resetRouteRibbonStats() {
   stats.repairs = 0; stats.byFault = {}; stats.last = null; stats.lastAt = 0;
 }
+
+// Eén regel voor de technische info (Ctrl+Shift+G): hoe vaak de waakhond de routestrook moest herstellen en waarom.
+export function formatRibbonStats(st) {
+  if (!st || !(st.repairs > 0)) return 'geen herstel nodig';
+  const per = Object.entries(st.byFault || {}).map(([k, v]) => `${k} ${v}`).join(', ');
+  return `${st.repairs}x hersteld (${per}), laatste: ${st.last}`;
+}
