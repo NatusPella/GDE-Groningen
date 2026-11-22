@@ -122,12 +122,30 @@ export function mayMomentTonen({ gast = false, eigen = false, gezamenlijk = fals
 // A mission result banner (cinematics.js showBanner: kind pass|fail, title, reason, reward) as moment
 // options. A short title (the Gronings "Sikkom.") is the big print; a long mission title goes in the
 // line under it, so the band never has to wrap a whole sentence at 200 px.
+// Perfect-ronde (22-11): (1) the standard title "MISSIE GESLAAGD" is the small label already, so it is not printed a second time as the
+// big print (the card then shows the Gronings default); (2) a line longer than the 14-word budget is cut at a SENTENCE, never in the
+// middle of one, and the "Nieuw doel: ..." sentence (the hint of what comes next) is kept.
+export function kaartRegel(tekst, max = MAX_WOORDEN) {
+  const t = String(tekst == null ? '' : tekst).replace(/\s+/g, ' ').trim();
+  const aantal = (s) => s.split(' ').filter(Boolean).length;
+  if (aantal(t) <= max) return t;
+  const zinnen = t.match(/[^.!?]+[.!?]*(?=\s|$)/g).map((z) => z.trim()).filter(Boolean);
+  const eerste = zinnen[0];
+  const doel = zinnen.find((z) => /^Nieuw doel/i.test(z)) || (zinnen.length > 1 ? zinnen[zinnen.length - 1] : null);
+  if (doel && doel !== eerste && aantal(`${eerste} ${doel}`) <= max) return `${eerste} ${doel}`;
+  if (doel && /^Nieuw doel/i.test(doel) && aantal(doel) <= max) return doel;
+  if (aantal(eerste) <= max) return eerste;
+  if (doel && aantal(doel) <= max) return doel;
+  return klemWoorden(eerste, max);
+}
+
 export function momentVanBanner({ kind = 'pass', title = '', reason = '', reward = 0 } = {}) {
   const soort = kind === 'fail' ? 'mislukt' : 'geslaagd';
   const t = String(title || '').replace(/\s+/g, ' ').trim();
   const kort = t.length > 0 && t.length <= 16;
   const regel = kort ? reason : [t, reason].filter(Boolean).join('. ');
-  return { soort, titel: kort ? t : '', regelNl: regel || undefined, beloning: reward };
+  const alLabel = kort && t.toLocaleLowerCase('nl') === STANDAARD[soort].klein.toLocaleLowerCase('nl');
+  return { soort, titel: kort && !alLabel ? t : '', regelNl: kaartRegel(regel) || undefined, beloning: reward };
 }
 
 // Wanted went up or down (prev and nu are star counts 0..5): null when nothing changed, else the

@@ -22,7 +22,14 @@ export const RECAP_WAIT_MAX_S = 20;
 export const RECAP_KEY = 'gde-recap-v1';
 
 const countWords = (t) => String(t || '').trim().split(/\s+/).filter(Boolean).length;
-const firstSentence = (t) => { const m = /^[\s\S]*?[.!?](?=\s|$)/.exec(String(t || '').trim()); return m ? m[0] : String(t || '').trim(); };
+// Perfect-ronde (22-11): as many whole sentences from the front as fit the budget (at least the first one). The first sentence alone
+// often is not the goal ("Eerst de mosterd." without "vaar voor het schip uit"), so more sentences stay while there is room.
+const sentencesWithin = (t, budget) => {
+  const parts = String(t || '').trim().match(/[^.!?]+[.!?]*(?=\s|$)/g) || [String(t || '').trim()];
+  let out = parts[0].trim();
+  for (const z of parts.slice(1)) { const next = out + ' ' + z.trim(); if (countWords(next) > budget) break; out = next; }
+  return out;
+};
 
 // The content. `input` is flat, so the test needs no world:
 //   { step: { id, part, title, lead: 'Name: text' } | null, ended: bool, last: 'title of the last finished step' | '',
@@ -36,7 +43,12 @@ export function recapContent(input) {
   let card = { part: String(input.partTitle || '').trim(), why: String(input.why || '').trim(), last: String(input.last || '').trim(), now, stepId: s.id };
   const size = (c) => countWords(c.why) + countWords(c.last) + countWords(c.now);
   // too long: first cut the lead to its first sentence, then drop the "waar het om draait"
-  if (size(card) > RECAP_MAX_WORDS) card = { ...card, now: firstSentence(now) };
+  if (size(card) > RECAP_MAX_WORDS) {
+    // the goal comes first: keep the "waar het om draait" only when the goal does not lose a sentence for it
+    const withWhy = sentencesWithin(now, RECAP_MAX_WORDS - countWords(card.why) - countWords(card.last));
+    const withoutWhy = sentencesWithin(now, RECAP_MAX_WORDS - countWords(card.last));
+    card = countWords(withoutWhy) > countWords(withWhy) ? { ...card, why: '', now: withoutWhy } : { ...card, now: withWhy };
+  }
   if (size(card) > RECAP_MAX_WORDS) card = { ...card, why: '' };
   return card;
 }

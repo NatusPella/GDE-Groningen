@@ -662,6 +662,7 @@ const CREDITS = [
   ['Jelle Terpstra', 'de Fryske Snackkening, foar mem'],
   ['Gerda Terpstra', 'tweede in 1953. Nu op het bordje'],
   ['Oma Trijntje', 'zei het één keer. Dan is het waar'],
+  ['Beppe', 'zei weinig en kookte veel'],
   ['Berend Bos', 'verloor weer. Net als in 1672'],
   ['Durk & Douwe', 'twee reuzen, één brein'],
   ['De torenwachter', 'meldde alleen'],
@@ -678,6 +679,7 @@ const TERUGBLIK = [
   ['Het horloge van opa', 'liep vijf minuten voor. De goede minuten'],
   ['Eén koekje', 'Henk zei niks'],
   ['Elf seconden', 'Berend telde mee'],
+  ['Soep met een eierbal', 'Grunn en Fryslân aan één tafel'],
   ['De duiven', 'stonden weer in de rij'],
 ];
 
@@ -1269,7 +1271,8 @@ export function updateStory(dt, w) {
   }
   if (rt.clueToasts.length && !isCinematicActive() && !w.pigeonMode) {
     const c = rt.clueToasts.shift();
-    w.addMessage(c.kind === 'taal' ? `Gronings geleerd: ${c.title}` : `Nieuwe aanwijzing: ${c.title}`, 4.5);
+    // 22-11: the Aanwijzingen tab is gone from the pause menu (#1122), so the toast no longer promises a list to look it up in
+    w.addMessage(`${c.kind === 'taal' ? 'Gronings geleerd' : c.kind === 'hart' ? 'Onthouden' : 'Opgevallen'}: ${c.title}`, 4.5);
     playClueSting();
   }
   // the next step's text waits until a scene has been over for a moment, and

@@ -1,6 +1,6 @@
 // The plakjesbord of the new story (docs/verhaal/nieuw 00-OVERZICHT "Het plakjesbord"): Jelle buys Grunn up
-// slice by slice. "Wat weten we?" (the pause menu, Verhaal › Aanwijzingen) shows the slices the pair know
-// about and how each one ended. Pure, no imports; story.js hands in the steps that are done.
+// slice by slice. It holds the slices the pair know about, and how each one ended (story.js getStoryView). The pause menu tab that showed them
+// (Verhaal > Aanwijzingen) is gone since 21-11 (#1122); the data stays. Pure, no imports; story.js hands in the steps that are done.
 //   step     the mission step that settles the slice
 //   reveal   the step from which the slice is on the board (when it starts, or the koopboek of M12 shows all of them)
 //   result   how it ends: 'gered' (won back), 'verloren' (Jelle keeps it) or 'geblokkeerd' (stopped for now)
