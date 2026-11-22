@@ -20,6 +20,7 @@ export const ALLOW = [
   'docs/beeld', 'docs/img/',                             // beelden en hun begeleidende json
   'docs/ISSUES-',                                        // overzichten van issues: een issuetitel ("Designsysteem v3: ...") is een citaat, de titels op GitHub zijn de bron
   'docs/DESIGN-STAND-21-11.md',                          // beschrijft de opruiming (#1006) en noemt dus de oude namen
+  'docs/OPSLAG-SAVE-VS-GLOBAAL-22-11.md',                // tabel met opslagsleutels (gde-menu-v1, gde-ovhint-v1 ...): de -v1 hoort bij de sleutel, niet bij het designsysteem
   SELF,
 ];
 const TEKST = /\.(js|mjs|cjs|css|html|md|json|yml|yaml|sh|txt)$/;
