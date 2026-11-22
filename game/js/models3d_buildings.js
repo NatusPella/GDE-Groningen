@@ -13,6 +13,7 @@ import { buildMuseumInterior } from './museum3d.js';
 import { registerMemSource } from './memwatch.js';
 import { buildInteriorOf } from './interieur3d.js';
 import { marktKind, buildMarktGroup } from './marktgebouwen.js';
+import { monumentFacadeAt, HISTORIC_FACADE, historicFamily } from './heritagearea.js';
 import { hash2 } from './rng.js';
 import { paneKey } from './interiorlook.js';
 import { poiLayerPlace } from './facilities.js';
@@ -56,7 +57,7 @@ function shade(hex, f) {
 // --- palette ------------------------------------------------------------------
 
 const P = HABBO_PALETTE;
-const BRICKS = new Set([P.brickRed, P.brickOrange, P.brickDark, P.brickBrown, P.brickBuff, 0x9a5a44, 0x84503c]);
+const BRICKS = new Set([P.brickRed, P.brickOrange, P.brickDark, P.brickBrown, P.brickBuff, 0x9a5a44, 0x84503c, ...HISTORIC_FACADE.walls]);
 const PALETTE_FAMILIES = [
   { wall: [P.brickRed, P.brickBrown, P.brickOrange, P.plasterWhite], roof: P.roofTerracotta, frame: P.frameWhite },
   { wall: [P.brickDark, P.brickRed, P.brickBrown, 0x9a5a44], roof: P.roofSlate, frame: P.frameWhite },
@@ -1067,6 +1068,7 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
   const industrial = archetype === 'industrial';
   const houseboat = archetype === 'houseboat';
   const brick = BRICKS.has(wallHex);
+  const hist = monumentFacadeAt(box.cx, box.cy); // een monumentgebied (heritagearea.js): historische gevel
 
   const S = {
     wall: wallHex,
@@ -1079,7 +1081,7 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
     fascia: r(3) < 0.7 ? P.frameWhite : TRIM_DARK,
     sign: SIGN_COLORS[Math.floor(r(4) * SIGN_COLORS.length)],
     shopFrame: r(5) < 0.5 ? 0x2a2b2d : P.frameWhite,
-    awning: r(6) < 0.55 ? AWNING_COLORS[Math.floor(r(7) * AWNING_COLORS.length)] : null,
+    awning: !(hist && hist.noAwnings) && r(6) < 0.55 ? AWNING_COLORS[Math.floor(r(7) * AWNING_COLORS.length)] : null,
   };
 
   const floorCount = houseboat ? 1 : Math.min(14, Math.max(1, Math.round(depth / 3)));
@@ -1093,6 +1095,7 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
   else if (archetype === 'apartments') style = { w: 1.3 + r(10) * 0.3, bay: 2.7 + r(11) * 0.5, hRatio: 0.52 };
   else if (houseboat) style = { w: 1.0, bay: 1.7, hRatio: 0.42 };
   else style = { w: tallHistoric ? 1.05 : 1.0 + r(10) * 0.3, bay: 2.1 + r(11) * 0.5, hRatio: tallHistoric ? 0.6 : 0.5 };
+  if (hist && !houseboat) style = { ...HISTORIC_FACADE.style }; // kleine ramen in een historische gevel
 
   let shopEdge = null, poiType = null, poiName = '';
   if (!industrial && !houseboat && mainEdge && !mainEdge.party && mainEdge.len >= 3.5 && floorH >= 2.6) {
@@ -1101,6 +1104,7 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
     poiType = poi ? poi.type : null;
     poiName = poi ? poi.name || '' : '';
     if (poiType || archetype === 'retail' || (centre && r(12) < 0.55)) shopEdge = mainEdge;
+    if (hist && hist.noShopSigns) shopEdge = null; // geen etalage en reclame in een monumentgebied
   }
   const shopTop = Math.min(floorH - 0.35, 3.2);
 
@@ -1124,7 +1128,7 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
   let wanted = 0;
   for (const e of open) wanted += Math.max(1, Math.floor((e.len - 0.4) / style.bay)) * floorCount;
   const maxWindows = Math.min(MAX_WINDOWS_BIG, Math.max(MAX_WINDOWS, Math.ceil(wanted * 1.05)));
-  const glassHall = !industrial && !houseboat && (archetype === 'generic' || archetype === 'retail') && ringArea(b.pts || []) > GLASS_FACADE_AREA;
+  const glassHall = !hist && !industrial && !houseboat && (archetype === 'generic' || archetype === 'retail') && ringArea(b.pts || []) > GLASS_FACADE_AREA;
   const doorWide = archetype === 'apartments' || archetype === 'retail';
   for (const e of open) {
     const glassWall = glassHall && e.len >= GLASS_FACADE_EDGE;
@@ -1216,6 +1220,8 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
     else if (archetype === 'apartments' && floorCount <= 4 && shortSpan <= 13 && r(16) < 0.55) roofKind = 'pitched';
     else if (archetype === 'retail' && floorCount <= 3 && shortSpan <= 10 && r(16) < 0.6) roofKind = 'pitched';
     else if (industrial && shortSpan <= 24 && shortSpan >= 3 && r(16) < 0.55) roofKind = 'shed';
+    // een monumentgebied (heritagearea.js): een pannendak op alles wat een dak kan dragen, geen plat dak met installaties
+    if (hist && roofKind !== 'pitched' && shortSpan <= 18 && shortSpan >= 3) roofKind = 'pitched';
   }
 
   if (roofKind === 'pitched' || roofKind === 'shed') {
@@ -1232,7 +1238,7 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
       hip,
       overhang: roofKind === 'shed' ? 0.2 : 0.3,
       stepped: steppedOK ? endsOpen : null,
-      chimney: roofKind === 'pitched' && r(20) < 0.6 ? { t: r(21), side: r(22) < 0.5 ? -1 : 1 } : null,
+      chimney: roofKind === 'pitched' && r(20) < (hist ? hist.chimney : 0.6) ? { t: r(21), side: r(22) < 0.5 ? -1 : 1 } : null,
       dormers: [],
     };
     if (roofKind === 'pitched' && H >= 2.1 && R.len >= 4.5) {
@@ -1398,6 +1404,11 @@ function addLandmarkDetail(group, b, box, parts, depth, roofMat, fine2) {
 }
 
 function pickColors(b, box, archetype, fine) {
+  // een monumentgebied (heritagearea.js): baksteen rood tot bruin, pannendak, witte of groene kozijnen; ook een schuur is daar van baksteen
+  if (archetype !== 'houseboat' && monumentFacadeAt(box.cx, box.cy)) {
+    const f = historicFamily(fine);
+    return { wallHex: f.wall[Math.floor(fine * f.wall.length) % f.wall.length], roofHex: f.roof, frame: f.frame };
+  }
   if (archetype === 'industrial') {
     return { wallHex: INDUSTRIAL_WALLS[Math.floor(fine * INDUSTRIAL_WALLS.length)], roofHex: INDUSTRIAL_ROOF, frame: 0x4a4d50 };
   }

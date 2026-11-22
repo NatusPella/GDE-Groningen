@@ -12,6 +12,7 @@ import { SFX_MAP, sfxClips } from './sfxmap.js';
 import { havenNiveau, HAVEN_PEAK, HAVEN_LP, spoorNiveau, treinHoornPauze, verkeerDagNiveau, scheepshoornPauze, occlusie, bedWobble, bedStartRate } from './lagenplan.js';
 import { RAIN_KEYS, rainTargets, summerTargets, thunderPick } from './weermap.js';
 import { roomTone } from './binnenklank.js';
+import { monumentAudioScale } from '../heritagearea.js';
 
 // Place-aware ambience: looping beds crossfaded by where/when the listener
 // is, scheduled ambient events (birds, gulls, clinks, thunder), the
@@ -285,6 +286,14 @@ function scan(world) {
   countryPlace(x, y);
   coastPlace(x, y);
   railPlace(map, x, y);
+  // een monumentgebied (heritagearea.js): geen verkeer en nauwelijks stadsgeur, wel groen, vogels en wind (bestaande lagen, geen nieuwe opname)
+  const ma = monumentAudioScale(x, y);
+  if (ma) {
+    place.traffic *= ma.traffic;
+    place.density *= ma.city;
+    place.green = Math.max(place.green, 0.8 * ma.weight);
+    place.open = Math.max(place.open, 0.6 * ma.weight);
+  }
 
   const v = rijdtIn(world);
   const closed = !!v && !v.isBike && !v.isScooter && !v.isBoat;

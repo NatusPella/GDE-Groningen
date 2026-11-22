@@ -18,6 +18,7 @@ import { taperLines, taperLength, taperOffset } from './lanetaper.js';
 import { isMarktFietsRoad, marktFietsSpans, MARKT } from './roadaccess.js';
 import { verfBovenWater } from './waterlevels.js';
 import { geoJobExpired } from './roadbudget.js'; // #1007
+import { monumentRoadSurface } from './heritagearea.js';
 
 // Street surfaces: procedural asphalt / klinkers / stoeptegels / gravel in the
 // shared wet-ground shader, mitred ribbons carrying road-space coordinates,
@@ -448,6 +449,9 @@ function inGreen(x, y) {
 export function roadSurface(r) {
   if (r._surf) return r._surf;
   const mid = r.pts[Math.floor(r.pts.length / 2)];
+  // een monumentgebied (heritagearea.js): klinkers en zandpad, nooit asfalt (en dus geen markeringen)
+  const monument = monumentRoadSurface(r, mid);
+  if (monument) { if (netMap) r._surf = monument; return monument; }
   const d = Math.hypot(mid[0] - CITY_CENTRE[0], mid[1] - CITY_CENTRE[1]);
   const h = roadHash(r);
   const inner = d < KLINKER_RADIUS;

@@ -173,6 +173,7 @@ import { updateGore3D } from './gore3d.js';
 import { updateKnockFx3D } from './knockfx3d.js';
 import { updateGunFx3D } from './gunfx3d.js';
 import { initCityProps, updateCityProps } from './cityprops.js';
+import { updateMonumentDecor } from './monumentdecor3d.js';
 import { initPhone, updatePhone, isPhoneOpen } from './phone.js';
 import { initSaveGame, updateSaveGame, readSaveInfo, ensureLatestSlot, saveFailReason } from './savegame.js';
 import { START_MONEY } from './economy.js';
@@ -1248,6 +1249,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     updateGunFx3D(animDt, world, getScene());
     probe.mark('fx+gore');
     updateCityProps(animDt, world, getScene());
+    updateMonumentDecor(animDt, world, getScene()); // de aankleding van Vesting Bourtange (monumentdecor3d.js, #953)
     updateFlavour3D(animDt, world);
     probe.mark('cityprops');
     updatePigeonAfterglow(animDt);

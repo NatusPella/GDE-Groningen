@@ -330,6 +330,16 @@ export const ROLE_POOLS = {
     back: [[null, 20], ['rugzak', 62], ['boodschappentas', 18]],
     jewel: [[null, 70], ['kralen', 18], ['hanger', 12]],
   },
+  // een figurant of burger van de vesting (heritagearea.js): eenvoudige stukken in aardse tinten, een lange jas of vest, laarzen en een platte hoed;
+  // alleen bestaande stukken, geen echte persoon of tijdperk-uniform
+  historisch: {
+    top: [['overhemd', 40], ['zomerhemd', 24], ['blouse', 16], ['trui', 10], ['jurk', 10]],
+    outer: [[null, 30], ['lange_jas', 34], ['colbert', 22], ['zomerjas', 14]],
+    bottom: [['pantalon', 40], ['rok', 30], ['bermuda', 14], ['werkbroek', 16]],
+    shoes: [['laarzen', 62], ['nette_schoenen', 28], ['instappers', 10]],
+    hat: [[null, 25], ['platpet', 38], ['stadjerspet', 22], ['mutsje', 15]],
+    neck: [[null, 55], ['sjaal', 25], ['nekdoek', 20]],
+  },
   bouwvakker: {
     top: [['tshirt', 40], ['lange_mouw', 20], ['zomerhemd', 20], ['hoodie', 20]],
     outer: [[null, 30], ['veiligheidsjas', 55], ['werkjack', 15]],
@@ -457,6 +467,7 @@ export const ROLE_MOODS = {
   student: { fel: 30, aarde: 16, pastel: 16, koel: 20, donker: 12, neutraal: 6 },
   toerist: { fel: 34, pastel: 24, koel: 16, aarde: 14, neutraal: 12 },
   boer: { aarde: 60, koel: 18, neutraal: 22 },
+  historisch: { aarde: 70, donker: 14, neutraal: 16 },
   zakenman: { donker: 46, koel: 26, neutraal: 28 },
   ambtenaar: { koel: 30, donker: 22, neutraal: 28, pastel: 12, aarde: 8 },
   wandelaar: { aarde: 38, koel: 26, fel: 16, neutraal: 20 },

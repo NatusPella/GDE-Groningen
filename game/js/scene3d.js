@@ -129,6 +129,7 @@ import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpaci
 import { computeLighting, dayState } from './daynight.js';
 import { wijkProfileAt } from './trafficfleet.js';
 import { pedRole } from './clothing.js';
+import { monumentAreaKey } from './heritagearea.js';
 import { applyWorldGrade } from './worldgrade3d.js'; // wereldkleur (21-11): saturatie, tinten en mist van de dag
 import { createPostFX } from './postfx3d.js';
 import { noteGfxEvent, watchContext, gpuRamp } from './blackframe.js';
@@ -2364,7 +2365,7 @@ function pedOutfitOpts(p, world) {
   if (p.isCop || p.look || !world) return null;
   if (p._role === undefined) {
     let area = 'standaard';
-    try { area = wijkProfileAt(world.map, p.x, p.y).key; } catch (e) { /* standaard */ }
+    try { area = monumentAreaKey(p.x, p.y) || wijkProfileAt(world.map, p.x, p.y).key; } catch (e) { /* standaard */ }
     const hour = dayState(world).hour, rain = !!(world.weather && world.weather.intensity > 0.2);
     p._role = pedRole(p._lookSeed, { area, hour, rain });
     p._outfitCtx = { area, rain, hot: !rain && hour >= 11 && hour < 18 && (!world.weather || (world.weather.overcast || 0) < 0.3) };

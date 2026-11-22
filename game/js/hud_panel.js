@@ -2272,6 +2272,22 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       ctx.fill();
       break;
     }
+    case 'monument': {
+      // een monument (heritagearea.js): een vijfhoek met een kleinere vijfhoek erin, de omtrek van een stervormige vesting
+      for (const [k, fill] of [[5.4, C.landmark], [2.6, C.dark]]) {
+        ctx.beginPath();
+        for (let i = 0; i < 5; i++) {
+          const a = -Math.PI / 2 + i * (Math.PI * 2 / 5);
+          if (i === 0) ctx.moveTo(Math.cos(a) * k * s, Math.sin(a) * k * s);
+          else ctx.lineTo(Math.cos(a) * k * s, Math.sin(a) * k * s);
+        }
+        ctx.closePath();
+        ctx.fillStyle = fill;
+        ctx.fill();
+        if (k > 3) outline(ctx, s, C.dark, 1);
+      }
+      break;
+    }
     case 'landmark': {
       const r = 5 * s;
       ctx.beginPath();
@@ -2808,6 +2824,7 @@ function collectMinimapPois(world, job, player) {
   add('horeca', getHorecaForRender().filter((q) => sichtbaar(q.x, q.y)), 'horeca', 1);
   add('landmark', (world.map.meta.landmarks || []).filter((q) => sichtbaar(q.x, q.y)), 'landmark', 2);
   add('uitkijkpunt', world.map.meta.uitkijkpunten || [], 'uitkijkpunt', 2, MM_POI_FAR_M);
+  add('ommeland', world.map.meta.monumenten || [], 'monument', 2, MM_POI_FAR_M); // monumentgebieden (heritagearea.js)
 
   // the most important place wins where two would touch
   pois.sort((a, b) => mapPriority(b[0]) - mapPriority(a[0]));

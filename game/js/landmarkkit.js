@@ -109,7 +109,7 @@ export const LANDMARK_LOOKS = [
   { n: 'Allersmaborg', x: -7650.6, y: -10970.4, p: { brick: 'white', floors: 2, stair: true } },
   { n: 'Adam', x: 23844.0, y: -12839.8, p: { type: 'stelling', body: 'black', height: 22 } },
   { n: 'Fraeylemamolen', x: 15091.8, y: -474.2, p: { type: 'ground', body: 'reed', height: 13 } },
-  { n: 'Vestingmolen Bourtange', x: 42441.9, y: 22704.1, p: { type: 'stelling', body: 'white', height: 20 } },
+  { n: 'Vestingmolen Bourtange', x: 42441.9, y: 22704.1, p: { type: 'ground', body: 'black', height: 14 } },
   { n: 'Kerkje van Oostum', x: -4590, y: -6702.9, p: { tower: 'ridge', choir: 'apse', brick: 'tuf', roof: 'tile', wierde: true, windows: 'round' } },
   { n: 'Sint-Jozefkathedraal', x: 522.4, y: 503.2, p: { tower: 'spire', towerH: 56, choir: 'poly', brick: 'red', roof: 'slate', windows: 'pointed', buttress: true } },
   { n: 'Kerk van Den Andel', x: -3942.9, y: -18385, p: { tower: 'saddle', towerH: 22, wierde: true, brick: 'tuf', choir: 'apse' } },
