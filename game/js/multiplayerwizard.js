@@ -1,5 +1,5 @@
 // Samen spelen (#1011): de stap-voor-stap-flow als regels. Puur: geen DOM, geen netwerk, geen opslag, zodat
-// `node scripts/samenwizard_test.mjs` de hele flow zonder browser kan doorlopen. De bestaande lobby (lobby.js)
+// `node scripts/multiplayerwizard_test.mjs` de hele flow zonder browser kan doorlopen. De bestaande lobby (lobby.js)
 // blijft de bron van wat er verbindt; dit bestand zegt alleen in welke STAP van de wizard een lobbyscherm valt,
 // wat Terug (B/Esc) doet, wat een stap mag zeggen (tekstdieet) en wat er eerst klaar moet zijn voor Verder.
 //
@@ -14,19 +14,19 @@
 import { schoonNaam } from './net/serverlijst.js';
 import { classifyInput, profielNaam, ROLES } from './lobby.js';
 
-export const WSTAP = { KEUZE: 0, WIE: 1, KIEZEN: 2, VERBINDEN: 3 };
-export const WSTAPPEN = [
+export const WSTEP = { CHOICE: 0, WHO: 1, PICK: 2, CONNECT: 3 };
+export const WSTEPS = [
   { nr: 1, id: 'wie', label: 'Wie ben jij' },
   { nr: 2, id: 'kiezen', label: 'Kiezen' },
   { nr: 3, id: 'verbinden', label: 'Verbinden' },
 ];
 // Per stap hoogstens zoveel tekens in de zichtbare uitleg (één regel); de rest staat achter "Meer info".
-export const UITLEG_MAX = 70;
-export const SESSIENAAM_MAX = 24;
+export const HINT_MAX = 70;
+export const SESSION_NAME_MAX = 24;
 
 // Welke lobbyschermen bij welke stap horen. De wizard kent de lobbystappen bij naam (lobby.js view()).
-const KIEZEN_STAPPEN = ['gast-typt', 'methode', 'toestemming', 'lijst-vraag', 'lijst', 'openbaar-vraag', 'diag-vraag'];
-const WIE_STAPPEN = ['gast-typt', 'methode']; // eerst de kaart "Wie ben jij", daarna dezelfde schermen als stap 2
+const PICK_SCREENS = ['gast-typt', 'methode', 'toestemming', 'lijst-vraag', 'lijst', 'openbaar-vraag', 'diag-vraag'];
+const WHO_SCREENS = ['gast-typt', 'methode']; // eerst de kaart "Wie ben jij", daarna dezelfde schermen als stap 2
 // 'verbonden' met een wachtkamer (startGate) is nog stap 3; zonder wachtkamer loopt de sessie en is het scherm een statuskaart
 
 // De staat van de wizard ZELF (de lobby heeft zijn eigen staat): wat de speler in de stappen koos en nog niet verbond.
@@ -46,23 +46,23 @@ export function createWizard(caps = {}) {
 }
 
 // Is dit een lopende sessie (statuskaart) in plaats van een stap?
-export const isStatusKaart = (lobby) => !!lobby && lobby.step === 'verbonden' && !(lobby.caps && lobby.caps.startGate);
+export const isStatusCard = (lobby) => !!lobby && lobby.step === 'verbonden' && !(lobby.caps && lobby.caps.startGate);
 
 // De stap van de wizard: 0 keuze, 1 wie, 2 kiezen, 3 verbinden. `lobby` is de staat van lobby.js, `wz` die van createWizard.
-export function wizStap(lobby, wz) {
+export function wizStep(lobby, wz) {
   const s = lobby && lobby.step;
-  if (s === 'start') return WSTAP.KEUZE;
-  if (WIE_STAPPEN.includes(s) && !(wz && wz.wieKlaar)) return WSTAP.WIE;
-  if (KIEZEN_STAPPEN.includes(s)) return WSTAP.KIEZEN;
-  if (s === 'verbonden') return isStatusKaart(lobby) ? WSTAP.KEUZE : WSTAP.VERBINDEN; // de statuskaart is geen stap; de wachtkamer wel
-  return WSTAP.VERBINDEN;
+  if (s === 'start') return WSTEP.CHOICE;
+  if (WHO_SCREENS.includes(s) && !(wz && wz.wieKlaar)) return WSTEP.WHO;
+  if (PICK_SCREENS.includes(s)) return WSTEP.PICK;
+  if (s === 'verbonden') return isStatusCard(lobby) ? WSTEP.CHOICE : WSTEP.CONNECT; // de statuskaart is geen stap; de wachtkamer wel
+  return WSTEP.CONNECT;
 }
 
 // Het stappenpuntje: voor elke stap 'klaar', 'nu' of 'straks'. Bij de keuze en de statuskaart staat er geen indicator.
 export function indicator(lobby, wz) {
-  const nu = wizStap(lobby, wz);
-  if (nu === WSTAP.KEUZE) return [];
-  return WSTAPPEN.map((st) => ({ ...st, staat: st.nr < nu ? 'klaar' : st.nr === nu ? 'nu' : 'straks' }));
+  const nu = wizStep(lobby, wz);
+  if (nu === WSTEP.CHOICE) return [];
+  return WSTEPS.map((st) => ({ ...st, staat: st.nr < nu ? 'klaar' : st.nr === nu ? 'nu' : 'straks' }));
 }
 
 // Wat Terug (B/Esc, en de knop) doet. Geeft { soort, ... }:
@@ -71,9 +71,9 @@ export function indicator(lobby, wz) {
 //   'niets'      op de eerste stap: het menu beslist (Escape sluit het onderdeel)
 export function wizTerug(lobby, wz) {
   const s = lobby && lobby.step;
-  const nu = wizStap(lobby, wz);
-  if (nu === WSTAP.KEUZE) return { soort: 'niets' };
-  if (nu === WSTAP.WIE) return { soort: 'lobby', act: 'terug' }; // naar de keuze
+  const nu = wizStep(lobby, wz);
+  if (nu === WSTEP.CHOICE) return { soort: 'niets' };
+  if (nu === WSTEP.WHO) return { soort: 'lobby', act: 'terug' }; // naar de keuze
   if (s === 'lijst' || s === 'lijst-vraag') return { soort: 'lobby', act: 'lijst-terug' };
   if (s === 'diag-vraag') return { soort: 'lobby', act: 'diag-terug' };
   if (s === 'openbaar-vraag') return { soort: 'lobby', act: 'openbaar-terug' };
@@ -110,7 +110,7 @@ export function reduceWizard(wz, ev) {
       return { ...n, fout: 'Onbekende keuze.' };
     }
     case 'bevestig': n.bevestigd = !!ev.aan; return n;
-    case 'sessienaam': n.sessienaam = String(ev.tekst ?? '').slice(0, SESSIENAAM_MAX); return n;
+    case 'sessienaam': n.sessienaam = String(ev.tekst ?? '').slice(0, SESSION_NAME_MAX); return n;
     case 'ww': n.wwOpen = !!ev.open; return n;
     case 'fout': n.fout = String(ev.msg || ''); return n;
     case 'reset': return createWizard({ wieKlaar: wz.wieKlaar, rtc: wz.rtc, favorieten: wz.favorieten, direct: wz.direct });
@@ -143,24 +143,24 @@ export function kanVerder(lobby, wz, invoer = '') {
 export const magOpenbaar = (route) => route !== 'direct';
 
 // Het veld mag een code nooit tonen die een IP-adres draagt (GDE2-...): lobby.js houdt dat al zo; deze regel is voor de wizard.
-export const codeVoorVeld = (tekst) => (/^GDE2/i.test(String(tekst || '').replace(/\s+/g, '')) ? '' : String(tekst || ''));
+export const codeForField = (tekst) => (/^GDE2/i.test(String(tekst || '').replace(/\s+/g, '')) ? '' : String(tekst || ''));
 
 // Een code of regel die een IP-adres lijkt te bevatten: voor tests en voor wie een regel op een scherm zet.
 export const bevatIp = (tekst) => /\b\d{1,3}(?:\.\d{1,3}){3}\b/.test(String(tekst || '')) || /\bGDE2-/i.test(String(tekst || ''));
 
-// Tekstdieet: de korte uitleg bij een stap, hoogstens UITLEG_MAX tekens. Wat langer is, staat achter "Meer info".
-export function kort(tekst, max = UITLEG_MAX) {
+// Tekstdieet: de korte uitleg bij een stap, hoogstens HINT_MAX tekens. Wat langer is, staat achter "Meer info".
+export function kort(tekst, max = HINT_MAX) {
   const t = String(tekst || '').trim();
   return t.length <= max ? t : '';
 }
-export function splitsUitleg(regels, max = UITLEG_MAX) {
-  const lijst = (Array.isArray(regels) ? regels : []).map((x) => String(x || '').trim()).filter(Boolean);
-  const eerste = lijst.length && lijst[0].length <= max ? lijst[0] : '';
-  return { kort: eerste, meer: eerste ? lijst.slice(1) : lijst };
+export function splitHint(regels, max = HINT_MAX) {
+  const list = (Array.isArray(regels) ? regels : []).map((x) => String(x || '').trim()).filter(Boolean);
+  const eerste = list.length && list[0].length <= max ? list[0] : '';
+  return { kort: eerste, meer: eerste ? list.slice(1) : list };
 }
 
 // Titels en korte regels per stap. De lobby levert titel en regels; wat hier staat gaat voor als de wizard een eigen
-// korte zin heeft (alles ≤ UITLEG_MAX). De volledige tekst blijft achter Meer info.
+// korte zin heeft (alles ≤ HINT_MAX). De volledige tekst blijft achter Meer info.
 export const WIZ_TEKST = {
   keuze: { titel: 'Samen spelen', kort: 'Speel samen in dezelfde wereld.' },
   wie: { titel: 'Wie ben jij?', kort: 'Zo zien de anderen je.' },
@@ -171,7 +171,7 @@ export const WIZ_TEKST = {
 };
 
 // Schermen waar de wizard één eigen korte zin boven zet; de volledige tekst van de lobby staat dan achter Meer info.
-export const KORT_PER_SCHERM = {
+export const SHORT_PER_SCREEN = {
   toestemming: 'Je IP-adres gaat naar je medespeler en openbare servers.',
   'host-maakt-code': '', 'host-wacht': 'Geef de kamercode aan je medespeler.', verbinden: '',
   'lijst-vraag': 'Voor de lijst verbinden we met openbare servers.', lijst: 'Kies een sessie om aan te sluiten.',
@@ -180,12 +180,12 @@ export const KORT_PER_SCHERM = {
   verbroken: 'Het spel staat even stil.',
 };
 // Schermen waar de regels van de lobby zelf de inhoud zijn (een uitslag, een fout): die staan in beeld, niet achter Meer info.
-export const INHOUD_SCHERMEN = ['diag-uit', 'diag-bezig', 'geweigerd', 'overdragen-kies'];
+export const CONTENT_SCREENS = ['diag-uit', 'diag-bezig', 'geweigerd', 'overdragen-kies'];
 // Schermen met een lange lijst: alleen daar mag de inhoud scrollen (de rest past zonder scrollbalk).
-export const ROL_SCHERMEN = ['lijst', 'diag-uit'];
+export const SCROLL_SCREENS = ['lijst', 'diag-uit'];
 
 // De voortgangsregel van stap 3 (alleen de gast verbindt langs de tikken van lobby.js). tik = de verbindtik (4 s).
-export function voortgangsRegel(lobby) {
+export function progressLine(lobby) {
   const s = lobby && lobby.step;
   const tik = (lobby && lobby.wachtTik) | 0;
   if (s === 'verbinden') {
@@ -204,15 +204,15 @@ export function voortgangsRegel(lobby) {
 // Welke knoppen horen in de vaste voetzone, in de volgorde links naar rechts: secundair eerst, de hoofdactie (geel) laatst.
 // `knoppen` is v.buttons van lobby.js ({ act, label, primary?, disabled? }). Verbinding testen en Openbare sessies zijn
 // nooit de hoofdactie; Terug/Annuleren/Stoppen staan links.
-export function voetVolgorde(knoppen) {
-  const lijst = Array.isArray(knoppen) ? knoppen : [];
-  const rang = (b) => (b.primary ? 9 : ['terug', 'verbreek', 'openbaar-terug', 'lijst-terug', 'diag-terug', 'overdragen-terug'].includes(b.act) ? 0 : b.act === 'diag' ? 2 : 1);
-  return [...lijst].sort((a, b) => rang(a) - rang(b));
+export function footerOrder(knoppen) {
+  const list = Array.isArray(knoppen) ? knoppen : [];
+  const rank = (b) => (b.primary ? 9 : ['terug', 'verbreek', 'openbaar-terug', 'lijst-terug', 'diag-terug', 'overdragen-terug'].includes(b.act) ? 0 : b.act === 'diag' ? 2 : 1);
+  return [...list].sort((a, b) => rank(a) - rank(b));
 }
 
 // Een lijst spelers als kaartjes (de Spelers-subtab): wie wat mag zien en doen. `ik` = eigen plek (slot), `isHost` = jij opende het spel.
 // Geeft per speler welke acties er zijn; Verwijderen en Overdragen alleen voor wie het spel opende (en nooit voor jezelf).
-export function spelerKaart(p, { ik = null, isHost = false } = {}) {
+export function playerCard(p, { ik = null, isHost = false } = {}) {
   const jij = p && Number.isInteger(p.slot) && p.slot === ik;
   const opent = !!p && p.slot === 0;
   const acties = [];

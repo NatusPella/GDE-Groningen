@@ -35,8 +35,8 @@ import { meet, beoordeel, foutrapport, verbindingslog } from './net/diagnose.js'
 import { maakEnv } from './net/diagnoseenv.js';
 import { VERSION } from './version.js';
 import { EXTRA_CHARS } from './coopplayers.js';
-import { createWizard, reduceWizard, wizTerug, wizStap, WSTAP, kanVerder } from './samenwizard.js';
-import { wizardHtml } from './samenwizardui.js';
+import { createWizard, reduceWizard, wizTerug, wizStep, WSTEP, kanVerder } from './multiplayerwizard.js';
+import { wizardHtml } from './multiplayerwizardui.js';
 
 // #1011: de kaart "Wie ben jij" komt één keer per sessie van de pagina; daarna begint de wizard bij stap 2.
 let wieBevestigd = false;
@@ -269,7 +269,7 @@ export function mountLobby(root, hooks, opts = {}) {
     });
     root.innerHTML = wizard ? wzHtml() : legacyHtml;
     if (wizard) { // de focus begint op de hoofdactie van een nieuwe stap (niet bij elke hertekening)
-      const sleutel = state.step + '|' + wizStap(state, wz);
+      const sleutel = state.step + '|' + wizStep(state, wz);
       if (sleutel !== swSleutel) {
         swSleutel = sleutel;
         const hoofd = root.querySelector && (root.querySelector('.coop-btn[data-primary="1"]:not([disabled])') || root.querySelector('.sw-kaart'));
@@ -833,12 +833,12 @@ export function mountLobby(root, hooks, opts = {}) {
         if (hub && state.route === ROUTES.KAMER) onRoster(hub.roster);
       } else if (a === 'terug' || a === 'verbreek') {
         // eerst netjes afmelden (BYE naar de anderen), dan pas de verbinding en de poort sluiten: andersom komt het afmelden nooit aan en houdt de host de plek nog tot de pauze
-        const rolVoor = state.rol, stapVoor = wizStap(state, wz);
+        const rolVoor = state.rol, stapVoor = wizStep(state, wz);
         if (hooks.disconnect) hooks.disconnect(a, state.rol, opts.holdSlot);
         cleanup();
         openbaarTodo = null;
         set({ t: a === 'terug' ? 'terug' : 'verbreek' });
-        if (wizard && a === 'terug' && rolVoor && stapVoor >= WSTAP.KIEZEN && state.step === 'start') set({ t: 'kies', rol: rolVoor }); // #1011: Terug gaat één stap terug: naar stap 2, niet naar de keuze
+        if (wizard && a === 'terug' && rolVoor && stapVoor >= WSTEP.PICK && state.step === 'start') set({ t: 'kies', rol: rolVoor }); // #1011: Terug gaat één stap terug: naar stap 2, niet naar de keuze
       } else if (a === 'hervat' && state.step === 'verbroken' && state.bron) {
         await hervatViaLijst();
       } else if (a === 'hervat') {
@@ -921,11 +921,11 @@ export function mountLobby(root, hooks, opts = {}) {
     wizTerug: () => {
       if (!wizard) return false;
       const t = wizTerug(state, wz);
-      if (t.soort === 'niets' || wizStap(state, wz) === WSTAP.VERBINDEN) return false;
+      if (t.soort === 'niets' || wizStep(state, wz) === WSTEP.CONNECT) return false;
       wizBack().catch(() => {});
       return true;
     },
-    wizard: () => ({ ...wz, stap: wizStap(state, wz) }),
+    wizard: () => ({ ...wz, stap: wizStep(state, wz) }),
     close() { cleanup(); root.innerHTML = ''; },
   };
 }

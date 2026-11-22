@@ -1,14 +1,14 @@
-// De stapmachine van de Samen-spelen-wizard (#1011): volgorde, terug, validatie, foutpaden en de privacyregels, zonder browser en zonder netwerk.
-// De lobby (lobby.js) is de bron van wat er verbindt; samenwizard.js zegt in welke stap een lobbyscherm valt. Deze test loopt de flow door met
-// de echte reducers van beide. De DOM-kant (geen overlap, geen scrollbalk, tekstlengte per stap) meet scripts/ui/samenflow_meet.mjs.
-//   node scripts/samenwizard_test.mjs
+// De stapmachine van de Samen-spelen-wizard (multiplayerwizard.js) (#1011): volgorde, terug, validatie, foutpaden en de privacyregels, zonder browser en zonder netwerk.
+// De lobby (lobby.js) is de bron van wat er verbindt; multiplayerwizard.js zegt in welke stap een lobbyscherm valt. Deze test loopt de flow door met
+// de echte reducers van beide. De DOM-kant (geen overlap, geen scrollbalk, tekstlengte per stap) meet scripts/ui/multiplayerflow_meet.mjs.
+//   node scripts/multiplayerwizard_test.mjs
 import assert from 'node:assert/strict';
 import { createLobby, reduce, view, ROLES } from '../game/js/lobby.js';
 import {
-  WSTAP, createWizard, reduceWizard, wizStap, indicator, wizTerug, kanVerder, magOpenbaar, codeVoorVeld, bevatIp, kort, splitsUitleg,
-  voetVolgorde, voortgangsRegel, spelerKaart, isStatusKaart, WIZ_TEKST, KORT_PER_SCHERM, UITLEG_MAX, SESSIENAAM_MAX,
-} from '../game/js/samenwizard.js';
-import { wizardHtml } from '../game/js/samenwizardui.js';
+  WSTEP, createWizard, reduceWizard, wizStep, indicator, wizTerug, kanVerder, magOpenbaar, codeForField, bevatIp, kort, splitHint,
+  footerOrder, progressLine, playerCard, isStatusCard, WIZ_TEKST, SHORT_PER_SCREEN, HINT_MAX, SESSION_NAME_MAX,
+} from '../game/js/multiplayerwizard.js';
+import { wizardHtml } from '../game/js/multiplayerwizardui.js';
 import { icoon } from '../game/js/icons.js';
 import { keyTextHtml } from '../game/js/keycap.js';
 import { PROFIEL_KLEUREN } from '../game/js/lobby.js';
@@ -19,14 +19,14 @@ let n = 0;
 const t = (naam, f) => { f(); n++; console.log('ok ' + naam); };
 const caps = (o = {}) => ({ rtc: true, direct: false, consentSaved: true, versie: '0.64.0', ...o });
 const nieuw = (o = {}) => ({ lobby: createLobby(caps(o)), wz: createWizard({ rtc: o.rtc !== false, favorieten: (o.favorieten || []).length, direct: !!o.direct }) });
-const stap = (m) => wizStap(m.lobby, m.wz);
+const stap = (m) => wizStep(m.lobby, m.wz);
 const lob = (m, ev) => { m.lobby = reduce(m.lobby, ev); return m; };
 const wiz = (m, ev) => { m.wz = reduceWizard(m.wz, ev); return m; };
 
 t('de stappen: keuze 0, wie 1, kiezen 2, verbinden 3', () => {
-  assert.deepEqual(WSTAP, { KEUZE: 0, WIE: 1, KIEZEN: 2, VERBINDEN: 3 });
+  assert.deepEqual(WSTEP, { CHOICE: 0, WHO: 1, PICK: 2, CONNECT: 3 });
   const m = nieuw();
-  assert.equal(stap(m), WSTAP.KEUZE, 'een nieuw scherm begint bij de keuze Meedoen of Open je spel');
+  assert.equal(stap(m), WSTEP.CHOICE, 'een nieuw scherm begint bij de keuze Meedoen of Open je spel');
   assert.deepEqual(indicator(m.lobby, m.wz), [], 'bij de keuze staat er geen indicator');
 });
 
@@ -34,16 +34,16 @@ t('volgorde voor wie meedoet: keuze, wie, kiezen, (toestemming), verbinden', () 
   const m = nieuw({ consentSaved: false });
   lob(m, { t: 'kies', rol: ROLES.GAST });
   assert.equal(m.lobby.step, 'gast-typt');
-  assert.equal(stap(m), WSTAP.WIE, 'eerst Wie ben jij');
+  assert.equal(stap(m), WSTEP.WHO, 'eerst Wie ben jij');
   wiz(m, { t: 'wie-klaar', naam: 'Sem' });
   assert.equal(m.wz.wieKlaar, true);
-  assert.equal(stap(m), WSTAP.KIEZEN, 'daarna kiezen');
+  assert.equal(stap(m), WSTEP.PICK, 'daarna kiezen');
   lob(m, { t: 'invoer', text: 'K3J9D-8F2MN' });
   assert.equal(m.lobby.step, 'toestemming');
-  assert.equal(stap(m), WSTAP.KIEZEN, 'de toestemming hoort bij stap 2: er is nog niets verbonden');
+  assert.equal(stap(m), WSTEP.PICK, 'de toestemming hoort bij stap 2: er is nog niets verbonden');
   lob(m, { t: 'akkoord' });
   assert.equal(m.lobby.step, 'verbinden');
-  assert.equal(stap(m), WSTAP.VERBINDEN);
+  assert.equal(stap(m), WSTEP.CONNECT);
   assert.deepEqual(indicator(m.lobby, m.wz).map((i) => i.staat), ['klaar', 'klaar', 'nu']);
 });
 
@@ -51,31 +51,31 @@ t('volgorde voor wie het spel opent: keuze, wie, kiezen (privé of openbaar), ve
   const m = nieuw();
   lob(m, { t: 'kies', rol: ROLES.HOST });
   assert.equal(m.lobby.step, 'methode');
-  assert.equal(stap(m), WSTAP.WIE);
+  assert.equal(stap(m), WSTEP.WHO);
   wiz(m, { t: 'wie-klaar', naam: '' });
-  assert.equal(stap(m), WSTAP.KIEZEN);
+  assert.equal(stap(m), WSTEP.PICK);
   lob(m, { t: 'route', route: 'kamer' });
   assert.equal(m.lobby.step, 'host-maakt-code');
-  assert.equal(stap(m), WSTAP.VERBINDEN);
+  assert.equal(stap(m), WSTEP.CONNECT);
   lob(m, { t: 'code', code: 'K3J9D-8F2MN' });
   assert.equal(m.lobby.step, 'host-wacht');
-  assert.equal(stap(m), WSTAP.VERBINDEN);
+  assert.equal(stap(m), WSTEP.CONNECT);
   lob(m, { t: 'spelers', lijst: [{ slot: 0, naam: 'Sem' }, { slot: 1, naam: 'Iris' }], max: 4 });
   assert.equal(m.lobby.step, 'verbonden');
-  assert.equal(stap(m), WSTAP.KEUZE, 'zonder wachtkamer is "verbonden" een statuskaart, geen stap');
+  assert.equal(stap(m), WSTEP.CHOICE, 'zonder wachtkamer is "verbonden" een statuskaart, geen stap');
   const m2 = nieuw({ startGate: true });
   lob(m2, { t: 'kies', rol: ROLES.HOST }); lob(m2, { t: 'route', route: 'kamer' }); lob(m2, { t: 'code', code: 'K3J9D-8F2MN' });
   lob(m2, { t: 'spelers', lijst: [{ slot: 0 }, { slot: 1 }], max: 4 });
   assert.equal(m2.lobby.step, 'verbonden');
-  assert.equal(stap(m2), WSTAP.VERBINDEN, 'de wachtkamer van een nieuw spel is stap 3');
-  assert.equal(isStatusKaart(m2.lobby), false);
+  assert.equal(stap(m2), WSTEP.CONNECT, 'de wachtkamer van een nieuw spel is stap 3');
+  assert.equal(isStatusCard(m2.lobby), false);
 });
 
 t('een lopende sessie is een statuskaart zonder indicator', () => {
   const m = nieuw();
   m.lobby = reduce(m.lobby, { t: 'adopteer', rol: ROLES.GAST, route: 'kamer', code: '', lijst: [{ slot: 0, naam: 'Sem' }], max: 4, slot: 1 });
   assert.equal(m.lobby.step, 'verbonden');
-  assert.equal(isStatusKaart(m.lobby), true);
+  assert.equal(isStatusCard(m.lobby), true);
   assert.deepEqual(indicator(m.lobby, { wieKlaar: true }), []);
   const v = view(m.lobby);
   assert.ok(v.buttons.some((b) => b.act === 'verbreek'), 'Spel verlaten (verbreek) staat op de kaart');
@@ -89,7 +89,7 @@ t('Terug gaat één stap terug: nooit twee, nooit de sessie uit', () => {
   wiz(m, { t: 'wie-klaar', naam: 'Sem' });
   assert.deepEqual(wizTerug(m.lobby, m.wz), { soort: 'wie-terug' }, 'van kiezen naar Wie ben jij (de wizard zelf)');
   wiz(m, { t: 'wie-terug' });
-  assert.equal(stap(m), WSTAP.WIE);
+  assert.equal(stap(m), WSTEP.WHO);
   assert.equal(m.wz.wijze, null, 'wie je terugkomt begint niet met een oude keuze');
   wiz(m, { t: 'wie-klaar', naam: 'Sem' });
   lob(m, { t: 'lijst-vraag' });
@@ -97,7 +97,7 @@ t('Terug gaat één stap terug: nooit twee, nooit de sessie uit', () => {
   assert.equal(wizTerug(m.lobby, m.wz).act, 'lijst-terug', 'van de lijst naar kiezen');
   lob(m, { t: 'lijst-terug' });
   assert.equal(m.lobby.step, 'gast-typt');
-  assert.equal(stap(m), WSTAP.KIEZEN);
+  assert.equal(stap(m), WSTEP.PICK);
   lob(m, { t: 'invoer', text: 'K3J9D-8F2MN' });
   assert.equal(m.lobby.step, 'verbinden');
   const terug = wizTerug(m.lobby, m.wz);
@@ -150,7 +150,7 @@ t('privacy: een sessie is standaard privé; openbaar alleen na het vinkje en een
     assert.match(r.fout, /kan niet/, 'met de uitleg van het filter');
   }
   wiz(m, { t: 'sessienaam', tekst: 'x'.repeat(40) });
-  assert.equal(m.wz.sessienaam.length, SESSIENAAM_MAX, 'de naam past in 24 tekens');
+  assert.equal(m.wz.sessienaam.length, SESSION_NAME_MAX, 'de naam past in 24 tekens');
   wiz(m, { t: 'wijze', wijze: 'prive' });
   assert.equal(m.wz.openbaar, false, 'terug naar privé');
   assert.equal(m.wz.bevestigd, false, 'en het vinkje is weer weg: een tweede keer openbaar vraagt opnieuw om bevestiging');
@@ -161,9 +161,9 @@ t('privacy: een sessie is standaard privé; openbaar alleen na het vinkje en een
 });
 
 t('privacy: een IP-adres of directe code staat nooit in een veld of regel', () => {
-  assert.equal(codeVoorVeld('GDE2-ABCDEF'), '');
-  assert.equal(codeVoorVeld('gde2 abcdef'), '');
-  assert.equal(codeVoorVeld('K3J9D-8F2MN'), 'K3J9D-8F2MN');
+  assert.equal(codeForField('GDE2-ABCDEF'), '');
+  assert.equal(codeForField('gde2 abcdef'), '');
+  assert.equal(codeForField('K3J9D-8F2MN'), 'K3J9D-8F2MN');
   assert.equal(bevatIp('192.168.1.5'), true);
   assert.equal(bevatIp('GDE2-XYZ'), true);
   assert.equal(bevatIp('Je IP-adres gaat naar je medespeler.'), false);
@@ -179,17 +179,17 @@ t('foutpaden: een mislukte verbinding komt terug in stap 2 met één korte meldi
   const m = nieuw();
   lob(m, { t: 'kies', rol: ROLES.GAST }); wiz(m, { t: 'wie-klaar', naam: 'Sem' });
   lob(m, { t: 'invoer', text: 'K3J9D-8F2MN' });
-  assert.equal(stap(m), WSTAP.VERBINDEN);
+  assert.equal(stap(m), WSTEP.CONNECT);
   // lobbyui.js doet bij een fout: kies gast, dan fout (zie guestStart)
   lob(m, { t: 'kies', rol: ROLES.GAST }); lob(m, { t: 'fout', msg: 'Deze sessie antwoordt niet.' });
   assert.equal(m.lobby.step, 'gast-typt');
-  assert.equal(stap(m), WSTAP.KIEZEN, 'terug bij kiezen, de naam hoeft niet opnieuw');
+  assert.equal(stap(m), WSTEP.PICK, 'terug bij kiezen, de naam hoeft niet opnieuw');
   assert.equal(view(m.lobby).error, 'Deze sessie antwoordt niet.');
   // een volle sessie: een eigen scherm in stap 3 met Terug
   lob(m, { t: 'invoer', text: 'K3J9D-8F2MN' });
   lob(m, { t: 'status', status: 'geweigerd', reason: 'vol' });
   assert.equal(m.lobby.step, 'geweigerd');
-  assert.equal(stap(m), WSTAP.VERBINDEN);
+  assert.equal(stap(m), WSTEP.CONNECT);
   assert.ok(view(m.lobby).buttons.some((b) => b.act === 'terug'), 'altijd een weg terug');
   // een fout van de wizard zelf verdwijnt bij de volgende stap
   const w = reduceWizard(createWizard(), { t: 'fout', msg: 'kort' });
@@ -212,45 +212,45 @@ t('foutpad: een verkeerd wachtwoord laat het veld pas zien als de sessie er om v
 });
 
 t('tekstdieet: de korte regel per stap is hoogstens 70 tekens', () => {
-  assert.equal(UITLEG_MAX, 70);
-  for (const [k, w] of Object.entries(WIZ_TEKST)) assert.ok(w.kort.length <= UITLEG_MAX, `${k}: ${w.kort.length} tekens`);
-  for (const [k, w] of Object.entries(KORT_PER_SCHERM)) assert.ok(w.length <= UITLEG_MAX, `${k}: ${w.length} tekens`);
+  assert.equal(HINT_MAX, 70);
+  for (const [k, w] of Object.entries(WIZ_TEKST)) assert.ok(w.kort.length <= HINT_MAX, `${k}: ${w.kort.length} tekens`);
+  for (const [k, w] of Object.entries(SHORT_PER_SCREEN)) assert.ok(w.length <= HINT_MAX, `${k}: ${w.length} tekens`);
   assert.equal(kort('x'.repeat(71)), '', 'een regel die te lang is, staat niet in beeld');
   assert.equal(kort('Korte regel.'), 'Korte regel.');
-  const s = splitsUitleg(['Kort.', 'x'.repeat(200), 'nog een']);
+  const s = splitHint(['Kort.', 'x'.repeat(200), 'nog een']);
   assert.equal(s.kort, 'Kort.'); assert.equal(s.meer.length, 2);
-  const lang = splitsUitleg(['x'.repeat(200), 'rest']);
+  const lang = splitHint(['x'.repeat(200), 'rest']);
   assert.equal(lang.kort, ''); assert.equal(lang.meer.length, 2, 'is de eerste regel te lang, dan staat alles achter Meer info');
 });
 
 t('de voet: Terug links, de hoofdactie (geel, Enter) als laatste; Verbinding testen is nooit de hoofdactie', () => {
-  const v = voetVolgorde([{ act: 'diag', label: 'Verbinding testen' }, { act: 'koppel', label: 'Verder', primary: true }, { act: 'lijst', label: 'Openbare sessies' }, { act: 'terug', label: 'Terug' }]);
+  const v = footerOrder([{ act: 'diag', label: 'Verbinding testen' }, { act: 'koppel', label: 'Verder', primary: true }, { act: 'lijst', label: 'Openbare sessies' }, { act: 'terug', label: 'Terug' }]);
   assert.deepEqual(v.map((b) => b.act), ['terug', 'lijst', 'diag', 'koppel']);
   assert.equal(v[v.length - 1].primary, true);
-  assert.deepEqual(voetVolgorde(null), []);
+  assert.deepEqual(footerOrder(null), []);
 });
 
 t('stap 3: één voortgangsregel per scherm', () => {
-  assert.equal(voortgangsRegel({ step: 'verbinden', wachtTik: 0 }).tekst, 'Verbinden…');
-  assert.equal(voortgangsRegel({ step: 'verbinden', wachtTik: 3 }).tekst, 'Wachten op wie het spel opende…');
-  const lang = voortgangsRegel({ step: 'verbinden', wachtTik: 6 });
+  assert.equal(progressLine({ step: 'verbinden', wachtTik: 0 }).tekst, 'Verbinden…');
+  assert.equal(progressLine({ step: 'verbinden', wachtTik: 3 }).tekst, 'Wachten op wie het spel opende…');
+  const lang = progressLine({ step: 'verbinden', wachtTik: 6 });
   assert.match(lang.tekst, /geen antwoord/i); assert.equal(lang.bezig, false); assert.equal(lang.actie, 'Terug');
-  assert.equal(voortgangsRegel({ step: 'host-wacht' }).tekst, 'Wachten op spelers…');
-  assert.equal(voortgangsRegel({ step: 'verbonden' }).tekst, 'Verbonden');
-  for (const s of ['verbinden', 'host-maakt-code', 'host-wacht', 'verbonden', 'verbroken', 'geweigerd']) assert.ok(voortgangsRegel({ step: s }).tekst.length <= UITLEG_MAX, s);
-  for (const w of [0, 3, 6]) assert.doesNotMatch(voortgangsRegel({ step: 'verbinden', wachtTik: w }).tekst, /\bhost\b/i, 'geen woord host in spelertekst');
+  assert.equal(progressLine({ step: 'host-wacht' }).tekst, 'Wachten op spelers…');
+  assert.equal(progressLine({ step: 'verbonden' }).tekst, 'Verbonden');
+  for (const s of ['verbinden', 'host-maakt-code', 'host-wacht', 'verbonden', 'verbroken', 'geweigerd']) assert.ok(progressLine({ step: s }).tekst.length <= HINT_MAX, s);
+  for (const w of [0, 3, 6]) assert.doesNotMatch(progressLine({ step: 'verbinden', wachtTik: w }).tekst, /\bhost\b/i, 'geen woord host in spelertekst');
 });
 
 t('spelerskaartjes: Verwijderen alleen voor wie het spel opende, nooit voor jezelf; Dempen en Blokkeren voor anderen', () => {
   const ander = { slot: 2, naam: 'Iris' };
-  const asHost = spelerKaart(ander, { ik: 0, isHost: true });
+  const asHost = playerCard(ander, { ik: 0, isHost: true });
   assert.deepEqual(asHost.acties.map((a) => a.id), ['dempen', 'blokkeren', 'verwijderen']);
   assert.ok(asHost.acties.find((a) => a.id === 'verwijderen').gevaar);
-  const asGast = spelerKaart(ander, { ik: 1, isHost: false });
+  const asGast = playerCard(ander, { ik: 1, isHost: false });
   assert.deepEqual(asGast.acties.map((a) => a.id), ['dempen', 'blokkeren'], 'een gast kan niemand verwijderen');
-  const zelf = spelerKaart({ slot: 1 }, { ik: 1, isHost: true });
+  const zelf = playerCard({ slot: 1 }, { ik: 1, isHost: true });
   assert.equal(zelf.jij, true); assert.deepEqual(zelf.acties, [], 'jezelf dempen, blokkeren of verwijderen kan niet');
-  assert.equal(spelerKaart({ slot: 0 }, { ik: 1 }).opent, true);
+  assert.equal(playerCard({ slot: 0 }, { ik: 1 }).opent, true);
 });
 
 // ---- de HTML van elk scherm (zonder DOM): knoppen, indicator en privacy
@@ -301,4 +301,4 @@ t('HTML: de statuskaart heeft geen indicator; een directe code staat nergens in 
   assert.equal(bevatIp(render(g)), false, 'geen directe code of IP-adres in het scherm');
 });
 
-console.log(`samenwizard_test: ${n} controles ok`);
+console.log(`multiplayerwizard_test: ${n} controles ok`);

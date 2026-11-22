@@ -1,7 +1,7 @@
 import { hoofdspeler } from './players.js';
 import { icoon } from './icons.js';
 import { tabRegel, versieRegel, hintStand, hintTekst, volgHint } from './playerstatus.js';
-import { esc, kaartHtml, kopHtml, pvpHtml as pvpKaartHtml, roepHtml, KAART_TOETSEN } from './spelerskaarten.js';
+import { esc, cardHtml, kopHtml, pvpHtml as pvpKaartHtml, roepHtml, CARD_KEYS } from './playercards.js';
 import { gateOn } from './coopgate.js';
 import { VERSION } from './version.js';
 import { keyTextHtml } from './keycap.js';
@@ -30,8 +30,8 @@ const echteSessie = (world) => !!(world && world.coopNet && !isSoloHost(world));
 // dempen en blokkeren (#1159): per speler, alleen in het geheugen en op naam; de wereld waarvoor de lijst getekend wordt staat in muteWorld
 let muteWorld = null;
 const muteWord = (slot) => { const st = muteWorld ? playerMuteState(muteWorld, slot) : 'gewoon'; return st === 'gewoon' ? '' : `<small class="cs-tab-actief">${esc(st)}</small>`; };
-// #1011: het kaartje van een speler komt uit spelerskaarten.js (puur, gemeten in scripts/ui/samenflow_meet.mjs)
-const rijHtml = (r, acties, rol = null, bevestig = null, ctx = {}) => kaartHtml(r, { acties, rol, bevestig, ctx, muteStaat: (slot) => (muteWorld ? playerMuteState(muteWorld, slot) : 'gewoon') });
+// #1011: het kaartje van een speler komt uit playercards.js (puur, gemeten in scripts/ui/multiplayerflow_meet.mjs)
+const rijHtml = (r, acties, rol = null, bevestig = null, ctx = {}) => cardHtml(r, { acties, rol, bevestig, ctx, muteStaat: (slot) => (muteWorld ? playerMuteState(muteWorld, slot) : 'gewoon') });
 // De compacte regel van de Tab-lijst in het spel: naam, kleur, ping, afstand en richting, klaar (playerstatus.js tabRegel)
 function tabRijHtml(r, ctx = {}) {
   const t = tabRegel(r, ctx);
@@ -309,7 +309,7 @@ export function renderSpelersPanel(root, world, sluit = () => {}, opts = {}) {
       const rij = e.target && e.target.closest ? e.target.closest('.cs-rij[data-slot]') : null;
       if (!rij || e.ctrlKey || e.metaKey || e.altKey || (e.target.matches && e.target.matches('input, textarea, select'))) return;
       const k = String(e.key || '').toUpperCase();
-      const sel = k === KAART_TOETSEN.gedempt ? '[data-stand="gedempt"]' : k === KAART_TOETSEN.geblokkeerd ? '[data-stand="geblokkeerd"]' : k === KAART_TOETSEN.eruit ? '[data-eruit]' : '';
+      const sel = k === CARD_KEYS.gedempt ? '[data-stand="gedempt"]' : k === CARD_KEYS.geblokkeerd ? '[data-stand="geblokkeerd"]' : k === CARD_KEYS.eruit ? '[data-eruit]' : '';
       const knop = sel ? rij.querySelector(sel) : null;
       if (knop) { e.preventDefault(); knop.click(); }
     });

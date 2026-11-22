@@ -93,7 +93,7 @@ t('wie welke groepen kent (#492): de host alle groepen, een gast alleen zijn eig
   assert.deepEqual(groepenVoor({ coopRole: 'host', coopGroepen: null }, 0), []);
 });
 t('#903: de spelerslijst heeft een kop en een avatar per speler', () => {
-  const ui = fs.readFileSync(new URL('../game/js/coopspelersui.js', import.meta.url), 'utf8') + fs.readFileSync(new URL('../game/js/spelerskaarten.js', import.meta.url), 'utf8');
+  const ui = fs.readFileSync(new URL('../game/js/coopspelersui.js', import.meta.url), 'utf8') + fs.readFileSync(new URL('../game/js/playercards.js', import.meta.url), 'utf8');
   assert.match(ui, /cs-kop/, 'de lijst begint met de sessie in één regel');
   assert.match(ui, /cs-avatar/, 'elke speler heeft een avatar met zijn vorm en kleur');
   assert.match(ui, /cs-acties/, 'de knoppen staan bij de speler, niet als losse rij');
@@ -101,8 +101,8 @@ t('#903: de spelerslijst heeft een kop en een avatar per speler', () => {
 });
 
 t('de lijst in beeld zet de groep bij de naam (#492)', () => {
-  const ui = fs.readFileSync(new URL('../game/js/coopspelersui.js', import.meta.url), 'utf8') + fs.readFileSync(new URL('../game/js/spelerskaarten.js', import.meta.url), 'utf8');
-  assert.match(ui, /const groep = r\.groep \?/);
+  const ui = fs.readFileSync(new URL('../game/js/coopspelersui.js', import.meta.url), 'utf8') + fs.readFileSync(new URL('../game/js/playercards.js', import.meta.url), 'utf8');
+  assert.match(ui, /const group = r\.groep \?/);
   assert.match(ui, /cs-groep\$\{r\.leidt \? ' cs-leidt' : ''\}/);
   assert.match(ui, /\$\{esc\(r\.groep\)\}/);
   assert.match(ui, /\$\{r\.naam\}\|\$\{r\.groep\}/, 'de lijst ververst ook als de groep verandert'); // de sleutel van de Tab-lijst
@@ -135,7 +135,7 @@ t('eruit zetten', () => {
 // Alleen spelen is een gastheer-sessie van één (#554): die is geen "samen", dus geen spelerslijst, geen
 // teller en geen avatar-hint alsof je meedoet. In een echte sessie blijft alles zoals het was.
 t('een solo-sessie geeft geen spelerslijst, geen badge en geen avatar-hint', () => {
-  const ui = fs.readFileSync(new URL('../game/js/coopspelersui.js', import.meta.url), 'utf8') + fs.readFileSync(new URL('../game/js/spelerskaarten.js', import.meta.url), 'utf8');
+  const ui = fs.readFileSync(new URL('../game/js/coopspelersui.js', import.meta.url), 'utf8') + fs.readFileSync(new URL('../game/js/playercards.js', import.meta.url), 'utf8');
   assert.match(ui, /import \{ isSoloHost \} from '\.\/coopsolo\.js';/, 'de solo-markering komt uit coopsolo.js');
   assert.match(ui, /const echteSessie = \(world\) => !!\(world && world\.coopNet && !isSoloHost\(world\)\);/,
     'een solo-sessie telt hier niet als samen-sessie; een echte sessie verandert niet');
@@ -167,7 +167,7 @@ t('spelerskleuren (#592): alleen #rrggbb komt in de lijst en in het style-attrib
   assert.ok(rijen.every((r) => /^#[0-9a-f]{6}$/i.test(r.kleur)), JSON.stringify(rijen.map((r) => r.kleur)));
   assert.equal(rijen.find((r) => r.slot === 0).kleur, '#4fb3ff', 'de kleur van het personage is de terugval');
   assert.equal(rijen.find((r) => r.slot === 1).naam, 'Piet', 'de naam zelf blijft');
-  const ui = fs.readFileSync(new URL('../game/js/coopspelersui.js', import.meta.url), 'utf8') + fs.readFileSync(new URL('../game/js/spelerskaarten.js', import.meta.url), 'utf8');
+  const ui = fs.readFileSync(new URL('../game/js/coopspelersui.js', import.meta.url), 'utf8') + fs.readFileSync(new URL('../game/js/playercards.js', import.meta.url), 'utf8');
   assert.match(ui, /style="color:\$\{esc\(veiligeKleur\(r\.kleur\)\)\}"/, 'ook bij het tekenen gaat de kleur door de controle');
   const net = fs.readFileSync(new URL('../game/js/coopnet.js', import.meta.url), 'utf8');
   assert.match(net, /leesWelkomstLijst\(s\.welcome\)/, 'het welkomstbericht wordt gevalideerd voordat het de spelerslijst wordt');
@@ -178,7 +178,7 @@ t('spelerskleuren (#592): alleen #rrggbb komt in de lijst en in het style-attrib
 // opende" altijd de baas is. Elk van beide is onwaar: geld en spullen zijn per speler en het
 // verwijderrecht hoort bij de gastheer van nu (#439), niet bij de opener.
 t('de kop van de Spelers-lijst zegt wat van jou blijft en wie er mag verwijderen', () => {
-  const ui = fs.readFileSync(new URL('../game/js/coopspelersui.js', import.meta.url), 'utf8') + fs.readFileSync(new URL('../game/js/spelerskaarten.js', import.meta.url), 'utf8');
+  const ui = fs.readFileSync(new URL('../game/js/coopspelersui.js', import.meta.url), 'utf8') + fs.readFileSync(new URL('../game/js/playercards.js', import.meta.url), 'utf8');
   assert.match(ui, /De wereld en de tijd zijn samen van de groep; je geld, spullen en voortgang blijven van jou\./);
   assert.match(ui, /Alleen de speler bij wie de sessie draait, kan iemand eruit zetten\./);
   assert.doesNotMatch(ui, /wereld, de tijd en het geld zijn samen van de groep/);

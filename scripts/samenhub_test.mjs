@@ -418,7 +418,7 @@ await t('het pauzemenu geeft Escape eerst aan de hub, vóór de gewone stap teru
 });
 
 await t('Samen spelen opent de wizard van de lobby zolang er geen sessie is (#1011); de bestaande routes blijven bestaan', () => {
-  // #1011: de hub (#527) is vervangen door de wizard in de lobby zelf (samenwizard.js); samenhub.js en samenhubui.js blijven voor hun eigen regels en test.
+  // #1011: de hub (#527) is vervangen door de wizard in de lobby zelf (multiplayerwizard.js); samenhub.js en samenhubui.js blijven voor hun eigen regels en test.
   const sp = lees('samenpanel.js');
   assert.doesNotMatch(sp, /mountHub|mountSamenHub|samenhubui/, 'het paneel tekent de hub niet meer');
   assert.match(sp, /if \(!nu && !startOpts\.rol && !startOpts\.lijst && !view\)/, 'alleen zonder sessie, zonder gekozen rol: eerst de eerste-keer-kaart (naam en akkoord)');
@@ -439,7 +439,7 @@ await t('Escape en B gaan via de wizard een stap terug (view.wizTerug), nooit de
   const sp = lees('samenpanel.js');
   assert.match(sp, /export function samenHubTerug\(\) \{\s*return !!\(view && view\.wizTerug && view\.wizTerug\(\)\);\s*\}/, 'samenHubTerug vraagt de wizard');
   const ui = lees('lobbyui.js');
-  assert.match(ui, /wizTerug: \(\) => \{[\s\S]*?WSTAP\.VERBINDEN\) return false;/, 'wachten en verbinden (stap 3) laten het menu sluiten zoals altijd');
+  assert.match(ui, /wizTerug: \(\) => \{[\s\S]*?WSTEP.CONNECT\) return false;/, 'wachten en verbinden (stap 3) laten het menu sluiten zoals altijd');
 });
 await t('een sessie van één (#554) wordt niet geadopteerd: geen kamercode en geen wachtrij', () => {
   // Alleen spelen is een gastheer-sessie van één (#554, coopsolo.js). Zo'n hub heeft geen transport en dus

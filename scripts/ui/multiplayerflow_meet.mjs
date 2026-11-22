@@ -3,9 +3,9 @@
 // ongemoeid). De pagina bouwt het pauzemenu-vak na (stage met --mz, .pm-samen, .pm-samen-inner), mount de ECHTE lobbyui.js met nephooks en
 // stuurt hem langs elke stap. Per stap en per venstermaat wordt gemeten: geen overlap tussen elementen, geen scrollbalk, geen afgekapte
 // inhoud, tekstlengte (de korte regel hoogstens 70 tekens, geen alinea's) en dat de hoofdactie rechts in de voet staat.
-//   node scripts/ui/samenflow_meet.mjs            meten en keuren (exit 1 bij een overtreding; netjes overslaan zonder Chrome)
-//   node scripts/ui/samenflow_meet.mjs --shots    ook de PNG's voor docs/SAMEN-FLOW-UX-22-11.md schrijven (docs/beeld-22-11/samen-flow/)
-//   node scripts/ui/samenflow_meet.mjs --only=wie --json
+//   node scripts/ui/multiplayerflow_meet.mjs            meten en keuren (exit 1 bij een overtreding; netjes overslaan zonder Chrome)
+//   node scripts/ui/multiplayerflow_meet.mjs --shots    ook de PNG's voor docs/SAMEN-FLOW-UX-22-11.md schrijven (docs/beeld-22-11/samen-flow/)
+//   node scripts/ui/multiplayerflow_meet.mjs --only=wie --json
 // Maten: 1280x720 en 1920x1080, ui-schaal 1 en 1,5 (mz = min(h/1080, w/1920) * ui; de menustage is dan 1280x720 of 1920x1080 ontwerp-px).
 import fs from 'node:fs';
 import os from 'node:os';
@@ -67,16 +67,16 @@ const nepKamer = async () => ({ opened: new Promise(() => {}), cancel() {} }); /
 const lobby = mountLobby(vak, hooks, { wizard, startGate: /wacht/.test(scene), spelNaam: 'Spel 1', joinRoom: nepKamer });
 const klik = async (act) => { const b = vak.querySelector('[data-act="' + act + '"]'); if (!b) throw new Error('geen knop ' + act); b.click(); await tick(); };
 const typ = async (klasse, tekst) => { const i = vak.querySelector('.' + klasse); if (!i) throw new Error('geen veld ' + klasse); i.value = tekst; i.dispatchEvent(new Event('input', { bubbles: true })); await tick(); };
-const spelerKaarten = async (rol) => { // het tabblad Spelers (spelerskaarten.js, puur): dezelfde HTML als coopspelersui.js, met zijn eigen CSS (/spelers.css)
+const spelerKaarten = async (rol) => { // het tabblad Spelers (playercards.js, puur): dezelfde HTML als coopspelersui.js, met zijn eigen CSS (/spelers.css)
   const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = '/spelers.css'; document.head.appendChild(css);
   await new Promise((r) => { css.onload = css.onerror = r; });
-  const K = await import('/game/js/spelerskaarten.js'), P = await import('/game/js/playerstatus.js');
+  const K = await import('/game/js/playercards.js'), P = await import('/game/js/playerstatus.js');
   const rij = (slot, naam, kleur, vorm, o = {}) => ({ slot, naam, kleur, vorm, doet: 'loopt', verbinding: 'ok', ms: 40, afstandTekst: slot === 1 ? '' : '120 m', richting: slot === 1 ? null : { pijl: '→', woord: 'oost' }, jij: false, passief: true, x: 10, y: 10, ...o });
   const rijen = [rij(0, 'Sem', '#4fb3ff', 'cirkel', { jij: rol === 'host', x: null }), rij(1, 'Iris', '#5bd6a0', 'ster', { jij: rol === 'gast' }), rij(2, 'Tijn', '#f2b134', 'plus', { verbinding: 'lag', ms: 420 }), rij(3, 'Liv', '#ff9a62', 'hart', { verbinding: 'lost', doet: 'weg' }), rij(4, 'Gijs', '#ff7ab8', 'maan', { groep: 'Taxi' })];
   document.querySelector('[data-sub="samen"].pm-samen-inner').hidden = true;
   const p = document.getElementById('spelers'); p.hidden = false;
   document.querySelectorAll('.pm-samen > .m-tabs .m-tab').forEach((b, i) => b.setAttribute('aria-selected', String(i === 1)));
-  p.innerHTML = K.kopHtml({ aantal: rijen.length, rol, opener: 'Sem', versie: 'Versie 0.64.0.' }) + '<ul class="cs-lijst">' + rijen.map((r) => K.kaartHtml(r, { acties: true, rol, ctx: {}, muteStaat: (s) => (s === 2 ? 'gedempt' : 'gewoon') })).join('') + '</ul>'
+  p.innerHTML = K.kopHtml({ aantal: rijen.length, rol, opener: 'Sem', versie: 'Versie 0.64.0.' }) + '<ul class="cs-lijst">' + rijen.map((r) => K.cardHtml(r, { acties: true, rol, ctx: {}, muteStaat: (s) => (s === 2 ? 'gedempt' : 'gewoon') })).join('') + '</ul>'
     + K.pvpHtml({ passief: true, tekst: { knopAan: 'Passief: aan', knopUit: 'Passief: uit', uitleg: 'Als je passief staat kunnen medespelers je geen schade doen.' } }) + K.roepHtml([{ soort: 'hier', tekst: 'Kom hier', toets: 'Z' }, { soort: 'help', tekst: 'Help', toets: 'X' }]);
   void P;
 };
@@ -200,7 +200,7 @@ function server() {
 
 // Chrome sturen via het DevTools-protocol (geen puppeteer): één browser, één tabblad, per meting een nieuwe pagina.
 async function startChrome() {
-  const profiel = fs.mkdtempSync(path.join(os.tmpdir(), 'samenflow-chrome-'));
+  const profiel = fs.mkdtempSync(path.join(os.tmpdir(), 'multiplayerflow-chrome-'));
   const kind = spawn(CHROME, ['--headless=new', `--user-data-dir=${profiel}`, '--remote-debugging-port=0', '--no-first-run', '--no-default-browser-check', '--disable-gpu', '--hide-scrollbars=false', 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
   const ws0 = await new Promise((res, rej) => {
     let buf = ''; const t = setTimeout(() => rej(new Error('Chrome start niet')), 20000);
@@ -288,13 +288,13 @@ export function keur(m, sc) {
 }
 
 async function main() {
-  if (!CHROME) { console.log('SKIP samenflow_meet: geen Chrome of Edge gevonden (zet CHROME=<pad>)'); return 0; }
+  if (!CHROME) { console.log('SKIP multiplayerflow_meet: geen Chrome of Edge gevonden (zet CHROME=<pad>)'); return 0; }
   const only = arg('only');
   const srv = server();
   await new Promise((r) => srv.listen(Number(arg('port')) || 0, '127.0.0.1', r));
   const poort = srv.address().port;
   let chrome;
-  try { chrome = await startChrome(); } catch (e) { srv.close(); console.log('SKIP samenflow_meet: Chrome startte niet (' + e.message + ')'); return 0; }
+  try { chrome = await startChrome(); } catch (e) { srv.close(); console.log('SKIP multiplayerflow_meet: Chrome startte niet (' + e.message + ')'); return 0; }
   let n = 0, fout = 0; const alle = [];
   try {
     for (const sc of SCENES) {
@@ -326,7 +326,7 @@ async function main() {
     console.log('oud scherm (wizard uit): ' + JSON.stringify(oud.oud));
   } finally { await chrome.stop(); srv.close(); }
   if (has('json')) console.log(JSON.stringify(alle, null, 1));
-  console.log(`samenflow_meet: ${n} metingen (${SCENES.length} schermen x ${MATEN.length} maten), ${fout} met overtredingen`);
+  console.log(`multiplayerflow_meet: ${n} metingen (${SCENES.length} schermen x ${MATEN.length} maten), ${fout} met overtredingen`);
   return fout ? 1 : 0;
 }
 

@@ -32,7 +32,7 @@ function eigenFilmpjeOverslaan(world, kan) {
 
 let view = null, mountedOn = null, gebonden = null; // gebonden: de sessie (world.coopNet) waar dit paneel zelf bij hoort; een andere sessie is door een overdracht gekomen
 
-// #1011: de oude hub (#527, het stappenscherm van samenhub.js) is vervangen door de wizard in de lobby zelf (lobbyui.js, samenwizard.js): stap 0 (Meedoen
+// #1011: de oude hub (#527, het stappenscherm van samenhub.js) is vervangen door de wizard in de lobby zelf (lobbyui.js, multiplayerwizard.js): stap 0 (Meedoen
 // of Open je spel), 1 Wie ben jij, 2 Kiezen, 3 Verbinden. Die regels blijven staan voor hun eigen test; dit paneel gebruikt ze niet meer.
 // Escape en B gaan binnen de wizard een stap terug (view.wizTerug) en beëindigen nooit een sessie.
 
