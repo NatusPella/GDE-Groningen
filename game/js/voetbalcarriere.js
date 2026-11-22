@@ -51,7 +51,7 @@ export function createCareer({ char = 'anita', index = null, home = null, day = 
     seasonNr: 1, day: Math.max(0, day | 0), seasonStart: Math.max(0, day | 0), cal: [], evDone: 0, leagues: null, cup: null, europe: null, europeQ: false,
     prog: {}, phase: {}, mprog: {}, mphase: {}, fatigue: 0, injury: null, history: [], trainedDay: -1, matchDay: -1, focus: c === 'anita' ? 'shot' : 'pass',
     stats: { matches: 0, wins: 0, draws: 0, losses: 0, goals: 0, assists: 0, simulated: 0, seasons: 0, titles: 0, promotions: 0, cups: 0, europe: 0, earned: 0, coached: 0 },
-    seasonStats: { goals: 0, assists: 0, played: 0 }, log: [], flags: {}, last: null, settings: { injuries: true }, result: null, market: T.emptyMarket(), tactic: { formation: '4-4-2', style: 'evenwichtig' }, offer: null, bezit: B.newClubBezit(),
+    seasonStats: { goals: 0, assists: 0, played: 0 }, log: [], flags: {}, last: null, settings: { injuries: true }, result: null, market: T.emptyMarket(), tactic: { formation: '4-4-2', style: 'evenwichtig' }, pins: { start: [], bench: [] }, offer: null, bezit: B.newClubBezit(),
   };
   return openSeason(s);
 }
@@ -135,7 +135,7 @@ export function matchSetup(c, getClub, formations) {
   const roles = formations.map((x) => x.rol);
   const form = O.formFactor(c.history);
   const mySquad = squadOf(c, c.club, getClub), oppSquad = squadOf(c, m.opponent, getClub);
-  const my = lineupFor(mySquad, roles, { must: [c.me.id, c.mate.id] }), opp = lineupFor(oppSquad, roles);
+  const my = lineupFor(mySquad, roles, { must: [c.me.id, c.mate.id], ...pinsOf(c) }), opp = lineupFor(oppSquad, roles);
   const fac = (l) => l.map((x) => ({ naam: x.player ? x.player.name : undefined, f: x.factors }));
   const bonus = simFactors(c.me, { form, fatigue: c.fatigue });
   const mine = getClub(c.club), theirs = getClub(m.opponent);
@@ -440,10 +440,24 @@ export function withTactic(c, { formation, style } = {}) {
   if (TACTICS.styles.includes(style)) t.style = style;
   return { ...c, tactic: t };
 }
+// De keuze van de trainer of manager (Tammo regelt de papieren): spelers die vast in de basis staan of op de bank blijven, per speler in het eigen profiel.
+export const MAX_PINS = 8;
+export const pinsOf = (c) => ({ start: (c && c.pins && c.pins.start) || [], bench: (c && c.pins && c.pins.bench) || [] });
+// where: 'start', 'bench' of 'auto' (terug naar de beste elf). Alleen voor een Trainer of Manager, alleen voor spelers van de eigen selectie, nooit de eigen speler of zijn teamgenoot op de bank.
+export function setLineupPin(c, playerId, where, getClub) {
+  if (!c || !c.roles || !c.roles.trainer) return { career: c, ok: false, reason: 'Nog geen trainer' };
+  if (!squadOf(c, c.club, getClub).some((x) => x.id === playerId)) return { career: c, ok: false, reason: 'Die speler is er niet' };
+  const cur = pinsOf(c), start = cur.start.filter((x) => x !== playerId), bench = cur.bench.filter((x) => x !== playerId);
+  if (where === 'start') { if (start.length >= MAX_PINS) return { career: c, ok: false, reason: `Hooguit ${MAX_PINS} vaste basisspelers` }; start.push(playerId); }
+  else if (where === 'bench') { if (bench.length >= MAX_PINS) return { career: c, ok: false, reason: `Hooguit ${MAX_PINS} spelers op de bank` }; bench.push(playerId); }
+  else if (where !== 'auto') return { career: c, ok: false, reason: 'Onbekende keuze' };
+  return { career: { ...c, pins: { start, bench } }, ok: true, where };
+}
+export const clearLineupPins = (c) => (c && c.pins ? { ...c, pins: { start: [], bench: [] } } : c);
 // De opstelling van de trainer: de beste elf per rol van de vorming (basis) en de rest op de bank.
 export function lineupOf(c, getClub, formationRoles) {
   const squad = squadOf(c, c.club, getClub);
-  const lu = lineupFor(squad, formationRoles, { must: c.roles.trainer ? [] : [c.me.id, c.mate.id] });
+  const lu = lineupFor(squad, formationRoles, { must: c.roles.trainer ? [] : [c.me.id, c.mate.id], ...pinsOf(c) });
   const ids = new Set(lu.map((x) => x.player && x.player.id));
   return { basis: lu.map((x) => x.player).filter(Boolean), bank: squad.filter((p) => !ids.has(p.id)).sort((a, b) => playerRating(b) - playerRating(a)) };
 }
@@ -520,11 +534,12 @@ export function normalize(raw) {
       stats, seasonStats: { goals: num(d.seasonStats && d.seasonStats.goals), assists: num(d.seasonStats && d.seasonStats.assists), played: num(d.seasonStats && d.seasonStats.played) },
       log: [], flags: d.flags && typeof d.flags === 'object' ? Object.fromEntries(Object.entries(d.flags).slice(0, 40).map(([k, v]) => [String(k).slice(0, 24), v === true ? true : v === false ? false : typeof v === 'number' ? v : 0])) : {},
       last: d.last && typeof d.last === 'object' ? { kind: String(d.last.kind || ''), text: String(d.last.text || '').slice(0, 80), outcome: String(d.last.outcome || '') } : null,
-      sponsors: normSponsors(d.sponsors), market: normMarket(d.market), tactic: { formation: TACTICS.formations.includes(d.tactic && d.tactic.formation) ? d.tactic.formation : '4-4-2', style: TACTICS.styles.includes(d.tactic && d.tactic.style) ? d.tactic.style : 'evenwichtig' }, offer: d.offer && typeof d.offer.club === 'string' ? { club: d.offer.club, seasons: Math.max(1, Math.min(3, d.offer.seasons | 0)), salaryBonus: Math.max(0, d.offer.salaryBonus | 0) } : null, bezit: normClubBezit(d.bezit),
+      sponsors: normSponsors(d.sponsors), market: normMarket(d.market), tactic: { formation: TACTICS.formations.includes(d.tactic && d.tactic.formation) ? d.tactic.formation : '4-4-2', style: TACTICS.styles.includes(d.tactic && d.tactic.style) ? d.tactic.style : 'evenwichtig' }, pins: normPins(d.pins), offer: d.offer && typeof d.offer.club === 'string' ? { club: d.offer.club, seasons: Math.max(1, Math.min(3, d.offer.seasons | 0)), salaryBonus: Math.max(0, d.offer.salaryBonus | 0) } : null, bezit: normClubBezit(d.bezit),
       settings: { injuries: !(d.settings && d.settings.injuries === false) }, result: d.result && typeof d.result === 'object' ? d.result : null, lastResults: Array.isArray(d.lastResults) ? d.lastResults.slice(-6) : [],
     };
     return out;
   } catch (e) { return newCareer(); }
 }
+const normPins = (p) => { const ids = (l) => (Array.isArray(l) ? [...new Set(l.filter((x) => typeof x === 'string' && x.length < 40))].slice(0, MAX_PINS) : []); const start = ids(p && p.start); return { start, bench: ids(p && p.bench).filter((x) => !start.includes(x)) }; };
 export const clubResolver = (index) => (id) => clubById(id) || (index && index.byId.get(id)) || null;
 export { CLUBS, clubById };

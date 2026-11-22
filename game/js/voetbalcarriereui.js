@@ -123,16 +123,26 @@ function viewTraining(c) {
     `<p class="ds-z-kaart__voet">Een wedstrijd telt als de training van die dag. Hoe dichter bij je plafond, hoe langzamer het gaat. Een goede oefening geeft meer groei dan snel trainen.</p>`;
 }
 // De uitnodiging of de dichte staat: voor wie de carrière nog niet begon.
-function viewTrainer(c, env) {
+// De opstelling kiezen (Trainer en Manager): de beste elf per rol, met een knop per speler om hem vast in de basis te zetten of op de bank te houden. Zonder keuze kiest het spel de beste elf.
+function lineupHtml(c, env) {
   const rollen = formationList('groot', c.tactic.formation).map((x) => x.rol);
-  const lu = C.lineupOf(c, env.getClub, rollen);
+  const lu = C.lineupOf(c, env.getClub, rollen), pins = C.pinsOf(c);
+  const li = (l, i, inBasis) => l.map((q, k) => {
+    const vast = pins.start.includes(q.id), bank = pins.bench.includes(q.id);
+    const wissel = inBasis ? knop(`pin:bench:${q.id}`, 'Naar de bank', { ghost: true }) : knop(`pin:start:${q.id}`, 'In de basis', { ghost: true });
+    const auto = vast || bank ? knop(`pin:auto:${q.id}`, 'Los', { ghost: true }) : '';
+    return `<li class="ds-z-rij ds-m-rij" ${rij(k + i)}><span class="ds-z-rij__naam">${esc(q.name)}${vast ? ` ${chip('vast')}` : bank ? ` ${chip('bank')}` : ''}</span><span class="ds-z-rij__sub">${esc(ROLE_NAMES[q.role])}</span><span class="ds-z-rij__waarde">${playerRating(q)} ${wissel} ${auto}</span></li>`;
+  }).join('');
+  const nog = pins.start.length || pins.bench.length ? `<p class="vb-acties">${knop('pin:all', 'Laat het spel de beste elf kiezen', { ghost: true })}</p>` : '';
+  return `<h3 class="ds-z-kaart__titel">Basis (${lu.basis.length})</h3><ul class="ds-z-lijst vb-selectie">${li(lu.basis, 0, true)}</ul><h3 class="ds-z-kaart__titel">Bank (${lu.bank.length})</h3><ul class="ds-z-lijst vb-selectie">${li(lu.bank, 8, false)}</ul>${nog}<p class="ds-z-kaart__voet">Een vaste speler staat in de basis op zijn eigen plek (hooguit ${C.MAX_PINS}); wie op de bank blijft speelt alleen als er niemand anders is.</p>`;
+}
+function viewTrainer(c, env) {
   const vm = C.TACTICS.formations.map((f) => `<button type="button" class="ds-z-tab" data-vb="tactic:formation:${f}" aria-pressed="${c.tactic.formation === f}">${f}</button>`).join('');
   const st = C.TACTICS.styles.map((f) => `<button type="button" class="ds-z-tab" data-vb="tactic:style:${f}" aria-pressed="${c.tactic.style === f}">${esc(f)}</button>`).join('');
-  const li = (l, i) => l.map((q, k) => `<li class="ds-z-rij ds-m-rij" ${rij(k + i)}><span class="ds-z-rij__naam">${esc(q.name)}</span><span class="ds-z-rij__sub">${esc(ROLE_NAMES[q.role])}</span><span class="ds-z-rij__waarde">${playerRating(q)}</span></li>`).join('');
   const m = C.nextMatch(c, env.getClub), kan = m && m.status === 'open', reden = !m ? 'Er is geen wedstrijd' : m.status === 'soon' ? 'Nog niet aan de beurt' : '';
   const coach = `<p class="vb-acties">${knop('coach', 'Coach de wedstrijd', { primair: true, uit: kan ? '' : reden })}</p><p class="ds-z-kaart__voet">Je kijkt toe en past de tactiek onderweg aan (toets 1 speelstijl, toets 2 vorming, om de 40 seconden); alleen computerspelers voetballen. Je speelt dan niet mee.</p>`;
   return `<p>${chip('Je mag blijven spelen')} ${chip('Opstelling en tactiek zijn van jou')}</p>${coach}<h3 class="ds-z-kaart__titel">Vorming</h3><p class="vb-acties">${vm}</p><h3 class="ds-z-kaart__titel">Speelstijl</h3><p class="vb-acties">${st}</p>` +
-    `<h3 class="ds-z-kaart__titel">Basis (${lu.basis.length})</h3><ul class="ds-z-lijst vb-selectie">${li(lu.basis, 0)}</ul><h3 class="ds-z-kaart__titel">Bank (${lu.bank.length})</h3><ul class="ds-z-lijst vb-selectie">${li(lu.bank, 8)}</ul>`;
+    `${lineupHtml(c, env)}`;
 }
 function viewManager(c, env) {
   const cash = C.clubCash(c, env.getClub), venster = T.inBreak(c);
@@ -142,7 +152,7 @@ function viewManager(c, env) {
   const tammo = tip ? `<article class="ds-z-kaart ds-z-kaart--bord ds-m-binnen on"><h3 class="ds-z-kaart__titel">Tammo, je zaakwaarnemer</h3><p class="ds-z-kaart__tekst">${esc(`Jullie zijn zwak op de plek van ${ROLE_NAMES[tip.role].toLowerCase()}. ${tip.player.name} (rating ${playerRating(tip.player)}) is transfervrij voor ${euro(tip.price)} en maakt je team ${tip.better} punten sterker daar.`)}</p></article>` : '';
   return `${tammo}<p>${chip(`Clubkas ${euro(cash)}`)} ${chip(venster ? 'Transferperiode: nu' : 'Transferperiode: in de pauze')} ${chip('De kas is van de club, niet van jou')}</p>` +
     `<h3 class="ds-z-kaart__titel">Transfervrije spelers</h3>${marketRows ? `<ul class="ds-z-lijst vb-selectie">${marketRows}</ul>` : '<div class="ds-z-leeg"><p class="ds-z-leeg__kop">Niemand op de markt</p><p class="ds-z-leeg__tekst">Na elk seizoen komen er nieuwe spelers vrij.</p></div>'}` +
-    `<h3 class="ds-z-kaart__titel">Jouw selectie</h3><ul class="ds-z-lijst vb-selectie">${eigen}</ul><p class="ds-z-kaart__voet">Verkopen levert hooguit 80% min 10% belasting op: een koop en verkoop kost altijd geld.</p>` + viewShares(c, env);
+    `<h3 class="ds-z-kaart__titel">Jouw selectie</h3><ul class="ds-z-lijst vb-selectie">${eigen}</ul><p class="ds-z-kaart__voet">Verkopen levert hooguit 80% min 10% belasting op: een koop en verkoop kost altijd geld.</p>` + `<h3 class="ds-z-kaart__titel">Opstelling</h3>${lineupHtml(c, env)}` + viewShares(c, env);
 }
 // Clubaandelen (#1113): pas zichtbaar na het eerste aandeel of de manager-ontgrendeling; je koopt nooit je spaargeld leeg (een kwart blijft over).
 function viewShares(c, env) {
@@ -233,6 +243,7 @@ function act(a) {
   else if (a === 'train:snel') melding(a, V.trainNow(wereld, c.focus, 0.8));
   else if (a === 'sim') melding(a, V.finishMatch(wereld, null));
   else if (a.startsWith('tactic:')) { const [, k, v] = a.split(':'); V.replaceCareer(C.withTactic(c, k === 'formation' ? { formation: v } : { style: v })); }
+  else if (a.startsWith('pin:')) { const [, where, ...rest] = a.split(':'); if (where === 'all') V.replaceCareer(C.clearLineupPins(c)); else { const r = C.setLineupPin(c, rest.join(':'), where, V.getClub); if (r.ok) V.replaceCareer(r.career); else melding(a, r); } }
   else if (a.startsWith('sponsor:')) { const r = C.acceptSponsor(c, a.slice(8), V.getSponsorPandIndex(), V.clubPlace(c.club)); if (r.ok) V.replaceCareer(r.career); melding(a, r); }
   else if (a.startsWith('share:buy:')) { const [, , club, share] = a.split(':'); V.buyShare(wereld, club, Number(share)); }
   else if (a.startsWith('share:sell:')) V.sellShare(wereld, a.slice(11));

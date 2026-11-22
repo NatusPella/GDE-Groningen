@@ -153,15 +153,21 @@ export function readPlayer(d) {
   };
 }
 // Het ratingblok voor een wedstrijd: per plek in de vorming één factorenset (de volgorde van de selectie op rol). `team` is een lijst spelers, `tac` de rollen per index van de vorming.
-export function lineupFor(squad, roles, { forms = {}, fatigue = {}, must = [] } = {}) {
+export function lineupFor(squad, roles, { forms = {}, fatigue = {}, must = [], start = [], bench = [] } = {}) {
   const pool = squad.slice().sort((a, b) => playerRating(b) - playerRating(a));
   const taken = new Set();
   // `must`: spelers die zeker in de opstelling staan (de speler en zijn teamgenoot): zij krijgen eerst een plek van hun rol
+  // `start`: de vaste basisspelers die de trainer of manager koos (na `must`); `bench`: spelers die hij op de bank hield (alleen in de basis als er niemand anders is)
   const reserved = new Map();
-  for (const id of must) { const p = squad.find((x) => x.id === id); const k = p ? roles.findIndex((r, i) => r === p.role && !reserved.has(i)) : -1; if (k >= 0) reserved.set(k, p); }
+  const held = new Set();
+  for (const id of [...must, ...start]) { const p = squad.find((x) => x.id === id); const k = p && !held.has(p.id) ? roles.findIndex((r, i) => r === p.role && !reserved.has(i)) : -1; if (k >= 0) { reserved.set(k, p); held.add(p.id); } }
+  const benched = new Set(bench);
+  const free = (p) => !taken.has(p.id) && !held.has(p.id);
+  const pickFrom = (list, role) => list.find((p) => free(p) && p.role === role) || list.find((p) => free(p) && p.side === role) || list.find(free) || null;
+  const keep = pool.filter((p) => !benched.has(p.id)), rest = pool.filter((p) => benched.has(p.id));
   return roles.map((role, ri) => {
     if (reserved.has(ri)) { const p = reserved.get(ri); taken.add(p.id); return { player: p, factors: simFactors(p, { form: forms[p.id] || 1, fatigue: fatigue[p.id] || 0, role }) }; }
-    let pick = pool.find((p) => !taken.has(p.id) && p.role === role) || pool.find((p) => !taken.has(p.id) && (p.side === role)) || pool.find((p) => !taken.has(p.id)) || null;
+    const pick = pickFrom(keep, role) || pickFrom(rest, role);
     if (pick) taken.add(pick.id);
     return { player: pick, factors: pick ? simFactors(pick, { form: forms[pick.id] || 1, fatigue: fatigue[pick.id] || 0, role }) : { ...NEUTRAL_FACTORS } };
   });
