@@ -47,7 +47,7 @@ export function slotMessage(slot, gelukt, leeg) {
 
 // What the pawn shop pays for a gun with n rounds: 30% of the gun, and per round never more than a round costs in the shop.
 // The flat 0.4 per round paid 240 euro for 600 squirts of water that cost 15 (5 per 150): buy, sell, repeat was free money.
-export function inruilWaarde(w, n) {
+export function gunResale(w, n) {
   const gun = Math.max(0, Number(w && w.gun) || 0);
   if (w && w.melee) return Math.round(gun * 0.4);
   const pack = Math.max(1, Math.floor(Number(w && w.ammo) || 1));

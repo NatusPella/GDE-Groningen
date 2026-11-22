@@ -1,4 +1,4 @@
-// Pandjeshuis (shops.js pandSections, ammorules.js inruilWaarde): verkopen levert nooit meer op dan kopen kost.
+// Pandjeshuis (shops.js pandSections, ammorules.js gunResale): verkopen levert nooit meer op dan kopen kost.
 // De oude vaste 0,40 per patroon betaalde 248 euro voor een vol waterpistool dat 40 euro kost: een oneindige geldlus.
 //   node scripts/pandinruil_test.mjs
 import assert from 'node:assert/strict';
@@ -23,25 +23,25 @@ function koopKosten(w, tot) {
 }
 
 t('de voorraad is gelezen', () => { assert.ok(stock.length >= 10, 'rijen: ' + stock.length); assert.ok(stock.some((w) => w.key === 'waterpistool')); });
-t('shops.js gebruikt inruilWaarde voor de verkoopprijs', () => { assert.match(src, /const income = inruilWaarde\(w, n\)/); assert.match(src, /import \{[^}]*inruilWaarde[^}]*\} from '\.\/ammorules\.js'/); });
-t('inruilWaarde bestaat', () => assert.equal(typeof M.inruilWaarde, 'function'));
+t('shops.js gebruikt gunResale voor de verkoopprijs', () => { assert.match(src, /const income = gunResale\(w, n\)/); assert.match(src, /import \{[^}]*gunResale[^}]*\} from '\.\/ammorules\.js'/); });
+t('gunResale bestaat', () => assert.equal(typeof M.gunResale, 'function'));
 t('verkopen levert bij geen enkel wapen en geen enkele voorraad meer op dan kopen kost', () => {
   for (const w of stock) {
-    if (w.melee) { assert.ok(M.inruilWaarde(w, 1) < w.gun, w.key); continue; }
+    if (w.melee) { assert.ok(M.gunResale(w, 1) < w.gun, w.key); continue; }
     for (let tot = w.ammo; tot <= w.cap; tot++) {
-      const terug = M.inruilWaarde(w, tot), kost = koopKosten(w, tot);
+      const terug = M.gunResale(w, tot), kost = koopKosten(w, tot);
       assert.ok(terug < kost, `${w.key} met ${tot}: verkoop ${terug} tegen koop ${kost}`);
     }
   }
 });
 t('de gewone wapens houden hun oude inruilprijs', () => {
   const pistol = stock.find((w) => w.key === 'pistol'), uzi = stock.find((w) => w.key === 'uzi'), knuppel = stock.find((w) => w.key === 'knuppel');
-  assert.equal(M.inruilWaarde(pistol, 36), Math.round(120 * 0.3 + 36 * 0.4));
-  assert.equal(M.inruilWaarde(uzi, 600), Math.round(300 * 0.3 + 600 * 0.4));
-  assert.equal(M.inruilWaarde(knuppel, 1), Math.round(60 * 0.4));
+  assert.equal(M.gunResale(pistol, 36), Math.round(120 * 0.3 + 36 * 0.4));
+  assert.equal(M.gunResale(uzi, 600), Math.round(300 * 0.3 + 600 * 0.4));
+  assert.equal(M.gunResale(knuppel, 1), Math.round(60 * 0.4));
 });
 t('rare invoer geeft nooit NaN of een negatief bedrag', () => {
-  for (const v of [M.inruilWaarde({ gun: 25, ammoPrice: 5, ammo: 150 }, NaN), M.inruilWaarde({ gun: 25, ammoPrice: 5, ammo: 150 }, -5), M.inruilWaarde({}, 10), M.inruilWaarde(null, 10), M.inruilWaarde({ gun: 25, ammoPrice: 5, ammo: 150 }, Infinity)]) assert.ok(Number.isFinite(v) && v >= 0, String(v));
+  for (const v of [M.gunResale({ gun: 25, ammoPrice: 5, ammo: 150 }, NaN), M.gunResale({ gun: 25, ammoPrice: 5, ammo: 150 }, -5), M.gunResale({}, 10), M.gunResale(null, 10), M.gunResale({ gun: 25, ammoPrice: 5, ammo: 150 }, Infinity)]) assert.ok(Number.isFinite(v) && v >= 0, String(v));
 });
 
 console.log(fails ? `${fails} van ${n} mislukt` : `pandinruil_test: ${n} van ${n} goed`);

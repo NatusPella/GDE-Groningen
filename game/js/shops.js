@@ -54,7 +54,7 @@ import { shopSections, wardrobeSections, fittingSections, outfitMessageFor } fro
 import { clothingSfx } from './clothingsfx.js';
 import { sfxEvent } from './sfx/haken.js';
 import { wantedClearCooldownLeft, markWantedCleared } from './heatcooldown.js'; // #838: spuiterij-cooldown
-import { munitieWinst, munitiePrijs, inruilWaarde } from './ammorules.js'; // een bijna vol magazijn kost evenredig
+import { munitieWinst, munitiePrijs, gunResale } from './ammorules.js'; // een bijna vol magazijn kost evenredig
 
 export const SHOP_USE_RADIUS = 2.6;
 const OUTFIT_WANTED_COOLDOWN = 60;
@@ -1088,7 +1088,7 @@ export function pandSections(world, shop) {
   for (const w of WEAPON_STOCK) {
     const n = world.ammo[w.key] || 0;
     if (!Number.isFinite(world.ammo[w.key]) || (w.melee && n <= 0)) continue;
-    const income = inruilWaarde(w, n); // ammorules.js: never more per round than a round costs
+    const income = gunResale(w, n); // ammorules.js: never more per round than a round costs
     sell.push({
       id: 's-' + w.key, preview: { kind: 'weapon', weapon: w.key }, label: `${w.label.split(' ')[0]} verkopen`, desc: (w.melee ? 'Nauwelijks gebruikt, zegt de verkoper' : `Met ${n} ${w.unit || 'patronen'}, geen vragen`) + (world.weapon === w.key ? ' · nu in je hand' : ''), price: 0, income,
       // verkopen kan niet terug (kopen kost meer): het wapen in je hand of een grote voorraad vraagt om een tweede druk
