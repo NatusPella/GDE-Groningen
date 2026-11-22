@@ -437,7 +437,7 @@ function useSpot(w, hit) {
       noteMoney('Winkels');
       const r = buyProduct(w, prod);
       if (r.ok && s.id === 'bestellen' && w.audioEvents && w.audioEvents.length < 64) w.audioEvents.push({ kind: 'fx', name: 'horeca_hap', x: hit.x, y: hit.y });
-      if (!r.ok) say(w, TOO_POOR(prod.item, prod.price));
+      if (!r.ok) say(w, TOO_POOR(prod.item, prod.price, w.money));
       else { w.kassaKlik = true; counterSound(w, hit, plan); say(w, BOUGHT(prod.item, prod.price) + (r.healed ? ` +${Math.round(r.healed)} gezondheid` : '')); }
       return true;
     }
@@ -465,7 +465,7 @@ function useSpot(w, hit) {
       if (dayCard) {
         noteMoney('Winkels');
         const r = buyProduct(w, dayCard);
-        if (!r.ok) say(w, TOO_POOR(dayCard.item, dayCard.price));
+        if (!r.ok) say(w, TOO_POOR(dayCard.item, dayCard.price, w.money));
         else { w.kassaKlik = true; S.sfx(w, 'shop_buy_coins', hit.x, hit.y); say(w, BOUGHT(dayCard.item, dayCard.price) + (r.healed ? ` +${Math.round(r.healed)} gezondheid` : '')); }
         return true;
       }

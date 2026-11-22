@@ -43,13 +43,13 @@ import { winkelMagVoorGast, MELDING_WINKEL } from './coopgast.js';
 import { hoofdspeler } from './spelersregister.js';
 import {
   effectiveWorn, outfitToLook, getClothingSave, applyClothingSave, forceStoryLook, storyLookKey, ownsAll, ownedPieces, givePiece, setBonus,
-  completeSetIds, wornSet, wearPiece, takeOffSlot, setLocalCharProvider, emitLocalOutfitChange, cyclePreset, getHair, setHair, wornPieces,
+  completeSetIds, wornSet, cooldownBusy, wearPiece, takeOffSlot, setLocalCharProvider, emitLocalOutfitChange, cyclePreset, getHair, setHair, wornPieces,
 } from './clothing.js';
 import { HAIR_COLORS, HAIR_STYLES, hairPrice, parseHair, hairReaction } from './clothinghair.js';
-import { hairGroups, cutLine } from './kapperkeuze.js'; // de kapper aan de stoel: groepen en een regel bij het knippen (epic Autotuning ronde 4)
+import { hairGroups, cutLine, colorBlock } from './kapperkeuze.js'; // de kapper aan de stoel: groepen en een regel bij het knippen (epic Autotuning ronde 4)
 import { playHair } from './tuningsfx.js';
 import { SETS, setKeyFor, parsePiece } from './clothingdata.js';
-import { shopSections, wardrobeSections, fittingSections } from './clothingpanel.js';
+import { shopSections, wardrobeSections, fittingSections, outfitMessageFor } from './clothingpanel.js';
 import { clothingSfx } from './clothingsfx.js';
 import { sfxEvent } from './sfx/haken.js';
 import { wantedClearCooldownLeft, markWantedCleared } from './heatcooldown.js'; // #838: spuiterij-cooldown
@@ -1317,7 +1317,7 @@ export function outfitKeyBusy(world) {
 function cycleOutfit(world, dir = 1) {
   if (outfitKeyBusy(world)) return false;
   const now = world.time || 0;
-  if (now - lastCycleAt < 0.6) return false;
+  if (cooldownBusy(now, lastCycleAt, 0.6)) return false;
   lastCycleAt = now;
   if (storyLookKey()) { world.addMessage('Het verhaal bepaalt nu wat je aanhebt', 3); return false; }
   const ch = currentChar(world);
@@ -1327,7 +1327,7 @@ function cycleOutfit(world, dir = 1) {
   clothesRustle(world);
   shakeWanted(world, 1);
   clothingSfx(world, 'clothes_rustle');
-  world.addMessage(`${r.name} aan${r.missing && r.missing.length ? ` (${r.missing.length} stuk${r.missing.length > 1 ? 'ken' : ''} ontbreken)` : ''}`, 2.5);
+  world.addMessage(outfitMessageFor(r.name, r.missing || []), 2.5);
   return true;
 }
 
@@ -1391,7 +1391,7 @@ export function openClothingCounter(world, key, name = 'Kledingwinkel') {
 }
 
 function shakeWanted(world, stars) {
-  if (world.wanted <= 0 || policeWatching(world) || world.time - state.lastStealthAt < OUTFIT_WANTED_COOLDOWN) return false;
+  if (world.wanted <= 0 || policeWatching(world) || cooldownBusy(world.time, state.lastStealthAt, OUTFIT_WANTED_COOLDOWN)) return false;
   state.lastStealthAt = world.time;
   world.wanted = Math.max(0, world.wanted - stars);
   world.wantedDecayTimer = 0;
@@ -1420,7 +1420,7 @@ function hairSections(world) {
     id: 'h-' + c.id, label: c.label, desc: c.id === 'naturel' ? 'Terug naar je eigen kleur' : 'Verven, föhnen, klaar',
     price: c.price, tag: cur.color === c.id ? 'Nu' : '', swatch: [hexCss(c.hair ?? naturel)],
     preview: mirror(cur.style, c.id),
-    disabled: cur.color === c.id ? 'Heb je al' : broke(world, c.price),
+    disabled: cur.color === c.id ? 'Heb je al' : colorBlock(cur.style) || broke(world, c.price),
     buy: () => change(cur.style, c.id, c.price, `Haar ${c.label.toLowerCase()}.`),
   }));
   const styleItem = ([id, label]) => ({

@@ -13,6 +13,7 @@ import {
 } from './vehiclelook.js';
 import { PARTS, PART_LABELS, optionsFor, optionById, withOption, withoutPart, sanitizeTuning, installPrice, tuningEffects } from './tuningplan.js';
 import { offerPrice, offerState, orderedOptions, garageLevel } from './tuningoffer.js';
+import { euro } from './geldtekst.js';
 
 export const DEFAULT_PAINT_PRICE = 60;
 
@@ -71,7 +72,7 @@ export function canInstall(st, inst, ctx, money) {
   const q = quote(st, inst, ctx);
   if (!q.changed) return { ok: false, reason: 'Niets veranderd', quote: q };
   if (q.locked.length) return { ok: false, reason: q.locked[0].locked, quote: q };
-  if (money < q.total) return { ok: false, reason: 'Te weinig geld', quote: q };
+  if (money < q.total) return { ok: false, reason: `Te weinig geld: je mist nog ${euro(q.total - money)}`, quote: q };
   return { ok: true, reason: '', quote: q };
 }
 

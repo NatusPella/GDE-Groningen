@@ -42,7 +42,7 @@ export function rng(seed) {
 }
 
 // ---------------------------------------------------------------- de staat
-const emptyWardrobe = () => ({ owned: new Set(), worn: {}, hair: null, body: 'gemiddeld', presets: Array.from({ length: PRESET_COUNT }, () => null), seen: new Set() });
+const emptyWardrobe = () => ({ owned: new Set(), worn: {}, hair: null, body: 'gemiddeld', presets: Array.from({ length: PRESET_COUNT }, () => null), seen: new Set(), undo: null });
 const store = { tammo: emptyWardrobe(), anita: emptyWardrobe(), forced: null, forcedKey: null, bought: 0 };
 
 export function resetClothing() {
@@ -161,7 +161,7 @@ export function wearSet(ch, set) {
   const s = typeof set === 'string' ? (SET_BY_ID[set] || LOOK_BY_ID[set]) : set;
   if (!s) return { ok: false, reason: 'Onbekende set' };
   const missing = s.pieces.filter((p) => !ownsPiece(ch, p));
-  if (missing.length) return { ok: false, reason: 'Nog niet alles in je kast', missing };
+  if (missing.length) return { ok: false, reason: `Nog ${missing.length} ${missing.length === 1 ? 'stuk' : 'stukken'} niet in je kast`, missing };
   const w = W(ch);
   const slots = new Set(s.pieces.map(pieceSlot));
   for (const slot of SET_RESETS) if (!slots.has(slot) && slot !== 'top') delete w.worn[slot];
@@ -211,8 +211,35 @@ const cleanName = (n, i) => {
 export function savePreset(ch, i, name) {
   if (!(i >= 0 && i < PRESET_COUNT)) return false;
   const w = W(ch);
+  // wat er stond onthouden we in het geheugen (niet in de save), zodat een overschrijving met één keuze terug kan (verfijnronde 22-11)
+  w.undo = w.presets[i] ? { i, preset: { name: w.presets[i].name, worn: { ...w.presets[i].worn } } } : null;
   w.presets[i] = { name: cleanName(name, i), worn: { ...w.worn, hair: w.hair, body: w.body } };
   return true;
+}
+// Zet de laatst overschreven outfit terug (de nieuwe die er stond verdwijnt). Geeft { ok, index, name } of { ok: false, reason }.
+export const canUndoPreset = (ch) => !!W(ch).undo;
+export function undoPreset(ch) {
+  const w = W(ch);
+  if (!w.undo) return { ok: false, reason: 'Er is niets om terug te zetten' };
+  const { i, preset } = w.undo;
+  w.presets[i] = preset;
+  w.undo = null;
+  return { ok: true, index: i, name: preset.name };
+}
+// Staat wat je nu aanhebt (stukken, kapsel en postuur) al in een bewaarde outfit? Geeft de index of -1; `skip` slaat één plek over.
+export function presetHolding(ch, skip = -1) {
+  const worn = effectiveWorn(ch);
+  return W(ch).presets.findIndex((p, i) => i !== skip && p && presetMatches(p, worn));
+}
+// Een voorstel voor de naam bij het bewaren: de naam van de set die je aanhebt, anders "Outfit n".
+export function suggestPresetName(ch, i) {
+  const s = wornSet(ch);
+  if (!(s && s.label)) return `Outfit ${i + 1}`;
+  // dezelfde naam twee keer in een lijst leest slecht: een tweede krijgt een nummer
+  const taken = new Set(W(ch).presets.filter((p, k) => p && k !== i).map((p) => p.name));
+  let name = cleanName(s.label, i);
+  for (let k = 2; taken.has(name) && k < 10; k++) name = cleanName(`${s.label} ${k}`, i).replace(/\s+\d*$/, '') + ` ${k}`;
+  return taken.has(name) ? `Outfit ${i + 1}` : name;
 }
 // De outfit-code (versie 3) van een bewaarde outfit, om te delen, en een code die een ander deelde als nieuwe outfit bewaren. De stukken
 // die je zelf niet hebt blijven weg bij het aantrekken (zoals altijd: wearPreset meldt wat ontbreekt).
@@ -252,17 +279,38 @@ export function wearPreset(ch, i) {
 }
 
 // De volgende gevulde outfit (Outfit 1 tot 5) na degene die je nu aanhebt, voor de snelwisseltoets. dir 1 vooruit, -1 terug.
+// Een afkoeltijd die de klok mag overleven (verfijnronde 22-11): na een lading of nieuw spel loopt world.time terug, en dan bleef de
+// wisseltoets of de uitrusting-tegen-de-politie minutenlang dicht. Een tijd vóór het laatste moment telt als verlopen.
+export const cooldownBusy = (now, last, gap) => Number.isFinite(last) && now >= last && now - last < gap;
+
+// Zit een bewaarde outfit nu aan je lijf? Stukken, en kapsel en postuur als de outfit die kent (een outfit die alleen een ander kapsel heeft
+// is dus niet "al aan": het kapsel wisselt mee, verfijnronde 22-11).
+export function presetMatches(p, worn) {
+  return SLOT_IDS.every((s) => (p.worn[s] || null) === (worn[s] || null))
+    && (!p.worn.hair || p.worn.hair === worn.hair)
+    && (!p.worn.body || p.worn.body === (worn.body || 'gemiddeld'));
+}
+export const presetIsWorn = (ch, i) => { const p = W(ch).presets[i]; return !!p && presetMatches(p, effectiveWorn(ch)); };
+
 export function cyclePreset(ch, dir = 1) {
   const w = W(ch);
   const filled = w.presets.map((p, i) => (p ? i : -1)).filter((i) => i >= 0);
   if (!filled.length) return { ok: false, reason: 'Bewaar eerst een outfit in je kast: Outfit 1 tot 5' };
   const worn = effectiveWorn(ch);
-  const same = (p) => SLOT_IDS.every((s) => (p.worn[s] || null) === (worn[s] || null)) && (!p.worn.hair || p.worn.hair === worn.hair);
-  const cur = w.presets.findIndex((p) => p && same(p));
+  // twee outfits die er hetzelfde uitzien (bijvoorbeeld een gedeelde code die je al had) zijn één stop: de toets haakt er niet op vast
+  const here = filled.filter((i) => presetMatches(w.presets[i], worn));
+  const cur = here.length ? (dir > 0 ? here[here.length - 1] : here[0]) : -1;
   const at = filled.indexOf(cur);
-  const next = filled[((at < 0 ? (dir > 0 ? -1 : 0) : at) + (dir > 0 ? 1 : -1) + filled.length) % filled.length];
-  const r = wearPreset(ch, next);
-  return r.ok ? { ok: true, index: next, name: w.presets[next].name, missing: r.missing } : r;
+  // een outfit die niet te dragen is (geen shirt of jas meer over) wordt overgeslagen, de toets blijft niet haken
+  let last = null;
+  for (let k = 1; k <= filled.length; k++) {
+    const next = filled[(((at < 0 ? (dir > 0 ? -1 : 0) : at) + (dir > 0 ? k : -k)) % filled.length + filled.length) % filled.length];
+    if (here.includes(next)) continue;
+    const r = wearPreset(ch, next);
+    if (r.ok) return { ok: true, index: next, name: w.presets[next].name, missing: r.missing };
+    last = r;
+  }
+  return last || { ok: false, reason: 'Je draagt de enige outfit die je hebt bewaard' };
 }
 
 // ---------------------------------------------------------------- van kleding naar een uiterlijk voor het model
