@@ -72,5 +72,30 @@ const src = (f) => fs.readFileSync(new URL('../game/js/' + f, import.meta.url), 
 // 3. het laadbudget achter het laadscherm
 ok(/loading: !!world\.cineJumpLoading \|\| loadHeld\(world\)/.test(src('main.js')), 'main.js geeft de stroomplanner het laadbudget achter het laadscherm');
 
+// 4. de ringcheck (ringcheck.js) rijdt zijn proefritten over veel frames en zette uiPaused ook maar één keer: na één
+//    frame liep de wereld (verkeer, politie) mee met de proefauto. Beide ritten houden nu een eigen houder vast.
+{
+  const rc = src('ringcheck.js');
+  for (const [fn, bron] of [['driveRingLap', 'ringcheck-lap'], ['driveWaterCrossings', 'ringcheck-water']]) {
+    const from = rc.indexOf('export async function ' + fn);
+    const next = rc.indexOf('export ', from + 10);
+    const body = from < 0 ? '' : rc.slice(from, next < 0 ? rc.length : next);
+    const on = body.indexOf(`setLoadHold(world, '${bron}', true)`), off = body.indexOf(`setLoadHold(world, '${bron}', false)`);
+    ok(on >= 0 && off > on, `ringcheck.js ${fn} zet en lost de houder ${bron}`);
+    ok(off > body.indexOf('finally') && body.includes('finally'), `ringcheck.js ${fn} lost de houder in finally, ook na een fout`);
+    ok(off >= 0 && off < body.lastIndexOf('world.uiPaused = keep.paused'), `ringcheck.js ${fn} lost de houder voor de vorige pauzestand terugkomt`);
+  }
+  // de frame-lus nagebouwd met beide ritten na elkaar: de ene rit lost de andere niet
+  const refreshPause = (world) => { world.uiPaused = loadHeld(world); };
+  const world = {};
+  world.uiPaused = true; setLoadHold(world, 'ringcheck-lap', true);
+  for (let i = 0; i < 5; i++) refreshPause(world);
+  ok(world.uiPaused === true, 'na vijf frames staat de wereld nog stil tijdens de ringronde');
+  setLoadHold(world, 'ringcheck-water', true); setLoadHold(world, 'ringcheck-lap', false); refreshPause(world);
+  ok(world.uiPaused === true, 'de waterkruisingen houden de wereld stil als de ringronde klaar is');
+  setLoadHold(world, 'ringcheck-water', false); refreshPause(world);
+  ok(world.uiPaused === false, 'ringcheck klaar: de pauze gaat eraf');
+}
+
 console.log(fails ? `loadhold_test: ${fails} fout(en)` : 'loadhold_test: alles goed');
 process.exit(fails ? 1 : 0);
