@@ -38,6 +38,7 @@ import { MACHINE_CATALOGUS } from './percelen.js';
 import { setAreaPrice, setYieldInfo } from './bezithooks.js';
 import { recordService } from './reputationlive.js';
 import * as CT from './chaintrucks.js'; // fillLinkPositions: een schakel zonder plek krijgt een terugvalplek
+import * as PC from './parcelcare.js';  // stortbuiverzekering en bestrijding van mieren en wespen
 
 const SCHRIJF_VERTRAGING_MS = 2000;
 let bezit = null, opslagOverride = null, timer = 0, vuil = false, index = null, laden = null;
@@ -310,6 +311,17 @@ export function huurArbeider(w, skill) {
 export function ontslaArbeider(id) { const r = fireWorker(getBezit(), id); if (r && r.ok !== false) markeer(); return !!(r && r.ok !== false); }
 
 // ---- vee op je weiland (#1101): kopen en verkopen met het geld van de speler; het bezit is per speler (#429) ----
+// Verzekering en bestrijding (parcelcare.js): per perceel of voor een selectie. Alleen eigen percelen; een gast regelt zijn eigen bezit.
+export function zetVerzekering(ids, on) {
+  const r = PC.setInsurance(getBezit(), ids, on, calToday());
+  if (r.done) markeer();
+  return r;
+}
+export function bestrijd(w, ids, what) {
+  const r = PC.treat(getBezit(), ids, what, calToday(), Number.isFinite(w && w.money) ? w.money : 0);
+  if (r.done) { if (r.cost > 0) { noteMoney('Overige uitgaven'); w.money -= r.cost; } markeer(); }
+  return r;
+}
 export function koopVee(w, id, sp) {
   const r = buyHerd(getBezit(), id, sp, Number.isFinite(w && w.money) ? w.money : 0);
   if (!r.ok) return { ok: false, text: r.why === 'te-weinig-geld' ? `Je mist nog ${euro(r.tekort)}.` : r.why === 'al-vee' ? 'Op dit perceel loopt al vee.' : 'Dit vee past niet op dit perceel.' };
@@ -348,7 +360,7 @@ function areaPriceHook(gewas, kg, farmDay, veld, base) {
 // De haak voor het opbrengstverlies van een perceel op een speldag van de boerderij (bezitnews.js).
 function lossMult(id, cd) {
   const rec = getBezit().parcels[id];
-  return rec ? NW.lossOfParcel({ id, kind: rec.k, region: ctxOf().region(id) }, cd) : { mult: 1, text: '' };
+  return rec ? NW.lossOfParcel({ id, kind: rec.k, region: ctxOf().region(id) }, cd, { insured: PC.isInsured(rec, cd), treated: PC.treatedOf(rec, cd) }) : { mult: 1, text: '' };
 }
 const yieldHook = (veld, farmDay) => { const r = lossMult(veld, calOf(farmDay)); return { mult: r.mult, text: r.text }; };
 
@@ -527,10 +539,12 @@ export function dayTick(w) {
   if (net > 0) { const dd = Math.max(1, last - from); net = P.compressPassive(net / dd) * dd; }   // de rem op passief inkomen (bezitprijs.js)
   net += sn.own + sn.fixed;                                                                       // de wagen die je zelf runt heeft zijn eigen plafond (snackvan.js compressOwn); vergunningen zijn kosten
   net += ev.money;                                                                                // een boete of de dierenarts is geen passief inkomen: geen rem
+  const premium = Math.round(PC.premiumBetween(b, from, last, calOf));                            // de premie van de stortbuiverzekering is een kost per speldag
+  net -= premium;
   if (net !== 0) { noteMoney(net > 0 ? 'Winkels' : 'Overige uitgaven'); w.money = Math.max(0, (w.money || 0) + net); }
   if (w && typeof w.addMessage === 'function') for (const t of ev.lines.slice(-3).concat(sn.lines.slice(-2))) w.addMessage(t, 5, { kind: 'tip', key: 'bz-nieuws' });
   markeer();
-  lastReport = { from: from + 1, to: day, days: rep.days, parcels: Math.round(rep.net), business: Math.round(bizNet), mobile: Math.round(mobNet), snack: Math.round(sn.own + sn.passive + sn.fixed), chains: ch.bonus, eventMoney: Math.round(ev.money), news: ev.lines.length, net: Math.round(net), tax: Math.round(tax), events: rep.events, worked: rep.staff.worked || [] };
+  lastReport = { from: from + 1, to: day, days: rep.days, parcels: Math.round(rep.net), business: Math.round(bizNet), mobile: Math.round(mobNet), snack: Math.round(sn.own + sn.passive + sn.fixed), chains: ch.bonus, eventMoney: Math.round(ev.money), news: ev.lines.length, premium, net: Math.round(net), tax: Math.round(tax), events: rep.events, worked: rep.staff.worked || [] };
   return lastReport;
 }
 

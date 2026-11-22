@@ -47,10 +47,11 @@ const push = (news, d, t, k) => { if (!news.lines.some((l) => l.t === t && l.d =
 // parcel: { id, kind ('w'|'a'|'b'), region }; geeft { mult (0,4..1), text } met de oorzaken in een zin. Zonder oorzaak { mult: 1, text: '' }.
 const lossCache = new Map();                                            // het verlies hangt alleen van streek, soort en dag af: duizend percelen rekenen één keer
 export function lossOfParcel(parcel, calDay, opts = {}) {
-  const key = `${parcel.region}|${parcel.kind}|${Math.floor(calDay)}|${opts.insured ? 1 : 0}|${opts.treated ? 1 : 0}`;
+  const tr = opts.treated || {};
+  const key = `${parcel.region}|${parcel.kind}|${Math.floor(calDay)}|${opts.insured ? 1 : 0}|${tr.ants ? 1 : 0}${tr.wasps ? 1 : 0}`;
   let v = lossCache.get(key);
   if (!v) {
-    const p = { id: parcel.id, kind: parcel.kind, region: parcel.region, sandy: SANDY_DISTRICTS.includes(parcel.region), sown: true, treated: opts.treated };
+    const p = { id: parcel.id, kind: parcel.kind, region: parcel.region, sandy: SANDY_DISTRICTS.includes(parcel.region), sown: true, treated: { ants: !!tr.ants, wasps: !!tr.wasps } };
     const r = EV.parcelLoss(p, calDay, { insured: !!opts.insured });
     v = { mult: Math.round((1 - r.loss) * 1000) / 1000, text: r.causes.map((c) => c.text).join(' '), causes: r.causes };
     if (lossCache.size > 4000) lossCache.clear();

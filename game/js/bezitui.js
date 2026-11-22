@@ -51,7 +51,9 @@ export function summaryHtml({ bezit, farm, money = 0, day = 0, news = null, chai
     `<span class="bd-acties">${btn('doel', 'Doel', ` data-id="${esc(r.id)}"`)}</span></div>`).join('');
   const selN = H.selectedIds(ui.sel, rows).length;
   const bulk = own.length ? `<div class="bz-bulk" role="group" aria-label="Voor de gekozen percelen"><span class="mut">${selN} gekozen</span> ${btn('kies-alles', 'Kies alles in de lijst')} ${btn('kies-niets', 'Kies niets')} ` +
-    `${btn('bulk-zaai', 'Zaai alles', '', !selN)} ${btn('bulk-oogst', 'Oogst alles', '', !selN)} ${btn('bulk-zelf', 'Zelf werken', '', !selN)} ${btn('bulk-verpacht', 'Verpachten', '', !selN)} ${btn('bulk-personeel', 'Personeel', '', !selN)}</div>` : '';
+    `${btn('bulk-zaai', 'Zaai alles', '', !selN)} ${btn('bulk-oogst', 'Oogst alles', '', !selN)} ${btn('bulk-zelf', 'Zelf werken', '', !selN)} ${btn('bulk-verpacht', 'Verpachten', '', !selN)} ${btn('bulk-personeel', 'Personeel', '', !selN)}` +
+    ` ${btn('bulk-verzeker', 'Verzeker tegen stortbui', ' title="3 euro per ha per speldag; dekt 80% van het verlies, geldt vanaf morgen"', !selN)} ${btn('bulk-onverzeker', 'Zeg verzekering op', '', !selN)}` +
+    ` ${btn('bulk-mieren', 'Bestrijd mieren', ' title="15 euro per ha, houdt tien speldagen stand"', !selN)} ${btn('bulk-wespen', 'Haal wespennest weg', ' title="40 euro per boomgaard, houdt tien speldagen stand"', !selN)}</div>` : '';
   const staffHtml = `<h3 class="m-h3">Personeel</h3><p class="mut">${staff.workers.length} ${staff.workers.length === 1 ? 'medewerker' : 'medewerkers'} · ${staffCapacity(staff)} ha per speldag. Een arbeider haalt hooguit 80% van wat je zelf op het veld haalt: handwerk levert per handeling het meeste.</p>` +
     staff.workers.map((w) => `<div class="bd-rij"><span class="bd-naam"><b>${esc(w.name)}</b><span class="bd-feiten"><span>${SKILL_NAME[w.skill]}</span><span>${euro(wageOf(w))} per dag</span></span></span><span class="bd-acties">${askOr('ontsla', w.id, 'Ontslaan', 'Zeker?')}</span></div>`).join('') +
     `<div class="bz-bulk">${[1, 2, 3].map((k) => btn('huur', `Stel ${SKILL_NAME[k]} aan · ${euro(wageOf({ skill: k }))}`, ` data-skill="${k}"`, money < wageOf({ skill: k }))).join(' ')}</div>`;
@@ -238,6 +240,8 @@ function act(world, d, els) {
     let r = null;
     if (a === 'bulk-zaai') r = H.bulkWork(bezit, farm, ids, 'zaaien', { money: world.money || 0, day: Math.floor(farm.uren / 24) });
     else if (a === 'bulk-oogst') r = H.bulkWork(bezit, farm, ids, 'oogsten', { money: world.money || 0, day: Math.floor(farm.uren / 24) });
+    else if (a === 'bulk-verzeker' || a === 'bulk-onverzeker') r = L.zetVerzekering(ids, a === 'bulk-verzeker');
+    else if (a === 'bulk-mieren' || a === 'bulk-wespen') r = L.bestrijd(world, ids, a === 'bulk-mieren' ? 'mieren' : 'wespen');
     else { r = H.bulkSetMode(bezit, ids, { 'bulk-zelf': 'self', 'bulk-verpacht': 'leased', 'bulk-personeel': 'staff' }[a]); }
     ui.msg = r ? bulkText(a, r) : '';
     if (r && Number.isFinite(r.net) && r.net !== 0) { noteMoney(r.net > 0 ? 'Verkoop' : 'Winkels'); world.money = Math.max(0, (world.money || 0) + r.net); }
@@ -247,6 +251,6 @@ function act(world, d, els) {
 }
 export function bulkText(a, r) {
   const skipped = Object.entries(r.skipped || {}).map(([k, n]) => `${n}x ${k.replace(/-/g, ' ')}`).join(', ');
-  const verb = { 'bulk-zaai': 'gezaaid', 'bulk-oogst': 'geoogst', 'bulk-zelf': 'op Zelf gezet', 'bulk-verpacht': 'verpacht', 'bulk-personeel': 'aan personeel gegeven' }[a] || 'gedaan';
-  return `${r.done || 0} ${(r.done || 0) === 1 ? 'perceel' : 'percelen'} ${verb}${skipped ? `; overgeslagen: ${skipped}` : ''}.`;
+  const verb = { 'bulk-zaai': 'gezaaid', 'bulk-oogst': 'geoogst', 'bulk-zelf': 'op Zelf gezet', 'bulk-verpacht': 'verpacht', 'bulk-personeel': 'aan personeel gegeven', 'bulk-verzeker': 'verzekerd', 'bulk-onverzeker': 'van de verzekering gehaald', 'bulk-mieren': 'tegen mieren behandeld', 'bulk-wespen': 'van wespen ontdaan' }[a] || 'gedaan';
+  return `${r.done || 0} ${(r.done || 0) === 1 ? 'perceel' : 'percelen'} ${verb}${r.cost > 0 ? ` voor ${euro(r.cost)}` : ''}${skipped ? `; overgeslagen: ${skipped}` : ''}.`;
 }
