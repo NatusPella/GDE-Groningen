@@ -155,6 +155,8 @@ function nepLijst(aantal, kolommen = 4, rijH = 200, hoogte = 450) {
 }
 // rAF is er niet in Node: de planner valt terug op setTimeout 16 ms
 const wacht = (ms = 60) => new Promise((r) => setTimeout(r, ms * 4));
+// op een drukke machine haalt een vaste wachttijd het niet: wacht tot de voorwaarde klopt (hooguit 8 s)
+const wachtTot = async (voorwaarde, max = 8000) => { const t0 = Date.now(); while (!voorwaarde() && Date.now() - t0 < max) await new Promise((r) => setTimeout(r, 20)); await wacht(10); };
 
 await (async () => {
   n++;
@@ -169,7 +171,7 @@ await (async () => {
       release: (g) => { t0.released.push(g); return 0; }, cancel: (g) => t0.cancelled.push(g),
       icoon: () => '<svg></svg>',
     });
-    await wacht(80);
+    await wachtTot(() => aanvragen.length > 0 && lijst.tegels[3].ph.innerHTML.includes('<img'));
     // 450 px hoog, rij 200: rijen 0 tot 3 (met marge 160): 4 rijen x 4 = 16 tegels, niet alle 100
     assert.ok(aanvragen.length > 0 && aanvragen.length <= 20, `alleen wat in beeld staat: ${aanvragen.length} van 100`);
     assert.ok(aanvragen.every((a) => a.o.group === 'spullen' && a.o.prio === true), 'in de groep spullen, voor wat zichtbaar is');
@@ -179,7 +181,7 @@ await (async () => {
     const eerste = aanvragen.length;
     // scrollen: de volgende rijen komen erbij, de oude worden niet opnieuw requested
     lijst.scroll(1600);
-    await wacht(80);
+    await wachtTot(() => aanvragen.length > eerste);
     assert.ok(aanvragen.length > eerste, 'bij het scrollen volgen nieuwe tegels');
     assert.ok(aanvragen.length <= eerste + 20, 'en weer begrensd');
     const sleutels = aanvragen.map((a) => thumbSleutel(a.spec, a.w, a.h));

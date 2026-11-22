@@ -73,6 +73,23 @@ export function controleer(items) {
   return rapport;
 }
 
+// Dubbelgebruik: dingen die precies hetzelfde model delen (gelijke spec). Een gedeeld model is een eerlijke keuze (een band is een band),
+// maar het is ook de plek waar een ding "een model heeft" zonder een eigen gezicht: het rapport telt ze, per categorie en per groep.
+export function dubbelgebruik(items) {
+  const groepen = new Map();
+  for (const it of items) {
+    if (!it.viewer) continue;
+    const sleutel = JSON.stringify(it.viewer);
+    (groepen.get(sleutel) || groepen.set(sleutel, []).get(sleutel)).push(it.key);
+  }
+  const gedeeld = [...groepen.values()].filter((g) => g.length > 1);
+  return {
+    unieke: groepen.size, items: items.filter((i) => i.viewer).length,
+    gedeeld: gedeeld.map((g) => g.slice().sort()).sort((a, b) => b.length - a.length),
+    metGedeeldModel: gedeeld.reduce((n, g) => n + g.length, 0),
+  };
+}
+
 export function perCategorie(rapport) {
   const per = {};
   for (const r of rapport) {
@@ -98,6 +115,9 @@ if (isMain) {
       for (const z of r.zonder) console.log('   zonder:', z);
     }
     console.log(`TOTAAL        ${String(met).padStart(3)} / ${String(tot).padEnd(3)}  ${String(Math.round(100 * met / tot)).padStart(4)}%`);
+    const d = dubbelgebruik(items);
+    console.log(`dubbelgebruik: ${d.unieke} unieke modellen voor ${d.items} dingen; ${d.metGedeeldModel} dingen delen een model in ${d.gedeeld.length} groepen`);
+    for (const g of d.gedeeld) console.log('   gedeeld:', g.join(', '));
   }
   const fout = rapport.filter((r) => !r.ok);
   process.exit(fout.length ? 1 : 0);

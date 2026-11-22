@@ -9,7 +9,7 @@ import { readFileSync } from 'node:fs';
 const SP = await import('../game/js/spullen3d.js');
 const M3 = await import('../game/js/models3d_spullen.js');
 const V = await import('../game/js/visdata.js');
-const { alleItems, controleer, perCategorie, bouwModel, DRIEHOEKEN_MAX } = await import('./ui/spullen3d_dekking.mjs');
+const { alleItems, controleer, perCategorie, bouwModel, dubbelgebruik, DRIEHOEKEN_MAX } = await import('./ui/spullen3d_dekking.mjs');
 const src = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
 
 let n = 0, fails = 0;
@@ -156,6 +156,14 @@ t('stijl: tekst in de viewer minstens 13 px, en beperkte beweging zet de animati
   }
   assert.match(css, /prefers-reduced-motion:reduce\)\{#pause-menu \.sp-model/);
   assert.match(css, /html\.reduce-motion #pause-menu \.sp-model/);
+});
+
+t('dubbelgebruik wordt geteld en groeit niet: hooguit 10 dingen delen een model (5 groepen), nooit meer dan twee per model', () => {
+  const d = dubbelgebruik(alleItems());
+  assert.ok(d.metGedeeldModel <= 10, `${d.metGedeeldModel} dingen delen een model (ratel: 10)`);
+  assert.ok(d.gedeeld.length <= 5, `${d.gedeeld.length} groepen`);
+  assert.ok(d.gedeeld.every((g) => g.length <= 2), 'een model voor drie dingen of meer');
+  assert.equal(d.unieke + d.metGedeeldModel - d.gedeeld.length, d.items, 'de telling klopt');
 });
 
 console.log(fails ? `${fails} van ${n} mislukt` : `ok: ${n} tests`);

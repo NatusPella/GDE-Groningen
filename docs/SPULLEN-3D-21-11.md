@@ -136,9 +136,17 @@ Eigenaar-feedback op de eerste viewer: links stonden iconen, rechts een heel gro
 - Materialen zijn gedeeld per kleur (`markShared`), geometrie hoort bij de mesh en gaat weg bij dispose. Budget: 6.000 driehoeken per model; het zwaarste
   is nu de kleding met ongeveer 1.900.
 
+### Dubbelgebruik en zwakke modellen (22-11)
+
+`node scripts/ui/spullen3d_dekking.mjs` telt nu ook het dubbelgebruik (dingen met een gelijke spec): 94 unieke modellen voor 99 dingen, 10 dingen delen een
+model in 5 groepen: lamp en Avondopenstelling, frituurpan en Tweede frituurpan, eierbal en Eierballen (de kaart), Sportremmen en Grote remschijven, Racebanden en
+Plakkende banden. Dat is een bewuste keuze (hetzelfde onderdeel is hetzelfde onderdeel); `spullen3d_test` bewaakt dat het getal niet groeit en nooit meer dan twee dingen
+een model delen. De dunste modellen (driehoeken) zijn de hockeystick (124), het geheimpje (157), de klomp (180) en de kauwgom (188): dun door hun vorm, niet kaal;
+ze hebben elk meerdere materialen. De klomp blijft het zwakste wapenmodel; of dat beter moet, is een beeldoordeel voor de beeldronde.
+
 ## 5. Tests
 
-- `node scripts/spullen3d_test.mjs` (13 tests): elk ding heeft viewerdata of een gedocumenteerde terugval, elke bouwer geeft driehoeken binnen het budget,
+- `node scripts/spullen3d_test.mjs` (15 tests): elk ding heeft viewerdata of een gedocumenteerde terugval, elke bouwer geeft driehoeken binnen het budget,
   dispose klopt, materialen zijn gedeeld, de vis-tabel dekt `visdata.js`, vehiclepreview en pausemenu zijn goed aangehaakt, de stijl houdt de 13 px-vloer en
   beperkte beweging. Heeft de gevendorde three nodig (`cd desktop && npm run stage` of `desktop/vendor-cache` kopiëren).
 - `node scripts/ui/spullen3d_dekking.mjs`: dekking per categorie uit de echte bronnen; bouwt elk model, controleert op NaN, driehoeken en dispose; faalt bij een gat.
