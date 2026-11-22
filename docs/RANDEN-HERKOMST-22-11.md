@@ -97,6 +97,42 @@ sloot, heg, hek of vlak komt alleen uit OSM-tags (`waterway=ditch|drain|stream`,
   game moeten is een eigen besluit van de eigenaar.
 - `barrier=gate` (poorten van de kaart) wordt nog niet getekend (zoals voorheen).
 
+## Buiten de tegeldekking: alleen kaartdata of neutraal gras (#1092, 22-11)
+
+Besluit eigenaar: wat niet uit de echte kaartdata komt, staat er niet. Buiten wat de tegels dekken (het "platteland" van `countryside.js`,
+`countryfield.js`, `countryplan.js`) is de grond nu neutraal gras: geen polderwegen, geen erven en boerderijen, geen dorpen, geen
+kleurvlakken per perceel, geen kavelranden. Het hash-rooster (`chash`) kan nog aan voor de eenheidstests van de generatoren
+(`setCountryFiction(true)` in `countryfield.js`); het spel zet het nooit aan. Het verloop naar de echte tegels blijft het zachte,
+ruisverstoorde veer van `countryWeight` (180 m in de tegels, 20 m erbuiten), er komt dus geen harde rand of leegte.
+
+Herkomst per element: wat de bron is, of het al in de tegelpijplijn zit, en wat er nu getoond wordt. "Pijplijn" is `scripts/world/build_province.mjs`
+(en `build_corridor.mjs`, `derive_tiles.mjs`) met de Geofabrik-extracten in `data/cache` (ontwikkeltijd, het spel haalt niets op).
+`geen_fake_randen_test.mjs` toetst dat elk element hieronder in deze tabel staat.
+
+| Element | Bron | In de tegels | Wat het spel toont |
+|---------|------|--------------|--------------------|
+| Landgebruik (akker, weide, boomgaard) | OSM `landuse=farmland\|meadow\|orchard` (vlakken vanaf 0,2 ha) | ja, sectie PARCELS met `gid` (`worldbuilder.js` `PARCEL_USE`) | in de tegels de echte vlakken; vee alleen op `weide` (zie Vee in de wei); geen kleurvlak buiten de tegels |
+| Perceelgrenzen | dezelfde OSM-vlakken; eigendomspercelen uit `bezit_index.mjs` (aaneengeregen vlakken, geen BRP) | ja (PARCELS) en `bezit-percelen.json`, `bezit-vormen.json` | alleen de echte omtrek (kaartlaag Percelen en Te koop, `bezitmarker.js`); geen verzonnen rechthoek |
+| Sloten, greppels, beken | OSM `waterway=ditch\|drain\|stream` | ja, WATER met `gid` | water uit het tegelmasker (`tilewatermask.js`); geen geschilderde sloot |
+| Heggen, hekken, boomrijen | OSM `barrier=hedge\|fence\|wall`, `natural=tree_row` | ja, FURNITURE met `gid` of `osm`; `isProceduralEdgeRow` weigert rijen zonder bron-id | alleen die rijen |
+| Landbouwwegen en paden | OSM `highway=track` (3 m) en de andere wegen | ja, ROADS | de echte wegen; geen polderweg |
+| Boerderijen, schuren, kassen | OSM `building=farm\|farmhouse\|barn\|farm_auxiliary\|cowshed\|stable\|greenhouse` (`worldbuilder.js`), met 3D BAG voor vorm en hoogte | ja, BUILDINGS | de echte panden; geen verzonnen erf met paden of balen |
+| Windturbines en hoogspanningsmasten | OSM `power=generator` (wind) en `power=tower` (`farprops.mjs`) | ja, in de tegelpijplijn | blijft (echte data, ook op de kaart) |
+| Dorpen en dorpsnamen | OSM `place=*` en woonplaatsgrenzen | ja, `places` in `index-provincie.json` | de echte plaatsen; de verzonnen wierdedorpen met echte namen zijn weg |
+| Vee in de wei | geen eigen bron: soort en kudde volgen uit de streek (`dierenplan.js`, deterministisch) op de OSM-weide | de weide wel (PARCELS), de dieren niet | vee alleen op een echte weide (`landUseAt === 'weide'`); de kudde heeft een vaste plek en grootte uit de hash, in Samen spelen voor iedereen gelijk |
+| Dijken | OSM `man_made=dyke` staat in het extract | nog niet als eigen rij (alleen de vlag `embankment` op wegen) | niets; blijft neutraal tot een bouwer ze meeneemt (vervolgwens) |
+| Windmolens (korenmolens) | OSM `man_made=windmill` staat in het extract | alleen waar het een gebouw is; geen aparte molenlaag | alleen als pand; geen losse molen |
+| Voorbij de bufferstrook (Friesland, Drenthe, Duitsland) | geen bron in de repo of de pijplijn | nee | neutraal gras met mist; uitbreiden vraagt een nieuw extract (ontwikkeltijd) en een wereldbouw |
+
+Wat is verwijderd: `edgeRoad` geeft zonder `setCountryFiction(true)` nooit een polderweg (dus ook geen gashuisje, erf, uitweg, bord of
+verkeer erop), `villageOf` geen dorp, de grondshader (`COUNTRY_GLSL`) schildert geen weg, dorp, maaiplek, hooi, ploegsel, gewas of
+weidekleur per perceel meer (een vaste groene kleur met fijne korrel), en `genParcel` (`countryside.js`) zet alleen nog een kudde (en
+ganzen) op een echte weide. Hooibalen, kieviten op kavels en eendjes in verzonnen sloten bestaan alleen met de generator aan.
+
+Samen spelen: de wereld blijft van de host en deterministisch. Elke speler draait dezelfde code met dezelfde tegels, dus iedereen ziet
+dezelfde kudden op dezelfde echte weiden. Niets in snapshots, opslag of netwerk verwees naar een polderweg, erf of dorp van het hash-rooster
+(de ids en plaatsing van echte objecten uit de tegels zijn ongewijzigd), dus een bestaande save blijft heel.
+
 ## Samen spelen
 
 De wereld is van de host en deterministisch; dit haalt verzonnen randen weg en verandert niets aan het netwerk, de snapshots of de

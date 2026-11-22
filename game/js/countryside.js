@@ -4,7 +4,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { createTerrainMaterial } from './terrain3d.js';
 import {
   BLOCK, PW, PL, ROAD_IN, ROAD_W,
-  chash, countryWeight, countryRect, edgeDistance, parcelAt, parcelUse, blockToWorld, edgeRoad, villageOf,
+  chash, countryWeight, countryRect, edgeDistance, countryFiction, parcelAt, parcelUse, blockToWorld, edgeRoad, villageOf,
 } from './countryfield.js';
 import { SkinBuilder, vcMaterial, tubeGeometry, loftGeometry, markShared, composeMatrix } from './pixelart3d.js';
 import { buildCowMesh3D, buildSheepMesh3D, buildDuckMesh3D, animateWildlifeMesh3D, runOverAnimal, poseDeadAnimal } from './wildlife.js';
@@ -406,6 +406,11 @@ function genParcel(tile, bx, by, rot, col, row, a0, a1, b0, b1, W, lineAng) {
   const [cx0, cy0] = W((a0 + a1) / 2, (b0 + b1) / 2);
   // the tiles' land use (OSM landuse) over the hash: arable is not grazed, a meadow is
   const real = landUseAt(cx0, cy0);
+  // #1092: alleen echte kaartdata. Buiten de tegeldekking staat neutraal gras (geen erven, dorpen, gashuisjes, borden, hooibalen, vogels of
+  // kuddes op een verzonnen kavel). Vee graast alleen waar de tegels een echte weide (OSM landuse=meadow) hebben; de hash geeft de kudde
+  // wel een vaste plek en grootte (dezelfde in Samen spelen), maar niet de grond.
+  const fic = countryFiction();
+  if (!fic && real !== 'weide') return;
   const use = real === 'akker' ? 'crop' : real === 'weide' ? 'pasture' : parcelUse(seed);
   const R = parcelRng(seed);
   const [cx, cy] = W((a0 + a1) / 2, (b0 + b1) / 2);
@@ -421,7 +426,7 @@ function genParcel(tile, bx, by, rot, col, row, a0, a1, b0, b1, W, lineAng) {
   if (herdsOk) {
     // (every HERD_STEP m: the herd grazes over the whole strip; a 5 x 5 grid let a pond, a ditch or the track through, #210)
     const nx = Math.max(2, Math.ceil((rect[2] - rect[0]) / HERD_STEP)), ny = Math.max(2, Math.ceil((rect[3] - rect[1]) / HERD_STEP));
-    for (let i = 0; i <= nx && herdsOk; i++) for (let j = 0; j <= ny; j++) { const hx = rect[0] + ((rect[2] - rect[0]) * i) / nx, hy = rect[1] + ((rect[3] - rect[1]) * j) / ny; if (edgeBlocked(hx, hy, 3) || landUseAt(hx, hy) === 'akker') { herdsOk = false; break; } }
+    for (let i = 0; i <= nx && herdsOk; i++) for (let j = 0; j <= ny; j++) { const hx = rect[0] + ((rect[2] - rect[0]) * i) / nx, hy = rect[1] + ((rect[3] - rect[1]) * j) / ny; if (edgeBlocked(hx, hy, 3) || (fic ? landUseAt(hx, hy) === 'akker' : landUseAt(hx, hy) !== 'weide')) { herdsOk = false; break; } }
   }
 
   // round bales on mown / hay strips, sometimes in long rows
@@ -477,7 +482,7 @@ function genParcel(tile, bx, by, rot, col, row, a0, a1, b0, b1, W, lineAng) {
       g.hx = hc[0]; g.hy = hc[1]; g.spread = 6;
       tile.animals.push(g);
     }
-  } else if (R() < 0.08) {
+  } else if (fic && R() < 0.08) {
     const db = b0 + 20 + R() * Math.max(1, b1 - b0 - 40);
     const [dx0, dy0] = W(a0, db - 30), [dx1, dy1] = W(a0, db + 30);
     const drect = [Math.min(dx0, dx1) - 0.25, Math.min(dy0, dy1) - 0.25, Math.max(dx0, dx1) + 0.25, Math.max(dy0, dy1) + 0.25];

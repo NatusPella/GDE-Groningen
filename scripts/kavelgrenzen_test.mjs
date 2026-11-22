@@ -4,9 +4,11 @@
 //   node scripts/kavelgrenzen_test.mjs
 import './node3d.mjs';
 const { drawCountryDetail, builtUpAt, MAP_STYLE } = await import('../game/js/countrymap.js');
-const { countryRect, setCountryBounds } = await import('../game/js/countryfield.js');
+const { countryRect, setCountryBounds, setCountryFiction } = await import('../game/js/countryfield.js');
 // de echte kaart is één blok; hier een klein land, zodat het platteland eromheen getekend wordt
 setCountryBounds([-20000, -20000, 20000, 20000]);
+// #1092: het spel tekent geen verzonnen platteland meer; de generator staat hier alleen aan om de bebouwde-komregel te toetsen
+setCountryFiction(true);
 
 let n = 0, bad = 0;
 const ok = (c, m, info = '') => { n++; if (!c) { bad++; console.log(`FAIL ${m}${info ? ' (' + info + ')' : ''}`); } };

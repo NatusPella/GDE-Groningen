@@ -92,9 +92,14 @@ CE.EDGE.ready = false;
     return { animals };
   };
   const hash = run(null), akker = run('akker'), weide = run('weide');
-  ok(hash.animals > 20, 'the hash makes herds', JSON.stringify(hash));
+  // #1092: zonder echte weide geen vee (geen verzonnen kavels); een echte weide houdt zijn kudden, ook als het hash-rooster uit staat
+  ok(hash.animals === 0, 'the hash alone makes no herds (no real meadow, no cattle)', JSON.stringify(hash));
   ok(akker.animals === 0, 'no herd grazes on arable', JSON.stringify(akker));
-  ok(weide.animals > hash.animals * 0.8, 'a meadow keeps its herds', JSON.stringify(weide));
+  ok(weide.animals > 20, 'a real meadow keeps its herds', JSON.stringify(weide));
+  CF.setCountryFiction(true);
+  const fic = run(null);
+  ok(fic.animals > 20, 'with the generator switched on (unit tests only) the hash makes herds again', JSON.stringify(fic));
+  CF.setCountryFiction(false);
   ok(CE.landUseAt(0, 0) === null, 'without tiles the land use is silent');
 }
 
