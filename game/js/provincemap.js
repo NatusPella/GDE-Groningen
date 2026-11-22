@@ -3,7 +3,7 @@
 // loaded tile by tile as the view needs it. Where a level's image is not in
 // yet, a coarser one that is stands in; a load asks the caller to redraw.
 
-import { herkleurRaster, KAART_PALET_VERSIE } from './kaartkleuren.js';
+import { herkleurRaster, piramideVan, KAART_PALET_VERSIE } from './kaartkleuren.js';
 
 let M = null;
 let base = 'world/';
@@ -39,7 +39,7 @@ function recoloured(im) {
     const g = c.getContext('2d', { willReadFrequently: true });
     g.drawImage(im, 0, 0);
     const d = g.getImageData(0, 0, c.width, c.height);
-    herkleurRaster(d.data);
+    herkleurRaster(d.data, piramideVan(M.palet));
     g.putImageData(d, 0, 0);
     return c;
   } catch (e) { return im; } // no pixel access: the old colours stay rather than no map

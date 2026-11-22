@@ -48,7 +48,7 @@ import { dempMelding } from './coopgeluid.js';
 import { gearboxReadout } from './gearbox.js';
 import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
 import { drawCountryMinimap, villageLabels, syncMapPhase } from './countrymap.js';
-import { MINI_PALETTE as MINI_STYLE, EMPHASIS, INK, inkA, seaStyle, miniRoadStyle, MINI_RANGE_M } from './mapstyle.js';
+import { MINI_PALETTE as MINI_STYLE, EMPHASIS, INK, inkA, seaStyle, miniRoadStyle, MINI_RANGE_M, kaartTekst, labelHalo } from './mapstyle.js';
 import { drawSea, drawOutside, regionLabels, regionEdgeLabels, areaNameAt, REGIONS } from './regions.js';
 import { borderPlaceLabels } from './borderplaces.js';
 import { worldPlaceLabels, worldPlacesReady, worldPlaceAt } from './worldplaces.js';
@@ -2831,7 +2831,7 @@ function drawVillageNames(ctx, player, radius, toScreen) {
   ctx.font = "11px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif";
   for (const q of villageCache.regions) {
     const [sx, sy] = toScreen(q.x, q.y);
-    ctx.fillStyle = q.land ? inkA('cream', 0.5) : inkA('seaLabel', 0.65);
+    ctx.fillStyle = kaartTekst(q.land ? inkA('cream', 0.5) : inkA('seaLabel', 0.65));
     ctx.fillText(q.name.toUpperCase().split('').join(' '), sx, sy);
   }
   // the names beyond the border and the dimmed neighbour villages, kept inside the frame so nothing is cut off
@@ -2842,19 +2842,19 @@ function drawVillageNames(ctx, player, radius, toScreen) {
   for (const q of villageCache.edge) {
     const name = q.name.toUpperCase().split('').join(' ');
     const [sx, sy] = keep(name, ...toScreen(q.x, q.y));
-    ctx.fillStyle = q.land ? inkA('cream', 0.42) : inkA('seaLabel', 0.55);
+    ctx.fillStyle = kaartTekst(q.land ? inkA('cream', 0.42) : inkA('seaLabel', 0.55));
     ctx.fillText(name, sx, sy);
   }
   for (const q of villageCache.neighbours) {
     const name = q.name.toUpperCase();
     const [sx, sy] = keep(name, ...toScreen(q.x, q.y));
-    ctx.fillStyle = inkA('cream', 0.36);
+    ctx.fillStyle = kaartTekst(inkA('cream', 0.36));
     ctx.fillText(name, sx, sy);
   }
   ctx.font = "15px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif";
   ctx.lineWidth = 3;
-  ctx.strokeStyle = inkA('dark', 0.85);
-  ctx.fillStyle = INK.cream;
+  ctx.strokeStyle = labelHalo(0.85);
+  ctx.fillStyle = kaartTekst(INK.cream);
   const boxes = [];
   let n = 0;
   for (const v of villageCache.list) {

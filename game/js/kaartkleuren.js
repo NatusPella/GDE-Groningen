@@ -3,16 +3,16 @@
 // en is gelijk aan de tokens (kaartkleuren_test.mjs vergelijkt ze met ds-tokens.css). Een canvas kan geen var() lezen, dus
 // dsKleur() vraagt de token aan de pagina als die er is en valt anders op de tabel terug.
 //
-import { dsWereldCss } from './worldpalette.js';
+import { wereldMeng } from './worldpalette.js';
 
 // Het land zelf (MAP_PALETTE in mapstyle.js) hoort bij de voorgerenderde provinciepiramide en verandert mee met de wereldbouw.
 export const DS_TERUGVAL = {
   // de vijf inkten van de zeefdruk (ADR 0040)
   'ink-papier': '#f3ead3', 'ink-inkt': '#1d1b17', 'ink-bord': '#0e6b3c', 'ink-geel': '#f9c80e', 'ink-roze': '#e8505b',
   // papier en glas (de HUD-rollen)
-  papier: '#f5efe0', inkt: '#1d1b17', 'inkt-zacht': '#4d483c', bord: '#0e6b3c', geel: '#f9c80e',
+  papier: '#f5efe0', 'papier-2': '#ebe2cb', wit: '#ffffff', inkt: '#1d1b17', 'inkt-zacht': '#4d483c', bord: '#0e6b3c', geel: '#f9c80e',
   glas: '#0c140e', 'glas-2': '#17301f', 'glas-3': '#1f3a28', creme: '#f0ede4', 'creme-zacht': '#b9b7ad',
-  'licht-groen': '#3fc97a', 'rood-glas': '#d93f3f', 'rood-glas-tx': '#f5b5ad', 'amber-glas-tx': '#ffbe46',
+  'licht-groen': '#3fc97a', 'rood-glas': '#d93f3f', 'rood-glas-tx': '#f5b5ad', 'amber-glas-tx': '#ffbe46', 'amber-tx': '#7a4a00',
 };
 
 const cache = new Map();
@@ -69,29 +69,18 @@ export function gebiedKleuren() {
   };
 }
 
-// --- het land en de markers (21-11): één zeefdrukpalet voor de kaartlagen ----------------------------------------------------
-// De kaart is het GLAS-oppervlak van het designsysteem (donker groen glas; ds-tokens.css): het land komt uit het glas en het
-// bordgroen, de wegen uit crème, het water uit het grachtwater van DESIGN_SYSTEM.md. Geel is alleen voor route en doel, rood
-// voor politie en gevaar. Alles hieronder is gemengd uit tokens (meng), behalve het water: het designsysteem heeft geen
-// blauwe token, dus het water is één benoemde waarde (DESIGN_SYSTEM.md, 'grachtwater groenblauw').
-// De wereldmenging (worldpalette.js WERELD_DS_MENG, ?dswereld=) werkt ook op de kaart (21-11): het land en de gebouwen gaan door dezelfde
-// rollen als in de 3D-wereld (groen naar bordgroen gedempt, steen en bouw naar papier), met behoud van helderheid. Daardoor blijft het
-// contrast met de wegen en het glas zoals de test het meet, en ziet de speler op de kaart dezelfde warme, gedempte toon als in het beeld.
-// Bewust NIET gemengd: het water (de ene benoemde waarde hieronder, vastgelegd in DESIGN_SYSTEM.md), de wegen die op het glas moeten
-// oplichten (major, turbine) en de fietspaden (al een roze menging).
-const LAND_ROL = {
-  meadow: 'groen', park: 'groen', tree: 'groen', forest: 'groen', allot: 'groen', sports: 'groen', village: 'groen',
-  road: 'steen', minor: 'steen', foot: 'steen', rail: 'steen', business: 'steen', building: 'bouw', church: 'bouw',
-};
-function volgWereld(palet) {
-  const uit = { ...palet };
-  for (const [naam, rol] of Object.entries(LAND_ROL)) if (typeof uit[naam] === 'string') uit[naam] = dsWereldCss(uit[naam], rol);
-  if (Array.isArray(uit.buildings)) uit.buildings = uit.buildings.map((h) => dsWereldCss(h, 'bouw'));
-  return uit;
-}
-
+// --- het land en de markers (22-11): één zeefdrukpalet voor de kaartlagen ---------------------------------------------------------
+// De kaart is een gedrukt kaartje, net als de DS3-schermen: crème papier als land, inkt voor de lijnen (wegen, spoor, randen), en twee
+// overdrukken per categorie: bordgroen voor groen, park, bos en akkers, en het grachtwater voor water. Misdrukroze is het accent van
+// kerken en fietspaden. Geel blijft voor route en doel, rood voor politie en gevaar. Alles hieronder is gemengd uit tokens (meng); het
+// designsysteem heeft geen blauwe token, dus het water is de ene benoemde waarde WATER_BLAUW (DESIGN_SYSTEM.md, 'grachtwater groenblauw').
+// Gekozen uit drie kandidaten (docs/KAART-PALETTEN-22-11.md; de andere twee staan in scripts/lib/kaart_paletten.mjs): A haalt de beste
+// leesbaarheid voor de markers (inktrand tegen crème, 3:1 en meer) en past het dichtst bij de papieren schermen.
+// De Wereldkleur-instelling (worldpalette.js wereldMeng: uit 0, subtiel 0,4, drukwerk 0,65) bepaalt hoe sterk de kleurvlakken zijn:
+// uit geeft meer tint (natuurlijker), drukwerk vlakker en lichter (zeefdruk). De lijnen, het papier en de inkt blijven gelijk, zodat het
+// contrast van wegen en markers bij elke stand klopt (kaart_ds3_test meet alle drie).
 export const WATER_BLAUW = '#2c7790';
-export const KAART_PALET_VERSIE = 'zeef-1';
+export const KAART_PALET_VERSIE = 'zeef-2';
 
 // Twee hexen mengen: t = 0 geeft a, t = 1 geeft b.
 export function meng(a, b, t) {
@@ -100,28 +89,36 @@ export function meng(a, b, t) {
   return '#' + c(0) + c(2) + c(4);
 }
 
+// De sterkte van de vlaktinten bij een Wereldkleur-menging: 1,25 bij uit (0), 1 bij subtiel (0,4) en 0,8 bij drukwerk (0,65).
+export function kaartTintSterkte(m = wereldMeng()) {
+  return Math.max(0.8, Math.min(1.25, 1.25 - (Math.max(0, m) / 0.65) * 0.45));
+}
+
 // Het land van de grote kaart en van de minikaart (overdag; mapstyle.js zet er 's nachts de nachtfactor op).
-export function kaartLand() {
-  const k = dsKleur;
-  const glas = k('glas'), glas2 = k('glas-2'), glas3 = k('glas-3'), bord = k('ink-bord'), creme = k('creme'), zacht = k('creme-zacht');
-  const papier = k('ink-papier'), roze = k('ink-roze'), licht = k('licht-groen');
-  const water = WATER_BLAUW, rand = meng(water, creme, 0.5);
+export function kaartLand(m = wereldMeng()) {
+  const k = dsKleur, f = kaartTintSterkte(m);
+  const P = k('papier'), P2 = k('papier-2'), I = k('ink-inkt'), IZ = k('inkt-zacht'), B = k('ink-bord'), R = k('ink-roze'), WA = WATER_BLAUW;
+  const tint = (a, b, t) => meng(a, b, Math.min(1, t * f)); // een vlaktint: sterker of zwakker met de Wereldkleur
   const kaart = {
-    meadow: meng(glas2, glas3, 0.45), park: meng(bord, glas3, 0.12), ditch: water, water, waterEdge: rand,
-    road: zacht, major: creme, minor: meng(zacht, glas2, 0.3), cycle: meng(papier, roze, 0.35), foot: meng(zacht, glas2, 0.42),
-    building: hexA(papier, 0.5), church: hexA(papier, 0.85), tree: meng(bord, glas, 0.5), village: meng(glas3, bord, 0.22),
-    allot: meng(bord, glas3, 0.45), sports: meng(bord, glas3, 0.12), business: meng(glas3, zacht, 0.18), rail: meng(zacht, glas, 0.3), railTie: papier, turbine: creme,
-    forest: meng(bord, glas, 0.42),
+    meadow: meng(P, P2, 0.35), park: tint(P, B, 0.16), forest: tint(P, B, 0.34), tree: tint(P, B, 0.46), allot: tint(P, B, 0.1), sports: tint(P, B, 0.2),
+    village: meng(P2, P, 0.3), business: meng(P2, IZ, 0.16),
+    water: tint(P, WA, 0.55), ditch: tint(P, WA, 0.8), waterEdge: meng(WA, I, 0.15),
+    road: IZ, major: I, minor: meng(IZ, P, 0.3), cycle: meng(R, I, 0.12), foot: meng(IZ, P, 0.35), rail: I, railTie: P, turbine: I,
+    building: hexA(meng(P2, IZ, 0.5), 0.92), church: hexA(meng(R, P2, 0.45), 0.95),
   };
+  // de minikaart is klein en wordt in één blik gelezen: iets sterkere wegen, gebouwen als gedekte vlakken in vijf tinten
   const mini = {
-    meadow: meng(glas3, bord, 0.3), park: meng(bord, licht, 0.22), ditch: meng(water, creme, 0.25), water: meng(water, creme, 0.25), waterEdge: meng(water, creme, 0.65),
-    road: zacht, major: creme, minor: zacht, cycle: kaart.cycle, foot: zacht,
-    building: meng(papier, glas3, 0.35), buildings: [meng(papier, glas3, 0.35), meng(zacht, glas3, 0.3), meng(papier, roze, 0.25), meng(zacht, water, 0.3), meng(papier, bord, 0.25)],
-    church: meng(papier, glas3, 0.5), tree: meng(bord, glas, 0.25), village: meng(glas3, bord, 0.4),
-    allot: meng(bord, licht, 0.1), sports: meng(bord, licht, 0.22), business: meng(zacht, glas3, 0.45), rail: meng(zacht, glas, 0.12), railTie: papier, turbine: creme,
-    forest: meng(bord, glas, 0.2),
+    ...kaart, meadow: meng(P, P2, 0.2), road: meng(IZ, I, 0.4), minor: meng(IZ, P, 0.2), foot: meng(IZ, P, 0.34),
+    building: meng(P2, IZ, 0.4), buildings: [meng(P2, IZ, 0.4), meng(P2, IZ, 0.48), meng(P2, R, 0.3), meng(P2, WA, 0.25), meng(P2, B, 0.25)], church: meng(R, P2, 0.45),
   };
-  return { kaart: volgWereld(kaart), mini: volgWereld(mini) };
+  return { kaart, mini };
+}
+
+// De inkt van de teksten op het land (namen van straten, wijken, plaatsen): inkt met een papieren halo, de rollen van de gedrukte kaart.
+// water: de naam op het water, amber: een waarschuwing (cafés en gevaar 's nachts), flavour: de bijschriften van het land.
+export function kaartLabel() {
+  const k = dsKleur, I = k('ink-inkt'), P = k('papier');
+  return { tekst: I, halo: P, water: meng(WATER_BLAUW, I, 0.45), amber: k('amber-tx'), flavour: k('inkt-zacht') };
 }
 
 // De kleuren van de oude provinciepiramide (de PNG's die vóór 21-11 zijn gebakken: de oude MAP_PALETTE) en waar ze in de nieuwe
@@ -131,6 +128,13 @@ export const PIRAMIDE_OUD = {
   green: [0x2f, 0x5c, 0x36], forest: [0x24, 0x4a, 0x2c], water: [0x2d, 0x6a, 0x86], waterEdge: [0x4a, 0x8f, 0xae],
   building: [160, 156, 146], minor: [0x8f, 0x90, 0x95], normal: [0xc7, 0xc7, 0xc2], major: [0xf0, 0xed, 0xe4], cycle: [0xb8, 0x70, 0x3a], rail: [0x55, 0x52, 0x4c],
 };
+// De piramide van 21-11 (palet 'zeef-1', het donkere glas): dezelfde sleutels, bij het laden herkleurd naar het crèmepapier van 'zeef-2'.
+export const PIRAMIDE_ZEEF1 = {
+  green: [28, 100, 62], forest: [20, 69, 43], water: [44, 119, 144], waterEdge: [142, 178, 186],
+  building: [243, 234, 211], minor: [138, 142, 129], normal: [186, 183, 171], major: [240, 237, 228], cycle: [239, 180, 169], rail: [134, 134, 124],
+};
+// De kleuren waarmee een gebakken piramide is getekend, naar zijn meta.palet (geen palet: de oude van vóór 21-11).
+export const piramideVan = (palet) => (palet === 'zeef-1' ? PIRAMIDE_ZEEF1 : PIRAMIDE_OUD);
 const rgbVan = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
 export function piramideNieuw() {
   const { kaart } = kaartLand();

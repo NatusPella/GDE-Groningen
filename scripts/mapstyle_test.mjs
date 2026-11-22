@@ -4,7 +4,7 @@ import './node3d.mjs';
 import fs from 'node:fs';
 import { mapPhase, applyMapPhase, currentMapPhase, nightPalette, shade, miniRoadStyle, MAP_PALETTE, MINI_PALETTE, ROAD_ORDER, ROAD_WIDTH_PX, ZOOM, layersAtZoom, roadWidthPx, roadColor, seaStyle, toRgba, baseFilter, baseDimOverlay, INK, inkA, inkCss, ICON_RIM, ICON_FILL, ICON_GLYPH_LIGHT, ICON_MIN_ZOOM, modeLook, MINI_RANGE_M } from '../game/js/mapstyle.js';
 import * as mapicons from '../game/js/mapicons.js';
-import { markerKleuren, dsKleur } from '../game/js/kaartkleuren.js';
+import { markerKleuren, dsKleur, contrast as kleurContrast } from '../game/js/kaartkleuren.js';
 import * as mapstyle from '../game/js/mapstyle.js';
 
 let n = 0, fails = 0;
@@ -30,7 +30,8 @@ ok(shade('#ffffff', 0.5) === '#80808f' && shade('rgba(100, 100, 100, 0.5)', 0.5)
 const lum = (c) => { const [r, g, b] = toRgba(c); return r + g + b; };
 const night = nightPalette(MAP_PALETTE);
 for (const k of ['meadow', 'water', 'road', 'major', 'building']) ok(lum(night[k]) < lum(MAP_PALETTE[k]), 'night darker: ' + k);
-ok(lum(night.major) > lum(night.meadow) * 2 && lum(night.road) > lum(night.park), 'roads stay readable at night');
+// 22-11: de kaart is lichter papier met inktlijnen; 's nachts staan de lijnen donker op een gedimd land, 3:1
+ok(kleurContrast(night.major, night.meadow) >= 3 && kleurContrast(night.road, night.park) >= 3, 'roads stay readable at night');
 ok(night.roadMin === MAP_PALETTE.roadMin && nightPalette(MINI_PALETTE).buildings.length === 5, 'numbers and lists kept');
 const dayWater = MAP_PALETTE.water;
 ok(applyMapPhase('nacht') && MAP_PALETTE.water !== dayWater && currentMapPhase() === 'nacht' && !applyMapPhase('nacht'), 'palette turns in place');
