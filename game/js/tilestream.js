@@ -20,9 +20,11 @@ export const BG_SLICE_MS = 3;
 // stond een rij van ca. 260 tegels te wachten en die kostte de eerste speelminuten haperingen van 50 tot 100 ms. De pomp geeft zo'n
 // venster hoogstens BG_PUMP_MS per frame (een stuk van ROW_CHUNK_MS), follow() hoogstens BG_FOLLOW_MS, en de kruispuntversie van
 // zulke tegels wordt gebundeld (BG_JUNCTION_FLUSH_MS): het model herbouwt dan niet bij elke tegel over alle tegels heen.
-export const BG_PUMP_MS = 1.2;
-export const BG_FOLLOW_MS = 0.6;
+export const BG_PUMP_MS = 0.6;
+export const BG_FOLLOW_MS = 0.3;
 export const BG_JUNCTION_FLUSH_MS = 1500;
+// een achtergrondtegel verder dan dit (m) van de speler of camera verhoogt geoVer en greenVer niet (de caches kijken daar niet)
+export const BG_GEO_M = 3000;
 // een achtergrondtegel waar de speler binnen deze afstand (m) heen komt, gaat naar de gewone wachtrij
 export const BG_PROMOTE_M = 700;
 // a background window that is still waiting after this long works the rest in bigger pieces (never hangs)

@@ -22,7 +22,7 @@ import { SECTION, decodeBlob, tileKey, tileOrigin, TILE_M } from './gdt.js';
 import { trimTileGreenery, trimHedgeRow } from './tilegreenery.js';
 import * as propfilter from './propfilter.js';
 import { TileStore, FrameQueue, HttpRangeSource, inflateRaw, makeWorkerDecoder, decodeCompressed } from './tilestore.js';
-import { BACKGROUND_PRIORITY, BG_FOLLOW_MS, BG_JUNCTION_FLUSH_MS, BG_PROMOTE_M, addPriority, backgroundHeld, whenReady, JUMP_BUDGET_MS, JUMP_RING_M } from './tilestream.js';
+import { BACKGROUND_PRIORITY, BG_FOLLOW_MS, BG_GEO_M, BG_JUNCTION_FLUSH_MS, BG_PROMOTE_M, addPriority, backgroundHeld, whenReady, JUMP_BUDGET_MS, JUMP_RING_M } from './tilestream.js';
 import { thinPath } from './lodstable.js';
 import { TerrainField } from './terrainraster.js';
 import { extendElevation, shrinkElevation } from './elevation.js';
@@ -373,6 +373,18 @@ export class TileWorld extends GameMap {
     return n;
   }
 
+  // Is dit een achtergrondtegel (alleen een plaatsingsvenster vroeg hem) ver van de speler en de camera (meer dan BG_GEO_M)? Elke tegel
+  // verhoogt geoVer en daarmee verversen farlod, het straatmeubilair, de bomenlijst en de wegsync hun caches; voor een tegel waar geen van
+  // die caches kijkt kostte dat alleen werk (het straatmeubilair per tegel herbouwde elke twee seconden: nearestOnRoadList 1 s per 17 s rit).
+  // Zonder focus (de titel, een test) is niets ver.
+  _farBgTile(tk) {
+    if (!this._bgTiles || !this._bgTiles.has(tk) || !this.focusAt) return false;
+    const [i, j] = tk.split(',').map(Number);
+    if (!Number.isFinite(i) || !Number.isFinite(j)) return false;
+    const [ox, oy] = tileOrigin(i, j);
+    return Math.hypot(ox + TILE_M / 2 - this.focusAt.x, oy + TILE_M / 2 - this.focusAt.y) > BG_GEO_M;
+  }
+
   // De kruispuntversie (junctionVer, signalVer) telt op bij elke tegel met kruispunten: het kruispuntmodel, de signaalgrid en de lichtenlijst
   // lopen dan opnieuw over de rijen van ALLE geladen tegels. Een achtergrondtegel (plaatsingsvenster) bundelt zijn bump: hoogstens eens per
   // BG_JUNCTION_FLUSH_MS (follow), anders herbouwde elke tegel van de druppel het hele model (junctionModel + tileJunctionNodes ca. 800 ms per 30 s).
@@ -429,6 +441,8 @@ export class TileWorld extends GameMap {
     let rows = 0; // rijen sinds de vorige yield (#650)
     let chunkT = performance.now();
     const chunkDue = () => { if (++rows >= ROW_CHUNK || ((rows & 7) === 0 && performance.now() - chunkT >= ROW_CHUNK_MS)) { rows = 0; return true; } return false; };
+    // een stap die per item duur is (een weg die markDryRoad toetst, een gebouw dat misplacedBuilding toetst): de klok elk item, niet elke achtste (8 x 5 ms was een stuk van 40 ms)
+    const slowDue = () => { if (performance.now() - chunkT >= ROW_CHUNK_MS) { rows = 0; return true; } return false; };
     // (#4) alleen een tegel die echt groen toevoegt hoeft de groschunks te
     // verversen: de graschunks hangen aan greenVer, niet aan elke geoVer-bump
     let greenAdded = false;
@@ -496,7 +510,7 @@ export class TileWorld extends GameMap {
       if (newRoads.length && tile.sections.some((s) => s.type === SECTION.HEIGHTS)) this.elevAdded = (this.elevAdded || 0) + extendElevation(this, newRoads);
     }
     // a road over water without a bridge tag is a culvert or a dry deck (mapdata.js markDryRoad)
-    for (const r of newRoads) { markDryRoad(this, r); if (chunkDue()) { yield; chunkT = performance.now(); } }
+    for (const r of newRoads) { markDryRoad(this, r); if (slowDue()) { yield; chunkT = performance.now(); } }
     for (const w of newWater) {
       if (chunkDue()) { yield; chunkT = performance.now(); }
       if (!w.bounds) continue;
@@ -517,7 +531,7 @@ export class TileWorld extends GameMap {
       }
     }
     for (const b of candidates) {
-      if (chunkDue()) { yield; chunkT = performance.now(); }
+      if (slowDue()) { yield; chunkT = performance.now(); }
       if (b.dropped || !propfilter.misplacedBuilding(this, b)) continue;
       b.dropped = true;
       if (this.buildingGrid) this.buildingGrid.remove(b, b.bounds || boundsOfObj('buildings', b));
@@ -536,8 +550,11 @@ export class TileWorld extends GameMap {
     // #314 C2 (stap 4): één geo-versie voor de caches die uit de rasters/arrays bouwen
     // (farlod, scene3d, grass, routing, ...): per add/drop opgehoogd, zodat een cache zich
     // kan verversen. De pin houdt de stad nog vast; dit is de haak voor de volgende ronde.
-    if (greenAdded) this.greenVer = (this.greenVer || 0) + 1;
-    this.geoVer = (this.geoVer || 0) + 1;
+    // een achtergrondtegel ver weg (plaatsingsvenster) raakt geen cache bij de speler en ververst er dus geen (_farBgTile)
+    if (!this._farBgTile(tk)) {
+      if (greenAdded) this.greenVer = (this.greenVer || 0) + 1;
+      this.geoVer = (this.geoVer || 0) + 1;
+    }
     return true;
   }
 
@@ -602,6 +619,7 @@ export class TileWorld extends GameMap {
     const job = this._tileJobs && this._tileJobs.get(tk);
     if (job) { job.cancelled = true; this._tileJobs.delete(tk); }
     if (!this.resident.delete(tk)) return false;
+    const farBg = this._farBgTile(tk);
     for (const fn of this._tileListeners || []) fn('drop', null, tk);
     if (this.terrain) this.terrain.drop(tk);
     // de kruispunten van deze tegel gaan mee uit het model (#469)
@@ -648,8 +666,10 @@ export class TileWorld extends GameMap {
       for (const kind of Object.keys(this._res)) for (const [gid, e] of this._res[kind]) release(kind, gid, e);
     }
     if (goneRoads.length) shrinkElevation(this, goneRoads);
-    if (greenGone) this.greenVer = (this.greenVer || 0) + 1;
-    this.geoVer = (this.geoVer || 0) + 1; // caches verversen (#314 C2, stap 4)
+    if (!farBg) {
+      if (greenGone) this.greenVer = (this.greenVer || 0) + 1;
+      this.geoVer = (this.geoVer || 0) + 1; // caches verversen (#314 C2, stap 4)
+    }
     return true;
   }
 

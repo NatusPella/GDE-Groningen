@@ -197,7 +197,7 @@ function windowPump(map) {
     nextFrame: () => new Promise((r) => { const t = setTimeout(r, 50); requestAnimationFrame(() => { clearTimeout(t); r(); }); }),
     // de klasse volgt de stand van het venster, niet de grootte van zijn slice: een achtergrondvenster met slice 6 (de plaatsing bij het laden)
     // nam anders het urgente budget (6 ms per frame, los van frametijd, schuld en film) en drukte na de film de eerste speelseconden plat
-    grant: (budget, wins, urgent) => (urgent ? plan.grant('urgent', budget) : Math.max(0.5, Math.min(budget, BG_PUMP_MS, plan.grant('tile', budget)))),
+    grant: (budget, wins, urgent) => (urgent ? plan.grant('urgent', budget) : Math.max(0.3, Math.min(budget, BG_PUMP_MS, plan.grant('tile', budget)))),
     onSpend: (ms, budget, urgent) => plan.spend(urgent ? 'urgent' : 'tile', ms),
   }));
 }

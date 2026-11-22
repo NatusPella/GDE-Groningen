@@ -57,6 +57,22 @@ ok(job.queue === world.tileQueue, 'volgende stukken van de tegel gaan ook naar t
 world.tileQueue.run(1e9);
 ok(world.resident.has('3,0'), 'de overgegane tegel komt binnen via follow');
 
+// geoVer: een achtergrondtegel ver van de speler ververst geen cache, een nabije achtergrondtegel of een gewone tegel wel
+world.focusAt = { x: 500, y: 500 };
+prio['30,0'] = S.BACKGROUND_PRIORITY; prio['2,0'] = S.BACKGROUND_PRIORITY; prio['31,0'] = 90;
+world.queueTile(tile(30, 0), '30,0'); world.queueTile(tile(2, 0), '2,0'); world.queueTile(tile(31, 0), '31,0');
+ok(world._farBgTile('30,0') === true && world._farBgTile('2,0') === false && world._farBgTile('31,0') === false, '_farBgTile: alleen een verre achtergrondtegel', world._farBgTile('30,0') + '/' + world._farBgTile('2,0') + '/' + world._farBgTile('31,0'));
+const g0 = world.geoVer || 0;
+world.bgQueue.run(1e9); // 30,0 en 2,0
+ok(world.geoVer === g0 + 1, 'de verre achtergrondtegel bumpt geoVer niet, de nabije wel', String(world.geoVer - g0));
+world.dropTile('30,0');
+ok(world.geoVer === g0 + 1, 'de drop van de verre achtergrondtegel bumpt ook niet');
+world.tileQueue.run(1e9);
+ok(world.geoVer === g0 + 2, 'een verre gewone tegel bumpt wel', String(world.geoVer - g0));
+world.focusAt = null;
+world._bgTiles.add('31,0');
+ok(world._farBgTile('31,0') === false, 'zonder focus is niets ver');
+
 // follow geeft de achtergrondwachtrij hoogstens BG_FOLLOW_MS
 let ran = 0;
 const stub = { items: [{ priority: 1, seq: 0, label: 'add:9,9', fn: () => {} }], run(ms) { ran = ms; return 0; } };
@@ -67,3 +83,5 @@ ok(ran > 0 && ran <= S.BG_FOLLOW_MS + 1e-9, `follow geeft de achtergrondwachtrij
 
 console.log(`tilebg_test: ${n - fails}/${n} ${fails ? 'MISLUKT' : 'groen'}`);
 process.exit(fails ? 1 : 0);
+
+
