@@ -4,6 +4,7 @@ import { gridItems } from './spatialgrid.js';
 import { isOverlayHeld } from './overlayhold.js';
 import { cutsceneTakesSpace } from './spacegate.js';
 import { setDualText } from './subtitles.js';
+import { subtitleIndex } from './cinesub.js';
 import { paintSpeaker } from './speakers.js';
 import { noteSpoken } from './characters.js';
 import { getSettings } from './settings.js';
@@ -539,18 +540,17 @@ function updateSubtitles() {
   const lines = active.lines;
   if (active.cardFor != null && active.t > active.cardFor) els.root.classList.remove('has-card');
   if (!lines || !lines.length) return;
-  const start = 0.5, span = Math.max(0.5, active.duration - start - 0.2);
-  const idx = lines[0].at != null
-    ? lines.findIndex((l) => active.t >= l.at && active.t < l.at + l.dur)
-    : active.t < start ? -1 : Math.min(lines.length - 1, Math.floor(((active.t - start) / span) * lines.length));
+  const idx = subtitleIndex(lines, active.t, active.duration, els.lineIndex);
   if (idx === els.lineIndex) return;
   els.lineIndex = idx;
   const l = lines[idx];
   els.root.classList.toggle('has-sub', !!l);
-  paintSpeaker(els.speaker, l && l.speaker);
-  if (l && l.speaker) noteSpoken(world, l.speaker);
-  setDualText(els.line, l ? l.text : '', { gloss: true });
-  els.root.classList.toggle('sub-clue', !!(l && l.clue));
+  // het vak vervaagt met de laatste tekst erin: een direct gewist vak was een leeg randje dat even bleef staan
+  if (!l) return;
+  paintSpeaker(els.speaker, l.speaker);
+  if (l.speaker) noteSpoken(world, l.speaker);
+  setDualText(els.line, l.text, { gloss: true });
+  els.root.classList.toggle('sub-clue', !!l.clue);
   if (l && l.voice) playStoryVoice(l.voice, { radio: !!l.radio });
   else if (l && active.mumble && l.speaker && !l.own) playTextMumble(MUMBLE_WHO(l.speaker), l.text, l.dur ?? 2.5); // geen opname: een zacht gemurmel onder de ondertitel (#326)
 }
