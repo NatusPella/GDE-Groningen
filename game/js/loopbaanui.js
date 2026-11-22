@@ -334,7 +334,7 @@ function trapHtml(id, d, v) {
       const loon = plus ? `+${plus}% loon` : 'basisloon';
       // het huidige niveau draagt het streepje naar het volgende, met altijd een getal erbij
       const streep = niv === d.niveau && d.volgend && v
-        ? `<div class="ds-z-balk" style="--ds-z-w:${Math.round(d.deel * 100)}%" role="img" aria-label="${nl(v.xp - L.XP_DREMPELS[d.niveau - 1])} van ${nl(L.XP_DREMPELS[d.niveau] - L.XP_DREMPELS[d.niveau - 1])} punten"><span class="ds-z-balk__baan"><span class="ds-z-balk__vul"></span></span><span class="ds-z-balk__label">${nl(v.xp - L.XP_DREMPELS[d.niveau - 1])} / ${nl(L.XP_DREMPELS[d.niveau] - L.XP_DREMPELS[d.niveau - 1])}</span></div>` : '';
+        ? `<div class="ds-z-balk" style="--ds-z-w:${Math.min(99, Math.floor(d.deel * 100))}%" role="img" aria-label="${nl(v.xp - L.XP_DREMPELS[d.niveau - 1])} van ${nl(L.XP_DREMPELS[d.niveau] - L.XP_DREMPELS[d.niveau - 1])} punten"><span class="ds-z-balk__baan"><span class="ds-z-balk__vul"></span></span><span class="ds-z-balk__label">${nl(v.xp - L.XP_DREMPELS[d.niveau - 1])} / ${nl(L.XP_DREMPELS[d.niveau] - L.XP_DREMPELS[d.niveau - 1])}</span></div>` : '';
       return `<li class="${cls}" style="--stap:${niv - 1}"${niv === d.niveau ? ' aria-current="step"' : ''}>` +
         `<span class="nr" aria-hidden="true">${niv}</span>` +
         `<span class="lb-stap-t"><b>${esc(t)}</b><span class="lb-loon">${loon}</span></span>${chip}${streep}</li>`;

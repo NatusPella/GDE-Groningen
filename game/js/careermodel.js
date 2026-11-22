@@ -4,6 +4,7 @@
 // test: scripts/careermodel_test.mjs.
 // Samen spelen: een loopbaan is van de speler zelf (eigen profiel, gde-loopbaan-v1); een gast ziet in dit scherm zijn eigen voortgang.
 import * as L from './loopbaan.js';
+import { eerlijkPct } from './menumodels.js';
 
 export const ACTIE = {
   doorgaan: 'Doorgaan',
@@ -11,7 +12,8 @@ export const ACTIE = {
   klaar: 'Hoogste niveau',
 };
 
-const pct = (deel) => Math.round(Math.max(0, Math.min(1, deel)) * 100);
+// naar beneden afgerond en pas 100 op het hoogste niveau: "100%" naast "nog 1 punt" liet de balk vol lijken (verfijnronde 22-11)
+const pct = (deel, klaar = false) => eerlijkPct(deel, klaar);
 
 // De beloning van het volgende niveau in gewone woorden: de nieuwe titel en wat het loon erbij stijgt.
 export function volgendeBeloning(d) {
@@ -28,7 +30,7 @@ export function vakKaart(profiel, info) {
   return {
     id: info.id, naam: info.naam, icoon: info.icoon, groep: info.groep,
     niveau: d.niveau, max: L.MAX_NIVEAU, titel: d.titel, gestart,
-    deel: d.deel, pct: pct(d.deel), nodig: d.nodig, volgend: d.volgend,
+    deel: d.deel, pct: pct(d.deel, !d.volgend), nodig: d.nodig, volgend: d.volgend,
     beloning: volgendeBeloning(d),
     actie, actieLabel: ACTIE[actie],
     stand: gestart ? `Niveau ${d.niveau} van ${L.MAX_NIVEAU}` : 'Nog niet begonnen',
@@ -60,8 +62,8 @@ export function eisEnVerdiensten(profiel, id) {
   const d = L.volgendDoel(profiel, id);
   const factor = L.loonFactor(profiel, id);
   const nu = factor > 1 ? `+${L.percentage(factor)}% loon` : 'basisloon';
-  const eis = d.volgend ? `Nog ${d.nodig.toLocaleString('nl-NL')} punten tot ${d.volgend}` : 'Hoogste niveau bereikt';
-  return { eis, verdiensten: nu, volgende: d.volgend ? volgendeBeloning(d) : '', deel: d.deel, pct: pct(d.deel), nodig: d.nodig };
+  const eis = d.volgend ? `Nog ${d.nodig.toLocaleString('nl-NL')} ${d.nodig === 1 ? 'punt' : 'punten'} tot ${d.volgend}` : 'Hoogste niveau bereikt';
+  return { eis, verdiensten: nu, volgende: d.volgend ? volgendeBeloning(d) : '', deel: d.deel, pct: pct(d.deel, !d.volgend), nodig: d.nodig };
 }
 
 // Het hele overzicht in één aanroep: de kaarten en hoeveel er begonnen zijn (voor de leeg-staat: nog niets begonnen).
