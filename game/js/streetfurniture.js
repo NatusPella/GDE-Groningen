@@ -25,7 +25,7 @@ import { placeSignItems, entryOf } from './placesigns.js';
 import { segDistD, buildingAt } from './tileplace.js';
 import { hedgeLines } from './tilegreenery.js';
 import { edgeCollider, edgeHeight } from './edgeclasses.js';
-import { monumentFurnitureAllowed } from './monumentzone.js';
+import { monumentFurnitureAllowed } from './heritagearea.js';
 
 const MAIN = new Set(['motorway', 'trunk']);
 const LINK = new Set(['motorway_link', 'trunk_link']);
@@ -545,7 +545,7 @@ export function furnitureForTile({ x0, y0, size = 1000, roads = [], mapped = [],
       (DG.get(gk) || DG.set(gk, []).get(gk)).push(it);
     }
     seenKey.add(it.key);
-    // een monumentgebied (monumentzone.js): geen lantaarnpaal, bord, bushokje of vangrail; een bank, hek en heg blijven
+    // een monumentgebied (heritagearea.js): geen lantaarnpaal, bord, bushokje of vangrail; een bank, hek en heg blijven
     if (!monumentFurnitureAllowed(it.k, it.x, it.y)) continue;
     kept.push(it);
   }

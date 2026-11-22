@@ -2,7 +2,7 @@ import { gridItems } from './spatialgrid.js';
 import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { closestPointOnSegment, pointInPolygon } from './util.js';
-import { monumentZoneAt } from './monumentzone.js';
+import { heritageAreaAt } from './heritagearea.js';
 
 // Street names at both ends of every named road way (OSM splits streets at
 // junctions, so way ends are almost always corners). Like real Dutch street
@@ -197,7 +197,7 @@ export function updateStreetSigns(dt, world, scene) {
   for (const s of signs) {
     if (Math.abs(s.x - px) > SIGN_RADIUS || Math.abs(s.y - py) > SIGN_RADIUS) continue;
     if (Math.hypot(s.x - px, s.y - py) > SIGN_RADIUS) continue;
-    if (s.kind !== 'facade' && monumentZoneAt(s.x, s.y)) continue; // een monumentgebied (monumentzone.js): geen straatnaam op het wegdek, alleen het gevelbordje
+    if (s.kind !== 'facade' && heritageAreaAt(s.x, s.y)) continue; // een monumentgebied (heritagearea.js): geen straatnaam op het wegdek, alleen het gevelbordje
     wanted.add(s);
     if (!active.has(s)) {
       const mesh = buildSignMesh(s);

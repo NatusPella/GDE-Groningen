@@ -1,12 +1,12 @@
-// Monumentgebied Vesting Bourtange (#953, docs/BOURTANGE-MONUMENT-22-11.md): de zone-regel (game/js/monumentzone.js) en wat de
-// haakpunten ermee doen. Puur: zone-detectie, parameters, wegmateriaal, geen verkeer/borden/lantaarns in de zone, gevelstijl,
-// wallen, kleding, geluid, kaartplek en de aankleding (monumentdecor.js, kits). Het tweede deel legt de zone naast de tegels
+// Monumentgebied Vesting Bourtange (#953, docs/BOURTANGE-MONUMENT-22-11.md): het gebied-regel (game/js/heritagearea.js) en wat de
+// haakpunten ermee doen. Puur: gebiedsdetectie, parameters, wegmateriaal, geen verkeer/borden/lantaarns in het gebied, gevelstijl,
+// wallen, kleding, geluid, kaartplek en de aankleding (monumentdecor.js, kits). Het tweede deel legt het gebied naast de tegels
 // (zonder game/world: SKIP): droge, vrije plekken voor de aankleding, wegen zonder asfalt, historische gevels, de wallen.
 //   node scripts/monumentzone_test.mjs
 import fs from 'node:fs';
 import './node3d.mjs';
 
-const Z = await import('../game/js/monumentzone.js');
+const Z = await import('../game/js/heritagearea.js');
 const D = await import('../game/js/monumentdecor.js');
 const SF = await import('../game/js/streetfurniture.js');
 const MD = await import('../game/js/mapdata.js');
@@ -19,12 +19,12 @@ const THREE = await import('three');
 let n = 0, bad = 0;
 const ok = (c, m, info = '') => { n++; if (!c) { bad++; console.log(`FAIL ${m}${info ? ' (' + info + ')' : ''}`); } };
 
-// --- 1. zone-detectie en parameters ------------------------------------------------------------
-const bz = Z.monumentZoneById('bourtange');
-ok(!!bz && Z.MONUMENT_ZONES.length >= 1, 'Bourtange is een monumentzone');
-ok(Z.monumentZoneAt(42470, 22800) === bz, 'het Marktplein ligt in de zone');
-ok(Z.monumentZoneAt(42583, 22679) === bz && Z.monumentZoneAt(42319, 22859) === bz, 'de bolwerken van M30 liggen in de zone');
-ok(Z.monumentZoneAt(0, 0) === null && Z.monumentZoneAt(42470 + bz.radius + 1, 22800) === null, 'buiten de straal is er geen zone');
+// --- 1. gebiedsdetectie en parameters ------------------------------------------------------------
+const bz = Z.heritageAreaById('bourtange');
+ok(!!bz && Z.HERITAGE_AREAS.length >= 1, 'Bourtange is een monumentzone');
+ok(Z.heritageAreaAt(42470, 22800) === bz, 'het Marktplein ligt in het gebied');
+ok(Z.heritageAreaAt(42583, 22679) === bz && Z.heritageAreaAt(42319, 22859) === bz, 'de bolwerken van M30 liggen in het gebied');
+ok(Z.heritageAreaAt(0, 0) === null && Z.heritageAreaAt(42470 + bz.radius + 1, 22800) === null, 'buiten de straal is er geen area');
 ok(Z.monumentWeight(42470, 22800) === 1 && Z.monumentWeight(0, 0) === 0, 'gewicht 1 in de kern en 0 ver weg');
 {
   const mid = Z.monumentWeight(42470 + bz.radius + bz.rim / 2, 22800);
@@ -34,11 +34,11 @@ ok(bz.traffic.cars === false && bz.traffic.motors === false && bz.traffic.scoote
 ok(bz.audio.traffic === 0 && bz.audio.city < 0.3 && bz.audio.vogels >= 1, 'geluid: geen verkeer, wel vogels');
 ok(bz.furniture.drop.includes('lamp') && bz.furniture.drop.includes('shelter') && bz.furniture.drop.includes('placesign') && !bz.furniture.drop.includes('bench'), 'geen lantaarnpaal, bushokje of bord; een bank mag');
 ok(bz.rampart.maxZ >= bz.rampart.minZ && bz.rampart.maxZ <= 4, 'wallen: een begrensde hoogte');
-// elke zone heeft de velden die de haakpunten lezen (zodat een volgende plek niets vergeet)
-for (const z of Z.MONUMENT_ZONES) {
-  for (const k of ['id', 'name', 'at', 'radius', 'rim', 'roads', 'furniture', 'traffic', 'facade', 'people', 'audio', 'light', 'info']) ok(z[k] !== undefined, `zone ${z.id}: veld ${k}`);
-  ok(Array.isArray(z.at) && z.at.every(Number.isFinite) && z.radius > 50, `zone ${z.id}: middelpunt en straal`);
-  ok(z.name === 'Vesting Bourtange' ? /1593/.test(z.info) : typeof z.info === 'string' && z.info.length > 10, `zone ${z.id}: korte tekst`);
+// elk gebied heeft de velden die de haakpunten lezen (zodat een volgende plek niets vergeet)
+for (const z of Z.HERITAGE_AREAS) {
+  for (const k of ['id', 'name', 'at', 'radius', 'rim', 'roads', 'furniture', 'traffic', 'facade', 'people', 'audio', 'light', 'info']) ok(z[k] !== undefined, `area ${z.id}: veld ${k}`);
+  ok(Array.isArray(z.at) && z.at.every(Number.isFinite) && z.radius > 50, `area ${z.id}: middelpunt en straal`);
+  ok(z.name === 'Vesting Bourtange' ? /1593/.test(z.info) : typeof z.info === 'string' && z.info.length > 10, `area ${z.id}: korte tekst`);
 }
 
 // --- 2. wegmateriaal -----------------------------------------------------------------------------
@@ -46,8 +46,8 @@ for (const z of Z.MONUMENT_ZONES) {
   const inside = [42470, 22800], outside = [100, 100];
   for (const type of ['residential', 'unclassified', 'living_street', 'service', 'pedestrian', 'footway', 'steps', 'track', 'cycleway', 'tertiary', 'primary']) {
     const s = Z.monumentRoadSurface({ type }, inside);
-    ok(s && s !== 'asphalt' && s !== 'cycle' && s !== 'tiles', `wegtype ${type} in de zone: klinker of zandpad`, String(s));
-    ok(Z.monumentRoadSurface({ type }, outside) === null, `wegtype ${type} buiten de zone: ongemoeid`);
+    ok(s && s !== 'asphalt' && s !== 'cycle' && s !== 'tiles', `wegtype ${type} in het gebied: klinker of zandpad`, String(s));
+    ok(Z.monumentRoadSurface({ type }, outside) === null, `wegtype ${type} buiten het gebied: ongemoeid`);
   }
   ok(Z.monumentRoadSurface({ type: 'residential' }, inside) === 'klinker_red' && Z.monumentRoadSurface({ type: 'footway' }, inside) === 'gravel', 'straten rood klinker, paden zandpad');
 }
@@ -65,43 +65,43 @@ for (const z of Z.MONUMENT_ZONES) {
   const kinds = (res) => new Set(res.items.map((it) => it.k));
   const binnen = SF.furnitureForTile({ x0: 42400, y0: 22700, size: 1000, ...mk(42400, 22700), opts: { lamps: true, bollards: true } });
   const buiten = SF.furnitureForTile({ x0: 0, y0: 0, size: 1000, ...mk(0, 0), opts: { lamps: true, bollards: true } });
-  ok(kinds(buiten).has('lamp') && kinds(buiten).has('shelter') && kinds(buiten).has('bench'), 'buiten de zone staan lamp, bushokje en bank', [...kinds(buiten)].join(','));
-  ok(!kinds(binnen).has('lamp') && !kinds(binnen).has('shelter') && !kinds(binnen).has('bin') && !kinds(binnen).has('bikerack') && !kinds(binnen).has('bollard'), 'in de zone geen lamp, bushokje, bak, fietsenrek of paal', [...kinds(binnen)].join(','));
-  ok(kinds(binnen).has('bench'), 'in de zone blijft een bank staan');
+  ok(kinds(buiten).has('lamp') && kinds(buiten).has('shelter') && kinds(buiten).has('bench'), 'buiten het gebied staan lamp, bushokje en bank', [...kinds(buiten)].join(','));
+  ok(!kinds(binnen).has('lamp') && !kinds(binnen).has('shelter') && !kinds(binnen).has('bin') && !kinds(binnen).has('bikerack') && !kinds(binnen).has('bollard'), 'in het gebied geen lamp, bushokje, bak, fietsenrek of paal', [...kinds(binnen)].join(','));
+  ok(kinds(binnen).has('bench'), 'in het gebied blijft een bank staan');
   ok(binnen.colliders.length < buiten.colliders.length, 'ook de botsvormen van het weggelaten meubilair zijn weg');
   ok(Z.monumentFurnitureAllowed('lamp', 0, 0) && !Z.monumentFurnitureAllowed('lamp', 42470, 22800) && Z.monumentFurnitureAllowed('bench', 42470, 22800), 'monumentFurnitureAllowed volgt de regel');
 }
 
 // --- 4. verkeer -------------------------------------------------------------------------------------
 {
-  ok(!Z.monumentTrafficAllowed('cars', 42470, 22800) && !Z.monumentTrafficAllowed('motors', 42500, 22750) && !Z.monumentTrafficAllowed('scooters', 42450, 22850), 'in de zone geen auto, motor of brommer');
+  ok(!Z.monumentTrafficAllowed('cars', 42470, 22800) && !Z.monumentTrafficAllowed('motors', 42500, 22750) && !Z.monumentTrafficAllowed('scooters', 42450, 22850), 'in het gebied geen auto, motor of brommer');
   ok(Z.monumentTrafficAllowed('bikes', 42470, 22800), 'fietsen blijven mogelijk');
-  ok(Z.monumentTrafficAllowed('cars', 0, 0) && Z.monumentTrafficAllowed('cars', 42470 + bz.radius + 5, 22800), 'buiten de zone rijdt alles gewoon');
+  ok(Z.monumentTrafficAllowed('cars', 0, 0) && Z.monumentTrafficAllowed('cars', 42470 + bz.radius + 5, 22800), 'buiten het gebied rijdt alles gewoon');
   const src = fs.readFileSync(new URL('../game/js/vehicle.js', import.meta.url), 'utf8');
-  ok(/monumentTrafficAllowed\('cars'/.test(src) && /monumentTrafficAllowed\('scooters'/.test(src) && /monumentTrafficAllowed\('motors'/.test(src), 'vehicle.js houdt auto, brommer en motor uit de zone');
+  ok(/monumentTrafficAllowed\('cars'/.test(src) && /monumentTrafficAllowed\('scooters'/.test(src) && /monumentTrafficAllowed\('motors'/.test(src), 'vehicle.js houdt auto, brommer en motor uit het gebied');
   ok(/monumentTrafficAllowed\('cars', x, y\)/.test(fs.readFileSync(new URL('../game/js/parkedcars.js', import.meta.url), 'utf8')), 'ook geen geparkeerde auto');
 }
 
 // --- 5. gevelstijl -----------------------------------------------------------------------------------
 {
   const f = Z.monumentFacadeAt(42470, 22830);
-  ok(f && f.style === 'historisch' && f.noRoofGear && f.noShopSigns && f.noAwnings && f.chimney >= 0.8, 'historische gevel in de zone');
-  ok(Z.monumentFacadeAt(0, 0) === null, 'buiten de zone de gewone gevel');
+  ok(f && f.style === 'historisch' && f.noRoofGear && f.noShopSigns && f.noAwnings && f.chimney >= 0.8, 'historische gevel in het gebied');
+  ok(Z.monumentFacadeAt(0, 0) === null, 'buiten het gebied de gewone gevel');
   const fam = Z.historicFamily(0.4);
   ok(fam.wall.length >= 4 && fam.wall.every((c) => { const r = (c >> 16) & 255, g = (c >> 8) & 255, b = c & 255; return r > g && g > b; }), 'de muren zijn baksteen: rood tot bruin (r > g > b)');
   ok(Z.HISTORIC_FACADE.roofs.every((c) => ((c >> 16) & 255) > (c & 255)), 'de daken zijn pannen (warm)');
   ok(Z.HISTORIC_FACADE.frames.includes(0xf2efe6) && Z.HISTORIC_FACADE.frames.length >= 2, 'kozijnen wit of groen');
   ok(Z.HISTORIC_FACADE.style.hRatio <= 0.5 && Z.HISTORIC_FACADE.style.w < 1.05, 'kleine ramen');
-  // het echte gebouwmodel: binnen de zone baksteen, pannendak en geen etalage; buiten ongemoeid
+  // het echte gebouwmodel: binnen het gebied baksteen, pannendak en geen etalage; buiten ongemoeid
   const B = await import('../game/js/models3d_buildings.js');
   const huis = (x, y, type) => ({ id: Math.round(x * 3 + y), pts: [[x, y], [x + 9, y], [x + 9, y + 7], [x, y + 7], [x, y]], h: 2, type, bounds: [x, y, x + 9, y + 7] });
   const kleuren = (g) => { const set = new Set(); let tri = 0, nan = 0; g.traverse((o) => { if (!o.isMesh) return; const p = o.geometry.attributes.position; tri += (o.geometry.index ? o.geometry.index.count : p.count) / 3; for (let i = 0; i < p.array.length; i++) if (Number.isNaN(p.array[i])) nan++; for (const m of Array.isArray(o.material) ? o.material : [o.material]) if (m && m.color) set.add(m.color.getHex()); }); return { set, tri, nan }; };
   for (const type of ['house', 'commercial', 'shed']) {
     const bin = kleuren(B.buildBuildingMesh(huis(42470, 22830, type)));
     const bui = kleuren(B.buildBuildingMesh(huis(100, 100, type)));
-    ok(bin.nan === 0 && bin.tri > 20, `gebouw ${type} in de zone: geen NaN, driehoeken`, `${bin.tri} driehoeken`);
-    ok([...bin.set].some((c) => Z.HISTORIC_FACADE.roofs.includes(c) || Z.HISTORIC_FACADE.walls.some((w) => Math.abs(((c >> 16) & 255) - ((w >> 16) & 255)) < 90)), `gebouw ${type} in de zone draagt baksteen- of pannenkleuren`, [...bin.set].map((c) => c.toString(16)).join(','));
-    if (type === 'commercial') ok(bin.tri < bui.tri, 'geen etalage: een winkelpand in de zone heeft minder driehoeken dan elders', `${bin.tri} < ${bui.tri}`);
+    ok(bin.nan === 0 && bin.tri > 20, `gebouw ${type} in het gebied: geen NaN, driehoeken`, `${bin.tri} driehoeken`);
+    ok([...bin.set].some((c) => Z.HISTORIC_FACADE.roofs.includes(c) || Z.HISTORIC_FACADE.walls.some((w) => Math.abs(((c >> 16) & 255) - ((w >> 16) & 255)) < 90)), `gebouw ${type} in het gebied draagt baksteen- of pannenkleuren`, [...bin.set].map((c) => c.toString(16)).join(','));
+    if (type === 'commercial') ok(bin.tri < bui.tri, 'geen etalage: een winkelpand in het gebied heeft minder driehoeken dan elders', `${bin.tri} < ${bui.tri}`);
   }
 }
 
@@ -110,16 +110,16 @@ for (const z of Z.MONUMENT_ZONES) {
   const mkMap = () => { const g = (items) => { const s = new SpatialGrid(100); for (const it of items) { it.bounds = polygonBounds(it.pts); s.insert(it, it.bounds); } return s; }; return { waterGrid: g([]), railGrid: g([]), roadGrid: g([]) }; };
   const pad = (x0, y0, z = 3.5) => ({ id: 7, cat: 'foot', bridge: true, pts: [[x0, y0], [x0 + 10, y0], [x0 + 20, y0], [x0 + 30, y0]], z: [0, z, z, 0], st: [1, 1, 1], ly: [1, 1, 1] });
   let r = pad(42560, 22700);
-  ok(MD.dropNeedlessDeck(mkMap(), r) === true && r.rampart === true && !r.bridge && r.deckDropped, 'een wal in de zone is een aarden wal, geen dek');
+  ok(MD.dropNeedlessDeck(mkMap(), r) === true && r.rampart === true && !r.bridge && r.deckDropped, 'een wal in het gebied is een aarden wal, geen dek');
   ok(Array.isArray(r.z) && Math.max(...r.z) === bz.rampart.maxZ && Math.min(...r.z) === 0, 'de wal houdt zijn profiel, begrensd op de maximale hoogte', JSON.stringify(r.z));
   ok(r.st === undefined && r.ly === undefined, 'geen dekprofiel meer');
   r = pad(0, 0);
-  ok(MD.dropNeedlessDeck(mkMap(), r) === true && !r.z && !r.rampart, 'buiten de zone verliest het pad zijn profiel (de bestaande regel)');
+  ok(MD.dropNeedlessDeck(mkMap(), r) === true && !r.z && !r.rampart, 'buiten het gebied verliest het pad zijn profiel (de bestaande regel)');
   r = pad(42560, 22700, 1.2);
   ok(MD.dropNeedlessDeck(mkMap(), r) === false && r.bridge, 'een laag pad is geen wal en blijft zoals het was');
   r = pad(42560, 22700);
   ok(MD.dropNeedlessDeck({ waterGrid: (() => { const s = new SpatialGrid(100); const w = { pts: [[42568, 22695], [42582, 22695], [42582, 22705], [42568, 22705]] }; w.bounds = polygonBounds(w.pts); s.insert(w, w.bounds); return s; })(), railGrid: mkMap().railGrid, roadGrid: mkMap().roadGrid }, r) === false && r.bridge, 'een brug over de gracht houdt zijn dek');
-  ok(Z.monumentRampartProfile([0, 2.5, 0], [[0, 0], [1, 1]]) === null, 'monumentRampartProfile: buiten de zone niets');
+  ok(Z.monumentRampartProfile([0, 2.5, 0], [[0, 0], [1, 1]]) === null, 'monumentRampartProfile: buiten het gebied niets');
   ok(Z.monumentRampartProfile(null, [[42470, 22800]]) === null && Z.monumentRampartProfile([0, 1, 0], []) === null, 'monumentRampartProfile: ongeldige invoer');
   // de wal als ophoging in het hoogtemodel: een weg met profiel zonder brugvlag geeft een vulling met grashelling
   const EL = await import('../game/js/elevation.js');
@@ -164,9 +164,9 @@ for (const z of Z.MONUMENT_ZONES) {
   ok(r && r.traffic > 0 && r.traffic < 1, 'geluid aan de rand: zacht uitdovend', JSON.stringify(r));
   ok(Z.monumentLanternOn(bz, 22) && Z.monumentLanternOn(bz, 3) && !Z.monumentLanternOn(bz, 12) && !Z.monumentLanternOn(bz, 7), 'de lantaarns branden alleen in de avond en nacht');
   ok(!Z.monumentLanternOn(null, 22) && !Z.monumentLanternOn(bz, NaN), 'lantaarn: ongeldige invoer is uit');
-  ok(Z.monumentTintAt(42470, 22800) > 0 && Z.monumentTintAt(42470, 22800) <= 0.1 && Z.monumentTintAt(0, 0) === 0, 'iets warmer papier in de zone');
+  ok(Z.monumentTintAt(42470, 22800) > 0 && Z.monumentTintAt(42470, 22800) <= 0.1 && Z.monumentTintAt(0, 0) === 0, 'iets warmer papier in het gebied');
   const src = fs.readFileSync(new URL('../game/js/sfx/ambience.js', import.meta.url), 'utf8');
-  ok(/monumentAudioScale\(x, y\)/.test(src), 'sfx/ambience.js leest de zone');
+  ok(/monumentAudioScale\(x, y\)/.test(src), 'sfx/ambience.js leest het gebied');
   // alleen bestaande sfx-sleutels: geen nieuwe audio
   ok(!fs.existsSync(new URL('../game/audio/sfx/monument', import.meta.url)), 'geen nieuwe audio');
 }
@@ -174,7 +174,7 @@ for (const z of Z.MONUMENT_ZONES) {
 // --- 9. kaart en tekst -----------------------------------------------------------------------------------------
 {
   const pois = Z.monumentPois();
-  ok(pois.length === Z.MONUMENT_ZONES.length && pois[0].naam === 'Vesting Bourtange' && pois[0].icon === 'monument' && /ster|vijf/.test(pois[0].tekst), 'de kaart krijgt naam, icoon en korte tekst');
+  ok(pois.length === Z.HERITAGE_AREAS.length && pois[0].naam === 'Vesting Bourtange' && pois[0].icon === 'monument' && /ster|vijf/.test(pois[0].tekst), 'de kaart krijgt naam, icoon en korte tekst');
   ok(pois.every((p) => Number.isFinite(p.x) && Number.isFinite(p.y)), 'kaartpunten hebben coördinaten');
   const mv = fs.readFileSync(new URL('../game/js/mapview.js', import.meta.url), 'utf8');
   const hp = fs.readFileSync(new URL('../game/js/hud_panel.js', import.meta.url), 'utf8');
@@ -187,10 +187,10 @@ for (const z of Z.MONUMENT_ZONES) {
   const c = D.monumentDecorCounts('bourtange');
   ok(c.linde === 14 && c.kanon >= 9 && c.kogels >= 3 && c.ton >= 6 && c.bank >= 4 && c.vaandel >= 4 && c.lantaarn >= 15, 'het plan heeft veertien linden, kanonnen, kogels, tonnen, banken, vlaggen en lantaarns', JSON.stringify(c));
   ok(items.every((o) => Number.isFinite(o.x) && Number.isFinite(o.y) && Number.isFinite(o.a)), 'geen NaN in het plan');
-  ok(items.every((o) => Z.monumentZoneAt(o.x, o.y) === bz), 'alles ligt in de zone');
+  ok(items.every((o) => Z.heritageAreaAt(o.x, o.y) === bz), 'alles ligt in het gebied');
   ok(new Set(items.map((o) => `${o.kind}@${o.x},${o.y}`)).size === items.length, 'geen dubbele onderdelen');
   ok(JSON.stringify(D.monumentDecorItems('bourtange')) === JSON.stringify(items), 'het plan is deterministisch (Samen spelen: voor iedereen gelijk)');
-  ok(D.monumentDecorItems('bestaatniet').length === 0, 'een onbekende zone heeft geen aankleding');
+  ok(D.monumentDecorItems('bestaatniet').length === 0, 'een onbekend gebied heeft geen aankleding');
   // de bolwerken gelijk aan die van M30
   const src = fs.readFileSync(new URL('../game/js/missions_akte6.js', import.meta.url), 'utf8');
   const tabel = /export const BOURTANGE = \{([\s\S]*?)\n\};/.exec(src)[1];
@@ -200,7 +200,7 @@ for (const z of Z.MONUMENT_ZONES) {
   ok(D.ANKERS.munsterschePoort[0] === P.poort[0] - 6 || Math.hypot(D.ANKERS.munsterschePoort[0] - P.poort[0], D.ANKERS.munsterschePoort[1] - P.poort[1]) < 20, 'de poort ligt bij de Munsterse Poort van M30');
   const plan = D.monumentDecorPlan('bourtange');
   ok(plan.props.length === items.length && plan.people.length === D.FIGURANTEN.length && plan.people.every((p) => p.look.role === 'historisch'), 'het plan in missiedecor-vorm: props en figuranten in historische kleding');
-  ok(D.monumentDecorPlan('x') === null, 'onbekende zone: geen plan');
+  ok(D.monumentDecorPlan('x') === null, 'onbekend gebied: geen plan');
 
   // de kits bouwen driehoeken zonder NaN en ruimen op
   const MK = await import('../game/js/monumentkits3d.js');
@@ -228,14 +228,14 @@ for (const z of Z.MONUMENT_ZONES) {
     const s = stats(set.group);
     ok(s.nan === 0 && s.tri > 500, 'de hele aankleding: geen NaN', `${s.tri} driehoeken, ${s.meshes} onderdelen`);
     ok(s.meshes < 900, 'de aankleding blijft binnen een bescheiden aantal onderdelen', String(s.meshes));
-    ok(set.people.every((p) => Number.isFinite(p.mesh.position.x) && Math.abs(p.mesh.position.x - bz.at[0]) < bz.radius), 'de figuranten staan in de zone');
+    ok(set.people.every((p) => Number.isFinite(p.mesh.position.x) && Math.abs(p.mesh.position.x - bz.at[0]) < bz.radius), 'de figuranten staan in het gebied');
     MDEC.updateMissionDressing(set, 0.1);
     MDEC.disposeMissionDressing(set);
     ok(scene.children.length === 0, 'opruimen haalt alles uit de scène');
   }
 }
 
-// --- 11. de zone naast de tegels (zonder game/world: SKIP) -----------------------------------------------------------
+// --- 11. het gebied naast de tegels (zonder game/world: SKIP) -----------------------------------------------------------
 const root = new URL('../game/world/', import.meta.url);
 if (!fs.existsSync(new URL('index-provincie.json', root))) {
   console.log('SKIP monumentzone_test (tegels): geen game/world met de provincie');
@@ -262,19 +262,19 @@ if (!fs.existsSync(new URL('index-provincie.json', root))) {
   map.addWaterPatches(patchRows(JSON.parse(fs.readFileSync(new URL('../game/vaarnet_fixes.json', import.meta.url), 'utf8'))).filter((r) => !r.strip));
   const inBuilding = (x, y) => map.buildingsNear(x, y, 0.4).some((b) => { const [a, b2, c, d] = b.bounds; return x >= a && x <= c && y >= b2 && y <= d && pointInPolygon(x, y, b.pts); });
 
-  // wegen: elke weg in de zone krijgt klinkers of zandpad
-  const wegen = map.roadsNear(bz.at[0], bz.at[1], bz.radius).filter((r) => Z.monumentZoneAt(r.pts[Math.floor(r.pts.length / 2)][0], r.pts[Math.floor(r.pts.length / 2)][1]));
-  ok(wegen.length > 100, 'de tegels hebben wegen in de zone', String(wegen.length));
+  // wegen: elke weg in het gebied krijgt klinkers of zandpad
+  const wegen = map.roadsNear(bz.at[0], bz.at[1], bz.radius).filter((r) => Z.heritageAreaAt(r.pts[Math.floor(r.pts.length / 2)][0], r.pts[Math.floor(r.pts.length / 2)][1]));
+  ok(wegen.length > 100, 'de tegels hebben wegen in het gebied', String(wegen.length));
   const mat = new Map();
   for (const r of wegen) { const s = Z.monumentRoadSurface(r, r.pts[Math.floor(r.pts.length / 2)]); mat.set(s, (mat.get(s) || 0) + 1); }
-  ok(![...mat.keys()].some((s) => s === 'asphalt' || !s), 'geen enkele weg in de zone is asfalt', JSON.stringify([...mat]));
+  ok(![...mat.keys()].some((s) => s === 'asphalt' || !s), 'geen enkele weg in het gebied is asfalt', JSON.stringify([...mat]));
   ok((mat.get('klinker_red') || 0) > 20 && (mat.get('gravel') || 0) > 20, 'straten rood klinker en paden zandpad', JSON.stringify([...mat]));
 
   // gebouwen: allemaal historisch
-  const huizen = map.buildingsNear(bz.at[0], bz.at[1], bz.radius).filter((b) => Z.monumentZoneAt(b.pts[0][0], b.pts[0][1]));
-  ok(huizen.length > 60 && huizen.every((b) => Z.monumentFacadeAt((b.bounds[0] + b.bounds[2]) / 2, (b.bounds[1] + b.bounds[3]) / 2) !== null || !Z.monumentZoneAt((b.bounds[0] + b.bounds[2]) / 2, (b.bounds[1] + b.bounds[3]) / 2)), 'elk gebouw in de zone krijgt de historische gevel', String(huizen.length));
+  const huizen = map.buildingsNear(bz.at[0], bz.at[1], bz.radius).filter((b) => Z.heritageAreaAt(b.pts[0][0], b.pts[0][1]));
+  ok(huizen.length > 60 && huizen.every((b) => Z.monumentFacadeAt((b.bounds[0] + b.bounds[2]) / 2, (b.bounds[1] + b.bounds[3]) / 2) !== null || !Z.heritageAreaAt((b.bounds[0] + b.bounds[2]) / 2, (b.bounds[1] + b.bounds[3]) / 2)), 'elk gebouw in het gebied krijgt de historische gevel', String(huizen.length));
 
-  // de wallen: een echt voetpad (of trap) in de zone, zonder water ernaast, met een gegeven hoogteprofiel, wordt een wal
+  // de wallen: een echt voetpad (of trap) in het gebied, zonder water ernaast, met een gegeven hoogteprofiel, wordt een wal
   const paden = wegen.filter((r) => (r.cat === 'foot' || r.cat === 'cycle') && r.pts.length >= 2 && !r.bridge);
   ok(paden.length > 30, 'er zijn voetpaden op de wallen', String(paden.length));
   let wal = 0, behouden = 0;
@@ -283,7 +283,7 @@ if (!fs.existsSync(new URL('index-provincie.json', root))) {
     if (kopie.pts.length < 3) continue;
     if (MD.dropNeedlessDeck(map, kopie) && kopie.rampart) { wal++; if (Math.max(...kopie.z) <= bz.rampart.maxZ && Math.max(...kopie.z) >= bz.rampart.minZ) behouden++; }
   }
-  ok(wal > 5 && behouden === wal, `echte voetpaden in de zone worden wallen met begrensde hoogte (${wal})`, String(behouden));
+  ok(wal > 5 && behouden === wal, `echte voetpaden in het gebied worden wallen met begrensde hoogte (${wal})`, String(behouden));
 
   // de aankleding: de formule geeft een plek bij benadering, fitMonumentDecor legt hem op vrije, droge grond naast de weg
   const items = D.monumentDecorItems('bourtange');

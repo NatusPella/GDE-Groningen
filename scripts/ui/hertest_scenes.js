@@ -271,13 +271,31 @@ image(1057, 'Usquert: zwarte zuilen met brede schaduw', 'Op de plek in Usquert s
     const [bx, by] = PTS.usquert; await H.jump(bx, by, 6000); const z = H.gh(bx, by);
     await H.shot('a', 1800); H.cam(bx - 20, by - 20, z + 40, bx, by, z + 20, 70); await H.shot('b', 1800); H.camOff();
   }, { sizes: [SIZE_SD, SIZE_HD] });
-image(953, 'Vesting Bourtange: opgeruimd en beloopbaar', 'Je valt niet in het water in de vesting en de geometrie is netjes.',
-  'Beelden tonen een nette vesting; het aantal natte cellen op het plein is nul of laag.', ['a', 'b'], async (H) => {
+image(953, 'Vesting Bourtange: opgeruimd, beloopbaar en als monument', 'Je valt niet in het water in de vesting, de geometrie is netjes en het dorp voelt als een monument (klinkers, baksteen, geen verkeer, geen moderne lantaarns of borden; docs/BOURTANGE-MONUMENT-22-11.md).',
+  'Beelden tonen een nette vesting met klinkerstraten, rode baksteen en pannendaken, wallen met gras, kanonnen en linden; geen auto, bushokje of lantaarnpaal; het aantal natte cellen op het plein is nul of laag.', ['a', 'b', 'poort', 'kerk', 'wal', 'gracht', 'plein', 'avond'], async (H) => {
     const [bx, by] = PTS.bourtange; await H.jump(bx, by, 7000); let nat = 0; let n = 0;
     for (let dx = -30; dx <= 30; dx += 3) for (let dy = -30; dy <= 30; dy += 3) { n++; if (H.wet(bx + dx, by + dy)) nat++; }
     H.meet('natteCellen', nat); H.meet('gemetenCellen', n);
     await H.shot('a', 1800); H.cam(bx + 40, by + 40, H.gh(bx, by) + 35, bx, by, H.gh(bx, by), 60); await H.shot('b', 1800); H.camOff();
-  }, { metrics: ['natteCellen', 'gemetenCellen'] });
+    // de plekken voor de hertest: de Munsterse Poort, de kerk, een wal bij een bolwerk, de gracht, het Marktplein en 's avonds
+    const kijk = async (naam, [px, py], [lx, ly], hoogte = 6, fov = 65) => {
+      await H.jump(px, py, 3500);
+      const z = H.gh(px, py);
+      H.cam(px, py, z + hoogte, lx, ly, z + 2, fov); await H.shot(naam, 1800); H.camOff();
+    };
+    await kijk('poort', [42492, 22912], [42492, 22881]);
+    await kijk('kerk', [42440, 22745], [42417, 22773]);
+    await kijk('wal', [42560, 22660], [42583, 22679], 9);
+    await kijk('gracht', [42468, 22610], [42468, 22640], 4, 70);
+    await kijk('plein', [42470, 22790], [42470, 22810], 5);
+    // 's avonds: de lantaarns branden warm (de klok gaat naar 22 uur; werkt dat niet, dan staat dat in de notitie)
+    try { if (H.w.dayNight) H.w.dayNight.hour = 22; H.w.clock = 22; } catch (e) { H.note('klok zetten mislukte: ' + e.message); }
+    await kijk('avond', [42470, 22790], [42470, 22810], 4);
+    const auto = (H.w.vehicles || []).filter((v) => v.driver !== 'player' && !v.isBike && Math.hypot(v.x - bx, v.y - by) < 235).length;
+    H.meet('autosInGebied', auto);
+    H.meet('walHoogte', Math.round((H.gh(42583, 22679) - H.gh(42470, 22800)) * 10) / 10);
+    H.note('monumentgebied: ' + (H.w.map && H.w.map.meta && H.w.map.meta.monumenten ? H.w.map.meta.monumenten.length + ' op de kaart' : 'geen kaartpunt'));
+  }, { metrics: ['natteCellen', 'gemetenCellen', 'autosInGebied', 'walHoogte'], questions: ['Loop door Bourtange: voelt het als een monument (klinkers, rode baksteen, wallen, kanonnen, geen auto of bord)?', 'Staat de wal bij een bolwerk echt hoger dan het plein, en kun je er zonder te vallen overheen lopen?'] });
 image(1092, 'Procedurele randen om landbouwpercelen weg', 'Rond velden en weilanden staan geen verzonnen heggen, hekken en bermen.',
   'Randen komen alleen uit kaartlijnen; geen nepbermen die op sloten lijken.', ['a', 'b'], async (H) => {
     const [bx, by] = PTS.marum; await H.jump(bx, by, 6000); const z = H.gh(bx, by);

@@ -3,7 +3,7 @@ import { edgeDistance } from './countryfield.js';
 import { landmarkParams, kitCoversBuilding, COVER_KINDS, wierdeOnRoad, wierdeRadius, setKitList } from './landmarkkit.js';
 import { createLandmarkLayer } from './landmarklayer3d.js';
 import { installeerUitkijkpunten } from './verkenpunten.js';
-import { monumentPois } from './monumentzone.js';
+import { monumentPois } from './heritagearea.js';
 import { stationFit } from './propfilter.js';
 
 // The landmark kits in today's Ommeland (LK1): the candidates from
@@ -106,7 +106,7 @@ export function updateOmmelandLandmarks(world, scene, focus, hideBuilding = null
     fetch(new URL('landmarkkits.json', location.href).href).then((r) => (r.ok ? r.json() : null)).then(async (j) => {
       if (!j || !j.items) return;
       installeerUitkijkpunten(world.map, j.items); // #807 A15: de acht uitkijkpunten op de kaart
-      if (world.map.meta) world.map.meta.monumenten = monumentPois(); // monumentgebieden (monumentzone.js): Vesting Bourtange op de kaart
+      if (world.map.meta) world.map.meta.monumenten = monumentPois(); // monumentgebieden (heritagearea.js): Vesting Bourtange op de kaart
       // a church without an outline of its own is fitted to the tiles' church there
       const lone = j.items.filter((it) => ((it.k === 'church' || it.k === 'chapel') && !it.o) || (it.k === 'station' && !it.o)).map((it) => [it.x, it.y]);
       S.list = await withTiles(world.map, lone, () => prepareLandmarks(j.items, world.map), { radius: 60, token: 'kits' });

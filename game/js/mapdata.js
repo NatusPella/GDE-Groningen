@@ -5,7 +5,7 @@ import { attachMuseumPlan } from './museumplan.js';
 import { attachInteriorPlans } from './interieurplan.js';
 import { SpatialGrid, gridItems } from './spatialgrid.js';
 import { deriveBuildings, liftNestedRoofs, isRingRoad } from './derive.js';
-import { monumentRampartProfile } from './monumentzone.js';
+import { monumentRampartProfile } from './heritagearea.js';
 import { deckTerrainAt, isDeckRoad, roadTerrainAt, deckTerrainOnSeg, roadTerrainOnSeg } from './deckterrain.js';
 import { clearTreesFromRoads } from './treeclear.js';
 import { buildElevation, addPerrons, groundHeightAt, surfaceAt, ribbonAt, ribbonZAt, roadZAt, ceilingAt, coveredAt, surfaceHalfWidth, offLevelAt, resolveElevWalls, elevWallContact } from './elevation.js';
@@ -94,7 +94,7 @@ export function dropNeedlessDeck(map, r) {
       for (const [dx, dy] of NEEDLESS_RING) if (waterPolyIn(polys, x + dx * m * 0.7, y + dy * m * 0.7)) return false;
     }
   }
-  // een monumentgebied (monumentzone.js): het pad is daar een aarden wal en houdt zijn (begrensde) hoogte; zonder brugvlag maakt
+  // een monumentgebied (heritagearea.js): het pad is daar een aarden wal en houdt zijn (begrensde) hoogte; zonder brugvlag maakt
   // elevation.js er een ophoging met grashelling van, geen dek op pijlers
   const wal = monumentRampartProfile(r.z, pts);
   if (wal) { r.z = wal; r.st = undefined; r.ly = undefined; r.zDeck = undefined; r.pnet = undefined; r.bridge = false; r.deckDropped = true; r.rampart = true; return true; }

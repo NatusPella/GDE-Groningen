@@ -60,7 +60,7 @@ import { verkeerOpties } from './simlagen.js';
 import { SMOKE_HEALTH, kapRookt, schadeSnelheidFactor, valtOm, valOm } from './vehicledamage.js';
 import { rideFiets, rideMotorbike } from './vehicle/twowheeler.js';
 import { hoofdspeler } from './players.js';
-import { monumentTrafficAllowed } from './monumentzone.js';
+import { monumentTrafficAllowed } from './heritagearea.js';
 export { MOTORBIKE_MODELS, GEARED_MOPED_MODEL, MOPED_LEGAL_SPEED } from './motomodels.js';
 
 // every traffic model, for warming their meshes before they first spawn
@@ -891,7 +891,7 @@ export function manageTrafficPopulation(world, opts = {}) {
     // as soon as the player was more than ~260 m away (the intro montage moves the player through
     // the city), so the flight school and the round-trip service could not find it at all.
     if (v.driver === 'player' || v.isPolice || v.isHeroCar || v.missionCar || v.isPlane || v.isBike || v.isBus || v.parked || v.homeStored || (v.isBoat && v.playerOwned)) continue;
-    // een monumentgebied (monumentzone.js) is autovrij: wat er binnenrijdt verdwijnt, tenzij de speler het van dichtbij ziet
+    // een monumentgebied (heritagearea.js) is autovrij: wat er binnenrijdt verdwijnt, tenzij de speler het van dichtbij ziet
     if (!v.isBoat && !monumentTrafficAllowed(v.isMotor ? 'motors' : v.isScooter ? 'scooters' : 'cars', v.x, v.y) && Math.hypot(v.x - player.x, v.y - player.y) > 30) { vehicles.splice(i, 1); continue; }
     // Wrecked cars have speed=0 forever and would otherwise almost never
     // reach the distance despawn, silently eating the traffic quota. A
@@ -924,7 +924,7 @@ export function manageTrafficPopulation(world, opts = {}) {
       if (have[k] < want[k] && Math.random() < (k === 'cashvan' ? 0.08 : k === 'newsvan' ? 0.1 : 0.25)) { pick = { kind: k, model: carModel(k) }; break; }
     }
     if (!canUseRoad({ model: pick.model }, road, map)) continue;
-    if (!monumentTrafficAllowed('cars', mid[0], mid[1])) continue; // geen auto in een monumentgebied (monumentzone.js)
+    if (!monumentTrafficAllowed('cars', mid[0], mid[1])) continue; // geen auto in een monumentgebied (heritagearea.js)
     const v = spawnVehicleOnRoad(map, road, false, Math.random, false, false, null, false, pick.model);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
     if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v) || !monumentTrafficAllowed('cars', v.x, v.y)) continue;

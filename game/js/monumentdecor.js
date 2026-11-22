@@ -1,4 +1,4 @@
-// De aankleding van een monumentgebied (monumentzone.js, #953): kanonnen, kogelstapels en tonnen op de bolwerken, lindebomen
+// De aankleding van een monumentgebied (heritagearea.js, #953): kanonnen, kogelstapels en tonnen op de bolwerken, lindebomen
 // rond het Marktplein, banken, vlaggen bij de poorten, historische lantaarns langs de straten en een paar figuranten in
 // historische kleding. Zuiver: de plek van elk onderdeel is data of een formule, zonder kaart of THREE. De tekenlaag
 // (monumentdecor3d.js) geeft het plan aan missiedecor.js (registreerAankleding), dat props en mensen bouwt, de mensen laat
@@ -6,7 +6,7 @@
 // (scripts/monumentdecor_test.mjs) legt de plekken naast de tegels en eist ook droge, vrije grond buiten de weg.
 //
 // Samen spelen: de wereld is van de host, de aankleding is overal dezelfde (data, geen toeval): geen netwerkwijziging.
-import { MONUMENT_ZONES } from './monumentzone.js';
+import { HERITAGE_AREAS } from './heritagearea.js';
 import { isInWater } from './util.js';
 import { onGroundRoad, inBuildingAt } from './propfilter.js';
 
@@ -34,14 +34,14 @@ export const STRATEN = [
   { n: 'Kapitein Prottstraat', a: [42471, 22799], b: [42451, 22735] },
 ];
 
-export const LANTAARN_AFSTAND = 22; // m tussen twee lantaarns langs een straat
-export const LANTAARN_ZIJ = 2.6;    // m van de middellijn (een straat is 3 tot 4 m breed)
+export const LAMP_SPACING_M = 22; // m tussen twee lantaarns langs een straat
+export const LAMP_SIDE_M = 2.6;    // m van de middellijn (een straat is 3 tot 4 m breed)
 
 // Alle onderdelen in wereldmeters: { kind, x, y, a } (a = kijkrichting in radialen). Deterministisch.
 export function monumentDecorItems(zoneId = 'bourtange') {
-  const zone = MONUMENT_ZONES.find((z) => z.id === zoneId);
-  if (!zone || !zone.decor || zone.id !== 'bourtange') return [];
-  const [zx, zy] = zone.at;
+  const area = HERITAGE_AREAS.find((z) => z.id === zoneId);
+  if (!area || !area.decor || area.id !== 'bourtange') return [];
+  const [zx, zy] = area.at;
   const items = [];
   const add = (kind, x, y, a = 0) => items.push({ kind, x: R1(x), y: R1(y), a: R1(a) });
 
@@ -85,8 +85,8 @@ export function monumentDecorItems(zoneId = 'bourtange') {
     const dx = s.b[0] - s.a[0], dy = s.b[1] - s.a[1], len = Math.hypot(dx, dy);
     const ux = dx / len, uy = dy / len;
     let side = 1;
-    for (let d = 8; d <= len - 6; d += LANTAARN_AFSTAND, side = -side) {
-      add('lantaarn', s.a[0] + ux * d - uy * LANTAARN_ZIJ * side, s.a[1] + uy * d + ux * LANTAARN_ZIJ * side, 0);
+    for (let d = 8; d <= len - 6; d += LAMP_SPACING_M, side = -side) {
+      add('lantaarn', s.a[0] + ux * d - uy * LAMP_SIDE_M * side, s.a[1] + uy * d + ux * LAMP_SIDE_M * side, 0);
     }
   }
   return items;
@@ -140,9 +140,9 @@ export function fitMonumentDecor(map, items, { reach = 8, step = 1.5 } = {}) {
 // Het plan in de vorm van missiedecor.js (langs = x, opzij = y vanaf het anker, met hoek 0): { props, people }. `items`: de
 // onderdelen die op de kaart passen (fitMonumentDecor); zonder: de formule zelf.
 export function monumentDecorPlan(zoneId = 'bourtange', items = null) {
-  const zone = MONUMENT_ZONES.find((z) => z.id === zoneId);
-  if (!zone) return null;
-  const [zx, zy] = zone.at;
+  const area = HERITAGE_AREAS.find((z) => z.id === zoneId);
+  if (!area) return null;
+  const [zx, zy] = area.at;
   const props = (items || monumentDecorItems(zoneId)).map((o) => ({ kind: o.kind, along: R1(o.x - zx), side: R1(o.y - zy), a: -o.a }));
   const people = FIGURANTEN.map((f) => ({
     look: { shirt: [0x7a5a3a, 0x5a6a4a, 0x8a4a34, 0x4a5a6a, 0x6a5a4a][f.seed % 5], skin: [0xf1c9a5, 0xd9a06e, 0xa9744a][f.seed % 3], seed: f.seed, variant: f.variant, role: 'historisch' },

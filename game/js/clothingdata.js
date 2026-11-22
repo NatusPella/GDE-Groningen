@@ -279,7 +279,7 @@ export const ROLE_POOLS = {
     back: [[null, 20], ['rugzak', 62], ['boodschappentas', 18]],
     jewel: [[null, 70], ['kralen', 18], ['hanger', 12]],
   },
-  // een figurant of burger van de vesting (monumentzone.js): eenvoudige stukken in aardse tinten, een lange jas of vest, laarzen en een platte hoed;
+  // een figurant of burger van de vesting (heritagearea.js): eenvoudige stukken in aardse tinten, een lange jas of vest, laarzen en een platte hoed;
   // alleen bestaande stukken, geen echte persoon of tijdperk-uniform
   historisch: {
     top: [['overhemd', 40], ['zomerhemd', 24], ['blouse', 16], ['trui', 10], ['jurk', 10]],

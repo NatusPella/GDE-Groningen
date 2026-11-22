@@ -1,5 +1,5 @@
 // Monumentgebieden (#953, docs/BOURTANGE-MONUMENT-22-11.md): een plek die als monument moet voelen en niet als
-// modern dorp. Een zone is data: een middelpunt, een straal en per systeem een regel (wegen, straatmeubilair, verkeer,
+// modern dorp. Een gebied is data: een middelpunt, een straal en per systeem een regel (wegen, straatmeubilair, verkeer,
 // gevels, wallen, mensen, geluid, licht en kleur). Alleen Vesting Bourtange staat erin; een volgende plek (Appingedam,
 // de Vismarkt) is één regel erbij, zonder nieuwe code op de haakpunten.
 //
@@ -7,17 +7,17 @@
 // een antwoord dat voor iedereen gelijk is (deterministisch, Samen spelen: de wereld is van de host, de regel is
 // overal dezelfde; er gaat niets over het net).
 //
-// Haakpunten (elk met `monumentZoneAt` of een van de helpers hieronder):
+// Haakpunten (elk met `heritageAreaAt` of een van de helpers hieronder):
 //   roadsurface.js     roadSurface()          wegmateriaal: klinkers, zandpad (en dus geen markeringen: die staan alleen op asfalt)
 //   streetfurniture.js furnitureForTile()      geen lantaarnpalen, borden, bushokjes, vangrails en reclame
-//   vehicle.js         manageTrafficPopulation geen rijdend verkeer in de zone
+//   vehicle.js         manageTrafficPopulation geen rijdend verkeer in het gebied
 //   models3d_buildings.js                      historische gevels (baksteen, luiken, pannendak, schoorsteen)
 //   mapdata.js         dropNeedlessDeck        de wallen blijven echt hoog (aarden wal met grashelling)
 //   clothing.js        pedRole                 wandelaars in zomerkleding en figuranten in historische kleding
 //   sfx/ambience.js    countryPlace            geen stadsgeluid of verkeer, wel vogels en wind
 //   monumentdecor.js   de aankleding (kanonnen, tonnen, lindebomen, lantaarns) en de figuranten
 
-export const MONUMENT_ZONES = [
+export const HERITAGE_AREAS = [
   {
     id: 'bourtange',
     name: 'Vesting Bourtange',
@@ -51,51 +51,51 @@ export const MONUMENT_ZONES = [
   },
 ];
 
-const BY_ID = Object.fromEntries(MONUMENT_ZONES.map((z) => [z.id, z]));
-export const monumentZoneById = (id) => BY_ID[id] || null;
+const BY_ID = Object.fromEntries(HERITAGE_AREAS.map((z) => [z.id, z]));
+export const heritageAreaById = (id) => BY_ID[id] || null;
 
-// Afstand van (x, y) tot het middelpunt van een zone.
+// Afstand van (x, y) tot het middelpunt van een gebied.
 const dist = (z, x, y) => Math.hypot(x - z.at[0], y - z.at[1]);
 
-// De zone waar (x, y) in ligt, of null. De kern (straal) is waar de harde regels gelden.
-export function monumentZoneAt(x, y) {
-  for (const z of MONUMENT_ZONES) if (dist(z, x, y) <= z.radius) return z;
+// Het gebied waar (x, y) in ligt, of null. De kern (straal) is waar de harde regels gelden.
+export function heritageAreaAt(x, y) {
+  for (const z of HERITAGE_AREAS) if (dist(z, x, y) <= z.radius) return z;
   return null;
 }
 
 // 1 in de kern, 0 buiten straal + rim, daartussen lineair: voor geluid en kleur, die zacht moeten uitdoven.
 export function monumentWeight(x, y) {
   let w = 0;
-  for (const z of MONUMENT_ZONES) {
+  for (const z of HERITAGE_AREAS) {
     const d = dist(z, x, y);
     w = Math.max(w, d <= z.radius ? 1 : d >= z.radius + z.rim ? 0 : 1 - (d - z.radius) / z.rim);
   }
   return w;
 }
 
-// Het wegmateriaal voor een weg in een zone (type en klasse uit de kaart, `mid` = een punt van de weg); null buiten de zone.
+// Het wegmateriaal voor een weg in een gebied (type en klasse uit de kaart, `mid` = een punt van de weg); null buiten het gebied.
 export function monumentRoadSurface(road, mid) {
-  const z = mid && monumentZoneAt(mid[0], mid[1]);
+  const z = mid && heritageAreaAt(mid[0], mid[1]);
   if (!z || !road) return null;
   return z.roads.surface[road.type] || z.roads.fallback;
 }
 
 // Mag dit straatmeubilair-soort (furniture k) hier staan?
 export function monumentFurnitureAllowed(k, x, y) {
-  const z = monumentZoneAt(x, y);
+  const z = heritageAreaAt(x, y);
   return !z || !z.furniture.drop.includes(k);
 }
 
 // Mag deze verkeerssoort hier rijden of verschijnen? kind: 'cars' | 'motors' | 'scooters' | 'bikes' | 'buses'
 export function monumentTrafficAllowed(kind, x, y) {
-  const z = monumentZoneAt(x, y);
+  const z = heritageAreaAt(x, y);
   return !z || z.traffic[kind] !== false;
 }
 
-// De gevelstijl op (x, y): het zone-object van de gevelregel of null.
+// De gevelstijl op (x, y): het gebiedsobject van de gevelregel of null.
 export function monumentFacadeAt(x, y) {
-  const z = monumentZoneAt(x, y);
-  return z && z.facade ? { zone: z.id, ...z.facade } : null;
+  const z = heritageAreaAt(x, y);
+  return z && z.facade ? { area: z.id, ...z.facade } : null;
 }
 
 // De kleuren van de historische gevel (hex): baksteen rood tot bruin, pannendak, witte of groene kozijnen en luiken.
@@ -118,17 +118,17 @@ export function monumentRampartProfile(z, pts) {
   if (!Array.isArray(z) || !pts || !pts.length) return null;
   let sx = 0, sy = 0;
   for (const p of pts) { sx += p[0]; sy += p[1]; }
-  const zone = monumentZoneAt(sx / pts.length, sy / pts.length);
-  if (!zone || !zone.rampart) return null;
+  const area = heritageAreaAt(sx / pts.length, sy / pts.length);
+  if (!area || !area.rampart) return null;
   let zmax = 0;
   for (const v of z) if (v > zmax) zmax = v;
-  if (zmax < zone.rampart.minZ) return null;
-  return z.map((v) => Math.max(0, Math.min(v, zone.rampart.maxZ)));
+  if (zmax < area.rampart.minZ) return null;
+  return z.map((v) => Math.max(0, Math.min(v, area.rampart.maxZ)));
 }
 
-// De buurtsleutel van de mensen (clothing.js AREA_ROLES): null buiten een zone.
+// De buurtsleutel van de mensen (clothing.js AREA_ROLES): null buiten een gebied.
 export function monumentAreaKey(x, y) {
-  const z = monumentZoneAt(x, y);
+  const z = heritageAreaAt(x, y);
   return z && z.people ? z.people.area : null;
 }
 
@@ -136,25 +136,25 @@ export function monumentAreaKey(x, y) {
 export function monumentAudioScale(x, y) {
   const w = monumentWeight(x, y);
   if (w <= 0) return null;
-  const z = MONUMENT_ZONES.find((q) => dist(q, x, y) <= q.radius + q.rim);
+  const z = HERITAGE_AREAS.find((q) => dist(q, x, y) <= q.radius + q.rim);
   if (!z) return null;
   const mix = (v) => 1 + (v - 1) * w;
   return { traffic: mix(z.audio.traffic), city: mix(z.audio.city), vogels: mix(z.audio.vogels), wind: mix(z.audio.wind), weight: w };
 }
 
 // Brandt de lantaarnglans op dit uur? (alleen de aankleding; 's avonds en 's nachts)
-export function monumentLanternOn(zone, hour) {
-  const l = zone && zone.light;
+export function monumentLanternOn(area, hour) {
+  const l = area && area.light;
   if (!l || !Number.isFinite(hour)) return false;
   return hour >= l.from || hour < l.to;
 }
 
 // Het warmere papier van de Wereldkleur: een kleine verschuiving (0..tint.warm) naar warm, naar gewicht.
 export function monumentTintAt(x, y) {
-  const z = MONUMENT_ZONES.find((q) => dist(q, x, y) <= q.radius + q.rim);
+  const z = HERITAGE_AREAS.find((q) => dist(q, x, y) <= q.radius + q.rim);
   if (!z || !z.tint) return 0;
   return z.tint.warm * monumentWeight(x, y);
 }
 
-// Voor de kaart en de lijst met plekken: naam, icoon en korte tekst per zone.
-export const monumentPois = () => MONUMENT_ZONES.map((z) => ({ id: z.id, naam: z.name, x: z.at[0], y: z.at[1], icon: z.icon, tekst: z.info }));
+// Voor de kaart en de lijst met plekken: naam, icoon en korte tekst per gebied.
+export const monumentPois = () => HERITAGE_AREAS.map((z) => ({ id: z.id, naam: z.name, x: z.at[0], y: z.at[1], icon: z.icon, tekst: z.info }));

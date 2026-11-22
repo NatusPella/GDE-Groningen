@@ -13,7 +13,7 @@ import { buildMuseumInterior } from './museum3d.js';
 import { registerMemSource } from './memwatch.js';
 import { buildInteriorOf } from './interieur3d.js';
 import { marktKind, buildMarktGroup } from './marktgebouwen.js';
-import { monumentFacadeAt, HISTORIC_FACADE, historicFamily } from './monumentzone.js';
+import { monumentFacadeAt, HISTORIC_FACADE, historicFamily } from './heritagearea.js';
 import { hash2 } from './rng.js';
 import { paneKey } from './interiorlook.js';
 import { poiLayerPlace } from './facilities.js';
@@ -1068,7 +1068,7 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
   const industrial = archetype === 'industrial';
   const houseboat = archetype === 'houseboat';
   const brick = BRICKS.has(wallHex);
-  const hist = monumentFacadeAt(box.cx, box.cy); // een monumentgebied (monumentzone.js): historische gevel
+  const hist = monumentFacadeAt(box.cx, box.cy); // een monumentgebied (heritagearea.js): historische gevel
 
   const S = {
     wall: wallHex,
@@ -1220,7 +1220,7 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
     else if (archetype === 'apartments' && floorCount <= 4 && shortSpan <= 13 && r(16) < 0.55) roofKind = 'pitched';
     else if (archetype === 'retail' && floorCount <= 3 && shortSpan <= 10 && r(16) < 0.6) roofKind = 'pitched';
     else if (industrial && shortSpan <= 24 && shortSpan >= 3 && r(16) < 0.55) roofKind = 'shed';
-    // een monumentgebied (monumentzone.js): een pannendak op alles wat een dak kan dragen, geen plat dak met installaties
+    // een monumentgebied (heritagearea.js): een pannendak op alles wat een dak kan dragen, geen plat dak met installaties
     if (hist && roofKind !== 'pitched' && shortSpan <= 18 && shortSpan >= 3) roofKind = 'pitched';
   }
 
@@ -1404,7 +1404,7 @@ function addLandmarkDetail(group, b, box, parts, depth, roofMat, fine2) {
 }
 
 function pickColors(b, box, archetype, fine) {
-  // een monumentgebied (monumentzone.js): baksteen rood tot bruin, pannendak, witte of groene kozijnen; ook een schuur is daar van baksteen
+  // een monumentgebied (heritagearea.js): baksteen rood tot bruin, pannendak, witte of groene kozijnen; ook een schuur is daar van baksteen
   if (archetype !== 'houseboat' && monumentFacadeAt(box.cx, box.cy)) {
     const f = historicFamily(fine);
     return { wallHex: f.wall[Math.floor(fine * f.wall.length) % f.wall.length], roofHex: f.roof, frame: f.frame };

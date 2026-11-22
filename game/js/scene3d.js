@@ -129,7 +129,7 @@ import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpaci
 import { computeLighting, dayState } from './daynight.js';
 import { wijkProfileAt } from './trafficfleet.js';
 import { pedRole } from './clothing.js';
-import { monumentAreaKey } from './monumentzone.js';
+import { monumentAreaKey } from './heritagearea.js';
 import { applyWorldGrade } from './worldgrade3d.js'; // wereldkleur (21-11): saturatie, tinten en mist van de dag
 import { createPostFX } from './postfx3d.js';
 import { noteGfxEvent, watchContext, gpuRamp } from './blackframe.js';

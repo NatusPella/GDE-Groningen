@@ -442,7 +442,7 @@ const AREA_ROLES = {
   chic: { voetganger: 52, student: 3, toerist: 5, sporter: 8, zakenman: 12, bouwvakker: 1, winkelier: 6, feestganger: 5, ambtenaar: 5, wandelaar: 3 },
   bakfiets: { voetganger: 68, student: 6, toerist: 2, sporter: 8, zakenman: 3, bouwvakker: 2, winkelier: 3, feestganger: 2, ambtenaar: 3, wandelaar: 3 },
   industrie: { voetganger: 38, student: 1, toerist: 0, sporter: 2, zakenman: 8, bouwvakker: 42, winkelier: 1, feestganger: 0, boer: 6, ambtenaar: 2 },
-  // een monumentgebied (monumentzone.js, Vesting Bourtange): wandelaars en toeristen in zomerkleding, een paar figuranten in historische kleding
+  // een monumentgebied (heritagearea.js, Vesting Bourtange): wandelaars en toeristen in zomerkleding, een paar figuranten in historische kleding
   monument: { voetganger: 38, toerist: 26, wandelaar: 16, historisch: 8, student: 2, sporter: 2, winkelier: 2 },
   centrum: { voetganger: 42, student: 8, toerist: 14, sporter: 2, zakenman: 8, bouwvakker: 1, winkelier: 7, feestganger: 8, ambtenaar: 12, wandelaar: 3 },
 };

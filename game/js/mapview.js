@@ -1455,7 +1455,7 @@ function drawStaticOverlay(ctx) {
     }
   }
 
-  // monumentgebieden (monumentzone.js): een eigen icoon met naam en een korte tekst, klikken zet een waypoint
+  // monumentgebieden (heritagearea.js): een eigen icoon met naam en een korte tekst, klikken zet een waypoint
   if (layerOn('landmark')) {
     for (const m of state.map.meta.monumenten || []) {
       const [sx, sy] = toScreen(m.x, m.y);
