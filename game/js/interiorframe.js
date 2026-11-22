@@ -59,7 +59,8 @@ export function findHall(ring, f, opts = {}) {
     while (u0 - HALL_STEP >= -maxW / 2 && colFree(u0 - HALL_STEP, d)) u0 -= HALL_STEP;
     while (u1 + HALL_STEP <= maxW / 2 && colFree(u1 + HALL_STEP, d)) u1 += HALL_STEP;
     // r6: the coarse 0.5 m step can lose up to 0.5 m of free width per side; a hall that is only just too narrow gets its edges grown by 10 cm first
-    if (u1 - u0 < minW && u1 - u0 > minW - 2 * HALL_STEP) {
+    // r7: the same for a door close to a corner: the coarse step stops at -0.5 where -0.95 is still free, which then fails doorClear
+    if ((u1 - u0 < minW && u1 - u0 > minW - 2 * HALL_STEP) || u0 > -doorClear || u1 < doorClear) {
       for (let k = 0; k < 5 && u0 - 0.1 >= -maxW / 2 && colFree(u0 - 0.1, d); k++) u0 -= 0.1;
       for (let k = 0; k < 5 && u1 + 0.1 <= maxW / 2 && colFree(u1 + 0.1, d); k++) u1 += 0.1;
     }
@@ -82,7 +83,7 @@ export function findHall(ring, f, opts = {}) {
 // A door for a building whose facade builder drew none (churches, schools, halls whose facade comes from a model or a
 // roller door): the middle of the best edge of the ring, in the same shape as b.entrance. The interior cuts the opening
 // and hangs its own leaf there. `gable`: the shortest long-enough edge (a church), else the longest edge.
-export function synthEntrance(b, gable = false) {
+export function synthEntrance(b, gable = false, minLen = null) {
   const R = openRing(b.pts);
   if (R.length < 3) return null;
   let a2 = 0;
@@ -92,11 +93,11 @@ export function synthEntrance(b, gable = false) {
   for (let i = 0; i < R.length; i++) {
     const p = R[i], q = R[(i + 1) % R.length];
     const dx = q[0] - p[0], dy = q[1] - p[1], len = Math.hypot(dx, dy);
-    if (len < (gable ? 4 : 3.5)) continue;
+    if (len < (minLen || (gable ? 4 : 3.5))) continue;
     if (!best || (gable ? len < best.len : len > best.len)) best = { ax: p[0], ay: p[1], tx: dx / len, ty: dy / len, nx: sign * dy / len, ny: -sign * dx / len, len };
   }
   if (!best) return null;
   const depth = Math.max(2.4, (b.h || 1) * 3);
-  const floors = gable ? 1 : Math.min(14, Math.max(1, Math.round(depth / 3)));
-  return { ...best, c: best.len / 2, w: gable ? 1.6 : 1.4, h: gable ? Math.min(3.0, depth - 0.5) : Math.min(2.3, depth / floors - 0.65), shop: false, floorH: depth / floors, floors, depth, look: null, archetype: gable ? 'church' : 'public', doorColor: 0x4a3322, frameColor: 0x3a2a1c, windows: [], synth: true };
+  const floors = gable || minLen ? 1 : Math.min(14, Math.max(1, Math.round(depth / 3)));
+  return { ...best, c: best.len / 2, w: gable ? 1.6 : minLen ? 1.0 : 1.4, h: gable ? Math.min(3.0, depth - 0.5) : Math.min(minLen ? 2.1 : 2.3, depth / floors - 0.65), shop: false, floorH: depth / floors, floors, depth, look: null, archetype: gable ? 'church' : 'public', doorColor: 0x4a3322, frameColor: 0x3a2a1c, windows: [], synth: true };
 }

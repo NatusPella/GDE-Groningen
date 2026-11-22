@@ -53,6 +53,7 @@ export const SCRIPTS = {
   agent: [S('dossier typen', 'seat', 'sit', 10, 20), S('rondkijken', 'board', null, 4, 8), S('overleg', 'home', 'phone', 4, 8), S('rondgang', 'wander', null, 2, 5)],
   apotheker: [S('recept klaarmaken', 'home', 'vendor', 6, 12), S('schap aanvullen', 'shelf', 'crouch', 4, 8), S('wachten', 'home', null, 3, 6), S('bellen', 'home', 'phone', 4, 7)],
   hotelgast: [S('zitten', 'seat', 'sit', 20, 45), S('lezen', 'seat', 'phone', 15, 30), S('folders bekijken', 'board', null, 4, 8), S('slenteren', 'wander', null, 1, 3)],
+  boer: [S('voeren', 'shelf', 'crouch', 6, 12), S('hooi verplaatsen', 'work', 'crouch', 5, 10), S('gereedschap', 'work', null, 3, 6), S('slenteren', 'wander', null, 1, 3)],
   trainer: [S('begeleiden', 'machine', null, 6, 12), S('aanwijzen', 'lift', null, 4, 8), S('slenteren', 'wander', null, 1, 3), S('pauze', 'seat', 'sit', 8, 16)],
 };
 const FALLBACK = [S('rondkijken', 'shelf', null, 3, 7), S('slenteren', 'wander', null, 1, 3)];
