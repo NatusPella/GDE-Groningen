@@ -20,10 +20,11 @@ const ACT_STOP_S = 1.5;
 const MENU_START_S = 8;
 const MENU_STOP_S = 2;
 
-import { isPauseMenuOpen } from './pausestate.js';
+import { isPauseMenuOpen, getPauseMenuTab } from './pausestate.js';
+import { FOOTBALL_KEYS, footballMusicKey } from './footballmusic.js';
 import { SFEER_KEYS, missieMuziekKey, bijbaanMuziekKey } from './missiesfeer.js';
 
-export const ACTIVITY_KEYS = ['kart', 'padel', 'golf', 'klimtoren', 'trein', 'bus', 'boerderij', 'vlucht', 'thuis', 'missie', 'fiets', 'menu', 'pvp', ...SFEER_KEYS];
+export const ACTIVITY_KEYS = ['kart', 'padel', 'golf', 'klimtoren', 'trein', 'bus', 'boerderij', 'vlucht', 'thuis', 'missie', 'fiets', 'menu', 'pvp', ...FOOTBALL_KEYS, ...SFEER_KEYS];
 // De missiesferen (missiesfeer.js) komen alleen als sleutel binnen voor een verhaalmoment uit de lijst met een geleverd bestand; anders is het de radio.
 const BOERDERIJ_MODELLEN = ['tractor', 'maaidorser', 'laadmachine']; // de machines van het boerenwerk (boerderijwereld.js, #415)
 
@@ -39,8 +40,11 @@ const probed = (key, world) => { const f = probes.get(key); try { return !!f && 
 // on his own screen (world.coopWedGast: spiegel or score, id of the match);
 // a guest who said no has neither and keeps the radio.
 const ACTIVITY_BY_ID = { kartbaan: 'kart', padel: 'padel', discgolf: 'golf', pitchputt: 'golf', klimtoren: 'klimtoren' };
-export function activityMusicKey(world) {
+export function activityMusicKey(world, settings = null) {
   if (!world) return null;
+  // the football layer (footballmusic.js): the track of the match phase, the penalty series, the training or the club screen (the Voetbal tab of the pause menu); this player's own screen, nothing over the network
+  const vm = footballMusicKey(world, settings, { clubScreen: isPauseMenuOpen() && getPauseMenuTab() === 'voetbal' });
+  if (vm) return vm;
   // the pause menu (also the Samen spelen lobby and the other tabs): the menu loop wins over everything for this player
   if (isPauseMenuOpen()) return 'menu';
   if (world.padelGame) return 'padel';

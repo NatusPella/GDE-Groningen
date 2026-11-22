@@ -6,6 +6,7 @@ import { sfeerTracks } from '../missiesfeer.js';
 import * as speech from '../speech.js';
 import { musicDuckGain, musicDuckStep } from '../sfx/mixplan.js';
 import { createScenarioDirector, activityMusicKey, createLoopScan } from '../scenariomusic.js';
+import { FOOTBALL_TRACKS, footballMusicVolume, footballDucking } from '../footballmusic.js';
 
 // Instrumental loops that replace G-Music while something big happens
 // (scenariomusic.js decides which); not part of the radio rotation.
@@ -25,6 +26,7 @@ const SCENARIO_TRACKS = {
   thuis: './audio/scenario/thuis_loop.mp3',
   menu: './audio/scenario/menu_loop.mp3',
   pvp: './audio/scenario/pvp_arena_loop.mp3',
+  ...Object.fromEntries(Object.entries(FOOTBALL_TRACKS).map(([k, t]) => [k, `./audio/voetbal/${t.file}`])), // de voetbalmuziek (footballmusic.js): alleen geladen als de fase er om vraagt en het bestand bestaat
   ...sfeerTracks(), // de missiesferen waarvan de eigenaar het bestand leverde (missiesfeer.js); de rest valt terug op 'missie'
 };
 const SCENARIO_VOLUME = 0.8;
@@ -147,9 +149,9 @@ function startScenarioTrack(key) {
   }
   const src = ctx.createBufferSource();
   src.buffer = entry.buf;
-  src.loop = true;
-  src.loopStart = entry.loop.start;
-  src.loopEnd = entry.loop.end;
+  const oneShot = !!(FOOTBALL_TRACKS[key] && FOOTBALL_TRACKS[key].oneShot); // een sting speelt één keer
+  src.loop = !oneShot;
+  if (!oneShot) { src.loopStart = entry.loop.start; src.loopEnd = entry.loop.end; }
   const fade = ctx.createGain();
   const t = ctx.currentTime;
   fade.gain.setValueAtTime(0, t);
@@ -174,7 +176,7 @@ export function updateScenarioMusic(dt, world) {
   const m = world.mission;
   const race = !!(m && m.phase === 'active' && m.raceMusic);
   const chasing = world.wanted > 0 && !(world.police && world.police.searching) && !world.pendingRespawn;
-  let want = scenarioDirector.update(dt, { race, chasing, activity: activityMusicKey(world) });
+  let want = scenarioDirector.update(dt, { race, chasing, activity: activityMusicKey(world, host.getSettings()) });
   if (!scenarioKeyAllowed(want, host.radioOn())) want = null;
   if (want) loadScenarioBuffer(want);
   const cur = scenarioNow ? scenarioNow.key : null;
@@ -188,7 +190,7 @@ export function updateScenarioMusic(dt, world) {
     else if (scenarioBuffers[want].failed) want = null;
   }
   scenarioDuck = musicDuckStep(scenarioDuck, speech.musicDuck(), dt);
-  if (scenarioVol) scenarioVol.gain.value = SCENARIO_VOLUME * host.musicVolume(host.getSettings()) * (1 - 0.45 * host.stingDuck.level) * musicDuckGain(scenarioDuck);
+  if (scenarioVol) scenarioVol.gain.value = SCENARIO_VOLUME * host.musicVolume(host.getSettings()) * (1 - 0.45 * host.stingDuck.level) * musicDuckGain(scenarioDuck) * (want && want.startsWith('voetbal_') ? footballMusicVolume(host.getSettings()) * footballDucking(world) : 1);
   return want && scenarioBuffers[want] && !scenarioBuffers[want].failed ? want : null;
 }
 
