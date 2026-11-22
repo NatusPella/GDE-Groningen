@@ -102,13 +102,15 @@
   position: absolute; left: 50%; top: 42%; width: min(460px, 80vw); padding: 26px 30px 20px; border-radius: 4px; opacity: 0;
   transform: translate(-50%, -30%) rotate(-7deg) scale(0.8); transition: opacity var(--ds-m-max), transform var(--ds-m-max) cubic-bezier(0.2, 0.8, 0.2, 1);
   background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); box-shadow: 0 22px 50px color-mix(in srgb, var(--ds-c-ink-inkt) 60%, transparent);
-  font-family: var(--ds-font-tekst); font-style: italic; /* #629: geen handgeschreven font; cursief Arial Narrow zoals afgesproken */
+  font-family: var(--ds-font-zeef-tekst); /* #1209: het DS3-lettertype, geen Arial cursief */
 }
 #heist-ui .hx-note.on { opacity: 1; transform: translate(-50%, -50%) rotate(-3deg) scale(1); }
 #heist-ui .hx-note::before { content: ''; position: absolute; left: 42%; top: -11px; width: 76px; height: 22px; background: color-mix(in srgb, var(--ds-c-papier-2) 75%, transparent); transform: rotate(4deg); }
-#heist-ui .hx-note .kick { font-family: var(--ds-font-tekst); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--ds-c-inkt-zacht); }
+#heist-ui .hx-note .kick { font-family: var(--ds-font-zeef-kop); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--ds-c-inkt-zacht); }
 #heist-ui .hx-note .txt { font-size: 34px; line-height: 1.25; margin-top: 8px; }
-#heist-ui .hx-note .nl-sub { display: block; margin-top: 6px; font-family: var(--ds-font-tekst); font-size: 15px; font-style: italic; color: var(--ds-c-inkt-zacht); }
+#heist-ui .hx-note .kick + .txt { margin-top: 8px; }
+#heist-ui .hx-note > .txt:first-child { margin-top: 0; }
+#heist-ui .hx-note .nl-sub { display: block; margin-top: 6px; font-family: var(--ds-font-zeef-tekst); font-size: 15px; color: var(--ds-c-inkt-zacht); }
 
 /* --- the alarm and the laser zap ------------------------------------------------------------ */
 #heist-ui .hx-alarm { position: absolute; inset: 0; opacity: 0; background: radial-gradient(ellipse at center, transparent 45%, color-mix(in srgb, var(--ds-c-rood-glas) 55%, transparent) 100%); }

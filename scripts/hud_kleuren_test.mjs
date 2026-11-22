@@ -107,7 +107,7 @@ for (const f of ['helirun.js', 'heliflight.js', 'busbestuurhud.js', 'busboard3d.
 // goud uit de mission-token (per kleurenblindmodus) en de rolchip is 44 px op touch.
 const heistCss = read('heist.css');
 ok(!/Segoe Print|Bradley Hand|Comic Sans|#f2c14e/.test(heistCss), 'heist.css: geen handgeschreven font of eigen goud');
-ok(/font-family: (?:'Arial Narrow', Arial, sans-serif|var\(--ds-font-tekst\)); font-style: italic;/.test(heistCss), 'heist.css: de notitie is cursief Arial Narrow');
+ok(/font-family: var\(--ds-font-zeef-tekst\);/.test(heistCss), 'heist.css: de notitie staat in het DS3-lettertype (#1209)');
 const heistUi = read('heistui.js');
 ok(/GOLD = \(\) => markerColors\(\)\.mission/.test(heistUi), 'heistui.js: het goud komt uit de mission-token');
 ok(!/Segoe Print|Bradley Hand|Comic Sans|system-ui/.test(heistUi), 'heistui.js: geen handgeschreven font of system-ui meer');
