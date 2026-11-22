@@ -424,5 +424,17 @@ ok(() => {
   }
 }
 
+// Binnenspawn (22-11, spawnbinnen.js): de save schrijft thuis.binnen erbij (buiten de flat: false); een oude save zonder het veld laadt zonder thuis
+// (de wereld heeft hier geen flat) en blijft heel; de keuze zelf staat in spawnbinnen_test.mjs.
+ok(() => {
+  assert.equal(typeof HOME.getHomeSave().binnen, 'boolean', 'getHomeSave meldt binnen als boolean');
+  assert.equal(HOME.getHomeSave().binnen, false, 'buiten de flat: binnen is false');
+  assert.ok(Array.isArray(HOME.getHomeSave().front), 'front blijft in de save');
+  const w = mk();
+  const d = { thuis: { front: ['x'] } };
+  assert.equal(Object.prototype.hasOwnProperty.call(d.thuis, 'binnen'), false, 'een oude save heeft het veld niet');
+  assert.doesNotThrow(() => HOME.applyHomeOnLoad(w, d), 'applyHomeOnLoad zonder woning in de wereld doet niets');
+}, 'thuis.binnen: nieuw veld, oude save blijft heel');
+
 console.log(`compat_saves_test: ${n - fails}/${n} ok`);
 if (fails) process.exit(1);

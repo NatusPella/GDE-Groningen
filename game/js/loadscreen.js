@@ -129,7 +129,10 @@ export function startLoadScreen(world, opts = {}) {
     // die twee sloot het scherm terwijl de eerste seconde nog bouwde.
     const st = streamPending();
     const tiles = world.map && world.map.tileQueue ? world.map.tileQueue.size : 0;
-    prog = stepProgress(prog, loadPending(st, tiles, prewarmPending()), (now - t0) / 1000, kind);
+    // spawnbinnen.js: a game that starts at home waits until the flat upstairs stands (home.js hook; none outside a home start)
+    const hl = world.homeLaad;
+    const binnen = hl ? hl.tick(Math.max(0, Math.min(0.25, (now - lastT) / 1000))) : 0;
+    prog = stepProgress(prog, loadPending(st, tiles, prewarmPending(), binnen), (now - t0) / 1000, kind);
     // één doorlopende balk: zacht naar het doel, nooit terug, nooit voorbij 100 % voor het klaar is
     shownBar = prog.done ? 1 : easeBar(shownBar, prog.bar, now - lastT);
     lastT = now;
