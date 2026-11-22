@@ -30,6 +30,9 @@ const lower = (s) => String(s || '').toLowerCase();
 // (outfits, postuur, codes) tonen het personage: daar is "hoe staat het mij" of "hoe ziet de hele look eruit" de vraag.
 const viewPiece = (ctx, piece, worn) => (!ctx.fitting && ctx.pieceOf ? ctx.pieceOf(piece) : ctx.previewOf(worn));
 const viewSet = (ctx, s, worn) => (!ctx.fitting && ctx.setOf ? ctx.setOf(s.pieces) : ctx.previewOf(worn));
+// De winkel (eigenaar 22-11): het stuk links en rechts het personage dat het draagt, naast elkaar. Zonder duoOf (oude aanroeper) valt het terug op het stuk.
+const shopViewPiece = (ctx, piece, worn) => (!ctx.fitting && ctx.duoOf ? ctx.duoOf({ piece }, worn) : viewPiece(ctx, piece, worn));
+const shopViewSet = (ctx, s, worn) => (!ctx.fitting && ctx.duoOf ? ctx.duoOf({ pieces: s.pieces }, worn) : viewSet(ctx, s, worn));
 const withPiece = (worn, piece) => { const x = parsePiece(piece); return x ? { ...worn, [x.item.slot]: piece } : worn; };
 const withoutSlot = (worn, slot) => { const o = { ...worn }; delete o[slot]; return o; };
 
@@ -227,7 +230,7 @@ function shopItem(ctx, piece, shopKey) {
     verb: owned && !on ? 'Aantrekken' : undefined,
     tag: on ? 'Aan' : owned ? 'In je kast' : inSale ? 'Uitverkoop' : '',
     swatch: swatchOf(piece, ctx.hexCss),
-    preview: viewPiece(ctx, piece, withPiece(effectiveWorn(ch), piece)),
+    preview: shopViewPiece(ctx, piece, withPiece(effectiveWorn(ch), piece)),
     disabled: on ? 'Heb je al aan' : owned ? '' : ctx.broke(price),
     buy() {
       if (!owned) {
@@ -265,7 +268,7 @@ function shopSetItem(ctx, s) {
     tag: on ? 'Aan' : !miss.length ? 'In je kast' : '',
     effect: bonus,
     swatch: s.pieces.map((p) => parsePiece(p)).filter(Boolean).slice(0, 4).map((x) => ctx.hexCss(x.hex)),
-    preview: viewSet(ctx, s, wornAfterSet(ch, { pieces: s.pieces })),
+    preview: shopViewSet(ctx, s, wornAfterSet(ch, { pieces: s.pieces })),
     disabled: on ? 'Heb je al aan' : miss.length ? ctx.broke(price) : '',
     buy() {
       if (miss.length) {

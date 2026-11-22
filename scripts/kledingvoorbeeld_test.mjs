@@ -301,5 +301,48 @@ t('de tegel en het detail krijgen de tint van het stuk', () => {
   assert.ok(sp.includes('sp-pw.sp-tint') && sp.includes('sp-stage.sp-tint') && sp.includes('--sp-tint'));
 });
 
+// ---------------------------------------------------------------------------------------------------------------- winkel: stuk en personage naast elkaar (22-11)
+const duoLook = (worn) => ({ ...P.TAMMO_APPEARANCE, ...C.outfitToLook(worn, P.TAMMO_APPEARANCE) });
+t('winkel met duoOf: elk stuk en elke set staat als paar (stuk links, personage rechts) in de lijst; kast en pashokje blijven zoals ze waren', () => {
+  C.resetClothing();
+  const duoOf = (what, worn) => ({ kind: 'piecefig', ...what, look: duoLook(worn) });
+  const secs = PANEL.shopSections(ctxVan({ duoOf }));
+  const items = secs.flatMap((s) => s.items);
+  assert.ok(items.length >= 20);
+  for (const it of items) assert.equal(spec(it), 'piecefig', it.id);
+  assert.ok(secs[0].items.every((it) => it.preview.pieces && !it.preview.piece), 'een set toont al zijn stukken');
+  assert.ok(secs.slice(1).flatMap((s) => s.items).every((it) => it.preview.piece && it.preview.look), 'een stuk toont zichzelf en de look met het stuk aan');
+  C.givePiece('tammo', 'jack.blauw');
+  const kast = PANEL.wardrobeSections(ctxVan({ duoOf })).filter((s) => !['Outfits', 'Bewaar', 'Postuur', 'Sets'].includes(s.title)).flatMap((s) => s.items);
+  for (const it of kast) assert.equal(spec(it), 'piece', 'de kast toont alleen het stuk: ' + it.id);
+  for (const it of PANEL.fittingSections(ctxVan({ duoOf })).flatMap((s) => s.items)) assert.equal(spec(it), 'person', 'het pashokje toont het personage: ' + it.id);
+});
+
+t('het paar: stuk links, personage rechts, geen NaN, draaien draait beide', () => {
+  for (const what of [{ piece: 'jack.blauw' }, { piece: 'stadjerspet.roest' }, { pieces: ['jack.blauw', 'jeans.nachtblauw'] }]) {
+    const worn = what.piece ? { [D.parsePiece(what.piece).item.slot]: what.piece } : { top: 'jack.blauw', bottom: 'jeans.nachtblauw' };
+    const o = CP.buildClothingPreview({ kind: 'piecefig', ...what, look: duoLook(worn) });
+    assert.ok(o && o.mesh && o.body && o.fit, 'geen paar voor ' + JSON.stringify(what));
+    assert.ok(Number.isFinite(o.fit.r) && o.fit.r > 0.5 && o.fit.c.toArray().every(Number.isFinite));
+    o.mesh.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(o.mesh);
+    assert.ok([box.min, box.max].every((v) => v.toArray().every(Number.isFinite)), 'NaN in het paar');
+    const [wrap, right] = o.mesh.children;
+    assert.ok(wrap.position.x < 0 && right.position.x > 0, 'het stuk staat links, het personage rechts');
+    CP.turnPreview(o.mesh, 1.2);
+    assert.ok(Math.abs(right.rotation.y - 1.2) < 1e-9, 'het personage draait mee');
+    assert.ok(wrap.children[0].rotation.y === 1.2 || wrap.children[0].userData.cells, 'het stuk draait mee');
+    o.mesh.traverse((m) => { if (m.geometry && m.geometry.userData && typeof m.geometry.userData.personRefs === 'number') P.releasePersonGeometry(m); else if (m.geometry && !m.geometry.userData.shared) m.geometry.dispose(); });
+  }
+  assert.equal(CP.buildClothingPreview({ kind: 'piecefig', piece: 'jack.blauw' }), null, 'zonder look geen paar');
+});
+
+t('bronnen: de winkel geeft duoOf, vehiclepreview kent piecefig en animeert het personage', () => {
+  const sh = src('../game/js/shops.js');
+  assert.ok(sh.includes("duoOf: (what, worn) => ({ kind: 'piecefig'"), 'de winkel geeft duoOf');
+  const vp = src('../game/js/vehiclepreview.js');
+  assert.ok(vp.includes("'piecefig'") && vp.split("animatePersonWalk(p.body, 0, dt)").length === 3, "vehiclepreview kent piecefig en animeert het personage");
+});
+
 console.log(fails ? `FAIL: ${fails} van ${n}` : `ok: ${n} tests`);
 process.exit(fails ? 1 : 0);

@@ -15,7 +15,8 @@ import { outfitToLook } from './clothing.js';
 // Samen spelen: a preview is local and sends nothing. Test: scripts/kledingvoorbeeld_test.mjs.
 //
 // Specs (vehiclepreview.js buildObject): { kind: 'piece', piece: 'jack.blauw' } | { kind: 'piece', hair: { style, hex, char } } (a hairstyle on a
-// neutral head) | { kind: 'pieceset', pieces: [...] } (a set).
+// neutral head) | { kind: 'pieceset', pieces: [...] } (a set) | { kind: 'piecefig', piece | pieces, look } (shop, owner 22-11: the piece on the left and
+// the character wearing it on the right, side by side; `look` is the character's appearance with the piece on).
 
 export const MANNEQUIN = 0xb2ada3; // matte display form: warm grey, readable against every piece colour
 const BASE_YAW = -1.55; // the model looks along +x; this turn faces it to the camera (PORTRAIT_ANGLE in vehiclepreview.js)
@@ -284,11 +285,41 @@ export function buildClothingPreview(spec) {
     const halfW = ((cols - 1) * CELL) / 2 + 0.56, halfH = ((rows - 1) * CELL) / 2 + 0.56;
     return { mesh, body: null, fit: { c: new THREE.Vector3(0, 0, 0), r: Math.max(halfW, halfH) * 1.02 } };
   }
+  if (spec.kind === 'piecefig') return buildPieceAndFigure(spec);
   return null;
 }
 
-// Turns a preview: one piece turns as a whole, a set turns each piece about its own axis (the grid stays put).
+// The piece (or set) on the left, the character wearing it on the right (owner 22-11). Both turn with the drag. The figure keeps its own size
+// (about 1.8 m); the piece is scaled into a cell about as tall as the torso, at the height of the figure's middle, so the two read as a pair.
+const FIG_MID = 0.95; // the middle of a figure (vehiclepreview.js uses the same for a person)
+const FIG_DX = 0.72;  // distance of each of the two middles to the centre line
+const PIECE_CELL = 0.62; // half the size of the cell of the piece
+function buildPieceAndFigure(spec) {
+  const left = buildClothingPreview(spec.pieces ? { kind: 'pieceset', pieces: spec.pieces } : { kind: 'piece', piece: spec.piece });
+  if (!left || !spec.look) return null;
+  const person = buildPersonMesh(spec.look.shirt, spec.look.skin, spec.look);
+  if (!person) return null;
+  const hs = person.scale.y || 1;
+  const mesh = new THREE.Group();
+  const k = PIECE_CELL / Math.max(0.05, left.fit.r);
+  const wrap = new THREE.Group(); // the piece, scaled and set at the height of the figure's middle
+  wrap.scale.setScalar(k);
+  wrap.position.set(-FIG_DX, FIG_MID * hs - left.fit.c.y * k, 0);
+  wrap.add(left.mesh);
+  const right = new THREE.Group();
+  right.position.set(FIG_DX, 0, 0);
+  const inner = new THREE.Group();
+  inner.rotation.y = BASE_YAW;
+  inner.add(person);
+  right.add(inner);
+  mesh.add(wrap, right);
+  mesh.userData.turn = (angle) => { turnPreview(left.mesh, angle); right.rotation.y = angle; };
+  return { mesh, body: person, fit: { c: new THREE.Vector3(0, FIG_MID * hs, 0), r: 1.12 * hs } };
+}
+
+// Turns a preview: one piece turns as a whole, a set turns each piece about its own axis (the grid stays put), a piece next to a figure turns both.
 export function turnPreview(mesh, angle) {
+  if (mesh.userData && mesh.userData.turn) { mesh.userData.turn(angle); return; }
   const cells = mesh.userData && mesh.userData.cells;
   if (cells) { for (const c of cells) c.rotation.y = angle; mesh.rotation.y = 0; } else mesh.rotation.y = angle;
 }

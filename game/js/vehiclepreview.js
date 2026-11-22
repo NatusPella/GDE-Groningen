@@ -11,7 +11,7 @@ import { previewVehicle } from './garagepics.js';
 import { tickVehicleLook } from './vehiclelook3d.js';
 import { farmBody } from './farmmodels3d.js';
 
-const OBJECT_KINDS = new Set(['weapon', 'person', 'product', 'spul', 'piece', 'pieceset']);
+const OBJECT_KINDS = new Set(['weapon', 'person', 'product', 'spul', 'piece', 'pieceset', 'piecefig']);
 // a person seen from the front, the face turned a little into the screen
 // (the model faces its local -x)
 export const PORTRAIT_ANGLE = -1.55;
@@ -20,7 +20,7 @@ export const PORTRAIT_ANGLE = -1.55;
 // spec = { kind, model, color, nameIdx, flags } for a vehicle, or
 // { kind: 'weapon', weapon } / { kind: 'person', look, frame } (a person
 // appearance, as TAMMO_APPEARANCE; frame 'head' for a portrait) /
-// { kind: 'piece', piece } / { kind: 'pieceset', pieces } (een kledingstuk of een set zonder personage, clothingpreview.js) /
+// { kind: 'piece', piece } / { kind: 'pieceset', pieces } (een kledingstuk of een set zonder personage, clothingpreview.js) / { kind: 'piecefig', piece, look } (het stuk naast het personage dat het draagt, de kledingwinkel) /
 // { kind: 'product', product } (shopmodels3d.js key) / { kind: 'farm', farm } (farmmodels3d.js: dier, gebouw, gewasveld of werktuig van de boerderij) / { kind: 'spul', spul } (models3d_spullen.js,
 // the Spullen viewer #1086), framed by bounding box.
 //
@@ -93,7 +93,7 @@ function groundShadow(box) {
 // { mesh, body, fit } for a spec, or null. sphereFit: frame vehicles by
 // their bounding sphere too (any canvas shape, tall buses and bikes).
 function buildObject(spec, sphereFit = false) {
-  if (spec.kind === 'piece' || spec.kind === 'pieceset') return buildClothingPreview(spec); // kleding: alleen het stuk, geen personage (clothingpreview.js)
+  if (spec.kind === 'piece' || spec.kind === 'pieceset' || spec.kind === 'piecefig') return buildClothingPreview(spec); // kleding: alleen het stuk, geen personage (clothingpreview.js)
   if (OBJECT_KINDS.has(spec.kind)) {
     const body = spec.kind === 'weapon' ? buildWeaponMesh(spec.weapon)
       : spec.kind === 'person' ? buildPersonMesh(spec.look.shirt, spec.look.skin, spec.look)
@@ -183,7 +183,7 @@ export function createVehiclePreview(canvas, { interactive = false, active = () 
     if (!p.drag && now > p.idleAt) p.angle += dt * 0.75;
     turnPreview(p.mesh, p.angle);
     if (p.live) tickVehicleLook(p.live, now / 1000, 1, true); // de lucht van een snackwagen drijft
-    if (p.spec.kind === 'person') animatePersonWalk(p.body, 0, dt);
+    if (p.spec.kind === 'person' || p.spec.kind === 'piecefig') animatePersonWalk(p.body, 0, dt);
     frameCamera(p.cam, p.spec, p.fit, p.zoom);
     p.renderer.render(p.scene, p.cam);
     p.raf = requestAnimationFrame(tick);
@@ -309,7 +309,7 @@ export function createSharedPreview(canvas, { interactive = false, active = () =
     p.drawn = now;
     if (!p.drag && now > p.idleAt) p.angle += dt * speed;
     turnPreview(p.mesh, p.angle);
-    if (p.spec.kind === 'person') animatePersonWalk(p.body, 0, dt);
+    if (p.spec.kind === 'person' || p.spec.kind === 'piecefig') animatePersonWalk(p.body, 0, dt);
     const src = renderShared(p.mesh, p.spec, p.fit, w, h, p.zoom);
     p.ctx.clearRect(0, 0, w, h);
     if (src) {
