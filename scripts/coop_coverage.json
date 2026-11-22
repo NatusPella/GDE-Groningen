@@ -1761,6 +1761,18 @@
    "reden": "Zuivere regels voor de eerste-keerhints van de eigen speler; lokaal, niets om te delen."
   },
   {
+   "glob": "enginesputter",
+   "reden": "Lokaal geluid van het voertuig dat jij bestuurt; pure regels zonder gedeelde toestand."
+  },
+  {
+   "glob": "pedgreet",
+   "reden": "Sfeer van de passanten in het eigen spel; een gast ziet de zwaai via de bestaande groetvlag."
+  },
+  {
+   "glob": "pedhorn",
+   "reden": "Passanten reageren op de claxon van de bestuurder in het eigen spel; lokaal."
+  },
+  {
    "glob": "savediag",
    "reden": "Diagnose van het opgeslagen spel op dit apparaat; lokaal."
   },
