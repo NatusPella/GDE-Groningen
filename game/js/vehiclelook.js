@@ -32,6 +32,7 @@ export const OPTIONS = {
     O('flank', 'Zijband', 25, 'Een band langs de flank'),
     O('hood', 'Motorkap-band', 20, 'Alleen op de motorkap'),
     O('duo', 'Dubbele zijband', 35, 'Twee smalle banden naast elkaar'),
+    O('checker', 'Finishvlag-band', 32, 'Zwart-witte blokjes langs de flank'),
   ],
   decal: [
     O('none', 'Geen stickers', 0),
@@ -49,6 +50,8 @@ export const OPTIONS = {
     O('mesh', 'Gaasvelgen', 55, 'Fijn gaas, veel glans'),
     O('disc', 'Schijfvelgen', 35, 'Dicht en rustig'),
     O('star', 'Sterrenvelgen', 60, 'Vijf scherpe punten'),
+    O('twist', 'Draaivelgen', 58, 'Gedraaide spaken, ze lijken te draaien als je stilstaat'),
+    O('dish', 'Schotelvelgen', 48, 'Diepe schotel met bouten langs de rand'),
   ],
   rimSize: [O('m', 'Middel', 0), O('s', 'Klein', 0), O('l', 'Groot', 25, 'Grote velg, dunne band')],
   tire: [
@@ -62,23 +65,28 @@ export const OPTIONS = {
     O('lip', 'Lip', 35, 'Een nette kraag op de kofferbak'),
     O('wing', 'Vleugel', 60, 'Op twee pootjes boven de kont'),
     O('gt', 'Hoge vleugel', 85, 'Je ziet hem van de volgende wijk'),
+    O('duck', 'Eendenstaart', 50, 'Een korte opstaande rand, klein maar brutaal'),
   ],
   kit: [
     O('none', 'Geen bodykit', 0),
     O('sport', 'Sportkit', 70, 'Lip voor, drempels opzij'),
     O('wide', 'Brede kit', 110, 'Verbrede spatborden en drempels'),
+    O('rally', 'Rallykit', 95, 'Modderflappen en een stoere beugel voor de neus'),
   ],
   diffuser: [O('off', 'Geen diffuser', 0), O('on', 'Diffuser', 45, 'Lamellen onder de achterbumper')],
   roof: [
     O('none', 'Kale dak', 0),
     O('rack', 'Dakdrager', 40, 'Twee dwarsbalken en een rand'),
     O('box', 'Dakkoffer', 65, 'Voor het kampeerspul'),
+    O('bike', 'Fietsendrager', 48, 'Je fiets mee op het dak, want dit is Grunn'),
+    O('surf', 'Surfplank', 42, 'Voor een zomerse dag bij het Lauwersmeer'),
   ],
   lamps: [
     O('stock', 'Standaard koplampen', 0),
     O('halo', 'Ringlampen', 40, 'Een lichtring om elke lamp'),
     O('slit', 'Smalle koplampen', 45, 'Spleetogen'),
     O('wide', 'Brede lampen', 35, 'Een grote lichtbak'),
+    O('angry', 'Strenge lampen', 42, 'Schuine ogen die scherp kijken'),
   ],
   tint: [
     O('0', 'Geen folie', 0),
@@ -91,12 +99,15 @@ export const OPTIONS = {
     O('twin', 'Dubbele pijpen', 40, 'Twee chroompijpen'),
     O('big', 'Dikke pijp', 35, 'Een pijp zo dik als een emmer'),
     O('side', 'Zij-uitlaat', 50, 'Onder de drempel, naast het portier'),
+    O('stack', 'Schoorsteenpijpen', 55, 'Twee pijpen omhoog achter het dak'),
   ],
   hanger: [
     O('none', 'Geen hanger', 0),
     O('dice', 'Dobbelsteen', 8, 'Aan de spiegel'),
     O('tree', 'Geurboompje', 6, 'Ruikt naar een zomerse tuin'),
     O('flag', 'Vlaggetje', 8, 'Rood, wit en blauw in de wind'),
+    O('duck', 'Badeendje', 9, 'Geel, tevreden en aan de spiegel'),
+    O('fries', 'Frietpunt', 9, 'Een puntzakje aan een koordje'),
   ],
   // alleen voor de snackwagen (het eindvoertuig van het verhaal): luifel, uitstalling, bakkenlicht, lucht en belettering
   awning: [
@@ -345,10 +356,10 @@ function rng(seed) {
 }
 export const STYLES = ['race', 'show', 'rally', 'cruiser'];
 const STYLE_PLAN = {
-  race: { finish: ['gloss', 'metallic'], stripe: ['racing', 'flank'], decal: ['kwark', 'grunn', 'vlam'], rimStyle: ['star', 'spoke'], rimSize: ['l'], tire: ['lowprofile'], spoiler: ['wing', 'gt'], kit: ['sport', 'wide'], diffuser: ['on'], exhaust: ['big', 'twin'], lamps: ['slit'], glow: 0.2 },
+  race: { finish: ['gloss', 'metallic'], stripe: ['racing', 'flank', 'checker'], decal: ['kwark', 'grunn', 'vlam'], rimStyle: ['star', 'spoke'], rimSize: ['l'], tire: ['lowprofile'], spoiler: ['wing', 'gt'], kit: ['sport', 'wide'], diffuser: ['on'], exhaust: ['big', 'twin'], lamps: ['slit'], glow: 0.2 },
   show: { finish: ['pearl', 'metallic'], stripe: ['duo', 'hood'], decal: ['ster', 'vlam'], rimStyle: ['mesh', 'star'], rimSize: ['l'], tire: ['lowprofile', 'whitewall'], spoiler: ['lip'], kit: ['sport'], exhaust: ['twin'], lamps: ['halo'], tint: ['2', '3'], glow: 0.7 },
-  rally: { finish: ['matte', 'gloss'], stripe: ['hood', 'flank'], decal: ['rally', 'wiebel'], rimStyle: ['disc', 'spoke'], rimSize: ['m'], tire: ['offroad'], roof: ['rack', 'box'], lamps: ['wide'], glow: 0 },
-  cruiser: { finish: ['metallic', 'pearl', 'gloss'], stripe: ['flank', 'none'], decal: ['frituur', 'none'], rimStyle: ['disc', 'mesh'], rimSize: ['m'], tire: ['whitewall'], hanger: ['dice', 'tree', 'flag'], tint: ['1', '2'], glow: 0.35, lamps: ['stock', 'halo'] },
+  rally: { finish: ['matte', 'gloss'], stripe: ['hood', 'flank'], decal: ['rally', 'wiebel'], rimStyle: ['disc', 'spoke'], rimSize: ['m'], tire: ['offroad'], roof: ['rack', 'box', 'bike', 'surf'], kit: ['rally'], lamps: ['wide', 'angry'], glow: 0 },
+  cruiser: { finish: ['metallic', 'pearl', 'gloss'], stripe: ['flank', 'none'], decal: ['frituur', 'none'], rimStyle: ['disc', 'mesh'], rimSize: ['m'], tire: ['whitewall'], hanger: ['dice', 'tree', 'flag', 'duck', 'fries'], tint: ['1', '2'], glow: 0.35, lamps: ['stock', 'halo'] },
 };
 const pick = (r, a) => a[Math.floor(r() * a.length)];
 

@@ -171,5 +171,25 @@ ok(bike.look && !bike.look.spoiler && bike.look.glow, 'soortfilter bij het aanha
 const tokens = readFileSync(new URL('../game/js/ds-tokens.css', import.meta.url), 'utf8').toLowerCase();
 for (const c of ACCENT_COLORS.concat(GLOW_COLORS)) ok(tokens.includes(c.color) || /^#(f3ead3|b9b7ad|d93f3f|3fc97a)$/.test(c.color), 'accent uit de tokens', c.color);
 
+// ronde 5 (22-11): nieuwe opties staan achteraan in hun lijst, dus oude codes en oude opslag blijven kloppen (de code is positioneel)
+{
+  const NIEUW = { stripe: 'checker', rimStyle: 'twist', spoiler: 'duck', kit: 'rally', roof: 'bike', lamps: 'angry', exhaust: 'stack', hanger: 'fries' };
+  for (const [f, id] of Object.entries(NIEUW)) {
+    const list = OPTIONS[f];
+    ok(list[list.length - 1].price > 0 || list.some((o) => o.id === id), 'nieuwe optie bestaat', f);
+    const back = parseLook(lookCode({ [f]: id }, 'auto'), 'auto');
+    ok(back && back[f] === id, 'nieuwe optie overleeft de code', `${f}=${id}`);
+  }
+  const all = parseLook(lookCode(NIEUW, 'auto'), 'auto');
+  ok(Object.entries(NIEUW).every(([f, id]) => all[f] === id), 'alle nieuwe opties samen in één code');
+  ok(lookCode(NIEUW, 'auto').length < 96, 'code blijft onder de netwerkgrens');
+  ok(OPTIONS.hanger.some((o) => o.id === 'duck') && OPTIONS.roof.some((o) => o.id === 'surf') && OPTIONS.rimStyle.some((o) => o.id === 'dish'), 'badeendje, surfplank en schotelvelg');
+  // een oude code (zonder de nieuwe opties) geeft hetzelfde als vroeger: vlag 'flank' zat op plek 2 en blijft daar
+  ok(parseLook(lookCode({ stripe: 'flank', spoiler: 'wing' }, 'auto'), 'auto').stripe === 'flank', 'bestaande indexen verschuiven niet');
+  ok(OPTIONS.stripe[2].id === 'flank' && OPTIONS.spoiler[2].id === 'wing' && OPTIONS.kit[2].id === 'wide' && OPTIONS.roof[2].id === 'box' && OPTIONS.hanger[3].id === 'flag', 'volgorde van bestaande opties ongewijzigd');
+  // een tweewieler of boot krijgt de nieuwe auto-onderdelen niet
+  ok(!sanitizeLook({ roof: 'bike', kit: 'rally', hanger: 'duck' }, 'boot').roof, 'boot kan geen fietsendrager');
+}
+
 console.log(`vehiclelook_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

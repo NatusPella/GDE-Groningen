@@ -67,6 +67,8 @@ export function rimPicture(style, color, size = 'm', tire = 'standard') {
     if (style === 'spoke') spokes(10, 2.5);
     else if (style === 'mesh') { spokes(10, 1.5); g.lineWidth = 1.5; for (const f of [0.55, 0.8]) { g.beginPath(); g.arc(cx, cy, rr * f, 0, Math.PI * 2); g.stroke(); } }
     else if (style === 'star') spokes(5, 7);
+    else if (style === 'twist') { g.lineWidth = 3; for (let k = 0; k < 7; k++) { const a = k / 7 * Math.PI * 2; g.beginPath(); g.moveTo(cx, cy); g.quadraticCurveTo(cx + Math.cos(a + 0.6) * rr * 0.6, cy + Math.sin(a + 0.6) * rr * 0.6, cx + Math.cos(a) * rr * 0.95, cy + Math.sin(a) * rr * 0.95); g.stroke(); } }
+    else if (style === 'dish') { g.fillStyle = shade(col, 0.85); g.beginPath(); g.arc(cx, cy, rr * 0.8, 0, Math.PI * 2); g.fill(); g.fillStyle = PAPER; for (let k = 0; k < 6; k++) { const a = k / 6 * Math.PI * 2; g.fillRect(cx + Math.cos(a) * rr * 0.68 - 1.5, cy + Math.sin(a) * rr * 0.68 - 1.5, 3, 3); } }
     else if (style === 'stock') { g.strokeStyle = shade(col, 0.7); spokes(5, 5); }
     g.fillStyle = style === 'disc' ? shade(col, 0.6) : shade(PAPER, 0.45); g.beginPath(); g.arc(cx, cy, 6, 0, Math.PI * 2); g.fill();
   });
@@ -89,6 +91,7 @@ export function stripePicture(stripe, color, body = '#2e5f9e') {
     else if (stripe === 'flank') g.fillRect(14, 12, 100, 5);
     else if (stripe === 'duo') { g.fillRect(14, 12, 100, 2); g.fillRect(14, 16, 100, 2); }
     else if (stripe === 'hood') g.fillRect(80, 22, 38, 12);
+    else if (stripe === 'checker') for (let k = 0; k < 14; k++) for (let j = 0; j < 2; j++) { g.fillStyle = (k + j) % 2 ? INK : col; g.fillRect(14 + k * 7, 12 + j * 4, 7, 4); }
   });
 }
 export const tileCacheSize = () => cache.size;

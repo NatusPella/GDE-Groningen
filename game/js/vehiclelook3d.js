@@ -190,6 +190,8 @@ export function buildAddons(look, kind, v, fit, H = 1.6) {
       }
     } else if (look.stripe === 'hood' && f.car) {
       A.box((f.xA + hl) / 2, f.hood + t, 0, hl - f.xA - 0.05, 0.012, 0.5, col);
+    } else if (look.stripe === 'checker' && f.car) {
+      for (const s of [1, -1]) for (let k = 0; k < 14; k++) for (let j = 0; j < 2; j++) A.box(-L * 0.36 + (k * L * 0.72) / 13, f.belt * 0.55 + (j - 0.5) * 0.07, s * (hw + 0.006), L * 0.72 / 13, 0.07, 0.012, (k + j) % 2 ? 0x1f2022 : 0xf3ead3);
     } else if (look.stripe === 'flank' || look.stripe === 'duo' || !f.car) {
       const y0 = f.belt * 0.55;
       const bands = look.stripe === 'duo' ? [[y0 - 0.1, 0.07], [y0 + 0.06, 0.07]] : [[y0, 0.16]];
@@ -203,6 +205,7 @@ export function buildAddons(look, kind, v, fit, H = 1.6) {
   if (f.car && has('spoiler')) {
     const y = f.deck, x = -hl + 0.2;
     if (look.spoiler === 'lip') A.box(-hl + 0.08, y + 0.05, 0, 0.16, 0.05, W * 0.78, accent);
+    else if (look.spoiler === 'duck') A.rotBox(-hl + 0.1, y + 0.07, 0, 0.12, 0.1, W * 0.84, accent, 0.5);
     else {
       const h = look.spoiler === 'gt' ? 0.42 : 0.26;
       for (const z of [-W * 0.3, W * 0.3]) A.box(x, y + h / 2, z, 0.06, h, 0.06, DARK);
@@ -211,6 +214,11 @@ export function buildAddons(look, kind, v, fit, H = 1.6) {
     }
   }
   if (f.car && has('kit')) {
+    if (look.kit === 'rally') {
+      for (const s of [1, -1]) for (const x of [f.fw, f.rw]) A.box(x, 0.3, s * (hw + 0.03), 0.5, 0.3, 0.04, DARK);
+      for (const z of [-0.3, 0.3]) A.box(hl + 0.04, 0.45, z, 0.05, 0.5, 0.05, CHROME);
+      A.box(hl + 0.04, 0.68, 0, 0.05, 0.05, 0.72, CHROME);
+    }
     const kit = look.kit === 'wide' ? body : accent;
     A.box(hl - 0.04, 0.2, 0, 0.3, 0.08, W * 0.96, DARK);
     for (const s of [1, -1]) A.box((f.fw + f.rw) / 2, 0.22, s * (hw + 0.012), (f.fw - f.rw) - 0.9, 0.12, 0.05, kit);
@@ -226,6 +234,16 @@ export function buildAddons(look, kind, v, fit, H = 1.6) {
       for (const z of [-W * 0.38, W * 0.38]) A.box(cx, f.roof + 0.07, z, len, 0.04, 0.04, DARK);
       for (const x of [cx - len * 0.38, cx + len * 0.38]) A.box(x, f.roof + 0.1, 0, 0.05, 0.04, W * 0.82, DARK);
       for (const z of [-W * 0.38, W * 0.38]) for (const x of [cx - len * 0.38, cx + len * 0.38]) A.box(x, f.roof + 0.04, z, 0.06, 0.06, 0.06, DARK);
+    } else if (look.roof === 'bike') {
+      for (const x of [cx - len * 0.3, cx + len * 0.3]) A.box(x, f.roof + 0.05, 0, 0.05, 0.05, W * 0.7, DARK);
+      for (const x of [cx - 0.4, cx + 0.4]) A.box(x, f.roof + 0.34, 0.05, 0.08, 0.52, 0.03, 0x2a2b2d);
+      A.box(cx, f.roof + 0.4, 0.05, 0.9, 0.04, 0.04, c2 ?? 0xd93f3f);
+      A.rotBox(cx - 0.1, f.roof + 0.4, 0.05, 0.6, 0.04, 0.04, c2 ?? 0xd93f3f, 0.9);
+      A.box(cx + 0.45, f.roof + 0.66, 0.05, 0.05, 0.04, 0.4, DARK);
+    } else if (look.roof === 'surf') {
+      A.box(cx, f.roof + 0.1, 0, len * 1.05, 0.05, 0.42, c2 ?? 0x4fb3ff);
+      A.box(cx, f.roof + 0.14, 0, len * 1.0, 0.012, 0.06, 0xf3ead3);
+      for (const x of [cx - len * 0.3, cx + len * 0.3]) A.box(x, f.roof + 0.05, 0, 0.05, 0.05, 0.5, DARK);
     } else if (look.roof === 'box') {
       A.box(cx, f.roof + 0.2, 0, len * 0.95, 0.26, W * 0.64, c2 ?? 0x2a2b2d);
       A.box(cx, f.roof + 0.04, 0, len * 0.6, 0.06, W * 0.5, DARK);
@@ -235,6 +253,7 @@ export function buildAddons(look, kind, v, fit, H = 1.6) {
     const x = -hl - 0.04, y = 0.3;
     if (look.exhaust === 'twin') for (const z of [-0.5, 0.5]) A.box(x, y, z, 0.14, 0.1, 0.1, CHROME);
     else if (look.exhaust === 'big') A.box(x, y, 0.55, 0.22, 0.15, 0.15, CHROME);
+    else if (look.exhaust === 'stack') for (const z of [-0.45, 0.45]) { A.box(x + 0.3, 0.9, z, 0.1, 1.2, 0.1, CHROME); A.box(x + 0.3, 1.52, z, 0.14, 0.06, 0.14, DARK); }
     else if (look.exhaust === 'side') for (const s of [1, -1]) A.box(0, 0.2, s * (hw + 0.03), (f.fw - f.rw) * 0.8, 0.07, 0.07, CHROME);
   }
   if (f.car && has('lamps')) {
@@ -242,6 +261,7 @@ export function buildAddons(look, kind, v, fit, H = 1.6) {
     for (const s of [1, -1]) {
       const z = s * hw * 0.62;
       if (look.lamps === 'halo') { A.box(x, y, z, 0.03, 0.2, 0.2, col); A.box(x + 0.01, y, z, 0.02, 0.12, 0.12, shade(col, 0.4)); }
+      else if (look.lamps === 'angry') A.rotBox(x, y + 0.04, z, 0.03, 0.1, 0.36, col, -s * 0.35, 'x');
       else if (look.lamps === 'slit') A.box(x, y + 0.03, z, 0.03, 0.06, 0.34, col);
       else A.box(x, y, z, 0.03, 0.14, 0.3, col);
     }
@@ -250,7 +270,7 @@ export function buildAddons(look, kind, v, fit, H = 1.6) {
     for (const s of [1, -1]) A.box(hl + 0.016, f.hood - 0.12, s * hw * 0.62, 0.03, 0.1, 0.22, col);
   }
   if (f.car && has('hanger')) {
-    const col = { dice: 0xf3ead3, tree: 0x3fc97a, flag: 0xd93f3f }[look.hanger] || 0xf3ead3;
+    const col = { dice: 0xf3ead3, tree: 0x3fc97a, flag: 0xd93f3f, duck: 0xf9c80e, fries: 0xe8c24a }[look.hanger] || 0xf3ead3;
     A.box(f.xA - 0.45, f.roof - 0.34, 0.1, 0.05, 0.14, 0.05, col);
   }
   if (kind === 'snackwagen') snackParts(A, look, v, f, c2);
@@ -317,6 +337,8 @@ export function buildRimGeometry(r, w, look) {
   if (style === 'spoke') spokes(10, r * ratio * 0.95, r * 0.05, rimCol);
   else if (style === 'mesh') { spokes(10, r * ratio * 0.95, r * 0.035, rimCol); ring(r * ratio * 0.97, w + 0.03, shade(rimCol, 0.8), 10); ring(r * ratio * 0.82, w + 0.035, shade(rimCol, 0.45), 10); spokes(10, r * ratio * 0.95, r * 0.035, rimCol); }
   else if (style === 'star') spokes(5, r * ratio * 0.98, r * 0.15, rimCol);
+  else if (style === 'twist') for (let k = 0; k < 7; k++) { const a = (k / 7) * Math.PI * 2; A.rotBox(Math.cos(a + 0.5) * r * ratio * 0.5, Math.sin(a + 0.5) * r * ratio * 0.5, 0, r * ratio * 0.95, r * 0.045, w + 0.035, rimCol, a + 0.7); }
+  else if (style === 'dish') { ring(r * ratio * 0.8, w + 0.03, shade(rimCol, 0.85), 12); ring(r * ratio * 0.5, w + 0.036, shade(rimCol, 0.55), 10); for (let k = 0; k < 6; k++) { const a = (k / 6) * Math.PI * 2; A.rotBox(Math.cos(a) * r * ratio * 0.68, Math.sin(a) * r * ratio * 0.68, 0, r * 0.05, r * 0.05, w + 0.045, 0xd9dce0, a); } }
   else if (style === 'stock') spokes(5, r * ratio * 0.8, r * 0.13, shade(rimCol, 0.7));
   ring(r * 0.16, w + 0.05, style === 'disc' ? shade(rimCol, 0.6) : 0x6a6d70, 6);
   return A.geometry();

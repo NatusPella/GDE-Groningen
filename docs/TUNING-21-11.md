@@ -69,6 +69,10 @@ Vermenigvuldigers: sport 2,4, tokkie 2, hatch 1, sedan 0,8, wagon 0,7, suv 0,9, 
 - **Samen.** Zie [COOP-GAST.md](COOP-GAST.md) ("Autotuning: gepimpte auto's, autotreffen, werkplaats en kapper"). De snapshot en het bezorg-bericht droegen de tuning al; `coop_coverage.json` staat nu op OK (#1158 was in code al opgelost, het gat stond er nog).
 - **Nog niet in beeld bekeken:** de categoriekop, de toetsen in de knoppen en de kapper-groepen in de echte game; het treffen bij Haren en het Reitdiep (of er in die straal parkeervakken liggen is niet gemeten: de wereld staat niet in deze worktree); hoe de eigenaarszin op het scherm leest. `scripts/tuningplan_test.mjs` kon hier niet draaien (three is niet gevendord in deze worktree).
 
+## Ronde 5 (22-11): meer onderdelen
+
+Achteraan in bestaande lijsten, dus de positionele code `L1...` en de opslag blijven kloppen (een oude code leest hetzelfde, een oud spel toont voor een onbekende index de standaard): stripe `checker` (finishvlag-band), rimStyle `twist` en `dish`, spoiler `duck`, kit `rally`, roof `bike` en `surf`, lamps `angry`, exhaust `stack`, hanger `duck` en `fries`. Elk heeft prijs, beeld in `vehiclelook3d.js` (binnen het driehoekbudget van 700, één drawcall) en een tegelvoorbeeld (`tuningtiles.js` voor velgen en strepen; de rest het icoon van het veld). De generator geeft ze aan de stijlen race (finishvlag), rally (fiets, surf, rallykit, strenge lampen) en cruiser (badeendje, frietpunt). Test: `vehiclelook_test` (code, volgorde ongewijzigd) en `vehiclelook3d_test` (elke optie eindig, binnen het voertuig en het budget). Samen spelen: de optie reist mee in de bestaande `tune`-code, geen nieuw bericht; een gast ziet ze op de auto van een ander, kopen blijft lokaal. Niet in beeld bekeken.
+
 ## Open punten
 
 Nog niet in beeld gezien in de echte game (alleen headless mocks: `docs/beeld-21-11/tuning`): de werkplaats in een echte garage, de preview van een tweewieler, bus en boot, underglow bij echte nacht, het treffen, parkeerchunks met gepimpte auto's, en de prestatiemeting van gepimpte verkeersauto's. De coördinator doet die in de sweep.
