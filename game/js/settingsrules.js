@@ -7,8 +7,8 @@
 // the audit (scripts/instellingen_audit_test.mjs) keeps this list and the rows in pausemenu.js equal, so there is no hidden and no double option.
 export const TAB_KEYS = {
   video: ['resolution', 'autoResolution', 'zuinig', 'shadows', 'drawDistance', 'brightness', 'worldColor', 'quality'],
-  sound: ['masterVolume', 'musicVolume', 'sfxVolume', 'voiceVolume', 'showSubtitles', 'subtitleSize', 'subtitleBox', 'subtitleVlak', 'soundCaptions'],
-  spel: ['ruzie', 'drunkFx', 'gore', 'shiftMode', 'speedFeel', 'driftAssist', 'bikeAssist', 'liveBussen', 'liveTreinen', 'mapShiftTeleport', 'cheatsTonen'],
+  sound: ['masterVolume', 'musicVolume', 'sfxVolume', 'voiceVolume', 'showSubtitles', 'subtitleSize', 'subtitleBox', 'subtitleVlak', 'soundCaptions', 'footballMusic', 'footballMusicVolume'],
+  spel: ['ruzie', 'drunkFx', 'gore', 'shiftMode', 'speedFeel', 'driftAssist', 'bikeAssist', 'liveBussen', 'liveTreinen', 'mapShiftTeleport', 'startBinnen'],
   besturing: ['mouseSensitivity', 'invertY', 'padLayout', 'padLookSensitivity', 'rumble', 'rumbleStrength', 'touchControls', 'steerSensitivity'],
   camera: ['firstPersoon', 'fov', 'cameraDistance', 'autoAim', 'cinematicMoments', 'terugkeerScene'],
   display: ['hudMode', 'showMinimap', 'minimapZoom', 'minimapNorth', 'showFog'],
@@ -20,7 +20,7 @@ export const TAB_KEYS = {
 // Samen spelen are never reset (#528), and the Samen spelen tab draws its own panel.
 export const OWN_SCREEN = ['difficulty', 'keyBinds', 'padBinds', 'onlineNaam', 'onlineKleur', 'onlineMeedoen', 'samenZinnen', 'multiplayerConsentRemembered'];
 // Settings that are set elsewhere than as a row of Instellingen (a key in the game, the start card, an old file).
-export const NO_ROW = ['ritCamera', 'startKeuze', 'attractSeen'];
+export const NO_ROW = ['ritCamera', 'startKeuze', 'attractSeen', 'radioVehicle', 'samenRol'];
 
 export const tabOfKey = (key) => Object.keys(TAB_KEYS).find((t) => TAB_KEYS[t].includes(key)) || null;
 
@@ -120,14 +120,13 @@ export const SYNONYMS = {
   zuinig: 'batterij warm zuinig stroom 30 fps',
   drawDistance: 'zichtafstand ver kijken mist',
   brightness: 'helderheid licht donker',
-  cheatsTonen: 'cheats vals spelen streken menu',
 };
 export const synonymsFor = (key) => SYNONYMS[key] || '';
 
-// The Cheats item is for development or for a player who asks for it (Spelregels > "Cheats in het menu"); a cheat that is on keeps the item
+// The Cheats item is for development or for a player who unlocked it in the story (cheats.js cheatsOpen); a cheat that is on keeps the item
 // in the menu, so no one has to look for the switch to turn it off. In Samen spelen it follows the same rule per player.
-export function cheatsVisible({ dev = false, tonen = false, actief = false } = {}) {
-  return !!(dev || tonen === true || actief);
+export function cheatsVisible({ dev = false, actief = false } = {}) {
+  return !!(dev || actief);
 }
 
 // The plain-language names of the colour vision modes (the Greek names alone mean nothing to most players)

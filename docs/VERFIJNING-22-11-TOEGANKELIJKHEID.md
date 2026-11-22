@@ -42,7 +42,7 @@ Alles hierboven is lokaal per speler en gaat niet over het net: voorkeuren zijn 
 - Aanraakbediening live wisselen zonder herstart: `touch.js` bouwt de knoppen bij het opstarten; een live wisseling raakt de invoerlaag en is meer dan een verfijning.
 - Een eigen voorbeeld bij Flitsen beperken: een flits tonen aan iemand die flitsen wil vermijden is geen goede proef. De stand wordt wel uitgelegd.
 - Instellingen per profiel of per save (alleen de moeilijkheid is per save, #1169).
-- Een hernoeming van de opslagsleutels of een versiesprong: de nieuwe sleutel `cheatsTonen` valt in een oud bestand vanzelf op uit.
+- Een hernoeming van de opslagsleutels of een versiesprong: de sleutel `cheatsTonen` bestaat niet meer (de eigenaar besloot dat Cheats vrijspeelbaar is in het verhaal); een oud bestand met die sleutel wordt bij het laden opgeschoond en laat niets zien.
 - Een apart tabblad voor Cheats-opties of een wachtwoord: de keuze blijft een gewone schakelaar.
 
 ## Alleen in beeld of met een echte speler

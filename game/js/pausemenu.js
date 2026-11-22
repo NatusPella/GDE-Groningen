@@ -545,8 +545,8 @@ export function pauseMenuCover() {
 const started = () => document.body.classList.contains('game-started');
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // De rail zelf heeft geen knop Spelers (#377): het aantal spelers staat bij Spel, de lijst onder Samen spelen (#434).
-// Cheats staat alleen in het menu in dev, na een eigen keuze (Spelregels > Cheats in het menu), zolang er een cheat aan staat (settingsrules.js) of nadat het verhaal ze heeft vrijgespeeld (Berts valsspeelbon na missie 4; cheats.js cheatsOpen)
-export const cheatsInMenu = () => cheatsVisible({ dev: DEV || !!FLAGS.dev, tonen: getSettings().cheatsTonen, actief: anyCheatOn() }) || cheatsOpen();
+// Cheats staat alleen in het menu in dev, zolang er een cheat aan staat (settingsrules.js) of nadat het verhaal ze heeft vrijgespeeld (Berts valsspeelbon na missie 4; cheats.js cheatsOpen)
+export const cheatsInMenu = () => cheatsVisible({ dev: DEV || !!FLAGS.dev, actief: anyCheatOn() }) || cheatsOpen();
 const sectionIds = () => (prestart ? PRESTART_SECTIONS : SECTIONS.map(([id]) => id).filter((id) => id !== 'streken' || cheatsInMenu()));
 const sectionOf = (id) => SECTIONS.find(([s]) => s === id);
 const key = (k) => `<span class="hud-key">${k}</span>`;
@@ -793,9 +793,7 @@ function settingsHtml() {
       <div class="m-gh"><span>Kaart</span></div>
       ${toggle('mapShiftTeleport','{SHIFT}+{LMB} op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}
       <div class="m-gh"><span>Thuis</span></div>
-      ${toggle('startBinnen', 'Start binnen (thuis)', 'Laad je een spel dat bij je huis stond, of ga je naar huis, dan sta je binnen in de woning. Uit: je staat voor de deur')}
-      <div class="m-gh"><span>Vals spelen</span></div>
-      ${toggle('cheatsTonen', 'Cheats in het menu', 'Toont het onderdeel Cheats naast Instellingen. Sommige cheats zetten prestaties uit zolang ze aan staan; dat staat er dan bij')}`,
+      ${toggle('startBinnen', 'Start binnen (thuis)', 'Laad je een spel dat bij je huis stond, of ga je naar huis, dan sta je binnen in de woning. Uit: je staat voor de deur')}`,
       `${pane('Spelregels', 'Zo speelt het', '<p>Hoe moeilijk het is, hoe het verkeer en het geweld zich gedragen en hoe het rijden aanvoelt. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan op de andere tabbladen. Camera-afstand, beeldhoek en eerste persoon staan onder Instellingen &gt; Camera; toetshints en uitleg onder Instellingen &gt; Hints &amp; uitleg.</p>')}`)}
     ${tab('moeilijkheid', difficultyTabHtml(), pane('Moeilijkheid', 'Hoe pittig', `<p>${difficultyPaneText}</p>`))}
     ${tab('besturing', `

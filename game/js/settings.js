@@ -95,7 +95,6 @@ const BASE_DEFAULTS = {
   terugkeerScene: true,
   gore: true,
   // Cheats in het menu (settingsrules.js cheatsVisible, 22-11): uit tot de speler het zelf aanzet (Spelregels); in dev altijd. Lokaal per speler.
-  cheatsTonen: false,
   // Zichtafstand (viewdist.js): 'kort' hoort bij de voorinstelling die de speler als Hoog ziet
   // (de sleutel heet nog 'vlot': de look van de zwaarste stand met de afstand van Laag, #893).
   // Op een iGPU-laptop als de M1 is dat de speelbare stand; de speler kan in de instellingen
@@ -278,6 +277,7 @@ function load() {
     out.samenRol = raw.samenRol === 'host' || raw.samenRol === 'gast' || raw.samenRol === 'lijst' ? raw.samenRol : null; // alleen de voorselectie van de sessiekeuze
     if (!(out.padLookSensitivity >= 0.3 && out.padLookSensitivity <= 2.5)) out.padLookSensitivity = DEFAULTS.padLookSensitivity;
     // 22-11: ook deze twee werden niet gecontroleerd; een handmatig bestand met drunkFx "zzz" of rumbleStrength 1e9 bleef gewoon staan
+    delete out.cheatsTonen; // 22-11: Cheats is vrijspeelbaar in het verhaal, geen instelling meer; een oud bestand met deze sleutel wordt opgeschoond en laat niets zien
     if (!DRUNK_FX_CHOICES.includes(out.drunkFx)) out.drunkFx = DEFAULTS.drunkFx;
     if (!(out.rumbleStrength >= RUMBLE_STRENGTH_RANGE[0] && out.rumbleStrength <= RUMBLE_STRENGTH_RANGE[1])) out.rumbleStrength = DEFAULTS.rumbleStrength;
     if (stored && mig && mig.from < SETTINGS_VERSION) {

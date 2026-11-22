@@ -81,8 +81,8 @@ gelijk(resetMessage(3), '3 instellingen teruggezet naar de standaard.', 'meervou
 // 6. cheats
 {
   ok(!cheatsVisible(), 'standaard niet in het menu');
-  ok(!cheatsVisible({ tonen: 'true' }), 'alleen een echte true telt');
-  ok(cheatsVisible({ dev: true }) && cheatsVisible({ tonen: true }) && cheatsVisible({ actief: true }), 'dev, keuze of een actieve cheat');
+  ok(!cheatsVisible({ tonen: true }), 'een oude keuze (tonen) telt niet meer: Cheats is vrijspeelbaar in het verhaal');
+  ok(cheatsVisible({ dev: true }) && cheatsVisible({ actief: true }), 'dev of een actieve cheat');
 }
 
 // 7. zoeksynoniemen horen bij een echte sleutel, in gewone taal
@@ -221,21 +221,18 @@ for (let ronde = 0; ronde < 150; ronde++) {
   geldig(S.getSettings());
 }
 
-// 13. migratie: een oud bestand zonder de nieuwe sleutel, en een nieuwer bestand blijft heel
+// 13. migratie: een oud bestand zonder of met de vervallen sleutel cheatsTonen, en een nieuwer bestand blijft heel
 {
   zet({ masterVolume: 0.4, v: 1 });
   const s = (await laad()).getSettings();
-  gelijk([s.cheatsTonen, s.masterVolume], [false, 0.4], 'oud bestand: cheatsTonen valt terug op uit, de rest blijft');
-  zet({ cheatsTonen: 'ja' });
-  gelijk((await laad()).getSettings().cheatsTonen, false, 'een tekst telt niet als ja');
-  zet({ cheatsTonen: true, toekomst: 5, v: SETTINGS_VERSION + 3 });
+  gelijk([s.cheatsTonen, s.masterVolume], [undefined, 0.4], 'oud bestand: geen cheatsTonen, de rest blijft');
+  zet({ cheatsTonen: true, masterVolume: 0.4, v: 1 });
+  gelijk((await laad()).getSettings().cheatsTonen, undefined, 'een oud bestand met cheatsTonen: de sleutel wordt opgeschoond, Cheats blijft verborgen');
+  zet({ toekomst: 5, v: SETTINGS_VERSION + 3 });
   const S = await laad();
   S.setSetting('fov', 60); S.flushSettings();
   const f = JSON.parse(opslag.get(KEY));
-  gelijk([f.cheatsTonen, f.toekomst, f.v, f.fov], [true, 5, SETTINGS_VERSION + 3, 60], 'nieuwer bestand: eigen sleutel, onbekende sleutel en versie blijven');
-  // de reset laat de keuze voor cheats niet staan: het is een voorkeur, geen toestemming
-  S.resetSettings();
-  gelijk(S.getSettings().cheatsTonen, false, 'Standaard herstellen zet cheats weer uit het menu');
+  gelijk([f.toekomst, f.v, f.fov], [5, SETTINGS_VERSION + 3, 60], 'nieuwer bestand: onbekende sleutel en versie blijven');
 }
 
 console.log(`settingsrules_test: ${n} controles ok`);

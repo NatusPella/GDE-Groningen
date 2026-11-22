@@ -130,7 +130,7 @@ ok(alleenKortGezien < iedereen.length, 'cast: de uitklapper komt voor');
 // 6. Cheats in het menu: alleen in een dev- of testrun, of nadat het verhaal ze heeft vrijgespeeld (22-11)
 {
   const pm = read('pausemenu.js'), st = read('settings.js');
-  ok(pm.includes('export const cheatsInMenu = () => DEV || cheatsOpen();'), 'cheats: zichtbaar in dev of na het vrijspelen in het verhaal');
+  ok(/export const cheatsInMenu = \(\) => cheatsVisible\(\{ dev: DEV \|\| !!FLAGS\.dev, actief: anyCheatOn\(\) \}\) \|\| cheatsOpen\(\);/.test(pm), 'cheats: zichtbaar in dev, bij een actieve cheat of na het vrijspelen in het verhaal');
   ok(pm.includes("filter((id) => id !== 'streken' || cheatsInMenu())"), 'cheats: de rail laat Cheats weg zonder dev of vrijspelen');
   ok(!/toonCheats/.test(st) && !pm.includes("toggle('toonCheats'"), 'cheats: de instelling en de schakelaar zijn weg (het verhaal speelt ze vrij)');
 }

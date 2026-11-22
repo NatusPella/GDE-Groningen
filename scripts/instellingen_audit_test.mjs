@@ -92,12 +92,12 @@ ok(menu.includes('data-silence') && menu.includes('silenceWarning(st)'), 'de sti
 ok(menu.includes('data-shake-proef') && menu.includes('proefSchudden'), 'de schudproef staat bij Toegankelijkheid');
 ok(menu.includes('reducedMotion()') && menu.includes('effectsFor('), 'de schudproef volgt Beweging beperken en het besturingssysteem');
 ok(menu.includes('synonymsFor('), 'de zoekregels krijgen synoniemen');
-ok(menu.includes('cheatsVisible(') && /filter\(\(id\) => id !== 'streken' \|\| cheatsShown\(\)\)/.test(menu), 'Cheats staat alleen in de rail na keuze, in dev of met een actieve cheat');
+ok(menu.includes('cheatsVisible(') && /filter\(\(id\) => id !== 'streken' \|\| cheatsInMenu\(\)\)/.test(menu), 'Cheats staat alleen in de rail in dev, bij een actieve cheat of na het vrijspelen in het verhaal');
 ok(/name === 'streken' && !ids\.includes\('streken'\)/.test(menu), 'een oude verwijzing naar Cheats valt terug op Instellingen');
-ok(/toggle\('cheatsTonen'/.test(menu), 'de schakelaar voor Cheats staat bij Spelregels');
+ok(!/cheatsTonen/.test(menu), 'er is geen instelling meer die Cheats toont: het verhaal speelt ze vrij');
 ok(menu.includes('COLOR_BLIND_LABELS.deuteranopie'), 'de kleurenstanden hebben gewone namen');
-// de rail verbergt de knop ook als de speler de schakelaar weer uitzet
-ok(menu.includes(`.ra[data-goto="streken"]`) && menu.includes('cheatsBtn.hidden = !cheatsShown()'), 'de railknop verdwijnt weer na uitzetten');
+// de rail verbergt de knop ook zodra de laatste actieve cheat uitgaat
+ok(menu.includes(`.ra[data-goto="streken"]`) && menu.includes('cheatsBtn.hidden = !cheatsInMenu()'), 'de railknop verdwijnt weer na uitzetten');
 // elk nieuw stuk heeft zijn stijl
 const css = lees('pausemenu.css');
 for (const sel of ['.pm-why', '.pm-afhankelijk', '.pm-silence', '.pm-shake-box.is-schud', '@keyframes pm-schud']) ok(css.includes(sel), `stijl voor ${sel}`);
@@ -107,7 +107,7 @@ ok(/animation: pm-schud var\(--ds-m-lang\) linear 1;/.test(css), 'de proef schud
 const regels = lees('settingsrules.js');
 ok(!/fetch\(|WebSocket|RTCPeer|import .*coop|import .*net/.test(regels), 'settingsrules.js is puur en lokaal');
 const bronSettings = lees('settings.js');
-ok(!/^\s*(?:export )?(?:const|let) .*KEEP_ON_RESET.*cheatsTonen/m.test(bronSettings), 'cheatsTonen is geen toestemming: herstellen zet hem terug');
+ok(!/^\s*cheatsTonen: /m.test(bronSettings), 'cheatsTonen staat niet meer in de standaardinstellingen');
 void KEY;
 
 console.log(`instellingen_audit_test: ${n} controles ok`);
