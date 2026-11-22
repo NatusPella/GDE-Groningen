@@ -137,7 +137,7 @@ const html = leesHtml();
 {
   const au = lees('achievementsui.js');
   ok(/function heroHtml\(sum, near, verborgen\)/.test(au), '#909: Prestaties heeft een kop met de stand van nu');
-  ok(/ds-z-kaart pa-hero/.test(au) && /ds-z-waarde/.test(au), '#909/#980: die kop is een papieren kaart met cijfers, dezelfde taal als de andere vernieuwde schermen');
+  ok(/ds-z-kaart[^"]* pa-hero/.test(au) && /ds-z-waarde/.test(au), '#909/#980: die kop is een papieren kaart met cijfers, dezelfde taal als de andere vernieuwde schermen');
   ok(/const streep = /.test(au) && /pa-rowbar/.test(au), '#909/#980: een streep bovenaan en een balk per rij die bijna is');
   ok(/bijna binnen/.test(au) && /nog te gaan/.test(au) && /nog geheim/.test(au), '#909: de getallen betekenen iets (bijna, te gaan, geheim)');
   ok(/Alles gehaald/.test(au) && /Bijna binnen/.test(au) && /van \$\{c\.items\.length\}/.test(au), '#909/#980: een categorie zegt in woorden hoe ver hij is (chip en n van m)');

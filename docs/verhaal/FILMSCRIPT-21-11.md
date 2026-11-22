@@ -119,7 +119,7 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 
 **Sequentie N4: Een eerste ronde** (activiteit; speler-protagonist Tammo)
 
-- **N4** BUITEN – STAD, STATION GRUNN – OCHTEND · Een eerste ronde · cutscene of gespeeld in de missie
+- **N4** BUITEN – STAD, STATION GRONINGEN – OCHTEND · Een eerste ronde · cutscene of gespeeld in de missie
   - maandagochtend. Op het stationsplein staan een taxi, een stapel formulieren en een klusbord. Ze proberen drie dingen na elkaar.
   - praat: Tessa, Tammo, Jelle Terpstra
 
@@ -268,7 +268,7 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 
 **Sequentie T1: De trein naar Warffum** (activiteit; speler-protagonist Tammo)
 
-- **T1** BINNEN – STAD, STATION GRUNN NAAR WARFFUM – DAG · De trein naar Warffum · travel
+- **T1** BINNEN – STAD, STATION GRONINGEN NAAR WARFFUM – DAG · De trein naar Warffum · travel
   - bewijsmoment, relatie-bijbel 4: op het perron wacht Tammo tot een oude vrouw met een rollator de trein uit is voor hij zelf instapt. Tessa ziet het in het raam.
   - praat: Tessa, Tammo
 

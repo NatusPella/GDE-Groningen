@@ -23,8 +23,8 @@ const num = (src, re) => {
   const u = num(grass, /FILL_OFFSET = \{ factor: [\d.]+, units: ([\d.]+), factorStep: [\d.]+, unitsStep: ([\d.]+)/);
   const fs2 = num(grass, /factorStep: ([\d.]+)/);
   const us = num(grass, /unitsStep: ([\d.]+)/);
-  const road = num(farlod, /road: groundMaterial\(([\d.]+)\)/);
-  const green = num(farlod, /green: groundMaterial\(([\d.]+)\)/);
+  const road = num(farlod, /road: groundMaterial\(([\d.]+)[,)]/);
+  const green = num(farlod, /green: groundMaterial\(([\d.]+)[,)]/);
   ok([f, u, fs2, us, road, green].every(Number.isFinite), 'de offsetgetallen zijn te lezen');
   // de hoogste graslaag (laag 9, sublaag 0,5) blijft onder de verre weg
   const maxF = f + fs2 * 9.5, maxU = u + us * 9.5;

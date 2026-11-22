@@ -12,7 +12,7 @@ const t = (naam, f) => { f(); n++; console.log(`ok ${naam}`); };
 t('de toets staat in de bestuurbare acties', () => {
   const actie = KEY_ACTIONS.find(([k]) => k === '5');
   assert.ok(actie, 'key 5 is een actie');
-  assert.match(actie[1], /waypoint/i);
+  assert.match(actie[1], /routepunt/i);
 });
 
 t('T blijft de trekkerhef en de treinwachttijd', () => {

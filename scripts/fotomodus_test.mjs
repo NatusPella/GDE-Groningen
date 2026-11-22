@@ -93,7 +93,7 @@ const panel = fu.slice(fu.indexOf('export function renderFotoPanel'), fu.indexOf
 const gezicht = fu.slice(fu.indexOf('function heroHtml'));
 const sectie = fu.slice(fu.indexOf('function heroHtml'), fu.indexOf('// true als de klik van de fotomodus was'));
 check('de galerij staat vóór de uitleg in het paneel', panel.indexOf('foto-gal') >= 0 && panel.indexOf('foto-gal') < panel.indexOf('+ voet)'));
-check('de hero staat bovenaan met de stand als badge', /ds-z-kaart foto-hero/.test(gezicht) && /\$\{n\} van \$\{F\.GALLERY\.max\} foto's/.test(gezicht));
+check('de hero staat bovenaan met de stand als badge', /ds-z-kaart[^"]* foto-hero/.test(gezicht) && /\$\{n\} van \$\{F\.GALLERY\.max\} foto's/.test(gezicht));
 check('de hero zegt met één zin wat je hier doet', /ds-z-kaart__tekst/.test(gezicht) && /nieuwste eerst/.test(gezicht));
 const kaart = fu.slice(fu.indexOf('function kaartHtml'), fu.indexOf('function voetHtml'));
 const bijschrift = kaart.slice(kaart.indexOf('<figcaption'), kaart.indexOf('</figcaption>'));

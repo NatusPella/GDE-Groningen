@@ -10,7 +10,7 @@ const R = '../../game/js/';
 export const LEGENDA = [
   { groep: 'Altijd', kind: 'player', label: 'Jij', dekt: ['player', 'partner', 'companion'] },
   { groep: 'Altijd', kind: 'missionIdle', label: 'Verhaal', dekt: ['missionIdle', 'missionActive', 'waypoint', 'mi-', 'ma-', 'sj-target', 'sj-dot', 'mm-*', 'eierbalTip'] },
-  { groep: 'Altijd', kind: 'userWaypoint', label: 'Jouw waypoint', dekt: ['userWaypoint'] },
+  { groep: 'Altijd', kind: 'userWaypoint', label: 'Jouw routepunt', dekt: ['userWaypoint'] },
   { groep: 'Altijd', kind: 'route', label: 'Route', dekt: ['route'] },
   { groep: 'Altijd', kind: 'navdoel', label: 'Doel dat je volgt', dekt: ['navdoel'] },
   { groep: 'Te doen', kind: 'padel', label: 'Minigames', dekt: ['padel', 'pigeon', 'heli', 'act-', 'pg-', 'onderdeel', 'wrakduik', 'streekuitdaging'] },

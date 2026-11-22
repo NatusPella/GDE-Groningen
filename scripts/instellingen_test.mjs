@@ -56,7 +56,7 @@ t('het foutrapport staat onder Over: Nederlandse samenvatting eerst, Engelse det
   assert.ok(over.includes('${problemsHtml()}'), 'Over tekent het problemenblok');
   assert.ok(blok.includes('<span>Problemen</span>'), 'het kopje Problemen staat er');
   assert.ok(blok.includes('data-errsum'), 'de Nederlandse samenvatting heeft een eigen plek');
-  assert.ok(/<details class="pm-errfold"><summary>Technische details/.test(blok), 'de technische details zitten achter een vouw');
+  assert.ok(/<details class="pm-errfold"><summary>Ruwe meldingen/.test(blok), 'de ruwe meldingen (technische details) zitten achter een vouw');
   assert.ok(blok.indexOf('data-errsum') < blok.indexOf('data-errlog'), 'eerst de samenvatting, dan de details');
   const log = pm.slice(pm.indexOf('function renderErrorLog'), pm.indexOf('onErrorLogChange(() =>'));
   assert.match(log, /Geen problemen gemeld/, 'zonder meldingen zegt de samenvatting dat het goed gaat');

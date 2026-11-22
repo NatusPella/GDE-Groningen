@@ -4,7 +4,7 @@ import './node3d.mjs';
 await import('../game/js/mapdata.js');
 await import('../game/js/player.js');
 const { discoHue, discoPulse, updateDiscoLamp, DISCO_PERIOD } = await import('../game/js/discolight.js');
-const { initCheats, setCheat, updateCheats } = await import('../game/js/cheats.js');
+const { initCheats, setCheat, updateCheats, applyCheatSave } = await import('../game/js/cheats.js');
 const { MODS } = await import('../game/js/cheatmods.js');
 const THREE = await import('three');
 
@@ -45,7 +45,8 @@ ok(!m.userData.disco && m.children.length === 0, 'uit en nooit aan geweest: niet
 // de schakelaars: cosmetisch (ook in een missie), en weer uit
 const w = { player: { inVehicle: null, x: 0, y: 0 }, vehicles: [], clock: 12, wanted: 0, wantedDecayTimer: 0, health: 100, ammo: {}, weather: { active: false }, addMessage() {}, time: 0 };
 initCheats(w);
-ok(setCheat('disco', true) && setCheat('spiegelstad', true), 'beide zijn vanaf het begin te kiezen');
+applyCheatSave({ v: 1, open: true, unlocked: ['disco', 'spiegelstad'], on: [], used: [] }, {}); // 22-11: cheats zijn pas na het vrijspelen beschikbaar
+ok(setCheat('disco', true) && setCheat('spiegelstad', true), 'beide zijn na het vrijspelen te kiezen');
 updateCheats(0.016, w);
 ok(MODS.disco === true && MODS.mirror === true, 'MODS.disco en MODS.mirror staan aan');
 setCheat('disco', false); setCheat('spiegelstad', false);

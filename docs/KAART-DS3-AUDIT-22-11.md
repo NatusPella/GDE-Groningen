@@ -24,7 +24,7 @@ Kolommen: soort, categorie (mapicons.js), icoonbron, vorm, kleurtoken, zichtbaar
 | partner | partner | eigen (vorm en kleur per medespeler (kleurenblind: nooit alleen kle) | zestien vormen per speler | id-1..8 | 0 | Jij |
 | companion | companion | Phosphor: speler | cirkel | ink-bord | 1.6 | Jij |
 | cash | police | Phosphor: geld | cirkel | ink-geel | 0 | Politie-eenheid |
-| userWaypoint | goal | eigen (de paarse pin van je eigen doel: het ene teken dat altijd pa) | pin | a11y-palet | 0 | Jouw waypoint |
+| userWaypoint | goal | eigen (de paarse pin van je eigen doel: het ene teken dat altijd pa) | pin | a11y-palet | 0 | Jouw routepunt |
 | missionIdle | mission | eigen (de gele ring van een missie die wacht: een doelmarkering, ge) | ring | ink-geel | 0 | Verhaal |
 | missionActive | goal | eigen (de gele ring met stip van je actieve doel; pulseert 250 ms, ) | ring met stip | ink-geel | 0 | Verhaal |
 | waypoint | mission | eigen (het kleine gele punt van een verhaalstap) | stip | ink-geel | 0 | Verhaal |
@@ -194,7 +194,7 @@ de doelmarkeringen en ringen, de politie-eenheden, de percelen (een letter per s
 
 ## Legenda
 
-Gegroepeerd per categorie (Altijd, Te doen, Diensten, Onderweg), als DS3-zeefdrukkaart. Rijen: Jij, Verhaal, Jouw waypoint, Route, Doel dat je volgt, Minigames, Bijbaantjes, Klussen, Ommeland, Percelen, Te koop, Standplaatsen, Je velden, Alleen oogstklaar, Na het verhaal, Thuis, Jouw voertuigen, Garage en pomp, Ziekenhuis en huisarts, Politiebureau, Politie-eenheid, Horeca, Betreedbaar, Winkels, Voertuigwinkels, Wapens & pandjeshuis, Treinstation, Bushalte, Live bus, Rooster, Maat, Flitspaal, Bezienswaardigheid, Uitkijkpunten, Safehouse, Veroverd, Straatnamen, Wijknamen, Gebouwen.
+Gegroepeerd per categorie (Altijd, Te doen, Diensten, Onderweg), als DS3-zeefdrukkaart. Rijen: Jij, Verhaal, Jouw routepunt, Route, Doel dat je volgt, Minigames, Bijbaantjes, Klussen, Ommeland, Percelen, Te koop, Standplaatsen, Je velden, Alleen oogstklaar, Na het verhaal, Thuis, Jouw voertuigen, Garage en pomp, Ziekenhuis en huisarts, Politiebureau, Politie-eenheid, Horeca, Betreedbaar, Winkels, Voertuigwinkels, Wapens & pandjeshuis, Treinstation, Bushalte, Live bus, Rooster, Maat, Flitspaal, Bezienswaardigheid, Uitkijkpunten, Safehouse, Veroverd, Straatnamen, Wijknamen, Gebouwen.
 
 ## Afspraken en afwijkingen
 

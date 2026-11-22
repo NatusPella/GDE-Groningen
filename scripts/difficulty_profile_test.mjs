@@ -154,7 +154,7 @@ for (const [f, re, wat] of KOPPELINGEN) ok(re.test(src(f)), `${f} leest ${wat} u
 // --- 6. de save: veld, migratie en opslag ----------------------------------------------------------------------------------
 {
   const sg = src('savegame.js');
-  ok(/moeilijkheid: getDifficultyProfile\(\)/.test(sg), 'serialize schrijft het veld moeilijkheid');
+  ok(/moeilijkheid: (veilig\('moeilijkheid', \(\) => )?getDifficultyProfile\(\)/.test(sg), 'serialize schrijft het veld moeilijkheid');
   ok(/setActiveDifficulty\(profileFromSave\(d\.moeilijkheid, legacyDifficultyLevel\)\)/.test(sg), 'applySave zet de moeilijkheid van de save');
   const legacy = D.profileFromSave(undefined, 'standaard');
   ok(legacy.level === 'standaard' && Object.keys(legacy.custom).length === 0, 'een oude save zonder veld is Standaard');
