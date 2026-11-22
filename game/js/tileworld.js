@@ -20,6 +20,7 @@ import { dropWaterDuplicates } from './waterdupes.js';
 import { addMooredBuilding, dropMooredBuilding } from './waterindex.js';
 import { SECTION, decodeBlob, tileKey, tileOrigin, TILE_M } from './gdt.js';
 import { trimTileGreenery, trimHedgeRow } from './tilegreenery.js';
+import { isProceduralEdgeRow } from './edgeclasses.js';
 import * as propfilter from './propfilter.js';
 import { TileStore, FrameQueue, HttpRangeSource, inflateRaw, makeWorkerDecoder, decodeCompressed } from './tilestore.js';
 import { BACKGROUND_PRIORITY, BG_FOLLOW_MS, BG_GEO_M, BG_JUNCTION_FLUSH_MS, BG_PROMOTE_M, addPriority, backgroundHeld, whenReady, JUMP_BUDGET_MS, JUMP_RING_M } from './tilestream.js';
@@ -471,6 +472,8 @@ export class TileWorld extends GameMap {
       const twins = kind === 'water' ? dropWaterDuplicates(s.rows) : null;
       for (const { gid, obj } of rowsOf(kind, s)) {
         if (twins && twins.size && twins.has(obj)) continue;
+        // #1092: een randrij zonder bron-id is niet uit de kaartdata (een oude wereld, een verzonnen rij): niet laden
+        if (isProceduralEdgeRow(kind, obj, gid)) { this.proceduralEdgesSkipped = (this.proceduralEdgesSkipped || 0) + 1; continue; }
         if (kind === 'roads') hasRoads = true;
         let e = this._res[kind].get(gid);
         if (!e) {

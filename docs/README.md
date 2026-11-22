@@ -124,6 +124,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [HUD-LINKS-21-11.md](<HUD-LINKS-21-11.md>) | De locatiekaart en de politiechip links in de HUD (#1079): regel, meting en chip. |
 | [WITTE-RUIS-21-11.md](<WITTE-RUIS-21-11.md>) | Witte ruis in het spel: bronnen, oorzaken en maatregelen (#1084). |
 | [PERCEELRANDEN-21-11.md](<PERCEELRANDEN-21-11.md>) | Perceelranden: klassen en hoogten van randen rond percelen. |
+| [RANDEN-HERKOMST-22-11.md](<RANDEN-HERKOMST-22-11.md>) | Herkomst van elke rand, sloot, heg, hek en boomrij: kaartdata of verzonnen, met bestand:regel, aantallen voor en na en wat blijft (#1092). |
 | [TREINEN-LIVE-21-11.md](<TREINEN-LIVE-21-11.md>) | Live treinvertragingen op de vertrekborden (#1085). |
 | [KEUZESCHERMEN-21-11.md](<KEUZESCHERMEN-21-11.md>) | Keuzeschermen die de speler onderbreken (#1091). |
 | [SPULLEN-3D-21-11.md](<SPULLEN-3D-21-11.md>) | Spullen in 3D in het pauzemenu (#1086). |
