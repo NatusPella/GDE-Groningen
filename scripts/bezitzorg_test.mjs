@@ -6,6 +6,7 @@ import * as BL from '../game/js/boerderijlive.js';
 import * as GT from '../game/js/bezitgate.js';
 import * as EV from '../game/js/bezitevents.js';
 import * as C from '../game/js/forsalecard.js';
+import * as BZP from '../game/js/bezitprijs.js';
 
 let n = 0, fails = 0;
 const t = (name, fn) => { n++; try { fn(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', String(e.stack || e.message).split('\n').slice(0, 3).join('\n   ')); } };
@@ -13,6 +14,7 @@ const nepOpslag = () => { const m = new Map(); return { m, getItem: (k) => (m.ha
 const FILE = { v: 1, kinds: ['w', 'a', 'b'], access: ['weg', 'pad', 'wegNabij', 'padNabij', 'geen'], places: [['Winsum', 220000, 590000, 2400]],
   rows: [['paaaaaaaaaaa1', 220100, 590100, 1000, 1, 0, 220090, 590090], ['pbbbbbbbbbbb2', 220900, 590500, 400, 2, 0, 220890, 590490]] };
 const wereld = (money = 500000, day = 20) => ({ money, calendar: { day }, msgs: [], addMessage(x) { this.msgs.push(x); } });
+const hexId = (i) => 'p' + i.toString(16).padStart(12, '0');
 const reset = () => { const st = nepOpslag(); L.initBezit({ opslag: st }); BL.initBoerderij({ opslag: st }); L.setIndexForTest(FILE); L.setClaimLookup(null); L.setClaimSend(null); GT.resetUnlockGate(); return st; };
 
 t('verzekering: de dagtik trekt de premie per ha af en meldt hem in het rapport', () => {
@@ -69,6 +71,26 @@ t('perceelkaart: buren binnen 300 m (met eigen en geclaimde) en de beheerregel b
   assert.equal(m.mode, 'self'); assert.equal(m.insured, true);
   assert.match(C.offerCardHtml(m), /Beheer.*Zelf bewerkt · verzekerd tegen stortbui/);
   L.setClaimLookup(null);
+});
+
+t('eindbalans: 300 percelen en 300 panden samen leveren per speldag nooit meer dan het plafond voor passief inkomen (3 maal actief werk)', () => {
+  const P = BZP;
+  const PR = []; for (let i = 0; i < 300; i++) PR.push([hexId(i), 220000 + (i % 20) * 120, 590000 + Math.floor(i / 20) * 120, 300 + (i % 7) * 100, i % 3, 0, 220000 + (i % 20) * 120, 590000 + Math.floor(i / 20) * 120]);
+  const BR = []; for (let i = 0; i < 300; i++) BR.push([5000 + i, 220000 + (i % 20) * 60, 591000 + Math.floor(i / 20) * 60, 80 + (i % 5) * 40, i % 2, 6, 0]);
+  const st = nepOpslag(); L.initBezit({ opslag: st }); BL.initBoerderij({ opslag: st });
+  L.setIndexForTest({ ...FILE, rows: PR }, { v: 1, types: ['industrial', 'retail'], rows: BR });
+  L.setClaimLookup(null); L.setClaimSend(null); GT.resetUnlockGate();
+  const w = wereld(1e10, 20);
+  let kp = 0, kb = 0;
+  for (let i = 0; i < 300; i++) { if (L.koopPerceel(w, hexId(i)).ok) kp++; if (L.koopPand(w, 5000 + i).ok) kb++; }
+  assert.ok(kp > 200 && kb > 200, `${kp} percelen, ${kb} panden`);
+  L.dayTick(w);
+  const m0 = w.money, days = 30;
+  BL.getBoerderij().uren += 24 * days; w.calendar = { day: 20 + days };
+  const rep = L.dayTick(w);
+  const perDay = (w.money - m0) / (rep.to - rep.from + 1);
+  assert.ok(perDay > 0, 'het bezit levert iets op'); console.log('  passief per speldag', perDay.toFixed(0), 'plafond', P.PASSIVE_CAP_DAY);
+  assert.ok(perDay <= P.PASSIVE_CAP_DAY + 60, `per speldag ${perDay.toFixed(0)} tegen plafond ${P.PASSIVE_CAP_DAY}`);
 });
 
 console.log(`${n - fails}/${n} controles ok`);
