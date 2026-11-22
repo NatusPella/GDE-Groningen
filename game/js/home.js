@@ -246,6 +246,7 @@ function inPoly(poly, x, y, pad = 0) {
 }
 
 function regrid(grid, item, bounds) {
+  if (grid.touch) grid.touch(); // de cellijsten worden hieronder rechtstreeks gewijzigd: gridItems mag zijn bewaarde lijst niet houden
   for (const arr of grid.map.values()) {
     const i = arr.indexOf(item);
     if (i >= 0) arr.splice(i, 1);

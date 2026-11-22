@@ -11,6 +11,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+<<<<<<< HEAD
 - Voetbalcarrière: als Trainer of Manager kies je zelf de opstelling. Bij Trainer en Manager staat bij elke speler een knop om hem vast in de basis te zetten of op de bank te houden (hooguit acht per lijst); "Los" of "Laat het spel de beste elf kiezen" zet het terug. De keuze telt voor je eigen wedstrijd en de coachwedstrijd. Samen spelen: de keuze is van je eigen carrière, een medespeler ziet haar niet. Nog niet in beeld bekeken.
 
 ### Radio
@@ -24,6 +25,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Garage
 - Garage: een voertuig staat pas in de garage als je het kent. Ontdekt is wat je ooit bestuurd of ingestapt bent, of gekocht of in bezit hebt (winkel, Bezit, beloning, tuning). De rest blijft verborgen, zonder naam, met "x van y ontdekt" bovenaan en "Nog n te ontdekken" onderaan de lijst. De eerste keer instappen geeft de melding "Nieuw voertuig ontdekt", pas nadat het laadscherm weg is. Wie al voertuigen bezit, houdt die zichtbaar: geen savebreuk. De Escapade is altijd ontdekt. Samen spelen: ontdekt is per speler en blijft lokaal (gde-garage-ontdekt-v1, nooit in een savegame); alleen jouw eigen instappen telt, en een gast kent het model van een voertuig van de opener niet, dus die telt pas na kopen of zelf bezorgen. Test: scripts/garageknown_test.mjs.
+=======
+### Prestaties op Normaal (perf-60-normaal, 22-11)
+- Minder werk bij elke tegelwissel: de lijst van alle wegen en gebouwen uit het ruimteraster wordt per rasterwijziging één keer opgebouwd in plaats van door elke lezer opnieuw (wegen, kruispunten, routes, gras), en het dichtstbijzijnde wegstuk (straatmeubilair, plaatsing) rekent zonder tussenobjecten (1,6x sneller in de microbench, dezelfde uitkomst). Geen zichtbare wijziging; de 60 fps op Normaal is hiermee nog niet gehaald (zie docs/PERF-60-NORMAAL-22-11.md).
+>>>>>>> perf-60-normaal-22-11
 ### Taal
 - Stad, Ommeland en Grunn: wat de stad Groningen zelf is heet nu "de Stad" (de Martinitoren, bruggen en grachten, de wijken, de rondvaart), de rest van de provincie "Ommeland", en "Grunn" blijft voor het geheel, de slogans en het gevoel, zonder lidwoord. De locatieregel toont "wijk · Stad", het straatpraatkaartje "Opgevangen in de Stad" en het onweerbericht in de stad "Onweer boven de Stad". Het station heet overal Station Groningen. 20 gesproken regels (Tammo, Tessa, Rikus, Berend, Jelle en de rondvaartgids) zijn aangepast en wachten op een nieuwe opname (scripts/voice_wacht.json). De regel staat in docs/TAALREGEL-STAD-OMMELAND-22-11.md en wordt bewaakt door scripts/stad_grunn_test.mjs.
 ### Het Loket (M03), opgeruimd
