@@ -84,6 +84,8 @@ export function makeTrainers(scene) {
 // ---- reclameborden langs de zijlijnen (#1118): de verzonnen namen van de geaccepteerde sponsors (voetbalsponsors.js boardNames), hooguit drie, vier borden per kant op een plek in het gras-randje (1,1 m buiten de lijn) ----
 // Alleen tekst op een effen vlak (geen logo, geen echt merk). Materialen en teksturen zijn gedeeld tussen wedstrijden (userData.shared), de geometrie hoort bij de wedstrijd en gaat mee met de groep.
 const adMats = new Map();
+const AD_KLEUR = { bord: 0x17301f, rand: 0xf4c430, tekst: 0xf0ede4 };   // dezelfde donkergroene bord- en gele randkleur als het bord bij de poort (voetbal.js)
+const css = (v) => `#${(v >>> 0).toString(16).padStart(6, '0')}`;
 function adMat(naam) {
   let m = adMats.get(naam);
   if (m) return m;
@@ -91,13 +93,13 @@ function adMat(naam) {
   try {
     const c = document.createElement('canvas'); c.width = 512; c.height = 80;
     const g = c.getContext('2d');
-    g.fillStyle = '#17301f'; g.fillRect(0, 0, 512, 80);
-    g.strokeStyle = '#f4c430'; g.lineWidth = 4; g.strokeRect(4, 4, 504, 72);
-    g.fillStyle = '#f0ede4'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = "bold 46px 'Bebas Neue','Arial Narrow',Arial,sans-serif";
+    g.fillStyle = css(AD_KLEUR.bord); g.fillRect(0, 0, 512, 80);
+    g.strokeStyle = css(AD_KLEUR.rand); g.lineWidth = 4; g.strokeRect(4, 4, 504, 72);
+    g.fillStyle = css(AD_KLEUR.tekst); g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = "bold 46px 'Bebas Neue','Arial Narrow',Arial,sans-serif";
     g.fillText(String(naam).toUpperCase(), 256, 42, 480);
     map = new THREE.CanvasTexture(c); map.colorSpace = THREE.SRGBColorSpace;
   } catch (e) { map = null; }
-  m = new THREE.MeshBasicMaterial(map ? { map } : { color: 0x17301f });
+  m = new THREE.MeshBasicMaterial(map ? { map } : { color: AD_KLEUR.bord });
   m.userData.shared = true;
   if (adMats.size > 24) adMats.clear();
   adMats.set(naam, m);
