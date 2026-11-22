@@ -176,7 +176,7 @@ TAMMO: Ik zie het. [NIEUW]
 TESSA: Zijwind. Niet aan het stuur trekken. [NIEUW]
 TAMMO: Ik trek nooit aan het stuur. [NIEUW]
 TESSA: Je hebt net getrokken. [NIEUW]
-JELLE (telefoon): Mevrouw, mijn juristen vinden dat u te hard rijdt. In mijn limo is plek. [NIEUW]
+JELLE (telefoon): Mevrouw, u rijdt te hard. In mijn limo is plek. [NIEUW]
 TESSA: Rij, Tammo. [NIEUW]
 
 ## [M14.3] De dijk: na de finish – Eemsdelta, sluis Delfzijl – auto van Lammert

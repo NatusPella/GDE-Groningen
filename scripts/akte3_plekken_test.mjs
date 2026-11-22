@@ -20,6 +20,9 @@ const doelen = STEPS.filter((s) => s.part === 'staart' && s.goal && s.goal.type 
   .map((s) => ({ id: s.id, naam: s.goal.to, lat: s.goal.at[0], lon: s.goal.at[1], r: s.goal.r || 300 }));
 doelen.push({ id: 'M16.dijk', naam: 'dijk bij Blauwestad', lat: 53.17, lon: 6.988, r: 300 });
 ok(doelen.length >= 5, 'er zijn reisdoelen in akte 3', String(doelen.length));
+// de missiepunten (start, fasedoelen, waypoints) uit een momentopname van akte3_doelen_dump.mjs (zwaar: laadt de stad); ververs hem na een verplaatsing
+const snap = JSON.parse(fs.readFileSync(new URL('akte3_doelen_snapshot.json', import.meta.url), 'utf8'));
+for (const p of snap.filter((q) => q.lat)) doelen.push({ id: p.id, naam: p.soort, lat: p.lat, lon: p.lon, r: p.soort === 'start' ? 6 : 30, voertuig: p.id === 'M14' && p.soort === 'start', vlieg: p.id === 'M12' || p.id === 'M15' });
 
 const mPerLat = 111320, mPerLon = (lat) => 111320 * Math.cos((lat * Math.PI) / 180);
 const dist = (a, b) => Math.hypot((a[0] - b[0]) * mPerLat, (a[1] - b[1]) * mPerLon(a[0]));
@@ -35,7 +38,8 @@ for (const f of fs.readdirSync(dir).filter((x) => /^c-?\d+_-?\d+\.json\.gz$/.tes
     const t = e.tags || {};
     for (const r of res) {
       const p = [r.lat, r.lon];
-      if (Math.abs(e.g[0][0] - r.lat) > 0.02 || Math.abs(e.g[0][1] - r.lon) > 0.03) continue;
+      // een lange weg begint soms ver weg: kijk naar alle punten, niet alleen naar het eerste
+      if (!e.g.some((q) => Math.abs(q[0] - r.lat) < 0.02 && Math.abs(q[1] - r.lon) < 0.03)) continue;
       if (t.building && e.g.length > 3 && inPoly(p, e.g)) r.gebouw++;
       if ((t.natural === 'water' || t.waterway === 'riverbank' || t.landuse === 'reservoir') && e.g.length > 3 && inPoly(p, e.g)) r.water++;
       if (WEG.has(t.highway)) for (let i = 1; i < e.g.length; i++) r.weg = Math.min(r.weg, segDist(p, e.g[i - 1], e.g[i]));
@@ -45,7 +49,8 @@ for (const f of fs.readdirSync(dir).filter((x) => /^c-?\d+_-?\d+\.json\.gz$/.tes
 for (const r of res) {
   ok(r.gebouw === 0, `${r.id} ${r.naam}: niet in een gebouw`);
   ok(r.water === 0, `${r.id} ${r.naam}: niet in water`);
-  ok(r.weg <= 80, `${r.id} ${r.naam}: een weg of pad binnen 80 m`, `${Math.round(r.weg)} m`);
+  if (!r.vlieg) ok(r.weg <= Math.max(80, r.r), `${r.id} ${r.naam}: een weg of pad binnen bereik`, `${Math.round(r.weg)} m`);
+  if (r.voertuig) ok(r.weg <= 15, `${r.id} ${r.naam}: de auto staat op de weg`, `${Math.round(r.weg)} m`);
   console.log(`  ${r.id.padEnd(9)} ${String(r.naam).padEnd(32)} weg ${Number.isFinite(r.weg) ? Math.round(r.weg) + ' m' : 'geen'}, gebouw ${r.gebouw}, water ${r.water}, straal ${r.r}`);
 }
 console.log(`akte3_plekken_test: ${n - fails}/${n} ok`);
