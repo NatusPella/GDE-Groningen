@@ -499,8 +499,29 @@ export function rentView(biz, day) {
 // Elk beeld aangeroepen (goedkoop: werkt alleen als de speldag veranderd is). Het geld gaat via world.money met noteMoney.
 let lastReport = null;
 export const takeDayReport = () => { const r = lastReport; lastReport = null; return r; };
+// Een tak die opengaat krijgt een berichtje van het verzonnen Notariaat De Zegelhoek (#1099), eenmaal per tak en per speler (bezit.x.told). Alleen tekst.
+export const UNLOCK_NOTES = {
+  land: 'Notariaat De Zegelhoek: "Uw eerste akte ligt klaar. Op de kaart staan nu percelen te koop."',
+  business: 'Notariaat De Zegelhoek: "Ook panden en winkels staan voor u klaar. Kijk bij Land en bedrijf."',
+};
+export function unlockNotes(told, open) {
+  const out = [];
+  for (const k of Object.keys(UNLOCK_NOTES)) if (open(k) && !told.includes(k)) out.push(k);
+  return out;
+}
+export function announceUnlocks(w) {
+  const b = getBezit();
+  const told = Array.isArray(b.x.told) ? b.x.told.filter((k) => typeof k === 'string').slice(0, 8) : [];
+  const fresh = unlockNotes(told, branchOpen);
+  if (!fresh.length) return [];
+  b.x.told = told.concat(fresh);
+  if (w && typeof w.addMessage === 'function') for (const k of fresh) w.addMessage(UNLOCK_NOTES[k], 6, { kind: 'tip', key: `bz-open-${k}` });
+  markeer();
+  return fresh;
+}
 export function dayTick(w) {
   const b = getBezit(), farm = getBoerderij();
+  announceUnlocks(w);
   const day = Math.floor(farm.uren / 24);
   clock = { cal: calDayOf(w), farm: day };
   if (!(Z.ownedCount(b) > 0 || Object.keys(b.parcels).length > 1 || b.buildings.size || Object.keys(b.mobile || {}).length || SN.isActive(snackState()))) { b.x.lastDay = day; return null; }
