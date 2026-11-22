@@ -57,5 +57,18 @@ const t0 = Date.now();
 for (let i = 0; i < 900; i++) M.buildBuildingMesh(gebouwen[i]);
 ok(Date.now() - t0 < 60000, 'alles in gebruik: geen oneindige lus');
 
+// 4. het gebouw dat nu gebouwd wordt (nog niet in de scene) verliest zijn delen nooit, ook niet als alle andere gespaard worden
+//    (voorheen: parts null, TypeError "reading 'main'" in buildBuildingMeshRaw, de rode kaart "Er ging iets mis")
+for (const b of gebouwen) b._geo3dParts = null;
+const gebruik = new Set();
+M.setPartsInUse((b) => gebruik.has(b));
+let fout = null;
+try {
+  for (let i = 0; i < 850; i++) { gebruik.add(gebouwen[i]); M.buildBuildingMesh(gebouwen[i]); }
+  for (let i = 850; i < 900; i++) { const m = M.buildBuildingMesh(gebouwen[i]); ok(!!m && !!gebouwen[i]._geo3dParts, 'nieuw gebouw naast alleen gespaarde gebouwen houdt zijn delen'); }
+} catch (e) { fout = e.message; }
+ok(fout === null, 'geen TypeError bij een cache vol gespaarde gebouwen', String(fout));
+M.setPartsInUse(null);
+
 console.log(`buildingparts_lru_test: ${n - bad}/${n} ok`);
 process.exit(bad ? 1 : 0);
