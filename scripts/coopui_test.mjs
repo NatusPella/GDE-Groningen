@@ -52,8 +52,12 @@ t('overlaycomponent: één surface met aria-modal, tokens en één primaire knop
   assert.match(html, /role="dialog"/);
   assert.match(html, /aria-modal="true"/);
   assert.match(html, /aria-label="Weggevallen speler"/);
-  assert.match(html, /class="m-bg cp-btn m-bp cp-primary" data-cp-action="hervat">Opnieuw verbinden</);
-  assert.match(html, /class="m-bg cp-btn" data-cp-action="stop">Niet wachten</);
+  // #1220: DS3-kaart en DS3-knoppen (zeefdruk), de primaire eerst; de knop zonder toets heeft geen toetsplaatje
+  assert.match(html, /class="cp-pane ds-zeef ds-z-kaart ds-z-kaart--recht"/);
+  assert.match(html, /class="cp-btn cp-primary ds-z-knop" data-cp-action="hervat"><span class="ds-z-knop__label">Opnieuw verbinden<\/span><\/button>/);
+  assert.match(html, /class="cp-btn ds-z-knop--secundair ds-z-knop" data-cp-action="stop"><span class="ds-z-knop__label">Niet wachten<\/span><\/button>/);
+  // een knop met alleen `id` (zoals de harnasdata) verdwijnt niet meer: een vraag zonder knoppen bestaat niet
+  assert.match(overlayHtml({ title: 'Verbinding weg', text: 'Overnemen?', buttons: [{ id: 'ja', label: 'Ja, overnemen' }, { id: 'nee', label: 'Nee' }] }), /data-cp-action="ja"[\s\S]*data-cp-action="nee"/);
   assert.ok(html.indexOf('cp-primary') < html.indexOf('data-cp-action="stop"'), 'de primaire knop staat eerst');
   assert.ok(!/style=/.test(html) && !/#[0-9a-f]{6}/i.test(html), 'geen inline stijl of losse hex');
   assert.match(overlayHtml({ title: '<b>gevaar</b>', text: 'a & b' }), /&lt;b&gt;gevaar&lt;\/b&gt;/);
