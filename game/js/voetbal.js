@@ -16,7 +16,7 @@ import * as CL from './voetbalcarrierelive.js';
 import { matchSetup, commentaryContext, nextMatch, divisionOfMyClub } from './voetbalcarriere.js';
 import { pitchPlacement } from './voetbalparken.js';
 import { registerLauncher, registerCoachLauncher } from './voetbalcarriereui.js';
-import { coachSetup, makeCoachMatch, coachTactic, coachResult } from './voetbalcoach.js';
+import { coachSetup, makeCoachMatch, coachTactic, coachMelding, coachResult } from './voetbalcoach.js';
 import { formationList } from './voetbalrules.js';
 import { awayKit, shirtBandsFor, mapSpots, parkCrowdCount, crowdVisible, trainingSquads } from './voetbalworld.js';
 import { buildCrowd, makeTrainers, buildAdBoards } from './voetbalpubliek.js';
@@ -35,7 +35,7 @@ import {
 import { voetbalHudModel, voetbalBoard, popVan, UITLEG_ID } from './voetbalstatus.js';
 import { makeCommentaar, commentaarVoor, tikCommentaar, commentMvp, derbyVan } from './voetbalcommentaar.js';
 import { makeRegie, regieTik, cameraVoor, makeOpname, opnameTik, opnameClip, clipFrame, pasFrameToe, herstelStaat, planHerhaling, herhalingShot, nextMode, MODE_NAMES } from './voetbalregie.js';
-import { scoreboardRow, opstellingHtml, rustHtml, eindHtml, radarHtml, subtitleHtml, guestEvents, guestState, leesTvVoorkeur, hex } from './voetbalpresentatie.js';
+import { magOverslaan, carriereBannerRijen, scoreboardRow, opstellingHtml, rustHtml, eindHtml, radarHtml, subtitleHtml, guestEvents, guestState, leesTvVoorkeur, hex } from './voetbalpresentatie.js';
 import { matchMvp, statistiekenVan } from './voetbalextrarules.js';
 import { besteOntvanger } from './voetbalai.js';
 import { makeTvLayer } from './voetbaltvlayer.js';
@@ -552,14 +552,15 @@ function updateGame(w, dt) {
   if (stopPressed(w.input)) { end(w, { quit: true }); return; }
   if (g.replay) { tikHerhaling(w, dt); return; }
   if (w.input.wasPressed('3')) { w.input.consume('3'); const tv = leesTv(); tv.camera = nextMode(g.regie.modus); g.regie.modus = tv.camera; schrijfTv(tv); g.cam = null; w.addMessage(MODE_NAMES[tv.camera], 2.5); }
-  if (!g.online && (g.sim.fase === 'intro' || g.sim.fase === 'rust' || g.sim.fase === 'eind') && (w.input.wasPressed('f') || w.input.wasPressed(' '))) { w.input.consume('f'); w.input.consume(' '); g.sim.faseT = Math.min(g.sim.faseT, 0.05); } // de opstelling, rustpauze of samenvatting overslaan
+  if (g.faseVorig !== g.sim.fase) { g.faseVorig = g.sim.fase; g.faseSinds = 0; } else g.faseSinds += dt;
+  if (!g.online && (g.sim.fase === 'intro' || g.sim.fase === 'rust' || g.sim.fase === 'eind') && magOverslaan(g.sim.fase, g.faseSinds) && (w.input.wasPressed('f') || w.input.wasPressed(' '))) { w.input.consume('f'); w.input.consume(' '); g.sim.faseT = Math.min(g.sim.faseT, 0.05); } // de opstelling, rustpauze of samenvatting overslaan
   if (g.career && g.career.coach) { // coachen: de tactiek onderweg met rusttijd (voetbalcoach.js); de voorkeur van het keuzescherm blijft ongemoeid
     for (const k of ['1', '2']) {
       if (!w.input.wasPressed(k)) continue;
       w.input.consume(k);
       const wissel = k === '1' ? { stijl: stijlVan(g.sim.tac[0].stijl) } : { vorming: nextFormation(g.sim.formaat, g.sim.tac[0].vorming) };
       const r = coachTactic(g.sim, wissel);
-      w.addMessage(r.ok ? (k === '1' ? `Speelstijl: ${wissel.stijl}` : `Vorming: ${wissel.vorming}`) : r.reden, 2.5);
+      w.addMessage(coachMelding(k === '1' ? `Speelstijl: ${wissel.stijl}` : `Vorming: ${wissel.vorming}`, r), 2.5);
     }
   } else {
     if (w.input.wasPressed('1')) { w.input.consume('1'); const freshStyle = stijlVan(g.sim.tac[0].stijl); zetTactiek(g.sim, 0, { stijl: freshStyle }); const vv = leesOpslag(); vv.stijl = freshStyle; schrijfOpslag(vv); w.addMessage(`Speelstijl: ${freshStyle}`, 2.5); }
@@ -650,7 +651,7 @@ function launchReplay(w) {
 function tikHerhaling(w, dt) {
   const g = game, r = g.replay, sim = g.sim;
   r.t += dt * 0.8;
-  if (r.t >= r.duur || w.input.wasPressed('f') || w.input.wasPressed(' ') || w.input.wasPressed('enter')) { w.input.consume('f'); w.input.consume(' '); w.input.consume('enter'); g.replay = null; g.camReplay = null; g.cam = null; return; }
+  if (r.t >= r.duur || (magOverslaan('herhaling', r.t) && (w.input.wasPressed('f') || w.input.wasPressed(' ') || w.input.wasPressed('enter')))) { w.input.consume('f'); w.input.consume(' '); w.input.consume('enter'); g.replay = null; g.camReplay = null; g.cam = null; return; }
   const bw = pasFrameToe(sim, clipFrame(r.clip, r.t));
   g.camReplay = cameraVoor(herhalingShot(r.t / r.duur), sim, -1, g.t);
   g.replaySnit = herhalingShot(r.t / r.duur);
@@ -803,7 +804,7 @@ function updateHud(w) {
   const laad = g.online === 'gast' ? Math.max(g.laadG.schot, g.laadG.lang) / LAAD_S : human && !human.weg ? Math.max(human.laad.schot, human.laad.lang) / LAAD_S : 0;
   const chargeKind = g.online === 'gast' ? (g.laadG.lang > g.laadG.schot ? 'lang' : 'schot') : human && human.laad.lang > human.laad.schot ? 'lang' : 'schot';
   const model = {
-    fase: sim.fase, helft: sim.helft, klok: sim.klok, score: sim.score, namen: [sim.teams[0].kort, sim.teams[1].kort],
+    fase: sim.fase, helft: sim.helft, klok: sim.klok, score: sim.score, mijnTeam: mijnTeam(g), namen: [sim.teams[0].kort, sim.teams[1].kort],
     bezitTeam: owner >= 0 ? sim.spelers[owner].team : -1, heeftBal: owner >= 0 && owner === id, rol: p && p.rol === 'keeper' ? 'keeper' : 'veld',
     laad: Math.min(1, laad), laadSoort: chargeKind, stamina: p ? (g.online === 'gast' ? (p.moe ? 0.05 : 1) : p.stamina) : 1, moe: !!(p && p.moe),
     eigen: g.online === 'gast' ? null : human ? human.doelpunten : 0, bezit: g.online === 'gast' ? null : sim.stat.bezit,
@@ -921,9 +922,7 @@ function afrondenCarriere(w, g, quit) {
   const r = CL.finishMatch(w, coach ? coachResult(sim) : { gf, ga, stats });
   const s = r.summary;
   if (!s) return;
-  const rows = coach ? [['Stand', `${gf}-${ga}`], ['Als trainer', 'Je speelde niet mee']] : [['Stand', `${gf}-${ga}`], ['Jouw doelpunten', String(stats.goals)]];
-  if (s.gains && s.gains.length) rows.push(['Groei', `+${s.gains.length}`]);
-  if (s.notes && s.notes.length) rows.push(['Beker', s.notes[0]]);
+  const rows = carriereBannerRijen(s, { gf, ga, doelpunten: stats.goals, coach });
   showBanner({ kind: s.outcome === 'winst' ? 'pass' : 'fail', title: s.outcome === 'winst' ? 'GEWONNEN' : s.outcome === 'gelijk' ? 'GELIJKSPEL' : 'VERLOREN', reason: `${sim.teams[0].naam} ${gf}-${ga} ${sim.teams[1].naam}`, reward: 0, stats: rows });
 }
 

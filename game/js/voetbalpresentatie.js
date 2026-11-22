@@ -102,12 +102,15 @@ export function eindHtml(sim) {
 // De radar: alles op 0 tot 1 over het veld (x dwars, y in de lengte, jouw aanvalsrichting naar boven); alleen de bal, de spelers en de jouwe. Een uitgesloten speler staat er niet op.
 export function radarModel(sim, eigenId = -1) {
   const W = (sim.perTeam > 6 ? 56 : 26), L = (sim.perTeam > 6 ? 90 : 42);
-  const norm = (p) => ({ x: Math.max(0, Math.min(1, 0.5 + p.x / W)), y: Math.max(0, Math.min(1, 0.5 - p.y / L)) });
+  // derby (#1114): speelt jouw mens in team 1, dan valt hij naar -y aan; de radar draait dan een halve slag zodat jouw aanval altijd naar boven wijst
+  const eigen = eigenId >= 0 ? sim.spelers[eigenId] : null, draai = eigen && eigen.team === 1 ? -1 : 1;
+  const norm = (p) => ({ x: Math.max(0, Math.min(1, 0.5 + draai * p.x / W)), y: Math.max(0, Math.min(1, 0.5 - draai * p.y / L)) });
   return { bal: norm(sim.bal), spelers: sim.spelers.filter((p) => !p.rood).map((p) => ({ ...norm(p), team: p.team, jij: p.id === eigenId, keeper: p.rol === 'keeper' })), W, L };
 }
 export function radarHtml(sim, eigenId = -1, hoog = 84, breed = 52) {
   const r = radarModel(sim, eigenId), X = (v) => (v * breed).toFixed(1), Y = (v) => (v * hoog).toFixed(1);
-  const stip = r.spelers.map((p) => `<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="${p.jij ? 3.6 : 2.4}" class="vbtv-r${p.team}${p.jij ? ' vbtv-rjij' : ''}"/>`).join('');
+  // kleur is nooit het enige signaal: de ploeg van de computer is een vierkantje, de keeper een maatje groter
+  const stip = r.spelers.map((p) => { const rad = (p.jij ? 3.6 : 2.4) + (p.keeper ? 0.8 : 0), cl = `vbtv-r${p.team}${p.jij ? ' vbtv-rjij' : ''}`; return p.team === 1 ? `<rect x="${(X(p.x) - rad).toFixed(1)}" y="${(Y(p.y) - rad).toFixed(1)}" width="${(rad * 2).toFixed(1)}" height="${(rad * 2).toFixed(1)}" class="${cl}"/>` : `<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="${rad}" class="${cl}"/>`; }).join('');
   return `<svg viewBox="0 0 ${breed} ${hoog}" width="${breed}" height="${hoog}" role="img" aria-label="Veldradar"><rect x="0.5" y="0.5" width="${breed - 1}" height="${hoog - 1}" class="vbtv-rveld"/><line x1="0" y1="${hoog / 2}" x2="${breed}" y2="${hoog / 2}" class="vbtv-rlijn"/><circle cx="${breed / 2}" cy="${hoog / 2}" r="6" class="vbtv-rlijn vbtv-rleeg"/>${stip}<circle cx="${X(r.bal.x)}" cy="${Y(r.bal.y)}" r="2" class="vbtv-rbal"/></svg>`;
 }
 
@@ -131,3 +134,19 @@ export function guestEvents(prev, nu) {
   return ev;
 }
 export const guestState = (sim) => ({ fase: sim.fase, score: sim.score.slice(), hervatKind: sim.hervat ? sim.hervat.kind : null });
+
+// Overslaan van een kaart of de herhaling met F of spatie kan pas na een korte leestijd: wie net de knoppen indrukte voor een pass of schot slaat het eindverslag niet per ongeluk over.
+export const MIN_LEEST = { intro: 0.4, rust: 1.6, eind: 1.6, herhaling: 0.9 };
+export const magOverslaan = (soort, sindsS) => Number.isFinite(sindsS) && sindsS >= (MIN_LEEST[soort] != null ? MIN_LEEST[soort] : 0.5);
+
+// De regels van het uitslagbord na een carrièrewedstrijd: stand, jouw doelpunten, wat het opleverde (contract en bonus), groei en een bekernieuws. Wat je verdiende stond er niet bij: dat was het eerste wat je wilde weten.
+const eur = (n) => `€${Math.round(n).toLocaleString('nl-NL')}`;
+export function carriereBannerRijen(s, { gf = 0, ga = 0, doelpunten = 0, coach = false } = {}) {
+  const rijen = coach ? [['Stand', `${gf}-${ga}`], ['Als trainer', 'Je speelde niet mee']] : [['Stand', `${gf}-${ga}`], ['Jouw doelpunten', String(doelpunten | 0)]];
+  const verdiend = ((s && s.earn) || []).reduce((a, x) => a + (Number.isFinite(x && x.amount) ? x.amount : 0), 0);
+  if (verdiend > 0) rijen.push(['Verdiend', eur(verdiend)]);
+  if (s && s.gains && s.gains.length) rijen.push(['Groei', `+${s.gains.length}`]);
+  if (s && s.injury && s.injury.text) rijen.push(['Let op', s.injury.text]);
+  if (s && s.notes && s.notes.length) rijen.push(['Beker', s.notes[0]]);
+  return rijen;
+}

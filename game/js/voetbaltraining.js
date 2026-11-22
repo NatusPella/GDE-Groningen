@@ -188,3 +188,6 @@ export function drillStatus(s) {
   return `Nog ${Math.max(0, Math.ceil(DE.dur - s.t))} s · doorgebroken ${s.through}`;
 }
 export const CONST = { SL, SH, PA, CO, DE };
+
+// Esc tijdens het resultaat stopt niets meer: de groei is dan al uitgekeerd, dus de melding "geen winst" zou liegen.
+export const stopBericht = (fase) => (fase === 'result' ? null : 'Training gestopt, geen winst');
