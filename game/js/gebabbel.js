@@ -170,6 +170,21 @@ export const GEBABBEL = [
   G('v-r2', 'veenkolonien', null, 'regen', ['Aardappelboer', 'Eindelijk water voor de aardappelen.'], ['Maat', 'En voor mijn pet.']),
   G('v-w3', 'veenkolonien', null, 'mist', ['Schipper', 'Ik zie de brug niet.'], ['Brugwachter', 'Dat hoort ook zo. Hij komt vanzelf.']),
   G('v-w4', 'veenkolonien', null, 'onweer', ['Boer', 'Alles onder dak, de trekker ook.']),
+  // --- nachtleven (sprint 22-11): een warme zomernacht, de laatste bus, een lege dijk, de sterren ---
+  G('s-n4', 'stad', 'nacht', null, ['Uitgaander', 'Is dit de laatste bus?'], ['Chauffeur', 'Dat zei de vorige ook.'], ['Uitgaander', 'En was dat zo?']),
+  G('s-n5', 'stad', 'nacht', null, ['Snackbarhouder', 'Nog één bestelling, dan sluit ik.'], ['Klant', 'Dat zei je een uur geleden ook al.']),
+  G('s-n6', 'stad', 'nacht', 'droog', ['Fietser', 'Wat is het zacht buiten. Bijna jammer om naar bed te gaan.']),
+  G('s-n7', 'stad', 'nacht', null, ['Student', 'Moi! Ik ben op weg naar huis.'], ['Maat', 'Je loopt de verkeerde kant op.'], ['Student', 'Dan is het een omweg met uitzicht.']),
+  G('h-nl1', 'hogeland', 'nacht', null, ['Fietser', 'Kijk eens omhoog, je ziet de hele Melkweg.'], ['Maat', 'Ik zie vooral een mug.']),
+  G('h-nl2', 'hogeland', 'nacht', 'droog', ['Boer', 'Zo stil dat je de koeien kunt horen denken.']),
+  G('e-nl1', 'eemsdelta', 'nacht', null, ['Havenarbeider', 'De kranen lichten op als een stad.'], ['Maat', 'Het is ook een stad. Een heel hoge.']),
+  G('e-nl2', 'eemsdelta', 'nacht', null, ['Wachter', 'Alles rustig bij de kade.'], ['Maat', 'Behalve jouw thermos.']),
+  G('w-nl1', 'wadden', 'nacht', null, ['Strandganger', 'Hoor je de zee? Hij ademt.'], ['Maat', 'Of het is mijn buurman.']),
+  G('w-nl2', 'wadden', 'nacht', 'droog', ['Toerist', 'Het licht van de vuurtoren draait al een uur.'], ['Inwoner', 'Hij heeft ook niets anders te doen.']),
+  G('k-nl1', 'westerkwartier', 'nacht', null, ['Fietser', 'Een uil! Hoor je hem?'], ['Maat', 'Dat is een trekker in de verte.']),
+  G('o-nl1', 'oldambt', 'nacht', null, ['Boer', 'Een warme nacht, het graan droogt van het geluid.'], ['Buurman', 'Dat is de wind.']),
+  G('v-nl1', 'veenkolonien', 'nacht', null, ['Schipper', 'Het kanaal ligt er mooi bij in het maanlicht.'], ['Brugwachter', 'Ik trek hem nog even omhoog voor de sterren.']),
+
   // --- zon: een helder zomeruur (11 tot 19 uur), de terrassen zitten vol, er wordt gezwommen en gepicknickt ---
   G('s-z1', 'stad', 'middag', 'zon', ['Terrasgast', 'Er is geen tafeltje meer vrij.'], ['Ober', 'Dan zet ik er een bij de brug.'], ['Terrasgast', 'Is daar schaduw?']),
   G('s-z2', 'stad', 'middag', 'zon', ['Student', 'Ik ga zwemmen in de Hoornseplas.'], ['Maat', 'Je hebt tentamen.'], ['Student', 'Dat is een reden om eerst te zwemmen.']),

@@ -58,5 +58,7 @@ for (const a of AREAS) {
 const zonSeen = new Set(); const r3 = mulberry32(8);
 for (let i = 0; i < 80; i++) zonSeen.add(rollGebabbel('stad', 'middag', 'zon', r3, []).id);
 ok([...zonSeen].some((id) => /^s-z/.test(id)) && zonSeen.size >= 5, 'zon in de stad: variatie, ook zon-gesprekken', [...zonSeen].join());
+// nachtleven (22-11): elke streek heeft in de nacht minstens drie gesprekken om uit te kiezen, de stad zes
+for (const a of AREAS) ok(GEBABBEL.filter((g) => g.area === a && g.part === 'nacht').length >= (a === 'stad' ? 6 : 3), 'genoeg nachtpraat', a);
 console.log(`gebabbel_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
