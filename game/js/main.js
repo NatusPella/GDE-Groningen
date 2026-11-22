@@ -154,7 +154,7 @@ import { updatePhotoMode, wireFotoKey } from './fotomodusui.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
 import { aandeel, tegelFoci, nietBijFoci } from './coopfoci.js';
 import { wantsOpenSamen, takeOpenSamen, samenGate } from './samenpanel.js';
-import { launchPlan, askLaunchChoice, applyLaunchMode, getLaunchMode, bewaarKeuze } from './launchchoice.js'; // Alleen of Samen bij elke start (eigenaarsbesluit 21-11)
+import { launchPlan, askLaunchChoice, applyLaunchMode, getLaunchMode, bewaarKeuze, bewaarRol } from './launchchoice.js'; // Alleen of Samen bij elke start (eigenaarsbesluit 21-11)
 import { openLaunchChoice, openToestemming } from './launchchoiceui.js';
 import { openOnlineStart } from './onlineconsentui.js';
 import { openSamenKeuze } from './samenkeuze.js';
@@ -670,9 +670,10 @@ function beginOnlineStartQuestion() {
       naam: () => openOnlineStart({ terug: true }),
       keuze: (index) => openLaunchChoice({ index }),
       toestemming: () => openToestemming(),
-      sessie: () => new Promise((klaar) => openSamenKeuze({ onKies: (rol) => klaar(rol), onClose: () => klaar(null) })),
+      sessie: (voorkeur) => new Promise((klaar) => openSamenKeuze({ voorkeur, onKies: (rol) => klaar(rol), onClose: () => klaar(null) })),
       samen: (rol) => requestOpenSamen(rol === 'host' ? { rol: 'host', gate: true } : { rol: 'gast', gate: true, lijst: rol === 'lijst' }),
       bewaar: (modus) => bewaarKeuze(modus),
+      bewaarRol: (rol) => bewaarRol(rol),
     }).then((modus) => { applyLaunchMode(modus); return modus; });
   }
   return onlineVraag;

@@ -18,7 +18,7 @@ const ensureCss = () => {
   document.head.appendChild(link);
 };
 
-// opts: { onKies(act), onClose() }
+// opts: { onKies(act), onClose(), voorkeur } — voorkeur is de act die de focus krijgt (de laatste rol), anders de eerste
 export function openSamenKeuze(opts = {}) {
   if (rootEl) return;
   ensureCss();
@@ -55,5 +55,6 @@ export function openSamenKeuze(opts = {}) {
   };
   window.addEventListener('keydown', onKey, true);
   rootEl.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('.sk-item'); if (b) pick(b.dataset.act); });
-  items()[0].focus();
+  const start = items().find((b) => b.dataset.act === opts.voorkeur) || items()[0];
+  start.focus();
 }

@@ -12,6 +12,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 (De coördinator voegt deze regels bij 0.65.0.)
 
 ### Flow en bediening (sprint 22-11)
+- Samen spelen aansluiten: het scherm Een spel openen / Meedoen / Openbare sessies onthoudt je laatste keuze en zet de focus daar meteen op. Een terugkerende gast drukt dus één keer Enter in plaats van omlaag en Enter. Terug verandert niets. De rol blijft per speler en lokaal (alleen een voorselectie, gde-settings samenRol).
 - Reiskeuze: met het toetsenbord kun je nu net als met de controller de markering verplaatsen (pijl omhoog en omlaag, of W en S), Enter bevestigt de markering en 1, 2 en 3 kiezen meteen. Eerder kon alleen de controller door de opties lopen. Samen spelen: de reiskeuze is lokaal, per speler.
 
 ### Besturing met een controller
