@@ -743,3 +743,11 @@ Bij de dekkingsaudit ([COOP-DEKKING-21-11.md](COOP-DEKKING-21-11.md), `scripts/c
 
 **Geldwagen opgeblazen door een gast** (`cashvan.js`, `crime.js` `cashVanBlownOpts`, test `scripts/cashvan_dader_test.mjs`). De misdaad van het openblazen telt bij wie de wagen sloopte: het wrak van een gast (`v.wreckedByGast`) geeft hem de ster op zijn eigen niveau (`world.coopWanted[plek]`), niet meer wie het spel opende. De geldzak ligt in de wereld van de opener en alleen hij raapt hem op (met zijn eigen ster voor de buit); valt de gast weg, dan vervalt zijn niveau zoals altijd.
 **Streeksfeer en vloeiend daglicht (22-11).** De eigen lucht van de Waddenkust, het Lauwersmeer en de Veenkoloniën (`areamood.js`) en de vloeiende dag-nachtsleutels (`lightcurve.js`) zijn alleen beeld en lokaal per speler: elke speler ziet de lucht van de plek waar het eigen beeld staat, afgeleid van de gedeelde klok en het gedeelde weer. Er gaat geen bericht over het net, er is geen beloning of voortgang, en wegvallen, later aansluiten of een hostwissel verandert niets (de sfeer volgt uit plek en klok). Test: `scripts/areamood_test.mjs`, `scripts/lightcurve_test.mjs` (pure tests; geen testbankstap nodig).
+## Eerste tien minuten: wijkende toetsregel en "De weg kwijt?" (22-11)
+
+**Iedereen lokaal in zijn eigen spel.** De regels staan in `firststeps.js` (puur). De toetsregel onder het eerste verhaaldoel wijkt per context (te voet, auto, boot, vliegtuig, heli) zodra de speler van dit apparaat (`hoofdspeler`) daar genoeg meters heeft afgelegd; de meting hoort bij het apparaat en de sessie en wordt niet opgeslagen. De kaart "De weg kwijt?" komt uit `onboarding.js`, dat een gast niet draait: alleen wie het spel opende krijgt hem, hooguit twee keer per sessie.
+
+- **Wat ziet een gast:** zijn eigen toetsregel met zijn eigen meting; geen kaart. Er gaat geen snapshot of EXTRA-bericht over het net.
+- **Beloning en voortgang:** geen.
+- **Wegvallen, later aansluiten, hostwissel:** niets te synchroniseren; een nieuwe sessie begint de meting opnieuw.
+- **Test:** `scripts/firststeps_test.mjs` (puur, met bronchecks op de bedrading; een testbankstap is niet nodig omdat er niets over het net gaat).

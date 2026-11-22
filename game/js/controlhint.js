@@ -4,6 +4,7 @@
 // De eierrit is een gewone missie met een voertuigstap: dezelfde regel geldt daar.
 //   node scripts/controlhint_test.mjs
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
+import { practiced } from './firststeps.js';
 
 export const HINT_MAX_GROUPS = 4;
 
@@ -67,9 +68,13 @@ export function eersteDoelActief(world) {
 }
 
 // { context, groepen: [{ keys, werk }] } of null als er niets loopt. `eerstedoel`: ook zonder missie (de HUD geeft het mee voor het verhaaldoel).
-export function controlHint(world, player = null, { eerstedoel = false } = {}) {
-  if (!hintActive(world) && !(eerstedoel && eersteDoelActief(world))) return null;
+// `practice` (firststeps.js): the first-goal line steps aside per context once the player has shown he can move there;
+// a mission, side job or chase keeps its line (#824).
+export function controlHint(world, player = null, { eerstedoel = false, practice = null } = {}) {
+  const active = hintActive(world);
+  if (!active && !(eerstedoel && eersteDoelActief(world))) return null;
   const context = hintContext(player || hoofdspeler(world));
+  if (!active && practiced(practice, context)) return null;
   return { context, groepen: HINTS[context].map((g) => ({ keys: [...g.keys], werk: g.werk })) };
 }
 

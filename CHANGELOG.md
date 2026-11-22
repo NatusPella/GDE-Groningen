@@ -137,6 +137,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 ### Sfeer en licht
 - Zonsopgang en zonsondergang verlopen vloeiend: het licht, de hemelkleur en de gloed glijden door de dag in plaats van op vaste momenten van tempo te wisselen.
 - Drie streken hebben een eigen lucht, ook bij helder weer: zilverblauwe zoute nevel en een bredere gloed aan de Waddenkust, zachtgroene vochtige lucht met een ochtendsluier boven het Lauwersmeer, en warm amber veenstof in de Veenkoloniën. In de Stad verandert niets. Samen spelen: elke speler ziet de lucht van de eigen plek; er gaat niets over het net.
+### Eerste tien minuten
+- Nieuw spel: de regel met de loop- en rijtoetsen onder je eerste doel verdwijnt zodra je een stukje hebt gelopen of gereden; hij blijft niet meer staan tot je eerste missie klaar is. Tijdens een missie, bijbaan of achtervolging staat hij er nog altijd.
+- Nieuw spel: dwaal je ver van je eerste doel af of schiet je anderhalve minuut niet op, dan krijg je een korte kaart "De weg kwijt?" met waar je de gele route en je doel vindt. Hooguit twee keer, nooit tijdens een filmpje, een missie of met een eigen doel, en uit met "Uitleg voor nieuwe spelers".
+- Samen spelen: beide zijn lokaal per speler en per apparaat; er gaat niets over het net en er wordt niets opgeslagen. Een gast krijgt de kaart niet (hij draait de uitlegkaarten niet), wel de wijkende toetsregel.
 
 ### Taal
 - Stad, Ommeland en Grunn: wat de stad Groningen zelf is heet nu "de Stad" (de Martinitoren, bruggen en grachten, de wijken, de rondvaart), de rest van de provincie "Ommeland", en "Grunn" blijft voor het geheel, de slogans en het gevoel, zonder lidwoord. De locatieregel toont "wijk · Stad", het straatpraatkaartje "Opgevangen in de Stad" en het onweerbericht in de stad "Onweer boven de Stad". Het station heet overal Station Groningen. 20 gesproken regels (Tammo, Tessa, Rikus, Berend, Jelle en de rondvaartgids) zijn aangepast en wachten op een nieuwe opname (scripts/voice_wacht.json). De regel staat in docs/TAALREGEL-STAD-OMMELAND-22-11.md en wordt bewaakt door scripts/stad_grunn_test.mjs.
