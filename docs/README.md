@@ -46,6 +46,8 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [BEZIT-21-11.md](<BEZIT-21-11.md>) | Werkdocument. Onderzoek, data-audit en ontwerp van de epic Bezit: koopbare percelen en panden in de hele provincie (13.883 percelen, 370.144 panden), prijsmodel, bezit-opslag, productieketen, AI-personeel, Samen spelen en het stappenplan met werkpakketten. Gemeten met `scripts/world/percelen_audit.mjs`. |
 | [BEZIT-VERIFICATIE-21-11.md](<BEZIT-VERIFICATIE-21-11.md>) | Werkdocument. Per pakket van de epic Bezit wat gebouwd en getest is en wat nog in beeld (Electron) te controleren valt. |
 | [BEZIT-STAND-22-11.md](<BEZIT-STAND-22-11.md>) | Audit van de epic Bezit (#1095 tot en met #1105): matrix gedaan, gebouwd en open per pakket, Samen-regels, exploit-audit en prestaties in node. |
+| [KWALITEIT-22-11.md](<KWALITEIT-22-11.md>) | Kwaliteit en QA 22-11: fuzz- en mutatiecontrole op de kern, gevonden gaten, testsnelheid, flake-kandidaten en de zwakste dekking die overblijft. |
+| [SPRINT-22-11-GEBIED.md](<SPRINT-22-11-GEBIED.md>) | Sprint 22-11, gebied kwaliteit en QA: voor en na en wat nog gecontroleerd moet worden. |
 | [BOERDERIJ-VISUEEL-22-11.md](<BOERDERIJ-VISUEEL-22-11.md>) | De boerderijschermen beeld-eerst: 3D-previews, tekstmassa voor en na per scherm, wat alleen in beeld te controleren is. |
 | [COOP-GAST.md](<COOP-GAST.md>) | Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). Dit docu… |
 | [COOP-DEKKING-21-11.md](<COOP-DEKKING-21-11.md>) | Werkdocument. Audit-matrix: per systeem van de hele game de zes vragen over Samen spelen (bezit, gast, beloning, wegvallen en hostwissel, enkelspeler-aanname, dekking), gegenereerd uit scripts/coop_coverage.json. |

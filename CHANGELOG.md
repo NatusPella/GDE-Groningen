@@ -11,6 +11,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Kwaliteit
+- Samen spelen: een fout bij het opzetten van de openbare joinpoort (bijvoorbeeld een verbinding die niet te maken is) geeft geen onafgehandelde fout meer; wie de sessie opende speelt gewoon door, alleen zonder joinpoort. Hetzelfde in de GPU-waarschuwing van het pauzemenu. Samen-regel: dit raakt alleen degene die de sessie opende en de lijst met openbare sessies, geen spelregel.
+- Onder de motorkap: fuzz- en eigenschappentests op de netwerkcodec, de outfit-code, de migratie van bewaarde spellen, de economie en de verhaalstappen, een mutatiecontrole (31 bewust gebroken regels, elke moet een test laten falen) en een lichte testfase waarvan de module-check tien minuten sneller is (docs/KWALITEIT-22-11.md).
+
 ### Besturing met een controller
 - Acties-wiel (controller-review 22-11, #495, #1011): houd Overzicht een halve seconde ingedrukt en een wiel toont alles wat in die situatie geen eigen knop heeft: de radio in een auto (sinds #495 weg van het pad), de volgende zender, andere kleren, de filmcamera, eerste persoon, het waypoint naar je doel, de directe wapenkeuze, de alarmlichten, het lakmenu, het kusje, de busdienst overnemen (G) en in Samen spelen de roepjes en snelle zinnen in een voertuig. Kies met de linkerstick of de D-pad, A bevestigt, B sluit, LB en RB bladeren. Een korte tik op Overzicht is nog steeds de kaart (die gaat nu bij het loslaten open). Wie niet kan houden zet de tikstand aan: dan opent een tik het wiel. Herbinden werkt gewoon door. Een toets die alleen in het wiel zit, toont in de hints de knop Overzicht met "houd". Invoer is lokaal; er gaat niets over het net.
 - Samen spelen aan de waterkant: de roepjes (Kom hier, Help!, Kijk daar) en "bij de groep komen" staan op de D-pad zoals te voet; X blijft hengelen. Het wiel met snelle zinnen opent niet meer in de trein en op de trekker, waar T al het lopen door de trein en de hef is.
