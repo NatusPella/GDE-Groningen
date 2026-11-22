@@ -11,6 +11,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Binnenruimten blijven vrij van de wereld
+- Straatmeubilair, bomen, stadsprops (banken, bakken, fietsen) en lantaarns steken niet meer door een binnenruimte heen: in een pand, in de binnenset (loket, kantoor, kroeg...) en in Beppe's huis tekent de wereld niets binnen de hal, en voetgangers, verkeer en losse spullen die er stonden of er inliepen worden eruit gezet. Bij naar buiten gaan is alles weer zoals het was.
+- Samen spelen: elke speler bouwt zijn eigen binnenruimten, dus wie binnen is verbergt de wereld alleen in zijn eigen spel; een medespeler buiten ziet niets veranderen. Wie binnen laadt of binnen verschijnt krijgt de ruimte (en de vrije hal) mee. Niets gaat over het net of in een save.
+
 ### Besturing met een controller
 - Acties-wiel (controller-review 22-11, #495, #1011): houd Overzicht een halve seconde ingedrukt en een wiel toont alles wat in die situatie geen eigen knop heeft: de radio in een auto (sinds #495 weg van het pad), de volgende zender, andere kleren, de filmcamera, eerste persoon, het waypoint naar je doel, de directe wapenkeuze, de alarmlichten, het lakmenu, het kusje, de busdienst overnemen (G) en in Samen spelen de roepjes en snelle zinnen in een voertuig. Kies met de linkerstick of de D-pad, A bevestigt, B sluit, LB en RB bladeren. Een korte tik op Overzicht is nog steeds de kaart (die gaat nu bij het loslaten open). Wie niet kan houden zet de tikstand aan: dan opent een tik het wiel. Herbinden werkt gewoon door. Een toets die alleen in het wiel zit, toont in de hints de knop Overzicht met "houd". Invoer is lokaal; er gaat niets over het net.
 - Samen spelen aan de waterkant: de roepjes (Kom hier, Help!, Kijk daar) en "bij de groep komen" staan op de D-pad zoals te voet; X blijft hengelen. Het wiel met snelle zinnen opent niet meer in de trein en op de trekker, waar T al het lopen door de trein en de hef is.
