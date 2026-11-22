@@ -13725,7 +13725,7 @@
    "step": "J4",
    "kind": "key",
    "regie": [
-    "maandagavond. Een terras aan het Oosterdiep met een kaars in een glas. Femke zit al, haar keeperstas onder de stoel. Naamkaart FEMKE. Rikus komt aanlopen met zijn koptelefoon om zijn nek.",
+    "maandag, lunchtijd. Een terras aan het Oosterdiep met een kaars in een glas. Femke zit al, haar keeperstas onder de stoel. Naamkaart FEMKE. Rikus komt aanlopen met zijn koptelefoon om zijn nek.",
     "onder de kaars ligt een bonnetje: \"Tafel voldaan. Met vriendelijke groet, Us Mem Snacks.\"",
     "Tessa haalt haar kasboekje tevoorschijn, schrijft het bedrag op en legt het geld precies op tafel."
    ],
@@ -13772,14 +13772,6 @@
      "channel": "stem",
      "textOnly": false,
      "rec": "lines"
-    },
-    {
-     "speaker": "Femke",
-     "key": "femke",
-     "text": "Hij zegt het wel heel mooi.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true
     },
     {
      "speaker": "Tammo",
@@ -13834,22 +13826,6 @@
      "channel": "stem",
      "textOnly": false,
      "rec": "lines"
-    },
-    {
-     "speaker": "Tammo",
-     "key": "T",
-     "text": "Dat is van mij.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true
-    },
-    {
-     "speaker": "Rikus",
-     "key": "rikus",
-     "text": "Dan leen ik hem.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true
     }
    ]
   },
@@ -14508,7 +14484,7 @@
    "step": "N9",
    "kind": "key",
    "regie": [
-    "nacht, de dag na de kraak in Veendam. De politie zoekt twee Stadjers in het zwart, dus Rikus leende hun zijn oude busje en wees een dijk aan waar niemand komt. De achterdeuren staan open naar het wad. Geen lichtje in de verte, alleen sterren. Tessa ligt achterin op een matras, Tammo naast haar met zijn handen onder zijn hoofd. De radio staat zacht.",
+    "maandagnacht, na de dag van de camera's in Veendam. De politie zoekt twee Stadjers in het zwart, dus Rikus leende hun zijn oude busje en wees een dijk aan waar niemand komt. De achterdeuren staan open naar het wad. Geen lichtje in de verte, alleen sterren. Tessa ligt achterin op een matras, Tammo naast haar met zijn handen onder zijn hoofd. De radio staat zacht.",
     "ze wijst. Hij kijkt naar haar vinger, niet naar de lucht.",
     "een lange stilte. Ze draait haar hoofd. Er is nog maar een hand tussen hun gezichten. Buiten klinkt zacht gemekker: een schaap staat in de open achterdeur, kauwend, en kijkt van de een naar de ander.",
     "allebei lachen. Het schaap loopt weg met de sok. Het moment is voorbij en geen van beiden zegt er iets over."
@@ -14635,7 +14611,7 @@
    "step": "J5",
    "kind": "key",
    "regie": [
-    "dinsdagmiddag. Om het linkerwiel van de Escapade zit een gele klem. Jelle staat ernaast met een deurwaarder en een map; Durk en Douwe staan bij de limo. Tammo hurkt bij het wiel en praat zacht tegen de auto.",
+    "dinsdagochtend. Om het linkerwiel van de Escapade zit een gele klem. Jelle staat ernaast met een deurwaarder en een map; Durk en Douwe staan bij de limo. Tammo hurkt bij het wiel en praat zacht tegen de auto.",
     "Jelles telefoon gaat. Hij kijkt naar het scherm en draait zich half af.",
     "Douwe geeft Jelle zonder een woord een broodtrommel. Jelle klapt hem open: een eierbal in een servet, nog warm."
    ],
@@ -14773,7 +14749,7 @@
    "kind": "intro",
    "gameplay": "Tammo is machinist en rijdt de trein naar het volgende perron, terwijl Tessa door de wagons naar de juryleden loopt.",
    "regie": [
-    "maandag 24 augustus, late middag. Een museumstoomtrein onder stoom, maar hij staat stil. Op een bank bij het perron zit de machinist met een bordje eierballen. In het salonrijtuig zitten twee juryleden en mevrouw Hoving, de bewaarder, met een bordje eierballen. Gameplay: Tammo is machinist en rijdt de trein naar het volgende perron, terwijl Tessa door de wagons naar de juryleden loopt."
+    "dinsdag 25 augustus, begin van de middag. Een museumstoomtrein onder stoom, maar hij staat stil. Op een bank bij het perron zit de machinist met een bordje eierballen. In het salonrijtuig zitten twee juryleden en mevrouw Hoving, de bewaarder, met een bordje eierballen. Gameplay: Tammo is machinist en rijdt de trein naar het volgende perron, terwijl Tessa door de wagons naar de juryleden loopt."
    ],
    "lines": [
     {
@@ -15127,7 +15103,7 @@
     {
      "speaker": "Berend Bos",
      "key": "berend",
-     "text": "Dinsdag komt de man die mijn bakkie wilde kopen naar het Beleg. Met zijn mannen.",
+     "text": "Vanavond komt de man die mijn bakkie wilde kopen naar het Beleg. Met zijn mannen.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true,
@@ -15173,7 +15149,7 @@
    "step": "J6",
    "kind": "key",
    "regie": [
-    "dinsdagavond, de flat. Er wordt aangebeld. Beppe staat in de deur met een pan soep in een handdoek, haar jas aan, in augustus.",
+    "dinsdagmiddag, de flat. Er wordt aangebeld. Beppe staat in de deur met een pan soep in een handdoek, haar jas aan, in augustus.",
     "ze zet de pan op het fornuis en kijkt naar het kaartje op de koelkast en naar het kasboekje op tafel. Eén boekje, twee namen.",
     "Tessa verslikt zich in haar thee. Tammo kijkt naar de pan.",
     "Tammo's blik wordt glazig. Dagdroom in low-poly, zonnig: de snackwagen met slingers, een duif met twee ringen aan een lint, Oma Trijntje met een pollepel als scepter.",
@@ -16100,7 +16076,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "\"Tige tank foar de auto. – J.\" Hij bedankt ons voor een auto die hij niet heeft.",
+     "text": "\"Tige tank foar de auto. – J.\" Hij bedankt ons voor onze eigen auto.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true

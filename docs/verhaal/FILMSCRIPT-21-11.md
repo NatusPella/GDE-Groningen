@@ -570,7 +570,7 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 **Sequentie J4: Een dubbele date in Veendam** (activiteit; speler-protagonist Tammo)
 
 - **J4** BUITEN – VEENKOLONIËN, VEENDAM, EEN TERRAS AAN HET OOSTERDIEP – AVOND · Een dubbele date in Veendam · cutscene of gespeeld in de missie
-  - maandagavond. Een terras aan het Oosterdiep met een kaars in een glas. Femke zit al, haar keeperstas onder de stoel. Naamkaart FEMKE. Rikus komt aanlopen met zijn koptelefoon om zijn nek.
+  - maandag, lunchtijd. Een terras aan het Oosterdiep met een kaars in een glas. Femke zit al, haar keeperstas onder de stoel. Naamkaart FEMKE. Rikus komt aanlopen met zijn koptelefoon om zijn nek.
   - praat: Tessa, Femke, Tammo, Rikus
 
 **Sequentie M18: Wie draaide de camera's uit?** (missie wiebelwerk; speler-protagonist Tammo)
@@ -601,19 +601,19 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 **Sequentie N9: Nacht op een dijk** (activiteit; speler-protagonist Tammo)
 
 - **N9** BINNEN – OLDAMBT, DE DIJK BIJ DE DOLLARD – NACHT · Nacht op een dijk · cutscene of gespeeld in de missie
-  - nacht, de dag na de kraak in Veendam. De politie zoekt twee Stadjers in het zwart, dus Rikus leende hun zijn oude busje en wees een dijk aan waar niemand komt. De achterdeuren staan open naar het wad. Geen lichtje in de 
+  - maandagnacht, na de dag van de camera's in Veendam. De politie zoekt twee Stadjers in het zwart, dus Rikus leende hun zijn oude busje en wees een dijk aan waar niemand komt. De achterdeuren staan open naar het wad. Geen lichtje in de 
   - praat: Rikus, Tessa, Tammo
 
 **Sequentie J5: Een wielklem in Stadskanaal** (activiteit; speler-protagonist Tammo)
 
 - **J5** BUITEN – VEENKOLONIËN, STADSKANAAL, EEN PARKEERPLAATS ACHTER DE MARKT – MIDDAG · Een wielklem in Stadskanaal · cutscene of gespeeld in de missie
-  - dinsdagmiddag. Om het linkerwiel van de Escapade zit een gele klem. Jelle staat ernaast met een deurwaarder en een map; Durk en Douwe staan bij de limo. Tammo hurkt bij het wiel en praat zacht tegen de auto.
+  - dinsdagochtend. Om het linkerwiel van de Escapade zit een gele klem. Jelle staat ernaast met een deurwaarder en een map; Durk en Douwe staan bij de limo. Tammo hurkt bij het wiel en praat zacht tegen de auto.
   - praat: Jelle Terpstra, Tessa, Tammo, Deurwaarder, Douwe
 
 **Sequentie M19: Stoom** (missie stoom; speler-protagonist Tammo)
 
 - **M19.1** BINNEN – VEENKOLONIËN, VEENDAM, HET PERRON – MIDDAG · Stoom: intro · cutscene of gespeeld in de missie
-  - maandag 24 augustus, late middag. Een museumstoomtrein onder stoom, maar hij staat stil. Op een bank bij het perron zit de machinist met een bordje eierballen. In het salonrijtuig zitten twee juryleden en mevrouw Hoving,
+  - dinsdag 25 augustus, begin van de middag. Een museumstoomtrein onder stoom, maar hij staat stil. Op een bank bij het perron zit de machinist met een bordje eierballen. In het salonrijtuig zitten twee juryleden en mevrouw Hoving,
   - praat: Tessa, Tammo, Durk, Douwe
 - **M19.2** BINNEN – VEENKOLONIËN, MUSEUMLIJN VEENDAM-WILDERVANK – DAG · Stoom: onderweg · cutscene of gespeeld in de missie
   - praat: Tammo, Tessa, Jurylid, Douwe, Jelle Terpstra
@@ -625,7 +625,7 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 **Sequentie J6: Beppe aan de deur** (activiteit; speler-protagonist Tammo)
 
 - **J6** BINNEN – STAD, PADDEPOEL, DE FLAT – AVOND · Beppe aan de deur · cutscene of gespeeld in de missie
-  - dinsdagavond, de flat. Er wordt aangebeld. Beppe staat in de deur met een pan soep in een handdoek, haar jas aan, in augustus.
+  - dinsdagmiddag, de flat. Er wordt aangebeld. Beppe staat in de deur met een pan soep in een handdoek, haar jas aan, in augustus.
   - praat: Beppe, Tessa, Tammo, Oma Trijntje
 
 **Sequentie V1: Schoenen voor de ster** (activiteit; speler-protagonist Tessa)

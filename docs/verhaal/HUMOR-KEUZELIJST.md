@@ -11,7 +11,7 @@ Eerlijk over de proef: 106 beats. De beoordelaars lazen de stijlgids en de beats
 - **H4-02** (M17.2, TAMMO): gekozen "Hij kijkt altijd."; paneelsplit 1-1-1, zekerheid laag. Hij kijkt altijd: onderkoeld en kort.
 - **H4-04** (M18.1, TAMMO): gekozen "We waren er wel."; paneelsplit 1-1-1, zekerheid laag. Sluit exact aan op Tammo's herhaling in H4-12.
 - **H4-05** (M18.4, TESSA): gekozen "Dat zei ik ook."; paneelsplit 1-1-1, zekerheid laag. Dat zei ik ook: droog, Tessa's directheid.
-- **H4-07** (M19.3, BEREND): gekozen "Dinsdag komt de man die mijn bakkie wilde kopen naar het Beleg. Met zijn mannen."; paneelsplit 1-1-1, zekerheid laag. Naar het Beleg met zijn mannen is helder en laat Jelle onbenoemd.
+- **H4-07** (M19.3, BEREND): gekozen "Vanavond komt de man die mijn bakkie wilde kopen naar het Beleg. Met zijn mannen."; paneelsplit 1-1-1, zekerheid laag. Naar het Beleg met zijn mannen is helder en laat Jelle onbenoemd.
 - **H5-08** (E2, TAMMO): gekozen "Dat zegt hij heel hard."; paneelsplit 1-1-1, zekerheid laag. Dat zegt hij heel hard: droge correctie op Rikus.
 - **H5-09** (E2, TAMMO): gekozen "Wij bakken door."; paneelsplit 1-1-1, zekerheid laag. Zelfde maat als Tessa, kort.
 - **H6-01** (M27.1, WILLEMIEN): gekozen "Ik ken jullie van het luik. Woensdag, de derde in de rij. Eén eierbal, extra mosterd."; paneelsplit 1-1-1, zekerheid laag. Concreet en vaste-klant-gevoel, derde in de rij.
@@ -66,7 +66,7 @@ Eerlijk over de proef: 106 beats. De beoordelaars lazen de stijlgids en de beats
 | H4-04 | M18.1 | TAMMO | We waren er wel. | variant 1, variant 3, neutraal | laag | Sluit exact aan op Tammo's herhaling in H4-12. |
 | H4-05 | M18.4 | TESSA | Dat zei ik ook. | variant 1, variant 3, variant 2 | laag | Dat zei ik ook: droog, Tessa's directheid. |
 | H4-06 | M19.2 | JELLE | Mevrouw. Een eierbal is een geschenk. Mijn juristen noemen het een voorschot. | variant 1, variant 1, variant 1 | hoog | Geschenk dat een voorschot heet: Jelle op zijn best. |
-| H4-07 | M19.3 | BEREND | Dinsdag komt de man die mijn bakkie wilde kopen naar het Beleg. Met zijn mannen. | variant 1, variant 3, variant 2 | laag | Naar het Beleg met zijn mannen is helder en laat Jelle onbenoemd. |
+| H4-07 | M19.3 | BEREND | Vanavond komt de man die mijn bakkie wilde kopen naar het Beleg. Met zijn mannen. | variant 1, variant 3, variant 2 | laag | Naar het Beleg met zijn mannen is helder en laat Jelle onbenoemd. |
 | H4-08 | M21.4 | KAPITEIN KLAAS | Ik om half negen. | variant 1, variant 1, variant 2 | midden | Moet aansluiten op Klaas in H4-10. |
 | H4-09 | B4 | TESSA | Ik speelde thuis in een dorpsteam. Met een mestemmer als doel. | variant 1, variant 1, variant 1 | hoog | Mestemmer als doel is de pointe, laatste. |
 | H4-10 | M21.4 | TAMMO | Het maakt niet uit wie… eh. | variant 1, variant 1, variant 2 | midden | Moet aansluiten op de herhaling van Tammo's vastlopende zin in H4-08. |
@@ -286,10 +286,10 @@ Eerlijk over de proef: 106 beats. De beoordelaars lazen de stijlgids en de beats
 - neutraal: Mevrouw. Een eierbal is een geschenk.
 
 **H4-07** (M19.3): Op het perron. Tessa heeft Berend gebeld over de jury; hij noemt Jelle niet bij naam maar bij wat hij hem nooit vergeeft.
-- variant 1 (gekozen): Dinsdag komt de man die mijn bakkie wilde kopen naar het Beleg. Met zijn mannen.
-- variant 2: Dinsdag komt de man die mijn bakkie wilde kopen. Naar het Beleg, met zijn mannen.
-- variant 3: Dinsdag komt de man die mijn bakkie wilde kopen. Met zijn mannen.
-- neutraal: Dinsdag komt Jelle naar het Beleg. Met zijn mannen.
+- variant 1 (gekozen): Vanavond komt de man die mijn bakkie wilde kopen naar het Beleg. Met zijn mannen.
+- variant 2: Vanavond komt de man die mijn bakkie wilde kopen. Naar het Beleg, met zijn mannen.
+- variant 3: Vanavond komt de man die mijn bakkie wilde kopen. Met zijn mannen.
+- neutraal: Vanavond komt Jelle naar het Beleg. Met zijn mannen.
 
 **H4-08** (M21.4): Bij Tinus' schuur. Geesje en Klaas ruziën over wie van hen als eerste door Jelles advocaten is gebeld; Geesje zegt negen uur.
 - variant 1 (gekozen): Ik om half negen.

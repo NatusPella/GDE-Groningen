@@ -27,6 +27,7 @@ naslag: de bron, de scripts, de opnames en de verslagen. Bij verschil wint de sp
 | 5i. Perfect-stand akte 1 (22-11): wat in de opening, M01 tot en met M06 en N1 tot en met N4 is gefixt en wat open staat | [PERFECT-STAND-22-11-akte1.md](PERFECT-STAND-22-11-akte1.md) | verslag |
 | 5i. Oude saves en het nieuwe verhaal (22-11): de kaart 'Nieuw verhaal', de tag 'Oude versie', wat telt als oud en wat nog open staat | [PERFECT-STAND-22-11-oude-saves.md](PERFECT-STAND-22-11-oude-saves.md) | verslag; de toets is `scripts/legacysave_test.mjs` |
 | 5i. Perfect-stand props, sets en figuranten (22-11): wat de audit controleert, de aantallen en de open punten | [PERFECT-STAND-22-11-props.md](PERFECT-STAND-22-11-props.md) | verslag; de toets is `scripts/verhaal_props_test.mjs` |
+| 5i. Perfect-stand akte 4 (22-11): per stap gedaan, gefixt en open voor Zuidwaarts (J4 tot en met J6, N9, M17 tot en met M21, voetbal), met de nieuwe plekken- en tijdlijntest | [PERFECT-STAND-22-11-akte4.md](PERFECT-STAND-22-11-akte4.md) | verslag; de toetsen zijn `scripts/akte4_plekken_test.mjs` en `scripts/akte4_tijdlijn_test.mjs` |
 | 6. Presentatie: trailer | [E-trailer.md](E-trailer.md) (leidend), [nieuw/TRAILER-SCRIPT.md](nieuw/TRAILER-SCRIPT.md) (concept voor #63) | concept, niet leidend |
 
 ## Personages en stem

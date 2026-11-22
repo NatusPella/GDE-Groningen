@@ -371,7 +371,7 @@ export const STEPS = [
   M('M17', 'zuid', 'Open, dicht', 'bruggen', { built: true, reward: 700,
     story: { intro: ['M17.1'], outro: ['M17.3', 'M17.5'], replay: ['M17.4'] }, scenes: ['M17.1', 'M17.2', 'M17.3', 'M17.5', 'M17.4'],
     lead: ['A', 'Eerst de mosterd. Wubbo bedient elf bruggen in Veendam: vaar voor Jelles mosterdschip uit, dan sluit hij de bruggen achter je.'] }),
-  A('J4', 'zuid', 'Een dubbele date in Veendam', { type: 'reis', to: 'het terras aan het Oosterdiep', at: [53.1060, 6.8790], r: 300, scene: 'J4' }, { built: true, scenes: ['J4'], lead: ['A', 'Femke en Rikus willen eten, met ons erbij. Een terras aan het Oosterdiep in Veendam. Zij noemt het een date, wij noemen het avondeten.'] }),
+  A('J4', 'zuid', 'Een dubbele date in Veendam', { type: 'reis', to: 'het terras aan het Oosterdiep', at: [53.1060, 6.8790], r: 300, scene: 'J4' }, { built: true, scenes: ['J4'], lead: ['A', 'Femke en Rikus willen eten, met ons erbij. Een terras aan het Oosterdiep in Veendam. Zij noemt het een date, wij noemen het lunch.'] }),
   M('M18', 'zuid', 'Wie draaide de camera\'s uit?', 'wiebelwerk', { built: true, reward: 600,
     story: { intro: ['M18.1'], outro: ['M18.4'], replay: ['M18.5'] }, scenes: ['M18.1', 'M18.2', 'M18.6', 'M18.7', 'M18.3', 'M18.4', 'M18.5'],
     lead: ['T', "Dan het bewijs. Grunn houdt ons voor de dieven; Wiebelwerk in Veendam beheert de museumcamera's. Het logboek van 12 augustus moet laten zien dat Jelle de bal al had."] }),
@@ -380,7 +380,7 @@ export const STEPS = [
   M('M19', 'zuid', 'Stoom', 'stoom', { built: true, reward: 800,
     story: { intro: ['M19.1'], outro: ['M19.3'], replay: ['M19.4'] }, scenes: ['M19.1', 'M19.2', 'M19.3', 'M19.4'],
     lead: ['A', 'Dan de jury: wie de jury koopt, hoeft niet te winnen. In Jelles stilstaande stoomtrein in Veendam zitten de laatste juryleden vast. Rij hem naar Wildervank.'] }),
-  A('J6', 'zuid', 'Beppe aan de deur', { type: 'home' }, { built: true, scenes: ['J6'], lead: ['T', 'Beppe belde dat ze langskomt. Met soep. Het is nog maar dinsdag, maar ik ruim de flat vast op.'], homeScene: { id: 'J6', big: 'Beppe aan de deur', clock: 20 } }),
+  A('J6', 'zuid', 'Beppe aan de deur', { type: 'home' }, { built: true, scenes: ['J6'], lead: ['T', 'Beppe belde dat ze langskomt. Met soep. Het is nog maar dinsdag, maar ik ruim de flat vast op.'], homeScene: { id: 'J6', big: 'Beppe aan de deur', clock: 15.5 } }),
   // Voetbalverhaallijn (V1-V3, #1179, epic #1106): Tessa is de ster, Tammo helpt haar shinen (de papieren, de schoenen, de sponsor). Alleen bestaande doeltypes (shop, reis);
   // geen stem (silent: telefoonregels). Samen spelen: een verhaalstap is per speler (eigen voortgang, #429): elke speler loopt hem in zijn eigen spel; de wereld van de host hoeft er niets voor te doen.
   // Het is geen voorwaarde voor de carrière: voetbalpoort.js opent de carrière al in akte 4; deze stappen geven de reden en de eerste aanloop. Hernoemen of weghalen kan niet: de id's staan in saves (BETWEEN_STEPS).
