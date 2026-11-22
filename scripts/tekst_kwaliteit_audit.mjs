@@ -6,6 +6,7 @@
 // Regels (speltekst = wat collectTexts() uit text_audit.mjs oplevert en isProse() leesbaar noemt):
 //   dubbele-spatie   twee spaties of een spatie voor een leesteken ("woord ,") in een zin
 //   placeholder      ruwe accolades ({naam}, {0}, {{x}}), %s/%d, ${, undefined, null, NaN, [object Object]
+//   toets-token      een {NAAM} die geen bekende toets is (blijft als ruwe accolades in beeld staan, #1257)
 //   afgekapt         zin eindigt op een voegwoord/lidwoord/voorzetsel of een komma (afgekapte zin)
 //   engels-restant   waypoint, LMB/RMB, "klik" in het Engels (click, press), Loading, Error, debug in de tekst
 //   eenheid          km/h, kph, mph, miles, feet, "kilometers" met punt-decimaal, meter als "mtr"
@@ -26,6 +27,15 @@ export const ALLOW = fs.existsSync(ALLOW_FILE) ? JSON.parse(fs.readFileSync(ALLO
 const isAllowed = (f) => ALLOW.find((a) => (a.rule === '*' || a.rule === f.rule) && (!a.term || a.term.toLowerCase() === String(f.term).toLowerCase()) && (!a.file || f.file.includes(a.file)) && (!a.ctx || f.text.includes(a.ctx)));
 
 // ---------------------------------------------------------------- tekstregels
+
+// Een toetstoken ({E}, {SPACE}, {LMB}) wordt bij het tonen een toetsplaatje; een onbekende naam ({ACCOLADES}) blijft als ruwe
+// accolades in beeld staan (#1257). De lijst met bekende toetsen is de bron in keycap.js (BRACE_KEY_RE); {OPENER} en dergelijke
+// zijn namen die de code zelf invult voordat de tekst getoond wordt.
+const BRACE_KEYS = new RegExp('^' + /export const BRACE_KEY_RE = \/(.+)\/g;/.exec(fs.readFileSync(path.join(REPO, 'game', 'js', 'keycap.js'), 'utf8'))[1] + '$');
+const INGEVULD = new Set(['OPENER']);
+export function onbekendeTokens(text) {
+  return [...text.matchAll(/\{([A-Z][A-Z0-9_+]{1,16})\}/g)].map((m) => m[0]).filter((t) => !BRACE_KEYS.test(t) && !INGEVULD.has(t.slice(1, -1)));
+}
 
 const L = '\\p{L}';
 const woord = (src, flags = 'iu') => new RegExp(`(?<![${L}\\p{N}_])(?:${src})(?![${L}\\p{N}_])`, flags);
@@ -53,7 +63,7 @@ const MARKUPSTUK = /\d+px\b|sans-serif|\.(?:wav|mp3|ogg|js)\b|\bds-[\w-]+|[a-z]+
 
 // de regels die op de hele tekst van het begin tot het eind kijken
 export function checkKwaliteit(text, kind = 'js') {
-  const found = [];
+  const found = onbekendeTokens(text).map((tok) => ({ rule: 'toets-token', term: tok, note: 'onbekende toets in accolades: blijft als ruwe code in beeld staan (bekende namen staan in keycap.js BRACE_KEY_RE)' }));
   const t = kaal(text.replace(/\u0000/g, ''));
   if (MARKUPSTUK.test(t) || (t !== text && !isProse(t.trim()))) return found;
   for (const r of REGELS) {

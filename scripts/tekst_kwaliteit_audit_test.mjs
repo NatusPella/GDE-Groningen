@@ -20,6 +20,8 @@ ok(!heeft('Wacht even... daar komt hij', 'leesteken') && !heeft('Kijk op de 3.5 
 ok(heeft('Je hebt undefined euro', 'placeholder') && heeft('Welkom {{naam}}', 'placeholder') && heeft('Prijs: ${p}', 'placeholder') && heeft('Je hebt NaN euro', 'placeholder') && heeft('[object Object] ligt hier', 'placeholder'), 'ruwe placeholders en codewaarden');
 ok(!heeft('Druk op {E} om te praten bij {r} en %s', 'placeholder'), 'toetstokens, {naam} en %s worden bij het tonen ingevuld');
 
+ok(heeft('Druk op {ACCOLADES} om te gaan', 'toets-token') && !heeft('Druk op {E} of {SPACE} en {F8}, {LMB}, {WASD}, {5}', 'toets-token') && !heeft('Je speelt in het spel van {OPENER}.', 'toets-token'), 'toetstokens: een onbekende naam blijft als ruwe accolades staan');
+
 // afgekapte zinnen (alleen volledige tekstregels, geen sjabloonstukken)
 ok(heeft('Ik loop naar de winkel en', 'afgekapt') && heeft('Zij pakt haar tas, de sleutel,', 'afgekapt'), 'afgekapt: eindigt op een voegwoord of komma');
 ok(!heeft('Steek een kaarsje aan', 'afgekapt') && !heeft('De deur gaat open.', 'afgekapt') && !heeft('Wat gebeurt er dan…', 'afgekapt'), 'scheidbaar werkwoord en leestekens zijn geen afkapping');
