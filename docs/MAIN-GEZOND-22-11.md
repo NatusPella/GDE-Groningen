@@ -14,7 +14,7 @@ voor de wereldtests, een koppeling naar de wereld en de provinciecache van de ho
 | Dubbele declaraties/exports (`undef_check`, `import_cycles_test`), `source_bytes_test`, `lineendings_test` | groen |
 | Dubbele objectsleutels (eigen heuristiek, indent-blokken) | 6 treffers, allemaal echte samenvoegschade (zie hieronder), gefixt |
 | Licht-suite (`test_all --fase=licht`), run 1 | 1304 geslaagd, 19 mislukt, 119 overgeslagen (needs-world) |
-| Licht-suite na de fixes | zie "Herdraai" |
+| Licht-suite, run 2 na de fixes | 1320 geslaagd, 3 mislukt (1 gefixt, 2 tijdgevoelig); zie "Herdraai" |
 | `cutscene_lint --strict`, `voice_coverage`, `storydata_test`, `tts_opnamelijst --check`, `humor_test` | groen |
 | `build_story_data --check` | groen (na de fixes opnieuw gebouwd: 2118 regels, 550 zonder opname) |
 | coop: `coop_coverage_audit`, `coopmissie_audit`, coop-tests in de suite | 0 blokkerend (43 systemen, 37 OK, 5 gat, 1 nvt) |
@@ -98,4 +98,19 @@ Regel: perfect-humor beslist bij gelijke beat; unieke nieuwe beats van de akte-a
 
 ## Herdraai
 
-(zie onder; wordt bij het afronden ingevuld)
+- **Licht-suite, run 2 (na de fixes, zonder wereld):** 1320 geslaagd, 3 mislukt, 0 timeout. De drie: `vliegtuigprops_test` (zocht `botsauto: () =>` nog in `cutscenehost.js`;
+  de bouwers zitten nu in `storyprops.js`, test aangepast, daarna groen), en de twee tijdgevoelige `interior_stress_test` en `meshloopscan_test` ("scan is snel", 4,3 s
+  onder belasting; losstaand groen). Wat run 1 rood was (19) is groen.
+- **Wereldtests (115 tests die in de lichte suite op "needs-world" overslaan):** met een koppeling naar de wereld en provinciecache van de hoofdmap één voor één gedraaid
+  (elk exit 0): onder meer `akte1_doelen` (288), `akte2_doelen` (250), `akte3` (122), `akte3_plekken`, `akte4_plekken`, `keuzewerk` (540), `m20_oever`, `m30_bolwerk`,
+  `beppe_site`, `cutscene_tree`, `hertest` (1181), en `storyflow_nieuw_test` (1757/1757). Alle 115 groen. Parallel (3 tegelijk, naast andere agents)
+  haalde `test_all` met wereld de tijdslimiet niet; sequentieel kost een test 5 tot 40 s.
+- Twee interior_stress-regels blijven bij belasting rood; lossen als ze op een rustige machine draaien.
+
+## Open
+
+- `meshloopscan_test`: bovengrens 48 naar 53 zonder per bestand uit te zoeken welke vijf lussen erbij kwamen (verdacht: `cutscenehost.js` met 3 en de nieuwe modules). Een perf-review kan dit nalopen.
+- `vehicle_zfight_test`: scooter-berijder 26 naar 44 close-paren (kleding-clipping); visueel niet bekeken.
+- De negen verplaatste decorbouwers en de nieuwe `DECOR_BUDGET`-regels zijn niet in beeld gezien (Electron); `verhaal_props_audit` meet driehoeken, materialen en afmetingen.
+- Regie F3/F5/F6 volgt nu de humorwinnaars; of de shots er goed uitzien is niet bekeken. De Electron-verhaaltest moet dit bevestigen.
+- Geen Electron-test gedraaid; de releasegate en de verhaaltest blijven aan de coördinator.

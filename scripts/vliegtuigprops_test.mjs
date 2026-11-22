@@ -82,7 +82,7 @@ ok(m16.props && m16.props.botsauto2 && m16.props.botsauto2.kind === 'botsauto', 
 const hostSrc = read('cutscenehost.js');
 ok(/function handOf\(mesh\)/.test(hostSrc), 'de cutscenehost kent de hand van een acteur');
 ok(/PERSON_RIG\.FOREARM/.test(hostSrc), 'de hand wordt uit de onderarm van de pop bepaald');
-ok(/botsauto: \(\) =>/.test(hostSrc), 'de host bouwt een eigen botsautomodel');
+ok(/botsauto: \(\) =>/.test(read('storyprops.js')), 'de cutscenes bouwen een eigen botsautomodel (storyprops.js, DECOR_MAKERS; verhuisd uit cutscenehost.js, #1121)');
 
 // de drager en zijn koffer in een echte scene: de prop moet aan de hand hangen, niet voor de borst
 const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
