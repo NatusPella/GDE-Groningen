@@ -148,6 +148,14 @@ const RADIUS = { gracht: 10, brug: 7, bolwerk1: 9, bolwerk2: 9, bolwerk3: 9, poo
     if (!r.z || !(r.cat === 'foot' || r.cat === 'cycle') || !r.bridge) continue;
     ok(Math.max(...r.z) < 2, 'voetbrug zonder water heeft geen dek op pijlers', `weg ${r.id} zmax ${Math.max(...r.z).toFixed(1)}`);
   }
+  // Sinds het monumentgebied (heritagearea.js) mogen de wallen wél hoog zijn: een pad met profiel zonder brugvlag is een aarden
+  // ophoging met grashelling (elevation.js), begrensd op rampart.maxZ. Geen dek op pijlers, wel een echte wal.
+  const { heritageAreaById } = await import('../game/js/heritagearea.js');
+  const maxZ = heritageAreaById('bourtange').rampart.maxZ;
+  for (const r of map.roadsNear(BOURTANGE.plein[0], BOURTANGE.plein[1], 320)) {
+    if (!r.rampart) continue;
+    ok(!r.bridge && Array.isArray(r.z) && Math.max(...r.z) <= maxZ + 1e-9, 'een wal is een ophoging (geen dek) binnen de maximale hoogte', `weg ${r.id}`);
+  }
 }
 console.log(bad ? `${bad} van ${n} mislukt` : `bourtange_test: ok (${n} controles, ${reached} droge cellen bereikbaar)`);
 process.exit(bad ? 1 : 0);

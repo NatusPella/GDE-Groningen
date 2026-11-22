@@ -32,7 +32,7 @@ for (const r of map.roadsNear(cx, cy, R + 50)) {
   const mid = r.pts[Math.floor(r.pts.length / 2)];
   if (!inR(mid[0], mid[1])) continue;
   count(roads, `${r.cat}/${r.type}`);
-  if (r.bridge || (r.z && r.z.some((v) => Math.abs(v) > 0.3))) bridges.push({ id: r.id, cat: r.cat, type: r.type, bridge: !!r.bridge, dropped: !!r.deckDropped, zmax: r.z ? Math.max(...r.z).toFixed(1) : '-', len: r.pts.length, at: mid.map(Math.round).join(',') });
+  if (r.bridge || (r.z && r.z.some((v) => Math.abs(v) > 0.3))) bridges.push({ id: r.id, cat: r.cat, type: r.type, bridge: !!r.bridge, rampart: !!r.rampart, dropped: !!r.deckDropped, zmax: r.z ? Math.max(...r.z).toFixed(1) : '-', len: r.pts.length, at: mid.map(Math.round).join(',') });
 }
 for (const b of map.buildingsNear(cx, cy, R + 50)) {
   const m = b.pts[0];
@@ -45,4 +45,6 @@ console.log('wegen:', JSON.stringify([...roads.entries()].sort((a, b) => b[1] - 
 console.log('gebouwen:', JSON.stringify([...blds.entries()].sort((a, b) => b[1] - a[1])));
 console.log('namen:', names.slice(0, 40).join(' | '));
 console.log('bruggen/profielen:'); for (const b of bridges.slice(0, 60)) console.log(' ', JSON.stringify(b));
+const wallen = bridges.filter((b) => b.rampart);
+console.log('wallen (aarden ophoging, heritagearea.js):', wallen.length, JSON.stringify(wallen.slice(0, 12)));
 console.log('water:', map.waterNear(cx, cy, R).length, 'bomen:', map.treesNear(cx, cy, R).length);
