@@ -50,7 +50,7 @@ export function veldKaart(b, id, schuurKg = 0) {
   return {
     id, naam: s.naam, soort: s.soort, ha: s.ha, actief: s.actief,
     stand, standNaam: STAND[stand].naam, statusId: s.statusId, icoon: STAND[stand].icoon,
-    gewasNaam: s.gewasNaam || '', planNaam: s.planNaam, groei: s.groei, groeit: s.stadium >= 0,
+    gewasNaam: s.gewasNaam || '', planNaam: s.planNaam, gewasId: s.gewas || s.plan || '', groei: s.groei, groeit: s.stadium >= 0,
     volgende: watNu(s, schuurKg), klaar: s.klaar, aandacht: s.aandacht,
     verwachting: v, rang: STAND[stand].rang,
   };
@@ -80,7 +80,7 @@ export function machineLijst(b) {
       const def = PC.MACHINE_CATALOGUS[m.type] || null;
       const naam = def ? def.naam : m.type;
       const erf = m.erf ? (PC.erfDef(m.erf) || {}).naam || '' : '';
-      uit.push({ uid: m.uid, naam, soort, bezit: m.bezit, plek: erf || 'onderweg', ...machineStatus(m, def) });
+      uit.push({ uid: m.uid, naam, soort, fp: def ? (def.soort === 'machine' ? `m:${m.type}` : `w:${def.type}`) : '', bezit: m.bezit, plek: erf || 'onderweg', ...machineStatus(m, def) });
     }
   }
   return uit;

@@ -22,7 +22,7 @@ t('een veld is een kaart: stand met woord, gewas, oppervlakte, volgende stap en 
   assert.match(html, /2,5 ha/);
   assert.match(html, /Kaal/);
   assert.match(html, /Volgende stap/);
-  assert.match(html, /ca. €900/);
+  assert.match(html, /<b>€900<\/b><small>ca\.<\/small>/, 'de verwachte opbrengst staat als groot getal met icoon (22-11)');
   assert.match(html, /data-bd-naar="zonnehoek" data-bd-sluit="1" aria-label="Naar veld Akker De Zonnehoek">Naar veld</, 'elke knop noemt zijn veld (schermlezer, controllerhulp)');
   assert.match(html, /data-goto="map" aria-label="Markeer Akker De Zonnehoek op kaart">Markeer op kaart</);
   assert.ok(!/role="list"/.test(lees('game/js/farmcards.js')), 'artikelen in een role=list zijn ongeldig: de container is een groep');

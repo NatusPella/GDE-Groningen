@@ -8,8 +8,9 @@ import { watchContext } from './blackframe.js';
 import { KEYS } from './storagekeys.js';
 import { previewVehicle } from './garagepics.js';
 import { tickVehicleLook } from './vehiclelook3d.js';
+import { farmBody } from './farmmodels3d.js';
 
-const OBJECT_KINDS = new Set(['weapon', 'person', 'product', 'spul']);
+const OBJECT_KINDS = new Set(['weapon', 'person', 'product', 'spul', 'farm']);
 // a person seen from the front, the face turned a little into the screen
 // (the model faces its local -x)
 export const PORTRAIT_ANGLE = -1.55;
@@ -18,7 +19,7 @@ export const PORTRAIT_ANGLE = -1.55;
 // spec = { kind, model, color, nameIdx, flags } for a vehicle, or
 // { kind: 'weapon', weapon } / { kind: 'person', look, frame } (a person
 // appearance, as TAMMO_APPEARANCE; frame 'head' for a portrait) /
-// { kind: 'product', product } (shopmodels3d.js key) / { kind: 'spul', spul } (models3d_spullen.js,
+// { kind: 'product', product } (shopmodels3d.js key) / { kind: 'farm', farm } (farmmodels3d.js: dier, gebouw, gewasveld of werktuig van de boerderij) / { kind: 'spul', spul } (models3d_spullen.js,
 // the Spullen viewer #1086), framed by bounding box.
 //
 // createVehiclePreview: its own renderer on its own canvas (the shops).
@@ -94,6 +95,7 @@ function buildObject(spec, sphereFit = false) {
     const body = spec.kind === 'weapon' ? buildWeaponMesh(spec.weapon)
       : spec.kind === 'person' ? buildPersonMesh(spec.look.shirt, spec.look.skin, spec.look)
         : spec.kind === 'spul' ? buildSpulMesh(spec.spul)
+          : spec.kind === 'farm' ? farmBody(spec.farm)
           : buildProductMesh(spec.product);
     if (!body) return null;
     const mesh = new THREE.Group();
