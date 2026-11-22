@@ -3,6 +3,7 @@
 //     standaardwaarde uit `st.opdracht` terwijl `st` (de stand van een gast of van een host zonder stand) ontbrak;
 //   - "idx.inWater is not a function": een waterindex zonder functies (kaart zonder raster, kaartkopie, mislukte opbouw).
 // De guards staan in coopmeedoen.js en waterindex.js; deze test dekt ze zonder spel, wereld of netwerk.
+import fs from 'node:fs';
 import * as M from '../game/js/coopmeedoen.js';
 import { getWaterIndex, waterIndexAt } from '../game/js/waterindex.js';
 import { showFrameError, frameErrorModel } from '../game/js/fouttoast.js';
@@ -67,6 +68,11 @@ ok(Array.isArray(M.begin(undefined, 'x', [1])) && M.begin(undefined, 'x', [1]).l
   ok(m.tekst.split(/\s+/).length <= 20, 'de zichtbare tekst is kort');
   ok(!!frameErrorModel('een tekst').details, 'een fout zonder message heeft toch details');
   ok(typeof showFrameError === 'function', 'showFrameError bestaat');
+  // #1210: een speler leest een korte zin met wat hij moet doen; de ontwikkelaarsdetails zijn er alleen in een dev- of testrun
+  ok(/Kopieer het foutrapport en stuur het ons/.test(m.tekst) && !/Meld je het/.test(m.tekst), 'de foutzin zegt wat de speler doet');
+  const toastBron = fs.readFileSync(new URL('../game/js/fouttoast.js', import.meta.url), 'utf8');
+  ok(/\.\.\.\(DEV \? \[det\] : \[\]\)/.test(toastBron), 'de details staan alleen in een dev- of testrun in de kaart');
+  ok(!/kopieer\.className = 'ds-z-knop ds-z-knop--secundair'/.test(toastBron), 'Kopieer is de hoofdactie, niet secundair');
 }
 
 console.log(`foutbronnen_test: ${n - fout}/${n} controles`);
