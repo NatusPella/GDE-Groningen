@@ -11,6 +11,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Uitleg
+
+- Uitleg: de hulppagina's op de website hebben een nieuwe pagina "Wat kun je doen?" en bij Spelen en besturing staan nu Schermschudden, Vormen bij kleur, Tikken in plaats van ingedrukt houden, de Dichtheid van het vlak, de moeilijkheid en de radiozenders; in de repo staat een korte spelersgids (docs/SPELERSGIDS.md). Het foutrapport staat onder Over › Problemen. Samen spelen: geen nieuwe regel, het is alleen uitleg.
+
 ### Luchtroute
 
 - Luchtroute (#1038): in het vliegtuig, de helikopter, als duif en in de luchtballon is er nog maar één routekaart. Regel 1 is de plaats waar je heen vliegt (Vliegveld Eelde, Winsum), nooit meer de voorwaarde van een missie. Regel 2 zegt wat je doet: Draai om, Links aanhouden, Stijg naar 75 m. De pijl draait mee met je koers; bij een bocht van meer dan 120 graden staat er een omdraai-icoon. Afstand en tijd staan groter rechts. De bovenste balk toont in de lucht alleen de naam van de opdracht, zonder Vlieg naar. De gids is lokaal per speler (Samen spelen).

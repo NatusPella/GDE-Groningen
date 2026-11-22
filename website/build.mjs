@@ -103,6 +103,7 @@ function helpPagina(page) {
     ['installeren', 'Installeren'],
     ['systeemeisen', 'Systeemeisen'],
     ['spelen', 'Besturing'],
+    ['wat-kun-je-doen', 'Wat kun je doen'],
     ['samen-spelen', 'Samen spelen'],
     ['problemen', 'Problemen'],
   ].map(([slug, label]) => {

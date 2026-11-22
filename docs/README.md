@@ -9,6 +9,7 @@ verwijst bovenaan naar zijn spec. Wijkt een doc af van de code, dan is de doc de
 
 | Wil je... | Lees |
 |---|---|
+| weten wat je in het spel kunt doen (voor spelers) | [SPELERSGIDS.md](SPELERSGIDS.md) |
 | weten hoe je het spel bouwt en draait | [ONTWIKKELEN.md](ONTWIKKELEN.md) |
 | weten hoe je test | [TESTEN.md](TESTEN.md) en [AGENTS.md](../AGENTS.md#testen) |
 | een release maken | [RELEASEN.md](RELEASEN.md), [PUBLICATIECHECKLIST.md](PUBLICATIECHECKLIST.md) |
@@ -221,6 +222,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [VERKEER-AUDIT-21-11.md](<VERKEER-AUDIT-21-11.md>) | Verkeers- en wereldleven-audit (#1047 tot #1049): AI-verkeer, parkeren, voetgangers, fietsers. |
 | [WERELD-AUDIT-21-11.md](<WERELD-AUDIT-21-11.md>) | Wereldaudit: props en gebouwen op verkeerde plekken over de hele provincie (#1044, #1045). |
 | [SAMEN-MISSIES-20-11.md](<SAMEN-MISSIES-20-11.md>) | Audit en voorstel. Wat een gast nu doet in elke missie, bijbaan en wedstrijd, welke onderdelen van nature gezamenlijk zijn en per onderdeel een rol per speler, beloning per speler, wegvallen en later aansluiten en schaal van 1 tot 4 spelers; plus wat in ronde #983 is gebouwd (M30 bolwerken, pannenkoekenwedstrijd, bezorgen met verdeelde adressen) en wat niet is gezien. Regels: [`.specs-fire/standards/multiplayer.md`](../.specs-fire/standards/multiplayer.md). |
+| [SPELERSGIDS.md](<SPELERSGIDS.md>) | Voor spelers. Kort en feitelijk wat 0.65.0 kan: moeilijkheid, instellingen en toegankelijkheid, radiozenders, Bezit en snackwagen, voetbal, kleding en tuning, panden, bijbanen en Samen spelen. |
 | [SPEELGIDS-4-SPELERS.md](<SPEELGIDS-4-SPELERS.md>) | Naslag. Speelgids voor de eigenaar en drie vrienden (18+): installeren, Samen spelen, passive mode en PvP, opnieuw verbinden, overslaan, bugs melden en bekende beperkingen. Verwijst voor de verbinding naar SPEELGIDS-VIER-SPELERS.md. |
 | [SPEELGIDS-VIER-SPELERS.md](<SPEELGIDS-VIER-SPELERS.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/multiplayer.md`](../.specs-fire/standards/multiplayer.md). Korte gids voor vier spelers over internet: hosten, meedoen, wat is getest (#983) en wat niet (NAT, STUN), met de eerste stappen als het niet lukt. |
 | [SAMEN-SPELEN-RONDE-20-11.md](<SAMEN-SPELEN-RONDE-20-11.md>) | Naslag. Ronde van 20-11 voor Samen spelen met vier: de HUD-bewaking van gastbijbanen, de spookvelden, wat de echte Electron-runs bewezen en wat open staat. |
