@@ -11,6 +11,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Thuis
+- Thuis beginnen in de woning (#1022, #1161): laad je een spel dat bij je huis stond, of kies je Naar huis, dan sta je binnen in de flat in Paddepoel, in de woonkamer en kijkend naar het raam, in plaats van beneden voor de deur; de lift en de voordeur zijn je uitweg. Het laadscherm wacht tot de flat staat (na hooguit 6 seconden sta je alsnog voor de deur). Een save die buiten stond blijft buiten, een save midden in een missie houdt zijn plek, en een oud spel begint boven. Een nieuw spel en de openingsfilm beginnen nog voor de deur. In Instellingen > Spel staat Start binnen (thuis), standaard aan. Lokaal per speler: een gast die aansluit komt naast de host, en staat de host boven, dan wordt niemand in het torengebouw gezet. Niets hiervan is in beeld bekeken.
 ### Prestaties
 - Prestaties (#1074, #1067): als het spelvenster verborgen of op de achtergrond is, doen de vaste controles van de overlays, het Samen-paneel en het aanraakscherm niets meer; de kartmotor wordt bij het verlaten van de baan echt stopgezet. Samen spelen: lokaal per speler, geen netwerkwijziging; testsessies met `?stil` blijven gewoon tikken. Voor de metingen staan er twee A-schakelaars (`?perfoff=boomfade`, `?perfoff=gevelfade`).
 ### Kaart en HUD
