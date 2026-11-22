@@ -1,6 +1,6 @@
 // Pure regels rond munitie en wapenwissel (verfijnronde 22-11, spullen en wapens): hoeveel een pak echt bijvult, wat een bijna
 // vol magazijn kost, en welke wapens het muiswiel en de terugval na het laatste stuk meenemen. Geen DOM, geen wereld:
-// combat.js en shops.js geven de feiten mee. Test: scripts/munitieregels_test.mjs.
+// combat.js en shops.js geven de feiten mee. Test: scripts/ammorules_test.mjs.
 // Samen spelen: het wapen in je hand en je munitie zijn per speler; dit raakt alleen de eigen voorraad van wie de winkel of het wiel gebruikt.
 
 // Hoeveel patronen een pak werkelijk toevoegt: nooit meer dan er in de zak past, nooit negatief.
@@ -25,8 +25,8 @@ export function munitiePrijs(price, pack, winst) {
 // wapen blijft van jou (#437) en kies je met het cijfer, maar het wiel stopt er niet meer. Is er niets met patronen, dan
 // blijven de vuisten over (die zitten altijd in de lijst).
 export function wielWapens(keys, hasWeapon, hasAmmo, huidig) {
-  const lijst = keys.filter((k) => hasWeapon(k) && (hasAmmo(k) || k === huidig));
-  return lijst;
+  const pool = keys.filter((k) => hasWeapon(k) && (hasAmmo(k) || k === huidig));
+  return pool;
 }
 
 // Na het laatste stuk van een werpding of de laatste druppel water: het wapen dat je daarna in de hand krijgt. Het
@@ -39,7 +39,7 @@ export function terugvalWapen(keys, hasWeapon, hasAmmo, huidig, voorkeur = []) {
 
 // De melding bij een cijfertoets: niets in dat slot (de toets deed stil niets), of het gekozen wapen is leeg. Een gewone wissel zegt
 // niets (het wapen in de HUD verandert al). '' = geen melding.
-export function slotMelding(slot, gelukt, leeg) {
+export function slotMessage(slot, gelukt, leeg) {
   if (!gelukt) return `Niets in slot ${slot}`;
   if (leeg) return 'Dit wapen is leeg. Munitie koop je bij Pang & Zo';
   return '';

@@ -11,6 +11,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Spullen, wapens en winkels
+- Spullen: de gekozen tegel blijft staan als je iets opeet of zoekt (hij sprong terug naar het geld), en na het laatste stuk eten kies je de tegel ernaast. Een wapen zonder patronen heet nu Leeg, op de tegel, in het detail en in de HUD. De EHBO-doos gebruik je, die eet je niet op. Eten klinkt nu ook in het menu.
+- Wapens: het muiswiel slaat lege wapens over, een cijfertoets op een leeg slot zegt dat, en een wissel klikt even. Gooi je het laatste stuk, dan pak je automatisch het volgende wapen. Samen spelen: wapen en munitie blijven per speler.
+- Winkels: een pak patronen dat nog maar deels past kost een evenredig deel en zegt wat het echt toevoegt. Een dubbelklik bevestigt een duur ding niet meer, Esc trekt eerst de bevestiging in, en bij het verkopen staat het bedrag dat je krijgt. Het wapen in je hand verkopen in het pandjeshuis vraagt een tweede druk, en elke verkoop klinkt als biljetten.
+
 ### Prestaties
 - Prestaties (#1074, #1067): als het spelvenster verborgen of op de achtergrond is, doen de vaste controles van de overlays, het Samen-paneel en het aanraakscherm niets meer; de kartmotor wordt bij het verlaten van de baan echt stopgezet. Samen spelen: lokaal per speler, geen netwerkwijziging; testsessies met `?stil` blijven gewoon tikken. Voor de metingen staan er twee A-schakelaars (`?perfoff=boomfade`, `?perfoff=gevelfade`).
 ### Kaart en HUD

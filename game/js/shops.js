@@ -53,7 +53,7 @@ import { shopSections, wardrobeSections, fittingSections } from './clothingpanel
 import { clothingSfx } from './clothingsfx.js';
 import { sfxEvent } from './sfx/haken.js';
 import { wantedClearCooldownLeft, markWantedCleared } from './heatcooldown.js'; // #838: spuiterij-cooldown
-import { munitieWinst, munitiePrijs } from './munitieregels.js'; // een bijna vol magazijn kost evenredig
+import { munitieWinst, munitiePrijs } from './ammorules.js'; // een bijna vol magazijn kost evenredig
 
 export const SHOP_USE_RADIUS = 2.6;
 const OUTFIT_WANTED_COOLDOWN = 60;
@@ -1228,7 +1228,7 @@ function weaponItem(world, w) {
     };
   }
   const unit = w.unit || 'patronen';
-  // een pak dat niet meer past kost een evenredig deel: je betaalt niet de volle prijs voor een paar patronen (munitieregels.js)
+  // een pak dat niet meer past kost een evenredig deel: je betaalt niet de volle prijs voor een paar patronen (ammorules.js)
   const winst = munitieWinst(have, w.ammo, w.cap);
   const price = owned ? munitiePrijs(w.ammoPrice, w.ammo, winst) : w.gun;
   return {

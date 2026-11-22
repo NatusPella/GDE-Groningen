@@ -29,7 +29,7 @@ import { nieuweCombo, comboSlag, comboUitslag } from './meleecombo.js'; // de me
 import { nieuweBlok, blokkeer, herstel, blokActief, schadeNaBlok } from './blockregels.js'; // blokkeren met een slagwapen (#492)
 import { requestRiderOff } from './bikerider.js'; // een fietser van de fiets slaan (#944)
 import { sfxEvent } from './sfx/haken.js'; // het wapen wisselt: een kort klikje op de eigen UI-bus
-import { wielWapens, terugvalWapen, slotMelding } from './munitieregels.js'; // het wiel slaat lege wapens over; na het laatste stuk een ander wapen
+import { wielWapens, terugvalWapen, slotMessage } from './ammorules.js'; // het wiel slaat lege wapens over; na het laatste stuk een ander wapen
 
 export { WEAPONS, WEAPON_KEYS, isMeleeWeapon, isRangedWeapon, isGunWeapon };
 
@@ -105,7 +105,7 @@ export function updateCombat(dt, world) {
       const gelukt = selectWeaponSlot(world, i);
       const leeg = gelukt && !hasAmmo(world, world.weapon);
       if (gelukt && world.weapon !== vorig) sfxEvent(world, 'ui_item_equip');
-      const tekst = slotMelding(i, gelukt, leeg && world.weapon !== vorig);
+      const tekst = slotMessage(i, gelukt, leeg && world.weapon !== vorig);
       if (tekst && world.addMessage) world.addMessage(tekst, 2);
     }
   }

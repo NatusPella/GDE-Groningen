@@ -1,7 +1,7 @@
-// Munitie en wapenwissel (munitieregels.js): echte winst, evenredige prijs, wiel zonder lege wapens, terugval na het laatste stuk.
-//   node scripts/munitieregels_test.mjs
+// Munitie en wapenwissel (ammorules.js): echte winst, evenredige prijs, wiel zonder lege wapens, terugval na het laatste stuk.
+//   node scripts/ammorules_test.mjs
 import assert from 'node:assert/strict';
-const M = await import('../game/js/munitieregels.js');
+const M = await import('../game/js/ammorules.js');
 let n = 0, fails = 0;
 const t = (name, fn) => { n++; try { fn(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', String(e.message).split('\n')[0]); } };
 
@@ -41,5 +41,5 @@ t('terugval: voorkeur, dan eerste met patronen, anders vuisten', () => {
   assert.equal(M.terugvalWapen(keys, heeft(own), patroon({}), 'carbidbus'), 'fists');
   assert.equal(M.terugvalWapen(keys, heeft(['fists']), patroon({}), 'fists'), 'fists');
 });
-console.log(`${n - fails}/${n} munitieregels`);
+console.log(`${n - fails}/${n} ammorules`);
 process.exit(fails ? 1 : 0);
