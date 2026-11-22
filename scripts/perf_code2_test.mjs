@@ -59,7 +59,7 @@ ids.forEach(clearInterval);
 ok(calls === 0, 'tien pollers doen niets terwijl het venster verborgen is', String(calls));
 
 // --- bronchecks ---
-for (const f of ['overlayhold', 'samenpanel', 'touch', 'profileoverlay', 'storydev']) {
+for (const f of ['overlayhold', 'samenpanel', 'touch', 'profileoverlay', 'storydev', 'hud_panel', 'coopspelersui']) {
   const s = src(`game/js/${f}.js`);
   ok(s.includes("from './visibletimer.js'") && /setVisibleInterval\(/.test(s) && !/[^.\w]setInterval\(/.test(s.replace(/typeof setInterval/g, '')), `${f}.js gebruikt setVisibleInterval`);
 }
