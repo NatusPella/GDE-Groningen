@@ -144,6 +144,7 @@ export function buildMissionLayer(s) {
   const wps = m && m.phase === 'active' ? m.waypoints || [] : [];
   wps.filter(ok).forEach((w, i) => items.push(item('checkpoint', w, { id: 'wp' + i, label: `Controlepunt ${(m.wpIndex || 0) + i + 2}`, state: i === 0 ? 'next' : 'later', focus: i < 2, drawn: true })));
   if (m && ok(m.marker) && m.phase === 'active' && wps.length) lines.push(line('mission-route', 'route', [m.marker, ...wps], LINE_STYLES.route));
+  (s.chasers || []).filter(ok).forEach((c, i) => items.push(item('threat', c, { id: 'chaser' + i, label: c.label || 'Achtervolger', sub: 'Achtervolger', mini: true })));
   (s.subgoals || []).filter((g) => ok(g) && !g.done).forEach((g, i) => items.push(item('subgoal', g, { id: 'sub' + i, label: g.label || 'Extra', sub: 'Optioneel' })));
   (s.hazards || []).filter(ok).forEach((h, i) => {
     items.push(item('hazard', h, { id: 'haz' + i, label: h.label || 'Gevaar', sub: h.sub || 'Let op' }));

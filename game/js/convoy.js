@@ -8,6 +8,7 @@ import { hoofdspeler } from './players.js';
 import { spawnVehicleOnRoad, TRACTOR_MODEL, MOPED_MODEL } from './vehicle.js';
 import { dist } from './util.js';
 import { CONVOY, pushTrail, trailGoal, lagStep } from './convoyrules.js';
+import { markChaser, roleSpec } from './chaserlook.js';
 
 export { CONVOY };
 
@@ -52,10 +53,11 @@ export function spawnLimo(world, state, lead = hoofdspeler(world)) {
   const rp = world.map.nearestRoadPoint(p.x + Math.cos(a) * 120 + Math.cos(p.angle) * 60, p.y + Math.sin(a) * 120 + Math.sin(p.angle) * 60, 100, true);
   if (!rp || !rp.road) return null;
   const v = spawnVehicleOnRoad(world.map, rp.road, false, Math.random, false, false, rp, false,
-    { name: 'limo', len: 5.6, wid: 2.0, maxSpeed: 30, accel: 7, brake: 14, turnRate: 2.1, color: '#1b1c1f' });
+    { ...roleSpec('limoColonne').model }); // model 'trekkerlimo': 'limo' bestaat niet en werd een gewone hatchback (chaserlook.js)
   v.missionCar = true;
   v.label = 'Jelles limo';
   v.aiOpts = { chase: true, cruise: 17 };
+  markChaser(v, 'limoColonne');
   world.vehicles.push(v);
   state.limo = v;
   return v;

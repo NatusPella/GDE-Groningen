@@ -16,6 +16,7 @@ import { bridgesAhead } from './boatahead.js';
 import { getServiceMapState } from './machinist.js';
 import { clearanceOver, waterAt, airDraftOf } from './waterlevels.js';
 import { hoofdspeler } from './players.js';
+import { chaserMarkers } from './chaserlook.js';
 
 let cache = { at: -1, world: null, layer: null };
 let prevLayer = null;
@@ -58,6 +59,8 @@ function snapshot(world) {
   const hm = getHeliRunMarks();
   if (hm) s.heli = { rings: hm.rings, pad: hm.pad, balloon: hm.balloon };
 
+  const chasers = s.mission ? chaserMarkers(world.vehicles) : []; // Jelles limo's als gevaar op de kaart (chaserlook.js)
+  if (chasers.length) s.chasers = chasers;
   const phase = wantedPhase(world);
   if (phase !== 'rustig') {
     const pol = world.police;

@@ -68,6 +68,7 @@ import { buildNieuwDefs, applyNieuw } from './missions_nieuw.js';
 import { buildZijDefs } from './missionsdata_zij.js';
 import { buildDefsVoorMuseum, buildDefsNaMuseum } from './missions_defs.js';
 import { createBake, updateBake, showBake, hideBake, bakeProgress, bakePanel, RECIPE_PRACTICE, RECIPE_CONTEST } from './bakeround.js';
+import { markChaser, roleOfModelName } from './chaserlook.js';
 import { startConvoy, spawnLimo, updateConvoy, convoyStatus, disposeConvoy } from './convoy.js';
 import { enterChoice, updateChoice, closeChoice } from './stagechoice.js';
 import { enterRit, updateRit } from './stagerit.js';
@@ -2169,6 +2170,8 @@ function spawnChaseVehicle(world, def, st) {
   v.aiOpts = { goal: { x: goal.x, y: goal.y }, chase: true, cruise: st.cruise || 15 };
   // waiting at the groothandel: off the road graph (so traffic AI leaves it be) until it flees
   if (st.parked) { v.parkedRoad = v.road; v.parkedAi = v.aiOpts; v.road = null; v.aiOpts = null; v.speed = 0; }
+  if (!st.parked) markChaser(v, roleOfModelName(v.model && v.model.name));
+  else v.chaserRole = roleOfModelName(v.model && v.model.name);
   world.vehicles.push(v);
   return v;
 }
@@ -2773,6 +2776,7 @@ function spawnPursuer(world, st) {
   v.chaseDodge = true;
   v.label = P.name || '';
   v.aiOpts = { goal: { x: ref.x, y: ref.y }, chase: true, cruise: P.cruise || 14 };
+  markChaser(v, 'limoAchter');
   return v;
 }
 

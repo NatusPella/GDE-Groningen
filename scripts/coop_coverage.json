@@ -77,7 +77,8 @@
     "reputation*",
     "unlockgate*",
     "storymultiplayer",
-    "fatbikedodge"
+    "fatbikedodge",
+    "chaserlook"
    ],
    "eigenaar": "wereld",
    "gast": "Meedoen? (J of N); wie J zegt loopt mee, anderen kijken. Stappen met rekwisieten bij de host zijn deels.",
@@ -87,7 +88,8 @@
     "scripts/coopmissie_test.mjs",
     "scripts/coopverhaal_test.mjs",
     "scripts/coopmissie_motor_test.mjs",
-    "scripts/coopmissie_audit_test.mjs"
+    "scripts/coopmissie_audit_test.mjs",
+    "scripts/chaserlook_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
