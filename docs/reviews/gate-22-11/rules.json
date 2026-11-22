@@ -1,0 +1,80 @@
+{
+ "onderwerp": "rules",
+ "reviewer": "agent-delta-A",
+ "commit": "f962b77edd035d31ace2dbf31b5e0a345641a9ad",
+ "dekking": {
+  "bestanden": [
+   "game/js/credits.js",
+   "game/js/sfx/audiocredits.js",
+   "game/js/onlineconsent.js",
+   "game/js/worldlife.js",
+   "game/js/worldlifelines.js",
+   "game/js/muggingrules.js",
+   "game/js/muggings.js",
+   "game/js/radio.js",
+   "game/js/benchstats.js",
+   "game/js/clothingpanel.js",
+   "game/js/voetbalclubs.js",
+   "game/js/penalty.js",
+   "game/js/hudcards.js",
+   "game/js/gpudiag.js",
+   "game/js/main.js",
+   "scripts/release/rules_audit.mjs",
+   ".github/workflows/android-branch.yml",
+   ".github/workflows/pages-deploy.yml",
+   "desktop/main.js",
+   "web/serve.mjs",
+   "web/servepath.mjs",
+   "web/preload.mjs"
+  ],
+  "aspecten": [
+   "rules"
+  ],
+  "opmerking": "Basisreview op 3a1fa5b61 (CODE-REVIEW-22-11-regels-constitution.md, FIXES-22-11-ui-regels.md). Opgelost bevonden: regels 1 (credits.js:108 en onlineconsent.js:24 noemen live bussen en treinen ook bij Alleen spelen; credits_netwerk_test 7 controles), regels 2 (main.js:325-327 + stationlife.js:14,45-50: geen opvraag in Samen spelen of ver van een station; treinlive_bereik_test 7 controles), regels 3 (naamtaal_check: 2307 bestanden, 0 fouten, 158 vaste uitzonderingen; naamtaal_test 8/8), regels 5 (credits.js:51-55 CC BY met titel, bron- en licentielink; rules_audit.mjs NETWERK_GOEDGEKEURD voor audiocredits.js), plus het blokkerende ijs-geval in worldlifelines.js (rules_audit --from=v0.64.0 geeft nu 0 blokkerend, was 1). Gedraaid: `node scripts/release/rules_audit.mjs --from=3a1fa5b61` = 0 blokkerend, 0 belangrijk, 0 nit over 61.110 toegevoegde regels in 189 bestanden; `--from=v0.64.0` = 0 blokkerend, 169 belangrijk, 6 nit; `voice_coverage --quiet` 3494/3494; `secrets_scan` 0 treffers (werkboom en 14.135 commits); eigen grep op de delta van game/js (buiten audiocredits.js) op de Grunn, sneeuw, winter, ijs, ijzel, vorst, http, fetch, XMLHttpRequest, WebSocket, sendBeacon: alleen de bestaande three-CDN-import. desktop/out.txt, out2.txt, out3.txt en scripts/_run.mjs zijn verwijderd (git ls-files: geen treffers). Nieuwe speltekst gelezen: worldlifelines.js (Nederlands, Gronings in kleine dosis, verzonnen of echte plaatsnamen, geen merk of persoon), muggingrules.js gast-teksten (geen getoond geweld), radio.js, benchstats.js DIAG_TEXT, clothingpanel.js. Open uit de basisreview (nog niet gerepareerd, zie bevindingen): regels 6, 8. Regels 4 (dempen op naam) en 7 (pages-deploy.yml:43-46 permissions op workflowniveau) vallen buiten mijn aspecten maar staan ook nog open. NIET gedaan: geen audio beluisterd, niet elke storydata- en voicelines-regel gelezen (script.json valt buiten de opdrachtdiff); geen controle van licentiebronnen op internet (geen netwerk). | Gate-run 22-11: de delta-review is gedaan op 98aa3c4c3; daarna zijn drie gerichte commits en de scripts voor de eigenaar-review gekomen (bf23c1f1b build_province, 6fe9ffa5e bezitui, voetbalcarriereui, f962b77ed scripts); die zijn door de coordinator-agent gelezen, niet door deze reviewer."
+ },
+ "bevindingen": [
+  {
+   "bron": "code-review",
+   "aspect": "rules",
+   "ernst": "nit",
+   "categorie": "constitutie",
+   "titel": "Credits tonen titel met merknaam (Zoom H4n) bij CC BY-bron 561901",
+   "beschrijving": "credits.js:51-55 toont bij CC BY de originele titel. audiocredits.js:1322 heeft voor id 561901 de titel '..._ZoomH4n_NT5-002.wav': een echte merk- en typenaam van een recorder in speltekst (constitutie 2). De fix uit FIXES-22-11-ui-regels.md laat titels met een merk weg, maar de controle ving alleen id 845619 (een autotype). De controle op merken in de audio-licentiebouw kent dit woord niet.",
+   "bestanden": [
+    "game/js/sfx/audiocredits.js",
+    "game/js/credits.js",
+    "scripts/audio/licenties_bouw.mjs"
+   ],
+   "fix": "Voeg de merk-/typewoorden (Zoom, H4n, enz.) toe aan de merklijst van scripts/audio/licenties_bouw.mjs en bouw audiocredits.js opnieuw; of toon bij deze bron alleen 'Freesound 561901'.",
+   "reviewer": "agent-delta-A"
+  },
+  {
+   "bron": "code-review",
+   "aspect": "rules",
+   "ernst": "nit",
+   "categorie": "constitutie",
+   "titel": "Open uit basisreview: clubnamen die een echte clubnaam met een letter verhullen",
+   "beschrijving": "voetbalclubs.js:40-42 heeft nog 'Mancheester Eenheid', 'De Chelzeeërs', 'De Duivelsmilanezen', 'De Heilige Parijzenaars'; de eerste twee staan zeer dicht bij de echte naam (constitutie 2: parodie met verzonnen naam). Verder gebruikt penalty.js:25,96,389 'FC Grunn-achtig' terwijl voetbalclubs.js:3 het voorvoegsel FC verbiedt. Uit de basisreview (regels 6) niet opgepakt en niet door de eigenaar beslist; de eigenaar bepaalt of dit parodie genoeg is.",
+   "bestanden": [
+    "game/js/voetbalclubs.js",
+    "game/js/penalty.js"
+   ],
+   "fix": "Eigenaarsbesluit; zo niet: namen verder van het origineel en 'Grunn-achtig' zonder FC.",
+   "reviewer": "agent-delta-A"
+  },
+  {
+   "bron": "code-review",
+   "aspect": "rules",
+   "ernst": "nit",
+   "categorie": "taal",
+   "titel": "Open uit basisreview: toets als woord en merknaam Windows in speltekst",
+   "beschrijving": "hudcards.js:249 toont 'Klik of druk op Enter' (ui-taal: toetsen gaan als {ENTER}-teken); gpudiag.js:51 noemt 'Windows' bij de technische uitleg over de videokaart (echte merknaam, constitutie 2; hier een technische hint). Basisreview regels 8, nog open.",
+   "bestanden": [
+    "game/js/hudcards.js",
+    "game/js/gpudiag.js"
+   ],
+   "fix": "{ENTER}-teken gebruiken; 'het besturingssysteem' of een neutrale omschrijving in plaats van de merknaam.",
+   "reviewer": "agent-delta-A"
+  }
+ ]
+}

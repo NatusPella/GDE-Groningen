@@ -1,0 +1,20 @@
+{
+ "onderwerp": "design",
+ "reviewer": "agent-delta-B",
+ "commit": "f962b77edd035d31ace2dbf31b5e0a345641a9ad",
+ "dekking": {
+  "bestanden": [
+   "alle toegevoegde regels in game/js en scripts/ui sinds 3a1fa5b61 (grep op font-size, losse hex-kleuren en rgb/rgba)",
+   "game/js/launchchoiceui.js, difficultyui.js, clothingpanel.js, benchmarkui.js, worldlife3d.js (visuele delta)",
+   "git diff --name-only 3a1fa5b61 HEAD voor *.css en *.html: alleen docs/TTS-LUISTER-NIEUW.html (documentatie, geen spel-UI)"
+  ],
+  "aspecten": [
+   "design",
+   "losse hex",
+   "tekst onder 12px",
+   "tweede rood"
+  ],
+  "opmerking": "Basisreview van 22-11 (ds3-ui) is gedaan op 3a1fa5b61; dit is de delta tot HEAD 98aa3c4c3. In de delta zijn geen CSS-bestanden gewijzigd, en de toegevoegde JS-regels bevatten geen nieuwe font-size, geen losse hex voor UI en geen rgb/rgba; de enige hex-treffer is de al bestaande terugvalkleur '#ffffff' in coopping.js (pingMarkers, niet nieuw). De 3D-kleuren in worldlife3d.js (huid, soortkleur van dieren) zijn scène-materialen, geen UI-tokens. Nieuwe UI-hulpfuncties (trapTabInCard, outfitMessage, choiceKey) voegen geen stijl toe. Gedraaid: ds3_dekkinglijst_test (2/2, groen) en hud_kleuren_test (groen). NIET gedaan: de ds3-ratel, de designaudit en de rules_audit zijn niet opnieuw uitgevoerd (dat doet de gate); geen beeld bekeken, dus overlap, contrast en leesbaarheid van de nieuwe schermen en bubbels zijn niet beoordeeld. | Gate-run 22-11: de delta-review is gedaan op 98aa3c4c3; daarna zijn drie gerichte commits en de scripts voor de eigenaar-review gekomen (bf23c1f1b build_province, 6fe9ffa5e bezitui, voetbalcarriereui, f962b77ed scripts); die zijn door de coordinator-agent gelezen, niet door deze reviewer."
+ },
+ "bevindingen": []
+}

@@ -199,5 +199,24 @@ t('woningen: te koop met prijs en plaats, een gekochte woning toont de verhuur',
   assert.match(empty, /Leeg: een nieuwe huurder wordt gezocht/);
 });
 
+// Het scherm Land en bedrijf bevroor de pagina: met de index al geladen riep renderBezitPanels via ensureIndex().then(rerender) zichzelf eindeloos aan in microtaken.
+// Hier telt een nep-element de aanroepen: na het laden mag één render hoogstens één keer opnieuw tekenen.
+await (async () => {
+  n++;
+  try {
+    reset();
+    let renders = 0;
+    const el = () => ({ _h: '', set innerHTML(v) { this._h = v; if (++renders > 500) throw new Error('microtaaklus: renderBezitPanels herhaalt zichzelf'); }, get innerHTML() { return this._h; }, addEventListener() {} });
+    const els = { overzicht: el(), bedrijven: el(), tekoop: el(), snack: null };
+    U.renderBezitPanels(els, w());
+    for (let i = 0; i < 200; i++) await new Promise((r) => setImmediate(r));
+    const settled = renders;
+    for (let i = 0; i < 200; i++) await new Promise((r) => setImmediate(r));
+    assert.ok(renders <= 500, 'renderBezitPanels blijft zichzelf aanroepen (microtaaklus)');
+    assert.equal(renders, settled, 'renderBezitPanels blijft hertekenen');
+    assert.ok(settled <= 9, 'te veel hertekeningen: ' + settled);
+  } catch (e) { fails++; console.log('FAIL renderBezitPanels: geen eindeloze hertekening', '\n  ', String(e.message).split('\n')[0]); }
+})();
+
 console.log(`bezitui_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

@@ -1,0 +1,131 @@
+{
+ "onderwerp": "correctness",
+ "reviewer": "agent-delta-A",
+ "commit": "f962b77edd035d31ace2dbf31b5e0a345641a9ad",
+ "dekking": {
+  "bestanden": [
+   "game/js/coopnet.js",
+   "game/js/coopplayers.js",
+   "game/js/net/hub.js",
+   "game/js/net/codec.js",
+   "game/js/coopping.js",
+   "game/js/bezitnet.js",
+   "game/js/bezitcoop.js",
+   "game/js/bezitlive.js",
+   "game/js/bezit.js",
+   "game/js/business.js",
+   "game/js/snackvan.js",
+   "game/js/muggings.js",
+   "game/js/muggingrules.js",
+   "game/js/main.js",
+   "game/js/stationlife.js",
+   "game/js/trainlive.js",
+   "game/js/interiors.js",
+   "game/js/voetbal.js",
+   "game/js/voetbalsamen.js",
+   "game/js/storyarc.js",
+   "game/js/settings.js",
+   "game/js/a11ylogic.js",
+   "game/js/missionstory.js",
+   "game/js/listnav.js",
+   "game/js/launchchoiceui.js",
+   "game/js/difficultyui.js",
+   "game/js/benchmarkmodel.js",
+   "game/js/benchmarkui.js",
+   "game/js/benchstats.js",
+   "game/js/tuningworld.js",
+   "game/js/vehicle/traffic.js",
+   "game/js/worldlife.js",
+   "game/js/worldlife3d.js",
+   "game/js/worldlifelines.js",
+   "game/js/intromontage.js",
+   "game/js/openingfilm.js",
+   "game/js/provincemap.js",
+   "game/js/dorpsuitjes.js",
+   "game/js/businterieur3d.js",
+   "game/js/vehiclepreview.js",
+   "game/js/vehiclelook3d.js",
+   "game/js/farlod.js",
+   "game/js/streambudget.js",
+   "game/js/radio.js",
+   "game/js/models3d_people.js",
+   "web/preload.mjs",
+   "web/serve.mjs",
+   "web/servepath.mjs",
+   "web/build.mjs",
+   "desktop/main.js",
+   "desktop/build.mjs",
+   ".github/workflows/android-branch.yml",
+   ".github/workflows/pages-deploy.yml",
+   "scripts/release/rules_audit.mjs"
+  ],
+  "aspecten": [
+   "correctness"
+  ],
+  "opmerking": "Basisreview is op 3a1fa5b61 gedaan (reviews regels-constitution, security-build, multiplayer, gameplay en de FIXES-22-11-*.md op HEAD). Dit rapport: (1) controle dat de bevindingen uit die reviews voor correctness in HEAD zijn opgelost, (2) volledige lezing van `git diff 3a1fa5b61 HEAD -- game/js web desktop/main.js desktop/build.mjs .github scripts/release` (game/audio genegeerd; sfx/audiocredits.js alleen als data bekeken). Opgelost bevonden met bestand:regel en een groene test (alle lokaal gedraaid, exit 0): multiplayer B1 (coopplayers.js:155-190, hub.js:149-160; multiplayerreview_22_11_test 26/26), B2/B3 (bezitnet.js:87-134, bezitcoop.js:7-9,35-60; bezitnet_test 20/20, bezitcoop_test 12/12), B4 (coopnet.js:1963, bezitnet.js:23), B5 (bezitlive.js:700-712, coopnet.js:432,1159), N1 (coopnet.js:1314, coopping.js:42,50), N2 (coopnet.js:1908-1925), N3 (net/codec.js:131); gameplay 1/4/5 (snackvan.js:221,351, business.js:213, bezit.js:113; snackreviewfix_test), ui 3 (storyarc.js:110; loopbaanstart_test 13/13), UI 2/5/6/7 (a11ylogic.js:151, clothingpanel.js:119, listnav.js:22, settings.js:190+; a11y_test, outfitmelding_test, kaart_tabval_test, settings_eigen_sleutel_test), security 1-4 (web/servepath.mjs, android-branch.yml:45, pages-deploy.yml:71, desktop/out*.txt en scripts/_run.mjs niet meer in git; web_serve_path_test, workflow_inputs_test). Niet in HEAD opgelost maar bewust uitgesteld en gedocumenteerd: multiplayer N4 (hw-aangesloten van elke gast, coophostwisselnet.js, niet door mij herbeoordeeld) en N5 (dempen op naam); gameplay nit 2 en 3 (eigenaarsbesluit). NIET gedaan: geen Electron, geen echte Samen-spelen-sessie, niets in beeld; de basisreview voor perf (docs/reviews/CODE-REVIEW-22-11-perf.md) is niet leesbaar in de review-branch, alleen via FIXES-22-11-perf.md beoordeeld; coopnet.js, voetbal.js, interiors.js en main.js zijn alleen als diff gelezen, niet als geheel; de nieuwe wereldlevenbestanden zijn wel geheel gelezen; geen eigen runtime-test van muggings voor gasten en van worldlife3d (geen dekkende test aangetroffen). | Gate-run 22-11: de delta-review is gedaan op 98aa3c4c3; daarna zijn drie gerichte commits en de scripts voor de eigenaar-review gekomen (bf23c1f1b build_province, 6fe9ffa5e bezitui, voetbalcarriereui, f962b77ed scripts); die zijn door de coordinator-agent gelezen, niet door deze reviewer."
+ },
+ "bevindingen": [
+  {
+   "bron": "code-review",
+   "aspect": "correctness",
+   "ernst": "nit",
+   "categorie": "correctheid",
+   "titel": "Live treinen: bord wist vertragingen zodra je >400 m van een station bent",
+   "beschrijving": "main.js:327 geeft nu `null` als codes door wanneer er geen station binnen LIVE_R (400 m) ligt. trainlive.js:47 (`!codes` -> `st.aan=false; wis()`) leegt dan de hele vertragingenmap. Bij terugkeer binnen 400 m wacht de opvraag tot `volgendeOp` (interval 60 s +-15%, livetrains.js:17), dus het bord toont tot ca. een minuut het rooster zonder vertraging; bij lopen langs de 400 m-rand wist het steeds opnieuw. FIXES-22-11-ui-regels.md beweert dat vertragingen na een opvraag zichtbaar blijven tot ze verouderen; dat klopt alleen voor Samen spelen (live=null), niet voor deze pad. treinlive_bereik_test dekt alleen shouldPollLiveTrains, niet tick(null).",
+   "bestanden": [
+    "game/js/main.js",
+    "game/js/trainlive.js",
+    "game/js/stationlife.js"
+   ],
+   "fix": "Bij `codes === null` alleen het opvragen overslaan (st.aan niet wissen); laat verouderen via `vervallen` in buildDelayMap. Voeg een test voor tick(null) na een geslaagde opvraag toe.",
+   "reviewer": "agent-delta-A"
+  },
+  {
+   "bron": "code-review",
+   "aspect": "correctness",
+   "ernst": "nit",
+   "categorie": "correctheid",
+   "titel": "Openingsfilm met startAt voorbij de thema-shot blijft zonder muziek",
+   "beschrijving": "intromontage.js:1780 slaat cueTheme(0) over bij film; het thema start alleen in enterShot op de shot met filmId gelijk aan themeEntryShot() (regel 1568, c1-markt). Een film die met startAt > 0 voorbij die shot begint (r.offset), cue't het thema nooit. In de game wordt startAt niet door andere modules meegegeven (alleen dev/preview), dus het raakt de gewone speler niet.",
+   "bestanden": [
+    "game/js/intromontage.js",
+    "game/js/openingfilm.js"
+   ],
+   "fix": "Cue het thema ook als de eerste betreden shot na de thema-shot ligt (r.themeOn nog false) met de juiste offset.",
+   "reviewer": "agent-delta-A"
+  },
+  {
+   "bron": "code-review",
+   "aspect": "correctness",
+   "ernst": "belangrijk",
+   "categorie": "correctheid",
+   "titel": "OPGELOST: Land en bedrijf bevroor de pagina (eindeloze microtaaklus in renderBezitPanels)",
+   "beschrijving": "game/js/bezitui.js riep na het laden van de index via ensureIndex().then(rerender) zichzelf eindeloos aan (een al opgeloste belofte). Het openen van Pauzemenu > Land en bedrijf bevroor de hele pagina; gevonden bij de eigenaar-reviewbeelden (Electron, 1920x1080). Opgelost in commit 6fe9ffa5e met een test (scripts/bezitui_test.mjs); de test hangt of faalt op de oude code. Open vraag: waarom ving de eerdere review dit niet (geen DOM-test voor renderBezitPanels).",
+   "bewijs": [
+    "game/js/bezitui.js:176 (voor de fix)",
+    "Electron-run: na PM.openPauseMenu(\"boerderij\") kwamen er geen timers meer door"
+   ],
+   "bestanden": [
+    "game/js/bezitui.js",
+    "scripts/bezitui_test.mjs"
+   ],
+   "fix": "Alleen wachten als getIndexNow() nog leeg is (gedaan).",
+   "reviewer": "coordinator-gate"
+  },
+  {
+   "bron": "code-review",
+   "aspect": "correctness",
+   "ernst": "belangrijk",
+   "categorie": "worldbuild",
+   "titel": "OPGELOST: provinciebouw in een verse worktree knipt het spoor niet op de stadse track (landfile_test rood)",
+   "beschrijving": "scripts/world/build_province.mjs las de stadsrails alleen uit ROOT/game/world; in een verse checkout of worktree bestaat die map nog niet, zodat het provinciespoor niet werd geknipt (79 dubbele sporen, landfile_test rood). Opgelost in commit bf23c1f1b: de zojuist gepakte stadstegels (de map van --city) gaan voor. Het geeft in de hoofdmap (waar game/world al bestond) geen verschil.",
+   "bewijs": [
+    "landfile_test: no country track lies on the city's (79) vóór de fix; 38 checks, 0 failed erna"
+   ],
+   "bestanden": [
+    "scripts/world/build_province.mjs"
+   ],
+   "reviewer": "coordinator-gate"
+  }
+ ]
+}

@@ -35,6 +35,8 @@ t('elk scherm bestaat, heeft tabs, en gebruikt alleen DS3-klassen en geen losse 
   for (const [id] of TABS) {
     const h = viewHtml(c, id, env);
     assert.ok(h.length > 300, id);
+    // ds-m-wissel is opacity 0 tot er .on op staat: zonder .on was de hele inhoud van het carrièrescherm onzichtbaar (releasegate 0.65, beeld 12)
+    assert.match(h, /class="vb-body ds-m-wissel on"/, `${id}: de inhoud staat op opacity 0 (ds-m-wissel zonder on)`);
     assert.ok(!/#[0-9a-f]{3,8}\b/i.test(h.replace(/&#\d+;/g, '')), `${id}: losse kleur`);
     assert.ok(!/style="[^"]*(color|background)/.test(h), `${id}: inline kleur`);
     assert.match(h, /role="tablist"/); assert.match(h, new RegExp(`aria-selected="true"[^>]*>|data-vb="tab:${id}" aria-selected="true"`));

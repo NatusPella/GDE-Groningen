@@ -1,0 +1,110 @@
+{
+ "onderwerp": "ux",
+ "reviewer": "agent-delta-B",
+ "commit": "f962b77edd035d31ace2dbf31b5e0a345641a9ad",
+ "dekking": {
+  "bestanden": [
+   "game/js/launchchoiceui.js (Tab-val startkeuze en toestemmingskaart)",
+   "game/js/difficultyui.js (Tab-val)",
+   "game/js/listnav.js (trapTabInCard)",
+   "game/js/clothingpanel.js (outfitMessage)",
+   "game/js/a11ylogic.js (handheldOffset)",
+   "game/js/missionstory.js (handheld-zwaai volgt Schermschudden)",
+   "game/js/settings.js (hasKey)",
+   "game/js/benchmarkui.js, benchmarkmodel.js, benchstats.js (pickChoice, choiceKey, runDiagnosis)",
+   "game/js/radio.js (melding nieuwe zender)",
+   "game/js/onlineconsent.js, onlineconsentui.js (alleen de meerInfo-kaart)",
+   "game/js/provincemap.js, businterieur3d.js (cachegrenzen, alleen op gedrag)"
+  ],
+  "aspecten": [
+   "ux",
+   "toetsenbord en focus",
+   "toegankelijkheid",
+   "tekst"
+  ],
+  "opmerking": "Basisreview van 22-11 (ds3-ui) is gedaan op 3a1fa5b61; dit is de verificatie plus delta-review tot HEAD 98aa3c4c3. Eerdere bevindingen gecontroleerd: ds3-ui 1 (ds3_dekkinglijst_test) nu groen (2/2); ds3-ui 2 (Schermschudden en Beweging beperken in verhaalscènes) opgelost via handheldOffset in a11ylogic.js en missionstory.js:1196-1206, gedekt door a11y_test (86 checks); ds3-ui 3 (loopbaanstart_test) opgelost in storyarc.js, test 13/13; ds3-ui 4 (hud_kleuren_test) groen; ds3-ui 5 (outfitmelding) opgelost via outfitMessage, outfitmelding_test; ds3-ui 6 (Tab-val) opgelost in launchchoiceui.js en difficultyui.js via trapTabInCard, kaart_tabval_test (10); ds3-ui 7 (in-operator) opgelost via hasKey in settings.js, settings_eigen_sleutel_test (26). De toestemmingskaart bevat in de meerInfo-details geen focusbare elementen, dus de Tab-lijst is volledig. NIET gedaan: niets in Electron of in beeld bekeken, geen gamepad, geen schermlezer; de Tab-val en de zwaai zijn alleen uit code en pure tests beoordeeld. Niet gelezen: coopspelersui.js en hud_panel.js (grote diffs, buiten mijn delta-lijst). | Gate-run 22-11: de delta-review is gedaan op 98aa3c4c3; daarna zijn drie gerichte commits en de scripts voor de eigenaar-review gekomen (bf23c1f1b build_province, 6fe9ffa5e bezitui, voetbalcarriereui, f962b77ed scripts); die zijn door de coordinator-agent gelezen, niet door deze reviewer."
+ },
+ "bevindingen": [
+  {
+   "bron": "code-review",
+   "aspect": "ux",
+   "ernst": "nit",
+   "categorie": "toegankelijkheid",
+   "titel": "Benchmark-keuzevenster: Shift plus pijl rechts of omlaag loopt achteruit",
+   "beschrijving": "In benchmarkmodel.js choiceKey geldt dir = forward && !shift ? 1 : -1 voor alle 'vooruit'-toetsen (pijl rechts, pijl omlaag en Tab). Shift plus pijl rechts of omlaag gaat dus een knop terug; alleen bij Tab is dat de gewenste Shift+Tab. Was in de oude inline-code hetzelfde (geen regressie), maar nu staat het in een pure functie met tests en is het makkelijk te herstellen.",
+   "bestanden": [
+    "game/js/benchmarkmodel.js"
+   ],
+   "fix": "Shift alleen op Tab laten werken: const dir = key === 'Tab' ? (shift ? -1 : 1) : (forward ? 1 : -1); en een testregel toevoegen.",
+   "reviewer": "agent-delta-B"
+  },
+  {
+   "bron": "code-review",
+   "aspect": "ux",
+   "ernst": "belangrijk",
+   "categorie": "ui",
+   "titel": "OPGELOST: de inhoud van het Voetbal-carrièrescherm was onzichtbaar (ds-m-wissel zonder .on)",
+   "beschrijving": "voetbalcarriereui.js zette de inhoud in een element met ds-m-wissel (opacity 0 tot .on) en niets voegde .on toe: onder de tabs bleef het scherm leeg. Gevonden op beeld 12 van de eigenaar-review; opgelost in de commit na 6fe9ffa5e met een controle in scripts/voetbal_ui_test.mjs. Het scherm toont nu de kaarten; die staan scheef en overlappen elkaar licht (bedoeld? staat als vraag bij de eigenaar).",
+   "bewijs": [
+    "game/js/voetbalcarriereui.js:163",
+    "beeld 12-voetbal-carriere (computed opacity 0, 2221 tekens inhoud)"
+   ],
+   "bestanden": [
+    "game/js/voetbalcarriereui.js",
+    "scripts/voetbal_ui_test.mjs"
+   ],
+   "beeld": "1920x1080-12-voetbal-carriere.png",
+   "reviewer": "coordinator-gate"
+  },
+  {
+   "bron": "vision",
+   "aspect": "ux",
+   "ernst": "belangrijk",
+   "categorie": "ui",
+   "titel": "Wijk- of plaatskaart (\"MOI! Ommelanden\") hangt over het kaartscherm en de tuning-werkplaats",
+   "beschrijving": "De plaatsstempel (wijkkaart, big moment) blijft in beeld terwijl een schermvullend scherm opent: eerst over de kaart (na een verre sprong), eerder over de Pimp-werkplaats. Alleen met een verse locatiewissel kort voor het openen te reproduceren, dus zeldzaam, maar het is een overlay boven een modaal scherm. Voorstel: de overlayhold (overlayhold.js) laat een open kaart, pauzemenu of werkplaats de plaatsstempel tegenhouden.",
+   "bewijs": [
+    "beeld 09-kaart (eerste run)",
+    "beeld 17-tuning-showroom (eerste run)"
+   ],
+   "bestanden": [
+    "game/js/overlayhold.js",
+    "game/js/cinematics.js"
+   ],
+   "reviewer": "coordinator-gate"
+  },
+  {
+   "bron": "vision",
+   "aspect": "ux",
+   "ernst": "nit",
+   "categorie": "ui",
+   "titel": "Voetbaluitzending: een lege crèmekleurige balk midden in beeld zolang er geen commentaar is",
+   "beschrijving": "Beeld 18 toont een lege kaartbalk onder het midden (de commentaarregel zonder tekst) en na een Escape de vraag Stoppen?. Een lege balk leest als kapot; verberg hem zonder tekst.",
+   "bewijs": [
+    "beeld 18-voetbal-uitzending"
+   ],
+   "bestanden": [
+    "game/js/voetbalpresentatie.js",
+    "game/js/voetbaltvlayer.js"
+   ],
+   "beeld": "1920x1080-18-voetbal-uitzending.png",
+   "reviewer": "coordinator-gate"
+  },
+  {
+   "bron": "vision",
+   "aspect": "ux",
+   "ernst": "nit",
+   "categorie": "taal",
+   "titel": "De rail noemt het onderdeel Boerderij terwijl het scherm Land en bedrijf heet",
+   "beschrijving": "In het pauzemenu staat het onderdeel als Boerderij, de kop van het scherm is Land en bedrijf (beeld 10). Eén naam is rustiger. Valt onder de vorige menuronde (#1099).",
+   "bewijs": [
+    "beeld 10-bezit-overzicht"
+   ],
+   "bestanden": [
+    "game/js/pausemenu.js"
+   ],
+   "beeld": "1920x1080-10-bezit-overzicht.png",
+   "reviewer": "coordinator-gate"
+  }
+ ]
+}

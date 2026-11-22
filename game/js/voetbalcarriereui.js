@@ -160,7 +160,7 @@ export function viewHtml(c, tab, env) {
   const ov = C.summary(c, env.getClub);
   const e = { ...env, ov, match: C.nextMatch(c, env.getClub) };
   const body = { vandaag: viewVandaag, selectie: viewSelectie, kalender: viewKalender, stand: viewTable, training: viewTraining, trainer: viewTrainer, manager: viewManager }[tab] || viewVandaag;
-  return `<div class="ds-zeef vb-pane">${kop(c, ov)}${tabsHtml(tab, c)}<section class="vb-body ds-m-wissel" role="tabpanel">${body(c, e)}</section></div>`;
+  return `<div class="ds-zeef vb-pane">${kop(c, ov)}${tabsHtml(tab, c)}<section class="vb-body ds-m-wissel on" role="tabpanel">${body(c, e)}</section></div>`;
 }
 
 // ---- DOM ----

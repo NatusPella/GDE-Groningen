@@ -709,7 +709,7 @@ async function cityKeysOf(arg) {
 }
 
 // the city map's data cover (citycover.mjs, the mask in stad.json), for the overlay tiles
-async function cityCoverOf() {
+async function cityCoverOf(cityDir = null) {
   await import('../node3d.mjs');
   const P = await import('./pack_tiles.mjs');
   const { cityCoverFromMask } = await import('./citycover.mjs');
@@ -722,7 +722,10 @@ async function cityCoverOf() {
   // wat de stad zelf tekent, het is veel sneller, en het haalt de kringloop weg die build_province los
   // liet hangen (#511): loadCityDataLaag → stad_laag.mjs → `await import('./build_province.mjs')`
   // wachtte op deze nog niet geevalueerde module.
-  const rails = await cityRailsFromTiles(path.join(ROOT, 'game', 'world'));
+  // De tegels die net gepakt zijn (de map van --city) gaan voor: een verse checkout of worktree heeft nog geen game/world, en dan werd het spoor
+  // van de provincie niet op de stadse track geknipt (landfile_test: 79 dubbele sporen, releasegate 0.65).
+  let rails = cityDir ? await cityRailsFromTiles(cityDir) : [];
+  if (!rails.length) rails = await cityRailsFromTiles(path.join(ROOT, 'game', 'world'));
   if (!rails.length) console.log('  let op: geen stadse rails in game/world (eerst de stad bouwen); het spoor van de provincie wordt dan niet op de stadse track geknipt');
   return { ...cityCoverFromMask(mask), rails };
 }
@@ -761,7 +764,7 @@ async function main() {
   const t0 = performance.now();
   const cityKeys = await cityKeysOf(opt('--city') || path.join(out, 'index.json'));
   const t1 = performance.now();
-  const cityCover = args.includes('--no-overlay') ? null : await cityCoverOf();
+  const cityCover = args.includes('--no-overlay') ? null : await cityCoverOf(path.dirname(path.resolve(ROOT, opt('--city') || path.join(out, 'index.json'))));
   const built = buildProvince({ src, cityKeys, cityCover, fillOld: !args.includes('--no-fill'), viaducts: !args.includes('--flat'), terrain: args.includes('--terrain') ? (await import('./terrain.mjs')).loadReliefRasters() : null, onPack: args.includes('--verbose') ? (pk, s) => console.log(`  pack ${pk}: ${s.tiles} tiles so far`) : null });
   const t2 = performance.now();
   const { index, size } = writeProvince(out, built);

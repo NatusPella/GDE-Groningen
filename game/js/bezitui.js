@@ -173,7 +173,9 @@ export function renderBezitPanels(els, world) {
   if (!els) return;
   const bezit = L.getBezit(), farm = getBoerderij();
   const money = (world && world.money) || 0, day = Math.floor(farm.uren / 24);
-  L.ensureIndex().then(() => { if (els.rerender) els.rerender(); }).catch(() => {});
+  // Alleen wachten als de index er nog niet is: ensureIndex() geeft na het laden een al opgeloste belofte terug, en dan riep deze regel via rerender zichzelf
+  // eindeloos aan in microtaken (het scherm Land en bedrijf bevroor de hele pagina).
+  if (!L.getIndexNow()) L.ensureIndex().then(() => { if (els.rerender) els.rerender(); }).catch(() => {});
   if (els.overzicht) els.overzicht.innerHTML = summaryHtml({ bezit, farm, money, day, news: L.newsView(world), chains: L.chainViews(), board: L.priceBoard(ui.product), products: L.marketProducts() });
   if (els.bedrijven) { const p = playerPos(world); els.bedrijven.innerHTML = businessesHtml({ money, mine: L.myBusinesses(), near: L.buildingsNear(p.x, p.y), day, mobile: L.myMobile(), mobileOffers: L.mobileOffers(), homes: L.homesNear(p.x, p.y) }); }
   if (els.tekoop) els.tekoop.innerHTML = forSaleHtml({ money, offers: nearbyOffers(world) });

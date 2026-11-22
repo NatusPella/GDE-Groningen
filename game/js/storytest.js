@@ -546,7 +546,9 @@ async function newArcRuntimeChecks(world, check, capture) {
       const first = document.getElementById('story-talk');
       check('new arc: a text-only talk line is shown with a speaker name', shown && first && first.querySelector('.st-speaker').textContent.length > 1, first && first.textContent);
       capture('99-talk-tekst');
-      const ended = await waitFor(() => !T.state().cur && !T.state().queued.length, 60000, 300);
+      // Een tekstscène blijft elke regel een leesbare tijd staan (ca. 20 s); een scène van twaalf regels (K1) duurt dus ruim vier minuten. De wachttijd volgt het aantal regels (was vast 60 s,
+      // genoeg toen er geen scène zonder opnames meer was en deze check niets speelde; sinds de nieuwe regels op de TTS-ronde wachten is er wel zo'n scène).
+      const ended = await waitFor(() => !T.state().cur && !T.state().queued.length, 30000 + lines.length * 25000, 300);
       check('new arc: the text-only talk ends by itself, nothing waits for audio', ended, JSON.stringify(T.state()));
     }
   }

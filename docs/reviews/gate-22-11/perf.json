@@ -1,0 +1,52 @@
+{
+ "onderwerp": "perf",
+ "reviewer": "agent-delta-A",
+ "commit": "f962b77edd035d31ace2dbf31b5e0a345641a9ad",
+ "dekking": {
+  "bestanden": [
+   "game/js/voetbal.js",
+   "game/js/interiors.js",
+   "game/js/models3d_people.js",
+   "game/js/vehiclelook3d.js",
+   "game/js/tuningworld.js",
+   "game/js/vehiclepreview.js",
+   "game/js/farlod.js",
+   "game/js/vehicle/traffic.js",
+   "game/js/businterieur3d.js",
+   "game/js/provincemap.js",
+   "game/js/streambudget.js",
+   "game/js/worldlife.js",
+   "game/js/worldlife3d.js",
+   "game/js/weather.js",
+   "game/js/main.js",
+   "game/js/stationlife.js",
+   "game/js/muggings.js",
+   "game/js/dorpsuitjes.js",
+   "game/js/net/hub.js",
+   "game/js/coopnet.js",
+   "game/js/coopplayers.js",
+   "web/preload.mjs",
+   "web/build.mjs",
+   "desktop/build.mjs"
+  ],
+  "aspecten": [
+   "perf"
+  ],
+  "opmerking": "Basisreview op 3a1fa5b61; de perf-reviewtekst zelf (docs/reviews/CODE-REVIEW-22-11-perf.md) is niet in de review-branch te vinden, dus de controle loopt via docs/reviews/FIXES-22-11-perf.md (P1, P2, P3, N1, N2, N4, N5, tileCooler.forget, planOf). Alle gecontroleerd met bestand:regel en lokaal gedraaide test (exit 0): P1 voetbal.js:127,157-171,217,229,823 (voetbal_opruimen_test: 34 geometrieen vrij), P2 models3d_people.js:1390 + interiors.js:205,242 (pose_prune_test), P3 interiors.js:214-258,332-335 met streamPlanner-klasse actors, een figuur per frame (interior_npcspreiding_test) en de planOf-reparatie interiors.js:128, N1 web/preload.mjs:25-46 + web/build.mjs:156 + desktop/build.mjs:305 (preload_bereikbaar_test 15/15, 33 modules, 322 kB minder), N2 vehiclelook3d.js:545-557 + tuningworld.js:91-114 (perf_nits_test), N4/N5 vehiclepreview.js:363-437, forget farlod.js:749. Open bewust (FIXES): N3 (P() per hoekpunt interiorbuild3d.js) en N6 (data-modules lui laden); niet herbeoordeeld. Delta: nieuwe worldlife3d.js (3 InstancedMesh, vaste draw calls) gelezen; verkeer/traffic.js #1048 (buildPathInto zonder sluitingen) regel voor regel vergeleken met het oude pad: gelijkwaardig; busreizigers-cache begrensd (businterieur3d.js:36-234); provincemap-LRU; streambudget attack/release. NIET gedaan: geen fps-meting, geen Electron, geen profiel; kosten van updateWorldLife zijn alleen uit de code afgeleid (maximaal 96+64 instanties, 3 draw calls, roster hooguit elke 2 s of 10 spelminuten); niet gemeten of worldlife3d tijdens interieur/cutscene onnodig draait. | Gate-run 22-11: de delta-review is gedaan op 98aa3c4c3; daarna zijn drie gerichte commits en de scripts voor de eigenaar-review gekomen (bf23c1f1b build_province, 6fe9ffa5e bezitui, voetbalcarriereui, f962b77ed scripts); die zijn door de coordinator-agent gelezen, niet door deze reviewer."
+ },
+ "bevindingen": [
+  {
+   "bron": "code-review",
+   "aspect": "perf",
+   "ernst": "nit",
+   "categorie": "performance",
+   "titel": "worldlife3d maakt elk beeld een nieuwe array als er geen actoren zijn",
+   "beschrijving": "worldlife3d.js:74 roept bij een leeg rooster (de gewone situatie: ver van Vismarkt, Grote Markt, Nieuwe Markt en Noorderplantsoen, of buiten de uren van een evenement) elk beeld clearBubbles(world) aan, en regel 100-101 doet `world.extraSpeakers = world.extraSpeakers.filter(...)` zodra die array bestaat (andere systemen maken hem, bv. carbid.js:592 en fierljep.js:278). Dat is een allocatie per beeld en vervangt de array-identiteit zonder reden; de andere schrijvers lezen hem wel steeds via world.extraSpeakers, dus geen fout, alleen afval voor de GC in een hot path (applyWeatherToScene3D, elk beeld).",
+   "bestanden": [
+    "game/js/worldlife3d.js"
+   ],
+   "fix": "Alleen opruimen als er een item met mgTag 'wereldleven' in staat (some/findIndex), en met splice op de bestaande array in plaats van filter.",
+   "reviewer": "agent-delta-A"
+  }
+ ]
+}
