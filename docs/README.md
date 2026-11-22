@@ -135,6 +135,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [VOETBAL-CARRIERE-VERIFICATIE-21-11.md](<VOETBAL-CARRIERE-VERIFICATIE-21-11.md>) | Voetbalcarrière: wat gebouwd en getest is, de sim-testbank en de lijst wat nog in beeld te controleren valt.
 | [BOOT-SPAWN-21-11.md](<BOOT-SPAWN-21-11.md>) | Boten alleen waar dat logisch is: regel, audit en meting (boot-spawn). |
 | [TTS-ACHTERSTAND-21-11.md](<TTS-ACHTERSTAND-21-11.md>) | TTS-achterstand: stand van de opnameronde. |
+| [TTS-VERDACHT-22-11.md](<TTS-VERDACHT-22-11.md>) | Korte luisterlijst van de nieuwe stemclips: methode, drempels, uitslag (`scripts/tts_verdacht.mjs`). |
 | [GATE-VOORBEREIDING-21-11.md](<GATE-VOORBEREIDING-21-11.md>) | Gate-voorbereiding 0.65.0: afvinklijst, testlijst en plan voor de eigenaar-review. |
 | [GATE-RAPPORT-22-11.md](<GATE-RAPPORT-22-11.md>) | Gate-rapport 0.65.0 (22-11): uitslag per stap, perf-regressie, fixes, open punten en de eigenaar-reviewpagina. |
 | [PERF-METING-2026-11-05.md](<PERF-METING-2026-11-05.md>) | Dit is een nieuwe, gedateerde meetbron naast `docs/PERF-METING-2026-10-19.md`. |
