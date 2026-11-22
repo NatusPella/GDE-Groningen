@@ -35,7 +35,8 @@ export function choiceModel(choice = DEFAULT_CHOICE, { preset = null, presetLabe
   const c = normaliseChoice(choice);
   const mins = (course, length) => { const s = Math.round(courseSeconds(course, length)); return `${s} s`; };
   return {
-    title: 'Benchmark',
+    title: 'Prestatietest', // #1230: Nederlands
+    courseTitle: 'Route', lengthTitle: 'Lengte',
     lead: 'Meet hoe soepel Grunn op deze computer draait en welke stand daarbij past. Eén scène per keer, elke keer hetzelfde.',
     courses: COURSE_IDS.map((id) => ({ id, label: COURSES[id].label, sub: COURSES[id].sub, selected: c.course === id, meta: `${courseFor(id, id === 'classic' ? 'volledig' : c.length).length} scènes · ${mins(id, id === 'classic' ? 'volledig' : c.length)}` })),
     lengths: Object.values(LENGTHS).map((l) => ({ id: l.id, label: l.label, sub: l.sub, selected: c.length === l.id, disabled: c.course === 'classic' && l.id !== 'volledig' })),
@@ -165,7 +166,7 @@ export function subjectGrades(rep) {
 // The report card model for the screen and the export. run: { stats, preset, presetFps, course, length, prev (packRun or null), size: [w, h], settings: {...} }
 export function reportCard(run) {
   const st = run && run.stats;
-  if (!st) return { empty: true, title: 'Benchmark', message: 'Er is niets gemeten. Probeer het nog een keer.' };
+  if (!st) return { empty: true, title: 'Prestatietest', message: 'Er is niets gemeten. Probeer het nog een keer.' };
   const rep = st.rep || { frames: st.frames || 0, avg: st.avg, p50: st.p50 || 0, p95: st.p95, p99: st.p99 || 0, low1: st.low1, low01: st.low01 || 0, slow33: st.slow33 || 0, slow33Share: st.slow33Share || 0, over100: st.over100 || 0, worst: st.worst || 0 };
   const grades = subjectGrades(rep);
   const tone = toneOf(grades.eind);

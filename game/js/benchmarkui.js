@@ -16,16 +16,17 @@ export function choiceHtml(m) {
   return keyTextHtml(`<div class="bm-paneel ds-zeef ds-z-kaart ds-z-kaart--recht">
     <div class="ds-z-kaart__kop"><h2 id="bm-titel" class="ds-z-kaart__titel">${esc(m.title)}</h2><span class="ds-z-chip">${esc(m.preset)}</span></div>
     <p class="bm-lead">${esc(m.lead)}</p>
-    <div class="bm-groep" role="radiogroup" aria-label="Route">${m.courses.map((o) => radio('course', o)).join('')}</div>
-    <div class="bm-groep bm-lengte" role="radiogroup" aria-label="Lengte">${m.lengths.map((o) => radio('length', o)).join('')}</div>
+    <h3 class="bm-groepkop" id="bm-kop-route">${esc(m.courseTitle || 'Route')}</h3>
+    <div class="bm-groep" role="radiogroup" aria-labelledby="bm-kop-route">${m.courses.map((o) => radio('course', o)).join('')}</div>
+    <h3 class="bm-groepkop" id="bm-kop-lengte">${esc(m.lengthTitle || 'Lengte')}</h3>
+    <div class="bm-groep bm-lengte" role="radiogroup" aria-labelledby="bm-kop-lengte">${m.lengths.map((o) => radio('length', o)).join('')}</div>
     ${m.lengthLocked ? `<p class="bm-hulp" data-slot="locked">${esc(m.lengthLocked)}</p>` : '<p class="bm-hulp" data-slot="locked" hidden></p>'}
     <button type="button" role="switch" class="bm-schakel ds-z-rij" aria-checked="${m.commentary.on}" data-groep="commentary"${m.commentary.available ? '' : ' disabled'}>
       <span><span class="ds-z-rij__naam">${esc(m.commentary.label)}</span><span class="ds-z-rij__sub">${esc(m.commentary.sub)}</span></span>
       <span class="ds-z-chip ${m.commentary.on && m.commentary.available ? 'ds-z-chip--succes' : 'ds-z-chip--uit'}" data-slot="commentary-chip">${m.commentary.on && m.commentary.available ? 'Aan' : 'Uit'}</span></button>
     <div class="bm-voet"><span class="bm-duur" data-slot="duur">ca. ${m.seconds} s</span>
       <button type="button" class="ds-z-knop ds-z-knop--secundair" data-act="cancel">Annuleren {ESC}</button>
-      <button type="button" class="ds-z-knop" data-act="start">Start {ENTER}</button></div>
-    <p class="tr-keys">{ARROWS} kiezen · {ENTER} ok · {ESC} terug</p></div>`);
+      <button type="button" class="ds-z-knop" data-act="start">Start {ENTER}</button></div></div>`); // #1230: geen voetregel met dezelfde toetsen als de knoppen
 }
 
 let choiceEl = null;

@@ -127,3 +127,14 @@ const css = fs.readFileSync(new URL('../game/js/ds-schermen.css', import.meta.ur
 const bm = css.slice(css.indexOf('Benchmark, keuzescherm'));
 assert.ok(!/#[0-9a-fA-F]{3,8}\b/.test(bm), 'geen hexkleuren in de benchmark-stijlen');
 console.log(`benchmarkmodel_test: ok (film ${filmSec.toFixed(1)} s, kort ${kortSec.toFixed(1)} s)`);
+// #1230: Nederlandse titel, elke keuzegroep een kop, geen voetregel met dezelfde toetsen als de knoppen
+{
+  const model = choiceModel(DEFAULT_CHOICE, { preset: 'vlot', presetLabel: 'Hoog' });
+  const html = choiceHtml(model);
+  assert.equal(model.title, 'Prestatietest', 'de titel is Nederlands');
+  assert.ok(!/Benchmark/.test(html.replace(/<[^>]+>/g, ' ')), 'het woord Benchmark staat niet op het keuzescherm');
+  assert.ok(/<h3 class="bm-groepkop" id="bm-kop-route">Route<\/h3>/.test(html) && /<h3 class="bm-groepkop" id="bm-kop-lengte">Lengte<\/h3>/.test(html), 'Route en Lengte hebben een kop');
+  assert.ok(/role="radiogroup" aria-labelledby="bm-kop-route"/.test(html) && /role="radiogroup" aria-labelledby="bm-kop-lengte"/.test(html), 'de groepen wijzen naar hun kop');
+  assert.ok(!/tr-keys/.test(html), 'geen voetregel met toetsen: ze staan in de knoppen');
+  assert.ok(/bm-meta, #bench-choice \.bm-duur \{ white-space: nowrap/.test(css), 'de duurchips breken niet over twee regels');
+}

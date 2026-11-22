@@ -135,6 +135,8 @@ html.reduce-motion #drift-chip .ds-z-balk__vul, html.rustig-drukwerk #drift-chip
 #bench-choice[hidden] { display: none; }
 #bench-choice .bm-paneel { width: min(calc(var(--ds-s-8) * 9), 100%); max-height: calc(100vh - var(--ds-s-6)); overflow: auto; gap: var(--ds-s-3); font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-body); }
 #bench-choice .bm-paneel .ds-z-kaart__kop { margin-top: calc(var(--ds-s-4) * -1); }
+#bench-choice .bm-groepkop { margin: 0; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--ds-c-ink-bord); } /* elke keuzegroep heeft een kop */
+#bench-choice .bm-meta, #bench-choice .bm-duur { white-space: nowrap; } /* "30 s" breekt niet over twee regels */
 #bench-choice .bm-lead, #bench-choice .bm-hulp { margin: 0; line-height: var(--ds-lh-tekst); }
 #bench-choice .bm-hulp, #trailer-result .bm-hulp { font-size: var(--ds-t-hulp); color: var(--ds-c-inkt-zacht); margin: 0; }
 #bench-choice .bm-hulp[hidden] { display: none; }
