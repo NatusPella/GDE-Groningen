@@ -78,11 +78,11 @@ for (const [naam, plan] of Object.entries({ nieuw: bootPlan(), opgeslagen: bootP
 // de balk is één stuk, zonder segmenten, in zeefdruk
 {
   const rd = (p) => fs.readFileSync(new URL(p, import.meta.url), 'utf8');
-  const html = rd('../game/index.html'), ss = rd('../game/js/startscreen.js'), css = rd('../game/js/loadscreen.css'), ls = rd('../game/js/loadscreen.js');
+  const html = rd('../game/index.html'), ss = rd('../game/js/startscreen.js'), css = rd('../game/js/loadscreen.css'), ls = rd('../game/js/loadscreen.js') + rd('../game/js/loadscene.js');
   ok(!/ld-tick|buildTicks/.test(html + ss), 'bootbalk: geen tikken of segmenten');
   ok(!/ls-seg|ls-tick|ld-seg/.test(css + ls + html), 'laadbalk: geen segmenten');
   ok(/#load-screen \.ls-bar i \{[^}]*var\(--ds-c-ink-bord\)/.test(css) && /#loading \.ld-fill \{[^}]*var\(--ds-c-ink-bord\)/.test(html), 'bordgroene vulling');
-  ok(/#load-screen \.ls-step \{[^}]*font: 400 18px/.test(css), 'de statusregel staat ruim boven de 13 px-vloer');
+  ok(/#load-screen \.ls-step \{[^}]*font: 400 max\(13px, 1em\)/.test(css), 'de statusregel volgt de stage en blijft op de 13 px-vloer of erboven');
   ok(!/ls-skip|ls-note|keyTextHtml|gatePress|isSkipKey|keydown/.test(ls + css), 'laadscherm: geen Enter-prompt, geen toetsafhandeling meer');
   ok(!/bt-key/.test(html), 'bootscherm: geen leeg Enter-vak meer');
   ok(/fadeMs\(reduced\(\)\)/.test(ls) && /gv\.actie === 'door'/.test(ls), 'het scherm sluit op de actie van de poort, met de fade');

@@ -10,7 +10,7 @@ import { zachtePauze } from './coopgroep.js';
 import { hudDate } from './hudcalendar.js';
 import { streamPending, prewarmStreamAt, prewarmPending } from './scene3d.js';
 import { placeLabel } from './hud_panel.js';
-import { pictureHtml, missionPicture } from './loadscene.js';
+import { loadScreenHtml, missionPicture } from './loadscene.js';
 import { createGate, gateTick, fadeMs, wachtOpGastheer } from './loadgate.js';
 import { openerNaam } from './coopplayers.js';
 import { registerNotifyHold, notifyGate } from './notifygate.js';
@@ -28,8 +28,6 @@ registerNotifyHold('opstart', () => {
   const b = document.body.classList;
   return !b.contains('game-started') && !b.contains('trailer-hud');
 });
-
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // The picture for a place: the open road in the country, the fair at night,
 // the harbours by the water, otherwise one of the city views by name. Only a
@@ -74,20 +72,7 @@ export function startLoadScreen(world, opts = {}) {
   // #600: the bar is the one progressbar; the destination, the story and the tip
   // stay ordinary text a screen reader can read (children of a progressbar are
   // presentational, so the role used to be on the whole screen).
-  el.innerHTML =
-    pictureHtml(img) +
-    '<div class="ls-shade"></div><div class="ls-foot-shade"></div>' +
-    '<div class="ls-stage">' +
-      '<div class="ls-brand"><div class="gde-logo" aria-hidden="true"><span class="gde-mark">GDE</span><span class="gde-sign">Groningen</span><span class="gde-sub">Zomer vol misdaad</span></div></div>' +
-      '<div class="ls-card">' +
-        `<span class="ls-kick">${kind === 'save' ? 'Verder in' : 'Naar'}</span>` +
-        `<b class="ls-place">${esc(place.name || 'Grunn')}</b>` +
-        (date.special ? `<div class="ls-when"><span class="ls-badge">${esc(date.special)}</span></div>` : '') +
-      '</div>' +
-      '<div class="ls-bottom">' +
-        '<div class="ls-prog"><div class="ls-bar" role="progressbar" aria-label="Voortgang laden" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div><div class="ls-step" role="status" aria-live="polite"></div></div>' +
-      '</div>' +
-    '</div>';
+  el.innerHTML = loadScreenHtml({ kind, name: place.name, special: date.special, img });
   document.body.appendChild(el);
   // the boot screen may still be fading underneath: one bar at a time
   const boot = document.getElementById('loading');

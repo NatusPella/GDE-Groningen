@@ -110,6 +110,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [ONTWIKKELEN.md](<ONTWIKKELEN.md>) | Developer notes (in English, like ARCHITECTURE.md): test switches, |
 | [PERF-LAADHANG-0.56.1.md](<PERF-LAADHANG-0.56.1.md>) | Onderzoek naar de melding dat 0.56.1 op sommige machines in het laadscherm bleef |
 | [LAAD-STREAMING-LOD.md](<LAAD-STREAMING-LOD.md>) | Wat er tijdens laadschermen en daarbuiten gebeurt: fasen, streaming, LOD-ringen, vergelijking met 0.54.0 en bevindingen. |
+| [LAADSCHERM-LAYOUT-22-11.md](<LAADSCHERM-LAYOUT-22-11.md>) | Het laadscherm en bootscherm zonder overlap: oorzaak, de vaste kolomstructuur, voor-en-nametingen in een echte browser en de tests. |
 | [PERF-TREND-0.54-NAAR-NU.md](<PERF-TREND-0.54-NAAR-NU.md>) | Prestatietrend sinds 0.54.0: tijdlijn per tag, statische maten en vaste opwarmbudgetten. |
 | [UI-INVENTARIS-OUD-20-11.md](<UI-INVENTARIS-OUD-20-11.md>) | Naslag (#985, 20-11). Welke schermen buiten het menu nog donker glas en oude lettertypen droegen, wat is omgezet naar de zeefdruk en wat bewust blijft. |
 | [UI-KRITIEK-HARNAS-22-11.md](<UI-KRITIEK-HARNAS-22-11.md>) | Het UI-kritiekharnas: alle spelersschermen met nepdata renderen op 720p, 1080p en ui-schaal 1,5, met automatische tripwires (overlap, afkapping, contrast, focus) in index.json. |

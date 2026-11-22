@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>laadscherm-render</title>
+<!--
+  Statische testpagina voor het laadscherm (#1069): rendert het echte DOM met de echte CSS, zonder Electron.
+  Wordt geopend door scripts/ui/laadscherm_meet.mjs in headless Chrome of Edge (--allow-file-access-from-files),
+  en kan ook los in een browser: file:///.../scripts/ui/laadscherm_render.html?v=laad&kind=travel&naam=Drenthe&tag=Kiezelweek&ui=1
+  Query: v = laad | boot, kind = travel | save | snel, naam, tag, ui (de --ui-factor), rustig=1 (Rustig drukwerk),
+  beweging=0 (Beweging beperken), status (de statusregel), img (een goedgekeurde afbeelding), wacht=1 (boot met lange wachttekst).
+  De stylesheets en de inline stijlen komen uit game/index.html (zelfde bron als het spel); het DOM van het laadscherm
+  uit loadScreenHtml (game/js/loadscene.js) en dat van het bootscherm uit #loading in index.html.
+  Resultaat: het element pre#res met de gemeten boxen (JSON) en document.title = 'klaar'.
+-->
+<style>html, body { margin: 0; padding: 0; overflow: hidden; height: 100%; background: #f3ead3; }</style>
+</head>
+<body>
+<canvas id="game3d" style="display:none"></canvas>
+<pre id="res" style="display:none"></pre>
+<script type="module">
+const q = new URLSearchParams(location.search);
+const v = q.get('v') || 'laad', kind = q.get('kind') || 'travel', naam = q.get('naam') || 'Drenthe', tag = q.get('tag') || '';
+const ui = Number(q.get('ui')) || 1;
+const status = q.get('status') || 'Gebouwen en straten komen binnen';
+const gameDir = new URL('../../game/', location.href);
+const root = document.documentElement;
+root.style.setProperty('--ui', String(ui));
+if (q.get('rustig') === '1') root.classList.add('rustig-drukwerk');
+if (q.get('beweging') === '0') root.classList.add('reduce-motion');
+
+const res = { v, kind, naam, tag, ui, vw: innerWidth, vh: innerHeight, boxes: {}, fouten: [] };
+try {
+  const html = await (await fetch(new URL('index.html', gameDir))).text();
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const links = [...doc.querySelectorAll('link[rel="stylesheet"]')].map((l) => new URL(l.getAttribute('href'), gameDir).href);
+  links.push(new URL('js/loadscreen.css', gameDir).href);
+  await Promise.all(links.map((href) => new Promise((ok) => { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; l.onload = l.onerror = () => ok(); document.head.appendChild(l); })));
+  const st = document.createElement('style');
+  st.textContent = [...doc.querySelectorAll('style')].map((s) => s.textContent).join('\n');
+  document.head.appendChild(st);
+  const lees = { rect: (el) => { if (!el) return null; const r = el.getBoundingClientRect(); return { l: r.left, t: r.top, r: r.right, b: r.bottom, w: r.width, h: r.height }; } };
+  // de harde schaduw (box-shadow, rechts en onder) hoort bij het vlak: het logo draagt hem op .gde-logo
+  const schaduw = (el) => { const sh = getComputedStyle(el.matches('.gde-logo') ? el : (el.querySelector('.gde-logo') || el)).boxShadow; const m = /(-?[d.]+)pxs+(-?[d.]+)px/.exec(sh || ''); return m ? { sx: Math.max(0, +m[1]), sy: Math.max(0, +m[2]) } : { sx: 0, sy: 0 }; };
+  const vastleg = (naamBox, sel, extra = {}) => { const el = document.querySelector(sel); if (!el) return; const cs = getComputedStyle(el); res.boxes[naamBox] = { ...lees.rect(el), ...schaduw(el), fs: parseFloat(cs.fontSize), ellips: el.scrollWidth > el.clientWidth + 1, ...extra }; };
+  if (v === 'boot') {
+    const boot = doc.getElementById('loading');
+    const el = document.importNode(boot, true);
+    document.body.appendChild(el);
+    el.querySelector('.ld-status').textContent = q.get('status') || 'Grunn wordt wakker';
+    el.querySelector('.ld-fill').style.transform = 'scaleX(0.42)';
+    el.querySelector('.bt-ver').textContent = 'v0.65.0';
+    await document.fonts.ready;
+    await new Promise((r) => setTimeout(r, 2000));
+    res.stage = lees.rect(el.querySelector('.bt'));
+    vastleg('logo', '.bt-logo .gde-logo'); vastleg('mark', '.bt-logo .gde-mark'); vastleg('sign', '.bt-logo .gde-sign'); vastleg('tagline', '.bt-logo .gde-sub');
+    vastleg('bar', '.ld-bar'); vastleg('status', '.ld-status'); vastleg('leeftijd', '.bt-pegi'); vastleg('versie', '.bt-ver');
+  } else {
+    const { loadScreenHtml } = await import(new URL('js/loadscene.js', gameDir).href);
+    const el = document.createElement('div');
+    el.id = 'load-screen';
+    el.className = 'ls ls-' + kind + ' instant on';
+    el.innerHTML = loadScreenHtml({ kind, name: naam, special: tag, img: q.get('img') || 'vismarkt' });
+    document.body.appendChild(el);
+    el.querySelectorAll('img').forEach((im) => { im.src = new URL(im.getAttribute('src'), gameDir).href; });
+    el.querySelector('.ls-step').textContent = status;
+    el.querySelector('.ls-bar i').style.transform = 'scaleX(0.42)';
+    await document.fonts.ready;
+    await new Promise((r) => setTimeout(r, 900));
+    res.stage = lees.rect(el.querySelector('.ls-stage'));
+    vastleg('logo', '.ls-brand'); vastleg('mark', '.ls-brand .gde-mark'); vastleg('sign', '.ls-brand .gde-sign'); vastleg('tagline', '.ls-brand .gde-sub');
+    vastleg('card', '.ls-card'); vastleg('kick', '.ls-kick'); vastleg('place', '.ls-place'); vastleg('tag', '.ls-badge');
+    vastleg('bg', '.ls-bg'); vastleg('bar', '.ls-bar'); vastleg('status', '.ls-step');
+  }
+} catch (e) { res.fouten.push(String(e && e.stack || e)); }
+document.getElementById('res').textContent = JSON.stringify(res);
+document.title = 'klaar';
+</script>
+</body>
+</html>
