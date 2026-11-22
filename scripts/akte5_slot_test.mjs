@@ -123,10 +123,10 @@ ok(Object.values(SPECS.F5.duo).every((d) => d.sit > 0) && Object.values(SPECS.F5
 ok(Object.values(SPECS.F6.props).some((p) => p.kind === 'kaart') && Object.values(SPECS.F6.props).some((p) => p.kind === 'snackwagen'), 'F6: de kaart ligt op het luik van de snackwagen');
 
 // --- props en modellen bestaan --------------------------------------------------------------------------------------------------
-const host = read('game/js/cutscenehost.js');
+const host = read('game/js/storyprops.js');
 const makers = new Set([...host.matchAll(/^ {2}(\w+): \(\) =>/gm)].map((m) => m[1]));
 for (const k of ['frituuraanhanger', 'friteuse', 'bierviltje', 'deken', 'soepketel', 'mosterdpot', 'kaart', 'hek']) {
-  ok(DECOR_KINDS.includes(k) && PROP_KINDS.includes(k) && makers.has(k), 'decor ' + k + ' heeft een model in cutscenehost.js');
+  ok(DECOR_KINDS.includes(k) && PROP_KINDS.includes(k) && makers.has(k), 'decor ' + k + ' heeft een model in storyprops.js');
 }
 ok(PROP_SOURCES.snackwagen && PROP_SOURCES.snackwagen.vehicle === 'foodtruck' && VEHICLE_MODEL_NAMES.includes('foodtruck'), 'snackwagen komt uit het voertuigregister (de foodtruck met TAM & TES)');
 ok(PLACEHOLDER_KINDS.includes('aanhanger') && !Object.values(SPECS).some((s) => Object.values(s.props || {}).some((p) => p.kind === 'aanhanger')), 'geen placeholder-aanhanger in een scène');
@@ -155,7 +155,8 @@ ok(wordsOf('Ik wil bij jou blijven') === 5 && /Ik wil bij jou blijven\./.test(te
   const at = f5.findIndex((l) => /^Wat wil jij eigenlijk/.test(l.text));
   const wish = f5[at + 1].text, counted = f5[at + 2].text;
   const NUM = { een: 1, twee: 2, drie: 3, vier: 4, vijf: 5 };
-  const said = NUM[(/Dat waren er (\w+)/.exec(counted) || [])[1]];
+  const tel = /Dat waren er (\w+)/.exec(counted) || /^(\w+) woorden/i.exec(counted); // de humorwinnaar mag ook als "Vier woorden. ..." tellen
+  const said = NUM[((tel || [])[1] || '').toLowerCase()];
   ok(said === wordsOf(wish), 'F5: Tessa telt wat Tammo echt zei', wish + ' / ' + counted);
 }
 ok(/Gerda Terpstra/.test(textOf('M26.13')) && /Mem/.test(textOf('F4')) && /1953/.test(textOf('F4')), 'Jelle: de doorslag is zijn oma Mem (M26.13, F4), nooit geweld');
@@ -169,8 +170,8 @@ const story = read('game/js/story.js');
 const tb = /const TERUGBLIK = \[([\s\S]*?)\n\];/.exec(story);
 ok(tb, 'TERUGBLIK staat in story.js');
 const pairs = tb ? [...tb[1].matchAll(/\[\x27([^\x27]+)\x27, \x27([^\x27]+)\x27\]/g)].map((m) => [m[1], m[2]]) : [];
-ok(pairs.length === 7, 'zeven terugblikgrappen', String(pairs.length));
-const TRACE = [['F1', 'viltje'], [null, 'stoep met een overeenkomst'], ['E2', 'Krolbrug'], ['M22.2', 'vijf minuten voor'], ['M22.2', 'Eén koekje'], ['F5', 'elf seconden'], ['E1', 'duiven staan weer in de rij']];
+ok(pairs.length === 8, 'acht terugblikgrappen', String(pairs.length));
+const TRACE = [['F1', 'viltje'], [null, 'stoep met een overeenkomst'], ['E2', 'Krolbrug'], ['M22.2', 'vijf minuten voor'], ['M22.2', 'Eén koekje'], ['F5', 'elf seconden'], ['F3', 'soep met een eierbal'], ['E1', 'duiven staan weer in de rij']];
 ok(pairs.length === TRACE.length, 'elke terugblikgrap heeft een herkomst in het script');
 TRACE.forEach(([sid, frag], k) => {
   const t = (sid ? textOf(sid) : data.scenes.map(blob).join(' ')).toLowerCase();

@@ -16,6 +16,7 @@ export const FY = {
   'Ljouwert': 'Leeuwarden',
   // Beppe (Tammo's Friese oma) belt in O1: Fries, met een Nederlandse ondertitel
   'Jonge, hast al iten?': 'Jongen, heb je al gegeten?',
+  'It smakket.': 'Het smaakt.', // F3: Beppe proeft de soep van Oma Trijntje (akte 5)
   'Dêr bisto, jonge. Kom yn, kom yn. De sop is klear.': 'Daar ben je, jongen. Kom binnen, kom binnen. De soep is klaar.',
   'Ytst dan mar earst, dan prate wy.': 'Eet dan maar eerst, dan praten we.',
   'Hy seit neat, mar hy docht it goed.': 'Hij zegt niets, maar hij doet het goed.',
@@ -413,6 +414,7 @@ export const INTL = {
 // geschreven met Nederlandse klanken; hoofdletters zijn de klemtoon. Geen fonetiek en geen taalkundig oordeel: een Friese
 // moedertaalspreker moet dit nog controleren (docs/verhaal/PERFECT-STAND-22-11-akte2.md, open punt). Sleutel: de exacte regel.
 export const FY_UITSPRAAK = {
+  'It smakket.': 'It SMAK-ket.',
   'Jonge, hast al iten?': 'JON-ge, hast al IE-ten?',
   'Is Tessa der ek? Dan meitsje ik sop.': 'Is TES-sa der EK? Dan MEIT-sje ik SOP.',
   'Dêr bisto, jonge. Kom yn, kom yn. De sop is klear.': 'DÈR BIS-to, JON-ge. Kom IN, kom IN. De sop is KLIE-er.',

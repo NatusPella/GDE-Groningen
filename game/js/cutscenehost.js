@@ -84,15 +84,6 @@ function makeActor(spec) {
   return m;
 }
 
-const MATS = {};
-const mat = (c, o = {}) => (MATS[c + JSON.stringify(o)] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.8, ...o }));
-const box = (w, h, d, c, y = h / 2, x = 0, z = 0) => {
-  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(c));
-  m.position.set(x, y, z);
-  m.castShadow = true;
-  return m;
-};
-
 // Vehicles and animals are the world's own (cutscenemodels.js lists which); only loose objects are built here.
 // Props have their origin on the ground, +x is "forward".
 let propVehicleN = 0;
@@ -116,88 +107,6 @@ function worldProp(src) {
   g.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.userData.shared = true; } }); // geometries are the world's cache: never disposed here
   return g;
 }
-const PROP_MAKERS = {
-  matras: () => { const g = new THREE.Group(); g.add(box(1.9, 0.2, 1.0, 0x6b8fb8, 0.1), box(1.9, 0.02, 0.05, 0xe8e3d6, 0.21)); return g; },
-  doos: () => { const g = new THREE.Group(); g.add(box(0.5, 0.38, 0.4, 0xb98d56), box(0.52, 0.04, 0.12, 0xe8d3a8, 0.38)); return g; },
-  koffer: () => { const g = new THREE.Group(); g.add(box(0.55, 0.38, 0.2, 0x3b4a6b), box(0.2, 0.04, 0.05, 0x222222, 0.4)); return g; },
-  // a bag with a flap, a buckle and a handle (a plain red block read as a placeholder up close, M03.2)
-  tas: () => { const g = new THREE.Group(); g.add(box(0.4, 0.3, 0.2, 0x9e3027), box(0.42, 0.1, 0.22, 0x7a231c, 0.27), box(0.06, 0.06, 0.02, 0xd8b45a, 0.2, 0.0, 0.11), box(0.22, 0.03, 0.03, 0x3a2a20, 0.34)); return g; },
-  bal: () => { const g = new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 8), mat(0xf2d34f)); g.position.y = 0.15; return g; },
-  bord: () => { const g = new THREE.Group(); g.add(box(0.05, 1.2, 0.05, 0x666666), box(0.7, 0.45, 0.04, 0xf2f0ea, 1.3)); return g; },
-  radio: () => { const g = new THREE.Group(); g.add(box(0.4, 0.22, 0.14, 0x6b4a2e), box(0.12, 0.12, 0.02, 0xd8c88a, 0.12, 0.08, 0.08)); return g; },
-  automaat: () => { const g = new THREE.Group(); g.add(box(0.8, 1.5, 0.6, 0x7a808a, 0.75), box(0.5, 0.3, 0.02, 0xaee0d8, 1.15, 0.0, 0.31), box(0.4, 0.04, 0.02, 0x15181c, 0.8, 0.0, 0.31)); return g; },
-  duiventil: () => {
-    // a loft on legs: planks, a pitched roof, small doorways
-    const g = new THREE.Group();
-    for (const x of [-0.55, 0.55]) for (const z of [-0.3, 0.3]) g.add(box(0.08, 1.0, 0.08, 0x5b4630, 0.5, x, z));
-    g.add(box(1.4, 0.9, 0.8, 0x8a6a46, 1.45), box(1.6, 0.08, 1.0, 0x3c3f45, 1.95), box(1.2, 0.08, 0.9, 0x3c3f45, 2.08), box(0.02, 0.2, 0.2, 0x15181c, 1.5, 0.71, -0.2), box(0.02, 0.2, 0.2, 0x15181c, 1.5, 0.71, 0.2));
-    return g;
-  },
-  zuil: () => { const g = new THREE.Group(); g.add(box(0.4, 1.25, 0.4, 0xb23a3a, 0.62), box(0.3, 0.2, 0.02, 0xe8d98a, 1.2, 0.0, 0.21), box(0.1, 0.06, 0.02, 0xf2f0ea, 0.9, 0.0, 0.21)); return g; },
-  klembord: () => { const g = new THREE.Group(); g.add(box(0.3, 0.02, 0.4, 0x8a6a46, 0.01), box(0.26, 0.012, 0.34, 0xf2f0ea, 0.026)); return g; },
-  // a bumper car for the fair (#864): a small cart with a rubber rim, not a full Escapade
-  botsauto: () => {
-    const g = new THREE.Group();
-    g.add(box(1.7, 0.26, 1.0, 0x222831, 0.17), box(1.35, 0.4, 0.85, 0xc4402c, 0.5), box(1.0, 0.34, 0.6, 0xe8e2d2, 0.82, -0.2), box(1.74, 0.14, 1.04, 0x2f5d9e, 0.3));
-    return g;
-  },
-  // het kantoor op wielen van Jelle (M15.5, TERPSTRA MOBIEL KANTOOR): een witte kist met een rij ramen, een deur, een bord in bedrijfsblauw,
-  // een airco op het dak, een dissel voorop en twee assen. Laag-poly: veertien dozen en vier wielen.
-  kantoorwagen: () => {
-    const g = new THREE.Group();
-    g.add(box(5.0, 0.18, 2.1, 0x3a3d42, 0.55), box(4.8, 2.0, 2.2, 0xe9e6dc, 1.65), box(4.9, 0.12, 2.3, 0x2c4a7a, 2.7), box(1.0, 0.3, 0.8, 0x9aa0a6, 2.9, -0.8, 0.3));
-    for (const x of [-1.5, -0.2, 1.1]) for (const z of [-1.11, 1.11]) g.add(box(0.9, 0.7, 0.04, 0x2a3946, 2.0, x, z));
-    g.add(box(0.9, 1.7, 0.04, 0x6b4a2e, 1.4, -2.0, 1.11), box(3.2, 0.4, 0.04, 0x2c4a7a, 1.15, 0.2, 1.11), box(3.0, 0.07, 0.05, 0xd8b45a, 1.15, 0.2, 1.12), box(3.2, 0.4, 0.04, 0x2c4a7a, 1.15, 0.2, -1.11));
-    g.add(box(1.0, 0.1, 0.12, 0x3a3d42, 0.62, 2.9), box(0.12, 0.3, 0.12, 0x3a3d42, 0.5, 3.3));
-    for (const x of [-1.6, -0.7]) for (const z of [-1.12, 1.12]) {
-      const w = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.25, 10), mat(0x1c1c1c));
-      w.rotation.x = Math.PI / 2; w.position.set(x, 0.4, z); w.castShadow = true; g.add(w);
-    }
-    return g;
-  },
-  // een los briefje (#740: het dankbriefje op de klomp): een vel papier met één geschreven regel
-  // het prikbord met de vijf namen (akte 2, M08.3 en N8): kurk in een houten lijst, vijf papieren stroken met een punaise; ca. 160 driehoeken
-  prikbord: () => {
-    const g = new THREE.Group();
-    g.add(box(1.0, 0.7, 0.04, 0x6b4a2e, 1.2), box(0.92, 0.62, 0.02, 0xb98d56, 1.2, 0, 0.02));
-    const slips = [[-0.3, 1.34], [0.0, 1.38], [0.3, 1.33], [-0.15, 1.1], [0.2, 1.1]];
-    for (const [x, y] of slips) g.add(box(0.2, 0.12, 0.004, 0xf7f4e8, y, x, 0.032), box(0.025, 0.025, 0.012, 0xc4402c, y + 0.04, x, 0.038));
-    return g;
-  },
-  // de broodtrommel van Mem (akte 2, M11.3): een blikken trommel met een klepdeksel; 36 driehoeken
-  broodtrommel: () => { const g = new THREE.Group(); g.add(box(0.28, 0.12, 0.18, 0x3b6aa0), box(0.29, 0.025, 0.19, 0xd9d4c4, 0.1325), box(0.04, 0.03, 0.01, 0xd8b45a, 0.09, 0.0, 0.095)); return g; },
-  briefje: () => { const g = new THREE.Group(); g.add(box(0.21, 0.012, 0.15, 0xf7f4e8, 0.01), box(0.15, 0.006, 0.014, 0x5b4a36, 0.017)); return g; },
-  // F1: de verroeste frituuraanhanger aan het hek: romp, luik met klep, TE KOOP-bord, dissel en twee wielen (laag-poly, ca. 60 driehoeken per doos)
-  frituuraanhanger: () => {
-    const g = new THREE.Group();
-    g.add(box(2.6, 1.3, 1.6, 0x9a6b4a, 0.95), box(2.7, 0.08, 1.7, 0x6f4b33, 1.64), box(1.3, 0.62, 0.05, 0x2b2622, 1.1, 0.1, 0.82), box(1.4, 0.05, 0.5, 0xb88a64, 1.45, 0.1, 1.05),
-      box(0.05, 0.4, 0.05, 0x5a5048, 1.25, -0.5, 1.28), box(0.05, 0.4, 0.05, 0x5a5048, 1.25, 0.7, 1.28), box(1.5, 0.06, 0.08, 0x4a4540, 0.4, -2.0, 0), box(0.4, 0.3, 0.04, 0xf2efe4, 1.1, -0.85, 0.82));
-    for (const z of [-0.95, 0.95]) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.14, 10), mat(0x222428)); w.rotation.x = Math.PI / 2; w.position.set(0, 0.34, z); w.castShadow = true; g.add(w); }
-    return g;
-  },
-  // F2: de friteuse: een rvs-kast met twee manden en een bedieningspaneel
-  friteuse: () => { const g = new THREE.Group(); g.add(box(0.8, 0.9, 0.6, 0x9aa1a8, 0.45), box(0.3, 0.12, 0.4, 0x2a2d31, 0.95, -0.18, 0), box(0.3, 0.12, 0.4, 0x2a2d31, 0.95, 0.18, 0), box(0.5, 0.1, 0.02, 0xd8d2c0, 0.7, 0, 0.31), box(0.06, 0.06, 0.02, 0xc4402c, 0.7, 0.18, 0.32)); return g; },
-  // F1: het bierviltje: een ronde kartonnen onderzetter met de tekening van een luik
-  bierviltje: () => { const g = new THREE.Group(); const d = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.008, 14), mat(0xe9dcb8)); d.position.y = 0.006; g.add(d, box(0.09, 0.006, 0.05, 0x3a3128, 0.012)); return g; },
-  // F5: een deken om op de rand van het luik te zitten
-  deken: () => { const g = new THREE.Group(); g.add(box(1.3, 0.03, 0.9, 0xc4402c, 0.02), box(1.3, 0.032, 0.12, 0xf2efe4, 0.021, 0, 0.2), box(1.3, 0.032, 0.12, 0xf2efe4, 0.021, 0, -0.2), box(0.12, 0.032, 0.9, 0xf2efe4, 0.021, 0.3, 0)); return g; },
-  // F3: de soepketel van Beppe
-  soepketel: () => { const g = new THREE.Group(); const p = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.2, 0.3, 12), mat(0x9aa1a8)); p.position.y = 0.15; p.castShadow = true; const l = new THREE.Mesh(new THREE.CylinderGeometry(0.23, 0.23, 0.03, 12), mat(0x7e858c)); l.position.y = 0.32; g.add(p, l, box(0.1, 0.03, 0.03, 0x3a3128, 0.34), box(0.12, 0.04, 0.04, 0x3a3128, 0.2, 0.27, 0)); return g; },
-  // F4: de pot mosterd van 1953, met een lap eromheen
-  mosterdpot: () => { const g = new THREE.Group(); const p = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.14, 10), mat(0xe2b93b)); p.position.y = 0.07; p.castShadow = true; const l = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.03, 10), mat(0x7a5a2a)); l.position.y = 0.155; g.add(p, l, box(0.2, 0.01, 0.2, 0xe8e2d0, 0.17)); return g; },
-  // F6: de kaart van de provincie op het luik: eenenveertig rode stippen (Us Mem Snacks) en één blauwe (de Vismarkt)
-  kaart: () => {
-    const g = new THREE.Group();
-    g.add(box(0.9, 0.012, 0.65, 0xe8e0c4, 0.006));
-    let s = 41;
-    const rnd = () => { s = (s * 1103515245 + 12345) % 2147483648; return s / 2147483648; };
-    for (let i = 0; i < 41; i++) g.add(box(0.025, 0.012, 0.025, 0xc4302a, 0.016, (rnd() - 0.5) * 0.78, (rnd() - 0.5) * 0.54));
-    g.add(box(0.04, 0.014, 0.04, 0x2f5d9e, 0.018, 0.04, 0.02));
-    return g;
-  },
-  // F1: het hek waar de aanhanger aan staat: twee palen en twee latten
-  hek: () => { const g = new THREE.Group(); for (const x of [-1.2, 1.2]) g.add(box(0.1, 1.1, 0.1, 0x6b5a3e, 0.55, x, 0)); g.add(box(2.5, 0.08, 0.05, 0x7e6a48, 0.9), box(2.5, 0.08, 0.05, 0x7e6a48, 0.5)); return g; },
-};
 
 function disposeTree(o) {
   o.traverse((c) => {

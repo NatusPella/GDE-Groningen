@@ -50,7 +50,7 @@ verkeersvoertuigen en personen zijn samengevoegde lagen, per-beeld-allocatie in 
 in lussen staat niet in het stadsbeeld (missies, binnenruimtes, minigames) of is zeldzaam (politielampen, richtingaanwijzers die verborgen zijn en dus geen drawcall kosten).
 
 **Wijziging:** `scripts/perf/meshloopscan.mjs` (statische telling van lussen met losse meshes, zonder missies en minigames) met `scripts/meshloopscan_test.mjs`:
-48 lussen in 28 bestanden nu, de test bewaakt een bovengrens zodat nieuwe herhaalde meshes in de stad opvallen. Grootste: `models3d_vehicles.js`
+53 lussen in 30 bestanden (22-11, na de samenvoeging; was 48 in 28) nu, de test bewaakt een bovengrens zodat nieuwe herhaalde meshes in de stad opvallen. Grootste: `models3d_vehicles.js`
 (politie- en paneelmeshes per voertuig, 2 per stuk), `werktuigen3d.js`, `flavour3d.js`, `railway3d.js`.
 
 **Niet bewezen:** geen drawcall-daling in dit commit (er is geen instancing toegevoegd); de doelen -30% drawcalls, -25% GPU-p50 en p95 <= 22 ms
@@ -64,4 +64,4 @@ zijn niet gemeten. Open uit PERF-GPU-21-11.md blijft: 30 van 83 wegen los, kappl
 |---|---|---|---|
 | #1015 | `node scripts/benchstats_test.mjs` en `--benchmark=1` | `advice.diag`, `lowerGain` | diag alleen bij ruwe run; Hoog duidelijk sneller geeft nooit `stand-ongevoelig` |
 | #1016 | `node scripts/streambudget_test.mjs`, `scripts/qa/popin.mjs` | schatting na 0,2 s vol gas; pop-in per categorie na optrekken | >= 18 m/s na 0,2 s; ns per aanroep < 2000 |
-| #1039 | `node scripts/meshloopscan_test.mjs`, renderer.info | lussen met losse meshes; drawcalls | <= 48 lussen; drawcalls gelijk aan main |
+| #1039 | `node scripts/meshloopscan_test.mjs`, renderer.info | lussen met losse meshes; drawcalls | <= 53 lussen; drawcalls gelijk aan main |

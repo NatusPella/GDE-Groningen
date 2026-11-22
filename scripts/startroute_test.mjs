@@ -116,7 +116,7 @@ ok(/export function runStartScreen\(world, opts\)/.test(ss) && /return runStartS
 // Een nieuw spel én een save warmen voor; de save houdt daarna zijn eigen laadscherm
 ok(/function warmBeforeFinish\(opts, finish\)/.test(ss), 'de warm-stap vóór het weggaan van het laadscherm staat in één helper');
 const iStartNew = ss.indexOf('const startNew = async () => {');
-const iContinue = ss.indexOf('const continueGame = () => {', iStartNew);
+const iContinue = ss.indexOf('const continueGame = ', iStartNew);
 ok(iStartNew !== -1 && iContinue > iStartNew && ss.slice(iStartNew, iContinue).includes('warmBeforeFinish(opts'), 'een nieuw spel warmt voor');
 ok(/loadBootSave\(world\);[\s\S]{0,220}warmBeforeFinish\(opts, \(\) => \{ startLoadScreen\(world, \{ kind: 'save' \}\); finish\(\); \}\);/.test(ss), 'ook een save warmt voor, vóór zijn eigen laadscherm');
 const iSaveScreen = ss.indexOf('function runBootSaveScreen(');

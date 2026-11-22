@@ -201,7 +201,7 @@ for (const [id, pad] of Object.entries(JOBS)) {
   });
 }
 t('elke bijbaankaart heeft een bijbaan in deze test (behalve de veerdienst, die onder zijn eigen id staat)', () => {
-  for (const id of Object.keys(BB.BIJBAAN_KAARTEN)) assert.ok(id === 'veerdienst' || JOBS[id], id);
+  for (const id of Object.keys(BB.BIJBAAN_KAARTEN)) assert.ok(id === 'veerdienst' || ['vismarktkoerier', 'studentenfeest', 'marktkraam', 'toeristengids'].includes(id) /* bijbanenpakket 22-11: hun kaart staat in sidejobpack_test.mjs */ || JOBS[id], id);
   assert.ok(BB.bijbaanKaart('veerdienst'));
   assert.equal(BB.bijbaanKaart('bestaat-niet'), null);
   assert.equal(BB.bijbaanKaart('constructor'), null, 'geen prototype-sleutels');

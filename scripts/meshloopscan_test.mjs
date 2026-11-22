@@ -19,7 +19,7 @@ const ms = performance.now() - t0;
 const files = new Set(hits.map((h) => h.file));
 console.log(`meetpunt: ${hits.length} lussen in ${files.size} bestanden (scan ${ms.toFixed(0)} ms)`);
 ok('de scan vindt de bekende gevallen', hits.length > 5 && files.has('game/js/models3d_vehicles.js'));
-ok('stadslussen met losse meshes: bovengrens 48 (nu 48; hoger kan alleen met reden)', hits.length <= 48);
+ok('stadslussen met losse meshes: bovengrens 53 (nu 53; hoger kan alleen met reden; 48 -> 53 door de samenvoeging van ca. 40 branches op 22-11, zie docs/MAIN-GEZOND-22-11.md)', hits.length <= 53);
 ok('de scan is snel (onder 3 s)', ms < 3000);
 console.log(fail ? `${fail} FAILED` : 'all ok');
 process.exit(fail ? 1 : 0);

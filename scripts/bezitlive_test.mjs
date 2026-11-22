@@ -93,7 +93,7 @@ t('poort: een dichte tak weigert met uitleg, open na de akte', () => {
   let act = 1;
   GT.setUnlockGate(GT.makeActGate(() => act));
   const r = L.koopPerceel(wereld(), 'paaaaaaaaaaa1');
-  assert.equal(r.why, 'dicht'); assert.match(r.text, /akte 2/);
+  assert.equal(r.why, 'dicht'); assert.match(r.text, /gaat open bij ".+" in het verhaal/); assert.doesNotMatch(r.text, /akte \d/i); // #912: de speler leest de hoofdstuknaam, nooit een aktenummer
   act = 2;
   assert.ok(L.koopPerceel(wereld(), 'paaaaaaaaaaa1').ok);
   GT.resetUnlockGate();

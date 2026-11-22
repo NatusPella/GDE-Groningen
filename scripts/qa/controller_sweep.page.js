@@ -29,7 +29,7 @@ async function druk(naam, vast = 3) {
 async function kantel(as, v, ms) { fake.axes[as] = v; await sleep(ms); fake.axes[as] = 0; await frames(3); }
 
 // ---------- hulpjes ----------
-const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select, [tabindex]:not([tabindex="-1"])'; // gamepad.js
+const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select, textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])'; // gamepad.js
 const stijl = (el) => getComputedStyle(el);
 const echtZichtbaar = (el) => { if (!el.getClientRects().length) return false; for (let a = el; a && a.nodeType === 1; a = a.parentElement) { const s = stijl(a); if (s.display === 'none' || s.visibility === 'hidden' || a.hidden || a.inert) return false; } const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
 const label = (el) => { if (!el) return 'null'; if (el === document.body) return 'body'; const id = el.id ? '#' + el.id : ''; const c = typeof el.className === 'string' && el.className.trim() ? '.' + el.className.trim().split(/\s+/).slice(0, 2).join('.') : ''; return el.tagName.toLowerCase() + id + c + ' "' + (el.textContent || el.getAttribute('aria-label') || el.value || '').trim().replace(/\s+/g, ' ').slice(0, 24) + '"'; };

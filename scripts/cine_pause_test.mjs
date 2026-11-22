@@ -31,7 +31,7 @@ ok(/world\.uiPaused = pausePrevUi/.test(off) && /world\.cinematicPause = false/.
 const begin = blok(bron, 'function begin(spec) {', 'function finish(');
 ok(/attachVoices\(active\);\s*if \(active\.pause\) pauseOn\(\);/.test(begin), 'begin zet de pauze meteen als de scène dat vraagt');
 const finish = blok(bron, 'function finish(skipped, replaced = false) {', 'function updateSkipHold');
-ok(/const a = active;\s*active = null;\s*pauseOff\(\);/.test(finish), 'finish haalt de pauze weg, ook bij overslaan of vervangen');
+ok(/const a = active;\s*active = null;\s*(?:endJumps\(a\);\s*)?pauseOff\(\);/.test(finish), 'finish haalt de pauze weg, ook bij overslaan of vervangen');
 
 // 3. main.js laat world.paused van die vlag afhangen en slaat updateGameplay dan over
 ok(/world\.paused = isMapOpen\(\) \|\| isPauseMenuOpen\(\) \|\| isShopOpen\(\) \|\| !!world\.uiPaused \|\| !!world\.coopHold;/.test(main), 'main rekent world.uiPaused mee in world.paused');

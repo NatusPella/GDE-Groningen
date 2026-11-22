@@ -21747,11 +21747,10 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Ik heb ook geen vergunning.",
+     "text": "Ik heb erover nagedacht.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HE-04"
+     "textOnly": true
     },
     {
      "speaker": "Jelle Terpstra",
@@ -21768,7 +21767,8 @@
      "text": "Ik heb ook geen vergunning.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": true,
+     "humor": "HE-04"
     },
     {
      "speaker": "Jelle Terpstra",
@@ -21935,20 +21935,11 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Drie. Kon meer.",
+     "text": "Vier woorden. Op de Grote Markt waren het er vijf.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
      "humor": "HE-06",
-     "voice": "Anita"
-    },
-    {
-     "speaker": "Tessa",
-     "key": "A",
-     "text": "Dat waren er vier. Kon meer.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true,
      "voice": "Anita"
     }
    ]

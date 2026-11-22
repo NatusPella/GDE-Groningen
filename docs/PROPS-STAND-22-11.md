@@ -2,7 +2,7 @@
 
 Gegenereerd door `node scripts/verhaal_props_audit.mjs --write` (#1121). De audit haalt uit alle scène- en missiedata (cutscene-specs, aankleding, wachtstappen, sets, cast) de gebruikte soorten en controleert dat elk bestaat in de modelbouwers, binnen zijn polygoonbudget valt (2 tot 6 materialen, geen NaN, op de grond, niet dubbel), dat de verwijzingen kloppen en dat geen figuur aan het begin in een voertuig of groot voorwerp staat. Alle modellen zijn procedureel laag-poly (`game/js/storyprops.js`); voertuigen en dieren komen uit de wereld. Niets is in beeld gezien: dat blijft "nog niet bekeken" tot de Electron-sweep van de coördinator.
 
-Telling: 95 scènes, 134 props, 40 soorten in gebruik, 27 aankledingsplannen, 49 figuren in de NPC-tabel. Fouten: 0, waarschuwingen: 0.
+Telling: 102 scènes, 155 props, 49 soorten in gebruik, 27 aankledingsplannen, 49 figuren in de NPC-tabel. Fouten: 0, waarschuwingen: 0.
 
 ## Decor (storyprops.js)
 
@@ -11,16 +11,23 @@ Telling: 95 scènes, 134 props, 40 soorten in gebruik, 27 aankledingsplannen, 49
 | aktetas | decor | 36 | 400 | 3 | 0.46 x 0.355 x 0.13 | 1 |
 | automaat | decor | 36 | 400 | 3 | 0.8 x 1.5 x 0.62 | 2 |
 | bal | decor | 115 | 400 | 2 | 0.312 x 0.306 x 0.312 | 0 |
-| bierviltje | decor | 112 | 400 | 2 | 0.097 x 0.009 x 0.1 | 1 |
+| bierviltje | decor | 112 | 400 | 2 | 0.097 x 0.009 x 0.1 | 2 |
 | bord | decor | 36 | 400 | 3 | 0.74 x 1.545 x 0.05 | 9 |
 | botsauto | decor | 48 | 300 | 4 | 1.74 x 0.95 x 1.04 | 2 |
-| briefje | decor | 24 | 400 | 2 | 0.21 x 0.016 x 0.15 | 3 |
+| briefje | decor | 24 | 400 | 2 | 0.21 x 0.016 x 0.15 | 4 |
+| broodtrommel | decor | 36 | 400 | 3 | 0.29 x 0.145 x 0.195 | 1 |
 | container | decor | 204 | 600 | 4 | 3.1 x 2.72 x 2.5 | 5 |
-| doos | decor | 24 | 400 | 2 | 0.52 x 0.4 x 0.4 | 9 |
+| deken | decor | 48 | 400 | 2 | 1.3 x 0.032 x 0.9 | 1 |
+| doos | decor | 24 | 400 | 2 | 0.52 x 0.4 x 0.4 | 12 |
 | duiventil | decor | 108 | 400 | 4 | 1.6 x 2.12 x 1 | 2 |
 | fotolijst | decor | 72 | 400 | 3 | 0.47 x 1.408 x 0.36 | 1 |
+| friteuse | decor | 60 | 400 | 4 | 0.8 x 1.01 x 0.63 | 1 |
+| frituuraanhanger | decor | 176 | 400 | 8 | 4.1 x 1.68 x 2.325 | 1 |
+| hek | decor | 48 | 400 | 2 | 2.5 x 1.1 x 0.1 | 1 |
 | hesjes | decor | 48 | 400 | 2 | 0.5 x 0.2 x 0.4 | 1 |
 | jas | decor | 48 | 400 | 3 | 0.44 x 0.13 x 0.49 | 1 |
+| kaart | decor | 516 | 600 | 3 | 0.9 x 0.025 x 0.65 | 1 |
+| kantoorwagen | decor | 352 | 400 | 8 | 5.9 x 3.05 x 2.49 | 1 |
 | klembord | decor | 60 | 400 | 4 | 0.3 x 0.055 x 0.4 | 6 |
 | klomp | decor | 128 | 400 | 3 | 0.38 x 0.128 x 0.12 | 5 |
 | koelbox | decor | 36 | 400 | 3 | 0.62 x 0.415 x 0.42 | 1 |
@@ -28,11 +35,13 @@ Telling: 95 scènes, 134 props, 40 soorten in gebruik, 27 aankledingsplannen, 49
 | krat | decor | 228 | 400 | 3 | 0.51 x 0.26 x 0.34 | 6 |
 | map | decor | 48 | 400 | 4 | 0.326 x 0.032 x 0.27 | 2 |
 | matras | decor | 48 | 300 | 4 | 1.94 x 0.3 x 1.04 | 1 |
+| mosterdpot | decor | 92 | 400 | 3 | 0.2 x 0.175 x 0.2 | 1 |
 | pan | decor | 200 | 400 | 3 | 0.41 x 0.315 x 0.5 | 3 |
 | pinpas | decor | 36 | 400 | 3 | 0.12 x 0.008 x 0.075 | 1 |
-| prikbord | decor | 168 | 400 | 6 | 0.072 x 1.385 x 1.04 | 0 |
-| radio | decor | 36 | 400 | 3 | 0.4 x 0.5 x 0.16 | 2 |
+| prikbord | decor | 168 | 400 | 6 | 0.072 x 1.385 x 1.04 | 1 |
+| radio | decor | 36 | 400 | 3 | 0.4 x 0.5 x 0.16 | 3 |
 | scherm | decor | 60 | 400 | 4 | 0.3 x 1.61 x 0.9 | 3 |
+| soepketel | decor | 120 | 400 | 3 | 0.56 x 0.355 x 0.46 | 1 |
 | statief | decor | 200 | 400 | 4 | 0.524 x 1.541 x 0.6 | 1 |
 | stempel | decor | 168 | 400 | 4 | 0.18 x 0.19 x 0.26 | 2 |
 | tas | decor | 48 | 400 | 4 | 0.42 x 0.355 x 0.23 | 2 |
@@ -43,16 +52,16 @@ Telling: 95 scènes, 134 props, 40 soorten in gebruik, 27 aankledingsplannen, 49
 
 | Soort | Bron | Driehoeken | Budget | Materialen | Afmeting (m) | Gebruik |
 |---|---|---|---|---|---|---|
-| auto | voertuig (wereld) |  |  |  | 4.7 x 1.95 x 1.75 | 11 |
+| auto | voertuig (wereld) |  |  |  | 4.7 x 1.95 x 1.75 | 13 |
 | bakkie | voertuig (wereld) |  |  |  | 5.4 x 2.1 x 2.5 | 3 |
 | bestelbus | voertuig (wereld) |  |  |  | 5.4 x 2.1 x 2.5 | 3 |
-| duif | dier (wereld) |  |  |  |  | 6 |
+| duif | dier (wereld) |  |  |  |  | 8 |
 | fiets | voertuig (wereld) |  |  |  | 1.9 x 0.7 x 1.15 | 12 |
 | kat | dier (wereld) |  |  |  |  | 4 |
-| koe | dier (wereld) |  |  |  |  | 3 |
+| koe | dier (wereld) |  |  |  |  | 0 |
 | limo | voertuig (wereld) | 1500 |  |  | 5.64 x 2.54 x 2.45 | 6 |
 | politie | voertuig (wereld) |  |  |  | 4.8 x 1.95 x 1.75 | 1 |
-| snackwagen | voertuig (wereld) | 2194 |  |  | 5.681 x 2.964 x 3.073 | 1 |
+| snackwagen | voertuig (wereld) | 2194 |  |  | 5.681 x 2.964 x 3.073 | 5 |
 | tankwagen | voertuig (wereld) | 1028 |  |  | 8.611 x 3.61 x 3 | 2 |
 | trekker | voertuig (wereld) |  |  |  | 4.5 x 2.4 x 3 | 4 |
 
@@ -87,7 +96,7 @@ Telling: 95 scènes, 134 props, 40 soorten in gebruik, 27 aankledingsplannen, 49
 
 ## Sets
 
-Cutscene-sets in gebruik: loket (3), kantoor (5), omakeuken (3), serverkamer (1). Stap-sets in de missies: kantoor (1), serverkamer (1), kruitkelder (3), omakeuken (1), woonkamer (3), loket (4). Elke naam staat in `STAGE_SETS` of is de keuken van de opening.
+Cutscene-sets in gebruik: loket (3), kantoor (5), omakeuken (4), serverkamer (1). Stap-sets in de missies: kantoor (1), serverkamer (1), kruitkelder (3), omakeuken (1), woonkamer (3), loket (4). Elke naam staat in `STAGE_SETS` of is de keuken van de opening.
 
 ## Gefixt in deze ronde
 
@@ -105,5 +114,5 @@ Cutscene-sets in gebruik: loket (3), kantoor (5), omakeuken (3), serverkamer (1)
 - Het prikbord (N8, de vijf vrienden) bestaat nu als model, maar er is nog geen scène-spec die hem neerzet (N8 is een gesprek zonder cutscene-spec).
 - Niets hiervan is in beeld gezien (geen Electron in deze ronde): vorm, schaal en kleur zijn alleen gemeten, niet gekeken.
 
-Soorten zonder scène-gebruik (model bestaat, geen spec zet ze neer): bal, prikbord.
+Soorten zonder scène-gebruik (model bestaat, geen spec zet ze neer): bal, koe.
 

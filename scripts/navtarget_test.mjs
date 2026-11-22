@@ -212,7 +212,8 @@ const types = (r) => r.alle.map((d) => d.type + ':' + d.rol);
   ok(PALETTES.uit.mission === geel && geel === '#f9c80e', 'het geel van de missie is het hoofdgeel van de tokens');
   const mini = kaartLand().mini;
   ok(contrast(geel, dsKleur('glas')) >= 4.5, 'geel leest op glas (4,5:1)');
-  for (const bg of ['meadow', 'park', 'forest', 'village']) ok(contrast(geel, mini[bg]) >= 3, `geel tegen de minikaart (${bg}) haalt 3:1`);
+  // zeefdrukpalet (#1009, crème papier): de gele schijf heeft een inktrand (navpijl.js, cirkel(..., k.inkt, 2.2)); die rand moet tegen het land lezen
+  for (const bg of ['meadow', 'park', 'forest', 'village']) ok(contrast(dsKleur('ink-inkt'), mini[bg]) >= 3, `de inktrand van de gele schijf tegen de minikaart (${bg}) haalt 3:1`);
   ok(contrast(dsKleur('inkt'), geel) >= 4.5, 'inkt op geel leest (4,5:1); geel tegen papier heeft altijd een inktrand');
   const wm = fs.readFileSync(new URL('../game/js/worldmarker3d.js', import.meta.url), 'utf8');
   ok(!/missionActive/.test(wm) && /goal: \{ color: NAV_ROL\.missie/.test(wm) && /checkpoint: \{ color: NAV_ROL\.uitdaging/.test(wm) && /user: \{ color: NAV_ROL\.eigen/.test(wm), '3D-bakens: goal en checkpoint geel, eigen doel paars, via NAV_ROL');

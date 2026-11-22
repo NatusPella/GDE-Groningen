@@ -602,5 +602,4 @@ TAMMO: Berend telde elf seconden. Dat is officieel. [NIEUW]
 TESSA: Wat wil jij eigenlijk? [NIEUW]
 TAMMO: Hier. Met jou erbij. [NIEUW]
 TESSA: Dat waren er vier. Eén te weinig. [NIEUW]
-TESSA: Dat waren er vier. Kon meer. [NIEUW]
 (regie: Tammo telt op zijn vingers, begint opnieuw, geeft het op. Ze pakt zijn hand. Boven hen draait de duif nog een rondje.)
