@@ -40,6 +40,7 @@ import { centreOf } from './evenementen.js';
 import { noteWantedWhy, noteWitnessHint, witnessCallStands } from './wantedwhy.js';
 import { isMissieVoertuig } from './missievoertuig.js';
 import { takeRiderOff } from './bikerider.js'; // een fietser van de fiets slaan (#944)
+import { makeGreetState, canGreet, greetOutcome, markGreeted, GREET_SCAN_S } from './pedgreet.js'; // passanten groeten de speler te voet (22-11)
 
 const WANDER_SPEED = 1.3;
 const FLEE_SPEED = 3.6;
@@ -908,6 +909,25 @@ function greetPassingBoat(world) {
   }
 }
 
+// People walking past a player on foot sometimes wave or say moi (pedgreet.js has the rules; scene3d draws the arm from greetUntil).
+const greetState = makeGreetState();
+function greetWalkingPlayer(world) {
+  if (world.time < greetState.nextScanAt) return;
+  greetState.nextScanAt = world.time + GREET_SCAN_S;
+  const pl = hoofdspeler(world);
+  if (!pl || pl.inVehicle) return;
+  const view = { x: pl.x, y: pl.y, speed: Math.hypot(pl.vx || 0, pl.vy || 0), inVehicle: pl.inVehicle };
+  const armed = isRangedWeapon(world.weapon) && !!world.input.mouse.down;
+  for (const p of world.pedestrians) {
+    if (!canGreet(greetState, world.time, p, view, { wanted: world.wanted, armed, roll: Math.random() })) continue;
+    const o = greetOutcome(world.time, Math.random(), Math.random());
+    markGreeted(greetState, p, world.time);
+    p.greetUntil = o.until;
+    if (o.line) say(p, world, o.line, 2.2, null);
+    break;
+  }
+}
+
 // --- cyclists' bells ----------------------------------------------------
 
 function updateBikeBells(world) {
@@ -1201,6 +1221,7 @@ export function updatePedestrians(dt, world) {
   updateWitnessCall(world);
   updateBikeBells(world);
   greetPassingBoat(world);
+  greetWalkingPlayer(world);
   knockOffRiders(world);
   processPedPlanQueue(world);
   // #653: de avoid-grid om de twee frames i.p.v. elke frame
