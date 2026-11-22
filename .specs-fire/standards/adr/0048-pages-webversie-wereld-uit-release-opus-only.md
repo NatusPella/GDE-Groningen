@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:.specs-fire/standards/adr/0048-pages-webversie-wereld-uit-release-opus-only.md
 # 0048 - Pages-webversie: wereld uit de release, alleen Opus, onder /play/
-========
-# 0046 - Pages-webversie: wereld uit de release, alleen Opus, onder /play/
->>>>>>>> docs-changelog-21-11:.specs-fire/standards/adr/0046-pages-webversie-wereld-uit-release-opus-only.md
 
 - **Status:** besloten (21-11-2026; issue #1090)
 - **Datum:** 21-11-2026
