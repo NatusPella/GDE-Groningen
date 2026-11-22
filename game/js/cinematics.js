@@ -308,8 +308,9 @@ export function playCinematic(spec) {
 }
 
 // samen spelen (coopcut.js): de gast loopt mee met de tijd van de gastheer
-export const setCinematicRate = (r) => { if (active) active.rate = r; };
-export const setCinematicTime = (t) => { if (active) active.t = Math.max(0, Math.min(active.duration - 0.05, t)); };
+// een geen-getal uit een kapot net-bericht (NaN) liet de scène van de gast eeuwig staan: zo'n waarde telt niet
+export const setCinematicRate = (r) => { if (active && Number.isFinite(r)) active.rate = Math.max(0, Math.min(3, r)); };
+export const setCinematicTime = (t) => { if (active && Number.isFinite(t)) active.t = Math.max(0, Math.min(active.duration - 0.05, t)); };
 
 export function skipCinematic() {
   if (active) finish(true);
@@ -417,6 +418,10 @@ function begin(spec) {
   };
   // een scène zonder geldige duur (undefined of NaN overschrijft de standaard) liep eindeloos met de wereld op pauze: val terug op de standaard
   if (!Number.isFinite(active.duration)) active.duration = 3;
+  // timeScale is een slowmotion tussen 0,05 en 1; een geen-getal (NaN) liet de hele spelklok vastlopen (main.js knipt alleen NaN-loos)
+  active.timeScale = Number.isFinite(active.timeScale) ? Math.max(0.05, Math.min(1, active.timeScale)) : 1;
+  // lege of kapotte regels (null) lieten begin() halverwege falen met een scène die half bestond: weg ermee
+  if (Array.isArray(active.lines)) active.lines = active.lines.filter((l) => l && typeof l === 'object');
   resetSkip();
   const tiles = holdShotTiles(spec.prewarm);
   active._jumps = Array.isArray(spec.jumps) && spec.jumps.length ? createJumpRunner(spec.jumps, jumpEnv(), { skipGate: spec.cutId != null }) : null;

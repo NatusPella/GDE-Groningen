@@ -53,10 +53,12 @@ function spec(rng) {
   const lines = rng() < 0.7 ? Array.from({ length: 1 + Math.floor(rng() * 4) }, (_, i) => ({ speaker: 'tammo', text: 'Regel ' + i, at: i * (d0 / 5), dur: d0 / 6 })) : null;
   const s = {
     id, priority: 1 + Math.floor(rng() * 5), duration: dur, pause: rng() < 0.6, hideHud: rng() < 0.6, skippable: rng() < 0.85, letterbox: rng() < 0.7,
-    timeScale: rng() < 0.2 ? 0.3 : 1, hidePlayers: rng() < 0.3, queue: rng() < 0.4, lines,
+    timeScale: rng() < 0.2 ? [0.3, 0, -1, NaN, 2][Math.floor(rng() * 5)] : 1, hidePlayers: rng() < 0.3, queue: rng() < 0.4, lines,
     onEnd: (skipped, replaced) => { eindes.set(id, (eindes.get(id) || 0) + 1); tel[replaced ? 'vervangen' : skipped ? 'overgeslagen' : 'natuurlijk']++; },
   };
+  if (rng() < 0.08 && s.lines) s.lines.push({ speaker: 'tammo', text: undefined, at: NaN, dur: NaN }, null);
   if (rng() < 0.1) s.shot = () => { throw new Error('kapotte shot'); };
+  else if (rng() < 0.08) s.shot = () => ({ position: { x: NaN, y: 5, z: 3 }, lookAt: { x: 0, y: 0, z: 1 }, fov: 50 });
   else if (rng() < 0.5) s.shot = (u, t) => ({ position: { x: 10 + t, y: 5, z: 3 }, lookAt: { x: 0, y: 0, z: 1 }, fov: 50 });
   return s;
 }
@@ -127,6 +129,15 @@ for (let seed = 1; seed <= 60; seed++) {
   C.playCinematic({ id: 'zonder-duur', priority: 2, duration: undefined, pause: true, onEnd: () => { eindes.set('zonder-duur', 1); } });
   for (let i = 0; i < 80; i++) { nu += 100; C.updateCinematics(0.1, w); }
   ok(!C.isCinematicActive('zonder-duur') && eindes.get('zonder-duur') === 1 && w.uiPaused === false, 'een scène zonder duur loopt na de standaardduur af en geeft de wereld terug');
+}
+
+// een kapot tempo- of tijdbericht van de gastheer (NaN) laat de scène van de gast niet eeuwig staan
+{
+  C.skipAllCinematics(); eindes.clear(); w.paused = false;
+  C.playCinematic({ id: 'nan-tempo', priority: 2, duration: 2, pause: true, onEnd: () => { eindes.set('nan-tempo', 1); } });
+  C.setCinematicRate(NaN); C.setCinematicTime(NaN); C.setCinematicRate(Infinity);
+  for (let i = 0; i < 60; i++) { nu += 100; C.updateCinematics(0.1, w); }
+  ok(!C.isCinematicActive('nan-tempo') && eindes.get('nan-tempo') === 1, 'NaN-tempo of NaN-tijd houdt de scène niet vast');
 }
 
 console.error = origErr; console.warn = origWarn;
