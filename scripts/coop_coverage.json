@@ -175,6 +175,27 @@
    "prio": "-"
   },
   {
+   "id": "featurereveal",
+   "naam": "Menu-onthulling: wat het menu toont volgt het verhaal",
+   "groep": "Verhaal",
+   "modules": [
+    "featurereveal*"
+   ],
+   "eigenaar": "speler",
+   "gast": "Per speler (#429): het menu, de kaart en de activiteitenlijst volgen de eigen verhaalstand van wie speelt. Een gast ziet wat hij zelf ontgrendelde; de opener ziet wat hij ontgrendelde.",
+   "beloning": "Geen: een onderdeel verschijnt, er komt geen geld of voortgang bij. De melding Nieuw in je menu is lokaal en de lijst van wat gemeld is staat bij de speler (bezit.x.menuTold).",
+   "wegval": "Niets te herstellen: de stand en de lijst staan bij de speler zelf; wie later aansluit houdt zijn eigen menu.",
+   "test": [
+    "scripts/featurereveal_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "## Menu-onthulling per speler"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
    "id": "recap",
    "naam": "Recap Waar waren we?",
    "groep": "Verhaal",

@@ -70,6 +70,7 @@ import { resetOnboarding } from './onboarding.js';
 import { explanationResetMessage } from './onboardinglogic.js';
 import { resetContextHints } from './contexthints.js';
 import { menuMelding } from './menumelding.js';
+import { sectionVisible, subVisible } from './featurereveal.js'; // 22-11: wat het verhaal nog niet liet zien staat niet in het menu
 import { getUiScale } from './uiscale.js';
 import { helpHtml } from './helpoverview.js';
 import { DEV, FLAGS } from './devflags.js';
@@ -547,7 +548,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 // De rail zelf heeft geen knop Spelers (#377): het aantal spelers staat bij Spel, de lijst onder Samen spelen (#434).
 // Cheats staat alleen in het menu in dev, zolang er een cheat aan staat (settingsrules.js) of nadat het verhaal ze heeft vrijgespeeld (Berts valsspeelbon na missie 4; cheats.js cheatsOpen)
 export const cheatsInMenu = () => cheatsVisible({ dev: DEV || !!FLAGS.dev, actief: anyCheatOn() }) || cheatsOpen();
-const sectionIds = () => (prestart ? PRESTART_SECTIONS : SECTIONS.map(([id]) => id).filter((id) => id !== 'streken' || cheatsInMenu()));
+const sectionIds = () => (prestart ? PRESTART_SECTIONS : SECTIONS.map(([id]) => id).filter((id) => id !== 'streken' || cheatsInMenu()).filter(sectionVisible));
 const sectionOf = (id) => SECTIONS.find(([s]) => s === id);
 const key = (k) => `<span class="hud-key">${k}</span>`;
 
@@ -560,7 +561,7 @@ const inGameOnly = (of, id) => of === 'spel' && (id === 'acties' || id === 'over
 // Spelers (wie er meespeelt) staat onder Samen spelen. Sinds #530 staat daar ook je eigen profiel
 // met de schakelaar Meedoen met andere spelers, dus het tabblad is er ook zonder sessie: anders is
 // "Alleen spelen" bij de eerste start een doodlopende weg (ADR 0022: later alsnog kunnen meedoen).
-const subsOf = (of) => SUBTABS[of].filter(([id]) => !(prestart && inGameOnly(of, id)));
+const subsOf = (of) => SUBTABS[of].filter(([id]) => !(prestart && inGameOnly(of, id)) && subVisible(of, id));
 function subtabsHtml(of, label) {
   // DS3 (ds-micro.css): de nav draagt .ds-m-tabs en de glijdende streep; de stip op een tab met [data-new] poppen met .ds-m-nieuw
   return `<div class="m-tabs"><nav class="m-tablist ds-m-tabs" role="tablist" aria-label="${label}">` + SUBTABS[of].map(([id, text]) =>
@@ -2856,6 +2857,8 @@ function showTab(name, how) {
     b.setAttribute('aria-current', String(b.dataset.goto === (CHILD[name] || name)));
     b.hidden = !ids.includes(b.dataset.goto);
   }
+  // 22-11 (featurereveal.js): een tabblad van Land en bedrijf dat het verhaal nog niet opende staat er niet
+  for (const tb of root.querySelectorAll('[data-subtab][data-of="boerderij"]')) tb.hidden = !subVisible('boerderij', tb.dataset.subtab);
   // het item heet Land en bedrijf (de kop van het scherm); zonder begonnen akker heet het "Begin je boerderij" (21-11, review 22-11)
   const bdLabel = root.querySelector('.pm-game [data-goto="boerderij"] .ra-t');
   if (bdLabel) { let begonnen = true; try { begonnen = boerderijBegonnen(getBoerderij()); } catch (e) { /* boerderij niet klaar */ } bdLabel.textContent = begonnen ? 'Land en bedrijf' : 'Begin je boerderij'; }

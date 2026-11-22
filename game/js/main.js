@@ -85,6 +85,7 @@ import { initMissions, updateMissions } from './missions.js';
 import { initStory, updateStory, currentStep, storyBridgeView, storyGateProgress } from './story.js';
 import { updateStoryBridge } from './storybridgerun.js';
 import { updateCareerDebuts } from './careerdebutrun.js';
+import { initFeatureReveal, updateFeatureReveal } from './featurerevealrun.js';
 import { updateTerugkeer } from './terugkeerrun.js';
 import { updateRecap, isRecapOpen } from './recapcardrun.js';
 import { initGoal, updateGoal } from './goal.js';
@@ -988,6 +989,7 @@ window.__debug = { player, map, input, world, frameStats };
   try { registerSponsorPanden(); linkCareer({ getCareer: getVoetbalCarriere, subscribe: volgVoetbalCarriere, homeMatchToday: voetbalThuisVandaag, formOf: voetbalVorm, getClub: getVoetbalClub, replaceCareer: vervangVoetbalCarriere, clubPlace: voetbalClubPlek }); } catch (e) { /* zonder voetbal */ }
   // de gedeelde ontgrendelpoort (unlockgate.js): zolang de save geen `gate` heeft (world.gate) staat alles open (migratieregel van de verhaal-epic)
   setGateProgress(() => storyGateProgress());
+  initFeatureReveal(); // 22-11: wat het menu, de kaart en de activiteiten tonen volgt uit dezelfde poort (featurereveal.js)
   // de snackwagen opent in fasen met de stille verhaalvlaggen wagen:* (snackstory.js); een oude save (geen gate) laat alles open
   setSnackFlagProvider(() => { const p = storyGateProgress(); return { flags: storyBridgeView().flags, gate: p.gate, ended: p.ended, dev: p.dev }; });
   // meewerken in de snackwagen van een medespeler (bezitnet.js: gast -> host -> eigenaar)
@@ -1250,6 +1252,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     updateStoryBridge(world.paused ? 0 : dt, world, storyBridgeView(), () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen());
     // 22-11: de begincutscene van de voetbalcarrière en van het eerste perceel (careerdebutrun.js), eenmaal per speler, op een rustig moment
     updateCareerDebuts(world.paused ? 0 : dt, world, storyBridgeView(), () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen());
+    updateFeatureReveal(world.paused ? 0 : dt, world, !storyGateProgress().gate); // de melding "Nieuw in je menu"; een oude save krijgt alles stil
     probe.mark('story');
     updateStreetSigns(dt, world, getScene());
     const animDt = world.paused && !doorloop ? 0 : gameDt;

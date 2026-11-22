@@ -19,6 +19,7 @@
 // mouse buttons, number keys and Space through `world.minigameUntil`.
 import { CARBID } from './carbid.js';
 import { relevantActivities } from './activityfilter.js';
+import { activityVisible } from './featurereveal.js'; // 22-11: wat bij een wereld hoort die het verhaal nog niet opende, staat niet in de legenda, op de kaart of in Te doen
 import { KERMIS } from './kermis.js';
 import { HOOGVLIEGER } from './reuzenrad.js';
 import { GEHEIMEN } from './geheimen.js';
@@ -545,7 +546,7 @@ export const ACTIVITY_LEGEND = LIST.filter((a) => a.legend).map((a) => ({ ...a.l
 export function activityMapIcons(w) {
   const out = [];
   for (const a of LIST) {
-    if (!a.legend) continue;
+    if (!a.legend || !activityVisible(a.id)) continue;
     for (const s of a.spots()) out.push({ id: a.id, layer: a.layer, kind: a.legend.kind, x: s.x, y: s.y, name: s.name, sub: [a.mapSub ? a.mapSub(s, w) : a.legend.note, startkaartRegel(a.id)].filter(Boolean).join(' · ') });
   }
   return out;
@@ -565,6 +566,7 @@ export function drawActivityMapIcon(ctx, kind, s) {
 export function activityTodoItems(world) {
   const out = [];
   for (const a of LIST) {
+    if (!activityVisible(a.id)) continue;
     const t = typeof a.todo === 'function' ? a.todo(world) : a.todo;
     const s = (t && t.spots && t.spots(world)[0]) || a.spots()[0];
     if (!s) continue;

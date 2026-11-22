@@ -21,6 +21,7 @@ import { CAREER_FIT, FIT } from './careertour.js';
 import { controleStand, CONTROLE_MIN_NIVEAU } from './kaartjescontrole.js';
 import { getServiceMapState } from './machinist.js';
 import { sfeerBandHtml, SFEER_BAND_CSS } from './carrieresfeer.js';
+import { sectionVisible } from './featurereveal.js'; // 22-11: een dicht vak, het visboek, de boerderij en voetbal staan er pas na het verhaal
 import { overzicht as modelOverzicht, hoofdActie, eisEnVerdiensten } from './careermodel.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -413,7 +414,7 @@ function bezighedenHtml(id, v, banen) {
       `${doelen.has(b) ? `<button type="button" class="m-bt lb-doel" data-todo-goal="job:${esc(b)}">Zet als doel</button>` : ''}</li>`;
   });
   const link = VAK_LINK[id];
-  if (link) rijen.push(`<li class="lb-bz-link">${CHECK}<span class="lb-bz"><span>${esc(link.naam)}</span><span class="mut">${esc(link.stand())}</span></span>` +
+  if (link && sectionVisible(link.id)) rijen.push(`<li class="lb-bz-link">${CHECK}<span class="lb-bz"><span>${esc(link.naam)}</span><span class="mut">${esc(link.stand())}</span></span>` +
     `<button type="button" class="m-bt lb-doel" data-goto="${link.id}">${esc(link.knop)}</button></li>`);
   if (!rijen.length) return '<h3 class="m-eb">Bezigheden</h3><p class="mut lb-leeg">Geen aparte bijbaan: je verdient hier met het spel zelf.</p>';
   return `<h3 class="m-eb">Bezigheden</h3><ul class="lb-banen">${rijen.join('')}</ul>`;
@@ -445,7 +446,7 @@ export function renderLoopbaanPanel(el, sluit = null, w = null) {
   }
   const lijst = weergave === 'tour'
     ? tourHtml(profiel)
-    : modelOverzicht(profiel).groepen.map((g) => `<div class="lb-groep"><span>${esc(g.groep.naam)}</span></div>` + g.kaarten.map(kaart).join('')).join('');
+    : modelOverzicht(profiel).groepen.map((g) => [g, g.kaarten.filter((k) => k.gestart || storyWorldOpen(k.id))]).filter(([, ks]) => ks.length).map(([g, ks]) => `<div class="lb-groep"><span>${esc(g.groep.naam)}</span></div>` + ks.map(kaart).join('')).join('');
   el.innerHTML = kop +
     `<div class="m-main"><div class="m-list pa-list lb-list${weergave === 'tour' ? ' lb-list--tour' : ''}">${lijst}</div><aside class="m-pane pa-pane lb-pane" aria-live="polite">${detailHtml(profiel, gekozen, wereld)}</aside></div>`;
   fillBars(el, bars);

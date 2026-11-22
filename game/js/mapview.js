@@ -48,6 +48,7 @@ import { startMeerijden } from './reisrit.js';
 import { VILLAGES } from './ommelandlines.js';
 import { ommelandMapSpots } from './ommelandmap.js';
 import { beppeMapSpot } from './beppe_garden.js';
+import { markerVisible } from './featurereveal.js'; // 22-11: Percelen en Te koop staan pas na het verhaal op de kaart
 import { perceelMapSpots, eigenPerceelVlakken, tekenVeldBadge } from './perceelmap.js';
 import { forSaleView, parcelOffer, koopPerceel, verkoopPerceel, bezitOpen, ensureIndex } from './bezitlive.js';
 import { pickShape } from './forsalemap.js';
@@ -1802,7 +1803,7 @@ function drawDynamicMarkers(ctx, world) {
   for (const r of getRoutes()) drawFullRoute(ctx, world, t, r);
   // #972 en #1092: je eigen akkers en weilanden als label met statusicoon op het veld, zonder getekend vlak: de catalogusvelden hebben geen
   // echte perceelvorm (kaartdata), en een verzonnen rechthoek als perceelrand hoort niet op de kaart.
-  const eigenVelden = layerOn('percelen') ? eigenPerceelVlakken() : [];
+  const eigenVelden = layerOn('percelen') && markerVisible('percelen') ? eigenPerceelVlakken() : [];
   state.eigenVelden = eigenVelden;
   for (const v of eigenVelden) {
     const st = v.stijl || { vul: 'greenLight', rand: 'greenLight', dash: [], letter: '' };
@@ -1962,7 +1963,7 @@ function drawDynamicMarkers(ctx, world) {
   // aan de westgrens te vinden is (ook voordat je er geweest bent)
   const beppe = beppeMapSpot();
   if (beppe) icon(null, beppe.kind, beppe.x, beppe.y, beppe.name, {}, beppe.sub, { goal: beppe.goal, todo: beppe.todo });
-  for (const q of perceelMapSpots()) { if (onbekend(q.x, q.y) && !q.kind.startsWith('perceel-eigen')) continue; icon('percelen', q.kind, q.x, q.y, q.name, {}, q.sub, { goal: q.goal }); }
+  if (markerVisible('percelen')) for (const q of perceelMapSpots()) { if (onbekend(q.x, q.y) && !q.kind.startsWith('perceel-eigen')) continue; icon('percelen', q.kind, q.x, q.y, q.name, {}, q.sub, { goal: q.goal }); }
   for (const e of getEierbalTips()) { if (onbekend(e.x, e.y)) continue; icon(null, 'eierbalTip', e.x, e.y, 'Eierbal-tip', {}, 'Uit de Buukenkaas: hier ligt er eentje verstopt'); }
 
   const c = world.companion;
