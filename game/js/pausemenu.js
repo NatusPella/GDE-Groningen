@@ -1520,7 +1520,7 @@ function bouwFindRegels() {
     regels.push(maakRegel({ id: 'a-save', soort: 'actie', label: 'Spel opslaan', plek: 'Bewaart je voortgang', zoek: 'bewaren', ic: 'save', act: 'save' }));
     regels.push(maakRegel({ id: 'a-saves', soort: 'actie', label: 'Opgeslagen spellen', plek: 'Laden of verwijderen', zoek: 'kiezen hernoemen exporteren savegame', ic: 'load', act: 'saves' }));
   }
-  if (!prestart) regels.push(maakRegel({ id: 'a-farm', soort: 'actie', label: 'Naar mijn boerderij', plek: 'Je akker en gewassen', zoek: 'akker perceel gewas landbouw', ic: 'boerderij', act: 'farm' }));
+  if (!prestart && sectionVisible('boerderij')) regels.push(maakRegel({ id: 'a-farm', soort: 'actie', label: 'Naar mijn boerderij', plek: 'Je akker en gewassen', zoek: 'akker perceel gewas landbouw', ic: 'boerderij', act: 'farm' }));
   if (DESKTOP) regels.push(maakRegel({ id: 'a-exit', soort: 'actie', label: 'Afsluiten', plek: 'Slaat je voortgang op', zoek: 'stoppen sluiten spel verlaten', ic: 'exit', act: 'exit' }));
   for (const id of sectionIds()) {
     const [, label, hint] = sectionOf(id);
@@ -2859,6 +2859,8 @@ function showTab(name, how) {
   }
   // 22-11 (featurereveal.js): een tabblad van Land en bedrijf dat het verhaal nog niet opende staat er niet
   for (const tb of root.querySelectorAll('[data-subtab][data-of="boerderij"]')) tb.hidden = !subVisible('boerderij', tb.dataset.subtab);
+  // de rij 'Naar mijn boerderij' in het Spel-overzicht hoort bij dezelfde regel: zolang Land en bedrijf verborgen is, doet hij niets en verklapt hij de naam
+  for (const bb of root.querySelectorAll('.pm-row [data-goto="boerderij"]')) { const rij = bb.closest('.pm-row'); if (rij) rij.hidden = !sectionVisible('boerderij'); }
   // het item heet Land en bedrijf (de kop van het scherm); zonder begonnen akker heet het "Begin je boerderij" (21-11, review 22-11)
   const bdLabel = root.querySelector('.pm-game [data-goto="boerderij"] .ra-t');
   if (bdLabel) { let begonnen = true; try { begonnen = boerderijBegonnen(getBoerderij()); } catch (e) { /* boerderij niet klaar */ } bdLabel.textContent = begonnen ? 'Land en bedrijf' : 'Begin je boerderij'; }

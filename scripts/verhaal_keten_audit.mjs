@@ -137,11 +137,11 @@ export function ketenControles(i) {
     }
   }
 
-  // 6 tijdlimieten
+  // 6 tijdlimieten (22-11: een missie mag tot 1200 s duren; M17 staat op 1000 s omdat het foutloze minimum ca. 550 s is, zie de haalbaarheidsaudit)
   if (i.defs) for (const s of steps.filter((q) => q.kind === 'mission')) {
     const d = i.defs.get(s.mission);
     if (!d) continue;
-    if (d.timeLimit != null && !(Number.isFinite(d.timeLimit) && d.timeLimit >= 30 && d.timeLimit <= 900)) bad('K6', s.id, `timeLimit ${d.timeLimit} is geen eindig getal tussen 30 en 900 s`);
+    if (d.timeLimit != null && !(Number.isFinite(d.timeLimit) && d.timeLimit >= 30 && d.timeLimit <= 1200)) bad('K6', s.id, `timeLimit ${d.timeLimit} is geen eindig getal tussen 30 en 1200 s`);
     for (const [j, q] of (d.stages || []).entries()) if (q.timeLimit != null && !(Number.isFinite(q.timeLimit) && q.timeLimit >= 5 && q.timeLimit <= 900)) bad('K6', s.id, `stage ${j}: timeLimit ${q.timeLimit} ongeldig`);
   }
 
