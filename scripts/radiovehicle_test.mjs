@@ -188,9 +188,9 @@ ok(channelForPlayer({ driverChannel: 'wierde', follows: true, own: 'ruis' }) ===
 const radioSrc = read('game/js/radio.js');
 ok(/export function updateRadioVehicle\(w\)/.test(radioSrc) && /enterVehicle\(vehState, v, open, remembered\(\)\)/.test(radioSrc), 'radio.js: instappen kiest de zender van het voertuig');
 ok(/exitVehicle\(vehState, wanted, open\)/.test(radioSrc), 'radio.js: uitstappen herstelt de laatste wereldkeuze (wanted)');
-ok(/if \(!auto\) \{\s*if \(vehState\.kind\) rememberVehicle\(id\);\s*else \{ wanted = id; saveChannel\(\); \}/.test(radioSrc), 'radio.js: een zender van het voertuig wordt nooit als wereldkeuze bewaard; een eigen keuze in het voertuig wordt per soort onthouden');
+ok(/if \(!auto && !groep\) \{.*\s*if \(vehState\.kind\) rememberVehicle\(id\);\s*else \{ wanted = id; saveChannel\(\); \}/.test(radioSrc), 'radio.js: een zender van het voertuig wordt nooit als wereldkeuze bewaard; een eigen keuze in het voertuig wordt per soort onthouden');
 ok(/!vehState\.kind && channelId === DEFAULT_CHANNEL && wanted !== DEFAULT_CHANNEL/.test(radioSrc), 'radio.js: het herstel van de bewaarde zender bij het starten werkt niet in een voertuig');
-ok(/if \(!on && !auto\) setRadio\(true/.test(radioSrc), 'radio.js: een radio die uit stond blijft uit bij het instappen');
+ok(/if \(!on && !auto && !groep\) setRadio\(true/.test(radioSrc), 'radio.js: een radio die uit stond blijft uit bij het instappen');
 ok(/setSetting\('radioVehicle'/.test(radioSrc), 'radio.js: de keuze per soort gaat naar de instellingen (gde-settings), niet naar de save');
 ok(!/radioVehicle/.test(read('game/js/savegame.js')), 'savegame.js: de keuze per soort staat niet in de save');
 const settingsSrc = read('game/js/settings.js');

@@ -174,6 +174,12 @@ const GMUSIC_ARTISTS = {
   'Zon op de gracht': 'Lil Polder',
   'Brugwachter Wacht Niet': 'Orgel Oosterhaven',
   'Naar Boven, Nooit Naar Beneden': 'De Martinitoren Ensemble',
+  'Veenbrand': 'Zware Klei',
+  'Vlucht over de Hereweg': 'Stalen Stuur',
+  'Ridder zonder benzine': 'Ridder Roelof en de Roestbak',
+  'Zwarte bus naar nergens': 'Kleimonster',
+  'Bruggen van turf en wind': 'Terpdonder',
+  'De horizon trekt zijn jas aan': 'Hemelhoog Hendrik en het Weidse Orkest',
 };
 // file names can't carry every character of a title
 const GMUSIC_TITLES = {

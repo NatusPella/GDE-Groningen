@@ -44,25 +44,32 @@ for (const c of CHANNELS) for (const s of (c.pool.styles || [])) ok(styles.has(s
 // 2. de pools en de standen
 const status0 = channelStatus(tracks, { found: [] });
 const of = (id, st = status0) => st.find((s) => s.id === id);
-ok(of('gmusic').status === 'open' && of('gmusic').tracks === tracks.length, 'G-Music draait alle nummers');
+const gTracks = tracks.filter((t) => t.stations.includes('gmusic'));
+ok(of('gmusic').status === 'open' && of('gmusic').tracks === gTracks.length, 'G-Music draait alle nummers van het station gmusic');
+// 22-11: de metalnummers staan op station 'veenvuur' en komen nooit tussen de G-Music-hits
+const metalIds = Object.entries(STYLES).filter(([, v]) => v.includes('metal')).map(([k]) => k);
+ok(metalIds.length >= MIN_POOL, `er zijn minstens ${MIN_POOL} metalnummers (${metalIds.length})`);
+ok(tracks.filter((t) => metalIds.includes(t.id)).every((t) => t.stations.length === 1 && t.stations[0] === 'veenvuur'), 'metalnummers staan alleen op het station veenvuur');
+ok(!gTracks.some((t) => metalIds.includes(t.id)) && !channelTracks(channelById('nachtstreek'), tracks).some((t) => metalIds.includes(t.id)), 'geen metal op G-Music of Nachtstreek');
 ok(of('nachtstreek').status === 'open' && of('nachtstreek').tracks >= MIN_POOL, `Nachtstreek (rustig): ${of('nachtstreek').tracks} nummers`);
 ok(of('wierde').status === 'open' && of('wierde').tracks >= MIN_POOL, `Wierde Radio (streek): ${of('wierde').tracks} nummers`);
 ok(of('ruis').status === 'hidden', 'de geheime zender is verborgen zolang hij niet gevonden is');
 ok(of('noordkust').status === 'soon' && of('noordkust').tracks < MIN_POOL, `Radio Noordkust blijft 'binnenkort' (${of('noordkust').tracks} nummers)`);
 // Veenvuur FM (22-11): het zendergezicht, de veilige terugval met een lege pool en het openen zodra er genoeg metalnummers zijn
 const vv = channelById('veenvuur');
-ok(vv && vv.face && vv.face.icon === 'doodshoofd' && /^#[0-9a-f]{6}$/i.test(vv.face.color), 'Veenvuur FM heeft een zendergezicht (icoon en kleur)');
+ok(vv && vv.face && vv.face.icon === 'doodshoofd' && /^var\(--ds-c-[a-z-]+\)$/.test(vv.face.color), 'Veenvuur FM heeft een zendergezicht (icoon en kleur)');
 ok(vv.lines.length >= 6 && vv.programme.talk.includes('dj') && vv.pool.styles.includes('metal'), 'Veenvuur FM: DJ-regels en de stijl metal');
 const metalTracks = Object.entries(STYLES).filter(([, v]) => v.includes('metal')).length;
 ok(of('veenvuur').status === (metalTracks >= vv.minPool ? 'open' : 'soon') && of('veenvuur').tracks === metalTracks, `Veenvuur FM: ${metalTracks} metalnummers, status ${of('veenvuur').status}`);
 ok(of('veenvuur').icon === 'doodshoofd' && !of('wierde').icon, 'het zendergezicht staat in de lijst; zenders zonder gezicht houden hun weergave');
 {
   const fake = (i) => normalizeTrack({ file: `Metal_Test_${i}.mp3`, stations: ['gmusic'] });
+  const base = tracks.filter((t) => !metalIds.includes(t.id)); // zonder de echte metalnummers
   const six = Array.from({ length: 6 }, (_, i) => fake(i));
   const STY = STYLES;
   for (const t of six) STY[t.id] = ['metal'];
-  ok(channelStatus([...tracks, ...six], { found: [] }).find((s) => s.id === 'veenvuur').status === 'open', 'Veenvuur FM wordt te kiezen zodra er zes metalnummers zijn');
-  ok(channelStatus([...tracks, ...six.slice(0, 5)], { found: [] }).find((s) => s.id === 'veenvuur').status === 'soon', 'met vijf metalnummers blijft hij Binnenkort');
+  ok(channelStatus([...base, ...six], { found: [] }).find((s) => s.id === 'veenvuur').status === 'open', 'Veenvuur FM wordt te kiezen zodra er zes metalnummers zijn');
+  ok(channelStatus([...base, ...six.slice(0, 5)], { found: [] }).find((s) => s.id === 'veenvuur').status === 'soon', 'met vijf metalnummers blijft hij Binnenkort');
   for (const t of six) delete STY[t.id];
 }
 ok(!/(Metallica|Slayer|Iron Maiden|Black Sabbath|Rammstein|Sabaton)/i.test([vv.name, vv.dj, vv.ident, vv.sub, ...vv.lines].join(' ')), 'Veenvuur FM: geen echte band of zender');
@@ -100,10 +107,10 @@ ok(programmeFor(channelById('wierde'), 7).id === 'wierde' && programmeFor(channe
 // 5. anti-herhaling: de echte pickTrack met het geheugen van N nummers en de minutenregel, 3 minuten per nummer
 let seed = 11; const rng = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
 const TRACK_MIN = 3;
-for (const id of ['gmusic', 'nachtstreek', 'wierde', 'ruis']) {
+for (const id of ['gmusic', 'nachtstreek', 'wierde', 'ruis', 'veenvuur']) {
   const c = channelById(id);
   const pool = id === 'gmusic' ? null : channelTracks(c, tracks);
-  const size = (pool || tracks).length;
+  const size = (pool || gTracks).length;
   const history = []; const log = []; const played = [];
   let againMemory = 0, againMinutes = 0;
   for (let i = 0; i < 600; i++) {
