@@ -29,6 +29,9 @@ import { isInsideBuilding } from './pedgeom.js';
 import { isInWater } from './util.js';
 import { addClearZone, removeClearZone } from './clearzone.js';
 import { findSetSpot, setClearZone, roomCameraPose, hasRoomCamera, binnenStaat } from './binnenset.js';
+import { resolveRealSet } from './realsetrun.js';
+import { isRealSet, hallCameraPose, restorePlace, localToWorld } from './realsets.js';
+import { hoofdspeler } from './players.js';
 
 // kantoor, serverkamer, Loket en Oma's keuken, plus de kamers uit roomspec.js (kroeg, woonkamer, garage)
 export const STAGE_SETS = ['kantoor', 'serverkamer', 'loket', 'omakeuken', ...ROOM_KINDS];
@@ -68,6 +71,26 @@ function disposePerson(m) {
   });
 }
 
+// De stap in een echt pand (realsets.js): de figuren (kit-coördinaten) en de plek van de speler (layout.hold) moeten in de hal van een pand
+// bij de speler passen; dan staat de kit-groep daar (op de vloer van het pand, gedraaid zoals het anker) en wordt de speler erheen gezet.
+// null: geen pand, geen interieur of de wereld is er niet (de aanroeper bouwt de losse kamer).
+function realStage(world, kind, player, layout, people, deps = null) {
+  if (!world || world.noRealSets || !layout || !layout.hold) return null;
+  const hold = [layout.hold.x - layout.x, layout.hold.y - layout.y];
+  const points = people.map((p) => ({ f: p.mesh.position.x, s: p.mesh.position.z })).concat([{ f: hold[0], s: hold[1] }]);
+  const r = resolveRealSet(world, kind, { x: player.x, y: player.y }, points, [], deps);
+  if (!r.ok) return null;
+  const [hx, hy] = localToWorld(r.anchor, hold[0], hold[1]);
+  const kitGroup = new THREE.Group();
+  kitGroup.position.set(r.anchor.x, r.base, r.anchor.y);
+  kitGroup.rotation.y = -r.anchor.facing;
+  const pl = { kind, x: r.anchor.x, y: r.anchor.y, hold: { x: hx, y: hy, angle: r.anchor.facing }, facing: r.anchor.facing };
+  return {
+    kitGroup, layout: pl, base: r.base, shift: { x: hx - player.x, y: hy - player.y },
+    handle: { plan: r.plan, b: r.b, gid: r.gid, world, origin: { x: player.x, y: player.y }, release: r.release },
+  };
+}
+
 // The room for this stage, or null when the scene or the map is not there. `targetScene` is
 // for the test: without a running game there is no scene to put the room in yet.
 // opts.gebouwOk (en altijd bij de kroeg en de kruitkelder): een kamer die een kroeg of een kelder voorstelt mag in een gebouw staan (de kroeg zit in dat gebouw, de kruitkelder onder de vesting); alleen water keurt hem af.
@@ -79,6 +102,7 @@ export function buildStageSet(world, kind, player, targetScene = null, opts = {}
   try {
     if (world && world.map && world.map.groundHeightAt) base = world.map.groundHeightAt(layout.x, layout.y, 50) || 0;
   } catch (e) { base = 0; }
+  let noKit = false; // geen plek voor de losse kamer: alleen een echt pand kan nog (hieronder)
   let shift = null; // hoe ver de kamer is verschoven t.o.v. de speler (de hold-stap meet het doel mee, binnenset.js verschoveDoel)
   if (isRoomKind(kind)) {
     // de nieuwe kamers: passen ze niet (grond onbekend, water of een gebouw in de voetafdruk),
@@ -93,19 +117,18 @@ export function buildStageSet(world, kind, player, targetScene = null, opts = {}
       // echt binnen: past de kamer hier niet, dan op de dichtstbijzijnde plek eromheen die wel past; de speler wordt daarheen gezet
       // (de hold van de set houdt hem er) in plaats van de stap buiten te laten spelen (binnenset.js findSetSpot)
       const spot = opts.noSearch ? null : findSetSpot(player.x, player.y, (x, y) => !!fitAt(stageSetLayout(kind, { x, y, angle: player.angle })));
-      if (!spot) return null;
-      layout = stageSetLayout(kind, { x: spot.x, y: spot.y, angle: player.angle });
-      fit = fitAt(layout);
-      shift = { x: spot.x - player.x, y: spot.y - player.y };
+      if (!spot) {
+        // geen plek voor de losse kamer: misschien wel een echt pand (hieronder); zo niet, dan niets (de stap speelt buiten)
+        if ((targetScene && opts.real !== true) || opts.noReal || !isRealSet(kind)) return null;
+        noKit = true;
+      } else {
+        layout = stageSetLayout(kind, { x: spot.x, y: spot.y, angle: player.angle });
+        fit = fitAt(layout);
+        shift = { x: spot.x - player.x, y: spot.y - player.y };
+      }
     }
-    base = fit.z;
+    if (fit) base = fit.z;
   }
-  const kit = isRoomKind(kind) ? buildRoom(kind, layout.x, layout.y, base) : kind === 'kantoor' ? buildOffice(layout.x, layout.y, base)
-    : kind === 'serverkamer' ? buildServerRoom(layout.x, layout.y, base)
-      : kind === 'loket' ? buildLoket(layout.x, layout.y, base)
-        : buildOmaKitchen(layout.x, layout.y, base);
-  const group = new THREE.Group();
-  group.add(kit.group);
   const people = [];
   if (kind === 'kantoor') {
     // the account manager behind the desk (local 3.25 / -0.4), a colleague at work
@@ -131,7 +154,22 @@ export function buildStageSet(world, kind, player, targetScene = null, opts = {}
     // figuren op hun plek in de kamer (roomspec.js houdt ze uit het meubilair)
     ((opts.variant && ROOMS[kind].varianten && ROOMS[kind].varianten[opts.variant]) || ROOMS[kind].npcs).forEach((q, i) => people.push({ mesh: buildPerson(q.key, [q.u, q.v], q.face), anim: (t) => (i === 0 ? 'talk' : (Math.sin(t * 0.7 + i) > 0.2 ? 'talk' : 'idle')), gaze: 0 }));
   }
+  // echte-wereld-set (realsets.js): een kamer in een ECHT pand bij de speler, met de figuren van deze stap erin, en de speler daarheen; past er
+  // geen pand of is er geen interieur (of een testscène zonder wereld), dan de losse kamer hieronder, met een logregel
+  const real = (!targetScene || opts.real === true) && !opts.noReal && isRealSet(kind) ? realStage(world, kind, player, layout, people, opts.realDeps || null) : null;
+  if (!real && noKit) { for (const p of people) disposePerson(p.mesh); return null; }
+  const kit = real ? { group: real.kitGroup } : isRoomKind(kind) ? buildRoom(kind, layout.x, layout.y, base) : kind === 'kantoor' ? buildOffice(layout.x, layout.y, base)
+    : kind === 'serverkamer' ? buildServerRoom(layout.x, layout.y, base)
+      : kind === 'loket' ? buildLoket(layout.x, layout.y, base)
+        : buildOmaKitchen(layout.x, layout.y, base);
+  const group = new THREE.Group();
+  group.add(kit.group);
   for (const p of people) kit.group.add(p.mesh);
+  if (real) {
+    scene.add(group);
+    fadeIntoSet();
+    return { kind, layout: real.layout, base: real.base, variant: opts.variant || null, group, kit, people, t: 0, hold: real.layout.hold, shift: real.shift, zone: false, real: real.handle };
+  }
   scene.add(group);
   fadeIntoSet();
   // echt binnen: de wereld blijft buiten de kamer (voetgangers, verkeer en losse props wijken; de sweep ruimt ze op)
@@ -151,6 +189,7 @@ export function updateStageSet(set, dt) {
 // De kamercamera van deze set op dit moment (binnenset.js), of null (geen hold: de speler loopt vrij rond).
 export function stageSetCamera(set) {
   if (!set || !hasRoomCamera(set.kind, set.layout)) return null;
+  if (set.real) return hallCameraPose(set.real.plan, set.layout, set.base || 0, set.t);
   return roomCameraPose(set.kind, set.layout, set.base || 0, set.t);
 }
 
@@ -162,6 +201,22 @@ export function stageSetBinnen(set) {
 export function disposeStageSet(set) {
   if (!set) return;
   if (set.zone) { removeClearZone('binnenset'); set.zone = false; }
+  if (set.real) {
+    // echt pand: de speler komt terug op zijn beginplek (of vlak buiten de deur) en het pand valt onder de gewone afstandsregels
+    const h = set.real;
+    try {
+      const p = h.world ? hoofdspeler(h.world) : null;
+      const at = p ? restorePlace(h.plan, h.origin, p) : null;
+      if (at) {
+        p.x = at.x; p.y = at.y; p.vx = 0; p.vy = 0;
+        if (typeof at.angle === 'number') p.angle = at.angle;
+        const m = h.world.map;
+        if (m && m.groundHeightAt) p.gz = m.groundHeightAt(at.x, at.y, 50) || 0;
+      }
+    } catch (e) { console.error('echte set terugzetten', e); }
+    h.release();
+    set.real = null;
+  }
   if (set.kit && typeof set.kit.dispose === 'function') set.kit.dispose();
   for (const p of set.people) disposePerson(p.mesh);
   set.group.removeFromParent();

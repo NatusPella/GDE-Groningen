@@ -24,6 +24,7 @@ import { propSource, TABLE_SIT, CARRY_LOW } from './cutscenemodels.js';
 import { DECOR_MAKERS } from './storyprops.js';
 import { compileScene, fitAnchor, resolveTime, shotPoints, roadPathDef } from './cutscript.js';
 import { jumpsFromScene } from './cutscenewarm.js';
+import { sceneSamples, isRealSet } from './realsets.js';
 import { roofAt } from './camerapath.js';
 import { animateActor, beginSceneActors } from './actoranim.js';
 import { applyClipsHuman, applyClipsCat, resetCat } from './poseclips.js';
@@ -216,7 +217,7 @@ function disposeTree(o) {
   });
 }
 
-function buildScriptRun(def, scene, anchor, env = null, w = null) {
+function buildScriptRun(def, scene, anchor, env = null, w = null, noKit = false) {
   const group = new THREE.Group();
   group.name = 'cutscript-' + def.id;
   const actors = {}, props = {};
@@ -253,7 +254,9 @@ function buildScriptRun(def, scene, anchor, env = null, w = null) {
   const fx = [...authored, ...planned].sort((a, b) => a.t0 - b.t0);
   const fired = new Set();
   const cupState = {}, cupKey = {};
-  if (def.set === 'keuken') {
+  if (noKit) {
+    // echte set (realsets.js): het pand zelf is de kamer, er is geen kit en dus geen kitfx (alleen sfx en naamkaarten)
+  } else if (def.set === 'keuken') {
     kit = buildKitchen(anchor.x, anchor.y, anchor.z || 0);
     group.add(kit.group);
     kit.reset();
@@ -530,12 +533,18 @@ export function cutHostEinde(w, id, { skipped = false, replaced = false } = {}) 
 // replay: een gast speelt de scène van de gastheer na (coopcut.js); die stuurt niets door en slaat niets over
 // voices: de opnames die de scène zelf afspeelt (missionstory.js), op volgorde van lines; ze gaan alleen mee in het
 // pakket voor de gasten (#711), zodat die dezelfde stem horen en dezelfde ondertiteltijden houden.
-export function playScript(w, def, { lines, duration, anchor, cine = {}, env: envIn = null, fit = null, replay = false, voices = null } = {}) {
+// De echte-wereld-sets (realsetrun.js) hangen aan het interieursysteem, dat weer aan de winkels en bijbanen hangt: main.js geeft de resolver mee
+// (assignRealSetResolver) zodat dit bestand er niet in een importcirkel aan vastzit. Zonder resolver speelt elke scène in zijn kit zoals voorheen.
+let realSetResolver = null;
+export function assignRealSetResolver(fn) { realSetResolver = typeof fn === 'function' ? fn : null; }
+
+export function playScript(w, def, { lines, duration, anchor, cine = {}, env: envIn = null, fit = null, replay = false, voices = null, realSet = true } = {}) {
   if (current) return false;
   const root = getScene();
   if (!root) return false;
   const p = hoofdspeler(w);
-  const a = anchor ? { ...anchor } : { x: p.x, y: p.y, facing: p.angle || 0, z: 0 };
+  let a = anchor ? { ...anchor } : { x: p.x, y: p.y, facing: p.angle || 0, z: 0 };
+  const anchor0 = { ...a }; // het anker zoals de aanroeper het gaf: bij een echte set stuurt de gastheer dit mee, zodat de gast dezelfde keuze maakt
   // (#950) een kantoorset staat op de begane grond: de vloerhoogte komt van de kaart
   if ((def.set === 'kantoor' || def.set === 'serverkamer' || def.set === 'loket' || def.set === 'omakeuken') && !a.z && w && w.map && w.map.groundHeightAt) {
     try { a.z = w.map.groundHeightAt(a.x, a.y, 50) || 0; } catch (e) { a.z = 0; }
@@ -566,9 +575,18 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
     console.error('cutscript', e);
     return false;
   }
+  // echte-wereld-set (realsets.js): speelt de scène in een kamer, dan in een ECHT pand bij het anker (met zijn gevel en ramen naar de straat)
+  // en niet in een decor in de lucht; geen geschikt pand, geen interieur of de wereld is er niet: de bestaande kit, met een logregel
+  let real = null;
+  if (realSet && realSetResolver && isRealSet(def.set) && w && !w.noRealSets) {
+    const smp = sceneSamples(scene);
+    const r = realSetResolver(w, def.set, { x: anchor0.x, y: anchor0.y }, smp.actors, smp.cams);
+    if (r.ok) real = r;
+  }
+  if (real) a = real.anchor;
   // nobody and no camera inside a building: the anchor turns to free ground, a camera in a wall moves (cutscript.js)
-  const indoors = isRoomKind(def.set) || def.set === 'keuken' || def.set === 'kantoor' || def.set === 'serverkamer' || def.set === 'loket' || def.set === 'omakeuken';
-  const env = envIn ? { ...envIn, tree: envIn.tree || (def.set ? null : treeEnv(w && w.map)) } : (isRoomKind(def.set)
+  const indoors =isRoomKind(def.set) || def.set === 'keuken' || def.set === 'kantoor' || def.set === 'serverkamer' || def.set === 'loket' || def.set === 'omakeuken';
+  const env = envIn ? { ...envIn, tree: envIn.tree || (def.set ? null : treeEnv(w && w.map)) } : real ? real.env : (isRoomKind(def.set)
     ? { solid: () => false, clamp: (x, y, z, kind) => (kind === 'camera' ? roomClamp(def.set, { x: a.x, y: a.y, z: a.z || 0 }, x, y, z) : null) }
     : def.set === 'keuken'
     ? kitchenEnv({ x: a.x, y: a.y, z: a.z || 0 })
@@ -581,7 +599,7 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
           : def.set === 'omakeuken'
             ? omaKeukenEnv({ x: a.x, y: a.y, z: a.z || 0 })
             : { solid: (x, y, z) => roofAt(w.map, x, y) > z - 0.2, tree: treeEnv(w && w.map) });
-  const at = indoors ? { ...a, facing: 0 } : fitAnchor(scene, a, env, fit || {});
+  const at = real ? real.anchor : indoors ? { ...a, facing: 0 } : fitAnchor(scene, a, env, fit || {});
   // #862/#863: een rijdend voertuig of een fietser volgt de echte weg in plaats van een rechte lijn
   // in het ankerframe. De scene wordt één keer bij de start omgezet (niet per frame); de gasten
   // krijgen dezelfde definitie en zetten die met hun eigen kaart opnieuw om.
@@ -622,7 +640,7 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
     onStart() {
       if (cine.onStart) cine.onStart();
       try {
-        run = buildScriptRun(useDef, useScene, at, env, w);
+        run = buildScriptRun(useDef, useScene, at, env, w, !!real);
         root.add(run.group);
         current = run;
         w.cinematicHidePlayers = true;
@@ -654,10 +672,13 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
       const pose = run.frame(t, dt);
       // a hand-made camera for part of the scene (cine.shotOverride(t): a pose, or null to leave it to the script), e.g. the falling flag (M24.3)
       const own = cine.shotOverride ? cine.shotOverride(t) : null;
-      return own || pose;
+      const out = own || pose;
+      if (real && out) out.interior = true; // de camera staat in een hal: niet over het dak tillen (scene3d.js guardCinematicCamera)
+      return out;
     },
     onEnd(skipped, replaced) {
       if (run) { run.dispose(); run = null; }
+      if (real) real.release();
       current = null;
       if (cardNow) setNameCard(null);
       w.cinematicHidePlayers = false;
@@ -668,7 +689,8 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
     },
   });
   // samen spelen: de gasten spelen dezelfde scène (na de start, zodat een scène die niet begint ook niet wordt doorgestuurd)
-  if (ok && !replay && w.coopNet && w.coopNet.role === 'host') cutHostStart(w, cutId, cutPakket({ def: useDef, lines: sceneLines, duration: sceneDur, anchor: at, cine, voices }));
+  if (!ok && real) real.release();
+  if (ok && !replay && w.coopNet && w.coopNet.role === 'host') cutHostStart(w, cutId, cutPakket({ def: useDef, lines: sceneLines, duration: sceneDur, anchor: real ? anchor0 : at, cine, voices }));
   return ok;
 }
 
