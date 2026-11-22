@@ -11,6 +11,15 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Onboarding en voortgang
+- Voortgang: bijna klaar staat niet meer als "100% klaar" en net begonnen niet meer als "0% klaar"; 100% krijg je pas als alles echt gedaan is.
+- Hulp: het doel staat bovenin beeld en dat zeggen de hulppagina's nu ook.
+- Uitleg: de kaarten van trekker en vliegtuig zijn korter; fatbike, vrachtwagen, discgolf, pitch & putt en de kartbaan krijgen uitleg met plaatjes.
+- Uitleg: wie een bestaand spel laadt krijgt de tip over de kaart ook; "Uitleg opnieuw tonen" zegt eerlijk dat je de uitleg eerst aan moet zetten als die uit staat.
+- Toetsen in meldingen (kaart, Zitmoi, brandende auto, trein kapen) volgen nu je eigen toets of controllerknop.
+- Reiskeuze: met pijl omhoog en omlaag kies je ook met het toetsenbord, net als met een controller.
+- Terugblik "Waar waren we?" knipt niet meer midden in een afkorting; de moeilijkheidskaart zegt waar je Toegankelijkheid vindt.
+
 ### Prestaties
 - Prestaties (#1074, #1067): als het spelvenster verborgen of op de achtergrond is, doen de vaste controles van de overlays, het Samen-paneel en het aanraakscherm niets meer; de kartmotor wordt bij het verlaten van de baan echt stopgezet. Samen spelen: lokaal per speler, geen netwerkwijziging; testsessies met `?stil` blijven gewoon tikken. Voor de metingen staan er twee A-schakelaars (`?perfoff=boomfade`, `?perfoff=gevelfade`).
 ### Kaart en HUD
