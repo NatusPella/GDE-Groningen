@@ -9,6 +9,7 @@ import * as O from './voetbalontwikkeling.js';
 import { registerTrainer } from './voetbalcarriereui.js';
 import { drillFor, newDrill, stepDrill, drillScore, drillStatus, sfxFor, medalOf } from './voetbaltraining.js';
 import { buildDrillProps } from './voetbaltraining3d.js';
+import { kitAan, kitUit } from './voetbalkitlive.js';
 
 // De uitvoering van de trainingsminigames (#1109): een korte oefening op het gras naast je, met de props uit voetbaltraining3d.js en de regels uit voetbaltraining.js.
 // Hij leeft als "extra activiteit" in activities.js (de speler staat stil terwijl de oefening loopt) maar staat niet in de lijst met spelplekken: je start hem in het kindscherm
@@ -39,6 +40,7 @@ function launchExercise(w, focus) {
   const seed = (c.day | 0) * 31 + (c.seasonNr | 0);
   const state = newDrill(drill.id, seed);
   game = { w, drill, state, focus, phase: 'intro', t: INTRO_S, heading, origin: { x: p.x, y: p.y }, ground: Number.isFinite(p.z) ? p.z : 0, cam: null, dt: 1 / 60, prevAct: false, flash: drill.kort, bad: false, score: null, input: { ax: 0, ay: 0, act: false, press: false, rel: false } };
+  kitAan(w, { mode: 'training' });   // trainingsshirt met hesje (voetbalkleding 22-11); end() geeft de eigen kleren terug
   props = buildDrillProps(THREE, state, game.origin, heading, game.ground);
   try { getScene().add(props.group); } catch (e) { /* zonder scène geen props: de oefening loopt gewoon */ }
   ensureBoard().show();
@@ -54,6 +56,7 @@ function end(w, { quit = false } = {}) {
   const p = hoofdspeler(w);
   if (p) { p.moving = false; p.speed = 0; }
   if (board) board.hide();
+  kitUit();
   if (props) { try { getScene().remove(props.group); } catch (e) { /* scène al weg */ } props.dispose(); props = null; }
   if (quit && w.addMessage) w.addMessage('Training gestopt, geen winst', 2.5);
 }

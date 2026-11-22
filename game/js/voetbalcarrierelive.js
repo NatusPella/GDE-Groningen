@@ -17,6 +17,7 @@ import { playerBusy } from './busy.js';
 import { narrativeBusy } from './narrative.js';
 import { makeSponsorPandIndex } from './voetbalbezit.js';
 import { betaalBanenUitgave } from './sidejobwereld.js';
+import * as KIT from './voetbalkit.js';
 
 const WRITE_DELAY_MS = 1500;
 let career = null, storageOverride = null, timer = 0, dirty = false, prevClock = null, index = null;
@@ -93,11 +94,26 @@ export function updateDay(dt, w) {
   if (!night || !C.hasCareer(c)) return null;
   return advance(w, 1);
 }
+// Het clubtenue groeit mee met de klasse (voetbalkit.js levelSync, docs/VOETBALKLEDING-22-11.md): bij promotie of degradatie (en bij de eerste wedstrijd) komen de stukken van het
+// nieuwe niveau in de kast van Tammo en Tessa en volgt een kleine melding. De vlag kitLvl staat in de carrièrevlaggen (een getal).
+export function kitSync(w) {
+  const c = getCareer();
+  if (!C.hasCareer(c)) return null;
+  const club = getClub(c.club);
+  if (!club) return null;
+  const r = KIT.levelSync(c, club);
+  if (!r.changed) return null;
+  career = { ...career, flags: { ...career.flags, kitLvl: r.flag } };
+  mark();
+  if (w && w.addMessage) w.addMessage(KIT.levelMessage(r.to), 4);
+  return r;
+}
 export function advance(w, nights) {
   const r = C.advanceDays(getCareer(), nights, getClub);
   career = r.career;
   const paid = payEarn(w, r.earn, { label: 'Voetbal' });
   unlockFor(w, career, { report: r.report || null });
+  kitSync(w);
   if (w && w.addMessage) for (const n of r.notes.slice(0, 3)) w.addMessage(n, 4);
   mark();
   return { ...r, paid };
@@ -132,6 +148,7 @@ export function finishMatch(w, result) {
   const paid = payEarn(w, r.summary.earn, { label: r.summary.played ? 'Voetbal' : 'Uitgerekend', xp: r.summary.played ? 20 : 8 });
   if (w && w.addMessage && r.summary.injury) w.addMessage(r.summary.injury.text, 5);
   unlockFor(w, career, { summary: r.summary });
+  kitSync(w);
   mark();
   return { ...r, paid };
 }

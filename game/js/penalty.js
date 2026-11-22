@@ -4,6 +4,7 @@ import { getSettings } from './settings.js';
 import { difficultyRecordKey, cleanDifficulty } from './difficulty.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
+import { kitAan, kitUit } from './voetbalkitlive.js';
 import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
 import { activityBlock, iconDisc } from './activitykit.js';
@@ -218,6 +219,7 @@ function start(w, { force = false, online = null } = {}) {
   if (!built) built = bouw(w);
   const p = hoofdspeler(w);
   enterActivity(w, 'voetbal');   // voetballen doe je als Tessa (karakterbonus.js); end() wisselt terug
+  kitAan(w, { mode: 'wedstrijd' });   // het clubtenue (of de neutrale trainingsset), voetbalkleding 22-11; end() geeft de eigen kleren terug
   if (p.inVehicle && p.exitVehicle) p.exitVehicle(w.map, w);
   if (online) { ensureBoard(); board.show(); } // solo staat de strook (simhud.js) in beeld; het bord blijft voor de stand van de anderen
   runs++;
@@ -361,6 +363,7 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   if (!g) return;
   game = null;
   endActivity(w, 'voetbal');
+  kitUit();
   karakterEind(w, g.bon);
   w.companionHold = null;
   w.cameraOverride = null;

@@ -216,6 +216,8 @@ const RAW = [
   ...KIT_RAW,
 ];
 
+// de voetbalkleding als groep: de kast en de winkel tonen ze onder Sport (clothingpanel.js)
+export const SPORT_IDS = new Set(KIT_RAW.map((r) => r[0]));
 export const ITEMS = RAW.map(([id, slot, kind, label, base, r, profiles, colors, desc, npc]) => ({
   id, slot, kind, label, base, rarity: r, profiles, colors, desc, npc: !!npc,
   price: Math.round(base * RARITY[r].mult),
