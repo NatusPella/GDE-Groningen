@@ -283,12 +283,18 @@ export function markStay(ls, n) {
   idx.stay = true;
   return writeIndex(ls, idx);
 }
+export function clearStay(ls) {
+  const idx = readIndex(ls);
+  if (!idx.stay) return true;
+  delete idx.stay;
+  return writeIndex(ls, idx);
+}
 export function pickLatest(ls) {
   const idx = readIndex(ls);
+  // de vlag blijft staan tot het spel geladen is (clearStay, via bindSlot): de boot vraagt het meer dan eens
   if (idx.stay) {
-    delete idx.stay;
-    writeIndex(ls, idx);
     if (readSlot(ls, idx.active).state !== 'leeg') return idx.active;
+    clearStay(ls);
   }
   if (idx.fresh) {
     if (readSlot(ls, idx.active).state === 'leeg') return idx.active;

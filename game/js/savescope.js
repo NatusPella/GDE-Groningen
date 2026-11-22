@@ -27,7 +27,7 @@ const del = (ls, k) => { try { ls.removeItem(k); } catch (e) { /* ignore */ } };
 export function readOwner(ls) {
   const raw = get(ls, META_KEY);
   if (raw == null) return null; // nog nooit toegewezen: de werksleutels zijn nog gedeeld (migratie)
-  try { const d = JSON.parse(raw); return d && Number.isInteger(d.owner) ? d.owner : 0; } catch (e) { return 0; }
+  try { const d = JSON.parse(raw); return d && Number.isInteger(d.owner) ? d.owner : null; } catch (e) { return null; } // kapotte meta: als nog niet toegewezen
 }
 const writeOwner = (ls, n) => set(ls, META_KEY, JSON.stringify({ v: 1, owner: n }));
 
@@ -49,7 +49,7 @@ export function activateScope(ls, want, legacyOwner = 0) {
   for (const k of keys) {
     del(ls, k);
     const v = get(ls, stashKey(want, k));
-    if (v != null) { set(ls, k, v); del(ls, stashKey(want, k)); }
+    if (v != null && set(ls, k, v)) del(ls, stashKey(want, k)); // de opzij gezette kopie blijft als terugzetten mislukt
   }
   writeOwner(ls, want);
   return { changed: true, from: owner, to: want };

@@ -92,7 +92,9 @@ ok(SCOPED_KEYS.every((k) => KEYS[k]), 'elke gescopete sleutel bestaat in KEYS');
   ok(S.pickLatest(ls) === 2, 'boot: laatst bewaarde save');
   S.markStay(ls, 1);
   ok(S.pickLatest(ls) === 1, 'stay: de gekozen save opent');
-  ok(S.pickLatest(ls) === 2, 'stay geldt één keer');
+  ok(S.pickLatest(ls) === 1, 'stay: ook voor een tweede lezer in dezelfde boot (savescopeactivate, main, startscreen)');
+  S.clearStay(ls);
+  ok(S.pickLatest(ls) === 2, 'na het laden (bindSlot) is de stay-vlag weg');
   ls.setItem(`gde-scope-3:${KEYS.exploration}`, 'oud');
   const m = S.createSlot(ls, 'x', 3, true);
   ok(m === 3 && ls.getItem(`gde-scope-3:${KEYS.exploration}`) === null, 'createSlot: opzij gezette voortgang van die plek is weg');
@@ -102,6 +104,19 @@ ok(SCOPED_KEYS.every((k) => KEYS[k]), 'elke gescopete sleutel bestaat in KEYS');
   const leeg = storyCounts({});
   ok(leeg.done === 0 && leeg.total > 0, `Verhaal 0 van ${leeg.total} bij een nieuw spel`);
   ok(saveProgress({}) === 0, 'voortgang van een nieuwe save is 0%');
+}
+// zonder enige save: het nieuwe spel neemt de gedeelde inhoud over, niets onder 0
+{
+  const ls = new Mem();
+  ls.setItem(KEYS.exploration, '{"verkend":5}');
+  activateScope(ls, 1, 1);
+  ok(ls.getItem(KEYS.exploration) === '{"verkend":5}' && readOwner(ls) === 1, 'profiel zonder save: eerste save adopteert');
+}
+// kapotte meta leest als niet toegewezen
+{
+  const ls = new Mem();
+  ls.setItem('gde-save-scope', '{kapot');
+  ok(readOwner(ls) === null, 'kapotte meta = niet toegewezen');
 }
 console.log(fails ? `${fails} van ${n} mislukt` : `savescope_test: ${n}/${n} ok`);
 process.exit(fails ? 1 : 0);

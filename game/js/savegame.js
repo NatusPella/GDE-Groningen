@@ -40,7 +40,7 @@ import { getRenderer, afterNextFrame } from './scene3d.js';
 import { plekNaam } from './saveplek.js';
 import { ommelandArea } from './ommelandplace.js';
 import { areaNameAt } from './regions.js';
-import { saveFailText, newSlotName, takenNames, readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive, pickLatest, repairSlot, writeBackupOnce, isFresh, clearFresh, newerVersionOf, markLegacyCardSeen as markSlotLegacyCardSeen, markStay } from './saveslots.js';
+import { saveFailText, newSlotName, takenNames, readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive, pickLatest, repairSlot, writeBackupOnce, isFresh, clearFresh, newerVersionOf, markLegacyCardSeen as markSlotLegacyCardSeen, markStay, clearStay } from './saveslots.js';
 import { readOwner as readScopeOwner } from './savescope.js'; // 22-11: voortgang per save
 import { isLegacyStorySave, legacyCardNeeded } from './legacysave.js'; // 22-11: de kaart "Nieuw verhaal" bij een oude save
 import { logError } from './errorlog.js';
@@ -77,7 +77,7 @@ let world = null;
 let boundSlot = 0;
 const saveTarget = () => boundSlot || activeSlot();
 // follows the shared active slot (after the saves screen or a new game chose it)
-export function bindSlot() { boundSlot = activeSlot(); }
+export function bindSlot() { boundSlot = activeSlot(); try { clearStay(null); } catch (e) { /* geen opslag */ } }
 let dirtyIn = -1;
 // #584: a deliberate reload that starts a new game throws the current progress away. That flow
 // calls preventCloseSave() so the leave handlers cannot write the old world over the fresh slot.

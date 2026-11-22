@@ -341,7 +341,6 @@ export function openSaveSlots(opts = {}) {
       if (gastInSessie()) { say(GAST_LEGE_PLEK_TEKST); return; }
       const was = S.activeSlot();
       const m = S.freeSlot() ? S.createSlot(null, S.newSlotName(S.takenNames(null)), want) : 0;
-      if (m) forkScope(localStorage, m); // 22-11: het lopende spel gaat verder als de nieuwe save: die erft de voortgang
       if (!m) { say('Alle plekken zijn in gebruik.'); return; }
       bindSlot();
       if (!saveGame(world, { toast: false, manual: true })) {
@@ -353,6 +352,7 @@ export function openSaveSlots(opts = {}) {
         render();
         return;
       }
+      forkScope(localStorage, m); // 22-11: pas na het opslaan: het lopende spel gaat verder als de nieuwe save en erft de voortgang
       sel = m; message = 'Opgeslagen.'; render({ slot: m });
       return;
     }

@@ -12,7 +12,7 @@ try {
       let legacy = 0;
       if (readOwner(localStorage) == null) {
         const best = listSlots(null).filter((x) => x.summary).sort((a, b) => b.summary.savedAt - a.summary.savedAt)[0];
-        legacy = best ? best.n : 0;
+        legacy = best ? best.n : want; // geen save: het nieuwe spel neemt de gedeelde inhoud over (niets blijft onder 0 liggen)
       }
       activateScope(localStorage, want, legacy);
     }
