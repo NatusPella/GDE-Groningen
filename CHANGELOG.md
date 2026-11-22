@@ -17,6 +17,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Verhaal en personages
 
+- Eindkaart van een missie: "Missie geslaagd" stond twee keer op de kaart; nu staat er het Gronings "Mooi, dat gaait!" onder het kleine label. Een lange regel (20 missies) werd midden in een zin afgekapt en verloor "Nieuw doel: ..."; nu wordt er op een zin geknipt en blijft het doel staan.
+- Recapkaart "Waar waren we?": als er ruimte is, blijft de hele opdracht staan in plaats van alleen de eerste zin ("Eerst de mosterd." werd "Eerst de mosterd. Vaar voor Jelles mosterdschip uit, dan sluit hij de bruggen achter je."); het "waar het om draait" gaat eerst weg.
+- Een nieuw weetje meldt zich als "Opgevallen", "Onthouden" of "Gronings geleerd" en belooft geen lijst Aanwijzingen meer die er niet is.
+- Aftitels: Beppe krijgt een naamkaart en de verzoening van Grunn en Fryslân een terugblikkaart (soep met een eierbal).
+- Opening: de zucht van Tammo als de duif op zijn schouder landt en de klap van de stikker VERKOCHT hebben nu geluid (alleen met `?openingfilm`).
 - Verhaal: humorronde met een paneel van drie beoordelaars voor de nieuwe stappen N1-N8 (Sjabbe, Veldkamp, Oma Trijntje, Klaas en anderen kregen een andere pointe); ook de winnaars voor de eerste 40 voetbalregels.
 - Verhaal: het slot krijgt zes extra scènes. Tessa ontdekt de snackwagen langs een zandweg, Tammo en Tessa bouwen hem samen, Beppe en Oma Trijntje delen een keuken (Grunn en Fryslân verzoend), Jelle sluit achteraan de rij aan voor een eierbal van zijn oma en ze worden een stel op de kade. Na het proefbeleg legt Tessa de kaart op het luik: wedstrijd met Jelle, de wereld blijft open. De aftiteling begint met korte terugblikgrappen. Oude spelstanden spelen de nieuwe stappen niet opnieuw.
 - Verhaal: de dialoog van 15 bestaande scènes (onder meer Berend en het bakkie, Sjabbe, het Loket, Oma Trijntjes kamer, Klaas, Wubbo, Mem en de bal, de jurytafel, het krijgsberaad) is herschreven naar korte beurten met reacties die door elkaar heen praten, stiltes na de pointe en meer emotie op de sleutelmomenten; de nieuwe regels worden opnieuw ingesproken.
