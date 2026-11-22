@@ -7,7 +7,7 @@ const THREE = await import('three');
 const W = await import('../game/js/wildlife.js');
 const [out = 'dieren_blad', soort = 'kip', ns = '8'] = process.argv.slice(2); const n = +ns;
 mkdirSync(out, { recursive: true });
-const bouw = { kip: (i) => W.buildChickenMesh3D(i), koe: (i) => W.buildCowMesh3D(0.1 + i * 0.25, i % 5 === 4), schaap: () => W.buildSheepMesh3D(), eend: (i) => W.buildDuckMesh3D(['drake', 'hen'][i % 2]) }[soort];
+const bouw = { kip: (i) => W.buildChickenMesh3D(i), koe: (i) => W.buildCowMesh3D(0.1 + i * 0.25, i % 5 === 4), schaap: (i) => W.buildSheepMesh3D(i), eend: (i) => W.buildDuckMesh3D(['drake', 'hen'][i % 2]) }[soort];
 const pos = [], col = [], span = { kip: 0.6, koe: 2.6, schaap: 1.4, eend: 0.6 }[soort], hoog = { kip: 0.5, koe: 1.6, schaap: 1.1, eend: 0.4 }[soort];
 for (let i = 0; i < n; i++) {
   const g = bouw(i);

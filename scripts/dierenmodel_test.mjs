@@ -42,6 +42,30 @@ ok(W.buildChickenMesh3D(99).userData.kipVariant === 0 && W.buildChickenMesh3D(Na
 // de haan is hoger en heeft een grotere staart dan de hen van dezelfde look
 ok(meet(W.buildChickenMesh3D(W.KIP_VARIANTEN / 2)).hi > meet(W.buildChickenMesh3D(0)).hi, 'de haan is hoger dan de hen (kam)');
 
+// schapen: vier soorten, elk een eigen kleur en geometrie, eindig en binnen de begroting
+{
+  const geo = (g) => { let r; g.traverse((o) => { if (o.isSkinnedMesh) r = o.geometry; }); return r; };
+  const gem = (g) => { const c = geo(g).attributes.color; let r = 0, gg = 0, b = 0; for (let i = 0; i < c.count; i++) { r += c.getX(i); gg += c.getY(i); b += c.getZ(i); } return (r + gg + b) / (3 * c.count); };
+  ok(W.SHEEP_VARIANTEN === 4, 'vier soorten schaap');
+  const lum = [];
+  for (let v = 0; v < W.SHEEP_VARIANTEN; v++) {
+    const g = W.buildSheepMesh3D(v), m = meet(g);
+    ok(m.bad === 0 && m.tris <= 520 && m.lo > -0.01 && m.lo < 0.02, `schaap ${v}: eindig, begroting en poten op de grond`, JSON.stringify(m));
+    lum.push(gem(g));
+    ok(geo(g) === geo(W.buildSheepMesh3D(v)), `schaap ${v}: gedeelde geometrie`);
+  }
+  ok(new Set(lum.map((x) => x.toFixed(3))).size === 4 && Math.max(...lum) - Math.min(...lum) > 0.15, 'de vier soorten zijn zichtbaar anders van kleur', lum.map((x) => x.toFixed(2)).join());
+  ok(W.buildSheepMesh3D(-1).userData.head && geo(W.buildSheepMesh3D(7)) === geo(W.buildSheepMesh3D(0)) && geo(W.buildSheepMesh3D(NaN)) === geo(W.buildSheepMesh3D()), 'een onbekende soort valt terug op de eerste');
+  // het zaad naar de soort: elk zaad geeft een soort, een zaad van een sleutel komt terug als dezelfde soort (countryside.js: sleutel sheepN)
+  const soorten = new Set();
+  for (let i = 0; i < 200; i++) soorten.add(W.sheepVariantOf(i / 200));
+  ok(soorten.size === 4, 'zaden verdelen over alle vier de soorten');
+  for (let v = 0; v < 4; v++) ok(W.sheepVariantOf(v / 1000) === v, `de sleutel sheep${v} geeft weer soort ${v}`);
+  ok(W.sheepVariantOf(NaN) === 0 && W.sheepVariantOf(Infinity) === 0 && W.sheepVariantOf(-0.37) === W.sheepVariantOf(0.37), 'ongeldige zaden vallen terug');
+  const cs = fs.readFileSync(new URL('../game/js/countryside.js', import.meta.url), 'utf8');
+  ok(cs.includes("'sheep' + sheepVariantOf(a.bobSeed)") && cs.includes("key.startsWith('sheep')"), 'countryside.js geeft elke soort een eigen sleutel en sjabloon');
+}
+
 // poses
 const seen = new Set();
 for (const model of ['cow', 'sheep', 'hen']) {

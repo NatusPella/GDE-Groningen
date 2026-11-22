@@ -6,7 +6,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { getScene, disposeObject } from './scene3d.js';
 import { hoofdspeler } from './players.js';
 import { getBezit } from './bezitlive.js';
-import { buildCowMesh3D, buildSheepMesh3D, buildChickenMesh3D, KIP_VARIANTEN, poseHerdAnimal } from './wildlife.js';
+import { buildCowMesh3D, buildSheepMesh3D, sheepVariantOf, buildChickenMesh3D, KIP_VARIANTEN, poseHerdAnimal } from './wildlife.js';
 import { isInWater } from './util.js';
 import { herdsVisible, planHerds, diffHerds, herdSig, animalLayout } from './herdview.js';
 
@@ -16,7 +16,7 @@ const ground = (w, x, y) => (w.map && w.map.groundHeightAt ? w.map.groundHeightA
 
 // Een echte kip (vier looks, een op de zes een haan) in plaats van een eend; elk dier krijgt een vaste pose (staan, kijken, grazen) naar zijn zaad.
 export function animalMesh(model, a) {
-  const m = model === 'cow' ? buildCowMesh3D(a.seed, a.red) : model === 'sheep' ? buildSheepMesh3D() : buildChickenMesh3D(Math.floor(a.seed * KIP_VARIANTEN));
+  const m = model === 'cow' ? buildCowMesh3D(a.seed, a.red) : model === 'sheep' ? buildSheepMesh3D(sheepVariantOf(a.seed)) : buildChickenMesh3D(Math.floor(a.seed * KIP_VARIANTEN));
   poseHerdAnimal(m, model, (a.seed * 3.7) % 1);
   return m;
 }
