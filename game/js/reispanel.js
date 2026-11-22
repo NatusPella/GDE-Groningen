@@ -2,7 +2,7 @@
 // ways of getting to the next step. Thin DOM layer; the text and the keys come
 // from reisview.js. askTravel(beat) resolves with 'meerijden' | 'zelf' | 'overslaan'.
 import { createChoicePanel } from './choicepanel.js';
-import { panelState, pickFromKey, cyclePick, TRAVEL_HELP_ID } from './reisview.js';
+import { panelState, pickFromKey, cyclePick, keyAction, TRAVEL_HELP_ID } from './reisview.js';
 import { markSeen, parseSeen } from './hudtext.js';
 import { KEYS } from './storagekeys.js';
 import { travelOptions } from './reiskeuze.js';
@@ -48,10 +48,13 @@ export function askTravel(beat) {
     };
     const onKey = (e) => {
       if (e.repeat) return;
-      const id = pickFromKey(beat, e.key);
-      if (id) { e.preventDefault(); e.stopPropagation(); finish(id); }
-      else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); finish(pick); }
-      else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish(null); } // sluit: de standaardkeuze (#92)
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const a = keyAction(beat, pick, e.key);
+      if (!a) return;
+      e.preventDefault(); e.stopPropagation();
+      if (a.markeer) { pick = a.markeer; p.set(panelState(beat, pick, loadSeen())); }
+      else if (a.kies) finish(a.kies);
+      else finish(null); // sluit: de standaardkeuze (#92)
     };
     document.addEventListener('keydown', onKey, true);
     // Gamepad: D-pad up/down picks, A confirms, B closes; a button already down on opening does

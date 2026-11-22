@@ -47,6 +47,19 @@ export function cyclePick(beat, pick, dir) {
   return ids[(i + (dir < 0 ? -1 : 1) + ids.length) % ids.length];
 }
 
+// Toetsenbord, gelijk aan het pad (#97): pijlen en W/S verplaatsen de markering, 1/2/3 kiezen meteen, Enter bevestigt de markering,
+// Escape sluit (de standaardkeuze). Geeft { markeer: id }, { kies: id }, { sluit: true } of null (de toets is niet van het paneel).
+export function keyAction(beat, pick, key) {
+  const k = String(key);
+  if (['ArrowUp', 'w', 'W'].includes(k)) return { markeer: cyclePick(beat, pick, -1) };
+  if (['ArrowDown', 's', 'S'].includes(k)) return { markeer: cyclePick(beat, pick, 1) };
+  const direct = pickFromKey(beat, k);
+  if (direct) return { kies: direct };
+  if (k === 'Enter' || k === ' ') return { kies: pick };
+  if (k === 'Escape') return { sluit: true };
+  return null;
+}
+
 // the HUD line while driving: remaining distance and ETA
 export function hudLine(remaining, mode = 'auto') {
   if (!(remaining > 0)) return '';

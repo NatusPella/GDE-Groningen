@@ -11,6 +11,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Flow en bediening (sprint 22-11)
+- Reiskeuze: met het toetsenbord kun je nu net als met de controller de markering verplaatsen (pijl omhoog en omlaag, of W en S), Enter bevestigt de markering en 1, 2 en 3 kiezen meteen. Eerder kon alleen de controller door de opties lopen. Samen spelen: de reiskeuze is lokaal, per speler.
+
 ### Besturing met een controller
 - Acties-wiel (controller-review 22-11, #495, #1011): houd Overzicht een halve seconde ingedrukt en een wiel toont alles wat in die situatie geen eigen knop heeft: de radio in een auto (sinds #495 weg van het pad), de volgende zender, andere kleren, de filmcamera, eerste persoon, het waypoint naar je doel, de directe wapenkeuze, de alarmlichten, het lakmenu, het kusje, de busdienst overnemen (G) en in Samen spelen de roepjes en snelle zinnen in een voertuig. Kies met de linkerstick of de D-pad, A bevestigt, B sluit, LB en RB bladeren. Een korte tik op Overzicht is nog steeds de kaart (die gaat nu bij het loslaten open). Wie niet kan houden zet de tikstand aan: dan opent een tik het wiel. Herbinden werkt gewoon door. Een toets die alleen in het wiel zit, toont in de hints de knop Overzicht met "houd". Invoer is lokaal; er gaat niets over het net.
 - Samen spelen aan de waterkant: de roepjes (Kom hier, Help!, Kijk daar) en "bij de groep komen" staan op de D-pad zoals te voet; X blijft hengelen. Het wiel met snelle zinnen opent niet meer in de trein en op de trekker, waar T al het lopen door de trein en de hef is.
