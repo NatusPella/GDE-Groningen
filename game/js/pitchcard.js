@@ -9,12 +9,12 @@ const STATUS_LABEL = { jij: 'Van jou', usmem: 'Van Usmem Snacks', medespeler: 'V
 // een spatie tussen label en prijs: zonder staat er "Vergunning€450" in de tekst en voor een schermlezer (#1234)
 const act = (card, label, small) => `<button type="button" class="mv-actie" data-card="${card}"><span class="mv-at"><span class="mv-al">${label}</span> <small>${small}</small></span></button>`;
 // Drukte als woord: een getal met uitleg tussen haakjes was jargon (#1256)
-export const drukWoord = (foot) => (foot < 0.8 ? 'Rustig' : foot < 1.15 ? 'Gewoon druk' : foot < 1.5 ? 'Druk' : 'Erg druk');
+export const crowdWord = (foot) => (foot < 0.8 ? 'Rustig' : foot < 1.15 ? 'Gewoon druk' : foot < 1.5 ? 'Druk' : 'Erg druk');
 
 // row: een rij van snacklive.spotRows(); stap: null | 'koop'; melding: tekst na een actie; money: het geld; hasWagon: je hebt een snackwagen.
 export function spotCardHtml(row, { stap = null, melding = '', money = 0, hasWagon = false } = {}) {
   if (!row) return '';
-  const feiten = [['Plaats', esc(row.place)], ['Stand', `${STATUS_LABEL[row.status] || STATUS_LABEL.vrij}${row.claim ? ` (${esc(row.claim.name)})` : ''}`], ['Drukte', drukWoord(row.foot)]];
+  const feiten = [['Plaats', esc(row.place)], ['Stand', `${STATUS_LABEL[row.status] || STATUS_LABEL.vrij}${row.claim ? ` (${esc(row.claim.name)})` : ''}`], ['Drukte', crowdWord(row.foot)]];
   if (row.status === 'jij') feiten.push(['Vergunning', `nog ${row.daysLeft} speldagen, verlengen ${euro(row.renew)}`]);
   const dl = '<dl class="mv-bezit">' + feiten.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('') + '</dl>';
   let top = '', buttons = '';
