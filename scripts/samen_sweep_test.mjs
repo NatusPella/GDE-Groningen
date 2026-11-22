@@ -1,5 +1,5 @@
 // Samen-sweep 22-11 (eigenaarseis: alles moet ook werken in Samen spelen): de expliciete controles die nog geen eigen test hadden, met de
-// geheugenverbinding (geen Electron). Elke controle noemt hieronder wat er al elders gekeurd wordt (scripts/coop_sweep_audit.mjs
+// geheugenverbinding (geen Electron). Elke controle noemt hieronder wat er al elders gekeurd wordt (scripts/multiplayer_sweep_audit.mjs
 // koppelt ze aan de systemen). Niet in beeld bekeken: alles wat een echt venster nodig heeft staat in docs/SAMEN-SWEEP-22-11.md.
 //   node scripts/samen_sweep_test.mjs
 import assert from 'node:assert/strict';

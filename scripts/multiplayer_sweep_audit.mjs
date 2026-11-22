@@ -6,7 +6,7 @@
 //      een nieuw bestand dat world.player of host-/gastvelden raakt hoort bij een systeem (niet alleen nvt).
 //   4. De expliciete controles (gast-eigen-verhaal, hostwissel, late aansluiter, ...) noemen bestaande tests.
 //   5. Elke venster-stap bestaat in de testbank en staat in het draaiboek (docs/SAMEN-SWEEP-22-11.md); het draaiboek noemt elk systeem.
-//   node scripts/coop_sweep_audit.mjs [--json]
+//   node scripts/multiplayer_sweep_audit.mjs [--json]
 import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';

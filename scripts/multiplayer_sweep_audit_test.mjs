@@ -1,7 +1,7 @@
-// De keuring van de Samen-sweep (scripts/coop_sweep_audit.mjs): een kapotte sectie faalt, de echte repo is groen.
-//   node scripts/coop_sweep_audit_test.mjs
+// De keuring van de Samen-sweep (scripts/multiplayer_sweep_audit.mjs): een kapotte sectie faalt, de echte repo is groen.
+//   node scripts/multiplayer_sweep_audit_test.mjs
 import fs from 'node:fs';
-import { auditSweep } from './coop_sweep_audit.mjs';
+import { auditSweep } from './multiplayer_sweep_audit.mjs';
 let n = 0, fails = 0;
 const ok = (c, name) => { n++; if (!c) { fails++; console.log('FAIL', name); } };
 const echt = JSON.parse(fs.readFileSync(new URL('./coop_coverage.json', import.meta.url), 'utf8'));
@@ -24,5 +24,5 @@ ok(heeft(draai(m, { nieuw: ['spelerloos'], bron: () => 'world.player.x' }), /all
 m = kopie(); m.sweep22.venster.push({ stap: 'weesstap', bestand: 'scripts/coop/testbank.mjs', zoek: 'mockLate' }); ok(heeft(draai(m), /weesstap/), 'een venster-stap zonder systeem en draaiboek faalt');
 m = kopie(); m.sweep22.venster[0].zoek = 'komt-nergens-voor-xyz'; ok(heeft(draai(m), /bevat "komt-nergens-voor-xyz" niet/), 'een venster-stap die niet bestaat faalt');
 m = kopie(); m.sweep22.systemen.push({ id: 'nieuwsysteem', naam: 'x', features: ['weer'], tests: ['scripts/coopweer_test.mjs'] }); ok(heeft(draai(m), /draaiboek noemt systeem nieuwsysteem niet/), 'een systeem dat niet in het draaiboek staat faalt');
-console.log(fails ? `coop_sweep_audit_test: ${fails} FAIL` : `coop_sweep_audit_test: ok (${n} controles)`);
+console.log(fails ? `multiplayer_sweep_audit_test: ${fails} FAIL` : `multiplayer_sweep_audit_test: ok (${n} controles)`);
 process.exit(fails ? 1 : 0);

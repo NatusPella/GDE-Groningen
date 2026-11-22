@@ -1,14 +1,14 @@
 # Samen-sweep 22-11: alles moet ook werken in Samen spelen
 
-Werkdocument en draaiboek. Eigenaarseis (22-11): alles wat sinds v0.64.0 is bijgekomen of veranderd moet ook in Samen spelen werken. De bron is de sectie `sweep22` in `scripts/coop_coverage.json`; `node scripts/coop_sweep_audit.mjs` keurt haar (naast `scripts/coop_coverage_audit.mjs`, de matrix in [COOP-DEKKING-21-11.md](COOP-DEKKING-21-11.md)). Per systeem staan de Samen-vragen uit AGENTS.md in de matrix: van wie is het, doet een gast mee, wat ziet een gast, wie krijgt beloning en voortgang (per speler, #429), wat bij wegvallen of later aansluiten, en welke test dekt het.
+Werkdocument en draaiboek. Eigenaarseis (22-11): alles wat sinds v0.64.0 is bijgekomen of veranderd moet ook in Samen spelen werken. De bron is de sectie `sweep22` in `scripts/coop_coverage.json`; `node scripts/multiplayer_sweep_audit.mjs` keurt haar (naast `scripts/coop_coverage_audit.mjs`, de matrix in [COOP-DEKKING-21-11.md](COOP-DEKKING-21-11.md)). Per systeem staan de Samen-vragen uit AGENTS.md in de matrix: van wie is het, doet een gast mee, wat ziet een gast, wie krijgt beloning en voortgang (per speler, #429), wat bij wegvallen of later aansluiten, en welke test dekt het.
 
 Dit is gedaan zonder Electron: pure tests, tests met een geheugenverbinding en DOM-mocks. De agent heeft niets in beeld bekeken. Alles onder "Alleen met echte vensters" hieronder is nog niet bewezen.
 
 ## Wat de sweep vond en herstelde
 
-- Voertuigradio: de pure regel bestond, maar het bericht ontbrak. Nu: bericht `zender` (`radiogroep.js`, `coopnet.js`, haak in `radio.js`), test `scripts/radiogroep_test.mjs`.
+- Voertuigradio: de pure regel bestond, maar het bericht ontbrak. Nu: bericht `zender` (`radiogroup.js`, `coopnet.js`, haak in `radio.js`), test `scripts/radiogroup_test.mjs`.
 - Hostwissel midden in een wedstrijd: overdragen wachtte alleen op een filmpje. Nu wacht het ook op een lopende race, wedstrijd of score; de eigen bijbaan van de oude host stopt met een melding (`scripts/coop/hostwissel_test.mjs`).
-- Kaartontdekking: de melding "nieuw gebied" kon samenvallen met het laadscherm. Nu wacht ze tot het scherm weg is (`laadwacht.js`, `scripts/laadwacht_test.mjs`).
+- Kaartontdekking: de melding "nieuw gebied" kon samenvallen met het laadscherm. Nu wacht ze tot het scherm weg is (`loadwait.js`, `scripts/loadwait_test.mjs`).
 - Matrix: vijf systemen stonden als gat met verouderde tekst (overgangsscenes, tuning, pings waren al gebouwd en getest). Nieuwe status `deels` voor wat alleen met vensters te bewijzen is (Bezit, voetbalcarriere).
 - 19 nieuwe modules zonder systeem (onder meer `airguide`, `airprofile`, `sailline`, `districtat`) en `karakterbonus` staan nu in de matrix; `nietCoopRelevant` heeft een reden per bestand.
 
@@ -26,8 +26,8 @@ Expliciete controles (`sweep22.controles`) en waar ze gekeurd worden:
 | `lokale-radio-luchtroute` | zender per apparaat (`gde-radio-zender`), luchtroute stuurt niets, alleen de keuze van de bestuurder gaat het net op |
 | `zinnen-dempen-blokkeren` | `multiplayerphrases_test`, `samen_sweep_test` (geblokkeerd: zin, ping, doel en zender verdwijnen; gedempt hoort nog) |
 | `geen-ip` | `samen_sweep_test`: spelerslijst, welkom, snapshot, spelersrijen en meldingen bevatten geen adres |
-| `rate-limits` | `samen_sweep_test` (ping, zin, doel), `radiogroep_test` (zender), `bezitnet_test` (token bucket) |
-| `groepsvoertuig` | `radiogroep_test` en `multiplayergoal_test`: de bestuurder kiest radio en doel, de navigator deelt met de bestuurder |
+| `rate-limits` | `samen_sweep_test` (ping, zin, doel), `radiogroup_test` (zender), `bezitnet_test` (token bucket) |
+| `groepsvoertuig` | `radiogroup_test` en `multiplayergoal_test`: de bestuurder kiest radio en doel, de navigator deelt met de bestuurder |
 
 ## Alleen met echte vensters (voor de 3-instantie-run van de coordinator)
 

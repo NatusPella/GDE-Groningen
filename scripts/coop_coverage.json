@@ -707,14 +707,14 @@
     "boat*",
     "ridepath",
     "passages",
-    "radiogroep",
+    "radiogroup",
     "airguide",
     "airguide*",
     "airprofile",
     "sailline"
    ],
    "eigenaar": "wereld",
-   "gast": "E bij een vrij voertuig: je stapt in als bestuurder of bijrijder; Y geeft het stuur; schade en politie zijn van de bestuurder. De luchtroute-HUD (airguide, airguidecard) en de vaarlijn zijn lokaal per speler: elke speler ziet zijn eigen route, er gaat niets over het net. De radiozender in een gedeeld voertuig kiest de bestuurder (radiogroep.js).",
+   "gast": "E bij een vrij voertuig: je stapt in als bestuurder of bijrijder; Y geeft het stuur; schade en politie zijn van de bestuurder. De luchtroute-HUD (airguide, airguidecard) en de vaarlijn zijn lokaal per speler: elke speler ziet zijn eigen route, er gaat niets over het net. De radiozender in een gedeeld voertuig kiest de bestuurder (radiogroup.js).",
    "beloning": "Geen.",
    "wegval": "De bestuurder valt weg: het voertuig wordt vrij of de bijrijder krijgt het stuur; niets blijft hangen.",
    "test": [
@@ -722,7 +722,7 @@
     "scripts/coopmeerijden_test.mjs",
     "scripts/coopboot_test.mjs",
     "scripts/coopvoertuigen_test.mjs",
-    "scripts/radiogroep_test.mjs"
+    "scripts/radiogroup_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
@@ -730,7 +730,7 @@
    },
    "status": "OK",
    "prio": "-",
-   "gefixt": "22-11: de radiozender in een gedeeld voertuig (bestuurder kiest, passagier volgt of stemt, late instapper volgt) is gebouwd: radiogroep.js, bericht zender, radio.js-haak; scripts/radiogroep_test.mjs."
+   "gefixt": "22-11: de radiozender in een gedeeld voertuig (bestuurder kiest, passagier volgt of stemt, late instapper volgt) is gebouwd: radiogroup.js, bericht zender, radio.js-haak; scripts/radiogroup_test.mjs."
   },
   {
    "id": "pings",
@@ -803,7 +803,7 @@
     "gebieden*",
     "verkenpunten",
     "explorationlive",
-    "laadwacht",
+    "loadwait",
     "districtat",
     "pathribbonwatch",
     "pathgraphbuild"
@@ -817,7 +817,7 @@
     "scripts/kaartontdekking_test.mjs",
     "scripts/minimap_pijlen_test.mjs",
     "scripts/navtarget_test.mjs",
-    "scripts/laadwacht_test.mjs"
+    "scripts/loadwait_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
@@ -825,7 +825,7 @@
    },
    "status": "OK",
    "prio": "-",
-   "gefixt": "Fix 21-11: viewanchor.js las world.lokaalLichaam || world.player; nu hoofdspeler(world). 22-11: de melding van een nieuw gebied of een nieuwe streek wacht tot het laadscherm weg is (laadwacht.js, per speler)."
+   "gefixt": "Fix 21-11: viewanchor.js las world.lokaalLichaam || world.player; nu hoofdspeler(world). 22-11: de melding van een nieuw gebied of een nieuwe streek wacht tot het laadscherm weg is (loadwait.js, per speler)."
   },
   {
    "id": "meldingen",
@@ -2050,7 +2050,7 @@
      "stemmen"
     ],
     "tests": [
-     "scripts/radiogroep_test.mjs",
+     "scripts/radiogroup_test.mjs",
      "scripts/radiochannels_test.mjs"
     ],
     "venster": [
@@ -2075,7 +2075,7 @@
      "kaart"
     ],
     "tests": [
-     "scripts/laadwacht_test.mjs",
+     "scripts/loadwait_test.mjs",
      "scripts/kaartontdekking_test.mjs"
     ]
    },
@@ -2251,7 +2251,7 @@
     "id": "lokale-radio-luchtroute",
     "tekst": "Voertuigradio en luchtroute-HUD zijn lokaal; alleen de keuze van de bestuurder gaat het net op",
     "tests": [
-     "scripts/radiogroep_test.mjs",
+     "scripts/radiogroup_test.mjs",
      "scripts/samen_sweep_test.mjs"
     ]
    },
@@ -2284,7 +2284,7 @@
     "id": "groepsvoertuig",
     "tekst": "Groepsvoertuig: de bestuurder kiest radio en doel",
     "tests": [
-     "scripts/radiogroep_test.mjs",
+     "scripts/radiogroup_test.mjs",
      "scripts/multiplayergoal_test.mjs"
     ],
     "venster": [

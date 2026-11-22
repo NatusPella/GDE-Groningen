@@ -14,7 +14,7 @@ import { initGpuHerstelInfo } from './gpuherstelinfo.js';
 import { DEV, STORY_TEST, FLAGS, perfOff } from './devflags.js';
 import { bindCoop } from './coopglue.js';
 import { startSoloHost, stopSoloHost } from './coopsolo.js';
-import { tickCoopNet, setCoopTreinen, coopWereldDoorloop, zetSamenKanHaak, groepZender, deelZender } from './coopnet.js';
+import { tickCoopNet, setCoopTreinen, coopWereldDoorloop, zetSamenKanHaak, groupTune, shareTune } from './coopnet.js';
 import { zetTreinBron } from './cooptrein.js'; // de gast zoekt de trein van de gastheer op (#492)
 import { meldSamenKan } from './samenplan.js'; // (#684) de positieve "samen kan"-kaart
 import { zetBestuurHaken } from './coopbestuur.js';
@@ -914,7 +914,7 @@ async function boot() {
   initPadel(world);
   initActivityKinds(world, 'main');
   setRadioFound(() => getSaveSet('geheimen'));
-  setRadioGroup({ bron: (open) => groepZender(world, open), deel: (id) => deelZender(world, id) }); // de zender in een gedeeld voertuig (Samen spelen, radiogroep.js)
+  setRadioGroup({ bron: (open) => groupTune(world, open), deel: (id) => shareTune(world, id) }); // de zender in een gedeeld voertuig (Samen spelen, radiogroup.js)
   initRadio(world);
   initActivityKinds(world, 'late');
   setBootStep('systemen', 0.5);

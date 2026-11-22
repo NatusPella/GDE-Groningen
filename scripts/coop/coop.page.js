@@ -1474,14 +1474,14 @@ const PHASES = {
         let B = null; try { B = await imp('bezitnet'); } catch (e) { /* nog niet gemerged */ }
         if (!B) return uit({ skip: true, reden: 'bezitnet.js ontbreekt' });
         uit(await bezitAlles({ me: CFG.name, imp, sleep, W, wait: Math.max(2000, s * 1000 / 2) }));
-      } else if (stap === 'radio') { // de zender in een gedeeld voertuig (radiogroep.js, 22-11): alleen zinvol als iemand meerijdt; anders logt hij zit false
+      } else if (stap === 'radio') { // de zender in een gedeeld voertuig (radiogroup.js, 22-11): alleen zinvol als iemand meerijdt; anders logt hij zit false
         const N4 = await imp('coopnet'), RC = await imp('radiochannels');
         const open = RC.CHANNELS.filter((c) => !c.unlock).map((c) => c.id);
         let gedeeld = null;
-        if (CFG.name === wie) gedeeld = N4.deelZender(W(), 'wierde');
+        if (CFG.name === wie) gedeeld = N4.shareTune(W(), 'wierde');
         await sleep(s * 1000);
         const R4 = W().coopRadioGroep || null;
-        uit({ gedeeld, groep: N4.groepZender(W(), open), bestuurder: R4 && R4.bestuurder ? R4.bestuurder.id : null, zit: !!W().coopInVoertuig || !!(W().player && W().player.inVehicle) });
+        uit({ gedeeld, groep: N4.groupTune(W(), open), bestuurder: R4 && R4.bestuurder ? R4.bestuurder.id : null, zit: !!W().coopInVoertuig || !!(W().player && W().player.inVehicle) });
       } else if (stap === 'geld') { // geld per speler: elk venster houdt zijn eigen saldo
         const g0 = w.money | 0; await sleep(s * 1000);
         uit({ voor: g0, na: W().money | 0 });

@@ -15,7 +15,7 @@ import { noteMoney } from './finance.js';
 import * as G from './gebieden.js';
 import { wachtOpIntocht, MOMENT } from './wijkintocht.js';
 import { noteMoment } from './attention.js';
-import { meldNaLaadscherm, spoelLaadwacht } from './laadwacht.js';
+import { announceAfterLoadScreen, flushLoadWait } from './loadwait.js';
 
 const SCHRIJF_VERTRAGING_MS = 1500;
 const CACHE_MS = 5000;
@@ -184,7 +184,7 @@ export const intochtenOverzicht = () => { const ind = getIndeling(); return ind 
 // apparaat en telt in zijn eigen profiel, dus een gast telt zijn eigen buurten.
 let laatstePlek = null; // #990: waar de vorige meting was, om de buurten ertussen mee te tellen
 export function bezoekPlek(w) {
-  spoelLaadwacht();
+  flushLoadWait();
   if (geblokkeerd() || !w || !w.player) return null;
   const ind = getIndeling();
   if (!ind) return null;
@@ -207,7 +207,7 @@ function meldNieuwGebied(w, ind, voor, ids) {
   const k = G.kaartVerkend(getProfiel(), ind);
   const tekst = `${g.naam} staat nu op je kaart (${k.gedaan} van ${k.totaal} buurten verkend)`;
   // 22-11: pas na het laadscherm; de bezoekmarkering staat al, alleen de melding wacht
-  meldNaLaadscherm(() => w.addMessage(tekst, 5, { kind: 'prestatie', kicker: 'Nieuw gebied', key: 'gebied-ontdekt-' + g.id }));
+  announceAfterLoadScreen(() => w.addMessage(tekst, 5, { kind: 'prestatie', kicker: 'Nieuw gebied', key: 'gebied-ontdekt-' + g.id }));
 }
 
 // Elke paar seconden (achievementtracker.js): de missies die klaar zijn in deze save tellen mee.

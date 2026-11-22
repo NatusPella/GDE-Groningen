@@ -128,7 +128,7 @@ export function selectChannel(id, { announce: show = true, groep = false } = {})
   return true;
 }
 
-// Samen spelen (radiogroep.js): in een gedeeld voertuig kiest de bestuurder en volgt een passagier hem; coopnet.js levert de bron
+// Samen spelen (radiogroup.js): in een gedeeld voertuig kiest de bestuurder en volgt een passagier hem; coopnet.js levert de bron
 // (welke zender hoort nu bij dit voertuig, of null) en de haak om je eigen keuze te delen (bestuurder) of te stemmen (passagier).
 const groupHook = { bron: null, deel: null };
 export function setRadioGroup(h) { groupHook.bron = h && typeof h.bron === 'function' ? h.bron : null; groupHook.deel = h && typeof h.deel === 'function' ? h.deel : null; }
