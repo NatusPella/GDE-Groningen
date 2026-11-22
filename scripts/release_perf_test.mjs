@@ -204,5 +204,32 @@ try {
   fs.rmSync(tmp, { recursive: true, force: true });
 }
 
+// --- tijdelijke herijking ring en spoor (#1184) ------------------------------
+const p50 = { frames: 900, avg: 20, p95: 50, p99: 55, max: 80, hitch: { over50: 0, over100: 0 } };
+const ctxRel = { thresholds: DEFAULT_THRESHOLDS, machine: zelfdeMachine, set: 'release' };
+const ringGeel = compareRoute('ring', p50, null, { ...ctxRel, vergelijkBaseline: false });
+ok(ringGeel.status === STATUS.HERIJKT, 'ring p95 50 in de gate-set release is tijdelijk herijkt (geel)', ringGeel.status);
+ok(ringGeel.bevindingen.length === 1 && ringGeel.bevindingen[0].ernst === 'belangrijk' && /#1184/.test(ringGeel.bevindingen[0].titel), 'herijkt is een belangrijke bevinding met het issue, niet blokkerend');
+ok(/tijdelijk herijkt/.test(ringGeel.regels.join(' ')), 'de regel zegt tijdelijk herijkt');
+ok(compareRoute('spoor', p50, null, { ...ctxRel, vergelijkBaseline: false }).status === STATUS.HERIJKT, 'spoor idem');
+ok(compareRoute('ring', p50, null, { thresholds: DEFAULT_THRESHOLDS, machine: zelfdeMachine, vergelijkBaseline: false }).status === STATUS.ROOD, 'zonder gate-set geldt de gewone norm (rood)');
+ok(compareRoute('ring', p50, null, { ...ctxRel, set: 'anders', vergelijkBaseline: false }).status === STATUS.ROOD, 'een andere set dan release krijgt geen herijking');
+ok(compareRoute('foot', p50, null, { ...ctxRel, vergelijkBaseline: false }).status === STATUS.ROOD, 'foot is NIET verruimd: p95 50 blijft rood in release');
+ok(compareRoute('foot', { ...p50, p95: 37.5 }, null, { ...ctxRel, vergelijkBaseline: false }).status === STATUS.ROOD, 'foot p95 37,5 blijft rood');
+ok(compareRoute('heli', p50, null, { ...ctxRel, vergelijkBaseline: false }).status === STATUS.ROOD, 'overige routes blijven op de gewone norm');
+ok(compareRoute('ring', { ...p50, p95: 53 }, null, { ...ctxRel, vergelijkBaseline: false }).status === STATUS.ROOD, 'ring p95 boven 52 is rood');
+ok(compareRoute('ring', { ...p50, max: 1500 }, null, { ...ctxRel, vergelijkBaseline: false }).status === STATUS.ROOD, 'max blijft hard voor ring');
+ok(compareRoute('ring', { ...p50, hitch: { over50: 0, over100: 0, cpuP95: 40 } }, null, { ...ctxRel, vergelijkBaseline: false }).status === STATUS.ROOD, 'werktijd-p95 blijft hard voor ring');
+ok(compareRoute('ring', schoon, null, { ...ctxRel, vergelijkBaseline: false }).status === STATUS.OK, 'ring binnen de gewone norm is gewoon ok (niet geel)');
+const ringBasis = compareRoute('ring', p50, { ...schoon, p95: 34, avg: 20, max: 80 }, ctxRel);
+ok(ringBasis.status === STATUS.HERIJKT, 'herijkte ring wordt niet rood op de p95-baseline', ringBasis);
+ok(compareRoute('ring', { ...p50, avg: 30 }, { ...schoon, p95: 34, avg: 20, max: 80 }, ctxRel).status === STATUS.ROOD, 'avg-regressie blijft bewaakt bij een herijkte route');
+const herijktRun = compareRoutes({ foot: schoon, ring: p50, spoor: p50 }, {}, { set: 'release', vergelijkBaseline: false });
+ok(herijktRun.statistiek.herijkt === 2 && herijktRun.statistiek.rood === 0 && verdictFor(herijktRun.bevindingen).verdict === 'groen', 'een run met alleen herijkte routes is groen maar telt geel');
+const herijktRapport = buildReport({ set: 'release', routes: herijktRun.routes, bevindingen: herijktRun.bevindingen });
+ok(herijktRapport.tijdelijkeNormen.ring.issue === '#1184' && herijktRapport.tijdelijkeNormen.spoor.maxP95Ms === 52 && herijktRapport.tijdelijkeNormen.ring.opheffing, 'het rapport toont de tijdelijke normen met issue en opheffingsvoorwaarde');
+ok(renderSummary(herijktRapport).some((r) => /tijdelijk herijkt \(geel\)/.test(r)) && renderSummary(herijktRapport).some((r) => /^ring: herijkt/.test(r)), 'de samenvatting meldt geel');
+ok(Object.keys(buildReport({ routes: {} }).tijdelijkeNormen).length === 0, 'zonder set toont het rapport geen tijdelijke normen');
+
 console.log(fails ? `${fails} FAIL` : 'release_perf_test ok');
 process.exit(fails ? 1 : 0);

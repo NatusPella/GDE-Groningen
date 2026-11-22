@@ -9,6 +9,43 @@
 // boven 50 ms worden gerapporteerd als hitchbudget, maar tellen niet als poort.
 export const NORM = Object.freeze({ maxP95Ms: 37, maxCpuP95Ms: 35, maxMaxMs: 1000, maxOver100: null, maxOver50: null });
 
+// Tijdelijke herijking (eigenaarsbesluit 22-11, #1184, docs/PERF-NORM-HERIJKING-22-11.md):
+// de p95-norm van ring en spoor is 52 ms (3 vsync op 60 Hz = 50 ms + marge)
+// ZOLANG ze in de gate-set 'release' draaien. Foot en alle andere routes houden
+// NORM.maxP95Ms; max en werktijd-p95 blijven ook voor deze routes hard. De reden,
+// de datum, het issue en de opheffingsvoorwaarde staan hier als data, zodat elke
+// gate-run ze toont (status 'herijkt', geel) en niets stilzwijgend groen wordt.
+const OPHEFFING = 'Ring en spoor halen p95 <= 37 ms in de gate-set release in drie opeenvolgende runs zonder afvoer in de routes (deterministische plaatsing, #1184); dan dit veld verwijderen.';
+export const TIJDELIJKE_NORMEN = Object.freeze({
+  ring: Object.freeze({
+    maxP95Ms: 52,
+    set: 'release',
+    sinds: '2026-11-22',
+    issue: '#1184',
+    reden: 'Ca. 6 s tegelwerk (305 plaatsings-, kits- en koetegels) loopt sinds c5b375720 (#1052) als druppel in de eerste ~100 s na de start en valt in deze route; p95 is dan 50 ms (3 vsync).',
+    opheffing: OPHEFFING,
+    doc: 'docs/PERF-NORM-HERIJKING-22-11.md',
+  }),
+  spoor: Object.freeze({
+    maxP95Ms: 52,
+    set: 'release',
+    sinds: '2026-11-22',
+    issue: '#1184',
+    reden: 'Zelfde oorzaak als ring: de resterende tegelafvoer van #1052 loopt in de eerste minuut over deze route (p95 50 ms; op de tag v0.64.0 was spoor al bimodaal 33 of 50).',
+    opheffing: OPHEFFING,
+    doc: 'docs/PERF-NORM-HERIJKING-22-11.md',
+  }),
+});
+
+// De norm voor een route in een gate-set. Zonder set (of een andere set dan
+// die van de herijking) geldt de gewone norm. Geeft { norm, tijdelijk } terug;
+// tijdelijk is de herijking-regel of null.
+export function normForRoute(name, set, basis = NORM) {
+  const t = Object.prototype.hasOwnProperty.call(TIJDELIJKE_NORMEN, name) ? TIJDELIJKE_NORMEN[name] : null;
+  if (!t || !set || t.set !== set) return { norm: basis, tijdelijk: null };
+  return { norm: { ...basis, maxP95Ms: Math.max(basis.maxP95Ms, t.maxP95Ms) }, tijdelijk: t };
+}
+
 const num = (v) => (Number.isFinite(v) ? v : null);
 
 export function routeStats(route) {

@@ -165,11 +165,18 @@ function fasePerf(ctx) {
     json = fs.existsSync(perfOut) ? fs.readdirSync(perfOut).filter((n) => n.endsWith('.json')).map((n) => path.join(perfOut, n)) : [];
     if (!json.length) return { status: r.code === 0 ? 'SKIP' : 'FAIL', code: r.code === 0 ? 3 : 1, secs: r.secs, detail: `geen perf-json: ${MELDING(r)}`, log: d };
   }
-  const args = ['scripts/release/perf_gate.mjs', `--json=${json.join(',')}`, `--out=${d}`];
+  const args = ['scripts/release/perf_gate.mjs', `--json=${json.join(',')}`, `--out=${d}`, '--set=release'];
   if (ctx.updateBaseline) args.push('--update');
   const r = runStep('perf-gate', process.execPath, args, { ms: 5 * 60e3, logDir: d });
   const status = r.code === 0 ? 'PASS' : r.code === 3 ? 'SKIP' : 'FAIL';
-  return { status, code: r.code === 0 ? 0 : r.code === 3 ? 3 : 1, secs: r.secs, detail: r.code === 0 ? `${json.length} perf-run(s) binnen norm en baseline` : MELDING(r), log: d };
+  // Tijdelijk herijkte routes (geel) mogen niet stilzwijgend groen worden: noem ze in het detail.
+  let herijkt = '';
+  try {
+    const rep = JSON.parse(fs.readFileSync(path.join(d, 'perf-gate.json'), 'utf8'));
+    const namen = Object.entries(rep.routes || {}).filter(([, v]) => v && v.status === 'herijkt').map(([n]) => `${n} (${(rep.tijdelijkeNormen && rep.tijdelijkeNormen[n] && rep.tijdelijkeNormen[n].issue) || '?'})`);
+    if (namen.length) herijkt = `; GEEL, tijdelijk herijkt: ${namen.join(', ')}`;
+  } catch { /* geen rapport: de gate zelf meldt dat */ }
+  return { status, code: r.code === 0 ? 0 : r.code === 3 ? 3 : 1, secs: r.secs, detail: r.code === 0 ? `${json.length} perf-run(s) binnen norm en baseline${herijkt}` : MELDING(r), log: d };
 }
 
 function leesVisualSets() {

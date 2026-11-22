@@ -182,7 +182,7 @@ afwijking meenemen zonder issue.
 |---|---|---|
 | Constitutie of veiligheid | blokkerend | echt merk of echte persoon, winter, "de Grunn", `.env`, externe URL in spelcode, geheime sleutel |
 | Design system | blokkerend | nieuwe losse hex buiten de tokens, tekst onder 12 px, tweede rood, blauw accent |
-| Performance | blokkerend | normovertreding (p95 > 37 ms, werktijd-p95 > 35 ms of max > 1000 ms; ADR 0037), regressie boven de baseline-tolerantie |
+| Performance | blokkerend | normovertreding (p95 > 37 ms, werktijd-p95 > 35 ms of max > 1000 ms; ADR 0037), regressie boven de baseline-tolerantie. Tijdelijke uitzondering: ring en spoor p95 <= 52 ms in de gate-set `release` (geel, status `herijkt`, `TIJDELIJKE_NORMEN` in `scripts/perf/normrules.mjs`, #1184; zie [PERF-NORM-HERIJKING-22-11.md](PERF-NORM-HERIJKING-22-11.md)); foot en de rest blijven op 37 |
 | Graphics | blokkerend | zwart/leeg/kapot beeld, zichtbaar kapotte wereld, HUD buiten beeld, overlappende tekst |
 | Correctheid | blokkerend | crash, save- of netwerkfout, regressie in een bestaande test |
 | UI/UX/gameplay | blokkerend als de speler vastloopt; anders belangrijk | onbereikbare knop, missie onhaalbaar, onduidelijke hint |
