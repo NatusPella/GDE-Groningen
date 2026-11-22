@@ -21,10 +21,13 @@ export const BRONNEN = {
   race: { naam: 'racen en driften', perUur: 17.5 * 60 / 4.2, bezetting: 0.8, loopbaan: 'race' },
   postgame: { naam: 'revanche-uitdaging (goud)', perUur: PG_PRIZE[3] * 60 / 20, bezetting: 0.9 },
   eierbal: { naam: 'eierballen zoeken', perUur: EIERBAL_FIND_PAY * 60 / 6, bezetting: 0.7 },
+  // De voetbalcarrière (#1116): zelf elke ronde spelen, gemeten met scripts/voetbal_carriere_sim.mjs (ongeveer 420 euro per actief uur over drie seizoenen); scripts/voetbal_balans_test.mjs bewaakt dat de sim dit blijft opleveren.
+  voetbal: { naam: 'voetbalcarrière (zelf spelen)', perUur: 420, bezetting: 1, loopbaan: 'buiten' },
 };
 
 // Hoe een speler van 10 uur zijn tijd verdeelt (de som is 1; de revanches horen bij het eindspel en tellen hier niet mee).
-export const VERDELING = { missie: 0.40, bijbaan: 0.25, boerderij: 0.08, padel: 0.04, hengelen: 0.03, race: 0.05, postgame: 0, eierbal: 0.05 };
+// voetbal staat op 0: de standaardsessie blijft zoals gemeten; economie_sim_test geeft een verdeling mee waarin een deel van de tijd naar het voetbal gaat.
+export const VERDELING = { missie: 0.40, bijbaan: 0.25, boerderij: 0.08, padel: 0.04, hengelen: 0.03, race: 0.05, postgame: 0, eierbal: 0.05, voetbal: 0 };
 
 // Eerste klus per loopbaan: minuten dat de klus zelf duurt; REISTIJD_MIN komt per loopbaan bovenop (naar de startplek).
 export const EERSTE_KLUS = { trein: 1.5, bus: 1.7, taxi: 2, bezorg: 1.7, vracht: 2.5, water: 2.5, lucht: 3, handhaving: 2, kantoor: 2, podium: 2,
@@ -53,12 +56,12 @@ export const EERSTE_AUTO = 'mug';
 export const EERSTE_PERCEEL = PERCELEN.filter((p) => p.koop > 0).reduce((m, p) => (p.koop < m.koop ? p : m));
 const DUURSTE_AUTO = Math.max(...Object.values(VEHICLE_STOCK).filter((v) => v.kind === 'car' && !v.unlock).map((v) => v.price));
 
-// Een sessie. opties: { uren, duizendpoot (euro), factor (loonfactor over de bronnen met een vak) }.
-export function simuleer({ uren = 10, duizendpoot = L.DUIZENDPOOT_EURO, factor = 1 } = {}) {
+// Een sessie. opties: { uren, duizendpoot (euro), factor (loonfactor over de bronnen met een vak), verdeling (aandeel van de tijd per bron; standaard VERDELING) }.
+export function simuleer({ uren = 10, duizendpoot = L.DUIZENDPOOT_EURO, factor = 1, verdeling = VERDELING } = {}) {
   const per = {};
   let bruto = 0;
   for (const [id, b] of Object.entries(BRONNEN)) {
-    const uur = uren * (VERDELING[id] || 0);
+    const uur = uren * (verdeling[id] || 0);
     const geld = uur * b.perUur * (b.bezetting ?? 1) * (b.loopbaan ? factor : 1);
     per[id] = { uur, geld, perUur: uur ? geld / uur : 0 };
     bruto += geld;

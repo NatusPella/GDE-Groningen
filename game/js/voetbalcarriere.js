@@ -361,6 +361,8 @@ export function sellClubShare(c, clubId) {
   return r.ok ? { career: r.career, ok: true, price: r.price } : { career: c, ok: false, reason: r.reason };
 }
 export const clubSharesOf = (c) => Object.entries((c && c.bezit && c.bezit.clubs) || {}).map(([club, h]) => ({ club, ...h }));
+// De duurste hele club kost nooit meer dan de Kroonklasse-waarde met de volle schaalopslag: een bewerkte save (prijs 1e9) keert geen miljoenen dividend uit (#1116).
+const CLUB_PRICE_MAX = B.priceOf('kroon', 1, B.SCALE_CAP);
 function normClubBezit(raw) {
   const out = B.newClubBezit();
   const src = raw && typeof raw === 'object' && raw.clubs && typeof raw.clubs === 'object' ? raw.clubs : {};
@@ -369,7 +371,7 @@ function normClubBezit(raw) {
     if (!/^[a-z0-9_-]{1,40}$/i.test(id) || !h || typeof h !== 'object') continue;
     const frac = Math.round(Number(h.aandeel) * 100) / 100;
     if (!(frac > 0 && frac <= 1)) continue;
-    out.clubs[id] = { aandeel: frac, sinds: Math.max(0, Math.min(1e6, Math.round(Number(h.sinds)) || 0)), prijs: Math.max(0, Math.min(1e9, Math.round(Number(h.prijs)) || 0)) };
+    out.clubs[id] = { aandeel: frac, sinds: Math.max(0, Math.min(1e6, Math.round(Number(h.sinds)) || 0)), prijs: Math.max(0, Math.min(CLUB_PRICE_MAX, Math.round(Number(h.prijs)) || 0)) };
   }
   return out;
 }

@@ -18,8 +18,9 @@ import { pitchPlacement } from './voetbalparken.js';
 import { registerLauncher, registerCoachLauncher } from './voetbalcarriereui.js';
 import { coachSetup, makeCoachMatch, coachTactic, coachResult } from './voetbalcoach.js';
 import { formationList } from './voetbalrules.js';
-import { awayKit, mapSpots, parkCrowdCount, crowdVisible, trainingSquads } from './voetbalworld.js';
-import { buildCrowd, makeTrainers } from './voetbalpubliek.js';
+import { awayKit, shirtBandsFor, mapSpots, parkCrowdCount, crowdVisible, trainingSquads } from './voetbalworld.js';
+import { buildCrowd, makeTrainers, buildAdBoards } from './voetbalpubliek.js';
+import { boardNames } from './voetbalsponsors.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { sfxEvent } from './sfx/haken.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedLiveTik, wedHostLiveEind, wedGastVerlaat, wedGastReset } from './multiplayerwedstrijd.js';
@@ -211,6 +212,13 @@ function bouw(w, formaat = 'klein', site = null) {
   return { root, bord: gateBoard, bal, schaduw, formaat };
 }
 
+// De borden horen bij een wedstrijd: het Euroborg-veld blijft staan tussen wedstrijden, dus de vorige borden gaan eerst weg (geen opeenstapeling).
+function zetReclame(doel, namen) {
+  if (!doel) return;
+  if (doel.reclame) { doel.root.remove(doel.reclame.groep); disposeObject(doel.reclame.groep); doel.reclame = null; }
+  if (namen && namen.length) doel.reclame = buildAdBoards(doel.root, { names: namen, B: PITCH.B, L: PITCH.L, toLocal });
+}
+
 function ruimBouwOp() {
   if (!built) return;
   const sc = getScene();
@@ -250,7 +258,7 @@ function makeActors(sim) {
     const human = sim.mensen.find((x) => x.ctl === p.id);
     const vrouw = VROUW.has(p.naam) || (human && human.char === 'anita');
     const mesh = buildPersonMesh(shirt, 0xd9b48f, {
-      variant: vrouw ? 'female' : 'male', seed: 9811 + p.id * 13, pants: t.broek, shoes: 0x1a1a1a,
+      variant: vrouw ? 'female' : 'male', seed: 9811 + p.id * 13, pants: t.broek, shoes: 0x1a1a1a, shirtBands: shirtBandsFor(t, p.rol === 'keeper'),
       look: { age: 'adult', build: p.rol === 'keeper' ? 'avg' : 'slim', hat: null, top: 'tee', bottom: 'shorts', shoeType: 'sneaker', bag: null, umbrella: null, glasses: false },
     });
     mesh.rotation.order = 'ZYX';
@@ -419,6 +427,11 @@ function launch(w, { force = false, online = null, sim = null, career = null } =
       parkBuilt.publiek = buildCrowd(parkBuilt.root, { count: parkCrowdCount(div), seed: (sim.seed | 0) + 1, B: PITCH.B, L: PITCH.L, toLocal, uit: crowdVisible({ quality: getSettings().quality === 'laag' ? 'laagst' : 'hoog' }) === 'uit' });
     } catch (e) { parkBuilt.publiek = null; }
   }
+  try { // de reclameborden van de sponsors (verzonnen namen) langs de zijlijnen, op het park en in de Euroborg; zonder sponsors geen borden (#1118)
+    const cs = career ? CL.getCareer() : null, namen = cs && cs.sponsors ? boardNames(cs.sponsors) : [];
+    if (!parkBuilt && built) zetReclame(built, namen); else if (parkBuilt && built) zetReclame(built, []);
+    if (parkBuilt) zetReclame(parkBuilt, namen);
+  } catch (e) { /* een bord mag de wedstrijd nooit stoppen */ }
   const bon = career ? null : characterEnter(w, 'voetbal'); // de speler voetbalt als Tessa (wissel per speler, terug bij het einde); zonder haak gebeurt er niets
   game = { online, sim, cctx: career ? career.cctx || null : null, t: 0, dt: 0, cam: null, actors: makeActors(sim), marks: makeMarkings(), mode, said: 0, lastFase: sim.fase, laadG: { schot: 0, lang: 0 }, bon, exitX: career && career.site ? toWorld((PITCH.B / 2) + 4, 0).x : GATE.x, exitY: career && career.site ? toWorld((PITCH.B / 2) + 4, 0).y : GATE.y, career, gemeld: false, comp: online || !opt ? null : opt.comp };
   tvInit(w, game);
@@ -824,7 +837,7 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   for (const mk of [g.marks.eigen, g.marks.pijl, ...g.marks.ander]) { getScene().remove(mk); mk.geometry.dispose(); }
   if (built) { built.bal.visible = false; built.schaduw.visible = false; }
   p.x = g.exitX; p.y = g.exitY; p.angle = -Math.PI / 2;
-  ruimParkOp(); site = { x: CX, y: CY, a: 0 };
+  ruimParkOp(); zetReclame(built, []); site = { x: CX, y: CY, a: 0 };
   karakterEind(w, g.bon);
   let res = null;
   if (g.online === 'host' && !extern) res = wedHostLiveEind(w, g.sim, { gestopt: quit });
@@ -870,6 +883,9 @@ registerCoachLauncher((w) => launchCoachMatch(w));
 // de overige 281 parken zijn geen markers (te druk), die staan in de index voor de wedstrijden. Zonder carrière alleen de Euroborg. Het resultaat staat in een kleine cache per carrièrestand.
 // Trainende teams (#1115): met een carrière en een speler binnen 150 m van een veld van zijn club lopen er een paar figuren rondjes; elke halve seconde bijgewerkt, nooit tijdens een wedstrijd.
 let trainers = null, trainT = 0;
+// Een trap van een trainende ploeg: zacht en alleen binnen 60 m van de speler (SFX via sfxEvent, zelfde sleutel en bijschrift als de wedstrijd; lokaal decor, geen netwerk).
+const TRAIN_HOORBAAR = 60;
+function trainerKick(w, x, y) { const p = hoofdspeler(w); if (p && Math.hypot(p.x - x, p.y - y) <= TRAIN_HOORBAAR) sfxEvent(w, 'football_kick', x, y, { gain: 0.35 }); }
 function updateTrainers(w) {
   try {
     if (game || !CL.hasCareer() || reducedMotion()) { if (trainers) { trainers.dispose(); trainers = null; } return; }
@@ -1026,7 +1042,7 @@ export const VOETBAL = {
   },
   tick(dt, w) {
     if ((lodT -= dt) <= 0) { lodT = 0.5; updateLod(w); updateTrainers(w); }
-    if (trainers) { trainT += dt; trainers.tik(trainT); }
+    if (trainers) { trainT += dt; trainers.tik(trainT, (sq, x, y) => trainerKick(w, x, y)); }
   },
   camera,
   icon: drawIcon,

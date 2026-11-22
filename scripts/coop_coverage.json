@@ -423,6 +423,7 @@
    "groep": "Bezit en geld",
    "modules": [
     "voetbalcarriere*",
+    "clubui",
     "voetbalagenda",
     "voetbalbeats",
     "voetbalclub*",
@@ -449,7 +450,9 @@
    "wegval": "De computer neemt over; het team wordt nooit leeg; geen instap halverwege.",
    "test": [
     "scripts/voetbal_samen_test.mjs",
-    "scripts/voetbal_carriere_test.mjs"
+    "scripts/voetbal_carriere_test.mjs",
+    "scripts/clubui_test.mjs",
+    "scripts/voetbal_balans_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
@@ -490,6 +493,8 @@
    "test": [
     "scripts/coopwedstrijd_voetbal_test.mjs",
     "scripts/voetbal_rook_test.mjs",
+    "scripts/voetbal_shirt_test.mjs",
+    "scripts/voetbal_publiek_test.mjs",
     "scripts/coop/samenwedstrijd_tcp_test.mjs"
    ],
    "regel": {

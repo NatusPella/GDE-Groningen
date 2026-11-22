@@ -17,6 +17,10 @@ export function shirtRects(patroon) {
     default: return [{ x: 0, y: 0, w: S, h: S, kleur: 'shirt' }];
   }
 }
+// De vlakken in de tweede kleur als delen van de breedte [t0, t1] (0 tot 1), voor de 3D-laag op het shirt (models3d_people.js attachShirtBands). Effen: geen.
+export const shirtBands = (patroon) => shirtRects(patroon).filter((r) => r.kleur === 'accent').map((r) => [r.x / SHIRT_SIZE, (r.x + r.w) / SHIRT_SIZE]);
+// Wat buildPersonMesh als opts.shirtBands wil hebben voor een team: null voor een effen shirt of een keeper (die heeft een eigen effen shirt).
+export const shirtBandsFor = (team, keeper = false) => { const bands = keeper || !team ? [] : shirtBands(team.patroon); return bands.length ? { bands, color: team.accent != null ? team.accent : team.broek } : null; };
 const hex = (v) => `#${(v >>> 0).toString(16).padStart(6, '0')}`;
 // Tekent het shirt op een canvas-context (de aanroeper maakt de canvas): geen logo, geen wapen, alleen vlakken.
 export function drawShirt(ctx, team) {
