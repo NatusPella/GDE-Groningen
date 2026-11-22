@@ -29,7 +29,7 @@ De bron is [scripts/coop_coverage.json](../scripts/coop_coverage.json); de tabel
 
 <!-- MATRIX:BEGIN (gegenereerd door scripts/coop_coverage_audit.mjs --write; niet met de hand aanpassen) -->
 
-**Samenvatting:** 44 systemen: 41 OK, 0 gat, 2 deels, 1 niet van toepassing. Directe verwijzingen naar world.player (de ratel in scripts/player_singleton_baseline.json): 80 in totaal; kolom e toont ze per systeem (een bestand kan bij twee systemen horen, een deel hoort bij geen systeem: intromontage, dorpsuitjes, main).
+**Samenvatting:** 45 systemen: 42 OK, 0 gat, 2 deels, 1 niet van toepassing. Directe verwijzingen naar world.player (de ratel in scripts/player_singleton_baseline.json): 80 in totaal; kolom e toont ze per systeem (een bestand kan bij twee systemen horen, een deel hoort bij geen systeem: intromontage, dorpsuitjes, main).
 
 | Systeem | a) Bezit | b) Gast | c) Beloning | d) Wegvallen, aansluiten, hostwissel | e) world.player | f) Dekking | Status |
 |---|---|---|---|---|---|---|---|
@@ -90,6 +90,7 @@ De bron is [scripts/coop_coverage.json](../scripts/coop_coverage.json); de tabel
 | **Technisch** | | | | | | | |
 | Beeld, performance, build en tooling zonder spelregel | lokaal per apparaat | Beeld en techniek zonder eigen spelregel: elke client bouwt zijn eigen beeld uit dezelfde data. | Geen. | Niets te herstellen. | ja: 8 (cityprops 1, streetpopulation 1, swimmers3d 1, wildlife 4, ...) | nvt | nvt |
 | **Instellingen** | | | | | | | |
+| Analoog gas, analoge rem en stuurcurve met een controller | lokaal per apparaat | Invoer per speler en per apparaat: elke speler doseert zijn eigen voertuig. Een gast aan het stuur stuurt zijn pedaal-as als gewone invoer mee en de host past dezelfde regel toe; anderen zien alleen het voertuig rijden (bestaande snapshot, geen nieuw bericht). | Geen beloning of voortgang. | Niets te synchroniseren bij wegvallen, later aansluiten of een hostwissel: de regel is een pure functie van de invoer van dat moment. | nee | `pedalfeel_test`, `gamepad_live_test` | OK |
 | Moeilijkheid (niveau per speler en voor de wereld) | gedeeld, gesynct | De wereld (politie en verkeer) volgt het niveau van wie het spel opende; een gast kiest zelf hoe pittig zijn eigen deel is (schade, rij-assist, quicktime-events, hints, tijd en medailles, beloning). | Per speler volgens het eigen niveau; niemand krijgt een lagere beloning door het niveau van een ander. | Valt iemand weg of sluit hij later aan: het wereldniveau blijft dat van wie het spel opende; het eigen niveau reist mee met de speler. | nee | `difficulty_test`, `difficulty_integration_test`, `difficulty_profile_test`, `difficultycard_test` | OK |
 
 ### Gaten
