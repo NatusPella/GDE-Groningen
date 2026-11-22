@@ -34,6 +34,12 @@ import { VORM_TEKEN } from './coopspelers.js';
 import { meet, beoordeel, foutrapport, verbindingslog } from './net/diagnose.js';
 import { maakEnv } from './net/diagnoseenv.js';
 import { VERSION } from './version.js';
+import { EXTRA_CHARS } from './coopplayers.js';
+import { createWizard, reduceWizard, wizTerug, wizStap, WSTAP, kanVerder } from './samenwizard.js';
+import { wizardHtml } from './samenwizardui.js';
+
+// #1011: de kaart "Wie ben jij" komt één keer per sessie van de pagina; daarna begint de wizard bij stap 2.
+let wieBevestigd = false;
 
 const newLijstSignaler = (interval = LIJST.interval) => new LijstSignaler(CONFIG, { socket: (url) => { const ws = new WebSocket(url); ws.binaryType = 'arraybuffer'; return ws; } }, { brokerTimeout: CONFIG.TIMEOUTS.broker, interval });
 // Gemelde sessies (#438) blijven op dit apparaat verborgen: alleen id's, hoogstens 50, en nooit stuk als de opslag ontbreekt
@@ -78,6 +84,10 @@ export function mountLobby(root, hooks, opts = {}) {
     state = reduce(state, { t: 'wachtwoord', tekst: opts.hub.cfg.wachtwoord });
   }
   let lastDiag = null;
+  // #1011: de wizard (stappen, kaarten, vaste voet) zit alleen in het paneel Samen spelen (opts.wizard); het wachtscherm in het spel en de tests tekenen zoals voorheen
+  const wizard = !!opts.wizard && !opts.start;
+  let wz = createWizard({ rtc: rtcSupported(), favorieten: leesFavorieten().length, direct, wieKlaar: wieBevestigd || !!opts.adopt });
+  let openbaarTodo = null, vriendenTodo = false, swSleutel = '';
   let hub = opts.hub || null, session = opts.session || null, handle = null, room = null, stopListen = null, joinedOnce = !!opts.adopt, wacht = false;
   // #779: elke aanvraag voor een nieuw aanbod krijgt een nummer. Een kick of "weer privé" tijdens het
   // vluchtaanbod verhoogt het nummer, zodat een laat antwoord van het oude aanbod geen gast meer toelaat.
@@ -129,7 +139,12 @@ export function mountLobby(root, hooks, opts = {}) {
     if (state.step === 'verbroken' && was !== 'verbroken') planAuto(AUTO_EERSTE);
     if (state.step === 'verbonden') autoTries = 0;
     if (LOGT[ev.t]) verbindingslog.add(LOGT[ev.t], ev.t === 'fout' ? ev.msg : ev.t === 'status' ? `${ev.status}${ev.reason ? ' (' + ev.reason + ')' : ''}` : ev.t === 'route' || ev.t === 'kies' ? String(ev.route || ev.rol) : ev.t === 'spelers' ? `${(ev.lijst || []).length} spelers` : '');
+    if (wizard && wz.fout && was !== state.step) wz = { ...wz, fout: '' }; // een melding van de wizard hoort bij zijn eigen scherm
     draw();
+    if (wizard) { // #1011: wat de wizard op een bepaald moment nog moet doen (de sessie openbaar zetten, de vriendenlijst filteren)
+      if (openbaarTodo && ev.t === 'code' && state.step === 'host-wacht') { const naam = openbaarTodo; openbaarTodo = null; Promise.resolve().then(() => maakOpenbaar(naam)); }
+      if (vriendenTodo && state.step === 'lijst') { vriendenTodo = false; if (!state.lijstFilters.alleenFavorieten) set({ t: 'lijst-filter', filter: 'alleenFavorieten' }); }
+    }
   };
   async function diagnose() {
     set({ t: 'diag-go' });
@@ -152,7 +167,7 @@ export function mountLobby(root, hooks, opts = {}) {
     // cursor, en zet ze na het tekenen terug. Het zoekveld deed dit al; het kamercodeveld op het
     // joinscherm raakte door dezelfde herteken zijn tekst, focus en cursor kwijt.
     const actief = typeof document !== 'undefined' ? document.activeElement : null;
-    const veldKlasse = ['coop-lijst-zoek', 'coop-input', 'coop-wachtwoord', 'coop-profiel-naam']
+    const veldKlasse = ['coop-lijst-zoek', 'coop-input', 'coop-wachtwoord', 'coop-profiel-naam', 'coop-sessienaam']
       .find((k) => actief && actief.classList && actief.classList.contains(k)) || null;
     const veldStand = veldKlasse ? {
       klasse: veldKlasse,
@@ -229,7 +244,7 @@ export function mountLobby(root, hooks, opts = {}) {
     const profielBlok = klein && prof ? `<details class="coop-profiel-vouw"${vouwOpen ? ' open' : ''}><summary>Je online-avatar</summary>${prof}</details>` : prof;
     const code = v.code ? `<pre class="coop-code" tabindex="0" aria-label="Jouw code">${esc(v.code)}</pre>` : '';
     const invoer = v.input ? `<input class="coop-input" type="text" spellcheck="false" autocomplete="off" aria-label="${esc(v.input.label || v.input.placeholder)}" placeholder="${esc(v.input.placeholder)}"${v.input.maxLength ? ` maxlength="${v.input.maxLength}"` : ''} value="${esc(v.input.value || '')}">` : '';
-    root.innerHTML =
+    const legacyHtml =
       `<h3 class="coop-title">${esc(v.title)}</h3>` +
       (klein ? invoer : '') +
       code +
@@ -246,6 +261,21 @@ export function mountLobby(root, hooks, opts = {}) {
       (v.error ? `<p class="coop-error" role="alert">${esc(v.error)}</p>` : '') +
       `<div class="coop-btns">${v.buttons.map((b) => `<button type="button" class="ds-z-knop${b.primary ? '' : ' ds-z-knop--secundair'} coop-btn" data-act="${b.act}"${b.primary ? ' data-primary="1"' : ''}${b.disabled ? ' disabled aria-disabled="true"' : ''}${b.busy ? ' aria-busy="true"' : ''}><span class="ss-label">${b.busy ? icoon('zandloper', { maat: 's' }) + ' ' : ''}${esc(b.label)}${b.primary && !b.disabled ? ` <span class="coop-toets">${keyTextHtml('{ENTER}')}</span>` : ''}</span></button>`).join('')}</div>` +
       (klein ? wensen : '');
+    // #1011: in het paneel Samen spelen tekent de wizard dezelfde stukken in stappen met een vaste voet
+    const wzHtml = () => wizardHtml({
+      v, state, wz, icoon, keyTextHtml, kleurKlasse, VORM_TEKEN, EXTRA_CHARS, PROFIEL_KLEUREN,
+      uitlegOpen: !!(root.querySelector && root.querySelector('.sw-info[open]')), meerOpen: !!(root.querySelector && root.querySelector('.sw-acties[open]')),
+      stukken: { code, chips, startHint, sessies, ww, toestemming, invoer, profielFout: v.profiel && v.profiel.fout ? `<p class="coop-error" role="alert">${esc(v.profiel.fout)}</p>` : '', uitleg: v.lines },
+    });
+    root.innerHTML = wizard ? wzHtml() : legacyHtml;
+    if (wizard) { // de focus begint op de hoofdactie van een nieuwe stap (niet bij elke hertekening)
+      const sleutel = state.step + '|' + wizStap(state, wz);
+      if (sleutel !== swSleutel) {
+        swSleutel = sleutel;
+        const hoofd = root.querySelector && (root.querySelector('.coop-btn[data-primary="1"]:not([disabled])') || root.querySelector('.sw-kaart'));
+        if (hoofd && hoofd.focus && !veldStand) { try { hoofd.focus(); } catch (e) { /* geen focus in een nep-DOM */ } }
+      }
+    }
     if (veldStand && root.querySelector) {
       const veld = root.querySelector('.' + veldStand.klasse);
       if (veld && veld.focus) {
@@ -685,6 +715,23 @@ export function mountLobby(root, hooks, opts = {}) {
     if (api && state.route === ROUTES.DIRECT && !opts.start && !opts.adopt) api.stop();
   }
 
+  // #1011: de sessie openbaar zetten (de hub filtert de naam, constitutie 10); alleen na het vinkje van de wizard of op het oude scherm
+  async function maakOpenbaar(naam) {
+    if (state.step !== 'openbaar-vraag') set({ t: 'openbaar-vraag' });
+    // de hub houdt naam en het vaste id van deze sessie vast (#450); hij filtert de naam ook (constitutie 10)
+    const r = hub && hub.zetOpenbaar ? hub.zetOpenbaar(true, naam) : { ok: true };
+    set({ t: 'openbaar-ja', naam, id: r.id });
+    if (r.ok && state.openbaar && !aankondiger) await startAankondiging();
+  }
+  // Terug (knop, B en Esc) in de wizard: één stap terug. Geeft false als er niets terug te gaan is (het menu beslist dan).
+  async function wizBack() {
+    const t = wizTerug(state, wz);
+    if (t.soort === 'niets') return false;
+    if (t.soort === 'wie-terug') { wz = reduceWizard(wz, { t: 'wie-terug' }); wieBevestigd = false; draw(); return true; }
+    await act(t.act);
+    return true;
+  }
+
   async function act(a) {
     const input = root.querySelector('.coop-input');
     try {
@@ -704,12 +751,24 @@ export function mountLobby(root, hooks, opts = {}) {
       }
       else if (a === 'stop-iedereen') { if (hooks.stopIedereen) hooks.stopIedereen(); } // #642: gast vraagt de groep om akkoord
       else if (a === 'openbaar') set({ t: 'openbaar-vraag' });
-      else if (a === 'openbaar-ja') {
-        const naam = input ? input.value : '';
-        // de hub houdt naam en het vaste id van deze sessie vast (#450); hij filtert de naam ook (constitutie 10)
-        const r = hub && hub.zetOpenbaar ? hub.zetOpenbaar(true, naam) : { ok: true };
-        set({ t: 'openbaar-ja', naam, id: r.id });
-        if (r.ok && state.openbaar && !aankondiger) await startAankondiging();
+      else if (a === 'openbaar-ja') await maakOpenbaar(input ? input.value : '');
+      // #1011: de wizard
+      else if (a === 'wie-verder') {
+        const ok = bewaarProfiel();
+        if (ok) { wz = reduceWizard(wz, { t: 'wie-klaar', naam: state.profiel.naam }); wieBevestigd = wz.wieKlaar; draw(); }
+        else { wz = reduceWizard(wz, { t: 'fout', msg: state.profielFout }); draw(); }
+      }
+      else if (a === 'wie-terug') await wizBack();
+      else if (a === 'wijze-code') { wz = reduceWizard(wz, { t: 'wijze', wijze: 'code' }); draw(); }
+      else if (a === 'wijze-prive') { wz = reduceWizard(wz, { t: 'wijze', wijze: 'prive' }); draw(); }
+      else if (a === 'wijze-openbaar') { wz = reduceWizard(wz, { t: 'wijze', wijze: 'openbaar' }); draw(); }
+      else if (a === 'ww-open') { wz = reduceWizard(wz, { t: 'ww', open: true }); draw(); const v = root.querySelector && root.querySelector('.coop-wachtwoord'); if (v && v.focus) v.focus(); }
+      else if (a === 'vrienden') { wz = reduceWizard(wz, { t: 'wijze', wijze: 'vrienden' }); if (wz.fout) return draw(); vriendenTodo = true; await act('lijst'); }
+      else if (a === 'host-open') {
+        const r = kanVerder(state, wz);
+        if (!r.ok) { wz = reduceWizard(wz, { t: 'fout', msg: r.fout }); return draw(); }
+        openbaarTodo = r.openbaar ? r.naam : null; // de sessie blijft privé tot de kamercode er is; dan pas gaat hij in de lijst (maakOpenbaar)
+        await act('route-kamer');
       }
       else if (a === 'openbaar-terug') set({ t: 'openbaar-terug' });
       else if (a === 'privaat') { if (hub && hub.zetOpenbaar) hub.zetOpenbaar(false); set({ t: 'privaat' }); await nieuweKamer(); }
@@ -774,9 +833,12 @@ export function mountLobby(root, hooks, opts = {}) {
         if (hub && state.route === ROUTES.KAMER) onRoster(hub.roster);
       } else if (a === 'terug' || a === 'verbreek') {
         // eerst netjes afmelden (BYE naar de anderen), dan pas de verbinding en de poort sluiten: andersom komt het afmelden nooit aan en houdt de host de plek nog tot de pauze
+        const rolVoor = state.rol, stapVoor = wizStap(state, wz);
         if (hooks.disconnect) hooks.disconnect(a, state.rol, opts.holdSlot);
         cleanup();
+        openbaarTodo = null;
         set({ t: a === 'terug' ? 'terug' : 'verbreek' });
+        if (wizard && a === 'terug' && rolVoor && stapVoor >= WSTAP.KIEZEN && state.step === 'start') set({ t: 'kies', rol: rolVoor }); // #1011: Terug gaat één stap terug: naar stap 2, niet naar de keuze
       } else if (a === 'hervat' && state.step === 'verbroken' && state.bron) {
         await hervatViaLijst();
       } else if (a === 'hervat') {
@@ -797,7 +859,11 @@ export function mountLobby(root, hooks, opts = {}) {
     if (k && k.dataset && k.dataset.kleur && root.contains(k)) { set({ t: 'profiel', kleur: k.dataset.kleur }); bewaarProfiel(); } // een kleur meteen bewaren
   });
   root.addEventListener('input', (e) => { // tijdens het typen geen nieuwe tekening: anders raakt het veld zijn focus kwijt
-    if (e.target && e.target.classList && e.target.classList.contains('coop-profiel-naam')) state = reduce(state, { t: 'profiel', naam: e.target.value });
+    if (e.target && e.target.classList && e.target.classList.contains('coop-profiel-naam')) {
+      state = reduce(state, { t: 'profiel', naam: e.target.value });
+      const voorbeeld = wizard && root.querySelector ? root.querySelector('.sw-voorbeeld-naam') : null; // het live voorbeeld volgt het typen
+      if (voorbeeld) voorbeeld.textContent = String(e.target.value || '').trim() || (state.wens && (EXTRA_CHARS.find((c) => c.id === state.wens) || {}).naam) || 'Je figuur';
+    } else if (wizard && e.target && e.target.classList && e.target.classList.contains('coop-sessienaam')) wz = reduceWizard(wz, { t: 'sessienaam', tekst: e.target.value });
     // het wachtwoord (#450): meteen bewaren en bij de gastheer meteen laten gelden voor de volgende kennismaking
     else if (e.target && e.target.classList && e.target.classList.contains('coop-wachtwoord')) { state = reduce(state, { t: 'wachtwoord', tekst: e.target.value }); pasWachtwoordToe(); }
     // het kamercodeveld (review 0.63): de waarde staat meteen in de staat, zodat een hertekening
@@ -839,6 +905,8 @@ export function mountLobby(root, hooks, opts = {}) {
     // het wachtwoord (#450): na het typen de regel eronder bijwerken (open of op slot)
     else if (e.target && e.target.classList && e.target.classList.contains('coop-wachtwoord')) { state = reduce(state, { t: 'wachtwoord', tekst: e.target.value }); pasWachtwoordToe(); draw(); }
     // het vinkje "Niet meer vragen" (#526): de keuze geldt bij het akkoord en wordt dan op dit apparaat bewaard
+    else if (wizard && e.target && e.target.classList && e.target.classList.contains('sw-figuur-kies')) act('wens-' + String(e.target.value || '')); // de figuur als keuzelijst (stap 1)
+    else if (wizard && e.target && e.target.classList && e.target.classList.contains('coop-openbaar-vink')) { wz = reduceWizard(wz, { t: 'bevestig', aan: !!e.target.checked }); draw(); }
     else if (e.target && e.target.classList && e.target.classList.contains('coop-consent-vink')) { state = reduce(state, { t: 'consent-vink', aan: !!e.target.checked }); draw(); }
   });
   if (hub) koppelAankondiging();
@@ -847,5 +915,17 @@ export function mountLobby(root, hooks, opts = {}) {
   if (state.step === 'lijst') startLuisteren().catch((e) => set({ t: 'fout', msg: e.message })); // (#526) dit apparaat gaf al toestemming: de lijst opent meteen
   if (state.step === 'verbonden' && state.openbaar && hub) startAankondiging(); // een lopende openbare sessie staat weer in de lijst, met dezelfde regel (#450)
   if (state.step === 'verbroken') planAuto(AUTO_EERSTE);
-  return { event: set, state: () => state, close() { cleanup(); root.innerHTML = ''; } };
+  return {
+    event: set, state: () => state,
+    // #1011: Esc/B in de wizard. Alleen de stappen 0 tot 2 nemen de toets; wachten en verbinden (stap 3) laten het menu sluiten zoals altijd
+    wizTerug: () => {
+      if (!wizard) return false;
+      const t = wizTerug(state, wz);
+      if (t.soort === 'niets' || wizStap(state, wz) === WSTAP.VERBINDEN) return false;
+      wizBack().catch(() => {});
+      return true;
+    },
+    wizard: () => ({ ...wz, stap: wizStap(state, wz) }),
+    close() { cleanup(); root.innerHTML = ''; },
+  };
 }
