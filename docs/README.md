@@ -213,6 +213,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [PERF-BISECT-21-11.md](<PERF-BISECT-21-11.md>) | Naslag. Bisect van de opwarmregressie 0.44 naar 0.64: waar ze zit, de tegelpinning sinds #314 en de proeffixes zonder effect (#1052). |
 | [INEFFICIENTIE-21-11.md](<INEFFICIENTIE-21-11.md>) | Audit van inefficiënties in data, pakket, opstart en hot paths (#1066): top-20 met winst, wat gefixt is en welke Electron-metingen nog nodig zijn. |
 | [PERF-TEGELSTREAM-21-11.md](<PERF-TEGELSTREAM-21-11.md>) | Tegelstroom zonder uitbarstingen (#1052): de plaatsingsvensters waren de bron, achtergrondwerk en vasthouding, meting Hoog en Ultra. |
+| [PERF-REGRESSIE-22-11.md](<PERF-REGRESSIE-22-11.md>) | Naslag. Perf-regressie ring, foot en spoor sinds v0.64.0: bisect naar `c5b375720` (#1052), de afvoer van de plaatsingstegels, de fix en wat open blijft. |
 | [QOL-STAND-21-11.md](<QOL-STAND-21-11.md>) | QoL-stand van epic #985: de 52 bevindingen van 17-11 en wat ervan af is. |
 | [BALANS-21-11.md](<BALANS-21-11.md>) | Naslag. Economiebalans met een sim van 10 uur: verdienste per uur, de Duizendpoot (#1050) en de voor/na-tabel. |
 | [MOEILIJKHEID-21-11.md](<MOEILIJKHEID-21-11.md>) | Naslag. Moeilijkheid per save (#1169): niveau en opties, de kaart bij een nieuw spel, de tabel van alle opties met bereik en standaard, de Samen-regel en de migratie. |
