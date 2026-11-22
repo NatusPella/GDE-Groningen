@@ -200,14 +200,14 @@ export function reduce(s, ev) {
     case 'route': // alleen host: kies kamercode of IP-adres
       if (ev.route === ROUTES.DIRECT && !s.caps.direct) return { ...n, error: 'Een IP-adres gebruiken kan alleen in de desktop-app.' };
       if (ev.route === ROUTES.KAMER && !s.caps.rtc) return { ...n, error: 'Een kamercode werkt hier niet: dit apparaat kan geen directe verbinding maken.' };
-      n.route = ev.route; n.step = hasConsent(s) ? naToestemming(n) : 'toestemming'; return n;
+      n.rol = ROLES.HOST; n.route = ev.route; n.step = hasConsent(s) ? naToestemming(n) : 'toestemming'; return n;
     case 'invoer': { // alleen gast
       const c = classifyInput(ev.text);
       n.invoerDraft = String(ev.text ?? '');
       if (!c.ok) return { ...n, error: c.reason };
       if (c.route === ROUTES.DIRECT && !s.caps.direct) return { ...n, error: 'Een adres of koppelcode van de directe route werkt alleen in de desktop-app. Vraag om een kamercode.' };
       if (c.route === ROUTES.KAMER && !s.caps.rtc) return { ...n, error: 'Een kamercode werkt hier niet.' };
-      n.route = c.route; n.invoer = c; n.step = hasConsent(s) ? naToestemming(n) : 'toestemming'; return n;
+      n.rol = ROLES.GAST; n.route = c.route; n.invoer = c; n.step = hasConsent(s) ? naToestemming(n) : 'toestemming'; return n;
     }
     // #review 0.63: het kamercodeveld bewaart wat je typt ook als het scherm opnieuw tekent
     // (de lijst ververst elke paar seconden). Geen keuring: pas bij "Verder" telt de code.
@@ -225,7 +225,8 @@ export function reduce(s, ev) {
       n.consented = true; n.consentSaved = !!(ev.remember ?? s.consentRemember ?? s.consentSaved); // geldt meteen voor de rest van deze sessie
       n.step = naToestemming(s); return n;
     case 'code': // de host heeft een code (kamercode, of adres met UPnP; zonder router de lokale code)
-      n.code = ev.code; n.lanCode = ev.lanCode || ''; n.note = ev.note || ''; n.step = 'host-wacht'; return n;
+      if (s.rol !== ROLES.HOST) return s; // een code die na Annuleren nog binnenkomt, maakt geen wachtkamer zonder gastheer
+      n.code = ev.code; n.lanCode = ev.lanCode || ''; n.note = ev.note || ''; n.step = s.step === 'verbonden' ? 'verbonden' : 'host-wacht'; return n; // een nieuwe kamercode (na eruit zetten of weer privé) haalt de gastenlijst niet weg
     case 'fout': n.error = ev.msg || 'Er ging iets mis.'; return n;
     case 'diag': // Verbinding testen: de eerste keer in deze sessie eerst de vraag; daarna meteen testen (#526)
       n.terugNaar = s.step.startsWith('diag') ? s.terugNaar : s.step;
@@ -323,13 +324,13 @@ export function reduce(s, ev) {
       }
       return n;
     }
-    case 'verbinden': n.step = 'verbinden'; n.wachtTik = 0; return n; // een nieuwe poging telt weer vanaf nul, anders staat meteen de 'geen antwoord'-tekst
+    case 'verbinden': if (!s.rol) return s; /* zonder rol is er niets om mee te verbinden (na Annuleren) */ n.step = 'verbinden'; n.wachtTik = 0; return n; // een nieuwe poging telt weer vanaf nul, anders staat meteen de 'geen antwoord'-tekst
     case 'verbind-tik': // de tijd die het verbinden al duurt, in tikken van een paar seconden (lobbyui.js): de tekst zegt dan wat er aan de hand kan zijn (#985)
       if (s.step !== 'verbinden') return s;
       n.wachtTik = Math.max(0, ev.n | 0); return n;
     case 'status': {
       // een late melding na Annuleren (rol weg, beginscherm) maakt geen spookwachtkamer en geen 'Verbinding weg' zonder verbinding
-      if (!s.rol && s.step === 'start' && !['verbroken', 'weg'].includes(ev.status)) return s;
+      if (!s.rol && !['verbroken', 'weg'].includes(ev.status)) return s;
       n.status = ev.status; n.reason = ev.reason || null; if (ev.ander) n.andereVersie = String(ev.ander); if (ev.partner) n.partner = ev.partner;
       if (ev.status === 'ok' || ev.status === 'lag') n.step = 'verbonden';
       else if (ev.status === 'lost') n.step = 'verbroken';
