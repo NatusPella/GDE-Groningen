@@ -11,11 +11,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
-### Een levende wereld
-- Zonnige dagen klinken anders (sprint 22-11): op een helder uur tussen 11 en 19 uur praten voorbijgangers over volle terrassen, zwemmen in de Hoornseplas, picknicken in het Noorderplantsoen en het warme zand op de Wadden, in elke streek. Bij regen, mist of onweer blijft het bij de weerpraat van die dag. Samen spelen: decor per speler, zonder voortgang of beloning; de tekst hangt aan het eigen weer en de klok van de gastheer.
-
 ### Beleving en sfeer (sprint 22-11)
 
+- Toeter je naar iemand die voor je auto loopt, dan draait die zich om en moppert terug ("Ja, ja, ik loop al!"), met afkoeltijd per persoon zodat het geen geklets wordt. Samen spelen: lokaal, passanten zijn per spel.
 - Passanten groeten je nu ook als je rustig te voet langs loopt: soms een zwaai, soms een "Moi!". Nooit als je rent, rijdt, een wapen op hebt of gezocht wordt, en nooit een heel koor tegelijk. Samen spelen: lokaal per speler, een gast ziet de zwaai al via de bestaande groetvlag.
 
 ### Besturing met een controller
