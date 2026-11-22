@@ -148,8 +148,9 @@ ok(E.platesCost(0) === 40 && E.platesCost(3) === 190 && E.platesCost(5) === 290,
   extra[11] = 17;
   ok(K.decodeSnapshot(extra) === null, 'snapshot met 17 spelers wordt geweigerd');
 }
-// Een entiteit ver buiten de wereld maakt de hele snapshot ongeldig.
-ok(K.decodeSnapshot(K.encodeSnapshot(1, 1, 1, { ...snap, entities: [{ id: 1, kind: 20, x: 5e7, z: 0, angle: 0 }] })) === null, 'entiteit buiten de wereld: snapshot geweigerd');
+// Een entiteit ver buiten de wereld wordt door de encoder overgeslagen (22-11): de snapshot blijft geldig, alleen die entiteit ontbreekt.
+const buiten = K.decodeSnapshot(K.encodeSnapshot(1, 1, 1, { ...snap, entities: [{ id: 1, kind: 20, x: 5e7, z: 0, angle: 0 }] }));
+ok(buiten !== null && buiten.entities.length === 0, 'entiteit buiten de wereld: overgeslagen, snapshot blijft geldig');
 // Een JSON-bericht met losse bytes erachter is geen geldig bericht (een spatie: JSON.parse slikt hem, de lengtecontrole niet).
 { const j = valid[2]; const langer = new Uint8Array(j.length + 1); langer.set(j); langer[j.length] = 0x20; ok(K.decodeJson(j) && K.decodeJson(langer) === null, 'JSON-bericht met restbytes wordt geweigerd'); }
 // Meer uiterlijkrecords dan MAX_LOOKS: vijf geldige records achter elkaar worden geweigerd.
