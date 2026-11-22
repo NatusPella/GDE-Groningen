@@ -90,8 +90,8 @@ export function planPrestatie(o = {}) {
 // samen in één samenvatting (de prestaties zelf staan in het menu). index: hoeveelste van deze reeks (0 = de eerste),
 // resterend: hoeveel er nog staan te wachten, deze meegerekend.
 export function queueStep({ index = 0, resterend = 1 } = {}) {
-  const i = Math.max(0, Math.floor(index));
-  const rest = Math.max(1, Math.floor(resterend));
+  const i = Number.isFinite(index) ? Math.max(0, Math.floor(index)) : 0;
+  const rest = Number.isFinite(resterend) ? Math.max(1, Math.floor(resterend)) : 1;
   if (i >= MAX_VISIBLE && rest >= 2) return { variant: 'samenvatting', aantal: rest, nog: 0 };
   if (i === 0) return { variant: 'vol', aantal: 1, nog: rest - 1 };
   return { variant: 'kort', aantal: 1, nog: rest - 1 };
@@ -100,7 +100,7 @@ export function queueStep({ index = 0, resterend = 1 } = {}) {
 // De hele reeks van n prestaties in één keer, voor de test en voor een voorspelling.
 export function wachtrijPlan(n) {
   const uit = [];
-  let left = Math.max(0, Math.floor(n));
+  let left = Number.isFinite(n) ? Math.min(10000, Math.max(0, Math.floor(n))) : 0; // een kapotte teller hangt de lus nooit op
   let index = 0;
   while (left > 0) {
     const s = queueStep({ index, resterend: left });
@@ -120,7 +120,7 @@ export function verblijfS(gewoonS, variant) {
 
 // De tekst van de samenvatting: Nederlands, enkelvoud en meervoud.
 export function samenvattingTekst(aantal) {
-  const n = Math.max(1, Math.floor(aantal));
+  const n = Number.isFinite(aantal) ? Math.max(1, Math.floor(aantal)) : 1; // nooit 'Nog NaN prestaties'
   return { titel: n === 1 ? 'Nog 1 prestatie' : `Nog ${n} prestaties`, tekst: 'Alles staat in het menu onder Prestaties.' };
 }
 

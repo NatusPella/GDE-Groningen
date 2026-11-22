@@ -78,6 +78,7 @@ export const PHONE_SHORT = 700;
 export const PHONE_REF = 540;
 export const PHONE_MIN = 0.62;
 export function uiScaleFor(width, height, user = 1, touch = false) {
+  if (!(width > 0) || !(height > 0)) { width = BASE_W; height = BASE_H; } // een verborgen of nog niet gemeten venster geeft nooit NaN in --ui
   const short = Math.min(width, height);
   const phone = touch && short < PHONE_SHORT;
   const auto = phone ? Math.max(PHONE_MIN, Math.min(1, short / PHONE_REF)) : Math.max(1, Math.min(height / BASE_H, width / BASE_W));
@@ -100,6 +101,7 @@ export const EDGE_MIN = 24;
 export const EDGE_MAX = 64;
 export function hudEdge(width, height, scale = 1) {
   const short = Math.min(width, height);
+  if (!(short > 0) || !Number.isFinite(short) || !Number.isFinite(scale)) return EDGE_MIN;
   const e = (short * 0.05) / Math.max(0.5, scale);
   return Math.round(Math.max(EDGE_MIN, Math.min(EDGE_MAX, e)));
 }
@@ -108,7 +110,8 @@ export function hudEdge(width, height, scale = 1) {
 // the HUD grows the text, never the other way round.
 export const READABLE_MIN = 13;
 export function textPx(base, scale = 1) {
-  return Math.max(READABLE_MIN, base * Math.max(1, scale));
+  const b = Number.isFinite(base) ? base : READABLE_MIN, s = Number.isFinite(scale) ? scale : 1;
+  return Math.max(READABLE_MIN, b * Math.max(1, s));
 }
 
 // #868: menu's lay out in stage px and are zoomed by --mz (ui / 1.2), so their
@@ -146,6 +149,7 @@ export const HUD_PLAAT_BG = '#f3ead3';
 export const HUD_PLAAT_INKT = '#1d1b17';
 export const RUSTIG_CONTRAST = 7;
 const lum = (hex) => {
+  if (/^#[0-9a-f]{3}$/i.test(hex)) hex = '#' + hex.slice(1).replace(/./g, (x) => x + x); // '#fff' leest niet meer als zwart
   const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
     .map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
   return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];

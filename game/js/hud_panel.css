@@ -822,7 +822,7 @@ body.pigeon-mode #banter-sub, body.pigeon-mode #radio-sub { bottom: calc(198px *
 #hud .hud-minimap-wrap.wanted.chase { box-shadow: 4px 4px 0 var(--ds-c-rood-glas); }
 
 /* #990: een nieuwe streek ontdekt: de rand gloeit zomers geel op en zakt weg (met Beweging beperken blijft de gele rand even staan, zonder animatie) */
-#hud .hud-minimap-wrap.ontdek:not(.wanted) { box-shadow: 0 0 0 3px var(--ds-c-geel), 4px 4px 0 var(--ds-c-geel-druk); animation: hud-ontdek 2.2s ease-out both; }
+#hud .hud-minimap-wrap.ontdek:not(.wanted) { box-shadow: 0 0 0 3px var(--ds-c-geel), 4px 4px 0 var(--ds-c-geel-druk); animation: hud-ontdek 2.2s ease-out both; } /* ds3-dwell: verblijf */
 @keyframes hud-ontdek { 0% { box-shadow: 0 0 0 9px var(--ds-c-geel), 4px 4px 0 var(--ds-c-geel-druk); } 100% { box-shadow: 0 0 0 3px var(--ds-c-geel), 4px 4px 0 var(--ds-c-geel-druk); } }
 @media (prefers-reduced-motion: reduce) { #hud .hud-minimap-wrap.ontdek { animation: none; } }
 

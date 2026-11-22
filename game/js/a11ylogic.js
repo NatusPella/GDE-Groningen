@@ -30,7 +30,10 @@ export const sterTeken = (n, { vormen = false } = {}) => (vormen && Number.isFin
 export function toRgb(c) {
   if (Array.isArray(c)) return c;
   if (typeof c === 'number') return [(c >> 16) & 255, (c >> 8) & 255, c & 255];
-  const m = /^#?([0-9a-f]{6})$/i.exec(String(c));
+  let t = String(c).trim();
+  // '#fff' is de korte schrijfwijze van '#ffffff' (anders las het contrast het als zwart)
+  if (/^#?[0-9a-f]{3}$/i.test(t)) t = t.replace('#', '').replace(/./g, (x) => x + x);
+  const m = /^#?([0-9a-f]{6})$/i.exec(t);
   if (!m) return [0, 0, 0];
   const n = parseInt(m[1], 16);
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
@@ -64,7 +67,7 @@ const SIM = {
 // how `c` looks with the given deficiency ('uit' = unchanged), as [r, g, b]
 export function simulate(c, mode) {
   const rgb = toRgb(c);
-  const m = SIM[mode];
+  const m = Object.prototype.hasOwnProperty.call(SIM, mode) ? SIM[mode] : null; // geen 'constructor' uit een kapotte instelling
   if (!m) return rgb;
   const l = rgb.map(lin);
   return m.map((row) => Math.round(delin(row[0] * l[0] + row[1] * l[1] + row[2] * l[2])));
@@ -131,7 +134,7 @@ export function subtitleContrastRatio(contrast, backdrop = '#ffffff') {
 }
 
 export function textScale(size) {
-  return TEXT_SIZES[size] || 1;
+  return Object.prototype.hasOwnProperty.call(TEXT_SIZES, size) ? TEXT_SIZES[size] : 1;
 }
 
 // What the two comfort settings turn off. `reduceMotion` also covers the OS setting (passed in by the caller).
