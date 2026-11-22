@@ -13,7 +13,7 @@ let t = EVERY_S;
 
 const safe = (fn) => { try { return !!fn(); } catch (e) { return false; } };
 
-// Wat de speler al heeft (nooit wegmoffelen; gate 0.65: een akker is begonnen met een perceel, niet met speluren: boerderijBegonnen telt elke verstreken spelklok en hield Land en bedrijf in een nieuw spel meteen open): een begonnen akker of gekocht perceel, een pand, een gestarte club, of de vlag van de begincutscene.
+// Wat de speler al heeft (nooit wegmoffelen; gate 0.65: een akker is begonnen met een perceel, niet met speluren: de speluren-teller telt elke verstreken spelklok en hield Land en bedrijf in een nieuw spel meteen open): een begonnen akker of gekocht perceel, een pand, een gestarte club, of de vlag van de begincutscene.
 export function owns(world) {
   if (world === 'farm') return safe(() => !!getBoerderij().perceel) || safe(() => storyFlag(FARM_FLAG)) || safe(() => (getBezit().totals.bought | 0) > 0);
   if (world === 'bezit') return safe(() => { const b = getBezit(); return Object.keys(b.bstate || {}).length > 0 || !!(b.buildings && b.buildings.size); });
