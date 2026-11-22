@@ -46,7 +46,7 @@ t('#924 autorit: alle 131 exchange-regels resolven via de rec-aware resolver', (
   // de oude bug: banter.js keek alleen in banter; 70 regels staan in lines
   const fromLines = lines.filter((l) => l[3] === 'lines').length;
   const fromBanter = lines.filter((l) => l[3] === 'banter').length;
-  assert.equal(fromLines, 90);
+  assert.equal(fromLines, 115);
   assert.equal(fromBanter, 16);
 });
 
