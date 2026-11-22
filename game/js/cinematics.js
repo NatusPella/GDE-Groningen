@@ -396,6 +396,8 @@ function jumpEnv() {
       return q;
     },
     fade: (k, ms) => { try { links.respawnFade(k, ms); } catch (e) { /* geen DOM */ } },
+    // meetpunten voor de Electron-run: window.__cineJumps (hoogstens 60 gebeurtenissen), zie docs/CUTSCENE-POPIN-22-11.md
+    note: (e) => { try { const l = (window.__cineJumps || (window.__cineJumps = [])); l.push({ scene: active && active.id, at: Math.round(performance.now()), ...e }); if (l.length > 60) l.shift(); } catch (err) { /* geen window */ } },
     voice: () => {}, // de stem pauzeert in tick() mee met de wachtpoort (voicePaused)
     flags: (f) => { if (world) { world.cineWarming = !!f.warming; world.cineJumpLoading = !!f.loading; } },
   };

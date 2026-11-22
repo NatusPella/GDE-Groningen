@@ -242,5 +242,26 @@ ok(budgetFor(40, { cine: true, cineWarm: true }) === PLAN.floorMs, 'een trage fr
   ok(/jumps: warmStopsFromKeys\(tourKeys\(/.test(readFileSync(new URL('../game/js/intochten.js', import.meta.url), 'utf8')), 'intochten: de stops warmen vooruit');
 }
 
+// 10. meetpunten: elke stap van de loper meldt zich (warm, cut of gate, release) zodat de Electron-run ze kan tellen
+{
+  const evs = [];
+  const m = mkEnv({ tilesMissing: 4 });
+  m.env.note = (e) => evs.push(e);
+  const r = createJumpRunner(js, m.env);
+  let readyAt = null;
+  play(r, m.clock, 18, { onFrame: (f, t, st) => { if (st.phase === 'wait' && readyAt == null) readyAt = m.clock.ms + 400; if (readyAt != null && m.clock.ms >= readyAt) m.set({ tilesMissing: 0 }); } });
+  const kinds = evs.map((e) => e.ev + ':' + e.idx).join(',');
+  ok(kinds === 'warm:2,gate:2,release:2,warm:4', 'meetpunten: warm, gate, release voor de eerste sprong en warm voor de tweede', kinds);
+  const rel = evs.find((e) => e.ev === 'release');
+  ok(rel && rel.reason === 'klaar' && rel.waitedMs >= WARM.dipOutMs + WARM.minWaitMs && rel.waitedMs < WARM.maxWaitMs, 'meetpunten: release meldt de reden en de wachttijd', JSON.stringify(rel));
+  const evs2 = [];
+  const m2 = mkEnv();
+  m2.env.note = (e) => evs2.push(e);
+  play(createJumpRunner(js, m2.env), m2.clock, 24);
+  ok(evs2.filter((e) => e.ev === 'cut' && e.ready).length === 2 && !evs2.some((e) => e.ev === 'gate'), 'meetpunten: op tijd klaar meldt een gewone cut, geen gate');
+  const m3 = mkEnv(); m3.env.note = () => { throw new Error('stuk'); };
+  ok(play(createJumpRunner(js, m3.env), m3.clock, 24).frames > 0, 'een kapotte meetfunctie hindert de scene niet');
+}
+
 console.log(`${n - fails}/${n} cutscenewarm-controles`);
 process.exit(fails ? 1 : 0);

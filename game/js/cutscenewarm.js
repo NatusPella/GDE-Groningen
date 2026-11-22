@@ -157,7 +157,8 @@ export function createJumpGate(p = WARM) {
 
 // De loper die warmen en poort aan een scène hangt. env (alles optioneel behalve now):
 //   now(): ms; warm(j): vraag tegels en gebouwen van j.to; ready(j, deep): { tilesMissing, ... } of een readiness-uitslag;
-//   fade(k, ms): zwart; voice(on): de stem pauzeren (true) of hervatten (false); flags(o): { warming, loading } voor het streambudget.
+//   fade(k, ms): zwart; voice(on): de stem pauzeren (true) of hervatten (false); flags(o): { warming, loading } voor het streambudget;
+//   note(e): een meetpunt voor de Electron-run ({ ev: 'warm' | 'cut' | 'gate' | 'release', idx, t, dist, ... }).
 // step(t, nextT) geeft de scènetijd die deze frame mag worden: nextT, of vastgehouden bij een poort. `skipGate` (een gast die de
 // klok van de gastheer volgt) warmt wel maar houdt de klok nooit vast.
 export function createJumpRunner(jumps, env, { p = WARM, skipGate = false } = {}) {
@@ -165,10 +166,11 @@ export function createJumpRunner(jumps, env, { p = WARM, skipGate = false } = {}
   const state = { warmed: new Set() };
   const gate = createJumpGate(p);
   const passed = new Set();
-  let warmUntil = -Infinity, holdVoice = false;
+  let warmUntil = -Infinity, holdVoice = false, gateAt = 0;
   const rd = (j, deep) => { const q = env.ready ? env.ready(j, deep) : null; return q && 'ready' in q ? q : readiness(q, deep); };
   const setFlags = (warming, loading) => { if (env.flags) env.flags({ warming, loading }); };
   const setVoice = (on) => { if (holdVoice !== on) { holdVoice = on; if (env.voice) env.voice(on); } };
+  const note = (e) => { if (env.note) { try { env.note(e); } catch (err) { /* meten mag nooit hinderen */ } } };
   const apply = (r) => { if (r && r.fade && env.fade) env.fade(r.fade.to, r.fade.ms); };
 
   return {
@@ -176,12 +178,13 @@ export function createJumpRunner(jumps, env, { p = WARM, skipGate = false } = {}
     get holding() { return gate.active && gate.phase !== 'in'; },
     step(t, nextT) {
       const now = env.now();
-      for (const j of warmDue(list, t, nextT, state, p)) { if (env.warm) env.warm(j); warmUntil = now + (p.leadS + 1) * 1000; }
+      for (const j of warmDue(list, t, nextT, state, p)) { if (env.warm) env.warm(j); note({ ev: 'warm', idx: j.idx, t: j.t, dist: Math.round(j.dist), kind: j.kind }); warmUntil = now + (p.leadS + 1) * 1000; }
       let allowed = nextT;
       if (gate.active) {
         const j = gate.jump;
         const r = gate.tick(now, gate.phase === 'wait' ? rd(j, true).ready : false);
         apply(r);
+        if (r.reason && r.fade && r.fade.to === 0) note({ ev: 'release', idx: j.idx, t: j.t, reason: r.reason, waitedMs: Math.round(now - gateAt) });
         if (r.hold) allowed = gate.phase === 'out' ? Math.max(0, j.t - p.hold) : j.t; // uit: het oude shot; zwart: het nieuwe eerste frame
         else allowed = Math.max(nextT, j.t);
       } else if (!skipGate) {
@@ -189,7 +192,9 @@ export function createJumpRunner(jumps, env, { p = WARM, skipGate = false } = {}
           if (j.kind !== 'hard' || passed.has(j.idx)) continue;
           if (t < j.t && nextT >= j.t) {
             passed.add(j.idx);
-            if (rd(j, false).ready) break; // op tijd klaar: een gewone cut
+            if (rd(j, false).ready) { note({ ev: 'cut', idx: j.idx, t: j.t, dist: Math.round(j.dist), ready: true }); break; } // op tijd klaar: een gewone cut
+            gateAt = now;
+            note({ ev: 'gate', idx: j.idx, t: j.t, dist: Math.round(j.dist), why: rd(j, false).reason });
             const r = gate.arm(j, now, { instant: false });
             apply(r);
             allowed = Math.max(0, j.t - p.hold);
