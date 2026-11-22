@@ -29,7 +29,7 @@ import { getPigeonSpotsForRender, drawPigeonMapIcon } from './pigeonspots.js';
 import { getHeliSpotsForRender, drawHeliMapIcon, getHeliRunMarks } from './helirun.js';
 import { getPadelSpotsForRender, drawPadelMapIcon } from './padel.js';
 import { activityMapIcons, drawActivityMapIcon } from './activities.js';
-import { isAreaHidden } from './explorationlive.js';
+import { isAreaHidden, onStreekOntdekt } from './explorationlive.js';
 import { getPostgameSpotsForRender, drawPostgameMapIcon } from './postgame.js';
 import { getOnderdeelSpotsForRender } from './onderdelenlive.js'; // #837
 import { getWrakduikSpotsForRender } from './wrakduikenlive.js'; // #839
@@ -70,6 +70,7 @@ export { getClockText };
 import { storyWaiting, missionOnMap, getGoal } from './goal.js';
 import { resolveNavTargets, snapshotFromWorld, distanceFor, compactDistance, navColor, NAV_ROL, GLYPH } from './navtarget.js';
 import { drawKompasRand, MAX_ANDEREN } from './navpijl.js';
+import { MM_ONTDEK_MS } from './kaartontdekking.js';
 import { setGhostBar, ring, pop, reducedMotion } from './motion.js';
 import { renderSnapshot, PORTRAIT_ANGLE } from './vehiclepreview.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
@@ -272,6 +273,13 @@ export function initHud(world) {
   mmSterren.setAttribute('aria-hidden', 'true');
   mmWrap.appendChild(mmSterren);
   root.appendChild(mmWrap);
+  // #990: een nieuwe streek ontdekt (ook onderweg, kaart dicht): de rand van de minimap gloeit even op, geen beweging nodig
+  let ontdekT = 0;
+  onStreekOntdekt(() => {
+    mmWrap.classList.add('ontdek');
+    clearTimeout(ontdekT);
+    ontdekT = setTimeout(() => mmWrap.classList.remove('ontdek'), MM_ONTDEK_MS);
+  });
   // #993: de buurtnaam als inktlabel onder de minimap; de rasterpatroon-defs is voor de lege wantedster
   const defsWrap = document.createElement('div');
   defsWrap.innerHTML = '<svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs><pattern id="hud-raster" width="5" height="5" patternUnits="userSpaceOnUse"><circle cx="2.5" cy="2.5" r="0.9" style="fill: var(--ds-c-ink-inkt)"/></pattern></defs></svg>';

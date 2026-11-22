@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { districtAt } from './districtat.js';
 import { wielInvoer } from './coopgast.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
@@ -1759,12 +1760,9 @@ export function stopPigeonMode(w = world) {
 }
 
 function wijkAt(map, x, y) {
-  let best = null, bd = 900;
-  for (const p of map.meta.neighbourhoodPoints || []) {
-    const d = Math.hypot(p.x - x, p.y - y);
-    if (d < bd) { bd = d; best = p.name; }
-  }
-  return best;
+  // #1077: alleen een wijk waar je echt in staat (districtat.js); hoog in de lucht telt de woonplaats, geen wijk
+  const w = districtAt(map.meta.neighbourhoodPoints || [], x, y);
+  return w ? w.name : null;
 }
 
 // The pigeon that was just "you" flies off once you're human again.

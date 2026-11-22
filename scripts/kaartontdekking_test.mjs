@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { ontvouw } from '../game/js/grenzen.js';
 import { bouwIndeling } from '../game/js/gebieden.js';
-import { unseenDistricts, discoveryRatio, revealAlpha, maskSize, DISCOVERY_RES_M, REVEAL_MS, DETAIL, detailVoor, pinBlijftInMist } from '../game/js/kaartontdekking.js';
+import { unseenDistricts, discoveryRatio, revealAlpha, maskSize, DISCOVERY_RES_M, REVEAL_MS, DETAIL, detailVoor, pinBlijftInMist, MM_ONTDEK_MS } from '../game/js/kaartontdekking.js';
 
 let n = 0, fails = 0;
 const ok = (c, naam, extra = '') => { n++; if (!c) { fails++; console.log('FAIL ' + naam + (extra ? ' :: ' + extra : '')); } };
@@ -89,6 +89,14 @@ const buurten = ind.gebieden.filter((g) => g.niveau === 'buurt');
   ok(!pinBlijftInMist('mission', {}) && !pinBlijftInMist('shop-kapper', null) && !pinBlijftInMist('sj-taxi', undefined), 'winkels, bijbanen en missies verdwijnen');
   const mv = fs.readFileSync(new URL('../game/js/mapview.js', import.meta.url), 'utf8');
   ok(mv.includes('pinBlijftInMist(kind, pick) && discoveryHidden(x, y)') && mv.includes('geen straatnamen in onbezocht gebied'), 'mapview filtert pins en straatnamen met het masker dat er al is (geen extra tekenpas)');
+}
+{
+  // #990: een nieuwe streek laat de rand van de minimap even gloeien (ook onderweg), kort en met een vaste duur
+  const hp = fs.readFileSync(new URL('../game/js/hud_panel.js', import.meta.url), 'utf8');
+  const css = fs.readFileSync(new URL('../game/js/hud_panel.css', import.meta.url), 'utf8');
+  ok(hp.includes('onStreekOntdekt(') && hp.includes("classList.add('ontdek')") && hp.includes('MM_ONTDEK_MS'), 'hud_panel laat de minimaprand gloeien bij een nieuwe streek');
+  ok(MM_ONTDEK_MS >= 1000 && MM_ONTDEK_MS <= 4000, 'de gloed is kort');
+  ok(css.includes('.hud-minimap-wrap.ontdek') && /prefers-reduced-motion[^}]*hud-minimap-wrap.ontdek/.test(css), 'de gloed heeft een variant zonder beweging');
 }
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
