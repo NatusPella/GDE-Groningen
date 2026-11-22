@@ -672,6 +672,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Nooit een melding tijdens het laadscherm, een filmpje, een gesprek, het begin of einde van een missie of een schermvullende kaart. Wat dan binnenkomt wacht en komt erna, een voor een. Wat te lang wacht, verdwijnt; prestaties gaan nooit verloren. Zijn het er te veel, dan vouwen de minst belangrijke samen tot "en 2 meer" op de volgende melding.
 - Een melding wegdrukken kan met Delete, of op de controller met LB en RB tegelijk; de volgende komt dan meteen. Gevaar en politie onderbreken wel een rustige melding die al in beeld staat.
 - Samen spelen: elke speler heeft een eigen meldingenwachtrij op het eigen apparaat; er gaat niets over het net. Wie wegvalt of later aansluit begint met een lege rij, en een gast ziet alleen zijn eigen meldingen.
+### Bijbanen: tempo en reeks
+- Bijbanen: wie een ronde ruim binnen de tijd afmaakt krijgt een tempobonus bovenop het loon: "Vlot" (8%) met 30% van de tijd over, "Bliksemsnel" (15%) met de helft over. De bonus staat achter het loon in de melding. De lijndienst rijdt op de dienstregeling en geeft hem niet. Samen spelen: de bonus telt als fooi, dus iedereen die meedoet krijgt hem in eigen geld; een eigen dienst van een gast krijgt hem over de eigen ronde.
+- Bijbanen: je reeks overleeft pech. Is er even geen ronde (geen akker, geen overtreder, geen wijk) of rond je een boerderijtaak af, dan blijft de reeks staan. Een aanrijding halveert de reeks in plaats van hem te wissen, en de melding zegt wat er over is. Weglopen kost de reeks nog steeds. Samen spelen: de reeks hoort bij de dienst van de speler die hem draait.
+- Bijbanen: het eindbord en de regel tussen twee klussen tellen bij "Klussen" nu alle betaalde rondes van de dienst, ook als je reeks onderweg brak.
 
 ## [0.65.0] - 2026-11-21
 

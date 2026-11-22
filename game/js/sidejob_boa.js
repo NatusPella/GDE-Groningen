@@ -86,7 +86,7 @@ export default {
     d.farFor = 0;
     d.resultT = 0;
     const spot = offenderSpot(c);
-    if (!spot) { c.skip('Geen overtreder te vinden. Even rustig aan.'); return; }
+    if (!spot) { c.skip('Geen overtreder te vinden. Even rustig aan.', 'pech'); return; }
     d.ped = c.track(spawnPed(c.world, spot.x, spot.y, Math.random() * Math.PI * 2, { shirt: pick(SHIRTS), bag: Math.random() < 0.5 }));
     d.spot = spot;
     if (c.round === 0) c.msg('Loop op de overtreder af, tot 3 meter.', 3);
@@ -96,7 +96,7 @@ export default {
     const { world } = c;
     const d = c.data, p = hoofdspeler(world);
     const ped = d.ped;
-    if (!pedAlive(world, ped)) { closePanel(c); c.skip('De overtreder is verdwenen. Volgende.'); return; }
+    if (!pedAlive(world, ped)) { closePanel(c); c.skip('De overtreder is verdwenen. Volgende.', 'pech'); return; }
     holdPed(ped, p.x, p.y);
     const dd = dist(p.x, p.y, ped.x, ped.y);
     if (d.phase === 'walk') {

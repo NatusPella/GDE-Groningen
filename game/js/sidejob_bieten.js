@@ -166,7 +166,7 @@ export default {
     const d = c.data;
     ruim(c);
     const akker = vindAkker(c.world.map, c.spot);
-    if (!akker) { c.skip('Er is vandaag geen akker vrij bij Hoogkerk. Straks nog eens proberen.'); return; }
+    if (!akker) { c.skip('Er is vandaag geen akker vrij bij Hoogkerk. Straks nog eens proberen.', 'pech'); return; }
     d.rijen = akkerRijen(akker.center, akker.angle);
     d.akker = bouwAkker(d.rijen, c.world.map);
     c.addMesh(d.akker.group);
