@@ -110,7 +110,7 @@ export function chainsHtml(chains, money = 0) {
     }).join('');
     return `<div class="bz-keten" data-chain="${esc(c.id)}"><h4 class="m-h3">${esc(c.name)}</h4><p class="mut">${esc(meta)}</p>${c.weakest ? `<p class="bz-zwak" data-kind="${esc(c.weakest.kind)}">Zwakste schakel: ${esc(c.weakest.text)}</p>` : ''}<div class="bz-schakels">${links}</div></div>`;
   }).join('');
-  return `<h3 class="m-h3">Ketens</h3><p class="mut">Een eigen verwerker of verkooppunt geeft extra marge: +15% voor een van de twee, +35% als beide van jou zijn. Koppel een pand uit Bedrijven aan een schakel; een afstand van meer dan 500 m vraagt wagens met chauffeur. De grondstof komt van percelen op Personeel en van je vee.</p>${body}`;
+  return `<h3 class="m-h3">Ketens</h3><p class="mut">Een eigen verwerker of verkooppunt geeft extra marge: +15% voor een, +35% voor beide. Boven 500 m heb je wagens met chauffeur nodig.</p>${body}`;
 }
 
 // ---- Prijzen vandaag per streek (areamarket.js) ----
@@ -150,7 +150,7 @@ export function homesHtml(homes = [], money = 0) {
   if (!homes.length) return '';
   const rows = homes.map((o) => `<div class="bd-rij" data-osm="${o.osm}" data-home="1"><span class="bd-naam"><b>Woning bij ${esc(o.town.name)}</b><span class="bd-feiten"><span>${Math.round(o.row.m2)} m2 grondvlak</span><span>${o.dist} m</span><span>${o.forSale ? euro(o.price) : esc(o.reason)}</span></span></span>` +
     `<span class="bd-acties">${o.forSale ? askOr('koop-pand', o.osm, `Koop ${euro(o.price)}`, `Voor ${euro(o.price)}?`, '', money < o.price) : ''}</span></div>`).join('');
-  return `<h3 class="m-h3">Woningen in de buurt</h3><p class="mut">Een gekochte woning wordt verhuurd: elke speldag huur, tenzij de huurder verhuist (dan staat hij een paar dagen leeg). Het aantal woningen per plaats is het aantal in de wereld.</p>${rows}`;
+  return `<h3 class="m-h3">Woningen in de buurt</h3><p class="mut">Een gekochte woning wordt verhuurd: elke speldag huur, tenzij de huurder verhuist (dan staat hij even leeg).</p>${rows}`;
 }
 
 // ---- Te koop ----

@@ -270,7 +270,7 @@ function injectStyles() {
     .mapview-osm {
       position: absolute; left: 12px; bottom: 12px; pointer-events: none;
       padding: 2px 8px; border-radius: 3px; background: ink(dark 0.7);
-      font: 12px 'Arial Narrow', Arial, sans-serif; font-size: max(12px, var(--menu-min, 12px)); letter-spacing: 0.2px; color: ink(cream 0.7);
+      font: 13px 'Arial Narrow', Arial, sans-serif; font-size: max(13px, var(--menu-min, 13px)); letter-spacing: 0.2px; color: ink(cream 0.7);
     }
     .mapview-tp {
       position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 3; pointer-events: none;
@@ -318,15 +318,15 @@ function injectStyles() {
     .mapview-legend .chk::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: ink(cream); transition: transform var(--dur-base, 200ms) var(--ease-pop, ease); }
     .mapview-legend li[aria-checked="true"] .chk { background: ink(green); }
     .mapview-legend li[aria-checked="true"] .chk::after { transform: translateX(16px); }
-    .mapview-legend .always { font: 12px 'Arial Narrow', Arial, sans-serif; font-size: max(12px, var(--menu-min, 12px)); color: ink(cream 0.55); }
+    .mapview-legend .always { font: 13px 'Arial Narrow', Arial, sans-serif; font-size: max(13px, var(--menu-min, 13px)); color: ink(cream 0.55); }
     .mapview-legend canvas { width: 30px; height: 30px; }
-    .mapview-legend .note { color: ink(cream 0.6); font: 12px 'Arial Narrow', Arial, sans-serif; font-size: max(12px, var(--menu-min, 12px)); }
+    .mapview-legend .note { color: ink(cream 0.6); font: 13px 'Arial Narrow', Arial, sans-serif; font-size: max(13px, var(--menu-min, 13px)); }
     .mapview-legend .note:empty { display: none; }
     .mapview-legend .always { display: none; }
     .mv-naamkaart {
       position: absolute; z-index: 4; left: 50%; top: 18%; transform: translate(-50%, -14px); display: flex; flex-direction: column; align-items: center; gap: 4px;
       padding: 18px 44px 20px; border-radius: 16px; background: ink(panelDeep 0.88); border: 1px solid ink(greenLight 0.45); box-shadow: 0 18px 48px ink(black 0.55);
-      opacity: 0; pointer-events: none; transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+      opacity: 0; pointer-events: none; transition: opacity var(--ds-m-lang) ease, transform var(--ds-m-lang) var(--ds-m-uit);
     }
     .mv-naamkaart.show { opacity: 1; transform: translate(-50%, 0); }
     .mv-naamkaart[hidden] { display: none; }
@@ -337,7 +337,7 @@ function injectStyles() {
     .mapview-card {
       position: absolute; z-index: 3; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; width: 360px; max-width: calc(100% - 16px); box-sizing: border-box;
       padding: 12px; border-radius: 12px; background: ink(panelDeep 0.94); border: 1px solid ink(greenLight 0.45); box-shadow: 0 10px 30px ink(black 0.5);
-      pointer-events: auto; animation: mv-card-in var(--dur-slow, 320ms) var(--ease-out, ease-out);
+      pointer-events: auto; animation: mv-card-in var(--ds-m-lang) var(--ds-m-uit);
     }
     .mapview-card[hidden] { display: none; }
     @keyframes mv-card-in { from { opacity: 0; transform: translateX(-10px); } }
@@ -352,7 +352,7 @@ function injectStyles() {
     .mapview-card .mv-reisrij[aria-disabled] { opacity: 0.55; }
     .mapview-card .mv-rec { display: flex; align-items: center; gap: 8px; }
     .mapview-card .mv-pips { display: inline-flex; gap: 4px; }
-    .mapview-card .mv-pip { display: inline-grid; place-items: center; width: 18px; height: 18px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid; font: 12px 'Bebas Neue', sans-serif; padding-top: 1px; }
+    .mapview-card .mv-pip { display: inline-grid; place-items: center; width: 18px; height: 18px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid; font: 13px 'Bebas Neue', sans-serif; padding-top: 1px; }
     .mapview-card .mv-pip[data-m="1"] { color: ink(medalBronze); } .mapview-card .mv-pip[data-m="2"] { color: ink(medalSilver); } .mapview-card .mv-pip[data-m="3"] { color: ink(yellow); }
     .mapview-card .mv-pip[data-on] { color: ink(dark); border-color: transparent; }
     .mapview-card .mv-pip[data-m="1"][data-on] { background: ink(medalBronze); } .mapview-card .mv-pip[data-m="2"][data-on] { background: ink(medalSilver); } .mapview-card .mv-pip[data-m="3"][data-on] { background: ink(yellow); }

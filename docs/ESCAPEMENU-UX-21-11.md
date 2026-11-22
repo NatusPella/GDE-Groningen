@@ -57,3 +57,11 @@ Het zoekvenster en de knoppen zijn lokaal menu: elke speler bedient zijn eigen m
 ## Niet gezien
 
 Zie het eindrapport van de sessie voor wat in beeld is bewezen; een echte controller en 1024x600 zijn niet gedraaid.
+
+## Tabaudit 22-11 (#1010, #980)
+
+`node scripts/menu_tabs_audit.mjs` (met `--lijst` voor de waarschuwingen) loopt alle tabbladen af: Spel (met Samen spelen), Verhaal, Activiteiten, Loopbanen, Kaart, Spullen, Garage, Land en bedrijf, Veroverd, Prestaties, Foto's, Instellingen, Besturing, Over, Cheats en de losse schermen Tuning, Kleding en Uitleg. Per tabblad controleert hij zonder browser: overgangen hooguit 250 ms (tokens uit `ds-tokens.css`, een verblijf of scènefilm met `ds3-dwell` of `ds3-film` telt niet), geen tekst onder 13 px, een lege staat in woorden, een voetregel met Esc, pijlen en Q/E waar er subtabs zijn, aanklikbare elementen die een knop zijn of `tabindex` hebben, korte namen in de rail, geen alinea boven 150 tekens en geen zin die twee keer staat, de DS3-telling (klein, lus, lang) en vaste breedten tegen het blad op 1280x720 en 1920x1080 bij ui-schaal 1,0 en 1,5. De pure regels staan in `scripts/lib/menu_tabs_regels.mjs`, de test in `scripts/menu_tabs_audit_test.mjs`.
+
+Gerepareerd door de audit: Veroverd had geen voetregel; overgangen van 300 tot 600 ms (voortgangsbalk, personagefoto, kaartnaam, kaartkaart); 12 px in de kaartlegenda, de kaartpip en de fotoknoppen; zes alinea's onder Land en bedrijf; de Garage-lijst van vaste 700 px.
+
+Bekend en niet bewezen zonder beeld: het menublad is het venster gedeeld door de zoom (`--mz-fit`), dus 1280x720 bij ui-schaal 1,5 is een blad van 1280x720 (784 px breed rechts van de rail) en 1920x1080 bij 1,5 ook. De `@media (max-height)`-regels in `pausemenu.css` kijken naar het echte venster; bij 1080p met ui-schaal 1,5 draait het blad dus op 720 hoogte zonder de compacte regels. Dat vraagt een beeldrun. Niet gedaan: een echte controller en 1024x600. Samen spelen: alles hier is lokaal menu, geen snapshot of netwerkbericht.

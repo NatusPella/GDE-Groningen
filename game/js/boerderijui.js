@@ -86,7 +86,7 @@ function perceel(b, geld) {
     begin + blok +
     `<div>${blok ? '' : `<p>${volgende ? `Volgende klus op het actieve perceel: <b>${esc(volgende)}</b>${k && k.totaal ? ` (kost ${euro(k.totaal)})` : ''}.` : wacht ? 'Nu is er niets te doen: het gewas groeit.' : 'Nu is er niets te doen.'}</p>` + (s.schuurKg ? `<p>In de schuur: ${nl(s.schuurKg)} kg ${esc(B.GEWASSEN[s.schuurGewas].naam.toLowerCase())}, klaar om af te leveren.</p>` : '')}` +
     `<p class="mut">${waar}</p></div>` +
-    (gast ? `<p class="mut">Je speelt mee in het spel van een ander: de klussen op het land doe je in je eigen spel. Je gewas groeit ondertussen door, en gewassen kiezen en machines kopen kan hier wel.</p><p><button type="button" class="m-bt" data-bd-weg="1">Zet de akker op je kaart</button></p>`
+    (gast ? `<p class="mut">Je speelt mee in het spel van een ander: de klussen op het land doe je in je eigen spel. Gewassen kiezen en machines kopen kan hier wel.</p><p><button type="button" class="m-bt" data-bd-weg="1">Zet de akker op je kaart</button></p>`
       : `<p class="mut">Werk zelf op het land met je eigen trekker en werktuigen, of start de bijbaan Eigen boerderij bij Hoogkerk voor loonwerk met een gehuurde machine.</p>`) +
     loonwerkBlok(b, geld, gast);
 }
@@ -141,7 +141,7 @@ function gewas(b) {
     return `<div class="bd-rij"><span class="bd-naam"><b>${esc(d.naam)}</b>${v.id === b.bedrijf.actief ? ' · werkt hier' : ''}<span class="mut"> · plan: ${esc(g.naam)} · ${cent(m.prijs)} per kg vandaag${d.soort === 'weiland' ? ' · weiland' : ''}</span></span></div>`;
   }).join('');
   return `<div class="pm-pane-top"><span class="m-eb">Boerderij De Zonnehoek</span><h2 class="m-h2 td-h2">${icoon('gewas', 'pa-ico big')}Gewas</h2></div>` +
-    `<p class="mut">Je teeltplan is het gewas dat bij het volgende zaaien in de grond gaat, per perceel. De dagprijs kan per speldag veranderen; je verkoopt tegen de prijs van de dag dat je aflevert.</p>` +
+    `<p class="mut">Je teeltplan is het gewas dat bij het volgende zaaien de grond in gaat, per perceel. Je verkoopt tegen de dagprijs van de dag dat je aflevert.</p>` +
     `<p class="lb-titel"><b>Je teeltplan</b></p>${plannen}` +
     `<p class="lb-titel"><b>Gewassen</b></p>${rijen}` +
     contractenBlok();
@@ -167,7 +167,7 @@ function contractenBlok() {
       '<details class="bd-uitleg"><summary>Uitleg</summary><p>De kilo\'s tellen mee als je dit gewas aflevert. De bonus komt bovenop de dagprijs; verlopen kost niets.</p></details></div>';
   }).join('') || '<p class="mut">Je hebt nog geen contract aangenomen.</p>';
   return `<div><p class="lb-titel"><b>Contracten</b> <span class="mut">· speldag ${k.dag + 1}</span></p>` +
-    '<details class="bd-uitleg"><summary>Hoe werken contracten?</summary><p>De afnemers vragen deze speldag om een vracht van een gewas; de kilo\'s tellen mee als je dat gewas aflevert. Een vol contract betaalt de bonus bovenop de dagprijs, en een contract dat verloopt kost je niets.</p></details>' +
+    '<details class="bd-uitleg"><summary>Hoe werken contracten?</summary><p>De afnemers vragen vandaag om een vracht gewas; de kilo\'s tellen mee als je het aflevert. Een vol contract betaalt een bonus; verlopen kost niets.</p></details>' +
     `<p class="lb-titel"><b>Aanbod van vandaag</b></p>${aanbod}` +
     `<p class="lb-titel"><b>Lopend</b></p>${actief}` +
     `<p class="bd-melding" aria-live="polite">${esc(melding)}</p></div>`;
@@ -297,7 +297,7 @@ function kas(b) {
   return `<div class="pm-pane-top"><span class="m-eb">Boerderij De Zonnehoek</span><h2 class="m-h2 td-h2">${icoon('kas', 'pa-ico big')}Kasboek</h2></div>` +
     `<div class="bd-kas"><span>Omzet</span><span>${euro(s.omzet)}</span><span>Uitgaven</span><span>${euro(s.uitgaven)}</span><span>Winst</span><span class="${s.winst >= 0 ? 'g' : ''}">${euro(s.winst)}</span>` +
     `<span>Oogsten</span><span>${nl(s.oogsten)}</span><span>Leveringen</span><span>${nl(s.leveringen)}</span>${sb > 0 ? `<span>Schuld bij de bank</span><span>${euro(sb)}</span>` : ''}</div>` +
-    '<p class="mut">Uitgaven zijn huur, zaaigoed, mest, machines, diesel en onderhoud. De opbrengst komt als je de oogst aflevert, met de loonfactor van je loopbaan in Landbouw.</p>' +
+    '<p class="mut">Uitgaven zijn huur, zaaigoed, mest, machines, diesel en onderhoud. De opbrengst komt bij het afleveren, met de loonfactor van je loopbaan.</p>' +
     `<p class="lb-titel"><b>Per veld</b> <span class="mut">omzet · kosten · resultaat · geoogst</span></p>${velden ? `<div class="bd-kas">${velden}</div>` : '<p class="mut">Nog geen oogst of kosten per veld.</p>'}` +
     `<p class="lb-titel"><b>Per boekjaar</b> <span class="mut">een boekjaar is honderd speldagen; aankopen staan erbij als kasstroom</span></p>${jaren || '<p class="mut">Nog niets geboekt.</p>'}`;
 }

@@ -42,7 +42,7 @@ const CSS = `
 #pause-menu .vh-card:focus-visible { outline-offset: -2px; }
 #pause-menu .vh-card[data-new]::after { content: 'Nieuw'; position: absolute; top: 8px; right: 8px; font-size: 18px; color: var(--g); }
 #pause-menu .vh-pic { position: relative; display: grid; place-items: center; width: 84px; height: 84px; border-radius: 50%; overflow: hidden; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard-klein); background: var(--ds-zeef-bg); }
-#pause-menu .vh-pic img { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 0.3s; }
+#pause-menu .vh-pic img { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity var(--ds-m-lang); }
 #pause-menu .vh-pic img.on { opacity: 1; }
 #pause-menu .vh-pic b { font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: 34px; color: var(--ds-zeef-tx); }
 #pause-menu .vh-opening { margin-top: 8px; align-self: flex-start; }
