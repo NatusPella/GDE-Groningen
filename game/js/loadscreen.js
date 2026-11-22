@@ -14,7 +14,7 @@ import { loadScreenHtml, missionPicture } from './loadscene.js';
 import { createGate, gateTick, fadeMs, wachtOpGastheer } from './loadgate.js';
 import { openerNaam } from './coopplayers.js';
 import { registerNotifyHold, notifyGate } from './notifygate.js';
-import { JUMP_M as JM, loadKind, stepProgress, startProgress, loadPending, loadStepAt, easeBar } from './loadlogic.js';
+import { JUMP_M as JM, loadKind, stepProgress, startProgress, loadPending, loadStepAt, easeBar, setLoadHold, retargetProgress } from './loadlogic.js';
 
 export const JUMP_M = JM;
 
@@ -87,12 +87,13 @@ export function startLoadScreen(world, opts = {}) {
   if (kind !== 'snel') prewarmStreamAt(x, y, 30);
   const wasPaused = !!world.uiPaused;
   world.uiPaused = true;
+  setLoadHold(world, 'laadscherm', true); // phone.js refreshPause keeps uiPaused on while this hold stands
   zachtePauze(world, 'laden', true); // met meer spelers loopt de wereld door (#452)
   const fill = el.querySelector('.ls-bar i');
   const barEl = el.querySelector('.ls-bar');
   const stepEl = el.querySelector('.ls-step');
   let gateStap = '';
-  const t0 = performance.now();
+  let t0 = performance.now();
   let prog = startProgress();
   let res;
   const done = new Promise((r) => { res = r; });
@@ -104,6 +105,7 @@ export function startLoadScreen(world, opts = {}) {
   const finish = () => {
     if (ended) return;
     ended = true;
+    setLoadHold(world, 'laadscherm', false);
     world.uiPaused = wasPaused;
     zachtePauze(world, 'laden', false);
     const ms = fadeMs(reduced());
@@ -146,7 +148,14 @@ export function startLoadScreen(world, opts = {}) {
     requestAnimationFrame(step);
   };
   requestAnimationFrame(step);
-  active = { done, el };
+  // a second jump while the screen is up: warm the new place and wait for it (watchJumps)
+  const retarget = (nx, ny) => {
+    if (ended) return;
+    if (kind !== 'snel') prewarmStreamAt(nx, ny, 30);
+    prog = retargetProgress(prog);
+    t0 = performance.now();
+  };
+  active = { done, el, retarget };
   return active;
 }
 
@@ -160,6 +169,7 @@ export function watchJumps(world, { swallow = false, hold = false } = {}) {
   if (hold && lastX != null) return;
   const moved = lastX == null ? 0 : Math.hypot(p.x - lastX, p.y - lastY);
   lastX = p.x; lastY = p.y;
+  if (active && moved >= JUMP_M && active.retarget) active.retarget(p.x, p.y);
   if (swallow || active || moved < JUMP_M) return;
   startLoadScreen(world, { kind: loadKind(moved), x: p.x, y: p.y, mission: world.loadMission });
 }

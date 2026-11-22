@@ -10,6 +10,7 @@ import { treinReis } from './trainride.js';
 import { start3dRit } from './reisrit3d.js';
 import { perronZAt } from './perrons.js';
 import { noteOvGebruikt } from './ovhintlive.js';
+import { setLoadHold } from './loadlogic.js';
 
 let active = null;
 
@@ -336,6 +337,7 @@ function oudeScene(world, optie, dest, plan) {
   const wasPaused = !!world.uiPaused;
   const laadTeller = world.loadCount || 0;
   world.uiPaused = true;
+  setLoadHold(world, 'reisrit', true); // phone.js refreshPause keeps uiPaused on while this hold stands
   zachtePauze(world, 'reisrit', true); // met meer spelers loopt de wereld door; jij reist alleen zelf (#452)
   let skipKey = false;
   const down = (e) => { if (e.key === SKIP_KEY) { skipKey = true; e.preventDefault(); e.stopPropagation(); } };
@@ -353,6 +355,7 @@ function oudeScene(world, optie, dest, plan) {
       document.removeEventListener('keydown', down, true);
       document.removeEventListener('keyup', up, true);
       active = null;
+      setLoadHold(world, 'reisrit', false);
       world.uiPaused = wasPaused;
       zachtePauze(world, 'reisrit', false);
       const a = aankomst(rit, dest, world.money);
