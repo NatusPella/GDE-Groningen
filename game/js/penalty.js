@@ -22,7 +22,7 @@ import {
 import { hoofdspeler } from './players.js';
 import { characterEnter, karakterEind } from './voetbalkarakter.js'; // de speler schiet als Tessa (dunne laag, #981); zonder haak gebeurt er niets
 
-// Penaltyserie in de Euroborg (#981, Voetbal Sim Light): vijf penalty's op het doel van FC Grunn-achtig (een verzonnen club, geen echte spelers). De Euroborg is een echt
+// Penaltyserie in de Euroborg (#981, Voetbal Sim Light): vijf penalty's op het doel van Grunn-achtig (een verzonnen club, geen echte spelers). De Euroborg is een echt
 // gebouw; het veld ligt binnen de tribunes en het stadion is rondom dicht, dus je start bij de spelerspoort aan de zuidkant en wordt het veld op gebracht. A/D richt
 // links en rechts, W/S hoog en laag, houd Spatie en laat los bij het streepje voor de kracht. De keeper duikt; de regels en de uitkomsten staan in penaltyrules.js.
 // Medaille uit het aantal doelpunten van vijf, record per moeilijkheidsstand. Geen geld in het spel zelf. Samen spelen: iedereen schiet zijn eigen vijf op zijn eigen scherm,
@@ -93,7 +93,7 @@ function poortBord() {
   const g = c.getContext('2d');
   g.fillStyle = '#1f3a2a'; g.fillRect(0, 0, 256, 96);
   g.fillStyle = '#f4f1e8'; g.font = 'bold 30px sans-serif'; g.textAlign = 'center';
-  g.fillText('FC Grunn-achtig', 128, 40);
+  g.fillText('Grunn-achtig', 128, 40);
   g.font = '22px sans-serif'; g.fillText('Penaltyserie', 128, 72);
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
@@ -386,7 +386,7 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   const volgende = medailleBij(g.mode).find((v) => goals < v);
   if (medal < 3 && volgende) stats.push(['Volgende', `${volgende} doelpunten`]);
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
-  showBanner({ kind: medal ? 'pass' : 'fail', title: goals >= SCHOTEN ? 'ALLES BINNEN IN DE EUROBORG' : medal ? 'KOELBLOEDIG' : 'DE KEEPER WON', reason: medal ? `${goalsTekst(goals)} doelpunten tegen FC Grunn-achtig` : 'Mik in de hoek en schiet niet te hard of te zacht', reward: 0, stats });
+  showBanner({ kind: medal ? 'pass' : 'fail', title: goals >= SCHOTEN ? 'ALLES BINNEN IN DE EUROBORG' : medal ? 'KOELBLOEDIG' : 'DE KEEPER WON', reason: medal ? `${goalsTekst(goals)} doelpunten tegen Grunn-achtig` : 'Mik in de hoek en schiet niet te hard of te zacht', reward: 0, stats });
   say(w, medal >= 2 ? 'endGood' : 'endPoor', true, true);
 }
 

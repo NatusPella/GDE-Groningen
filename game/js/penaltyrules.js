@@ -1,5 +1,5 @@
 // De regels van de penaltyserie in de Euroborg (#981, Voetbal Sim Light): puur, geen DOM en geen THREE (scripts/penalty_test.mjs).
-// Vijf penalty's op het doel van de verzonnen club FC Grunn-achtig. Je richt in het vlak van het doel (u: -1 is de linkerpaal, 1 de rechterpaal; v: 0 is de grasmat,
+// Vijf penalty's op het doel van de verzonnen club Grunn-achtig. Je richt in het vlak van het doel (u: -1 is de linkerpaal, 1 de rechterpaal; v: 0 is de grasmat,
 // 1 de lat), houdt Spatie voor kracht en laat los. De keeper kiest een hoek en duikt; een keeper die de goede hoek raadt, houdt de bal meestal tegen. Wat telt is het aantal
 // doelpunten van vijf. Geen geld in het spel zelf: de medaille en het record zijn de beloning, in Samen spelen betaalt de host per plek (multiplayerwedstrijd.js).
 import { cleanDifficulty, scaleTarget } from './difficulty.js';

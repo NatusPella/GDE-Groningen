@@ -57,7 +57,7 @@ export const STARTKAART = {
     kern: '[A] [D] richten · houd {SPACE} en laat los',
   },
   penalty: {
-    titel: 'Penaltyserie Euroborg', doel: 'Vijf penalty’s op de keeper van FC Grunn-achtig',
+    titel: 'Penaltyserie Euroborg', doel: 'Vijf penalty’s op de keeper van Grunn-achtig',
     medailles: ['2 doelpunten', '3 doelpunten', '5 doelpunten'], beloning: 'prijzengeld per plek en loopbaanpunten',
     kern: '[A] [D] [W] [S] richten · houd {SPACE} en laat los',
   },
