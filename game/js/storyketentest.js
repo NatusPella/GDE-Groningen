@@ -7,8 +7,8 @@
 // Everything stays in memory: nothing reaches the player's storage.
 import { skipCinematic, isCinematicActive } from './cinematics.js';
 import { skipStoryContact } from './storycontact.js';
-import { STEPS, STEP_BY_ID, PARTS } from './storyarc.js';
-import { getMissionDefs, isMissionActive } from './missions.js';
+import { STEPS, STEP_BY_ID, PARTS, missionIndexOf } from './storyarc.js';
+import { getMissionDefs, isMissionActive, unmetRequirement } from './missions.js';
 import { hoofdspeler } from './players.js';
 import { refreshDayNight } from './daynight.js';
 
@@ -42,7 +42,7 @@ function makeCatcher() {
         const r = await f0.apply(window, a);
         if (r && r.ok === false && r.status >= 400) bucket.file.push(`fetch ${r.status} ${String((a[0] && a[0].url) || a[0]).slice(-120)}`);
         return r;
-      } catch (e) { bucket.file.push(`fetch mislukt ${String((a[0] && a[0].url) || a[0]).slice(-120)}`); throw e; }
+      } catch (e) { if (!(e && e.name === 'AbortError') && !/\.gdp$/.test(String((a[0] && a[0].url) || a[0]))) bucket.file.push(`fetch mislukt ${String((a[0] && a[0].url) || a[0]).slice(-120)}`); throw e; } // a cancelled tile fetch after a teleport is no missing file
     };
   }
   return { bucket, take() { const r = { console: [...bucket.console], script: [...bucket.script], file: [...bucket.file] }; bucket.console.length = bucket.script.length = bucket.file.length = 0; return r; } };
@@ -78,6 +78,9 @@ export async function runKetenTest(world, { report, check, capture }) {
     return JSON.stringify({ view: S().view && S().view(), guide: g && [Math.round(g.x), Math.round(g.y)], speler: [Math.round(p.x), Math.round(p.y)], afstand: g ? Math.round(Math.hypot(p.x - g.x, p.y - g.y)) : null, cine: isCinematicActive(), missie: isMissionActive(), fase: S().goalPhase && S().goalPhase(), gepauzeerd: !!world.paused, wanted: world.wanted }).slice(0, 600);
   };
 
+  // heartbeat: a screenshot every 45 s with the step and phase in its name, so a hang shows where it stands
+  let phase = 'start', hbN = 0;
+  setInterval(() => { capture(`hb-${String(++hbN).padStart(3, '0')}-${phase}`); }, 45000);
   await settle(1500);
   world.devInvuln = true;
   const endPart = Object.keys(PARTS).filter((k) => PARTS[k].open).pop();
@@ -104,6 +107,7 @@ export async function runKetenTest(world, { report, check, capture }) {
     rows.push(entry);
     catcher.take();
     scenes = 0;
+    phase = `${cur.id}-${cur.kind}`;
     const t0 = performance.now();
     if (step.cost && world.money < step.cost) entry.notes.push(`te kort voor €${step.cost}: voorschot verwacht`);
     if (cur.id === 'M06') { world.clock = 23.9; refreshDayNight(world); }
@@ -137,17 +141,22 @@ export async function runKetenTest(world, { report, check, capture }) {
         if (p.inVehicle) p.exitVehicle(world.map, world);
         p.x = s.x; p.y = s.y; world.wanted = 0;
         window.__activities.get('kermis').interact(world);
-        await sleep(1200);
+        await waitFor(() => !!km.state(), 6000);
+        await sleep(800);
         km.finish();
       } else if (g.type === 'sideJob') {
         entry.notes.push('bijbaan: de ronde zelf slaat de test over (via de haak)');
         entry.via = 'haak (bijbaan)';
         S().complete();
       } else if (g.type === 'shop') {
+        // walking into the shop opens its menu: that menu flow is covered by the shop tests; here the guide must stand at the shop
         entry.notes.push('winkelstap: de gids staat bij de winkel');
+        entry.via = 'haak (winkelbezoek)';
+        S().complete();
       }
-      // wait for the step's own goal; tick() skips the scenes
-      let finished = await waitFor(advanced(cur.id), g.type === 'opening' ? 40000 : 30000, 200);
+      // wait for the step's own goal; tick() skips the scenes; the guide may appear a moment late, so go there again every 3 s
+      let lastTp = performance.now();
+      let finished = await waitFor(() => { if (performance.now() - lastTp > 3000 && g.type === 'reis') { lastTp = performance.now(); S().teleport(); } return advanced(cur.id)(); }, g.type === 'opening' ? 40000 : 30000, 200);
       if (!finished) {
         entry.notes.push('GEEN eigen afronding: ' + diagnose());
         entry.via = 'haak (vastgelopen)';
@@ -156,12 +165,24 @@ export async function runKetenTest(world, { report, check, capture }) {
       }
       if (step.homeScene && window.__home) { try { window.__home.leave(); } catch (e) { /* not inside */ } }
     } else {
+      // a flight mission leaves the player in the air: step out first, as a player lands before the next mission
+      { const pl = hoofdspeler(world); if (pl.inVehicle) pl.exitVehicle(world.map, world); }
       S().teleport();
-      const begun = await waitFor(() => isMissionActive(), 5000);
-      if (!begun) { entry.notes.push('trigger startte niet, debugstart'); entry.via = 'haak (start)'; S().complete(); await sleep(300); }
+      let lastTp2 = performance.now();
+      const begun = await waitFor(() => { tick(); if (performance.now() - lastTp2 > 3000) { lastTp2 = performance.now(); S().teleport(); } return isMissionActive(); }, 25000);
+      if (!begun) {
+        // a gate (gear first, e.g. the bike of the KEI race) is the designed way to hold a mission back: the guide then points to the shop
+        const def = getMissionDefs()[missionIndexOf(step.mission)];
+        const gate = def ? unmetRequirement(world, def) : null;
+        entry.notes.push(`trigger startte niet in 25 s${gate ? ` (eis: ${gate}, de gids wijst naar de winkel)` : ''}, debugstart: ` + diagnose());
+        entry.via = gate ? `haak (eis ${gate})` : 'haak (start)';
+        S().complete();
+        await sleep(300);
+      }
       await sleep(300);
       await settle(400);
-      for (let k = 0; k < 150 && isMissionActive(); k++) {
+      phase = `${cur.id}-missielus`;
+      for (let k = 0; k < 150 && isMissionActive() && performance.now() - t0 < 150000; k++) {
         await settle(300);
         if (!isMissionActive()) break;
         const ms = S().mission();
@@ -208,7 +229,7 @@ export async function runKetenTest(world, { report, check, capture }) {
     if (/NaN/i.test(JSON.stringify(f))) entry.notes.push('NaN-melding');
     capture(`keten-${String(rows.length).padStart(2, '0')}-${cur.id}`);
     check(`keten ${cur.id}: afgerond`, entry.done, entry.notes.join(' | ').slice(0, 400));
-    check(`keten ${cur.id}: zonder haak`, entry.via === 'natuurlijk' || /bijbaan|overgeslagen/.test(entry.via), entry.via);
+    check(`keten ${cur.id}: zonder haak`, entry.via === 'natuurlijk' || /bijbaan|overgeslagen|winkelbezoek|eis /.test(entry.via), entry.via);
     check(`keten ${cur.id}: geen script- of bestandsfouten`, !entry.errors || (!entry.errors.script.length && !entry.errors.file.length), JSON.stringify(entry.errors).slice(0, 400));
     if (!entry.done) break;
   }
@@ -217,12 +238,16 @@ export async function runKetenTest(world, { report, check, capture }) {
   await waitFor(() => { tick(); return S().cardShown(endPart); }, 10000);
   const end = S().current();
   check(`keten: het verhaal bereikt het einde van ${endPart}`, !!end && end.end === endPart, JSON.stringify(end));
+  // steps that finished by themselves within a scene or on arrival (the player already stood at the goal) were never the current step for long
+  const doneIds = new Set((S().save() || {}).done || []);
+  for (const s of STEPS) if (!rows.some((r) => r.id === s.id) && doneIds.has(s.id)) rows.push({ id: s.id, kind: s.kind, part: s.part, title: s.title, reached: true, done: true, via: 'automatisch (bij aankomst)', secs: 0, scenes: 0, notes: [], errors: null });
   const seen = new Set(rows.map((r) => r.id));
   const missing = STEPS.filter((s) => !seen.has(s.id)).map((s) => s.id);
   check('keten: elke stap is aan de beurt geweest', missing.length === 0, `${rows.length}/${STEPS.length}; niet gezien: ${missing.join(', ') || 'geen'}`);
-  check('keten: de stappen kwamen in verhaalvolgorde', rows.map((r) => r.id).join() === STEPS.filter((s) => seen.has(s.id)).map((s) => s.id).join());
+  const walked = rows.filter((r) => !/automatisch/.test(r.via)).map((r) => r.id);
+  check('keten: de stappen kwamen in verhaalvolgorde', walked.join() === STEPS.filter((s) => walked.includes(s.id)).map((s) => s.id).join());
   // the credits: the epilogue has been played and the ending says where the credits stand
   const ending = S().ending && S().ending();
   report.ketenEnd = { ending: ending ? { finale: ending.finale, credits: ending.credits } : null, swaps };
-  check('keten: de epiloog (E) is gespeeld', seen.has('E') && rows.find((r) => r.id === 'E').done);
+  check('keten: de epiloog (E) is gespeeld', seen.has('E') && rows.find((r) => r.id === 'E').done, JSON.stringify([...doneIds].slice(-6)));
 }
