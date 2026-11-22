@@ -107,4 +107,38 @@ t('het Manager-scherm toont het contract, Verleng en het voorstel van Tammo', ()
   assert.equal(C.managerRenew({ ...cm, evDone: 0 }, agent.id, getClub, 1).ok, false, 'alleen in de pauze');
   assert.equal(C.managerRenew({ ...cm, roles: { trainer: true, manager: false } }, agent.id, getClub, 1).ok, false);
 });
+t('opstelling kiezen: vast in de basis, op de bank, terug naar auto en een geklemde save', () => {
+  const c = trainer(), roles = ['keeper', 'verdediger', 'verdediger', 'verdediger', 'verdediger', 'middenvelder', 'middenvelder', 'middenvelder', 'middenvelder', 'aanvaller', 'aanvaller'];
+  const auto = C.lineupOf(c, getClub, roles);
+  const sterk = auto.basis[1], zwak = auto.bank[auto.bank.length - 1];
+  assert.equal(C.setLineupPin(speler(), sterk.id, 'bench', getClub).ok, false, 'alleen een Trainer');
+  assert.equal(C.setLineupPin(c, 'nietbestaand', 'start', getClub).ok, false);
+  assert.equal(C.setLineupPin(c, sterk.id, 'zomaar', getClub).ok, false);
+  const b = C.setLineupPin(c, sterk.id, 'bench', getClub); assert.ok(b.ok);
+  assert.ok(!C.lineupOf(b.career, getClub, roles).basis.some((p) => p.id === sterk.id), 'bankspeler niet in de basis');
+  const v = C.setLineupPin(b.career, zwak.id, 'start', getClub); assert.ok(v.ok);
+  const lu = C.lineupOf(v.career, getClub, roles);
+  assert.ok(lu.basis.some((p) => p.id === zwak.id), 'vaste speler in de basis');
+  assert.equal(new Set(lu.basis.map((p) => p.id)).size, lu.basis.length, 'niemand dubbel');
+  assert.equal(lu.basis.length + lu.bank.length, auto.basis.length + auto.bank.length);
+  const coach = K.coachSetup(v.career, getClub); assert.ok(coach.ratings[0].some((x) => x.naam === zwak.name), 'ook de coachwedstrijd volgt de keuze');
+  const los = C.setLineupPin(v.career, zwak.id, 'auto', getClub); assert.deepEqual(C.pinsOf(los.career).start, []);
+  assert.deepEqual(C.pinsOf(C.clearLineupPins(v.career)), { start: [], bench: [] });
+  let vol = c; for (const p of auto.basis.concat(auto.bank)) { const r = C.setLineupPin(vol, p.id, 'bench', getClub); if (r.ok) vol = r.career; }
+  assert.equal(C.pinsOf(vol).bench.length, C.MAX_PINS, 'hooguit acht');
+  assert.equal(C.lineupOf(vol, getClub, roles).basis.length, 11, 'een bank die nodig is speelt toch');
+  const rond = C.normalize(JSON.parse(JSON.stringify({ ...v.career, pins: { start: [zwak.id, zwak.id, 5, 'x'.repeat(80)], bench: [zwak.id, sterk.id, ...Array(20).fill('a:1')] } })));
+  assert.deepEqual(C.pinsOf(rond).start, [zwak.id]); assert.ok(!C.pinsOf(rond).bench.includes(zwak.id) && C.pinsOf(rond).bench.length <= C.MAX_PINS, 'save geklemd');
+  const oud = JSON.parse(JSON.stringify(speler())); delete oud.pins; assert.deepEqual(C.pinsOf(C.normalize(oud)), { start: [], bench: [] }, 'oude save zonder pins');
+});
+t('het Manager-scherm en de Trainer-tab tonen de opstelling met knoppen', () => {
+  const cm = { ...trainer(), roles: { trainer: true, manager: true } };
+  const env = { getClub, money: 100, match: C.nextMatch(cm, getClub), ov: C.summary(cm, getClub), char: 'anita' };
+  for (const tab of ['trainer', 'manager']) {
+    const html = viewHtml(cm, tab, env);
+    assert.match(html, /data-vb="pin:bench:/); assert.match(html, /Opstelling|Basis \(/);
+  }
+  const lu = C.lineupOf(cm, getClub, ['keeper']); const r = C.setLineupPin(cm, lu.basis[0].id, 'start', getClub);
+  assert.match(viewHtml(r.career, 'trainer', env), /data-vb="pin:all"/);
+});
 console.log(`voetbal_coach_test ok (${n} groepen)`);

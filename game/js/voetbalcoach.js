@@ -19,7 +19,7 @@ export function coachSetup(c, getClub) {
   if (!m) return null;
   const formation = cleanFormation('groot', c.tactic && c.tactic.formation), style = cleanStijl(c.tactic && c.tactic.style);
   const roles = formationList('groot', formation).map((x) => x.rol);
-  const my = lineupFor(C.squadOf(c, c.club, getClub), roles), opp = lineupFor(C.squadOf(c, m.opponent, getClub), roles);
+  const my = lineupFor(C.squadOf(c, c.club, getClub), roles, C.pinsOf(c)), opp = lineupFor(C.squadOf(c, m.opponent, getClub), roles);
   const fac = (l) => l.map((x) => ({ naam: x.player ? x.player.name : undefined, f: x.factors }));
   const teamFor = C.matchSetup(c, getClub, formationList('groot', formation));
   return { teams: teamFor ? teamFor.teams : null, ratings: [fac(my), fac(opp)], vorming: formation, stijl: style, opponent: m.opponent, match: m };
