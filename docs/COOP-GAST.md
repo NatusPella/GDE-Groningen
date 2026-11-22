@@ -697,3 +697,11 @@ Bij de dekkingsaudit ([COOP-DEKKING-21-11.md](COOP-DEKKING-21-11.md), `scripts/c
 **Kerk zonder hal (21-11, #1057).** `passages.js` verbindt de deuren van een kerk (naam met kerk, kathedraal, basiliek of kapel, of type church, chapel, cathedral of religious) niet meer tot een hal door het gebouw. Het is een wereldregel (botsing en voetpaden) van wie het spel opende en geldt voor elke speler gelijk: een gast loopt om de kerk heen, geen snapshot of bericht nodig; geen beloning of voortgang. Test: `scripts/passage_kerk_test.mjs` (synthetisch en op de tegel van Usquert).
 
 **Reputatie (21-11, #1135): schrijven en lezen.** Bedienen (`bezitlive.tickSnack`) en de buurt helpen (`snacklive.helpNeighbourhood`) schrijven via `reputationlive.js` op de eigen sleutel `gde-reputatie-v1` van de eigen speler; de wagenpagina leest hem (een andere zin, Jelle spiegelt, een langere rij). Elke speler doet dit lokaal in zijn eigen spel: een gast heeft zijn eigen stand, de host ziet de zijne niet en andersom. Er is geen netwerkbericht en niets in de savegame; wie wegvalt of later aansluit verliest of mist niets. Test: `scripts/reputation_test.mjs`.
+
+## Bezit: verzekering, bestrijding en buren bij Samen spelen (#1098, #1099, #1103, 22-11)
+
+**Eigen toestand per speler, geen netwerkverkeer.** De stortbuiverzekering en het bestrijden van mieren en wespen (`parcelcare.js`) staan op het eigen perceel in `gde-bezit-v1` (`ins`, `ta`, `tw`); de premie en de kosten gaan van het geld van de speler zelf, in de dagtik van zijn eigen spel. Een gast regelt dit alleen voor zijn eigen percelen en kan niets doen op een perceel van een ander. Wie het spel opende, heeft hierin geen voorrecht.
+- **Buren op de perceelkaart:** de telling gebruikt de claims die elke speler al kent (`claimLookup`); een medespeler telt als "van medespelers" zonder zijn bezit te onthullen.
+- **Bericht van het Notariaat:** per speler en per tak eenmaal, bewaard in `bezit.x.told`; een speler die later aansluit krijgt zijn eigen bericht zodra zijn tak opengaat.
+- **Wegvallen en hostwissel:** niets te synchroniseren; de dagtik van het eigen bezit draait door op de eigen speldag.
+- **Test:** `scripts/parcelcare_test.mjs`, `scripts/bezitzorg_test.mjs` (pure tests; een testbankstap is niet nodig omdat er geen bericht over het net gaat).

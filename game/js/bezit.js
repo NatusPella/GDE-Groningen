@@ -16,7 +16,7 @@ import { VERKOOP_FACTOR } from './bezitprijs.js';
 export const BEZIT_VERSION = 1;
 export const MAX_PARCELS = 20000;                 // ruim boven het aanbod (13.664): een bovengrens tegen kapotte opslag
 export const MAX_BUILDINGS = 500000;
-export const EXT_KEYS = ['staff', 'herds', 'rules', 'tessa', 'lastDay', 'chains', 'market', 'news', 'snack'];   // chains, market en news: de ketens, de streekmarkt en het nieuws van #1103
+export const EXT_KEYS = ['staff', 'herds', 'rules', 'tessa', 'lastDay', 'chains', 'market', 'news', 'snack', 'told'];   // chains, market en news: de ketens, de streekmarkt en het nieuws van #1103
 const EXT_MAX_JSON = 400000;                       // een bovengrens tegen kapotte opslag: bij 1000 percelen met vee is dit ruim
 export const MODES = ['self', 'leased', 'staff'];  // zelf bewerken, verpacht, door personeel
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
@@ -61,6 +61,7 @@ function normParcel(r) {
   if (Array.isArray(r.a) && r.a.length === 2 && r.a.every(Number.isFinite)) o.a = [Math.round(r.a[0]), Math.round(r.a[1])];
   if (Array.isArray(r.c) && r.c.length === 2 && r.c.every(Number.isFinite)) o.c = [Math.round(r.c[0]), Math.round(r.c[1])];   // binnenpunt (10 m): waar het veld gezocht en de paal gezet wordt
   if (r.lg) o.lg = 1;
+  for (const k of ['ins', 'ta', 'tw']) if (Number.isFinite(r[k])) o[k] = Math.round(num(r[k], 0, 1e7));   // verzekering en bestrijding (parcelcare.js)
   return o;
 }
 // De beheerknoppen van een bedrijf, grof gezuiverd (de precieze grenzen en het personeel zuivert business.js normalizeCfg bij gebruik).

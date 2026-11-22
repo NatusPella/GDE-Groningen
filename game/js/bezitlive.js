@@ -38,6 +38,7 @@ import { MACHINE_CATALOGUS } from './percelen.js';
 import { setAreaPrice, setYieldInfo } from './bezithooks.js';
 import { recordService } from './reputationlive.js';
 import * as CT from './chaintrucks.js'; // fillLinkPositions: een schakel zonder plek krijgt een terugvalplek
+import * as PC from './parcelcare.js';  // stortbuiverzekering en bestrijding van mieren en wespen
 
 const SCHRIJF_VERTRAGING_MS = 2000;
 let bezit = null, opslagOverride = null, timer = 0, vuil = false, index = null, laden = null;
@@ -133,6 +134,17 @@ export function takeReconcileReport() { const r = lastReconcile; lastReconcile =
 // ---- het aanbod ----
 export const ownedCountLive = () => Z.ownedCount(getBezit());
 
+// De buren van een perceel: andere percelen binnen 300 m (hoogstens 40 geteld), hoeveel van jou en hoeveel van een medespeler (claim).
+export const NEIGHBOUR_RADIUS = 300;
+export function neighboursOf(parcels, p, b) {
+  let n = 0, mine = 0, others = 0;
+  for (const q of parcels.inRect(p.x - NEIGHBOUR_RADIUS, p.y - NEIGHBOUR_RADIUS, p.x + NEIGHBOUR_RADIUS, p.y + NEIGHBOUR_RADIUS, 41)) {
+    if (q.id === p.id || Math.hypot(q.x - p.x, q.y - p.y) > NEIGHBOUR_RADIUS) continue;
+    if (++n > 40) { n = 40; break; }
+    if (Z.ownsParcel(b, q.id)) mine++; else if (claimLookup(q.id)) others++;
+  }
+  return { n, mine, others };
+}
 // Alles wat de perceelkaart nodig heeft over één perceel uit de index. null zonder index of onbekend ID.
 export function parcelOffer(id) {
   if (!index) return null;
@@ -145,7 +157,10 @@ export function parcelOffer(id) {
   const claim = mine ? null : claimLookup(id);
   const price = P.parcelPrice(p, district, Z.ownedCount(b));
   const soil = P.soilQuality(id, district);
+  const neigh = neighboursOf(index.parcels, p, b);
+  const rec = mine ? b.parcels[id] : null;
   return {
+    neighbours: neigh, mode: rec ? rec.m : null, insured: !!(rec && Number.isFinite(rec.ins)),
     id, parcel: p, region: district, place, name: P.parcelName(p, place), seller: P.sellerName(p), kindName: P.KIND_NAME[p.kind],
     ha: p.ha, soil, soilWord: P.soilWord(soil), access: p.access, price, basePrice: P.basePrice(p, district),
     scaleNote: P.scaleFactor(Z.ownedCount(b)) > 1 ? `Schaalprijs x${P.scaleFactor(Z.ownedCount(b)).toFixed(2).replace('.', ',')}: wie veel land heeft, betaalt meer voor het volgende perceel.` : '',
@@ -310,6 +325,17 @@ export function huurArbeider(w, skill) {
 export function ontslaArbeider(id) { const r = fireWorker(getBezit(), id); if (r && r.ok !== false) markeer(); return !!(r && r.ok !== false); }
 
 // ---- vee op je weiland (#1101): kopen en verkopen met het geld van de speler; het bezit is per speler (#429) ----
+// Verzekering en bestrijding (parcelcare.js): per perceel of voor een selectie. Alleen eigen percelen; een gast regelt zijn eigen bezit.
+export function zetVerzekering(ids, on) {
+  const r = PC.setInsurance(getBezit(), ids, on, calToday());
+  if (r.done) markeer();
+  return r;
+}
+export function bestrijd(w, ids, what) {
+  const r = PC.treat(getBezit(), ids, what, calToday(), Number.isFinite(w && w.money) ? w.money : 0);
+  if (r.done) { if (r.cost > 0) { noteMoney('Overige uitgaven'); w.money -= r.cost; } markeer(); }
+  return r;
+}
 export function koopVee(w, id, sp) {
   const r = buyHerd(getBezit(), id, sp, Number.isFinite(w && w.money) ? w.money : 0);
   if (!r.ok) return { ok: false, text: r.why === 'te-weinig-geld' ? `Je mist nog ${euro(r.tekort)}.` : r.why === 'al-vee' ? 'Op dit perceel loopt al vee.' : 'Dit vee past niet op dit perceel.' };
@@ -348,7 +374,7 @@ function areaPriceHook(gewas, kg, farmDay, veld, base) {
 // De haak voor het opbrengstverlies van een perceel op een speldag van de boerderij (bezitnews.js).
 function lossMult(id, cd) {
   const rec = getBezit().parcels[id];
-  return rec ? NW.lossOfParcel({ id, kind: rec.k, region: ctxOf().region(id) }, cd) : { mult: 1, text: '' };
+  return rec ? NW.lossOfParcel({ id, kind: rec.k, region: ctxOf().region(id) }, cd, { insured: PC.isInsured(rec, cd), treated: PC.treatedOf(rec, cd) }) : { mult: 1, text: '' };
 }
 const yieldHook = (veld, farmDay) => { const r = lossMult(veld, calOf(farmDay)); return { mult: r.mult, text: r.text }; };
 
@@ -487,8 +513,29 @@ export function rentView(biz, day) {
 // Elk beeld aangeroepen (goedkoop: werkt alleen als de speldag veranderd is). Het geld gaat via world.money met noteMoney.
 let lastReport = null;
 export const takeDayReport = () => { const r = lastReport; lastReport = null; return r; };
+// Een tak die opengaat krijgt een berichtje van het verzonnen Notariaat De Zegelhoek (#1099), eenmaal per tak en per speler (bezit.x.told). Alleen tekst.
+export const UNLOCK_NOTES = {
+  land: 'Notariaat De Zegelhoek: "Uw eerste akte ligt klaar. Op de kaart staan nu percelen te koop."',
+  business: 'Notariaat De Zegelhoek: "Ook panden en winkels staan voor u klaar. Kijk bij Land en bedrijf."',
+};
+export function unlockNotes(told, open) {
+  const out = [];
+  for (const k of Object.keys(UNLOCK_NOTES)) if (open(k) && !told.includes(k)) out.push(k);
+  return out;
+}
+export function announceUnlocks(w) {
+  const b = getBezit();
+  const told = Array.isArray(b.x.told) ? b.x.told.filter((k) => typeof k === 'string').slice(0, 8) : [];
+  const fresh = unlockNotes(told, branchOpen);
+  if (!fresh.length) return [];
+  b.x.told = told.concat(fresh);
+  if (w && typeof w.addMessage === 'function') for (const k of fresh) w.addMessage(UNLOCK_NOTES[k], 6, { kind: 'tip', key: `bz-open-${k}` });
+  markeer();
+  return fresh;
+}
 export function dayTick(w) {
   const b = getBezit(), farm = getBoerderij();
+  announceUnlocks(w);
   const day = Math.floor(farm.uren / 24);
   clock = { cal: calDayOf(w), farm: day };
   if (!(Z.ownedCount(b) > 0 || Object.keys(b.parcels).length > 1 || b.buildings.size || Object.keys(b.mobile || {}).length || SN.isActive(snackState()))) { b.x.lastDay = day; return null; }
@@ -527,10 +574,12 @@ export function dayTick(w) {
   if (net > 0) { const dd = Math.max(1, last - from); net = P.compressPassive(net / dd) * dd; }   // de rem op passief inkomen (bezitprijs.js)
   net += sn.own + sn.fixed;                                                                       // de wagen die je zelf runt heeft zijn eigen plafond (snackvan.js compressOwn); vergunningen zijn kosten
   net += ev.money;                                                                                // een boete of de dierenarts is geen passief inkomen: geen rem
+  const premium = Math.round(PC.premiumBetween(b, from, last, calOf));                            // de premie van de stortbuiverzekering is een kost per speldag
+  net -= premium;
   if (net !== 0) { noteMoney(net > 0 ? 'Winkels' : 'Overige uitgaven'); w.money = Math.max(0, (w.money || 0) + net); }
   if (w && typeof w.addMessage === 'function') for (const t of ev.lines.slice(-3).concat(sn.lines.slice(-2))) w.addMessage(t, 5, { kind: 'tip', key: 'bz-nieuws' });
   markeer();
-  lastReport = { from: from + 1, to: day, days: rep.days, parcels: Math.round(rep.net), business: Math.round(bizNet), mobile: Math.round(mobNet), snack: Math.round(sn.own + sn.passive + sn.fixed), chains: ch.bonus, eventMoney: Math.round(ev.money), news: ev.lines.length, net: Math.round(net), tax: Math.round(tax), events: rep.events, worked: rep.staff.worked || [] };
+  lastReport = { from: from + 1, to: day, days: rep.days, parcels: Math.round(rep.net), business: Math.round(bizNet), mobile: Math.round(mobNet), snack: Math.round(sn.own + sn.passive + sn.fixed), chains: ch.bonus, eventMoney: Math.round(ev.money), news: ev.lines.length, premium, net: Math.round(net), tax: Math.round(tax), events: rep.events, worked: rep.staff.worked || [] };
   return lastReport;
 }
 

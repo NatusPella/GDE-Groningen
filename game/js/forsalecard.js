@@ -10,6 +10,12 @@ import { euro } from './geldtekst.js';
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const ACCESS_TEXT = { weg: 'aan een autoweg', pad: 'aan een pad', wegNabij: 'bij een autoweg (tot 60 m)', padNabij: 'bij een pad (tot 60 m)', geen: 'zonder toegang' };
 export const accessText = (a) => ACCESS_TEXT[a] || ACCESS_TEXT.geen;
+const MODE_TEXT = { self: 'Zelf bewerkt', leased: 'Verpacht', staff: 'Door personeel' };
+export function neighboursText(nb) {
+  if (!nb || !(nb.n > 0)) return 'geen andere percelen binnen 300 m';
+  const who = [nb.mine ? `${nb.mine} van jou` : '', nb.others ? `${nb.others} van medespelers` : ''].filter(Boolean).join(', ');
+  return `${nb.n >= 40 ? '40 of meer' : nb.n} ${nb.n === 1 ? 'perceel' : 'percelen'} binnen 300 m${who ? ` (${who})` : ''}`;
+}
 export const crops = (kind) => (kind === 'w' ? 'gras en vee (weide)' : kind === 'b' ? 'boomgaardfruit' : 'gewassen (akker)');
 
 // De bodem als woord en een balk van tien blokjes (ook voor schermlezers: de tekst staat erbij).
@@ -33,6 +39,8 @@ export function offerCardHtml(offer, { stap = null, melding = '', money = 0 } = 
     ['Oppervlakte', `${String(offer.ha.toFixed(1)).replace('.', ',')} ha`],
     ['Bodem', `${offer.soilWord} <span class="mv-bar" aria-hidden="true">${soilBar(offer.soil)}</span>`],
     ['Ligging', `${accessText(offer.access)}, bij ${esc(offer.place)}`],
+    ...(offer.neighbours ? [['Buren', neighboursText(offer.neighbours)]] : []),
+    ...(offer.mine && offer.mode ? [['Beheer', `${MODE_TEXT[offer.mode] || 'Zelf'}${offer.insured ? ' · verzekerd tegen stortbui' : ''}`]] : []),
     ['Verkoper', esc(offer.seller)],
     ['Verwacht', `ongeveer ${y.kg.toLocaleString('nl-NL')} kg ${esc(y.gewas.toLowerCase())} per oogst, ${euro(y.euro)}`],
   ];

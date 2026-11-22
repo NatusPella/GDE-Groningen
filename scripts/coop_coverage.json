@@ -391,7 +391,8 @@
     "snack*",
     "jellebaas",
     "chaintrucks*",
-    "sponsorpanden"
+    "sponsorpanden",
+    "parcelcare"
    ],
    "eigenaar": "speler",
    "gast": "Eigen bezit in de eigen progress; medespelers zien jouw percelen als gekleurde omtrek met naam (ID-verzameling); een gast kan op andermans perceel meewerken voor loon.",
@@ -400,7 +401,10 @@
    "test": [
     "scripts/bezitcoop_test.mjs",
     "scripts/business_test.mjs",
-    "scripts/bezitnet_test.mjs"
+    "scripts/bezitnet_test.mjs",
+    "scripts/parcelcare_test.mjs",
+    "scripts/bezitzorg_test.mjs",
+    "scripts/bezit_perf_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
@@ -410,7 +414,7 @@
    "status": "gat",
    "prio": "hoog",
    "lead": "Bezit",
-   "gat": "Lead Bezit meldt (epic-bezit-21-11): de sectie Bezit staat in COOP-GAST.md; scripts/bezitnet_test.mjs (12) bewijst met drie instanties over een nep-netwerk dat claims convergeren, aansluiten en wegvallen werken en dat de dagtik niet dubbel telt bij een terugspringende klok (hostwissel) en niet bij een gast draait; transport bezitnet.js over het JSON-kanaal k bezit. Open: de testbankstap bezit in de suite alles (bezitnet.handleBezit of ensureBezitNet gebruiken), sponsorpanden van het voetbal naar de Bezit-pandindex (parcelindex.createBuildingIndex), en na de merge de opslagsleutel gde-bezit-v1 (scope speler) in dit manifest indelen en de status op OK zetten."
+   "gat": "Bezit 22-11: de testbankstap bezit (coop.page.js bezitAlles, bezitstap_check.mjs), de claims over het JSON-kanaal (bezitnet.js, 20 controles) en de sponsorpanden zijn er; nieuw: verzekering en bestrijding per perceel en het Notariaat-bericht zijn eigen toestand per speler (geen netwerkverkeer). Open: de Electron-run van de testbank met drie instanties, het meewerken van een gast op andermans perceel met een echte trekker en wat een gast ziet bij een hostwissel in beeld (nog niet bekeken)."
   },
   {
    "id": "voetbalcarriere",
