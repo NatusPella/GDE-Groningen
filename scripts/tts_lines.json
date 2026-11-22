@@ -39,6 +39,19 @@
   "file": "jelle_terpstra/verder_koop_ik_alle_standplaatse_b76335a1.mp3"
  },
  {
+  "key": "Anita|Dan zijn wij een fatbike. Tammo, op mijn rug.",
+  "speaker": "Anita",
+  "text": "Dan zijn wij een fatbike. Tammo, op mijn rug.",
+  "area": "M08.2",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "enthousiast, snel",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+  "file": "anita/dan_zijn_wij_een_fatbike_tammo_o_971d9387.mp3"
+ },
+ {
   "key": "Tammo|In de Stad hebben we de Martinitoren.",
   "speaker": "Tammo",
   "text": "In de Stad hebben we de Martinitoren.",
@@ -52,6 +65,58 @@
   "file": "tammo/in_de_stad_hebben_we_de_martinit_440e8896.mp3"
  },
  {
+  "key": "Jelle Terpstra|U nadert privé-luchtruim, mevrouw. Mijn ballon heeft voorrang. Het staat in het contract, onder \"wind\".",
+  "speaker": "Jelle Terpstra",
+  "text": "U nadert privé-luchtruim, mevrouw. Mijn ballon heeft voorrang. Het staat in het contract, onder \"wind\".",
+  "area": "M12.3",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Fenrir",
+  "who": "ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden",
+  "tag": "plechtig, overdreven trots",
+  "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: plechtig, overdreven trots.",
+  "file": "jelle_terpstra/u_nadert_prive_luchtruim_mevrouw_da692130.mp3"
+ },
+ {
+  "key": "Anita|Dan weten we waar we vannacht moeten zijn. Hier. Samen.",
+  "speaker": "Anita",
+  "text": "Dan weten we waar we vannacht moeten zijn. Hier. Samen.",
+  "area": "M12.4",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "warm, grinnikend",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+  "file": "anita/dan_weten_we_waar_we_vannacht_mo_3c8a35bc.mp3"
+ },
+ {
+  "key": "Jelle Terpstra|Mevrouw, u rijdt te hard. In mijn limo is plek, en er zit een vergunning bij.",
+  "speaker": "Jelle Terpstra",
+  "text": "Mevrouw, u rijdt te hard. In mijn limo is plek, en er zit een vergunning bij.",
+  "area": "M14.2",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Fenrir",
+  "who": "ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden",
+  "tag": "charmant, opschepperig",
+  "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: charmant, opschepperig.",
+  "file": "jelle_terpstra/mevrouw_u_rijdt_te_hard_in_mijn__8f3aea30.mp3"
+ },
+ {
+  "key": "Jelle Terpstra|Durk, Douwe, schrijf op: de sluis was vooraf verloren. Mijn juristen noemen dat winst.",
+  "speaker": "Jelle Terpstra",
+  "text": "Durk, Douwe, schrijf op: de sluis was vooraf verloren. Mijn juristen noemen dat winst.",
+  "area": "M14.3",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Fenrir",
+  "who": "ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden",
+  "tag": "zelfvoldaan, grinnikend",
+  "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: zelfvoldaan, grinnikend.",
+  "file": "jelle_terpstra/durk_douwe_schrijf_op_de_sluis_w_89313b41.mp3"
+ },
+ {
   "key": "Anita|Let op, de trein gaat eerst terug via Station Groningen.",
   "speaker": "Anita",
   "text": "Let op, de trein gaat eerst terug via Station Groningen.",
@@ -63,6 +128,45 @@
   "tag": "plagend, zelfverzekerd",
   "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
   "file": "anita/let_op_de_trein_gaat_eerst_terug_71c6994d.mp3"
+ },
+ {
+  "key": "Jelle Terpstra|Dat is waar. Dat is hinderlijk.",
+  "speaker": "Jelle Terpstra",
+  "text": "Dat is waar. Dat is hinderlijk.",
+  "area": "M15.2",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Fenrir",
+  "who": "ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden",
+  "tag": "zelfvoldaan, grinnikend",
+  "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: zelfvoldaan, grinnikend.",
+  "file": "jelle_terpstra/dat_is_waar_dat_is_hinderlijk_b535869b.mp3"
+ },
+ {
+  "key": "Jelle Terpstra|Het is een proeverij. Wat u proeft, is geen omkoping, maar smaak.",
+  "speaker": "Jelle Terpstra",
+  "text": "Het is een proeverij. Wat u proeft, is geen omkoping, maar smaak.",
+  "area": "M15.3",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Fenrir",
+  "who": "ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden",
+  "tag": "charmant, opschepperig",
+  "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: charmant, opschepperig.",
+  "file": "jelle_terpstra/het_is_een_proeverij_wat_u_proef_a8749e71.mp3"
+ },
+ {
+  "key": "Jelle Terpstra|Botsauto's. Dat was Mems favoriet. Ik betaal jullie daar niet voor.",
+  "speaker": "Jelle Terpstra",
+  "text": "Botsauto's. Dat was Mems favoriet. Ik betaal jullie daar niet voor.",
+  "area": "M16.3",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Fenrir",
+  "who": "ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden",
+  "tag": "plechtig, overdreven trots",
+  "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: plechtig, overdreven trots.",
+  "file": "jelle_terpstra/botsauto_s_dat_was_mems_favoriet_e83eabf2.mp3"
  },
  {
   "key": "Berend Bos|Omdat de Stad te klein is voor een echt beleg.",
@@ -102,19 +206,6 @@
   "tag": "enthousiast, snel",
   "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
   "file": "anita/het_is_een_negende_van_de_stad_cda0d42d.mp3"
- },
- {
-  "key": "Tammo|De grootste stoet die de Stad ooit zag.",
-  "speaker": "Tammo",
-  "text": "De grootste stoet die de Stad ooit zag.",
-  "area": "M23.4",
-  "out": "lines",
-  "lang": "gro",
-  "voice": "Orus",
-  "who": "dry, deadpan man in his thirties",
-  "tag": "droog, met een stille grijns",
-  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, met een stille grijns.",
-  "file": "tammo/de_grootste_stoet_die_de_stad_oo_f2a87232.mp3"
  },
  {
   "key": "Tammo|Niks. Ik zeg het uit gewoonte.",

@@ -496,11 +496,11 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Honderdvijftig euro. Vandaag.",
+     "text": "Honderdvijftig euro. Ik heb er acht.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true,
+     "humor": "HS-12"
     },
     {
      "speaker": "Tessa",
@@ -1513,11 +1513,11 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Ik rij.",
+     "text": "Ik rij. Rustig. Met alle richtingaanwijzers.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true,
+     "humor": "HS-11"
     }
    ]
   },
@@ -1792,11 +1792,11 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Dan eerst het Loket.",
+     "text": "Dan eerst het Loket. Nummer 4140 wacht op niemand.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true,
+     "humor": "HS-20"
     }
    ]
   },
@@ -2242,11 +2242,11 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Links of rechts?",
+     "text": "En als ik de verkeerde kant op rijd?",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true,
+     "humor": "HS-06"
     },
     {
      "speaker": "Tessa",
@@ -2366,11 +2366,11 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Vierentwintig mensen voor ons.",
+     "text": "Vierentwintig mensen. Dat is een rij met een eigen postcode.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true,
+     "humor": "HS-01"
     },
     {
      "speaker": "Tessa",
@@ -3128,11 +3128,11 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "En wat Jelle daar doet.",
+     "text": "En waarom Jelle in augustus een colbert draagt.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true,
+     "humor": "HS-22"
     }
    ]
   },
@@ -3791,11 +3791,11 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Eerst wachten.",
+     "text": "Eerst wachten. Daar ben ik in opgeleid.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true,
+     "humor": "HS-05"
     }
    ]
   },
@@ -5122,11 +5122,11 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Regels, vergunningen, trucs.",
+     "text": "Eén klomp voor een stad vol vet. Dat is vrijwel gratis.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true,
+     "humor": "HS-21"
     },
     {
      "speaker": "Tessa",
@@ -5649,11 +5649,11 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Dan rennen we.",
+     "text": "Dan zijn wij een fatbike. Tammo, op mijn rug.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
+     "humor": "HS-07",
      "voice": "Anita"
     }
    ]
@@ -7569,11 +7569,11 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Of hij is dom.",
+     "text": "Of hij mist haar. Dat is ook een soort dom.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true,
+     "humor": "HS-04"
     },
     {
      "speaker": "Tessa",
@@ -9443,11 +9443,11 @@
     {
      "speaker": "Rikus",
      "key": "rikus",
-     "text": "Ik draai een plaat.",
+     "text": "Ik draai een plaat. Een lange.",
      "tag": "NIEUW",
      "channel": "radio",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true,
+     "humor": "HS-19"
     }
    ]
   },
@@ -9726,11 +9726,11 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Goedemiddag. U nadert privé-luchtruim, mevrouw. Mijn ballon heeft voorrang. Dat staat in het contract.",
+     "text": "U nadert privé-luchtruim, mevrouw. Mijn ballon heeft voorrang. Het staat in het contract, onder \"wind\".",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true,
+     "humor": "HS-17"
     },
     {
      "speaker": "Tessa",
@@ -9910,11 +9910,11 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Dan weten we waar we vannacht moeten zijn. Hier.",
+     "text": "Dan weten we waar we vannacht moeten zijn. Hier. Samen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
+     "humor": "HS-24",
      "voice": "Anita"
     },
     {
@@ -10548,6 +10548,7 @@
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": false,
+     "humor": "HS-15",
      "rec": "lines"
     },
     {
@@ -10724,11 +10725,11 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Ik zie het.",
+     "text": "Oogcontact gemaakt. Hij gaf voorrang.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true,
+     "humor": "HS-02"
     },
     {
      "speaker": "Tessa",
@@ -10762,11 +10763,11 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Mevrouw, u rijdt te hard. In mijn limo is plek.",
+     "text": "Mevrouw, u rijdt te hard. In mijn limo is plek, en er zit een vergunning bij.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true,
+     "humor": "HS-18"
     },
     {
      "speaker": "Tessa",
@@ -10879,11 +10880,11 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Durk, Douwe, hoe vaak moet ik het zeggen? Contract is contract. Wij komen terug.",
+     "text": "Durk, Douwe, schrijf op: de sluis was vooraf verloren. Mijn juristen noemen dat winst.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true,
+     "humor": "HS-13"
     }
    ]
   },
@@ -11415,11 +11416,11 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Dat is… eerlijk.",
+     "text": "Dat is waar. Dat is hinderlijk.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true,
+     "humor": "HS-03"
     }
    ]
   },
@@ -11447,11 +11448,11 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Het is een proeverij. Er wordt alleen geproefd.",
+     "text": "Het is een proeverij. Wat u proeft, is geen omkoping, maar smaak.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true,
+     "humor": "HS-16"
     },
     {
      "speaker": "Jurylid",
@@ -12008,11 +12009,11 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Ik hoor botsauto's. Ik betaal jullie niet voor botsauto's.",
+     "text": "Botsauto's. Dat was Mems favoriet. Ik betaal jullie daar niet voor.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true,
+     "humor": "HS-14"
     },
     {
      "speaker": "Durk",
@@ -13858,11 +13859,11 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Dat moeten we weten.",
+     "text": "Toeval heeft ook een server. En een update.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true,
+     "humor": "HS-23"
     }
    ]
   },
@@ -18689,10 +18690,11 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "De grootste stoet die de Stad ooit zag.",
+     "text": "De grootste stoet van de Stad. Met een scooter voorop.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": true,
+     "humor": "HS-08"
     },
     {
      "speaker": "Tessa",
@@ -19486,9 +19488,10 @@
      "speaker": "Jelle Terpstra",
      "key": "jelle",
      "text": "Wat dan?",
-     "tag": "BEHOUDEN",
+     "tag": "NIEUW",
      "channel": "stem",
      "textOnly": false,
+     "humor": "HS-25",
      "rec": "lines"
     },
     {
@@ -20408,11 +20411,11 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "In de stad ziet hij er nog groter uit.",
+     "text": "De trekker en de Martinitoren kijken elkaar aan. Gelijkspel.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true,
+     "humor": "HS-10"
     }
    ]
   },
@@ -20463,6 +20466,7 @@
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": false,
+     "humor": "HS-09",
      "rec": "lines"
     }
    ]
