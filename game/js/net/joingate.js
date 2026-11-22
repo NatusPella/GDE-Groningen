@@ -166,7 +166,7 @@ export function bedienKamer({ id, hostKeyPair, maakSignaler, onKamer, mag = () =
     // Het postvak wordt elke interval opnieuw geplaatst; de tekst wordt pas bij het plaatsen
     // gemaakt, dus een antwoord dat er later bij komt gaat mee met de volgende ronde.
     zender.kondig(ta, () => tekst());
-  }, () => {});
+  }).catch(() => {}); // ook een fout bij het opzetten van de signaler (kwaliteit 22-11): de host speelt door, zonder joinpoort
 
   return {
     antwoorden,

@@ -2476,7 +2476,7 @@ function syncGpuWarning() {
     if (!w) return;
     box.querySelector('[data-gpu-warn-text]').textContent = w.text;
     box.querySelector('[data-action="gpu-help"]').hidden = !w.help;
-  }, () => {});
+  }).catch(() => {}); // een ontbrekend element in de rij mag geen onafgehandelde afwijzing geven
 }
 
 // The preset buttons, the explanation beside them and, after a benchmark, one

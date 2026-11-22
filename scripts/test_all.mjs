@@ -24,7 +24,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { checkSyntax } from './lib/syntaxcheck.mjs';
+import { checkSyntax, checkSyntaxAsync } from './lib/syntaxcheck.mjs';
 import { SERIE, runProces, pool, maakHartslag, runMetHerkansing, flakeMelding, laadBehoeften, skipReden, dataCacheAanwezig } from './lib/testloop.mjs';
 import { heeftVendorCache } from './lib/vendorcache.mjs';
 import { EXCLUDED, SLOW, MISSING_DATA, listFiles } from './run_tests.mjs';
@@ -132,13 +132,14 @@ async function faseLicht(prev) {
   if (!ONLY || 'module-check'.includes(ONLY) || ONLY === 'module') {
     const t0 = Date.now();
     const files = ['game', 'scripts', 'desktop', 'web'].filter((d) => fs.existsSync(path.join(ROOT, d))).flatMap((d) => listFiles(path.join(ROOT, d), /\.(js|mjs|cjs)$/)).sort();
-    let bad = 0, laatste = Date.now();
-    for (const [i, f] of files.entries()) {
-      // synchroon, dus de hartslagtimer komt er niet doorheen: zelf elke 30 s voortgang melden
-      if (Date.now() - laatste >= 30e3) { laatste = Date.now(); log(`...     module-check: ${i}/${files.length} bestanden`); }
-      const r = checkSyntax(f);
+    let bad = 0, laatste = Date.now(), klaar = 0;
+    // parallel (kwaliteit 22-11): het starten van node per bestand is de kost, niet het controleren
+    await pool(files.map((f) => async () => {
+      const r = await checkSyntaxAsync(f);
+      klaar++;
+      if (Date.now() - laatste >= 30e3) { laatste = Date.now(); log(`...     module-check: ${klaar}/${files.length} bestanden`); }
       if (!r.ok) { bad++; items.push(R.maakItem('licht', 'module:' + rel(f), 'module-check ' + rel(f), 'FAIL', 0, R.eersteFout(r.out) + '\n' + tail(r.out, 6))); }
-    }
+    }), Math.max(2, Math.min(8, os.cpus().length - 2)));
     items.push(R.maakItem('licht', 'module-check', `module-check (${files.length} bestanden)`, bad ? 'FAIL' : 'PASS', (Date.now() - t0) / 1000, bad ? `${bad} bestand(en) met een syntaxfout` : ''));
     log(`${bad ? 'FAIL' : 'PASS'}  module-check, ${files.length} bestanden, ${bad} fout`);
   }
