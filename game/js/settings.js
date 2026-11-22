@@ -201,6 +201,9 @@ const TOUCH_CONTROLS_CHOICES = ['auto', 'aan', 'uit'];
 let storedVersion = SETTINGS_VERSION;
 const newerExtras = {};
 
+// 22-11: de naam die anderen van je zien: geen stuurtekens of haakjes, spaties samengevoegd, hoogstens 16 tekens
+export const cleanOnlineNaam = (v) => String(v || '').replace(/[\u0000-\u001f\u007f<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 16).trim();
+
 function load() {
   if (typeof localStorage === 'undefined') return { ...DEFAULTS };
   try {
@@ -251,7 +254,7 @@ function load() {
     }
     // de online-avatar (#455): een kleur blijft een kleur, anders de standaard
     if (!/^#[0-9a-f]{6}$/i.test(out.onlineKleur)) out.onlineKleur = DEFAULTS.onlineKleur;
-    out.onlineNaam = String(out.onlineNaam || '').slice(0, 16);
+    out.onlineNaam = cleanOnlineNaam(out.onlineNaam);
     // toestemming voor Samen spelen (#528, ADR 0022): alleen een echte ja of nee telt.
     // De lus hierboven kopieert geen null (typeof null is 'object'), dus dit moet apart:
     // ontbrekend, null, "true", 1 of wat dan ook wordt null en dus "nog nooit gevraagd".
@@ -359,6 +362,7 @@ export function setSetting(key, value) {
   if (typeof DEFAULTS[key] === 'number' && !Number.isFinite(value)) return;
   // a volume always stays in 0..1, whatever a caller or a keyboard shortcut sends
   if (VOLUME_KEYS.includes(key)) value = volumeValue(value, DEFAULTS[key]);
+  if (key === 'onlineNaam') value = cleanOnlineNaam(value);
   if (!hasKey(DEFAULTS, key) || settings[key] === value) return;
   settings[key] = value;
   // #781: de speler koos in deze build zelf deze stand; een bewaarde waarde van een toekomstige
