@@ -12,6 +12,7 @@ import { hasUpper, makeStairs, generateUpper, MIN_FLOOR_H } from './interioruppe
 import { homeLook } from './interiorlook.js';
 
 export const MIN_CEILING = 2.3;   // lower than this is no room to stand in
+export const HOME_UNTYPED_MIN = { w: 3.4, d: 4.5 }; // the smallest hall of a home without an OSM type
 export const DOOR_GAP = 1.2;      // the opening cut in the facade (m): a little wider than the leaf
 // kinds whose door may come from synthEntrance when the facade builder drew none
 export const SYNTH_KINDS = new Set(['kerk', 'publiek', 'garage', 'station']);
@@ -48,7 +49,9 @@ export function planInterior(b, opts = {}) {
   const ceiling = ceilingOf(ks.kind, en);
   if (ceiling < MIN_CEILING) return { ok: false, why: 'low', kind: ks.kind };
   const frame = frameOf(en, en.c);
-  const hall = findHall(b.pts, frame, { minW: K.minW, minD: K.minD });
+  // r6: a house of a known type may be small (2.6 x 3.2 m); an untyped building ('yes') is mostly a shed or a garden house and keeps the old size (3.4 x 4.5 m)
+  const small = ks.kind === 'woning' && (b.type || 'yes') === 'yes';
+  const hall = findHall(b.pts, frame, { minW: small ? HOME_UNTYPED_MIN.w : K.minW, minD: small ? HOME_UNTYPED_MIN.d : K.minD });
   if (!hall) return { ok: false, why: 'small', kind: ks.kind };
   const seed = interiorSeed(b);
   const door = { w: Math.max(DOOR_GAP, en.w + 0.2), h: Math.min(en.h, ceiling - 0.15) };

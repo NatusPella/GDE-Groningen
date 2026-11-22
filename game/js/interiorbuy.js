@@ -21,8 +21,13 @@ const PRODUCTS = {
   sportschool: { item: 'Dagkaart sportschool', price: 8, health: 6 },
   museum: { item: 'Museumkaartje', price: 7, health: 0 },
   bioscoop: { item: 'Filmkaartje met popcorn', price: 12, health: 4 },
-  werkplaats: null, gemeente: null, politie: null, apotheek: { item: 'Pleisters', price: 5, health: 6 }, ziekenhuis: null, school: null, hotel: null,
+  // r6 (22-11): ook de balie van een apotheek, hotel, werkplaats en magazijn verkoopt iets kleins; gemeente, politie, ziekenhuis en school bewust niet
+  werkplaats: { item: 'Fles ruitenvloeistof', price: 6, health: 0 }, magazijn: { item: 'Rol pakbandtape', price: 4, health: 0 },
+  gemeente: null, politie: null, apotheek: { item: 'Pleisters', price: 5, health: 6 }, ziekenhuis: null, school: null,
+  hotel: { item: 'Ontbijt op de kamer', price: 14, health: 15 },
 };
+// the variants that sell their product at the desk (balie) instead of at a till or a bar
+export const DESK_SUBS = new Set(['sportschool', 'museum', 'bioscoop', 'apotheek', 'hotel', 'werkplaats', 'magazijn']);
 export const productFor = (kind, sub) => (kind === 'winkel' || kind === 'horeca' || kind === 'publiek' || kind === 'garage' ? PRODUCTS[sub] || null : null);
 
 // Apply a purchase to a plain state { money, health }: returns { ok, why, item, price, healed } and mutates only on success.

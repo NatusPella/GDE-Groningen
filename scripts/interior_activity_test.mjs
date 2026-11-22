@@ -26,7 +26,7 @@ ok(STAFF_ROLES.has('winkelier') && !STAFF_ROLES.has('klant') && SCRIPTS.serveers
 const rnd = mulberry32(55);
 let actors = 0, seenActs = new Map();
 for (const kind of ['winkel', 'horeca', 'kantoor', 'woning', 'kerk', 'station', 'bibliotheek', 'garage', 'publiek']) {
-  for (const sub of subsFor(kind).slice(0, 3)) {
+  for (const sub of kind === 'woning' ? [null, null, null, null, 'studentenkamer'] : subsFor(kind).slice(0, 3)) { // r6: vier woningen, want de bewoner staat er maar in de helft
     const K = KINDS[kind];
     const { b, spot } = building(kind, sub, K.minW + 5 + rnd() * 6, K.minD + 5 + rnd() * 6, rnd);
     const p = planInterior(b, { spot, upper: false });
