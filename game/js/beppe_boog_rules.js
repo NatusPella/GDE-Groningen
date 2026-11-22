@@ -21,7 +21,7 @@
 // news and no farewell scene (the marks are set silently, beppe_binnen.js).
 
 import { STEPS, stepDone } from './storyarc.js';
-import { visitUnlocked, reachedAct, eligible, pickBeat, pickNote, pickTip, ACT_ORDER } from './beppe_visit_rules.js';
+import { visitUnlocked, eligible, pickBeat, pickNote, pickTip } from './beppe_visit_rules.js';
 import {
   FIRST_VISIT, GREETING, GOODBYE, MEMORY, ECHOES, NUDGE,
 } from './beppe_boog_texts.js';
@@ -115,7 +115,6 @@ export function createRunner(script) {
   };
   return api;
 }
-export const firstVisitScript = () => FIRST_VISIT;
 
 // A normal visit while she lives: a greeting by visit count and by who is playing,
 // one remark by act, time and weather, a tip on every other visit, a goodbye.
@@ -140,4 +139,3 @@ export function aliveVisit(ctx, { day = 0, visit = 0, last = '' } = {}, snap = n
 export const pickMemory = (ctx, st) => pickBeat(MEMORY, ctx, st);
 export const memoryEligible = (ctx) => eligible(MEMORY, ctx);
 
-export { reachedAct, ACT_ORDER };

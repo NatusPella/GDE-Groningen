@@ -9,8 +9,6 @@ import { composeMatrix } from './pixelart3d.js';
 // H komt van models3d_people.js (die dit bestand importeert, dus geen import terug): { HEAD_Y, headShape, shade, mix, hairCap, hijab }.
 // Hoofdruimte: +x is voor, +y omhoog, z opzij; de hoek A loopt van 0 (voor) via ±pi/2 (zij) naar pi (achter), theta van de kruin (0) omlaag.
 
-export const HAIR_STYLES_3D = ['short', 'buzz', 'bald', 'curly', 'afro', 'long', 'bun', 'ponytail', 'bob', 'wavy', 'fringe', 'pixie', 'quiff', 'undercut', 'mohawk', 'pigtails', 'braid'];
-
 const TAU = Math.PI * 2;
 const wrap = (a) => { a %= TAU; if (a > Math.PI) a -= TAU; if (a < -Math.PI) a += TAU; return a; };
 const dir = (A, th) => [Math.cos(A) * Math.sin(th), Math.cos(th), Math.sin(A) * Math.sin(th)];

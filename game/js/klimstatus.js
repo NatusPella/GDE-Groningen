@@ -5,7 +5,7 @@ import { SIMICOON as I } from './simicoon.js';
 import { WALL } from './climbrules.js';
 
 // Icoonpaden voor de chips (24x24, lijn): grond (mat), klimmer (hand aan greep), top (vlag), magnesium (zakje), hart voor pogingen.
-export const ICOON = {
+const ICOON = {
   start: 'plek',
   klim: 'klimmen',
   top: 'vlag',

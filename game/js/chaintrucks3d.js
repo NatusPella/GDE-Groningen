@@ -73,5 +73,4 @@ export function updateChainTrucks(w, dt) {
     if (!reduced && prev) updateVehicleWheelSpin(a.group, Math.hypot(a.cur.x - prev.x, a.cur.y - prev.y) / dt, dt);
   }
 }
-export function clearChainTrucks() { for (const a of S.actors.values()) dropActor(a); S.actors.clear(); S.planT = -9; S.tripsT = -99; S.trips = []; S.routes.clear(); }
-export const chainTruckCount = () => S.actors.size;
+function clearChainTrucks() { for (const a of S.actors.values()) dropActor(a); S.actors.clear(); S.planT = -9; S.tripsT = -99; S.trips = []; S.routes.clear(); }

@@ -2,8 +2,7 @@
 // een tribuneregel, hooguit 14 woorden per HUD-bericht. Canon (21-11): Tammo en Tessa zijn net afgestudeerd en werkloos (vrienden uit hun studietijd), geld is krap, alles begint klein: geen tekst over
 // jeugd, kinderen, "al jaren" of een leeftijd. De figuur die niet speelt regelt de papieren (speel je Tessa, dan appt Tammo; speel je Tammo, dan appt Tessa). Altijd zomer: geen winterstop.
 // "Grunn" nooit "de Grunn". Ontgrendeling: akte 4 via voetbalpoort.js; een beat komt nooit tijdens een missie of scène en hooguit een per speldag; een gemiste beat wacht, hij vervalt niet.
-import { voetbalOpen } from './voetbalpoort.js';
-import { WORD_BUDGET, wordCount } from './hudtext.js';
+import { WORD_BUDGET } from './hudtext.js';
 
 export const BEAT_MAX_WORDS = WORD_BUDGET.phone;       // 14
 // Per beat: de trigger (een functie van het profiel), de tekst per speler (`anita`: je speelt Tessa, Tammo regelt; `tammo`: je speelt Tammo, Tessa regelt) en wie spreekt.
@@ -29,7 +28,6 @@ export const BEATS = [
   { id: 'B10', naam: 'Manager', when: (c) => !!c.roles.manager,
     anita: { wie: 'Tammo', tekst: 'Het eerste aandeel kan. Bezit, tabblad Club. Ik kijk mee.' }, tammo: { wie: 'Tessa', tekst: 'Het eerste aandeel kan. Bezit, tabblad Club. Ik kijk mee.' } },
 ];
-export const beatById = (id) => BEATS.find((b) => b.id === id) || null;
 export const beatText = (beat, char) => (char === 'tammo' ? beat.tammo : beat.anita);
 // De figuur die de papieren regelt: de ander dan de speler.
 export const partnerOf = (char) => (char === 'tammo' ? 'Tessa' : 'Tammo');
@@ -61,7 +59,6 @@ export function inviteBeat(c, ctx = {}, char = 'anita') {
   if (c && c.inviteDay != null && (c.inviteDay | 0) === (ctx.day | 0)) return null;      // hooguit een keer per speldag
   return { beat: BEATS[0], ...beatText(BEATS[0], char) };
 }
-export const isUnlocked = (progress) => voetbalOpen(progress);
 
 // Wat de regelaar voorstelt in het scherm Vandaag: één voorstel, in de persona van de figuur die niet speelt (droog en praktisch).
 export function proposal(c, getNext = null) {
@@ -76,4 +73,3 @@ export function proposal(c, getNext = null) {
 }
 // De regel voor de HUD (hooguit 14 woorden).
 export const hudLine = (beat, char) => { const b = beatText(beat, char); return `${b.wie}: ${b.tekst}`; };
-export const wordsOf = (s) => wordCount(s);

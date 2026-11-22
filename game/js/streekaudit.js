@@ -4,7 +4,6 @@
 // straten uit de stadsprofielen, en ligt een vondst op land, buiten gebouwen en
 // binnen bereik van een weg. Pure and Node-safe; scripts/world/streekaudit.mjs
 // leest de kaartdata en geeft die aan deze functies.
-import { wgsToWorld } from './rdnew.js';
 
 const R = 6371008.8;
 const rad = Math.PI / 180;
@@ -115,4 +114,3 @@ export function gaps(content) {
   return out;
 }
 
-export const toWorld = (ll) => { const [x, y] = wgsToWorld(ll[0], ll[1]); return { x, y }; };

@@ -180,7 +180,7 @@ export function soortenStand() {
   return [...tel.values()].filter((r) => r.totaal > 0);
 }
 export function kiesGebied(id) { gekozen = id; return detailHtml(); }
-export function detailHtml() {
+function detailHtml() {
   const o = getOverzicht();
   return o ? detail(o, gekozen) : '';
 }

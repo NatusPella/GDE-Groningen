@@ -149,7 +149,7 @@ export function fpsSeries(shots, { bucketS = 0.5, maxPoints = 160 } = {}) {
 
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 const r1 = (n) => Math.round(n * 10) / 10;
-export const TONES = [[9, 'Uitmuntend', 'goed'], [8, 'Goed', 'goed'], [6.5, 'Voldoende', 'neutraal'], [5.5, 'Matig', 'let-op'], [0, 'Onvoldoende', 'probleem']];
+const TONES = [[9, 'Uitmuntend', 'goed'], [8, 'Goed', 'goed'], [6.5, 'Voldoende', 'neutraal'], [5.5, 'Matig', 'let-op'], [0, 'Onvoldoende', 'probleem']];
 export const toneOf = (cijfer) => { const t = TONES.find(([min]) => cijfer >= min); return { label: t[1], tone: t[2] }; };
 
 // Smooth (avg towards 60), stable (the 1% low towards 45), without hitches (frames over 30 fps). Each is a grade; the end grade is their weighted mean.

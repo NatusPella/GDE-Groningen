@@ -17,7 +17,6 @@ export const ACTIEF_UIT = ACTIVE_R + 0.6 + HALO; // buitenstraal van het doel da
 export const DOT_R = 7; // de punten (straal hooguit 7)
 export const MIN_ACTIEF = 24; // afstand langs de baan tussen de schijf en een punt
 export const MIN_DOT = 17; // afstand langs de baan tussen twee punten
-export const MAX_WACHTEND = 2; // hooguit zoveel wachtende doelen (navtarget.js MAX_SECUNDAIR); medespelers en voertuigen tellen daar niet bij
 export const MAX_ANDEREN = 3; // en hooguit zoveel medespelers en eigen voertuigen als punt
 export const TAG_H = 16; // de afstandstag: 13 px tekst (de DS3-vloer), hooguit 40 x 16 px
 export const TAG_W_MAX = 40;

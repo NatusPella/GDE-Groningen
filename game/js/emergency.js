@@ -8,8 +8,6 @@ import { hoofdspeler } from './players.js';
 import { spawnVehicleOnRoad } from './vehicle.js';
 import { carModel, applyFleetFlags } from './trafficfleet.js';
 import { nearestFacility, poiLayerPlace } from './facilities.js';
-import { activeSirens, sirenYield } from './trafficyield.js';
-export { activeSirens, sirenYield };
 
 const HOSPITAL_NEAR = 300;
 const CALL_CHANCE_PER_S = 1 / 45;

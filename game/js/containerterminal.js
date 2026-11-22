@@ -106,11 +106,3 @@ export function placeContainerTerminal(world, THREE) {
   return root;
 }
 
-// Voor een test of een tweede missieronde: de rekwisieten weer weg (de
-// botsingen blijven staan; die horen bij de vaste wereld).
-export function disposeContainerTerminal(world) {
-  if (!world || placedOn !== world) return;
-  if (world._containerTerminal && world._containerTerminal.removeFromParent) world._containerTerminal.removeFromParent();
-  world._containerTerminal = null;
-  placedOn = null;
-}

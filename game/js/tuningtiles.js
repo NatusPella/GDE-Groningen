@@ -94,4 +94,3 @@ export function stripePicture(stripe, color, body = '#2e5f9e') {
     else if (stripe === 'checker') for (let k = 0; k < 14; k++) for (let j = 0; j < 2; j++) { g.fillStyle = (k + j) % 2 ? INK : col; g.fillRect(14 + k * 7, 12 + j * 4, 7, 4); }
   });
 }
-export const tileCacheSize = () => cache.size;

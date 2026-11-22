@@ -5,7 +5,6 @@
 export const DIVISIONS = ['kroon', 'terp', 'talent'];
 export const DIVISION_NAMES = { kroon: 'Kroonklasse', terp: 'Terpklasse', talent: 'Talentenklasse', europa: 'Waddenbeker', pool: 'Lokale clubs' };
 export const PATTERNS = ['effen', 'brede-streep', 'helften', 'smalle-streep'];
-export const PATTERN_NAMES = { effen: 'effen', 'brede-streep': 'brede strepen', helften: 'twee helften', 'smalle-streep': 'smalle strepen' };
 export const CLUBS_PER_DIVISION = 8;
 const HOME_ARENA = 'euroborg';       // de enige echte stadion: de Kroonklasse en de Waddenbeker spelen daar
 
@@ -43,8 +42,6 @@ export const EUROPE_CLUBS = [
   e('gele-muurbloempjes', 'De Gele Muurbloempjes', 75, 0xf0d020, 0x2a2f36, 'effen'), e('rode-adelaars', 'De Rode Adelaars van Lissabon', 72, 0xd02f2f, 0xf4f1e8, 'effen'),
   e('groene-klaverknechten', 'De Groene Klaverknechten', 68, 0x2f9e5b, 0x2f9e5b, 'brede-streep'), e('gala-tafelrondes', 'De Gala Tafelrondes', 70, 0xc22f2f, 0xf0c020, 'helften'),
 ];
-export const BEKER_CLUB_COUNT = 16;
-export const WADDENBEKER_SIZE = 16;
 
 const ALL = new Map([...CLUBS, ...EUROPE_CLUBS].map((x) => [x.id, x]));
 export const clubById = (id) => ALL.get(id) || null;
@@ -52,4 +49,3 @@ export const clubName = (id) => (ALL.get(id) || { naam: String(id) }).naam;
 export const clubsOf = (division) => CLUBS.filter((x) => x.division === division);
 // Een club als wedstrijdteam voor makeMatch (dezelfde vorm als TEAMS in voetbalrules.js); onbekend geeft null.
 export const teamFor = (club) => (club ? { id: club.id, naam: club.naam, kort: club.kort, shirt: club.shirt, broek: club.broek, keeperShirt: club.keeper, patroon: club.patroon, accent: club.accent } : null);
-export const clubColor = (v) => `#${(v >>> 0).toString(16).padStart(6, '0')}`;

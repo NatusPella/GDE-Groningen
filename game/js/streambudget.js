@@ -24,8 +24,8 @@ const STREAM_SMOOTH_S = 0.35;
 // #1016: the speed estimate attacks fast and lets go slowly: a sprint start or a floored gas pedal points the prefetch ahead within ~0.1 s
 // (a plain 0.35 s average still read walking pace after half a second, so the first 40 m ahead were queued late), and a short brake
 // or a corner does not drop the lead at once
-export const STREAM_ATTACK = 0.35;
-export const STREAM_RELEASE = 1.5;
+const STREAM_ATTACK = 0.35;
+const STREAM_RELEASE = 1.5;
 // a move this far in one frame (teleport, train, respawn, camera cut) is not a
 // speed: it would point the prefetch somewhere random
 const STREAM_CUT_M = 150;

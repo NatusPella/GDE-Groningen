@@ -14,8 +14,6 @@ export const WORLD_COLOR_STRENGTH = Object.freeze({
   drukwerk: { meng: 0.65, grade: 1.8 },
 });
 
-export const worldColorLabel = (mode) => ({ uit: 'Uit', subtiel: 'Subtiel', drukwerk: 'Drukwerk' }[mode] || 'Subtiel');
-
 export function cleanWorldColor(v) {
   return WORLD_COLOR_MODES.includes(v) ? v : WORLD_COLOR_DEFAULT;
 }

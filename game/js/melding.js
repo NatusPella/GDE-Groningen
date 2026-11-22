@@ -9,7 +9,7 @@ import { makeTimer, timerHeld } from './noticetiming.js';
 const TICK_MS = 100;
 
 // De staat van het scherm: pauzemenu open, HUD verborgen door een film. Het spel zelf gepauzeerd (world.paused) geeft de aanroeper mee als staat().
-export function screenState(doc = (typeof document !== 'undefined' ? document : null)) {
+function screenState(doc = (typeof document !== 'undefined' ? document : null)) {
   if (!doc) return {};
   const b = doc.body && doc.body.classList;
   return {

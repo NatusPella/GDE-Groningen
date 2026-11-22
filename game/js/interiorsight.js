@@ -3,7 +3,7 @@
 // are hidden (no draw call, no animation) while the player is outside, so the look-in costs nothing extra: at most the figures
 // that really show, never more than the budget. Pure: the plan (windows, door) and positions in the frame of the door in, a verdict out.
 
-export const SIGHT_MARGIN = 0.12; // m: a person half behind the frame still counts as seen
+const SIGHT_MARGIN = 0.12; // m: a person half behind the frame still counts as seen
 export const MAX_SEEN = 8;        // the people budget of an interior (interiors.js MAX_NPC): what can ever be drawn
 
 // the spans [a, b] along u of the openings in the front wall (v = 0): the door and every window that is cut open

@@ -1,6 +1,6 @@
 // Bot-zeilers in de zeilregatta (#197): puur, Node-safe. Elke bot vaart dezelfde baan met stepBot
 // (zeilrules.js) en een eigen vaardigheid; de speler krijgt een plaats in het klassement.
-import { stepBot, REGATTA, windOp } from './zeilrules.js';
+import { stepBot, REGATTA } from './zeilrules.js';
 
 const BOT_NAMEN = ['Wiebe', 'Marrit', 'Tjeerd', 'Anke']; // verzonnen zeilers
 const BOT_VAARDIGHEID = [0.62, 0.74, 0.86];
@@ -54,4 +54,3 @@ export function speelPlaats(reg, px, py, bots) {
   return plaats;
 }
 export const plaatsTekst = (p, n) => `${p}e van ${n}`;
-export { windOp };

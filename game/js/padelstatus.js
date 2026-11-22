@@ -5,7 +5,7 @@ import { SET_GAMES } from './padelrules.js';
 import { SIMICOON as I } from './simicoon.js';
 
 // Icoonpaden voor de chips (24x24, lijn): bal met veer (serveren), twee bogen (rally), vinkje (punt), racket (uitleg).
-export const ICOON = {
+const ICOON = {
   serve: 'padel',
   rally: 'rally',
   punt: 'punt',

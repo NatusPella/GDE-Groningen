@@ -110,11 +110,6 @@ export function buildAtm() {
   return g;
 }
 
-export function disposeOwned(o) {
-  o.removeFromParent();
-  for (const x of (o.userData && o.userData.own) || []) x.dispose();
-}
-
 
 export function buildFlag() {
   const g = new THREE.Group(), own = [];

@@ -11,10 +11,6 @@
 export const DAYS = 14;
 const MAX_CAT = 24;
 
-export const CATEGORIES = {
-  in: ['Missies', 'Bijbaantjes', 'Verkoop', 'Gevonden', 'Overig inkomsten'],
-  out: ['Winkels', 'Garage', 'Boetes', 'Reizen', 'Eten en drinken', 'Overige uitgaven'],
-};
 const OTHER_IN = 'Overig inkomsten';
 const OTHER_OUT = 'Overige uitgaven';
 
