@@ -283,7 +283,7 @@ const BRON = [
   { id: 'balie', titel: 'Balie en loket (interieur)', soort: 'paneel', files: ['loket3d.js', 'snackui.js'], terugVia: 'de balie opent het winkelmenu of een tekstpaneel; B is Backspace in de minigame-indeling' },
   { id: 'telefoon', titel: 'Telefoon met parodie-apps', soort: 'paneel', files: ['phone.js', 'phoneapp.js'] },
   { id: 'vertrekbord', titel: 'Vertrekbord en OV-planner', soort: 'melding', files: ['departuretimelineui.js', 'ovkaart.js', 'reiskaart.js'] },
-  { id: 'radiomelding', titel: 'Radio-melding en zenderkeuze', soort: 'melding', files: ['radio.js', 'radiokeuze.js'] },
+  { id: 'radiomelding', titel: 'Radio-melding en zenderkeuze', soort: 'melding', files: ['radio.js', 'radiokeuze.js'], tikVia: 'N kort is aan of uit, vasthouden is het zenderwiel (radiocontrol createNKey); de tekst in radio.js noemt dat alleen' },
   { id: 'samenwiel', titel: 'Samen-wiel (zinnen en emotes)', soort: 'paneel', files: ['multiplayerphrasesradial.js', 'multiplayerphrases.js'] },
   { id: 'doelvoorstel', titel: 'Gedeeld doel-voorstel (J/N)', soort: 'kaart', files: ['multiplayergoal.js'], terugVia: 'coopvraag-indeling: A is J, B is N' },
   { id: 'meedoen', titel: 'Meedoen?-kaart', soort: 'kaart', files: ['coopmeedoen.js'], terugVia: 'coopvraag-indeling: A is J, B is N' },

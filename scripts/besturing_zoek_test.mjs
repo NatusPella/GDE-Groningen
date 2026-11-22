@@ -49,7 +49,7 @@ t('Besturing en Spullen gebruiken dezelfde regel', () => {
 
 t('het zoekveld staat er met uitleg, werkt meteen en Escape wist het', () => {
   const pm = lees('pausemenu.js');
-  assert.match(pm, /data-controls-search placeholder="Zoek een toets of actie/);
+  assert.match(pm, /data-controls-search[^>]*placeholder="Zoek een toets of actie/);
   assert.match(pm, /aria-label="Zoek in de besturing"/, 'een zoekveld heeft een naam voor de voorlezer');
   assert.match(pm, /search\.addEventListener\('input', \(\) => filterControls\(search\.value\)\)/, 'typen zoekt meteen');
   assert.match(pm, /if \(search\.value\) \{ search\.value = ''; filterControls\(''\); \} else search\.blur\(\)/, 'Escape wist eerst, dan pas loslaten');

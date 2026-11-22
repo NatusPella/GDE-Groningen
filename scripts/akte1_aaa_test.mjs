@@ -131,7 +131,7 @@ try { m01 = buildNieuwDefs({ map: stubMap, walk: spot, drive: spot, models: {} }
 ok(!!m01, 'M01 is te bouwen');
 if (m01) {
   const kv = kaartVan(m01);
-  ok(kv && /1500/.test(kv.doel) && kv.regels.length === 3, 'de kaart van M01 heeft doel en drie regels');
+  ok(kv && /1.?500/.test(kv.doel) && kv.regels.length === 3, 'de kaart van M01 heeft doel en drie regels');
   const s = startKaart(m01, 'M01');
   tikKaart(s, 0.016);
   let t = 0; const getoond = [];

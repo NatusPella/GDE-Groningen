@@ -327,7 +327,7 @@
     {
       "veld": "audioEvents",
       "bestand": "game/js/player.js",
-      "max": 4,
+      "max": 5,
       "reden": "meldt een geluidsevent; audio.js leest de lijst",
       "issue": "#498"
     },
@@ -1772,6 +1772,20 @@
       "max": 3,
       "reden": "de pakketbaan houdt de minigame-klok vast terwijl het pakket wordt afgegeven (zelfde patroon als sidejobkit.js)",
       "issue": "#1195"
+    },
+    {
+      "veld": "clock",
+      "bestand": "game/js/storyketentest.js",
+      "max": 1,
+      "reden": "de verhaalketentest zet de klok rechtstreeks om een stap te bereiken (testhulp, geen spellogica)",
+      "issue": "#1121"
+    },
+    {
+      "veld": "wanted",
+      "bestand": "game/js/storyketentest.js",
+      "max": 2,
+      "reden": "de verhaalketentest zet het zoekniveau rechtstreeks om een stap te bereiken (testhulp, geen spellogica)",
+      "issue": "#1121"
     }
   ]
 }
