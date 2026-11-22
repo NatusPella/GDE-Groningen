@@ -12,7 +12,7 @@ import { ANIMATIES, MAX_WOORDEN, uitlegDef } from './uitlegdata.js';
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const TOKEN = /\{([A-Z0-9]+)\}/g;
 // #1212: de leestekst (aria-label) zegt "linkermuisknop", niet het Engelse "LMB"; de andere toetsen houden hun naam.
-export const MUIS_NAMEN = Object.freeze({ LMB: 'linkermuisknop', RMB: 'rechtermuisknop', MMB: 'middelste muisknop', WHEEL: 'muiswiel', MOUSE: 'muis', DRAG: 'muis slepen' });
+export const MUIS_NAMEN = Object.freeze({ LMB: 'linkermuisknop', RMB: 'rechtermuisknop', MMB: 'middelste muisknop', WHEEL: 'muiswiel', MOUSE: 'muis', DRAG: 'muis slepen' }); // keywords-ok: de leesnaam van een muisknop voor schermlezers, geen zichtbare spelertekst
 export const leesTekst = (t) => String(t || '').replace(/\{([A-Z0-9]+)\}/g, (m, k) => (MUIS_NAMEN[k] || k) + ' ').replace(/\s{2,}/g, ' ').trim();
 export const woordenTelling = (t) => String(t || '').replace(TOKEN, '').split(/\s+/).filter(Boolean).length;
 
