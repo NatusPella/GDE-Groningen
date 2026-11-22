@@ -6,12 +6,13 @@
 // Een regel is { id, area, part, wet, lines: [[spreker, tekst], ...] }:
 //   area  stad | hogeland | eemsdelta | wadden | westerkwartier | oldambt | veenkolonien
 //   part  ochtend | middag | avond | nacht, of null voor elk moment
-//   wet   droog | regen | mist | onweer, of null voor elk weer
+//   wet   droog | zon | regen | mist | onweer, of null voor elk weer (zon is droog met een helder zomeruur:
+//         een zon-moment hoort ook de droog-gesprekken, maar de zon-gesprekken horen alleen bij zon)
 // Eén tot drie regels per gesprek; ondertitelen kan met de sprekerslabels.
 
 export const AREAS = ['stad', 'hogeland', 'eemsdelta', 'wadden', 'westerkwartier', 'oldambt', 'veenkolonien'];
 export const PARTS = ['ochtend', 'middag', 'avond', 'nacht'];
-export const WETS = ['droog', 'regen', 'mist', 'onweer'];
+export const WETS = ['droog', 'zon', 'regen', 'mist', 'onweer'];
 
 export const AREA_NAMES = {
   stad: 'de Stad', hogeland: 'Hogeland', eemsdelta: 'Eemsdelta', wadden: 'Waddenkust',
@@ -169,6 +170,40 @@ export const GEBABBEL = [
   G('v-r2', 'veenkolonien', null, 'regen', ['Aardappelboer', 'Eindelijk water voor de aardappelen.'], ['Maat', 'En voor mijn pet.']),
   G('v-w3', 'veenkolonien', null, 'mist', ['Schipper', 'Ik zie de brug niet.'], ['Brugwachter', 'Dat hoort ook zo. Hij komt vanzelf.']),
   G('v-w4', 'veenkolonien', null, 'onweer', ['Boer', 'Alles onder dak, de trekker ook.']),
+  // --- nachtleven (sprint 22-11): een warme zomernacht, de laatste bus, een lege dijk, de sterren ---
+  G('s-n4', 'stad', 'nacht', null, ['Uitgaander', 'Is dit de laatste bus?'], ['Chauffeur', 'Dat zei de vorige ook.'], ['Uitgaander', 'En was dat zo?']),
+  G('s-n5', 'stad', 'nacht', null, ['Snackbarhouder', 'Nog één bestelling, dan sluit ik.'], ['Klant', 'Dat zei je een uur geleden ook al.']),
+  G('s-n6', 'stad', 'nacht', 'droog', ['Fietser', 'Wat is het zacht buiten. Bijna jammer om naar bed te gaan.']),
+  G('s-n7', 'stad', 'nacht', null, ['Student', 'Moi! Ik ben op weg naar huis.'], ['Maat', 'Je loopt de verkeerde kant op.'], ['Student', 'Dan is het een omweg met uitzicht.']),
+  G('h-nl1', 'hogeland', 'nacht', null, ['Fietser', 'Kijk eens omhoog, je ziet de hele Melkweg.'], ['Maat', 'Ik zie vooral een mug.']),
+  G('h-nl2', 'hogeland', 'nacht', 'droog', ['Boer', 'Zo stil dat je de koeien kunt horen denken.']),
+  G('e-nl1', 'eemsdelta', 'nacht', null, ['Havenarbeider', 'De kranen lichten op als een stad.'], ['Maat', 'Het is ook een stad. Een heel hoge.']),
+  G('e-nl2', 'eemsdelta', 'nacht', null, ['Wachter', 'Alles rustig bij de kade.'], ['Maat', 'Behalve jouw thermos.']),
+  G('w-nl1', 'wadden', 'nacht', null, ['Strandganger', 'Hoor je de zee? Hij ademt.'], ['Maat', 'Of het is mijn buurman.']),
+  G('w-nl2', 'wadden', 'nacht', 'droog', ['Toerist', 'Het licht van de vuurtoren draait al een uur.'], ['Inwoner', 'Hij heeft ook niets anders te doen.']),
+  G('k-nl1', 'westerkwartier', 'nacht', null, ['Fietser', 'Een uil! Hoor je hem?'], ['Maat', 'Dat is een trekker in de verte.']),
+  G('o-nl1', 'oldambt', 'nacht', null, ['Boer', 'Een warme nacht, het graan droogt van het geluid.'], ['Buurman', 'Dat is de wind.']),
+  G('v-nl1', 'veenkolonien', 'nacht', null, ['Schipper', 'Het kanaal ligt er mooi bij in het maanlicht.'], ['Brugwachter', 'Ik trek hem nog even omhoog voor de sterren.']),
+
+  // --- zon: een helder zomeruur (11 tot 19 uur), de terrassen zitten vol, er wordt gezwommen en gepicknickt ---
+  G('s-z1', 'stad', 'middag', 'zon', ['Terrasgast', 'Er is geen tafeltje meer vrij.'], ['Ober', 'Dan zet ik er een bij de brug.'], ['Terrasgast', 'Is daar schaduw?']),
+  G('s-z2', 'stad', 'middag', 'zon', ['Student', 'Ik ga zwemmen in de Hoornseplas.'], ['Maat', 'Je hebt tentamen.'], ['Student', 'Dat is een reden om eerst te zwemmen.']),
+  G('s-z3', 'stad', 'middag', 'zon', ['Fietser', 'Zo warm dat mijn bel smelt.'], ['Maat', 'Jouw bel is van plastic.'], ['Fietser', 'Precies. Hij hangt al scheef.']),
+  G('s-z4', 'stad', 'avond', 'zon', ['Picknicker', 'Wie heeft de kaas meegenomen?'], ['Maat', 'Ik dacht jij. Ik nam de mosterd.'], ['Picknicker', 'Dan eten we mosterd met uitzicht.']),
+  G('s-z5', 'stad', 'middag', 'zon', ['Terrasgast', 'Moi, wat een zon, joh.']),
+  G('s-z6', 'stad', 'avond', 'zon', ['Fietser', 'Het Noorderplantsoen is vol. Iedereen ligt in het gras.'], ['Maat', 'Dan fiets ik er voorzichtig tussendoor.']),
+  G('h-z1', 'hogeland', 'middag', 'zon', ['Boer', 'Zo helder dat je de Wadden kunt tellen.'], ['Buurman', 'En hoeveel zijn het?'], ['Boer', 'Eén te veel, vanwege de zon.']),
+  G('h-z2', 'hogeland', 'avond', 'zon', ['Fietser', 'Wind mee én zon. Wie heeft dit geregeld?']),
+  G('e-z1', 'eemsdelta', 'middag', 'zon', ['Havenarbeider', 'Het staal is zo heet dat ik er een ei op bak.'], ['Maat', 'Heb je een ei?'], ['Havenarbeider', 'Nee, dat is het probleem.']),
+  G('e-z2', 'eemsdelta', 'avond', 'zon', ['Visser', 'Het water ligt er gladjes bij.'], ['Maat', 'Dan ligt de vis lekker te zonnen.']),
+  G('w-z1', 'wadden', 'middag', 'zon', ['Strandganger', 'Het zand is zo warm dat ik hop.'], ['Maat', 'Dat noem je dansen. Doe het met ritme.']),
+  G('w-z2', 'wadden', 'avond', 'zon', ['Toerist', 'Is dit het mooiste strand van Nederland?'], ['Inwoner', 'Dat zeggen ze hier van elk strand.']),
+  G('k-z1', 'westerkwartier', 'middag', 'zon', ['Fruitteler', 'De zon doet het werk, ik kijk alleen.'], ['Klant', 'Mooie baan.'], ['Fruitteler', 'Het is vooral veel wachten.']),
+  G('k-z2', 'westerkwartier', 'avond', 'zon', ['Zeiler', 'Op het Leekstermeer staat geen zuchtje.'], ['Maat', 'Dan peddelen we naar het terras.']),
+  G('o-z1', 'oldambt', 'middag', 'zon', ['Boer', 'Dit graan is bijna rijp.'], ['Fietser', 'Hoe hoor je dat?'], ['Boer', 'Het ritselt tevreden.']),
+  G('o-z2', 'oldambt', 'avond', 'zon', ['Wandelaar', 'Wat een licht, het lijkt wel goud.'], ['Boer', 'Dat is stro. Maar mooi is het.']),
+  G('v-z1', 'veenkolonien', 'middag', 'zon', ['Aardappelboer', 'De spuit staat stil, het is te warm.'], ['Buurman', 'Dan gaan wij ook stil.'], ['Aardappelboer', 'In de schaduw. Met koffie.']),
+  G('v-z2', 'veenkolonien', 'avond', 'zon', ['Schipper', 'Het kanaal glimt als een spiegel.'], ['Brugwachter', 'Ik ben ook net gepoetst.']),
 ];
 
 // --- daypart, weather and area -------------------------------------------------------------
@@ -180,11 +215,16 @@ export function partOf(hour) {
   return 'nacht';
 }
 
-// kind: de soort van weatherstate.js (helder, bewolkt, mist, motregen, regenbui, onweer)
-export function wetOf(kind) {
+// kind: de soort van weatherstate.js (helder, bewolkt, mist, motregen, regenbui, onweer); hour (optioneel):
+// een helder uur tussen 11 en 19 is 'zon' (terrassen vol, zwemmers, picknick), anders 'droog'.
+export function wetOf(kind, hour) {
   if (kind === 'mist') return 'mist';
   if (kind === 'onweer') return 'onweer';
   if (kind === 'motregen' || kind === 'regenbui') return 'regen';
+  if (kind === 'helder' && Number.isFinite(hour)) {
+    const h = ((hour % 24) + 24) % 24;
+    if (h >= 11 && h < 19) return 'zon';
+  }
   return 'droog';
 }
 
@@ -196,7 +236,7 @@ export function areaOf(streekId, y = 0) {
 }
 
 export function gebabbelFor(area, part, wet) {
-  return GEBABBEL.filter((g) => g.area === area && (g.part === null || g.part === part) && (g.wet === null || g.wet === wet));
+  return GEBABBEL.filter((g) => g.area === area && (g.part === null || g.part === part) && (g.wet === null || g.wet === wet || (wet === 'zon' && g.wet === 'droog')));
 }
 
 // Eén gesprek: weer en tijd van de dag eerst (specifiek wint), nooit er één uit `recent` (ids) als er keus is.
