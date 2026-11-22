@@ -77,6 +77,8 @@ import { noteMoney } from './finance.js';
 import { storedLookOf, loadLooks } from './vehiclelookstore.js';
 import { lookCode } from './vehiclelook.js';
 import { loadTuning, sanitizeTuning } from './tuningplan.js';
+import { queueNotice } from './notifygate.js'; // 'Nieuw voertuig ontdekt' pas na het laadscherm (22-11)
+import { setKnownContext, knownRecord, markKnown } from './garageknown.js';
 import { KEYS } from './storagekeys.js'; // de uiterlijk-tuning op de garagekaarten (epic Autotuning, #1155)
 const DELIVERY_COOLDOWN = 30;
 const HELI_FERRY_FEE = 60;
@@ -630,8 +632,22 @@ export function getGarageCatalog(world) {
       where: null, fee: 0, feeLabel: '',
     };
   });
-  return [...owned, ...rest];
+  return markKnown([...owned, ...rest], knownRecord());
 }
+
+// Ontdekte voertuigen (garageknown.js): de opslag, wat je bezit en de melding bij de eerste keer instappen. Per speler, los van de save.
+setKnownContext({
+  store: typeof localStorage !== 'undefined' ? localStorage : null,
+  key: KEYS.garageOntdekt,
+  valid: (k) => !!VEHICLE_STOCK[k],
+  owned: () => getOwnedEntries().map((o) => o.key),
+  onNew: (key, world) => {
+    const spec = VEHICLE_STOCK[key];
+    if (!world || !spec) return;
+    const tekst = `Nieuw voertuig ontdekt: ${nameOf(spec, null).label}`;
+    queueNotice('ontdekking', { key: 'garage-ontdekt-' + key, tekst, duur: 4, show: () => world.addMessage(tekst, 4, { kind: 'tip', kicker: 'Garage', key: 'garage-ontdekt-' + key }) });
+  },
+});
 
 // QoL (#985): welke eigen voertuigen buiten de minimap een pijl aan de rand krijgen: de Escapade (zoals
 // altijd) en het dichtstbijzijnde andere eigen voertuig, zodat je hem op de minimap blijft vinden.

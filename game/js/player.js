@@ -44,6 +44,7 @@ import { seatedOf } from './occupants.js';
 import { bijInstapdeur, uitstapPunt, deurBijSpeler, deurNaam, openDeurVoor, openDeurVoorRol, trekPunt, TREK_BEREIK, TREK_SPEED } from './vehicledoors.js';
 import { ejectPassenger } from './pedestrians.js';
 import { isPassief } from './cooppvp.js';
+import { noteSeated } from './garageknown.js'; // instappen telt als ontdekt voor de garage (22-11)
 export { resolveBuildingCollisions };
 
 const BIKE_SPRINT_S = 2.5;
@@ -1050,6 +1051,7 @@ export class Player {
       if (v.model.name === 'police') v.model = { ...v.model, maxSpeed: Math.max(v.model.maxSpeed, 55), accel: Math.max(v.model.accel, 11) };
     }
     this.inVehicle = v;
+    noteSeated(v, world, this);
     pushVehicleAudio(world, v, 'door_open', 'engine_start');
     if (world && stolen && !v.isBike && !v.isScooter && !v.isBoat) playAutoGejatLine(world);
   }

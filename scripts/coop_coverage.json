@@ -653,16 +653,18 @@
     "tuning*",
     "vehiclelook*",
     "showroomplan",
-    "kapperkeuze"
+    "kapperkeuze",
+    "garageknown"
    ],
    "eigenaar": "speler",
-   "gast": "Eigen voertuigen en panden komen mee in de wereld van een ander (bezorgen en delen, #449): kleur, upgrades, deuken en lekke band reizen mee.",
+   "gast": "Eigen voertuigen en panden komen mee in de wereld van een ander (bezorgen en delen, #449): kleur, upgrades, deuken en lekke band reizen mee. Garage-ontdekking (22-11): per speler lokaal (gde-garage-ontdekt-v1); een gast kent het winkelmodel van een voertuig van de opener niet.",
    "beloning": "Geen; kosten uit je eigen geld.",
    "wegval": "Een bezorgde kopie verdwijnt met zijn eigenaar; het origineel blijft in de eigen opslag.",
    "test": [
     "scripts/coopbezit_test.mjs",
     "scripts/tuningplan_test.mjs",
-    "scripts/garage_zone_test.mjs"
+    "scripts/garage_zone_test.mjs",
+    "scripts/garageknown_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",
@@ -2009,6 +2011,10 @@
   "bezit": {
    "scope": "speler",
    "reden": "Percelen en panden van deze speler (#1097); per speler (#429), nooit in een savegame."
+  },
+  "garageOntdekt": {
+   "scope": "speler",
+   "reden": "Welke voertuigen deze speler kent voor de garage (22-11); per speler (#429), nooit in een savegame, niet gedeeld."
   }
  },
  "sleutelLiteralenBuitenRegister": [
