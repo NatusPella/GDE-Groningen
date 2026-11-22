@@ -154,5 +154,14 @@ ok(/\.bm-band > \.bm-klein \{ margin-bottom: var\(--ds-s-2\); \}/.test(css), 'he
   ok(/\.bm-slip \.bm-i-beloning \.bm-teller \{ display: block; font-family: var\(--ds-font-zeef-kop\); font-weight: 800; font-size: clamp\(48px/.test(css), 'het bedrag van de bon is het grootste getal');
   ok(/\.bm-stempel \{[^}]*max-width: calc\(100% - 56px\)/.test(css), 'de stempel blijft binnen de kaart');
 }
+// #1206: een titel die alleen de uitkomst zegt komt niet nog eens als titel of in de regel, welk woord ervoor ook staat
+{
+  for (const [kind, titel] of [['pass', 'Opdracht geslaagd'], ['pass', 'MISSIE GESLAAGD'], ['fail', 'Taak mislukt.'], ['fail', 'missie mislukt']]) {
+    const k = bouwMoment(momentVanBanner({ kind, title: titel, reason: 'Boer Roelf knikt.', reward: 100 }));
+    ok(k.kop === STANDAARD[k.soort].kop && k.regelNl === 'Boer Roelf knikt.', `"${titel}" is het label al, niet nog eens titel of regel`, `${k.kop} / ${k.regelNl}`);
+  }
+  const eigen = bouwMoment(momentVanBanner({ kind: 'pass', title: 'Opdracht geslaagd: de Zilvervloot', reason: 'Netjes.' }));
+  ok(/Zilvervloot/.test(eigen.regelNl), 'een echte missienaam blijft staan');
+}
 console.log(`${n - fails}/${n} bigmoment`);
 process.exit(fails ? 1 : 0);

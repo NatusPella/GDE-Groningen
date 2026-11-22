@@ -126,6 +126,8 @@ export function mayMomentTonen({ gast = false, eigen = false, gezamenlijk = fals
 // Perfect-ronde (22-11): (1) the standard title "MISSIE GESLAAGD" is the small label already, so it is not printed a second time as the
 // big print (the card then shows the Gronings default); (2) a line longer than the 14-word budget is cut at a SENTENCE, never in the
 // middle of one, and the "Nieuw doel: ..." sentence (the hint of what comes next) is kept.
+// titels die alleen de uitkomst zeggen
+const UITKOMST_TITEL = /^(missie|opdracht|taak|klus)\s+(geslaagd|mislukt|gehaald|volbracht)[.!]*$/i;
 export function kaartRegel(tekst, max = MAX_WOORDEN) {
   const t = String(tekst == null ? '' : tekst).replace(/\s+/g, ' ').trim();
   const aantal = (s) => s.split(' ').filter(Boolean).length;
@@ -142,11 +144,13 @@ export function kaartRegel(tekst, max = MAX_WOORDEN) {
 
 export function momentVanBanner({ kind = 'pass', title = '', reason = '', reward = 0 } = {}) {
   const soort = kind === 'fail' ? 'mislukt' : 'geslaagd';
-  const t = String(title || '').replace(/\s+/g, ' ').trim();
+  const ruw = String(title || '').replace(/\s+/g, ' ').trim();
+  // #1206: een titel die alleen de uitkomst zegt ("Missie geslaagd", "Opdracht geslaagd", "Taak mislukt.") is het label al: hij staat niet nog eens als titel of in de regel
+  const alLabel = ruw.length > 0 && (ruw.toLocaleLowerCase('nl') === STANDAARD[soort].klein.toLocaleLowerCase('nl') || UITKOMST_TITEL.test(ruw));
+  const t = alLabel ? '' : ruw;
   const kort = t.length > 0 && t.length <= 16;
-  const regel = kort ? reason : [t, reason].filter(Boolean).join('. ');
-  const alLabel = kort && t.toLocaleLowerCase('nl') === STANDAARD[soort].klein.toLocaleLowerCase('nl');
-  return { soort, titel: kort && !alLabel ? t : '', regelNl: kaartRegel(regel) || undefined, beloning: reward };
+  const regel = kort || !t ? reason : [t, reason].filter(Boolean).join('. ');
+  return { soort, titel: kort ? t : '', regelNl: kaartRegel(regel) || undefined, beloning: reward };
 }
 
 // Wanted went up or down (prev and nu are star counts 0..5): null when nothing changed, else the
