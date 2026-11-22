@@ -354,11 +354,14 @@ function panelHud() {
   const tv = leesTv();
   const row = `<span>Wedstrijd spelen</span><span><b>${FORMATEN[formaat].naam}</b></span><span>${modus}</span>`;
   const flash = `Vorming ${cleanFormation(formaat, v.vorming)} · stijl ${v.stijl} · ${v.duur === 'kort' ? 'kort' : 'normaal'} · kaarten en blessures ${tv.regels.kaarten ? 'aan' : 'uit'} · derby ${v.derby ? 'aan (vrienden in twee teams)' : 'uit (vrienden in jouw team)'} · ${MODE_NAMES[tv.camera].toLowerCase()}`;
-  const help = keyTextHtml('{F} Wedstrijd spelen · {1} formaat · {2} competitie · {3} vorming · {4} stijl · {5} duur · {6} kaarten en blessures · {7} camera · {8} derby met vrienden · {BACKSPACE} stopt') + ' · Penalty’s zijn een minigame bij de poort ernaast';
+  // De D-pad heeft maar vier cijfers (controls.js minigame: 1 tot 4): {E} (Y) zet een tweede pagina aan waar 1 tot 4 de opties 5 tot 8 zijn, zodat ook met een controller alles te kiezen is.
+  const help = (panel.pagina === 1
+    ? keyTextHtml('{F} Wedstrijd spelen · {1} duur · {2} kaarten en blessures · {3} camera · {4} derby met vrienden · {E} terug naar de eerste opties · {BACKSPACE} stopt')
+    : keyTextHtml('{F} Wedstrijd spelen · {1} formaat · {2} competitie · {3} vorming · {4} stijl · {5} duur · {6} kaarten en blessures · {7} camera · {8} derby met vrienden · {E} tweede pagina · {BACKSPACE} stopt')) + ' · Penalty’s zijn een minigame bij de poort ernaast';
   ensureBoard().set({ row, cells: null, meter: null, flash, bad: false, help });
 }
 function openPanel(w) {
-  panel = { v: leesOpslag() };
+  panel = { v: leesOpslag(), pagina: 0, t0: w.time };
   const v = panel.v;
   if (v.modus === 'competitie') { v.formaat = 'groot'; v.vorming = cleanFormation('groot', v.vorming); }
   ensureBoard().show();
@@ -377,14 +380,18 @@ function panelTick(w) {
   if (w.pendingRespawn || stopPressed(inp)) { closePanel(); return; }
   let fresh = false;
   const druk = (k) => { if (inp.wasPressed(k)) { inp.consume(k); return true; } return false; };
-  if (druk('1')) { v.formaat = v.formaat === 'klein' ? 'groot' : 'klein'; v.modus = 'vriendschappelijk'; fresh = true; }
-  if (druk('2')) { v.modus = v.modus === 'competitie' ? 'vriendschappelijk' : 'competitie'; if (v.modus === 'competitie') v.formaat = 'groot'; fresh = true; }
-  if (druk('3')) { v.vorming = nextFormation(v.modus === 'competitie' ? 'groot' : v.formaat, v.vorming); fresh = true; }
-  if (druk('4')) { v.stijl = stijlVan(v.stijl); fresh = true; }
-  if (druk('5')) { v.duur = v.duur === 'kort' ? 'normaal' : 'kort'; fresh = true; }
-  if (druk('6')) { const tv = leesTv(), aan = !(tv.regels.kaarten && tv.regels.blessures); tv.regels = { ...tv.regels, kaarten: aan, blessures: aan }; schrijfTv(tv); fresh = true; }
-  if (druk('7')) { const tv = leesTv(); tv.camera = nextMode(tv.camera); schrijfTv(tv); fresh = true; }
-  if (druk('8')) { v.derby = !v.derby; fresh = true; }
+  // E (Y op de controller) wisselt van pagina; de E die het keuzescherm opende telt niet mee (eerste halve seconde)
+  if (w.time - panel.t0 > 0.5 && druk('e')) { panel.pagina = panel.pagina === 1 ? 0 : 1; panelHud(); }
+  // pagina 1: de cijfers 1 tot 4 zijn de opties 5 tot 8 (de D-pad); 5 tot 8 blijven op het toetsenbord gewoon werken
+  const optie = (n) => (n <= 4 ? panel.pagina !== 1 && druk(String(n)) : druk(String(n)) || (panel.pagina === 1 && druk(String(n - 4))));
+  if (optie(1)) { v.formaat = v.formaat === 'klein' ? 'groot' : 'klein'; v.modus = 'vriendschappelijk'; fresh = true; }
+  if (optie(2)) { v.modus = v.modus === 'competitie' ? 'vriendschappelijk' : 'competitie'; if (v.modus === 'competitie') v.formaat = 'groot'; fresh = true; }
+  if (optie(3)) { v.vorming = nextFormation(v.modus === 'competitie' ? 'groot' : v.formaat, v.vorming); fresh = true; }
+  if (optie(4)) { v.stijl = stijlVan(v.stijl); fresh = true; }
+  if (optie(5)) { v.duur = v.duur === 'kort' ? 'normaal' : 'kort'; fresh = true; }
+  if (optie(6)) { const tv = leesTv(), aan = !(tv.regels.kaarten && tv.regels.blessures); tv.regels = { ...tv.regels, kaarten: aan, blessures: aan }; schrijfTv(tv); fresh = true; }
+  if (optie(7)) { const tv = leesTv(); tv.camera = nextMode(tv.camera); schrijfTv(tv); fresh = true; }
+  if (optie(8)) { v.derby = !v.derby; fresh = true; }
   if (fresh) { v.vorming = cleanFormation(v.formaat, v.vorming); schrijfOpslag(v); panelHud(); }
   if (druk('f') || druk(' ')) { schrijfOpslag(v); closePanel(); launch(w, { force: true }); }
 }
