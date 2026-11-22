@@ -14,7 +14,7 @@
 // Markerrol van missionmap.js voor gevaar (icoon 'mm-gevaar', DS3-gevaarkleur).
 export const GEVAAR_ROL = 'threat';
 
-const LIMO = { name: 'trekkerlimo', len: 5.6, wid: 2.0, color: '#1b1c1f' };
+const LIMO = { name: 'trekkerlimo', len: 5.6, wid: 2.0, color: '#1b1c1f' }; // lakkleur van het voertuigmodel (1:1 de oude kleur uit convoy.js), geen UI-kleur: chaserlook.js staat in ART_FILES van rules_audit
 
 // maxSpeed/accel/brake/turnRate staan per rol zoals de missies ze al hadden (balans blijft gelijk).
 export const CHASER_ROLES = {
