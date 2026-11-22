@@ -33,6 +33,11 @@ const DEFAULT_CAP = 0xc8621e;
 
 const BONE = { pelvis: 0, chest: 1, head: 2, thigh: [3, 5], knee: [4, 6], arm: [7, 9], elbow: [8, 10] };
 
+// Meetspoor voor scripts/kleding_clipping_audit.mjs: met personProbe.layers aan onthoudt de bouwer welk stuk elke driehoek is (laag, vanaf driehoek n).
+// Uit is het niets: tag() kijkt alleen of B.layers bestaat.
+export const personProbe = { layers: false };
+const tag = (B, name) => { if (B.layers) B.layers.push([B.groups[0].p.length / 9, name]); };
+
 export const PERSON_RIG = { HIP_Y, KNEE_Y, ANKLE_Y, THIGH_LEN, SHIN_LEN, CHEST_Y, SHOULDER_Y, UPPER_ARM, FOREARM, NECK_Y, HEAD_Y };
 
 export const TAMMO_APPEARANCE = { shirt: 0x3f6ea8, skin: HABBO_PALETTE.woodLight, hair: HABBO_PALETTE.woodDark, variant: 'male', character: 'tammo', cap: DEFAULT_CAP, pants: 0x2f3b52, shoes: 0xd8d4cc, hairStyle: 'short', seed: 11 };
@@ -197,6 +202,85 @@ function torsoRings(L) {
   ].map((rg) => (slim ? { ...rg, w: rg.w * 0.95 } : heavy ? { ...rg, w: rg.w * 1.06, d: rg.d * 1.06 } : rg));
 }
 
+// Het doorsnede-veelhoek van een loft (loftGeometry, zoals loftUp hem bouwt: 10 zijden, fase pi/10) op hoogte y tussen twee ringen: de hoekpunten
+// van de twee ringen worden gemengd, precies zoals de driehoeken tussen de ringen lopen.
+function loftPolygon(rings, y, sides = 10) {
+  let a = rings[0], b = rings[1];
+  for (let i = 0; i < rings.length - 1; i++) if (y >= rings[i].y && y <= rings[i + 1].y) { a = rings[i]; b = rings[i + 1]; break; }
+  const t = (y - a.y) / (b.y - a.y || 1);
+  const ring = (r) => {
+    const out = [];
+    for (let i = 0; i < sides; i++) {
+      const ang = Math.PI / sides + (i / sides) * Math.PI * 2, c = Math.cos(ang), sn = Math.sin(ang), q = r.sq ?? 1;
+      out.push([(r.x || 0) + Math.sign(c) * Math.pow(Math.abs(c), q) * r.d * (c > 0 ? (r.front ?? 1) : 1), Math.sign(sn) * Math.pow(Math.abs(sn), q) * r.w]);
+    }
+    return out;
+  };
+  const A = ring(a), B2 = ring(b);
+  return A.map((p, i) => [p[0] + (B2[i][0] - p[0]) * t, p[1] + (B2[i][1] - p[1]) * t]);
+}
+
+// De straal van zo'n veelhoek vanuit de verticale as in richting ang (0 = voor, x; pi/2 = z).
+function polygonRadius(poly, ang) {
+  const dx = Math.cos(ang), dz = Math.sin(ang);
+  let best = 0;
+  for (let i = 0; i < poly.length; i++) {
+    const p = poly[i], q = poly[(i + 1) % poly.length];
+    const ex = q[0] - p[0], ez = q[1] - p[1], den = dx * ez - dz * ex;
+    if (Math.abs(den) < 1e-9) continue;
+    const t = (p[0] * ez - p[1] * ex) / den, u = (p[0] * dz - p[1] * dx) / den;
+    if (t > 0 && u >= -1e-9 && u <= 1 + 1e-9 && t > best) best = t;
+  }
+  return best;
+}
+
+// Het pad van een ketting op de romp: vanaf de kuil van de hals (voor, laag) over de schouderrand naar de nek (achter, hoog), op het oppervlak van de
+// romp van deze lichaamsvorm plus 4 mm. Elk punt heeft ook de normaal van het oppervlak (de schouder is bijna vlak: een kraal moet er bovenop liggen,
+// niet erin). Punten: [x, y, z, nx, ny, nz]; models3d_clothing.js bouwt er de ketting op.
+function neckPath(L, n = 24) {
+  const rings = torsoRings(L), pts = [];
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2, cs = Math.cos(a), sn = Math.sin(a);
+    const af = Math.min(a, Math.PI * 2 - a); // symmetrisch links en rechts
+    const y = 1.482 - 0.095 * Math.pow(Math.max(0, Math.cos(af * 1.6)), 1.2);
+    const R = polygonRadius(loftPolygon(rings, y), a);
+    const s = (polygonRadius(loftPolygon(rings, Math.min(1.484, y + 0.003)), a) - polygonRadius(loftPolygon(rings, Math.max(0.9, y - 0.003)), a)) / 0.006; // dR/dy
+    const k = 1 / Math.sqrt(1 + s * s), nR = k, nY = -s * k;
+    pts.push([(R + 0.004 * nR) * cs, y + 0.004 * nY, (R + 0.004 * nR) * sn, nR * cs, nY, nR * sn]);
+  }
+  return pts;
+}
+
+// De x (voor) van een veelhoek (loftPolygon) op zijpositie z0.
+function polygonX(poly, z0, back = false) {
+  let best = -Infinity;
+  for (let i = 0; i < poly.length; i++) {
+    const p = poly[i], q = poly[(i + 1) % poly.length];
+    if ((p[1] - z0) * (q[1] - z0) > 0) continue;
+    const dz = q[1] - p[1], t = Math.abs(dz) < 1e-9 ? 0 : (z0 - p[1]) / dz;
+    best = Math.max(best, (back ? -1 : 1) * (p[0] + (q[0] - p[0]) * t));
+  }
+  return best === -Infinity ? (back ? -0.1 : 0.1) : (back ? -best : best);
+}
+
+// Een strook op het oppervlak van de romp (aan de voorkant): rows = [{ y, z, hw }] (midden en halve breedte per hoogte), lift meter erboven. Het overhemd
+// in een open jas, de revers en de rits liggen zo op de romp in plaats van als vlakke plank ervoor (die zweefde tot 4 cm voor de borst).
+function surfaceStrip(B, rings, rows, color, lift = 0.004, cols = 2, back = false) {
+  const pt = (y, z) => [polygonX(loftPolygon(rings, y), z, back) + (back ? -lift : lift), y, z];
+  for (let i = 0; i < rows.length - 1; i++) {
+    const a = rows[i], b = rows[i + 1];
+    for (let j = 0; j < cols; j++) {
+      const f0 = j / cols * 2 - 1, f1 = (j + 1) / cols * 2 - 1;
+      B.quadOut(pt(a.y, a.z + a.hw * f0), pt(a.y, a.z + a.hw * f1), pt(b.y, b.z + b.hw * f1), pt(b.y, b.z + b.hw * f0), [back ? -1 : 1, 0, 0], color);
+    }
+  }
+}
+
+// z van de schouder (de arm hangt daar): afhankelijk van het postuur
+function shoulderZ(L) {
+  return (L.female ? 0.172 : 0.198) * (L.build === 'heavy' ? 1.06 : L.build === 'slim' ? 0.95 : 1) + 0.03;
+}
+
 function ringAt(rings, y) {
   for (let i = 0; i < rings.length - 1; i++) {
     const a = rings[i], b = rings[i + 1];
@@ -259,11 +343,13 @@ function hemPanel(rings, s, segs = 6) {
 // running legs swing the cloth instead of poking through it.
 function hemPanels(B, rings, maxW, color) {
   const prev = B.bone;
+  tag(B, 'hem');
   for (let k = 0; k < 2; k++) {
     B.bone = W_PANEL(k, maxW);
     B.geo(hemPanel(rings, k === 0 ? 1 : -1), null, color);
   }
   B.bone = prev;
+  tag(B, 'topdetail');
 }
 
 function flipWinding(g) {
@@ -313,10 +399,13 @@ function faceX(dy, z) {
 function buildHead(B, L, skin) {
   const H = BONE.head;
   B.bone = H;
+  tag(B, 'head');
   B.geo(ell(9, 7, headShape()), null, skin);
   B.bone = W_NECK;
+  tag(B, 'neck');
   B.geo(loftGeometry([{ y: 1.44, d: 0.06, w: 0.062 }, { y: 1.52, d: 0.054, w: 0.052 }, { y: HEAD_Y - 0.05, d: 0.05, w: 0.048 }], 6), null, shade(skin, 0.94));
   B.bone = H;
+  tag(B, 'face');
 
   const nose = new THREE.CylinderGeometry(0.009, 0.016, 0.042, 3).rotateY(Math.PI / 2);
   B.geo(nose, composeMatrix(faceX(-0.014, 0) - 0.004, HEAD_Y - 0.014, 0, 0, 0, 0.22), shade(skin, 0.96));
@@ -331,6 +420,7 @@ function buildHead(B, L, skin) {
   plate(B, faceX(-0.052, 0) + 0.0015, HEAD_Y - 0.052, 0, 0.005, 0.017, 0, mix(shade(skin, 0.78), 0x8a3a30, 0.3));
 
   if (L.glasses) {
+    tag(B, 'glasses');
     const lens = L.shades ? 0x101214 : mix(shade(skin, 0.7), 0x5d6f7a, 0.6);
     for (const s of [1, -1]) {
       B.box(faceX(0.012, s * 0.034) + 0.007, HEAD_Y + 0.012, s * 0.034, 0.006, 0.03, 0.04, 0x26262a, 0, 0, -s * 0.4, 0);
@@ -344,6 +434,7 @@ function buildHead(B, L, skin) {
     }
   }
 
+  tag(B, 'facial');
   const beardColor = L.facial === 'stubble' ? mix(skin, L.hair, 0.3) : L.hair;
   if (L.facial === 'beard' || L.facial === 'stubble') {
     const k = L.facial === 'beard' ? 1.08 : 1.02;
@@ -355,8 +446,13 @@ function buildHead(B, L, skin) {
     B.box(faceX(-0.085, 0) - 0.008, HEAD_Y - 0.085, 0, 0.02, 0.038, 0.034, L.hair);
   }
 
+  tag(B, 'hair');
+  const hair0 = B.groups[0].p.length;
   buildHair(B, L);
-  buildHat(B, L);
+  const hair1 = B.groups[0].p.length;
+  tag(B, 'hat');
+  buildHat(B, L, hair0, hair1);
+  tag(B, 'end');
 }
 
 // Flat quad facing +x (yawed by ry, rolled by rx) for painted-on face details.
@@ -399,12 +495,50 @@ function hairCap(B, L, k, tilt, color, thLen = Math.PI * 0.52, innerColor = null
   if (innerColor !== null) B.geo(flipWinding(shell(RIM + (k - RIM) * 0.4).toNonIndexed()), null, innerColor);
 }
 
+// De schaalhoeden (pet, Stadjerspet, platte pet, mutsje): een schil over de schedel. De onderrand ligt boven de oren en de ogen (wenkbrauwen
+// mogen onder het mutsje blijven), de voorkant steekt door de tilt iets hoger. Eén bron voor de schil, het haar eronder en de rand (22-11, clipping).
+const HAT_SHELL = {
+  cap: { k: 1.12, tilt: 0.12, thLen: Math.PI * 0.4 },
+  tammo: { k: 1.12, tilt: 0.12, thLen: Math.PI * 0.4 },
+  beanie: { k: 1.14, tilt: 0.22, thLen: Math.PI * 0.4 },
+  flatcap: { k: 1.1, tilt: 0.25, thLen: Math.PI * 0.4 },
+};
+
+// Haar onder een schaalhoed: elk haarpunt dat onder de schil valt (boven de onderrand) wordt radiaal naar binnen geschoven tot onder de
+// binnenwand van de schil, zodat er geen haar door de pet of het mutsje steekt (voorheen tot 7 cm bij een knot of een staart). Wat onder de
+// rand uitkomt (lange lokken, krullen aan de zijkant) blijft zoals het was.
+function fitHairUnderHat(B, from, to, S) {
+  const p = B.groups[0].p, rimNy = Math.cos(S.thLen), c = Math.cos(S.tilt), sn = Math.sin(S.tilt), kin = RIM + (S.k - RIM) * 0.4;
+  for (let i = from; i < to; i += 3) {
+    const x = p[i], y = p[i + 1] - HEAD_Y, z = p[i + 2];
+    const x0 = x * c + y * sn, y0 = -x * sn + y * c; // terug uit de tilt van de schil
+    const ny = y0 / 0.118;
+    if (ny <= rimNy) continue;
+    const q = headQ(x0, y0, z);
+    // de schil is een 14-hoek: tussen de hoekpunten ligt het vlak ca. 3 procent onder de bol, daar blijft het haar onder
+    const qmax = Math.max(1, (RIM + (kin - RIM) * Math.min(1, (ny - rimNy) / 0.45)) * 0.965 - 0.006);
+    if (q > qmax) { const u = qmax / q; p[i] = x * u; p[i + 1] = y * u + HEAD_Y; p[i + 2] = z * u; }
+  }
+}
+
+// De hoofdellipsoide (headShape) omgekeerd: hoe ver (1 = op het oppervlak) ligt een punt, vanuit het hoofdcentrum (y relatief aan HEAD_Y).
+function headQ(x, y, z) {
+  const ny = y / 0.118;
+  const fz = ny < 0 ? 1 - 0.3 * Math.pow(-ny, 1.4) : 1;
+  let fx = 1;
+  if (ny < 0) fx *= x > 0 ? 1 - 0.1 * -ny : 1 - 0.3 * -ny;
+  if (x < 0 && ny > -0.3) fx *= 1.07;
+  return Math.hypot(x / (0.097 * fx), ny, z / (0.086 * fz));
+}
+
 // The hood of a hoodie or jacket, hanging at the back of the neck: an open bowl, so it gets an inner wall (faces turned in, a bit smaller) and reads as cloth
 // with a lining instead of a see-through fin seen from the side or from above.
 function hoodBowl(B, top) {
+  tag(B, 'hoodbowl');
   const bowl = (k) => ell(8, 4, (x, y, z) => [x * 0.11 * k - 0.1, y * 0.09 * k + 1.47, z * 0.13 * k], Math.PI * 1.5, Math.PI, 0, Math.PI * 0.62);
   B.geo(bowl(1), null, shade(top, 0.9));
   B.geo(flipWinding(bowl(0.88).toNonIndexed()), null, shade(top, 0.68));
+  tag(B, 'topdetail');
 }
 
 function lumpyCap(B, k, color, seed, lift = 0) {
@@ -535,31 +669,61 @@ function hairCurtain(B, c, len) {
   }
 }
 
-function buildHat(B, L) {
+// Een bandje (krans, oren, sluier, kroon) ligt om het haar: de ring is minstens zo wijd als het haar op die hoogte (afro, krullen, hoge kam),
+// anders zit hij in het haar. Geeft de factor waarmee de standaardring (d0 diep, w0 breed) groeit; 1 als het haar eronder past.
+function bandScale(B, from, to, y0, y1, d0, w0) {
+  const p = B.groups[0].p;
+  let k = 1;
+  for (let i = from; i < to; i += 3) {
+    const y = p[i + 1] - HEAD_Y;
+    if (y < y0 - 0.02 || y > y1 + 0.02) continue;
+    k = Math.max(k, Math.hypot((p[i] + 0.006) / d0, p[i + 2] / w0)); // headTilt schuift de ring 6 mm naar achteren
+  }
+  return k > 1 ? k + 0.07 : 1;
+}
+
+function buildHat(B, L, hair0 = 0, hair1 = 0) {
   const hat = L.hat;
   if (!hat) {
     if (L.hoodUp) {
+      tag(B, 'hood');
       const c = L.top === 'raincoat' ? L.raincoatColor : L.topColor;
       B.geo(ell(10, 5, headShape(1.2, -0.012, 0.006), Math.PI + 0.72, Math.PI * 2 - 1.44, 0, Math.PI * 0.7), null, c);
       B.geo(ell(10, 2, headShape(1.21, -0.012, 0.008), 0, Math.PI * 2, 0, Math.PI * 0.24), null, c);
     }
     return;
   }
+  tag(B, 'hatshell');
   if (hat === 'beanie') {
-    hairCap(B, L, 1.14, 0.22, L.hatColor, Math.PI * 0.5, shade(L.hatColor, 0.62));
+    hairCap(B, L, HAT_SHELL.beanie.k, HAT_SHELL.beanie.tilt, L.hatColor, HAT_SHELL.beanie.thLen, shade(L.hatColor, 0.62));
+    fitHairUnderHat(B, hair0, hair1, HAT_SHELL.beanie);
+    tag(B, 'hattrim');
     B.geo(loftGeometry([{ y: HEAD_Y + 0.02, d: 0.113, w: 0.1 }, { y: HEAD_Y + 0.055, d: 0.114, w: 0.101 }], 10), headTilt(0.12), shade(L.hatColor, 0.85));
   } else if (hat === 'cap' || hat === 'tammo') {
     const c = hat === 'tammo' ? L.capColor : L.hatColor;
-    hairCap(B, L, 1.12, 0.12, c, Math.PI * 0.5, shade(c, 0.62));
+    hairCap(B, L, HAT_SHELL.cap.k, HAT_SHELL.cap.tilt, c, HAT_SHELL.cap.thLen, shade(c, 0.62));
+    fitHairUnderHat(B, hair0, hair1, HAT_SHELL.cap);
+    tag(B, 'hattrim');
     const brim = new THREE.CylinderGeometry(1, 1, 0.014, 8, 1, false, 0, Math.PI);
     B.geo(brim, composeMatrix(0.075, HEAD_Y + 0.045, 0, 0, 0, -0.16, 0.095, 1, 0.098), shade(c, 0.82));
     B.geo(new THREE.SphereGeometry(1, 5, 2, 0, Math.PI * 2, 0, Math.PI / 2), composeMatrix(-0.01, HEAD_Y + 0.13, 0, 0, 0, 0.12, 0.014, 0.01, 0.014), shade(c, 0.8));
     if (hat === 'tammo') {
       B.geo(loftGeometry([{ y: HEAD_Y + 0.03, d: 0.108, w: 0.098 }, { y: HEAD_Y + 0.05, d: 0.109, w: 0.099 }], 10), headTilt(0.12), shade(c, 0.7));
-      B.box(0.094, HEAD_Y + 0.078, 0, 0.01, 0.032, 0.044, 0xe6e1d6, 0, 0, 0, -0.5);
+      // het plaatje van de Stadjer ligt op de schil (plek en hoek volgen de kromming van de schil), niet erboven
+      const S = HAT_SHELL.tammo, cs = Math.cos(S.tilt), sn = Math.sin(S.tilt);
+      const on = (th) => {
+        const t = Math.min(1, (Math.cos(th) - Math.cos(S.thLen)) / 0.45);
+        const q = headShape(RIM + (S.k - RIM) * t, -0.006 * t, 0.004 * t)(Math.sin(th), Math.cos(th), 0);
+        return [q[0] * cs - (q[1] - HEAD_Y) * sn, q[0] * sn + (q[1] - HEAD_Y) * cs];
+      };
+      const p1 = on(0.95), p2 = on(0.6), tl = Math.hypot(p2[0] - p1[0], p2[1] - p1[1]);
+      const tx = (p2[0] - p1[0]) / tl, ty = (p2[1] - p1[1]) / tl;
+      B.box((p1[0] + p2[0]) / 2 + ty * 0.0012, HEAD_Y + (p1[1] + p2[1]) / 2 - tx * 0.0012, 0, 0.006, 0.032, 0.044, 0xe6e1d6, 0, 0, 0, Math.atan2(-tx, ty));
     }
   } else if (hat === 'flatcap') {
-    hairCap(B, L, 1.1, 0.25, L.hatColor, Math.PI * 0.42, shade(L.hatColor, 0.62));
+    hairCap(B, L, HAT_SHELL.flatcap.k, HAT_SHELL.flatcap.tilt, L.hatColor, HAT_SHELL.flatcap.thLen, shade(L.hatColor, 0.62));
+    fitHairUnderHat(B, hair0, hair1, HAT_SHELL.flatcap);
+    tag(B, 'hattrim');
     B.box(0.075, HEAD_Y + 0.058, 0, 0.1, 0.018, 0.18, shade(L.hatColor, 0.9), 0, 0, 0, -0.28);
   } else if (hat === 'police') {
     const crown = loftGeometry([
@@ -569,6 +733,7 @@ function buildHat(B, L) {
       { y: HEAD_Y + 0.13, d: 0.118, w: 0.106 },
     ], 10);
     B.geo(crown, headTilt(0.05), COP_NAVY);
+    tag(B, 'hattrim');
     B.geo(new THREE.CircleGeometry(1, 10).rotateX(-Math.PI / 2), composeMatrix(-0.006, HEAD_Y + 0.13, 0, 0, 0, 0.05, 0.118, 1, 0.106), shade(COP_NAVY, 1.15));
     B.geo(loftGeometry([{ y: HEAD_Y + 0.045, d: 0.107, w: 0.097 }, { y: HEAD_Y + 0.07, d: 0.108, w: 0.098 }], 10), headTilt(0.05), 0xc8ccd0);
     const brim = new THREE.CylinderGeometry(1, 1, 0.012, 8, 1, false, 0, Math.PI);
@@ -576,30 +741,38 @@ function buildHat(B, L) {
     B.box(0.112, HEAD_Y + 0.1, 0, 0.01, 0.028, 0.022, 0xb8a060);
   } else if (hat === 'krans') {
     // een bloemenkrans (vrijgezellenfeest, vrijgezellen.js): een groen bandje met kleine bloemen eromheen
-    B.geo(loftGeometry([{ y: HEAD_Y + 0.06, d: 0.109, w: 0.099 }, { y: HEAD_Y + 0.085, d: 0.111, w: 0.101 }], 10), headTilt(0.05), 0x3f8a3c);
+    const f = bandScale(B, hair0, hair1, 0.06, 0.085, 0.109, 0.099);
+    B.geo(loftGeometry([{ y: HEAD_Y + 0.06, d: 0.109 * f, w: 0.099 * f }, { y: HEAD_Y + 0.085, d: 0.111 * f, w: 0.101 * f }], 10), headTilt(0.05), 0x3f8a3c);
+    tag(B, 'hattrim');
     const bloem = [L.hatColor, 0xf2c400, 0xffffff, 0xff8a3c];
     for (let k = 0; k < 9; k++) {
       const a = (k / 9) * Math.PI * 2;
-      B.box(Math.cos(a) * 0.113, HEAD_Y + 0.082 + (k % 2) * 0.012, Math.sin(a) * 0.103, 0.036, 0.036, 0.036, bloem[k % 4], 0, a * 0.5, 0.3, a);
+      B.box(Math.cos(a) * 0.113 * f, HEAD_Y + 0.082 + (k % 2) * 0.012, Math.sin(a) * 0.103 * f, 0.036, 0.036, 0.036, bloem[k % 4], 0, a * 0.5, 0.3, a);
     }
   } else if (hat === 'konijn') {
     // een bandje met twee lange konijnenoren, roze van binnen
-    B.geo(loftGeometry([{ y: HEAD_Y + 0.06, d: 0.108, w: 0.098 }, { y: HEAD_Y + 0.072, d: 0.109, w: 0.099 }], 10), headTilt(0.05), shade(L.hatColor, 0.8));
+    const f = bandScale(B, hair0, hair1, 0.06, 0.072, 0.108, 0.098);
+    B.geo(loftGeometry([{ y: HEAD_Y + 0.06, d: 0.108 * f, w: 0.098 * f }, { y: HEAD_Y + 0.072, d: 0.109 * f, w: 0.099 * f }], 10), headTilt(0.05), shade(L.hatColor, 0.8));
+    tag(B, 'hattrim');
     for (const s of [1, -1]) {
       B.box(-0.015, HEAD_Y + 0.22, s * 0.055, 0.034, 0.2, 0.05, L.hatColor, 0, 0.18 * s, 0, 0.15);
       B.box(0.003, HEAD_Y + 0.22, s * 0.058, 0.012, 0.15, 0.03, 0xf2a6c0, 0, 0.18 * s, 0, 0.15);
     }
   } else if (hat === 'sluier') {
     // de sluier van de bruid: een kransje en een lichte sluier tot op de schouders
-    B.geo(loftGeometry([{ y: HEAD_Y + 0.06, d: 0.108, w: 0.098 }, { y: HEAD_Y + 0.07, d: 0.109, w: 0.099 }], 10), headTilt(0.05), 0xf2efe6);
-    B.box(-0.125, HEAD_Y - 0.06, 0, 0.012, 0.34, 0.21, 0xf8f6f0, 0, 0, 0, 0.06);
-    for (const s of [1, -1]) B.box(0.02, HEAD_Y + 0.085, s * 0.075, 0.03, 0.03, 0.03, 0xf4d3de);
+    const f = bandScale(B, hair0, hair1, 0.06, 0.07, 0.108, 0.098);
+    B.geo(loftGeometry([{ y: HEAD_Y + 0.06, d: 0.108 * f, w: 0.098 * f }, { y: HEAD_Y + 0.07, d: 0.109 * f, w: 0.099 * f }], 10), headTilt(0.05), 0xf2efe6);
+    tag(B, 'hattrim');
+    B.box(-0.125 * f, HEAD_Y - 0.06, 0, 0.012, 0.34, 0.21 * f, 0xf8f6f0, 0, 0, 0, 0.06);
+    for (const s of [1, -1]) B.box(0.02, HEAD_Y + 0.085, s * 0.075 * f, 0.03, 0.03, 0.03, 0xf4d3de);
   } else if (hat === 'tiara') {
     // een gouden kroontje met vijf puntjes
-    B.geo(loftGeometry([{ y: HEAD_Y + 0.07, d: 0.107, w: 0.097 }, { y: HEAD_Y + 0.085, d: 0.108, w: 0.098 }], 10), headTilt(0.05), L.hatColor);
+    const f = bandScale(B, hair0, hair1, 0.07, 0.085, 0.107, 0.097);
+    B.geo(loftGeometry([{ y: HEAD_Y + 0.07, d: 0.107 * f, w: 0.097 * f }, { y: HEAD_Y + 0.085, d: 0.108 * f, w: 0.098 * f }], 10), headTilt(0.05), L.hatColor);
+    tag(B, 'hattrim');
     for (let k = -2; k <= 2; k++) {
       const a = k * 0.5;
-      B.box(Math.cos(a) * 0.112, HEAD_Y + 0.112 - Math.abs(k) * 0.008, Math.sin(a) * 0.1, 0.014, 0.034 - Math.abs(k) * 0.006, 0.014, L.hatColor, 0, 0, 0, 0);
+      B.box(Math.cos(a) * 0.112 * f, HEAD_Y + 0.112 - Math.abs(k) * 0.008, Math.sin(a) * 0.1 * f, 0.014, 0.034 - Math.abs(k) * 0.006, 0.014, L.hatColor, 0, 0, 0, 0);
     }
   }
 }
@@ -627,21 +800,29 @@ function buildTorso(B, L, skin) {
   const tucked = L.top === 'blazer' || L.top === 'police' || (L.top === 'longsleeve' && !L.female);
   const hem = L.top === 'dress' ? 0.84 : long ? 0.95 : tucked ? 1.0 : L.top === 'jacket' || L.top === 'hoodie' ? 0.92 : 0.95;
   B.bone = W_TORSO;
+  tag(B, 'torsoLow');
   B.geo(loftUp(slice(rings, 0.83, hem), 10), null, L.top === 'dress' ? top : pants);
   B.geo(new THREE.CircleGeometry(1, 10).rotateX(Math.PI / 2), composeMatrix(0, 0.83, 0, 0, 0, 0, 0.075, 1, 0.09), L.top === 'dress' ? top : pants);
+  tag(B, 'top');
   const layer = tucked ? 1.0 : 1.035;
   const topRings = slice(rings, hem, 1.485, 1);
   topRings[0] = { ...topRings[0], d: topRings[0].d * layer, w: topRings[0].w * layer };
   B.geo(loftUp(topRings, 10), null, top);
 
   const front = (y) => { const rg = ringAt(rings, y); return rg.d * (rg.front ?? 1); };
+  tag(B, 'topdetail');
   if (tucked || L.top === 'tee' || L.bottom === 'skirt') {
     const bc = L.top === 'police' ? 0x121212 : shade(L.pants, 0.55);
     B.geo(loftGeometry(slice(rings, 0.985, 1.025, 1.045), 10, Math.PI / 10), null, bc);
     if (L.top !== 'police') B.box(front(1.005) * 1.04 + 0.004, 1.005, 0, 0.01, 0.034, 0.04, 0xb8a060);
   }
 
-  const collarRing = (c, k = 1.12, h = 0.035) => B.geo(loftGeometry([{ y: 1.445, d: 0.075 * k, w: 0.12 * k, sq: 0.8 }, { y: 1.45 + h, d: 0.062 * k, w: 0.07 * k }], 10), null, c);
+  const collarRing = (c, k = 1.12, h = 0.035) => {
+    tag(B, 'collar');
+    B.geo(loftGeometry([{ y: 1.445, d: 0.075 * k, w: 0.12 * k, sq: 0.8 }, { y: 1.45 + h, d: 0.062 * k, w: 0.07 * k }], 10), null, c);
+    tag(B, 'topdetail');
+  };
+  const det0 = B.groups[0].p.length;
   switch (L.top) {
     case 'tee':
       collarRing(shade(top, 0.85), 1.02, 0.02);
@@ -655,7 +836,7 @@ function buildTorso(B, L, skin) {
       B.geo(loftGeometry(slice(rings, hem, hem + 0.05, 1.07), 10, Math.PI / 10), null, shade(top, 0.8));
       break;
     case 'hoodie':
-      B.box(front(1.06) * 1.02 + 0.01, 1.06, 0, 0.018, 0.1, 0.2, shade(top, 0.9));
+      surfaceStrip(B, rings, [{ y: 1.11, z: 0, hw: 0.1 }, { y: 1.01, z: 0, hw: 0.1 }], shade(top, 0.9), 0.008, 4); // de buidelzak volgt de buik (een vlakke doos zweefde aan de zijkanten)
       for (const s of [1, -1]) B.box(front(1.33) + 0.01, 1.29, s * 0.03, 0.006, 0.12, 0.008, 0xd8d4cc);
       if (!L.hoodUp) {
         B.bone = BONE.chest;
@@ -668,10 +849,13 @@ function buildTorso(B, L, skin) {
     case 'blazer': {
       const open = L.coatOpen !== undefined ? L.coatOpen : (L.top === 'blazer' || L.forceOpen || L.r(30) < 0.6);
       if (open) {
-        B.box(front(1.25) * 1.02, 1.22, 0, 0.012, 0.36, 0.08, L.under);
-        for (const s of [1, -1]) B.box(front(1.34) + 0.006, 1.34, s * 0.05, 0.014, 0.16, 0.035, shade(top, 0.85), 0, s * 0.3, s * 0.35, 0);
+        tag(B, 'under');
+        surfaceStrip(B, rings, [1.04, 1.1, 1.16, 1.22, 1.28, 1.34, 1.4].map((y) => ({ y, z: 0, hw: 0.04 })), L.under, 0.003, 3);
+        tag(B, 'lapel');
+        for (const s of [1, -1]) surfaceStrip(B, rings, [1.425, 1.375, 1.325, 1.275].map((y, i) => ({ y, z: s * (0.032 + i * 0.016), hw: 0.0175 })), shade(top, 0.85), 0.006);
+        tag(B, 'topdetail');
       } else {
-        B.box(front(1.2) * 1.02 + 0.005, 1.2, 0, 0.008, 0.48, 0.008, 0xb8b4ac);
+        surfaceStrip(B, rings, [0.96, 1.08, 1.2, 1.32, 1.44].map((y) => ({ y, z: 0, hw: 0.005 })), 0xb8b4ac, 0.003);
       }
       for (const s of [1, -1]) B.box(front(1.02) * 1.05, 1.02, s * 0.085, 0.012, 0.018, 0.06, shade(top, 0.75));
       if (L.hood) {
@@ -694,7 +878,9 @@ function buildTorso(B, L, skin) {
       for (let i = 0; i < 3; i++) B.box(front(1.28 - i * 0.12) + 0.008, 1.28 - i * 0.12, 0.03, 0.01, 0.018, 0.018, L.top === 'raincoat' ? 0xe0ddd4 : 0x2a2622);
       if (L.top === 'coat') {
         B.geo(loftGeometry(slice(rings, 1.04, 1.08, 1.07), 10, Math.PI / 10), null, shade(c, 0.75));
-        for (const s of [1, -1]) B.box(front(1.38) + 0.01, 1.38, s * 0.06, 0.016, 0.12, 0.05, shade(c, 0.88), 0, s * 0.35, s * 0.4, 0);
+        tag(B, 'lapel');
+        for (const s of [1, -1]) surfaceStrip(B, rings, [1.43, 1.38, 1.33, 1.28].map((y, i) => ({ y, z: s * (0.036 + i * 0.017), hw: 0.02 })), shade(c, 0.88), 0.006);
+        tag(B, 'topdetail');
       }
       collarRing(shade(c, 0.88), 1.15, 0.06);
       break;
@@ -719,17 +905,33 @@ function buildTorso(B, L, skin) {
     }
   }
 
+  const det1 = B.groups[0].p.length;
   if (L.bottom === 'skirt') {
     hemPanels(B, [{ y: 0.58, d: 0.155, w: 0.21, front: 0.85 }, { y: 0.9, d: 0.112, w: 0.176 }, { y: 1.0, d: 0.1, w: 0.162 }], 0.9, L.skirtColor);
   }
 
   if (L.scarf) {
+    tag(B, 'scarf');
     B.bone = BONE.chest;
-    B.geo(loftGeometry([{ y: 1.41, d: 0.1, w: 0.12 }, { y: 1.47, d: 0.078, w: 0.085 }, { y: 1.52, d: 0.062, w: 0.066 }], 8), null, L.scarfColor);
-    B.box(front(1.33) + 0.02, 1.32, 0.04, 0.02, 0.2, 0.055, shade(L.scarfColor, 0.9), 0, 0, 0.1, -0.08);
+    // de sjaal volgt de romp van deze lichaamsvorm (de onderring ligt om de schouders, niet erin), en blijft buiten de kraag
+    const sc = (y, k, kw) => { const rg = ringAt(rings, y); return { y, d: rg.d * (rg.front ?? 1) * k + 0.006, w: rg.w * kw + 0.006, sq: rg.sq, x: rg.x }; };
+    // revers, zakken en kraag van de kleding eronder (de details die op de romp liggen) passen er ook in: de sjaal wordt zo wijd als nodig
+    const r0 = sc(1.4, 1.1, 1.06), r1 = sc(1.455, 1.14, 1.1), pd = B.groups[0].p;
+    let fit = 1;
+    for (let i = det0; i < det1; i += 3) {
+      const y = pd[i + 1];
+      if (y < 1.38 || y > 1.5 || pd[i] < 0.02) continue; // alleen de voorkant: de capuchon hangt achter de nek
+      const t = Math.min(1, Math.max(0, (y - 1.4) / 0.055)), dd = r0.d + (r1.d - r0.d) * t, ww = r0.w + (r1.w - r0.w) * t;
+      fit = Math.max(fit, Math.hypot((pd[i] - (r0.x || 0)) / dd, pd[i + 2] / ww));
+    }
+    if (fit > 1) { fit += 0.03; for (const r of [r0, r1]) { r.d *= fit; r.w *= fit; } }
+    B.geo(loftGeometry([r0, r1, { y: 1.49, d: 0.088 * Math.min(fit, 1.25), w: 0.092 * Math.min(fit, 1.25) }, { y: 1.53, d: 0.07, w: 0.074 }], 10, Math.PI / 10), null, L.scarfColor); // zelfde fase als de romp, zodat de zijvlakken op elkaar liggen
+    // het hangende eind ligt op de borst en volgt de romp (een vlakke plank stond voor de bovenborst en in de buik van breed postuur)
+    surfaceStrip(B, rings, [{ y: 1.42, z: 0.04, hw: 0.0275 }, { y: 1.32, z: 0.046, hw: 0.0275 }, { y: 1.22, z: 0.052, hw: 0.0275 }], shade(L.scarfColor, 0.9), 0.012);
     B.bone = W_TORSO;
   }
 
+  tag(B, 'bag');
   if (L.bag === 'backpack') {
     B.bone = BONE.chest;
     const bx = -ringAt(rings, 1.22).d - 0.07;
@@ -740,12 +942,18 @@ function buildTorso(B, L, skin) {
     B.bone = W_TORSO;
   } else if (L.bag === 'shoulder') {
     B.bone = BONE.pelvis;
-    const hw = ringAt(rings, 0.95).w;
-    B.box(0.02, 0.93, hw + 0.05, 0.25, 0.19, 0.07, L.bagColor);
-    B.box(0.02, 1.0, hw + 0.087, 0.2, 0.06, 0.008, shade(L.bagColor, 0.8));
+    // de tas hangt in de ruimte tussen romp en arm: 5 cm dik en zo ver naar buiten als de arm toelaat (de arm hangt op heuphoogte op shZ + 0,47 sin(splay) - straal)
+    const hw = ringAt(rings, 0.95).w, armIn = shoulderZ(L) + 0.47 * Math.sin(0.06) - (L.build === 'heavy' ? 0.044 : L.build === 'slim' ? 0.036 : 0.04);
+    const zc = Math.max(hw + 0.029, Math.min(hw + 0.05, armIn - 0.029));
+    B.box(0.02, 0.93, zc, 0.25, 0.19, 0.05, L.bagColor);
+    B.box(0.02, 1.0, zc + 0.029, 0.2, 0.06, 0.008, shade(L.bagColor, 0.8));
     B.bone = BONE.chest;
-    B.geo(tubeGeometry([0.1, 1.42, -0.1], [0.07, 1.0, hw + 0.05], 0.012, 0.012, 4), null, shade(L.bagColor, 0.65));
-    B.geo(tubeGeometry([-0.1, 1.42, -0.1], [-0.03, 1.0, hw + 0.05], 0.012, 0.012, 4), null, shade(L.bagColor, 0.65));
+    // de band loopt van de rechterschouder schuin over borst en rug naar de tas op de linkerheup, op het oppervlak van de romp (voorheen twee buizen dwars door
+    // het lijf: het uiteinde stak als een zwart mes uit de borst)
+    for (const back of [false, true]) {
+      const zEnd = Math.min(hw * 0.92, 0.14);
+      surfaceStrip(B, rings, Array.from({ length: 13 }, (_, i) => ({ y: 1.47 - i * 0.0367, z: -0.07 + (zEnd + 0.07) * i / 12, hw: 0.013 })), shade(L.bagColor, 0.65), 0.004, 2, back);
+    }
     B.bone = W_TORSO;
   }
 }
@@ -768,6 +976,7 @@ function buildLegs(B, L, skin) {
     const s = k === 0 ? 1 : -1;
     const M = composeMatrix(0, 0, s * hipZ);
     B.bone = W_LEG(k);
+    tag(B, 'leg');
     const flare = L.bottom === 'jeans' || L.bottom === 'trousers' ? 1.12 : 1;
     const upper = slice(legRings, hemY, 0.98).map((r, i) => (i === 0 ? { ...r, d: r.d * flare, w: r.w * flare } : r));
     B.geo(loftUp(upper, 7), M, legColor);
@@ -779,6 +988,7 @@ function buildLegs(B, L, skin) {
     const top = upper[upper.length - 1];
     B.geo(new THREE.SphereGeometry(Math.max(top.d, top.w) * 0.85, 8, 6), composeMatrix(0, HIP_Y, s * hipZ), legColor);
     B.bone = BONE.knee[k];
+    tag(B, 'shoe');
     if (L.bottom === 'swim') buildFoot(B, M, skin);
     else buildShoe(B, L, M, skin);
   }
@@ -823,17 +1033,21 @@ function buildArms(B, L, skin, shZ) {
     const M = composeMatrix(0, SHOULDER_Y, s * shZ, -s * ARM_SPLAY, 0, 0);
     const m = (x, y, z, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) => M.clone().multiply(composeMatrix(x, y, z, rx, ry, rz, sx, sy, sz));
     B.bone = W_ARM(k);
+    tag(B, 'sleeve');
     const sleeve = slice(armRings, sleeveEnd, 0.01, 1.04);
     if (L.top !== 'tee' && L.top !== 'dress' && L.top !== 'swim' && !(L.top === 'longsleeve' && L.rolled)) sleeve[0] = { ...sleeve[0], d: sleeve[0].d * 1.12, w: sleeve[0].w * 1.12 };
     B.geo(loftUp(sleeve, 6), M, sleeveColor);
     // round cap around the shoulder pivot so no gap opens in any arm pose
     const capR = sleeve[sleeve.length - 2].d * 1.08;
     B.part(new THREE.SphereGeometry(capR, 10, 6), composeMatrix(0, SHOULDER_Y - 0.012, s * (shZ - 0.024), 0, 0, 0, 1.02, 0.88, 1.12), sleeveColor, BONE.chest);
+    tag(B, 'armskin');
     B.geo(loftUp(slice(armRings, -0.53, sleeveEnd), 6), M, skin);
+    tag(B, 'cuff');
     if (L.top !== 'swim') B.geo(loftGeometry(slice(armRings, sleeveEnd - 0.03, sleeveEnd + 0.005, cuffK), 6), M, shade(sleeveColor, 0.82));
     if (L.cop) B.geo(loftGeometry(slice(armRings, -0.14, -0.1, 1.09), 6), M, REFLECT_YELLOW);
 
     B.bone = BONE.elbow[k];
+    tag(B, 'hand');
     const hy = -0.575;
     B.geo(new THREE.BoxGeometry(0.068, 0.11, 0.028), m(0.008, hy - 0.015, 0, 0, 0, 0.12), skin);
     B.geo(new THREE.BoxGeometry(0.02, 0.045, 0.02), m(0.04, hy - 0.012, -s * 0.012, 0, 0, 0.35), shade(skin, 0.95));
@@ -996,7 +1210,7 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
   if (bt) { L.build = bt.build; L.buildScale *= bt.bs; L.heightScale *= bt.hs; }
   // #658: dezelfde look (expliciete seed, kleding, kleuren) hergebruikt dezelfde rompgeometrie.
   L.coatOpen = L.top === 'blazer' || L.forceOpen || L.r(30) < 0.6;
-  const shZ = (L.female ? 0.172 : 0.198) * (L.build === 'heavy' ? 1.06 : L.build === 'slim' ? 0.95 : 1) + 0.03;
+  const shZ = shoulderZ(L);
   const key = geometryKey(shirt, skin, L);
   let geometry = personGeometries.get(key);
   if (geometry) {
@@ -1005,11 +1219,13 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
   } else {
     personCache.misses++;
     const B = new SkinBuilder(1);
+    if (personProbe.layers) B.layers = [];
     buildTorso(B, L, skin);
     buildHead(B, L, skin);
     buildLegs(B, L, skin);
     buildArms(B, L, skin, shZ);
     geometry = markShared(B.build());
+    if (B.layers) { B.layers.push([B.groups[0].p.length / 9, 'end']); geometry.userData.layers = B.layers; }
     personGeometries.set(key, geometry);
     personCache.builds++;
     if (personGeometries.size > PERSON_TEMPLATE_CACHE_MAX) {
@@ -1048,6 +1264,7 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
   ud.elbowL = rig.limbs[0].elbow;
   ud.elbowR = rig.limbs[1].elbow;
   ud.body = mesh;
+  if (personProbe.layers) { ud.shZ = shZ; ud.build = L.build; } // meetspoor (scripts/lib/kleding_clipping.mjs)
   ud.stoop = L.age === 'old' ? 0.12 : 0;
   ud.gait = L.age === 'old' ? 0.8 : L.female ? 1.05 : 1;
   ud.female = L.female;
@@ -1059,6 +1276,7 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
     rig.limbs[k].arm.rotation.z = 0;
   }
   if (L.umbrella !== null && L.umbrella !== undefined) attachUmbrella(ud, L.umbrella);
+  if (L.acc && L.acc.j) { ud.neckPath = neckPath(L); ud.neckKey = `${L.build}|${L.female ? 1 : 0}|${L.age === 'old' ? 1 : 0}`; }
   if (L.acc) attachAccessories(group, L.acc);
 
   group.scale.set(L.buildScale, L.heightScale, L.buildScale);
