@@ -4,8 +4,8 @@ import { getSettings } from './settings.js';
 import { difficultyRecordKey, cleanDifficulty, footballLevel, footballDuration } from './difficulty.js'; // #1169: tegenstander en duur per save
 import { getScene, disposeObject } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
-import { actorLook } from './voetbalkit.js';
-import { kitAan, kitUit, poortKit } from './voetbalkitlive.js';
+import { actorLook } from './footballkit.js';
+import { kitOn, kitOff, gateKit } from './footballkitlive.js';
 import { levelPattern, levelOfDivision } from './clothingkit.js';
 import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
@@ -241,13 +241,13 @@ function ruimParkOp() {
   parkBuilt = null;
 }
 
-// Bij de spelerspoort (de kleedkamer van het spel) draagt de speler met een carrière het trainingspak van zijn club; verder weg weer de eigen kleren (voetbalkitlive.js poortKit).
+// Bij de spelerspoort (de kleedkamer van het spel) draagt de speler met een carrière het trainingspak van zijn club; verder weg weer de eigen kleren (footballkitlive.js gateKit).
 const POORT_KIT_M = 45;
-function updatePoortKit(w) {
+function updateGateKit(w) {
   try {
     const p = hoofdspeler(w);
     const near = !!p && !game && !p.inVehicle && !p.swimming && Math.hypot(p.x - GATE.x, p.y - GATE.y) < POORT_KIT_M;
-    poortKit(w, near, !!(game || panel || w.activityGame || w.pigeonMode || w.heliRun));
+    gateKit(w, near, !!(game || panel || w.activityGame || w.pigeonMode || w.heliRun));
   } catch (e) { /* een tenue mag het spel nooit stoppen */ }
 }
 
@@ -263,8 +263,8 @@ function updateLod(w) {
 // --- de spelers ---------------------------------------------------------------------------------------------------------------------
 
 const VROUW = new Set(['Wietske', 'Grietje', 'Fenna', 'Marrit']);
-// kc: { level, mijnSlot, sponsors } (voetbalkleding 22-11): de kleding van elke speler komt uit het kledingsysteem (voetbalkit.js actorLook), op het niveau van de klasse; de eigen
-// speler draagt precies wat Tammo of Tessa in de wereld draagt (het clubtenue, de override uit voetbalkitlive.js), teamgenoten en tegenstanders hun clubkleuren.
+// kc: { level, mijnSlot, sponsors } (voetbalkleding 22-11): de kleding van elke speler komt uit het kledingsysteem (footballkit.js actorLook), op het niveau van de klasse; de eigen
+// speler draagt precies wat Tammo of Tessa in de wereld draagt (het clubtenue, de override uit footballkitlive.js), teamgenoten en tegenstanders hun clubkleuren.
 function makeActors(sim, kc = null) {
   const scene = getScene();
   const level = (kc && kc.level) || 'amateur';
@@ -462,7 +462,7 @@ function launch(w, { force = false, online = null, sim = null, career = null } =
     const cs = career ? CL.getCareer() : null, kind = career && career.match ? career.match.kind : 'league';
     const level = career ? (kind === 'europe' ? 'top' : levelOfDivision((cs && cs.world && divisionOfMyClub(cs)) || 'talent')) : 'amateur';
     kc = { level, mijnSlot: online === 'gast' ? sim.mijnSlot : 0, sponsors: cs && cs.sponsors ? boardNames(cs.sponsors) : [] };
-    if (!(career && career.coach)) kitAan(w, { mode: 'wedstrijd', kind, neutraal: !career });
+    if (!(career && career.coach)) kitOn(w, { mode: 'wedstrijd', kind, neutraal: !career });
   } catch (e) { kc = null; }
   game = { online, sim, cctx: career ? career.cctx || null : null, t: 0, dt: 0, cam: null, actors: makeActors(sim, kc), marks: makeMarkings(), mode, said: 0, lastFase: sim.fase, laadG: { schot: 0, lang: 0 }, bon, exitX: career && career.site ? toWorld((PITCH.B / 2) + 4, 0).x : GATE.x, exitY: career && career.site ? toWorld((PITCH.B / 2) + 4, 0).y : GATE.y, career, gemeld: false, comp: online || !opt ? null : opt.comp };
   tvInit(w, game);
@@ -853,7 +853,7 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   const g = game;
   if (!g) return;
   game = null;
-  kitUit(); // de eigen kleren terug, ook bij stoppen of een afgebroken wedstrijd (voetbalkleding 22-11)
+  kitOff(); // de eigen kleren terug, ook bij stoppen of een afgebroken wedstrijd (voetbalkleding 22-11)
   w.voetbalGame = null;
   w.coopKnoppenHaak = null;
   w.companionHold = null;
@@ -1073,7 +1073,7 @@ export const VOETBAL = {
     updateGame(w, dt);
   },
   tick(dt, w) {
-    if ((lodT -= dt) <= 0) { lodT = 0.5; updateLod(w); updateTrainers(w); updatePoortKit(w); }
+    if ((lodT -= dt) <= 0) { lodT = 0.5; updateLod(w); updateTrainers(w); updateGateKit(w); }
     if (trainers) { trainT += dt; trainers.tik(trainT, (sq, x, y) => trainerKick(w, x, y)); }
   },
   camera,

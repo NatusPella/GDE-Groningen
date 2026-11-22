@@ -403,7 +403,7 @@ export function initShops(world) {
   world.cycleOutfit = (dir) => cycleOutfit(world, dir); // the 6 key (player.js)
   setLocalCharProvider(() => currentChar(world)); // coopnet.js stuurt de kleding van dit personage mee bij het meedoen
   if (offKit) offKit();
-  offKit = onKitChange(() => applyLooks()); // het clubtenue (voetbalkit.js) komt over je outfit en gaat net zo naar de figuren en naar de anderen
+  offKit = onKitChange(() => applyLooks()); // het clubtenue (footballkit.js) komt over je outfit en gaat net zo naar de figuren en naar de anderen
   initShopUi(world);
   baseLook = { tammo: snapshot(TAMMO_APPEARANCE), anita: snapshot(ANITA_APPEARANCE) };
   const map = world.map;

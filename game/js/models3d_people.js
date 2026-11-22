@@ -1371,7 +1371,7 @@ function shirtBandGeometry(rings, spec, part = 'main') {
   const strip = (cy, hw, hh, back) => { const n = Math.max(1, Math.round(hw * 2 / 0.03)), cw = hw * 2 / n; for (let c = 0; c < n; c++) flat(cy, -hw + cw * (c + 0.5), hh * 2, cw, back); };
   if (part === 'main' && spec.number) {
     const digits = String(spec.number).split('').map(Number), n = digits.length;
-    const big = spec.numberStyle === 'speciaal' ? 1.2 : spec.numberStyle === 'hand' ? 0.9 : 1, dh = 0.15 * big, dw = 0.05 * big, th = 0.011 * (spec.numberStyle === 'hand' ? 0.8 : 1);
+    const big = spec.numberStyle === 'speciaal' ? 1.2 : spec.numberStyle === 'hand' ? 0.9 : 1, dh = 0.17 * big, dw = 0.06 * big, th = 0.017 * (spec.numberStyle === 'hand' ? 0.8 : 1);
     const SEG = [[1, 1, 1, 0, 1, 1, 1], [0, 0, 1, 0, 0, 1, 0], [1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 1, 0, 1, 1], [0, 1, 1, 1, 0, 1, 0], [1, 1, 0, 1, 0, 1, 1], [1, 1, 0, 1, 1, 1, 1], [1, 0, 1, 0, 0, 1, 0], [1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 0, 1, 1]];
     const yc = spec.nameBar ? 1.22 : 1.24;
     digits.forEach((dg, di) => {

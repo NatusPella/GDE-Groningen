@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { P, C, D, K, combos, run, buildCase, measureCase, limitFor, BODIES, SUBJECT_IDS } from './lib/kleding_clipping.mjs';
-import * as VK from '../game/js/voetbalkit.js';
+import * as VK from '../game/js/footballkit.js';
 import * as CL from '../game/js/clubui.js';
 import * as CAR from '../game/js/voetbalcarriere.js';
 import { CLUBS, EUROPE_CLUBS, DIVISIONS } from '../game/js/voetbalclubs.js';

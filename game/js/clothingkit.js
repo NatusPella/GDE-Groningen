@@ -3,7 +3,7 @@
 // de eigen speler en de wedstrijdfiguren tekenen (rugnummer, sponsorplek); op het netwerk reist alleen de gewone outfit-code mee.
 //
 // De tabel hieronder is de enige plek waar het niveau bepaalt wat je draagt: stukkenset, kleurregels, sponsorplek, schoentype en nummerstijl.
-// Het niveau volgt de klasse van de club (voetbalkit.js): Talentenklasse = amateur, Terpklasse = semi-pro, Kroonklasse = pro, Waddenbeker = topniveau.
+// Het niveau volgt de klasse van de club (footballkit.js): Talentenklasse = amateur, Terpklasse = semi-pro, Kroonklasse = pro, Waddenbeker = topniveau.
 import { ITEM_BY_ID, KIT_COLORS, KIT_PAIR, KIT_PATTERNS, PALETTE, colorHex, parsePiece } from './clothingdata.js';
 
 export const LEVEL_IDS = ['straat', 'amateur', 'semipro', 'pro', 'top'];
@@ -156,7 +156,7 @@ export function patternGeometry(pattern) {
 }
 
 // Een voetballer als NPC (rolpool 'voetballer'): één kleur uit het zaad, het niveau uit ctx.level. Dezelfde stukken als de speler; geen netwerk nodig.
-export function npcVoetballer(seed, ctx = {}, rng = Math.random) {
+export function npcFootballer(seed, ctx = {}, rng = Math.random) {
   const r = typeof rng === 'function' ? rng : Math.random;
   const color = ctx.color && KIT_COLORS.includes(ctx.color) ? ctx.color : KIT_COLORS[Math.floor(r() * KIT_COLORS.length)];
   const level = KIT_LEVELS[ctx.level] ? ctx.level : 'amateur';

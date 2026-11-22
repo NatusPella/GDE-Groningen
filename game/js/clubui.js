@@ -6,7 +6,7 @@ import * as V from './voetbalcarrierelive.js';
 import * as C from './voetbalcarriere.js';
 import * as B from './voetbalclub_bezit.js';
 import { euro } from './geldtekst.js';
-import * as KIT from './voetbalkit.js';
+import * as KIT from './footballkit.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export const cui = { msg: '', confirm: null };
@@ -66,7 +66,7 @@ export function clubHtml(view) {
 const bound = new WeakSet();
 export function renderClubPanel(el, world) {
   if (!el) return;
-  const draw = () => { el.innerHTML = clubHtml({ career: V.getCareer(), money: world && world.money, getClub: V.getClub, msg: cui.msg, confirm: cui.confirm, kit: KIT.kitView(V.getCareer(), V.getClub) }); kitFotos(el); };
+  const draw = () => { el.innerHTML = clubHtml({ career: V.getCareer(), money: world && world.money, getClub: V.getClub, msg: cui.msg, confirm: cui.confirm, kit: KIT.kitView(V.getCareer(), V.getClub) }); kitPhotos(el); };
   draw();
   if (bound.has(el)) return;
   bound.add(el);
@@ -88,7 +88,7 @@ export function renderClubPanel(el, world) {
 }
 
 // Het 3D-voorbeeld van het shirt (alleen het stuk): de gedeelde voorbeeldrenderer, pas geladen als het paneel echt open gaat (de pure test laadt three niet).
-function kitFotos(el) {
+function kitPhotos(el) {
   const img = el.querySelector && el.querySelector('img[data-kit-shirt]');
   if (!img || typeof document === 'undefined') return;
   const piece = img.getAttribute('data-kit-shirt');

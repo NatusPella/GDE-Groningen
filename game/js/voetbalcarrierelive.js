@@ -17,7 +17,7 @@ import { playerBusy } from './busy.js';
 import { narrativeBusy } from './narrative.js';
 import { makeSponsorPandIndex } from './voetbalbezit.js';
 import { betaalBanenUitgave } from './sidejobwereld.js';
-import * as KIT from './voetbalkit.js';
+import * as KIT from './footballkit.js';
 
 const WRITE_DELAY_MS = 1500;
 let career = null, storageOverride = null, timer = 0, dirty = false, prevClock = null, index = null;
@@ -94,7 +94,7 @@ export function updateDay(dt, w) {
   if (!night || !C.hasCareer(c)) return null;
   return advance(w, 1);
 }
-// Het clubtenue groeit mee met de klasse (voetbalkit.js levelSync, docs/VOETBALKLEDING-22-11.md): bij promotie of degradatie (en bij de eerste wedstrijd) komen de stukken van het
+// Het clubtenue groeit mee met de klasse (footballkit.js levelSync, docs/VOETBALKLEDING-22-11.md): bij promotie of degradatie (en bij de eerste wedstrijd) komen de stukken van het
 // nieuwe niveau in de kast van Tammo en Tessa en volgt een kleine melding. De vlag kitLvl staat in de carrièrevlaggen (een getal).
 export function kitSync(w) {
   const c = getCareer();

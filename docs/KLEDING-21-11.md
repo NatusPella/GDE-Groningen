@@ -106,3 +106,4 @@ De pet van Tammo stak door zijn hoofd (haar door de pet, de onderrand op ooghoog
 - Een snelwisseltoets op de controller en op touch (nu toets 6 te voet en in een voertuig; de controller gebruikt Spullen, geen vrije knop zonder besturingsreview).
 - Homebase: zodra `epic-verhaal-21-11` het model heeft, roept elk huis `wardrobeMenu(world)` aan; nu doen flat (`home.js`) en safehuis (`safehuizen.js`) dat al.
 - Alles in beeld: zie [KLEDING-VERIFICATIE-21-11.md](KLEDING-VERIFICATIE-21-11.md).
+- Voetbalkleding (22-11): zie [VOETBALKLEDING-22-11.md](VOETBALKLEDING-22-11.md).

@@ -578,17 +578,19 @@
    "groep": "Uiterlijk",
    "modules": [
     "clothing*",
+    "footballkit*",
     "models3d_clothing",
     "shopmodels3d",
     "spullenmodel",
     "models3d_people"
    ],
    "eigenaar": "speler",
-   "gast": "Medespelers zien je outfit via het optionele veld avatar.outfit (code k1) in de hello en de spelerslijst; de winkel is voor iedereen hetzelfde (deterministisch aanbod).",
+   "gast": "Medespelers zien je outfit via het optionele veld avatar.outfit (code k1) in de hello en de spelerslijst; de winkel is voor iedereen hetzelfde (deterministisch aanbod). Het voetbaltenue (22-11) is een tijdelijke override die als gewone outfit-code meereist, zonder nieuw bericht; het rugnummer en het sponsorpaneel zijn lokaal.",
    "beloning": "Geen; wel prestaties per speler.",
    "wegval": "Niets te herstellen; later aansluiten: de code staat in de spelerslijst.",
    "test": [
     "scripts/clothing_test.mjs",
+    "scripts/voetbalkleding_test.mjs",
     "scripts/coopspeler_test.mjs",
     "scripts/coop/uiterlijk_tcp_test.mjs"
    ],

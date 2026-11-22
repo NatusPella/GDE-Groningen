@@ -131,6 +131,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [KLEDING-TEKSTEN-21-11.md](<KLEDING-TEKSTEN-21-11.md>) | Teksten die kleding noemen: wat is aangepast en wat blijft. |
 | [KLEDING-VERIFICATIE-21-11.md](<KLEDING-VERIFICATIE-21-11.md>) | Wat van de kleding nog in beeld bekeken moet worden. |
 | [KLEDING-CLIPPING-22-11.md](<KLEDING-CLIPPING-22-11.md>) | Kleding en clipping: waarom de pet van Tammo door zijn hoofd stak, de audit van 6.100 combinaties, de reparaties en de test. |
+| [VOETBALKLEDING-22-11.md](<VOETBALKLEDING-22-11.md>) | Voetbalkleding als echte kledingstukken: 25 stukken, de niveau-tabel van amateur tot topniveau, het clubtenue als tijdelijke override, promotie en degradatie, Samen spelen en de tests. |
 | [KLEDING-PREVIEW-22-11.md](<KLEDING-PREVIEW-22-11.md>) | Kledingvoorbeelden: elk stuk los (op een neutrale etalagevorm), een set als rek, het kapsel op een neutrale kop; per plek wat de lijst toont en wat nog in beeld bekeken moet worden. |
 | [MINIMAP-PIJLEN-21-11.md](<MINIMAP-PIJLEN-21-11.md>) | Pijlen op de minikaart naar het doel. |
 | [KAART-HEADING-21-11.md](<KAART-HEADING-21-11.md>) | Wie ben jij op de kaart: plek en kijkrichting per besturingsmodus (#1141). |

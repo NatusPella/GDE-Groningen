@@ -15,7 +15,7 @@ import {
   DEFAULT_WORN, ROLE_POOLS, NPC_MOODS, ROLE_MOODS, MOOD_WEIGHT, MOOD_ACCENT, SHOP_ITEMS, SHOP_STOCK, SHOP_RARE_CHANCE, SALE_DISCOUNT, PRESET_COUNT, PRESET_NAME_MAX, PROFILES,
   parsePiece, pieceLabel, colorHex, colorName, setsFor, setKeyFor,
 } from './clothingdata.js';
-import { kitShirtSpec, patternGeometry, npcVoetballer } from './clothingkit.js';
+import { kitShirtSpec, patternGeometry, npcFootballer } from './clothingkit.js';
 import { HAIR_STYLE_IDS, HAIR_COLORS, HAIR_COLOR_BY_ID, HAIR_STYLES, DEFAULT_HAIR, NPC_HAIR, NPC_HAIR_COLORS, parseHair, BODY_IDS, BODY_TYPES, NPC_BODY } from './clothinghair.js';
 
 export const CHARS = ['tammo', 'anita'];
@@ -78,7 +78,7 @@ export function effectiveWorn(ch) {
   return { ...W(c).worn, hair: W(c).hair, body: W(c).body };
 }
 
-// ---------------------------------------------------------------- het clubtenue (clothingkit.js, voetbalkit.js)
+// ---------------------------------------------------------------- het clubtenue (clothingkit.js, footballkit.js)
 // setKit(ch, kit): kit = { worn, extras } van kitWorn(); null haalt het weg. Geeft true als er iets veranderde. De eigen outfit (W(ch).worn) blijft onaangeraakt.
 export function setKit(ch, kit) {
   const c = isChar(ch) ? ch : 'tammo';
@@ -457,7 +457,7 @@ function npcBody(seed, role) {
 }
 export function npcOutfit(seed, role = 'voetganger', ctx = {}) {
   if (role === 'voetballer') {
-    const k = npcVoetballer(seed, ctx, rng(`${seed}|voetballer`));
+    const k = npcFootballer(seed, ctx, rng(`${seed}|voetballer`));
     const worn = { ...k.worn };
     if (ctx.hair) { const hr = rng(`${seed}|haar|${role}`); worn.hair = `${pickWeighted(NPC_HAIR.all, hr)}.${pickWeighted(NPC_HAIR_COLORS, hr)}`; }
     if (ctx.body) worn.body = npcBody(seed, 'sporter');
