@@ -19,10 +19,23 @@ export function standVan(st, id = st && st.opdracht) {
   if (id === st.opdracht) return st;
   return st.standen[id] || null;
 }
+export const MAX_STANDEN = 24; // zoveel bewaarde groepen hoogstens: een lange sessie met veel opdrachten laat de lijst niet aangroeien
 // De lopende stand opzijleggen voordat een andere groep aan de beurt is.
 function bewaar(st) {
   if (!st.opdracht) return;
   st.standen[st.opdracht] = { keuze: st.keuze, rest: st.rest, stap: st.stap, spoiler: st.spoiler, sinds: st.sinds };
+  const sleutels = Object.keys(st.standen);
+  for (let i = 0; i < sleutels.length - MAX_STANDEN; i++) delete st.standen[sleutels[i]]; // de oudste eerst
+}
+// Een speler is er niet meer (verlaten of verlopen): wat hij antwoordde hoort niet bij de volgende die zijn plek krijgt.
+export function vergeetSlot(st, slot) {
+  if (!st || !Number.isInteger(slot)) return;
+  for (const s of [st, ...Object.values(st.standen || {})]) {
+    if (!s) continue;
+    if (s.keuze) delete s.keuze[slot];
+    if (s.rest) delete s.rest[slot];
+    if (s.spoiler) delete s.spoiler[slot];
+  }
 }
 // Een bewaarde of nieuwe stand tot de lopende maken. Een gast die al antwoordde, wordt niet opnieuw gevraagd.
 function laad(st, id, stap) {

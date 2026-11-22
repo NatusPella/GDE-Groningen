@@ -109,6 +109,13 @@ export function allowPhrase(staat, slot, nu) {
   return true;
 }
 
+// Een speler is weg: zijn ritme telt niet voor de volgende die zijn plek krijgt.
+export function forgetSender(staat, slot) {
+  if (!staat) return;
+  const k = String(slot);
+  delete staat.laatste[k]; delete staat.venster[k];
+}
+
 // Het hele ontvangstpad op één plek: opt-in, dempen/blokkeren en de rate limit. Geeft { toon, regel, zin, reden }.
 // aan: staat de ontvanger zelf op opt-in? afz: { slot, naam }.
 export function receivePhrase(staat, body, afz, nu, aan) {

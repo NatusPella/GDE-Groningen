@@ -68,6 +68,13 @@ export function addPing(p, { x, y, van = 'eigen', soort = 'hier' }, nu) {
   while (p.lijst.length > PING_MAX) p.lijst.shift();
   return ping;
 }
+// Een speler is weg: zijn pings verdwijnen en de wachttijd van zijn plek begint opnieuw voor de volgende die erop komt.
+export function vergeetPings(p, van) {
+  if (!p || van === undefined || van === null) return;
+  const key = String(van);
+  delete p.laatste[key];
+  p.lijst = p.lijst.filter((x) => x.van !== key);
+}
 export function tickPings(p, nu) { p.lijst = p.lijst.filter((x) => x.tot > nu); return p.lijst; }
 // bericht voor de ander (reliable event); de ontvanger valideert met addPing
 export const pingEvent = (x, y, soort = 'hier') => ({ k: 'ping', x, y, soort });
