@@ -1531,12 +1531,6 @@
  },
  {
   "reason": "spreektekst",
-  "speaker": "Femke",
-  "text": "Hij zegt het wel heel mooi.",
-  "scene": "J4"
- },
- {
-  "reason": "spreektekst",
   "speaker": "Tammo",
   "text": "Hij betaalde onze tafel. En de kaars.",
   "scene": "J4"
@@ -1551,18 +1545,6 @@
   "reason": "spreektekst",
   "speaker": "Femke",
   "text": "Dat zegt hij ook.",
-  "scene": "J4"
- },
- {
-  "reason": "spreektekst",
-  "speaker": "Tammo",
-  "text": "Dat is van mij.",
-  "scene": "J4"
- },
- {
-  "reason": "spreektekst",
-  "speaker": "Rikus",
-  "text": "Dan leen ik hem.",
   "scene": "J4"
  },
  {
