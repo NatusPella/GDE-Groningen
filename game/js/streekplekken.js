@@ -189,6 +189,25 @@ export function dropOnRoad(parts, onRoad) {
   return out;
 }
 
+// De terugval als het wegennet van roadgraph.js ontbreekt (de webversie zonder roads-bestand): dezelfde vraag aan de
+// tegelkaart (map.roadsNear). Een autoweg telt met zijn halve breedte plus een berm; bruggen, tunnels en hoge dekken niet,
+// voet- en fietspaden ook niet (een park heeft zijn eigen paden). (#1030)
+const KAART_AUTO = new Set(['major', 'normal', 'minor', 'service']);
+export function roadOnMap(map, x, y, berm = 1.2) {
+  if (!map || !map.roadsNear) return false;
+  for (const r of map.roadsNear(x, y, 14 + berm)) {
+    if (!KAART_AUTO.has(r.cat) || r.bridge || r.tunnel || r.z || !r.pts) continue;
+    const half = (r.width || 6) / 2 + berm;
+    for (let i = 0; i < r.pts.length - 1; i++) {
+      const [ax, ay] = r.pts[i], [bx, by] = r.pts[i + 1];
+      const dx = bx - ax, dy = by - ay, L = dx * dx + dy * dy;
+      const t = L ? Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / L)) : 0;
+      if (Math.hypot(x - (ax + dx * t), y - (ay + dy * t)) < half) return true;
+    }
+  }
+  return false;
+}
+
 // Houdt de plekken per cel binnen het budget; de belangrijkste (prio, benoemde) blijven.
 // -> { kept, dropped: {type: n}, perCel: Map(cel -> onderdelen) }
 export function tileBudget(plekken, budget = LAND_BUDGET) {
