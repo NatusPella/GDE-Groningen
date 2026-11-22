@@ -11,6 +11,7 @@ import { getGarageCatalog, whereText, actieBevestiging } from './ownedvehicles.j
 import { garageToestand, statusToon, vraagSoort, chipHtml, TOESTAND_ICOON } from './garagetoestand.js';
 import { createSharedPreview, renderSnapshot, cancelSnapshots } from './vehiclepreview.js';
 import { reducedMotion } from './motion.js';
+import { visibleList, knownCount, knownText } from './garageknown.js'; // alleen wat je kent (22-11)
 import { getShopsForRender, SHOP_TYPES, getOwnedEntries } from './shops.js';
 import { setUserWaypoint } from './routing.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
@@ -94,6 +95,8 @@ const CSS = `
 #pause-menu .gar-vraag-kop { display: flex; align-items: center; gap: var(--ds-s-2); }
 #pause-menu .gar-naam { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-kop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); }
 #pause-menu .gar-leeg { margin: var(--ds-s-3) 0 0 var(--ds-s-5); }
+#pause-menu .gar-meer { margin: var(--ds-s-4) 0 0 var(--ds-s-5); color: var(--ds-c-inkt-zacht); font-size: var(--ds-t-hulp); }
+#pause-menu .gar-meer b { font-weight: 600; }
 #pause-menu .gar-leeg .ds-z-leeg__tekst { color: var(--ds-zeef-tx); }
 #pause-menu .gar-leeg .gar-ic { width: var(--ds-s-6); height: var(--ds-s-6); fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 /* De draaihint staat als eigen strook onder het model (nooit erover) en licht op
@@ -127,6 +130,7 @@ let viewer = null;
 let viewerCanvas = null;
 let selected = null;
 let lastList = [];
+let lastVerborgen = 0; // hoeveel voertuigen nog niet ontdekt zijn (blijven verborgen, zonder naam)
 // the viewer's own stills (a separate group, so a card that is still drawing is not dropped)
 const VIEWER_GROUP = 'garage-viewer';
 // how far one arrow press turns the model (rad); the drag follows the pointer
@@ -467,6 +471,11 @@ function tabsHtml(list) {
     `<button type="button" class="ds-z-chip ds-z-chip--selectie gar-chip" data-garage-sort>${sort}</button>`;
 }
 
+// Onderaan de lijst: hoeveel er nog te ontdekken zijn, zonder te verklappen welke.
+function meerHtml() {
+  return lastVerborgen > 0 ? `<div class="gar-meer"><b>Nog ${lastVerborgen} te ontdekken</b><br>Stap in een voertuig of koop er een.</div>` : '';
+}
+
 function listHtml(list) {
   const shown = shownList(list);
   if (!shown.length) {
@@ -476,7 +485,7 @@ function listHtml(list) {
   }
   let out = '';
   for (const { group, items } of garageSections(shown)) out += `<div class="m-gh"><span>${GROUP_HEAD[group]}</span><span>${items.length}</span></div>${items.map(row).join('')}`;
-  return out;
+  return out + meerHtml();
 }
 
 function pickShown(el) {
@@ -526,10 +535,12 @@ function bindToolbar(el) {
 export function renderGaragePanel(el, world, msg = '') {
   initGarageStyles(); // het paneel kan zonder phone.js openen; de stijl hoort er dan ook te zijn
   bindToolbar(el);
-  const list = getGarageCatalog(world);
+  const alle = getGarageCatalog(world);
+  const telling = knownCount(alle);
+  const list = visibleList(alle);
   lastList = list;
-  const owned = list.filter((e) => e.owned);
-  el.dataset.sub = `${owned.length} van ${list.length} voertuigen`;
+  lastVerborgen = telling.verborgen;
+  el.dataset.sub = knownText(telling);
   el.innerHTML = `<div class="m-tabs">${tabsHtml(list)}</div>` +
     '<div class="m-main"><div class="m-list gar-list"></div><aside class="m-pane gar-viewer" aria-live="polite" aria-label="Details"></aside></div>';
   aim.hover = null;

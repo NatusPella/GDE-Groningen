@@ -1797,7 +1797,14 @@ function applyTuningTo(v, key) {
   if (kind && key) attachStoredLook(v, key, KEYS.tuningLook, undefined, kind);
 }
 
+// stockKey: de winkelsleutel van dit voertuig (garageontdekt.js telt instappen als ontdekt); een gedeeld voertuig kent hem aan zijn spec.
 function spawnOwned(world, o, x, y, angle = null, z = null) {
+  const v = spawnOwnedRaw(world, o, x, y, angle, z);
+  if (v) v.stockKey = o.key || Object.keys(VEHICLE_STOCK).find((k) => VEHICLE_STOCK[k] === o.spec) || null;
+  return v;
+}
+
+function spawnOwnedRaw(world, o, x, y, angle = null, z = null) {
   const sp = o.spec;
   if (sp.kind === 'boat') return spawnOwnedBoat(world, o, x, y, angle);
   if (sp.kind === 'heli') return spawnOwnedHeli(world, o, x, y, angle, z);
