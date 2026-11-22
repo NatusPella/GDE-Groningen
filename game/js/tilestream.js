@@ -16,8 +16,17 @@
 export const BACKGROUND_PRIORITY = 5000;
 // ms of tile work per frame for a background window, on top of what follow() already spends
 export const BG_SLICE_MS = 3;
-// a background window that is still waiting after this long works the rest in one go (never hangs)
-export const BG_DRAIN_MAX_MS = 20000;
+// De rijen van een achtergrondvenster zijn een druppel, geen stroom (perf-regressie 22-11, docs/PERF-REGRESSIE-22-11.md): na de openingsfilm
+// stond een rij van ca. 260 tegels te wachten en die kostte de eerste speelminuten haperingen van 50 tot 100 ms. De pomp geeft zo'n
+// venster hoogstens BG_PUMP_MS per frame (een stuk van ROW_CHUNK_MS), follow() hoogstens BG_FOLLOW_MS, en de kruispuntversie van
+// zulke tegels wordt gebundeld (BG_JUNCTION_FLUSH_MS): het model herbouwt dan niet bij elke tegel over alle tegels heen.
+export const BG_PUMP_MS = 1.2;
+export const BG_FOLLOW_MS = 0.6;
+export const BG_JUNCTION_FLUSH_MS = 1500;
+// een achtergrondtegel waar de speler binnen deze afstand (m) heen komt, gaat naar de gewone wachtrij
+export const BG_PROMOTE_M = 700;
+// a background window that is still waiting after this long works the rest in bigger pieces (never hangs)
+export const BG_DRAIN_MAX_MS = 120000;
 // a jump that waits for its ring: gives up after this long, the stream carries on
 export const JUMP_BUDGET_MS = 1500;
 // the tiles round the target a jump waits for, in m
@@ -132,7 +141,7 @@ export function createDrainPump({ queue, nextFrame, now = () => Date.now(), gran
     running = true;
     while (wins.size) {
       const t = now();
-      let budget = 0, active = 0;
+      let budget = 0, active = 0, urgent = false;
       for (const w of wins) {
         const done = !queue.items.length || !!(w.until && w.until());
         if (done) { wins.delete(w); w.resolve(w.frames); continue; }
@@ -141,14 +150,15 @@ export function createDrainPump({ queue, nextFrame, now = () => Date.now(), gran
         if (held) { w.held += elapsed; continue; }
         w.spent += elapsed;
         active++;
+        if (w.urgent) urgent = true;
         budget = Math.max(budget, w.spent > w.maxMs ? w.sliceMs * 3 : w.sliceMs);
         w.frames++;
       }
       if (budget > 0) {
-        const g = grant ? grant(budget, wins) : budget;
+        const g = grant ? grant(budget, wins, urgent) : budget;
         const t1 = now();
         queue.run(g, now);
-        if (onSpend) onSpend(now() - t1, budget);
+        if (onSpend) onSpend(now() - t1, budget, urgent);
         stats.maxBudget = Math.max(stats.maxBudget, g);
       }
       stats.frames++; stats.windowsMax = Math.max(stats.windowsMax, active);
@@ -158,9 +168,9 @@ export function createDrainPump({ queue, nextFrame, now = () => Date.now(), gran
   }
   return {
     // geeft een belofte die het aantal frames oplevert waarin dit venster werd bediend
-    add({ sliceMs = BG_SLICE_MS, until = null, hold = null, maxMs = BG_DRAIN_MAX_MS } = {}) {
+    add({ sliceMs = BG_SLICE_MS, until = null, hold = null, maxMs = BG_DRAIN_MAX_MS, urgent = false } = {}) {
       return new Promise((resolve) => {
-        wins.add({ sliceMs, until, hold, maxMs, resolve, frames: 0, spent: 0, held: 0, last: now() });
+        wins.add({ sliceMs, until, hold, maxMs, urgent, resolve, frames: 0, spent: 0, held: 0, last: now() });
         if (!running) loop();
       });
     },

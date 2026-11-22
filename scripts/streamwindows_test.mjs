@@ -65,6 +65,20 @@ const ok = (c, m) => { assert.ok(c, m); n++; };
   await pump.add({ sliceMs: 3 });
   ok(Math.max(...per) <= 1.5 + 1e-9 && spent.length > 0 && spent.every(([, b]) => b === 3), 'grant begrenst het budget, onSpend meldt wat er is uitgegeven');
 }
+// de klasse volgt de stand van het venster, niet zijn slice: een achtergrondvenster met slice 6 is niet urgent (perf-regressie 22-11)
+{
+  let t = 0; const now = () => t; const q = new FrameQueue(); const seen = [];
+  for (let i = 0; i < 20; i++) q.add(() => { t += 0.5; }, 1);
+  const pump = createDrainPump({ queue: q, now, nextFrame: async () => { t += 10; }, grant: (b, wins, urgent) => { seen.push(urgent); return Math.min(b, 1); }, onSpend: (ms, b, urgent) => seen.push('s' + urgent) });
+  await pump.add({ sliceMs: 6 });
+  ok(seen.length > 0 && seen.every((u) => u === false || u === 'sfalse'), 'een achtergrondvenster met slice 6 vraagt niet urgent');
+  let t2 = 0; const now2 = () => t2; const q2 = new FrameQueue(); const seen2 = [];
+  for (let i = 0; i < 20; i++) q2.add(() => { t2 += 0.5; }, 1);
+  const pump2 = createDrainPump({ queue: q2, now: now2, nextFrame: async () => { t2 += 10; }, grant: (b, wins, urgent) => { seen2.push(urgent); return Math.min(b, 1); } });
+  pump2.add({ sliceMs: 3 });
+  await pump2.add({ sliceMs: 6, urgent: true });
+  ok(seen2.length > 1 && seen2.slice(1).every((u) => u === true), 'een urgent venster naast een achtergrondvenster maakt het frame urgent');
+}
 holdFree();
 function holdFree() { setHoldProbe(null); ok(backgroundHeld() === false, 'geen vasthouding blijft hangen'); }
 

@@ -5,9 +5,8 @@
 // fixed ahead of the player (a shop door, a village's uitje) asks for its tiles
 // first (withTiles) and then runs on what is resident.
 import { pointInPolygon, closestPointOnSegment, nearestOnRoadList } from './util.js';
-import { BG_DRAIN_MAX_MS, backgroundHeld, createDrainPump, joinQueues } from './tilestream.js';
+import { BG_DRAIN_MAX_MS, BG_PUMP_MS, backgroundHeld, createDrainPump, joinQueues } from './tilestream.js';
 import { streamPlanner } from './streamplanner.js';
-import { URGENT_SLICE_MS } from './placementurgency.js';
 import { urgencyModeFor } from './placementurgency.js';
 
 // A polygon's distance to a point, 0 inside it.
@@ -196,8 +195,10 @@ function windowPump(map) {
     queue: joinQueues(map.tileQueue, map.bgQueue || null, () => performance.now()),
     now: () => performance.now(),
     nextFrame: () => new Promise((r) => { const t = setTimeout(r, 50); requestAnimationFrame(() => { clearTimeout(t); r(); }); }),
-    grant: (budget) => (budget >= URGENT_SLICE_MS ? plan.grant('urgent', budget) : Math.max(1, Math.min(budget, plan.grant('tile', budget)))),
-    onSpend: (ms, budget) => plan.spend(budget >= URGENT_SLICE_MS ? 'urgent' : 'tile', ms),
+    // de klasse volgt de stand van het venster, niet de grootte van zijn slice: een achtergrondvenster met slice 6 (de plaatsing bij het laden)
+    // nam anders het urgente budget (6 ms per frame, los van frametijd, schuld en film) en drukte na de film de eerste speelseconden plat
+    grant: (budget, wins, urgent) => (urgent ? plan.grant('urgent', budget) : Math.max(0.5, Math.min(budget, BG_PUMP_MS, plan.grant('tile', budget)))),
+    onSpend: (ms, budget, urgent) => plan.spend(urgent ? 'urgent' : 'tile', ms),
   }));
 }
 
@@ -225,7 +226,7 @@ export async function withTiles(map, points, fn, { radius = 160, token = 'place'
     const sliceMs = wm.sliceMs;
     if (sliceMs > 0 && typeof requestAnimationFrame === 'function') {
       // (a frame, or 50 ms when the window is hidden and frames stop)
-      await windowPump(map).add({ sliceMs, maxMs: BG_DRAIN_MAX_MS, until: map.tilesPending ? () => !map.tilesPending(keys) : null, hold: wm.held ? backgroundHeld : null });
+      await windowPump(map).add({ sliceMs, urgent: wm.mode === 'urgent', maxMs: BG_DRAIN_MAX_MS, until: map.tilesPending ? () => !map.tilesPending(keys) : null, hold: wm.held ? backgroundHeld : null });
     } else { map.tileQueue.run(1e9); if (map.bgQueue) map.bgQueue.run(1e9); }
     const t2 = performance.now();
     const out = fn();
