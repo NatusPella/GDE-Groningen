@@ -50,6 +50,9 @@ export function launchPlan(settings = getSettings(), { testmodus = false, vlag =
 // Welke knop staat gekozen als de kaart opent: de laatste keuze, anders Alleen (het veilige, offline pad).
 export const voorselectie = (settings = getSettings()) => (settings && settings.startKeuze === 'samen' ? 1 : 0);
 
+// Welke knop staat gekozen op het scherm Een spel openen / Meedoen / Openbare sessies: de laatste rol die lukte, anders Een spel openen.
+export const rolVoorkeur = (settings = getSettings()) => (settings && ['host', 'gast', 'lijst'].includes(settings.samenRol) ? settings.samenRol : 'host');
+
 // Na de keuze: wat is er nog nodig voordat het spel verder mag?
 //   'klaar' (Alleen), 'naam' (geen geldige naam: de kaart met naam en akkoord), 'toestemming', of 'sessie' (Een spel openen / Meedoen).
 export function naKeuze(modus, settings = getSettings()) {
@@ -81,6 +84,13 @@ export function bewaarKeuze(modus, { zet = setSetting } = {}) {
   return true;
 }
 
+// De laatste rol bewaren als voorselectie (nooit iets anders dan de drie woorden).
+export function bewaarRol(rol, { zet = setSetting } = {}) {
+  if (!['host', 'gast', 'lijst'].includes(rol)) return false;
+  zet('samenRol', rol);
+  return true;
+}
+
 // De stand van deze sessie, voor main.js: 'alleen' houdt de automatische zoektocht naar een sessie dicht (sessionboot.js).
 let launchMode = null;
 export const applyLaunchMode = (modus) => { launchMode = isKeuze(modus) ? modus : null; };
@@ -106,9 +116,10 @@ export async function askLaunchChoice(deps) {
       if (nextStep === 'toestemming') continue; // het akkoord is niet bewaard: nooit doorgaan op een gok
     }
     if (nextStep === 'sessie') {
-      const rol = await deps.sessie();
+      const rol = await deps.sessie(rolVoorkeur(deps.settings()));
       if (!rol) continue;
       deps.samen(rol);
+      if (deps.bewaarRol) deps.bewaarRol(rol); // pas na een gelukte keuze: Terug verandert de voorselectie niet
     }
     deps.bewaar(modus);
     return modus;

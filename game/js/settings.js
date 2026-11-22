@@ -173,6 +173,8 @@ const BASE_DEFAULTS = {
   samenZinnen: false,
   // Alleen of Samen bij de start (launchchoice.js): alleen de voorselectie van de keuzekaart, nooit een reden om de kaart over te slaan.
   startKeuze: null,
+  // De laatste rol bij Samen spelen (samenkeuze.js): alleen de voorselectie van Een spel openen / Meedoen / Openbare sessies.
+  samenRol: null,
   // Samen spelen (#526): dit apparaat koos "Niet meer vragen" op het
   // toestemmingsscherm. Alleen de keuze van het scherm; zonder dit vinkje komt
   // de vraag één keer per sessie en gaat er niets naar buiten voor het akkoord.
@@ -268,6 +270,7 @@ function load() {
     out.onlineMeedoen = raw.onlineMeedoen === true ? true : raw.onlineMeedoen === false ? false : null;
     out.samenZinnen = raw.samenZinnen === true;
     out.startKeuze = raw.startKeuze === 'alleen' || raw.startKeuze === 'samen' ? raw.startKeuze : null; // alleen de voorselectie van de startkaart
+    out.samenRol = raw.samenRol === 'host' || raw.samenRol === 'gast' || raw.samenRol === 'lijst' ? raw.samenRol : null; // alleen de voorselectie van de sessiekeuze
     if (!(out.padLookSensitivity >= 0.3 && out.padLookSensitivity <= 2.5)) out.padLookSensitivity = DEFAULTS.padLookSensitivity;
     // 22-11: ook de trilsterkte en het dronken effect blijven binnen hun bereik, anders valt een handmatig aangepast bestand terug
     if (!(out.rumbleStrength >= 0.25 && out.rumbleStrength <= 1.5)) out.rumbleStrength = DEFAULTS.rumbleStrength;

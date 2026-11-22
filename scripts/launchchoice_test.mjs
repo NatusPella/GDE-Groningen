@@ -46,11 +46,12 @@ function stroom(plan, antwoorden) {
     naam: async () => { gevraagd.push('naam'); if (a.naamTerug && a.naamTerug.shift()) return false; C.kiesNaam(a.naam || 'Bouwer'); return true; },
     keuze: async (index) => { gevraagd.push(`keuze:${index}`); return a.keuzes.shift(); },
     toestemming: async () => { gevraagd.push('toestemming'); const ja = a.toestemming.shift(); if (ja) C.geefToestemming(); return ja; },
-    sessie: async () => { gevraagd.push('sessie'); return a.sessie.shift(); },
+    sessie: async (voorkeur) => { gevraagd.push('sessie'); (a.voorkeuren ||= []).push(voorkeur); return a.sessie.shift(); },
     samen: (rol) => samen.push(rol),
     bewaar: (m) => K.bewaarKeuze(m),
+    bewaarRol: (r) => K.bewaarRol(r),
   };
-  return { deps, gevraagd, samen };
+  return { deps, gevraagd, samen, voorkeuren: () => a.voorkeuren || [] };
 }
 
 // --- 1. het plan: wat vraagt een start? ---------------------------------------
@@ -386,6 +387,27 @@ await t('css: tekst op de keuzekaart nooit onder 13 px, focusring aanwezig, bewe
 await t('devflags: startkeuze staat in FLAGS en FLAG_DOCS', async () => {
   const f = await import('../game/js/devflags.js');
   assert.ok('startkeuze' in f.FLAGS && typeof f.FLAG_DOCS.startkeuze === 'string');
+});
+
+await t('flow: de sessiekeuze onthoudt de laatste rol (een terugkerende gast drukt alleen Enter)', async () => {
+  oudProfiel(true);
+  S.setSetting('samenRol', null);
+  assert.equal(K.rolVoorkeur(), 'host', 'zonder geschiedenis: Een spel openen');
+  let s = stroom(K.launchPlan(S.getSettings()), { keuzes: ['samen', 'samen'], sessie: [null, 'gast'] });
+  await K.askLaunchChoice(s.deps);
+  assert.equal(S.getSettings().samenRol, 'gast', 'een gelukte rol wordt bewaard');
+  assert.deepEqual(s.voorkeuren(), ['host', 'host'], 'Terug bewaart niets');
+  s = stroom(K.launchPlan(S.getSettings()), { keuzes: ['samen'], sessie: ['gast'] });
+  await K.askLaunchChoice(s.deps);
+  assert.deepEqual(s.voorkeuren(), ['gast'], 'de volgende keer staat Meedoen al gekozen');
+  assert.equal(K.bewaarRol('hacker'), false);
+  S.setSetting('samenRol', null);
+});
+await t('instellingen: een ongeldige samenRol in het bestand wordt null', async () => {
+  opslag.set('gde-settings', JSON.stringify({ v: 99, samenRol: 'overal' }));
+  const vers = await import('../game/js/settings.js?samenrol=1');
+  assert.equal(vers.getSettings().samenRol, null);
+  opslag.delete('gde-settings');
 });
 
 console.log(`launchchoice_test: ${n}/${n} ok`);

@@ -258,6 +258,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [SPRINT-22-11-GEBIED.md](<SPRINT-22-11-GEBIED.md>) | Sprint 22-11 graphics (mensen, voertuigen, dieren): echte kippen, kudde-poses, vier schaapsoorten, bestuurder met hysterese, kleurrijker verkeer; voor en na en wat nog in beeld bekeken moet worden. |
 | [AUDIO-GLITCHES-21-11.md](<AUDIO-GLITCHES-21-11.md>) | Melding van Nikky over glitches en ruis: hypotheses, wat bewezen is, de limiter en de diagnose, en een checklist voor het apparaat. |
 | [VERFIJNING-22-11-AUDIO.md](<VERFIJNING-22-11-AUDIO.md>) | Verfijnronde geluid, muziek en radio: de randgevallen in de zuivere audiomodules, wat er is vastgezet en wat bewust niet. |
+| [SPRINT-22-11-GEBIED.md](<SPRINT-22-11-GEBIED.md>) | Sprint 22-11, flow en bediening: stappen per speler-flow (nieuw spel, doorgaan, reizen, Samen aansluiten) voor en na, de meting met flow_stappen_test, en wat in beeld bekeken moet worden. |
 | [ICONEN-LICENTIE.md](<ICONEN-LICENTIE.md>) | De Phosphor-iconenset (MIT): licentietekst, naamsvermelding en hoe je een icoon toevoegt (ADR 0041). |
 | [MERK-INVENTARIS-21-11.md](<MERK-INVENTARIS-21-11.md>) | Waar het logo, het icoon en het marketingbeeld staan in zeefdruk (website, Steam, socialkaart, app-iconen) en wat nog beeld vraagt. |
 | [ICONEN-INVENTARIS-20-11.md](<ICONEN-INVENTARIS-20-11.md>) | Waar het spel iconen tekent (inline SVG, emoji, unicode) en wat al naar de Phosphor-iconenmodule is overgezet. |

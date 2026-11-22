@@ -11,7 +11,6 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
-<<<<<<< HEAD
 - Voetbalcarrière: als Trainer of Manager kies je zelf de opstelling. Bij Trainer en Manager staat bij elke speler een knop om hem vast in de basis te zetten of op de bank te houden (hooguit acht per lijst); "Los" of "Laat het spel de beste elf kiezen" zet het terug. De keuze telt voor je eigen wedstrijd en de coachwedstrijd. Samen spelen: de keuze is van je eigen carrière, een medespeler ziet haar niet. Nog niet in beeld bekeken.
 
 ### Radio
@@ -25,10 +24,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Garage
 - Garage: een voertuig staat pas in de garage als je het kent. Ontdekt is wat je ooit bestuurd of ingestapt bent, of gekocht of in bezit hebt (winkel, Bezit, beloning, tuning). De rest blijft verborgen, zonder naam, met "x van y ontdekt" bovenaan en "Nog n te ontdekken" onderaan de lijst. De eerste keer instappen geeft de melding "Nieuw voertuig ontdekt", pas nadat het laadscherm weg is. Wie al voertuigen bezit, houdt die zichtbaar: geen savebreuk. De Escapade is altijd ontdekt. Samen spelen: ontdekt is per speler en blijft lokaal (gde-garage-ontdekt-v1, nooit in een savegame); alleen jouw eigen instappen telt, en een gast kent het model van een voertuig van de opener niet, dus die telt pas na kopen of zelf bezorgen. Test: scripts/garageknown_test.mjs.
-=======
 ### Prestaties op Normaal (perf-60-normaal, 22-11)
 - Minder werk bij elke tegelwissel: de lijst van alle wegen en gebouwen uit het ruimteraster wordt per rasterwijziging één keer opgebouwd in plaats van door elke lezer opnieuw (wegen, kruispunten, routes, gras), en het dichtstbijzijnde wegstuk (straatmeubilair, plaatsing) rekent zonder tussenobjecten (1,6x sneller in de microbench, dezelfde uitkomst). Geen zichtbare wijziging; de 60 fps op Normaal is hiermee nog niet gehaald (zie docs/PERF-60-NORMAAL-22-11.md).
->>>>>>> perf-60-normaal-22-11
 ### Taal
 - Stad, Ommeland en Grunn: wat de stad Groningen zelf is heet nu "de Stad" (de Martinitoren, bruggen en grachten, de wijken, de rondvaart), de rest van de provincie "Ommeland", en "Grunn" blijft voor het geheel, de slogans en het gevoel, zonder lidwoord. De locatieregel toont "wijk · Stad", het straatpraatkaartje "Opgevangen in de Stad" en het onweerbericht in de stad "Onweer boven de Stad". Het station heet overal Station Groningen. 20 gesproken regels (Tammo, Tessa, Rikus, Berend, Jelle en de rondvaartgids) zijn aangepast en wachten op een nieuwe opname (scripts/voice_wacht.json). De regel staat in docs/TAALREGEL-STAD-OMMELAND-22-11.md en wordt bewaakt door scripts/stad_grunn_test.mjs.
 ### Het Loket (M03), opgeruimd
@@ -87,6 +84,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Zonnige dagen klinken anders (sprint 22-11): op een helder uur tussen 11 en 19 uur praten voorbijgangers over volle terrassen, zwemmen in de Hoornseplas, picknicken in het Noorderplantsoen en het warme zand op de Wadden, in elke streek. Bij regen, mist of onweer blijft het bij de weerpraat van die dag. Samen spelen: decor per speler, zonder voortgang of beloning; het weer en de klok zijn die van de gezamenlijke game.
 - Voorbijgangers merken het weer op: als het begint te regenen, onweert, de mist inrolt of de zon doorbreekt, roepen een of twee wandelaars in je buurt na een paar seconden iets ("Daar komt het! Wie heeft er een paraplu?"). Hoogstens eens per 75 seconden, en niet bij het weer waarmee je een spel laadt. Samen spelen: decor per speler, zonder voortgang of beloning; de reactie volgt de eigen lucht.
 - Meer nachtpraat: elke streek heeft in de nacht drie of meer gesprekjes en de stad zes (de laatste bus, de snackbar die bijna sluit, de sterren boven het Hogeland, de vuurtoren die maar blijft draaien).
+### Flow en bediening (sprint 22-11)
+- Samen spelen aansluiten: het scherm Een spel openen / Meedoen / Openbare sessies onthoudt je laatste keuze en zet de focus daar meteen op. Een terugkerende gast drukt dus één keer Enter in plaats van omlaag en Enter. Terug verandert niets. De rol blijft per speler en lokaal (alleen een voorselectie, gde-settings samenRol).
+- Reiskeuze: met het toetsenbord kun je nu net als met de controller de markering verplaatsen (Tab, met Shift terug), Enter of spatie bevestigt de markering en 1, 2 en 3 kiezen meteen. Eerder kon alleen de controller door de opties lopen. Pijlen en WASD blijven bij het spel, want het paneel hangt in het spel en je kunt er ondertussen rijden. Samen spelen: de reiskeuze is lokaal, per speler.
 
 ### Besturing met een controller
 - Acties-wiel (controller-review 22-11, #495, #1011): houd Overzicht een halve seconde ingedrukt en een wiel toont alles wat in die situatie geen eigen knop heeft: de radio in een auto (sinds #495 weg van het pad), de volgende zender, andere kleren, de filmcamera, eerste persoon, het waypoint naar je doel, de directe wapenkeuze, de alarmlichten, het lakmenu, het kusje, de busdienst overnemen (G) en in Samen spelen de roepjes en snelle zinnen in een voertuig. Kies met de linkerstick of de D-pad, A bevestigt, B sluit, LB en RB bladeren. Een korte tik op Overzicht is nog steeds de kaart (die gaat nu bij het loslaten open). Wie niet kan houden zet de tikstand aan: dan opent een tik het wiel. Herbinden werkt gewoon door. Een toets die alleen in het wiel zit, toont in de hints de knop Overzicht met "houd". Invoer is lokaal; er gaat niets over het net.

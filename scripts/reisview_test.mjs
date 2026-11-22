@@ -34,5 +34,10 @@ const kaal = V.panelState({ to: 'Zoutkamp', ride: 'bus', lines: ['x'] });
 const tekst = JSON.stringify(kaal) + V.briefingLine({ to: 'Zoutkamp' });
 ok(!/NaN|gratis|€ 0|undefined/.test(tekst) && kaal.rule === '', 'zonder afstand geen NaN, gratis of € 0', tekst);
 ok(!/gratis|€ 0/.test(JSON.stringify(st)) && /\+ € 120/.test(st.options[1].label), 'met afstand: verdienste bij zelf gaan, nooit gratis', st.options[1].label);
+// toetsenbord gelijk aan het pad: Tab verplaatst de markering, cijfers kiezen, Enter bevestigt de markering
+ok(V.keyAction(beat, 'meerijden', 'Tab').markeer === 'zelf' && V.keyAction(beat, 'meerijden', 'Tab', true).markeer === 'overslaan', 'Tab moves the pick');
+ok(['ArrowUp', 'ArrowDown', 'w', 's', 'a', 'd'].every((k) => V.keyAction(beat, 'zelf', k) === null), 'movement and steering keys stay with the game');
+ok(V.keyAction(beat, 'zelf', 'Enter').kies === 'zelf' && V.keyAction(beat, 'zelf', '3').kies === 'overslaan', 'enter confirms the pick, digits choose');
+ok(V.keyAction(beat, 'zelf', 'Escape').sluit === true && V.keyAction(beat, 'zelf', 'x') === null && V.keyAction({ ...beat, lines: null }, 'zelf', '3') === null, 'escape closes, rest is not ours');
 console.log(`${n - fails}/${n} reisview`);
 process.exit(fails ? 1 : 0);

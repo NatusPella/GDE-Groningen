@@ -63,6 +63,18 @@ export function pickDirFromKey(key) {
   return null;
 }
 
+// Toetsenbord, gelijk aan het pad (#97): Tab (met Shift terug) verplaatst de markering, 1/2/3 kiezen meteen, Enter of spatie bevestigt de markering,
+// Escape sluit (de standaardkeuze). Bewust geen pijlen of WASD: het paneel hangt in het spel en die toetsen sturen te voet en in een voertuig. Geeft { markeer: id }, { kies: id }, { sluit: true } of null (de toets is niet van het paneel).
+export function keyAction(beat, pick, key, shift = false) {
+  const k = String(key);
+  if (k === 'Tab') return { markeer: cyclePick(beat, pick, shift ? -1 : 1) };
+  const direct = pickFromKey(beat, k);
+  if (direct) return { kies: direct };
+  if (k === 'Enter' || k === ' ') return { kies: pick };
+  if (k === 'Escape') return { sluit: true };
+  return null;
+}
+
 // the HUD line while driving: remaining distance and ETA
 export function hudLine(remaining, mode = 'auto') {
   if (!(remaining > 0)) return '';

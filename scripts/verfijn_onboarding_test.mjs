@@ -182,14 +182,15 @@ for (const [f, rx] of [
   for (let i = 0; i < 6; i++) { p = cyclePick(beat, p, pickDirFromKey('ArrowDown')); gezien.add(p); }
   ok(gezien.size === travelOptions(beat).options.length, 'met pijl omlaag kom je langs elke keuze en weer terug');
   const bron = lees('reispanel.js');
-  ok(/pickDirFromKey\(e\.key\) !== null/.test(bron) && /cyclePick\(beat, pick, pickDirFromKey\(e\.key\)\)/.test(bron), 'het reispaneel luistert naar de pijltoetsen');
+  // sprint ux-flow (22-11) liet het paneel Tab, cijfers, Enter en Escape (keyAction) volgen: pijlen en W/S blijven van het spel (te voet en in een voertuig sturen ze); pickDirFromKey blijft voor een controller en tests
+  ok(/keyAction\(beat, pick, e\.key, e\.shiftKey\)/.test(bron), 'het reispaneel luistert naar de toetsen van keyAction');
 }
 
 // ---- 20: de terugblikkaart knipt niet midden in een afkorting -------------------------------------------------------------------
 {
   const lang = 'Dr. de Vries wacht bij het St. Jansplein op je. Ga er naartoe en praat met haar, zodat zij je alles kan vertellen over de pakketjes die vorige week zijn verdwenen uit de kluis van het bureau in de stad.';
   const kaart = recapContent({ step: { id: 's1', lead: lang }, ended: false, last: 'Een klus gedaan', partTitle: 'Akte 2', why: 'Een lange regel over waar het om draait in dit deel van het verhaal en waarom het ertoe doet voor iedereen' });
-  ok(kaart && /^Dr\. de Vries wacht bij het St\. Jansplein op je\.$/.test(kaart.now), 'de eerste zin eindigt na "op je.", niet na "Dr."', kaart && kaart.now);
+  ok(kaart && /^Dr\. de Vries wacht bij het St\. Jansplein op je\.( |$)/.test(kaart.now), 'de eerste zin eindigt na "op je.", niet na "Dr." (volgende zinnen mogen volgen zolang ze in het budget passen)', kaart && kaart.now);
   const initiaal = recapContent({ step: { id: 's2', lead: 'J. de Boer belt je vanuit Winsum, en hij heeft een dringende vraag over de verdwenen pakketjes uit de kluis. Ga erheen.' }, ended: false, last: 'Een klus die al lang geleden gedaan is door jou en je maat', partTitle: '', why: 'Een lange regel over waar het om draait in dit deel van het verhaal en waarom het ertoe doet voor iedereen hier' });
   ok(initiaal && !/^J\.$/.test(initiaal.now), 'een voorletter is geen zinseinde', initiaal && initiaal.now);
   ok(recapContent({ step: { id: 's3', lead: 'Kort doel.' }, ended: false, last: '', partTitle: '', why: '' }).now === 'Kort doel.', 'een korte tekst blijft heel');
