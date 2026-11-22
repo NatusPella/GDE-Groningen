@@ -1,6 +1,6 @@
 # Humorkeuze: de veto-lijst (21-11)
 
-Je hoeft niets te doen. Voor elke nieuwe of herschreven komische beat heeft de schrijver drie varianten en een veilige neutrale terugval gemaakt; drie onafhankelijke beoordelaars (zonder elkaars oordeel, met de varianten in een andere volgorde) kozen de beste. De winnaar staat in het spel; de andere twee en de terugval staan hieronder als alternatief. Wil je iets anders: zet `chosen` van die beat in het bijbehorende bestand `game/storydata/humor*.json` op 0, 1, 2 of `"neutral"` en draai `node scripts/build_story_data.mjs`. Werkwijze: [SCHRIJFREGELS-21-11.md](SCHRIJFREGELS-21-11.md). Na een wijziging: draai ook de cutscene-tests (`cutscenes_akte*_test`), want de cues van een scène (`on:`) volgen de gekozen tekst. Samen spelen: een beat is gewone scènetekst; een gast ziet de gekozen variant mee in de scène van de host. Gegenereerd door `node scripts/humor_doc.mjs`; kies hier niet met de hand.
+Je hoeft niets te doen. Voor elke nieuwe of herschreven komische beat heeft de schrijver drie varianten en een veilige neutrale terugval gemaakt; drie onafhankelijke beoordelaars (zonder elkaars oordeel, met de varianten in een andere volgorde) kozen de beste. De winnaar staat in het spel; de andere twee en de terugval staan hieronder als alternatief. Wil je iets anders: zet `chosen` van die beat in het bijbehorende bestand `game/storydata/humor*.json` op 0, 1, 2, 3 (alleen de beats van 22-11 hebben variant 4) of `"neutral"` en draai `node scripts/build_story_data.mjs`. Werkwijze: [SCHRIJFREGELS-21-11.md](SCHRIJFREGELS-21-11.md). Na een wijziging: draai ook de cutscene-tests (`cutscenes_akte*_test`), want de cues van een scène (`on:`) volgen de gekozen tekst. Samen spelen: een beat is gewone scènetekst; een gast ziet de gekozen variant mee in de scène van de host. Gegenereerd door `node scripts/humor_doc.mjs`; kies hier niet met de hand.
 
 Eerlijk over de proef: 106 beats. De beoordelaars lazen de stijlgids en de beats; minstens twee van de drie lazen de ijkregels uit akte 1 ([BEHOUDEN]-grappen) niet. Wees dus kritisch bij beats met lage zekerheid.
 
@@ -15,16 +15,39 @@ Eerlijk over de proef: 106 beats. De beoordelaars lazen de stijlgids en de beats
 - **H5-08** (E2, TAMMO): gekozen "Dat zegt hij heel hard."; paneelsplit 1-1-1, zekerheid laag. Dat zegt hij heel hard: droge correctie op Rikus.
 - **H5-09** (E2, TAMMO): gekozen "Wij bakken door."; paneelsplit 1-1-1, zekerheid laag. Zelfde maat als Tessa, kort.
 - **H6-01** (M27.1, WILLEMIEN): gekozen "Ik ken jullie van het luik. Woensdag, de derde in de rij. Eén eierbal, extra mosterd."; paneelsplit 1-1-1, zekerheid laag. Concreet en vaste-klant-gevoel, derde in de rij.
+- **HE-01** (F1, TAMMO): gekozen "Naar de motor. Die ik er in gedachten al in heb gezet."; paneelsplit 1-1-1, zekerheid laag. Een motor in gedachten geplaatst: de wagen is een droom.
+- **HE-02** (F2, TAMMO): gekozen "Is dat een knop of een gebed?"; paneelsplit 1-1-1, zekerheid laag. Voorgevoel is droog, gebed blijft staan.
+- **HE-03** (F3, TAMMO): gekozen "Ik ben het niemandsland. Met soep."; paneelsplit 1-1-1, zekerheid laag. Niemandsland met soep: een grens met een pan.
+- **HE-04** (F4, TAMMO): gekozen "Ik heb ook geen vergunning."; paneelsplit 1-1-1, zekerheid laag. De herhaling draagt het, kaal of met daar.
+- **HE-06** (F5, TESSA): gekozen "Vier woorden. Op de Grote Markt waren het er vijf."; paneelsplit 1-1-1, zekerheid laag. Vijf naar vier is een daling: Tessa telt precies.
+- **HE-07** (F5, TAMMO): gekozen "Berend telde elf seconden en een duif telde mee. Dat is officieel."; paneelsplit 1-1-1, zekerheid laag. De duif telt mee: past bij zijn volgers.
+- **HE-08** (F6, TAMMO): gekozen "Eén stip. Maar wel de onze."; paneelsplit 1-1-1, zekerheid laag. Eén stip, wel de onze: trots.
 - **HI-04** (B1.2, TAMMO): gekozen "Het was het enige."; paneelsplit 1-1-1, zekerheid laag. Korte zelfspot, pointe laatste.
 - **HI-09** (T2, TAMMO): gekozen "Ik droomde over verkeer."; paneelsplit 1-1-1, zekerheid laag. Droge onverwachte onderwerpskeuze, korte pointe.
 - **HI-16** (M25.6, OMA TRIJNTJE): gekozen "Dan gaan ze er later in."; paneelsplit 1-1-1, zekerheid laag. Sluit exact aan op de herhaling in HI-17.
+- **HJ-01** (J1, TAMMO): gekozen "Dan maken wij eerst bezwaar tegen zijn bezwaar."; paneelsplit 1-1-1, zekerheid laag. Bezwaar tegen bezwaar: Jelle-bureaucratie.
+- **HJ-02** (J2, LAMMERT): gekozen "Een vraag. Zonder envelop. Dat heeft Jelle nog nooit geprobeerd."; paneelsplit 1-1-1, zekerheid laag. Gratis is ongebruikelijk: droog en kort.
+- **HJ-03** (J3, ANNEKE): gekozen "Een bank voor drie. Jullie gebruiken anderhalf."; paneelsplit 1-1-1, zekerheid laag. Uiteinden is Groninger understatement.
+- **HJ-04** (J3, ANNEKE): gekozen "Dat was niet de zin waar je mee begon."; paneelsplit 1-1-1, zekerheid laag. Tammo's afgebroken zin wordt droog teruggelegd.
+- **HJ-05** (J4, FEMKE): gekozen "Jullie zijn al een koor. Dat is een begin."; paneelsplit 1-1-1, zekerheid laag. Een koor is al een begin.
+- **HJ-06** (J5, TESSA): gekozen "Brief vier, alinea twee. Het staat er gewoon."; paneelsplit 1-1-1, zekerheid laag. Het staat er gewoon: Tessa de jurist.
+- **HJ-07** (J5, TESSA): gekozen "Het is een eierbal. Hij heeft nog geen vergunning om zo te ruiken."; paneelsplit 1-1-1, zekerheid laag. Een eierbal zonder vergunning om te ruiken.
+- **HJ-08** (J6, TESSA): gekozen "Overig. Dat was het enige vakje dat nog open was."; paneelsplit 1-1-1, zekerheid laag. Het enige vakje dat nog open was: formulierdroogte.
+- **HJ-09** (J6, TAMMO): gekozen "Een man mag naar soep lachen."; paneelsplit 1-1-1, zekerheid laag. Een man mag: droog, geen uitleg.
 - **H06** (M02.5, TESSA): gekozen "Alleen of we een koekje wilden."; paneelsplit 1-1-1, zekerheid laag. Koekje wilden: Tessa's droge understatement.
+- **HK-02** (K2, TAMMO): gekozen "Hoeveel melk je in je koffie doet. Twee scheuten."; paneelsplit 1-1-1, zekerheid laag. Twee scheuten: heel kleine waarheid.
+- **HK-03** (K2, TESSA): gekozen "Hij is lauw. Dat is alles wat hier gebeurd is."; paneelsplit 1-1-1, zekerheid laag. Ontkenning die zichzelf verraadt.
+- **HK-04** (K3, SJABBE): gekozen "Dat is mijn zin. Hij ligt hier al sinds 1974."; paneelsplit 1-1-1, zekerheid laag. De zin ligt er sinds 1974.
 - **HN-02** (N6, KAPITEIN KLAAS): gekozen "Dat telt."; paneelsplit 1-1-1, zekerheid laag. Twee woorden, maximaal understatement.
 - **HN-03** (N4, TESSA): gekozen "Iemand die alle regels kent. Behalve de leuke."; paneelsplit 1-1-1, zekerheid laag. Droog en past bij Jelle; 'behalve de leuke' landt.
 - **HN-05** (N8, TESSA): gekozen "Een punaise. We hebben hem al een beetje lief."; paneelsplit 1-1-1, zekerheid laag. Ongezegde liefde verstopt in een punaise.
 - **HN-06** (N6, TESSA): gekozen "Ik heb het water niet gekozen."; paneelsplit 1-1-1, zekerheid laag. Kort, zeeziek, geen verdere uitleg nodig.
 - **HN-08** (N1, SJABBE): gekozen "Dertig. Met de trap erbij. De trap is vandaag ook zwaarder."; paneelsplit 1-1-1, zekerheid laag. Meest onverwachte pointe die bij het personage past.
 - **HN-13** (N5, TESSA): gekozen "Je vroeg ook niet naar de kippen. Er zijn er zeventien. Ze hebben namen."; paneelsplit 1-1-1, zekerheid laag. Meest onverwachte pointe die bij het personage past.
+- **HN-16** (N10, TERRASGAST): gekozen "Ik bedoelde de rekening. Samen of apart?"; paneelsplit 1-1-1, zekerheid laag. Samen of apart? sluit op Ah. Ja. Samen.
+- **HN-17** (N12, TAMMO): gekozen "Daar kan ik geen bezwaar tegen maken."; paneelsplit 1-1-1, zekerheid laag. Geen bezwaar: bureaucratisch tederheid.
+- **HN-18** (N9, TESSA): gekozen "Het schaap heeft nu een sok en een mening."; paneelsplit 1-1-1, zekerheid laag. Het schaap met een mening.
+- **HN-19** (N9, TAMMO): gekozen "Ik kijk naar de beer. Hij kijkt terug."; paneelsplit 1-1-1, zekerheid laag. De beer kijkt terug: de nacht wordt even levend.
 
 ## Lage zekerheid (twee van de drie, of onderling onzeker)
 
@@ -85,14 +108,14 @@ Eerlijk over de proef: 106 beats. De beoordelaars lazen de stijlgids en de beats
 | H6-01 | M27.1 | WILLEMIEN | Ik ken jullie van het luik. Woensdag, de derde in de rij. Eén eierbal, extra mosterd. | variant 3, neutraal, variant 1 | laag | Concreet en vaste-klant-gevoel, derde in de rij. |
 | H6-02 | M29.2 | TAMMO | Een eierbal. Dat is anders. | variant 1, variant 1, variant 2 | laag | Directe terugkaatsing van Oma's antwoord, zonder uitleg. |
 | H6-03 | M30.6 | JELLE | Dat pand ken ik. Ik wacht tot de prijs zakt. | variant 1, variant 2, variant 2 | midden | Jelle wacht bureaucratisch op de prijs. |
-| HE-01 | F1 | TAMMO | Naar de motor. | niet beoordeeld |  |  |
-| HE-02 | F2 | TAMMO | Is dat een knop of een gebed? | niet beoordeeld |  |  |
-| HE-03 | F3 | TAMMO | Ik ben het compromis. | niet beoordeeld |  |  |
-| HE-04 | F4 | TAMMO | Ik heb ook geen vergunning. | niet beoordeeld |  |  |
-| HE-05 | F4 | JELLE | ...Dat is de eerste prijs die ik niet kon onderhandelen. | niet beoordeeld |  |  |
-| HE-06 | F5 | TESSA | Dat waren er drie. Kon meer. | niet beoordeeld |  |  |
-| HE-07 | F5 | TAMMO | Berend telde elf seconden. Dat is officieel. | niet beoordeeld |  |  |
-| HE-08 | F6 | TAMMO | Dat is een goede verhouding. Voor Jelle. | niet beoordeeld |  |  |
+| HE-01 | F1 | TAMMO | Naar de motor. Die ik er in gedachten al in heb gezet. | variant 1, variant 3, variant 4 | laag | Een motor in gedachten geplaatst: de wagen is een droom. |
+| HE-02 | F2 | TAMMO | Is dat een knop of een gebed? | variant 1, variant 3, variant 4 | laag | Voorgevoel is droog, gebed blijft staan. |
+| HE-03 | F3 | TAMMO | Ik ben het niemandsland. Met soep. | variant 2, variant 3, variant 4 | laag | Niemandsland met soep: een grens met een pan. |
+| HE-04 | F4 | TAMMO | Ik heb ook geen vergunning. | variant 1, variant 3, variant 4 | laag | De herhaling draagt het, kaal of met daar. |
+| HE-05 | F4 | JELLE | ...Een prijs zonder bijlage. Wie doet dat? | variant 3, variant 3, variant 4 | hoog | Bureaucratisch verbaasd, zonder uitleg. |
+| HE-06 | F5 | TESSA | Vier woorden. Op de Grote Markt waren het er vijf. | variant 2, variant 3, variant 4 | laag | Vijf naar vier is een daling: Tessa telt precies. |
+| HE-07 | F5 | TAMMO | Berend telde elf seconden en een duif telde mee. Dat is officieel. | variant 2, variant 3, variant 4 | laag | De duif telt mee: past bij zijn volgers. |
+| HE-08 | F6 | TAMMO | Eén stip. Maar wel de onze. | variant 1, variant 3, variant 4 | laag | Eén stip, wel de onze: trots. |
 | HI-01 | M06.0 | VELDKAMP | Mijn duiven doen dat bij niemand. Hij wil naar Tammo. | variant 1, variant 1, variant 2 | midden | Pointe landt op Tammo, droog en zonder uitleg. |
 | HI-02 | O1 | TAMMO | Staat "thee" erbij? | variant 1, variant 3, variant 3 | laag | Kort, onhandig-lief en praktisch. |
 | HI-03 | B1.1 | TAMMO | Het is een hele goede koelkast. | variant 1, variant 1, variant 1 | hoog | Praktisch, droog en korter dan de karakter-variant. |
@@ -111,15 +134,15 @@ Eerlijk over de proef: 106 beats. De beoordelaars lazen de stijlgids en de beats
 | HI-16 | M25.6 | OMA TRIJNTJE | Dan gaan ze er later in. | variant 1, variant 3, variant 2 | laag | Sluit exact aan op de herhaling in HI-17. |
 | HI-17 | M25.6 | LIEKE | Jullie zijn al samen. Jullie weten het alleen niet. | variant 1, variant 1, variant 1 | hoog | Kind zegt het ongezouten, Tammo en Tessa weten het niet. |
 | HI-18 | M25.6 | OMA TRIJNTJE | En wanneer trouwen jullie? | variant 1, variant 1, variant 1 | hoog | Oma rechttoe rechtaan, lokt Tammo's zwijgen uit. |
-| HJ-01 | J1 | TAMMO | Wij hebben nog geen bezwaar. | niet beoordeeld |  |  |
-| HJ-02 | J2 | LAMMERT | Een vraag. Zonder envelop. Dat heeft Jelle nog nooit geprobeerd. | niet beoordeeld |  |  |
-| HJ-03 | J3 | ANNEKE | Een bank voor drie. Jullie gebruiken anderhalf. | niet beoordeeld |  |  |
-| HJ-04 | J3 | ANNEKE | Dat dacht ik al. | niet beoordeeld |  |  |
-| HJ-05 | J4 | FEMKE | Dat zegt hij ook. | niet beoordeeld |  |  |
-| HJ-06 | J5 | TESSA | Brief vier. Ik heb ze allemaal gelezen. | niet beoordeeld |  |  |
-| HJ-07 | J5 | TESSA | Het is een eierbal. | niet beoordeeld |  |  |
-| HJ-08 | J6 | TESSA | Overig. | niet beoordeeld |  |  |
-| HJ-09 | J6 | TAMMO | Het is goede soep. | niet beoordeeld |  |  |
+| HJ-01 | J1 | TAMMO | Dan maken wij eerst bezwaar tegen zijn bezwaar. | variant 2, variant 3, variant 4 | laag | Bezwaar tegen bezwaar: Jelle-bureaucratie. |
+| HJ-02 | J2 | LAMMERT | Een vraag. Zonder envelop. Dat heeft Jelle nog nooit geprobeerd. | variant 2, variant 3, variant 4 | laag | Gratis is ongebruikelijk: droog en kort. |
+| HJ-03 | J3 | ANNEKE | Een bank voor drie. Jullie gebruiken anderhalf. | variant 1, variant 3, variant 4 | laag | Uiteinden is Groninger understatement. |
+| HJ-04 | J3 | ANNEKE | Dat was niet de zin waar je mee begon. | variant 2, variant 3, variant 4 | laag | Tammo's afgebroken zin wordt droog teruggelegd. |
+| HJ-05 | J4 | FEMKE | Jullie zijn al een koor. Dat is een begin. | variant 2, variant 3, variant 4 | laag | Een koor is al een begin. |
+| HJ-06 | J5 | TESSA | Brief vier, alinea twee. Het staat er gewoon. | variant 2, variant 3, variant 4 | laag | Het staat er gewoon: Tessa de jurist. |
+| HJ-07 | J5 | TESSA | Het is een eierbal. Hij heeft nog geen vergunning om zo te ruiken. | variant 2, variant 3, variant 4 | laag | Een eierbal zonder vergunning om te ruiken. |
+| HJ-08 | J6 | TESSA | Overig. Dat was het enige vakje dat nog open was. | variant 2, variant 3, variant 4 | laag | Het enige vakje dat nog open was: formulierdroogte. |
+| HJ-09 | J6 | TAMMO | Een man mag naar soep lachen. | variant 2, variant 3, variant 4 | laag | Een man mag: droog, geen uitleg. |
 | H01 | O1 | TAMMO | …Het was er al. | variant 2, variant 3, variant 3 | midden | Onhandige ontkenning met stilte. |
 | H02 | O2 | TAMMO | Ik weet het. | neutraal, neutraal, neutraal | midden | Ik weet het is warm en kort voor Rikus' slaap lekker. |
 | H03 | O6 | TESSA | Dat weet hij ook. Daarom belt hij mij. | variant 1, variant 2, variant 1 | midden | Daarom belt hij mij: droog en scherp. |
@@ -127,10 +150,10 @@ Eerlijk over de proef: 106 beats. De beoordelaars lazen de stijlgids en de beats
 | H06 | M02.5 | TESSA | Alleen of we een koekje wilden. | variant 1, variant 3, variant 2 | laag | Koekje wilden: Tessa's droge understatement. |
 | H07 | R1.1 | RIKUS | Dat is een helder plan. Ik zeg niks. Ik draai een plaat. | variant 2, neutraal, variant 2 | midden | Ik zeg niks als mening, dan de plaat: Rikus. |
 | H08 | C00.2 | TESSA | Vierentwintig, net afgestudeerd en samen nul banen. Na de studie gaat iedereen ergens anders heen. Wij niet. | variant 1, variant 1, variant 1 | hoog | Samen nul banen is de pointe, en de rest is kort. |
-| HK-01 | K1 | GEESJE | Dat hoeft ook niet. | niet beoordeeld |  |  |
-| HK-02 | K2 | TAMMO | Dat je je koffie met melk drinkt. | niet beoordeeld |  |  |
-| HK-03 | K2 | TESSA | Hij is lauw. | niet beoordeeld |  |  |
-| HK-04 | K3 | SJABBE | Dat is mijn zin. | niet beoordeeld |  |  |
+| HK-01 | K1 | GEESJE | Nee. Hij hangt er al veertig jaar. Hij wacht wel. | variant 2, variant 3, variant 4 | hoog | Veertig jaar wachten: Gronings. |
+| HK-02 | K2 | TAMMO | Hoeveel melk je in je koffie doet. Twee scheuten. | variant 2, variant 3, variant 4 | laag | Twee scheuten: heel kleine waarheid. |
+| HK-03 | K2 | TESSA | Hij is lauw. Dat is alles wat hier gebeurd is. | variant 2, variant 3, variant 4 | laag | Ontkenning die zichzelf verraadt. |
+| HK-04 | K3 | SJABBE | Dat is mijn zin. Hij ligt hier al sinds 1974. | variant 2, variant 3, variant 4 | laag | De zin ligt er sinds 1974. |
 | HN-01 | N8 | OMA TRIJNTJE | Dat is geen slapen. Dat is stilte met een plan. | variant 1, variant 2, variant 2 | midden | Meest onverwachte pointe die bij het personage past. |
 | HN-02 | N6 | KAPITEIN KLAAS | Dat telt. | neutraal, variant 2, variant 1 | laag | Twee woorden, maximaal understatement. |
 | HN-03 | N4 | TESSA | Iemand die alle regels kent. Behalve de leuke. | neutraal, variant 2, variant 3 | laag | Droog en past bij Jelle; 'behalve de leuke' landt. |
@@ -146,10 +169,10 @@ Eerlijk over de proef: 106 beats. De beoordelaars lazen de stijlgids en de beats
 | HN-13 | N5 | TESSA | Je vroeg ook niet naar de kippen. Er zijn er zeventien. Ze hebben namen. | variant 1, variant 2, variant 3 | laag | Meest onverwachte pointe die bij het personage past. |
 | HN-14 | N5 | TAMMO | De koe kijkt. Naar mij. Ze kent mijn duiven. | variant 1, variant 2, variant 2 | midden | Meest onverwachte pointe die bij het personage past. |
 | HN-15 | N7 | TAMMO | Een bus met principes. | variant 2, variant 2, variant 3 | midden | Bus met principes: serieus oordeel, absurd. |
-| HN-16 | N10 | TERRASGAST | Ik bedoelde de rekening. | voorstel, paneel nog te doen |  |  |
-| HN-17 | N12 | TAMMO | Dat wordt een mooie regel. | voorstel, paneel nog te doen |  |  |
-| HN-18 | N9 | TESSA | Het eet je sok. | voorstel, paneel nog te doen |  |  |
-| HN-19 | N9 | TAMMO | Ik kijk naar de beer. | voorstel, paneel nog te doen |  |  |
+| HN-16 | N10 | TERRASGAST | Ik bedoelde de rekening. Samen of apart? | variant 2, variant 3, variant 4 | laag | Samen of apart? sluit op Ah. Ja. Samen. |
+| HN-17 | N12 | TAMMO | Daar kan ik geen bezwaar tegen maken. | variant 2, variant 3, variant 4 | laag | Geen bezwaar: bureaucratisch tederheid. |
+| HN-18 | N9 | TESSA | Het schaap heeft nu een sok en een mening. | variant 2, variant 3, variant 4 | laag | Het schaap met een mening. |
+| HN-19 | N9 | TAMMO | Ik kijk naar de beer. Hij kijkt terug. | variant 2, variant 3, variant 4 | laag | De beer kijkt terug: de nacht wordt even levend. |
 
 ## De alternatieven per beat
 
@@ -400,51 +423,59 @@ Eerlijk over de proef: 106 beats. De beoordelaars lazen de stijlgids en de beats
 - neutraal: Dat pand ken ik al.
 
 **HE-01** (F1): Langs de zandweg bij Zuidhorn, bij de verroeste frituuraanhanger. Tessa kijkt verlangend naar het luik; Tammo zegt dat ze kijkt zoals hij naar... en wordt onderbroken door haar vraag.
-- variant 1 (gekozen): Naar de motor.
-- variant 2: Naar het chassis.
-- variant 3: Naar de aandrijfas.
+- variant 1: Naar de motor.
+- variant 2: Naar de motor. Ik geef het toe.
+- variant 3 (gekozen): Naar de motor. Die ik er in gedachten al in heb gezet.
+- variant 4: Naar een motor. Voorzichtig. Met open mond.
 - neutraal: Naar de wagen.
 
 **HE-02** (F2): Loods in Hoogkerk, de eerste bak. Tessa zegt dat hij de friteuse moet aanzetten; Tammo, die alleen motoren kent, vraagt wat voor knop het is.
 - variant 1 (gekozen): Is dat een knop of een gebed?
-- variant 2: Is dat een knop of een hoop?
-- variant 3: Is dit een knop of een offer?
+- variant 2: Is dat een knop of een voorgevoel?
+- variant 3: Is dat een knop? Hij kijkt me aan.
+- variant 4: Is dat een knop? Ik doe het voor jou. En voor Oma.
 - neutraal: Welke knop?
 
 **HE-03** (F3): Oma's keuken, Oma Trijntje (Gronings) en Beppe (Fries) kijken elkaar aan als een grensgeschil. Tessa noemt Tammo, die van beide oma's is, de verzoening.
-- variant 1 (gekozen): Ik ben het compromis.
-- variant 2: Ik ben de grensovergang.
-- variant 3: Ik ben de ruzie die het overleefde.
+- variant 1: Ik ben het compromis.
+- variant 2: Ik ben de onderhandeling. Ze zijn nog bezig.
+- variant 3 (gekozen): Ik ben het niemandsland. Met soep.
+- variant 4: Ik ben waar ze elkaar ontmoeten. Dat is een goede plek.
 - neutraal: Ik ben van allebei.
 
 **HE-04** (F4): Vismarkt, Jelle staat achteraan de rij. Tessa zegt dat Tammo hem één klap mag geven; Jelle merkt op dat het niet in zijn vergunning staat.
 - variant 1 (gekozen): Ik heb ook geen vergunning.
-- variant 2: Ik heb geen vergunning. Alleen een vuist.
-- variant 3: Ik ook niet. Dat maakt het eerlijk.
+- variant 2: Daar heb ik geen vergunning voor.
+- variant 3: Mijn vuist wacht op goedkeuring.
+- variant 4: Laat maar. Ik heb ook geen vergunning.
 - neutraal: Ik heb erover nagedacht.
 
 **HE-05** (F4): Vismarkt, aan het luik. Tessa vraagt een euro vijftig voor de eierbal en zegt dat dit de prijs is. Zijn eerste echte nederlaag in een onderhandeling.
-- variant 1 (gekozen): ...Dat is de eerste prijs die ik niet kon onderhandelen.
-- variant 2: ...Een vaste prijs. Het voelt als een vergunning.
-- variant 3: ...Dat is de eerste prijs zonder korting. Ik bewonder het bijna.
+- variant 1: ...Dat is de eerste prijs die ik niet kon onderhandelen.
+- variant 2: ...Geen staffel, geen korting. Dit is een vreemd systeem.
+- variant 3 (gekozen): ...Een prijs zonder bijlage. Wie doet dat?
+- variant 4: ...Eerlijk. Dat is lang geleden. Dank je.
 - neutraal: ...Goed. Eén euro vijftig.
 
 **HE-06** (F5): De kade aan de Noorderhaven. Tammo zegt dat hij het hier het liefst wil, met haar erbij. Tessa telt de woorden, een knipoog naar de vijf woorden van de Grote Markt.
-- variant 1 (gekozen): Dat waren er drie. Kon meer.
-- variant 2: Drie. Kon meer.
-- variant 3: Drie woorden. Dat is een stijging.
+- variant 1: Dat waren er vier. Kon meer.
+- variant 2 (gekozen): Vier woorden. Op de Grote Markt waren het er vijf.
+- variant 3: Vier. Rikus zou trots zijn.
+- variant 4: Vier woorden. Ik neem ze alle vier.
 - neutraal: Dat was mooi.
 
 **HE-07** (F5): De kade, na Tessa's vraag of ze nu een stel zijn. Tammo verwijst naar Berends tellen van de kus op de Grote Markt als bewijs.
-- variant 1 (gekozen): Berend telde elf seconden. Dat is officieel.
-- variant 2: Elf seconden, met getuigen. Dat is officieel.
-- variant 3: Berend heeft het genoteerd. Dat is officieel.
+- variant 1: Berend telde elf seconden. Dat is officieel.
+- variant 2: Elf seconden, door Berend genoteerd. Dat telt als stel.
+- variant 3 (gekozen): Berend telde elf seconden en een duif telde mee. Dat is officieel.
+- variant 4: Elf seconden. Berend telde. Ik raakte de tel kwijt.
 - neutraal: Ja.
 
 **HE-08** (F6): Vismarkt, de kaart van de provincie ligt op het luik: eenenveertig rode stippen van Us Mem Snacks tegen één blauwe van de wagen. Tessa heeft het aantal net genoemd.
-- variant 1 (gekozen): Dat is een goede verhouding. Voor Jelle.
-- variant 2: Dat is een goede verhouding. Voor de duiven.
-- variant 3: Eén blauw is genoeg. Het valt meer op.
+- variant 1: Dat is een goede verhouding. Voor Jelle.
+- variant 2: Hij is ons ver vooruit. Dat is zijn gewoonte.
+- variant 3: Eenenveertig rode stippen. Mijn duiven tellen mee.
+- variant 4 (gekozen): Eén stip. Maar wel de onze.
 - neutraal: Dat zijn er veel.
 
 **HI-01** (M06.0): Flat, bijna middernacht, akte 1. De oude buurman van elf negen klopt aan met een duif op zijn schouder; de duif wil naar Tammo en Veldkamp zegt dat droog en zonder uitleg.
@@ -556,57 +587,66 @@ Eerlijk over de proef: 106 beats. De beoordelaars lazen de stijlgids en de beats
 - neutraal: Eet nog een eierbal.
 
 **HJ-01** (J1): De flat in Paddepoel. Tessa leest een brief voor: Jelle heeft bezwaar ingediend tegen hun parkeervergunning. Tammo reageert droog; Tessa: 'Dat is het probleem. Hij was eerder.'
-- variant 1 (gekozen): Wij hebben nog geen bezwaar.
-- variant 2: Wij hebben nog niks ingediend.
-- variant 3: Ik wist niet dat ik bezwaar had.
+- variant 1: Wij hebben nog geen bezwaar.
+- variant 2 (gekozen): Dan maken wij eerst bezwaar tegen zijn bezwaar.
+- variant 3: Ik heb nog geen bezwaar. Mag ik een nummertje?
+- variant 4: Wij hebben nog nergens bezwaar tegen. We zijn net begonnen.
 - neutraal: Dat kan niet, wij hebben niets ingediend.
 
 **HJ-02** (J2): Appingedam, op de brug. Lammert krijgt een envelop met gratis frikandellen van Jelle om de kade niet aan Tammo en Tessa te geven. Tammo vraagt wat hij dan wel aanneemt.
 - variant 1 (gekozen): Een vraag. Zonder envelop. Dat heeft Jelle nog nooit geprobeerd.
-- variant 2: Een vraag, zonder envelop. Die had ik nog niet in het register.
-- variant 3: Een gewone vraag. Dat woord kent Jelle niet.
+- variant 2: Een vraag. Gratis. Dat is hier ongebruikelijk.
+- variant 3: Een vraag. De frikandellen vroegen niks en keken me wel aan.
+- variant 4: Een vraag. Van mens tot mens. Dat is lang geleden.
 - neutraal: Gewoon een eerlijke vraag.
 
 **HJ-03** (J3): Het erf bij Siddeburen, de dag na de kus in de botsauto. Tessa en Tammo zitten een halve meter uit elkaar op een bank. Tessa's moeder merkt het meteen op.
 - variant 1 (gekozen): Een bank voor drie. Jullie gebruiken anderhalf.
-- variant 2: Een bank voor drie. Jullie zijn met zijn tweeën en gebruiken er anderhalf.
-- variant 3: Er past een hond tussen. Wij hebben geen hond.
+- variant 2: Een bank voor drie. Jullie nemen de uiteinden.
+- variant 3: Daar past mijn breiwerk tussen. En mijn mening.
+- variant 4: Er is plek voor een derde. Of voor jullie samen.
 - neutraal: Jullie zitten wel erg ver uit elkaar.
 
 **HJ-04** (J3): Koffie op het erf. Tammo begint 'Tessa, eigenlijk' (de onvoltooide zin), Tessa's moeder legt haar breiwerk neer en luistert. Tammo maakt de zin af over de koffie.
-- variant 1 (gekozen): Dat dacht ik al.
-- variant 2: Dat is een mooi begin van een zin.
-- variant 3: Zo begint het bij ons in de familie altijd.
+- variant 1: Dat dacht ik al.
+- variant 2 (gekozen): Dat was niet de zin waar je mee begon.
+- variant 3: Ik zet er een pot extra voor. Je gaat het nodig hebben.
+- variant 4: Neem de tijd, jongen. De koffie loopt niet weg.
 - neutraal: Fijn dat je het lekker vindt.
 
 **HJ-05** (J4): Dubbele date op een terras in Veendam. Tammo en Tessa zeggen allebei dat het geen date is; Tessa schrijft de rekening in haar kasboekje. Femke legt het vast.
-- variant 1 (gekozen): Dat zegt hij ook.
-- variant 2: Dat zei hij net ook. Woord voor woord.
-- variant 3: Jullie zeggen het in koor.
+- variant 1: Dat zegt hij ook.
+- variant 2: Dat zei hij net ook. In dezelfde toonhoogte.
+- variant 3: Als jullie het tegelijk zeggen, noemen wij het een duet.
+- variant 4 (gekozen): Jullie zijn al een koor. Dat is een begin.
 - neutraal: Dat zei hij ook al.
 
 **HJ-06** (J5): Stadskanaal. Jelle laat een wielklem op de Escapade zetten met een verzonnen artikel; Tessa heeft in J1 al zijn brieven gelezen en slaat terug met artikel 9.
-- variant 1 (gekozen): Brief vier. Ik heb ze allemaal gelezen.
-- variant 2: Brief vier. Ik las hem twee keer. Ook de bijlagen.
-- variant 3: Brief vier zit in mijn tas. Ik lees graag.
+- variant 1: Brief vier. Ik heb ze allemaal gelezen.
+- variant 2 (gekozen): Brief vier, alinea twee. Het staat er gewoon.
+- variant 3: Brief vier. Ik heb ze voorgelezen aan de koelkast.
+- variant 4: Brief vier. Tammo en ik lazen ze samen. Het was gezellig.
 - neutraal: Wij hebben bezwaar ingediend.
 
 **HJ-07** (J5): Jelle klapt de broodtrommel open die Douwe hem geeft: een warme eierbal met een briefje. Tessa (die zijn oma Mem kent maar het niet zegt) kijkt te lang. Tammo merkt het op.
-- variant 1 (gekozen): Het is een eierbal.
-- variant 2: Het is een eierbal. Ik heb honger.
-- variant 3: Er zit mosterd op.
+- variant 1: Het is een eierbal.
+- variant 2: Een eierbal met een briefje. Dat is geen bewijs.
+- variant 3 (gekozen): Het is een eierbal. Hij heeft nog geen vergunning om zo te ruiken.
+- variant 4: Het is een eierbal. Iemand denkt aan hem.
 - neutraal: Hij ruikt lekker.
 
 **HJ-08** (J6): De flat. Beppe vraagt in het Fries wanneer ze trouwen. Tessa begint 'wij zijn...', Tammo zegt 'Huisgenoten' en Tessa maakt het af met het vakje dat ze eerder op het formulier aankruiste.
-- variant 1 (gekozen): Overig.
-- variant 2: Overig. Dat is een categorie.
-- variant 3: Wij staan onder overig.
+- variant 1: Overig.
+- variant 2 (gekozen): Overig. Dat was het enige vakje dat nog open was.
+- variant 3: Overig. Wij hebben ook een eigen formulier. Nog niet ingediend.
+- variant 4: Overig. Voorlopig.
 - neutraal: Allebei, eigenlijk.
 
 **HJ-09** (J6): Na zijn dagdroom (de bruiloft bij de snackwagen, de duif met de ringen) schrikt Tammo wakker. Tessa zegt dat hij naar de soep lacht.
-- variant 1 (gekozen): Het is goede soep.
-- variant 2: Het is een mooie pan.
-- variant 3: De soep zei iets liefs.
+- variant 1: Het is goede soep.
+- variant 2 (gekozen): Een man mag naar soep lachen.
+- variant 3: De soep zei net iets over een duif.
+- variant 4: Ik dacht aan iets moois. De soep mocht meekijken.
 - neutraal: Ik dacht even ergens aan.
 
 **H01** (O1): Flat, avond. Tessa merkt dat het kaartje van de eerste studieweek nog aan de koelkast hangt; Tammo doet alsof dat toeval is.
@@ -652,27 +692,31 @@ Eerlijk over de proef: 106 beats. De beoordelaars lazen de stijlgids en de beats
 - neutraal: Wij zijn vierentwintig, net afgestudeerd en werkloos. Na de studie gaat iedereen ergens anders heen. Wij niet.
 
 **HK-01** (K1): Achter de pastorie in Warffum. Tessa zegt dat ze de sleutel van de schuur niet pakt; Geesje wijst naar de spijker en laat haar bezwaar in de lucht hangen.
-- variant 1 (gekozen): Dat hoeft ook niet.
-- variant 2: Dat hoefde ook niet.
-- variant 3: Dat doet de kip voor je.
+- variant 1: Dat hoeft ook niet.
+- variant 2 (gekozen): Nee. Hij hangt er al veertig jaar. Hij wacht wel.
+- variant 3: Dat hoeft ook niet. De spijker hoort alles.
+- variant 4: Dat hoeft ook niet. Ik zie het aan je.
 - neutraal: Je hoeft niets te zeggen.
 
 **HK-02** (K2): De kade van Zoutkamp bij zonsopgang. Tammo zegt dat hij het al lang wist en Tessa vraagt wat; hij redt zich met een heel kleine waarheid in plaats van het grote woord.
-- variant 1 (gekozen): Dat je je koffie met melk drinkt.
-- variant 2: Hoe je je koffie drinkt.
-- variant 3: Dat je koffie met melk hoort.
+- variant 1: Dat je je koffie met melk drinkt.
+- variant 2 (gekozen): Hoeveel melk je in je koffie doet. Twee scheuten.
+- variant 3: Dat je koffie met melk drinkt. Ik heb er al een thermoskan voor.
+- variant 4: Dat je je koffie met melk drinkt. Ik denk er elke ochtend aan.
 - neutraal: Dat je koffie met melk neemt.
 
 **HK-03** (K2): De kade van Zoutkamp. Na het bijna-moment proeft Tessa van de koffie die Tammo sinds half zes warm hield; zij ontkent met een droge zin dat er iets gebeurd is.
-- variant 1 (gekozen): Hij is lauw.
-- variant 2: Hij is al uren koud.
-- variant 3: Dit is geen koffie meer.
+- variant 1: Hij is lauw.
+- variant 2 (gekozen): Hij is lauw. Dat is alles wat hier gebeurd is.
+- variant 3: Hij is lauw. De koffie. Niet ik.
+- variant 4: Hij is lauw. Hij is precies goed.
 - neutraal: De koffie is lauw.
 
 **HK-04** (K3): Het havenkantoor, drie uur in de nacht. Sjabbe herhaalt zijn eigen vaste zin op het moment dat Tessa hem, onbedoeld, citeert; hij neemt hem terug alsof het een contract is.
-- variant 1 (gekozen): Dat is mijn zin.
-- variant 2: Die zin is van mij.
-- variant 3: Die staat op mijn naam.
+- variant 1: Dat is mijn zin.
+- variant 2: Dat is mijn zin. Hij is niet te koop.
+- variant 3 (gekozen): Dat is mijn zin. Hij ligt hier al sinds 1974.
+- variant 4: Dat is mijn zin. Maar jij mag hem hebben.
 - neutraal: Dat zeg ik meestal.
 
 **HN-01** (N8): Oma's logeerkamer, avond. Tessa en Tammo pakken tegelijk dezelfde punaise; een lange stilte. Beneden klinkt Oma's pollepel op een pan en ze roept dat ze niet slapen. Tessa: "We slapen, Oma." Oma antwoordt; daarna zegt Tammo "Het is een punaise."
@@ -766,25 +810,29 @@ Eerlijk over de proef: 106 beats. De beoordelaars lazen de stijlgids en de beats
 - neutraal: Een goede bus.
 
 **HN-16** (N10): Terras aan de Grote Markt. De gast vroeg of Tammo en Tessa al samen zijn; zij beantwoorden dat als vraag over hun relatie. De gast bedoelde iets heel anders.
-- variant 1 (gekozen): Ik bedoelde de rekening.
-- variant 2: Ik vroeg naar de rekening.
-- variant 3: Ik wilde alleen betalen.
+- variant 1: Ik bedoelde de rekening.
+- variant 2 (gekozen): Ik bedoelde de rekening. Samen of apart?
+- variant 3: Ik bedoelde de rekening, maar nu moet ik ook de rest weten.
+- variant 4: Ik bedoelde de rekening. Maar ik wens jullie het beste.
 - neutraal: Ik wilde graag afrekenen.
 
 **HN-17** (N12): De flat, bij de koelkast. Tessa heeft een lijstje gemaakt van wie wat kan en zet SAMEN met een dubbele punt op een lege regel. Tammo kijkt naar de lege regel en dan naar haar.
-- variant 1 (gekozen): Dat wordt een mooie regel.
-- variant 2: Ik hoop dat die regel lang wordt.
-- variant 3: Die regel wil ik zelf invullen.
+- variant 1: Dat wordt een mooie regel.
+- variant 2 (gekozen): Daar kan ik geen bezwaar tegen maken.
+- variant 3: Zet er maar een duif bij. Voor de zekerheid.
+- variant 4: Ik hoop dat die regel nooit af is.
 - neutraal: Dat komt nog wel.
 
 **HN-18** (N9): Nacht op een dijk, in een oud busje met de achterdeuren open. Een schaap staat tussen hen in het beeld en kauwt op Tammo's sok; het bijna-moment is net voorbij.
-- variant 1 (gekozen): Het eet je sok.
-- variant 2: Het schaap eet je sok.
-- variant 3: Hij heeft je sok.
+- variant 1: Het eet je sok.
+- variant 2: Het schaap eet je sok. Het kauwt zorgvuldig.
+- variant 3 (gekozen): Het schaap heeft nu een sok en een mening.
+- variant 4: Het schaap heeft je lief. Het eet je sok.
 - neutraal: Het pakt je sok.
 
 **HN-19** (N9): Nacht op een dijk. Tessa wijst naar de Grote Beer en zegt dat hij niet kijkt; Tammo kijkt naar haar vinger en niet naar de lucht.
-- variant 1 (gekozen): Ik kijk naar de beer.
-- variant 2: Ik kijk naar het sterrenbeeld.
-- variant 3: Ik kijk wel degelijk.
+- variant 1: Ik kijk naar de beer.
+- variant 2: Ik kijk naar de beer. Hij staat laag.
+- variant 3 (gekozen): Ik kijk naar de beer. Hij kijkt terug.
+- variant 4: Ik kijk naar iets moois. Ik noem het de beer.
 - neutraal: Ik kijk wel.

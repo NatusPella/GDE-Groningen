@@ -1,10 +1,10 @@
 {
- "note": "Humorvoorstellen (#1121), ronde 5: Jelle en de romance, J1-J6. Nog niet door het paneel beoordeeld (geen 'panel'); chosen 0 is het voorstel van de schrijver.",
+ "note": "Humorvoorstellen (#1121), ronde 5: Jelle en de romance, J1-J6. Paneel 22-11 (docs/verhaal/HUMOR-PANEEL-22-11.md): vier varianten (0 = het bestaande, 1 droog, 2 absurd, 3 warm) en een neutrale terugval; chosen is de winnaar.",
  "beats": [
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
+   "chosen": 1,
    "id": "HJ-01",
    "scene": "J1",
    "speaker": "TAMMO",
@@ -12,10 +12,21 @@
    "shot": "twee-shot boven de stapel brieven, Tammo met zijn thee",
    "variants": [
     "Wij hebben nog geen bezwaar.",
-    "Wij hebben nog niks ingediend.",
-    "Ik wist niet dat ik bezwaar had."
+    "Dan maken wij eerst bezwaar tegen zijn bezwaar.",
+    "Ik heb nog geen bezwaar. Mag ik een nummertje?",
+    "Wij hebben nog nergens bezwaar tegen. We zijn net begonnen."
    ],
-   "neutral": "Dat kan niet, wij hebben niets ingediend."
+   "neutral": "Dat kan niet, wij hebben niets ingediend.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Bezwaar tegen bezwaar: Jelle-bureaucratie.",
+    "certainty": "laag",
+    "tiebreak": 1
+   }
   },
   {
    "label": "humor-review",
@@ -28,10 +39,21 @@
    "shot": "halve close-up Lammert met de envelop, Durk en Douwe stijf op de achtergrond",
    "variants": [
     "Een vraag. Zonder envelop. Dat heeft Jelle nog nooit geprobeerd.",
-    "Een vraag, zonder envelop. Die had ik nog niet in het register.",
-    "Een gewone vraag. Dat woord kent Jelle niet."
+    "Een vraag. Gratis. Dat is hier ongebruikelijk.",
+    "Een vraag. De frikandellen vroegen niks en keken me wel aan.",
+    "Een vraag. Van mens tot mens. Dat is lang geleden."
    ],
-   "neutral": "Gewoon een eerlijke vraag."
+   "neutral": "Gewoon een eerlijke vraag.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Gratis is ongebruikelijk: droog en kort.",
+    "certainty": "laag",
+    "tiebreak": 0
+   }
   },
   {
    "label": "humor-review",
@@ -44,15 +66,26 @@
    "shot": "totaalshot van de bank, dan halve close-up Anneke",
    "variants": [
     "Een bank voor drie. Jullie gebruiken anderhalf.",
-    "Een bank voor drie. Jullie zijn met zijn tweeën en gebruiken er anderhalf.",
-    "Er past een hond tussen. Wij hebben geen hond."
+    "Een bank voor drie. Jullie nemen de uiteinden.",
+    "Daar past mijn breiwerk tussen. En mijn mening.",
+    "Er is plek voor een derde. Of voor jullie samen."
    ],
-   "neutral": "Jullie zitten wel erg ver uit elkaar."
+   "neutral": "Jullie zitten wel erg ver uit elkaar.",
+   "panel": {
+    "votes": [
+     0,
+     2,
+     3
+    ],
+    "reason": "Uiteinden is Groninger understatement.",
+    "certainty": "laag",
+    "tiebreak": 0
+   }
   },
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
+   "chosen": 1,
    "id": "HJ-04",
    "scene": "J3",
    "speaker": "ANNEKE",
@@ -60,15 +93,26 @@
    "shot": "halve close-up Anneke met het breiwerk op schoot; Tessa kijkt naar haar kopje",
    "variants": [
     "Dat dacht ik al.",
-    "Dat is een mooi begin van een zin.",
-    "Zo begint het bij ons in de familie altijd."
+    "Dat was niet de zin waar je mee begon.",
+    "Ik zet er een pot extra voor. Je gaat het nodig hebben.",
+    "Neem de tijd, jongen. De koffie loopt niet weg."
    ],
-   "neutral": "Fijn dat je het lekker vindt."
+   "neutral": "Fijn dat je het lekker vindt.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Tammo's afgebroken zin wordt droog teruggelegd.",
+    "certainty": "laag",
+    "tiebreak": 1
+   }
   },
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
+   "chosen": 3,
    "id": "HJ-05",
    "scene": "J4",
    "speaker": "FEMKE",
@@ -76,15 +120,26 @@
    "shot": "halve close-up Femke, daarna een twee-shot van Tammo en Tessa die allebei naar de kaars kijken",
    "variants": [
     "Dat zegt hij ook.",
-    "Dat zei hij net ook. Woord voor woord.",
-    "Jullie zeggen het in koor."
+    "Dat zei hij net ook. In dezelfde toonhoogte.",
+    "Als jullie het tegelijk zeggen, noemen wij het een duet.",
+    "Jullie zijn al een koor. Dat is een begin."
    ],
-   "neutral": "Dat zei hij ook al."
+   "neutral": "Dat zei hij ook al.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Een koor is al een begin.",
+    "certainty": "laag",
+    "tiebreak": 3
+   }
   },
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
+   "chosen": 1,
    "id": "HJ-06",
    "scene": "J5",
    "speaker": "TESSA",
@@ -92,15 +147,26 @@
    "shot": "halve close-up Tessa met de brieven in haar hand, Jelle schuin op de achtergrond",
    "variants": [
     "Brief vier. Ik heb ze allemaal gelezen.",
-    "Brief vier. Ik las hem twee keer. Ook de bijlagen.",
-    "Brief vier zit in mijn tas. Ik lees graag."
+    "Brief vier, alinea twee. Het staat er gewoon.",
+    "Brief vier. Ik heb ze voorgelezen aan de koelkast.",
+    "Brief vier. Tammo en ik lazen ze samen. Het was gezellig."
    ],
-   "neutral": "Wij hebben bezwaar ingediend."
+   "neutral": "Wij hebben bezwaar ingediend.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Het staat er gewoon: Tessa de jurist.",
+    "certainty": "laag",
+    "tiebreak": 1
+   }
   },
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
+   "chosen": 2,
    "id": "HJ-07",
    "scene": "J5",
    "speaker": "TESSA",
@@ -108,15 +174,26 @@
    "shot": "halve close-up Tessa, dan Jelle die de broodtrommel te snel dichtklapt",
    "variants": [
     "Het is een eierbal.",
-    "Het is een eierbal. Ik heb honger.",
-    "Er zit mosterd op."
+    "Een eierbal met een briefje. Dat is geen bewijs.",
+    "Het is een eierbal. Hij heeft nog geen vergunning om zo te ruiken.",
+    "Het is een eierbal. Iemand denkt aan hem."
    ],
-   "neutral": "Hij ruikt lekker."
+   "neutral": "Hij ruikt lekker.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Een eierbal zonder vergunning om te ruiken.",
+    "certainty": "laag",
+    "tiebreak": 2
+   }
   },
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
+   "chosen": 1,
    "id": "HJ-08",
    "scene": "J6",
    "speaker": "TESSA",
@@ -124,15 +201,26 @@
    "shot": "twee-shot, Tessa met haar kopje, Tammo kijkt naar de pan",
    "variants": [
     "Overig.",
-    "Overig. Dat is een categorie.",
-    "Wij staan onder overig."
+    "Overig. Dat was het enige vakje dat nog open was.",
+    "Overig. Wij hebben ook een eigen formulier. Nog niet ingediend.",
+    "Overig. Voorlopig."
    ],
-   "neutral": "Allebei, eigenlijk."
+   "neutral": "Allebei, eigenlijk.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Het enige vakje dat nog open was: formulierdroogte.",
+    "certainty": "laag",
+    "tiebreak": 1
+   }
   },
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
+   "chosen": 1,
    "id": "HJ-09",
    "scene": "J6",
    "speaker": "TAMMO",
@@ -140,10 +228,21 @@
    "shot": "halve close-up Tammo, ogen op de pan; Tessa zwaait nog met haar hand",
    "variants": [
     "Het is goede soep.",
-    "Het is een mooie pan.",
-    "De soep zei iets liefs."
+    "Een man mag naar soep lachen.",
+    "De soep zei net iets over een duif.",
+    "Ik dacht aan iets moois. De soep mocht meekijken."
    ],
-   "neutral": "Ik dacht even ergens aan."
+   "neutral": "Ik dacht even ergens aan.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Een man mag: droog, geen uitleg.",
+    "certainty": "laag",
+    "tiebreak": 1
+   }
   }
  ]
 }

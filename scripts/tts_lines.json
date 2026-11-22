@@ -325,17 +325,17 @@
   "file": "tammo/het_is_een_begin_7cd43b40.mp3"
  },
  {
-  "key": "Anita|Hij is lauw.",
+  "key": "Anita|Hij is lauw. Dat is alles wat hier gebeurd is.",
   "speaker": "Anita",
-  "text": "Hij is lauw.",
+  "text": "Hij is lauw. Dat is alles wat hier gebeurd is.",
   "area": "K2",
   "out": "lines",
   "lang": "own",
   "voice": "Callirrhoe",
   "who": "Nederlandse vrouw, lacherig en ad rem",
-  "tag": "enthousiast, snel",
-  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
-  "file": "anita/hij_is_lauw_1acd52ae.mp3"
+  "tag": "lacherig, ad rem",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+  "file": "anita/hij_is_lauw_dat_is_alles_wat_hie_31348b64.mp3"
  },
  {
   "key": "Anita|Ik vroeg niks.",
@@ -364,19 +364,6 @@
   "file": "anita/en_wie_een_pand_beheert_654fabef.mp3"
  },
  {
-  "key": "Sjabbe|Dat is mijn zin.",
-  "speaker": "Sjabbe",
-  "text": "Dat is mijn zin.",
-  "area": "K3",
-  "out": "lines",
-  "lang": "gro",
-  "voice": "Rasalgethi",
-  "who": "sluwe Groningse heler, hees en zakelijk",
-  "tag": "zakelijk, onder de indruk",
-  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; sluwe Groningse heler, hees en zakelijk. Tone: zakelijk, onder de indruk.",
-  "file": "sjabbe/dat_is_mijn_zin_1c49b761.mp3"
- },
- {
   "key": "Anita|Dit is onze eerste sleutel.",
   "speaker": "Anita",
   "text": "Dit is onze eerste sleutel.",
@@ -388,6 +375,58 @@
   "tag": "plagend, zelfverzekerd",
   "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
   "file": "anita/dit_is_onze_eerste_sleutel_898485f9.mp3"
+ },
+ {
+  "key": "Anita|Het schaap heeft nu een sok en een mening.",
+  "speaker": "Anita",
+  "text": "Het schaap heeft nu een sok en een mening.",
+  "area": "N9",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "warm, grinnikend",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+  "file": "anita/het_schaap_heeft_nu_een_sok_en_e_2f697fbe.mp3"
+ },
+ {
+  "key": "Anita|Brief vier, alinea twee. Het staat er gewoon.",
+  "speaker": "Anita",
+  "text": "Brief vier, alinea twee. Het staat er gewoon.",
+  "area": "J5",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "warm, grinnikend",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+  "file": "anita/brief_vier_alinea_twee_het_staat_3cc4b318.mp3"
+ },
+ {
+  "key": "Anita|Het is een eierbal. Hij heeft nog geen vergunning om zo te ruiken.",
+  "speaker": "Anita",
+  "text": "Het is een eierbal. Hij heeft nog geen vergunning om zo te ruiken.",
+  "area": "J5",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "enthousiast, snel",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+  "file": "anita/het_is_een_eierbal_hij_heeft_nog_55b0ba7d.mp3"
+ },
+ {
+  "key": "Anita|Overig. Dat was het enige vakje dat nog open was.",
+  "speaker": "Anita",
+  "text": "Overig. Dat was het enige vakje dat nog open was.",
+  "area": "J6",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "warm, grinnikend",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+  "file": "anita/overig_dat_was_het_enige_vakje_d_1d17e04e.mp3"
  },
  {
   "key": "Jelle Terpstra|Mem. U houdt hem vast tot ik win. Dat was de afspraak.",
@@ -557,6 +596,32 @@
   "tag": "plechtig, overdreven trots",
   "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: plechtig, overdreven trots.",
   "file": "jelle_terpstra/om_drie_uur_schrijf_ik_mij_in_al_3687e6d8.mp3"
+ },
+ {
+  "key": "Jelle Terpstra|...Een prijs zonder bijlage. Wie doet dat?",
+  "speaker": "Jelle Terpstra",
+  "text": "...Een prijs zonder bijlage. Wie doet dat?",
+  "area": "F4",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Fenrir",
+  "who": "ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden",
+  "tag": "vragend, nieuwsgierig",
+  "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: vragend, nieuwsgierig.",
+  "file": "jelle_terpstra/een_prijs_zonder_bijlage_wie_doe_33f41f1b.mp3"
+ },
+ {
+  "key": "Anita|Vier woorden. Op de Grote Markt waren het er vijf.",
+  "speaker": "Anita",
+  "text": "Vier woorden. Op de Grote Markt waren het er vijf.",
+  "area": "F5",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "lacherig, ad rem",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+  "file": "anita/vier_woorden_op_de_grote_markt_w_8794f0d9.mp3"
  },
  {
   "key": "Anita|Zeven mensen die niet weglopen.",

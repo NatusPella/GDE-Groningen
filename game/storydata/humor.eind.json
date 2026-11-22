@@ -1,10 +1,10 @@
 {
- "note": "Humorkeuze (#1134), verhaal-eind (21-11): de slotstappen F1-F6. Voorstel: nog niet door het paneel beoordeeld; chosen is de variant die nu in het script staat.",
+ "note": "Humorkeuze (#1134), verhaal-eind (21-11): de slotstappen F1-F6. Paneel 22-11 (docs/verhaal/HUMOR-PANEEL-22-11.md): vier varianten (0 = het bestaande, 1 droog, 2 absurd, 3 warm) en een neutrale terugval; chosen is de winnaar.",
  "beats": [
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
+   "chosen": 2,
    "id": "HE-01",
    "scene": "F1",
    "speaker": "TAMMO",
@@ -12,10 +12,21 @@
    "shot": "halve close-up Tammo, ogen op de aanhanger; Tessa half in beeld",
    "variants": [
     "Naar de motor.",
-    "Naar het chassis.",
-    "Naar de aandrijfas."
+    "Naar de motor. Ik geef het toe.",
+    "Naar de motor. Die ik er in gedachten al in heb gezet.",
+    "Naar een motor. Voorzichtig. Met open mond."
    ],
-   "neutral": "Naar de wagen."
+   "neutral": "Naar de wagen.",
+   "panel": {
+    "votes": [
+     0,
+     2,
+     3
+    ],
+    "reason": "Een motor in gedachten geplaatst: de wagen is een droom.",
+    "certainty": "laag",
+    "tiebreak": 2
+   }
   },
   {
    "label": "humor-review",
@@ -28,15 +39,26 @@
    "shot": "twee-shot bij de friteuse, Tammo wijst met een steeksleutel",
    "variants": [
     "Is dat een knop of een gebed?",
-    "Is dat een knop of een hoop?",
-    "Is dit een knop of een offer?"
+    "Is dat een knop of een voorgevoel?",
+    "Is dat een knop? Hij kijkt me aan.",
+    "Is dat een knop? Ik doe het voor jou. En voor Oma."
    ],
-   "neutral": "Welke knop?"
+   "neutral": "Welke knop?",
+   "panel": {
+    "votes": [
+     0,
+     2,
+     3
+    ],
+    "reason": "Voorgevoel is droog, gebed blijft staan.",
+    "certainty": "laag",
+    "tiebreak": 0
+   }
   },
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
+   "chosen": 2,
    "id": "HE-03",
    "scene": "F3",
    "speaker": "TAMMO",
@@ -44,10 +66,21 @@
    "shot": "totaal van de keuken, dan inzet op Tammo tussen de twee fornuizen",
    "variants": [
     "Ik ben het compromis.",
-    "Ik ben de grensovergang.",
-    "Ik ben de ruzie die het overleefde."
+    "Ik ben de onderhandeling. Ze zijn nog bezig.",
+    "Ik ben het niemandsland. Met soep.",
+    "Ik ben waar ze elkaar ontmoeten. Dat is een goede plek."
    ],
-   "neutral": "Ik ben van allebei."
+   "neutral": "Ik ben van allebei.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Niemandsland met soep: een grens met een pan.",
+    "certainty": "laag",
+    "tiebreak": 2
+   }
   },
   {
    "label": "humor-review",
@@ -60,15 +93,26 @@
    "shot": "close-up Tammo, de vuist opent zich langzaam",
    "variants": [
     "Ik heb ook geen vergunning.",
-    "Ik heb geen vergunning. Alleen een vuist.",
-    "Ik ook niet. Dat maakt het eerlijk."
+    "Daar heb ik geen vergunning voor.",
+    "Mijn vuist wacht op goedkeuring.",
+    "Laat maar. Ik heb ook geen vergunning."
    ],
-   "neutral": "Ik heb erover nagedacht."
+   "neutral": "Ik heb erover nagedacht.",
+   "panel": {
+    "votes": [
+     0,
+     2,
+     3
+    ],
+    "reason": "De herhaling draagt het, kaal of met daar.",
+    "certainty": "laag",
+    "tiebreak": 0
+   }
   },
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
+   "chosen": 2,
    "id": "HE-05",
    "scene": "F4",
    "speaker": "JELLE",
@@ -76,31 +120,52 @@
    "shot": "halve close-up Jelle, de mond half open; Mem kijkt zijdelings toe",
    "variants": [
     "...Dat is de eerste prijs die ik niet kon onderhandelen.",
-    "...Een vaste prijs. Het voelt als een vergunning.",
-    "...Dat is de eerste prijs zonder korting. Ik bewonder het bijna."
+    "...Geen staffel, geen korting. Dit is een vreemd systeem.",
+    "...Een prijs zonder bijlage. Wie doet dat?",
+    "...Eerlijk. Dat is lang geleden. Dank je."
    ],
-   "neutral": "...Goed. Eén euro vijftig."
+   "neutral": "...Goed. Eén euro vijftig.",
+   "panel": {
+    "votes": [
+     2,
+     2,
+     3
+    ],
+    "reason": "Bureaucratisch verbaasd, zonder uitleg.",
+    "certainty": "hoog"
+   }
   },
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
+   "chosen": 1,
    "id": "HE-06",
    "scene": "F5",
    "speaker": "TESSA",
    "context": "De kade aan de Noorderhaven. Tammo zegt dat hij het hier het liefst wil, met haar erbij. Tessa telt de woorden, een knipoog naar de vijf woorden van de Grote Markt.",
    "shot": "twee-shot op het luik, Tessa telt op haar vingers",
    "variants": [
-    "Dat waren er drie. Kon meer.",
-    "Drie. Kon meer.",
-    "Drie woorden. Dat is een stijging."
+    "Dat waren er vier. Kon meer.",
+    "Vier woorden. Op de Grote Markt waren het er vijf.",
+    "Vier. Rikus zou trots zijn.",
+    "Vier woorden. Ik neem ze alle vier."
    ],
-   "neutral": "Dat was mooi."
+   "neutral": "Dat was mooi.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "Vijf naar vier is een daling: Tessa telt precies.",
+    "certainty": "laag",
+    "tiebreak": 1
+   }
   },
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
+   "chosen": 2,
    "id": "HE-07",
    "scene": "F5",
    "speaker": "TAMMO",
@@ -108,15 +173,26 @@
    "shot": "close-up Tammo, ernstig, met een eierbal in de hand",
    "variants": [
     "Berend telde elf seconden. Dat is officieel.",
-    "Elf seconden, met getuigen. Dat is officieel.",
-    "Berend heeft het genoteerd. Dat is officieel."
+    "Elf seconden, door Berend genoteerd. Dat telt als stel.",
+    "Berend telde elf seconden en een duif telde mee. Dat is officieel.",
+    "Elf seconden. Berend telde. Ik raakte de tel kwijt."
    ],
-   "neutral": "Ja."
+   "neutral": "Ja.",
+   "panel": {
+    "votes": [
+     1,
+     2,
+     3
+    ],
+    "reason": "De duif telt mee: past bij zijn volgers.",
+    "certainty": "laag",
+    "tiebreak": 2
+   }
   },
   {
    "label": "humor-review",
    "sensitive": false,
-   "chosen": 0,
+   "chosen": 3,
    "id": "HE-08",
    "scene": "F6",
    "speaker": "TAMMO",
@@ -124,10 +200,21 @@
    "shot": "hoge opname van de kaart op het luik, Tammo's vinger op het blauwe stipje",
    "variants": [
     "Dat is een goede verhouding. Voor Jelle.",
-    "Dat is een goede verhouding. Voor de duiven.",
-    "Eén blauw is genoeg. Het valt meer op."
+    "Hij is ons ver vooruit. Dat is zijn gewoonte.",
+    "Eenenveertig rode stippen. Mijn duiven tellen mee.",
+    "Eén stip. Maar wel de onze."
    ],
-   "neutral": "Dat zijn er veel."
+   "neutral": "Dat zijn er veel.",
+   "panel": {
+    "votes": [
+     0,
+     2,
+     3
+    ],
+    "reason": "Eén stip, wel de onze: trots.",
+    "certainty": "laag",
+    "tiebreak": 3
+   }
   }
  ]
 }
