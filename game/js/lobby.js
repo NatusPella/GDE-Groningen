@@ -489,7 +489,7 @@ export function view(s) {
         title: 'Aansluiten', lines: ['Voer de kamercode of de koppelcode in die je kreeg. Je speelt lokaal je eigen verhaal (Tammo of Tessa, wat jouw opdracht vraagt) en de anderen zien je als je online-avatar. Kies hieronder je naam, kleur en figuur: je naam en kleur zijn wat de anderen bij je figuur zien.', GAST_BEWAREN(s.caps.spelNaam)],
         profiel,
         wachtwoord: wachtwoordVeld(),
-        input: { placeholder: 'Kamercode of GDE2-…', value: invoerWaarde(s), maxLength: INVOER_MAX, label: 'Kamercode of koppelcode' },
+        input: { osk: 'code', placeholder: 'Kamercode of GDE2-…', value: invoerWaarde(s), maxLength: INVOER_MAX, label: 'Kamercode of koppelcode' },
         wensen: EXTRA_CHARS.map((c) => ({ act: 'wens-' + c.id, id: c.id, naam: c.naam, kleur: c.kleur, gekozen: s.wens === c.id })),
         buttons: [{ act: 'koppel', label: 'Verder', primary: true }, ...(s.caps.rtc ? [{ act: 'lijst', label: 'Openbare sessies' }] : []), { act: 'diag', label: 'Verbinding testen' }, { act: 'terug', label: 'Terug' }],
       });
@@ -580,7 +580,7 @@ export function view(s) {
       });
     }
     case 'openbaar-vraag':
-      return V({ title: 'Maak deze sessie openbaar', lines: OPENBAAR_TEXT, input: { placeholder: 'Naam van je sessie (hoogstens 24 tekens)', value: s.openbaarNaam || '', maxLength: 24 }, buttons: [{ act: 'openbaar-ja', label: 'Akkoord en openbaar maken', primary: true }, { act: 'openbaar-terug', label: 'Annuleren' }] });
+      return V({ title: 'Maak deze sessie openbaar', lines: OPENBAAR_TEXT, input: { osk: 'naam', oskCheck: 'sessie-naam', placeholder: 'Naam van je sessie (hoogstens 24 tekens)', value: s.openbaarNaam || '', maxLength: 24 }, buttons: [{ act: 'openbaar-ja', label: 'Akkoord en openbaar maken', primary: true }, { act: 'openbaar-terug', label: 'Annuleren' }] });
     case 'lijst-vraag':
       // dezelfde toestemming als de routes (#526), met daaronder wat de lijst zelf doet; het vinkje staat er ook
       return V({ title: 'Openbare sessies', lines: [CONSENT_TEXT, ...LIJST_TEXT], consent: { remember: !!s.consentRemember, label: 'Niet meer vragen op dit apparaat' }, buttons: [{ act: 'lijst-go', label: 'Akkoord en lijst tonen', primary: true }, { act: 'lijst-terug', label: 'Annuleren' }] });
@@ -613,7 +613,7 @@ export function view(s) {
         // #973: de serverbrowser en de kamercode staan nu op één scherm: de speler hoeft niet
         // vooraf te weten welke van de twee hij wil. De lijst is de route om iemand te vinden,
         // het veld is de route als je al een code van een vriend hebt.
-        input: { placeholder: 'Kamercode of GDE2-… (van een vriend)', value: invoerWaarde(s), maxLength: INVOER_MAX, label: 'Kamercode of koppelcode van een vriend' },
+        input: { osk: 'code', placeholder: 'Kamercode of GDE2-… (van een vriend)', value: invoerWaarde(s), maxLength: INVOER_MAX, label: 'Kamercode of koppelcode van een vriend' },
         lijstInfo: {
           zoek: s.lijstZoek || '', sortering: s.lijstSortering, aantal: s.lijstAantal, filters: { ...f },
           getoond, totaal, alles, meer: getoond < totaal, telling, ververst: s.lijstVervers || 0,

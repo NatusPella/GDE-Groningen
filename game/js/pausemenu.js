@@ -56,6 +56,7 @@ import { capturePadButton, isPadActive, onPadChange } from './gamepad.js';
 import { mapControlList, stepMapControls, toggleMapControls } from './padmapnav.js';
 import { padGlyphInner } from './glyphs.js';
 import { icoon } from './icons.js';
+import { oskKnop } from './oskview.js';
 import { touchPlan, touchMore, defaultControlsSubtab } from './touchlogic.js';
 import { openPadTest } from './padtest.js';
 import { isHelpOfferOpen } from './assistlive.js';
@@ -1017,7 +1018,7 @@ export function initPauseMenu(w) {
           <section data-panel="map" class="pm-panel pm-map" hidden></section>
           <section data-panel="spullen" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-spullen">
             <div class="pm-spulbar"><label class="m-inp pm-csearch">${icon('search')}
-              <input type="search" data-spul-search placeholder="Zoek in je spullen, bijv. fiets, kast of stempel" aria-label="Zoek in je spullen" autocomplete="off" spellcheck="false"></label>
+              <input type="search" data-spul-search data-osk="zoek" data-osk-chips="fiets|kast|stempel" placeholder="Zoek in je spullen, bijv. fiets, kast of stempel" aria-label="Zoek in je spullen" autocomplete="off" spellcheck="false">${oskKnop('je spullen')}</label>
               <div class="pm-chips pm-spulchips" role="group" aria-label="Deel van je spullen"><span class="sp-tabkey" aria-hidden="true">${glyphHtml('Q')}</span>${DELEN.map(([id, label]) => `<button type="button" class="m-chip" data-spul-deel="${id}" aria-pressed="${id === 'alles'}">${icoon(CAT_ICOON[id] || ICOON_TERUGVAL, { cls: 'pm-ic' })}${label}</button>`).join('')}<span class="sp-tabkey" aria-hidden="true">${glyphHtml('E')}</span><button type="button" class="m-chip sp-sort" data-spul-sort title="Wissel de volgorde van de tegels">${icon('sorteer')}<span>Sorteren: standaard</span></button></div>
             </div>
             <div class="m-main"><div class="m-list td-list"></div><aside class="m-pane td-detail" aria-label="Details"></aside></div></div></section>
@@ -1041,7 +1042,7 @@ export function initPauseMenu(w) {
           <section data-panel="controls" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-cinner">
             ${subtabsHtml('controls', 'Besturing')}
             <label class="m-inp pm-csearch">${icon('search')}
-              <input type="search" data-controls-search placeholder="Zoek een toets of actie, bijv. toeter, duif of Q" aria-label="Zoek in de besturing" autocomplete="off" spellcheck="false"></label>
+              <input type="search" data-controls-search data-osk="zoek" data-osk-chips="toeter|duif|kaart" placeholder="Zoek een toets of actie, bijv. toeter, duif of Q" aria-label="Zoek in de besturing" autocomplete="off" spellcheck="false">${oskKnop('de besturing')}</label>
             <div data-of="controls" data-sub="overzicht" class="pm-csub" hidden>
               <div class="m-main"><div class="m-list pm-clist">
                 <div class="pm-cgrid">${controlsHtml()}</div>
@@ -1073,7 +1074,7 @@ export function initPauseMenu(w) {
       </div>
       <div class="pm-quitbox pm-findbox" data-find hidden role="dialog" aria-modal="true" aria-label="Zoek in het menu">
         <div class="pm-quitpane pm-findpane">
-          <label class="m-inp pm-csearch">${icon('search')}<input type="search" class="pm-find-inp" data-find-input placeholder="Zoek een scherm, instelling of actie" aria-label="Zoek in het menu" autocomplete="off" spellcheck="false"></label>
+          <label class="m-inp pm-csearch">${icon('search')}<input type="search" class="pm-find-inp" data-find-input data-osk="zoek" data-osk-chips="kaart|geluid|besturing" placeholder="Zoek een scherm, instelling of actie" aria-label="Zoek in het menu" autocomplete="off" spellcheck="false">${oskKnop('het menu')}</label>
           <ul class="pm-find-list" data-find-list></ul>
           <p class="pm-find-hint" data-find-hint></p>
         </div>

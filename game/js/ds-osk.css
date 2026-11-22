@@ -1,0 +1,51 @@
+/* Het schermtoetsenbord (DS3, #1011): een kaart onderin het scherm met een live voorbeeld, suggesties en toetsen (onscreenkeyboard.js, oskview.js).
+   Zeefdruk: papier, inkt, een harde schaduw; de toets onder de focus is geel met een dikke inktrand. Alleen tokens uit ds-tokens.css. */
+.osk { position: fixed; inset: auto 0 0 0; z-index: 99998; display: flex; justify-content: center; padding: var(--ds-s-3); pointer-events: none; }
+.osk-kaart {
+  pointer-events: auto; width: min(960px, 100%); max-height: calc(100vh - var(--ds-s-6)); overflow: auto; box-sizing: border-box;
+  display: flex; flex-direction: column; gap: var(--ds-s-2); padding: var(--ds-s-3) var(--ds-s-4);
+  background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard);
+  font-family: var(--ds-font-zeef-kop);
+}
+.osk-kaart:focus { outline: none; }
+.osk-kaart.ds-z-kaart { transform: none; } /* een toetsenbord ligt recht: geen schuinte van de kaart */
+.osk-kop { display: flex; align-items: baseline; justify-content: space-between; gap: var(--ds-s-3); }
+.osk-label { font-weight: 800; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
+.osk-teller { font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); }
+.osk-teller.is-vol { color: var(--ds-probleem-tx); }
+.osk-voorbeeld {
+  display: flex; align-items: center; min-height: var(--ds-hoogte-knop); padding: 0 var(--ds-s-3); box-sizing: border-box; overflow: hidden; white-space: pre;
+  background: var(--ds-c-wit); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r);
+  font-family: var(--ds-font-tekst); font-weight: 700; font-size: var(--ds-t-body);
+}
+.osk-voorbeeld--code { font-family: var(--ds-font-code); letter-spacing: 0.06em; }
+.osk-cursor { display: inline-block; width: var(--ds-lijn-zeef); align-self: stretch; margin: var(--ds-s-2) 1px; background: var(--ds-c-ink-inkt); }
+.osk-v-leeg { margin-inline-start: var(--ds-s-2); color: var(--ds-tx-zacht); font-weight: 400; }
+.osk-melding { margin: 0; min-height: 1.3em; font-family: var(--ds-font-tekst); font-size: var(--ds-t-hulp); line-height: 1.3; color: var(--ds-tx-zacht); }
+.osk-melding.is-fout { color: var(--ds-probleem-tx); font-weight: 700; }
+.osk-rijen { display: flex; flex-direction: column; gap: var(--ds-s-2); }
+.osk-rij { display: flex; gap: var(--ds-s-2); }
+.osk-toets {
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: var(--ds-s-2); min-width: 0; min-height: 44px; height: clamp(44px, 6.4vh, 56px); padding: 0 var(--ds-s-1); box-sizing: border-box;
+  background: var(--ds-c-wit); color: var(--ds-zeef-tx); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-toets); box-shadow: var(--ds-schaduw-hard-klein);
+  font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-body); line-height: 1; cursor: pointer;
+}
+.osk-toets .ds-z-knop__toets { --ds-kc-cap: 1.15; display: inline-block; align-self: center; } /* inline-block: de glyph blijft een inline teken, dus staat hij op het midden van de toets */
+.osk-t-tekst { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.osk-t-chip { background: var(--ds-c-papier-2); border-radius: var(--ds-r-pil); font-size: var(--ds-t-label); text-transform: uppercase; letter-spacing: var(--ds-ls-label); padding: 0 var(--ds-s-3); }
+.osk-t-ok { background: var(--ds-zeef-primair); }
+.osk-t-annuleer { background: var(--ds-c-papier-2); }
+.osk-t-wis, .osk-t-shift, .osk-t-laag, .osk-t-spatie, .osk-t-links, .osk-t-rechts, .osk-t-toon, .osk-t-prefix { background: var(--ds-c-papier); }
+.osk-toets.is-aan { background: var(--ds-c-ink-inkt); color: var(--ds-c-ink-papier); }
+.osk-toets.is-uit { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+.osk-toets.is-focus { background: var(--ds-c-ink-geel); color: var(--ds-c-ink-inkt); outline: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); outline-offset: var(--ds-focus-afstand); z-index: 1; }
+.osk-toets:hover:not(.is-focus, .is-uit) { background: var(--ds-c-geel-hover); }
+.osk-voet { display: flex; flex-wrap: wrap; gap: var(--ds-s-2) var(--ds-s-5); margin: 0; font-family: var(--ds-font-tekst); font-size: var(--ds-t-hulp); color: var(--ds-tx-zacht); }
+.osk-hint-item { display: inline-flex; align-items: center; gap: var(--ds-s-2); }
+/* de knop naast een veld: alleen als de laatst gebruikte invoer een controller is (toetsenbord, muis en aanraking houden het gewone veld) */
+.osk-open { display: none; }
+html.dev-pad .osk-open { display: inline-flex; }
+/* Minder beweging: de kaart komt er zonder glijden; anders schuift hij kort omhoog */
+@media (prefers-reduced-motion: no-preference) { html:not(.reduce-motion, .rustig-drukwerk) .osk-kaart { animation: osk-op var(--ds-m-snel) var(--ds-ease); } }
+@keyframes osk-op { from { translate: 0 var(--ds-s-5); opacity: 0; } to { translate: 0 0; opacity: 1; } }
+@media (max-height: 560px) { .osk-voorbeeld { min-height: 44px; } .osk-toets { height: 40px; min-height: 40px; } .osk-melding { min-height: 0; } }

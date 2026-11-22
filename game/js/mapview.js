@@ -1,4 +1,5 @@
 import { gridItems } from './spatialgrid.js';
+import { oskKnop } from './oskview.js';
 import { keyTextHtml } from './keycap.js';
 import { districtAt } from './districtat.js';
 import { setMapOpenState } from './pausestate.js';
@@ -3276,7 +3277,7 @@ export function initMapView(world) {
   overlay.setAttribute('aria-label', 'Kaart van Groningen');
   overlay.innerHTML =
     '<div class="mapview-header"><div class="mv-hl"><span class="m-eb mv-eb" hidden></span><h1 class="mapview-title m-h1">Kaart</h1>' +
-    '<label class="mapview-search m-inp">' + icoon('zoek') + '<input type="search" placeholder="Zoek een plek, missie of minigame" aria-label="Zoek een plek, missie of minigame" autocomplete="off" spellcheck="false">' +
+    '<label class="mapview-search m-inp">' + icoon('zoek') + '<input type="search" data-osk="zoek" data-osk-chips="missie|minigame|winkel" placeholder="Zoek een plek, missie of minigame" aria-label="Zoek een plek, missie of minigame" autocomplete="off" spellcheck="false">' + oskKnop('de kaart') + '' +
     '<ul class="mapview-results" role="listbox" hidden></ul></label></div>' +
     '<div class="mv-hr">' +
     '<button type="button" class="m-bg mv-layers" data-act="layers" aria-expanded="false" aria-controls="mv-legend" aria-label="Lagen" title="Lagen">' + icoon('lagen', { maat: 'm' }) + ' Lagen <span class="mv-layers-n"></span></button>' +

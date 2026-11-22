@@ -9,6 +9,7 @@ import { finishSphere, rimPicture, decalPicture, stripePicture } from './tuningt
 import { hudPixelRatio } from './uiscale.js';
 import { isPadActive, onPadChange } from './gamepad.js';
 import { padGlyphInner } from './glyphs.js';
+import { oskKnop } from './oskview.js';
 import { saveGame } from './savehook.js';
 import { vehiclePreviewOf, setTuningOpener } from './shops.js';
 import { reducedMotion } from './motion.js';
@@ -178,7 +179,7 @@ function rowHtml(g) {
   const label = esc(g.label);
   if (g.type === 'text') {
     return `<div class="tm-row" data-field="${g.field}" data-type="text" tabindex="0"><div class="tm-rh">${icoon(iconOfField(g.field), { cls: 'tm-ri', maat: 'm' })}<span class="tm-rl">${label}</span><span class="tm-rv">${g.value ? esc(g.value) : 'Geen'}</span><span class="tm-rp">${euro(g.price)}</span></div>
-      <div class="tm-opts"><input class="tm-plate" type="text" maxlength="${g.max}" value="${esc(g.value || '')}" placeholder="Eigen tekst, hoogstens ${g.max} tekens" aria-label="Tekst op het nummerbord" autocomplete="off" spellcheck="false"><span class="tm-hint">Verzonnen tekst, geen echt kenteken</span></div></div>`;
+      <div class="tm-opts"><input class="tm-plate" type="text" data-osk="tekst" data-osk-label="Tekst op het nummerbord" maxlength="${g.max}" value="${esc(g.value || '')}" placeholder="Eigen tekst, hoogstens ${g.max} tekens" aria-label="Tekst op het nummerbord" autocomplete="off" spellcheck="false">${oskKnop('het nummerbord')}<span class="tm-hint">Verzonnen tekst, geen echt kenteken</span></div></div>`;
   }
   if (g.type === 'color') {
     const cur = g.palette.find((c) => c.state === 'on');
