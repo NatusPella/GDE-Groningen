@@ -6,8 +6,8 @@ import { vehicleContacts } from './vehicle.js';
 import { gearboxReadout } from './gearbox.js';
 import { createBank, buildImpulse, variantsOf, bufferNames } from './sfx/dsp.js';
 import { FX_INFO } from './sfx/fxbank.js';
-import { createStemTeller, declick } from './sfx/stemlimiet.js';
-import { plan as mixPlan, speechDuckFactor, categoryLevel } from './sfx/mixplan.js';
+import { createStemTeller, declick, voiceCap } from './sfx/stemlimiet.js';
+import { plan as mixPlan, speechDuckFactor, categoryLevel, duckVeilig } from './sfx/mixplan.js';
 import { createLinkups } from './sfx/linkups.js';
 import { createSamples, SAMPLE_INFO, vervangSleutel, variatie, autoDeurPlan, slipLoopNiveau, slipLoopRate, grindNodig, DRIFT_SLIP, driftLoopNiveau, driftLoopRate, HANDREM_MIN_V, SLIPSTOOT_SLIP } from './sfx/samples.js';
 import { initAmbience, updateAmbience, ambienceStats, getPlace } from './sfx/ambience.js';
@@ -135,7 +135,7 @@ let activeVoices = 0;
 // de ruisbronnen (audio/ruisbronnen.js): telt de levende lussen en zet een doorlopende ruisstem die uit hoort te zijn maar open staat alsnog dicht
 const ruis = createNoiseRegistry({ onFix: (naam, param) => { try { param.cancelScheduledValues(0); param.value = 0; paramMemo.forget(param); } catch (e) { /* al weg */ } fix('ruis-vast:' + naam); } });
 const stemTeller = createStemTeller();   // per categorie (sfx/stemlimiet.js)
-function voiceOk(prio = 1) { return activeVoices < VOICE_CAPS[prio]; }
+function voiceOk(prio = 1) { return activeVoices < voiceCap(prio, VOICE_CAPS); }
 
 const AMB_LEVEL = 0.9;
 const duckState = { amount: 0, until: 0, level: 0 };
@@ -144,6 +144,7 @@ let speechLevel = 0;
 
 function duckAmbience(amount, hold) {
   if (!ctx) return;
+  ({ amount, hold } = duckVeilig(amount, hold));
   const t = ctx.currentTime;
   if (t > duckState.until) duckState.amount = 0;
   duckState.amount = Math.max(duckState.amount, amount);

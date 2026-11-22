@@ -64,9 +64,10 @@ export function planAdBlock(state, { now, progId }, rng = Math.random) {
     // twee reclames van dezelfde firma achter elkaar is geen grap meer
     const other = pool.filter((a) => !ads.some((b) => b.firma === a.firma));
     const from = other.length ? other : pool;
+    if (!from.length) break;   // een lege reclamelijst geeft geen blok in plaats van een gat in het blok
     ads.push(from[Math.floor(rng() * from.length) % from.length]);
   }
-  return { ads };
+  return ads.length ? { ads } : null;
 }
 
 // Het blok is gespeeld: de reclames in de geschiedenis, de teller weer op nul.

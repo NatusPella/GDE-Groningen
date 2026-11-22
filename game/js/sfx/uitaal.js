@@ -60,7 +60,8 @@ export function toastGeluid(m) {
 
 // Mag dit geluid nu? last: Map of object met de laatste tijd per naam; legt de tijd vast als het mag.
 export function magKlinken(last, naam, now) {
-  const gap = UI_COOLDOWN[naam] ?? 0.3;
+  if (!Number.isFinite(now)) return false;   // een NaN-tijd zou de afkoeltijd voorgoed wissen
+  const gap = Object.prototype.hasOwnProperty.call(UI_COOLDOWN, naam) ? UI_COOLDOWN[naam] : 0.3;
   const t = last instanceof Map ? last.get(naam) : last[naam];
   if (t !== undefined && now - t < gap) return false;
   if (last instanceof Map) last.set(naam, now); else last[naam] = now;
@@ -69,8 +70,8 @@ export function magKlinken(last, naam, now) {
 
 // Wordt dit meldingsgeluid gesmoord door een ander dat net klonk? last: dezelfde Map als bij magKlinken.
 export function wordtGesmoord(last, naam, now) {
+  if (!Object.prototype.hasOwnProperty.call(MELDING_RANG, naam)) return false;
   const rang = MELDING_RANG[naam];
-  if (rang === undefined) return false;
   for (const [andere, r] of Object.entries(MELDING_RANG)) {
     if (andere === naam || r < rang) continue;
     const t = last instanceof Map ? last.get(andere) : last[andere];
@@ -81,12 +82,12 @@ export function wordtGesmoord(last, naam, now) {
 
 // Een variant kiezen uit de namen van een geluid (r: 0 tot 1); de vorige vermijden als er meer dan een is.
 export function kiesVariant(namen, r, vorige = null) {
-  if (!namen.length) return null;
+  if (!namen || !namen.length) return null;
   if (namen.length === 1) return namen[0];
-  let i = Math.min(namen.length - 1, Math.floor(r * namen.length));
+  let i = Math.min(namen.length - 1, Math.floor((Number.isFinite(r) ? Math.max(0, r) : 0) * namen.length));
   if (namen[i] === vorige) i = (i + 1) % namen.length;
   return namen[i];
 }
 
 // Een kleine toonhoogtespreiding per aanroep, +-3 procent, uit r (0 tot 1)
-export const toonSpreiding = (r) => 1 + (r * 2 - 1) * 0.03;
+export const toonSpreiding = (r) => 1 + ((Number.isFinite(r) ? r : 0.5) * 2 - 1) * 0.03;

@@ -9,7 +9,7 @@ const ALIAS = { fietspad: 'asfalt', weg: 'asfalt', aarde: 'gras', akker: 'gras',
 
 export function stepSurface(s) {
   if (KNOWN.has(s)) return s;
-  return ALIAS[s] || 'klinkers';
+  return (typeof s === 'string' && Object.prototype.hasOwnProperty.call(ALIAS, s) && ALIAS[s]) || 'klinkers';
 }
 
 // Sample names to try for one step, in order: a random variant of the
@@ -17,7 +17,7 @@ export function stepSurface(s) {
 // memory (optional, { surface: variant }): the variant played last on this surface is skipped, so one foot never sounds twice in a row.
 export function stepNames(surface, r = Math.random(), memory = null) {
   const s = stepSurface(surface);
-  let v0 = Math.floor(r * STEP_VARIANTS) % STEP_VARIANTS;
+  let v0 = Math.floor((Number.isFinite(r) ? r : 0) * STEP_VARIANTS) % STEP_VARIANTS;
   if (memory) { if (memory[s] === v0) v0 = (v0 + 1) % STEP_VARIANTS; memory[s] = v0; }
   const out = [];
   for (let i = 0; i < STEP_VARIANTS; i++) out.push(`step_${s}_${(v0 + i) % STEP_VARIANTS}`);
@@ -42,7 +42,7 @@ const FILE_ALIAS = { strand: 'zand', duin: 'zand', pad: 'grind', split: 'grind',
 
 export function fileSurface(s) {
   if (FILE_KNOWN.has(s)) return s;
-  return FILE_ALIAS[s] || stepSurface(s);
+  return (typeof s === 'string' && Object.prototype.hasOwnProperty.call(FILE_ALIAS, s) && FILE_ALIAS[s]) || stepSurface(s);
 }
 
 // Sample names to try for one recorded step, in order: a random variant of the surface (the variant played last on it is skipped, so no two
@@ -51,7 +51,7 @@ export function fileSurface(s) {
 export function fileStepNames(surface, r = Math.random(), memory = null, run = false) {
   let s = fileSurface(surface);
   if (run && RUN_ON.has(s)) s = 'ren';
-  let v0 = Math.floor(r * FILE_VARIANTS) % FILE_VARIANTS;
+  let v0 = Math.floor((Number.isFinite(r) ? r : 0) * FILE_VARIANTS) % FILE_VARIANTS;
   if (memory) { if (memory['f' + s] === v0) v0 = (v0 + 1) % FILE_VARIANTS; memory['f' + s] = v0; }
   const out = [];
   for (let i = 0; i < FILE_VARIANTS; i++) out.push(`stap_${s}_${(v0 + i) % FILE_VARIANTS}`);
@@ -64,7 +64,7 @@ export const FILE_STEP_KEYS = FILE_SURFACES.flatMap((f) => Array.from({ length: 
 export function footSide(side) { return { offset: side ? 0.16 : -0.16, rate: side ? 1.012 : 0.988 }; }
 
 // A small random loudness change per step (±1.5 dB), so no two steps carry exactly the same weight.
-export function gainJitter(r = Math.random()) { return Math.pow(10, ((r * 2 - 1) * 1.5) / 20); }
+export function gainJitter(r = Math.random()) { return Math.pow(10, (((Number.isFinite(r) ? Math.max(0, Math.min(1, r)) : 0.5) * 2 - 1) * 1.5) / 20); }
 
 // Other people's feet: much softer than your own, softer and duller with distance, never louder than your own walking.
 // distance in m (the listener is the camera, a few metres behind you); returns { gain, lp } (lp 0 = no filter).
@@ -77,7 +77,9 @@ export function npcStep(distance, run, cop) {
 // One foot to the next at the cadence models3d_people.js animatePersonWalk
 // swings the legs: ~0.85 m strolling, ~1.15 m at a jog, ~1.6 m sprinting.
 export function strideFor(speed, crouch) {
-  return crouch ? 0.55 : Math.max(0.4, speed / (2 * Math.min(2.1, 0.42 + 0.3 * speed)));
+  if (crouch) return 0.55;
+  const v = Number.isFinite(speed) && speed > 0 ? speed : 0;
+  return Math.max(0.4, v / (2 * Math.min(2.1, 0.42 + 0.3 * v)));
 }
 
 // Feet on something: the ground, or a car roof (z > 0 up there).
