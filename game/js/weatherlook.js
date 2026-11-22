@@ -41,7 +41,7 @@ export function stepWet(wet, rain, dt) {
 // wit. De mist blijft (kleur en sfeer ongewijzigd), maar met een zichtbodem:
 // dichtbij nooit onder MIST_NEAR m en in de verte nooit onder MIST_FAR m, zodat
 // de wereld ook in dichte mist leesbaar blijft.
-export const MIST_NEAR = 16, MIST_FAR = 150;
+export const MIST_NEAR = 16, MIST_FAR = 220; // #1202: 150 m liet de Martinitoren verdwijnen
 // #866: een hoog beeld (camera ver boven de straat) kijkt over de mist heen; demp de mist daar,
 // anders wordt het hele beeld wit. Tot 25 m boven de grond telt de mist vol, daarna loopt hij
 // terug tot 40 % op 100 m.

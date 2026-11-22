@@ -1,5 +1,5 @@
 // Weather look (game/js/weatherlook.js, #194): quality scaling, mist, sunset glow, storm planner.
-import { QUALITY_LOOK, qualityLook, mistFog, mistAtHeight, sunGlow, stepWet, createStormPlanner, stepStorm, flashAt, weatherLook, REGION_HAZE } from '../game/js/weatherlook.js';
+import { QUALITY_LOOK, qualityLook, mistFog, MIST_FAR, mistAtHeight, sunGlow, stepWet, createStormPlanner, stepStorm, flashAt, weatherLook, REGION_HAZE } from '../game/js/weatherlook.js';
 import { REGION_IDS, WEATHER_KINDS } from '../game/js/weatherstate.js';
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name} ${info}`); } };
@@ -59,5 +59,7 @@ for (const kind of WEATHER_KINDS) for (const region of REGION_IDS) for (const qu
   const nums = [l.rainDrops, l.puddles, l.sheen, l.fog.near, l.fog.far, l.glow.strength, ...l.glow.color, ...l.haze];
   ok(nums.every((v) => Number.isFinite(v) && v >= 0), 'finite look', `${kind} ${region} ${quality}`);
 }
+// #1202: ook in dichte mist blijft de wereld tot 220 m zichtbaar (de Martinitoren vervaagt niet tot niets)
+ok(MIST_FAR >= 220, 'mistvloer van 220 m', String(MIST_FAR));
 console.log(`weatherlook_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
