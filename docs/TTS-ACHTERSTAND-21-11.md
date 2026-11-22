@@ -30,3 +30,7 @@ De eigenaar zette meer saldo op LiteLLM; de proefaanvraag gaf 200 (4,1 s).
 - Nabewerking: 5 van 414 clips hadden nog een ruis-einde of pop-begin; met `staart_trimmer` hersteld, daarna 0 fouten.
 - Controles: `voice_coverage` 3475/3475, `cutscenes_voicedur_test` 79/79, `cutscene_lint --strict` exit 0, `spec_check` 0 fouten.
 - Verdachtlijst: `docs/TTS-VERDACHT-RONDE3-22-11.html` (`node scripts/tts_verdacht.mjs --base=origin/main --head=HEAD --uit=TTS-VERDACHT-RONDE3-22-11`): 40 clips (top 30 plus 10 uit de rest). Niets beluisterd.
+
+### Ronde 3, vervolg (22-11): afgerond
+
+Na meer ruimte op de gateway gaf de proef weer 200 en zijn de 197 open regels zonder één 403 opgenomen (gateway-kosten 0,10 dollar voor de laatste 177 plus 20 in een proefbatch). Eén van de 197 clips had een ruis-einde of pop-begin en is met `staart_trimmer` hersteld (daarna 0 fouten). `voice_wacht.json` is leeg; `voice_coverage` 3475/3475, `cutscenes_voicedur_test` 79/79, `cutscene_lint --strict` 0, `spec_check` 0 fouten. Ronde 3 telt dus 609 clips. De verdachtlijst in `docs/TTS-VERDACHT-RONDE3-22-11.html` dekt alleen de eerste 412; de 197 nieuwe zijn niet beluisterd en niet in die lijst opgenomen.
