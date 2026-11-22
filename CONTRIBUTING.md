@@ -9,8 +9,8 @@ antwoord kan even duren.
 Open een [issue](../../issues/new/choose) en kies het sjabloon voor een bug
 of een idee. Bij een bug helpen vooral: de versie (zie het startscherm),
 je systeem (macOS, Windows, Linux of browser), wat je deed en wat er
-gebeurde. Het foutrapport uit het spel (**Instellingen › Foutrapport ›
-Kopiëren**) is goud waard; het bevat geen persoonlijke gegevens.
+gebeurde. Het foutrapport uit het spel (**Over › Problemen ›
+Kopieer het rapport**, in het pauzemenu) is goud waard; het bevat geen persoonlijke gegevens.
 
 Een beveiligingsprobleem? Meld dat **niet** in een issue, maar volg
 [SECURITY.md](SECURITY.md).

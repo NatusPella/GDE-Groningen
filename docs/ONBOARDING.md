@@ -25,7 +25,7 @@ in de repo (T1, T2, … per ronde).
 - Zet de grafische stand op **Gemiddeld** (tenzij de tester een eigen machine meebrengt) en het
   geluid aan. Start zonder save: het verhaal begint meteen.
 - Klaar: notitieblok of het scoreformulier hieronder, timer, en de foutrapport-knop
-  (*Instellingen › Foutrapport › Kopieer naar klembord*) binnen handbereik.
+  (*Over › Problemen › Kopieer het rapport*) binnen handbereik.
 - **Geen uitleg vooraf.** Geen toetsen noemen, geen "je moet eerst…". Vragen beantwoord je met
   "wat zou je nu doen?" of "kijk eens rond". Help pas als iemand vijf minuten echt vastzit; schrijf
   op waar en wat je zei.

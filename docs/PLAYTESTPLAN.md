@@ -9,7 +9,7 @@ De vragenlijst staat in [SPEELTEST.md](SPEELTEST.md) en blijft de basis. Dit pla
 - Gebruik een gewone vrijgegeven versie of een lokale build en een **wegwerpprofiel** (`sh scripts/play_local.sh`), nooit het eigen profiel of de geïnstalleerde app van de eigenaar. Poort 9000 blijft met rust.
 - Noteer per sessie: versie (startscherm), computer, grafische stand (Laag, Gemiddeld, Hoog), toetsenbord of controller, tester-nummer, datum.
 - De tester krijgt **geen uitleg**. Vragen beantwoord je met "wat zou je nu doen?". Helpen mag pas als iemand vijf minuten vastzit; dan schrijf je op waar en wat je zei.
-- Foutrapport: *Instellingen › Foutrapport › Kopieer naar klembord*, plakken onderaan het formulier.
+- Foutrapport: *Over › Problemen › Kopieer het rapport*, plakken onderaan het formulier.
 
 ## Scenario's
 
@@ -100,7 +100,7 @@ Dat is het vaste meldkanaal: testers krijgen daardoor een melding of e-mail.
    zinnen, en welke scenario's uit dit plan nog niet gespeeld zijn.
 3. Vraag testers hun bevindingen als volgt terug te koppelen: bug of wens → eigen issue (met
    label `bug`/`wens`); algemene indruk → reactie onder de versie-comment; foutmelding →
-   *Instellingen › Foutrapport › kopiëren* en plakken.
+   *Over › Problemen › Kopieer het rapport* en plakken.
 4. Na de ronde: tel de reacties, maak issues voor terugkerende problemen (met tijdstempel uit een
    opname), en noteer in #221 wat gedaan is en welke scenario's nog openstaan.
 
@@ -115,5 +115,5 @@ Graag extra letten op: <scenario of missie>
 Nog niet gespeeld: <scenario's uit dit plan>
 
 Terugkoppelen: bug of wens → eigen issue; algemene indruk → hieronder; foutmelding →
-Instellingen › Foutrapport › kopiëren en plakken. Vermeld versie, platform en de plek.
+Over › Problemen › Kopieer het rapport en plakken. Vermeld versie, platform en de plek.
 ```

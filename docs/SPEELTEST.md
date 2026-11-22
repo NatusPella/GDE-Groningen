@@ -5,7 +5,7 @@ Voor mensen die de game nog niet kennen. Speel ongeveer 45 tot 60 minuten; zonde
 **Voor de begeleider**
 - Leg niets uit. Kijk mee zonder te helpen, en schrijf op waar iemand vastloopt of twijfelt.
 - Noteer de computer en de grafische stand: Laag, Gemiddeld of Hoog.
-- Eventuele foutmeldingen staan onder *Instellingen › Foutrapport › Kopieer naar klembord*. Plak ze onderaan.
+- Eventuele foutmeldingen staan onder *Over › Problemen › Kopieer het rapport*. Plak ze onderaan.
 
 ---
 

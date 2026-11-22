@@ -180,7 +180,7 @@ of publiceren. Een agent draait de controles en houdt de checklist bij; de eigen
 
 **Wat de eigenaar doet:** de vaste playtesters op de hoogte houden en hun feedback laten
 terugkomen: algemene indruk onder de releasecomment, bugs als eigen issue, foutrapport uit
-Instellingen › Foutrapport. Nieuwe pre-releases verschijnen als comment op #116; de
+Over › Problemen. Nieuwe pre-releases verschijnen als comment op #116; de
 release-workflow vermeldt de testers daar.
 
 **Voorbereiding in de repo:** issue
