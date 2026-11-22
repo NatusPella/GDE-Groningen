@@ -1060,10 +1060,59 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
   }
   if (L.umbrella !== null && L.umbrella !== undefined) attachUmbrella(ud, L.umbrella);
   if (L.acc) attachAccessories(group, L.acc);
+  if (opts.shirtBands && opts.shirtBands.bands.length) attachShirtBands(rig.chest, torsoRings(L), opts.shirtBands);
 
   group.scale.set(L.buildScale, L.heightScale, L.buildScale);
   if (opts.seed !== undefined) ud.lookSeed = opts.seed;
   return group;
+}
+
+// Voetbalshirt met patroon (#1115): de rompgeometrie is gedeeld en heeft vertexkleuren, dus een streep of helft komt als eigen laag: een paar dunne dozen in de tweede kleur,
+// samengevoegd tot één mesh aan het borstbeen (één drawcall per speler). bands = { bands: [[t0, t1], ...], color } met t een deel van de breedte (0 tot 1, voor het hele shirt).
+// Elke doos volgt de doorsnede van de romp op zijn hoogte, hooguit enkele millimeters erboven; geen logo, geen wapen.
+const SHIRT_BAND_Y = [0.97, 1.1, 1.22, 1.34, 1.46];
+const shirtBandGeos = new Map(), shirtBandMats = new Map();
+function shirtBandGeometry(rings, bands) {
+  const key = JSON.stringify([rings.map((r) => [r.y, r.d, r.w, r.front ?? 1]), bands]);
+  let g = shirtBandGeos.get(key);
+  if (g) return g;
+  const proto = new THREE.BoxGeometry(1, 1, 1);
+  const pa = proto.attributes.position, na = proto.attributes.normal, ia = proto.index;
+  const pos = [], nor = [], idx = [];
+  let k = 0;
+  for (let i = 0; i < SHIRT_BAND_Y.length - 1; i++) {
+    const y0 = SHIRT_BAND_Y[i], y1 = SHIRT_BAND_Y[i + 1], rg = ringAt(rings, (y0 + y1) / 2);
+    const w = rg.w * 1.0, d = rg.d * (rg.front ?? 1) * 1.045 + 0.004;
+    for (const [t0, t1] of bands) {
+      const z0 = -w + 2 * w * Math.min(t0, t1), z1 = -w + 2 * w * Math.max(t0, t1), zc = (z0 + z1) / 2;
+      const dx = d * Math.pow(Math.max(0, 1 - Math.pow(Math.abs(zc) / w, 2.4)), 1 / 2.4);   // de doorsnede is bijna een rechthoek met ronde hoeken
+      if (dx < 0.01) continue;
+      for (let v = 0; v < pa.count; v++) {
+        pos.push(pa.getX(v) * 2 * dx, (y0 + y1) / 2 + pa.getY(v) * (y1 - y0) - CHEST_Y, (z0 + z1) / 2 + pa.getZ(v) * (z1 - z0));
+        nor.push(na.getX(v), na.getY(v), na.getZ(v));
+      }
+      for (let j = 0; j < ia.count; j++) idx.push(ia.getX(j) + k * pa.count);
+      k++;
+    }
+  }
+  proto.dispose();
+  g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+  g.setIndex(idx);
+  g.userData.shared = true;   // gedeeld tussen spelers en wedstrijden: disposeObject laat hem staan
+  if (shirtBandGeos.size > 64) shirtBandGeos.clear();
+  shirtBandGeos.set(key, g);
+  return g;
+}
+function attachShirtBands(chest, rings, spec) {
+  const g = shirtBandGeometry(rings, spec.bands);
+  let m = shirtBandMats.get(spec.color);
+  if (!m) { m = new THREE.MeshLambertMaterial({ color: spec.color }); m.userData.shared = true; shirtBandMats.set(spec.color, m); }
+  const mesh = new THREE.Mesh(g, m);
+  mesh.name = 'shirtBands';
+  chest.add(mesh);
+  return mesh;
 }
 
 // #658/#788: elke mesh die een gedeelde rompgeometrie tekent geeft hem bij het weggaan terug.

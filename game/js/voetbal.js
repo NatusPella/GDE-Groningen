@@ -18,7 +18,7 @@ import { pitchPlacement } from './voetbalparken.js';
 import { registerLauncher, registerCoachLauncher } from './voetbalcarriereui.js';
 import { coachSetup, makeCoachMatch, coachTactic, coachResult } from './voetbalcoach.js';
 import { formationList } from './voetbalrules.js';
-import { awayKit, mapSpots, parkCrowdCount, crowdVisible, trainingSquads } from './voetbalworld.js';
+import { awayKit, shirtBandsFor, mapSpots, parkCrowdCount, crowdVisible, trainingSquads } from './voetbalworld.js';
 import { buildCrowd, makeTrainers } from './voetbalpubliek.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { sfxEvent } from './sfx/haken.js';
@@ -250,7 +250,7 @@ function makeActors(sim) {
     const human = sim.mensen.find((x) => x.ctl === p.id);
     const vrouw = VROUW.has(p.naam) || (human && human.char === 'anita');
     const mesh = buildPersonMesh(shirt, 0xd9b48f, {
-      variant: vrouw ? 'female' : 'male', seed: 9811 + p.id * 13, pants: t.broek, shoes: 0x1a1a1a,
+      variant: vrouw ? 'female' : 'male', seed: 9811 + p.id * 13, pants: t.broek, shoes: 0x1a1a1a, shirtBands: shirtBandsFor(t, p.rol === 'keeper'),
       look: { age: 'adult', build: p.rol === 'keeper' ? 'avg' : 'slim', hat: null, top: 'tee', bottom: 'shorts', shoeType: 'sneaker', bag: null, umbrella: null, glasses: false },
     });
     mesh.rotation.order = 'ZYX';
