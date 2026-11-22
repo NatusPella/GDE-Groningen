@@ -251,6 +251,8 @@ Een gast die niet binnen 120 s terug is, verliest zijn plek; de volgende gast ma
 
 ## Autotuning: gepimpte auto's, autotreffen, werkplaats en kapper (21-11, ronde 4, #1155)
 
+**Ronde 5 (22-11, meer onderdelen).** De nieuwe opties (finishvlag-band, draai- en schotelvelgen, eendenstaart, rallykit, fietsendrager, surfplank, strenge lampen, schoorsteenpijpen, badeendje, frietpunt) zitten achteraan in de bestaande lijsten en reizen mee in de optionele `tune`-code van het uiterlijkrecord: geen nieuw bericht, geen nieuwe snapshot. Een gast ziet ze op de auto van de host en omgekeerd; een ouder spel leest een onbekende index als de standaard. Kopen blijft in je eigen spel (je geld, je opslag). Test: `vehiclelook_test`, `vehiclelook3d_test`.
+
 Code: `tuningworld.js` (aandeel), `tuningmeet.js` (het treffen, puur), `tuningtraffic.js` (haken), `tuningsfx.js`, `kapperkeuze.js`, `tuningworkshopui.js`. Test: `scripts/tuningmeet_test.mjs`, `tuningworld_test.mjs`, `tuningsfx_test.mjs`, `kapperkeuze_test.mjs`, `coopworld_test.mjs`, `coopbezit_test.mjs`.
 
 - **Van wie is het.** Gepimpte verkeersauto's en geparkeerde auto's zijn van de wereld: hun look komt deterministisch uit hun id of vak, dus bij de host en bij elke gast dezelfde auto. Het autotreffen op een vaste plek (Haren of het Reitdiep) hangt alleen aan de spelkalenderdag (`meetOfDay`) en die dag is gezamenlijk (tijd is geen hostrecht); dezelfde dag geeft elke speler dezelfde plek en dezelfde auto's, zonder netwerkbericht. De eigen auto van een speler (gepimpt in zijn eigen spel) is van die speler.

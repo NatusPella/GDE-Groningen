@@ -98,7 +98,7 @@ Prestaties: Nieuwe look, Past als gegoten, Hele kast (228 in totaal).
 ## 10. Niet gedaan en open
 
 - Winkeliers en andere beroepsfiguren in interieurs: de interieurs hebben nu personen (`interiornpc.js` kiest een rolpool), maar of het pashokje en de kassa de juiste figuren laten zien is niet in beeld bekeken.
-- Chauffeurs, ambulancepersoneel en brandweer hebben nog geen eigen rolpool (politie blijft de vaste look).
+- Brandweer heeft nog geen eigen rolpool (politie blijft de vaste look). Ambulancepersoneel (`ambulance`) en chauffeurs van een bus of taxi (`chauffeur`) hebben sinds 22-11 wel een pool (`clothingdata.js`, bestuurder in `scene3d.js`); lokaal en deterministisch uit het zaad, dus zonder netwerkverkeer: een gast ziet zijn eigen versie. Test: `kleding_r5_test`. Niet in beeld bekeken.
 - Een snelwisseltoets op de controller en op touch (nu toets 6 te voet en in een voertuig; de controller gebruikt Spullen, geen vrije knop zonder besturingsreview).
 - Homebase: zodra `epic-verhaal-21-11` het model heeft, roept elk huis `wardrobeMenu(world)` aan; nu doen flat (`home.js`) en safehuis (`safehuizen.js`) dat al.
 - Alles in beeld: zie [KLEDING-VERIFICATIE-21-11.md](KLEDING-VERIFICATIE-21-11.md).

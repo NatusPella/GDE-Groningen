@@ -135,5 +135,24 @@ const tri = L3.addonTriangles(FULL, 'auto', car('sport', 4.2, 1.85, FULL), { bel
 ok(tri > 50 && tri < 700, 'driehoeken van een volle look', String(tri));
 ok(Object.keys(OPTIONS).length >= 19, 'opties aanwezig');
 
+// ronde 5 (22-11): elke optie van de lijsten bouwt een eindige overlay binnen het voertuig en binnen het driehoekbudget
+for (const field of ['stripe', 'rimStyle', 'spoiler', 'kit', 'roof', 'lamps', 'exhaust', 'hanger']) {
+  for (const o of OPTIONS[field]) {
+    for (const [name, len, wid] of [['hatch', 3.9, 1.7], ['suv', 4.7, 1.95]]) {
+      const m = buildVehicleMesh(car(name, len, wid, { [field]: o.id }));
+      const ov = m.userData.lookOverlay;
+      if (field === 'rimStyle') { ok(m.userData.wheels.every((w) => finite(w.geometry)), 'velg eindig', `${o.id} ${name}`); continue; }
+      if (o.price === 0) continue;
+      ok(!!ov && finite(ov.geometry), 'overlay eindig per optie', `${field}=${o.id} ${name}`);
+      if (!ov) continue;
+      ov.geometry.computeBoundingBox();
+      const bb = ov.geometry.boundingBox;
+      ok(bb.min.x > -len / 2 - 0.5 && bb.max.x < len / 2 + 0.5 && Math.abs(bb.max.z) < wid / 2 + 0.25 && bb.min.y > -0.05 && bb.max.y < 3.2, 'optie binnen het voertuig', `${field}=${o.id} ${name} ${JSON.stringify(bb)}`);
+      ok(ov.geometry.attributes.position.count / 3 < 700, 'optie binnen het driehoekbudget', `${field}=${o.id}`);
+    }
+  }
+}
+for (const id of ['twist', 'dish']) { const g = L3.buildRimGeometry(0.35, 0.22, { rimStyle: id }); ok(finite(g) && g.attributes.position.count / 3 > 40, 'nieuwe velgstijl heeft vorm', id); }
+
 console.log(`vehiclelook3d_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

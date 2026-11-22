@@ -351,6 +351,24 @@ export const ROLE_POOLS = {
     back: [[null, 20], ['rugzak', 80]],
     glasses: [[null, 70], ['zonnebril', 30]],
   },
+  // een ambulancebroeder: opvallend, werkbaar en niet de vaste look van de politie
+  ambulance: {
+    top: [['polo', 60], ['tshirt', 30], ['lange_mouw', 10]],
+    outer: [['veiligheidsjas', 70], [null, 30]],
+    bottom: [['werkbroek', 100]],
+    shoes: [['veiligheidsschoen', 80], ['gympen', 20]],
+    hat: [[null, 80], ['pet', 20]],
+  },
+  // een chauffeur van een bus of taxi: netjes, een bril tegen de zon
+  chauffeur: {
+    top: [['overhemd', 55], ['polo', 35], ['lange_mouw', 10]],
+    outer: [[null, 70], ['colbert', 15], ['jack', 15]],
+    bottom: [['pantalon', 60], ['chino', 40]],
+    shoes: [['nette_schoenen', 60], ['instappers', 40]],
+    hat: [[null, 80], ['pet', 20]],
+    glasses: [[null, 60], ['zonnebril', 40]],
+    wrist: [[null, 50], ['horloge', 50]],
+  },
   feestganger: {
     top: [['blouse', 30], ['tshirt', 30], ['jurk', 20], ['clubshirt', 20]],
     outer: [[null, 85], ['zomerjas', 15]],
