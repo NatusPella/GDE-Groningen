@@ -1,7 +1,7 @@
 // Verfijnronde geluid (22-11): regressie- en fuzztest voor de zuivere audiomodules. Een ontbrekende positie, een NaN-tijd of een
 // raar sleutelwoord mocht nooit een NaN-versterking, een zwijgende voetstap of een weggewist stuk afkoeltijd opleveren.
-import { distanceGain, airLowpassHz, arrivalDelay, speechDuckFactor, categoryLevel, plan } from '../game/js/sfx/mixplan.js';
-import { capVoor, createStemTeller } from '../game/js/sfx/stemlimiet.js';
+import { distanceGain, airLowpassHz, arrivalDelay, speechDuckFactor, categoryLevel, plan, duckVeilig } from '../game/js/sfx/mixplan.js';
+import { capVoor, createStemTeller, voiceCap } from '../game/js/sfx/stemlimiet.js';
 import { stepSurface, fileSurface, stepNames, fileStepNames, gainJitter, strideFor } from '../game/js/sfx/steps.js';
 import { scheepshoornPauze, treinHoornPauze, verkeerDagNiveau, bedWobble, bedStartRate } from '../game/js/sfx/lagenplan.js';
 import { magKlinken, wordtGesmoord, kiesVariant, toonSpreiding } from '../game/js/sfx/uitaal.js';
@@ -32,6 +32,11 @@ eis(distanceGain(0) === 1 && arrivalDelay(343) === 1, 'gewone waarden blijven ge
 eis(capVoor('constructor') === Infinity && capVoor('hasOwnProperty', 2) === Infinity, 'capVoor prototypesleutel is geen categorie');
 eis(capVoor('voetstap', NaN) === 8, 'capVoor NaN-prio telt als gewoon');
 { const t = createStemTeller(); let ok = 0; for (let i = 0; i < 20; i++) if (t.neem('constructor')) ok++; eis(ok === 20, 'teller laat onbekende categorie door'); }
+
+// globale stemlimiet en demping van de omgeving
+eis([undefined, NaN, 3, -1, 1.5, null].every((p) => voiceCap(p, [26, 54, 76]) === 54) && voiceCap(0, [26, 54, 76]) === 26 && voiceCap(2, [26, 54, 76]) === 76, 'voiceCap: onbruikbare prioriteit telt als gewoon');
+for (const a of WEIRD) for (const h of WEIRD) { const d = duckVeilig(a, h); eis(fin(d.amount) && d.amount >= 0 && d.amount <= 1 && fin(d.hold) && d.hold >= 0 && d.hold <= 30, 'duckVeilig ' + String(a) + ' ' + String(h)); }
+eis(duckVeilig(0.4, 2).amount === 0.4 && duckVeilig(0.4, 2).hold === 2, 'duckVeilig laat gewone waarden staan');
 
 // stappen
 eis(stepSurface('constructor') === 'klinkers' && stepSurface('__proto__') === 'klinkers' && stepSurface(undefined) === 'klinkers', 'stepSurface prototypesleutel');

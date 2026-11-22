@@ -11,6 +11,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Geluid
+- Geluid: een klank met een onbekende afstand, een voetstap met een rare snelheid of een melding zonder tijd valt niet meer stil of blijft niet voorgoed hangen; het volume uit een tekst als 50% wordt gelezen; de radio herhaalt zich op lange duur niet.
+
 ### Prestaties
 - Prestaties (#1074, #1067): als het spelvenster verborgen of op de achtergrond is, doen de vaste controles van de overlays, het Samen-paneel en het aanraakscherm niets meer; de kartmotor wordt bij het verlaten van de baan echt stopgezet. Samen spelen: lokaal per speler, geen netwerkwijziging; testsessies met `?stil` blijven gewoon tikken. Voor de metingen staan er twee A-schakelaars (`?perfoff=boomfade`, `?perfoff=gevelfade`).
 ### Kaart en HUD

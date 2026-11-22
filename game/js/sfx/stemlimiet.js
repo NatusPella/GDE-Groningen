@@ -30,6 +30,13 @@ export function capVoor(cat, prio = 1) {
   return Math.max(1, Math.round(c * f));
 }
 
+// de globale limiet voor een prioriteit (0 omgeving, 1 gewoon, 2 moet klinken); een onbruikbare prioriteit (undefined, NaN, 3) telt als gewoon,
+// want een ontbrekend getal liet voorheen elke klank van die aanroep stil vallen (activeVoices < undefined is nooit waar)
+export function voiceCap(prio, caps) {
+  const p = Number.isInteger(prio) && prio >= 0 && prio < caps.length ? prio : 1;
+  return caps[p];
+}
+
 export function createStemTeller() {
   const n = new Map();
   const stats = { gelaten: 0, geweigerd: {} };

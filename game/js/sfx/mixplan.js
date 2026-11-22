@@ -95,6 +95,13 @@ export function musicDuckGain(level) {
   const l = Math.max(0, Math.min(1, Number.isFinite(level) ? level : 0));
   return 1 - (1 - MUSIC_DUCK_KEEP) * l;
 }
+// de dempstand van de omgeving (audio.js duckAmbience): een NaN of oneindige waarde (een regel zonder duur) bleef voorgoed in de stand
+// hangen, want Math.max(NaN, x) is NaN en de tijd "tot" werd dan nooit meer gehaald. Geeft { amount 0..1, hold 0..30 s }.
+export function duckVeilig(amount, hold) {
+  const a = Number.isFinite(amount) ? Math.max(0, Math.min(1, amount)) : 0;
+  const h = Number.isFinite(hold) ? Math.max(0, Math.min(30, hold)) : 0.5;
+  return { amount: a, hold: h };
+}
 // één stap van de glijdende dempstand; dt in s, geeft het nieuwe niveau 0..1 (NaN-vrij)
 export function musicDuckStep(level, target, dt) {
   const cur = Number.isFinite(level) ? level : 0;
