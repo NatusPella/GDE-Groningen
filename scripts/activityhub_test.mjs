@@ -30,6 +30,7 @@ log.length = 0; tickActivityKinds(0.1, {}, 'world'); check('tick world', log.joi
 let reads = 0;
 registerActivityKind({ id: 'e', tick: () => log.push('tick:e'), get tickPhase() { reads++; return 'late'; }, tickRank: 5 });
 log.length = 0; tickActivityKinds(0.1, {}, 'late'); check('new kind joins its phase', log.join() === 'tick:c,tick:b,tick:e', log.join());
+tickActivityKinds(0.1, {}, 'world'); // each phase builds its order once after a registration
 const readsNa = reads;
 for (let i = 0; i < 50; i++) { tickActivityKinds(0.1, {}, 'late'); tickActivityKinds(0.1, {}, 'world'); }
 check('kinds are not filtered again every tick', reads === readsNa, (reads - readsNa) + ' leesbeurten in 50 beelden');
