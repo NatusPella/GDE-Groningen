@@ -3653,7 +3653,7 @@ function roofTopNear(map, x, y) {
 const _guardLast = new THREE.Vector3(1e9, 0, 0);
 function guardCinematicCamera(dt, world) {
   // a shot landing on the follow camera (override.follow) goes where play is, lift or not
-  const landing = !!(world && world.cameraOverride && world.cameraOverride.follow);
+  const landing = !!(world && world.cameraOverride && (world.cameraOverride.follow || world.cameraOverride.interior)); // interior: de camera staat in de hal van een echt pand (realsets.js): niet over het dak tillen
   const need = world && world.map && !landing ? Math.max(0, roofTopNear(world.map, cam.position.x, cam.position.z) - cam.position.y) : 0;
   // a cut to another place starts from its own need, not the old shot's lift
   if (_guardLast.distanceToSquared(cam.position) > 144) guardLift = need;

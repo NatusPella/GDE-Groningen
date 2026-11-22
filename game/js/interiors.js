@@ -46,7 +46,7 @@ export const BUILD_R = 24, DROP_R = 34, MAX_LIVE = 2, NPC_R = 24, MAX_NPC = 8;
 const OPEN_TIME = 0.3, OPEN_ANGLE = 1.75, DOOR_REACH = 3.0;
 const BRON = 'interieur';
 
-const S = { world: null, live: new Map(), plans: new WeakMap(), scan: 0, spots: null, spotsN: -1, closedAt: new WeakMap(), inside: null, listeners: [], hooks: { owned: () => false, manage: () => null, homeStyle: () => null, customers: () => 0, epoch: () => 0 }, sets: [], pinned: new Set(), time: 0 };
+const S = { world: null, live: new Map(), plans: new WeakMap(), scan: 0, spots: null, spotsN: -1, closedAt: new WeakMap(), inside: null, listeners: [], hooks: { owned: () => false, manage: () => null, homeStyle: () => null, customers: () => 0, epoch: () => 0 }, sets: [], pinned: new Set(), sceneHeld: new Set(), time: 0 };
 
 // homeStyle(b) -> { wall, floor, fabric } | null: the colours of a home the player lives in (Homebase: a variant per living place)
 // hooks other systems set: owned(b) -> true for a pand of the player (Bezit, Homebase: the door always opens);
@@ -67,6 +67,25 @@ const emit = (e) => { for (const f of S.listeners) { try { f(e); } catch (err) {
 // Returns the plan (or null: the building cannot be entered); the room is built on the next scan. releaseInterior lets it go again.
 export function pinInterior(b) { const rec = b && planReady(b) ? planOf(b) : null; if (!rec || !rec.ok) return null; S.pinned.add(b); return rec.plan; }
 export function releaseInterior(b) { S.pinned.delete(b); }
+
+// Echte-wereld-sets (realsets.js, docs/CUTSCENE-INTERIEURS-22-11.md): een cutscene of binnenmissie speelt in dit pand. planForScene geeft het
+// plan zoals de wereld het ziet ({ ok, plan, why }, null zolang de gevel nog niet getekend is, dus de deur nog niet bekend is).
+// holdInterior bouwt de hal NU (waar de speler ook staat), pint hem en houdt de eigen mensen van het pand weg (de scène brengt zijn eigen
+// figuren); null als hij niet te bouwen is. releaseSceneInterior laat hem weer los: de gewone afstandsregels nemen het over.
+export function planForScene(b) { return b && planReady(b) ? planOf(b) : null; }
+export function holdInterior(w, b) {
+  const rec = planForScene(b);
+  if (!rec || !rec.ok) return null;
+  S.pinned.add(b); S.sceneHeld.add(b);
+  if (!S.live.has(b)) {
+    let ls = null;
+    try { ls = build(w, rec); } catch (e) { console.error('interieur voor de scène', e); }
+    if (!ls) { S.pinned.delete(b); S.sceneHeld.delete(b); return null; }
+    S.live.set(b, ls);
+  }
+  return { plan: rec.plan, ground: S.live.get(b).ground };
+}
+export function releaseSceneInterior(b) { S.pinned.delete(b); S.sceneHeld.delete(b); }
 export const livePlanOf = (b) => { const ls = S.live.get(b); return ls ? ls.plan : null; };
 
 export const insideInterior = () => (S.inside ? { b: S.inside.b, plan: S.inside.plan, kind: S.inside.plan.kind, sub: S.inside.plan.sub } : null);
@@ -327,7 +346,7 @@ function updateLive(w, ls, dt, p, onFoot) {
   }
   else if (!inside && S.inside === ls) { S.inside = null; emit({ type: 'leave', plan, b: ls.b }); }
   // the people: only when open (or you are in), and only close by
-  const wantNpcs = (st.open || inside) && dd < NPC_R;
+  const wantNpcs = (st.open || inside) && dd < NPC_R && !S.sceneHeld.has(ls.b); // een pand dat een scène vasthoudt heeft alleen de figuren van de scène
   if (wantNpcs && !ls.npcsOn) addNpcs(ls);
   else if (!wantNpcs && ls.npcsOn) dropNpcs(ls);
   if (ls.npcsOn && ls.npcTodo && ls.npcTodo.length) {
