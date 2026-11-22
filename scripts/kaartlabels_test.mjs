@@ -26,8 +26,9 @@ const haalFunctie = (src, naam) => {
   assert.ok(eind > start, `${naam} heeft een sluitende accolade`);
   return src.slice(start, eind + 1);
 };
-const namen = ['collides', 'plaatsLabels', 'labelDoos', 'isVoortgangsregel', 'voortgangsStrook', 'pinWijktVoorStrook', 'pinDoos', 'pinSetKey'];
-const L = new Function(`${namen.map((k) => haalFunctie(bron, k)).join('\n')}\nreturn { ${namen.join(', ')} };`)();
+const namen = ['collides', 'plaatsLabels', 'textWidth', 'labelDoos', 'isVoortgangsregel', 'voortgangsStrook', 'pinWijktVoorStrook', 'pinDoos', 'pinSetKey'];
+// textWidth (kaart-perf 22-11) onthoudt breedtes per font in een module-cache
+const L = new Function(`const fontWidths = new Map(); let fontWidthN = 0;\n${namen.map((k) => haalFunctie(bron, k)).join('\n')}\nreturn { ${namen.join(', ')} };`)();
 const { collides, plaatsLabels, labelDoos, isVoortgangsregel, voortgangsStrook, pinWijktVoorStrook, pinDoos, pinSetKey } = L;
 
 // Een nep-canvas: measureText is breed genoeg voor de echte namen, het font

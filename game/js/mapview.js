@@ -132,7 +132,7 @@ const HOVER_SPOT_PX = 10;
 // bezochte buurt
 const DISCOVERY_MARGIN = 4000; // m om de provincie heen, zodat de rand van het masker zacht valt
 // #661: alleen het geraakte venster uploaden en de mist minder vaak bewaren
-import { mapRenderDue } from './mapcache.js';
+import { mapRenderDue, overlayPlan } from './mapcache.js';
 import { isAreaHidden, isAreaKnown, isViewpointUsed, explorationLabels, onExplorationChange, onStreekOntdekt, getStrekenStand } from './explorationlive.js';
 import { MIST_ALPHA, OPEN_MS, NAAMKAART_MS, mistByte, streekOwnerGrid, applyStreekMist, openingRadius, openingLevel, openingDone, focusScale, cameraStep, naamkaart, queueReveal, strekenTekst } from './kaartonthulling.js';
 import { STREKEN } from './regioleven.js';
@@ -890,6 +890,7 @@ function clearTiles() {
     state.level0 = false;
     for (const t of state.tiles.values()) if (state.pool.length < 8) state.pool.push(t.canvas);
     state.tiles.clear();
+    state.tileGen = (state.tileGen || 0) + 1;
     state.dirty = true;
   }
 }
@@ -1125,19 +1126,33 @@ function fillTiles(L) {
     const r0 = performance.now();
     state.tiles.set(tileKey(L, tx, ty), { canvas: renderTile(L, tx, ty), used: state.frame, L });
     state.perf.tileRenderMs = performance.now() - r0;
+    state.tileGen = (state.tileGen || 0) + 1;
     done++;
   }
   evictTiles(keep);
   return done === missing.length;
 }
 
+// --- beeldhandtekening (kaart-perf 22-11) ---------------------------------------------------
+// Het beeld (schaal, verschuiving, dpr, grootte) als vijf getallen, zonder allocatie per vraag.
+function sameView(v) {
+  return !!v && v.scale === state.scale && v.ox === state.ox && v.oy === state.oy && v.dpr === state.dpr && v.cw === state.cw && v.ch === state.ch;
+}
+function saveView(v) {
+  v = v || {};
+  v.scale = state.scale; v.ox = state.ox; v.oy = state.oy; v.dpr = state.dpr; v.cw = state.cw; v.ch = state.ch;
+  return v;
+}
 // The last complete tile layer and the view it was drawn for. While the
 // tiles of a new zoom step or view are still being rendered it is drawn
 // underneath, moved and scaled to the current view, so zooming never shows
 // bare meadow or a coarse overview where detail was a moment ago.
 function keepLastGood() {
   let g = state.lastGood;
+  // Kaart-perf 22-11: dezelfde tegels in hetzelfde beeld hoeven niet nog eens naar de kopie
+  if (g && g.gen === state.tileGen && sameView(g.view)) return;
   if (!g) g = state.lastGood = { canvas: document.createElement('canvas') };
+  g.gen = state.tileGen; g.view = saveView(g.view);
   const src = state.compose;
   if (g.canvas.width !== src.width || g.canvas.height !== src.height) {
     g.canvas.width = src.width;
@@ -1180,10 +1195,32 @@ function collides(boxes, b) {
 // de binnenstad liepen de wijk- en gebiedsnamen anders door de pins heen.
 const LABEL_PRIO = { missie: 0, wijk: 1, poi: 2 };
 
+// Kaart-perf 22-11: de breedte van een tekst bij het huidige font, onthouden per font. Een herschil van de
+// vaste laag mat elk label opnieuw (honderden measureText-aanroepen per zoomstap); dezelfde tekst in
+// hetzelfde font geeft dezelfde breedte. Een later ingeladen webfont maakt de cache leeg.
+const fontWidths = new Map();
+let fontWidthN = 0;
+if (typeof document !== 'undefined' && document.fonts && document.fonts.addEventListener) {
+  document.fonts.addEventListener('loadingdone', () => { fontWidths.clear(); fontWidthN = 0; });
+}
+function textWidth(ctx, tekst) {
+  const f = ctx.font;
+  let m = fontWidths.get(f);
+  if (!m) fontWidths.set(f, (m = new Map()));
+  let w = m.get(tekst);
+  if (w === undefined) {
+    if (fontWidthN > 6000) { fontWidths.clear(); fontWidthN = 0; fontWidths.set(f, (m = new Map())); }
+    w = ctx.measureText(tekst).width;
+    m.set(tekst, w);
+    fontWidthN++;
+  }
+  return w;
+}
+
 // De doos van een label bij het font dat de ctx nu heeft (schermpunten, geen
 // wereldmeters: dezelfde tekst is bij elke zoom even groot).
 function labelDoos(ctx, tekst, x, y, uitlijning = 'center') {
-  const w = ctx.measureText(tekst).width;
+  const w = textWidth(ctx, tekst);
   const m = /([\d.]+)px/.exec(ctx.font || '');
   const h = m ? parseFloat(m[1]) : 13;
   const links = uitlijning === 'left' ? x : uitlijning === 'right' ? x - w : x - w / 2;
@@ -1414,7 +1451,7 @@ function drawStaticOverlay(ctx) {
   if (strookRegels.length) {
     ctx.font = '600 12px sans-serif';
     let w = 0;
-    for (const r of strookRegels) w = Math.max(w, ctx.measureText(r.tekst).width);
+    for (const r of strookRegels) w = Math.max(w, textWidth(ctx, r.tekst));
     // de strook hangt onder het zoekveld zoals het er echt staat (de kop schaalt mee met het menu), niet op een vaste hoogte
     let top = 196, links = 52;
     try {
@@ -1499,7 +1536,7 @@ function drawStaticOverlay(ctx) {
       const size = Math.round(r.big ? 30 : r.land ? 28 : 24);
       ctx.font = `${size}px ${FONT}`;
       const label = r.name.toUpperCase().split('').join(' ');
-      const w = ctx.measureText(label).width;
+      const w = textWidth(ctx, label);
       const a = names.regionAlpha;
       if (r.land && r.id !== 'groningen') { ctx.lineJoin = 'round'; ctx.lineWidth = 5; ctx.strokeStyle = labelHalo(0.8); ctx.strokeText(label, sx, sy); }
       ctx.fillStyle = r.land ? (r.id === 'groningen' ? kaartTekst(inkA('cream', a.toFixed(2))) : kaartRandTekst(regionBorderColor(r.id))) : kaartTekst(inkA('seaLabel', (a + 0.1).toFixed(2)));
@@ -1519,7 +1556,7 @@ function drawStaticOverlay(ctx) {
       const [sx, sy] = toScreen(r.x, r.y);
       ctx.font = `18px ${FONT}`;
       const label = r.name.toUpperCase().split('').join(' ');
-      const w = ctx.measureText(label).width;
+      const w = textWidth(ctx, label);
       const box = [sx - w / 2, sy - 10, sx + w / 2, sy + 10];
       if (!vrij(box)) continue;
       boxes.push(box);
@@ -1575,7 +1612,7 @@ function drawStaticOverlay(ctx) {
     for (const v of borderPlaceLabels(nx0, ny0, nx1, ny1, [], { zoom: z, max: 40, gap: 70 / state.scale })) {
       const [sx, sy] = toScreen(v.x, v.y);
       const label = v.name.toUpperCase();
-      const w = ctx.measureText(label).width;
+      const w = textWidth(ctx, label);
       if (sx - w / 2 < 4 || sx + w / 2 > state.cw - 4 || sy < 12 || sy > state.ch - 12) continue;
       const box = [sx - w / 2 - 2, sy - 8, sx + w / 2 + 2, sy + 8];
       if (!vrij(box)) continue;
@@ -1593,7 +1630,7 @@ function drawStaticOverlay(ctx) {
       if (!onScreen(sx, sy, 80)) continue;
       if (discoveryHidden(p.x, p.y)) continue; // #899
       const label = p.name.toUpperCase();
-      const w = ctx.measureText(label).width;
+      const w = textWidth(ctx, label);
       const box = [sx - w / 2 - 2, sy - 8, sx + w / 2 + 2, sy + 8];
       if (!vrij(box)) continue;
       boxes.push(box);
@@ -1623,7 +1660,7 @@ function drawStaticOverlay(ctx) {
       if (!onScreen(sx, sy, 200)) continue;
       ctx.font = `20px ${FONT}`;
       const label = area.name.toUpperCase().split('').join(' ');
-      const w = ctx.measureText(label).width;
+      const w = textWidth(ctx, label);
       const box = [sx - w / 2 - 8, sy - 12, sx + w / 2 + (area.stamp ? 20 : 8), sy + 12];
       if (!vrij(box)) continue;
       boxes.push(box);
@@ -1683,8 +1720,53 @@ function drawStaticOverlay(ctx) {
   state.staticHover = hover;
 }
 
+// De vaste laag staat op een eigen doek. Tijdens pannen en zoomen (het beeld veranderde minder dan
+// OVERLAY_SETTLE_MS geleden) tekent hij de vorige laag geschaald mee; na stilstand of bij een andere
+// oorzaak van vuil (laag aan/uit, pins, modus) bouwt hij hem opnieuw. Geeft true als er nog een scherpe
+// herschil volgt.
+function drawOverlayCached(c, wasDirty, now) {
+  let ov = state.overlay;
+  if (!ov) ov = state.overlay = { canvas: document.createElement('canvas'), ctx: null, valid: false, view: null };
+  const src = state.compose;
+  if (ov.canvas.width !== src.width || ov.canvas.height !== src.height) {
+    ov.canvas.width = src.width; ov.canvas.height = src.height; ov.valid = false; ov.ctx = null;
+  }
+  if (!ov.ctx) ov.ctx = ov.canvas.getContext('2d');
+  const seen = state.seenView;
+  if (!sameView(seen)) { state.seenView = saveView(seen); state.viewMovedAt = now; }
+  const plan = overlayPlan({ valid: ov.valid, sameView: sameView(ov.view), wasDirty, sameBase: ov.base === state.baseScale, sinceMoveMs: now - state.viewMovedAt });
+  if (plan === 'reuse') { c.drawImage(ov.canvas, 0, 0); state.perf.overlayHits = (state.perf.overlayHits || 0) + 1; return false; }
+  if (plan === 'interim') {
+    const v = ov.view;
+    const k = (state.scale * state.dpr) / (v.scale * v.dpr);
+    const dx = (state.ox - (v.ox * state.scale) / v.scale) * state.dpr;
+    const dy = (state.oy - (v.oy * state.scale) / v.scale) * state.dpr;
+    const keep = c.getTransform();
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    c.drawImage(ov.canvas, dx, dy, ov.canvas.width * k, ov.canvas.height * k);
+    c.setTransform(keep);
+    state.perf.overlayInterim = (state.perf.overlayInterim || 0) + 1;
+    return true;
+  }
+  const oc = ov.ctx;
+  oc.setTransform(1, 0, 0, 1, 0, 0);
+  oc.clearRect(0, 0, ov.canvas.width, ov.canvas.height);
+  oc.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+  state.pinsGebruikt = state.pinsSleutel || '';
+  state.pinsPositieGebruikt = state.pinsPosities || '';
+  drawStaticOverlay(oc);
+  ov.view = saveView(ov.view); ov.base = state.baseScale; ov.valid = true;
+  const keep = c.getTransform();
+  c.setTransform(1, 0, 0, 1, 0, 0);
+  c.drawImage(ov.canvas, 0, 0);
+  c.setTransform(keep);
+  state.perf.overlayBuilds = (state.perf.overlayBuilds || 0) + 1;
+  return false;
+}
+
 function compose() {
   const t0 = performance.now();
+  const wasDirty = state.dirty;
   const c = state.composeCtx;
   c.setTransform(1, 0, 0, 1, 0, 0);
   c.clearRect(0, 0, state.compose.width, state.compose.height);
@@ -1716,12 +1798,10 @@ function compose() {
   c.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
   // de pins waar deze laag omheen legt (#463): de vaste laag onthoudt welke set
   // hij gebruikte, zodat een nieuwe set één keer tot een herschil leidt
-  state.pinsGebruikt = state.pinsSleutel || '';
-  state.pinsPositieGebruikt = state.pinsPosities || ''; // #759: voor de begrensde herschil bij bewegende pins
-  drawStaticOverlay(c);
+  const interim = drawOverlayCached(c, wasDirty, t0);
   state.perf.tilesMs = t1 - t0;
   state.perf.overlayMs = performance.now() - t1;
-  state.dirty = !ready;
+  state.dirty = !ready || interim;
   state.perf.composeMs = performance.now() - t0;
 }
 
