@@ -1753,6 +1753,10 @@
    "reden": "Zuivere regels voor de eerste-keerhints van de eigen speler; lokaal, niets om te delen."
   },
   {
+   "glob": "firststeps",
+   "reden": "Zuivere regels van de eerste tien minuten (toetsregel wijkt na oefenen, herinnering bij afdwalen) voor de eigen speler; per apparaat en per sessie, niets om te delen."
+  },
+  {
    "glob": "savediag",
    "reden": "Diagnose van het opgeslagen spel op dit apparaat; lokaal."
   },

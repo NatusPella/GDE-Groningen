@@ -728,3 +728,12 @@ Bij de dekkingsaudit ([COOP-DEKKING-21-11.md](COOP-DEKKING-21-11.md), `scripts/c
 - **Test:** `scripts/parcelcare_test.mjs`, `scripts/bezitzorg_test.mjs` (pure tests; een testbankstap is niet nodig omdat er geen bericht over het net gaat).
 
 **Slotscènes F1 tot en met F6 geregisseerd (22-11, #1121).** Een reisstap met een regie (`cutscenes_akte5.js`, `storyfun.js` `playStepScene`) speelt lokaal bij elke speler die de plek haalt, net als de praatscène die hij vervangt: de wereld is van wie het spel opende, een gast speelt de stap lokaal mee (J of N bij Meedoen), voortgang en beloning zijn per speler (er is geen beloning), er gaat niets over het netwerk. Wie wegvalt of later aansluit, speelt de stap zodra hij de plek haalt. Dekking: `multiplayerstorysteps_test` en `akte5_slot_test`.
+
+## Eerste tien minuten: wijkende toetsregel en "De weg kwijt?" (22-11)
+
+**Iedereen lokaal in zijn eigen spel.** De regels staan in `firststeps.js` (puur). De toetsregel onder het eerste verhaaldoel wijkt per context (te voet, auto, boot, vliegtuig, heli) zodra de speler van dit apparaat (`hoofdspeler`) daar genoeg meters heeft afgelegd; de meting hoort bij het apparaat en de sessie en wordt niet opgeslagen. De kaart "De weg kwijt?" komt uit `onboarding.js`, dat een gast niet draait: alleen wie het spel opende krijgt hem, hooguit twee keer per sessie.
+
+- **Wat ziet een gast:** zijn eigen toetsregel met zijn eigen meting; geen kaart. Er gaat geen snapshot of EXTRA-bericht over het net.
+- **Beloning en voortgang:** geen.
+- **Wegvallen, later aansluiten, hostwissel:** niets te synchroniseren; een nieuwe sessie begint de meting opnieuw.
+- **Test:** `scripts/firststeps_test.mjs` (puur, met bronchecks op de bedrading; een testbankstap is niet nodig omdat er niets over het net gaat).
