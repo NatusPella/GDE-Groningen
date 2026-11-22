@@ -17,6 +17,7 @@ import { tekenVeroverd, tekenLegenda, tekenLegendeVlag, kaartLaag, openGebied, s
 import { dsKleur } from './kaartkleuren.js';
 import { gebiedenVan } from './gebieden.js';
 import { getOverzicht, opVeranderen as onGebiedenChange, bezoekPlek } from './gebiedenlive.js';
+import { queueNotice } from './notifygate.js'; // meldingen pas na het laadscherm (22-11)
 import { pinBlijftInMist, unseenDistricts, discoveryRatio, revealAlpha, maskSize, DISCOVERY_RES_M } from './kaartontdekking.js';
 import { getHorecaForRender } from './horeca.js';
 import { poiRules, capPins, fadeIn, createHorecaPlanner } from './mapdeclutter.js';
@@ -664,8 +665,18 @@ const OPEN_DELAY_MS = 900;
 
 function queueDiscovery(ev) {
   if (!state) return;
-  state.reveals = queueReveal(state.reveals || [], ev);
-  if (discovery && state.open) startNextReveal();
+  // 22-11: de onthulling komt pas in de rij nadat het laadscherm weg is (notifygate.js). De kaart zelf mag open zijn
+  // (juist dan speelt hij), dus het schermvullende menu houdt hier niet vast. Geen slot: elke streek apart.
+  queueNotice('kaart', {
+    key: 'reveal-' + ev.area,
+    duur: 0,
+    negeer: ['scherm'],
+    show: () => {
+      if (!state) return;
+      state.reveals = queueReveal(state.reveals || [], ev);
+      if (discovery && state.open) startNextReveal();
+    },
+  });
 }
 
 // De streek-index (1-based, zoals het masker) van een streek-id.

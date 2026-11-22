@@ -71,6 +71,7 @@ import { storyWaiting, missionOnMap, getGoal } from './goal.js';
 import { resolveNavTargets, snapshotFromWorld, distanceFor, compactDistance, navColor, NAV_ROL, GLYPH } from './navtarget.js';
 import { drawKompasRand, MAX_ANDEREN } from './navpijl.js';
 import { MM_ONTDEK_MS } from './kaartontdekking.js';
+import { queueNotice, runNotifyGate } from './notifygate.js'; // meldingen pas na het laadscherm (22-11)
 import { setGhostBar, ring, pop, reducedMotion } from './motion.js';
 import { renderSnapshot, PORTRAIT_ANGLE } from './vehiclepreview.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
@@ -275,10 +276,18 @@ export function initHud(world) {
   root.appendChild(mmWrap);
   // #990: een nieuwe streek ontdekt (ook onderweg, kaart dicht): de rand van de minimap gloeit even op, geen beweging nodig
   let ontdekT = 0;
+  // 22-11: de gloed wacht tot het laadscherm weg is (notifygate.js); meerdere streken tegelijk worden één gloed
+  runNotifyGate();
   onStreekOntdekt(() => {
-    mmWrap.classList.add('ontdek');
-    clearTimeout(ontdekT);
-    ontdekT = setTimeout(() => mmWrap.classList.remove('ontdek'), MM_ONTDEK_MS);
+    queueNotice('ontdekking', {
+      key: 'minimap-ontdek',
+      tekst: 'Je ontdekt een nieuwe streek',
+      show: () => {
+        mmWrap.classList.add('ontdek');
+        clearTimeout(ontdekT);
+        ontdekT = setTimeout(() => mmWrap.classList.remove('ontdek'), MM_ONTDEK_MS);
+      },
+    });
   });
   // #993: de buurtnaam als inktlabel onder de minimap; de rasterpatroon-defs is voor de lege wantedster
   const defsWrap = document.createElement('div');

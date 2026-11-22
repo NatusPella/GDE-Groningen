@@ -13,12 +13,21 @@ import { placeLabel } from './hud_panel.js';
 import { pictureHtml, missionPicture } from './loadscene.js';
 import { createGate, gateTick, fadeMs, wachtOpGastheer } from './loadgate.js';
 import { openerNaam } from './coopplayers.js';
+import { registerNotifyHold, notifyGate } from './notifygate.js';
 import { JUMP_M as JM, loadKind, stepProgress, startProgress, loadPending, loadStepAt, easeBar } from './loadlogic.js';
 
 export const JUMP_M = JM;
 
 let css = false;
 let active = null;
+
+// 22-11: meldingen (ontdekking, gebiedsnaam, prestaties) wachten tot het laadscherm en het opstartscherm weg zijn (notifygate.js)
+registerNotifyHold('laadscherm', () => !!active);
+registerNotifyHold('opstart', () => {
+  if (typeof document === 'undefined' || !document.body) return false;
+  const b = document.body.classList;
+  return !b.contains('game-started') && !b.contains('trailer-hud');
+});
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -118,6 +127,8 @@ export function startLoadScreen(world, opts = {}) {
     el.classList.add('out');
     setTimeout(() => { el.remove(); }, ms);
     active = null;
+    // een savegame laden: wat er tijdens het laden als 'nieuw' voorbijkwam is niet nieuw; alleen echte ontdekkingen na het laden tellen
+    if (kind === 'save') notifyGate.drop(['ontdekking', 'gebied', 'kaart', 'hint']);
     res();
   };
   const step = () => {
