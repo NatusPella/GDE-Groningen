@@ -122,7 +122,7 @@ Elke reis heeft een vertrek, een bestemming, een reden en een aankomst; dit is d
 | Beat | Van | Naar | Reden | Vertrek | Aankomst | Datum |
 |---|---|---|---|---|---|---|
 | opening | Oosterparkwijk | Paddepoel | verhuisdag | 08:30 | 09:00 | vr 14 aug |
-| T1 trein | Station Grunn | Warffum (22 km) | Oma stuurt hen naar Geesje | 16:40 | 17:10 | di 18 aug |
+| T1 trein | Station Groningen | Warffum (22 km) | Oma stuurt hen naar Geesje | 16:40 | 17:10 | di 18 aug |
 | los | Warffum | Geesje, overnachten bij haar | de eieren | 17:15 | 17:45 | di 18 aug |
 | M10 | Usquert | Uithuizen (6 km, quad) | Jelle schudden | 14:00 | 14:10 | wo 19 aug |
 | T2 bus | Uithuizen | Zoutkamp (30 km) | Klaas wacht | 11:00 | 11:35 | do 20 aug |

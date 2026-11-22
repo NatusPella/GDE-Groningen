@@ -87,7 +87,7 @@ TESSA: Die rijdt nauwelijks. [BEHOUDEN]
 TAMMO: Dan rijdt hij nauwelijks voor jou. Een snackwagen die nauwelijks rijdt. Dat is een concept. [NIEUW]
 
 (regie: **c2-plan.** Shot/reverse per regel; op "Het is een tekening" eerst de tekening, dan een close-up op Tessa; op "Dan rijd ik hem" een close-up op Tammo.)
-TESSA: Zonder bank blijft er één weg over: een wedstrijd. Wie wint, krijgt de enige vrije standplaats van Grunn, een plek voor een wagen. [NIEUW]
+TESSA: Zonder bank blijft er één weg over: een wedstrijd. Wie wint, krijgt de enige vrije standplaats van de Stad, een plek voor een wagen. [NIEUW]
 TAMMO: De prijs voor de beste eierbal. [NIEUW]
 TESSA: Wij winnen op 28 augustus, wij krijgen die standplaats, en dan zien we wel wat erop komt te staan. [NIEUW]
 TAMMO: Is dat het plan? Een frietwagen? [NIEUW]

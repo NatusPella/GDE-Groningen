@@ -367,7 +367,7 @@ export const BANTER = [
     ['A', 'Het is geen oud en nieuw.', 'dry'],
     ['T', 'Het is altijd een beetje oud en nieuw, als je wilt.', 'philosophical']] },
   { id: 'id-fietsen', trigger: 'idle', lines: [
-    ['A', 'Hoeveel fietsen zijn er eigenlijk in Grunn?', 'curious'],
+    ['A', 'Hoeveel fietsen zijn er eigenlijk in de Stad?', 'curious'],
     ['T', 'Meer dan mensen.', 'confident'],
     ['A', 'Hoe kan dat nou?', 'skeptical'],
     ['T', 'Kijk maar in de Diepenring. Daar liggen de reserves.', 'matter-of-fact']] },

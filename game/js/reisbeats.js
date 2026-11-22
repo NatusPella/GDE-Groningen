@@ -13,11 +13,11 @@
 //   scene    script.json scene whose lines are the core of the trip talk (optional)
 //   act      1..5 (6: Deel 4), for the act budget
 export const REISBEATS = {
-  T1: { act: 2, from: 'Station Grunn', to: 'Warffum', length: 28000, ride: 'trein', scene: 'T1' },
+  T1: { act: 2, from: 'Station Groningen', to: 'Warffum', length: 28000, ride: 'trein', scene: 'T1' },
   T2: { act: 2, from: 'Uithuizen', to: 'Zoutkamp', length: 30000, ride: 'bus', scene: 'T2' },
   // M12 ends at the Eemshaven; the dike race of M14 starts at Bierum, about 22 km on
   M14: { act: 3, from: 'Eemshaven', to: 'Bierum', length: 22000, ride: 'lift' },
-  // by rail Delfzijl to Winschoten goes by way of Station Grunn: about 80 km
+  // by rail Delfzijl to Winschoten goes by way of Station Groningen: about 80 km
   T3: { act: 3, from: 'Delfzijl', to: 'Winschoten', length: 80000, ride: 'trein', scene: 'T3' },
   // #664: M12 eindigt bij Lauwersoog, M13 begint in de Eemshaven. Zonder reisstap was dat 43 km
   // stilte; dezelfde keuze als T1-T5 (meerijden, zelf rijden, overslaan), met de rit als praatmoment.

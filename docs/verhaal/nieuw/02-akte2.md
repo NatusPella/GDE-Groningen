@@ -25,8 +25,8 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte2
 |---|---|---|---|---|
 | Bornholmstraat (2.1) | Oosterpoort | 4,5 | 4 min | de missie zelf |
 | Oosterpoort | Noorderhaven (2.2) | 3 | 3 min | skip met scooter |
-| Noorderhaven | Station Grunn | 2,5 | 3 min | te voet 5 min |
-| Station Grunn | Winsum (trein) | 17 | 12 min | treinrit met scène, 2 min in beeld; of auto 10 min |
+| Noorderhaven | Station Groningen | 2,5 | 3 min | te voet 5 min |
+| Station Groningen | Winsum (trein) | 17 | 12 min | treinrit met scène, 2 min in beeld; of auto 10 min |
 | Winsum | Warffum (Geesje) | 12 | 8 min | Geesjes neef brengt je (skip, scène) |
 | Warffum | Usquert (2.3 doel) | 3 | tractor 5 min | geen |
 | Usquert | Uithuizen (bushalte; 2.4) | 6 | quad 4 min | geen |

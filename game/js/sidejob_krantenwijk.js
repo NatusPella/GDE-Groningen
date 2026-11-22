@@ -161,7 +161,7 @@ export default {
   boss: R.BAAS,
   boardFirst: false,
   vehicleWord: 'de krantenfiets',
-  blurb: 'Kranten en folders gooien in een wijk van Grunn',
+  blurb: 'Kranten en folders gooien in een wijk van de Stad',
   tagline: 'Mik op de brievenbus. {E} gooit.',
   intro: [
     `Moi! Welkom bij ${R.OPDRACHTGEVER}. Je krijgt een stapel kranten en folders voor een wijk, en een fiets als je wilt.`,

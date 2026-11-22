@@ -38,7 +38,7 @@ export const LEG_EXTRA = 12;
 // route metres to the next halte (scripts/bus_route_test.mjs checks both).
 export const STOPS = [
   { name: 'Hoofdstation', street: 'Stationsweg', at: [112.83, 882.31], dir: [1, 0], leg: 235, line: 'Hoofdstation. Overstappen op de trein, of op één van de tienduizend fietsen.' },
-  { name: 'Herebrug', street: 'Stationsweg', at: [338.41, 822.24], dir: [1, -0.4], leg: 175, line: 'Herebrug. Staat de brug open? Dan staat de bus stil. Zo gaat dat in Grunn.' },
+  { name: 'Herebrug', street: 'Stationsweg', at: [338.41, 822.24], dir: [1, -0.4], leg: 175, line: 'Herebrug. Staat de brug open? Dan staat de bus stil. Zo gaat dat in de Stad.' },
   { name: 'Hereplein', street: 'Hereplein', at: [359.36, 694.05], dir: [0, -1], leg: 555, line: 'Hereplein. Let op: fietsers hebben hier voorrang. Ook als ze er nog niet zijn.' },
   { name: 'Oosterpoort', street: 'Verlengde Oosterstraat', at: [594.98, 635.81], dir: [1, 1.4], leg: 240, line: 'Oosterpoort, aan de Trompsingel. Vanavond: een band die je over tien jaar pas kent.' },
   { name: 'Zuiderpark', street: 'Zuiderpark', at: [427.88, 776.47], dir: [-1, 0.4], leg: 970, line: 'Zuiderpark. Uitstappen voor het park. Picknickkleed niet inbegrepen.' },

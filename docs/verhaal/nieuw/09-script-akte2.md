@@ -204,7 +204,7 @@ TAMMO: Hij reed goed. [NIEUW]
 TESSA: Het was een bus. [NIEUW]
 TAMMO: Hij stond op tijd. Dat is zeldzaam. [NIEUW]
 
-## [T1] De trein naar Warffum – Stad, Station Grunn naar Warffum – trein (meerijden)
+## [T1] De trein naar Warffum – Stad, Station Groningen naar Warffum – trein (meerijden)
 (regie: bewijsmoment, relatie-bijbel 4: op het perron wacht Tammo tot een oude vrouw met een rollator de trein uit is voor hij zelf instapt. Tessa ziet het in het raam.)
 (regie: de keuze: trein, zelf rijden of skippen. Bij de trein: een korte scène.)
 TESSA: Een kaartje naar maakt niet uit waar. Jij kijkt te schuldig voor een conducteur. [BEHOUDEN]
@@ -456,7 +456,7 @@ TAMMO: Dan is het een groot nat erfgoed. [NIEUW]
 TESSA: Daar. Een kerk. Honderd kerken in dit stuk. [NIEUW]
 TAMMO: Voor honderd mensen? [NIEUW]
 TESSA: Voor honderd keer één. [NIEUW]
-TAMMO: In Grunn hebben we de Martinitoren. [NIEUW]
+TAMMO: In de Stad hebben we de Martinitoren. [NIEUW]
 TESSA: Die is ook van de provincie. [NIEUW]
 TAMMO: Waarom ken je dit allemaal? [NIEUW]
 TESSA: Ik heb veel gelezen. [NIEUW]

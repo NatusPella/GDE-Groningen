@@ -274,7 +274,7 @@ const SHOUT = {
     'Dat schip is ouder dan jullie bij elkaar!',
     'Moi? MOI?! Niks moi!',
     'Dit is gain rondvaart, dit is een ontvoering!',
-    'Ik ken elke brug in Grunn. Jullie niet!',
+    'Ik ken elke brug in de Stad. Jullie niet!',
     'Ik haal je in, al moet ik tot Delfzijl!',
     'Dames en heren, u zit op een gestolen boot!',
     'Ik heb dertig jaar vaarbewijs, jij dertig seconden!',
@@ -298,7 +298,7 @@ const SHOUT = {
 };
 
 const BUMP_SOFT = [
-  'Tik! Een toerist morst koffie over z\'n kaart van Grunn.',
+  'Tik! Een toerist morst koffie over z\'n kaart van de Stad.',
   'Schrap langs de kade. "Is this part of the tour?"',
   'Bonk. Een Duitse toerist klapt uit beleefdheid.',
 ];

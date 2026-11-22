@@ -893,7 +893,7 @@ function playGameStart(w) {
 // wijk it belongs to; the rest gets WIJK_GENERIC. wijkLine never repeats one
 // of the last WIJK_RECENT lines (kept across sessions).
 const WIJK_LINES = {
-  Binnenstad: ['Het hart van Grunn. Klopt het hardst na middernacht.', 'Twee pleinen, één toren, en overal een fiets in de weg.', 'De binnenstad. Met de auto mag je er niet door. Sinds 1977.'],
+  Binnenstad: ['Het hart van de Stad. Klopt het hardst na middernacht.', 'Twee pleinen, één toren, en overal een fiets in de weg.', 'De binnenstad. Met de auto mag je er niet door. Sinds 1977.'],
   'Binnenstad-Oost': ['De oostkant van de binnenstad. Kroegen, kerken en een terras op elke stoep.', 'Hier staan de oude huizen schever dan de mensen na sluitingstijd.'],
   Stationsgebied: ['Iedereen komt hier aan. Niet iedereen gaat weer weg.', 'Het Hoofdstation. Het mooiste van het land, zeggen ze. Wij zeggen het in elk geval.', 'Onder het plein een fietsenkelder. Je fiets vind je er nooit meer terug.'],
   Westerhaven: ['De Westerhaven. Vroeger schepen, nu een winkelcentrum met uitzicht op het water.', 'Hier legden de turfschippers aan. Nu zoekt iedereen een parkeerplek.'],
@@ -903,7 +903,7 @@ const WIJK_LINES = {
   Damsterkwartier: ['Het Damsterdiep. Hier begon de trekvaart naar Delfzijl. Nu varen er eenden.'],
   Oosterpoort: ['Muziek, kroegen en altijd wel ergens herrie.', 'De Oosterpoort. Achter elke deur een fiets en een bandje dat oefent.', 'Hier staat de concertzaal. De buren luisteren gratis mee, door de muur heen.'],
   Herewegbuurt: ['De Herewegbuurt. Grote huizen, grote bomen, en de bus dendert er dwars doorheen.', 'Villa\'s aan de Hereweg. Hier heeft de heg een eigen tuinman.'],
-  Zeeheldenbuurt: ['Genoemd naar helden. De bewoners doen hun best.', 'De Zeeheldenbuurt. Zeehelden, in Grunn. Het dichtstbijzijnde zeegat is Delfzijl.'],
+  Zeeheldenbuurt: ['Genoemd naar helden. De bewoners doen hun best.', 'De Zeeheldenbuurt. Zeehelden, in de Stad. Het dichtstbijzijnde zeegat is Delfzijl.'],
   Rivierenbuurt: ['De Rivierenbuurt. Elke straat een rivier. Water zie je hier alleen als het regent.', 'Rijtjeshuizen met een voortuintje. Op zaterdag wordt hier de auto gewassen. Met de hand.'],
   Grunobuurt: ['De Grunobuurt. Genoemd naar Gruno, die Stad gesticht zou hebben. Zou.', 'Rustig, groen, en vlak bij de Euroborg. Behalve op wedstrijddagen.'],
   Laanhuizen: ['Laanhuizen. Rijtjes, hofjes, en het Stadspark om de hoek.'],

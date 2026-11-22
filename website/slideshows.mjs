@@ -10,7 +10,7 @@ export const SLIDESHOWS = [
     title: 'Groningen van boven tot onder',
     lead: 'De Martinitoren, de binnenstad, het Ommeland en de Waddenzee: het echte Groningen in low poly.',
     slides: [
-      { img: 'img/loc-martinitoren.webp', alt: 'De Martinitoren van dichtbij boven de daken van Groningen.', tag: 'Martinitoren', title: 'De toren van Grunn', text: 'Het herkenningspunt staat er gewoon, ook vanaf het dak.' },
+      { img: 'img/loc-martinitoren.webp', alt: 'De Martinitoren van dichtbij boven de daken van Groningen.', tag: 'Martinitoren', title: 'De toren van de Stad', text: 'Het herkenningspunt staat er gewoon, ook vanaf het dak.' },
       { img: 'img/02-vismarkt.jpg', alt: 'De Vismarkt in Groningen op een zomeravond, met de Martinitoren op de achtergrond.', tag: 'Vismarkt', title: 'Zomer op de Vismarkt', text: 'Terrasjes, mensen en de Martinitoren op de achtergrond.' },
       { img: 'img/stad-nacht.webp', alt: 'De binnenstad van Groningen bij nacht, met de verlichte Martinitoren tussen de daken.', tag: 'Binnenstad', title: 'Groningen bij nacht', text: 'De binnenstad blijft ook na zonsondergang vol leven.' },
       { img: 'img/loc-dorp.webp', alt: 'Een dorp in het Groninger landschap met akkers en kerktorens.', tag: 'Ommeland', title: 'Dorpen en akkers', text: 'Buiten de ring ligt het Groninger landschap klaar.' },

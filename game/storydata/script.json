@@ -319,11 +319,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Zonder bank blijft er één weg over: een wedstrijd. Wie wint, krijgt de enige vrije standplaats van Grunn, een plek voor een wagen.",
+     "text": "Zonder bank blijft er één weg over: een wedstrijd. Wie wint, krijgt de enige vrije standplaats van de Stad, een plek voor een wagen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -614,7 +613,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Hij is de bisschop die Grunn in 1672 niet innam.",
+     "text": "Hij is de bisschop die de Stad in 1672 niet innam.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -2189,7 +2188,7 @@
    "id": "N4",
    "title": "Een eerste ronde",
    "act": 1,
-   "region": "Stad, Station Grunn",
+   "region": "Stad, Station Groningen",
    "vehicle": "te voet",
    "step": "N4",
    "kind": "key",
@@ -2469,11 +2468,10 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Verder koop ik alle standplaatsen van Grunn die vrijkomen. Contant, uit een klomp, definitief.",
+     "text": "Verder koop ik alle standplaatsen van de Stad die vrijkomen. Contant, uit een klomp, definitief.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Tessa",
@@ -6541,7 +6539,7 @@
    "id": "T1",
    "title": "De trein naar Warffum",
    "act": 2,
-   "region": "Stad, Station Grunn naar Warffum",
+   "region": "Stad, Station Groningen naar Warffum",
    "vehicle": "trein (meerijden)",
    "step": "T1",
    "kind": "travel",
@@ -8636,11 +8634,10 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "In Grunn hebben we de Martinitoren.",
+     "text": "In de Stad hebben we de Martinitoren.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Tessa",
@@ -10970,11 +10967,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Let op, de trein gaat eerst terug via Station Grunn.",
+     "text": "Let op, de trein gaat eerst terug via Station Groningen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -15326,11 +15322,10 @@
     {
      "speaker": "Berend Bos",
      "key": "berend",
-     "text": "Omdat Grunn te klein is voor een echt beleg.",
+     "text": "Omdat de Stad te klein is voor een echt beleg.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Berend Bos",
@@ -16815,20 +16810,18 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Dat is Veendam. Bijna net zo groot als Grunn.",
+     "text": "Dat is Veendam. Bijna net zo groot als de Stad.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Het is een negende van Grunn.",
+     "text": "Het is een negende van de Stad.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -18351,11 +18344,10 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "De grootste stoet die Grunn ooit zag.",
+     "text": "De grootste stoet die de Stad ooit zag.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Tessa",
