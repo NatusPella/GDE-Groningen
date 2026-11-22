@@ -16,10 +16,13 @@
 // "May this start now?" is not asked here but through playerBusy (busy.js).
 
 const KINDS = [];
+// the tick order per phase, built once per registration instead of twice a frame
+const dueByPhase = new Map();
 
 export function registerActivityKind(kind) {
   if (!kind || !kind.id || KINDS.some((k) => k.id === kind.id)) return;
   KINDS.push(kind);
+  dueByPhase.clear();
 }
 
 export function activityKinds() { return KINDS.map((k) => k.id); }
@@ -39,6 +42,7 @@ export function interactActivityKinds(w, slot) {
 
 export function tickActivityKinds(dt, w, phase) {
   // `tickRank` orders ticks within a phase (default 0, registration order on a tie)
-  const due = KINDS.filter((k) => k.tickPhase === phase && k.tick).sort((a, b) => (a.tickRank || 0) - (b.tickRank || 0));
-  for (const k of due) k.tick(dt, w);
+  let due = dueByPhase.get(phase);
+  if (!due) dueByPhase.set(phase, due = KINDS.filter((k) => k.tickPhase === phase && k.tick).sort((a, b) => (a.tickRank || 0) - (b.tickRank || 0)));
+  for (let i = 0; i < due.length; i++) due[i].tick(dt, w);
 }

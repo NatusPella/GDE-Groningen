@@ -26,5 +26,19 @@ log.length = 0; interactActivityKinds({}, 'nope'); check('unknown slot', log.len
 log.length = 0; tickActivityKinds(0.1, {}, 'late'); check('tick rank', log.join() === 'tick:c,tick:b', log.join());
 log.length = 0; tickActivityKinds(0.1, {}, 'world'); check('tick world', log.join() === 'tick:a', log.join());
 
+// Efficiëntie: de tikvolgorde per fase wordt één keer opgebouwd, niet twee keer per beeld gefilterd en gesorteerd.
+let reads = 0;
+registerActivityKind({ id: 'e', tick: () => log.push('tick:e'), get tickPhase() { reads++; return 'late'; }, tickRank: 5 });
+log.length = 0; tickActivityKinds(0.1, {}, 'late'); check('new kind joins its phase', log.join() === 'tick:c,tick:b,tick:e', log.join());
+const readsNa = reads;
+for (let i = 0; i < 50; i++) { tickActivityKinds(0.1, {}, 'late'); tickActivityKinds(0.1, {}, 'world'); }
+check('kinds are not filtered again every tick', reads === readsNa, (reads - readsNa) + ' leesbeurten in 50 beelden');
+registerActivityKind(mk('f', { tickPhase: 'late', tickRank: -2 }));
+log.length = 0; tickActivityKinds(0.1, {}, 'late'); check('a kind registered later still ticks in rank order', log.join() === 'tick:f,tick:c,tick:b,tick:e', log.join());
+// a kind that registers another kind during its tick: the running round finishes, the new kind joins the next one
+registerActivityKind({ id: 'g', tickPhase: 'solo', tick: () => { log.push('tick:g'); registerActivityKind(mk('h', { tickPhase: 'solo' })); } });
+log.length = 0; tickActivityKinds(0.1, {}, 'solo'); check('registration during a tick waits a round', log.join() === 'tick:g', log.join());
+log.length = 0; tickActivityKinds(0.1, {}, 'solo'); check('and joins the next round', log.join() === 'tick:g,tick:h', log.join());
+
 console.log(bad ? bad + ' failed' : 'activityhub_test ok');
 process.exit(bad ? 1 : 0);
