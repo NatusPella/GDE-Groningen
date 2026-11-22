@@ -11,6 +11,12 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Kaart en HUD
+
+- Kaart: een nieuwe streek ontdekt, ook onderweg met de kaart dicht? Dan gloeit de rand van de minimap even zomers geel op (zonder beweging blijft de gele rand even staan). Ontdekking is per speler; wie meespeelt ziet alleen zijn eigen gloed (#990).
+- Gebiedsnaam: de prestatie voor wijken, de telefoonpraatjes en de duif noemen alleen nog een stadswijk als je er echt in staat, niet meer vanaf een weg net buiten de stad. Lokaal per speler (#1077).
+- Hulp: het aanbod na twee mislukkingen laat met drie icoontjes zien wat de hulp verandert (tijd, schade, poorten) in plaats van een lap tekst. De schermlezer hoort nog steeds de hele tekst. Elke speler ziet zijn eigen aanbod (#989).
+
 ### Luchtroute
 
 - Luchtroute (#1038): in het vliegtuig, de helikopter, als duif en in de luchtballon is er nog maar één routekaart. Regel 1 is de plaats waar je heen vliegt (Vliegveld Eelde, Winsum), nooit meer de voorwaarde van een missie. Regel 2 zegt wat je doet: Draai om, Links aanhouden, Stijg naar 75 m. De pijl draait mee met je koers; bij een bocht van meer dan 120 graden staat er een omdraai-icoon. Afstand en tijd staan groter rechts. De bovenste balk toont in de lucht alleen de naam van de opdracht, zonder Vlieg naar. De gids is lokaal per speler (Samen spelen).

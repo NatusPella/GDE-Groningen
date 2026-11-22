@@ -234,6 +234,7 @@ export const ICONEN = {
   vet: '<path d="M12 3c3.4 4.4 6 7.4 6 11a6 6 0 0 1-12 0c0-3.6 2.6-6.6 6-11z"/>',
   mosterd: '<path d="M9 21V10l1.5-3h3L15 10v11z"/><path d="M11 7V3h2v4z"/>',
   bloem: '<path d="M12 21V8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 9c-3 0-4-3-4-5 3 0 4 2 4 5zm0 0c3 0 4-3 4-5-3 0-4 2-4 5zm0 5c-3 0-4-3-4-5 3 0 4 2 4 5zm0 0c3 0 4-3 4-5-3 0-4 2-4 5z"/>',
+  poort: '<path d="M3.5 21V5h2.5v16z"/><path d="M18 21V5h2.5v16z"/><path d="M6 8.5h12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-dasharray="2.5 2"/>',
   pijl: '<path d="M12 2.5l6.5 12H13v7h-2v-7H5.5z"/>',
   stuk: '<path d="M12 4l-2.5 5 3.5 2.5-3 4 2.5 4" fill="none" stroke="var(--rw-gat, #0c140e)" stroke-width="1.8" stroke-linejoin="round"/>',
 };

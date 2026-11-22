@@ -122,6 +122,9 @@
   #gde-ahead .ga-box , #hulpaanbod .ga-box { zoom: calc(var(--ui, 1.2) / 1.2); width: min(600px, calc(100vw / var(--ui, 1.2) * 1.2 - 32px)); box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; padding: 36px 40px; background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard); transform: rotate(var(--ds-schuin)); animation: mo-in var(--dur-slow) var(--ease-out); }
   #gde-ahead b , #hulpaanbod b { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 52px; line-height: 0.95; letter-spacing: 0.01em; color: var(--ds-c-ink-bord); text-shadow: var(--ds-misdruk); }
   #gde-ahead p , #hulpaanbod p { margin: 0; font-size: 20px; line-height: 1.45; color: var(--ds-c-ink-inkt); }
+  #hulpaanbod .ga-legenda { display: flex; justify-content: center; }
+  #hulpaanbod .ga-klein:empty , #hulpaanbod .ga-legenda:empty { display: none; }
+  #hulpaanbod p.ga-klein { font-size: 16px; color: var(--ds-c-inkt-zacht); }
   #gde-ahead .ga-now , #hulpaanbod .ga-now { font-size: 18px; color: var(--ds-c-inkt-zacht); }
   #gde-ahead .ga-btns , #hulpaanbod .ga-btns { display: flex; flex-direction: column; gap: 14px; margin-top: 8px; }
   #gde-ahead button , #hulpaanbod button { min-height: 56px; padding: 8px 24px; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 26px; letter-spacing: 0.04em; cursor: pointer; text-align: center; color: var(--ds-c-ink-inkt); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard); transition: transform var(--dur-fast), box-shadow var(--dur-fast); }
