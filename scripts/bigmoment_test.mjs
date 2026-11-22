@@ -142,5 +142,19 @@ ok(RIJDEN_MS === 3, 'de drempel is 3 m/s');
 }
 ok(/\.bm-gebied\.bm-compact \{ bottom: auto; top: 15vh; \}/.test(code) && /\.bm-compact \.bm-kaart \{ min-width: min\(384px/.test(code), 'de compacte kaart staat boven in beeld en is 40% smaller (384 tegen 640 px)');
 
+// #1187: een mislukte missie toont nooit een beloning, ook niet als de aanroeper er een meegeeft
+{
+  const m = bouwMoment(momentVanBanner({ kind: 'fail', title: 'Sikkom.', reason: 'Dat ging mis.', reward: 250 }));
+  ok(m.beloning === '' && m.beloningWaarde === 0 && !/Beloning|250/.test(m.aria), 'mislukt: geen beloningsregel, ook niet met reward 250', m.aria);
+  ok(bouwMoment(momentVanBanner({ kind: 'pass', title: 'X', reason: 'y', reward: 250 })).beloning === '€ 250', 'geslaagd houdt de beloning');
+}
+// #1188: achter een schermvullende eindkaart verdwijnt de doelbalk en zwijgen de sleutelhints
+{
+  const js = fs.readFileSync(new URL('../game/js/bigmoment.js', import.meta.url), 'utf8');
+  const pr = fs.readFileSync(new URL('../game/js/prompts.js', import.meta.url), 'utf8');
+  ok(/if \(m\.schermvullend\) document\.body\.classList\.add\('bm-eindkaart'\)/.test(js) && /classList\.remove\('bm-eindkaart'\)/.test(js), 'de eindkaart zet en haalt de bodyklasse bm-eindkaart weg');
+  ok(/body\.bm-eindkaart #hud \.hud-mission \{ opacity: 0/.test(code), 'de doelbalk is onzichtbaar achter de eindkaart');
+  ok(/b\.contains\('bm-eindkaart'\)/.test(pr), 'de sleutelhints (duifprompt) zwijgen achter de eindkaart');
+}
 console.log(`${n - fails}/${n} bigmoment`);
 process.exit(fails ? 1 : 0);

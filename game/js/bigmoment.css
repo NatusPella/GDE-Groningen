@@ -76,3 +76,5 @@ html.rustig-drukwerk .bm-ster:not(.aan) { background-color: var(--ds-c-ink-papie
 #cine .cine-banner.bm-vervangen::before, #cine .cine-banner.bm-vervangen .cb-bar, #cine .cine-banner.bm-vervangen .cb-title, #cine .cine-banner.bm-vervangen .cb-reason, #cine .cine-banner.bm-vervangen .cb-fact, #cine .cine-banner.bm-vervangen .cb-reward { display: none; }
 #cine .cine-banner.bm-vervangen.bm-geen-cijfers { visibility: hidden; }
 #wijk-card.bm-vervangen { visibility: hidden; }
+/* Achter de eindkaart (missie geslaagd of mislukt) staat geen doelbalk meer in beeld (#1188). */
+body.bm-eindkaart #hud .hud-mission { opacity: 0; transition: opacity var(--ds-m) var(--ds-ease); }

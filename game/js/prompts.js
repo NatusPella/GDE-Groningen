@@ -161,7 +161,7 @@ export function initPrompts(hudRoot) {
 function hiddenNow(world) {
   if (!toggleChoice('hints', getSettings().showHints)) return true; // #1169
   const b = document.body.classList;
-  if (!b.contains('game-started') || b.contains('cine-hide-hud') || b.contains('pigeon-mode')) return true;
+  if (!b.contains('game-started') || b.contains('cine-hide-hud') || b.contains('pigeon-mode') || b.contains('bm-eindkaart')) return true; // achter de eindkaart geen sleutelhints (#1188)
   if (world.pigeonMode) return true;
   if (world.cameraOverride || world.uiPaused || world.paused || world.menuCam) return true;
   if (isPhoneOpen() || isPauseMenuOpen()) return true;
