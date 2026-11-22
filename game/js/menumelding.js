@@ -2,6 +2,7 @@
 // "waarom mag dit niet" kwam pas na Escape. Hier staat de tekst direct onderin het menu, kort, en ze komt niet nog eens als kaartje.
 import { DURATION_CLASSES, noticeDuration } from './noticetiming.js';
 import { noticeBar } from './melding.js'; // het gedeelde aflopende balkje
+import { enqueueNotice } from './notifyqueue.js'; // ook de menumelding loopt via de ene meldingenwachtrij: een tegelijk (22-11)
 const TOON = DURATION_CLASSES.kort; // s: de korte klas, met het balkje; een lange tekst krijgt via noticeDuration een langere klas
 const MAX = 3;          // tegelijk zichtbaar
 let rij = [];
@@ -34,8 +35,21 @@ function teken() {
 }
 export function menuMelding(tekst) {
   if (!menuOpen()) return false;
-  rij = voegToe(rij, tekst, Date.now() / 1000);
-  teken();
-  if (!timer) timer = setInterval(teken, 400);
+  const t = String(tekst || '').trim();
+  if (!t) return true;
+  // het menu IS het scherm dat anderen tegenhoudt, dus deze melding negeert die hold; laden en film houden haar wel tegen
+  enqueueNotice('menu', {
+    key: t,
+    surface: 'menu',
+    text: t,
+    duration: noticeDuration({ tekst: t, klas: 'kort' }),
+    ignore: ['screen'],
+    show: () => {
+      rij = voegToe(rij, t, Date.now() / 1000);
+      teken();
+      if (!timer) timer = setInterval(teken, 400);
+    },
+    cut: () => { rij = []; teken(); },
+  });
   return true;
 }

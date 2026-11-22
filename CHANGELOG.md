@@ -625,6 +625,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Een gestopt padelpotje meldt dat, in plaats van een punt voor de tegenstander.
 - Duivenspot, klimtoren, kart, padel en de bijbanen blijven leesbaar en lopen niet vast bij een haperende beeldsnelheid of een late stand van een medespeler.
 - De tussenstand bij Samen spelen zegt Nog niemand zolang er geen deelnemers zijn.
+### Meldingen: rustig en gebundeld
+- Meldingen komen nu rustig en een voor een: er staat hooguit een melding tegelijk in beeld (kaart, prestatie, telefoonbericht, naamkaart, radiokaart, nieuw gebied, nieuwe streek, voertuig ontdekt, Nieuw tenue, ontgrendelingen en tips). De rest wacht in volgorde van belang: gevaar en politie eerst, dan missie en bijbaan, dan prestaties, daarna de rest.
+- Nooit een melding tijdens het laadscherm, een filmpje, een gesprek, het begin of einde van een missie of een schermvullende kaart. Wat dan binnenkomt wacht en komt erna, een voor een. Wat te lang wacht, verdwijnt; prestaties gaan nooit verloren. Zijn het er te veel, dan vouwen de minst belangrijke samen tot "en 2 meer" op de volgende melding.
+- Een melding wegdrukken kan met Delete, of op de controller met LB en RB tegelijk; de volgende komt dan meteen. Gevaar en politie onderbreken wel een rustige melding die al in beeld staat.
+- Samen spelen: elke speler heeft een eigen meldingenwachtrij op het eigen apparaat; er gaat niets over het net. Wie wegvalt of later aansluit begint met een lege rij, en een gast ziet alleen zijn eigen meldingen.
 
 ## [0.65.0] - 2026-11-21
 

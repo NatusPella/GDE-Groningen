@@ -4,7 +4,7 @@
 import { heldOverlays, mayStartOverlay } from './overlayrules.js';
 import { setVisibleInterval } from './visibletimer.js';
 import { isPauseMenuOpen, isMapOpen } from './pausestate.js';
-import { registerNotifyHold } from './notifygate.js';
+import { registerNoticeHold } from './notifyqueue.js';
 
 // hoe elke overlay in de DOM te herkennen is (zichtbaar = aanwezig)
 const SELECTORS = {
@@ -23,7 +23,9 @@ const HIDE = { naamkaart: '#name-card', wijkkaart: '#wijk-card', duelbalk: '#hud
 const SCHERM_SELECTOR = '#tune-menu.visible';
 export const schermOpen = (doc) => !!(isPauseMenuOpen() || isMapOpen() || (doc && doc.querySelector(SCHERM_SELECTOR)));
 
-registerNotifyHold('scherm', () => schermOpen(typeof document !== 'undefined' ? document : null)); // meldingenpoort (22-11)
+registerNoticeHold('screen', () => schermOpen(typeof document !== 'undefined' ? document : null)); // meldingenpoort (22-11)
+// de resultaatkaart van een missie (einde): meldingen wachten, alleen de missiemeldingen zelf negeren dit (notifyqueue.js)
+registerNoticeHold('mission', () => typeof document !== 'undefined' && !!document.querySelector(SELECTORS.resultaat));
 
 function activeOverlays(doc = typeof document !== 'undefined' ? document : null) {
   if (!doc) return [];
