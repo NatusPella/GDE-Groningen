@@ -136,5 +136,53 @@ for (let i = 0; i < 3000; i++) {
 }
 ok(E.betaal(null, 5) === false, 'betaal zonder wereld is onwaar');
 
+// ---------------------------------------------------------------- 5. gaten die de mutatiecontrole aanwees (scripts/mutatie_check.mjs)
+// Vaste prijzen: een tabel die stilletjes verandert is een balanswijziging.
+ok(E.platesCost(0) === 40 && E.platesCost(3) === 190 && E.platesCost(5) === 290, 'platesCost: 40 plus 50 per ster');
+// Een snapshot met 17 spelers (een erbij gezet na de zestiende) wordt geweigerd, ook als de rest netjes past.
+{
+  const zestien = { ...snap, players: Array.from({ length: K.MAX_PLAYERS }, (_, i) => ({ ...snap.players[0], slot: i })), entities: [] };
+  const b = K.encodeSnapshot(1, 1, 1, zestien);
+  ok(K.decodeSnapshot(b) && K.decodeSnapshot(b).players.length === K.MAX_PLAYERS, 'snapshot met 16 spelers rondreis');
+  const extra = new Uint8Array(b.length + 22); extra.set(b.subarray(0, 12 + 16 * 22), 0); extra.set(b.subarray(12 + 15 * 22, 12 + 16 * 22), 12 + 16 * 22); extra.set(b.subarray(12 + 16 * 22), 12 + 17 * 22);
+  extra[11] = 17;
+  ok(K.decodeSnapshot(extra) === null, 'snapshot met 17 spelers wordt geweigerd');
+}
+// Een entiteit ver buiten de wereld maakt de hele snapshot ongeldig.
+ok(K.decodeSnapshot(K.encodeSnapshot(1, 1, 1, { ...snap, entities: [{ id: 1, kind: 20, x: 5e7, z: 0, angle: 0 }] })) === null, 'entiteit buiten de wereld: snapshot geweigerd');
+// Een JSON-bericht met losse bytes erachter is geen geldig bericht (een spatie: JSON.parse slikt hem, de lengtecontrole niet).
+{ const j = valid[2]; const langer = new Uint8Array(j.length + 1); langer.set(j); langer[j.length] = 0x20; ok(K.decodeJson(j) && K.decodeJson(langer) === null, 'JSON-bericht met restbytes wordt geweigerd'); }
+// Meer uiterlijkrecords dan MAX_LOOKS: vijf geldige records achter elkaar worden geweigerd.
+{
+  const L = { id: 7, model: 1, fl: 0, len: 4.2, wid: 1.8, color: 0x112233, color2: 0x445566, extra: 0, dents: [] };
+  const zonder = K.encodeSnapshot(1, 1, 1, { ...snap, entities: [], looks: [] });
+  const met1 = K.encodeSnapshot(1, 1, 1, { ...snap, entities: [], looks: [L] });
+  ok(K.decodeSnapshot(met1) && K.decodeSnapshot(met1).looks.length === 1, 'snapshot met een uiterlijkrecord rondreis');
+  const rec = met1.subarray(zonder.length);
+  const vijf = new Uint8Array(zonder.length + rec.length * 5); vijf.set(zonder); vijf[zonder.length - 1] = 5;
+  for (let i = 0; i < 5; i++) vijf.set(rec, zonder.length + i * rec.length);
+  ok(K.decodeSnapshot(vijf) === null, 'vijf uiterlijkrecords (meer dan MAX_LOOKS) worden geweigerd');
+}
+// Outfit-code: een kleur die het stuk niet heeft wordt overgeslagen.
+{
+  const stuk = D.ITEMS.find((it) => D.PALETTE_IDS.some((c) => !it.colors.includes(c)));
+  const kleur = D.PALETTE_IDS.find((c) => !stuk.colors.includes(c));
+  const goed = 'k3---0' + D.ITEM_INDEX[stuk.id].toString(36).padStart(2, '0') + D.PALETTE_INDEX[stuk.colors[0]].toString(36).padStart(2, '0');
+  const fout = 'k3---0' + D.ITEM_INDEX[stuk.id].toString(36).padStart(2, '0') + D.PALETTE_INDEX[kleur].toString(36).padStart(2, '0');
+  ok(C.decodeOutfit(goed) && C.decodeOutfit(goed)[stuk.slot] === stuk.id + '.' + stuk.colors[0], 'outfit-code met een geldige kleur wordt gelezen');
+  ok(C.decodeOutfit(fout) === null, 'outfit-code met een kleur die het stuk niet heeft draagt niets');
+}
+// Een bewaarde positie buiten de provincie wordt niet geplaatst.
+ok(M.plausiblePos({ x: 149999, y: -149999 }) && !M.plausiblePos({ x: 1e6, y: 0 }) && !M.plausiblePos({ x: 0, y: -2e5 }) && !M.plausiblePos({ x: NaN, y: 0 }) && !M.plausiblePos(null), 'plausiblePos: binnen 150 km, eindig');
+// EXTRA: een oorsprong buiten de wereld en te veel verkeerslichten worden geweigerd.
+{
+  const basis = { voetgangers: [{ id: 1, speed: 1, flags: 0 }], lichten: [], kapot: null, dieren: [], uiterlijk: [], spraak: [], misc: [] };
+  ok(X.leesExtra(X.codeerExtra(basis, { x: 10, y: 20 })) !== null, 'EXTRA met een gewone oorsprong wordt gelezen');
+  ok(X.leesExtra(X.codeerExtra(basis, { x: 2e6, y: 0 })) === null, 'EXTRA met een oorsprong buiten de wereld wordt geweigerd');
+  const lichten = (k) => ({ ...basis, voetgangers: [], lichten: Array.from({ length: k }, (_, i) => ({ i, t: 1 })) });
+  ok(X.leesExtra(X.codeerExtra(lichten(X.MAX_LICHTEN), { x: 0, y: 0 })) !== null, 'EXTRA met het maximum aan lichten wordt gelezen');
+  ok(X.leesExtra(X.codeerExtra(lichten(X.MAX_LICHTEN + 1), { x: 0, y: 0 })) === null, 'EXTRA met een licht te veel wordt geweigerd');
+}
+
 console.log('kern_fuzz_test: ' + n + ' controles, ' + fails + ' mislukt');
 process.exit(fails ? 1 : 0);
