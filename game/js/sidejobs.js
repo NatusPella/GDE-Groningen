@@ -66,6 +66,7 @@ import { vakVanBaan } from './loopbaan.js';
 import { sfeerVan } from './carrieresfeer.js'; // #631: de sfeer van het vak bij de baan (naam in de kaart)
 import { jobLevel as niveauVanRondes, titelVanNiveau, rondeWaarde, sidejobProfiel } from './sidejobprofiel.js'; // #631/#667/#668
 import { bewaakGastWereld, spelerBeeld } from './sidejobwereld.js';
+import { tempoBonus, tempoTekst, reeksNaTegenslag, aanrijdingReeksTekst } from './sidejobfeel.js'; // game feel 22-11: tempo bonus and a streak that survives bad luck
 import { hoofdspeler } from './spelersregister.js'; // de speler achter dit scherm doet de dienst (#446); een gast heeft zijn eigen wereldstaat (contexts, #492) en ziet die via coopbijbaan.js
 
 export const SIDE_JOBS = [bezorger, krantenwijk, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht, loket, studiestaat, vigilantia, promotie, kamerkoning, wolkenhal, helix, niemeyer, bernard, energielabel, tjalke, lijn, ...BIJBAAN_JOBS, veerdienst, zeeschipLauwersoog, zeeschipEemshaven, ...PANEEL_JOBS, ...STAD_JOBS, ...PACK_SIDE_JOBS, bietenoogst, boerderij, snackoverlast];
@@ -318,7 +319,7 @@ function makeCtx(job, spot, owner = 0, cw = null) {
     msg: (text, s = 3) => w.addMessage(text, s),
     complete: (res) => completeRound(c, res),
     fail: (reason) => endShift('fail', reason, c),
-    skip: (text) => skipRound(c, text),
+    skip: (text, soort) => skipRound(c, text, soort),
     quit: (reason) => endShift('quit', reason, c),
     pay: (base) => payFor(c, base),
     addMesh: (m) => { const sc = getScene(); if (sc) sc.add(m); c.meshes.push(m); return m; },
@@ -464,7 +465,10 @@ function completeRound(c, res = {}) {
   const host = owner === 0;
   const base = Math.max(0, res.base || 0);
   const pay = payFor(c, base);
-  const tip = Math.max(0, Math.round(res.tip || 0));
+  // game feel 22-11: a round finished well within the time pays a tempo bonus; it counts as tip, so every participant gets it like the tip
+  const tempo = c.job.tempo === false ? null : tempoBonus(pay, c.timeLeft, c.timeBudget); // job.tempo false: a timetable job, being early is no virtue
+  c.timeBudget = 0;
+  const tip = Math.max(0, Math.round(res.tip || 0)) + (tempo ? tempo.bonus : 0);
   const aantal = world.coopBijbaanAantal ? world.coopBijbaanAantal(owner) : 1; // 1+1=3 (#492)
   const total = metGroepsbonus(pay + tip, aantal);
   const vak = vakVanBaan(c.job.id);
@@ -504,7 +508,8 @@ function completeRound(c, res = {}) {
     c.levelUp = after > before ? after : 0;
   }
   const bits = [bonusDelen(pay + tip, aantal, total, SIDEJOB_LEVEL_BONUS * (Math.max(1, c.level) - 1)).tekst];
-  if (tip) bits.push(`fooi ${euro(tip)}`);
+  if (tip - (tempo ? tempo.bonus : 0) > 0) bits.push(`fooi ${euro(tip - (tempo ? tempo.bonus : 0))}`);
+  if (tempo) bits.push(tempoTekst(tempo));
   bits.push(reeksTekst(c.streak)); // reeks 4 (+24%): de bonus die de volgende klus krijgt
   // #685: 1+1=3 één keer uitleggen, bij de eerste gedeelde beloning
   if (aantal > 1 && !c.world.groepsbonusUitleg) { c.world.groepsbonusUitleg = true; bits.push(GROEPSBONUS_UITLEG); }
@@ -533,12 +538,13 @@ function completeRound(c, res = {}) {
   c.betweenRounds = true;
 }
 
-// A round that went wrong without it being the player's fault: no pay, the
-// streak is gone, and the next round comes as usual.
-function skipRound(c, text) {
+// A round without pay; the next round comes as usual. Walking away loses the streak. soort 'pech'
+// (the game had no round for you, or the round is paid another way) keeps it (sidejobfeel.js).
+function skipRound(c, text, soort) {
   if (c.ended) return;
-  c.streak = 0;
-  c.flawless = false;
+  c.streak = reeksNaTegenslag(c.streak, soort);
+  if (soort !== 'pech') c.flawless = false;
+  c.timeBudget = 0;
   if (text) c.world.addMessage(text, 4);
   c.timeLeft = null;
   c.nextRoundAt = world.time + NEXT_ROUND_DELAY;
@@ -583,7 +589,7 @@ function endShift(kind, reason = '', c2 = null) {
     const best = rec(job.id).bestStreak;
     if (kind !== 'dead') {
       const title = kind === 'fail' ? 'KLUS MISLUKT' : kind === 'wanted' ? 'DIENST GESTAAKT' : 'DIENST VOORBIJ';
-      const stats = [['Klussen', String(c.streak)], ['Verdiend', euro(c.earned)], ['Beste reeks', String(best)]];
+      const stats = [['Klussen', String(c.round)], ['Verdiend', euro(c.earned)], ['Beste reeks', String(best)]];
       const slot = eindregel(job.id, { kind, streak: c.streak }); // AAA bijbanen: een slotregel die bij de lijn past
       showBanner({ kind: kind === 'quit' ? 'pass' : 'fail', title, reason: `${job.name}: ${pretty}${slot ? `. ${slot}` : ''}`, reward: 0, stats });
     } else if (reason) {
@@ -663,6 +669,7 @@ function updateContext(dt, w, c) {
   try {
     if (!checkVehicle(dt, c)) return;
     if (c.timeLeft != null) {
+      if (!(c.timeBudget >= c.timeLeft)) c.timeBudget = c.timeLeft; // the longest timer of this round: the measure for the tempo bonus
       c.timeLeft -= dt;
       if (c.timeLeft <= 0) {
         c.timeLeft = 0;
@@ -694,13 +701,14 @@ const ACCIDENT_LINES = [
 function forgiveAccident(c, w) {
   if (w.time - (w.lastPedHitAt ?? -Infinity) > 3 || w.wanted > 2) return false;
   c.accidents = (c.accidents || 0) + 1;
-  c.streak = 0;
+  const reeksVoor = c.streak;
+  c.streak = reeksNaTegenslag(c.streak, 'aanrijding'); // a pedestrian stepped in front of you: half the streak is left
   c.flawless = false;
   const fine = Math.min(ACCIDENT_FINE * c.accidents, Math.max(0, w.money));
   noteMoney('Boetes');
   w.money -= fine;
   w.wanted = 0;
-  w.addMessage(`Aanrijding! De baas sust het met de politie, maar je reeks is weg${fine ? ` en het kost je €${fine}` : ''}.`, 4);
+  w.addMessage(`Aanrijding! De baas sust het met de politie${reeksVoor > 0 ? `, maar ${aanrijdingReeksTekst(reeksVoor, c.streak)}` : ''}${fine ? ` en het kost je €${fine}` : ''}.`, 4);
   if (w.phoneNotifications) w.phoneNotifications.push({ text: ACCIDENT_LINES[(c.accidents - 1) % ACCIDENT_LINES.length], duration: 4 });
   return true;
 }
@@ -886,7 +894,7 @@ function vulStand(p, c) {
   if (c.betweenRounds) {
     p.marker = null;
     p.dots = [];
-    p.progress = `Klus ${c.streak} klaar · reeks ${c.streak}`;
+    p.progress = `Klus ${c.round} klaar · reeks ${c.streak}`;
     p.goal = { label: 'Even wachten', desc: 'De volgende klus komt eraan' };
     return;
   }

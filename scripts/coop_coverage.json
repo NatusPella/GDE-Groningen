@@ -245,6 +245,7 @@
     "scripts/coop/bijbaanrollen_test.mjs",
     "scripts/coop/bijbaanparallel_test.mjs",
     "scripts/sidejobpack_test.mjs",
+    "scripts/sidejobfeel_test.mjs",
     "scripts/coop/deliveryteam_test.mjs",
     "scripts/coopmeedoen_test.mjs"
    ],
@@ -254,7 +255,7 @@
    },
    "status": "OK",
    "prio": "-",
-   "gefixt": "22-11: het bijbanenpakket (studentenfeest, marktkraam, toeristengids: helper-rol met E; vismarktkoerier in het eigen spel) staat in docs/COOP-GAST.md. Fix 21-11: krantenwijk, rondvaart, rondvaarttour, sidejobkit en het keuzepaneel lazen world.player (het lichaam van de host) terwijl een gastgroep met world.lokaalLichaam speelt; nu hoofdspeler(world)."
+   "gefixt": "22-11 game feel: tempobonus (telt als fooi, per deelnemer) en reeks na tegenslag per dienst (sidejobfeel.js, scripts/sidejobfeel_test.mjs), regel in docs/COOP-GAST.md. 22-11: het bijbanenpakket (studentenfeest, marktkraam, toeristengids: helper-rol met E; vismarktkoerier in het eigen spel) staat in docs/COOP-GAST.md. Fix 21-11: krantenwijk, rondvaart, rondvaarttour, sidejobkit en het keuzepaneel lazen world.player (het lichaam van de host) terwijl een gastgroep met world.lokaalLichaam speelt; nu hoofdspeler(world)."
   },
   {
    "id": "verhuizen",

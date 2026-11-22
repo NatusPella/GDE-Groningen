@@ -501,6 +501,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Een gestopt padelpotje meldt dat, in plaats van een punt voor de tegenstander.
 - Duivenspot, klimtoren, kart, padel en de bijbanen blijven leesbaar en lopen niet vast bij een haperende beeldsnelheid of een late stand van een medespeler.
 - De tussenstand bij Samen spelen zegt Nog niemand zolang er geen deelnemers zijn.
+### Bijbanen: tempo en reeks
+- Bijbanen: wie een ronde ruim binnen de tijd afmaakt krijgt een tempobonus bovenop het loon: "Vlot" (8%) met 30% van de tijd over, "Bliksemsnel" (15%) met de helft over. De bonus staat achter het loon in de melding. De lijndienst rijdt op de dienstregeling en geeft hem niet. Samen spelen: de bonus telt als fooi, dus iedereen die meedoet krijgt hem in zijn eigen geld; een eigen dienst van een gast krijgt hem over zijn eigen ronde.
+- Bijbanen: je reeks overleeft pech. Is er even geen ronde (geen akker, geen overtreder, geen wijk) of rond je een boerderijtaak af, dan blijft de reeks staan. Een aanrijding halveert de reeks in plaats van hem te wissen, en de melding zegt wat er over is. Weglopen kost de reeks nog steeds. Samen spelen: de reeks hoort bij de dienst van de speler die hem draait.
+- Bijbanen: het eindbord en de regel tussen twee klussen tellen bij "Klussen" nu alle betaalde rondes van de dienst, ook als je reeks onderweg brak.
 
 ## [0.65.0] - 2026-11-21
 

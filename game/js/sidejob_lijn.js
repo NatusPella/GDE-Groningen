@@ -33,6 +33,7 @@ export default {
   glyph: 'bezorger',
   boss: 'Dienstleider Streekbus Hunzedal',
   vehicleWord: 'de streekbus',
+  tempo: false, // a timetable: being early is no virtue, so no tempo bonus (sidejobfeel.js)
   blurb: 'Een buslijn rijden volgens de dienstregeling',
   tagline: 'Halteren, wachten op de tijd, op tijd aankomen.',
   intro: [
