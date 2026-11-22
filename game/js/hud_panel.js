@@ -1005,7 +1005,7 @@ function updateLocation(dt, world) {
   // plaats + wijk: a district of a town out in the province names its town
   const aname = area ? areaNameAt(h.x, h.y) : null;
   const region = aname ? (aname.near ? aname.name : aname.sub || (aname.region === 'groningen' ? 'Ommeland' : aname.name)) : 'Ommeland';
-  setText(els.district, street ? [district, country ? (district === 'Ommeland' ? '' : region) : 'Grunn'].filter(Boolean).join(' · ') : (country ? region : 'Grunn'));
+  setText(els.district, street ? [district, country ? (district === 'Ommeland' ? '' : region) : 'Stad'].filter(Boolean).join(' · ') : (country ? region : 'Stad'));
 }
 
 // --- zone B: a new place, big for a moment ---------------------------------------
