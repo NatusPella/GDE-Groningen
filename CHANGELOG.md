@@ -290,6 +290,21 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - **Wereldaudit 21-11: props en gebouwen over de hele provincie (#1044):** één audit (`scripts/world/world_audit.mjs`) telt wat er op een rijbaan, op het spoor, in water of in een gebouw staat, in de tegels en in de kits; hij draait mee in `--fase=zwaar` met drempels die alleen kunnen dalen. Rapport met voor- en nacijfers: docs/WERELD-AUDIT-21-11.md.
 - **Wereldkleuren:** standaard staat de menging op 0,3; verder dan 0,5 is niet bekeken. `?dswereld=0` zet het oude palet terug.
 
+### Reviewfixes en stabiliteit (22-11, #1082, #1065, #915)
+
+- Treinbord: de live vertragingen blijven staan als je je even meer dan 400 m van een station verwijdert, in plaats van meteen te verdwijnen.
+- Samen spelen: het leven in de stad (markt, kermis, studentenfeest, dieren) volgt bij een gast de dag van de gastheer, dus iedereen ziet dezelfde evenementen op dezelfde klok. Het blijft decor: geen voortgang en geen bericht.
+- Samen spelen, beroving: de tekst bij een verlopen portemonnee zegt niet meer dat iemand anders hem pakte; het geld is per speler.
+- Benchmark-keuzevenster: Shift met pijl rechts of omlaag gaat niet meer achteruit; alleen Shift+Tab doet dat.
+- De wijknaam-stempel, de naamkaart en de plaatsnaam wachten als het pauzemenu, de kaart of de tuningwerkplaats open is, in plaats van er overheen te hangen.
+- Pauzemenu: het onderdeel heet in de rail Land en bedrijf, net als de kop van het scherm.
+- Voetbaluitzending: geen lege balk meer midden in beeld zolang er geen commentaar is.
+- Meldingen die je met Enter wegdrukt tonen de toets als toetsteken.
+- Afsluiten op het startscherm: de toets staat in de knop (Esc voor Annuleren, J voor Ja) en de vraag meldt dat je voortgang bewaard is.
+- Penaltyserie: de verzonnen club heet Grunn-achtig, zonder voorvoegsel.
+- Credits: bij een geluid met naamsvermelding verdwijnt de naam van de opnameapparatuur uit de titel.
+- Stabiliteit: de helikopterronde, de duivenmodus en de plekken van de nabeschouwing geven hun geheugen terug; een geheugentelling per gebouwde duif of patatje gaat niet meer omhoog.
+
 ## [0.65.0] - 2026-11-21
 
 Samen spelen met vier echte vensters getest, een ronde zeefdruk-menu's (Spullen, Loopbanen, Boerderij, zoeken), echte voetstappen en weergeluid, AAA-aankleding van de missies van akte 1 tot en met 4 en een snellere start. Pre-release voor de speeltest.

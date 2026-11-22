@@ -79,3 +79,20 @@ Dit vraagt een exclusief slot en een gestagede wereld (omgeving zoals bovenin `s
 6. **Heapprofiel** op de soak (`node scripts/perf/cdp_profile.mjs`, daarna `node scripts/perf/heapmap.mjs <profiel>`) om de levende heap per categorie te zien.
 7. **Samen spelen met echte vensters** (twee instanties, 10 minuten, gast valt weg en sluit weer aan): `node scripts/perf/leak_coop.mjs` meet alleen het geheugentransport; WebRTC en brokers zijn in Node niet gemeten.
 8. **Renderproces herladen** (`GDE_DEV=1`, `webContents.forcefullyCrashRenderer()`): poort vrij na de herlaad? (`gde-coop-reset`).
+
+## Vervolg 22-11: levensduurscan en drie nieuwe lekken (#1065)
+
+`node scripts/perf/lifecyclescan.mjs [--since=v0.64.0] [--all] [--top=n]` loopt over de gewijzigde runtime-modules en meldt: een `setInterval` zonder `clearInterval` in het bestand, een `addEventListener` op window of document diep in een functie zonder `removeEventListener`, en `new THREE.<...>Geometry/Material/CanvasTexture` in een bestand dat dingen uit de scene haalt maar nergens `dispose` aanroept. Een treffer is een kandidaat voor de leesronde, geen bewijs; een bestand kan zich met `// lifecycle-ok: reden` bovenaan vrijstellen. Test: `scripts/levensduurscan_test.mjs`.
+
+Uitkomst op de 774 gewijzigde modules sinds v0.64.0: 76 treffers. Gelezen en beoordeeld:
+
+| Plek | Oordeel | Actie |
+|---|---|---|
+| `helirun.js` `cleanup` | lichtzuil (cilinder en ring met eigen materiaal) en lier (touw en Tammo) per run gebouwd en alleen uit de scene gehaald | `disposeObject` op beacon en hanger; de ringen delen `RING_GEO` en `RING_MATS` en blijven (`heli_missie_test` 4c) |
+| `postgame.js` `removeSpots`, laken van de fjord-onthulling | markers (geometrie, materiaal, labeltextuur) en Jelle alleen uit de scene | `disposeObject` |
+| `pigeonmode.js` vogels, eten, meeuw | geometrie per exemplaar (de materialen komen uit `matCache`), nooit vrijgegeven; elke kudde en elk patatje voegde ca. 15 geometrieen toe | `freeMesh` (geometrieen vrij, druppel en splat blijven gedeeld) |
+| `input.js`, `audio.js`, `savegame.js`, `errorlog.js`, `pausemenu.js`, `cinematics.js`, `mapview.js` (resize) | luisteraars bij het opstarten of achter een vlag (`wijsLuistert`), eenmalig | geen |
+| `samenpanel.js` `volger`, `multiplayerhostwisselui.js`, `hud_panel.js`, `overlayhold.js`, `touch.js` | een interval achter een bewaker (`if (timer) return`) of met `unref`; blijft bestaan zolang het spel draait | geen |
+| `countrymodels.js`, `countrylife.js`, `nightlights3d.js`, `flavour3d.js`, `bushalte.js` | modelbouw die een keer draait en in een cache of instanced mesh blijft | geen |
+
+Niet bekeken: of dit in het echt de geometrieteller vlak houdt (Electron, zie "Nog te meten in Electron", punt 5 en 3; de duivenmodus en de heli-ronde herhalen).
