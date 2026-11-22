@@ -30,12 +30,13 @@ export const SCENES = [
   { id: 'host-prive', stap: 2 }, { id: 'host-openbaar', stap: 2 }, { id: 'host-fout', stap: 2 },
   { id: 'verbinden', stap: 3 }, { id: 'verbinden-wacht', stap: 3 }, { id: 'verbinden-lang', stap: 3 },
   { id: 'host-wacht', stap: 3 }, { id: 'wachtkamer', stap: 3 }, { id: 'wachtkamer-openbaar', stap: 3 },
+  { id: 'spelers-host', spelers: true }, { id: 'spelers-gast', spelers: true },
   { id: 'status-gast', stap: 0 }, { id: 'fout-vol', stap: 3 }, { id: 'verbroken', stap: 3 },
 ];
 export const MATEN = [[1280, 720, 1.5], [1280, 720, 1], [1920, 1080, 1], [1920, 1080, 1.5]];
 // de PNG's voor de docs (hoogstens 8): sleutel scene@maat
 export const SHOTS = [['voor-gast', 'oud-gast-code', 1280, 720, 1.5], ['keuze', 'keuze', 1280, 720, 1.5], ['wie', 'wie-gast', 1280, 720, 1.5], ['kiezen-gast', 'gast-code', 1280, 720, 1.5],
-  ['kiezen-host', 'host-openbaar', 1280, 720, 1.5], ['verbinden', 'verbinden-wacht', 1280, 720, 1.5], ['wachtkamer', 'wachtkamer', 1280, 720, 1.5], ['spelers', 'spelers', 1280, 720, 1.5]];
+  ['kiezen-host', 'host-openbaar', 1280, 720, 1.5], ['verbinden', 'verbinden-wacht', 1280, 720, 1.5], ['wachtkamer', 'wachtkamer', 1280, 720, 1.5], ['spelers', 'spelers-host', 1280, 720, 1.5]];
 
 const PAGINA = String.raw`<!doctype html><html lang="nl"><head><meta charset="utf-8"><title>Samen-flow meting</title>
 <style>html,body{margin:0;height:100%;overflow:hidden;background:#2a2d26}</style></head><body>
@@ -66,6 +67,19 @@ const nepKamer = async () => ({ opened: new Promise(() => {}), cancel() {} }); /
 const lobby = mountLobby(vak, hooks, { wizard, startGate: /wacht/.test(scene), spelNaam: 'Spel 1', joinRoom: nepKamer });
 const klik = async (act) => { const b = vak.querySelector('[data-act="' + act + '"]'); if (!b) throw new Error('geen knop ' + act); b.click(); await tick(); };
 const typ = async (klasse, tekst) => { const i = vak.querySelector('.' + klasse); if (!i) throw new Error('geen veld ' + klasse); i.value = tekst; i.dispatchEvent(new Event('input', { bubbles: true })); await tick(); };
+const spelerKaarten = async (rol) => { // het tabblad Spelers (spelerskaarten.js, puur): dezelfde HTML als coopspelersui.js, met zijn eigen CSS (/spelers.css)
+  const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = '/spelers.css'; document.head.appendChild(css);
+  await new Promise((r) => { css.onload = css.onerror = r; });
+  const K = await import('/game/js/spelerskaarten.js'), P = await import('/game/js/playerstatus.js');
+  const rij = (slot, naam, kleur, vorm, o = {}) => ({ slot, naam, kleur, vorm, doet: 'loopt', verbinding: 'ok', ms: 40, afstandTekst: slot === 1 ? '' : '120 m', richting: slot === 1 ? null : { pijl: '→', woord: 'oost' }, jij: false, passief: true, x: 10, y: 10, ...o });
+  const rijen = [rij(0, 'Sem', '#4fb3ff', 'cirkel', { jij: rol === 'host', x: null }), rij(1, 'Iris', '#5bd6a0', 'ster', { jij: rol === 'gast' }), rij(2, 'Tijn', '#f2b134', 'plus', { verbinding: 'lag', ms: 420 }), rij(3, 'Liv', '#ff9a62', 'hart', { verbinding: 'lost', doet: 'weg' }), rij(4, 'Gijs', '#ff7ab8', 'maan', { groep: 'Taxi' })];
+  document.querySelector('[data-sub="samen"].pm-samen-inner').hidden = true;
+  const p = document.getElementById('spelers'); p.hidden = false;
+  document.querySelectorAll('.pm-samen > .m-tabs .m-tab').forEach((b, i) => b.setAttribute('aria-selected', String(i === 1)));
+  p.innerHTML = K.kopHtml({ aantal: rijen.length, rol, opener: 'Sem', versie: 'Versie 0.64.0.' }) + '<ul class="cs-lijst">' + rijen.map((r) => K.kaartHtml(r, { acties: true, rol, ctx: {}, muteStaat: (s) => (s === 2 ? 'gedempt' : 'gewoon') })).join('') + '</ul>'
+    + K.pvpHtml({ passief: true, tekst: { knopAan: 'Passief: aan', knopUit: 'Passief: uit', uitleg: 'Als je passief staat kunnen medespelers je geen schade doen.' } }) + K.roepHtml([{ soort: 'hier', tekst: 'Kom hier', toets: 'Z' }, { soort: 'help', tekst: 'Help', toets: 'X' }]);
+  void P;
+};
 const SPELERS = ['Sem', 'Iris', 'Tijn', 'Liv', 'Gijs', 'Huub', 'Roos'].map((naam, i) => ({ slot: i, naam, kleur: ['#4fb3ff', '#5bd6a0', '#f2b134', '#ff9a62', '#ff7ab8', '#b78cff', '#e86a6a'][i], vorm: ['cirkel', 'ster', 'plus', 'hart', 'maan', 'ruit', 'vierkant'][i], verbinding: 'ok', char: 'tammo' }));
 const RIJEN = [['Zomeravond', 3, 8, 'a1b2c3d4'], ['Pannenkoeken', 1, 4, 'b2c3d4e5'], ['Late dienst', 8, 8, 'c3d4e5f6'], ['Fietsen in Grunn', 2, 6, 'd4e5f6a7']].map(([naam, spelers, max, id], i) => ({ id, naam, spelers, max, versie: '0.64.0', kan: spelers < max, anders: false, vol: spelers >= max, ouderdom: 5 + i * 3, niveau: 'normaal', room: '@' + id }));
 const naarGastCode = async () => { await klik('kies-gast'); if (wizard) await klik('wie-verder'); };
@@ -73,6 +87,7 @@ const naarHostKiezen = async () => { await klik('kies-host'); if (wizard) await 
 const verbindGast = async () => { await naarGastCode(); await typ('coop-input', 'K3J9D-8F2MN'); await klik('koppel'); await tick(80); };
 const hostWacht = async () => { await naarHostKiezen(); lobby.event({ t: 'route', route: 'kamer' }); lobby.event({ t: 'code', code: 'K3J9D-8F2MN' }); lobby.event({ t: 'spelers', lijst: SPELERS.slice(0, 1), max: 8 }); await tick(); };
 const SCENES = {
+  'spelers-host': () => spelerKaarten('host'), 'spelers-gast': () => spelerKaarten('gast'),
   keuze: async () => {},
   'oud-gast-code': async () => { await klik('kies-gast'); lobby.event({ t: 'spelers', lijst: SPELERS, max: 8 }); },
   'wie-gast': async () => { await klik('kies-gast'); },
@@ -112,7 +127,7 @@ function overlap(lijst) {
   }
   return uit;
 }
-const inner = document.querySelector('.pm-samen-inner'), sw = vak.querySelector('.sw');
+const sp = document.getElementById('spelers'), inner = scene.startsWith('spelers') ? sp : document.querySelector('.pm-samen-inner'), sw = scene.startsWith('spelers') ? null : vak.querySelector('.sw');
 const scrollt = (e) => !!e && e.scrollHeight > e.clientHeight + 1;
 const m = { scene, wizard, mz: Number(mz.toFixed(3)), stage: [Math.round(vw / mz), Math.round(vh / mz)], innerBox: r(inner), fouten: [] };
 m.innerScroll = scrollt(inner);
@@ -140,6 +155,18 @@ if (sw) {
   m.indicator = [...sw.querySelectorAll('.sw-stap')].map((e) => e.dataset.staat + ':' + e.textContent.trim());
   m.knoppen = [...voet.querySelectorAll('.sw-knop')].map((k) => k.textContent.trim());
   m.ip = /\b\d{1,3}(\.\d{1,3}){3}\b|GDE2-/i.test(kopie.textContent);
+} else if (scene.startsWith('spelers')) {
+  const kaarten = [...sp.querySelectorAll('.cs-rij')];
+  m.spelers = {
+    kaarten: kaarten.length, horizontaal: [...sp.querySelectorAll('*')].filter((e) => zichtbaar(e) && e.scrollWidth > e.clientWidth + 1 && getComputedStyle(e).overflowX !== 'visible' && e !== sp).map((e) => e.className).slice(0, 5),
+    overlap: [...overlap(kaarten), ...kaarten.flatMap((k) => overlap([...k.children].flatMap((c) => c.classList.contains('cs-acties') ? [c, ...c.children] : [c])))],
+    kopTekens: (sp.querySelector('.cs-kop') ? (() => { const k = sp.querySelector('.cs-kop').cloneNode(true); for (const d of k.querySelectorAll('details:not([open]) > :not(summary)')) d.remove(); return k.textContent.replace(/\s+/g, ' ').trim().length; })() : 0),
+    alineas: [...sp.querySelectorAll('p')].filter((p) => zichtbaar(p) && p.textContent.trim().length > 110).map((p) => p.textContent.trim().slice(0, 40)),
+    eruit: sp.querySelectorAll('[data-eruit]').length, overdragen: sp.querySelectorAll('[data-geef]').length,
+    eruitBijJij: !!sp.querySelector('.cs-rij:has(.cs-jij) [data-eruit], .cs-rij:has(.cs-jij) [data-geef], .cs-rij:has(.cs-jij) [data-stand]'),
+    muteKnoppen: [...sp.querySelectorAll('.cs-stand')].map((b) => ({ tekst: b.textContent.trim(), titel: !!b.title, toets: b.getAttribute('aria-keyshortcuts') })),
+    scrollbalk: scrollt(sp), hoogte: sp.scrollHeight, zichtbaar: sp.clientHeight, ip: /\b\d{1,3}(\.\d{1,3}){3}\b|GDE2-/i.test(sp.textContent),
+  };
 } else {
   // de oude weergave (wizard=0): wat de eigenaar zag
   const knoppen = vak.querySelector('.coop-btns'), chips = vak.querySelector('.coop-spelers-chips');
@@ -148,10 +175,17 @@ if (sw) {
 window.__meting = m; window.__klaar = true;
 </script></body></html>`;
 
+// De CSS van het tabblad Spelers staat als sjabloon in coopspelersui.js (die laadt de hele game); hier wordt hij eruit gehaald en uitgewerkt.
+function spelersCss() {
+  const bron = fs.readFileSync(path.join(GAME, 'js/coopspelersui.js'), 'utf8');
+  const a = bron.indexOf('const CSS = `') + 'const CSS = `'.length, b = bron.indexOf('`;', a);
+  return new Function('return `' + bron.slice(a, b) + '`')();
+}
 const TYPES = { '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.html': 'text/html; charset=utf-8', '.json': 'application/json', '.woff2': 'font/woff2', '.woff': 'font/woff', '.ttf': 'font/ttf', '.svg': 'image/svg+xml', '.png': 'image/png' };
 function server() {
   return http.createServer((req, res) => {
     const u = decodeURIComponent(new URL(req.url, 'http://x').pathname);
+    if (u === '/spelers.css') { res.writeHead(200, { 'content-type': TYPES['.css'], 'cache-control': 'no-store' }); res.end(spelersCss()); return; }
     if (u === '/mock.html') { res.writeHead(200, { 'content-type': TYPES['.html'], 'cache-control': 'no-store' }); res.end(PAGINA); return; }
     const m = /^\/game\/(.*)$/.exec(u);
     const file = m ? path.join(GAME, m[1]) : null;
@@ -218,6 +252,20 @@ async function meet(chrome, poort, scene, [w, h, ui], extra = '', shotPad = null
 export function keur(m, sc) {
   const f = [...(m.fouten || [])];
   if (m.logs && m.logs.length) f.push('fouten in de console: ' + m.logs.slice(0, 2).join(' | '));
+  if (m.spelers) { // het tabblad Spelers: kaartjes zonder overlap, geen afgekapte tekst, geen tekstmuur, de acties volgens de rol
+    const s = m.spelers, host = m.scene === 'spelers-host';
+    if (s.kaarten !== 5) f.push('verwacht 5 kaartjes, er staan ' + s.kaarten);
+    if (s.overlap.length) f.push('overlap: ' + s.overlap.join('; '));
+    if (s.horizontaal.length) f.push('afgekapt: ' + s.horizontaal.join(', '));
+    if (s.kopTekens > 120) f.push('de kop heeft te veel tekst (' + s.kopTekens + ' tekens)');
+    if (s.alineas.length) f.push('alinea\'s in beeld: ' + s.alineas.join(' | '));
+    if (host && s.eruit < 3) f.push('wie het spel opende ziet Eruit zetten bij de anderen');
+    if (!host && (s.eruit || s.overdragen)) f.push('een gast ziet Eruit zetten of Overdragen');
+    if (s.eruitBijJij) f.push('acties bij jezelf');
+    if (!s.muteKnoppen.length || s.muteKnoppen.some((b) => b.tekst || !b.titel || !b.toets)) f.push('Dempen en Blokkeren zijn pictogrammen met tooltip en toets');
+    if (s.ip) f.push('een IP-adres staat in beeld');
+    return f;
+  }
   if (!m.stap && m.stap !== 0) return f;
   if (m.innerScroll) f.push('het vak scrolt (scrollbalk)');
   if (m.swScroll) f.push('de wizard is hoger dan het vak ' + JSON.stringify(m.dims) + ' ' + (m.over || []).join(','));
@@ -254,6 +302,7 @@ async function main() {
       for (const maat of MATEN) {
         const m = await meet(chrome, poort, sc.id, maat, sc.query || '');
         const f = keur(m, sc); n++;
+        if (sc.spelers && has('uitgebreid')) console.log('     ', JSON.stringify(m.spelers));
         alle.push({ scene: sc.id, maat: maat.join('x'), stap: m.stap, uitleg: m.uitlegLen, tekens: m.zichtbareTekens, fouten: f });
         if (f.length) { fout++; console.log(`FOUT ${sc.id} ${maat[0]}x${maat[1]} ui${maat[2]}: ${f.join(' | ')}`); }
         else if (has('uitgebreid')) console.log(`ok   ${sc.id} ${maat[0]}x${maat[1]} ui${maat[2]} stap ${m.stap} tekens ${m.zichtbareTekens} knoppen [${(m.knoppen || []).join(' | ')}]`);
@@ -267,7 +316,6 @@ async function main() {
     if (has('shots')) {
       const spelers = SHOTS.filter((s) => !only || s[0].includes(only));
       for (const [naam, scene, w, h, ui] of spelers) {
-        if (scene === 'spelers') continue; // die komt uit scripts/ui/samenflow_spelers.mjs (de Spelers-subtab)
         const pad = path.join(UIT, `${naam}-${w}x${h}-ui${String(ui).replace('.', '')}.png`);
         await meet(chrome, poort, scene, [w, h, ui], scene.startsWith('oud-') ? 'wizard=0' : '', pad);
         console.log('PNG', path.relative(ROOT, pad));
