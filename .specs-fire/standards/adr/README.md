@@ -98,3 +98,4 @@ deze lijst voordat een andere sessie begint te schrijven:
 | [0046](0046-radiozenders-met-eigen-pool-en-anti-herhaling.md) | Radiozenders: een keuze uit zenders met eigen pool, zonder dat het gaat herhalen | voorgesteld |
 | [0047](0047-snelle-zinnen-zonder-vrije-tekst.md) | Snelle zinnen en emotes: vaste lijst, opt-in, geen vrije tekst | voorgesteld |
 | [0048](0048-pages-webversie-wereld-uit-release-opus-only.md) | Pages-webversie: wereld uit de release, alleen Opus, onder /play/ | besloten |
+| [0049](0049-interieurs-soort-uit-het-pand-en-bijgebouwen.md) | Interieurs: het soort volgt uit het pand zelf, kleine bijgebouwen zijn betreedbaar | voorgesteld |

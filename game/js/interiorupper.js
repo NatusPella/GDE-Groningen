@@ -14,7 +14,7 @@ export const MIN_FLOOR_H = 2.6;
 // kinds that can have an upper floor, and from what building (floors >= 2)
 const UPPER_KINDS = new Set(['woning', 'kantoor']);
 const UPPER_SUBS = { publiek: new Set(['hotel', 'gemeente', 'school']), winkel: new Set(['kleding', 'tweedehands', 'elektronica', 'souvenir', 'supermarkt']) };
-export const hasUpper = (kind, sub) => UPPER_KINDS.has(kind) || !!(UPPER_SUBS[kind] && UPPER_SUBS[kind].has(sub));
+export const hasUpper = (kind, sub) => (UPPER_KINDS.has(kind) && sub !== 'appartement') || !!(UPPER_SUBS[kind] && UPPER_SUBS[kind].has(sub));
 
 // the stair for a hall, or null when the hall is too small
 export function makeStairs(hall, door, rnd, rise) {

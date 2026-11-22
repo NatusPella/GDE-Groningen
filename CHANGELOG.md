@@ -121,6 +121,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Een scène die niet goed kan starten (of een kapotte camerastand heeft) laat je niet meer vastzitten in een leeg beeld: het spel gaat door.
 - "Opening opnieuw bekijken" zegt in gewone woorden waarom het nu niet kan.
 
+### Thuis
+- Thuis beginnen in de woning (#1022, #1161): laad je een spel dat bij je huis stond, of kies je Naar huis, dan sta je binnen in de flat in Paddepoel, in de woonkamer en kijkend naar het raam, in plaats van beneden voor de deur; de lift en de voordeur zijn je uitweg. Het laadscherm wacht tot de flat staat (na hooguit 6 seconden sta je alsnog voor de deur). Een save die buiten stond blijft buiten, een save midden in een missie houdt zijn plek, en een oud spel begint boven. Een nieuw spel en de openingsfilm beginnen nog voor de deur. In Instellingen > Spel staat Start binnen (thuis), standaard aan. Lokaal per speler: een gast die aansluit komt naast de host, en staat de host boven, dan wordt niemand in het torengebouw gezet. Niets hiervan is in beeld bekeken.
 ### Prestaties
 - Prestaties: bovenaan staat een zoekveld. Typ een woord en je ziet alleen de prestaties waar het in voorkomt; geheime prestaties blijven geheim. Esc wist je zoekopdracht.
 - Prestaties, Loopbaan en Veroverd: een percentage staat niet meer op 100% zolang er nog iets ontbreekt (99,6% werd afgerond tot 100%). Een prestatie van meer dan een jaar geleden toont het jaartal.
@@ -328,6 +330,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Interieurs
 
+- Veel meer panden zijn te betreden (#1150, #1162, #1165): van ruim vier op de tien naar ruim acht op de tien panden in de provincie (meting 22-11 op de echte kaart, de audit rekent het uit). Rijtjeshuizen met de voordeur dicht bij de hoek hadden nooit een hal gekregen; nu wel. Lage huizen van twee verdiepingen (plafond 2,1 m) kun je ook in.
+- Nieuwe plekken om in te lopen: de schuur (planken, een fiets, een emmer), de garagebox, de stal (hooibalen, een trog, soms een boer die voert) en de kas (tafels vol planten), ook voor panden zonder type op de kaart. Een appartementencomplex heeft een portiek met brievenbussen, fietsen en een deur naar de woning op de begane grond. Een pand zonder deur in de gevel krijgt een gemaakte deur.
+- Wat dicht blijft heeft een reden: bouwplaatsen, caravans, woonboten, torens, molens, silo's, tanks, gemalen en transformatorhuisjes hebben geen kamer. Het soort van een pand volgt alleen uit het pand zelf (maat, vorm, hoogte), dus bij Samen spelen ziet iedereen hetzelfde pand met dezelfde indeling.
 - Interieurs: de mensen in een winkel, café of kantoor verschijnen een voor een in plaats van allemaal tegelijk, zodat het spel niet hapert als je een pand nadert; zittende klanten blijven zitten in plaats van na twee seconden op te staan.
 - Panden zijn echt te betreden: loop te voet door de voordeur naar binnen, zonder menu, laadscherm of teleport. De deur zwaait open, de gevel gaat bij de deur open en je staat in het pand zelf. Winkels (twaalf soorten), cafés, kroegen, restaurants, kantoren, woningen, kerken, stationshallen, bibliotheken, garages, magazijnen, politiebureaus, apotheken, scholen en hotels hebben elk een eigen inrichting, met winkelier, klanten en gasten
 - Bij de kassa of de bar druk je op E: een winkel van het spel opent zijn eigen menu, een andere winkel of een café verkoopt een klein product; in de kledingwinkel pas je in het pashokje, in een kerk steek je een kaarsje aan

@@ -77,7 +77,8 @@ function lBuilding(w, d, notchW, notchD, c) {
   ok(KIND_IDS.length === 9, 'negen interieursoorten', KIND_IDS.join());
   for (const k of KIND_IDS) { const K = KINDS[k]; ok(K.minW >= 2.6 && K.minD >= 3.2 && K.h[0] >= 2.4 && K.h[1] >= K.h[0], `soort ${k}: maten kloppen`); }
   ok(kindOfBuilding({ type: 'house' })?.kind === 'woning' && kindOfBuilding({ type: 'church' })?.kind === 'kerk' && kindOfBuilding({ type: 'office' })?.kind === 'kantoor', 'type -> soort');
-  ok(kindOfBuilding({ type: 'shed' }) === null && kindOfBuilding({ type: 'houseboat' }) === null && kindOfBuilding({ type: 'carport' }) === null, 'een schuur, woonboot en carport zijn niet te betreden');
+  ok(kindOfBuilding({ type: 'houseboat' }) === null && kindOfBuilding({ type: 'carport' }) === null && kindOfBuilding({ type: 'construction' }) === null, 'een woonboot, carport en bouwplaats zijn niet te betreden');
+  ok(kindOfBuilding({ type: 'shed' }).sub === 'schuur' && kindOfBuilding({ type: 'barn' }).sub === 'stal' && kindOfBuilding({ type: 'greenhouse' }).sub === 'kas', 'r7: een schuur, stal en kas zijn varianten van garage');
   ok(kindOfBuilding({ type: 'house', landmark: true }) === null && kindOfBuilding({ type: 'yes', rooms: [] }) === null, 'een landmark met eigen interieur krijgt er geen tweede');
   ok(kindOfBuilding({ type: 'house', shopFront: { type: 'bakker' } })?.sub === 'bakker', 'het winkeltype van de gevel wint van het soort gebouw');
   ok(kindOfBuilding({ type: 'house', shopFront: { type: 'kermiskraam' } })?.kind === 'woning', 'een kermiskraam is geen winkelinterieur');
@@ -152,9 +153,11 @@ for (const s of SHOP_KINDS.filter((x) => x !== 'kermiskraam')) {
   const p = planInterior(b);
   ok(p.ok && p.kind === 'woning', 'een huis wordt een woning', JSON.stringify({ ok: p.ok, why: p.why }));
   ok(p.ok && p.layout && p.height >= MIN_CEILING, 'de plafondhoogte past');
-  ok(planInterior({ ...b, entrance: null }).why === 'nodoor', 'zonder deur geen interieur');
-  ok(planInterior({ ...b, type: 'shed' }).why === 'type', 'een schuur is geen interieur');
-  ok(planInterior({ ...b, entrance: { ...b.entrance, floorH: 2.3 } }).why === 'low', 'te laag');
+  ok(planInterior({ ...b, entrance: undefined }).why === 'nodoor', 'zonder deur (gevel nog niet getekend) geen interieur');
+  ok(planInterior({ ...b, entrance: null }).ok, 'r7: een gevel zonder deur krijgt een gemaakte deur');
+  ok(planInterior({ ...b, type: 'shed' }).sub === 'schuur', 'r7: een schuur is een schuur');
+  ok(planInterior({ ...b, type: 'carport' }).why === 'type', 'een carport is geen interieur');
+  ok(planInterior({ ...b, entrance: { ...b.entrance, floorH: 2.1 } }).why === 'low', 'te laag');
   ok(planInterior(rectBuilding(2, 3, 1)).why === 'small', 'te klein');
   ok(interiorSeed(b) === interiorSeed({ ...b }) && interiorSeed(b) !== interiorSeed(rectBuilding(9, 12, 4, { bounds: [100, 100, 109, 112] })), 'het zaad is stabiel en per gebouw verschillend');
   ok(JSON.stringify(planInterior(b).layout) === JSON.stringify(planInterior(b).layout), 'dezelfde plek, hetzelfde interieur');
