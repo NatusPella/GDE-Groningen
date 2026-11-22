@@ -72,6 +72,8 @@ export function createRoster(max = DEFAULT_MAX) {
 }
 export const bezet = (r) => r.spelers.map((s) => s.slot);
 export const heeftPlek = (r) => r.spelers.length < r.max;
+// De figuur die een speler echt heeft: zijn eigen online-avatar gaat voor de figuur van zijn plek (zie lijst).
+const effChar = (s) => (s.avatar && s.avatar.char) || s.char;
 export const speler = (r, slot) => r.spelers.find((s) => s.slot === slot) || null;
 
 // De host kan het maximum veranderen; zit er al meer volk, dan blijft het minstens zo groot als nu.
@@ -84,11 +86,13 @@ export function wijsPlekToe(r, wens = null) {
   const vrij = []; for (let s = 1; s < r.max; s++) if (!bezet(r).includes(s)) vrij.push(s);
   if (!vrij.length) return null;
   const slot = vrij[0];
-  const genomen = new Set(r.spelers.map((s) => s.char));
+  const genomen = new Set(r.spelers.map(effChar)); // ook een figuur die een ander via zijn avatar koos is bezet (twee dezelfde figuren in beeld)
   const vrijeFiguren = EXTRA_CHARS.filter((c) => !genomen.has(c.id));
   if (!vrijeFiguren.length) return null;
   const gekozen = vrijeFiguren.find((c) => c.id === wens) || vrijeFiguren[0];
-  r.spelers.push({ slot, char: gekozen.id, rol: 'gast', verbinding: 'ok' });
+  const nieuw = { slot, char: gekozen.id, rol: 'gast', verbinding: 'ok' };
+  r.spelers.push(nieuw);
+  maakUniek(r, nieuw); // een gast zonder eigen naam krijgt de naam van zijn figuur: die mag niet dubbel in de lijst staan
   return { slot, char: gekozen.id };
 }
 // Het welkomstbericht bevat dezelfde korte lijst als lijstEvent; de gast controleert hem net zo goed als het
@@ -116,7 +120,7 @@ export function zetAvatar(r, slot, avatar = {}) {
   const s = speler(r, slot);
   if (!s || !avatar || typeof avatar !== 'object') return null;
   const c = charInfo(avatar.char);
-  const char = c && !MAIN_CHARS.some((m) => m.id === c.id) ? c.id : null;
+  const char = c && !MAIN_CHARS.some((m) => m.id === c.id) && !r.spelers.some((x) => x !== s && effChar(x) === c.id) ? c.id : null; // een figuur die een ander al heeft, blijft van hem
   const naam = typeof avatar.naam === 'string' && avatar.naam.trim() ? avatar.naam.trim().slice(0, 24) : null;
   const kleur = /^#[0-9a-f]{6}$/i.test(avatar.kleur || '') ? avatar.kleur : null;
   const outfit = cleanOutfitCode(avatar.outfit); // de kleding van de speler (clothing.js encodeOutfit): optioneel, een oude client kent hem niet

@@ -15,7 +15,7 @@ import { VERSION } from './version.js';
 import { setFixedCharacters, applyHostState, makeClientInput, ensureFigure, removeFigure, figures } from './coopclient.js';
 import { bindCoop } from './coopglue.js';
 import { ververs } from './spelersregister.js';
-import { partnersInfo, createPings, addPing, tickPings, pingEvent } from './partnerhud.js';
+import { partnersInfo, createPings, addPing, tickPings, pingEvent, vergeetPings } from './partnerhud.js';
 import { getDifficultyLevel } from './difficulty.js'; // #1169: het niveau van de wereld in het welkom
 import { holdBeleid, vereistVoor, leesLijstEvent, leesOutfitsEvent, voegOutfitsSamen, leesWelkomstLijst, lijst, zetAvatar } from './coopplayers.js';
 import { cameraRelative, stepSlot2, sharedCamera } from './coop.js';
@@ -33,11 +33,11 @@ import { verhaalRol, openerNaam, charInfo } from './coopplayers.js';
 import { KLOK_EVERY, klokEvent, leesKlokEvent, KlokVolger } from './net/speelklok.js';
 import { HASH_EVERY, viewOf, hashEvent, leesHashEvent, DesyncMonitor } from './net/desync.js';
 import { PING_TOETSEN, PING_TEKST, pingPlek, pingMarkers, pingRegel, afzender as pingSender } from './coopping.js';
-import { receivePhrase, readPhrase, phraseEvent, createPhraseState, allowPhrase as zinNeemOp, mayReceive as zinMag, toggleMuteState as zinWisselStand, muteStateOf as zinStandVan, PHRASE_TTL } from './multiplayerphrases.js';
+import { receivePhrase, readPhrase, phraseEvent, createPhraseState, allowPhrase as zinNeemOp, mayReceive as zinMag, toggleMuteState as zinWisselStand, muteStateOf as zinStandVan, forgetSender, PHRASE_TTL } from './multiplayerphrases.js';
 import { readTune, tuneEvent, tuneRecipients, createRadioGroup, tunePace, receiveTune, groupLeave, groupChannel, groupFootReset, tuneAfterBoarding } from './radiogroup.js';
 import { goalEvent, readGoal, receiveGoal, answerGoal, openGoal, createGoalState, recipients as doelOntvangers, defaultReach, roleInVehicle, occupancyOf, goalPace } from './multiplayergoal.js';
 import { spelersRijen, groepenVoor, wegMelding } from './coopspelers.js';
-import { maakMeedoen, opdrachtSleutel, standVan, begin as meedoenBegin, einde as meedoenEinde, antwoord as meedoenAntwoord, tik as meedoenTik, loopVrij, krijgtDeel, maakUitnodiging, uitnodigingTekst, toeschouwerTekst, LATE_GRENS, laat as meedoenLaat, bevestig as meedoenBevestig, meespelers } from './coopmeedoen.js';
+import { maakMeedoen, opdrachtSleutel, standVan, begin as meedoenBegin, einde as meedoenEinde, antwoord as meedoenAntwoord, tik as meedoenTik, loopVrij, krijgtDeel, maakUitnodiging, uitnodigingTekst, toeschouwerTekst, LATE_GRENS, laat as meedoenLaat, bevestig as meedoenBevestig, meespelers, vergeetSlot as meedoenVergeet } from './coopmeedoen.js';
 import { stapVanMissie, geldigeStap, uitslagTekst } from './coopverhaal.js';
 import { gastVerhaalStatus, gastVerhaalSchrijf, gastVerhaalHerlaad, gastBoekIds } from './savehook.js';
 import { zetBezig, bezigVanEvent, leesBezigVan, bezigId, BEZIG_NAAM } from './coopbezig.js';
@@ -370,6 +370,7 @@ export function startHost(world, info, opts = {}) {
       if (slot >= 1 && world.addMessage) world.addMessage(`${naam || gastNaam(world, slot)} heeft het spel verlaten.`, 3.5);
       bestuurLos(world, slot); treinUit(world, slot); bezigWeg(world, slot); wapenWeg(world, slot); passiefWeg(world, slot); bijbaanWeg(world, slot);
       tuneLeft(world, slot); // zijn radiostem en keuze gaan mee; het voertuig houdt zijn zender
+      if (slot >= 1 && world.coopNet) { const nn = world.coopNet; if (nn.meedoen) meedoenVergeet(nn.meedoen, slot); if (nn.phraseRelay) forgetSender(nn.phraseRelay, slot); if (nn.pingRelay) vergeetPings(nn.pingRelay, slot); } // de volgende gast op deze plek erft zijn Meedoen-antwoord niet (hij werd anders niet gevraagd)
       try { bezitLeave(world, slot); } catch (e) { /* geen bezit */ } // zijn claims verdwijnen
       bezorgWeg(world, slot, (s) => bestuurLos(world, s)); // zijn eigen voertuig gaat mee terug (#449)
       if (world.coopWanted) delete world.coopWanted[slot]; // een gast die weggaat neemt zijn sterren mee (#434) // het voertuig van een gast die weggaat staat stil en de stoel is vrij (#434)

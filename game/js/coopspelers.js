@@ -19,7 +19,9 @@ export const veiligeKleur = (kleur, terug = '#cccccc') => (HEX_KLEUR.test(String
 
 export function afstandTekst(d) {
   if (!Number.isFinite(d)) return '';
-  return d < 15 ? 'bij je' : d >= 1000 ? `${(d / 1000).toFixed(1).replace('.', ',')} km` : `${Math.round(d / 10) * 10} m`;
+  if (d < 15) return 'bij je';
+  const m = Math.round(d / 10) * 10; // eerst afronden: 996 m werd "1000 m" terwijl 1004 m "1,0 km" werd
+  return m >= 1000 ? `${(d / 1000).toFixed(1).replace('.', ',')} km` : `${m} m`;
 }
 
 // De groepen die deze speler kent (#492): de gastheer alle groepen uit het register, een gast alleen de groep waar hij bij hoort.

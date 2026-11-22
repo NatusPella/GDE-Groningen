@@ -148,8 +148,8 @@ t('het kamercodeveld houdt wat je typt vast als het scherm opnieuw tekent (revie
   assert.equal(s.step, 'toestemming');
   // zonder eigen invoer toont het veld de laatst gebruikte code; de ruwe invoer is begrensd
   assert.equal(L.view(run({ ...WEB, laatsteCode: 'K3J9D-8F2MN' }, { t: 'kies', rol: 'gast' })).input.value, 'K3J9D-8F2MN');
-  const lang = L.reduce(run(WEB, { t: 'kies', rol: 'gast' }), { t: 'invoer-typ', tekst: 'x'.repeat(100) });
-  assert.equal(L.view(lang).input.value.length, 64);
+  const lang = L.reduce(run(WEB, { t: 'kies', rol: 'gast' }), { t: 'invoer-typ', tekst: 'x'.repeat(300) });
+  assert.equal(L.view(lang).input.value.length, L.INVOER_MAX);
 });
 t('gast-pad: invoer, toestemming, akkoord, verbinden, verbonden', () => {
   let s = run(WEB, { t: 'kies', rol: 'gast' });

@@ -38,9 +38,12 @@ export const START_TEKST = {
 const STAP = {
   goto: WERKT, hold: WERKT, board: WERKT, escape: WERKT, chase: WERKT, scene: WERKT,
   choice: WERKT, timing: WERKT,
-  rit: WERKT, convoy: DEELS, fuse: WERKT, blast: DEELS, plan: WERKT, lock: WERKT, pickpocket: WERKT,
+  rit: WERKT, fuse: WERKT, blast: DEELS, plan: WERKT, lock: WERKT, pickpocket: WERKT,
   laser: WERKT, crack: WERKT, getaway: WERKT, shot: WERKT, vault: WERKT,
-  // De museumrollen (fuse, lock, pickpocket, laser, crack) staan op 'werkt' sinds #525: elke meespeler`n  // krijgt een eigen rol (heistrollen.js rolVerdeling) en de rolhouder doet de stap; plan en shot zijn`n  // scènes die de groep samen ziet (coopcut), getaway is een checkpoint dat de groep leest.`n  // boatchase staat op 'werkt' sinds #525: de dichtstbijzijnde meespeler bepaalt de afstand en elke boot
+  // De museumrollen (fuse, lock, pickpocket, laser, crack) staan op 'werkt' sinds #525: elke meespeler
+  // krijgt een eigen rol (heistrollen.js rolVerdeling) en de rolhouder doet de stap; plan en shot zijn
+  // scènes die de groep samen ziet (coopcut), getaway is een checkpoint dat de groep leest.
+  // boatchase staat op 'werkt' sinds #525: de dichtstbijzijnde meespeler bepaalt de afstand en elke boot
   // van de groep telt langszij (teamActor, groepsActeurs), dus een gast kan het skûtsje ook inhalen.
   boatchase: WERKT,
   // convoy staat op 'werkt' sinds #525: de motor volgt de meespeler die in de missieauto zit (teamActor),
