@@ -12,6 +12,7 @@ import { cleanDifficulty, setActiveDifficulty, setActiveLevel, onDifficultyChang
 import { READING_TIME_CHOICES } from './cardtime.js';
 import { deckDefaults, isSteamDeck } from './deck.js';
 import { VOLUME_KEYS, normalizeVolumes, volumeValue } from './sfx/volume.js';
+import { DRUNK_FX_CHOICES, RUMBLE_STRENGTH_RANGE } from './settingsrules.js';
 
 // Player settings, persisted per browser. Modules read getSettings() and
 // subscribe with onSettingsChange() to apply changes live.
@@ -85,6 +86,8 @@ const BASE_DEFAULTS = {
   // terugkeerscène (#986 #987): na Doorgaan een korte flatscène van Tammo en Tessa (terugkeerrun.js); standaard aan
   terugkeerScene: true,
   gore: true,
+  // Cheats in het menu (settingsrules.js cheatsVisible, 22-11): uit tot de speler het zelf aanzet (Spelregels); in dev altijd. Lokaal per speler.
+  cheatsTonen: false,
   // Zichtafstand (viewdist.js): 'kort' hoort bij de voorinstelling die de speler als Hoog ziet
   // (de sleutel heet nog 'vlot': de look van de zwaarste stand met de afstand van Laag, #893).
   // Op een iGPU-laptop als de M1 is dat de speelbare stand; de speler kan in de instellingen
@@ -259,6 +262,9 @@ function load() {
     out.samenZinnen = raw.samenZinnen === true;
     out.startKeuze = raw.startKeuze === 'alleen' || raw.startKeuze === 'samen' ? raw.startKeuze : null; // alleen de voorselectie van de startkaart
     if (!(out.padLookSensitivity >= 0.3 && out.padLookSensitivity <= 2.5)) out.padLookSensitivity = DEFAULTS.padLookSensitivity;
+    // 22-11: ook deze twee werden niet gecontroleerd; een handmatig bestand met drunkFx "zzz" of rumbleStrength 1e9 bleef gewoon staan
+    if (!DRUNK_FX_CHOICES.includes(out.drunkFx)) out.drunkFx = DEFAULTS.drunkFx;
+    if (!(out.rumbleStrength >= RUMBLE_STRENGTH_RANGE[0] && out.rumbleStrength <= RUMBLE_STRENGTH_RANGE[1])) out.rumbleStrength = DEFAULTS.rumbleStrength;
     if (stored && mig && mig.from < SETTINGS_VERSION) {
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...out, v: SETTINGS_VERSION })); } catch (e) { /* ignore */ }
     }
@@ -341,11 +347,34 @@ if (typeof document !== 'undefined' && document.addEventListener) {
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushSettings(); });
 }
 
+// Mag deze waarde voor deze sleutel? Alleen de sleutels met een vaste keuzelijst of een bereik worden getoetst; de rest blijft zoals het was
+// (het type controleert de lader). Dezelfde lijsten als bij het laden, zodat een bestand en een aanroep niet verschillen.
+const CHOICES = {
+  subtitleContrast: SUBTITLE_CONTRASTS, colorBlind: COLOR_BLIND_MODES, padLayout: PAD_LAYOUT_CHOICES, hintSource: HINT_SOURCE_CHOICES,
+  touchControls: TOUCH_CONTROLS_CHOICES, drunkFx: DRUNK_FX_CHOICES, shiftMode: SHIFT_CHOICES, readingTime: READING_TIME_CHOICES,
+  hudMode: ['slim', 'alles', 'minimaal'], minimapNorth: ['nooit', 'lucht', 'altijd'], qteStand: ['normaal', 'makkelijk', 'overslaan'],
+  ritCamera: ['cabine', 'achter', 'zij', 'boven'], ruzie: RAGE_CHOICES, tikStand: TAP_MODES, worldColor: WORLD_COLOR_MODES,
+};
+const KEYED = { textSize: TEXT_SIZES, screenShake: SHAKE_STANDEN, subtitleVlak: SUBTITLE_VLAKKEN, subtitleSize: SUBTITLE_SIZES, quality: QUALITY_PRESETS, drawDistance: VIEW_DISTANCES };
+const RANGES = {
+  brightness: [0.6, 1.6], uiScale: [0.8, 1.5], fov: [50, 90], cameraDistance: [0.8, 1.6], mouseSensitivity: [0.3, 2.5], padLookSensitivity: [0.3, 2.5],
+  steerSensitivity: [0.5, 1.5], minimapZoom: [0.6, 1.6], resolution: [0.5, 1], rumbleStrength: RUMBLE_STRENGTH_RANGE,
+};
+export function isValidSetting(key, value) {
+  if (key === 'helpTime' || key === 'helpDamage' || key === 'helpGates') return cleanHelpSetting(key, value) === value;
+  if (hasKey(CHOICES, key)) return CHOICES[key].includes(value);
+  if (hasKey(KEYED, key)) return typeof value === 'string' && hasKey(KEYED[key], value);
+  if (hasKey(RANGES, key)) return typeof value === 'number' && value >= RANGES[key][0] && value <= RANGES[key][1];
+  return true;
+}
+
 export function setSetting(key, value) {
   if (typeof DEFAULTS[key] === 'number' && typeof value === 'string') value = Number(value);
   // a volume always stays in 0..1, whatever a caller or a keyboard shortcut sends
   if (VOLUME_KEYS.includes(key)) value = volumeValue(value, DEFAULTS[key]);
   if (!hasKey(DEFAULTS, key) || settings[key] === value) return;
+  // 22-11: een keuze of getal buiten zijn bereik (een voorinstelling, een sneltoets, een verkeerde aanroep) wordt niet bewaard
+  if (!isValidSetting(key, value)) return;
   settings[key] = value;
   // #781: de speler koos in deze build zelf deze stand; een bewaarde waarde van een toekomstige
   // typewijziging gaat er dan uit, anders zou die de keuze bij de volgende start weer overschrijven.
@@ -376,6 +405,25 @@ export function withTempSettings(values) {
   for (const k of Object.keys(values)) prev[k] = settings[k];
   put(values);
   return () => put(prev);
+}
+
+// De standaardwaarden, voor "Dit tabblad herstellen" en de tellers op de tabbladen (settingsrules.js)
+export const defaultSettings = () => ({ ...DEFAULTS });
+
+// Zet alleen deze sleutels terug naar de standaard (een tabblad van Instellingen); wat bij KEEP_ON_RESET hoort blijft staan.
+// Geeft de oude waarden terug (om ongedaan te maken) van alleen de sleutels die echt veranderden.
+export function resetSettingsKeys(keys) {
+  const oud = {};
+  for (const k of keys) {
+    if (!hasKey(DEFAULTS, k) || KEEP_ON_RESET.has(k)) continue;
+    const nu = settings[k];
+    const gelijk = nu === DEFAULTS[k] || (nu && typeof nu === 'object' && JSON.stringify(nu) === JSON.stringify(DEFAULTS[k]));
+    if (gelijk) continue;
+    oud[k] = nu;
+    setSetting(k, DEFAULTS[k]);
+  }
+  flushSettings();
+  return oud;
 }
 
 export function resetSettings() {
