@@ -11,6 +11,18 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Voetbal verfijnd
+- Voetbalcarrière: een grijze knop doet niets meer als je er toch op klikt, maar zegt waarom hij grijs is (bijvoorbeeld "Nog niet aan de beurt"). Zo kon je geen seizoen meer op dag nul laten uitrekenen.
+- Voetbalcarrière: na een koop, verkoop, verlenging, sponsor, bod of training krijg je een korte melding met het bedrag of de reden van een weigering. Een wedstrijd die niet kan beginnen zegt dat nu ook.
+- Voetbalcarrière: een aandeel kopen of verkopen en een speler verkopen vragen een tweede druk ("Zeker?"), zoals het tabblad Club al deed.
+- Voetbalcarrière: als manager kun je de selectie niet meer leegverkopen: er blijven minstens 14 spelers, een keeper en genoeg spelers per positie.
+- Voetbalcarrière: de selectie toont iedereen met het echte aantal (ook na aankopen boven de 18) en bij de manager zijn alle spelers te verlengen of te verkopen. De spelersmarkt toont de beste bovenaan en Training laat je energie zien.
+- Wedstrijd: het eindverslag, de rust en de herhaling sla je pas over na een korte leestijd, zodat een pass of schot op de laatste seconde ze niet per ongeluk wegdrukt.
+- Wedstrijd: de veldradar draait mee als je in een derby voor team 2 speelt (jouw aanval wijst altijd omhoog) en de computerploeg is een vierkantje en geen bolletje, zodat kleur niet het enige verschil is.
+- Wedstrijd: in een derby zien spelers in team 2 de stand, "jullie" en het balbezit nu vanuit hun eigen kant; bij buiten adem staat er een hint om rustig te lopen.
+- Wedstrijd: na een carrièrewedstrijd noemt het uitslagbord wat je verdiende, en een blessure staat erbij.
+- Coachen: de melding na een wissel zegt hoeveel wissels je nog hebt.
+- Training: Esc tijdens het resultaat meldt niet meer "geen winst" terwijl de groei al is uitgekeerd.
 ### Prestaties
 - Prestaties (#1074, #1067): als het spelvenster verborgen of op de achtergrond is, doen de vaste controles van de overlays, het Samen-paneel en het aanraakscherm niets meer; de kartmotor wordt bij het verlaten van de baan echt stopgezet. Samen spelen: lokaal per speler, geen netwerkwijziging; testsessies met `?stil` blijven gewoon tikken. Voor de metingen staan er twee A-schakelaars (`?perfoff=boomfade`, `?perfoff=gevelfade`).
 ### Kaart en HUD
