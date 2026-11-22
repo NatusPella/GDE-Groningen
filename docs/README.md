@@ -115,6 +115,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [LAADSCHERM-LAYOUT-22-11.md](<LAADSCHERM-LAYOUT-22-11.md>) | Het laadscherm en bootscherm zonder overlap: oorzaak, de vaste kolomstructuur, voor-en-nametingen in een echte browser en de tests. |
 | [PERF-TREND-0.54-NAAR-NU.md](<PERF-TREND-0.54-NAAR-NU.md>) | Prestatietrend sinds 0.54.0: tijdlijn per tag, statische maten en vaste opwarmbudgetten. |
 | [UI-FIXES-22-11-GEBIED.md](<UI-FIXES-22-11-GEBIED.md>) | Uitvoering van de UI-kritiek op het pauzemenu en de instellingen (#1257 tot #1282): per issue de oplossing en het bewijs, en wat bewust is overgeslagen. |
+| [SPRINT-22-11-GEBIED.md](<SPRINT-22-11-GEBIED.md>) | Sprint fun en gameplay 22-11: rakelings-reeks, prestatie en sprongbonus, voor en na, Samen-regel en wat in beeld bekeken moet worden. |
 | [UI-INVENTARIS-OUD-20-11.md](<UI-INVENTARIS-OUD-20-11.md>) | Naslag (#985, 20-11). Welke schermen buiten het menu nog donker glas en oude lettertypen droegen, wat is omgezet naar de zeefdruk en wat bewust blijft. |
 | [UI-FIXES-22-11-winkels.md](<UI-FIXES-22-11-winkels.md>) | Per issue de oplossing en het bewijs voor de UI-kritiek op winkels, garage en Land en bedrijf (#1232 tot en met #1261). |
 | [UI-KRITIEK-HARNAS-22-11.md](<UI-KRITIEK-HARNAS-22-11.md>) | Het UI-kritiekharnas: alle spelersschermen met nepdata renderen op 720p, 1080p en ui-schaal 1,5, met automatische tripwires (overlap, afkapping, contrast, focus) in index.json. |

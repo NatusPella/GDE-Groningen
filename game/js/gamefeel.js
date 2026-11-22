@@ -79,7 +79,7 @@ const NEAR_MAX_GAP = 1.2;         // m tussen de carrosserieen (strenger dan de 
 export const NEAR_COOLDOWN_S = 12;       // per voertuigpaar
 const NEAR_BONUS_MIN = 5, NEAR_BONUS_MAX = 15;
 
-export function makeNearMiss() { return { at: new Map() }; }
+export function makeNearMiss() { return { at: new Map(), streak: 0, streakAt: -99 }; }
 
 // Een geslaagde rakelings: je rijdt snel, het andere voertuig rijdt dezelfde kant op (geen
 // tegenliggers: dat is te misbruiken) en de ruimte ertussen is klein. Geeft het bonusbedrag of 0.
@@ -94,4 +94,55 @@ export function nearMissBonus(n, now, { pair, speed, gap, sameDir }) {
   if (n.at.size > 64) for (const [k, t] of n.at) if (now - t > NEAR_COOLDOWN_S) n.at.delete(k);
   const k = clamp((Math.abs(speed) - NEAR_MIN_SPEED) / 30, 0, 1);
   return Math.round(NEAR_BONUS_MIN + (NEAR_BONUS_MAX - NEAR_BONUS_MIN) * k);
+}
+
+// --- Rakelings-reeks ---------------------------------------------------------------------
+// Meerdere echte rakelings kort na elkaar vormen een reeks: elke volgende telt zwaarder mee
+// (kleine winst vaak, een lange reeks af en toe een flinke). De reeks breekt als er te lang
+// niets tussen zit; een botsing breekt hem ook (breakNearStreak).
+export const STREAK_WINDOW_S = 9;        // seconden tussen twee rakelings om de reeks te houden
+export const STREAK_STEP = 0.5;          // elke extra rakelings telt 50% van de basis zwaarder
+export const STREAK_MAX_MULT = 3;        // plafond: een reeks wordt nooit meer dan x3
+
+// Roep aan na een rakelings met bonus > 0. Geeft { n, mult, bonus }: de plaats in de reeks, de
+// vermenigvuldiger en het bedrag na de vermenigvuldiger.
+export function nearMissStreak(n, now, base) {
+  n.streak = (now - (n.streakAt ?? -99) <= STREAK_WINDOW_S) ? (n.streak || 0) + 1 : 1;
+  n.streakAt = now;
+  const mult = Math.min(STREAK_MAX_MULT, 1 + STREAK_STEP * (n.streak - 1));
+  return { n: n.streak, mult, bonus: Math.round(base * mult) };
+}
+
+export function breakNearStreak(n) { n.streak = 0; n.streakAt = -99; }
+
+// --- Sprongbonus ---------------------------------------------------------------------------
+// Een echte sprong (oprit, brugkop, dijk) levert een kleine bonus met afstand. De wereld lanceert
+// voertuigen al (vehicle.js: airborne); hier telt alleen wat bij een landing uit de lucht komt.
+// Kleine hobbels (korter dan JUMP_MIN_AIR_S of JUMP_MIN_DIST) en stuiteren (afkoeling) tellen niet.
+export const JUMP_MIN_AIR_S = 0.7;
+export const JUMP_MIN_DIST = 8;          // m horizontaal tussen opstijgen en landen
+export const JUMP_COOLDOWN_S = 4;
+const JUMP_BONUS_MIN = 5, JUMP_BONUS_MAX = 30;
+
+export function makeAirTrack() { return { air: false, t0: 0, x0: 0, y0: 0, last: -99 }; }
+
+// Elke frame met de stand van het voertuig van de speler (null/undefined als de speler niet rijdt).
+// Geeft bij een landing { air, dist } (ruwe sprong) of null; de bonus komt van jumpBonus.
+export function airStep(j, now, v) {
+  if (!v) { j.air = false; return null; }
+  if (v.airborne && !j.air) { j.air = true; j.t0 = now; j.x0 = v.x; j.y0 = v.y; return null; }
+  if (!v.airborne && j.air) {
+    j.air = false;
+    return { air: now - j.t0, dist: Math.hypot(v.x - j.x0, v.y - j.y0) };
+  }
+  return null;
+}
+
+// Bonus voor een landing: 0 bij een kleine hobbel, een wrak of tijdens de afkoeling.
+export function airBonus(j, now, land, { wrecked = false } = {}) {
+  if (!land || wrecked) return 0;
+  if (!(land.air >= JUMP_MIN_AIR_S && land.dist >= JUMP_MIN_DIST)) return 0;
+  if (now - j.last < JUMP_COOLDOWN_S) return 0;
+  j.last = now;
+  return Math.round(clamp(JUMP_BONUS_MIN + (land.dist - JUMP_MIN_DIST) * 0.5, JUMP_BONUS_MIN, JUMP_BONUS_MAX));
 }

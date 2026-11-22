@@ -92,6 +92,7 @@ export const ACHIEVEMENTS = [
   { id: 'rijden_25', cat: 'rijden', title: 'Rondje Grunn', desc: 'Rij in totaal 25 km', stat: 'driven', goal: 25000, unit: 'm' },
   { id: 'bijna_10', cat: 'rijden', title: 'Scheer-rijder', desc: '10 keer rakelings langs een ander voertuig', stat: 'nearMiss', goal: 10 },
   { id: 'bijna_50', cat: 'rijden', title: 'Zijspiegels ingeklapt', desc: '50 keer rakelings langs een ander voertuig', stat: 'nearMiss', goal: 50 },
+  { id: 'bijna_reeks', cat: 'rijden', title: 'Op een haar, vijf keer', desc: 'Haal vijf keer rakelings achter elkaar, binnen negen seconden per keer', stat: 'nearMissReeks', goal: 5 },
   { id: 'wrakken_25', cat: 'rijden', title: 'Sloopkampioen', desc: 'Schrijf 25 voertuigen af', stat: 'wrecks', goal: 25 },
   { id: 'gejat_10', cat: 'rijden', title: 'Even lenen', desc: 'Jat 10 voertuigen', stat: 'stolen', goal: 10 },
   { id: 'gejat_50', cat: 'rijden', title: 'Autohandel Ome Stadjer', desc: 'Jat 50 voertuigen', stat: 'stolen', goal: 50 },
