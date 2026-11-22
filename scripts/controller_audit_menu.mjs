@@ -140,7 +140,7 @@ export function hintsZonderPadToets(pausemenuSrc) {
 export function herrenderZonderFocus(src, bestand) {
   const klik = /addEventListener\(\s*['"]click['"]/.test(src);
   const tekent = /\.innerHTML\s*=/.test(src);
-  const bewaart = /bewaarFocus|keepFocus|rerenderTodo|restoreFocus|\.focus\(/.test(src);
+  const bewaart = /keepFocus|keepFocus|rerenderTodo|restoreFocus|\.focus\(/.test(src);
   return klik && tekent && !bewaart ? [{ bestand, regel: 1, tekst: 'klikafhandeling en innerHTML, geen focusbehoud' }] : [];
 }
 

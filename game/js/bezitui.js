@@ -4,7 +4,7 @@
 // Samen spelen: het bezit en het beheer zijn per speler (#429); een gast ziet en beheert alleen zijn eigen bezit.
 
 import * as L from './bezitlive.js';
-import { bewaarFocus } from './focusbehoud.js';
+import { keepFocus } from './focusbehoud.js';
 import * as H from './holdingsmodel.js';
 import * as Z from './bezit.js';
 import * as P from './bezitprijs.js';
@@ -176,7 +176,7 @@ let bound = null;
 export function renderBezitPanels(els, world) {
   if (!els) return;
   // elke klik tekent de panelen opnieuw; zonder dit viel de focus naar body en begon de D-pad weer bovenaan (22-11)
-  const herstel = bewaarFocus([els.overzicht, els.bedrijven, els.tekoop, els.snack, els.club].find((p) => p && p.contains && document.activeElement && p.contains(document.activeElement)));
+  const restore = keepFocus([els.overzicht, els.bedrijven, els.tekoop, els.snack, els.club].find((p) => p && p.contains && document.activeElement && p.contains(document.activeElement)));
   const bezit = L.getBezit(), farm = getBoerderij();
   const money = (world && world.money) || 0, day = Math.floor(farm.uren / 24);
   // Alleen wachten als de index er nog niet is: ensureIndex() geeft na het laden een al opgeloste belofte terug, en dan riep deze regel via rerender zichzelf
@@ -187,7 +187,7 @@ export function renderBezitPanels(els, world) {
   if (els.tekoop) els.tekoop.innerHTML = forSaleHtml({ money, offers: nearbyOffers(world) });
   if (els.snack) renderSnackPanel(els.snack, world);
   if (els.club) renderClubPanel(els.club, world);
-  herstel();
+  restore();
   const redo = () => renderBezitPanels(els, world);
   els.rerender = redo;
   if (bound === world) return;

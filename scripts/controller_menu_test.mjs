@@ -5,7 +5,7 @@
 import fs from 'node:fs';
 import { auditMenu, SCHERMEN, menuIndeling, simuleerLijst, simuleerRaster, hintsZonderPadToets, selectElementen } from './controller_audit_menu.mjs';
 import { nextSelectIndex, isPadTextField, PAD_TEXT_TYPES } from '../game/js/padlogic.js';
-import { focusSelector, focusHandtekening, herstelDoel, bewaarFocus } from '../game/js/focusbehoud.js';
+import { focusSelector, focusSignature, restoreTarget, keepFocus } from '../game/js/focusbehoud.js';
 import { PAD_MAPS } from '../game/js/controls.js';
 
 let n = 0, fout = 0;
@@ -22,7 +22,7 @@ const UITZONDERINGEN = [
   ['tuning', 'onbereikbaar-sjabloon', 'tuningworkshopui.js', 'Eigen kleur: een OS-kleurkiezer; de werkplaats loopt met eigen rijen (moveRow) en het palet is het alternatief met de D-pad'],
   ['tuning', 'tekstveld-type', 'tuningworkshopui.js', 'type=color: de OS-kleurkiezer is niet met een controller te bedienen; de palet-knoppen in dezelfde rij doen hetzelfde'],
   ['tuning', 'geen-focus-terug', 'tuningworkshopui.js', 'de werkplaats is een eigen volledig scherm uit de winkel of garage; bij sluiten gaat hij terug naar het spel (geen menu eronder), de focus wordt gewist'],
-  ['samen', 'herrender-zonder-focus', 'samenpanel.js', 'samenpanel.js tekent alleen de eenmalige profielkaart; de herrenders van de hub en de spelerslijst gebruiken bewaarFocus (samenhubui.js, coopspelersui.js)'],
+  ['samen', 'herrender-zonder-focus', 'samenpanel.js', 'samenpanel.js tekent alleen de eenmalige profielkaart; de herrenders van de hub en de spelerslijst gebruiken keepFocus (samenhubui.js, coopspelersui.js)'],
   ['uitleg', 'onbereikbaar-js', 'recapcardrun.js', 'de recap is een kaart die alleen sluit: Enter, spatie, Escape en Backspace (dus A en B) sluiten hem via een venster-keydown; een focusbaar element is niet nodig'],
   ['overig', 'herrender-zonder-focus', 'visboekui.js', 'alleen het detailvlak wordt vervangen; de lijstknoppen blijven staan en houden de focus (kies() zet alleen klassen)'],
   ['overig', 'herrender-zonder-focus', 'fotomodusui.js', 'de overlay en de balk worden eenmaal gebouwd; de fotolijst wordt bij het openen getekend, niet na een klik'],
@@ -84,35 +84,35 @@ const maakScope = (doc) => { const s = { kids: [], contains(x) { return this.kid
   teken();
   scope.kids[1].focus();
   ok(focusSelector(scope.kids[1]) === 'button[data-bz="koop-perceel"][data-id="b"]', 'de selector van een knop is tag en data-attributen', focusSelector(scope.kids[1]));
-  const herstel = bewaarFocus(scope, doc);
+  const restore = keepFocus(scope, doc);
   teken(); doc.activeElement = doc.body; // het paneel is opnieuw getekend: de focus viel op body
-  herstel();
+  restore();
   ok(doc.activeElement === scope.kids[1], 'na het opnieuw tekenen staat de focus weer op dezelfde knop (Koop op perceel b)');
   // de knop is weg: de buur op dezelfde plek (of de laatste)
   scope.kids[2].focus();
-  const h2 = bewaarFocus(scope, doc);
+  const h2 = keepFocus(scope, doc);
   scope.kids = scope.kids.slice(0, 2); doc.activeElement = doc.body;
   scope.kids = [maakEl('button', { 'data-bz': 'koop-perceel', 'data-id': 'x' }, [], doc), maakEl('button', { 'data-bz': 'koop-perceel', 'data-id': 'y' }, [], doc)];
   h2();
   ok(doc.activeElement === null || doc.activeElement === doc.body, 'een knop met andere gegevens wordt niet geraden (geen focus op een vreemd element)');
   // dezelfde knop, andere volgorde: de handtekening wint
   scope.kids = ['a', 'b', 'c'].map((id) => maakEl('button', { 'data-bz': 'koop-perceel', 'data-id': id }, [], doc)); scope.kids[0].focus();
-  const h3 = bewaarFocus(scope, doc);
+  const h3 = keepFocus(scope, doc);
   scope.kids = ['c', 'b', 'a'].map((id) => maakEl('button', { 'data-bz': 'koop-perceel', 'data-id': id }, [], doc)); doc.activeElement = doc.body;
   h3();
   ok(doc.activeElement && doc.activeElement.attributes.find((x) => x.name === 'data-id').value === 'a', 'de knop wordt op zijn gegevens teruggevonden, niet op zijn plek');
   // een focus die al ergens anders staat blijft ongemoeid
   scope.kids[1].focus();
-  const h4 = bewaarFocus(scope, doc);
+  const h4 = keepFocus(scope, doc);
   const elders = maakEl('button', { id: 'elders' }, [], doc); doc.activeElement = elders;
   h4();
-  ok(doc.activeElement === elders, 'staat de focus nu buiten het paneel, dan steelt het herstel hem niet');
+  ok(doc.activeElement === elders, 'staat de focus nu buiten het paneel, dan steelt het restore hem niet');
   // de focus stond buiten het paneel: niets te doen
   doc.activeElement = elders;
-  const h5 = bewaarFocus(scope, doc); doc.activeElement = doc.body; h5();
-  ok(doc.activeElement === doc.body, 'stond de focus niet in het paneel, dan zet het herstel hem er ook niet in');
-  ok(focusHandtekening(scope, null) === null && herstelDoel(scope, null) === null, 'zonder element of handtekening is er niets te doen');
-  ok(typeof bewaarFocus(null, doc) === 'function', 'zonder paneel geeft bewaarFocus een lege functie');
+  const h5 = keepFocus(scope, doc); doc.activeElement = doc.body; h5();
+  ok(doc.activeElement === doc.body, 'stond de focus niet in het paneel, dan zet het restore hem er ook niet in');
+  ok(focusSignature(scope, null) === null && restoreTarget(scope, null) === null, 'zonder element of handtekening is er niets te doen');
+  ok(typeof keepFocus(null, doc) === 'function', 'zonder paneel geeft keepFocus een lege functie');
 }
 
 // ---------- 5. de reparaties staan in de bron ----------
@@ -127,7 +127,7 @@ ok(lobby.includes("contains('coop-lijst-zoek') && state.lijstZoek)"),'lobbyui.js
 const pm = lees('game/js/pausemenu.js');
 ok(/T: null, F8: null/.test(pm), 'pausemenu.js: de hints T en F8 tonen geen toetsenbordplaatje bij een controller');
 ok(hintsZonderPadToets(pm).length === 0, 'elke footerhint van het pauzemenu heeft een controllerknop of verdwijnt bij een controller', hintsZonderPadToets(pm));
-for (const f of ['bezitui.js', 'coopspelersui.js', 'samenhubui.js', 'veroverdpanel.js']) ok(/bewaarFocus\(/.test(lees('game/js/' + f)) && /herstel\(\)/.test(lees('game/js/' + f)), `${f}: tekent de lijst opnieuw met focusbehoud`);
+for (const f of ['bezitui.js', 'coopspelersui.js', 'samenhubui.js', 'veroverdpanel.js']) ok(/keepFocus\(/.test(lees('game/js/' + f)) && /restore\(\)/.test(lees('game/js/' + f)), `${f}: tekent de lijst opnieuw met focusbehoud`);
 // de keuzelijsten van Bezit zijn er nog en worden dus door gamepad.js bediend
 ok(selectElementen(lees('game/js/bezitui.js'), 'bezitui.js').length >= 4, 'Bezit heeft nog zijn vier keuzelijsten (filter, sorteren, product, pand): de A-stap blijft nodig');
 

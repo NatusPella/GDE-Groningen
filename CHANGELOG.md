@@ -11,6 +11,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Controller en menu
+- Controller (#1011, #495): de keuzelijsten in Bezit (filter, sorteren, product, pand) zijn met een controller te bedienen: A kiest de volgende optie, X de vorige. Het wachtwoord van een sessie vul je in met het schermtoetsenbord. B gaat uit een tekstveld en daarna een niveau terug; in de sessielijst wist B eerst de zoektekst. Zoekvelden in Spullen en Besturing zijn met de D-pad te bereiken. Na dempen, blokkeren, kopen of een stap in Samen spelen blijft de focus op dezelfde knop staan in plaats van bovenaan te beginnen. Bij Loopbaan en Foto's staat bij een controller geen toetsenbordplaatje meer. Invoer is lokaal; er verandert niets aan Samen spelen.
 ### Prestaties
 - Prestaties (#1074, #1067): als het spelvenster verborgen of op de achtergrond is, doen de vaste controles van de overlays, het Samen-paneel en het aanraakscherm niets meer; de kartmotor wordt bij het verlaten van de baan echt stopgezet. Samen spelen: lokaal per speler, geen netwerkwijziging; testsessies met `?stil` blijven gewoon tikken. Voor de metingen staan er twee A-schakelaars (`?perfoff=boomfade`, `?perfoff=gevelfade`).
 ### Kaart en HUD

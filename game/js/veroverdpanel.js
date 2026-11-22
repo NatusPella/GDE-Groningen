@@ -5,7 +5,7 @@
 // met de echte aantallen en pas dan de lijst met provincies en gebieden. Kop, stand, taken en
 // uitleg zitten samen in één scrolvlak, zodat de taken altijd in beeld beginnen.
 import { icoon } from './icons.js';
-import { bewaarFocus } from './focusbehoud.js';
+import { keepFocus } from './focusbehoud.js';
 import { gebiedenHtml, kiesGebied, reisNaar, volgendeTaken, soortenStand, GEBIEDEN_CSS } from './gebiedenui.js';
 import { bekijkIntocht } from './intochten.js';
 import { fillBars } from './motion.js';
@@ -138,13 +138,13 @@ export function renderVeroverdPanel(el, sluit = null, world = null) {
     // #980 fase 3: Gebieden en de Beleidswinkel zijn twee tabbladen (Q en E wisselen ze, net als elders in het menu).
     const aangenomen = getBeleid().gekocht.length;
     const tabKnop = (id, label, extra = '') => `<button type="button" role="tab" class="ds-z-tab" data-vo-tab="${id}" aria-selected="${tab === id}">${label}${extra}</button>`;
-    const herstel = bewaarFocus(el); // een maatregel kopen tekent het paneel opnieuw: de focus blijft op dezelfde knop (22-11)
+    const restore = keepFocus(el); // een maatregel kopen tekent het paneel opnieuw: de focus blijft op dezelfde knop (22-11)
     el.innerHTML = `<div class="vo-tabs ds-z-tabs ds-zeef" role="tablist" aria-label="Veroverd">${tabKnop('gebieden', 'Gebieden')}${tabKnop('beleid', 'Beleidswinkel', aangenomen ? ` <small>${aangenomen} aangenomen</small>` : '')}</div>` +
       `<div class="vo-gebieden" data-vo-body="gebieden"${tab === 'gebieden' ? '' : ' hidden'}><div class="vo-top">${hero}${stats}${volgende}${regel}</div>` +
       `<div class="m-main"><div class="m-list pa-list lb-list">${g.lijst}</div><aside class="m-pane pa-pane lb-pane gb-pane" aria-live="polite">${g.pane}</aside></div></div>` +
       `<div class="vo-beleidtab" data-vo-body="beleid"${tab === 'beleid' ? '' : ' hidden'}>${beleidHtml()}</div>`;
     fillBars(el, bars);
-    herstel();
+    restore();
   };
   teken();
   if (el.dataset.bound) return;

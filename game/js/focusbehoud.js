@@ -23,7 +23,7 @@ export function focusSelector(el) {
 }
 
 /** Een handtekening van de gefocuste plek: de selector en het volgnummer onder de elementen met dezelfde selector in het paneel. */
-export function focusHandtekening(scope, el) {
+export function focusSignature(scope, el) {
   if (!scope || !el) return null;
   const sel = focusSelector(el);
   if (!sel) return null;
@@ -33,7 +33,7 @@ export function focusHandtekening(scope, el) {
 }
 
 /** Na het tekenen: het element met dezelfde handtekening, of de dichtstbijzijnde (zelfde plek in de lijst, daarna de laatste). */
-export function herstelDoel(scope, h) {
+export function restoreTarget(scope, h) {
   if (!scope || !h) return null;
   const rest = [...scope.querySelectorAll(h.sel)].filter((e) => !e.disabled);
   if (!rest.length) return null;
@@ -44,14 +44,14 @@ export function herstelDoel(scope, h) {
  * Vóór het opnieuw tekenen aanroepen; geeft een functie voor erna. Alleen als de focus in het paneel stond en nu weg is
  * (op body) zet het hem terug: een focus die al ergens anders staat blijft ongemoeid.
  */
-export function bewaarFocus(scope, doc = typeof document !== 'undefined' ? document : null) {
+export function keepFocus(scope, doc = typeof document !== 'undefined' ? document : null) {
   if (!doc || !scope || !doc.activeElement || doc.activeElement === doc.body || !scope.contains || !scope.contains(doc.activeElement)) return () => {};
-  const h = focusHandtekening(scope, doc.activeElement);
+  const h = focusSignature(scope, doc.activeElement);
   if (!h) return () => {};
   return () => {
     const nu = doc.activeElement;
     if (nu && nu !== doc.body) return; // de focus staat al ergens: niet stelen
-    const doel = herstelDoel(scope, h);
-    if (doel && doel.focus) doel.focus({ preventScroll: true });
+    const target = restoreTarget(scope, h);
+    if (target && target.focus) target.focus({ preventScroll: true });
   };
 }

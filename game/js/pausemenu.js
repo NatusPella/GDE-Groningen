@@ -1678,9 +1678,8 @@ function enterSection(id) {
 
 const FOCUSABLE = 'button, input, select, [tabindex]';
 function visibleFocusables(scope) {
-  // a controller can't type: it skips the search fields
-  const pad = isPadActive();
-  return [...scope.querySelectorAll(FOCUSABLE)].filter((el) => !el.disabled && el.tabIndex >= 0 && el.getClientRects().length && !el.closest('[hidden]') && !(pad && el.type === 'search'));
+  // een controller bereikt de zoekvelden ook (22-11): A opent het schermtoetsenbord (padkeyboard.js) en B verlaat het veld weer (gamepad.js)
+  return [...scope.querySelectorAll(FOCUSABLE)].filter((el) => !el.disabled && el.tabIndex >= 0 && el.getClientRects().length && !el.closest('[hidden]'));
 }
 
 // Q/E and [ ] switch the visible tab row of the section; Spel > Samen spelen has a
