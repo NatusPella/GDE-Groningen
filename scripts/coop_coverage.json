@@ -1774,6 +1774,10 @@
    "reden": "Passanten reageren op de claxon van de bestuurder in het eigen spel; lokaal."
   },
   {
+   "glob": "footballmusic",
+   "reden": "Fasemuziek tijdens voetbal; een lokale instelling en lokaal geluid per speler."
+  },
+  {
    "glob": "savediag",
    "reden": "Diagnose van het opgeslagen spel op dit apparaat; lokaal."
   },
