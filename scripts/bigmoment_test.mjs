@@ -151,7 +151,7 @@ ok(/\.bm-band > \.bm-klein \{ margin-bottom: var\(--ds-s-2\); \}/.test(css), 'he
   const bust = bouwMoment(momentVanOpgepakt({ busted: true, geld: 250 }));
   const zichtbaar = [bust.klein, bust.kop, bust.regelNl, bust.beloningLabel].join(' ');
   ok((zichtbaar.match(/boete/gi) || []).length === 1, 'boete staat een keer op de kaart', zichtbaar);
-  ok(/\.bm-slip \.bm-i-beloning \.bm-teller \{ display: block; font: 800 clamp\(48px/.test(css), 'het bedrag van de bon is het grootste getal');
+  ok(/\.bm-slip \.bm-i-beloning \.bm-teller \{ display: block; font-family: var\(--ds-font-zeef-kop\); font-weight: 800; font-size: clamp\(48px/.test(css), 'het bedrag van de bon is het grootste getal');
   ok(/\.bm-stempel \{[^}]*max-width: calc\(100% - 56px\)/.test(css), 'de stempel blijft binnen de kaart');
 }
 console.log(`${n - fails}/${n} bigmoment`);

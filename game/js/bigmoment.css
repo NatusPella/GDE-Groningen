@@ -37,7 +37,7 @@
 
 /* het bedrag van de bon is het belangrijkste getal van de kaart: groot, het label klein erboven */
 .bm-slip .bm-meta { flex-direction: column; gap: 2px; }
-.bm-slip .bm-i-beloning .bm-teller { display: block; font: 800 clamp(48px, 6vw, 96px)/1 var(--ds-font-zeef-kop); color: var(--ds-c-ink-inkt); }
+.bm-slip .bm-i-beloning .bm-teller { display: block; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: clamp(48px, 6vw, 96px); line-height: 1; color: var(--ds-c-ink-inkt); }
 .bm-slip .bm-i-beloning b { display: block; margin: 0; font-size: clamp(16px, 1.4vw, 24px); }
 
 /* a new area: a place-name stamp like a postcard, lower third, no dimming */
