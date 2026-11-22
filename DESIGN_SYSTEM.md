@@ -165,9 +165,11 @@ blijft het groen en donkergroen van hierboven (`#1e9e56`, `#3fc97a`, `#0c140e`).
 raamlichten bij nacht, lange schaduwen bij zonsondergang. Altijd zomer: geen
 sneeuw, geen kaal winterlicht.
 
-**Beeld en tekst.** Over een render ligt een donkergroene sluier
-(`linear-gradient` van `rgba(12,20,14,.92)` links naar `rgba(12,20,14,.1)`
-rechts), zodat tekst leesbaar blijft; zie `.ls-shade` in loadscreen.css.
+**Beeld en tekst.** Op het laadscherm ligt geen sluier over de render: het
+plaatje staat gekanteld in een kader met harde schaduw in een eigen kolom
+(`.ls-pic`), naast het logo en het bord "Naar <plaats>", nooit eronder. De
+vaste kolomstructuur, de marges en de meting staan in
+docs/LAADSCHERM-LAYOUT-22-11.md (`loadscreen.css`, `laadscherm_layout_test`).
 Lettertypen: het logo in Big Shoulders Display, rest in Bebas Neue; ondertitel
 cursief in Arial Narrow. Alleen Nederlands.
 
