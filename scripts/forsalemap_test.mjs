@@ -39,11 +39,10 @@ t('maximaal 250 vlakken, het totaal klopt wel', () => {
 t('prijsstappen: vier stappen op prijs per hectare', () => {
   assert.equal(F.priceStep(1000, 1), 0); assert.equal(F.priceStep(2000, 1), 1); assert.equal(F.priceStep(5000, 1), 2); assert.equal(F.priceStep(9000, 1), 3);
 });
-t('vorm: een schets met vier hoekpunten rond het binnenpunt', () => {
+t('vorm: zonder echte omtrek geen verzonnen vlak (#1092): lege punten, real: false, wel een binnenpunt', () => {
   const s = layer.view([1000, 1000, 1100, 1100], 0.5).shapes[0];
-  assert.equal(s.punten.length, 4);
-  const cx = s.punten.reduce((a, q) => a + q[0], 0) / 4, cy = s.punten.reduce((a, q) => a + q[1], 0) / 4;
-  assert.ok(Math.hypot(cx - s.x, cy - s.y) < 1);
+  assert.equal(s.punten.length, 0); assert.equal(s.real, false);
+  assert.ok(Number.isFinite(s.x) && Number.isFinite(s.y));
 });
 t('klikken: het vlak eronder, of niets', () => {
   const s = layer.view([1000, 1000, 1400, 1400], 0.5).shapes;
@@ -74,7 +73,7 @@ t('de echte omtrek (bezit-vormen.json) gaat voor de schets zodra hij geladen is,
   const ix2 = createParcelIndex({ v: 1, kinds: ['w', 'a', 'b'], access: ['weg', 'pad', 'wegNabij', 'padNabij', 'geen'], rows });
   const l2 = F.forSaleLayer({ parcels: ix2, ownsId: () => false, claimOf: () => null, priceOf: (p) => 100 });
   const before = l2.view([1000, 1000, 1300, 1300], 0.3).shapes[0];
-  assert.equal(before.real, false); assert.equal(before.punten.length, 4, 'de schets: vier hoeken');
+  assert.equal(before.real, false); assert.equal(before.punten.length, 0, 'geen echte omtrek: geen verzonnen hoeken');
   const p = ix2.byId(before.id);
   ix2.attachShapes({ v: 1, step: 5, rows: [[before.id, [-4, -3, 8, 0, 0, 6, -8, 0]]] });          // een rechthoek 40 x 30 m rond het binnenpunt
   const after = l2.view([1000, 1000, 1300, 1300], 0.3).shapes.find((s) => s.id === before.id);
@@ -83,7 +82,7 @@ t('de echte omtrek (bezit-vormen.json) gaat voor de schets zodra hij geladen is,
   assert.equal(after.punten.length, 4);
   assert.ok(after.punten.every(([x, y]) => Number.isFinite(x) && Number.isFinite(y)));
   const other = l2.view([1000, 1000, 1300, 1300], 0.3).shapes.find((s) => s.id !== before.id);
-  assert.equal(other.real, false, 'een perceel zonder vorm houdt zijn schets');
+  assert.equal(other.real, false, 'een perceel zonder vorm blijft zonder omtrek'); assert.equal(other.punten.length, 0);
   const { labelSpot } = await import('../game/js/forsaledraw.js');
   const [w, cx, cy] = labelSpot(after, (x, y) => [x * 2, y * 2]);
   assert.equal(w, 80); assert.deepEqual([cx, cy], [p.x * 2, p.y * 2]);

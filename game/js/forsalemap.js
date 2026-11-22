@@ -1,11 +1,9 @@
 // De kaartlaag "Te koop" (epic #1095, #1098; ontwerp docs/BEZIT-21-11.md 7): welke percelen er in beeld staan, met stand, prijsstap en vorm.
 // Puur: geen DOM, geen canvas, geen klok (scripts/forsalemap_test.mjs); mapview.js tekent wat dit teruggeeft. De vorm is een schets op
-// kaalschaal (perceelVlak van percelen.js) zolang bezit-vormen.json niet geladen is, daarna de echte omtrek (parcelindex shapeOf); alleen wat in beeld is wordt berekend, nooit alle 13.664 tegelijk.
+// kaalschaal; nu: alleen de echte omtrek (parcelindex shapeOf), zonder die geen omtrek (#1092); alleen wat in beeld is wordt berekend, nooit alle 13.664 tegelijk.
 //
 // Kleurtaal (DS3): te koop = policeBlue-streeplijn met een prijskaartje, van jou = greenLight, medespeler = zijn spelerkleur, niet te koop = grijs
 // met een slotje. Geel blijft gereserveerd voor 'volg dit'-doelen. Nooit alleen kleur: elke stand heeft een lijnpatroon (dash) en een vorm.
-
-import { perceelVlak } from './percelen.js';
 
 export const DETAIL_SCALE = 0.12;       // px per meter: vanaf hier losse percelen, daaronder een telling per cel
 export const CLUSTER_MIN_SCALE = 0.025; // daaronder niets (de hele provincie in beeld)
@@ -22,10 +20,11 @@ export const STATES = {
 };
 export const priceStep = (price, ha) => { const pha = price / Math.max(0.1, ha); return PRICE_PER_HA_STEPS.filter((s) => pha > s).length; };
 
-// De omtrek van een perceel: de echte, vereenvoudigde vorm uit bezit-vormen.json als die geladen is (real: true), anders de schets op kaalschaal.
+// De omtrek van een perceel: alleen de echte, vereenvoudigde vorm uit bezit-vormen.json (real: true). Is die er niet (nog niet geladen of te klein voor een vorm),
+// dan komt er GEEN verzonnen omtrek (#1092): punten is leeg en de kaart toont alleen het kaartje op het binnenpunt.
 function outlineOf(ix, p) {
   const real = ix.shapeOf ? ix.shapeOf(p.id) : null;
-  return real && real.length >= 3 ? { punten: real, real: true } : { punten: perceelVlak({ id: p.id, ha: p.ha }, { x: p.x, y: p.y }), real: false };
+  return real && real.length >= 3 ? { punten: real, real: true } : { punten: [], real: false };
 }
 
 // deps: { parcels (parcelindex), ownsId(id), claimOf(id) -> {name,color}|null, priceOf(parcel) -> euro, showLocked }
@@ -75,6 +74,7 @@ export function pickShape(shapes, wx, wy, within = 20) {
   if (!Array.isArray(shapes)) return null;
   let best = null, bd = Infinity;
   for (const s of shapes) {
+    if (!s.punten.length) { if (Math.hypot(s.x - wx, s.y - wy) <= within + 12 && Math.hypot(s.x - wx, s.y - wy) < bd) { bd = Math.hypot(s.x - wx, s.y - wy); best = s; } continue; }
     const xs = s.punten.map((q) => q[0]), ys = s.punten.map((q) => q[1]);
     const inBox = wx >= Math.min(...xs) - within && wx <= Math.max(...xs) + within && wy >= Math.min(...ys) - within && wy <= Math.max(...ys) + within;
     if (!inBox) continue;
