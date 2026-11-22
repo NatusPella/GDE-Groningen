@@ -119,6 +119,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [UI-KRITIEK-HARNAS-22-11.md](<UI-KRITIEK-HARNAS-22-11.md>) | Het UI-kritiekharnas: alle spelersschermen met nepdata renderen op 720p, 1080p en ui-schaal 1,5, met automatische tripwires (overlap, afkapping, contrast, focus) in index.json. |
 | [UI-KRITIEK-22-11-menu.md](<UI-KRITIEK-22-11-menu.md>) | UI-kritiek op het pauzemenu (Spel, Verhaal, Loopbanen, Spullen, Garage, Boerderij, Prestaties, Instellingen, Besturing, Cheats): bevindingen per patroon P1 tot P12, top-10 en de aangemaakte issues. |
 | [UI-KRITIEK-22-11-winkels.md](<UI-KRITIEK-22-11-winkels.md>) | Beoordeling van de harnasbeelden voor winkels, Spullen, Garage en Land en bedrijf: 29 bevindingen per patroon P1 tot en met P12, tripwires en top-10. |
+| [UI-FIXES-22-11-GEBIED.md](<UI-FIXES-22-11-GEBIED.md>) | Gameplay- en inhoudsbugs uit de beeldrondes van 22-11 (#1187 tot #1214): per issue de oplossing, het bewijs en wat is overgeslagen. |
 | [ZFIGHT-METING.md](<ZFIGHT-METING.md>) | Meting van z-fighting (#917, #919): dieptestap per afstand en near, positieve controle, wisselpixels per plek bij near 0,5, 1,5 en 2,5, en het besluit over het dynamische near. |
 | [PERF-PLEISTERS.md](<PERF-PLEISTERS.md>) | Inventaris van prestatie-pleisters sinds 0.54.0 (schadelijk, maskerend, legitiem) met oorzaken en een schrapvolgorde. |
 | [PERF-CODE-21-11.md](<PERF-CODE-21-11.md>) | Code-ronde prestaties (#1015 benchmarkadvies, #1016 vooruitkijken, #1039 losse meshes): wijzigingen en meetpunten voor de eindsweep. |

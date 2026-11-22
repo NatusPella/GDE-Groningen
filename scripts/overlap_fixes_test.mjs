@@ -99,6 +99,7 @@ ok(/#hud \.hud-meter \.hud-meter-ic \{ flex: 0 0 16px; width: 16px; height: 16px
 ok(/@media \(max-width: 1100px\) and \(min-width: 481px\) \{ #hud \.cw-panel \{ left: auto; right: var\(--hud-edge, 46px\)/.test(src('game/js/choicepanel.js')), 'keuzepaneel onder 1100 px: rechts onder zone C');
 ok(/max-height: 720px\) \{ html body :is\(#banter-sub, #radio-sub, #story-talk\) \{ bottom: 200px/.test(src('game/js/a11y.css')), 'ondertitels hangen op een laag venster boven de locatiekaart');
 ok(/setBubbleObstacles\(list\)/.test(src('game/js/prompts.js')) && /labelDy\(/.test(src('game/js/hudrules.js')), 'een spraakbel schuift uit de HUD-onderdelen (hudrules bubblePlace)');
+ok(/toggle\('off', hidden \|\| hintsQuiet\(\)\);\s*hudObstacles\(\);/.test(src('game/js/prompts.js')), 'de belhindernissen worden ook ververst als de hints zwijgen (#1198)');
 
 // klasse 13: de snelheidsmeter is één compact blok (snelheid 40 px, versnelling klein, toeren als dunne balk binnen de kaart)
 const hcss = src('game/js/hud_panel.css'), hj = src('game/js/hud_panel.js');

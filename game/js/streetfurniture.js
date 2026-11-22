@@ -275,12 +275,25 @@ export function lampSpot(x, y, ux, uy, side, road, path, ok) {
   return null;
 }
 
+// Bordvrije zones (#1196): een gevelbord (de Privégarage van Tammo en Tessa) houdt een kijkkegel vrij; geen lantaarnpaal, bank
+// of paal erin, anders leest het bord als 'Privé arage'. Een zone is een cirkel {x, y, r} in kaartmeters.
+const SIGN_KEEPOUT = [];
+export function registerSignKeepOut(x, y, r) {
+  if (![x, y, r].every(Number.isFinite) || r <= 0) return;
+  if (!SIGN_KEEPOUT.some((z) => z.x === x && z.y === y)) SIGN_KEEPOUT.push({ x, y, r });
+}
+export function inSignKeepOut(x, y) {
+  for (const z of SIGN_KEEPOUT) if ((x - z.x) ** 2 + (y - z.y) ** 2 < z.r * z.r) return true;
+  return false;
+}
+
 // A spot for street furniture over a streamed map (#463): off every
 // carriageway (roadsNear), out of the houses by `house` m (buildingAt) and out
 // of the water (waterNear). The same answer in the city and the province, so a
 // post or a bench never stands in the asphalt or in a shopfront.
 export function spotFreeOnMap(map, x, y, { house = 0.35, road = 0.25 } = {}) {
   if (!map) return true;
+  if (inSignKeepOut(x, y)) return false;
   if (buildingAt(map, x, y, house)) return false;
   if (map.waterNear && waterPolyIn(map.waterNear(x, y, 6), x, y)) return false;
   if (map.railNear) for (const r of map.railNear(x, y, 6)) if (r.pts && r.pts.length > 1 && segNear(r.pts, x, y, 1.9)) return false; // niet op het spoor (wereldaudit 21-11)

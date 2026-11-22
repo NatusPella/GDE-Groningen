@@ -29,5 +29,10 @@ for (const lengte of [undefined, NaN, null, 'x', 0, -5]) {
 ok(st.options.every((o) => !/gratis/i.test(o.label)), 'geen "gratis" in de optieregels');
 ok(/\+ € \d+/.test(st.options[1].label) && !/€/.test(st.options[0].label) && !/€/.test(st.options[2].label), 'alleen zelf gaan toont de winst');
 ok(st.rule === '30 km', 'de afstand staat een keer in het paneel', st.rule);
+// #1214: geen NaN km, geen 'gratis', geen € 0, een getal per keuze
+const kaal = V.panelState({ to: 'Zoutkamp', ride: 'bus', lines: ['x'] });
+const tekst = JSON.stringify(kaal) + V.briefingLine({ to: 'Zoutkamp' });
+ok(!/NaN|gratis|€ 0|undefined/.test(tekst) && kaal.rule === '', 'zonder afstand geen NaN, gratis of € 0', tekst);
+ok(!/gratis|€ 0/.test(JSON.stringify(st)) && /\+ € 120/.test(st.options[1].label), 'met afstand: verdienste bij zelf gaan, nooit gratis', st.options[1].label);
 console.log(`${n - fails}/${n} reisview`);
 process.exit(fails ? 1 : 0);

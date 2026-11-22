@@ -152,7 +152,8 @@ export function momentVanBanner({ kind = 'pass', title = '', reason = '', reward
   const t = alLabel ? '' : ruw;
   const kort = t.length > 0 && t.length <= 16;
   const regel = kort || !t ? reason : [t, reason].filter(Boolean).join('. ');
-  return { soort, titel: kort ? t : '', regelNl: kaartRegel(regel) || undefined, beloning: reward };
+  // een mislukte missie levert niets op (#1187, #814): geen beloningsregel, ook niet als de aanroeper er een meegeeft
+  return { soort, titel: kort ? t : '', regelNl: kaartRegel(regel) || undefined, beloning: soort === 'mislukt' ? 0 : reward };
 }
 
 // Wanted went up or down (prev and nu are star counts 0..5): null when nothing changed, else the
@@ -340,11 +341,13 @@ function toonNu(m, klaarCb) {
   const stopImpact = m.vorm === 'band' ? startImpact(el, m) : null;
   requestAnimationFrame(() => el.classList.add('aan'));
   if (m.vorm === 'rand') { if (randActief) randActief.remove(); randActief = el; } else actief = el;
+  // de missie is voorbij: doelbalk en sleutelhints wijken achter de eindkaart (#1188, #1189)
+  if (m.schermvullend) document.body.classList.add('bm-eindkaart');
   const weg = () => {
     if (stopImpact) stopImpact();
     el.classList.remove('aan');
     el.classList.add('uit');
-    setTimeout(() => { el.remove(); if (m.vorm === 'rand' ? randActief === el : actief === el) { if (m.vorm === 'rand') randActief = null; else actief = null; } klaarCb(); }, 450);
+    setTimeout(() => { el.remove(); if (m.vorm === 'rand' ? randActief === el : actief === el) { if (m.vorm === 'rand') randActief = null; else actief = null; } if (m.schermvullend && !actief) document.body.classList.remove('bm-eindkaart'); klaarCb(); }, 450);
   };
   setTimeout(weg, m.ms);
   return el;

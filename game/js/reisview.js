@@ -5,15 +5,18 @@ import { travelOptions, RIDES, selfReward } from './reiskeuze.js';
 import { travelSeconds, classOf, duurTekst } from './reistijd.js';
 import { wantsExplain } from './hudtext.js';
 
-const km = (m0) => { const m = Number.isFinite(+m0) ? Math.max(0, +m0) : 0; return m < 10000 ? (m / 1000).toFixed(1).replace('.', ',') : String(Math.round(m / 1000)); };
+// Een ontbrekende of ongeldige afstand geeft een lege tekst, nooit 'NaN km' (#1214).
+const heeftAfstand = (m) => Number.isFinite(+m) && +m > 0;
+const km = (m0) => { if (!heeftAfstand(m0)) return ''; const m = +m0; return m < 10000 ? (m / 1000).toFixed(1).replace('.', ',') : String(Math.round(m / 1000)); };
 // hoe je zelf gaat, in de woorden van de briefing (de trekker heet geen auto)
 const SELF_WOORD = { auto: 'met de auto', trekker: 'met de trekker', fiets: 'met de fiets', lopen: 'lopend', boot: 'met de boot', bus: 'met de bus', trein: 'met de trein' };
 
 // "Naar Zoutkamp · 30 km · ± 23 min met de auto · ± 10 min met de bus"
 export function briefingLine(beat) {
-  const parts = [`Naar ${beat.to}`, `${km(beat.length)} km`, `± ${duurTekst(travelSeconds(beat.length, beat.selfMode || 'auto'))} ${SELF_WOORD[beat.selfMode || 'auto'] || 'met de auto'}`];
+  const parts = [`Naar ${beat.to}`];
+  if (heeftAfstand(beat.length)) parts.push(`${km(beat.length)} km`, `± ${duurTekst(travelSeconds(beat.length, beat.selfMode || 'auto'))} ${SELF_WOORD[beat.selfMode || 'auto'] || 'met de auto'}`);
   const ride = RIDES[beat.ride];
-  if (ride && beat.ride !== 'lift') parts.push(`± ${duurTekst(travelSeconds(beat.length, ride.mode))} ${ride.label.toLowerCase()}`);
+  if (heeftAfstand(beat.length) && ride && beat.ride !== 'lift') parts.push(`± ${duurTekst(travelSeconds(beat.length, ride.mode))} ${ride.label.toLowerCase()}`);
   return parts.join(' · ');
 }
 
@@ -25,15 +28,16 @@ export function panelState(beat, pick, seen = {}) {
   const keys = { meerijden: '1', zelf: '2', overslaan: '3' };
   // #1214: een getal per optie (de duur), "gratis" zeggen we niet bij elke regel; de winst staat alleen bij zelf gaan en alleen als die er is
   const lengte = Number.isFinite(+beat.length) ? +beat.length : 0;
+  const bekend = heeftAfstand(lengte);
   const options = r.options.map((o) => ({
-    key: keys[o.id], label: [o.label, o.eta, o.id === 'zelf' && selfReward(lengte) > 0 ? `+ € ${selfReward(lengte)}` : ''].filter(Boolean).join(' · '), note: o.uitleg, badge: o.id === r.def ? 'aanbevolen' : '', cls: o.id === (pick || r.def) ? 'pick' : '',
+    key: keys[o.id], label: [o.label, bekend ? o.eta : '', o.id === 'zelf' && bekend && selfReward(lengte) > 0 ? `+ € ${selfReward(lengte)}` : ''].filter(Boolean).join(' · '), note: o.uitleg, badge: o.id === r.def ? 'aanbevolen' : '', cls: o.id === (pick || r.def) ? 'pick' : '',
   }));
   return {
     kicker: 'REIZEN',
     text: `Naar ${beat.to}`,
-    rule: lengte > 0 ? `${km(lengte)} km` : '', // geen lengte bekend: geen regel in plaats van "0,0 km"
+    rule: bekend ? `${km(lengte)} km` : '', // geen lengte bekend: geen regel in plaats van "0,0 km"
     options,
-    help: wantsExplain(seen, TRAVEL_HELP_ID) ? 'Snel reizen kost tijd, zelf gaan niet' : '',
+    help: wantsExplain(seen, TRAVEL_HELP_ID) ? 'De klok loopt altijd door' : '',
   };
 }
 

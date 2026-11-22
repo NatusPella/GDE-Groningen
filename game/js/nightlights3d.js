@@ -3,7 +3,7 @@ import { WATER_Y } from './util.js';
 import { buildingAt } from './tileplace.js';
 import { makeProp, addProp, removeProp, isPropBroken, propKey } from './breakables.js';
 import { policeFlash } from './models3d_vehicles.js';
-import { lampRule, lampSpot, LAMP_AWNING } from './streetfurniture.js';
+import { lampRule, lampSpot, LAMP_AWNING, inSignKeepOut } from './streetfurniture.js';
 import { hash2 as hash } from './rng.js';
 import { SpatialGrid, gridItems } from './spatialgrid.js';
 import { koplampenFactor } from './weerlook.js';
@@ -299,6 +299,7 @@ function updatePoliceLights(world, vehicleMeshes, px, py, night) {
 
 
 function lampTooClose(x, y) {
+  if (inSignKeepOut(x, y)) return true; // niet voor een gevelbord (#1196)
   for (const l of lampGrid.queryRadius(x, y, LAMP_MIN_GAP)) if ((l.x - x) ** 2 + (l.y - y) ** 2 < LAMP_MIN_GAP * LAMP_MIN_GAP) return true;
   return false;
 }
@@ -379,7 +380,7 @@ export const lampsForRoadForTest = (road, map) => lampsForRoad(road, map);
 function mappedLamp(map, m) {
   const [x, y] = m.pts[0];
   // a mapped lamp inside a house or under a shop's awning keeps out (#463)
-  if (buildingAt(map, x, y, LAMP_AWNING)) return null;
+  if (buildingAt(map, x, y, LAMP_AWNING) || inSignKeepOut(x, y)) return null;
   if (!monumentFurnitureAllowed('lamp', x, y)) return null; // een monumentgebied (heritagearea.js)
   let best = null, bd = 25;
   for (const r of map.roadsNear(x, y, 12)) {

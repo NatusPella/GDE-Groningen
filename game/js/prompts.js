@@ -162,7 +162,7 @@ export function initPrompts(hudRoot) {
 function hiddenNow(world) {
   if (!toggleChoice('hints', getSettings().showHints)) return true; // #1169
   const b = document.body.classList;
-  if (!b.contains('game-started') || b.contains('cine-hide-hud') || b.contains('pigeon-mode')) return true;
+  if (!b.contains('game-started') || b.contains('cine-hide-hud') || b.contains('pigeon-mode') || b.contains('bm-eindkaart')) return true; // achter de eindkaart geen sleutelhints (#1188)
   if (world.pigeonMode) return true;
   if (world.cameraOverride || world.uiPaused || world.paused || world.menuCam) return true;
   if (isPhoneOpen() || isPauseMenuOpen()) return true;
@@ -189,6 +189,7 @@ export function updatePrompts(dt, world) {
   const hidden = hiddenNow(world);
   root.classList.toggle('off', hidden);
   rowsEl.classList.toggle('off', hidden || hintsQuiet());
+  hudObstacles(); // ook als de hints zwijgen blijven de bellen van voorbijgangers van de HUD-kaarten af (cache van 0,2 s; #1198)
   if (hidden) {
     // after a scene or a respawn the hints build up again from nothing
     if ((hiddenT += dt) > 1.5) { admitted.clear(); rowGate = ROWS_DELAY; }

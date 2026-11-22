@@ -209,10 +209,10 @@ export function leegTeKoop(laden) {
 }
 
 // ---- Te koop ----
-export function forSaleHtml({ money = 0, offers = [], loading = false } = {}) {
+export function forSaleHtml({ money = 0, offers = [], loading = false, laden = false } = {}) {
   if (!branchOpen('land')) return locked('land');
   const rows = offers.length ? offers.map((o) => `<div class="bd-rij" data-id="${esc(o.id)}"><span class="bd-naam"><b>${esc(o.name)}</b><span class="bd-feiten"><span>${esc(o.kindName)}</span><span>${ha(o.ha)} ha</span><span>bodem ${esc(o.soilWord)}</span><span>${o.dist} m</span><span>${euro(o.price)}</span></span></span>` +
-    `<span class="bd-acties">${btn('doel-perceel', 'Route', ` data-id="${esc(o.id)}"`)} ${buyAsk('koop-perceel', o.id, `Koop ${euro(o.price)}`, o.price, money)}</span></div>`).join('') : leegTeKoop(loading);
+    `<span class="bd-acties">${btn('doel-perceel', 'Route', ` data-id="${esc(o.id)}"`)} ${buyAsk('koop-perceel', o.id, `Koop ${euro(o.price)}`, o.price, money)}</span></div>`).join('') : leegTeKoop(loading || laden);
   return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Te koop</h2></div><p class="mut">De dichtstbijzijnde percelen. Op de kaart zie je ze allemaal met de laag Te koop. Wie veel land heeft, betaalt meer voor het volgende perceel.</p>${rows}<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
 }
 

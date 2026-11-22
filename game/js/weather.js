@@ -380,7 +380,7 @@ export function applyWeatherToScene3D(scene, renderer, world, dt, px, py, cam = 
   if (scene.fog) {
     // #866: mist 0,7 zette het zicht op ~50 m en maakte een hoog beeld helemaal
     // wit. De mist blijft (kleur en sfeer ongewijzigd), maar met een zichtbodem:
-    // dichtbij nooit onder ~16 m en in de verte nooit onder ~150 m, zodat de
+    // dichtbij nooit onder ~16 m en in de verte nooit onder ~220 m, zodat de
     // wereld ook in dichte mist leesbaar blijft.
     const fogBaseNear = lerp(base.fogNear, base.fogNear * 0.4, t);
     const fogBaseFar = lerp(base.fogFar, base.fogFar * 0.45, t);

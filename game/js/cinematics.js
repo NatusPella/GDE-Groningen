@@ -1439,7 +1439,7 @@ export function showBanner({ kind = 'pass', title, reason = '', reward = 0, stat
   b.dataset.kind = kind;
   els.bTitle.textContent = title;
   els.bReason.textContent = reason;
-  const rewardDoel = Math.max(0, Math.round(Number(reward) || 0));
+  const rewardDoel = kind === 'fail' ? 0 : Math.max(0, Math.round(Number(reward) || 0)); // falen levert niets op (#1187)
   // #514: de beloning telt op in plaats van in één keer te verschijnen; de
   // waarde staat meteen op nul en updateBanner loopt hem in 0,7 s op.
   els.bReward.textContent = rewardDoel ? '+ €0' : '';
