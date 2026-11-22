@@ -77,7 +77,7 @@ import { noteMoney } from './finance.js';
 import { storedLookOf, loadLooks } from './vehiclelookstore.js';
 import { lookCode } from './vehiclelook.js';
 import { loadTuning, sanitizeTuning } from './tuningplan.js';
-import { queueNotice } from './notifygate.js'; // 'Nieuw voertuig ontdekt' pas na het laadscherm (22-11)
+import { enqueueNotice } from './notifyqueue.js'; // 'Nieuw voertuig ontdekt' pas na het laadscherm (22-11)
 import { setKnownContext, knownRecord, markKnown } from './garageknown.js';
 import { KEYS } from './storagekeys.js'; // de uiterlijk-tuning op de garagekaarten (epic Autotuning, #1155)
 const DELIVERY_COOLDOWN = 30;
@@ -645,7 +645,7 @@ setKnownContext({
     const spec = VEHICLE_STOCK[key];
     if (!world || !spec) return;
     const tekst = `Nieuw voertuig ontdekt: ${nameOf(spec, null).label}`;
-    queueNotice('ontdekking', { key: 'garage-ontdekt-' + key, tekst, duur: 4, show: () => world.addMessage(tekst, 4, { kind: 'tip', kicker: 'Garage', key: 'garage-ontdekt-' + key }) });
+    enqueueNotice('discovery', { key: 'garage-ontdekt-' + key, text: tekst, duration: 4, show: () => world.addMessage(tekst, 4, { kind: 'tip', kicker: 'Garage', key: 'garage-ontdekt-' + key }) });
   },
 });
 
