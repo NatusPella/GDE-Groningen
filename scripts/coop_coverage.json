@@ -918,7 +918,8 @@
    "test": [
     "scripts/wanted_een_test.mjs",
     "scripts/wanted_flow_test.mjs",
-    "scripts/coopbestuur_test.mjs"
+    "scripts/coopbestuur_test.mjs",
+    "scripts/cashvan_dader_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",

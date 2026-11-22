@@ -68,4 +68,6 @@ export function reportCrime(world, kind, opts = {}) {
   return serious;
 }
 
-
+// A blown cash van (cashvan.js): the crime belongs to whoever wrecked it. A guest's wreck (v.wreckedByGast or the guest
+// still at the wheel, coopbestuur.js) counts for his own wanted level; without the vehicle it always went to the opener.
+export const cashVanBlownOpts = (v) => ({ seen: true, vehicle: v });
