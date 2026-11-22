@@ -29,7 +29,7 @@ ok(by('yes (3 m)').kind === 'woning' && by('yes (8 m)').kind === 'kantoor', 'yes
 ok(by('farm').kind === 'woning' && by('villa').kind === 'woning' && by('chalet').kind === 'woning', 'een boerderij, villa en chalet zijn woningen');
 ok(by('hangar').sub === 'magazijn' && by('riding_hall').kind === 'garage' && by('data_center').kind === 'kantoor', 'hangaar en manege zijn een magazijn, een rekencentrum een kantoor');
 for (const t of ['mosque', 'synagogue', 'monastery', 'religious', 'temple']) ok(by(t).kind === 'kerk' && by(t).sub === 'gebedshuis', t + ' is een gebedshuis');
-for (const t of ['outbuilding', 'storage_tank', 'bunker', 'windmill', 'sty', 'poldergemaal']) ok(by(t) && !by(t).betreedbaar, t + ' is bewust niet betreedbaar');
+for (const t of ['construction', 'storage_tank', 'bunker', 'windmill', 'tower', 'poldergemaal']) ok(by(t) && !by(t).betreedbaar, t + ' is bewust niet betreedbaar');
 for (const k of KIND_IDS) ok(types.some((r) => r.kind === k) || k === 'winkel' || k === 'horeca', 'soort ' + k + ' komt uit een bouwtype (winkel en horeca uit de plek)');
 
 // --- de recepten ---
@@ -58,7 +58,7 @@ ok(JSON.stringify(recipeTable()) === JSON.stringify(rec), 'de recepttabel is det
 {
   const rnd2 = mulberry32(7);
   const mk = (type, w, d) => { const r = building('woning', null, w, d, rnd2); return planInterior({ ...r.b, type }, { spot: null, upper: false }); };
-  ok(mk('house', 3.6, 4.4).ok && !mk('yes', 3.6, 4.4).ok && mk('yes', 4.6, 5.6).ok, 'een klein huis met type is betreedbaar, een klein pand zonder type niet, een gewoon pand zonder type wel');
+  ok(mk('house', 3.6, 4.4).ok && mk('yes', 3.6, 4.4).kind !== 'woning' && mk('yes', 4.6, 5.6).kind === 'woning', 'een klein huis met type is een woning, een klein pand zonder type een bijgebouw (r7), een gewoon pand zonder type een woning');
 }
 
 // --- aggregeren op synthetische metingen ---
