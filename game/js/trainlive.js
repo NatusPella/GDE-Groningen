@@ -44,7 +44,9 @@ export function createLiveTrains({ fetchFn, nu = () => Date.now(), opts = {} } =
 
   // Aanroepen per beeld (of vaker): vraagt zo nodig op. codes: Set stationscodes uit het rooster. Geeft de belofte terug (voor tests), anders null.
   function tick(aan, codes, t = nu()) {
-    if (!aan || !codes || !codes.size) { if (st.aan) { st.aan = false; wis(); } return null; }
+    if (!aan) { if (st.aan) { st.aan = false; wis(); } return null; }
+    // ver van elk station (geen codes): niet opvragen, maar de stand laten staan tot hij veroudert (review 22-11)
+    if (!codes || !codes.size) return null;
     st.aan = true;
     if (st.bezig || t < st.volgendeOp) return null;
     st.bezig = true; st.opgevraagd++;

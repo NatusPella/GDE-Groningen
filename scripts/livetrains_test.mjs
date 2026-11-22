@@ -151,6 +151,13 @@ const demo = () => feed(
   let m = 0;
   const l4 = createLiveTrains({ fetchFn: async () => { m++; return respons(demo()); }, nu: () => t });
   assert.strictEqual(l4.tick(true, new Set(), t), null); assert.strictEqual(l4.tick(false, CODES, t), null); assert.strictEqual(m, 0);
+  // ver van elk station (geen codes): de stand blijft staan tot hij veroudert; de uitzetter wist hem wel (review 22-11)
+  const l5 = createLiveTrains({ fetchFn: async () => respons(demo()), nu: () => t, opts: { jitter: () => 1 } });
+  await l5.tick(true, CODES, t);
+  assert.ok(l5.vertragingen(t).size >= 3);
+  assert.strictEqual(l5.tick(true, null, t + 1000), null); assert.ok(l5.vertragingen(t + 1000) && l5.vertragingen(t + 1000).size >= 3, 'rand van 400 m wist de vertragingen niet');
+  assert.strictEqual(l5.tick(true, new Set(), t + 2000), null); assert.ok(l5.vertragingen(t + 2000));
+  l5.tick(false, CODES, t + 3000); assert.strictEqual(l5.vertragingen(t + 3000), null, 'uitzetter wist wel');
 }
 
 // --- de bedrading: de brug, de uitzetter en de terugval ---
