@@ -1,9 +1,8 @@
 // De kaartkleuren komen uit de ds-tokens (game/js/kaartkleuren.js): de terugval is gelijk aan ds-tokens.css,
 // de rollen van INK (mapstyle.js) zijn die tokens, en de tekenkleuren van de kaart blijven leesbaar.
 import fs from 'node:fs';
-import { DS_TERUGVAL, dsKleur, hexA, contrast, meng, KAART_ROLLEN, kaartInk, gebiedKleuren, kaartLand, WATER_BLAUW, KAART_PALET_VERSIE, PIRAMIDE_OUD, piramideNieuw, herkleurRaster, markerRollen, markerKleuren, MARKER_ROL, glyphOp } from '../game/js/kaartkleuren.js';
-import { dsWereldCss, setWereldMeng } from '../game/js/worldpalette.js';
-import { INK, MAP_PALETTE, MINI_PALETTE, ICON_FILL, ICON_RIM } from '../game/js/mapstyle.js';
+import { DS_TERUGVAL, dsKleur, kaartTintSterkte, kaartLabel, hexA, contrast, meng, KAART_ROLLEN, kaartInk, gebiedKleuren, kaartLand, WATER_BLAUW, KAART_PALET_VERSIE, PIRAMIDE_OUD, piramideNieuw, herkleurRaster, markerRollen, markerKleuren, MARKER_ROL, glyphOp } from '../game/js/kaartkleuren.js';
+import { INK, MAP_PALETTE, MINI_PALETTE, ICON_FILL, ICON_RIM, LABEL } from '../game/js/mapstyle.js';
 
 let n = 0, fails = 0;
 const ok = (c, m) => { n++; if (!c) { fails++; console.log('FAIL', m); } };
@@ -26,33 +25,37 @@ for (const [rol, token] of Object.entries(KAART_ROLLEN)) {
 
 // leesbaarheid: tekst, lijnen en markers op het land en op het paneel
 const land = [MAP_PALETTE.meadow, MAP_PALETTE.park, MINI_PALETTE.meadow, MINI_PALETTE.park]; // weiland, park (kaart en minikaart)
-for (const l of land) ok(contrast(INK.cream, l) >= 3, 'crème tekst leest op ' + l);
+for (const l of land) ok(contrast(LABEL.tekst, l) >= 4.5, 'inkt (kaarttekst) leest op ' + l);
 ok(contrast(INK.cream, INK.panelTop) >= 7 && contrast(INK.amber, INK.panelTop) >= 4.5, 'paneeltekst op glas');
 ok(contrast(INK.amberInk, INK.yellow) >= 7, 'inkt op geel');
 
 // de gebiedstoestanden: elke lijn staat los van het land eronder
 const g = gebiedKleuren();
 // op het lichte minikaartgroen redt de donkere onderlijn (glas) het contrast, die zit in elke lijn
-for (const t of ['zichtbaar', 'bezig']) for (const l of land.slice(0, 3).concat(INK.dark)) ok(contrast(g[t].lijn, l) >= 3, `lijn ${t} op ${l}`);
+// 22-11: op het lichte papier redt de donkere onderlijn (glas) het contrast; de gekleurde lijn leest op het glas zelf
+for (const t of ['zichtbaar', 'bezig']) { ok(contrast(g[t].lijn, INK.dark) >= 3, `lijn ${t} op de onderlijn`); for (const l of land) ok(contrast(INK.dark, l) >= 3, `onderlijn op ${l}`); }
 ok(contrast(g.onzichtbaar.lijn, g.onzichtbaar.vul) >= 3, 'lijn van onzichtbaar op zijn vlak');
 ok(contrast(g.veroverd.lijn, g.veroverd.rand) >= 7, 'veroverd: lichte lijn op donkere rand');
 ok(g.veroverd.vul === dsKleur('licht-groen') && g.veroverd.vul !== g.bezig.vul, 'veroverd is groen, bezig geel');
-for (const l of land.slice(0, 3)) ok(contrast(g.veroverd.lijn, l) >= 3, 'groene lijn op ' + l);
+ok(contrast(g.veroverd.lijn, INK.dark) >= 3, 'groene lijn op de onderlijn');
 ok(new Set([g.zichtbaar.lijn, g.bezig.lijn, g.onzichtbaar.lijn]).size === 3, 'drie lijnkleuren verschillen');
 
 // --- het land en de markers uit de tokens (21-11) ---
 const L = kaartLand();
-ok(MAP_PALETTE.meadow === L.kaart.meadow && MINI_PALETTE.meadow === L.mini.meadow && MAP_PALETTE.water === WATER_BLAUW, 'MAP_PALETTE en MINI_PALETTE komen uit kaartLand()');
+ok(MAP_PALETTE.meadow === L.kaart.meadow && MINI_PALETTE.meadow === L.mini.meadow && MAP_PALETTE.water === L.kaart.water, 'MAP_PALETTE en MINI_PALETTE komen uit kaartLand()');
 ok(fs.readFileSync(new URL('../DESIGN_SYSTEM.md', import.meta.url), 'utf8').includes('grachtwater groenblauw `' + WATER_BLAUW + '`'), 'het water is het grachtwater van DESIGN_SYSTEM.md');
 ok(meng('#000000', '#ffffff', 0.5) === '#808080' && meng('#102030', '#102030', 0.7) === '#102030', 'meng');
-ok(L.kaart.park === dsWereldCss(meng(dsKleur('ink-bord'), dsKleur('glas-3'), 0.12), 'groen') && L.kaart.major === dsKleur('creme') && L.kaart.road === dsWereldCss(dsKleur('creme-zacht'), 'steen') && L.kaart.railTie === dsKleur('ink-papier'), 'groen, wegen en bielzen uit bord, crème en papier (land en steen door de wereldmenging)');
-// 21-11: de kaart volgt de wereldmenging; bij menging 0 is het land het ongemengde tokenpalet, het water en major blijven altijd gelijk
-setWereldMeng(0);
-const L0 = kaartLand();
-ok(L0.kaart.park === meng(dsKleur('ink-bord'), dsKleur('glas-3'), 0.12) && L0.kaart.road === dsKleur('creme-zacht') && L0.mini.meadow === meng(dsKleur('glas-3'), dsKleur('ink-bord'), 0.3), 'menging 0: het land van de kaart is het tokenpalet');
-setWereldMeng(null);
-ok(L.kaart.water === L0.kaart.water && L.kaart.major === L0.kaart.major && L.mini.water === L0.mini.water, 'water en hoofdwegen volgen de menging niet');
-ok(['meadow', 'park', 'forest', 'tree'].every((n) => L.kaart[n] !== L0.kaart[n] || L.mini[n] !== L0.mini[n]), 'bij de standaardmenging verschilt het land van het ongemengde palet');
+const P0 = dsKleur('papier'), I0 = dsKleur('ink-inkt'), B0 = dsKleur('ink-bord');
+ok(L.kaart.major === I0 && L.kaart.road === dsKleur('inkt-zacht') && L.kaart.rail === I0 && L.kaart.railTie === P0, 'wegen, spoor en bielzen uit inkt en papier');
+ok(L.kaart.meadow === meng(P0, dsKleur('papier-2'), 0.35) && contrast(L.kaart.meadow, P0) < 1.2, 'het land is crèmepapier');
+// 22-11: de Wereldkleur bepaalt de sterkte van de vlaktinten (uit 1,25, subtiel 1, drukwerk 0,8); lijnen, papier en inkt blijven gelijk
+const sterkte = [0, 0.4, 0.65].map((m) => kaartTintSterkte(m));
+ok(sterkte[0] > sterkte[1] && sterkte[1] > sterkte[2] && Math.abs(sterkte[1] - 0.97) < 0.05 && kaartTintSterkte(9) === 0.8 && kaartTintSterkte(-1) === 1.25, 'tintsterkte: uit sterker dan subtiel sterker dan drukwerk');
+const L0 = kaartLand(0), L1 = kaartLand(0.65);
+ok(L0.kaart.park === meng(P0, B0, 0.16 * 1.25) && L1.kaart.park === meng(P0, B0, 0.16 * 0.8), 'uit en drukwerk: de parktint volgt de sterkte');
+ok(L.kaart.major === L0.kaart.major && L.kaart.road === L1.kaart.road && L.kaart.meadow === L1.kaart.meadow && L0.kaart.meadow === L1.kaart.meadow, 'lijnen en papier volgen de Wereldkleur niet');
+ok(['park', 'forest', 'tree', 'water'].every((n) => L0.kaart[n] !== L1.kaart[n]), 'uit en drukwerk verschillen in de vlaktinten');
+ok(typeof kaartLabel().tekst === 'string' && kaartLabel().tekst === I0 && kaartLabel().halo === P0, 'labels: inkt met een papieren halo');
 // de kleur van een gebouw met alfa, over het land gelegd
 const over = (c, bg) => {
   const m = /rgba\((\d+), (\d+), (\d+), ([\d.]+)\)/.exec(c);
@@ -64,12 +67,12 @@ for (const [naam, P] of [['kaart', L.kaart], ['minikaart', L.mini]]) {
   // lijnen: 3:1 tegen het land; vlakken onderscheiden zich van het weiland
   for (const lijn of ['road', 'major', 'minor', 'rail', 'foot', 'cycle', 'waterEdge']) ok(contrast(over(P[lijn], P.meadow), P.meadow) >= 3, naam + ': ' + lijn + ' 3:1 tegen het weiland');
   ok(contrast(P.water, P.meadow) >= 1.5 || contrast(P.waterEdge, P.meadow) >= 3, naam + ': water los van het weiland');
-  ok(contrast(P.park, P.meadow) >= 1.5, naam + ': park los van het weiland');
-  ok(contrast(over(P.building, P.meadow), P.meadow) >= 3, naam + ': gebouwen 3:1 tegen het weiland');
+  ok(contrast(P.park, P.meadow) >= 1.15, naam + ': park los van het weiland (een tint; de rand van het groen is de grens)');
+  ok(contrast(over(P.building, P.meadow), P.meadow) >= 2, naam + ': gebouwen 2:1 tegen het weiland (een vlak, geen lijn)');
   ok(contrast(P.water, P.park) >= 1.3 || contrast(P.waterEdge, P.park) >= 3, naam + ': water los van park');
-  ok(contrast(INK.cream, P.meadow) >= 4.5, naam + ': crème tekst 4,5:1 op het weiland');
+  ok(contrast(LABEL.tekst, P.meadow) >= 4.5, naam + ': inkt 4,5:1 op het weiland');
 }
-ok(contrast(INK.cream, MAP_PALETTE.park) >= 4.5 && contrast(INK.seaLabel, INK.dark) >= 4.5, 'tekst leest op park en zeetekst op zijn halo');
+ok(contrast(LABEL.tekst, MAP_PALETTE.park) >= 4.5 && contrast(LABEL.tekst, MAP_PALETTE.water) >= 4.5 && contrast(LABEL.water, MAP_PALETTE.water) >= 3, 'tekst leest op park en water');
 ok(![MAP_PALETTE.road, MAP_PALETTE.major, MAP_PALETTE.minor, MAP_PALETTE.foot, MAP_PALETTE.rail, MAP_PALETTE.building].some((c) => /f9c80e|e8c93a/i.test(c)), 'geen geel in het land (alleen route en doel)');
 
 // de markers: vijf rollen, crème rand, 4,5:1 voor de glyph, 3:1 voor de donkere buitenrand van de schijf
@@ -80,7 +83,8 @@ for (const [cat, vul] of Object.entries(ICON_FILL)) {
   ok(contrast(glyphOp(vul), vul) >= 4.5, 'glyph op ' + cat + ' haalt 4,5:1 (' + contrast(glyphOp(vul), vul).toFixed(2) + ')');
   ok(contrast(vul, INK.dark) >= 3, 'schijf van ' + cat + ' haalt 3:1 tegen de donkere buitenrand');
 }
-for (const [cat, rim] of Object.entries(ICON_RIM)) for (const P of [L.kaart, L.mini]) ok(contrast(rim, P.meadow) >= 3, 'rand van ' + cat + ' leest op het weiland');
+// de rand (crème, geel, licht rood) leest op het donkere glas van de schijf; tegen het lichte papier draagt de donkere buitenrand (3:1)
+for (const [cat, rim] of Object.entries(ICON_RIM)) { ok(contrast(rim, INK.dark) >= 3, 'rand van ' + cat + ' leest op de schijf'); for (const P of [L.kaart, L.mini]) ok(contrast(rim, P.meadow) >= 3 || contrast(INK.dark, P.meadow) >= 3, 'rand van ' + cat + ' of de buitenrand leest op het weiland'); }
 ok(ICON_RIM.politiebureau === dsKleur('creme') && ICON_RIM.halte === dsKleur('ink-geel') && ICON_RIM.gevaar === dsKleur('rood-glas-tx'), 'rand: crème, doelen geel, gevaar rood');
 ok(markerKleuren().glyph === dsKleur('creme'), 'de lichte glyph is crème');
 

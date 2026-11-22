@@ -5,7 +5,7 @@
 // Node scripts can load it. Two palettes: "map" (the full map and the
 // pyramid, a dark calm land) and "mini" (the minimap, lighter so it reads
 // at 150 px). Both share the same keys.
-import { kaartInk, kaartLand, markerKleuren } from './kaartkleuren.js';
+import { kaartInk, kaartLand, kaartLabel, markerKleuren, meng } from './kaartkleuren.js';
 
 // 21-11: het land komt uit de ds-tokens (kaartkleuren.js kaartLand, het glasoppervlak van het designsysteem); hier alleen de maten.
 const LAND = kaartLand();
@@ -72,6 +72,28 @@ const MARKERS = markerKleuren();
 export const ICON_RIM = MARKERS.rim;
 export const ICON_FILL = MARKERS.vul;
 export const ICON_GLYPH_LIGHT = MARKERS.glyph;
+
+// De teksten op het land (22-11, de gedrukte kaart): inkt met een papieren halo. De code vraagt nog om crème (INK.cream) voor een naam;
+// kaartTekst() geeft daar de inkt voor terug, met dezelfde alfa. Een tekst op een donkere band (de voortgangsstrook, het bijschrift)
+// houdt zijn crème: die roept drawLabel met `donker` aan.
+export const LABEL = kaartLabel();
+const rgbaDeel = (c) => { const m = /^rgba?\(\s*(\d+),\s*(\d+),\s*(\d+)(?:,\s*([0-9.]+))?\s*\)$/.exec(c); return m ? { rgb: `${+m[1]},${+m[2]},${+m[3]}`, a: m[4] === undefined ? 1 : +m[4] } : null; };
+const sleutelVan = (c) => { const d = typeof c === 'string' && c[0] === '#' ? [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16)).join(',') : null; return d; };
+const metAlfa = (hex, a) => { const r = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)); return a >= 1 ? hex : `rgba(${r.join(', ')}, ${a})`; };
+export function kaartTekst(color) {
+  const d = rgbaDeel(color);
+  const rgb = d ? d.rgb : sleutelVan(color), a = d ? d.a : 1;
+  if (!rgb) return color;
+  const is = (naam) => sleutelVan(INK[naam]) === rgb;
+  if (is('cream') || is('paper') || is('textBright')) return metAlfa(LABEL.tekst, a);
+  if (is('amber')) return metAlfa(LABEL.amber, a);
+  if (is('flavour')) return metAlfa(LABEL.flavour, a);
+  if (is('seaLabel')) return metAlfa(LABEL.water, a);
+  return color;
+}
+// De naam van een buurgebied in de kleur van zijn grens, donkerder gemaakt tot hij op het papier leest.
+export const kaartRandTekst = (color) => (typeof color === 'string' && color[0] === '#' ? meng(color, LABEL.tekst, 0.5) : color);
+export const labelHalo = (alpha) => metAlfa(LABEL.halo, alpha);
 
 // the sea outside the coast: the map's water, or the minimap's
 export function seaStyle(palette = MAP_PALETTE) { return { fill: palette.water, edge: palette.waterEdge }; }

@@ -62,7 +62,7 @@ import { getEierbalTips } from './furniture.js';
 import { drawRailsOnMap } from './railway.js';
 import { drawCountryBase, drawCountryDetail, villageLabels, syncMapPhase, MAP_STYLE, builtUpAt } from './countrymap.js';
 import { drawProvinceBase, provinceMapOn, provinceMapBounds, onProvinceMapLoad } from './provincemap.js';
-import { ROAD_ORDER, ZOOM, EMPHASIS, INK, inkA, inkCss, roadWidthPx, layersAtZoom, ICON_MIN_ZOOM, modeLook, baseFilter, baseDimOverlay } from './mapstyle.js';
+import { ROAD_ORDER, ZOOM, EMPHASIS, INK, inkA, inkCss, kaartTekst, kaartRandTekst, labelHalo, roadWidthPx, layersAtZoom, ICON_MIN_ZOOM, modeLook, baseFilter, baseDimOverlay } from './mapstyle.js';
 import { drawSea, drawOutside, regionLabels, regionEdgeLabels, areaNameAt, placeNameAt, regionName, regionBorderColor } from './regions.js';
 import { borderPlaceLabels, borderPlaceAt } from './borderplaces.js';
 import { viewpointHover, areaName } from './verkenpunten.js';
@@ -1252,18 +1252,20 @@ function tekenVoortgangsStrook(ctx, regels, box) {
   ctx.strokeStyle = inkA('greenLight', 0.35);
   ctx.stroke();
   for (let i = 0; i < regels.length; i++) {
-    drawLabel(ctx, regels[i].tekst, box[0] + 10, box[1] + 12 + i * 18, regels[i].kleur || INK.cream, 'left');
+    drawLabel(ctx, regels[i].tekst, box[0] + 10, box[1] + 12 + i * 18, regels[i].kleur || INK.cream, 'left', true);
   }
   ctx.restore();
   return box;
 }
 
-function drawLabel(ctx, text, x, y, color, align) {
+// Een naam op het land: inkt met een papieren halo (de gedrukte kaart); `donker` voor een tekst op een donkere band (crème met donkere halo).
+function drawLabel(ctx, text, x, y, color, align, donker = false) {
   ctx.textAlign = align;
   ctx.lineWidth = 3;
-  ctx.strokeStyle = inkA('dark', 0.85);
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = donker ? inkA('dark', 0.85) : labelHalo(0.85);
   ctx.strokeText(text, x, y);
-  ctx.fillStyle = color;
+  ctx.fillStyle = donker ? color : kaartTekst(color);
   ctx.fillText(text, x, y);
 }
 
@@ -1470,8 +1472,8 @@ function drawStaticOverlay(ctx) {
       const label = r.name.toUpperCase().split('').join(' ');
       const w = ctx.measureText(label).width;
       const a = names.regionAlpha;
-      if (r.land && r.id !== 'groningen') { ctx.lineJoin = 'round'; ctx.lineWidth = 5; ctx.strokeStyle = inkA('dark', 0.8); ctx.strokeText(label, sx, sy); }
-      ctx.fillStyle = r.land ? (r.id === 'groningen' ? inkA('cream', a.toFixed(2)) : regionBorderColor(r.id)) : inkA('seaLabel', (a + 0.1).toFixed(2));
+      if (r.land && r.id !== 'groningen') { ctx.lineJoin = 'round'; ctx.lineWidth = 5; ctx.strokeStyle = labelHalo(0.8); ctx.strokeText(label, sx, sy); }
+      ctx.fillStyle = r.land ? (r.id === 'groningen' ? kaartTekst(inkA('cream', a.toFixed(2))) : kaartRandTekst(regionBorderColor(r.id))) : kaartTekst(inkA('seaLabel', (a + 0.1).toFixed(2)));
       ctx.fillText(label, sx, sy);
       boxes.push([sx - w / 2, sy - size / 2, sx + w / 2, sy + size / 2]);
       named.add(r.id);
@@ -1493,9 +1495,9 @@ function drawStaticOverlay(ctx) {
       if (!vrij(box)) continue;
       boxes.push(box);
       // de naam van een buurgebied in de kleur van zijn grens, goed leesbaar (#435)
-      ctx.lineJoin = 'round'; ctx.lineWidth = 4; ctx.strokeStyle = inkA('dark', 0.8);
+      ctx.lineJoin = 'round'; ctx.lineWidth = 4; ctx.strokeStyle = labelHalo(0.8);
       ctx.strokeText(label, sx, sy);
-      ctx.fillStyle = r.land ? regionBorderColor(r.id) : inkA('seaLabel', 0.7);
+      ctx.fillStyle = r.land ? kaartRandTekst(regionBorderColor(r.id)) : kaartTekst(inkA('seaLabel', 0.7));
       ctx.fillText(label, sx, sy);
     }
   }
@@ -1596,7 +1598,7 @@ function drawStaticOverlay(ctx) {
       const box = [sx - w / 2 - 8, sy - 12, sx + w / 2 + (area.stamp ? 20 : 8), sy + 12];
       if (!vrij(box)) continue;
       boxes.push(box);
-      ctx.fillStyle = area.stamp ? inkA('cream', 0.85) : inkA('cream', 0.5);
+      ctx.fillStyle = kaartTekst(area.stamp ? inkA('cream', 0.85) : inkA('cream', 0.5));
       ctx.fillText(label, sx, sy);
       if (area.stamp) drawAreaStamp(ctx, sx + w / 2 + 10, sy);
     }
@@ -2057,7 +2059,7 @@ function drawDynamicMarkers(ctx, world) {
     const tw = ctx.measureText(layerCap).width + 24;
     ctx.fillStyle = inkA('dark', 0.72);
     ctx.fillRect(state.cw / 2 - tw / 2, 40, tw, 24);
-    drawLabel(ctx, layerCap, state.cw / 2, 56, INK.cream, 'center');
+    drawLabel(ctx, layerCap, state.cw / 2, 56, INK.cream, 'center', true);
     ctx.restore();
   }
   state.dynHover = hover;
