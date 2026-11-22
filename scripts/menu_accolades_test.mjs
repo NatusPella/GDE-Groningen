@@ -53,4 +53,13 @@ t('#1265: Verhaal > Opdrachten kiest zonder open missie het verhaalitem, geen mi
   assert.match(td, /items.find(verhaal) || items.find((it) => !isActiviteit(it))/);
   assert.ok(!/Alle cijfers/.test(td) && !/\)\}Kaart<\/button>/.test(td));
 });
+t('#1270: elk watertype heeft een eigen pictogram in het Visboek en "Per water" is een gestijlde groepskop', async () => {
+  const { WATERTYPEN } = await import('../game/js/visdata.js');
+  const src = fs.readFileSync(new URL('../game/js/visboekui.js', import.meta.url), 'utf8');
+  const blok = src.slice(src.indexOf('const WATER_ICOON'), src.indexOf('const icoon ='));
+  for (const w of WATERTYPEN) assert.ok(new RegExp('\b' + w.id + ': ').test(blok), 'geen icoon voor ' + w.id);
+  const paden = [...blok.matchAll(/: '(<path[^']*)'/g)].map((m) => m[1]);
+  assert.equal(new Set(paden).size, paden.length, 'twee watertypen delen een icoon');
+  assert.ok(src.includes('<div class="lb-groep"><span>Per water</span></div>'));
+});
 console.log(`menu_accolades_test: ${n}/${n} ok`);
