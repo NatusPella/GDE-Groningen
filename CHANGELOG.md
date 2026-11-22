@@ -11,6 +11,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Cheats vrijgespeeld in het verhaal
+- Cheats zijn niet meer vanaf het begin beschikbaar: Bert op het Stationsplein stopt Tammo na "Kieken van boven" (missie 4, akte 1) een valsspeelbon in de jaszak. Een kaart meldt "Cheats vrijgespeeld" en daarna staat Cheats in het pauzemenu. Daarvoor bestaat het onderdeel niet, ook niet via de kaart of een sneltoets. De schakelaar "Cheats in het menu" in Instellingen is weg, en de koppen Acties en Cheats verschijnen alleen als er iets onder staat.
+- Per speler: het vrijspelen zit in je eigen opgeslagen spel (`streken.open`, opslagversie 11) en volgt je eigen verhaal. Een bestaand opgeslagen spel voorbij missie 4 heeft Cheats meteen open, een eerdere krijgt ze bij die missie; niets gaat stuk en niets wordt aangezet. Cheats blijven prestaties uitzetten zoals eerder (uiterlijk-cheats, teleporteren en Voertuig hier niet).
+- Samen spelen: de regels van #452 blijven: met meer spelers zijn cheats uit voor iedereen, dus niets raakt een ander zonder dat iedereen erin zit. Het vrijspelen zelf is van jezelf; een gast die het mist, krijgt het in zijn eigen verhaal. Bediening: toetsenbord en controller als de rest van het pauzemenu.
+
 ### Taal
 - Stad, Ommeland en Grunn: wat de stad Groningen zelf is heet nu "de Stad" (de Martinitoren, bruggen en grachten, de wijken, de rondvaart), de rest van de provincie "Ommeland", en "Grunn" blijft voor het geheel, de slogans en het gevoel, zonder lidwoord. De locatieregel toont "wijk · Stad", het straatpraatkaartje "Opgevangen in de Stad" en het onweerbericht in de stad "Onweer boven de Stad". Het station heet overal Station Groningen. 20 gesproken regels (Tammo, Tessa, Rikus, Berend, Jelle en de rondvaartgids) zijn aangepast en wachten op een nieuwe opname (scripts/voice_wacht.json). De regel staat in docs/TAALREGEL-STAD-OMMELAND-22-11.md en wordt bewaakt door scripts/stad_grunn_test.mjs.
 ### Besturing met een controller

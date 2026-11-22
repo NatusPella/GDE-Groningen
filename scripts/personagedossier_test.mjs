@@ -127,13 +127,12 @@ ok(alleenKortGezien < iedereen.length, 'cast: de uitklapper komt voor');
   ok(/scrollbar-color: auto/.test(blok) && !/scrollbar-color: var/.test(blok), 'pausemenu.css: de lijsten en panelen houden de DS3-balk (scrollbar-color: auto)');
 }
 
-// 6. Cheats in het menu: alleen in een dev- of testrun, of na de keuze in Instellingen (22-11)
+// 6. Cheats in het menu: alleen in een dev- of testrun, of nadat het verhaal ze heeft vrijgespeeld (22-11)
 {
   const pm = read('pausemenu.js'), st = read('settings.js');
-  ok(pm.includes('export const cheatsInMenu = (st = getSettings()) => DEV || !!(st && st.toonCheats);'), 'cheats: zichtbaar in dev of met de instelling');
-  ok(pm.includes("filter((id) => id !== 'streken' || cheatsInMenu())"), 'cheats: de rail laat Cheats weg zonder dev of instelling');
-  ok(/toonCheats: false,/.test(st), 'cheats: de instelling staat standaard uit');
-  ok(pm.includes("toggle('toonCheats'"), 'cheats: de schakelaar staat in Instellingen > Spelregels');
+  ok(pm.includes('export const cheatsInMenu = () => DEV || cheatsOpen();'), 'cheats: zichtbaar in dev of na het vrijspelen in het verhaal');
+  ok(pm.includes("filter((id) => id !== 'streken' || cheatsInMenu())"), 'cheats: de rail laat Cheats weg zonder dev of vrijspelen');
+  ok(!/toonCheats/.test(st) && !pm.includes("toggle('toonCheats'"), 'cheats: de instelling en de schakelaar zijn weg (het verhaal speelt ze vrij)');
 }
 
 console.log(fails ? `${fails} van ${n} FOUT` : `personagedossier_test: ${n} controles ok`);

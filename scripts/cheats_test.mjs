@@ -14,6 +14,7 @@ const w = {
   weather: { active: false }, addMessage() {}, time: 0,
 };
 initCheats(w);
+applyCheatSave({ v: 1, open: true, unlocked: [], on: [], used: [] }, {}); // 22-11: de cheats zijn pas na het vrijspelen in het verhaal beschikbaar
 const all = ['zwaartekracht', 'grotekoppen', 'gronings', 'zomeravond', 'nachtstad', 'geenverkeer', 'fietsenstad', 'slowmo', 'duivenstorm', 'storm', 'geenpolitie', 'eeuwig', 'frituurvet', 'turbo', 'stuiter', 'snelletijd', 'magazijn'];
 // open from the start: the ones with no step or prestatie
 const free = ['zwaartekracht', 'grotekoppen', 'gronings', 'zomeravond', 'nachtstad', 'geenverkeer'];
@@ -38,7 +39,7 @@ ok(!achievementsBlocked(), 'nothing on: prestaties run again');
 setCheat('zwaartekracht', true);
 const saved = getCheatSave();
 ok(saved.on.includes('zwaartekracht') && saved.used.length === 0, 'the save holds the switches');
-applyCheatSave({ v: 1, unlocked: ['teleport', 'geld'], on: ['grotekoppen', 'geld'], used: ['geld'] }, { v: 6 });
+applyCheatSave({ v: 1, open: true, unlocked: ['teleport', 'geld'], on: ['grotekoppen', 'geld'], used: ['geld'] }, { v: 6 });
 ok(isCheatOn('grotekoppen') && !isCheatOn('zwaartekracht') && !isCheatOn('geld'), 'loading replaces what was on and drops unknown ids');
 ok(!getCheatSave().unlocked.includes('geld'), 'an unknown streek is not unlocked');
 applyCheatSave(null, null);

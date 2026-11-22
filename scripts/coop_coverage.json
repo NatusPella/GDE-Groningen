@@ -1064,11 +1064,12 @@
     "devflags"
    ],
    "eigenaar": "lokaal",
-   "gast": "Uit zodra er een tweede speler is: geen cheats, geen teleport, geen testmenu of dev-paneel.",
-   "beloning": "Geen.",
+   "gast": "Vrijgespeeld per speler in het eigen verhaal (valsspeelbon na missie 4, streken.open in de eigen save). Uit zodra er een tweede speler is: geen cheats, geen teleport, geen testmenu of dev-paneel; wat anderen raakt staat dus alleen aan als niemand anders meespeelt.",
+   "beloning": "Geen; het vrijspelen is voortgang van de eigen speler.",
    "wegval": "Valt de tweede speler weg, dan staan cheats weer aan te zetten voor wie alleen speelt.",
    "test": [
     "scripts/cheats_test.mjs",
+    "scripts/cheats_vrijspelen_test.mjs",
     "scripts/cheatsui_test.mjs",
     "scripts/bot_cheatvrij_test.mjs"
    ],

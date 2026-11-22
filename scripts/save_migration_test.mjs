@@ -60,7 +60,8 @@ for (const file of files) {
   if (!m) continue;
   const d = m.data;
   // een save die al in het huidige formaat staat (0.64.0): er valt niets te migreren, de compat-suite (compat_saves_test) toetst het laden
-  if (exp.huidig) { ok(m.steps.length === 0 && same(migrateSave(d).data, d), `${tag}: already current, nothing to migrate`); continue; }
+  // (0.65: v11 voegt alleen streken.open toe, dat is de enige stap die nog loopt)
+  if (exp.huidig) { ok(m.steps.every((x) => x === '10->11') && same(migrateSave(d).data, d), `${tag}: already current, nothing to migrate`); continue; }
   ok(same(before, fx.save) && before !== d, `${tag}: the original is not modified`);
   ok(same(migrateSave(d).data, d) && migrateSave(d).steps.length === 0, `${tag}: migrating twice changes nothing`);
 
@@ -137,8 +138,8 @@ for (const file of files) {
   if (sk) {
     for (const id of sk.unlocked) ok(CHEAT_BY_ID.has(id), `${tag}: streek ${id} exists`);
     if (!before.streken) ok(sk.on.length === 0, `${tag}: no streek switched on`);
-    else if (exp.strekenAfter) ok(same(sk, exp.strekenAfter), `${tag}: retired streken dropped, the rest intact`, JSON.stringify(sk));
-    else ok(same(sk, before.streken), `${tag}: streken intact`);
+    else if (exp.strekenAfter) ok(same({ ...sk, open: undefined }, { ...exp.strekenAfter, open: undefined }), `${tag}: retired streken dropped, the rest intact`, JSON.stringify(sk));
+    else ok(same({ ...sk, open: undefined }, { ...before.streken, open: undefined }), `${tag}: streken intact`);
     for (const id of exp.streken || []) ok(sk.unlocked.includes(id), `${tag}: streek ${id} unlocked`);
     for (const id of exp.strekenLocked || []) ok(!sk.unlocked.includes(id), `${tag}: streek ${id} still locked`);
   }
@@ -162,10 +163,10 @@ for (const file of files) {
 {
   ok(savedArc() === 'nieuw', 'savedArc: always the story that is left');
   const a = migrateSave({ v: 8, money: 1, story: { v: 1, done: ['H1'] }, missions: { completed: [0] } });
-  ok(a && a.data.arc === 'nieuw' && a.steps.join() === '8->9,9->10', 'a v8 save without arc is the first version, and becomes the story that is left');
+  ok(a && a.data.arc === 'nieuw' && a.steps.join() === '8->9,9->10,10->11', 'a v8 save without arc is the first version, and becomes the story that is left');
   ok(a && a.data.money === 1 && !a.data.story && !a.data.missions && a.data.oudGemigreerd === true, 'its money stays, its story starts over');
   const b = migrateSave({ v: 9, arc: 'oud', money: 5, shops: { vehicles: [] }, story: { v: 1, done: ['H1'] } });
-  ok(b && b.data.arc === 'nieuw' && b.steps.join() === '9->10' && b.data.shops && b.data.money === 5, 'a v9 save of the first version is converted by the last step only');
+  ok(b && b.data.arc === 'nieuw' && b.steps.join() === '9->10,10->11' && b.data.shops && b.data.money === 5, 'a v9 save of the first version is converted by the last step only');
   const c = migrateSave({ v: 9, arc: 'nieuw', money: 1, story: { v: 1, done: ['M00'] } });
   ok(c && c.data.arc === 'nieuw' && c.data.story.done[0] === 'M00' && !('oudGemigreerd' in c.data), 'a save of the story that is left keeps its story');
   ok(SAVE_VERSION >= 10, 'save v10 converted the first version');

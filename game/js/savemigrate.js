@@ -12,12 +12,12 @@
 //   fixtures in scripts/fixtures/saves/ through it.
 import { RETIRED_STEPS, STEP_BY_ID, MISSION_IDS, nextStoryStep, passedBetweenSteps } from './storyarc.js';
 import { normalizeRadio } from './musicpick.js';
-import { cheatUnlocksFromSave, RETIRED_CHEATS } from './cheatlist.js';
+import { cheatUnlocksFromSave, cheatsOpenFromSave, RETIRED_CHEATS } from './cheatlist.js';
 import { dayForSavedStep } from './calendar.js';
 import { legacyToWorld, legacyAngleToWorld } from './rdnew.js';
 
-export const SAVE_VERSION = 10;
-export const SETTINGS_VERSION = 10;
+export const SAVE_VERSION = 11;
+export const SETTINGS_VERSION = 11;
 
 const isObj = (o) => !!o && typeof o === 'object' && !Array.isArray(o);
 
@@ -147,6 +147,13 @@ const SAVE_MIGRATIONS = {
     if (d.arc !== 'nieuw') oudToNieuw(d);
     return d;
   },
+  // 0.65: the Cheats section is unlocked by the story (Berts valsspeelbon after M04); a save that is
+  // past that point has it open, an earlier one gets it when it gets there. Nothing else changes.
+  10(d) {
+    if (!isObj(d.streken)) d.streken = { v: 1, unlocked: cheatUnlocksFromSave(d), on: [], used: [] };
+    d.streken.open = cheatsOpenFromSave(d);
+    return d;
+  },
 };
 
 // What belongs to the story of the old arc and starts over in the new one.
@@ -213,6 +220,8 @@ const SETTINGS_MIGRATIONS = {
   8(s) { s.verhaal = s.verhaal === 'oud' ? 'oud' : 'nieuw'; return s; },
   // 10: the old story is gone (#187), so the Verhaal choice goes with it
   9(s) { delete s.verhaal; delete s.nieuwverhaal; return s; },
+  // 11: the Cheats switch in the settings is gone: the story unlocks the section (save v11)
+  10(s) { delete s.toonCheats; return s; },
 };
 
 // Settings files before v2 had no `v`.
