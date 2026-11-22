@@ -478,8 +478,8 @@ TESSA: Het is tweeëntwintig graden. [NIEUW]
 TAMMO: Het is Grunn. [BEHOUDEN]
 TESSA: Spijt van de zomer? [BEHOUDEN]
 TAMMO: Nee. Van de volgende ook niet. Alvast. [NIEUW]
-TESSA: Willemien staat weer vooraan. Haar oma kende Oma Trijntje. [NIEUW]
-TAMMO: Derde keer deze week. Uitverkocht voor vieren. [NIEUW]
+TESSA: De mevrouw uit Loppersum staat weer vooraan. Haar oma kende Oma Trijntje. [NIEUW]
+TAMMO: Vaste klant. Uitverkocht voor vieren. [NIEUW]
 TESSA: Berend heeft de foto laten inlijsten. [NIEUW]
 TAMMO: Op de achterkant staat: elf seconden. [NIEUW]
 (regie: Tessa breekt een eierbal doormidden en geeft Tammo de helft. Ze blijft naast hem staan, haar schouder tegen de zijne.)
@@ -558,13 +558,13 @@ BEPPE: Ytst dan mar earst, dan prate wy. [NIEUW]
 OMA TRIJNTJE: Wat zegt ze? [NIEUW]
 MEM: Dat ze eerst wil eten. Ze is een verstandige vrouw. [NIEUW]
 TAMMO: Oma Trijntje, Beppe. Beppe, Oma Trijntje. [NIEUW]
-TESSA: Jij bent van beide. Jij bent de verzoening. [NIEUW]
+TESSA: Hij is Gronings, ik ben Fries. Wij zijn de verzoening. [NIEUW]
 TAMMO: Ik ben het compromis. [NIEUW]
 DOUWE: Mogen wij ook soep? [NIEUW]
 DURK: Wij passen er niet in. [NIEUW]
 MEM: Dan eet je in de gang. Op een Fries mat. [NIEUW]
 (regie: Beppe schept soep. Oma legt een eierbal in de kom. Het wordt even heel stil in de keuken.)
-BEPPE: Hy seit neat, mar hy docht it goed. [NIEUW]
+BEPPE: It smakket. [NIEUW]
 OMA TRIJNTJE: Moi. Het is soep met een eierbal. Daar kan niemand wat van zeggen. [NIEUW]
 TESSA: Dat is het menu. Eén kom, twee oma's. [NIEUW]
 
@@ -587,14 +587,14 @@ TESSA: Een euro vijftig. Dat is de prijs. [NIEUW]
 JELLE: ...Dat is de eerste prijs die ik niet kon onderhandelen. [NIEUW]
 
 ## [F5] Een avond voor twee – Stad, Noorderhaven, de kade – te voet
-(regie: zondag 30 augustus, avond. De wagen staat gesloten aan de kade. Tammo heeft een opgevouwen briefje bij zich, een deken en twee eierballen in een zak. Tessa zit op de rand van het luik. Boven hen draait een duif rondjes. Het is windstil.)
+(regie: zondag 30 augustus, avond. De wagen staat gesloten aan de kade. Tammo heeft een opgevouwen briefje bij zich, een deken en twee eierballen in een zak. Tessa zit op een krat naast hem, met de deken eronder. Boven hen draait een duif rondjes. Het is windstil.)
 TESSA: Is dit een afspraak? [NIEUW]
 TAMMO: Het is een gelegenheid. [NIEUW]
 TESSA: Er hangt een lijstje uit je zak. [NIEUW]
 TAMMO: Eten. Wandelen. En eentje doorgestreept. [NIEUW]
 TESSA: Wat stond er? [NIEUW]
 TAMMO: Zeggen dat ik je leuk vind. Dat is al gebeurd. Met publiek. [NIEUW]
-(regie: ze zitten naast elkaar op het luik. Zij legt haar hand op de zijne en haalt hem weg. Dan legt ze hem er weer op, met een beetje meer overtuiging.)
+(regie: ze zitten naast elkaar op twee kratten, voor het gesloten luik. Zij legt haar hand op de zijne en haalt hem weg. Dan legt ze hem er weer op, met een beetje meer overtuiging.)
 TESSA: Waar zet ik mijn hand? [NIEUW]
 TAMMO: Hier. Dat is goed. [NIEUW]
 TESSA: Zijn we nu een stel? [NIEUW]
@@ -602,3 +602,4 @@ TAMMO: Berend telde elf seconden. Dat is officieel. [NIEUW]
 TESSA: Wat wil jij eigenlijk? [NIEUW]
 TAMMO: Hier. Met jou erbij. [NIEUW]
 TESSA: Dat waren er vier. Eén te weinig. [NIEUW]
+(regie: Tammo telt op zijn vingers, begint opnieuw, geeft het op. Ze pakt zijn hand. Boven hen draait de duif nog een rondje.)

@@ -61,7 +61,9 @@ const STEP_DATES = {
   'M07': 18, 'M08': 18, 'T1': 18, 'M09': 19, 'M10': 19, 'T2': 20, 'M11': 20,
   'M12': 21, 'M13': 21, 'M14': 22, 'T3': 22, 'M15': 22, 'M16': 22,
   'M17': 24, 'M18': 24, 'M19': 24, 'T4': 25, 'M20': 25, 'M21': 25,
-  'F1': 26, 'M22': 26, 'M23': 27, 'M24': 27, 'M25': 27, 'M26': 28,
+  'F1': 26, 'M22': 26, 'F2': 27, 'M23': 27, 'M24': 27, 'M25': 27, 'M26': 28,
+  // het slot (09-script-akte5.md): F3 za 29, F4 en F5 zo 30 augustus; F6 volgt M30 (za 19 september)
+  'F3': 29, 'F4': 30, 'F5': 30,
 };
 
 // Deel 4 "Nazomer" (docs/verhaal/nieuw/DEEL4.md): day numbers, not August dates. The first

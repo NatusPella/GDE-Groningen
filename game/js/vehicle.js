@@ -95,6 +95,8 @@ export const MACHINE_MODELLEN = {
   laadmachine: { name: 'laadmachine', len: 3.4, wid: 1.8, maxSpeed: 7.5, accel: 5, brake: 9, turnRate: 2.2, color: '#e0a92b', offroad: 0.95 },
 };
 export const POLICE_MODEL ={ name: 'police', len: 4.3, wid: 1.8, maxSpeed: 55, accel: 11, brake: 20, turnRate: 2.8, color: '#1c1c1c' };
+// De snackwagen Tam & Tes (pg_foodtruck.js, postgame.js en de cutscenes van het slot, cutscenehost.js): de blauwe foodtruck.
+export const FOODTRUCK_MODEL = { name: 'foodtruck', len: 5.4, wid: 2.1, maxSpeed: 34, accel: 6.5, brake: 14, turnRate: 2, color: '#2f6fb0' };
 export const HERO_CAR_MODEL = { name: 'escort', len: 4.0, wid: 1.65, maxSpeed: 50, accel: 8, brake: 25, turnRate: 3.4, color: '#a11f1f' };
 
 const BIKE_MODELS = [

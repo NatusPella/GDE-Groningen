@@ -58,7 +58,7 @@ import { queueFjordReveal, getChallengeProgress, isChallengeActive } from './pos
 import { isUnlocked } from './achievements.js';
 import { endingProgress, creditsDue, endingLeftText } from './ending.js';
 import { getPadelMatchCount, getPadelSpotsForRender } from './padel.js';
-import { FUN_GOALS, initStoryFun, updateStoryFun, storyFunDone, storyFunBusy, hideoutStep, hideoutChoices } from './storyfun.js';
+import { FUN_GOALS, initStoryFun, updateStoryFun, storyFunDone, storyFunBusy, hideoutStep, hideoutChoices, playStepScene } from './storyfun.js';
 import { EIKEA_GOALS, updateStoryEikea, waiveEikea, initStoryEikea } from './storyeikea.js';
 import { THIRD_PARTY_CARDS } from './credits.js';
 import { REMEMBRANCE } from './beppe_texts.js';
@@ -1176,7 +1176,7 @@ export function initStory(w) {
   setMissionHooks({ waived: (key) => state.waived.has(key), skipped: (i) => STEPS.some((s) => s.kind === 'mission' && missionIdx(s) === i && state.skipped.has(s.id)), passed: onPassed, failed: onFailed, gated: onGated, canStart: swapDone });
   // travel steps (storyreis.js): at the place the trip goes to, however you got there
   const busyNow = () => isMissionActive() || isCinematicActive() || narrativeBusy() || !!w.pigeonMode || !!w.pendingRespawn;
-  Object.assign(GOALS, FUN_GOALS, EIKEA_GOALS, makeReisGoals({ getWorld: () => world, busy: busyNow, playLines: (id, from) => playTalk(talkLines(id, { from }), { id: 'reis:' + id, delay: 1.5 }) }));
+  Object.assign(GOALS, FUN_GOALS, EIKEA_GOALS, makeReisGoals({ getWorld: () => world, busy: busyNow, playLines: (id, from) => { if (!from && playStepScene(world, id, storyLines(id))) return; playTalk(talkLines(id, { from }), { id: 'reis:' + id, delay: 1.5 }); } }));
   setMeetHook(meet);
   applySwitchHook({ mag: (x) => !(isCinematicActive() || isMissionActive() || x.pigeonMode || x.pendingRespawn || hoofdspeler(x).ragdoll), toon: (x, tekst) => { flash(); x.addMessage(tekst, 3); } });
   // #986: is de opening de eerstvolgende film, dan slaat de spelstart zijn vlucht-in over (cinematics.js)

@@ -25,6 +25,7 @@ import { spawnHeroCarNear } from './vehicle.js';
 import { flashScreen } from './postfx3d.js';
 import { makeHeli, HELI_MODEL, helipadById } from './heliflight.js';
 import { playCastScene } from './missionstory.js';
+import { sceneSpec } from './cutscenes_akte1.js';
 import { playCinematic, isCinematicActive } from './cinematics.js';
 import { isMissionActive } from './missionquery.js';
 import { isActivityActive } from './activities.js';
@@ -451,6 +452,16 @@ export const FUN_GOALS = {
     },
   },
 };
+
+// Een reisstap waarvan de scène een regie heeft (cutscenes_akte5.js: F1 tot en met F6): hij speelt geregisseerd waar de
+// speler staat (mensen lopen, props, camera) in plaats van de gewone praatscène. false zonder regie of als de opbouw faalt: dan praat
+// story.js de regels gewoon uit (nooit een vastgelopen stap). Samen spelen: een stap is per speler, deze scène is lokaal.
+export function playStepScene(w, id, lines) {
+  if (!w || !lines || !lines.length || !sceneSpec(id)) return false;
+  const p = hoofdspeler(w);
+  if (!p) return false;
+  try { return !!playCastScene(w, { at: { x: p.x, y: p.y }, lines, staging: id }); } catch (e) { return false; }
+}
 
 export function initStoryFun(w) {
   world = w;
