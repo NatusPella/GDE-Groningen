@@ -2509,6 +2509,8 @@ function resumeFromCheckpoint(world, def) {
     v.x = cp.vehicle.x; v.y = cp.vehicle.y; v.angle = cp.vehicle.angle; v.speed = 0; v.vx = 0; v.vy = 0;
     if (cp.vehicle.inside && !p.inVehicle && typeof p.enterVehicle === 'function') p.enterVehicle(v, world);
   }
+  // the choices of before the checkpoint first: entering a stage reads them (ifTag, timeIf, scriptIf)
+  if (cp.progress && cp.progress.tags) chainState().tags = new Set(cp.progress.tags);
   if (def.heist || def.fjordTrain) enterStage(world, def, 0);
   // a heist retried at the getaway: the doors you came through stand open
   if (def.heist) for (const id of ['achterdeur', 'glasdeur']) openHeistDoor(id);

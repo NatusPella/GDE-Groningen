@@ -11,6 +11,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+- Missies: begin je na een mislukking opnieuw bij een hervatpunt, dan tellen je keuzes van daarvoor nog mee (de bondgenoot in De colonne, de bakscore, een overgeslagen stuk van de inbraak). Eerder was je die kwijt.
 - Missies: mislukt of stop je een achtervolging, dan wordt het vluchtende voertuig weer gewoon verkeer. Het bleef eerder als missiedoel rondrijden en bij elke nieuwe poging kwam er een bij.
 - Voetbalcarrière: als Trainer of Manager kies je zelf de opstelling. Bij Trainer en Manager staat bij elke speler een knop om hem vast in de basis te zetten of op de bank te houden (hooguit acht per lijst); "Los" of "Laat het spel de beste elf kiezen" zet het terug. De keuze telt voor je eigen wedstrijd en de coachwedstrijd. Samen spelen: de keuze is van je eigen carrière, een medespeler ziet haar niet. Nog niet in beeld bekeken.
 
