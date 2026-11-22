@@ -1319,7 +1319,6 @@ export const AUDIO_CREDITS = [
     "auteur": "MattRuthSound",
     "licentie": "CC BY 4.0",
     "by": true,
-    "titel": "Liquid, pour, splash, water, short burst into bucket_96Khz_Mono_ZoomH4n_NT5-002.wav",
     "bron": "https://freesound.org/people/MattRuthSound/sounds/561901/",
     "licentieUrl": "https://creativecommons.org/licenses/by/4.0/"
   },

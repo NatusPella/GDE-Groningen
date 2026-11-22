@@ -47,7 +47,7 @@ for (const c of AUDIO_CREDITS.filter((x) => x.by)) {
   ok(/^https:[/][/]freesound.org[/]people[/]/.test(c.bron || ''), `CC BY ${c.id}: bronlink in de gegevens`);
   ok(html.includes(c.licentieUrl) && html.includes(c.bron), `CC BY ${c.id}: licentie en bron staan als link in het spel`);
   if (c.titel) ok(html.includes(c.titel.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')), `CC BY ${c.id}: de titel staat in het spel`);
-  else ok(/hyundai|kona/i.test((bronnen(man).find((b) => b.id === c.id) || {}).titel || ''), `CC BY ${c.id}: een titel weglaten mag alleen om een merknaam`);
+  else ok(/hyundai|kona|zoom|h4n/i.test((bronnen(man).find((b) => b.id === c.id) || {}).titel || ''), `CC BY ${c.id}: een titel weglaten mag alleen om een merknaam`);
 }
 ok(CREDITS_HTML.includes('<h4>Geluiden</h4>'), 'de creditspagina heeft een sectie Geluiden');
 ok(html.includes('Freesound'), 'Freesound staat als bron genoemd');
