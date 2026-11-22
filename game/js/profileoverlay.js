@@ -10,6 +10,7 @@
 import { gradeLimit, GRADE_TOL, segmentStructures, gradeOrder } from './roadprofile.js';
 import { closestPointOnSegment } from './util.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
+import { setVisibleInterval } from './visibletimer.js';
 
 const W = 380, H = 170, SPAN = 150;
 const STRUCT_NAME = ['ground', 'deck', 'embankment', 'cutting', 'tunnel'];
@@ -23,7 +24,7 @@ export function initProfileOverlay(w) {
   document.body.appendChild(canvas);
   window.addEventListener('keydown', (e) => { if (e.key === 'F8') { e.preventDefault(); toggle(); } });
   window.__profileOverlay = { toggle, draw };
-  setInterval(() => { if (on) draw(); }, 100);
+  setVisibleInterval(() => { if (on) draw(); }, 100);
 }
 
 function toggle() {

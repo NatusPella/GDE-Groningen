@@ -7,7 +7,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 const KEY = '|edgefade';
 
 // Patcht `mat` zodat het tussen start en end (m, vanaf de camera) uitdooft. Geeft het materiaal terug.
-export function applyEdgeFade(mat, start, end) {
+export function applyEdgeFade(mat, start, end, off = false) {
+  if (off) return mat; // A/B-meting (#1067): geen discard in dit materiaal; userData.edgeFade ontbreekt dan
   const uEdge = { value: new THREE.Vector2(start, end) };
   const prev = mat.onBeforeCompile;
   mat.userData.edgeFade = uEdge;
@@ -29,8 +30,8 @@ void main() {
 
 // Een kloon van `base` met een eigen band (zelfde programma als `base`: zelfde sleutel). `base` mag al gepatcht zijn:
 // een kloon erft de patch niet (onBeforeCompile wordt niet gekopieerd).
-export function edgeFadeClone(base, start, end) {
+export function edgeFadeClone(base, start, end, off = false) {
   const m = base.clone();
   m.userData = { shared: true };
-  return applyEdgeFade(m, start, end);
+  return applyEdgeFade(m, start, end, off);
 }

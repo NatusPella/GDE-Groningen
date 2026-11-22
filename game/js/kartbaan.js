@@ -768,9 +768,18 @@ function updateEngine(w) {
   engine.gain.gain.setTargetAtTime(0.045 + (throttle ? 0.03 : 0), t, 0.1);
 }
 
+// Verlaten van de baan: de gain gaat naar nul en de oscillators worden daarna echt gestopt en losgekoppeld (#1074: ze liepen door
+// op de audiothread); een nieuwe race maakt een nieuwe motor.
 function stopEngine() {
   const o = ambientOut();
-  if (engine && o) engine.gain.gain.setTargetAtTime(0, o.ctx.currentTime, 0.05);
+  const e = engine;
+  if (!e || !o) return;
+  e.gain.gain.setTargetAtTime(0, o.ctx.currentTime, 0.05);
+  engine = null;
+  setTimeout(() => {
+    for (const n of [e.osc, e.osc2]) { try { n.stop(); } catch (err) { /* al gestopt */ } }
+    for (const n of [e.osc, e.osc2, e.lp, e.gain]) { try { n.disconnect(); } catch (err) { /* al losgekoppeld */ } }
+  }, 400);
 }
 
 function camera(w) {

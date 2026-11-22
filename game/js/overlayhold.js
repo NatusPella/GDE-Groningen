@@ -2,6 +2,7 @@
 // tegen (class ov-hold, onzichtbaar maar niet weg). Wie een overlay laat verschijnen kan ook
 // isOverlayHeld(naam) vragen en dan wachten (prestaties, personagenaam).
 import { heldOverlays, mayStartOverlay } from './overlayrules.js';
+import { setVisibleInterval } from './visibletimer.js';
 
 // hoe elke overlay in de DOM te herkennen is (zichtbaar = aanwezig)
 const SELECTORS = {
@@ -35,7 +36,7 @@ function startOverlayHold() {
   const style = document.createElement('style');
   style.textContent = '.ov-hold { visibility: hidden !important; }';
   document.head.appendChild(style);
-  const tick = setInterval(() => {
+  const tick = setVisibleInterval(() => {
     const held = heldOverlays(activeOverlays());
     for (const [name, sel] of Object.entries(HIDE)) {
       const el = document.querySelector(sel);

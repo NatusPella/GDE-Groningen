@@ -21,6 +21,7 @@ import { ACT, STAP, actieVan } from './samenhub.js';
 import { magOnline, getSettings } from './settings.js';
 import { moetNaamVragen, moetToestemmingVragen } from './onlineconsent.js';
 import { ensureSamenProfile } from './launchchoiceui.js';
+import { setVisibleInterval } from './visibletimer.js';
 
 // Aansluiten als gast terwijl je eigen opening of een filmpje nog loopt (bijvoorbeeld bij opnieuw aansluiten): wie op Aansluiten drukt
 // kiest ervoor, dus je eigen filmpje stopt en je sluit meteen aan. Herstel na een val of een nieuwe start wacht nog wel (#429).
@@ -80,7 +81,7 @@ const store = () => { try { return localStorage; } catch (e) { return null; } };
 let volger = null;
 function volgSessie(world, sluit) {
   if (volger || typeof setInterval !== 'function') return;
-  volger = setInterval(() => {
+  volger = setVisibleInterval(() => {
     const r = mountedOn, n = world && world.coopNet;
     if (!view || !r || r.isConnected === false || !n || n === gebonden) return;
     renderSamenPanel(r, world, sluit);

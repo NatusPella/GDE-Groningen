@@ -12,6 +12,7 @@ import { FLAGS } from './devflags.js';
 import { sendKey } from './input.js';
 import { getDevice, noteDevice } from './inputdevice.js';
 import { applyMobileProfile } from './gfxprofile.js';
+import { setVisibleInterval } from './visibletimer.js';
 
 const CSS = `
 #touch-ui { position: fixed; inset: 0; z-index: 20; pointer-events: none; display: none; touch-action: none; -webkit-user-select: none; user-select: none; }
@@ -412,7 +413,7 @@ export function initTouch(input, world, hooks = {}) {
   const hengelHint = () => !!(document.querySelector && document.querySelector(HENGEL_HINT));
 
   // follows the game: shown while playing, rebuilt when the situation changes
-  setInterval(() => {
+  setVisibleInterval(() => {
     const active = touchUiActive({ started: document.body.classList.contains('game-started'), menuOpen: hooks.menuOpen ? hooks.menuOpen() : false });
     const nctx = active ? touchContext(world, { started: true, menuOpen: false, shiftMode: getSettings().shiftMode, cine: cineActive(), hengel: hengelHint() }) : 'menu';
     if (active !== shown) {
