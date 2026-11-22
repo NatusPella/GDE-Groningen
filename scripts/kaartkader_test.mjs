@@ -56,5 +56,12 @@ const FRAME = [0, 0, 1000, 1000];
   ok(map.includes("inkA('tintMap', 0.5)") && map.includes('buiten het kader van de kaart'), 'buiten het kader tekent de kaart hetzelfde donkere buurland');
 }
 
+// #1190: de schaalbalk begint rechts van de bronvermelding (links 12 px + tekst), niet eroverheen
+{
+  const mv = fs.readFileSync(new URL('../game/js/mapview.js', import.meta.url), 'utf8');
+  const m = mv.match(/const MAP_SCALE_X = (\d+);/);
+  const osm = mv.match(/\.mapview-osm \{\s*position: absolute; left: (\d+)px/);
+  ok(m && osm && Number(m[1]) - 8 >= Number(osm[1]) + 190, 'de schaalbalk begint rechts van de bronvermelding', m && osm ? `${m[1]} / ${osm[1]}` : 'niet gevonden');
+}
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

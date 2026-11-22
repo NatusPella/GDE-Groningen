@@ -2175,6 +2175,9 @@ function drawVignette(ctx) {
   ctx.restore();
 }
 
+// Waar de schaalbalk begint: rechts van de bronvermelding (links 12 px + ca. 190 px breed), zodat ze elkaar niet dekken (#1190).
+const MAP_SCALE_X = 224;
+
 function drawChrome(ctx) {
   // de legenda van Veroverd staat boven de pins en volledig dekkend (gezet in drawStaticOverlay)
   if (state.legendLaag) tekenLegenda(ctx, state.cw, state.ch, state.legendLaag);
@@ -2206,22 +2209,24 @@ function drawChrome(ctx) {
   const meters = niceScale(130);
   const w = meters * state.scale;
   const by = state.ch - 18;
+  // de schaalbalk staat naast de bronvermelding (.mapview-osm, linksonder), niet erover (#1190)
+  const sx = MAP_SCALE_X;
   ctx.save();
   ctx.fillStyle = inkA('dark', 0.75);
-  ctx.fillRect(x - 8 + 46, by - 18, w + 60, 26);
+  ctx.fillRect(sx - 8, by - 18, w + 60, 26);
   ctx.strokeStyle = INK.cream;
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(x + 46, by - 5);
-  ctx.lineTo(x + 46, by);
-  ctx.lineTo(x + 46 + w, by);
-  ctx.lineTo(x + 46 + w, by - 5);
+  ctx.moveTo(sx, by - 5);
+  ctx.lineTo(sx, by);
+  ctx.lineTo(sx + w, by);
+  ctx.lineTo(sx + w, by - 5);
   ctx.stroke();
   ctx.font = `13px ${FONT}`;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'bottom';
   ctx.fillStyle = INK.cream;
-  ctx.fillText(meters >= 1000 ? `${meters / 1000} km` : `${meters} m`, x + 52 + w, by + 3);
+  ctx.fillText(meters >= 1000 ? `${meters / 1000} km` : `${meters} m`, sx + 6 + w, by + 3);
   ctx.restore();
 }
 
