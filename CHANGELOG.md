@@ -59,6 +59,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Bezit en snackwagen
 
+- Bezit: je kunt je percelen verzekeren tegen stortbuien (3 euro per ha per speldag, dekt 80% van het verlies, geldt vanaf de dag erna) en mieren en wespen bestrijden (houdt tien speldagen stand); de knoppen staan bij de bulkacties in Land en bedrijf. Het dagrapport meldt de premie.
+- Bezit: de perceelkaart toont je buren (percelen binnen 300 m, hoeveel van jou en van medespelers) en bij een eigen perceel hoe het beheerd wordt. Het verzonnen Notariaat De Zegelhoek meldt het zodra Land of Bedrijven opengaat.
+- Samen spelen: verzekering, bestrijding en het bericht van het Notariaat zijn van de speler zelf (eigen bezit, geen netwerkverkeer); een gast regelt ze alleen voor zijn eigen percelen.
+
 - Snackwagen: de wagen groeit mee met het verhaal. Het menu samenstellen opent na Oma Trijntjes recept, vergunningen kopen na Lammerts kade en de kermis, medewerkers-wagens na het team van Berend, Tinus en Wubbo, je eigen wagen op een standplaats zetten na de Vismarkt, en een tweede wagen en plekken van Usmem overnemen aan het eind van de zomer. Een dichte stap laat een hint zien; de belettering is eerst SNACKWAGEN en wordt TAM & TES zodra de wagen zijn naam heeft. Een opgeslagen spel van voor deze wijziging houdt alles open.
 - Samen spelen: een gast kan meewerken in de snackwagen van een medespeler (ook van de host); de eigenaar verkoopt die dag 8% meer en de gast verdient zijn uurloon uit nieuw geld.
 - Bezit: de eigen snackwagen levert ongeveer twee keer en een groot snackimperium ongeveer vier keer zoveel als actief werk; passief inkomen buiten de snackwagen blijft binnen drie keer.
