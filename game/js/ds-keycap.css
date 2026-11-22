@@ -69,3 +69,5 @@
   vertical-align: calc(var(--ds-kc-lift) * 1em) !important; border-radius: 0.3em;
 }
 .hud-wasd > .hud-key:not(.is-kbg) { margin: 0 0.05em !important; }
+/* een toets zonder eigen knop in deze situatie staat in het acties-wiel: de knop Overzicht, ingedrukt gehouden (glyphs.js, controls.js wheelItemsFor) */
+.is-wiel::after { content: " houd"; font-size: 0.7em; font-weight: 700; letter-spacing: 0; text-transform: none; }

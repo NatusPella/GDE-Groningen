@@ -1,0 +1,232 @@
+<!doctype html><html lang="nl"><head><meta charset="utf-8"><title>Controller-cheatsheet, Zomer vol misdaad</title>
+<style>
+@page { size: A4 landscape; margin: 10mm; }
+:root { --inkt: #1d1b17; --papier: #f3ead3; --bord: #0e6b3c; --sel: #dcebdd; }
+* { box-sizing: border-box; }
+body { margin: 0; padding: 16px; background: var(--papier); color: var(--inkt); font: 14px/1.35 'Atkinson Hyperlegible', Arial, sans-serif; }
+h1 { margin: 0 0 4px; font: 800 30px 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif; color: var(--bord); letter-spacing: .02em; text-transform: uppercase; }
+h2 { margin: 0 0 6px; font: 800 20px 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif; color: var(--bord); text-transform: uppercase; }
+p.intro { margin: 0 0 12px; max-width: 70em; }
+.raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; }
+.kaart { background: var(--papier); border: 2.5px solid var(--inkt); border-radius: 10px; box-shadow: 4px 4px 0 var(--inkt); padding: 10px 12px; break-inside: avoid; }
+table { width: 100%; border-collapse: collapse; }
+td { padding: 2px 0; vertical-align: top; border-bottom: 1px dashed var(--inkt); }
+tr:last-child td { border-bottom: 0; }
+td.k { width: 7.6em; white-space: nowrap; }
+.knop { display: inline-block; min-width: 2.4em; padding: 0 .4em; border: 2px solid var(--inkt); border-radius: 8px; background: #fff; font-weight: 700; text-align: center; box-shadow: 2px 2px 0 var(--inkt); }
+.knop.wiel { background: var(--sel); border-color: var(--bord); }
+.klein { font-size: 12px; color: var(--inkt); }
+.regel { margin-top: 12px; padding: 8px 12px; border: 2.5px solid var(--bord); border-radius: 10px; background: var(--sel); max-width: 70em; }
+@media print { body { padding: 0; } .kaart { box-shadow: none; } }
+</style></head><body>
+<h1>Controller-cheatsheet</h1>
+<p class="intro">Zomer vol misdaad. Gegenereerd uit de bron (scripts/controller_ingame_doc.mjs): niet met de hand bijwerken. Knopnamen van de Xbox-indeling; PlayStation: Kruis, Rondje, Vierkant, Driehoek, L1, R1, L2, R2; Nintendo: A en B en ook X en Y wisselen van plek.</p>
+<div class="regel"><b>Houd Overzicht 0,4 seconde</b>: het acties-wiel met alles zonder eigen knop (radio, kleren, filmcamera, waypoint, roepjes). Stick of D-pad kiest, <b>A</b> bevestigt, <b>B</b> sluit, <b>LB</b>/<b>RB</b> bladeren. Een korte tik is de kaart. Met de tikstand (Instellingen) opent een tik het wiel. <b>Menu</b> is het pauzemenu met de telefoon.</div>
+<div class="raster" style="margin-top:14px">
+<section class="kaart"><h2>Te voet</h2><table>
+<tr><td class="k"><span class="knop">Linkerstick</span></td><td>Lopen</td></tr>
+<tr><td class="k"><span class="knop">A</span></td><td>Springen</td></tr>
+<tr><td class="k"><span class="knop">B</span></td><td>Bukken</td></tr>
+<tr><td class="k"><span class="knop">X</span></td><td>Tweede gebruikstoets (uitstappen)<div class="klein">Samen spelen: Wiel met snelle zinnen</div></td></tr>
+<tr><td class="k"><span class="knop">Y</span></td><td>Instappen, praten, gebruiken</td></tr>
+<tr><td class="k"><span class="knop">LB</span></td><td>Vorig wapen</td></tr>
+<tr><td class="k"><span class="knop">RB</span></td><td>Volgend wapen</td></tr>
+<tr><td class="k"><span class="knop">LT</span></td><td>Richten</td></tr>
+<tr><td class="k"><span class="knop">RT</span></td><td>Aanvallen, schieten</td></tr>
+<tr><td class="k"><span class="knop">Overzicht</span></td><td>Kaart</td></tr>
+<tr><td class="k"><span class="knop">Menu</span></td><td>Pauzemenu en telefoon</td></tr>
+<tr><td class="k"><span class="knop">L3</span></td><td>Rennen</td></tr>
+<tr><td class="k"><span class="knop">R3</span></td><td>Volgend doelwit, spelerslijst</td></tr>
+<tr><td class="k"><span class="knop">D-pad ↑</span></td><td>Radio aan of uit<div class="klein">Samen spelen: Bij de groep komen</div></td></tr>
+<tr><td class="k"><span class="knop">D-pad ↓</span></td><td>Kusje<div class="klein">Samen spelen: Roepen: Help!</div></td></tr>
+<tr><td class="k"><span class="knop">D-pad ←</span></td><td>Verhaalstap overslaan<div class="klein">Samen spelen: Roepen: Kom hier</div></td></tr>
+<tr><td class="k"><span class="knop">D-pad →</span></td><td>Lak of garagemenu<div class="klein">Samen spelen: Wijzen: Kijk daar</div></td></tr>
+<tr><td class="k"><span class="knop wiel">Wiel</span></td><td>Radio aan of uit, Volgende zender, Andere kleren, Filmcamera, Eerste persoon, Waypoint naar je doel, Verhaalstap overslaan, Lak of garagemenu, Kusje, Slaan, Pistool, Geweer, Gooien</td></tr>
+</table></section>
+<section class="kaart"><h2>Auto, scooter, fiets</h2><table>
+<tr><td class="k"><span class="knop">Linkerstick</span></td><td>Sturen</td></tr>
+<tr><td class="k"><span class="knop">A</span></td><td>Handrem</td></tr>
+<tr><td class="k"><span class="knop">B</span></td><td>Zwaailicht en sirene</td></tr>
+<tr><td class="k"><span class="knop">X</span></td><td>Toeteren</td></tr>
+<tr><td class="k"><span class="knop">Y</span></td><td>Instappen, praten, gebruiken</td></tr>
+<tr><td class="k"><span class="knop">LB</span></td><td>Wiel met snelle zinnen (alleen in Samen spelen)</td></tr>
+<tr><td class="k"><span class="knop">RB</span></td><td>Aanvallen, schieten</td></tr>
+<tr><td class="k"><span class="knop">LT</span></td><td>Remmen, achteruit</td></tr>
+<tr><td class="k"><span class="knop">RT</span></td><td>Gas</td></tr>
+<tr><td class="k"><span class="knop">Overzicht</span></td><td>Kaart</td></tr>
+<tr><td class="k"><span class="knop">Menu</span></td><td>Pauzemenu en telefoon</td></tr>
+<tr><td class="k"><span class="knop">L3</span></td><td>Versnellen</td></tr>
+<tr><td class="k"><span class="knop">R3</span></td><td>Achterom kijken<div class="klein">Samen spelen: Volgend doelwit tijdens het richten</div></td></tr>
+<tr><td class="k"><span class="knop">D-pad ↑</span></td><td>Alarmlichten<div class="klein">Samen spelen: Het stuur geven of vragen</div></td></tr>
+<tr><td class="k"><span class="knop">D-pad ↓</span></td><td>Hengelen (boot die stilligt)</td></tr>
+<tr><td class="k"><span class="knop">D-pad ←</span></td><td>Richtingaanwijzer links</td></tr>
+<tr><td class="k"><span class="knop">D-pad →</span></td><td>Richtingaanwijzer rechts</td></tr>
+<tr><td class="k"><span class="knop wiel">Wiel</span></td><td>Radio aan of uit, Volgende zender, Andere kleren, Filmcamera, Eerste persoon, Waypoint naar je doel, Alarmlichten, Verhaalstap overslaan, Lak of garagemenu, Kom hier, Help!, Kijk daar</td></tr>
+</table></section>
+<section class="kaart"><h2>Auto, handmatig schakelen</h2><table>
+<tr><td class="k"><span class="knop">Linkerstick</span></td><td>Sturen</td></tr>
+<tr><td class="k"><span class="knop">A</span></td><td>Handrem</td></tr>
+<tr><td class="k"><span class="knop">B</span></td><td>Zwaailicht en sirene</td></tr>
+<tr><td class="k"><span class="knop">X</span></td><td>Toeteren</td></tr>
+<tr><td class="k"><span class="knop">Y</span></td><td>Instappen, praten, gebruiken</td></tr>
+<tr><td class="k"><span class="knop">LB</span></td><td>Een versnelling lager</td></tr>
+<tr><td class="k"><span class="knop">RB</span></td><td>Een versnelling hoger</td></tr>
+<tr><td class="k"><span class="knop">LT</span></td><td>Remmen, achteruit</td></tr>
+<tr><td class="k"><span class="knop">RT</span></td><td>Gas</td></tr>
+<tr><td class="k"><span class="knop">Overzicht</span></td><td>Kaart</td></tr>
+<tr><td class="k"><span class="knop">Menu</span></td><td>Pauzemenu en telefoon</td></tr>
+<tr><td class="k"><span class="knop">L3</span></td><td>Koppeling indrukken</td></tr>
+<tr><td class="k"><span class="knop">R3</span></td><td>Achterom kijken<div class="klein">Samen spelen: Volgend doelwit tijdens het richten</div></td></tr>
+<tr><td class="k"><span class="knop">D-pad ↑</span></td><td>Wiel met snelle zinnen (alleen in Samen spelen)<div class="klein">Samen spelen: Het stuur geven of vragen</div></td></tr>
+<tr><td class="k"><span class="knop">D-pad ↓</span></td><td>Hengelen (boot die stilligt)</td></tr>
+<tr><td class="k"><span class="knop">D-pad ←</span></td><td>Richtingaanwijzer links</td></tr>
+<tr><td class="k"><span class="knop">D-pad →</span></td><td>Richtingaanwijzer rechts</td></tr>
+<tr><td class="k"><span class="knop wiel">Wiel</span></td><td>Radio aan of uit, Volgende zender, Andere kleren, Filmcamera, Eerste persoon, Waypoint naar je doel, Alarmlichten, Verhaalstap overslaan, Lak of garagemenu, Kom hier, Help!, Kijk daar, Snelle zinnen</td></tr>
+</table></section>
+<section class="kaart"><h2>Bus</h2><table>
+<tr><td class="k"><span class="knop">Linkerstick</span></td><td>Sturen</td></tr>
+<tr><td class="k"><span class="knop">A</span></td><td>Handrem</td></tr>
+<tr><td class="k"><span class="knop">B</span></td><td>Zwaailicht en sirene</td></tr>
+<tr><td class="k"><span class="knop">X</span></td><td>Toeteren</td></tr>
+<tr><td class="k"><span class="knop">Y</span></td><td>Instappen, praten, gebruiken</td></tr>
+<tr><td class="k"><span class="knop">LB</span></td><td>Bus: deuren</td></tr>
+<tr><td class="k"><span class="knop">RB</span></td><td>Bus: kneel</td></tr>
+<tr><td class="k"><span class="knop">LT</span></td><td>Remmen, achteruit</td></tr>
+<tr><td class="k"><span class="knop">RT</span></td><td>Gas</td></tr>
+<tr><td class="k"><span class="knop">Overzicht</span></td><td>Kaart</td></tr>
+<tr><td class="k"><span class="knop">Menu</span></td><td>Pauzemenu en telefoon</td></tr>
+<tr><td class="k"><span class="knop">L3</span></td><td>Versnellen</td></tr>
+<tr><td class="k"><span class="knop">R3</span></td><td>Achterom kijken<div class="klein">Samen spelen: Volgend doelwit tijdens het richten</div></td></tr>
+<tr><td class="k"><span class="knop">D-pad ↑</span></td><td>Alarmlichten<div class="klein">Samen spelen: Het stuur geven of vragen</div></td></tr>
+<tr><td class="k"><span class="knop">D-pad ↓</span></td><td>Filmcamera</td></tr>
+<tr><td class="k"><span class="knop">D-pad ←</span></td><td>Richtingaanwijzer links</td></tr>
+<tr><td class="k"><span class="knop">D-pad →</span></td><td>Richtingaanwijzer rechts</td></tr>
+<tr><td class="k"><span class="knop wiel">Wiel</span></td><td>Radio aan of uit, Volgende zender, Andere kleren, Eerste persoon, Waypoint naar je doel, Alarmlichten, Busdienst overnemen, Kom hier, Help!, Kijk daar, Snelle zinnen</td></tr>
+</table></section>
+<section class="kaart"><h2>Boot (zeilen)</h2><table>
+<tr><td class="k"><span class="knop">Linkerstick</span></td><td>Sturen</td></tr>
+<tr><td class="k"><span class="knop">A</span></td><td>Handrem</td></tr>
+<tr><td class="k"><span class="knop">B</span></td><td>Zwaailicht en sirene</td></tr>
+<tr><td class="k"><span class="knop">X</span></td><td>Toeteren</td></tr>
+<tr><td class="k"><span class="knop">Y</span></td><td>Instappen, praten, gebruiken</td></tr>
+<tr><td class="k"><span class="knop">LB</span></td><td>Boot: zeil vieren</td></tr>
+<tr><td class="k"><span class="knop">RB</span></td><td>Boot: zeil aanhalen</td></tr>
+<tr><td class="k"><span class="knop">LT</span></td><td>Remmen, achteruit</td></tr>
+<tr><td class="k"><span class="knop">RT</span></td><td>Gas</td></tr>
+<tr><td class="k"><span class="knop">Overzicht</span></td><td>Kaart</td></tr>
+<tr><td class="k"><span class="knop">Menu</span></td><td>Pauzemenu en telefoon</td></tr>
+<tr><td class="k"><span class="knop">L3</span></td><td>Versnellen</td></tr>
+<tr><td class="k"><span class="knop">D-pad ↓</span></td><td>Hengelen (boot die stilligt)</td></tr>
+<tr><td class="k"><span class="knop">D-pad ←</span></td><td>Verhaalstap overslaan</td></tr>
+<tr><td class="k"><span class="knop">D-pad →</span></td><td>Lak of garagemenu</td></tr>
+<tr><td class="k"><span class="knop wiel">Wiel</span></td><td>Radio aan of uit, Volgende zender, Andere kleren, Filmcamera, Eerste persoon, Waypoint naar je doel, Kom hier, Help!, Kijk daar, Snelle zinnen</td></tr>
+</table></section>
+<section class="kaart"><h2>Trekker op het erf</h2><table>
+<tr><td class="k"><span class="knop">Linkerstick</span></td><td>Sturen</td></tr>
+<tr><td class="k"><span class="knop">A</span></td><td>Handrem</td></tr>
+<tr><td class="k"><span class="knop">B</span></td><td>Trekker: werktuig ontkoppelen</td></tr>
+<tr><td class="k"><span class="knop">X</span></td><td>Toeteren</td></tr>
+<tr><td class="k"><span class="knop">Y</span></td><td>Instappen, praten, gebruiken</td></tr>
+<tr><td class="k"><span class="knop">LB</span></td><td>Trekker: hef omhoog of omlaag</td></tr>
+<tr><td class="k"><span class="knop">RB</span></td><td>Aanvallen, schieten</td></tr>
+<tr><td class="k"><span class="knop">LT</span></td><td>Remmen, achteruit</td></tr>
+<tr><td class="k"><span class="knop">RT</span></td><td>Gas</td></tr>
+<tr><td class="k"><span class="knop">Overzicht</span></td><td>Kaart</td></tr>
+<tr><td class="k"><span class="knop">Menu</span></td><td>Pauzemenu en telefoon</td></tr>
+<tr><td class="k"><span class="knop">L3</span></td><td>Versnellen</td></tr>
+<tr><td class="k"><span class="knop">R3</span></td><td>Achterom kijken</td></tr>
+<tr><td class="k"><span class="knop">D-pad ↑</span></td><td>Trekker: aftakas</td></tr>
+<tr><td class="k"><span class="knop">D-pad ↓</span></td><td>Trekker: tanken</td></tr>
+<tr><td class="k"><span class="knop">D-pad ←</span></td><td>Richtingaanwijzer links</td></tr>
+<tr><td class="k"><span class="knop">D-pad →</span></td><td>Richtingaanwijzer rechts</td></tr>
+<tr><td class="k"><span class="knop wiel">Wiel</span></td><td>Radio aan of uit, Volgende zender, Andere kleren, Filmcamera, Eerste persoon, Waypoint naar je doel, Alarmlichten, Verhaalstap overslaan, Kom hier, Help!, Kijk daar</td></tr>
+</table></section>
+<section class="kaart"><h2>Helikopter</h2><table>
+<tr><td class="k"><span class="knop">Linkerstick</span></td><td>Vliegen</td></tr>
+<tr><td class="k"><span class="knop">A</span></td><td>Omhoog</td></tr>
+<tr><td class="k"><span class="knop">B</span></td><td>Omlaag</td></tr>
+<tr><td class="k"><span class="knop">Y</span></td><td>Instappen, praten, gebruiken</td></tr>
+<tr><td class="k"><span class="knop">RB</span></td><td>Sneller</td></tr>
+<tr><td class="k"><span class="knop">LT</span></td><td>Omlaag</td></tr>
+<tr><td class="k"><span class="knop">RT</span></td><td>Omhoog</td></tr>
+<tr><td class="k"><span class="knop">Overzicht</span></td><td>Kaart</td></tr>
+<tr><td class="k"><span class="knop">Menu</span></td><td>Pauzemenu en telefoon</td></tr>
+<tr><td class="k"><span class="knop">L3</span></td><td>Sneller</td></tr>
+<tr><td class="k"><span class="knop">D-pad ↓</span></td><td>Filmcamera</td></tr>
+<tr><td class="k"><span class="knop">D-pad ←</span></td><td>Verhaalstap overslaan</td></tr>
+<tr><td class="k"><span class="knop">D-pad →</span></td><td>Minigame of vluchtdienst stoppen</td></tr>
+<tr><td class="k"><span class="knop wiel">Wiel</span></td><td>Radio aan of uit, Volgende zender, Eerste persoon, Waypoint naar je doel, Kom hier, Help!, Kijk daar, Snelle zinnen</td></tr>
+</table></section>
+<section class="kaart"><h2>Vliegtuig</h2><table>
+<tr><td class="k"><span class="knop">Linkerstick</span></td><td>Vliegen</td></tr>
+<tr><td class="k"><span class="knop">A</span></td><td>Neus omhoog</td></tr>
+<tr><td class="k"><span class="knop">B</span></td><td>Neus omlaag</td></tr>
+<tr><td class="k"><span class="knop">X</span></td><td>Vliegtuig: landingsgestel</td></tr>
+<tr><td class="k"><span class="knop">LB</span></td><td>Vliegtuig: kleppen</td></tr>
+<tr><td class="k"><span class="knop">RB</span></td><td>Remmen op de baan</td></tr>
+<tr><td class="k"><span class="knop">LT</span></td><td>Neus omlaag</td></tr>
+<tr><td class="k"><span class="knop">RT</span></td><td>Neus omhoog</td></tr>
+<tr><td class="k"><span class="knop">Overzicht</span></td><td>Kaart</td></tr>
+<tr><td class="k"><span class="knop">Menu</span></td><td>Pauzemenu en telefoon</td></tr>
+<tr><td class="k"><span class="knop">L3</span></td><td>Remmen op de baan</td></tr>
+<tr><td class="k"><span class="knop">D-pad ↑</span></td><td>Verhaalstap overslaan</td></tr>
+<tr><td class="k"><span class="knop">D-pad ↓</span></td><td>Minigame of vluchtdienst stoppen</td></tr>
+<tr><td class="k"><span class="knop">D-pad ←</span></td><td>Vliegtuig: roer links</td></tr>
+<tr><td class="k"><span class="knop">D-pad →</span></td><td>Vliegtuig: roer rechts</td></tr>
+<tr><td class="k"><span class="knop wiel">Wiel</span></td><td>Radio aan of uit, Volgende zender, Eerste persoon, Waypoint naar je doel, Kom hier, Help!, Kijk daar, Snelle zinnen</td></tr>
+</table></section>
+<section class="kaart"><h2>Duif</h2><table>
+<tr><td class="k"><span class="knop">Linkerstick</span></td><td>Vliegen</td></tr>
+<tr><td class="k"><span class="knop">A</span></td><td>Klapwieken</td></tr>
+<tr><td class="k"><span class="knop">B</span></td><td>Pikken en landen</td></tr>
+<tr><td class="k"><span class="knop">X</span></td><td>Duif: poepen</td></tr>
+<tr><td class="k"><span class="knop">Y</span></td><td>Instappen, praten, gebruiken</td></tr>
+<tr><td class="k"><span class="knop">LB</span></td><td>Duif: koeren</td></tr>
+<tr><td class="k"><span class="knop">RB</span></td><td>Achterom kijken (in een voertuig)</td></tr>
+<tr><td class="k"><span class="knop">LT</span></td><td>Sneller vliegen</td></tr>
+<tr><td class="k"><span class="knop">RT</span></td><td>Aanvallen, schieten</td></tr>
+<tr><td class="k"><span class="knop">Overzicht</span></td><td>Kaart</td></tr>
+<tr><td class="k"><span class="knop">Menu</span></td><td>Pauzemenu en telefoon</td></tr>
+<tr><td class="k"><span class="knop">L3</span></td><td>Sneller vliegen</td></tr>
+<tr><td class="k"><span class="knop">D-pad ↓</span></td><td>Duif: weer mens worden</td></tr>
+<tr><td class="k"><span class="knop">D-pad ←</span></td><td>Verhaalstap overslaan</td></tr>
+<tr><td class="k"><span class="knop wiel">Wiel</span></td><td>Radio aan of uit, Volgende zender, Kom hier, Help!, Kijk daar, Snelle zinnen</td></tr>
+</table></section>
+<section class="kaart"><h2>Trein (machinist)</h2><table>
+<tr><td class="k"><span class="knop">Linkerstick</span></td><td>Lopen door de cabine</td></tr>
+<tr><td class="k"><span class="knop">A</span></td><td>Noodrem</td></tr>
+<tr><td class="k"><span class="knop">B</span></td><td>Minigame of vluchtdienst stoppen</td></tr>
+<tr><td class="k"><span class="knop">X</span></td><td>Toeteren</td></tr>
+<tr><td class="k"><span class="knop">Y</span></td><td>Instappen, praten, gebruiken</td></tr>
+<tr><td class="k"><span class="knop">LB</span></td><td>Trein: waakzaamheidsknop</td></tr>
+<tr><td class="k"><span class="knop">RB</span></td><td>Trein: dienst starten</td></tr>
+<tr><td class="k"><span class="knop">LT</span></td><td>Achteruit, remmen</td></tr>
+<tr><td class="k"><span class="knop">RT</span></td><td>Vooruit, gas</td></tr>
+<tr><td class="k"><span class="knop">Overzicht</span></td><td>Kaart</td></tr>
+<tr><td class="k"><span class="knop">Menu</span></td><td>Pauzemenu en telefoon</td></tr>
+<tr><td class="k"><span class="knop">L3</span></td><td>Trein: deuren</td></tr>
+<tr><td class="k"><span class="knop">D-pad ↓</span></td><td>Trein: door de trein lopen</td></tr>
+<tr><td class="k"><span class="knop">D-pad ←</span></td><td>Trein: deuren</td></tr>
+<tr><td class="k"><span class="knop wiel">Wiel</span></td><td>Radio aan of uit, Volgende zender, Cabinecamera, Kom hier, Help!, Kijk daar</td></tr>
+</table></section>
+<section class="kaart"><h2>Aan de waterkant (hengelen)</h2><table>
+<tr><td class="k"><span class="knop">Linkerstick</span></td><td>Lopen</td></tr>
+<tr><td class="k"><span class="knop">A</span></td><td>Springen</td></tr>
+<tr><td class="k"><span class="knop">B</span></td><td>Bukken</td></tr>
+<tr><td class="k"><span class="knop">X</span></td><td>Hengelen</td></tr>
+<tr><td class="k"><span class="knop">Y</span></td><td>Instappen, praten, gebruiken</td></tr>
+<tr><td class="k"><span class="knop">LB</span></td><td>Vorig wapen</td></tr>
+<tr><td class="k"><span class="knop">RB</span></td><td>Volgend wapen</td></tr>
+<tr><td class="k"><span class="knop">LT</span></td><td>Richten</td></tr>
+<tr><td class="k"><span class="knop">RT</span></td><td>Aanvallen, schieten</td></tr>
+<tr><td class="k"><span class="knop">Overzicht</span></td><td>Kaart</td></tr>
+<tr><td class="k"><span class="knop">Menu</span></td><td>Pauzemenu en telefoon</td></tr>
+<tr><td class="k"><span class="knop">L3</span></td><td>Rennen</td></tr>
+<tr><td class="k"><span class="knop">R3</span></td><td>Volgend doelwit, spelerslijst</td></tr>
+<tr><td class="k"><span class="knop">D-pad ↑</span></td><td>Radio aan of uit<div class="klein">Samen spelen: Bij de groep komen</div></td></tr>
+<tr><td class="k"><span class="knop">D-pad ↓</span></td><td>Kusje<div class="klein">Samen spelen: Roepen: Help!</div></td></tr>
+<tr><td class="k"><span class="knop">D-pad ←</span></td><td>Verhaalstap overslaan<div class="klein">Samen spelen: Roepen: Kom hier</div></td></tr>
+<tr><td class="k"><span class="knop">D-pad →</span></td><td>Lak of garagemenu<div class="klein">Samen spelen: Wijzen: Kijk daar</div></td></tr>
+<tr><td class="k"><span class="knop wiel">Wiel</span></td><td>Radio aan of uit, Volgende zender, Andere kleren, Filmcamera, Eerste persoon, Waypoint naar je doel, Verhaalstap overslaan, Lak of garagemenu, Kusje, Slaan, Pistool, Geweer, Gooien, Snelle zinnen</td></tr>
+</table></section>
+</div></body></html>
