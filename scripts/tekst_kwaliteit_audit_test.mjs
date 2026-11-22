@@ -32,6 +32,8 @@ ok(heeft('Je rijdt 80 km/h', 'eenheid') && heeft('Nog 3 miles', 'eenheid') && !h
 ok(heeft('Het kost 1,000 euro', 'getalformaat') && heeft('Het is 3.5 km verderop', 'getalformaat') && !heeft('Het kost 1.000 euro en 3,5 km', 'getalformaat') && !heeft('Prijs per 1.000 kg', 'getalformaat'), 'getalformaat: 1.000 en 3,5 km');
 ok(heeft('We zien elkaar om 8:30 PM', 'datumtijd') && heeft('Op 2026-11-22 begint het', 'datumtijd') && heeft('Open vanaf 16.00 uur', 'datumtijd') && !heeft('Open vanaf 16:00 uur op 22 november', 'datumtijd'), 'datum en tijd: 24-uursklok met dubbele punt');
 
+ok(heeft('Verdien €1000 met de snackwagen', 'getalformaat') && heeft('Haal 5000 punten in een ronde', 'getalformaat') && !heeft('Verdien €1.000 met de snackwagen', 'getalformaat') && !heeft('In 1672 hield Stad stand', 'getalformaat') && !heeft('Nummer 4117 aan loket A', 'getalformaat'), 'duizendtal met punt; jaartallen en nummers blijven zoals ze zijn');
+
 // hoofdletters
 ok(heeft('Het is mooi. dan gaan we', 'hoofdletter') && !heeft('Het is mooi. Dan gaan we', 'hoofdletter') && !heeft('Gem. is de balans: genoeg ruimte', 'hoofdletter'), 'zinsbegin met een kleine letter');
 ok(heeft('Wij gaan naar de grunn vandaag', 'hoofdletter') && !heeft('Wij gaan naar Grunn vandaag', 'hoofdletter'), "'Grunn' met hoofdletter");

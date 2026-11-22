@@ -225,7 +225,7 @@ export const ACHIEVEMENTS = [
   { id: 'fjord_goud', cat: 'nahetverhaal', title: 'Kon minder', desc: 'Goud in een dienst van de snackwagen', medal: true },
   { id: 'koe_klaar', cat: 'nahetverhaal', title: 'Geertje is thuis', desc: 'Breng de prijskoe van Ome Jan terug naar zijn boerderij' },
   { id: 'koe_goud', cat: 'nahetverhaal', title: 'Koeienfluisteraar', desc: 'Goud bij De Koe van Ome Jan', medal: true },
-  { id: 'fjord_1000', cat: 'nahetverhaal', title: 'Frituurbaron', desc: 'Verdien €1000 met de snackwagen', stat: 'fjordEarned', goal: 1000, unit: '€' },
+  { id: 'fjord_1000', cat: 'nahetverhaal', title: 'Frituurbaron', desc: 'Verdien €1.000 met de snackwagen', stat: 'fjordEarned', goal: 1000, unit: '€' },
 
   { id: 'trein_stations', cat: 'spoor', title: 'Alle haltes af', desc: 'Stap uit op 5 verschillende stations of haltes', set: 'trainStations', goal: 5 },
   { id: 'trein_dorp', cat: 'spoor', title: 'Dorpsstation', desc: 'Reis met de trein naar een dorpshalte', hidden: true },
@@ -327,7 +327,7 @@ export const ACHIEVEMENTS = [
   { id: 'vis_wad', cat: 'verkennen', title: 'Waddenvisser', desc: 'Vang alle soorten van de Waddenzee en de Dollard' },
   { id: 'vis_meerval', cat: 'verkennen', title: 'De reus van het Noorden', desc: 'Vang een meerval', hidden: true },
   { id: 'skate_10', cat: 'verkennen', title: 'Skatepark-vaste', desc: 'Skate tien rondes in het Stadspark', stat: 'skateRuns', goal: 10 },
-  { id: 'drift_5000', cat: 'rijden', title: 'Rookwolk', desc: 'Haal 5000 punten in één driftronde', hidden: true },
+  { id: 'drift_5000', cat: 'rijden', title: 'Rookwolk', desc: 'Haal 5.000 punten in één driftronde', hidden: true },
   { id: 'trein_meerijden_5', cat: 'spoor', title: 'Raampje open', desc: 'Kijk vijf treinritten helemaal uit zonder over te slaan', stat: 'trainRidesWatched', goal: 5 },
   { id: 'oefenronde_klaar', cat: 'verkennen', title: 'Eerst oefenen', desc: 'Rond de oefenronde in het menu af' },
   { id: 'opnieuw_3', cat: 'missies', title: 'Nog een keertje', desc: 'Begin na een mislukte missie drie keer opnieuw met {ENTER}', stat: 'missionRetries', goal: 3 },

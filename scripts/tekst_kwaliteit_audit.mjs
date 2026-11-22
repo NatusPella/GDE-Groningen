@@ -9,7 +9,7 @@
 //   afgekapt         zin eindigt op een voegwoord/lidwoord/voorzetsel of een komma (afgekapte zin)
 //   engels-restant   waypoint, LMB/RMB, "klik" in het Engels (click, press), Loading, Error, debug in de tekst
 //   eenheid          km/h, kph, mph, miles, feet, "kilometers" met punt-decimaal, meter als "mtr"
-//   getalformaat     Engelse getalnotatie: 1,000 (duizendtal met komma) of 3.5 km (decimaalpunt bij een eenheid)
+//   getalformaat     Engelse getalnotatie: 1,000 (duizendtal met komma) of 3.5 km (decimaalpunt bij een eenheid), en een duizendtal zonder punt (€1000, 5000 punten)
 //   datumtijd        12-uurs klok (AM/PM), ISO-datum of maand/dag/jaar in een zin, "14.30 uur" (punt als tijdscheiding)
 //   leesteken        dubbel leesteken (!!, ,,) of geen spatie na een komma of punt (woord,woord)
 //   hoofdletter      zin begint met een kleine letter na een punt ("Dag. morgen"), of "grunn" zonder hoofdletter
@@ -39,6 +39,7 @@ const REGELS = [
   { rule: 'engels-restant', re: woord('waypoint|waypoints|LMB|RMB|MMB|left click|right click|click|clicks|clicked|press|pressed|tap to|loading|error|errors|debug|player|players|cooldown|respawn|checkpoints?|inventory|settings|menu bar|fullscreen|full screen|volume up|volume down|please|welcome|continue|cancel|retry|back to'), note: 'Engels restant; zeg het in het Nederlands' },
   { rule: 'eenheid', re: woord('km/h|kph|mph|miles?|feet|foot|inches|inch|yards?|mtr|kilometres?|kilometers? per hour|metres?'), note: 'geen Nederlandse eenheid: km/u, m, kilometer, meter' },
   { rule: 'getalformaat', re: /(?<![\d.,])\d{1,3},\d{3}(?![\d,])(?!\s*(?:en|of|-|tot)\s*\d)|(?<![\d.])\d+\.\d{1,2}\s?(?:km|m|kg|cm|mm|euro|%)(?![\p{L}])/u, note: 'Engelse getalnotatie: duizendtal met punt (1.000) en decimaal met komma (3,5 km)' },
+  { rule: 'getalformaat', re: /€\s?\d{4,}(?![\d.,])|(?<![\d.,:/#-])\d{4,}(?![\d.,:/])(?=\s?(?:euro|punten|stuntpunten|meter|km|kg|liter|seconden)(?![\p{L}]))/u, note: 'duizendtal zonder punt: 1.000, 2.500 en 10.000 (zoals de rest van het spel)', skip: (t) => /\b(?:19|20)\d\d\b(?!\s?(?:euro|punten|stuntpunten|meter|km|kg|liter|seconden))/.test(t) && !/€\s?\d{4,}/.test(t) },
   { rule: 'datumtijd', re: /\b\d{1,2}(?::\d{2})?\s?(?:am|pm)\b|\b\d{4}-\d{2}-\d{2}\b|\b\d{1,2}\/\d{1,2}\/\d{2,4}\b|\b\d{1,2}\.\d{2}\s?uur\b/i, note: 'datum en tijd: 24-uursklok met dubbele punt (14:30), dag-maand (22 november)' },
   { rule: 'leesteken', re: /,,|;;|!!|(?<![.\d])\.\.(?![.\d])|[a-zé]{3,}[,;][A-Za-zé]{2,}|[a-zé]{4,}[.!?][A-Z][a-zé]{2,}(?![\p{L}]*\.)/u, note: 'dubbel leesteken of geen spatie na een leesteken', skip: (t) => /\b(?:www|https?)\b|[\w-]+\.(?:js|json|png|mjs|nl|com)\b/.test(t) },
   { rule: 'hoofdletter', re: /[.!?] [a-zà-ÿ][a-zà-ÿ]+ [a-zà-ÿ]/u, note: 'zin begint met een kleine letter', skip: (t) => /\b(?:bijv|enz|etc|o\.a|d\.w\.z|m\.n|vs|nr|dr|ir|mr|st|ca|evt|resp|gem|t\.o\.v|a\.u\.b|bv)\.|\d\.\s|\.\.\.\s|\b[a-z]\.[a-z]\./i.test(t) },

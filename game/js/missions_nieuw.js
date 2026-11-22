@@ -143,13 +143,13 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
       stunt: { center: { x: 168.69, y: 70.04 }, radius: 46, target: 1500, shield: 30 },
       // AAA akte 1: de regelkaart bij het begin (het doel, dan de tijd, dan de twee delen) en na de stunt een zin over het tweede deel
       kaart: {
-        doel: 'Haal 1500 stuntpunten op de Grote Markt, zonder krassen',
+        doel: 'Haal 1.500 stuntpunten op de Grote Markt, zonder krassen',
         druk: 'vier minuten voor stunt en bezorging samen',
         afloop: 'krassen kosten je geld',
         regels: [
           { type: 'teller', inv: { rest: 240, totaal: 240, label: 'Tijd' }, na: 9, duur: 6 },
-          { type: 'stappen', inv: { label: 'Twee delen', klaar: 0, stappen: [{ icoon: 'parasol', label: 'Stunt: 1500 punten' }, { icoon: 'auto', label: 'Bakkie heel naar het Boterdiep' }] }, na: 16, duur: 7 },
-          { type: 'stappen', inv: { label: 'Twee delen', klaar: 1, stappen: [{ icoon: 'parasol', label: 'Stunt: 1500 punten' }, { icoon: 'auto', label: 'Bakkie heel naar het Boterdiep' }] }, bij: 'stuntklaar', duur: 7 },
+          { type: 'stappen', inv: { label: 'Twee delen', klaar: 0, stappen: [{ icoon: 'parasol', label: 'Stunt: 1.500 punten' }, { icoon: 'auto', label: 'Bakkie heel naar het Boterdiep' }] }, na: 16, duur: 7 },
+          { type: 'stappen', inv: { label: 'Twee delen', klaar: 1, stappen: [{ icoon: 'parasol', label: 'Stunt: 1.500 punten' }, { icoon: 'auto', label: 'Bakkie heel naar het Boterdiep' }] }, bij: 'stuntklaar', duur: 7 },
         ],
       },
       handBack: { how: 'drive', say: 'Berend pakt zijn sleutels terug en rijdt weg. Wij lopen, Tessa.' },
