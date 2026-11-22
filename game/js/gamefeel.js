@@ -20,8 +20,10 @@ export function fovTarget(speed, fx = { cameraSway: 1 }) {
 
 // Gedempte stap naar het doel; schiet er nooit voorbij.
 export function stepFov(cur, speed, dt, fx) {
-  const goal = fovTarget(speed, fx);
-  const k = 1 - Math.exp(-FOV_RATE * Math.max(0, dt));
+  // Verfijning 22-11: een NaN in snelheid of dt maakte de FOV voorgoed NaN (zwart beeld); dan terug naar het doel.
+  const goal = fovTarget(Number.isFinite(speed) ? speed : 0, fx);
+  if (!Number.isFinite(cur)) return goal;
+  const k = 1 - Math.exp(-FOV_RATE * (dt > 0 ? dt : 0));
   return cur + (goal - cur) * k;
 }
 

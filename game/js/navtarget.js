@@ -48,6 +48,7 @@ export const NAV_TYPES = {
 
 export const MAX_SECUNDAIR = 2; // zoveel wachtende icoon-punten naast de boog
 export const AANKOMST_M = 10; // dichter dan dit ben je er: geen pijl meer
+export const HYSTERESE = 0.85; // het actieve doel telt 15% dichterbij bij gelijke rang (groepsdoelen wisselden elke paar stappen)
 const SAMENVOEG_M = 8; // twee doelen op dezelfde plek zijn één doel
 
 // Een eigen doel heeft de vorm van wat het is: een plek een vlag, een missie of uitdaging een ster, een klus een ruit.
@@ -79,6 +80,7 @@ export function resolveNavTargets(s) {
   const verberg = (type, reden, id = type) => uit.verborgen.push({ type, id, reden });
   const sp = s.speler || { x: 0, y: 0 };
   const klaar = new Set(s.klaar || []);
+  const vorig = s.vorig || null; // het doel dat vorig beeld actief was { type, id }: bij gelijke rang en bijna gelijke afstand blijft dat doel actief (geen flipperende pijl)
 
   if (s.bezig === 'minigame') { uit.reden = 'minigame'; for (const t of ['klus', 'missie', 'eigen', 'verhaal', 'zorg']) if (s[t]) verberg(t, 'minigame'); return uit; }
   if (s.bezig === 'heli') {
@@ -105,7 +107,7 @@ export function resolveNavTargets(s) {
   }
   voeg('eigen', s.eigen, { glyph: eigenGlyph(s.eigen && s.eigen.soort) });
   voeg('verhaal', s.verhaal, { id: 'gids' }); // de stap van het verhaal kan ook een winkel zijn: valt samen als hij op de missie ligt
-  for (const g of s.groep || []) voeg('groep', g);
+  for (const g of s.groep || []) voeg('groep', g, { id: `groep:${g && g.name ? g.name : Math.round((g && g.x) / 25) + ',' + Math.round((g && g.y) / 25)}` }); // eigen id per doel, zodat de hysterese weet welk doel actief was
   voeg('zorg', s.zorg);
 
   // aankomst: wie er al staat heeft geen pijl (de plek zelf toont zijn marker)
@@ -113,7 +115,8 @@ export function resolveNavTargets(s) {
   for (const d of aanwezig) { verberg(d.type, 'aangekomen', d.id); kandidaten.splice(kandidaten.indexOf(d), 1); }
 
   // dezelfde plek is één doel: het hoogste wint
-  kandidaten.sort((a, b) => b.rank - a.rank || a.afstand - b.afstand);
+  const gewicht = (d) => (vorig && d.type === vorig.type && d.id === vorig.id ? d.afstand * HYSTERESE : d.afstand);
+  kandidaten.sort((a, b) => b.rank - a.rank || gewicht(a) - gewicht(b));
   const others = [];
   for (const d of kandidaten) {
     const dubbel = others.find((o) => distance(o, d) < SAMENVOEG_M);
@@ -161,7 +164,7 @@ export function snapshotFromWorld(w, e) {
   const job = w.sideJob && w.sideJob.active ? w.sideJob : null;
   const g = e.goal;
   return {
-    speler: e.speler, modus: e.modus,
+    speler: e.speler, modus: e.modus, vorig: e.vorig || null,
     bezig: w.heliRun ? 'heli' : e.busyGame ? 'minigame' : null,
     heli: e.heli || null,
     klus: job && job.marker ? { x: job.marker.x, y: job.marker.y, name: job.label } : null,

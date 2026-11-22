@@ -10,14 +10,13 @@ import {
   spawnPed, pedAlive, holdPed, freePed, walkPed, say, removePed, vehicleSpeed,
 } from './sidejobkit.js';
 import { simHudTik, simHudPop, uitlegGezien, zetUitlegGezien } from './simhud.js';
-import { taxiHudModel, ritPop, UITLEG_ID } from './taxistatus.js';
+import { taxiHudModel, ritPop, UITLEG_ID, afzettenKlaar, AFSTAP_M } from './taxistatus.js';
 import { maakSimKolom, zetSimKolom } from './simkolom3d.js';
 import { reducedMotion } from './motion.js';
 
 const TAXI_MODEL = { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 33, accel: 9, brake: 24, turnRate: 2.6, color: '#1b1c1f' };
 const SHOW_R = 90;
 const PICKUP_R = 8;
-const DROP_R = 9;
 const STOP_SPEED = 1.5;
 
 const PLACES = {
@@ -234,7 +233,7 @@ export default {
       }
     } else d.prevSpeed = null;
 
-    if (inTaxi && speed < STOP_SPEED && Math.hypot(v.x - d.to.road.x, v.y - d.to.road.y) < DROP_R) {
+    if (afzettenKlaar({ inTaxi, naastTaxi: Math.hypot(p.x - v.x, p.y - v.y) < AFSTAP_M, snelheid: speed, afstand: Math.hypot(v.x - d.to.road.x, v.y - d.to.road.y) })) {
       const exit = { x: v.x - Math.sin(v.angle) * 1.6, y: v.y + Math.cos(v.angle) * 1.6 };
       const ped = spawnPed(world, exit.x, exit.y, v.angle);
       say(world, ped, d.fare.done, 3.5);

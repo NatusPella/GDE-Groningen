@@ -18,7 +18,7 @@ import { showFor } from './evenementen.js';
 import { stepContext } from './sfx/steps.js';
 import { updateMarktSigns } from './marktfiets.js';
 import {
-  QUAKE, rollQuakeGap, mayQuake, rollQuake, quakeEnvelope, quakeStrength, quakeDust, bikeWobble, QUAKE_BARKS, quakeNewsText,
+  QUAKE, rollQuakeGap, mayQuake, rollQuake, quakeEnvelope, quakeStrength, quakeDust, bikeWobble, QUAKE_BARKS, quakeNewsText, distinctPicks,
   ALGAE, algaePatches, patchAt, algaeEffect, algaeHurt, algaeDay, nextAlgaeDay, ALGAE_SIGN, ALGAE_NEWS, ALGAE_SWIM_MSG,
   SHOW, showState, shellGap, makeShell, soundLag,
   TOURISTS, touristTarget, GERMAN_LINES, GERMAN_HELLO, touristGroup,
@@ -121,11 +121,13 @@ function updateQuake(dt, w) {
   if (q.t > 1.0 && !q.reacted) {
     q.reacted = true;
     let n = 0;
+    const barks = distinctPicks(QUAKE_BARKS, QUAKE.reactors, Math.random, S.lastBark); // elk een andere roep, en niet dezelfde als de vorige beving
+    S.lastBark = barks[0];
     for (const ped of w.pedestrians) {
       if (n >= QUAKE.reactors) break;
       if (ped.state !== 'wander' || ped.scene || ped.isCop || (ped.speechText && w.time < ped.speechUntil)) continue;
       if (dist(p, ped) > QUAKE.reactRadius) continue;
-      ped.speechText = pick(QUAKE_BARKS);
+      ped.speechText = barks[n];
       ped.speechUntil = w.time + 3.4;
       n++;
     }

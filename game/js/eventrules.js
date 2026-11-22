@@ -85,6 +85,15 @@ export function bikeWobble(time, amp, seed = 0) {
   return Math.sin(time * 38 + seed * 7.3) * 0.07 * clamp(amp, 0, 1);
 }
 
+// Verfijning 22-11: n verschillende regels uit een lijst (geen twee mensen die precies hetzelfde roepen), en `avoid` (de vorige regel) komt er niet meer direct achteraan.
+export function distinctPicks(list, n, rng = Math.random, avoid = null) {
+  const pool = list.filter((x) => x !== avoid);
+  const out = [];
+  while (out.length < n && pool.length) out.push(pool.splice(Math.floor(rng() * pool.length) % pool.length, 1)[0]);
+  while (out.length < n && list.length) out.push(list[out.length % list.length]); // meer mensen dan regels: dan pas herhalen
+  return out;
+}
+
 export const QUAKE_BARKS = [
   'Voelde je dat ook?',
   'Is dat een vrachtwagen? Er rijdt niks.',
@@ -126,7 +135,7 @@ export function nextAlgaeDay(day) {
 // Patches of a lake: `lake` = { id, bounds: [minx, miny, maxx, maxy], area }, `inWater(x, y)`
 // tells whether a point is water. Deterministic for the lake and the day.
 export function algaePatches(lake, day, inWater) {
-  if (!lake || !(lake.area >= ALGAE.minArea) || !algaeDay(day)) return [];
+  if (!lake || !(lake.area >= ALGAE.minArea) || !Array.isArray(lake.bounds) || lake.bounds.length < 4 || !algaeDay(day)) return []; // verfijning 22-11: een plas zonder grenzen gooide een fout
   const [x0, y0, x1, y1] = lake.bounds;
   const out = [];
   for (let k = 0, tries = 0; out.length < ALGAE.patchesPerLake && tries < 80; tries++, k++) {

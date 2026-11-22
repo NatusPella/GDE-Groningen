@@ -33,13 +33,14 @@ export const COMFORT_LAAG = 50; // onder dit comfort is de fooi weg (sidejob_tax
 //      inTaxi (bool), uitleg }
 export function taxiHudModel(g) {
   if (!g || !g.fase) return null;
-  const idx = g.fase === 'ophalen' ? 0 : (g.afstand != null && g.afstand < NABIJ ? 2 : 1);
+  const idx = g.fase === 'ophalen' ? 0 : (Number.isFinite(g.afstand) && g.afstand < NABIJ ? 2 : 1);
   const stappen = STAPPEN.map((s, i) => ({ label: s.label, icoon: s.icoon, stand: i < idx ? 'klaar' : i === idx ? 'nu' : 'straks' }));
   const comfort = Math.max(0, Math.min(100, Number.isFinite(g.comfort) ? g.comfort : 100));
   const meter = g.fase === 'meerijden' ? { pct: comfort, naam: 'Comfort van je klant', label: comfort < COMFORT_LAAG ? 'Klant is boos' : 'Comfort', staat: comfort < COMFORT_LAAG ? 'laag' : '' } : null;
-  const afstand = g.afstand == null ? '-' : g.afstand >= 1000 ? `${(g.afstand / 1000).toFixed(1).replace('.', ',')} km` : `${Math.round(g.afstand)} m`;
-  const cijfers = [{ label: 'Afstand', waarde: afstand, icoon: I.vlag, primair: true }, { label: 'Rit', waarde: String(g.rit), icoon: I.ronde }];
-  if (g.tijd != null) cijfers.push({ label: 'Tijd', waarde: `${Math.max(0, Math.ceil(g.tijd))} s`, icoon: I.klok });
+  const afst = Number.isFinite(g.afstand) ? g.afstand : null; // verfijning 22-11: NaN of een ontbrekend getal is '-' en nooit 'NaN m'
+  const afstand = afst == null ? '-' : afst >= 1000 ? `${(afst / 1000).toFixed(1).replace('.', ',')} km` : `${Math.round(Math.max(0, afst))} m`;
+  const cijfers = [{ label: 'Afstand', waarde: afstand, icoon: I.vlag, primair: true }, { label: 'Rit', waarde: g.rit == null || g.rit === '' ? '1' : String(g.rit), icoon: I.ronde }];
+  if (Number.isFinite(g.tijd)) cijfers.push({ label: 'Tijd', waarde: `${Math.max(0, Math.ceil(g.tijd))} s`, icoon: I.klok });
   return {
     id: 'taxi', titel: 'Grunn Taxi', icoon: ICOON.taxi, plek: g.klant || '', stappen, meter, cijfers, uitleg: g.uitleg && g.fase === 'ophalen' ? UITLEG : [],
     nu: watNu(g), hulp: 'Rijd rustig en stop bij het doel', slecht: g.fase === 'meerijden' && comfort < COMFORT_LAAG,
@@ -56,6 +57,13 @@ export function watNu(g) {
   if (g.limiet != null && (g.snelheid || 0) > g.limiet) return 'Rustig aan: je klant wordt onwel';
   if (g.afstand != null && g.afstand < NABIJ) return (g.snelheid || 0) > STOP ? 'Stop bij de bestemming' : 'Je staat goed: de klant stapt uit';
   return `Naar ${g.naar}: rij rustig`;
+}
+
+// Verfijning 22-11: de klant stapt ook uit als je zelf al bent uitgestapt bij de bestemming (dat deed je vanzelf, en dan wachtte de rit tot de tijd om was).
+// inTaxi: je zit erin; naastTaxi: je staat er hooguit AFSTAP_M naast; snelheid van de taxi; afstand van de taxi tot het doel.
+export const DROP_M = 9, AFSTAP_M = 6;
+export function afzettenKlaar({ inTaxi, naastTaxi, snelheid, afstand }) {
+  return (!!inTaxi || !!naastTaxi) && Number.isFinite(afstand) && afstand < DROP_M && Math.abs(snelheid || 0) < STOP;
 }
 
 // Wat opspringt na een rit: de fooi (of alleen de afronding als er geen fooi was).

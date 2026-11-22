@@ -48,8 +48,10 @@ export function cameraNearTarget({ clearance = 0, forced = null, firstPerson = f
 
 // Eén stap: omhoog zacht, omlaag direct.
 export function stepNear(cur, target, dt) {
-  if (!(target > cur)) return target;
-  return cur + (target - cur) * (1 - Math.exp(-NEAR_RISE_PER_S * Math.max(0, dt)));
+  // Verfijning 22-11: een NaN-near zou de projectie voorgoed breken; dan altijd terug naar de veilige waarde.
+  if (!Number.isFinite(target)) target = NEAR_MIN;
+  if (!Number.isFinite(cur) || !(target > cur)) return target;
+  return cur + (target - cur) * (1 - Math.exp(-NEAR_RISE_PER_S * (dt > 0 ? dt : 0)));
 }
 
 // De waarde van ?near=<m> of ?far=<m>: een getal tussen min en max, anders null.
