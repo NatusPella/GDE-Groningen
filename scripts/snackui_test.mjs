@@ -77,6 +77,16 @@ t('de knoppen: renderSnackPanel bindt een klik en doet de actie (met een nepelem
   click({ sn: 'menu', id: 'souffle' }); assert.match(U.sui.msg, /vol/);
   U.renderSnackPanel(el, w); assert.match(el.innerHTML, /Snackwagen/);
 });
+t('Tegels (#1273): "Reputatie" toont een getal van 100, geen "Naam" met een kaal getal; geen NaN, geen lege waarde; de plekknop heet "Op de kaart"', () => {
+  reset(); const w = wereld(); SL.buyVan(w); SL.koopVergunning(w, 'park');
+  const h = U.snackHtml(SL.snackView(w));
+  const tegels = [...h.matchAll(/<span class="bz-tegel"><small>([^<]*)<\/small><b>([^<]*)<\/b>/g)].map((m) => [m[1], m[2]]);
+  assert.ok(tegels.length >= 4);
+  for (const [k, x] of tegels) { assert.ok(k.trim() && String(x).trim(), 'lege tegel ' + k); assert.ok(!/NaN|undefined|null/.test(k + x), 'rommel in tegel ' + k); }
+  assert.ok(!tegels.some(([k]) => k === 'Naam'), 'een tegel "Naam" met een getal erin is de verkeerde bron');
+  assert.match(tegels.find(([k]) => k === 'Reputatie')[1], /^[0-9]+ van 100$/);
+  assert.match(h, /data-sn="doel-plek"[^>]*>Op de kaart</); assert.ok(!/>Doel</.test(h));
+});
 t('Buurt en klanten: tevredenheid, goodwill, bondgenoten, vaste klanten met hulpknoppen met bevestiging, meewerken bij een medespeler, het geschil met zijn antwoorden', () => {
   reset(); const w = wereld(); SL.buyVan(w); SL.koopVergunning(w, 'park'); SL.placeVan('park');
   L.setClaimLookup((id) => (id === 'sp:leek' ? { name: 'lotte', color: '#c0c', playerId: 'B' } : null));

@@ -5,7 +5,7 @@
 // then close. Sections: Overzicht, Te doen (todoui.js), Verhaal
 // (verhaalui.js), Kaart, Garage, Prestaties, Cheats (cheatsui.js),
 // Instellingen, Besturing.
-import { keyLabelGlyph, keyLabelHtml } from './keycap.js';
+import { keyLabelGlyph, keyLabelHtml, braceKeysHtml } from './keycap.js';
 import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './settings.js';
 import { retryBeschikbaar, herstartMissie, herstartBlokkade } from './missions.js';   // #985 punt 16
 import { difficultyTabHtml, difficultyPaneText, syncDifficultyTab, stepDifficultyPicker, handleDifficultyClick } from './difficultypanel.js'; // #1169: Instellingen > Moeilijkheid, per save
@@ -559,7 +559,8 @@ function subtabsHtml(of, label) {
     (of === 'controls' ? '<span class="m-grow"></span><button type="button" class="m-bt" data-goto-sub="settings:besturing">Terug naar Instellingen</button>' : '') + '</div>';
 }
 
-const rowName = (label, note) => `<span class="nm">${label}${note ? `<span class="mut">${note}</span>` : ''}</span>`;
+// #1257: a label or note may carry {TOKEN}s ({N}, {SHIFT}+{N}); they are keycaps here, never raw braces.
+const rowName = (label, note) => `<span class="nm">${braceKeysHtml(label)}${note ? `<span class="mut">${braceKeysHtml(note)}</span>` : ''}</span>`;
 
 // `weergave`: 'procent' (volumes, helderheid) of 'keer' (afstand, gevoeligheid). Een
 // percentage bij "Camera-afstand 1,2x" of "Stuurgevoeligheid" zegt niets; 120% van wat?
@@ -575,14 +576,14 @@ function toggle(k, label, note = '') {
 // a picker: previous, the chosen value, next (the mockups' replacement for a segmented row)
 function picker(k, label, options, note = '', attrs = `data-setting="${k}"`) {
   const name = plain(label);
-  return `<div class="m-li pm-row"><span class="nm" id="pm-l-${k}">${label}${note ? `<span class="mut">${note}</span>` : ''}</span>` +
+  return `<div class="m-li pm-row"><span class="nm" id="pm-l-${k}">${braceKeysHtml(label)}${note ? `<span class="mut">${braceKeysHtml(note)}</span>` : ''}</span>` +
     `<span class="m-pk" role="group" aria-labelledby="pm-l-${k}" ${attrs} data-options="${esc(JSON.stringify(options))}">` +
     `<button type="button" data-pick="-1" aria-label="${esc(name)}: vorige">${CHEV_L}</button><output aria-live="polite"></output>` +
     `<button type="button" data-pick="1" aria-label="${esc(name)}: volgende">${CHEV_R}</button></span></div>`;
 }
 
 function disclosure(id, title, hint, inner, open = false) {
-  return `<div class="m-rule"></div><button type="button" class="m-disc" data-fold="${id}" aria-expanded="${open}" aria-controls="pm-f-${id}">${CHEV_R}<b>${title}</b><span class="mut">${hint}</span></button>` +
+  return `<div class="m-rule"></div><button type="button" class="m-disc" data-fold="${id}" aria-expanded="${open}" aria-controls="pm-f-${id}">${CHEV_R}<b>${braceKeysHtml(title)}</b><span class="mut">${braceKeysHtml(hint)}</span></button>` +
     `<div class="m-fold" id="pm-f-${id}" data-fold-body="${id}"${open ? '' : ' hidden'}>${inner}</div>`;
 }
 
@@ -724,7 +725,7 @@ function settingsHtml() {
       ${toggle('zuinig', 'Zuinige modus', '30 beelden per seconde, spaart batterij en warmte')}
       ${toggle('shadows', 'Schaduwen', 'Schaduwen geven de wereld diepte; uit is soepeler op een lichte computer')}
       ${picker('drawDistance', 'Zichtafstand', [['kort', 'Kort'], ['normaal', 'Normaal'], ['ver', 'Ver'], ['heelver', 'Heel ver']])}
-      ${DESKTOP ? '<label class="m-li pm-row"><span class="nm">Volledig scherm<span class="mut">{F11} of {ALT}+{ENTER}</span></span><input type="checkbox" class="m-sw" data-desktop="fullscreen"></label>' : ''}
+      ${DESKTOP ? `<label class="m-li pm-row">${rowName('Volledig scherm', '{F11} of {ALT}+{ENTER}')}<input type="checkbox" class="m-sw" data-desktop="fullscreen"></label>` : ''}
       ${slider('brightness', 'Helderheid', 0.6, 1.6, 0.05)}
       ${picker('worldColor', 'Wereldkleur', [['uit', 'Uit'], ['subtiel', 'Subtiel'], ['drukwerk', 'Drukwerk']], 'De kleuren van de wereld sluiten aan op het drukwerk van het spel; gevels, gras en straat na een herstart, licht en korrel meteen')}
       <!-- De benchmark hoort bij de beeldinstellingen, niet verstopt onder "Meer opties": hij
@@ -1736,7 +1737,7 @@ function bindPane(kind, note, extra = '') {
   const titel = kind === 'keys' ? 'Toets wijzigen' : 'Knop wijzigen';
   const kop = kind === 'keys' ? 'Toetsenbord en muis' : 'Controller';
   return `<aside class="m-pane"><div class="pm-pane-top"><span class="m-eb">${kop}</span><h2 class="m-h2 td-h2">${titel}</h2></div>` +
-    `<p>${note}</p><p class="pm-status pm-bindmsg g" role="status">${esc(bindMsg)}</p><span class="m-grow"></span>` +
+    `<p>${braceKeysHtml(note)}</p><p class="pm-status pm-bindmsg g" role="status">${braceKeysHtml(esc(bindMsg))}</p><span class="m-grow"></span>` +
     `<div class="m-acts td-acts"><button type="button" class="m-bg" data-action="binds-reset-${kind === 'keys' ? 'keys' : 'pad'}">${icon('restart')}Standaard herstellen</button></div>${extra}</aside>`;
 }
 
@@ -1802,7 +1803,7 @@ function renderBinds() {
 
 function setBindMsg(text) {
   bindMsg = text;
-  for (const el of root.querySelectorAll('.pm-bindmsg')) el.textContent = text;
+  for (const el of root.querySelectorAll('.pm-bindmsg')) el.innerHTML = braceKeysHtml(esc(text));
 }
 
 const actionWords = (c) => (KEY_ACTIONS.find(([k]) => k === c) || [c, c])[1];
@@ -2230,9 +2231,9 @@ function runAction(a) {
   } else if (a === 'bench' || a === 'bench-cancel') {
     const box = root.querySelector('[data-bench-confirm]');
     box.hidden = a === 'bench-cancel';
-    box.querySelector('[data-bench-text]').textContent = prestart
+    box.querySelector('[data-bench-text]').innerHTML = braceKeysHtml(prestart
       ? 'Benchmark starten? Duurt ongeveer een minuut. {ESC} stopt.'
-      : 'Benchmark starten? Je spel wordt eerst opgeslagen. {ESC} stopt.';
+      : 'Benchmark starten? Je spel wordt eerst opgeslagen. {ESC} stopt.');
     if (!box.hidden) box.querySelector('[data-action="bench-go"]').focus();
     else root.querySelector('[data-action="bench"]').focus();
   } else if (a === 'bench-go') {

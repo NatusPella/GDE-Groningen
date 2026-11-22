@@ -8,7 +8,7 @@
 // scherptediepte, Enter/klik foto, Esc of F8 terug.
 import { icoon } from './icons.js';
 import * as F from './fotomodus.js';
-import { glyphHtml, keyLabelHtml } from './keycap.js';
+import { glyphHtml, keyLabelHtml, braceKeysHtml } from './keycap.js';
 import { getRenderer } from './scene3d.js';
 import { storyDate } from './calendarday.js';
 import { wijkProfileAt } from './trafficfleet.js';
@@ -333,11 +333,12 @@ function zetFotoCss() {
 }
 
 // De drie toetsen die je in de fotomodus meteen nodig hebt: in de lege staat en in de strook.
-const FOTO_TIPS = '<div class="foto-tips">' +
+// #1257: the tips are keycaps, not raw {TOKEN}s.
+const FOTO_TIPS = braceKeysHtml('<div class="foto-tips">' +
   '<span class="foto-tip">{F8} fotomodus</span>' +
   '<span class="foto-tip">{ENTER} foto maken</span>' +
   '<span class="foto-tip">{F} filter · {T} weer</span>' +
-  '</div>';
+  '</div>');
 
 // #980: dezelfde hero-taal als de andere schermen: een kop met de stand als badge en één zin
 // die zegt wat je hier doet. Leeg heet de kop "Nog geen foto's"; gevuld "Je galerij".

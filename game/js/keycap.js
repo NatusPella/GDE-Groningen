@@ -108,6 +108,8 @@ export function keyTextHtml(html) {
     return pre ? RUN_OPEN + pre + g + RUN_CLOSE : g;
   }));
 }
+// Brace tokens only ({N}, {SHIFT}+{N}) in already-escaped text: [E], (E) and "druk op E" stay text, so a label or note may hold those.
+export const braceKeysHtml = (html) => endKeyRuns(groupKeyRuns(String(html ?? ''), BRACE_RUN_RE).replace(BRACE_KEY_RE, (m, k) => glyphHtml(k)));
 export const hasKeyText = (text) => { TEXT_KEY_RE.lastIndex = 0; return TEXT_KEY_RE.test(String(text)); };
 
 // Brace tokens of known keys only ({E}, {SPACE}, {ESC}, {WASD}, ...): a placeholder like {NAME} is never a key.
