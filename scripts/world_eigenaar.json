@@ -1765,6 +1765,13 @@
       "max": 2,
       "reden": "de levende wereld (dorpsbewoners, #1190) meldt zijn praatjes als spreker in de lijst die scene3d.js in ballonnen zet; de lijst heeft geen eigen API",
       "issue": "#1190"
+    },
+    {
+      "veld": "minigameUntil",
+      "bestand": "game/js/sidejob_pack.js",
+      "max": 3,
+      "reden": "de pakketbaan houdt de minigame-klok vast terwijl het pakket wordt afgegeven (zelfde patroon als sidejobkit.js)",
+      "issue": "#1195"
     }
   ]
 }

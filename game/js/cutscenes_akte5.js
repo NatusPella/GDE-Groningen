@@ -131,7 +131,7 @@ S.F4 = {
     { on: '...Dat is de eerste prijs', actor: 'jelle', anim: 'shrug' },
   ],
   shots: [CLOSE('Ik heb ook geen vergunning', 'tammo', { dist: 1.3 }), CLOSE('Ik zei niet mogen', 'mem', { dist: 1.3 }), CLOSE('Een euro vijftig', 'tessa', { dist: 1.25 })],
-  crowd: { shape: 'line', pts: [[12, -8], [12, 10]], count: 12, side: 3, spread: 2.5, seed: 2130, key: 'cut:F4' },
+  crowd: { shape: 'line', pts: [[12, -8], [12, 10]], count: 12, side: 3, spread: 2.5, seed: 2130, key: 'cut:slot4' },
   wide: { from: [-0.4, 1.4, 2.8], to: [1.0, 0.8, 2.4], look: 'mid:tessa,jelle@1.3', fov: 62, until: 1 },
 };
 
@@ -163,7 +163,8 @@ S.F5 = {
   shots: [
     { on: 'Zijn we nu een stel', dt: 0.1, shot: 'dolly', from: [-0.6, 2.2, 1.4], to: [0.6, 1.6, 1.3], look: 'mid:tammo,tessa@0.95', fov: 34 },
     // ze zitten (kop op ca. 1,1 m): een gewone close mikt te hoog, dus eigen standpunten met een kijkhoogte
-    { on: 'Hier. Met jou erbij', dt: 0.2, shot: 'cut', at: [1.9, -0.5, 1.15], look: 'tammo@1.1', fov: 30 },
+    { on: 'Hier. Met jou erbij', dt: 0.2, shot: 'cut', at: [1.6, -0.2, 1.2], look: 'mid:tammo,tessa@1.1', fov: 38 },
+    { on: 'Drie. Kon meer', dt: 0.1, shot: 'cut', at: [1.9, 1.0, 1.15], look: 'tessa@1.1', fov: 30 },
     { on: 'Dat waren er vier', dt: 0.2, shot: 'cut', at: [1.9, 1.0, 1.15], look: 'tessa@1.1', fov: 30 },
   ],
   wide: WIDE([-0.6, 2.8, 1.9], [0.4, 2.2, 1.6], 'mid:tammo,tessa@0.9'),
