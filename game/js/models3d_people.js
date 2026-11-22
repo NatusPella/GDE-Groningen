@@ -1069,7 +1069,7 @@ export const personCacheStats = () => ({ ...personCache, size: personGeometries.
 export function resetPersonCacheStats() { personCache.hits = 0; personCache.misses = 0; personCache.evictions = 0; personCache.builds = 0; }
 function geometryKey(shirt, skin, L) {
   // Alle velden die buildTorso/buildHead/buildLegs/buildArms echt in de geometrie bakken.
-  return JSON.stringify([shirt, skin, L.coatOpen, L.character, L.cop, L.female, L.age, L.build, L.top, L.topColor,
+  return JSON.stringify([personProbe.layers ? 'lagen' : '', shirt, skin, L.coatOpen, L.character, L.cop, L.female, L.age, L.build, L.top, L.topColor,
     L.bottom, L.pants, L.skirtColor, L.hairStyle, L.hair, L.hat, L.hatColor, L.hijabColor, L.hood, L.hoodUp,
     L.scarf, L.scarfColor, L.bag, L.bagColor, L.glasses, L.facial, L.swim, L.raincoatColor, L.shoes, L.shoeType,
     L.under, L.rolled, L.tights, L.forceOpen, L.shortCoat, L.capColor, L.shades]);
@@ -1226,8 +1226,11 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
     buildArms(B, L, skin, shZ);
     geometry = markShared(B.build());
     if (B.layers) { B.layers.push([B.groups[0].p.length / 9, 'end']); geometry.userData.layers = B.layers; }
-    personGeometries.set(key, geometry);
     personCache.builds++;
+    // een meetbouw (personProbe.layers: de kledingaudit en het kledingvoorbeeld, clothingpreview.js) blijft uit de cache van de wereld;
+    // hij is gemerkt als afgedankt, dus de laatste release geeft hem vrij
+    if (personProbe.layers) geometry.userData.personRetired = true;
+    else personGeometries.set(key, geometry);
     if (personGeometries.size > PERSON_TEMPLATE_CACHE_MAX) {
       // oudste eruit; niet disposen: een levende voetganger kan hem nog tekenen (userData.shared)
       const oud = personGeometries.keys().next().value;
