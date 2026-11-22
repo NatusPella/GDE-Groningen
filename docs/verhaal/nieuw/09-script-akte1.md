@@ -585,3 +585,16 @@ TAMMO: Tessa, eigenlijk— [NIEUW]
 TESSA: Wat zei je? [NIEUW]
 (regie: Tammo kijkt naar de weg. Hij zegt niets meer.)
 
+
+## [W1] Half drie – Stad, Paddepoel, elfde verdieping – flat
+(regie: half drie 's nachts. Alleen het licht van de afzuigkap brandt. Tessa staat in een oud T-shirt bij een pannetje olie, met een schaaltje aardappelstaafjes. Tammo komt binnen met de autosleutels in zijn hand, na een late rit.)
+TAMMO: Het is half drie. [NIEUW]
+TESSA: Dat weet de olie ook. Proef. Kijk niet naar de kleur. [NIEUW]
+TAMMO: Te bleek. Te zout. …Goed. [NIEUW]
+TESSA: Dit wil ik. Elke nacht, voor mensen die nog wakker zijn. [NIEUW]
+TAMMO: In een pannetje? [NIEUW]
+TESSA: In een auto met een luik. Een thuis met wielen. [NIEUW]
+TAMMO: Dan rijd ik. Jij bakt. [NIEUW]
+TESSA: En waar naartoe? [NIEUW]
+TAMMO: Naar waar ze wakker zijn. [NIEUW]
+(regie: ze eten uit hetzelfde schaaltje. De radio zegt zacht dat Grunn slaapt. Dat klopt niet.)

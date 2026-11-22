@@ -123,6 +123,14 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
   - maandagochtend. Op het stationsplein staan een taxi, een stapel formulieren en een klusbord. Ze proberen drie dingen na elkaar.
   - praat: Tessa, Tammo, Jelle Terpstra
 
+**Sequentie W1: Half drie** (activiteit; speler-protagonist Tammo)
+
+- **W1** BINNEN – STAD, PADDEPOEL, ELFDE VERDIEPING – NACHT · Half drie · cutscene of gespeeld in de missie
+  - half drie 's nachts. Alleen het licht van de afzuigkap brandt. Tessa staat in een oud T-shirt bij een pannetje olie, met een schaaltje aardappelstaafjes. Tammo komt binnen met de autosleutels in zijn hand, na een late ri
+  - praat: Tammo, Tessa
+- **R2.0** BUITEN – STAD – DAG · Nachtstreek, dinsdagochtend · radio
+  - praat: Rikus, Snackbarhouder
+
 **Sequentie M03: Het Loket** (missie loket; speler-protagonist Tammo)
 
 - **M03.1** BINNEN – STAD, HET LOKET BIJ DE GROTE MARKT – DAG · Het Loket: intro · cutscene of gespeeld in de missie
@@ -204,8 +212,6 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 - **O3** BUITEN – STAD, RINGWEG – NACHT · Eerlijk winnen · overgangsscène (BRIDGES)
   - laat in de nacht. De Escapade rijdt zonder haast door een lege straat. Tammo stuurt, Tessa kijkt voor zich uit.
   - praat: Tessa, Tammo
-- **R2.0** BUITEN – STAD – DAG · Nachtstreek, dinsdagochtend · radio
-  - praat: Rikus, Snackbarhouder
 
 ### Akte 2: Het Noorden is groot
 
@@ -434,11 +440,6 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 - **K3** BINNEN – EEMSDELTA, EEMSHAVEN, LAMMERTS HAVENKANTOOR – NACHT · Het havenkantoor in de nacht · cutscene of gespeeld in de missie
   - vrijdagnacht, na de container. Twee bedden in een kantoor, het licht van de kranen valt door de lamellen. Op het bureau zit Sjabbe met zijn koptelefoon om zijn nek en een map onder zijn arm.
   - praat: Sjabbe, Tammo, Tessa
-- **R4.0** BINNEN – STAD – OCHTEND · Nachtstreek, maandagochtend · radio
-  - maandag 24 augustus, ochtend. Rikus in de studio; Jelle belt in met zijn offerte.
-  - praat: Rikus, Jelle Terpstra
-- **R4.0b** BUITEN – STAD – DAG · Nachtstreek, maandagavond · radio
-  - praat: Rikus
 
 **Sequentie M14: De dijk** (missie dijk; speler-protagonist Tammo)
 
@@ -462,6 +463,17 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 - **J2** BINNEN – EEMSDELTA, APPINGEDAM, DE BRUG OVER HET DAMSTERDIEP – MIDDAG · Een envelop in Appingedam · cutscene of gespeeld in de missie
   - zaterdagmiddag. Op de brug over het Damsterdiep, onder de hangende balkons. Lammert staat bij zijn auto met een dikke envelop. Durk staat stijf naast hem, Douwe iets verder, met een tas. Op Tammo's schouder zit een duif.
   - praat: Lammert, Tessa, Durk, Douwe, Tammo
+
+**Sequentie W2: Verkocht, zegt het bord** (activiteit; speler-protagonist Tammo)
+
+- **W2** BUITEN – EEMSDELTA, DELFZIJL, HET HAVENHUIS AAN DE KADE – MIDDAG · Verkocht, zegt het bord · cutscene of gespeeld in de missie
+  - vrijdagmiddag. Aan een vervallen havenhuis hangt een bord TE KOOP. Durk staat op een ladder met een nieuw bord, Douwe houdt de ladder vast.
+  - praat: Durk, Tessa, Douwe, Tammo
+- **R4.0** BINNEN – STAD – OCHTEND · Nachtstreek, maandagochtend · radio
+  - maandag 24 augustus, ochtend. Rikus in de studio; Jelle belt in met zijn offerte.
+  - praat: Rikus, Jelle Terpstra
+- **R4.0b** BUITEN – STAD – DAG · Nachtstreek, maandagavond · radio
+  - praat: Rikus
 
 **Sequentie T3: De trein naar Winschoten** (activiteit; speler-protagonist Tammo)
 
@@ -966,14 +978,14 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 
 | Personage | Akte 1 | Akte 2 | Akte 3 | Akte 4 | Akte 5 | Deel 4 |
 |---|---|---|---|---|---|---|
-| Tessa | 39 | 39 | 32 | 33 | 39 | 16 |
-| Tammo | 39 | 37 | 32 | 31 | 33 | 17 |
+| Tessa | 40 | 39 | 33 | 33 | 39 | 16 |
+| Tammo | 40 | 37 | 33 | 31 | 33 | 17 |
 | Jelle Terpstra | 4 | 10 | 11 | 8 | 12 | 4 |
 | Rikus | 9 | 4 | 4 | 7 | 11 | 4 |
 | Berend Bos | 4 |  |  | 14 | 10 | 8 |
-| Douwe | 1 | 2 | 5 | 5 | 5 | 2 |
+| Douwe | 1 | 2 | 6 | 5 | 5 | 2 |
 | Oma Trijntje |  | 5 | 1 | 5 | 8 | 1 |
-| Durk | 1 | 1 | 5 | 4 | 5 | 2 |
+| Durk | 1 | 1 | 6 | 4 | 5 | 2 |
 | Mem Terpstra |  | 2 |  | 6 | 9 |  |
 | Sjabbe | 7 |  | 1 | 1 | 2 | 1 |
 | Kapitein Klaas |  | 8 |  | 1 | 1 | 2 |
@@ -993,8 +1005,8 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 | Torenwachter | 1 |  |  |  | 3 |  |
 | Beppe | 2 |  |  | 1 | 1 |  |
 | Meneer Veldkamp | 2 |  |  |  |  | 1 |
-| Sjoerd | 3 |  |  |  |  |  |
 | Snackbarhouder |  | 3 |  |  |  |  |
+| Sjoerd | 3 |  |  |  |  |  |
 | Terrasgast | 1 | 1 |  |  |  |  |
 | Mevrouw Hoving | 1 |  |  | 1 |  |  |
 | Boer |  | 1 |  |  |  | 1 |

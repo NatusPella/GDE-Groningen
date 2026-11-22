@@ -422,6 +422,36 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
+  "text": "Het is half drie.",
+  "scene": "W1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Te bleek. Te zout. …Goed.",
+  "scene": "W1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "In een pannetje?",
+  "scene": "W1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Dan rijd ik. Jij bakt.",
+  "scene": "W1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Naar waar ze wakker zijn.",
+  "scene": "W1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
   "text": "Regels, vergunningen, trucs.",
   "scene": "M07.1"
  },
@@ -1342,6 +1372,18 @@
   "speaker": "Sjabbe",
   "text": "Jullie eerste pand. Jelle koopt, jullie beheren.",
   "scene": "K3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Zo werkt verkopen niet.",
+  "scene": "W2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Waarom een foto?",
+  "scene": "W2"
  },
  {
   "reason": "spreektekst",
