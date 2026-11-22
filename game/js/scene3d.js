@@ -1471,8 +1471,8 @@ for (const g of [TREE_TRUNK_GEO, TREE_CANOPY_GEO, TREE_CONE_GEO]) SHARED_GEOMETR
 const TREE_FAR = 260;
 const TREE_NEAR_R = loadRadius(TREE_DIST);
 // #1016: bomen doven uit in een band vóór hun tekenstraal en de lijst wordt een herbouwstap verder geladen (popinrules.js)
-for (const m of [TREE_TRUNK_MAT, TREE_CANOPY_MAT]) applyEdgeFade(m, ...fadeBand(TREE_DIST));
-const TREE_FAR_MAT = edgeFadeClone(TREE_CANOPY_MAT, ...fadeBand(TREE_FAR, 24));
+for (const m of [TREE_TRUNK_MAT, TREE_CANOPY_MAT]) applyEdgeFade(m, ...fadeBand(TREE_DIST), perfOff('boomfade')); // ?perfoff=boomfade: bomen zonder discard (#1067)
+const TREE_FAR_MAT = edgeFadeClone(TREE_CANOPY_MAT, ...fadeBand(TREE_FAR, 24), perfOff('boomfade'));
 for (const m of [TREE_TRUNK_MAT, TREE_CANOPY_MAT, TREE_FAR_MAT]) SHARED_MATERIALS.add(m);
 const _leaf = new THREE.Color(), _bark = new THREE.Color();
 const tumbleMats = new Map();
@@ -1801,14 +1801,14 @@ const plan = streamPlanner();
 // camera-afstand, geen extra pass): ze verschijnen dus geleidelijk in plaats van op één afstand. Bij verminderde beweging
 // (Rustig drukwerk) is de band bijna een harde rand. Zonder gevelafstand (Hoog en Ultra) staat de band buiten beeld.
 const FACADE_FADE_MATS = [detailMaterial, glassMaterial];
-for (const m of FACADE_FADE_MATS) applyEdgeFade(m, 1e9, 1e9 + 1);
+for (const m of FACADE_FADE_MATS) applyEdgeFade(m, 1e9, 1e9 + 1, perfOff('gevelfade')); // ?perfoff=gevelfade: kozijnen en glas zonder discard (#1067)
 let facadeFadeOn = false;
 function updateFacadeFade() {
   const on = Number.isFinite(facadeDetailDist) && !perfOff('kozijnfade');
   if (!on && !facadeFadeOn) return;
   facadeFadeOn = on;
   const [a, b] = on ? facadeBand(facadeEffective(), reducedMotion() ? 0.5 : 10) : [1e9, 1e9 + 1];
-  for (const m of FACADE_FADE_MATS) m.userData.edgeFade.value.set(a, b);
+  for (const m of FACADE_FADE_MATS) if (m.userData.edgeFade) m.userData.edgeFade.value.set(a, b);
 }
 const BUILDING_BUILD_MS = 4;
 const BUILDING_BUILD_BOOST_MS = 9;

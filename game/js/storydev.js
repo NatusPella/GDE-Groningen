@@ -6,6 +6,7 @@
 
 import { STEPS, stepAvailable } from './storyarc.js';
 import { cheatsUit, CHEATS_UIT_TEKST } from './coopgroep.js';
+import { setVisibleInterval } from './visibletimer.js';
 
 let world = null;
 let root = null;
@@ -108,5 +109,5 @@ export function initStoryDev(w) {
   const canLock = w.input.canLock;
   w.input.canLock = () => !open && (!canLock || canLock());
   window.addEventListener('keydown', (e) => { if (e.key === 'F9') { e.preventDefault(); setOpen(!open); } });
-  setInterval(refresh, 500);
+  setVisibleInterval(refresh, 500);
 }

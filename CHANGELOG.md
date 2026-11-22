@@ -11,6 +11,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Prestaties
+
+- Prestaties (#1074, #1067): als het spelvenster verborgen of op de achtergrond is, doen de vaste controles van de overlays, het Samen-paneel en het aanraakscherm niets meer; de kartmotor wordt bij het verlaten van de baan echt stopgezet. Samen spelen: lokaal per speler, geen netwerkwijziging; testsessies met `?stil` blijven gewoon tikken. Voor de metingen staan er twee A-schakelaars (`?perfoff=boomfade`, `?perfoff=gevelfade`).
+
 ### Luchtroute
 
 - Luchtroute (#1038): in het vliegtuig, de helikopter, als duif en in de luchtballon is er nog maar één routekaart. Regel 1 is de plaats waar je heen vliegt (Vliegveld Eelde, Winsum), nooit meer de voorwaarde van een missie. Regel 2 zegt wat je doet: Draai om, Links aanhouden, Stijg naar 75 m. De pijl draait mee met je koers; bij een bocht van meer dan 120 graden staat er een omdraai-icoon. Afstand en tijd staan groter rechts. De bovenste balk toont in de lucht alleen de naam van de opdracht, zonder Vlieg naar. De gids is lokaal per speler (Samen spelen).
