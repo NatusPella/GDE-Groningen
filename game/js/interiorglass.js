@@ -2,29 +2,12 @@ import { vcMaterial } from './pixelart3d.js';
 import { onSettingsChange } from './settings.js';
 import { shaderTable, SHOP_KINDS } from './winkelkit.js';
 
+import { PANE_HOME, PANE_GROUND, PANE_SHOP, PANE_OFFICE, paneUV } from './paneuv.js';
+
 // Window glass with interior mapping: every pane shows a fake room (ray/box
 // intersection in pane-local metres) behind fresnel-weighted reflections.
-//
-// Pane attribute encoding in uv (both parts integer + fraction):
-//   uv.x = K * 64 + widthDm + 0.5 + x / 8     x: metres from pane centre along cross(up, n)
-//   uv.y = -(16 + kind * 64 + heightDm) + 0.002 + y / 4     y: metres above pane bottom
-// K is the night-light rank (256 levels; shops: 32 levels * 8 bays),
-// kind 0 = upper-floor home, 1 = ground-floor home, 2 = shop, 3 = office.
-
-export const PANE_HOME = 0, PANE_GROUND = 1, PANE_SHOP = 2, PANE_OFFICE = 3;
-
-export function paneUV(rank, kind, w, h, tx, tz, nx, nz, bay = 0) {
-  const along = tx * nz - tz * nx >= 0 ? 1 : -1;
-  const r = Math.min(0.999, Math.max(0, rank));
-  const K = kind === PANE_SHOP ? (Math.floor(r * 32) << 3) | (bay & 7) : Math.floor(r * 256);
-  const wd = Math.min(63, Math.max(1, Math.round(w * 10)));
-  const hd = Math.min(63, Math.max(1, Math.round(h * 10)));
-  const fx = (x) => K * 64 + wd + 0.5 + x / 8;
-  const base = -(16 + kind * 64 + hd) + 0.002;
-  const fy = (y) => base + Math.min(y, 3.99) / 4;
-  const xa = -along * w / 2, xb = along * w / 2;
-  return [fx(xa), fy(0), fx(xb), fy(0), fx(xb), fy(h), fx(xa), fy(h)];
-}
+// The pane attribute encoding (paneUV, PANE_*) lives in paneuv.js.
+export { PANE_HOME, PANE_GROUND, PANE_SHOP, PANE_OFFICE, paneUV };
 
 // Per winkeltype wand, vloer, producten en meubilair (winkelkit.js, issue #156).
 const SHOP_T = shaderTable();
@@ -113,6 +96,10 @@ vec3 igLampColor(IgPane q) {
 `;
 
 const INTERIOR = /* glsl */`
+// the far rule (#1076): between FAR0 and FAR1 metres the room fades (alpha, not geometry) into one flat tone of the room; beyond
+// FAR1 the ray is not cast at all. The perspective of a room that is a few pixels wide only shimmers.
+const float IG_FAR0 = 100.0;
+const float IG_FAR1 = 150.0;
 float igH(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 
 const vec3 IG_WALL[8] = vec3[8](
@@ -337,8 +324,11 @@ vec3 igInterior(IgPane q, vec3 N, vec3 V, float dist, out float fres) {
   float s1 = igHash24(uint((q.K * 8.0 + q.kind) * 977.0 + 0.5) + uint(W * 10.0 + 0.5) * 61u + uint(H * 10.0 + 0.5)); // the palette seed: an integer hash, so interiorlook.js (the room you walk into) picks the same
   float s2 = fract(s1 * 13.37 + 0.21), s3 = fract(s1 * 71.93 + 0.47), s4 = fract(s1 * 31.17 + 0.83), s5 = fract(s1 * 5.71 + 0.13);
 
+  // N is the outward geometry normal as the vertex gives it: the pane's x in the uv is tied to it, so the frame T must not turn
+  // with the pixel's side (it did when N was flipped towards the camera: a mirrored room on a back-face pixel)
   vec3 T = length(N.xz) > 1e-3 ? normalize(vec3(N.z, 0.0, -N.x)) : vec3(1.0, 0.0, 0.0);
-  vec3 rd = vec3(dot(V, T), V.y, -dot(V, N));
+  float igSide = dot(N, V) > 0.0 ? -1.0 : 1.0;
+  vec3 rd = vec3(dot(V, T), V.y, -dot(V, N) * igSide);
   // sign-preserving epsilon: 1/rd must stay finite (inf * 0 = NaN in the box tests)
   if (abs(rd.x) < 1e-4) rd.x = rd.x < 0.0 ? -1e-4 : 1e-4;
   if (abs(rd.y) < 1e-4) rd.y = rd.y < 0.0 ? -1e-4 : 1e-4;
@@ -366,6 +356,21 @@ vec3 igInterior(IgPane q, vec3 N, vec3 V, float dist, out float fres) {
   float fY = shop ? -0.45 : ground ? -0.55 : -0.85;
   float cY = max(fY + (office ? 2.9 : 2.75), H + 0.3);
   float D = clamp((shop ? 1.7 : 1.1) * uRoomDepth * RW, 2.0, 5.5);
+
+  // far: the tone of the room's back wall under the same light (no ray, no furniture, no pattern): the same on every pixel of a pane
+  float igFar = smoothstep(IG_FAR0, IG_FAR1, dist);
+  vec3 flatCol = vec3(0.0);
+  if (igFar > 0.0) {
+    vec3 tone = mix(vec3(0.4), uShopAccent[st].rgb, 0.45) * 0.9;
+    vec3 fp = vec3(0.0, fY + 1.3, D);
+    vec3 fL = vec3(0.0, cY - 0.35, D * 0.45) - fp;
+    float fd2 = dot(fL, fL);
+    vec3 fE = lampCol * lampI * (0.1 + 0.6 * max(fL.z * -inversesqrt(max(fd2, 1e-4)), 0.0) / (1.0 + fd2 * 0.35));
+    fE += DAY * dayI * (0.12 + 0.5 * exp(-D * 0.5)) * 0.8;
+    fE += vec3(0.003, 0.0035, 0.005) + vec3(0.030, 0.032, 0.045) * night * (1.0 - lit) * (0.45 + 0.55 * exp(-D * 0.6));
+    flatCol = (shop ? tone * tone : wallC) * fE * 0.75 + lampCol * lampI * 0.12;
+    if (igFar >= 1.0) return flatCol;
+  }
   vec3 b0 = vec3(-RW * 0.5, fY, 0.0), b1 = vec3(RW * 0.5, cY, D);
   vec3 tb = (mix(b0, b1, step(0.0, rd)) - ro) * ird;
   float t = min(tb.x, min(tb.y, tb.z));
@@ -515,7 +520,7 @@ vec3 igInterior(IgPane q, vec3 N, vec3 V, float dist, out float fres) {
       }
     }
   }
-  return col;
+  return igFar > 0.0 ? mix(col, flatCol, igFar) : col;
 }
 `;
 
@@ -538,7 +543,6 @@ glassMaterial.onBeforeCompile = (shader) => {
         vec3 igN = vWNrm;
         if (dot(igN, igN) < 1e-8) igN = vec3(0.0, 0.0, 1.0);
         igN = normalize(igN);
-        if (dot(igN, igV) > 0.0) igN = -igN;
         float igF;
         vec3 igCol = igInterior(q, igN, igV, max(igDist, 1e-3), igF);
         if (any(isnan(igCol)) || any(isinf(igCol)) || isnan(igF)) { igCol = vec3(0.02); igF = 0.2; }

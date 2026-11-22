@@ -238,12 +238,15 @@ image(917, 'Z-fighting op gebouwen', 'Gevels in de stad flakkeren niet; kijk van
     H.cam(x + 30, y + 30, z + 12, x, y, z + 6, 60); await H.shot('a', 1800);
     H.cam(x + 8, y + 8, z + 4, x, y, z + 4, 70); await H.shot('b', 1800); H.camOff();
   });
-image(1076, 'Nepinterieurs in de ramen: perspectief op afstand', 'De interieurs achter het glas verliezen hun perspectief niet in de eerste persoon.',
-  'Ramen tonen een kamer met diepte, ook op 40 meter, in de eerste persoon.', ['a', 'b'], async (H) => {
+image(1076, 'Nepinterieurs in de ramen: perspectief op afstand', 'De interieurs achter het glas houden hun perspectief in de eerste persoon: op 6, 40, 90 en 140 m, ook schuin langs de gevel (docs/NEPINTERIEUR-22-11.md).',
+  'Ramen tonen een kamer met diepte en een kijkhoek die meebeweegt; voorbij ca. 100 m gaat het raam gelijkmatig over in een vlakke kamertoon, zonder flikkering of spiegeling.', ['a', 'b', 'c', 'd'], async (H) => {
     const FP = await H.imp('firstperson').catch(() => null);
     await H.jump(...H.stad, 5000); if (FP) { try { FP.setFirstPerson(H.w, true); } catch (e) { H.note('eerste persoon: ' + e.message); } }
-    await H.shot('a', 2000); H.p.x += 40; await H.shot('b', 2000); if (FP) { try { FP.setFirstPerson(H.w, false); } catch (e) { /* weg */ } }
-  });
+    const [x, y] = H.stad; const z = H.gh(x, y);
+    // ooghoogte 1,7 m, FOV 70, schuin langs de straat naar de gevels (grazende hoek op de lange afstanden)
+    for (const [tag, d] of [['a', 6], ['b', 40], ['c', 90], ['d', 140]]) { H.cam(x + d, y + d * 0.45, z + 1.7, x, y, z + 4, 70); await H.shot(tag, 1800); }
+    H.camOff(); if (FP) { try { FP.setFirstPerson(H.w, false); } catch (e) { /* weg */ } }
+  }, { questions: ['Dichtbij (a): schuift de kamer achter het glas mee als je zijwaarts loopt, zonder spiegeling of wegglijden?', 'Op 90 en 140 m (c, d): geen flikkering en geen harde rand; ramen worden een vlakke, warme of koele toon.', 'Kijk ook schuin naar een gevel die niet langs de straatrichting staat: dezelfde kamerdiepte als bij een gevel recht voor je?'] });
 image(943, 'First person: handen en wapens bij vechten', 'In de eerste persoon zie je je handen en het gekozen wapen.',
   'Handen zichtbaar onderin beeld; bij een wapen is het wapen te zien.', ['a'], async (H) => {
     const FP = await H.imp('firstperson').catch(() => null);

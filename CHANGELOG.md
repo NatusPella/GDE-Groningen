@@ -11,6 +11,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Nepinterieurs
+- Nepinterieurs in de ramen (#1076): de kamer achter het glas klopt weer voor elke hoek van de gevel. De gebouwbatch maakte van de richting van het glas een nulvector, waardoor alle ruiten reageerden alsof hun gevel recht op de wereldas stond; dat is hersteld. Ver weg (vanaf ca. 100 m) gaat een ruit zacht over in één kamertoon, zonder flikkerend meubilair. Lokaal, niets over het net (Samen spelen).
 ### Prestaties
 - Prestaties (#1074, #1067): als het spelvenster verborgen of op de achtergrond is, doen de vaste controles van de overlays, het Samen-paneel en het aanraakscherm niets meer; de kartmotor wordt bij het verlaten van de baan echt stopgezet. Samen spelen: lokaal per speler, geen netwerkwijziging; testsessies met `?stil` blijven gewoon tikken. Voor de metingen staan er twee A-schakelaars (`?perfoff=boomfade`, `?perfoff=gevelfade`).
 ### Kaart en HUD
