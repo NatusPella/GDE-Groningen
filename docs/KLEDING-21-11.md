@@ -95,6 +95,10 @@ Prestaties: Nieuwe look, Past als gegoten, Hele kast (228 in totaal).
 - **Kapper (#1156):** de reactie hangt nu af van het model en de kleur (`hairReaction` in `clothinghair.js`: kaal, hanenkam, speelse kleuren hebben een eigen regel, anders de algemene lijst). De rest van het pakket stond er al: haar in outfits, outfit-code en verhaaloutfit, NPC-kapsels en de prestatie Nieuw kapsel.
 - **Niet in beeld bekeken:** niets uit deze ronde is in Electron of een mock gezien; alleen pure tests (`scripts/kleding_r5_test.mjs`).
 
+## 9d. Ronde 6: clipping (22-11)
+
+De pet van Tammo stak door zijn hoofd (haar door de pet, de onderrand op ooghoogte). Een audit van 6.100 combinaties (personage, lichaamsvorm, kapsel, stuk) vond ruim 3.000 combinaties met doordringing: haar door hoofddeksels, sieraden en sjaal in het shirt, horloge en handschoenen scheef om de pols, planken voor de borst (overhemd in een open jas, revers, buidelzak), een tas in de arm. Alles is gerepareerd in de bouwers en bewaakt door `scripts/kleding_clipping_test.mjs`. Zie [KLEDING-CLIPPING-22-11.md](KLEDING-CLIPPING-22-11.md).
+
 ## 10. Niet gedaan en open
 
 - Winkeliers en andere beroepsfiguren in interieurs: de interieurs hebben nu personen (`interiornpc.js` kiest een rolpool), maar of het pashokje en de kassa de juiste figuren laten zien is niet in beeld bekeken.
