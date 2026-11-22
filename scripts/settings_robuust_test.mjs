@@ -10,6 +10,7 @@ globalThis.localStorage = {
 globalThis.document = undefined;
 const fouten = [];
 const origErr = console.error; console.error = (...a) => { fouten.push(a.join(' ')); };
+const origWarn = console.warn; console.warn = (...a) => { fouten.push(a.join(' ')); };
 const S = await import('../game/js/settings.js');
 let n = 0, fails = 0;
 const ok = (c, m, i = '') => { n++; if (!c) { fails++; origErr('FAIL', m, i); } };
@@ -48,6 +49,13 @@ try { unsub = S.onSettingsChange(() => { throw new Error('bij aanmelden'); }); }
 ok(!gooide2 && typeof unsub === 'function', 'aanmelden gooit niet');
 S.flushSettings();
 ok(JSON.parse(opslag.get(KEY)).v === 99, 'de hogere versie van het bestand blijft');
+// een volle opslag: één waarschuwing, geen gooi, de stand blijft in het geheugen
+const voor = fouten.length;
+globalThis.localStorage.setItem = () => { throw Object.assign(new Error("vol"), { name: "QuotaExceededError" }); };
+let gooide3 = false;
+try { S.setSetting("showHints", false); S.setSetting("showMinimap", false); S.setSetting("showFog", false); } catch (e) { gooide3 = true; }
+ok(!gooide3 && g.showFog === false, "volle opslag: geen gooi, stand in geheugen");
+ok(fouten.slice(voor).filter((f) => /bewaren mislukt/.test(f)).length === 1, "volle opslag: precies één waarschuwing", fouten.slice(voor).filter((f) => /bewaren/.test(f)).join("|"));
 console.error = origErr;
 console.log(`settings_robuust_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);

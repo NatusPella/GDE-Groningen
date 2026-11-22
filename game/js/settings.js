@@ -328,10 +328,14 @@ export function getSettings() {
 const SETTINGS_WRITE_DELAY_MS = 200;
 let writeTimer = null;
 let writePending = false;
+let schrijfFoutGemeld = false;
 function writeSettingsNow() {
   if (writeTimer) { clearTimeout(writeTimer); writeTimer = null; }
   writePending = false;
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...settings, ...newerExtras, v: Math.max(storedVersion, SETTINGS_VERSION) })); } catch (e) { /* ignore */ }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...settings, ...newerExtras, v: Math.max(storedVersion, SETTINGS_VERSION) })); schrijfFoutGemeld = false; } catch (e) {
+    // 22-11: een volle of geblokkeerde opslag mag niet stil zijn: één waarschuwing in het Foutrapport, de stand blijft in het geheugen
+    if (!schrijfFoutGemeld) { schrijfFoutGemeld = true; console.warn("Instellingen: bewaren mislukt (" + ((e && e.name) || "fout") + ")"); }
+  }
 }
 function scheduleSettingsWrite() {
   writePending = true;
