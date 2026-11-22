@@ -188,6 +188,7 @@ export function updatePrompts(dt, world) {
   const hidden = hiddenNow(world);
   root.classList.toggle('off', hidden);
   rowsEl.classList.toggle('off', hidden || hintsQuiet());
+  hudObstacles(); // ook als de hints zwijgen blijven de bellen van voorbijgangers van de HUD-kaarten af (cache van 0,2 s; #1198)
   if (hidden) {
     // after a scene or a respawn the hints build up again from nothing
     if ((hiddenT += dt) > 1.5) { admitted.clear(); rowGate = ROWS_DELAY; }
