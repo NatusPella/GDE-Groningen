@@ -572,6 +572,19 @@
   "file": "anita/rook_links_de_wagen_blijft_staan_a92a98aa.mp3"
  },
  {
+  "key": "Anita|De mevrouw uit Loppersum staat weer vooraan. Haar oma kende Oma Trijntje.",
+  "speaker": "Anita",
+  "text": "De mevrouw uit Loppersum staat weer vooraan. Haar oma kende Oma Trijntje.",
+  "area": "E1",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "enthousiast, snel",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+  "file": "anita/de_mevrouw_uit_loppersum_staat_w_9b252ef4.mp3"
+ },
+ {
   "key": "Anita|Een snackwagen. Geen wagen die je koopt: een wagen die wij maken.",
   "speaker": "Anita",
   "text": "Een snackwagen. Geen wagen die je koopt: een wagen die wij maken.",
@@ -596,6 +609,32 @@
   "tag": "enthousiast, snel",
   "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
   "file": "anita/met_zo_n_luik_in_de_escapade_bel_40f22496.mp3"
+ },
+ {
+  "key": "Anita|Hij is Gronings, ik ben Fries. Wij zijn de verzoening.",
+  "speaker": "Anita",
+  "text": "Hij is Gronings, ik ben Fries. Wij zijn de verzoening.",
+  "area": "F3",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "ongeduldig, bazig",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
+  "file": "anita/hij_is_gronings_ik_ben_fries_wij_5ae0b0f3.mp3"
+ },
+ {
+  "key": "Beppe|It smakket.",
+  "speaker": "Beppe",
+  "text": "It smakket.",
+  "area": "F3",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Aoede",
+  "who": "Tammo's Friese beppe (oma), warm, zacht en nuchter, spreekt Fries",
+  "tag": "warm, zacht",
+  "style": "spoken in Frisian (Frysk), a warm old Frisian grandmother, slowly and kindly; Tammo's Friese beppe (oma), warm, zacht en nuchter, spreekt Fries. Tone: warm, zacht.",
+  "file": "beppe/it_smakket_6c1fff32.mp3"
  },
  {
   "key": "Anita|Dat waren er vier. Eén te weinig.",

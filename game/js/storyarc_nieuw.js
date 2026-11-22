@@ -188,8 +188,8 @@ export const PARTS = {
       ['Tammo', 'Het is Grunn.'],
       ['Tessa', 'Spijt van de zomer?'],
       ['Tammo', 'Nee. Van de volgende ook niet. Alvast.'],
-      ['Tessa', 'Willemien staat weer vooraan. Haar oma kende Oma Trijntje.'],
-      ['Tammo', 'Derde keer deze week. Uitverkocht voor vieren.'],
+      ['Tessa', 'De mevrouw uit Loppersum staat weer vooraan. Haar oma kende Oma Trijntje.'],
+      ['Tammo', 'Vaste klant. Uitverkocht voor vieren.'],
       ['Tessa', 'Berend heeft de foto laten inlijsten.'],
       ['Tammo', 'Op de achterkant staat: elf seconden.'],
       ['Tessa', 'De duiven staan weer in de rij.'],
@@ -519,4 +519,11 @@ export const CLUES = [
   { step: 'M30', kind: 'hart', title: 'Zes woorden', text: '"Thuis is waar de kar staat." Zes woorden, zei Tessa. Kon minder. Elke zomer rijdt de snackwagen één ronde.' },
   { step: 'M30', kind: 'clue', title: 'De wereld ligt open', text: 'Geesje heeft bieten die tot aan de weg staan, in Veendam zoeken ze een aanvalster, Sjabbe heeft een leeg pand en Willemien wil een tweede wagen. Jelle wacht tot de panden goedkoper worden.' },
   { step: 'M26', kind: 'hart', title: 'Vijf woorden', text: '"Ik wil bij jou blijven." "Dat bedoelde ik ook." Het duurde vijf jaar. Kon minder. Daarna kuste ze hem, voor heel de Grote Markt. Berend telde elf seconden.' },
+  // het slot (F1 tot en met F6): wat het logboek erbij weet; de wagen heeft hier nog geen naam (die staat pas op het luik van M22)
+  { step: 'F1', kind: 'hart', title: 'Een bierviltje met een luik', text: 'Tessa tekende twaalf dagen geleden een snackwagen op een bierviltje en zei dat het een tekening was. Langs een zandweg bij Zuidhorn stond het luik, aan een hek. Het komt in de Escapade.' },
+  { step: 'F2', kind: 'hart', title: 'Smaken en rijden', text: 'Tessa kan de eierbal laten smaken, Tammo kan de wagen laten rijden. Alleen kunnen ze het allebei niet. Dus blijven ze bij elkaar.' },
+  { step: 'F3', kind: 'clue', title: 'Soep met een eierbal', text: 'Oma Trijntje (Gronings) en Beppe (Fries) stonden in één keuken, met Mem, Durk en Douwe erbij. Het menu is soep met een eierbal: één kom, twee oma\'s. Grunn en Fryslân zijn verzoend.' },
+  { step: 'F4', kind: 'clue', title: 'Achteraan de rij', text: 'Jelle stond zonder limo achteraan de rij en trok zijn eigen vergunning in. Mem zei: "Ik zei niet mogen. Ik zei: ik heb er genoeg." De mosterd van 1953 kost een euro vijftig.' },
+  { step: 'F5', kind: 'hart', title: 'Een avond voor twee', text: 'Een lijstje in de zak van Tammo: eten, wandelen, en eentje doorgestreept. Zijn we nu een stel? Berend telde elf seconden. Dat is officieel.' },
+  { step: 'F6', kind: 'clue', title: 'Eenenveertig tegen één', text: 'Op de kaart van de provincie staan eenenveertig rode stippen voor Us Mem Snacks en één blauwe voor de Vismarkt. Jelle belde: wedstrijd. Alles blijft open.' },
 ];

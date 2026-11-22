@@ -14,6 +14,7 @@ import { STEPS } from '../game/js/storyarc.js';
 import { STEP_DAY } from '../game/js/calendar.js';
 import { VAN_MILESTONES } from '../game/js/storymilestones.js';
 import { BEPPE_LOOK } from '../game/js/storycast.js';
+import { CLUES } from '../game/js/storyarc_nieuw.js';
 
 let fails = 0, n = 0;
 const ok = (c, name, extra = '') => { n++; if (!c) { fails++; console.log('FAIL', name, extra); } };
@@ -53,6 +54,9 @@ ok(mono, 'de kalender loopt nooit terug over de stappen');
 const ms = (flag) => VAN_MILESTONES.find((m) => m.flag === flag);
 ok(idx('F1') < idx(ms('wagen:naam').step), 'F1 komt vóór wagen:naam (het luik is nog een tekening)');
 ok(idx(ms('wagen:standplaats').step) < idx('F3'), 'wagen:standplaats is gehaald vóór de verzoening');
+// het logboek ("Wat weten we?") kent elke slotstap, en de naam van de wagen staat pas bij het luik
+for (const id of F) ok(CLUES.some((c) => c.step === id), id + ' laat een regel achter in het logboek');
+ok(!CLUES.filter((c) => idx(c.step) < idx('M22')).some((c) => /Tam & Tes/i.test(c.text + c.title)), 'het logboek noemt Tam & Tes niet vóór M22');
 
 // --- de scènes: regie op de echte regels --------------------------------------------------------------------------------------------
 const looks = {};
