@@ -101,8 +101,14 @@ const PAD_DECK = 1.2;
 // OSM (House of Groningen, way 749915414): the tower and its parking plinth.
 const TOWER = [[-1303.66, -1090.58], [-1291.84, -1097.21], [-1285.79, -1100.63], [-1272.27, -1076.59], [-1290.35, -1066.43]];
 const PLINTH = [[-1319.65, -1081.66], [-1303.66, -1090.58], [-1290.35, -1066.43], [-1292.23, -1065.4], [-1293.33, -1064.77], [-1291.22, -1058.16], [-1290.79, -1056.76], [-1309.84, -1051.02]];
-// Pleiadenlaan kerb in front of the tower (long vehicles), the canal bank behind it (boats)
+// Pleiadenlaan kerb in front of the tower (long vehicles), the canal bank behind it (planting only; the boats lie at MOORING)
 const KERB = [[-1294.68, -1111.66], [-1333.42, -1090.4], [-1365.2, -1072.78]];
+// "Jouw steiger" (boot-flat-22-11): the water behind the tower is a dead end (no vaarnet edge within 690 m, no route out, the old mooring
+// at -1237,-1073 had 0.2 m of clearance) and the nearest water that connects is a canal 670 m to the north-west. The boats lie in a row
+// on this line, in open water: >= 6 m clearance all along it, and planVaarRoute reaches the Binnenstad from here (scripts/steiger_flat_test.mjs).
+export const HOME_MOORING = [[-1676, -528], [-1740.7, -501.2]];
+const MOORING = HOME_MOORING;
+// the canal bank behind the tower (a dead-end pond: only the green strip along it is dressed, no boats)
 const BANK = [[-1214.36, -1039.97], [-1268.77, -1120.63]];
 
 const sub = (a, b) => [a[0] - b[0], a[1] - b[1]];
@@ -210,7 +216,7 @@ function buildLayout() {
   flat.fl = fl;
 
   const court = polyline(KERB);
-  const bank = polyline(BANK);
+  const bank = polyline(MOORING);
   const cx = PLINTH.reduce((s, p) => s + p[0], 0) / PLINTH.length, cy = PLINTH.reduce((s, p) => s + p[1], 0) / PLINTH.length;
   return {
     center: { x: cx, y: cy }, icon: { x: lobby.use[0], y: lobby.use[1] },
@@ -349,16 +355,16 @@ export function getHomeGarageForRender() {
   return [{ x: d.cx + d.nx * 2, y: d.cy + d.ny * 2, name: 'Jouw garage', sub: 'Al je voertuigen staan hier klaar' }];
 }
 
-// "Jouw steiger": where the boats lie behind the tower.
-function mooringPoint(w) {
-  const side = bankSide(w);
-  const p = home.bank.at(40);
-  return { x: p.x + p.dir[1] * side * 2, y: p.y - p.dir[0] * side * 2 };
+// "Jouw steiger": where the boats lie, on the open-water mooring line. Fixed from the layout alone (no map query,
+// so the marker on the map and the minimap cannot flip between frames).
+function mooringPoint() {
+  const p = home.bank.at(home.bank.total / 2);
+  return { x: p.x, y: p.y };
 }
 
 export function getHomeMooringForRender(w) {
   if (!home || !w) return [];
-  return [{ ...mooringPoint(w), name: 'Jouw steiger', sub: 'Hier liggen je boten. Laten afleveren brengt ze hierheen' }];
+  return [{ ...mooringPoint(), name: 'Jouw steiger', sub: 'Aan de vaart ten noordwesten van Paddepoel liggen je boten. Laten afleveren brengt ze hierheen' }];
 }
 
 // "Jouw helidek" on the roof, once there is a helicopter to park on it.
@@ -384,7 +390,7 @@ export function getHomeSpots(w) {
     { name: 'garagedeur', x: d.cx + d.nx * 3, y: d.cy + d.ny * 3, mode: 'drive' },
     { name: 'Escapade-plek', x: hero.x, y: hero.y, mode: 'drive' },
   ];
-  out.push({ name: 'steiger', ...mooringPoint(w), mode: 'boat' });
+  out.push({ name: 'steiger', ...mooringPoint(), mode: 'boat' });
   if (home.pad) out.push({ name: 'helidek', x: home.pad.x, y: home.pad.y, mode: 'air' });
   return out;
 }
@@ -680,13 +686,6 @@ function lineSlots(list, line, offset, from, to) {
   return out;
 }
 
-function bankSide(w) {
-  if (home._bankSide) return home._bankSide;
-  const p = home.bank.at(home.bank.total / 2);
-  home._bankSide = isInWater(w.map, p.x + p.dir[1] * 3, p.y - p.dir[0] * 3) ? 1 : -1;
-  return home._bankSide;
-}
-
 // Where every stored entry belongs: want (entry -> the slot to spawn it at)
 // and where (key -> { at, bay }) for the Garage menu. at: 'bay', 'garage'
 // (driven in and left anywhere inside), 'lift' (more cars than bays: in the
@@ -716,8 +715,7 @@ function homeLayout(w, stored) {
   const court = lineSlots(stored.long, home.court, (sp) => ({ side: 1, d: 4.5 + sp.model.wid / 2 + 0.5 }), 24, home.court.total - 2);
   for (const [o, s] of court) want.set(o, { ...s, id: 'k-' + o.key });
   for (const o of stored.long) where.set(o.key, { at: 'kerb' });
-  const side = bankSide(w);
-  const boats = lineSlots(stored.boat, home.bank, (sp) => ({ side, d: sp.model.wid / 2 + 1.1 }), 30, home.bank.total - 8);
+    const boats = lineSlots(stored.boat, home.bank, () => ({ side: 1, d: 0 }), 4, home.bank.total - 4);
   for (const [o, s] of boats) want.set(o, { ...s, id: 'b-' + o.key });
   for (const o of stored.boat) where.set(o.key, { at: 'mooring' });
   home.rack.slots.forEach((r, i) => {
@@ -740,7 +738,7 @@ const WHERE_LABEL = {
   lift: () => 'Thuis in de parkeerlift: haal hem naar voren bij het paneel in de garage',
   kerb: () => 'Thuis langs de stoep voor de garage',
   rack: () => 'Thuis in het fietsenrek bij de voordeur',
-  mooring: () => 'Thuis aan jullie steiger achter de flat',
+  mooring: () => 'Thuis aan jullie steiger aan de vaart',
   pad: () => 'Thuis op het helidek',
 };
 
@@ -792,6 +790,11 @@ function near(w, r) {
   const p = hoofdspeler(w);
   return Math.hypot(p.x - home.center.x, p.y - home.center.y) < r;
 }
+// the boats spawn round the mooring, which lies away from the flat
+function nearMooring(w, r) {
+  const p = hoofdspeler(w), m = mooringPoint();
+  return Math.hypot(p.x - m.x, p.y - m.y) < r;
+}
 
 // Is the (still) vehicle where a stored one of its kind belongs?
 function inStoreZone(w, v, spec) {
@@ -840,20 +843,20 @@ function updateVehicles(w) {
     if (!w.vehicles.includes(v)) continue;
     if (Math.abs(v.speed || 0) < 0.3 && !inStoreZone(w, v, specOf.get(v)) && Math.hypot(v.x - (v._homeX ?? v.x), v.y - (v._homeY ?? v.y)) > 3) { v.homeStored = false; v.homeSlot = null; }
   }
-  const isNear = near(w, NEAR_M);
-  const isFar = !near(w, FAR_M);
+  const isNear = near(w, NEAR_M), boatNear = nearMooring(w, NEAR_M);
+  const isFar = !near(w, FAR_M), boatFar = !nearMooring(w, FAR_M);
   const stored = storedEntries();
-  if (isFar) {
-    for (const o of entries) if (o.v && o.v.homeStored && o.v !== pv) stash(w, o);
-    return;
+  if (isFar || boatFar) {
+    for (const o of entries) if (o.v && o.v.homeStored && o.v !== pv && (o.v.isBoat ? boatFar : isFar)) stash(w, o);
+    if (isFar && boatFar) return;
   }
-  if (!isNear) return;
+  if (!isNear && !boatNear) return;
   const { want, where } = homeLayout(w, stored);
   // a car that lost its bay to a pick at the panel goes into the parking lift
-  for (const o of stored.car) if (o.v && o.v.homeSlot && where.get(o.key).at === 'lift') stash(w, o);
+  if (isNear) for (const o of stored.car) if (o.v && o.v.homeSlot && where.get(o.key).at === 'lift') stash(w, o);
   let n = 0;
   for (const [o, s] of want) {
-    if (o.v || n >= SPAWNS_PER_TICK) continue;
+    if (o.v || n >= SPAWNS_PER_TICK || !(o.spec.kind === 'boat' ? boatNear : isNear)) continue;
     if (occupied(w, s.x, s.y, o.spec.kind === 'car' ? 1.3 : o.spec.kind === 'boat' ? 2 : 0.45)) continue;
     const v = spawnOwnedEntry(w, o, s.x, s.y, s.angle);
     if (!v) continue;

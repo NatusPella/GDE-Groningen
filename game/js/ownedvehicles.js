@@ -28,7 +28,7 @@ import { sfxEvent } from './sfx/haken.js';
 //   deliverOwnedVehicle(world, id, opts?) -> { ok, text }
 //     opts.here (the Streken cheat): any catalog vehicle, free and at once, right beside you.
 //     "Laten afleveren": fee, cooldown, out-of-view placement, message (no route: the car shows on the map).
-//     Boats go home to "Jouw steiger" behind the tower, the helicopter to the helidek on its roof (home.js).
+//     Boats go home to "Jouw steiger" on the connected canal north-west of Paddepoel (home.js MOORING), the helicopter to the helidek on its roof (home.js).
 //     In een sessie van een ander zet de gastheer een kopie bij je neer; je eigen
 //     save en de zijne blijven zoals ze zijn (#449, coopbezit.js bezorgHost).
 //     Dat geldt ook voor je boot (op het water bij je) en de heli (op open grond);
@@ -873,7 +873,7 @@ function homeDelivery(world, e) {
   const o = getOwnedEntries().find((x) => x.key === e.id);
   if (!o) return null;
   const short = e.model;
-  const where = kind === 'heli' ? 'op het helidek van jullie flat' : 'aan jouw steiger achter de House of Groningen';
+  const where = kind === 'heli' ? 'op het helidek van jullie flat' : 'aan jouw steiger aan de vaart ten noordwesten van Paddepoel';
   const after = kind === 'heli' ? '. Lift omhoog en de trap naar het dak' : '';
   if (e.status === 'garage') {
     const text = `Je ${short} ${kind === 'heli' ? 'staat' : 'ligt'} al klaar ${where}${after}`;
@@ -895,7 +895,7 @@ function homeDelivery(world, e) {
   o.lost = false;
   if (e.fee) world.money -= e.fee;
   lastDeliveryAt = world.time;
-  const text = `Je ${short} ${kind === 'heli' ? 'wordt naar het helidek van jullie flat gevlogen' : 'wordt naar jouw steiger achter de House of Groningen gevaren'}${after}`;
+  const text = `Je ${short} ${kind === 'heli' ? 'wordt naar het helidek van jullie flat gevlogen' : 'wordt naar jouw steiger aan de vaart ten noordwesten van Paddepoel gevaren'}${after}`;
   world.addMessage(text, 5);
   return { ok: true, text, ...homeSpot(world, kind) };
 }
