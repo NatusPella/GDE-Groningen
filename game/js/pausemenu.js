@@ -777,7 +777,9 @@ function settingsHtml() {
       ${toggle('liveBussen', 'Live bussen', 'Bussen rijden waar ze in het echt rijden. Het spel haalt alleen publieke buslocaties op; er gaat geen account, naam of speelgegeven mee; de bron ziet alleen dat er een verzoek komt, zoals bij elke website. Uit, of als de bron niet bereikbaar is: de bussen rijden het rooster van het spel, op de kaart gemarkeerd als Rooster')}
       ${toggle('liveTreinen', 'Live treinen', 'De vertrekborden tonen de vertragingen van de echte treinen. Het spel haalt eens per minuut alleen openbare gegevens op (ongeveer 1 MB); er gaat geen account, naam of speelgegeven mee; de bron ziet alleen dat er een verzoek komt, zoals bij elke website. Uit, of als de bron niet bereikbaar is: het bord toont het rooster zonder vertraging, met het woord Rooster')}
       <div class="m-gh"><span>Kaart</span></div>
-      ${toggle('mapShiftTeleport','{SHIFT}+{LMB} op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}`,
+      ${toggle('mapShiftTeleport','{SHIFT}+{LMB} op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}
+      <div class="m-gh"><span>Thuis</span></div>
+      ${toggle('startBinnen', 'Start binnen (thuis)', 'Laad je een spel dat bij je huis stond, of ga je naar huis, dan sta je binnen in de woning. Uit: je staat voor de deur')}`,
       `${pane('Spelregels', 'Zo speelt het', '<p>Hoe moeilijk het is, hoe het verkeer en het geweld zich gedragen en hoe het rijden aanvoelt. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan op de andere tabbladen. Camera-afstand, beeldhoek en eerste persoon staan onder Instellingen &gt; Camera; toetshints en uitleg onder Instellingen &gt; Hints &amp; uitleg.</p>')}`)}
     ${tab('moeilijkheid', difficultyTabHtml(), pane('Moeilijkheid', 'Hoe pittig', `<p>${difficultyPaneText}</p>`))}
     ${tab('besturing', `

@@ -40,6 +40,7 @@ import { sfxEvent } from './sfx/haken.js';
 import { playerBusy } from './busy.js';
 import { isCinematicActive } from './cinematics.js';
 import { streamPlanner } from './streamplanner.js';
+import { chooseHomePropertySpawn, pandSpawnOk } from './spawnbinnen.js';
 
 export const BUILD_R = 24, DROP_R = 34, MAX_LIVE = 2, NPC_R = 24, MAX_NPC = 8;
 const OPEN_TIME = 0.3, OPEN_ANGLE = 1.75, DOOR_REACH = 3.0;
@@ -503,6 +504,23 @@ export function initInteriors(w) {
     addCamTargetSource((px, py, list) => { if (S.inside) list.push(S.inside.mesh); });
   }
   // dying or being arrested puts the player elsewhere: drop() happens by distance on the next scan
+}
+
+// Binnenspawn (spawnbinnen.js, docs/SPAWN-BINNEN-22-11.md): a home that is a pand with an ordinary interior (a bought house, Bezit/Homebase). The room is
+// built now, at once and whatever the distance (the load screen waits on it), and the spot in the hall is returned: walkable, clear of
+// furniture, the door reachable, looking at the front wall. null when the pand has no interior or no spot (the caller then stays
+// outside, in front of the door). The player is set there by the caller; scan() keeps the room alive because he stands in it.
+export function binnenplekInPand(w, b) {
+  const rec = b && planReady(b) ? planOf(b) : null;
+  if (!rec || !rec.ok) return null;
+  const sp = chooseHomePropertySpawn(rec.plan);
+  if (!sp || !pandSpawnOk(rec.plan, sp).ok) return null;
+  if (!S.live.has(b)) {
+    const ls = build(w, rec);
+    if (!ls) return null;
+    S.live.set(b, ls);
+  }
+  return sp;
 }
 
 export const INTERIOR_KIND = {

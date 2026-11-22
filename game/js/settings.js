@@ -54,6 +54,9 @@ const BASE_DEFAULTS = {
   // minuut op de lijn); standaard aan. Alleen publieke vertragingen ophalen, niets van de speler versturen; uit of zonder
   // bron toont het bord het rooster zonder vertraging.
   liveTreinen: true,
+  // Start binnen (thuis) (spawnbinnen.js, 22-11): verschijn je bij je thuis (laden van een save bij het huis, Naar huis), dan sta je binnen in de woning
+  // in plaats van voor de deur; uit = zoals voorheen voor de deur. Lokaal per speler. Een oud bestand zonder de sleutel valt op deze standaard terug.
+  startBinnen: true,
   // which glyphs every hint shows: 'auto' (what you used last), 'keys' or 'pad'
   hintSource: 'auto',
   // touch buttons: 'auto' (on a touch device), 'aan' or 'uit' (touchlogic.js)

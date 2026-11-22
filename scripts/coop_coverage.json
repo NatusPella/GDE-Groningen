@@ -199,6 +199,30 @@
    "prio": "-"
   },
   {
+   "id": "spawnbinnen",
+   "naam": "Binnenspawn: thuis beginnen in de woning (22-11)",
+   "groep": "Verhaal",
+   "modules": [
+    "spawnbinnen",
+    "flatplan"
+   ],
+   "eigenaar": "speler",
+   "gast": "Lokaal per speler: wie thuis verschijnt (een save bij het huis laden, Naar huis) staat boven in zijn eigen flat; het interieur is lokaal en er gaat niets over het net. Een gast die aansluit komt naast de host (buiten), nooit in een woning waar de groep niet is; een gast die boven in de flat staat, zet de band niet in het torengebouw.",
+   "beloning": "Geen: een plek verandert geen voortgang, geld of einde.",
+   "wegval": "Niets te herstellen: de plek is lokaal. Hostwissel verplaatst niemand; later aansluiten komt naast de host. Een save die buiten stond blijft buiten.",
+   "test": [
+    "scripts/spawnbinnen_test.mjs",
+    "scripts/interior_coop_test.mjs",
+    "scripts/homebase_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "| Binnenspawn (thuis) |"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
    "id": "bijbanen",
    "naam": "Bijbanen (taxi, bezorgen, krantenwijk, vracht, rondvaart, veer, rechtbank)",
    "groep": "Werk en vermaak",
