@@ -136,6 +136,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [BOOT-SPAWN-21-11.md](<BOOT-SPAWN-21-11.md>) | Boten alleen waar dat logisch is: regel, audit en meting (boot-spawn). |
 | [TTS-ACHTERSTAND-21-11.md](<TTS-ACHTERSTAND-21-11.md>) | TTS-achterstand: stand van de opnameronde. |
 | [TTS-VERDACHT-22-11.md](<TTS-VERDACHT-22-11.md>) | Korte luisterlijst van de nieuwe stemclips: methode, drempels, uitslag (`scripts/tts_verdacht.mjs`). |
+| [TTS-ROND3-22-11.md](<TTS-ROND3-22-11.md>) | TTS-ronde 3: opdrachten per spreker, de stemkeuze voor Veldkamp, Daan, Anneke, Stien en Lieke, en wat nog niet is beluisterd. |
 | [GATE-VOORBEREIDING-21-11.md](<GATE-VOORBEREIDING-21-11.md>) | Gate-voorbereiding 0.65.0: afvinklijst, testlijst en plan voor de eigenaar-review. |
 | [GATE-RAPPORT-22-11.md](<GATE-RAPPORT-22-11.md>) | Gate-rapport 0.65.0 (22-11): uitslag per stap, perf-regressie, fixes, open punten en de eigenaar-reviewpagina. |
 | [PERF-METING-2026-11-05.md](<PERF-METING-2026-11-05.md>) | Dit is een nieuwe, gedateerde meetbron naast `docs/PERF-METING-2026-10-19.md`. |
