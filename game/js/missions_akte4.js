@@ -63,7 +63,7 @@ export function buildAkte4Defs() {
       label: 'Open, dicht',
       intro: ['Wubbo bedient elf bruggen in Veendam, op het ritme van de fanfare. Jelles mosterdschip moet er ook door.', 'Vaar door alle elf de bruggen, vóór het mosterdschip uit. Toeter bij een gesloten brug; dan opent Wubbo hem.'],
       outro: 'Het mosterdschip zit vast. De grove mosterd is van Oma, niet van Jelle. Wubbo kent een webbureau dat elke nacht om middernacht bijwerkt.',
-      timeLimit: 600, // #955: de sloep vaart 11 m/s, de eerste etappe is 1,2 km (107 s zonder één brug) en elke brug wacht op zijn opening
+      timeLimit: 1000, // haalbaarheidsaudit 22-11: het foutloze minimum is ca. 550 s, het hoofdpad krijgt ruim 1,8 x; #955: de sloep vaart 11 m/s, de eerste etappe is 1,2 km (107 s zonder één brug) en elke brug wacht op zijn opening
       timeUp: 'tijd op. Jelles mosterdschip is al door alle elf de bruggen',
       costRow: ['Gered', 'Plakje zeven: de grove mosterd gaat naar Oma'],
       reward: 700,

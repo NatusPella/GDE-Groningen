@@ -65,8 +65,8 @@ ok(loket.stages.some((q) => q.set === 'loket') && loket.stages.some((q) => q.kin
 for (const q of loket.stages) ok(!!q.label, `loket: stage ${q.kind} has a label`);
 const hold = loket.stages.find((q) => q.kind === 'hold');
 ok(hold.time > 0 && hold.ticks.length === 2, 'loket: the wait has a time and two ticks');
-// #664: het Loket heeft geen ruime fail-timer meer; de tijd is een medaille-eis (binnen 1:00)
-ok(loket.timeLimit == null && loket.medalTime === 60 && Array.isArray(loket.tagRows.snel), 'loket: geen fail-timer, wel een medaille-eis van 1:00');
+// #664: het Loket heeft geen ruime fail-timer meer; de tijd is een medaille-eis (binnen 3:00)
+ok(loket.timeLimit == null && loket.medalTime === 180 && Array.isArray(loket.tagRows.snel), 'loket: geen fail-timer, wel een medaille-eis van 3:00');
 ok(loket.timeLimit == null && hold.time > 0, 'loket: de wachtrij blijft voelbaar zonder de klok als faalreden');
 // M03 (#335): the counters stand at the Stadhuis, a real office, and not at the Goudkantoor (a restaurant): every stage target is open ground
 // within 25 m of the Stadhuis footprint
