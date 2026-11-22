@@ -3,7 +3,6 @@
 // De lijst van wat al gemeld is hoort bij de speler (bezit.x.menuTold, zoals bezit.x.told). Samen spelen: lokaal per speler, geen netwerkverkeer.
 import { storyWorldOpen, storyFlag } from './storyquery.js';
 import { setRevealSource, nextReveals, migrateTold } from './featurereveal.js';
-import { boerderijBegonnen } from './boerderijui.js';
 import { getBoerderij } from './boerderijlive.js';
 import { getBezit } from './bezitlive.js';
 import { getCareer } from './voetbalcarrierelive.js';
@@ -14,9 +13,9 @@ let t = EVERY_S;
 
 const safe = (fn) => { try { return !!fn(); } catch (e) { return false; } };
 
-// Wat de speler al heeft (nooit wegmoffelen): een begonnen akker of gekocht perceel, een pand, een gestarte club, of de vlag van de begincutscene.
+// Wat de speler al heeft (nooit wegmoffelen; gate 0.65: een akker is begonnen met een perceel, niet met speluren: boerderijBegonnen telt elke verstreken spelklok en hield Land en bedrijf in een nieuw spel meteen open): een begonnen akker of gekocht perceel, een pand, een gestarte club, of de vlag van de begincutscene.
 export function owns(world) {
-  if (world === 'farm') return safe(() => boerderijBegonnen(getBoerderij())) || safe(() => storyFlag(FARM_FLAG)) || safe(() => (getBezit().totals.bought | 0) > 0);
+  if (world === 'farm') return safe(() => !!getBoerderij().perceel) || safe(() => storyFlag(FARM_FLAG)) || safe(() => (getBezit().totals.bought | 0) > 0);
   if (world === 'bezit') return safe(() => { const b = getBezit(); return Object.keys(b.bstate || {}).length > 0 || !!(b.buildings && b.buildings.size); });
   if (world === 'voetbal') return safe(() => getCareer().started) || safe(() => storyFlag(FOOTBALL_FLAG));
   return false;

@@ -98,6 +98,9 @@ ok(ITEMS.every((i) => Object.values(WORLD).includes(i.world) && gateWorld(i.worl
 const doc = fs.readFileSync(new URL('../docs/MENU-ONTHULLING-22-11.md', import.meta.url), 'utf8');
 ok(['Land en bedrijf', 'Voetbal', 'Visboek', 'Snackwagen', 'Te koop', 'Percelen'].every((t) => doc.includes(t)), 'het document noemt alle onderdelen');
 ok(!/\bwinter\b|sneeuw/i.test(doc), 'altijd zomer');
+// gate 0.65: boerderijBegonnen telt speluren (elke verstreken spelklok), dus "heeft al een akker" mag er niet van afhangen: in een nieuw spel stond Land en bedrijf anders na een paar seconden open
+const run = fs.readFileSync(new URL('../game/js/featurerevealrun.js', import.meta.url), 'utf8');
+ok(!/boerderijBegonnen/.test(run) && /getBoerderij\(\)\.perceel/.test(run), 'owns(farm) hangt aan een echt perceel, niet aan speluren');
 
 console.log(fails ? `featurereveal: ${fails} van ${n} mislukt` : `featurereveal: ${n} controles OK`);
 process.exit(fails ? 1 : 0);
