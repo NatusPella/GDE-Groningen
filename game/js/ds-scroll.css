@@ -1,0 +1,39 @@
+/* ===== DS3 scrollbalk: één component voor alle scrollcontainers (22-11) =====
+   Dun (--ds-scroll-breed), ronde inktduim met zeefdruk-schaduw op een lichte baan, hover en actief, geen eindknoppen.
+   Alles komt uit tokens (ds-tokens.css). Chromium (Electron, web) gebruikt ::-webkit-scrollbar; zodra een regel scrollbar-width
+   of scrollbar-color zet, negeert Chromium die opmaak. Daarom zetten we die twee hier (met !important) terug op auto: de oude
+   per-scherm-regels (thin, none, eigen kleur) vallen weg en geven niet meer de grijze Windows-balk of een verborgen balk.
+   Firefox kent alleen de standaardeigenschappen en krijgt thin met dezelfde kleuren.
+   Waar meer inhoud staat, tekent dsscroll.js data-boven/data-onder; de rand vervaagt dan (mask). */
+@supports selector(::-webkit-scrollbar) {
+  :where(*):not(.ds-scroll-uit, .m-tablist, .pm-hub-stappen) { scrollbar-width: auto !important; scrollbar-color: auto !important; }
+  *::-webkit-scrollbar { width: var(--ds-scroll-breed); height: var(--ds-scroll-breed); background: transparent; }
+  *::-webkit-scrollbar-track { background: var(--ds-scroll-spoor); border-radius: var(--ds-scroll-rond); }
+  *::-webkit-scrollbar-thumb {
+    background: var(--ds-scroll-duim); border: 2px solid var(--ds-scroll-spoor); border-radius: var(--ds-scroll-rond);
+    box-shadow: var(--ds-scroll-schaduw); min-height: calc(var(--ds-scroll-breed) * 3); min-width: calc(var(--ds-scroll-breed) * 3);
+  }
+  *::-webkit-scrollbar-thumb:hover { background: var(--ds-scroll-duim-hover); }
+  *::-webkit-scrollbar-thumb:active { background: var(--ds-scroll-duim-hover); box-shadow: none; }
+  *::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+  *::-webkit-scrollbar-corner { background: var(--ds-scroll-spoor); }
+  /* Bewust verborgen: horizontale strips (tabbladen, stappen) die met swipe of pijltjes lopen. */
+  .ds-scroll-uit { scrollbar-width: none; }
+  .ds-scroll-uit::-webkit-scrollbar, .m-tablist::-webkit-scrollbar, .pm-hub-stappen::-webkit-scrollbar { display: none; }
+}
+@supports not selector(::-webkit-scrollbar) {
+  :where(*):not(.ds-scroll-uit, .m-tablist, .pm-hub-stappen) { scrollbar-width: thin !important; scrollbar-color: var(--ds-scroll-duim) var(--ds-scroll-spoor) !important; }
+}
+
+/* Het component zelf: .ds-scroll op een eigen scrollgebied (dsscroll.js zet hem ook op alles wat in een regel overflow auto of scroll heeft). */
+.ds-scroll { overscroll-behavior: contain; }
+.ds-scroll:focus-visible { outline: var(--ds-lijn-dik, 2px) solid var(--ds-c-ink-inkt); outline-offset: -2px; }
+
+/* "Meer boven" en "meer onder": de rand vervaagt waar nog inhoud is. Een eigen mask met een id-selector wint van deze regel. */
+.ds-scroll[data-boven="1"], .ds-scroll[data-onder="1"] {
+  --ds-scroll-m-boven: 0px; --ds-scroll-m-onder: 0px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, var(--ds-c-ink-inkt) var(--ds-scroll-m-boven), var(--ds-c-ink-inkt) calc(100% - var(--ds-scroll-m-onder)), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, var(--ds-c-ink-inkt) var(--ds-scroll-m-boven), var(--ds-c-ink-inkt) calc(100% - var(--ds-scroll-m-onder)), transparent 100%);
+}
+.ds-scroll[data-boven="1"] { --ds-scroll-m-boven: var(--ds-scroll-fade); }
+.ds-scroll[data-onder="1"] { --ds-scroll-m-onder: var(--ds-scroll-fade); }

@@ -386,6 +386,8 @@ function sticks(pad, dt) {
     if (ry) {
       let el = document.activeElement;
       while (el && el !== document.body && !(el.scrollHeight > el.clientHeight + 4 && /auto|scroll/.test(getComputedStyle(el).overflowY))) el = el.parentElement;
+      // 22-11: staat de focus buiten het scrollgebied (bv. op de rail), dan scrolt de stick het eerste zichtbare gebied met meer inhoud
+      if (!el || el === document.body) el = [...document.querySelectorAll('.ds-scroll[data-onder="1"], .ds-scroll[data-boven="1"]')].find((e) => e.offsetParent !== null) || null;
       if (el && el !== document.body) el.scrollBy(0, ry * 900 * dt);
     }
     return;

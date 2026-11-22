@@ -283,6 +283,7 @@ import { effectsFor } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
 import { initCheats, updateCheats } from './cheats.js';
 import { installGpuDiag } from './gpudiag.js'; // 0.64.1: Technische info (Ctrl+Shift+G)
+import { initScrollAanwijzing } from './dsscroll.js'; // 22-11: DS3-scrollbalk, vervaging waar meer inhoud staat
 import { updateRegioLeven, setNieuwsBronnen } from './regiolevenrt.js';
 import { syncLedger, getLedger } from './finance.js';
 
@@ -786,6 +787,7 @@ async function boot() {
   geoWorkerActive();
   preloadRoadWorker();
   installGpuDiag();
+  initScrollAanwijzing();
   initA11y();
   initGlyphs();
   initTheme();
