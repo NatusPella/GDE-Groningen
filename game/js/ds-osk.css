@@ -42,9 +42,10 @@
 .osk-toets:hover:not(.is-focus, .is-uit) { background: var(--ds-c-geel-hover); }
 .osk-voet { display: flex; flex-wrap: wrap; gap: var(--ds-s-2) var(--ds-s-5); margin: 0; font-family: var(--ds-font-tekst); font-size: var(--ds-t-hulp); color: var(--ds-tx-zacht); }
 .osk-hint-item { display: inline-flex; align-items: center; gap: var(--ds-s-2); }
-/* de knop naast een veld: alleen als de laatst gebruikte invoer een controller is (toetsenbord, muis en aanraking houden het gewone veld) */
-.osk-open { display: none; }
-html.dev-pad .osk-open { display: inline-flex; }
+/* de knop naast een veld: klein en altijd bruikbaar (muis, aanraking en controller). Let op: `osk-open` is de staatsklasse op <html>
+   zolang het toetsenbord openstaat; de knop heette ook zo en `display: none` verborg daardoor de hele pagina (#1120-feedback). */
+.osk-knop.ds-z-knop { flex: none; align-self: center; min-height: var(--ds-hoogte-chip, 32px); height: auto; padding: var(--ds-s-1) var(--ds-s-3); font-size: var(--ds-t-label); width: auto; max-width: 9em; white-space: nowrap; margin: 0; }
+.osk-knop.ds-z-knop .ds-z-knop__label { font-size: inherit; }
 /* Minder beweging: de kaart komt er zonder glijden; anders schuift hij kort omhoog */
 @media (prefers-reduced-motion: no-preference) { html:not(.reduce-motion, .rustig-drukwerk) .osk-kaart { animation: osk-op var(--ds-m-snel) var(--ds-ease); } }
 @keyframes osk-op { from { translate: 0 var(--ds-s-5); opacity: 0; } to { translate: 0 0; opacity: 1; } }

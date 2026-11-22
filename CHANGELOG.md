@@ -11,6 +11,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+- Toetsenbordknop naast zoekvelden: een klik op Toetsenbord (kaart, Spullen, Prestaties, Samen spelen) maakte het hele scherm onzichtbaar of kapot, omdat de knop dezelfde klassenaam had als de staat van het schermtoetsenbord. De knop is nu klein, werkt met de muis en laat het veld met rust. Samen spelen: het toetsenbord is van de speler zelf (lokaal), niets gaat naar anderen.
+- Samen spelen: de eerste keuze (Meedoen of Open je spel) is twee grote kaarten met hun uitleg, en Toestemming intrekken staat achter Meer acties. Gasten en hosts zien dezelfde stappen als eerst.
+- Kaart: de voortgangsregel hangt onder het zoekveld in plaats van onder de titel, en de legenda staat boven de bronvermelding met lucht tot de rand.
+- Garage: opent op Alles en onthoudt je eigen tabkeuze tijdens het spel. Kop, tabs en lijst delen nu dezelfde paginamarge (ook in Spullen, Land en bedrijf en Loopbanen); het paneel rechts houdt ruimte tot de scrollbalk.
+
 - Twee nieuwe filmpjes van Tammo en Tessa bij het begin van een carrière, elk van ongeveer anderhalve minuut en over te slaan. Voetbal: bij je eerste training op het sportpark van je club staat Tessa in het clubtenue van de Talentenklasse, regelt Tammo de zaken als zaakwaarnemer (met een map) en heeft trainer Eppo een scherpe tong. Landbouw: bij je eerste perceel staan Tessa en Tammo aan de weg met de akte, geeft buurman Aldert de sleutel van de schuur en leent hij zijn trekker uit, terwijl Tammo zegt dat hij geen verstand van koeien heeft. Ze starten pas als het rustig is (geen menu, geen melding, geen missie) en één keer per speler; overslaan telt als gezien. Bij Samen spelen ziet wie de carrière start of het perceel koopt de scène, en kijken de meespelers hem lokaal mee.
 - Missies: begin je na een mislukking opnieuw bij een hervatpunt, dan tellen je keuzes van daarvoor nog mee (de bondgenoot in De colonne, de bakscore, een overgeslagen stuk van de inbraak). Eerder was je die kwijt.
 - Missies: mislukt of stop je een achtervolging, dan wordt het vluchtende voertuig weer gewoon verkeer. Het bleef eerder als missiedoel rondrijden en bij elke nieuwe poging kwam er een bij.

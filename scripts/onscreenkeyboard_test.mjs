@@ -273,11 +273,11 @@ for (const kind of M.OSK_KINDS) {
   ok(pw.includes('•••') && !/>abc</.test(pw.split('osk-voorbeeld')[1].split('osk-melding')[0]), 'een wachtwoord staat als bolletjes in het voorbeeld');
   const fout = V.renderOsk(M.setValue(M.createState({ kind: 'naam', check: schoonNaam }), [...'pmurt'].reverse().join('')));
   ok(/osk-melding is-fout/.test(fout), 'een afgekeurde invoer krijgt een zichtbare melding');
-  ok(/class="osk-open [^"]*" data-osk-open aria-label="Toetsenbord voor online naam"/.test(V.oskKnop('online naam')), 'de knop Toetsenbord heeft een naam');
+  ok(/class="osk-knop [^"]*" data-osk-open aria-label="Toetsenbord voor online naam"/.test(V.oskKnop('online naam')), 'de knop Toetsenbord heeft een naam');
   const css = lees('game/js/ds-osk.css');
   ok(!/#[0-9a-fA-F]{3,8}\b|rgb\(|hsl\(/.test(css.replace(/\/\*[^]*?\*\//g, '')), 'ds-osk.css gebruikt alleen tokens, geen losse kleuren');
   ok(/reduce-motion/.test(css) && /prefers-reduced-motion/.test(css), 'Minder beweging wordt gerespecteerd');
-  ok(/html\.dev-pad \.osk-open/.test(css) && /\.osk-open \{ display: none/.test(css), 'de knop Toetsenbord is er alleen bij een controller');
+  ok(/\.osk-knop\.ds-z-knop \{/.test(css) && !/^\.osk-open/m.test(css) && !/\.osk-open \{ display/.test(css), 'de knop heet osk-knop: de staatsklasse osk-open op <html> verbergt nooit de pagina');
   ok(/ds-osk\.css/.test(lees('game/index.html')), 'index.html laadt ds-osk.css');
 }
 

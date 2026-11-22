@@ -190,6 +190,13 @@ html.touch-device :is(#pause-menu .pm-samen, .coop-hold, .cp-overlay) .coop-toet
 #pause-menu .pm-samen .sw-kaart:hover:not([aria-pressed="true"]) { background: var(--ds-c-wit); }
 #pause-menu .pm-samen .sw-kaart:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx); outline-offset: var(--ds-focus-afstand); }
 
+/* de eerste keuze (Meedoen | Open je spel): twee grote kaarten die de ruimte vullen, de regel eronder blijft ook in een laag vak staan */
+#pause-menu .pm-samen .sw .sw-kaarten--groot { flex: 1 1 auto; min-height: 0; padding: 0 var(--ds-s-2) var(--ds-s-2) 0; }
+#pause-menu .pm-samen .sw .sw-kaarten--groot .sw-kaart { flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: var(--ds-s-3); padding: var(--ds-s-4); min-height: 0; }
+#pause-menu .pm-samen .sw .sw-kaarten--groot .sw-kaart-kol { align-items: center; gap: var(--ds-s-1); }
+#pause-menu .pm-samen .sw .sw-kaarten--groot .sw-kaart-t { font-size: var(--ds-t-subkop); }
+#pause-menu .pm-samen .sw .sw-kaarten--groot .sw-kaart-tekst { display: block; font-size: var(--ds-t-body); }
+
 /* velden onder de kaarten */
 #pause-menu .pm-samen .sw-paneel { flex: none; display: flex; flex-direction: column; gap: var(--ds-s-2); }
 #pause-menu .pm-samen .sw-veld { display: flex; flex-direction: column; gap: var(--ds-s-1); }
@@ -269,6 +276,7 @@ html.touch-device :is(#pause-menu .pm-samen, .coop-hold, .cp-overlay) .coop-toet
 /* een laag vak (de menustage op 1280x720): de regel onder de kaartnaam valt weg en de knoppen worden compact */
 @container swvak (max-height: 640px) {
   .sw-kaart-tekst { display: none; }
+  .sw-kaarten--groot .sw-kaart-tekst { display: block; }
   .sw .sw-voet .sw-knop { min-height: var(--ds-doel-aanraken); padding-block: var(--ds-s-1); }
   .sw .sw-voet { padding-top: var(--ds-s-2); }
 }

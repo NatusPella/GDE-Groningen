@@ -79,5 +79,13 @@ ok(versionLabel('0.35.0') === 'GDE Groningen v0.35.0' && versionLabel('v1.2.3') 
 ok(versionLabel('dev') === 'GDE Groningen · ontwikkelversie' && versionLabel('') === versionLabel('dev'), 'version label of a dev build');
 // #985: het Prestaties-paneel zegt dat het stilstaat bij een cheat
 ok(achStilNoot(false) === '' && /staan stil/.test(achStilNoot(true)) && /Streken/.test(achStilNoot(true)), 'stilstaan-noot alleen als de prestaties stilstaan');
+// 22-11: de Garage opent op Alles (weinig voertuigen), een eigen keuze blijft staan; kop, tabs en inhoud delen één paginamarge
+{
+  const { readFileSync } = await import('node:fs');
+  const g = readFileSync(new URL('../game/js/garageui.js', import.meta.url), 'utf8');
+  ok(/const view = \{ cat: 'all', eigen: false/.test(g) && /view\.eigen = true/.test(g), 'garage: standaardtab Alles, eigen keuze onthouden');
+  const css = readFileSync(new URL('../game/js/ds-menu-zeef.css', import.meta.url), 'utf8');
+  ok(/--pm-pad-x/.test(css) && /\.m-tabs \{ margin: var\(--pm-pad-y\) var\(--pm-pad-x\)/.test(css) && /\.pm-sheet-head\.m-head \{ padding-inline: var\(--pm-pad-x\)/.test(css), 'kop, tabrij en inhoud delen --pm-pad-x');
+}
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

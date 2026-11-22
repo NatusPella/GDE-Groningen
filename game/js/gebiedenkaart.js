@@ -332,7 +332,7 @@ export function tekenToestandVlak(ctx, id, x, y, w, h, vlagKleur = dsKleur('lich
 export function tekenLegenda(ctx, cw, ch, hoofd, kleurTekst = dsKleur('creme')) {
   if (!hoofd) return;
   const rijen = legendaRijen();
-  const x = 16, rij = 26, h = 34 + rij * rijen.length + 6, y = ch - 56 - h;
+  const x = 32, rij = 26, h = 34 + rij * rijen.length + 6, y = ch - 88 - h; // boven de bronvermelding en de schaalbalk, met lucht tot de rand
   ctx.save();
   ctx.globalAlpha = 1;
   const inkt = dsKleur('ink-inkt');

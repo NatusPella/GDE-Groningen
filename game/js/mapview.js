@@ -1214,10 +1214,10 @@ function isVoortgangsregel(tekst) {
 // De strook: links onder het zoekveld (eerst rechtsboven, maar daar lagen de knop Lagen en het paneel overheen). Daar zit geen kaartchrome (de uitleg
 // staat linksboven, de legenda, de zoomknoppen en de schaalbalk linksonder) en
 // de pins wijken ervoor, dus de chip valt nooit over een icoon (#463).
-function voortgangsStrook(cw, ch, breedte, hoogte) {
+function voortgangsStrook(cw, ch, breedte, hoogte, top = 196, links = 52) {
   const w = Math.min(Math.max(120, Math.round(breedte)), Math.max(120, cw - 24));
   const h = Math.max(18, Math.round(hoogte));
-  return [52, 196, 52 + w, Math.min(ch - 12, 196 + h)]; // links onder het zoekveld: rechtsboven liggen de knop Lagen en het paneel Op de kaart
+  return [links, top, links + w, Math.min(ch - 12, top + h)]; // links onder het zoekveld: rechtsboven liggen de knop Lagen en het paneel Op de kaart
 }
 
 // Een pin onder de strook is onleesbaar en niet aanwijsbaar; hij wijkt, tenzij
@@ -1414,7 +1414,13 @@ function drawStaticOverlay(ctx) {
     ctx.font = '600 12px sans-serif';
     let w = 0;
     for (const r of strookRegels) w = Math.max(w, ctx.measureText(r.tekst).width);
-    state.strook = voortgangsStrook(state.cw, state.ch, w + 20, strookRegels.length * 18 + 8);
+    // de strook hangt onder het zoekveld zoals het er echt staat (de kop schaalt mee met het menu), niet op een vaste hoogte
+    let top = 196, links = 52;
+    try {
+      const zr = state.overlay.querySelector('.mapview-search').getBoundingClientRect(), cr = state.canvas.getBoundingClientRect();
+      if (zr.height > 0 && cr.width > 0) { top = Math.round((zr.bottom - cr.top) * (state.cw / cr.width)) + 12; links = Math.max(12, Math.round((zr.left - cr.left) * (state.cw / cr.width))); }
+    } catch (e) { /* geen DOM (test): de vaste plek */ }
+    state.strook = voortgangsStrook(state.cw, state.ch, w + 20, strookRegels.length * 18 + 8, top, links);
     bezet.push(state.strook);
   } else state.strook = null;
 

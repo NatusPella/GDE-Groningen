@@ -124,7 +124,8 @@ const PIN = icoon('plek', { maat: 'm' });
 
 const GROUP_LABEL = { owned: 'van jou', sale: 'te koop', locked: 'op slot' };
 const GROUP_HEAD = { owned: 'Van jou', sale: 'Te koop', locked: 'Op slot' };
-const view = { cat: 'autos', filter: 'all', sort: 'naam' };
+// De standaardtab is Alles (in het begin heb je weinig voertuigen); kiest de speler zelf een tab (eigen), dan blijft die staan zolang het spel draait.
+const view = { cat: 'all', eigen: false, filter: 'all', sort: 'naam' };
 
 let viewer = null;
 let viewerCanvas = null;
@@ -523,7 +524,7 @@ function bindToolbar(el) {
     const s = ev.target.closest('[data-garage-sort]');
     const f = ev.target.closest('[data-garage-filter]');
     if (!c && !s && !f) return;
-    if (c) view.cat = c.dataset.garageCat;
+    if (c) { view.cat = c.dataset.garageCat; view.eigen = true; }
     if (s) view.sort = cycleOption(SORTS, view.sort);
     if (f) view.filter = cycleOption(FILTERS, view.filter);
     refreshList(el);
@@ -538,6 +539,8 @@ export function renderGaragePanel(el, world, msg = '') {
   const alle = getGarageCatalog(world);
   const telling = knownCount(alle);
   const list = visibleList(alle);
+  const tabsNu = garageTabCounts(list); // Alles bestaat pas bij meer dan één soort; anders is de enige tab de keuze
+  if (tabsNu.length && (!view.eigen || !tabsNu.some((t) => t.id === view.cat))) view.cat = tabsNu.some((t) => t.id === 'all') && !view.eigen ? 'all' : tabsNu.some((t) => t.id === view.cat) ? view.cat : tabsNu[0].id;
   lastList = list;
   lastVerborgen = telling.verborgen;
   el.dataset.sub = knownText(telling);

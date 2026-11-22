@@ -66,3 +66,16 @@ html.reduce-motion :is(.gm-zeef, #pause-menu :is([data-panel="todo"], [data-pane
 
 /* idem voor de overige menuschermen op papier (winkel, Samen spelen, Opgeslagen spellen): de vloer van 13 schermpixels */
 .gm-zeef { --ds-t-label: max(16px, var(--menu-min)); --ds-t-hulp: max(14px, var(--menu-min)); }
+
+/* Eén paginamarge voor kop, tabrij en inhoud (22-11, Garage-feedback): menu.css gaf de kop 40, de tabrij 64 en de lijst per breekpunt weer iets anders,
+   waardoor de kolommen niet onder de titel begonnen. --pm-pad-x is de enige maat; Spullen, Garage, Land en bedrijf, Loopbanen en de andere bladen
+   met kop + tabs + lijst/paneel volgen hem. Ritme: kop, 16 px lucht, tabrij, 16 px lucht, inhoud; het paneel rechts houdt een eigen goot tot de scrollbalk. */
+#pause-menu { --pm-pad-x: var(--ds-s-6); --pm-pad-y: var(--ds-s-4); }
+@media (max-height: 460px) { #pause-menu { --pm-pad-x: var(--ds-s-5); --pm-pad-y: var(--ds-s-2); } }
+#pause-menu :is([data-panel="todo"], [data-panel="garage"], [data-panel="verhaal"], [data-panel="prestaties"], [data-panel="loopbaan"], [data-panel="veroverd"], [data-panel="fotos"], [data-panel="spullen"], [data-panel="boerderij"], [data-panel="streken"]) .pm-inner > .m-tabs { margin: var(--pm-pad-y) var(--pm-pad-x) 0; padding-top: var(--ds-s-1); }
+#pause-menu :is([data-panel="todo"], [data-panel="garage"], [data-panel="verhaal"], [data-panel="prestaties"], [data-panel="loopbaan"], [data-panel="veroverd"], [data-panel="fotos"], [data-panel="spullen"], [data-panel="boerderij"], [data-panel="streken"]) .pm-inner > .m-main { padding: var(--pm-pad-y) var(--pm-pad-x) var(--ds-s-5); }
+#pause-menu .pm-sheet-head.m-head { padding-inline: var(--pm-pad-x); }
+#pause-menu [data-panel="garage"] .m-tablist { align-items: center; }
+#pause-menu [data-panel="garage"] .m-tablist .gar-chip:first-of-type { margin-left: auto; }
+#pause-menu [data-panel="garage"] .m-tablist .gar-chip:last-of-type { margin-right: var(--ds-s-2); }
+#pause-menu [data-panel="garage"] .m-pane.gar-viewer { padding-right: var(--ds-s-3); scrollbar-gutter: stable; }

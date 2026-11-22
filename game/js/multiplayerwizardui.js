@@ -23,13 +23,13 @@ export function wizardHtml(ctx) {
 
   if (s.step === 'start') {
     titel = WIZ_TEKST.keuze.titel; kort = WIZ_TEKST.keuze.kort;
-    body = `<div class="sw-kaarten sw-kaarten--2" role="group" aria-label="Wat wil je doen">
+    body = `<div class="sw-kaarten sw-kaarten--2 sw-kaarten--groot" role="group" aria-label="Wat wil je doen">
       ${choiceCard(icoon, 'spelers', 'Meedoen', 'Sluit aan bij het spel van een ander.', 'kies-gast')}
       ${choiceCard(icoon, 'plus', 'Open je spel', 'Anderen doen mee in jouw wereld.', 'kies-host')}
     </div>`;
     voet = [{ act: 'diag', label: 'Verbinding testen' }];
     info = ctx.stukken.uitleg;
-    if (s.consentSaved) voet.push({ act: 'consent-vergeet', label: 'Toestemming intrekken' });
+    if (s.consentSaved) voet.push({ act: 'consent-vergeet', label: 'Toestemming intrekken', meer: true });
   } else if (step === WSTEP.WHO) {
     titel = WIZ_TEKST.wie.titel; kort = v.profiel ? v.profiel.tekst : WIZ_TEKST.wie.kort;
     body = wieHtml(ctx);
@@ -76,7 +76,8 @@ export function wizardHtml(ctx) {
   const primair = gesorteerd.filter((b) => b.primary);
   const rest = gesorteerd.filter((b) => !b.primary);
   const max = rest.length <= VOET_SECUNDAIR_MAX ? VOET_SECUNDAIR_MAX : 1; // een volle voet houdt één secundaire knop en zet de rest achter "Meer acties"
-  const visible = rest.slice(0, max), meerActies = rest.slice(max);
+  const vast = rest.filter((b) => !b.meer); // een zeldzame actie (Toestemming intrekken) staat altijd achter "Meer acties"
+  const visible = vast.slice(0, max), meerActies = [...vast.slice(max), ...rest.filter((b) => b.meer)];
   const knop = (b) => `<button type="button" class="ds-z-knop${b.primary ? '' : ' ds-z-knop--secundair'} coop-btn sw-knop" data-act="${b.act}"${b.primary ? ' data-primary="1"' : ''}${b.disabled ? ' disabled aria-disabled="true"' : ''}${b.busy ? ' aria-busy="true"' : ''}><span class="ss-label">${b.busy ? icoon('zandloper', { maat: 's' }) + ' ' : ''}${esc(b.label)}${b.primary && !b.disabled ? ` <span class="coop-toets">${ctx.keyTextHtml('{ENTER}')}</span>` : ''}</span></button>`;
   const meerHtml = meerActies.length ? `<details class="sw-acties"${ctx.meerOpen ? ' open' : ''}><summary class="ds-z-knop ds-z-knop--ghost sw-knop">Meer acties</summary><div class="sw-acties-lijst">${meerActies.map(knop).join('')}</div></details>` : '';
   const infoHtml = info.length ? `<details class="sw-info"${ctx.uitlegOpen ? ' open' : ''}><summary class="sw-info-knop">${icoon('info', { maat: 's' })} Meer info</summary><div class="sw-info-tekst">${info.map((l) => `<p>${esc(l)}</p>`).join('')}</div></details>` : '';
