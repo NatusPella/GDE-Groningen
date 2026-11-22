@@ -8,6 +8,7 @@ import { keyLabelHtml } from './keycap.js';
 import { navIndex, trapTabInCard } from './listnav.js';
 
 let open = null;
+const ARIA_ENTER = 'Enter'; // naam van de toets in aria-keyshortcuts (geen spelertekst)
 export function isLegacyCardOpen() { return !!open; }
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -16,7 +17,7 @@ export function legacyCardHtml() {
   return `<section class="os-kaart" role="alertdialog" aria-modal="true" aria-labelledby="ok-titel" aria-describedby="ok-tekst">
     <h2 id="ok-titel">${esc(LEGACY_CARD.titel)}</h2>
     <p class="os-uitleg" id="ok-tekst">${esc(LEGACY_CARD.tekst)}</p>
-    <div class="os-knoppen"><button type="button" class="os-knop os-doorgaan" data-ok="door" aria-keyshortcuts="Enter">${esc(LEGACY_CARD.doorgaan)} <span class="sk-toets-in">${keyLabelHtml('Enter')}</span></button><button type="button" class="os-knop os-alleen" data-ok="nieuw">${esc(LEGACY_CARD.nieuw)}</button></div>
+    <div class="os-knoppen"><button type="button" class="os-knop os-doorgaan" data-ok="door" aria-keyshortcuts="${ARIA_ENTER}">${esc(LEGACY_CARD.doorgaan)} <span class="sk-toets-in">${keyLabelHtml('Enter')}</span></button><button type="button" class="os-knop os-alleen" data-ok="nieuw">${esc(LEGACY_CARD.nieuw)}</button></div>
   </section>`;
 }
 
