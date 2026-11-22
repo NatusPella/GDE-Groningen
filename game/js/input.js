@@ -298,10 +298,14 @@ export class Input {
 
   endFrame() {
     if (this.stil > 0) this.stil--;
+    // real seconds since the last frame, at most one slow frame (a tab switch is not a long standstill)
+    const endNow = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    const endDt = this._endAt != null ? Math.min(0.05, Math.max(0, (endNow - this._endAt) / 1000)) : 1 / 60;
+    this._endAt = endNow;
     if (this._lr.on || this._la.on || this._tik.rennen || this._tik.richten) {
       this._voet = this.latchOk ? !!this.latchOk() : true;
       const [ax, ay] = this.axis();
-      this._lr.step({ allowed: this._voet, moving: !!(ax || ay), idleReleases: true });
+      this._lr.step({ allowed: this._voet, moving: !!(ax || ay), idleReleases: true, dt: endDt });
       if (this._la.on && !this._voet) { this._la.clear(); this.mouse.rightDown = false; }
     } else this._voet = true;
     this._justPressed.clear();
