@@ -75,3 +75,13 @@ De drempels staan in `DREMPELS` in `tripwires.mjs`.
 Een nieuw scherm is een `sc(...)`-regel in `catalogus.mjs`: id, module, categorie, titel en een `setup` die de module
 met nepdata bouwt. Voeg een veld toe aan `makeWorld()` als een paneel iets mist. Zet de test in
 `scripts/ui_critic_test.mjs` mee als je een tripwire toevoegt.
+
+## Stand van de eerste run (22-11)
+
+78 schermen gerenderd, 0 mislukt, op drie resoluties (234 JPEG's) in `C:\Users\abuis\gde-ui-critic-22-11` (54 menu, 16 kaarten,
+4 hud, 4 winkels). Tripwire-totalen over alle resoluties: overlap 146, afgekapt 143, tekstmassa 32, leeg 214, scrollbar 0,
+klein 0, contrast 320, buitenKader 5, codeTekst 12, zonderFocus 162. Dit zijn aanwijzingen, geen bevestigde fouten; de
+`codeTekst`-meldingen komen deels uit de nepdata (bijvoorbeeld een veld dat de nepwereld niet kent) en moeten in het beeld
+worden bekeken. De hoofd-HUD toont zonder echte kaart geen minikaart (die gooit een uitzondering; de rest van het HUD is dan
+al bijgewerkt). Nog niet gedekt: HUD-toestanden die een echte wereld vragen (achtervolging, voertuigpanelen, stunt- en
+boerderij-HUD), de telefoon-feed en de schermen van minigames.

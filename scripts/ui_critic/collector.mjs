@@ -56,7 +56,7 @@ export function collect(rootSelector) {
     const ownText = [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join(' ').replace(/\s+/g, ' ').trim();
     const media = ['IMG', 'SVG', 'CANVAS', 'VIDEO', 'svg'].includes(tag);
     const role = (el.getAttribute('role') || '').toLowerCase();
-    const interactive = NATIEF.has(tag) && !(tag === 'INPUT' && el.type === 'hidden') || RONDE.has(role) || (cs.cursor === 'pointer' && !el.closest('a,button'));
+    const interactive = NATIEF.has(tag) && !(tag === 'INPUT' && el.type === 'hidden') || RONDE.has(role) || (cs.cursor === 'pointer' && !el.closest('a,button') && !['LABEL', 'OUTPUT'].includes(tag) && !(el.parentElement && getComputedStyle(el.parentElement).cursor === 'pointer'));
     const overflowScroll = /(auto|scroll)/.test(cs.overflowY) || /(auto|scroll)/.test(cs.overflowX);
     // een voorouder die afknipt (hidden/clip/auto/scroll) houdt zijn inhoud binnen zijn eigen rand: dat is geen ontsnapping uit het kader
     const knipt = el !== document.body && el !== document.documentElement && (cs.overflowX !== 'visible' || cs.overflowY !== 'visible');
