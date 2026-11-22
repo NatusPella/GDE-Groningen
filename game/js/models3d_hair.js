@@ -20,6 +20,8 @@ export function buildHairStyle(B, L, H) {
   const style = L.hairStyle;
   const c = L.hair;
   const capped = L.hat === 'tammo' || L.hat === 'cap' || L.hat === 'police' || L.hat === 'flatcap' || L.hat === 'beanie' || L.hoodUp;
+  // een schaalhoed (pet, mutsje): knot, staart en staartjes zitten lager, onder de rand; de kam van de hanenkam past er niet onder (clipping 22-11)
+  const capShell = L.hat === 'tammo' || L.hat === 'cap' || L.hat === 'flatcap' || L.hat === 'beanie';
   const light = mix(c, 0xffffff, 0.2);
   const root = shade(c, 0.86);
   const seed = Math.round((L.seed || 1) * 7) % 97;
@@ -134,6 +136,7 @@ export function buildHairStyle(B, L, H) {
       return true;
     case 'mohawk': {
       scalp({ thOf: line(1.0, 1.25, 1.4), kOf: () => 1.014, col: () => mix(c, 0x6a5a4a, 0.2), rag: 0.02 });
+      if (capShell) return true; // onder een pet blijft alleen de tondeuse over; de kam zou er dwars doorheen steken
       const steps = 12;
       // de kam loopt over de kruin van voren (beta 0,95) naar de nek (beta -1,9): vooruit is A = 0, achteruit A = pi
       const beta = (i) => 0.9 - (i / steps) * 2.0;
@@ -188,19 +191,26 @@ export function buildHairStyle(B, L, H) {
     }
     case 'bun':
       scalp({ thOf: line(0.98, 1.38, 1.55), kOf: (A, t) => 1.05 + 0.05 * Math.sin(t * Math.PI), rag: 0.04 });
+      if (capShell) { // een lage knot in de nek, onder de rand van de pet
+        knot(-0.122, HEAD_Y - 0.05, 0, 0.05, tone(HEAD_Y - 0.03, 1));
+        B.geo(new THREE.TorusGeometry(0.047, 0.008, 3, 8), composeMatrix(-0.122, HEAD_Y - 0.05, 0, Math.PI / 2, 0, 0.2), shade(c, 0.7));
+        return true;
+      }
       knot(-0.07, HEAD_Y + 0.115, 0, 0.056, tone(HEAD_Y + 0.12, 1));
       B.geo(new THREE.TorusGeometry(0.052, 0.008, 3, 8), composeMatrix(-0.07, HEAD_Y + 0.115, 0, Math.PI / 2, 0, 0.2), shade(c, 0.7));
       return true;
     case 'ponytail':
       scalp({ thOf: line(0.98, 1.36, 1.5), kOf: (A, t) => 1.05 + 0.05 * Math.sin(t * Math.PI), rag: 0.04 });
-      tail({ at: [-0.1, HEAD_Y + 0.06, 0], len: 0.3, r: 0.042, droop: 0.05, parts: 6 });
-      B.box(-0.1, HEAD_Y + 0.062, 0, 0.026, 0.026, 0.056, shade(c, 0.55));
+      const py = capShell ? HEAD_Y - 0.03 : HEAD_Y + 0.06; // onder een pet komt de staart onder de achterrand uit
+      tail({ at: [capShell ? -0.116 : -0.1, py, 0], len: 0.3, r: 0.042, droop: 0.05, parts: 6 });
+      B.box(capShell ? -0.116 : -0.1, py + 0.002, 0, 0.026, 0.026, 0.056, shade(c, 0.55));
       return true;
     case 'pigtails':
       scalp({ thOf: line(0.98, 1.4, 1.55), kOf: (A, t) => 1.05 + 0.05 * Math.sin(t * Math.PI), rag: 0.04 });
       for (const s of [1, -1]) {
-        tail({ at: [-0.035, HEAD_Y + 0.045, s * 0.098], len: 0.22, r: 0.03, droop: 0.02, parts: 4 });
-        B.box(-0.035, HEAD_Y + 0.047, s * 0.098, 0.03, 0.03, 0.03, shade(c, 0.55));
+        const qy = capShell ? HEAD_Y - 0.045 : HEAD_Y + 0.045, qx = capShell ? -0.03 : -0.035, qz = capShell ? 0.102 : 0.098;
+        tail({ at: [qx, qy, s * qz], len: 0.22, r: 0.03, droop: 0.02, parts: 4 });
+        B.box(qx, qy + 0.002, s * qz, 0.03, 0.03, 0.03, shade(c, 0.55));
       }
       return true;
     case 'braid':
