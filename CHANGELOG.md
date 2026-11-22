@@ -11,6 +11,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+- Besturing: een omgezette toets werkt nu ook terwijl je Ctrl (bukken) ingedrukt houdt, en blijft niet meer hangen als je hem loslaat met Ctrl of Alt nog ingedrukt.
+
 - Voetbalcarrière: als Trainer of Manager kies je zelf de opstelling. Bij Trainer en Manager staat bij elke speler een knop om hem vast in de basis te zetten of op de bank te houden (hooguit acht per lijst); "Los" of "Laat het spel de beste elf kiezen" zet het terug. De keuze telt voor je eigen wedstrijd en de coachwedstrijd. Samen spelen: de keuze is van je eigen carrière, een medespeler ziet haar niet. Nog niet in beeld bekeken.
 
 ### Radio

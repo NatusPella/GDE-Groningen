@@ -180,12 +180,16 @@ export class Input {
       cb(raw, e);
       return;
     }
-    if (e.metaKey || e.ctrlKey && raw !== 'control' || e.altKey) return;
+    // a shortcut (Cmd, Alt, Ctrl) is not a game key - unless Ctrl is held as the game's own key (crouch): a rebound key
+    // then still stands in for its action. The release of a key that went down translated is always translated back,
+    // whatever is held by then; else that action stays stuck.
+    const shortcut = e.metaKey || e.altKey || (e.ctrlKey && raw !== 'control' && !this.keys.has('control'));
     let canon;
     if (e.type === 'keyup' && e.code && this._remapByCode.has(e.code)) {
       canon = this._remapByCode.get(e.code);
       this._remapByCode.delete(e.code);
     } else {
+      if (shortcut) return;
       if (!this._remap.size || !this._remap.has(raw) || isTextField(e.target)) return;
       canon = this._remap.get(raw);
       if (e.type === 'keydown' && e.code) this._remapByCode.set(e.code, canon);
