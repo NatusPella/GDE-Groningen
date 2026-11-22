@@ -8,6 +8,7 @@ import { hash2 as hash } from './rng.js';
 import { SpatialGrid, gridItems } from './spatialgrid.js';
 import { koplampenFactor } from './weerlook.js';
 import { syncSetLights } from './setlights.js';
+import { monumentFurnitureAllowed } from './monumentzone.js';
 
 // Night lighting: instanced street lamps along road edges with additive
 // light-pool decals, a small pool of real PointLights handed to the lamps
@@ -345,6 +346,7 @@ function lampsForRoad(road, map) {
       // a post stands at the verge, or at the kerb when the verge is under a
       // shop's awning or against a facade: never through a wall (#463)
       const spot = lampSpot(cx, cy, dx, dy, side, road, path, (px, py) => !buildingAt(map, px, py, LAMP_AWNING)
+        && monumentFurnitureAllowed('lamp', px, py) // een monumentgebied (monumentzone.js) heeft geen moderne lantaarnpalen
         && !(map.offStreetLevel && map.offStreetLevel(px, py, 0.6)) && !(map.onCarriageway && map.onCarriageway(px, py, 0.4, road)));
       if (!spot) continue;
       const x = spot.x, y = spot.y;
@@ -378,6 +380,7 @@ function mappedLamp(map, m) {
   const [x, y] = m.pts[0];
   // a mapped lamp inside a house or under a shop's awning keeps out (#463)
   if (buildingAt(map, x, y, LAMP_AWNING)) return null;
+  if (!monumentFurnitureAllowed('lamp', x, y)) return null; // een monumentgebied (monumentzone.js)
   let best = null, bd = 25;
   for (const r of map.roadsNear(x, y, 12)) {
     if (!LAMP_CATS.has(r.cat) && !PATH_CATS.has(r.cat)) continue;

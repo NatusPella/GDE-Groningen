@@ -1455,6 +1455,17 @@ function drawStaticOverlay(ctx) {
     }
   }
 
+  // monumentgebieden (monumentzone.js): een eigen icoon met naam en een korte tekst, klikken zet een waypoint
+  if (layerOn('landmark')) {
+    for (const m of state.map.meta.monumenten || []) {
+      const [sx, sy] = toScreen(m.x, m.y);
+      if (!onScreen(sx, sy, 120)) continue;
+      drawMapIcon(ctx, 'monument', sx, sy, sc, { t: 0 });
+      bezet.push(pinDoos(sx, sy, sc));
+      hover.push({ sx, sy, name: m.naam, sub: m.tekst, x: m.x, y: m.y });
+    }
+  }
+
   // region names (Friesland, Drenthe, Duitsland, the seas) under the places
   const [rx0, ry0, rx1, ry1] = provinceMapOn() ? viewRect() : [0, 0, 0, 0];
   const named = new Set();

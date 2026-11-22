@@ -299,8 +299,17 @@ function perronbord() {
   return g;
 }
 
+// Extra onderdelen van andere modules (monumentkits3d.js: linde, lantaarn, kogels): een bestaande naam wordt nooit overschreven.
+const EXTRA_PROPS = {};
+export function registreerPropBouwer(kind, bouwer) {
+  if (!kind || EXTRA_PROPS[kind] || typeof bouwer !== 'function') return false;
+  EXTRA_PROPS[kind] = bouwer;
+  return true;
+}
+
 const WACHT_SPULLEN = ['bank', 'kist', 'baal', 'ton'];
 export function simpleProp(kind) {
+  if (EXTRA_PROPS[kind]) return EXTRA_PROPS[kind]();
   if (kind === 'hek') return hek();
   if (kind === 'jurytafel') return jurytafel();
   if (kind === 'kraam') return kraam();
@@ -381,7 +390,7 @@ export function buildMissionDressing(world, kind, at, targetScene = null) {
   for (const p of plan.people) {
     if (!spot(p.along, p.side)) continue;
     // look.hairStyle en look.extra (zoals { age: 'old' }) laten een vaste figuur herkenbaar zijn (Oma Trijntje, M08)
-    const m = buildPersonMesh(p.look.shirt, p.look.skin, { seed: p.look.seed, variant: p.look.variant, ...(p.look.hairStyle ? { hairStyle: p.look.hairStyle } : {}), ...(p.look.extra ? { look: p.look.extra } : {}) });
+    const m = buildPersonMesh(p.look.shirt, p.look.skin, { seed: p.look.seed, variant: p.look.variant, ...(p.look.hairStyle ? { hairStyle: p.look.hairStyle } : {}), ...(p.look.extra ? { look: p.look.extra } : {}), ...(p.look.role ? { role: p.look.role, outfitCtx: { hot: true, detail: true } } : {}) });
     place(m, p.along, p.side);
     m.rotation.y = -a + (p.a || 0);
     if (p.h) m.scale.y = p.h;
