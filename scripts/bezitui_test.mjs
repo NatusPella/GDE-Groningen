@@ -170,7 +170,7 @@ t('ketens: schakels met balk, eigen en niet eigen, zwakste schakel, koppelkiezer
 t('prijzen: een tabel per streek met de beste bovenaan en een productkiezer', () => {
   const board = { product: 'graan', best: { region: 'hogeland' }, auction: { text: 'Veilingdag: graan brengt vandaag 25% meer op.' }, rows: [{ region: 'hogeland', factor: 1.2, price: 0.18, trend: 'op' }, { region: 'oldambt', factor: 0.9, price: 0.13, trend: 'neer' }] };
   const h = U.marketHtml(board, ['graan', 'melk']);
-  assert.match(h, /Prijzen vandaag per streek/); assert.match(h, /data-best="1"/); assert.match(h, /Hogeland/); assert.match(h, /<option value="graan" selected>/); assert.match(h, /Veilingdag/); assert.match(h, /3% per 1\.000 kg/);
+  assert.match(h, /Prijzen vandaag per streek/); assert.match(h, /data-best="1"/); assert.match(h, /Hogeland/); assert.match(h, /data-bz-cycle="product"[^>]*data-cur="graan"/); assert.match(h, /Product: graan/i); assert.ok(!/<select data-bz-product/.test(h)); assert.match(h, /Veilingdag/); assert.match(h, /3% per 1\.000 kg/);
   assert.equal(U.marketHtml(null), '');
 });
 t('nieuws: hoogstens vijf regels, de buurman met knoppen en de trekkertrek; leeg is rustig', () => {
@@ -218,5 +218,24 @@ await (async () => {
   } catch (e) { fails++; console.log('FAIL renderBezitPanels: geen eindeloze hertekening', '\n  ', String(e.message).split('\n')[0]); }
 })();
 
+t('Overzicht: sorteren en filteren zijn chips die doorschakelen, geen native keuzelijsten (#1245)', () => {
+  assert.equal(U.nextOption([['a', 'A'], ['b', 'B'], ['c', 'C']], 'c'), 'a', 'rond aan het eind');
+  assert.equal(U.nextOption([['', 'Alles'], ['x', 'X']], ''), 'x');
+  const c = U.cycleChip('filter:region', 'Streek', [['', 'Alles'], ['Hogeland', 'Hogeland']], 'Hogeland');
+  assert.match(c, /ds-z-chip/); assert.match(c, /Streek: Hogeland/); assert.match(c, /data-bz-cycle="filter:region"/);
+  const h = U.summaryHtml(ctx(w()));
+  assert.ok(!/<select data-bz-(sort|filter)/.test(h), 'geen native select');
+  assert.equal((h.match(/data-bz-cycle=/g) || []).length, 4, 'Sorteren, Streek, Soort en Beheer');
+});
+t('Te koop: laden en leeg zijn twee aparte toestanden (#1251)', () => {
+  const laden = U.forSaleHtml({ money: 1, offers: [], laden: true });
+  const leeg = U.forSaleHtml({ money: 1, offers: [], laden: false });
+  assert.match(laden, /data-leeg="laden"/); assert.match(leeg, /data-leeg="niets"/);
+  assert.ok(!/geladen, of er is niets/.test(laden + leeg), 'niet meer een dubbelzinnige zin');
+});
+t('Bedrijven verwijst naar het tabblad Snackwagen in plaats van zelf te verkopen (#1250)', () => {
+  const h = U.snackVerwijsHtml([]);
+  assert.match(h, /tabblad Snackwagen/); assert.ok(!/data-bz=/.test(h));
+});
 console.log(`bezitui_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

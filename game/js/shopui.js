@@ -1,6 +1,6 @@
 import { icoon } from './icons.js';
 import { saveGame } from './savehook.js';
-import { keyTextHtml } from './keycap.js';
+import { keyTextHtml, plainKeyText } from './keycap.js';
 import { navIndex, rijCijfer } from './listnav.js';
 import { euro } from './geldtekst.js';
 import { createVehiclePreview } from './vehiclepreview.js';
@@ -13,7 +13,7 @@ import { deviceText } from './touchui.js';
 import { bonRegels, probleemVan, risicoVan } from './shopbon.js';
 import {
   itemIcon, itemStatus, refusalMessage, needsConfirm as needsConfirmFor, buyLabel as buyLabelFor, shopTabs, tabSections, stepTab, keepTab,
-  flatItems, keepItem, shortPerk, bevestigRegel, escActie, bevestigGeldig,
+  flatItems, keepItem, shortPerk, toonStatus, bevestigRegel, escActie, bevestigGeldig,
 } from './shoplist.js';
 
 let root = null;
@@ -38,6 +38,9 @@ const CHIP_ICOON = {
 };
 const CHIP_KLASSE = { ok: 'ds-z-chip--succes', no: 'ds-z-chip--probleem', mut: '' };
 const chipHtml = (st, extra = '') => `<span class="ds-z-chip ${CHIP_KLASSE[st.tone] || ''} sm-st ${st.tone}${extra}" data-st="${st.id}">${CHIP_ICOON[st.tone] || CHIP_ICOON.mut}${esc(st.label)}</span>`;
+// De status staat alleen op een regel als er iets te zeggen valt (te duur, heb ik al, op slot): "Kan ik kopen" is de
+// standaard en de prijs en de knop zeggen dat al (#1252).
+const rijChip = (it, st) => (it.plain || !toonStatus(st) ? '' : chipHtml(st));
 const euroHeel = (n) => euro(Math.max(0, Math.floor(Number(n) || 0)));
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -83,7 +86,7 @@ export function initShopUi(w) {
             <div class="sm-callout ds-z-kaart ds-z-kaart--probleem ds-z-kaart--recht" role="group" hidden></div>
             <div class="sm-bon ds-z-bon" aria-label="Bon"></div>
             <div class="sm-stats" aria-label="Eigenschappen"></div>
-            <div class="sm-buyrow"><span class="sm-pricebig"></span><button type="button" class="ds-z-knop sm-buy"></button></div>
+            <div class="sm-buyrow"><button type="button" class="ds-z-knop sm-buy"></button></div>
             <div class="sm-risico" hidden></div>
           </div>
           <div class="sm-status" role="status" aria-live="polite"></div>
@@ -202,13 +205,14 @@ function render() {
 // a row: low-poly icon, name with the short property, price and the status chip
 function rowHtml(it, secTitle) {
   const st = itemStatus(it, world.money);
-  const perk = it.desc ? shortPerk({ desc: it.desc }, 70) : '';
+  // een voertuig heeft zijn omschrijving in het detail (met balken): de regel houdt ruimte voor de volledige naam (#1232)
+  const perk = it.desc && !(it.stats && it.stats.length) ? plainKeyText(shortPerk({ desc: it.desc }, 70)) : '';
   return `
       <button type="button" class="m-li sm-item st-${st.id}${it.story ? ' story-' + it.story : ''}" data-id="${esc(it.id)}" aria-disabled="${it.disabled ? 'true' : 'false'}">
         <span class="sm-ico">${shopIconSvg(itemIcon(it, shop.type, secTitle))}</span>
         ${swatchHtml(it)}
-        <span class="nm"><span class="one">${esc(it.label)}</span>${perk ? `<span class="mut one">${esc(perk)}</span>` : ''}</span>
-        ${(it.cols || []).map((c) => `<span class="v">${esc(c)}</span>`).join('')}${it.plain ? '' : priceOnly(it)}${chipHtml(st)}
+        <span class="nm"><span class="sm-naam">${esc(it.label)}</span>${perk ? `<span class="mut one">${esc(perk)}</span>` : ''}</span>
+        ${(it.cols || []).map((c) => `<span class="v">${esc(c)}</span>`).join('')}${it.plain ? '' : priceOnly(it)}${rijChip(it, st)}
       </button>`;
 }
 
@@ -278,12 +282,10 @@ function bonHtml(it) {
   const b = bonRegels(it, world.money);
   if (!b) return '';
   const koop = b.soort === 'koop';
-  const regel = (naam, bedrag) => `<div class="ds-z-bon__regel"><span>${naam}</span><span class="ds-z-bon__stippen"></span><span class="ds-z-bon__bedrag">${bedrag}</span></div>`;
-  // de prijs staat al groot bij de knop; de bon toont wat je hebt en wat er overblijft, het totaal krijgt de dubbele streep
-  return regel('Op zak', euroHeel(b.saldo)) +
-    (b.mist > 0
-      ? `<div class="ds-z-bon__totaal sm-bon-mist"><span>Je mist</span><span class="ds-z-bon__stippen"></span><b>${euroHeel(b.mist)}</b></div>`
-      : `<div class="ds-z-bon__totaal"><span>${koop ? 'Na aankoop' : 'Na verkoop'}</span><span class="ds-z-bon__stippen"></span><b>${euroHeel(b.na)}</b><span class="ds-z-bon__bedrag">${koop ? '−' : '+'}${euroHeel(b.bedrag)}</span></div>`);
+  // de prijs staat al in de rij en op de knop en wat je op zak hebt staat bovenin: de bon toont alleen wat er overblijft (#1252)
+  return b.mist > 0
+    ? `<div class="ds-z-bon__totaal sm-bon-mist"><span>Je mist</span><span class="ds-z-bon__stippen"></span><b>${euroHeel(b.mist)}</b></div>`
+    : `<div class="ds-z-bon__totaal"><span>${koop ? 'Na aankoop' : 'Na verkoop'}</span><span class="ds-z-bon__stippen"></span><b>${euroHeel(b.na)}</b></div>`;
 }
 
 // Het probleem met de oplossing eronder: waarom het niet kan, en wat je wel kunt doen.
@@ -306,18 +308,19 @@ function renderDetail() {
   // de oplossing wijst naar een rij in dezelfde afdeling, zodat je niet van tabblad wisselt
   const probleem = probleemVan(it, flatItems(tabSections(viewSections(), tab)), world.money);
   const risico = isArmed ? null : risicoVan(it, world.money);
-  bar.querySelector('.sm-ceb').textContent = [shop.name, it.tag].filter(Boolean).join(' · ');
-  bar.querySelector('.sm-dchips').innerHTML = it.plain ? '' : chipHtml(st);
+  // de kop van de kaart is de afdeling van het gekozen ding, niet nog eens de winkelnaam (die staat al boven)
+  const sec = viewSections().find((x) => (x.items || []).some((y) => y.id === it.id));
+  bar.querySelector('.sm-ceb').textContent = [sec && sec.title, it.tag].filter(Boolean).join(' · ') || shop.name;
+  bar.querySelector('.sm-dchips').innerHTML = it.plain ? '' : rijChip(it, st);
   bar.querySelector('.sm-dname').textContent = it.label;
   const dd = bar.querySelector('.sm-ddesc');
   if (it.route) {
     const r = it.route;
     dd.innerHTML = `<span class="sm-route"><span class="sm-rs"><span class="bebas">${esc(r.from)}</span><span class="mut">Vertrek</span></span><span class="sm-rl" aria-hidden="true"></span><span class="sm-rs"><span class="bebas">${esc(r.to)}</span><span class="mut">${r.minutes} min</span></span></span>` +
       `<span class="sm-rt">${esc(r.text)}</span>${r.teaser ? `<span class="sm-rt">${esc(r.teaser)}</span>` : ''}<span class="sm-rt mut">Bord: ${esc(r.board.toLowerCase())}. De rit is over te slaan.</span>`;
-  } else dd.textContent = it.desc || '';
+  } else dd.innerHTML = it.desc ? keyTextHtml(esc(it.desc)) : '';
   bar.querySelector('.sm-effect').textContent = it.effect || '';
   bar.querySelector('.sm-bon').innerHTML = bonHtml(it);
-  bar.querySelector('.sm-pricebig').textContent = it.plain ? '' : it.income > 0 ? `+${euro(it.income)}` : it.price > 0 ? `${euro(it.price)}` : '';
   const co = bar.querySelector('.sm-callout');
   co.hidden = !probleem;
   co.innerHTML = probleem ? calloutHtml(probleem) : '';

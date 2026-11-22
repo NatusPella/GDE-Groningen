@@ -29,7 +29,8 @@ const nl = (n) => Math.round(n).toLocaleString('nl-NL');
 const ICOON = { perceel: 'oogst', gewas: 'gewas', machines: 'tractor', percelen: 'rooster', erf: 'boerderij', kas: 'bon', bank: 'bank' };
 // Heeft de speler al op het land gewerkt? Zo nee, heet het rail-item "Begin je boerderij" en toont het eerste scherm hoe je begint (21-11).
 export const boerderijBegonnen = (b) => !!(b && (b.perceel || b.uren > 0));
-const ONDERDELEN = [['perceel', 'Overzicht'], ['percelen', 'Percelen'], ['erf', 'Erf'], ['gewas', 'Gewas'], ['machines', 'Machines'], ['kas', 'Kasboek'], ['bank', 'Bank']];
+// de eerste tab heet Werk: het tabblad Overzicht staat al in de bovenste rij van Land en bedrijf (#1243)
+const ONDERDELEN = [['perceel', 'Werk'], ['percelen', 'Percelen'], ['erf', 'Erf'], ['gewas', 'Gewas'], ['machines', 'Machines'], ['kas', 'Kasboek'], ['bank', 'Bank']];
 const icoon = (n, cls = 'pa-ico') => `<span class="${cls}">${fIcoon(ICOON[n])}</span>`;
 
 // De boerderij hoort bij het vak Landbouw en draagt dezelfde sfeerband als Loopbanen (#492, #609).
@@ -418,7 +419,7 @@ function dagKaart() {
   const k = dagKeuze(getBoerderij());
   if (!k) return '';
   const machine = k.machine ? ` Machine: ${esc(k.machine.naam)}${k.machine.eigen ? ' (van jou)' : ` (huur ${euro(k.machine.huur)}/dag)`}.` : '';
-  return `<div class="bd-dag" style="margin:0 0 8px"><p class="lb-titel"><b>Vandaag</b> <span class="mut">speldag ${k.dag + 1}</span></p><p class="mut">${esc(dagKeuzeTekst(k))}${machine}</p></div>`;
+  return `<div class="bd-dag" style="margin:0 0 8px"><p class="lb-titel"><b>Vandaag</b> <span class="mut">speldag ${k.dag + 1}</span></p><p class="mut">${esc(dagKeuzeTekst(k).replace(/^Vandaag: /, ''))}${machine}</p></div>`; // de kop zegt al Vandaag (#1244)
 }
 
 // Het menuonderdeel sluit of een ander onderdeel opent: plaatjes terug, live voorbeeld weg (geen GL-context, geen geheugen vast).

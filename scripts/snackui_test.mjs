@@ -91,7 +91,7 @@ t('Buurt en klanten: tevredenheid, goodwill, bondgenoten, vaste klanten met hulp
   reset(); const w = wereld(); SL.buyVan(w); SL.koopVergunning(w, 'park'); SL.placeVan('park');
   L.setClaimLookup((id) => (id === 'sp:leek' ? { name: 'lotte', color: '#c0c', playerId: 'B' } : null));
   let h = U.snackHtml(SL.snackView(w));
-  assert.match(h, /Buurt en klanten/); assert.match(h, /Tevreden klanten/); assert.match(h, /Naam van Usmem/); assert.match(h, /Nog geen bondgenoten/);
+  assert.match(h, /Buurt en klanten/); assert.match(h, /Tevreden klanten/); assert.match(h, /Reputatie van Usmem/); assert.match(h, /Nog geen bondgenoten/);
   assert.match(h, /data-buurt="park"/); assert.match(h, /data-sn="help" data-id="park\|buurthuis" data-spot="park" data-kind="buurthuis"/);
   assert.match(h, /data-helper="leek"/); assert.match(h, /data-sn="meewerken" data-id="leek"/);
   U.sui.confirm = 'help:park|buurthuis'; h = U.snackHtml(SL.snackView(w)); assert.match(h, /bd-zeker/);
@@ -112,6 +112,16 @@ t('de bron: nederlands, geen merken, geen fetch, geen Math.random', async () => 
   const src = readFileSync(new URL('../game/js/snackui.js', import.meta.url), 'utf8');
   assert.ok(!/Math\.random|fetch\(/.test(src));
   assert.ok(!/(Zoom|McDonald|Burger King|hagel)/i.test(src));
+});
+t('de tegel toont de reputatie onder dat woord, de prijs staat een keer per plek en kopen is de gele knop (#1247, #1248, #1249)', () => {
+  reset(); const w = wereld();
+  const h = U.snackHtml(SL.snackView(w));
+  assert.match(h, /<small>Reputatie<\/small><b>\d+<\/b>/); assert.ok(!/<small>Naam<\/small>/.test(h));
+  const markt = h.slice(h.indexOf('data-spot="markt"'), h.indexOf('data-spot="markt"') + 900);
+  assert.equal((markt.match(/€25\.\d{3}|€\d+\.\d{3}/g) || []).length >= 1, true);
+  assert.ok(!/<span>overnemen €/.test(h) && !/<span>vergunning €/.test(h), 'de prijs staat niet ook nog als feit naast de knop');
+  assert.match(h, /class="m-bt bz-hoofd" data-sn="koop-wagen"/);
+  assert.ok(!/>Doel<\/button>/.test(h), 'Route in plaats van Doel');
 });
 console.log(`snackui_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

@@ -66,5 +66,14 @@ t('mapview.js: minimale koppeling (de laag, de klik, het kaartje, de acties, de 
   const m = fs.readFileSync(new URL('../game/js/mapview.js', import.meta.url), 'utf8');
   for (const s of ["layerOn('standplaats')", 'drawPitchMarkers(', 'pickMarker(state.standMarkers', 'spotCardHtml(', "act.startsWith('sp-')", 'function standActie', "layers: ['standplaats']"]) assert.ok(m.includes(s), s);
 });
+t('standplaatskaart: Vergunning kopen met spatie voor de prijs en drukte in woorden (#1234, #1256)', () => {
+  const h = C.spotCardHtml({ id: 1, status: 'vrij', price: 450, place: 'Vismarkt', foot: 1.2, ask: 900, renew: 200, daysLeft: 12, claim: null });
+  assert.ok(h.includes('Vergunning kopen</span> <small>'), 'spatie tussen label en prijs');
+  assert.ok(!/gewone drukke plek|1,20/.test(h), 'geen jargon of ruw getal');
+  assert.equal(C.crowdWord(0.5), 'Rustig');
+  assert.equal(C.crowdWord(1), 'Gewoon druk');
+  assert.equal(C.crowdWord(1.2), 'Druk');
+  assert.equal(C.crowdWord(2), 'Erg druk');
+});
 console.log(`pitchmap_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

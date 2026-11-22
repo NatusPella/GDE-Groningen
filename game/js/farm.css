@@ -85,7 +85,24 @@
 .mv-bezit div { display: flex; gap: var(--ds-s-3); }
 .mv-bezit dt { min-width: calc(var(--ds-s-8) * 1.4); color: var(--ds-tx-2); }
 .mv-bezit dd { margin: 0; }
+.mv-bodem { display: inline-flex; width: calc(var(--ds-s-8) * 2); vertical-align: middle; margin-left: var(--ds-s-2); }
 
+/* De knoppen van Land en bedrijf (bezitui.js, snackui.js) als DS3-knop: omlijnd, de hoofdactie geel (#1248). Een uitgeschakelde knop is gestippeld, niet vervaagd. */
+#pause-menu.gm .m-bt[data-bz], #pause-menu.gm .m-bt[data-sn] { height: auto; min-height: var(--ds-hoogte-chip); padding: var(--ds-s-1) var(--ds-s-4); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); white-space: normal; box-shadow: var(--ds-schaduw-hard-klein); cursor: pointer; }
+#pause-menu.gm .m-bt[data-bz]:hover:not(:disabled), #pause-menu.gm .m-bt[data-sn]:hover:not(:disabled) { background: var(--ds-c-wit); color: var(--ds-zeef-tx); }
+#pause-menu.gm .m-bt.bz-hoofd:not(:disabled) { background: var(--ds-zeef-primair); }
+#pause-menu.gm .m-bt.bz-hoofd:hover:not(:disabled) { background: var(--ds-c-geel-hover); }
+#pause-menu.gm .m-bt[data-bz]:disabled, #pause-menu.gm .m-bt[data-sn]:disabled { opacity: 1; border-style: dashed; box-shadow: none; color: var(--ds-zeef-tx); cursor: not-allowed; }
+.bd-rij { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-s-4); padding: var(--ds-s-3) 0; border-bottom: var(--ds-lijn) dashed var(--ds-c-ink-inkt); }
+.bd-naam { display: flex; flex-direction: column; gap: var(--ds-s-1); min-width: 0; flex: 1 1 auto; }
+.bd-feiten { display: flex; flex-wrap: wrap; gap: 0 var(--ds-s-4); color: var(--ds-tx-2); font-size: var(--ds-t-hulp); }
+.bd-acties { display: flex; flex-wrap: wrap; flex: none; gap: var(--ds-s-2); align-items: center; justify-content: flex-end; }
+.bz-chip { cursor: pointer; }
+
+/* de tussenkoppen van Land en bedrijf in de DS3-kopletter, niet in de lichte standaardletter (#1246) */
+#pause-menu [data-panel="boerderij"] .m-h3 { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); margin: var(--ds-s-5) 0 var(--ds-s-2); color: var(--ds-zeef-tx); }
+/* De kop in het paneel van de boerderij herhaalt de actieve tab (twee tabrijen, banner en vier koppen voor een knop, #1243): alleen nog voor schermlezers. */
+#pause-menu .bd-pane > .pm-pane-top { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 /* ---- Bezit: ketens, streekprijzen en nieuws (#1103) ---- */
 .bz-keten { margin: var(--ds-s-3) 0; padding: var(--ds-s-3) var(--ds-s-4); background: var(--ds-bg-2); border-radius: var(--ds-r-m); font-family: var(--ds-font-tekst); }
 .bz-schakels { display: grid; grid-template-columns: repeat(auto-fit, minmax(calc(var(--ds-s-8) * 3), 1fr)); gap: var(--ds-s-3); margin: var(--ds-s-2) 0; }

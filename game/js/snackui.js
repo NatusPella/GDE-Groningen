@@ -10,7 +10,9 @@ import { euro } from './geldtekst.js';
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export const sui = { msg: '', confirm: null };
 const STATUS_TEXT = { jij: 'van jou', usmem: 'van Usmem Snacks', medespeler: 'van een medespeler', vrij: 'vrij' };
-const btn = (act, text, extra = '', uit = false) => `<button type="button" class="m-bt" data-sn="${act}"${extra}${uit ? ' disabled' : ''}>${text}</button>`;
+// Kopen is de gele hoofdknop, de rest omlijnd: zonder eigen vorm leken ze lichtgrijze tekst of uitgeschakeld (#1248).
+const HOOFD = new Set(['koop-wagen', 'vergunning', 'neem-over']);
+const btn = (act, text, extra = '', uit = false) => `<button type="button" class="m-bt${HOOFD.has(act) ? ' bz-hoofd' : ''}" data-sn="${act}"${extra}${uit ? ' disabled' : ''}>${text}</button>`;
 const key = (act, id) => `${act}:${id}`;
 const askOr = (act, id, text, sure, extra = '', uit = false) => (sui.confirm === key(act, id)
   ? `<span class="bd-zeker">${sure} ${btn(act, 'Ja', ` data-id="${esc(id)}" data-ok="1"${extra}`)} ${btn('annuleer', 'Nee')}</span>`
@@ -65,7 +67,7 @@ function ownHtml(v) {
 function spotsHtml(v) {
   const hasEmpty = (id) => !v.spots.find((s) => s.id === id).wagon;
   const rows = v.spots.slice().sort((a, b) => b.foot - a.foot).map((s) => {
-    const feiten = [esc(s.place), STATUS_TEXT[s.status] + (s.claim ? ` (${esc(s.claim.name)})` : ''), s.status === 'jij' ? `nog ${s.daysLeft} dagen, verlengen ${euro(s.renew)}` : s.status === 'usmem' ? `overnemen ${euro(s.ask)}` : s.status === 'vrij' ? `vergunning ${euro(s.price)}` : '', s.wagon ? (s.wagon === 'own' ? 'jouw wagen staat er' : `wagen ${esc(s.wagon)} staat er`) : ''].filter(Boolean).map((x) => `<span>${x}</span>`).join('');
+    const feiten = [esc(s.place), STATUS_TEXT[s.status] + (s.claim ? ` (${esc(s.claim.name)})` : ''), s.status === 'jij' ? `nog ${s.daysLeft} dagen, verlengen ${euro(s.renew)}` : '', s.wagon ? (s.wagon === 'own' ? 'jouw wagen staat er' : `wagen ${esc(s.wagon)} staat er`) : ''].filter(Boolean).map((x) => `<span>${x}</span>`).join('');
     let acts = btn('doel-plek', 'Op de kaart', ` data-id="${esc(s.id)}"`);
     if (s.status === 'vrij') acts += ' ' + askOr('vergunning', s.id, `Vergunning ${euro(s.price)}`, `Voor ${euro(s.price)}?`, miss(v.money, s.price), v.money < s.price || st(v, 'stek'));
     else if (s.status === 'usmem') acts += ' ' + askOr('neem-over', s.id, `Neem over ${euro(s.ask)}`, `Voor ${euro(s.ask)}?`, miss(v.money, s.ask), v.money < s.ask || st(v, 'keten'));
@@ -75,7 +77,7 @@ function spotsHtml(v) {
     }
     return `<div class="bd-rij" data-spot="${esc(s.id)}" data-status="${s.status}"><span class="bd-naam"><b>${esc(s.name)}</b><span class="bd-feiten">${feiten}</span></span><span class="bd-acties">${acts}</span></div>`;
   }).join('');
-  return `<h3 class="m-h3">Standplaatsen</h3><p class="mut">Een vergunning is ${PERMIT_DAYS} speldagen geldig en wordt vanzelf verlengd (een kwart van de prijs) zolang je geld hebt. Elke vergunning die je hebt maakt de volgende duurder. Het beste plekje van de stad is van Usmem Snacks: neem het over.</p>${stNote(v, 'stek', 'standplaats', 'team', 'keten')}${rows}`;
+  return `<h3 class="m-h3">Standplaatsen</h3><p class="mut">Een vergunning duurt ${PERMIT_DAYS} speldagen en verlengt zichzelf voor een kwart van de prijs; elke extra vergunning maakt de volgende duurder.</p>${stNote(v, 'stek', 'standplaats', 'team', 'keten')}${rows}`;
 }
 
 function fleetHtml(v) {
@@ -97,7 +99,7 @@ export function neighbourhoodHtml(v) {
     `<span class="bd-acties">${s.help.map((h) => askOr('help', `${s.id}|${h.id}`, `${esc(h.label)} ${euro(h.cost)}${h.wait ? ` (over ${h.wait} d)` : ''}`, `Voor ${euro(h.cost)}?`, ` data-spot="${esc(s.id)}" data-kind="${esc(h.id)}"`, v.money < h.cost || h.wait > 0)).join(' ')}</span></div>`).join('');
   const helpers = g.helpers.length ? `<h4 class="m-h3">Meewerken bij een medespeler</h4>` + g.helpers.map((h) => `<div class="bd-rij" data-helper="${esc(h.id)}"><span class="bd-naam"><b>${esc(h.short)}</b><span class="bd-feiten"><span>van ${esc((h.claim && h.claim.name) || 'een medespeler')}</span></span></span><span class="bd-acties">${btn('meewerken', 'Meewerken (6 uur)', ` data-id="${esc(h.id)}"`, h.done)}</span></div>`).join('') : '';
   return `<h3 class="m-h3">Buurt en klanten</h3><p class="mut">Jelle Terpstra speelt met formulieren, enveloppen en lage prijzen. Jij wint met oprechte interesse: tevreden klanten, vaste klanten en een buurt die je helpt omdat jij hen hielp.</p>` +
-    `<div class="bz-tegels"><span class="bz-tegel"><small>Tevreden klanten</small><b>${g.sat}%</b></span><span class="bz-tegel"><small>Goodwill</small><b>${g.goodwill}</b></span><span class="bz-tegel"><small>Geschillen gewonnen</small><b>${g.disputes.won} van ${g.disputes.won + g.disputes.lost}</b></span><span class="bz-tegel"><small>Naam van Usmem</small><b>${v.rival.rep}</b></span></div>` +
+    `<div class="bz-tegels"><span class="bz-tegel"><small>Tevreden klanten</small><b>${g.sat}%</b></span><span class="bz-tegel"><small>Goodwill</small><b>${g.goodwill}</b></span><span class="bz-tegel"><small>Geschillen gewonnen</small><b>${g.disputes.won} van ${g.disputes.won + g.disputes.lost}</b></span><span class="bz-tegel"><small>Reputatie van Usmem</small><b>${v.rival.rep}</b></span></div>` +
     (v.reputatie && v.reputatie.line ? `<p class="mut">Op straat: "${esc(v.reputatie.line)}"${v.reputatie.jelle ? ` Jelle: "${esc(v.reputatie.jelle)}"` : ''} Rij bij je wagen: ${v.reputatie.queue} klanten.</p>` : '') +
     `<p class="mut">${allies}${g.disputes.bribesFailed ? ` Een omkoping van Jelle is ${g.disputes.bribesFailed}x mislukt.` : ''}</p>${rows || '<p class="mut">Zodra je een standplaats hebt, kun je de buurt helpen.</p>'}${helpers}`;
 }

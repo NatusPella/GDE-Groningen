@@ -11,7 +11,8 @@ export function garageToestand(e, extra = {}) {
   if (!e || !e.owned) return [];
   const bron = e.v || extra.entry || {};
   const chips = [];
-  if (e.status === 'lost') return [{ id: 'schade', tone: 'no', label: 'Afgeschreven' }];
+  // afgeschreven staat al als status naast de titel: niet nog eens als chip (#1239)
+  if (e.status === 'lost') return [];
   const h = Number.isFinite(bron.health) ? heel(bron.health) : 100;
   if (h >= 90) chips.push({ id: 'schade', tone: 'ok', label: 'Geen schade' });
   else if (h >= 60) chips.push({ id: 'schade', tone: 'warn', label: `Lichte schade · ${h}% heel` });

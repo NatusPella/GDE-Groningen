@@ -940,8 +940,8 @@ export function hengelSections(world) {
 function foodItem(world, id, label, desc, price, hp, product, eaten) {
   const full = world.health >= 100;
   return {
-    id, label, desc: full ? `${desc} · je zit vol: om mee te nemen` : `${desc} · +${hp} gezondheid`, price, keepFocus: true,
-    preview: productPreview(product), stats: [healthStat(world, hp)], effect: full ? 'Om mee te nemen' : `+${hp} gezondheid`,
+    id, label, desc, price, keepFocus: true,
+    preview: productPreview(product), stats: [healthStat(world, hp)], effect: full ? 'Je zit vol: om mee te nemen' : '', // de gezondheidsbalk toont de winst; geen tweede keer in tekst (#1253)
     disabled: broke(world, price),
     buy() {
       if (!pay(world, price)) return null;
@@ -956,7 +956,7 @@ function foodItem(world, id, label, desc, price, hp, product, eaten) {
 
 function foodSections(world, title, list) {
   const items = list.map(([id, label, desc, price, hp]) => foodItem(world, 'f-' + id, label, desc, price, hp, 'f_' + id, () => `${label}: lekker! Gezondheid ${Math.round(world.health)}`));
-  return [{ title, note: `Gezondheid nu ${Math.round(world.health)}`, items }];
+  return [{ title, items }];
 }
 
 // --- upgrades --------------------------------------------------------------------

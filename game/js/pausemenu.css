@@ -533,6 +533,11 @@ html.sub-box #pause-menu .pm-subtxt { background: color-mix(in srgb, var(--ds-c-
 #pause-menu .gar-list .m-gh, #pause-menu .gar-list .m-note { grid-column: 1 / -1; }
 /* 720p and 1366: two columns, so the viewer keeps room for the name and the button */
 @media (max-width: 1400px) { #pause-menu .m-main > .m-list.gar-list { width: 470px; grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* Toon- en sorteerknop in de garage zijn een chip, net als Sorteren in Spullen (#1242) */
+#pause-menu .gar-chip { cursor: pointer; flex: none; }
+/* de detailkolom en de lijst scrollen: een zichtbare DS3-balk laat zien dat er meer onder staat (#1241) */
+#pause-menu .gar-viewer, #pause-menu .gar-list { scrollbar-width: thin; scrollbar-color: var(--ds-scroll-duim) var(--ds-scroll-spoor); }
+#pause-menu .gar-chip + .gar-chip { margin-left: var(--ds-s-2); }
 #pause-menu .gar-card { flex-direction: column; align-items: stretch; gap: 8px; padding: 12px; min-height: 0; text-align: left; background: color-mix(in srgb, var(--ds-c-creme) 4%, transparent); }
 #pause-menu .gar-card .gar-ph { position: relative; display: flex; align-items: center; justify-content: center; height: 104px; overflow: hidden; border-radius: 6px; background: radial-gradient(ellipse at 50% 85%, color-mix(in srgb, var(--ds-c-creme) 12%, transparent), color-mix(in srgb, var(--ds-c-creme) 0%, transparent) 70%); }
 #pause-menu .gar-card .gar-ph svg { width: 76px; height: 76px; }
