@@ -73,7 +73,7 @@ export function choose(id) {
   let ok;
   if (w.id === 'doel-deel' || w.id === 'doel-ping') {
     const point = getUserWaypoint();
-    if (!point) { if (worldRef.addMessage) worldRef.addMessage('Kies eerst een doel op de kaart (M).', 3); close(); return false; }
+    if (!point) { if (worldRef.addMessage) worldRef.addMessage('Kies eerst een doel op de kaart ({M}).', 3); close(); return false; }
     ok = w.id === 'doel-deel' ? shareGoal(worldRef, point) : pingGoal(worldRef, point);
   } else ok = sayPhrase(worldRef, w.id);
   close();
