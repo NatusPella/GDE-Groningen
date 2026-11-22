@@ -107,6 +107,12 @@ const CAST = {
   Tinus: { voice: 'Enceladus', who: 'oude boer met een trekker uit het Westerkwartier, schor en joviaal', pool: ['joviaal, boers', 'schor, droog', 'gemoedelijk, praktisch'], accent: GRO_ACCENT },
   'Kind in het publiek': { voice: 'Leda', who: 'kind in het publiek op de Grote Markt, roept luid en dapper', pool: ['kind, luid', 'dapper, roepend'], accent: GRO_ACCENT },
   Willemien: { voice: 'Aoede', who: 'gastvrouw in een huis dat op nieuwe poten staat, nuchter en hartelijk', pool: ['hartelijk, nuchter', 'gastvrij, droog', 'warm, berustend'], accent: GRO_ACCENT },
+  // TTS-ronde 3 (22-11): de vijf sprekers die op een stemkeuze wachtten kregen een bestaande stem; keuze en reden in docs/TTS-ROND3-22-11.md
+  'Meneer Veldkamp': { voice: 'Alnilam', who: 'oude buurman met duiven op de elfde verdieping, droog en kortaf, stiekem vriendelijk', pool: ['droog, kortaf', 'stil, stiekem vriendelijk', 'rustig, een tikje verlegen'], accent: GRO_ACCENT },
+  Daan: { voice: 'Puck', who: 'jonge straatmuzikant met een gitaar en een glimmend jasje, vol bewondering', pool: ['opgewonden, bewonderend', 'hoopvol, een tikje verlegen', 'zangerig, enthousiast'], accent: GRO_ACCENT },
+  Anneke: { voice: 'Achernar', who: 'de moeder van Tessa, nuchtere Groningse boerin bij Siddeburen, warm en stellig', pool: ['warm, nuchter', 'plagend, liefdevol', 'stellig, zacht'], accent: GRO_ACCENT },
+  Stien: { voice: 'Vindemiatrix', who: 'vrouw van zeventig met een frituurwagen onder brug elf, bedrijvig en droog', pool: ['droog, vakkundig', 'bedrijvig, plagend', 'nuchter, warm'], accent: GRO_ACCENT },
+  Lieke: { voice: 'Leda', who: 'het zusje van Tessa, tien jaar, in een gele regenjas, brutaal en helder', pool: ['kind, helder', 'brutaal, nieuwsgierig'], accent: GRO_ACCENT },
   Buurvrouw: { voice: 'Despina', who: 'buurvrouw die voor twintig kookt, hartelijk en kletserig', pool: ['hartelijk, kletserig', 'nuchter, gastvrij'], accent: GRO_ACCENT },
 };
 const MALE = ['Charon', 'Puck', 'Iapetus', 'Umbriel', 'Alnilam', 'Rasalgethi', 'Enceladus', 'Schedar', 'Sadaltager', 'Zubenelgenubi'];

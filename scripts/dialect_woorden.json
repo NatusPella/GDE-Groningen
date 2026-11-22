@@ -3,14 +3,14 @@
     "wiet": {
       "nl": "weet",
       "status": "twijfel",
-      "n": 1,
+      "n": 3,
       "opm": "klanknabootsing in \"Tswiet\" (het geluid van een zwaluw), geen Gronings woord; laten staan",
       "voorstel": "laten staan"
     },
     "bieno": {
       "nl": "bijna",
       "status": "twijfel",
-      "n": 29,
+      "n": 34,
       "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"bijna\"): host, hoast, benoasten, glad; \"bieno\" komt niet voor",
       "voorstel": "hoast",
       "handmatig": true
@@ -37,7 +37,7 @@
     "stun": {
       "nl": "stond",
       "status": "afgeleid",
-      "n": 27
+      "n": 30
     },
     "fryslân": {
       "nl": "friesland",
@@ -47,18 +47,18 @@
     "lèste": {
       "nl": "laatste",
       "status": "afgeleid",
-      "n": 21
+      "n": 24
     },
     "kin": {
       "nl": "kan",
       "status": "bron",
-      "n": 40,
+      "n": 47,
       "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
     },
     "ains": {
       "nl": "eens",
       "status": "bron",
-      "n": 28,
+      "n": 31,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): eens ⋅ eensgezind; iemands; eens"
     },
     "doarmit": {
@@ -70,7 +70,7 @@
     "aals": {
       "nl": "alles",
       "status": "bron",
-      "n": 61,
+      "n": 68,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): veel; alles; als"
     },
     "wust": {
@@ -87,37 +87,37 @@
     "woater": {
       "nl": "water",
       "status": "bron",
-      "n": 40,
+      "n": 42,
       "opm": "Woordwaark (S.H. Abels, S.J.H. Reker, H. Molema, K. ter Laan): knie ⋅ water; ondiep ⋅ water; urine ⋅ water; water"
     },
     "kaai": {
       "nl": "kade",
       "status": "bron",
-      "n": 9,
+      "n": 12,
       "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
     },
     "eefkes": {
       "nl": "even",
       "status": "bron",
-      "n": 52,
+      "n": 53,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): eventjes"
     },
     "vroag": {
       "nl": "vraag",
       "status": "bron",
-      "n": 8,
+      "n": 12,
       "opm": "Woordwaark (S.J.H. Reker): vraag"
     },
     "kaant": {
       "nl": "kant",
       "status": "bron",
-      "n": 10,
+      "n": 13,
       "opm": "Woordwaark (Westerkwartier, S.J.H. Reker, F.H. Steenhuis 1, K. ter Laan): helemaal, bijna -; kant; klaar; netheid"
     },
     "goat": {
       "nl": "gaat",
       "status": "afgeleid",
-      "n": 34
+      "n": 38
     },
     "veurdeur": {
       "nl": "voordeur",
@@ -133,7 +133,7 @@
     "aaltied": {
       "nl": "altijd",
       "status": "bron",
-      "n": 62,
+      "n": 64,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): altijd"
     },
     "opnij": {
@@ -169,7 +169,7 @@
     "wiek": {
       "nl": "wijk",
       "status": "bron",
-      "n": 3,
+      "n": 6,
       "opm": "Woordwaark (S.J.H. Reker, F.H. Steenhuis 1, K. ter Laan, H. Molema): vaart II (water); wijk; bat; week"
     },
     "stilstait": {
@@ -204,7 +204,7 @@
     "aleen": {
       "nl": "alleen",
       "status": "twijfel",
-      "n": 63,
+      "n": 69,
       "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"alleen\"): allain, allaint, allinneg, allènt, bloots; \"aleen\" komt niet voor",
       "voorstel": "allain",
       "handmatig": true
@@ -212,7 +212,7 @@
     "aarst": {
       "nl": "eerst",
       "status": "twijfel",
-      "n": 46,
+      "n": 52,
       "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"eerste\"): geen \"aarst\"; ter Laan en Steenhuis geven \"aarst\" = \"arks\"; de vorm voor eerst is niet bevestigd",
       "voorstel": "navragen",
       "handmatig": true
@@ -248,7 +248,7 @@
     "aal": {
       "nl": "al",
       "status": "bron",
-      "n": 25,
+      "n": 26,
       "opm": "Woordwaark (S.H. Abels, S.J.H. Reker, F.H. Steenhuis 1, K. ter Laan): mogelijk; voortdurend ⋅ wèl; al ⋅ alles ⋅ ieder ⋅ iedereen; al, het -"
     },
     "opkocht": {
@@ -265,13 +265,13 @@
     "wol": {
       "nl": "wilde",
       "status": "afgeleid",
-      "n": 6,
+      "n": 8,
       "opm": "Woordwaark (S.J.H. Reker, F.H. Steenhuis 1, K. ter Laan, H. Molema) kent het trefwoord als \"wèl; wel; wol\"; de gebruikte betekenis \"wilde\" is een andere vorm of een homoniem en niet apart bevestigd"
     },
     "blieven": {
       "nl": "blijven",
       "status": "bron",
-      "n": 7,
+      "n": 8,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): believen ⋅ blijven; believen"
     },
     "ieder": {
@@ -285,18 +285,18 @@
     "rie": {
       "nl": "rij",
       "status": "afgeleid",
-      "n": 38
+      "n": 41
     },
     "kwiet": {
       "nl": "kwijt",
       "status": "bron",
-      "n": 8,
+      "n": 10,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): kwijt"
     },
     "vismark": {
       "nl": "vismarkt",
       "status": "afgeleid",
-      "n": 9
+      "n": 10
     },
     "voortoan": {
       "nl": "voortaan",
@@ -321,7 +321,7 @@
     "allemoal": {
       "nl": "allemaal",
       "status": "bron",
-      "n": 12,
+      "n": 13,
       "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
     },
     "veurzichtig": {
@@ -333,13 +333,13 @@
     "doan": {
       "nl": "gedaan",
       "status": "afgeleid",
-      "n": 11,
+      "n": 12,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden) kent het trefwoord als \"af ⋅ afgelopen; doen; af ⋅ verloren\"; de gebruikte betekenis \"gedaan\" is een andere vorm of een homoniem en niet apart bevestigd"
     },
     "dien": {
       "nl": "je",
       "status": "bron",
-      "n": 77,
+      "n": 81,
       "opm": "Woordwaark (S.J.H. Reker, F.H. Steenhuis 1, K. ter Laan, H. Molema): jouw; dijn; -tje; -je"
     },
     "zulfs": {
@@ -353,7 +353,7 @@
     "grötter": {
       "nl": "groter",
       "status": "afgeleid",
-      "n": 7
+      "n": 9
     },
     "duvenkeuning": {
       "nl": "duivenkoning",
@@ -366,7 +366,7 @@
     "zwoarder": {
       "nl": "zwaarder",
       "status": "afgeleid",
-      "n": 3
+      "n": 4
     },
     "holt": {
       "nl": "houdt",
@@ -387,7 +387,7 @@
     "hiele": {
       "nl": "hele",
       "status": "twijfel",
-      "n": 18,
+      "n": 21,
       "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"heel\"): hail, hiel, hijl, gehail; \"hiele\" komt niet voor",
       "voorstel": "hiele navragen",
       "handmatig": true
@@ -413,13 +413,13 @@
     "aans": {
       "nl": "anders",
       "status": "bron",
-      "n": 16,
+      "n": 17,
       "opm": "Woordwaark (S.J.H. Reker, F.H. Steenhuis 1, K. ter Laan): anders; als; anders ⋅ echter; als ⋅ behalve ⋅ dan ⋅ indien ⋅ of"
     },
     "hait": {
       "nl": "heet",
       "status": "bron",
-      "n": 14,
+      "n": 15,
       "opm": "Woordwaark (S.H. Abels, S.J.H. Reker, F.H. Steenhuis 1, K. ter Laan, H. Molema): warm, erg - ⋅ zuchten; driftig ⋅ heet ⋅ warmbloedig; heet; heit"
     },
     "verbieusterd": {
@@ -461,7 +461,7 @@
     "riedt": {
       "nl": "rijdt",
       "status": "afgeleid",
-      "n": 27
+      "n": 29
     },
     "verlezen": {
       "nl": "kan",
@@ -476,18 +476,18 @@
     "noa": {
       "nl": "na",
       "status": "bron",
-      "n": 19,
+      "n": 22,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden, H. Molema): na ⋅ naar; naar; na; na ⋅ op ⋅ te (bij sommige plaatsn.)"
     },
     "wedstried": {
       "nl": "wedstrijd",
       "status": "afgeleid",
-      "n": 1
+      "n": 2
     },
     "aarste": {
       "nl": "eerste",
       "status": "twijfel",
-      "n": 13,
+      "n": 18,
       "opm": "zie \"aarst\": \"aarste\" (eerste) is niet bevestigd",
       "voorstel": "navragen",
       "handmatig": true
@@ -516,13 +516,13 @@
     "thoes": {
       "nl": "thuis",
       "status": "bron",
-      "n": 19,
+      "n": 20,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden, H. Molema): thuis; tehuis"
     },
     "buten": {
       "nl": "buiten",
       "status": "bron",
-      "n": 7,
+      "n": 8,
       "opm": "Woordwaark (Westerkwartier, S.J.H. Reker, F.H. Steenhuis 1, K. ter Laan, H. Molema, P. Boeles): buiten; ruilen; handelen (handel drijven) ⋅ ruilen ⋅ sjacheren"
     },
     "groden": {
@@ -562,7 +562,7 @@
     "nèt": {
       "nl": "net",
       "status": "afgeleid",
-      "n": 12
+      "n": 13
     },
     "bliede": {
       "nl": "blij",
@@ -573,13 +573,13 @@
     "vief": {
       "nl": "vijf",
       "status": "bron",
-      "n": 20,
+      "n": 32,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden, H. Molema): vijf"
     },
     "vandoage": {
       "nl": "vandaag",
       "status": "bron",
-      "n": 28,
+      "n": 32,
       "opm": "Woordwaark (S.J.H. Reker): vandaag"
     },
     "kriegst": {
@@ -590,7 +590,7 @@
     "goie": {
       "nl": "goede",
       "status": "bron",
-      "n": 10,
+      "n": 13,
       "opm": "Woordwaark (S.J.H. Reker): komt voor als trefwoord; vertaling niet uitgelezen"
     },
     "aflevert": {
@@ -606,7 +606,7 @@
     "betoalt": {
       "nl": "betaalt",
       "status": "afgeleid",
-      "n": 5
+      "n": 6
     },
     "dié": {
       "nl": "?",
@@ -623,7 +623,7 @@
     "vaailig": {
       "nl": "veilig",
       "status": "afgeleid",
-      "n": 2
+      "n": 3
     },
     "hailve": {
       "nl": "halve",
@@ -633,7 +633,7 @@
     "mouten": {
       "nl": "moeten",
       "status": "bron",
-      "n": 13,
+      "n": 14,
       "opm": "Woordwaark (S.H. Abels, S.J.H. Reker, K. ter Laan, A.A. Ganderheyden, H. Molema): moeten ⋅ niet ⋅ willen; moeten; moest; moetwerk"
     },
     "vaaren": {
@@ -668,13 +668,13 @@
     "doarom": {
       "nl": "daarom",
       "status": "bron",
-      "n": 12,
+      "n": 14,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): daarom ⋅ desalniettemin; daarom"
     },
     "moakt": {
       "nl": "maakt",
       "status": "afgeleid",
-      "n": 7
+      "n": 8
     },
     "juust": {
       "nl": "juist",
@@ -690,7 +690,7 @@
     "wait": {
       "nl": "weet",
       "status": "afgeleid",
-      "n": 52,
+      "n": 62,
       "opm": "Woordwaark (K. ter Laan, P. Boeles) kent het trefwoord als \"tarwe\"; de gebruikte betekenis \"weet\" is een andere vorm of een homoniem en niet apart bevestigd"
     },
     "stoalen": {
@@ -702,7 +702,7 @@
     "et": {
       "nl": "eet",
       "status": "afgeleid",
-      "n": 8,
+      "n": 11,
       "opm": "Woordwaark (P. Boeles) kent het trefwoord als \"h; et\"; de gebruikte betekenis \"eet\" is een andere vorm of een homoniem en niet apart bevestigd"
     },
     "leuf": {
@@ -713,18 +713,18 @@
     "har": {
       "nl": "had",
       "status": "afgeleid",
-      "n": 27
+      "n": 31
     },
     "nije": {
       "nl": "nieuwe",
       "status": "bron",
-      "n": 18,
+      "n": 20,
       "opm": "Woordwaark (P. Boeles): nieuw"
     },
     "zuken": {
       "nl": "zoeken",
       "status": "bron",
-      "n": 3,
+      "n": 4,
       "opm": "Woordwaark (S.J.H. Reker): zoeken"
     },
     "verleden": {
@@ -736,7 +736,7 @@
     "zai": {
       "nl": "ze",
       "status": "afgeleid",
-      "n": 61,
+      "n": 94,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden) kent het trefwoord als \"zij; zaai\"; de gebruikte betekenis \"ze\" is een andere vorm of een homoniem en niet apart bevestigd"
     },
     "moaken": {
@@ -759,7 +759,7 @@
     "eerlk": {
       "nl": "eerlijk",
       "status": "bron",
-      "n": 10,
+      "n": 12,
       "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
     },
     "older": {
@@ -771,7 +771,7 @@
     "gong": {
       "nl": "ging",
       "status": "afgeleid",
-      "n": 10
+      "n": 11
     },
     "zied": {
       "nl": "sinds",
@@ -792,7 +792,7 @@
     "dartig": {
       "nl": "dertig",
       "status": "twijfel",
-      "n": 8,
+      "n": 10,
       "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"dertig\"): daarteg, dareg, datteg; \"dartig\" komt niet voor",
       "voorstel": "daarteg",
       "handmatig": true
@@ -825,7 +825,7 @@
     "oetnoodiging": {
       "nl": "uitnodiging",
       "status": "afgeleid",
-      "n": 2
+      "n": 3
     },
     "menselk": {
       "nl": "menselijk",
@@ -835,7 +835,7 @@
     "luusteren": {
       "nl": "luisteren",
       "status": "twijfel",
-      "n": 9,
+      "n": 10,
       "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"luisteren\"): luustern, lustern, heuren; \"luusteren\" komt niet voor",
       "voorstel": "luustern",
       "handmatig": true
@@ -854,7 +854,7 @@
     "loaten": {
       "nl": "laten",
       "status": "bron",
-      "n": 9,
+      "n": 11,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): laten; bestellen; toelaten; eels"
     },
     "plend": {
@@ -865,13 +865,13 @@
     "jo": {
       "nl": "ja",
       "status": "bron",
-      "n": 20,
+      "n": 28,
       "opm": "Woordwaark (F.H. Steenhuis 1): ja"
     },
     "mekoar": {
       "nl": "elkaar",
       "status": "bron",
-      "n": 9,
+      "n": 10,
       "opm": "Woordwaark (K. ter Laan, H. Molema): elkaar; wambuis"
     },
     "hoeren": {
@@ -901,7 +901,7 @@
     "zegst": {
       "nl": "zegt",
       "status": "afgeleid",
-      "n": 9
+      "n": 11
     },
     "bedoelen": {
       "nl": "bedoelt",
@@ -946,7 +946,7 @@
     "bliedt": {
       "nl": "blijft",
       "status": "afgeleid",
-      "n": 12
+      "n": 13
     },
     "lèst": {
       "nl": "laatst",
@@ -966,7 +966,7 @@
     "woarom": {
       "nl": "waarom",
       "status": "bron",
-      "n": 29,
+      "n": 31,
       "opm": "Woordwaark (H. Molema): waarom; daarom"
     },
     "nammen": {
@@ -977,7 +977,7 @@
     "aigenlk": {
       "nl": "eigenlijk",
       "status": "afgeleid",
-      "n": 19
+      "n": 23
     },
     "sticht": {
       "nl": "gesticht",
@@ -1050,7 +1050,7 @@
     "woar": {
       "nl": "waar",
       "status": "bron",
-      "n": 47,
+      "n": 49,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden, H. Molema): waar ⋅ werkelijk; misschien; ergens; waar"
     },
     "ideë": {
@@ -1118,13 +1118,13 @@
     "bruken": {
       "nl": "gebruiken",
       "status": "bron",
-      "n": 3,
+      "n": 4,
       "opm": "Woordwaark (S.J.H. Reker, F.H. Steenhuis 1, K. ter Laan, H. Molema): gebruiken; gebruiken ⋅ nuttigen"
     },
     "vroagd": {
       "nl": "gevraagd",
       "status": "afgeleid",
-      "n": 2
+      "n": 3
     },
     "schreven": {
       "nl": "geschreven",
@@ -1190,7 +1190,7 @@
     "veuraan": {
       "nl": "vooraan",
       "status": "bron",
-      "n": 2,
+      "n": 3,
       "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
     },
     "opbouwd": {
@@ -1209,7 +1209,7 @@
     "aind": {
       "nl": "einde",
       "status": "twijfel",
-      "n": 7,
+      "n": 8,
       "opm": "\"aind\" is bij Woordwaark \"eend\"; wij gebruiken het (ook) voor \"einde\" (aindelk, aindigen): dubbelzinnig",
       "voorstel": "navragen",
       "handmatig": true
@@ -1253,7 +1253,7 @@
     "menuten": {
       "nl": "minuten",
       "status": "afgeleid",
-      "n": 20
+      "n": 21
     },
     "dee": {
       "nl": "deed",
@@ -1275,7 +1275,7 @@
     "disse": {
       "nl": "deze",
       "status": "bron",
-      "n": 13,
+      "n": 15,
       "opm": "Woordwaark (H. Molema): deze; dit is; fris; handvol"
     },
     "kunstenoar": {
@@ -1318,7 +1318,7 @@
     "aaloverst": {
       "nl": "overal",
       "status": "twijfel",
-      "n": 12,
+      "n": 13,
       "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"overal\"): overaal, alderwegens, overal; \"aaloverst\" komt niet voor",
       "voorstel": "overaal",
       "handmatig": true
@@ -1371,7 +1371,7 @@
     "wegjaagd": {
       "nl": "weggejaagd",
       "status": "afgeleid",
-      "n": 1
+      "n": 2
     },
     "snackkeuning": {
       "nl": "snackkoning",
@@ -1381,7 +1381,7 @@
     "nim": {
       "nl": "neem",
       "status": "afgeleid",
-      "n": 2
+      "n": 3
     },
     "poal": {
       "nl": "paal",
@@ -1392,7 +1392,7 @@
     "rieden": {
       "nl": "rijden",
       "status": "bron",
-      "n": 26,
+      "n": 30,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): rijden; rijden ⋅ varen"
     },
     "sluut": {
@@ -1463,7 +1463,7 @@
     "aaien": {
       "nl": "eieren",
       "status": "afgeleid",
-      "n": 15,
+      "n": 20,
       "opm": "Woordwaark (Westerkwartier, S.J.H. Reker, K. ter Laan) kent het trefwoord als \"eggen; aaien; ⋅ besmeuren ⋅ klikken ⋅ slaan\"; de gebruikte betekenis \"eieren\" is een andere vorm of een homoniem en niet apart bevestigd"
     },
     "volkstuun": {
@@ -1485,7 +1485,7 @@
     "duven": {
       "nl": "duiven",
       "status": "twijfel",
-      "n": 22,
+      "n": 30,
       "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"duif\"): doef, doeve; \"duuv-/duven\" komt niet voor, ook doevemelker voor duivenmelker",
       "voorstel": "doeve/doef",
       "handmatig": true
@@ -1506,7 +1506,7 @@
     "vuurwark": {
       "nl": "vuurwerk",
       "status": "afgeleid",
-      "n": 7
+      "n": 8
     },
     "tegelieke": {
       "nl": "tegelijk",
@@ -1530,7 +1530,7 @@
     "gelieke": {
       "nl": "gelijk",
       "status": "bron",
-      "n": 5,
+      "n": 6,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden, H. Molema): even; gelijk"
     },
     "rde": {
@@ -1577,13 +1577,13 @@
     "loater": {
       "nl": "later",
       "status": "bron",
-      "n": 1,
+      "n": 2,
       "opm": "Woordwaark (S.H. Abels): kwartier ⋅ later; avond ⋅ later ⋅ schoon ⋅ volk"
     },
     "kiekst": {
       "nl": "kijkt",
       "status": "afgeleid",
-      "n": 4
+      "n": 6
     },
     "kriegt": {
       "nl": "krijgt",
@@ -1647,7 +1647,7 @@
     "aarder": {
       "nl": "eerder",
       "status": "twijfel",
-      "n": 4,
+      "n": 6,
       "opm": "zie \"aarst\": \"aarder\" (eerder) is niet bevestigd; Woordwaark geeft \"eder\", \"eer\"",
       "voorstel": "eder",
       "handmatig": true
@@ -1666,7 +1666,7 @@
     "achterkaant": {
       "nl": "achterkant",
       "status": "afgeleid",
-      "n": 5
+      "n": 6
     },
     "muus": {
       "nl": "muis",
@@ -1747,7 +1747,7 @@
     "zitst": {
       "nl": "zit",
       "status": "afgeleid",
-      "n": 1
+      "n": 3
     },
     "zeden": {
       "nl": "zeiden",
@@ -1785,7 +1785,7 @@
     "diek": {
       "nl": "dijk",
       "status": "bron",
-      "n": 6,
+      "n": 7,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): dijk"
     },
     "veurzorg": {
@@ -1812,12 +1812,12 @@
     "vanoavend": {
       "nl": "vanavond",
       "status": "afgeleid",
-      "n": 10
+      "n": 13
     },
     "hiel": {
       "nl": "heel",
       "status": "bron",
-      "n": 3,
+      "n": 6,
       "opm": "Woordwaark (S.J.H. Reker, A.A. Ganderheyden): heel; halen; houden; geheel ⋅ heel"
     },
     "wiezen": {
@@ -1850,7 +1850,7 @@
     "oetverkocht": {
       "nl": "uitverkocht",
       "status": "afgeleid",
-      "n": 1
+      "n": 2
     },
     "vasthollen": {
       "nl": "vasthouden",
@@ -1913,7 +1913,7 @@
     "aander": {
       "nl": "andere",
       "status": "bron",
-      "n": 15,
+      "n": 17,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): ander ⋅ tweede ⋅ volgend; ander; toekomstig ⋅ volgend; tweede"
     },
     "leende": {
@@ -1924,7 +1924,7 @@
     "warkt": {
       "nl": "gewerkt",
       "status": "afgeleid",
-      "n": 3
+      "n": 4
     },
     "mins": {
       "nl": "niemand",
@@ -1964,7 +1964,7 @@
     "bestait": {
       "nl": "bestaat",
       "status": "afgeleid",
-      "n": 2
+      "n": 3
     },
     "dissels": {
       "nl": "jezelf",
@@ -1979,7 +1979,7 @@
     "wus": {
       "nl": "wist",
       "status": "afgeleid",
-      "n": 7
+      "n": 10
     },
     "zeun": {
       "nl": "zoon",
@@ -1990,7 +1990,7 @@
     "zegd": {
       "nl": "gezegd",
       "status": "afgeleid",
-      "n": 3,
+      "n": 8,
       "opm": "Woordwaark (K. ter Laan, H. Molema) kent het trefwoord als \"ge; zegd\"; de gebruikte betekenis \"gezegd\" is een andere vorm of een homoniem en niet apart bevestigd"
     },
     "haald": {
@@ -2001,7 +2001,7 @@
     "menuut": {
       "nl": "minuut",
       "status": "afgeleid",
-      "n": 3
+      "n": 4
     },
     "ruumt": {
       "nl": "ruimt",
@@ -2047,13 +2047,13 @@
     "nij": {
       "nl": "nieuw",
       "status": "bron",
-      "n": 8,
+      "n": 9,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden, H. Molema, P. Boeles): benieuwd ⋅ nieuw; nieuw; niet; benieuwd"
     },
     "mog": {
       "nl": "mocht",
       "status": "afgeleid",
-      "n": 2
+      "n": 3
     },
     "gemainte": {
       "nl": "gemeente",
@@ -2084,7 +2084,7 @@
     "warken": {
       "nl": "werken",
       "status": "afgeleid",
-      "n": 6
+      "n": 8
     },
     "verhoest": {
       "nl": "verhuist",
@@ -2123,7 +2123,7 @@
     "neudig": {
       "nl": "nodig",
       "status": "bron",
-      "n": 4,
+      "n": 11,
       "opm": "Woordwaark (P. Boeles): nodig"
     },
     "theehoes": {
@@ -2185,7 +2185,7 @@
     "zwoar": {
       "nl": "zwaar",
       "status": "afgeleid",
-      "n": 2
+      "n": 3
     },
     "smeult": {
       "nl": "smelt",
@@ -2210,7 +2210,7 @@
     "schraift": {
       "nl": "schrijft",
       "status": "afgeleid",
-      "n": 4
+      "n": 5
     },
     "slim": {
       "nl": "erg",
@@ -2226,7 +2226,7 @@
     "hoeveul": {
       "nl": "hoeveel",
       "status": "afgeleid",
-      "n": 2
+      "n": 3
     },
     "moanden": {
       "nl": "maanden",
@@ -2253,12 +2253,12 @@
     "vroagt": {
       "nl": "vraagt",
       "status": "afgeleid",
-      "n": 3
+      "n": 4
     },
     "nuumt": {
       "nl": "noemt",
       "status": "twijfel",
-      "n": 3,
+      "n": 4,
       "opm": "Woordwaark (nuimen): neumen, nuimen, numen, nummen; geen \"nuum-\"",
       "voorstel": "nuim-",
       "handmatig": true
@@ -2281,7 +2281,7 @@
     "achternoa": {
       "nl": "achteraan",
       "status": "afgeleid",
-      "n": 4,
+      "n": 5,
       "opm": "Woordwaark (K. ter Laan) kent het trefwoord als \"hoenders\"; de gebruikte betekenis \"achteraan\" is een andere vorm of een homoniem en niet apart bevestigd"
     },
     "zist": {
@@ -2294,7 +2294,7 @@
     "voader": {
       "nl": "vader",
       "status": "bron",
-      "n": 5,
+      "n": 7,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): vader; papa ⋅ vader"
     },
     "vaarbewies": {
@@ -2344,7 +2344,7 @@
     "mark": {
       "nl": "markt",
       "status": "bron",
-      "n": 2,
+      "n": 3,
       "opm": "Woordwaark (A.A. Ganderheyden, H. Molema, P. Boeles): mark; t; merk; merg"
     },
     "luuster": {
@@ -2361,7 +2361,7 @@
     "langzoam": {
       "nl": "langzaam",
       "status": "bron",
-      "n": 1,
+      "n": 2,
       "opm": "Woordwaark (S.J.H. Reker): langzaam"
     },
     "holst": {
@@ -2372,7 +2372,7 @@
     "lieske": {
       "nl": "lijstje",
       "status": "afgeleid",
-      "n": 3
+      "n": 4
     },
     "ruk": {
       "nl": "ruik",
@@ -2398,7 +2398,7 @@
     "wilst": {
       "nl": "wil",
       "status": "afgeleid",
-      "n": 5
+      "n": 8
     },
     "valst": {
       "nl": "valt",
@@ -2499,12 +2499,12 @@
     "woonst": {
       "nl": "woont",
       "status": "afgeleid",
-      "n": 1
+      "n": 2
     },
     "gaauwe": {
       "nl": "snelle",
       "status": "afgeleid",
-      "n": 1
+      "n": 2
     },
     "hollen": {
       "nl": "houden",
@@ -2525,7 +2525,7 @@
     "goast": {
       "nl": "gaat",
       "status": "afgeleid",
-      "n": 2
+      "n": 3
     },
     "oetgeven": {
       "nl": "uitgeven",
@@ -2631,7 +2631,7 @@
     "verjoardag": {
       "nl": "verjaardag",
       "status": "bron",
-      "n": 2,
+      "n": 3,
       "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
     },
     "lien": {
@@ -2738,7 +2738,7 @@
     "elkenain": {
       "nl": "iedereen",
       "status": "bron",
-      "n": 1,
+      "n": 3,
       "opm": "Woordwaark (S.J.H. Reker): iedereen; al ⋅ alles ⋅ ieder ⋅ iedereen"
     },
     "aovendlicht": {
@@ -2768,7 +2768,7 @@
     "aine": {
       "nl": "ééntje",
       "status": "afgeleid",
-      "n": 1,
+      "n": 2,
       "opm": "Woordwaark (S.J.H. Reker, F.H. Steenhuis 1, K. ter Laan) kent het trefwoord als \"één; iemand; een\"; de gebruikte betekenis \"ééntje\" is een andere vorm of een homoniem en niet apart bevestigd"
     },
     "regeld": {
@@ -2892,7 +2892,7 @@
     "zaoterdag": {
       "nl": "zaterdag",
       "status": "afgeleid",
-      "n": 1
+      "n": 2
     },
     "zut": {
       "nl": "ziet",
@@ -2937,7 +2937,7 @@
     "völ": {
       "nl": "veel",
       "status": "afgeleid",
-      "n": 1
+      "n": 4
     },
     "riebaan": {
       "nl": "rijbaan",
@@ -3077,7 +3077,7 @@
     "vieftig": {
       "nl": "vijftig",
       "status": "afgeleid",
-      "n": 4
+      "n": 5
     },
     "tuunman": {
       "nl": "tuinman",
@@ -3219,7 +3219,7 @@
     "kokte": {
       "nl": "kookte",
       "status": "afgeleid",
-      "n": 3
+      "n": 5
     },
     "tuun": {
       "nl": "tuin",
@@ -3257,7 +3257,7 @@
     "wollen": {
       "nl": "wilden",
       "status": "bron",
-      "n": 1,
+      "n": 2,
       "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
     },
     "metmoak": {
@@ -3319,7 +3319,7 @@
     "bewoar": {
       "nl": "bewaar",
       "status": "afgeleid",
-      "n": 1
+      "n": 3
     },
     "mouilikst": {
       "nl": "moeilijkst",
@@ -3334,7 +3334,7 @@
     "tekend": {
       "nl": "getekend",
       "status": "afgeleid",
-      "n": 1
+      "n": 2
     },
     "veural": {
       "nl": "vooral",
@@ -3364,7 +3364,7 @@
     "vieftien": {
       "nl": "vijftien",
       "status": "afgeleid",
-      "n": 2
+      "n": 3
     },
     "tweehonderdduuzend": {
       "nl": "tweehonderdduizend",
@@ -3429,7 +3429,7 @@
     "oldste": {
       "nl": "oudste",
       "status": "afgeleid",
-      "n": 3
+      "n": 5
     },
     "weggoast": {
       "nl": "weggaat",
@@ -3454,7 +3454,7 @@
     "oetnodigd": {
       "nl": "uitgenodigd",
       "status": "afgeleid",
-      "n": 1
+      "n": 2
     },
     "oetproat": {
       "nl": "uitgepraat",
@@ -3479,12 +3479,12 @@
     "warkfilosofie": {
       "nl": "werkfilosofie",
       "status": "afgeleid",
-      "n": 1
+      "n": 2
     },
     "miene": {
       "nl": "mijne",
       "status": "afgeleid",
-      "n": 1
+      "n": 2
     },
     "derachter": {
       "nl": "erachter",
@@ -3509,7 +3509,7 @@
     "viskte": {
       "nl": "viste",
       "status": "afgeleid",
-      "n": 1
+      "n": 2
     },
     "woarmit": {
       "nl": "waarmee",
@@ -3531,12 +3531,12 @@
     "allebaai": {
       "nl": "allebei",
       "status": "afgeleid",
-      "n": 2
+      "n": 6
     },
     "sluus": {
       "nl": "sluis",
       "status": "twijfel",
-      "n": 5,
+      "n": 7,
       "opm": "21-11 (TTS-ronde #735): door een agent geschreven zonder kenner, in het woordenboek niet nagezocht; een kenner loopt hem na (#357)"
     },
     "aai": {
@@ -3600,7 +3600,7 @@
     "blift": {
       "nl": "blijft",
       "status": "afgeleid",
-      "n": 2
+      "n": 3
     },
     "darde": {
       "nl": "derde",
@@ -3779,7 +3779,7 @@
     "fain": {
       "nl": "fijn",
       "status": "afgeleid",
-      "n": 1
+      "n": 3
     },
     "opstiegen": {
       "nl": "opstijgen",
@@ -3847,7 +3847,7 @@
     "nuimt": {
       "nl": "neemt",
       "status": "afgeleid",
-      "n": 1
+      "n": 2
     },
     "haard": {
       "nl": "hard",
@@ -3872,6 +3872,198 @@
       "status": "kennis",
       "opm": "eigennaam: de snackwagen heet Tam & Tes (Tam = Tammo, Tes = Tessa); geen dialectwoord",
       "bewijs": "eigen verzinsel, geen woordenboekbron nodig"
+    },
+    "bewoarder": {
+      "nl": "bewaarder",
+      "status": "afgeleid",
+      "n": 3,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "oetslag": {
+      "nl": "uitslag",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "wachst": {
+      "nl": "wacht",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "verhoesdag": {
+      "nl": "verhuisdag",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "vandoan": {
+      "nl": "vandaan",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "schoap": {
+      "nl": "schaap",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "drinkst": {
+      "nl": "drinkt",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "bedoelst": {
+      "nl": "bedoelt",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "tilst": {
+      "nl": "til",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "slapt": {
+      "nl": "slaapt",
+      "status": "afgeleid",
+      "n": 3,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "ziekenhoes": {
+      "nl": "ziekenhuis",
+      "status": "afgeleid",
+      "n": 2,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "oavend": {
+      "nl": "avond",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "zaoterdagoavend": {
+      "nl": "zaterdagavond",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "speulst": {
+      "nl": "speelt",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "probeerd": {
+      "nl": "geprobeerd",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "moat": {
+      "nl": "maat",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "ainje": {
+      "nl": "eentje",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "deurstreept": {
+      "nl": "doorgestreept",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "kleinzeun": {
+      "nl": "kleinzoon",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "aindheid": {
+      "nl": "eenheid",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "jongje": {
+      "nl": "jongetje",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "sluzen": {
+      "nl": "sluizen",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "betoalde": {
+      "nl": "betaalde",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "vriendelk": {
+      "nl": "vriendelijk",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "zingst": {
+      "nl": "zingt",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "vangst": {
+      "nl": "vangt",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "moandag": {
+      "nl": "maandag",
+      "status": "afgeleid",
+      "n": 2,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "nimst": {
+      "nl": "neem",
+      "status": "afgeleid",
+      "n": 2,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "bezwoar": {
+      "nl": "bezwaar",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "leest": {
+      "nl": "lees",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "belst": {
+      "nl": "belt",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
+    },
+    "metmoaken": {
+      "nl": "meemaken",
+      "status": "afgeleid",
+      "n": 1,
+      "opm": "TTS-ronde 3 (22-11): regelmatige klankverschuiving of werkwoordsvorm volgens bestaande paren; niet in een woordenboek nagezocht, door een kenner na te lopen"
     }
   },
   "fries": {
