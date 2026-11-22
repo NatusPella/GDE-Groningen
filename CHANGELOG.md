@@ -11,6 +11,15 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Kaarten en overlays (UI-kritiek 22-11)
+- Reisvraag en reispopup (#1214, #1215): geen "NaN km" of lege afstand meer, een getal (de duur) per optie in plaats van "gratis" bij elke regel, de winst alleen bij Zelf gaan; een reisrij zonder icoon krijgt het icoon van haar vervoerswijze en een kaal getal wordt een bedrag.
+- Foutmelding (#1210): één korte zin ("Kopieer het foutrapport en stuur het ons.") en Kopieer als hoofdknop; de technische details zijn er alleen in een ontwikkelrun.
+- Missie geslaagd of mislukt (#1204, #1205, #1206, #1217): de donkere titel wordt niet meer dof door de glans, het label raakt de titel niet en "Opdracht geslaagd" staat niet nog eens naast het label.
+- Opgepakt (#1208, #1218): het woord boete staat één keer, het bedrag is groot en de stempel blijft binnen de kaart. Nieuw gebied (#1219): een plekicoon in het zegel in plaats van een leeg vierkant.
+- Heist-notitie (#1209): het lettertype van het spel en een kopje alleen als het iets toevoegt. Meldingen (#1211): een inktrand om het icoon, een geel icoon op papier is weer te zien.
+- Samen spelen, Verbinding weg en spel overnemen (#1220): een papieren kaart met knoppen met de toets erin, zoals de rest van het spel.
+- Kaartuitleg (#1212, #1231): een schermlezer zegt "linkermuisknop" in plaats van "LMB". De kaart voor een oud spel (#1226): "Je oude spel blijft bewaard." en een toets (N) op Nieuw spel. Moeilijkheidskaart (#1227): de hulpregel zegt dat Esc Standaard kiest.
+- Opgeslagen spellen (#1229): met een of twee kaarten is het paneel zo hoog als zijn inhoud en staat het in het midden. Prestatietest (#1230): Nederlandse titel, koppen boven Route en Lengte en geen dubbele voetregel.
 ### Besturing met een controller
 - Acties-wiel (controller-review 22-11, #495, #1011): houd Overzicht een halve seconde ingedrukt en een wiel toont alles wat in die situatie geen eigen knop heeft: de radio in een auto (sinds #495 weg van het pad), de volgende zender, andere kleren, de filmcamera, eerste persoon, het waypoint naar je doel, de directe wapenkeuze, de alarmlichten, het lakmenu, het kusje, de busdienst overnemen (G) en in Samen spelen de roepjes en snelle zinnen in een voertuig. Kies met de linkerstick of de D-pad, A bevestigt, B sluit, LB en RB bladeren. Een korte tik op Overzicht is nog steeds de kaart (die gaat nu bij het loslaten open). Wie niet kan houden zet de tikstand aan: dan opent een tik het wiel. Herbinden werkt gewoon door. Een toets die alleen in het wiel zit, toont in de hints de knop Overzicht met "houd". Invoer is lokaal; er gaat niets over het net.
 - Samen spelen aan de waterkant: de roepjes (Kom hier, Help!, Kijk daar) en "bij de groep komen" staan op de D-pad zoals te voet; X blijft hengelen. Het wiel met snelle zinnen opent niet meer in de trein en op de trekker, waar T al het lopen door de trein en de hef is.
