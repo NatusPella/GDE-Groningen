@@ -242,6 +242,7 @@ html.touch-device :is(#pause-menu .pm-samen, .coop-hold, .cp-overlay) .coop-toet
 #pause-menu .pm-samen .sw-voortgang { display: flex; align-items: center; gap: var(--ds-s-2); font-size: var(--ds-t-subkop); }
 #pause-menu .pm-samen .sw-regel { font-size: var(--ds-t-body); }
 #pause-menu .pm-samen .sw .coop-code { position: static; box-shadow: var(--ds-schaduw-hard); margin: 0; font-size: var(--ds-t-subkop); padding: var(--ds-s-2) var(--ds-s-4); }
+#pause-menu .pm-samen .sw .sw-staat { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); margin: 0; }
 #pause-menu .pm-samen .sw .sw-codebon { display: flex; align-items: center; gap: var(--ds-s-3); flex-wrap: wrap; }
 
 /* Meer info (uitklapper boven de voet, over de inhoud heen: de inhoud verschuift niet) en Meer acties */

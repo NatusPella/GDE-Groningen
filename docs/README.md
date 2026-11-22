@@ -215,6 +215,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [SOLO-SESSIE-AUDIT.md](<SOLO-SESSIE-AUDIT.md>) | Stand: worktree `w77-coop-bake-vault`, commit `78db7781` (de werkboom bevatte bij deze audit |
 | [SPECS-FIRE.md](<SPECS-FIRE.md>) | Twee systemen die elkaar aanvullen, zolang de rolverdeling vastligt. Dit bestand |
 | [SPELERSMENU-UX-21-11.md](<SPELERSMENU-UX-21-11.md>) | Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). UX-audit en ontwerp van het spelersmenu van Samen spelen (21-11). |
+| [SAMEN-FLOW-UX-22-11.md](<SAMEN-FLOW-UX-22-11.md>) | Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md) en [ui-taal.md](../.specs-fire/standards/ui-taal.md). De Samen-spelen-flow als wizard (#1011): voor en na, stapkaart, wie wat ziet, metingen. |
 | [BEKENDE-BEPERKINGEN-0.64.0.md](<BEKENDE-BEPERKINGEN-0.64.0.md>) | Naslag. Wat in 0.64.0 niet getest of niet af is (Samen spelen, nog niet gespeelde onderdelen, visuele puntjes, verkorte releasegate). |
 | [BEKENDE-BEPERKINGEN-0.65.md](<BEKENDE-BEPERKINGEN-0.65.md>) | Naslag (concept). Wat in 0.65 niet getest of niet af is: Samen spelen, niet in beeld bekeken, prestaties en de gate. |
 | [BUSSEN-LIVE-21-11.md](<BUSSEN-LIVE-21-11.md>) | Naslag bij #395 en #922: live buslocaties als USP, de bron en de kaartlaag (stand 21-11). |

@@ -11,6 +11,12 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Samen spelen: stap voor stap
+
+- Samen spelen (#1011): Spel > Samen spelen > Sessie is nu een duidelijke stap-voor-stap-flow in plaats van één lang scrollend formulier. Stap 0: kies Meedoen of Open je spel (bij een lopende sessie zie je in plaats daarvan een statuskaart met de spelers en Verlaat sessie). Stap 1, Wie ben jij: naam, kleur en figuur met een live voorbeeld; de naam geef je maar één keer op. Stap 2, Kiezen: wie meedoet kiest Kamercode, Openbare sessies of Vrienden; wie het spel opent kiest Privé (standaard) of Openbaar maken. Stap 3, Verbinden: één voortgangsregel met Terug en Verbinding testen. Bovenaan staan de stappen (1 Wie ben jij, 2 Kiezen, 3 Verbinden); onderaan staat altijd één vaste knoppenbalk met de hoofdactie rechts in geel (met Enter in de knop) en niets overlapt. Terug (B of Esc) gaat één stap terug. Geen alinea's meer: korte regels, de rest staat achter Meer info.
+- Samen spelen, veiligheid: een sessie blijft standaard privé. Openbaar maken kan pas na een vinkje dat je ziet wat er openbaar komt (naam, aantal spelers en versie) en een sessienaam die door het filter komt; een wachtwoord vul je alleen in als de sessie er een vraagt. Een IP-adres staat nooit in beeld en het wachtwoordveld van een gast staat dicht tot hij het opent. Wie het spel opende ziet in de wachtkamer altijd of de sessie privé of openbaar is. Het netwerkprotocol en de beveiligingsregels zijn niet veranderd.
+- Spelers (Spel > Samen spelen > Spelers): de spelers staan als kaartjes met avatar, naam, kleur en status, zonder tekstmuur (de uitleg zit achter Meer info). Dempen en Blokkeren zijn pictogrammen met een tooltip en een toets (M en B, als het kaartje de focus heeft); Eruit zetten (X) en Spel overdragen zijn er alleen voor wie het spel opende en nooit bij jezelf.
+
 ### Prestaties
 - Prestaties (#1074, #1067): als het spelvenster verborgen of op de achtergrond is, doen de vaste controles van de overlays, het Samen-paneel en het aanraakscherm niets meer; de kartmotor wordt bij het verlaten van de baan echt stopgezet. Samen spelen: lokaal per speler, geen netwerkwijziging; testsessies met `?stil` blijven gewoon tikken. Voor de metingen staan er twee A-schakelaars (`?perfoff=boomfade`, `?perfoff=gevelfade`).
 ### Kaart en HUD

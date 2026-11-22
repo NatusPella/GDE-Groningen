@@ -301,4 +301,12 @@ t('HTML: de statuskaart heeft geen indicator; een directe code staat nergens in 
   assert.equal(bevatIp(render(g)), false, 'geen directe code of IP-adres in het scherm');
 });
 
+t('HTML: de wachtkamer van wie het spel opende toont altijd of de sessie privé of openbaar is', () => {
+  const m = nieuw({ startGate: true }); lob(m, { t: 'kies', rol: ROLES.HOST }); lob(m, { t: 'route', route: 'kamer' }); lob(m, { t: 'code', code: 'K3J9D-8F2MN' });
+  assert.match(render(m), /sw-staat">[^]*?Privé/, 'standaard privé');
+  lob(m, { t: 'openbaar-vraag' }); lob(m, { t: 'openbaar-ja', naam: 'Zomeravond', id: 'abcdefgh' });
+  assert.match(render(m), /Openbaar: Zomeravond/);
+  assert.doesNotMatch(render(m), /sw-staat">(?:(?!<\/p>)[^])*Privé/, 'openbaar: niet meer als privé gemarkeerd');
+});
+
 console.log(`multiplayerwizard_test: ${n} controles ok`);

@@ -64,7 +64,10 @@ export function wizardHtml(ctx) {
     const wacht = ['host-wacht', 'verbonden'].includes(s.step);
     const kopieerInBon = wacht && st.code && v.buttons.some((b) => b.act === 'kopieer' && !b.primary);
     const bon = st.code ? (kopieerInBon ? `<div class="sw-codebon">${st.code}<button type="button" class="ds-z-knop ds-z-knop--secundair coop-btn sw-knop" data-act="kopieer"><span class="ss-label">Kopieer de code</span></button></div>` : st.code) : '';
-    body = [progress, inhoud, bon, st.chips, st.startHint, st.toestemming, st.sessies, s.step === 'openbaar-vraag' ? st.invoer : '', wacht ? '' : st.ww, st.profielFout].filter(Boolean).join('');
+    // wie het spel opende ziet in de wachtkamer altijd of de sessie privé of openbaar is (en of er een wachtwoord op zit)
+    const state = wacht && s.rol === 'host' && s.route !== 'direct'
+      ? `<p class="sw-staat">${s.openbaar ? `<span class="ds-z-chip ds-z-chip--selectie">${icoon('wifi', { maat: 's' })} Openbaar: ${esc(s.openbaarNaam)}</span>` : `<span class="ds-z-chip">${icoon('slot', { maat: 's' })} Privé</span>`}${s.wachtwoord ? `<span class="ds-z-chip">${icoon('slot', { maat: 's' })} Met wachtwoord</span>` : ''}</p>` : '';
+    body = [progress, inhoud, bon, state, st.chips, st.startHint, st.toestemming, st.sessies, s.step === 'openbaar-vraag' ? st.invoer : '', wacht ? '' : st.ww, st.profielFout].filter(Boolean).join('');
     voet = kopieerInBon ? v.buttons.filter((b) => b.act !== 'kopieer') : s.step === 'lijst' ? v.buttons.filter((b) => b.act !== 'koppel').map((b) => ({ ...b, primary: false })) : v.buttons; // de rijen zijn de actie; de kamercode staat in de vorige stap
   }
 
