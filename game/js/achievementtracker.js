@@ -20,7 +20,7 @@ import { getMissionList, payMedalBonus } from './missionquery.js';
 import { getSettings } from './settings.js';
 import { cleanDifficulty, scaleTarget, difficultyFactors } from './difficulty.js'; // #800: medailledrempels per stand
 import { getScene } from './scene3d.js';
-import { makeNearMiss, nearMissBonus, nearMissStreak, breakNearStreak } from './gamefeel.js';
+import { makeNearMiss, nearMissBonus, nearMissStreak, breakNearStreak, makeAirTrack, airStep, airBonus } from './gamefeel.js';
 import { chipPopup } from './stunthud.js';
 import { noteMoney } from './finance.js';
 import { initVisboek } from './visboeklive.js';
@@ -57,6 +57,7 @@ const entered = new Set();
 let contactCursor = 0;
 const nearCand = new Map();
 const nearMiss = makeNearMiss();
+const airTrack = makeAirTrack();
 const lastHitWith = new Map();
 const seenKiss = new WeakSet();
 let lastPos = null;
@@ -217,6 +218,12 @@ function trackVehicle(dt, w, pv) {
   if (lastWrecks != null && wr > lastWrecks && wr - lastWrecks < 5) recordStat(w, 'wrecks', wr - lastWrecks);
   lastWrecks = wr;
 
+  // sprongbonus: een echte sprong (oprit, dijk) met een nette landing levert een kleine bonus met afstand
+  {
+    const land = airStep(airTrack, w.time, pv && !pv.isBoat && !pv.isHeli && !pv.isPlane ? pv : null);
+    const jb = airBonus(airTrack, w.time, land, { wrecked: !!(pv && pv.wrecked) });
+    if (jb > 0) { noteMoney('Rijden'); w.money += jb; chipPopup(`+€${jb} Sprong van ${Math.round(land.dist)} m`); }
+  }
   if (!pv || pv.isBoat || pv.wrecked) { nearCand.clear(); return; }
   setStatMax(w, 'topSpeed', Math.round(Math.abs(pv.speed) * 3.6));
 

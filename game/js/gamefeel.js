@@ -112,3 +112,35 @@ export function nearMissStreak(n, now, base) {
 }
 
 export function breakNearStreak(n) { n.streak = 0; n.streakAt = -99; }
+
+// --- Sprongbonus ---------------------------------------------------------------------------
+// Een echte sprong (oprit, brugkop, dijk) levert een kleine bonus met afstand. De wereld lanceert
+// voertuigen al (vehicle.js: airborne); hier telt alleen wat bij een landing uit de lucht komt.
+// Kleine hobbels (korter dan JUMP_MIN_AIR_S of JUMP_MIN_DIST) en stuiteren (afkoeling) tellen niet.
+export const JUMP_MIN_AIR_S = 0.7;
+export const JUMP_MIN_DIST = 8;          // m horizontaal tussen opstijgen en landen
+export const JUMP_COOLDOWN_S = 4;
+const JUMP_BONUS_MIN = 5, JUMP_BONUS_MAX = 30;
+
+export function makeAirTrack() { return { air: false, t0: 0, x0: 0, y0: 0, last: -99 }; }
+
+// Elke frame met de stand van het voertuig van de speler (null/undefined als de speler niet rijdt).
+// Geeft bij een landing { air, dist } (ruwe sprong) of null; de bonus komt van jumpBonus.
+export function airStep(j, now, v) {
+  if (!v) { j.air = false; return null; }
+  if (v.airborne && !j.air) { j.air = true; j.t0 = now; j.x0 = v.x; j.y0 = v.y; return null; }
+  if (!v.airborne && j.air) {
+    j.air = false;
+    return { air: now - j.t0, dist: Math.hypot(v.x - j.x0, v.y - j.y0) };
+  }
+  return null;
+}
+
+// Bonus voor een landing: 0 bij een kleine hobbel, een wrak of tijdens de afkoeling.
+export function airBonus(j, now, land, { wrecked = false } = {}) {
+  if (!land || wrecked) return 0;
+  if (!(land.air >= JUMP_MIN_AIR_S && land.dist >= JUMP_MIN_DIST)) return 0;
+  if (now - j.last < JUMP_COOLDOWN_S) return 0;
+  j.last = now;
+  return Math.round(clamp(JUMP_BONUS_MIN + (land.dist - JUMP_MIN_DIST) * 0.5, JUMP_BONUS_MIN, JUMP_BONUS_MAX));
+}

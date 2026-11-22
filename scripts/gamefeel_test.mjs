@@ -1,5 +1,5 @@
 // Game feel (game/js/gamefeel.js, #216): snelheids-FOV, timescale-dip, sprongbuffer, rakelings.
-import { fovTarget, stepFov, FOV_MAX_BONUS, makeDip, triggerDip, dipScale, DIP_SCALE, makeJumpAssist, jumpStep, JUMP_BUFFER_S, COYOTE_S, makeNearMiss, nearMissBonus, NEAR_COOLDOWN_S, nearMissStreak, breakNearStreak, STREAK_WINDOW_S, STREAK_MAX_MULT } from '../game/js/gamefeel.js';
+import { fovTarget, stepFov, FOV_MAX_BONUS, makeDip, triggerDip, dipScale, DIP_SCALE, makeJumpAssist, jumpStep, JUMP_BUFFER_S, COYOTE_S, makeNearMiss, nearMissBonus, NEAR_COOLDOWN_S, nearMissStreak, breakNearStreak, STREAK_WINDOW_S, STREAK_MAX_MULT, makeAirTrack, airStep, airBonus, JUMP_MIN_AIR_S, JUMP_MIN_DIST, JUMP_COOLDOWN_S } from '../game/js/gamefeel.js';
 import { effectsFor } from '../game/js/a11ylogic.js';
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name} ${info}`); } };
@@ -113,6 +113,23 @@ ok(fovTarget(60, RM) === 0, 'FOV uit bij bewegingsreductie');
   // balans: een reeks van 6 in 40 s levert hooguit ~100 euro, geen geldmachine
   const bm = makeNearMiss(); let tot = 0; for (let i = 0; i < 6; i++) tot += nearMissStreak(bm, i * 7, 15).bonus;
   ok(tot <= 200, 'reeks: balans binnen de perken', tot);
+}
+
+{
+  // sprongbonus: alleen echte sprongen met landing, geen hobbels of stuiteren
+  const jt = makeAirTrack();
+  const fly = (t0, air, dist, at = jt) => { airStep(at, t0, { airborne: true, x: 0, y: 0 }); return airStep(at, t0 + air, { airborne: false, x: dist, y: 0 }); };
+  ok(airBonus(jt, 5, fly(0, 0.3, 3)) === 0, 'sprong: kleine hobbel telt niet');
+  ok(airBonus(jt, 10, fly(8, 1.2, 4)) === 0, 'sprong: hoog maar te kort telt niet');
+  const big = airBonus(jt, 30, fly(28, 1.5, 20));
+  ok(big >= 5 && big <= 30, 'sprong: echte sprong geeft een kleine bonus', big);
+  ok(airBonus(jt, 31, fly(30, 1.5, 20)) === 0, 'sprong: stuiteren valt in de afkoeling');
+  ok(airBonus(jt, 40 + JUMP_COOLDOWN_S, fly(38, 1.5, 20)) > 0, 'sprong: na de afkoeling weer');
+  ok(airBonus(makeAirTrack(), 5, fly(1, 1.5, 20, makeAirTrack()), { wrecked: true }) === 0 && airBonus(makeAirTrack(), 5, null) === 0, 'sprong: wrak of geen landing: niets');
+  const far = airBonus(makeAirTrack(), 5, { air: 3, dist: 400 });
+  ok(far === 30, 'sprong: plafond', far);
+  const k = makeAirTrack(); airStep(k, 1, { airborne: true, x: 0, y: 0 });
+  ok(airStep(k, 2, null) === null && airStep(k, 3, { airborne: false, x: 50, y: 0 }) === null, 'sprong: uitstappen midden in de sprong geeft geen landing');
 }
 
 console.log(`gamefeel_test: ${n - fails}/${n} ok`);

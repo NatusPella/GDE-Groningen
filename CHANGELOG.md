@@ -11,6 +11,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Een levende wereld
+- Zonnige dagen klinken anders (sprint 22-11): op een helder uur tussen 11 en 19 uur praten voorbijgangers over volle terrassen, zwemmen in de Hoornseplas, picknicken in het Noorderplantsoen en het warme zand op de Wadden, in elke streek. Bij regen, mist of onweer blijft het bij de weerpraat van die dag. Samen spelen: decor per speler, zonder voortgang of beloning; de tekst hangt aan het eigen weer en de klok van de gastheer.
+
 ### Spelplezier (sprint 22-11)
 -- - Nieuwe prestatie "Op een haar, vijf keer": vijf rakelings achter elkaar in een reeks (voortgang per speler, lokaal).
  Rakelings-reeks: meerdere echte rakelings binnen 9 seconden tellen steeds zwaarder mee (x1,5, x2 tot x3 van de gewone bonus) en de melding toont de stand ("Rakelings x3"). Een botsing breekt de reeks. Samen spelen: de reeks is per speler, lokaal, net als de rakelings-bonus zelf (geen nieuw bericht).
