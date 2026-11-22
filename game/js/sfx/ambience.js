@@ -12,6 +12,7 @@ import { SFX_MAP, sfxClips } from './sfxmap.js';
 import { havenNiveau, HAVEN_PEAK, HAVEN_LP, spoorNiveau, treinHoornPauze, verkeerDagNiveau, scheepshoornPauze, occlusie, bedWobble, bedStartRate } from './lagenplan.js';
 import { RAIN_KEYS, rainTargets, summerTargets, thunderPick } from './weermap.js';
 import { roomTone } from './binnenklank.js';
+import { breezeTargets } from './sfxfeel.js';
 import { monumentAudioScale } from '../heritagearea.js';
 
 // Place-aware ambience: looping beds crossfaded by where/when the listener
@@ -364,6 +365,8 @@ function smooth01(a, b, x) {
 }
 
 const rainOut = {}, sumOut = {};
+// the facts and the result of the wind bed (sfx/sfxfeel.js): own objects, nothing new per frame
+const windIn = { open: 0, green: 0, coast: 0, sea: false, rain: 0, breeze: 0, hour: 12, closed: false, paused: 1 }, windOut = { level: 0, lp: 2500 };
 const EIGEN_FILTER = new Set(['wind', 'rain', 'regenLicht', 'regenBui', 'regenPlens']);
 function setTargets(world) {
   const dn = world.dayNight || { hour: 12, night: 0 };
@@ -376,7 +379,10 @@ function setTargets(world) {
   const cabin = closed ? 0.45 : 1;
 
   beds.city.target = (0.07 + place.traffic * 0.1 + place.density * 0.04 - place.green * 0.04) * (0.55 + 0.45 * day) * (1 - 0.9 * place.rural) * cabin * paused;
-  beds.wind.target = (0.03 + place.open * 0.04 + place.green * 0.015 + rain * 0.26) * (closed ? 0.35 : 1) * paused;
+  // the wind follows the place, the hour and the breeze of the day (a calm dawn, a sea breeze on the coast in the afternoon)
+  windIn.open = place.open; windIn.green = place.green; windIn.coast = place.coast; windIn.sea = place.sea; windIn.rain = rain;
+  windIn.breeze = world.weather ? world.weather.windStrength : 0; windIn.hour = hour; windIn.closed = closed; windIn.paused = paused;
+  beds.wind.target = breezeTargets(windIn, windOut).level;
   // regen: de opnames (motregen, bui, plensbui, kruisend op de intensiteit; dak en auto binnen) zodra ze geladen zijn, anders de procedurele lagen
   const S = K.samples, recRain = !!S && RAIN_KEYS.every((k) => S.has(k)) && S.has('regen_dak') && S.has('regen_auto');
   const indoors = stepContext.indoors && !closed;
@@ -441,7 +447,7 @@ function setTargets(world) {
     b.occLp = o.lp;
   }
   if (beds.haven.filter) beds.haven.occLp = Math.min(beds.haven.occLp, HAVEN_LP);
-  if (beds.wind.filter) beds.wind.filter.frequency.setTargetAtTime(closed ? 700 : 2500 + rain * 6000, t, 0.3);
+  if (beds.wind.filter) beds.wind.filter.frequency.setTargetAtTime(windOut.lp, t, 0.3);
   if (beds.rain.filter) beds.rain.filter.frequency.setTargetAtTime(closed ? 1400 : 12000, t, 0.3);
   for (const k of ['regenLicht', 'regenBui', 'regenPlens']) if (beds[k].filter) beds[k].filter.frequency.setTargetAtTime(closed || indoors ? 1400 : 12000, t, 0.3);
   // alle andere lagen: de laagdoorlaat van de occlusie (de weerlagen hierboven hebben hun eigen stand)

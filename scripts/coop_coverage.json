@@ -1301,7 +1301,8 @@
    "test": [
     "scripts/coopgeluid_test.mjs",
     "scripts/voicebank_retry_test.mjs",
-    "scripts/voice_lookup_audit_test.mjs"
+    "scripts/voice_lookup_audit_test.mjs",
+    "scripts/sfxfeel_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",

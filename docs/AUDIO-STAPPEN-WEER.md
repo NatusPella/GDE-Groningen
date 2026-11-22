@@ -14,12 +14,15 @@ ontbreekt een bestand of is het nog niet geladen, dan klinkt het oude synthgelui
 - **Variant:** een willekeurige variant, nooit dezelfde als de vorige op die ondergrond; ontbreekt die, dan de andere varianten, dan de procedurele set (`binnen` valt terug op hout, `ren` op asfalt).
 - **Cadans:** de pasafstand volgt de snelheid (`strideFor`): lopen, rennen en sluipen hebben elk hun ritme; niets bij stilstand of in de lucht. Rennen (snelheid boven 4,5) klinkt op stoep, asfalt en binnen met de `ren`-set.
 - **Links en rechts:** de voeten wisselen af; het geluid staat 16 cm links of rechts van de looprichting en de toonhoogte verschilt een haartje. Plus ±5% toonhoogte en ±1,5 dB volume per stap.
+- **Nat en gesprek (22-11, `sfx/sfxfeel.js`):** de plons onder een stap volgt de regen en daarna de natheid van de grond (`weather.wet`): na een plensbui plonst een stap nog ongeveer 48 s zacht na en sterft dan uit. Gras, water en een vloer binnen plonsen nooit; grind en zand de helft. Onder een gesproken regel zakt je eigen stap 2,5 dB en die van een ander 6 dB (mixplan `voetstap`).
 - **Anderen:** NPC's en de metgezel klinken veel zachter dan jij (`npcStep`: zachter met afstand, dof boven 6 m), elk op zijn eigen voet en eigen fase (de voeten van een menigte lopen niet gelijk).
 
 ## Weer en zomer (`sfx/weermap.js`, `sfx/ambience.js`)
 
 - **Regen:** `regen_motregen`, `regen_bui`, `regen_plens` (naadloze lussen, kruisfade van 400 ms in het bestand). De intensiteit van het weer (0 tot 1) kruist ze met gelijk vermogen (toppen bij 0,2, 0,5 en 0,85). In een gesloten voertuig klinkt `regen_auto`, in de flat `regen_dak`; de buitenlussen blijven op 10%.
 - **Wind:** `wind_gras` (wind door gras en open land) vervangt de ruislaag van de wind; het weer stuurt het niveau zoals voorheen. Wind in bomen is niet gelukt (zie Wat niet is gelukt).
+  Het niveau komt uit `breezeTargets` (`sfx/sfxfeel.js`): plek (open land, groen, kust, zee), het uur (zwakst om 3 uur, sterkst om 15 uur, factor 0,75 tot 1,15), de bries van de dag (`weather.windStrength`, in een straat in de luwte) en de regen; het filter wordt helderder met meer wind. Zonder bries blijft het niveau binnen 25 procent van de oude formule.
+- **Demping onder een gesprek:** de spraakdemping van omgeving en motor houdt 0,6 s vast na het laatste woord (`speechDuckStep`). Gemeten: in een pauze van 0,3 s tussen twee regels kwam de omgeving 3,2 dB omhoog en zakte dan weer; nu 0 dB. Na de laatste regel is ze na ongeveer 1 s half terug.
 - **Onweer:** `donder_dichtbij_0..2` (onder 900 m) en `donder_ver_0..1`; de vertraging is afstand gedeeld door 343 m/s (0,3 tot 7 s), verder weg dofer en zachter, binnen gedempt. Zonder de bestanden de synthdonder.
 - **Zomer:** `zomer_vogels` (bos en groen), `zomer_stadsvogels` (stad) en `zomer_insecten` (weide en polder, warme uren); alleen overdag en droog. De losse vogelroepen en de nachtkrekels (synth) blijven.
 - Altijd zomer: geen sneeuw of ijs. Een bron met bevroren gras is bewust niet gebruikt.
