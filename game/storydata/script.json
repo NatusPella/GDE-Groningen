@@ -9684,11 +9684,10 @@
     {
      "speaker": "Dokter Dijkstra",
      "key": "dijkstra",
-     "text": "Die Fries is geland in een weiland bij Winschoten. Tussen de koeien. Hij was niet blij. De koeien ook niet.",
+     "text": "Jelle is geland in een weiland bij Winschoten. Tussen de koeien. Hij was niet blij. De koeien ook niet.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     }
    ]
   },
@@ -12822,7 +12821,7 @@
     {
      "speaker": "Anneke",
      "key": "anneke",
-     "text": "Dit kwam gisteren, voor jullie allebei. Hij belde ook. Hij vroeg naar een vergunning voor de kippen.",
+     "text": "Dit kwam gisteren, voor jullie allebei. Jelle belde ook. Hij vroeg naar een vergunning voor de kippen.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true

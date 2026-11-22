@@ -137,6 +137,20 @@ const PROP_MAKERS = {
     g.add(box(1.7, 0.26, 1.0, 0x222831, 0.17), box(1.35, 0.4, 0.85, 0xc4402c, 0.5), box(1.0, 0.34, 0.6, 0xe8e2d2, 0.82, -0.2), box(1.74, 0.14, 1.04, 0x2f5d9e, 0.3));
     return g;
   },
+  // het kantoor op wielen van Jelle (M15.5, TERPSTRA MOBIEL KANTOOR): een witte kist met een rij ramen, een deur, een bord in bedrijfsblauw,
+  // een airco op het dak, een dissel voorop en twee assen. Laag-poly: veertien dozen en vier wielen.
+  kantoorwagen: () => {
+    const g = new THREE.Group();
+    g.add(box(5.0, 0.18, 2.1, 0x3a3d42, 0.55), box(4.8, 2.0, 2.2, 0xe9e6dc, 1.65), box(4.9, 0.12, 2.3, 0x2c4a7a, 2.7), box(1.0, 0.3, 0.8, 0x9aa0a6, 2.9, -0.8, 0.3));
+    for (const x of [-1.5, -0.2, 1.1]) for (const z of [-1.11, 1.11]) g.add(box(0.9, 0.7, 0.04, 0x2a3946, 2.0, x, z));
+    g.add(box(0.9, 1.7, 0.04, 0x6b4a2e, 1.4, -2.0, 1.11), box(3.2, 0.4, 0.04, 0x2c4a7a, 1.15, 0.2, 1.11), box(3.0, 0.07, 0.05, 0xd8b45a, 1.15, 0.2, 1.12), box(3.2, 0.4, 0.04, 0x2c4a7a, 1.15, 0.2, -1.11));
+    g.add(box(1.0, 0.1, 0.12, 0x3a3d42, 0.62, 2.9), box(0.12, 0.3, 0.12, 0x3a3d42, 0.5, 3.3));
+    for (const x of [-1.6, -0.7]) for (const z of [-1.12, 1.12]) {
+      const w = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.25, 10), mat(0x1c1c1c));
+      w.rotation.x = Math.PI / 2; w.position.set(x, 0.4, z); w.castShadow = true; g.add(w);
+    }
+    return g;
+  },
   // een los briefje (#740: het dankbriefje op de klomp): een vel papier met één geschreven regel
   briefje: () => { const g = new THREE.Group(); g.add(box(0.21, 0.012, 0.15, 0xf7f4e8, 0.01), box(0.15, 0.006, 0.014, 0x5b4a36, 0.017)); return g; },
 };
