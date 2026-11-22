@@ -9744,11 +9744,10 @@
     {
      "speaker": "Dokter Dijkstra",
      "key": "dijkstra",
-     "text": "Die Fries is geland in een weiland bij Winschoten. Tussen de koeien. Hij was niet blij. De koeien ook niet.",
+     "text": "Jelle is geland in een weiland bij Winschoten. Tussen de koeien. Hij was niet blij. De koeien ook niet.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     }
    ]
   },
@@ -10302,7 +10301,7 @@
     "step": "M13"
    },
    "regie": [
-    "ochtend op de kade. Een onbekend nummer belt Tessa. Ze zet hem op de luidspreker, Tammo komt erbij staan."
+    "nog in de nacht, op de kade, kort na de container. Een onbekend nummer belt Tessa. Ze zet hem op de luidspreker, Tammo komt erbij staan."
    ],
    "lines": [
     {
@@ -10572,11 +10571,10 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Mevrouw, mijn juristen vinden dat u te hard rijdt. In mijn limo is plek.",
+     "text": "Mevrouw, u rijdt te hard. In mijn limo is plek.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Tessa",
@@ -12882,7 +12880,7 @@
     {
      "speaker": "Anneke",
      "key": "anneke",
-     "text": "Dit kwam gisteren, voor jullie allebei. Hij belde ook. Hij vroeg naar een vergunning voor de kippen.",
+     "text": "Dit kwam gisteren, voor jullie allebei. Jelle belde ook. Hij vroeg naar een vergunning voor de kippen.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true

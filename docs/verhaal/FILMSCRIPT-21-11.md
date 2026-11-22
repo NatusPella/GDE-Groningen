@@ -431,8 +431,8 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 - **M13.4** BUITEN – WADDENKUST, EEMSHAVEN – DAG · Het containerlabyrint: herhaling · replay
   - praat: Lammert
 - **A3.2** BUITEN – EEMSHAVEN – DAG · Appjes akte 3: Sjabbe en het havenkantoor (stil, geen stem) · appjes
-- **O6** BUITEN – EEMSHAVEN, DE KADE – OCHTEND · Een bod · overgangsscène (BRIDGES)
-  - ochtend op de kade. Een onbekend nummer belt Tessa. Ze zet hem op de luidspreker, Tammo komt erbij staan.
+- **O6** BUITEN – EEMSHAVEN, DE KADE – NACHT · Een bod · overgangsscène (BRIDGES)
+  - nog in de nacht, op de kade, kort na de container. Een onbekend nummer belt Tessa. Ze zet hem op de luidspreker, Tammo komt erbij staan.
   - praat: Jelle Terpstra, Tessa, Tammo
 
 **Sequentie K3: Het havenkantoor in de nacht** (activiteit; speler-protagonist Tammo)

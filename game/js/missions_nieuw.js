@@ -35,9 +35,10 @@ function snapM13Spots(map, def) {
   for (const st of def.stages || []) move(st.target);
 }
 
-// M14: the finish at the sluis of Delfzijl and the start 8 km back along the line to the Eemshaven
+// M14: the finish at the sluis of Delfzijl and the start about 8 km back towards the Eemshaven, on the Bredeweg near Bierum
+// (the straight line used to put the marker 93 m into a polder field, OSM check: scripts/akte3_plekken_test.mjs)
 const DIJK_SLUIS = spotAt(53.3245, 6.9270, -2.5, -1.6); // #1035: de plek stond in het sluiswater; 3 m naar de kant (missieprop-audit)
-const DIJK_START = (() => { const e = spotAt(53.4395, 6.8350), L = Math.hypot(e.x - DIJK_SLUIS.x, e.y - DIJK_SLUIS.y), k = 8000 / L; return { x: DIJK_SLUIS.x + (e.x - DIJK_SLUIS.x) * k, y: DIJK_SLUIS.y + (e.y - DIJK_SLUIS.y) * k, road: null }; })();
+const DIJK_START = spotAt(53.39008, 6.87444);
 
 // M15: the grass strip of Roelfien near Midwolda (Oldambt), pointing at the kermis of Winschoten, and a spot relative to that kermis
 const kermisAt = (dx, dy) => { const p = spotAt(53.1444, 7.0356, dx, dy); return { x: p.x, y: p.y }; };

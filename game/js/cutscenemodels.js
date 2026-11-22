@@ -31,6 +31,7 @@ export const DECOR_KINDS = ['doos', 'tas', 'radio', 'bord', 'koffer', 'bal', 'ma
 // Wat een personage laag draagt (tas, doos): op heuphoogte in de hand, niet op borsthoogte (cutscript.js en cutscenehost.js)
 export const CARRY_LOW = ['tas', 'koffer', 'doos', 'bal', 'krat', 'pan', 'vuurwerk', 'koelbox', 'jas', 'aktetas', 'hesjes', 'klomp'];
 export const DECOR_KINDS = ['doos', 'tas', 'radio', 'bord', 'koffer', 'bal', 'matras', 'automaat', 'duiventil', 'zuil', 'klembord', 'briefje', 'botsauto', 'prikbord', 'broodtrommel'];
+export const DECOR_KINDS = ['doos', 'tas', 'radio', 'bord', 'koffer', 'bal', 'matras', 'automaat', 'duiventil', 'zuil', 'klembord', 'briefje', 'botsauto', 'kantoorwagen'];
 
 // geen spelobject: er is geen register voor, dus niet in een cutscene
 export const PLACEHOLDER_KINDS = ['aanhanger'];
@@ -68,6 +69,7 @@ export const PROP_FOOT = {
   scherm: [0.4, 0.9, 1.7],
   statief: [0.6, 0.6, 1.6],
   prikbord: [0.2, 1.0, 1.4],
+  kantoorwagen: [5.8, 2.3, 3.0],
 };
 export const propFoot = (kind) => PROP_FOOT[kind] || null;
 

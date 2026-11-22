@@ -35,6 +35,7 @@ import { isClip, isCatClip, clipLayers, clipDuration, CLIP_STOP } from './posecl
 export const PROP_KINDS = ['doos', 'tas', 'bestelbus', 'fiets', 'duif', 'radio', 'bord', 'koffer', 'bal', 'auto', 'matras', 'bakkie', 'automaat', 'aanhanger', 'trekker', 'politie', 'duiventil', 'zuil', 'klembord', 'briefje', 'kat', 'botsauto', 'koe',
   'snackwagen', 'tankwagen', 'limo', 'klomp', 'stempel', 'pinpas', 'map', 'bierviltje', 'fotolijst', 'statief', 'krat', 'pan', 'vuurwerk', 'koelbox', 'jas', 'aktetas', 'hesjes', 'container', 'scherm', 'prikbord'];
 export const PROP_KINDS = ['doos', 'tas', 'bestelbus', 'fiets', 'duif', 'radio', 'bord', 'koffer', 'bal', 'auto', 'matras', 'bakkie', 'automaat', 'aanhanger', 'trekker', 'politie', 'duiventil', 'zuil', 'klembord', 'briefje', 'kat', 'botsauto', 'koe', 'prikbord', 'broodtrommel'];
+export const PROP_KINDS = ['doos', 'tas', 'bestelbus', 'fiets', 'duif', 'radio', 'bord', 'koffer', 'bal', 'auto', 'matras', 'bakkie', 'automaat', 'aanhanger', 'trekker', 'politie', 'duiventil', 'zuil', 'klembord', 'briefje', 'kat', 'botsauto', 'koe', 'kantoorwagen'];
 const VERBS = ['walk', 'anim', 'face', 'gaze', 'carry', 'drop', 'move', 'path', 'spin', 'bob', 'show', 'hide', 'sit'];
 export const SHOTS = ['cut', 'dolly', 'orbit', 'follow', 'close', 'reaction', 'ots', 'insert', 'tracking', 'crane', 'handheld', 'push'];
 // The host can scale or remove camera shake (a11y.js: Beweging beperken).

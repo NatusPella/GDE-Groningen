@@ -144,7 +144,7 @@ export const CHARACTERS = {
   veldkamp: { name: 'Meneer Veldkamp', card: 'Buurman op elf negen. Zijn duiven kiezen zelf.', step: 'M00', bio: 'Oude buurman in Paddepoel met een duiventil op de galerij. Zegt weinig en ziet veel. Zijn duiven vliegen naar Tammo toe en niet naar hem; hij vraagt er nooit naar.', quote: 'Mijn duiven doen dat bij niemand.' },
   daan: { name: 'Daan', card: 'Kermiszanger. Heeft een lied over alles.', step: 'M15', bio: 'Zanger en barman op de kermis in Winschoten, charmant en een tikje te zeker van zichzelf. Zijn glimmende jasje houdt niet van duiven.', quote: 'Eén couplet. Over een meisje met een spandoek.' },
   stien: { name: 'Stien', card: 'Frituurhoudster onder brug elf. Veertig jaar vet.', step: 'M17', bio: 'Zeventig, staat al veertig jaar met haar frituurwagen onder brug elf in Veendam. Kortaf, warm, en leert Tessa het vak.', quote: 'Eerst het vet warm, dan de mensen.' },
-  anneke: { name: 'Anneke', card: 'Tessa\'s moeder. Komt met een mand eieren.', step: 'M25', bio: 'Tessa\'s moeder, van het platteland, praktisch en direct. Haar man had kippen; zij komt onaangekondigd en neemt altijd eieren mee.', quote: 'Jij belt nooit. Dan komen wij.' },
+  anneke: { name: 'Anneke', card: 'Tessa\'s moeder. Kippen sinds 1987, koffie op het erf.', step: 'J3', bio: 'Tessa\'s moeder, van het platteland, praktisch en direct. Zij en haar man hebben kippen sinds 1987 op een erf bij Siddeburen; ze zet koffie voor Tammo en komt later onaangekondigd langs met een mand eieren.', quote: 'Jij belt nooit. Dan komen wij.' },
   lieke: { name: 'Lieke', card: 'Tessa\'s nichtje, tien. Ziet alles.', step: 'M25', bio: 'Tien jaar, in een gele regenjas, Tessa\'s nichtje. Ze heeft het al lang door en zegt het hardop.', quote: 'Jullie zijn al samen.' },
   tinus: { name: 'Tinus', card: 'Trekkertrekker. De modder pakt eerst je auto.', step: 'T4', bio: 'Trekkertrekker en re-enactor uit het Westerkwartier. Joviaal, met een schuur en een trekker.', quote: 'De modder pakt eerst je auto. Je plannen komen daarna.' },
 };
@@ -346,7 +346,7 @@ export const STEPS = [
   M('M13', 'staart', 'Het containerlabyrint', 'containers', { built: true, reward: 900, loopbanen: ['handhaving'],
     story: { intro: ['M13.1'], outro: ['M13.3'], replay: ['M13.4'] }, scenes: ['M13.1', 'M13.2', 'M13.3', 'M13.4'],
     lead: ['A', 'De Eemshaven, vannacht. Lammert wacht aan de kade: container 4471 moet leeg uitvaren.'] }),
-  A('K3', 'staart', 'Het havenkantoor in de nacht', { type: 'reis', to: 'Lammerts havenkantoor', at: [53.4395, 6.8350], r: 400, scene: 'K3' }, { built: true, added: true, scenes: ['K3'], lead: ['T', "Sjabbe zegt dat hij in de buurt is. Om drie uur 's nachts. In Lammerts havenkantoor, in de Eemshaven."] }),
+  A('K3', 'staart', 'Het havenkantoor in de nacht', { type: 'reis', to: 'Lammerts havenkantoor', at: [53.4424, 6.8572], r: 400, scene: 'K3' }, { built: true, added: true, scenes: ['K3'], lead: ['T', "Sjabbe zegt dat hij in de buurt is. Om drie uur 's nachts. In Lammerts havenkantoor, in de Eemshaven."] }),
   M('M14', 'staart', 'De dijk', 'dijk', { built: true, reward: 1000,
     story: { intro: ['M14.1'], outro: ['M14.3'], replay: ['M14.4'] }, scenes: ['M14.1', 'M14.2', 'M14.3', 'M14.4'],
     lead: ['T', 'Zonsopgang op de dijk bij Bierum. Om acht uur legt Jelles deurwaarder beslag in Delfzijl. Wij zijn eerder bij de sluis.'] }),

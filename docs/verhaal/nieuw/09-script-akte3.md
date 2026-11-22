@@ -75,7 +75,7 @@ TESSA: Oma's vet. En alles wat haar vrienden extra hadden. [NIEUW]
 TAMMO: En het laatste plakje? [NIEUW]
 TESSA: De bewaarder. Notaris, 28 augustus, drie uur. Meer niet. [NIEUW]
 TESSA: Dan weten we waar we vannacht moeten zijn. Hier. [NIEUW]
-DOKTER DIJKSTRA: Die Fries is geland in een weiland bij Winschoten. Tussen de koeien. Hij was niet blij. De koeien ook niet. [NIEUW]
+DOKTER DIJKSTRA: Jelle is geland in een weiland bij Winschoten. Tussen de koeien. Hij was niet blij. De koeien ook niet. [NIEUW]
 
 ## [M12.5] Het staat niet in het rooster: herhaling – Waddenkust, Eemshaven, helidek – helikopter
 DOKTER DIJKSTRA: Weer een spoedje? Ik zet het deze keer in het rooster. [BEHOUDEN]
@@ -145,7 +145,7 @@ APP TESSA→SJABBE (stil): Beheren? Wij hebben nog niet eens een wagen. [NIEUW]
 APP SJABBE→TESSA (stil): Eerst een bed, dan een pand. Ik vraag niks. [NIEUW]
 
 ## [O6] Een bod – Eemshaven, de kade – Escapade
-(regie: ochtend op de kade. Een onbekend nummer belt Tessa. Ze zet hem op de luidspreker, Tammo komt erbij staan.)
+(regie: nog in de nacht, op de kade, kort na de container. Een onbekend nummer belt Tessa. Ze zet hem op de luidspreker, Tammo komt erbij staan.)
 JELLE (telefoon): Mevrouw Tessa. Jelle Terpstra. U hebt een container leeggehaald die mijn juristen vol wilden hebben. [NIEUW]
 TESSA (telefoon): Dat was een misverstand. [NIEUW]
 JELLE (telefoon): Er zijn geen misverstanden. Er zijn overeenkomsten. Ik bied dertigduizend euro voor het recept van Oma Trijntje. Alles erbij. [NIEUW]
@@ -176,7 +176,7 @@ TAMMO: Ik zie het. [NIEUW]
 TESSA: Zijwind. Niet aan het stuur trekken. [NIEUW]
 TAMMO: Ik trek nooit aan het stuur. [NIEUW]
 TESSA: Je hebt net getrokken. [NIEUW]
-JELLE (telefoon): Mevrouw, mijn juristen vinden dat u te hard rijdt. In mijn limo is plek. [NIEUW]
+JELLE (telefoon): Mevrouw, u rijdt te hard. In mijn limo is plek. [NIEUW]
 TESSA: Rij, Tammo. [NIEUW]
 
 ## [M14.3] De dijk: na de finish – Eemsdelta, sluis Delfzijl – auto van Lammert
@@ -462,7 +462,7 @@ ANNEKE: Jullie zitten ver uit elkaar. [NIEUW]
 TESSA: Het is een bank. [NIEUW]
 ANNEKE: Een bank voor drie. Jullie gebruiken anderhalf. [NIEUW]
 (regie: Anneke legt een brief op tafel. Afzender: Us Mem Snacks.)
-ANNEKE: Dit kwam gisteren, voor jullie allebei. Hij belde ook. Hij vroeg naar een vergunning voor de kippen. [NIEUW]
+ANNEKE: Dit kwam gisteren, voor jullie allebei. Jelle belde ook. Hij vroeg naar een vergunning voor de kippen. [NIEUW]
 TAMMO: En? [NIEUW]
 ANNEKE: Wij hebben kippen sinds 1987. Hij moet eerst de kippen vragen. [NIEUW]
 (regie: Tessa's vader zet de mand eieren op tafel en knikt één keer. Dat is alles. Tammo draait zich naar Tessa; Anneke legt haar breiwerk neer.)
