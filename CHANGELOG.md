@@ -11,6 +11,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Besturing
+- Controller (#1011, #495): een schermtoetsenbord voor elk tekstveld, zodat je ook alleen met een controller je naam, een sessienaam, een kamercode, een wachtwoord, een zoekterm of de naam van een opgeslagen spel invult. A op een veld of de knop Toetsenbord ernaast opent het; D-pad en stick lopen over de toetsen, A typt, B wist, X is spatie, Y is hoofdletter, LB en RB zetten de cursor, LT en RT wisselen tussen letters, cijfers en accenten, Start is Klaar en Overzicht annuleert. Bij een naam kies je een verzonnen Groningse bijnaam of Willekeurig, bij een kamercode Plakken of een van de laatste drie, bij een zoekveld een vast woord en bij opslaan een naam als Spel van 22 nov. Een afgekeurde naam krijgt meteen een reden. Met toetsenbord, muis of aanraking blijft het gewone veld. Lokaal; er gaat niets naar het netwerk. Samen spelen: elke speler vult het eigen veld in op het eigen scherm.
 ### Prestaties
 - Prestaties (#1074, #1067): als het spelvenster verborgen of op de achtergrond is, doen de vaste controles van de overlays, het Samen-paneel en het aanraakscherm niets meer; de kartmotor wordt bij het verlaten van de baan echt stopgezet. Samen spelen: lokaal per speler, geen netwerkwijziging; testsessies met `?stil` blijven gewoon tikken. Voor de metingen staan er twee A-schakelaars (`?perfoff=boomfade`, `?perfoff=gevelfade`).
 ### Kaart en HUD
