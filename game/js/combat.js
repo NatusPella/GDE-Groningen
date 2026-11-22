@@ -29,6 +29,7 @@ import { nieuweCombo, comboSlag, comboUitslag } from './meleecombo.js'; // de me
 import { nieuweBlok, blokkeer, herstel, blokActief, schadeNaBlok } from './blockregels.js'; // blokkeren met een slagwapen (#492)
 import { requestRiderOff } from './bikerider.js'; // een fietser van de fiets slaan (#944)
 import { sfxEvent } from './sfx/haken.js'; // het wapen wisselt: een kort klikje op de eigen UI-bus
+import { steadiness, kickFactor, makeHitMark, markHit } from './combatfeel.js'; // stance steadies or widens a shot; hit confirmation for the local player
 import { wielWapens, terugvalWapen, slotMessage } from './ammorules.js'; // het wiel slaat lege wapens over; na het laatste stuk een ander wapen
 
 export { WEAPONS, WEAPON_KEYS, isMeleeWeapon, isRangedWeapon, isGunWeapon };
@@ -296,6 +297,10 @@ function meleeHit(world, angle, weapon, key, ctx = null) {
   }
 }
 
+// Base random spread of a single bullet (rad, full width) at a walk; combatfeel.js steadiness scales it:
+// standing still is what it always was (0.02), crouched is tighter, a sprint is wider.
+const SHOT_JITTER = 0.0267;
+
 // Camera recoil per shot: pitch up (rad), sideways jitter, FOV punch (deg).
 const KICK = { pistol: [0.022, 0.008, 1.6], uzi: [0.009, 0.006, 0.6], shotgun: [0.05, 0.014, 3.5], jachtgeweer: [0.075, 0.01, 2.2] };
 
@@ -304,6 +309,7 @@ function fireGun(world, angle, weapon, scoped = false, ctx = null, key = world.w
   const p = ctx ? ctx.p : hoofdspeler(world);
   const v = p.inVehicle;
   const shots = weapon.pellets || 1;
+  const steady = steadiness(Math.hypot(p.vx || 0, p.vy || 0), p.crouching, !!v);
   const base = v ? v.z || 0 : (p.gz || 0) + (p.z || 0);
   const muzzleZ = base + (v ? 1.2 : p.crouching ? 0.95 : 1.38);
   const aimZ = base + (v ? 1.1 : p.crouching ? 0.8 : 1.2);
@@ -314,7 +320,7 @@ function fireGun(world, angle, weapon, scoped = false, ctx = null, key = world.w
     world.bullets.push({ ...s, damage: weapon.damage, owner: 'player', range: weapon.range, traveled: 0, pellet: false, _shotFx: true, ...(ctx ? { dader: ctx.dader } : {}) });
   }
   for (let i = scoped && shots === 1 ? shots : 0; i < shots; i++) {
-    const a = angle + (weapon.spread ? (Math.random() - 0.5) * weapon.spread : 0) + (Math.random() - 0.5) * 0.02;
+    const a = angle + (weapon.spread ? (Math.random() - 0.5) * weapon.spread : 0) + (Math.random() - 0.5) * SHOT_JITTER * steady;
     world.bullets.push({
       x: p.x + Math.cos(a) * 0.4 + rx,
       y: p.y + Math.sin(a) * 0.4 + ry,
@@ -337,8 +343,9 @@ function fireGun(world, angle, weapon, scoped = false, ctx = null, key = world.w
   if (ctx) return; // een gast: de camera van wie het spel opende schudt niet
   const [kp, ky, kf] = KICK[world.weapon] || KICK.pistol;
   const kick = world.camKick || (world.camKick = { pitch: 0, yaw: 0, fov: 0 });
-  kick.pitch = Math.min(0.12, kick.pitch + kp * (0.85 + Math.random() * 0.3));
-  kick.yaw += (Math.random() - 0.5) * 2 * ky;
+  const kf2 = kickFactor(steady); // crouched and still: a calmer view; sprinting: a little wilder
+  kick.pitch = Math.min(0.12, kick.pitch + kp * kf2 * (0.85 + Math.random() * 0.3));
+  kick.yaw += (Math.random() - 0.5) * 2 * ky * kf2;
   kick.fov = Math.min(6, kick.fov + kf);
 }
 
@@ -367,7 +374,7 @@ export function updateBullets(dt, world) {
     if (first === 'car') { vehicleImpact(world, b, car); continue; }
     if (hitPedestrians(world, b, x0, y0)) continue;
     if (b.owner !== 'player' && (hitPlayer(world, b) || hitGast(world, b))) continue;
-    if (b.owner === 'player' && world.coopPvp && pvpKogel(world, b)) { sound(world, b.x, b.y, 'flesh', 0.6); continue; } // geen bloed, alleen het geluid (#447)
+    if (b.owner === 'player' && world.coopPvp && pvpKogel(world, b)) { hitConfirm(world, b, b.x, b.y, 'doel'); sound(world, b.x, b.y, 'flesh', 0.6); continue; } // geen bloed, alleen het geluid (#447)
     if (b.traveled > b.range) { groundImpact(world, b); continue; }
 
     remaining.push(b);
@@ -375,6 +382,13 @@ export function updateBullets(dt, world) {
   world.bullets = remaining;
   world.particles = world.particles.filter((p) => p.until === undefined || p.until > world.time);
   updateThrowables(dt, world);
+}
+
+// Hit confirmation (combatfeel.js): only for a bullet of the player behind this screen (no dader = not a guest's
+// bullet); aimassist.js draws the ticks over the spot. One reused object on the world, nothing over the net.
+function hitConfirm(world, b, x, y, kind) {
+  if (b.owner !== 'player' || b.dader) return;
+  markHit(world.hitMark || (world.hitMark = makeHitMark()), world.time, x, y, b.z === undefined ? 1.25 : b.z, kind);
 }
 
 function sound(world, x, y, material, strength = 0.5) {
@@ -469,6 +483,7 @@ function vehicleImpact(world, b, h) {
   // een politicauto op vijf sterren heeft een pantser (#436)
   v.health -= b.damage * BULLET_VEHICLE_SCALE * (v.isPolice && v.driver !== 'player' && v.armor ? v.armor : 1);
   if (v.health <= 0) wreckVehicle(world, v, b.owner === 'player' && !b.dader);
+  hitConfirm(world, b, h.x, h.y, 'voertuig');
   gunImpactFx({ surface: h.glass ? 'carglass' : 'metal', x: h.x, y: h.y, z: b.z, nx: h.nx, ny: h.ny, vehicle: v.wrecked ? null : v, pellet: b.pellet });
   sound(world, h.x, h.y, h.glass ? 'glass' : 'metal', b.pellet ? 0.3 : 0.6);
 }
@@ -489,6 +504,7 @@ function hitPedestrians(world, b, x0, y0) {
   if (ped) {
     const bl = Math.hypot(b.vx, b.vy) || 1;
     damagePed(world, ped, b.damage, b.owner === 'player', b.vx / bl, b.vy / bl, false, WEAPONS.fists, b.dader || 0);
+    hitConfirm(world, b, ped.x, ped.y, 'doel');
     sound(world, ped.x, ped.y, 'flesh', b.pellet ? 0.4 : 0.7);
     return true;
   }

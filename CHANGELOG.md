@@ -11,6 +11,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Lopen en schieten
+- Lopen heeft gewicht: je zet aan en loopt een halve stap uit in plaats van in één beeld van stilstaan naar vol tempo te springen (vanuit een sprint ongeveer 35 cm uitloop, binnen een kwart seconde stil). De loopcyclus volgt de echte snelheid, dus de voeten glijden niet.
+- Schieten: gebukt en stilstaand schiet je vaster en met minder terugslag, sprintend wilder; stilstaand is het zoals het was. Raakt je kogel iemand of een voertuig, dan zie je daar kort vier witte streepjes als bevestiging (geen beweging bij Minder beweging). Samen spelen: de vaste hand geldt ook voor het schot van een gast; de streepjes ziet alleen wie het spel opende, een gast nog niet. Er gaat niets extra over het net.
+
 ### Taal
 - Stad, Ommeland en Grunn: wat de stad Groningen zelf is heet nu "de Stad" (de Martinitoren, bruggen en grachten, de wijken, de rondvaart), de rest van de provincie "Ommeland", en "Grunn" blijft voor het geheel, de slogans en het gevoel, zonder lidwoord. De locatieregel toont "wijk · Stad", het straatpraatkaartje "Opgevangen in de Stad" en het onweerbericht in de stad "Onweer boven de Stad". Het station heet overal Station Groningen. 20 gesproken regels (Tammo, Tessa, Rikus, Berend, Jelle en de rondvaartgids) zijn aangepast en wachten op een nieuwe opname (scripts/voice_wacht.json). De regel staat in docs/TAALREGEL-STAD-OMMELAND-22-11.md en wordt bewaakt door scripts/stad_grunn_test.mjs.
 ### Besturing met een controller
