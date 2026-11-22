@@ -32,6 +32,18 @@ ok(!A.shouldOffer({ fails: 3, settings: { helpOffer: false } }), 'uit te zetten'
 ok(A.offerText('licht').includes('25% meer tijd') && A.offerText('nope').includes('hulp'), 'aanbodtekst');
 ok(!/[a-z]\./.test('') && A.offerText().includes('met hulp'), 'tekst noemt het label');
 
+// #989: het aanbod als legenda met iconen: dezelfde feiten als de tekst, kort, en de poort bestaat als icoon
+{
+  const l = A.offerLegenda('licht'), v = A.offerLegenda('veel');
+  ok(l.length === 3 && l[0].icoon === 'klok' && l[0].waarde === '+25%', 'legenda licht: tijd, schade, poorten');
+  ok(v[0].waarde !== l[0].waarde && v.every((r) => r.label.length <= 8 && r.waarde.length <= 6), 'legenda veel: ander getal, korte woorden');
+  ok(A.offerLegenda('nope').length === 3 && A.OFFER_KORT.length < 40, 'onbekende stand valt terug op licht; de zin is kort');
+  const rw = await import('../game/js/regelwidget.js');
+  ok(l.every((r) => rw.ICONEN[r.icoon]), 'elk legenda-icoon bestaat in de regelwidget');
+  const f = rw.stappenVorm({ modus: 'legenda', stappen: l });
+  ok(!f.verborgen && f.alt.includes('Tijd +25%'), 'regelwidget leest de legenda voor');
+}
+
 // met-hulp boekhouding
 ok(A.markHelped({}, 'm05', {}).m05 === undefined && A.markHelped({}, 'm05', { helpTime: 'ruim' }).m05 === true, 'label alleen met hulp');
 ok(A.markHelped({ a: true }, 'b', { helpGates: 'ruim' }).a === true, 'oude labels blijven');

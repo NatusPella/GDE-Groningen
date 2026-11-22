@@ -5,6 +5,7 @@
 // gebied zichtbaar opgloeit voordat het grijs verdwijnt. De kaart bouwt daar één masker van
 // (mapview.js); de opslag blijft die van gebieden.js (`bezocht`), dus per speler.
 export const DISCOVERY_RES_M = 80; // m per pixel van het masker: klein genoeg voor een zachte rand
+export const MM_ONTDEK_MS = 2200; // #990: zo lang gloeit de rand van de minimap na een nieuwe streek
 export const REVEAL_MS = 1300;     // hoe lang een net bezochte buurt zichtbaar opgloeit
 
 // De maat van het masker over een wereldbox, in pixels.

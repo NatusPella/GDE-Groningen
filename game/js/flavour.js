@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { districtAt } from './districtat.js';
 import { gridItems } from './spatialgrid.js';
 import { SMS_SAY } from './smsvoice.js';
 import { lineVoiceFor, NARRATOR } from './linevoice.js';
@@ -95,11 +96,8 @@ function notify(from, text, opts = {}) {
 }
 
 function placeName(x, y) {
-  let best = null, bd = 700;
-  for (const p of world.map.meta.neighbourhoodPoints || []) {
-    const d = Math.hypot(p.x - x, p.y - y);
-    if (d < bd) { bd = d; best = p.name; }
-  }
+  // #1077: een wijk alleen als je er echt in staat (districtat.js)
+  const best = (districtAt(world.map.meta.neighbourhoodPoints || [], x, y) || {}).name;
   return best || 'Grunn';
 }
 

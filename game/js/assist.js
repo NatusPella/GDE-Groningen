@@ -74,6 +74,19 @@ export function offerText(preset = 'licht') {
   return `Dit lukt nog niet. Wil je hulp? ${bits.join(', ')}. Je prestaties blijven open; de stap krijgt het label "met hulp". Je kunt het altijd uitzetten onder Instellingen › Toegankelijkheid › Hulp.`;
 }
 
+// #989: het aanbod als legenda met iconen (regelwidget, type stappen/legenda) in plaats van een zin: wat de hulp verandert.
+// Dezelfde feiten als offerText, kort genoeg voor een icoon met één woord of getal erbij.
+export const OFFER_KORT = 'Dit lukt nog niet. Wil je hulp?';
+export const OFFER_KLEIN = 'Je prestaties blijven open. Uitzetten kan onder Instellingen › Toegankelijkheid › Hulp.';
+export function offerLegenda(preset = 'licht') {
+  const p = HELP_PRESETS[preset] || HELP_PRESETS.licht;
+  const out = [];
+  if (p.helpTime !== 'uit') out.push({ icoon: 'klok', label: 'Tijd', waarde: `+${Math.round((HELP_TIME[p.helpTime] - 1) * 100)}%` });
+  if (p.helpDamage !== 'normaal') out.push({ icoon: 'auto', label: 'Schade', waarde: 'minder' });
+  if (p.helpGates !== 'normaal') out.push({ icoon: 'poort', label: 'Poorten', waarde: 'ruimer' });
+  return out;
+}
+
 // "Met hulp"-boekhouding per stap-id: {stepId: true}
 export function markHelped(map, id, settings) {
   const out = { ...(map || {}) };

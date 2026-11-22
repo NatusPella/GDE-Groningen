@@ -2,11 +2,12 @@
 // runner (missions.js, vehicle.js, planestage.js), houdt per stap bij wat met
 // hulp is gehaald en biedt hulp aan na twee mislukkingen. De regels staan in
 // assist.js (getest); dit is de dunne laag met opslag en het aanbodscherm.
-import { assistFactors, helpActive, scaleTime, scaleDamage, widenGate, shouldOffer, offerText, markHelped, cleanHelped, HELP_PRESETS } from './assist.js';
+import { assistFactors, helpActive, scaleTime, scaleDamage, widenGate, shouldOffer, offerText, offerLegenda, OFFER_KORT, OFFER_KLEIN, markHelped, cleanHelped, HELP_PRESETS } from './assist.js';
 import { getSettings, setSetting } from './settings.js';
 import { KEYS } from './storagekeys.js';
 import { AUTOPLAY, STORY_TEST } from './devflags.js';
 import { zachtePauze } from './coopgroep.js';
+import { maakWidget } from './regelwidget.js'; // #989: wat de hulp verandert als icoon met een woord, niet als zin
 
 let data = null;
 function load() {
@@ -53,7 +54,7 @@ function buildDialog() {
   el.id = 'hulpaanbod';
   el.hidden = true;
   el.innerHTML = `<div class="ga-box" role="dialog" aria-modal="true" aria-labelledby="gh-title">
-    <b id="gh-title">Even hulp?</b><p class="ga-text"></p>
+    <b id="gh-title">Even hulp?</b><p class="ga-text"></p><div class="ga-legenda"></div><p class="ga-klein"></p>
     <div class="ga-btns"><button type="button" class="ga-primary" data-gh="licht">Ja, een beetje hulp</button><button type="button" class="ga-secondary" data-gh="veel">Ja, veel hulp</button><button type="button" class="ga-secondary" data-gh="nee">Nee, ik red het zelf</button></div></div>`;
   document.body.appendChild(el);
   const d = { el, world: null };
@@ -101,7 +102,18 @@ export function maybeOfferHelp(world, stepId, fails) {
   load();
   if (!shouldOffer({ fails, offered: !!data.offered[stepId], settings: getSettings() })) return false;
   if (!dlg) dlg = buildDialog();
-  dlg.el.querySelector('.ga-text').textContent = offerText('licht');
+  dlg.el.querySelector('.ga-text').textContent = OFFER_KORT;
+  dlg.el.querySelector('.ga-klein').textContent = OFFER_KLEIN;
+  const leg = dlg.el.querySelector('.ga-legenda');
+  // een sier-widget mag het aanbod nooit blokkeren: lukt hij niet, dan blijft alleen de zin staan
+  try {
+    if (dlg.legenda) dlg.legenda.verwijder();
+    dlg.legenda = maakWidget('stappen', leg, { modus: 'legenda', label: 'Dit verandert de hulp', stappen: offerLegenda('licht') });
+    if (dlg.legenda) dlg.legenda.ververs();
+    // de schermlezer hoort nog steeds de hele tekst
+    dlg.el.querySelector('.ga-box').setAttribute('aria-description', offerText('licht'));
+  } catch (e) { dlg.legenda = null; }
+
   dlg.world = world;
   dlg.stepId = stepId;
   dlg.prevFocus = document.activeElement;

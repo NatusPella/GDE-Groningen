@@ -91,7 +91,7 @@ is impact op een speler die het voor het eerst ziet, gedeeld door de bouwkosten.
 | Politiezoekcirkel | hoe lang nog tot de ster weg is | b | bestaande zoekbalk als ring met afteltekst, cirkel op de kaart als wijzer | midden |
 | Wanted-niveaus | waarom ben ik gezocht en wat is het niveau | c (sterren) + g | sterren die vol raken, het waarom als icoon (voetganger, getuige, schade) | midden |
 | Fierljepbalk (`pg_fierljep`) | vaste zone 38 tot 62 procent met een tekstreeks 1 tot 3 | e + g | drie stappen (aanloop, springen, klimmen) met een toets-lus | midden |
-| Hulpaanbod (`assist.js`) | een lap tekst: meer tijd, minder schade, ruimere poorten | g (legenda) | drie iconen (klok, auto, poort) met hun effect, geen zin | midden |
+| Hulpaanbod (`assist.js`) | een lap tekst: meer tijd, minder schade, ruimere poorten | g (legenda) | drie iconen (klok, auto, poort) met hun effect, geen zin | **gedaan** (22-11: legenda in het aanbodscherm, de zin is kort; de volle tekst blijft voor de schermlezer) |
 | M02 Even pinnen | "Schud de politie af: rij een garage in" | d + g | wijzer naar Spuit & Klaar, twee stappen (garage, afwachten) | midden |
 | Duif-modus | zeven toetsregels per stand | f | alleen de toets die nu telt, met lus | midden |
 | Stealth en zichtlijn (`heist.js`) | het gezien-percentage is alleen een zin of een kegel in de wereld | a | meter "gezien" met arcering, oog-icoon dat dichtgaat | midden |

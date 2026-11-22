@@ -113,5 +113,11 @@ ok(() => assert.equal(districtAt([{ name: 'X', x: NaN, y: 0 }], 0, 0, { grenzen:
   ok(() => assert.ok(m && !/bestD2|Infinity/.test(m[0]), 'geen eigen nearest-lus'), 'mapview wijkAt heeft geen eigen nearest-lus');
 }
 
+// 4. de overige plekken die een wijk noemen (prestatie, telefoonpraatje, duif) gebruiken districtAt, geen eigen nearest-lus (#1077)
+for (const f of ['achievementtracker.js', 'flavour.js', 'pigeonmode.js']) {
+  const src = fs.readFileSync(path.join(root, 'game/js', f), 'utf8');
+  ok(() => assert.ok(src.includes('districtAt(') && !/bd = Infinity|let best = null, bd = (700|900)/.test(src), `${f} gebruikt districtAt`), `${f}: wijk via districtAt`);
+}
+
 console.log(`districtat_test: ${n - f}/${n} geslaagd (raster: ${buiten} punten buiten de stad, ${stadMet} in de stad met wijk)`);
 process.exit(f ? 1 : 0);

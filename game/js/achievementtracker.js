@@ -4,6 +4,7 @@ import { hoofdspeler } from './players.js';
 // horeca, pigeon perches). Also runs the mission medal bookkeeping and the
 // hidden eierballen collectibles.
 
+import { districtAt } from './districtat.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import {
   initAchievements, recordStat, setStatMax, recordUnique, unlockAchievement, recordMissionResult,
@@ -344,13 +345,9 @@ function trackWorld(dt, w, p, pv) {
   slowT -= dt;
   if (slowT <= 0) {
     slowT = 0.5;
-    const pts = w.map.meta.neighbourhoodPoints || [];
-    let best = null, bd = Infinity;
-    for (const q of pts) {
-      const d2 = (q.x - p.x) ** 2 + (q.y - p.y) ** 2;
-      if (d2 < bd) { bd = d2; best = q; }
-    }
-    if (best && bd < 700 * 700) {
+    // #1077: alleen een wijk waar je echt in staat (districtat.js), nooit het dichtstbijzijnde wijkpunt van buiten de stad
+    const best = districtAt(w.map.meta.neighbourhoodPoints || [], p.x, p.y);
+    if (best) {
       if (wijkCand !== best.name) { wijkCand = best.name; wijkDwell = 0; }
       else if ((wijkDwell += 0.5) >= WIJK_DWELL) recordUnique(w, 'wijken', best.name);
     }
