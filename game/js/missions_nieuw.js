@@ -304,8 +304,8 @@ export function applyNieuw(list) {
     };
     // #664: ook hier geen ruime fail-timer; binnen een minuut is de medaille-eis (tag 'snel').
     duif.timeLimit = null;
-    duif.medalTime = 60;
-    duif.tagRows = { ...(duif.tagRows || {}), snel: ['Medaille', 'Binnen 1:00: alle foto\'s'] };
+    duif.medalTime = 180;
+    duif.tagRows = { ...(duif.tagRows || {}), snel: ['Medaille', 'Binnen 3:00: alle foto\'s'] };
     duif.tagAdjust = { ...(duif.tagAdjust || {}), snel: 40 };
   }
   const kei = by('Wind tegen, beide kanten op');

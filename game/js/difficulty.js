@@ -118,6 +118,8 @@ export const OPTION_DEFS = Object.freeze([
     stappen: [stap('eigen', 'Eigen keuze'), stap('kort', 'Kort'), stap('normaal', 'Normaal')], presets: ['eigen', 'eigen', 'eigen'] },
   { key: 'income', groep: 'geld', scope: 'lokaal', label: 'Beloning van missies', uitleg: 'Hoeveel geld een missie, een herhaalde klus en een medaille opleveren. Prijzen in winkels en garages blijven gelijk, zodat de balans niet kantelt.',
     stappen: [stap(0.75, 'Een kwart minder'), stap(0.9, 'Minder'), stap(1, 'Gewoon'), stap(1.15, 'Meer'), stap(1.25, 'Een kwart meer')], presets: [1.15, 1, 0.9] },
+  { key: 'fines', groep: 'geld', scope: 'lokaal', label: 'Boete bij aanhouding', uitleg: 'Hoeveel geld de politie afpakt als je wordt gepakt (nooit meer dan een vijfde van wat je bij je hebt). Prijzen in winkels en garages blijven gelijk.',
+    stappen: [stap(0.5, 'De helft'), stap(0.75, 'Minder'), stap(1, 'Gewoon'), stap(1.5, 'Hoger')], presets: [0.5, 1, 1.5] },
   { key: 'hints', groep: 'hulp', scope: 'lokaal', label: 'Hints en tips', uitleg: 'Korte aanwijzingen op het scherm. Eigen = Instellingen, Spel.',
     stappen: [stap('eigen', 'Eigen instelling'), stap('aan', 'Altijd aan'), stap('uit', 'Uit')], presets: ['aan', 'eigen', 'eigen'] },
   { key: 'storyMode', groep: 'hulp', scope: 'lokaal', label: 'Verhaalmodus', uitleg: 'Zonder falen: geen tijdslimiet in missies en quicktime-events lopen vanzelf. Er verdwijnt niets uit het verhaal.',
@@ -183,6 +185,7 @@ export const isCustomProfile = (profile) => Object.keys(cleanProfile(profile).cu
 // De verdienste mag niet kantelen (balans, Bezit-balans): de beloningsfactor blijft binnen 0,75 en 1,25 en prijzen
 // zijn geen optie. Dit is de laatste grens, ook als een stap ooit wordt toegevoegd.
 export const INCOME_RANGE = Object.freeze([0.75, 1.25]);
+export const FINE_RANGE = Object.freeze([0.5, 1.5]);
 
 // --- de actieve stand van dit spel (per save; savegame.js zet hem bij laden en bij een nieuw spel) ---
 let active = { level: DIFFICULTY_DEFAULT, custom: {} };
@@ -235,7 +238,14 @@ export const vehicleDamageFactor = () => activeOptions.vehicleDamage;
 export const damageTakenFactor = () => activeOptions.damageTaken;
 export const raceSkillFactor = () => activeOptions.raceAi;
 export const incomeFactor = () => Math.min(INCOME_RANGE[1], Math.max(INCOME_RANGE[0], activeOptions.income));
+export const fineFactor = () => Math.min(FINE_RANGE[1], Math.max(FINE_RANGE[0], activeOptions.fines));
 export const storyModeOn = () => activeOptions.storyMode === 'aan';
+
+// De boete bij aanhouding (besluit eigenaar 22-11): factor 0,5 tot 1,5; het plafond van een vijfde van je geld blijft in bustFine (economy.js).
+export function scaleFine(amount) {
+  const f = fineFactor();
+  return f === 1 || !Number.isFinite(amount) ? amount : Math.round(amount * f);
+}
 
 // Een beloning in euro (missie, klus, medaille) met de inkomensfactor, afgerond op hele euro's. Op Standaard onveranderd.
 export function scaleIncome(amount) {

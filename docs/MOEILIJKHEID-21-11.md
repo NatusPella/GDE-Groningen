@@ -45,6 +45,7 @@ Scope: **wereld** is van wie het spel opende (zie de Samen-regel), **lokaal** is
 | Tegenstander in het voetbal (`footballAi`) | lokaal | volg, ontspannen, standaard, uitdagend | volg / volg / volg | volgende start |
 | Duur van een wedstrijd (`footballDuration`) | lokaal | eigen, kort, normaal | eigen / eigen / eigen | volgende start |
 | Beloning van missies (`income`) | lokaal | 0,75x, 0,9x, 1x, 1,15x, 1,25x | 1,15x / 1x / 0,9x | meteen |
+| Boete bij aanhouding (`fines`) | lokaal | 0,5x, 0,75x, 1x, 1,5x | 0,5x / 1x / 1,5x | meteen |
 | Hints en tips (`hints`) | lokaal | eigen, aan, uit | aan / eigen / eigen | meteen |
 | Verhaalmodus (`storyMode`) | lokaal | uit, aan | uit / uit / uit | volgende start |
 
@@ -63,12 +64,13 @@ Scope: **wereld** is van wie het spel opende (zie de Samen-regel), **lokaal** is
 | `timeFactor` en `targetFactor` | `difficultyFactors(mode)` in `difficulty.js`: voor het actieve niveau gelden de aanpassingen; de dertig bestaande lezers (missietijden, medailles, minigames) veranderen niet |
 | `footballAi` en `footballDuration` | `voetbal.js` `freshOptions` (de carrière blijft op 90 minuten) |
 | `income` | `missions.js` (de beloning, de herhaalklus en het medaillebonus) via `scaleIncome` |
+| `fines` | `police.js` (de aanhoudingsboete) via `scaleFine`; het plafond van een vijfde van je geld blijft in `bustFine` (`economy.js`) |
 | `hints` | `settings.js` (de klasse `hide-hints`), `hud_panel.js` en `prompts.js` |
 | `storyMode` | ook `missions.js` (geen tijdslimiet) |
 
 ### Niet gedaan, met reden
 
-- **Prijzen** (winkel, garage, boete): zie de balans hierboven.
+- **Prijzen** (winkel, garage): zie de balans hierboven. De boete bij aanhouding schaalt wel (besluit eigenaar 22-11, optie `fines`); reparatie- en wrakkosten niet.
 - **Honger en energie**: bestaan niet in het spel (eten geeft alleen gezondheid).
 - **Vechten en zwaaien**: de tegenstander in een gevecht heeft geen eigen moeilijkheid; `damageTaken` dekt wat een klap kost.
 - **Automatische route**: er is één doelmarkering (een gele lijn en baken) die nooit uit kan; dat is een hulpmiddel van het spel zelf, geen optie.
@@ -98,12 +100,12 @@ Elke stap ligt binnen een vaste band: tijd 0,7 tot 2, medailles 0,7 tot 1,4, pol
 
 ## Samen spelen (de eenmalige regel)
 
-- **Van wie**: de wereld (politie en verkeer: `policeEscape`, `policeUnits`, `trafficDensity`) volgt het niveau en de opties van wie het spel opende. Dat is geen hostrecht in de zin van de visie: het is de wereld van die speler, net als verhaal en missies. Een gast draait `updateGameplay` niet; politie en verkeer lopen op de computer van wie het spel opende en lezen daar zijn eigen profiel.
+- **Van wie**: de wereld (politie en verkeer: `policeEscape`, `policeUnits`, `trafficDensity`) draait op de computer van wie het spel opende en leest daar zijn profiel (een gast draait `updateGameplay` niet). **De keuze is gezamenlijk, geen hostrecht** (besluit eigenaar 22-11): met meer spelers vraagt een wijziging van het niveau of van een wereldoptie akkoord van de groep, via dezelfde stemming als slapen (J of N, 10 seconden, geen antwoord is nee; `difficultyvote.js`, soort `moeilijkheid` in `coopgroep.js`). Alleen is het meteen. Een gast kan geen stemming starten (zoals bij slapen: de wereld loopt bij een ander) en krijgt een melding; de opener legt het de groep voor. Opties van jezelf vragen niemand iets. Afgewezen: een stem die de wereld van de gast rechtstreeks verandert (de wereld loopt bij de opener) en een eigen profiel per speler voor politie en verkeer (twee werelden in één).
 - **Per speler, uit de eigen save**: schade aan jezelf en aan je voertuig, rij-assist, quicktime-events, hints, tijd en medailles, de beloning van missies, het niveau van racetegenstanders en de wedstrijd in het voetbal. Een gast kiest dus zelf hoe pittig zijn eigen deel is; de wereld van een ander verandert er niet van.
 - **Wat een gast ziet**: de kaart verschijnt bij een eigen nieuw spel, ook als iemand daarna meedoet; Instellingen > Moeilijkheid zegt bij elke wereldoptie dat wie het spel opende dit voor de wereld bepaalt. Het niveau van de wereld is **zichtbaar** (eigenaarbesluit): als "Wereld: Standaard" in de wachtkamer en het sessiepaneel (voor wie het spel opende uit zijn eigen stand, voor een gast uit het welkom), en in elke regel van de sessielijst. Het gaat als **optioneel veld** mee: `d` in de aankondiging van `net/serverlijst.js` (buiten de somcontrole, dus een oude lezer negeert het) en `niveau` in het welkom van `net/hub.js`. Alleen de woorden ontspannen, standaard of uitdagend komen door; geen IP-adres, geen naam. `PROTO` blijft 2. Een oude host toont geen niveau; een oude gast negeert het. Test: `scripts/difficulty_lobby_test.mjs`.
 - **Beloning en voortgang**: de beloning van een missie is per speler (#429) en schaalt met de eigen inkomensfactor; een gast met Ontspannen krijgt dus meer dan de gastheer met Uitdagend uit dezelfde missie. Dat is bewust: het is zijn eigen geld, en de factor blijft binnen een kwart.
 - **Wegvallen en later aansluiten**: er is niets om bij te houden; het profiel staat in de eigen save en gaat niet over het netwerk. Wisselt de gastheer (#439), dan geldt het niveau van de nieuwe gastheer voor de wereld, op zijn computer.
-- **Test**: `difficulty_profile_test.mjs` (alleen politie en verkeer zijn scope "wereld"), `coopgast_test.mjs` (de regel in `GAST_REGELS`, `coopgast.js`) en de regel in [COOP-GAST.md](COOP-GAST.md).
+- **Test**: `difficultyvote_test.mjs` (de groepsvraag), `difficulty_profile_test.mjs` (alleen politie en verkeer zijn scope "wereld"), `coopgast_test.mjs` (de regel in `GAST_REGELS`, `coopgast.js`) en de regel in [COOP-GAST.md](COOP-GAST.md).
 
 ## Prestatie
 
@@ -114,3 +116,12 @@ Elke stap ligt binnen een vaste band: tijd 0,7 tot 2, medailles 0,7 tot 1,4, pol
 - Niet in beeld bekeken: de kaart en het tabblad (geen Electron in deze ronde; de DS3-controles en de nep-DOM-test dekken de structuur, de toetsen en de tekst, niet de uitstraling). Staat als "nog niet bekeken" in #1169.
 - Opgeslagen spellen toont het niveau van een save als klein label ("Uitdagend · aangepast"); een oude save zonder veld toont niets.
 - De geschaalde tijdlimiet van minigames gebruikt voor het actieve niveau de eigen aanpassing van "Tijd"; een lopende minigame leest hem één keer bij de start, vandaar "volgende start".
+
+## Het hoofdpad is altijd haalbaar (22-11)
+
+Besluit eigenaar: elke missie op het hoofdpad is op elk niveau te halen, met ruime tijden en duidelijke hints; een strak doel is een optionele uitdaging (een medaille of bonus), nooit een voorwaarde voor het verhaal. Daarvoor staat `node scripts/missie_haalbaarheid_audit.mjs` (rekenregels in `scripts/lib/missie_haalbaarheid.mjs`, test `scripts/missie_haalbaarheid_test.mjs`). Hij rekent per missie het foutloze minimum uit: de duur van de scènes en gesprekken (opname of leestijd uit `script.json` en de stem-manifesten), de wachttijden en de reistijd tussen de doelen (vogelvlucht x 1,3, lopen 6 m/s, rijden 14 m/s), en keurt af:
+
+- een **tijdslimiet** onder 1,8 x dat minimum (op Uitdagend, tijd x0,85, blijft er dan nog 1,5 x over);
+- een **medailletijd of goud** onder 1,25 x het minimum (op Uitdagend, medailles x0,8, nog steeds boven het minimum) en **zilver** onder 1,4 x.
+
+Aanleiding was het Loket (M03): de medaille eiste binnen 1:00 terwijl de gesprekken zelf ca. twee minuten duren. De audit vraagt de OSM-cache (zoals `missiongoals_audit`); de rekenregels draaien puur in de test.

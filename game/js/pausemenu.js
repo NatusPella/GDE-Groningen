@@ -8,6 +8,7 @@
 import { keyLabelGlyph, keyLabelHtml, braceKeysHtml } from './keycap.js';
 import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './settings.js';
 import { retryBeschikbaar, herstartMissie, herstartBlokkade } from './missions.js';   // #985 punt 16
+import { changeWithGroup } from './difficultyvote.js'; // moeilijkheid van de wereld is een gezamenlijke keuze
 import { difficultyTabHtml, difficultyPaneText, syncDifficultyTab, stepDifficultyPicker, handleDifficultyClick } from './difficultypanel.js'; // #1169: Instellingen > Moeilijkheid, per save
 import { logoHtml } from './logo.js';
 import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './pausestate.js';
@@ -1115,7 +1116,7 @@ export function initPauseMenu(w) {
     if (fold) { toggleFold(fold); return; }
     const pb = e.target.closest('[data-preset-btn]');
     if (pb) { applyPreset(pb.dataset.presetBtn); syncControls(); return; } // de voorinstellingen zijn knoppen (#435)
-    if (handleDifficultyClick(e.target)) { syncControls(); return; }
+    if (e.target.closest('[data-diff-reset]')) { const t = e.target; changeWithGroup(world, { type: 'reset' }, () => { handleDifficultyClick(t); syncControls(); }); return; } // wereldopties: akkoord van de groep (difficultyvote.js)
     const pick = e.target.closest('[data-pick]');
     if (pick) { stepPicker(pick.closest('.m-pk'), Number(pick.dataset.pick)); return; }
     if (e.target.closest('[data-pad-test]')) { openPadTest(); return; }
@@ -1937,10 +1938,11 @@ function pickerState(pk) {
 
 function stepPicker(pk, dir) {
   if (!pk || pk.getAttribute('aria-disabled') === 'true') return;
-  if (pk.dataset.diffopt) { stepDifficultyPicker(pk, dir); syncControls(); return; } // #1169: een optie van de moeilijkheid, uit de save
+  if (pk.dataset.diffopt) { changeWithGroup(world, { type: 'option', key: pk.dataset.diffopt }, () => { stepDifficultyPicker(pk, dir); syncControls(); }); return; } // #1169: een optie van de moeilijkheid, uit de save
   const { options, i } = pickerState(pk);
   const next = Math.min(options.length - 1, Math.max(0, i + dir));
   if (next === i) return;
+  if (pk.dataset.setting === 'difficulty') { const naar = options[next][0]; changeWithGroup(world, { type: 'level', naar }, () => { setSetting('difficulty', naar); syncControls(); }); return; } // het niveau raakt de wereld: akkoord van de groep
   setSetting(pk.dataset.setting, options[next][0]);
   syncControls();
 }

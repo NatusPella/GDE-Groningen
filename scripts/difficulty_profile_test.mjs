@@ -24,7 +24,7 @@ const ok = (c, name, info) => { n++; if (!c) { fails++; console.log('FAIL', name
 D.setActiveDifficulty({ level: 'standaard' });
 const base = D.getDifficulty();
 ok(base.level === 'standaard' && !base.aangepast && Object.keys(base.custom).length === 0, 'het begin is Standaard zonder aanpassingen');
-const NEUTRAAL = { policeEscape: 1, policeUnits: 1, trafficDensity: 1, vehicleDamage: 1, damageTaken: 1, driveAssist: 'eigen', raceAi: 1, qte: 'eigen', timeFactor: 1, targetFactor: 1, footballAi: 'volg', footballDuration: 'eigen', income: 1, hints: 'eigen', storyMode: 'uit' };
+const NEUTRAAL = { policeEscape: 1, policeUnits: 1, trafficDensity: 1, vehicleDamage: 1, damageTaken: 1, driveAssist: 'eigen', raceAi: 1, qte: 'eigen', timeFactor: 1, targetFactor: 1, footballAi: 'volg', footballDuration: 'eigen', income: 1, fines: 1, hints: 'eigen', storyMode: 'uit' };
 ok(JSON.stringify(base.options) === JSON.stringify(NEUTRAAL), 'op Standaard is elke optie neutraal (factor 1, eigen instelling, verhaalmodus uit)', base.options);
 ok(D.OPTION_KEYS.length === Object.keys(NEUTRAAL).length && D.OPTION_KEYS.every((k) => k in NEUTRAAL), 'de lijst opties en de neutrale tabel zijn dezelfde');
 // de koppelingen laten Standaard ongemoeid
@@ -67,7 +67,7 @@ for (const level of D.DIFFICULTY_MODES) {
 }
 
 // --- 3. veilige grenzen ----------------------------------------------------------------------------------------------------
-const GRENS = { policeEscape: [0.5, 1.6], policeUnits: [0.5, 1.5], trafficDensity: [0.4, 1.5], vehicleDamage: [0.25, 1.5], damageTaken: [0.25, 1.5], raceAi: [0.85, 1.12], timeFactor: [0.7, 2], targetFactor: [0.7, 1.4], income: D.INCOME_RANGE };
+const GRENS = { policeEscape: [0.5, 1.6], policeUnits: [0.5, 1.5], trafficDensity: [0.4, 1.5], vehicleDamage: [0.25, 1.5], damageTaken: [0.25, 1.5], raceAi: [0.85, 1.12], timeFactor: [0.7, 2], targetFactor: [0.7, 1.4], income: D.INCOME_RANGE, fines: D.FINE_RANGE };
 for (const [key, [lo, hi]] of Object.entries(GRENS)) {
   const d = D.optionDef(key);
   ok(d.stappen.every((s) => typeof s.v === 'number' && s.v >= lo && s.v <= hi), `${key}: elke stap ligt binnen ${lo} en ${hi}`, d.stappen.map((s) => s.v));
@@ -191,6 +191,19 @@ for (const [f, re, wat] of KOPPELINGEN) ok(re.test(src(f)), `${f} leest ${wat} u
 {
   ok(D.OPTION_DEFS.filter((d) => d.scope === 'wereld').map((d) => d.key).sort().join() === 'policeEscape,policeUnits,trafficDensity', 'alleen politie en verkeer zijn van de wereld (de host)');
   ok(D.OPTION_DEFS.filter((d) => d.scope === 'lokaal').length === D.OPTION_DEFS.length - 3, 'de rest is lokaal per speler');
+}
+
+// --- 9. boete bij aanhouding schaalt per niveau (besluit eigenaar 22-11) ----------------------------------------------------
+{
+  D.setActiveDifficulty({ level: 'standaard' });
+  ok(D.fineFactor() === 1 && D.scaleFine(120) === 120 && D.scaleFine(0) === 0, 'boete: op Standaard onveranderd');
+  D.setActiveDifficulty({ level: 'ontspannen' });
+  ok(D.fineFactor() === 0.5 && D.scaleFine(120) === 60, 'boete: Ontspannen is de helft');
+  D.setActiveDifficulty({ level: 'uitdagend' });
+  ok(D.fineFactor() === 1.5 && D.scaleFine(120) === 180, 'boete: Uitdagend is anderhalf keer');
+  D.setActiveDifficulty({ level: 'standaard' });
+  ok(D.optionDef('fines').scope === 'lokaal', 'boete is lokaal per speler');
+  ok(/scaleFine\(bustFineIn/.test(read('game/js/police.js')), 'police.js past scaleFine toe op de aanhoudingsboete');
 }
 
 console.log(fails ? `${fails}/${n} FAIL` : `difficulty_profile_test: ${n}/${n} ok`);

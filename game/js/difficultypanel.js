@@ -14,7 +14,7 @@ export const DIFFICULTY_TAB_TEXT = Object.freeze({
   intro: 'Hoe pittig het is in dit spel. Het niveau stelt alle opties hieronder in; je kunt elke optie daarna zelf afwijkend zetten.',
   levelNote: 'Je keuze geldt meteen; records en medailles zijn per niveau gescheiden. Een ander niveau zet de eigen aanpassingen terug.',
   later: 'Sommige wijzigingen gaan pas in bij de volgende missie, race of wedstrijd.',
-  samen: 'Samen spelen: de wereld (politie en verkeer) volgt wie het spel opende. Schade, hulp, quicktime-events, geld en wedstrijden zijn van jezelf.',
+  samen: 'Samen spelen: de wereld (politie en verkeer) kies je samen: iedereen moet akkoord zijn. Schade, hulp, quicktime-events, geld en wedstrijden zijn van jezelf.',
   story: 'Nooit weg uit het verhaal: elke missie blijft te halen, op elk niveau.',
   reset: 'Terug naar het niveau',
   custom: 'aangepast',
@@ -26,7 +26,7 @@ const stepLabels = (def) => def.stappen.map((s) => [String(s.v), s.label]);
 function optionRow(def) {
   const name = def.label;
   const later = OPTIONS_NEXT_START.has(def.key) ? ' Gaat in bij de volgende start.' : '';
-  const scope = def.scope === 'wereld' ? ' Bij Samen spelen bepaalt wie het spel opende dit voor de wereld.' : '';
+  const scope = def.scope === 'wereld' ? ' Bij Samen spelen kiest de groep dit samen: iedereen moet akkoord zijn.' : '';
   return `<div class="m-li pm-row" data-diffopt-row="${def.key}"><span class="nm" id="pm-d-${def.key}">${esc(name)}<span class="mut">${esc(def.uitleg + later + scope)}</span></span>` +
     `<span class="m-pk" role="group" aria-labelledby="pm-d-${def.key}" data-diffopt="${def.key}" data-options="${esc(JSON.stringify(stepLabels(def)))}">` +
     `<button type="button" data-pick="-1" aria-label="${esc(name)}: vorige">${icoon('terug')}</button><output aria-live="polite"></output>` +
