@@ -2,6 +2,7 @@
 // tegen (class ov-hold, onzichtbaar maar niet weg). Wie een overlay laat verschijnen kan ook
 // isOverlayHeld(naam) vragen en dan wachten (prestaties, personagenaam).
 import { heldOverlays, mayStartOverlay } from './overlayrules.js';
+import { isPauseMenuOpen, isMapOpen } from './pausestate.js';
 
 // hoe elke overlay in de DOM te herkennen is (zichtbaar = aanwezig)
 const SELECTORS = {
@@ -16,9 +17,15 @@ const SELECTORS = {
 // wat we kunnen verbergen
 const HIDE = { naamkaart: '#name-card', wijkkaart: '#wijk-card', duelbalk: '#hud .mg-board', prestatie: '#hud .ach-toast', locatie: '#hud .hud-place' };
 
+// een schermvullend scherm is open: het pauzemenu, de kaart of de tuningwerkplaats
+const SCHERM_SELECTOR = '#tune-menu.visible';
+export const schermOpen = (doc) => !!(isPauseMenuOpen() || isMapOpen() || (doc && doc.querySelector(SCHERM_SELECTOR)));
+
 function activeOverlays(doc = typeof document !== 'undefined' ? document : null) {
   if (!doc) return [];
-  return Object.keys(SELECTORS).filter((k) => !!doc.querySelector(SELECTORS[k]));
+  const out = Object.keys(SELECTORS).filter((k) => !!doc.querySelector(SELECTORS[k]));
+  if (schermOpen(doc)) out.push('scherm');
+  return out;
 }
 
 // Een overlay die nog niet in beeld is telt als actief voor wat hij zou tegenhouden: de vraag is of de
