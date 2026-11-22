@@ -22,6 +22,7 @@ import { HERO_CAR_MODEL, TRACTOR_MODEL, POLICE_MODEL, TRAFFIC_MODELS } from './v
 import { carModel } from './trafficfleet.js';
 import { propSource, TABLE_SIT } from './cutscenemodels.js';
 import { compileScene, fitAnchor, resolveTime, shotPoints, roadPathDef } from './cutscript.js';
+import { jumpsFromScene } from './cutscenewarm.js';
 import { roofAt } from './camerapath.js';
 import { animateActor, beginSceneActors } from './actoranim.js';
 import { applyClipsHuman, applyClipsCat, resetCat } from './poseclips.js';
@@ -554,10 +555,12 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
   let cardNow = null;
   // the tiles round the camera's path are built ahead and held, so no shot cuts to the far LOD or a hole (#157, #20)
   const prewarm = cine.prewarm || shotPoints(useScene, at, sceneDur);
+  // springt de scène tussen twee shots naar een andere plek (cutscenewarm.js), dan warmt de engine die vooruit en wacht hij onder zwart (#1016)
+  const jumps = cine.jumps || jumpsFromScene(useScene, at, sceneDur);
   const cutId = replay ? 0 : cutHostId();
   const ok = playCinematic({
     priority: 4, pause: true, letterbox: true, skippable: true, hideHud: true, hidePlayers: true, mumble: true,
-    prewarm,
+    prewarm, jumps,
     ...cine, id: cine.id || useDef.id, duration: sceneDur, lines: sceneLines,
     onStart() {
       if (cine.onStart) cine.onStart();

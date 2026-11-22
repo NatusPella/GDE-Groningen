@@ -653,6 +653,25 @@ export class TileWorld extends GameMap {
     return whenReady(st, keys, { budgetMs, wait: frame }).then((ok) => ok && !this.tileQueue.items.length);
   }
 
+  // A cutscene that is about to cut to another place (cutscenewarm.js): the tiles round (x, y) are asked for and held (pinned) until
+  // releaseWarm, so the cut finds them in. Not a wait: the caller polls store.missing. The rows go through the normal frame budget.
+  warmPoint(x, y, { radius = 400, token = 'cutwarm' } = {}) {
+    const st = this.store;
+    if (!st || !Number.isFinite(x) || !Number.isFinite(y)) return 0;
+    if (!this._warmPins) this._warmPins = new Set();
+    let n = 0;
+    for (const k of st.keysAround(x, y, radius)) {
+      if (!this._warmPins.has(k)) { this._warmPins.add(k); st.pin(k); }
+      st.request(k, { priority: -500, token }).catch(() => {});
+      n++;
+    }
+    return n;
+  }
+  releaseWarm() {
+    if (this._warmPins) for (const k of this._warmPins) this.store.unpin(k);
+    this._warmPins = null;
+  }
+
   // A route the player will travel (a taxi, a train, a flight, a ride cutscene): the tiles along the whole route are asked for
   // up front, nearest the start first (priority = metres along the route), so the stream does not first meet them at speed. They are
   // not pinned and their rows go through the normal frame budget; resolves with how many tiles were asked for. A new route

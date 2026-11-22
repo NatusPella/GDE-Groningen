@@ -1,7 +1,8 @@
 // Vooruit-warm en wachtpoort voor cutscenes (game/js/cutscenewarm.js, #1016): node scripts/cutscenewarm_test.mjs
 // Puur, met mocks: sprongdetectie, de pin-planning voor de volgende plek, de poort met time-out, geen effect bij korte afstand.
 import { readFileSync } from 'node:fs';
-import { WARM, classifyJump, jumpsFromStops, jumpsFromScene, warmDue, readiness, createJumpGate, createJumpRunner } from '../game/js/cutscenewarm.js';
+import { budgetFor, PLAN, createFramePlanner } from '../game/js/streamplanner.js';
+import { WARM, classifyJump, jumpsFromStops, jumpsFromScene, warmStopsFromKeys, warmDue, readiness, createJumpGate, createJumpRunner } from '../game/js/cutscenewarm.js';
 
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info ? ' (' + info + ')' : ''}`); } };
@@ -176,6 +177,69 @@ function play(runner, clock, dur, { onFrame } = {}) {
   ok(stoppedAt != null && r.holding, 'de poort staat in wait');
   r.dispose();
   ok(!r.gate.active && m.calls.fade[m.calls.fade.length - 1][0] === 0 && m.calls.voice[m.calls.voice.length - 1] === false && !m.calls.flags[m.calls.flags.length - 1].loading, 'dispose: zwart weg, stem en vlaggen terug');
+}
+
+// 6. het streambudget: een warmende cutscene krijgt iets meer, buiten een cutscene verandert er niets
+ok(budgetFor(10, { cine: true, cineWarm: true }) > budgetFor(10, { cine: true }), 'cineWarm geeft een cutscene iets meer budget');
+ok(budgetFor(10, { cine: true, cineWarm: true }) < PLAN.capMs, 'cineWarm blijft onder het gewone plafond');
+ok(budgetFor(10, { cineWarm: true }) === budgetFor(10) && budgetFor(10, { boost: true, cineWarm: true }) === PLAN.boostMs, 'cineWarm doet niets buiten een cutscene (gewone gameplay-streaming ongewijzigd)');
+ok(budgetFor(50, { loading: true, cine: true, cineWarm: true }) === PLAN.loadingMs, 'onder zwart (loading) mag alles, ook in een cutscene');
+ok(budgetFor(40, { cine: true, cineWarm: true }) === PLAN.floorMs, 'een trage frame houdt de vloer, ook tijdens warmen');
+{
+  const pl = createFramePlanner();
+  const a = pl.openFrame({ frameMs: 10, cine: true, cineWarm: true }), b = pl.openFrame({ frameMs: 10, cine: true });
+  ok(a > b, 'openFrame geeft cineWarm door');
+}
+
+// 7. TileWorld.warmPoint met een nepstore: vraagt en pint de tegels, een tweede keer niet dubbel, releaseWarm geeft ze vrij
+{
+  await import('./node3d.mjs');
+  const { TileWorld } = await import('../game/js/tileworld.js');
+  const pins = new Map(), asked = [];
+  const store = {
+    keysAround: (x, y, r) => (Number.isFinite(x) ? ['0,0', '1,0'] : []),
+    pin: (k) => pins.set(k, (pins.get(k) || 0) + 1), unpin: (k) => pins.set(k, (pins.get(k) || 0) - 1),
+    request: (k, o) => { asked.push([k, o.priority, o.token]); return Promise.resolve(); },
+  };
+  const fake = { store, warmPoint: TileWorld.prototype.warmPoint, releaseWarm: TileWorld.prototype.releaseWarm };
+  ok(fake.warmPoint(100, 200, { radius: 300 }) === 2 && asked.length === 2 && asked.every((a) => a[1] === -500 && a[2] === 'cutwarm'), 'warmPoint: vraagt de tegels rond de plek');
+  ok([...pins.values()].every((v) => v === 1), 'warmPoint: pint elke tegel één keer');
+  fake.warmPoint(100, 200);
+  ok([...pins.values()].every((v) => v === 1), 'warmPoint: een tweede keer pint niet dubbel');
+  fake.releaseWarm();
+  ok([...pins.values()].every((v) => v === 0) && fake._warmPins === null, 'releaseWarm: alle pins weer los');
+  ok(fake.warmPoint(NaN, 0) === 0 && fake.warmPoint.call({ store: null }, 0, 0) === 0, 'warmPoint: onzin of geen store geeft 0 zonder uitzondering');
+  fake.releaseWarm(); // twee keer vrijgeven is veilig
+}
+
+// 8. de bedrading (tekst): de engine, de opening en de host gebruiken de loper; de stem pauzeert mee; een gast houdt zijn klok niet vast
+{
+  const rd = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
+  const cine = rd('../game/js/cinematics.js'), im = rd('../game/js/intromontage.js'), host = rd('../game/js/cutscenehost.js'), main = rd('../game/js/main.js');
+  ok(/createJumpRunner\(spec\.jumps, jumpEnv\(\), \{ skipGate: spec\.cutId != null \}\)/.test(cine), 'cinematics: de loper komt uit spec.jumps en een gast (cutId) houdt zijn klok niet vast');
+  ok(/active\._jumps\.step\(active\.t, nextT\)/.test(cine) && /endJumps\(a\)/.test(cine), 'cinematics: de klok loopt via de loper en de loper ruimt bij het einde op');
+  ok(/jumpHeld/.test(cine) && /\(frozen \|\| jumpHeld\) && !voicePaused/.test(cine), 'cinematics: de stem pauzeert zolang de wachtpoort vasthoudt (ondertitels en stem blijven gelijk)');
+  ok(/jumpsFromStops\(/.test(im) && /id: 'intro', priority: 6, jumps,/.test(im), 'intromontage: de filmplekken gaan als sprongen mee');
+  ok(/jumpsFromScene\(useScene, at, sceneDur\)/.test(host) && /prewarm, jumps,/.test(host), 'cutscenehost: sprongen uit de gecompileerde scène');
+  ok(!/cutPakket\(\{[^}]*jumps/.test(host), 'Samen spelen: sprongen gaan niet in het netwerkpakket (alles lokaal per speler)');
+  ok(/loading: !!world\.cineJumpLoading/.test(main) && /cineWarm: !!world\.cineWarming/.test(main), 'main: de planner kent de vlaggen van de loper');
+  ok(WARM.maxWaitMs === 1200 && WARM.dipOutMs <= 300 && WARM.dipInMs <= 300, 'de grenzen: 1,2 s wachten, duiken <= 300 ms');
+}
+
+// 9. een doorlopende baan (wijkintocht): sleutelbeelden warmen zacht vooruit, nooit een poort
+{
+  const ease = (u) => (u < 0.5 ? 4 * u * u * u : 1 - (-2 * u + 2) ** 3 / 2);
+  const keys = [{ look: { x: 0, y: 0 } }, { look: { x: 400, y: 0 } }, { look: { x: 420, y: 10 } }, { look: { x: 900, y: 300 } }];
+  const w = warmStopsFromKeys(keys, 30, ease);
+  ok(w.length === 2 && w.every((j) => j.kind === 'soft'), 'warmStopsFromKeys: alleen verre sleutelbeelden, allemaal zacht', JSON.stringify(w.map((j) => [j.idx, j.kind])));
+  ok(w[0].t > 0 && w[0].t < w[1].t && w[1].t < 30, 'de tijden lopen op binnen de duur');
+  ok(Math.abs(ease(w[0].t / 30) * 3 - 1) < 1e-6, 'sleutelbeeld 1 is bereikt waar ease(u) * (n-1) = 1 (de easing is meegenomen)');
+  ok(warmStopsFromKeys([], 30).length === 0 && warmStopsFromKeys(keys, 0).length === 0 && warmStopsFromKeys([{}, {}], 5).length === 0, 'warmStopsFromKeys: lege of onzinnige invoer geeft niets');
+  const m = mkEnv({ tilesMissing: 9 });
+  const r = createJumpRunner(w, m.env);
+  const p = play(r, m.clock, 30);
+  ok(m.calls.warm.length === 2 && p.heldFrames === 0 && m.calls.fade.length === 0, 'doorlopende baan: wel vooruit-warm, nooit zwart en nooit vasthouden');
+  ok(/jumps: warmStopsFromKeys\(tourKeys\(/.test(readFileSync(new URL('../game/js/intochten.js', import.meta.url), 'utf8')), 'intochten: de stops warmen vooruit');
 }
 
 console.log(`${n - fails}/${n} cutscenewarm-controles`);

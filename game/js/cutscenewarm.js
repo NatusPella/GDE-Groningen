@@ -79,6 +79,17 @@ export function jumpsFromScene(scene, anchor, duration, p = WARM) {
   return jumpsFromStops(stops, p);
 }
 
+// Een doorlopende camerabaan (de wijkintocht: sleutelbeelden met een easing) heeft geen cuts maar wel plekken die hij snel passeert (tot
+// 190 m/s). Elk sleutelbeeld i is bereikt waar ease(u) * (n - 1) = i; de plek ervan (het kijkpunt) wordt als ZACHTE sprong vooruit
+// gewarmd, nooit als poort (de film is één lopende beweging). keys: [{ look: { x, y } }]; seconds: de duur van de baan.
+export function warmStopsFromKeys(keys, seconds, ease = (u) => u, p = WARM) {
+  const n = (keys || []).length;
+  if (n < 2 || !(seconds > 0)) return [];
+  const uAt = (i) => { let lo = 0, hi = 1; for (let k = 0; k < 30; k++) { const mid = (lo + hi) / 2; if (ease(mid) * (n - 1) < i) lo = mid; else hi = mid; } return (lo + hi) / 2; };
+  const stops = keys.map((k, i) => (k && k.look ? { t: uAt(i) * seconds, x: k.look.x, y: k.look.y } : null)).filter(Boolean);
+  return jumpsFromStops(stops, p).map((j) => ({ ...j, kind: 'soft' }));
+}
+
 // Welke sprongen moeten nu worden gewarmd? `state.warmed` (Set van idx) onthoudt wat al gevraagd is. `nextT` is de scènetijd na
 // deze frame. Alleen sprongen die nog moeten komen (j.t > t) of net komen.
 export function warmDue(jumps, t, nextT, state, p = WARM) {
