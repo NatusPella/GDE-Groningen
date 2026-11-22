@@ -1209,6 +1209,7 @@
     "scripts/pigeon_sync_test.mjs",
     "scripts/dierenregister_test.mjs",
     "scripts/radiovehicle_test.mjs",
+    "scripts/radiocontrol_test.mjs",
     "scripts/evenementen_test.mjs"
    ],
    "regel": {

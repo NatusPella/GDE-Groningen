@@ -53,6 +53,7 @@ let sprintLatch = false;
 // idle: los; down: ingedrukt, nog geen keuze; wheel: het wiel is door deze druk geopend of gesloten, loslaten doet niets meer.
 let viewState = 'idle';
 let viewAt = 0;
+let radialSeen = false; // het wiel stond al open toen de vorige pollronde begon
 // toetsen die het wiel indrukte en die over een paar beelden weer loskomen (Shift+N moet minstens een beeld Shift houden)
 const pendingUp = [];
 const WHEEL_KEY_MS = 90;
@@ -215,7 +216,7 @@ function viewButton(on, was, now) {
 }
 
 // Zolang het wiel open staat gaat geen enkele knop of stick naar het spel: A kiest, B sluit, LB en RB bladeren, de D-pad en de stick kiezen.
-function wheelFrame(slots, pad) {
+function wheelFrame(slots, pad, now) {
   const edge = (s) => slots[s] && !prevSlots[s];
   if (edge('b') || edge('start')) closeRadial();
   else if (edge('view')) { closeRadial(); viewState = 'wheel'; }
@@ -226,7 +227,7 @@ function wheelFrame(slots, pad) {
   if (!slots.view && viewState === 'wheel') viewState = 'idle';
   const ax = pad.axes || [];
   const [lx, ly] = dz(ax[0] || 0, ax[1] || 0);
-  if (radialIsOpen()) radialAim(lx, ly);
+  if (radialIsOpen()) radialAim(lx, ly, 0.5, now);
   for (const s of Object.keys(slots)) prevSlots[s] = slots[s];
 }
 
@@ -525,9 +526,13 @@ function poll(now) {
     return;
   }
   if (radialIsOpen()) {
-    if (wheelCtx()) { wheelFrame(slots, pad); return; }
+    // een wiel dat niet door deze knoppen openging (het zenderwiel na N vasthouden): eerst alles loslaten wat nog ingedrukt staat
+    if (!radialSeen) releaseAll();
+    radialSeen = true;
+    if (wheelCtx()) { wheelFrame(slots, pad, now); return; }
     closeRadial();
   }
+  radialSeen = false;
   for (const s of PAD_BUTTONS) {
     const on = !!slots[s];
     if (s === 'view' && wheelCtx()) { viewButton(on, !!prevSlots[s], now); prevSlots[s] = on; continue; }

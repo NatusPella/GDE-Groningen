@@ -65,6 +65,7 @@ export const ACTIES = [
   A('Camera', 'cabinecamera', 'Cabinecamera (trein)', 'c', ['train']),
   // radio
   A('Radio', 'radio', 'Radio aan of uit', 'n', ALLES), A('Radio', 'zender', 'Volgende zender (Shift + N)', 'n', ALLES, { shift: true }),
+  A('Radio', 'vorige-zender', 'Vorige zender (Alt + N)', 'n', ALLES, { alt: true }),
   // voertuigen
   A('Voertuig', 'toeteren', 'Toeteren', 'h', [...AUTO, 'skutsje', 'trekker', 'train']), A('Voertuig', 'sirene', 'Zwaailicht en sirene', 'l', [...AUTO, 'skutsje']),
   A('Voertuig', 'links-aanwijzer', 'Richtingaanwijzer links', '[', [...AUTO, 'trekker']), A('Voertuig', 'rechts-aanwijzer', 'Richtingaanwijzer rechts', ']', [...AUTO, 'trekker']),
@@ -117,7 +118,7 @@ export function plek(actie, ctx, { samen = false } = {}) {
   if (key === 'mouse') return 'rstick';
   if (key === 'escape') return PAD_BUTTONS.find((s) => eff(s) === 'escape') || null;
   if (MUIS[key]) { for (const w of MUIS[key]) { const s = PAD_BUTTONS.find((b) => eff(b) === w); if (s) return s; } return null; }
-  if (!actie.shift) {
+  if (!actie.shift && !actie.alt) {
     const direct = PAD_BUTTONS.find((s) => eff(s) === key);
     if (direct) return direct;
     // de stick of de triggers maken W, A, S en D
@@ -133,7 +134,7 @@ export function plek(actie, ctx, { samen = false } = {}) {
   }
   // het wiel (zonder tikstand: de lange druk; met tikstand is dezelfde lijst bereikbaar met een tik)
   if (ZONDER_WIEL) return null;
-  for (const p of wheelItemsFor(ctx, { samen })) for (const it of p.items) if (it.key === key && !!it.shift === !!actie.shift) return 'wiel';
+  for (const p of wheelItemsFor(ctx, { samen })) for (const it of p.items) if (it.key === key && !!it.shift === !!actie.shift && !!it.alt === !!actie.alt) return 'wiel';
   return null;
 }
 
@@ -158,7 +159,7 @@ export function botsingen() {
   for (const a of ACTIES) {
     if (['lmb', 'rmb', 'wheel', 'mouse', 'escape'].includes(a.key)) continue;
     for (const ctx of a.ctx) {
-      const k = `${a.shift ? 'shift+' : ''}${a.key}@${ctx}`;
+      const k = `${a.shift ? 'shift+' : ''}${a.alt ? 'alt+' : ''}${a.key}@${ctx}`;
       if (!per.has(k)) per.set(k, new Set());
       per.get(k).add(a.id);
     }
@@ -175,7 +176,7 @@ export function verdringing() {
     const was = PAD_MAPS[ctx][slot];
     if (was == null || was === nu) continue;
     const heeft = (k) => PAD_BUTTONS.some((s) => (Object.hasOwn(ov, s) ? ov[s] : PAD_MAPS[ctx][s]) === k);
-    const terug = was === 'f' && heeft('e') ? 'alias' : heeft(was) ? 'knop' : wheelItemsFor(ctx, { samen: true }).some((p) => p.items.some((it) => it.key === was && !it.shift)) ? 'wiel' : null;
+    const terug = was === 'f' && heeft('e') ? 'alias' : heeft(was) ? 'knop' : wheelItemsFor(ctx, { samen: true }).some((p) => p.items.some((it) => it.key === was && !it.shift && !it.alt)) ? 'wiel' : null;
     out.push({ ctx, slot, was, nu, terug });
   }
   return out;
@@ -239,7 +240,7 @@ const FACE = { xbox: { a: 'A', b: 'B', x: 'X', y: 'Y' }, deck: { a: 'A', b: 'B',
 export function glyphChecks() {
   const bad = [];
   for (const a of ACTIES) {
-    if (a.shift) continue; // de hint noemt Shift en N los
+    if (a.shift || a.alt) continue; // de hint noemt Shift, Alt en N los
     const t = TOKEN_VAN[a.key] || a.key.toUpperCase();
     for (const ctx of a.ctx) {
       const slot = padSlotFor(t, ctx) || (padWheelFor(t, ctx) ? 'view' : null);
