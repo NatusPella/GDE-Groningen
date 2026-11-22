@@ -120,5 +120,11 @@ ok(() => {
   assert.match(start, /if \(pending && pending\.mode === 'benchmark'\) return runMenuScreen\(world, opts, pending\);/, 'een benchmark-herlaad houdt zijn eigen route');
 }, 'een kapotte save leidt naar Opgeslagen spellen met een melding (#606 punt 4)');
 
+// --- #1229: met een of twee kaarten krimpt het paneel om zijn inhoud en staat in het midden ---
+ok(() => {
+  assert.match(ui, /ssl-panel\$\{tiles\.length <= 2 \? ' ssl-weinig' : ''\}/);
+  assert.match(css, /#saveslots \.ssl-panel\.ssl-weinig \{[^}]*top: 50%;[^}]*bottom: auto;[^}]*translate: 0 -50%;[^}]*max-height: 92%/);
+}, 'weinig kaarten: een paneel naar maat in het midden, niet voor 80% leeg (#1229)');
+
 console.log(`saveslotsui_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);
