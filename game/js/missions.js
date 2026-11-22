@@ -11,7 +11,7 @@ import { createMissionGates } from './missiongates.js';
 import { REQUIREMENTS, RACE_MIN_TOP, isRaceCar, isCarRide, rideOk, WRONG_RIDE } from './missionrequirements.js';
 import { roadSpot, rentalBoat, routeS, createMissionTargets } from './missiontarget.js';
 export { RACE_MIN_TOP };
-import { HEIST_SKIP_SHARE, skipReward, CHASE_WAIT_MAX, chaseWaitMax, CHASE_STUCK_S, CHASE_STUCK_RADIUS, CHASE_STUCK_NEAR, chaseStuckStep, CHASE_SPAWN_WAIT_S, CHASE_SPAWN_RETRY_S, chaseSpawnStep, DIJK_CP, dijkEtappe } from './missionrules.js';
+import { failMessageSeconds, HEIST_SKIP_SHARE, skipReward, CHASE_WAIT_MAX, chaseWaitMax, CHASE_STUCK_S, CHASE_STUCK_RADIUS, CHASE_STUCK_NEAR, chaseStuckStep, CHASE_SPAWN_WAIT_S, CHASE_SPAWN_RETRY_S, chaseSpawnStep, DIJK_CP, dijkEtappe } from './missionrules.js';
 export { HEIST_SKIP_SHARE, skipReward, CHASE_WAIT_MAX, chaseWaitMax, CHASE_STUCK_S, CHASE_STUCK_RADIUS, CHASE_STUCK_NEAR, chaseStuckStep, CHASE_SPAWN_WAIT_S, CHASE_SPAWN_RETRY_S, chaseSpawnStep, dijkEtappe } from './missionrules.js';
 import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp, isInWater } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
@@ -1313,7 +1313,7 @@ function fail(world, def, reason) {
 }
 
 function endInFailure(world, text) {
-  world.addMessage(text, 3.5);
+  world.addMessage(text, failMessageSeconds(text));
   stopTalk();
   closeChoice();
   closeTiming();
@@ -3153,7 +3153,7 @@ function playStageScene(world, st, S) {
   const name = (who) => (who === 'T' ? 'Tammo' : who === 'A' ? 'Anita' : storySpeakerName(who));
   let at = st.reveal ? REVEAL.card : 0.6;
   const lines = (st.lines || []).map(([who, text]) => {
-    const dur = readingTime(text);
+    const dur = readingTime(text, getSettings().readingTime);
     const l = { speaker: name(who), text, at, dur };
     at += dur + 0.1;
     return l;

@@ -230,7 +230,7 @@ export const VOLGORDE = [
   { id: 'M03.1', speel: 45 }, { hud: 'M03', speel: 5 }, { id: 'M03.2', speel: 40 }, { id: 'M03.3', speel: 40 }, { id: 'M03.4', speel: 40 }, { hud: 'M03.uit', speel: 0 },
 ];
 
-const readingTime = (text) => Math.max(2.2, Math.min(8, 1.3 + String(text || '').length * 0.058));
+const readingTime = (text) => Math.max(2.2, Math.min(12, 1.3 + String(text || '').length * 0.058));
 
 function manifests() {
   const out = {};

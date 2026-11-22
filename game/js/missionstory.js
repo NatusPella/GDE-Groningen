@@ -32,6 +32,7 @@ import { hoofdspeler } from './players.js';
 import { handheldOffset } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
 import { getSettings } from './settings.js';
+import { failSceneMode } from './missioncheckpoint.js';
 
 // Story cutscenes around the mission chain: who asks and why (start), the
 // payoff (success) and a short sting (fail). Tammo and Tessa's relationship
@@ -742,7 +743,7 @@ function timeline(lines, npc, lead = 0.5) {
     const speaker = speakerName(who, npc);
     const voice = voiceFor(speaker, text);
     // a line without a recording (the new story) stays up for its reading time, nothing waits for audio
-    const d = voice ? Math.max(lineDur(text), voice.dur + 0.25) : readingTime(text);
+    const d = voice ? Math.max(lineDur(text), voice.dur + 0.25) : readingTime(text, getSettings().readingTime);
     const l = { who, speaker, text, at: t, dur: d, voice, radio: !!(o && o.radio), clue: !!(o && o.clue), look: (o && o.look) || null, cam: (o && o.cam) || null, card: (o && o.card) || null, kiss: !!(o && o.kiss) };
     t += d + 0.1;
     return l;
@@ -1527,11 +1528,14 @@ function outroNow(w, i, { stage = i, short = false, reward = 0, stats = [], reas
   });
 }
 
+const failTally = new Map(); // per missie: hoe vaak de mislukscène al speelde (deze sessie, per apparaat)
 export function playStoryFail(w, i, { reason = '', stats = [] } = {}) {
   const s = storyOf(i);
+  const eerder = failTally.get(i) || 0;
+  failTally.set(i, eerder + 1);
   // sikkom: Gronings for "almost, but not quite" (the dialect word, not the news site)
   const banner = { kind: 'fail', title: 'Sikkom.', reason, stats };
-  if (!s || run) { showBanner(banner); return false; }
+  if (!s || run || failSceneMode(eerder) === 'banner') { showBanner(banner); return false; }
   const v = hoofdspeler(w).inVehicle;
   let r;
   if (v && v.isBoat) { const deck = boatStage(v); r = buildRun(w, { anchor: { x: deck.x, y: deck.y }, facing: v.angle + Math.PI / 2, h: deck.h }); }

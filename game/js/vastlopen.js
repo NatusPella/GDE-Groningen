@@ -13,6 +13,7 @@ export const VAST_HINT = 'Zit je vast? Houd {BACKSPACE} ingedrukt om jezelf vrij
 // Eén frame. invoer: { inVoertuig, gas (gas of rem ingedrukt), snelheid, bezig (een scène, menu of minigame), houdt (Backspace) }.
 // Geeft { vast, hint, vrij } terug en werkt `st` bij: hint één keer per vastzit-periode, vrij zodra de toets lang genoeg is vastgehouden.
 export function stapVast(st, dt, { inVoertuig, gas, snelheid, bezig, houdt }) {
+  if (!Number.isFinite(dt) || dt < 0) dt = 0; // verfijning 22-11: één rotte frame (NaN) maakte de teller NaN en de hint kwam nooit
   const klem = !!inVoertuig && !bezig && !!gas && Math.abs(snelheid || 0) < VAST_SNELHEID;
   if (!klem) {
     st.stil = 0; st.houd = 0;

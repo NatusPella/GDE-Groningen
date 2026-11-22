@@ -14,6 +14,7 @@ import { isCinematicActive } from './cinematics.js';
 import { isCallActive } from './phonefeed.js';
 import { noteSpoken } from './characters.js';
 import { readingTime, talkLines } from './storytext.js';
+import { getSettings } from './settings.js';
 import { lineSchedule } from './dialogueform.js';
 
 const LINE_GAP = 0.25;
@@ -91,7 +92,7 @@ function nextLine(world) {
   // a recording that cannot play (muted, the channel is taken) leaves the line as text
   const played = !!(v && playCallVoice(v.src));
   // dialoogvorm (#1134): een regel met {ov}, {cut} of {pause} krijgt zijn eigen timing; zonder vorm blijft alles zoals het was
-  const base = played ? Math.max(v.dur + TAIL, 1.4) : readingTime(l.text);
+  const base = played ? Math.max(v.dur + TAIL, 1.4) : readingTime(l.text, getSettings().readingTime); // Leestijd ruim (Instellingen) rekt ook de autopraat op
   // een afkap (cut) werkt alleen op een regel zonder opname: een stem die al klinkt, wordt niet midden in een woord gestopt
   const form = l.form && played && l.form.cut !== undefined ? { ...l.form, cut: undefined } : l.form;
   const sch = form ? lineSchedule({ ...l, form }, base, LINE_GAP) : null;

@@ -54,6 +54,13 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Samen spelen: het studentenfeest, de boerenmarktkraam en de toeristengids doe je samen (tweede barkeeper, kraamhulp, mede-gids: E geeft extra fooi, ieder krijgt de volle beloning in eigen geld en loopbaan); de vismarktkoerier doe je in je eigen spel.
 
 ### Verhaal en personages
+- Verhaal (verfijnronde): lange ondertitels blijven langer in beeld (tot 12 seconden in plaats van 8), en met Leestijd op Ruim blijven ook de ondertitels van scènes en gesprekken 1,5 keer zo lang staan.
+- Missies (verfijnronde): mislukt een missie voor de eerste keer, dan zie je de korte scène; probeer je het opnieuw en mis je weer, dan volgt alleen de uitslagkaart. De reden van het mislukken blijft langer staan als hij lang is.
+- Missies (verfijnronde): na een gehaalde achtervolging of timingproef begin je bij mislukken in de volgende stap verder, niet meer helemaal vooraan.
+- Verhaal (verfijnronde): lig je lang stil bij een doel, dan komt na vijf minuten het bekende appje en daarna nog twee keer een vriendelijke herinnering (na een kwartier en na een half uur), nooit tijdens een filmpje of een missie.
+- Doelbalk (verfijnronde): een opdracht die al met een werkwoord begint ("Houd de tweede deur tegen", "Naar de serverkamer") krijgt geen "Bezig:" of tweede werkwoord ervoor.
+- Verhaal (verfijnronde): de terugkeerkaart "Waar waren we?" past ook bij een ongewoon lange titel of eerste zin altijd binnen zijn woordenbudget; een beschadigde opslag kan geen negatief of absurd aantal mislukkingen meer geven.
+- Missies (verfijnronde): een foutieve afstand of tijd (geen getal) kon een achtervolging, de dijkrace of de vastzit-hint laten vastlopen; dat is opgevangen.
 
 - Twee nieuwe verhaalmomenten (#1124, #1139): Half drie, een nacht in de flat waarin Tessa friet bakt en Tammo zegt dat hij rijdt, en Verkocht, zegt het bord, waarin Durk en Douwe in Delfzijl een bord ophangen voor het pand echt verkocht is. Wie al verder is, mist ze niet en verliest niets. Samen spelen: van de speler die ze speelt, een gast speelt ze lokaal en er gaat niets over het net.
 - Verhaal akte 3 (Aan de Eems): Jelles kantoor op wielen (TERPSTRA MOBIEL KANTOOR) staat nu echt achter zijn trekker-limo op de kermis, de duif van Tammo landt op zijn schouder en laat iets vallen op Daans jasje, en er klinken geluiden bij de stempel van de overdracht, het weglopen van de jury, de bots in de botsauto en de kermisexploitant. Dijkstra noemt Jelle bij zijn naam en op de helikopterhelling staan geen koeien meer.
