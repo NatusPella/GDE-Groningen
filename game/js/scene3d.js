@@ -708,7 +708,7 @@ function ensureDriverFigure(mesh, v, dist, deadline) {
   if (dist >= DRIVER_FIGURE_DIST && (dist >= DRIVER_PREFETCH_DIST || performance.now() > deadline)) return;
   mesh.userData.needsDriver = false;
   const seed = (v.id || 0) * 5.3 + 11;
-  const driver = buildPersonMesh(v.isPolice ? 0x1f3f8f : 0x5a6470, 0xd9aa82, v.isPolice ? { seed } : { seed, role: 'voetganger' });
+  const driver = buildPersonMesh(v.isPolice ? 0x1f3f8f : 0x5a6470, 0xd9aa82, v.isPolice ? { seed } : { seed, role: v.isAmbulance ? 'ambulance' : v.isBus || v.isTaxi ? 'chauffeur' : 'voetganger' });
   const seat = vehicleSeat(v, true);
   seatPose(driver, seat.pose);
   driver.position.set(seat.x, seatedY(driver, seat.y), seat.z);

@@ -17,7 +17,7 @@ t('#1152: publiek, kermisgasten en inzittenden hebben een rol, politie houdt zij
   has('racedecor.js', "variant: i % 3 === 0 ? 'female' : null, role: 'voetganger' }");
   has('kermis.js', "seed: 6300 + i, role: 'feestganger' }");
   has('seating3d.js', "v.isPolice ? { seed } : { seed, role: 'voetganger' }");
-  has('scene3d.js', "v.isPolice ? { seed } : { seed, role: 'voetganger' }"); // bestuurder
+  has('scene3d.js', "v.isPolice ? { seed } : { seed, role: v.isAmbulance ? 'ambulance' : v.isBus || v.isTaxi ? 'chauffeur' : 'voetganger' }"); // bestuurder: ambulance en bus of taxi een eigen pool (ronde 5b)
   has('scene3d.js', "* 7.1 + 3, role: 'voetganger' }"); // bijrijder
   has('scene3d.js', "seed: 77, role: 'voetganger'"); // opwarmfiguur deelt de rompgeometrie met de echte
   // winkeliers in een interieur kleden zich uit de rolpool (interiornpc.js), niet met een vaste kleur
@@ -83,6 +83,19 @@ t('#1156: kapper-reactie past bij het model en de kleur, deterministisch met een
   C.savePreset('tammo', 0, 'Punk');
   assert.ok(C.decodeOutfit(C.presetCode('tammo', 0)));
   has('achievements.js', "id: 'kapsel_nieuw'");
+});
+
+t('ronde 5b: ambulancebroeder en chauffeur hebben een eigen rolpool, deterministisch en met geldige stukken', () => {
+  for (const role of ['ambulance', 'chauffeur']) {
+    const a = C.npcOutfit(11, role), b = C.npcOutfit(11, role);
+    assert.deepEqual(a, b, role + ' deterministisch');
+    assert.ok(a.top && a.bottom && a.shoes, role + ' heeft top, broek en schoenen');
+  }
+  let jas = 0, net = 0;
+  for (let i = 0; i < 200; i++) { if ((C.npcOutfit(i, 'ambulance').outer || '').startsWith('veiligheidsjas')) jas++; if ((C.npcOutfit(i, 'chauffeur').shoes || '').match(/^(nette_schoenen|instappers)/)) net++; }
+  assert.ok(jas > 80 && jas < 190, 'ambulance draagt meestal een opvallende jas: ' + jas);
+  assert.equal(net, 200, 'een chauffeur draagt nette schoenen');
+  has('scene3d.js', "v.isAmbulance ? 'ambulance'");
 });
 
 let fails = 0;

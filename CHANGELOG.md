@@ -110,6 +110,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Kleding
 
+- Kleding: ambulancebroeders zitten in een opvallende jas en werkbroek, en buschauffeurs en taxichauffeurs dragen een net overhemd of poloshirt met nette schoenen. Iedereen ziet zijn eigen versie (lokaal, zonder netwerkverkeer).
 - Kleding: de mensen op straat zijn meer gemengd: ambtenaren in het centrum en wandelaars komen erbij, elke figuur heeft een eigen kleurstemming (aardetinten, pastel, fel, donker of koel, met af en toe een accent) en een lichaamsvorm die bij zijn beroep past, zonder extra meshes.
 - Kleding: het pashokje in een kledingwinkel werkt echt: gordijn dicht, je past wat de winkel vandaag heeft over je eigen outfit, trekt aan wat je al hebt, bewaart de look in een van de vijf outfits en kunt de code ervan delen (outfit-code 3: stukken, kapsel en postuur). Een kledingwinkel zonder eigen menu heeft nu ook een eigen aanbod bij de kassa.
 - Kleding: een bewaarde outfit onthoudt ook je postuur; toets 6 wisselt dus ook van vorm. Elk kledingstuk heeft een pictogram per soort (pet, bril, shirt, jas, broek, schoenen, tas, sieraad, horloge, handschoen) en het winkelmenu springt met Home, End en de cijfertoetsen 1 tot 9 naar een rij.
