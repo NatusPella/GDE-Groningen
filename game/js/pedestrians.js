@@ -40,6 +40,8 @@ import { centreOf } from './evenementen.js';
 import { noteWantedWhy, noteWitnessHint, witnessCallStands } from './wantedwhy.js';
 import { isMissieVoertuig } from './missievoertuig.js';
 import { takeRiderOff } from './bikerider.js'; // een fietser van de fiets slaan (#944)
+import { makeHornState, hornTarget, hornLine, markHorned, HORN_SCAN_S, HORN_ANGRY_S } from './pedhorn.js'; // passanten mopperen terug op de claxon (22-11)
+import { makeGreetState, canGreet, greetOutcome, markGreeted, GREET_SCAN_S, runPastShock, SPRINT_PASS_LINES } from './pedgreet.js'; // passanten groeten de speler te voet (22-11)
 
 const WANDER_SPEED = 1.3;
 const FLEE_SPEED = 3.6;
@@ -908,6 +910,40 @@ function greetPassingBoat(world) {
   }
 }
 
+// People walking past a player on foot sometimes wave or say moi (pedgreet.js has the rules; scene3d draws the arm from greetUntil).
+const greetState = makeGreetState();
+function greetWalkingPlayer(world) {
+  if (world.time < greetState.nextScanAt) return;
+  greetState.nextScanAt = world.time + GREET_SCAN_S;
+  const pl = hoofdspeler(world);
+  if (!pl || pl.inVehicle) return;
+  const view = { x: pl.x, y: pl.y, speed: Math.hypot(pl.vx || 0, pl.vy || 0), inVehicle: pl.inVehicle };
+  const armed = isRangedWeapon(world.weapon) && !!world.input.mouse.down;
+  for (const p of world.pedestrians) {
+    if (!canGreet(greetState, world.time, p, view, { wanted: world.wanted, armed, roll: Math.random() })) continue;
+    const o = greetOutcome(world.time, Math.random(), Math.random());
+    markGreeted(greetState, p, world.time);
+    p.greetUntil = o.until;
+    if (o.line) say(p, world, o.line, 2.2, null);
+    break;
+  }
+}
+
+// Someone walking in front of the player's car when it honks turns and grumbles back (pedhorn.js has the rules).
+const hornState = makeHornState();
+function grumbleAtHorn(world) {
+  const pv = hoofdspeler(world).inVehicle;
+  if (!pv || !pv.horn || world.time < hornState.nextScanAt) return;
+  hornState.nextScanAt = world.time + HORN_SCAN_S;
+  for (const p of world.pedestrians) {
+    if (!hornTarget(hornState, world.time, pv, p, Math.random())) continue;
+    markHorned(hornState, p, world.time);
+    say(p, world, hornLine(Math.random()), 2.2, null);
+    setState(p, 'angry', world.time + HORN_ANGRY_S, 'angry');
+    break;
+  }
+}
+
 // --- cyclists' bells ----------------------------------------------------
 
 function updateBikeBells(world) {
@@ -1123,9 +1159,15 @@ function checkVehicleImpact(ped, world) {
 
 const pendingEvents = [];
 
+const SPRINT_GAP_PRECHECK = 1.2; // cheap gate before the pass rules run for every walker
 function checkBump(ped, world) {
   const p = hoofdspeler(world);
   if (p.inVehicle || ped.isCop) return;
+  const gap0 = Math.abs(ped.x - p.x) > 2.6 || Math.abs(ped.y - p.y) > 2.6 ? Infinity : dist(ped.x, ped.y, p.x, p.y) - ped.radius - (p.radius || 0.35);
+  if (gap0 < SPRINT_GAP_PRECHECK && runPastShock(world.time, ped, { speed: Math.hypot(p.vx || 0, p.vy || 0), inVehicle: p.inVehicle }, { gap: gap0, wanted: world.wanted, roll: Math.random() })) {
+    ped._sprintPassAt = world.time;
+    say(ped, world, pick(SPRINT_PASS_LINES), 2, null);
+  }
   const min = ped.radius + (p.radius || 0.35) + 0.15;
   if (Math.abs(ped.x - p.x) > min || Math.abs(ped.y - p.y) > min) return;
   if (dist(ped.x, ped.y, p.x, p.y) > min || world.time < (ped._bumpCd || 0)) return;
@@ -1201,6 +1243,8 @@ export function updatePedestrians(dt, world) {
   updateWitnessCall(world);
   updateBikeBells(world);
   greetPassingBoat(world);
+  greetWalkingPlayer(world);
+  grumbleAtHorn(world);
   knockOffRiders(world);
   processPedPlanQueue(world);
   // #653: de avoid-grid om de twee frames i.p.v. elke frame

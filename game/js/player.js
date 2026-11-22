@@ -45,6 +45,7 @@ import { bijInstapdeur, uitstapPunt, deurBijSpeler, deurNaam, openDeurVoor, open
 import { ejectPassenger } from './pedestrians.js';
 import { isPassief } from './cooppvp.js';
 import { noteSeated } from './garageknown.js'; // instappen telt als ontdekt voor de garage (22-11)
+import { makeSputter, sputterStep } from './enginesputter.js'; // een beschadigde motor sputtert (22-11)
 export { resolveBuildingCollisions };
 
 const BIKE_SPRINT_S = 2.5;
@@ -1211,6 +1212,10 @@ export class Player {
     if (v.gb) {
       if (v.gb.stalled && !v._stallSnd && world) (world.audioEvents || (world.audioEvents = [])).push({ kind: 'engine_stall', x: v.x, y: v.y });
       v._stallSnd = v.gb.stalled;
+    }
+    if (world && v.driver === 'player') {
+      const sp = v._sputter || (v._sputter = makeSputter());
+      if (sputterStep(sp, dt, v, Math.random())) (world.audioEvents || (world.audioEvents = [])).push({ kind: 'engine_sputter', x: v.x, y: v.y });
     }
     if (world) resolveBoomCollisions(v, world);
     this.x = v.x;

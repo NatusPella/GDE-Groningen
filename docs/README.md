@@ -144,6 +144,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [PROPS-STAND-22-11.md](<PROPS-STAND-22-11.md>) | Props, sets en figuranten van het verhaal (#1121): per model driehoeken, materialen en afmetingen, gegenereerd door `scripts/verhaal_props_audit.mjs`. |
 | [VERFIJNING-22-11-LOOPBAAN-PRESTATIES.md](<VERFIJNING-22-11-LOOPBAAN-PRESTATIES.md>) | Verfijnronde 22-11 voor Loopbaan, Prestaties, Veroverd en Foto's: wrijving, oplossing en bewijs per verbetering, wat bewust niet is gedaan en wat nog in beeld bekeken moet worden. |
 | [HUD-LINKS-21-11.md](<HUD-LINKS-21-11.md>) | De locatiekaart en de politiechip links in de HUD (#1079): regel, meting en chip. |
+| [SPRINT-22-11-GEBIED.md](<SPRINT-22-11-GEBIED.md>) | Sprint beleving en juice 22-11: passanten die groeten, mopperen en schrikken, en een sputterende motor; voor en na en wat nog in beeld bekeken moet worden. |
 | [WITTE-RUIS-21-11.md](<WITTE-RUIS-21-11.md>) | Witte ruis in het spel: bronnen, oorzaken en maatregelen (#1084). |
 | [PERCEELRANDEN-21-11.md](<PERCEELRANDEN-21-11.md>) | Perceelranden: klassen en hoogten van randen rond percelen. |
 | [RANDEN-HERKOMST-22-11.md](<RANDEN-HERKOMST-22-11.md>) | Herkomst van elke rand, sloot, heg, hek en boomrij: kaartdata of verzonnen, met bestand:regel, aantallen voor en na en wat blijft (#1092). |

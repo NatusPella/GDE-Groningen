@@ -18,7 +18,7 @@ export const SOUND_LABELS = {
   bridge_clunk: 'brug klinkt', sluis_poort: 'sluispoort', ship_horn: 'scheepshoorn',
   door_open: 'deur gaat open', door_close: 'deur gaat dicht', bus_door_hiss: 'busdeur sist', shop_bell: 'winkelbel',
   kermis_ding: 'kermisbel', step: 'voetstappen', applause: 'applaus',
-  engine_start: 'motor start', engine_stop: 'motor stopt', engine_stall: 'motor slaat af', 'gear-grind': 'versnellingsbak knarst',
+  engine_start: 'motor start', engine_stop: 'motor stopt', engine_stall: 'motor slaat af', engine_sputter: 'motor sputtert', 'gear-grind': 'versnellingsbak knarst',
   tyre_screech: 'banden gieren', hood_thump: 'motorkap bonkt', impact: 'klap',
   // SFX-GAPS: hengelen en uit het water klimmen (alleen wat betekenis draagt: een beet en een lijn die losschiet)
   hengel_beet: 'er zit een vis aan', hengel_los: 'de lijn schiet los', water_uit: 'iemand klimt uit het water',

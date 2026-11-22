@@ -2638,6 +2638,11 @@ function playAudioEvents(world) {
         break;
       }
       case 'gear-refuse': playTone({ freq: 220, type: 'square', duration: 0.1, gain: 0.04, bus: uiBus }); break;
+      case 'engine_sputter': {   // een beschadigde motor hoest: twee korte, ongelijke stoten (22-11)
+        playTone({ freq: 130, freqEnd: 70, type: 'sawtooth', duration: 0.09, gain: 0.1, filterFreq: 600, bus: uiBus });
+        playTone({ freq: 110, freqEnd: 55, type: 'sawtooth', duration: 0.12, gain: 0.08, filterFreq: 500, delay: 0.13, bus: uiBus });
+        break;
+      }
       case 'engine_stall': playTone({ freq: 90, freqEnd: 35, type: 'sawtooth', duration: 0.35, gain: 0.12, filterFreq: 500, bus: uiBus }); break;
       case 'prop_hit': propHit(e, x, y); break;
       case 'bullet_hit': playBulletHit(x, y, e.material, clamp(e.strength ?? 0.5, 0, 1)); break;
