@@ -205,6 +205,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [SFX-LUISTERLIJST.md](<SFX-LUISTERLIJST.md>) | Wat een mens moet beluisteren van de nieuwe geluiden: waar je ze in het spel hoort, wat er niet goed mag klinken en hoe je het meldt. |
 | [AUDIO-LICENTIES.md](<AUDIO-LICENTIES.md>) | Alle geluidsopnames met bron-URL, Freesound-id, titel, auteurshandle, licentie (CC0 of CC BY), bewerking, sha256 en datum; gegenereerd uit het manifest (ADR 0039). |
 | [AUDIO-GLITCHES-21-11.md](<AUDIO-GLITCHES-21-11.md>) | Melding van Nikky over glitches en ruis: hypotheses, wat bewezen is, de limiter en de diagnose, en een checklist voor het apparaat. |
+| [VERFIJNING-22-11-TOEGANKELIJKHEID.md](<VERFIJNING-22-11-TOEGANKELIJKHEID.md>) | Verfijnronde 22-11 op Toegankelijkheid en Instellingen: wrijving, oplossing, bewijs, wat bewust niet en wat in beeld bekeken moet worden. |
 | [ICONEN-LICENTIE.md](<ICONEN-LICENTIE.md>) | De Phosphor-iconenset (MIT): licentietekst, naamsvermelding en hoe je een icoon toevoegt (ADR 0041). |
 | [MERK-INVENTARIS-21-11.md](<MERK-INVENTARIS-21-11.md>) | Waar het logo, het icoon en het marketingbeeld staan in zeefdruk (website, Steam, socialkaart, app-iconen) en wat nog beeld vraagt. |
 | [ICONEN-INVENTARIS-20-11.md](<ICONEN-INVENTARIS-20-11.md>) | Waar het spel iconen tekent (inline SVG, emoji, unicode) en wat al naar de Phosphor-iconenmodule is overgezet. |

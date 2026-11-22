@@ -13,6 +13,16 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Prestaties
 - Prestaties (#1074, #1067): als het spelvenster verborgen of op de achtergrond is, doen de vaste controles van de overlays, het Samen-paneel en het aanraakscherm niets meer; de kartmotor wordt bij het verlaten van de baan echt stopgezet. Samen spelen: lokaal per speler, geen netwerkwijziging; testsessies met `?stil` blijven gewoon tikken. Voor de metingen staan er twee A-schakelaars (`?perfoff=boomfade`, `?perfoff=gevelfade`).
+### Toegankelijkheid en instellingen
+- Instellingen: "Standaard herstellen" kan nu ook alleen het tabblad dat openstaat terugzetten, met erbij hoeveel instellingen er afwijken; achteraf staat er hoeveel er is teruggezet, met Ongedaan maken. Je toetsen, je naam en je keuze voor Samen spelen blijven altijd staan. Lokaal per speler.
+- Instellingen: op elk tabblad staat een klein getal zodra er iets afwijkt van de standaard, zodat je ziet waar je iets veranderd hebt.
+- Instellingen: een instelling die nu niets doet zegt waarom (bijvoorbeeld "Dichtheid van het vlak" zonder donker vlak, "Schermschudden" bij Beweging beperken, de trilsterkte zonder trillen, de zoom van het kaartje zonder kaartje) en staat gedimd, maar blijft instelbaar.
+- Geluid: staat alles op nul, dan zegt een regel onder de volumes dat je niets hoort, en of de ondertitels dan nog meelezen.
+- Toegankelijkheid: "Proef het schudden" laat meteen zien hoe sterk het beeld schudt bij Aan, Minder, Uit of Beweging beperken. Het proefvak blijft stil als het schudden uit staat.
+- Toegankelijkheid: de kleurenstanden heten nu "Groen zwak", "Rood zwak" en "Blauw en geel", met de vaktaal erachter.
+- Zoeken in het menu vindt instellingen nu ook met gewone woorden: "epilepsie" bij Flitsen beperken, "lettergrootte" bij Tekstgrootte, "misselijk" bij Beweging beperken, "harder" bij de volumes en meer.
+- Cheats: het onderdeel Cheats staat niet meer standaard in het menu. Zet het aan onder Instellingen, Spelregels, Cheats in het menu; staat er een cheat aan, dan blijft het onderdeel zichtbaar om hem uit te zetten. Lokaal per speler; ook bij Samen spelen beslist iedereen dat voor zichzelf.
+- Instellingen: een kapot of met de hand bewerkt instellingenbestand kan geen vreemde waarde meer laten staan bij dronken effecten, trilsterkte en de hulpopties; elke keuze valt terug op de standaard.
 ### Kaart en HUD
 - Kaart: een nieuwe streek ontdekt, ook onderweg met de kaart dicht? Dan gloeit de rand van de minimap even zomers geel op (zonder beweging blijft de gele rand even staan). Ontdekking is per speler; wie meespeelt ziet alleen de eigen gloed (#990).
 - Gebiedsnaam: de prestatie voor wijken, de telefoonpraatjes en de duif noemen alleen nog een stadswijk als je er echt in staat, niet meer vanaf een weg net buiten de stad. Lokaal per speler (#1077).
