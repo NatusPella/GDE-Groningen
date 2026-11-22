@@ -16,6 +16,7 @@ import {
   areasFromVisits, awardAreaStamp, hasAreaStamp, areaLabels, travelFactor, isHiddenOnMap,
   areaName, areaForPoint, strekenStand,
 } from './verkenpunten.js';
+import { meldNaLaadscherm, spoelLaadwacht } from './laadwacht.js';
 
 const ENTRY_CHECK_S = 1;      // how often the player's own position is laid along the streken
 const VIEWPOINT_R = 22;       // metres from an uitkijkpunt where its E-action works
@@ -127,7 +128,7 @@ function refreshStamps(world) {
   for (const area of fresh) {
     const name = areaName(area);
     if (world && world.addMessage) {
-      world.addMessage(`Streekstempel: ${name} verkend. Op de kaart reis je er ${bonus}% sneller heen.`, 7, { kind: 'prestatie', kicker: 'Streek verkend', key: 'streekstempel-' + area });
+      meldNaLaadscherm(() => world.addMessage(`Streekstempel: ${name} verkend. Op de kaart reis je er ${bonus}% sneller heen.`, 7, { kind: 'prestatie', kicker: 'Streek verkend', key: 'streekstempel-' + area }));
     }
   }
   return fresh;
@@ -136,7 +137,7 @@ function refreshStamps(world) {
 function announceArea(world, area) {
   if (!world || !world.addMessage) return;
   const name = areaName(area);
-  world.addMessage(`Nieuwe streek: ${name}. De naam staat nu op je kaart.`, 5, { kind: 'prestatie', kicker: 'Verkend', key: 'streek-ontdekt-' + area });
+  meldNaLaadscherm(() => world.addMessage(`Nieuwe streek: ${name}. De naam staat nu op je kaart.`, 5, { kind: 'prestatie', kicker: 'Verkend', key: 'streek-ontdekt-' + area }));
 }
 
 // Per frame (regiolevenrt.js voor de opener, coopgastlokaal.js voor een gast): de eigen plek langs
@@ -144,6 +145,7 @@ function announceArea(world, area) {
 // een melding geeft als de speler al in een streek stond.
 export function updateExploration(dt, world) {
   if (!world) return;
+  spoelLaadwacht();
   const p = hoofdspeler(world);
   if (!p) return;
   seedFromVisits();
