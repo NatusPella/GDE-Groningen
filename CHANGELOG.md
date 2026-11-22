@@ -15,6 +15,12 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 - Luchtroute (#1038): in het vliegtuig, de helikopter, als duif en in de luchtballon is er nog maar één routekaart. Regel 1 is de plaats waar je heen vliegt (Vliegveld Eelde, Winsum), nooit meer de voorwaarde van een missie. Regel 2 zegt wat je doet: Draai om, Links aanhouden, Stijg naar 75 m. De pijl draait mee met je koers; bij een bocht van meer dan 120 graden staat er een omdraai-icoon. Afstand en tijd staan groter rechts. De bovenste balk toont in de lucht alleen de naam van de opdracht, zonder Vlieg naar. De gids is lokaal per speler (Samen spelen).
 
+### Bijbanen
+
+- Vier nieuwe korte bijbaantjes in Grunn. Vismarktkoerier: breng verse vis met ijs per fiets van de Vismarkt naar de restaurants; het ijs smelt, schudden kost ijs en de koks geven een schep ijs terug. Studentenfeest: de gast zegt wat hij wil, jij kiest met 1, 2 of 3 het juiste drankje, alles zonder alcohol. Boerenmarktkraam: weeg kaas, aardappelen en bessen af op de gram (1 minder, 3 meer, 2 afrekenen) en pas op voor de kip op de weegschaal. Toeristengids: loop met een groep langs de stops rond de Martinitoren en vertel het verhaal dat ze willen horen.
+- De nieuwe bijbanen horen bij de loopbanen Bezorging, Horeca, Landbouw en Podium en komen pas vrij als het verhaal dat vak opent (of als je de loopbaan al begonnen bent); tot dan zegt de baas waar je terecht kunt. Bestaande saves blijven alles houden wat al open was.
+- Samen spelen: het studentenfeest, de boerenmarktkraam en de toeristengids doe je samen (tweede barkeeper, kraamhulp, mede-gids: E geeft extra fooi, ieder krijgt de volle beloning in eigen geld en loopbaan); de vismarktkoerier doe je in je eigen spel.
+
 ### Verhaal en personages
 
 - Verhaal: humorronde met een paneel van drie beoordelaars voor de nieuwe stappen N1-N8 (Sjabbe, Veldkamp, Oma Trijntje, Klaas en anderen kregen een andere pointe); ook de winnaars voor de eerste 40 voetbalregels.
