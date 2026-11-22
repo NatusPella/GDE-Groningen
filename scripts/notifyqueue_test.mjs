@@ -306,6 +306,7 @@ sink('game/js/narrative.js', /registerNoticeHold\('dialogue'/, 'een gesprek houd
 const gb = read('game/js/notifyqueue.js');
 ok(!/fetch|WebSocket|RTCPeer|XMLHttp/.test(gb), 'Samen spelen: de wachtrij is lokaal, geen netwerkverkeer');
 ok(gb.includes("from './noticetiming.js'") && gb.includes('noticeDuration'), 'de wachtrij gebruikt de duur van noticetiming.js');
+ok(/isContentEditable[^\n]*input\|textarea[\s\S]{0,120}return;[\s\S]{0,120}e\.key === 'Delete'/.test(gb), 'Delete wordt niet afgevangen als de focus in een tekstveld staat (ook niet in het schermtoetsenbord-veld)');
 ok(!fs.existsSync(path.join(ROOT, 'game/js/notifygate.js')), 'de oude meldingenpoort is vervangen door notifyqueue.js');
 
 console.log(`${n - fails}/${n} goed${fails ? `, ${fails} FOUT` : ''}`);

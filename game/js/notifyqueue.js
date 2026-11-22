@@ -261,6 +261,11 @@ export function runNoticeQueue() {
   }, 250);
   if (timer && timer.unref) timer.unref();
   if (typeof document !== 'undefined' && document.addEventListener) {
-    document.addEventListener('keydown', (e) => { if (e.key === 'Delete' && !e.repeat && noticeQueue.dismiss()) e.preventDefault(); });
+    document.addEventListener('keydown', (e) => {
+      // typen gaat voor: in een tekstveld (ook dat van het schermtoetsenbord) blijft Delete gewoon Delete
+      const el = e.target;
+      if (el && el.nodeType === 1 && (el.isContentEditable || /^(input|textarea|select)$/i.test(el.tagName))) return;
+      if (e.key === 'Delete' && !e.repeat && noticeQueue.dismiss()) e.preventDefault();
+    });
   }
 }
