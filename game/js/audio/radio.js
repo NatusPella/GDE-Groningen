@@ -167,6 +167,10 @@ const GMUSIC_ARTISTS = {
   'Klompendans bij de Sloot': 'Jelle en de Natte Voeten',
   'Rood Licht Is Een Mening': 'De Ringweg Drillers',
   'Elfde Verdieping': 'De Fietstunnels',
+  'Net te dichtbij': 'Tessa & Tammo',
+  'Kroket in de zon': 'DJ Frituurpan',
+  'Grunn is nooit klaar': 'Wierde Wind en de Bietenbende',
+  'Laagwater om middernacht': 'Wad en Wolk',
 };
 // file names can't carry every character of a title
 const GMUSIC_TITLES = {

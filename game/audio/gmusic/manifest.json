@@ -38,6 +38,10 @@
     { "file": "Kapsalon_Kees_en_de_Vismarkt.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true },
     { "file": "Klompendans_bij_de_Sloot.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true },
     { "file": "Rood_Licht_Is_Een_Mening.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true },
-    { "file": "Elfde_Verdieping.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true }
+    { "file": "Elfde_Verdieping.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true },
+    { "file": "Net_te_dichtbij.mp3", "stations": ["gmusic"], "time": "night", "nieuw": true },
+    { "file": "Kroket_in_de_zon.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true },
+    { "file": "Grunn_is_nooit_klaar.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true },
+    { "file": "Laagwater_om_middernacht.mp3", "stations": ["gmusic"], "time": "night", "nieuw": true }
   ]
 }
