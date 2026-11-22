@@ -90,7 +90,7 @@ ok(/Podium in de Kiezelrace/.test(msrc), 'kei: the start message names the goal'
 ok(!loket.timeUp, 'loket: geen eigen time-up meer (de tijd faalt niet meer)');
 const bak = byId('bakkiestunt');
 ok(/kattenfilmpje/.test(bak.timeUp) && bak.vehicleFail.gone && bak.vehicleFail.wrecked && bak.vehicleFail.left, 'bakkiestunt: time-up and lost-bakkie messages');
-ok(/duif\.timeLimit = null/.test(msrc) && /duif\.medalTime = 60/.test(msrc) && /duif\.tagRows/.test(msrc) && /kei\.timeUp/.test(msrc), 'duif: medaille-eis in plaats van fail-timer; pinautomaat en kei houden hun eigen faalbericht');
+ok(/duif\.timeLimit = null/.test(msrc) && /duif\.medalTime = 180/.test(msrc) && /duif\.tagRows/.test(msrc) && /kei\.timeUp/.test(msrc), 'duif: medaille-eis in plaats van fail-timer; pinautomaat en kei houden hun eigen faalbericht');
 ok(/def\.timeUp \? def\.timeUp/.test(missionsSrc) && /vf\.wrecked/.test(missionsSrc), 'missions.js honours timeUp and vehicleFail');
 // rewards and consequences are visible on the success card (#147)
 ok(Array.isArray(loket.costRow) && /150/.test(loket.costRow[1]), 'loket: the card shows the entry fee (reward is 0)');
