@@ -10511,11 +10511,10 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Mevrouw, mijn juristen vinden dat u te hard rijdt. In mijn limo is plek.",
+     "text": "Mevrouw, u rijdt te hard. In mijn limo is plek.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Tessa",

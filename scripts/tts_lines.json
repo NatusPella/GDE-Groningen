@@ -351,6 +351,19 @@
   "file": "anita/ik_vroeg_niks_542f0da0.mp3"
  },
  {
+  "key": "Jelle Terpstra|Mevrouw, u rijdt te hard. In mijn limo is plek.",
+  "speaker": "Jelle Terpstra",
+  "text": "Mevrouw, u rijdt te hard. In mijn limo is plek.",
+  "area": "M14.2",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Fenrir",
+  "who": "ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden",
+  "tag": "charmant, opschepperig",
+  "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: charmant, opschepperig.",
+  "file": "jelle_terpstra/mevrouw_u_rijdt_te_hard_in_mijn__2a2d05c4.mp3"
+ },
+ {
   "key": "Anita|En wie een pand beheert?",
   "speaker": "Anita",
   "text": "En wie een pand beheert?",
