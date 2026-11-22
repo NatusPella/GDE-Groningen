@@ -128,6 +128,7 @@ import { setMarkerCamera, setMarkerEnv, disposeWorldMarker3D } from './worldmark
 import { OUTLINE_MAT } from './pixelart3d.js';
 import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpacity, setStarShare, SKY_HORIZON } from './sky3d.js';
 import { computeLighting, dayState } from './daynight.js';
+import { shadowSoftness } from './sunrules.js';
 import { wijkProfileAt } from './trafficfleet.js';
 import { pedRole } from './clothing.js';
 import { monumentAreaKey } from './heritagearea.js';
@@ -136,7 +137,7 @@ import { createPostFX } from './postfx3d.js';
 import { noteGfxEvent, watchContext, gpuRamp } from './blackframe.js';
 import { spawnExplosionFx, setFxCamera } from './fx3d.js';
 import { litFraction, moonPhase, STAR_SHARE, foliageGlow } from './nightrules.js';
-import { qualityLook } from './weatherlook.js';
+import { qualityLook, SKYLINE_FOG, sunGlow } from './weatherlook.js';
 import { buildCloudLayer, updateCloudLayer } from './cloud3d.js';
 import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn, nightPoolSize } from './nightlights3d.js';
 import { createFarLOD } from './farlod.js';
@@ -1153,7 +1154,8 @@ function applyShadowLevel(level, force = false) {
     Object.assign(c, { left: -s.half, right: s.half, top: s.half, bottom: -s.half });
     c.updateProjectionMatrix();
   }
-  sun.shadow.radius = s.radius;
+  shadowBaseRadius = s.radius;
+  sun.shadow.radius = s.radius * shadowSoftness(lastLight ? lastLight.elevation : 45);
   sun.shadow.normalBias = s.normalBias;
   if (sun.shadow.mapSize.x !== s.size) {
     sun.shadow.mapSize.set(s.size, s.size);
@@ -1994,8 +1996,10 @@ function skylineMaterial(m) {
     const prev = m.onBeforeCompile;
     s.onBeforeCompile = (shader, r) => {
       if (prev) prev.call(s, shader, r);
-      shader.fragmentShader = shader.fragmentShader.replace('#include <fog_fragment>', `#ifdef USE_FOG
-  float skyFog = min(smoothstep(fogNear, fogFar, vFogDepth), 0.55 + 0.4 * smoothstep(fogFar, fogFar * 3.0, vFogDepth));
+      shader.uniforms.skyCapNear = SKYLINE_FOG.capNear;
+      shader.uniforms.skyCapFar = SKYLINE_FOG.capFar;
+      shader.fragmentShader = 'uniform float skyCapNear;\nuniform float skyCapFar;\n' + shader.fragmentShader.replace('#include <fog_fragment>', `#ifdef USE_FOG
+  float skyFog = min(smoothstep(fogNear, fogFar, vFogDepth), skyCapNear + (skyCapFar - skyCapNear) * smoothstep(fogFar, fogFar * 3.0, vFogDepth));
   gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, skyFog);
 #endif`);
     };
@@ -3779,6 +3783,7 @@ const lightBase = {
 const MOON_COLOR = new THREE.Color(0xdfe6f5);
 const BED_COLOR = new THREE.Color(0x1e2a2c);
 let wetness = 0;
+let shadowBaseRadius = 1.5; // de straal van het schaduwniveau; applyTimeOfDay maakt hem zachter bij een lage zon
 let lastLight = null; // the clock's lighting of the last frame, read by the cloud layer
 let envTimer = 0;
 const _envGround = new THREE.Color();
@@ -3787,6 +3792,7 @@ const _envSun = new THREE.Color();
 function applyTimeOfDay(dt, world) {
   const L = computeLighting(typeof world.clock === 'number' ? world.clock : 12, lightState);
   lastLight = L;
+  sun.shadow.radius = shadowBaseRadius * shadowSoftness(L.elevation);
   applyWorldGrade(L, postfx ? postfx.level : 'laag', world.weather);
   // a cutscene's own grade on top of the clock's (intromontage.js: the dawn shot)
   if (world.lightMood) world.lightMood(L);
@@ -3876,7 +3882,7 @@ function updateSunAndSky(player, dt, world) {
   sun.target.position.copy(_shadowCenter);
   sun.position.copy(_shadowCenter).addScaledVector(sunDir, SUN_DIST);
   skyDome.position.copy(cam.position);
-  if (lastLight) updateCloudLayer(cloudLayer, cam.position, cam.far, world.weather, lastLight.daylight, lastLight.night, dt);
+  if (lastLight) updateCloudLayer(cloudLayer, cam.position, cam.far, world.weather, lastLight.daylight, lastLight.night, dt, sunGlow(lastLight.elevation, world.weather ? Math.max(world.weather.overcast || 0, world.weather.intensity || 0) : 0));
 }
 
 function buildWildlifeActor(a) {

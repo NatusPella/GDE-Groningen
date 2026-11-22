@@ -1,5 +1,5 @@
 // Weather look (game/js/weatherlook.js, #194): quality scaling, mist, sunset glow, storm planner.
-import { QUALITY_LOOK, qualityLook, mistFog, MIST_FAR, mistAtHeight, sunGlow, stepWet, createStormPlanner, stepStorm, flashAt, weatherLook, REGION_HAZE } from '../game/js/weatherlook.js';
+import { QUALITY_LOOK, qualityLook, mistFog, MIST_FAR, mistAtHeight, sunGlow, stepWet, createStormPlanner, stepStorm, flashAt, weatherLook, REGION_HAZE, skylineFogCaps, skylineFogFactor } from '../game/js/weatherlook.js';
 import { REGION_IDS, WEATHER_KINDS } from '../game/js/weatherstate.js';
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name} ${info}`); } };
@@ -61,5 +61,16 @@ for (const kind of WEATHER_KINDS) for (const region of REGION_IDS) for (const qu
 }
 // #1202: ook in dichte mist blijft de wereld tot 220 m zichtbaar (de Martinitoren vervaagt niet tot niets)
 ok(MIST_FAR >= 220, 'mistvloer van 220 m', String(MIST_FAR));
+// #1202: de skyline (Martinitoren) blijft in dichte mist leesbaar: de mistgrens zakt mee en de toren op 400 m is niet meer bijna weg
+{
+  const dicht = mistFog(1), heldere = skylineFogCaps(0), dichtCaps = skylineFogCaps(1);
+  const oud = skylineFogFactor(400, dicht.near, dicht.far, { capNear: 0.55, capFar: 0.95 });
+  const nieuw = skylineFogFactor(400, dicht.near, dicht.far, dichtCaps);
+  ok(oud > 0.6 && nieuw < 0.75 && nieuw < oud - 0.1, 'toren op 400 m in dichte mist is minder weggedrukt', `${oud} ${nieuw}`);
+  ok(heldere.capNear === 0.55 && heldere.capFar === 0.95, 'zonder mist blijft de skyline-mist zoals hij was');
+  ok(dichtCaps.capNear >= 0.399 && dichtCaps.capFar >= 0.779 && dichtCaps.capFar > dichtCaps.capNear, 'de grenzen blijven geordend en begrensd');
+  let prevF = -1;
+  for (let d = 0; d <= 1500; d += 25) { const f = skylineFogFactor(d, dicht.near, dicht.far, dichtCaps); ok(f >= prevF - 1e-9 && f <= dichtCaps.capFar + 1e-9, 'skylinemist loopt monotoon en blijft onder de grens', d); prevF = f; }
+}
 console.log(`weatherlook_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

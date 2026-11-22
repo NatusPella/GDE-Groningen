@@ -57,6 +57,12 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 ### Binnenruimten blijven vrij van de wereld
 - Straatmeubilair, bomen, stadsprops (banken, bakken, fietsen) en lantaarns steken niet meer door een binnenruimte heen: in een pand, in de binnenset (loket, kantoor, kroeg...) en in Beppe's huis tekent de wereld niets binnen de hal, en voetgangers, verkeer en losse spullen die er stonden of er inliepen worden eruit gezet. Bij naar buiten gaan is alles weer zoals het was.
 - Samen spelen: iedere speler bouwt de eigen binnenruimten, dus wie binnen is verbergt de wereld alleen in zijn eigen spel; een medespeler buiten ziet niets veranderen. Wie binnen laadt of binnen verschijnt krijgt de ruimte (en de vrije hal) mee. Niets gaat over het net of in een opgeslagen spel.
+### Licht en kleur
+- In dichte mist blijft de Martinitoren (en elke andere toren op de skyline) leesbaar: de mist die hem vervaagt wordt minder dicht naarmate de mist zwaarder is (#1202).
+- Schaduwen worden zachter naarmate de zon zakt: in het gouden uur zijn de randen tot een derde breder.
+- Weilanden in de verte en op streamtegels hebben rustige kleurvariatie in plaats van één egale groene kleur (#1203, #1193).
+- Wolken vangen bij zonsopkomst en zonsondergang het gouden licht.
+- Samen spelen: alles is lokale weergave per speler; niets wordt gesynchroniseerd.
 
 ### Besturing met een controller
 - Acties-wiel (controller-review 22-11, #495, #1011): houd Overzicht een halve seconde ingedrukt en een wiel toont alles wat in die situatie geen eigen knop heeft: de radio in een auto (sinds #495 weg van het pad), de volgende zender, andere kleren, de filmcamera, eerste persoon, het waypoint naar je doel, de directe wapenkeuze, de alarmlichten, het lakmenu, het kusje, de busdienst overnemen (G) en in Samen spelen de roepjes en snelle zinnen in een voertuig. Kies met de linkerstick of de D-pad, A bevestigt, B sluit, LB en RB bladeren. Een korte tik op Overzicht is nog steeds de kaart (die gaat nu bij het loslaten open). Wie niet kan houden zet de tikstand aan: dan opent een tik het wiel. Herbinden werkt gewoon door. Een toets die alleen in het wiel zit, toont in de hints de knop Overzicht met "houd". Invoer is lokaal; er gaat niets over het net.

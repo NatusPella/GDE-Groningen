@@ -6,7 +6,9 @@ const clamp01 = (v) => Math.max(0, Math.min(1, v));
 
 // weather: { intensity, overcast, mist, kind }, daylight 0..1 (0 = nacht), night 0..1
 // -> { count, spread, opacity, tint: [r,g,b] 0..1, speed }
-export function cloudState(weather, daylight = 1, night = 0) {
+// glow (optioneel, uit weatherlook.js sunGlow): { strength 0..1, color [r,g,b] }. Wolken vangen bij zonsopkomst en -ondergang het gouden licht
+// (tot 45% richting de gloedkleur, minder onder een dicht wolkendek): een warm gouden uur in plaats van witte wolken.
+export function cloudState(weather, daylight = 1, night = 0, glow = null) {
   const w = weather || {};
   const storm = clamp01(w.intensity || 0);
   const over = clamp01(Math.max(w.overcast || 0, storm * 0.9));
@@ -18,7 +20,8 @@ export function cloudState(weather, daylight = 1, night = 0) {
   const base = [1 - grey * 0.55, 1 - grey * 0.52, 1 - grey * 0.45];
   // 's nachts donker blauwgrijs, zodat sterren en maan er nog doorheen te zien zijn
   const dark = 0.12 + 0.88 * day;
-  const tint = base.map((c, i) => clamp01(c * dark + night * [0.02, 0.03, 0.06][i]));
+  const warm = glow && glow.color ? clamp01(glow.strength || 0) * 0.45 * (1 - grey * 0.6) : 0;
+  const tint = base.map((c, i) => clamp01((warm > 0 ? c + (c * glow.color[i] - c) * warm : c) * dark + night * [0.02, 0.03, 0.06][i]));
   return {
     count,
     fill: 4 + over * (CLOUD_COUNT - 4), // hetzelfde als count, zonder afronden (cloud3d.js laat het zacht groeien)

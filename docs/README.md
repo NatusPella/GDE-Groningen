@@ -338,3 +338,5 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [WERELDKLEUR-21-11.md](<WERELDKLEUR-21-11.md>) | Wereldkleur: een subtiele DS3-kleurtaal voor de 3D-wereld (`worldgrade.js`, stand Uit/Subtiel/Drukwerk): kleurkaart, grading per dagdeel en weer, metingen zonder Electron en besluiten.
 | [WERELDKLEUR-VERIFICATIE-21-11.md](<WERELDKLEUR-VERIFICATIE-21-11.md>) | Draaiboek voor de Electron-sweep van de wereldkleur: schermen, tijden en weer, schakelaar-vergelijking en perf A/B. ||
 | [HERTEST-NIEUWE-PROBLEMEN-22-11.md](<HERTEST-NIEUWE-PROBLEMEN-22-11.md>) | Hertest 22-11: nieuwe visuele problemen uit de beoordeling, geclusterd, met issue (#1187 t/m #1203 en comments op bestaande issues) en beeldverwijzing. |
+| [SPRINT-22-11-GEBIED.md](<SPRINT-22-11-GEBIED.md>) | Sprint 22-11 licht en kleur: mist en torens, zachte schaduwen bij lage zon, grasvariatie, gouden wolken, voor en na en wat in beeld bekeken moet worden. |
+| [WERELDKLEUR-VERIFICATIE-21-11.md](<WERELDKLEUR-VERIFICATIE-21-11.md>) | Draaiboek voor de Electron-sweep van de wereldkleur: schermen, tijden en weer, schakelaar-vergelijking en perf A/B. ||

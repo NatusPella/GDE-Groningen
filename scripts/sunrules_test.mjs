@@ -63,5 +63,15 @@ ok(S.nightAtHour(NaN) === 0 && S.nightAtHour(undefined) === 0 && !S.isNightAtHou
 ok(MP.isNight(NaN) === false && SL.isNight(undefined) === false, 'and so for the radio and the street life');
 ok(D.dayState(null).isNight === false && D.dayState({}).hour === 12, 'dayState of nothing is noon');
 
+// zachtere schaduwen bij een lage zon (gouden uur)
+{
+  const SR = await import('../game/js/sunrules.js');
+  ok(SR.shadowSoftness(60) === 1 && SR.shadowSoftness(35) === 1, 'hoge zon: schaduwrand ongewijzigd');
+  ok(Math.abs(SR.shadowSoftness(6) - 1.35) < 1e-9 && SR.shadowSoftness(-20) <= 1.35 + 1e-9, 'lage zon: rand 35% breder, nooit meer');
+  let prev = 0, mono = true;
+  for (let e = 60; e >= -10; e -= 1) { const v = SR.shadowSoftness(e); if (v < prev - 1e-12) mono = false; prev = v; }
+  ok(mono, 'de schaduwrand wordt geleidelijk zachter naarmate de zon zakt');
+  ok(SR.shadowSoftness(NaN) === 1, 'een kapotte zonshoogte geeft de gewone rand');
+}
 console.log(`${n} checks, ${fails} failed`);
 process.exit(fails ? 1 : 0);

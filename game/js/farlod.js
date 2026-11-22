@@ -170,13 +170,39 @@ if (uNightGlow > 0.0) {
   return m;
 }
 
-function groundMaterial(offset, near = false) {
+// #1203, #1193: een vlak gras was één egale kleur (een groot effen groen vlak zonder variatie). Het gras krijgt een rustige
+// variatie in de wereldruimte: twee ruisschalen (ca. 40 m en 9 m) die helderheid en een beetje geel-groen verschuiven, met gemiddelde
+// 1 zodat de overgang naar het gedetailleerde gras geen naad geeft. Gratis: een paar vermenigvuldigingen in het fragment.
+export const GRASS_VARIATION_GLSL = `
+float gvHash(vec2 p) { vec3 q = fract(vec3(p.xyx) * 0.1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }
+float gvNoise(vec2 p) { vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(gvHash(i), gvHash(i + vec2(1.0, 0.0)), u.x), mix(gvHash(i + vec2(0.0, 1.0)), gvHash(i + vec2(1.0, 1.0)), u.x), u.y); }
+vec3 grassVariation(vec2 p) {
+  float big = gvNoise(p * 0.025), mid = gvNoise(p * 0.11 + 7.0);
+  float v = big * 0.65 + mid * 0.35 - 0.5;
+  return vec3(1.0 + v * 0.26 + v * 0.10, 1.0 + v * 0.26, 1.0 + v * 0.26 - v * 0.12);
+}`;
+function grassVariation(shader, withVarying) {
+  if (withVarying) {
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec2 vGrassXZ;')
+      .replace('#include <project_vertex>', '#include <project_vertex>\nvGrassXZ = (modelMatrix * vec4(transformed, 1.0)).xz;');
+  }
+  shader.fragmentShader = shader.fragmentShader
+    .replace('#include <common>', '#include <common>\nvarying vec2 vGrassXZ;' + GRASS_VARIATION_GLSL)
+    .replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.rgb *= grassVariation(vGrassXZ);');
+}
+
+function groundMaterial(offset, near = false, grass = false) {
   const m = new THREE.MeshLambertMaterial({
     vertexColors: true, polygonOffset: true, polygonOffsetFactor: -offset, polygonOffsetUnits: -offset * 4,
   });
   // near: drawn up to the player too (a streamed tile's green and water have
   // no detailed copy that takes over)
-  if (near) return m;
+  if (near) {
+    if (grass) m.onBeforeCompile = (shader) => grassVariation(shader, true);
+    return m;
+  }
   m.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, shared);
     shader.vertexShader = shader.vertexShader
@@ -185,6 +211,7 @@ function groundMaterial(offset, near = false) {
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', '#include <common>\nuniform vec2 uLodPlayer;\nuniform float uLodInnerR;\nvarying vec2 vFarXZ;')
       .replace('void main() {', 'void main() {\nif (distance(vFarXZ, uLodPlayer) < uLodInnerR) discard;');
+    if (grass) grassVariation(shader, true);
   };
   return m;
 }
@@ -215,10 +242,10 @@ export function waterStreamMaterial() {
 // the far road's offset drew grass over the asphalt in the LOD ring).
 const MATS = {
   building: buildingMaterial(),
-  green: groundMaterial(0.02),
+  green: groundMaterial(0.02, false, true),
   path: groundMaterial(0.45),
   road: groundMaterial(0.7),
-  greenNear: groundMaterial(0.02, true),
+  greenNear: groundMaterial(0.02, true, true),
   water: groundMaterial(0.3, true),
   waterStream: waterStreamMaterial(),
 };
