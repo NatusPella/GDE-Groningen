@@ -44,8 +44,11 @@ export const PLAN = {
   back: { layers: ['bag'], form: 'bust' },
   wrist: { acc: true, form: 'forearm', arms: 1 },
   hands: { acc: true, form: 'forearm', arms: 2 },
+  legs: { layers: ['sock'] },        // voetbalkousen (22-11): een kous los, zonder been
+  guard: { layers: ['guard'] },      // scheenbeschermers: de plaat los
 };
 // Layers of the form, and the layers that must NEVER be part of a piece (everything of a character: skin, face, hair)
+export const planFor = (item) => (item.kind === 'captain' ? { layers: ['captainband'] } : PLAN[item.slot]); // de aanvoerdersband is een laag van de arm, geen los mesh
 export const FORM_LAYERS = { head: ['head'], bust: ['top', 'collar'], forearm: ['armskin', 'hand'] };
 export const PERSON_LAYERS = ['head', 'neck', 'face', 'hair', 'facial', 'glasses'];
 
@@ -62,6 +65,7 @@ export function pieceBuild(piece) {
   const slot = x.item.slot;
   const o = outfitToLook({ [slot]: piece }, {});
   const torso = slot === 'top' || slot === 'outer';
+  if (slot === 'legs' || slot === 'guard') { o.look.bottom = 'shorts'; o.look.socks = slot === 'guard' ? undefined : o.look.socks; } // kousen en scheenbeschermers hangen aan een broekje (models3d_people.js buildLegs)
   const look = {
     ...o.look, age: 'adult', build: 'avg', heightScale: 1, buildScale: 1, under: MANNEQUIN, umbrella: null, tights: MANNEQUIN, bag: o.look.bag || null,
   };
@@ -71,7 +75,7 @@ export function pieceBuild(piece) {
     shirt: torso ? o.shirt : MANNEQUIN,
     opts: {
       seed: 5.3, variant: dress ? 'female' : 'male', look, hairStyle: 'bald', hair: slot === 'face' ? FACIAL_HAIR : MANNEQUIN,
-      pants: slot === 'bottom' ? o.pants : MANNEQUIN, shoes: slot === 'shoes' ? o.shoes : MANNEQUIN, ...(o.cap != null ? { cap: o.cap } : {}),
+      pants: slot === 'bottom' ? o.pants : MANNEQUIN, shoes: slot === 'shoes' ? o.shoes : MANNEQUIN, ...(o.cap != null ? { cap: o.cap } : {}), ...(slot === 'top' && o.shirtBands ? { shirtBands: o.shirtBands } : {}),
     },
   };
 }
@@ -156,7 +160,8 @@ function geometryOf(tris) {
 export function pieceParts(piece) {
   const b = pieceBuild(piece);
   if (!b) return null;
-  const plan = PLAN[b.slot];
+  // de aanvoerdersband zit om de bovenarm (een laag van de arm, geen los mesh): hij laat zich los zien als een ring
+  const plan = planFor(b.x.item);
   const group = buildProbe(b.shirt, b.opts, b.slot === 'face' ? HEAD_LIGHT : MANNEQUIN);
   try {
     const geo = group.userData.body.geometry;
@@ -171,6 +176,16 @@ export function pieceParts(piece) {
       // shorts leave the lower legs bare (skin colour of the form): those belong to the leg, not to the trousers
       if (b.slot === 'bottom') garment = takeLayers(geo, names, (n, o, y, c) => !(n === 'leg' && near(c, M)));
       else garment = takeLayers(geo, names, (n, o, y, c) => !near(c, gold));
+    }
+    // het patroon van een voetbalshirt (strepen, helften, hoepels, kruis) is een eigen laag op de romp (models3d_people.js attachShirtBands): mee in het stuk
+    if (b.slot === 'top' && b.opts.shirtBands) {
+      group.updateMatrixWorld(true);
+      const v = new THREE.Vector3();
+      for (const m of group.userData.chest.children) {
+        if (!m.userData.kit) continue;
+        const g = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry, p = g.attributes.position, c = lin(m.material.color.getHex());
+        for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i).applyMatrix4(m.matrixWorld); garment.P.push(v.x, v.y, v.z); garment.C.push(c[0], c[1], c[2]); }
+      }
     }
     let form = null;
     if (plan.form === 'head') form = takeLayers(geo, FORM_LAYERS.head);

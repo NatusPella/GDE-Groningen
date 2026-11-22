@@ -61,6 +61,19 @@ export function careerKit(c, club, opts = {}) {
   return k;
 }
 
+// Wat het Club-scherm toont (clubui.js): het niveau, de omschrijving, het gekozen tenue, het nummer, de sponsor en het shirt (stuk-id) voor het 3D-voorbeeld. null zonder carrière.
+export function kitView(c, getClub) {
+  if (!c || !c.started) return null;
+  const club = getClub ? getClub(c.club) : null;
+  if (!club) return null;
+  const level = careerLevel(c), choice = kitChoice(c);
+  const k = careerKit(c, club, { level, number: choice.number, name: true });
+  return {
+    level, naam: levelName(level), fabric: KIT_LEVELS[level].fabric, variant: k.variant, variants: variantsFor(level), number: choice.number,
+    shirt: k.worn.top, shirtLabel: pieceLabel(k.worn.top), sponsor: k.extras.sponsor, pieces: Object.values(k.worn).map((p) => pieceLabel(p)).filter(Boolean),
+  };
+}
+
 // Zet het tenue aan voor Tammo en Tessa (elk hun eigen rugnummer; de eigen speler kiest het nummer, de ander krijgt het nummer uit zijn spelersprofiel).
 // Zonder carrière (kennismaking, straatvoetbal): een neutrale trainingsset. Geeft de lijst met kits die zijn gezet (voor melding en test).
 export function applyKit(c, club, opts = {}) {

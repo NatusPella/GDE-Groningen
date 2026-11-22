@@ -112,7 +112,7 @@ const KIT_SHIRTS = [];
 for (const lang of [false, true]) {
   for (const pat of Object.keys(KIT_PATTERNS)) {
     KIT_SHIRTS.push([`voetbalshirt${lang ? '_lang' : ''}_${pat}`, 'top', lang ? 'kitlong' : 'kitshirt', `Voetbalshirt${lang ? ', lange mouw' : ''} (${PATTERN_NAME[pat]})`, lang ? 38 : 32, pat === 'effen' ? 'g' : 'b', R('sport'), KIT_COLORS,
-      pat === 'effen' ? 'Effen katoen, zoals elk dorpsveld het kent' : 'Het patroon van de club, zonder opdruk: het shirt is een vorm en een kleur']);
+      pat === 'effen' ? 'Effen katoen, zoals elk buurtveld het kent' : 'Het patroon van de club, zonder opdruk: het shirt is een vorm en een kleur']);
   }
 }
 const KIT_RAW = [
@@ -121,13 +121,13 @@ const KIT_RAW = [
   ['voetbalbroekje', 'bottom', 'kitshorts', 'Voetbalbroekje', 18, 'g', R('sport'), KIT_COLORS, 'Kort en licht. Het is zomer in Grunn'],
   ['voetbalsokken', 'legs', 'kitsocks', 'Voetbalsokken', 10, 'g', R('sport'), KIT_COLORS, 'Kousen tot de knie, bij een broekje'],
   ['scheenbeschermers', 'guard', 'shinguard', 'Scheenbeschermers', 14, 'g', R('sport'), R('zwart wit oranje mint lichtgrijs'), 'Zichtbaar onder de kous. Verplicht, zegt de scheids, en daar heeft hij gelijk in'],
-  ['noppen_basis', 'shoes', 'cleat1', 'Voetbalschoenen (dorpsveld)', 28, 'g', R('sport'), R('zwart schoenzwart donkerbruin'), 'Effen en eenvoudig, met zes noppen. Doet wat hij moet doen'],
-  ['noppen_semi', 'shoes', 'cleat2', 'Voetbalschoenen (streek)', 55, 'b', R('sport'), R('zwart wit oranje blauw mint'), 'Met een streep op de zijkant en betere noppen'],
-  ['noppen_pro', 'shoes', 'cleat3', 'Voetbalschoenen (profklasse)', 90, 'z', R('sport'), R('zwart wit oranje geel mint knalroze'), 'Lage enkel, een manchet en dunne noppen'],
-  ['noppen_top', 'shoes', 'cleat4', 'Voetbalschoenen (topklasse)', 140, 'u', R('sport'), R('geel oranje knalroze mint zeeblauw'), 'Opvallend, met hielkap en tong. De hele tribune ziet dat je ze hebt'],
+  ['noppen_basis', 'shoes', 'cleat1', 'Voetbalschoenen (buurtveld)', 28, 'g', R('sport'), R('zwart schoenzwart donkerbruin'), 'Effen en eenvoudig, met zes noppen. Doet wat hij moet doen'],
+  ['noppen_semi', 'shoes', 'cleat2', 'Voetbalschoenen (streek)', 36, 'b', R('sport'), R('zwart wit oranje blauw mint'), 'Met een streep op de zijkant en betere noppen'],
+  ['noppen_pro', 'shoes', 'cleat3', 'Voetbalschoenen (profklasse)', 36, 'z', R('sport'), R('zwart wit oranje geel mint knalroze'), 'Lage enkel, een manchet en dunne noppen'],
+  ['noppen_top', 'shoes', 'cleat4', 'Voetbalschoenen (topklasse)', 55, 'u', R('sport'), R('geel oranje knalroze mint zeeblauw'), 'Opvallend, met hielkap en tong. De hele tribune ziet dat je ze hebt'],
   ['keepershandschoenen', 'hands', 'keeperglove', 'Keepershandschoenen', 22, 'b', R('sport'), R('geel oranje wit mint knalroze'), 'Gevoerd, met een brede manchet. Voor wie liever de bal vangt dan zijn handen'],
-  ['aanvoerdersband', 'wrist', 'captain', 'Aanvoerdersband', 6, 'g', R('sport'), R('geel oranje felrood groen blauw wit'), 'Om de bovenarm. Wie hem draagt, praat met de scheids'],
-  ['trainingsjack', 'outer', 'trackjack', 'Trainingsjack', 36, 'g', R('sport'), KIT_COLORS, 'Dicht tot de kin. Voor het warmlopen, niet voor de winter'],
+  ['aanvoerdersband', 'wrist', 'captain', 'Aanvoerdersband', 8, 'g', R('sport'), R('geel oranje felrood groen blauw wit'), 'Om de bovenarm. Wie hem draagt, praat met de scheids'],
+  ['trainingsjack', 'outer', 'trackjack', 'Trainingsjack', 36, 'g', R('sport'), KIT_COLORS, 'Dicht tot de kin. Voor het warmlopen op een frisse zomeravond'],
   ['trainingsbroek', 'bottom', 'trackpants', 'Trainingsbroek', 28, 'g', R('sport'), KIT_COLORS, 'Lange pijpen, voor het warmlopen en het napraten'],
   ['opwarmhesje', 'outer', 'bib', 'Opwarmhesje', 8, 'g', R('sport'), R('oranje geel felrood mint knalroze lichtblauw wit'), 'Zodat je weet wie bij wie hoort tijdens het rondo'],
 ];

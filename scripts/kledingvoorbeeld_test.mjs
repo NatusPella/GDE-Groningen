@@ -25,7 +25,7 @@ const cacheVoor = P.personCacheStats().size;
 
 // ---------------------------------------------------------------------------------------------------------------- de lagen per slot
 t('elk stuk (elke kleur) heeft een voorbeeld met driehoeken en zonder NaN', () => {
-  assert.equal(D.ITEMS.length, 67);
+  assert.equal(D.ITEMS.length, 92);
   assert.ok(alle.length >= 250, 'te weinig stukken: ' + alle.length);
   for (const piece of alle) {
     const p = CP.pieceParts(piece);
@@ -38,7 +38,7 @@ t('elk stuk (elke kleur) heeft een voorbeeld met driehoeken en zonder NaN', () =
 t('de lagen van een stuk zijn alleen die van zijn slot; nooit huid, gezicht of haar van een personage', () => {
   for (const it of D.ITEMS) {
     const p = CP.pieceParts(`${it.id}.${it.colors[0]}`);
-    assert.deepEqual(p.pieceLayers, CP.PLAN[it.slot].layers || [], it.id);
+    assert.deepEqual(p.pieceLayers, CP.planFor(it).layers || [], it.id);
     for (const l of p.pieceLayers) {
       // de enige uitzondering: 'facial' (baard) en 'glasses' zijn het stuk zelf; 'head', 'neck', 'face' en 'hair' horen nooit bij een stuk
       if (['facial', 'glasses'].includes(l)) assert.ok(['face', 'glasses'].includes(it.slot), `${it.id}: laag ${l} bij slot ${it.slot}`);
@@ -88,9 +88,10 @@ t('elk stuk ligt op de plek van zijn slot (de juiste lagen zijn gekozen)', () =>
   };
   const eis = {
     hat: ([lo]) => lo > HY - 0.3, glasses: ([lo, hi]) => lo > HY - 0.05 && hi < HY + 0.08, face: ([lo, hi]) => lo > HY - 0.14 && hi < HY + 0.06,
-    neck: ([lo]) => lo > 1.1, jewel: ([lo]) => lo > 1.2, wrist: ([, hi]) => hi < P.PERSON_RIG.SHOULDER_Y - 0.2, hands: ([, hi]) => hi < P.PERSON_RIG.SHOULDER_Y - 0.2,
+    neck: ([lo]) => lo > 1.1, jewel: ([lo]) => lo > 1.2, wrist: ([, hi]) => hi < P.PERSON_RIG.SHOULDER_Y - 0.05, hands: ([, hi]) => hi < P.PERSON_RIG.SHOULDER_Y - 0.2,
     top: ([lo, hi]) => hi > 1.3 && lo > 0.4, outer: ([lo, hi]) => hi > 1.3 && lo > 0.4, bottom: ([lo, hi]) => hi < 1.05 && lo < 0.6, shoes: ([, hi]) => hi < 0.25,
     back: ([lo, hi]) => lo > 0.7 && hi < 1.5,
+    legs: ([lo, hi]) => lo > 0.05 && hi < 0.6, guard: ([lo, hi]) => lo > 0.1 && hi < 0.5,
   };
   for (const it of D.ITEMS) {
     const p = CP.pieceParts(`${it.id}.${it.colors[0]}`);

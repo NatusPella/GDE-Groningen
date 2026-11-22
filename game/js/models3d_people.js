@@ -998,6 +998,7 @@ function buildLegs(B, L, skin) {
         surfaceStrip(B, gr, [0.4, 0.34, 0.26, 0.19].map((y, i) => ({ y, z: 0, hw: 0.03 - i * 0.002 })), L.guard, 0.005, 3, false, 7, s * hipZ);
         if (L.socks == null) surfaceStrip(B, gr, [0.4, 0.19].map((y) => ({ y, z: 0, hw: 0.042 })), shade(L.guard, 0.7), 0.003, 1, false, 7, s * hipZ); // de band om het been
       }
+      tag(B, 'leg'); // wat hierna komt (de heupbol) hoort weer bij het been
     }
     B.bone = BONE.pelvis;
     const top = upper[upper.length - 1];
