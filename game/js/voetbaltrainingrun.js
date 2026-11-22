@@ -7,7 +7,7 @@ import * as C from './voetbalcarriere.js';
 import * as V from './voetbalcarrierelive.js';
 import * as O from './voetbalontwikkeling.js';
 import { registerTrainer } from './voetbalcarriereui.js';
-import { drillFor, newDrill, stepDrill, drillScore, drillStatus, sfxFor, medalOf } from './voetbaltraining.js';
+import { stopBericht, drillFor, newDrill, stepDrill, drillScore, drillStatus, sfxFor, medalOf } from './voetbaltraining.js';
 import { buildDrillProps } from './voetbaltraining3d.js';
 
 // De uitvoering van de trainingsminigames (#1109): een korte oefening op het gras naast je, met de props uit voetbaltraining3d.js en de regels uit voetbaltraining.js.
@@ -55,7 +55,7 @@ function end(w, { quit = false } = {}) {
   if (p) { p.moving = false; p.speed = 0; }
   if (board) board.hide();
   if (props) { try { getScene().remove(props.group); } catch (e) { /* scène al weg */ } props.dispose(); props = null; }
-  if (quit && w.addMessage) w.addMessage('Training gestopt, geen winst', 2.5);
+  { const b = quit ? stopBericht(g.phase) : null; if (b && w.addMessage) w.addMessage(b, 2.5); }
 }
 
 function runStep(g, w, dt) {

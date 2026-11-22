@@ -45,8 +45,10 @@ export function coachTactic(m, { vorming: formation = null, stijl: style = null 
   if (m.coach.wissels >= COACH_MAX_CHANGES) return { ok: false, reden: 'Je hebt alle wissels gehad' };
   zetTactiek(m, 0, { vorming: formation, stijl: style });
   m.coach.wissels++; m.coach.laatsteT = m.tijd;
-  return { ok: true, reden: '' };
+  return { ok: true, reden: '', over: COACH_MAX_CHANGES - m.coach.wissels };
 }
+// De melding na een wissel: wat er veranderde en hoeveel wissels er nog zijn (anders wist je pas bij de zesde dat het op was), of waarom het niet kan.
+export const coachMelding = (label, r) => (!r.ok ? r.reden : r.over > 0 ? `${label} (nog ${r.over} ${r.over === 1 ? 'wissel' : 'wissels'})` : `${label} (dit was de laatste wissel)`);
 
 // Het resultaat voor de carrière: de uitslag telt, maar de Trainer speelde niet mee (geen doelpunten, geen speeltijd); `coach` laat playEvent de speler-ontwikkeling en blessurekans overslaan.
 export function coachResult(m) {

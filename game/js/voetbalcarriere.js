@@ -462,11 +462,16 @@ export function managerRenew(c, playerId, getClub, seasons = 1) {
   return r.ok ? { career: { ...c, market: r.market }, ok: true, cost: r.cost, contract: r.contract } : { career: c, ok: false, reason: r.reason };
 }
 export const managerAdvice = (c, getClub) => (c && c.roles && c.roles.manager && c.market ? T.agentAdvice(c.market, getClub(c.club) || { id: c.club, budget: 0 }, squadOf(c, c.club, getClub)) : null);
+// De ondergrens van een selectie die je als manager kunt uitverkopen: genoeg voor een basis en een bank, en een keeper.
+export const MIN_SQUAD = 14, MIN_ROLE = { keeper: 1, verdediger: 3, middenvelder: 3, aanvaller: 2 };
 export function managerSell(c, playerId, getClub) {
   if (!c.roles.manager) return { career: c, ok: false, reason: 'Nog geen manager' };
   if (!T.inBreak(c)) return { career: c, ok: false, reason: 'Alleen in de pauze tussen de seizoenen' };
   const p = squadOf(c, c.club, getClub).find((x) => x.id === playerId);
   if (!p || p.protagonist) return { career: c, ok: false, reason: 'Die speler blijft' };
+  const sq = squadOf(c, c.club, getClub);
+  if (sq.length <= MIN_SQUAD) return { career: c, ok: false, reason: `De selectie houdt minstens ${MIN_SQUAD} spelers` };
+  if (sq.filter((x) => x.role === p.role).length <= (MIN_ROLE[p.role] || 1)) return { career: c, ok: false, reason: `Je houdt minstens ${MIN_ROLE[p.role] || 1} ${(MIN_ROLE[p.role] || 1) === 1 ? 'speler' : 'spelers'} op die positie` };
   const r = T.sellPlayer(c.market, getClub(c.club), p);
   return { career: { ...c, market: r.market }, ok: true, price: r.price };
 }

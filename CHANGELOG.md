@@ -37,12 +37,21 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 ### Thuis
 - Thuis beginnen in de woning (#1022, #1161): laad je een spel dat bij je huis stond, of kies je Naar huis, dan sta je binnen in de flat in Paddepoel, in de woonkamer en kijkend naar het raam, in plaats van beneden voor de deur; de lift en de voordeur zijn je uitweg. Het laadscherm wacht tot de flat staat (na hooguit 6 seconden sta je alsnog voor de deur). Een save die buiten stond blijft buiten, een save midden in een missie houdt zijn plek, en een oud spel begint boven. Een nieuw spel en de openingsfilm beginnen nog voor de deur. In Instellingen > Spel staat Start binnen (thuis), standaard aan. Lokaal per speler: een gast die aansluit komt naast de host, en staat de host boven, dan wordt niemand in het torengebouw gezet. Niets hiervan is in beeld bekeken.
 ### Samen spelen (sweep 22-11)
-
 - De radiozender in een gedeeld voertuig: de bestuurder kiest, wie meerijdt volgt hem (of kiest zelf en stemt), wie later instapt hoort de zender van het voertuig; te voet is het weer je eigen zender.
 - Spel overdragen wacht nu ook op een lopende wedstrijd of race; de eigen bijbaan van wie het spel overdraagt stopt met een melding.
 - De melding van een nieuw gebied of een nieuwe streek komt pas nadat het laadscherm weg is.
-
-
+### Voetbal verfijnd
+- Voetbalcarrière: een grijze knop doet niets meer als je er toch op klikt, maar zegt waarom hij grijs is (bijvoorbeeld "Nog niet aan de beurt"). Zo kon je geen seizoen meer op dag nul laten uitrekenen.
+- Voetbalcarrière: na een koop, verkoop, verlenging, sponsor, bod of training krijg je een korte melding met het bedrag of de reden van een weigering. Een wedstrijd die niet kan beginnen zegt dat nu ook.
+- Voetbalcarrière: een aandeel kopen of verkopen en een speler verkopen vragen een tweede druk ("Zeker?"), zoals het tabblad Club al deed.
+- Voetbalcarrière: als manager kun je de selectie niet meer leegverkopen: er blijven minstens 14 spelers, een keeper en genoeg spelers per positie.
+- Voetbalcarrière: de selectie toont iedereen met het echte aantal (ook na aankopen boven de 18) en bij de manager zijn alle spelers te verlengen of te verkopen. De spelersmarkt toont de beste bovenaan en Training laat je energie zien.
+- Wedstrijd: het eindverslag, de rust en de herhaling sla je pas over na een korte leestijd, zodat een pass of schot op de laatste seconde ze niet per ongeluk wegdrukt.
+- Wedstrijd: de veldradar draait mee als je in een derby voor team 2 speelt (jouw aanval wijst altijd omhoog) en de computerploeg is een vierkantje en geen bolletje, zodat kleur niet het enige verschil is.
+- Wedstrijd: in een derby zien spelers in team 2 de stand, "jullie" en het balbezit nu vanuit hun eigen kant; bij buiten adem staat er een hint om rustig te lopen.
+- Wedstrijd: na een carrièrewedstrijd noemt het uitslagbord wat je verdiende, en een blessure staat erbij.
+- Coachen: de melding na een wissel zegt hoeveel wissels je nog hebt.
+- Training: Esc tijdens het resultaat meldt niet meer "geen winst" terwijl de groei al is uitgekeerd.
 ### Prestaties
 - Prestaties (#1074, #1067): als het spelvenster verborgen of op de achtergrond is, doen de vaste controles van de overlays, het Samen-paneel en het aanraakscherm niets meer; de kartmotor wordt bij het verlaten van de baan echt stopgezet. Samen spelen: lokaal per speler, geen netwerkwijziging; testsessies met `?stil` blijven gewoon tikken. Voor de metingen staan er twee A-schakelaars (`?perfoff=boomfade`, `?perfoff=gevelfade`).
 ### Controller en bediening

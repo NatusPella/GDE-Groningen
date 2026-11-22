@@ -31,8 +31,15 @@ function stepOf(g) {
   return g.bezitTeam === 1 ? 'verdedig' : g.bezitTeam === 0 ? 'aanval' : 'verdedig';
 }
 
-export function voetbalHudModel(g) {
-  if (!g) return null;
+// Derby (#1114): een mens in team 1 ziet "jullie" en "tegen" vanuit zijn eigen kant. De sim telt absoluut (team 0 of 1); dit draait stand, bezit en baldrager om en is idempotent (mijnTeam wordt 0).
+export function naarMijn(g) {
+  if (!g || g.mijnTeam !== 1) return g;
+  const sw = (a) => (Array.isArray(a) ? [a[1], a[0]] : a);
+  return { ...g, mijnTeam: 0, score: sw(g.score), bezit: sw(g.bezit), bezitTeam: g.bezitTeam === 0 ? 1 : g.bezitTeam === 1 ? 0 : g.bezitTeam };
+}
+export function voetbalHudModel(g0) {
+  if (!g0) return null;
+  const g = naarMijn(g0);
   const idx = STEPS.findIndex((s) => s.id === stepOf(g));
   const steps = STEPS.map((s, i) => ({ label: s.label, icoon: s.icoon, stand: i === idx ? 'nu' : 'straks' }));
   const meter = { pct: Math.max(0, Math.min(100, (g.stamina == null ? 1 : g.stamina) * 100)), naam: 'Adem voor het sprinten', label: g.moe ? 'Buiten adem' : 'Adem', staat: g.moe ? 'laag' : '' };
@@ -49,7 +56,8 @@ export function voetbalHudModel(g) {
   };
 }
 
-export function watNu(g) {
+export function watNu(g0) {
+  const g = naarMijn(g0);
   if (g.tekst) return g.tekst;
   if (g.fase === 'intro') return 'De teams komen het veld op';
   if (g.fase === 'rust') return 'Rust: even bijkomen';
@@ -61,6 +69,7 @@ export function watNu(g) {
   if (g.rol === 'keeper') return g.heeftBal ? 'Keeper met de bal: speel hem uit met {F}' : 'Keeper: duik met {SPATIE}';
   if (g.laad > 0.02) return g.laadSoort === 'lang' ? `Voorzet: laat {E} los voor kracht ${Math.round(g.laad * 100)}%` : `Schot: laat {SPATIE} los voor kracht ${Math.round(g.laad * 100)}%`;
   if (g.heeftBal) return 'Je hebt de bal: pass {F}, schot {SPATIE}';
+  if (g.moe) return 'Buiten adem: loop even rustig';
   if (g.bezitTeam === 1) return 'Zet druk: tackle met {CTRL}';
   if (g.bezitTeam === 0) return 'Jullie hebben de bal: loop je vrij';
   return 'De bal is los: ga erop af';
