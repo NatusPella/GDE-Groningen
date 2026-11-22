@@ -154,6 +154,8 @@ export function kanOverdragen(world, slot) {
   if (!Number.isInteger(slot) || slot < 1 || !sp || sp.verbinding !== 'ok') return { ok: false, tekst: 'Die speler is nu niet goed bereikbaar. Jij houdt het spel.' };
   const k = N.canJoin(world); if (!k.ok) return { ok: false, tekst: k.reason }; // je sluit straks zelf als gast aan
   if (n.sceneNu && !sceneLeeg({ ...n.sceneNu, pauze: false })) return { ok: false, tekst: 'Wacht tot het filmpje voorbij is.' }; // de eigen pauze telt niet: de knop staat in het pauzemenu
+  const W = n.wed; // een race, wedstrijd of score loopt bij wie het spel opende en gaat niet mee in de momentopname: eerst afmaken
+  if (W && (W.r || W.sc || W.lv)) return { ok: false, tekst: 'Wacht tot de wedstrijd voorbij is.' };
   return { ok: true };
 }
 
@@ -326,6 +328,14 @@ export const OPDRACHT_WEG_TEKST = 'De opdracht van de vorige speler kon niet ver
 function bijbaanStopMelding(world, tekst) {
   const G = world.coopBijbaanGast, sj = world.sideJob;
   if (world.coopNet && ((G && (G.id || G.deelt)) || (sj && sj.active))) meld(world, tekst, 7);
+}
+// Wie het spel overdraagt en zelf een bijbaan doet (22-11, Samen-sweep): de staat van de baan gaat niet mee naar de nieuwe host. Hij stopt nu
+// met dezelfde melding als bij een overname, in plaats van als halve baan in het spel van een ander door te lopen.
+function oudeBaanStop(world) {
+  const sj = world.sideJob;
+  if (!(sj && sj.active)) return;
+  bijbaanStopMelding(world, BIJBAAN_WEG_TEKST);
+  try { if (world.sideJobActions && world.sideJobActions.stop) world.sideJobActions.stop(); } catch (e) { /* de melding staat er al */ }
 }
 // De gedeelde zoektocht naar een host: een lijst van kamers (elk met zijn eigen beurt, `duur` seconden), de eigen plek `ik` in die lijst (is de
 // beurt van jezelf, dan open je de kamer en wordt je host, anders probeer je bij die kamer aan te sluiten). Tikken in valTik (de speltijd, geen
@@ -570,7 +580,7 @@ export function wisselTik(world, dt) {
     }
     if (w.oudKlaar && !w.oudBezigMetVerlaten) { // het bericht naar de rest is weg: even wachten tot het aankomt, dan zelf van sessie wisselen
       const open = [...n.hub.sessions.entries()].filter(([slot]) => slot !== w.doel).some(([, s]) => s.rel.pending.length > 0);
-      if (!open || w.nu - w.klaarT >= FLUSH_MAX) { w.oudBezigMetVerlaten = true; const kamer = w.kamer, opt = { terug: w.terugVan, oudHost: true, meldAan: w.oudId, info: n.info, max: n.hub.roster.max, zaad: n.hub.cfg.seed }; w.oudKlaar = false; N.stopCoopNet(world); w.oudBezigMetVerlaten = false; eindPauze(world); verbindMet(world, kamer, null, opt); }
+      if (!open || w.nu - w.klaarT >= FLUSH_MAX) { w.oudBezigMetVerlaten = true; const kamer = w.kamer, opt = { terug: w.terugVan, oudHost: true, meldAan: w.oudId, info: n.info, max: n.hub.roster.max, zaad: n.hub.cfg.seed }; w.oudKlaar = false; oudeBaanStop(world); N.stopCoopNet(world); w.oudBezigMetVerlaten = false; eindPauze(world); verbindMet(world, kamer, null, opt); }
     }
   }
   if (n && n.role === 'client') controleerWeg(world);

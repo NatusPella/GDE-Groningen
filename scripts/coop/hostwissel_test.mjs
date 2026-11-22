@@ -177,6 +177,41 @@ await t('een speler in een voertuig of een filmpje: de overdracht wordt niet ges
   assert.ok(!s.hw.coopHold && !s.hw.coopWissel.oud);
 });
 
+// 22-11 (Samen-sweep): hostwissel midden in een wedstrijd, bijbaan of filmpje
+await t('midden in een race, wedstrijd of score: de overdracht wacht tot het voorbij is (de staat gaat niet mee in de momentopname)', async () => {
+  const s = avond({ gasten: 1 }); await s.step(2);
+  for (const veld of ['r', 'sc', 'lv']) {
+    s.hw.coopNet.wed = { u: null, r: null, sc: null, lv: null, [veld]: { loopt: true } };
+    const k = W.kanOverdragen(s.hw, 1);
+    assert.equal(k.ok, false, 'wed.' + veld); assert.match(k.tekst, /wedstrijd voorbij/);
+    assert.equal(W.biedOver(s.hw, 1).ok, false); assert.ok(tekstIn(s.hw, /wedstrijd voorbij/));
+  }
+  s.hw.coopNet.wed = { u: null, r: null, sc: null, lv: null };
+  assert.equal(W.kanOverdragen(s.hw, 1).ok, true, 'zonder lopende wedstrijd kan het weer');
+  assert.ok(!s.hw.coopHold && !s.hw.coopWissel.oud, 'niets is blijven hangen');
+});
+await t('overdracht met een lopende bijbaan: hij stopt netjes met een melding, geld en voortgang blijven van de speler', async () => {
+  const s = avond({ gasten: 1 }); await s.step(2);
+  const [g1] = s.gs; const geld = s.werelden.map((w) => w.money);
+  s.hw.sideJob = { active: true }; // wie het spel opende doet een bijbaan als de overdracht begint
+  assert.ok(W.biedOver(s.hw, 1).ok);
+  await s.step(1.5, () => g1.coopWisselUi && g1.coopWisselUi.vraag); g1.input.s.add('j');
+  const klaar = await s.step(25, () => rol(g1) === 'host' && rol(s.hw) === 'client' && s.hw.coopNet.joined);
+  assert.ok(klaar, 'de wissel is gelukt');
+  assert.ok(tekstIn(s.hw, /bijbaan is gestopt, want het spel wisselt van speler/), 'de oude host hoort waarom de baan stopt');
+  assert.ok(!s.hw.messages.some((m) => /Je geld en je voortgang blijven van jezelf/.test(m) && /opdracht van de vorige/.test(m)), 'geen verwarring met de opdrachttekst');
+  assert.deepEqual(s.werelden.map((w) => w.money), geld, 'geld ongewijzigd');
+});
+await t('een gast met een bijbaan van de groep: bij de overname na een wegvallende host stopt de baan met een melding', async () => {
+  const s = avond({ gasten: 2 }); await s.step(2);
+  const [g1, g2] = s.gs;
+  g1.coopBijbaanGast = { id: 'taxi', deelt: true };
+  s.valWeg();
+  const ok = await s.step(30, () => (rol(g1) === 'host' || rol(g2) === 'host') && [g1, g2].every((w) => w.coopNet && w.coopNet.joined !== false));
+  assert.ok(ok, 'een van de gasten neemt het over');
+  assert.ok(tekstIn(g1, /bijbaan is gestopt, want het spel wisselt van speler/), 'de baan van de groep stopt hardop, niet stil');
+});
+
 // ---- variant 2: overname bij wegvallen
 const gastRol = (w) => (w.coopNet ? w.coopNet.role : 'eigen');
 // plekken worden toegewezen in de volgorde van aankomst, dus de gast met de snelste lijn is plek 1: zoek de wereld bij een plek
@@ -307,5 +342,5 @@ await t('een gast die host wordt blijft op zijn eigen plek staan (de momentopnam
   assert.equal(uc.plek, 'eigen'); assert.equal(plekken.length, 1, 'binnen 2 m: geen laadsprong');
 });
 
-console.log(`hostwissel_test: ${n}/19 ok`);
+console.log(`hostwissel_test: ${n}/22 ok`);
 process.exit(0);
