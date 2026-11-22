@@ -53,6 +53,7 @@ import { shopSections, wardrobeSections, fittingSections } from './clothingpanel
 import { clothingSfx } from './clothingsfx.js';
 import { sfxEvent } from './sfx/haken.js';
 import { wantedClearCooldownLeft, markWantedCleared } from './heatcooldown.js'; // #838: spuiterij-cooldown
+import { munitieWinst, munitiePrijs } from './munitieregels.js'; // een bijna vol magazijn kost evenredig
 
 export const SHOP_USE_RADIUS = 2.6;
 const OUTFIT_WANTED_COOLDOWN = 60;
@@ -1090,6 +1091,8 @@ function pandSections(world, shop) {
     const income = Math.round(w.melee ? w.gun * 0.4 : w.gun * 0.3 + n * 0.4);
     sell.push({
       id: 's-' + w.key, preview: { kind: 'weapon', weapon: w.key }, label: `${w.label.split(' ')[0]} verkopen`, desc: w.melee ? 'Nauwelijks gebruikt, zegt de verkoper' : `Met ${n} ${w.unit || 'patronen'}, geen vragen`, price: 0, income,
+      // verkopen kan niet terug (kopen kost meer): het wapen in je hand of een grote voorraad vraagt om een tweede druk
+      confirmText: world.weapon === w.key || (!w.melee && n >= 100) ? `${w.label.split(' ')[0]}${w.melee ? '' : ` met ${n} ${w.unit || 'patronen'}`} verkopen? Druk nog een keer, dit krijg je niet terug` : undefined,
       buy() {
         delete world.ammo[w.key];
         if (world.weapon === w.key) world.weapon = 'fists';
@@ -1220,13 +1223,15 @@ function weaponItem(world, w) {
     };
   }
   const unit = w.unit || 'patronen';
-  const price = owned ? w.ammoPrice : w.gun;
+  // een pak dat niet meer past kost een evenredig deel: je betaalt niet de volle prijs voor een paar patronen (munitieregels.js)
+  const winst = munitieWinst(have, w.ammo, w.cap);
+  const price = owned ? munitiePrijs(w.ammoPrice, w.ammo, winst) : w.gun;
   return {
     id: 'w-' + w.key,
     label: owned ? `${w.label.split(' ')[0]}: ${unit} erbij` : w.label,
-    desc: owned ? `+${w.ammo} ${unit} · nu ${have}` : `${w.desc} · met ${w.ammo} ${unit}`,
+    desc: owned ? `+${winst} ${unit}${winst < w.ammo ? ' (past nog)' : ''} · nu ${have}` : `${w.desc} · met ${w.ammo} ${unit}`,
     price, preview: { kind: 'weapon', weapon: w.key }, stats: weaponStats(w.key, w),
-    effect: owned ? `${have} → ${Math.min(w.cap, have + w.ammo)} ${unit}` : '',
+    effect: owned ? `${have} → ${have + winst} ${unit}` : '',
     disabled: have >= w.cap ? 'Zak zit vol' : broke(world, price),
     buy() {
       if (!pay(world, price)) return null;

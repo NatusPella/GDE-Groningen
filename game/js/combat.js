@@ -28,6 +28,7 @@ import { hoofdspeler } from './spelersregister.js'; // de speler achter dit sche
 import { nieuweCombo, comboSlag, comboUitslag } from './meleecombo.js'; // de melee-reeks (#492)
 import { nieuweBlok, blokkeer, herstel, blokActief, schadeNaBlok } from './blockregels.js'; // blokkeren met een slagwapen (#492)
 import { requestRiderOff } from './bikerider.js'; // een fietser van de fiets slaan (#944)
+import { wielWapens, terugvalWapen } from './munitieregels.js'; // het wiel slaat lege wapens over; na het laatste stuk een ander wapen
 
 export { WEAPONS, WEAPON_KEYS, isMeleeWeapon, isRangedWeapon, isGunWeapon };
 
@@ -76,7 +77,7 @@ function cycleWeaponByWheel(dt, world, input) {
   const dir = wheelAcc > 0 ? 1 : -1;
   wheelAcc = 0;
   wheelCooldown = WHEEL_COOLDOWN;
-  const usable = WEAPON_KEYS.filter((k) => hasWeapon(world, k));
+  const usable = wielWapens(WEAPON_KEYS, (k) => hasWeapon(world, k), (k) => hasAmmo(world, k), world.weapon);
   if (usable.length < 2) return;
   const i = Math.max(0, usable.indexOf(world.weapon));
   world.weapon = usable[(i + dir + usable.length) % usable.length];
@@ -146,6 +147,8 @@ export function updateCombat(dt, world) {
     throwExplosive(world, world.weapon, angle, weapon, aimedTargetDistance(world));
   }
   world.ammo[world.weapon]--;
+  // het laatste stuk van iets wat je gooit of leegspuit: je hand blijft niet leeg met een klikje, het volgende wapen komt erin
+  if (weapon.kind !== 'gun' && world.ammo[world.weapon] <= 0) world.weapon = terugvalWapen(WEAPON_KEYS, (k) => hasWeapon(world, k), (k) => hasAmmo(world, k), world.weapon);
   // the last round: the dry click of an empty magazine
   if (weapon.kind === 'gun' && world.ammo[world.weapon] <= 0) weaponSound(world, { sub: 'empty', weapon: world.weapon, x: p.x, y: p.y });
 }

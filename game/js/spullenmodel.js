@@ -44,11 +44,12 @@ export function sorteer(items, sort = 'soort') {
 
 // Het getal op de tegel: een aantal boven nul, "99+" als het groot is. Leeg zonder aantal.
 export const badgeTekst = (it) => {
+  if (it && it.leeg) return 'Leeg'; // een wapen zonder patronen zegt dat op de tegel, in plaats van niets (of een 0)
   const n = it && Number(it.aantal);
   return Number.isFinite(n) && n > 0 ? (n > 99 ? '99+' : '×' + Math.floor(n)) : '';
 };
 // Dezelfde hoeveelheid in woorden voor schermlezers en de tooltip.
-export const aantalZin = (it) => { const n = Math.floor(Number(it && it.aantal) || 0); return n > 0 ? `${n} ${it.eenheid || (n === 1 ? 'stuk' : 'stuks')}` : ''; };
+export const aantalZin = (it) => { if (it && it.leeg) return 'leeg'; const n = Math.floor(Number(it && it.aantal) || 0); return n > 0 ? `${n} ${it.eenheid || (n === 1 ? 'stuk' : 'stuks')}` : ''; };
 
 // De naam van de tegel voor een schermlezer: titel, aantal en wat hij nu is ("in de hand").
 export const tegelNaam = (it) => [it.title, aantalZin(it), it.side].filter(Boolean).join(', ');

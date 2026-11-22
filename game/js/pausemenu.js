@@ -1246,7 +1246,8 @@ const spullenApi = {
   rerender: (keep) => {
     const sel = keep && keep.dataset && keep.dataset.spul ? `[data-spul="${CSS.escape(keep.dataset.spul)}"]` : '';
     renderSpullenPanel();
-    const back = sel && activePanel().querySelector(sel);
+    // de tegel is weg (het laatste stuk eten op): de focus gaat naar de tegel die nu gekozen is, niet terug naar de bovenste
+    const back = (sel && activePanel().querySelector(sel)) || (keep ? activePanel().querySelector('[data-spul][aria-current="true"]') : null);
     if (back) back.focus({ preventScroll: true });
   },
 };

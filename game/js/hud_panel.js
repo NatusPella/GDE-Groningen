@@ -6,7 +6,7 @@ import { wantedPhase, wantedStatus, wantedAnnounce } from './wantedstate.js';
 import { levelOf, cooldownOf, zoekBalkVulling } from './wantedlevels.js';
 import { telStap, bewegingUit, MI } from './microinteractions.js';
 import { tikGetal } from './dsmicro.js'; // DS3: het geldgetal tikt even bij geld binnen (ds-micro.css, .ds-m-tik)
-import { moneyLabel, moneyNeedsUpdate } from './hudmoney.js';
+import { moneyLabel, moneyNeedsUpdate, weaponAmmoText } from './hudmoney.js';
 import { getMissionLayer, updateMissionNotices } from './missionmaplive.js';
 import { missionMinimapScale, selectMiniItems } from './missionmap.js';
 import { drawMissionLayerIcon, drawLayerAreas, drawLayerLines } from './missionmapdraw.js';
@@ -1521,7 +1521,7 @@ function updateMoneyWeapon(dt, world) {
   els.money.classList.toggle('rolling', diff !== 0);
   const ammo = world.ammo ? world.ammo[world.weapon] : undefined;
   const weaponKey = WEAPON_ICONS[world.weapon] ? world.weapon : 'fists';
-  const sub = weaponKey === 'fists' ? 'geen wapen' : ammo === undefined || NO_COUNT.has(world.weapon) ? 'slaan' : ammo === Infinity ? '∞' : String(ammo);
+  const sub = weaponAmmoText(weaponKey, ammo, NO_COUNT);
   if (els.weapon.dataset.key !== weaponKey) {
     const eerste = els.weapon.dataset.key === undefined;
     els.weapon.dataset.key = weaponKey;
