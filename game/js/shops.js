@@ -46,6 +46,7 @@ import {
   completeSetIds, wornSet, wearPiece, takeOffSlot, setLocalCharProvider, emitLocalOutfitChange, cyclePreset, getHair, setHair, wornPieces,
 } from './clothing.js';
 import { HAIR_COLORS, HAIR_STYLES, hairPrice, parseHair, hairReaction } from './clothinghair.js';
+import { stukSpec, setSpec, haarSpec } from './spullen3d.js';
 import { hairGroups, cutLine } from './kapperkeuze.js'; // de kapper aan de stoel: groepen en een regel bij het knippen (epic Autotuning ronde 4)
 import { playHair } from './tuningsfx.js';
 import { SETS, setKeyFor, parsePiece } from './clothingdata.js';
@@ -812,12 +813,6 @@ export function vehiclePreviewOf(v, color) {
   return { kind: vehicleKind(v), model, color: color || (v.model && v.model.color), nameIdx: v.id % 6, flags: v.isHeroCar ? { isHeroCar: true } : v.isPolice ? { isPolice: true } : v.isTaxi ? { isTaxi: true } : null };
 }
 
-// The current character with outfit/hair overrides, for the clothing previews.
-function lookWith(world, over, look = null) {
-  const app = hoofdspeler(world).character === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
-  return { kind: 'person', look: { ...app, ...over, look: look ? { ...(app.look || {}), ...look } : app.look }, frame: look ? 'head' : null };
-}
-
 function shopMenu(world, s, werf = false) {
   const build = {
     wapens: weaponSections, kleding: (w) => clothingShopSections(w, s), kapper: hairSections, tabak: tabakSections,
@@ -1279,6 +1274,9 @@ function clothingCtx(world, shopKey = null) {
     copy: (text) => { try { if (typeof navigator !== 'undefined' && navigator.clipboard) navigator.clipboard.writeText(text); } catch (e) { /* een kopie is een extraatje */ } },
     // a worn outfit on the player's own figure, for the shop preview and the fitting room (drag turns it)
     previewOf: (worn) => ({ kind: 'person', look: { ...app(), ...outfitToLook(worn, baseLook ? baseLook[ch] : app()) } }),
+    // een los stuk of een set zonder personage (clothingpreview.js): wat een lijst toont is het stuk zelf, niet Tammo (eigenaar 22-11)
+    pieceOf: (piece) => stukSpec(piece),
+    setOf: (pieces) => setSpec(pieces),
     apply: (stars) => {
       if (!syncHeistOutfit()) applyLooks();
       clothesRustle(world);
@@ -1402,11 +1400,6 @@ function hairSections(world) {
   const ch = currentChar(world);
   const cur = parseHair(getHair(ch));
   const naturel = baseLook[ch].hair;
-  // the new hair as the mirror shows it: your own outfit and hat off, so the hair is seen
-  const mirror = (style, color) => {
-    const h = parseHair(`${style}.${color}`);
-    return lookWith(world, { hairStyle: style, hair: h.hex != null ? h.hex : naturel }, ch === 'tammo' ? { hat: null } : null);
-  };
   const reaction = (style, color) => hairReaction(ch, style, color);
   const change = (style, color, price, text) => {
     if (!pay(world, price)) return null;
@@ -1419,14 +1412,14 @@ function hairSections(world) {
   const colors = HAIR_COLORS.map((c) => ({
     id: 'h-' + c.id, label: c.label, desc: c.id === 'naturel' ? 'Terug naar je eigen kleur' : 'Verven, föhnen, klaar',
     price: c.price, tag: cur.color === c.id ? 'Nu' : '', swatch: [hexCss(c.hair ?? naturel)],
-    preview: mirror(cur.style, c.id),
+    preview: haarSpec(cur.style, ch, c.hair ?? naturel), // het kapsel op een neutrale kop: de kleur zie je, niet het gezicht van Tammo
     disabled: cur.color === c.id ? 'Heb je al' : broke(world, c.price),
     buy: () => change(cur.style, c.id, c.price, `Haar ${c.label.toLowerCase()}.`),
   }));
   const styleItem = ([id, label]) => ({
     id: 'hs-' + id, label, desc: ch === 'tammo' ? 'Onder de pet, maar jij weet het' : 'Knippen en stylen',
     price: hairPrice(id), tag: cur.style === id ? 'Nu' : '',
-    preview: mirror(id, cur.color),
+    preview: haarSpec(id, ch, parseHair(`${id}.${cur.color}`).hex ?? naturel),
     disabled: cur.style === id ? 'Heb je al' : broke(world, hairPrice(id)),
     buy: () => change(id, cur.color, hairPrice(id), `${label}: de kapper is tevreden.`),
   });

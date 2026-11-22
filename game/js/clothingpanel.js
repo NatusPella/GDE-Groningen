@@ -22,6 +22,10 @@ const GROUPS = [
 const slotLabel = (id) => (SLOTS.find((s) => s.id === id) || {}).label || id;
 const lower = (s) => String(s || '').toLowerCase();
 
+// Wat een lijst toont: het stuk zelf (of de set als compositie), niet het personage. Alleen het pashokje (ctx.fitting) en de samenstellingen
+// (outfits, postuur, codes) tonen het personage: daar is "hoe staat het mij" of "hoe ziet de hele look eruit" de vraag.
+const viewPiece = (ctx, piece, worn) => (!ctx.fitting && ctx.pieceOf ? ctx.pieceOf(piece) : ctx.previewOf(worn));
+const viewSet = (ctx, s, worn) => (!ctx.fitting && ctx.setOf ? ctx.setOf(s.pieces) : ctx.previewOf(worn));
 const withPiece = (worn, piece) => { const x = parsePiece(piece); return x ? { ...worn, [x.item.slot]: piece } : worn; };
 const withoutSlot = (worn, slot) => { const o = { ...worn }; delete o[slot]; return o; };
 
@@ -64,7 +68,7 @@ function wardrobeItem(ctx, piece) {
     verb: on ? 'Uitdoen' : 'Aantrekken',
     tag: on ? 'Aan' : '',
     swatch: swatchOf(piece, ctx.hexCss),
-    preview: ctx.previewOf(on ? effectiveWorn(ch) : withPiece(effectiveWorn(ch), piece)),
+    preview: viewPiece(ctx, piece, on ? effectiveWorn(ch) : withPiece(effectiveWorn(ch), piece)),
     disabled: on && block ? block : '',
     buy() {
       if (on) {
@@ -97,7 +101,7 @@ function setWardrobeItem(ctx, s) {
     tag: on ? 'Aan' : '',
     effect: bonus,
     swatch: s.pieces.map((p) => parsePiece(p)).filter(Boolean).slice(0, 4).map((x) => ctx.hexCss(x.hex)),
-    preview: ctx.previewOf(wornAfterSet(ch, s)),
+    preview: viewSet(ctx, s, wornAfterSet(ch, s)),
     disabled: on ? 'Heb je al aan' : '',
     buy() {
       const r = wearSet(ch, s);
@@ -186,7 +190,7 @@ function shopItem(ctx, piece, shopKey) {
     verb: owned && !on ? 'Aantrekken' : undefined,
     tag: on ? 'Aan' : owned ? 'In je kast' : inSale ? 'Uitverkoop' : '',
     swatch: swatchOf(piece, ctx.hexCss),
-    preview: ctx.previewOf(withPiece(effectiveWorn(ch), piece)),
+    preview: viewPiece(ctx, piece, withPiece(effectiveWorn(ch), piece)),
     disabled: on ? 'Heb je al aan' : owned ? '' : ctx.broke(price),
     buy() {
       if (!owned) {
@@ -218,7 +222,7 @@ function shopSetItem(ctx, s) {
     tag: on ? 'Aan' : !miss.length ? 'In je kast' : '',
     effect: bonus,
     swatch: s.pieces.map((p) => parsePiece(p)).filter(Boolean).slice(0, 4).map((x) => ctx.hexCss(x.hex)),
-    preview: ctx.previewOf(wornAfterSet(ch, { pieces: s.pieces })),
+    preview: viewSet(ctx, s, wornAfterSet(ch, { pieces: s.pieces })),
     disabled: on ? 'Heb je al aan' : miss.length ? ctx.broke(price) : '',
     buy() {
       if (miss.length) {
@@ -260,7 +264,8 @@ export function shopSections(ctx) {
 // stuk over je eigen outfit, slepen draait), je trekt aan wat je al hebt, je bewaart de look in een van de vijf outfits en je kunt de code
 // ervan lezen om te delen (outfit-code versie 3: stukken, kapsel en postuur). Kopen kan hier ook: de kassa is een stap verderop, de
 // pasbon is dezelfde. Ids van winkelstukken krijgen 'p-' voorop, zodat ze niet botsen met dezelfde stukken uit de kast.
-export function fittingSections(ctx) {
+export function fittingSections(base) {
+  const ctx = { ...base, fitting: true }; // in het pashokje past je het stuk over je eigen outfit: de lijst toont jou, niet het losse stuk
   const ch = ctx.ch;
   const out = [];
   const wardrobe = wardrobeSections(ctx);
