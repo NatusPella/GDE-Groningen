@@ -7,7 +7,7 @@ import { DIFFICULTY, DIFFICULTY_MODES, DIFFICULTY_DEFAULT, LEVEL_TEXT, OPTION_DE
 export const CARD_TEXT = Object.freeze({
   eyebrow: 'Nieuw spel',
   titel: 'Hoe pittig moet het zijn?',
-  uitleg: 'Later te wijzigen bij Instellingen, Moeilijkheid.',
+  uitleg: 'Later: Instellingen, Moeilijkheid, Toegankelijkheid.',
   aanbevolen: 'Aanbevolen',
   aanpassen: 'Aanpassen',
   aanpassenUitleg: 'Kies zelf per onderdeel',
