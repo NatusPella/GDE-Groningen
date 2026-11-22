@@ -19,7 +19,7 @@ ok(/class=""/.test(rijen[1]) && /Tessa &lt;b&gt;/.test(rijen[1]), 'namen worden 
 ok(/class="weg"/.test(rijen[2]) && /<td>weg<\/td><\/tr>/.test(rijen[2]), 'wie wegvalt krijgt het woord weg in de laatste cel');
 ok(/<td>-<\/td><td>weg/.test(rijen[2]), 'de cellen ervoor zijn leeg (geen verouderde stand)');
 ok(/<th scope="col">#<\/th>/.test(t) && /<th scope="row">Jelle/.test(t), 'kop en rijkop zijn echte tabelkoppen');
-ok(standTabel(['#', 'Naam'], []).includes('<tbody></tbody>'), 'zonder deelnemers een lege tabel');
+ok(/<tbody><tr><td colspan="3">Nog niemand<\/td><\/tr><\/tbody>/.test(standTabel(['#', 'Naam'], [])), 'zonder deelnemers een tabel met "Nog niemand"');
 
 // bedrading: de borden met meer deelnemers gebruiken de gedeelde tabel; pitch & putt zegt "weg" in woorden
 ok(/standTabel\(\['#', 'Speler', 'Ronde', 'Tijd'\]/.test(rd('game/js/kartbaan.js')), 'kartbaan gebruikt standTabel');

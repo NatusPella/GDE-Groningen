@@ -494,7 +494,8 @@
     "voetbaltraining*",
     "sponsorpanden",
     "voetbalbezit",
-    "voetbalcommentarycareer"
+    "voetbalcommentarycareer",
+    "footballmusic"
    ],
    "eigenaar": "speler",
    "gast": "Een gast speelt zijn eigen figuur in jouw team; zijn ratings reizen mee als hexblok in zijn wedgast-antwoord J (haak ratings van registreerWedstrijd) en worden aan de hostkant geklemd, ook op de klasse van de eigen carrière van de host.",
@@ -2195,5 +2196,388 @@
   "gde-snackketen-v1",
   "gde-terugkeer-v1",
   "gde-ahead"
- ]
+ ],
+ "sweep22": {
+  "sinds": "v0.64.0",
+  "doc": "docs/SAMEN-SWEEP-22-11.md",
+  "note": "Samen-sweep 22-11 (eigenaarseis: alles moet ook werken in Samen spelen). Elk systeem hoort bij een of meer systemen uit features (de zes vragen van AGENTS.md staan daar) en noemt de extra bewijzen. venster = stappen die alleen met echte vensters te bewijzen zijn (testbank, draaiboek).",
+  "systemen": [
+   {
+    "id": "verhaalstappen",
+    "naam": "Verhaalstappen N/J/F/K/V/E/W",
+    "features": [
+     "verhaalmissies",
+     "overgangsscenes"
+    ],
+    "tests": [
+     "scripts/multiplayerstorysteps_test.mjs",
+     "scripts/coopverhaal_test.mjs"
+    ]
+   },
+   {
+    "id": "bezit",
+    "naam": "Bezit, percelen, snackwagen, ketenwagens",
+    "features": [
+     "bezit"
+    ],
+    "tests": [
+     "scripts/bezitnet_test.mjs",
+     "scripts/bezitcoop_test.mjs"
+    ],
+    "venster": [
+     "alles/bezit",
+     "alles/latejoin"
+    ]
+   },
+   {
+    "id": "voetbal",
+    "naam": "Voetbalcarriere, wedstrijd, training en club",
+    "features": [
+     "voetbalcarriere",
+     "voetbalwedstrijd"
+    ],
+    "tests": [
+     "scripts/voetbal_samen_test.mjs"
+    ],
+    "venster": [
+     "wedstrijd/voetbal-gast"
+    ]
+   },
+   {
+    "id": "kleding",
+    "naam": "Kleding, outfit, kapper, pashokje",
+    "features": [
+     "kleding"
+    ],
+    "tests": [
+     "scripts/samen_sweep_test.mjs"
+    ]
+   },
+   {
+    "id": "tuning",
+    "naam": "Tuning, gepimpte auto's en autotreffen",
+    "features": [
+     "tuning"
+    ],
+    "tests": [
+     "scripts/coopbezit_test.mjs"
+    ],
+    "venster": [
+     "alles/tuning"
+    ]
+   },
+   {
+    "id": "interieurs",
+    "naam": "Interieurs, klanten en NPC's",
+    "features": [
+     "interieurs"
+    ],
+    "tests": [
+     "scripts/interior_coop_test.mjs"
+    ]
+   },
+   {
+    "id": "bijbanen",
+    "naam": "Bijbanen",
+    "features": [
+     "bijbanen",
+     "verhuizen"
+    ],
+    "tests": [
+     "scripts/coop/hostwissel_test.mjs"
+    ]
+   },
+   {
+    "id": "radio",
+    "naam": "Radiozenders en voertuigradio",
+    "features": [
+     "voertuigen",
+     "stemmen"
+    ],
+    "tests": [
+     "scripts/radiogroup_test.mjs",
+     "scripts/radiochannels_test.mjs"
+    ],
+    "venster": [
+     "alles/radio"
+    ]
+   },
+   {
+    "id": "luchtroute",
+    "naam": "Luchtroute-HUD",
+    "features": [
+     "voertuigen"
+    ],
+    "tests": [
+     "scripts/airguide_test.mjs",
+     "scripts/samen_sweep_test.mjs"
+    ]
+   },
+   {
+    "id": "kaartontdekking",
+    "naam": "Kaartontdekking",
+    "features": [
+     "kaart"
+    ],
+    "tests": [
+     "scripts/loadwait_test.mjs",
+     "scripts/kaartontdekking_test.mjs"
+    ]
+   },
+   {
+    "id": "weer",
+    "naam": "Weer en zomervariatie",
+    "features": [
+     "weer"
+    ],
+    "tests": [
+     "scripts/coopweer_test.mjs"
+    ]
+   },
+   {
+    "id": "wereldleven",
+    "naam": "Wereld-leven evenementen",
+    "features": [
+     "wereldleven",
+     "dieren"
+    ],
+    "tests": [
+     "scripts/worldlife_test.mjs"
+    ]
+   },
+   {
+    "id": "toegankelijkheid",
+    "naam": "Toegankelijkheid",
+    "features": [
+     "instellingen"
+    ],
+    "tests": [
+     "scripts/instellingen_test.mjs"
+    ]
+   },
+   {
+    "id": "loopbaan",
+    "naam": "Loopbaan",
+    "features": [
+     "loopbanen"
+    ],
+    "tests": [
+     "scripts/loopbaan_coop_test.mjs"
+    ]
+   },
+   {
+    "id": "prestaties",
+    "naam": "Prestaties",
+    "features": [
+     "prestaties"
+    ],
+    "tests": [
+     "scripts/prestaties_test.mjs"
+    ]
+   },
+   {
+    "id": "spullen",
+    "naam": "Spullen en wapens",
+    "features": [
+     "spullen",
+     "wapens"
+    ],
+    "tests": [
+     "scripts/coopwapen_test.mjs"
+    ]
+   },
+   {
+    "id": "zinnen",
+    "naam": "Vaste zinnen, pings en doel delen",
+    "features": [
+     "zinnen",
+     "pings"
+    ],
+    "tests": [
+     "scripts/multiplayerphrases_test.mjs",
+     "scripts/multiplayerping_test.mjs",
+     "scripts/multiplayergoal_test.mjs",
+     "scripts/samen_sweep_test.mjs"
+    ],
+    "venster": [
+     "alles/zinnen"
+    ]
+   },
+   {
+    "id": "oudesaves",
+    "naam": "Oude-saves-kaart",
+    "features": [
+     "opslaan"
+    ],
+    "tests": [
+     "scripts/coopsave_test.mjs"
+    ]
+   },
+   {
+    "id": "moeilijkheid",
+    "naam": "Moeilijkheid en lobby-niveau",
+    "features": [
+     "moeilijkheid",
+     "netwerk"
+    ],
+    "tests": [
+     "scripts/difficulty_lobby_test.mjs"
+    ]
+   },
+   {
+    "id": "cutscenewarm",
+    "naam": "Cutscene-warm en poort",
+    "features": [
+     "cutscenes",
+     "overgangsscenes"
+    ],
+    "tests": [
+     "scripts/coopcut_test.mjs"
+    ],
+    "venster": [
+     "filmpjewissel"
+    ]
+   },
+   {
+    "id": "berovingen",
+    "naam": "Berovingen",
+    "features": [
+     "muggings"
+    ],
+    "tests": [
+     "scripts/muggings_gast_test.mjs"
+    ]
+   },
+   {
+    "id": "ov",
+    "naam": "Taxi, OV en treinen live",
+    "features": [
+     "ov"
+    ],
+    "tests": [
+     "scripts/coop/treincoop_test.mjs",
+     "scripts/livebussen_test.mjs"
+    ]
+   }
+  ],
+  "controles": [
+   {
+    "id": "gast-eigen-verhaal",
+    "tekst": "Een gast speelt zijn eigen verhaalvoortgang zonder de wereld van de host te breken",
+    "tests": [
+     "scripts/coopverhaal_test.mjs",
+     "scripts/samen_sweep_test.mjs"
+    ]
+   },
+   {
+    "id": "hostwissel-bijbaan-wedstrijd-film",
+    "tekst": "Hostwissel midden in een bijbaan, wedstrijd of filmpje",
+    "tests": [
+     "scripts/coop/hostwissel_test.mjs",
+     "scripts/coophostwissel_test.mjs"
+    ],
+    "venster": [
+     "filmpjewissel",
+     "overdracht"
+    ]
+   },
+   {
+    "id": "late-aansluiter",
+    "tekst": "Een gast die later aansluit ziet de bestaande Bezit-, tuning- en kledingstatus",
+    "tests": [
+     "scripts/bezitnet_test.mjs",
+     "scripts/samen_sweep_test.mjs"
+    ],
+    "venster": [
+     "alles/latejoin"
+    ]
+   },
+   {
+    "id": "lokale-radio-luchtroute",
+    "tekst": "Voertuigradio en luchtroute-HUD zijn lokaal; alleen de keuze van de bestuurder gaat het net op",
+    "tests": [
+     "scripts/radiogroup_test.mjs",
+     "scripts/samen_sweep_test.mjs"
+    ]
+   },
+   {
+    "id": "zinnen-dempen-blokkeren",
+    "tekst": "Vaste zinnen met dempen en blokkeren",
+    "tests": [
+     "scripts/multiplayerphrases_test.mjs",
+     "scripts/samen_sweep_test.mjs"
+    ]
+   },
+   {
+    "id": "geen-ip",
+    "tekst": "Geen IP-adressen zichtbaar voor een speler",
+    "tests": [
+     "scripts/samen_sweep_test.mjs",
+     "scripts/coopcore_test.mjs"
+    ]
+   },
+   {
+    "id": "rate-limits",
+    "tekst": "Rate limits op pings, zinnen, doelen, zender en bezit",
+    "tests": [
+     "scripts/samen_sweep_test.mjs",
+     "scripts/bezitnet_test.mjs",
+     "scripts/multiplayergoal_test.mjs"
+    ]
+   },
+   {
+    "id": "groepsvoertuig",
+    "tekst": "Groepsvoertuig: de bestuurder kiest radio en doel",
+    "tests": [
+     "scripts/radiogroup_test.mjs",
+     "scripts/multiplayergoal_test.mjs"
+    ],
+    "venster": [
+     "alles/radio"
+    ]
+   }
+  ],
+  "venster": [
+   {
+    "stap": "alles/bezit",
+    "bestand": "scripts/coop/coop.page.js",
+    "zoek": "stap === 'bezit'"
+   },
+   {
+    "stap": "alles/tuning",
+    "bestand": "scripts/coop/coop.page.js",
+    "zoek": "stap === 'tuning'"
+   },
+   {
+    "stap": "alles/zinnen",
+    "bestand": "scripts/coop/coop.page.js",
+    "zoek": "stap === 'zinnen'"
+   },
+   {
+    "stap": "alles/radio",
+    "bestand": "scripts/coop/coop.page.js",
+    "zoek": "stap === 'radio'"
+   },
+   {
+    "stap": "alles/latejoin",
+    "bestand": "scripts/coop/testbank.mjs",
+    "zoek": "mockLate"
+   },
+   {
+    "stap": "wedstrijd/voetbal-gast",
+    "bestand": "scripts/coop/coop.page.js",
+    "zoek": "async wedstrijd("
+   },
+   {
+    "stap": "filmpjewissel",
+    "bestand": "scripts/coop/testbank.mjs",
+    "zoek": "filmpjewissel"
+   },
+   {
+    "stap": "overdracht",
+    "bestand": "scripts/coop/testbank.mjs",
+    "zoek": "overdracht"
+   }
+  ]
+ }
 }

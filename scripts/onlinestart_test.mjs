@@ -46,7 +46,7 @@ await t('moetVragen vraagt tot onlineMeedoen true is én de naam geldig is', asy
   assert.equal(moetVragen(), true);
   for (const [waarde, naam, verwacht] of [[null, '', true], [false, '', true], [false, 'Bouwer', true], [true, '', true], [true, '   ', true], [true, 'Tessa', true], [true, 'x'.repeat(17), true], [true, '.', true], [true, '...', true], [true, 'Bouwer', false]]) {
     naar(waarde); naamZet(naam);
-    assert.equal(moetVragen({ onlineMeedoen: S.getSettings().onlineMeedoen, onlineNaam: S.getSettings().onlineNaam }), verwacht, `${waarde}/${naam}`);
+    assert.equal(moetVragen({ onlineMeedoen: waarde, onlineNaam: naam }), verwacht, `${waarde}/${naam}`);
   }
   naar(true); naamZet('Bouwer');
   assert.equal(moetVragen(), false);
@@ -91,7 +91,7 @@ await t('de kaart heeft een naamveld en precies één knop Doorgaan', async () =
   assert.match(html, /gaat naar je medespeler en naar de openbare servers/);
   assert.match(html, /STUN-server en openbare brokers/);
   assert.match(html, new RegExp(`>${EERSTE_START.doorgaan}<`));
-  assert.equal((html.match(/<button\b/g) || []).length, 1, 'één knop: Doorgaan');
+  assert.equal((html.match(/<button\b[^>]*class="os-knop/g) || []).length, 1, 'één antwoordknop: Doorgaan (naast het Meer info-schakelaartje)');
   assert.ok(!/data-keuze|Meedoen<|Alleen spelen|Later</.test(html), 'geen tweede antwoord of uitstelknop');
   assert.match(html, /class="os-naam"[^>]*maxlength="16"[^>]*required/, 'verplicht naamveld met dezelfde grens als het profiel');
   assert.match(html, /class="os-consent-vink"/, 'het akkoord is een verplicht vinkje op dezelfde kaart');
