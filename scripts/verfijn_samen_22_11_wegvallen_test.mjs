@@ -66,7 +66,7 @@ t('zinnen: het ritme van een vertrokken speler telt niet voor de volgende', () =
 t('de host roept het vergeten aan als een gast echt weggaat (niet bij tijdelijk wegvallen)', () => {
   const src = fs.readFileSync(new URL('../game/js/coopnet.js', import.meta.url), 'utf8');
   const leave = src.slice(src.indexOf('onLeave: (slot, why'), src.indexOf('onLost: (slot)'));
-  assert.match(leave, /meedoenVergeet(nn.meedoen, slot)/); assert.match(leave, /forgetSender(nn.phraseRelay, slot)/); assert.match(leave, /vergeetPings(nn.pingRelay, slot)/);
+  for (const deel of ['meedoenVergeet(nn.meedoen, slot)', 'forgetSender(nn.phraseRelay, slot)', 'vergeetPings(nn.pingRelay, slot)']) assert.ok(leave.includes(deel), deel);
   const lost = src.slice(src.indexOf('onLost: (slot)'), src.indexOf('onEvent: (slot, body)'));
   assert.doesNotMatch(lost, /meedoenVergeet/, 'wie terugkomt houdt zijn antwoord');
 });
