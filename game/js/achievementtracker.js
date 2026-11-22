@@ -260,6 +260,7 @@ function trackVehicle(dt, w, pv) {
       if (bonus > 0) {
         // reeks: elke volgende rakelings binnen 9 s telt zwaarder (x1,5, x2 ... tot x3)
         const st = nearMissStreak(nearMiss, w.time, bonus);
+        setStatMax(w, 'nearMissReeks', st.n);
         noteMoney('Rijden'); w.money += st.bonus;
         chipPopup(st.n > 1 ? `+€${st.bonus} Rakelings x${st.n}` : `+€${st.bonus} Rakelings`);
       }

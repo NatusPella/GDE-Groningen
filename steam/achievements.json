@@ -266,6 +266,14 @@
       "steamApiNaam": ""
     },
     {
+      "id": "bijna_reeks",
+      "titel": "Op een haar, vijf keer",
+      "omschrijving": "Haal vijf keer rakelings achter elkaar, binnen negen seconden per keer",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_BIJNA_REEKS",
+      "steamApiNaam": ""
+    },
+    {
       "id": "wrakken_25",
       "titel": "Sloopkampioen",
       "omschrijving": "Schrijf 25 voertuigen af",

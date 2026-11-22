@@ -12,7 +12,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 (De coördinator voegt deze regels bij 0.65.0.)
 
 ### Spelplezier (sprint 22-11)
-- Rakelings-reeks: meerdere echte rakelings binnen 9 seconden tellen steeds zwaarder mee (x1,5, x2 tot x3 van de gewone bonus) en de melding toont de stand ("Rakelings x3"). Een botsing breekt de reeks. Samen spelen: de reeks is per speler, lokaal, net als de rakelings-bonus zelf (geen nieuw bericht).
+-- - Nieuwe prestatie "Op een haar, vijf keer": vijf rakelings achter elkaar in een reeks (voortgang per speler, lokaal).
+ Rakelings-reeks: meerdere echte rakelings binnen 9 seconden tellen steeds zwaarder mee (x1,5, x2 tot x3 van de gewone bonus) en de melding toont de stand ("Rakelings x3"). Een botsing breekt de reeks. Samen spelen: de reeks is per speler, lokaal, net als de rakelings-bonus zelf (geen nieuw bericht).
 
 ### Besturing met een controller
 - Acties-wiel (controller-review 22-11, #495, #1011): houd Overzicht een halve seconde ingedrukt en een wiel toont alles wat in die situatie geen eigen knop heeft: de radio in een auto (sinds #495 weg van het pad), de volgende zender, andere kleren, de filmcamera, eerste persoon, het waypoint naar je doel, de directe wapenkeuze, de alarmlichten, het lakmenu, het kusje, de busdienst overnemen (G) en in Samen spelen de roepjes en snelle zinnen in een voertuig. Kies met de linkerstick of de D-pad, A bevestigt, B sluit, LB en RB bladeren. Een korte tik op Overzicht is nog steeds de kaart (die gaat nu bij het loslaten open). Wie niet kan houden zet de tikstand aan: dan opent een tik het wiel. Herbinden werkt gewoon door. Een toets die alleen in het wiel zit, toont in de hints de knop Overzicht met "houd". Invoer is lokaal; er gaat niets over het net.
