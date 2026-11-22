@@ -89,6 +89,16 @@ Een proef die geen effect had en is teruggedraaid: elke listener en de groenopru
 - Niet gemeten: zonder `--hitch` (zie hieronder), de volledige `release`-set, `heli`, `a7`, `platteland`, `varen`, `druk`, `nacht` en `regen` (die waren in het gate-rapport binnen de norm), beeld en geluid, het effect van de wijziging op de zichtbaarheid van tegels bij een snelle sprong (ongemeten: een achtergrondtegel kan er door `promoteBgTiles` pas na maximaal 20 frames bij komen).
 - Geen Samen-spelen-aanpassing: de tegelstroom is per speler lokaal (host en gast streamen elk hun eigen tegels); er is geen nieuw bericht en geen nieuwe voortgang. Een gast die later aansluit werkt zijn plaatsing zelf af.
 
+## Vervolg (opdracht coördinator: de resterende 6 s tegelwerk uit de speelfase)
+
+| stap | wat | uitkomst |
+|---|---|---|
+| (b) | `prepareKoeSites` (42 tegels, straal 2,7 km) start niet meer 12 s na het begin maar pas als de speler binnen `KOE_PREP_M` (6 km) van Ten Boer komt (`koeNear`, elke 2 s gecontroleerd in `updateOmmelandFun`). De uitdaging zelf (`KOE.spots`/`start`) heeft de plekken pas dan; `__ommeland.prepare` (storytest) laat de koe nog altijd direct laden. | ring en spoor in de reeks onveranderd: 50 in 3 van 3 runs (ring 50,1; 50,1; 50,1, spoor 50; 50; 50, foot 33,4 in 3 van 3). 305 tegels worden 263; dat is te weinig om de 3 vsync-grens te halen. |
+| (c) | bakken van placement/kits/koe bij de wereldbouw | **Niet gedaan.** `placeSites`, `countryDoor` en `placeCountryShops` zijn geen pure functies van een tegel: ze lezen gebouwen, wegen en water van meerdere tegels, verwijderen bomen uit het raster (`clearTreesFor`) en vullen module-toestand (`shops`, `spots`, `sites`). Bakken vraagt een nieuwe sectie in het `.gdt`-formaat, een herschreven loader met terugval en een gelijkheidstest op een sample van de hele wereldbouw (de wereld is hier niet bouwbaar zonder `data/cache`). Dat is geen kleine wijziging; als eigen issue oppakken. |
+| (a) | vasthouding na de film korter (geen `cineQuiet` van 15 s) met een grotere druppel (3 en 1,5 ms) | **Slechter**: ring 50; 50,7; 66,6, spoor 49,9; 149,9; 66,5, foot 33,4; 33,5; 50. De afvoer valt dan helemaal in de routes. Niet overnemen. |
+
+Conclusie: zolang het werk bij de start van het spel gedaan wordt, valt het in de eerste 100 s en dus in ring en spoor van de gate. Alleen het werk wegnemen (bakken, of pas bij nabijheid per faciliteit plaatsen) haalt de 37 ms. Spoor op de tag zelf is 33 of 50 (zie boven); ring en spoor zijn na de fix niet slechter dan dat in de reeks, behalve ring (35,5 tegen 50).
+
 ## Zonder `--hitch`
 
 Twee runs per stand, reeks foot, ring, spoor, p95 ms (de eerste run van `f7` had een uitschieter van 950 ms in foot: de machine was dan niet helemaal stil; de eerste run van HEAD leverde alleen foot op):

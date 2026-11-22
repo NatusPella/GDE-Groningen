@@ -156,6 +156,19 @@ export async function prepareKoeSites(map) {
   return sites || null;
 }
 
+// De 42 tegels rond Ten Boer (straal 2,7 km) kosten ca. 1 s hoofdthread: alleen als de speler in de buurt komt (perf-regressie 22-11).
+// Op 6 km is er bij 30 m/s nog 100 s voor het laden; het kaartpunt verschijnt zodra de plekken bekend zijn.
+export const KOE_PREP_M = 6000;
+let koeStarted = false;
+export function koeNear(map, x, y) {
+  if (koeStarted || sites !== null || !map || !map.store) return false;
+  const tb = placeNamed('Ten Boer');
+  if (!tb || Math.hypot(tb.x - x, tb.y - y) > KOE_PREP_M) return false;
+  koeStarted = true;
+  prepareKoeSites(map).catch((e) => { koeStarted = false; console.warn('koe placement', e && e.message); });
+  return true;
+}
+
 export function getKoeSites(map) {
   return ensureSites(map);
 }
