@@ -9,8 +9,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
-(De coördinator voegt deze regels bij 0.65.0.)
+## [0.65.0] - 2026-11-22
 
+Samen spelen met vier echte vensters getest, een ronde zeefdruk-menu's (Spullen, Loopbanen, Boerderij, zoeken), echte voetstappen en weergeluid, AAA-aankleding van de missies van akte 1 tot en met 4 en een snellere start. Pre-release voor de speeltest.
 - Meldingen: geen eindeloze rij meer bij snel doorspelen. Tips en uitlegkaarten die te lang wachten verdwijnen (na 20 s, belangrijke na 45 s), meer dan twee wachtende prestaties worden één kaart "N nieuwe prestaties" (ze blijven gewoon bij Prestaties staan), de rij houdt hooguit 12 meldingen vast en er komt nooit meer dan één melding per 4 seconden. Gevaar, politie en missies gaan altijd door.
 - Benchmark: hij begint meteen. De keuzekaart Alleen of Samen, de Samen-wizard en de naamkaart komen er niet meer tussen, ook niet als je de benchmark uit Instellingen > Beeld start; een benchmark is altijd lokaal en solo, en je laatste keuze blijft staan.
 - Benchmark: na afloop (of met Esc) ga je terug naar je eigen spel. Je spel wordt eerst bewaard en precies die plek wordt weer geopend; er komt geen kaart Nieuw verhaal of Hoe pittig meer tussendoor en je voortgang per opgeslagen spel verandert niet. Lukt bewaren niet, dan start de benchmark niet.
@@ -719,9 +720,6 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Bijbanen: je reeks overleeft pech. Is er even geen ronde (geen akker, geen overtreder, geen wijk) of rond je een boerderijtaak af, dan blijft de reeks staan. Een aanrijding halveert de reeks in plaats van hem te wissen, en de melding zegt wat er over is. Weglopen kost de reeks nog steeds. Samen spelen: de reeks hoort bij de dienst van de speler die hem draait.
 - Bijbanen: het eindbord en de regel tussen twee klussen tellen bij "Klussen" nu alle betaalde rondes van de dienst, ook als je reeks onderweg brak.
 
-## [0.65.0] - 2026-11-21
-
-Samen spelen met vier echte vensters getest, een ronde zeefdruk-menu's (Spullen, Loopbanen, Boerderij, zoeken), echte voetstappen en weergeluid, AAA-aankleding van de missies van akte 1 tot en met 4 en een snellere start. Pre-release voor de speeltest.
 
 ### Nieuw
 
