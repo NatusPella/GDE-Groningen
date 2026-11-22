@@ -33,5 +33,7 @@ export function minimapIntervalMs(costMs, moved) {
 }
 
 export function minimapRedrawDue(now, lastAt, costMs, moved) {
+  // Verfijning 22-11: zonder geldige tijd (eerste beurt, NaN) nooit blijven wachten: de kaart bleef dan leeg.
+  if (!Number.isFinite(now) || !Number.isFinite(lastAt)) return true;
   return now - lastAt >= minimapIntervalMs(costMs, moved);
 }

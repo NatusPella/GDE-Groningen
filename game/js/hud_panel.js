@@ -104,6 +104,7 @@ import { createNarrator } from './narration.js';
 import { heldBack } from './narrative.js';
 import { isPauseMenuOpen, openPauseMenu } from './pausestate.js';
 import { bindMinimapOpen } from './minimaptap.js'; // #985
+let navVorig = null; // het doel dat vorig beeld actief was (navtarget.js HYSTERESE: geen flipperende pijl tussen twee gelijke doelen)
 import { hudExpensiveDue, intervalDue } from './hudgate.js';
 import { isOverlayHeld } from './overlayhold.js';
 import { hoofdspeler } from './spelersregister.js';
@@ -3073,11 +3074,12 @@ function drawMinimap(dt, world) {
   const lekGarage = lekkeBandGarage(player.inVehicle, player.x, player.y);
   const goalNu = getGoal();
   const nav = resolveNavTargets(snapshotFromWorld(world, {
-    speler: { x: player.x, y: player.y }, modus: mmMode, busyGame, goal: goalNu, missieOpKaart: missionOnMap(world),
+    speler: { x: player.x, y: player.y }, modus: mmMode, busyGame, goal: goalNu, missieOpKaart: missionOnMap(world), vorig: navVorig,
     heli: heliMarks && heliMarks.target ? heliMarks.target : null,
     groep: [dichtstbijDoel(gastDoelLijst, player.x, player.y), dichtstbijDoel(eigenGroepDoelen, player.x, player.y)].filter(Boolean).map((r) => r.doel).concat(gastStart ? [gastStart] : []),
     zorg: lekGarage ? { x: lekGarage.x, y: lekGarage.y, name: 'Garage' } : careRoute && careRoute.target ? { x: careRoute.target.x, y: careRoute.target.y, name: careRoute.target.name } : null,
   }));
+  navVorig = nav.actief ? { type: nav.actief.type, id: nav.actief.id } : null;
   // twee doelen op dezelfde plek zijn één doel: het lagere krijgt geen eigen markering (de speler zag eerst een paarse pin onder een gele ring)
   const samen = (id) => nav.verborgen.some((v) => v.id === id && /^zelfde plek/.test(v.reden));
   const missieMarker = showMission && !samen('missie');

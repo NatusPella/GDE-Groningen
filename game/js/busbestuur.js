@@ -39,7 +39,9 @@ export function toggleKneel(b, speed = 0) {
 // Eén stap. Geeft gebeurtenissen: { type: 'deurslag' } als open deuren onderweg dichtslaan.
 export function stepBediening(b, dt, speed = 0) {
   const ev = [];
-  const sp = Math.abs(speed);
+  // Verfijning 22-11: een NaN-dt of -snelheid maakte doorOpen/kneelAmt voorgoed NaN: de deuren gingen dan nooit meer open of dicht.
+  if (!Number.isFinite(dt) || dt < 0) dt = 0;
+  const sp = Math.abs(speed) || 0;
   if (b.doorWant && sp > DEUR_SLAG) {
     b.doorWant = false;
     if (b.doorOpen > 0.15) ev.push({ type: 'deurslag' });

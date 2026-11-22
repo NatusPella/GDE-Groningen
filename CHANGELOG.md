@@ -52,6 +52,12 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Wedstrijd: na een carrièrewedstrijd noemt het uitslagbord wat je verdiende, en een blessure staat erbij.
 - Coachen: de melding na een wissel zegt hoeveel wissels je nog hebt.
 - Training: Esc tijdens het resultaat meldt niet meer "geen winst" terwijl de groei al is uitgekeerd.
+### Wereld en verkeer (verfijning)
+- Een geparkeerde fiets, scooter of boot heet in de hint nu ook zo ("Fiets jatten"), niet meer "Auto jatten".
+- Taxi: stap je bij de bestemming zelf uit, dan rekent de klant gewoon af in plaats van te wachten tot de tijd om is. De taxistrook toont geen vreemde getallen meer.
+- Wereldleven: mensen op de markt en het plantsoen herhalen hun zin niet meer direct, twee mensen naast elkaar roepen nooit hetzelfde en bij een aardbeving roept iedereen iets anders.
+- Kaart: de pijl springt niet meer heen en weer tussen twee doelen van de groep die even ver weg liggen. Enter of spatie vasthouden op de minikaart opent hem maar één keer.
+- Stabiliteit: weer, busdeuren, camerabeeld en de "Zit je vast?"-hint raken niet meer verstoord door een enkele ongeldige waarde of een korte hapering.
 ### Prestaties
 - Prestaties (#1074, #1067): als het spelvenster verborgen of op de achtergrond is, doen de vaste controles van de overlays, het Samen-paneel en het aanraakscherm niets meer; de kartmotor wordt bij het verlaten van de baan echt stopgezet. Samen spelen: lokaal per speler, geen netwerkwijziging; testsessies met `?stil` blijven gewoon tikken. Voor de metingen staan er twee A-schakelaars (`?perfoff=boomfade`, `?perfoff=gevelfade`).
 ### Controller en bediening

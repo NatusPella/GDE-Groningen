@@ -43,6 +43,7 @@ export function ribbonFade(offRoad, floor = 0) {
 // De alpha van een punt op de strook: aan beide uiteinden uitfaden, en uitdoven zodra de route de
 // verharding verlaat.
 export function ribbonAlpha(dist, total, offRoad = 0, floor = 0) {
+  if (!Number.isFinite(dist) || !Number.isFinite(total)) return 0; // verfijning 22-11: een NaN-punt geeft geen NaN-kleur op de strook
   const ends = Math.min(1, dist / 3, (total - dist) / 15 + 0.05);
   return Math.max(0, Math.min(1, ends)) * ribbonFade(offRoad, floor);
 }

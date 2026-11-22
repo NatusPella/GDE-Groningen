@@ -1,4 +1,5 @@
 import { icoon } from './icons.js';
+import { vehicleVerb } from './vehicleverb.js';
 import { toggleChoice } from './difficulty.js'; // #1169
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getCamera } from './scene3d.js';
@@ -257,22 +258,6 @@ function trackUsage(dt, world) {
 }
 
 // --- world-anchored prompts -------------------------------------------------
-
-function vehicleVerb(v) {
-  const moving = Math.abs(v.speed || 0) > 0.3;
-  const occupied = v.isBoat ? moving : !v.isHeroCar && !!v.road;
-  if (v.fallen) return { label: 'Fiets rechtzetten' }; // #1018: eerst overeind, dan opstappen
-  // your own ride (hero car, bought, rented, job vehicle) is never theft
-  if (v.isHeroCar || v.playerOwned || v.missionCar) return { label: v.isBoat ? 'Aan boord' : v.isHeli ? 'Instappen en vliegen' : v.isBike || v.isScooter ? 'Opstappen' : 'Instappen' };
-  if (v.isPolice) return { label: 'Jatten', steal: true };
-  if (v.parked) return { label: v.isBus ? 'Bus jatten' : 'Auto jatten', steal: true };
-  if (v.isBoat) return occupied ? { label: 'Kapen', steal: true } : { label: 'Aan boord' };
-  if (v._mount === 'horse') return occupied ? { label: 'Paard jatten', steal: true } : { label: 'Opstijgen' };
-  if (v.isBike) return occupied ? { label: 'Fiets jatten', steal: true } : { label: 'Opstappen' };
-  if (v.isScooter) return occupied ? { label: 'Jatten', steal: true } : { label: 'Opstappen' };
-  if (v.isBus) return occupied ? { label: 'Bus kapen', steal: true } : { label: 'Instappen' };
-  return occupied ? { label: 'Jatten', steal: true } : { label: 'Instappen' };
-}
 
 function vehicleName(v) {
   if (v.isHeroCar) return 'Jouw ouwe Fjord Escapade';

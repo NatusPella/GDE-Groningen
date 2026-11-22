@@ -108,8 +108,9 @@ export function updateRide(ride, bus, dt) {
   const ev = [];
   if (ride.done || ride.failed) return ev;
   const manual = !!bus.doors;
+  if (!Number.isFinite(dt) || dt < 0) dt = 0; // verfijning 22-11: een NaN-dt of NaN-snelheid liet de rit nooit meer bij een halte stoppen
   ride.t += dt;
-  const sp = Math.abs(bus.speed);
+  const sp = Math.abs(bus.speed) || 0;
   if (ride.prevSpeed - sp > HARD_BRAKE && ride.prevSpeed > 6) { ride.hardBrakes++; ev.push({ type: 'hardbrake' }); }
   ride.prevSpeed = sp;
   for (const e of stepTevredenheid(ride.tevreden, { speed: bus.speed, dt, tailgate: !!bus.tailgate, onBoard: ride.onBoard })) ev.push(e);

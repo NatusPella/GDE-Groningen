@@ -14,7 +14,7 @@ const LEAN_YAW_FULL = 1.1;                                        // rad/s gierh
 const LEAN_SPEED_FROM = 3, LEAN_SPEED_TO = 18;                    // m/s: stapvoets geen lean, snel vol
 const SLIP_FROM = 0.2, SLIP_TO = 0.7;                             // rad
 
-export function makeLean() { return { roll: 0, fov: 0, angle: null }; }
+export function makeLean() { return { roll: 0, fov: 0, angle: null, kind: '' }; }
 
 function wrap(a) { while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return a; }
 
@@ -23,6 +23,7 @@ function wrap(a) { while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a 
 export function stepLean(l, kind, angle, speed, slip, dt, fx = { cameraSway: 1 }) {
   if (!(dt > 0)) return l;
   let goalRoll = 0, goalFov = 0;
+  if (l.kind !== kind) { l.angle = null; l.kind = kind; } // verfijning 22-11: direct van auto naar fiets (jatten) is geen bocht van 90 graden
   if (kind && fx.cameraSway && Number.isFinite(angle)) {
     if (l.angle != null) {
       const yawRate = wrap(angle - l.angle) / dt;

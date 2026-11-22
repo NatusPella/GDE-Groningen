@@ -228,8 +228,14 @@ const BUBBLE_SHOW_S = 4.2;
 export function lifeLine(actor, cycle) {
   const pool = actor.kind === 'people' ? linesFor(actor) : (ANIMAL_LINES[actor.species] || null);
   if (!pool || !pool.length) return null;
-  return pool[hashStr(`${actor.id}|${cycle}`) % pool.length];
+  // Verfijning 22-11: dezelfde regel twee beurten achter elkaar viel op. Nu loopt elke persoon met een eigen stap (ggd 1 met de lijst) door de lijst:
+  // opeenvolgende beurten verschillen altijd en alle regels komen langs voor er één terugkomt.
+  const n = pool.length, h = hashStr(actor.id);
+  let step = n > 1 ? 1 + (h >>> 8) % (n - 1) : 0;
+  while (n > 1 && gcd(step, n) !== 1) step = step % (n - 1) + 1;
+  return pool[((h % n) + (((cycle % n) + n) % n) * step) % n];
 }
+const gcd = (a, b) => (b ? gcd(b, a % b) : a);
 function linesFor(actor) {
   const t = LIFE_LINES[EVENT_BY_ID[actor.ev].lines];
   if (!t) return null;
@@ -240,6 +246,7 @@ function linesFor(actor) {
 // Returns [{ actor, text, until }] (until in tSec). Animals only make a sound when the player is within 6 m.
 export function lifeSpeakers(roster, px, py, tSec, day, out = []) {
   out.length = 0;
+  if (!Number.isFinite(px) || !Number.isFinite(py)) return out; // verfijning 22-11: zonder geldige plek van de speler praat niemand (NaN liet iedereen praten)
   for (const a of roster) {
     const range = a.kind === 'people' ? LIFE_LIMITS.bubbleRangeM : 6;
     if (Math.abs(a.x - px) > range + 4 || Math.abs(a.y - py) > range + 4) continue;
@@ -249,7 +256,7 @@ export function lifeSpeakers(roster, px, py, tSec, day, out = []) {
     if (into > BUBBLE_SHOW_S) continue;
     if (Math.hypot(a.x - px, a.y - py) > range) continue;
     const text = lifeLine(a, cycle + (day | 0) * 131);
-    if (!text) continue;
+    if (!text || out.some((o) => o.text === text && o.d < LIFE_LIMITS.bubbleRangeM)) continue; // twee bellen met dezelfde zin naast elkaar: de tweede zwijgt even
     out.push({ actor: a, text, until: tSec + (BUBBLE_SHOW_S - into), d: Math.hypot(a.x - px, a.y - py) });
   }
   out.sort((p, q) => p.d - q.d);

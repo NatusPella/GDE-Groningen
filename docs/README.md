@@ -145,6 +145,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [VOETBAL-SIM-21-11.md](<VOETBAL-SIM-21-11.md>) | Voetbal Sim Light in de Euroborg (#981). |
 | [VERFIJNING-22-11-VOETBAL.md](<VERFIJNING-22-11-VOETBAL.md>) | Verfijnronde voetbal: wrijving, oplossing en bewijs. |
 | [VOETBAL-UITZENDING-21-11.md](<VOETBAL-UITZENDING-21-11.md>) | Voetbal als uitzending: de hele wedstrijd voorop, tv-regie, herhaling, commentaar, kaarten, blessures, wissels en strafschoppen. |
+| [VERFIJNING-22-11-WERELD.md](<VERFIJNING-22-11-WERELD.md>) | Verfijnronde wereld, verkeer, NPC-leven en navigatie: 21 kleine verbeteringen met bewijs, de Samen-regel, wat bewust niet en wat in beeld bekeken moet worden. |
 | [VERHAAL-SYNOPSIS-21-11.md](<VERHAAL-SYNOPSIS-21-11.md>) | Synopsis van het nieuwe volledige verhaal (pitch, vijf akten en Deel 4), de matrix van alles wat in de game bestaat en waar het in het verhaal terugkomt, en hoe je het samen en solo beleeft; met open punten en voorstellen. |
 | [VERHAAL-ANALYSE-21-11.md](<VERHAAL-ANALYSE-21-11.md>) | Verhaalanalyse: kan een speler met nul context het verhaal volgen? Top-20 problemen, ruggengraat per akte, introductie- en dialoogregels, tussenscènes, recap-kaart, ontgrendeling per akte en uitvoeringsplan.
 | [VOETBAL-CARRIERE-21-11.md](<VOETBAL-CARRIERE-21-11.md>) | Ontwerp van de voetbalcarrière (epic #1106): boog, seizoenen, ontwikkeling, manager, economie, clubbezit, UI, Samen spelen en stappenplan. |

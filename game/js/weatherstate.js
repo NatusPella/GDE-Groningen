@@ -50,6 +50,7 @@ export const REGION_IDS = Object.keys(REGIONS);
 
 // x east, y south (the game's plane), origin = city centre
 export function regionAt(x, y) {
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return 'stad'; // verfijning 22-11: een NaN-plek gaf 'zuid' (de verkeerde bui)
   if (Math.hypot(x, y) < CITY_RADIUS) return 'stad';
   if (Math.abs(x) > Math.abs(y)) return x > 0 ? 'oost' : 'west';
   return y < 0 ? 'noord' : 'zuid';
@@ -106,6 +107,8 @@ export function createWeatherState(seed = 1) {
 
 
 export function stepWeather(ws, dt, hour) {
+  // Verfijning 22-11: een NaN of negatieve dt (eerste frame, klok die terugspringt) bevroor het weer voorgoed (age NaN, regen NaN).
+  if (!Number.isFinite(dt) || dt <= 0) return;
   const rng = ws.rng;
   // the front wanders; the wind turns slowly
   ws.front = clamp01(ws.front + (rng() - 0.5) * 0.02 * Math.min(dt, 5));
