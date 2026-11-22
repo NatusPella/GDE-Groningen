@@ -21,7 +21,7 @@ ok(sceneIdsFor('M08.intro').length > 0 && sceneIdsFor('M01.3')[0] === 'M01.3', '
 
 const cat = buildCatalog({ script, npcSource });
 const keys = new Set([...Object.keys(SPECS), ...Object.keys(MORE_SPECS)]);
-ok(cat.length === keys.size + 4 + 3 + MOMENT_PREVIEW.length + INTOCHTEN.length, 'catalogue: every spec, three acts, the end card, the three evenings at home, the momenten and the intochten (#723)', `${cat.length} vs ${keys.size + 7 + MOMENT_PREVIEW.length + INTOCHTEN.length}`);
+ok(cat.length === keys.size + 4 + 3 + 2 + MOMENT_PREVIEW.length + INTOCHTEN.length, 'catalogue: every spec, three acts, the end card, the three evenings at home, the two career debuts (careerdebut.js), the momenten and the intochten (#723)', `${cat.length} vs ${keys.size + 9 + MOMENT_PREVIEW.length + INTOCHTEN.length}`);
 ok(['Momenten', 'Intochten'].every((g) => cat.some((e) => e.group === g)), 'catalogue: the momenten and intochten are in the list');
 // #707/#708: alle handgeschreven intochten zijn camera-only scrubbaar en lokaal per speler
 {

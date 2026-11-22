@@ -2,7 +2,7 @@
 
 Gegenereerd door `node scripts/tts_opnamelijst.mjs` uit `game/storydata/script.json`, `scripts/tts_lines.json`, `scripts/gronings_spoken.json` en `scripts/tts_cast.mjs`. Niet met de hand aanpassen; draai `node scripts/tts_opnamelijst.mjs --check` om te zien of deze lijst achterloopt.
 
-**Stand van deze bronnen:** 224 clips staan klaar in de wachtrij (`scripts/tts_lines.json`), 46 verhaalregels wachten nog (0 op een stemkeuze, 46 op een Groningse spreektekst). Samen **270 regels/clips**. De 37 bewust stille appjes (`channel: app-stil`) staan er niet op.
+**Stand van deze bronnen:** 281 clips staan klaar in de wachtrij (`scripts/tts_lines.json`), 46 verhaalregels wachten nog (0 op een stemkeuze, 46 op een Groningse spreektekst). Samen **327 regels/clips**. De 37 bewust stille appjes (`channel: app-stil`) staan er niet op.
 
 > Het issue #735 noemt 670 regels/671 clips (stand 6-11-2026). De scripts zijn de bron: inmiddels zijn er regels bijgekomen of opgenomen, dus deze lijst telt wat de code nu zegt. Zie "Verschil met #735" onderaan.
 
@@ -159,90 +159,147 @@ Gegenereerd door `node scripts/tts_opnamelijst.mjs` uit `game/storydata/script.j
 | 140 | Wereld levend | ~f (Aoede) | `lines/bubbles/f/wacht_mijn_duim_zat_ervoor_b02e9c2a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #140 |
 | 141 | Wereld levend | ~m (Puck) | `lines/bubbles/m/ze_zeggen_moi_tegen_iedereen_ik__f28904cb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #141 |
 | 142 | Wereld levend | ~f (Laomedeia) | `lines/bubbles/f/ze_zeggen_moi_tegen_iedereen_ik__608e9175.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #142 |
-| 143 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/zeven_rondes_in_een_seizoen_wie__6b41b2ce.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #143 |
-| 144 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/het_seizoen_is_kort_en_de_zomer__e441f5ae.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #144 |
-| 145 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_nieuwe_ronde_in_de_competiti_31ae4c35.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #145 |
-| 146 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/in_een_kort_seizoen_mag_je_e_e_n_8a9049cb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #146 |
-| 147 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/bij_het_dorpsteam_was_een_seizoe_87b152f0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #147 |
-| 148 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/elke_ronde_is_een_kwartfinale_ze_02622f23.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #148 |
-| 149 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_heb_de_stand_gezien_ik_zeg_ni_1a5f95bd.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #149 |
-| 150 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/punten_tellen_mooi_voetbal_telt__eaa15ddc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #150 |
-| 151 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/zeven_rondes_is_niks_een_koffiep_26e35c9e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #151 |
-| 152 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/wie_bovenaan_staat_heeft_alleen__6294fbd0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #152 |
-| 153 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hoog_in_de_stand_en_dat_zie_je_a_434042b8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #153 |
-| 154 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/aan_de_top_is_de_lucht_dun_en_he_551cc04d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #154 |
-| 155 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/bovenaan_staan_is_makkelijk_er_b_ff82ebab.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #155 |
-| 156 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_heb_ooit_twee_weken_bovenaan__956a7293.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #156 |
-| 157 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/wie_bovenaan_staat_krijgt_altijd_0fd0b9ca.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #157 |
-| 158 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/als_je_bovenaan_staat_is_iederee_f34f46dd.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #158 |
-| 159 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_top_is_gezellig_maar_je_moet__a5a4c502.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #159 |
-| 160 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/hoge_ogen_gooien_joh_dat_doen_ze_6cc9fcc8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #160 |
-| 161 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/onderin_de_stand_maar_het_gras_i_c7914404.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #161 |
-| 162 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_onderste_plekken_zijn_gevaarl_016e360e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #162 |
-| 163 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/wie_onderaan_staat_moet_iets_lat_7fda20ad.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #163 |
-| 164 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/onderin_heb_je_niks_te_verliezen_c80dd276.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #164 |
-| 165 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/degradatie_is_geen_ramp_het_is_a_08e07c63.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #165 |
-| 166 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_heb_ooit_onderaan_gestaan_de__dc690827.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #166 |
-| 167 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/als_het_tegenzit_zit_het_tegen_m_6384400b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #167 |
-| 168 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/onderaan_leer_je_het_meest_zegge_251e535b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #168 |
-| 169 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/je_moet_ergens_beginnen_liefst_n_fc3c5d2d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #169 |
-| 170 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_laatste_ronde_van_het_seizoen_e4287e77.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #170 |
-| 171 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/dit_is_de_slotdag_wie_nu_wint_ka_d0bebc15.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #171 |
-| 172 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/ronde_zeven_de_laatste_de_stand__d2c9115a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #172 |
-| 173 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/het_hele_seizoen_komt_hier_samen_0a0de010.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #173 |
-| 174 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/dit_is_het_moment_de_laatste_flu_21f2a104.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #174 |
-| 175 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_laatste_ronde_alles_of_niks_z_62c408f1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #175 |
-| 176 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/slotdag_alle_rekensommen_op_de_t_c7af6d9c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #176 |
-| 177 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/zo_n_laatste_dag_duurt_altijd_la_99327e0c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #177 |
-| 178 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_nagelbijters_zitten_vandaag_v_d9adede8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #178 |
-| 179 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/na_afloop_weten_we_alles_of_niks_62294a1f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #179 |
-| 180 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/spannend_joh_het_wordt_een_lange_69d46c59.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #180 |
-| 181 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_dijkbeker_wie_verliest_gaat_n_ea6708f2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #181 |
-| 182 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_bekerwedstrijd_geen_tweede_k_1a176c54.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #182 |
-| 183 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_beker_heeft_zijn_eigen_wetten_fd82b769.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #183 |
-| 184 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/bekervoetbal_is_eerlijk_er_blijf_e657b723.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #184 |
-| 185 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hier_wordt_het_gras_nog_zenuwach_05b466eb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #185 |
-| 186 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/bekervoetbal_negentig_minuten_en_d5fdc9a2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #186 |
-| 187 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/in_de_beker_bestaat_geen_morgen__47e7a78b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #187 |
-| 188 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_ben_ooit_door_in_de_beker_geg_91d49502.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #188 |
-| 189 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_beker_is_gemaakt_om_te_verli_11944412.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #189 |
-| 190 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/alle_kleine_clubs_dromen_hier_va_decc3350.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #190 |
-| 191 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/bij_strafschoppen_helpt_geen_bel_ee8a0648.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #191 |
-| 192 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_waddenbeker_clubs_van_over_de_de3d2b37.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #192 |
-| 193 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_buitenlandse_tegenstander_de_8f6a1086.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #193 |
-| 194 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/waddenbeker_een_toernooi_met_zou_2d645f92.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #194 |
-| 195 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_internationale_avond_in_grun_1faaef3e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #195 |
-| 196 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/welkom_bij_de_waddenbeker_iedere_ae3ce22d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #196 |
-| 197 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/buitenlandse_clubs_ik_begrijp_ze_3390254c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #197 |
-| 198 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/zout_in_de_lucht_en_een_bal_aan__79848e83.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #198 |
-| 199 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_internationale_avond_ik_heb__18c56a6f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #199 |
-| 200 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/het_zijn_dezelfde_regels_hoor_al_0c567e51.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #200 |
-| 201 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ver_van_huis_spelen_is_moeilijk__de73d887.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #201 |
-| 202 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dit_is_waarvoor_je_op_zaterdag_j_1d5e901f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #202 |
-| 203 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_eerste_wedstrijd_en_een_heel_545a1e12.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #203 |
-| 204 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/debuteren_is_moeilijk_vooral_als_2af833e4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #204 |
-| 205 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/mijn_debuut_was_een_eigen_doelpu_842ba6a0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #205 |
-| 206 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_eerste_wedstrijd_is_de_zwaars_8596fdbb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #206 |
-| 207 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_zie_talent_of_een_goede_jas_h_59e7951c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #207 |
-| 208 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/wie_een_debuut_overleeft_overlee_748d09fd.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #208 |
-| 209 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_ster_van_de_ploeg_doet_wat_ee_7b65b0d6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #209 |
-| 210 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_had_ik_zelf_niet_beter_gedaa_2c1d3760.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #210 |
-| 211 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_ster_is_geboren_of_hij_was_h_5b7bb191.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #211 |
-| 212 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dit_zijn_de_doelpunten_waar_je_k_869721ca.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #212 |
-| 213 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/zie_je_daar_zit_werk_achter_en_e_8d23757d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #213 |
-| 214 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/het_talent_zit_in_de_voeten_de_r_3e8a0338.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #214 |
-| 215 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_wordt_een_mooi_verhaal_in_de_736cae1a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #215 |
-| 216 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_warme_groet_voor_onze_sponso_474d35b1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #216 |
-| 217 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/zonder_sponsor_geen_netten_en_zo_3bd0e742.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #217 |
-| 218 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_borden_langs_het_veld_zijn_we_e95e5c33.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #218 |
-| 219 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/sponsors_maken_het_mogelijk_en_i_a14a8894.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #219 |
-| 220 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/fijn_zo_n_bedrijf_dat_in_ons_gel_d3e887df.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #220 |
-| 221 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_sponsor_is_als_een_goede_kee_63ca9a57.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #221 |
-| 222 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_bedankje_aan_de_borden_die_k_ab4b86e5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #222 |
-| 223 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/zonder_sponsor_betalen_we_de_noo_6cef6245.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #223 |
-| 224 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/mooi_dat_ze_meekijken_maar_ze_mo_90f8287f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #224 |
+| 143 | Carrièrescènes (begin voetbal en Bezit) | Anita (Callirrhoe) | `lines/anita/tammo_ik_heb_een_lijstje_gemaakt_963cb15b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #143 |
+| 144 | Carrièrescènes (begin voetbal en Bezit) | Tammo (Orus) | `lines/tammo/dan_rolt_hij_door_ballen_kunnen__7c8bd70d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #144 |
+| 145 | Carrièrescènes (begin voetbal en Bezit) | Anita (Callirrhoe) | `lines/anita/dat_is_geen_troost_f7e4d256.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #145 |
+| 146 | Carrièrescènes (begin voetbal en Bezit) | Tammo (Orus) | `lines/tammo/het_is_een_feit_troost_komt_na_a_abaf4e87.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #146 |
+| 147 | Carrièrescènes (begin voetbal en Bezit) | Trainer Eppo (Alnilam) | `lines/trainer_eppo/jij_bent_de_nieuwe_je_staat_op_m_72237f44.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #147 |
+| 148 | Carrièrescènes (begin voetbal en Bezit) | Anita (Callirrhoe) | `lines/anita/potlood_is_een_begin_8aa54126.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #148 |
+| 149 | Carrièrescènes (begin voetbal en Bezit) | Trainer Eppo (Alnilam) | `lines/trainer_eppo/potlood_gaat_weg_met_een_gum_wel_3c072763.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #149 |
+| 150 | Carrièrescènes (begin voetbal en Bezit) | Tammo (Orus) | `lines/tammo/ik_ben_haar_zaakwaarnemer_ik_reg_6a335f99.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #150 |
+| 151 | Carrièrescènes (begin voetbal en Bezit) | Trainer Eppo (Alnilam) | `lines/trainer_eppo/sinds_wanneer_e1da47fc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #151 |
+| 152 | Carrièrescènes (begin voetbal en Bezit) | Tammo (Orus) | `lines/tammo/sinds_vanochtend_half_negen_973f5ba1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #152 |
+| 153 | Carrièrescènes (begin voetbal en Bezit) | Anita (Callirrhoe) | `lines/anita/hij_heeft_een_map_f3883695.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #153 |
+| 154 | Carrièrescènes (begin voetbal en Bezit) | Trainer Eppo (Alnilam) | `lines/trainer_eppo/zit_er_ook_een_bal_in_4e83e9ab.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #154 |
+| 155 | Carrièrescènes (begin voetbal en Bezit) | Tammo (Orus) | `lines/tammo/er_zit_een_contract_in_voor_als__c49236b3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #155 |
+| 156 | Carrièrescènes (begin voetbal en Bezit) | Trainer Eppo (Alnilam) | `lines/trainer_eppo/de_club_wil_iemand_die_een_bal_k_7abbd86e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #156 |
+| 157 | Carrièrescènes (begin voetbal en Bezit) | Anita (Callirrhoe) | `lines/anita/gestopt_binnen_de_lijn_ffd28dea.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #157 |
+| 158 | Carrièrescènes (begin voetbal en Bezit) | Trainer Eppo (Alnilam) | `lines/trainer_eppo/mijn_vorige_linksbuiten_stopte_h_aae8b010.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #158 |
+| 159 | Carrièrescènes (begin voetbal en Bezit) | Tammo (Orus) | `lines/tammo/is_dat_een_compliment_2b4027c6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #159 |
+| 160 | Carrièrescènes (begin voetbal en Bezit) | Trainer Eppo (Alnilam) | `lines/trainer_eppo/het_is_een_trainer_vijf_rondjes__58a403c7.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #160 |
+| 161 | Carrièrescènes (begin voetbal en Bezit) | Tammo (Orus) | `lines/tammo/ik_ben_de_zaakwaarnemer_f018a6dc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #161 |
+| 162 | Carrièrescènes (begin voetbal en Bezit) | Trainer Eppo (Alnilam) | `lines/trainer_eppo/dan_loopt_de_zaakwaarnemer_mee_z_c4223bb0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #162 |
+| 163 | Carrièrescènes (begin voetbal en Bezit) | Anita (Callirrhoe) | `lines/anita/tammo_970a6793.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #163 |
+| 164 | Carrièrescènes (begin voetbal en Bezit) | Anita (Callirrhoe) | `lines/anita/je_hoeft_niet_mee_te_rennen_1c5c818a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #164 |
+| 165 | Carrièrescènes (begin voetbal en Bezit) | Tammo (Orus) | `lines/tammo/ik_sta_bij_het_hek_waar_jij_het__6f887176.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #165 |
+| 166 | Carrièrescènes (begin voetbal en Bezit) | Anita (Callirrhoe) | `lines/anita/dat_is_niet_slecht_voor_een_zaak_2599b4d4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #166 |
+| 167 | Carrièrescènes (begin voetbal en Bezit) | Tammo (Orus) | `lines/tammo/ik_heb_ook_een_map_adcb9566.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #167 |
+| 168 | Carrièrescènes (begin voetbal en Bezit) | Trainer Eppo (Alnilam) | `lines/trainer_eppo/rennen_zaakwaarnemer_de_map_blij_f06378eb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #168 |
+| 169 | Carrièrescènes (begin voetbal en Bezit) | Anita (Callirrhoe) | `lines/anita/hier_de_akte_met_stempel_en_al_a4ceb88c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #169 |
+| 170 | Carrièrescènes (begin voetbal en Bezit) | Tammo (Orus) | `lines/tammo/hij_is_zwaar_eacfa744.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #170 |
+| 171 | Carrièrescènes (begin voetbal en Bezit) | Anita (Callirrhoe) | `lines/anita/het_is_papier_tammo_807882ed.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #171 |
+| 172 | Carrièrescènes (begin voetbal en Bezit) | Tammo (Orus) | `lines/tammo/het_is_een_perceel_dat_weegt_mee_489b68c0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #172 |
+| 173 | Carrièrescènes (begin voetbal en Bezit) | Buurman Aldert (Enceladus) | `lines/buurman_aldert/moi_aldert_ik_woon_aan_de_overka_9dfd8cc4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #173 |
+| 174 | Carrièrescènes (begin voetbal en Bezit) | Anita (Callirrhoe) | `lines/anita/tessa_en_dit_is_tammo_hij_heeft__f3cb16ea.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #174 |
+| 175 | Carrièrescènes (begin voetbal en Bezit) | Buurman Aldert (Enceladus) | `lines/buurman_aldert/dat_is_het_zwaarste_werk_van_het_8299e3c6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #175 |
+| 176 | Carrièrescènes (begin voetbal en Bezit) | Buurman Aldert (Enceladus) | `lines/buurman_aldert/mooie_grond_klei_die_houdt_het_w_53b10c09.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #176 |
+| 177 | Carrièrescènes (begin voetbal en Bezit) | Tammo (Orus) | `lines/tammo/ik_heb_geen_verstand_van_koeien_24b9c6ed.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #177 |
+| 178 | Carrièrescènes (begin voetbal en Bezit) | Buurman Aldert (Enceladus) | `lines/buurman_aldert/een_koe_merkt_dat_meteen_c8ab94b0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #178 |
+| 179 | Carrièrescènes (begin voetbal en Bezit) | Anita (Callirrhoe) | `lines/anita/beppe_had_koeien_jij_zat_er_elke_b1972e5f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #179 |
+| 180 | Carrièrescènes (begin voetbal en Bezit) | Tammo (Orus) | `lines/tammo/ik_zat_erbij_dat_is_niet_hetzelf_f5772141.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #180 |
+| 181 | Carrièrescènes (begin voetbal en Bezit) | Anita (Callirrhoe) | `lines/anita/ze_zou_hier_een_bankje_neergezet_047e263d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #181 |
+| 182 | Carrièrescènes (begin voetbal en Bezit) | Tammo (Orus) | `lines/tammo/met_soep_3b379d63.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #182 |
+| 183 | Carrièrescènes (begin voetbal en Bezit) | Buurman Aldert (Enceladus) | `lines/buurman_aldert/hier_de_sleutel_van_de_schuur_hi_4af0e894.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #183 |
+| 184 | Carrièrescènes (begin voetbal en Bezit) | Tammo (Orus) | `lines/tammo/ik_til_8d62b2db.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #184 |
+| 185 | Carrièrescènes (begin voetbal en Bezit) | Buurman Aldert (Enceladus) | `lines/buurman_aldert/mijn_trekker_staat_daar_die_moge_9168d561.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #185 |
+| 186 | Carrièrescènes (begin voetbal en Bezit) | Tammo (Orus) | `lines/tammo/is_er_een_handleiding_e2a80ce5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #186 |
+| 187 | Carrièrescènes (begin voetbal en Bezit) | Buurman Aldert (Enceladus) | `lines/buurman_aldert/er_is_een_knop_links_44105287.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #187 |
+| 188 | Carrièrescènes (begin voetbal en Bezit) | Tammo (Orus) | `lines/tammo/welke_knop_0c02790f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #188 |
+| 189 | Carrièrescènes (begin voetbal en Bezit) | Buurman Aldert (Enceladus) | `lines/buurman_aldert/die_doet_het_14bbb5cb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #189 |
+| 190 | Carrièrescènes (begin voetbal en Bezit) | Anita (Callirrhoe) | `lines/anita/tammo_we_hebben_een_plekje_805b60e0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #190 |
+| 191 | Carrièrescènes (begin voetbal en Bezit) | Tammo (Orus) | `lines/tammo/een_plekje_09afc851.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #191 |
+| 192 | Carrièrescènes (begin voetbal en Bezit) | Anita (Callirrhoe) | `lines/anita/ik_ben_blij_dat_we_dit_samen_doe_3b0be84e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #192 |
+| 193 | Carrièrescènes (begin voetbal en Bezit) | Anita (Callirrhoe) | `lines/anita/is_dat_je_hele_antwoord_8399635f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #193 |
+| 194 | Carrièrescènes (begin voetbal en Bezit) | Tammo (Orus) | `lines/tammo/het_is_een_goed_woord_cb5882d3.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #194 |
+| 195 | Carrièrescènes (begin voetbal en Bezit) | Buurman Aldert (Enceladus) | `lines/buurman_aldert/ik_ga_koffie_halen_tot_morgen_ze_d689eb01.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #195 |
+| 196 | Carrièrescènes (begin voetbal en Bezit) | Tammo (Orus) | `lines/tammo/zes_uur_waarvoor_42ae6b11.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #196 |
+| 197 | Carrièrescènes (begin voetbal en Bezit) | Buurman Aldert (Enceladus) | `lines/buurman_aldert/opstaan_een_perceel_heeft_geen_v_9b545f0b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #197 |
+| 198 | Carrièrescènes (begin voetbal en Bezit) | Tammo (Orus) | `lines/tammo/het_is_zomer_ef8ea11b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #198 |
+| 199 | Carrièrescènes (begin voetbal en Bezit) | Buurman Aldert (Enceladus) | `lines/buurman_aldert/daarom_8c03e5fe.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #199 |
+| 200 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/zeven_rondes_in_een_seizoen_wie__6b41b2ce.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #200 |
+| 201 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/het_seizoen_is_kort_en_de_zomer__e441f5ae.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #201 |
+| 202 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_nieuwe_ronde_in_de_competiti_31ae4c35.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #202 |
+| 203 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/in_een_kort_seizoen_mag_je_e_e_n_8a9049cb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #203 |
+| 204 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/bij_het_dorpsteam_was_een_seizoe_87b152f0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #204 |
+| 205 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/elke_ronde_is_een_kwartfinale_ze_02622f23.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #205 |
+| 206 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_heb_de_stand_gezien_ik_zeg_ni_1a5f95bd.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #206 |
+| 207 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/punten_tellen_mooi_voetbal_telt__eaa15ddc.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #207 |
+| 208 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/zeven_rondes_is_niks_een_koffiep_26e35c9e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #208 |
+| 209 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/wie_bovenaan_staat_heeft_alleen__6294fbd0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #209 |
+| 210 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hoog_in_de_stand_en_dat_zie_je_a_434042b8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #210 |
+| 211 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/aan_de_top_is_de_lucht_dun_en_he_551cc04d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #211 |
+| 212 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/bovenaan_staan_is_makkelijk_er_b_ff82ebab.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #212 |
+| 213 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_heb_ooit_twee_weken_bovenaan__956a7293.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #213 |
+| 214 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/wie_bovenaan_staat_krijgt_altijd_0fd0b9ca.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #214 |
+| 215 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/als_je_bovenaan_staat_is_iederee_f34f46dd.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #215 |
+| 216 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_top_is_gezellig_maar_je_moet__a5a4c502.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #216 |
+| 217 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/hoge_ogen_gooien_joh_dat_doen_ze_6cc9fcc8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #217 |
+| 218 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/onderin_de_stand_maar_het_gras_i_c7914404.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #218 |
+| 219 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_onderste_plekken_zijn_gevaarl_016e360e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #219 |
+| 220 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/wie_onderaan_staat_moet_iets_lat_7fda20ad.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #220 |
+| 221 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/onderin_heb_je_niks_te_verliezen_c80dd276.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #221 |
+| 222 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/degradatie_is_geen_ramp_het_is_a_08e07c63.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #222 |
+| 223 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_heb_ooit_onderaan_gestaan_de__dc690827.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #223 |
+| 224 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/als_het_tegenzit_zit_het_tegen_m_6384400b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #224 |
+| 225 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/onderaan_leer_je_het_meest_zegge_251e535b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #225 |
+| 226 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/je_moet_ergens_beginnen_liefst_n_fc3c5d2d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #226 |
+| 227 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_laatste_ronde_van_het_seizoen_e4287e77.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #227 |
+| 228 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/dit_is_de_slotdag_wie_nu_wint_ka_d0bebc15.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #228 |
+| 229 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/ronde_zeven_de_laatste_de_stand__d2c9115a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #229 |
+| 230 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/het_hele_seizoen_komt_hier_samen_0a0de010.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #230 |
+| 231 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/dit_is_het_moment_de_laatste_flu_21f2a104.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #231 |
+| 232 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_laatste_ronde_alles_of_niks_z_62c408f1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #232 |
+| 233 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/slotdag_alle_rekensommen_op_de_t_c7af6d9c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #233 |
+| 234 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/zo_n_laatste_dag_duurt_altijd_la_99327e0c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #234 |
+| 235 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_nagelbijters_zitten_vandaag_v_d9adede8.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #235 |
+| 236 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/na_afloop_weten_we_alles_of_niks_62294a1f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #236 |
+| 237 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/spannend_joh_het_wordt_een_lange_69d46c59.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #237 |
+| 238 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_dijkbeker_wie_verliest_gaat_n_ea6708f2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #238 |
+| 239 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_bekerwedstrijd_geen_tweede_k_1a176c54.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #239 |
+| 240 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_beker_heeft_zijn_eigen_wetten_fd82b769.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #240 |
+| 241 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/bekervoetbal_is_eerlijk_er_blijf_e657b723.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #241 |
+| 242 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/hier_wordt_het_gras_nog_zenuwach_05b466eb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #242 |
+| 243 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/bekervoetbal_negentig_minuten_en_d5fdc9a2.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #243 |
+| 244 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/in_de_beker_bestaat_geen_morgen__47e7a78b.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #244 |
+| 245 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_ben_ooit_door_in_de_beker_geg_91d49502.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #245 |
+| 246 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_beker_is_gemaakt_om_te_verli_11944412.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #246 |
+| 247 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/alle_kleine_clubs_dromen_hier_va_decc3350.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #247 |
+| 248 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/bij_strafschoppen_helpt_geen_bel_ee8a0648.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #248 |
+| 249 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_waddenbeker_clubs_van_over_de_de3d2b37.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #249 |
+| 250 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_buitenlandse_tegenstander_de_8f6a1086.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #250 |
+| 251 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/waddenbeker_een_toernooi_met_zou_2d645f92.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #251 |
+| 252 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_internationale_avond_in_grun_1faaef3e.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #252 |
+| 253 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/welkom_bij_de_waddenbeker_iedere_ae3ce22d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #253 |
+| 254 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/buitenlandse_clubs_ik_begrijp_ze_3390254c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #254 |
+| 255 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/zout_in_de_lucht_en_een_bal_aan__79848e83.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #255 |
+| 256 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_internationale_avond_ik_heb__18c56a6f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #256 |
+| 257 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/het_zijn_dezelfde_regels_hoor_al_0c567e51.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #257 |
+| 258 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ver_van_huis_spelen_is_moeilijk__de73d887.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #258 |
+| 259 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dit_is_waarvoor_je_op_zaterdag_j_1d5e901f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #259 |
+| 260 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_eerste_wedstrijd_en_een_heel_545a1e12.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #260 |
+| 261 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/debuteren_is_moeilijk_vooral_als_2af833e4.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #261 |
+| 262 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/mijn_debuut_was_een_eigen_doelpu_842ba6a0.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #262 |
+| 263 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/de_eerste_wedstrijd_is_de_zwaars_8596fdbb.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #263 |
+| 264 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/ik_zie_talent_of_een_goede_jas_h_59e7951c.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #264 |
+| 265 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/wie_een_debuut_overleeft_overlee_748d09fd.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #265 |
+| 266 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_ster_van_de_ploeg_doet_wat_ee_7b65b0d6.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #266 |
+| 267 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_had_ik_zelf_niet_beter_gedaa_2c1d3760.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #267 |
+| 268 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_ster_is_geboren_of_hij_was_h_5b7bb191.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #268 |
+| 269 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dit_zijn_de_doelpunten_waar_je_k_869721ca.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #269 |
+| 270 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/zie_je_daar_zit_werk_achter_en_e_8d23757d.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #270 |
+| 271 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/het_talent_zit_in_de_voeten_de_r_3e8a0338.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #271 |
+| 272 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/dat_wordt_een_mooi_verhaal_in_de_736cae1a.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #272 |
+| 273 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/een_warme_groet_voor_onze_sponso_474d35b1.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #273 |
+| 274 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/zonder_sponsor_geen_netten_en_zo_3bd0e742.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #274 |
+| 275 | Voetbalcommentaar | Hilbrand (Sadachbia) | `lines/hilbrand/de_borden_langs_het_veld_zijn_we_e95e5c33.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #275 |
+| 276 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/sponsors_maken_het_mogelijk_en_i_a14a8894.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #276 |
+| 277 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/fijn_zo_n_bedrijf_dat_in_ons_gel_d3e887df.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #277 |
+| 278 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_sponsor_is_als_een_goede_kee_63ca9a57.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #278 |
+| 279 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/een_bedankje_aan_de_borden_die_k_ab4b86e5.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #279 |
+| 280 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/zonder_sponsor_betalen_we_de_noo_6cef6245.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #280 |
+| 281 | Voetbalcommentaar | Roelie (Achird) | `lines/roelie/mooi_dat_ze_meekijken_maar_ze_mo_90f8287f.mp3` | `python3 scripts/tts_lines.py` · zie jsonl #281 |
 
-De wachtrij heeft 224 clips (1 manifest(en): lines).
+De wachtrij heeft 281 clips (1 manifest(en): lines).
 
 ## 2. Wacht op een Groningse spreektekst of stemkeuze
 
@@ -298,4 +355,4 @@ De nieuwe laadhint `"De weg hier wordt nog geladen. Even wachten…"` staat bewu
 
 ## 5. Verschil met #735
 
-Het issue telt 670 regels/671 clips (67 klaar + 604 wachtend, plus de laadhint van 2 clips). De huidige bronnen geven 270 regels/clips: 224 klaar + 46 wachtend. Dat verschil komt doordat `script.json`, `gronings_spoken.json` en de opnames sinds 6-11 zijn bijgewerkt; deze lijst volgt de code, niet het issue.
+Het issue telt 670 regels/671 clips (67 klaar + 604 wachtend, plus de laadhint van 2 clips). De huidige bronnen geven 327 regels/clips: 281 klaar + 46 wachtend. Dat verschil komt doordat `script.json`, `gronings_spoken.json` en de opnames sinds 6-11 zijn bijgewerkt; deze lijst volgt de code, niet het issue.

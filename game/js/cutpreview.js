@@ -20,6 +20,7 @@ import { INTOCHTEN, tourKeys } from './wijkintocht.js';
 import { pathShot } from './camerapath.js';
 import { STEPS } from './storyarc_nieuw.js';
 import { propFoot } from './cutscenemodels.js';
+import { debutCatalog } from './careerdebut.js';
 
 export const STATUS = { ok: 'ok', warn: 'waarschuwing', error: 'fout' };
 export const STATUS_LABEL = { ok: 'In orde', waarschuwing: 'Let op', fout: 'Fout' };
@@ -232,6 +233,8 @@ export function buildCatalog({ script, npcSource = '', looks = null }) {
       out.push(entryFor({ id, group: 'Thuisavonden', title, def: flatScene(variant, home.lines), lines: home.lines, duration: home.total }));
     }
   }
+  // 22-11: de begincutscenes van de voetbalcarrière en van Bezit (careerdebut.js), met hun eigen regels
+  for (const e of debutCatalog(L)) out.push(entryFor({ id: e.id, group: 'Carrière', title: e.title, def: e.def, lines: e.lines, duration: e.duration, missing: e.missing }));
   // #723: de momenten en intochten (host-only, camera aan de wereld)
   for (const m of MOMENT_PREVIEW) {
     out.push({

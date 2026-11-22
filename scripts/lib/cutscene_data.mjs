@@ -61,10 +61,11 @@ export async function loadUnits({ root = ROOT } = {}) {
   };
 
   for (const e of catalog) {
-    if (!['Opening', 'Missies', 'Thuisavonden'].includes(e.group)) continue;
+    if (!['Opening', 'Missies', 'Thuisavonden', 'Carrière'].includes(e.group)) continue;
     let ids = [], slice = null;
     if (e.group === 'Opening') { const n = ['story-opening-trailer', 'story-opening-keuken', 'story-opening-verhuisdag'].indexOf(e.id); ids = n >= 0 ? [`C00.${n + 1}`] : []; }
     else if (e.group === 'Missies') { const sl = sliceOf(e.id); slice = sl ? [sl.from, sl.to] : null; ids = sceneIdsFor(e.id); }
+    else if (e.group === 'Carrière') ids = [];   // eigen regels (careerdebut.js), geen script.json-scène
     else ids = ['M06.0'];
     const sl = scriptLines(ids, slice);
     // koppel de getimede regels aan de scriptregels op tekst (volgorde blijft)
