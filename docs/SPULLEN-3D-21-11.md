@@ -37,13 +37,13 @@ Bron: `spullen.js` (`collect`) en wat het leest. Er is geen gewicht en er zijn g
 | Geld | 1 | 0 | 1 | 1 van 1 |
 | Wapens (slag en vuur; vuisten zijn geen spul) | 11 | 11 (`GUN_SPECS`) | 0 | 11 van 11 |
 | Werpspul (carbidbus, vuurwerk) | 2 | 2 | 0 | 2 van 2 |
-| Kleding (6 sets per personage) | 12 | 12 (personage in de set, `buildPersonMesh`) | 0 | 12 van 12 |
+| Kleding (67 stukken, 12 vaste sets en 8 looks) | 87 | 0 | 87 (los stuk of set zonder personage, `clothingpreview.js`, 22-11) | 87 van 87 |
 | Thuis (meubelhuis) | 9 | 9 (`shopmodels3d.js`) | 0 | 9 van 9 |
 | Eten, snacks van de toonbank | 14 | 14 (`shopmodels3d.js`) | 0 | 14 van 14 |
 | Eten, gevangen vis | 29 | 0 | 29 (één generator) | 29 van 29 |
 | Kaarten en verzamelingen | 4 | 2 (spaarkaart, eierbal) | 2 (aanwijzingen, geheimpje) | 4 van 4 |
 | Upgrades (Escapade, fiets, scooter, snackwagen) | 17 | 10 | 7 | 17 van 17 |
-| **Totaal** | **99** | **59** | **40** | **99 van 99** |
+| **Totaal** | **174** | **47** | **127** | **174 van 174** |
 
 ### Item voor item
 
@@ -52,7 +52,7 @@ Bron: `spullen.js` (`collect`) en wat het leest. Er is geen gewicht en er zijn g
 | Geld | nee | nieuw: `geld` (stapels vellen met bandje en munten, dikte per bedrag in vier niveaus, geen opdruk) |
 | knuppel, hockeystick, bezem, fietspomp, klomp, polsstok, pistool, uzi, waterpistool, shotgun, jachtgeweer | ja, `buildWeaponMesh` | hergebruikt |
 | carbidbus, vuurwerk | ja, `buildWeaponMesh` | hergebruikt |
-| 12 kledingsets | ja, het personage met de kleuren van de set | hergebruikt (`kind: 'person'`, kleuren uit `OUTFITS`) |
+| 67 kledingstukken, 20 sets | ja, het personage met de kleuren van de set (21-11) | sinds 22-11 een eigen voorbeeld per stuk en een raster per set (`kind: 'piece'` en `'pieceset'`), zie [KLEDING-PREVIEW-22-11.md](KLEDING-PREVIEW-22-11.md) |
 | kast, bank, lamp, bedden, tv, prikbord, frituurpan, plant, bureau | ja, productmodellen | hergebruikt |
 | krentenbol, koffie, drop, energiedrankje, EHBO-doos, kroket, frikandel, eierbal, oorlog, kapsalon, koek, kauwgom, gehaktballetjes, hotdog | ja, productmodellen | hergebruikt |
 | 29 vissoorten (voorn tot rivierprik) | nee | nieuw: `vis`, vorm (spil, plat, slang), lengte, hoogte en kleuren per soort uit `VIS_LOOK` |
