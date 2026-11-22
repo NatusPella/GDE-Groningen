@@ -21850,7 +21850,8 @@
      "text": "Niks. Ik zeg het uit gewoonte.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -21936,7 +21937,8 @@
      "text": "Dat was mijn plan al.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -21954,7 +21956,8 @@
      "text": "Sinds de Escapade.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     }
    ]
   },
@@ -21977,7 +21980,8 @@
      "text": "Dit is mijn keuken.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Beppe",
@@ -21994,7 +21998,8 @@
      "text": "Wat zegt ze?",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Mem Terpstra",
@@ -22011,7 +22016,8 @@
      "text": "Oma Trijntje, Beppe. Beppe, Oma Trijntje.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -22019,7 +22025,8 @@
      "text": "Hij is Gronings, ik ben Fries. Wij zijn de verzoening.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -22064,7 +22071,8 @@
      "text": "It smakket.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Oma Trijntje",
@@ -22072,7 +22080,8 @@
      "text": "Moi. Het is soep met een eierbal. Daar kan niemand wat van zeggen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -22179,8 +22188,9 @@
      "text": "Ik heb ook geen vergunning.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HE-04"
+     "textOnly": false,
+     "humor": "HE-04",
+     "rec": "lines"
     },
     {
      "speaker": "Jelle Terpstra",
@@ -22216,8 +22226,9 @@
      "text": "...Een prijs zonder bijlage. Wie doet dat?",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HE-05"
+     "textOnly": false,
+     "humor": "HE-05",
+     "rec": "lines"
     }
    ]
   },
@@ -22251,7 +22262,8 @@
      "text": "Het is een gelegenheid.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -22269,7 +22281,8 @@
      "text": "Eten. Wandelen. En eentje doorgestreept.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -22287,7 +22300,8 @@
      "text": "Zeggen dat ik je leuk vind. Dat is al gebeurd. Met publiek.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -22305,7 +22319,8 @@
      "text": "Hier. Dat is goed.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -22342,7 +22357,8 @@
      "text": "Hier. Met jou erbij.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -22412,8 +22428,9 @@
      "text": "Ik ken jullie van het luik. Woensdag, de derde in de rij. Eén eierbal, extra mosterd.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "H6-01"
+     "textOnly": false,
+     "humor": "H6-01",
+     "rec": "lines"
     },
     {
      "speaker": "Willemien",
@@ -22421,10 +22438,11 @@
      "text": "De aannemer zet het huis op nieuwe poten. De ploeg is aardig.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
      "form": {
       "pause": 0.5
-     }
+     },
+     "rec": "lines"
     },
     {
      "speaker": "Willemien",
@@ -22432,7 +22450,8 @@
      "text": "Het duurt alleen langer dan een kopje koffie.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -22450,7 +22469,8 @@
      "text": "Dat zegt Trijntje van alles. Breekbaar in de krant. Boeken in kleine dozen, anders til je ze niet.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tammo",
@@ -22458,7 +22478,8 @@
      "text": "En de kat?",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Willemien",
@@ -22466,10 +22487,11 @@
      "text": "De kat weet het al.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
      "form": {
       "pause": 0.5
-     }
+     },
+     "rec": "lines"
     },
     {
      "speaker": "Willemien",
@@ -22477,7 +22499,8 @@
      "text": "Hij zit sinds gisteren onder de bank.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     }
    ]
   },
@@ -22846,7 +22869,8 @@
      "text": "Wat wilde hij nou?",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -22998,7 +23022,8 @@
      "text": "Trijntjes recept. Het is een bal.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tammo",
@@ -23301,10 +23326,11 @@
      "text": "Ik heb de sleutel van de sluis. Vrij genomen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
      "form": {
       "ov": 0.3
-     }
+     },
+     "rec": "lines"
     },
     {
      "speaker": "Kapitein Klaas",
@@ -23324,7 +23350,8 @@
      "text": "Ik vlieg boven. Zes zakken meel. Eén keer wit. Daarna sta ik stil.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Wubbo",
@@ -23332,10 +23359,11 @@
      "text": "Ik doe de lier van de brug. Open of dicht. Vandaag een tel te vroeg.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
      "form": {
       "ov": 0.3
-     }
+     },
+     "rec": "lines"
     },
     {
      "speaker": "Tinus",
@@ -23343,7 +23371,8 @@
      "text": "De trekker heeft een toren. Zonder motor ging het niet. Met motor wel.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Geesje",
@@ -23390,10 +23419,11 @@
      "text": "Zeven mensen die niet weglopen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
      "form": {
       "pause": 1
      },
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -23402,7 +23432,8 @@
      "text": "Ik weet niet wat ik moet zeggen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -23972,7 +24003,8 @@
      "text": "Waar jij wilt.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -23990,7 +24022,8 @@
      "text": "Dan beginnen we overal.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Meneer Veldkamp",
@@ -23998,7 +24031,8 @@
      "text": "De duiven vragen of jullie blijven.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -24105,7 +24139,8 @@
      "text": "Het is half tien. Het luik is open, de kaart ligt klaar. Ik zeg niks. Ik reken wel.",
      "tag": "NIEUW",
      "channel": "radio",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tammo",
@@ -24113,7 +24148,8 @@
      "text": "Alles blijft open. De boerderij, de panden, het voetbal.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -24131,7 +24167,8 @@
      "text": "Dan rijden we.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -24149,7 +24186,8 @@
      "text": "Eerst de Hereweg.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     }
    ]
   }

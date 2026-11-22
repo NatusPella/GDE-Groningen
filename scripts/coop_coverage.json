@@ -1895,6 +1895,10 @@
    "reden": "Zuivere regels van de eerste tien minuten (toetsregel wijkt na oefenen, herinnering bij afdwalen) voor de eigen speler; per apparaat en per sessie, niets om te delen."
   },
   {
+   "glob": "settingsrules",
+   "reden": "Zuivere regels voor het instellingenscherm (welke wijzigingen, afhankelijkheden, waarschuwingen); instellingen zijn lokaal per speler."
+  },
+  {
    "glob": "savediag",
    "reden": "Diagnose van het opgeslagen spel op dit apparaat; lokaal."
   },
