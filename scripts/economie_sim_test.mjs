@@ -4,6 +4,7 @@
 import assert from 'node:assert/strict';
 import * as S from './lib/economiesim.mjs';
 import * as L from '../game/js/loopbaan.js';
+import { runCareer } from './voetbal_carriere_sim.mjs';
 
 let n = 0, fails = 0;
 const t = (naam, fn) => { n++; try { fn(); } catch (e) { fails++; console.log('FAIL ' + naam + '\n  ' + e.message.split('\n')[0]); } };
@@ -52,6 +53,18 @@ t('de loonfactor van de loopbaan (+30% hooguit) laat de sessie met hooguit 30% v
   const top = S.simuleer({ uren: 10, factor: L.LOON_FACTOR[L.MAX_NIVEAU - 1] });
   assert.ok(top.bruto / r.bruto <= 1.3, 'hoogstens +30%');
   assert.ok(top.bruto > r.bruto);
+});
+
+t('voetbalcarrière (#1116): zelf spelen levert ongeveer 420 euro per actief uur; een tiende van de speeltijd erin verschuift het netto per uur met minder dan 15%', () => {
+  for (const char of ['anita', 'tammo']) {
+    const rep = runCareer({ char, seizoenen: 3, strategie: 'speel' });
+    assert.ok(Math.abs(rep.perHour - S.BRONNEN.voetbal.perUur) / S.BRONNEN.voetbal.perUur <= 0.15, `${char}: ${rep.perHour} per actief uur wijkt af van de sim-bron (${S.BRONNEN.voetbal.perUur})`);
+  }
+  assert.equal(S.simuleer({ uren: 10 }).per.voetbal.uur, 0, 'de standaardsessie speelt geen voetbal');
+  const mix = S.simuleer({ uren: 10, verdeling: { ...S.VERDELING, missie: S.VERDELING.missie - 0.1, voetbal: 0.1 } });
+  const delta = mix.netPerUur / r.netPerUur - 1;
+  assert.ok(Math.abs(delta) <= 0.15, `netto per uur verschuift ${Math.round(delta * 100)}%`);
+  assert.ok(S.BRONNEN.voetbal.perUur < r.netPerUur, 'voetbal is nooit de snelste bron');
 });
 
 console.log(`economie_sim_test: ${n - fails}/${n} ok`);
