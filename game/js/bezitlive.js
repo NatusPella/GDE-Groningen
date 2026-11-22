@@ -33,7 +33,7 @@ import * as CH from './bezitchain.js';
 import * as SC from './supplychain.js';
 import * as NW from './bezitnews.js';
 import * as HS from './housing.js';
-import { herdsOf, infect, SPECIES, buyHerd, sellHerd } from './livestock.js';
+import { herdsOf, infect, SPECIES, buyHerd, sellHerd, herdSellValue } from './livestock.js';
 import { MACHINE_CATALOGUS } from './percelen.js';
 import { setAreaPrice, setYieldInfo } from './bezithooks.js';
 import { recordService } from './reputationlive.js';
@@ -166,6 +166,7 @@ export function parcelOffer(id) {
     scaleNote: P.scaleFactor(Z.ownedCount(b)) > 1 ? `Schaalprijs x${P.scaleFactor(Z.ownedCount(b)).toFixed(2).replace('.', ',')}: wie veel land heeft, betaalt meer voor het volgende perceel.` : '',
     forSale: P.isForSale(p) && !mine && !claim, mine, claim,
     sellValue: mine ? P.sellValue((b.parcels[id] || {}).p || 0) : 0,
+    herdValue: mine ? herdSellValue(herdsOf(b)[id]) : 0,         // de kudde op het perceel gaat mee naar de koper en wordt uitbetaald (verkoopPerceel)
     reason: mine ? 'Van jou' : claim ? `Van ${claim.name} (in deze sessie)` : !P.isForSale(p) ? 'Niet te koop: geen toegang tot een weg of pad' : '',
   };
 }
@@ -174,6 +175,8 @@ export const bezitOpen = (branch = 'land') => branchOpen(branch);
 export const bezitClosedText = (branch = 'land') => branchClosedText(branch);
 
 // ---- kopen en verkopen ----
+// Waarom een koop mislukt, in gewone woorden (voorheen "Kopen lukt nu niet" bij elke andere reden).
+export const buyFailText = (r) => (r && r.why === 'te-weinig-geld' ? `Je mist nog ${euro(r.tekort)}.` : r && r.why === 'vol' ? 'Je hebt het maximum aan bezit bereikt. Verkoop eerst iets.' : r && r.why === 'al-van-jou' ? 'Dit is al van jou.' : 'Kopen lukt nu niet. Probeer het zo nog eens.');
 export function koopPerceel(w, id) {
   if (coopEnsure) { try { coopEnsure(w); } catch (e) { /* geen sessie */ } }   // Samen spelen: het transport van de claims staat klaar voor de koop
   if (!branchOpen('land')) return { ok: false, why: 'dicht', text: branchClosedText('land') };
@@ -185,7 +188,7 @@ export function koopPerceel(w, id) {
   const farm = getBoerderij();
   const money = Number.isFinite(w && w.money) ? w.money : 0;
   const r = PF.acquireParcel(getBezit(), farm, o.parcel, o.price, Math.floor(farm.uren / 24), money, { region: o.region, place: o.place });
-  if (!r.ok) return { ...r, text: r.why === 'te-weinig-geld' ? `Je mist nog ${euro(r.tekort)}.` : 'Kopen lukt nu niet.' };
+  if (!r.ok) return { ...r, text: buyFailText(r) };
   noteMoney('Winkels'); w.money -= o.price;
   B.boek(farm, { kosten: o.price, post: 'aankoop' });
   sfxEvent(w, 'deed_stamp');   // SFX ronde 6: de akte wordt gestempeld (per speler: lokaal, een gast hoort het niet)
@@ -198,14 +201,16 @@ export function koopPerceel(w, id) {
 export function verkoopPerceel(w, id) {
   if (coopEnsure) { try { coopEnsure(w); } catch (e) { /* geen sessie */ } }
   const b = getBezit();
+  const herd = herdSellValue(herdsOf(b)[id]);                       // een kudde op het perceel werd stil weggegeven: nu betaalt hij uit (zoals Vee verkopen)
   const r = Z.sellParcel(b, id);
   if (!r.ok) return { ...r, text: r.why === 'start' ? 'Dit startperceel verkoop je niet.' : 'Dit perceel is niet van jou.' };
+  if (herd > 0) { r.refund += herd; delete herdsOf(b)[id]; }
   PF.syncFarmWithBezit(getBoerderij(), b, ctxOf(), 0);
   noteMoney('Verkoop'); w.money += r.refund;
   B.boek(getBoerderij(), { omzet: r.refund });
   claimSend({ id, action: 'release' });
   markeer();
-  return { ok: true, refund: r.refund, text: `Verkocht voor ${euro(r.refund)}.` };
+  return { ok: true, refund: r.refund, herd, text: herd > 0 ? `Verkocht voor ${euro(r.refund)}, de kudde (${euro(herd)}) inbegrepen.` : `Verkocht voor ${euro(r.refund)}.` };
 }
 
 // ---- Samen spelen: de claim (bezitcoop.js haakt hier in) ----
@@ -273,7 +278,7 @@ export function koopPand(w, osm) {
   if (!o.forSale) return { ok: false, why: 'niet-te-koop', text: o.reason || 'Dit pand is niet te koop.' };
   const farm = getBoerderij();
   const r = BZ.buyBusiness(getBezit(), o.row, o.kind, o.town, Math.floor(farm.uren / 24), Number.isFinite(w && w.money) ? w.money : 0);
-  if (!r.ok) return { ...r, text: r.why === 'te-weinig-geld' ? `Je mist nog ${euro(r.tekort)}.` : 'Kopen lukt nu niet.' };
+  if (!r.ok) return { ...r, text: buyFailText(r) };
   noteMoney('Winkels'); w.money -= r.cost;
   sfxEvent(w, 'deed_stamp');   // SFX ronde 6: de akte wordt gestempeld (per speler: lokaal)
   markeer();
@@ -338,7 +343,7 @@ export function bestrijd(w, ids, what) {
 }
 export function koopVee(w, id, sp) {
   const r = buyHerd(getBezit(), id, sp, Number.isFinite(w && w.money) ? w.money : 0);
-  if (!r.ok) return { ok: false, text: r.why === 'te-weinig-geld' ? `Je mist nog ${euro(r.tekort)}.` : r.why === 'al-vee' ? 'Op dit perceel loopt al vee.' : 'Dit vee past niet op dit perceel.' };
+  if (!r.ok) return { ok: false, text: r.why === 'te-weinig-geld' ? `Je mist nog ${euro(r.tekort)}.` : r.why === 'al-vee' ? 'Op dit perceel loopt al vee.' : r.why === 'niet-van-jou' ? 'Dit perceel is niet van jou.' : 'Dit vee past niet op dit perceel.' };
   noteMoney('Winkels'); w.money -= r.cost; markeer();
   return { ok: true, n: r.n, text: `${r.n} ${SPECIES[sp].naam.toLowerCase()} gekocht voor ${euro(r.cost)}.` };
 }

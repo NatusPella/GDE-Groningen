@@ -221,6 +221,7 @@ import { setBezitDifficultyProvider } from './bezitdifficulty.js';
 // Bezit leest zijn moeilijkheid via difficulty.js: alleen de omzet (incomeFactor, per speler, 0,75 tot 1,25); aankoopprijs en kosten blijven op 1: er is geen prijsoptie (besluit moeilijkheid #1169).
 setBezitDifficultyProvider((kind) => (kind === 'income' ? incomeFactor() : 1));
 import { onDayReport as bezitOnDayReport, deliverLine as bezitDeliverLine } from './bezitworldhooks.js';
+import { deliverDayReport as bezitDeliverRapport } from './holdingreport.js';
 import { updateFarmWorkers } from './farmworkers3d.js';
 import { updateSnackVans } from './snackvans3d.js';
 import { updateChainTrucks } from './chaintrucks3d.js';
@@ -1520,7 +1521,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     updateClearZones(dt, world);
     updateDayNight(dt, world);
     boerderijTijd(world); // de gewassen groeien in speltijd (#415)
-    try { const dr = bezitDagTik(world); if (dr) bezitDeliverLine(world, bezitOnDayReport(getBezit(), dr)); updateBezitMarkers(world, dt); updateFarmWorkers(world, dt); updateSnackVans(world, dt); updateChainTrucks(world, dt); updateHerds(world, dt); } catch (e) { /* zonder bezit */ } // personeel, pacht, vee en bedrijven per speldag; de palen in de wereld (epic Bezit)
+    try { const dr = bezitDagTik(world); if (dr) { bezitDeliverLine(world, bezitOnDayReport(getBezit(), dr)); bezitDeliverRapport(world, dr); } updateBezitMarkers(world, dt); updateFarmWorkers(world, dt); updateSnackVans(world, dt); updateChainTrucks(world, dt); updateHerds(world, dt); } catch (e) { /* zonder bezit */ } // personeel, pacht, vee en bedrijven per speldag; de palen in de wereld (epic Bezit)
     updateCalendar(dt, world);
     updateVoetbalDag(dt, world); // de nachten van de voetbalcarrière (#1110): zelfde signaal als de kalender, eigen teller
     updateVoetbalBeats(dt, world);

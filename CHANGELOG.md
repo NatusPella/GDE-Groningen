@@ -11,6 +11,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+<<<<<<< HEAD
 ### Besturing met een controller
 - Acties-wiel (controller-review 22-11, #495, #1011): houd Overzicht een halve seconde ingedrukt en een wiel toont alles wat in die situatie geen eigen knop heeft: de radio in een auto (sinds #495 weg van het pad), de volgende zender, andere kleren, de filmcamera, eerste persoon, het waypoint naar je doel, de directe wapenkeuze, de alarmlichten, het lakmenu, het kusje, de busdienst overnemen (G) en in Samen spelen de roepjes en snelle zinnen in een voertuig. Kies met de linkerstick of de D-pad, A bevestigt, B sluit, LB en RB bladeren. Een korte tik op Overzicht is nog steeds de kaart (die gaat nu bij het loslaten open). Wie niet kan houden zet de tikstand aan: dan opent een tik het wiel. Herbinden werkt gewoon door. Een toets die alleen in het wiel zit, toont in de hints de knop Overzicht met "houd". Invoer is lokaal; er gaat niets over het net.
 - Samen spelen aan de waterkant: de roepjes (Kom hier, Help!, Kijk daar) en "bij de groep komen" staan op de D-pad zoals te voet; X blijft hengelen. Het wiel met snelle zinnen opent niet meer in de trein en op de trekker, waar T al het lopen door de trein en de hef is.
@@ -27,6 +28,15 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Radio met alleen een controller (#988, #495): een zender kiezen kan nu zonder het menu, in elk voertuig en te voet. In het acties-wiel (houd Overzicht) staat een pagina Radio met aan of uit, volgende zender, vorige zender en Zenders kiezen; dat laatste opent een lijst met elke zender met een icoontje en zijn naam, de huidige gemarkeerd, geheime zenders die je nog niet vond verborgen en Binnenkort grijs en niet te kiezen. De D-pad of de stick kiest, A bevestigt, B sluit; het voertuig blijft rijden (de stick stuurt dan even niet). Te voet is D-pad omhoog nog steeds de radio aan of uit en houd je hem ingedrukt, dan opent het zenderwiel. Op het toetsenbord blijft N de radio aan of uit (nu bij het loslaten), Shift+N de volgende zender, nieuw is Alt+N de vorige zender en N vasthouden het zenderwiel (pijlen kiezen, Enter bevestigt, Esc sluit). Na een wissel komt dezelfde melding als bij het instappen (zender en DJ, titel en artiest) en de keuze wordt per voertuigsoort onthouden. Samen spelen: de bestuurder kiest de zender van het voertuig, een passagier volgt en kan niet wisselen; aan of uit blijft ieders eigen keuze. Alle knoppen volgen de herbinding van Besturing (docs/RADIO-BEDIENING-22-11.md). Niet met een echte controller bekeken.
 ### Geluid
 - Geluid: een klank met een onbekende afstand, een voetstap met een rare snelheid of een melding zonder tijd valt niet meer stil of blijft niet voorgoed hangen; het volume uit een tekst als 50% wordt gelezen; de radio herhaalt zich op lange duur niet.
+=======
+### Bezit en economie
+- Dagrapport: elke speldag zie je in één korte melding wat er binnenkwam en uitging (percelen, bedrijven, snackwagen, ketens, verzekering) en of je personeel heeft gewerkt; het laatste rapport blijft in Overzicht staan. Is je geld op, dan zegt de melding dat. Lokaal per speler.
+- Een perceel met vee verkopen betaalt de kudde nu uit (net als Vee verkopen); voorheen ging die gratis mee. De kaart noemt het bedrag.
+- Vee kopen, een schakel uitbreiden en een pand of wagen renoveren vragen nu een tweede druk, met wat je overhoudt; de renovatieknop toont de prijs. Mieren bestrijden, wespen weghalen en alles zaaien in één keer vragen ook een tweede druk met een schatting.
+- Grijze koopknoppen zeggen waarom ("Je mist nog ..."), een mislukte koop geeft een eigen reden, en de lijst Te koop onderscheidt "nog aan het laden" van "niets in de buurt".
+- Meer velden tegelijk oogstklaar? Eén melding in plaats van een stoet. In Overzicht staat het loon per dag naast de opbrengst.
+- Snackwagen: een wagen die nog thuis staat krijgt uitleg over de eerste vergunning, en een leeg menu een waarschuwing.
+>>>>>>> verfijn-bezit-22-11
 ### Prestaties
 - Prestaties (#1074, #1067): als het spelvenster verborgen of op de achtergrond is, doen de vaste controles van de overlays, het Samen-paneel en het aanraakscherm niets meer; de kartmotor wordt bij het verlaten van de baan echt stopgezet. Samen spelen: lokaal per speler, geen netwerkwijziging; testsessies met `?stil` blijven gewoon tikken. Voor de metingen staan er twee A-schakelaars (`?perfoff=boomfade`, `?perfoff=gevelfade`).
 ### Controller en bediening

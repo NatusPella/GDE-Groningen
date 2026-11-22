@@ -47,6 +47,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [BEZIT-VERIFICATIE-21-11.md](<BEZIT-VERIFICATIE-21-11.md>) | Werkdocument. Per pakket van de epic Bezit wat gebouwd en getest is en wat nog in beeld (Electron) te controleren valt. |
 | [BEZIT-STAND-22-11.md](<BEZIT-STAND-22-11.md>) | Audit van de epic Bezit (#1095 tot en met #1105): matrix gedaan, gebouwd en open per pakket, Samen-regels, exploit-audit en prestaties in node. |
 | [BOERDERIJ-VISUEEL-22-11.md](<BOERDERIJ-VISUEEL-22-11.md>) | De boerderijschermen beeld-eerst: 3D-previews, tekstmassa voor en na per scherm, wat alleen in beeld te controleren is. |
+| [VERFIJNING-22-11-BEZIT.md](<VERFIJNING-22-11-BEZIT.md>) | Verfijnronde Bezit, boerderij, snackwagen en economie: tabel wrijving, oplossing en bewijs, wat bewust niet, wat nog in beeld bekeken moet worden. |
 | [COOP-GAST.md](<COOP-GAST.md>) | Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). Dit docu… |
 | [COOP-DEKKING-21-11.md](<COOP-DEKKING-21-11.md>) | Werkdocument. Audit-matrix: per systeem van de hele game de zes vragen over Samen spelen (bezit, gast, beloning, wegvallen en hostwissel, enkelspeler-aanname, dekking), gegenereerd uit scripts/coop_coverage.json. |
 | [COOP-SWEEP-21-11.md](<COOP-SWEEP-21-11.md>) | Werkdocument. Draaiboek voor de sweep: welke testbank-suites, hoeveel Electron-instanties, hoe lang. |
