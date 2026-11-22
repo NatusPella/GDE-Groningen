@@ -43,7 +43,7 @@ import { setWaterHost, updateSailing, updatePaddling, noMotor, sailPowered } fro
 // De radio en de G-Music-machine wonen in audio/radio.js (#519); de namen die
 // de rest van het spel hier importeert blijven dezelfde.
 import { setRadioDeps, loadGMusicManifest, updateGMusic, enqueueGmusicJingle, radioSleep, radioWake, radioUnlock, radioCtxStalled, radioWasSuspended, watchRadio, radioPoke, radioState, radioTrackEls, radioCurrentTrackEl, radioOn, radioProg } from './audio/radio.js';
-export { setRadioOn, setRadioProgramme, setRadioChannel, radioTrackEls as radioTrackList, onRadioBreak, radioInBreak } from './audio/radio.js';
+export { setRadioOn, setRadioProgramme, setRadioChannel, radioTrackEls as radioTrackList, radioNowTrack, onRadioBreak, radioInBreak } from './audio/radio.js';
 
 // the camera comes from main.js (setAudioCamera): audio.js does not import scene3d.js (#108)
 let getCamera = () => null;

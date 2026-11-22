@@ -1202,12 +1202,13 @@
     "evenementen*"
    ],
    "eigenaar": "speler",
-   "gast": "De duif wordt in de duifmodus door de gast mee bestuurd; dieren, fotomodus en radio zijn lokaal; evenementen zijn van de wereld en worden bij de gast getoond.",
+   "gast": "De duif wordt in de duifmodus door de gast mee bestuurd; dieren, fotomodus en radio zijn lokaal (ook de zender die bij een voertuig hoort, #988: de bestuurder bepaalt de zender van een gedeeld voertuig en een passagier volgt); evenementen zijn van de wereld en worden bij de gast getoond.",
    "beloning": "Eigen dierenbezit en visboek per speler.",
    "wegval": "Niets te herstellen.",
    "test": [
     "scripts/pigeon_sync_test.mjs",
     "scripts/dierenregister_test.mjs",
+    "scripts/radiovehicle_test.mjs",
     "scripts/evenementen_test.mjs"
    ],
    "regel": {

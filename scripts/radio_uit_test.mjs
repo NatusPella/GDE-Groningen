@@ -18,6 +18,7 @@ import { createScenarioDirector, activityMusicKey } from '../game/js/scenariomus
 import { registerBusyProbe, playerBusy } from '../game/js/busy.js';
 import { createAdState } from '../game/js/radioads.js';
 import { programmeAt, normalizeRadio, STATION_NAME } from '../game/js/musicpick.js';
+import { outsideState, enterVehicle, exitVehicle, rememberChoice, cleanRemembered, radioNotice, hudName } from '../game/js/radiovehicle.js';
 import { channelById, channelStatus, listChannels, openChannels, nextChannel, validChannel, programmeFor, isUnlocked, DEFAULT_CHANNEL } from '../game/js/radiochannels.js';
 
 const AUDIO = new URL('../game/js/audio/scenario.js', import.meta.url);
@@ -207,7 +208,10 @@ function loadRadio({ document: doc } = {}) {
     hideRadioSub: () => {},
     createAdState,
     programmeAt, channelById, channelStatus, listChannels, openChannels, nextChannel, validChannel, programmeFor, isUnlocked, DEFAULT_CHANNEL,
-    setRadioChannel: () => {}, radioTrackList: () => [],
+    setRadioChannel: () => {}, radioTrackList: () => [], radioNowTrack: () => null,
+    // de voertuigradio (#988): de echte pure regels; de speler en de instellingen zijn nep (hier rijdt niemand)
+    outsideState, enterVehicle, exitVehicle, rememberChoice, cleanRemembered, radioNotice, hudName,
+    hoofdspeler: (w) => w.player || null, getSettings: () => ({}), setSetting: () => {},
     normalizeRadio,
     STATION_NAME,
   };
