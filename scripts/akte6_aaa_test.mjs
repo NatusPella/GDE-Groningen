@@ -201,7 +201,9 @@ for (const [id, pad] of Object.entries(JOBS)) {
   });
 }
 t('elke bijbaankaart heeft een bijbaan in deze test (behalve de veerdienst, die onder zijn eigen id staat)', () => {
-  for (const id of Object.keys(BB.BIJBAAN_KAARTEN)) assert.ok(id === 'veerdienst' || JOBS[id], id);
+  // het bijbanenpakket van 22-11 (sidejobpack_rules.js) heeft zijn eigen regels en tests; de kaart hoort hier niet bij een sidejob_*-module
+  const PAKKET = ['vismarktkoerier', 'studentenfeest', 'marktkraam', 'toeristengids'];
+  for (const id of Object.keys(BB.BIJBAAN_KAARTEN)) assert.ok(id === 'veerdienst' || PAKKET.includes(id) || JOBS[id], id);
   assert.ok(BB.bijbaanKaart('veerdienst'));
   assert.equal(BB.bijbaanKaart('bestaat-niet'), null);
   assert.equal(BB.bijbaanKaart('constructor'), null, 'geen prototype-sleutels');

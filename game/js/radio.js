@@ -239,7 +239,7 @@ function checkNewChannels(w) {
   if (added.length) {
     announced = [...announced, ...added];
     saveChannel();
-    for (const id of added) w.addMessage(`Nieuwe zender: ${channelById(id).name}. Kies hem in Instellingen > Geluid of met {SHIFT}+{N}; {N} vasthouden opent het zenderwiel.`, 6);
+    for (const id of added) w.addMessage(`Nieuwe zender: ${channelById(id).name}. Kies hem met {SHIFT}+{N}; {N} vasthouden opent het zenderwiel.`, 6);
   }
   const target = !vehState.kind && channelId === DEFAULT_CHANNEL && wanted !== DEFAULT_CHANNEL && open.includes(wanted) ? wanted : validChannel(channelId, open);
   if (target !== channelId) {

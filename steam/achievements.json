@@ -1252,7 +1252,7 @@
     {
       "id": "fjord_1000",
       "titel": "Frituurbaron",
-      "omschrijving": "Verdien €1000 met de snackwagen",
+      "omschrijving": "Verdien €1.000 met de snackwagen",
       "verborgen": false,
       "voorstelApiNaam": "ACH_FJORD_1000",
       "steamApiNaam": ""
@@ -1468,7 +1468,7 @@
     {
       "id": "kleding_kast",
       "titel": "Hele kast",
-      "omschrijving": "Heb van alle 63 soorten kledingstukken er minstens één",
+      "omschrijving": "Heb van alle 88 soorten kledingstukken er minstens één",
       "verborgen": false,
       "voorstelApiNaam": "ACH_KLEDING_KAST",
       "steamApiNaam": ""
@@ -1988,7 +1988,7 @@
     {
       "id": "drift_5000",
       "titel": "Rookwolk",
-      "omschrijving": "Haal 5000 punten in één driftronde",
+      "omschrijving": "Haal 5.000 punten in één driftronde",
       "verborgen": true,
       "voorstelApiNaam": "ACH_DRIFT_5000",
       "steamApiNaam": ""

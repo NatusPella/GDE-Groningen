@@ -50,7 +50,7 @@ ok(() => {
   if (/removeItem\(\s*WIJK_KEY\s*\)/.test(cine)) throw new Error('cinematics wist de apparaatlijst nog');
   if (/setItem\(\s*WIJK_KEY/.test(cine)) throw new Error('cinematics schrijft de apparaatlijst nog');
   const save = src('savegame.js');
-  if (!/wijken:\s*getWijkenSeen\(\)/.test(save)) throw new Error('de save schrijft de wijkenlijst niet');
+  if (!/wijken:\s*(?:veilig\('wijken', \(\) => )?getWijkenSeen\(\)/.test(save)) throw new Error('de save schrijft de wijkenlijst niet');
   if (!/applyWijkenSeen\(d\.wijken\)/.test(save)) throw new Error('de save laadt de wijkenlijst niet');
 }, 'save bewaart en laadt de lijst; apparaatlijst alleen nog als terugval');
 

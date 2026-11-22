@@ -115,7 +115,7 @@ function wieHtml(ctx) {
   return `<div class="sw-wie">
     <div class="sw-voorbeeld" aria-live="polite" aria-label="Zo zien de anderen je"><span class="coop-id sw-schijf ${kleurKlasse(p.kleur)}" aria-hidden="true">${glyph}</span><span class="sw-voorbeeld-naam">${esc(toon)}</span></div>
     <div class="sw-velden">
-      <label class="sw-veld"><span class="sw-label">Je naam</span><input class="coop-profiel-naam" type="text" spellcheck="false" autocomplete="off" maxlength="${p.maxLength}" placeholder="Je figuur" value="${esc(p.naam)}"></label>
+      <label class="sw-veld"><span class="sw-label">Je naam</span><input class="coop-profiel-naam" type="text" data-osk="naam" data-osk-check="online-naam" data-osk-label="Online naam" spellcheck="false" autocomplete="off" maxlength="${p.maxLength}" placeholder="Je figuur" value="${esc(p.naam)}"></label>
       <div class="sw-kleurrij" role="group" aria-label="Kleur"><span class="sw-label">Kleur</span><div class="sw-kleuren">${colors}</div></div>
       ${figuren}
     </div>
@@ -135,9 +135,9 @@ function gastKiezenHtml(ctx) {
   const inv = v.input || { placeholder: 'Kamercode', value: '', maxLength: 64, label: 'Kamercode' };
   const wwOpen = wz.wwOpen || !!s.wachtwoord;
   const ww = v.wachtwoord ? (wwOpen
-    ? `<label class="sw-veld sw-ww"><span class="sw-label">Wachtwoord van de sessie</span><input class="coop-wachtwoord" type="password" spellcheck="false" autocomplete="off" maxlength="${v.wachtwoord.maxLength}" placeholder="Alleen als de sessie er een heeft" value="${esc(v.wachtwoord.value)}"></label>`
+    ? `<label class="sw-veld sw-ww"><span class="sw-label">Wachtwoord van de sessie</span><input class="coop-wachtwoord" type="password" data-osk="wachtwoord" spellcheck="false" autocomplete="off" maxlength="${v.wachtwoord.maxLength}" placeholder="Alleen als de sessie er een heeft" value="${esc(v.wachtwoord.value)}"></label>`
     : '<button type="button" class="sw-link" data-act="ww-open">Vraagt de sessie een wachtwoord?</button>') : '';
-  const paneel = `<div class="sw-paneel"><label class="sw-veld"><span class="sw-label">Kamercode</span><input class="coop-input" type="text" spellcheck="false" autocomplete="off" aria-label="${esc(inv.label || inv.placeholder)}" placeholder="Bijvoorbeeld K3J9D-8F2MN" maxlength="${inv.maxLength || 64}" value="${esc(inv.value || '')}"></label>${ww}</div>`;
+  const paneel = `<div class="sw-paneel"><label class="sw-veld"><span class="sw-label">Kamercode</span><input class="coop-input" type="text" data-osk="${esc(inv.osk || 'code')}" spellcheck="false" autocomplete="off" aria-label="${esc(inv.label || inv.placeholder)}" placeholder="Bijvoorbeeld K3J9D-8F2MN" maxlength="${inv.maxLength || 64}" value="${esc(inv.value || '')}"></label>${ww}</div>`;
   return `<div class="sw-kaarten sw-kaarten--${cards.length}" role="group" aria-label="Hoe sluit je aan">${cards.join('')}</div>${paneel}`;
 }
 
@@ -148,9 +148,9 @@ function hostKiezenHtml(ctx) {
     choiceCard(icoon, 'slot', 'Privé', 'Alleen met de kamercode.', 'wijze-prive', { gekozen: !wz.openbaar }),
     wz.rtc ? choiceCard(icoon, 'wifi', 'Openbaar maken', 'Staat in de lijst.', 'wijze-openbaar', { gekozen: !!wz.openbaar }) : '',
   ].filter(Boolean);
-  const ww = v.wachtwoord ? `<label class="sw-veld"><span class="sw-label">Wachtwoord (niet verplicht)</span><input class="coop-wachtwoord" type="password" spellcheck="false" autocomplete="off" maxlength="${v.wachtwoord.maxLength}" placeholder="Leeg: geen wachtwoord" value="${esc(v.wachtwoord.value)}"></label>` : '';
+  const ww = v.wachtwoord ? `<label class="sw-veld"><span class="sw-label">Wachtwoord (niet verplicht)</span><input class="coop-wachtwoord" type="password" data-osk="wachtwoord" spellcheck="false" autocomplete="off" maxlength="${v.wachtwoord.maxLength}" placeholder="Leeg: geen wachtwoord" value="${esc(v.wachtwoord.value)}"></label>` : '';
   const openbaar = wz.openbaar
-    ? `<label class="sw-veld"><span class="sw-label">Naam van je sessie</span><input class="coop-sessienaam" type="text" spellcheck="false" autocomplete="off" maxlength="${SESSION_NAME_MAX}" placeholder="Bijvoorbeeld Zomeravond" value="${esc(wz.sessienaam)}"></label>`
+    ? `<label class="sw-veld"><span class="sw-label">Naam van je sessie</span><input class="coop-sessienaam" type="text" data-osk="tekst" spellcheck="false" autocomplete="off" maxlength="${SESSION_NAME_MAX}" placeholder="Bijvoorbeeld Zomeravond" value="${esc(wz.sessienaam)}"></label>`
       + `<label class="sw-vink"><input type="checkbox" class="coop-openbaar-vink"${wz.bevestigd ? ' checked' : ''}><span>Naam, spelers en versie staan voor iedereen in de lijst.</span></label>`
     : '';
   return `<div class="sw-kaarten sw-kaarten--${cards.length}" role="group" aria-label="Wie mag meedoen">${cards.join('')}</div><div class="sw-paneel${wz.openbaar ? ' sw-paneel--2' : ''}">${ww}${openbaar}</div>`;
