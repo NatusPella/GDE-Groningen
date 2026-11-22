@@ -11,6 +11,13 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Licht en kleur
+- In dichte mist blijft de Martinitoren (en elke andere toren op de skyline) leesbaar: de mist die hem vervaagt wordt minder dicht naarmate de mist zwaarder is (#1202).
+- Schaduwen worden zachter naarmate de zon zakt: in het gouden uur zijn de randen tot een derde breder.
+- Weilanden in de verte en op streamtegels hebben rustige kleurvariatie in plaats van één egale groene kleur (#1203, #1193).
+- Wolken vangen bij zonsopkomst en zonsondergang het gouden licht.
+- Samen spelen: alles is lokale weergave per speler; niets wordt gesynchroniseerd.
+
 ### Besturing met een controller
 - Acties-wiel (controller-review 22-11, #495, #1011): houd Overzicht een halve seconde ingedrukt en een wiel toont alles wat in die situatie geen eigen knop heeft: de radio in een auto (sinds #495 weg van het pad), de volgende zender, andere kleren, de filmcamera, eerste persoon, het waypoint naar je doel, de directe wapenkeuze, de alarmlichten, het lakmenu, het kusje, de busdienst overnemen (G) en in Samen spelen de roepjes en snelle zinnen in een voertuig. Kies met de linkerstick of de D-pad, A bevestigt, B sluit, LB en RB bladeren. Een korte tik op Overzicht is nog steeds de kaart (die gaat nu bij het loslaten open). Wie niet kan houden zet de tikstand aan: dan opent een tik het wiel. Herbinden werkt gewoon door. Een toets die alleen in het wiel zit, toont in de hints de knop Overzicht met "houd". Invoer is lokaal; er gaat niets over het net.
 - Samen spelen aan de waterkant: de roepjes (Kom hier, Help!, Kijk daar) en "bij de groep komen" staan op de D-pad zoals te voet; X blijft hengelen. Het wiel met snelle zinnen opent niet meer in de trein en op de trekker, waar T al het lopen door de trein en de hef is.

@@ -289,4 +289,5 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [VERKENNING-PROVINCIE.md](<VERKENNING-PROVINCIE.md>) | Klein plan voor de verkenlaag buiten de stad (A15-A20) op bestaande infrastructuur. |
 | [WERELDKLEUREN-21-11.md](<WERELDKLEUREN-21-11.md>) | Werkdocument bij de vraag van de eigenaar: inventaris van de kleurbronnen van de 3D-wereld, de subtiele stap naar het designsysteem (`worldpalette.js`, `WERELD_DS_MENG`, `?dswereld`), kleurplaat, voor-en-na en wat niet is gezien. 
 | [WERELDKLEUR-21-11.md](<WERELDKLEUR-21-11.md>) | Wereldkleur: een subtiele DS3-kleurtaal voor de 3D-wereld (`worldgrade.js`, stand Uit/Subtiel/Drukwerk): kleurkaart, grading per dagdeel en weer, metingen zonder Electron en besluiten.
+| [SPRINT-22-11-GEBIED.md](<SPRINT-22-11-GEBIED.md>) | Sprint 22-11 licht en kleur: mist en torens, zachte schaduwen bij lage zon, grasvariatie, gouden wolken, voor en na en wat in beeld bekeken moet worden. |
 | [WERELDKLEUR-VERIFICATIE-21-11.md](<WERELDKLEUR-VERIFICATIE-21-11.md>) | Draaiboek voor de Electron-sweep van de wereldkleur: schermen, tijden en weer, schakelaar-vergelijking en perf A/B. ||
