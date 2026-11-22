@@ -80,3 +80,46 @@ export function makeTrainers(scene) {
     dispose() { for (const g of groups.values()) weg(g); groups.clear(); geo.dispose(); ballGeo.dispose(); ballMat.dispose(); },
   };
 }
+
+// ---- reclameborden langs de zijlijnen (#1118): de verzonnen namen van de geaccepteerde sponsors (voetbalsponsors.js boardNames), hooguit drie, vier borden per kant op een plek in het gras-randje (1,1 m buiten de lijn) ----
+// Alleen tekst op een effen vlak (geen logo, geen echt merk). Materialen en teksturen zijn gedeeld tussen wedstrijden (userData.shared), de geometrie hoort bij de wedstrijd en gaat mee met de groep.
+const adMats = new Map();
+function adMat(naam) {
+  let m = adMats.get(naam);
+  if (m) return m;
+  let map = null;
+  try {
+    const c = document.createElement('canvas'); c.width = 512; c.height = 80;
+    const g = c.getContext('2d');
+    g.fillStyle = '#17301f'; g.fillRect(0, 0, 512, 80);
+    g.strokeStyle = '#f4c430'; g.lineWidth = 4; g.strokeRect(4, 4, 504, 72);
+    g.fillStyle = '#f0ede4'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = "bold 46px 'Bebas Neue','Arial Narrow',Arial,sans-serif";
+    g.fillText(String(naam).toUpperCase(), 256, 42, 480);
+    map = new THREE.CanvasTexture(c); map.colorSpace = THREE.SRGBColorSpace;
+  } catch (e) { map = null; }
+  m = new THREE.MeshBasicMaterial(map ? { map } : { color: 0x17301f });
+  m.userData.shared = true;
+  if (adMats.size > 24) adMats.clear();
+  adMats.set(naam, m);
+  return m;
+}
+export const AD_BOARDS = { max: 3, perKant: 4, breed: 5, hoog: 0.8, rand: 1.1 };
+export function buildAdBoards(root, { names, B, L, toLocal }) {
+  const lijst = (names || []).filter((n) => typeof n === 'string' && n.trim()).slice(0, AD_BOARDS.max);
+  if (!lijst.length || !(B > 0) || !(L > 0)) return null;
+  const groep = new THREE.Group();
+  groep.name = 'reclameborden';
+  const geo = new THREE.PlaneGeometry(AD_BOARDS.breed, AD_BOARDS.hoog);
+  let i = 0;
+  for (const kant of [-1, 1]) {
+    for (let k = 0; k < AD_BOARDS.perKant; k++) {
+      const along = (k - (AD_BOARDS.perKant - 1) / 2) * (L * 0.2), q = toLocal(kant * (B / 2 + AD_BOARDS.rand), along);
+      const bord = new THREE.Mesh(geo, adMat(lijst[i++ % lijst.length]));
+      bord.position.set(q.x, AD_BOARDS.hoog / 2 + 0.05, q.y);
+      bord.rotation.y = -kant * Math.PI / 2;      // met het gezicht naar het veld
+      groep.add(bord);
+    }
+  }
+  root.add(groep);
+  return { groep, namen: lijst };
+}

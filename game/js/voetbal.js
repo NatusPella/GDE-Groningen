@@ -19,7 +19,8 @@ import { registerLauncher, registerCoachLauncher } from './voetbalcarriereui.js'
 import { coachSetup, makeCoachMatch, coachTactic, coachResult } from './voetbalcoach.js';
 import { formationList } from './voetbalrules.js';
 import { awayKit, shirtBandsFor, mapSpots, parkCrowdCount, crowdVisible, trainingSquads } from './voetbalworld.js';
-import { buildCrowd, makeTrainers } from './voetbalpubliek.js';
+import { buildCrowd, makeTrainers, buildAdBoards } from './voetbalpubliek.js';
+import { boardNames } from './voetbalsponsors.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { sfxEvent } from './sfx/haken.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedLiveTik, wedHostLiveEind, wedGastVerlaat, wedGastReset } from './multiplayerwedstrijd.js';
@@ -209,6 +210,13 @@ function bouw(w, formaat = 'klein', site = null) {
   schaduw.visible = false;
   getScene().add(root, gateBoard, bal, schaduw);
   return { root, bord: gateBoard, bal, schaduw, formaat };
+}
+
+// De borden horen bij een wedstrijd: het Euroborg-veld blijft staan tussen wedstrijden, dus de vorige borden gaan eerst weg (geen opeenstapeling).
+function zetReclame(doel, namen) {
+  if (!doel) return;
+  if (doel.reclame) { doel.root.remove(doel.reclame.groep); disposeObject(doel.reclame.groep); doel.reclame = null; }
+  if (namen && namen.length) doel.reclame = buildAdBoards(doel.root, { names: namen, B: PITCH.B, L: PITCH.L, toLocal });
 }
 
 function ruimBouwOp() {
@@ -419,6 +427,11 @@ function launch(w, { force = false, online = null, sim = null, career = null } =
       parkBuilt.publiek = buildCrowd(parkBuilt.root, { count: parkCrowdCount(div), seed: (sim.seed | 0) + 1, B: PITCH.B, L: PITCH.L, toLocal, uit: crowdVisible({ quality: getSettings().quality === 'laag' ? 'laagst' : 'hoog' }) === 'uit' });
     } catch (e) { parkBuilt.publiek = null; }
   }
+  try { // de reclameborden van de sponsors (verzonnen namen) langs de zijlijnen, op het park en in de Euroborg; zonder sponsors geen borden (#1118)
+    const cs = career ? CL.getCareer() : null, namen = cs && cs.sponsors ? boardNames(cs.sponsors) : [];
+    if (!parkBuilt && built) zetReclame(built, namen); else if (parkBuilt && built) zetReclame(built, []);
+    if (parkBuilt) zetReclame(parkBuilt, namen);
+  } catch (e) { /* een bord mag de wedstrijd nooit stoppen */ }
   const bon = career ? null : characterEnter(w, 'voetbal'); // de speler voetbalt als Tessa (wissel per speler, terug bij het einde); zonder haak gebeurt er niets
   game = { online, sim, cctx: career ? career.cctx || null : null, t: 0, dt: 0, cam: null, actors: makeActors(sim), marks: makeMarkings(), mode, said: 0, lastFase: sim.fase, laadG: { schot: 0, lang: 0 }, bon, exitX: career && career.site ? toWorld((PITCH.B / 2) + 4, 0).x : GATE.x, exitY: career && career.site ? toWorld((PITCH.B / 2) + 4, 0).y : GATE.y, career, gemeld: false, comp: online || !opt ? null : opt.comp };
   tvInit(w, game);
@@ -824,7 +837,7 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   for (const mk of [g.marks.eigen, g.marks.pijl, ...g.marks.ander]) { getScene().remove(mk); mk.geometry.dispose(); }
   if (built) { built.bal.visible = false; built.schaduw.visible = false; }
   p.x = g.exitX; p.y = g.exitY; p.angle = -Math.PI / 2;
-  ruimParkOp(); site = { x: CX, y: CY, a: 0 };
+  ruimParkOp(); zetReclame(built, []); site = { x: CX, y: CY, a: 0 };
   karakterEind(w, g.bon);
   let res = null;
   if (g.online === 'host' && !extern) res = wedHostLiveEind(w, g.sim, { gestopt: quit });

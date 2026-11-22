@@ -16,6 +16,7 @@ import { hoofdspeler } from './players.js';
 import { districtName } from './bezitnews.js';
 import { MOBILE_SPOTS } from './business.js';
 import { renderSnackPanel } from './snackui.js';
+import { renderClubPanel } from './clubui.js';   // het tabblad Club: clubaandelen en sponsors van de voetbalcarrière (#1113)
 import { SPECIES, herdOffers, herdSellValue, herdsOf } from './livestock.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -180,6 +181,7 @@ export function renderBezitPanels(els, world) {
   if (els.bedrijven) { const p = playerPos(world); els.bedrijven.innerHTML = businessesHtml({ money, mine: L.myBusinesses(), near: L.buildingsNear(p.x, p.y), day, mobile: L.myMobile(), mobileOffers: L.mobileOffers(), homes: L.homesNear(p.x, p.y) }); }
   if (els.tekoop) els.tekoop.innerHTML = forSaleHtml({ money, offers: nearbyOffers(world) });
   if (els.snack) renderSnackPanel(els.snack, world);
+  if (els.club) renderClubPanel(els.club, world);
   const redo = () => renderBezitPanels(els, world);
   els.rerender = redo;
   if (bound === world) return;

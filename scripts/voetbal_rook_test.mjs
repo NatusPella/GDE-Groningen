@@ -116,4 +116,31 @@ assert.ok(berichten.some((b) => /Beloning/.test(b)) || w.money >= 0, 'het einde 
   window.__voetbal.quit();
   assert.equal(sc.getScene().children.length, 4);
 }
+
+// ---- een carrièrewedstrijd met een sponsor: de reclameborden staan er (#1118) en zijn na afloop weg; zonder sponsor geen borden
+{
+  const CL = await import('../game/js/voetbalcarrierelive.js');
+  const C = await import('../game/js/voetbalcarriere.js');
+  const PARK = (await import('../game/js/voetbalparkendata.js')).default;
+  const L = await import('../game/js/loopbaanlive.js');
+  const geheugen = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; };
+  L.zetProfielVoorTest(null, geheugen());
+  CL.useStorage(geheugen()); CL.useParkData(PARK);
+  const cw = { ...w, money: 0, clock: 12, msgs: [], coopDeel: null };
+  CL.createNew(cw, 'anita');
+  const borden = () => { let n = 0; sc.getScene().traverse((o) => { if (o.name === 'reclameborden') n++; }); return n; };
+  const kinderen = sc.getScene().children.length;
+  const dag3 = CL.getCareer(); CL.replaceCareer({ ...dag3, day: dag3.seasonStart + 3 });
+  const V = await import('../game/js/voetbal.js');
+  assert.equal(V.launchCareerMatch(w), true, 'de carrièrewedstrijd start');
+  assert.equal(borden(), 0, 'zonder aangenomen sponsor staan er geen borden');
+  window.__voetbal.quit();
+  const c = CL.getCareer(), slot = c.sponsors.slots[0].id;
+  CL.replaceCareer(C.acceptSponsor(c, slot).career);
+  assert.equal(V.launchCareerMatch(w), true);
+  assert.equal(borden(), 1, 'met een sponsor staat er een groep borden op het veld');
+  window.__voetbal.quit();
+  assert.equal(borden(), 0, 'na afloop zijn de borden weg met het tijdelijke veld');
+  assert.ok(sc.getScene().children.length <= kinderen + 4, 'het opruimen laat niets achter');
+}
 console.log(`voetbal_rook_test ok (${stappen} stappen)`);

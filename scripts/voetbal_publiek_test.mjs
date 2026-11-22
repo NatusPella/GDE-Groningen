@@ -54,4 +54,25 @@ t('de trappen: geen trap bij het neerzetten, daarna een per maat van 2,4 tot 3,6
   assert.doesNotThrow(() => run(false));
 });
 
+t('reclameborden (#1118): zonder sponsors geen borden; hooguit drie namen, vier borden per kant, met het gezicht naar het veld, buiten de lijn binnen het graspand', () => {
+  const root = new THREE.Group();
+  assert.equal(P.buildAdBoards(root, { names: [], B: 40, L: 60, toLocal }), null);
+  assert.equal(P.buildAdBoards(root, { names: ['', null], B: 40, L: 60, toLocal }), null);
+  assert.equal(root.children.length, 0);
+  const r = P.buildAdBoards(root, { names: ['Gouden Bakkerij', 'Noorderlicht Fietsen', 'Bakker en Zoon', 'Vierde Naam'], B: 40, L: 60, toLocal });
+  assert.equal(r.namen.length, 3, 'hooguit drie sponsors');
+  assert.equal(r.groep.children.length, 2 * P.AD_BOARDS.perKant);
+  for (const bord of r.groep.children) {
+    assert.ok(Math.abs(Math.abs(bord.position.x) - (20 + P.AD_BOARDS.rand)) < 1e-9, 'op het randje buiten de lijn');
+    assert.ok(Math.abs(bord.position.z) < 30, 'binnen de lengte van het veld');
+    const kijk = new THREE.Vector3(0, 0, 1).applyEuler(bord.rotation);
+    assert.ok(kijk.x * bord.position.x < 0, 'het gezicht wijst naar het veld');
+  }
+  assert.equal(new Set(r.groep.children.map((b) => b.material)).size, 3, 'een materiaal per sponsor, gedeeld');
+  const mat = r.groep.children[0].material;
+  const r2 = P.buildAdBoards(new THREE.Group(), { names: ['Gouden Bakkerij'], B: 40, L: 60, toLocal });
+  assert.equal(r2.groep.children[0].material, mat, 'hetzelfde materiaal in de volgende wedstrijd');
+  assert.equal(mat.userData.shared, true);
+});
+
 console.log(`voetbal_publiek_test ok (${n} groepen)`);

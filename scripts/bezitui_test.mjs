@@ -20,11 +20,11 @@ const w = (money = 100000) => ({ money, addMessage() {} });
 const src = fs.readFileSync(new URL('../game/js/pausemenu.js', import.meta.url), 'utf8');
 const ctx = (world) => ({ bezit: L.getBezit(), farm: BL.getBoerderij(), money: world.money, day: 0 });
 
-t('menu: Land en bedrijf heeft vier onderdelen en de oude Boerderij-id blijft', () => {
+t('menu: Land en bedrijf heeft zes onderdelen en de oude Boerderij-id blijft', () => {
   assert.match(src, /\['boerderij', 'Land en bedrijf', '[^']+'\]/);
-  assert.match(src, /boerderij: \[\['overzicht', 'Overzicht'\], \['boerderij', 'Boerderij'\], \['bedrijven', 'Bedrijven'\], \['tekoop', 'Te koop'\], \['snack', 'Snackwagen'\]\]/);
+  assert.match(src, /boerderij: \[\['overzicht', 'Overzicht'\], \['boerderij', 'Boerderij'\], \['bedrijven', 'Bedrijven'\], \['tekoop', 'Te koop'\], \['snack', 'Snackwagen'\], \['club', 'Club'\]\]/);
   assert.match(src, /'bezit', 'Bezit', \['spullen', 'garage', 'boerderij'\]/, 'de railgroep Bezit blijft');
-  for (const sub of ['overzicht', 'boerderij', 'bedrijven', 'tekoop', 'snack']) assert.ok(src.includes(`data-of="boerderij" data-sub="${sub}"`), sub);
+  for (const sub of ['overzicht', 'boerderij', 'bedrijven', 'tekoop', 'snack', 'club']) assert.ok(src.includes(`data-of="boerderij" data-sub="${sub}"`), sub);
 });
 t('menu: doorverwijzing van de oude en de nieuwe naam, standaard op Boerderij', () => {
   assert.ok(src.includes("if (name === 'bezit') name = 'boerderij'"));
