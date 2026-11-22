@@ -281,6 +281,7 @@ export function startRonde(id, level = 1, rng = Math.random) {
 // Eén stap met invoer; geeft de gebeurtenissen en zet `over` ('done' | 'fail') bij het einde.
 export function stapRonde(r, input, dt) {
   if (r.over) return [];
+  dt = Number.isFinite(dt) ? Math.max(0, Math.min(0.25, dt)) : 0; // een hapering telt hooguit een kwart seconde
   const ev = r.rule.step(r.s, input || {}, dt);
   for (const e of ev) {
     r.events.push(e);

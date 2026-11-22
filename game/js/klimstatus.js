@@ -42,7 +42,7 @@ export function klimHudModel(g) {
   const cijfers = [
     { label: 'Hoogte', waarde: `${meter1(g.hoogte || 0)} van ${WALL.height}`, icoon: I.hoogte, primair: true },
     { label: 'Pogingen', waarde: String(Math.max(0, g.kansen || 0)), icoon: ICOON.kans },
-    { label: 'Tijd', waarde: g.tijd, icoon: I.klok },
+    { label: 'Tijd', waarde: g.tijd || '0:00.00', icoon: I.klok },
   ];
   return {
     id: 'klimtoren', titel: 'Klimtoren', icoon: ICOON.klim, plek: '', stappen, meter, cijfers, uitleg: g.uitleg && g.fase === 'intro' ? UITLEG : [],

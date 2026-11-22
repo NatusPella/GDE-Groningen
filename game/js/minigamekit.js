@@ -40,8 +40,10 @@ export function medalFrom(value, at, lower = false) {
 
 export function fmtTime(s) {
   if (!Number.isFinite(s)) return '-:--.--';
-  const m = Math.floor(s / 60);
-  const r = s - m * 60;
+  // eerst op honderdsten afronden, dan splitsen: 59,999 s is 1:00.00 en nooit 0:60.00
+  const cs = Math.max(0, Math.round(s * 100));
+  const m = Math.floor(cs / 6000);
+  const r = (cs - m * 6000) / 100;
   return `${m}:${r < 10 ? '0' : ''}${r.toFixed(2)}`;
 }
 
@@ -56,7 +58,8 @@ export const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 
 // Wind as the shared little struct: speed m/s and the direction it blows to (rad).
 export function windText(wind) {
-  const bft = Math.round(Math.sqrt(Math.max(0, wind.speed)) * 1.1);
+  const sp = wind && Number.isFinite(wind.speed) ? wind.speed : 0;
+  const bft = Math.round(Math.sqrt(Math.max(0, sp)) * 1.1);
   return bft < 1 ? 'Windstil' : `Wind ${bft} Bft`;
 }
 
@@ -505,7 +508,9 @@ export const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => 
 // kop: de kolomnamen met '#' en de naam vooraan; rijen: [{ naam, cellen: ['..'], eigen, weg }]; de plek is de volgorde.
 export function standTabel(kop, rijen) {
   const kolommen = kop.map((k) => `<th scope="col">${esc(k)}</th>`).join('');
+  if (!rijen || !rijen.length) return `<table class="mg-stand"><thead><tr>${kolommen}</tr></thead><tbody><tr><td colspan="${kop.length + 1}">Nog niemand</td></tr></tbody></table>`;
   const body = rijen.map((r, i) => {
+    r = { ...r, cellen: r.cellen || [] };
     const cellen = r.cellen.map((c, k) => (r.weg ? (k === r.cellen.length - 1 ? 'weg' : '-') : c));
     return `<tr class="${[r.eigen ? 'on' : '', r.weg ? 'weg' : ''].filter(Boolean).join(' ')}"><td>${i + 1}</td><th scope="row">${esc(r.naam)}</th>${cellen.map((c) => `<td>${esc(c)}</td>`).join('')}</tr>`;
   }).join('');

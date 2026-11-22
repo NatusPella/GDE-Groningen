@@ -34,6 +34,7 @@ export const SERVE_TIJD = 6; // s: daarna slaat de maat of het spel de serve voo
 // g: { fase, serveer (bool: jij serveert), phaseT (s), games: [jij, zij], punten: ['15','30'], rally, beste, winnaar (0|1|-1), flash, tijd (tekst), capped, gp, uitleg }
 export function padelHudModel(g) {
   if (!g) return null;
+  g = { ...g, games: g.games || [0, 0], punten: g.punten || ['0', '0'] };
   const idx = STAPPEN.findIndex((s) => s.id === stapVan(g.fase));
   const stappen = STAPPEN.map((s, i) => ({ label: s.label, icoon: s.icoon, stand: i < idx ? 'klaar' : i === idx ? 'nu' : 'straks' }));
   const wacht = g.fase === 'serve' && g.serveer ? Math.max(0, g.phaseT || 0) : null;
@@ -53,13 +54,14 @@ export function padelHudModel(g) {
 export function watNu(g) {
   if (g.fase === 'intro') return 'Maak je klaar: het potje begint zo';
   if (g.fase === 'serve') return g.serveer ? 'Jij serveert: druk {SPATIE}' : 'Zij serveren: sta klaar';
+  if ((g.fase === 'point' || g.fase === 'outro') && g.winnaar === -1) return 'Potje gestopt';
   if (g.fase === 'point' || g.fase === 'outro') return g.winnaar === 0 ? 'Punt voor jullie' : 'Punt voor hen';
   if (g.gp) return 'Gouden punt: beslist de game';
   return g.inBereik ? 'Nu {SPATIE}: de ring is groen' : 'Loop naar de bal tot de ring groen is';
 }
 
 // Wat opspringt: een punt van jullie, een lange rally of een game/set.
-export function puntPop({ team, gameWon, over, rally, punten }) {
+export function puntPop({ team, gameWon, over, rally, punten = ['0', '0'] }) {
   if (team !== 0) return null;
   if (over) return { tekst: 'Set voor jullie!', geluid: 'ui_loopbaan' };
   if (gameWon) return { tekst: 'Game voor jullie!', geluid: 'ui_loopbaan' };

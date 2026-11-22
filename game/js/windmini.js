@@ -21,6 +21,7 @@ export function miniWind(world) {
 
 // Hoe sterk de wind is voor de tekening: t 0..1 over het bereik van de zeilcode, en 1 tot 3 streepjes
 export function windSterkte(snelheid) {
+  if (!Number.isFinite(snelheid)) snelheid = WIND.min;
   const t = Math.max(0, Math.min(1, (snelheid - WIND.min) / (WIND.max - WIND.min)));
   return { t, streepjes: t < 0.34 ? 1 : t < 0.67 ? 2 : 3 };
 }

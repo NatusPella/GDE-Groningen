@@ -40,7 +40,7 @@ export function discgolfHudModel(g) {
   const ctp = g.modus === 'ctp';
   const meter = g.fase === 'aim' ? { pct: Math.max(0, Math.min(100, (g.lading || 0) * 100)), naam: 'Kracht van de worp', label: g.doel ? `Doel ${meterTekst(g.doel)}` : 'Kracht', staat: '' } : null;
   // één primaire waarde (de afstand tot de mand), de rest secundair, elk met een pictogram; de baan staat in het chipje, het totaal springt op bij een baan
-  const mand = { label: 'Mand', waarde: `${Math.round(g.mand)} m`, icoon: I.vlag, primair: true };
+  const mand = { label: 'Mand', waarde: `${Number.isFinite(g.mand) ? Math.round(g.mand) : 0} m`, icoon: I.vlag, primair: true };
   const cijfers = ctp
     ? [mand, { label: 'Worp', waarde: `${g.ctpWorp}/${g.ctpTotaal}`, icoon: I.worp }, { label: 'Wind', waarde: g.wind, icoon: I.wind }]
     : [mand, { label: 'Worp', waarde: String(g.worp), icoon: I.worp }, { label: 'Par', waarde: String(g.par), icoon: I.par }, { label: 'Wind', waarde: g.wind, icoon: I.wind }];
@@ -62,6 +62,7 @@ export function watNu(g) {
 // Wat opspringt na een baan: de naam met het aantal worpen; onder par of op par klinkt een geluid, erboven niet.
 export function baanPop(naam, worpen, par) {
   const goed = worpen <= par;
+  if (worpen === 1) return { tekst: `${naam}: 1 worp, ace!`, geluid: 'ui_loopbaan' };
   return { tekst: `${naam}: ${worpen} worp${worpen === 1 ? '' : 'en'}`, geluid: worpen < par ? 'ui_loopbaan' : goed ? 'ui_verzameld' : null };
 }
 // Bij dichtst bij de mand: de afstand en de punten van die worp.
