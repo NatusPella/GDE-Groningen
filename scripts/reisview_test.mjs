@@ -19,5 +19,15 @@ ok(V.hudLine(0) === '' && V.hudLine(1500) === '1,5 km · ± 1 min', 'hud line', 
 ok(V.shouldPrompt(8000) && !V.shouldPrompt(2000), 'prompt only on a jump');
 ok(V.arrivalMessage(beat).kind === 'reis' && B.KINDS.reis.p === B.P1, 'reis is a P1 story kind');
 ok(V.cyclePick(beat, 'meerijden', 1) === 'zelf' && V.cyclePick(beat, 'meerijden', -1) !== 'meerijden', 'gamepad cycles the pick');
+// #1214: nooit "NaN km", geen "gratis" bij elke optie, de winst alleen bij zelf gaan en alleen als die er is
+for (const lengte of [undefined, NaN, null, 'x', 0, -5]) {
+  const p = V.panelState({ to: 'Zoutkamp', length: lengte, lines: ['a'] });
+  const tekst = JSON.stringify(p);
+  ok(!/NaN|undefined|null|Infinity/.test(tekst) && p.rule === '', 'geen NaN of lege afstand in het keuzepaneel', String(lengte));
+  ok(!/€ 0/.test(tekst), 'geen "€ 0"-winst', String(lengte));
+}
+ok(st.options.every((o) => !/gratis/i.test(o.label)), 'geen "gratis" in de optieregels');
+ok(/\+ € \d+/.test(st.options[1].label) && !/€/.test(st.options[0].label) && !/€/.test(st.options[2].label), 'alleen zelf gaan toont de winst');
+ok(st.rule === '30 km', 'de afstand staat een keer in het paneel', st.rule);
 console.log(`${n - fails}/${n} reisview`);
 process.exit(fails ? 1 : 0);
