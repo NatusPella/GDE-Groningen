@@ -101,7 +101,8 @@ import { LANDMARK_LINES } from './placelines.js';
 import { townProfile } from './stadsprofielen.js';
 import { getSettings } from './settings.js';
 import { physicalKey, keyName } from './controls.js';
-import { controlHint, hintText } from './controlhint.js'; // #824: compacte bedieningsregel in de doellijn
+import { controlHint, hintText, hintContext } from './controlhint.js'; // #824: compacte bedieningsregel in de doellijn
+import { createPractice, trackPractice } from './firststeps.js'; // the first-goal line steps aside once the player can move
 import { createNarrator } from './narration.js';
 import { heldBack } from './narrative.js';
 import { isPauseMenuOpen, openPauseMenu } from './pausestate.js';
@@ -1750,12 +1751,17 @@ function besturingLabel(token) {
   const fysiek = physicalKey(getSettings().keyBinds, token);
   return keyName(fysiek).toUpperCase();
 }
+// per device and per session, never saved: a new session shows the line again until the player has moved
+const practice = createPractice();
 function updateObjectiveKeys(world, kind) {
   if (!els.objKeys) return;
   // "Toetshints uit" hoort ook deze regel te verbergen: hij stond in de doellijn en niet in
   // .hud-prompts, dus de instelling liet hem tijdens elke missie staan (QoL-review).
   const hintsOn = toggleChoice('hints', getSettings().showHints !== false); // #1169: Hints en tips per save
-  const hint = hintsOn && (kind === 'mission' || kind === 'job' || kind === 'police' || kind === 'story') ? controlHint(world, hoofdspeler(world), { eerstedoel: kind === 'story' }) : null;
+  const speler = hoofdspeler(world);
+  // only the first story goal counts as practice: metres covered there make its line step aside (firststeps.js)
+  if (kind === 'story' && speler) trackPractice(practice, hintContext(speler), speler.x, speler.y);
+  const hint = hintsOn && (kind === 'mission' || kind === 'job' || kind === 'police' || kind === 'story') ? controlHint(world, speler, { eerstedoel: kind === 'story', practice }) : null;
   const sig = hint ? hint.context + '|' + hint.groepen.map((g) => g.keys.join('+') + g.werk).join('|') : '';
   if (sig === els.objKeysSig) return;
   els.objKeysSig = sig;
