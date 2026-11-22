@@ -1200,7 +1200,12 @@ export function homePrompt(w) {
     const why = canPark(w);
     return { id: 'home-pad', x: home.pad.x, y: home.pad.y, h: home.pad.z + 3.4, key: 'E', label: 'Naar binnen', sub: why || 'Met de lift naar jullie flat', ring: true };
   }
-  if (p.inVehicle) return null;
+  if (p.inVehicle) {
+    // arriving by car at the lobby door (the guide of a home step points here): say that you get out first, the E is the normal exit
+    const v = p.inVehicle, L0 = home.lobby;
+    if (!inside && !v.isHeli && !v.isBoat && Math.abs(v.speed || 0) < 3 && Math.hypot(p.x - L0.use[0], p.y - L0.use[1]) < 14) return { id: 'home-lobby-uit', x: L0.x, y: L0.y, h: 2.4, key: 'E', label: 'Stap uit', sub: 'Dan naar binnen met de lift naar jullie flat', ring: true, dim: true };
+    return null;
+  }
   if (inside) {
     const u = flatUse(w);
     if (!u) return null;
@@ -1244,7 +1249,7 @@ export function tryHomeInteract(w) {
   if (!home || !input || busy || isShopOpen() || isCinematicActive()) return false;
   if (!(input.wasPressed('e') || input.wasPressed('f'))) return false;
   const pr = homePrompt(w);
-  if (!pr) return false;
+  if (!pr || pr.id === 'home-lobby-uit') return false; // the hint only explains: E is the normal exit of the vehicle
   input.consume('e');
   input.consume('f');
   if (pr.id === 'home-lobby') {
