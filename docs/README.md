@@ -184,6 +184,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [ISSUES-SORTEREN-22-11.md](<ISSUES-SORTEREN-22-11.md>) | Issues sorteren: labels, impact en kosten. |
 | [SCREENSHOTJACHT-22-11.md](<SCREENSHOTJACHT-22-11.md>) | Screenshotjacht: opnames voor de eigenaar-review. |
 | [PERF-60-NORMAAL-22-11.md](<PERF-60-NORMAAL-22-11.md>) | Perf op een normale pc: gridItems en nearestOnRoadList, met benches. |
+| [CARRIERESCENES-22-11.md](<CARRIERESCENES-22-11.md>) | Begincutscenes van de voetbal- en landbouwcarrière (#1106, #1095). |
 | [JACHT-OORDEEL-22-11.md](<JACHT-OORDEEL-22-11.md>) | Oordeel over de screenshotjacht van 22-11. |
 | [UI-KRITIEK-22-11-hud.md](<UI-KRITIEK-22-11-hud.md>) | UI-kritiek 22-11: HUD en in-wereld-UI. |
 | [GATE-RAPPORT-22-11.md](<GATE-RAPPORT-22-11.md>) | Gate-rapport 0.65.0 (22-11): uitslag per stap, perf-regressie, fixes, open punten en de eigenaar-reviewpagina. |
