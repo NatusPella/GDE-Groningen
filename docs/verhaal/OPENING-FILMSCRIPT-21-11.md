@@ -45,7 +45,7 @@ De lead heeft de opening herschikt (openingstempo 170,8 s, testmarges 175 en 115
 
 ## [C00.1] Koude opening – Stad, d'Olle Grieze naar de Oosterparkwijk – geen voertuig
 
-EXT. GRUNN, VAN D'OLLE GRIEZE NAAR DE OOSTERPARKWIJK – ZONSOPGANG (06:12, gouden uur)
+EXT. DE STAD, VAN D'OLLE GRIEZE NAAR DE OOSTERPARKWIJK – ZONSOPGANG (06:12, gouden uur)
 
 (regie: **c1-zwart, 3,4 s.** Zwart. Meeuwen, een fietsbel. Rikus komt zacht binnen op de radio.)
 RIKUS (radio): Augustus. In Grunn heet dat zomer. [BEHOUDEN]

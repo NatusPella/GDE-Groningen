@@ -763,6 +763,20 @@
   "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: betweterig, plagend, verbetert hem."
  },
  {
+  "key": "Verhuisbedrijf Van Kamer naar Kamer|Het is KEI-week: half Nederland zoekt een kamer in de Stad en de andere helft verhuist er net uit.",
+  "speaker": "Verhuisbedrijf Van Kamer naar Kamer",
+  "text": "Het is KEI-week: half Nederland zoekt een kamer in de Stad en de andere helft verhuist er net uit.",
+  "area": "Bijbaantjes (baas)",
+  "out": "lines",
+  "lang": "gro",
+  "say": "Het is KEI-week: half Nederland zoekt een kamer in de Stad en de andere helft verhuist er net uit.",
+  "file": "verhuisbedrijf_van_kamer_naar_kamer/het_is_kei_week_half_nederland_z_9f97c6c7.mp3",
+  "voice": "Sadachbia",
+  "who": "gehaaste Groningse verhuizer, joviaal",
+  "tag": "sighing, joking",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: sighing, joking."
+ },
+ {
   "key": "Rikus|Het hart van de Stad. Klopt het hardst na middernacht.",
   "speaker": "Rikus",
   "text": "Het hart van de Stad. Klopt het hardst na middernacht.",

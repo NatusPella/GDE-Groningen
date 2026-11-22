@@ -78,7 +78,7 @@ export default {
   blurb: 'Studenten verhuizen, zonder breuk',
   tagline: 'Sjouwen, voorzichtig rijden, alles heel afleveren.',
   intro: [
-    'Het is KEI-week: half Nederland zoekt een kamer in Grunn en de andere helft verhuist er net uit.',
+    'Het is KEI-week: half Nederland zoekt een kamer in de Stad en de andere helft verhuist er net uit.',
     'Sjouw de spullen van de oude kamer naar het busje, rij voorzichtig naar het nieuwe adres en zet alles voor de deur.',
     'Elke klap in het busje kost je. Plant Henk heeft al genoeg meegemaakt.',
   ],

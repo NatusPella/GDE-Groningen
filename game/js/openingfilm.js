@@ -37,7 +37,7 @@ export const GRADES = {
 };
 
 export const SCENES = [
-  { id: 'C00.1', slug: 'EXT. GRUNN, VAN D’OLLE GRIEZE NAAR DE OOSTERPARKWIJK – ZONSOPGANG', grade: 'gouden-uur', place: 'Martinikerkhof / Oosterparkwijk', beat: 'Grunn is mooi en grappig; twee mensen op een stoep; hij heeft duiven' },
+  { id: 'C00.1', slug: 'EXT. DE STAD, VAN D’OLLE GRIEZE NAAR DE OOSTERPARKWIJK – ZONSOPGANG', grade: 'gouden-uur', place: 'Martinikerkhof / Oosterparkwijk', beat: 'Grunn is mooi en grappig; twee mensen op een stoep; hij heeft duiven' },
   { id: 'C00.2', slug: 'INT. ZOLDERKEUKEN, OOSTERPARKWIJK – OCHTEND', grade: 'kamer-ochtend', place: 'Oosterparkwijk, zolder', beat: 'ze zijn bang elkaar kwijt te raken en zoeken één plek samen; er loopt een Fries rond' },
   { id: 'C00.3', slug: 'EXT. PADDEPOEL, PLEIADENLAAN – MIDDAG', grade: 'dag-helder', place: 'Paddepoel, House of Groningen', beat: 'de verhuizing; wat ze eerst moeten doen; rijden, niet praten; titelkaart' },
 ];

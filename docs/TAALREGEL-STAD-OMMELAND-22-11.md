@@ -50,7 +50,12 @@ De audit (`node scripts/stad_grunn_audit.mjs`) telt per categorie: A (hoort Stad
 
 De stemregels waarvan de tekst veranderde hebben nog geen opname. Ze staan op `scripts/voice_wacht.json` tot de TTS-ronde klaar is; de tekst en de ondertitel zijn al aangepast. De oude opnames blijven in `game/audio/voicelines` staan (ze worden niet meer gevonden). Wie een Stad-zin met stem toevoegt, volgt dezelfde weg: tekst aanpassen, `node scripts/build_story_data.mjs`, `node scripts/tts_lines_list.mjs`, `node scripts/voice_wacht.mjs --write`.
 
-## Open
+## Beslist (22-11, tweede ronde)
 
-- Eén A-regel wacht op een eigen opnameketen: de verhuizer-bijbaan ("half Nederland zoekt een kamer in Grunn", `sidejob_verhuizing.js`). De bijbaanstemmen lopen via `scripts/tts_sidejobs.py` en hebben geen cast in `tts_lines_list.mjs`; de regel wordt "in de Stad" zodra die ketting wordt opgenomen.
-- De C-lijst (twijfel) staat in de audit. Een mens beslist per regel; tot dan blijft het Grunn.
+De eigenaar liet de regel zelf toepassen op de 139 twijfelgevallen en de open A-regel. Uitkomst: alle twijfel blijft Grunn (regel 5), behalve drie regels over de stad zelf:
+
+- de verhuizer-bijbaan: "half Nederland zoekt een kamer in de Stad" (`sidejob_verhuizing.js`; de oude opname staat nog in `jobs/`, de nieuwe tekst staat op `voice_wacht` met een cast in `tts_lines_list.mjs`);
+- de reklametaxi: "Rinkelbel kent elke omweg van de Stad" (`reklametaxi.js`, geen stem);
+- de slugregel van de openingsfilm: "EXT. DE STAD, VAN D’OLLE GRIEZE …" (`openingfilm.js`, een regieregel, niet zichtbaar).
+
+Bewust Grunn gelaten ondanks een stadsbeeld: de toeristen bij de toren ("Is dit nou Grunn?"), de blauwalg in de plassen rond Grunn, het uitzicht van boven en de stadsbus ("in Grunn erger dan te laat"). De audit (`docs/STAD-GRUNN-AUDIT-22-11.md`) bewaart de lijst met dit besluit erbij; een nieuwe Stad-zin hoort in `DECISIONS` van het auditscript.
