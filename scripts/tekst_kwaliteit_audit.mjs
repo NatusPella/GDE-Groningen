@@ -14,7 +14,7 @@
 //   datumtijd        12-uurs klok (AM/PM), ISO-datum of maand/dag/jaar in een zin, "14.30 uur" (punt als tijdscheiding)
 //   leesteken        dubbel leesteken (!!, ,,) of geen spatie na een komma of punt (woord,woord)
 //   hoofdletter      zin begint met een kleine letter na een punt ("Dag. morgen"), of "grunn" zonder hoofdletter
-//   css-grootte      tekst kleiner dan 12 px (HUD-, ondertitel- en kaarttekst), niet in een DS3-token
+//   css-grootte      tekst kleiner dan 13 px (HUD-, ondertitel- en kaarttekst), niet in een DS3-token
 //   css-leesbaar     HUD-tekst op wisselende achtergrond zonder halo of schaduw (text-shadow, -webkit-text-stroke of paint-order)
 // Bewuste uitzonderingen staan in scripts/tekst_kwaliteit_allow.json, elk met een reden (why).
 import fs from 'node:fs';
@@ -112,7 +112,7 @@ export function cssRegels() {
   return out;
 }
 
-const MIN_PX = 12;
+const MIN_PX = 13; // de vloer van DS3 en hudlook.js (READABLE_MIN)
 // HUD-tekst die over de wereld heen staat: schaduw of halo nodig tegen wisselende achtergronden
 const HUD_SEL = /#(?:hud|subtitle|subs?|ondertitel|captions?|toast|msg|messages|prompt|goal|objective|minimap-?label)\w*|\.(?:hud|subtitle|ondertitel|caption|toast|prompt|hint|ds-melding|ds-toast)\b/i;
 const OVER_WERELD = /(?:^|;)\s*position\s*:\s*(?:fixed|absolute)/;

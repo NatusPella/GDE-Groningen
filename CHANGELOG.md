@@ -13,7 +13,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Leesbaarheid en taal (sprint 22-11)
 - Kaart en hulp: het Engelse leenwoord voor het punt dat je op de kaart zet heet in alle spelertekst nu "routepunt" (Zet routepunt, Haal routepunt weg, Jouw routepunt, de uitleg, de hints, de besturingslijst en het eerste-keer-scherm). Het routepunt is een het-woord, dus "haalt het weg" in plaats van "haalt hem weg". Lokaal per speler, zoals voorheen: een gast kan een routepunt zetten.
-- HUD: de korte melding "opgeslagen" linksonder had geen schaduw en was op een lichte achtergrond (zand, een wit dak) moeilijk te lezen; hij heeft nu dezelfde halo als de rest van de HUD. De toetsen in het wasd-plaatje van het pauzemenu zijn 12 px in plaats van 10,5 px.
+- HUD: de korte melding "opgeslagen" linksonder had geen schaduw en was op een lichte achtergrond (zand, een wit dak) moeilijk te lezen; hij heeft nu dezelfde halo als de rest van de HUD. De toetsen in het wasd-plaatje van het pauzemenu zijn 13 px in plaats van 10,5 px.
 - Straatmeubilair: op het krijtbord van het café staat de tijd met een dubbele punt, zoals de klok in het spel (16:00 uur), niet met een punt.
 - Getallen: duizendtallen krijgen overal een punt, ook in de prestaties (Verdien €1.000, Haal 5.000 punten), de stuntmissie (1.500 stuntpunten) en de loterij (hoofdprijs €2.500), zoals €10.000 al deed.
 - Bezit-uitleg: een kapotte opslag heet "een waarde die geen getal is", niet met een codeterm.

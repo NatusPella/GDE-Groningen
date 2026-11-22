@@ -46,8 +46,8 @@ ok(regels(' 0 6%, transparent 6.5%), linear-gradient(0deg, red').length === 0, '
 
 // css: kleine letters en HUD-tekst zonder halo
 const css = (sel, body) => checkCss([{ file: 'x.css', line: 1, sel, body }]).map((f) => f.rule);
-ok(css('.msg', 'font-size: 11px;').includes('css-grootte') && css('.msg', 'font-size: 0.6rem;').includes('css-grootte'), 'css-grootte: onder 12 px');
-ok(!css('.msg', 'font-size: 12px;').length && !css('.msg', 'font-size: var(--hud-min);').length, 'css-grootte: 12 px en een token zijn goed');
+ok(css('.msg', 'font-size: 12px;').includes('css-grootte') && css('.msg', 'font-size: 0.6rem;').includes('css-grootte'), 'css-grootte: onder 13 px');
+ok(!css('.msg', 'font-size: 13px;').length && !css('.msg', 'font-size: var(--hud-min);').length, 'css-grootte: 13 px en een token zijn goed');
 ok(css('#hud .hud-wat', 'position: absolute; font-size: 14px; color: #fff;').includes('css-leesbaar'), 'css-leesbaar: HUD-tekst zonder halo of vlak');
 ok(!css('#hud .hud-wat', 'position: absolute; font-size: 14px; color: #fff; text-shadow: var(--hud-shadow);').includes('css-leesbaar'), 'css-leesbaar: met halo');
 ok(!css('#hud .hud-wat', 'position: absolute; font-size: 14px; background: rgba(0,0,0,0.7);').includes('css-leesbaar'), 'css-leesbaar: met een donker vlak');

@@ -16,7 +16,7 @@ Naslag bij de sprint "alle speltekst nalopen op Nederlands, toon, lengte en cons
 | datumtijd | 12-uursklok, ISO-datum, tijd met een punt (16.00 uur) |
 | leesteken | `!!`, `,,`, geen spatie na een komma of punt |
 | hoofdletter | kleine letter na een punt, "grunn" zonder hoofdletter |
-| css-grootte | tekst onder 12 px (px en rem; em hangt van de ouder af) |
+| css-grootte | tekst onder 13 px (px en rem; em hangt van de ouder af) |
 | css-leesbaar | HUD-tekst die over de wereld staat zonder vlak, schaduw of halo |
 
 Markup (tags, attributen, toetstokens, kleurverlopen, bestandsnamen) telt niet als tekst. De allowlist heeft 18 regels (23 toegestane vondsten), elk met reden (ontwikkelaarsmeldingen, bordtekst met bewuste spaties, de Engelse toerist in de taxi, bestandsnamen in de geluidslicenties).
@@ -30,7 +30,7 @@ Markup (tags, attributen, toetstokens, kleurverlopen, bestandsnamen) telt niet a
 | Tijd op het krijtbord | "16.00 uur" | "16:00 uur", zoals de spelklok |
 | Bezit-uitleg | "(NaN)" | "(een waarde die geen getal is)" |
 | Melding "opgeslagen" linksonder | geen schaduw, op een lichte achtergrond slecht te lezen | zelfde halo als de rest van de HUD (`--hud-shadow`) |
-| Toetsen in het wasd-plaatje van het pauzemenu | 10,5 px | 12 px |
+| Toetsen in het wasd-plaatje van het pauzemenu | 10,5 px | 13 px (de vloer van DS3) |
 | Knoppen | "Kopieer technische info" naast "Technische info kopiëren"; "Zet de akker op je kaart" naast "op de kaart" | elk één vorm |
 | Woordenlijst | geen regel voor het kaartpunt | `docs/WOORDENLIJST.md`: waypoint, routepunt |
 
@@ -53,5 +53,5 @@ Alleen tekst en stijl; niets van de spelregels of het netwerkprotocol verandert.
 - De kaartbalk en de plekkaart: past "Zet routepunt" en "Haal routepunt weg" nog in de knop en in de kaartlegenda zonder af te breken?
 - Het hulpscherm "De kaart: routepunt en reizen" en het eerste-keer-scherm (5 zet een routepunt).
 - De melding "opgeslagen" linksonder bij een lichte achtergrond (zand, een wit dak): is de halo genoeg?
-- Het wasd-plaatje in het pauzemenu na de 12 px: past de toets in 17 x 16 px?
+- Het wasd-plaatje in het pauzemenu na de 13 px: past de toets in 18 x 17 px?
 - Het krijtbord van het café ("16:00 uur") in de straat.
