@@ -1,5 +1,18 @@
 [
  {
+  "key": "Anita|Zonder bank blijft er één weg over: een wedstrijd. Wie wint, krijgt de enige vrije standplaats van de Stad, een plek voor een wagen.",
+  "speaker": "Anita",
+  "text": "Zonder bank blijft er één weg over: een wedstrijd. Wie wint, krijgt de enige vrije standplaats van de Stad, een plek voor een wagen.",
+  "area": "C00.2",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "plagend, zelfverzekerd",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+  "file": "anita/zonder_bank_blijft_er_e_e_n_weg__5844bb5d.mp3"
+ },
+ {
   "key": "Tammo|Is dat het plan? Een frietwagen?",
   "speaker": "Tammo",
   "text": "Is dat het plan? Een frietwagen?",
@@ -65,17 +78,17 @@
   "file": "berend_bos/gips_2805e48a.mp3"
  },
  {
-  "key": "Anita|Hij is de bisschop die Grunn in 1672 niet innam.",
+  "key": "Anita|Hij is de bisschop die de Stad in 1672 niet innam.",
   "speaker": "Anita",
-  "text": "Hij is de bisschop die Grunn in 1672 niet innam.",
+  "text": "Hij is de bisschop die de Stad in 1672 niet innam.",
   "area": "M01.1",
   "out": "lines",
   "lang": "own",
   "voice": "Callirrhoe",
   "who": "Nederlandse vrouw, lacherig en ad rem",
-  "tag": "ongeduldig, bazig",
-  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
-  "file": "anita/hij_is_de_bisschop_die_grunn_in__734ed0de.mp3"
+  "tag": "enthousiast, snel",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+  "file": "anita/hij_is_de_bisschop_die_de_stad_i_cd86ea13.mp3"
  },
  {
   "key": "Berend Bos|Niet erbij vertellen.",
@@ -466,6 +479,19 @@
   "tag": "verbaasd, vragend",
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: verbaasd, vragend.",
   "file": "tammo/wie_koopt_een_stoep_5a860c21.mp3"
+ },
+ {
+  "key": "Jelle Terpstra|Verder koop ik alle standplaatsen van de Stad die vrijkomen. Contant, uit een klomp, definitief.",
+  "speaker": "Jelle Terpstra",
+  "text": "Verder koop ik alle standplaatsen van de Stad die vrijkomen. Contant, uit een klomp, definitief.",
+  "area": "M03.2",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Fenrir",
+  "who": "ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden",
+  "tag": "zelfvoldaan, grinnikend",
+  "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: zelfvoldaan, grinnikend.",
+  "file": "jelle_terpstra/verder_koop_ik_alle_standplaatse_b76335a1.mp3"
  },
  {
   "key": "Anita|Hoe dan?",
@@ -1898,6 +1924,19 @@
   "file": "kapitein_klaas/eerst_zit_je_een_uur_vast_op_een_130f73c2.mp3"
  },
  {
+  "key": "Tammo|In de Stad hebben we de Martinitoren.",
+  "speaker": "Tammo",
+  "text": "In de Stad hebben we de Martinitoren.",
+  "area": "B2",
+  "out": "lines",
+  "lang": "gro",
+  "voice": "Orus",
+  "who": "dry, deadpan man in his thirties",
+  "tag": "mompelend, stiekem trots",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: mompelend, stiekem trots.",
+  "file": "tammo/in_de_stad_hebben_we_de_martinit_440e8896.mp3"
+ },
+ {
   "key": "Tammo|Koe.",
   "speaker": "Tammo",
   "text": "Koe.",
@@ -2676,6 +2715,19 @@
   "tag": "droog, laconiek",
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, laconiek.",
   "file": "tammo/een_vliegtuigje_357c40d1.mp3"
+ },
+ {
+  "key": "Anita|Let op, de trein gaat eerst terug via Station Groningen.",
+  "speaker": "Anita",
+  "text": "Let op, de trein gaat eerst terug via Station Groningen.",
+  "area": "T3",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "plagend, zelfverzekerd",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+  "file": "anita/let_op_de_trein_gaat_eerst_terug_71c6994d.mp3"
  },
  {
   "key": "Tammo|…Dat klopt wel.",
@@ -4017,6 +4069,19 @@
   "file": "henk/moi_ik_rij_de_escapade_achter_ju_ee0fdb81.mp3"
  },
  {
+  "key": "Berend Bos|Omdat de Stad te klein is voor een echt beleg.",
+  "speaker": "Berend Bos",
+  "text": "Omdat de Stad te klein is voor een echt beleg.",
+  "area": "T4.1",
+  "out": "lines",
+  "lang": "gro",
+  "voice": "Charon",
+  "who": "Berend Bos, chagrijnige oude Stadjer uit de Schildersbuurt die al veertig jaar Bommen Berend speelt, nors en droog",
+  "tag": "nors, stiekem trots",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Berend Bos, chagrijnige oude Stadjer uit de Schildersbuurt die al veertig jaar Bommen Berend speelt, nors en droog. Tone: nors, stiekem trots.",
+  "file": "berend_bos/omdat_de_stad_te_klein_is_voor_e_5ea3b959.mp3"
+ },
+ {
   "key": "Jelle Terpstra|Mem. U houdt hem vast tot ik win. Dat was de afspraak.",
   "speaker": "Jelle Terpstra",
   "text": "Mem. U houdt hem vast tot ik win. Dat was de afspraak.",
@@ -4251,6 +4316,32 @@
   "file": "tammo/een_veldje_met_doelen_ik_regel_e_c7dcc2b3.mp3"
  },
  {
+  "key": "Tammo|Dat is Veendam. Bijna net zo groot als de Stad.",
+  "speaker": "Tammo",
+  "text": "Dat is Veendam. Bijna net zo groot als de Stad.",
+  "area": "B4",
+  "out": "lines",
+  "lang": "gro",
+  "voice": "Orus",
+  "who": "dry, deadpan man in his thirties",
+  "tag": "droog, laconiek",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, laconiek.",
+  "file": "tammo/dat_is_veendam_bijna_net_zo_groo_43a39943.mp3"
+ },
+ {
+  "key": "Anita|Het is een negende van de Stad.",
+  "speaker": "Anita",
+  "text": "Het is een negende van de Stad.",
+  "area": "B4",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "enthousiast, snel",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+  "file": "anita/het_is_een_negende_van_de_stad_cda0d42d.mp3"
+ },
+ {
   "key": "Tammo|Precies. Dat bedoelde ik.",
   "speaker": "Tammo",
   "text": "Precies. Dat bedoelde ik.",
@@ -4431,6 +4522,19 @@
   "tag": "mopperend, droog",
   "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Berend Bos, chagrijnige oude Stadjer uit de Schildersbuurt die al veertig jaar Bommen Berend speelt, nors en droog. Tone: mopperend, droog.",
   "file": "berend_bos/ik_achteraan_vijftien_kanonnen_e_b84b817e.mp3"
+ },
+ {
+  "key": "Tammo|De grootste stoet die de Stad ooit zag.",
+  "speaker": "Tammo",
+  "text": "De grootste stoet die de Stad ooit zag.",
+  "area": "M23.4",
+  "out": "lines",
+  "lang": "gro",
+  "voice": "Orus",
+  "who": "dry, deadpan man in his thirties",
+  "tag": "droog, met een stille grijns",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, met een stille grijns.",
+  "file": "tammo/de_grootste_stoet_die_de_stad_oo_f2a87232.mp3"
  },
  {
   "key": "Tammo|Geen idee.",
@@ -5809,6 +5913,160 @@
   "tag": "mompelend, stiekem trots",
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: mompelend, stiekem trots.",
   "file": "tammo/eerst_de_hereweg_77dadf67.mp3"
+ },
+ {
+  "key": "Schipper Wiebe (megafoon)|Ik ken elke brug in de Stad. Jullie niet!",
+  "speaker": "Schipper Wiebe (megafoon)",
+  "text": "Ik ken elke brug in de Stad. Jullie niet!",
+  "area": "Rondvaart-missie",
+  "out": "lines",
+  "lang": "gro",
+  "say": "Ik ken elke brug in de Stad. Jullie niet!",
+  "file": "schipper_wiebe_megafoon/ik_ken_elke_brug_in_de_stad_jull_9e78d549.mp3",
+  "voice": "Alnilam",
+  "who": "woedende Groningse rondvaartschipper die zijn boot achterna zit, roept door een megafoon",
+  "tag": "opgewonden, luid",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; woedende Groningse rondvaartschipper die zijn boot achterna zit, roept door een megafoon. Tone: opgewonden, luid."
+ },
+ {
+  "key": "Tammo (gids)|Welkom aan boord! We varen een rondje over de Diepenring, de gracht rond de binnenstad, grotendeels gegraven in de zeventiende eeuw toen de Stad werd uitgebreid en een nieuwe vestinggordel kreeg.",
+  "speaker": "Tammo (gids)",
+  "text": "Welkom aan boord! We varen een rondje over de Diepenring, de gracht rond de binnenstad, grotendeels gegraven in de zeventiende eeuw toen de Stad werd uitgebreid en een nieuwe vestinggordel kreeg.",
+  "area": "Rondvaart (gids)",
+  "out": "lines",
+  "lang": "gro",
+  "say": "Welkom aan boord! We varen een rondje over de Diepenring, de gracht rond de binnenstad, grotendeels gegraven in de zeventiende eeuw toen de Stad werd uitgebreid en een nieuwe vestinggordel kreeg.",
+  "file": "tammo_gids/welkom_aan_boord_we_varen_een_ro_f27d6e64.mp3",
+  "voice": "Orus",
+  "who": "dry, deadpan man in his thirties",
+  "tag": "droog, vertellend door de microfoon van een rondvaartboot, stiekem trots op de stad",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, vertellend door de microfoon van een rondvaartboot, stiekem trots op de stad."
+ },
+ {
+  "key": "Tammo (gids)|Dit is het Schuitendiep. Hier legden de schuiten aan, platte vrachtschepen die de stad bevoorraadden. Rechts de Poelestraat: overdag stil, om vier uur 's nachts het drukste stukje Stad.",
+  "speaker": "Tammo (gids)",
+  "text": "Dit is het Schuitendiep. Hier legden de schuiten aan, platte vrachtschepen die de stad bevoorraadden. Rechts de Poelestraat: overdag stil, om vier uur 's nachts het drukste stukje Stad.",
+  "area": "Rondvaart (gids)",
+  "out": "lines",
+  "lang": "gro",
+  "say": "Dit is het Schuitendiep. Hier legden de schuiten aan, platte vrachtschepen die de stad bevoorraadden. Rechts de Poelestraat: overdag stil, om vier uur 's nachts het drukste stukje Stad.",
+  "file": "tammo_gids/dit_is_het_schuitendiep_hier_leg_de7554ec.mp3",
+  "voice": "Orus",
+  "who": "dry, deadpan man in his thirties",
+  "tag": "droog, vertellend door de microfoon van een rondvaartboot, stiekem trots op de stad",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, vertellend door de microfoon van een rondvaartboot, stiekem trots op de stad."
+ },
+ {
+  "key": "Anita|De Stad staat erom bekend dat de kroegen hier geen vaste sluitingstijd hebben. Geen grap.",
+  "speaker": "Anita",
+  "text": "De Stad staat erom bekend dat de kroegen hier geen vaste sluitingstijd hebben. Geen grap.",
+  "area": "Rondvaart (gids)",
+  "out": "lines",
+  "lang": "own",
+  "say": "De Stad staat erom bekend dat de kroegen hier geen vaste sluitingstijd hebben. Geen grap.",
+  "file": "anita/de_stad_staat_erom_bekend_dat_de_7edc1155.mp3",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "ad rem, snel, weet het beter, warm",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ad rem, snel, weet het beter, warm."
+ },
+ {
+  "key": "Anita|Hij kreeg de Stad niet. Op 28 augustus trok hij af, en dat vieren we nog elk jaar: Gronings Ontzet.",
+  "speaker": "Anita",
+  "text": "Hij kreeg de Stad niet. Op 28 augustus trok hij af, en dat vieren we nog elk jaar: Gronings Ontzet.",
+  "area": "Rondvaart (gids)",
+  "out": "lines",
+  "lang": "own",
+  "say": "Hij kreeg de Stad niet. Op 28 augustus trok hij af, en dat vieren we nog elk jaar: Gronings Ontzet.",
+  "file": "anita/hij_kreeg_de_stad_niet_op_28_aug_9e6f44de.mp3",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "betweterig, plagend, verbetert hem",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: betweterig, plagend, verbetert hem."
+ },
+ {
+  "key": "Anita|Rechts de Praediniussingel, vernoemd naar Regnerus Praedinius. Hij was in de zestiende eeuw rector van de Latijnse school in de Stad.",
+  "speaker": "Anita",
+  "text": "Rechts de Praediniussingel, vernoemd naar Regnerus Praedinius. Hij was in de zestiende eeuw rector van de Latijnse school in de Stad.",
+  "area": "Rondvaart (gids)",
+  "out": "lines",
+  "lang": "own",
+  "say": "Rechts de Praediniussingel, vernoemd naar Regnerus Praedinius. Hij was in de zestiende eeuw rector van de Latijnse school in de Stad.",
+  "file": "anita/rechts_de_praediniussingel_verno_404313b4.mp3",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "betweterig, plagend, verbetert hem",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: betweterig, plagend, verbetert hem."
+ },
+ {
+  "key": "Tammo (gids)|Het riviertje heet de A, omdat ze in de Stad geen tijd hebben voor lange namen.",
+  "speaker": "Tammo (gids)",
+  "text": "Het riviertje heet de A, omdat ze in de Stad geen tijd hebben voor lange namen.",
+  "area": "Rondvaart (gids)",
+  "out": "lines",
+  "lang": "gro",
+  "say": "Het riviertje heet de A, omdat ze in de Stad geen tijd hebben voor lange namen.",
+  "file": "tammo_gids/het_riviertje_heet_de_a_omdat_ze_4142736a.mp3",
+  "voice": "Orus",
+  "who": "dry, deadpan man in his thirties",
+  "tag": "droog, vertellend door de microfoon van een rondvaartboot, stiekem trots op de stad",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, vertellend door de microfoon van een rondvaartboot, stiekem trots op de stad."
+ },
+ {
+  "key": "Anita|In de Stad is tijdelijk een rekbaar begrip.",
+  "speaker": "Anita",
+  "text": "In de Stad is tijdelijk een rekbaar begrip.",
+  "area": "Rondvaart (gids)",
+  "out": "lines",
+  "lang": "own",
+  "say": "In de Stad is tijdelijk een rekbaar begrip.",
+  "file": "anita/in_de_stad_is_tijdelijk_een_rekb_64746405.mp3",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "ad rem, snel, weet het beter, warm",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ad rem, snel, weet het beter, warm."
+ },
+ {
+  "key": "Anita|Daar gaat het Reitdiep naar het noorden, via Zoutkamp naar het Lauwersmeer. Eeuwenlang de weg van de Stad naar zee.",
+  "speaker": "Anita",
+  "text": "Daar gaat het Reitdiep naar het noorden, via Zoutkamp naar het Lauwersmeer. Eeuwenlang de weg van de Stad naar zee.",
+  "area": "Rondvaart (gids)",
+  "out": "lines",
+  "lang": "own",
+  "say": "Daar gaat het Reitdiep naar het noorden, via Zoutkamp naar het Lauwersmeer. Eeuwenlang de weg van de Stad naar zee.",
+  "file": "anita/daar_gaat_het_reitdiep_naar_het__81bd154a.mp3",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "betweterig, plagend, verbetert hem",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: betweterig, plagend, verbetert hem."
+ },
+ {
+  "key": "Rikus|Het hart van de Stad. Klopt het hardst na middernacht.",
+  "speaker": "Rikus",
+  "text": "Het hart van de Stad. Klopt het hardst na middernacht.",
+  "area": "Wijken & landschap (verteller)",
+  "out": "lines",
+  "lang": "gro",
+  "say": "Het hart van de Stad. Klopt het hardst na middernacht.",
+  "file": "rikus/het_hart_van_de_stad_klopt_het_h_a1fd39a6.mp3",
+  "voice": "Schedar",
+  "who": "Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog",
+  "tag": "warm, vertellend",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog. Tone: warm, vertellend."
+ },
+ {
+  "key": "Rikus|De Zeeheldenbuurt. Zeehelden, in de Stad. Het dichtstbijzijnde zeegat is Delfzijl.",
+  "speaker": "Rikus",
+  "text": "De Zeeheldenbuurt. Zeehelden, in de Stad. Het dichtstbijzijnde zeegat is Delfzijl.",
+  "area": "Wijken & landschap (verteller)",
+  "out": "lines",
+  "lang": "gro",
+  "say": "De Zeeheldenbuurt. Zeehelden, in de Stad. Het dichtstbijzijnde zeegat is Delfzijl.",
+  "file": "rikus/de_zeeheldenbuurt_zeehelden_in_d_cb166a6e.mp3",
+  "voice": "Schedar",
+  "who": "Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog",
+  "tag": "droog, met een knipoog",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog. Tone: droog, met een knipoog."
  },
  {
   "key": "~m|Moi! Kom moar kieken, t kost niks.",
