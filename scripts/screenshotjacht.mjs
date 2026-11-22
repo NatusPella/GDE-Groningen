@@ -152,7 +152,7 @@ if (arg('page', '')) {
 // ---- de jacht ----
 const crashes = [];
 const crashLog = path.join(OUT, 'crashes.md');
-let chunkNr = 0;
+let chunkNr = 0; let startFouten = 0;
 // volgorde van uitvoeren: de korte, kwetsbare delen eerst (menu, binnen), dan het verhaal, als laatste het vrije verkennen (dat is bij tijdsnood het eerst te missen)
 const VOLGORDE = { menu: 0, binnen: 1, verhaal: 2, vrij: 3 };
 const teDoen = plan.slice().sort((a, b) => VOLGORDE[a.soort] - VOLGORDE[b.soort]).filter((s) => DELEN.includes(s.soort) && (!IDS.length || IDS.some((i) => s.id.startsWith(i)))).slice(0, MAX_STOPS);
@@ -181,8 +181,16 @@ while (Date.now() < deadline) {
   logLijn(`chunk ${naam}: exit ${r.code}${r.gedood ? ' (' + r.gedood + ')' : ''}, ${gehaald}/${chunk.length} stops klaar, beelden nu ${hoogsteNr()}`);
   if (!r.eindeNetjes || r.gedood) {
     // crash of hang: de stop waarop het misging is de bevinding; een tweede keer faalt hij niet nog eens, hij wordt overgeslagen
+    // geen enkele stop begonnen: het spel kwam niet eens op (opstartprobleem), geen schuld van een stop; maximaal twee keer opnieuw
+    if (!r.bezig && !r.klaar.size && (startFouten += 1) <= 2) {
+      const rec0 = { type: 'crash', chunk: naam, stop: '(opstart)', code: String(r.code), reden: 'opstartprobleem: ' + (r.gedood || 'Electron stopte zonder resultaat') + ', blok opnieuw', beeldNr: hoogsteNr(), tijd: new Date().toISOString() };
+      crashes.push(rec0); fs.appendFileSync(r.events, JSON.stringify(rec0) + '\n');
+      fs.appendFileSync(crashLog, `## ${naam}, opstart\n- ${rec0.reden}\n\n`);
+      logLijn(`${naam}: opstartprobleem (${startFouten}e keer), blok opnieuw`);
+      continue;
+    }
     const bij = r.bezig || chunk.find((s) => !r.klaar.has(s.id))?.id || '?';
-    const staart = r.log.split(/\r?\n/).filter((l) => l.trim()).slice(-25).join('\n');
+    const staart = r.log.split(/\r?\n/).filter((l) => l.trim() && !/persistent_cache|disk_cache|gpu_disk|console-message/.test(l)).slice(-25).join('\n');
     const rec = { type: 'crash', chunk: naam, stop: bij, code: String(r.code), reden: r.gedood || 'Electron stopte zonder resultaat', beeldNr: hoogsteNr(), tijd: new Date().toISOString() };
     crashes.push(rec);
     fs.appendFileSync(r.events, JSON.stringify(rec) + '\n');

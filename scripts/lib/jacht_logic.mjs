@@ -20,7 +20,7 @@ export function beeldNaam(nr, soort, plaats) {
 }
 
 // ---- tripwires ----
-export const TRIP = { zwart: 0.55, transparant: 0.02, magenta: 0.004, vlak: 4, overbelicht: 250, gelijk: 0.985, fpsMin: 3, fpsMax: 190, fpsMaxScherm: 400 };
+export const TRIP = { zwart: 0.55, transparant: 0.02, magenta: 0.004, vlak: 4, overbelicht: 250, gelijk: 0.99, gelijkScherm: 0.9995, fpsMin: 3, fpsMax: 190, fpsMaxScherm: 400 };
 // console-regels die een bevinding zijn; de rest (gewone waarschuwingen) telt alleen mee als regel in index.json
 export const CONSOLE_RE = /NaN|undefined|Failed to load resource|404|shader|WebGL|THREE\.|is not defined|is not a function|Cannot read|Uncaught|TypeError|ReferenceError|Unhandled|geen textuur|texture/i;
 // bekende, onschuldige regels van Electron zelf
@@ -49,7 +49,9 @@ export function tripwires(rec, prev = null, cfg = TRIP) {
     if (px.mean > cfg.overbelicht) v.push({ vlag: 'overbelicht', tekst: `gemiddelde helderheid ${px.mean.toFixed(1)}` });
     if (prev && prev.pixel && rec.verwachtAnders) {
       const g = gelijkenis(px.sig, prev.pixel.sig);
-      if (g > cfg.gelijk) v.push({ vlag: 'gelijk', tekst: `lijkt op het vorige beeld (${(g * 100).toFixed(1)}%): vastgelopen?` });
+      // menu's en kaart: tekstpagina's lijken in een 16x9-vingerafdruk altijd op elkaar, daar telt alleen een bijna identiek beeld
+      const drempel = /pauzemenu|kaart/.test(rec.scherm || '') ? (cfg.gelijkScherm ?? 0.9995) : cfg.gelijk;
+      if (g > drempel) v.push({ vlag: 'gelijk', tekst: `lijkt op het vorige beeld (${(g * 100).toFixed(1)}%): vastgelopen?` });
     }
   }
   const bad = (rec.console || []).filter((c) => CONSOLE_RE.test(c.msg) && !isRuis(c.msg));
