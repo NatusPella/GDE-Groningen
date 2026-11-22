@@ -1364,7 +1364,7 @@ export function applyStorySave(d) {
   state.cards = new Set((Array.isArray(d.cards) ? d.cards : []).filter((k) => PARTS[k]));
   state.flags = new Set((Array.isArray(d.flags) ? d.flags : []).filter((k) => typeof k === 'string'));
   for (const fl of milestoneFlagsForDone(state.done)) state.flags.add(fl);   // een oude save krijgt de mijlpalen van wat hij al deed (#1136)
-  for (const [id, n] of Object.entries(d.fails || {})) if (STEP_BY_ID.has(id) && Number.isFinite(n)) state.fails[id] = n;
+  for (const [id, n] of Object.entries(d.fails || {})) if (STEP_BY_ID.has(id) && Number.isFinite(n)) state.fails[id] = Math.min(99, Math.max(0, Math.floor(n))); // verfijning 22-11: een kapotte save mag geen negatief of absurd aantal mislukkingen geven
   // no frame with the old save's kisses (player.js runs before updateStory)
   if (world) world.kissUnlocked = kissUnlockedNow();
 }

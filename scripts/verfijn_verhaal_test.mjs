@@ -3,10 +3,10 @@
 import fs from 'node:fs';
 import { readingTime, READING_CAP_S, READING_RUIM } from '../game/js/storytext.js';
 import { failSceneMode, FAIL_SCENE_MAX, CHECKPOINT_KINDS, isCheckpointStage, recordCheckpoint, makeCheckpoint, applyCheckpointProgress, createGrace, stepGrace, GRACE_S } from '../game/js/missioncheckpoint.js';
-import { STEPS, nextStoryStep, stepDone, MISSION_STORY_ORDER, missionIndexOf, PARTS } from '../game/js/storyarc.js';
+import { STEPS, nextStoryStep, stepDone, MISSION_STORY_ORDER, missionIndexOf, PARTS, computeMoneyTimeline } from '../game/js/storyarc.js';
 import { recapContent, RECAP_MAX_WORDS } from '../game/js/recapcard.js';
 import { REMIND_AT_S, remindDue, remindText } from '../game/js/storyremind.js';
-import { chaseWaitMax, dijkEtappe, skipReward, CHASE_WAIT_MAX } from '../game/js/missionrules.js';
+import { chaseWaitMax, dijkEtappe, skipReward, CHASE_WAIT_MAX, failMessageSeconds } from '../game/js/missionrules.js';
 import { stapVast } from '../game/js/vastlopen.js';
 import { busyTitle, destinationTitle } from '../game/js/goaltext.js';
 
@@ -174,6 +174,22 @@ ok(['chase', 'boatchase', 'timing'].every((k) => CHECKPOINT_KINDS.includes(k)), 
     for (const m of src.matchAll(/\blabel: '([^'\\]{3,80})'/g)) if (bevel.test(m[1])) { gezien++; ok(busyTitle(m[1]) === m[1], 'stagelabel zonder Bezig-voorvoegsel', m[1]); }
   }
   ok(gezien > 40, 'de scan vond de stagelabels', String(gezien));
+}
+
+// --- 11. geld: geen enkele verplichte aankoop is onbetaalbaar, ook niet voor wie elke missie overslaat (halve beloning)
+for (const share of [1, 0.9, 0.75, 0.5, 0.25, 0]) {
+  const tl = computeMoneyTimeline(undefined, share);
+  const neg = tl.rows.filter((r) => r.margin != null && r.margin < 0);
+  ok(neg.length === 0 && tl.low >= 0, 'verhaalgeld blijft positief bij uitbetaling ' + share, neg.map((r) => r.id).join(' '));
+}
+
+// --- 10. de mislukmelding blijft lang genoeg staan om de reden te lezen
+{
+  ok(failMessageSeconds('Even pinnen mislukt') === 3.5, 'korte melding: 3,5 s zoals voorheen');
+  const lang = 'Het Loket mislukt: tijd op. Zelfs de brandweer was er sneller geweest, en die komt nooit op tijd.';
+  ok(failMessageSeconds(lang) > 5 && failMessageSeconds(lang) <= 8, 'lange reden krijgt meer tijd', String(failMessageSeconds(lang)));
+  ok(failMessageSeconds('x'.repeat(5000)) === 8 && failMessageSeconds(null) === 3.5 && failMessageSeconds(undefined) === 3.5, 'plafond en lege tekst');
+  for (let i = 0; i < 200; i++) { const s = failMessageSeconds('x'.repeat(Math.floor(rnd() * 300))); ok(s >= 3.5 && s <= 8 && Number.isFinite(s), 'fuzz melding'); }
 }
 
 console.log(`${n - fails}/${n} verfijn_verhaal_test`);

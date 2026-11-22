@@ -11,7 +11,7 @@ import { createMissionGates } from './missiongates.js';
 import { REQUIREMENTS, RACE_MIN_TOP, isRaceCar, isCarRide, rideOk, WRONG_RIDE } from './missionrequirements.js';
 import { roadSpot, rentalBoat, routeS, createMissionTargets } from './missiontarget.js';
 export { RACE_MIN_TOP };
-import { HEIST_SKIP_SHARE, skipReward, CHASE_WAIT_MAX, chaseWaitMax, CHASE_STUCK_S, CHASE_STUCK_RADIUS, CHASE_STUCK_NEAR, chaseStuckStep, CHASE_SPAWN_WAIT_S, CHASE_SPAWN_RETRY_S, chaseSpawnStep, DIJK_CP, dijkEtappe } from './missionrules.js';
+import { failMessageSeconds, HEIST_SKIP_SHARE, skipReward, CHASE_WAIT_MAX, chaseWaitMax, CHASE_STUCK_S, CHASE_STUCK_RADIUS, CHASE_STUCK_NEAR, chaseStuckStep, CHASE_SPAWN_WAIT_S, CHASE_SPAWN_RETRY_S, chaseSpawnStep, DIJK_CP, dijkEtappe } from './missionrules.js';
 export { HEIST_SKIP_SHARE, skipReward, CHASE_WAIT_MAX, chaseWaitMax, CHASE_STUCK_S, CHASE_STUCK_RADIUS, CHASE_STUCK_NEAR, chaseStuckStep, CHASE_SPAWN_WAIT_S, CHASE_SPAWN_RETRY_S, chaseSpawnStep, dijkEtappe } from './missionrules.js';
 import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp, isInWater } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
@@ -1313,7 +1313,7 @@ function fail(world, def, reason) {
 }
 
 function endInFailure(world, text) {
-  world.addMessage(text, 3.5);
+  world.addMessage(text, failMessageSeconds(text));
   stopTalk();
   closeChoice();
   closeTiming();

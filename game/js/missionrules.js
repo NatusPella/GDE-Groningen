@@ -12,6 +12,13 @@ export function skipReward(reward) {
   return Math.round(((Number.isFinite(r) ? r : 0) * HEIST_SKIP_SHARE) / 5) * 5; // verfijning 22-11: Infinity of NaN geeft 0, geen oneindige beloning
 }
 
+// Verfijning 22-11: de mislukmelding ("tijd op. Zelfs de ...") stond altijd 3,5 s, ook als de reden twee regels lang is. Nu
+// minstens 3,5 s en tot 8 s voor een lange reden (ruim 17 tekens per seconde, plus een seconde om te schrikken).
+export function failMessageSeconds(text) {
+  const n = String(text == null ? '' : text).length;
+  return Math.min(8, Math.max(3.5, 1 + n / 17));
+}
+
 // seconds a parked chase target waits for the player to come close before it flees by itself
 export const CHASE_WAIT_MAX = 6;
 // the wait for a parked target: CHASE_WAIT_MAX s, plus the metres to its `parked` ring at an easy 10 m/s (the bot measured 13 m/s through the city, with a flat tyre on the way)
