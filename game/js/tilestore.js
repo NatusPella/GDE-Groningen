@@ -362,6 +362,9 @@ export class TileStore {
       e.tile = tile;
       e.state = 'ready';
       e.last = this.now();
+      // a tile somebody asked for outside the wanted ring (a route ahead, a jump) is held for holdMs from its arrival, not from 0:
+      // the next prefetch dropped it at once and the load was for nothing
+      if (!e.wanted) e.outside = e.last;
       this.residentBytes += e.meta.raw;
       this.stats.loads++;
       this.stats.bytes += len;
