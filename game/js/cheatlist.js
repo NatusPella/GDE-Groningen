@@ -68,11 +68,32 @@ export function storyCheatUnlocks(doneId, missionPassed) {
   return out;
 }
 
-// The same from a save's story and missions sections.
-export function cheatUnlocksFromSave(d) {
+// The master unlock (22-11, owner's decision): the Cheats section does not exist until the story
+// has handed it over. Bert gives Tammo his "valsspeelbon" at the end of "Kieken van boven"
+// (M04, act 1). Per player: it follows the story progress of the own save (#429).
+export const CHEATS_OPEN_STEP = 'M04';
+
+export function cheatsOpenFromStory(doneId, missionPassed) {
+  const k = STEPS.findIndex((s) => s.id === (STEP_ALIAS[CHEATS_OPEN_STEP] || CHEATS_OPEN_STEP));
+  return k >= 0 && stepDone(k, doneId, missionPassed);
+}
+
+// The done/passed sets of a save's story and missions sections. An older save names the steps of
+// the first version of the story: they stand for the steps of the story that is left.
+function savedProgress(d) {
   const st = d && d.story && typeof d.story === 'object' && Array.isArray(d.story.done) ? d.story.done : [];
   const passed = d && d.missions && Array.isArray(d.missions.completed) ? d.missions.completed : [];
-  // an older save names the steps of the first version of the story: they stand for the steps of the story that is left
   const done = new Set([...st, ...st.map((id) => STEP_ALIAS[id]).filter(Boolean)]), ok = new Set(passed);
-  return storyCheatUnlocks((id) => done.has(id), (i) => ok.has(i));
+  return [(id) => done.has(id), (i) => ok.has(i)];
+}
+
+// The same from a save's story and missions sections.
+export function cheatUnlocksFromSave(d) {
+  return storyCheatUnlocks(...savedProgress(d));
+}
+
+// Is the Cheats section open in this save: said so (`streken.open`) or the story is past the step.
+export function cheatsOpenFromSave(d) {
+  if (d && d.streken && d.streken.open === true) return true;
+  return cheatsOpenFromStory(...savedProgress(d));
 }

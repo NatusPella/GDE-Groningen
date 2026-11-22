@@ -13,7 +13,9 @@ import { hoofdspeler } from './players.js';
 // - Prestaties: none unlock and no lifetime stat moves while a gameplay
 //   streek is on.
 //   Teleporting, Voertuig hier and the cosmetic ones leave them on.
-import { CHEATS, CHEAT_BY_ID, storyCheatUnlocks, cheatUnlocksFromSave } from './cheatlist.js';
+// - The master unlock (22-11): nothing here exists for a player until the story has handed it
+//   over (cheatlist.js CHEATS_OPEN_STEP, a card says so). Per save, so per player (#429).
+import { CHEATS, CHEAT_BY_ID, storyCheatUnlocks, cheatUnlocksFromSave, cheatsOpenFromStory, cheatsOpenFromSave } from './cheatlist.js';
 import { MODS } from './cheatmods.js';
 import { targetMix, stepMix } from './streekverkeer.js';
 import { setAchievementGate, isUnlocked, hasUnique, markLifetime } from './achievements.js';
@@ -43,6 +45,7 @@ const CRASH_DROP = 7; // m/s lost in one step: a crash
 
 let world = null;
 let unlocked = new Set();
+let open = false;
 let on = new Set();
 let primed = false;
 let pollT = 0;
@@ -59,6 +62,7 @@ export function initCheats(w) {
 
 function resetState(d) {
   unlocked = new Set(cheatUnlocksFromSave(d));
+  open = false;
   on = new Set();
   stormForced = false;
   slowUntil = 0;
@@ -67,7 +71,9 @@ function resetState(d) {
   pollT = 0;
 }
 
-export const isAvailable = (id) => unlocked.has(id) || hasUnique('streken', id);
+export const cheatsOpen = () => open;
+// Nothing is available before the master unlock (a dev or test run opens it by itself: pausemenu.js).
+export const isAvailable = (id) => open && (unlocked.has(id) || hasUnique('streken', id));
 export const isCheatOn = (id) => on.has(id);
 
 // A gameplay streek is on (paused or not).
@@ -99,6 +105,10 @@ function pollUnlocks(w) {
   const st = getStorySave();
   const prog = getMissionProgress();
   const done = new Set(st.done), passed = new Set(prog ? prog.completed : []);
+  if (!open && cheatsOpenFromStory((id) => done.has(id), (i) => passed.has(i))) {
+    open = true;
+    if (primed) showCard(w, { kind: 'prestatie', kicker: 'Cheats vrijgespeeld', title: 'Berts valsspeelbon', body: 'Bert heeft hem in je jaszak gestopt. Pauzemenu › Cheats', duration: 6, key: 'streken-open', voice: false });
+  }
   const now = storyCheatUnlocks((id) => done.has(id), (i) => passed.has(i));
   for (const c of CHEATS) if (c.ach && isUnlocked(c.ach)) now.push(c.id);
   for (const id of now) {
@@ -106,7 +116,7 @@ function pollUnlocks(w) {
     unlocked.add(id);
     const fresh = markLifetime('streken', id);
     const c = CHEAT_BY_ID.get(id);
-    if (primed && fresh && (c.step || c.ach)) {
+    if (primed && fresh && open && (c.step || c.ach)) {
       showCard(w, { kind: 'prestatie', kicker: 'Cheat vrijgespeeld', title: c.name, body: 'Pauzemenu › Cheats', duration: 5, key: 'streek-' + id, voice: false });
     }
   }
@@ -188,12 +198,13 @@ function storm(w, want) {
 // --- save ------------------------------------------------------------------------
 
 export function getCheatSave() {
-  return { v: 1, unlocked: [...unlocked], on: [...on], used: [] };
+  return { v: 1, open, unlocked: [...unlocked], on: [...on], used: [] };
 }
 
 // d: the save's `streken` (savemigrate.js 3 adds it), save: the whole save.
 export function applyCheatSave(d, save) {
   resetState(save);
+  open = cheatsOpenFromSave({ ...save, streken: d });
   if (!d || typeof d !== 'object') return;
   const ids = (list) => (Array.isArray(list) ? list.filter((id) => CHEAT_BY_ID.has(id)) : []);
   for (const id of ids(d.unlocked)) unlocked.add(id);
