@@ -11,6 +11,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Verkeer
+
+- **Verkeer: auto's nemen bochten in een boog (#1049, #1047):** op kruispunten en bij knikken in de weg rijdt een AI-auto langs een afgeronde bocht in plaats van de hoek te snijden; een lange auto haalt ruimer uit als er een gevel dichtbij staat. Gemeten over 24 verkeersrondes: een derde minder schaafjes langs gevels (1053 naar 700), minder auto's in een gebouw (21 naar 4), geen extra files. Samen spelen: het verkeer is van wie het spel opende (ongewijzigd), de bogen zijn lokaal rijgedrag.
+
 ### Luchtroute
 
 - Luchtroute (#1038): in het vliegtuig, de helikopter, als duif en in de luchtballon is er nog maar één routekaart. Regel 1 is de plaats waar je heen vliegt (Vliegveld Eelde, Winsum), nooit meer de voorwaarde van een missie. Regel 2 zegt wat je doet: Draai om, Links aanhouden, Stijg naar 75 m. De pijl draait mee met je koers; bij een bocht van meer dan 120 graden staat er een omdraai-icoon. Afstand en tijd staan groter rechts. De bovenste balk toont in de lucht alleen de naam van de opdracht, zonder Vlieg naar. De gids is lokaal per speler (Samen spelen).
