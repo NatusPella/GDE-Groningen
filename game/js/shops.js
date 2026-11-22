@@ -27,6 +27,7 @@ import { voegEtenToe } from './eten.js';
 import { isCinematicActive } from './cinematics.js';
 import { bakeBezig } from './bakeround.js';
 import { recordStat, recordUnique, isUnlocked } from './achievements.js';
+import { cleanBase, baselineNow, earnedThisSave } from './unlockbase.js'; // prestatie-voertuigen tellen per save, niet per profiel
 import { isMissionCompleted, missionIndexById } from './missionquery.js';
 import { registerShopIcon } from './shopicon.js';
 import { furnitureShopHook as furnitureShop } from './latehooks.js';
@@ -127,9 +128,17 @@ export const VEHICLE_UNLOCKS = {
   // world.postgame (postgame.js): the story's ending was played, also after skipping the finale
   ontzet: { text: 'Speel het verhaal uit: Gronings Ontzet', ok: () => missionDone('ontzet') || !!(worldRef && worldRef.postgame) },
   buschauffeur: { text: 'Haal niveau 2 als buschauffeur (lijn 3)', ok: () => jobLevel('bus') >= 2 },
-  ontsnapt: { text: 'Prestatie "Foetsie": raak de politie kwijt na vijf sterren', ok: () => isUnlocked('ontsnapt_5') },
-  vijfsterren: { text: 'Prestatie "Heel Grunn zoekt je": haal vijf sterren', ok: () => isUnlocked('ster_5') },
+  ontsnapt: { text: 'Prestatie "Foetsie": raak de politie kwijt na vijf sterren', ok: () => achievedThisSave('ontsnapt_5') },
+  vijfsterren: { text: 'Prestatie "Heel Grunn zoekt je": haal vijf sterren', ok: () => achievedThisSave('ster_5') },
 };
+
+// Prestaties zijn van het profiel, het vrijspelen van een voertuig is van deze save (unlockbase.js): bij een nieuw spel is de
+// basislijn wat het profiel al had, een geladen save neemt zijn eigen lijst mee (een oude save zonder lijst houdt wat hij had).
+const ACH_UNLOCK_IDS = ['ontsnapt_5', 'ster_5'];
+function achievedThisSave(id) {
+  if (!state.unlockBase) state.unlockBase = baselineNow(ACH_UNLOCK_IDS, isUnlocked);
+  return earnedThisSave(id, isUnlocked, state.unlockBase);
+}
 
 export function unlockMet(spec) {
   const u = spec && spec.unlock && VEHICLE_UNLOCKS[spec.unlock];
@@ -225,6 +234,7 @@ const state = {
   rental: null,
   lastStealthAt: -Infinity,
   stamps: 0, // spaarkaart at Rook & Geluk
+  unlockBase: null, // prestaties die het profiel al had bij het begin van deze save (unlockbase.js); null = nog niet bepaald
 };
 let baseLook = null;
 let idSeq = 0;
@@ -401,6 +411,7 @@ function wijkAt(map, x, y) {
 
 export function initShops(world) {
   worldRef = world;
+  state.unlockBase = null; // een nieuw spel bepaalt zijn basislijn bij de eerste vraag; een save overschrijft hem in applyShopSave
   world.cycleOutfit = (dir) => cycleOutfit(world, dir); // the 6 key (player.js)
   setLocalCharProvider(() => currentChar(world)); // coopnet.js stuurt de kleding van dit personage mee bij het meedoen
   if (offKit) offKit();
@@ -2120,6 +2131,7 @@ export function getShopSave() {
     heroColor: state.heroColor,
     heroUpgrades: [...state.heroUpgrades],
     stamps: state.stamps,
+    ...(state.unlockBase ? { unlockBase: [...state.unlockBase] } : {}),
     vehicles: state.vehicles.map((o) => {
       const v = o.v;
       const pos = o.lost ? null : v ? { x: round(v.x), y: round(v.y), angle: round(v.angle), ...(v.isHeli ? { z: round(v.onGround ? v.z : v.groundZ ?? 0) } : {}) } : o.x != null ? { x: round(o.x), y: round(o.y), angle: round(o.angle) } : null;
@@ -2139,6 +2151,7 @@ export function applyShopSave(world, d) {
   if (typeof d.storyOutfit === 'string') forceStoryLook(d.storyOutfit);
   state.heroColor = isColor(d.heroColor) ? d.heroColor : null;
   state.heroUpgrades = Array.isArray(d.heroUpgrades) ? d.heroUpgrades.filter((id) => CAR_UPGRADES.some((u) => u.id === id)) : [];
+  state.unlockBase = cleanBase(d.unlockBase, ACH_UNLOCK_IDS); // geen lijst (oude save): leeg, dus wat hij had blijft
   state.stamps = Number.isFinite(d.stamps) ? Math.max(0, Math.min(STAMP_CARD, Math.floor(d.stamps))) : 0;
   for (const o of state.vehicles) removeFromWorld(world, o.v);
   state.vehicles = [];
