@@ -12,6 +12,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 (De coördinator voegt deze regels bij 0.65.0.)
 
 ### Prestaties
+- Prestaties: bovenaan staat een zoekveld. Typ een woord en je ziet alleen de prestaties waar het in voorkomt; geheime prestaties blijven geheim. Esc wist je zoekopdracht.
+- Prestaties, Loopbaan en Veroverd: een percentage staat niet meer op 100% zolang er nog iets ontbreekt (99,6% werd afgerond tot 100%). Een prestatie van meer dan een jaar geleden toont het jaartal.
+- Loopbaan: "Nog 1 punt" in plaats van "1 punten", en "1 klus", "1 oogst" en "1 activiteit" in de teller. Een plek die je al deed telt ook bij een volle lijst niet nog eens mee.
+- Veroverd: na een aankoop in de Beleidswinkel blijven je plek in het scherm en het gekozen gebied kloppen. De knop "Zet als doel" meldt zelf dat het gelukt is.
+- Foto's: een foto weghalen kun je ongedaan maken, een korte flits laat zien dat de foto genomen is (niet bij Beweging beperken), en als de fotomodus niet start zegt het spel waarom. Een nieuwe foto krijgt geen bestandsnaam meer van een eerdere foto.
 - Prestaties (#1074, #1067): als het spelvenster verborgen of op de achtergrond is, doen de vaste controles van de overlays, het Samen-paneel en het aanraakscherm niets meer; de kartmotor wordt bij het verlaten van de baan echt stopgezet. Samen spelen: lokaal per speler, geen netwerkwijziging; testsessies met `?stil` blijven gewoon tikken. Voor de metingen staan er twee A-schakelaars (`?perfoff=boomfade`, `?perfoff=gevelfade`).
 ### Kaart en HUD
 - Kaart: een nieuwe streek ontdekt, ook onderweg met de kaart dicht? Dan gloeit de rand van de minimap even zomers geel op (zonder beweging blijft de gele rand even staan). Ontdekking is per speler; wie meespeelt ziet alleen de eigen gloed (#990).
