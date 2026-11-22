@@ -2,8 +2,8 @@
 
 Deze map bouwt de landingspagina van GDE Groningen: één statische pagina in het Nederlands,
 met een grote slideshow van screenshots uit het spel, de trailer (pas geladen na een klik) en
-het social-preview-beeld. Daarnaast genereert `build.mjs` zes **hulppagina's** (`/help/`:
-index, installeren, systeemeisen, spelen, samen spelen en problemen) uit `help-pages.mjs`, met dezelfde
+het social-preview-beeld. Daarnaast genereert `build.mjs` zeven **hulppagina's** (`/help/`:
+index, installeren, systeemeisen, spelen, wat kun je doen, samen spelen en problemen) uit `help-pages.mjs`, met dezelfde
 header, footer en stylesheet. **Er gaat niets vanzelf
 openbaar.** De pagina wordt pas gebouwd en gepubliceerd als jij de workflow met de hand start,
 en dat kan pas nadat de repo publiek is. Zet de repo dus pas op Public als je er klaar voor bent.

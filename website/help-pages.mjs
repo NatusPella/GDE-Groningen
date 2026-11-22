@@ -12,6 +12,7 @@ export const HELP_PAGES = [
         <a class="help-card" href="installeren.html"><strong>Installeren</strong><span>Windows, macOS, Linux en Android, en wat je doet bij de waarschuwing van je systeem.</span></a>
         <a class="help-card" href="systeemeisen.html"><strong>Systeemeisen</strong><span>Wat je nodig hebt: WebGL 2, geheugen, schijfruimte en de downloadgroottes.</span></a>
         <a class="help-card" href="spelen.html"><strong>Spelen en besturing</strong><span>Toetsen, controller, aanraking, opslaan, instellingen en toegankelijkheid.</span></a>
+        <a class="help-card" href="wat-kun-je-doen.html"><strong>Wat kun je doen?</strong><span>Bezit en snackwagen, voetbal, kleding, tuning, radio, bijbanen en de nieuwe instellingen, kort uitgelegd.</span></a>
         <a class="help-card" href="samen-spelen.html"><strong>Samen spelen</strong><span>Een kamercode, toestemming, eigen voortgang en wat er met je IP-adres gebeurt.</span></a>
         <a class="help-card" href="problemen.html"><strong>Problemen en fouten melden</strong><span>Crash, geen geluid, haperingen of een vastloper: dit kun je zelf proberen.</span></a>
       </div>
@@ -160,9 +161,42 @@ export const HELP_PAGES = [
         <li>Na de update importeer je het bestand terug via de importregel onderaan het scherm <strong>Opgeslagen spellen</strong>.</li>
       </ol>
       <h2>Toegankelijkheid</h2>
-      <p>Onder <strong>Instellingen › Toegankelijkheid</strong> vind je kleurenblindmodi, de grootte van de interface en "Beweging beperken". De grootte van de ondertitels staat onder <strong>Geluid &amp; ondertitels</strong>.</p>
+      <p>Onder <strong>Instellingen › Toegankelijkheid</strong> vind je kleurenblindmodi, de grootte van de interface en "Beweging beperken". Daarnaast:</p>
+      <ul>
+        <li><strong>Schermschudden</strong> (Aan, Minder, Uit): het schudden van het beeld bij klappen, botsingen, aardbevingen en scènes, los van "Beweging beperken".</li>
+        <li><strong>Vormen bij kleur</strong>: de wantedsterren krijgen een cijfer en een zwaardere rand, en de kaart een gestreepte rand tijdens de zoektocht, ook zonder kleurenstand.</li>
+        <li><strong>Tikken in plaats van ingedrukt houden</strong> (Rennen, Richten of beide): één tik houdt het aan, een tweede tik zet het uit. Alleen te voet.</li>
+      </ul>
+      <p>De grootte van de ondertitels en de <strong>Dichtheid van het vlak</strong> erachter (Vol, Zacht, Licht) staan onder <strong>Geluid &amp; ondertitels</strong>. Deze opties zijn per speler en blijven op je eigen apparaat.</p>
+      <h2>Moeilijkheid</h2>
+      <p>Elk opgeslagen spel heeft een eigen niveau: Ontspannen, Standaard of Uitdagend, met opties die je los kunt zetten (politie, verkeer, schade, rij-assist, tegenstanders in races, quicktime-events, tijd en medailles, voetbal, beloning, hints en een Verhaalmodus zonder tijdsdruk). Standaard speelt zoals het spel altijd speelde. Aanpassen kan onder <strong>Instellingen › Moeilijkheid</strong>; sommige wijzigingen gaan pas bij de volgende missie, race of wedstrijd in.</p>
+      <h2>Radio</h2>
+      <p>Kies je zender in <strong>Instellingen › Geluid</strong> of met <strong>Shift+N</strong> in het spel. G-Music is de hoofdzender; Nachtstreek en Wierde Radio komen erbij en er is een geheime zender die je vrijspeelt. Elke zender herhaalt zijn nummers niet kort na elkaar.</p>
       <h2>Privacy</h2>
       <p>Er is geen account, geen tracking en geen statistiek. De desktopapp speelt altijd online in een eigen besloten sessie (ook met één speler). Daarnaast kies je zelf of je een sessie deelt of met iemand meespeelt (<strong>Samen spelen</strong>) en of de <strong>live busposities</strong> worden opgehaald (staan standaard aan en zijn in Instellingen uit te zetten). Op Android staat Samen spelen uit. Zie <a href="https://github.com/NatusPella/GDE-Groningen/blob/main/docs/PRIVACY-EN-CREDITS.md">docs/PRIVACY-EN-CREDITS.md</a>.</p>
+      <p class="help-terug"><a href="./">← Terug naar de hulpindex</a></p>
+    `,
+  },
+  {
+    slug: 'wat-kun-je-doen',
+    titel: 'Wat kun je doen?',
+    beschrijving: 'Kort en feitelijk wat GDE Groningen biedt: Bezit en snackwagen, voetbal, kleding, tuning, radio, bijbanen en panden.',
+    intro: 'Een korte lijst van wat er in het spel zit (stand 0.65.0). Het spel is nog in ontwikkeling en niet alles is door een mens in beeld bekeken; een volledige lijst staat in docs/SPELERSGIDS.md in de repo.',
+    body: `
+      <h2>Bezit en snackwagen</h2>
+      <p>In het menu <strong>Land en bedrijf</strong> koop je percelen, panden en woningen in de hele provincie (kaartlaag <em>Te koop</em>), laat je personeel werken en bouw je productieketens, bijvoorbeeld melk naar kaas of aardappelen naar friet. Kopen en verkopen vraagt altijd een bevestiging. Vanaf akte 5 komt het tabblad <strong>Snackwagen</strong>: zestien standplaatsen met een vergunning, een eigen menu en medewerkers-wagens, en een tegenstander (een verzonnen bedrijf) die je met tevreden klanten verslaat. Wie verliest, raakt nooit zijn standplaats kwijt.</p>
+      <h2>Voetbal</h2>
+      <p>In de Euroborg speel je een hele wedstrijd als uitzending, met scorebord, commentaar, herhaling na een doelpunt en kaarten en blessures (zonder beeld, nooit blijvend; uit te zetten). Na akte 4 kun je een <strong>voetbalcarrière</strong> beginnen bij een lokale club: zeven rondes per seizoen, trainen, drie klassen en bekers, en clubaandelen in het Manager-scherm.</p>
+      <h2>Kleding en kapper</h2>
+      <p>Stukken koop je in de kledingwinkel; het aanbod wisselt per winkel en per dag. In het pashokje pas je ze over je eigen outfit en bewaar je een look in een van de vijf outfits. De kapper heeft kapsels in groepen.</p>
+      <h2>Tuning</h2>
+      <p>In de <strong>Pimp-werkplaats</strong> (garage, werf, fietsenmaker, tuningwinkel) kies je lak, stickers, velgen, spoilers, verlichting en meer, met voor en na naast elkaar en betaling bij Installeren. Ook de snackwagen is te tunen. Een gepimpte auto is nooit een reden voor de politie.</p>
+      <h2>Panden, bijbanen en loopbaan</h2>
+      <p>Je loopt zonder laadscherm door de voordeur naar binnen bij winkels, cafés, kantoren, kerken en meer; bij de kassa of bar druk je op E. Bijbanen zijn onder meer taxi, bus, bezorger, krantenwijk, rondvaart en veerdienst. Onder <strong>Loopbaan</strong> in het pauzemenu zie je per vak je niveau en de volgende stap.</p>
+      <h2>Kaart en route</h2>
+      <p>Op de kaart (M) zet je een waypoint om zelf te gaan, of kies je <em>Reis erheen</em> voor trein, bus, taxi of boot. De doelbalk zegt wat je moet doen, en in het vliegtuig, de helikopter en de luchtballon is er één routekaart.</p>
+      <h2>Samen spelen</h2>
+      <p>Geld, voortgang, bezit, snackwagen, carrière en kleding zijn per speler; de wereld (politie, verkeer, weer) volgt wie het spel opende. Je ziet elkaars gepimpte voertuig en kleding, en een perceel van een medespeler is voor jou niet te koop. Meer staat bij <a href="samen-spelen.html">Samen spelen</a>.</p>
       <p class="help-terug"><a href="./">← Terug naar de hulpindex</a></p>
     `,
   },
@@ -187,7 +221,7 @@ export const HELP_PAGES = [
         <li>Spelers kunnen elkaar alleen te lijf als beiden niet op de <strong>passieve stand</strong> staan. Dood door een medespeler kost je geen geld of voortgang.</li>
       </ul>
       <h2>Privacy en verbinding</h2>
-      <p>Omdat het spel altijd online speelt, gaat je IP-adres naar een openbare STUN-server; speel je met anderen, dan gaat het ook naar je medespeler. De versleutelde signaleringsberichten lopen via openbare brokers. Maakt de host de sessie openbaar, dan staat alleen de sessienaam, het aantal spelers en de versie in de openbare lijst; je IP-adres en de kamercode staan daar niet in. Maakt de host de sessie openbaar, dan staat alleen de sessienaam, het aantal spelers en de versie in de openbare lijst; je IP-adres en de kamercode staan daar niet in. De live busposities staan los daarvan standaard aan en zijn in Instellingen uit te zetten. Zie <a href="https://github.com/NatusPella/GDE-Groningen/blob/main/docs/PRIVACY-EN-CREDITS.md">docs/PRIVACY-EN-CREDITS.md</a>.</p>
+      <p>Omdat het spel altijd online speelt, gaat je IP-adres naar een openbare STUN-server; speel je met anderen, dan gaat het ook naar je medespeler. De versleutelde signaleringsberichten lopen via openbare brokers. Maakt de host de sessie openbaar, dan staat alleen de sessienaam, het aantal spelers en de versie in de openbare lijst; je IP-adres en de kamercode staan daar niet in. De live busposities staan los daarvan standaard aan en zijn in Instellingen uit te zetten. Zie <a href="https://github.com/NatusPella/GDE-Groningen/blob/main/docs/PRIVACY-EN-CREDITS.md">docs/PRIVACY-EN-CREDITS.md</a>.</p>
       <p>Werkt de verbinding niet? Kies in het Samen spelen-scherm <strong>Verbinding testen</strong>; daar staat in gewone taal wat er mis is. Controleer ook je firewall en of jullie dezelfde versie spelen.</p>
       <p class="help-terug"><a href="./">← Terug naar de hulpindex</a></p>
     `,

@@ -26,6 +26,7 @@ releases.
 | **Spelen en rondkijken** | [marketingpagina](https://natuspella.github.io/GDE-Groningen/) |
 | **Installeren, besturing, samen spelen of een probleem oplossen** | [hulp en veelgestelde vragen](https://natuspella.github.io/GDE-Groningen/help/) |
 | **De nieuwste build downloaden** | [releases](../../releases) |
+| **Wat er in het spel zit (spelersgids)** | [docs/SPELERSGIDS.md](docs/SPELERSGIDS.md) |
 | **Documentatie, architectuur en ontwerp** | [docs/README.md](docs/README.md) |
 | **Een bug of wens melden** | [Issues](../../issues) |
 | **Bijdragen** | [CONTRIBUTING.md](CONTRIBUTING.md) |
@@ -61,6 +62,7 @@ broncode bouwen kan ook: zie [docs/ONTWIKKELEN.md](docs/ONTWIKKELEN.md).
 - **Hulp:** [helpcentrum](https://natuspella.github.io/GDE-Groningen/help/) met
   [installeren](https://natuspella.github.io/GDE-Groningen/help/installeren.html),
   [spelen en besturing](https://natuspella.github.io/GDE-Groningen/help/spelen.html),
+  [wat kun je doen](https://natuspella.github.io/GDE-Groningen/help/wat-kun-je-doen.html),
   [samen spelen](https://natuspella.github.io/GDE-Groningen/help/samen-spelen.html) en
   [problemen melden](https://natuspella.github.io/GDE-Groningen/help/problemen.html).
 - **Documentatie:** [docs/README.md](docs/README.md) is de ingang; de canonieke regels

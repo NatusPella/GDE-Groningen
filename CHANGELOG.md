@@ -20,6 +20,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 ### Wereldranden
 - Bourtange (#953): voet- en fietspaden op de wallen die als brug getekend stonden, hoog boven een vlak veld zonder water, spoor of weg eronder, liggen nu gewoon op de grond. Je valt niet meer van een dek op pijlers naast de gracht; de wallen zijn beloopbaar. Echte bruggen over water, spoor of weg houden hun dek. De wereld is van wie het spel opende en geldt voor iedereen (Samen spelen).
 - Parken in de streek (#1030): ook zonder geladen wegennet (de webversie) vallen bomen en heggen van een parkkit op het wegdek weg; de kit kijkt dan naar de wegen van de tegelkaart. Wereldregel van wie het spel opende, voor iedereen gelijk (Samen spelen).
+### Uitleg
+- Uitleg: de hulppagina's op de website hebben een nieuwe pagina "Wat kun je doen?" en bij Spelen en besturing staan nu Schermschudden, Vormen bij kleur, Tikken in plaats van ingedrukt houden, de Dichtheid van het vlak, de moeilijkheid en de radiozenders; in de repo staat een korte spelersgids (docs/SPELERSGIDS.md). Het foutrapport staat onder Over › Problemen. Samen spelen: geen nieuwe regel, het is alleen uitleg.
 
 ### Luchtroute
 

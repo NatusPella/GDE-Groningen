@@ -1727,8 +1727,8 @@ message, the stack, the game version, the story step, a settings summary and
 the GPU class (`setErrorContext`, set in main.js from story.js and
 gfxprofile.js `classifyGpu`). `scrub` cuts paths down to the game's own
 folder (`js/story.js:12`) and blanks user folders, so no user name ends up in
-the report. Instellingen › Foutrapport (pausemenu.js) lists the newest
-entries with "Kopieer naar klembord", "Wissen" and, in the desktop app,
+the report. Over › Problemen (`problemsHtml` in pausemenu.js) lists the newest
+entries with "Kopieer het rapport", "Wissen" and, in the desktop app,
 "Opslaan als bestand" (`gdeDesktop.saveTextFile`, `gde:save-text`: a save
 dialog in main.js). Nothing is ever sent and there are no network calls;
 the privacy line in Over, the README and docs/LICENTIES.md §5 say so.
@@ -2052,6 +2052,16 @@ The game code only knows the default keys (`isDown('e')`, a `keydown` for
   map icons, the 3D mission marker); `onPaletteChange` redraws legends and
   cached icons. Route kinds also differ by pattern (`ROUTE_DASH`), edge arrows
   by a mark, and the 3D mission marker by shape (ball idle, arrow active).
+  The screen shake setting (Aan, Minder, Uit; `SHAKE_STANDEN` in `a11ylogic.js`) is independent of
+  Beweging beperken and scales `cameraShake` in `effectsFor`, also for scene cameras.
+- **Difficulty per save** (#1169): `difficulty.js` (three levels Ontspannen, Standaard, Uitdagend and the
+  options below them, pure; Standaard is exactly the old behaviour), `difficultycard.js` and
+  `difficultyui.js` (the "Hoe pittig moet het zijn?" card), `difficultypanel.js` (Instellingen ›
+  Moeilijkheid), `bezitdifficulty.js`; see `docs/MOEILIJKHEID-21-11.md`. The world (police, traffic)
+  follows whoever opened the game; damage, assist, hints, time and rewards are per player.
+- **Radio channels** (ADR 0046, `docs/RADIOZENDERS-21-11.md`): `radiochannels.js` (pure: who plays what,
+  when a channel exists, anti-repeat), `radiokeuze.js` (the picker in Instellingen › Geluid, Shift+N in
+  the game), `radio.js` (`selectChannel`, keeps the choice per player). Nothing goes over the network.
 
 `node scripts/controls_test.mjs` checks the rebinding, the swaps, damaged
 tables and the glyph lookup per situation.

@@ -2,7 +2,7 @@
 // Bouwt index.html + grading.js + bronnen.js in een map buiten git. De pagina rekent de BENADERDE voor-en-na-beelden in de browser op 2560x1440
 // met dezelfde wiskunde als het spel (worldpalette.js en worldgrade.js, ongewijzigd ingepakt), per scène in drie standen (Uit, Subtiel, Drukwerk),
 // met een vergelijkingsslider, tabs, pijltjes tussen scènes en een knop 'Crop 100%' (drie uitsneden van de diepste schaduw op 1:1 pixels).
-//   node scripts/world/wereldkleur_feedback.mjs [uitvoermap]   (standaard C:\Users\abuis\GIT\GDE-Groningen\.work\wereldkleur-feedback)
+//   node scripts/world/wereldkleur_feedback.mjs [uitvoermap]   (standaard .work/wereldkleur-feedback in de repo)
 // Eerlijk: de bronnen zijn echte spelbeelden van 1280x720 (geen Electron deze ronde); 2560x1440 is een 2x vergroting, het raster en de korrel zijn
 // wel op echte 2560-pixels berekend. Zie docs/WERELDKLEUR-21-11.md.
 import fs from 'node:fs';
@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 
 const hier = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(hier, '../..');
-const uit = process.argv[2] || 'C:/Users/abuis/GIT/GDE-Groningen/.work/wereldkleur-feedback';
+const uit = process.argv[2] || path.join(root, '.work', 'wereldkleur-feedback');
 fs.mkdirSync(uit, { recursive: true });
 
 // ---- de speltaal-modules in één bestand: elke module in een eigen functiescope, imports als destructuring

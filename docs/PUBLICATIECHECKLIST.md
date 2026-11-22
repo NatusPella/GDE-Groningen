@@ -201,3 +201,24 @@ gemaakt, geactiveerd of gepost**.
   oude namen (#72/#62/#83 bijwerken of laten), social preview uploaden, repo publiek
   maken (#37), daarna Pages activeren en de marketingpagina controleren.
 
+## 12. Twaalfde ronde: 22 november 2026 (0.65.0, spelersuitleg en #83)
+
+Alleen bestanden en controles; **niets gepubliceerd, aangezet of gewijzigd op GitHub**. De repo is publiek
+(13-11), Pages staat aan; de speelbare webversie (`/play/`) heeft een handmatige workflow en staat nog niet
+online (#57).
+
+- **Spelersuitleg bijgewerkt voor 0.65.0:** nieuw [SPELERSGIDS.md](SPELERSGIDS.md) (moeilijkheid, instellingen en
+  toegankelijkheid, radiozenders, Bezit en snackwagen, voetbal, kleding en tuning, panden en bijbanen, Samen spelen),
+  een nieuwe hulppagina `wat-kun-je-doen` en uitbreiding van `spelen` op de website, de README, de docs-index en
+  ARCHITECTURE (moeilijkheid, radiozenders, schermschudden). Kort en feitelijk, zonder marketingtaal.
+- **Foutrapport-pad rechtgezet:** het staat onder **Over › Problemen › Kopieer het rapport** (niet meer onder
+  Instellingen); CONTRIBUTING, ONBOARDING, PLAYTESTPLAN, SPEELTEST, EIGENAAR-ACTIELIJST en ARCHITECTURE klopten niet meer.
+- **Thuispaden eruit:** `publish_check` gaf 243 FAIL op nieuwe bestanden van 21-22 november met het pad van het
+  eigen gebruikersprofiel (twee luisterpagina's, twee mock-pagina's, twee scripts, het gaterapport, een test en
+  `release/owner-review.json`). Die zijn nu relatief of een plaatsaanduiding; `publish_check` geeft **0 FAIL** en 25 WARN
+  (handmatige workflows). **Let op:** de geschiedenis bevat die paden nog; alleen de eigenaar beslist over herschrijven.
+- **Checks (22-11):** `secrets_scan` 0 treffers (werkboom en 14.225 commits), `text_audit` 0 (261 toegestaan),
+  `merkenregister_check` 46 rijen, 0 afwijkingen, `spec_check` 0 fouten, `website_test` 311/311.
+- **Nog te doen (eigenaar, ongewijzigd):** merkenregisters met de hand (#62), muziekproduct vastleggen (#62), social
+  preview uploaden (#72), branch protection, besluit over de auteursnaam en de thuispaden in de historie, webversie
+  publiceren (#57), IARC en Steam (#60, #64).
