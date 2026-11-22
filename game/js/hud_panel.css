@@ -929,3 +929,12 @@ body.cine-hide-hud #story-skip { display: none; }
 
 /* #1078: een rand in de kleur van de route die de kaart uitlegt (geel = autoroute, paars = eigen doel); alleen een kleurvlak, de tekst blijft inkt op papier */
 #hud .hud-gps { box-shadow: inset 6px 0 0 var(--nav-doel, transparent), var(--hud-schaduw); }
+
+/* #1038: de routekaart in de lucht: een pijl die met je koers meedraait, een titel van één regel, afstand en tijd groot; een andere handeling laat de kaart even oplichten (<= 250 ms) */
+#hud .hud-gps.is-air .gps-arrow { transform: rotate(var(--gps-hoek, 0deg)); transition: transform var(--ds-m-lang) var(--ds-m-uit); }
+#hud .hud-gps.is-air .gps-txt b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#hud .hud-gps.is-air .gps-dist b { font-size: 28px; }
+#hud .hud-gps.is-air .gps-dist span { font-size: max(17px, var(--hud-min)); font-weight: 800; color: var(--hud-inkt); }
+#hud .hud-gps.is-air.wissel { animation: gps-wissel var(--ds-m-lang) var(--ds-m-uit); }
+@keyframes gps-wissel { from { opacity: 0.6; transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) { #hud .hud-gps.is-air.wissel { animation: none; } #hud .hud-gps.is-air .gps-arrow { transition: none; } }
