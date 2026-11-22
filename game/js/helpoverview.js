@@ -6,7 +6,7 @@
 
 export const HELP_TOPICS = [
   { id: 'doel', title: 'Waar moet ik heen?', lines: [
-    'Onderin staat je doel. Volg de gele route op de minimap tot in de gele marker.',
+    'Bovenin, in het midden, staat je doel. Volg de gele route op de minimap tot in de gele marker.',
     'Open de kaart met {M}, kies een plek of missie en de route gaat erheen. Het verhaal wacht zolang.',
     '{SHIFT} + {LMB} op de kaart zet je meteen op die plek (uit te zetten bij {ESC} › Instellingen › Spelregels).',
   ] },
@@ -18,7 +18,7 @@ export const HELP_TOPICS = [
     'In Samen spelen kan een gast een waypoint zetten. Reizen kan alleen in je eigen spel.',
   ] },
   { id: 'eerstedag', title: 'Je eerste dag in Grunn', lines: [
-    'Onderin staat je eerste klus; volg de gele route. Daarna kun je zelf kiezen wat je doet.',
+    'Bovenin staat je eerste klus; volg de gele route. Daarna kun je zelf kiezen wat je doet.',
     'Kleding wisselen kan in je thuis of in een kledingwinkel; met de politie op je hielen kan een andere outfit of de spuiterij je uit de nest helpen.',
     'Je garage repareert, spuit en levert je eigen voertuigen af; op de kaart zie je welke garage bij je in de buurt is.',
     'Met {5} zet je een waypoint naar je eigen doel en met de kaart kun je ook een taxi nemen of met bus en trein reizen.',

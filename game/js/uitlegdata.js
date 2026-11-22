@@ -97,6 +97,12 @@ export const HINT_UITLEG = Object.freeze({
   'v-auto': 'basis-rijden',
   'v-trekker': 'boerderij-zaaien',
   'v-fiets': { controller: 'drive', stappen: [{ toets: 'WASD', animatie: 'druk', tekst: 'Trappen en sturen' }, { toets: 'SHIFT', animatie: 'houd', tekst: 'Vasthouden: flink doortrappen' }, { toets: 'E', animatie: 'druk', tekst: 'Afstappen' }] },
+  // 22-11: de laatste voertuigen en minigames met een tekstkaart krijgen ook de uitleg met iconen (eerst het plaatje, de tekst blijft als "Meer uitleg")
+  'v-fatbike': { controller: 'drive', stappen: [{ toets: 'WASD', animatie: 'druk', tekst: 'Trappen en sturen' }, { toets: 'SHIFT', animatie: 'houd', tekst: 'Vasthouden: doortrappen' }, { icoon: 'waarschuwing', animatie: 'beweeg', tekst: 'Remmen op tijd' }] },
+  'v-vracht': { controller: 'drive', stappen: [{ toets: 'WASD', animatie: 'druk', tekst: 'Gas en sturen' }, { icoon: 'waarschuwing', animatie: 'beweeg', tekst: 'Lang en zwaar: bochten breed' }, { toets: 'SPACE', animatie: 'houd', tekst: 'Handrem' }] },
+  'm-discgolf': { stappen: [{ toets: ['A', 'D'], animatie: 'houd', tekst: 'Richten' }, { toets: 'SPACE', animatie: 'houd', tekst: 'Houd vast, laat los: gooien' }, { icoon: 'doel', animatie: 'vul', tekst: 'Zo min mogelijk worpen' }] },
+  'm-pitchputt': { stappen: [{ toets: ['A', 'D'], animatie: 'houd', tekst: 'Richten' }, { toets: 'SPACE', animatie: 'houd', tekst: 'Houd vast, laat los: slaan' }, { icoon: 'doel', animatie: 'vul', tekst: 'Zo min mogelijk slagen' }] },
+  'm-kartbaan': { controller: 'drive', stappen: [{ toets: 'WASD', animatie: 'druk', tekst: 'Gas en sturen' }, { icoon: 'tijd', animatie: 'vul', tekst: 'Drie ronden' }, { icoon: 'auto', animatie: 'beweeg', tekst: 'Schone bocht is sneller' }] },
   'v-scooter': { controller: 'drive', stappen: [{ toets: 'WASD', animatie: 'druk', tekst: 'Gas en sturen' }, { toets: 'E', animatie: 'druk', tekst: 'Afstappen' }] },
   'v-motor': { controller: 'drive', stappen: [{ toets: 'WASD', animatie: 'druk', tekst: 'Gas en sturen' }, { toets: 'SHIFT', animatie: 'houd', tekst: 'Wheelie of stoppie' }, { icoon: 'waarschuwing', animatie: 'beweeg', tekst: 'Niet doen in de stad' }] },
   'v-boot': { controller: 'drive', stappen: [{ toets: 'WASD', animatie: 'druk', tekst: 'Gas en sturen' }, { icoon: 'boot', animatie: 'beweeg', tekst: 'Remt langzaam: begin op tijd' }, { toets: 'E', animatie: 'druk', tekst: 'Uitstappen bij de wal' }] },

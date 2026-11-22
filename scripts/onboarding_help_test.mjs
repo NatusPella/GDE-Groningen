@@ -46,8 +46,8 @@ ok(/Instellingen › Hints & uitleg/.test(text), 'help noemt Instellingen › Hi
 ok(/Instellingen › Geluid & ondertitels/.test(text), 'help noemt Instellingen › Geluid & ondertitels voor de volumes');
 ok(/Spel › Samen spelen/.test(text), 'help noemt Spel › Samen spelen');
 const doel = HELP_TOPICS.find((t) => t.id === 'doel');
-ok(doel && doel.lines[0].startsWith('Onderin'), 'de hulplijn over het doel begint met Onderin');
+ok(doel && /^Bovenin/.test(doel.lines[0]), 'de hulplijn over het doel begint met Bovenin (het doel hangt in zone B, bovenin; 22-11)');
 const eerste = HELP_TOPICS.find((t) => t.id === 'eerstedag');
-ok(eerste && /Onderin/.test(eerste.lines[0]), 'de hulplijn over de eerste klus wijst onderin');
+ok(eerste && /Bovenin/.test(eerste.lines[0]), 'de hulplijn over de eerste klus wijst bovenin');
 
 if (!process.exitCode) console.log(`onboarding_help_test: ${n}/${n} ok`);

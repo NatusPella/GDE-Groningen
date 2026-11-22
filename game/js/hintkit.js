@@ -42,12 +42,12 @@ export const HINTS = [
   // #502: de hint noemde alleen de toeter, terwijl de bedieningsregel in het HUD twee knoppen belooft. Wat knielen
   // doet (de bus zakt, zodat de instap bij de halte lager is) stond nergens; zonder die uitleg is "Knielt" een raadsel.
   { id: 'v-bus', kind: 'vehicle', match: 'bus', title: 'Een bus', body: 'Lang en zwaar: neem bochten ruim en rem op tijd. Met {O} open je de deuren bij de halte en met {K} laat je de bus zakken, zodat de instap lager is. Met {H} toeter je.' },
-  { id: 'v-trekker', kind: 'vehicle', match: 'trekker', title: 'Trekker', body: 'Gas en sturen met {WASD}, rem met {SPACE}. {E} koppelt een werktuig, {X} lost het, {T} laat de hef (en de ploeg) zakken en weer omhoog, {G} zet de aftakas aan, {R} tankt diesel. In de bijbaan doet de machine het zelf.' },
+  { id: 'v-trekker', kind: 'vehicle', match: 'trekker', title: 'Trekker', body: 'Gas en sturen met {WASD}, rem met {SPACE}. {E} koppelt een werktuig, {X} lost het, {T} laat de hef (en de ploeg) zakken, {G} zet de aftakas aan, {R} tankt. In de bijbaan werkt de machine zelf.' },
   { id: 'v-quad', kind: 'vehicle', match: 'quad', title: 'Quad', body: 'Wendbaar en goed in het terrein: gas en sturen met {WASD}, rem met {SPACE}. Neem bulten rustig, je zit er los bovenop.' },
   { id: 'v-foodtruck', kind: 'vehicle', match: 'foodtruck', title: 'Foodtruck', body: 'Een zware bestelbus: gas en sturen met {WASD}, handrem op {SPACE}. Met {C} kijk je vanuit de cabine mee, met {H} toeter je.' },
   { id: 'v-vracht', kind: 'vehicle', match: 'vracht', title: 'Vrachtwagen', body: 'Lang, zwaar en traag in de bocht. Houd ruim afstand en neem bochten breed.' },
   { id: 'v-heli', kind: 'vehicle', match: 'heli', title: 'Helikopter', body: 'Omhoog met {SPACE}, omlaag met {CTRL}. Landen: laag en langzaam boven een vlak stuk, dan pas uitstappen met {E}.' },
-  { id: 'v-vliegtuig', kind: 'vehicle', match: 'vliegtuig', title: 'Vliegtuig', body: 'Gas met {W}, bij 30 m/s optrekken met {SPACE}. Kleppen (K) helpen bij start en landing. Haal het landingsgestel in met {G} en zet het uit voor je landt. Landen doe je laag, langzaam en recht op de baan.' },
+  { id: 'v-vliegtuig', kind: 'vehicle', match: 'vliegtuig', title: 'Vliegtuig', body: 'Gas met {W}, bij 30 m/s optrekken met {SPACE}. Kleppen ({K}) helpen bij start en landing. Landingsgestel in en uit met {G}. Land laag, langzaam en recht op de baan.' },
   { id: 'v-auto', kind: 'vehicle', match: 'auto', title: 'Rijden', body: 'Gas, rem en sturen met {WASD}, handrem op {SPACE}, toeteren met {H}. Achterom kijken kan met {Q}. Met {C} kijk je vanuit de cabine mee, nog een keer {C} is weer de volgcamera.' },
   // minigames: world.activityGame is the id of the running one (activities.js)
   { id: 'm-discgolf', kind: 'minigame', match: 'discgolf', title: 'Discgolf', body: 'Gooi de schijf in de mand met zo min mogelijk worpen. Je loopt de ronde door het Stadspark; de uitleg staat tijdens het spelen in beeld.' },
