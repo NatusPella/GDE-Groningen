@@ -49,7 +49,7 @@ t('outfit "aan": een ander kapsel of postuur telt als niet aan, en de toets-6-me
   C.setBody('tammo', 'breed');
   assert.ok(!C.presetIsWorn('tammo', 0), 'postuur verschilt');
   const sh = src('../game/js/shops.js');
-  assert.ok(/outfitMessage\(r\.name/.test(sh) && !/ontbreken\)`/.test(sh), 'één meldingsregel voor kast en toets 6');
+  assert.ok(/outfitMessageFor\(r\.name/.test(sh) && !/ontbreken\)`/.test(sh), 'één meldingsregel voor kast en toets 6');
 });
 
 t('wisseltoets 6 slaat niets over dat kan, wikkelt en maakt geen onzinwissel', () => {
@@ -141,6 +141,32 @@ t('een set aantrekken zonder alle stukken zegt hoeveel er mist', () => {
   assert.ok(set, 'een set die je niet bezit');
   const un = C.wearSet('tammo', set);
   assert.ok(!un.ok && /^Nog \d+ (stuk|stukken) niet in je kast$/.test(un.reason), 'een set die je niet bezit: ' + un.reason);
+});
+
+t('een outfit met ontbrekende stukken noemt het eerste stuk; een tweede set met dezelfde naam krijgt een nummer', () => {
+  assert.equal(M.outfitMessage('X', 2), 'X aan, maar 2 stukken ontbreken', 'de oude vorm blijft');
+  const a = pieceOf('hat', 1), b = pieceOf('glasses', 1);
+  const een = M.outfitMessageFor('Strand', [a]);
+  assert.ok(/^Strand aan, maar 1 stuk ontbreekt: .+/.test(een) && !/ en \d ander/.test(een), een);
+  assert.ok(/ en 1 ander$/.test(M.outfitMessageFor('Strand', [a, b])));
+  assert.ok(/ en 2 andere$/.test(M.outfitMessageFor('Strand', [a, b, pieceOf('back', 1)])));
+  assert.equal(M.outfitMessageFor('Strand', []), 'Strand aan');
+  const set = D.SETS.find((s) => s.char === 'tammo');
+  C.wearSet('tammo', set);
+  C.savePreset('tammo', 0, C.suggestPresetName('tammo', 0));
+  const naam0 = C.presetsOf('tammo')[0].name;
+  assert.equal(C.suggestPresetName('tammo', 1), `${naam0.slice(0, D.PRESET_NAME_MAX - 2)} 2`.replace(/\s+(\d)$/, ' $1'), 'tweede krijgt een nummer');
+  assert.equal(C.suggestPresetName('tammo', 0), naam0, 'dezelfde plek mag zijn eigen naam houden');
+});
+
+t('afkoeltijd overleeft een klok die teruglooptna een lading', () => {
+  assert.equal(C.cooldownBusy(10, -Infinity, 0.6), false, 'nooit gedaan: vrij');
+  assert.equal(C.cooldownBusy(10.3, 10, 0.6), true, 'binnen de tijd: dicht');
+  assert.equal(C.cooldownBusy(10.7, 10, 0.6), false, 'erna: vrij');
+  assert.equal(C.cooldownBusy(5, 500, 60), false, 'de klok liep terug (lading): vrij, niet 495 seconden dicht');
+  assert.equal(C.cooldownBusy(1, NaN, 60), false);
+  const sh = src('../game/js/shops.js');
+  assert.ok(/cooldownBusy\(now, lastCycleAt, 0\.6\)/.test(sh) && /cooldownBusy\(world\.time, state\.lastStealthAt/.test(sh), 'beide afkoelers gebruiken hem');
 });
 
 t('fuzz: kapotte saves breken niets en geven altijd een draagbare kast', () => {

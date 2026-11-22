@@ -128,7 +128,15 @@ function wornAfterSet(ch, s) {
 
 // ------------------------------------------------------------------------------------------------ de kast
 // De melding na het aantrekken van een outfit: "ontbreekt" bij een stuk, "ontbreken" bij meer (review 22-11).
-export const outfitMessage = (naam, ontbreekt) => (ontbreekt ? `${naam} aan, maar ${ontbreekt} ${ontbreekt === 1 ? 'stuk ontbreekt' : 'stukken ontbreken'}` : `${naam} aan`);
+export const outfitMessage = (naam, ontbreekt, welke = '') => (ontbreekt
+  ? `${naam} aan, maar ${ontbreekt} ${ontbreekt === 1 ? 'stuk ontbreekt' : 'stukken ontbreken'}${welke ? `: ${welke}` : ''}`
+  : `${naam} aan`);
+// Dezelfde melding uit de stukken die ontbreken, met de naam van het eerste erbij (verfijnronde 22-11): je ziet wat je nog mist.
+export function outfitMessageFor(naam, missing = []) {
+  const first = missing.map((p) => parsePiece(p)).find(Boolean);
+  const rest = missing.length - 1;
+  return outfitMessage(naam, missing.length, first ? `${lower(pieceLabel(first))}${rest > 0 ? ` en ${rest} ander${rest > 1 ? 'e' : ''}` : ''}` : '');
+}
 
 export function wardrobeSections(ctx) {
   const ch = ctx.ch;
@@ -145,7 +153,7 @@ export function wardrobeSections(ctx) {
         tag: presetIsWorn(ch, i) ? 'Aan' : '',
         preview: ctx.previewOf({ ...p.worn }),
         disabled: presetIsWorn(ch, i) ? 'Heb je al aan' : '',
-        buy() { const r = wearPreset(ch, i); if (!r.ok) return null; ctx.apply(1); ctx.sound && ctx.sound('clothes_rustle'); return outfitMessage(p.name, r.missing.length); },
+        buy() { const r = wearPreset(ch, i); if (!r.ok) return null; ctx.apply(1); ctx.sound && ctx.sound('clothes_rustle'); return outfitMessageFor(p.name, r.missing); },
       } : null)).filter(Boolean),
     });
   }

@@ -234,7 +234,12 @@ export function presetHolding(ch, skip = -1) {
 // Een voorstel voor de naam bij het bewaren: de naam van de set die je aanhebt, anders "Outfit n".
 export function suggestPresetName(ch, i) {
   const s = wornSet(ch);
-  return s && s.label ? cleanName(s.label, i) : `Outfit ${i + 1}`;
+  if (!(s && s.label)) return `Outfit ${i + 1}`;
+  // dezelfde naam twee keer in een lijst leest slecht: een tweede krijgt een nummer
+  const taken = new Set(W(ch).presets.filter((p, k) => p && k !== i).map((p) => p.name));
+  let name = cleanName(s.label, i);
+  for (let k = 2; taken.has(name) && k < 10; k++) name = cleanName(`${s.label} ${k}`, i).replace(/\s+\d*$/, '') + ` ${k}`;
+  return taken.has(name) ? `Outfit ${i + 1}` : name;
 }
 // De outfit-code (versie 3) van een bewaarde outfit, om te delen, en een code die een ander deelde als nieuwe outfit bewaren. De stukken
 // die je zelf niet hebt blijven weg bij het aantrekken (zoals altijd: wearPreset meldt wat ontbreekt).
@@ -274,6 +279,10 @@ export function wearPreset(ch, i) {
 }
 
 // De volgende gevulde outfit (Outfit 1 tot 5) na degene die je nu aanhebt, voor de snelwisseltoets. dir 1 vooruit, -1 terug.
+// Een afkoeltijd die de klok mag overleven (verfijnronde 22-11): na een lading of nieuw spel loopt world.time terug, en dan bleef de
+// wisseltoets of de uitrusting-tegen-de-politie minutenlang dicht. Een tijd vóór het laatste moment telt als verlopen.
+export const cooldownBusy = (now, last, gap) => Number.isFinite(last) && now >= last && now - last < gap;
+
 // Zit een bewaarde outfit nu aan je lijf? Stukken, en kapsel en postuur als de outfit die kent (een outfit die alleen een ander kapsel heeft
 // is dus niet "al aan": het kapsel wisselt mee, verfijnronde 22-11).
 export function presetMatches(p, worn) {
