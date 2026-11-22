@@ -8,15 +8,14 @@ import './node3d.mjs';
 const { DECOR_MAKERS } = await import('../game/js/storyprops.js');
 const { DECOR_KINDS, propSource, PLACEHOLDER_KINDS } = await import('../game/js/cutscenemodels.js');
 const host = fs.readFileSync(new URL('../game/js/cutscenehost.js', import.meta.url), 'utf8');
-const start = host.indexOf('const PROP_MAKERS = {');
-const body = host.slice(start, host.indexOf('\n};', start));
-const hostKinds = new Set([...body.matchAll(/^  ([a-z]+): /gm)].map((m) => m[1]));
+// sinds main-gezond (22-11) staan alle makers in storyprops.js (DECOR_MAKERS); cutscenehost.js heeft geen eigen tabel meer
+const hostKinds = new Set();
 
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info !== '' ? ` (${info})` : ''}`); } };
 
-ok(hostKinds.size > 10, 'de lokale makers van cutscenehost.js zijn gelezen', String(hostKinds.size));
-ok(/DECOR_MAKERS\[p\.kind\] \|\| PROP_MAKERS\[p\.kind\]/.test(host), 'cutscenehost.js zoekt een voorwerp in DECOR_MAKERS en daarna in PROP_MAKERS');
+ok(!host.includes('const PROP_MAKERS'), 'cutscenehost.js heeft geen tweede tabel (PROP_MAKERS) naast DECOR_MAKERS');
+ok(host.includes('DECOR_MAKERS[p.kind]()'), 'cutscenehost.js bouwt een voorwerp uit DECOR_MAKERS');
 for (const k of DECOR_KINDS) {
   ok(!!propSource(k) || k in DECOR_MAKERS || hostKinds.has(k), `decorsoort ${k} heeft een maker`);
 }

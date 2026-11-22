@@ -147,8 +147,7 @@ function buildScriptRun(def, scene, anchor, env = null, w = null, noKit = false)
   beginSceneActors();
   for (const [id, p] of Object.entries(def.props || {})) {
     const src = propSource(p.kind);
-    // de decormakers van storyprops.js eerst; wat daar nog niet staat (kantoorwagen, soepketel, friteuse, hek, ...) komt uit PROP_MAKERS hierboven
-    const m = src ? worldProp(src) : (DECOR_MAKERS[p.kind] || PROP_MAKERS[p.kind])();
+    const m = src ? worldProp(src) : DECOR_MAKERS[p.kind]();
     group.add(m);
     props[id] = m;
     if (src && src.vehicle) propVehicleNames.push(vehicleModel(src).name);

@@ -416,9 +416,9 @@
   "file": "tammo/hier_met_jou_erbij_e0d450ab.mp3"
  },
  {
-  "key": "Anita|Drie. Kon meer.",
+  "key": "Anita|Vier woorden. Op de Grote Markt waren het er vijf.",
   "speaker": "Anita",
-  "text": "Drie. Kon meer.",
+  "text": "Vier woorden. Op de Grote Markt waren het er vijf.",
   "area": "F5",
   "out": "lines",
   "lang": "own",
@@ -426,20 +426,7 @@
   "who": "Nederlandse vrouw, lacherig en ad rem",
   "tag": "lacherig, ad rem",
   "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
-  "file": "anita/drie_kon_meer_7939164b.mp3"
- },
- {
-  "key": "Anita|Dat waren er vier. Kon meer.",
-  "speaker": "Anita",
-  "text": "Dat waren er vier. Kon meer.",
-  "area": "F5",
-  "out": "lines",
-  "lang": "own",
-  "voice": "Callirrhoe",
-  "who": "Nederlandse vrouw, lacherig en ad rem",
-  "tag": "plagend, zelfverzekerd",
-  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
-  "file": "anita/dat_waren_er_vier_kon_meer_8c0f449e.mp3"
+  "file": "anita/vier_woorden_op_de_grote_markt_w_8794f0d9.mp3"
  },
  {
   "key": "Willemien|Ik ken jullie van het luik. Woensdag, de derde in de rij. Eén eierbal, extra mosterd.",
