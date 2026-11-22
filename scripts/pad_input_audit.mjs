@@ -5,7 +5,7 @@
 // zonder knop of reden laat de audit falen.
 //   node scripts/pad_input_audit.mjs
 import { readdirSync, readFileSync } from 'node:fs';
-import { PAD_MAPS, PAD_COOP } from '../game/js/controls.js';
+import { PAD_MAPS, PAD_COOP, WHEEL_ITEMS } from '../game/js/controls.js';
 
 const ZONDER_KNOP = {
   u: 'geluid aan/uit staat ook in Instellingen',
@@ -33,6 +33,8 @@ for (const map of Object.values(PAD_MAPS)) {
 }
 // Samen spelen: D-pad omhoog in een voertuig is Y (het stuur geven of vragen)
 for (const o of Object.values(PAD_COOP)) for (const v of Object.values(o)) reachable.add(v);
+// het acties-wiel stuurt Alt voor Vorige zender (Alt + N, radiocontrol.js): geen knop, wel bereikbaar met het wiel
+if (WHEEL_ITEMS.some((it) => it.alt)) reachable.add('alt');
 // de gaspedaal en rem: W en S met de triggers in voertuigen
 reachable.add('w'); reachable.add('s');
 

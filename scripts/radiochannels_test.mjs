@@ -155,7 +155,7 @@ ok(!/ruis/.test(html), 'de geheime zender staat nog niet in de lijst');
 
 // 8. de bronnen: het spel gebruikt dit echt
 const radio = read('game/js/radio.js'); const audioRadio = read('game/js/audio/radio.js'); const pm = read('game/js/pausemenu.js');
-ok(/wasPressed\('n'\)\) \{ if \(w\.input\.isDown\('shift'\)\) stepChannel/.test(radio), 'Shift+N kiest de volgende zender');
+ok(/nk === 'next'\) stepChannel\(1\)/.test(radio) && /shift: w\.input\.isDown\('shift'\)/.test(radio), 'Shift+N kiest de volgende zender (radiocontrol.js createNKey)');
 ok(/radioChannel: 'gde-radio-zender'/.test(read('game/js/storagekeys.js')), 'de keuze heeft een eigen opslagsleutel');
 ok(/channelTracks\(z, tracks\)/.test(audioRadio) && /recentIds\(gmusicLog/.test(audioRadio), 'audio/radio.js draait uit de pool van de zender met de minutenregel');
 ok(/data-channels-wrap/.test(pm) && /selectChannel\(chRow\.dataset\.channel/.test(pm), 'Instellingen > Geluid toont de zenderkeuze');

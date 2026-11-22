@@ -46,7 +46,7 @@ export const KEY_ACTIONS = [
   ['5', 'Waypoint naar je eigen doel (nog eens: weg)', 'menu'],
   ['m', 'Kaart', 'menu'],
   ['o', 'Verhaalstap overslaan', 'menu'],
-  ['n', 'Radio aan of uit (ook te voet); met Shift ingedrukt: de volgende zender', 'menu'],
+  ['n', 'Radio aan of uit (ook te voet); met Shift ingedrukt: de volgende zender, met Alt: de vorige; vasthouden: het zenderwiel', 'menu'],
   ['u', 'Geluid aan of uit', 'menu'],
   ['backspace', 'Minigame stoppen', 'menu'],
 ];
@@ -453,12 +453,14 @@ const WRIJ = ['vehicle', 'vehicleManual', 'bus', 'skutsje', 'trekker'];
 const WLUCHT = ['heli', 'plane'];
 // WHEEL_CTX: de situaties waarin het wiel opent (niet in menu's en minigames: daar is de kaartknop een gewone knop)
 export const WHEEL_CTX = Object.freeze([...WV, ...WRIJ, ...WLUCHT, 'pigeon', 'train']);
-export const WHEEL_GROUPS = Object.freeze({ spelen: 'Spelen', wapens: 'Wapens', samen: 'Samen spelen' });
+export const WHEEL_GROUPS = Object.freeze({ spelen: 'Spelen', radio: 'Radio', wapens: 'Wapens', samen: 'Samen spelen' });
 // id, de toets die het spel kent (shift: Shift erbij), het label, de groep, de situaties; samen: alleen in een echte Samen-spelen-sessie
 export const WHEEL_ITEMS = Object.freeze([
   { id: 'kaart', key: 'm', label: 'Kaart', group: 'spelen', ctx: [], tapOnly: true },
-  { id: 'radio', key: 'n', label: 'Radio aan of uit', group: 'spelen', ctx: [...WV, ...WRIJ, ...WLUCHT, 'pigeon', 'train'] },
-  { id: 'zender', key: 'n', shift: true, label: 'Volgende zender', group: 'spelen', ctx: [...WV, ...WRIJ, ...WLUCHT, 'pigeon', 'train'] },
+  { id: 'radio', key: 'n', label: 'Radio aan of uit', group: 'radio', ctx: [...WV, ...WRIJ, ...WLUCHT, 'pigeon', 'train'] },
+  { id: 'zender', key: 'n', shift: true, label: 'Volgende zender', group: 'radio', ctx: [...WV, ...WRIJ, ...WLUCHT, 'pigeon', 'train'] },
+  { id: 'vorige-zender', key: 'n', alt: true, label: 'Vorige zender', group: 'radio', ctx: [...WV, ...WRIJ, ...WLUCHT, 'pigeon', 'train'] },
+  { id: 'zenderwiel', action: 'radiowiel', label: 'Zenders kiezen', group: 'radio', ctx: [...WV, ...WRIJ, ...WLUCHT, 'pigeon', 'train'] },
   { id: 'kleren', key: '6', label: 'Andere kleren', group: 'spelen', ctx: [...WV, ...WRIJ] },
   { id: 'film', key: 'v', label: 'Filmcamera', group: 'spelen', ctx: [...WV, ...WRIJ, 'heli'] },
   { id: 'eerstepersoon', key: 'c', label: 'Eerste persoon', group: 'spelen', ctx: [...WV, ...WRIJ, ...WLUCHT] },
@@ -491,7 +493,7 @@ export function wheelItemsFor(ctx, { samen = false, tap = false } = {}) {
   if (!WHEEL_CTX.includes(ctx)) return [];
   const pages = [];
   for (const [g, title] of Object.entries(WHEEL_GROUPS)) {
-    const items = WHEEL_ITEMS.filter((it) => it.group === g && (it.tapOnly ? tap : it.ctx.includes(ctx)) && (!it.samen || samen) && (it.shift || it.tapOnly || !directKey(ctx, it.key, samen)));
+    const items = WHEEL_ITEMS.filter((it) => it.group === g && (it.tapOnly ? tap : it.ctx.includes(ctx)) && (!it.samen || samen) && (it.shift || it.alt || it.action || it.tapOnly || !directKey(ctx, it.key, samen)));
     if (items.length) pages.push({ id: g, title, items });
   }
   return pages;

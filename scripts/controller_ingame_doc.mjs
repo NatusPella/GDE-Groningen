@@ -28,7 +28,7 @@ const SPECIFIEK = {
 /** Wat een knop doet in een situatie, in woorden, en de toets op het toetsenbord. */
 export function knopRegel(ctx, slot, waarde, samen = false) {
   if (waarde == null) return null;
-  const a = ACTIES.find((x) => x.key === waarde && !x.shift && !!x.samen === samen && x.ctx.includes(ctx)) || (samen ? null : ACTIES.find((x) => x.key === waarde && !x.shift && !x.samen && x.ctx.includes(ctx)));
+  const a = ACTIES.find((x) => x.key === waarde && !x.shift && !x.alt && !!x.samen === samen && x.ctx.includes(ctx)) || (samen ? null : ACTIES.find((x) => x.key === waarde && !x.shift && !x.alt && !x.samen && x.ctx.includes(ctx)));
   let tekst = a ? a.label : describe(waarde) || String(waarde);
   if (!samen && SPECIFIEK[waarde] && SPECIFIEK[waarde][ctx]) tekst = SPECIFIEK[waarde][ctx];
   if (waarde === 'escape' && !(ctx in ACTIVITEITEN)) tekst = 'Pauzemenu en telefoon';
@@ -80,7 +80,7 @@ export function mdIndeling() {
     if (WHEEL_CTX.includes(ctx)) {
       const pag = wheelItemsFor(ctx, { samen: true, tap: true });
       o.push('');
-      for (const p of pag) o.push(`Wiel, ${p.title}: ${p.items.map((it) => `${it.label} (${it.shift ? 'Shift + ' : ''}${keyName(it.key)}${it.samen ? ', alleen Samen spelen' : ''})`).join(', ')}.`);
+      for (const p of pag) o.push(`Wiel, ${p.title}: ${p.items.map((it) => `${it.label} (${it.shift ? 'Shift + ' : ''}${it.alt ? 'Alt + ' : ''}${it.action ? 'N vasthouden' : keyName(it.key)}${it.samen ? ', alleen Samen spelen' : ''})`).join(', ')}.`);
     }
   }
   return o.join('\n') + '\n';
@@ -99,7 +99,7 @@ export function mdPerActie() {
   o.push(`| --- | --- | --- | ${Object.keys(SITUATIES).map(() => '---').join(' | ')} |`);
   for (const a of ACTIES) {
     const cel = Object.keys(SITUATIES).map((c) => (a.ctx.includes(c) ? (plek(a, c, { samen: !!a.samen }) ? slotNaam(plek(a, c, { samen: !!a.samen })) : 'geen') : '-'));
-    const toets = (a.shift ? 'Shift + ' : '') + ({ lmb: 'LMB', rmb: 'RMB', wheel: 'WHEEL', mouse: 'MOUSE' }[a.key] || keyName(a.key));
+    const toets = (a.shift ? 'Shift + ' : '') + (a.alt ? 'Alt + ' : '') + ({ lmb: 'LMB', rmb: 'RMB', wheel: 'WHEEL', mouse: 'MOUSE' }[a.key] || keyName(a.key));
     o.push(`| ${a.groep} | ${md(a.label)}${a.samen ? ' (Samen spelen)' : ''} | ${md(toets)} | ${cel.join(' | ')} |`);
   }
   const uitz = Object.entries(ZONDER_PAD);

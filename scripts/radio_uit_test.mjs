@@ -18,6 +18,7 @@ import { createScenarioDirector, activityMusicKey } from '../game/js/scenariomus
 import { registerBusyProbe, playerBusy } from '../game/js/busy.js';
 import { createAdState } from '../game/js/radioads.js';
 import { programmeAt, normalizeRadio, STATION_NAME } from '../game/js/musicpick.js';
+import { radioDialPages, radioDialRow, radioDialResult, createNKey, radioPassenger, PASSENGER_TEXT } from '../game/js/radiocontrol.js';
 import { outsideState, enterVehicle, exitVehicle, rememberChoice, cleanRemembered, radioNotice, hudName } from '../game/js/radiovehicle.js';
 import { channelById, channelStatus, listChannels, openChannels, nextChannel, validChannel, programmeFor, isUnlocked, DEFAULT_CHANNEL } from '../game/js/radiochannels.js';
 
@@ -212,6 +213,9 @@ function loadRadio({ document: doc } = {}) {
     // de voertuigradio (#988): de echte pure regels; de speler en de instellingen zijn nep (hier rijdt niemand)
     outsideState, enterVehicle, exitVehicle, rememberChoice, cleanRemembered, radioNotice, hudName,
     hoofdspeler: (w) => w.player || null, getSettings: () => ({}), setSetting: () => {},
+    // de bediening zonder menu (radiocontrol.js): de echte pure regels; het wiel zelf (actionradial.js) is een teller
+    radioDialPages, radioDialRow, radioDialResult, createNKey, radioPassenger, PASSENGER_TEXT,
+    openRadialPages: () => true, setRadialAction: () => {},
     normalizeRadio,
     STATION_NAME,
   };
@@ -238,7 +242,7 @@ const toggle = (api, w) => { w.press(); api.updateRadio(0.1, w); w.release(); };
 
 // de oude gedwongen tak is weg
 ok(!/const want = on \|\| playerBusy/.test(radioSrc), 'de gedwongen want-tak staat niet meer in radio.js');
-ok(/if \(!radioKeyBlocked\(w\) && w\.input\.wasPressed\('n'\)\) \{ if \(w\.input\.isDown\('shift'\)\) stepChannel\(1\); else setRadio\(!on\); \}/.test(radioSrc), 'N gaat langs radioKeyBlocked (met Shift: de volgende zender)');
+ok(/nKey\.step\(\{ pressed: w\.input\.wasPressed\('n'\).*blocked: radioKeyBlocked\(w\) \}\)/.test(radioSrc), 'N gaat langs radioKeyBlocked (kort: aan of uit; Shift: de volgende, Alt: de vorige zender; vasthouden: het wiel)');
 
 // een filmpje (de cinematics-probe) houdt de toets tegen
 let film = false;

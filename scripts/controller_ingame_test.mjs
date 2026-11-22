@@ -59,10 +59,10 @@ for (const ctx of C.WHEEL_CTX) for (const samen of [false, true]) for (const tap
   for (const p of pages) {
     ok(p.items.length >= 1 && p.items.length <= 10, `${ctx}/${p.id}: een pagina heeft 1 tot 10 onderdelen`, p.items.length);
     for (const it of p.items) {
-      ok(it.tapOnly || it.shift || !direct(ctx, it.key, samen), `${ctx}: ${it.id} staat niet dubbel (heeft al een eigen knop)`);
+      ok(it.tapOnly || it.shift || it.alt || it.action || !direct(ctx, it.key, samen), `${ctx}: ${it.id} staat niet dubbel (heeft al een eigen knop)`);
       ok(!it.samen || samen, `${ctx}: ${it.id} (Samen spelen) staat niet in een gewoon spel`);
     }
-    const sleutels = p.items.map((it) => (it.shift ? 's+' : '') + it.key);
+    const sleutels = p.items.map((it) => (it.shift ? 's+' : '') + (it.alt ? 'a+' : '') + (it.action ? '@' + it.action : it.key));
     ok(new Set(sleutels).size === sleutels.length, `${ctx}/${p.id}: geen twee onderdelen met dezelfde toets`, sleutels);
   }
 }
@@ -81,7 +81,7 @@ ok(W.openRadial('foot') && W.radialIsOpen(), 'het wiel opent te voet');
 ok(W.openRadial('menu') === false, 'openen in het menu kan niet');
 let m = W.radialModel();
 const n0 = m.items.length;
-ok(m.sel === -1 && n0 >= 4 && m.pages === 2, 'een nieuw wiel heeft nog geen keuze', [m.sel, n0, m.pages]);
+ok(m.sel === -1 && n0 >= 4 && m.pages === 3, 'een nieuw wiel heeft nog geen keuze', [m.sel, n0, m.pages]);
 ok(W.radialChoose() === null && W.radialIsOpen(), 'A zonder keuze doet niets en laat het wiel open');
 ok(W.radialAim(0, -1) === 0, 'stick omhoog kiest het eerste onderdeel');
 ok(W.radialAim(1, 0) === Math.round(n0 / 4) % n0, 'stick rechts kiest een kwart rond', W.radialModel().sel);
@@ -89,7 +89,7 @@ const sel = W.radialModel().sel;
 ok(W.radialAim(0.1, 0.1) === sel, 'binnen de dode zone verandert er niets');
 W.radialAim(0, -1);
 ok(W.radialStep('left') === n0 - 1 && W.radialStep('right') === 0, 'de D-pad loopt rond');
-ok(W.radialPage(1) === 1 && W.radialModel().sel === -1 && W.radialPage(1) === 0, 'LB en RB bladeren rond en wissen de keuze');
+ok(W.radialPage(1) === 1 && W.radialModel().sel === -1 && W.radialPage(1) === 2 && W.radialPage(1) === 0, 'LB en RB bladeren rond en wissen de keuze');
 W.radialStep('down');
 const gekozen = W.radialChoose();
 ok(gekozen && !W.radialIsOpen() && sent.length === 1 && sent[0] === gekozen.id, 'A kiest, sluit het wiel en voert uit', [gekozen, sent]);
@@ -113,6 +113,7 @@ const pad = { id: 'Xbox 360 Controller (XInput STANDARD GAMEPAD)', index: 0, con
 pads[0] = pad;
 const press = (slot, on = true) => { const b = pad.buttons[C.PAD_BUTTONS.indexOf(slot)]; b.pressed = on; b.value = on ? 1 : 0; };
 const rust = () => { for (const s of C.PAD_BUTTONS) press(s, false); pad.axes = [0, 0, 0, 0]; frame(2); seen.length = 0; };
+const naarRadio = () => { press('rb'); frame(2); press('rb', false); frame(2); }; // de pagina Radio is de tweede
 const heeft = (t, k) => seen.some((e) => e[0] === t && e[1] === k);
 document.body.classList.add('game-started');
 frame(2);
@@ -141,6 +142,7 @@ ok(!W.radialIsOpen() && !heeft('down', 'escape'), 'B sluit het wiel zonder het p
 // kiezen: Volgende zender is Shift + N
 rust();
 press('view'); frame(Math.ceil(C.WHEEL_HOLD_MS / 16) + 3); press('view', false); frame(2);
+naarRadio();
 const namen = W.radialModel().items.map((i) => i.id);
 const gaNaar = namen.indexOf('zender');
 ok(gaNaar >= 0, 'te voet staat Volgende zender in het wiel', namen);
@@ -156,6 +158,7 @@ ok(threw === null, 'de pollronde gaat niet stuk', threw && String(threw));
 rust();
 world.player.inVehicle = { speed: 0 };
 press('view'); frame(Math.ceil(C.WHEEL_HOLD_MS / 16) + 3); press('view', false); frame(2);
+naarRadio();
 ok(W.radialIsOpen() && W.radialModel().items.some((i) => i.id === 'radio'), 'in een auto staat de radio in het wiel');
 world.player.inVehicle = null; frame(3);
 ok(!W.radialIsOpen(), 'het wiel sluit als de situatie verandert (uitstappen)');
@@ -176,6 +179,7 @@ rust();
 // een Samen-spelen-sessie: de radio staat te voet in het wiel en D-pad omhoog is bij de groep
 world.coopNet = { role: 'host' };
 press('view'); frame(Math.ceil(C.WHEEL_HOLD_MS / 16) + 3); press('view', false); frame(2);
+naarRadio();
 ok(W.radialIsOpen() && W.radialModel().items.some((i) => i.id === 'radio'), 'Samen spelen: de radio staat te voet in het wiel');
 press('start'); frame(2); press('start', false); frame(2);
 ok(!W.radialIsOpen() && !heeft('down', 'escape'), 'Menu sluit het wiel zonder het pauzemenu te openen', seen);

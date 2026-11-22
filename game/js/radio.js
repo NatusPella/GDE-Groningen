@@ -17,6 +17,8 @@ import { RADIO_HOST, RADIO_GRUNN, KERMIS_NEWS } from './funlines.js';
 import { STATION_NAME, normalizeRadio } from './musicpick.js';
 import { channelById, channelStatus, listChannels, openChannels, nextChannel, validChannel, programmeFor, isUnlocked, DEFAULT_CHANNEL } from './radiochannels.js';
 import { outsideState, enterVehicle, exitVehicle, rememberChoice, cleanRemembered, radioNotice, hudName } from './radiovehicle.js';
+import { radioDialPages, radioDialRow, radioDialResult, createNKey, radioPassenger, PASSENGER_TEXT } from './radiocontrol.js';
+import { openRadialPages, setRadialAction } from './actionradial.js';
 import { hoofdspeler } from './spelersregister.js';
 import { getSettings, setSetting } from './settings.js';
 import { talkActive } from './storytalk.js';
@@ -118,6 +120,8 @@ function announceChannel(z) {
 // radio stays off if it was off.
 export function selectChannel(id, { announce: show = true, auto = false } = {}) {
   if (!openChannelIds().includes(id)) return false;
+  // Samen spelen: de bestuurder kiest, een passagier volgt (radiocontrol.js radioPassenger)
+  if (!auto && isPassenger()) { if (world && world.addMessage) world.addMessage(PASSENGER_TEXT, 3); return false; }
   const z = channelById(id);
   const was = channelId;
   channelId = id;
@@ -185,6 +189,23 @@ export function updateRadioVehicle(w) {
 export function stepChannel(dir = 1) {
   return selectChannel(nextChannel(channelId, openChannelIds(), dir));
 }
+
+// --- the channel wheel (radiocontrol.js, #988): N held, or 'Zenders kiezen' in the controller's actions wheel ---------------------------
+// The same wheel as the actions wheel (actionradial.js), as a list: every channel with an icon and its name, the current one marked,
+// 'Binnenkort' greyed out and not selectable, secret channels that are not found are not listed. The vehicle stays drivable (no pause).
+const isPassenger = () => { const p = world && hoofdspeler(world); return radioPassenger(world, p && p.inVehicle); };
+export function openRadioWheel() {
+  if (!world) return false;
+  if (isPassenger()) { if (world.addMessage) world.addMessage(PASSENGER_TEXT, 3); return false; }
+  const pages = radioDialPages(channelList(), { currentId: channelId, on });
+  return openRadialPages('radio', pages, { sel: radioDialRow(pages), runner: (it) => {
+    const r = radioDialResult(it);
+    if (!r) return;
+    if (r.type === 'uit') setRadio(false);
+    else selectChannel(r.channel);
+  } });
+}
+setRadialAction('radiowiel', () => openRadioWheel());
 export const channelStatuses = () => channelStatus(manifestTracks(), channelCtx());
 
 // A newly found secret channel: one message per device. The stored choice also comes back here once the save has its secrets
@@ -198,7 +219,7 @@ function checkNewChannels(w) {
   if (added.length) {
     announced = [...announced, ...added];
     saveChannel();
-    for (const id of added) w.addMessage(`Nieuwe zender: ${channelById(id).name}. Kies hem in Instellingen > Geluid of met {SHIFT}+{N}.`, 6);
+    for (const id of added) w.addMessage(`Nieuwe zender: ${channelById(id).name}. Kies hem in Instellingen > Geluid of met {SHIFT}+{N}; {N} vasthouden opent het zenderwiel.`, 6);
   }
   const target = !vehState.kind && channelId === DEFAULT_CHANNEL && wanted !== DEFAULT_CHANNEL && open.includes(wanted) ? wanted : validChannel(channelId, open);
   if (target !== channelId) {
@@ -242,6 +263,7 @@ export function initRadio(w) {
     station: () => channelId,
     stations: () => channelList().map((z) => z.id + ':' + z.status),
     pick: (id) => selectChannel(id),
+    wheel: () => openRadioWheel(),
     next: (dir) => stepChannel(dir),
     queue: () => R.queue.map((l) => l.speaker + ': ' + l.text),
     inBreak: () => radioInBreak(),
@@ -273,12 +295,18 @@ export function radioKeyBlocked(w) {
     || (typeof document !== 'undefined' && document.body.classList.contains('cine-hide-hud'));
 }
 
+const nKey = createNKey();
 export function updateRadio(dt, w) {
   if (subOn && w.paused) hideSub();
   // een opgenomen radiolijn is klaar: haal zijn ondertitel weg (de wereldklok staat stil in een menu)
   else if (subOn && subUntil && w.time >= subUntil) hideSub();
   // N zet de radio aan of uit; Shift+N gaat naar de volgende zender (ook als de radio uit stond: dan gaat hij aan)
-  if (!radioKeyBlocked(w) && w.input.wasPressed('n')) { if (w.input.isDown('shift')) stepChannel(1); else setRadio(!on); }
+  // (radiocontrol.js createNKey): kort is aan of uit (bij het loslaten), vasthouden het zenderwiel, Shift+N de volgende en Alt+N de vorige zender
+  const nk = nKey.step({ pressed: w.input.wasPressed('n'), down: w.input.isDown('n'), shift: w.input.isDown('shift'), alt: !!w.input.isDown('alt'), dt, blocked: radioKeyBlocked(w) });
+  if (nk === 'toggle') setRadio(!on);
+  else if (nk === 'next') stepChannel(1);
+  else if (nk === 'prev') stepChannel(-1);
+  else if (nk === 'wheel') openRadioWheel();
   checkNewChannels(w);
   // Alleen de speler zet de radio aan. Vroeger stond hier `on || playerBusy(...)`,
   // waardoor een minigame, de helirun en de duifmodus hem zelf weer aanzetten en

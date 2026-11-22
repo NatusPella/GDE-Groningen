@@ -751,7 +751,7 @@ function settingsHtml() {
       ${slider('sfxVolume', 'Effecten')}
       ${slider('voiceVolume', 'Stemmen')}
       <label class="m-li pm-row pm-mute">${rowName('Geluid in één keer uit', 'Zet alle geluid uit; de luidspreker linksboven zet het weer aan')}<input type="checkbox" class="m-sw" data-mute-switch><span class="pm-mutehint">${icon('mute')}<span class="m-kc">U</span></span></label>
-      <label class="m-li pm-row">${rowName('Radio', 'Aan of uit met {N}, te voet en in elk voertuig. {SHIFT}+{N} is de volgende zender')}<input type="checkbox" class="m-sw" data-radio-switch></label>
+      <label class="m-li pm-row">${rowName('Radio', 'Aan of uit met {N}, te voet en in elk voertuig. {SHIFT}+{N} is de volgende zender, {N} vasthouden het zenderwiel. Zender kiezen met een controller: houd Overzicht en kies Zenders kiezen')}<input type="checkbox" class="m-sw" data-radio-switch></label>
       <div class="pm-channels-wrap" data-channels-wrap></div>
       ${disclosure('subs', 'Ondertitels', 'Filmpjes, gesprekken, telefoon, radio en naamkaarten', `
         ${toggle('showSubtitles', 'Ondertitels aan', 'Uit verbergt wat er gezegd wordt; geluiden beschrijven hieronder blijft dan gewoon werken')}
