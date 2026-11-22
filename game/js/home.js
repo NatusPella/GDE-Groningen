@@ -66,6 +66,7 @@ import { zetDeelHaken } from './coopbezit.js';
 import { getIndeling } from './gebiedenlive.js';
 import { puntInGebied } from './grenzen.js';
 import { hoofdspeler } from './players.js';
+import { registerSignKeepOut } from './streetfurniture.js';
 import { laadtOpOpslagplek } from './saveplek.js'; // #984: laden op de plek van de save
 
 const NEAR_M = 200;
@@ -286,6 +287,8 @@ const boundsOf = (pts) => {
 
 export function prepareHomeMap(map) {
   home = buildLayout();
+  // geen lantaarnpaal of ander straatmeubilair voor het Privégarage-bord (#1196): een cirkel van 4,5 m op 4 m voor de poort
+  { const d = home.garage.door; registerSignKeepOut(d.cx + d.nx * 4, d.cy + d.ny * 4, 4.5); }
   // the OSM footprint (tower + plinth) becomes the tower only
   const c = home.center;
   const [hx, hy] = [-1289.19, -1082.05];

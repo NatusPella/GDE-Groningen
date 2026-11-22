@@ -78,8 +78,9 @@ export function getPigeonSpotsForRender() {
 }
 
 let badgeMat = null;
-const padGeo = new THREE.CylinderGeometry(0.55, 0.55, 0.04, 20);
-const padMat = new THREE.MeshLambertMaterial({ color: new THREE.Color(BADGE_COLOR), transparent: true, opacity: 0.85 });
+// #1194: een dunne ring in plaats van een halfdoorzichtige blauwe schijf, die las als een plas op de straat
+const padGeo = new THREE.RingGeometry(0.44, 0.55, 28).rotateX(-Math.PI / 2);
+const padMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(BADGE_COLOR), side: THREE.DoubleSide });
 
 function badgeMaterial() {
   if (badgeMat) return badgeMat;
