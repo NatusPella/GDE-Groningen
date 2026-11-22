@@ -232,8 +232,26 @@ function attach(win, { gameDir }) {
             if (message.startsWith('[sendinput] ')) { try { win.webContents.sendInputEvent(JSON.parse(message.slice(12))); } catch (er) { /* geen geldig invoerbericht */ } return; }
             if (message.startsWith('[clipboard-set] ')) { try { require('electron').clipboard.writeText(message.slice(16)); } catch (er) { /* geen klembord */ } return; }
             if (!message.startsWith('[capture] ')) return;
+            const capName = message.slice(10).trim();
+            // screenshotjacht: console.log('[capture] jpg:<naam>') schrijft <map van smoke>/<naam>.jpg (kwaliteit 80) en meldt de pixelcijfers
+            // (zwart, transparant, magenta, gemiddelde helderheid, een 16x9-vingerafdruk) als regel in het --bot-events-bestand
+            if (capName.startsWith('jpg:')) {
+              const nm = capName.slice(4).replace(/[^\w.-]/g, '_');
+              let img2 = await win.webContents.capturePage();
+              const sz = img2.getSize();
+              if (sz.width !== 1280 || sz.height !== 720) img2 = img2.resize({ width: 1280, height: 720, quality: 'good' });
+              fsSync.writeFileSync(path.join(path.dirname(smoke), nm + '.jpg'), img2.toJPEG(80));
+              if (botEvents) {
+                const bm = img2.toBitmap(); let black = 0, clear = 0, mag = 0, sum = 0; const n = bm.length >> 2;
+                for (let i = 0; i < bm.length; i += 4) { const b = bm[i], g = bm[i + 1], r = bm[i + 2], a = bm[i + 3]; const l = 0.299 * r + 0.587 * g + 0.114 * b; sum += l; if (l < 8) black++; if (a < 250) clear++; if (r > 200 && b > 200 && g < 90) mag++; }
+                const sm = img2.resize({ width: 16, height: 9, quality: 'good' }).toBitmap(); const sig = [];
+                for (let i = 0; i < sm.length; i += 4) sig.push(Math.round(0.299 * sm[i + 2] + 0.587 * sm[i + 1] + 0.114 * sm[i]));
+                fsSync.appendFileSync(botEvents, JSON.stringify({ type: 'pixel', name: nm, black: black / n, clear: clear / n, magenta: mag / n, mean: sum / n, size: [sz.width, sz.height], sig }) + '\n');
+              }
+              return;
+            }
             const img = await win.webContents.capturePage();
-            fsSync.writeFileSync(smoke.replace(/\.png$/, `-${message.slice(10).trim()}.png`), img.toPNG());
+            fsSync.writeFileSync(smoke.replace(/\.png$/, `-${capName}.png`), img.toPNG());
           });
           const body = scriptBody;
           await win.webContents.executeJavaScript(`(async () => {
