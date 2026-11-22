@@ -47,6 +47,57 @@ export function markDryRoad(map, r) {
   }
   return false;
 }
+// A foot or cycle bridge that climbs high with nothing under it (no water, rail or other road within a few metres) is an
+// earthwork in the map's own data (the ramparts of Vesting Bourtange: paths tagged bridge over a flat terrain, #953):
+// the game drew a deck on 3.5 m pillars over flat ground and the player fell off it. Such a path loses its profile and
+// its bridge flag and lies on the ground. Returns true when it dropped it.
+const DECK_FOOT_CATS = new Set(['foot', 'cycle']);
+export const NEEDLESS_DECK_MIN_Z = 2;
+const NEEDLESS_DECK_CLEAR = 6;
+export function dropNeedlessDeck(map, r) {
+  if (!r.bridge || r.tunnel || !r.z || !DECK_FOOT_CATS.has(r.cat) || r.pts.length < 2) return false;
+  let zmax = 0;
+  for (const z of r.z) if (z > zmax) zmax = z;
+  if (zmax < NEEDLESS_DECK_MIN_Z) return false;
+  const pts = r.pts;
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const p of pts) { if (p[0] < x0) x0 = p[0]; if (p[0] > x1) x1 = p[0]; if (p[1] < y0) y0 = p[1]; if (p[1] > y1) y1 = p[1]; }
+  const m = NEEDLESS_DECK_CLEAR;
+  const polys = map.waterGrid ? map.waterGrid.query(x0 - m, y0 - m, x1 + m, y1 + m) : [];
+  const rails = map.railGrid ? map.railGrid.query(x0 - m, y0 - m, x1 + m, y1 + m) : [];
+  const roads = map.roadGrid ? map.roadGrid.query(x0 - m, y0 - m, x1 + m, y1 + m) : [];
+  // the path sampled every ~4 m, so a long segment cannot pass between two samples of a road or rail it crosses
+  const samples = [];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const k = Math.max(1, Math.ceil(Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]) / 4));
+    for (let j = 0; j < k; j++) samples.push([pts[i][0] + ((pts[i + 1][0] - pts[i][0]) * j) / k, pts[i][1] + ((pts[i + 1][1] - pts[i][1]) * j) / k]);
+  }
+  samples.push(pts[pts.length - 1]);
+  const lineNear = (Q) => {
+    for (let a = 0; a < Q.length - 1; a++) for (const p of samples) {
+      if (closestPointOnSegment(p[0], p[1], Q[a][0], Q[a][1], Q[a + 1][0], Q[a + 1][1]).dist2 < m * m) return true;
+    }
+    return false;
+  };
+  for (const q of roads) {
+    if (q === r || q.id === r.id || q.tunnel || DECK_FOOT_CATS.has(q.cat) || q.cat === 'path' || q.cat === 'steps') continue;
+    if (lineNear(q.pts)) return false;
+  }
+  for (const q of rails) if (lineNear(q.pts || q)) return false;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
+    const steps = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / 2));
+    for (let k = 0; k <= steps; k++) {
+      const x = ax + ((bx - ax) * k) / steps, y = ay + ((by - ay) * k) / steps;
+      if (waterPolyIn(polys, x, y)) return false;
+      for (const [dx, dy] of NEEDLESS_RING) if (waterPolyIn(polys, x + dx * m * 0.7, y + dy * m * 0.7)) return false;
+    }
+  }
+  r.z = undefined; r.st = undefined; r.ly = undefined; r.zDeck = undefined; r.pnet = undefined;
+  r.bridge = false; r.deckDropped = true;
+  return true;
+}
+const NEEDLESS_RING = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 function markDryCrossings(map) {
   let n = 0;
   // via het wegraster (#314 C2b), niet via de hele wegenarray: dezelfde wegen, andere bron.

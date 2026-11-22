@@ -13,7 +13,7 @@
 // elevation model keep to the pinned set until the F1 builder gives them a
 // tile home.
 import { registerMemSource } from './memwatch.js';
-import { GameMap, SpatialGrid, loadMap, markDryRoad } from './mapdata.js';
+import { GameMap, SpatialGrid, loadMap, markDryRoad, dropNeedlessDeck } from './mapdata.js';
 import { polygonBounds, pointInPolygon } from './util.js';
 import { promoteMainWaterway } from './waterlevels.js';
 import { dropWaterDuplicates } from './waterdupes.js';
@@ -507,6 +507,7 @@ export class TileWorld extends GameMap {
     // model with them (surfaceAt, embankments, walls, a deck a boat sails under: #300). ?vlakbruggen leaves them flat.
     if (this.streamProfiles !== false) {
       attachProfiles(tile, (gid) => { const e = this._res.roads.get(gid); return e && e.obj; }, this.terrainProfiles);
+      for (const r of newRoads) dropNeedlessDeck(this, r);
       if (newRoads.length && tile.sections.some((s) => s.type === SECTION.HEIGHTS)) this.elevAdded = (this.elevAdded || 0) + extendElevation(this, newRoads);
     }
     // a road over water without a bridge tag is a culvert or a dry deck (mapdata.js markDryRoad)
