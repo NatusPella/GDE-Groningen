@@ -16,9 +16,9 @@ const dir = path.dirname(fileURLToPath(import.meta.url));
 let fails = 0; let n = 0;
 const ok = (c, naam, extra) => { n++; if (!c) { fails++; console.log('FAIL', naam, extra !== undefined ? JSON.stringify(extra) : ''); } };
 
-// De issues met label hertest (72) en wacht-beeld (25) op 22-11, samengevoegd (94 verschillende; 1081, 1127 en 1128 hebben beide labels).
-const VERWACHT = [846, 882, 915, 917, 919, 922, 926, 943, 952, 953, 958, 962, 963, 981, 983, 986, 987, 989, 990, 995, 996, 999, 1000, 1001, 1002, 1003, 1004, 1007, 1008, 1009, 1013, 1015, 1016, 1018, 1019, 1020, 1021, 1023, 1027, 1029, 1030, 1036, 1038, 1039, 1040, 1044, 1046, 1047, 1052, 1053, 1057, 1061, 1063, 1064, 1069, 1070, 1073, 1075, 1076, 1077, 1079, 1080, 1081, 1083, 1084, 1085, 1087, 1088, 1092, 1093, 1102, 1110, 1117, 1120, 1122, 1126, 1127, 1128, 1129, 1130, 1138, 1141, 1146, 1147, 1148, 1152, 1153, 1154, 1156, 1160, 1164, 1171, 1173, 1177];
-ok(VERWACHT.length === 94 && new Set(VERWACHT).size === 94, 'de verwachte lijst telt 94 verschillende issues', VERWACHT.length);
+// De issues met label hertest (73) en wacht-beeld (25) op 22-11, samengevoegd (95 verschillende; 1081, 1127 en 1128 hebben beide labels).
+const VERWACHT = [846, 882, 915, 917, 919, 922, 926, 943, 952, 953, 958, 962, 963, 981, 983, 986, 987, 989, 990, 995, 996, 999, 1000, 1001, 1002, 1003, 1004, 1007, 1008, 1009, 1013, 1015, 1016, 1018, 1019, 1020, 1021, 1023, 1027, 1029, 1030, 1036, 1038, 1039, 1040, 1044, 1046, 1047, 1052, 1053, 1057, 1061, 1063, 1064, 1069, 1070, 1073, 1075, 1076, 1077, 1079, 1080, 1081, 1083, 1084, 1085, 1087, 1088, 1092, 1093, 1102, 1110, 1117, 1120, 1122, 1126, 1127, 1128, 1129, 1130, 1138, 1141, 1146, 1147, 1148, 1152, 1153, 1154, 1156, 1160, 1164, 1171, 1173, 1177, 1185];
+ok(VERWACHT.length === 95 && new Set(VERWACHT).size === 95, 'de verwachte lijst telt 95 verschillende issues', VERWACHT.length);
 
 // --- (1) scene-definities
 const scenes = await loadScenes();
@@ -77,9 +77,9 @@ try {
   ok(ev[919].runs[0].status === 'error' && ev[919].shots.length === 1, 'collectEvidence houdt een mislukte run en zijn beeld');
   const pagina = buildPage(scenes, ev, { date: '2026-11-22', images: 'inbed', repo: 'eigenaar/naam' });
   ok(pagina.startsWith('<!doctype html>'), 'de pagina is een HTML-document');
-  ok((pagina.match(/<article id="i\d+"/g) || []).length === 94, 'de pagina heeft een blok per issue (94)');
+  ok((pagina.match(/<article id="i\d+"/g) || []).length === 95, 'de pagina heeft een blok per issue (95)');
   for (const nr of VERWACHT) ok(pagina.includes(`<article id="i${nr}" data-nr="${nr}">`), '#' + nr + ' staat op de pagina');
-  ok((pagina.match(/data-k="fixed"/g) || []).length === 94 && (pagina.match(/data-k="not-yet"/g) || []).length === 94 && (pagina.match(/data-k="new-point"/g) || []).length === 94, 'elk blok heeft Opgelost, Nog niet en Nieuw punt');
+  ok((pagina.match(/data-k="fixed"/g) || []).length === 95 && (pagina.match(/data-k="not-yet"/g) || []).length === 95 && (pagina.match(/data-k="new-point"/g) || []).length === 95, 'elk blok heeft Opgelost, Nog niet en Nieuw punt');
   ok(pagina.includes('data:image/png;base64,') && !/src="[^d"][^"]*\.png"/.test(pagina), 'beelden zitten in de pagina zelf (een bestand)');
   ok(pagina.includes('natteCellen') && pagina.includes('441'), 'de meting staat op de pagina');
   ok(!pagina.includes('<b>kapot</b>') && pagina.includes('&lt;b&gt;kapot&lt;/b&gt;'), 'notities worden ge-escaped');

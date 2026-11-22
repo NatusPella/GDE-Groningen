@@ -58,6 +58,9 @@ import { isVillageMiniActive } from './dorpsuitjes.js';
 import { isActivityActive } from './activities.js';
 import { buildHelipadMesh } from './heli3d.js';
 import { tagPleiadenlaan, tagKorenbloemstraat } from './thuis3d.js';
+import { makeFlatPlan } from './flatplan.js';
+import { chooseSpawn, chooseFlatSpawn, binnenOpslag, readIndoorSave, makeIndoorWait, tickBinnenWacht, binnenPending } from './spawnbinnen.js';
+import { homeOf, DEFAULT_HOME } from './homebase.js';
 import { getSettings } from './settings.js';
 import { deliverFurniture, furnitureSkip, attachFurniture3D, leaveFurniture, furnitureSolids, furnitureStockSolids, furnitureBedUses, furnitureUses, furnitureFocus, furniturePrompt, useFurniture, updateFurniture, updateFurnitureInside, companionSeat, furnitureSlept, fridgeCooldown, fridgePerk } from './furniture.js';
 import { playerBusy } from './busy.js';
@@ -120,6 +123,7 @@ let cutaway = 0;
 let introShown = false;
 let fadeGen = 0;
 let camLocal = null; // the follow camera in the flat's frame (homeCamera)
+let binnenWacht = null; // the wait for the flat when a game starts at home (spawnbinnen.js); null when nothing is pending
 
 // --- layout ---------------------------------------------------------------------
 
@@ -185,52 +189,22 @@ function buildLayout() {
   // angles): toFlat has to undo fl exactly, or everyone upstairs drifts.
   // Two small bedrooms at the back, one each ("als huisgenoten"): Tammo's off
   // the hall, Tessa's off the kitchen.
-  const W = 11, Dd = 9, HALL = 3.4, MID = 5.2, SPLIT = 7.2;
+  const FP = makeFlatPlan(); // the plan itself (rooms, walls, furniture, spots) is pure data: flatplan.js
   const FY = [-X[1], X[0]];
   const flat = {
-    ox: B[0], oy: B[1], angle: Math.atan2(X[1], X[0]), floorY: FLOOR_Y, w: W, d: Dd, X, Y: FY,
+    ox: B[0], oy: B[1], angle: Math.atan2(X[1], X[0]), floorY: FLOOR_Y, w: FP.w, d: FP.d, X, Y: FY,
     tower: { w: tw, d: td },
-    rooms: [
-      { name: 'woonkamer', x0: 0, x1: 6.8, z0: 0, z1: MID, floor: 'laminate' },
-      { name: 'keuken', x0: 6.8, x1: W, z0: 0, z1: MID, floor: 'tiles' },
-      { name: 'gang', x0: 0, x1: HALL, z0: MID, z1: Dd, floor: 'tiles' },
-      { name: 'kamer Tammo', x0: HALL, x1: SPLIT, z0: MID, z1: Dd, floor: 'carpet' },
-      { name: 'kamer Tessa', x0: SPLIT, x1: W, z0: MID, z1: Dd, floor: 'carpet' },
-    ],
-    // cutaway walls [x1, z1, x2, z2]: outer walls, hall | living room (doorway in line
-    // with the lift), hall | Tammo's room (doorway), the bedrooms | living room and
-    // kitchen (a doorway from the kitchen into Tessa's room), Tammo's | Tessa's room
-    walls: [
-      [0, 0, 0, Dd], [W, 0, W, Dd], [0, Dd, W, Dd],
-      [0, MID, 1.0, MID], [2.4, MID, HALL, MID],
-      [HALL, MID, HALL, 6.2], [HALL, 7.4, HALL, Dd],
-      [HALL, MID, 9.0, MID], [10.2, MID, W, MID],
-      [SPLIT, MID, SPLIT, Dd],
-    ],
-    spots: {
-      sofa: { x: 3.7, z: 3.9 }, tv: { x: 3.7, z: 1.0 }, table: { x: 8.2, z: 3.4 },
-      counter: { x: 9.0, z: 0.55, w: 3.6 }, fryer: { x: 8.4, z: 0.55 }, fridge: { x: 10.5, z: 1.6 },
-      // single beds, head to the back wall: bed is Tammo's, bed2 Tessa's
-      bed: { x: 6.6, z: 7.95 }, bed2: { x: 7.8, z: 7.95 },
-      wardrobe: { x: 4.7, z: 8.6 }, wardrobe2: { x: 10.65, z: 6.2, rot: true },
-      door: { x: 1.7, z: Dd - 0.05 }, roof: { x: 0.08, z: 6.6 },
-      companion: { x: 3.15, z: 3.98, seat: 0.46 },
-    },
+    rooms: FP.rooms,
+    walls: FP.walls,
+    spots: FP.spots,
   };
-  // furniture as solid boxes for walking [x0, z0, x1, z1]
-  flat.solids = [
-    [2.4, 3.35, 5.0, 4.55], [3.0, 2.1, 4.4, 2.9], [0.2, 0.2, 0.9, 0.9],
-    [7.1, 0.2, 10.9, 0.9], [10.1, 1.2, 10.9, 2.0], [7.6, 2.9, 8.8, 3.9],
-    [6.1, 6.9, 7.1, 8.95], [7.3, 6.9, 8.3, 8.95], [3.85, 8.25, 5.55, 8.95], [10.3, 5.35, 10.95, 7.05],
-  ];
+  flat.solids = FP.solids;
   const fl = (x, z) => [B[0] + X[0] * x + FY[0] * z, B[1] + X[1] * x + FY[1] * z];
   const spot = (s, face) => { const [x, y] = fl(s.x, s.z); return { x, y, lx: s.x, lz: s.z, face }; };
-  flat.use = {
-    bed: spot({ x: 5.65, z: 7.3 }), bed2: spot({ x: 8.75, z: 7.3 }),
-    wardrobe: spot({ x: 4.7, z: 7.8 }), wardrobe2: spot({ x: 9.85, z: 6.2 }), fridge: spot({ x: 9.7, z: 1.9 }),
-    fryer: spot({ x: 8.4, z: 1.4 }), door: spot({ x: 1.7, z: 8.4 }), dak: spot({ x: 0.75, z: 6.6 }),
-  };
-  flat.entry = fl(1.7, 7.9);
+  flat.use = Object.fromEntries(Object.entries(FP.use).map(([k, s]) => [k, spot(s)]));
+  flat.entry = fl(FP.entry[0], FP.entry[1]);
+  flat.entryL = FP.entry;
+  flat.spawn = FP.spawn;
   flat.fl = fl;
 
   const court = polyline(KERB);
@@ -586,7 +560,13 @@ export function initHome(w) {
   // a respawn (or anything else that moves the player off the flat) takes the flat down
   w.onRespawn.push(() => { if (inside) dropFlat(w); });
   w.camAdjust = homeCamera;
-  window.__home = { home, goHome: () => goHome(w), enter: () => enterFlat(w), leave: () => leaveFlat(w), stockNow: () => stockNow(w), state: homeDebug, liftMenu: () => liftMenu(w), toFlat, onSlab };
+  // Samen spelen: wie boven in de flat staat, heeft zijn eigen losse verdieping; een gast die naast hem wordt gezet (coopnet.js
+  // drogePlekBij) komt nooit in het massieve torengebouw terecht maar op straat eromheen
+  const vrijVoor = w.coopVrij;
+  w.coopVrij = (x, y, ww) => (inside && inPoly(TOWER, x, y, 1.5) ? false : (vrijVoor ? vrijVoor(x, y, ww) : true));
+  // the load screen waits on the flat while a game starts upstairs (loadscreen.js reads this hook: no import needed)
+  w.homeLaad = { tick: (dt) => tickHomeWacht(w, dt), pending: () => binnenPending(binnenWacht) };
+  window.__home = { home, spawnInFlat: () => spawnInFlat(w), spawnState: () => (binnenWacht ? { ...binnenWacht } : null), goHome: () => goHome(w), enter: () => enterFlat(w), leave: () => leaveFlat(w), stockNow: () => stockNow(w), state: homeDebug, liftMenu: () => liftMenu(w), toFlat, onSlab };
 }
 
 // New game: start outside the lobby looking at the garage door, the Escapade in its bay.
@@ -768,7 +748,7 @@ export function homeWhereLabel(key) {
 }
 
 export function getHomeSave() {
-  return { front: front.slice(0, 40) };
+  return { front: front.slice(0, 40), ...binnenOpslag(!!inside) };
 }
 
 // The panel by the garage door: every car at home, and which ones stand in the bays.
@@ -958,17 +938,7 @@ function enterFlat(w) {
   return fadeThen(() => {
     // got into a car, died or became a pigeon during the fade: stay outside
     if (canEnter(w)) return;
-    const scene = getScene();
-    const f = home.flat;
-    deliverFurniture(w);
-    inside = { flatMesh: buildFlat3D(f, furnitureSkip()), lowerMesh: home.towerBuilding ? buildLowerTower3D(home.towerBuilding, FLAT_LEVEL - 1) : null, facade: 0 };
-    attachFurniture3D(inside.flatMesh, f);
-    if (scene) {
-      scene.add(inside.flatMesh);
-      if (inside.lowerMesh) scene.add(inside.lowerMesh);
-    }
-    if (home.towerBuilding) setBuildingHidden(home.towerBuilding, true);
-    stashRoofHeli(w);
+    buildFlatInside(w);
     toEntry(w);
     placeCompanion(w);
     if (!introShown) {
@@ -976,6 +946,60 @@ function enterFlat(w) {
       w.addMessage('Jullie nieuwe flat! Bed: slapen en opslaan. Koelkast: eierbal. Kast: je kleren', 6, { kind: 'tip' });
     }
   });
+}
+
+// The flat's walls, floor and furniture go up (the tower hides). Nobody is moved yet: the callers place the player.
+function buildFlatInside(w) {
+  const scene = getScene();
+  const f = home.flat;
+  deliverFurniture(w);
+  inside = { flatMesh: buildFlat3D(f, furnitureSkip()), lowerMesh: home.towerBuilding ? buildLowerTower3D(home.towerBuilding, FLAT_LEVEL - 1) : null, facade: 0 };
+  attachFurniture3D(inside.flatMesh, f);
+  if (scene) {
+    scene.add(inside.flatMesh);
+    if (inside.lowerMesh) scene.add(inside.lowerMesh);
+  }
+  if (home.towerBuilding) setBuildingHidden(home.towerBuilding, true);
+  stashRoofHeli(w);
+}
+
+// --- binnenspawn (spawnbinnen.js, docs/SPAWN-BINNEN-22-11.md) ------------------------------------------------------
+// Appearing at home (a load of a save that was made at home, "Naar huis") puts the player in the living room, not at the lobby
+// door below. 'klaar': he stands upstairs; 'wacht': the scene is not there yet (try again); 'mislukt': building failed, he stays outside.
+const startBinnen = () => { try { return getSettings().startBinnen !== false; } catch (e) { return true; } };
+// Until Homebase hangs in the game (#1121) the one physical home is the flat in Paddepoel; then this reads activeHome().
+const huidigThuis = () => homeOf(DEFAULT_HOME);
+const coopRol = (w) => (w.coopNet ? (w.coopNet.role === 'client' ? 'gast' : 'host') : 'solo');
+
+function spawnInFlat(w) {
+  if (!home) return 'mislukt';
+  if (inside) return 'klaar';
+  if (!getScene()) return 'wacht';
+  try {
+    buildFlatInside(w);
+    const f = home.flat, p = hoofdspeler(w);
+    const plan = { w: f.w, d: f.d, walls: f.walls, solids: [], use: { door: { x: f.use.door.lx, z: f.use.door.lz } }, entry: f.entryL, spawn: f.spawn };
+    const sp = chooseFlatSpawn(plan, [...furnitureStockSolids(f.solids), ...furnitureSolids()]);
+    const [x, y] = f.fl(sp.lx, sp.lz);
+    resetWalker(p, x, y, FLOOR_TOP);
+    p.angle = Math.atan2(-f.Y[1], -f.Y[0]); // toward the glass facade, the way you also step out of the lift
+    w.camYaw = p.angle;
+    placeCompanion(w);
+    return 'klaar';
+  } catch (e) {
+    console.error('home binnenspawn', e);
+    try { if (inside) exitFlatNow(w); } catch (e2) { inside = null; }
+    return 'mislukt';
+  }
+}
+
+// One step of the wait; the load screen calls it every frame (w.homeLaad) and updateHome as a fallback. Returns what is still pending (0 or 1).
+function tickHomeWacht(w, dt) {
+  if (!binnenWacht || binnenWacht.staat !== 'wacht') return 0;
+  const p = hoofdspeler(w);
+  const r = p && p.inVehicle ? 'mislukt' : spawnInFlat(w);
+  tickBinnenWacht(binnenWacht, { dt, klaar: r === 'klaar', mislukt: r === 'mislukt' });
+  return binnenPending(binnenWacht);
 }
 
 // Just out of the lift, facing the hall and the living room behind it.
@@ -1114,6 +1138,8 @@ function goHome(w) {
     exitFlatNow(w);
     stockNow(w);
     placeAtLobby(w);
+    // spawnbinnen.js: "Naar huis" brings you home, so upstairs; no flat (or it fails): you stay at the lobby door
+    if (chooseSpawn({ situatie: 'naar-huis', instelling: startBinnen(), thuis: huidigThuis(), rol: coopRol(w) }).plek === 'binnen') spawnInFlat(w);
   }, 450);
 }
 
@@ -1124,15 +1150,24 @@ export function applyHomeOnLoad(w, d) {
   front = t && Array.isArray(t.front) ? t.front.filter((k) => typeof k === 'string').slice(0, 40) : [];
   fadeGen++;
   exitFlatNow(w);
+  binnenWacht = null;
   // #984: een save ergens anders in de provincie ('free') houdt de plek, net als een save midden in een
-  // missie; een save bij het huis, een oude save zonder context en een save in een boot beginnen in de flat.
-  if (laadtOpOpslagplek(d)) {
+  // missie; een save bij het huis, een oude save zonder context en een save in een boot beginnen thuis.
+  // Binnenspawn (spawnbinnen.js): thuis is boven in de flat, behalve voor een save die buiten stond (thuis.binnen is false), een
+  // gast bij de host en een speler die Start binnen (thuis) uit heeft; dan staat hij bij de lobby.
+  const keuze = chooseSpawn({ situatie: 'laden', instelling: startBinnen(), thuis: huidigThuis(), rol: coopRol(w), saveCtx: laadtOpOpslagplek(d) ? 'busy' : 'home', binnenSave: readIndoorSave(d) });
+  if (keuze.plek === 'houd') {
     // a mid-mission save made upstairs: back on the street, not inside the tower
     if (inPoly(TOWER, hoofdspeler(w).x, hoofdspeler(w).y, 1)) placeAtLobby(w);
     return;
   }
   stockNow(w);
-  placeAtLobby(w);
+  placeAtLobby(w); // always first: the street round the lobby is what streams in, and it is where he stays when the flat cannot be built
+  if (keuze.plek !== 'binnen') return;
+  const r = spawnInFlat(w);
+  binnenWacht = makeIndoorWait();
+  if (r === 'klaar') binnenWacht.staat = 'klaar';
+  else if (r === 'mislukt') { binnenWacht.staat = 'terugval'; binnenWacht.reden = 'mislukt'; }
 }
 
 export function homeSaveContext(w) {
@@ -1489,6 +1524,7 @@ function crossAt(x0, y0, x1, y1, ax, ay, bx, by) {
 export function updateHome(dt, w) {
   world = w;
   if (!home) return;
+  if (binnenWacht && binnenWacht.staat === 'wacht') tickHomeWacht(w, dt);
   updateFurniture(dt, w);
   if (inside) {
     const p = hoofdspeler(w);

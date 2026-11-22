@@ -83,7 +83,7 @@ check('tv slaat een bezette plek over', volgendePlek({ tv: 't1', bureau: 'b3' },
 check('opslag houdt tv-plek', schoonPlekken({ tv: 't2' }).tv === 't2' && !schoonPlekken({ tv: 'k1' }).tv);
 
 // bank (Zitmoi) en bedden (Sloapstee), #359
-const home = fs.readFileSync(new URL('../game/js/home.js', import.meta.url), 'utf8');
+const home = fs.readFileSync(new URL('../game/js/home.js', import.meta.url), 'utf8') + fs.readFileSync(new URL('../game/js/flatplan.js', import.meta.url), 'utf8'); // de plattegrond staat sinds 22-11 in flatplan.js
 for (const [id, lijst] of Object.entries(STOCK_BLOKJES)) for (const b of lijst) check('stockblokje van ' + id + ' staat in home.js', home.includes('[' + b.map((v) => (Number.isInteger(v) ? v.toFixed(1) : v)).join(', ') + ']'), b.join());
 const bezit = new Set(['bank', 'bed']);
 const vlak = { ...flat, solids: zonderStock(flat.solids, bezit) };

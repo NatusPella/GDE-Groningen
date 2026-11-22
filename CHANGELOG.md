@@ -12,6 +12,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 (De coördinator voegt deze regels bij 0.65.0.)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 ### Besturing met een controller
 - Acties-wiel (controller-review 22-11, #495, #1011): houd Overzicht een halve seconde ingedrukt en een wiel toont alles wat in die situatie geen eigen knop heeft: de radio in een auto (sinds #495 weg van het pad), de volgende zender, andere kleren, de filmcamera, eerste persoon, het waypoint naar je doel, de directe wapenkeuze, de alarmlichten, het lakmenu, het kusje, de busdienst overnemen (G) en in Samen spelen de roepjes en snelle zinnen in een voertuig. Kies met de linkerstick of de D-pad, A bevestigt, B sluit, LB en RB bladeren. Een korte tik op Overzicht is nog steeds de kaart (die gaat nu bij het loslaten open). Wie niet kan houden zet de tikstand aan: dan opent een tik het wiel. Herbinden werkt gewoon door. Een toets die alleen in het wiel zit, toont in de hints de knop Overzicht met "houd". Invoer is lokaal; er gaat niets over het net.
 - Samen spelen aan de waterkant: de roepjes (Kom hier, Help!, Kijk daar) en "bij de groep komen" staan op de D-pad zoals te voet; X blijft hengelen. Het wiel met snelle zinnen opent niet meer in de trein en op de trekker, waar T al het lopen door de trein en de hef is.
@@ -37,6 +38,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Meer velden tegelijk oogstklaar? Eén melding in plaats van een stoet. In Overzicht staat het loon per dag naast de opbrengst.
 - Snackwagen: een wagen die nog thuis staat krijgt uitleg over de eerste vergunning, en een leeg menu een waarschuwing.
 >>>>>>> verfijn-bezit-22-11
+=======
+### Thuis
+- Thuis beginnen in de woning (#1022, #1161): laad je een spel dat bij je huis stond, of kies je Naar huis, dan sta je binnen in de flat in Paddepoel, in de woonkamer en kijkend naar het raam, in plaats van beneden voor de deur; de lift en de voordeur zijn je uitweg. Het laadscherm wacht tot de flat staat (na hooguit 6 seconden sta je alsnog voor de deur). Een save die buiten stond blijft buiten, een save midden in een missie houdt zijn plek, en een oud spel begint boven. Een nieuw spel en de openingsfilm beginnen nog voor de deur. In Instellingen > Spel staat Start binnen (thuis), standaard aan. Lokaal per speler: een gast die aansluit komt naast de host, en staat de host boven, dan wordt niemand in het torengebouw gezet. Niets hiervan is in beeld bekeken.
+>>>>>>> spawn-binnen-22-11
 ### Prestaties
 - Prestaties (#1074, #1067): als het spelvenster verborgen of op de achtergrond is, doen de vaste controles van de overlays, het Samen-paneel en het aanraakscherm niets meer; de kartmotor wordt bij het verlaten van de baan echt stopgezet. Samen spelen: lokaal per speler, geen netwerkwijziging; testsessies met `?stil` blijven gewoon tikken. Voor de metingen staan er twee A-schakelaars (`?perfoff=boomfade`, `?perfoff=gevelfade`).
 ### Controller en bediening

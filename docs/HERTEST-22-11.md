@@ -1,6 +1,6 @@
 # Hertest-ronde 22-11: scenes, bewijspagina en sluiten
 
-Doel: de 94 open issues met het label `hertest` (72) of `wacht-beeld` (25; drie hebben beide) in één Electron-run laten controleren en met één pagina door een mens laten beoordelen, zonder tientallen losse bestanden. De GitHub-issues blijven de enige bron (AGENTS.md, constitution 7): hier staat alleen hoe de ronde draait. Niets hiervan is al gedraaid: **alles is nog niet bekeken**.
+Doel: de 95 open issues met het label `hertest` (73) of `wacht-beeld` (25; drie hebben beide) in één Electron-run laten controleren en met één pagina door een mens laten beoordelen, zonder tientallen losse bestanden. De GitHub-issues blijven de enige bron (AGENTS.md, constitution 7): hier staat alleen hoe de ronde draait. Niets hiervan is al gedraaid: **alles is nog niet bekeken**.
 
 ## Onderdelen
 
