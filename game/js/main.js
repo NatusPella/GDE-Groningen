@@ -192,6 +192,7 @@ import { initSkyProps, updateSkyProps } from './skyprops.js';
 import { initSikkomFeed, updateSikkomFeed } from './sikkomfeed.js';
 import { initPhoneFeed, updatePhoneFeed } from './phonefeed.js';
 import { watchJumps, resetJumpWatch, startLoadScreen } from './loadscreen.js';
+import { loadHeld } from './loadlogic.js';
 import { initLoading, setBootPlan, setBootStep, finishLoading, showLoadError, runStartScreen, yieldToPaint, planMenuStart, setLoadingStatus } from './startscreen.js';
 import { initPigeonMode, updatePigeonMode, updatePigeonCamera, updatePigeonAfterglow, getPigeonPosition } from './pigeonmode.js';
 import { initPigeonSpots, updatePigeonSpots, tryPigeonSpotInteract } from './pigeonspots.js';
@@ -1200,7 +1201,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     window.__streamPlanner = planner; // metingen in Electron: planner.stats()
     const cineNu = document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud') || (world.cineQuiet && performance.now() < world.cineQuiet);
     // een cutscene die van plek springt (cutscenewarm.js): vooruit-warm krijgt iets meer, en onder het zwart van de wachtpoort mag alles (laadbudget)
-    planner.openFrame({ frameMs: laatsteFrameMs, boost: performance.now() < streamBudget.bootUntil, loading: !!world.cineJumpLoading, cine: !!cineNu, cineWarm: !!world.cineWarming, pressure: Math.min(1, streamPending().buildings / 24) });
+    planner.openFrame({ frameMs: laatsteFrameMs, boost: performance.now() < streamBudget.bootUntil, loading: !!world.cineJumpLoading || loadHeld(world), cine: !!cineNu, cineWarm: !!world.cineWarming, pressure: Math.min(1, streamPending().buildings / 24) });
     // the tiles follow the camera or the player (speed and heading prefetch)
     if (world.map.follow) {
       const tf = tileFocus(hoofdspeler(world), world.cameraOverride, tileFollow, dt);
