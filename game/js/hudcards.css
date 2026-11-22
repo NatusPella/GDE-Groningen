@@ -144,6 +144,9 @@ body.pigeon-mode #hud .hud-cards { top: 300px; }
 #hud .hud-cards .hud-card:nth-child(even).on { transform: rotate(calc(var(--ds-schuin) * -1)); }
 #hud .hc-icon svg { fill: var(--hc); color: var(--hc); stroke: var(--ds-c-ink-inkt); stroke-width: 1.2; filter: none; }
 #hud .hc-icon .hc-cut { fill: var(--ds-c-ink-papier); }
+/* De Phosphor-iconen (icoon() zet inline stroke:none): zonder deze regel is een geel of licht icoon op papier nauwelijks te zien. Een inktrand van 1,5 px, ongeacht de schaal van de 256-tekening. */
+#hud .hc-icon svg[viewBox="0 0 256 256"] { stroke: var(--ds-c-ink-inkt) !important; stroke-width: 1.5px !important; stroke-linejoin: round; paint-order: stroke fill; }
+#hud .hc-icon svg[viewBox="0 0 256 256"] * { vector-effect: non-scaling-stroke; }
 #hud .hc-text small { color: var(--ds-c-inkt-zacht); font-weight: 800; letter-spacing: 0.12em; }
 #hud .hc-text small::before { content: ''; display: inline-block; width: 0.7em; height: 0.7em; margin-right: 0.5em; background: var(--hc); border: 1.5px solid var(--ds-c-ink-inkt); vertical-align: -0.02em; }
 #hud .hc-text b { font-weight: 800; letter-spacing: 0.02em; text-transform: none; }
