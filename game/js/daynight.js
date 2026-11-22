@@ -1,7 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GRID_CONVERGENCE } from './rdnew.js';
 import { dsWereld } from './worldpalette.js';
-import { monotoneTangents, hermite } from './lightcurve.js';
 import { setSunDeclination, sunElevationDeg, nightFactor, nightAtHour, smoothstep, hourAngle, wrapHour, solarHour } from './sunrules.js';
 
 // the sun and the night live in sunrules.js (one definition of night, #107);
@@ -72,6 +71,7 @@ const keyColor = (k, c) => {
   return new THREE.Color(role ? dsWereld(k[c], role) : k[c]);
 };
 const KEY_COLORS = KEYS.map((k) => Object.fromEntries(COLOR_KEYS.map((c) => [c, keyColor(k, c)])));
+import { monotoneTangents, hermite } from './lightcurve.js';
 // 22-11 (lightcurve.js): a monotone cubic through the keys instead of a straight line, so dawn and dusk glide across a key
 // instead of changing pace there. Tangents per key, computed once; the keys themselves are unchanged.
 const KEY_E = KEYS.map((k) => k.e);

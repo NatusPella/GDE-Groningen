@@ -10,6 +10,7 @@ import { updateSummerFlies } from './summerflies3d.js';
 import { updateWorldLife } from './worldlife3d.js'; // wereld levend (21-11): dagelijkse evenementen en dieren, 3 instanced meshes
 import { summerLayer, combineSummer, rainbowStrength } from './summerday.js'; // zomervariatie per kalenderdag (21-11)
 import { createWeatherState, stepWeather, regionWeather, regionAt } from './weatherstate.js';
+import { areaMoodWeights, areaMoodLook, MOOD_EASE_S } from './areamood.js'; // streeksfeer (22-11): Waddenkust, Lauwersmeer, Veenkoloniën
 import { qualityLook, regionHaze, sunGlow, createStormPlanner, stepStorm, flashAt, mistAtHeight, MIST_NEAR, MIST_FAR } from './weatherlook.js';
 
 const STORM_FOG_COLOR = new THREE.Color(0.35, 0.38, 0.42);
@@ -347,6 +348,11 @@ function toppleRandomBike(world) {
   v.speed = 0;
 }
 
+// region mood (areamood.js): the eased weights of the local view and the look they give; reused every frame
+const _moodTarget = { wad: 0, lauwers: 0, veen: 0 }, _moodW = { wad: NaN, lauwers: NaN, veen: NaN }; // NaN: the first frame takes the target at once (easeTo)
+const _mood = { tint: [1, 1, 1], haze: 0, glow: 1 };
+const _moodTint = new THREE.Color(1, 1, 1);
+
 export function applyWeatherToScene3D(scene, renderer, world, dt, px, py, cam = null) {
   const w = world.weather;
   if (!w) return;
@@ -366,6 +372,14 @@ export function applyWeatherToScene3D(scene, renderer, world, dt, px, py, cam = 
   const cloud = Math.max(t, clamp(w.overcast || 0, 0, 1), mist * 0.6);
   const moodT = cloud * STORM_MOOD;
   scene.userData.lightningFlash = flash;
+  // the mood of the spot this view stands on (px, py: the local view, not a fixed player), eased so a jump does not snap
+  areaMoodWeights(px, py, _moodTarget);
+  _moodW.wad = easeTo(_moodW.wad, _moodTarget.wad, dt, MOOD_EASE_S);
+  _moodW.lauwers = easeTo(_moodW.lauwers, _moodTarget.lauwers, dt, MOOD_EASE_S);
+  _moodW.veen = easeTo(_moodW.veen, _moodTarget.veen, dt, MOOD_EASE_S);
+  areaMoodLook(_moodW, world.dayNight ? world.dayNight.sunElevation : 30, _mood);
+  _moodTint.setRGB(_mood.tint[0], _mood.tint[1], _mood.tint[2]);
+  scene.userData.areaMood = _mood;
 
   // Base (clear-weather) mood is written by scene3d every frame from the
   // day/night cycle; storm colours darken with it so night storms stay dark.
@@ -383,23 +397,23 @@ export function applyWeatherToScene3D(scene, renderer, world, dt, px, py, cam = 
     // dichtbij nooit onder ~16 m en in de verte nooit onder ~150 m, zodat de
     // wereld ook in dichte mist leesbaar blijft.
     const fogBaseNear = lerp(base.fogNear, base.fogNear * 0.4, t);
-    const fogBaseFar = lerp(base.fogFar, base.fogFar * 0.45, t);
+    const fogBaseFar = lerp(base.fogFar, base.fogFar * 0.45, t) * (1 - _mood.haze);
     // #866: vanaf een hoog beeld (camera ver boven de straat) dempt de mist mee, anders
     // verdwijnt de hele wereld achter de dichtstbijzijnde mistlaag.
     const fogMist = mistAtHeight(mist, cam && cam.position ? cam.position.y : 0);
-    scene.fog.color.copy(base.fog).lerp(_stormFog, moodT).lerp(_mist, mist).lerp(LIGHTNING_COLOR, flash * 0.5);
+    scene.fog.color.copy(base.fog).multiply(_moodTint).lerp(_stormFog, moodT).lerp(_mist, mist).lerp(LIGHTNING_COLOR, flash * 0.5);
     scene.fog.near = lerp(fogBaseNear, Math.max(MIST_NEAR, fogBaseNear * 0.25), fogMist);
     scene.fog.far = lerp(fogBaseFar, Math.max(MIST_FAR, fogBaseFar * 0.45), fogMist);
   }
   if (scene.background && scene.background.isColor) {
-    scene.background.copy(base.fog).lerp(_stormFog, moodT).lerp(_mist, mist).lerp(LIGHTNING_COLOR, flash * 0.6);
+    scene.background.copy(base.fog).multiply(_moodTint).lerp(_stormFog, moodT).lerp(_mist, mist).lerp(LIGHTNING_COLOR, flash * 0.6);
   }
 
   const sky = scene.userData.sky;
   if (sky) {
     const u = sky.uniforms;
     u.uZenith.value.copy(base.zenith).lerp(_stormZenith, cloud * 0.9).lerp(_mist, mist * 0.85).lerp(LIGHTNING_COLOR, flash * 0.6);
-    u.uHorizon.value.copy(base.horizon).lerp(_stormFog, cloud * 0.9).lerp(_mist, mist).lerp(LIGHTNING_COLOR, flash * 0.5);
+    u.uHorizon.value.copy(base.horizon).multiply(_moodTint).lerp(_stormFog, cloud * 0.9).lerp(_mist, mist).lerp(LIGHTNING_COLOR, flash * 0.5);
     // #840: een regenboog na een bui, zacht en alleen als de lucht weer opklaart.
     if (u.uSunDir && u.uRainbow) {
       const regenboog = clamp(((w.wet || 0) - 0.35) / 0.3, 0, 1) * (1 - clamp(t * 4, 0, 1)) * (1 - clamp((w.overcast || 0) * 1.5, 0, 1));
@@ -410,7 +424,7 @@ export function applyWeatherToScene3D(scene, renderer, world, dt, px, py, cam = 
     const glow = sunGlow(world.dayNight ? streekZonHoogte(region, world.dayNight.hour) : 30, cloud);
     if (glow.strength > 0.01) {
       _glow.setRGB(glow.color[0], glow.color[1], glow.color[2]);
-      u.uHorizon.value.lerp(_glow, glow.strength * 0.35);
+      u.uHorizon.value.lerp(_glow, Math.min(0.5, glow.strength * 0.35 * _mood.glow));
     }
     u.uSunStrength.value = base.sunStrength * (1 - cloud);
     if (u.uGlow) u.uGlow.value = base.glow * (1 - cloud);

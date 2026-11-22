@@ -1033,6 +1033,29 @@
    "prio": "-"
   },
   {
+   "id": "streeksfeer",
+   "naam": "Streeksfeer en vloeiend daglicht",
+   "groep": "Wereld",
+   "modules": [
+    "areamood",
+    "lightcurve"
+   ],
+   "eigenaar": "lokaal",
+   "gast": "Alleen beeld: elke speler ziet de lucht van de plek van het eigen beeld, afgeleid van de gedeelde klok en het gedeelde weer; er gaat niets over het net.",
+   "beloning": "Geen.",
+   "wegval": "Niets te synchroniseren: de sfeer volgt uit plek en klok.",
+   "test": [
+    "scripts/areamood_test.mjs",
+    "scripts/lightcurve_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "Streeksfeer en vloeiend daglicht (22-11)"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
    "id": "wereldleven",
    "naam": "Wereld levend (dagelijkse evenementen en dieren)",
    "groep": "Wereld",
