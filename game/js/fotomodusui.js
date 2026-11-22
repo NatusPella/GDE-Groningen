@@ -16,6 +16,7 @@ import { inProvinceData } from './provinceworld.js';
 import { zachtePauze, meerSpelers } from './coopgroep.js';
 import { registerMusicProbe } from './scenariomusic.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
+import { calmState } from './dsmicro.js';
 
 let photo = null;
 let saved = null;
@@ -243,6 +244,18 @@ function blurEdges(cv, dof) {
   cv.getContext('2d').drawImage(tmp, 0, 0);
 }
 
+// Een korte witte flits als de sluiter klikt (juice). Alleen als beweging mag; bij Beweging beperken of Rustig drukwerk blijft het weg.
+function flits() {
+  if (!overlay || calmState()) return;
+  const d = document.createElement('div');
+  d.className = 'foto-flits';
+  d.setAttribute('aria-hidden', 'true');
+  d.style.cssText = 'position:fixed;inset:0;background:var(--ds-c-creme);opacity:0.55;pointer-events:none;z-index:2147483000;transition:opacity 0.24s ease-out';
+  overlay.appendChild(d);
+  requestAnimationFrame(() => { d.style.opacity = '0'; });
+  setTimeout(() => d.remove(), 360);
+}
+
 function takeShot(world) {
   const r = getRenderer();
   if (!r) return;
@@ -266,19 +279,20 @@ function takeShot(world) {
   try { thumb = th.toDataURL('image/jpeg', 0.5); } catch (e) { thumb = ''; }
   const st = store();
   const list = F.loadGallery(st);
-  counter = Math.max(counter, list.length ? Number(list[0].id.replace(/\D/g, '').slice(-6)) || 0 : 0) + 1;
+  counter = F.volgendNummer(list, counter); // boven alle nummers in de galerij: een weggehaalde nieuwste foto geeft geen dubbele bestandsnaam
   const place = placeName(world);
   const file = F.shotFileName(place, counter);
   const shot = F.makeShot({ id: 'f' + counter, plaats: place, dagLabel: storyDate(world).long || '', hour: photo.p.hour, weather: photo.p.weather, filter: photo.p.filter, thumb, file });
   F.saveGallery(st, F.addShot(list, shot));
   out.toBlob((blob) => {
-    if (!blob) return;
+    if (!blob) { say('Het bestand bewaren lukte niet. Probeer het nog eens.'); return; }
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = file;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 4000);
   }, 'image/png');
+  flits();
   const noot = F.galerijNoot(list.length);
   say(`Opgeslagen als ${file}${noot ? '. ' + noot : ''}`);
 }
@@ -293,6 +307,8 @@ const CAM = icoon('camera'); // F6: Phosphor via icons.js
 // compacte strook in plaats van achter een vouw (#980).
 const FOTO_CSS = `
 #pause-menu .foto-hero { margin: 0 24px 14px; flex: none; }
+#pause-menu .foto-ongedaan { margin: 0 24px 14px; flex: none; flex-direction: row; align-items: center; justify-content: space-between; gap: var(--ds-s-3); }
+#pause-menu .foto-ongedaan .ds-z-knop { min-height: var(--ds-doel-aanraken); font-size: var(--ds-t-label); }
 #pause-menu .foto-hero .ds-z-kaart__tekst { max-width: 640px; }
 #pause-menu .foto-inhoud { display: flex; flex: none; flex-direction: column; gap: 18px; min-width: 0; padding: 0 24px 36px; }
 #pause-menu .foto-gal { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(210px, 100%), 1fr)); gap: 14px; min-width: 0; }
@@ -346,7 +362,7 @@ function heroHtml(n) {
   const titel = leeg ? 'Nog geen foto\'s' : 'Je galerij';
   const lead = leeg
     ? 'Zet de wereld stil, loop met een vrije camera rond, kies een filter en het weer, en maak een foto. Hij komt als bestand op je eigen schijf; er gaat niets het internet op.'
-    : 'Elke foto die je maakte, nieuwste eerst. Wijs er een aan om hem weg te halen; het bestand op je eigen schijf blijft staan.';
+    : 'Elke foto die je maakte, nieuwste eerst. Weghalen kan per foto en is terug te draaien; het bestand op je eigen schijf blijft staan.';
   const stand = `<span class="ds-z-chip${leeg ? '' : ' ds-z-chip--succes'}">${icoon('vinkje', { cls: 'ds-z-chip__icoon' })}${n} van ${F.GALLERY.max} foto's</span>`;
   return '<section class="ds-zeef ds-z-kaart foto-hero" aria-label="Foto\'s">' +
     `<div class="ds-z-kaart__kop"><span class="ds-z-kaart__titel">${titel}</span>${stand}</div>` +
@@ -372,7 +388,7 @@ function kaartHtml(s) {
   const wanneer = [s.dagLabel, s.uur].filter(Boolean).join(' · ');
   return '<figure class="ds-zeef ds-z-kaart foto-kaart">' +
     '<div class="foto-beeld">' +
-      (s.thumb ? `<img src="${s.thumb}" alt="Foto in ${esc(plek)}" decoding="async">` : '<div class="foto-leeg">Geen voorbeeld</div>') +
+      (s.thumb ? `<img src="${s.thumb}" alt="Foto in ${esc(plek)}${s.uur ? ' om ' + esc(s.uur) : ''}" decoding="async">` : '<div class="foto-leeg">Geen voorbeeld</div>') +
     '</div>' +
     '<figcaption class="foto-tekst">' +
       `<span class="foto-kop"><b class="foto-plek" title="${esc(plek)}">${esc(plek)}</b>${weer ? `<span class="foto-weer">${esc(weer)}</span>` : ''}</span>` +
@@ -393,13 +409,17 @@ function voetHtml() {
 }
 
 // De galerij onder de kop: nieuwste eerst, en de actie blijft in het eerste beeld (#611, #980).
-export function renderFotoPanel(el) {
+let laatsteWeg = null; // de laatst weggehaalde foto, voor Ongedaan maken (alleen zolang het scherm blijft staan)
+export function renderFotoPanel(el, { behoudWeg = false } = {}) {
   if (!el) return;
+  if (!behoudWeg) laatsteWeg = null;
   zetFotoCss();
   const list = F.loadGallery(store());
   const leeg = !list.length;
   const voet = leeg ? '' : voetHtml();
-  el.innerHTML = heroHtml(list.length) + '<div class="foto-inhoud">' +
+  const ongedaan = laatsteWeg ? '<div class="ds-zeef ds-z-kaart foto-ongedaan" role="status"><span class="ds-z-kaart__tekst">Foto van ' + esc(laatsteWeg.shot.plaats || 'Groningen') + ' weggehaald.</span>' +
+    '<button type="button" class="ds-z-knop ds-z-knop--secundair" data-foto-undo>Ongedaan maken</button></div>' : '';
+  el.innerHTML = heroHtml(list.length) + ongedaan + '<div class="foto-inhoud">' +
     (leeg ? leegStateHtml() : '<div class="foto-gal">' + list.map(kaartHtml).join('') + '</div>' + voet) +
     '</div>';
 }
@@ -408,21 +428,38 @@ export function renderFotoPanel(el) {
 export function fotoClick(e, world, el, api = {}) {
   if (e.target.closest('[data-foto-start]')) {
     if (api.close) api.close();
-    if (!startPhotoMode(world)) { world.addMessage && world.addMessage('Nu even niet: wacht tot het rustig is.', 2); }
+    if (!startPhotoMode(world)) meldStartFout(world);
     return true;
   }
   const del = e.target.closest('[data-foto-del]');
   if (del) {
     const st = store();
-    F.saveGallery(st, F.removeShot(F.loadGallery(st), del.dataset.fotoDel));
+    const r = F.haalWeg(F.loadGallery(st), del.dataset.fotoDel);
+    F.saveGallery(st, r.lijst);
+    laatsteWeg = r.weg;
+    renderFotoPanel(el, { behoudWeg: true });
+    return true;
+  }
+  if (e.target.closest('[data-foto-undo]')) {
+    const st = store();
+    F.saveGallery(st, F.zetTerug(F.loadGallery(st), laatsteWeg));
+    laatsteWeg = null;
     renderFotoPanel(el);
     return true;
   }
   return false;
 }
 
+// Waarom het niet startte, in gewone taal (fotomodus.js startReden)
+function meldStartFout(world) {
+  let speler = null;
+  try { speler = hoofdspeler(world); } catch (err) { speler = null; }
+  const reden = F.startReden({ fotomodus: !!photo, speler, cameraOverride: world.cameraOverride, uiPaused: world.uiPaused }) || 'Nu even niet: wacht tot het rustig is.';
+  if (world.addMessage) world.addMessage(reden, 2);
+}
+
 export function wireFotoKey(world, canStart) {
   window.addEventListener('keydown', (e) => {
-    if (e.key === 'F8' && !photo && (!canStart || canStart())) { e.preventDefault(); startPhotoMode(world); }
+    if (e.key === 'F8' && !photo && (!canStart || canStart())) { e.preventDefault(); if (!startPhotoMode(world)) meldStartFout(world); }
   });
 }

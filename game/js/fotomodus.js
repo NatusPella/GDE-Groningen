@@ -7,7 +7,9 @@
 
 import { WEATHER_KINDS } from './weatherstate.js';
 
-const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+// Een getal dat geen getal is (NaN, Infinity uit een kapotte stand of een gedeelde som door nul) valt terug op `d` en
+// kan zo nooit in de camera of de galerij blijven hangen (verfijnronde 22-11).
+const clamp = (v, a, b, d = a) => (!Number.isFinite(v) ? Math.max(a, Math.min(b, d)) : v < a ? a : v > b ? b : v);
 
 // Filters: css-filter-waarden voor het canvas. Alles blijft zomer: geen
 // filter maakt er winter van.
@@ -51,18 +53,21 @@ export function createPhoto(player = { x: 0, y: 0, z: 1.7 }, hour = 12) {
 }
 
 export function clampPhoto(p) {
-  p.fov = clamp(p.fov, ...LIMITS.fov);
-  p.dof = clamp(p.dof, ...LIMITS.dof);
-  p.focus = clamp(p.focus, ...LIMITS.focus);
-  p.cam.roll = clamp(p.cam.roll, ...LIMITS.roll);
-  p.cam.pitch = clamp(p.cam.pitch, -1.45, 1.45);
-  p.cam.z = clamp(p.cam.z, ...LIMITS.height);
+  p.fov = clamp(p.fov, ...LIMITS.fov, 55);
+  p.dof = clamp(p.dof, ...LIMITS.dof, 0);
+  p.focus = clamp(p.focus, ...LIMITS.focus, 8);
+  p.cam.roll = clamp(p.cam.roll, ...LIMITS.roll, 0);
+  p.cam.pitch = clamp(p.cam.pitch, -1.45, 1.45, 0);
+  p.cam.z = clamp(p.cam.z, ...LIMITS.height, 1.7);
+  if (!Number.isFinite(p.cam.x)) p.cam.x = Number.isFinite(p.origin.x) ? p.origin.x : 0;
+  if (!Number.isFinite(p.cam.y)) p.cam.y = Number.isFinite(p.origin.y) ? p.origin.y : 0;
+  if (!Number.isFinite(p.cam.yaw)) p.cam.yaw = 0;
   const dx = p.cam.x - p.origin.x, dy = p.cam.y - p.origin.y, d = Math.hypot(dx, dy);
   if (d > LIMITS.roamRadius) {
     p.cam.x = p.origin.x + (dx / d) * LIMITS.roamRadius;
     p.cam.y = p.origin.y + (dy / d) * LIMITS.roamRadius;
   }
-  p.hour = ((p.hour % 24) + 24) % 24;
+  p.hour = Number.isFinite(p.hour) ? ((p.hour % 24) + 24) % 24 : 12;
   if (p.weather !== null && !WEATHER_KINDS.includes(p.weather)) p.weather = null;
   if (!FILTER_IDS.includes(p.filter)) p.filter = 'geen';
   return p;
@@ -108,6 +113,7 @@ export function cycleWeather(p, dir = 1) {
 export const weatherLabel = (p) => (p.weather ? WEER_NAMEN[p.weather] || p.weather : 'Zoals het is');
 
 export function hourLabel(h) {
+  if (!Number.isFinite(h)) h = 12;
   const hh = Math.floor(((h % 24) + 24) % 24), mm = Math.floor((h - Math.floor(h)) * 60);
   return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
 }
@@ -123,6 +129,8 @@ export function blurAt(p, d) {
 
 export const GALLERY = { max: 24, thumbMax: 18000, key: 'gde-galerij-v1' };
 
+// een voorbeeld is een data:image in base64 (canvas.toDataURL); alles anders (aanhalingstekens, spaties) blijft eruit
+const THUMB_RE = /^data:image[/](?:jpeg|png|webp);base64,[A-Za-z0-9+/=]*$/;
 const clean = (s, n) => String(s == null ? '' : s).replace(/[\u0000-\u001f]/g, ' ').slice(0, n);
 
 // Een regel in de galerij. thumb is een klein data:image-voorbeeld (mag leeg).
@@ -133,7 +141,7 @@ export function makeShot({ id, plaats = '', dagLabel = '', hour = 12, weather = 
     uur: hourLabel(hour),
     weer: weather && WEER_NAMEN[weather] ? weather : null,
     filter: FILTER_IDS.includes(filter) ? filter : 'geen',
-    thumb: typeof thumb === 'string' && thumb.startsWith('data:image/') && thumb.length <= GALLERY.thumbMax ? thumb : '',
+    thumb: typeof thumb === 'string' && THUMB_RE.test(thumb) && thumb.length <= GALLERY.thumbMax ? thumb : '', // alleen een echt base64-plaatje: het gaat in een src-attribuut
     file: clean(file, 120),
   };
 }
@@ -143,6 +151,40 @@ export function addShot(list, shot) {
 }
 export const removeShot = (list, id) => list.filter((s) => s.id !== id);
 
+// Weghalen met een weg terug (verfijnronde 22-11): haalWeg geeft de nieuwe lijst en wat er uit ging; zetTerug zet die foto
+// op zijn oude plek terug (nooit dubbel, nooit boven het maximum).
+export function haalWeg(list, id) {
+  const index = list.findIndex((s) => s.id === id);
+  if (index < 0) return { lijst: list, weg: null };
+  return { lijst: removeShot(list, id), weg: { shot: list[index], index } };
+}
+export function zetTerug(list, weg) {
+  if (!weg || !weg.shot || list.some((s) => s.id === weg.shot.id)) return list;
+  const i = Math.max(0, Math.min(list.length, Number.isInteger(weg.index) ? weg.index : 0));
+  return [...list.slice(0, i), weg.shot, ...list.slice(i)].slice(0, GALLERY.max);
+}
+
+// Het volgende fotonummer: boven alle nummers in de galerij en boven het laatste dat dit spel gaf. Alleen naar het
+// eerste item kijken gaf dezelfde bestandsnaam als je de nieuwste foto had weggehaald (de download overschreef dan een oude).
+export function volgendNummer(list, laatste = 0) {
+  let m = Number.isFinite(laatste) ? Math.max(0, Math.floor(laatste)) : 0;
+  for (const s of Array.isArray(list) ? list : []) {
+    const n = Number(String((s && s.id) || '').replace(/\D/g, '').slice(-6));
+    if (Number.isFinite(n) && n > m) m = n;
+  }
+  return m + 1;
+}
+
+// Waarom de fotomodus nu niet start, in gewone taal (was altijd "wacht tot het rustig is").
+export function startReden(w = {}) {
+  if (w.fotomodus) return '';
+  if (!w.speler) return 'Nu even niet: er is geen speler om vanaf te fotograferen.';
+  if (w.speler.ragdoll) return 'Nu even niet: sta eerst op.';
+  if (w.cameraOverride) return 'Nu even niet: er loopt een filmpje of scène. Probeer het zo nog eens.';
+  if (w.uiPaused) return 'Nu even niet: sluit eerst het menu of het venster dat open staat.';
+  return '';
+}
+
 // #985: de galerij gooit bij het maximum de oudste foto weg. Dat gebeurde stil; deze regel zegt het bij
 // het opslaan. `voor` is het aantal foto's in de galerij vóór deze nieuwe. Leeg zolang er ruimte is.
 export function galerijNoot(voor, max = GALLERY.max) {
@@ -151,13 +193,30 @@ export function galerijNoot(voor, max = GALLERY.max) {
   return '';
 }
 
+// Een regel uit de opslag is niet te vertrouwen (ander spel, handwerk, afgekapt): ids moeten tekst en uniek zijn, het voorbeeld
+// moet een klein data:image zijn en alle velden gaan door makeShot. Zo komt er nooit een kapotte of gevaarlijke waarde in het scherm.
+export function schoonLijst(data) {
+  const gezien = new Set();
+  const uit = [];
+  for (const s of Array.isArray(data) ? data : []) {
+    if (!s || typeof s !== 'object' || typeof s.id !== 'string' || !s.id.trim() || gezien.has(s.id)) continue;
+    gezien.add(s.id);
+    const uur = typeof s.uur === 'string' && /^\d{2}:\d{2}$/.test(s.uur) ? s.uur : '12:00';
+    const shot = makeShot({ id: s.id, plaats: s.plaats, dagLabel: s.dagLabel, weather: s.weer, filter: s.filter, thumb: s.thumb, file: s.file });
+    shot.uur = uur;
+    uit.push(shot);
+    if (uit.length >= GALLERY.max) break;
+  }
+  return uit;
+}
+
 export function loadGallery(storage, key = GALLERY.key) {
   try {
     const raw = storage && storage.getItem(key);
     if (!raw) return [];
     const data = JSON.parse(raw);
     if (!Array.isArray(data)) return [];
-    return data.filter((s) => s && typeof s.id === 'string').slice(0, GALLERY.max);
+    return schoonLijst(data);
   } catch (e) { return []; }
 }
 
