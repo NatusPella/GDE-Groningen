@@ -452,8 +452,9 @@ function paintLabel(color, fallback) {
   return p ? p.label : fallback;
 }
 
-function nameOf(spec, v) {
-  const n = vehicleDisplayName(v || { model: spec.model, id: spec.nameIdx || 0 });
+// Zonder voertuig in de wereld (afgeschreven of nog niet neergezet) kent vehicleDisplayName de Escapade niet: de eigen auto heette dan "Voertuig" (#1239, #1261).
+function nameOf(spec, v, hero = false) {
+  const n = vehicleDisplayName(v || { model: spec.model, id: spec.nameIdx || 0, isHeroCar: hero });
   return n.make ? { make: n.make, model: n.model, label: `${n.make} ${n.model}` } : { make: '', model: n.model, label: n.model };
 }
 
@@ -476,7 +477,7 @@ function view(world, { id, hero, spec, color, upgrades, v, lost, key, tune }) {
   const fee = hero ? (lost || !v ? HERO_REPLACE_FEE : 0) : lost ? replacementFee({ spec }) : status.key === 'garage' && (spec.kind === 'heli' || spec.kind === 'boat') ? 0 : spec.kind === 'heli' ? HELI_FERRY_FEE : REDELIVERY_FEE;
   return {
     id, key, hero, owned: true, v, spec, tune,
-    ...nameOf(spec, v),
+    ...nameOf(spec, v, hero),
     kind: glyphKind(spec), kindLabel: spec.type || KIND_LABEL[spec.kind], color,
     paint: paintLabel(color, hero ? 'Fjordrood' : 'Fabriekskleur'),
     upgrades: upgrades.map((u) => (list.find((x) => x.id === u) || {}).label).filter(Boolean),
