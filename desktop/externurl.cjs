@@ -24,4 +24,14 @@ function safeExternalUrl(raw) {
   return url && (url.protocol === 'http:' || url.protocol === 'https:') ? url.href : null;
 }
 
-module.exports = { isGameUrl, safeExternalUrl };
+// #1xxx (review 22-11): may this IPC message touch the clipboard? Only the game's own main frame (not a subframe, not a foreign page).
+function isGameSender(event, scheme, host) {
+  try {
+    const frame = event && event.senderFrame;
+    const url = frame ? frame.url : (event && event.sender && event.sender.getURL ? event.sender.getURL() : '');
+    if (!isGameUrl(url, scheme, host)) return false;
+    return !frame || !event.sender || !event.sender.mainFrame || frame === event.sender.mainFrame;
+  } catch { return false; }
+}
+
+module.exports = { isGameUrl, safeExternalUrl, isGameSender };

@@ -78,5 +78,20 @@ ok(!afterBenchmarkPlan({ fromGame: true, hasSave: true }).difficultyCard, 'geen 
   ok(!prepareBenchmarkReload({ save: () => true, slot: () => 0, markStay: () => true }).ok, 'geen gebonden plek: geen herlaad');
 }
 
+// 22-11: saveGame() geeft true zonder te bewaren; de benchmark gebruikt saveGameEchtBewaard en weigert dan met een rustige melding
+{
+  const fs = await import('node:fs');
+  const sg = fs.readFileSync(new URL('../game/js/savegame.js', import.meta.url), 'utf8');
+  const f = sg.slice(sg.indexOf('export function saveGameEchtBewaard'), sg.indexOf('export function saveGame('));
+  ok(/bewarenUit \|\| w\.ritBezig \|\| w\.coopRole === 'client'\) return false/.test(f), 'bewaren uit, reisrit of gast: niet echt bewaard');
+  const pm = fs.readFileSync(new URL('../game/js/pausemenu.js', import.meta.url), 'utf8');
+  ok(/save: \(\) => saveGameEchtBewaard\(world\)/.test(pm), 'pausemenu start de benchmark alleen na echt bewaren');
+  ok(/coopSessieLoopt\(world\)\) \{[^}]*BENCH_COOP_TEXT/.test(pm), 'benchmark geblokkeerd tijdens Samen spelen');
+  const T = await import('../game/js/benchmarkreturn.js');
+  ok(T.BENCH_SAVE_FIRST_TEXT === 'Bewaar eerst je spel.' && /Samen spelen/.test(T.BENCH_COOP_TEXT), 'meldingen');
+  const geen = prepareBenchmarkReload({ save: () => false, slot: () => 1, markStay: () => true });
+  ok(!geen.ok && geen.reason === 'opslaan', 'niet echt bewaard: geen herlaad');
+}
+
 if (fails) { console.log(`${fails} van ${n} mislukt`); process.exit(1); }
 console.log(`benchmark_save_test: ${n} gecontroleerd, alles goed`);

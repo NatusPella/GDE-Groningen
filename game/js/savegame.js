@@ -340,6 +340,14 @@ function serialize(w) {
   };
 }
 
+// Voor de benchmark (22-11): true alleen als er echt een save is geschreven; saveGame() geeft ook true zonder te bewaren
+// (bewaren uit, reisrit bezig, gast). Zonder wereld valt er niets te bewaren: dan true.
+export function saveGameEchtBewaard(w = world) {
+  if (!w) return true;
+  if (bewarenUit || w.ritBezig || w.coopRole === 'client') return false;
+  return !!saveGame(w, { toast: false });
+}
+
 export function saveGame(w = world, { toast = true, manual = false } = {}) {
   if (!w) return false;
   // #1073: na een mislukte lading met een kapotte terugval bewaart niets; de vorige slot blijft heel

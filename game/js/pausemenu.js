@@ -26,7 +26,7 @@ import { renderSpelersPanel } from './coopspelersui.js';
 import { renderCheatsPanel, cheatsClick, resetCheatsPanel, cheatsFocus } from './cheatsui.js';
 import { cheatsOpen, anyCheatOn } from './cheats.js';
 import { skipCurrent } from './story.js';
-import { saveGame, hasSave, loadLatestSave, startNewSlot, coopSessieLoopt, GAST_BEWAARD_TEKST, getSaveSummary, getPlaySeconds, loadSlot, currentSlot, preventCloseSave, saveFailReason } from './savegame.js';
+import { saveGame, hasSave, loadLatestSave, startNewSlot, coopSessieLoopt, GAST_BEWAARD_TEKST, getSaveSummary, getPlaySeconds, loadSlot, currentSlot, saveGameEchtBewaard, preventCloseSave, saveFailReason } from './savegame.js';
 import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { stopCoopNet } from './coopnet.js';
 import { coopLoadTekst, coopActieTekst, COOP_LOAD_FAIL, COOP_ACTIE_FAIL, runCoopLoad, runCoopStop } from './cooploadrules.js';
@@ -53,7 +53,7 @@ import { deliverOwnedVehicle, locateOwnedVehicle, getGarageList, verkoopVoertuig
 import { isShopOpen, closeShopMenu } from './shopui.js';
 import { benchmarkViaReload } from './trailerstate.js';
 import { markStay } from './saveslots.js';
-import { prepareBenchmarkReload, BENCH_RELOAD_FAIL_TEXT } from './benchmarkreturn.js'; // de benchmark laat je save en voortgang met rust
+import { prepareBenchmarkReload, BENCH_RELOAD_FAIL_TEXT, BENCH_SAVE_FIRST_TEXT, BENCH_COOP_TEXT } from './benchmarkreturn.js'; // de benchmark laat je save en voortgang met rust
 import { radioIsOn, setRadio, channelList, selectChannel, stepChannel } from './radio.js';
 import { channelPickerHtml } from './radiokeuze.js';
 import { isMuted, toggleMute } from './audio.js';
@@ -2118,7 +2118,7 @@ function runAction(a) {
     // als bij laden en stoppen; cooploadrules.js). Mislukt het bewaren, dan blijft het spel staan.
     const res = runCoopStop(world, {
       stop: stopCoopNet,
-      save: () => saveGame(world),
+      save: () => saveGameEchtBewaard(world),
       go: () => {
         if (!startNewSlot()) { status('Alle plekken zijn in gebruik. Verwijder eerst een opgeslagen spel om opnieuw te beginnen.'); return; }
         preventCloseSave(); // #584: this reload starts a new game, so the old world must not be saved over the fresh slot
@@ -2252,6 +2252,10 @@ function runAction(a) {
   } else if (a === 'gpu-help') {
     const h = root.querySelector('[data-gpu-help]');
     h.hidden = !h.hidden;
+  } else if ((a === 'bench' || a === 'bench-go') && !prestart && coopSessieLoopt(world)) {
+    // 22-11: de benchmark herlaadt de pagina en verbreekt de sessie voor alle gasten; host en gast kunnen hem dus niet starten
+    root.querySelector('[data-bench-confirm]').hidden = true;
+    status(BENCH_COOP_TEXT);
   } else if (a === 'bench' || a === 'bench-cancel') {
     const box = root.querySelector('[data-bench-confirm]');
     box.hidden = a === 'bench-cancel';
@@ -2272,7 +2276,7 @@ function runAction(a) {
       // 22-11: eerst bewaren en dit spel de stay-vlag geven, zodat de boot na de benchmark precies deze save opent (benchmarkreturn.js);
       // lukt het bewaren niet, dan start de benchmark niet en blijft alles zoals het was
       const prep = world ? prepareBenchmarkReload({ save: () => saveGame(world), slot: () => currentSlot(), markStay: (n) => markStay(null, n) }) : { ok: true };
-      if (!prep.ok) { status(BENCH_RELOAD_FAIL_TEXT); return; }
+      if (!prep.ok) { status(prep.reason === 'opslaan' ? BENCH_SAVE_FIRST_TEXT : BENCH_RELOAD_FAIL_TEXT); return; }
       benchmarkViaReload();
     }
   } else if (a === 'errlog-copy') {

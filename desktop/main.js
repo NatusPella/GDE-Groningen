@@ -11,7 +11,7 @@ const fsSync = require('fs');
 const { argValue, hasFlag } = require('./args.cjs');
 const { steamSwitches } = require('./steamflags.cjs');
 const { gpuSwitches } = require('./gpuflags.cjs');
-const { isGameUrl, safeExternalUrl } = require('./externurl.cjs');
+const { isGameUrl, safeExternalUrl, isGameSender } = require('./externurl.cjs');
 const { devtoolsShortcut, insideDir } = require('./guards.cjs');
 const { describeGone, reloadAllowed } = require('./gpuevents.cjs');
 
@@ -286,8 +286,8 @@ if (!app.requestSingleInstanceLock()) {
   require('./gpuinfo.cjs').registerGpuInfo({ ipcMain, app, screen: require('electron').screen }); // 0.64.1: Technische info (gpudiag.js)
   ipcMain.handle('gde:live-bussen', () => haalLiveBussen()); // #395: zonder argumenten: de vaste url, niets van de speler
   ipcMain.handle('gde:live-treinen', () => haalLiveTreinen()); // #1085: idem, de vertragingen van de treinen
-  ipcMain.handle('gde:clipboard-write', (e, text) => { try { clipboard.writeText(String(text).slice(0, 200000)); return true; } catch (er) { return false; } });
-  ipcMain.handle('gde:clipboard-read', () => { try { return clipboard.readText(); } catch (er) { return ''; } });
+  ipcMain.handle('gde:clipboard-write', (e, text) => { if (!isGameSender(e, SCHEME, HOST)) return false; try { clipboard.writeText(String(text).slice(0, 200000)); return true; } catch (er) { return false; } });
+  ipcMain.handle('gde:clipboard-read', (e) => { if (!isGameSender(e, SCHEME, HOST)) return null; try { return clipboard.readText(); } catch (er) { return ''; } });
   ipcMain.handle('gde:save-text', async (e, name, text) => {
     const w = BrowserWindow.fromWebContents(e.sender);
     const res = await dialog.showSaveDialog(w, {
