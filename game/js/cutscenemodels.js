@@ -17,9 +17,9 @@ export const PROP_SOURCES = {
   politie: { vehicle: 'police' },
   fiets: { vehicle: 'bike' },
   // #1121: de snackwagen, de vettankwagen en de trekker-limo zijn echte wereldmodellen, geen bestelbus of trekker als stand-in
-  snackwagen: { vehicle: 'foodtruck', model: { name: 'foodtruck', len: 5.4, wid: 2.1, color: '#2f6fb0' } },
-  tankwagen: { vehicle: 'truck', model: { name: 'truck', tank: true, livery: 'usmemvet', len: 8.5, wid: 2.5, color: '#e6c21a' } },
-  limo: { vehicle: 'trekkerlimo', model: { name: 'trekkerlimo', len: 5.6, wid: 2.0, color: '#141414' } },
+  snackwagen: { vehicle: 'foodtruck', model: { name: 'foodtruck', len: 5.4, wid: 2.1, color: 0x2f6fb0 } },
+  tankwagen: { vehicle: 'truck', model: { name: 'truck', tank: true, livery: 'usmemvet', len: 8.5, wid: 2.5, color: 0xe6c21a } },
+  limo: { vehicle: 'trekkerlimo', model: { name: 'trekkerlimo', len: 5.6, wid: 2.0, color: 0x141414 } },
   // dieren komen uit het dierenregister (#193): elk dier met een cutscene-soort
   ...Object.fromEntries(DIEREN.filter((d) => d.cutscene).map((d) => [d.cutscene, { animal: d.kind, dier: d.id }])),
 };
