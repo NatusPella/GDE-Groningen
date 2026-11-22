@@ -49,6 +49,7 @@ import { streekuitdagingPrompt } from './streekuitdaginglive.js'; // #835
 import { makePromptClock } from './prompttick.js';
 import { labelDy, anchorCovered } from './promptclear.js';
 import { setBubbleObstacles } from './hudrules.js';
+import { leesTellers } from './opslaglezen.js';
 
 const USES_KEY = KEYS.hintUses;
 const LEARN_USES = 3;
@@ -86,8 +87,7 @@ const camDir = new THREE.Vector3();
 
 function loadUses() {
   try {
-    const raw = JSON.parse(localStorage.getItem(USES_KEY) || '{}');
-    if (raw && typeof raw === 'object') uses = raw;
+    uses = leesTellers(localStorage.getItem(USES_KEY)); // alleen eindige getallen: een tekst zou bij het optellen aan elkaar plakken
   } catch (e) { uses = {}; }
 }
 
