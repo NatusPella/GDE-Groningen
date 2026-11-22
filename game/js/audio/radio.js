@@ -413,7 +413,12 @@ export function updateGMusic(dt, world) {
 
   if (pendingTrackAnnounce) {
     const night = radioProg.music === 'nachtstreek' && (!radioProg.channel || radioProg.channel === 'gmusic' || radioProg.channel === 'nachtstreek');
-    world.nowPlaying = { title: pendingTrackAnnounce, artist: (night ? 'Rikus draait: ' : '') + trackArtist(pendingTrackAnnounce), station: radioProg.stationName || STATION_NAME, programme: radioProg.name, at: world.time };
+    // a channel notice (radiovehicle.js: 'channel · DJ' on getting in or switching) that is still up keeps its channel line: only the title and artist arrive
+    const np0 = world.nowPlaying;
+    const keep = np0 && np0.kind === 'zender' && world.time - np0.at < 12;
+    world.nowPlaying = keep
+      ? { title: pendingTrackAnnounce, artist: trackArtist(pendingTrackAnnounce), station: np0.station, programme: '', kind: 'zender', at: world.time }
+      : { title: pendingTrackAnnounce, artist: (night ? 'Rikus draait: ' : '') + trackArtist(pendingTrackAnnounce), station: radioProg.stationName || STATION_NAME, programme: radioProg.name, at: world.time };
     pendingTrackAnnounce = null;
   }
 
@@ -515,6 +520,12 @@ export function radioState() {
 // nummers: alleen lezen, de wachtrij blijft hier.
 export function radioTrackEls() {
   return gmusicTracks;
+}
+// The record that plays now (not a jingle), for the channel notice: { title, artist } or null.
+export function radioNowTrack() {
+  const el = gmusicCurrentEl;
+  if (!radioOn || !el || !el.gmusicTitle || el.paused || el.ended) return null;
+  return { title: el.gmusicTitle, artist: trackArtist(el.gmusicTitle) };
 }
 export function radioCurrentTrackEl() {
   return gmusicCurrentEl;

@@ -107,6 +107,7 @@ import { isOverlayHeld } from './overlayhold.js';
 import { hoofdspeler } from './spelersregister.js';
 import { getViewAnchor, easeAnchor, mapUpRotation } from './viewanchor.js'; // wat als jij telt: duif, heli, trein, voertuig of figuur (#1141)
 import { maakWidget, zetAankondiger } from './regelwidget.js'; // #987: regel als icoon en meter (eierrit)
+import { noticeBar } from './melding.js'; // #988: het aflopende balkje op de radiokaart
 // portraits share the HUD's green (DESIGN_SYSTEM: no blue accents); speaker
 // colours stay in subtitles
 const HUD_ACCENT = INK.greenLight;
@@ -199,7 +200,8 @@ export function initHud(world) {
   speedo.className = 'hud-speedo';
   speedo.innerHTML = '<div class="sp-main"><b class="sp-val">0</b><span class="sp-unit">km/u</span><div class="sp-gears" role="img" aria-label="Versnelling"></div>' +
     `<svg class="sp-rpm" viewBox="0 0 200 14" preserveAspectRatio="none" role="img" aria-label="Toerental"><path class="rpm-bg" d="${RPM_ARC}"/><path class="rpm-zone" d="${RPM_ARC}" pathLength="100" stroke-dasharray="${100 - RPM_RED_AT} 100" stroke-dashoffset="${-RPM_RED_AT}"/>` + // ds3-uitzondering: toerentalboog, de dash-lengte volgt het toerental (meetgeometrie, geen icoon)
-    `<path class="rpm-fill" d="${RPM_ARC}" pathLength="100" stroke-dasharray="0 100"/></svg></div>`;
+    `<path class="rpm-fill" d="${RPM_ARC}" pathLength="100" stroke-dasharray="0 100"/></svg>` +
+    '<span class="sp-zender" hidden aria-label="Radiozender">' + icoon('muziek', { maat: 14 }) + '<b></b></span></div>'; // #988: de zender van het voertuig, licht kort op bij een wissel
   root.appendChild(speedo);
 
   const vehName = document.createElement('div');
@@ -389,6 +391,10 @@ export function initHud(world) {
     npArtist: nowPlaying.querySelector('.np-artist'),
     npTitle: nowPlaying.querySelector('.np-title'),
     npShown: null,
+    channelChip: speedo.querySelector('.sp-zender'),
+    channelText: speedo.querySelector('.sp-zender b'),
+    channelName: '',
+    channelAt: null,
     mmWrap,
     mmCanvas,
     mmCtx: mmCanvas.getContext('2d'),
@@ -742,6 +748,7 @@ export function updateHud(dt, world) {
   updateCards(dt, world);
   if (expensive) updateAchievementCard(els.root, dt);
   updateNowPlaying(dt, world);
+  updateChannelChip(dt, world);
   updateLocation(dt, world);
   updatePrompts(dt, world);
   updateVisibility(dt, world);
@@ -1807,6 +1814,7 @@ function updateNowPlaying(dt, world) {
     if (!isBusy(world) && !isDialogue() && !zones.occupant('E') && !world.paused) {
       npTimer = nowPlayingSeconds(np); // #975: lang genoeg om titel, artiest en zender te lezen
       npWait = 0;
+      noticeBar(els.nowPlaying, { duur: npTimer }); // het aflopende balkje (DESIGN_SYSTEM.md, Meldingen); .on laat hem lopen
       restartClass(els.nowPlaying, 'on', () => npTimer > 0);
     } else if (!world.paused && (npWait -= dt) <= 0) world.nowPlaying = null;
   }
@@ -1816,6 +1824,24 @@ function updateNowPlaying(dt, world) {
   }
   // an achievement or a call takes the zone over at once
   if (npTimer > 0 && (zones.occupant('E') || isBusy(world))) { npTimer = 0; els.nowPlaying.classList.remove('on'); world.nowPlaying = null; }
+}
+
+// #988: de zender van het voertuig als klein icoon met naam bij de snelheidsmeter; hij licht kort op als de zender wisselt
+let channelLit = 0;
+function updateChannelChip(dt, world) {
+  const r = world.radioHud;
+  const naam = r && r.name ? r.name : '';
+  if (naam !== els.channelName) {
+    els.channelName = naam;
+    setText(els.channelText, naam);
+    els.channelChip.hidden = !naam;
+  }
+  if (r && naam && r.at !== els.channelAt) {
+    els.channelAt = r.at;
+    channelLit = 1.8;
+    els.channelChip.classList.add('lit');
+  }
+  if (channelLit > 0 && !world.paused && (channelLit -= dt) <= 0) els.channelChip.classList.remove('lit');
 }
 
 function escapeHtml(s) {

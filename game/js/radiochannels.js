@@ -13,6 +13,8 @@ import { programmeAt, MIN_POOL } from './musicpick.js';
 
 // Stijl per nummer (bestandsnaam zonder .mp3). Bron: de stijlprompts in docs/verhaal/MUZIEK-LYRICS-21-11.md en docs/MUZIEK.md, de
 // act en de titel. Een nummer mag meer stijlen hebben; een nieuw nummer zonder regel hier hoort alleen bij G-Music.
+// 'rustig' (22-11, #988): de zachtste ballads zonder spookgeluid, de pool van Nachtjazz Radio. Er zijn nog geen echte jazz- of
+// klassieke nummers: zodra die er zijn, krijgt die zender een eigen stijl 'jazz' en deze tag verdwijnt.
 export const STYLES = {
   Onder_de_Martinitoren: ['hiphop'],
   Hart_van_Beton: ['hiphop'],
@@ -40,12 +42,12 @@ export const STYLES = {
   Langs_het_Grunneger_Land: ['volks'],
   Klompendans_bij_de_Sloot: ['volks'],
   Zunneschien_op_t_wad: ['volks', 'kust'],
-  Letste_bus_noar_nargens: ['ballad', 'volks'],
-  Suikerbuiken_in_de_nacht: ['ballad'],
-  Oosterpark_is_m_n_droom: ['ballad'],
-  Kleur_in_de_Wind: ['ballad'],
-  Goud_in_de_Nacht: ['ballad'],
-  Zilverglans_op_het_Asfalt: ['ballad'],
+  Letste_bus_noar_nargens: ['ballad', 'volks', 'rustig'],
+  Suikerbuiken_in_de_nacht: ['ballad', 'rustig'],
+  Oosterpark_is_m_n_droom: ['ballad', 'rustig'],
+  Kleur_in_de_Wind: ['ballad', 'rustig'],
+  Goud_in_de_Nacht: ['ballad', 'rustig'],
+  Zilverglans_op_het_Asfalt: ['ballad', 'rustig'],
   De_Geest_Van_Oosterpark: ['ballad', 'spook'],
   Koplampen_in_de_Mist: ['ballad', 'spook'],
   Kasseien_bij_Middernacht: ['ballad', 'spook'],
@@ -70,6 +72,19 @@ export const CHANNELS = [
     programme: { id: 'nachtzender', every: 2, jingles: false, talk: ['rikus', 'rikus', 'clip'], music: 'nachtstreek' },
   },
   {
+    id: 'nachtjazz', name: 'Nachtjazz Radio', dj: 'Meneer Fluweel', frequency: '99,4', sub: 'Zachte avondmuziek, tot de ochtend',
+    ident: 'Nachtjazz Radio: fluweel op de weg, het licht laag.',
+    pool: { styles: ['rustig'] }, minPool: MIN_POOL, minMinutes: 15,
+    programme: { id: 'nachtjazz', every: 3, jingles: false, talk: ['dj', 'weather', 'dj'], music: 'nachtstreek' },
+    // De pool is de zachtste ballads van Nachtstreek: een echte jazz- of klassieke zender komt zodra er nummers voor zijn (docs/RADIOZENDERS-21-11.md).
+    lines: [
+      'Dit is Nachtjazz Radio. Meneer Fluweel, de lamp laag, het raam op een kier.',
+      'Een rustige plaat voor wie nergens heen hoeft. Of juist wel, maar zonder haast.',
+      'De stad slaapt half. Wij draaien zachtjes door, zodat niemand wakker wordt.',
+      'Een groet aan de chauffeur met de rustige hand. Het blijft zomer, ook om middernacht.',
+    ],
+  },
+  {
     id: 'wierde', name: 'Wierde Radio', dj: 'Boer Harm', frequency: '93,1', sub: 'Streekmuziek vanaf de terp',
     ident: 'Wierde Radio: de terp op, het volume omhoog.',
     pool: { styles: ['volks'] }, minPool: MIN_POOL, minMinutes: 15,
@@ -80,6 +95,18 @@ export const CHANNELS = [
       'Een groet aan iedereen op het erf. De koffie staat klaar, de trekker staat te wachten.',
       'Wie nu een dijk op rijdt, zwaait terug naar het vee. Dat is hier de wet.',
       'Nog een plaat, dan gaan we naar de weerpraat. Het blijft zomer, hoor.',
+    ],
+  },
+  {
+    id: 'tokkie', name: 'Tokkie Beats', dj: 'DJ Bonkie', frequency: '96,8', sub: 'Harde beats voor op de step',
+    ident: 'Tokkie Beats! Bas erop, bonk, bonk.',
+    pool: { styles: ['hiphop', 'dance'] }, minPool: MIN_POOL, minMinutes: 15,
+    programme: { id: 'tokkie', every: 3, jingles: false, talk: ['dj', 'clip', 'dj'], music: 'gmusic' },
+    lines: [
+      'Tokkie Beats, DJ Bonkie achter de draaitafel. De bas staat al te trillen.',
+      'Een groet aan iedereen met een opgevoerde step. Niet harder dan de wet toestaat, hè.',
+      'Volume omhoog, raampjes open. Het is zomer en de beat is van ons.',
+      'Dit is een plaat voor de fatbike. Hou je stuur vast, hou je pet op.',
     ],
   },
   {
@@ -173,8 +200,11 @@ export const memorySize = (n) => (n <= 1 ? 0 : Math.max(1, Math.min(n - 1, Math.
 // De zender is lokaal per speler (er gaat niets over het net behalve de keuze in het voertuig). In een gedeeld voertuig kiest de
 // bestuurder; een passagier volgt hem (standaard) of kiest voor zichzelf (`own`), en kan stemmen op een zender als suggestie.
 // De bestuurder beslist: een stem is nooit een bevel. Puur: de aanroeper geeft de stand mee.
-export function channelForPlayer({ driverChannel, follows = true, own = null }) {
-  return follows || !own ? driverChannel : own;
+// `start`: de zender die het voertuig bij het instappen kreeg (radiovehicle.js, voertuigstart): geldt zolang de bestuurder nog geen
+// zender van zichzelf heeft gekozen, dus ook voor een passagier die instapt voor de bestuurder iets draaide.
+export function channelForPlayer({ driverChannel, follows = true, own = null, start = null }) {
+  const base = driverChannel || start || driverChannel;
+  return follows || !own ? base : own;
 }
 // votes: { playerId: channelId }. Geeft de zender met de meeste stemmen (gelijk = geen suggestie) en de telling.
 export function tallyVotes(votes, open) {

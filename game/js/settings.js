@@ -11,6 +11,7 @@ import { cleanHelpSetting } from './assist.js';
 import { cleanDifficulty, setActiveDifficulty, setActiveLevel, onDifficultyChange, toggleChoice } from './difficulty.js';
 import { READING_TIME_CHOICES } from './cardtime.js';
 import { deckDefaults, isSteamDeck } from './deck.js';
+import { cleanRemembered } from './radiovehicle.js';
 import { VOLUME_KEYS, normalizeVolumes, volumeValue } from './sfx/volume.js';
 
 // Player settings, persisted per browser. Modules read getSettings() and
@@ -28,6 +29,8 @@ export const QUALITY_PRESETS = {
 };
 
 const BASE_DEFAULTS = {
+  // de radiozender die de speler per voertuigsoort koos (radiovehicle.js, #988): { boer: 'wierde', ... }; hoort bij dit apparaat en niet bij de save
+  radioVehicle: {},
   ritCamera: 'cabine', // de camera van de taxi- en treinrit (C of Y tijdens de rit): cabine, achter, zij of boven; lokaal per speler (ritpad.js)
   masterVolume: 1,
   musicVolume: 1,
@@ -237,6 +240,7 @@ function load() {
     for (const k of ['helpTime', 'helpDamage', 'helpGates']) out[k] = cleanHelpSetting(k, out[k]);
     out.difficulty = cleanDifficulty(out.difficulty); // #800: onbekend of kapot valt terug op standaard
     if (!['cabine', 'achter', 'zij', 'boven'].includes(out.ritCamera)) out.ritCamera = DEFAULTS.ritCamera;
+    out.radioVehicle = cleanRemembered(raw.radioVehicle); // een ontbrekende of kapotte waarde wordt leeg: elke soort valt dan terug op zijn eigen zender
     if (!COLOR_BLIND_MODES.includes(out.colorBlind)) out.colorBlind = DEFAULTS.colorBlind;
     if (!WORLD_COLOR_MODES.includes(out.worldColor)) out.worldColor = DEFAULTS.worldColor;
     if (!PAD_LAYOUT_CHOICES.includes(out.padLayout)) out.padLayout = DEFAULTS.padLayout;

@@ -196,7 +196,7 @@ import { updateCashVan } from './cashvan.js';
 import { initHeliRun, updateHeliRun, tryHeliSpotInteract, updateHeliSpot } from './helirun.js';
 import { initPadel, updatePadel, tryPadelInteract, updatePadelWorld, padelCamera } from './padel.js';
 import { initActivities, isActivityActive, updateActivityGame, tryActivityInteract, updateActivitiesWorld, tickActivitiesGast, activityCamera } from './activities.js';
-import { initRadio, updateRadio, setRadioFound } from './radio.js';
+import { initRadio, updateRadio, updateRadioVehicle, setRadioFound } from './radio.js';
 import { getSaveSet } from './achievements.js';
 import { updatePoleVaults } from './fierljep.js';
 import { initPostgame, updatePostgame, tryPostgameInteract } from './postgame.js';
@@ -1528,6 +1528,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     updateRegioLeven(dt, world);
     updateAchievementTracker(dt, world);
     updateRadio(dt, world);
+    updateRadioVehicle(world); // de zender van het voertuig bij het instappen, de wereldradio bij het uitstappen (#988)
     probe.mark('systems');
   }
 

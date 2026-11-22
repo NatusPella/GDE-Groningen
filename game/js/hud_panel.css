@@ -5,7 +5,8 @@
    middle, F bottom left, G bottom centre, H bottom right. */
 #hud {
   --hud-fg: var(--ds-c-creme);
-  --hud-shadow: 0 1px 3px color-mix(in srgb, var(--ds-c-ink-inkt) 90%, transparent), 0 0 1px color-mix(in srgb, var(--ds-c-ink-inkt) 90%, transparent);  --hud-red: var(--ds-c-rood-glas);
+  --hud-shadow: 0 1px 3px color-mix(in srgb, var(--ds-c-ink-inkt) 90%, transparent), 0 0 1px color-mix(in srgb, var(--ds-c-ink-inkt) 90%, transparent);
+  --hud-red: var(--ds-c-rood-glas);
   --hud-redtx: var(--ds-c-rood-glas-tx);
   --hud-edge: max(46px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
   /* smallest text, 13 device px whatever the zoom (hudlook.js READABLE_MIN) */
@@ -925,6 +926,14 @@ body.cine-hide-hud #story-skip { display: none; }
 #hud .rpm-bg { stroke: color-mix(in srgb, var(--ds-c-glas) 16%, transparent); }
 #hud .rpm-zone { stroke: color-mix(in srgb, var(--ds-c-rood-glas) 55%, transparent); }
 #hud .hud-speedo.no-rpm .sp-main { grid-template-columns: auto 1fr; }
+/* #988: de zender van het voertuig, een klein icoon met naam onder de toeren; hij licht kort op bij een wissel (hooguit 250 ms) */
+#hud .sp-zender { grid-column: 1 / -1; display: flex; align-items: center; justify-content: flex-end; gap: 5px; font-size: max(13px, var(--hud-min, 13px)); line-height: 1.1; opacity: 0.7; transition: opacity var(--ds-m-max) var(--ds-m-uit), transform var(--ds-m-max) var(--ds-m-uit); }
+#hud .sp-zender[hidden] { display: none; }
+#hud .sp-zender svg { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+#hud .sp-zender b { font-weight: normal; white-space: nowrap; max-width: 14ch; overflow: hidden; text-overflow: ellipsis; }
+#hud .sp-zender.lit { opacity: 1; color: var(--ds-c-licht-groen); transform: translateY(-1px); }
+@media (prefers-reduced-motion: reduce) { #hud .sp-zender { transition: opacity var(--ds-m-max); transform: none; } }
+
 #hud .hud-speedo.no-rpm.no-gears .sp-main { min-width: 0; }
 
 /* #1078: een rand in de kleur van de route die de kaart uitlegt (geel = autoroute, paars = eigen doel); alleen een kleurvlak, de tekst blijft inkt op papier */
