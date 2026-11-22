@@ -11,6 +11,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Wereldranden
+
+- Bourtange (#953): voet- en fietspaden op de wallen die als brug getekend stonden, hoog boven een vlak veld zonder water, spoor of weg eronder, liggen nu gewoon op de grond. Je valt niet meer van een dek op pijlers naast de gracht; de wallen zijn beloopbaar. Echte bruggen over water, spoor of weg houden hun dek. De wereld is van wie het spel opende en geldt voor iedereen (Samen spelen).
+- Parken in de streek (#1030): ook zonder geladen wegennet (de webversie) vallen bomen en heggen van een parkkit op het wegdek weg; de kit kijkt dan naar de wegen van de tegelkaart. Wereldregel van wie het spel opende, voor iedereen gelijk (Samen spelen).
+
 ### Luchtroute
 
 - Luchtroute (#1038): in het vliegtuig, de helikopter, als duif en in de luchtballon is er nog maar één routekaart. Regel 1 is de plaats waar je heen vliegt (Vliegveld Eelde, Winsum), nooit meer de voorwaarde van een missie. Regel 2 zegt wat je doet: Draai om, Links aanhouden, Stijg naar 75 m. De pijl draait mee met je koers; bij een bocht van meer dan 120 graden staat er een omdraai-icoon. Afstand en tijd staan groter rechts. De bovenste balk toont in de lucht alleen de naam van de opdracht, zonder Vlieg naar. De gids is lokaal per speler (Samen spelen).
