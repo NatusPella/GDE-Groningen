@@ -62,14 +62,14 @@ function keyGlyphInner(phys) {
 const LABEL_KEYS = { enter: 'enter', esc: 'escape', spatie: ' ', tab: 'tab', shift: 'shift', ctrl: 'control', alt: 'alt', backspace: 'backspace', del: 'delete', delete: 'delete', '↑': 'arrowup', '↓': 'arrowdown', '←': 'arrowleft', '→': 'arrowright' };
 export function keyLabelGlyph(label) {
   const l = String(label).trim();
-  const k = LABEL_KEYS[l.toLowerCase()] || (/^[A-Za-z0-9]$/.test(l) || /^F([1-9]|1[0-2])$/i.test(l) ? l.toLowerCase() : null);
+  const k = (Object.prototype.hasOwnProperty.call(LABEL_KEYS, l.toLowerCase()) && LABEL_KEYS[l.toLowerCase()]) || (/^[A-Za-z0-9]$/.test(l) || /^F([1-9]|1[0-2])$/i.test(l) ? l.toLowerCase() : null);
   return k ? keyGlyphInner(k) : null;
 }
 // Labels of a hint row that name a token (a mouse button, the wheel, the arrow cluster): shown as that icon, never as a word.
 const LABEL_TOKENS = { klik: 'LMB', linkerklik: 'LMB', linkermuisknop: 'LMB', rechtsklik: 'RMB', rechtermuisknop: 'RMB', middelklik: 'MMB', slepen: 'DRAG', scroll: 'WHEEL', scrollwiel: 'WHEEL', muiswiel: 'WHEEL', muis: 'MOUSE', pijltjes: 'ARROWS', pijltoetsen: 'ARROWS', wasd: 'WASD' };
 // One hint-row key label as markup, one path for every footer, table and card: a glyph or mouse icon, or a neat text keycap
 // (`.hud-key` + data-gk) for a key without a glyph ('[', ']'). The glyph carries its own aria-label.
-export const labelToken = (label) => LABEL_TOKENS[String(label).trim().toLowerCase()] || null;
+export const labelToken = (label) => { const k = String(label).trim().toLowerCase(); return Object.prototype.hasOwnProperty.call(LABEL_TOKENS, k) ? LABEL_TOKENS[k] : null; };
 // Icon markup for one hint-row key label, or null when there is no icon (a word, a symbol like '[').
 export function keyLabelIcon(label) {
   const l = String(label).trim();

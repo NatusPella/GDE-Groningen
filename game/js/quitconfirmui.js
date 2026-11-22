@@ -31,6 +31,7 @@ export function askQuitConfirm({ onYes = () => {}, onNo = () => {} } = {}) {
   </section>`;
   document.body.appendChild(el);
   const klaar = (ja) => {
+    if (open !== el) return; // een tweede klik of toets op dezelfde vraag doet niets meer
     window.removeEventListener('keydown', onKey, true);
     open = null;
     try { el.remove(); } catch (e) { /* al weg */ }
@@ -48,7 +49,8 @@ export function askQuitConfirm({ onYes = () => {}, onNo = () => {} } = {}) {
       knoppen[(Math.max(i, 0) + 1) % knoppen.length].focus();
     } else if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault(); e.stopPropagation();
-      if (!e.repeat && i >= 0) klaar(knoppen[i].dataset.qc === 'ja');
+      // zonder focus (naast de kaart geklikt) kiest Enter de veilige knop, Annuleren, in plaats van niets te doen
+      if (!e.repeat) klaar(i >= 0 && knoppen[i].dataset.qc === 'ja');
     }
   }
   window.addEventListener('keydown', onKey, true);

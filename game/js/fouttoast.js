@@ -7,7 +7,7 @@ let errorShown = false;
 
 // De tekst van de foutmelding: wat de speler leest is kort en Nederlands; de technische melding blijft onder Details.
 export function frameErrorModel(err) {
-  const raw = err && err.message ? String(err.message) : String(err);
+  const raw = err && err.message ? String(err.message) : err == null || err === '' ? 'Onbekende fout' : String(err);
   return {
     titel: 'Er ging iets mis',
     tekst: 'Het spel loopt zo veel mogelijk door. Meld je het? Kopieer dan het foutrapport.',

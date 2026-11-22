@@ -36,7 +36,7 @@ export function classLabel(secs) {
 // De duur van een melding. klas ('kort' | 'normaal' | 'lang') zet een floorS; de tekst kan hem verlengen, nooit verkorten
 // (een zin wordt nooit afgekapt voor hij te lezen is). Zonder klas telt alleen de tekst. De uitkomst is altijd een klasduur.
 export function noticeDuration({ tekst = '', klas = null, duur = 0 } = {}) {
-  const floorS = (klas && DURATION_CLASSES[klas]) || 0;
+  const floorS = (typeof klas === 'string' && Object.prototype.hasOwnProperty.call(DURATION_CLASSES, klas) && DURATION_CLASSES[klas]) || 0;
   const hint = Number.isFinite(duur) && duur > 0 ? Math.min(duur, NOTICE_MAX_S) : 0;
   return toClass(Math.max(floorS, hint, readingTime(tekst)));
 }
@@ -98,14 +98,14 @@ export function queuePlan({ zichtbaar = [], wachtend = [], max = 1 } = {}) {
 
 // De duur van een melding die uit een rij komt: bij twee of meer wachtenden altijd kort (kritiek blijft zoals hij is).
 export function queueDuration(duur, wachtend, { kritiek = false } = {}) {
-  if (kritiek || duur === Infinity) return duur;
+  if (kritiek || !Number.isFinite(duur)) return duur;
   return wachtend >= 2 ? Math.min(duur, DURATION_CLASSES.kort) : duur;
 }
 
 // Hoeveel seconden een lopende melding nog mag staan als er een andere wacht: nooit korter dan een seconde na de minimale readingTime.
 export const READ_MIN_S = 3;
 export function shortening(rest, verstreken, wachtend) {
-  if (!wachtend || !(verstreken > READ_MIN_S) || !(rest > 1)) return rest;
+  if (!wachtend || !Number.isFinite(rest) || !(verstreken > READ_MIN_S) || !(rest > 1)) return rest;
   return Math.min(rest, 1);
 }
 

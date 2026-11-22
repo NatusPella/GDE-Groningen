@@ -103,7 +103,7 @@
   /* .frame-error (de foutmelding): zie js/ds-schermen.css */
 
   /* motion (motion.js): the one set of timings for UI changes */
-  :root { --ease-out: cubic-bezier(.2,.8,.2,1); --ease-pop: cubic-bezier(.3,1.4,.5,1); --dur-fast: 120ms; --dur-base: 200ms; --dur-slow: 320ms; --dur-bar: 300ms; }
+  :root { --ease-out: cubic-bezier(.2,.8,.2,1); --ease-pop: cubic-bezier(.3,1.4,.5,1); --dur-fast: 120ms; --dur-base: 200ms; --dur-slow: 250ms; --dur-bar: 250ms; }
   html.reduce-motion { --dur-fast: 0ms; --dur-base: 0ms; --dur-slow: 0ms; --dur-bar: 0ms; }
   html.reduce-motion *, html.reduce-motion *::before, html.reduce-motion *::after { animation-duration: 0ms !important; animation-delay: 0ms !important; transition-duration: 0ms !important; transition-delay: 0ms !important; }
   @keyframes mo-pop { 0% { transform: scale(1); } 45% { transform: scale(1.06); } 100% { transform: scale(1); } }

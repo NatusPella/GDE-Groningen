@@ -47,7 +47,8 @@ export function klemWoorden(tekst, max = MAX_WOORDEN) {
 export function formatBeloning(b) {
   if (typeof b === 'string') return cut(b, 40);
   if (!Number.isFinite(b) || b === 0) return '';
-  const n = Math.abs(Math.round(b));
+  const n = Math.min(Number.MAX_SAFE_INTEGER, Math.abs(Math.round(b)));
+  if (n === 0) return ''; // een bedrag onder een halve euro is geen '− € 0'
   const tekst = String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   return (b < 0 ? '− € ' : '€ ') + tekst;
 }
@@ -171,7 +172,7 @@ export function momentVanGebied(naam, regel = '') {
 
 // Flash gate: how many appearances (anything that pops on screen) began in the last second.
 export function toelatenFlits(historie, nu, max = MAX_FLITS_PER_S) {
-  return historie.filter((t) => nu - t < 1000).length < max;
+  return (Array.isArray(historie) ? historie : []).filter((t) => nu - t < 1000).length < max;
 }
 
 // The planner decides, without a DOM, what a new moment does: show it now, queue it behind the
