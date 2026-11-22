@@ -210,6 +210,7 @@ export function powerForBasket(dist, disc, loft = 0.08, release = 0, height = 1)
 // --- scoring -----------------------------------------------------------------------------------
 
 export function holeName(strokes, par) {
+  if (!(strokes >= 1) || !Number.isFinite(par)) return '';
   if (strokes === 1) return 'Ace!';
   const d = strokes - par;
   return d <= -3 ? 'Albatros' : d === -2 ? 'Eagle' : d === -1 ? 'Birdie' : d === 0 ? 'Par' : d === 1 ? 'Bogey' : d === 2 ? 'Dubbel bogey' : 'Triple bogey of erger';
@@ -223,6 +224,7 @@ export function newCard(holes) {
 
 export function finishHole(card, idx, strokes) {
   const h = card.holes[idx];
+  if (!h || h.done || !(strokes >= 1)) return h || null; // een dubbele aanroep telt de hole en de ace niet twee keer
   h.strokes = Math.min(strokes, h.par + MAX_OVER_PAR);
   h.done = true;
   if (strokes === 1) card.aces++;

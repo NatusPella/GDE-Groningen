@@ -15,6 +15,7 @@ export const CALL = ['0', '15', '30', '40'];
 
 // Counting a point to `team` (0 or 1): { points, games, gameWon, over, golden }.
 export function scorePoint({ points, games }, team, gamesToWin = SET_GAMES) {
+  if (team !== 0 && team !== 1) return { points: points.slice(), games: games.slice(), gameWon: false, over: false, golden: false };
   const golden = points[0] >= 3 && points[1] >= 3;
   const p = points.slice(), g = games.slice();
   p[team]++;

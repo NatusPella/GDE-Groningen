@@ -29,7 +29,7 @@ assert.ok(ctp.cijfers.every((c) => c.icoon) && ctp.cijfers.filter((c) => c.prima
 const kies = discgolfHudModel({ modus: 'kies', kiesNaam: 'Negen banen', kiesNote: 'Negen banen: een hele ronde', uitleg: true });
 assert.equal(kies.stappen.length, 0); assert.match(kies.nu, /Negen banen/); assert.equal(kies.uitleg.length, UITLEG.length);
 // wat opspringt
-assert.equal(baanPop('Birdie', 2, 3).geluid, 'ui_loopbaan'); assert.equal(baanPop('Par', 3, 3).geluid, 'ui_verzameld'); assert.equal(baanPop('Bogey', 4, 3).geluid, null); assert.match(baanPop('Ace', 1, 3).tekst, /1 worp$/);
+assert.equal(baanPop('Birdie', 2, 3).geluid, 'ui_loopbaan'); assert.equal(baanPop('Par', 3, 3).geluid, 'ui_verzameld'); assert.equal(baanPop('Bogey', 4, 3).geluid, null); assert.match(baanPop('Ace', 1, 3).tekst, /1 worp, ace!$/);
 assert.match(ctpPop(4.25, 80).tekst, /4,3 m: 80 punten|4,2 m: 80 punten/); assert.match(ctpPop(0, 100).tekst, /In de mand/); assert.equal(ctpPop(null, 0).geluid, null);
 const html = simHudHtml(aim);
 assert.ok(!/#[0-9a-f]{3,6}\b|rgb\(/i.test(html)); assert.match(html, /role="progressbar"/); assert.equal((html.match(/<li data-stand/g) || []).length, 3);

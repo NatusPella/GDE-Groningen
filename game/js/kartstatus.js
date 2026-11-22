@@ -28,7 +28,7 @@ export const UITLEG = [
 
 export const tijdTekst = (s) => {
   if (!Number.isFinite(s)) return '-:--.--';
-  const m = Math.floor(s / 60), r = s - m * 60;
+  const cs = Math.max(0, Math.round(s * 100)), m = Math.floor(cs / 6000), r = (cs - m * 6000) / 100;
   return `${m}:${r < 10 ? '0' : ''}${r.toFixed(2).replace('.', ',')}`;
 };
 
@@ -37,7 +37,7 @@ export function kartHudModel(g) {
   if (!g) return null;
   const idx = g.fase === 'grid' ? 0 : g.fase === 'race' ? 1 : 2;
   const stappen = STAPPEN.map((s, i) => ({ label: s.label, icoon: s.icoon, stand: i < idx ? 'klaar' : i === idx ? 'nu' : 'straks' }));
-  const meter = g.drift ? { pct: Math.min(100, (g.drift.t / KART.charge2) * 100), naam: 'Driftlading', label: g.drift.t >= KART.charge2 ? 'Supergeladen' : g.drift.t >= KART.charge1 ? 'Geladen' : 'Laden', staat: '' } : null;
+  const meter = g.drift ? { pct: Math.max(0, Math.min(100, ((g.drift.t || 0) / KART.charge2) * 100)), naam: 'Driftlading', label: g.drift.t >= KART.charge2 ? 'Supergeladen' : g.drift.t >= KART.charge1 ? 'Geladen' : 'Laden', staat: '' } : null;
   // één primaire waarde (je plaats), de rest secundair, elk met een pictogram; de beste ronde springt op bij een ronde (rondePop) en staat niet ook in de strook
   const cijfers = [
     { label: 'Plaats', waarde: `${g.plek || 1}/${g.aantal || 4}`, icoon: I.plaats, primair: true },

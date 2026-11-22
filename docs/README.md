@@ -141,6 +141,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [KLEDING-CLIPPING-22-11.md](<KLEDING-CLIPPING-22-11.md>) | Kleding en clipping: waarom de pet van Tammo door zijn hoofd stak, de audit van 6.100 combinaties, de reparaties en de test. |
 | [MINIMAP-PIJLEN-21-11.md](<MINIMAP-PIJLEN-21-11.md>) | Pijlen op de minikaart naar het doel. |
 | [KAART-HEADING-21-11.md](<KAART-HEADING-21-11.md>) | Wie ben jij op de kaart: plek en kijkrichting per besturingsmodus (#1141). |
+| [VERFIJNING-22-11-MINIGAMES.md](<VERFIJNING-22-11-MINIGAMES.md>) | Verfijnronde 22-11 voor minigames en bijbanen: wrijving, oplossing en bewijs per punt, Samen-regel en wat bewust niet of alleen in beeld. |
 | [VOETBAL-SIM-21-11.md](<VOETBAL-SIM-21-11.md>) | Voetbal Sim Light in de Euroborg (#981). |
 | [VOETBAL-UITZENDING-21-11.md](<VOETBAL-UITZENDING-21-11.md>) | Voetbal als uitzending: de hele wedstrijd voorop, tv-regie, herhaling, commentaar, kaarten, blessures, wissels en strafschoppen. |
 | [VERHAAL-SYNOPSIS-21-11.md](<VERHAAL-SYNOPSIS-21-11.md>) | Synopsis van het nieuwe volledige verhaal (pitch, vijf akten en Deel 4), de matrix van alles wat in de game bestaat en waar het in het verhaal terugkomt, en hoe je het samen en solo beleeft; met open punten en voorstellen. |

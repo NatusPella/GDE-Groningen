@@ -31,7 +31,7 @@ const STAND = {
   uitdagend: { spreiding: 0.18, leest: 0.42 },
 };
 
-const klem = (x, a, b) => Math.max(a, Math.min(b, x));
+const klem = (x, a, b) => Math.max(a, Math.min(b, Number.isFinite(x) ? x : (a + b) / 2));
 
 // De duikrichting van de keeper: -1 links, 0 blijft staan, 1 rechts (gezien vanaf de schutter). Met kans `leest` ziet hij waar je op richt, anders gokt hij
 // (de bal in het midden gokt hij zelden, zoals een echte keeper). rng() geeft 0..1.
@@ -76,7 +76,7 @@ export function schiet({ u = 0, v = 0.5, kracht = KRACHT_DOEL, stand = 'standaar
 export const nieuweSerie = () => ({ schoten: Array(SCHOTEN).fill(null) });
 export function noteer(serie, uitkomst) {
   const i = serie.schoten.indexOf(null);
-  if (i < 0) return false;
+  if (i < 0 || !UITKOMSTEN[uitkomst]) return false;
   serie.schoten[i] = uitkomst;
   return true;
 }
@@ -90,6 +90,7 @@ export const nogTeHalen = (serie) => doelpunten(serie) + (SCHOTEN - genomen(seri
 export const medailleBij = (stand = 'standaard') => MEDAILLE_BIJ.map((v) => klem(Math.round(scaleTarget(v, stand, false)), 1, SCHOTEN));
 export function penaltyMedaille(goals, stand = 'standaard') {
   const at = medailleBij(stand);
+  if (!Number.isFinite(goals)) return 0;
   return goals >= at[2] ? 3 : goals >= at[1] ? 2 : goals >= at[0] ? 1 : 0;
 }
 

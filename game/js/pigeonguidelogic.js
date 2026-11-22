@@ -14,7 +14,7 @@ export function relBearing(yaw, fx, fy, tx, ty) {
 
 // De richting in woorden, zodat de pijl niet alleen op kleur of stand leunt.
 export function directionWord(rel) {
-  const a = Math.abs(rel);
+  const a = Number.isFinite(rel) ? Math.abs(rel) : 0;
   if (a < 0.35) return 'recht voor je';
   if (a > 2.5) return 'achter je';
   const side = rel > 0 ? 'rechts' : 'links';
@@ -22,16 +22,19 @@ export function directionWord(rel) {
 }
 
 export function distText(m) {
+  if (!Number.isFinite(m) || m < 0) m = 0;
   const r = m < 100 ? Math.round(m / 5) * 5 : m < 1000 ? Math.round(m / 10) * 10 : Math.round(m / 100) / 10;
   return m >= 1000 ? `${String(r).replace('.', ',')} km` : `${r} m`;
 }
 
-export const progressText = (done, total) => `Gespot ${done} van ${total}`;
+export const progressText = (done, total) => (total > 0 ? `Gespot ${Math.min(done, total)} van ${total}` : 'Nog niets te spotten');
 
 // Het model voor een frame. targets: [{ x, y, label } | null]; spotted: Set van indexen; holds: tijd dat de duif bij elk doel hangt.
 // flight: { x, y, yaw }. Geeft de doelen met afstand en richting, het dichtstbijzijnde nog niet gespotte (het hoofddoel) en de voortgang.
 export function guideModel({ targets, spotted, holds = [], spotTime = 0.8, flight, radius = 16 }) {
   const items = [];
+  if (!flight || !Number.isFinite(flight.x) || !Number.isFinite(flight.y)) flight = { x: 0, y: 0, yaw: 0 };
+  targets = targets || [];
   targets.forEach((t, k) => {
     if (!t) return;
     const d = Math.hypot(t.x - flight.x, t.y - flight.y);
@@ -54,6 +57,7 @@ export function guideModel({ targets, spotted, holds = [], spotTime = 0.8, fligh
 // De pijl aan de rand van het scherm. ndc: de plek van het doel op het scherm (-1..1, y omhoog); behind: het doel ligt achter de camera.
 // Geeft { x, y } (-1..1, y omhoog), `angle` (rad, 0 = omhoog, met de klok mee) en onScreen (het doel is zelf in beeld: dan wijst de pijl er van boven op).
 export function edgeIndicator(ndcX, ndcY, behind, margin = GUIDE_MARGIN) {
+  if (!Number.isFinite(ndcX) || !Number.isFinite(ndcY)) { ndcX = 0; ndcY = 0; behind = true; }
   let x = behind ? -ndcX : ndcX, y = behind ? -ndcY : ndcY;
   if (!behind && Math.abs(x) <= margin && Math.abs(y) <= margin) return { x, y, angle: Math.PI, onScreen: true };
   if (Math.abs(x) < 1e-6 && Math.abs(y) < 1e-6) y = -1; // recht achter je: de pijl onderaan

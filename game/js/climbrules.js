@@ -77,6 +77,9 @@ export function startClimb(st) {
 export function stepClimb(st, inp, dt) {
   const ev = [];
   if (st.phase !== 'climb') return ev;
+  inp = inp || {};
+  // een hapering (tabblad weg, laden) is hooguit een kwart seconde: geen val of sprong door een grote dt
+  dt = Number.isFinite(dt) ? Math.max(0, Math.min(0.25, dt)) : 0;
   st.t += dt;
   st.time += dt;
   if (inp.chalk && !st.chalked) { st.chalked = true; st.arms = clamp(st.arms + ARMS.chalk, 0, 1); ev.push({ type: 'chalk' }); }
