@@ -1,7 +1,7 @@
 {
  "version": 1,
  "note": "Aantal schrijvende bestanden per world-veld (#498), gemeten met scripts/world_eigenaar.mjs. Alleen omlaag; nieuwe velden worden op hun huidige stand opgenomen.",
- "veldTotaal": 351,
+ "veldTotaal": 355,
  "velden": {
   "__knutselwagenChecked": 1,
   "__openingWarm": 1,
@@ -137,6 +137,7 @@
   "coopPvp": 1,
   "coopPvpMeld": 1,
   "coopPvpSchade": 1,
+  "coopRadioGroep": 1,
   "coopRijders": 1,
   "coopRole": 1,
   "coopRoster": 1,
@@ -182,6 +183,7 @@
   "coopZichtKnop": 2,
   "coopZinnen": 1,
   "coopZit": 1,
+  "coopZitId": 1,
   "coopZitters": 1,
   "coopZittersDbg": 1,
   "coopZittersPlek": 1,

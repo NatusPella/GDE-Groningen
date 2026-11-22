@@ -159,6 +159,8 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [TTS-ROND3-22-11.md](<TTS-ROND3-22-11.md>) | TTS-ronde 3: opdrachten per spreker, de stemkeuze voor Veldkamp, Daan, Anneke, Stien en Lieke, en wat nog niet is beluisterd. |
 | [GATE-VOORBEREIDING-21-11.md](<GATE-VOORBEREIDING-21-11.md>) | Gate-voorbereiding 0.65.0: afvinklijst, testlijst en plan voor de eigenaar-review. |
 | [ISSUES-SORTEREN-22-11.md](<ISSUES-SORTEREN-22-11.md>) | Issues sorteren: labels, impact en kosten. |
+| [SCREENSHOTJACHT-22-11.md](<SCREENSHOTJACHT-22-11.md>) | Screenshotjacht: opnames voor de eigenaar-review. |
+| [UI-KRITIEK-22-11-hud.md](<UI-KRITIEK-22-11-hud.md>) | UI-kritiek 22-11: HUD en in-wereld-UI. |
 | [GATE-RAPPORT-22-11.md](<GATE-RAPPORT-22-11.md>) | Gate-rapport 0.65.0 (22-11): uitslag per stap, perf-regressie, fixes, open punten en de eigenaar-reviewpagina. |
 | [PERF-METING-2026-11-05.md](<PERF-METING-2026-11-05.md>) | Dit is een nieuwe, gedateerde meetbron naast `docs/PERF-METING-2026-10-19.md`. |
 | [PERF-METING-2026-11-09.md](<PERF-METING-2026-11-09.md>) | Prestatiemeting 9-11-2026: verificatie na de merge (#804/#806), top-5 hitchbronnen en de eerlijke norm-uitslag. |

@@ -40,9 +40,9 @@ export function chooseSpawn(inv = {}) {
     case 'opening':
       return uit('buiten', 'De openingsfilm en de eerste missie beginnen voor de deur, bij de Escapade in de garage.');
     case 'laden':
-      if (saveCtx === 'busy' || saveCtx === 'free') return uit('houd', 'Een save midden in een missie of ergens anders in de provincie houdt zijn plek.');
-      if (rol === 'gast') return uit('buiten', 'Een gast staat bij de host (de coop-regel), niet in zijn eigen woning.');
-      if (binnenSave === false) return uit('buiten', 'Deze save stond buiten bij het huis en blijft buiten.');
+      if (saveCtx === 'busy' || saveCtx === 'free') return uit('houd', 'Een spel midden in een missie of ergens anders in de provincie houdt zijn plek.');
+      if (rol === 'gast') return uit('buiten', 'Een gast staat bij wie het spel opende (de Samen-regel), niet in zijn eigen woning.');
+      if (binnenSave === false) return uit('buiten', 'Dit spel stond buiten bij het huis en blijft buiten.');
       return homeIndoors(type, instelling, interieurKlaar, uit);
     case 'naar-huis':
       return homeIndoors(type, instelling, interieurKlaar, uit);
@@ -57,7 +57,7 @@ export function chooseSpawn(inv = {}) {
     case 'ziekenhuis':
       return uit('buiten', 'Na het ziekenhuis of het bureau sta je daar, niet thuis.');
     case 'gast-aansluit':
-      return uit('buiten', 'Een gast die aansluit wordt naast de host gezet, nooit in een woning waar de groep niet is.');
+      return uit('buiten', 'Een gast die aansluit wordt naast wie het spel opende gezet, nooit in een woning waar de groep niet is.');
     default:
       return uit('buiten', 'Onbekende situatie: de oude regel (buiten).');
   }

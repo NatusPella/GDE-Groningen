@@ -4,7 +4,8 @@
  "statussen": [
   "OK",
   "gat",
-  "nvt"
+  "nvt",
+  "deels"
  ],
  "prioriteiten": [
   "hoog",
@@ -1706,6 +1707,34 @@
   {
    "glob": "propfilter",
    "reden": "Wegcheck van kit-props uit de kaartdata; wereldgeometrie, bij elke speler identiek."
+  },
+  {
+   "glob": "ammorules",
+   "reden": "Munitieregels van de eigen speler (rekenregels); lokaal, geen gedeelde spelstaat."
+  },
+  {
+   "glob": "harvestnotice",
+   "reden": "Melding bij een oogst voor de eigen speler (beeld)."
+  },
+  {
+   "glob": "holdingreport",
+   "reden": "Rapportweergave van het eigen bezit; per speler, beeld."
+  },
+  {
+   "glob": "opslaglezen",
+   "reden": "Leest de eigen opslag veilig in; lokaal."
+  },
+  {
+   "glob": "personagedossier",
+   "reden": "Personagekaart in het verhaalmenu (tekst); lokaal per speler."
+  },
+  {
+   "glob": "savediag",
+   "reden": "Diagnose van het opgeslagen spel op dit apparaat; lokaal."
+  },
+  {
+   "glob": "saveveilig",
+   "reden": "Veilig schrijven van de eigen opslag op dit apparaat; lokaal."
   }
  ],
  "opslag": {
