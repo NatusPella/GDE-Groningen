@@ -12,7 +12,7 @@
 // Zonder model of zonder WebGL blijft het icoon staan. The in-world TV overlay in
 // furniture.js is HUD, not this screen (#610).
 import { WEAPONS, hasWeapon, isMeleeWeapon } from './combat.js';
-import { WEAPON_STOCK, clothingLook, wearClothing, takeOffClothing, CAR_UPGRADES, BIKE_UPGRADES, MOTO_UPGRADES, inventoryShopState, upgradeListForStock } from './shops.js';
+import { WEAPON_STOCK, wearClothing, takeOffClothing, CAR_UPGRADES, BIKE_UPGRADES, MOTO_UPGRADES, inventoryShopState, upgradeListForStock } from './shops.js';
 import { VEHICLE_STOCK } from './shopdata.js';
 import { sfxEvent } from './sfx/haken.js';
 import { furnitureOwned, FURNITURE_TOTAL } from './furniture.js';
@@ -27,12 +27,12 @@ import { icoon } from './icons.js';
 import { deviceText } from './touchui.js';
 import { glyphHtml } from './keycap.js';
 import { createSharedPreview, renderSnapshot, cancelSnapshots, releaseSnapshots } from './vehiclepreview.js';
-import { ownedPieces, wornPieces, effectiveWorn, takeOffBlock, ownsAll, wornMatches, wearSet } from './clothing.js';
+import { ownedPieces, wornPieces, takeOffBlock, ownsAll, wornMatches, wearSet } from './clothing.js';
 import { SLOTS, SLOT_IDS, LOOKS, setsFor, parsePiece, pieceLabel } from './clothingdata.js';
 import { reducedMotion } from './motion.js';
 import { rasterMaat, kolommenUitTops, focusStep, TEGEL_MIN } from './spullenraster.js';
 import { createThumbs } from './spullenthumbs.js';
-import { moneySpec, wapenSpec, kledingSpec, etenSpec, meubelSpec, cardSpec, upgradeSpec, modelLabel } from './spullen3d.js';
+import { moneySpec, wapenSpec, stukSpec, setSpec, tintVoor, etenSpec, meubelSpec, cardSpec, upgradeSpec, modelLabel } from './spullen3d.js';
 import { CATS, itemIcoon, catVan, LEEG, cycleSort, sortLabel, sorteer, badgeTekst, tegelNaam, kanWeggooien, weggooiStap, weggooi, naWeggooien, WEGGOOI_VRAAG } from './spullenmodel.js';
 
 const SECTIONS = [
@@ -137,6 +137,8 @@ const SP_CSS = `<style data-spul-css>
 #pause-menu .sp-tile:focus-visible{outline:3px solid var(--ds-focus,var(--ink));outline-offset:3px}
 #pause-menu .sp-tile > *{position:relative}
 #pause-menu .sp-pw{position:relative;aspect-ratio:4/3;border-radius:8px;overflow:hidden;background:color-mix(in srgb,var(--ink) 7%,transparent);box-shadow:inset 0 0 0 1px var(--line)}
+#pause-menu .sp-pw.sp-tint{background:var(--sp-tint)}
+#pause-menu .sp-stage.sp-tint{background:var(--sp-tint)}
 #pause-menu .sp-ph{position:absolute;inset:0;display:grid;place-items:center;color:var(--g)}
 #pause-menu .sp-ph img{width:100%;height:100%;object-fit:contain;transition:transform var(--ds-m-lang,250ms) var(--ds-m-uit,ease-out);animation:sp-in var(--ds-m-midden,150ms) var(--ds-m-uit,ease-out) both}
 #pause-menu .sp-tile:hover .sp-ph img,#pause-menu .sp-tile:focus-visible .sp-ph img{transform:scale(1.07)}
@@ -248,7 +250,8 @@ function collect(w) {
   for (const x of ownPieces.sort((a, b) => SLOT_IDS.indexOf(a.item.slot) - SLOT_IDS.indexOf(b.item.slot) || a.id.localeCompare(b.id))) {
     const on = worn[x.item.slot] === x.id;
     const block = on ? takeOffBlock(ch, x.item.slot) : '';
-    out.push({ key: 'k:' + x.id, cat: 'kleding', viewer: kledingSpec(clothingLook(ch, on ? effectiveWorn(ch) : { ...effectiveWorn(ch), [x.item.slot]: x.id })), icon: 'kleding',
+    // alleen het stuk, niet Tammo (eigenaar 22-11): clothingpreview.js bouwt het stuk los, op de vorm die het nodig heeft
+    out.push({ key: 'k:' + x.id, cat: 'kleding', viewer: stukSpec(x.id), tint: x.color === 'natuur' ? '' : tintVoor(x.hex), icon: 'kleding',
       title: pieceLabel(x), sub: SLOTS.find((s) => s.id === x.item.slot).label, side: on ? 'Aan' : '',
       desc: x.item.desc, how: x.item.price ? `Kledingwinkel, ${euro(x.item.price)}` : 'Van jezelf',
       perk: storyOn ? 'Het verhaal bepaalt nu wat je aanhebt' : block || (on ? 'Uitdoen kan hier' : 'Aantrekken kan hier'),
@@ -257,7 +260,8 @@ function collect(w) {
   for (const set of [...setsFor(ch), ...LOOKS]) {
     if (!ownsAll(ch, set.pieces)) continue;
     const on = wornMatches(ch, set.pieces);
-    out.push({ key: 's:' + set.id, cat: 'kleding', viewer: kledingSpec(clothingLook(ch, setLookWorn(ch, set))), icon: 'kleding', title: `Set: ${set.label}`, sub: `${set.pieces.length} stukken`, side: on ? 'Aan' : '',
+    // een set: de stukken als nette compositie (een raster), geen poppetje
+    out.push({ key: 's:' + set.id, cat: 'kleding', viewer: setSpec(set.pieces), icon: 'kleding', title: `Set: ${set.label}`, sub: `${set.pieces.length} stukken`, side: on ? 'Aan' : '',
       desc: set.desc, how: set.price ? `Kledingwinkel, ${euro(set.price)}` : 'Van jezelf',
       perk: set.bonus && set.bonus.stealth ? 'Onopvallend: de politie raakt je sneller kwijt' : 'Alle stukken bij elkaar',
       act: storyOn || on ? null : { label: 'Hele set aantrekken', run: () => { const r = wearSet(ch, set); if (!r.ok) return r.reason; wearClothing(w, ch, set.pieces[0]); return `${set.label} aan`; } } });
@@ -310,13 +314,6 @@ function collect(w) {
   return { items: out, counts };
 }
 
-// What a character looks like in a set (the set's pieces over what they wear now), for the viewer.
-function setLookWorn(ch, set) {
-  const next = { ...effectiveWorn(ch) };
-  for (const p of set.pieces) { const x = parsePiece(p); if (x) next[x.item.slot] = p; }
-  return next;
-}
-
 function homeRoute(what) {
   const h = getHomeForRender()[0];
   if (!h) return 'Geen huis gevonden';
@@ -334,7 +331,7 @@ function tegel(it, i) {
   const soort = deel === 'alles' && it.cat !== 'geld' ? catLabel(it) : '';
   const ph = it.viewer ? '<span class="sp-ph" data-state="laden"></span>' : `<span class="sp-ph" data-state="icoon">${svg(it)}</span>`;
   return `<button type="button" class="sp-tile" data-spul="${esc(it.key)}" data-i="${i}" data-cat="${catVan(it)}" aria-label="${esc(tegelNaam(it))}" title="${esc(it.title)}"${sel === it.key ? ' aria-current="true"' : ''}>` +
-    `<span class="sp-pw">${ph}${it.side ? `<span class="sp-pip">${esc(it.side)}</span>` : ''}${badge ? `<span class="sp-badge" aria-hidden="true">${badge}</span>` : ''}${soort ? `<span class="sp-soort" aria-hidden="true">${esc(soort)}</span>` : ''}</span>` +
+    `<span class="sp-pw${it.tint ? ' sp-tint' : ''}"${it.tint ? ` style="--sp-tint:${it.tint}"` : ''}>${ph}${it.side ? `<span class="sp-pip">${esc(it.side)}</span>` : ''}${badge ? `<span class="sp-badge" aria-hidden="true">${badge}</span>` : ''}${soort ? `<span class="sp-soort" aria-hidden="true">${esc(soort)}</span>` : ''}</span>` +
     `<span class="sp-tile__t">${esc(it.title)}</span><span class="sp-tile__s">${esc(it.sub || '')}</span></button>`;
 }
 
@@ -411,7 +408,7 @@ const stageKey = (it) => (it && it.viewer ? JSON.stringify(it.viewer) : '');
 
 function stageHtml(it) {
   const label = esc(modelLabel(it.title));
-  return `<div class="sp-model"><div class="sp-stage" data-spul-stage data-key="${esc(stageKey(it))}" data-state="laden">` +
+  return `<div class="sp-model"><div class="sp-stage${it.tint ? ' sp-tint' : ''}"${it.tint ? ` style="--sp-tint:${it.tint}"` : ''} data-spul-stage data-key="${esc(stageKey(it))}" data-state="laden">` +
     `<span class="sp-ic" aria-hidden="true">${svg(it)}</span><img class="sp-still" alt="" draggable="false" hidden>` +
     `<canvas tabindex="0" role="img" aria-label="${label}: sleep of gebruik de pijltjestoetsen om te draaien"></canvas></div>` +
     `<div class="sp-stage-voet"><span class="sp-melding" data-spul-hint>Sleep of gebruik ${glyphHtml('ARROWLEFT')}${glyphHtml('ARROWRIGHT')} om te draaien</span>` +
