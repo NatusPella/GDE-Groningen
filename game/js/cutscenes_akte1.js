@@ -260,19 +260,21 @@ Object.assign(SPECS, SPECS_AKTE2);
 // --- M03 Het Loket: a waiting room, the number screen, a clerk ---------------------------------
 {
   const queue = (id, look, at, face, anim) => ({ cast: { [id]: { key: look, at, face, anim, bg: true } } });
-  const q = merge(queue('wachter1', 'femke', [3.8, -3.1], 200, 'phone'), queue('wachter2', 'harm', [4.9, -1.6], 190, 'lean'), queue('wachter3', 'geert', [4.4, 3.4], 170, 'idle'));
+  // the queue stands IN the hall, in front of the counter and facing it (face 0 = towards the windows); it used to stand at and
+  // behind the desk, among the clerks
+  const q = merge(queue('wachter1', 'femke', [1.6, -0.9], 5, 'phone'), queue('wachter2', 'harm', [2.7, 0.7], 355, 'lean'), queue('wachter3', 'geert', [0.9, 2.5], 350, 'idle'));
   SPECS['M03.intro'] = {
     set: 'loket',
     // R-13: de loketbediende krijgt een naamkaart (#1138)
     fx: [{ t: 1.0, fx: 'naam', text: 'Loketbediende, Loket C', dur: 2.6 }],
     cast: {
-      loketbediende: { key: 'loketbediende', at: [4.6, 0.2], face: 180, anim: 'idle', gest: ['talk', 'point', 'hips', 'talk'] },
+      loketbediende: { key: 'loketbediende', at: [4.6, 0], face: 180, anim: 'idle', gest: ['talk', 'point', 'hips', 'talk'] },
       ...q.cast,
     },
     props: {
       zuil: { kind: 'zuil', at: [1.8, 2.4, 0], face: 270 },
-      scherm: { kind: 'scherm', at: [5.1, -0.4, 0], face: 180 },
-      bord: { kind: 'bord', at: [4.6, 2.2, 0], face: 200 },
+      scherm: { kind: 'scherm', at: [2.2, -0.4, 0], face: 180 },
+      bord: { kind: 'bord', at: [3.0, 2.9, 0], face: 250 },
     },
     open: [{ actor: 'wachter1', gaze: 'actor:tammo' }, { actor: 'wachter3', gaze: 'actor:loketbediende' }, { actor: 'loketbediende', gaze: 'actor:wachter2' }, { prop: 'scherm', bob: 0.005 }],
     beats: [
@@ -306,10 +308,10 @@ Object.assign(SPECS, SPECS_AKTE2);
   SPECS['M03.outro'] = {
     set: 'loket',
     cast: {
-      loketbediende: { key: 'loketbediende', at: [3.4, 0], face: 180, anim: 'idle', gest: ['talk', 'point', 'hips'] },
+      loketbediende: { key: 'loketbediende', at: [4.8, 0], face: 180, anim: 'idle', gest: ['talk', 'point', 'hips'] },
       ...q.cast,
     },
-    props: { bord: { kind: 'bord', at: [4.6, 2.4, 0], face: 200 }, stempelblad: { kind: 'stempel', at: [3.2, 0, 1.0] } },
+    props: { bord: { kind: 'bord', at: [3.0, 2.9, 0], face: 250 }, stempelblad: { kind: 'stempel', at: [4.2, 0.9, 1.1] } },
     open: [{ actor: 'loketbediende', carry: 'stempelblad' }, { actor: 'tessa', anim: 'cheer' }],
     beats: [
       { on: 0, dt: 1.5, actor: 'loketbediende', drop: 'stempelblad' },
@@ -546,13 +548,13 @@ Object.assign(SPECS, SPECS_AKTE2);
   SPECS['M03.2'] = {
     set: 'loket',
     cast: {
-      jelle: { key: 'jelle', at: [3.0, 0.6], face: 190, anim: 'idle', gest: ['talk', 'point', 'hips'] },
-      bewaarder: { key: 'bewaarder', at: [4.2, -1.6], face: 190, anim: 'idle', gest: ['talk', 'point', 'hips'] },
-      loketbediende: { key: 'loketbediende', at: [4.7, 0.2], face: 180, anim: 'idle', gest: ['point', 'talk'] },
-      wachter1: { key: 'femke', at: [2.8, -2.9], face: 200, anim: 'phone', bg: true },
-      wachter2: { key: 'harm', at: [3.6, 2.9], face: 170, anim: 'lean', bg: true },
+      jelle: { key: 'jelle', at: [2.6, 0.7], face: 190, anim: 'idle', gest: ['talk', 'point', 'hips'] },
+      bewaarder: { key: 'bewaarder', at: [2.7, -1.7], face: 175, anim: 'idle', gest: ['talk', 'point', 'hips'] },
+      loketbediende: { key: 'loketbediende', at: [4.8, 0], face: 180, anim: 'idle', gest: ['point', 'talk'] },
+      wachter1: { key: 'femke', at: [1.4, -1.2], face: 5, anim: 'phone', bg: true },
+      wachter2: { key: 'harm', at: [1.2, 1.5], face: 350, anim: 'lean', bg: true },
     },
-    props: { klomp: { kind: 'klomp', at: [3.0, 0.6, 1] }, scherm: { kind: 'scherm', at: [4.9, -0.4, 0], face: 180 }, stempel: { kind: 'stempel', at: [4.2, -1.6, 1] } },
+    props: { klomp: { kind: 'klomp', at: [2.6, 0.7, 1] }, scherm: { kind: 'scherm', at: [2.2, -0.4, 0], face: 180 }, stempel: { kind: 'stempel', at: [2.7, -1.7, 1] } },
     open: [{ actor: 'jelle', carry: 'klomp' }, { actor: 'bewaarder', carry: 'stempel' }],
     beats: [
       { on: 'Goedemorgen', actor: 'jelle', anim: 'hips' },
@@ -565,11 +567,11 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Artikel 9', actor: 'loketbediende', anim: 'point' },
       { on: 'Salamitactiek', actor: 'tessa', anim: 'hips' },
       { on: 'Dat noemen wij', actor: 'jelle', anim: 'shrug' },
-      { on: 'Dat noemen wij', dt: 1.2, actor: 'jelle', walk: [[5.6, 3.0], [8.6, 3.4]], speed: 1.3 },
+      { on: 'Dat noemen wij', dt: 1.2, actor: 'jelle', walk: [[2.0, 2.3], [-2.0, 2.3], [-4.5, 0.8]], speed: 1.3 },
       { on: 'Foar mem', actor: 'jelle', anim: 'look' },
       { on: 'Wat zei hij', actor: 'tammo', face: 'actor:jelle' },
       { on: 'Wat zei hij', dt: 0.2, actor: 'tammo', anim: 'shrug' },
-      { on: 'Mevrouw Hoving', actor: 'bewaarder', walk: [[3.0, -0.6]], speed: 1.0 },
+      { on: 'Mevrouw Hoving', actor: 'bewaarder', walk: [[2.3, -0.7]], speed: 1.0 },
       { on: 'Mevrouw Hoving', dt: 0.1, actor: 'bewaarder', face: 'actor:tessa' },
       { on: 'Meneer Terpstra', actor: 'bewaarder', anim: 'point' },
       { on: 'En wie let', actor: 'tessa', anim: 'shake' },
