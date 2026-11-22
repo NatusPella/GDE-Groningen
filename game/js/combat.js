@@ -366,7 +366,7 @@ export function updateBullets(dt, world) {
     if (first === 'prop') { propImpact(world, b, prop); continue; }
     if (first === 'car') { vehicleImpact(world, b, car); continue; }
     if (hitPedestrians(world, b, x0, y0)) continue;
-    if (b.owner !== 'player' && (hitPlayer(world, b) || hitGast(world, b))) continue;
+    if (b.owner !== 'player' && (hitPlayer(world, b, x0, y0) || hitGast(world, b, x0, y0))) continue;
     if (b.owner === 'player' && world.coopPvp && pvpKogel(world, b)) { sound(world, b.x, b.y, 'flesh', 0.6); continue; } // geen bloed, alleen het geluid (#447)
     if (b.traveled > b.range) { groundImpact(world, b); continue; }
 
@@ -537,11 +537,13 @@ function damagePed(world, ped, damage, byPlayer, dx, dy, melee, weapon = WEAPONS
 }
 
 // Samen spelen (#434): een kogel van de politie raakt ook een gast (de politie jaagt op hem, coopgezocht.js); de schade gaat als bericht naar de gast zelf.
-function hitGast(world, b) {
+function hitGast(world, b, x0 = b.x, y0 = b.y) {
   if (b.owner !== 'police' || !world.coopSchade) return false;
   for (const [slot, l] of gastLichamen(world)) {
     if (l.inVehicle || l.inVeh || l.state === 'dead' || !Number.isFinite(l.x)) continue;
-    if (Math.hypot(l.x - b.x, l.y - b.y) > (l.radius || 0.4) + 0.12 || Math.abs((l.gz || 0) - (b.gz || 0)) > 3) continue;
+    const r = (l.radius || 0.4) + 0.12;
+    // a bullet carries its absolute height in b.z (it has no gz): compare it with the chest height of the body
+    if (closestPointOnSegment(l.x, l.y, x0, y0, b.x, b.y).dist2 > r * r || Math.abs((l.gz || 0) + 1.25 - b.z) > 3) continue;
     world.coopSchade(slot, b.damage);
     const bl = Math.hypot(b.vx, b.vy) || 1;
     bloodSpray(world, l.x, l.y, b.vx / bl, b.vy / bl, 0.3);
@@ -551,9 +553,11 @@ function hitGast(world, b) {
   return false;
 }
 
-function hitPlayer(world, b) {
+// Swept along this step, like hitPedestrians: tested at the end point only, a shot stepped over the body on a long frame.
+function hitPlayer(world, b, x0 = b.x, y0 = b.y) {
   const p = hoofdspeler(world);
-  if (Math.hypot(p.x - b.x, p.y - b.y) > p.radius + 0.12) return false;
+  const r = p.radius + 0.12;
+  if (closestPointOnSegment(p.x, p.y, x0, y0, b.x, b.y).dist2 > r * r) return false;
   damagePlayer(world, b.damage, 'kogel'); // een kogel gaat dwars door een blokstand heen (#492)
   const bl = Math.hypot(b.vx, b.vy) || 1;
   if (!p.inVehicle) {
