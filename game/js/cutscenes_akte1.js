@@ -235,7 +235,7 @@ Object.assign(SPECS, SPECS_AKTE2);
     },
     props: {
       automaat: { kind: 'automaat', at: [4.2, 2.2, 0], face: 270 },
-      pinpas: { kind: 'klembord', at: [2.4, 0.2, 1.1] },
+      pinpas: { kind: 'pinpas', at: [2.4, 0.2, 1.1] },
     },
     open: [{ actor: 'sjabbe', face: 'actor:tessa' }, { actor: 'sjabbe', carry: 'pinpas' }, { actor: 'tessa', anim: 'idle' }],
     beats: [
@@ -271,7 +271,7 @@ Object.assign(SPECS, SPECS_AKTE2);
     },
     props: {
       zuil: { kind: 'zuil', at: [1.8, 2.4, 0], face: 270 },
-      scherm: { kind: 'bord', at: [5.1, -0.4, 0], face: 180 },
+      scherm: { kind: 'scherm', at: [5.1, -0.4, 0], face: 180 },
       bord: { kind: 'bord', at: [4.6, 2.2, 0], face: 200 },
     },
     open: [{ actor: 'wachter1', gaze: 'actor:tammo' }, { actor: 'wachter3', gaze: 'actor:loketbediende' }, { actor: 'loketbediende', gaze: 'actor:wachter2' }, { prop: 'scherm', bob: 0.005 }],
@@ -309,7 +309,7 @@ Object.assign(SPECS, SPECS_AKTE2);
       loketbediende: { key: 'loketbediende', at: [3.4, 0], face: 180, anim: 'idle', gest: ['talk', 'point', 'hips'] },
       ...q.cast,
     },
-    props: { bord: { kind: 'bord', at: [4.6, 2.4, 0], face: 200 }, stempelblad: { kind: 'klembord', at: [3.2, 0, 1.0] } },
+    props: { bord: { kind: 'bord', at: [4.6, 2.4, 0], face: 200 }, stempelblad: { kind: 'stempel', at: [3.2, 0, 1.0] } },
     open: [{ actor: 'loketbediende', carry: 'stempelblad' }, { actor: 'tessa', anim: 'cheer' }],
     beats: [
       { on: 0, dt: 1.5, actor: 'loketbediende', drop: 'stempelblad' },
@@ -443,7 +443,7 @@ Object.assign(SPECS, SPECS_AKTE2);
   );
   SPECS['M05.outro'] = {
     cast: { sjoerd: { key: 'sjoerd', at: [2.3, 0.3], face: 185, anim: 'cheer', gest: ['talk', 'hips', 'point', 'cheer'] }, ...cafe.cast },
-    props: { bierviltje: { kind: 'klembord', at: [1.6, -0.1, 0.95] } },
+    props: { bierviltje: { kind: 'bierviltje', at: [1.6, -0.1, 0.95] } },
     open: [{ actor: 'gast1', gaze: 'actor:sjoerd' }, ...cafe.cues],
     beats: [
       { on: 'Record.', actor: 'sjoerd', anim: 'cheer' },
@@ -499,7 +499,7 @@ Object.assign(SPECS, SPECS_AKTE2);
   );
   SPECS['M01.3'] = {
     cast: { jelmer: { key: 'jelmer', at: [3.4, 1.2], face: 195, anim: 'phone', gest: ['cheer', 'point', 'talk', 'wave'] }, ...terras.cast },
-    props: { statief: { kind: 'bord', at: [2.4, 0.2, 0], face: 180 }, ...terras.props },
+    props: { statief: { kind: 'statief', at: [2.4, 0.2, 0], face: 180 }, ...terras.props },
     open: [{ actor: 'jelmer', gaze: 'camera' }, ...terras.cues],
     beats: [
       { on: 0, actor: 'jelmer', anim: 'wave' },
@@ -552,7 +552,7 @@ Object.assign(SPECS, SPECS_AKTE2);
       wachter1: { key: 'femke', at: [2.8, -2.9], face: 200, anim: 'phone', bg: true },
       wachter2: { key: 'harm', at: [3.6, 2.9], face: 170, anim: 'lean', bg: true },
     },
-    props: { klomp: { kind: 'tas', at: [3.0, 0.6, 1] }, scherm: { kind: 'bord', at: [4.9, -0.4, 0], face: 180 }, stempel: { kind: 'klembord', at: [4.2, -1.6, 1] } },
+    props: { klomp: { kind: 'klomp', at: [3.0, 0.6, 1] }, scherm: { kind: 'scherm', at: [4.9, -0.4, 0], face: 180 }, stempel: { kind: 'stempel', at: [4.2, -1.6, 1] } },
     open: [{ actor: 'jelle', carry: 'klomp' }, { actor: 'bewaarder', carry: 'stempel' }],
     beats: [
       { on: 'Goedemorgen', actor: 'jelle', anim: 'hips' },

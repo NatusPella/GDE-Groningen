@@ -63,6 +63,8 @@ export const NPC = {
   harm: { name: 'Harm', shirt: 0xe07b1f, skin: SKIN.woodMid, variant: 'male', seed: 137 },
   geert: { name: 'Geert', shirt: 0xe8e3d6, skin: SKIN.woodLight, variant: 'male', seed: 1523 },
   trijntje: { name: 'Oma Trijntje', shirt: 0x5c6f8a, skin: SKIN.woodLight, variant: 'female', seed: 195, hairStyle: 'bun' },
+  // #1121: Beppe (88, Fries, bij Kollum) had geen figuur in deze tabel: een scène met haar kon niet worden bezet
+  beppe: { name: 'Beppe', shirt: 0x7a4a6a, skin: SKIN.woodLight, variant: 'female', seed: 3107, hairStyle: 'bob' },
   klaas: { name: 'Kapitein Klaas', shirt: 0x1f2f4a, skin: SKIN.woodDark, variant: 'male', seed: 1659 },
   sjabbe: { name: 'Sjabbe', shirt: 0x6b5a2e, skin: SKIN.woodMid, variant: 'male', seed: 811 },
   bert: { name: 'Duivenmelker Bert', shirt: 0x56709e, skin: SKIN.woodLight, variant: 'male', seed: 2203 },

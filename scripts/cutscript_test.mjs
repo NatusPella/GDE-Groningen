@@ -381,7 +381,8 @@ ok(shotPoints({ sample() { throw new Error('x'); } }, anchor, 10).length === 0, 
 
 // cutscene props come from the world's registers (#136): no placeholder vehicles or animals
 {
-  const vsrc = readFileSync(new URL('../game/js/vehicle.js', import.meta.url), 'utf8') + readFileSync(new URL('../game/js/trafficfleet.js', import.meta.url), 'utf8');
+  // #1121: foodtruck en trekkerlimo staan in hun eigen bestanden, niet in het register van vehicle.js
+  const vsrc = ['vehicle.js', 'trafficfleet.js', 'pg_foodtruck.js', 'missions_akte2.js'].map((f) => readFileSync(new URL('../game/js/' + f, import.meta.url), 'utf8')).join(String.fromCharCode(10));
   const wsrc = readFileSync(new URL('../game/js/wildlife.js', import.meta.url), 'utf8');
   for (const n of VEHICLE_MODEL_NAMES) ok(new RegExp(`name: '${n}'`).test(vsrc), 'vehicle model in the world register: ' + n);
   for (const a of ANIMAL_KINDS) ok(new RegExp(`case '${a}':`).test(wsrc) || (a === 'cow' && /default: return buildCowMesh3D/.test(wsrc)), 'animal built by the world: ' + a);

@@ -28,11 +28,12 @@
 // below must equal its ANIMS (scripts/cutscript_test.mjs checks that).
 
 export const ACTOR_ANIMS = ['idle', 'walk', 'run', 'talk', 'wave', 'point', 'shrug', 'nod', 'shake', 'laugh', 'carry', 'lean', 'hips', 'phone', 'cheer', 'clap', 'look', 'ride', 'zwem', 'klim', 'sprong'];
-import { propKindIssue, propFoot } from './cutscenemodels.js';
+import { propKindIssue, propFoot, CARRY_LOW } from './cutscenemodels.js';
 import { calmShots } from './cineshots.js';
 import { crowdSpecIssue } from './crowdplan.js';
 import { isClip, isCatClip, clipLayers, clipDuration, CLIP_STOP } from './poseclips.js';
-export const PROP_KINDS = ['doos', 'tas', 'bestelbus', 'fiets', 'duif', 'radio', 'bord', 'koffer', 'bal', 'auto', 'matras', 'bakkie', 'automaat', 'aanhanger', 'trekker', 'politie', 'duiventil', 'zuil', 'klembord', 'briefje', 'kat', 'botsauto', 'koe'];
+export const PROP_KINDS = ['doos', 'tas', 'bestelbus', 'fiets', 'duif', 'radio', 'bord', 'koffer', 'bal', 'auto', 'matras', 'bakkie', 'automaat', 'aanhanger', 'trekker', 'politie', 'duiventil', 'zuil', 'klembord', 'briefje', 'kat', 'botsauto', 'koe',
+  'snackwagen', 'tankwagen', 'limo', 'klomp', 'stempel', 'pinpas', 'map', 'bierviltje', 'fotolijst', 'statief', 'krat', 'pan', 'vuurwerk', 'koelbox', 'jas', 'aktetas', 'hesjes', 'container', 'scherm', 'prikbord'];
 const VERBS = ['walk', 'anim', 'face', 'gaze', 'carry', 'drop', 'move', 'path', 'spin', 'bob', 'show', 'hide', 'sit'];
 export const SHOTS = ['cut', 'dolly', 'orbit', 'follow', 'close', 'reaction', 'ots', 'insert', 'tracking', 'crane', 'handheld', 'push'];
 // The host can scale or remove camera shake (a11y.js: Beweging beperken).
@@ -325,7 +326,7 @@ export function compileScene(def, opts = {}) {
       const c = last([{ t: 0, v: null }, ...ak.carries], t);
       if (c.v === id) {
         const ap = actorPos(aid, t), af = actorFacing(aid, t);
-        const laag = props[id].kind === 'tas' || props[id].kind === 'koffer' || props[id].kind === 'doos' || props[id].kind === 'bal';
+        const laag = CARRY_LOW.includes(props[id].kind);
         pos = [ap.f + Math.cos(af) * 0.3, ap.s + Math.sin(af) * 0.3, laag ? 0.9 : 0.98];
         a = af;
       }
