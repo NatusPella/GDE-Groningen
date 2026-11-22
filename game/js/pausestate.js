@@ -12,6 +12,7 @@ export function isPauseMenuOpen() { return open; }
 // as the phone in the hand (a fine while driving). pausemenu.js reports the tab.
 let tabName = null;
 export function setPauseMenuTabState(name) { tabName = name; }
+export const getPauseMenuTab = () => tabName;
 export function isPhoneOpen() { return open && tabName === 'verhaal'; }
 // Open and close the menu from a module the menu itself imports (the phone): pausemenu.js registers
 // its openPauseMenu and closePauseMenu here when it loads.

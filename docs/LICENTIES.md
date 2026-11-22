@@ -60,6 +60,7 @@ Er zijn drie soorten geluid in het spel, met elk een eigen herkomst:
 |---|---|---|---|
 | **Geluidseffecten**: motoren, voetstappen, foley, omgeving, interface, claxon, sirene | `game/js/sfx/*.js`, `game/js/audio.js` | in het spel zelf gesynthetiseerd (Web Audio: oscillatoren, ruis, filters), tijdens het spelen; op acht opnames na (zie hieronder) | **acht CC0-opnames** van Freesound in `game/audio/sfx/`, verder geen externe samples |
 | **Muziek**: 46 G-Music-nummers, 24 scenario-loops, titelnummer | `game/audio/gmusic`, `scenario`, `theme` | gemaakt met Google Gemini (AI), niet door de eigenaar gecomponeerd of gesynthetiseerd; zie §4 | n.v.t. (AI-output) |
+| **Voetbalmuziek**: 5 nummers en 2 stings (22-11) | `game/audio/voetbal` | gemaakt met Google Gemini (AI), niet door de eigenaar gecomponeerd; per bestand titel en bewerking in docs/MUZIEK-VOETBAL-22-11.md, nog te beluisteren door de eigenaar | n.v.t. (AI-output) |
 | **Stemmen**: ~3.100 regels plus vaste clips (`npc`, `police`, `nieuws`, jingles) | `game/audio/voicelines` e.a. | Gemini TTS via de LiteLLM-gateway (`google/gemini-3.8-flash-tts`), per map gelogd in `tts.json`; oudere clips via OpenRouter | n.v.t. (AI-output) |
 
 Sinds 24 okt 2026 horen ook de korte stings (afteller, finish, winnaar, verliezer, Meedoen?, speler sluit aan, trein vertrekt,

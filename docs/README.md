@@ -102,6 +102,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [MULTIPLAYER-VISIE.md](<MULTIPLAYER-VISIE.md>) | De visie van de eigenaar (besluiten van 23-10, 24-10 en 6-11), op één plek. In gesprekken zeggen we multipl… |
 | [MUZIEK.md](<MUZIEK.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/mechanica.md`](../.specs-fire/standard… |
 | [MUZIEK-GEBRUIK-20-11.md](<MUZIEK-GEBRUIK-20-11.md>) | Alle muziekbestanden van de eigenaar en waar ze in het spel spelen (20-11). |
+| [MUZIEK-VOETBAL-22-11.md](<MUZIEK-VOETBAL-22-11.md>) | Voetbalmuziek (22-11): de set, teksten en stijlprompts, wat gemaakt is en wat alleen als prompt klaarstaat, en hoe de fasekeuze werkt. |
 | [MUZIEK-TE-VRAGEN.md](<MUZIEK-TE-VRAGEN.md>) | Wat aan muziek gekoppeld is (alles) en wat de eigenaar nog moet leveren; uitkomst van de audiograafcontrole (#986, #988). |
 | [MUZIEK-OPDRACHT-GEMINI.md](<MUZIEK-OPDRACHT-GEMINI.md>) | Negen missiesferen met een kant-en-klare Gemini-prompt, de missies waarvoor ze zijn en hoe je een bestand toevoegt (#988). |
 | [RADIO-BEDIENING-22-11.md](<RADIO-BEDIENING-22-11.md>) | De radio bedienen met alleen een controller of toetsenbord: de knop per situatie, het zenderwiel, N kort en lang, de Samen-regel en de herbinding. |

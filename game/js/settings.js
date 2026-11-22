@@ -34,6 +34,8 @@ const BASE_DEFAULTS = {
   ritCamera: 'cabine', // de camera van de taxi- en treinrit (C of Y tijdens de rit): cabine, achter, zij of boven; lokaal per speler (ritpad.js)
   masterVolume: 1,
   musicVolume: 1,
+  footballMusic: true,       // de fasemuziek tijdens voetbal (footballmusic.js); lokaal per speler
+  footballMusicVolume: 0.8,
   sfxVolume: 0.75,
   voiceVolume: 1,
   brightness: 1,
@@ -325,7 +327,7 @@ const listeners = new Set();
 // nieuw spel). `settings.difficulty` blijft bestaan als spiegel van het actieve niveau: alle lezers (activiteiten, missies,
 // medailles) lezen hem zoals eerst, en een oude save zonder veld erft hier het niveau dat dit apparaat had.
 setActiveDifficulty({ level: settings.difficulty, custom: {} });
-// het niveau dat dit apparaat vóór het per-save-systeem had: een save zonder veld `moeilijkheid` erft dat eenmalig (savegame.js)
+// het niveau dat dit apparaat vóór het per-save-systeem had: een save zonder veld `moeilijkheid` erft dat oneShot (savegame.js)
 export const legacyDifficultyLevel = settings.difficulty;
 onDifficultyChange((d) => { if (settings.difficulty !== d.level) setSetting('difficulty', d.level); applyHudClasses(); });
 
