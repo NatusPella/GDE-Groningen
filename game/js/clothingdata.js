@@ -20,6 +20,9 @@ export const SLOTS = [
   { id: 'back', label: 'Tas', empty: 'Geen tas' },
   { id: 'wrist', label: 'Pols', empty: 'Geen horloge' },
   { id: 'hands', label: 'Handen', empty: 'Geen handschoenen' },
+  // sportslots (22-11, voetbalkleding): achteraan, want de outfit-code leidt het slot af uit het stuk en niet uit de volgorde
+  { id: 'legs', label: 'Kousen', empty: 'Geen kousen' },
+  { id: 'guard', label: 'Scheenbeschermers', empty: 'Geen scheenbeschermers' },
 ];
 export const SLOT_IDS = SLOTS.map((s) => s.id);
 // Zonder deze slots loop je niet de straat op: je kunt ze wisselen, niet uitdoen (een jurk telt voor top en broek).
@@ -77,13 +80,58 @@ export const KIND_LOOK = {
   stubble: { facial: 'stubble' }, beard: { facial: 'beard' }, moustache: { facial: 'moustache' }, goatee: { facial: 'goatee' },
   scarf: { scarf: true }, backpack: { bag: 'backpack' }, shoulder: { bag: 'shoulder' },
   chain: {}, pearls: {}, beads: {}, pendant: {}, watch: {}, band: {}, bracelet: {}, glove: {}, work: {}, garden: {},
+  // voetbalkleding (22-11): het shirt is een tee of lange mouw, het patroon komt als eigen laag (clothingkit.js, shirtBands); de rest zit in outfitToLook
+  kitshirt: { top: 'tee', hood: false }, kitlong: { top: 'longsleeve', rolled: false, hood: false },
+  kitshorts: { bottom: 'shorts' }, trackpants: { bottom: 'trousers' },
+  trackjack: { top: 'jacket', coatOpen: false, forceOpen: false, hood: false },
+  bib: { top: 'tee', hood: false },
+  cleat1: { shoeType: 'cleat', cleat: 1 }, cleat2: { shoeType: 'cleat', cleat: 2 }, cleat3: { shoeType: 'cleat', cleat: 3 }, cleat4: { shoeType: 'cleat', cleat: 4 },
+  kitsocks: {}, shinguard: {}, captain: {}, keeperglove: {},
 };
 // Kleine meshes die niet in de rompgeometrie zitten (zie models3d_clothing.js)
-export const ACCESSORY_KINDS = ['chain', 'pearls', 'beads', 'pendant', 'watch', 'band', 'bracelet', 'glove', 'work', 'garden'];
+export const ACCESSORY_KINDS = ['chain', 'pearls', 'beads', 'pendant', 'watch', 'band', 'bracelet', 'glove', 'work', 'garden', 'keeperglove'];
 
 // [id, slot, soort, naam, basisprijs, zeldzaamheid, afdelingen, kleuren, omschrijving, npc]
 // npc: true = niet te koop, alleen voor NPC's (rolkleding). Prijs: basis x zeldzaamheid, afgerond.
 const R = (s) => s.split(' ');
+
+// Voetbalkleding (22-11, docs/VOETBALKLEDING-22-11.md): echte kledingstukken in de bestaande slots, achteraan de catalogus (append-only: de outfit-code blijft kloppen).
+// Het shirt heeft zes patronen en twee mouwlengtes, elk als eigen stuk; de tweede kleur van het patroon volgt uit de eerste (KIT_PAIR), zodat een stuk
+// één kleur blijft en de outfit-code niet verandert. Per niveau is er een andere schoen (clothingkit.js KIT_LEVELS).
+export const KIT_COLORS = R('groen rood felrood blauw zeeblauw marine oranje geel mosterd wit zwart antraciet bordeaux lichtblauw mint paars turquoise knalroze grijs');
+// eerste kleur -> de tweede kleur van het patroon (en de kleur van de uitshirts)
+export const KIT_PAIR = {
+  groen: 'wit', rood: 'wit', felrood: 'wit', blauw: 'wit', zeeblauw: 'geel', marine: 'lichtblauw', oranje: 'zwart', geel: 'marine', mosterd: 'marine',
+  wit: 'marine', zwart: 'wit', antraciet: 'oranje', bordeaux: 'lichtblauw', lichtblauw: 'marine', mint: 'marine', paars: 'geel', turquoise: 'wit',
+  knalroze: 'zwart', grijs: 'zwart',
+};
+// patroon-id in een itemnaam -> patroon zoals voetbalclubs.js het noemt (hoepels en kruis zijn nieuw)
+export const KIT_PATTERNS = { effen: 'effen', streep: 'brede-streep', smal: 'smalle-streep', helften: 'helften', hoepels: 'hoepels', kruis: 'kruis' };
+const PATTERN_NAME = { effen: 'effen', streep: 'brede strepen', smal: 'smalle strepen', helften: 'helften', hoepels: 'hoepels', kruis: 'kruis' };
+const KIT_SHIRTS = [];
+for (const lang of [false, true]) {
+  for (const pat of Object.keys(KIT_PATTERNS)) {
+    KIT_SHIRTS.push([`voetbalshirt${lang ? '_lang' : ''}_${pat}`, 'top', lang ? 'kitlong' : 'kitshirt', `Voetbalshirt${lang ? ', lange mouw' : ''} (${PATTERN_NAME[pat]})`, lang ? 38 : 32, pat === 'effen' ? 'g' : 'b', R('sport'), KIT_COLORS,
+      pat === 'effen' ? 'Effen katoen, zoals elk dorpsveld het kent' : 'Het patroon van de club, zonder opdruk: het shirt is een vorm en een kleur']);
+  }
+}
+const KIT_RAW = [
+  ...KIT_SHIRTS,
+  ['keepersshirt', 'top', 'kitlong', 'Keepersshirt', 42, 'b', R('sport'), R('geel mosterd oranje knalroze turquoise groen zwart felrood lichtblauw'), 'Lange mouwen en een kleur die niemand anders draagt'],
+  ['voetbalbroekje', 'bottom', 'kitshorts', 'Voetbalbroekje', 18, 'g', R('sport'), KIT_COLORS, 'Kort en licht. Het is zomer in Grunn'],
+  ['voetbalsokken', 'legs', 'kitsocks', 'Voetbalsokken', 10, 'g', R('sport'), KIT_COLORS, 'Kousen tot de knie, bij een broekje'],
+  ['scheenbeschermers', 'guard', 'shinguard', 'Scheenbeschermers', 14, 'g', R('sport'), R('zwart wit oranje mint lichtgrijs'), 'Zichtbaar onder de kous. Verplicht, zegt de scheids, en daar heeft hij gelijk in'],
+  ['noppen_basis', 'shoes', 'cleat1', 'Voetbalschoenen (dorpsveld)', 28, 'g', R('sport'), R('zwart schoenzwart donkerbruin'), 'Effen en eenvoudig, met zes noppen. Doet wat hij moet doen'],
+  ['noppen_semi', 'shoes', 'cleat2', 'Voetbalschoenen (streek)', 55, 'b', R('sport'), R('zwart wit oranje blauw mint'), 'Met een streep op de zijkant en betere noppen'],
+  ['noppen_pro', 'shoes', 'cleat3', 'Voetbalschoenen (profklasse)', 90, 'z', R('sport'), R('zwart wit oranje geel mint knalroze'), 'Lage enkel, een manchet en dunne noppen'],
+  ['noppen_top', 'shoes', 'cleat4', 'Voetbalschoenen (topklasse)', 140, 'u', R('sport'), R('geel oranje knalroze mint zeeblauw'), 'Opvallend, met hielkap en tong. De hele tribune ziet dat je ze hebt'],
+  ['keepershandschoenen', 'hands', 'keeperglove', 'Keepershandschoenen', 22, 'b', R('sport'), R('geel oranje wit mint knalroze'), 'Gevoerd, met een brede manchet. Voor wie liever de bal vangt dan zijn handen'],
+  ['aanvoerdersband', 'wrist', 'captain', 'Aanvoerdersband', 6, 'g', R('sport'), R('geel oranje felrood groen blauw wit'), 'Om de bovenarm. Wie hem draagt, praat met de scheids'],
+  ['trainingsjack', 'outer', 'trackjack', 'Trainingsjack', 36, 'g', R('sport'), KIT_COLORS, 'Dicht tot de kin. Voor het warmlopen, niet voor de winter'],
+  ['trainingsbroek', 'bottom', 'trackpants', 'Trainingsbroek', 28, 'g', R('sport'), KIT_COLORS, 'Lange pijpen, voor het warmlopen en het napraten'],
+  ['opwarmhesje', 'outer', 'bib', 'Opwarmhesje', 8, 'g', R('sport'), R('oranje geel felrood mint knalroze lichtblauw wit'), 'Zodat je weet wie bij wie hoort tijdens het rondo'],
+];
+
 const RAW = [
   // hoofd
   ['stadjerspet', 'hat', 'tammo', 'Stadjerspet', 18, 'g', R('straat sport'), R('roest groen bos oranje bordeaux inktzwart marine wit'), 'De pet met het gele plaatje van de Stadjer. Zit altijd een tikje scheef'],
@@ -165,6 +213,7 @@ const RAW = [
   ['uniformjas', 'outer', 'jacket', 'Uniformjas', 0, 'u', [], R('marine zwart'), 'Dienstkleding', true],
   ['veiligheidsjas', 'outer', 'jacket', 'Veiligheidsjas', 0, 'u', [], R('oranje geel'), 'Opvallend op de bouwplaats', true],
   ['schort', 'top', 'tee', 'Schort', 0, 'u', [], R('wit creme bruin'), 'Voor de bakkerij en het slagersblok', true],
+  ...KIT_RAW,
 ];
 
 export const ITEMS = RAW.map(([id, slot, kind, label, base, r, profiles, colors, desc, npc]) => ({
@@ -368,6 +417,15 @@ export const ROLE_POOLS = {
     hat: [[null, 80], ['pet', 20]],
     glasses: [[null, 60], ['zonnebril', 40]],
     wrist: [[null, 50], ['horloge', 50]],
+  },
+  // een voetballer (22-11): teamgenoten en tegenstanders gebruiken dezelfde stukken als de speler. npcOutfit bouwt hem uit clothingkit.js (één shirtkleur
+  // voor shirt, broek en sokken, het niveau uit ctx.level); deze lijst is de neutrale terugval en houdt de poolcontrole eerlijk.
+  voetballer: {
+    top: [['voetbalshirt_effen', 100]],
+    bottom: [['voetbalbroekje', 100]],
+    legs: [['voetbalsokken', 100]],
+    guard: [[null, 40], ['scheenbeschermers', 60]],
+    shoes: [['noppen_basis', 100]],
   },
   feestganger: {
     top: [['blouse', 30], ['tshirt', 30], ['jurk', 20], ['clubshirt', 20]],
