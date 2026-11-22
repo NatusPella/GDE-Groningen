@@ -13,7 +13,7 @@ for (const m of ['story', 'lines', 'banter']) {
   const p = new URL(`game/audio/voicelines/${m}/manifest.json`, root);
   manifests[m] = fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : {};
 }
-const readingTime = (t) => Math.max(2.2, Math.min(8, 1.3 + String(t || '').length * 0.058));
+const readingTime = (t) => Math.max(2.2, Math.min(12, 1.3 + String(t || '').length * 0.058));
 const dur = (l) => {
   if (l.channel === 'app-stil') return 0;
   const key = (l.voice || l.speaker) + '|' + l.text;

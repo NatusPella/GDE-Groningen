@@ -61,8 +61,14 @@ if (typeof window !== 'undefined') {
 }
 
 // How long a line stays up when nothing is spoken: reading time, a bit slower than the recorded pace.
-export function readingTime(text) {
-  return Math.max(2.2, Math.min(8, 1.3 + String(text || '').length * 0.058));
+// Verfijning 22-11: een lange regel kreeg altijd hoogstens 8 s (het plafond viel bij 115 tekens), dus een regel van 200 tekens
+// stond in 26 tekens per seconde in beeld. Plafond nu 12 s; de leesstand uit Instellingen (Leestijd: ruim) rekt de tijd van
+// een regel zonder opname 1,5 keer op; 'geen timer' kan hier niet wachten (een scène loopt door) en telt als 'ruim'.
+export const READING_CAP_S = 12;
+export const READING_RUIM = 1.5;
+export function readingTime(text, mode = 'normaal') {
+  const base = Math.max(2.2, Math.min(READING_CAP_S, 1.3 + String(text || '').length * 0.058));
+  return mode === 'ruim' || mode === 'geen' ? Math.round(base * READING_RUIM * 100) / 100 : base;
 }
 
 // { src, dur } of the recording of a line (src absolute), or null for a text-only line.

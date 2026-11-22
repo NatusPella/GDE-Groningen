@@ -50,6 +50,13 @@ export function recapContent(input) {
     card = countWords(withoutWhy) > countWords(withWhy) ? { ...card, why: '', now: withoutWhy } : { ...card, now: withWhy };
   }
   if (size(card) > RECAP_MAX_WORDS) card = { ...card, why: '' };
+  // Verfijning 22-11: een ongewoon lange titel of eerste zin mag de kaart nooit uit het budget duwen: eerst "laatst gedaan" weg,
+  // dan het doel zelf op woorden afgekapt met een beletselteken.
+  if (size(card) > RECAP_MAX_WORDS) card = { ...card, last: countWords(card.last) > 14 ? '' : card.last };
+  if (size(card) > RECAP_MAX_WORDS) {
+    const budget = Math.max(8, RECAP_MAX_WORDS - countWords(card.last));
+    card = { ...card, now: card.now.trim().split(/\s+/).slice(0, budget).join(' ').replace(/[,;:]$/, '') + '…' };
+  }
   return card;
 }
 
