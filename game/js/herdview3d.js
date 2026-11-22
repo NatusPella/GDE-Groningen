@@ -1,12 +1,12 @@
 // Het vee van Bezit in de wereld (epic #1095, #1101; ontwerp docs/BEZIT-21-11.md 5.4): hoogstens twaalf dieren per weide met een kudde, rond het binnenpunt van het
 // perceel, alleen binnen de streamstraal en hoogstens vier weiden tegelijk. De planning (herdview.js) is puur en vast per perceel-ID; hier staat alleen de THREE-kant:
 // de bestaande koe-, schaap- en kipmodellen van wildlife.js (hun geometrie wordt gedeeld, een dier is alleen een skelet en een materiaalverwijzing) en het opruimen
-// via disposeObject. Elke seconde getikt, niet elk beeld; de dieren staan stil (geen animatie, dus ook niets om reducedMotion voor te negeren). Een gast ziet het niet.
+// via disposeObject. Elke seconde getikt, niet elk beeld; de dieren staan stil (geen animatie, wel een vaste pose per dier: staan, kijken of grazen; dus ook niets om reducedMotion voor te negeren). Een gast ziet het niet.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene, disposeObject } from './scene3d.js';
 import { hoofdspeler } from './players.js';
 import { getBezit } from './bezitlive.js';
-import { buildCowMesh3D, buildSheepMesh3D, buildDuckMesh3D } from './wildlife.js';
+import { buildCowMesh3D, buildSheepMesh3D, buildChickenMesh3D, KIP_VARIANTEN, poseHerdAnimal } from './wildlife.js';
 import { isInWater } from './util.js';
 import { herdsVisible, planHerds, diffHerds, herdSig, animalLayout } from './herdview.js';
 
@@ -14,10 +14,11 @@ const TICK_S = 1;
 const S = { herds: new Map(), sig: new Map(), t: 0 };
 const ground = (w, x, y) => (w.map && w.map.groundHeightAt ? w.map.groundHeightAt(x, y, 0) || 0 : 0);
 
-function animalMesh(model, a) {
-  if (model === 'cow') return buildCowMesh3D(a.seed, a.red);
-  if (model === 'sheep') return buildSheepMesh3D();
-  return buildDuckMesh3D('hen');
+// Een echte kip (vier looks, een op de zes een haan) in plaats van een eend; elk dier krijgt een vaste pose (staan, kijken, grazen) naar zijn zaad.
+export function animalMesh(model, a) {
+  const m = model === 'cow' ? buildCowMesh3D(a.seed, a.red) : model === 'sheep' ? buildSheepMesh3D() : buildChickenMesh3D(Math.floor(a.seed * KIP_VARIANTEN));
+  poseHerdAnimal(m, model, (a.seed * 3.7) % 1);
+  return m;
 }
 // Een plek is goed als er geen water of gebouw staat (anders slaan we hem over; animalLayout geeft daarvoor extra kandidaten).
 function spotOk(w, x, y) {
