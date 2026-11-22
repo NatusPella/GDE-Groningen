@@ -53,7 +53,7 @@ Twee fouten gevonden door de kaart door `bouwMoment` te halen met de echte regel
 1. **Dubbel label.** `showBanner` geeft de titel `MISSIE GESLAAGD` door; die is korter dan 16 tekens en werd het grote woord, terwijl het kleine label al "Missie geslaagd" zegt. Nu is de titel gelijk aan het standaardlabel geen grote tekst meer en komt het Gronings "Mooi, dat gaait!" te staan. Een eigen korte titel ("Sikkom.") blijft.
 2. **Afgekapt doel.** De kaart klemt op 14 woorden (`klemWoorden`). 20 van de 32 `outro`'s in `missions*.js` zijn langer en werden midden in een zin afgekapt met een beletselteken, waardoor "Nieuw doel: ..." (waar je nu heen moet) verdween, bijvoorbeeld bij het podium van M05. Nieuw: `kaartRegel` knipt op een zinsgrens, houdt de zin "Nieuw doel" en voegt de eerste zin toe als die erbij past.
 
-De bronzinnen zelf zijn niet ingekort: andere werkbomen (akte 4, 5 en 6) wijzigen dezelfde bestanden, dus de algemene knip voorkomt een samenvoegconflict en dekt toekomstige outro's. Test: elke gevonden outro past in 14 woorden en eindigt niet op een beletselteken (32 stuks gevonden, 96 controles). Samen spelen: de eindkaart is lokaal per speler (`showBigMoment` filtert al op gast of deelnemer); beloning per speler (#429).
+De bronzinnen zelf zijn niet ingekort: andere werkbomen (akte 4, 5 en 6) wijzigen dezelfde bestanden, dus de algemene knip voorkomt een samenvoegconflict en dekt toekomstige outro's. Test: elke gevonden outro past in 14 woorden en eindigt niet op een beletselteken (40 regels gevonden). Samen spelen: de eindkaart is lokaal per speler (`showBigMoment` filtert al op gast of deelnemer); beloning per speler (#429).
 
 ### Overgangsscènes en telefoontjes (WP2, #1125)
 
