@@ -7,7 +7,9 @@
 // (eieren, klokstand) en het missievoertuig op de plek waar het toen stond.
 
 // Na deze stages is de speler even op adem; de stage erna is een goed hervatpunt.
-export const CHECKPOINT_KINDS = ['scene', 'board', 'hold', 'bake'];
+// Verfijning 22-11: ook na een gehaalde achtervolging of timingproef (chase, boatchase, timing) is de speler even op adem;
+// zonder dat begon een mislukking in de laatste stage weer bij de start van de hele missie.
+export const CHECKPOINT_KINDS = ['scene', 'board', 'hold', 'bake', 'chase', 'boatchase', 'timing'];
 
 // Stages waarvan de eigen toestand (planscherm, keuze, menu's) niet opnieuw op te bouwen is.
 const NEVER = ['plan', 'choice'];
@@ -80,6 +82,13 @@ export function stepGrace(g, dt, status) {
 // --- Opnieuw-aanbod na falen -----------------------------------------------------------------
 
 export const RETRY_OFFER_S = 40;
+
+// Verfijning 22-11: de mislukscène (s.fail) speelt de eerste keer dat een missie mislukt; wie het opnieuw probeert en weer
+// mist, krijgt alleen de uitslagkaart. Dezelfde grap drie keer achter elkaar is geen grap meer en kost elke poging seconden.
+export const FAIL_SCENE_MAX = 1;
+export function failSceneMode(eerdereMislukkingen) {
+  return (Number(eerdereMislukkingen) || 0) >= FAIL_SCENE_MAX ? 'banner' : 'scene';
+}
 
 export const createRetryOffer = (missionIndex, now) => ({ missionIndex, until: now + RETRY_OFFER_S, done: false });
 

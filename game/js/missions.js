@@ -3153,7 +3153,7 @@ function playStageScene(world, st, S) {
   const name = (who) => (who === 'T' ? 'Tammo' : who === 'A' ? 'Anita' : storySpeakerName(who));
   let at = st.reveal ? REVEAL.card : 0.6;
   const lines = (st.lines || []).map(([who, text]) => {
-    const dur = readingTime(text);
+    const dur = readingTime(text, getSettings().readingTime);
     const l = { speaker: name(who), text, at, dur };
     at += dur + 0.1;
     return l;
