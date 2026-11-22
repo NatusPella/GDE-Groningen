@@ -43,7 +43,7 @@ import { areaNameAt } from './regions.js';
 import { saveFailText, newSlotName, takenNames, readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive, pickLatest, repairSlot, writeBackupOnce, isFresh, clearFresh, newerVersionOf, markLegacyCardSeen as markSlotLegacyCardSeen } from './saveslots.js';
 import { isLegacyStorySave, legacyCardNeeded } from './legacysave.js'; // 22-11: de kaart "Nieuw verhaal" bij een oude save
 import { logError } from './errorlog.js';
-import { makeSafe } from './saveveilig.js';
+import { makeSafe, healthForSave } from './saveveilig.js';
 import { maakCheckpoint } from './coopcheckpoint.js';
 import { registerSaveGame, registerSaveTimers, registerGastVerhaal, registerGastBoek } from './savehook.js';
 import { karakterVoorSave, clearActivity } from './karakterbonus.js';
@@ -282,7 +282,7 @@ function serialize(w) {
     speeltijd: Math.round(playSeconds),
     money: Math.max(0, Math.floor(num(w.money, num(w._goodMoney, 0)))),
     moneyBackup: Math.max(0, Math.floor(num(w._goodMoney, num(w.money, 0)))),
-    health: clamp(num(w.health, 100), 1, 100),
+    health: healthForSave(w.health, !!w.pendingRespawn),
     armor: clamp(num(w.armor, 0), 0, 100),
     weapon: w.weapon,
     ammo,
