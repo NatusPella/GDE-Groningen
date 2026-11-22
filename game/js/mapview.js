@@ -1725,8 +1725,8 @@ function drawStaticOverlay(ctx) {
 // oorzaak van vuil (laag aan/uit, pins, modus) bouwt hij hem opnieuw. Geeft true als er nog een scherpe
 // herschil volgt.
 function drawOverlayCached(c, wasDirty, now) {
-  let ov = state.overlay;
-  if (!ov) ov = state.overlay = { canvas: document.createElement('canvas'), ctx: null, valid: false, view: null };
+  let ov = state.fixedLayerCache; // (niet state.overlay: dat is het DOM-element van de kaart)
+  if (!ov) ov = state.fixedLayerCache = { canvas: document.createElement('canvas'), ctx: null, valid: false, view: null };
   const src = state.compose;
   if (ov.canvas.width !== src.width || ov.canvas.height !== src.height) {
     ov.canvas.width = src.width; ov.canvas.height = src.height; ov.valid = false; ov.ctx = null;
