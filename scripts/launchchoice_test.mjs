@@ -353,13 +353,14 @@ await t('toestemmingskaart in een nep-DOM: zonder vinkje geen akkoord; met vinkj
 const lees = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 await t('main.js: dezelfde testvlaggen slaan de kaart over; Alleen houdt de sessiezoektocht dicht', () => {
   const m = lees('game/js/main.js');
-  const lijst = /const testmodus = !!\(([^)]*)\);/.exec(m);
-  assert.ok(lijst, 'main.js telt de testmodus');
-  for (const f of ['noattract', 'storytest', 'stil', 'trailer', 'preview', 'benchmark', 'perf', 'spotsonly', 'autoplay', 'menutest']) assert.ok(lijst[1].includes(`FLAGS.${f}`), `FLAGS.${f} slaat de kaart over`);
-  assert.match(m, /launchPlan\(getSettings\(\), \{ testmodus, vlag: FLAGS\.startkeuze \}\)/);
+  // 22-11: één centrale regel (launchchoice.js launchKind/skipStartChoice); de vlaggenlijst staat in AUTOMATION_FLAGS
+  assert.match(m, /const testmodus = launchKind\(FLAGS\) !== 'player';/);
+  assert.match(m, /launchPlan\(getSettings\(\), \{ testmodus, vlag: FLAGS\.startkeuze, benchmark: /);
+  assert.match(m, /const vraagOnline = !skipStartChoice\(FLAGS, /);
+  for (const f of ['noattract', 'storytest', 'stil', 'trailer', 'preview', 'benchmark', 'perf', 'spotsonly', 'autoplay', 'menutest']) assert.ok(K.AUTOMATION_FLAGS.includes(f), `${f} slaat de kaart over`);
   assert.match(m, /getLaunchMode\(\) !== 'alleen'\) sessionBootTick/);
   assert.match(m, /magOnline\(\) && getLaunchMode\(\) !== 'alleen'/);
-  assert.match(m, /FLAGS\.startkeuze === 'alleen'\) applyLaunchMode\('alleen'\)/);
+  assert.match(m, /FLAGS\.startkeuze === 'alleen' \|\| benchStart\) applyLaunchMode\('alleen'\)/);
 });
 await t('devtools.js: elke testrun krijgt startkeuze=alleen (behalve --coop), GDE_STARTKEUZE=vraag toont de kaart', () => {
   const d = lees('desktop/devtools.js');

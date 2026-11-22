@@ -1,6 +1,6 @@
 // Bridge for the game page: only these desktop features, nothing else of
 // Node/Electron is reachable from the renderer.
-const { contextBridge, ipcRenderer, clipboard } = require('electron');
+const { contextBridge, ipcRenderer } = require('electron');
 
 const listeners = new Set();
 const coopListeners = new Set();
@@ -21,7 +21,8 @@ contextBridge.exposeInMainWorld('gdeDesktop', {
   onFullscreenChange: (fn) => { listeners.add(fn); return () => listeners.delete(fn); },
   quit: () => ipcRenderer.send('gde:quit'),
   // Klembord voor de tekstvelden (js/textfield.js): zonder menu plakt Electron zelf niet altijd
-  clipboard: { readText: () => clipboard.readText(), writeText: (t) => clipboard.writeText(String(t).slice(0, 2000)) },
+  // Via het main-proces: `clipboard` bestaat niet in een preload met sandbox (Electron 45) en navigator.clipboard faalt zonder gebaar (benchmarkrapport 22-11)
+  clipboard: { readText: () => ipcRenderer.invoke('gde:clipboard-read'), writeText: (t) => ipcRenderer.invoke('gde:clipboard-write', String(t).slice(0, 200000)) },
   // Foutrapport (errorlog.js): a save dialog, then the text to that file; true when saved
   saveTextFile: (name, text) => ipcRenderer.invoke('gde:save-text', String(name), String(text)),
   // Coöp online (#95): alleen deze vier aanroepen; TCP en UPnP draaien in het main-proces

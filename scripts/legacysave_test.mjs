@@ -143,7 +143,7 @@ ok(/act === 'legacy-continue'[\s\S]{0,200}markLegacyCardSeen\(cur\.n\)[\s\S]{0,1
 ok(/act === 'legacy-new'[\s\S]{0,500}doAction\('new', vrij, 0\)/.test(ui) && !/legacy-new[\s\S]{0,500}deleteSlot/.test(ui), 'Nieuw spel gaat via de gewone route en wist niets');
 ok(/legacy-new[\s\S]{0,300}Alle plekken zijn in gebruik/.test(ui), 'zonder vrije plek zegt het dat, het neemt de oude plek niet in');
 ok(/ssl-modal/.test(ui.slice(ui.indexOf('const legacyAsk'), ui.indexOf('const cardDone'))), 'de kaart is een modaal vak binnen het scherm (eigen toetsafhandeling, listnav-groep menu)');
-ok((ss.match(/const continueGame = \(\) => legacyCardFirst\(continueNow, startNew\);/g) || []).length === 3, 'alle drie de Doorgaan-paden van het startscherm gaan langs de kaart');
+ok((ss.match(/const continueGame = \(\) => legacyCardFirst\(continueNow, startNew\);/g) || []).length === 2 && /const continueGame = \(\) => \(afterBench && !afterBench\.legacyCard \? continueNow\(\) : legacyCardFirst\(continueNow, startNew\)\);/.test(ss), 'de Doorgaan-paden van het startscherm gaan langs de kaart, behalve terug uit een benchmark (benchmarkreturn.js)');
 ok(/const testmodus = !!\(AUTO \|\| FLAGS\.autoplay \|\| FLAGS\.menutest\);\s*if \(!sm \|\| !sm\.legacyCard \|\| testmodus\)/.test(ss), 'een testrun slaat de kaart over');
 ok(/legacyCard: legacyCardNeeded\(d\)/.test(sg) && /\.\.\.\(legacyCardSeen \? \{ legacyCardSeen: true \} : \{\}\)/.test(sg), 'de vlag reist mee in elke volgende save');
 ok(/legacyCardSeen = false;\s*bindSlot\(\);/.test(sg), 'een nieuw spel begint zonder vlag');

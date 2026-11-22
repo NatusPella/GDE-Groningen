@@ -1,7 +1,7 @@
 // GDE Groningen desktop shell: serves the (offline, vendored) game from app://game/
 // so ES modules, fetch, AudioWorklet and localStorage behave exactly like
 // on http://localhost, without a server or an internet connection.
-const { app, BrowserWindow, Menu, protocol, shell, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, Menu, protocol, shell, ipcMain, dialog, clipboard } = require('electron');
 const { createCoopCore } = require('./coopcore.cjs');
 const { haalLiveBussen } = require('./livebussen.cjs');
 const { haalLiveTreinen } = require('./livetrains.cjs');
@@ -286,6 +286,8 @@ if (!app.requestSingleInstanceLock()) {
   require('./gpuinfo.cjs').registerGpuInfo({ ipcMain, app, screen: require('electron').screen }); // 0.64.1: Technische info (gpudiag.js)
   ipcMain.handle('gde:live-bussen', () => haalLiveBussen()); // #395: zonder argumenten: de vaste url, niets van de speler
   ipcMain.handle('gde:live-treinen', () => haalLiveTreinen()); // #1085: idem, de vertragingen van de treinen
+  ipcMain.handle('gde:clipboard-write', (e, text) => { try { clipboard.writeText(String(text).slice(0, 200000)); return true; } catch (er) { return false; } });
+  ipcMain.handle('gde:clipboard-read', () => { try { return clipboard.readText(); } catch (er) { return ''; } });
   ipcMain.handle('gde:save-text', async (e, name, text) => {
     const w = BrowserWindow.fromWebContents(e.sender);
     const res = await dialog.showSaveDialog(w, {

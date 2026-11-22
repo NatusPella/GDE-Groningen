@@ -14,6 +14,12 @@ export const isIntroPlaying = () => introPlaying;
 export const setTrailerRunning = (v) => { trailerRunning = !!v; };
 export const setIntroPlaying = (v) => { introPlaying = !!v; };
 
+// Wacht er een benchmark uit Instellingen > Beeld op deze herlaad? Leest alleen (pendingTrailer wist de vlag), zodat de start
+// de keuzekaart kan overslaan voordat de benchmark zelf begint.
+export function benchmarkPending() {
+  try { return !!sessionStorage.getItem(BENCH_KEY); } catch (e) { return false; }
+}
+
 // What should play before the title menu shows, if anything.
 export function pendingTrailer() {
   if (FLAGS.trailer) {

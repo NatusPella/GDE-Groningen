@@ -11,6 +11,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+- Benchmark: hij begint meteen. De keuzekaart Alleen of Samen, de Samen-wizard en de naamkaart komen er niet meer tussen, ook niet als je de benchmark uit Instellingen > Beeld start; een benchmark is altijd lokaal en solo, en je laatste keuze blijft staan.
+- Benchmark: na afloop (of met Esc) ga je terug naar je eigen spel. Je spel wordt eerst bewaard en precies die plek wordt weer geopend; er komt geen kaart Nieuw verhaal of Hoe pittig meer tussendoor en je voortgang per opgeslagen spel verandert niet. Lukt bewaren niet, dan start de benchmark niet.
+- Benchmark: de meting begint pas als de wereld rond de eerste plek klaar is (tegels, gebouwen, wegen en plaatsing), voor elke grafische stand. Daardoor is de eerste stand niet meer zwaarder bestraft dan de rest door gebouwen die nog verschenen.
+- Technische info en foutrapport kopiëren werkt ook in de desktopversie (via het klembord van de app, met terugval), en de benchmarkknop zegt of het gelukt is.
 - Toetsenbordknop naast zoekvelden: een klik op Toetsenbord (kaart, Spullen, Prestaties, Samen spelen) maakte het hele scherm onzichtbaar of kapot, omdat de knop dezelfde klassenaam had als de staat van het schermtoetsenbord. De knop is nu klein, werkt met de muis en laat het veld met rust. Samen spelen: het toetsenbord is van de speler zelf (lokaal), niets gaat naar anderen.
 - Samen spelen: de eerste keuze (Meedoen of Open je spel) is twee grote kaarten met hun uitleg, en Toestemming intrekken staat achter Meer acties. Gasten en hosts zien dezelfde stappen als eerst.
 - Kaart: de voortgangsregel hangt onder het zoekveld in plaats van onder de titel, en de legenda staat boven de bronvermelding met lucht tot de rand.

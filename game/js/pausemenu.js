@@ -52,6 +52,8 @@ import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer, garageNaar
 import { deliverOwnedVehicle, locateOwnedVehicle, getGarageList, verkoopVoertuig, actieBevestiging } from './ownedvehicles.js';
 import { isShopOpen, closeShopMenu } from './shopui.js';
 import { benchmarkViaReload } from './trailerstate.js';
+import { markStay } from './saveslots.js';
+import { prepareBenchmarkReload, BENCH_RELOAD_FAIL_TEXT } from './benchmarkreturn.js'; // de benchmark laat je save en voortgang met rust
 import { radioIsOn, setRadio, channelList, selectChannel, stepChannel } from './radio.js';
 import { channelPickerHtml } from './radiokeuze.js';
 import { isMuted, toggleMute } from './audio.js';
@@ -2267,7 +2269,10 @@ function runAction(a) {
       window.dispatchEvent(new Event('gde-benchmark'));
     } else {
       if (world && world.pigeonMode && world.pigeonActions) world.pigeonActions.stop();
-      if (world) saveGame(world);
+      // 22-11: eerst bewaren en dit spel de stay-vlag geven, zodat de boot na de benchmark precies deze save opent (benchmarkreturn.js);
+      // lukt het bewaren niet, dan start de benchmark niet en blijft alles zoals het was
+      const prep = world ? prepareBenchmarkReload({ save: () => saveGame(world), slot: () => currentSlot(), markStay: (n) => markStay(null, n) }) : { ok: true };
+      if (!prep.ok) { status(BENCH_RELOAD_FAIL_TEXT); return; }
       benchmarkViaReload();
     }
   } else if (a === 'errlog-copy') {

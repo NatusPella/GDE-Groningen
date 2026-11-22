@@ -3,6 +3,7 @@
 import { icoon } from './icons.js';
 import { errorReport } from './errorlog.js';
 import { DEV } from './devflags.js';
+import { writeClipboardText } from './clipwrite.js';
 
 let errorShown = false;
 
@@ -16,13 +17,7 @@ export function frameErrorModel(err) {
   };
 }
 
-async function writeClipboard(tekst) {
-  try {
-    const D = window.gdeDesktop;
-    if (D && D.clipboard) { D.clipboard.writeText(tekst.slice(0, 20000)); return true; }
-  } catch (e) { /* val terug op de browser */ }
-  try { await navigator.clipboard.writeText(tekst); return true; } catch (e) { return false; }
-}
+const writeClipboard = (tekst) => writeClipboardText(tekst); // clipwrite.js: desktop, navigator.clipboard, execCommand
 
 // Eén zichtbare foutmelding per sessie, als zeefdrukkaart met rode inktrand (designsysteem): icoon, korte tekst,
 // 'Kopieer foutrapport' en 'Sluiten'; de technische tekst zit onder 'Details'.

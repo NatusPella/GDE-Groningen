@@ -159,7 +159,8 @@ import { updatePhotoMode, wireFotoKey } from './fotomodusui.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
 import { aandeel, tegelFoci, nietBijFoci } from './coopfoci.js';
 import { wantsOpenSamen, takeOpenSamen, samenGate } from './samenpanel.js';
-import { launchPlan, askLaunchChoice, applyLaunchMode, getLaunchMode, bewaarKeuze, bewaarRol } from './launchchoice.js'; // Alleen of Samen bij elke start (eigenaarsbesluit 21-11)
+import { benchmarkPending } from './trailerstate.js';
+import { launchPlan, launchKind, skipStartChoice, askLaunchChoice, applyLaunchMode, getLaunchMode, bewaarKeuze, bewaarRol } from './launchchoice.js'; // Alleen of Samen bij elke start (eigenaarsbesluit 21-11)
 import { openLaunchChoice, openToestemming } from './launchchoiceui.js';
 import { openOnlineStart } from './onlineconsentui.js';
 import { openSamenKeuze } from './samenkeuze.js';
@@ -674,8 +675,8 @@ let tileWorldStats = null;
 let onlineVraag = null;
 function beginOnlineStartQuestion() {
   if (!onlineVraag) {
-    const testmodus = !!(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menutest);
-    const plan = launchPlan(getSettings(), { testmodus, vlag: FLAGS.startkeuze });
+    const testmodus = launchKind(FLAGS) !== 'player';
+    const plan = launchPlan(getSettings(), { testmodus, vlag: FLAGS.startkeuze, benchmark: launchKind(FLAGS, { benchmarkPending: benchmarkPending() }) === 'benchmark' });
     onlineVraag = askLaunchChoice({
       plan,
       settings: () => getSettings(),
@@ -1022,8 +1023,10 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   // vlak voor de start wachten we op het antwoord (#751: time-out en Escape).
   // Zo staat de popup niet boven een laadscherm dat al "Klaar" zegt en hoeft hij
   // het laden niet stil te leggen.
-  const vraagOnline = !(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menutest) || FLAGS.startkeuze === 'vraag';
-  if (FLAGS.startkeuze === 'alleen') applyLaunchMode('alleen'); // testruns en QA: de kaart overslaan, solo en zonder netwerk
+  // Eén regel (launchchoice.js): een benchmark (ook die uit Instellingen > Beeld via een herlaad), testruns en ?startkeuze=alleen slaan de kaart over.
+  const benchStart = launchKind(FLAGS, { benchmarkPending: benchmarkPending() }) === 'benchmark';
+  const vraagOnline = !skipStartChoice(FLAGS, { benchmarkPending: benchStart });
+  if (FLAGS.startkeuze === 'alleen' || benchStart) applyLaunchMode('alleen'); // de kaart overslaan, solo en zonder netwerk
   if (vraagOnline) beginOnlineStartQuestion();
   // opdracht 21-11: on the warm route the bar stays open: the warm-up steps follow and the start screen finishes it
   if (!BOOT_WARM_ROUTE) await finishLoading();

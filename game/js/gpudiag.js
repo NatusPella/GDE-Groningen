@@ -9,6 +9,7 @@ import { VERSION } from './version.js';
 import { classifyGpu, currentPreset, presetLabel, dynamicScale, cpuLevel } from './gfxprofile.js';
 import { readLastRun } from './benchstats.js';
 import { audioBlokTekst } from './audiodiag.js';
+import { writeClipboardText } from './clipwrite.js';
 import { gpuState, describeGpu } from './gpuherstel.js';
 import { createHeapTracker, memSources, formatMemBlock } from './memwatch.js';
 import { createLeakWatch, formatLeakBlock, collectLeakCounts, installLeakProbes, LEAK_EVERY_MS } from './leakwatch.js'; // #1065
@@ -302,13 +303,7 @@ export async function techInfoText(opts) {
   return formatReport(await collectTechInfo(opts));
 }
 
-async function writeClipboard(text) {
-  try {
-    const D = window.gdeDesktop;
-    if (D && D.clipboard) { D.clipboard.writeText(text.slice(0, 20000)); return true; }
-  } catch (e) { /* fall through */ }
-  try { await navigator.clipboard.writeText(text); return true; } catch (e) { return false; }
-}
+const writeClipboard = (text) => writeClipboardText(text); // clipwrite.js: desktop, navigator.clipboard, execCommand
 
 // collects the block and puts it on the clipboard; true when that worked
 export async function copyTechInfo() {

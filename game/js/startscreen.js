@@ -17,6 +17,7 @@ import { stopSoloHost } from './coopsolo.js';
 import { isPauseMenuOpen } from './pausestate.js';
 import { askQuitConfirm, isQuitConfirmOpen } from './quitconfirmui.js';
 import { pendingTrailer } from './trailerstate.js';
+import { afterBenchmarkPlan } from './benchmarkreturn.js';
 // trailer.js (2500 lines) is only loaded when a trailer or benchmark really runs
 import { startTheme, stopTheme } from './theme.js';
 import { COW_LOADING } from './flavourlines.js';
@@ -599,7 +600,10 @@ function runBootScreen(world, opts, pending = null) {
       // screen until the city round it has streamed in
       warmBeforeFinish(opts, () => { startLoadScreen(world, { kind: 'save' }); finish(); });
     };
-    const continueGame = () => legacyCardFirst(continueNow, startNew);
+    // 22-11: na een benchmark uit een lopend spel gaat het spel rechtstreeks terug naar de save (benchmarkreturn.js): geen kaart
+    // "Nieuw verhaal" en geen moeilijkheidskaart; de speler zat al in dit spel
+    const afterBench = pending && pending.mode === 'benchmark' ? afterBenchmarkPlan({ fromGame: !!pending.fromGame, hasSave: !!save }) : null;
+    const continueGame = () => (afterBench && !afterBench.legacyCard ? continueNow() : legacyCardFirst(continueNow, startNew));
     // #581: testruns start like the player: no menu, straight on to the world. A fresh profile
     // first gets a short graphics measurement; everything else starts at once. A benchmark that was
     // asked for (--benchmark, or Instellingen > Beeld via a reload) runs first, on this same world.

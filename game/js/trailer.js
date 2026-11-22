@@ -4,7 +4,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { FLAGS } from './devflags.js';
 import { canvasTex as canvasTexture } from './canvastex.js';
 import { mulberry32 } from './rng.js';
-import { getScene, prewarmStreamAt, disposeObject } from './scene3d.js';
+import { getScene, prewarmStreamAt, prewarmPending, streamPending, disposeObject } from './scene3d.js';
+import { createSettle, settleTick } from './benchsettle.js';
+import { WARM } from './cutscenewarm.js';
 import { speakerHtml } from './speakers.js';
 import { getSettings, QUALITY_PRESETS, withTempSettings } from './settings.js';
 import { PRESET_ORDER, GFX_PRESETS, currentPreset, describePreset, presetLabel, applyPreset, setBenchResult, getBenchResult } from './gfxprofile.js';
@@ -2398,17 +2400,40 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
     // A cut that opens on a picture (steam) streams its first place in under
     // the black before the clock starts: frame() at T = 0 enters the shot
     // and poses the camera, the black stays up.
+    // 22-11: a benchmark (every preset, also the probe shots) starts its clock only when the world round the first place is settled
+    // (benchsettle.js: tiles in, queue empty, nothing left to build, a calm stretch); the first measured run used to start on a world
+    // that was still streaming in, which made the first preset look worse than the later ones. The wait is not measured (the black is up).
     const warm = () => new Promise((res) => {
-      if (shots[0].black) { res(); return; }
-      const f = shots[0].focus;
-      if (f) prewarmStreamAt(f.x, f.y, 4);
-      if (f && r.w.map && r.w.map.warmAhead) r.w.map.warmAhead(f.x, f.y, { token: 'trailer', budgetMs: 2500 });
+      const first = mode === 'benchmark' ? shots.find((x) => !x.black && x.focus) : null;
+      if (shots[0].black && !first) { res(); return; }
+      const f = first ? first.focus : shots[0].focus;
+      if (f) prewarmStreamAt(f.x, f.y, mode === 'benchmark' ? 8 : 4);
+      if (f && r.w.map && r.w.map.warmAhead) r.w.map.warmAhead(f.x, f.y, { token: 'trailer', budgetMs: mode === 'benchmark' ? 8000 : 2500 });
       const t0 = performance.now();
+      const settle = mode === 'benchmark' && f ? createSettle() : null;
+      const query = () => {
+        const m = r.w.map;
+        const q = { tilesMissing: 0, prewarmPending: 0, buildings: 0, roads: 0, queue: 0 };
+        try { if (m && m.store && m.store.keysAround) q.tilesMissing = m.store.missing(m.store.keysAround(f.x, f.y, WARM.tileRadiusM)).length; } catch (e) { /* geen tegelmeting */ }
+        try { if (m && m.tileQueue && m.tileQueue.items) q.queue = m.tileQueue.items.length; } catch (e) { /* idem */ }
+        try { q.prewarmPending = prewarmPending(); } catch (e) { /* idem */ }
+        try { const sp = streamPending(); q.buildings = sp.buildings; q.roads = sp.roads; } catch (e) { /* idem */ }
+        return q;
+      };
       let n = 0;
       const step = () => {
         if (r.done) { res(); return; }
         try { frame(r, 0, 16); } catch (e) { /* ignore */ }
         ui.black.style.opacity = '1';
+        if (settle) {
+          const st = settleTick(settle, query(), performance.now());
+          if (!st.settled) { requestAnimationFrame(step); return; }
+          r.warmup = { ms: Math.round(st.waitedMs), timedOut: st.timedOut, reason: st.reason };
+          try { window.__benchWarmup = r.warmup; } catch (e) { /* geen window */ }
+          if (BENCH_RUNS) console.log('[trailer] settled', JSON.stringify(r.warmup));
+          res();
+          return;
+        }
         if (++n < 60 || performance.now() - t0 < 2500) requestAnimationFrame(step); else res();
       };
       requestAnimationFrame(step);

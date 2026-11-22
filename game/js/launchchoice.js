@@ -37,11 +37,28 @@ export const TOESTEMMING_TEKST = Object.freeze({
   terug: 'Terug',
 });
 
+// De vlaggen van een geautomatiseerde run (testruns, beeld, perf, story, benchmark): één lijst voor main.js en startscreen.js.
+export const AUTOMATION_FLAGS = Object.freeze(['noattract', 'storytest', 'stil', 'trailer', 'preview', 'benchmark', 'perf', 'spotsonly', 'autoplay', 'menutest']);
+export const isAutomation = (flags = {}) => AUTOMATION_FLAGS.some((k) => !!flags[k]);
+
+// De ene centrale regel: hoe start dit spel? 'benchmark' (vlag --benchmark, of de Benchmark uit Instellingen > Beeld die via een herlaad
+// opent: `benchmarkPending`), 'automation' (andere testrun) of 'player'. Een benchmark is altijd lokaal en solo en begint meteen: geen
+// keuzekaart, geen Samen-wizard, geen naamkaart, en er verandert niets in de opslag. `?startkeuze=vraag` toont de kaart alleen in een testrun.
+export function launchKind(flags = {}, { benchmarkPending = false } = {}) {
+  if (flags.benchmark || benchmarkPending) return 'benchmark';
+  return isAutomation(flags) ? 'automation' : 'player';
+}
+export const skipStartChoice = (flags = {}, opts = {}) => {
+  const kind = launchKind(flags, opts);
+  return kind === 'benchmark' || flags.startkeuze === 'alleen' || (kind === 'automation' && flags.startkeuze !== 'vraag');
+};
+
 export const isKeuze = (v) => v === 'alleen' || v === 'samen';
 
 // Wat de start vraagt. `testmodus`: een geautomatiseerde run (main.js telt de vlaggen); `vlag`: ?startkeuze=
 //   'alleen' slaat de kaart over en speelt alleen (geen netwerk); 'vraag' toont de kaart ook in een testrun (beeld en tests).
-export function launchPlan(settings = getSettings(), { testmodus = false, vlag = null } = {}) {
+export function launchPlan(settings = getSettings(), { testmodus = false, vlag = null, benchmark = false } = {}) {
+  if (benchmark) return { naam: false, keuze: false, modus: 'alleen', reden: 'benchmark' }; // altijd solo, altijd meteen, niets bewaard
   if (vlag === 'alleen') return { naam: false, keuze: false, modus: 'alleen', reden: 'vlag' };
   if (testmodus && vlag !== 'vraag') return { naam: false, keuze: false, modus: null, reden: 'testmodus' };
   return { naam: false, keuze: true, modus: null, reden: '' }; // geen naamscherm bij de start: de naam komt bij Samen spelen
