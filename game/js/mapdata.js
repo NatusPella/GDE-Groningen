@@ -569,9 +569,16 @@ export class GameMap {
       for (const road of this.roadsNear(x, y, r)) {
         if (drivableOnly && (road.cat === 'foot' || road.cat === 'cycle')) continue;
         if (streetLevel && road.z) continue;
-        for (let i = 0; i < road.pts.length - 1; i++) {
-          const cp = closestPointOnSegment(x, y, road.pts[i][0], road.pts[i][1], road.pts[i + 1][0], road.pts[i + 1][1]);
-          if (cp.dist2 < bestDist2) { bestDist2 = cp.dist2; best = { x: cp.x, y: cp.y, road }; }
+        // #1184: inline, geen object per segment (zelfde rekenvolgorde als closestPointOnSegment, dus dezelfde uitkomst)
+        const P = road.pts;
+        let a = P[0];
+        for (let i = 0; i < P.length - 1; i++) {
+          const b = P[i + 1], ax = a[0], ay = a[1], abx = b[0] - ax, aby = b[1] - ay, len2 = abx * abx + aby * aby;
+          let t = len2 > 1e-9 ? ((x - ax) * abx + (y - ay) * aby) / len2 : 0;
+          t = t <= 0 ? 0 : t >= 1 ? 1 : t; // (gelijk aan clamp, ook voor -0 en NaN)
+          const cx = ax + abx * t, cy = ay + aby * t, ex = x - cx, ey = y - cy, d2 = ex * ex + ey * ey;
+          if (d2 < bestDist2) { bestDist2 = d2; best = { x: cx, y: cy, road }; }
+          a = b;
         }
       }
       r *= 2;

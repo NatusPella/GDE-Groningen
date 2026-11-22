@@ -44,6 +44,34 @@ ok(nearestOnRoadList([{ pts: [[1, 1]] }], 0, 0) === null && nearestOnRoadList([{
 const zero = [{ pts: [[2, 2], [2, 2]] }];
 ok(same(nearestOnRoadList(zero, 5, 6), oldList(zero, 5, 6)), 'nulsegment gelijk');
 
+// MapData.nearestRoadPoint (zelfde inline rekenwerk): gelijk aan de oude versie met closestPointOnSegment
+{
+  const { GameMap: MapData } = await import('../game/js/mapdata.js');
+  const oldNearest = (self, x, y, searchRadius = 400, drivableOnly = false, streetLevel = false) => {
+    let r = 30, best = null, bestDist2 = Infinity;
+    while (!best && r <= searchRadius) {
+      for (const road of self.roadsNear(x, y, r)) {
+        if (drivableOnly && (road.cat === 'foot' || road.cat === 'cycle')) continue;
+        if (streetLevel && road.z) continue;
+        for (let i = 0; i < road.pts.length - 1; i++) {
+          const cp = closestPointOnSegment(x, y, road.pts[i][0], road.pts[i][1], road.pts[i + 1][0], road.pts[i + 1][1]);
+          if (cp.dist2 < bestDist2) { bestDist2 = cp.dist2; best = { x: cp.x, y: cp.y, road }; }
+        }
+      }
+      r *= 2;
+    }
+    return best;
+  };
+  const fake = { roadsNear: (x, y, r) => roads.filter((q) => q.pts.some((p) => Math.abs(p[0] - x) <= r && Math.abs(p[1] - y) <= r)) };
+  let eq2 = true;
+  for (let k = 0; k < 600 && eq2; k++) {
+    const x = rnd() * 500 - 50, y = rnd() * 500 - 50, d = k % 2 === 0;
+    const a = MapData.prototype.nearestRoadPoint.call(fake, x, y, 200, d), b = oldNearest(fake, x, y, 200, d);
+    eq2 = (a === null && b === null) || (a && b && a.road === b.road && Object.is(a.x, b.x) && Object.is(a.y, b.y));
+  }
+  ok(eq2, 'MapData.nearestRoadPoint gelijk aan de oude versie (600 vragen, met en zonder drivableOnly)');
+}
+
 if (process.argv.includes('--bench')) {
   const R = 40, Q = 400, qs = Array.from({ length: Q }, () => [rnd() * 400, rnd() * 400]);
   const run = (f) => { let s = 0; const t0 = process.hrtime.bigint(); for (let r = 0; r < R; r++) for (const [x, y] of qs) s += f(roads, x, y).d; return [Number(process.hrtime.bigint() - t0) / 1e6, s]; };

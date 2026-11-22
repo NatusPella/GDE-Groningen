@@ -40,7 +40,7 @@ export function nearestOnRoadList(roads, x, y, ok = null) {
       const b = P[i + 1], ax = a[0], ay = a[1];
       const abx = b[0] - ax, aby = b[1] - ay, len2 = abx * abx + aby * aby;
       let t = len2 > 1e-9 ? ((x - ax) * abx + (y - ay) * aby) / len2 : 0;
-      t = t < 0 ? 0 : t > 1 ? 1 : t;
+      t = t <= 0 ? 0 : t >= 1 ? 1 : t; // (gelijk aan clamp, ook voor -0 en NaN)
       const cx = ax + abx * t, cy = ay + aby * t;
       const ex = x - cx, ey = y - cy, d2 = ex * ex + ey * ey;
       if (bRoad === null || d2 < bd2) { bd2 = d2; bRoad = road; bi = i; bt = t; bx = cx; by = cy; bdx = abx; bdy = aby; }
@@ -56,7 +56,7 @@ export function closestPointOnSegment(px, py, ax, ay, bx, by, out = null) {
   const abx = bx - ax, aby = by - ay;
   const len2 = abx * abx + aby * aby;
   let t = len2 > 1e-9 ? ((px - ax) * abx + (py - ay) * aby) / len2 : 0;
-  t = clamp(t, 0, 1);
+  t = t <= 0 ? 0 : t >= 1 ? 1 : t; // clamp(t, 0, 1) zonder twee Math-aanroepen (hete lus, #1184)
   const cx = ax + abx * t, cy = ay + aby * t;
   // out: hergebruik een bestaand object (de verkeers-AI, #652); anders zoals voorheen
   if (out) { out.x = cx; out.y = cy; out.t = t; out.dist2 = dist2(px, py, cx, cy); return out; }
