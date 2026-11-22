@@ -293,7 +293,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 ### Reviewfixes en stabiliteit (22-11, #1082, #1065, #915)
 
 - Treinbord: de live vertragingen blijven staan als je je even meer dan 400 m van een station verwijdert, in plaats van meteen te verdwijnen.
-- Samen spelen: het leven in de stad (markt, kermis, studentenfeest, dieren) volgt bij een gast de dag van de gastheer, dus iedereen ziet dezelfde evenementen op dezelfde klok. Het blijft decor: geen voortgang en geen bericht.
+- Samen spelen: het leven in de stad (markt, kermis, studentenfeest, dieren) volgt bij een gast dezelfde dag en klok als bij wie het spel opende, dus iedereen ziet dezelfde evenementen. Het blijft decor: geen voortgang en geen bericht.
 - Samen spelen, beroving: de tekst bij een verlopen portemonnee zegt niet meer dat iemand anders hem pakte; het geld is per speler.
 - Benchmark-keuzevenster: Shift met pijl rechts of omlaag gaat niet meer achteruit; alleen Shift+Tab doet dat.
 - De wijknaam-stempel, de naamkaart en de plaatsnaam wachten als het pauzemenu, de kaart of de tuningwerkplaats open is, in plaats van er overheen te hangen.
