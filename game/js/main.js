@@ -83,6 +83,7 @@ import { updateMotorPolice } from './motorpolice.js';
 import { initMissions, updateMissions } from './missions.js';
 import { initStory, updateStory, currentStep, storyBridgeView, storyGateProgress } from './story.js';
 import { updateStoryBridge } from './storybridgerun.js';
+import { updateCareerDebuts } from './careerdebutrun.js';
 import { updateTerugkeer } from './terugkeerrun.js';
 import { updateRecap, isRecapOpen } from './recapcardrun.js';
 import { initGoal, updateGoal } from './goal.js';
@@ -1244,6 +1245,8 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     updateTerugkeer(dt, world, () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen() || isRecapOpen());
     // #1125: een korte overgangsscène van Tammo en Tessa tussen twee missies (storybridgerun.js), op een rustig moment
     updateStoryBridge(world.paused ? 0 : dt, world, storyBridgeView(), () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen());
+    // 22-11: de begincutscene van de voetbalcarrière en van het eerste perceel (careerdebutrun.js), eenmaal per speler, op een rustig moment
+    updateCareerDebuts(world.paused ? 0 : dt, world, storyBridgeView(), () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen());
     probe.mark('story');
     updateStreetSigns(dt, world, getScene());
     const animDt = world.paused && !doorloop ? 0 : gameDt;

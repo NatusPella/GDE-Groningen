@@ -260,6 +260,12 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
+  "text": "Ik heb erover nagedacht.",
+  "scene": "F4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
   "text": "Berend telde elf seconden en een duif telde mee. Dat is officieel.",
   "scene": "F5"
  },

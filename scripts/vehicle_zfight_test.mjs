@@ -13,7 +13,8 @@ const r = spawnSync(process.execPath, [path.join(here, 'zfight_audit.mjs'), '--v
 if (r.status !== 0) { console.log('FAIL: zfight_audit eindigde met', r.status, r.stderr.slice(-500)); process.exit(1); }
 const rep = JSON.parse(r.stdout);
 // 21-11 (epic Kleding, NPC-rollen): de berijder draagt nu kledinglagen (models3d_clothing.js); alleen 'close' (< 0,02 m2), geen flush. Vroeger 11 en 15.
-const RIDER_MAX = { 'vehicle:bike': 21, 'vehicle:scooter': 26 };
+// 22-11 (samenvoeging kleding-clipping: haar, pet en accessoires op de berijder): de scooter telt 44 'close'-paren (0,026 m2, flush 0), de fiets blijft op 21.
+const RIDER_MAX = { 'vehicle:bike': 21, 'vehicle:scooter': 44 };
 let bad = 0;
 const check = (name, ok, info = '') => { if (!ok) { bad++; console.log('FAIL', name, info); } };
 const mods = Object.entries(rep.modules);

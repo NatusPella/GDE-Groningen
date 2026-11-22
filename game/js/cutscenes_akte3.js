@@ -37,8 +37,7 @@ S['M12.intro'] = {
 // AAA akte 3: de heli staat op het helidek van de Eemshaven (de koeien zitten alleen in Dijkstra's verhaal) en de camera komt van hoog naar beneden (de landing)
 S['M12.outro'] = {
   cast: { dijkstra: { key: 'dijkstra', at: [3.4, -0.6], face: 175, anim: 'idle', gest: ['talk', 'shrug', 'hips'] } },
-  props: { aktetas: { kind: 'aktetas', at: [0.9, 0.2, 0] }, koe1: { kind: 'koe', at: [9, 6, 0], face: 215 }, koe2: { kind: 'koe', at: [11.5, -3.5, 0], face: 150 }, koe3: { kind: 'koe', at: [7.5, -8, 0], face: 190 } },
-  props: { aktetas: { kind: 'koffer', at: [0.9, 0.2, 0] } },
+  props: { aktetas: { kind: 'aktetas', at: [0.9, 0.2, 0] } },
   open: [{ actor: 'tessa', carry: 'aktetas' }, { actor: 'tammo', face: 'actor:tessa' }],
   beats: [
     { on: 0, dt: 0.4, actor: 'dijkstra', walk: [[2.0, -0.4]], speed: 0.8 },
@@ -175,10 +174,8 @@ S['M15.outro'] = {
     // inspiratiepakket: Daan, de kermiszanger van M15.6, komt aanlopen als Jelle weg is
     daan: { key: 'daan', at: [9.4, 3.2], face: 190, anim: 'idle', gest: ['talk', 'hips', 'point'] },
   },
-  props: { bord: { kind: 'bord', at: [8, 0.6, 0], face: 180 }, limo: { kind: 'limo', at: [9.5, -5, 0], face: 160 } },
-  open: [{ actor: 'tessa', face: 'actor:roelfien' }, { actor: 'tammo', face: 'actor:roelfien' }],
   // Jelles trekker-limo staat dwars, met TERPSTRA MOBIEL KANTOOR erachter (M15.5); de duif van M15.6 zit eerst op de tent
-  props: { bord: { kind: 'bord', at: [8, 0.6, 0], face: 180 }, limo: { kind: 'trekker', at: [9.5, -5, 0], face: 80 }, kantoor: { kind: 'kantoorwagen', at: [8.6, -10.1, 0], face: 80 }, duif: { kind: 'duif', at: [10.5, 6.5, 3.6], face: 200 } },
+  props: { bord: { kind: 'bord', at: [8, 0.6, 0], face: 180 }, limo: { kind: 'limo', at: [9.5, -5, 0], face: 80 }, kantoor: { kind: 'kantoorwagen', at: [8.6, -10.1, 0], face: 80 }, duif: { kind: 'duif', at: [10.5, 6.5, 3.6], face: 200 } },
   open: [{ actor: 'tessa', face: 'actor:roelfien' }, { actor: 'tammo', face: 'actor:roelfien' }, { prop: 'duif', bob: 0.03 }],
   beats: [
     { on: 'Is dit waar', actor: 'jurylid1', face: 'actor:tessa' },

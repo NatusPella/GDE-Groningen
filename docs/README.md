@@ -140,11 +140,13 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [PERF-STREAM-SOEPEL-21-11.md](<PERF-STREAM-SOEPEL-21-11.md>) | Soepeler streamen: één framebudget, bewegingsgericht vooruitladen en stabiele LOD-overgangen (#1016, #1052, #1008). |
 | [VERFIJNING-22-11-VERHAAL.md](<VERFIJNING-22-11-VERHAAL.md>) | Verfijnronde 22-11 voor het verhaal en de missies: wrijving, oplossing en bewijs per verbetering, Samen-regel, wat bewust niet en wat nog in beeld moet. |
 | [SPRINT-22-11-GEBIED.md](<SPRINT-22-11-GEBIED.md>) | Sprint graphics en materialen 22-11: wat voor en na is, welke test erbij hoort en wat nog in beeld bekeken moet worden (brugonderkant, anisotropie). |
+| [VERHAAL-DOORSPEELBAAR-22-11.md](<VERHAAL-DOORSPEELBAAR-22-11.md>) | Is het hele verhaal doorspeelbaar (22-11, #1121): ketenaudit en doorspeeltest per stap van de opening tot de aftitels, gevonden en gefixte blokkades, minuten per akte, Samen spelen en wat nog niet bekeken is. |
 | [PERF-MEETPUNTEN-21-11.md](<PERF-MEETPUNTEN-21-11.md>) | Meetpunten voor de eindsweep over laden, opwarmen, pop-in en haperingen (#1008, #1016, #1046, #1052): commando, A-schakelaar, maat en voorgestelde grens, met een test die de verwijzingen bewaakt. |
 | [VERFIJNING-22-11-UI-DS3.md](<VERFIJNING-22-11-UI-DS3.md>) | Verfijnronde UI en DS3: wrijving, oplossing en bewijs per verbetering, wat bewust niet en wat nog in beeld bekeken moet worden. |
 | [VERFIJNING-22-11-STABILITEIT.md](<VERFIJNING-22-11-STABILITEIT.md>) | Verfijnronde 22-11 over stabiliteit, opslag en QA: 20 verbeteringen met wrijving, oplossing en bewijs, wat bewust niet is gedaan en wat nog in beeld bekeken moet worden. |
 | [VERFIJNING-22-11-SPULLEN-WAPENS.md](<VERFIJNING-22-11-SPULLEN-WAPENS.md>) | Verfijnronde spullen, wapens, inventaris en winkels: wrijving, oplossing en bewijs per punt, wat bewust niet en wat nog in beeld bekeken moet worden. |
 | [UI-KRITIEK-22-11-kaarten.md](<UI-KRITIEK-22-11-kaarten.md>) | UI-kritiek op kaarten, overlays en de Samen-flow uit het kritiekharnas: tabel van 26 bevindingen per patroon P1-P12, de beperkingen van het harnas en een top 10. |
+| [MAIN-GEZOND-22-11.md](<MAIN-GEZOND-22-11.md>) | QA van de samengestelde main op 22-11: uitslag per controle, gevonden samenvoegschade en fixes, flaky lijst, wat niet gedraaid kon worden. |
 | [PROPS-STAND-22-11.md](<PROPS-STAND-22-11.md>) | Props, sets en figuranten van het verhaal (#1121): per model driehoeken, materialen en afmetingen, gegenereerd door `scripts/verhaal_props_audit.mjs`. |
 | [VERFIJNING-22-11-LOOPBAAN-PRESTATIES.md](<VERFIJNING-22-11-LOOPBAAN-PRESTATIES.md>) | Verfijnronde 22-11 voor Loopbaan, Prestaties, Veroverd en Foto's: wrijving, oplossing en bewijs per verbetering, wat bewust niet is gedaan en wat nog in beeld bekeken moet worden. |
 | [HUD-LINKS-21-11.md](<HUD-LINKS-21-11.md>) | De locatiekaart en de politiechip links in de HUD (#1079): regel, meting en chip. |
@@ -183,6 +185,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [ISSUES-SORTEREN-22-11.md](<ISSUES-SORTEREN-22-11.md>) | Issues sorteren: labels, impact en kosten. |
 | [SCREENSHOTJACHT-22-11.md](<SCREENSHOTJACHT-22-11.md>) | Screenshotjacht: opnames voor de eigenaar-review. |
 | [PERF-60-NORMAAL-22-11.md](<PERF-60-NORMAAL-22-11.md>) | Perf op een normale pc: gridItems en nearestOnRoadList, met benches. |
+| [CARRIERESCENES-22-11.md](<CARRIERESCENES-22-11.md>) | Begincutscenes van de voetbal- en landbouwcarrière (#1106, #1095). |
 | [JACHT-OORDEEL-22-11.md](<JACHT-OORDEEL-22-11.md>) | Oordeel over de screenshotjacht van 22-11. |
 | [UI-KRITIEK-22-11-hud.md](<UI-KRITIEK-22-11-hud.md>) | UI-kritiek 22-11: HUD en in-wereld-UI. |
 | [GATE-RAPPORT-22-11.md](<GATE-RAPPORT-22-11.md>) | Gate-rapport 0.65.0 (22-11): uitslag per stap, perf-regressie, fixes, open punten en de eigenaar-reviewpagina. |

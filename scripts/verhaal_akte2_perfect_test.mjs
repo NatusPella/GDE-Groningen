@@ -108,8 +108,8 @@ for (const id of ['O4', 'O5']) for (const l of scene(id).lines) if (looksFrisian
 let audit = '';
 try { audit = execFileSync(process.execPath, [fileURLToPath(new URL('akte2_beats_audit.mjs', import.meta.url))], { encoding: 'utf8', env: process.env }); } catch (e) { audit = String(e.stdout || e.message); }
 ok(/(\d+)\/\1 beats/.test(audit), 'regiebeats van akte 2 vinden allemaal hun regel', audit.trim().split('\n').slice(0, 3).join(' | '));
-const host = fs.readFileSync(new URL('game/js/cutscenehost.js', root), 'utf8');
-for (const kind of DECOR_KINDS) ok(new RegExp('\\n\\s+' + kind + ': \\(\\) =>').test(host), `decorsoort ${kind} heeft een bouwer in cutscenehost.js`);
+const host = fs.readFileSync(new URL('game/js/storyprops.js', root), 'utf8');
+for (const kind of DECOR_KINDS) ok(new RegExp('\\n\\s+' + kind + ': \\(\\) =>').test(host), `decorsoort ${kind} heeft een bouwer in storyprops.js (DECOR_MAKERS; de bouwers verhuisden uit cutscenehost.js, #1121)`);
 for (const kind of DECOR_KINDS) ok(PROP_KINDS.includes(kind), `decorsoort ${kind} staat in PROP_KINDS van cutscript.js`);
 for (const [key, spec] of Object.entries(SPECS_AKTE2)) for (const [id, p] of Object.entries(spec.props || {})) ok(propKindIssue(p.kind) === null, `${key}: prop ${id} (${p.kind}) bestaat`);
 ok(SPECS_AKTE2['M11.3'] && SPECS_AKTE2['M11.3'].props.trommel.kind === 'broodtrommel', 'M11.3 toont de broodtrommel met het briefje van Mem');

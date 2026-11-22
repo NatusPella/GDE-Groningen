@@ -448,12 +448,6 @@
     {
       "rule": "merk",
       "term": "Windows",
-      "file": "gpudiag.js",
-      "why": "waarschuwing voor de ingebouwde videokaart: de speler zoekt zelf in Windows Instellingen > Beeldscherm > Graphics; de naam van het besturingssysteem, geen reclame (0.64.1)"
-    },
-    {
-      "rule": "merk",
-      "term": "Windows",
       "file": "pausemenu.js",
       "why": "uitleg bij de waarschuwing voor de ingebouwde videokaart (Instellingen > Beeld > Diagnose): de naam van het besturingssysteem, geen reclame (0.64.1)"
     }

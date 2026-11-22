@@ -103,7 +103,7 @@ ok(/toggle\('off', hidden \|\| hintsQuiet\(\)\);\s*hudObstacles\(\);/.test(src('
 
 // klasse 13: de snelheidsmeter is één compact blok (snelheid 40 px, versnelling klein, toeren als dunne balk binnen de kaart)
 const hcss = src('game/js/hud_panel.css'), hj = src('game/js/hud_panel.js');
-ok(/<div class="sp-main"><b class="sp-val">0<\/b><span class="sp-unit">km\/u<\/span><div class="sp-gears"[^>]*aria-label="Versnelling"><\/div>/.test(hj) && /class="sp-rpm" viewBox="0 0 200 14"/.test(hj) && /<\/svg><\/div>`;/.test(hj), 'de toerenbalk zit binnen sp-main, de aria-labels blijven (Versnelling, Toerental)');
+ok(/<div class="sp-main"><b class="sp-val">0<\/b><span class="sp-unit">km\/u<\/span><div class="sp-gears"[^>]*aria-label="Versnelling"><\/div>/.test(hj) && /class="sp-rpm" viewBox="0 0 200 14"/.test(hj) && /<\/svg>` \+\s*'<span class="sp-zender"[^\n]*<\/span><\/div>';/.test(hj), 'de toerenbalk zit binnen sp-main, de aria-labels blijven (Versnelling, Toerental)');
 ok(/aria-label="Toerental"/.test(hj), 'aria-label Toerental blijft');
 ok(/#hud \.sp-val \{ grid-column: 1; grid-row: 1; font-size: 52px;/.test(hcss) && /#hud \.sp-rpm \{ grid-column: 1 \/ -1; grid-row: 2; width: 100%; height: 7px; \}/.test(hcss), 'snelheid 52 px, toerenbalk 7 px onder de kaart');
 // de maat: kaart ca. 150 x 66 px = 9900 px2, tegen de oude 8000 px2 kaart + 166 x 166 boog (ca. 36000 px2): minstens 60% kleiner

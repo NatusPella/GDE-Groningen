@@ -17,7 +17,7 @@ const tap = (k, code) => { for (const t of [window, document]) { t.dispatchEvent
 const imp = (f) => import('/js/' + f + '.js');
 
 // ---------- detectors (puur DOM, geen spelstaat) ----------
-const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select, [tabindex]:not([tabindex="-1"])'; // gamepad.js
+const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select, textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])'; // gamepad.js
 const KLIKBAAR = 'button, a[href], [role="button"], [role="tab"], [role="menuitem"], [role="option"], [role="radio"], input:not([type="hidden"]), select, textarea, summary, [data-action], [data-tab], [data-idx]';
 const label = (el) => { const id = el.id ? '#' + el.id : ''; const c = typeof el.className === 'string' && el.className.trim() ? '.' + el.className.trim().split(/\s+/).slice(0, 2).join('.') : ''; return (el.tagName.toLowerCase() + id + c + ' "' + (el.textContent || el.getAttribute('aria-label') || '').trim().replace(/\s+/g, ' ').slice(0, 28) + '"'); };
 const stijl = (el) => getComputedStyle(el);
