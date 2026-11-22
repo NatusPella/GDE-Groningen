@@ -21,3 +21,12 @@ De eigenaar zette meer saldo op LiteLLM; de proefaanvraag gaf 200 (4,1 s).
 
 - De clips staan als mp3 in `game/audio/voicelines/` (nog niet in het formaat van `pakket-slank-21-11`; na een rebase de paden in `tts.json` en `manifest.json` controleren).
 - `tts_lines_list.mjs` laat bij een hergeneratie alleen regels met bestaande clip staan; `voice_wacht.json` is daarom met de hand berekend (opdrachten zonder manifestregel of zonder bestand).
+
+## Ronde 3 (22-11, branch tts-ronde3-22-11): gedeeltelijk
+
+- Wachtlijst bij de start: 609 opdrachten. Proef: 200. De 40 marktkraamregels (~m, ~f) kregen een spreektekst (de regel was al Gronings geschreven).
+- **Opgenomen: 412 clips** (414 geschreven, 2 wezen verwijderd), **197 open**. De run viel halverwege deels uit met HTTP 403 ("Key limit exceeded (total limit)", een sleutellimiet bij de OpenRouter-kant van de gateway, geen 429); een tweede poging gaf bijna alleen 403 (6 ok, 39 FAIL) en is gestopt. Kosten ca. 0,25 dollar (geschat op ronde 2; de gateway-teller is door het afbreken niet weggeschreven).
+- Open (197): Roelie 53, Hilbrand 29, ~m 38, ~f 37 (marktkraam en voetbal, laatste in de volgorde), Tammo 17, Anita 5, Willemien 7, Oma Trijntje 3 en enkele losse regels. `scripts/voice_wacht.json` bevat precies deze 197 sleutels.
+- Nabewerking: 5 van 414 clips hadden nog een ruis-einde of pop-begin; met `staart_trimmer` hersteld, daarna 0 fouten.
+- Controles: `voice_coverage` 3475/3475, `cutscenes_voicedur_test` 79/79, `cutscene_lint --strict` exit 0, `spec_check` 0 fouten.
+- Verdachtlijst: `docs/TTS-VERDACHT-RONDE3-22-11.html` (`node scripts/tts_verdacht.mjs --base=origin/main --head=HEAD --uit=TTS-VERDACHT-RONDE3-22-11`): 40 clips (top 30 plus 10 uit de rest). Niets beluisterd.

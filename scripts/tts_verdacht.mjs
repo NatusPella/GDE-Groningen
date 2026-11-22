@@ -166,8 +166,8 @@ ver();
 </script></html>
 `;
 }
-fs.writeFileSync(path.join(ROOT, 'docs', 'TTS-VERDACHT-22-11.html'), page('../'));
-const abs = path.join(os.tmpdir(), 'TTS-VERDACHT-22-11-abs.html');
+fs.writeFileSync(path.join(ROOT, 'docs', arg('uit', 'TTS-VERDACHT-22-11') + '.html'), page('../'));
+const abs = path.join(os.tmpdir(), arg('uit', 'TTS-VERDACHT-22-11') + '-abs.html');
 fs.writeFileSync(abs, page(pathToFileURL(ROOT + path.sep).href));
 
 // ---------- document ----------
@@ -179,7 +179,7 @@ const tabelSpr = [...stat].sort((a, b) => b[1].n - a[1].n).map(([spr, s]) => `| 
 const tabelSteek = steek.map((r) => `| ${r.speaker} | ${r.text.replace(/\|/g, '/').slice(0, 70)} | ${fx(r.score)} |`).join('\n');
 const md = `# TTS verdachte clips 22-11: korte luisterlijst
 
-De eigenaar luistert niet naar alle ${rows.length} nieuwe stemclips van tts-ronde2 (zie [TTS-ACHTERSTAND-21-11.md](TTS-ACHTERSTAND-21-11.md)). \`node scripts/tts_verdacht.mjs\` meet elke clip, rangschikt op verdachtheid en maakt **één pagina** met ${lijst.length} clips: de top ${top.length} plus ${steek.length} willekeurige uit de rest (seed ${SEED}). Pagina: [TTS-VERDACHT-22-11.html](TTS-VERDACHT-22-11.html) (relatieve paden). Per clip: audio-speler, de regel, de spreker, de maten, en de knoppen Goed en Slecht met onderaan een kopieerbare JSON-uitslag. Een variant met \`file://\`-paden komt buiten git in de tijdelijke map.
+De eigenaar luistert niet naar alle ${rows.length} nieuwe stemclips van de TTS-ronde (zie [TTS-ACHTERSTAND-21-11.md](TTS-ACHTERSTAND-21-11.md)). \`node scripts/tts_verdacht.mjs\` meet elke clip, rangschikt op verdachtheid en maakt **één pagina** met ${lijst.length} clips: de top ${top.length} plus ${steek.length} willekeurige uit de rest (seed ${SEED}). Pagina: [TTS-VERDACHT-22-11.html](TTS-VERDACHT-22-11.html) (relatieve paden). Per clip: audio-speler, de regel, de spreker, de maten, en de knoppen Goed en Slecht met onderaan een kopieerbare JSON-uitslag. Een variant met \`file://\`-paden komt buiten git in de tijdelijke map.
 
 ## Methode
 
@@ -230,7 +230,7 @@ ${tabelSteek}
 
 De overige ${rows.length - lijst.length} clips gelden als **automatisch goedgekeurd**. Op alle ${rows.length} clips zijn ruis-einde (${rows.filter((r) => r.eind.burst).length}), pop-begin (${rows.filter((r) => r.pop.pop).length}) en clipping (${flagCount.clip || 0}) schoon, en een ruisaandeel boven ${fx(T.ruisAandeel, 2)} komt niet voor (${flagCount.ruis || 0}). Wat buiten de lijst valt heeft hoogstens een lichte vlag (hoogste score in de rest: ${fx(ranked[TOP]?.score || 0)}). Dat is een meting en geen oordeel over uitspraak, accent of betekenis: niemand heeft ze beluisterd. Slechte clips uit de lijst worden opnieuw opgenomen met \`tts_lines.py\`; vindt de eigenaar bij de steekproef zelf fouten, dan vervalt 'automatisch goedgekeurd' en volgt een bredere luisterronde.
 `;
-fs.writeFileSync(path.join(ROOT, 'docs', 'TTS-VERDACHT-22-11.md'), md);
+if (!arg('uit', '').length || process.argv.includes('--md')) fs.writeFileSync(path.join(ROOT, 'docs', arg('uit', 'TTS-VERDACHT-22-11') + '.md'), md);
 console.log(`${rows.length} gemeten, ${lijst.length} in de lijst (${top.length} + ${steek.length}); zonder vlag ${geenVlag}; vlaggen ${JSON.stringify(flagCount)}`);
 console.log('ondergrens top-score', top[top.length - 1].score.toFixed(2), 'hoogste in de rest', ranked[TOP]?.score.toFixed(2));
 console.log('abs-variant:', abs);
