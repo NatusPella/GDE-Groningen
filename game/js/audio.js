@@ -8,6 +8,7 @@ import { createBank, buildImpulse, variantsOf, bufferNames } from './sfx/dsp.js'
 import { FX_INFO } from './sfx/fxbank.js';
 import { createStemTeller, declick, voiceCap } from './sfx/stemlimiet.js';
 import { plan as mixPlan, speechDuckFactor, categoryLevel, duckVeilig } from './sfx/mixplan.js';
+import { speechDuckStep } from './sfx/sfxfeel.js';
 import { createLinkups } from './sfx/linkups.js';
 import { createSamples, SAMPLE_INFO, vervangSleutel, variatie, autoDeurPlan, slipLoopNiveau, slipLoopRate, grindNodig, DRIFT_SLIP, driftLoopNiveau, driftLoopRate, HANDREM_MIN_V, SLIPSTOOT_SLIP } from './sfx/samples.js';
 import { initAmbience, updateAmbience, ambienceStats, getPlace } from './sfx/ambience.js';
@@ -141,6 +142,8 @@ const AMB_LEVEL = 0.9;
 const duckState = { amount: 0, until: 0, level: 0 };
 // hoe sterk een uitgesproken regel nu de motor en de omgeving dempt (0..1), zacht in en uit (#173)
 let speechLevel = 0;
+// the duck holds a moment after the last word, so the mix does not pump between two lines (sfx/sfxfeel.js)
+const speechDuck = { level: 0, hold: 0 };
 
 function duckAmbience(amount, hold) {
   if (!ctx) return;
@@ -157,8 +160,7 @@ function updateDucking(dt) {
   if (t > duckState.until) duckState.amount = 0;
   const target = duckState.amount;
   duckState.level += (target - duckState.level) * Math.min(1, dt * (target > duckState.level ? 12 : 1.5));
-  const talking = voiceBusy() ? 1 : 0;
-  speechLevel += (talking - speechLevel) * Math.min(1, dt * (talking ? 6 : 1.5));
+  speechLevel = speechDuckStep(speechDuck, voiceBusy(), dt);
   ambBus.gain.value = AMB_LEVEL * (1 - duckState.level) * speechDuckFactor('omgeving', speechLevel);
 }
 
