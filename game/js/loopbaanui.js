@@ -41,13 +41,13 @@ const ICONEN = {
   pan: '<path d="M3 11h14v3a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4zM17 12h4M7 7c0-1 1-1 1-2M11 7c0-1 1-1 1-2"/>',
   rad: '<circle cx="12" cy="10" r="6.5"/><path d="M12 3.5v13M5.5 10h13M7.4 5.4l9.2 9.2M16.6 5.4l-9.2 9.2M8 21l4-4.5 4 4.5"/>',
   hamer: '<path d="M14 3l6 6-3.2 3.2-6-6zM12 8.5L4 16.5V20h3.5l8-8"/>',
-  padel: '<ellipse cx="10" cy="9" rx="6" ry="6.5"/><path d="M14.5 13.8L20 19.5M8 7h.01M11 9h.01M9 12h.01"/>',
+  padel: '<path d="M12 2.5c-3.6 0-6 2.3-6 5.8 0 3 1.7 5 3.8 5.9l.4 1.3h3.6l.4-1.3c2.1-.9 3.8-2.9 3.8-5.9 0-3.5-2.4-5.8-6-5.8zM10.5 15.5V21h3v-5.5M10 6.5h.01M14 6.5h.01M12 9h.01M10 11.2h.01M14 11.2h.01"/>',
   vlag: '<path d="M8 21V4l9 4-9 4M5 21h10"/>',
   race: '<path d="M5 21V4M5 5h14v9H5zM5 9.5h14M9.5 5v9M14.5 5v9"/>',
   boom: '<path d="M12 21v-6M12 3l5 7h-3l4 6H6l4-6H7z"/>',
   vis: '<path d="M3 12c3-4 8-5 12-3l4-3v12l-4-3c-4 2-9 1-12-3zM16.5 11h.01"/>',
   vrachtwagen: '<path d="M2 7h12v9H2zM14 10h4l3 3v3h-7z"/><circle cx="6" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/>',
-  trekker: '<circle cx="7" cy="16" r="3.4"/><circle cx="18" cy="17.5" r="2"/><path d="M7 12.6V7h6l2 5h3v3.5M10 7V4h2"/>',
+  trekker: '<circle cx="7.5" cy="16.5" r="4"/><circle cx="19" cy="18.5" r="2"/><path d="M4 11.5V8l2-3h6v6.5M12 8h3l2.5 4.5H21V17M7.5 8v3M17 5V2.5"/>',
 };
 const loopbaanIcoon = (naam, cls = 'pa-ico') => `<span class="${cls}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICONEN[naam] || ICONEN.hamer}</svg></span>`;
 
@@ -241,8 +241,8 @@ function tourHtml(profiel) {
     }
     const aan = gekozen === s.vak;
     const regel = stopLine(s);
-    return `<li class="lb-stop" data-staat="${s.staat}" ${stijl}${s.staat === STATE.now ? ' aria-current="step"' : ''}>${punt}<button type="button" class="m-li lb-stop__knop ds-m-knop${aan ? ' sel' : ''}" data-vak="${s.vak}" data-stop="${s.staat}" aria-label="${esc(`Stop ${s.nr}, ${s.naam}, ${regel}`)}"${aan ? ' aria-current="true"' : ''}>` +
-      `${loopbaanIcoon(s.icoon)}<span class="lb-stop__t"><span class="lb-stop__naam">${esc(s.naam)}</span><span class="lb-stop__s">${esc(regel)}</span></span></button></li>`;
+    return `<li class="lb-stop" data-staat="${s.staat}" ${stijl}${s.staat === STATE.now ? ' aria-current="step"' : ''}>${punt}<button type="button" class="m-li lb-stop__knop ds-m-knop${aan ? ' sel' : ''}" data-vak="${s.vak}" data-stop="${s.staat}" aria-label="${esc(`Stop ${s.nr}, ${s.naam}${regel ? `, ${regel}` : ', open voor je'}`)}"${aan ? ' aria-current="true"' : ''}>` +
+      `${loopbaanIcoon(s.icoon)}<span class="lb-stop__t"><span class="lb-stop__naam">${esc(s.naam)}</span>${regel ? `<span class="lb-stop__s">${esc(regel)}</span>` : ''}</span></button></li>`;
   }).join('') + '</ol>';
 }
 
@@ -434,7 +434,7 @@ export function renderLoopbaanPanel(el, sluit = null, w = null) {
   const eerste = L.eersteKlusStand(profiel);
   const leeg = sam.aantal === 0;
   // De kop: titel (hooguit 30 tekens), één ondertitel (hooguit 40) en de wissel Tour of Vakken. Geen hero en geen alinea's meer (DS3, tekstdieet).
-  const titel = leeg ? 'Je loopbaan' : sam.hoogste.titel;
+  const titel = leeg ? 'Nog geen vak gekozen' : sam.hoogste.titel; // #1264: de kop "Je loopbaan" staat al als kicker
   const onder = leeg ? 'Kies een vak en doe een eerste klus' : eerste.klaar ? `${L.DUIZENDPOOT_TITEL} · alle ${eerste.totaal} gedaan` : `${eerste.gedaan} van ${eerste.totaal} eerste klussen`;
   const kop = `<header class="lb-balk" aria-label="Je loopbaan"><span class="lb-balk__t"><span class="m-eb">Je loopbaan</span><b>${esc(titel)}</b></span><span class="lb-balk__s">${esc(onder)}</span>` +
     `<span class="lb-wissel" role="group" aria-label="Weergave">${wisselKnop('tour', 'Tour', weergave === 'tour')}${wisselKnop('vakken', 'Vakken', weergave === 'vakken')}</span></header>`;
