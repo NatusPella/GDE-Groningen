@@ -25,7 +25,7 @@ import { cinematicLinks as links } from './latehooks.js';
 export function setCinematicLinks(l) { Object.assign(links, l); }
 import { KEYS } from './storagekeys.js';
 import { registerBusyProbe } from './busy.js';
-import { registerNotifyHold } from './notifygate.js';
+import { registerNoticeHold, enqueueNotice } from './notifyqueue.js';
 import { interiorEyePose } from './carinterior.js';
 import { toggleFirstPerson, setFirstPerson } from './firstperson.js';
 import { playerBusy } from './busy.js';
@@ -199,7 +199,7 @@ export function isCinematicActive(id) {
   return !!active && (id == null || active.id === id);
 }
 registerBusyProbe('cinematic', () => isCinematicActive());
-registerNotifyHold('cutscene', () => isCinematicActive()); // meldingenpoort (22-11): geen melding tijdens een cutscene
+registerNoticeHold('cutscene', () => isCinematicActive()); // meldingenpoort (22-11): geen melding tijdens een cutscene
 
 // The red damage vignette stays off during cutscenes unless the scene asks
 // for it (spec.blood) or it is the death scene itself.
@@ -1019,6 +1019,7 @@ function busyWithJob(w) {
   return playerBusy(w, ['missionPhase', 'sideJob', 'challenge', 'activeRace']).busy; // race: nooit een scène erdoorheen (#732)
 }
 
+let wijkQueued = null; // de wijk die in de meldingenwachtrij wacht
 function checkWijk(dt, w) {
   if (!wijkSeen || w.pigeonMode) return;
   wijkTimer -= dt;
@@ -1035,11 +1036,31 @@ function checkWijk(dt, w) {
   if (busyWithJob(w)) return;
   // over the attention budget: waits while the player is still in the wijk
   if (aloft(w) || !mayInterrupt('wijk', w)) return;
-  noteMoment('wijk');
-  // #734 (F6): pas als de kaart echt getoond kan worden de wijk als gezien
-  // markeren; anders blijft de kaart/film voorgoed weg.
+  // 22-11: de wijkkaart ("Nieuwe buurt") is een melding van de ene wachtrij (notifyqueue.js): hij wacht op wat er staat en komt
+  // pas als niets het scherm heeft. De speler moet er bij het tonen nog staan, anders blijft de wijk ongezien.
+  if (wijkQueued === p.name) return;
+  wijkQueued = p.name;
   wijkCand = null;
-  if (showWijkCard(w, p)) markWijk(p);
+  enqueueNotice('area', {
+    key: 'wijk-' + p.name,
+    surface: 'area-card',
+    text: p.name,
+    duration: 6,
+    maxHold: 25,
+    ready: () => !active && !aloft(w) && mayInterrupt('wijk', w),
+    show: () => {
+      wijkQueued = null;
+      const nu = currentWijk(w);
+      if (!nu || nu.name !== p.name || wijkSeen.has(p.name)) return;
+      noteMoment('wijk');
+      // #734 (F6): pas als de kaart echt getoond kan worden de wijk als gezien
+      // markeren; anders blijft de kaart/film voorgoed weg.
+      if (showWijkCard(w, p)) markWijk(p);
+    },
+    until: () => !(wijkCardEl && wijkCardEl.classList.contains('on')),
+    cut: () => { if (wijkCardEl) wijkCardEl.classList.remove('on'); },
+    onDrop: () => { wijkQueued = null; },
+  });
 }
 
 // The card's own area (#725): the real boundary (grenzen.json) around the wijk point, so a

@@ -17,6 +17,7 @@ import { zones, P1, P2, hudNow } from './hudrules.js';
 import { appForNote, senderForNote, senderOf, appNaam } from './phoneapp.js';
 import { opschuiven } from './microinteractions.js';
 import { toClass } from './noticetiming.js'; // 6 / 9 / 10 s, zoals alle meldingen
+import { enqueueNotice, noticeQueue } from './notifyqueue.js'; // de volgende tekst loopt via de ene meldingenwachtrij (22-11)
 import { adjustRemaining } from './melding.js'; // het aflopende balkje loopt mee als de stem de tijd rekt
 
 // The folded phone (the Pixie Vouw 11's cover screen) on the HUD, bottom
@@ -413,7 +414,21 @@ export function updatePhoneFeed(dt, w) {
       remember(w, n.from ? `${n.from}: ${n.text}` : n.text);
     }
     // narrative.js: not over a cutscene or a story call, a beat apart, story texts after their "Bel Rikus"
-    if (!call && !cards.some((c) => !c.leaving) && zones.free('A', 'phone') && notes.length && !(hudNow.busy && !notes[0].story) && mayStart(notes[0].story ? 'text' : 'phone')) { noteToast(); showNote(w, notes.shift()); }
+    // 22-11: de volgende tekst loopt via de ene meldingenwachtrij (notifyqueue.js): een tegelijk, nooit tijdens laden of film
+    if (notes.length && !noticeQueue.hasSurface('phone')) {
+      enqueueNotice('phone', {
+        key: 'phone-next',
+        surface: 'phone',
+        text: notes[0].text,
+        prio: notes[0].story ? 6 : undefined,
+        duration: 6,
+        maxHold: 90,
+        ready: () => !call && notes.length > 0 && zones.free('A', 'phone') && !(hudNow.busy && !notes[0].story) && mayStart(notes[0].story ? 'text' : 'phone') && hudVisible() && !(world && world.paused),
+        show: () => { if (notes.length && world) { noteToast(); showNote(world, notes.shift()); } },
+        until: () => !cards.some((c) => !c.leaving),
+        cut: () => { for (const c of cards.filter((k) => !k.leaving)) dropCard(c); },
+      });
+    }
     syncCounter();
     for (const c of cards) { c.t += dt; voiceCard(c); if (c.speaking && c.t > 40) c.speaking = false; if (!c.speaking) c.left -= dt; }
     for (const c of cards.filter((k) => k.left <= 0)) {

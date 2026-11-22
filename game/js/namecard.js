@@ -8,11 +8,10 @@ import { CHARACTERS } from './storyarc.js';
 import { isOverlayHeld } from './overlayhold.js';
 import { runNoticeTimer } from './melding.js'; // het gedeelde aflopende balkje
 import { DURATION_CLASSES } from './noticetiming.js';
+import { enqueueNotice } from './notifyqueue.js'; // de naamkaart loopt via de ene meldingenwachtrij (22-11)
 
 const SHOW_S = DURATION_CLASSES.kort; // een naam en één regel: de korte klas (4 s), met het aflopende balkje
 let meld = null;
-const WAIT_MAX = 12;
-let waitT = 0;
 let el = null;
 let hideT = 0;
 let meetHook = null;
@@ -56,7 +55,8 @@ export function showNameCard(key, { quiet = false, force = false } = {}) {
   if (!c) return false;
   const fresh = meetHook ? meetHook(key) !== false : true;
   if (quiet || (!fresh && !force) || !ensure()) return true;
-  // onder de resultaatkaart of een keuzepaneel wacht de naamkaart (#239), hooguit WAIT_MAX seconden
+  // De naamkaart hoort bij de film of het gesprek waar hij in staat: die holds negeert hij; laden en een schermvullend menu
+  // houden hem wel tegen. Onder de resultaatkaart of een keuzepaneel wacht hij (#239, ready), niet langer dan de wachtrij toelaat.
   const display = () => {
     el.querySelector('.nc-name').textContent = c.name;
     el.querySelector('.nc-line').textContent = c.card;
@@ -69,12 +69,18 @@ export function showNameCard(key, { quiet = false, force = false } = {}) {
     if (meld) meld.stop();
     meld = runNoticeTimer(el, { duur: SHOW_S, film: false, onKlaar: () => { el.classList.remove('on'); el.classList.add('out'); } });
   };
-  const tryShow = (left) => {
-    if (left > 0 && isOverlayHeld('naamkaart')) { waitT = setTimeout(() => tryShow(left - 1), 300); return; }
-    display();
-  };
-  clearTimeout(waitT);
-  tryShow(Math.round(WAIT_MAX / 0.3));
+  enqueueNotice('namecard', {
+    key: 'namecard-' + key,
+    surface: 'namecard',
+    text: `${c.name} ${c.card}`,
+    duration: SHOW_S,
+    maxHold: 30,
+    ignore: ['cutscene', 'dialogue', 'mission'],
+    ready: () => !isOverlayHeld('naamkaart'),
+    show: display,
+    until: () => !el.classList.contains('on'),
+    cut: () => { if (meld) { meld.timer.sluit(); meld.tik(); } },
+  });
   return true;
 }
 

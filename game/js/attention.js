@@ -11,7 +11,7 @@ import { narrativeBusy } from './narrative.js';
 
 import { LEVEL, CARD_PRIORITY as CARDS, MOMENTS, mayShow } from './hudbus.js';
 import { playerBusy } from './busy.js';
-import { notifyHeld } from './notifygate.js';
+import { noticeHeld, noticeQueue } from './notifyqueue.js';
 
 // Priority: story > wanted/danger > money/achievement > discovery/flavour > tips.
 // The tables (levels, card categories, moments, gaps) are in hudbus.js.
@@ -31,7 +31,8 @@ function busy(w) {
 // May a cinematic moment of `kind` play now? Doesn't book it (noteMoment does).
 export function mayInterrupt(kind, w) {
   if (!MOMENTS[kind]) return true;
-  if (notifyHeld()) return false; // laadscherm, opstart, cutscene of schermvullend menu: de wijkkaart en andere momenten wachten (22-11)
+  if (noticeQueue.shown()) return false; // een melding staat in beeld: het filmmoment wacht (22-11)
+  if (noticeHeld(['dialogue', 'mission'])) return false; // laadscherm, opstart, cutscene of schermvullend menu: de wijkkaart en andere momenten wachten (22-11)
   const v = w && hoofdspeler(w) && hoofdspeler(w).inVehicle;
   return mayShow('moment', {
     kind,

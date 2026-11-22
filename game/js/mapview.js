@@ -18,7 +18,7 @@ import { tekenVeroverd, tekenLegenda, tekenLegendeVlag, kaartLaag, openGebied, s
 import { dsKleur } from './kaartkleuren.js';
 import { gebiedenVan } from './gebieden.js';
 import { getOverzicht, opVeranderen as onGebiedenChange, bezoekPlek } from './gebiedenlive.js';
-import { queueNotice } from './notifygate.js'; // meldingen pas na het laadscherm (22-11)
+import { enqueueNotice } from './notifyqueue.js'; // alle meldingen langs de ene wachtrij (22-11)
 import { pinBlijftInMist, unseenDistricts, discoveryRatio, revealAlpha, maskSize, DISCOVERY_RES_M } from './kaartontdekking.js';
 import { getHorecaForRender } from './horeca.js';
 import { poiRules, capPins, fadeIn, createHorecaPlanner } from './mapdeclutter.js';
@@ -665,12 +665,12 @@ const OPEN_DELAY_MS = 900;
 
 function queueDiscovery(ev) {
   if (!state) return;
-  // 22-11: de onthulling komt pas in de rij nadat het laadscherm weg is (notifygate.js). De kaart zelf mag open zijn
+  // 22-11: de onthulling komt pas in de rij nadat het laadscherm weg is (notifyqueue.js). De kaart zelf mag open zijn
   // (juist dan speelt hij), dus het schermvullende menu houdt hier niet vast. Geen slot: elke streek apart.
-  queueNotice('kaart', {
+  enqueueNotice('reveal', {
     key: 'reveal-' + ev.area,
-    duur: 0,
-    negeer: ['scherm'],
+    duration: 0,
+    ignore: ['screen'],
     show: () => {
       if (!state) return;
       state.reveals = queueReveal(state.reveals || [], ev);

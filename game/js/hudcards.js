@@ -26,7 +26,7 @@ import { CARD_LINES } from './cardlines.js';
 import { cardSpoken, hintVoiceFor } from './smsvoice.js';
 import { CARD_PRIORITY, mayShowTip, noteTip } from './attention.js';
 import { mayStart, noteToast, heldBack } from './narrative.js';
-import { notifyHeld } from './notifygate.js'; // niets in beeld terwijl het laadscherm of een cutscene het scherm heeft (22-11)
+import { noticeHeld, enqueueNotice, noticeQueue, kindForCard, moreLabel } from './notifyqueue.js'; // alle kaarten langs de ene meldingenwachtrij: een tegelijk, nooit tijdens laden of film (22-11)
 import { missionIconInner } from './missionicons.js';
 import { zones, mayShow, cardPrio, cardZone, hudNow } from './hudrules.js';
 import { enqueueCard, leftColumnFits, LINE_PX, throttledRead, COLUMN_OPTS_MS } from './hudbus.js';
@@ -144,7 +144,7 @@ export function initCards(w, root) {
     e.stopPropagation();
     dismissCard(c);
   }, { capture: true });
-  if (typeof window !== 'undefined') window.__cards = { show: (spec) => showCard(world, spec), state: () => ({ visible: visible.map((c) => c.spec), queue: queue.map((q) => q.spec) }), log: () => cardLog.slice(), openLog: openCardLog, classify };
+  if (typeof window !== 'undefined') window.__cards = { show: (spec) => showCard(world, spec), state: () => ({ visible: visible.map((c) => c.spec), queue: queue.map((q) => q.spec), notices: noticeQueue.state() }), log: () => cardLog.slice(), openLog: openCardLog, classify };
   return stackEl;
 }
 
@@ -178,7 +178,7 @@ function columnOptsRead() {
   return { viewH: window.innerHeight / (getUiScale() || 1), extraLines: extra };
 }
 
-export const cardsBusy = () => visible.some((c) => !c.leaving) || queue.length > 0;
+export const cardsBusy = () => visible.some((c) => !c.leaving) || queue.length > 0 || noticeQueue.hasSurface('card');
 
 function classify(text, opts = {}, w = world) {
   const t = String(text || '');
@@ -200,9 +200,38 @@ function fromMessage(text, dur, opts = {}) {
 
 // spec: { kind, title, body | text, bodyHtml, duration, key, icon, kicker, voice: false }
 // bodyHtml (optional) is shown in place of body, which still sets timing and text.
+// De kaart gaat niet meteen in beeld: hij loopt via de meldingenwachtrij (notifyqueue.js), die er hooguit een tegelijk
+// vrijgeeft, nooit tijdens laden, film, gesprek of een schermvullende kaart. Een kaart met dezelfde sleutel die al staat, ververst.
 export function showCard(w, spec) {
   if (!stackEl) return;
   world = w || world;
+  const card = buildCard(spec);
+  const up = visible.find((c) => c.key === card.key && !c.leaving);
+  if (up) { refresh(up, card); return; }
+  const key = card.key;
+  const alive = () => visible.some((c) => c.key === key) || queue.some((q) => q.key === key);
+  enqueueNotice(kindForCard(card.spec.kind), {
+    key,
+    surface: 'card',
+    text: card.text,
+    duration: card.secs,
+    maxAge: card.spec.kind !== 'tip' ? undefined : card.important ? TIP_KEEP : TIP_STALE,
+    keep: card.important,
+    ready: () => cardReady(card),
+    show: (it) => {
+      if (it.more > 0) card.spec = { ...card.spec, body: [card.spec.body, moreLabel(it.more)].filter(Boolean).join(' \u00b7 ') };
+      placeCard(card);
+    },
+    until: () => !alive(),
+    cut: () => {
+      const c = visible.find((v) => v.key === key);
+      if (c) leave(c);
+      queue = queue.filter((q) => q.key !== key);
+    },
+  });
+}
+
+function buildCard(spec) {
   const kind = CARD_KINDS[spec.kind] ? spec.kind : 'tip';
   let { title = '', body = '' } = spec;
   if (!title && !body && spec.text) ({ title, body } = split(spec.text));
@@ -217,9 +246,25 @@ export function showCard(w, spec) {
   const card = { spec: { ...spec, kind, title, body, icon }, secs, key: spec.key || all, at: world ? world.time : 0, age: 0, text: spec.text || all };
   card.important = kind === 'tip' && (!!spec.important || teaches(all));
   card.sticky = stickyCard(mode, card.important);
-  const up = visible.find((c) => c.key === card.key && !c.leaving);
-  if (up) { refresh(up, card); return; }
   card.rank = CARD_KINDS[card.spec.kind].rank;
+  return card;
+}
+
+// Mag deze kaart nu uit de wachtrij naar het scherm? Dezelfde regels als updateCards hieronder aanlegt (aandacht, gesprek, tips).
+function cardReady(card) {
+  const w = world;
+  if (!w || !stackEl || hudHidden() || w.paused || w.uiPaused) return false;
+  const q = { spec: card.spec, important: card.important };
+  const press = pressing(q, w);
+  if (!press && (heldBack() || !mayStart('card'))) return false;
+  const calling = document.body.classList.contains('hud-call-on');
+  if (calling && card.rank < CARD_PRIORITY.politie) return false;
+  if (!mayShow(cardPrio(card.spec.kind), { busy: hudNow.busy, dialogue: hudNow.dialogue || calling, zone: zoneOf(q) })) return false;
+  return card.spec.kind !== 'tip' || mayShowTip();
+}
+
+// De kaart gaat de interne rij in en komt, zodra updateCards hem vrijgeeft, in beeld.
+function placeCard(card) {
   queue = enqueueCard(queue, card, MAX_QUEUE);
 }
 
@@ -386,7 +431,7 @@ export function updateCards(dt, w) {
   // and a card that is up steps aside while a story call or a subtitle shows (not a danger or a mission's own card)
   const held = heldBack() && !visible.some((c) => !c.leaving && pressing(c, w)) && !(queue.length && pressing(queue[0], w));
   stackEl.classList.toggle('hc-held', held);
-  const frozen = hudHidden() || w.paused || w.uiPaused || held || notifyHeld(['scherm', 'cutscene']) || !mayStart('card', { urgent: true });
+  const frozen = hudHidden() || w.paused || w.uiPaused || held || noticeHeld(['screen', 'cutscene', 'dialogue', 'mission']) || !mayStart('card', { urgent: true });
   stackEl.classList.toggle('paused', !!frozen);
   if (stackE) stackE.classList.toggle('paused', !!frozen); // het balkje van een E-kaart staat dan ook stil
   document.body.classList.toggle('hud-card-on', visible.some((c) => !c.leaving));

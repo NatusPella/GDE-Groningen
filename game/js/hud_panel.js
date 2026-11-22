@@ -73,7 +73,7 @@ import { storyWaiting, missionOnMap, getGoal } from './goal.js';
 import { resolveNavTargets, snapshotFromWorld, distanceFor, compactDistance, navColor, NAV_ROL, GLYPH } from './navtarget.js';
 import { drawKompasRand, MAX_ANDEREN } from './navpijl.js';
 import { MM_ONTDEK_MS } from './kaartontdekking.js';
-import { queueNotice, runNotifyGate } from './notifygate.js'; // meldingen pas na het laadscherm (22-11)
+import { enqueueNotice, runNoticeQueue } from './notifyqueue.js'; // alle meldingen langs de ene wachtrij (22-11)
 import { setGhostBar, ring, pop, reducedMotion } from './motion.js';
 import { renderSnapshot, PORTRAIT_ANGLE } from './vehiclepreview.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
@@ -281,12 +281,12 @@ export function initHud(world) {
   root.appendChild(mmWrap);
   // #990: een nieuwe streek ontdekt (ook onderweg, kaart dicht): de rand van de minimap gloeit even op, geen beweging nodig
   let ontdekT = 0;
-  // 22-11: de gloed wacht tot het laadscherm weg is (notifygate.js); meerdere streken tegelijk worden één gloed
-  runNotifyGate();
+  // 22-11: de gloed wacht tot het laadscherm weg is (notifyqueue.js); meerdere streken tegelijk worden één gloed
+  runNoticeQueue();
   onStreekOntdekt(() => {
-    queueNotice('ontdekking', {
+    enqueueNotice('discovery', {
       key: 'minimap-ontdek',
-      tekst: 'Je ontdekt een nieuwe streek',
+      text: 'Je ontdekt een nieuwe streek',
       show: () => {
         mmWrap.classList.add('ontdek');
         clearTimeout(ontdekT);
@@ -1817,7 +1817,7 @@ function updateRaceHud(world) {
 
 // Zone E: the radio station for a few seconds. It waits out a chase or a
 // call (at most DEFER_MAX s, then it lapses) and gives way to an achievement.
-let npTimer = 0, npWait = 0;
+let npTimer = 0, npWait = 0, npQueued = null;
 function updateNowPlaying(dt, world) {
   const np = world.nowPlaying;
   if (np && np !== els.npShown) {
@@ -1831,12 +1831,29 @@ function updateNowPlaying(dt, world) {
     setText(els.npArtist, np.artist || '');
   }
   if (np && npWait > 0 && npTimer <= 0) {
-    if (!isBusy(world) && !isDialogue() && !zones.occupant('E') && !world.paused) {
-      npTimer = nowPlayingSeconds(np); // #975: lang genoeg om titel, artiest en zender te lezen
-      npWait = 0;
-      noticeBar(els.nowPlaying, { duur: npTimer }); // het aflopende balkje (DESIGN_SYSTEM.md, Meldingen); .on laat hem lopen
-      restartClass(els.nowPlaying, 'on', () => npTimer > 0);
-    } else if (!world.paused && (npWait -= dt) <= 0) world.nowPlaying = null;
+    // 22-11: de radiokaart loopt via de ene meldingenwachtrij (notifyqueue.js): een tegelijk, nooit tijdens laden of film
+    if (npQueued !== np) {
+      npQueued = np;
+      enqueueNotice('radio', {
+        key: 'radio-' + (np.title || np.station || ''),
+        surface: 'radio',
+        text: np.title || 'radio',
+        duration: nowPlayingSeconds(np),
+        maxAge: DEFER_MAX,
+        ready: () => !isBusy(world) && !isDialogue() && !zones.occupant('E') && !world.paused,
+        show: () => {
+          if (world.nowPlaying !== np) return;
+          npTimer = nowPlayingSeconds(np); // #975: lang genoeg om titel, artiest en zender te lezen
+          npWait = 0;
+          noticeBar(els.nowPlaying, { duur: npTimer }); // het aflopende balkje (DESIGN_SYSTEM.md, Meldingen); .on laat hem lopen
+          restartClass(els.nowPlaying, 'on', () => npTimer > 0);
+        },
+        until: () => npTimer <= 0,
+        cut: () => { npTimer = 0; els.nowPlaying.classList.remove('on'); world.nowPlaying = null; },
+        onDrop: () => { if (world.nowPlaying === np) world.nowPlaying = null; },
+      });
+    }
+    if (!world.paused && (npWait -= dt) <= 0) world.nowPlaying = null;
   }
   if (npTimer > 0 && !world.paused && (npTimer -= dt) <= 0) {
     els.nowPlaying.classList.remove('on');

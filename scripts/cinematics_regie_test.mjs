@@ -11,7 +11,8 @@ const bron = (p) => fs.readFileSync(new URL(`../game/js/${p}`, import.meta.url),
 const cin = bron('cinematics.js');
 
 t('F6: de wijk wordt pas na een gelukte kaart als gezien gemarkeerd', () => {
-  assert.match(cin, /wijkCand = null;\s*\n\s*if \(showWijkCard\(w, p\)\) markWijk\(p\);/);
+  // 22-11: de wijkkaart loopt via de meldingenwachtrij; de markering volgt pas op de gelukte kaart
+  assert.match(cin, /enqueueNotice\('area'[\s\S]*?if \(showWijkCard\(w, p\)\) markWijk\(p\);/);
 });
 
 t('F8: finish, begin en skipAll resetten de skip-hold', () => {

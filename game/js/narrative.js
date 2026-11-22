@@ -34,6 +34,7 @@
 //   phone and HUD cards that are already up step aside meanwhile (heldBack).
 
 import { NARRATIVE, mayShow } from './hudbus.js';
+import { registerNoticeHold } from './notifyqueue.js';
 
 const { TALK } = NARRATIVE;
 
@@ -87,6 +88,8 @@ export function narrativeBusy() {
   updateNarrative();
   return isOn('scene') || TALK.some(isOn);
 }
+// 22-11: geen melding tijdens een verhaalscene, gesprek of radiopraatje (notifyqueue.js); gevaar en politie zijn urgent en negeren dit
+registerNoticeHold('dialogue', () => narrativeBusy());
 
 // May an item of `kind` start now? Toasts that do start should call noteToast().
 export function mayStart(kind, { urgent = false } = {}) {

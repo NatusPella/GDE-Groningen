@@ -1677,8 +1677,8 @@
    "reden": "Bewaart de toetsenbordfocus in een menu op dit apparaat; lokaal."
   },
   {
-   "glob": "notifygate",
-   "reden": "Poort voor meldingen op dit apparaat; lokaal beeld."
+   "glob": "notifyqueue",
+   "reden": "De meldingenwachtrij op dit apparaat: per speler lokaal, geen netwerkverkeer; een gast en de opener houden elk hun eigen rij."
   },
   {
    "glob": "paneuv",

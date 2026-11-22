@@ -16,7 +16,7 @@ import { HOUSE_ARRIVAL } from './beppe_texts.js';
 import { KEYS } from './storagekeys.js';
 import { iconSvg } from './achievementicons.js';
 import { isOverlayHeld } from './overlayhold.js';
-import { notifyHeld } from './notifygate.js'; // een prestatie wacht tot het laadscherm weg is, en gaat niet verloren (22-11)
+import { noticeHeld, enqueueNotice, noticeQueue } from './notifyqueue.js'; // een prestatie wacht in de ene meldingenwachtrij tot niets het scherm heeft, en gaat niet verloren (22-11)
 import { zones, P3 } from './hudrules.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 import { getSettings } from './settings.js';
@@ -819,9 +819,23 @@ function ensureToast() {
 
 const escHtml = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
+// De hele reeks prestaties van dit moment is een melding in de wachtrij (notifyqueue.js): de toasts volgen elkaar zelf op
+// (queueStep, samenvatting), de wachtrij geeft ze het slot zolang de reeks loopt en houdt andere meldingen dan tegen.
+let toastSlot = false;
 function queueToast(a) {
   toastQueue.push(a);
-  if (!toastUntil) showNextToast();
+  if (toastSlot && noticeQueue.hasSurface('toast')) return;
+  toastSlot = true;
+  enqueueNotice('achievement', {
+    key: 'achievement-burst',
+    surface: 'toast',
+    duration: TOAST_S,
+    maxHold: 180,
+    keep: true,
+    show: () => { if (!toastUntil) showNextToast(); },
+    until: () => { const klaar = !toastUntil && !toastQueue.length; if (klaar) toastSlot = false; return klaar; },
+    cut: () => { toastQueue.splice(0); if (toastMeld) { toastMeld.timer.sluit(); toastMeld.tik(); } },
+  });
 }
 
 // Waits out cutscenes and menus so an unlock is never shown where nobody sees it.
@@ -829,7 +843,7 @@ function toastBlocked() {
   const b = document.body;
   if (!b.classList.contains('game-started') || b.classList.contains('cine-hide-hud')) return true;
   // narrative.js: held during cutscenes and story calls, a beat apart from other toasts
-  if (notifyHeld()) return true;
+  if (noticeHeld(['dialogue', 'mission'])) return true;
   if (!mayStart('award')) return true;
   // de resultaatkaart, een keuzepaneel of een duelbalk gaat voor (#239): de prestatie staat in de wachtrij
   if (isOverlayHeld('prestatie')) return true;
