@@ -1,0 +1,37 @@
+# Code-review 22-11, delta 2 (alleen lezen)
+
+Bereik: `git log 3a1fa5b61..origin/main` (108 commits, tot en met 519ff048d) en de branches `perf-regressie-22-11`, `luchtroute-hud-22-11`, `tts-niks-22-11` en `tts-verdacht-22-11`; `kleding-clipping-22-11` bestaat, maar heeft geen eigen commits. Alle vijf zijn inmiddels in main samengevoegd.
+Beoordeeld op correctheid, regressies, geheugen en lekken, Samen spelen en netwerk, en de constitution. Niets uitgevoerd: alleen code gelezen (geen Electron, geen suites). Agent heeft niets in beeld bekeken.
+Alleen bevindingen met een concreet falend scenario staan hieronder.
+
+## Bevindingen
+
+### 1. Samen, Bezit: de host geeft een verloren claim door aan de winnaar, die zijn perceel kwijtraakt bij klokverschil (middel)
+Bestanden: `game/js/bezitnet.js` (handleBezit, hostkant), `game/js/bezitlive.js` (announce, receive).
+- De gast legt zijn eigen claim lokaal vast met `t = Date.now()` van zijn eigen klok (`announce`). De host stempelt een binnenkomende claim met zijn eigen klok (`stamp`).
+- Scenario: gast A en gast B kopen vrijwel gelijktijdig hetzelfde perceel. De host ontvangt A eerst (stempel T) en B daarna (stempel T+e). B is verloren (`ignored: 'verloren'`), maar de host geeft B's claim toch door aan alle andere gasten, dus ook aan A: de doorgeefregel `for (const s of guests) if (s !== van) toGuest(...)` staat vóór de `verloren`-tak; alleen `quotum` en `vol` worden niet doorgegeven.
+- Bij A vergelijkt `wins(incoming, oud)` het host-stempel van B (T+e) met A's lokale claim (A's eigen klok). Loopt A's klok meer dan e (netwerkvertraging, enkele ms tot honderden ms) voor op die van de host, dan wint B's claim bij A, `lost` wordt waar en `releaseLostClaim` geeft A zijn geld terug. B krijgt van de host `claim ... t: 0` van A en verliest ook (terugbetaling). De host houdt A als eigenaar.
+- Gevolg: beide gasten raken het perceel kwijt (met terugbetaling), de host denkt dat het van A is, en elke volgende koper krijgt `verloren`: het perceel is voor de rest van de sessie onverkoopbaar. Klokverschil tussen apparaten van seconden is normaal.
+- Voorgestelde fix: in de hostkant, direct na `net.receive`, niets doorgeven als de claim niet is aangenomen (`if (!r || !r.ok)` terug, na de bestaande `verloren`-tak die de afzender `t: 0` van de winnaar stuurt). De afzender hoort zijn verlies al via die tak. Test: twee gasten met een klok die 5 s verschilt, A koopt eerst; A behoudt het perceel.
+
+### 2. Samen, Bezit: het hello van een gast met meer dan ca. 245 eigen percelen gaat verloren (middel)
+Bestanden: `game/js/bezitnet.js` (ensureBezitNet, hello; host: `helloVan`), `game/js/net/codec.js` (MAX_JSON 2048).
+- Sinds review B5 bevat `net.snapshot()` alle percelen uit de eigen save. De gast stuurt die in één bericht: `transport.toHost({ k: 'bezit', a: 'hello', ids: net.snapshot() })`. Een perceel is 8 tekens base64, dus bij ongeveer 245 percelen is het JSON-bericht langer dan MAX_JSON; `encodeJson` gooit 'bericht te groot', de `toHost` van `transportOf` vangt dat stil af en `o.hello` blijft waar, dus er is geen herhaling.
+- De host accepteert tot `PER_PLAYER_PARCELS = 500` percelen per gast en kent maar één hello per verbinding (`helloVan`), dus opsplitsen over meerdere hello's kan nu ook niet.
+- Scenario: een speler met 300 percelen sluit aan. De host krijgt geen claims van hem; een medegast kan zijn percelen in deze sessie gewoon kopen (de 'preowned'-bescherming werkt alleen aan de eigen kant) en de eigenaar raakt ze kwijt of krijgt ze terug zonder dat de host het weet.
+- Voorgestelde fix: de gast stuurt het hello met het eerste stuk (`SYNC_CHUNK` ids) en de rest als `a: 'own'`-berichten (zelfde afhandeling als hello: `adopt` met de quota en doorgeven aan de anderen, telt mee in `rateOk`, geen tweede `helloVan`). Totaal hoogstens 4 berichten bij 500 percelen, ruim binnen `RATE_BURST` 40. Test in `bezitnet_test`: 400 percelen, de host ziet er 400.
+
+### 3. De koeplekken worden na een mislukte laadpoging elke 2 seconden opnieuw geprobeerd (laag tot middel, prestaties)
+Bestanden: `game/js/pg_koe.js` (koeNear), `game/js/ommelandfun.js` (updateOmmelandFun).
+- `koeNear` zet `koeStarted = false` bij een afgewezen `prepareKoeSites` en wordt elke 2 s opnieuw aangeroepen. Binnen 6 km van Ten Boer start dan elke 2 s weer de plaatsing met 42 tegels (ca. 1 s hoofdthread, zie het eigen commentaar). Dezelfde fout (een afgewezen `withTiles`) is in dorpsuitjes.js (#1074) juist begrensd met `PLACE_MAX_FAILS = 3`.
+- Scenario: een kapotte of niet bereikbare tegel in de ring (offline web, onvolledige download): iedere 2 s een hapering van ca. 1 s zolang de speler binnen 6 km blijft, met een `console.warn` per poging.
+- Voorgestelde fix: een teller `koeFails`, hoogstens 3 pogingen, daarna `koeStarted` op waar laten (zoals `placeFails` in `placeSoon`). Test: `prepareKoeSites` die twee keer faalt en daarna slaagt, en een die altijd faalt (nooit meer dan 3 aanroepen).
+
+## Gecontroleerd zonder bevinding
+
+- Perf-regressie (#1052): `promoteBgTiles` (labels, prioriteit, rij verplaatsen), `_farBgTile`, `_bumpJunctions` en `flushJunctions`, de pomp met `urgent`, `BG_DRAIN_MAX_MS` 120 s. Overlay-tegels (sleutel met `o`) worden niet gepromoveerd of als ver gemarkeerd (NaN bij `split`): alleen een gemiste optimalisatie, geen fout. Een `_bgTiles`-sleutel van een nooit resident geworden tegel blijft staan (begrensd door het aantal tegels, geen lek van betekenis).
+- Samen: `relayPing` (afkoeling per afzender, bekende velden), outfit- en spelerslijst binnen MAX_JSON (`lijstEvent`, `outfitBerichten`, uitgestelde `_announceList`), claimquota en snelheidsgrens (tellers kloppen bij put, del, drop en clear), `stopBezitNet` bij het einde van de sessie, transportcache per sessie, gastberoving (`muggings.js`: terugbetaling bij hostwissel en bij alleen spelen), voetbal-gastbeloning (`guestCareerExtra`, klem op de eigen klasse), codec-tekenset voor tuning.
+- Interieurs (npc-stream, `persistent`-posebronnen, `unregisterPoseSource` bij drop), wereld levend (drie instanced meshes, aantallen binnen `LIFE_LIMITS`), luchtroute-HUD (5 Hz, CSS alleen onder `.is-air`), glow-budget en `tickVehicleLooks` (zelfde volgorde bij gelijke afstand), verkeerspaden (module-staat per bouw), LRU voor kaartbladen en reizigersgeometrie, `settings` met `hasKey`, focusval (`trapTabInCard`: alle knoppen van de moeilijkheidskaart hebben `data-i`, de toestemmingskaart heeft geen tekstveld), snackwagen (`settleDays` krijgt een nieuw ctx-object per dag), live treinen (poort op Samen en afstand tot een station).
+- Audio: `.wav` naar `.ogg` (geen `.wav`-verwijzingen meer in `game/js` voor voicelines, npc, politie, nieuws en jingles; alle bestanden aanwezig). `tts-niks-22-11`: alleen de opnieuw opgenomen clip plus `dur` en `style`; `tts.json` houdt de oude `date` (2026-11-21), cosmetisch. `tts-verdacht-22-11`: leest alleen lokaal en draait ffmpeg; geen netwerk, geen geheimen.
+- Constitution: speltekst Nederlands, in de credits alleen handles van auteurs, geen echte namen; live treinen niet in Samen (privacytekst en code kloppen); de rules_audit-uitzondering voor `audiocredits.js` is beperkt tot `freesound.org` en `creativecommons.org` zonder fetch; de workflows lezen `inputs` via `env:` en de Android-taak draait alleen voor de eigenaar.
+- Niet beoordeeld: de stemclips en manifesten op hoorbare kwaliteit, en de testbank-scripts van Samen in detail.
