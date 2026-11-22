@@ -602,6 +602,8 @@ Bij de dekkingsaudit ([COOP-DEKKING-21-11.md](COOP-DEKKING-21-11.md), `scripts/c
 
 **Stemmen, geluid en muziek.** Opgenomen stemmen, geluid en muziek speelt elk apparaat zelf af uit zijn eigen bestanden; dempen is van de speler zelf (`coopgeluid.js`). Geluid van andere spelers (schoten, motoren) komt als gebeurtenis binnen en wordt lokaal gespeeld. Er is geen spraakchat (#451, later en opt-in). Tests: `scripts/coopgeluid_test.mjs`, `scripts/voicebank_retry_test.mjs`.
 
+**Wind, natte stappen en demping onder een gesprek (22-11, `sfx/sfxfeel.js`).** Lokaal per speler, zonder bericht en zonder opslag: het windbed volgt de eigen plek en het gedeelde uur en weer (`windStrength` zit in de weerlaag die host en gast gelijk berekenen), de plons onder een stap volgt de natheid van de grond op het eigen apparaat, en de demping van omgeving, motor en stappen volgt de stemmen die op dat apparaat klinken. Een gast hoort dus zijn eigen mix; wie wegvalt of later aansluit heeft niets bij te werken. Test: `scripts/sfxfeel_test.mjs`.
+
 **Instellingen.** Instellingen (`gde-settings`) zijn per apparaat; niemand, ook niet wie het spel opende, past de instellingen van een ander aan. Cheats zijn de uitzondering die hierboven staat (uit zodra er een tweede speler is). Samen spelen aan of uit zetten staat bij Instellingen > Samen spelen. Tests: `scripts/settings_online_test.mjs`, `scripts/instellingen_test.mjs`.
 
 **Balans en groepsbonus.** Prijzen, loon en beloningen rekenen per speler en zijn voor iedereen gelijk (geen voordeel voor wie het spel opende); de groepsbonus van ADR 0020 komt per deelnemer erbovenop en is begrensd (`groepsbonus.js`). Zie [BALANS-21-11.md](BALANS-21-11.md).
