@@ -26,7 +26,7 @@ export function initFeatureReveal() {
   setRevealSource({ open: storyWorldOpen, owns });
 }
 
-// `legacy`: de poort van deze save is oud ("alles open"): wie al voorbij het moment is krijgt alles meteen, zonder melding.
+// `legacy`: de poort van deze save is oud ("alles open"): wie al voorbij het moment is krijgt alles meteen, zonder melding. Mag een functie zijn: die wordt alleen op de tik van 2 s aangeroepen.
 export function updateFeatureReveal(dt, w, legacy) {
   if (!w || typeof document === 'undefined' || !document.body.classList.contains('game-started')) return;
   t += dt;
@@ -35,7 +35,7 @@ export function updateFeatureReveal(dt, w, legacy) {
   let b;
   try { b = getBezit(); } catch (e) { return; }
   if (!b || !b.x) return;
-  const mig = migrateTold(Array.isArray(b.x.menuTold) ? b.x.menuTold.filter((k) => typeof k === 'string').slice(0, 16) : undefined, legacy);
+  const mig = migrateTold(Array.isArray(b.x.menuTold) ? b.x.menuTold.filter((k) => typeof k === 'string').slice(0, 16) : undefined, typeof legacy === 'function' ? !!legacy() : legacy);
   const r = mig.silent ? { told: mig.told, notes: [] } : nextReveals(mig.told);
   if (!Array.isArray(b.x.menuTold) || r.told.length !== b.x.menuTold.length) b.x.menuTold = r.told;
   if (typeof w.addMessage === 'function') for (const text of r.notes) w.addMessage(text, 6, { kind: 'tip', key: `menu-onthuld-${text}`, important: true });

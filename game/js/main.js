@@ -1252,7 +1252,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     updateStoryBridge(world.paused ? 0 : dt, world, storyBridgeView(), () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen());
     // 22-11: de begincutscene van de voetbalcarrière en van het eerste perceel (careerdebutrun.js), eenmaal per speler, op een rustig moment
     updateCareerDebuts(world.paused ? 0 : dt, world, storyBridgeView(), () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen());
-    updateFeatureReveal(world.paused ? 0 : dt, world, !storyGateProgress().gate); // de melding "Nieuw in je menu"; een oude save krijgt alles stil
+    updateFeatureReveal(world.paused ? 0 : dt, world, () => !storyGateProgress().gate); // de melding "Nieuw in je menu"; een oude save krijgt alles stil
     probe.mark('story');
     updateStreetSigns(dt, world, getScene());
     const animDt = world.paused && !doorloop ? 0 : gameDt;
