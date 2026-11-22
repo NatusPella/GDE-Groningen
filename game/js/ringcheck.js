@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { setLoadHold } from './loadlogic.js';
 import { gridItems } from './spatialgrid.js';
 // The ring race lap (ringroute.js) and the other grade-separated ring roads
 // must be free of anything solid across the lanes. probeRingSolids lists
@@ -262,6 +263,7 @@ export async function driveRingLap(world) {
   const p = hoofdspeler(world);
   const keep = { x: p.x, y: p.y, paused: world.uiPaused };
   world.uiPaused = true;
+  setLoadHold(world, 'ringcheck-lap', true); // phone.js refreshPause recomputes uiPaused every frame; the hold keeps the world still for the whole check
   const C = routeCursor();
   try {
     const scripted = await scriptedLap(world, C);
@@ -269,6 +271,7 @@ export async function driveRingLap(world) {
     return { scripted, ai };
   } finally {
     p.x = keep.x; p.y = keep.y;
+    setLoadHold(world, 'ringcheck-lap', false);
     world.uiPaused = keep.paused;
   }
 }
@@ -499,6 +502,7 @@ export async function driveWaterCrossings(world, speed = 80 / 3.6) {
   const map = world.map, p = hoofdspeler(world);
   const keep = { x: p.x, y: p.y, paused: world.uiPaused };
   world.uiPaused = true;
+  setLoadHold(world, 'ringcheck-water', true); // same one-frame pause as the ring lap (phone.js refreshPause)
   const out = [];
   let n = 0;
   try {
@@ -521,6 +525,7 @@ export async function driveWaterCrossings(world, speed = 80 / 3.6) {
     }
   } finally {
     p.x = keep.x; p.y = keep.y;
+    setLoadHold(world, 'ringcheck-water', false);
     world.uiPaused = keep.paused;
   }
   return { drives: n, fails: out };
