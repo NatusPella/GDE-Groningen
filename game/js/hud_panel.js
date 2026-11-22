@@ -414,6 +414,7 @@ export function initHud(world) {
     channelChip: speedo.querySelector('.sp-zender'),
     channelText: speedo.querySelector('.sp-zender b'),
     channelName: '',
+    channelIcon: 'muziek',
     channelAt: null,
     mmWrap,
     mmCanvas,
@@ -1872,6 +1873,12 @@ function updateChannelChip(dt, world) {
     els.channelName = naam;
     setText(els.channelText, naam);
     els.channelChip.hidden = !naam;
+  }
+  const ic = (r && r.icon) || 'muziek';
+  if (ic !== els.channelIcon) {
+    els.channelIcon = ic;
+    const old = els.channelChip.querySelector('svg');
+    if (old) old.outerHTML = icoon(ic, { maat: 14 });
   }
   if (r && naam && r.at !== els.channelAt) {
     els.channelAt = r.at;

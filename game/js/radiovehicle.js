@@ -15,6 +15,8 @@ export const RADIO_KINDS = Object.freeze({
   boer: { label: 'Trekker en landbouwmachine', prefs: ['wierde', 'ruis'] },
   luxe: { label: 'Sportwagen, suv en taxi', prefs: ['nachtjazz', 'nachtstreek'] },
   tokkie: { label: 'Fatbike, step, brommer, motor en opgevoerde auto', prefs: ['tokkie'] },
+  // `soft`: zolang geen voorkeur open is blijft de wereldradio staan (geen G-Music als terugval): Veenvuur FM is nog Binnenkort
+  zwaar: { label: 'Vrachtwagen, bestelbus en kluiswagen', prefs: ['veenvuur'], soft: true },
   ov: { label: 'Bus en trein', prefs: ['gmusic'] },
   boot: { label: 'Boot en zeilboot', prefs: ['noordkust', 'nachtstreek'] },
   lucht: { label: 'Helikopter en vliegtuig', prefs: ['gmusic'] },
@@ -28,6 +30,7 @@ export const RADIO_KIND_IDS = Object.keys(RADIO_KINDS);
 // model valt terug op 'auto' (de wereldradio blijft staan).
 const BY_NAME = {
   tractor: 'boer', quad: 'boer', maaidorser: 'boer', laadmachine: 'boer', trekkerlimo: 'boer',
+  truck: 'zwaar', van: 'zwaar', cashvan: 'zwaar',
   sport: 'luxe', suv: 'luxe', taxi: 'luxe',
   scooter: 'tokkie', motor: 'tokkie', gokart: 'tokkie',
   bus: 'ov', midibus: 'ov', tram: 'ov', trein: 'ov',
@@ -63,6 +66,7 @@ export function vehicleChannel(kind, open, remembered = {}) {
   if (k.follow) return { channel: null, source: 'wereld' };
   const pref = k.prefs.find((id) => open.includes(id));
   if (pref) return { channel: pref, source: 'voorkeur' };
+  if (k.soft) return { channel: null, source: 'wereld' };
   return { channel: open.includes(DEFAULT_CHANNEL) ? DEFAULT_CHANNEL : (open[0] || DEFAULT_CHANNEL), source: 'terugval' };
 }
 

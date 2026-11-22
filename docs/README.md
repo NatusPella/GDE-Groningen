@@ -110,6 +110,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [RADIO-BEDIENING-22-11.md](<RADIO-BEDIENING-22-11.md>) | De radio bedienen met alleen een controller of toetsenbord: de knop per situatie, het zenderwiel, N kort en lang, de Samen-regel en de herbinding. |
 | [RADIOZENDERS-21-11.md](<RADIOZENDERS-21-11.md>) | Ontwerp en naslag van de radiokeuze: zenders met eigen pool, anti-herhaling, de geheime zender en de Samen-regel voor een gedeeld voertuig (ADR 0046). |
 | [MUZIEK-NOORDKUST-22-11.md](<MUZIEK-NOORDKUST-22-11.md>) | Muziekronde voor Radio Noordkust en Nachtjazz Radio: twaalf kustteksten en zes jazzprompts die klaarstaan voor Gemini, met de koppelstappen. |
+| [MUZIEK-METAL-22-11.md](<MUZIEK-METAL-22-11.md>) | Metalzender Veenvuur FM: zendergezicht, DJ-regels, voertuigen, Samen spelen en dertien nummerprompts voor Gemini, met de stand van wat gemaakt is. |
 | [ONBOARDING.md](<ONBOARDING.md>) | Doel: zien of iemand die de game niet kent in de eerste dertig minuten begrijpt wie hij is, |
 | [OPSCHONEN-20-11.md](<OPSCHONEN-20-11.md>) | Opschonen van scene3d.js, missions.js en main.js (#497): wat verplaatst is naar welke module, wat bewust is overgeslagen en waarom. |
 | [ONTWIKKELEN.md](<ONTWIKKELEN.md>) | Developer notes (in English, like ARCHITECTURE.md): test switches, |

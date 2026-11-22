@@ -148,7 +148,7 @@ export function selectChannel(id, { announce: show = true, auto = false, groep =
 let vehState = outsideState();
 let vehSeen = null;
 // what the HUD chip beside the speedometer shows (hud_panel.js): the short channel name and when it last changed
-const hudRadio = { name: '', at: 0 };
+const hudRadio = { name: '', at: 0, icon: 'muziek' };
 const remembered = () => cleanRemembered(getSettings().radioVehicle);
 function rememberVehicle(id) {
   const cur = remembered();
@@ -167,6 +167,8 @@ export function updateRadioVehicle(w) {
   w.radioHud = vehState.kind || v ? hudRadio : null;
   const name = on && vehState.kind ? hudName(channelById(channelId)) : '';
   if (hudRadio.name !== name) hudRadio.name = name;
+  const face = on && vehState.kind ? (channelById(channelId) || {}).face : null;
+  hudRadio.icon = (face && face.icon) || 'muziek'; // the channel's own face (radiochannels.js), else the note
   if (v === vehSeen) return;
   const open = openChannelIds();
   if (!open.length) return; // the records are not loaded yet: try again next frame

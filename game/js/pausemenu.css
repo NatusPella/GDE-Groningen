@@ -1397,4 +1397,5 @@ html.pad-active #pause-menu.gm :is(.ra, .m-li, .m-tab, .m-bp, .m-bg, .m-bt, .m-c
 /* de zenderkeuze in Instellingen > Geluid (radiokeuze.js, 21-11): een kolom rijen met de volgende-knop eronder */
 #pause-menu .pm-channels { display: flex; flex-direction: column; margin: var(--ds-s-2) 0; }
 #pause-menu .pm-channel { text-align: left; cursor: pointer; }
+#pause-menu .pm-channel-face { display: inline-flex; vertical-align: -2px; }
 #pause-menu .pm-channel-actie { display: flex; justify-content: flex-end; margin-bottom: var(--ds-s-3); }

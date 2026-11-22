@@ -37,7 +37,9 @@ for (const c of CHANNELS) {
 const ids = new Set(tracks.map((t) => t.id));
 for (const id of Object.keys(STYLES)) ok(ids.has(id), `stijlregel ${id} staat in het manifest`);
 const styles = new Set(Object.values(STYLES).flat());
-for (const c of CHANNELS) for (const s of (c.pool.styles || [])) ok(styles.has(s), `${c.id}: stijl ${s} komt voor`);
+// 'metal' (Veenvuur FM, 22-11) hoeft nog niet voor te komen zolang er geen metalnummers zijn goedgekeurd: dan is de zender Binnenkort
+const NOG_LEEG = new Set(['metal']);
+for (const c of CHANNELS) for (const s of (c.pool.styles || [])) ok(styles.has(s) || NOG_LEEG.has(s), `${c.id}: stijl ${s} komt voor`);
 
 // 2. de pools en de standen
 const status0 = channelStatus(tracks, { found: [] });
@@ -47,6 +49,23 @@ ok(of('nachtstreek').status === 'open' && of('nachtstreek').tracks >= MIN_POOL, 
 ok(of('wierde').status === 'open' && of('wierde').tracks >= MIN_POOL, `Wierde Radio (streek): ${of('wierde').tracks} nummers`);
 ok(of('ruis').status === 'hidden', 'de geheime zender is verborgen zolang hij niet gevonden is');
 ok(of('noordkust').status === 'soon' && of('noordkust').tracks < MIN_POOL, `Radio Noordkust blijft 'binnenkort' (${of('noordkust').tracks} nummers)`);
+// Veenvuur FM (22-11): het zendergezicht, de veilige terugval met een lege pool en het openen zodra er genoeg metalnummers zijn
+const vv = channelById('veenvuur');
+ok(vv && vv.face && vv.face.icon === 'doodshoofd' && /^#[0-9a-f]{6}$/i.test(vv.face.color), 'Veenvuur FM heeft een zendergezicht (icoon en kleur)');
+ok(vv.lines.length >= 6 && vv.programme.talk.includes('dj') && vv.pool.styles.includes('metal'), 'Veenvuur FM: DJ-regels en de stijl metal');
+const metalTracks = Object.entries(STYLES).filter(([, v]) => v.includes('metal')).length;
+ok(of('veenvuur').status === (metalTracks >= vv.minPool ? 'open' : 'soon') && of('veenvuur').tracks === metalTracks, `Veenvuur FM: ${metalTracks} metalnummers, status ${of('veenvuur').status}`);
+ok(of('veenvuur').icon === 'doodshoofd' && !of('wierde').icon, 'het zendergezicht staat in de lijst; zenders zonder gezicht houden hun weergave');
+{
+  const fake = (i) => normalizeTrack({ file: `Metal_Test_${i}.mp3`, stations: ['gmusic'] });
+  const six = Array.from({ length: 6 }, (_, i) => fake(i));
+  const STY = STYLES;
+  for (const t of six) STY[t.id] = ['metal'];
+  ok(channelStatus([...tracks, ...six], { found: [] }).find((s) => s.id === 'veenvuur').status === 'open', 'Veenvuur FM wordt te kiezen zodra er zes metalnummers zijn');
+  ok(channelStatus([...tracks, ...six.slice(0, 5)], { found: [] }).find((s) => s.id === 'veenvuur').status === 'soon', 'met vijf metalnummers blijft hij Binnenkort');
+  for (const t of six) delete STY[t.id];
+}
+ok(!/(Metallica|Slayer|Iron Maiden|Black Sabbath|Rammstein|Sabaton)/i.test([vv.name, vv.dj, vv.ident, vv.sub, ...vv.lines].join(' ')), 'Veenvuur FM: geen echte band of zender');
 const open0 = openChannels(tracks, { found: [] });
 ok(!open0.includes('noordkust') && !open0.includes('ruis'), 'binnenkort en verborgen zijn niet te kiezen');
 ok(listChannels(tracks, { found: [] }).some((s) => s.id === 'noordkust') && !listChannels(tracks, { found: [] }).some((s) => s.id === 'ruis'), 'de lijst toont binnenkort, nooit een geheime zender die nog niet gevonden is');
